@@ -4,6 +4,7 @@
  
   Comments:
     The notation is presented in the first routine in which parameters appear.
+    Memory for the S_DB structure is freed in FreeMemory.c. (ToBeModified)
  
   Notation:
  
@@ -19,33 +20,34 @@ struct S_DB {
   int MPIsize, MPIrank;
 
   // Initialization
-  char *prefix, *MeshFile, *MeshPath, *MeshType, *Form, *NodeType, *BasisType, *TestCase;
+  char *TestCase, *MeshType, *Form, *NodeType, *BasisType, *MeshFile;
   int  d, ML, Vectorized, EFE, Collocated, Adaptive, P, PMax, Restart, Testing;
 
   // Parameters
-  int  NP, NDE, **SF_BE, AC, ExactGeom,
-       PR, PP, PGs, *PGc, **PCs, **PCc, **PJs, **PJc,
-       *PF, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
   char *Parametrization,
        ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
        ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
+  int  NP, NDE, AC, ExactGeom, PR, PP, PGs,
+       *PGc, *PF,
+       **SF_BE, **PCs, **PCc, **PJs, **PJc, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
   // Mesh
-  struct S_ELEMENT *ELEMENT;
-
-  int    NVe, NPVe, NfMax, NfveMax, *PVe, NETotal, *NE, *EType, *ETags, *EToVe, *EToPrt,
-         NV, NGF, NVC, NGFC, *VToV, *VToF, *VToGF, *VToBC, *GFToVe, *VC, *GFC;
+  int NVe, NPVe, NfMax, NfveMax, NETotal, NV, NGF, NVC, NGFC,
+      *PVe, *NE, *EType, *ETags, *EToVe, *EToPrt, *VToV, *VToF, *VToGF, *VToBC, *GFToVe, *VC, *GFC;
   double *VeXYZ;
 
+  // Structures
+  struct S_ELEMENT *ELEMENT;
 };
 extern struct S_DB DB;
 
-typedef struct S_ELEMENT {
+struct S_ELEMENT {
   // Mesh
-  int present, type, d, Nve, Nf, *Nfve, *VeC, *VeE, *VeF;
+  int present, type, d, Nve, Nf, 
+      *Nfve, *VeC, *VeE, *VeF;
   //int present, type, d, Nve, Nf, Nfve[2], VeC[8], VeE[12*2], VeF[6*4];
 
   struct S_ELEMENT *next;
-} S_ELEMENT;
+};
 
 #endif // DPG__database_h_INCLUDED

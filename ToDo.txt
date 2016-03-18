@@ -1,0 +1,5 @@
+When finished adding all of the headers needed for the code, include all headers in each file and comment those not
+needed by the current function. This is more verbose than having some "headers.h" include but should be clearer for
+debugging (and faster to compile? Need to confirm this)
+
+

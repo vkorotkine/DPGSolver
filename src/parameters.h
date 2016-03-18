@@ -27,15 +27,19 @@
 #define WEDGE 6
 #define PYR   7
 
-/*  Node Tolerance (for physical coordinate comparison)  */
+//  Node Tolerance (for physical coordinate comparison)
 #define NODETOL 1.e-12
 
-/*  Value close to machine zero  */
+//  Value close to machine zero
 #define EPS     1.e-15
 
-/*  Min/Max String Lengths  */
+//  Min/Max String Lengths
 #define STRLEN_MIN 64
 #define STRLEN_MAX 512
+
+// Macros
+#define max(a,b) ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _a : _b; })
+#define min(a,b) ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a < _b ? _a : _b; })
 
 
 

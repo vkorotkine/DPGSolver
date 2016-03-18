@@ -10,7 +10,6 @@ BEGIN PARAMETERS
   MeshType   StructuredMixed
 
   Form       Weak  // Options: Weak, Strong
-  ESFRType   DG    // Options: DG, g2
   NodeType   GL-AO // Options: GL/GLL-AO/WS/SH
   BasisType  Nodal // Options: Nodal, Modal
 
@@ -25,30 +24,8 @@ BEGIN PARAMETERS
   Restart    -1    // Options: -1, 0, Iteration #
 
   Testing    1     // Options: 0, 1
-
-
-  Nwrite     0
-  Nrestart   0
-  Irestart   0
 END PARAMETERS
-
-BEGIN SOLVER
-  --------------------------------------------------------
-  P      Solver       niter          dt          mode
-  --------------------------------------------------------
-  2      RK           100            1E-3        NONE
-  --------------------------------------------------------
-END SOLVER
 
 BEGIN MESH
 MeshPath ../meshes/
 END MESH
-
-BEGIN FLAG
-IM_TOL        1E-11
-JACOBIAN_UPD  100
-LINEARIZE_UPD 2
-MONITOR_UPD   1E4
-NCURV         2
-GEOM          0
-END FLAG
