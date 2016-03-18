@@ -1,0 +1,14 @@
+bin/*
+obj/*
+src/*~
+src/*.swp
+*~
+Makefile
+
+meshes/PeriodicVortex/*
+meshes/VortexRiemann/*
+meshes/SupersonicVortex/*
+cases/*.swp
+cases/logfile
+cases/errorfile*
+cases/outputfile*
