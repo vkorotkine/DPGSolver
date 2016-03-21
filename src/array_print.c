@@ -18,7 +18,7 @@
 
 */
 
-void ArrayPrinti(int m, int n, int *A) {
+void array_print_i(int m, int n, int *A) {
   int i, j;
 
   for (i = 0; i < m; i++) {
@@ -30,7 +30,7 @@ void ArrayPrinti(int m, int n, int *A) {
   printf("\n");
 }
 
-void ArrayPrintl(int m, int n, long *A) {
+void array_print_l(int m, int n, long *A) {
   int i, j;
 
   for (i = 0; i < m; i++) {
@@ -42,7 +42,7 @@ void ArrayPrintl(int m, int n, long *A) {
   printf("\n");
 }
 
-void ArrayPrintll(int m, int n, long long *A) {
+void array_print_ll(int m, int n, long long *A) {
   int i, j;
 
   for (i = 0; i < m; i++) {
@@ -54,7 +54,7 @@ void ArrayPrintll(int m, int n, long long *A) {
   printf("\n");
 }
 
-void ArrayPrintf(int m, int n, float *A) {
+void array_print_f(int m, int n, float *A) {
   int i, j;
 
   for (i = 0; i < m; i++) {
@@ -66,7 +66,7 @@ void ArrayPrintf(int m, int n, float *A) {
   printf("\n");
 }
 
-void ArrayPrintd(int m, int n, double *A) {
+void array_print_d(int m, int n, double *A) {
   int i, j;
 
   for (i = 0; i < m; i++) {
@@ -78,7 +78,7 @@ void ArrayPrintd(int m, int n, double *A) {
   printf("\n");
 }
 
-void ArrayPrintld(int m, int n, long double *A) {
+void array_print_ld(int m, int n, long double *A) {
   int i, j;
 
   for (i = 0; i < m; i++) {

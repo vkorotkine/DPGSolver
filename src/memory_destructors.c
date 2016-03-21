@@ -20,7 +20,7 @@
 
 */
 
-void MemoryDestructorE(struct S_ELEMENT *ELEMENT) {
+void memory_destructor_E(struct S_ELEMENT *ELEMENT) {
   free(ELEMENT->Nfve);
   free(ELEMENT->VeC);
   free(ELEMENT->VeE);

@@ -37,7 +37,7 @@
 
 */
 
-void SetupMesh()
+void setup_mesh()
 {
   int type, i, NfMax, NfveMax;
   
@@ -199,7 +199,7 @@ void SetupMesh()
 
   // Read mesh file
   if (!DB.MPIrank) printf("    Read MeshFile\n");
-  GmshReader();
+  gmsh_reader();
 
   // Initialize DB Parameters set in GmshReader
   int NETotal = DB.NETotal,
@@ -246,13 +246,15 @@ void SetupMesh()
     }
   }
 
+//  printf("Transition exit\n"), exit(1);
+
   // Build Connectivity
   if (!DB.MPIrank) printf("    Set up Connectivity\n");
-  SetupConnectivity();
+  setup_connectivity();
 
   // Modify connectivity if periodic
   if (DB.NPVe != 0) {
     if (!DB.MPIrank) printf("    Modify connectivity for periodic\n");
-    SetupPeriodic();
+    setup_periodic();
   }
 }

@@ -20,7 +20,7 @@
 
 */
 
-void MemoryFree(void) {
+void memory_free(void) {
   // DB Parameters
 
     // Initialization
@@ -30,28 +30,28 @@ void MemoryFree(void) {
 
       // SetupParameters
       free(DB.Parametrization);
-      ArrayFree3c(DB.NP,DB.NDE,DB.NodeTypeS);
-      ArrayFree3c(DB.NP,DB.NDE,DB.NodeTypeF);
-      ArrayFree3c(DB.NP,DB.NDE,DB.NodeTypeFrs);
-      ArrayFree3c(DB.NP,DB.NDE,DB.NodeTypeFrc);
-      ArrayFree3c(DB.NP,DB.NDE,DB.NodeTypeIfs);
-      ArrayFree3c(DB.NP,DB.NDE,DB.NodeTypeIfc);
-      ArrayFree3c(DB.NP,DB.NDE,DB.NodeTypeIvs);
-      ArrayFree3c(DB.NP,DB.NDE,DB.NodeTypeIvc);
+      array_free3_c(DB.NP,DB.NDE,DB.NodeTypeS);
+      array_free3_c(DB.NP,DB.NDE,DB.NodeTypeF);
+      array_free3_c(DB.NP,DB.NDE,DB.NodeTypeFrs);
+      array_free3_c(DB.NP,DB.NDE,DB.NodeTypeFrc);
+      array_free3_c(DB.NP,DB.NDE,DB.NodeTypeIfs);
+      array_free3_c(DB.NP,DB.NDE,DB.NodeTypeIfc);
+      array_free3_c(DB.NP,DB.NDE,DB.NodeTypeIvs);
+      array_free3_c(DB.NP,DB.NDE,DB.NodeTypeIvc);
 
       free(DB.PGc);
       free(DB.PF);
-      ArrayFree2i(DB.NP,DB.SF_BE);
-      ArrayFree2i(DB.NP,DB.PCs);
-      ArrayFree2i(DB.NP,DB.PCc);
-      ArrayFree2i(DB.NP,DB.PJs);
-      ArrayFree2i(DB.NP,DB.PJc);
-      ArrayFree2i(DB.NP,DB.PFrs);
-      ArrayFree2i(DB.NP,DB.PFrc);
-      ArrayFree2i(DB.NP,DB.PIfs);
-      ArrayFree2i(DB.NP,DB.PIfc);
-      ArrayFree2i(DB.NP,DB.PIvs);
-      ArrayFree2i(DB.NP,DB.PIvc);
+      array_free2_i(DB.NP,DB.SF_BE);
+      array_free2_i(DB.NP,DB.PCs);
+      array_free2_i(DB.NP,DB.PCc);
+      array_free2_i(DB.NP,DB.PJs);
+      array_free2_i(DB.NP,DB.PJc);
+      array_free2_i(DB.NP,DB.PFrs);
+      array_free2_i(DB.NP,DB.PFrc);
+      array_free2_i(DB.NP,DB.PIfs);
+      array_free2_i(DB.NP,DB.PIfc);
+      array_free2_i(DB.NP,DB.PIvs);
+      array_free2_i(DB.NP,DB.PIvc);
 
       // SetupMesh
       free(DB.PVe), free(DB.NE), free(DB.EType), free(DB.ETags), free(DB.EToVe), free(DB.EToPrt);
@@ -64,7 +64,7 @@ void MemoryFree(void) {
   ELEMENT = DB.ELEMENT;
   do {
     ELEMENTnext = ELEMENT->next;
-    MemoryDestructorE(ELEMENT);
+    memory_destructor_E(ELEMENT);
     ELEMENT = ELEMENTnext;
   } while(ELEMENTnext != NULL);
 

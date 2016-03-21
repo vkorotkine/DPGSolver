@@ -20,7 +20,7 @@
     A   : Input array to looked in.
     val : Value of A to be found.
 
-  Example (ArrayFindIndexOi):
+  Example (array_find_indexo_i):
 
     A = [0 1 1 4 5 7 7 7 7 7]
     val = 7
@@ -36,12 +36,12 @@
       Atest[0] = 0; Atest[1] = 1; Atest[2] = 1; Atest[3] = 4; Atest[4] = 5;
       Atest[5] = 7; Atest[6] = 7; Atest[7] = 7; Atest[8] = 7; Atest[9] = 7;
 
-      ArrayFindIndexOi(10,Atest,7,Idxtest,Lentest);
+      array_find_indexo_i(10,Atest,7,Idxtest,Lentest);
       printf("%d %d\n",Idxtest,Lentest);
 
 */
 
-void ArrayFindIndexOi(int LenA, int *A, int val, int *IdxF, int *LenF) {
+void array_find_indexo_i(int LenA, int *A, int val, int *IdxF, int *LenF) {
   int IndL, IndR, IndM, Aval;
 
   *LenF = 0;
@@ -70,7 +70,7 @@ void ArrayFindIndexOi(int LenA, int *A, int val, int *IdxF, int *LenF) {
       break;
     }
   }
-  if (*LenF == 0) printf("Did not find any matches in ArrayFindIndexOi"), exit(1);
+  if (*LenF == 0) printf("Did not find any matches in array_find_indexo_i"), exit(1);
 
   // Find how many times the value is repeated and the first entry
   IndL = IndM; IndR = IndM;

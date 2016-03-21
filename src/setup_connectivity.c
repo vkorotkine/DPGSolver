@@ -52,7 +52,7 @@
     Hesthaven (Nodal DG Code): https://github.com/tcew/nodal-dg
 */
 
-void SetupConnectivity()
+void setup_connectivity()
 {
   // Initialize DB Parameters
   int   d        = DB.d,
@@ -137,7 +137,7 @@ void SetupConnectivity()
   IndicesGF = malloc(NGF * sizeof *IndicesGF); // free
   for (i = 0; i < NGF; i++) IndicesGF[i] = i;
 
-  ArraySorti(NGF,NfveMax,FToVe,IndicesGF,'R','T');
+  array_sort_i(NGF,NfveMax,FToVe,IndicesGF,'R','T');
 
   FNveSwap = malloc(NGF * sizeof *FNveSwap); // free
   VToVSwap = malloc(NGF * sizeof *VToVSwap); // free
@@ -252,7 +252,7 @@ void SetupConnectivity()
   IndicesBF = malloc(NBF * sizeof *IndicesBF); // free
   for (i = 0; i < NBF; i++) IndicesBF[i] = i;
 
-  ArraySorti(NBF,NfveMax,BFToVe,IndicesBF,'R','T');
+  array_sort_i(NBF,NfveMax,BFToVe,IndicesBF,'R','T');
 
   BTags = malloc(NE[d-1]*(NfveMax+1) * sizeof *BTags); // free
 
@@ -370,19 +370,19 @@ void SetupConnectivity()
   DB.GFC    = GFC;
 
   if (PrintTesting && Testing && MPIrank == 0) {
-    printf("VToVe:\n");          ArrayPrinti(DB.NV,8,VToVe);
-    //printf("VType:\n");          ArrayPrinti(DB.NV,1,VType);
-    printf("FNve (Sorted):\n");  ArrayPrinti(DB.NGF,1,FNve);
-    printf("FToVe (Sorted):\n"); ArrayPrinti(DB.NGF,DB.NfveMax,FToVe);
-    printf("VToV:\n");           ArrayPrinti(DB.NV,DB.NfMax,VToV);    
-    printf("VToF:\n");           ArrayPrinti(DB.NV,DB.NfMax,VToF);    
-    printf("BFToVe:\n");         ArrayPrinti(DB.NE[d-1],DB.NfveMax,BFToVe);
-    //printf("BTags:\n");          ArrayPrinti(DB.NE[d-1],DB.NfveMax+1,BTags);
-    printf("VToBC:\n");          ArrayPrinti(DB.NV,DB.NfMax,VToBC);
-    printf("VToGF:\n");          ArrayPrinti(DB.NV,DB.NfMax,VToGF);
-    printf("GFToVe:\n");         ArrayPrinti(DB.NGF,DB.NfveMax,GFToVe);
-    printf("VC:\n");             ArrayPrinti(1,DB.NVC,VC);
-    printf("GFC:\n");            ArrayPrinti(1,DB.NGFC,GFC);
+    printf("VToVe:\n");          array_print_i(DB.NV,8,VToVe);
+    //printf("VType:\n");          array_print_i(DB.NV,1,VType);
+    printf("FNve (Sorted):\n");  array_print_i(DB.NGF,1,FNve);
+    printf("FToVe (Sorted):\n"); array_print_i(DB.NGF,DB.NfveMax,FToVe);
+    printf("VToV:\n");           array_print_i(DB.NV,DB.NfMax,VToV);    
+    printf("VToF:\n");           array_print_i(DB.NV,DB.NfMax,VToF);    
+    printf("BFToVe:\n");         array_print_i(DB.NE[d-1],DB.NfveMax,BFToVe);
+    //printf("BTags:\n");          array_print_i(DB.NE[d-1],DB.NfveMax+1,BTags);
+    printf("VToBC:\n");          array_print_i(DB.NV,DB.NfMax,VToBC);
+    printf("VToGF:\n");          array_print_i(DB.NV,DB.NfMax,VToGF);
+    printf("GFToVe:\n");         array_print_i(DB.NGF,DB.NfveMax,GFToVe);
+    printf("VC:\n");             array_print_i(1,DB.NVC,VC);
+    printf("GFC:\n");            array_print_i(1,DB.NGFC,GFC);
   }
 
   // Free memory

@@ -98,7 +98,7 @@
 
 */
 
-void GmshReader()
+void gmsh_reader()
 {
   // Initialize DB Parameters
   char  *MeshFile = DB.MeshFile;
@@ -310,8 +310,8 @@ void GmshReader()
           // Find all possible periodic connections then eliminate connections unless d-1 coordinates are shared.
           if ((dimEntered[0] == 0 && dim == 1 && d == 2) || 
               (dimEntered[1] == 0 && dim == 2 && d == 3)) {
-            FindPeriodicConnections(PVeOver,&NPVe,NVe);
-            //ArrayPrinti(NPVe,2,PVeOver);
+            find_periodic_connections(PVeOver,&NPVe,NVe);
+            //array_print_i(NPVe,2,PVeOver);
 
             PVeOverTrue = malloc(NPVe*2 * sizeof *PVeOverTrue); // free
             for (i = 0, iMax = NPVe*2; i < iMax; i++) PVeOverTrue[i] = PVeOver[i];
@@ -330,19 +330,19 @@ void GmshReader()
             }
             free(veMatch);
 
-            //ArrayPrinti(IndP,2,PVeOverTrue);
+            //array_print_i(IndP,2,PVeOverTrue);
             for (i = IndP*2, iMax = NPVe*2; i < iMax; i++) PVeOver[i] = 0;
 
             NPVe = IndP;
             for (i = 0, iMax = NPVe*2; i < iMax; i++) PVeOver[i] = PVeOverTrue[i];
             free(PVeOverTrue);
 
-            //ArrayPrinti(NPVe,2,PVeOver);
+            //array_print_i(NPVe,2,PVeOver);
             dimEntered[dim-1] = 1;
           }
          
           IndicesDummy = malloc(2*NPVe * sizeof *IndicesDummy); // free
-          ArraySorti(NPVe,2,PVeOver,IndicesDummy,'R','T');
+          array_sort_i(NPVe,2,PVeOver,IndicesDummy,'R','T');
           free(IndicesDummy);
 
           // gmsh sometimes gives the nodes and sometimes does not... Further, even when gmsh lists nodes here, it does
@@ -378,8 +378,8 @@ void GmshReader()
           PetscSortInt(IndES*NveMax,&NodesSOver[0]);
           PetscSortInt(IndEM*NveMax,&NodesMOver[0]);
 
-//ArrayPrinti(1,IndS,NodesSOver);
-//ArrayPrinti(1,IndM,NodesMOver);
+//array_print_i(1,IndS,NodesSOver);
+//array_print_i(1,IndM,NodesMOver);
 
           // Remove duplicates
           for (i = 1, NnS = 1; i < IndS; i++) {
@@ -402,8 +402,8 @@ void GmshReader()
           for (i = 0; i < NnM; i++) NodesM[i] = NodesMOver[i];
           free(NodesMOver);
 
-//ArrayPrinti(1,NnS,NodesS);
-//ArrayPrinti(1,NnS,NodesM);
+//array_print_i(1,NnS,NodesS);
+//array_print_i(1,NnS,NodesM);
 
           if (NnS != NnM) printf("Error: NnS != NnM.\n"),	exit(1);
           
@@ -430,13 +430,13 @@ void GmshReader()
             IndicesS[i] = i;
             IndicesM[i] = i;
           }
-          ArraySortd(NnS,dim,VeS,IndicesS,'R','T');		
-          ArraySortd(NnS,dim,VeM,IndicesM,'R','T');		
+          array_sort_d(NnS,dim,VeS,IndicesS,'R','T');		
+          array_sort_d(NnS,dim,VeM,IndicesM,'R','T');		
 
-//ArrayPrintd(NnS,dim,VeS);
-//ArrayPrinti(1,NnS,IndicesS);
-//ArrayPrintd(NnS,dim,VeM);
-//ArrayPrinti(1,NnS,IndicesM);
+//array_print_d(NnS,dim,VeS);
+//array_print_i(1,NnS,IndicesS);
+//array_print_d(NnS,dim,VeM);
+//array_print_i(1,NnS,IndicesM);
 
           free(VeS);
           free(VeM);
@@ -457,8 +457,8 @@ void GmshReader()
           free(IndicesS);
           free(IndicesM);
 
-//ArrayPrinti(1,NnS,NodesS);
-//ArrayPrinti(1,NnS,NodesM);
+//array_print_i(1,NnS,NodesS);
+//array_print_i(1,NnS,NodesM);
 
           PVePossible = malloc(NnS*2 * sizeof *PVePossible); // free
           for (i = 0; i < NnS; i++) {
@@ -470,10 +470,10 @@ void GmshReader()
           free(NodesM);
 
           IndicesDummy = malloc(NnS*2 * sizeof *IndicesDummy); // free
-          ArraySorti(NnS,2,PVePossible,IndicesDummy,'R','T');
+          array_sort_i(NnS,2,PVePossible,IndicesDummy,'R','T');
           free(IndicesDummy);
 
-//ArrayPrinti(NnS,2,PVePossible);
+//array_print_i(NnS,2,PVePossible);
 
           for (i = 0, IndPVe = 0; i < NnS; i++) {
             while (IndPVe < NPVe && PVeOver[IndPVe*2+0] < PVePossible[i*2+0]) {
@@ -499,7 +499,7 @@ void GmshReader()
             fscanf(fID,"%[^\n]\n",StringRead);
           }
 
-//ArrayPrinti(NPVe,2,PVeOver);
+//array_print_i(NPVe,2,PVeOver);
 
         }    
       }
@@ -521,7 +521,7 @@ void GmshReader()
 
       NPVe = 2*NPVe;
       IndicesDummy = malloc(NPVe*2 * sizeof *IndicesDummy); // free
-      ArraySorti(NPVe,2,PVe,IndicesDummy,'R','T');
+      array_sort_i(NPVe,2,PVe,IndicesDummy,'R','T');
       free(IndicesDummy);
     }
   }
@@ -666,13 +666,13 @@ void GmshReader()
 
   // Testing
   if (!(MPIrank) && Testing && PrintTesting) {
-    printf("NE:\n");     ArrayPrinti(1,4,DB.NE);
-    printf("VeXYZ:\n");  ArrayPrintd(DB.NVe,d,DB.VeXYZ);
-    printf("EType:\n");  ArrayPrinti(1,DB.NETotal,DB.EType);
-    printf("ETags:\n");  ArrayPrinti(DB.NETotal,2,DB.ETags);
-    printf("EToVe:\n");  ArrayPrinti(DB.NETotal,8,DB.EToVe);
-    printf("EToPrt:\n"); ArrayPrinti(1,DB.NE[d],DB.EToPrt);
-    printf("PVe:\n");    ArrayPrinti(DB.NPVe,2,DB.PVe);
+    printf("NE:\n");     array_print_i(1,4,DB.NE);
+    printf("VeXYZ:\n");  array_print_d(DB.NVe,d,DB.VeXYZ);
+    printf("EType:\n");  array_print_i(1,DB.NETotal,DB.EType);
+    printf("ETags:\n");  array_print_i(DB.NETotal,2,DB.ETags);
+    printf("EToVe:\n");  array_print_i(DB.NETotal,8,DB.EToVe);
+    printf("EToPrt:\n"); array_print_i(1,DB.NE[d],DB.EToPrt);
+    printf("PVe:\n");    array_print_i(DB.NPVe,2,DB.PVe);
   }
 
   // Free memory 

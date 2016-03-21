@@ -25,7 +25,7 @@
     M       : (M)aster
     S       : (S)lave
   
-  Example (ArraySorti):
+  Example (array_sort_i):
     Notation: The array, A, is listed above and the Indices array is listed below the dashed line.
 
     Unsorted:
@@ -84,14 +84,14 @@
       ArrayPrinti(Rtest,Ctest,Atest);
       ArrayPrinti(1,Ctest,Indicestest);
      
-      ArraySorti(Rtest,Ctest,Atest,Indicestest,'R','N');
+      array_sort_i(Rtest,Ctest,Atest,Indicestest,'R','N');
      
       ArrayPrinti(Rtest,Ctest,Atest);
       ArrayPrinti(1,Ctest,Indicestest);
 
 
 
-    Test for ArraySortd:
+    Test for array_sort_d:
 
 			int *Indicestest, Rtest = 3, Ctest = 10;
 			double *Atest;
@@ -110,14 +110,14 @@
 			ArrayPrintd(Rtest,Ctest,Atest);
 			ArrayPrinti(1,Ctest,Indicestest);
 								
-			ArraySortd(Rtest,Ctest,Atest,Indicestest,'R','N');
+			array_sort_d(Rtest,Ctest,Atest,Indicestest,'R','N');
 													 
 			ArrayPrintd(Rtest,Ctest,Atest);
 			ArrayPrinti(1,Ctest,Indicestest);
 
 */
 
-void ArraySorti(int NRows, int NCols, int *A, int *Indices, char ordering, char trans) {
+void array_sort_i(int NRows, int NCols, int *A, int *Indices, char ordering, char trans) {
   int i, count, swap;
   int row, col, colMs[NRows], colMe[NRows], SortLen, rowM, rowS;
   int *Indicestmp, *IndicesInter, *Atmp;
@@ -129,7 +129,7 @@ void ArraySorti(int NRows, int NCols, int *A, int *Indices, char ordering, char 
   else if ((ordering == 'R' && trans == 'N') || (ordering == 'C' && trans == 'T')) {
     // Don't do anything.
   }
-  else printf("Error: Invalid ordering/trans input to ArraySort"), exit(1); 
+  else printf("Error: Invalid ordering/trans input to array_sort_"), exit(1); 
   //ArrayPrinti(NRows,NCols,A);
 
   for (row = 0; row < NRows; row++) {
@@ -215,7 +215,7 @@ void ArraySorti(int NRows, int NCols, int *A, int *Indices, char ordering, char 
   //ArrayPrinti(NRows,NCols,A);
 }
 
-void ArraySortd(int NRows, int NCols, double *A, int *Indices, char ordering, char trans) {
+void array_sort_d(int NRows, int NCols, double *A, int *Indices, char ordering, char trans) {
   int i, count, swap;
   int row, col, colMs[NRows], colMe[NRows], SortLen, rowM, rowS;
   int *Indicestmp, *IndicesInter;
@@ -228,7 +228,7 @@ void ArraySortd(int NRows, int NCols, double *A, int *Indices, char ordering, ch
   else if ((ordering == 'R' && trans == 'N') || (ordering == 'C' && trans == 'T')) {
     // Don't do anything.
   }
-  else printf("Error: Invalid ordering/trans input to ArraySort"), exit(1); 
+  else printf("Error: Invalid ordering/trans input to array_sort_"), exit(1); 
   //ArrayPrintd(NRows,NCols,A);
 
   for (row = 0; row < NRows; row++) {

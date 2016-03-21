@@ -41,7 +41,7 @@
 
 */
 
-void SetupPeriodic()
+void setup_periodic()
 {
   // Initialize DB Parameters
   int   d        = DB.d,
@@ -121,9 +121,9 @@ void SetupPeriodic()
     }
   }
 
-//ArrayPrinti(1,d,NPF);
-//ArrayPrinti(1,d,NPFSum);
-//ArrayPrinti(NETotal,2,ETags);
+//array_print_i(1,d,NPF);
+//array_print_i(1,d,NPFSum);
+//array_print_i(NETotal,2,ETags);
 
   GFToRemove = malloc(NPFTotal * sizeof *GFToRemove); // free
   PFToGFM    = malloc(NPFTotal * sizeof *PFToGFM); // free
@@ -150,8 +150,8 @@ void SetupPeriodic()
     }}
   }
 
-//ArrayPrinti(1,NPFTotal,PFToGFM);
-//ArrayPrinti(1,NPFTotal,PFToGFS);
+//array_print_i(1,NPFTotal,PFToGFM);
+//array_print_i(1,NPFTotal,PFToGFS);
 
   PFToVeM = malloc(NPFSum[d-1]*NfveMax * sizeof *PFToVeM); // free
   PFToVeS = malloc(NPFSum[d-1]*NfveMax * sizeof *PFToVeS); // free
@@ -177,8 +177,8 @@ void SetupPeriodic()
   free(PFToGFM);
   free(PFToGFS);
 
-//ArrayPrinti(NPFSum[d-1],NfveMax,PFToVeM);
-//ArrayPrinti(NPFSum[d-1],NfveMax,PFToVeS);
+//array_print_i(NPFSum[d-1],NfveMax,PFToVeM);
+//array_print_i(NPFSum[d-1],NfveMax,PFToVeS);
 
   // Make array of possible connections for each node
   NPVeUnique = 1;
@@ -205,9 +205,9 @@ void SetupPeriodic()
     IndPVe += j;
   }
 
-//ArrayPrinti(1,NPVeUnique,NConn);
-//ArrayPrinti(NPVeUnique,3,PConn);
-//ArrayPrinti(1,NPVeUnique,PVeUnique);
+//array_print_i(1,NPVeUnique,NConn);
+//array_print_i(NPVeUnique,3,PConn);
+//array_print_i(1,NPVeUnique,PVeUnique);
 
   // Find Corresponding Periodic Facets 
   for (dim = 0, iStart = 0, IndPFM = 0; dim < d; dim++) {
@@ -242,7 +242,7 @@ void SetupPeriodic()
         for (IndveM = 0; IndveM < NpveM; IndveM++) {
         for (IndveS = 0; IndveS < NpveM; IndveS++) {
           if (PFSFound[PFS] == 0 && matchM[IndveM] == -1 && matchS[IndveS] == -1) {
-            ArrayFindIndexOi(NPVeUnique,PVeUnique,veS[IndveS],&IndPVe,&tmp);
+            array_find_indexo_i(NPVeUnique,PVeUnique,veS[IndveS],&IndPVe,&tmp);
             for (i = 0; i < NConn[IndPVe]; i++) {
               if (PConn[IndPVe*3+i] == veM[IndveM]) {
                 matchM[IndveM] = veM[IndveM];
@@ -353,11 +353,11 @@ void SetupPeriodic()
 
   // Testing
   if (PrintTesting && Testing && MPIrank == 0) {
-    printf("VToV:\n");       ArrayPrinti(DB.NV,DB.NfMax,DB.VToV);
-    printf("VToF:\n");       ArrayPrinti(DB.NV,DB.NfMax,DB.VToF);
-    printf("VToGF:\n");      ArrayPrinti(DB.NV,DB.NfMax,DB.VToGF);
-    //printf("GFToRemove:\n"); ArrayPrinti(1,NPFSum[d-1],GFToRemove);
-    printf("GFToVe:\n");     ArrayPrinti(DB.NGF,DB.NfveMax,DB.GFToVe);
+    printf("VToV:\n");       array_print_i(DB.NV,DB.NfMax,DB.VToV);
+    printf("VToF:\n");       array_print_i(DB.NV,DB.NfMax,DB.VToF);
+    printf("VToGF:\n");      array_print_i(DB.NV,DB.NfMax,DB.VToGF);
+    //printf("GFToRemove:\n"); array_print_i(1,NPFSum[d-1],GFToRemove);
+    printf("GFToVe:\n");     array_print_i(DB.NGF,DB.NfveMax,DB.GFToVe);
   }
 
   // Free memory

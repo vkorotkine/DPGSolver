@@ -73,7 +73,7 @@
 
 */
 
-void SetupParameters()
+void setup_parameters()
 {
   // Initialize DB Parameters
   int d          = DB.d,
