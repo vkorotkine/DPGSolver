@@ -13,57 +13,56 @@
  *
  *	Notation:
  *
- *		DB				:	(D)ata(B)ase
- *
  *		Code Parameters
  *			Dimension  : d = 1-3
  *			ML         : (M)esh (L)evel - Uniform refinement level from base mesh (ML = 0)
  *			MeshType   : Specifies element types used and if the mesh is 'ToBeCurved' in setup_geometry.c
  *
  *			Form       : Form of the equations (i.e. how many times they are itnegrated by parts)
- *			             Options : Weak
- *			                       Strong
+ *			             Options: Weak
+ *			                      Strong
  *			NodeType   : Type of VOLUME nodes to use for different element types
- *			             Options : (T)ensor(P)roduct : (G)auss(L)egendre
- *			                                           (G)auss(L)obatto(L)egendre
- *			                       (SI)mplex         : (A)lpha(O)ptimized
- *			                                           (W)illiams(S)hun - 2D
- *			                                           (S)hun(H)am      - 3D
- *			                       WEDGE             : Combination of TP and SI nodes
- *			                       (PYR)amid         : ToBeModified
+ *			             Options: (T)ensor(P)roduct : (G)auss(L)egendre
+ *			                                          (G)auss(L)obatto(L)egendre
+ *			                      (SI)mplex         : (A)lpha(O)ptimized
+ *			                                          (W)illiams(S)hun - 2D
+ *			                                          (S)hun(H)am      - 3D
+ *			                                          Keast (ToBeModified)
+ *			                      WEDGE             : Combination of TP and SI nodes
+ *			                      (PYR)amid         : ToBeModified
  *			BasisType  : Type of basis functions
- *			             Options : Nodal
- *			                            Modal
+ *			             Options: Nodal
+ *			                      Modal
  *			Vectorized : Type of vectorization to use
- *			             Options : 0 (None)
- *			                       1 (Standard C loops)
- *			                       2 (BLAS, Dense operators only)
- *			                       3 (BLAS, All operators)
+ *			             Options: 0 (None)
+ *			                      1 (Standard C loops)
+ *			                      2 (BLAS, Dense operators only)
+ *			                      3 (BLAS, All operators)
  *			EFE        : (E)exact (F)lux (E)valuation - Reduces aliasing if enabled (The analogue in the strong form is
  *			             the CR (Chain-Rule) approach)
- *			             Options : 0 (Not used)
- *			                       1 (Used)
+ *			             Options: 0 (Not used)
+ *			                      1 (Used)
  *			Collocated : Specify whether VOLUME nodes should be collocated (Solution/Flux/Flux in reference
  *			             space/Integration nodes)
- *			             Options : 0 (Not collocated)
- *			                       1 (Collocated)
+ *			             Options: 0 (Not collocated)
+ *			                      1 (Collocated)
  *			Adaptive   : Specify whether adaptation should be used and, if yes, of which type
- *			             Options : 0 (None)
- *			                       1 (p)
- *			                       2 (h)
- *			                       3 (hp)
+ *			             Options: 0 (None)
+ *			                      1 (p)
+ *			                      2 (h)
+ *			                      3 (hp)
  *
  *			P          : Polynomial order to be used (not used if p-adaptation is enabled)
  *			PMax       : Maximum polynomial order to be used (used onnly if p-adaptation is enabled)
- *			
+ *
  *			Restart    : Specify whether the solution initialization should be based on a previous solution
- *			             Options : -1           (None)
- *			                        0           (Restart based on solution of order P-1)
- *			                        Iteration # (Restart based on solution of order P at specified iteration #)
+ *			             Options: -1           (None)
+ *			                       0           (Restart based on solution of order P-1)
+ *			                       Iteration # (Restart based on solution of order P at specified iteration #)
  *
  *			Testing    : Run tests for standard checks.
- *			             Options : 0 (No testing)
- *			                       1 (Testing)
+ *			             Options: 0 (No testing)
+ *			                      1 (Testing)
  *
  *	References:
  *
@@ -126,7 +125,7 @@ void initialization(int nargc, char **argv)
 		if (strstr(StringRead,"PMax")       != NULL) sscanf(StringRead,"%s %d",dummys,&DB.PMax);
 		if (strstr(StringRead,"Restart")    != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Restart);
 		if (strstr(StringRead,"Testing")    != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Testing);
-		
+
 		// Mesh file
 		if (strstr(StringRead,"BEGIN MESH") != NULL) {
 			fscanf(fID,"%s %s\n",dummys,MeshPath);

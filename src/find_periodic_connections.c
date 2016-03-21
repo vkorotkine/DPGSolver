@@ -1,134 +1,130 @@
 #include <stdlib.h>
 #include <stdio.h>
-//#include <string.h>
-//#include <math.h>
 
-//#include "database.h"
-//#include "parameters.h"
 #include "functions.h"
 
 #include "petscsys.h"
 
-/* 
-  Purpose:
-    Given a list of periodic vertex correspondence, find all possible matches between the vertices.
-
-  Comments:
-    Each row of the list is sorted in ascending order. Hence, reversed entries are redundant and not included.
-
-  Notation:
-    PVe : List of periodic vertices (pve x 2 array)
-    pve : Index of last row in PVe
-
-  Example:
-
-    Input:
-      PVe = 
-        1 0
-        2 8
-        1 3
-        8 3
-        3 2
-        8 1
-        5 8
-
-      pve = 7
-        
-    Pass 1:
-
-      PVeMatches:
-        1 0 0 0 0 0 0 0
-        0 3 8 0 0 0 0 0
-        3 8 0 0 0 0 0 0
-        1 2 8 0 0 0 0 0
-        8 0 0 0 0 0 0 0
-        1 2 3 5 0 0 0 0
-
-      Updated PVe (Sorted):
-        0 1
-        0 3
-        0 8
-        1 2
-        1 3
-        1 5
-        1 8
-        2 3
-        2 5
-        2 8
-        3 5
-        3 8
-        5 8
-
-    Pass 2:
-
-      PVeMatches:
-        1 3 8 0 0 0 0 0
-        0 2 3 5 8 0 0 0
-        1 3 5 8 0 0 0 0
-        0 1 2 5 8 0 0 0
-        1 2 3 8 0 0 0 0
-        0 1 2 3 5 0 0 0
-
-      Updated PVe (Sorted):
-        0 1
-        0 2
-        0 3
-        0 5
-        0 8
-        1 2
-        1 3
-        1 5
-        1 8
-        2 3
-        2 5
-        2 8
-        3 5
-        3 8
-        5 8
-
-    Pass 3:
-
-      PVeMatches:
-        1 2 3 5 8 0 0 0
-        0 2 3 5 8 0 0 0
-        0 1 3 5 8 0 0 0
-        0 1 2 5 8 0 0 0
-        0 1 2 3 8 0 0 0
-        0 1 2 3 5 0 0 0
-
-      Updated PVe (Sorted):
-        No change => Done!
-
-
-    Code:
- 
-      int *PVeTest, pvetest;
-
-      PVeTest = malloc(6*6*2 * sizeof *PVeTest);
-
-      PVeTest[0] = 1;  PVeTest[1] = 0;
-      PVeTest[2] = 2;  PVeTest[3] = 8;
-      PVeTest[4] = 1;  PVeTest[5] = 3;
-      PVeTest[6] = 8;  PVeTest[7] = 3;
-      PVeTest[8] = 3;  PVeTest[9] = 2;
-      PVeTest[10] = 8; PVeTest[11] = 1;
-      PVeTest[12] = 5; PVeTest[13] = 8;
-
-      pvetest = 7;
-
-      pve = pvetest;
-      array_print_i(pve,2,PVeTest);
-      
-      FindPeriodicConnections(PVeTest,&pvetest,NVe); 
-
-      pve = pvetest;
-      array_print_i(pve,2,PVeTest);
-      
+/*
+*	Purpose:
+*	Given a list of periodic vertex correspondence, find all possible matches between the vertices.
+*
+*	Comments:
+*	Each row of the list is sorted in ascending order. Hence, reversed entries are redundant and not included.
+*
+*	Notation:
+*	PVe : List of periodic vertices (pve x 2 array)
+*	pve : Index of last row in PVe
+*
+*	Example:
+*
+*	Input:
+*	PVe = 
+*	1 0
+*	2 8
+*	1 3
+*	8 3
+*	3 2
+*	8 1
+*	5 8
+**
+*	pve = 7
+*
+*	Pass 1:
+*
+*	PVeMatches:
+*	1 0 0 0 0 0 0 0
+*	0 3 8 0 0 0 0 0
+*	3 8 0 0 0 0 0 0
+**	1 2 8 0 0 0 0 0
+*	8 0 0 0 0 0 0 0
+*	1 2 3 5 0 0 0 0
+*
+*	Updated PVe (Sorted):
+*	0 1
+*	0 3
+*	0 8
+*	1 2
+*	1 3
+*	1 5
+**	1 8
+*	2 3
+*	2 5
+*	2 8
+*	3 5
+*	3 8
+*	5 8
+*
+*	Pass 2:
+*
+*	PVeMatches:
+*	1 3 8 0 0 0 0 0
+**	0 2 3 5 8 0 0 0
+*	1 3 5 8 0 0 0 0
+*	0 1 2 5 8 0 0 0
+**	1 2 3 8 0 0 0 0
+*	0 1 2 3 5 0 0 0
+*
+*	Updated PVe (Sorted):
+*	0 1
+*	0 2
+*	0 3
+*	0 5
+*	0 8
+**	1 2
+*	1 3
+*	1 5
+*	1 8
+*	2 3
+*	2 5
+*	2 8
+*	3 5
+*	3 8
+*	5 8
+**
+*	Pass 3:
+*
+*	PVeMatches:
+*	1 2 3 5 8 0 0 0
+*	0 2 3 5 8 0 0 0
+*	0 1 3 5 8 0 0 0
+*	0 1 2 5 8 0 0 0
+*	0 1 2 3 8 0 0 0
+*	0 1 2 3 5 0 0 0
+*
+*	Updated PVe (Sorted):
+*	No change => Done!
+*
+*
+*	Code:
+*
+*	int *PVeTest, pvetest;
+*
+*	PVeTest = malloc(6*6*2 * sizeof *PVeTest);
+**
+*	PVeTest[0] = 1;  PVeTest[1] = 0;
+*	PVeTest[2] = 2;  PVeTest[3] = 8;
+*	PVeTest[4] = 1;  PVeTest[5] = 3;
+*	PVeTest[6] = 8;  PVeTest[7] = 3;
+*	PVeTest[8] = 3;  PVeTest[9] = 2;
+*	PVeTest[10] = 8; PVeTest[11] = 1;
+*	PVeTest[12] = 5; PVeTest[13] = 8;
+*
+*	pvetest = 7;
+*
+*	pve = pvetest;
+*	array_print_i(pve,2,PVeTest);
+**
+*	FindPeriodicConnections(PVeTest,&pvetest,NVe); 
+*
+*	pve = pvetest;
+*	array_print_i(pve,2,PVeTest);
+*
 */
 
-void find_periodic_connections(int *PVe, int *pvePointer, int VeMax) {
-  int i, j, k;
-  int pve, *IndicesDummy, Modified, *PVe1D, NUnique, *PVeUnique, *PVeUniqueOver, *PVeMatches, *IndPVeMatches;
+	void find_periodic_connections(int *PVe, int *pvePointer, int VeMax) {
+	int i, j, k;
+	int pve, *IndicesDummy, Modified, *PVe1D, NUnique, *PVeUnique, *PVeUniqueOver, *PVeMatches, *IndPVeMatches;
   int IndRow, LenF, match, row, col, n2, *PVePotential, IndPVe;
 
   pve = *pvePointer;

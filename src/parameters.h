@@ -1,14 +1,14 @@
 /*
-  Purpose:
-    Define parameters
- 
-  Comments:
- 
-  Notation:
- 
-  References:
- 
-*/
+ *	Purpose:
+ *		Define parameters.
+ *
+ *	Comments:
+ *
+ *	Notation:
+ *
+ *	References:
+ *
+ */
 
 #ifndef DPG__parameters_h__INCLUDED
 #define DPG__parameters_h__INCLUDED
@@ -30,7 +30,7 @@
 //  Node Tolerance (for physical coordinate comparison)
 #define NODETOL 1.e-12
 
-//  Value close to machine zero
+//  Value close to double machine zero
 #define EPS     1.e-15
 
 //  Min/Max String Lengths

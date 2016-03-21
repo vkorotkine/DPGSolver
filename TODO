@@ -1,5 +1,8 @@
-When finished adding all of the headers needed for the code, include all headers in each file and comment those not
-needed by the current function. This is more verbose than having some "headers.h" include but should be clearer for
-debugging (and faster to compile? Need to confirm this)
+grep through all files for 'ToBeModified' and 'ToBeDeleted' comments, making appropriate modifications when possible.
+
+change tab spaces to 8 and increase max lines to check alignment of the code under different options in .vimrc
 
 
+formatting left to be fixed:
+array_find_index.c
+find_periodic_connections.c
