@@ -57,23 +57,10 @@ int main(int nargc, char **argv)
 		printf("  Set up Mesh\n");
 	setup_mesh();
 
+	if (!DB.MPIrank)
+		printf("  Set up Operators\n");
 
 
-
-	// ONCE PETSC FUNCTIONS ARE USED, SWITCH TO PETSC-3.6
-	// ONCE PETSC FUNCTIONS ARE USED, SWITCH TO PETSC-3.6
-	// ONCE PETSC FUNCTIONS ARE USED, SWITCH TO PETSC-3.6
-
-
-
-//	if (!DB.MPIrank)
-//		printf("  Set up Operators\n");
-
-
-
-	// ONCE PETSC FUNCTIONS ARE USED, SWITCH TO PETSC-3.6
-	// ONCE PETSC FUNCTIONS ARE USED, SWITCH TO PETSC-3.6
-	// ONCE PETSC FUNCTIONS ARE USED, SWITCH TO PETSC-3.6
 
 	memory_free();
 

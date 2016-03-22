@@ -11,7 +11,7 @@
 
 # C standard and compiler
 CSTD = -std=c99
-CC   = mpicc -fopenmp -m64 
+# CC   = mpicc -fopenmp -m64 
 
 # Options
 # OPTS = -O3
@@ -22,14 +22,37 @@ STD_LIB = -lm
 
 
 # Includes
-UNAME_S := $(shell uname -s)
+KERNEL  := $(shell uname -s)
+MACHINE := $(shell uname -m)
+
+#all:
+#	@echo $(KERNEL)
+#	@echo ${MACHINE}
+
 
 # OSX
-ifeq ($(UNAME_S),Darwin)
+ifeq ($(KERNEL),Darwin)
   PROG_PATH = /Users/philipzwanenburg/Desktop/Research_Codes/Downloaded
-  PETSC_DIR = ${PROG_PATH}/petsc/petsc-3.2-p7
-  # Note: Debugging enabled on METIS
-  METIS_DIR = ${PROG_PATH}/parmetis/parmetis-4.0.3
+
+  CC = ${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/
+#  CC = ${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-opt/bin/
+#  CC = mpicc -fopenmp -m64
+
+#  PETSC_DIR = ${PROG_PATH}/petsc/petsc-3.2-p7 (ToBeDeleted)
+  PETSC_DIR = ${PROG_PATH}/petsc/petsc-3.6.3
+  PETSC_ARCH = arch-darwin-mpich-c-debug
+#  PETSC_ARCH = arch-darwin-mpich-c-opt
+#  PETSC_ARCH = arch-darwin-c-opt
+
+  # METIS_DIR = ${PROG_PATH}/parmetis/parmetis-4.0.3
+  METIS_DIR = ${PROG_PATH}/parmetis_mpich/parmetis-4.0.3/build/debug
+#  METIS_DIR = ${PROG_PATH}/parmetis_mpich/parmetis-4.0.3/build/opt
+
+  METIS_INC      = -I${METIS_DIR}/metis/include
+  METIS_LDINC    = -L${METIS_DIR}/libmetis -lmetis
+  PARMETIS_INC   = -I${METIS_DIR}/include
+  PARMETIS_LDINC = -L${METIS_DIR}/libparmetis -lparmetis
+
   MKL_DIR   = ${PROG_PATH}/intel/mkl
   MKL_INC = -I${MKL_DIR}/include
   # MKL statically linked on OSX as the -Wl,--no-as-needed option is not supported by the OSX linker
@@ -39,12 +62,19 @@ ifeq ($(UNAME_S),Darwin)
 endif
 													
 # LINUX
-ifeq ($(UNAME_S),Linux)
+ifeq ($(KERNEL),Linux)
+  CC   = mpicc -fopenmp -m64 
+
   # Specify PROG_PATH in .bashrc
   PETSC_DIR = ${PROG_PATH}/petsc-3.2-p7
   METIS_DIR = ${PROG_PATH}/parmetis-4.0.2
   MKL_INC   = -I$(MKLROOT)/include
   MKL_LDINC = -Wl,--no-as-needed -L$(MKLROOT)/lib/intel64 -lmkl_intel_lp64 -lmkl_core	-lmkl_gnu_thread -ldl -lpthread -lgomp
+
+  METIS_INC      = -I${METIS_DIR}/metis/include
+  METIS_LDINC    = -L${METIS_DIR}/build/${OP_SYS}/libmetis -lmetis
+  PARMETIS_INC   = -I${METIS_DIR}/include
+  PARMETIS_LDINC = -L${METIS_DIR}/build/${OP_SYS}/libparmetis -lparmetis
 
   OP_SYS    = Linux-x86_64
 endif
@@ -57,10 +87,6 @@ else
 	include ${PETSC_DIR}/lib/petsc/conf/variables
 endif
 
-METIS_INC      = -I${METIS_DIR}/metis/include
-METIS_LDINC    = -L${METIS_DIR}/build/${OP_SYS}/libmetis -lmetis
-PARMETIS_INC   = -I${METIS_DIR}/include
-PARMETIS_LDINC = -L${METIS_DIR}/build/${OP_SYS}/libparmetis -lparmetis
 
 # missing LIBPATH, DEFINES
 LIBS = $(STD_LIB) $(PETSC_INC) $(PETSC_LIB) $(METIS_INC) $(METIS_LDINC) $(PARMETIS_INC) $(PARMETIS_LDINC) $(MKL_INC) $(MKL_LDINC)

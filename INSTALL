@@ -1,1 +1,76 @@
-Fill me in!
+
+On Guillimin, either the programs can be downloaded and configured manually or the following packages can be added:
+
+FILL ME IN.
+
+
+
+
+PETSC (petsc-3.6.3)
+
+	OpenMPI:
+
+	0) Prerequisites based on my build (other options in brackets => not verified): 
+
+		OpenMPI, 
+		Intel MKL (Other BLAS/Lapack libraries)
+
+	1) Download and extract .tar file.
+	2) PETSC Configuration options:
+		It is suggested to make two build directories, with debugging enabled/disabled.
+		I was unable to build PETSC using COPTFLAGS='-O3 -march=native -mtune=native' on OSX 10.10
+
+		./configure PETSC_ARCH=arch-darwin-c-debug --with-cc=mpicc --with-cxx=mpicxx --with-fc=mpif90 --with-blas-lapack-dir=/Users/philipzwanenburg/Desktop/Research_Codes/Downloaded/intel/mkl --with-debugging=1
+
+		./configure PETSC_ARCH=arch-darwin-c-opt --with-cc=mpicc --with-cxx=mpicxx --with-fc=mpif90 --with-blas-lapack-dir=/Users/philipzwanenburg/Desktop/Research_Codes/Downloaded/intel/mkl --with-debugging=0
+
+	3) Follow make instructions for installation and testing
+	make PETSC_DIR=/Users/philipzwanenburg/Desktop/Research_Codes/Downloaded/petsc/petsc-3.6.3 PETSC_ARCH=arch-darwin-c-debug all
+
+	make PETSC_DIR=/Users/philipzwanenburg/Desktop/Research_Codes/Downloaded/petsc/petsc-3.6.3 PETSC_ARCH=arch-darwin-c-debug test
+
+	make PETSC_DIR=/Users/philipzwanenburg/Desktop/Research_Codes/Downloaded/petsc/petsc-3.6.3 PETSC_ARCH=arch-darwin-c-debug streams NPMAX=2
+
+
+	mpich - fewer valgrind memory leaks:
+
+	0) Prerequisites:
+
+		Intel MKL
+
+	1) Download and extract .tar file.
+	2) PETSC Configuration options:
+		It is suggested to make two build directories, with debugging enabled/disabled.
+		I was unable to build PETSC using COPTFLAGS='-O3 -march=native -mtune=native' on OSX 10.10
+
+		./configure PETSC_ARCH=arch-darwin-mpich-c-debug --download-mpich --with-blas-lapack-dir=/Users/philipzwanenburg/Desktop/Research_Codes/Downloaded/intel/mkl --with-debugging=1
+
+		./configure PETSC_ARCH=arch-darwin-mpich-c-opt --download-mpich --with-blas-lapack-dir=/Users/philipzwanenburg/Desktop/Research_Codes/Downloaded/intel/mkl --with-debugging=0
+
+	3) Follow make instructions for installation and testing (as above with OpenMPI)
+
+
+ParMETIS (parmetis-4.0.3)
+
+	0) Prerequisites:
+
+		MPI (either OpenMPI or mpich (used below), link appropriately)
+
+	1) Download and extract .tar file
+	2) In the top directory, modify the following parameters in the Makefile:
+
+		debug  = 1
+		prefix = /Users/philipzwanenburg/Desktop/Research_Codes/Downloaded/parmetis_mpich/parmetis-4.0.3/build/debug/
+		cc     = /Users/philipzwanenburg/Desktop/Research_Codes/Downloaded/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/mpicc
+		cxx    = /Users/philipzwanenburg/Desktop/Research_Codes/Downloaded/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/mpicxx
+
+		BUILDDIR = build/debug
+
+	3) Execute make commands
+
+		shell: make config
+		shell: make install
+ 
+
+
+

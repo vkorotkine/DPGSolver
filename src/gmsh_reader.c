@@ -128,7 +128,8 @@ void gmsh_reader()
 
 	// Parmetis datatypes
 	idx_t  *elmdist, *eptr, *eind, *numflag, *ncommonnodes,
-	       *elmwgt, *wgtflag, *ncon, *nparts, *options, *edgecut, *part;
+	       *elmwgt = NULL,
+		   *wgtflag, *ncon, *nparts, *options, *edgecut, *part;
 	real_t *tpwgts, *ubvec;
 
 	// MPI datatypes
@@ -593,12 +594,12 @@ void gmsh_reader()
 	numflag[0]      = 0;
 	ncommonnodes[0] = d;
 
-	elmwgt  = malloc(1 * sizeof *elmwgt); // free
+//	elmwgt  = malloc(1 * sizeof *elmwgt); // free
 	wgtflag = malloc(1 * sizeof *wgtflag); // free
 	ncon    = malloc(1 * sizeof *ncon); // free
 	nparts  = malloc(1 * sizeof *nparts); // free
 
-	elmwgt     = NULL;
+//	elmwgt     = NULL;
 	wgtflag[0] = 0;
 	ncon[0]    = 1;
 	nparts[0]  = MPIsize;
@@ -623,7 +624,7 @@ void gmsh_reader()
 	part = malloc((elmdist[MPIrank+1]-elmdist[MPIrank]) * sizeof *part); // free
 
 	ParMETIS_V3_PartMeshKway(
-		elmdist,eptr,eind,elmwgt,wgtflag,numflag,ncon,ncommonnodes,nparts,tpwgts,ubvec,options,edgecut,part,&comm);
+ 		elmdist,eptr,eind,elmwgt,wgtflag,numflag,ncon,ncommonnodes,nparts,tpwgts,ubvec,options,edgecut,part,&comm);
 
 	// Distribute partition information to all elements.
 
@@ -700,7 +701,7 @@ void gmsh_reader()
 	METIS_Free(elmdist);
 	METIS_Free(eptr);
 	METIS_Free(eind);
-	METIS_Free(elmwgt);
+//	METIS_Free(elmwgt);
 	METIS_Free(wgtflag);
 	METIS_Free(numflag);
 	METIS_Free(ncon);
