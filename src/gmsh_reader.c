@@ -309,19 +309,17 @@ void gmsh_reader()
 					// gmsh provides the nodes => use directly
 
 					fscanf(fID,"%[^\n]\n",StringRead);
-
-NEnt = 10;
-printf("%d\n\n\n",NEnt);
-
+					// skip line beginnning with "Affine" if present
+					if (strstr(StringRead,"Affine") != NULL)
+						fscanf(fID,"%[^\n]\n",StringRead);
 
 					sscanf(StringRead,"%d",&NEnt);
-
-printf("%d\n\n\n",NEnt);
 
 					for (Ent = 0; Ent < NEnt; Ent++) {
 						fscanf(fID,"%[^\n]\n",StringRead);
 						sscanf(StringRead,"%d %d",&nodes[0],&nodes[1]);
-						for (i = 0; i < 2; i++) PVeOver[NPVe*2+i] = nodes[i]-1;
+						for (i = 0; i < 2; i++)
+							PVeOver[NPVe*2+i] = nodes[i]-1;
 						PetscSortInt(2,&PVeOver[NPVe*2+0]);
 						NPVe++;
 					}
@@ -436,7 +434,7 @@ printf("%d\n\n\n",NEnt);
 //array_print_i(1,NnS,NodesM);
 
 					if (NnS != NnM)
-						printf("Error: NnS != NnM.\n"),	exit(1);
+						printf("Error: NnS != NnM.\n"), exit(1);
 
 					// Coordinates which should match depending on which surface is periodic
 					VeS = malloc(NnS*dim * sizeof *VeS); // free
@@ -522,8 +520,12 @@ printf("%d\n\n\n",NEnt);
 					}
 					free(PVePossible);
 
+
 					// Jump to next periodic entity
 					fscanf(fID,"%[^\n]\n",StringRead);
+					// skip line beginnning with "Affine" if present
+					if (strstr(StringRead,"Affine") != NULL)
+						fscanf(fID,"%[^\n]\n",StringRead);
 					sscanf(StringRead,"%d",&NEnt);
 					for (Ent = 0; Ent < NEnt; Ent++) {
 						fscanf(fID,"%[^\n]\n",StringRead);
@@ -556,8 +558,6 @@ printf("%d\n\n\n",NEnt);
 	if (NPVe == 0) PVe = malloc(0 * sizeof *PVe); // keep
 
 	fclose(fID);
-
-  printf("looking for linux bug...\n"); exit(1);
 
 	// Add partition number to element list (in EToPrt) through communication between all processors
 	MPIrank = DB.MPIrank;
@@ -693,7 +693,7 @@ printf("%d\n\n\n",NEnt);
 	DB.PVe     = PVe;
 
 	// Testing
-	if (!(MPIrank) && Testing && PrintTesting) {
+	if (!MPIrank && Testing && PrintTesting) {
 		printf("NE:\n");     array_print_i(1,4,DB.NE);
 		printf("VeXYZ:\n");  array_print_d(DB.NVe,d,DB.VeXYZ);
 		printf("EType:\n");  array_print_i(1,DB.NETotal,DB.EType);

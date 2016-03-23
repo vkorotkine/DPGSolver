@@ -1,9 +1,45 @@
-
-On Guillimin, either the programs can be downloaded and configured manually or the following packages can be added:
-
-FILL ME IN.
+Guillimin (Linux-x86_64)
+	Using Petsc modules on guillimin resulted in errors during runtime, petsc was thus configured manually.
 
 
+PETSC (petsc-3.6.3) - mpich
+
+	0) Prerequisites (loaded modules):
+		cmake/2.8.12.2
+		MKL/11.2
+
+	1) Download and extract .tar file.
+	2) petsc configuration options:
+		A single build directory was made with debugging disabled.
+
+		./configure PETSC_ARCH=arch-linux-mpich-c-opt --download-mpich --with-blas-lapack-dir=/software/compilers/Intel/2015-15.0/composer_xe_2015.0.090/mkl --with-debugging=0 COPTFLAGS='-O3 -march=native -mtune=native'
+
+	3) Follow make instructions for installation and testing
+
+
+ParMETIS (parmetis-4.0.3)
+
+	0) Prerequisites:
+
+		MPI (either OpenMPI or mpich (used below), link appropriately)
+
+	1) Download and extract .tar file
+	2) In the top directory, modify the following parameters in the Makefile:
+
+		debug  = 1
+		prefix = /home/pzwan/programs/parmetis-4.0.3/build/opt/
+		cc     = /home/pzwan/programs/petsc-3.6.3/arch-linux-mpich-c-opt/bin/mpicc
+		cxx    = /home/pzwan/programs/petsc-3.6.3/arch-linux-mpich-c-opt/bin/mpicxx
+
+		BUILDDIR = build/opt
+
+	3) Execute make commands
+
+		shell: make config
+		shell: make install
+
+
+Personal Computer (OSX 10.10)
 
 
 PETSC (petsc-3.6.3)

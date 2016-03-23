@@ -41,7 +41,6 @@ int main(int nargc, char **argv)
 	DB.MPIsize = MPIsize;
 	DB.MPIrank = MPIrank;
 
-/*
 	// Initialization
 	initialization(nargc,argv);
 
@@ -63,7 +62,7 @@ int main(int nargc, char **argv)
 
 
 	memory_free();
-*/
+
 	// End MPI and PETSC
 	PetscFinalize();
 

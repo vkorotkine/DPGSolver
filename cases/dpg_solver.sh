@@ -27,9 +27,11 @@ case "${OSTYPE}" in
 
 		;;
 	*linux*)
+    PROG_DIR="/home/pzwan/programs"
 		TOP_DIR="/home/pzwan/Git/DPG"
-		MPI_DIR=""
+		MPI_DIR="${PROG_DIR}/petsc-3.6.3/arch-linux-mpich-c-opt/bin/"
 		#Make sure this is modified with "nodes" above
+		#N_PROCS="2"
 		N_PROCS="1"
 
 		;;
@@ -37,6 +39,7 @@ esac
 
 if [ "$USE_VALGRIND" = "1" ]; then
   VALGRIND_OPTS="valgrind --track-origins=yes --leak-check=yes"
+  #VALGRIND_OPTS="valgrind --track-origins=yes --leak-check=yes --leak-check=full --show-reachable=yes"
 else
   VALGRIND_OPTS=""
 fi

@@ -11,17 +11,15 @@
 
 # C standard and compiler
 CSTD = -std=c99
-# CC   = mpicc -fopenmp -m64 
 
 # Options
 # OPTS = -O3
 OPTS = -g -Wall -Wextra
 
 # Standard libraries (Math)
-# STD_LIB = -lm
+STD_LIB = -lm
 
-
-# Includes
+# Machine dependent parameters
 KERNEL  := $(shell uname -s)
 MACHINE := $(shell uname -m)
 
@@ -29,15 +27,12 @@ MACHINE := $(shell uname -m)
 #	@echo $(KERNEL)
 #	@echo ${MACHINE}
 
-
 # OSX
 ifeq ($(KERNEL),Darwin)
   PROG_PATH = /Users/philipzwanenburg/Desktop/Research_Codes/Downloaded
 
-  STD_LIB = -lm
-
-  CC = ${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/
-#  CC = ${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-opt/bin/
+  CC = ${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/mpicc -fopenmp -m64
+#  CC = ${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-opt/bin/mpicc -fopenmp -m64
 #  CC = mpicc -fopenmp -m64
 
 #  PETSC_DIR = ${PROG_PATH}/petsc/petsc-3.2-p7 (ToBeDeleted)
@@ -58,49 +53,36 @@ ifeq ($(KERNEL),Darwin)
   MKL_DIR   = ${PROG_PATH}/intel/mkl
   MKL_INC = -I${MKL_DIR}/include
   # MKL statically linked on OSX as the -Wl,--no-as-needed option is not supported by the OSX linker
-  MKL_LDINC = ${MKL_DIR}/lib/libmkl_intel_lp64.a ${MKL_DIR}/lib/libmkl_core.a	${MKL_DIR}/lib/libmkl_sequential.a -lpthread
-
-  OP_SYS    = Darwin-x86_64
-
-  PETSC_INC = -I PETSC_DIR/include ${PETSC_CC_INCLUDES}
-  # Run PETSC's 'variables' makefile
-	include ${PETSC_DIR}/lib/petsc/conf/variables
+  MKL_LDINC = ${MKL_DIR}/lib/libmkl_intel_lp64.a ${MKL_DIR}/lib/libmkl_core.a ${MKL_DIR}/lib/libmkl_sequential.a -lpthread
 endif
-													
+
 # LINUX
 ifeq ($(KERNEL),Linux)
-  CC   = mpicc -fopenmp -m64 
-  STD_LIB =
+  PROG_PATH = /home/pzwan/programs
 
-  PETSC_DIR = /software/CentOS-6/libraries/petsc-3.5.3-openmpi-1.6.3-intel
-  # Specify PROG_PATH in .bashrc
-  METIS_DIR = ${PROG_PATH}/parmetis-4.0.2
-  MKL_INC   = -I$(MKLROOT)/include
-  MKL_LDINC = -Wl,--no-as-needed -L$(MKLROOT)/lib/intel64 -lmkl_intel_lp64 -lmkl_core	-lmkl_gnu_thread -ldl -lpthread -lgomp
+  CC   = ${PROG_PATH}/petsc/petsc-3.6.3/arch-linux-mpich-c-opt/bin/mpicc -fopenmp -m64
 
+  PETSC_DIR = ${PROG_PATH}/petsc-3.6.3
+  PETSC_ARCH = arch-linux-mpich-c-opt
+
+  METIS_DIR = ${PROG_PATH}/parmetis-4.0.3/build/opt
   METIS_INC      = -I${METIS_DIR}/metis/include
-  METIS_LDINC    = -L${METIS_DIR}/build/${OP_SYS}/libmetis -lmetis
+  METIS_LDINC    = -L${METIS_DIR}/libmetis -lmetis
   PARMETIS_INC   = -I${METIS_DIR}/include
-  PARMETIS_LDINC = -L${METIS_DIR}/build/${OP_SYS}/libparmetis -lparmetis
+  PARMETIS_LDINC = -L${METIS_DIR}/libparmetis -lparmetis
 
-  OP_SYS    = Linux-x86_64
-
-	PETSC_INC = -I PETSC_DIR/include ${PETSC_CC_INCLUDES}
-  # Run PETSC's 'variables' makefile
-	include ${PETSC_DIR}/conf/variables
+  MKL_DIR = /software/compilers/Intel/2015-15.0/composer_xe_2015.0.090/mkl
+  MKL_INC   = -I$(MKL_DIR)/include
+  MKL_LDINC = -Wl,--no-as-needed -L$(MKL_DIR)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lgomp
 endif
 
-#PETSC_INC = -I PETSC_DIR/include ${PETSC_CC_INCLUDES}
+PETSC_INC = -I PETSC_DIR/include ${PETSC_CC_INCLUDES}
 # Run PETSC's 'variables' makefile
-#ifneq (,$(findstring 3.2-p7,$(PETSC_DIR)))
-#  include ${PETSC_DIR}/conf/variables
-#else
-#	include ${PETSC_DIR}/lib/petsc/conf/variables
-#endif
+include ${PETSC_DIR}/lib/petsc/conf/variables
 
-
-# missing LIBPATH, DEFINES
-LIBS = $(STD_LIB) $(PETSC_INC) $(PETSC_LIB) $(METIS_INC) $(METIS_LDINC) $(PARMETIS_INC) $(PARMETIS_LDINC) $(MKL_INC) $(MKL_LDINC)
+# missing LIBPATH, DEFINES (as compared to Brian's makefile)
+# Parmetis must be linked before metis
+LIBS = $(STD_LIB) $(PETSC_INC) $(PETSC_LIB) $(PARMETIS_INC) $(PARMETIS_LDINC) $(METIS_INC) $(METIS_LDINC) $(MKL_INC) $(MKL_LDINC)
 
 EXECUTABLE = DPGSolver.exe
 
@@ -128,10 +110,10 @@ OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 #
 # 	$@: target
 # 	$^: prerequisites
-# 	$<: first prerequisite only (desired if excluding headers for example) 
+# 	$<: first prerequisite only (desired if excluding headers for example)
 #
 # Compile commands:
-# 	-c:       generate object files 
+# 	-c:       generate object files
 # 	-o <arg>: output to <arg>
 
 ### Default goal + Additional required rules ###
@@ -143,7 +125,7 @@ $(EXECUTABLE) : $(OBJECTS)
 # Create objects
 # Still need to figure out how to include header dependencies.
 $(OBJECTS) : $(OBJDIR)/%.o : $(SRCDIR)/%.c
-	$(CC) $(OPTS) $(CSTD) -c -o $@ $< $(LIBS) 
+	$(CC) $(OPTS) $(CSTD) -c -o $@ $< $(LIBS)
 
 # Create directories if not present
 $(OBJECTS): | $(OBJDIR)
