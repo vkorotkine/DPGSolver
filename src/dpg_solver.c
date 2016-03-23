@@ -58,7 +58,7 @@ int main(int nargc, char **argv)
 
 	if (!DB.MPIrank)
 		printf("  Set up Operators\n");
-
+	setup_operators();
 
 
 	memory_free();

@@ -14,16 +14,17 @@
 #define DPG__functions_h__INCLUDED
 
 // Preprocessor
-extern void initialization                (int nargc, char **argv);
-extern void setup_parameters              (void);
-extern void setup_mesh                    (void);
-extern void   gmsh_reader                 (void);
-extern void   setup_connectivity          (void);
-extern void   setup_periodic              (void);
-extern void     find_periodic_connections (int *Pve, int *pvePointer, int VeMax);
-extern void setup_operators               (void);
-extern void   cubature_TP                 (double **xir, double **W, int **Con, int *Nn, int *ToReturn, int P, int d, char *NodeType);
-
+extern void   initialization                (int nargc, char **argv);
+extern void   setup_parameters              (void);
+extern void   setup_mesh                    (void);
+extern void     gmsh_reader                 (void);
+extern void     setup_connectivity          (void);
+extern void     setup_periodic              (void);
+extern void       find_periodic_connections (int *Pve, int *pvePointer, int VeMax);
+extern void   setup_operators               (void);
+extern void     cubature_TP                 (double **xir, double **W, int **Con, int *Nn, int *ToReturn, int P, int d, char *NodeType);
+extern double   *basis_TP                   (const int P, const double *xir, const int Nvn, const int d);
+extern double   jacobiP                     (const double x, const double alpha, const double beta, const int N);
 
 // Extern structs
 extern struct S_ELEMENT *New_ELEMENT (void);

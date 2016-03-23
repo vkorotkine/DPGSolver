@@ -61,11 +61,11 @@ void memory_free(void)
 	struct S_ELEMENT *ELEMENT, *ELEMENTnext;
 
 	ELEMENT = DB.ELEMENT;
-	do {
+	while (ELEMENT != NULL) {
 		ELEMENTnext = ELEMENT->next;
 		memory_destructor_E(ELEMENT);
 		ELEMENT = ELEMENTnext;
-	} while(ELEMENTnext != NULL);
+	}
 
 
 }

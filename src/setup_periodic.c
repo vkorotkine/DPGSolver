@@ -60,7 +60,7 @@ void setup_periodic()
 	      *GFC     = DB.GFC,
 
 	      Testing  = DB.Testing;
-	int   PrintTesting = 1, MPIrank = DB.MPIrank;
+	int   PrintTesting = 0, MPIrank = DB.MPIrank;
 
 	// Standard datatypes
 	int i, j, dim, BlockStart, count, gf, iMax,

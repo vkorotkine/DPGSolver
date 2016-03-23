@@ -26,7 +26,7 @@ struct S_DB {
 	// Parameters
 	char *Parametrization,
 	     ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
-		 ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
+	     ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
 	int  NP, NDE, AC, ExactGeom, PR, PP, PGs,
 	     *PGc, *PF,
 	     **SF_BE, **PCs, **PCc, **PJs, **PJc, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
@@ -45,6 +45,16 @@ struct S_ELEMENT {
 	// Mesh
 	int present, type, d, Nve, Nf,
 	    *Nfve, *VeC, *VeE, *VeF;
+	
+	// Operators
+	int    *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc, *NvnP,
+	       *NfnGc, *NfnIs, *NfnIc,
+	       **Con_xir_vP;
+	double *nr,
+	       **xir_vGs, **xir_vGc, **xir_vCs, **xir_vCc, **xir_vJs, **xir_vJc, **xir_vS, **xir_vF, **xir_vFrs, **xir_vFrc,
+	       **xir_vIs, **xir_vIc, **xir_vP,
+	       **WvIs, **WvIc,
+	       ***xir_fGc, ***xir_fIs, ***xir_fIc, **WfIs, **WfIc;
 
 	struct S_ELEMENT *next;
 };

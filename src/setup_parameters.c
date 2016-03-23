@@ -351,6 +351,12 @@ void setup_parameters()
 		} else {
 			// THESE PARAMETERS CANNOT BE MODIFIED.
 			// For collocated interpolation and integration nodes, a desired integration order cannot be specified.
+			for (i = 0; i < NDE; i++) {
+				PIfs[P][i] = 1;
+				PIfc[P][i] = 1;
+				PIvs[P][i] = 1;
+				PIvc[P][i] = 1;
+			}
 
 			if (strstr(DB.BasisType,"Nodal") == NULL) {
 				printf("Selected BasisType: %s\n.",DB.BasisType);
