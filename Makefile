@@ -18,7 +18,7 @@ CSTD = -std=c99
 OPTS = -g -Wall -Wextra
 
 # Standard libraries (Math)
-STD_LIB = -lm
+# STD_LIB = -lm
 
 
 # Includes
@@ -33,6 +33,8 @@ MACHINE := $(shell uname -m)
 # OSX
 ifeq ($(KERNEL),Darwin)
   PROG_PATH = /Users/philipzwanenburg/Desktop/Research_Codes/Downloaded
+
+  STD_LIB = -lm
 
   CC = ${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/
 #  CC = ${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-opt/bin/
@@ -59,14 +61,19 @@ ifeq ($(KERNEL),Darwin)
   MKL_LDINC = ${MKL_DIR}/lib/libmkl_intel_lp64.a ${MKL_DIR}/lib/libmkl_core.a	${MKL_DIR}/lib/libmkl_sequential.a -lpthread
 
   OP_SYS    = Darwin-x86_64
+
+  PETSC_INC = -I PETSC_DIR/include ${PETSC_CC_INCLUDES}
+  # Run PETSC's 'variables' makefile
+	include ${PETSC_DIR}/lib/petsc/conf/variables
 endif
 													
 # LINUX
 ifeq ($(KERNEL),Linux)
   CC   = mpicc -fopenmp -m64 
+  STD_LIB =
 
+  PETSC_DIR = /software/CentOS-6/libraries/petsc-3.5.3-openmpi-1.6.3-intel
   # Specify PROG_PATH in .bashrc
-  PETSC_DIR = ${PROG_PATH}/petsc-3.2-p7
   METIS_DIR = ${PROG_PATH}/parmetis-4.0.2
   MKL_INC   = -I$(MKLROOT)/include
   MKL_LDINC = -Wl,--no-as-needed -L$(MKLROOT)/lib/intel64 -lmkl_intel_lp64 -lmkl_core	-lmkl_gnu_thread -ldl -lpthread -lgomp
@@ -77,15 +84,19 @@ ifeq ($(KERNEL),Linux)
   PARMETIS_LDINC = -L${METIS_DIR}/build/${OP_SYS}/libparmetis -lparmetis
 
   OP_SYS    = Linux-x86_64
+
+	PETSC_INC = -I PETSC_DIR/include ${PETSC_CC_INCLUDES}
+  # Run PETSC's 'variables' makefile
+	include ${PETSC_DIR}/conf/variables
 endif
 
-PETSC_INC = -I PETSC_DIR/include ${PETSC_CC_INCLUDES}
+#PETSC_INC = -I PETSC_DIR/include ${PETSC_CC_INCLUDES}
 # Run PETSC's 'variables' makefile
-ifneq (,$(findstring 3.2-p7,$(PETSC_DIR)))
-  include ${PETSC_DIR}/conf/variables
-else
-	include ${PETSC_DIR}/lib/petsc/conf/variables
-endif
+#ifneq (,$(findstring 3.2-p7,$(PETSC_DIR)))
+#  include ${PETSC_DIR}/conf/variables
+#else
+#	include ${PETSC_DIR}/lib/petsc/conf/variables
+#endif
 
 
 # missing LIBPATH, DEFINES
@@ -127,12 +138,12 @@ OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 # Compile executable file (Default goal)
 $(EXECUTABLE) : $(OBJECTS)
-	$(CC) -o $@ $(OPTS) $(LIBS) $^
+	$(CC) -o $@ $(OPTS) $^ $(LIBS)
 
 # Create objects
 # Still need to figure out how to include header dependencies.
 $(OBJECTS) : $(OBJDIR)/%.o : $(SRCDIR)/%.c
-	$(CC) $(OPTS) $(CSTD) $(LIBS) -c -o $@ $<
+	$(CC) $(OPTS) $(CSTD) -c -o $@ $< $(LIBS) 
 
 # Create directories if not present
 $(OBJECTS): | $(OBJDIR)

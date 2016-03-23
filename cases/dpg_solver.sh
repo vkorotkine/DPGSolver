@@ -25,29 +25,26 @@ case "${OSTYPE}" in
 		MPI_DIR="${CODE_DIR}/Downloaded/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/"
 		N_PROCS="1"
 
-		if [ "$USE_VALGRIND" = "1" ]; then
-			VALGRIND_OPTS="valgrind --track-origins=yes --leak-check=yes"
-		else
-			VALGRIND_OPTS=""
-		fi
-
 		;;
 	*linux*)
-		TOP_DIR=
+		TOP_DIR="/home/pzwan/Git/DPG"
 		MPI_DIR=""
 		#Make sure this is modified with "nodes" above
-		N_PROCS="2"
-		VALGRIND_OPTS=""
-
-		echo "fix linux"
+		N_PROCS="1"
 
 		;;
 esac
 
+if [ "$USE_VALGRIND" = "1" ]; then
+  VALGRIND_OPTS="valgrind --track-origins=yes --leak-check=yes"
+else
+  VALGRIND_OPTS=""
+fi
+
 clear
 cd ${TOP_DIR}/cases
 
-${MPI_DIR}/mpiexec -n ${N_PROCS} ${VALGRIND_OPTS} ${TOP_DIR}/bin/DPGSolver.exe ${TESTCASE}
+${MPI_DIR}mpiexec -n ${N_PROCS} ${VALGRIND_OPTS} ${TOP_DIR}/bin/DPGSolver.exe ${TESTCASE}
 #${MPI_DIR}/mpiexec -n ${N_PROCS} ${VALGRIND_OPTS} ${TOP_DIR}/bin/DPGSolver.exe ${TESTCASE} > ${LOGFILE}
 
 

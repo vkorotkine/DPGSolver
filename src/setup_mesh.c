@@ -198,6 +198,8 @@ void setup_mesh()
 		printf("    Read MeshFile\n");
 	gmsh_reader();
 
+  printf("looking for linux bug...\n"); exit(1);
+
 	// Initialize DB Parameters set in gmsh_reader.c
 	int NETotal = DB.NETotal,
 	    *EType  = DB.EType;

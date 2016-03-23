@@ -310,7 +310,14 @@ void gmsh_reader()
 
 					fscanf(fID,"%[^\n]\n",StringRead);
 
+NEnt = 10;
+printf("%d\n\n\n",NEnt);
+
+
 					sscanf(StringRead,"%d",&NEnt);
+
+printf("%d\n\n\n",NEnt);
+
 					for (Ent = 0; Ent < NEnt; Ent++) {
 						fscanf(fID,"%[^\n]\n",StringRead);
 						sscanf(StringRead,"%d %d",&nodes[0],&nodes[1]);
@@ -549,6 +556,8 @@ void gmsh_reader()
 	if (NPVe == 0) PVe = malloc(0 * sizeof *PVe); // keep
 
 	fclose(fID);
+
+  printf("looking for linux bug...\n"); exit(1);
 
 	// Add partition number to element list (in EToPrt) through communication between all processors
 	MPIrank = DB.MPIrank;
