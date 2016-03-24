@@ -158,9 +158,9 @@ void cubature_TP(double **xir, double **W, int **Con, int *Nn, int *ToReturn, in
 
 	if (strstr(NodeType,"GLL") != NULL || strstr(NodeType,"GL") != NULL) {
 		row = 0;
-		for (k = 0, kMax = MIN(MAX((d-2)*N,1),N); k < kMax; k++) {
-		for (j = 0, jMax = MIN(MAX((d-1)*N,1),N); j < jMax; j++) {
-		for (i = 0, iMax = MIN(MAX((d-0)*N,1),N); i < iMax; i++) {
+		for (k = 0, kMax = min(max((d-2)*N,1),N); k < kMax; k++) {
+		for (j = 0, jMax = min(max((d-1)*N,1),N); j < jMax; j++) {
+		for (i = 0, iMax = min(max((d-0)*N,1),N); i < iMax; i++) {
 //			if (i == 0 && j == 0 && k == 0)
 //				row = (int) k*pow(N,2)+j*N+i;
 			w_d[row] = w[i];
@@ -206,9 +206,9 @@ void cubature_TP(double **xir, double **W, int **Con, int *Nn, int *ToReturn, in
 		}
 
 		row = 0;
-		for (k = 0, kMax = MIN(MAX((d-2)*N,1),N); k < kMax; k++) {
-		for (j = 0, jMax = MIN(MAX((d-1)*N,1),N); j < jMax; j++) {
-		for (i = 0, iMax = MIN(MAX((d-0)*N,1),N); i < iMax; i++) {
+		for (k = 0, kMax = min(max((d-2)*N,1),N); k < kMax; k++) {
+		for (j = 0, jMax = min(max((d-1)*N,1),N); j < jMax; j++) {
+		for (i = 0, iMax = min(max((d-0)*N,1),N); i < iMax; i++) {
 			for (dim = 0; dim < d; dim++) {
 				if (dim == 0) xInd = i;
 				if (dim == 1) xInd = j;
@@ -223,10 +223,10 @@ void cubature_TP(double **xir, double **W, int **Con, int *Nn, int *ToReturn, in
 		for (i = 0, IndC = 0; i < P; i++) {
 			nLINE[0] = i;
 			nLINE[1] = i+1;
-			for (j = 0, jMax = MAX(P*MIN(d-1,1),1); j < jMax; j++) {
+			for (j = 0, jMax = max(P*min(d-1,1),1); j < jMax; j++) {
 				for (l = 0; l < 2; l++)             nQUAD[l] = nLINE[l]+N*j;
 				for (l = 2, m = 1; l < 4; l++, m--) nQUAD[l] = nLINE[m] + N*(j+1);
-				for (k = 0, kMax = MAX(P*MIN(d-2,1),1); k < kMax; k++) {
+				for (k = 0, kMax = max(P*min(d-2,1),1); k < kMax; k++) {
 					for (l = 0; l < 4; l++)             nHEX[l] = nQUAD[l] + N2*k;
 					for (l = 4, m = 0; l < 8; l++, m++) nHEX[l] = nQUAD[m] + N2*(k+1);
 					for (l = 0, lMax = pow(2,d); l < lMax; l++)

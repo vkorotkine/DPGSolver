@@ -23,8 +23,15 @@ extern void     setup_periodic              (void);
 extern void       find_periodic_connections (int *Pve, int *pvePointer, int VeMax);
 extern void   setup_operators               (void);
 extern void     cubature_TP                 (double **xir, double **W, int **Con, int *Nn, int *ToReturn, int P, int d, char *NodeType);
-extern double   *basis_TP                   (const int P, const double *xir, const int Nvn, const int d);
-extern double   jacobiP                     (const double x, const double alpha, const double beta, const int N);
+extern double     *basis_TP                 (const int P, const double *xir, const int Nn, const int d);
+extern double     **grad_basis_TP           (const int P, const double *xir, const int Nn, const int d);
+extern double     jacobiP                   (const double x, const double alpha, const double beta, const int N);
+extern double     grad_jacobiP              (const double x, const double alpha, const double beta, const int N);
+
+// Math Functions
+extern int    factorial_i (const int n);
+extern int    gamma_i     (const int n);
+extern double gamma_d     (const double x);
 
 // Extern structs
 extern struct S_ELEMENT *New_ELEMENT (void);

@@ -180,14 +180,27 @@ void setup_operators()
 
 
 	// Implementing basis_TP
-	double *ChiSRef_vS;
 
-	P = 2;
-	ChiSRef_vS = basis_TP(P,xir_vS[P],NvnS[P],dim);
+	int P_tmp, Nn_tmp, dim_tmp, d_tmp,
+	    *dummyi_tmp, ToReturn_tmp[4];
+	double *xir_tmp, *dummyd_tmp, *ChiRef_tmp, **GradChiRef_tmp;
 
-	array_print_d(NvnS[P],pow(P+1,dim),ChiSRef_vS);
-	free(ChiSRef_vS);
+	P_tmp = 2;
+	dim_tmp = 2;
 
+	ToReturn_tmp[0] = 1; ToReturn_tmp[1] = 0; ToReturn_tmp[2] = 0; ToReturn_tmp[3] = 1;
+	cubature_TP(&xir_tmp,&dummyd_tmp,&dummyi_tmp,&Nn_tmp,ToReturn_tmp,P_tmp,dim_tmp,"GL");
+	ChiRef_tmp = basis_TP(P_tmp,xir_tmp,Nn_tmp,dim_tmp);
+	GradChiRef_tmp = grad_basis_TP(P_tmp,xir_tmp,Nn_tmp,dim_tmp);
+
+	array_print_d(Nn_tmp,pow(P_tmp+1,dim_tmp),ChiRef_tmp);
+
+	for (d_tmp = 0; d_tmp < dim_tmp; d_tmp++)
+		array_print_d(Nn_tmp,pow(P_tmp+1,dim_tmp),GradChiRef_tmp[d_tmp]);
+
+	free(xir_tmp);
+	free(ChiRef_tmp);
+	array_free2_d(dim_tmp,GradChiRef_tmp);
 
 
 
