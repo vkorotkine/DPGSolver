@@ -27,11 +27,18 @@
 #define WEDGE 6
 #define PYR   7
 
+// Element classes
+#define C_TP    1
+#define C_SI    2
+#define C_WEDGE 3
+#define C_PYR   4
+
 //  Node Tolerance (for physical coordinate comparison)
-#define NODETOL 1.e-12
+#define NODETOL      1.0e-12
+#define NODETOL_MESH 1.0e-5
 
 //  Value close to double machine zero
-#define EPS     1.e-15
+#define EPS     1.0e-15
 
 //  Min/Max String Lengths
 #define STRLEN_MIN 64

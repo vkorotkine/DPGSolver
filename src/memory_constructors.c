@@ -15,8 +15,10 @@
  *
  */
 
-struct S_ELEMENT *New_ELEMENT(void) {
+struct S_ELEMENT *New_ELEMENT(void)
+{
 	int NP = DB.NP;
+
 	int i, iMax, P;
 
 	struct S_ELEMENT *ELEMENT;
@@ -114,8 +116,8 @@ struct S_ELEMENT *New_ELEMENT(void) {
 		ELEMENT->xir_fIs[P] = NULL;
 		ELEMENT->xir_fIc[P] = NULL;
 
-		ELEMENT->WfIs[P] = NULL;  
-		ELEMENT->WfIc[P] = NULL;  
+		ELEMENT->WfIs[P] = NULL;
+		ELEMENT->WfIc[P] = NULL;
 	}
 
 	ELEMENT->NfnGc = malloc(NP * sizeof *(ELEMENT->NfnGc)); // free
@@ -126,4 +128,25 @@ struct S_ELEMENT *New_ELEMENT(void) {
 	ELEMENT->next = NULL;
 
 	return ELEMENT;
+}
+
+
+struct S_VOLUME *New_VOLUME(void)
+{
+	int NP = DB.NP;
+
+	struct S_VOLUME *VOLUME;
+	VOLUME = malloc(sizeof *VOLUME); // free
+
+	// Structures
+	VOLUME->type   = -1;
+	VOLUME->Eclass = -1;
+	VOLUME->curved = -1;
+
+	// Geometry
+	VOLUME->XYZs = malloc(NP * sizeof *(VOLUME->XYZs)); // free
+
+	VOLUME->next = NULL;
+
+	return VOLUME;
 }

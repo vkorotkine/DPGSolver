@@ -19,7 +19,7 @@
  *		Intuitively, the collapsed tensor-product elements seem to be less efficient than those developed for other
  *		element types.
  *
- * 	Notation:
+ *	Notation:
  *		Theta_[] : Angles for conversion between reference and facet coordinates (Zwanenburg(2016): Table 14)
  *		           Options: eta
  *		                    zeta
@@ -104,9 +104,13 @@ void setup_operators()
 		if (d > 2) nr[f*d+2] = -sin(Theta_zeta[f]);
 	}
 
-	// Set up Nodes
+	// VOLUME Nodes
 	ToReturn = malloc(4 * sizeof *ToReturn); // free
 
+	/* NOTE: NEED TO REMOVE SOME OF THESE FROM THE ELEMENT STRUCTURE, THEY ARE NOT ALL NECESSARY. FOR THOSE REMOVED,
+	 *       ALLOCATE MEMORY AND FREE IN setup_operators. FROM NOW ON, ONLY INCLUDE OPERATORS IN THE ELEMENT STRUCTURE
+	 *       IF IT IS NEEDED SOMEWHERE IN THE CODE.
+	 */
 	xir_vGs  = ELEMENT->xir_vGs ; NvnGs  = ELEMENT->NvnGs;
 	xir_vGc  = ELEMENT->xir_vGc ; NvnGc  = ELEMENT->NvnGc;
 	xir_vCs  = ELEMENT->xir_vCs ; NvnCs  = ELEMENT->NvnCs;
@@ -121,9 +125,16 @@ void setup_operators()
 	xir_vIc  = ELEMENT->xir_vIc ; NvnIc  = ELEMENT->NvnIc ; WvIc = ELEMENT->WvIc;
 	xir_vP   = ELEMENT->xir_vP  ; NvnP   = ELEMENT->NvnP  ; Con_xir_vP = ELEMENT->Con_xir_vP;
 
+	// FACET Nodes
 	xir_fGc = ELEMENT->xir_fGc; NfnGc = ELEMENT->NfnGc;
 	xir_fIs = ELEMENT->xir_fIs; NfnIs = ELEMENT->NfnIs; WfIs = ELEMENT->WfIs;
 	xir_fIc = ELEMENT->xir_fIc; NfnIc = ELEMENT->NfnIc; WfIc = ELEMENT->WfIc;
+
+	// Preliminary Operators
+
+
+
+
 
 	// VOLUME Nodes (Order Independent)
 	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
@@ -174,6 +185,9 @@ void setup_operators()
 			xir_fIs[P][f][0] = pow(-1,f+1);
 			xir_fIc[P][f][0] = pow(-1,f+1);
 		}
+
+		// Preliminary Operators
+
 	}
 
 	free(ToReturn);

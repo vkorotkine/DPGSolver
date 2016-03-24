@@ -27,6 +27,9 @@ extern double     *basis_TP                 (const int P, const double *xir, con
 extern double     **grad_basis_TP           (const int P, const double *xir, const int Nn, const int d);
 extern double     jacobiP                   (const double x, const double alpha, const double beta, const int N);
 extern double     grad_jacobiP              (const double x, const double alpha, const double beta, const int N);
+extern void   setup_structures              (void);
+extern void   setup_geometry                (void);
+extern void     vertices_to_exact_geom      (void);
 
 // Math Functions
 extern int    factorial_i (const int n);
@@ -35,6 +38,7 @@ extern double gamma_d     (const double x);
 
 // Extern structs
 extern struct S_ELEMENT *New_ELEMENT (void);
+extern struct S_VOLUME  *New_VOLUME  (void);
 
 
 // Memory Management

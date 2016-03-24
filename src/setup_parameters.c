@@ -41,7 +41,7 @@
  *
  *	Notation:
  *		NP       : (N)umber of (P)olynomial orders available
- *		NDE      : (N)umber of (D)istinct (E)lements
+ *		NEC      : (N)umber of (E)lement (C)lasses
  *		PR       : Order of solution to read in from the (R)estart file.
  *		PP       : Order used for (P)lotting.
  *
@@ -85,7 +85,7 @@ void setup_parameters()
 	     ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	     ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
 	int  i,
-	     P, NP, NDE, IntOrderfs, IntOrderfc, IntOrdervs, IntOrdervc,
+	     P, NP, NEC, IntOrderfs, IntOrderfc, IntOrdervs, IntOrdervc,
 	     **SF_BE,
 	     PGs, *PGc, **PCs, **PCc, **PJs, **PJc,
 	     *PF, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
@@ -93,7 +93,7 @@ void setup_parameters()
 	if (DB.P > PMax)
 		printf("Error: P must be less than or equal PMax.\n"), exit(1);
 	NP  = PMax+1;
-	NDE = 3;
+	NEC = 3;
 
 	SF_BE = malloc(NP * sizeof *SF_BE); // keep
 	PGc   = malloc(NP * sizeof *PGc);   // keep
@@ -152,7 +152,7 @@ void setup_parameters()
 	// Order dependent parameters
 	for (P = 0; P <= PMax; P++) {
 		// Sum Factorization
-		SF_BE[P] = malloc(NDE * sizeof **SF_BE); // keep
+		SF_BE[P] = malloc(NEC * sizeof **SF_BE); // keep
 
 		for (i = 0; i < 3; i++) SF_BE[P][i] = 1;
 
@@ -164,10 +164,10 @@ void setup_parameters()
 			printf("    Using Sum Factorized Operators for P%d.\n",P);
 
 		// Geometry
-		PCs[P] = malloc(NDE * sizeof **PCs); // keep
-		PCc[P] = malloc(NDE * sizeof **PCc); // keep
-		PJs[P] = malloc(NDE * sizeof **PJs); // keep
-		PJc[P] = malloc(NDE * sizeof **PJc); // keep
+		PCs[P] = malloc(NEC * sizeof **PCs); // keep
+		PCc[P] = malloc(NEC * sizeof **PCc); // keep
+		PJs[P] = malloc(NEC * sizeof **PJs); // keep
+		PJc[P] = malloc(NEC * sizeof **PJc); // keep
 
 		PGc[P]    = max(P,2);
 		PCs[P][0] = PGs;
@@ -184,21 +184,21 @@ void setup_parameters()
 		PJc[P][2] = PGc[P];          // ToBeModified
 
 		// Integration & Interpolation
-		PFrs[P] = malloc(NDE * sizeof **PFrs); // keep
-		PFrc[P] = malloc(NDE * sizeof **PFrc); // keep
-		PIfs[P] = malloc(NDE * sizeof **PIfs); // keep
-		PIfc[P] = malloc(NDE * sizeof **PIfc); // keep
-		PIvs[P] = malloc(NDE * sizeof **PIvs); // keep
-		PIvc[P] = malloc(NDE * sizeof **PIvc); // keep
+		PFrs[P] = malloc(NEC * sizeof **PFrs); // keep
+		PFrc[P] = malloc(NEC * sizeof **PFrc); // keep
+		PIfs[P] = malloc(NEC * sizeof **PIfs); // keep
+		PIfc[P] = malloc(NEC * sizeof **PIfc); // keep
+		PIvs[P] = malloc(NEC * sizeof **PIvs); // keep
+		PIvc[P] = malloc(NEC * sizeof **PIvc); // keep
 
-		NodeTypeS[P]   = malloc(NDE * sizeof **NodeTypeS); // keep
-		NodeTypeF[P]   = malloc(NDE * sizeof **NodeTypeF); // keep
-		NodeTypeFrs[P] = malloc(NDE * sizeof **NodeTypeFrs); // keep
-		NodeTypeFrc[P] = malloc(NDE * sizeof **NodeTypeFrc); // keep
-		NodeTypeIfs[P] = malloc(NDE * sizeof **NodeTypeIfs); // keep
-		NodeTypeIfc[P] = malloc(NDE * sizeof **NodeTypeIfc); // keep
-		NodeTypeIvs[P] = malloc(NDE * sizeof **NodeTypeIvs); // keep
-		NodeTypeIvc[P] = malloc(NDE * sizeof **NodeTypeIvc); // keep
+		NodeTypeS[P]   = malloc(NEC * sizeof **NodeTypeS); // keep
+		NodeTypeF[P]   = malloc(NEC * sizeof **NodeTypeF); // keep
+		NodeTypeFrs[P] = malloc(NEC * sizeof **NodeTypeFrs); // keep
+		NodeTypeFrc[P] = malloc(NEC * sizeof **NodeTypeFrc); // keep
+		NodeTypeIfs[P] = malloc(NEC * sizeof **NodeTypeIfs); // keep
+		NodeTypeIfc[P] = malloc(NEC * sizeof **NodeTypeIfc); // keep
+		NodeTypeIvs[P] = malloc(NEC * sizeof **NodeTypeIvs); // keep
+		NodeTypeIvc[P] = malloc(NEC * sizeof **NodeTypeIvc); // keep
 
 		for (i = 0; i < 3; i++) {
 			NodeTypeS[P][i]   = malloc(STRLEN_MIN * sizeof ***NodeTypeS);   // keep
@@ -351,7 +351,7 @@ void setup_parameters()
 		} else {
 			// THESE PARAMETERS CANNOT BE MODIFIED.
 			// For collocated interpolation and integration nodes, a desired integration order cannot be specified.
-			for (i = 0; i < NDE; i++) {
+			for (i = 0; i < NEC; i++) {
 				PIfs[P][i] = 1;
 				PIfc[P][i] = 1;
 				PIvs[P][i] = 1;
@@ -444,7 +444,7 @@ void setup_parameters()
 
 	// Assign DB Parameters
 	DB.NP    = NP;
-	DB.NDE   = NDE;
+	DB.NEC   = NEC;
 
 	DB.SF_BE = SF_BE;
 	DB.PGs   = PGs;

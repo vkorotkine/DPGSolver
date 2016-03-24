@@ -27,7 +27,7 @@ struct S_DB {
 	char *Parametrization,
 	     ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	     ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
-	int  NP, NDE, AC, ExactGeom, PR, PP, PGs,
+	int  NP, NEC, AC, ExactGeom, PR, PP, PGs,
 	     *PGc, *PF,
 	     **SF_BE, **PCs, **PCc, **PJs, **PJc, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
@@ -38,6 +38,7 @@ struct S_DB {
 
 	// Structures
 	struct S_ELEMENT *ELEMENT;
+	struct S_VOLUME *VOLUME;
 };
 extern struct S_DB DB;
 
@@ -57,6 +58,17 @@ struct S_ELEMENT {
 	       ***xir_fGc, ***xir_fIs, ***xir_fIc, **WfIs, **WfIc;
 
 	struct S_ELEMENT *next;
+};
+
+struct S_VOLUME {
+	// Structures
+	int type, Eclass, curved;
+
+	// Geometry
+	double **XYZs;
+
+	struct S_VOLUME *next;
+
 };
 
 #endif // DPG__database_h_INCLUDED

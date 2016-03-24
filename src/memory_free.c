@@ -29,14 +29,14 @@ void memory_free(void)
 
 			// SetupParameters
 			free(DB.Parametrization);
-			array_free3_c(DB.NP,DB.NDE,DB.NodeTypeS);
-			array_free3_c(DB.NP,DB.NDE,DB.NodeTypeF);
-			array_free3_c(DB.NP,DB.NDE,DB.NodeTypeFrs);
-			array_free3_c(DB.NP,DB.NDE,DB.NodeTypeFrc);
-			array_free3_c(DB.NP,DB.NDE,DB.NodeTypeIfs);
-			array_free3_c(DB.NP,DB.NDE,DB.NodeTypeIfc);
-			array_free3_c(DB.NP,DB.NDE,DB.NodeTypeIvs);
-			array_free3_c(DB.NP,DB.NDE,DB.NodeTypeIvc);
+			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeS);
+			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeF);
+			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeFrs);
+			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeFrc);
+			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeIfs);
+			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeIfc);
+			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeIvs);
+			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeIvc);
 
 			free(DB.PGc);
 			free(DB.PF);
@@ -65,6 +65,15 @@ void memory_free(void)
 		ELEMENTnext = ELEMENT->next;
 		memory_destructor_E(ELEMENT);
 		ELEMENT = ELEMENTnext;
+	}
+
+	// VOLUMEs
+	struct S_VOLUME *VOLUME, *VOLUMEnext;
+	VOLUME = DB.VOLUME;
+	while (VOLUME != NULL) {
+		VOLUMEnext = VOLUME->next;
+		memory_destructor_V(VOLUME);
+		VOLUME = VOLUMEnext;
 	}
 
 

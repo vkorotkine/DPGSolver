@@ -19,6 +19,8 @@
 
 void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 {
+	int NP = DB.NP;
+
 	// Mesh
 	free(ELEMENT->Nfve);
 	free(ELEMENT->VeC);
@@ -26,27 +28,27 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->VeF);
 
 	// Operators
-	
+
 	// Normals
 	free(ELEMENT->nr);
 
 	// VOLUME Nodes
-	array_free2_d(1    ,ELEMENT->xir_vGs);
-	array_free2_d(DB.NP,ELEMENT->xir_vGc);
-	array_free2_d(DB.NP,ELEMENT->xir_vCs);
-	array_free2_d(DB.NP,ELEMENT->xir_vCc);
-	array_free2_d(DB.NP,ELEMENT->xir_vJs);
-	array_free2_d(DB.NP,ELEMENT->xir_vJc);
-	array_free2_d(DB.NP,ELEMENT->xir_vS);
-	array_free2_d(DB.NP,ELEMENT->xir_vF);
-	array_free2_d(DB.NP,ELEMENT->xir_vFrs);
-	array_free2_d(DB.NP,ELEMENT->xir_vFrc);
-	array_free2_d(DB.NP,ELEMENT->xir_vIs);
-	array_free2_d(DB.NP,ELEMENT->xir_vIc);
-	array_free2_d(1    ,ELEMENT->xir_vP);
+	array_free2_d(1 ,ELEMENT->xir_vGs);
+	array_free2_d(NP,ELEMENT->xir_vGc);
+	array_free2_d(NP,ELEMENT->xir_vCs);
+	array_free2_d(NP,ELEMENT->xir_vCc);
+	array_free2_d(NP,ELEMENT->xir_vJs);
+	array_free2_d(NP,ELEMENT->xir_vJc);
+	array_free2_d(NP,ELEMENT->xir_vS);
+	array_free2_d(NP,ELEMENT->xir_vF);
+	array_free2_d(NP,ELEMENT->xir_vFrs);
+	array_free2_d(NP,ELEMENT->xir_vFrc);
+	array_free2_d(NP,ELEMENT->xir_vIs);
+	array_free2_d(NP,ELEMENT->xir_vIc);
+	array_free2_d(1 ,ELEMENT->xir_vP);
 
-	array_free2_d(DB.NP,ELEMENT->WvIs);
-	array_free2_d(DB.NP,ELEMENT->WvIc);
+	array_free2_d(NP,ELEMENT->WvIs);
+	array_free2_d(NP,ELEMENT->WvIc);
 
 	array_free2_i(1    ,ELEMENT->Con_xir_vP);
 
@@ -65,12 +67,12 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->NvnP);
 
 	// FACET Nodes
-	array_free3_d(DB.NP,ELEMENT->Nf,ELEMENT->xir_fGc);
-	array_free3_d(DB.NP,ELEMENT->Nf,ELEMENT->xir_fIs);
-	array_free3_d(DB.NP,ELEMENT->Nf,ELEMENT->xir_fIc);
+	array_free3_d(NP,ELEMENT->Nf,ELEMENT->xir_fGc);
+	array_free3_d(NP,ELEMENT->Nf,ELEMENT->xir_fIs);
+	array_free3_d(NP,ELEMENT->Nf,ELEMENT->xir_fIc);
 
-	array_free2_d(DB.NP,ELEMENT->WfIs);
-	array_free2_d(DB.NP,ELEMENT->WfIc);
+	array_free2_d(NP,ELEMENT->WfIs);
+	array_free2_d(NP,ELEMENT->WfIc);
 
 	free(ELEMENT->NfnGc);
 	free(ELEMENT->NfnIs);
@@ -79,4 +81,14 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT);
 }
 
+void memory_destructor_V(struct S_VOLUME *VOLUME)
+{
+	int NP = DB.NP;
 
+	// Structures
+
+	// Geometry
+	array_free2_d(NP,VOLUME->XYZs);
+
+	free(VOLUME);
+}
