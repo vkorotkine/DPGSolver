@@ -89,7 +89,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->WvIc[P] = NULL;
 	}
 
-	ELEMENT->NvnGs  = malloc(1  * sizeof *(ELEMENT->NvnGs));  // free
+	ELEMENT->NvnGs  = malloc(1  * sizeof *(ELEMENT->NvnGs));   // free
 	ELEMENT->NvnGc  = malloc(NP * sizeof *(ELEMENT->NvnGc));  // free
 	ELEMENT->NvnCs  = malloc(NP * sizeof *(ELEMENT->NvnCs));  // free
 	ELEMENT->NvnCc  = malloc(NP * sizeof *(ELEMENT->NvnCc));  // free
@@ -124,6 +124,11 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->NfnIs = malloc(NP * sizeof *(ELEMENT->NfnIs)); // free
 	ELEMENT->NfnIc = malloc(NP * sizeof *(ELEMENT->NfnIc)); // free
 
+	// Operators
+	ELEMENT->I_vGs_vGc = malloc(NP * sizeof *(ELEMENT->I_vGs_vGc)); // free 
+
+
+
 
 	ELEMENT->next = NULL;
 
@@ -144,7 +149,7 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->curved = -1;
 
 	// Geometry
-	VOLUME->XYZs = malloc(NP * sizeof *(VOLUME->XYZs)); // free
+	// *XYZc, *XYZs;
 
 	VOLUME->next = NULL;
 

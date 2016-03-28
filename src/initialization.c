@@ -107,6 +107,8 @@ void initialization(int nargc, char **argv)
 		printf("Error: Control file: %s not present.\n",ControlFile), exit(1);
 	free(ControlFile);
 
+	// ToBeDeleted: Change the while condition here based on the stack overflow question: why to never use !feof(fID)
+	// http://stackoverflow.com/questions/5431941/why-is-while-feof-file-always-wrong?rq=1
 	fscanf(fID,"%[^\n]\n",StringRead);
 	while(!feof(fID)) {
 		fscanf(fID,"%[^\n]\n",StringRead);

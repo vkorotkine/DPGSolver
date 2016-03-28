@@ -1,12 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
 #include "database.h"
 #include "parameters.h"
 #include "functions.h"
 
-//#include "petscsys.h"
+#include "mkl.h"
 
 // DON'T FORGET TO CHANGE COMMENTS (ToBeDeleted)
 
@@ -36,6 +37,7 @@ void setup_operators()
 {
 	// Initialize DB Parameters
 	int  d          = DB.d,
+	     NP         = DB.NP,
 	     PMax       = DB.PMax,
 	     PGs        = DB.PGs,
 	     *PGc       = DB.PGc,
@@ -72,24 +74,34 @@ void setup_operators()
 	int  PrintTesting = 0, MPIrank = DB.MPIrank;
 
 	// Standard datatypes
-	int    i, j, count, dim, f, P,
+	int    i, j, count, dE, f, P,
 	       Nf,
 	       *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc, *NvnP,
 	       *NfnGc, *NfnIs, *NfnIc,
-	       *ToReturn, *dummyi,
+	       *ToReturn, *dummyCon,
 	       **Con_xir_vP;
 	double Theta_eta[6], Theta_zeta[6],
-	       *nr,*dummyd,
+	       *nr,*dummyW, *dummyxir,
 	       **xir_vGs, **xir_vGc, **xir_vCs, **xir_vCc, **xir_vJs, **xir_vJc, **xir_vS, **xir_vF, **xir_vFrs, **xir_vFrc,
 	       **xir_vIs, **xir_vIc, **xir_vP, **WvIs, **WvIc,
-	       ***xir_fGc, ***xir_fIs, ***xir_fIc, **WfIs, **WfIc;
+	       ***xir_fGc, ***xir_fIs, ***xir_fIc, **WfIs, **WfIc,
+		   *IGs,
+		   *ChiRefGs_vGs,
+		   *ChiGs_vGs,
+		   *ChiRefInvGs_vGs,
+		   *ChiInvGs_vGs,
+		   *TGs,
+		   **ChiRefGs_vGc,
+		   **ChiGs_vGc,
+		   **I_vGs_vGc;
 
 	struct S_ELEMENT *ELEMENT;
 
+	ToReturn = malloc(4 * sizeof *ToReturn); // free
 
-	// Tensor-Product Operators
+	// LINE and TP Class
 	ELEMENT = DB.ELEMENT; while(ELEMENT->type != LINE) ELEMENT = ELEMENT->next;
-	dim = ELEMENT->d;
+	dE = ELEMENT->d;
 
 	// Set up Normals
 	Nf = ELEMENT->Nf;
@@ -105,7 +117,6 @@ void setup_operators()
 	}
 
 	// VOLUME Nodes
-	ToReturn = malloc(4 * sizeof *ToReturn); // free
 
 	/* NOTE: NEED TO REMOVE SOME OF THESE FROM THE ELEMENT STRUCTURE, THEY ARE NOT ALL NECESSARY. FOR THOSE REMOVED,
 	 *       ALLOCATE MEMORY AND FREE IN setup_operators. FROM NOW ON, ONLY INCLUDE OPERATORS IN THE ELEMENT STRUCTURE
@@ -131,38 +142,66 @@ void setup_operators()
 	xir_fIc = ELEMENT->xir_fIc; NfnIc = ELEMENT->NfnIc; WfIc = ELEMENT->WfIc;
 
 	// Preliminary Operators
+	ChiRefGs_vGc = malloc(NP * sizeof *ChiRefGs_vGc); // tbd
+	ChiGs_vGc = malloc(NP * sizeof *ChiGs_vGc); // tbd
 
+	// Operators
+	I_vGs_vGc = ELEMENT->I_vGs_vGc;
 
 
 
 
 	// VOLUME Nodes (Order Independent)
 	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&xir_vGs[0],&dummyd,&dummyi,&NvnGs[0],ToReturn,PGs,dim,"GLL");
+	cubature_TP(&xir_vGs[0],&dummyW,&dummyCon,&NvnGs[0],ToReturn,PGs,dE,"GLL");
 
 	ToReturn[2] = 1;
-	cubature_TP(&xir_vP[0],&dummyd,&Con_xir_vP[0],&NvnP[0],ToReturn,PP,d,"ES");
-// array_print_d(NvnP[0],d,xir_vP[0]);
-// array_print_i(pow(PP,d),pow(2,d),Con_xir_vP[0]);
+	cubature_TP(&xir_vP[0],&dummyW,&Con_xir_vP[0],&NvnP[0],ToReturn,PP,d,"ES");
+
+	// Preliminary Operators
+	IGs = identity_d(NvnGs[0]); // tbd
+
+	ChiRefGs_vGs = basis_TP(PGs,xir_vGs[0],NvnGs[0],dE); // tbd
+
+	if (strstr(BasisType,"Modal") != NULL) {
+		ChiGs_vGs = ChiRefGs_vGs;
+	} else if (strstr(BasisType,"Nodal") != NULL) {
+		ChiGs_vGs = IGs;
+	}
+
+	ChiRefInvGs_vGs = inverse_d(NvnGs[0],NvnGs[0],ChiRefGs_vGs,IGs); // tbd
+
+	ChiInvGs_vGs    = inverse_d(NvnGs[0],NvnGs[0],ChiGs_vGs,IGs); // tbd
+
+	TGs = mm_d(CblasNoTrans,CblasNoTrans,NvnGs[0],NvnGs[0],NvnGs[0],1.0,ChiRefInvGs_vGs,ChiGs_vGs); // tbd
+
+
+/*
+array_print_d(NvnGs[0],NvnGs[0],ChiRefGs_vGs);
+array_print_d(NvnGs[0],NvnGs[0],IGs);
+array_print_d(NvnGs[0],NvnGs[0],ChiRefInvGs_vGs);
+array_print_d(NvnGs[0],NvnGs[0],TGs);
+*/
+
 
     for (P = 0; P <= PMax; P++) {
 
 		// VOLUME Nodes (Order dependent)
 		ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-		cubature_TP(&xir_vGc[P],&dummyd,&dummyi,&NvnGc[P],ToReturn,PGc[P]   ,dim,"GLL");
-		cubature_TP(&xir_vCs[P],&dummyd,&dummyi,&NvnCs[P],ToReturn,PCs[P][0],dim,"GLL");
-		cubature_TP(&xir_vCc[P],&dummyd,&dummyi,&NvnCc[P],ToReturn,PCc[P][0],dim,"GLL");
-		cubature_TP(&xir_vJs[P],&dummyd,&dummyi,&NvnCs[P],ToReturn,PJs[P][0],dim,"GLL");
-		cubature_TP(&xir_vJc[P],&dummyd,&dummyi,&NvnCc[P],ToReturn,PJc[P][0],dim,"GLL");
+		cubature_TP(&xir_vGc[P],&dummyW,&dummyCon,&NvnGc[P],ToReturn,PGc[P]   ,dE,"GLL");
+		cubature_TP(&xir_vCs[P],&dummyW,&dummyCon,&NvnCs[P],ToReturn,PCs[P][0],dE,"GLL");
+		cubature_TP(&xir_vCc[P],&dummyW,&dummyCon,&NvnCc[P],ToReturn,PCc[P][0],dE,"GLL");
+		cubature_TP(&xir_vJs[P],&dummyW,&dummyCon,&NvnCs[P],ToReturn,PJs[P][0],dE,"GLL");
+		cubature_TP(&xir_vJc[P],&dummyW,&dummyCon,&NvnCc[P],ToReturn,PJc[P][0],dE,"GLL");
 
-		cubature_TP(&xir_vS[P]  ,&dummyd,&dummyi,&NvnS[P]  ,ToReturn,P         ,dim,NodeTypeS[P][0]);
-		cubature_TP(&xir_vF[P]  ,&dummyd,&dummyi,&NvnF[P]  ,ToReturn,PF[P]     ,dim,NodeTypeF[P][0]);
-		cubature_TP(&xir_vFrs[P],&dummyd,&dummyi,&NvnFrs[P],ToReturn,PFrs[P][0],dim,NodeTypeFrs[P][0]);
-		cubature_TP(&xir_vFrc[P],&dummyd,&dummyi,&NvnFrc[P],ToReturn,PFrc[P][0],dim,NodeTypeFrc[P][0]);
+		cubature_TP(&xir_vS[P]  ,&dummyW,&dummyCon,&NvnS[P]  ,ToReturn,P         ,dE,NodeTypeS[P][0]);
+		cubature_TP(&xir_vF[P]  ,&dummyW,&dummyCon,&NvnF[P]  ,ToReturn,PF[P]     ,dE,NodeTypeF[P][0]);
+		cubature_TP(&xir_vFrs[P],&dummyW,&dummyCon,&NvnFrs[P],ToReturn,PFrs[P][0],dE,NodeTypeFrs[P][0]);
+		cubature_TP(&xir_vFrc[P],&dummyW,&dummyCon,&NvnFrc[P],ToReturn,PFrc[P][0],dE,NodeTypeFrc[P][0]);
 
 		ToReturn[1] = 1;
-		cubature_TP(&xir_vIs[P],&WvIs[P],&dummyi,&NvnIs[P],ToReturn,PIvs[P][0],dim,NodeTypeIvs[P][0]);
-		cubature_TP(&xir_vIc[P],&WvIc[P],&dummyi,&NvnIc[P],ToReturn,PIvc[P][0],dim,NodeTypeIvc[P][0]);
+		cubature_TP(&xir_vIs[P],&WvIs[P],&dummyCon,&NvnIs[P],ToReturn,PIvs[P][0],dE,NodeTypeIvs[P][0]);
+		cubature_TP(&xir_vIc[P],&WvIc[P],&dummyCon,&NvnIc[P],ToReturn,PIvc[P][0],dE,NodeTypeIvc[P][0]);
 
 		// FACET Nodes (Order dependent in the general case => redundant here)
 		WfIs[P] = malloc(1 * sizeof **WfIs); // tbd
@@ -177,9 +216,9 @@ void setup_operators()
 		NfnIc[P] = 1; WfIc[P][0] = 1;
 
 		for (f = 0; f < Nf; f++) {
-			xir_fGc[P][f] = malloc(NfnGc[P]*dim * sizeof ***xir_fGc); // tbd
-			xir_fIs[P][f] = malloc(NfnIs[P]*dim * sizeof ***xir_fIs); // tbd
-			xir_fIc[P][f] = malloc(NfnIc[P]*dim * sizeof ***xir_fIc); // tbd
+			xir_fGc[P][f] = malloc(NfnGc[P]*dE * sizeof ***xir_fGc); // tbd
+			xir_fIs[P][f] = malloc(NfnIs[P]*dE * sizeof ***xir_fIs); // tbd
+			xir_fIc[P][f] = malloc(NfnIc[P]*dE * sizeof ***xir_fIc); // tbd
 
 			xir_fGc[P][f][0] = pow(-1,f+1);
 			xir_fIs[P][f][0] = pow(-1,f+1);
@@ -187,38 +226,55 @@ void setup_operators()
 		}
 
 		// Preliminary Operators
+		ChiRefGs_vGc[P] = basis_TP(PGs,xir_vGc[P],NvnGc[P],dE); // tbd
+
+		ChiGs_vGc[P] = mm_d(CblasNoTrans,CblasNoTrans,NvnGc[P],NvnGs[0],NvnGs[0],1.0,ChiRefGs_vGc[P],TGs); // tbd
+
+
+
+		// Operators
+		I_vGs_vGc[P] = mm_d(CblasNoTrans,CblasNoTrans,NvnGc[P],NvnGs[0],NvnGs[0],1.0,ChiGs_vGc[P],ChiInvGs_vGs); // keep
+
+array_print_d(NvnGc[P],NvnGs[0],I_vGs_vGc[P]);
 
 	}
 
+
+
+	// QUAD
+	if (is_ELEMENT_present(QUAD)) {
+		ELEMENT = get_ELEMENT_type(QUAD);
+
+		dE = ELEMENT->d;
+
+		NvnGs  = ELEMENT->NvnGs;
+
+		// VOLUME Nodes (Order Independent)
+		ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
+		cubature_TP(&dummyxir,&dummyW,&dummyCon,&NvnGs[0],ToReturn,PGs,dE,"GLL");
+
+	}
+
+	// HEX
+	if (is_ELEMENT_present(HEX)) {
+		ELEMENT = get_ELEMENT_type(HEX);
+
+		dE = ELEMENT->d;
+
+		NvnGs  = ELEMENT->NvnGs;
+
+		// VOLUME Nodes (Order Independent)
+		ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
+		cubature_TP(&dummyxir,&dummyW,&dummyCon,&NvnGs[0],ToReturn,PGs,dE,"GLL");
+	}
+
+
+
+
+
+
+
+
 	free(ToReturn);
-
-
-	// Implementing basis_TP
-
-	int P_tmp, Nn_tmp, dim_tmp, d_tmp,
-	    *dummyi_tmp, ToReturn_tmp[4];
-	double *xir_tmp, *dummyd_tmp, *ChiRef_tmp, **GradChiRef_tmp;
-
-	P_tmp = 2;
-	dim_tmp = 2;
-
-	ToReturn_tmp[0] = 1; ToReturn_tmp[1] = 0; ToReturn_tmp[2] = 0; ToReturn_tmp[3] = 1;
-	cubature_TP(&xir_tmp,&dummyd_tmp,&dummyi_tmp,&Nn_tmp,ToReturn_tmp,P_tmp,dim_tmp,"GL");
-	ChiRef_tmp = basis_TP(P_tmp,xir_tmp,Nn_tmp,dim_tmp);
-	GradChiRef_tmp = grad_basis_TP(P_tmp,xir_tmp,Nn_tmp,dim_tmp);
-
-	array_print_d(Nn_tmp,pow(P_tmp+1,dim_tmp),ChiRef_tmp);
-
-	for (d_tmp = 0; d_tmp < dim_tmp; d_tmp++)
-		array_print_d(Nn_tmp,pow(P_tmp+1,dim_tmp),GradChiRef_tmp[d_tmp]);
-
-	free(xir_tmp);
-	free(ChiRef_tmp);
-	array_free2_d(dim_tmp,GradChiRef_tmp);
-
-
-
-
-
 
 }

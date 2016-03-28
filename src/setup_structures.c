@@ -6,8 +6,6 @@
 #include "parameters.h"
 #include "functions.h"
 
-//#include "petscsys.h"
-
 /*
  *	Purpose:
  *		Set up VOLUME and FACET structures.
@@ -25,6 +23,7 @@ void setup_structures()
 {
 	// Initialize DB Parameters
 	int  d       = DB.d,
+	     P       = DB.P,
 	     NV      = DB.NV,
 		 NVC     = DB.NVC,
 	     *NE     = DB.NE,
@@ -51,6 +50,7 @@ void setup_structures()
 		if (v != 0)
 			VOLUME = VOLUME->next;
 
+		VOLUME->P      = P;
 		VOLUME->type   = EType[IndE];
 		VOLUME->Eclass = get_element_class(VOLUME->type);
 

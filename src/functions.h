@@ -1,3 +1,5 @@
+#include "mkl.h"
+
 /*
  *	Purpose:
  *		Set function prototypes.
@@ -31,14 +33,26 @@ extern void   setup_structures              (void);
 extern void   setup_geometry                (void);
 extern void     vertices_to_exact_geom      (void);
 
+// Matrix Functions
+extern double *identity_d   (const int N);
+extern double *inverse_d    (int N, int NRHS, double *A, double *b);
+extern double *mm_d         (const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m, const int n, const int k,
+                             const double alpha, const double *A, const double *B);
+extern void   *mm_NoAlloc_d (const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m, const int n, const int k,
+                             const double alpha, const double *A, const double *B, const double *C);
+
 // Math Functions
 extern int    factorial_i (const int n);
 extern int    gamma_i     (const int n);
 extern double gamma_d     (const double x);
 
-// Extern structs
-extern struct S_ELEMENT *New_ELEMENT (void);
-extern struct S_VOLUME  *New_VOLUME  (void);
+// Struct related functions
+extern struct S_ELEMENT *New_ELEMENT        (void);
+extern struct S_VOLUME  *New_VOLUME         (void);
+
+extern int              is_ELEMENT_present  (const int type);
+extern struct S_ELEMENT *get_ELEMENT_type   (const int type);
+extern struct S_ELEMENT *get_ELEMENT_Eclass (const int Eclass, const int Esubclass);
 
 
 // Memory Management
@@ -55,6 +69,10 @@ extern void memory_destructor_E (struct S_ELEMENT *ELEMENT);
 
 	// Norms
 	extern double array_norm_d (int LenA, double *A, char *NormType);
+
+	// Swapping
+	extern int    array_swap_i (int *arr1, int *arr2, const int NIn);
+	extern double array_swap_d (double *arr1, double *arr2, const int NIn);
 
 	// Printing
 //	extern void array_print    (int m, int n, void *A, char *type);

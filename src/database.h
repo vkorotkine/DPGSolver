@@ -46,7 +46,7 @@ struct S_ELEMENT {
 	// Mesh
 	int present, type, d, Nve, Nf,
 	    *Nfve, *VeC, *VeE, *VeF;
-	
+
 	// Operators
 	int    *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc, *NvnP,
 	       *NfnGc, *NfnIs, *NfnIc,
@@ -55,17 +55,18 @@ struct S_ELEMENT {
 	       **xir_vGs, **xir_vGc, **xir_vCs, **xir_vCc, **xir_vJs, **xir_vJc, **xir_vS, **xir_vF, **xir_vFrs, **xir_vFrc,
 	       **xir_vIs, **xir_vIc, **xir_vP,
 	       **WvIs, **WvIc,
-	       ***xir_fGc, ***xir_fIs, ***xir_fIc, **WfIs, **WfIc;
+	       ***xir_fGc, ***xir_fIs, ***xir_fIc, **WfIs, **WfIc,
+		   **I_vGs_vGc;
 
 	struct S_ELEMENT *next;
 };
 
 struct S_VOLUME {
 	// Structures
-	int type, Eclass, curved;
+	int P, type, Eclass, curved;
 
 	// Geometry
-	double **XYZs;
+	double *XYZc, *XYZs;
 
 	struct S_VOLUME *next;
 

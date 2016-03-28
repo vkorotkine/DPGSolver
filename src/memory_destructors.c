@@ -78,6 +78,9 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->NfnIs);
 	free(ELEMENT->NfnIc);
 
+	// Operators
+	array_free2_d(NP,ELEMENT->I_vGs_vGc);
+
 	free(ELEMENT);
 }
 
@@ -88,7 +91,8 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	// Structures
 
 	// Geometry
-	array_free2_d(NP,VOLUME->XYZs);
+	free(VOLUME->XYZc);
+	free(VOLUME->XYZs);
 
 	free(VOLUME);
 }

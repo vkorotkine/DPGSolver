@@ -3,7 +3,7 @@
 
 /*
  *	Purpose:
- *	Compute various norms.
+ *		Compute various norms.
  *
  *	Comments:
  *
