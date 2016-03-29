@@ -30,6 +30,23 @@ double *operate_SF_d(const double *Input, const int NIn[3], const int NOut[3], c
 	 *		For the moment, the routine is only implemented using the new non-redundant approach. (ToBeModified)
 	 *		Operating in the eta/zeta directions requires re-ordering of the matrices before and after operation. To
 	 *		minimize memory usage, re-ordering is done in place, requiring only a single additional row of storage.
+	 *		Add support for NonRedundant == 2 (Diag == 1). (ToBeDeleted)
+	 *			Likely implementation: extract diagonal from OP, then loop over rows performing BLAS 1 row scaling. Note
+	 *			                       that this really does not require re-arranging. If it is found that this option
+	 *			                       is important in the future, profile both implementations. (ToBeDeleted)
+	 *
+	 *	Notation:
+	 *		Input : Input array, number of entries prod(NIn) x NCols
+	 *		Output : Output array, number of entries prod(NOut) x NCols
+	 *		N()[]  : (N)umber of (In/Out)put entries in each of the coordinate directions []
+	 *		OP[]   : 1D operators in each of the coordinate directions []
+	 *		Diag   : Indication of whether the OPs are diagonal
+	 *		         Options: 0 (Not diagonal)
+	 *		                  1 (Diagonal but not identity)
+	 *		                  2 (Diagonal identity)
+	 *
+	 *	References:
+	 *		Add in Sherwin's book or perhaps my thesis as the procedure implemented is slighly modified (ToBeModified).
 	 */
 
 	int i, iMax, j, jMax, k, kMax, dim, BRow, BRowMax,
@@ -237,6 +254,7 @@ double *operate_SF_d(const double *Input, const int NIn[3], const int NOut[3], c
 void setup_geometry()
 {
 	// Initialize DB Parameters
+	char *MeshType = DB.MeshType;
 	int  ExactGeom = DB.ExactGeom,
 	     d         = DB.d,
 	     NV        = DB.NV,
@@ -279,7 +297,6 @@ void setup_geometry()
 
 		VeC   = ELEMENT->VeC;
 		NvnGs = ELEMENT->NvnGs[0];
-//		NvnGs = ELEMENT_class[0]->NvnGs[0];
 
 		XYZc = malloc (NvnGs*d * sizeof *XYZc); // keep
 		VOLUME->XYZc = XYZc;
@@ -290,6 +307,7 @@ void setup_geometry()
 		}}
 
 		if (!VOLUME->curved) {
+			// If not curved, the P1 geometry representation sufficies to fully specify the element.
 			XYZs = malloc(NvnGs*d * sizeof *XYZs); // keep
 			VOLUME->XYZs = XYZs;
 
@@ -340,6 +358,28 @@ void setup_geometry()
 
 		v++;
 		VOLUME = VOLUME->next;
+	}
+
+	// Find node index ordering on each FACET
+	/* WRITE A TEST ROUTINE TO MAKE SURE THAT THIS IS WORKING? (ToBeDeleted)
+	 * Note: Ideally, this information can be given without relying on matching of physical points as there will be a
+	 *       potential for non-conforming elements.
+	 * For the "sum-factorization" on simplex elements, the nodes must be ordered according to their symmetries, which
+	 * is unrelated to the vertex positions? Perhaps define the nodes only in one section (1/3) of the reference
+	 * triangle with the associated multiplicity.
+	 * Note: After having read through Hesthaven(2000) on the sum-factorization on triangles, it seemed intuitive to
+	 *       attempt a similar extension for the TP case, using the symmetry about 0. This succeeded, resulting in an
+	 *       asymptotic complexity reduction of 2. This does require re-ordering of both the nodes and basis functions
+	 *       however => Do this. Also, while I thought I might be onto a new result, a very similar demonstration seems
+	 *       to have been made in Solomonoff(1992)-A_Fast_Algorithm_for_Spectral_Differentiation, although he does not
+	 *       seem to have considered the interpolation.
+	 */
+
+
+
+	// Performing analytical mesh curving if MeshType == ToBeCurved
+	if (strstr(MeshType,"ToBeCurved") != NULL) {
+		printf("    Modify Vertex and VOLUME Nodes of ToBeCurved Mesh\n");
 	}
 
 
