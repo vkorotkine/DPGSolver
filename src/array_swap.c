@@ -19,7 +19,7 @@
 void array_swap_i(int *arr1, int *arr2, const int NIn)
 {
 	int N;
-	int *tmp, *tmpP, *arr1P, *arr2P;
+	register int *tmp, *tmpP, *arr1P, *arr2P;
 
 	tmp = malloc(NIn * sizeof *tmp); // free
 
@@ -36,7 +36,7 @@ void array_swap_i(int *arr1, int *arr2, const int NIn)
 void array_swap_d(double *arr1, double *arr2, const int NIn)
 {
 	int N;
-	double *tmp, *tmpP, *arr1P, *arr2P;
+	register double *tmp, *tmpP, *arr1P, *arr2P;
 
 	tmp = malloc(NIn * sizeof *tmp); // free
 
@@ -46,6 +46,24 @@ void array_swap_d(double *arr1, double *arr2, const int NIn)
 		;
 	for (arr2P = arr2, tmpP = tmp, N = NIn; N--; *arr2P++ = *tmpP++)
 		;
+
+/*
+ * Compare speed with code above. Also, potentially add switch statement to handle cases of small NIn using loop
+ * unrolling.
+ *
+	unsigned int N;
+	register double *tmpP1, *tmpP2, *arr1P1, *arr1P2, *arr2P1, *arr2P2;
+
+	tmpP1 = tmp; tmpP2 = tmp;
+	arr1P1 = arr1; arr1P2 = arr1;
+	arr2P1 = arr2; arr2P2 = arr2;
+
+	for (N = NIn; N-- ; ) {
+		*arr1P1++ = *tmpP1++;
+		*arr1P2++ = *arr2P1++;
+		*arr2P2++ = *tmpP2++;
+	}
+*/
 
 	free(tmp);
 }

@@ -17,15 +17,26 @@ ToBeDeleted = 0;
 % functions.
 clc;
 
-P = 7;
-Pt = 7;
+P = 5;
+Pt = 5;
 d = 1;
 
 [rst,~,N] = CubatureTensorProd(GLOBAL,P,d,'GLL');
 
-reorder = zeros(N,1);
-reorder(1:2:N) = 1:ceil(N/2);
-reorder(2:2:N) = N:-1:ceil(N/2)+1;
+if (mod(N,2) == 1)
+    reorder = [ceil(N/2) 1:floor(N/2) ceil(N/2)+1:N];
+    tmp = zeros(1,N);
+    tmp(1) = 1;
+    tmp(2:2:N) = 2:ceil(N/2);
+    tmp(3:2:N) = N:-1:ceil(N/2)+1;
+else
+    reorder = 1:N;
+    tmp = zeros(1,N);
+    tmp(1:2:N) = 1:ceil(N/2);
+    tmp(2:2:N) = N:-1:ceil(N/2)+1;
+end
+    
+
 rst = rst(reorder,:)
 
 I       = eye(N);
@@ -36,9 +47,18 @@ T = I/Chi_rst; %nodal
 
 [rst,~,Nt] = CubatureTensorProd(GLOBAL,Pt,d,'GL');
 
-reorder_t = zeros(Nt,1);
-reorder_t(1:2:Nt) = 1:ceil(Nt/2);
-reorder_t(2:2:Nt) = Nt:-1:ceil(Nt/2)+1;
+if (mod(Nt,2) == 1)
+    reorder_t = [ceil(Nt/2) 1:floor(Nt/2) ceil(Nt/2)+1:Nt];
+    tmp_t = zeros(1,Nt);
+    tmp_t(1) = 1;
+    tmp_t(2:2:Nt) = 2:ceil(t/2);
+    tmp_t(3:2:Nt) = Nt:-1:ceil(Nt/2)+1;
+else
+    reorder_t = 1:Nt;
+    tmp_t = zeros(1,Nt);
+    tmp_t(1:2:Nt) = 1:ceil(Nt/2);
+    tmp_t(2:2:Nt) = Nt:-1:ceil(Nt/2)+1;
+end
 
 rst = rst(reorder_t,:)
 
@@ -71,15 +91,21 @@ Dr = Chi_test
 
 F = zeros(N,N);
 for i = 0:floor(N/2)-1
-    F(i*2+(1:2),i*2+(1:2)) = FN;
+    F(i*2+(1:2)+mod(N,2),i*2+(1:2)+mod(N,2)) = FN;
 end
-if (mod(N,2) == 1); F(N,N) = 1; end
+if (mod(N,2) == 1); F(1,1) = sqrt(2); end
+
+perm = eye(N); perm = perm(tmp,:);
+F = perm'*F*perm;
 
 Ft = zeros(Nt,Nt);
 for i = 0:floor(Nt/2)-1
-    Ft(i*2+(1:2),i*2+(1:2)) = FN;
+    Ft(i*2+(1:2)+mod(Nt,2),i*2+(1:2)+mod(Nt,2)) = FN;
 end
-if (mod(Nt,2) == 1); Ft(Nt,Nt) = 1; end
+if (mod(Nt,2) == 1); Ft(1,1) = sqrt(2); end
+
+perm = eye(Nt); perm = perm(tmp_t,:);
+Ft = perm'*Ft*perm;
 
 Dtmp = Fscale*Ft*Dr*F';
 Dtmp(abs(Dtmp) < 1e-14) = 0;
@@ -89,7 +115,7 @@ Drtilde = Dtmp
 Vec = rand([N 1]);
 
 D_standard = Dr*Vec;
-D_new1     = Fscale*F'*Drtilde*F*Vec;
+D_new1     = Fscale*Ft'*Drtilde*F*Vec;
 
 [D_standard D_new1]
 norm(D_standard-D_new1)
@@ -181,7 +207,8 @@ clc
 % For the next level of implementation, show that this works for PIn
 % different from POut (such as for interpolation to a higher order) if both
 % node sets are symmetric, similar to what was done for TP above.
-P = 4;
+P = 3;
+% Don't need to run higher than P3...
 
 [xir_vGs,~,NvnGs]   = CubatureTRI(GLOBAL,1,'alpha-opt');
 [rst,~,Nvn] = CubatureTRI(GLOBAL,P,'alpha-opt');
@@ -204,18 +231,24 @@ elseif     (P == 2)
     rst = rst([4 1 2 3 5 6],:);
     reorder = [1 3 5 2 4 6];
 elseif (P == 3)
+    % One 6-symmetry
     Symms = [1 3 3 3];
     Symms_count = [1 3];
-    rst = rst([6 5 2 1 3 7 4 9 8 10],:);
-    reorder = [1 2 5 8 3 6 9 4 7 10];
+%     rst = rst([6 5 2 1 3 7 4 9 8 10],:);
+%     reorder = [1 2 5 8 3 6 9 4 7 10];
+    
+%     Symms = [1 3 6];
+%     Symms_count = [1 1 1];
+    rst = rst([6 1 4 10 5 3 9 2 7 8],:);
+    reorder = 1:10;
 elseif (P == 4)
-    % All 3-symmetries
+    % One 6-symmetry
     Symms = [3 3 3 3 3];
     Symms_count = 5;
     rst = rst([7 10 6 2 1 8 3 4 9 5 11 12 14 13 15],:);
     reorder = [1 6 11 2 7 12 3 8 13 4 9 14 5 10 15];
 elseif (P == 5)
-    % All 3-symmetries
+    % Two 6-symmetries
     Symms = [3 3 3 3 3 3 3];
     Symms_count = 7;
     rst = rst([13 8 12 3 7 2 1 9 10 4 15 5 11 6 14 17 18 16 20 19 21],:);
@@ -223,9 +256,7 @@ elseif (P == 5)
                [1 1+7 1+2*7]+3 [1 1+7 1+2*7]+4 [1 1+7 1+2*7]+5 ...
                [1 1+7 1+2*7]+6];
 elseif (P == 6)
-    % First 6-symmetry (based on table 3 in Hesthaven(1998)), but the nodes
-    % are not periodic in 60 degree intervals, slightly off... What does a
-    % 6 symmetry provide with regards to the fft, if anything?
+    % Three 6-symmetries
     Symms = [1 3 3 3 3 3 3 3 6];
     Symms_count = [1 7 1];
     rst = rst([16 9 19 14 3 8 2 1 15 10 12 4 5 18 6 13 7 11 17 ...
@@ -244,6 +275,7 @@ scatter(x,y);
 a = [1:Nvn]'; b = num2str(a); c = cellstr(b);
 dx = 0.025; dy = 0.025;
 text(x+dx,y+dy,c);
+% break;
 
 [rst_P2,~,~] = CubatureTRI(GLOBAL,2,'alpha-opt');
 scatter(rst_P2(:,1),rst_P2(:,2),'rs');
@@ -325,6 +357,7 @@ eta_t = r.*cos(theta);
 Dr = diag(xi_r)*Dxi + diag(eta_r)*Deta;
 Dt = diag(xi_t)*Dxi + diag(eta_t)*Deta
 % Dt = BasisTRI(3,xir_vGs)*T
+% break;
 
 F = zeros(Nvn,Nvn);
 IndS = 0;
@@ -346,16 +379,18 @@ F = perm'*F*perm;
 Dtmp = F*Dr*diag(Fscale)*F';
 Dreal = real(Dtmp); Dreal(abs(Dreal) < 1e-14) = 0;
 Dimag = imag(Dtmp); Dimag(abs(Dimag) < 1e-14) = 0;
-Dreal;
-Dimag;
+Dreal
+Dimag
 Drtilde = Dreal+1i*Dimag;
 
 Dtmp = F*Dt*diag(Fscale)*F';
+% Dtmp = Dt*diag(Fscale)*F;
 Dreal = real(Dtmp); Dreal(abs(Dreal) < 1e-14) = 0;
 Dimag = imag(Dtmp); Dimag(abs(Dimag) < 1e-14) = 0;
 Dreal
 Dimag
 Dthetatilde = Dreal+1i*Dimag;
+break;
 
 NCols = 1;
 RHS_In = rand([Nvn NCols]);
