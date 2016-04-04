@@ -52,7 +52,7 @@ void cubature_TP(double **xir, double **W, int **Con, int *Nn, int *ToReturn, in
 		// Use the Chebyshve-Guass-Lobatto nodes as the first guess
 		for (i = 0; i < N; i++)
 			x[i] = -cos(PI*(i)/P);
-// array_print_d(1,N,x);
+// array_print_d(1,N,x,'R');
 
 		// Legendre Vandermonde Matrix
 		V = malloc(N*N * sizeof *V); // free
@@ -93,8 +93,8 @@ void cubature_TP(double **xir, double **W, int **Con, int *Nn, int *ToReturn, in
 		free(xdiff);
 		free(V);
 
-// array_print_d(1,N,x);
-// array_print_d(1,N,w);
+// array_print_d(1,N,x,'R');
+// array_print_d(1,N,w,'R');
 	} else if (strstr(NodeType,"GL") != NULL) {
 		// Build the companion matrix CM
 		/* CM is defined such that det(xI-CM)=P_n(x), with P_n(x) being the Legendre poynomial under consideration.
@@ -128,8 +128,8 @@ void cubature_TP(double **xir, double **W, int **Con, int *Nn, int *ToReturn, in
 		if (LAPACKE_dsyev(LAPACK_ROW_MAJOR,'V','U',(MKL_INT) N,CM,(MKL_INT) N,eigs) > 0)
 			printf("Error: mkl LAPACKE_sysev failed to compute eigenvalues.\n"), exit(1);
 
-// array_print_d(1,N,eigs);
-// array_print_d(N,N,CM);
+// array_print_d(1,N,eigs,'R');
+// array_print_d(N,N,CM,'R');
 
 		array_sort_d(1,N,eigs,Indices,'R','N');
 
@@ -148,8 +148,8 @@ void cubature_TP(double **xir, double **W, int **Con, int *Nn, int *ToReturn, in
 		free(CM);
 		free(eigs);
 
-// array_print_d(1,N,x);
-// array_print_d(1,N,w);
+// array_print_d(1,N,x,'R');
+// array_print_d(1,N,w,'R');
 	}
 
 	x_d     = malloc(pow(N,d)*d        * sizeof *x_d); // keep
@@ -190,8 +190,8 @@ void cubature_TP(double **xir, double **W, int **Con, int *Nn, int *ToReturn, in
 			free(connect);
 		}
 
-// array_print_d(pow(N,d),d,x_d);
-// array_print_d(pow(N,d),1,w_d);
+// array_print_d(pow(N,d),d,x_d,'R');
+// array_print_d(pow(N,d),1,w_d,'R');
 
 	return;
 	}
@@ -236,7 +236,7 @@ void cubature_TP(double **xir, double **W, int **Con, int *Nn, int *ToReturn, in
 			}
 		}
 
-// array_print_i(pow(P,d),pow(2,d),connect);
+// array_print_i(pow(P,d),pow(2,d),connect,'R');
 
 		*xir = x_d;
 		*Nn  = pow(N,d);

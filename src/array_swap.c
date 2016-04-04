@@ -22,29 +22,42 @@
  *
  */
 
-void array_swap_i(register double *arr1, register double *arr2, const int NIn, const int stepIn)
+void array_swap_i(register int *arr1, register int *arr2, const int NIn, const int stepIn)
 {
 	register unsigned int N, step;
 	register int tmp;
 
-	switch(stepIn) {
-		case 1 :
-			for (N = NIn, step = stepIn; N-- ; ) {
-				tmp     = *arr1;
-				*arr1++ = *arr2;
-				*arr2++ = tmp;
-			}
-			break;
-		default :
-			for (N = NIn, step = stepIn; N-- ; ) {
+	tmp   = *arr1;
+	*arr1 = *arr2;
+	*arr2 = tmp;
+
+	switch(NIn) {
+	case 1:
+		break;
+	default:
+		switch(stepIn) {
+		case 1:
+			for (N = NIn-1; N-- ; ) {
+				arr1++;
+				arr2++;
+
 				tmp   = *arr1;
 				*arr1 = *arr2;
 				*arr2 = tmp;
-
-				arr1 = arr1+step;
-				arr2 = arr2+step;
 			}
 			break;
+		default:
+			for (N = NIn, step = stepIn; N-- ; ) {
+				arr1 += step;
+				arr2 += step;
+
+				tmp   = *arr1;
+				*arr1 = *arr2;
+				*arr2 = tmp;
+			}
+			break;
+		}
+		break;
 	}
 }
 
@@ -53,23 +66,36 @@ void array_swap_d(register double *arr1, register double *arr2, const int NIn, c
 	register unsigned int N, step;
 	register double tmp;
 
-	switch(stepIn) {
-		case 1 :
-			for (N = NIn, step = stepIn; N-- ; ) {
-				tmp     = *arr1;
-				*arr1++ = *arr2;
-				*arr2++ = tmp;
-			}
-			break;
-		default :
-			for (N = NIn, step = stepIn; N-- ; ) {
+	tmp   = *arr1;
+	*arr1 = *arr2;
+	*arr2 = tmp;
+
+	switch(NIn) {
+	case 1:
+		break;
+	default:
+		switch(stepIn) {
+		case 1:
+			for (N = NIn-1; N-- ; ) {
+				arr1++;
+				arr2++;
+
 				tmp   = *arr1;
 				*arr1 = *arr2;
 				*arr2 = tmp;
-
-				arr1 = arr1+step;
-				arr2 = arr2+step;
 			}
 			break;
+		default:
+			for (N = NIn-1, step = stepIn; N-- ; ) {
+				arr1 += step;
+				arr2 += step;
+
+				tmp   = *arr1;
+				*arr1 = *arr2;
+				*arr2 = tmp;
+			}
+			break;
+		}
+		break;
 	}
 }

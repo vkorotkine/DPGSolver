@@ -74,13 +74,13 @@
  *			Indicestest = malloc(Ctest *sizeof *Indicestest);
  *			for (i = 0; i < Ctest; i++) Indicestest[i] = i;
  *
- *			array_print_i(Rtest,Ctest,Atest);
- *			array_print_i(1,Ctest,Indicestest);
+ *			array_print_i(Rtest,Ctest,Atest,'R');
+ *			array_print_i(1,Ctest,Indicestest,'R');
  *
  *			array_sort_i(Rtest,Ctest,Atest,Indicestest,'R','N');
  *
- *			array_print_i(Rtest,Ctest,Atest);
- *			array_print_i(1,Ctest,Indicestest);
+ *			array_print_i(Rtest,Ctest,Atest,'R');
+ *			array_print_i(1,Ctest,Indicestest,'R');
  *
  *
  *		Code to test array_sort_d:
@@ -99,13 +99,13 @@
  *			Indicestest = malloc(Ctest * sizeof *Indicestest);
  *			for (i = 0; i < Ctest; i++) Indicestest[i] = i;
  *
- *			array_print_d(Rtest,Ctest,Atest);
- *			array_print_i(1,Ctest,Indicestest);
+ *			array_print_d(Rtest,Ctest,Atest,'R');
+ *			array_print_i(1,Ctest,Indicestest,'R');
  *
  *			array_sort_d(Rtest,Ctest,Atest,Indicestest,'R','N');
  *
- *			array_print_d(Rtest,Ctest,Atest);
- *			array_print_i(1,Ctest,Indicestest);
+ *			array_print_d(Rtest,Ctest,Atest,'R');
+ *			array_print_i(1,Ctest,Indicestest,'R');
  *
  *	References:
  *
@@ -125,7 +125,7 @@ void array_sort_i(int NRows, int NCols, int *A, int *Indices, char ordering, cha
 	} else {
 		printf("Error: Invalid ordering/trans input to array_sort_i"), exit(1);
 	}
-// array_print_i(NRows,NCols,A);
+// array_print_i(NRows,NCols,A,'R');
 
 	for (row = 0; row < NRows; row++) {
 		if (row == 0) {
@@ -196,11 +196,11 @@ void array_sort_i(int NRows, int NCols, int *A, int *Indices, char ordering, cha
 				colMs[0] = colMe[row-1]+1;
 			}
 		}
-// array_print_i(NRows,NCols,A);
-// array_print_i(1,NCols,Indices);
+// array_print_i(NRows,NCols,A,'R');
+// array_print_i(1,NCols,Indices,'R');
 	}
 
-// array_print_i(NRows,NCols,A);
+// array_print_i(NRows,NCols,A,'R');
 
 	if ((ordering == 'R' && trans == 'T') || (ordering == 'C' && trans == 'N')) {
 		mkl_simatcopy(ordering,trans,NRows,NCols,1.,(float *) A,NCols,NRows);
@@ -208,7 +208,7 @@ void array_sort_i(int NRows, int NCols, int *A, int *Indices, char ordering, cha
 	} else if ((ordering == 'R' && trans == 'N') || (ordering == 'C' && trans == 'T')) {
 		// Don't do anything.
 	}
-// array_print_i(NRows,NCols,A);
+// array_print_i(NRows,NCols,A,'R');
 }
 
 
@@ -228,7 +228,7 @@ void array_sort_d(int NRows, int NCols, double *A, int *Indices, char ordering, 
 	} else {
 		printf("Error: Invalid ordering/trans input to array_sort_d"), exit(1);
 	}
-// array_print_d(NRows,NCols,A);
+// array_print_d(NRows,NCols,A,'R');
 
 	for (row = 0; row < NRows; row++) {
 		if (row == 0) {
@@ -300,11 +300,11 @@ void array_sort_d(int NRows, int NCols, double *A, int *Indices, char ordering, 
 			}
 		}
 // printf("row: %d: \n",row);
-// array_print_d(NRows,NCols,A);
-// array_print_i(1,NCols,Indices);
+// array_print_d(NRows,NCols,A,'R');
+// array_print_i(1,NCols,Indices,'R');
 	}
 
-// array_print_d(NRows,NCols,A);
+// array_print_d(NRows,NCols,A,'R');
 
 	if ((ordering == 'R' && trans == 'T') || (ordering == 'C' && trans == 'N')) {
 		mkl_dimatcopy(ordering,trans,NRows,NCols,1.,(double *) A,NCols,NRows);
@@ -312,5 +312,5 @@ void array_sort_d(int NRows, int NCols, double *A, int *Indices, char ordering, 
 	} else if ((ordering == 'R' && trans == 'N') || (ordering == 'C' && trans == 'T')) {
 		// Don't do anything.
 	}
-// array_print_d(NRows,NCols,A);
+// array_print_d(NRows,NCols,A,'R');
 }

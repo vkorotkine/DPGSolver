@@ -52,74 +52,146 @@ void array_print(int m, int n, void *A, char *type)
 }
 */
 
-void array_print_i(int m, int n, int *A)
+void array_print_i(int m, int n, int *A, char layout)
 {
 	int i, j;
 
-	for (i = 0; i < m; i++) {
-		for (j = 0; j < n; j++)
-			printf("% 12d ",A[i*n+j]);
+	switch (layout) {
+	case 'R':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++)
+				printf("% 12d ",A[i*n+j]);
+			printf("\n");
+		}
 		printf("\n");
+		break;
+	case 'C':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++)
+				printf("% 12d ",A[i+j*m]);
+			printf("\n");
+		}
+		printf("\n");
+		break;
 	}
-	printf("\n");
 }
 
-void array_print_l(int m, int n, long *A)
+void array_print_l(int m, int n, long *A, char layout)
 {
 	int i, j;
 
-	for (i = 0; i < m; i++) {
-		for (j = 0; j < n; j++)
-		  printf("% 12ld ",A[i*n+j]);
+	switch (layout) {
+	case 'R':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++)
+				printf("% 12ld ",A[i*n+j]);
+			printf("\n");
+		}
 		printf("\n");
+		break;
+	case 'C':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++)
+				printf("% 12ld ",A[i+j*m]);
+			printf("\n");
+		}
+		printf("\n");
+		break;
 	}
-	printf("\n");
 }
 
-void array_print_ll(int m, int n, long long *A)
+void array_print_ll(int m, int n, long long *A, char layout)
 {
 	int i, j;
 
-	for (i = 0; i < m; i++) {
-		for (j = 0; j < n; j++)
-		  printf("% 12lld ",A[i*n+j]);
+	switch (layout) {
+	case 'R':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++)
+				printf("% 12lld ",A[i*n+j]);
+			printf("\n");
+		}
 		printf("\n");
+		break;
+	case 'C':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++)
+				printf("% 12lld ",A[i+j*m]);
+			printf("\n");
+		}
+		printf("\n");
+		break;
 	}
-	printf("\n");
 }
 
-void array_print_f(int m, int n, float *A)
+void array_print_f(int m, int n, float *A, char layout)
 {
 	int i, j;
 
-	for (i = 0; i < m; i++) {
-		for (j = 0; j < n; j++)
-		  printf("% .3f ",A[i*n+j]);
+	switch (layout) {
+	case 'R':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++)
+				printf("% .3f ",A[i*n+j]);
+			printf("\n");
+		}
 		printf("\n");
+		break;
+	case 'C':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++)
+				printf("% .3f ",A[i+j*m]);
+			printf("\n");
+		}
+		printf("\n");
+		break;
 	}
-	printf("\n");
 }
 
-void array_print_d(int m, int n, double *A)
+void array_print_d(int m, int n, double *A, char layout)
 {
 	int i, j;
 
-	for (i = 0; i < m; i++) {
-		for (j = 0; j < n; j++)
-		  printf("% .3e ",A[i*n+j]);
+	switch (layout) {
+	case 'R':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++)
+				printf("% .3e ",A[i*n+j]);
+			printf("\n");
+		}
 		printf("\n");
+		break;
+	case 'C':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++)
+				printf("% .3e ",A[i+j*m]);
+			printf("\n");
+		}
+		printf("\n");
+		break;
 	}
-	printf("\n");
 }
 
-void array_print_ld(int m, int n, long double *A)
+void array_print_ld(int m, int n, long double *A, char layout)
 {
 	int i, j;
 
-	for (i = 0; i < m; i++) {
-		for (j = 0; j < n; j++)
-		  printf("% .3Le ",A[i*n+j]);
+	switch (layout) {
+	case 'R':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++)
+				printf("% .3Le ",A[i*n+j]);
+			printf("\n");
+		}
 		printf("\n");
+		break;
+	case 'C':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++)
+				printf("% .3Le ",A[i+j*m]);
+			printf("\n");
+		}
+		printf("\n");
+		break;
 	}
-	printf("\n");
 }

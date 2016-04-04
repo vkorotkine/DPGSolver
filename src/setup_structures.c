@@ -46,6 +46,7 @@ void setup_structures()
 	VOLUME = New_VOLUME();
 	DB.VOLUME = VOLUME;
 
+	// NOTE: ONLY SEARCH AND INITIALIZE VOLUMES ON THE CURRENT PROCESSOR
 	for (v = 0, IndE = Vs, IndVC = 0; v < NV; v++) {
 		if (v != 0)
 			VOLUME = VOLUME->next;

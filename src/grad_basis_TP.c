@@ -30,7 +30,7 @@
  *		cubature_TP(&xir_tmp,&dummyd_tmp,&dummyi_tmp,&Nn_tmp,ToReturn_tmp,P_tmp,dim_tmp,"GL");
  *		GradChiRef_tmp = grad_basis_TP(P_tmp,xir_tmp,Nn_tmp,dim_tmp);
  *
- *		array_print_d(Nn_tmp,pow(P_tmp+1,dim_tmp),GradChiRef_tmp[0]);
+ *		array_print_d(Nn_tmp,pow(P_tmp+1,dim_tmp),GradChiRef_tmp[0],'R');
  *
  *		free(xir_tmp);
  *		array_free2_d(dim_tmp,GradChiRef_tmp);
@@ -94,7 +94,7 @@ double **grad_basis_TP(const int P, const double *xir, const int Nn, const int d
 	for (dim = 0; dim < d; dim++)
 		mkl_dimatcopy('R','T',Nbf,Nn,1.,GradChiRef_xir[dim],Nn,Nbf);
 
-// array_print_d(Nn,Nbf,GradChiRef_xir[0]);
+// array_print_d(Nn,Nbf,GradChiRef_xir[0],'R');
 
 	return GradChiRef_xir;
 }

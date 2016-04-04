@@ -120,9 +120,9 @@ void setup_periodic()
 		}
 	}
 
-// array_print_i(1,d,NPF);
-// array_print_i(1,d,NPFSum);
-// array_print_i(NETotal,2,ETags);
+// array_print_i(1,d,NPF,'R');
+// array_print_i(1,d,NPFSum,'R');
+// array_print_i(NETotal,2,ETags,'R');
 
 	GFToRemove = malloc(NPFTotal * sizeof *GFToRemove); // free
 	PFToGFM    = malloc(NPFTotal * sizeof *PFToGFM); // free
@@ -148,8 +148,8 @@ void setup_periodic()
 		}}
 	}
 
-// array_print_i(1,NPFTotal,PFToGFM);
-// array_print_i(1,NPFTotal,PFToGFS);
+// array_print_i(1,NPFTotal,PFToGFM,'R');
+// array_print_i(1,NPFTotal,PFToGFS,'R');
 
 	PFToVeM = malloc(NPFSum[d-1]*NfveMax * sizeof *PFToVeM); // free
 	PFToVeS = malloc(NPFSum[d-1]*NfveMax * sizeof *PFToVeS); // free
@@ -176,8 +176,8 @@ void setup_periodic()
 	free(PFToGFM);
 	free(PFToGFS);
 
-// array_print_i(NPFSum[d-1],NfveMax,PFToVeM);
-// array_print_i(NPFSum[d-1],NfveMax,PFToVeS);
+// array_print_i(NPFSum[d-1],NfveMax,PFToVeM,'R');
+// array_print_i(NPFSum[d-1],NfveMax,PFToVeS,'R');
 
 	// Make array of possible connections for each node
 	for (i = NPVeUnique = 1, IndU = 0; i < NPVe; i++) {
@@ -203,9 +203,9 @@ void setup_periodic()
 		IndPVe += j;
 	}
 
-// array_print_i(1,NPVeUnique,NConn);
-// array_print_i(NPVeUnique,3,PConn);
-// array_print_i(1,NPVeUnique,PVeUnique);
+// array_print_i(1,NPVeUnique,NConn,'R');
+// array_print_i(NPVeUnique,3,PConn,'R');
+// array_print_i(1,NPVeUnique,PVeUnique,'R');
 
 	// Find Corresponding Periodic Facets
 	for (dim = 0, BlockStart = 0, IndPFM = 0; dim < d; dim++) {
@@ -360,11 +360,11 @@ void setup_periodic()
 
 	// Testing
 	if (PrintTesting && Testing && !MPIrank) {
-		printf("VToV:\n");       array_print_i(DB.NV,DB.NfMax,DB.VToV);
-		printf("VToF:\n");       array_print_i(DB.NV,DB.NfMax,DB.VToF);
-		printf("VToGF:\n");      array_print_i(DB.NV,DB.NfMax,DB.VToGF);
-		//printf("GFToRemove:\n"); array_print_i(1,NPFSum[d-1],GFToRemove);
-		printf("GFToVe:\n");     array_print_i(DB.NGF,DB.NfveMax,DB.GFToVe);
+		printf("VToV:\n");       array_print_i(DB.NV,DB.NfMax,DB.VToV,'R');
+		printf("VToF:\n");       array_print_i(DB.NV,DB.NfMax,DB.VToF,'R');
+		printf("VToGF:\n");      array_print_i(DB.NV,DB.NfMax,DB.VToGF,'R');
+		//printf("GFToRemove:\n"); array_print_i(1,NPFSum[d-1],GFToRemove,'R');
+		printf("GFToVe:\n");     array_print_i(DB.NGF,DB.NfveMax,DB.GFToVe,'R');
 	}
 
 	free(GFToRemove);

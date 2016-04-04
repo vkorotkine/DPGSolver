@@ -112,8 +112,8 @@ double *mm_Alloc_d(const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, c
 	return C;
 }
 
-void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m,
-          const int n, const int k, const double alpha, const double *A, const double *B, const double *C)
+void mm_d(const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m, const int n, const int k,
+	      const double alpha, const double *A, const double *B, const double *C)
 {
 	/*
 	 *	Purpose:
@@ -130,6 +130,7 @@ void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_T
 	 *		transa/transb: CblasNoTrans, CblasTrans, CblasConjTrans
 	 */
 
+	int C_NRows, C_NCols;
 	MKL_INT m_MKL, n_MKL, k_MKL,
 	        ldA, ldB, ldC;
 
@@ -137,49 +138,69 @@ void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_T
 	n_MKL = (MKL_INT) n;
 	k_MKL = (MKL_INT) k;
 
-	if (layout == CblasColMajor) {
-		if (transa == CblasNoTrans) ldA = m_MKL;
-		else                        ldA = k_MKL;
-		
-		if (transb == CblasNoTrans) ldB = k_MKL;
-		else                        ldB = n_MKL;
-
-		ldC = m_MKL;
-	} else {
-		if (transa == CblasNoTrans) ldA = k_MKL;
-		else                        ldA = m_MKL;
-
-		if (transb == CblasNoTrans) ldB = n_MKL;
-		else                        ldB = k_MKL;
-
-		ldC = n_MKL;
-	}
-
-/*
 	if (transa == CblasNoTrans) {
 		ldA = k_MKL;
+		C_NRows = m;
 	} else {
 		ldA = m_MKL;
+		C_NRows = k;
 	}
 
 	if (transb == CblasNoTrans) {
 		ldB = n_MKL;
+		C_NCols = k;
 	} else {
 		ldB = k_MKL;
+		C_NCols = n;
 	}
 
 	ldC = n_MKL;
-*/
 
-	switch (layout) {
-	case CblasColMajor:
-		cblas_dgemm(CblasColMajor,transa,transb,m_MKL,n_MKL,k_MKL,alpha,A,ldA,B,ldB,0.0,C,ldC);
-		break;
-	case CblasRowMajor:
-		cblas_dgemm(CblasRowMajor,transa,transb,m_MKL,n_MKL,k_MKL,alpha,A,ldA,B,ldB,0.0,C,ldC);
-		break;
-	default:
-		printf("Error: Invalid layour in mm_d.\n"), exit(1);
-		break;
-	}
+	cblas_dgemm(CblasRowMajor,transa,transb,m_MKL,n_MKL,k_MKL,alpha,A,ldA,B,ldB,0.0,C,ldC);
 }
+
+
+
+#ifdef DEBUG
+
+int main(int argc, char **argv)
+{
+	printf("Entered\n");
+
+	double *A, *B, *C;
+	int m, n, k;
+
+	m = 2;
+	n = 4;
+	k = 3;
+
+	A = malloc(m*k * sizeof *A);
+	B = malloc(k*n * sizeof *B);
+	C = malloc(m*n * sizeof *C);
+
+	A[0] = 8; A[1] = 1; A[2] = 6;
+	A[3] = 3; A[4] = 5; A[5] = 7;
+
+	B[0] = 8.1; B[1] = 5.1; B[2]  = 2.8; B[3]  = 0.4;
+	B[4] = 9.1; B[5] = 6.3; B[6]  = 5.4; B[7]  = 1.7;
+	B[8] = 1.3; B[9] = 9.8; B[10] = 9.6; B[11] = 2.9;
+	mm_d(CblasNoTrans,CblasNoTrans,m,n,k,1.0,A,B,C);
+
+	B[0] = 8.1; B[3] = 5.1; B[6] = 2.8; B[9]  = 0.4;
+	B[1] = 9.1; B[4] = 6.3; B[7] = 5.4; B[10] = 1.7;
+	B[2] = 1.3; B[5] = 9.8; B[8] = 9.6; B[11] = 2.9;
+//	mm_d(CblasNoTrans,CblasTrans,m,n,k,1.0,A,B,C);
+
+	int i, j;
+
+	for (i = 0; i < m; i++) {
+		for (j = 0; j < n; j++)
+			printf("% .3e ",C[i*n+j]);
+		printf("\n");
+	}
+	printf("\n");
+
+	return 0;
+}
+
+#endif

@@ -173,14 +173,14 @@ void setup_operators()
 
 	ChiInvGs_vGs    = inverse_d(NvnGs[0],NvnGs[0],ChiGs_vGs,IGs); // tbd
 
-	TGs = mm_d(CblasNoTrans,CblasNoTrans,NvnGs[0],NvnGs[0],NvnGs[0],1.0,ChiRefInvGs_vGs,ChiGs_vGs); // tbd
+	TGs = mm_Alloc_d(CblasNoTrans,CblasNoTrans,NvnGs[0],NvnGs[0],NvnGs[0],1.0,ChiRefInvGs_vGs,ChiGs_vGs); // tbd
 
 
 /*
-array_print_d(NvnGs[0],NvnGs[0],ChiRefGs_vGs);
-array_print_d(NvnGs[0],NvnGs[0],IGs);
-array_print_d(NvnGs[0],NvnGs[0],ChiRefInvGs_vGs);
-array_print_d(NvnGs[0],NvnGs[0],TGs);
+array_print_d(NvnGs[0],NvnGs[0],ChiRefGs_vGs,'R');
+array_print_d(NvnGs[0],NvnGs[0],IGs,'R');
+array_print_d(NvnGs[0],NvnGs[0],ChiRefInvGs_vGs,'R');
+array_print_d(NvnGs[0],NvnGs[0],TGs,'R');
 */
 
 
@@ -228,14 +228,14 @@ array_print_d(NvnGs[0],NvnGs[0],TGs);
 		// Preliminary Operators
 		ChiRefGs_vGc[P] = basis_TP(PGs,xir_vGc[P],NvnGc[P],dE); // tbd
 
-		ChiGs_vGc[P] = mm_d(CblasNoTrans,CblasNoTrans,NvnGc[P],NvnGs[0],NvnGs[0],1.0,ChiRefGs_vGc[P],TGs); // tbd
+		ChiGs_vGc[P] = mm_Alloc_d(CblasNoTrans,CblasNoTrans,NvnGc[P],NvnGs[0],NvnGs[0],1.0,ChiRefGs_vGc[P],TGs); // tbd
 
 
 
 		// Operators
-		I_vGs_vGc[P] = mm_d(CblasNoTrans,CblasNoTrans,NvnGc[P],NvnGs[0],NvnGs[0],1.0,ChiGs_vGc[P],ChiInvGs_vGs); // keep
+		I_vGs_vGc[P] = mm_Alloc_d(CblasNoTrans,CblasNoTrans,NvnGc[P],NvnGs[0],NvnGs[0],1.0,ChiGs_vGc[P],ChiInvGs_vGs); // keep
 
-array_print_d(NvnGc[P],NvnGs[0],I_vGs_vGc[P]);
+array_print_d(NvnGc[P],NvnGs[0],I_vGs_vGc[P],'R');
 
 	}
 

@@ -330,7 +330,7 @@ void gmsh_reader()
 					    (dimEntered[1] == 0 && dim == 2 && d == 3)) {
 
 						find_periodic_connections(PVeOver,&NPVe,NVe);
-//array_print_i(NPVe,2,PVeOver);
+//array_print_i(NPVe,2,PVeOver,'R');
 
 						PVeOverTrue = malloc(NPVe*2 * sizeof *PVeOverTrue); // free
 						for (i = 0, iMax = NPVe*2; i < iMax; i++)
@@ -353,7 +353,7 @@ void gmsh_reader()
 						}
 						free(veMatch);
 
-//array_print_i(IndP,2,PVeOverTrue);
+//array_print_i(IndP,2,PVeOverTrue,'R');
 						for (i = IndP*2, iMax = NPVe*2; i < iMax; i++)
 							PVeOver[i] = 0;
 
@@ -362,7 +362,7 @@ void gmsh_reader()
 							PVeOver[i] = PVeOverTrue[i];
 						free(PVeOverTrue);
 
-//array_print_i(NPVe,2,PVeOver);
+//array_print_i(NPVe,2,PVeOver,'R');
 						dimEntered[dim-1] = 1;
 					}
 
@@ -404,8 +404,8 @@ void gmsh_reader()
 					PetscSortInt(IndES*NveMax,&NodesSOver[0]);
 					PetscSortInt(IndEM*NveMax,&NodesMOver[0]);
 
-//array_print_i(1,IndS,NodesSOver);
-//array_print_i(1,IndM,NodesMOver);
+//array_print_i(1,IndS,NodesSOver,'R');
+//array_print_i(1,IndM,NodesMOver,'R');
 
 					// Remove duplicates
 					for (i = 1, NnS = 1; i < IndS; i++) {
@@ -430,8 +430,8 @@ void gmsh_reader()
 						NodesM[i] = NodesMOver[i];
 					free(NodesMOver);
 
-//array_print_i(1,NnS,NodesS);
-//array_print_i(1,NnS,NodesM);
+//array_print_i(1,NnS,NodesS,'R');
+//array_print_i(1,NnS,NodesM,'R');
 
 					if (NnS != NnM)
 						printf("Error: NnS != NnM.\n"), exit(1);
@@ -462,10 +462,10 @@ void gmsh_reader()
 					array_sort_d(NnS,dim,VeS,IndicesS,'R','T');
 					array_sort_d(NnS,dim,VeM,IndicesM,'R','T');
 
-//array_print_d(NnS,dim,VeS);
-//array_print_i(1,NnS,IndicesS);
-//array_print_d(NnS,dim,VeM);
-//array_print_i(1,NnS,IndicesM);
+//array_print_d(NnS,dim,VeS,'R');
+//array_print_i(1,NnS,IndicesS,'R');
+//array_print_d(NnS,dim,VeM,'R');
+//array_print_i(1,NnS,IndicesM,'R');
 
 					free(VeS);
 					free(VeM);
@@ -486,8 +486,8 @@ void gmsh_reader()
 					free(IndicesS);
 					free(IndicesM);
 
-//array_print_i(1,NnS,NodesS);
-//array_print_i(1,NnS,NodesM);
+//array_print_i(1,NnS,NodesS,'R');
+//array_print_i(1,NnS,NodesM,'R');
 
 					PVePossible = malloc(NnS*2 * sizeof *PVePossible); // free
 					for (i = 0; i < NnS; i++) {
@@ -502,7 +502,7 @@ void gmsh_reader()
 					array_sort_i(NnS,2,PVePossible,IndicesDummy,'R','T');
 					free(IndicesDummy);
 
-//array_print_i(NnS,2,PVePossible);
+//array_print_i(NnS,2,PVePossible,'R');
 
 					for (i = 0, IndPVe = 0; i < NnS; i++) {
 						while (IndPVe < NPVe && PVeOver[IndPVe*2+0] < PVePossible[i*2+0])
@@ -530,7 +530,7 @@ void gmsh_reader()
 					for (Ent = 0; Ent < NEnt; Ent++) {
 						fscanf(fID,"%[^\n]\n",StringRead);
 					}
-//array_print_i(NPVe,2,PVeOver);
+//array_print_i(NPVe,2,PVeOver,'R');
 				}
 			}
 			if (NPVe > PVeMax) {
@@ -694,13 +694,13 @@ void gmsh_reader()
 
 	// Testing
 	if (!MPIrank && Testing && PrintTesting) {
-		printf("NE:\n");     array_print_i(1,4,DB.NE);
-		printf("VeXYZ:\n");  array_print_d(DB.NVe,d,DB.VeXYZ);
-		printf("EType:\n");  array_print_i(1,DB.NETotal,DB.EType);
-		printf("ETags:\n");  array_print_i(DB.NETotal,2,DB.ETags);
-		printf("EToVe:\n");  array_print_i(DB.NETotal,8,DB.EToVe);
-		printf("EToPrt:\n"); array_print_i(1,DB.NE[d],DB.EToPrt);
-		printf("PVe:\n");    array_print_i(DB.NPVe,2,DB.PVe);
+		printf("NE:\n");     array_print_i(1,4,DB.NE,'R');
+		printf("VeXYZ:\n");  array_print_d(DB.NVe,d,DB.VeXYZ,'R');
+		printf("EType:\n");  array_print_i(1,DB.NETotal,DB.EType,'R');
+		printf("ETags:\n");  array_print_i(DB.NETotal,2,DB.ETags,'R');
+		printf("EToVe:\n");  array_print_i(DB.NETotal,8,DB.EToVe,'R');
+		printf("EToPrt:\n"); array_print_i(1,DB.NE[d],DB.EToPrt,'R');
+		printf("PVe:\n");    array_print_i(DB.NPVe,2,DB.PVe,'R');
 	}
 
 	// Free memory

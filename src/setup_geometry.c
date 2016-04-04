@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
 #include "database.h"
 #include "parameters.h"
@@ -19,7 +20,193 @@
  *	References:
 */
 
-double *operate_SF_d(const double *Input, const int NIn[3], const int NOut[3], const int NCols, double *OP[3],
+void operate_SF_d(const double *Input, const double *Output, const int NIn[3], const int NOut[3], const int NCols,
+                   double *OP[3], const int Diag[3], const int d)
+{
+	/*
+	 *	Purpose:
+	 *		Use TP sum factorized operators to speed up calculations.
+	 *
+	 *	Comments:
+	 *		For the moment, the routine is only implemented using the new non-redundant approach. (ToBeModified)
+	 *		Operating in the eta/zeta directions requires re-ordering of the matrices before and after operation. To
+	 *		minimize memory usage, re-ordering is done in place, requiring only a single additional row of storage.
+	 *		Add support for NonRedundant == 2 (Diag == 1). (ToBeDeleted)
+	 *			Likely implementation: extract diagonal from OP, then loop over rows performing BLAS 1 row scaling. Note
+	 *			                       that this really does not require re-arranging. If it is found that this option
+	 *			                       is important in the future, profile both implementations. (ToBeDeleted)
+	 *		Add the implementation for the further 2x reduction through fourier transform of operators (ToBeDeleted).
+	 *		Make sure that appropriate variables are made declared with 'register' and 'unsigned' (ToBeDeleted).
+	 *		If found to be slow during profiling, change all array indexing operations to pointer operations where
+	 *		possible. Also change loops so that exit check decrements to 0 instead of using comparison (ToBeDeleted).
+	 *
+	 *	Notation:
+	 *		Input  : Input array, number of entries prod(NIn) x NCols
+	 *		Output : Output array, number of entries prod(NOut) x NCols
+	 *		N()[]  : (N)umber of (In/Out)put entries in each of the coordinate directions []
+	 *		OP[]   : 1D operators in each of the coordinate directions []
+	 *		Diag   : Indication of whether the OPs are diagonal
+	 *		         Options: 0 (Not diagonal)
+	 *		                  1 (Diagonal but not identity)
+	 *		                  2 (Diagonal identity)
+	 *
+	 *	References:
+	 *		Add in Sherwin's book or perhaps my thesis as the procedure implemented is slighly modified (ToBeModified).
+	 */
+
+	int i, iMax, j, jMax, k, kMax, dim, BRow, BRowMax,
+	    NonRedundant[d], BRows[d], NRows_Out[d],
+	    Indd, IndIn, IndOut, IndSub, stepIndIn, stepIndOut;
+	double **Output_Inter, *OutputP;
+
+	for (dim = 0; dim < d; dim++) {
+		if      (Diag[dim] == 0) NonRedundant[dim] = 1;
+		else if (Diag[dim] == 1) NonRedundant[dim] = 2;
+		else if (Diag[dim] == 2) NonRedundant[dim] = 0;
+		else
+			printf("Error: Invalid entry in Diag.\n"), exit(1);
+	}
+
+	BRows[0] = NIn[1]*NIn[2];
+	if (d > 1)
+		BRows[1] = NOut[0]*NIn[2];
+	if (d > 2)
+		BRows[2] = NOut[0]*NOut[1];
+
+	for (dim = 0; dim < d; dim++)
+		NRows_Out[dim] = NOut[dim]*BRows[dim];
+
+	Output_Inter = malloc(d * sizeof *Output); // free
+
+	// xi
+	Indd = 0;
+
+	if (d == 1)
+		Output_Inter[Indd] = Output;
+	else
+		Output_Inter[Indd] = malloc(NRows_Out[Indd]*NCols * sizeof *Output_Inter[Indd]); // tbd
+
+	if (NonRedundant[Indd]) {
+		stepIndIn  = NIn[Indd]*NCols;
+		stepIndOut = NOut[Indd]*NCols;
+		for (IndIn = 0, IndOut = 0, BRow = 0, BRowMax = BRows[Indd]; BRow < BRowMax; BRow++) {
+			mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],&Input[IndIn],
+			     &Output_Inter[Indd][IndOut]);
+
+			IndIn  += stepIndIn;
+			IndOut += stepIndOut;
+		}
+	} else {
+		for (i = 0, iMax = NRows_Out[Indd]*NCols; i < iMax; i++)
+			Output_Inter[Indd][i] = Input[i];
+	}
+//array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
+
+	if (d == 1)
+		return;
+
+	// eta
+	int step, step_i, step_j1, step_j2, step_k, Index, ReOrder, RowSub,
+		*LocalInput, *LocalOutput, *RowLocIn, *RowLocOut;
+	Indd = 1;
+
+	if (d == 2)
+		Output_Inter[Indd] = Output;
+	else
+		Output_Inter[Indd] = malloc(NRows_Out[Indd]*NCols * sizeof *Output_Inter[Indd]); // tbd 
+
+	if (NonRedundant[Indd]) {
+		step = NOut[0];
+
+		LocalInput = malloc(NIn[Indd]         * sizeof *LocalInput);  // free
+		RowLocIn   = malloc(NRows_Out[Indd-1] * sizeof *RowLocIn);    // free
+
+		for (i = 0, iMax = NIn[Indd]        ; i < iMax; i++) LocalInput[i] = i*step;
+		for (i = 0, iMax = NRows_Out[Indd-1]; i < iMax; i++) RowLocIn[i]   = i;
+
+		iMax = NOut[0], jMax = NIn[1], kMax = NIn[2];
+		step_i = NIn[1], step_k = NIn[1]*NOut[0];
+		for (k = 0; k < kMax; k++) {
+		for (i = 0; i < iMax; i++) {
+		for (j = 0; j < jMax; j++) {
+			Index   = i*step_i+j+k*step_k;
+			ReOrder = i+LocalInput[j]+k*step_k;
+
+			for (RowSub = ReOrder; RowLocIn[RowSub] != ReOrder; RowSub = RowLocIn[RowSub])
+				;
+
+			if (Index != RowSub) {
+				IndOut = Index*NCols;
+				IndSub = RowSub*NCols;
+
+				//array_swap_d(&Output_Inter[Indd-1][IndOut],&Output_Inter[Indd-1][IndSub],NCols,1);
+				array_swap_d(&Output_Inter[Indd-1][IndOut],&Output_Inter[Indd-1][IndSub],NCols,NRows_Out[Indd-1]);
+				array_swap_i(&RowLocIn[Index],&RowLocIn[RowSub],1,1);
+array_print_d(NRows_Out[Indd-1],NCols,Output_Inter[Indd-1],'C');
+exit(1);
+			}
+		}}}
+		free(LocalInput), free(RowLocIn);
+
+array_print_d(NRows_Out[Indd-1],NCols,Output_Inter[Indd-1],'C');
+exit(1);
+
+		stepIndIn  = NIn[Indd]*NCols;
+		stepIndOut = NOut[Indd]*NCols;
+		for (BRow = 0, BRowMax = BRows[Indd]; BRow < BRowMax; BRow++) {
+			mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],
+			     &Output_Inter[Indd-1][IndIn],&Output_Inter[Indd][IndOut]);
+
+			IndIn  += stepIndIn;
+			IndOut += stepIndOut;
+		}
+
+		LocalOutput = malloc(NOut[Indd]      * sizeof *LocalOutput); // free
+		RowLocOut   = malloc(NRows_Out[Indd] * sizeof *RowLocOut);   // free
+
+		for (i = 0, iMax = NOut[Indd]     ; i < iMax; i++) LocalOutput[i] = i*step;
+		for (i = 0, iMax = NRows_Out[Indd]; i < iMax; i++) RowLocOut[i]   = i;
+
+		iMax = NOut[0], jMax = NOut[1], kMax = NIn[2];
+		step_i = NOut[1], step_k = NOut[1]*NOut[0];
+		for (k = 0; k < kMax; k++) {
+		for (i = 0; i < iMax; i++) {
+		for (j = 0; j < jMax; j++) {
+			Index   = i*step_i+j+k*step_k;
+			ReOrder = i+LocalOutput[j]+k*step_k;
+
+			for (RowSub = ReOrder; RowLocOut[RowSub] != ReOrder; RowSub = RowLocOut[RowSub])
+				;
+
+			if (Index != RowSub) {
+				IndOut = Index*NCols;
+				IndSub = RowSub*NCols;
+
+				array_swap_d(&Output_Inter[Indd][IndOut],&Output_Inter[Indd][IndSub],NCols,1);
+				array_swap_i(&RowLocOut[Index],&RowLocOut[RowSub],1,1);
+			}
+		}}}
+		free(LocalOutput), free(RowLocOut);
+	} else {
+		for (i = 0, iMax = NRows_Out[Indd]*NCols; i < iMax; i++)
+			Output_Inter[Indd][i] = Output_Inter[Indd-1][i];
+	}
+	free(Output_Inter[Indd-1]);
+array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
+
+	if (d == 2)
+		return;
+
+
+
+
+
+}
+
+
+
+
+double *operate_SF1_d(const double *Input, const int NIn[3], const int NOut[3], const int NCols, double *OP[3],
                      const int Diag[3])
 {
 	/*
@@ -80,7 +267,7 @@ double *operate_SF_d(const double *Input, const int NIn[3], const int NOut[3], c
 			IndIn  = BRow*(NIn[Indd]*NCols);
 			IndOut = BRow*(NOut[Indd]*NCols);
 
-			mm_NoAlloc_d(CblasNoTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],&Input[IndIn],
+			mm_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],&Input[IndIn],
 			             &Output[Indd][IndOut]);
 		}
 	} else {
@@ -88,7 +275,7 @@ double *operate_SF_d(const double *Input, const int NIn[3], const int NOut[3], c
 			Output[Indd][i] = Input[i];
 	}
 
-//array_print_d(NRows_Out[Indd],NCols,Output[Indd]);
+//array_print_d(NRows_Out[Indd],NCols,Output[Indd],'R');
 
 	// eta
 	int step, step_i, step_j1, step_j2, step_k, Index, ReOrder, RowSub,
@@ -121,17 +308,22 @@ double *operate_SF_d(const double *Input, const int NIn[3], const int NOut[3], c
 				IndOut = Index*NCols;
 				IndSub = RowSub*NCols;
 
-				array_swap_d(&Output[Indd-1][IndOut],&Output[Indd-1][IndSub],NCols);
-				array_swap_i(&RowLocIn[Index],&RowLocIn[RowSub],1);
+				array_swap_d(&Output[Indd-1][IndOut],&Output[Indd-1][IndSub],NCols,1);
+				array_swap_i(&RowLocIn[Index],&RowLocIn[RowSub],1,1);
+printf("%d %d\n",IndOut,IndSub);
+array_print_d(NRows_Out[Indd-1],NCols,Output[Indd-1],'R');
 			}
 		}}}
 		free(LocalInput), free(RowLocIn);
+
+printf("Original end\n\n");
+//array_print_d(NRows_Out[Indd-1],NCols,Output[Indd-1],'R');
 
 		for (BRow = 0, BRowMax = BRows[Indd]; BRow < BRowMax; BRow++) {
 			IndIn  = BRow*(NIn[Indd]*NCols);
 			IndOut = BRow*(NOut[Indd]*NCols);
 
-			mm_NoAlloc_d(CblasNoTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],&Output[Indd-1][IndIn],
+			mm_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],&Output[Indd-1][IndIn],
 			             &Output[Indd][IndOut]);
 		}
 
@@ -156,8 +348,8 @@ double *operate_SF_d(const double *Input, const int NIn[3], const int NOut[3], c
 				IndOut = Index*NCols;
 				IndSub = RowSub*NCols;
 
-				array_swap_d(&Output[Indd][IndOut],&Output[Indd][IndSub],NCols);
-				array_swap_i(&RowLocOut[Index],&RowLocOut[RowSub],1);
+				array_swap_d(&Output[Indd][IndOut],&Output[Indd][IndSub],NCols,1);
+				array_swap_i(&RowLocOut[Index],&RowLocOut[RowSub],1,1);
 			}
 		}}}
 		free(LocalOutput), free(RowLocOut);
@@ -167,7 +359,7 @@ double *operate_SF_d(const double *Input, const int NIn[3], const int NOut[3], c
 	}
 	free(Output[Indd-1]);
 
-//array_print_d(NRows_Out[Indd],NCols,Output[Indd]);
+//array_print_d(NRows_Out[Indd],NCols,Output[Indd],'R');
 
 	// zeta
 	Indd = 2;
@@ -197,8 +389,8 @@ double *operate_SF_d(const double *Input, const int NIn[3], const int NOut[3], c
 				IndOut = Index*NCols;
 				IndSub = RowSub*NCols;
 
-				array_swap_d(&Output[Indd-1][IndOut],&Output[Indd-1][IndSub],NCols);
-				array_swap_i(&RowLocIn[Index],&RowLocIn[RowSub],1);
+				array_swap_d(&Output[Indd-1][IndOut],&Output[Indd-1][IndSub],NCols,1);
+				array_swap_i(&RowLocIn[Index],&RowLocIn[RowSub],1,1);
 			}
 		}}}
 		free(LocalInput), free(RowLocIn);
@@ -207,7 +399,7 @@ double *operate_SF_d(const double *Input, const int NIn[3], const int NOut[3], c
 			IndIn  = BRow*(NIn[Indd]*NCols);
 			IndOut = BRow*(NOut[Indd]*NCols);
 
-			mm_NoAlloc_d(CblasNoTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],&Output[Indd-1][IndIn],
+			mm_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],&Output[Indd-1][IndIn],
 			             &Output[Indd][IndOut]);
 		}
 
@@ -232,8 +424,8 @@ double *operate_SF_d(const double *Input, const int NIn[3], const int NOut[3], c
 				IndOut = Index*NCols;
 				IndSub = RowSub*NCols;
 
-				array_swap_d(&Output[Indd][IndOut],&Output[Indd][IndSub],NCols);
-				array_swap_i(&RowLocOut[Index],&RowLocOut[RowSub],1);
+				array_swap_d(&Output[Indd][IndOut],&Output[Indd][IndSub],NCols,1);
+				array_swap_i(&RowLocOut[Index],&RowLocOut[RowSub],1,1);
 			}
 		}}}
 		free(LocalOutput), free(RowLocOut);
@@ -243,7 +435,7 @@ double *operate_SF_d(const double *Input, const int NIn[3], const int NOut[3], c
 	}
 	free(Output[Indd-1]);
 
-//array_print_d(NRows_Out[Indd],NCols,Output[Indd]);
+//array_print_d(NRows_Out[Indd],NCols,Output[Indd],'R');
 
 	OutputP = Output[Indd];
 	free(Output);
@@ -270,7 +462,7 @@ void setup_geometry()
 	// Standard datatypes
 	int i, ve, dim, v, P, vn,
 	    Nve, Vs, PMax, NvnGs, NvnGc,
-		NIn, NOut, NIn_SF[3], NOut_SF[3], NCols, Diag[3],
+		NIn, NOut, NIn_SF[3], NOut_SF[3], NCols, Diag[3], NOut_Total,
 		*VeC;
 	double *XYZc, *XYZs,
 	       *I_vGs_vGc, *Input_SF, *OP_SF[3];
@@ -343,18 +535,89 @@ void setup_geometry()
 				OP_SF[1]  = OP_SF[0];
 				OP_SF[2]  = OP_SF[0];
 				for (i = 0; i < 3; i++) Diag[i] = 0;
-				XYZs = operate_SF_d(Input_SF,NIn_SF,NOut_SF,NCols,OP_SF,Diag); // keep
-
-//array_print_d(pow(NvnGc,d),d,XYZs);
+				XYZs = operate_SF1_d(Input_SF,NIn_SF,NOut_SF,NCols,OP_SF,Diag); // keep (definitely don't want the alloc
+				                                                               // inside of the operate_SF function.
 			} else if (VOLUME->Eclass == C_SI) {
 				NvnGs = ELEMENT->NvnGs[0];
 				NvnGc = ELEMENT->NvnGc[P];
 				I_vGs_vGc = ELEMENT->I_vGs_vGc[P];
 
-				XYZs = mm_d(CblasNoTrans,CblasNoTrans,NvnGc,d,NvnGs,1.0,I_vGs_vGc,XYZc);
+				// Modify this so that the alloc is outside of the call.
+				XYZs = mm_Alloc_d(CblasNoTrans,CblasNoTrans,NvnGc,d,NvnGs,1.0,I_vGs_vGc,XYZc);
 			}
 		}
 		VOLUME->XYZs = XYZs;
+
+//array_print_d(pow(NOut,d),d,XYZs,'R');
+//exit(1);
+
+		NvnGs = ELEMENT->NvnGs[0];
+
+		// Note: XYZc may be interpreted as [X Y Z] where each of X, Y, Z are column vectors
+		for (i = 0; i < NvnGs*d; i++) XYZc[i] = 0.;
+
+		for (ve = 0; ve < NvnGs; ve++) {
+		for (dim = 0; dim < d; dim++) {
+			XYZc[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+v)*8+VeC[ve]]*d+dim];
+		}}
+
+		if (!VOLUME->curved) {
+			// If not curved, the P1 geometry representation sufficies to fully specify the element.
+			XYZs = malloc(NvnGs*d * sizeof *XYZs); // keep
+			VOLUME->XYZs = XYZs;
+
+			for (dim = 0; dim < d; dim++) {
+			for (vn = 0; vn < NvnGs; vn++) {
+				XYZs[dim*NvnGs+vn] = XYZc[dim*NvnGs+vn];
+			}}
+		} else {
+			if (VOLUME->Eclass == C_TP) {
+				ELEMENT_class[0] = get_ELEMENT_Eclass(VOLUME->Eclass,C_TP);
+
+				NvnGs = ELEMENT_class[0]->NvnGs[0];
+				NvnGc = ELEMENT_class[0]->NvnGc[P];
+
+				I_vGs_vGc = ELEMENT_class[0]->I_vGs_vGc[P];
+
+				Input_SF = XYZc; // note multi column input
+
+				NIn = NvnGs;
+				for (dim = 0; dim < 3; dim++) {
+					if (dim < d) NIn_SF[dim] = NIn;
+					else         NIn_SF[dim] = 1;
+				}
+
+				NOut = NvnGc;
+				NOut_Total = 1;
+				for (dim = 0; dim < 3; dim++) {
+					if (dim < d) NOut_SF[dim] = NOut;
+					else         NOut_SF[dim] = 1;
+					NOut_Total *= NOut_SF[dim];
+				}
+
+				NCols    = d*1; // d coordinates * 1 element
+				OP_SF[0] = I_vGs_vGc;
+				OP_SF[1] = OP_SF[0];
+				OP_SF[2] = OP_SF[0];
+				for (i = 0; i < 3; i++) Diag[i] = 0;
+
+				XYZs = malloc(NOut_Total * sizeof *XYZs);
+				operate_SF_d(Input_SF,XYZs,NIn_SF,NOut_SF,NCols,OP_SF,Diag,d);
+			} else if (VOLUME->Eclass == C_SI) {
+				NvnGs = ELEMENT->NvnGs[0];
+				NvnGc = ELEMENT->NvnGc[P];
+				I_vGs_vGc = ELEMENT->I_vGs_vGc[P];
+
+				// Modify this so that the alloc is outside of the call.
+				XYZs = mm_Alloc_d(CblasNoTrans,CblasNoTrans,NvnGc,d,NvnGs,1.0,I_vGs_vGc,XYZc);
+			}
+		}
+
+// NOTE: NEED TO MODIFY ARRAY_PRINT TO ACCEPT TRANSPOSED 'MATRICES'
+//array_print_d(NOut_Total,d,XYZs,'C');
+exit(1);
+
+
 
 		v++;
 		VOLUME = VOLUME->next;

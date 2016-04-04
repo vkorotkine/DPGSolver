@@ -80,23 +80,26 @@ PETSC_INC = -I PETSC_DIR/include ${PETSC_CC_INCLUDES}
 # Run PETSC's 'variables' makefile
 include ${PETSC_DIR}/lib/petsc/conf/variables
 
+MYHEADERS_INC = -I../src
+
 # missing LIBPATH, DEFINES (as compared to Brian's makefile)
 # Parmetis must be linked before metis
-LIBS = $(STD_LIB) $(PETSC_INC) $(PETSC_LIB) $(PARMETIS_INC) $(PARMETIS_LDINC) $(METIS_INC) $(METIS_LDINC) $(MKL_INC) $(MKL_LDINC)
+LIBS = $(STD_LIB) $(PETSC_INC) $(PETSC_LIB) $(PARMETIS_INC) $(PARMETIS_LDINC) $(METIS_INC) $(METIS_LDINC) $(MKL_INC) $(MKL_LDINC) $(MYHEADERS_INC)
 
 EXECUTABLE = test.exe
+FUNCTION = matrix_functions.c
 
-SRCDIR  = test
-HDRDIR  = src
-OBJDIR  = test
-EXECDIR = test
+SRCDIR  =
+HDRDIR  = ../src/
+OBJDIR  =
+EXECDIR =
 
-# OBJECTS    := $(addprefix $(OBJDIR)/,$(OBJECTS))
-EXECUTABLE := $(addprefix $(EXECDIR)/,$(EXECUTABLE))
+# OBJECTS    := $(addprefix $(OBJDIR),$(OBJECTS))
+EXECUTABLE := $(addprefix $(EXECDIR),$(EXECUTABLE))
 
-SOURCES = $(SRCDIR)/array_swap.c
-HEADERS = $(wildcard $(HDRDIR)/*.h)
-OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+SOURCES = $(SRCDIR)$(FUNCTION)
+HEADERS = $(wildcard $(HDRDIR)*.h)
+OBJECTS = $(SOURCES:$(SRCDIR)%.c=$(OBJDIR)%.o)
 
 
 # Formatting for "rules" in makefiles is as follows:
@@ -124,7 +127,7 @@ $(EXECUTABLE) : $(OBJECTS)
 
 # Create objects
 # Still need to figure out how to include header dependencies.
-$(OBJECTS) : $(OBJDIR)/%.o : $(SRCDIR)/%.c
+$(OBJECTS) : $(OBJDIR)%.o : $(SRCDIR)%.c
 	$(CC) $(OPTS) $(CSTD) -c -o $@ $< $(LIBS)
 
 ### Additional Rules ###

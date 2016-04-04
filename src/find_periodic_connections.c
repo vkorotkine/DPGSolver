@@ -113,12 +113,12 @@
  *			pvetest = 7;
  *
  *			pve = pvetest;
- *			array_print_i(pve,2,PVeTest);
+ *			array_print_i(pve,2,PVeTest,'R');
  *
  *			FindPeriodicConnections(PVeTest,&pvetest,NVe);
  *
  *			pve = pvetest;
- *			array_print_i(pve,2,PVeTest);
+ *			array_print_i(pve,2,PVeTest,'R');
  *
  *	References:
  *
@@ -132,7 +132,7 @@ void find_periodic_connections(int *PVe, int *pvePointer, int VeMax)
 
 	pve = *pvePointer;
 
-// array_print_i(pve,2,PVe);
+// array_print_i(pve,2,PVe,'R');
 
 	// Sort Rows
 	for (i = 0; i < pve; i++)
@@ -143,7 +143,7 @@ void find_periodic_connections(int *PVe, int *pvePointer, int VeMax)
 	array_sort_i(pve,2,PVe,IndicesDummy,'R','T');
 	free(IndicesDummy);
 
-// array_print_i(pve,2,PVe);
+// array_print_i(pve,2,PVe,'R');
 
 	Modified = 1;
 	while (Modified) {
@@ -157,7 +157,7 @@ void find_periodic_connections(int *PVe, int *pvePointer, int VeMax)
 		}}
 
 		PetscSortInt(k,PVe1D);
-// array_print_i(1,k,PVe1D);
+// array_print_i(1,k,PVe1D,'R');
 
 		PVeUniqueOver = malloc(pve*2 * sizeof *PVeUniqueOver); // free
 		PVeUniqueOver[0] = PVe1D[0];
@@ -174,7 +174,7 @@ void find_periodic_connections(int *PVe, int *pvePointer, int VeMax)
 			PVeUnique[i] = PVeUniqueOver[i];
 		free(PVeUniqueOver);
 
-// array_print_i(1,NUnique,PVeUnique);
+// array_print_i(1,NUnique,PVeUnique,'R');
 
 		PVeMatches    = malloc(NUnique*8 * sizeof *PVeMatches); // free
 		IndPVeMatches = malloc(NUnique   * sizeof *IndPVeMatches); // free
@@ -203,8 +203,8 @@ void find_periodic_connections(int *PVe, int *pvePointer, int VeMax)
 		for (i = 0; i < NUnique; i++)
 			PetscSortInt(IndPVeMatches[i]+1,&PVeMatches[i*8+0]);
 
-// array_print_i(NUnique,8,PVeMatches);
-// array_print_i(1,NUnique,IndPVeMatches);
+// array_print_i(NUnique,8,PVeMatches,'R');
+// array_print_i(1,NUnique,IndPVeMatches,'R');
 
 		PVePotential = malloc(2 * sizeof *PVePotential); // free
 
@@ -243,7 +243,7 @@ void find_periodic_connections(int *PVe, int *pvePointer, int VeMax)
 		array_sort_i(pve,2,PVe,IndicesDummy,'R','T');
 		free(IndicesDummy);
 
-// array_print_i(pve,2,PVe);
+// array_print_i(pve,2,PVe,'R');
 
 		free(PVeMatches);
 		free(IndPVeMatches);

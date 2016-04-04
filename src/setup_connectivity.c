@@ -371,19 +371,19 @@ void setup_connectivity()
 	DB.GFC    = GFC;
 
 	if (PrintTesting && Testing && !MPIrank) {
-		printf("VToVe:\n");          array_print_i(DB.NV,8,VToVe);
-		//printf("VType:\n");          array_print_i(DB.NV,1,VType);
-		printf("FNve (Sorted):\n");  array_print_i(DB.NGF,1,FNve);
-		printf("FToVe (Sorted):\n"); array_print_i(DB.NGF,DB.NfveMax,FToVe);
-		printf("VToV:\n");           array_print_i(DB.NV,DB.NfMax,VToV);
-		printf("VToF:\n");           array_print_i(DB.NV,DB.NfMax,VToF);
-		printf("BFToVe:\n");         array_print_i(DB.NE[d-1],DB.NfveMax,BFToVe);
-		//printf("BTags:\n");          array_print_i(DB.NE[d-1],DB.NfveMax+1,BTags);
-		printf("VToBC:\n");          array_print_i(DB.NV,DB.NfMax,VToBC);
-		printf("VToGF:\n");          array_print_i(DB.NV,DB.NfMax,VToGF);
-		printf("GFToVe:\n");         array_print_i(DB.NGF,DB.NfveMax,GFToVe);
-		printf("VC:\n");             array_print_i(1,DB.NVC,VC);
-		printf("GFC:\n");            array_print_i(1,DB.NGFC,GFC);
+		printf("VToVe:\n");          array_print_i(DB.NV,8,VToVe,'R');
+		//printf("VType:\n");          array_print_i(DB.NV,1,VType,'R');
+		printf("FNve (Sorted):\n");  array_print_i(DB.NGF,1,FNve,'R');
+		printf("FToVe (Sorted):\n"); array_print_i(DB.NGF,DB.NfveMax,FToVe,'R');
+		printf("VToV:\n");           array_print_i(DB.NV,DB.NfMax,VToV,'R');
+		printf("VToF:\n");           array_print_i(DB.NV,DB.NfMax,VToF,'R');
+		printf("BFToVe:\n");         array_print_i(DB.NE[d-1],DB.NfveMax,BFToVe,'R');
+		//printf("BTags:\n");          array_print_i(DB.NE[d-1],DB.NfveMax+1,BTags,'R');
+		printf("VToBC:\n");          array_print_i(DB.NV,DB.NfMax,VToBC,'R');
+		printf("VToGF:\n");          array_print_i(DB.NV,DB.NfMax,VToGF,'R');
+		printf("GFToVe:\n");         array_print_i(DB.NGF,DB.NfveMax,GFToVe,'R');
+		printf("VC:\n");             array_print_i(1,DB.NVC,VC,'R');
+		printf("GFC:\n");            array_print_i(1,DB.NGFC,GFC,'R');
 	}
 
 	free(FToVe);

@@ -36,10 +36,10 @@ extern void     vertices_to_exact_geom      (void);
 // Matrix Functions
 extern double *identity_d   (const int N);
 extern double *inverse_d    (int N, int NRHS, double *A, double *b);
-extern double *mm_d         (const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m, const int n, const int k,
+extern double *mm_Alloc_d   (const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m, const int n, const int k,
                              const double alpha, const double *A, const double *B);
-extern void   *mm_NoAlloc_d (const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m, const int n, const int k,
-                             const double alpha, const double *A, const double *B, const double *C);
+extern void   *mm_d         (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m,
+                             const int n, const int k, const double alpha, const double *A, const double *B, const double *C);
 
 // Math Functions
 extern int    factorial_i (const int n);
@@ -71,17 +71,17 @@ extern void memory_destructor_E (struct S_ELEMENT *ELEMENT);
 	extern double array_norm_d (int LenA, double *A, char *NormType);
 
 	// Swapping
-	extern int    array_swap_i (int *arr1, int *arr2, const int NIn);
-	extern double array_swap_d (double *arr1, double *arr2, const int NIn);
+	extern int    array_swap_i (register int *arr1, register int *arr2, const int NIn, const int stepIn);
+	extern double array_swap_d (register double *arr1, register double *arr2, const int NIn, const int stepIn);
 
 	// Printing
 //	extern void array_print    (int m, int n, void *A, char *type);
-	extern void array_print_i  (int m, int n, int *A);
-	extern void array_print_l  (int m, int n, long *A);
-	extern void array_print_ll (int m, int n, long long *A);
-	extern void array_print_f  (int m, int n, float *A);
-	extern void array_print_d  (int m, int n, double *A);
-	extern void array_print_ld (int m, int n, long double *A);
+	extern void array_print_i  (int m, int n, int *A, char layout);
+	extern void array_print_l  (int m, int n, long *A, char layout);
+	extern void array_print_ll (int m, int n, long long *A, char layout);
+	extern void array_print_f  (int m, int n, float *A, char layout);
+	extern void array_print_d  (int m, int n, double *A, char layout);
+	extern void array_print_ld (int m, int n, long double *A, char layout);
 
 	// Memory Management
 	extern void array_free2_c  (int iMax, char **A);
