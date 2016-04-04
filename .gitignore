@@ -12,3 +12,5 @@ cases/*.swp
 cases/logfile
 cases/errorfile*
 cases/outputfile*
+test/*.o
+test/*.exe

@@ -5,65 +5,71 @@
  *		Swap arrays.
  *
  *	Comments:
- *		Note that when copying array elements in order, it is faster to copy as in the functions below as opposed to
- *		using the indices of each array.
- *		Test if it is just as fast to swap void arrays (resulting in only a single swap function). (ToBeDeleted)
+ *		Run the version of array_swap.c in the testing branch to see timing comparisons between different
+ *		implementations.
+ *		Important conclusions from time testing:
+ *			Pointer indexing is faster than array indexing when the index incrementing represents a significant fraction
+ *			of the overall operation (e.g. in the case of swapping consecutive elements of large arrays); the difference
+ *			between the array indexing and pointer implementations disappears when step sizes larger than 1 are taken
+ *			even though the index incrementing still represents a large fraction of the operation (Investigate).
+ *			Declaring loop indices/counters as 'unsigned' and 'register' variables can result in significant speed-ups.
  *
  *	Notation:
  *
  *  References:
  *		ToBeModified: Add in the reference page number (stephen kochan programming in c)
+ *		              Chapter 10. A Slight Digression about Program Optimization
  *
  */
 
-void array_swap_i(int *arr1, int *arr2, const int NIn)
+void array_swap_i(register double *arr1, register double *arr2, const int NIn, const int stepIn)
 {
-	int N;
-	register int *tmp, *tmpP, *arr1P, *arr2P;
+	register unsigned int N, step;
+	register int tmp;
 
-	tmp = malloc(NIn * sizeof *tmp); // free
+	switch(stepIn) {
+		case 1 :
+			for (N = NIn, step = stepIn; N-- ; ) {
+				tmp     = *arr1;
+				*arr1++ = *arr2;
+				*arr2++ = tmp;
+			}
+			break;
+		default :
+			for (N = NIn, step = stepIn; N-- ; ) {
+				tmp   = *arr1;
+				*arr1 = *arr2;
+				*arr2 = tmp;
 
-	for (tmpP = tmp, arr1P = arr1, N = NIn; N--; *tmpP++ = *arr1P++)
-		;
-	for (arr1P = arr1, arr2P = arr2, N = NIn; N--; *arr1P++ = *arr2P++)
-		;
-	for (arr2P = arr2, tmpP = tmp, N = NIn; N--; *arr2P++ = *tmpP++)
-		;
-
-	free(tmp);
+				arr1 = arr1+step;
+				arr2 = arr2+step;
+			}
+			break;
+	}
 }
 
-void array_swap_d(double *arr1, double *arr2, const int NIn)
+void array_swap_d(register double *arr1, register double *arr2, const int NIn, const int stepIn)
 {
-	int N;
-	register double *tmp, *tmpP, *arr1P, *arr2P;
+	register unsigned int N, step;
+	register double tmp;
 
-	tmp = malloc(NIn * sizeof *tmp); // free
+	switch(stepIn) {
+		case 1 :
+			for (N = NIn, step = stepIn; N-- ; ) {
+				tmp     = *arr1;
+				*arr1++ = *arr2;
+				*arr2++ = tmp;
+			}
+			break;
+		default :
+			for (N = NIn, step = stepIn; N-- ; ) {
+				tmp   = *arr1;
+				*arr1 = *arr2;
+				*arr2 = tmp;
 
-	for (tmpP = tmp, arr1P = arr1, N = NIn; N--; *tmpP++ = *arr1P++)
-		;
-	for (arr1P = arr1, arr2P = arr2, N = NIn; N--; *arr1P++ = *arr2P++)
-		;
-	for (arr2P = arr2, tmpP = tmp, N = NIn; N--; *arr2P++ = *tmpP++)
-		;
-
-/*
- * Compare speed with code above. Also, potentially add switch statement to handle cases of small NIn using loop
- * unrolling.
- *
-	unsigned int N;
-	register double *tmpP1, *tmpP2, *arr1P1, *arr1P2, *arr2P1, *arr2P2;
-
-	tmpP1 = tmp; tmpP2 = tmp;
-	arr1P1 = arr1; arr1P2 = arr1;
-	arr2P1 = arr2; arr2P2 = arr2;
-
-	for (N = NIn; N-- ; ) {
-		*arr1P1++ = *tmpP1++;
-		*arr1P2++ = *arr2P1++;
-		*arr2P2++ = *tmpP2++;
+				arr1 = arr1+step;
+				arr2 = arr2+step;
+			}
+			break;
 	}
-*/
-
-	free(tmp);
 }
