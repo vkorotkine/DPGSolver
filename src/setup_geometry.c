@@ -20,14 +20,52 @@
  *	References:
 */
 
-void operate_SF_d(const double *Input, const double *Output, const int NIn[3], const int NOut[3], const int NCols,
-                   double *OP[3], const int Diag[3], const int d)
+void sf_operate_d(const int NOut, const int NCols, const int NIn, const int BRowMaxIn, const double *OP,
+                  const double *Input, const double *Output)
+{
+	/*	Purpose:
+	 *		Perform that matrix-matrix operation required by the sf_apply_*.c function.
+	 *
+	 *	Comments:
+	 *		The 'register' prefix is likely unused here as a lot of work is done in the BLAS call.
+	 */
+
+	register unsigned IndIn, IndOut, stepIndIn, stepIndOut, BRowMax;
+
+	stepIndIn  = NIn*NCols;
+	stepIndOut = NOut*NCols;
+
+	IndIn  = 0;
+	IndOut = 0;
+	for (BRowMax = BRowMaxIn; BRowMax--; ) {
+		mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NOut,NCols,NIn,1.0,OP,&Input[IndIn],&Output[IndOut]);
+
+		IndIn  += stepIndIn;
+		IndOut += stepIndOut;
+	}
+}
+
+void sf_apply_d(const double *Input, double *Output, const int NIn[3], const int NOut[3], const int NCols,
+                double *OP[3], const int Diag[3], const int d)
 {
 	/*
 	 *	Purpose:
 	 *		Use TP sum factorized operators to speed up calculations.
 	 *
 	 *	Comments:
+	 *		*** IMPORTANT ***
+	 *		It is assumed that the operators are stored in row major layout, while the input is stored in a column major
+	 *		layout. This has several advantages despite the obvious disadvantage of being atypical and potentially
+	 *		confusing:
+	 *			1) Extremely efficient matrix-matrix multiplication in the vectorized version of the code (minimizing
+	 *			   memory stride) when noting that the operator matrices generally fit completely in the cache
+	 *			   (ToBeModified after confirming this with testing).
+	 *			2) In vectorized version of the code, when multiple elements are operated on at once, performing blas
+	 *			   calls using the CblasColMajor layout results in the output being stored in continuous memory for each
+	 *			   element. This results in greatly reduced memory stride when distributing the output back to the
+	 *			   VOLUME/FACET structures.
+	 *		*** IMPORTANT ***
+	 *
 	 *		For the moment, the routine is only implemented using the new non-redundant approach. (ToBeModified)
 	 *		Operating in the eta/zeta directions requires re-ordering of the matrices before and after operation. To
 	 *		minimize memory usage, re-ordering is done in place, requiring only a single additional row of storage.
@@ -57,7 +95,7 @@ void operate_SF_d(const double *Input, const double *Output, const int NIn[3], c
 	int i, iMax, j, jMax, k, kMax, dim, BRow, BRowMax,
 	    NonRedundant[d], BRows[d], NRows_Out[d],
 	    Indd, IndIn, IndOut, IndSub, stepIndIn, stepIndOut;
-	double **Output_Inter, *OutputP;
+	double **Output_Inter;
 
 	for (dim = 0; dim < d; dim++) {
 		if      (Diag[dim] == 0) NonRedundant[dim] = 1;
@@ -84,9 +122,11 @@ void operate_SF_d(const double *Input, const double *Output, const int NIn[3], c
 	if (d == 1)
 		Output_Inter[Indd] = Output;
 	else
-		Output_Inter[Indd] = malloc(NRows_Out[Indd]*NCols * sizeof *Output_Inter[Indd]); // tbd
+		Output_Inter[Indd] = malloc(NRows_Out[Indd]*NCols * sizeof *Output_Inter[Indd]); // free
 
 	if (NonRedundant[Indd]) {
+		sf_operate_d(NOut[Indd],NCols,NIn[Indd],BRows[Indd],OP[Indd],Input,Output_Inter[Indd]);
+		/*
 		stepIndIn  = NIn[Indd]*NCols;
 		stepIndOut = NOut[Indd]*NCols;
 		for (IndIn = 0, IndOut = 0, BRow = 0, BRowMax = BRows[Indd]; BRow < BRowMax; BRow++) {
@@ -96,14 +136,17 @@ void operate_SF_d(const double *Input, const double *Output, const int NIn[3], c
 			IndIn  += stepIndIn;
 			IndOut += stepIndOut;
 		}
+		*/
 	} else {
 		for (i = 0, iMax = NRows_Out[Indd]*NCols; i < iMax; i++)
 			Output_Inter[Indd][i] = Input[i];
 	}
 //array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
 
-	if (d == 1)
+	if (d == 1) {
+		free(Output_Inter);
 		return;
+	}
 
 	// eta
 	int step, step_i, step_j1, step_j2, step_k, Index, ReOrder, RowSub,
@@ -113,7 +156,7 @@ void operate_SF_d(const double *Input, const double *Output, const int NIn[3], c
 	if (d == 2)
 		Output_Inter[Indd] = Output;
 	else
-		Output_Inter[Indd] = malloc(NRows_Out[Indd]*NCols * sizeof *Output_Inter[Indd]); // tbd 
+		Output_Inter[Indd] = malloc(NRows_Out[Indd]*NCols * sizeof *Output_Inter[Indd]); // free
 
 	if (NonRedundant[Indd]) {
 		step = NOut[0];
@@ -136,30 +179,25 @@ void operate_SF_d(const double *Input, const double *Output, const int NIn[3], c
 				;
 
 			if (Index != RowSub) {
-				IndOut = Index*NCols;
-				IndSub = RowSub*NCols;
+				IndOut = Index;
+				IndSub = RowSub;
 
-				//array_swap_d(&Output_Inter[Indd-1][IndOut],&Output_Inter[Indd-1][IndSub],NCols,1);
 				array_swap_d(&Output_Inter[Indd-1][IndOut],&Output_Inter[Indd-1][IndSub],NCols,NRows_Out[Indd-1]);
 				array_swap_i(&RowLocIn[Index],&RowLocIn[RowSub],1,1);
-array_print_d(NRows_Out[Indd-1],NCols,Output_Inter[Indd-1],'C');
-exit(1);
 			}
 		}}}
 		free(LocalInput), free(RowLocIn);
 
-array_print_d(NRows_Out[Indd-1],NCols,Output_Inter[Indd-1],'C');
-exit(1);
-
 		stepIndIn  = NIn[Indd]*NCols;
 		stepIndOut = NOut[Indd]*NCols;
-		for (BRow = 0, BRowMax = BRows[Indd]; BRow < BRowMax; BRow++) {
+		for (IndIn = 0, IndOut = 0, BRow = 0, BRowMax = BRows[Indd]; BRow < BRowMax; BRow++) {
 			mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],
 			     &Output_Inter[Indd-1][IndIn],&Output_Inter[Indd][IndOut]);
 
 			IndIn  += stepIndIn;
 			IndOut += stepIndOut;
 		}
+//array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
 
 		LocalOutput = malloc(NOut[Indd]      * sizeof *LocalOutput); // free
 		RowLocOut   = malloc(NRows_Out[Indd] * sizeof *RowLocOut);   // free
@@ -179,10 +217,10 @@ exit(1);
 				;
 
 			if (Index != RowSub) {
-				IndOut = Index*NCols;
-				IndSub = RowSub*NCols;
+				IndOut = Index;
+				IndSub = RowSub;
 
-				array_swap_d(&Output_Inter[Indd][IndOut],&Output_Inter[Indd][IndSub],NCols,1);
+				array_swap_d(&Output_Inter[Indd][IndOut],&Output_Inter[Indd][IndSub],NCols,NRows_Out[Indd]);
 				array_swap_i(&RowLocOut[Index],&RowLocOut[RowSub],1,1);
 			}
 		}}}
@@ -192,179 +230,18 @@ exit(1);
 			Output_Inter[Indd][i] = Output_Inter[Indd-1][i];
 	}
 	free(Output_Inter[Indd-1]);
-array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
+//array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
 
-	if (d == 2)
+	if (d == 2) {
+		free(Output_Inter);
 		return;
-
-
-
-
-
-}
-
-
-
-
-double *operate_SF1_d(const double *Input, const int NIn[3], const int NOut[3], const int NCols, double *OP[3],
-                     const int Diag[3])
-{
-	/*
-	 *	Purpose:
-	 *		Use TP sum factorized operators to speed up calculations.
-	 *
-	 *	Comments:
-	 *		For the moment, the routine is only implemented using the new non-redundant approach. (ToBeModified)
-	 *		Operating in the eta/zeta directions requires re-ordering of the matrices before and after operation. To
-	 *		minimize memory usage, re-ordering is done in place, requiring only a single additional row of storage.
-	 *		Add support for NonRedundant == 2 (Diag == 1). (ToBeDeleted)
-	 *			Likely implementation: extract diagonal from OP, then loop over rows performing BLAS 1 row scaling. Note
-	 *			                       that this really does not require re-arranging. If it is found that this option
-	 *			                       is important in the future, profile both implementations. (ToBeDeleted)
-	 *
-	 *	Notation:
-	 *		Input : Input array, number of entries prod(NIn) x NCols
-	 *		Output : Output array, number of entries prod(NOut) x NCols
-	 *		N()[]  : (N)umber of (In/Out)put entries in each of the coordinate directions []
-	 *		OP[]   : 1D operators in each of the coordinate directions []
-	 *		Diag   : Indication of whether the OPs are diagonal
-	 *		         Options: 0 (Not diagonal)
-	 *		                  1 (Diagonal but not identity)
-	 *		                  2 (Diagonal identity)
-	 *
-	 *	References:
-	 *		Add in Sherwin's book or perhaps my thesis as the procedure implemented is slighly modified (ToBeModified).
-	 */
-
-	int i, iMax, j, jMax, k, kMax, dim, BRow, BRowMax,
-	    NonRedundant[3], BRows[3], NRows_Out[3],
-	    Indd, IndIn, IndOut, IndSub;
-	double **Output, *OutputP;
-
-	for (dim = 0; dim < 3; dim++) {
-		if (Diag[dim] == 0) NonRedundant[dim] = 1;
-		else if (Diag[dim] == 1) NonRedundant[dim] = 2;
-		else if (Diag[dim] == 2) NonRedundant[dim] = 0;
-		else
-			printf("Error: Invalid entry in Diag.\n"), exit(1);
 	}
-
-	BRows[0] = NIn[1]*NIn[2];
-	BRows[1] = NOut[0]*NIn[2];
-	BRows[2] = NOut[0]*NOut[1];
-
-	for (dim = 0; dim < 3; dim++)
-		NRows_Out[dim] = NOut[dim]*BRows[dim];
-
-	Output = malloc(3 * sizeof *Output); // free
-
-	// xi
-	Indd = 0;
-
-	Output[Indd] = malloc(NRows_Out[Indd]*NCols * sizeof *Output[Indd]); // free
-	if (NonRedundant[Indd]) {
-		for (BRow = 0, BRowMax = BRows[Indd]; BRow < BRowMax; BRow++) {
-			IndIn  = BRow*(NIn[Indd]*NCols);
-			IndOut = BRow*(NOut[Indd]*NCols);
-
-			mm_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],&Input[IndIn],
-			             &Output[Indd][IndOut]);
-		}
-	} else {
-		for (i = 0, iMax = NRows_Out[Indd]*NCols; i < iMax; i++)
-			Output[Indd][i] = Input[i];
-	}
-
-//array_print_d(NRows_Out[Indd],NCols,Output[Indd],'R');
-
-	// eta
-	int step, step_i, step_j1, step_j2, step_k, Index, ReOrder, RowSub,
-		*LocalInput, *LocalOutput, *RowLocIn, *RowLocOut;
-	Indd = 1;
-
-	Output[Indd] = malloc(NRows_Out[Indd]*NCols * sizeof *Output[Indd]); // free
-	if (NonRedundant[Indd]) {
-
-		step = NOut[0];
-
-		LocalInput = malloc(NIn[Indd]         * sizeof *LocalInput);  // free
-		RowLocIn   = malloc(NRows_Out[Indd-1] * sizeof *RowLocIn);    // free
-
-		for (i = 0, iMax = NIn[Indd]        ; i < iMax; i++) LocalInput[i]  = i*step;
-		for (i = 0, iMax = NRows_Out[Indd-1]; i < iMax; i++) RowLocIn[i]    = i;
-
-		iMax = NOut[0], jMax = NIn[1], kMax = NIn[2];
-		step_i = NIn[1], step_k = NIn[1]*NOut[0];
-		for (k = 0; k < kMax; k++) {
-		for (i = 0; i < iMax; i++) {
-		for (j = 0; j < jMax; j++) {
-			Index   = i*step_i+j+k*step_k;
-			ReOrder = i+LocalInput[j]+k*step_k;
-
-			for (RowSub = ReOrder; RowLocIn[RowSub] != ReOrder; RowSub = RowLocIn[RowSub])
-				;
-
-			if (Index != RowSub) {
-				IndOut = Index*NCols;
-				IndSub = RowSub*NCols;
-
-				array_swap_d(&Output[Indd-1][IndOut],&Output[Indd-1][IndSub],NCols,1);
-				array_swap_i(&RowLocIn[Index],&RowLocIn[RowSub],1,1);
-printf("%d %d\n",IndOut,IndSub);
-array_print_d(NRows_Out[Indd-1],NCols,Output[Indd-1],'R');
-			}
-		}}}
-		free(LocalInput), free(RowLocIn);
-
-printf("Original end\n\n");
-//array_print_d(NRows_Out[Indd-1],NCols,Output[Indd-1],'R');
-
-		for (BRow = 0, BRowMax = BRows[Indd]; BRow < BRowMax; BRow++) {
-			IndIn  = BRow*(NIn[Indd]*NCols);
-			IndOut = BRow*(NOut[Indd]*NCols);
-
-			mm_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],&Output[Indd-1][IndIn],
-			             &Output[Indd][IndOut]);
-		}
-
-		LocalOutput = malloc(NOut[Indd]      * sizeof *LocalOutput); // free
-		RowLocOut   = malloc(NRows_Out[Indd] * sizeof *RowLocOut);   // free
-
-		for (i = 0, iMax = NOut[Indd]     ; i < iMax; i++) LocalOutput[i] = i*step;
-		for (i = 0, iMax = NRows_Out[Indd]; i < iMax; i++) RowLocOut[i]   = i;
-
-		iMax = NOut[0], jMax = NOut[1], kMax = NIn[2];
-		step_i = NOut[1], step_k = NOut[1]*NOut[0];
-		for (k = 0; k < kMax; k++) {
-		for (i = 0; i < iMax; i++) {
-		for (j = 0; j < jMax; j++) {
-			Index   = i*step_i+j+k*step_k;
-			ReOrder = i+LocalOutput[j]+k*step_k;
-
-			for (RowSub = ReOrder; RowLocOut[RowSub] != ReOrder; RowSub = RowLocOut[RowSub])
-				;
-
-			if (Index != RowSub) {
-				IndOut = Index*NCols;
-				IndSub = RowSub*NCols;
-
-				array_swap_d(&Output[Indd][IndOut],&Output[Indd][IndSub],NCols,1);
-				array_swap_i(&RowLocOut[Index],&RowLocOut[RowSub],1,1);
-			}
-		}}}
-		free(LocalOutput), free(RowLocOut);
-	} else {
-		for (i = 0, iMax = NRows_Out[Indd]*NCols; i < iMax; i++)
-			Output[Indd][i] = Output[Indd-1][i];
-	}
-	free(Output[Indd-1]);
-
-//array_print_d(NRows_Out[Indd],NCols,Output[Indd],'R');
 
 	// zeta
 	Indd = 2;
 
-	Output[Indd] = malloc(NRows_Out[Indd]*NCols * sizeof *Output[Indd]); // keep
+	Output_Inter[Indd] = Output;
+
 	if (NonRedundant[Indd]) {
 		step = NOut[0]*NOut[1];
 
@@ -386,21 +263,23 @@ printf("Original end\n\n");
 				;
 
 			if (Index != RowSub) {
-				IndOut = Index*NCols;
-				IndSub = RowSub*NCols;
+				IndOut = Index;
+				IndSub = RowSub;
 
-				array_swap_d(&Output[Indd-1][IndOut],&Output[Indd-1][IndSub],NCols,1);
+				array_swap_d(&Output_Inter[Indd-1][IndOut],&Output_Inter[Indd-1][IndSub],NCols,NRows_Out[Indd-1]);
 				array_swap_i(&RowLocIn[Index],&RowLocIn[RowSub],1,1);
 			}
 		}}}
 		free(LocalInput), free(RowLocIn);
 
-		for (BRow = 0, BRowMax = BRows[Indd]; BRow < BRowMax; BRow++) {
-			IndIn  = BRow*(NIn[Indd]*NCols);
-			IndOut = BRow*(NOut[Indd]*NCols);
+		stepIndIn  = NIn[Indd]*NCols;
+		stepIndOut = NOut[Indd]*NCols;
+		for (IndIn = 0, IndOut = 0, BRow = 0, BRowMax = BRows[Indd]; BRow < BRowMax; BRow++) {
+			mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],
+			     &Output_Inter[Indd-1][IndIn],&Output_Inter[Indd][IndOut]);
 
-			mm_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],&Output[Indd-1][IndIn],
-			             &Output[Indd][IndOut]);
+			IndIn  += stepIndIn;
+			IndOut += stepIndOut;
 		}
 
 		LocalOutput = malloc(NOut[Indd]      * sizeof *LocalOutput); // free
@@ -421,27 +300,25 @@ printf("Original end\n\n");
 				;
 
 			if (Index != RowSub) {
-				IndOut = Index*NCols;
-				IndSub = RowSub*NCols;
+				IndOut = Index;
+				IndSub = RowSub;
 
-				array_swap_d(&Output[Indd][IndOut],&Output[Indd][IndSub],NCols,1);
+				array_swap_d(&Output_Inter[Indd][IndOut],&Output_Inter[Indd][IndSub],NCols,NRows_Out[Indd]);
 				array_swap_i(&RowLocOut[Index],&RowLocOut[RowSub],1,1);
 			}
 		}}}
 		free(LocalOutput), free(RowLocOut);
 	} else {
 		for (i = 0, iMax = NRows_Out[Indd]*NCols; i < iMax; i++)
-			Output[Indd][i] = Output[Indd-1][i];
+			Output_Inter[Indd][i] = Output_Inter[Indd-1][i];
 	}
-	free(Output[Indd-1]);
+	free(Output_Inter[Indd-1]);
+//array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
 
-//array_print_d(NRows_Out[Indd],NCols,Output[Indd],'R');
-
-	OutputP = Output[Indd];
-	free(Output);
-
-	return OutputP;
+	free(Output_Inter);
 }
+
+
 
 void setup_geometry()
 {
@@ -493,69 +370,7 @@ void setup_geometry()
 		XYZc = malloc (NvnGs*d * sizeof *XYZc); // keep
 		VOLUME->XYZc = XYZc;
 
-		for (ve = 0; ve < NvnGs; ve++) {
-		for (dim = 0; dim < d; dim++) {
-			XYZc[ve*d+dim] = VeXYZ[EToVe[(Vs+v)*8+VeC[ve]]*d+dim];
-		}}
-
-		if (!VOLUME->curved) {
-			// If not curved, the P1 geometry representation sufficies to fully specify the element.
-			XYZs = malloc(NvnGs*d * sizeof *XYZs); // keep
-			VOLUME->XYZs = XYZs;
-
-			for (vn = 0; vn < NvnGs; vn++) {
-			for (dim = 0; dim < d; dim++) {
-				XYZs[vn*d+dim] = XYZc[vn*d+dim];
-			}}
-		} else {
-			if (VOLUME->Eclass == C_TP) {
-				ELEMENT_class[0] = get_ELEMENT_Eclass(VOLUME->Eclass,C_TP);
-
-				NvnGs = ELEMENT_class[0]->NvnGs[0];
-				NvnGc = ELEMENT_class[0]->NvnGc[P];
-
-				I_vGs_vGc = ELEMENT_class[0]->I_vGs_vGc[P];
-
-				Input_SF = XYZc; // note multi column input
-				NIn    = NvnGs;
-				NOut   = NvnGc;
-				// make this into a sum factorization initialization routine? Usage changes (e.g. in Facet solver
-				// routine).
-				for (i = 0; i < 3; i++) {
-					if (i < d) {
-						NIn_SF[i]  = NIn;
-						NOut_SF[i] = NOut;
-					} else {
-						NIn_SF[i]  = 1;
-						NOut_SF[i] = 1;
-					}
-				}
-				NCols   = d;
-				OP_SF[0]  = I_vGs_vGc;
-				OP_SF[1]  = OP_SF[0];
-				OP_SF[2]  = OP_SF[0];
-				for (i = 0; i < 3; i++) Diag[i] = 0;
-				XYZs = operate_SF1_d(Input_SF,NIn_SF,NOut_SF,NCols,OP_SF,Diag); // keep (definitely don't want the alloc
-				                                                               // inside of the operate_SF function.
-			} else if (VOLUME->Eclass == C_SI) {
-				NvnGs = ELEMENT->NvnGs[0];
-				NvnGc = ELEMENT->NvnGc[P];
-				I_vGs_vGc = ELEMENT->I_vGs_vGc[P];
-
-				// Modify this so that the alloc is outside of the call.
-				XYZs = mm_Alloc_d(CblasNoTrans,CblasNoTrans,NvnGc,d,NvnGs,1.0,I_vGs_vGc,XYZc);
-			}
-		}
-		VOLUME->XYZs = XYZs;
-
-//array_print_d(pow(NOut,d),d,XYZs,'R');
-//exit(1);
-
-		NvnGs = ELEMENT->NvnGs[0];
-
 		// Note: XYZc may be interpreted as [X Y Z] where each of X, Y, Z are column vectors
-		for (i = 0; i < NvnGs*d; i++) XYZc[i] = 0.;
-
 		for (ve = 0; ve < NvnGs; ve++) {
 		for (dim = 0; dim < d; dim++) {
 			XYZc[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+v)*8+VeC[ve]]*d+dim];
@@ -601,20 +416,21 @@ void setup_geometry()
 				OP_SF[2] = OP_SF[0];
 				for (i = 0; i < 3; i++) Diag[i] = 0;
 
-				XYZs = malloc(NOut_Total * sizeof *XYZs);
-				operate_SF_d(Input_SF,XYZs,NIn_SF,NOut_SF,NCols,OP_SF,Diag,d);
+				XYZs = malloc(NOut_Total*NCols * sizeof *XYZs);
+				sf_apply_d(Input_SF,XYZs,NIn_SF,NOut_SF,NCols,OP_SF,Diag,d);
 			} else if (VOLUME->Eclass == C_SI) {
 				NvnGs = ELEMENT->NvnGs[0];
 				NvnGc = ELEMENT->NvnGc[P];
 				I_vGs_vGc = ELEMENT->I_vGs_vGc[P];
 
-				// Modify this so that the alloc is outside of the call.
-				XYZs = mm_Alloc_d(CblasNoTrans,CblasNoTrans,NvnGc,d,NvnGs,1.0,I_vGs_vGc,XYZc);
+				NCols = d*1; // d coordinates * 1 element
+				XYZs = malloc(NvnGc*NCols * sizeof *XYZs);
+				mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnGc,NCols,NvnGs,1.0,I_vGs_vGc,XYZc,XYZs);
 			}
 		}
+		VOLUME->XYZs = XYZs;
 
-// NOTE: NEED TO MODIFY ARRAY_PRINT TO ACCEPT TRANSPOSED 'MATRICES'
-//array_print_d(NOut_Total,d,XYZs,'C');
+array_print_d(NOut_Total,d,XYZs,'C');
 exit(1);
 
 
