@@ -39,7 +39,7 @@ extern double *inverse_d    (int N, int NRHS, double *A, double *b);
 extern double *mm_Alloc_d   (const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m, const int n, const int k,
                              const double alpha, const double *A, const double *B);
 extern void   *mm_d         (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m,
-                             const int n, const int k, const double alpha, const double *A, const double *B, const double *C);
+                             const int n, const int k, const double alpha, const double *A, const double *B, double *C);
 
 // Math Functions
 extern int    factorial_i (const int n);
@@ -71,8 +71,10 @@ extern void memory_destructor_E (struct S_ELEMENT *ELEMENT);
 	extern double array_norm_d (int LenA, double *A, char *NormType);
 
 	// Swapping
-	extern int    array_swap_i (register int *arr1, register int *arr2, const int NIn, const int stepIn);
-	extern double array_swap_d (register double *arr1, register double *arr2, const int NIn, const int stepIn);
+	extern void array_swap_ui (register unsigned int *arr1, register unsigned int *arr2, const unsigned int NIn,
+	                           const unsigned int stepIn);
+	extern void array_swap_i  (register int *arr1, register int *arr2, const int NIn, const int stepIn);
+	extern void array_swap_d  (register double *arr1, register double *arr2, const int NIn, const int stepIn);
 
 	// Printing
 //	extern void array_print    (int m, int n, void *A, char *type);
@@ -99,5 +101,7 @@ extern void memory_destructor_E (struct S_ELEMENT *ELEMENT);
 	extern void array_free3_d  (int iMax, int jMax, double ***A);
 	extern void array_free3_ld (int iMax, int jMax, long double ***A);
 
+// Testing
+	extern void test_speed_mm_d (void);
 
 #endif // DPG_functions_h__INCLUDED

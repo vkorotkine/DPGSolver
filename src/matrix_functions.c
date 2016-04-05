@@ -113,11 +113,14 @@ double *mm_Alloc_d(const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, c
 }
 
 void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m,
-          const int n, const int k, const double alpha, const double *A, const double *B, const double *C)
+          const int n, const int k, const double alpha, const double *A, const double *B, double *C)
 {
 	/*
 	 *	Purpose:
 	 *		Returns: C = alpha*op(A)*op(B) with memory already allocated in calling function.
+	 *
+	 *	Comments:
+	 *		The 'C' array pointer is not declared 'const' as this prefix is discarded by the cblas_dgemm call.
 	 *
 	 *	Notation:
 	 *		m : Number of rows of matrix op(A)
@@ -140,12 +143,13 @@ void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_T
 	if (layout == CblasColMajor) {
 		if (transa == CblasNoTrans) ldA = m_MKL;
 		else                        ldA = k_MKL;
-		
+
 		if (transb == CblasNoTrans) ldB = k_MKL;
 		else                        ldB = n_MKL;
 
 		ldC = m_MKL;
-	} else {
+		cblas_dgemm(CblasColMajor,transa,transb,m_MKL,n_MKL,k_MKL,alpha,A,ldA,B,ldB,0.0,C,ldC);
+	} else if (layout == CblasRowMajor) {
 		if (transa == CblasNoTrans) ldA = k_MKL;
 		else                        ldA = m_MKL;
 
@@ -153,33 +157,8 @@ void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_T
 		else                        ldB = k_MKL;
 
 		ldC = n_MKL;
-	}
-
-/*
-	if (transa == CblasNoTrans) {
-		ldA = k_MKL;
-	} else {
-		ldA = m_MKL;
-	}
-
-	if (transb == CblasNoTrans) {
-		ldB = n_MKL;
-	} else {
-		ldB = k_MKL;
-	}
-
-	ldC = n_MKL;
-*/
-
-	switch (layout) {
-	case CblasColMajor:
-		cblas_dgemm(CblasColMajor,transa,transb,m_MKL,n_MKL,k_MKL,alpha,A,ldA,B,ldB,0.0,C,ldC);
-		break;
-	case CblasRowMajor:
 		cblas_dgemm(CblasRowMajor,transa,transb,m_MKL,n_MKL,k_MKL,alpha,A,ldA,B,ldB,0.0,C,ldC);
-		break;
-	default:
-		printf("Error: Invalid layour in mm_d.\n"), exit(1);
-		break;
+	} else {
+		printf("Error: Invalid layout in mm_*.\n"), exit(1);
 	}
 }

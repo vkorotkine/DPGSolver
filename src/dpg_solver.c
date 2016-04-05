@@ -1,3 +1,5 @@
+#ifndef TEST
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <mpi.h>
@@ -70,3 +72,37 @@ int main(int nargc, char **argv)
 
 	return 0;
 }
+
+#else // Run if -DTEST is passed as a compilation flag
+
+#include <stdio.h>
+
+#include "database.h"
+#include "functions.h"
+
+/*
+ *	Purpose:
+ *		Run test functions:
+ *			1) Speed comparisons
+ *			2) Correctness of implementation
+ *
+ *	Comments:
+ *
+ *	Notation:
+ *
+ *	References:
+ */
+
+struct S_DB DB;
+
+int main(void)
+{
+	printf("\n\n\nRunning Tests:\n\n\n");
+
+	test_speed_mm_d();
+
+	return 0;
+}
+
+
+#endif // End TEST

@@ -24,10 +24,11 @@ void sf_operate_d(const int NOut, const int NCols, const int NIn, const int BRow
                   const double *Input, const double *Output)
 {
 	/*	Purpose:
-	 *		Perform that matrix-matrix operation required by the sf_apply_*.c function.
+	 *		Perform the matrix-matrix operation required by sf_apply_*.
 	 *
 	 *	Comments:
-	 *		The 'register' prefix is likely unused here as a lot of work is done in the BLAS call.
+	 *		See the '*** IMPORTANT ***' comment in sf_apply_*.
+	 *		The 'register' prefix is likely unused here as a lot of work is done in the mm_* call.
 	 */
 
 	register unsigned IndIn, IndOut, stepIndIn, stepIndOut, BRowMax;
@@ -45,12 +46,76 @@ void sf_operate_d(const int NOut, const int NCols, const int NIn, const int BRow
 	}
 }
 
+void sf_swap_d(double *Input, const unsigned int dim, const unsigned int NIn, const unsigned int step,
+               const unsigned int NRows, const unsigned int NCols,
+               const unsigned int iBound, const unsigned int jBound, const unsigned int kBound,
+               const unsigned int iStep, const unsigned int jStep1, const unsigned int jStep2, const unsigned int kStep)
+{
+	/*	Purpose:
+	 *		Perform the row swapping operation required by sf_apply_*.
+	 *
+	 *	Comments:
+	 *		See the '*** IMPORTANT ***' comment in sf_apply_*.
+	 *		The switch based on the (dim)ension is necessary as the swapping is done in a specific looping order in the
+	 *		difference cases (Note the ordering of the i/j/k loops).
+	 */
+
+	register unsigned int i, iMax, j, jMax, k, kMax,
+	                      RowInd, RowSub, ReOrder;
+	unsigned int lInput[NIn], RowlInput[NRows];
+
+	for (i = 0, iMax = NIn; iMax--; i++)
+		lInput[i] = i*step;
+	for (i = 0, iMax = NRows; iMax--; i++)
+		RowlInput[i] = i;
+
+	switch (dim) {
+	case 2:
+		for (k = 0, kMax = kBound; kMax--; k++) {
+		for (i = 0, iMax = iBound; iMax--; i++) {
+		for (j = 0, jMax = jBound; jMax--; j++) {
+
+			RowInd   = i*iStep+j+k*kStep;
+			ReOrder = i+lInput[j]+k*kStep;
+
+			for (RowSub = ReOrder; RowlInput[RowSub] != ReOrder; RowSub = RowlInput[RowSub])
+				;
+
+			if (RowInd != RowSub) {
+				array_swap_d(&Input[RowInd],&Input[RowSub],NCols,NRows);
+				array_swap_ui(&RowlInput[RowInd],&RowlInput[RowSub],1,1);
+			}
+		}}}
+		break;
+	case 3:
+		for (i = 0, iMax = iBound; iMax--; i++) {
+		for (j = 0, jMax = jBound; jMax--; j++) {
+		for (k = 0, kMax = kBound; kMax--; k++) {
+			RowInd   = i*iStep+j*jStep1+k;
+			ReOrder = i+j*jStep2+lInput[k];
+
+			for (RowSub = ReOrder; RowlInput[RowSub] != ReOrder; RowSub = RowlInput[RowSub])
+				;
+
+			if (RowInd != RowSub) {
+				array_swap_d(&Input[RowInd],&Input[RowSub],NCols,NRows);
+				array_swap_ui(&RowlInput[RowInd],&RowlInput[RowSub],1,1);
+			}
+		}}}
+		break;
+	default:
+		printf("Error: Invalid dimension entered in sf_swap_*.\n"), exit(1);
+		break;
+	}
+}
+
 void sf_apply_d(const double *Input, double *Output, const int NIn[3], const int NOut[3], const int NCols,
                 double *OP[3], const int Diag[3], const int d)
 {
 	/*
 	 *	Purpose:
 	 *		Use TP sum factorized operators to speed up calculations.
+	 *		LIKELY HAVE THIS FUNCTION ACT ON BOTH SIMPLEX AND TP ELEMENTS IN FUTURE. (ToBeDeleted)
 	 *
 	 *	Comments:
 	 *		*** IMPORTANT ***
@@ -92,10 +157,9 @@ void sf_apply_d(const double *Input, double *Output, const int NIn[3], const int
 	 *		Add in Sherwin's book or perhaps my thesis as the procedure implemented is slighly modified (ToBeModified).
 	 */
 
-	int i, iMax, j, jMax, k, kMax, dim, BRow, BRowMax,
-	    NonRedundant[d], BRows[d], NRows_Out[d],
-	    Indd, IndIn, IndOut, IndSub, stepIndIn, stepIndOut;
-	double **Output_Inter;
+	register unsigned int i, iMax, dim;
+	unsigned int          NonRedundant[d], BRows[d], NRows_Out[d], Indd;
+	double                **Output_Inter;
 
 	for (dim = 0; dim < d; dim++) {
 		if      (Diag[dim] == 0) NonRedundant[dim] = 1;
@@ -126,17 +190,6 @@ void sf_apply_d(const double *Input, double *Output, const int NIn[3], const int
 
 	if (NonRedundant[Indd]) {
 		sf_operate_d(NOut[Indd],NCols,NIn[Indd],BRows[Indd],OP[Indd],Input,Output_Inter[Indd]);
-		/*
-		stepIndIn  = NIn[Indd]*NCols;
-		stepIndOut = NOut[Indd]*NCols;
-		for (IndIn = 0, IndOut = 0, BRow = 0, BRowMax = BRows[Indd]; BRow < BRowMax; BRow++) {
-			mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],&Input[IndIn],
-			     &Output_Inter[Indd][IndOut]);
-
-			IndIn  += stepIndIn;
-			IndOut += stepIndOut;
-		}
-		*/
 	} else {
 		for (i = 0, iMax = NRows_Out[Indd]*NCols; i < iMax; i++)
 			Output_Inter[Indd][i] = Input[i];
@@ -149,8 +202,6 @@ void sf_apply_d(const double *Input, double *Output, const int NIn[3], const int
 	}
 
 	// eta
-	int step, step_i, step_j1, step_j2, step_k, Index, ReOrder, RowSub,
-		*LocalInput, *LocalOutput, *RowLocIn, *RowLocOut;
 	Indd = 1;
 
 	if (d == 2)
@@ -159,72 +210,13 @@ void sf_apply_d(const double *Input, double *Output, const int NIn[3], const int
 		Output_Inter[Indd] = malloc(NRows_Out[Indd]*NCols * sizeof *Output_Inter[Indd]); // free
 
 	if (NonRedundant[Indd]) {
-		step = NOut[0];
+		sf_swap_d(Output_Inter[Indd-1],Indd+1,NIn[Indd],NOut[0],NRows_Out[Indd-1],NCols,
+		          NOut[0],NIn[1],NIn[2],NIn[1],0,0,NIn[1]*NOut[0]);
 
-		LocalInput = malloc(NIn[Indd]         * sizeof *LocalInput);  // free
-		RowLocIn   = malloc(NRows_Out[Indd-1] * sizeof *RowLocIn);    // free
+		sf_operate_d(NOut[Indd],NCols,NIn[Indd],BRows[Indd],OP[Indd],Output_Inter[Indd-1],Output_Inter[Indd]);
 
-		for (i = 0, iMax = NIn[Indd]        ; i < iMax; i++) LocalInput[i] = i*step;
-		for (i = 0, iMax = NRows_Out[Indd-1]; i < iMax; i++) RowLocIn[i]   = i;
-
-		iMax = NOut[0], jMax = NIn[1], kMax = NIn[2];
-		step_i = NIn[1], step_k = NIn[1]*NOut[0];
-		for (k = 0; k < kMax; k++) {
-		for (i = 0; i < iMax; i++) {
-		for (j = 0; j < jMax; j++) {
-			Index   = i*step_i+j+k*step_k;
-			ReOrder = i+LocalInput[j]+k*step_k;
-
-			for (RowSub = ReOrder; RowLocIn[RowSub] != ReOrder; RowSub = RowLocIn[RowSub])
-				;
-
-			if (Index != RowSub) {
-				IndOut = Index;
-				IndSub = RowSub;
-
-				array_swap_d(&Output_Inter[Indd-1][IndOut],&Output_Inter[Indd-1][IndSub],NCols,NRows_Out[Indd-1]);
-				array_swap_i(&RowLocIn[Index],&RowLocIn[RowSub],1,1);
-			}
-		}}}
-		free(LocalInput), free(RowLocIn);
-
-		stepIndIn  = NIn[Indd]*NCols;
-		stepIndOut = NOut[Indd]*NCols;
-		for (IndIn = 0, IndOut = 0, BRow = 0, BRowMax = BRows[Indd]; BRow < BRowMax; BRow++) {
-			mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],
-			     &Output_Inter[Indd-1][IndIn],&Output_Inter[Indd][IndOut]);
-
-			IndIn  += stepIndIn;
-			IndOut += stepIndOut;
-		}
-//array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
-
-		LocalOutput = malloc(NOut[Indd]      * sizeof *LocalOutput); // free
-		RowLocOut   = malloc(NRows_Out[Indd] * sizeof *RowLocOut);   // free
-
-		for (i = 0, iMax = NOut[Indd]     ; i < iMax; i++) LocalOutput[i] = i*step;
-		for (i = 0, iMax = NRows_Out[Indd]; i < iMax; i++) RowLocOut[i]   = i;
-
-		iMax = NOut[0], jMax = NOut[1], kMax = NIn[2];
-		step_i = NOut[1], step_k = NOut[1]*NOut[0];
-		for (k = 0; k < kMax; k++) {
-		for (i = 0; i < iMax; i++) {
-		for (j = 0; j < jMax; j++) {
-			Index   = i*step_i+j+k*step_k;
-			ReOrder = i+LocalOutput[j]+k*step_k;
-
-			for (RowSub = ReOrder; RowLocOut[RowSub] != ReOrder; RowSub = RowLocOut[RowSub])
-				;
-
-			if (Index != RowSub) {
-				IndOut = Index;
-				IndSub = RowSub;
-
-				array_swap_d(&Output_Inter[Indd][IndOut],&Output_Inter[Indd][IndSub],NCols,NRows_Out[Indd]);
-				array_swap_i(&RowLocOut[Index],&RowLocOut[RowSub],1,1);
-			}
-		}}}
-		free(LocalOutput), free(RowLocOut);
+		sf_swap_d(Output_Inter[Indd],Indd+1,NOut[Indd],NOut[0],NRows_Out[Indd],NCols,
+		          NOut[0],NOut[1],NIn[2],NOut[1],0,0,NOut[1]*NOut[0]);
 	} else {
 		for (i = 0, iMax = NRows_Out[Indd]*NCols; i < iMax; i++)
 			Output_Inter[Indd][i] = Output_Inter[Indd-1][i];
@@ -243,71 +235,13 @@ void sf_apply_d(const double *Input, double *Output, const int NIn[3], const int
 	Output_Inter[Indd] = Output;
 
 	if (NonRedundant[Indd]) {
-		step = NOut[0]*NOut[1];
+		sf_swap_d(Output_Inter[Indd-1],Indd+1,NIn[Indd],NOut[0]*NOut[1],NRows_Out[Indd-1],NCols,
+		          NOut[0],NOut[1],NIn[2],NOut[1]*NIn[2],NIn[2],NOut[0],0);
 
-		LocalInput = malloc(NIn[Indd]         * sizeof *LocalInput);  // free
-		RowLocIn   = malloc(NRows_Out[Indd-1] * sizeof *RowLocIn);    // free
+		sf_operate_d(NOut[Indd],NCols,NIn[Indd],BRows[Indd],OP[Indd],Output_Inter[Indd-1],Output_Inter[Indd]);
 
-		for (i = 0, iMax = NIn[Indd]        ; i < iMax; i++) LocalInput[i]  = i*step;
-		for (i = 0, iMax = NRows_Out[Indd-1]; i < iMax; i++) RowLocIn[i]    = i;
-
-		iMax = NOut[0], jMax = NOut[1], kMax = NIn[2];
-		step_i = NOut[1]*NIn[2], step_j1 = NIn[2], step_j2 = NOut[0];
-		for (i = 0; i < iMax; i++) {
-		for (j = 0; j < jMax; j++) {
-		for (k = 0; k < kMax; k++) {
-			Index   = i*step_i+j*step_j1+k;
-			ReOrder = i+j*step_j2+LocalInput[k];
-
-			for (RowSub = ReOrder; RowLocIn[RowSub] != ReOrder; RowSub = RowLocIn[RowSub])
-				;
-
-			if (Index != RowSub) {
-				IndOut = Index;
-				IndSub = RowSub;
-
-				array_swap_d(&Output_Inter[Indd-1][IndOut],&Output_Inter[Indd-1][IndSub],NCols,NRows_Out[Indd-1]);
-				array_swap_i(&RowLocIn[Index],&RowLocIn[RowSub],1,1);
-			}
-		}}}
-		free(LocalInput), free(RowLocIn);
-
-		stepIndIn  = NIn[Indd]*NCols;
-		stepIndOut = NOut[Indd]*NCols;
-		for (IndIn = 0, IndOut = 0, BRow = 0, BRowMax = BRows[Indd]; BRow < BRowMax; BRow++) {
-			mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NOut[Indd],NCols,NIn[Indd],1.0,OP[Indd],
-			     &Output_Inter[Indd-1][IndIn],&Output_Inter[Indd][IndOut]);
-
-			IndIn  += stepIndIn;
-			IndOut += stepIndOut;
-		}
-
-		LocalOutput = malloc(NOut[Indd]      * sizeof *LocalOutput); // free
-		RowLocOut   = malloc(NRows_Out[Indd] * sizeof *RowLocOut);   // free
-
-		for (i = 0, iMax = NOut[Indd]     ; i < iMax; i++) LocalOutput[i] = i*step;
-		for (i = 0, iMax = NRows_Out[Indd]; i < iMax; i++) RowLocOut[i]   = i;
-
-		iMax = NOut[0], jMax = NOut[1], kMax = NOut[2];
-		step_i = NOut[1]*NOut[2], step_j1 = NOut[2], step_j2 = NOut[0];
-		for (i = 0; i < iMax; i++) {
-		for (j = 0; j < jMax; j++) {
-		for (k = 0; k < kMax; k++) {
-			Index   = i*step_i+j*step_j1+k;
-			ReOrder = i+j*step_j2+LocalOutput[k];
-
-			for (RowSub = ReOrder; RowLocOut[RowSub] != ReOrder; RowSub = RowLocOut[RowSub])
-				;
-
-			if (Index != RowSub) {
-				IndOut = Index;
-				IndSub = RowSub;
-
-				array_swap_d(&Output_Inter[Indd][IndOut],&Output_Inter[Indd][IndSub],NCols,NRows_Out[Indd]);
-				array_swap_i(&RowLocOut[Index],&RowLocOut[RowSub],1,1);
-			}
-		}}}
-		free(LocalOutput), free(RowLocOut);
+		sf_swap_d(Output_Inter[Indd],Indd+1,NOut[Indd],NOut[0]*NOut[1],NRows_Out[Indd],NCols,
+		          NOut[0],NOut[1],NOut[2],NOut[1]*NOut[2],NOut[2],NOut[0],0);
 	} else {
 		for (i = 0, iMax = NRows_Out[Indd]*NCols; i < iMax; i++)
 			Output_Inter[Indd][i] = Output_Inter[Indd-1][i];
@@ -431,6 +365,9 @@ void setup_geometry()
 		VOLUME->XYZs = XYZs;
 
 array_print_d(NOut_Total,d,XYZs,'C');
+
+test_speed_mm_d();
+
 exit(1);
 
 
