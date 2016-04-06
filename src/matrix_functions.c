@@ -162,3 +162,203 @@ void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_T
 		printf("Error: Invalid layout in mm_*.\n"), exit(1);
 	}
 }
+
+//void mm_CTN_d(const int m, const int n, const int k, const double *A, const double *B, double *C, const int useBLAS)
+void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, double *C)
+{
+	/*
+	 *	Purpose:
+	 *		Compute matrix-matrix and matrix-vector products assuming:
+	 *			0) return C = A'*B
+	 *			1) Row-major storage of A
+	 *			2) Column-major storage of B and C
+	 *
+	 *	Comments:
+	 *		The 'CTN' function name refers to:
+	 *			C : Column-major output
+	 *			T : Transpose of A
+	 *			N : No transpose of B
+	 *		This memory ordering is optimal to reduce memory stride when multiplying small A matrices (relative to B) by
+	 *		B as in vectorized implementations of the code. (ToBeModified)
+	 *
+	 *		The function allows for the usage of either native c-code or BLAS calls depending on the value of 'useBLAS'.
+	 *		The 'A', 'B' and 'C' array pointers are not declared as 'const' as the qualifiers are discarded during the
+	 *		initialization/assignement of pointer variables in the custom implementation.
+	 *
+	 *		Note that the cblas calls to gemv and gemm have slightly different conventions for specifying the dimensions
+	 *		of A:
+	 *			gemm: m_MKL = m, k_MKL = k provide the dimensions of op(A) = A' (m rows, k columns).
+	 *			gemv: m_MKL = k, k_MKL = m provide the dimensions of A (k rows, m columns)
+	 *		In the custom implementations of mv and mm below, the pointer version was very slightly faster than the
+	 *		array indexed version (similarly to array_swap).
+	 *
+	 *		Conclusions from test_speed_mm:
+	 *			Testing done using -O3.
+	 *			Without any manual loop unrolling (potentially to be done after profiling; ToBeModified):
+	 *				BLAS_mv breaks even when more than ~120 flops are performed.
+	 *				BLAS_mm breaks even when more than ~330 flops are performed.
+	 *
+	 *	Notation:
+	 *		m : Number of rows of A'
+	 *		n : Number of columns of B
+	 *		k : Number of columns of A'
+	 *
+	 *	References:
+	 *
+	 */
+
+	int useBLAS;
+
+	// Note: Flops = m*n*(2*k-1) ~= 2*m*n*k
+	switch(n) {
+	case 1:
+		if (m*k > 60) // 60 = (breakeven flops)/2
+			useBLAS = 1;
+		else
+			useBLAS = 0;
+
+		break;
+	default:
+		if (m*n*k > 165) // 165 = (breakeven flops)/2
+			useBLAS = 1;
+		else
+			useBLAS = 0;
+
+		break;
+	}
+
+
+	switch (useBLAS) {
+	case 0:
+		switch (n) {
+			case 1: { // matrix-vector
+				register unsigned int mMax, kMax;
+				register double *pA = A, *pB = B, *pC = C;
+
+				// First row of A'
+				*pC = (*pA)*(*pB);
+				for (kMax = k-1; kMax--; ) { // loop over columns of A'/rows of B/C
+					pA++;
+					pB++;
+
+					*pC += (*pA)*(*pB);
+				}
+
+				// Remaining rows of A'
+				for (mMax = m-1; mMax--; ) { // loop over rows of A'
+					pA++;
+					pC++;
+					pB = B;
+
+					*pC = (*pA)*(*pB);
+					for (kMax = k-1; kMax--; ) { // loop over columns of A'/rows of B/C
+						pA++;
+						pB++;
+
+						*pC += (*pA)*(*pB);
+					}
+				}
+
+/* Very slightly slower than pointer version above (1-2%)
+
+				register unsigned int i, j, iMax, jMax, IndA;
+				for (i = 0, iMax = m; i < iMax; i++) {
+					C[i] = 0.0;
+					IndA = i*k;
+					for (j = 0, jMax = k; j < jMax; j++) {
+						C[i] += A[IndA+j]*B[j];
+					}
+				}
+*/
+				break;
+			}
+			default: { // matrix-matrix
+				register unsigned int mMax, nMax, kMax;
+				register double *pA = A, *pB = B, *pC = C;
+
+				// First column of B/C
+				// First row of A'
+				*pC = (*pA)*(*pB);
+				for (kMax = k-1; kMax--; ) { // loop over columns of A'/rows of B/C
+					pA++;
+					pB++;
+
+					*pC += (*pA)*(*pB);
+				}
+
+				// Remaining rows of A'
+				for (mMax = m-1; mMax--; ) { // loop over rows of A'
+					pA++;
+					pC++;
+					pB = B;
+
+					*pC = (*pA)*(*pB);
+					for (kMax = k-1; kMax--; ) { // loop over columns of A'/rows of B/C
+						pA++;
+						pB++;
+
+						*pC += (*pA)*(*pB);
+					}
+				}
+
+				// Remaining columns of B/C
+				for (nMax = n-1; nMax--; ) { // loop over columns of B/C
+					pA = A;
+					pB = B+(n-nMax-1)*k;
+					pC++;
+					*pC = (*pA)*(*pB);
+
+					for (kMax = k-1; kMax--; ) { // loop over columns of A'/rows of B/C
+						pA++;
+						pB++;
+
+						*pC += (*pA)*(*pB);
+					}
+
+					// Remaining rows of A'
+					for (mMax = m-1; mMax--; ) { // loop over rows of A'
+						pA++;
+						pC++;
+						pB = B+(n-nMax-1)*k;
+
+						*pC = (*pA)*(*pB);
+						for (kMax = k-1; kMax--; ) { // loop over columns of A'/rows of B/C
+							pA++;
+							pB++;
+
+							*pC += (*pA)*(*pB);
+						}
+					}
+				}
+
+				break;
+			}
+		}
+		break;
+	case 1:
+		switch (n) {
+			case 1: { // matrix-vector
+				MKL_INT m_MKL   = k,
+						k_MKL   = m,
+						inc_MKL = 1;
+
+				cblas_dgemv(CblasColMajor,CblasTrans,m_MKL,k_MKL,1.0,A,m_MKL,B,inc_MKL,0.0,C,inc_MKL);
+				break;
+			}
+			default: { // matrix-matrix
+				MKL_INT m_MKL = m,
+						n_MKL = n,
+						k_MKL = k;
+
+				cblas_dgemm(CblasColMajor,CblasTrans,CblasNoTrans,m_MKL,n_MKL,k_MKL,1.0,A,k_MKL,B,k_MKL,0.0,C,m_MKL);
+				break;
+			}
+		}
+		break;
+	default:
+		printf("Error: Unsupported value of 'useBLAS' passed to mm_d_CTN.\n"), exit(1);
+		break;
+	}
+
+
+}

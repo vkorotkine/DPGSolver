@@ -186,7 +186,7 @@ void array_swap_comb_NoPointer_minMem_arb_d(register double *arr1, register doub
 
 	for (i = 0, N = NIn, step = stepIn; N-- ; i = i+step) {
 		tmp     = arr1[i];
-		arr1[i] = arr2[i];
+		arr1[i] = arr2[i]; *(arr1+i) = *(arr2+i)
 		arr2[i] = tmp;
 	}
 }

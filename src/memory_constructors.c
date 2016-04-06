@@ -144,9 +144,12 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME = malloc(sizeof *VOLUME); // free
 
 	// Structures
-	VOLUME->type   = -1;
-	VOLUME->Eclass = -1;
-	VOLUME->curved = -1;
+	VOLUME->indexl = 0;
+	VOLUME->indexg = 0;
+	VOLUME->P      = 0;
+	VOLUME->type   = 0;
+	VOLUME->Eclass = 0;
+	VOLUME->curved = 0;
 
 	// Geometry
 	// *XYZc, *XYZs;

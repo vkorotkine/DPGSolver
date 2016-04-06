@@ -32,11 +32,11 @@ void array_swap_ui(register unsigned int *arr1, register unsigned int *arr2, con
 	*arr1 = *arr2;
 	*arr2 = tmp;
 
-	switch(NIn) {
+	switch (NIn) {
 	case 1:
 		break;
 	default:
-		switch(stepIn) {
+		switch (stepIn) {
 		case 1:
 			for (N = NIn-1; N-- ; ) {
 				arr1++;
@@ -71,11 +71,11 @@ void array_swap_i(register int *arr1, register int *arr2, const int NIn, const i
 	*arr1 = *arr2;
 	*arr2 = tmp;
 
-	switch(NIn) {
+	switch (NIn) {
 	case 1:
 		break;
 	default:
-		switch(stepIn) {
+		switch (stepIn) {
 		case 1:
 			for (N = NIn-1; N-- ; ) {
 				arr1++;
@@ -110,11 +110,11 @@ void array_swap_d(register double *arr1, register double *arr2, const int NIn, c
 	*arr1 = *arr2;
 	*arr2 = tmp;
 
-	switch(NIn) {
+	switch (NIn) {
 	case 1:
 		break;
 	default:
-		switch(stepIn) {
+		switch (stepIn) {
 		case 1:
 			for (N = NIn-1; N-- ; ) {
 				arr1++;

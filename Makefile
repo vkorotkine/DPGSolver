@@ -13,9 +13,9 @@
 CSTD = -std=c99
 
 # Options
-# OPTS = -O3
-# OPTS = -g -Wall -Wextra
-OPTS = -g -Wall -Wextra -DTEST
+#OPTS = -O3
+OPTS = -g -Wall -Wextra -O3
+#OPTS = -g -Wall -Wextra -O3 -DTEST
 
 # Standard libraries (Math)
 STD_LIB = -lm
@@ -32,7 +32,7 @@ MACHINE := $(shell uname -m)
 ifeq ($(KERNEL),Darwin)
   PROG_PATH = /Users/philipzwanenburg/Desktop/Research_Codes/Downloaded
 
-  CC = ${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/mpicc -fopenmp -m64
+  CC ="${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/mpicc -fopenmp -m64"
 #  CC = ${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-opt/bin/mpicc -fopenmp -m64
 #  CC = mpicc -fopenmp -m64
 
@@ -83,7 +83,9 @@ include ${PETSC_DIR}/lib/petsc/conf/variables
 
 # missing LIBPATH, DEFINES (as compared to Brian's makefile)
 # Parmetis must be linked before metis
-LIBS = $(STD_LIB) $(PETSC_INC) $(PETSC_LIB) $(PARMETIS_INC) $(PARMETIS_LDINC) $(METIS_INC) $(METIS_LDINC) $(MKL_INC) $(MKL_LDINC)
+#LIBS = $(STD_LIB) $(PETSC_INC) $(PETSC_LIB) $(PARMETIS_INC) $(PARMETIS_LDINC) $(METIS_INC) $(METIS_LDINC) $(MKL_INC) $(MKL_LDINC)
+LIBS = $(STD_LIB) $(PETSC_LIB) $(PARMETIS_LDINC) $(METIS_LDINC) $(MKL_LDINC)
+INCS = $(PETSC_INC) $(PARMETIS_INC) $(METIS_INC) $(MKL_INC)
 
 EXECUTABLE = DPGSolver.exe
 
@@ -114,19 +116,23 @@ OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 # 	$<: first prerequisite only (desired if excluding headers for example)
 #
 # Compile commands:
-# 	-c:       generate object files
+# 	-c:       no linking is done
 # 	-o <arg>: output to <arg>
 
 ### Default goal + Additional required rules ###
 
 # Compile executable file (Default goal)
 $(EXECUTABLE) : $(OBJECTS)
-	$(CC) -o $@ $(OPTS) $^ $(LIBS)
+#	$(CC) -o $@ $(OPTS) $^ $(LIBS)
+	$(CC) -o $@ $(OPTS) $^ $(INCS) $(LIBS)
 
 # Create objects
 # Still need to figure out how to include header dependencies.
+#$(OBJECTS) : $(OBJDIR)/%.o : $(SRCDIR)/%.c
+#	$(CC) $(OPTS) $(CSTD) -c -o $@ $< $(LIBS)
 $(OBJECTS) : $(OBJDIR)/%.o : $(SRCDIR)/%.c
-	$(CC) $(OPTS) $(CSTD) -c -o $@ $< $(LIBS)
+	$(CC) $(OPTS) $(CSTD) -c -o $@ $< $(INCS)
+#	$(CC) $(OPTS) $(CSTD) $(LIBS) $@ -c $<
 
 # Create directories if not present
 $(OBJECTS): | $(OBJDIR)

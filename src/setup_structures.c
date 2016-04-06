@@ -28,6 +28,7 @@ void setup_structures()
 		 NVC     = DB.NVC,
 	     *NE     = DB.NE,
 		 *EType  = DB.EType,
+		 *EToPrt = DB.EToPrt,
 		 *VC     = DB.VC,
 
 	     Testing = DB.Testing;
@@ -37,39 +38,63 @@ void setup_structures()
 	// Standard datatypes
 	int i, v,
 	    IndE, IndVC,
-	    Vs;
+	    Vs, firstV, vlocal, NVlocal;
 
 	struct S_VOLUME *VOLUME;
+
+
+//printf("EToPrt:\n"); array_print_i(1,DB.NE[d],DB.EToPrt,'R');
+
 
 	Vs = 0; for (i = 0; i < d; i++) Vs += NE[i];
 
 	VOLUME = New_VOLUME();
 	DB.VOLUME = VOLUME;
 
-	// NOTE: ONLY SEARCH AND INITIALIZE VOLUMES ON THE CURRENT PROCESSOR
-	for (v = 0, IndE = Vs, IndVC = 0; v < NV; v++) {
-		if (v != 0)
-			VOLUME = VOLUME->next;
+	// Note: only initialize volumes on the current processor.
+	for (v = 0, NVlocal = 0; v < NV; v++) {
+		if (EToPrt[v] == MPIrank)
+			NVlocal++;
+	}
 
-		VOLUME->P      = P;
-		VOLUME->type   = EType[IndE];
-		VOLUME->Eclass = get_element_class(VOLUME->type);
+	for (v = 0, IndE = Vs, IndVC = 0, firstV = 0, vlocal = 0; v < NV; v++) {
+		if (EToPrt[v] == MPIrank) {
 
-		if (v == VC[IndVC]) {
-			VOLUME->curved = 1;
-			IndVC++;
+			if (firstV != 0)
+				VOLUME = VOLUME->next;
+
+			VOLUME->indexl = vlocal;
+			VOLUME->indexg = v;
+			VOLUME->P      = P;
+			VOLUME->type   = EType[IndE];
+			VOLUME->Eclass = get_element_class(VOLUME->type);
+
+			if (v == VC[IndVC]) {
+				VOLUME->curved = 1;
+				IndVC++;
+			} else {
+				VOLUME->curved = 0;
+			}
+
+			if (vlocal != NVlocal-1)
+				VOLUME->next = New_VOLUME();
+
+			firstV = 1;
+			vlocal++;
 		} else {
-			VOLUME->curved = 0;
+			// Ensure that appropriate global indices are incremented if necessary
+			if (v == VC[IndVC])
+				IndVC++;
 		}
-
-		if (v != NV-1)
-			VOLUME->next = New_VOLUME();
 
 		IndE++;
 	}
 
 	if (IndVC > NVC)
 		printf("Error: Found too many curved VOLUMEs.\n"), exit(1);
+
+	// Assign/Overwrite DB parameters 
+	DB.NV = NVlocal;
 
 //VOLUME = DB.VOLUME; while(VOLUME != NULL) printf("%d %d\n",VOLUME->type,VOLUME->curved), VOLUME = VOLUME->next;
 

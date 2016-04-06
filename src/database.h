@@ -5,6 +5,7 @@
  *	Comments:
  *		The notation is presented in the first routine in which parameters appear.
  *		Memory for the S_DB structure is freed in memory_free.c. (ToBeModified)
+ *		CHANGE SUITABLE PARAMETERS TO UNSIGNED. (ToBeDeleted)
  *
  *	Notation:
  *
@@ -63,7 +64,7 @@ struct S_ELEMENT {
 
 struct S_VOLUME {
 	// Structures
-	int P, type, Eclass, curved;
+	unsigned int indexl, indexg, P, type, Eclass, curved;
 
 	// Geometry
 	double *XYZc, *XYZs;

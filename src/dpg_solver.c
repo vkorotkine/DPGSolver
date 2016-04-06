@@ -99,7 +99,7 @@ int main(void)
 {
 	printf("\n\n\nRunning Tests:\n\n\n");
 
-	test_speed_mm_d();
+//	test_speed_mm_d();
 
 	return 0;
 }

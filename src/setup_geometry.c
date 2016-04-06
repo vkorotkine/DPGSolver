@@ -20,8 +20,8 @@
  *	References:
 */
 
-void sf_operate_d(const int NOut, const int NCols, const int NIn, const int BRowMaxIn, const double *OP,
-                  const double *Input, const double *Output)
+void sf_operate_d(const int NOut, const int NCols, const int NIn, const int BRowMaxIn, double *OP, double *Input,
+                  double *Output)
 {
 	/*	Purpose:
 	 *		Perform the matrix-matrix operation required by sf_apply_*.
@@ -29,6 +29,8 @@ void sf_operate_d(const int NOut, const int NCols, const int NIn, const int BRow
 	 *	Comments:
 	 *		See the '*** IMPORTANT ***' comment in sf_apply_*.
 	 *		The 'register' prefix is likely unused here as a lot of work is done in the mm_* call.
+	 *		Testing showed that unrolling the loop performing the function calls had a negligible performance impact.
+	 *		(ToBeModified: Perhaps try again when code is finished).
 	 */
 
 	register unsigned IndIn, IndOut, stepIndIn, stepIndOut, BRowMax;
@@ -39,7 +41,7 @@ void sf_operate_d(const int NOut, const int NCols, const int NIn, const int BRow
 	IndIn  = 0;
 	IndOut = 0;
 	for (BRowMax = BRowMaxIn; BRowMax--; ) {
-		mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NOut,NCols,NIn,1.0,OP,&Input[IndIn],&Output[IndOut]);
+		mm_CTN_d(NOut,NCols,NIn,OP,&Input[IndIn],&Output[IndOut]);
 
 		IndIn  += stepIndIn;
 		IndOut += stepIndOut;
@@ -109,8 +111,8 @@ void sf_swap_d(double *Input, const unsigned int dim, const unsigned int NIn, co
 	}
 }
 
-void sf_apply_d(const double *Input, double *Output, const int NIn[3], const int NOut[3], const int NCols,
-                double *OP[3], const int Diag[3], const int d)
+void sf_apply_d(double *Input, double *Output, const int NIn[3], const int NOut[3], const int NCols, double *OP[3],
+                const int Diag[3], const unsigned int d)
 {
 	/*
 	 *	Purpose:
@@ -271,7 +273,7 @@ void setup_geometry()
 	int  PrintTesting = 0, MPIrank = DB.MPIrank;
 
 	// Standard datatypes
-	int i, ve, dim, v, P, vn,
+	int i, ve, dim, indexg, P, vn,
 	    Nve, Vs, PMax, NvnGs, NvnGc,
 		NIn, NOut, NIn_SF[3], NOut_SF[3], NCols, Diag[3], NOut_Total,
 		*VeC;
@@ -291,12 +293,21 @@ void setup_geometry()
 	}
 
 	// Set up global XYZ VOLUME coordinates at (s)tart (i.e. before curving)
-	VOLUME = DB.VOLUME;
-	v = 0;
-	while (VOLUME != NULL) {
-		P = VOLUME->P;
 
-		ELEMENT          = get_ELEMENT_type(VOLUME->type);
+	/* For the vectorized version of the code, set up a linked list looping through each type of element and each
+	 * polynomial order; do this for both VOLUMEs and FACETs (eventually). Then this list can be used to sequentially
+	 * performed vectorized operations on each type of element at once.
+	 */
+
+
+	VOLUME = DB.VOLUME;
+	while (VOLUME != NULL) {
+		indexg = VOLUME->indexg;
+		P      = VOLUME->P;
+
+printf("indexg %d\n",indexg);
+
+		ELEMENT = get_ELEMENT_type(VOLUME->type);
 
 		VeC   = ELEMENT->VeC;
 		NvnGs = ELEMENT->NvnGs[0];
@@ -307,11 +318,11 @@ void setup_geometry()
 		// Note: XYZc may be interpreted as [X Y Z] where each of X, Y, Z are column vectors
 		for (ve = 0; ve < NvnGs; ve++) {
 		for (dim = 0; dim < d; dim++) {
-			XYZc[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+v)*8+VeC[ve]]*d+dim];
+			XYZc[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+indexg)*8+VeC[ve]]*d+dim];
 		}}
 
 		if (!VOLUME->curved) {
-			// If not curved, the P1 geometry representation sufficies to fully specify the element.
+			// If not curved, the P1 geometry representation suffices to fully specify the element geometry.
 			XYZs = malloc(NvnGs*d * sizeof *XYZs); // keep
 			VOLUME->XYZs = XYZs;
 
@@ -365,14 +376,9 @@ void setup_geometry()
 		VOLUME->XYZs = XYZs;
 
 array_print_d(NOut_Total,d,XYZs,'C');
-
-test_speed_mm_d();
-
 exit(1);
 
 
-
-		v++;
 		VOLUME = VOLUME->next;
 	}
 
