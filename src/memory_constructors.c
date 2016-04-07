@@ -26,8 +26,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 	// Mesh
 	ELEMENT->present = 0;
-	ELEMENT->type    = -1;
-	ELEMENT->d       = -1;
+	ELEMENT->type    = 0;
+	ELEMENT->d       = 0;
 	ELEMENT->Nve     = 0;
 	ELEMENT->Nf      = 0;
 
@@ -36,10 +36,10 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->VeE  = malloc(12*2 * sizeof *(ELEMENT->VeE));  // free
 	ELEMENT->VeF  = malloc(6*4  * sizeof *(ELEMENT->VeF));  // free
 
-	for (i = 0; i < 2; i++)                 ELEMENT->Nfve[i] = -1;
-	for (i = 0; i < 8; i++)                 ELEMENT->VeC[i]  = -1;
-	for (i = 0, iMax = 12*2; i < iMax; i++) ELEMENT->VeE[i]  = -1;
-	for (i = 0, iMax = 6*4;  i < iMax; i++) ELEMENT->VeF[i]  = -1;
+	for (i = 0; i < 2; i++)                 ELEMENT->Nfve[i] = 0;
+	for (i = 0; i < 8; i++)                 ELEMENT->VeC[i]  = 0;
+	for (i = 0, iMax = 12*2; i < iMax; i++) ELEMENT->VeE[i]  = 0;
+	for (i = 0, iMax = 6*4;  i < iMax; i++) ELEMENT->VeF[i]  = 0;
 
 	// Operators
 
@@ -125,7 +125,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->NfnIc = malloc(NP * sizeof *(ELEMENT->NfnIc)); // free
 
 	// Operators
-	ELEMENT->I_vGs_vGc = malloc(NP * sizeof *(ELEMENT->I_vGs_vGc)); // free 
+	ELEMENT->I_vGs_vGc = malloc(NP * sizeof *(ELEMENT->I_vGs_vGc)); // free
 
 
 
@@ -138,7 +138,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 struct S_VOLUME *New_VOLUME(void)
 {
-	int NP = DB.NP;
+	//unsigned int NP = DB.NP;
 
 	struct S_VOLUME *VOLUME;
 	VOLUME = malloc(sizeof *VOLUME); // free
@@ -154,7 +154,8 @@ struct S_VOLUME *New_VOLUME(void)
 	// Geometry
 	// *XYZc, *XYZs;
 
-	VOLUME->next = NULL;
+	VOLUME->next    = NULL;
+	VOLUME->grpnext = NULL;
 
 	return VOLUME;
 }

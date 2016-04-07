@@ -22,9 +22,11 @@ extern void   setup_mesh                    (void);
 extern void     gmsh_reader                 (void);
 extern void     setup_connectivity          (void);
 extern void     setup_periodic              (void);
-extern void       find_periodic_connections (int *Pve, int *pvePointer, int VeMax);
+extern void       find_periodic_connections (unsigned int *Pve, unsigned int *pvePointer, const unsigned int VeMax);
 extern void   setup_operators               (void);
-extern void     cubature_TP                 (double **xir, double **W, int **Con, int *Nn, int *ToReturn, int P, int d, char *NodeType);
+extern void     cubature_TP                 (double **xir, double **W, unsigned int **Con, unsigned int *Nn,
+                                             const unsigned int *ToReturn, const unsigned int P, const unsigned int d,
+											 const char *NodeType);
 extern double     *basis_TP                 (const int P, const double *xir, const int Nn, const int d);
 extern double     **grad_basis_TP           (const int P, const double *xir, const int Nn, const int d);
 extern double     jacobiP                   (const double x, const double alpha, const double beta, const int N);
@@ -54,9 +56,9 @@ extern double gamma_d     (const double x);
 extern struct S_ELEMENT *New_ELEMENT        (void);
 extern struct S_VOLUME  *New_VOLUME         (void);
 
-extern int              is_ELEMENT_present  (const int type);
-extern struct S_ELEMENT *get_ELEMENT_type   (const int type);
-extern struct S_ELEMENT *get_ELEMENT_Eclass (const int Eclass, const int Esubclass);
+extern int              is_ELEMENT_present  (const unsigned int type);
+extern struct S_ELEMENT *get_ELEMENT_type   (const unsigned int type);
+extern struct S_ELEMENT *get_ELEMENT_Eclass (const unsigned int Eclass, const unsigned int Esubclass);
 
 
 // Memory Management
@@ -67,9 +69,13 @@ extern void memory_destructor_E (struct S_ELEMENT *ELEMENT);
 
 // Array Processing
 	// Sorting
-	extern void array_sort_i        (int NRows, int NCols, int    *A, int *Indices, char ordering, char trans);
-	extern void array_sort_d        (int NRows, int NCols, double *A, int *Indices, char ordering, char trans);
-	extern void array_find_indexo_i (int LenA, int *A, int val, int *IdxF, int *LenF);
+	extern void array_sort_ui        (unsigned int NRows, unsigned int NCols, unsigned int *A, unsigned int *Indices,
+	                                  const char ordering, const char trans);
+	extern void array_sort_i         (unsigned int NRows, unsigned int NCols, int *A, unsigned int *Indices,
+	                                  const char ordering, const char trans);
+	extern void array_sort_d         (unsigned int NRows, unsigned int NCols, double *A, unsigned int *Indices,
+	                                  const char ordering, const char trans);
+	extern void array_find_indexo_ui (const unsigned int LenA, const unsigned int *A, const unsigned int val, unsigned int *IdxF, unsigned int *LenF);
 
 	// Norms
 	extern double array_norm_d (int LenA, double *A, char *NormType);
@@ -81,13 +87,14 @@ extern void memory_destructor_E (struct S_ELEMENT *ELEMENT);
 	extern void array_swap_d  (register double *arr1, register double *arr2, const int NIn, const int stepIn);
 
 	// Printing
-//	extern void array_print    (int m, int n, void *A, char *type);
-	extern void array_print_i  (int m, int n, int *A, char layout);
-	extern void array_print_l  (int m, int n, long *A, char layout);
-	extern void array_print_ll (int m, int n, long long *A, char layout);
-	extern void array_print_f  (int m, int n, float *A, char layout);
-	extern void array_print_d  (int m, int n, double *A, char layout);
-	extern void array_print_ld (int m, int n, long double *A, char layout);
+//	extern void array_print    (const unsigned int m, const unsigned int n, void *A, char *type);
+	extern void array_print_ui (const unsigned int m, const unsigned int n, const unsigned int *A, const char layout);
+	extern void array_print_i  (const unsigned int m, const unsigned int n, int *A, const char layout);
+	extern void array_print_l  (const unsigned int m, const unsigned int n, long *A, const char layout);
+	extern void array_print_ll (const unsigned int m, const unsigned int n, long long *A, const char layout);
+	extern void array_print_f  (const unsigned int m, const unsigned int n, float *A, const char layout);
+	extern void array_print_d  (const unsigned int m, const unsigned int n, double *A, const char layout);
+	extern void array_print_ld (const unsigned int m, const unsigned int n, long double *A, const char layout);
 
 	// Memory Management
 	extern void array_free2_c  (int iMax, char **A);
@@ -106,6 +113,10 @@ extern void memory_destructor_E (struct S_ELEMENT *ELEMENT);
 	extern void array_free3_ld (int iMax, int jMax, long double ***A);
 
 // Testing
-	extern void test_speed_mm_d (void);
+	extern void test_print                (const unsigned int pass);
+	extern void test_speed_mm_d           (void);
+	extern void test_imp_array_find_index (void);
+	extern void test_imp_array_norm       (void);
+	extern void test_imp_array_sort       (void);
 
 #endif // DPG_functions_h__INCLUDED

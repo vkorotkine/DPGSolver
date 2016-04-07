@@ -73,8 +73,8 @@ void initialization(int nargc, char **argv)
 	// Set DB Parameters
 	//DB.t_par      = 0; // ToBeModified (Likely initialize all times needed here)
 
-	char *TestCase, *MeshType, *Form, *NodeType, *BasisType, *MeshFile,
-	     *ControlFile, *StringRead, *dummys, *MeshPath, *d, *ML;
+	char *TestCase, *MeshType, *Form, *NodeType, *BasisType, *MeshFile, *ControlFile, *StringRead, *dummys, *MeshPath,
+	     *d, *ML;
 	FILE *fID;
 
 	// Check for presence of '.ctrl' file name input
@@ -83,7 +83,7 @@ void initialization(int nargc, char **argv)
 	if (nargc >= 2)
 		strcpy(TestCase,argv[1]);
 	else
-		printf("Please supply prefix in the compile command.\n"), exit(1);
+		printf("Error: Prefix is absent in the compile command.\n"), exit(1);
 
 	ControlFile = malloc(STRLEN_MAX * sizeof *ControlFile); // free
 	StringRead  = malloc(STRLEN_MAX * sizeof *StringRead);  // free
@@ -107,11 +107,7 @@ void initialization(int nargc, char **argv)
 		printf("Error: Control file: %s not present.\n",ControlFile), exit(1);
 	free(ControlFile);
 
-	// ToBeDeleted: Change the while condition here based on the stack overflow question: why to never use !feof(fID)
-	// http://stackoverflow.com/questions/5431941/why-is-while-feof-file-always-wrong?rq=1
-	fscanf(fID,"%[^\n]\n",StringRead);
-	while(!feof(fID)) {
-		fscanf(fID,"%[^\n]\n",StringRead);
+	while(fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 
 		if (strstr(StringRead,"Dimension")  != NULL) sscanf(StringRead,"%s %d",dummys,&DB.d);
 		if (strstr(StringRead,"ML")         != NULL) sscanf(StringRead,"%s %d",dummys,&DB.ML);
@@ -130,25 +126,29 @@ void initialization(int nargc, char **argv)
 
 		// Mesh file
 		if (strstr(StringRead,"BEGIN MESH") != NULL) {
-			fscanf(fID,"%s %s\n",dummys,MeshPath);
+			if(fscanf(fID,"%s %s\n",dummys,MeshPath) == 2) {
+				sprintf(d,"%d",DB.d);
+				sprintf(ML,"%d",DB.ML);
 
-			sprintf(d,"%d",DB.d);
-			sprintf(ML,"%d",DB.ML);
+				strcpy(MeshFile,"");
 
-			strcpy(MeshFile,"");
-
-			strcat(MeshFile,MeshPath);
-			strcat(MeshFile,TestCase);
-			strcat(MeshFile,"/");
-			strcat(MeshFile,TestCase);
-			strcat(MeshFile,strcat(d,"D_"));
-			strcat(MeshFile,MeshType);
-			strcat(MeshFile,strcat(ML,"x.msh"));
+				strcat(MeshFile,MeshPath);
+				strcat(MeshFile,TestCase);
+				strcat(MeshFile,"/");
+				strcat(MeshFile,TestCase);
+				strcat(MeshFile,strcat(d,"D_"));
+				strcat(MeshFile,MeshType);
+				strcat(MeshFile,strcat(ML,"x.msh"));
+			}
 		}
 	}
 	fclose(fID);
 
-	free(StringRead), free(dummys), free(MeshPath), free(d), free(ML);
+	free(StringRead);
+	free(dummys);
+	free(MeshPath);
+	free(d);
+	free(ML);
 
 	// Assign DB Parameters
 	DB.TestCase  = TestCase;

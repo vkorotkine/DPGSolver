@@ -95,9 +95,15 @@ int main(int nargc, char **argv)
 
 struct S_DB DB;
 
+#define TOL 1e-15
+
 int main(void)
 {
 	printf("\n\n\nRunning Tests:\n\n\n");
+
+	test_imp_array_find_index();
+	test_imp_array_norm();
+	test_imp_array_sort();
 
 //	test_speed_mm_d();
 

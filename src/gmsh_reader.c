@@ -98,33 +98,35 @@
  *
  */
 
-void gmsh_reader()
+void gmsh_reader(void)
 {
 	// Initialize DB Parameters
-	char  *MeshFile = DB.MeshFile;
-	int    d        = DB.d,
-	       Testing  = DB.Testing;
-	int    PrintTesting = 0;
+	char         *MeshFile = DB.MeshFile;
+	unsigned int d         = DB.d;
+
+	unsigned int PrintTesting = 0;
 
 	// Standard datatypes
-	char   StringRead[STRLEN_MAX], *strings, *stringe;
-	int    i, j, k, iMax, dim, count, prt, flag, IndV, IndE, IndEV, IndP, ntags, type, *Nve, *Ed,
-	       SectionNodes, SectionElements,
-	       NVe, NETotal, *NE, *EType, *ETags, *EToVe, *EToPrt,
-	       EPerProc, MPIsize, NVeRed, MPIrank,
-	       NPeEnt, NPVe, PVeMax, *PVeOver, *PVeOverTrue, *PVe, *veMatch, PeEnt, NEnt, TagS, TagM, Ent, nodes[2],
-	       *IndicesDummy, *NodesSOver, *NodesMOver, *NodesS, *NodesM, IndS, IndM, IndES, IndEM, E, NveMax,
-	       NnS, NnM, *IndicesS, *IndicesM, *NodesSswap, *NodesMswap, IndPVe, Match,
-	       Vs, *PVePossibleOver, *PVePossible, IndUnique, dimEntered[2], Es[4], IndVeXYZ[2];
-	long   tmpl;
-	double *VeXYZ, tmpd, *VeS, *VeM;
+	char         StringRead[STRLEN_MAX], *strings, *stringe;
+	unsigned int i, j, k, iMax, dim, count, flag, IndV, IndE, IndEV, IndP, ntags, type, *Nve, *Ed,
+	             SectionNodes, SectionElements,
+	             NVe, NETotal, *NE, *EType, *ETags, *EToVe, *EToPrt,
+	             EPerProc, MPIsize, NVeRed, MPIrank,
+	             NPeEnt, NPVe, PVeMax, *PVeOver, *PVeOverTrue, *PVe, *veMatch, PeEnt, NEnt, TagS, TagM, Ent, nodes[2],
+	             *IndicesDummy, *NodesSOver, *NodesMOver, *NodesS, *NodesM, IndS, IndM, IndES, IndEM, E, NveMax,
+	             NnS, NnM, *IndicesS, *IndicesM, *NodesSswap, *NodesMswap, IndPVe, Match,
+	             Vs, *PVePossibleOver, *PVePossible, IndUnique, dimEntered[2], Es[4], IndVeXYZ[2];
+	int          is, ks, prts;
+	long         tmpl;
+	double       *VeXYZ, tmpd, *VeS, *VeM;
 
-	FILE   *fID;
+	FILE         *fID;
 
 	struct S_ELEMENT *ELEMENT;
 
 	// Arbitrary initializations for variables defined in conditionals (to eliminate compiler warnings)
-	NVe = -1; NPVe = 0; NETotal = -1; NveMax = -1;
+	NVe = 0; NPVe = 0; NETotal = 0; NveMax = 0;
+	PVe = malloc(0 * sizeof *PVe); // keep (freed and reallocated if NPVe > 0 after reading file)
 
 	// Parmetis datatypes
 	idx_t  *elmdist, *eptr, *eind, *numflag, *ncommonnodes,
@@ -143,8 +145,7 @@ void gmsh_reader()
 		printf("Mesh file: %s not present.\n",MeshFile), exit(1);
 
 	// Find NVe, NETotal
-	fscanf(fID,"%[^\n]\n",StringRead);
-	while (!feof(fID)) {
+	while (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 		if (strstr(StringRead,"$Nodes") != NULL) {
 			fscanf(fID,"%[^\n]\n",StringRead);
 			sscanf(StringRead,"%d",&NVe);
@@ -154,8 +155,6 @@ void gmsh_reader()
 			fscanf(fID,"%[^\n]\n",StringRead);
 			sscanf(StringRead,"%d",&NETotal);
 		}
-
-		fscanf(fID,"%[^\n]\n",StringRead);
 	}
 	rewind(fID);
 
@@ -170,9 +169,7 @@ void gmsh_reader()
 	SectionNodes = 0;
 	SectionElements = 0;
 
-	fscanf(fID,"%[^\n]\n",StringRead);
-	while (!feof(fID)) {
-		fscanf(fID,"%[^\n]\n",StringRead);
+	while (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 
 		if (strstr(StringRead,"$Nodes") != NULL) {
 			fscanf(fID,"%[^\n]\n",StringRead);
@@ -283,7 +280,7 @@ void gmsh_reader()
 					}
 				}
 			}
-			PetscSortInt(IndPVe,&PVePossibleOver[0]);
+			PetscSortInt(IndPVe,(int *)PVePossibleOver); // cast to silence compiler warning
 
 			for (i = 1, IndUnique = 1; i < IndPVe; i++) {
 				if (PVePossibleOver[i] != PVePossibleOver[IndUnique-1]) {
@@ -320,7 +317,7 @@ void gmsh_reader()
 						sscanf(StringRead,"%d %d",&nodes[0],&nodes[1]);
 						for (i = 0; i < 2; i++)
 							PVeOver[NPVe*2+i] = nodes[i]-1;
-						PetscSortInt(2,&PVeOver[NPVe*2+0]);
+						PetscSortInt(2,(int *)&PVeOver[NPVe*2+0]); // cast to silence compiler warning
 						NPVe++;
 					}
 				} else if (dim == 1 || dim == 2) { // Periodic 1D or 2D
@@ -367,7 +364,7 @@ void gmsh_reader()
 					}
 
 					IndicesDummy = malloc(2*NPVe * sizeof *IndicesDummy); // free
-					array_sort_i(NPVe,2,PVeOver,IndicesDummy,'R','T');
+					array_sort_ui(NPVe,2,PVeOver,IndicesDummy,'R','T');
 					free(IndicesDummy);
 
 					/*
@@ -401,8 +398,8 @@ void gmsh_reader()
 							IndEM++;
 						}
 					}
-					PetscSortInt(IndES*NveMax,&NodesSOver[0]);
-					PetscSortInt(IndEM*NveMax,&NodesMOver[0]);
+					PetscSortInt(IndES*NveMax,(int *)NodesSOver);
+					PetscSortInt(IndEM*NveMax,(int *)NodesMOver);
 
 //array_print_i(1,IndS,NodesSOver,'R');
 //array_print_i(1,IndM,NodesMOver,'R');
@@ -493,13 +490,13 @@ void gmsh_reader()
 					for (i = 0; i < NnS; i++) {
 						PVePossible[i*2+0] = NodesS[i];
 						PVePossible[i*2+1] = NodesM[i];
-						PetscSortInt(2,&PVePossible[i*2+0]);
+						PetscSortInt(2,(int *)&PVePossible[i*2+0]);
 					}
 					free(NodesS);
 					free(NodesM);
 
 					IndicesDummy = malloc(NnS*2 * sizeof *IndicesDummy); // free
-					array_sort_i(NnS,2,PVePossible,IndicesDummy,'R','T');
+					array_sort_ui(NnS,2,PVePossible,IndicesDummy,'R','T');
 					free(IndicesDummy);
 
 //array_print_i(NnS,2,PVePossible,'R');
@@ -540,6 +537,7 @@ void gmsh_reader()
 			}
 
 			// Store PVeOver in PVe and make links reflexive.
+			free(PVe);
 			PVe = malloc(2*NPVe*2 * sizeof *PVe); // keep
 			for (k = 0; k < 2; k++) {
 			for (i = 0; i < NPVe; i++) {
@@ -551,12 +549,10 @@ void gmsh_reader()
 
 			NPVe = 2*NPVe;
 			IndicesDummy = malloc(NPVe*2 * sizeof *IndicesDummy); // free
-			array_sort_i(NPVe,2,PVe,IndicesDummy,'R','T');
+			array_sort_ui(NPVe,2,PVe,IndicesDummy,'R','T');
 			free(IndicesDummy);
 		}
 	}
-	if (NPVe == 0) PVe = malloc(0 * sizeof *PVe); // keep
-
 	fclose(fID);
 
 	// Add partition number to element list (in EToPrt) through communication between all processors
@@ -577,7 +573,7 @@ void gmsh_reader()
 	eptr = malloc((NE[d]+1) * sizeof *eptr); // free
 
 	// If elements are ALWAYS listed in order (by type), this can be simplified (ToBeModified)
-	for (i = k = NVeRed = eptr[0] = 0; i < NETotal; i++) {
+	for (i = 0, k = 0, NVeRed = 0, eptr[0] = 0; i < NETotal; i++) {
 		if (Ed[i] == d) {
 			NVeRed += Nve[i];
 			eptr[k+1] = NVeRed;
@@ -587,10 +583,10 @@ void gmsh_reader()
 
 	eind = malloc(NVeRed * sizeof *eind); // free
 
-	for (i = IndEV = 0; i < NETotal; i++) {
+	for (i = 0, IndEV = 0; i < NETotal; i++) {
 		if (Ed[i] == d) {
-			for (k = eptr[IndEV], j = 0; k < eptr[IndEV+1]; k++) {
-				eind[k] = EToVe[i*8+j];
+			for (ks = eptr[IndEV], j = 0; ks < eptr[IndEV+1]; ks++) {
+				eind[ks] = EToVe[i*8+j];
 				j++;
 			}
 			IndEV++;
@@ -617,11 +613,11 @@ void gmsh_reader()
 	ubvec   = malloc(ncon[0]         * sizeof *ubvec); // free
 	options = malloc(3               * sizeof *options); // free
 
-	for (i = 0; i < ncon[0]; i++) {
+	for (is = 0; is < ncon[0]; is++) {
 		for (j = 0; j < MPIsize; j++) {
-			tpwgts[i*MPIsize+j] = 1./((real_t) MPIsize);
+			tpwgts[is*MPIsize+j] = 1./((real_t) MPIsize);
 		}
-		ubvec[i] = 1.05; // Recommended in manual
+		ubvec[is] = 1.05; // Recommended in manual
 	}
 
 	for (i = 0; i < 3; i++)
@@ -644,34 +640,41 @@ void gmsh_reader()
 	for (i = 0; i < MPIsize; i++) {
 		if (MPIrank == i) {
 			count = 0;
-			for (k = elmdist[MPIrank]; k < elmdist[MPIrank+1]; k++) {
-				prt = part[count];
+			for (ks = elmdist[MPIrank]; ks < elmdist[MPIrank+1]; ks++) {
+				prts = part[count];
 
 				for (j = 0; j < MPIsize; j++) {
 					if (i != j) {
-						MPI_Send(&k,1,MPI_INT,j,flag,comm);
-						MPI_Send(&prt,1,MPI_INT,j,flag,comm);
+					//	printf("%d\n",MPI_Send(&ks,1,MPI_INT,j,flag,comm));
+						if (MPI_Send(&ks,1,MPI_INT,j,flag,comm) != 1)
+							printf("Error: MPI_Send error.\n"), exit(1);
+						if (MPI_Send(&prts,1,MPI_INT,j,flag,comm) != 1)
+							printf("Error: MPI_Send error.\n"), exit(1);
 					}
 				}
-				EToPrt[k] = prt;
+				EToPrt[ks] = prts;
 				count++;
 			}
 			// bump partitions? This is taken from imex_adapt.c in Brian's code (ToBeModified)
-			k = -1;
-			prt = -1;
+			ks = -1;
+			prts = -1;
 			for (j = 0; j < MPIsize; j++) {
 				if (i != j) {
-					MPI_Send(&k,1,MPI_INT,j,flag,comm);
-					MPI_Send(&prt,1,MPI_INT,j,flag,comm);
+					if (MPI_Send(&ks,1,MPI_INT,j,flag,comm) != 1)
+						printf("Error: MPI_Send error.\n"), exit(1);
+					if (MPI_Send(&prts,1,MPI_INT,j,flag,comm) != 1)
+						printf("Error: MPI_Send error.\n"), exit(1);
 				}
 			}
 		} else {
-			k = 0;
-			while (k >= 0) {
-				MPI_Recv(&k,1,MPI_INT,i,flag,comm,&status);
-				MPI_Recv(&prt,1,MPI_INT,i,flag,comm,&status);
+			ks = 0;
+			while (ks >= 0) {
+				if (MPI_Recv(&ks,1,MPI_INT,i,flag,comm,&status) != 1)
+					printf("Error: MPI_Recv error.\n"), exit(1);
+				if (MPI_Recv(&prts,1,MPI_INT,i,flag,comm,&status) != 1)
+					printf("Error: MPI_Recv error.\n"), exit(1);
 
-				if (k >= 0) EToPrt[k] = prt;
+				if (ks >= 0) EToPrt[ks] = prts;
 			}
 		}
 	}
@@ -692,15 +695,14 @@ void gmsh_reader()
 	DB.NPVe    = NPVe;
 	DB.PVe     = PVe;
 
-	// Testing
-	if (!MPIrank && Testing && PrintTesting) {
-		printf("NE:\n");     array_print_i(1,4,DB.NE,'R');
+	if (!DB.MPIrank && DB.Testing && PrintTesting) {
+		printf("NE:\n");     array_print_ui(1,4,DB.NE,'R');
 		printf("VeXYZ:\n");  array_print_d(DB.NVe,d,DB.VeXYZ,'R');
-		printf("EType:\n");  array_print_i(1,DB.NETotal,DB.EType,'R');
-		printf("ETags:\n");  array_print_i(DB.NETotal,2,DB.ETags,'R');
-		printf("EToVe:\n");  array_print_i(DB.NETotal,8,DB.EToVe,'R');
-		printf("EToPrt:\n"); array_print_i(1,DB.NE[d],DB.EToPrt,'R');
-		printf("PVe:\n");    array_print_i(DB.NPVe,2,DB.PVe,'R');
+		printf("EType:\n");  array_print_ui(1,DB.NETotal,DB.EType,'R');
+		printf("ETags:\n");  array_print_ui(DB.NETotal,2,DB.ETags,'R');
+		printf("EToVe:\n");  array_print_ui(DB.NETotal,8,DB.EToVe,'R');
+		printf("EToPrt:\n"); array_print_ui(1,DB.NE[d],DB.EToPrt,'R');
+		printf("PVe:\n");    array_print_ui(DB.NPVe,2,DB.PVe,'R');
 	}
 
 	// Free memory

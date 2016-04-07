@@ -52,32 +52,32 @@
  *
  */
 
-void setup_connectivity()
+void setup_connectivity(void)
 {
 	// Initialize DB Parameters
-	int   d        = DB.d,
-	      NVe      = DB.NVe,
-	      NfMax    = DB.NfMax,
-	      NfveMax  = DB.NfveMax,
-	      *NE      = DB.NE,
-	      *EToVe   = DB.EToVe,
-	      *EType   = DB.EType,
-	      *ETags   = DB.ETags,
-	      Testing  = DB.Testing;
-	int   PrintTesting = 0, MPIrank = DB.MPIrank;
+	unsigned int d        = DB.d,
+	             NVe      = DB.NVe,
+	             NfMax    = DB.NfMax,
+	             NfveMax  = DB.NfveMax,
+	             *NE      = DB.NE,
+	             *EToVe   = DB.EToVe,
+	             *EType   = DB.EType,
+	             *ETags   = DB.ETags;
+
+	unsigned int PrintTesting = 0;
 
 	// Standard datatypes
-	int i, j, count, iMax,
-	    IndB, IndM, iIn, iOut, NRows, NCols,
-	    Fs, Vs, NV, v, f, gf, ve, vc, gfc, type, IndFixed[3],
-	    *VeF, Nf, *Nfve,
-	    NBF, NGF, *IndicesGF, *IndicesBF,
-	    *VToVe, *VType, *FToVe, *FNve, *VToV, *VToF, *VToBC,
-	    *BFToVe, *BTags, *VToGF, *GFToVeOver, *GFToVe, *NveGF,
-	    *FNveSwap, *VToVSwap, *VToFSwap,
-	    *IndicesMatchingOver, fNve[2], Match, *IndicesMatching, *matchIn, *matchOut,
-	    vNeigh, fNeigh, Nve,
-	    *VCOver, *GFCOver, *VC, *GFC;
+	unsigned int i, j, count, iMax,
+	             IndB, IndM, iIn, iOut, NRows, NCols,
+	             Fs, Vs, NV, v, f, gf, ve, vc, gfc, type, IndFixed[3],
+	             *VeF, Nf, *Nfve,
+	             NBF, NGF, *IndicesGF, *IndicesBF,
+	             *VToVe, *VType, *FToVe, *FNve, *VToV, *VToF, *VToBC,
+	             *BFToVe, *BTags, *VToGF, *GFToVeOver, *GFToVe, *NveGF,
+	             *FNveSwap, *VToVSwap, *VToFSwap,
+	             *IndicesMatchingOver, fNve[2], Match, *IndicesMatching, *matchIn, *matchOut,
+	             vNeigh, fNeigh, Nve,
+	             *VCOver, *GFCOver, *VC, *GFC;
 
 	struct S_ELEMENT *ELEMENT;
 
@@ -95,7 +95,7 @@ void setup_connectivity()
 	FNve  = malloc(NGF         * sizeof *FNve); // free
 
 	// Initialize all entries of FToVe to NVe (Needed below for sorting)
-	for (i = 0; i < NGF; i++)         FNve[i]  = -1;
+	for (i = 0; i < NGF; i++)         FNve[i]  = 0;
 	for (i = 0; i < NGF*NfveMax; i++) FToVe[i] = NVe;
 
 	for (v = 0; v < NV; v++) {
@@ -121,7 +121,7 @@ void setup_connectivity()
 				for (ve = 0; ve < Nfve[0]; ve++) {
 					FToVe[IndFixed[1]+ve] = VToVe[v*8+VeF[f*4+ve]];
 				}
-				PetscSortInt(Nfve[0],&FToVe[IndFixed[1]]);
+				PetscSortInt(Nfve[0],(int *)&FToVe[IndFixed[1]]);
 			} else {
 				printf("Update setup_connectivity.c to handle WEDGE/PYRAMID elements.\n");
 				exit(1);
@@ -133,7 +133,7 @@ void setup_connectivity()
 	for (i = 0; i < NGF; i++)
 		IndicesGF[i] = i;
 
-	array_sort_i(NGF,NfveMax,FToVe,IndicesGF,'R','T');
+	array_sort_ui(NGF,NfveMax,FToVe,IndicesGF,'R','T');
 
 	FNveSwap = malloc(NGF * sizeof *FNveSwap); // free
 	VToVSwap = malloc(NGF * sizeof *VToVSwap); // free
@@ -220,8 +220,8 @@ void setup_connectivity()
 				VToV[v*NfMax+f] = v;
 				VToF[v*NfMax+f] = f;
 			} else {
-				VToV[v*NfMax+f] = -1;
-				VToF[v*NfMax+f] = -1;
+				VToV[v*NfMax+f] = NE[d];
+				VToF[v*NfMax+f] = 6;
 			}
 		}
 	}
@@ -245,14 +245,14 @@ void setup_connectivity()
 	for (i = 0; i < NBF; i++) {
 		for (j = 0; j < NfveMax; j++)
 			BFToVe[i*NfveMax+j] = EToVe[(Fs+i)*8+j];
-		PetscSortInt(NfveMax,&BFToVe[i*NfveMax]);
+		PetscSortInt(NfveMax,(int *)&BFToVe[i*NfveMax]);
 	}
 
 	IndicesBF = malloc(NBF * sizeof *IndicesBF); // free
 	for (i = 0; i < NBF; i++)
 		IndicesBF[i] = i;
 
-	array_sort_i(NBF,NfveMax,BFToVe,IndicesBF,'R','T');
+	array_sort_ui(NBF,NfveMax,BFToVe,IndicesBF,'R','T');
 
 	BTags = malloc(NE[d-1]*(NfveMax+1) * sizeof *BTags); // free
 
@@ -291,7 +291,7 @@ void setup_connectivity()
 	NveGF      = malloc(NGF         * sizeof *GFToVe); // free
 
 	for (i = 0; i < NGF; i++)
-		VToGF[i] = -1;
+		VToGF[i] = NGF;
 
 	for (v = 0, gf = 0; v < NV; v++) {
 	for (f = 0; f < NfMax; f++) {
@@ -299,7 +299,7 @@ void setup_connectivity()
 			vNeigh = VToV[v*NfMax+f];
 			fNeigh = VToF[v*NfMax+f];
 
-			if (VToGF[v*NfMax+f] == -1) {
+			if (VToGF[v*NfMax+f] == NGF) {
 				VToGF[v*NfMax+f] = gf;
 				VToGF[vNeigh*NfMax+fNeigh] = gf;
 
@@ -370,20 +370,20 @@ void setup_connectivity()
 	DB.VC     = VC;
 	DB.GFC    = GFC;
 
-	if (PrintTesting && Testing && !MPIrank) {
-		printf("VToVe:\n");          array_print_i(DB.NV,8,VToVe,'R');
-		//printf("VType:\n");          array_print_i(DB.NV,1,VType,'R');
-		printf("FNve (Sorted):\n");  array_print_i(DB.NGF,1,FNve,'R');
-		printf("FToVe (Sorted):\n"); array_print_i(DB.NGF,DB.NfveMax,FToVe,'R');
-		printf("VToV:\n");           array_print_i(DB.NV,DB.NfMax,VToV,'R');
-		printf("VToF:\n");           array_print_i(DB.NV,DB.NfMax,VToF,'R');
-		printf("BFToVe:\n");         array_print_i(DB.NE[d-1],DB.NfveMax,BFToVe,'R');
-		//printf("BTags:\n");          array_print_i(DB.NE[d-1],DB.NfveMax+1,BTags,'R');
-		printf("VToBC:\n");          array_print_i(DB.NV,DB.NfMax,VToBC,'R');
-		printf("VToGF:\n");          array_print_i(DB.NV,DB.NfMax,VToGF,'R');
-		printf("GFToVe:\n");         array_print_i(DB.NGF,DB.NfveMax,GFToVe,'R');
-		printf("VC:\n");             array_print_i(1,DB.NVC,VC,'R');
-		printf("GFC:\n");            array_print_i(1,DB.NGFC,GFC,'R');
+	if (PrintTesting && DB.Testing && !DB.MPIrank) {
+		printf("VToVe:\n");          array_print_ui(DB.NV,8,VToVe,'R');
+		//printf("VType:\n");          array_print_ui(DB.NV,1,VType,'R');
+		printf("FNve (Sorted):\n");  array_print_ui(DB.NGF,1,FNve,'R');
+		printf("FToVe (Sorted):\n"); array_print_ui(DB.NGF,DB.NfveMax,FToVe,'R');
+		printf("VToV:\n");           array_print_ui(DB.NV,DB.NfMax,VToV,'R');
+		printf("VToF:\n");           array_print_ui(DB.NV,DB.NfMax,VToF,'R');
+		printf("BFToVe:\n");         array_print_ui(DB.NE[d-1],DB.NfveMax,BFToVe,'R');
+		//printf("BTags:\n");          array_print_ui(DB.NE[d-1],DB.NfveMax+1,BTags,'R');
+		printf("VToBC:\n");          array_print_ui(DB.NV,DB.NfMax,VToBC,'R');
+		printf("VToGF:\n");          array_print_ui(DB.NV,DB.NfMax,VToGF,'R');
+		printf("GFToVe:\n");         array_print_ui(DB.NGF,DB.NfveMax,GFToVe,'R');
+		printf("VC:\n");             array_print_ui(1,DB.NVC,VC,'R');
+		printf("GFC:\n");            array_print_ui(1,DB.NGFC,GFC,'R');
 	}
 
 	free(FToVe);

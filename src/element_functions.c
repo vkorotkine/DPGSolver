@@ -7,9 +7,9 @@
 /*
  *	Purpose:
  *		Simple element-related functions:
- *			int        is_ELEMENT_present(const int type);
- *			*S_ELEMENT get_ELEMENT_type(const int type);
- *			*S_ELEMENT get_ELEMENT_Eclass(const int Eclass, const int Esubclass);
+ *			int        is_ELEMENT_present(const unsigned int type);
+ *			*S_ELEMENT get_ELEMENT_type(const unsigned int type);
+ *			*S_ELEMENT get_ELEMENT_Eclass(const unsigned int Eclass, const unsigned int Esubclass);
  *
  *	Comments:
  *
@@ -18,7 +18,7 @@
  *	References:
  */
 
-int is_ELEMENT_present(const int type)
+int is_ELEMENT_present(const unsigned int type)
 {
 	struct S_ELEMENT *ELEMENT = DB.ELEMENT;
 
@@ -31,11 +31,11 @@ int is_ELEMENT_present(const int type)
 		}
 		ELEMENT = ELEMENT->next;
 	}
-	printf("Error: Element type not found.\n"), exit(1);
+	printf("Error: Element type not found (present).\n"), exit(1);
 }
 
 
-struct S_ELEMENT *get_ELEMENT_type(const int type)
+struct S_ELEMENT *get_ELEMENT_type(const unsigned int type)
 {
 	struct S_ELEMENT *ELEMENT = DB.ELEMENT;
 
@@ -46,10 +46,10 @@ struct S_ELEMENT *get_ELEMENT_type(const int type)
 		ELEMENT = ELEMENT->next;
 	}
 
-	printf("Error: Element type not found.\n"), exit(1);
+	printf("Error: Element type not found (type).\n"), exit(1);
 }
 
-struct S_ELEMENT *get_ELEMENT_Eclass(const int Eclass, const int Esubclass)
+struct S_ELEMENT *get_ELEMENT_Eclass(const unsigned int Eclass, const unsigned int Esubclass)
 {
 	struct S_ELEMENT *ELEMENT = DB.ELEMENT;
 

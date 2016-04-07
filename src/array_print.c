@@ -7,7 +7,7 @@
  *		Print arrays for debugging purposes.
  *
  *	Comments:
- *		If an elegant way is found to print arbitrary array types, revive array_print.
+ *		If an elegant way is found to print arbitrary array types, revive array_print (ToBeDeleted).
  *
  *	Notation:
  *
@@ -16,9 +16,9 @@
  */
 
 /*
-void array_print(int m, int n, void *A, char *type)
+void array_print(const unsigned int m, const unsigned int n, void *A, char *type)
 {
-	int i, j;
+	unsigned int i, j;
 
 	long double *Ald = NULL;
 	double      *Ad = NULL;
@@ -52,9 +52,9 @@ void array_print(int m, int n, void *A, char *type)
 }
 */
 
-void array_print_i(int m, int n, int *A, char layout)
+void array_print_ui(const unsigned int m, const unsigned int n, const unsigned int *A, const char layout)
 {
-	int i, j;
+	unsigned int i, j;
 
 	switch (layout) {
 	case 'R':
@@ -76,9 +76,33 @@ void array_print_i(int m, int n, int *A, char layout)
 	}
 }
 
-void array_print_l(int m, int n, long *A, char layout)
+void array_print_i(const unsigned int m, const unsigned int n, int *A, const char layout)
 {
-	int i, j;
+	unsigned int i, j;
+
+	switch (layout) {
+	case 'R':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++)
+				printf("% 12d ",A[i*n+j]);
+			printf("\n");
+		}
+		printf("\n");
+		break;
+	case 'C':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++)
+				printf("% 12d ",A[i+j*m]);
+			printf("\n");
+		}
+		printf("\n");
+		break;
+	}
+}
+
+void array_print_l(const unsigned int m, const unsigned int n, long *A, const char layout)
+{
+	unsigned int i, j;
 
 	switch (layout) {
 	case 'R':
@@ -100,9 +124,9 @@ void array_print_l(int m, int n, long *A, char layout)
 	}
 }
 
-void array_print_ll(int m, int n, long long *A, char layout)
+void array_print_ll(const unsigned int m, const unsigned int n, long long *A, const char layout)
 {
-	int i, j;
+	unsigned int i, j;
 
 	switch (layout) {
 	case 'R':
@@ -124,9 +148,9 @@ void array_print_ll(int m, int n, long long *A, char layout)
 	}
 }
 
-void array_print_f(int m, int n, float *A, char layout)
+void array_print_f(const unsigned int m, const unsigned int n, float *A, const char layout)
 {
-	int i, j;
+	unsigned int i, j;
 
 	switch (layout) {
 	case 'R':
@@ -148,9 +172,9 @@ void array_print_f(int m, int n, float *A, char layout)
 	}
 }
 
-void array_print_d(int m, int n, double *A, char layout)
+void array_print_d(const unsigned int m, const unsigned int n, double *A, const char layout)
 {
-	int i, j;
+	unsigned int i, j;
 
 	switch (layout) {
 	case 'R':
@@ -172,9 +196,9 @@ void array_print_d(int m, int n, double *A, char layout)
 	}
 }
 
-void array_print_ld(int m, int n, long double *A, char layout)
+void array_print_ld(const unsigned int m, const unsigned int n, long double *A, const char layout)
 {
-	int i, j;
+	unsigned int i, j;
 
 	switch (layout) {
 	case 'R':

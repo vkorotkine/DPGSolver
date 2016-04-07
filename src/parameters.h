@@ -1,3 +1,6 @@
+#ifndef DPG__parameters_h__INCLUDED
+#define DPG__parameters_h__INCLUDED
+
 /*
  *	Purpose:
  *		Define parameters.
@@ -9,9 +12,6 @@
  *	References:
  *
  */
-
-#ifndef DPG__parameters_h__INCLUDED
-#define DPG__parameters_h__INCLUDED
 
 // Common variables
 #define PI    3.1415926535897932
@@ -28,10 +28,10 @@
 #define PYR   7
 
 // Element classes
-#define C_TP    1
-#define C_SI    2
-#define C_WEDGE 3
-#define C_PYR   4
+#define C_TP    0
+#define C_SI    1
+#define C_WEDGE 2
+#define C_PYR   3
 
 //  Node Tolerance (for physical coordinate comparison)
 #define NODETOL      1.0e-12

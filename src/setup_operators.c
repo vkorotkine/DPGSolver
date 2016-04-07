@@ -33,67 +33,65 @@
  *		Stiller(2008)_Factorization Techniques for Nodal Spectral Elements in Curved Domains
 */
 
-void setup_operators()
+void setup_operators(void)
 {
 	// Initialize DB Parameters
-	int  d          = DB.d,
-	     NP         = DB.NP,
-	     PMax       = DB.PMax,
-	     PGs        = DB.PGs,
-	     *PGc       = DB.PGc,
-	     **PCs      = DB.PCs,
-	     **PCc      = DB.PCc,
-	     **PJs      = DB.PJs,
-	     **PJc      = DB.PJc,
-	     *PF        = DB.PF,
-	     **PFrs     = DB.PFrs,
-	     **PFrc     = DB.PFrc,
-	     **PIfs     = DB.PIfs,
-	     **PIfc     = DB.PIfc,
-	     **PIvs     = DB.PIvs,
-	     **PIvc     = DB.PIvc,
-	     PR         = DB.PR,
-	     PP         = DB.PP,
-	     Restart    = DB.Restart,
-	     EFE        = DB.EFE,
-	     Collocated = DB.Collocated,
-	     **SF_BE    = DB.SF_BE,
+	unsigned int d          = DB.d,
+	             NP         = DB.NP,
+	             PMax       = DB.PMax,
+	             PGs        = DB.PGs,
+	             *PGc       = DB.PGc,
+	             **PCs      = DB.PCs,
+	             **PCc      = DB.PCc,
+	             **PJs      = DB.PJs,
+	             **PJc      = DB.PJc,
+	             *PF        = DB.PF,
+	             **PFrs     = DB.PFrs,
+	             **PFrc     = DB.PFrc,
+	             **PIfs     = DB.PIfs,
+	             **PIfc     = DB.PIfc,
+	             **PIvs     = DB.PIvs,
+	             **PIvc     = DB.PIvc,
+	             PR         = DB.PR,
+	             PP         = DB.PP,
+	             Restart    = DB.Restart,
+	             EFE        = DB.EFE,
+	             Collocated = DB.Collocated,
+	             **SF_BE    = DB.SF_BE;
 
-	     Testing    = DB.Testing;
+	char         *BasisType     = DB.BasisType,
+	             ***NodeTypeS   = DB.NodeTypeS,
+	             ***NodeTypeF   = DB.NodeTypeF,
+	             ***NodeTypeFrs = DB.NodeTypeFrs,
+	             ***NodeTypeFrc = DB.NodeTypeFrc,
+	             ***NodeTypeIfs = DB.NodeTypeIfs,
+	             ***NodeTypeIfc = DB.NodeTypeIfc,
+	             ***NodeTypeIvs = DB.NodeTypeIvs,
+	             ***NodeTypeIvc = DB.NodeTypeIvc;
 
-	char *BasisType     = DB.BasisType,
-	     ***NodeTypeS   = DB.NodeTypeS,
-	     ***NodeTypeF   = DB.NodeTypeF,
-	     ***NodeTypeFrs = DB.NodeTypeFrs,
-	     ***NodeTypeFrc = DB.NodeTypeFrc,
-	     ***NodeTypeIfs = DB.NodeTypeIfs,
-	     ***NodeTypeIfc = DB.NodeTypeIfc,
-	     ***NodeTypeIvs = DB.NodeTypeIvs,
-	     ***NodeTypeIvc = DB.NodeTypeIvc;
-
-	int  PrintTesting = 0, MPIrank = DB.MPIrank;
+	int  PrintTesting = 0;
 
 	// Standard datatypes
-	int    i, j, count, dE, f, P,
-	       Nf,
-	       *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc, *NvnP,
-	       *NfnGc, *NfnIs, *NfnIc,
-	       *ToReturn, *dummyCon,
-	       **Con_xir_vP;
-	double Theta_eta[6], Theta_zeta[6],
-	       *nr,*dummyW, *dummyxir,
-	       **xir_vGs, **xir_vGc, **xir_vCs, **xir_vCc, **xir_vJs, **xir_vJc, **xir_vS, **xir_vF, **xir_vFrs, **xir_vFrc,
-	       **xir_vIs, **xir_vIc, **xir_vP, **WvIs, **WvIc,
-	       ***xir_fGc, ***xir_fIs, ***xir_fIc, **WfIs, **WfIc,
-		   *IGs,
-		   *ChiRefGs_vGs,
-		   *ChiGs_vGs,
-		   *ChiRefInvGs_vGs,
-		   *ChiInvGs_vGs,
-		   *TGs,
-		   **ChiRefGs_vGc,
-		   **ChiGs_vGc,
-		   **I_vGs_vGc;
+	unsigned int i, j, count, dE, f, P,
+	             Nf,
+	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc, *NvnP,
+	             *NfnGc, *NfnIs, *NfnIc,
+	             *ToReturn, *dummyCon,
+	             **Con_xir_vP;
+	double       Theta_eta[6], Theta_zeta[6],
+	             *nr,*dummyW, *dummyxir,
+	             **xir_vGs, **xir_vGc, **xir_vCs, **xir_vCc, **xir_vJs, **xir_vJc, **xir_vS, **xir_vF, **xir_vFrs, **xir_vFrc,
+	             **xir_vIs, **xir_vIc, **xir_vP, **WvIs, **WvIc,
+	             ***xir_fGc, ***xir_fIs, ***xir_fIc, **WfIs, **WfIc,
+	             *IGs,
+	             *ChiRefGs_vGs,
+	             *ChiGs_vGs,
+	             *ChiRefInvGs_vGs,
+	             *ChiInvGs_vGs,
+	             *TGs,
+	             **ChiRefGs_vGc,
+	             **ChiGs_vGc,
+	             **I_vGs_vGc;
 
 	struct S_ELEMENT *ELEMENT;
 
@@ -182,7 +180,6 @@ array_print_d(NvnGs[0],NvnGs[0],IGs,'R');
 array_print_d(NvnGs[0],NvnGs[0],ChiRefInvGs_vGs,'R');
 array_print_d(NvnGs[0],NvnGs[0],TGs,'R');
 */
-
 
     for (P = 0; P <= PMax; P++) {
 

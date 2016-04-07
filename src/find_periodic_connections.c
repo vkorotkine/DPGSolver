@@ -124,23 +124,23 @@
  *
  */
 
-void find_periodic_connections(int *PVe, int *pvePointer, int VeMax)
+void find_periodic_connections(unsigned int *PVe, unsigned int *NPVePointer, const unsigned int VeMax)
 {
-	int i, j, k,
-	    pve, *IndicesDummy, Modified, *PVe1D, NUnique, *PVeUnique, *PVeUniqueOver, *PVeMatches, *IndPVeMatches,
-	    IndRow, LenF, match, row, col, n2, *PVePotential, IndPVe;
+	unsigned int i, j, k,
+	             pve, *IndicesDummy, Modified, *PVe1D, NUnique, *PVeUnique, *PVeUniqueOver, *PVeMatches, *IndPVeMatches,
+	             IndRow, LenF, match, row, col, n2, *PVePotential, IndPVe;
 
-	pve = *pvePointer;
+	pve = *NPVePointer;
 
 // array_print_i(pve,2,PVe,'R');
 
 	// Sort Rows
 	for (i = 0; i < pve; i++)
-		PetscSortInt(2,&PVe[i*2+0]);
+		PetscSortInt(2,(int *)&PVe[i*2+0]); // cast to silence compiler warning
 
 	// Sort Columns
 	IndicesDummy = malloc(pve*2 * sizeof *IndicesDummy); // free
-	array_sort_i(pve,2,PVe,IndicesDummy,'R','T');
+	array_sort_ui(pve,2,PVe,IndicesDummy,'R','T');
 	free(IndicesDummy);
 
 // array_print_i(pve,2,PVe,'R');
@@ -156,7 +156,7 @@ void find_periodic_connections(int *PVe, int *pvePointer, int VeMax)
 			k++;
 		}}
 
-		PetscSortInt(k,PVe1D);
+		PetscSortInt(k,(int *)PVe1D); // cast to silence compiler warning
 // array_print_i(1,k,PVe1D,'R');
 
 		PVeUniqueOver = malloc(pve*2 * sizeof *PVeUniqueOver); // free
@@ -183,7 +183,7 @@ void find_periodic_connections(int *PVe, int *pvePointer, int VeMax)
 
 		for (k = 0; k < 2; k++) {
 		for (i = 0; i < pve; i++) {
-			array_find_indexo_i(NUnique,PVeUnique,PVe[i*2+k],&IndRow,&LenF);
+			array_find_indexo_ui(NUnique,PVeUnique,PVe[i*2+k],&IndRow,&LenF);
 
 			for (j = 0, match = 0; j < IndPVeMatches[IndRow]; j++) {
 				if (PVe[i*2+1-k] == PVeMatches[IndRow*8+j])
@@ -201,7 +201,7 @@ void find_periodic_connections(int *PVe, int *pvePointer, int VeMax)
 
 		// sort rows
 		for (i = 0; i < NUnique; i++)
-			PetscSortInt(IndPVeMatches[i]+1,&PVeMatches[i*8+0]);
+			PetscSortInt(IndPVeMatches[i]+1,(int *)&PVeMatches[i*8+0]); // cast to silence compiler warning
 
 // array_print_i(NUnique,8,PVeMatches,'R');
 // array_print_i(1,NUnique,IndPVeMatches,'R');
@@ -210,13 +210,13 @@ void find_periodic_connections(int *PVe, int *pvePointer, int VeMax)
 
 		for (row = 0; row < NUnique; row++) {
 		for (col = 0; col < IndPVeMatches[row]; col++) {
-			array_find_indexo_i(NUnique,PVeUnique,PVeMatches[row*8+col],&IndRow,&LenF);
+			array_find_indexo_ui(NUnique,PVeUnique,PVeMatches[row*8+col],&IndRow,&LenF);
 			for (i = 0; i < IndPVeMatches[IndRow]; i++) {
 				n2 = PVeMatches[IndRow*8+i];
 				if (PVeUnique[row] != n2) {
 					PVePotential[0] = PVeUnique[row];
 					PVePotential[1] = n2;
-					PetscSortInt(2,PVePotential);
+					PetscSortInt(2,(int *)PVePotential); // cast to silence compiler warning
 
 					for (IndPVe = 0, match = 0; IndPVe < pve; IndPVe++) {
 						if (PVe[IndPVe*2+0] == PVePotential[0] &&
@@ -240,7 +240,7 @@ void find_periodic_connections(int *PVe, int *pvePointer, int VeMax)
 		free(PVePotential);
 
 		IndicesDummy = malloc(pve*2 * sizeof *IndicesDummy); // free
-		array_sort_i(pve,2,PVe,IndicesDummy,'R','T');
+		array_sort_ui(pve,2,PVe,IndicesDummy,'R','T');
 		free(IndicesDummy);
 
 // array_print_i(pve,2,PVe,'R');
@@ -249,5 +249,5 @@ void find_periodic_connections(int *PVe, int *pvePointer, int VeMax)
 		free(IndPVeMatches);
 	}
 
-*pvePointer = pve;
+*NPVePointer = pve;
 }

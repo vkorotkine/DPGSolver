@@ -14,8 +14,8 @@ CSTD = -std=c99
 
 # Options
 #OPTS = -O3
-OPTS = -g -Wall -Wextra -O3
-#OPTS = -g -Wall -Wextra -O3 -DTEST
+#OPTS = -g -Wall -Wextra -O3
+OPTS = -g -Wall -Wextra -O3 -DTEST
 
 # Standard libraries (Math)
 STD_LIB = -lm
@@ -32,9 +32,11 @@ MACHINE := $(shell uname -m)
 ifeq ($(KERNEL),Darwin)
   PROG_PATH = /Users/philipzwanenburg/Desktop/Research_Codes/Downloaded
 
-  CC ="${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/mpicc -fopenmp -m64"
+  CC := ${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/mpicc -fopenmp -m64
 #  CC = ${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-opt/bin/mpicc -fopenmp -m64
 #  CC = mpicc -fopenmp -m64
+
+# There is a problem that the -fopenmp -m64 flag is not included in CC. Compiling fine for now => fix later. (ToBeDeleted)
 
 #  PETSC_DIR = ${PROG_PATH}/petsc/petsc-3.2-p7 (ToBeDeleted)
   PETSC_DIR = ${PROG_PATH}/petsc/petsc-3.6.3
@@ -123,16 +125,19 @@ OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 # Compile executable file (Default goal)
 $(EXECUTABLE) : $(OBJECTS)
-#	$(CC) -o $@ $(OPTS) $^ $(LIBS)
+	@echo 
+	@echo Building executable file
+	@echo
 	$(CC) -o $@ $(OPTS) $^ $(INCS) $(LIBS)
 
 # Create objects
 # Still need to figure out how to include header dependencies.
-#$(OBJECTS) : $(OBJDIR)/%.o : $(SRCDIR)/%.c
-#	$(CC) $(OPTS) $(CSTD) -c -o $@ $< $(LIBS)
+# See Miller(2008)-Recursive_Make_Considered_Harmful
 $(OBJECTS) : $(OBJDIR)/%.o : $(SRCDIR)/%.c
+	@echo 
+	@echo Building/updating object files
+	@echo
 	$(CC) $(OPTS) $(CSTD) -c -o $@ $< $(INCS)
-#	$(CC) $(OPTS) $(CSTD) $(LIBS) $@ -c $<
 
 # Create directories if not present
 $(OBJECTS): | $(OBJDIR)

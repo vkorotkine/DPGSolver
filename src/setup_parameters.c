@@ -75,23 +75,27 @@
 void setup_parameters()
 {
 	// Initialize DB Parameters
-	int d          = DB.d,
-	    PMax       = DB.PMax,
-	    ML         = DB.ML,
-	    EFE        = DB.EFE,
-        Collocated = DB.Collocated;
+	unsigned int d          = DB.d,
+	             PMax       = DB.PMax,
+	             ML         = DB.ML,
+	             EFE        = DB.EFE,
+                 Collocated = DB.Collocated;
 
-	char *Parametrization,
-	     ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
-	     ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
-	int  i,
-	     P, NP, NEC, IntOrderfs, IntOrderfc, IntOrdervs, IntOrdervc,
-	     **SF_BE,
-	     PGs, *PGc, **PCs, **PCc, **PJs, **PJc,
-	     *PF, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
+	char         *Parametrization,
+	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
+	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
+	unsigned int i, u1, u2,
+	             P, NP, NEC, IntOrderfs, IntOrderfc, IntOrdervs, IntOrdervc,
+	             **SF_BE,
+	             PGs, *PGc, **PCs, **PCc, **PJs, **PJc,
+	             *PF, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
 	if (DB.P > PMax)
 		printf("Error: P must be less than or equal PMax.\n"), exit(1);
+
+	u1 = 1;
+	u2 = 2;
+
 	NP  = PMax+1;
 	NEC = 3;
 
@@ -169,18 +173,18 @@ void setup_parameters()
 		PJs[P] = malloc(NEC * sizeof **PJs); // keep
 		PJc[P] = malloc(NEC * sizeof **PJc); // keep
 
-		PGc[P]    = max(P,2);
+		PGc[P]    = max(P,u2);
 		PCs[P][0] = PGs;
-		PCs[P][1] = max(PGs-1,1);
+		PCs[P][1] = max(PGs-1,u1);
 		PCs[P][2] = PGs;             // ToBeModified
 		PCc[P][0] = PGc[P];
-		PCc[P][1] = max(PGc[P]-1,1);
+		PCc[P][1] = max(PGc[P]-1,u1);
 		PCc[P][2] = PGc[P];          // ToBeModified
 		PJs[P][0] = PGs;
-		PJs[P][1] = max(PGs-1,1);
+		PJs[P][1] = max(PGs-1,u1);
 		PJs[P][2] = PGs;             // ToBeModified
 		PJc[P][0] = PGc[P];
-		PJc[P][1] = max(PGc[P]-1,1);
+		PJc[P][1] = max(PGc[P]-1,u1);
 		PJc[P][2] = PGc[P];          // ToBeModified
 
 		// Integration & Interpolation
@@ -298,10 +302,10 @@ void setup_parameters()
 			strcpy(DB.NodeTypeFrc[P][2],"");
 
 			// Integration
-			IntOrderfs = max(2*P,1);
-			IntOrderfc = max(2*P,1);
-			IntOrdervs = max(2*P,1);
-			IntOrdervc = max(2*P,1);
+			IntOrderfs = max(2*P,u1);
+			IntOrderfc = max(2*P,u1);
+			IntOrdervs = max(2*P,u1);
+			IntOrdervc = max(2*P,u1);
 
 			// TP
 			strcpy(NodeTypeIfs[P][0],"GL");

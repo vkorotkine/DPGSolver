@@ -25,18 +25,25 @@
  *		      lglnodes.m
  */
 
-void cubature_TP(double **xir, double **W, int **Con, int *Nn, int *ToReturn, int P, int d, char *NodeType)
+void cubature_TP(double **xir, double **W, unsigned int **Con, unsigned int *Nn, const unsigned int *ToReturn,
+                 const unsigned int P, const unsigned int d,const char *NodeType)
 {
 
 	// Standard datatypes
-	int    i, j, k, iMax, jMax, kMax, dim, l, lMax, m,
-	       N, N2, xInd, row, nLINE[2], nQUAD[4], nHEX[8], IndC,
-	       *Indices, *connect;
-	double norm, swapd,
-	       *x, *xold, *xdiff, *w, *x_d, *w_d,
-	       *V, *a, *CM, *eigs;
+	unsigned int i, j, k, iMax, jMax, kMax, dim, l, lMax, m, u1,
+	             N, N2, xInd, row, nLINE[2], nQUAD[4], nHEX[8], IndC,
+	             *Indices, *connect;
+	int          sd, sP, sN;
+	double       norm, swapd,
+	             *x, *xold, *xdiff, *w, *x_d, *w_d,
+	             *V, *a, *CM, *eigs;
 
 	N = P+1;
+
+	u1 = 1;
+	sd = d;
+	sP = P;
+	sN = N;
 
 	x = malloc(N * sizeof *x); // free
 	w = malloc(N * sizeof *w); // free
@@ -158,9 +165,9 @@ void cubature_TP(double **xir, double **W, int **Con, int *Nn, int *ToReturn, in
 
 	if (strstr(NodeType,"GLL") != NULL || strstr(NodeType,"GL") != NULL) {
 		row = 0;
-		for (k = 0, kMax = min(max((d-2)*N,1),N); k < kMax; k++) {
-		for (j = 0, jMax = min(max((d-1)*N,1),N); j < jMax; j++) {
-		for (i = 0, iMax = min(max((d-0)*N,1),N); i < iMax; i++) {
+		for (k = 0, kMax = (unsigned int) min(max((sd-2)*sN,1),sN); k < kMax; k++) {
+		for (j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
+		for (i = 0, iMax = min(max((d-0)*N,u1),N); i < iMax; i++) {
 //			if (i == 0 && j == 0 && k == 0)
 //				row = (int) k*pow(N,2)+j*N+i;
 			w_d[row] = w[i];
@@ -206,9 +213,9 @@ void cubature_TP(double **xir, double **W, int **Con, int *Nn, int *ToReturn, in
 		}
 
 		row = 0;
-		for (k = 0, kMax = min(max((d-2)*N,1),N); k < kMax; k++) {
-		for (j = 0, jMax = min(max((d-1)*N,1),N); j < jMax; j++) {
-		for (i = 0, iMax = min(max((d-0)*N,1),N); i < iMax; i++) {
+		for (k = 0, kMax = (unsigned int) min(max((sd-2)*sN,1),sN); k < kMax; k++) {
+		for (j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
+		for (i = 0, iMax = min(max((d-0)*N,u1),N); i < iMax; i++) {
 			for (dim = 0; dim < d; dim++) {
 				if (dim == 0) xInd = i;
 				if (dim == 1) xInd = j;
@@ -223,10 +230,10 @@ void cubature_TP(double **xir, double **W, int **Con, int *Nn, int *ToReturn, in
 		for (i = 0, IndC = 0; i < P; i++) {
 			nLINE[0] = i;
 			nLINE[1] = i+1;
-			for (j = 0, jMax = max(P*min(d-1,1),1); j < jMax; j++) {
+			for (j = 0, jMax = max(P*min(d-1,u1),u1); j < jMax; j++) {
 				for (l = 0; l < 2; l++)             nQUAD[l] = nLINE[l]+N*j;
 				for (l = 2, m = 1; l < 4; l++, m--) nQUAD[l] = nLINE[m] + N*(j+1);
-				for (k = 0, kMax = max(P*min(d-2,1),1); k < kMax; k++) {
+				for (k = 0, kMax = (unsigned int) max(sP*min(sd-2,1),1); k < kMax; k++) {
 					for (l = 0; l < 4; l++)             nHEX[l] = nQUAD[l] + N2*k;
 					for (l = 4, m = 0; l < 8; l++, m++) nHEX[l] = nQUAD[m] + N2*(k+1);
 					for (l = 0, lMax = pow(2,d); l < lMax; l++)

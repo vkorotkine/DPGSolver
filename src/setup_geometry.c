@@ -111,8 +111,8 @@ void sf_swap_d(double *Input, const unsigned int dim, const unsigned int NIn, co
 	}
 }
 
-void sf_apply_d(double *Input, double *Output, const int NIn[3], const int NOut[3], const int NCols, double *OP[3],
-                const int Diag[3], const unsigned int d)
+void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const unsigned int NOut[3],
+                const unsigned int NCols, double *OP[3], const unsigned int Diag[3], const unsigned int d)
 {
 	/*
 	 *	Purpose:
@@ -256,29 +256,27 @@ void sf_apply_d(double *Input, double *Output, const int NIn[3], const int NOut[
 
 
 
-void setup_geometry()
+void setup_geometry(void)
 {
 	// Initialize DB Parameters
-	char *MeshType = DB.MeshType;
-	int  ExactGeom = DB.ExactGeom,
-	     d         = DB.d,
-	     NV        = DB.NV,
-		 *NE       = DB.NE,
-		 *EToVe    = DB.EToVe,
+	char         *MeshType = DB.MeshType;
+	unsigned int ExactGeom = DB.ExactGeom,
+	             d         = DB.d,
+	             NV        = DB.NV,
+	        	 *NE       = DB.NE,
+	        	 *EToVe    = DB.EToVe;
 
-	     Testing   = DB.Testing;
+	double       *VeXYZ    = DB.VeXYZ;
 
-	double *VeXYZ  = DB.VeXYZ;
-
-	int  PrintTesting = 0, MPIrank = DB.MPIrank;
+	int          PrintTesting = 0;
 
 	// Standard datatypes
-	int i, ve, dim, indexg, P, vn,
-	    Nve, Vs, PMax, NvnGs, NvnGc,
-		NIn, NOut, NIn_SF[3], NOut_SF[3], NCols, Diag[3], NOut_Total,
-		*VeC;
-	double *XYZc, *XYZs,
-	       *I_vGs_vGc, *Input_SF, *OP_SF[3];
+	unsigned int i, ve, dim, indexg, P, vn,
+	             Nve, Vs, PMax, NvnGs, NvnGc,
+		         NIn, NOut, NIn_SF[3], NOut_SF[3], NCols, Diag[3], NOut_Total,
+		         *VeC;
+	double       *XYZc, *XYZs,
+	             *I_vGs_vGc, *Input_SF, *OP_SF[3];
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_class[2];
 	struct S_VOLUME  *VOLUME;
@@ -287,7 +285,7 @@ void setup_geometry()
 
 	// Modify vertex locations if exact geometry is known
 	if (ExactGeom) {
-		if(!MPIrank) printf("    Modify vertex nodes if exact geometry is known\n");
+		if(!DB.MPIrank) printf("    Modify vertex nodes if exact geometry is known\n");
 		printf("Did not yet verify the implementation.\n");
 		vertices_to_exact_geom();
 	}
@@ -300,8 +298,7 @@ void setup_geometry()
 	 */
 
 
-	VOLUME = DB.VOLUME;
-	while (VOLUME != NULL) {
+	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 		indexg = VOLUME->indexg;
 		P      = VOLUME->P;
 
@@ -321,8 +318,10 @@ printf("indexg %d\n",indexg);
 			XYZc[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+indexg)*8+VeC[ve]]*d+dim];
 		}}
 
+		XYZs = malloc(0 * sizeof *XYZs); // silence
 		if (!VOLUME->curved) {
 			// If not curved, the P1 geometry representation suffices to fully specify the element geometry.
+			free(XYZs);
 			XYZs = malloc(NvnGs*d * sizeof *XYZs); // keep
 			VOLUME->XYZs = XYZs;
 
@@ -361,6 +360,7 @@ printf("indexg %d\n",indexg);
 				OP_SF[2] = OP_SF[0];
 				for (i = 0; i < 3; i++) Diag[i] = 0;
 
+				free(XYZs);
 				XYZs = malloc(NOut_Total*NCols * sizeof *XYZs);
 				sf_apply_d(Input_SF,XYZs,NIn_SF,NOut_SF,NCols,OP_SF,Diag,d);
 			} else if (VOLUME->Eclass == C_SI) {
@@ -375,11 +375,10 @@ printf("indexg %d\n",indexg);
 		}
 		VOLUME->XYZs = XYZs;
 
-array_print_d(NOut_Total,d,XYZs,'C');
+//array_print_d(NOut_Total,d,XYZs,'C');
 exit(1);
 
 
-		VOLUME = VOLUME->next;
 	}
 
 	// Find node index ordering on each FACET

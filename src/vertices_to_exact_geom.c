@@ -20,18 +20,18 @@
  *	References:
 */
 
-double f_gaussian_bump(const double x, const double y, const int d);
+double f_gaussian_bump(const double x, const double y, const unsigned int d);
 
-void vertices_to_exact_geom()
+void vertices_to_exact_geom(void)
 {
 	// Initialize DB Parameters
-	int    d         = DB.d,
-	       NVe       = DB.NVe;
-	char   *TestCase = DB.TestCase;
-	double *VeXYZ    = DB.VeXYZ;
+	unsigned int d         = DB.d,
+	             NVe       = DB.NVe;
+	char         *TestCase = DB.TestCase;
+	double       *VeXYZ    = DB.VeXYZ;
 
 	// Standard datatypes
-	int dM1, ve;
+	unsigned int dM1, ve;
 
 	dM1 = d-1;
 	if (strstr(TestCase,"GaussianBump") != NULL) {
@@ -86,7 +86,7 @@ void vertices_to_exact_geom()
 	}
 }
 
-double f_gaussian_bump(const double x, const double y, const int d)
+double f_gaussian_bump(const double x, const double y, const unsigned int d)
 {
 	double a, b, c;
 

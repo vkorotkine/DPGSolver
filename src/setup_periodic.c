@@ -41,35 +41,34 @@
 void setup_periodic()
 {
 	// Initialize DB Parameters
-	int   d        = DB.d,
-	      NV       = DB.NV,
-	      NGF      = DB.NGF,
-	      NVe      = DB.NVe,
-	      NPVe     = DB.NPVe,
-	      NfMax    = DB.NfMax,
-	      NfveMax  = DB.NfveMax,
-	      *NE      = DB.NE,
-	      *PVe     = DB.PVe,
-	      *ETags   = DB.ETags,
-	      *EType   = DB.EType,
-	      *VToGF   = DB.VToGF,
-	      *VToBC   = DB.VToBC,
-	      *GFToVe  = DB.GFToVe,
-	      *VToV    = DB.VToV,
-	      *VToF    = DB.VToF,
-	      *GFC     = DB.GFC,
+	unsigned int d        = DB.d,
+	             NV       = DB.NV,
+	             NGF      = DB.NGF,
+	             NVe      = DB.NVe,
+	             NPVe     = DB.NPVe,
+	             NfMax    = DB.NfMax,
+	             NfveMax  = DB.NfveMax,
+	             *NE      = DB.NE,
+	             *PVe     = DB.PVe,
+	             *ETags   = DB.ETags,
+	             *EType   = DB.EType,
+	             *VToGF   = DB.VToGF,
+	             *VToBC   = DB.VToBC,
+	             *GFToVe  = DB.GFToVe,
+	             *VToV    = DB.VToV,
+	             *VToF    = DB.VToF,
+	             *GFC     = DB.GFC;
 
-	      Testing  = DB.Testing;
-	int   PrintTesting = 0, MPIrank = DB.MPIrank;
+	unsigned int PrintTesting = 0;
 
 	// Standard datatypes
-	int i, j, dim, BlockStart, count, gf, iMax,
-	    IndPF, IndPFM, IndPFS, IndU, IndPVe, IndveM, IndveS, v, f, NGFC, NGFCUnique,
-	    Fs, Vs, E, NPFTotal, NPVeUnique, PFM, PFS, NpveM, tmp, match, vM, vS, fM, fS,
-	    NPF[d], NPFSum[d],
-	    *PFTypeMOver, *PFToVeM, *PFTypeSOver, *PFToVeS, *PFNveM, *PFNveS, *PFToGFM, *PFToGFS,
-	    *PFVFIndM, *PFVFIndS, *PVeUnique, *PConn, *NConn, *PFSFound, *veM, *veS, *matchM, *matchS,
-	    *GFToRemove, *GFCOver, *GFToVeUnder;
+	unsigned int i, j, dim, BlockStart, count, gf, iMax,
+	             IndPF, IndPFM, IndPFS, IndU, IndPVe, IndveM, IndveS, v, f, NGFC, NGFCUnique,
+	             Fs, Vs, E, NPFTotal, NPVeUnique, PFM, PFS, NpveM, tmp, match, vM, vS, fM, fS,
+	             NPF[d], NPFSum[d],
+	             *PFTypeMOver, *PFToVeM, *PFTypeSOver, *PFToVeS, *PFNveM, *PFNveS, *PFToGFM, *PFToGFS,
+	             *PFVFIndM, *PFVFIndS, *PVeUnique, *PConn, *NConn, *PFSFound, *veM, *veS, *matchM, *matchS,
+	             *GFToRemove, *GFCOver, *GFToVeUnder;
 
 	struct S_ELEMENT *ELEMENT;
 
@@ -165,11 +164,11 @@ void setup_periodic()
 			for (j = 0; j < PFNveM[IndPF]; j++) {
 				PFToVeM[BlockStart+i*NfveMax+j] = GFToVe[PFToGFM[IndPF]*NfveMax+j];
 			}
-			PetscSortInt(PFNveM[IndPF],&PFToVeM[BlockStart+i*NfveMax]);
+			PetscSortInt(PFNveM[IndPF],(int *)&PFToVeM[BlockStart+i*NfveMax]);
 			for (j = 0; j < PFNveS[IndPF]; j++) {
 				PFToVeS[BlockStart+i*NfveMax+j] = GFToVe[PFToGFS[IndPF]*NfveMax+j];
 			}
-			PetscSortInt(PFNveS[IndPF],&PFToVeS[BlockStart+i*NfveMax]);
+			PetscSortInt(PFNveS[IndPF],(int *)&PFToVeS[BlockStart+i*NfveMax]);
 			IndPF++;
 		}
 	}
@@ -236,15 +235,15 @@ void setup_periodic()
 				matchM = malloc(NpveM * sizeof *matchM); // free
 				matchS = malloc(NpveM * sizeof *matchS); // free
 				for (i = 0; i < NpveM; i++) {
-					matchM[i] = -1;
-					matchS[i] = -1;
+					matchM[i] = NVe;
+					matchS[i] = NVe;
 				}
 
 				// ToBeDeleted: Need to make sure that this never links the wrong facets (THINK)
 				for (IndveM = 0; IndveM < NpveM; IndveM++) {
 				for (IndveS = 0; IndveS < NpveM; IndveS++) {
-					if (PFSFound[PFS] == 0 && matchM[IndveM] == -1 && matchS[IndveS] == -1) {
-						array_find_indexo_i(NPVeUnique,PVeUnique,veS[IndveS],&IndPVe,&tmp);
+					if (PFSFound[PFS] == 0 && matchM[IndveM] == NVe && matchS[IndveS] == NVe) {
+						array_find_indexo_ui(NPVeUnique,PVeUnique,veS[IndveS],&IndPVe,&tmp);
 						for (i = 0; i < NConn[IndPVe]; i++) {
 							if (PConn[IndPVe*3+i] == veM[IndveM]) {
 								matchM[IndveM] = veM[IndveM];
@@ -256,7 +255,7 @@ void setup_periodic()
 				}}
 
 				for (i = 0, match = 1; i < NpveM; i++) {
-					if (matchS[i] == -1) {
+					if (matchS[i] == NVe) {
 						match = 0;
 						break;
 					}
@@ -307,7 +306,7 @@ void setup_periodic()
 	if (IndPFM != NPFSum[d-1])
 		printf("Error: Did not find the correct number of periodic connections.\n"), exit(1);
 
-	PetscSortInt(NPFSum[d-1],GFToRemove);
+	PetscSortInt(NPFSum[d-1],(int *)GFToRemove);
 
 	// Decrement VToGF
 	for (v = 0; v < NV; v++) {
@@ -327,7 +326,7 @@ void setup_periodic()
 			NGFC++;
 		}
 	}}
-	PetscSortInt(NGFC,GFCOver);
+	PetscSortInt(NGFC,(int *)GFCOver);
 
 	NGFCUnique = 1;
 	for (i = 1; i < NGFC; i++) {
@@ -359,12 +358,12 @@ void setup_periodic()
 	DB.GFToVe = GFToVeUnder;
 
 	// Testing
-	if (PrintTesting && Testing && !MPIrank) {
-		printf("VToV:\n");       array_print_i(DB.NV,DB.NfMax,DB.VToV,'R');
-		printf("VToF:\n");       array_print_i(DB.NV,DB.NfMax,DB.VToF,'R');
-		printf("VToGF:\n");      array_print_i(DB.NV,DB.NfMax,DB.VToGF,'R');
-		//printf("GFToRemove:\n"); array_print_i(1,NPFSum[d-1],GFToRemove,'R');
-		printf("GFToVe:\n");     array_print_i(DB.NGF,DB.NfveMax,DB.GFToVe,'R');
+	if (PrintTesting && DB.Testing && !DB.MPIrank) {
+		printf("VToV:\n");       array_print_ui(DB.NV,DB.NfMax,DB.VToV,'R');
+		printf("VToF:\n");       array_print_ui(DB.NV,DB.NfMax,DB.VToF,'R');
+		printf("VToGF:\n");      array_print_ui(DB.NV,DB.NfMax,DB.VToGF,'R');
+		//printf("GFToRemove:\n"); array_print_ui(1,NPFSum[d-1],GFToRemove,'R');
+		printf("GFToVe:\n");     array_print_ui(DB.NGF,DB.NfveMax,DB.GFToVe,'R');
 	}
 
 	free(GFToRemove);

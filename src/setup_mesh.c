@@ -37,7 +37,7 @@
 
 void setup_mesh()
 {
-	int type, i, NfMax, NfveMax;
+	unsigned int type, i, NfMax, NfveMax;
 
 	struct S_ELEMENT *ELEMENT;
 
@@ -199,8 +199,8 @@ void setup_mesh()
 	gmsh_reader();
 
 	// Initialize DB Parameters set in gmsh_reader.c
-	int NETotal = DB.NETotal,
-	    *EType  = DB.EType;
+	unsigned int NETotal = DB.NETotal,
+	             *EType  = DB.EType;
 
 	for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
 		type = ELEMENT->type;
