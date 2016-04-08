@@ -45,7 +45,7 @@ double *basis_TP(const int P, const double *xir, const int Nn, const int d)
 	       N, Nbf;
 	double *ChiRef_xir;
 
-    N = P+1;
+	N = P+1;
 	Nbf = pow(N,d);
 
 	ChiRef_xir = malloc(Nn*Nbf * sizeof *ChiRef_xir); // keep

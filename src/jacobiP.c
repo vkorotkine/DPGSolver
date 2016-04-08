@@ -62,7 +62,7 @@ double jacobiP(const double x, const double alpha, const double beta, const int 
 		aold = anew;
 	}
 
-    P = PL[N];
+	P = PL[N];
 	free(PL);
 
 	return P;

@@ -16,6 +16,8 @@
 
 void test_imp_array_find_index(void)
 {
+	unsigned int pass;
+
 	/*
 	 *	array_find_indexo_ui:
 	 *
@@ -30,22 +32,16 @@ void test_imp_array_find_index(void)
 	 *			Len = 5
 	 */
 
-	unsigned int pass = 0;
-
-	unsigned int *A, Idx, Len;
-
-	A = malloc(10 * sizeof *A); // free
-	A[0] = 0; A[1] = 1; A[2] = 1; A[3] = 4; A[4] = 5;
-	A[5] = 7; A[6] = 7; A[7] = 7; A[8] = 7; A[9] = 7;
+	unsigned int A[10] = { 0, 1, 1, 4, 5, 7, 7, 7, 7, 7 };
+	unsigned int Idx, Len;
 
 	array_find_indexo_ui(10,A,7,&Idx,&Len);
 
+	pass = 0;
 	if (Idx == 5 && Len == 5)
 		pass = 1;
 
 	//     0         10        20        30        40        50
 	printf("array_find_indexo_ui:                            ");
 	test_print(pass);
-
-	free(A);
 }

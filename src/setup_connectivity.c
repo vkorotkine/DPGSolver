@@ -107,8 +107,8 @@ void setup_connectivity(void)
 
 		IndFixed[0] = v*NfMax*NfveMax;
 		for (f = 0; f < Nf; f++) {
-			if (type == LINE || type == TRI || type == QUAD || type == TET || type == HEX ||
-				(type == WEDGE && f < 2) || (type == PYR && f < 4))
+			if ( type == LINE || type == TRI || type == QUAD || type == TET || type == HEX ||
+			    (type == WEDGE && f < 2) || (type == PYR && f < 4))
 					FNve[v*NfMax+f] = Nfve[0];
 			else if (type == WEDGE || type == PYR)
 				FNve[v*NfMax+f] = Nfve[1];
@@ -270,7 +270,7 @@ void setup_connectivity(void)
 
 		for (j = 0, Match = 1; j < fNve[0]; j++) {
 			if ( BFToVe[IndB*NfveMax+j] == NVe ||
-				(BFToVe[IndB*NfveMax+j] != FToVe[gf*NfveMax+j])) {
+			    (BFToVe[IndB*NfveMax+j] != FToVe[gf*NfveMax+j])) {
 					Match = 0;
 					break;
 			}
@@ -308,8 +308,8 @@ void setup_connectivity(void)
 				Nfve = ELEMENT->Nfve;
 				VeF  = ELEMENT->VeF;
 
-				if (type == LINE || type == TRI || type == QUAD || type == TET || type == HEX ||
-					(type == WEDGE && f < 2) || (type == PYR && f < 4))
+				if ( type == LINE || type == TRI || type == QUAD || type == TET || type == HEX ||
+				    (type == WEDGE && f < 2) || (type == PYR && f < 4))
 						Nve = Nfve[0];
 				else if (type == WEDGE || type == PYR)
 					Nve = Nfve[1];
@@ -319,7 +319,7 @@ void setup_connectivity(void)
 				NveGF[gf] = Nve;
 
 				for (ve = 0; ve < Nve; ve++)
-				GFToVeOver[gf*NfveMax+ve] = VToVe[v*8+VeF[f*4+ve]];
+					GFToVeOver[gf*NfveMax+ve] = VToVe[v*8+VeF[f*4+ve]];
 
 				gf++;
 			}

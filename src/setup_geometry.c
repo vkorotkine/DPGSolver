@@ -77,7 +77,7 @@ void sf_swap_d(double *Input, const unsigned int dim, const unsigned int NIn, co
 		for (i = 0, iMax = iBound; iMax--; i++) {
 		for (j = 0, jMax = jBound; jMax--; j++) {
 
-			RowInd   = i*iStep+j+k*kStep;
+			RowInd  = i*iStep+j+k*kStep;
 			ReOrder = i+lInput[j]+k*kStep;
 
 			for (RowSub = ReOrder; RowlInput[RowSub] != ReOrder; RowSub = RowlInput[RowSub])
@@ -93,7 +93,7 @@ void sf_swap_d(double *Input, const unsigned int dim, const unsigned int NIn, co
 		for (i = 0, iMax = iBound; iMax--; i++) {
 		for (j = 0, jMax = jBound; jMax--; j++) {
 		for (k = 0, kMax = kBound; kMax--; k++) {
-			RowInd   = i*iStep+j*jStep1+k;
+			RowInd  = i*iStep+j*jStep1+k;
 			ReOrder = i+j*jStep2+lInput[k];
 
 			for (RowSub = ReOrder; RowlInput[RowSub] != ReOrder; RowSub = RowlInput[RowSub])
@@ -263,8 +263,8 @@ void setup_geometry(void)
 	unsigned int ExactGeom = DB.ExactGeom,
 	             d         = DB.d,
 	             NV        = DB.NV,
-	        	 *NE       = DB.NE,
-	        	 *EToVe    = DB.EToVe;
+	             *NE       = DB.NE,
+	             *EToVe    = DB.EToVe;
 
 	double       *VeXYZ    = DB.VeXYZ;
 
@@ -273,8 +273,8 @@ void setup_geometry(void)
 	// Standard datatypes
 	unsigned int i, ve, dim, indexg, P, vn,
 	             Nve, Vs, PMax, NvnGs, NvnGc,
-		         NIn, NOut, NIn_SF[3], NOut_SF[3], NCols, Diag[3], NOut_Total,
-		         *VeC;
+	             NIn, NOut, NIn_SF[3], NOut_SF[3], NCols, Diag[3], NOut_Total,
+	             *VeC;
 	double       *XYZc, *XYZs,
 	             *I_vGs_vGc, *Input_SF, *OP_SF[3];
 

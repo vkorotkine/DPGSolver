@@ -1,5 +1,7 @@
 #include <stdlib.h>
 
+//#include "functions.h"
+
 #include "mkl.h"
 #include "petscsys.h"
 
@@ -18,95 +20,6 @@
  *
  *		M       : (M)aster
  *		S       : (S)lave
- *
- *	Example (array_sort_i):
- *		Notation: The array, A, is listed above and the Indices array is listed below the dashed line.
- *
- *		Unsorted:
- *		0 1 1 2 3 0 0 1 2 1
- *		1 3 3 5 1 0 1 0 4 3
- *		3 1 4 3 0 1 2 1 2 5
- *		-------------------
- *		0 1 2 3 4 5 6 7 8 9
- *
- *
- *		First row:
- *		0 0 0 1 1 1 1 2 2 3
- *		1 1 0 3 3 0 3 5 4 1
- *		3 2 1 5 4 1 1 3 2 0
- *		-------------------
- *		0 6 5 9 2 7 1 3 8 4
- *
- *		Second row:
- *		0-block               1-block               2-block               3-block (no change)
- *		0 0 0 1 1 1 1 2 2 3   0 0 0 1 1 1 1 2 2 3   0 0 0 1 1 1 1 2 2 3   0 0 0 1 1 1 1 2 2 3
- *		0 1 1 3 3 0 3 5 4 1   0 1 1 0 3 3 3 5 4 1   0 1 1 0 3 3 3 4 5 1   0 1 1 0 3 3 3 4 5 1
- *		1 2 3 5 4 1 1 3 2 0   1 2 3 1 4 5 1 3 2 0   1 2 3 1 4 5 1 2 3 0   1 2 3 1 4 5 1 2 3 0
- *		-------------------   -------------------   -------------------   -------------------
- *		5 6 0 9 2 7 1 3 8 4   5 6 0 7 2 9 1 3 8 4   5 6 0 7 2 9 1 8 3 4   5 6 0 7 2 9 1 8 3 4
- *
- *		Third row:
- *		00-block (no ch.)     01-block (no ch.)     10-block (no ch.)     13-block
- *		0 0 0 1 1 1 1 2 2 3   0 0 0 1 1 1 1 2 2 3   0 0 0 1 1 1 1 2 2 3   0 0 0 1 1 1 1 2 2 3
- *		0 1 1 0 3 3 3 5 4 1   0 1 1 0 3 3 3 5 4 1   0 1 1 0 3 3 3 4 5 1   0 1 1 0 3 3 3 4 5 1
- *		1 2 3 1 4 5 1 2 3 0   1 2 3 1 4 5 1 2 3 0   1 2 3 1 4 5 1 2 3 0   1 2 3 1 1 4 5 2 3 0
- *		-------------------   -------------------   -------------------   -------------------
- *		5 6 0 7 2 9 1 8 3 4   5 6 0 7 2 9 1 8 3 4   5 6 0 7 2 9 1 8 3 4   5 6 0 7 1 2 9 8 3 4
- *
- *		24-block (no ch.)     25-block (no ch.)     31-block (no ch.)     Sorted!
- *		0 0 0 1 1 1 1 2 2 3   0 0 0 1 1 1 1 2 2 3   0 0 0 1 1 1 1 2 2 3
- *		0 1 1 0 3 3 3 4 5 1   0 1 1 0 3 3 3 4 5 1   0 1 1 0 3 3 3 4 5 1
- *		1 2 3 1 1 4 5 2 3 0   1 2 3 1 1 4 5 2 3 0   1 2 3 1 1 4 5 2 3 0
- *		-------------------   -------------------   -------------------
- *		5 6 0 7 1 2 9 8 3 4   5 6 0 7 1 2 9 8 3 4   5 6 0 7 1 2 9 8 3 4
- *
- *		Code:
- *
- *			int *Atest, *Indicestest, Rtest = 3, Ctest = 10;
- *
- *			Atest = malloc(Rtest*Ctest *sizeof *Atest);
- *			Atest[0]  = 0; Atest[1]  = 1; Atest[2]  = 1; Atest[3]  = 2; Atest[4]  = 3;
- *			Atest[5]  = 0; Atest[6]  = 0; Atest[7]  = 1; Atest[8]  = 2; Atest[9]  = 1;
- *			Atest[10] = 1; Atest[11] = 3; Atest[12] = 3; Atest[13] = 5; Atest[14] = 1;
- *			Atest[15] = 0; Atest[16] = 1; Atest[17] = 0; Atest[18] = 4; Atest[19] = 3;
- *			Atest[20] = 3; Atest[21] = 1; Atest[22] = 4; Atest[23] = 3; Atest[24] = 0;
- *			Atest[25] = 1; Atest[26] = 2; Atest[27] = 1; Atest[28] = 2; Atest[29] = 5;
- *
- *			Indicestest = malloc(Ctest *sizeof *Indicestest);
- *			for (i = 0; i < Ctest; i++) Indicestest[i] = i;
- *
- *			array_print_i(Rtest,Ctest,Atest,'R');
- *			array_print_i(1,Ctest,Indicestest,'R');
- *
- *			array_sort_i(Rtest,Ctest,Atest,Indicestest,'R','N');
- *
- *			array_print_i(Rtest,Ctest,Atest,'R');
- *			array_print_i(1,Ctest,Indicestest,'R');
- *
- *
- *		Code to test array_sort_d:
- *
- *			int *Indicestest, Rtest = 3, Ctest = 10;
- *			double *Atest;
- *
- *			Atest = malloc(Rtest*Ctest * sizeof *Atest);
- *			Atest[0] = 0.1; Atest[1] = 1.1; Atest[2] = 1.1; Atest[3] = 2.1; Atest[4] = 3.1;
- *			Atest[5] = 0.1; Atest[6] = 0.1; Atest[7] = 1.1; Atest[8] = 2.1; Atest[9] = 1.1;
- *			Atest[10] = 1.1; Atest[11] = 3.1; Atest[12] = 3.1; Atest[13] = 5.1; Atest[14] = 1.1;
- *			Atest[15] = 0.1; Atest[16] = 1.1; Atest[17] = 0.1; Atest[18] = 4.1; Atest[19] = 3.1;
- *			Atest[20] = 3.1; Atest[21] = 1.1; Atest[22] = 4.1; Atest[23] = 3.1; Atest[24] = 0.1;
- *			Atest[25] = 1.1; Atest[26] = 2.1; Atest[27] = 1.1; Atest[28] = 2.1; Atest[29] = 5.1;
- *
- *			Indicestest = malloc(Ctest * sizeof *Indicestest);
- *			for (i = 0; i < Ctest; i++) Indicestest[i] = i;
- *
- *			array_print_d(Rtest,Ctest,Atest,'R');
- *			array_print_i(1,Ctest,Indicestest,'R');
- *
- *			array_sort_d(Rtest,Ctest,Atest,Indicestest,'R','N');
- *
- *			array_print_d(Rtest,Ctest,Atest,'R');
- *			array_print_i(1,Ctest,Indicestest,'R');
  *
  *	References:
  *
@@ -328,7 +241,7 @@ void array_sort_d(unsigned int NRows, unsigned int NCols, double *A, unsigned in
 	double       *Atmp;
 
 	if ((ordering == 'R' && trans == 'T') || (ordering == 'C' && trans == 'N')) {
-		mkl_dimatcopy(ordering,trans,NRows,NCols,1.,(double *) A,NCols,NRows);
+		mkl_dimatcopy(ordering,trans,NRows,NCols,1.,A,NCols,NRows);
 		swap = NRows; NRows = NCols; NCols = swap;
 	} else if ((ordering == 'R' && trans == 'N') || (ordering == 'C' && trans == 'T')) {
 		// Don't do anything.
@@ -414,7 +327,7 @@ void array_sort_d(unsigned int NRows, unsigned int NCols, double *A, unsigned in
 // array_print_d(NRows,NCols,A,'R');
 
 	if ((ordering == 'R' && trans == 'T') || (ordering == 'C' && trans == 'N')) {
-		mkl_dimatcopy(ordering,trans,NRows,NCols,1.,(double *) A,NCols,NRows);
+		mkl_dimatcopy(ordering,trans,NRows,NCols,1.,A,NCols,NRows);
 		swap = NRows; NRows = NCols; NCols = swap;
 	} else if ((ordering == 'R' && trans == 'N') || (ordering == 'C' && trans == 'T')) {
 		// Don't do anything.

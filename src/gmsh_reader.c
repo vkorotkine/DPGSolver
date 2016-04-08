@@ -19,7 +19,7 @@
  *
  *		Periodic:
  *			The periodic processing is done in this function (in addition to simply reading the mesh file) because the
- *          desired output (PVe) cannot simply be read from the file (although this would be the ideal case).
+ *			desired output (PVe) cannot simply be read from the file (although this would be the ideal case).
  *
  *			Convention: *** IMPORTANT ***
  *
@@ -280,7 +280,7 @@ void gmsh_reader(void)
 					}
 				}
 			}
-			PetscSortInt(IndPVe,(int *)PVePossibleOver); // cast to silence compiler warning
+			PetscSortInt(IndPVe,(int *)PVePossibleOver);
 
 			for (i = 1, IndUnique = 1; i < IndPVe; i++) {
 				if (PVePossibleOver[i] != PVePossibleOver[IndUnique-1]) {
@@ -317,7 +317,7 @@ void gmsh_reader(void)
 						sscanf(StringRead,"%d %d",&nodes[0],&nodes[1]);
 						for (i = 0; i < 2; i++)
 							PVeOver[NPVe*2+i] = nodes[i]-1;
-						PetscSortInt(2,(int *)&PVeOver[NPVe*2+0]); // cast to silence compiler warning
+						PetscSortInt(2,(int *)&PVeOver[NPVe*2+0]);
 						NPVe++;
 					}
 				} else if (dim == 1 || dim == 2) { // Periodic 1D or 2D

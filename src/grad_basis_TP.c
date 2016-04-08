@@ -45,7 +45,7 @@ double **grad_basis_TP(const int P, const double *xir, const int Nn, const int d
 	       N, Nbf;
 	double **GradChiRef_xir;
 
-    N = P+1;
+	N = P+1;
 	Nbf = pow(N,d);
 
 	GradChiRef_xir = malloc(d * sizeof *GradChiRef_xir); // keep

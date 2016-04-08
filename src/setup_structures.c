@@ -37,13 +37,13 @@ void setup_structures(void)
 	// Initialize DB Parameters
 	unsigned int d       = DB.d,
 	             P       = DB.P,
-	        	 NP      = DB.NP,
+	             NP      = DB.NP,
 	             NV      = DB.NV,
-	        	 NVC     = DB.NVC,
+	             NVC     = DB.NVC,
 	             *NE     = DB.NE,
-	        	 *EType  = DB.EType,
-	        	 *EToPrt = DB.EToPrt,
-	        	 *VC     = DB.VC;
+	             *EType  = DB.EType,
+	             *EToPrt = DB.EToPrt,
+	             *VC     = DB.VC;
 	int          MPIrank = DB.MPIrank;
 
 	int  PrintTesting = 0;

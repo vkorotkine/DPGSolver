@@ -17,6 +17,39 @@
 
 void test_imp_array_norm(void)
 {
+	unsigned int pass;
+
+	/*
+	 *	array_norm_ui:
+	 *
+	 *		Input:
+	 *
+	 *			A = [1 2 3]
+	 *
+	 *		Expected output:
+	 *
+	 *			Inf : 3
+	 *			L1  : 6
+	 */
+
+	unsigned int A_ui[3] = { 1, 2, 3 };
+
+	pass = 0;
+	if ((array_norm_ui(3,A_ui,"Inf") - 3) < EPS)
+		pass = 1;
+
+	//     0         10        20        30        40        50
+	printf("array_norm_ui (Inf):                             ");
+	test_print(pass);
+
+	pass = 0;
+	if ((array_norm_ui(3,A_ui,"L1") - 6) < EPS)
+		pass = 1;
+
+	//     0         10        20        30        40        50
+	printf("              (L1) :                             ");
+	test_print(pass);
+
 	/*
 	 *	array_norm_d:
 	 *
@@ -31,19 +64,10 @@ void test_imp_array_norm(void)
 	 *			L2  : 3.741657386773941
 	 */
 
-	unsigned int pass;
-
-	double *A, errorInf, errorL1, errorL2;
-
-	A = malloc(3 * sizeof *A); // free
-	A[0] = 1.0; A[1] = 2.0; A[2] = 3.0;
-
-	errorInf = array_norm_d(3,A,"Inf")-3.0;
-	errorL1  = array_norm_d(3,A,"L1")-6.0;
-	errorL2  = array_norm_d(3,A,"L2")-3.741657386773941;
+	double A_d[3] = { 1.0, 2.0, 3.0 };
 
 	pass = 0;
-	if (array_norm_d(1,&errorInf,"Inf") < EPS)
+	if ((array_norm_d(3,A_d,"Inf") - 3.0) < EPS)
 		pass = 1;
 
 	//     0         10        20        30        40        50
@@ -51,7 +75,7 @@ void test_imp_array_norm(void)
 	test_print(pass);
 
 	pass = 0;
-	if (array_norm_d(1,&errorL1,"Inf")  < EPS)
+	if ((array_norm_d(3,A_d,"L1") - 6.0) < EPS)
 		pass = 1;
 
 	//     0         10        20        30        40        50
@@ -59,13 +83,83 @@ void test_imp_array_norm(void)
 	test_print(pass);
 
 	pass = 0;
-	if (array_norm_d(1,&errorL2,"Inf")  < EPS)
+	if ((array_norm_d(3,A_d,"L2") - 3.741657386773941) < EPS)
 		pass = 1;
 
 	//     0         10        20        30        40        50
 	printf("             (L2) :                              ");
 	test_print(pass);
 
+	/*
+	 *	array_norm_diff_ui:
+	 *
+	 *		Input:
+	 *
+	 *			A = [1 2 3]
+	 *			B = [4 5 6]
+	 *
+	 *			Inf : 3
+	 *			L1  : 9
+	 *
+	 */
 
-	free(A);
+	unsigned int A_diff_ui[3] = { 1, 2, 3 };
+	unsigned int B_diff_ui[3] = { 4, 5, 6 };
+
+	pass = 0;
+	if ((array_norm_diff_ui(3,A_diff_ui,B_diff_ui,"Inf") - 3) < EPS)
+		pass = 1;
+
+	//     0         10        20        30        40        50
+	printf("array_norm_diff_ui (Inf):                        ");
+	test_print(pass);
+
+	pass = 0;
+	if ((array_norm_diff_ui(3,A_diff_ui,B_diff_ui,"L1") - 9) < EPS)
+		pass = 1;
+
+	//     0         10        20        30        40        50
+	printf("                   (L1) :                        ");
+	test_print(pass);
+
+	/*
+	 *	array_norm_diff_d:
+	 *
+	 *		Input:
+	 *
+	 *			A = [1.0 2.0 3.0]
+	 *			B = [4.0 5.0 6.0]
+	 *
+	 *			Inf : 3.0
+	 *			L1  : 9.0
+	 *			L2  : 5.196152422706632
+	 *
+	 */
+
+	double A_diff_d[3] = { 1.0, 2.0, 3.0 };
+	double B_diff_d[3] = { 4.0, 5.0, 6.0 };
+
+	pass = 0;
+	if ((array_norm_diff_d(3,A_diff_d,B_diff_d,"Inf") - 3.0) < EPS)
+		pass = 1;
+
+	//     0         10        20        30        40        50
+	printf("array_norm_diff_d (Inf):                         ");
+	test_print(pass);
+
+	pass = 0;
+	if ((array_norm_diff_d(3,A_diff_d,B_diff_d,"L1") - 9.0) < EPS)
+		pass = 1;
+
+	//     0         10        20        30        40        50
+	printf("                  (L1) :                         ");
+	test_print(pass);
+
+	pass = 0;
+	if ((array_norm_diff_d(3,A_diff_d,B_diff_d,"L2") - 5.196152422706632) < EPS)
+		pass = 1;
+
+	//     0         10        20        30        40        50
+	printf("                  (L2) :                         ");
+	test_print(pass);
 }

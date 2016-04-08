@@ -168,8 +168,6 @@ void cubature_TP(double **xir, double **W, unsigned int **Con, unsigned int *Nn,
 		for (k = 0, kMax = (unsigned int) min(max((sd-2)*sN,1),sN); k < kMax; k++) {
 		for (j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
 		for (i = 0, iMax = min(max((d-0)*N,u1),N); i < iMax; i++) {
-//			if (i == 0 && j == 0 && k == 0)
-//				row = (int) k*pow(N,2)+j*N+i;
 			w_d[row] = w[i];
 			if (d == 2) w_d[row] *= w[j];
 			if (d == 3) w_d[row] *= w[j]*w[k];

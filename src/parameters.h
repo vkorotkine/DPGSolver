@@ -33,16 +33,17 @@
 #define C_WEDGE 2
 #define C_PYR   3
 
-//  Node Tolerance (for physical coordinate comparison)
+// Node Tolerance (for physical coordinate comparison)
 #define NODETOL      1.0e-12
 #define NODETOL_MESH 1.0e-5
 
-//  Value close to double machine zero
+// Value close to double machine zero
 #define EPS     1.0e-15
 
-//  Min/Max String Lengths
-#define STRLEN_MIN 64
-#define STRLEN_MAX 512
+// Min/Max String Lengths
+// Min/Max length slightly less than 2^6, 2^9
+#define STRLEN_MIN 60
+#define STRLEN_MAX 508
 
 // Macros
 #define max(a,b) ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _a : _b; })
@@ -51,4 +52,4 @@
 
 
 
-#endif // DPG__parameters_h_INCLUDED
+#endif // DPG__parameters_h__INCLUDED

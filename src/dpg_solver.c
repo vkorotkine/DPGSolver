@@ -47,21 +47,27 @@ int main(int nargc, char **argv)
 	initialization(nargc,argv);
 
 	// Preprocessing
-	if (!DB.MPIrank) printf("Preprocessing:\n\n");
+	if (!DB.MPIrank)
+		printf("Preprocessing:\n\n");
 
-	if (!DB.MPIrank) printf("  Set up Parameters\n");
+	if (!DB.MPIrank)
+		printf("  Set up Parameters\n");
 	setup_parameters();
 
-	if (!DB.MPIrank) printf("  Set up Mesh\n");
+	if (!DB.MPIrank)
+		printf("  Set up Mesh\n");
 	setup_mesh();
 
-	if (!DB.MPIrank) printf("  Set up Operators\n");
+	if (!DB.MPIrank)
+		printf("  Set up Operators\n");
 	setup_operators();
 
-	if (!DB.MPIrank) printf("  Set up Structures\n");
+	if (!DB.MPIrank)
+		printf("  Set up Structures\n");
 	setup_structures();
 
-	if (!DB.MPIrank) printf("  Set up Geometry\n");
+	if (!DB.MPIrank)
+		printf("  Set up Geometry\n");
 	setup_geometry();
 
 

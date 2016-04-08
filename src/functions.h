@@ -75,10 +75,15 @@ extern void memory_destructor_E (struct S_ELEMENT *ELEMENT);
 	                                  const char ordering, const char trans);
 	extern void array_sort_d         (unsigned int NRows, unsigned int NCols, double *A, unsigned int *Indices,
 	                                  const char ordering, const char trans);
-	extern void array_find_indexo_ui (const unsigned int LenA, const unsigned int *A, const unsigned int val, unsigned int *IdxF, unsigned int *LenF);
+	extern void array_find_indexo_ui (const unsigned int LenA, const unsigned int *A, const unsigned int val,
+	                                  unsigned int *IdxF, unsigned int *LenF);
 
 	// Norms
-	extern double array_norm_d (int LenA, double *A, char *NormType);
+	extern unsigned int array_norm_ui      (const unsigned int LenA, const unsigned int *A, const char *NormType);
+	extern double       array_norm_d       (const unsigned int LenA, const double *A, const char *NormType);
+	extern unsigned int array_norm_diff_ui (const unsigned int LenA, const unsigned int *A, const unsigned int *B,
+	                                        const char *NormType);
+	extern double       array_norm_diff_d  (const unsigned int LenA, const double *A, const double *B, const char *NormType);
 
 	// Swapping
 	extern void array_swap_ui (register unsigned int *arr1, register unsigned int *arr2, const unsigned int NIn,
@@ -119,4 +124,4 @@ extern void memory_destructor_E (struct S_ELEMENT *ELEMENT);
 	extern void test_imp_array_norm       (void);
 	extern void test_imp_array_sort       (void);
 
-#endif // DPG_functions_h__INCLUDED
+#endif // DPG__functions_h__INCLUDED

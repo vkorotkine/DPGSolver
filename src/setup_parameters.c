@@ -79,7 +79,7 @@ void setup_parameters()
 	             PMax       = DB.PMax,
 	             ML         = DB.ML,
 	             EFE        = DB.EFE,
-                 Collocated = DB.Collocated;
+	             Collocated = DB.Collocated;
 
 	char         *Parametrization,
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,

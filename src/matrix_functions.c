@@ -133,8 +133,7 @@ void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_T
 	 *		transa/transb: CblasNoTrans, CblasTrans, CblasConjTrans
 	 */
 
-	MKL_INT m_MKL, n_MKL, k_MKL,
-	        ldA, ldB, ldC;
+	MKL_INT m_MKL, n_MKL, k_MKL, ldA, ldB, ldC;
 
 	m_MKL = (MKL_INT) m;
 	n_MKL = (MKL_INT) n;
@@ -339,16 +338,16 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 		switch (n) {
 			case 1: { // matrix-vector
 				MKL_INT m_MKL   = k,
-						k_MKL   = m,
-						inc_MKL = 1;
+				        k_MKL   = m,
+				        inc_MKL = 1;
 
 				cblas_dgemv(CblasColMajor,CblasTrans,m_MKL,k_MKL,1.0,A,m_MKL,B,inc_MKL,0.0,C,inc_MKL);
 				break;
 			}
 			default: { // matrix-matrix
 				MKL_INT m_MKL = m,
-						n_MKL = n,
-						k_MKL = k;
+				        n_MKL = n,
+				        k_MKL = k;
 
 				cblas_dgemm(CblasColMajor,CblasTrans,CblasNoTrans,m_MKL,n_MKL,k_MKL,1.0,A,k_MKL,B,k_MKL,0.0,C,m_MKL);
 				break;

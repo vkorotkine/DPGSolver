@@ -1,3 +1,6 @@
+#ifndef DPG__database_h__INCLUDED
+#define DPG__database_h__INCLUDED
+
 /*
  *	Purpose:
  *		Define global parameters and objects.
@@ -11,9 +14,6 @@
  *	References:
  *
  */
-
-#ifndef DPG__database_h__INCLUDED
-#define DPG__database_h__INCLUDED
 
 struct S_DB {
 	// MPI and PETSC
@@ -60,7 +60,7 @@ struct S_ELEMENT {
 	             **xir_vIs, **xir_vIc, **xir_vP,
 	             **WvIs, **WvIc,
 	             ***xir_fGc, ***xir_fIs, ***xir_fIc, **WfIs, **WfIc,
-		         **I_vGs_vGc;
+	             **I_vGs_vGc;
 
 	struct S_ELEMENT *next;
 };
@@ -77,4 +77,4 @@ struct S_VOLUME {
 
 };
 
-#endif // DPG__database_h_INCLUDED
+#endif // DPG__database_h__INCLUDED

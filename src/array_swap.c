@@ -16,7 +16,7 @@
  *
  *	Notation:
  *
- *  References:
+ *	References:
  *		ToBeModified: Add in the reference page number (stephen kochan programming in c)
  *		              Chapter 10. A Slight Digression about Program Optimization
  *
