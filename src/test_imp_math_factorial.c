@@ -1,0 +1,50 @@
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "test.h"
+#include "functions.h"
+
+/*
+ *	Purpose:
+ *		Test correctness of implementation of factorial.
+ *
+ *	Comments:
+ *
+ *	Notation:
+ *
+ *	References:
+ */
+
+void test_imp_math_factorial(void)
+{
+	unsigned int pass;
+
+	/*
+	 *	factorial_ui:
+	 *
+	 *		Input:
+	 *
+	 *			A = 3
+	 *			B = 7
+	 *			C = 12
+	 *
+	 *		Expected Output:
+	 *
+	 *			A : 6
+	 *			B : 5040
+	 *			C : 479001600
+	 */
+
+	unsigned int A = 3, B = 7, C = 12;
+
+	pass = 0;
+	if (factorial_ui(A) == 6         &&
+		factorial_ui(B) == 5040      &&
+		factorial_ui(C) == 479001600)
+		pass = 1, TestDB.Npass++;
+
+	//     0         10        20        30        40        50
+	printf("math_factorial_ui:                               ");
+	test_print(pass);
+
+}

@@ -48,9 +48,9 @@ extern void   mm_CTN_d    (const int m, const int n, const int k, const double *
 //                           const int useBLAS);
 
 // Math Functions
-extern int    factorial_i (const int n);
-extern int    gamma_i     (const int n);
-extern double gamma_d     (const double x);
+extern unsigned int factorial_ui (const unsigned int n);
+extern unsigned int gamma_ui     (const unsigned int n);
+extern double       gamma_d      (const double x);
 
 // Struct related functions
 extern struct S_ELEMENT *New_ELEMENT        (void);
@@ -88,7 +88,7 @@ extern void memory_destructor_E (struct S_ELEMENT *ELEMENT);
 	// Swapping
 	extern void array_swap_ui (register unsigned int *arr1, register unsigned int *arr2, const unsigned int NIn,
 	                           const unsigned int stepIn);
-	extern void array_swap_i  (register int *arr1, register int *arr2, const int NIn, const int stepIn);
+//	extern void array_swap_i  (register int *arr1, register int *arr2, const int NIn, const int stepIn);
 	extern void array_swap_d  (register double *arr1, register double *arr2, const int NIn, const int stepIn);
 
 	// Printing
@@ -123,5 +123,7 @@ extern void memory_destructor_E (struct S_ELEMENT *ELEMENT);
 	extern void test_imp_array_find_index (void);
 	extern void test_imp_array_norm       (void);
 	extern void test_imp_array_sort       (void);
+	extern void test_imp_array_swap       (void);
+	extern void test_imp_math_factorial   (void);
 
 #endif // DPG__functions_h__INCLUDED

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "test.h"
 #include "functions.h"
 #include "parameters.h"
 
@@ -16,7 +17,7 @@
  *	Notation:
  *
  *	References:
-*/
+ */
 
 void test_imp_array_sort(void)
 {
@@ -91,7 +92,7 @@ void test_imp_array_sort(void)
 	pass = 0;
 	if (array_norm_diff_ui(30,A_ui,A_ui0,"Inf") < EPS &&
 		array_norm_diff_ui(10,Ind_ui,Ind_ui0,"Inf") < EPS)
-			pass = 1;
+			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("array_sort_ui (0 row(s) sorted):                 ");
@@ -106,7 +107,7 @@ void test_imp_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_ui(10,A_ui,A_ui1,"Inf") < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("              (1 row(s) sorted):                 ");
@@ -120,7 +121,7 @@ void test_imp_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_ui(20,A_ui,A_ui2,"Inf") < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("              (2 row(s) sorted):                 ");
@@ -135,7 +136,7 @@ void test_imp_array_sort(void)
 	pass = 0;
 	if (array_norm_diff_ui(30,A_ui,A_ui3,"Inf") < EPS &&
 		array_norm_diff_ui(10,Ind_ui,Ind_ui3,"Inf") < EPS)
-			pass = 1;
+			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("              (3 row(s) sorted):                 ");
@@ -154,7 +155,7 @@ void test_imp_array_sort(void)
 	pass = 0;
 	if (array_norm_diff_ui(30,A_ui,A_ui0,"Inf") < EPS &&
 		array_norm_diff_ui(10,Ind_ui,Ind_ui0,"Inf") < EPS)
-			pass = 1;
+			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("array_sort_ui - Transposed (0 row(s) sorted):    ");
@@ -171,7 +172,7 @@ void test_imp_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_ui(10,A_ui,A_ui1,"Inf") < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("                           (1 row(s) sorted):    ");
@@ -188,7 +189,7 @@ void test_imp_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_ui(20,A_ui,A_ui2,"Inf") < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("                           (2 row(s) sorted):    ");
@@ -206,7 +207,7 @@ void test_imp_array_sort(void)
 	pass = 0;
 	if (array_norm_diff_ui(30,A_ui,A_ui3,"Inf") < EPS &&
 		array_norm_diff_ui(10,Ind_ui,Ind_ui3,"Inf") < EPS)
-			pass = 1;
+			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("                           (3 row(s) sorted):    ");
@@ -235,7 +236,7 @@ void test_imp_array_sort(void)
 	pass = 0;
 	if (array_norm_diff_d(30,A_d,A_d0,"Inf") < EPS &&
 		array_norm_diff_ui(10,Ind_ui,Ind_ui0,"Inf") < EPS)
-			pass = 1;
+			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("array_sort_d (0 row(s) sorted):                  ");
@@ -250,7 +251,7 @@ void test_imp_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_d(10,A_d,A_d1,"Inf") < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("             (1 row(s) sorted):                  ");
@@ -264,7 +265,7 @@ void test_imp_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_d(20,A_d,A_d2,"Inf") < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("             (2 row(s) sorted):                  ");
@@ -279,7 +280,7 @@ void test_imp_array_sort(void)
 	pass = 0;
 	if (array_norm_diff_d(30,A_d,A_d3,"Inf") < EPS &&
 		array_norm_diff_ui(10,Ind_ui,Ind_ui3,"Inf") < EPS)
-			pass = 1;
+			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("             (3 row(s) sorted):                  ");
@@ -298,7 +299,7 @@ void test_imp_array_sort(void)
 	pass = 0;
 	if (array_norm_diff_d(30,A_d,A_d0,"Inf") < EPS &&
 		array_norm_diff_ui(10,Ind_ui,Ind_ui0,"Inf") < EPS)
-			pass = 1;
+			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("array_sort_d - Transposed (0 row(s) sorted):     ");
@@ -315,7 +316,7 @@ void test_imp_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_d(10,A_d,A_d1,"Inf") < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("                          (1 row(s) sorted):     ");
@@ -332,7 +333,7 @@ void test_imp_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_d(20,A_d,A_d2,"Inf") < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("                          (2 row(s) sorted):     ");
@@ -350,7 +351,7 @@ void test_imp_array_sort(void)
 	pass = 0;
 	if (array_norm_diff_d(30,A_d,A_d3,"Inf") < EPS &&
 		array_norm_diff_ui(10,Ind_ui,Ind_ui3,"Inf") < EPS)
-			pass = 1;
+			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("                          (3 row(s) sorted):     ");

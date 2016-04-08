@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "test.h"
 #include "functions.h"
 
 /*
@@ -12,7 +13,7 @@
  *	Notation:
  *
  *	References:
-*/
+ */
 
 void test_imp_array_find_index(void)
 {
@@ -39,7 +40,7 @@ void test_imp_array_find_index(void)
 
 	pass = 0;
 	if (Idx == 5 && Len == 5)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("array_find_indexo_ui:                            ");

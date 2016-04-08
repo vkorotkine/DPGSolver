@@ -82,7 +82,9 @@ int main(int nargc, char **argv)
 #else // Run if -DTEST is passed as a compilation flag
 
 #include <stdio.h>
+#include <time.h>
 
+#include "test.h"
 #include "database.h"
 #include "functions.h"
 
@@ -100,16 +102,53 @@ int main(int nargc, char **argv)
  */
 
 struct S_DB DB;
+struct S_TEST TestDB;
 
 #define TOL 1e-15
 
 int main(void)
 {
-	printf("\n\n\nRunning Tests:\n\n\n");
+	clock_t ts, te;
+
+	TestDB.Ntest = 0;
+	TestDB.Npass = 0;
+
+
+	printf("\n\nRunning Tests:\n\n\n");
+	ts = clock();
 
 	test_imp_array_find_index();
 	test_imp_array_norm();
 	test_imp_array_sort();
+	test_imp_array_swap();
+
+	test_imp_math_factorial();
+	test_imp_math_gamma();
+
+/*	test_imp_matrix_identity();
+	test_imp_matrix_inverse();
+	test_imp_matrix_mm();
+	test_imp_matrix_mm_CTN();
+
+	test_imp_find_periodic_connections();
+
+	test_imp_cubature_TP();
+
+	test_imp_basis_TP();
+	test_imp_gradbasis_TP();
+*/
+
+	te = clock();
+
+
+	printf("\n\nRan %d test(s) in %.4f seconds.\n",TestDB.Ntest,(te-ts)/(float)CLOCKS_PER_SEC);
+
+	TestDB.Nfail = TestDB.Ntest - TestDB.Npass;
+	if (TestDB.Nfail > 0)
+		printf("\n\n******** FAILED %d TEST(S) ********\n\n",TestDB.Nfail);
+	else
+		printf("\nAll tests passed.\n\n");
+
 
 //	test_speed_mm_d();
 

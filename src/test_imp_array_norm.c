@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "test.h"
 #include "functions.h"
 #include "parameters.h"
 
@@ -13,7 +14,7 @@
  *	Notation:
  *
  *	References:
-*/
+ */
 
 void test_imp_array_norm(void)
 {
@@ -36,7 +37,7 @@ void test_imp_array_norm(void)
 
 	pass = 0;
 	if ((array_norm_ui(3,A_ui,"Inf") - 3) < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("array_norm_ui (Inf):                             ");
@@ -44,7 +45,7 @@ void test_imp_array_norm(void)
 
 	pass = 0;
 	if ((array_norm_ui(3,A_ui,"L1") - 6) < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("              (L1) :                             ");
@@ -68,7 +69,7 @@ void test_imp_array_norm(void)
 
 	pass = 0;
 	if ((array_norm_d(3,A_d,"Inf") - 3.0) < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("array_norm_d (Inf):                              ");
@@ -76,7 +77,7 @@ void test_imp_array_norm(void)
 
 	pass = 0;
 	if ((array_norm_d(3,A_d,"L1") - 6.0) < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("             (L1) :                              ");
@@ -84,7 +85,7 @@ void test_imp_array_norm(void)
 
 	pass = 0;
 	if ((array_norm_d(3,A_d,"L2") - 3.741657386773941) < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("             (L2) :                              ");
@@ -108,7 +109,7 @@ void test_imp_array_norm(void)
 
 	pass = 0;
 	if ((array_norm_diff_ui(3,A_diff_ui,B_diff_ui,"Inf") - 3) < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("array_norm_diff_ui (Inf):                        ");
@@ -116,7 +117,7 @@ void test_imp_array_norm(void)
 
 	pass = 0;
 	if ((array_norm_diff_ui(3,A_diff_ui,B_diff_ui,"L1") - 9) < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("                   (L1) :                        ");
@@ -141,7 +142,7 @@ void test_imp_array_norm(void)
 
 	pass = 0;
 	if ((array_norm_diff_d(3,A_diff_d,B_diff_d,"Inf") - 3.0) < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("array_norm_diff_d (Inf):                         ");
@@ -149,7 +150,7 @@ void test_imp_array_norm(void)
 
 	pass = 0;
 	if ((array_norm_diff_d(3,A_diff_d,B_diff_d,"L1") - 9.0) < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("                  (L1) :                         ");
@@ -157,7 +158,7 @@ void test_imp_array_norm(void)
 
 	pass = 0;
 	if ((array_norm_diff_d(3,A_diff_d,B_diff_d,"L2") - 5.196152422706632) < EPS)
-		pass = 1;
+		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("                  (L2) :                         ");

@@ -62,6 +62,7 @@ void array_swap_ui(register unsigned int *arr1, register unsigned int *arr2, con
 	}
 }
 
+/*
 void array_swap_i(register int *arr1, register int *arr2, const int NIn, const int stepIn)
 {
 	register unsigned int N, step;
@@ -100,6 +101,7 @@ void array_swap_i(register int *arr1, register int *arr2, const int NIn, const i
 		break;
 	}
 }
+*/
 
 void array_swap_d(register double *arr1, register double *arr2, const int NIn, const int stepIn)
 {

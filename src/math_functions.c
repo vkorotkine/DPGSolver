@@ -17,18 +17,19 @@
  *		Press(1992-2nd)_Numerical recipes in C- the art of scientific computing (Ch. 6.1)
  */
 
-int factorial_i(const int n)
+unsigned int factorial_ui(const unsigned int n)
 {
-	static int ntop = 0,
-	           a[33] = { 1 };
-	int i;
+	static unsigned int ntop = 0,
+	                    a[13] = { 1 };
+	unsigned int i;
 
-	if (n < 0)
-		printf("Error: Input to factorial_i must be greater than 0.\n"), exit(1);
+	// Always false for unsigned int n
+//	if (n < 0)
+//		printf("Error: Input to factorial_ui must be greater than 0.\n"), exit(1);
 
 	// Note: large values overflow
-	if (n > 32)
-		printf("Write a long long factorial function to avoid overflow.\n"), exit(1);
+	if (n > 12)
+		printf("Large inputs to factorial_ui result in overflow.\n"), exit(1);
 
 	// As ntop and a are static variables, multiple calls do not result in recomputation.
 	while (ntop < n) {
@@ -38,12 +39,12 @@ int factorial_i(const int n)
 	return a[n];
 }
 
-int gamma_i(const int n)
+unsigned int gamma_ui(const unsigned int n)
 {
 	if (n < 1)
-		printf("Error: Input to gamma_i must be greater than 0.\n"), exit(1);
+		printf("Error: Input to gamma_ui must be greater than 0.\n"), exit(1);
 
-	return factorial_i(n-1);
+	return factorial_ui(n-1);
 }
 
 double gamma_d(const double x)
@@ -52,8 +53,8 @@ double gamma_d(const double x)
 		printf("Error: Input to gamma_d must be greater than 0.0.\n"), exit(1);
 
 	if (floor(x) == x) {
-		// Integer case
-		return (double) gamma_i((int) x);
+		// Unsigned integer case
+		return (double) gamma_ui((unsigned int) x);
 	} else {
 		static double cof[6] = { 76.18009172947146,
 		                        -86.50532032941677,
@@ -61,11 +62,11 @@ double gamma_d(const double x)
 		                        -1.231739572450155,
 		                         0.1208650973866179e-2,
 		                        -0.5395239384953e-5     };
-		int j;
+		unsigned int j;
 		double z = x, y = x, tmp = x + 5.5,
 		       ser = 1.000000000190015;
 		tmp -= (z+0.5)*log(tmp);
-		for (j = 0; j <=5; j++) {
+		for (j = 0; j <= 5; j++) {
 			ser += cof[j]/++y;
 		}
 
