@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "parameters.h"
 #include "functions.h"
@@ -13,8 +14,16 @@
  *
  *	Comments:
  *		Pointers are only returned to desired variables (as indicated in ToReturn); other variables are freed.
- *			Note: xir and Nn are always returned
+ *			Note: rst and Nn are always returned
  *		Possibly modify ordering in connect based on vtk formatting convention. (ToBeDeleted)
+ *		The order of r, w is important for minimizing memory stride while computing the length 2 Discrete Fourier
+ *		Transform (ToBeModified).
+ *		The ordering convention for the GL/GLL nodes and the ES nodes are different:
+ *			GL/GLL: 0 followed by 2-blocks of -/+ node with abs(node) going from 0 to 1
+ *			ES    : -1 to 1
+ *		rst is stored in memory as r, s, then t. This was motivated by the desire to be consistent with how XYZ
+ *		coordinates are stored in each element, with this ordering being required so that vectorized operations can be
+ *		performed on XYZ arrays.
  *
  *	Notation:
  *
@@ -25,18 +34,21 @@
  *		      lglnodes.m
  */
 
-void cubature_TP(double **xir, double **W, unsigned int **Con, unsigned int *Nn, const unsigned int *ToReturn,
+void cubature_TP(double **rst, double **W, unsigned int **Con, unsigned int *Nn, const unsigned int *ToReturn,
                  const unsigned int P, const unsigned int d,const char *NodeType)
 {
 
 	// Standard datatypes
 	unsigned int i, j, k, iMax, jMax, kMax, dim, l, lMax, m, u1,
-	             N, N2, xInd, row, nLINE[2], nQUAD[4], nHEX[8], IndC,
+	             N, N2, rInd, row, Nrows, nLINE[2], nQUAD[4], nHEX[8], IndC,
 	             *Indices, *connect;
 	int          sd, sP, sN;
 	double       norm, swapd,
-	             *x, *xold, *xdiff, *w, *x_d, *w_d,
+	             *r, *rold, *rdiff, *w, *r_d, *w_d, *r_std, *w_std,
 	             *V, *a, *CM, *eigs;
+
+	// Arbitrary initializations for variables defined in conditionals (to eliminate compiler warnings)
+	Nrows = 0;
 
 	N = P+1;
 
@@ -45,7 +57,7 @@ void cubature_TP(double **xir, double **W, unsigned int **Con, unsigned int *Nn,
 	sP = P;
 	sN = N;
 
-	x = malloc(N * sizeof *x); // free
+	r = malloc(N * sizeof *r); // free
 	w = malloc(N * sizeof *w); // free
 
 	// Note: GLL must be first as "GL" is in "GLL"
@@ -53,58 +65,58 @@ void cubature_TP(double **xir, double **W, unsigned int **Con, unsigned int *Nn,
 		if (P == 0)
 			printf("Error: Cannot use GLL nodes of order P0.\n"), exit(1);
 
-		xold  = malloc(N * sizeof *xold); // free
-		xdiff = malloc(N * sizeof *xdiff); // free
+		rold  = malloc(N * sizeof *rold); // free
+		rdiff = malloc(N * sizeof *rdiff); // free
 
 		// Use the Chebyshve-Guass-Lobatto nodes as the first guess
 		for (i = 0; i < N; i++)
-			x[i] = -cos(PI*(i)/P);
-// array_print_d(1,N,x,'R');
+			r[i] = -cos(PI*(i)/P);
+// array_print_d(1,N,r,'R');
 
 		// Legendre Vandermonde Matrix
 		V = malloc(N*N * sizeof *V); // free
 		for (i = 0, iMax = N*N; i < iMax; i++)
 			V[i] = 0.;
 
-		/* Compute P_(N) using the recursion relation. Compute its first and second derivatives and update x using the
+		/* Compute P_(N) using the recursion relation. Compute its first and second derivatives and update r using the
 		Newton-Raphson method */
-		for (i = 0; i < N; i++) xold[i] = 2.;
-		for (i = 0; i < N; i++) xdiff[i] = x[i]-xold[i];
-		norm = array_norm_d(N,xdiff,"Inf");
+		for (i = 0; i < N; i++) rold[i] = 2.;
+		for (i = 0; i < N; i++) rdiff[i] = r[i]-rold[i];
+		norm = array_norm_d(N,rdiff,"Inf");
 
 		while (norm > EPS) {
 			for (i = 0; i < N; i++)
-				xold[i] = x[i];
+				rold[i] = r[i];
 			for (j = 0; j < N; j++) {
 				V[0*N+j] = 1.;
-				V[1*N+j] = x[j];
+				V[1*N+j] = r[j];
 			}
 
 		for (i = 1; i < P; i++) {
 		for (j = 0; j < N; j++) {
-			V[(i+1)*N+j] = ((2*i+1)*x[j]*V[i*N+j] - i*V[(i-1)*N+j])/(i+1);
+			V[(i+1)*N+j] = ((2*i+1)*r[j]*V[i*N+j] - i*V[(i-1)*N+j])/(i+1);
 		}}
 
 		for (j = 0; j < N; j++)
-			x[j] = xold[j] - (x[j]*V[P*N+j]-V[(P-1)*N+j])/(N*V[P*N+j]);
+			r[j] = rold[j] - (r[j]*V[P*N+j]-V[(P-1)*N+j])/(N*V[P*N+j]);
 
 		for (i = 0; i < N; i++)
-			xdiff[i] = x[i]-xold[i];
-		norm = array_norm_d(N,xdiff,"Inf");
+			rdiff[i] = r[i]-rold[i];
+		norm = array_norm_d(N,rdiff,"Inf");
 		}
 
 		for (j = 0; j < N; j++)
 			w[j] = 2./(P*N*pow(V[P*N+j],2));
 
-		free(xold);
-		free(xdiff);
+		free(rold);
+		free(rdiff);
 		free(V);
 
-// array_print_d(1,N,x,'R');
+// array_print_d(1,N,r,'R');
 // array_print_d(1,N,w,'R');
 	} else if (strstr(NodeType,"GL") != NULL) {
 		// Build the companion matrix CM
-		/* CM is defined such that det(xI-CM)=P_n(x), with P_n(x) being the Legendre poynomial under consideration.
+		/* CM is defined such that det(rI-CM)=P_n(r), with P_n(r) being the Legendre poynomial under consideration.
 		 * Moreover, CM is constructed in such a way so as to be symmetrical.
 		 */
 		a = malloc(P * sizeof *a); // free
@@ -122,8 +134,8 @@ void cubature_TP(double **xir, double **W, unsigned int **Con, unsigned int *Nn,
 		}}
 		free(a);
 
-		// Determine the abscissas (x) and weights (w)
-		/* Because det(xI-CM) = P_n(x), the abscissas are the roots of the characteristic polynomial, the eigenvalues of
+		// Determine the abscissas (r) and weights (w)
+		/* Because det(rI-CM) = P_n(r), the abscissas are the roots of the characteristic polynomial, the eigenvalues of
 		 * CM. The weights can then be derived from the corresponding eigenvectors.
 		 */
 
@@ -149,22 +161,69 @@ void cubature_TP(double **xir, double **W, unsigned int **Con, unsigned int *Nn,
 		free(Indices);
 
 		for (j = 0; j < N; j++) {
-			x[j] = eigs[j];
+			r[j] = eigs[j];
 			w[j] = 2*pow(CM[0*i+j],2);
 		}
 		free(CM);
 		free(eigs);
 
-// array_print_d(1,N,x,'R');
+// array_print_d(1,N,r,'R');
 // array_print_d(1,N,w,'R');
 	}
 
-	x_d     = malloc(pow(N,d)*d        * sizeof *x_d); // keep
+	// Re-arrange r and w for GL/GLL nodes
+	r_std = malloc(N * sizeof *r_std); // free
+	w_std = malloc(N * sizeof *w_std); // free
+
+	for (i = 0; i < N; i++) {
+		r_std[i] = r[i];
+		w_std[i] = w[i];
+	}
+
+	if (N % 2 == 1) {
+		k = (unsigned int) floor(N/2);
+
+		r[0] = r_std[k];
+		w[0] = w_std[k];
+
+		j = 1;
+		for (i = 1, iMax = N-1; i < iMax; ) {
+			r[i] = r_std[k-j];
+			w[i] = w_std[k-j];
+			i++;
+
+			r[i] = r_std[k+j];
+			w[i] = w_std[k+j];
+			i++;
+
+			j++;
+		}
+	} else {
+		k = N/2;
+		j = 1;
+		for (i = 0, iMax = N; i < iMax; ) {
+			r[i] = r_std[k-j];
+			w[i] = w_std[k-j];
+			i++;
+
+			r[i] = r_std[k+j-1];
+			w[i] = w_std[k+j-1];
+			i++;
+
+			j++;
+		}
+	}
+
+	free(r_std);
+	free(w_std);
+
+
+	r_d     = malloc(pow(N,d)*d        * sizeof *r_d); // keep
 	w_d     = malloc(pow(N,d)*d        * sizeof *w_d); // free/keep (Conditional ToReturn)
 	connect = malloc(pow(P,d)*pow(2,d) * sizeof *connect); // free/keep (Conditional ToReturn)
 
 	if (strstr(NodeType,"GLL") != NULL || strstr(NodeType,"GL") != NULL) {
-		row = 0;
+		row = 0; Nrows = pow(N,d);
 		for (k = 0, kMax = (unsigned int) min(max((sd-2)*sN,1),sN); k < kMax; k++) {
 		for (j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
 		for (i = 0, iMax = min(max((d-0)*N,u1),N); i < iMax; i++) {
@@ -172,17 +231,17 @@ void cubature_TP(double **xir, double **W, unsigned int **Con, unsigned int *Nn,
 			if (d == 2) w_d[row] *= w[j];
 			if (d == 3) w_d[row] *= w[j]*w[k];
 			for (dim = 0; dim < d; dim++) {
-				if (dim == 0) xInd = i;
-				if (dim == 1) xInd = j;
-				if (dim == 2) xInd = k;
-				x_d[row*d+dim] = x[xInd];
+				if (dim == 0) rInd = i;
+				if (dim == 1) rInd = j;
+				if (dim == 2) rInd = k;
+				r_d[dim*Nrows+row] = r[rInd];
 			}
 			row++;
 		}}}
-		free(x);
+		free(r);
 		free(w);
 
-		*xir = x_d;
+		*rst = r_d;
 		*Nn  = pow(N,d);
 
 		if (ToReturn[1] != 0) *W = w_d;
@@ -195,7 +254,7 @@ void cubature_TP(double **xir, double **W, unsigned int **Con, unsigned int *Nn,
 			free(connect);
 		}
 
-// array_print_d(pow(N,d),d,x_d,'R');
+// array_print_d(pow(N,d),d,r_d,'R');
 // array_print_d(pow(N,d),1,w_d,'R');
 
 	return;
@@ -204,25 +263,25 @@ void cubature_TP(double **xir, double **W, unsigned int **Con, unsigned int *Nn,
 	if (strstr(NodeType,"ES") != NULL) {
 		free(w);
 		if (P == 0) {
-			x[0] = 0;
+			r[0] = 0;
 		} else {
 			for (i = 0; i < N; i++)
-				x[i] = -1.+2./P*i;
+				r[i] = -1.+2./P*i;
 		}
 
-		row = 0;
+		row = 0; Nrows = pow(N,d);
 		for (k = 0, kMax = (unsigned int) min(max((sd-2)*sN,1),sN); k < kMax; k++) {
 		for (j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
 		for (i = 0, iMax = min(max((d-0)*N,u1),N); i < iMax; i++) {
 			for (dim = 0; dim < d; dim++) {
-				if (dim == 0) xInd = i;
-				if (dim == 1) xInd = j;
-				if (dim == 2) xInd = k;
-				x_d[row*d+dim] = x[xInd];
+				if (dim == 0) rInd = i;
+				if (dim == 1) rInd = j;
+				if (dim == 2) rInd = k;
+				r_d[dim*Nrows+row] = r[rInd];
 			}
 			row++;
 		}}}
-		free(x);
+		free(r);
 
 		N2 = pow(N,2);
 		for (i = 0, IndC = 0; i < P; i++) {
@@ -243,8 +302,8 @@ void cubature_TP(double **xir, double **W, unsigned int **Con, unsigned int *Nn,
 
 // array_print_i(pow(P,d),pow(2,d),connect,'R');
 
-		*xir = x_d;
-		*Nn  = pow(N,d);
+		*rst = r_d;
+		*Nn  = pow(P,d);
 		if (ToReturn[1] != 0) {
 			printf("Error: There are no weights associated with the \"ES\" nodetype.\n"), exit(1);
 		} else {
@@ -255,5 +314,4 @@ void cubature_TP(double **xir, double **W, unsigned int **Con, unsigned int *Nn,
 		if (ToReturn[2] != 0) *Con = connect;
 		else                  *Con = NULL, free(connect);
 	}
-
 }

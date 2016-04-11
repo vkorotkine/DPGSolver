@@ -112,6 +112,7 @@ int main(void)
 
 	TestDB.Ntest = 0;
 	TestDB.Npass = 0;
+	TestDB.Nwarnings = 0;
 
 
 	printf("\n\nRunning Tests:\n\n\n");
@@ -122,20 +123,19 @@ int main(void)
 	test_imp_array_sort();
 	test_imp_array_swap();
 
+	test_imp_find_periodic_connections();
+
 	test_imp_math_factorial();
 	test_imp_math_gamma();
 
-/*	test_imp_matrix_identity();
+	test_imp_matrix_identity();
 	test_imp_matrix_inverse();
 	test_imp_matrix_mm();
-	test_imp_matrix_mm_CTN();
-
-	test_imp_find_periodic_connections();
 
 	test_imp_cubature_TP();
 
 	test_imp_basis_TP();
-	test_imp_gradbasis_TP();
+/*	test_imp_gradbasis_TP();
 */
 
 	te = clock();
@@ -143,12 +143,17 @@ int main(void)
 
 	printf("\n\nRan %d test(s) in %.4f seconds.\n",TestDB.Ntest,(te-ts)/(float)CLOCKS_PER_SEC);
 
-	TestDB.Nfail = TestDB.Ntest - TestDB.Npass;
-	if (TestDB.Nfail > 0)
-		printf("\n\n******** FAILED %d TEST(S) ********\n\n",TestDB.Nfail);
-	else
+	unsigned int Nfail = TestDB.Ntest - TestDB.Npass;
+	if (Nfail > 0) {
+		printf("\n\n******** FAILED %d TEST(S) ********\n\n",Nfail);
+	} else {
 		printf("\nAll tests passed.\n\n");
 
+		if (TestDB.Nwarnings)
+			if (TestDB.Nwarnings == 1)
+			printf("Warnings (%d) were generated while running tests. "
+				   "Scroll through test passing list and verify that all is OK.\n\n",TestDB.Nwarnings);
+	}
 
 //	test_speed_mm_d();
 

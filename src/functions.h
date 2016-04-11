@@ -8,6 +8,7 @@
  *		Set function prototypes.
  *
  *	Comments:
+ *		ToBeDeleted: Ensure that lines are not longer than 120 characters.
  *
  *	Notation:
  *
@@ -24,7 +25,7 @@ extern void     setup_connectivity          (void);
 extern void     setup_periodic              (void);
 extern void       find_periodic_connections (unsigned int *Pve, unsigned int *pvePointer, const unsigned int VeMax);
 extern void   setup_operators               (void);
-extern void     cubature_TP                 (double **xir, double **W, unsigned int **Con, unsigned int *Nn,
+extern void     cubature_TP                 (double **rst, double **W, unsigned int **Con, unsigned int *Nn,
                                              const unsigned int *ToReturn, const unsigned int P, const unsigned int d,
 											 const char *NodeType);
 extern double     *basis_TP                 (const int P, const double *xir, const int Nn, const int d);
@@ -36,12 +37,13 @@ extern void   setup_geometry                (void);
 extern void     vertices_to_exact_geom      (void);
 
 // Matrix Functions
-extern double *identity_d (const int N);
-extern double *inverse_d  (int N, int NRHS, double *A, double *b);
-extern double *mm_Alloc_d (const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m, const int n, const int k,
-                           const double alpha, const double *A, const double *B);
-extern void   mm_d        (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m,
-                           const int n, const int k, const double alpha, const double *A, const double *B, double *C);
+extern double *identity_d (const unsigned int N);
+extern double *inverse_d  (const unsigned int N, const unsigned int NRHS, const double *A, const double *b);
+extern double *mm_Alloc_d (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb,
+                           const int m, const int n, const int k, const double alpha, const double *A, const double *B);
+extern void   mm_d        (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb,
+                           const int m, const int n, const int k, const double alpha, const double *A, const double *B,
+                           double *C);
 extern void   mm_CTN_d    (const int m, const int n, const int k, const double *A, const double *B, double *C);
 
 //extern void   mm_CTN_d    (const int m, const int n, const int k, const double *A, const double *B, double *C,
@@ -116,14 +118,5 @@ extern void memory_destructor_E (struct S_ELEMENT *ELEMENT);
 	extern void array_free3_f  (int iMax, int jMax, float ***A);
 	extern void array_free3_d  (int iMax, int jMax, double ***A);
 	extern void array_free3_ld (int iMax, int jMax, long double ***A);
-
-// Testing
-	extern void test_print                (const unsigned int pass);
-	extern void test_speed_mm_d           (void);
-	extern void test_imp_array_find_index (void);
-	extern void test_imp_array_norm       (void);
-	extern void test_imp_array_sort       (void);
-	extern void test_imp_array_swap       (void);
-	extern void test_imp_math_factorial   (void);
 
 #endif // DPG__functions_h__INCLUDED

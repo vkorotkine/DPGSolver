@@ -5,8 +5,8 @@
 
 /*
  *	Purpose:
- *		Provide matrix functions:
- *			double *identity_d(const int N);
+ *		Provide matrix functions (ToBeModified):
+ *			double *identity_d(const unsigned int N);
  *			double *inverse_d(int N, int NRHS, double A, double b);
  *			double mm_Alloc_d(const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m, const int n,
  *			                  const int k, const double alpha, const double *A, const double *B)
@@ -22,12 +22,17 @@
  *
  */
 
-double *identity_d(const int N)
+double *identity_d(const unsigned int N)
 {
-	int i, j;
+	/*
+	 *	Comments:
+	 *		The returned array requires an external free.
+	 */
+
+	unsigned int i, j;
 	double *I;
 
-	I = malloc(N*N * sizeof(double)); // keep (requires external free)
+	I = malloc(N*N * sizeof *I); // keep (requires external free)
 	for (i = 0; i < N; i++) {
 	for (j = 0; j < N; j++) {
 		if (i == j) I[i*N+j] = 1.0;
@@ -36,19 +41,30 @@ double *identity_d(const int N)
 	return I;
 }
 
-double *inverse_d(int N, int NRHS, double *A, double *b)
+double *inverse_d(const unsigned int N, const unsigned int NRHS, const double *AIn, const double *b)
 {
-	int i, iMax;
-	double *x;
+	/*
+	 *	Comments:
+	 *		The LAPACKE_dgesv modifies A while solving for x (which overwrites b's memory). Thus, new memory is
+	 *		allocated such that both AIn and b remain unchanged after solving in this routine.
+	 *
+	 *		The returned array requires an external free.
+	 */
+
+	unsigned int i, iMax;
+	double *A, *x;
 
 	lapack_int N_LA, NRHS_LA, ipiv[N], info;
 
 	N_LA    = (lapack_int) N;
 	NRHS_LA = (lapack_int) NRHS;
 
-	x = malloc(N*NRHS * sizeof(double)); // keep (requires external free)
-	for (i = 0, iMax = N*NRHS; i < iMax; i++)
+	A = malloc(N*N    * sizeof *A); // free
+	x = malloc(N*NRHS * sizeof *x); // keep (requires external free)
+	for (i = 0, iMax = N*NRHS; i < iMax; i++) {
+		A[i] = AIn[i];
 		x[i] = b[i];
+	}
 
 	info = LAPACKE_dgesv(LAPACK_ROW_MAJOR,N_LA,NRHS_LA,A,N_LA,ipiv,x,NRHS_LA);
 	if (info > 0) {
@@ -57,15 +73,20 @@ double *inverse_d(int N, int NRHS, double *A, double *b)
 		printf("the solution could not be computed.\n");
 		exit(1);
 	}
+
+	free(A);
 	return x;
 }
 
-double *mm_Alloc_d(const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m, const int n, const int k,
-	               const double alpha, const double *A, const double *B)
+double *mm_Alloc_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb,
+                   const int m, const int n, const int k, const double alpha, const double *A, const double *B)
 {
 	/*
 	 *	Purpose:
 	 *		Returns: C = alpha*op(A)*op(B)
+	 *
+	 *	Comments:
+	 *		The returned array requires an external free.
 	 *
 	 *	Notation:
 	 *		m : Number of rows of matrix op(A)
@@ -78,36 +99,35 @@ double *mm_Alloc_d(const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, c
 	 *		transa/transb: CblasNoTrans, CblasTrans, CblasConjTrans
 	 */
 
-	int C_NRows, C_NCols;
 	double *C;
-	MKL_INT m_MKL, n_MKL, k_MKL,
-	        ldA, ldB, ldC;
+	MKL_INT m_MKL, n_MKL, k_MKL, ldA, ldB, ldC;
 
 	m_MKL = (MKL_INT) m;
 	n_MKL = (MKL_INT) n;
 	k_MKL = (MKL_INT) k;
 
-	if (transa == CblasNoTrans) {
-		ldA = k_MKL;
-		C_NRows = m;
+	C = malloc(m*n * sizeof *C); // keep (requires external free)
+	if (layout == CblasColMajor) {
+		if (transa == CblasNoTrans) ldA = m_MKL;
+		else                        ldA = k_MKL;
+
+		if (transb == CblasNoTrans) ldB = k_MKL;
+		else                        ldB = n_MKL;
+
+		ldC = m_MKL;
+		cblas_dgemm(CblasColMajor,transa,transb,m_MKL,n_MKL,k_MKL,alpha,A,ldA,B,ldB,0.0,C,ldC);
+	} else if (layout == CblasRowMajor) {
+		if (transa == CblasNoTrans) ldA = k_MKL;
+		else                        ldA = m_MKL;
+
+		if (transb == CblasNoTrans) ldB = n_MKL;
+		else                        ldB = k_MKL;
+
+		ldC = n_MKL;
+		cblas_dgemm(CblasRowMajor,transa,transb,m_MKL,n_MKL,k_MKL,alpha,A,ldA,B,ldB,0.0,C,ldC);
 	} else {
-		ldA = m_MKL;
-		C_NRows = k;
+		printf("Error: Invalid layout in mm_*.\n"), exit(1);
 	}
-
-	if (transb == CblasNoTrans) {
-		ldB = n_MKL;
-		C_NCols = k;
-	} else {
-		ldB = k_MKL;
-		C_NCols = n;
-	}
-
-	ldC = n_MKL;
-
-	C = malloc(C_NRows*C_NCols * sizeof(double)); // keep (requires external free)
-
-	cblas_dgemm(CblasRowMajor,transa,transb,m_MKL,n_MKL,k_MKL,alpha,A,ldA,B,ldB,0.0,C,ldC);
 
 	return C;
 }
@@ -167,7 +187,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 {
 	/*
 	 *	Purpose:
-	 *		Compute matrix-matrix and matrix-vector products assuming:
+	 *		Compute matrix-matrix and matrix-vector products:
 	 *			0) return C = A'*B
 	 *			1) Row-major storage of A
 	 *			2) Column-major storage of B and C
@@ -177,10 +197,10 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 	 *			C : Column-major output
 	 *			T : Transpose of A
 	 *			N : No transpose of B
-	 *		This memory ordering is optimal to reduce memory stride when multiplying small A matrices (relative to B) by
-	 *		B as in vectorized implementations of the code. (ToBeModified)
+	 *		This implementation/memory ordering is optimal to reduce memory stride when multiplying small A matrices
+	 *		(relative to B) by B as in vectorized implementations of the code. (ToBeModified)
 	 *
-	 *		The function allows for the usage of either native c-code or BLAS calls depending on the value of 'useBLAS'.
+	 *		The function allows for the usage of either custom c-code or BLAS calls depending on the value of 'useBLAS'.
 	 *		The 'A', 'B' and 'C' array pointers are not declared as 'const' as the qualifiers are discarded during the
 	 *		initialization/assignement of pointer variables in the custom implementation.
 	 *
@@ -190,6 +210,8 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 	 *			gemv: m_MKL = k, k_MKL = m provide the dimensions of A (k rows, m columns)
 	 *		In the custom implementations of mv and mm below, the pointer version was very slightly faster than the
 	 *		array indexed version (similarly to array_swap).
+	 *
+	 *		If the breakeven values are changed, ensure that test_imp_matrix_mm is updated. (ToBeModified)
 	 *
 	 *		Conclusions from test_speed_mm:
 	 *			Testing done using -O3.
@@ -358,6 +380,4 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 		printf("Error: Unsupported value of 'useBLAS' passed to mm_d_CTN.\n"), exit(1);
 		break;
 	}
-
-
 }
