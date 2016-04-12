@@ -58,7 +58,7 @@ void test_imp_cubature_TP(void)
 	unsigned int i, j, k, row;
 	unsigned int dE, ToReturn[4], Nn, P;
 	unsigned int *Con;
-	double *rst, *W;
+	double *rst, *w;
 
 	dE = 1;
 
@@ -67,27 +67,27 @@ void test_imp_cubature_TP(void)
 
 	unsigned int N13 = P+1;
 	unsigned int Con13[6] = { 0, 1, 1, 2, 2, 3 };
-	double rst13_GL[N13], W13_GL[N13], rst13_GLL[N13], W13_GLL[N13], rst13_ES[N13];
+	double rst13_GL[N13], w13_GL[N13], rst13_GLL[N13], w13_GLL[N13], rst13_ES[N13];
 
 	rst13_GL[0] = -1.0/35.0*sqrt(525.0-70.0*sqrt(30.0));
 	rst13_GL[1] =  1.0/35.0*sqrt(525.0-70.0*sqrt(30.0));
 	rst13_GL[2] = -1.0/35.0*sqrt(525.0+70.0*sqrt(30.0));
 	rst13_GL[3] =  1.0/35.0*sqrt(525.0+70.0*sqrt(30.0));
 
-	W13_GL[0] = 1.0/36.0*(18.0+sqrt(30.0));
-	W13_GL[1] = 1.0/36.0*(18.0+sqrt(30.0));
-	W13_GL[2] = 1.0/36.0*(18.0-sqrt(30.0));
-	W13_GL[3] = 1.0/36.0*(18.0-sqrt(30.0));
+	w13_GL[0] = 1.0/36.0*(18.0+sqrt(30.0));
+	w13_GL[1] = 1.0/36.0*(18.0+sqrt(30.0));
+	w13_GL[2] = 1.0/36.0*(18.0-sqrt(30.0));
+	w13_GL[3] = 1.0/36.0*(18.0-sqrt(30.0));
 
 	rst13_GLL[0] = -1.0/5.0*sqrt(5.0);
 	rst13_GLL[1] =  1.0/5.0*sqrt(5.0);
 	rst13_GLL[2] = -1.0;
 	rst13_GLL[3] =  1.0;
 
-	W13_GLL[0] = 5.0/6.0;
-	W13_GLL[1] = 5.0/6.0;
-	W13_GLL[2] = 1.0/6.0;
-	W13_GLL[3] = 1.0/6.0;
+	w13_GLL[0] = 5.0/6.0;
+	w13_GLL[1] = 5.0/6.0;
+	w13_GLL[2] = 1.0/6.0;
+	w13_GLL[3] = 1.0/6.0;
 
 	rst13_ES[0] = -1.0;
 	rst13_ES[1] = -1.0/3.0;
@@ -97,11 +97,11 @@ void test_imp_cubature_TP(void)
 
 	// GL
 	ToReturn[0] = 1; ToReturn[1] = 1; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&W,&Con,&Nn,ToReturn,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"GL"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N13,rst13_GL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N13,W13_GL,W,"Inf")     < EPS &&
+		array_norm_diff_d(N13,w13_GL,w,"Inf")     < EPS &&
 		Nn == N13)
 			pass = 1, TestDB.Npass++;
 
@@ -109,27 +109,27 @@ void test_imp_cubature_TP(void)
 	printf("cubature_TP (d1, P3, GL):                        ");
 	test_print(pass);
 
-	free(rst), free(W);
+	free(rst), free(w);
 
 	// GLL
 	ToReturn[0] = 1; ToReturn[1] = 1; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&W,&Con,&Nn,ToReturn,P,dE,"GLL"); // free
+	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"GLL"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N13,rst13_GLL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N13,W13_GLL,W,"Inf")     < EPS &&
+		array_norm_diff_d(N13,w13_GLL,w,"Inf")     < EPS &&
 		Nn == N13)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("cubature_TP (d1, P3, GLL):                       ");
+	printf("            (d1, P3, GLL):                       ");
 	test_print(pass);
 
-	free(rst), free(W);
+	free(rst), free(w);
 
 	// ES
 	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 1; ToReturn[3] = 1;
-	cubature_TP(&rst,&W,&Con,&Nn,ToReturn,P,dE,"ES"); // free
+	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"ES"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N13,rst13_ES,rst,"Inf") < EPS &&
@@ -138,7 +138,7 @@ void test_imp_cubature_TP(void)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("cubature_TP (d1, P3, ES):                        ");
+	printf("            (d1, P3, ES):                        ");
 	test_print(pass);
 
 	free(rst), free(Con);
@@ -149,7 +149,7 @@ void test_imp_cubature_TP(void)
 
 	unsigned int N14 = P+1;
 	unsigned int Con14[8] = { 0, 1, 1, 2, 2, 3, 3, 4 };
-	double rst14_GL[N14], W14_GL[N14], rst14_GLL[N14], W14_GLL[N14], rst14_ES[N14];
+	double rst14_GL[N14], w14_GL[N14], rst14_GLL[N14], w14_GLL[N14], rst14_ES[N14];
 
 	rst14_GL[0] =  0.0;
 	rst14_GL[1] = -1.0/21.0*sqrt(245.0-14.0*sqrt(70.0));
@@ -157,11 +157,11 @@ void test_imp_cubature_TP(void)
 	rst14_GL[3] = -1.0/21.0*sqrt(245.0+14.0*sqrt(70.0));
 	rst14_GL[4] =  1.0/21.0*sqrt(245.0+14.0*sqrt(70.0));
 
-	W14_GL[0] = 128.0/225.0;
-	W14_GL[1] = 1.0/900.0*(322.0+13.0*sqrt(70.0));
-	W14_GL[2] = 1.0/900.0*(322.0+13.0*sqrt(70.0));
-	W14_GL[3] = 1.0/900.0*(322.0-13.0*sqrt(70.0));
-	W14_GL[4] = 1.0/900.0*(322.0-13.0*sqrt(70.0));
+	w14_GL[0] = 128.0/225.0;
+	w14_GL[1] = 1.0/900.0*(322.0+13.0*sqrt(70.0));
+	w14_GL[2] = 1.0/900.0*(322.0+13.0*sqrt(70.0));
+	w14_GL[3] = 1.0/900.0*(322.0-13.0*sqrt(70.0));
+	w14_GL[4] = 1.0/900.0*(322.0-13.0*sqrt(70.0));
 
 	rst14_GLL[0] =  0.0;
 	rst14_GLL[1] = -1.0/7.0*sqrt(21.0);
@@ -169,11 +169,11 @@ void test_imp_cubature_TP(void)
 	rst14_GLL[3] = -1.0;
 	rst14_GLL[4] =  1.0;
 
-	W14_GLL[0] = 32.0/45.0;
-	W14_GLL[1] = 49.0/90.0;
-	W14_GLL[2] = 49.0/90.0;
-	W14_GLL[3] = 1.0/10.0;
-	W14_GLL[4] = 1.0/10.0;
+	w14_GLL[0] = 32.0/45.0;
+	w14_GLL[1] = 49.0/90.0;
+	w14_GLL[2] = 49.0/90.0;
+	w14_GLL[3] = 1.0/10.0;
+	w14_GLL[4] = 1.0/10.0;
 
 	rst14_ES[0] = -1.0;
 	rst14_ES[1] = -0.5;
@@ -184,40 +184,40 @@ void test_imp_cubature_TP(void)
 
 	// GL
 	ToReturn[0] = 1; ToReturn[1] = 1; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&W,&Con,&Nn,ToReturn,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"GL"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N14,rst14_GL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N14,W14_GL,W,"Inf")     < EPS &&
+		array_norm_diff_d(N14,w14_GL,w,"Inf")     < EPS &&
 		Nn == N14)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("cubature_TP (d1, P4, GL):                        ");
+	printf("            (d1, P4, GL):                        ");
 	test_print(pass);
 
-	free(rst), free(W);
+	free(rst), free(w);
 
 	// GLL
 	ToReturn[0] = 1; ToReturn[1] = 1; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&W,&Con,&Nn,ToReturn,P,dE,"GLL"); // free
+	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"GLL"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N14,rst14_GLL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N14,W14_GLL,W,"Inf")     < EPS &&
+		array_norm_diff_d(N14,w14_GLL,w,"Inf")     < EPS &&
 		Nn == N14)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("cubature_TP (d1, P4, GLL):                       ");
+	printf("            (d1, P4, GLL):                       ");
 	test_print(pass);
 
-	free(rst), free(W);
+	free(rst), free(w);
 
 
 	// ES
 	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 1; ToReturn[3] = 1;
-	cubature_TP(&rst,&W,&Con,&Nn,ToReturn,P,dE,"ES"); // free
+	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"ES"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N14,rst14_ES,rst,"Inf") < EPS &&
@@ -226,7 +226,7 @@ void test_imp_cubature_TP(void)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("cubature_TP (d1, P4, ES):                        ");
+	printf("            (d1, P4, ES):                        ");
 	test_print(pass);
 
 	free(rst), free(Con);
@@ -266,13 +266,13 @@ void test_imp_cubature_TP(void)
 	unsigned int Con23[9*4] = { 0,  1,  5,  4,   4,  5,  9,  8,   8,  9,  13, 12,
 	                            1,  2,  6,  5,   5,  6,  10, 9,   9,  10, 14, 13,
 	                            2,  3,  7,  6,   6,  7,  11, 10,  10, 11, 15, 14 };
-	double rst23_GL[dE*N23], W23_GL[dE*N23], rst23_GLL[dE*N23], W23_GLL[dE*N23], rst23_ES[dE*N23];
+	double rst23_GL[dE*N23], w23_GL[dE*N23], rst23_GLL[dE*N23], w23_GLL[dE*N23], rst23_ES[dE*N23];
 
 	row = 0;
 	for (j = 0; j < N13; j++) {
 	for (i = 0; i < N13; i++) {
-		W23_GL[row]  = W13_GL[i]*W13_GL[j];
-		W23_GLL[row] = W13_GLL[i]*W13_GLL[j];
+		w23_GL[row]  = w13_GL[i]*w13_GL[j];
+		w23_GLL[row] = w13_GLL[i]*w13_GLL[j];
 
 		rst23_GL[0*N23+row] = rst13_GL[i];
 		rst23_GL[1*N23+row] = rst13_GL[j];
@@ -288,39 +288,39 @@ void test_imp_cubature_TP(void)
 
 	// GL
 	ToReturn[0] = 1; ToReturn[1] = 1; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&W,&Con,&Nn,ToReturn,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"GL"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N23,rst23_GL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N23,W23_GL,W,"Inf")     < EPS &&
+		array_norm_diff_d(N23,w23_GL,w,"Inf")     < EPS &&
 		Nn == N23)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("cubature_TP (d2, P3, GL):                        ");
+	printf("            (d2, P3, GL):                        ");
 	test_print(pass);
 
-	free(rst), free(W);
+	free(rst), free(w);
 
 	// GLL
 	ToReturn[0] = 1; ToReturn[1] = 1; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&W,&Con,&Nn,ToReturn,P,dE,"GLL"); // free
+	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"GLL"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N23,rst23_GLL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N23,W23_GLL,W,"Inf")     < EPS &&
+		array_norm_diff_d(N23,w23_GLL,w,"Inf")     < EPS &&
 		Nn == N23)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("cubature_TP (d2, P3, GLL):                       ");
+	printf("            (d2, P3, GLL):                       ");
 	test_print(pass);
 
-	free(rst), free(W);
+	free(rst), free(w);
 
 	// ES
 	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 1; ToReturn[3] = 1;
-	cubature_TP(&rst,&W,&Con,&Nn,ToReturn,P,dE,"ES"); // free
+	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"ES"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N23,rst23_ES,rst,"Inf") < EPS &&
@@ -329,7 +329,7 @@ void test_imp_cubature_TP(void)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("cubature_TP (d2, P3, ES):                        ");
+	printf("            (d2, P3, ES):                        ");
 	test_print(pass);
 
 	free(rst), free(Con);
@@ -370,14 +370,14 @@ void test_imp_cubature_TP(void)
 	                             22, 23, 27, 26, 38, 39, 43, 42,   38, 39, 43, 42, 54, 55, 59, 58,
 	                             10, 11, 15, 14, 26, 27, 31, 30,   26, 27, 31, 30, 42, 43, 47, 46,
 	                             42, 43, 47, 46, 58, 59, 63, 62 };
-	double rst33_GL[dE*N33], W33_GL[dE*N33], rst33_GLL[dE*N33], W33_GLL[dE*N33], rst33_ES[dE*N33];
+	double rst33_GL[dE*N33], w33_GL[dE*N33], rst33_GLL[dE*N33], w33_GLL[dE*N33], rst33_ES[dE*N33];
 
 	row = 0;
 	for (k = 0; k < N13; k++) {
 	for (j = 0; j < N13; j++) {
 	for (i = 0; i < N13; i++) {
-		W33_GL[row]  = W13_GL[i]*W13_GL[j]*W13_GL[k];
-		W33_GLL[row] = W13_GLL[i]*W13_GLL[j]*W13_GLL[k];
+		w33_GL[row]  = w13_GL[i]*w13_GL[j]*w13_GL[k];
+		w33_GLL[row] = w13_GLL[i]*w13_GLL[j]*w13_GLL[k];
 
 		rst33_GL[0*N33+row] = rst13_GL[i];
 		rst33_GL[1*N33+row] = rst13_GL[j];
@@ -396,40 +396,40 @@ void test_imp_cubature_TP(void)
 
 	// GL
 	ToReturn[0] = 1; ToReturn[1] = 1; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&W,&Con,&Nn,ToReturn,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"GL"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N33,rst33_GL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N33,W33_GL,W,"Inf")     < EPS &&
+		array_norm_diff_d(N33,w33_GL,w,"Inf")     < EPS &&
 		Nn == N33)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("cubature_TP (d3, P3, GL):                        ");
+	printf("            (d3, P3, GL):                        ");
 	test_print(pass);
 
-	free(rst), free(W);
+	free(rst), free(w);
 
 	// GLL
 	ToReturn[0] = 1; ToReturn[1] = 1; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&W,&Con,&Nn,ToReturn,P,dE,"GLL"); // free
+	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"GLL"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N33,rst33_GLL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N33,W33_GLL,W,"Inf")     < EPS &&
+		array_norm_diff_d(N33,w33_GLL,w,"Inf")     < EPS &&
 		Nn == N33)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("cubature_TP (d3, P3, GLL):                       ");
+	printf("            (d3, P3, GLL):                       ");
 	test_print(pass);
 
-	free(rst), free(W);
+	free(rst), free(w);
 
 
 	// ES
 	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 1; ToReturn[3] = 1;
-	cubature_TP(&rst,&W,&Con,&Nn,ToReturn,P,dE,"ES"); // free
+	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"ES"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N33,rst33_ES,rst,"Inf") < EPS &&
@@ -438,7 +438,7 @@ void test_imp_cubature_TP(void)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("cubature_TP (d3, P3, ES):                        ");
+	printf("            (d3, P3, ES):                        ");
 	test_print(pass);
 
 	free(rst), free(Con);

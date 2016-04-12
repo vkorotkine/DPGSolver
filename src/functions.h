@@ -25,11 +25,13 @@ extern void     setup_connectivity          (void);
 extern void     setup_periodic              (void);
 extern void       find_periodic_connections (unsigned int *Pve, unsigned int *pvePointer, const unsigned int VeMax);
 extern void   setup_operators               (void);
-extern void     cubature_TP                 (double **rst, double **W, unsigned int **Con, unsigned int *Nn,
+extern void     cubature_TP                 (double **rst, double **w_vec, unsigned int **Con, unsigned int *Nn,
                                              const unsigned int *ToReturn, const unsigned int P, const unsigned int d,
 											 const char *NodeType);
-extern double     *basis_TP                 (const int P, const double *xir, const int Nn, const int d);
-extern double     **grad_basis_TP           (const int P, const double *xir, const int Nn, const int d);
+extern double     *basis_TP                 (const unsigned int P, const double *rst, const unsigned int Nn,
+                                             const unsigned int d);
+extern double     **grad_basis_TP           (const unsigned int P, const double *rst, const unsigned int Nn,
+                                             const unsigned int d);
 extern double     jacobiP                   (const double x, const double alpha, const double beta, const int N);
 extern double     grad_jacobiP              (const double x, const double alpha, const double beta, const int N);
 extern void   setup_structures              (void);
@@ -37,6 +39,7 @@ extern void   setup_geometry                (void);
 extern void     vertices_to_exact_geom      (void);
 
 // Matrix Functions
+extern double *diag_d     (const double *x, const unsigned int N);
 extern double *identity_d (const unsigned int N);
 extern double *inverse_d  (const unsigned int N, const unsigned int NRHS, const double *A, const double *b);
 extern double *mm_Alloc_d (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb,
@@ -104,19 +107,21 @@ extern void memory_destructor_E (struct S_ELEMENT *ELEMENT);
 	extern void array_print_ld (const unsigned int m, const unsigned int n, long double *A, const char layout);
 
 	// Memory Management
-	extern void array_free2_c  (int iMax, char **A);
-	extern void array_free2_i  (int iMax, int **A);
-	extern void array_free2_l  (int iMax, long **A);
-	extern void array_free2_ll (int iMax, long long **A);
-	extern void array_free2_f  (int iMax, float **A);
-	extern void array_free2_d  (int iMax, double **A);
-	extern void array_free2_ld (int iMax, long double **A);
-	extern void array_free3_c  (int iMax, int jMax, char ***A);
-	extern void array_free3_i  (int iMax, int jMax, int ***A);
-	extern void array_free3_l  (int iMax, int jMax, long ***A);
-	extern void array_free3_ll (int iMax, int jMax, long long ***A);
-	extern void array_free3_f  (int iMax, int jMax, float ***A);
-	extern void array_free3_d  (int iMax, int jMax, double ***A);
-	extern void array_free3_ld (int iMax, int jMax, long double ***A);
+	extern void array_free2_c  (unsigned int iMax, char **A);
+	extern void array_free2_ui (unsigned int iMax, unsigned int **A);
+	extern void array_free2_i  (unsigned int iMax, int **A);
+	extern void array_free2_l  (unsigned int iMax, long **A);
+	extern void array_free2_ll (unsigned int iMax, long long **A);
+	extern void array_free2_f  (unsigned int iMax, float **A);
+	extern void array_free2_d  (unsigned int iMax, double **A);
+	extern void array_free2_ld (unsigned int iMax, long double **A);
+	extern void array_free3_c  (unsigned int iMax, unsigned int jMax, char ***A);
+	extern void array_free3_ui (unsigned int iMax, unsigned int jMax, unsigned int ***A);
+	extern void array_free3_i  (unsigned int iMax, unsigned int jMax, int ***A);
+	extern void array_free3_l  (unsigned int iMax, unsigned int jMax, long ***A);
+	extern void array_free3_ll (unsigned int iMax, unsigned int jMax, long long ***A);
+	extern void array_free3_f  (unsigned int iMax, unsigned int jMax, float ***A);
+	extern void array_free3_d  (unsigned int iMax, unsigned int jMax, double ***A);
+	extern void array_free3_ld (unsigned int iMax, unsigned int jMax, long double ***A);
 
 #endif // DPG__functions_h__INCLUDED

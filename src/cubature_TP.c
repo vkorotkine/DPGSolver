@@ -34,7 +34,7 @@
  *		      lglnodes.m
  */
 
-void cubature_TP(double **rst, double **W, unsigned int **Con, unsigned int *Nn, const unsigned int *ToReturn,
+void cubature_TP(double **rst, double **w_vec, unsigned int **Con, unsigned int *Nn, const unsigned int *ToReturn,
                  const unsigned int P, const unsigned int d,const char *NodeType)
 {
 
@@ -244,8 +244,8 @@ void cubature_TP(double **rst, double **W, unsigned int **Con, unsigned int *Nn,
 		*rst = r_d;
 		*Nn  = pow(N,d);
 
-		if (ToReturn[1] != 0) *W = w_d;
-		else                  *W = NULL, free(w_d);
+		if (ToReturn[1] != 0) *w_vec = w_d;
+		else                  *w_vec = NULL, free(w_d);
 
 		if (ToReturn[2] != 0) {
 			printf("Error: Connectivity can only be returned for the \"ES\" nodetype.\n"), exit(1);
@@ -307,7 +307,7 @@ void cubature_TP(double **rst, double **W, unsigned int **Con, unsigned int *Nn,
 		if (ToReturn[1] != 0) {
 			printf("Error: There are no weights associated with the \"ES\" nodetype.\n"), exit(1);
 		} else {
-			*W = NULL;
+			*w_vec = NULL;
 			free(w_d);
 		}
 

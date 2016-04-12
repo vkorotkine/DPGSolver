@@ -54,12 +54,12 @@ struct S_ELEMENT {
 	// Operators
 	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc, *NvnP,
 	             *NfnGc, *NfnIs, *NfnIc,
-	             **Con_xir_vP;
+	             **Con_rst_vP;
 	double       *nr,
-	             **xir_vGs, **xir_vGc, **xir_vCs, **xir_vCc, **xir_vJs, **xir_vJc, **xir_vS, **xir_vF, **xir_vFrs, **xir_vFrc,
-	             **xir_vIs, **xir_vIc, **xir_vP,
-	             **WvIs, **WvIc,
-	             ***xir_fGc, ***xir_fIs, ***xir_fIc, **WfIs, **WfIc,
+	             **rst_vGs, **rst_vGc, **rst_vCs, **rst_vCc, **rst_vJs, **rst_vJc, **rst_vS, **rst_vF, **rst_vFrs, **rst_vFrc,
+	             **rst_vIs, **rst_vIc, **rst_vP,
+	             **wvIs, **wvIc,
+	             ***rst_fGc, ***rst_fIs, ***rst_fIc, **wfIs, **wfIc,
 	             **I_vGs_vGc;
 
 	struct S_ELEMENT *next;

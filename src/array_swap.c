@@ -48,7 +48,7 @@ void array_swap_ui(register unsigned int *arr1, register unsigned int *arr2, con
 			}
 			break;
 		default:
-			for (N = NIn, step = stepIn; N-- ; ) {
+			for (N = NIn-1, step = stepIn; N-- ; ) {
 				arr1 += step;
 				arr2 += step;
 
@@ -88,7 +88,7 @@ void array_swap_i(register int *arr1, register int *arr2, const int NIn, const i
 			}
 			break;
 		default:
-			for (N = NIn, step = stepIn; N-- ; ) {
+			for (N = NIn-1, step = stepIn; N-- ; ) {
 				arr1 += step;
 				arr2 += step;
 

@@ -9,92 +9,94 @@
 
 /*
  *	Purpose:
- *		Return the "matrix" GradChiRef_xir representing the gradients of the orthonormal basis functions evaluated at
+ *		Return the "matrices" GradChiRef_rst representing the gradients of the orthonormal basis functions evaluated at
  *		the provided quadrature nodes for polynomial order P.
  *
  *	Comments:
- *		The "matrix" is returned as d pointers to 1D arrays.
+ *		The "matrices" are returned as d pointers to 1D arrays.
  *
  *	Notation:
- *
- *	Example code:
- *
- *		int P_tmp, Nn_tmp, dim_tmp,
- *		    *dummyi_tmp, ToReturn_tmp[4];
- *		double *xir_tmp, *dummyd_tmp, **GradChiRef_tmp;
- *
- *		P_tmp = 2;
- *		dim_tmp = 2;
- *
- *		ToReturn_tmp[0] = 1; ToReturn_tmp[1] = 0; ToReturn_tmp[2] = 0; ToReturn_tmp[3] = 1;
- *		cubature_TP(&xir_tmp,&dummyd_tmp,&dummyi_tmp,&Nn_tmp,ToReturn_tmp,P_tmp,dim_tmp,"GL");
- *		GradChiRef_tmp = grad_basis_TP(P_tmp,xir_tmp,Nn_tmp,dim_tmp);
- *
- *		array_print_d(Nn_tmp,pow(P_tmp+1,dim_tmp),GradChiRef_tmp[0],'R');
- *
- *		free(xir_tmp);
- *		array_free2_d(dim_tmp,GradChiRef_tmp);
  *
  *	References:
  *
  */
 
-double **grad_basis_TP(const int P, const double *xir, const int Nn, const int d)
+double **grad_basis_TP(const unsigned int P, const double *rst, const unsigned int Nn, const unsigned int d)
 {
-	int    i, j, k, iMax, jMax, kMax, dim, Indbf, Indn,
-	       N, Nbf;
-	double **GradChiRef_xir;
+	unsigned int i, j, k, iMax, jMax, kMax, dim, Indbf, Indn, u1,
+	             N, Nbf;
+	int          sd,sN;
+	double       **GradChiRef_rst, *r, *s, *t;
 
 	N = P+1;
+
+	u1 = 1;
+	sd = d;
+	sN = N;
+
+	r = malloc(Nn * sizeof *r); // free
+	if (d > 1) s = malloc(Nn * sizeof *s); // free
+	if (d > 2) t = malloc(Nn * sizeof *t); // free
+
+	for (i = 0; i < Nn; i++) {
+		r[i] = rst[0*Nn+i];
+		if (d > 1) s[i] = rst[1*Nn+i];
+		if (d > 2) t[i] = rst[2*Nn+i];
+	}
+
 	Nbf = pow(N,d);
 
-	GradChiRef_xir = malloc(d * sizeof *GradChiRef_xir); // keep
+	GradChiRef_rst = malloc(d * sizeof *GradChiRef_rst); // keep
 	for (dim = 0; dim < d; dim++)
-		GradChiRef_xir[dim] = malloc(Nn*Nbf * sizeof **GradChiRef_xir); // keep
+		GradChiRef_rst[dim] = malloc(Nn*Nbf * sizeof **GradChiRef_rst); // keep
 
 	Indbf = 0;
 	if (d == 1) {
-		for (i = 0, iMax = min(max((d)  *N,1),N); i < iMax; i++) {
+		for (i = 0, iMax = min(max((d)  *N,u1),N); i < iMax; i++) {
 			for (Indn = 0; Indn < Nn; Indn++) {
-				GradChiRef_xir[0][Indbf*Nn+Indn] = grad_jacobiP(xir[Indn*d]  ,0.0,0.0,(double) i);
+				GradChiRef_rst[0][Indbf*Nn+Indn] = grad_jacobiP(r[Indn],0.0,0.0,(double) i);
 			}
 			Indbf++;
 		}
 	} else if (d == 2) {
-		for (j = 0, jMax = min(max((d-1)*N,1),N); j < jMax; j++) {
-		for (i = 0, iMax = min(max((d)  *N,1),N); i < iMax; i++) {
+		for (j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
+		for (i = 0, iMax = min(max((d)  *N,u1),N); i < iMax; i++) {
 			for (Indn = 0; Indn < Nn; Indn++) {
-				GradChiRef_xir[0][Indbf*Nn+Indn] = grad_jacobiP(xir[Indn*d]  ,0.0,0.0,(double) i)*
-				                                        jacobiP(xir[Indn*d+1],0.0,0.0,(double) j);
-				GradChiRef_xir[1][Indbf*Nn+Indn] =      jacobiP(xir[Indn*d]  ,0.0,0.0,(double) i)*
-				                                   grad_jacobiP(xir[Indn*d+1],0.0,0.0,(double) j);
+				GradChiRef_rst[0][Indbf*Nn+Indn] = grad_jacobiP(r[Indn],0.0,0.0,(double) i)*
+				                                        jacobiP(s[Indn],0.0,0.0,(double) j);
+				GradChiRef_rst[1][Indbf*Nn+Indn] =      jacobiP(r[Indn],0.0,0.0,(double) i)*
+				                                   grad_jacobiP(s[Indn],0.0,0.0,(double) j);
 			}
 			Indbf++;
 		}}
 	} else if (d == 3) {
-		for (k = 0, kMax = min(max((d-2)*N,1),N); k < kMax; k++) {
-		for (j = 0, jMax = min(max((d-1)*N,1),N); j < jMax; j++) {
-		for (i = 0, iMax = min(max((d)  *N,1),N); i < iMax; i++) {
+		for (k = 0, kMax = (unsigned int) min(max((sd-2)*sN,1),sN); k < kMax; k++) {
+		for (j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
+		for (i = 0, iMax = min(max((d)  *N,u1),N); i < iMax; i++) {
 			for (Indn = 0; Indn < Nn; Indn++) {
-				GradChiRef_xir[0][Indbf*Nn+Indn] = grad_jacobiP(xir[Indn*d]  ,0.0,0.0,(double) i)*
-				                                        jacobiP(xir[Indn*d+1],0.0,0.0,(double) j)*
-				                                        jacobiP(xir[Indn*d+2],0.0,0.0,(double) k);
-				GradChiRef_xir[1][Indbf*Nn+Indn] =      jacobiP(xir[Indn*d]  ,0.0,0.0,(double) i)*
-				                                   grad_jacobiP(xir[Indn*d+1],0.0,0.0,(double) j)*
-				                                        jacobiP(xir[Indn*d+2],0.0,0.0,(double) k);
-				GradChiRef_xir[2][Indbf*Nn+Indn] =      jacobiP(xir[Indn*d]  ,0.0,0.0,(double) i)*
-				                                        jacobiP(xir[Indn*d+1],0.0,0.0,(double) j)*
-				                                   grad_jacobiP(xir[Indn*d+2],0.0,0.0,(double) k);
+				GradChiRef_rst[0][Indbf*Nn+Indn] = grad_jacobiP(r[Indn],0.0,0.0,(double) i)*
+				                                        jacobiP(s[Indn],0.0,0.0,(double) j)*
+				                                        jacobiP(t[Indn],0.0,0.0,(double) k);
+				GradChiRef_rst[1][Indbf*Nn+Indn] =      jacobiP(r[Indn],0.0,0.0,(double) i)*
+				                                   grad_jacobiP(s[Indn],0.0,0.0,(double) j)*
+				                                        jacobiP(t[Indn],0.0,0.0,(double) k);
+				GradChiRef_rst[2][Indbf*Nn+Indn] =      jacobiP(r[Indn],0.0,0.0,(double) i)*
+				                                        jacobiP(s[Indn],0.0,0.0,(double) j)*
+				                                   grad_jacobiP(t[Indn],0.0,0.0,(double) k);
 			}
 			Indbf++;
 		}}}
 	}
 
-	// Transpose GradChiRef_xir
+	// Transpose GradChiRef_rst
 	for (dim = 0; dim < d; dim++)
-		mkl_dimatcopy('R','T',Nbf,Nn,1.,GradChiRef_xir[dim],Nn,Nbf);
+		mkl_dimatcopy('R','T',Nbf,Nn,1.,GradChiRef_rst[dim],Nn,Nbf);
 
-// array_print_d(Nn,Nbf,GradChiRef_xir[0],'R');
+// array_print_d(Nn,Nbf,GradChiRef_rst[0],'R');
 
-	return GradChiRef_xir;
+	free(r);
+	if (d > 1) free(s);
+	if (d > 2) free(t);
+
+	return GradChiRef_rst;
 }

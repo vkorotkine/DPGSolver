@@ -77,12 +77,12 @@ void setup_operators(void)
 	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc, *NvnP,
 	             *NfnGc, *NfnIs, *NfnIc,
 	             *ToReturn, *dummyCon,
-	             **Con_xir_vP;
+	             **Con_rst_vP;
 	double       Theta_eta[6], Theta_zeta[6],
-	             *nr,*dummyW, *dummyxir,
-	             **xir_vGs, **xir_vGc, **xir_vCs, **xir_vCc, **xir_vJs, **xir_vJc, **xir_vS, **xir_vF, **xir_vFrs, **xir_vFrc,
-	             **xir_vIs, **xir_vIc, **xir_vP, **WvIs, **WvIc,
-	             ***xir_fGc, ***xir_fIs, ***xir_fIc, **WfIs, **WfIc,
+	             *nr,*dummyw, *dummyrst,
+	             **rst_vGs, **rst_vGc, **rst_vCs, **rst_vCc, **rst_vJs, **rst_vJc, **rst_vS, **rst_vF, **rst_vFrs, **rst_vFrc,
+	             **rst_vIs, **rst_vIc, **rst_vP, **wvIs, **wvIc,
+	             ***rst_fGc, ***rst_fIs, ***rst_fIc, **wfIs, **wfIc,
 	             *IGs,
 	             *ChiRefGs_vGs,
 	             *ChiGs_vGs,
@@ -121,25 +121,24 @@ void setup_operators(void)
 	 *       IF IT IS NEEDED SOMEWHERE IN THE CODE.
 	 */
 	
-	// DONT FORGET TO CHANGE NAME FROM xir TO rst
-	xir_vGs  = ELEMENT->xir_vGs ; NvnGs  = ELEMENT->NvnGs;
-	xir_vGc  = ELEMENT->xir_vGc ; NvnGc  = ELEMENT->NvnGc;
-	xir_vCs  = ELEMENT->xir_vCs ; NvnCs  = ELEMENT->NvnCs;
-	xir_vCc  = ELEMENT->xir_vCc ; NvnCc  = ELEMENT->NvnCc;
-	xir_vJs  = ELEMENT->xir_vJs ; NvnJs  = ELEMENT->NvnJs;
-	xir_vJc  = ELEMENT->xir_vJc ; NvnJc  = ELEMENT->NvnJc;
-	xir_vS   = ELEMENT->xir_vS  ; NvnS   = ELEMENT->NvnS;
-	xir_vF   = ELEMENT->xir_vF  ; NvnF   = ELEMENT->NvnF;
-	xir_vFrs = ELEMENT->xir_vFrs; NvnFrs = ELEMENT->NvnFrs;
-	xir_vFrc = ELEMENT->xir_vFrc; NvnFrc = ELEMENT->NvnFrc;
-	xir_vIs  = ELEMENT->xir_vIs ; NvnIs  = ELEMENT->NvnIs ; WvIs = ELEMENT->WvIs;
-	xir_vIc  = ELEMENT->xir_vIc ; NvnIc  = ELEMENT->NvnIc ; WvIc = ELEMENT->WvIc;
-	xir_vP   = ELEMENT->xir_vP  ; NvnP   = ELEMENT->NvnP  ; Con_xir_vP = ELEMENT->Con_xir_vP;
+	rst_vGs  = ELEMENT->rst_vGs ; NvnGs  = ELEMENT->NvnGs;
+	rst_vGc  = ELEMENT->rst_vGc ; NvnGc  = ELEMENT->NvnGc;
+	rst_vCs  = ELEMENT->rst_vCs ; NvnCs  = ELEMENT->NvnCs;
+	rst_vCc  = ELEMENT->rst_vCc ; NvnCc  = ELEMENT->NvnCc;
+	rst_vJs  = ELEMENT->rst_vJs ; NvnJs  = ELEMENT->NvnJs;
+	rst_vJc  = ELEMENT->rst_vJc ; NvnJc  = ELEMENT->NvnJc;
+	rst_vS   = ELEMENT->rst_vS  ; NvnS   = ELEMENT->NvnS;
+	rst_vF   = ELEMENT->rst_vF  ; NvnF   = ELEMENT->NvnF;
+	rst_vFrs = ELEMENT->rst_vFrs; NvnFrs = ELEMENT->NvnFrs;
+	rst_vFrc = ELEMENT->rst_vFrc; NvnFrc = ELEMENT->NvnFrc;
+	rst_vIs  = ELEMENT->rst_vIs ; NvnIs  = ELEMENT->NvnIs ; wvIs = ELEMENT->wvIs;
+	rst_vIc  = ELEMENT->rst_vIc ; NvnIc  = ELEMENT->NvnIc ; wvIc = ELEMENT->wvIc;
+	rst_vP   = ELEMENT->rst_vP  ; NvnP   = ELEMENT->NvnP  ; Con_rst_vP = ELEMENT->Con_rst_vP;
 
 	// FACET Nodes
-	xir_fGc = ELEMENT->xir_fGc; NfnGc = ELEMENT->NfnGc;
-	xir_fIs = ELEMENT->xir_fIs; NfnIs = ELEMENT->NfnIs; WfIs = ELEMENT->WfIs;
-	xir_fIc = ELEMENT->xir_fIc; NfnIc = ELEMENT->NfnIc; WfIc = ELEMENT->WfIc;
+	rst_fGc = ELEMENT->rst_fGc; NfnGc = ELEMENT->NfnGc;
+	rst_fIs = ELEMENT->rst_fIs; NfnIs = ELEMENT->NfnIs; wfIs = ELEMENT->wfIs;
+	rst_fIc = ELEMENT->rst_fIc; NfnIc = ELEMENT->NfnIc; wfIc = ELEMENT->wfIc;
 
 	// Preliminary Operators
 	ChiRefGs_vGc = malloc(NP * sizeof *ChiRefGs_vGc); // tbd
@@ -153,15 +152,15 @@ void setup_operators(void)
 
 	// VOLUME Nodes (Order Independent)
 	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&xir_vGs[0],&dummyW,&dummyCon,&NvnGs[0],ToReturn,PGs,dE,"GLL"); // tbd
+	cubature_TP(&rst_vGs[0],&dummyw,&dummyCon,&NvnGs[0],ToReturn,PGs,dE,"GLL"); // tbd
 
 	ToReturn[2] = 1;
-	cubature_TP(&xir_vP[0],&dummyW,&Con_xir_vP[0],&NvnP[0],ToReturn,PP,d,"ES"); // tbd
+	cubature_TP(&rst_vP[0],&dummyw,&Con_rst_vP[0],&NvnP[0],ToReturn,PP,d,"ES"); // tbd
 
 	// Preliminary Operators
 	IGs = identity_d(NvnGs[0]); // tbd
 
-	ChiRefGs_vGs = basis_TP(PGs,xir_vGs[0],NvnGs[0],dE); // tbd
+	ChiRefGs_vGs = basis_TP(PGs,rst_vGs[0],NvnGs[0],dE); // tbd
 
 	if (strstr(BasisType,"Modal") != NULL) {
 		ChiGs_vGs = ChiRefGs_vGs;
@@ -189,45 +188,45 @@ array_print_d(NvnGs[0],NvnGs[0],TGs,'R');
 
 		// VOLUME Nodes (Order dependent)
 		ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-		cubature_TP(&xir_vGc[P],&dummyW,&dummyCon,&NvnGc[P],ToReturn,PGc[P]   ,dE,"GLL"); // tbd
-		cubature_TP(&xir_vCs[P],&dummyW,&dummyCon,&NvnCs[P],ToReturn,PCs[P][0],dE,"GLL"); // tbd
-		cubature_TP(&xir_vCc[P],&dummyW,&dummyCon,&NvnCc[P],ToReturn,PCc[P][0],dE,"GLL"); // tbd
-		cubature_TP(&xir_vJs[P],&dummyW,&dummyCon,&NvnCs[P],ToReturn,PJs[P][0],dE,"GLL"); // tbd
-		cubature_TP(&xir_vJc[P],&dummyW,&dummyCon,&NvnCc[P],ToReturn,PJc[P][0],dE,"GLL"); // tbd
+		cubature_TP(&rst_vGc[P],&dummyw,&dummyCon,&NvnGc[P],ToReturn,PGc[P]   ,dE,"GLL"); // tbd
+		cubature_TP(&rst_vCs[P],&dummyw,&dummyCon,&NvnCs[P],ToReturn,PCs[P][0],dE,"GLL"); // tbd
+		cubature_TP(&rst_vCc[P],&dummyw,&dummyCon,&NvnCc[P],ToReturn,PCc[P][0],dE,"GLL"); // tbd
+		cubature_TP(&rst_vJs[P],&dummyw,&dummyCon,&NvnCs[P],ToReturn,PJs[P][0],dE,"GLL"); // tbd
+		cubature_TP(&rst_vJc[P],&dummyw,&dummyCon,&NvnCc[P],ToReturn,PJc[P][0],dE,"GLL"); // tbd
 
-		cubature_TP(&xir_vS[P]  ,&dummyW,&dummyCon,&NvnS[P]  ,ToReturn,P         ,dE,NodeTypeS[P][0]); // tbd
-		cubature_TP(&xir_vF[P]  ,&dummyW,&dummyCon,&NvnF[P]  ,ToReturn,PF[P]     ,dE,NodeTypeF[P][0]); // tbd
-		cubature_TP(&xir_vFrs[P],&dummyW,&dummyCon,&NvnFrs[P],ToReturn,PFrs[P][0],dE,NodeTypeFrs[P][0]); // tbd
-		cubature_TP(&xir_vFrc[P],&dummyW,&dummyCon,&NvnFrc[P],ToReturn,PFrc[P][0],dE,NodeTypeFrc[P][0]); // tbd
+		cubature_TP(&rst_vS[P]  ,&dummyw,&dummyCon,&NvnS[P]  ,ToReturn,P         ,dE,NodeTypeS[P][0]); // tbd
+		cubature_TP(&rst_vF[P]  ,&dummyw,&dummyCon,&NvnF[P]  ,ToReturn,PF[P]     ,dE,NodeTypeF[P][0]); // tbd
+		cubature_TP(&rst_vFrs[P],&dummyw,&dummyCon,&NvnFrs[P],ToReturn,PFrs[P][0],dE,NodeTypeFrs[P][0]); // tbd
+		cubature_TP(&rst_vFrc[P],&dummyw,&dummyCon,&NvnFrc[P],ToReturn,PFrc[P][0],dE,NodeTypeFrc[P][0]); // tbd
 
 		ToReturn[1] = 1;
-		cubature_TP(&xir_vIs[P],&WvIs[P],&dummyCon,&NvnIs[P],ToReturn,PIvs[P][0],dE,NodeTypeIvs[P][0]); // tbd
-		cubature_TP(&xir_vIc[P],&WvIc[P],&dummyCon,&NvnIc[P],ToReturn,PIvc[P][0],dE,NodeTypeIvc[P][0]); // tbd
+		cubature_TP(&rst_vIs[P],&wvIs[P],&dummyCon,&NvnIs[P],ToReturn,PIvs[P][0],dE,NodeTypeIvs[P][0]); // tbd
+		cubature_TP(&rst_vIc[P],&wvIc[P],&dummyCon,&NvnIc[P],ToReturn,PIvc[P][0],dE,NodeTypeIvc[P][0]); // tbd
 
 		// FACET Nodes (Order dependent in the general case => redundant here)
-		WfIs[P] = malloc(1 * sizeof **WfIs); // tbd
-		WfIc[P] = malloc(1 * sizeof **WfIc); // tbd
+		wfIs[P] = malloc(1 * sizeof **wfIs); // tbd
+		wfIc[P] = malloc(1 * sizeof **wfIc); // tbd
 
-		xir_fGc[P] = malloc(Nf * sizeof **xir_fGc); // tbd
-		xir_fIs[P] = malloc(Nf * sizeof **xir_fIs); // tbd
-		xir_fIc[P] = malloc(Nf * sizeof **xir_fIc); // tbd
+		rst_fGc[P] = malloc(Nf * sizeof **rst_fGc); // tbd
+		rst_fIs[P] = malloc(Nf * sizeof **rst_fIs); // tbd
+		rst_fIc[P] = malloc(Nf * sizeof **rst_fIc); // tbd
 
 		NfnGc[P] = 1;
-		NfnIs[P] = 1; WfIs[P][0] = 1;
-		NfnIc[P] = 1; WfIc[P][0] = 1;
+		NfnIs[P] = 1; wfIs[P][0] = 1;
+		NfnIc[P] = 1; wfIc[P][0] = 1;
 
 		for (f = 0; f < Nf; f++) {
-			xir_fGc[P][f] = malloc(NfnGc[P]*dE * sizeof ***xir_fGc); // tbd
-			xir_fIs[P][f] = malloc(NfnIs[P]*dE * sizeof ***xir_fIs); // tbd
-			xir_fIc[P][f] = malloc(NfnIc[P]*dE * sizeof ***xir_fIc); // tbd
+			rst_fGc[P][f] = malloc(NfnGc[P]*dE * sizeof ***rst_fGc); // tbd
+			rst_fIs[P][f] = malloc(NfnIs[P]*dE * sizeof ***rst_fIs); // tbd
+			rst_fIc[P][f] = malloc(NfnIc[P]*dE * sizeof ***rst_fIc); // tbd
 
-			xir_fGc[P][f][0] = pow(-1,f+1);
-			xir_fIs[P][f][0] = pow(-1,f+1);
-			xir_fIc[P][f][0] = pow(-1,f+1);
+			rst_fGc[P][f][0] = pow(-1,f+1);
+			rst_fIs[P][f][0] = pow(-1,f+1);
+			rst_fIc[P][f][0] = pow(-1,f+1);
 		}
 
 		// Preliminary Operators
-		ChiRefGs_vGc[P] = basis_TP(PGs,xir_vGc[P],NvnGc[P],dE); // tbd
+		ChiRefGs_vGc[P] = basis_TP(PGs,rst_vGc[P],NvnGc[P],dE); // tbd
 
 		ChiGs_vGc[P] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,
 		                          NvnGc[P],NvnGs[0],NvnGs[0],1.0,ChiRefGs_vGc[P],TGs); // tbd
@@ -254,7 +253,7 @@ array_print_d(NvnGc[P],NvnGs[0],I_vGs_vGc[P],'R');
 
 		// VOLUME Nodes (Order Independent)
 		ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-		cubature_TP(&dummyxir,&dummyW,&dummyCon,&NvnGs[0],ToReturn,PGs,dE,"GLL"); // tbd
+		cubature_TP(&dummyrst,&dummyw,&dummyCon,&NvnGs[0],ToReturn,PGs,dE,"GLL"); // tbd
 
 	}
 
@@ -268,7 +267,7 @@ array_print_d(NvnGc[P],NvnGs[0],I_vGs_vGc[P],'R');
 
 		// VOLUME Nodes (Order Independent)
 		ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-		cubature_TP(&dummyxir,&dummyW,&dummyCon,&NvnGs[0],ToReturn,PGs,dE,"GLL"); // tbd
+		cubature_TP(&dummyrst,&dummyw,&dummyCon,&NvnGs[0],ToReturn,PGs,dE,"GLL"); // tbd
 	}
 
 

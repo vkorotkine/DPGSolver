@@ -70,7 +70,7 @@ void test_imp_array_swap(void)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("array_find_swap_ui (1,1):                        ");
+	printf("array_swap_ui (1,1):                             ");
 	test_print(pass);
 
 	// NIn = 9, step = 1
@@ -87,7 +87,7 @@ void test_imp_array_swap(void)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("array_find_swap_ui (9,1):                        ");
+	printf("              (9,1):                             ");
 	test_print(pass);
 
 	// NIn = 9, step = 3
@@ -104,7 +104,7 @@ void test_imp_array_swap(void)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("array_find_swap_ui (3,3):                        ");
+	printf("              (3,3):                             ");
 	test_print(pass);
 
 	/*
@@ -142,7 +142,7 @@ void test_imp_array_swap(void)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("array_find_swap_d (1,1):                         ");
+	printf("array_swap_d (1,1):                              ");
 	test_print(pass);
 
 	// NIn = 9, step = 1
@@ -159,7 +159,7 @@ void test_imp_array_swap(void)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("array_find_swap_d (9,1):                         ");
+	printf("             (9,1):                              ");
 	test_print(pass);
 
 	// NIn = 9, step = 3
@@ -176,6 +176,6 @@ void test_imp_array_swap(void)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("array_find_swap_d (3,3):                         ");
+	printf("             (3,3):                              ");
 	test_print(pass);
 }

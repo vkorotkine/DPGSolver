@@ -22,6 +22,25 @@
  *
  */
 
+double *diag_d(const double *x, const unsigned int N)
+{
+	/*
+	 *	Comments:
+	 *		The returned array requires an external free.
+	 */
+
+	unsigned int i, j;
+	double *X;
+
+	X = malloc(N*N * sizeof *X); // keep (requires external free)
+	for (i = 0; i < N; i++) {
+	for (j = 0; j < N; j++) {
+		if (i == j) X[i*N+j] = x[i];
+		else        X[i*N+j] = 0.0;
+	}}
+	return X;
+}
+
 double *identity_d(const unsigned int N)
 {
 	/*

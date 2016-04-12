@@ -49,44 +49,44 @@ struct S_ELEMENT *New_ELEMENT(void)
 	for (i = 0, iMax = 6*3; i < iMax; i++) ELEMENT->nr[i] = 0.;
 
 	// VOLUME Nodes
-	ELEMENT->xir_vGs  = malloc(1  * sizeof *(ELEMENT->xir_vGs));  // free
-	ELEMENT->xir_vGc  = malloc(NP * sizeof *(ELEMENT->xir_vGc));  // free
-	ELEMENT->xir_vCs  = malloc(NP * sizeof *(ELEMENT->xir_vCs));  // free
-	ELEMENT->xir_vCc  = malloc(NP * sizeof *(ELEMENT->xir_vCc));  // free
-	ELEMENT->xir_vJs  = malloc(NP * sizeof *(ELEMENT->xir_vJs));  // free
-	ELEMENT->xir_vJc  = malloc(NP * sizeof *(ELEMENT->xir_vJc));  // free
-	ELEMENT->xir_vS   = malloc(NP * sizeof *(ELEMENT->xir_vS));   // free
-	ELEMENT->xir_vF   = malloc(NP * sizeof *(ELEMENT->xir_vF));   // free
-	ELEMENT->xir_vFrs = malloc(NP * sizeof *(ELEMENT->xir_vFrs)); // free
-	ELEMENT->xir_vFrc = malloc(NP * sizeof *(ELEMENT->xir_vFrc)); // free
-	ELEMENT->xir_vIs  = malloc(NP * sizeof *(ELEMENT->xir_vIs));  // free
-	ELEMENT->xir_vIc  = malloc(NP * sizeof *(ELEMENT->xir_vIc));  // free
-	ELEMENT->xir_vP   = malloc(1  * sizeof *(ELEMENT->xir_vP));   // free
+	ELEMENT->rst_vGs  = malloc(1  * sizeof *(ELEMENT->rst_vGs));  // free
+	ELEMENT->rst_vGc  = malloc(NP * sizeof *(ELEMENT->rst_vGc));  // free
+	ELEMENT->rst_vCs  = malloc(NP * sizeof *(ELEMENT->rst_vCs));  // free
+	ELEMENT->rst_vCc  = malloc(NP * sizeof *(ELEMENT->rst_vCc));  // free
+	ELEMENT->rst_vJs  = malloc(NP * sizeof *(ELEMENT->rst_vJs));  // free
+	ELEMENT->rst_vJc  = malloc(NP * sizeof *(ELEMENT->rst_vJc));  // free
+	ELEMENT->rst_vS   = malloc(NP * sizeof *(ELEMENT->rst_vS));   // free
+	ELEMENT->rst_vF   = malloc(NP * sizeof *(ELEMENT->rst_vF));   // free
+	ELEMENT->rst_vFrs = malloc(NP * sizeof *(ELEMENT->rst_vFrs)); // free
+	ELEMENT->rst_vFrc = malloc(NP * sizeof *(ELEMENT->rst_vFrc)); // free
+	ELEMENT->rst_vIs  = malloc(NP * sizeof *(ELEMENT->rst_vIs));  // free
+	ELEMENT->rst_vIc  = malloc(NP * sizeof *(ELEMENT->rst_vIc));  // free
+	ELEMENT->rst_vP   = malloc(1  * sizeof *(ELEMENT->rst_vP));   // free
 
-	ELEMENT->WvIs = malloc(NP * sizeof *(ELEMENT->WvIs)); // free
-	ELEMENT->WvIc = malloc(NP * sizeof *(ELEMENT->WvIc)); // free
+	ELEMENT->wvIs = malloc(NP * sizeof *(ELEMENT->wvIs)); // free
+	ELEMENT->wvIc = malloc(NP * sizeof *(ELEMENT->wvIc)); // free
 
-	ELEMENT->Con_xir_vP = malloc(1 * sizeof *(ELEMENT->Con_xir_vP)); // free
+	ELEMENT->Con_rst_vP = malloc(1 * sizeof *(ELEMENT->Con_rst_vP)); // free
 
-	ELEMENT->xir_vGs[0] = NULL;
-	ELEMENT->xir_vP[0]  = NULL;
+	ELEMENT->rst_vGs[0] = NULL;
+	ELEMENT->rst_vP[0]  = NULL;
 
-	ELEMENT->Con_xir_vP[0] = NULL;
+	ELEMENT->Con_rst_vP[0] = NULL;
 	for (P = 0; P < NP; P++) {
-		ELEMENT->xir_vGc[P]  = NULL;
-		ELEMENT->xir_vCs[P]  = NULL;
-		ELEMENT->xir_vCc[P]  = NULL;
-		ELEMENT->xir_vJs[P]  = NULL;
-		ELEMENT->xir_vJc[P]  = NULL;
-		ELEMENT->xir_vS[P]   = NULL;
-		ELEMENT->xir_vF[P]   = NULL;
-		ELEMENT->xir_vFrs[P] = NULL;
-		ELEMENT->xir_vFrc[P] = NULL;
-		ELEMENT->xir_vIs[P]  = NULL;
-		ELEMENT->xir_vIc[P]  = NULL;
+		ELEMENT->rst_vGc[P]  = NULL;
+		ELEMENT->rst_vCs[P]  = NULL;
+		ELEMENT->rst_vCc[P]  = NULL;
+		ELEMENT->rst_vJs[P]  = NULL;
+		ELEMENT->rst_vJc[P]  = NULL;
+		ELEMENT->rst_vS[P]   = NULL;
+		ELEMENT->rst_vF[P]   = NULL;
+		ELEMENT->rst_vFrs[P] = NULL;
+		ELEMENT->rst_vFrc[P] = NULL;
+		ELEMENT->rst_vIs[P]  = NULL;
+		ELEMENT->rst_vIc[P]  = NULL;
 
-		ELEMENT->WvIs[P] = NULL;
-		ELEMENT->WvIc[P] = NULL;
+		ELEMENT->wvIs[P] = NULL;
+		ELEMENT->wvIc[P] = NULL;
 	}
 
 	ELEMENT->NvnGs  = malloc(1  * sizeof *(ELEMENT->NvnGs));   // free
@@ -104,20 +104,20 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->NvnP   = malloc(1  * sizeof *(ELEMENT->NvnP));   // free
 
 	// FACET Nodes
-	ELEMENT->xir_fGc  = malloc(NP * sizeof *(ELEMENT->xir_fGc));  // free
-	ELEMENT->xir_fIs  = malloc(NP * sizeof *(ELEMENT->xir_fIs));  // free
-	ELEMENT->xir_fIc  = malloc(NP * sizeof *(ELEMENT->xir_fIc));  // free
+	ELEMENT->rst_fGc  = malloc(NP * sizeof *(ELEMENT->rst_fGc));  // free
+	ELEMENT->rst_fIs  = malloc(NP * sizeof *(ELEMENT->rst_fIs));  // free
+	ELEMENT->rst_fIc  = malloc(NP * sizeof *(ELEMENT->rst_fIc));  // free
 
-	ELEMENT->WfIs  = malloc(NP * sizeof *(ELEMENT->WfIs));  // free
-	ELEMENT->WfIc  = malloc(NP * sizeof *(ELEMENT->WfIc));  // free
+	ELEMENT->wfIs  = malloc(NP * sizeof *(ELEMENT->wfIs));  // free
+	ELEMENT->wfIc  = malloc(NP * sizeof *(ELEMENT->wfIc));  // free
 
 	for (P = 0; P < NP; P++) {
-		ELEMENT->xir_fGc[P] = NULL;
-		ELEMENT->xir_fIs[P] = NULL;
-		ELEMENT->xir_fIc[P] = NULL;
+		ELEMENT->rst_fGc[P] = NULL;
+		ELEMENT->rst_fIs[P] = NULL;
+		ELEMENT->rst_fIc[P] = NULL;
 
-		ELEMENT->WfIs[P] = NULL;
-		ELEMENT->WfIc[P] = NULL;
+		ELEMENT->wfIs[P] = NULL;
+		ELEMENT->wfIc[P] = NULL;
 	}
 
 	ELEMENT->NfnGc = malloc(NP * sizeof *(ELEMENT->NfnGc)); // free

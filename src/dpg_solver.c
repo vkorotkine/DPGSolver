@@ -118,25 +118,30 @@ int main(void)
 	printf("\n\nRunning Tests:\n\n\n");
 	ts = clock();
 
+	// Implementation tests
 	test_imp_array_find_index();
 	test_imp_array_norm();
 	test_imp_array_sort();
 	test_imp_array_swap();
 
-	test_imp_find_periodic_connections();
-
 	test_imp_math_factorial();
 	test_imp_math_gamma();
 
+	test_imp_matrix_diag();
 	test_imp_matrix_identity();
 	test_imp_matrix_inverse();
 	test_imp_matrix_mm();
 
-	test_imp_cubature_TP();
+	test_imp_find_periodic_connections();
 
+	test_imp_cubature_TP();
 	test_imp_basis_TP();
-/*	test_imp_gradbasis_TP();
-*/
+	test_imp_grad_basis_TP();
+
+	// Speed tests
+	test_speed_array_swap();
+//	test_speed_mm_d();
+
 
 	te = clock();
 
@@ -155,7 +160,6 @@ int main(void)
 				   "Scroll through test passing list and verify that all is OK.\n\n",TestDB.Nwarnings);
 	}
 
-//	test_speed_mm_d();
 
 	return 0;
 }

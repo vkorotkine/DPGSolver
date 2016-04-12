@@ -90,7 +90,7 @@ void test_imp_matrix_mm(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("matrix_mm_d (RowMajor,NoTrans,NoTrans):          ");
+	printf("matrix_mm_d (RowMajor, NoTrans, NoTrans):        ");
 	test_print(pass);
 
 
@@ -102,7 +102,7 @@ void test_imp_matrix_mm(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("matrix_mm_d (RowMajor,  Trans,NoTrans):          ");
+	printf("            (RowMajor,   Trans, NoTrans):        ");
 	test_print(pass);
 
 
@@ -114,7 +114,7 @@ void test_imp_matrix_mm(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("matrix_mm_d (RowMajor,NoTrans,  Trans):          ");
+	printf("            (RowMajor, NoTrans,   Trans):        ");
 	test_print(pass);
 
 
@@ -126,7 +126,7 @@ void test_imp_matrix_mm(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("matrix_mm_d (RowMajor,  Trans,  Trans):          ");
+	printf("            (RowMajor,   Trans,   Trans):        ");
 	test_print(pass);
 
 
@@ -141,7 +141,7 @@ void test_imp_matrix_mm(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("matrix_mm_d (ColMajor,NoTrans,NoTrans):          ");
+	printf("            (ColMajor, NoTrans, NoTrans):        ");
 	test_print(pass);
 
 
@@ -153,7 +153,7 @@ void test_imp_matrix_mm(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("matrix_mm_d (ColMajor,  Trans,NoTrans):          ");
+	printf("            (ColMajor,   Trans, NoTrans):        ");
 	test_print(pass);
 
 
@@ -165,7 +165,7 @@ void test_imp_matrix_mm(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("matrix_mm_d (ColMajor,NoTrans,  Trans):          ");
+	printf("            (ColMajor, NoTrans,   Trans):        ");
 	test_print(pass);
 
 
@@ -177,7 +177,7 @@ void test_imp_matrix_mm(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("matrix_mm_d (ColMajor,  Trans,  Trans):          ");
+	printf("            (ColMajor,   Trans,   Trans):        ");
 	test_print(pass);
 
 	free(C_c);
@@ -223,7 +223,7 @@ void test_imp_matrix_mm(void)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("matrix_mm_Alloc_d (ColMajor):                    ");
+	printf("                  (ColMajor):                    ");
 	test_print(pass);
 
 
@@ -320,7 +320,7 @@ void test_imp_matrix_mm(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("matrix_mm_CTN_d (mv,   BLAS):                    ");
+	printf("                (mv,   BLAS):                    ");
 	test_print(pass);
 
 	free(A_CTN);
@@ -351,7 +351,7 @@ void test_imp_matrix_mm(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("matrix_mm_CTN_d (mm, NoBLAS):                    ");
+	printf("                (mm, NoBLAS):                    ");
 	test_print(pass);
 
 	free(A_CTN);
@@ -382,7 +382,7 @@ void test_imp_matrix_mm(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("matrix_mm_CTN_d (mm,   BLAS):                    ");
+	printf("                (mm,   BLAS):                    ");
 	test_print(pass);
 
 	free(A_CTN);
