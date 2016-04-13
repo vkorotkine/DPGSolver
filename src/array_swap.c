@@ -5,14 +5,9 @@
  *		Swap arrays.
  *
  *	Comments:
- *		Run the version of array_swap.c in the testing branch to see timing comparisons between different
- *		implementations.
- *		Important conclusions from time testing:
- *			Pointer indexing is faster than array indexing when the index incrementing represents a significant fraction
- *			of the overall operation (e.g. in the case of swapping consecutive elements of large arrays); the difference
- *			between the array indexing and pointer implementations disappears when step sizes larger than 1 are taken
- *			even though the index incrementing still represents a large fraction of the operation (Investigate).
- *			Declaring loop indices/counters as 'unsigned' and 'register' variables can result in significant speed-ups.
+ *		Run 'test_speed_array_swap' when profiling and use fastest option for the code.
+ *		Based on testing to date, it seems that alt2 is fastest in general, notable for the double swap with step > 1.
+ *		(ToBeDeleted)
  *
  *	Notation:
  *

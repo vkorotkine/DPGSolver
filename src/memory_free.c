@@ -40,17 +40,17 @@ void memory_free(void)
 
 			free(DB.PGc);
 			free(DB.PF);
-			array_free2_i(DB.NP,DB.SF_BE);
-			array_free2_i(DB.NP,DB.PCs);
-			array_free2_i(DB.NP,DB.PCc);
-			array_free2_i(DB.NP,DB.PJs);
-			array_free2_i(DB.NP,DB.PJc);
-			array_free2_i(DB.NP,DB.PFrs);
-			array_free2_i(DB.NP,DB.PFrc);
-			array_free2_i(DB.NP,DB.PIfs);
-			array_free2_i(DB.NP,DB.PIfc);
-			array_free2_i(DB.NP,DB.PIvs);
-			array_free2_i(DB.NP,DB.PIvc);
+			array_free2_ui(DB.NP,DB.SF_BE);
+			array_free2_ui(DB.NP,DB.PCs);
+			array_free2_ui(DB.NP,DB.PCc);
+			array_free2_ui(DB.NP,DB.PJs);
+			array_free2_ui(DB.NP,DB.PJc);
+			array_free2_ui(DB.NP,DB.PFrs);
+			array_free2_ui(DB.NP,DB.PFrc);
+			array_free2_ui(DB.NP,DB.PIfs);
+			array_free2_ui(DB.NP,DB.PIfc);
+			array_free2_ui(DB.NP,DB.PIvs);
+			array_free2_ui(DB.NP,DB.PIvc);
 
 			// SetupMesh
 			free(DB.PVe), free(DB.NE), free(DB.EType), free(DB.ETags), free(DB.EToVe), free(DB.EToPrt);

@@ -49,9 +49,6 @@ extern void   mm_d        (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE tran
                            double *C);
 extern void   mm_CTN_d    (const int m, const int n, const int k, const double *A, const double *B, double *C);
 
-//extern void   mm_CTN_d    (const int m, const int n, const int k, const double *A, const double *B, double *C,
-//                           const int useBLAS);
-
 // Math Functions
 extern unsigned int factorial_ui (const unsigned int n);
 extern unsigned int gamma_ui     (const unsigned int n);
@@ -70,6 +67,7 @@ extern struct S_ELEMENT *get_ELEMENT_Eclass (const unsigned int Eclass, const un
 extern void memory_free         (void);
 extern void memory_constructors (void);
 extern void memory_destructor_E (struct S_ELEMENT *ELEMENT);
+extern void memory_destructor_V (struct S_VOLUME *VOLUME);
 
 
 // Array Processing

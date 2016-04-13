@@ -201,7 +201,6 @@ void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_T
 	}
 }
 
-//void mm_CTN_d(const int m, const int n, const int k, const double *A, const double *B, double *C, const int useBLAS)
 void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, double *C)
 {
 	/*
@@ -237,6 +236,9 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 	 *			Without any manual loop unrolling (potentially to be done after profiling; ToBeModified):
 	 *				BLAS_mv breaks even when more than ~120 flops are performed.
 	 *				BLAS_mm breaks even when more than ~330 flops are performed.
+	 *			With matrix-vector product unrolling:
+	 *				The custom implementation is generally equivalent to or faster than BLAS, even with a huge number of
+	 *				switch statements. INVESTIGATE FURTHER WHEN PROFILING THE CODE (ToBeDeleted)
 	 *
 	 *	Notation:
 	 *		m : Number of rows of A'
@@ -275,23 +277,23 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				register unsigned int mMax, kMax;
 				register double *pA = A, *pB = B, *pC = C;
 
-				// First row of A'
+				// First row of A
 				*pC = (*pA)*(*pB);
-				for (kMax = k-1; kMax--; ) { // loop over columns of A'/rows of B/C
+				for (kMax = k-1; kMax--; ) { // loop over columns of A/rows of B/C
 					pA++;
 					pB++;
 
 					*pC += (*pA)*(*pB);
 				}
 
-				// Remaining rows of A'
-				for (mMax = m-1; mMax--; ) { // loop over rows of A'
+				// Remaining rows of A
+				for (mMax = m-1; mMax--; ) { // loop over rows of A
 					pA++;
 					pC++;
 					pB = B;
 
 					*pC = (*pA)*(*pB);
-					for (kMax = k-1; kMax--; ) { // loop over columns of A'/rows of B/C
+					for (kMax = k-1; kMax--; ) { // loop over columns of A/rows of B/C
 						pA++;
 						pB++;
 
@@ -317,23 +319,23 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				register double *pA = A, *pB = B, *pC = C;
 
 				// First column of B/C
-				// First row of A'
+				// First row of A
 				*pC = (*pA)*(*pB);
-				for (kMax = k-1; kMax--; ) { // loop over columns of A'/rows of B/C
+				for (kMax = k-1; kMax--; ) { // loop over columns of A/rows of B/C
 					pA++;
 					pB++;
 
 					*pC += (*pA)*(*pB);
 				}
 
-				// Remaining rows of A'
-				for (mMax = m-1; mMax--; ) { // loop over rows of A'
+				// Remaining rows of A
+				for (mMax = m-1; mMax--; ) { // loop over rows of A
 					pA++;
 					pC++;
 					pB = B;
 
 					*pC = (*pA)*(*pB);
-					for (kMax = k-1; kMax--; ) { // loop over columns of A'/rows of B/C
+					for (kMax = k-1; kMax--; ) { // loop over columns of A/rows of B/C
 						pA++;
 						pB++;
 
@@ -348,21 +350,21 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 					pC++;
 					*pC = (*pA)*(*pB);
 
-					for (kMax = k-1; kMax--; ) { // loop over columns of A'/rows of B/C
+					for (kMax = k-1; kMax--; ) { // loop over columns of A/rows of B/C
 						pA++;
 						pB++;
 
 						*pC += (*pA)*(*pB);
 					}
 
-					// Remaining rows of A'
-					for (mMax = m-1; mMax--; ) { // loop over rows of A'
+					// Remaining rows of A
+					for (mMax = m-1; mMax--; ) { // loop over rows of A
 						pA++;
 						pC++;
 						pB = B+(n-nMax-1)*k;
 
 						*pC = (*pA)*(*pB);
-						for (kMax = k-1; kMax--; ) { // loop over columns of A'/rows of B/C
+						for (kMax = k-1; kMax--; ) { // loop over columns of A/rows of B/C
 							pA++;
 							pB++;
 

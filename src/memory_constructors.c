@@ -150,9 +150,10 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->type   = 0;
 	VOLUME->Eclass = 0;
 	VOLUME->curved = 0;
+	// *XYZc;
 
 	// Geometry
-	// *XYZc, *XYZs;
+	// *XYZs;
 
 	VOLUME->next    = NULL;
 	VOLUME->grpnext = NULL;

@@ -38,7 +38,23 @@ extern void     array_swap1_ui    (register unsigned int *arr1, register unsigne
                                    const unsigned int stepIn);
 extern void     array_swap2_ui    (register unsigned int *arr1, register unsigned int *arr2, const unsigned int NIn,
                                    const unsigned int stepIn);
-extern void test_speed_mm_d       (void);
+extern void     array_swap1_d     (register double *arr1, register double *arr2, const unsigned int NIn,
+                                   const unsigned int stepIn);
+extern void     array_swap2_d     (register double *arr1, register double *arr2, const unsigned int NIn,
+                                   const unsigned int stepIn);
+extern void test_speed_mm_CTN     (void);
+extern void     mm_CTN_mv1_d               (const int m, const int n, const int k, double *A, double *B, double *C);
+extern void     mm_CTN_mv2_d               (const int m, const int n, const int k, double *A, double *B, double *C);
+extern void     mm_CTN_mv3_d               (const int m, const int n, const int k, double *A, double *B, double *C);
+extern void     mm_CTN_mv4_5d              (const int m, const int n, const int k, double *A, double *B, double *C);
+extern void     mm_CTN_mv_unrolled_d       (const int m, const int n, const int k, double *A, double *B, double *C);
+extern void     mm_CTN_mv_fully_unrolled_d (const int m, const int n, const int k, double *A, double *B, double *C);
+extern void     mm_CTN_mvBLAS_d            (const int m, const int n, const int k, double *A, double *B, double *C);
+extern void     mm_CTN_fully_unrolled_mv_d (const int m, const int n, const int k, double *A, double *B, double *C);
+extern void     mm_CTN_mm1_d               (const int m, const int n, const int k, double *A, double *B, double *C);
+extern void     mm_CTN_mm2_d               (const int m, const int n, const int k, double *A, double *B, double *C);
+extern void     mm_CTN_mm3_d               (const int m, const int n, const int k, double *A, double *B, double *C);
+extern void     mm_CTN_mmBLAS_d            (const int m, const int n, const int k, double *A, double *B, double *C);
 
 struct S_TEST {
 	// Counters

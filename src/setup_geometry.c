@@ -29,8 +29,6 @@ void sf_operate_d(const int NOut, const int NCols, const int NIn, const int BRow
 	 *	Comments:
 	 *		See the '*** IMPORTANT ***' comment in sf_apply_*.
 	 *		The 'register' prefix is likely unused here as a lot of work is done in the mm_* call.
-	 *		Testing showed that unrolling the loop performing the function calls had a negligible performance impact.
-	 *		(ToBeModified: Perhaps try again when code is finished).
 	 */
 
 	register unsigned IndIn, IndOut, stepIndIn, stepIndOut, BRowMax;
@@ -141,7 +139,8 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 	 *			                       that this really does not require re-arranging. If it is found that this option
 	 *			                       is important in the future, profile both implementations. (ToBeDeleted)
 	 *		Add the implementation for the further 2x reduction through fourier transform of operators (ToBeDeleted).
-	 *		Make sure that appropriate variables are made declared with 'register' and 'unsigned' (ToBeDeleted).
+	 *			This will only be made available for major operators as it requires storage of the decomposed operators.
+	 *		Make sure that appropriate variables are declared with 'register' and 'unsigned' (ToBeDeleted).
 	 *		If found to be slow during profiling, change all array indexing operations to pointer operations where
 	 *		possible. Also change loops so that exit check decrements to 0 instead of using comparison (ToBeDeleted).
 	 *
@@ -262,19 +261,14 @@ void setup_geometry(void)
 	char         *MeshType = DB.MeshType;
 	unsigned int ExactGeom = DB.ExactGeom,
 	             d         = DB.d,
-	             NV        = DB.NV,
-	             *NE       = DB.NE,
-	             *EToVe    = DB.EToVe;
-
-	double       *VeXYZ    = DB.VeXYZ;
+	             *NE       = DB.NE;
 
 	int          PrintTesting = 0;
 
 	// Standard datatypes
-	unsigned int i, ve, dim, indexg, P, vn,
-	             Nve, Vs, PMax, NvnGs, NvnGc,
-	             NIn, NOut, NIn_SF[3], NOut_SF[3], NCols, Diag[3], NOut_Total,
-	             *VeC;
+	unsigned int i, dim, P, vn,
+	             Vs, NvnGs, NvnGc,
+	             NIn, NOut, NIn_SF[3], NOut_SF[3], NCols, Diag[3], NOut_Total;
 	double       *XYZc, *XYZs,
 	             *I_vGs_vGc, *Input_SF, *OP_SF[3];
 
@@ -299,24 +293,12 @@ void setup_geometry(void)
 
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-		indexg = VOLUME->indexg;
 		P      = VOLUME->P;
 
-printf("indexg %d\n",indexg);
-
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
-
-		VeC   = ELEMENT->VeC;
 		NvnGs = ELEMENT->NvnGs[0];
 
-		XYZc = malloc (NvnGs*d * sizeof *XYZc); // keep
-		VOLUME->XYZc = XYZc;
-
-		// Note: XYZc may be interpreted as [X Y Z] where each of X, Y, Z are column vectors
-		for (ve = 0; ve < NvnGs; ve++) {
-		for (dim = 0; dim < d; dim++) {
-			XYZc[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+indexg)*8+VeC[ve]]*d+dim];
-		}}
+		XYZc = VOLUME->XYZc;
 
 		XYZs = malloc(0 * sizeof *XYZs); // silence
 		if (!VOLUME->curved) {
@@ -376,12 +358,16 @@ printf("indexg %d\n",indexg);
 		VOLUME->XYZs = XYZs;
 
 //array_print_d(NOut_Total,d,XYZs,'C');
-exit(1);
-
-
+//exit(1);
 	}
 
 	// Find node index ordering on each FACET
+
+
+
+
+
+
 	/* WRITE A TEST ROUTINE TO MAKE SURE THAT THIS IS WORKING? (ToBeDeleted)
 	 * Note: Ideally, this information can be given without relying on matching of physical points as there will be a
 	 *       potential for non-conforming elements.

@@ -9,6 +9,9 @@
 #include "parameters.h"
 #include "functions.h"
 
+#include "test.h"
+struct S_TEST TestDB;
+
 /*
  *	Purpose:
  *		Solve the (N)avier-(S)tokes equations (or a subset of the NS equations) using the (D)iscontinuous
@@ -138,12 +141,11 @@ int main(void)
 	test_imp_basis_TP();
 	test_imp_grad_basis_TP();
 
-	// Speed tests
-	test_speed_array_swap();
-//	test_speed_mm_d();
-
-
 	te = clock();
+
+	// Speed tests
+//	test_speed_array_swap();
+//	test_speed_mm_CTN();
 
 
 	printf("\n\nRan %d test(s) in %.4f seconds.\n",TestDB.Ntest,(te-ts)/(float)CLOCKS_PER_SEC);
@@ -159,7 +161,6 @@ int main(void)
 			printf("Warnings (%d) were generated while running tests. "
 				   "Scroll through test passing list and verify that all is OK.\n\n",TestDB.Nwarnings);
 	}
-
 
 	return 0;
 }

@@ -41,19 +41,25 @@ void setup_structures(void)
 	             NV      = DB.NV,
 	             NVC     = DB.NVC,
 	             *NE     = DB.NE,
+	             *EToVe  = DB.EToVe,
 	             *EType  = DB.EType,
 	             *EToPrt = DB.EToPrt,
 	             *VC     = DB.VC;
 	int          MPIrank = DB.MPIrank;
+	double       *VeXYZ  = DB.VeXYZ;
 
 	int  PrintTesting = 0;
 
 	// Standard datatypes
-	unsigned int i, iMax, v,
+	unsigned int i, iMax, v, dim, ve,
 	             IndE, IndVC, IndVgrp,
 	             Vs, firstV, vlocal, NVlocal, NECgrp, NVgrp,
-	             uMPIrank;
+				 indexg, NvnGs,
+	             uMPIrank,
+				 *VeC;
+	double       *XYZc;
 
+	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME *VOLUME, **Vgrp, **Vgrp_tmp;
 
 	// Arbitrary initializations for variables defined in conditionals (to eliminate compiler warnings)
@@ -90,6 +96,7 @@ void setup_structures(void)
 			if (firstV != 0)
 				VOLUME = VOLUME->next;
 
+			// General
 			VOLUME->indexl = vlocal;
 			VOLUME->indexg = v;
 			VOLUME->P      = P;
@@ -103,6 +110,25 @@ void setup_structures(void)
 				VOLUME->curved = 0;
 			}
 
+			// Geometry
+			indexg = VOLUME->indexg;
+
+			ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+			VeC   = ELEMENT->VeC;
+			NvnGs = ELEMENT->NvnGs[0];
+
+			XYZc = malloc (NvnGs*d * sizeof *XYZc); // keep
+			VOLUME->XYZc = XYZc;
+
+			// XYZc may be interpreted as [X Y Z] where each of X, Y, Z are column vectors (ToBeDeleted)
+			// Add this comment to notation section.
+			for (ve = 0; ve < NvnGs; ve++) {
+			for (dim = 0; dim < d; dim++) {
+				XYZc[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+indexg)*8+VeC[ve]]*d+dim];
+			}}
+
+			// MPI
 			IndVgrp = (VOLUME->Eclass*NP*2)+(VOLUME->P*2)+(VOLUME->curved);
 			if (Vgrp[IndVgrp] == NULL)
 				Vgrp[IndVgrp] = VOLUME;
@@ -129,13 +155,14 @@ void setup_structures(void)
 	if (IndVC > NVC)
 		printf("Error: Found too many curved VOLUMEs.\n"), exit(1);
 
-
+/*
 for (i = 0, iMax = NVgrp; iMax--; i++) {
 	for (VOLUME = Vgrp[i]; VOLUME != NULL; VOLUME = VOLUME->grpnext) {
 		printf("%d %d %d %d\n",i,VOLUME->Eclass,VOLUME->P,VOLUME->curved);
 	}
 	printf("\t\t%p\n",Vgrp[i]);
 }
+*/
 //exit(1);
 
 

@@ -35,8 +35,16 @@ double **grad_basis_TP(const unsigned int P, const double *rst, const unsigned i
 	sN = N;
 
 	r = malloc(Nn * sizeof *r); // free
-	if (d > 1) s = malloc(Nn * sizeof *s); // free
-	if (d > 2) t = malloc(Nn * sizeof *t); // free
+	s = malloc(0  * sizeof *s); // silence
+	t = malloc(0  * sizeof *t); // silence
+	if (d > 1) {
+		free(s);
+		s = malloc(Nn * sizeof *s); // free
+	}
+	if (d > 2) {
+		free(t);
+		t = malloc(Nn * sizeof *t); // free
+	}
 
 	for (i = 0; i < Nn; i++) {
 		r[i] = rst[0*Nn+i];

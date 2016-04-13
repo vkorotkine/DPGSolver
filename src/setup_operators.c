@@ -120,7 +120,7 @@ void setup_operators(void)
 	 *       ALLOCATE MEMORY AND FREE IN setup_operators. FROM NOW ON, ONLY INCLUDE OPERATORS IN THE ELEMENT STRUCTURE
 	 *       IF IT IS NEEDED SOMEWHERE IN THE CODE.
 	 */
-	
+
 	rst_vGs  = ELEMENT->rst_vGs ; NvnGs  = ELEMENT->NvnGs;
 	rst_vGc  = ELEMENT->rst_vGc ; NvnGc  = ELEMENT->NvnGc;
 	rst_vCs  = ELEMENT->rst_vCs ; NvnCs  = ELEMENT->NvnCs;
@@ -237,7 +237,7 @@ array_print_d(NvnGs[0],NvnGs[0],TGs,'R');
 		I_vGs_vGc[P] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,
 		                          NvnGc[P],NvnGs[0],NvnGs[0],1.0,ChiGs_vGc[P],ChiInvGs_vGs); // keep
 
-array_print_d(NvnGc[P],NvnGs[0],I_vGs_vGc[P],'R');
+//array_print_d(NvnGc[P],NvnGs[0],I_vGs_vGc[P],'R');
 
 	}
 
