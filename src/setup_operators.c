@@ -19,6 +19,7 @@
  *		Currently, only tensor-product operators are assembled using the sum factorized 1D operators. (ToBeModified)
  *		Intuitively, the collapsed tensor-product elements seem to be less efficient than those developed for other
  *		element types.
+ *		Ensure that operators for hp refinement are only stored when refinement is enabled (ToBeDeleted).
  *
  *	Notation:
  *		Theta_[] : Angles for conversion between reference and facet coordinates (Zwanenburg(2016): Table 14)

@@ -110,6 +110,9 @@ void setup_structures(void)
 				VOLUME->curved = 0;
 			}
 
+			// Connectivity
+			
+
 			// Geometry
 			indexg = VOLUME->indexg;
 

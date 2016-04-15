@@ -150,6 +150,9 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->type   = 0;
 	VOLUME->Eclass = 0;
 	VOLUME->curved = 0;
+
+	VOLUME->Vneigh = malloc(54 * sizeof *(VOLUME->ToV)); // free
+	VOLUME->Fneigh = malloc(54 * sizeof *(VOLUME->ToV)); // free
 	// *XYZc;
 
 	// Geometry
