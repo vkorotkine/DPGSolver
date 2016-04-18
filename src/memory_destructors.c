@@ -23,7 +23,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 
 	// Mesh
 	free(ELEMENT->Nfve);
-	free(ELEMENT->VeC);
+	free(ELEMENT->VeCGmsh);
 	free(ELEMENT->VeE);
 	free(ELEMENT->VeF);
 
@@ -79,7 +79,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->NfnIc);
 
 	// Operators
-	array_free2_d(NP,ELEMENT->I_vGs_vGc);
+	//array_free2_d(NP,ELEMENT->I_vGs_vGc);
 
 	free(ELEMENT);
 }
@@ -89,10 +89,11 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 //	int NP = DB.NP;
 
 	// Structures
+	free(VOLUME->XYZc);
 
 	// Geometry
-	free(VOLUME->XYZc);
 	free(VOLUME->XYZs);
+	free(VOLUME->XYZ);
 
 	free(VOLUME);
 }

@@ -31,15 +31,15 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->Nve     = 0;
 	ELEMENT->Nf      = 0;
 
-	ELEMENT->Nfve = malloc(2    * sizeof *(ELEMENT->Nfve)); // free
-	ELEMENT->VeC  = malloc(8    * sizeof *(ELEMENT->VeC));  // free
-	ELEMENT->VeE  = malloc(12*2 * sizeof *(ELEMENT->VeE));  // free
-	ELEMENT->VeF  = malloc(6*4  * sizeof *(ELEMENT->VeF));  // free
+	ELEMENT->Nfve    = malloc(2    * sizeof *(ELEMENT->Nfve));     // free
+	ELEMENT->VeCGmsh = malloc(8    * sizeof *(ELEMENT->VeCGmsh));  // free
+	ELEMENT->VeE     = malloc(12*2 * sizeof *(ELEMENT->VeE));      // free
+	ELEMENT->VeF     = malloc(6*4  * sizeof *(ELEMENT->VeF));      // free
 
-	for (i = 0; i < 2; i++)                 ELEMENT->Nfve[i] = 0;
-	for (i = 0; i < 8; i++)                 ELEMENT->VeC[i]  = 0;
-	for (i = 0, iMax = 12*2; i < iMax; i++) ELEMENT->VeE[i]  = 0;
-	for (i = 0, iMax = 6*4;  i < iMax; i++) ELEMENT->VeF[i]  = 0;
+	for (i = 0; i < 2; i++)                 ELEMENT->Nfve[i]    = 0;
+	for (i = 0; i < 8; i++)                 ELEMENT->VeCGmsh[i] = 0;
+	for (i = 0, iMax = 12*2; i < iMax; i++) ELEMENT->VeE[i]     = 0;
+	for (i = 0, iMax = 6*4;  i < iMax; i++) ELEMENT->VeF[i]     = 0;
 
 	// Operators
 
@@ -151,12 +151,13 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->Eclass = 0;
 	VOLUME->curved = 0;
 
-	VOLUME->Vneigh = malloc(54 * sizeof *(VOLUME->ToV)); // free
-	VOLUME->Fneigh = malloc(54 * sizeof *(VOLUME->ToV)); // free
+	VOLUME->Vneigh = malloc(6*9 * sizeof *(VOLUME->Vneigh)); // free
+	VOLUME->Fneigh = malloc(6*9 * sizeof *(VOLUME->Fneigh)); // free
 	// *XYZc;
 
 	// Geometry
-	// *XYZs;
+	VOLUME->NvnG = 0;
+	// *XYZs, *XYZ;
 
 	VOLUME->next    = NULL;
 	VOLUME->grpnext = NULL;

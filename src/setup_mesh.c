@@ -13,11 +13,12 @@
  *		This function is the analogue of the following original function(s):
  *
  *		0-based indexing.
- *		The VeC, VeE, VeF ordering is based on the gmsh node return order convention.
- *		The ordering convention is different from that used in the Matlab code (ToBeDeleted).
- *		      1D: VeC == VeE == VeF
- *		      2D: VeC != VeE == VeF
- *		      3D: VeC != VeE != VeF
+ *		VeCGmsh is based on converting the gmsh node ordering to code's ordering convention; for the gmsh ordering, see
+ *		the gmsh manual (Node ordering section). VeE and VeF are then set based on the standard node ordering in the
+ *		code.
+ *		      1D: VeC (standard) == VeE == VeF
+ *		      2D: VeC (standard) != VeE == VeF
+ *		      3D: VeC (standard) != VeE != VeF
  *
  *	Notation:
  *		present : Indicator of presence of this element type
@@ -27,11 +28,12 @@
  *		Nve     : (N)umber of local (ve)rtices
  *		Nfve    : (N)umber of local (f)acet (ve)rtices
  *		Nf      : (N)umber of local (f)acets
- *		VeC     : (Ve)rtices of the (C)orners
- *		VeE     : (Ve)rtices of the (E)dges
- *		VeF     : (Ve)rtices of the (F)acets
+ *		VeCGmsh : (Ve)rtices of the (C)orners (Gmsh ordering)
+ *		VeE     : (Ve)rtices of the (E)dges   (Standard ordering)
+ *		VeF     : (Ve)rtices of the (F)acets  (Standard ordering)
  *
  *	References:
+ *		http://gmsh.info/doc/texinfo/gmsh.html#Node-ordering
  *
  */
 
@@ -51,7 +53,7 @@ void setup_mesh()
 	ELEMENT->Nve     = 1;
 	ELEMENT->Nf      = 1;
 	ELEMENT->Nfve[0] = 1;
-	ELEMENT->VeC[0]     = 0;
+	ELEMENT->VeCGmsh[0] = 0;
 	ELEMENT->VeE[0*2+0] = 0;
 	ELEMENT->VeF[0*4+0] = 0;
 
@@ -66,7 +68,7 @@ void setup_mesh()
 	ELEMENT->Nve     = 2;
 	ELEMENT->Nf      = 2;
 	ELEMENT->Nfve[0] = 1;
-	ELEMENT->VeC[0]     = 0; ELEMENT->VeC[1]     = 1;
+	ELEMENT->VeCGmsh[0] = 0; ELEMENT->VeCGmsh[1] = 1;
 	ELEMENT->VeE[0*2+0] = 0;
 	ELEMENT->VeE[1*2+0] = 1;
 	ELEMENT->VeF[0*4+0] = 0;
@@ -83,7 +85,7 @@ void setup_mesh()
 	ELEMENT->Nve     = 3;
 	ELEMENT->Nf      = 3;
 	ELEMENT->Nfve[0] = 2;
-	ELEMENT->VeC[0]     = 0; ELEMENT->VeC[1]     = 1; ELEMENT->VeC[2]     = 2;
+	ELEMENT->VeCGmsh[0] = 0; ELEMENT->VeCGmsh[1] = 1; ELEMENT->VeCGmsh[2] = 2;
 	ELEMENT->VeE[0*2+0] = 1; ELEMENT->VeE[0*2+1] = 2;
 	ELEMENT->VeE[1*2+0] = 0; ELEMENT->VeE[1*2+1] = 2;
 	ELEMENT->VeE[2*2+0] = 0; ELEMENT->VeE[2*2+1] = 1;
@@ -102,15 +104,15 @@ void setup_mesh()
 	ELEMENT->Nve     = 4;
 	ELEMENT->Nf      = 4;
 	ELEMENT->Nfve[0] = 2;
-	ELEMENT->VeC[0]     = 0; ELEMENT->VeC[1]     = 1; ELEMENT->VeC[2]     = 3; ELEMENT->VeC[3]     = 2;
-	ELEMENT->VeE[0*2+0] = 0; ELEMENT->VeE[0*2+1] = 3;
-	ELEMENT->VeE[1*2+0] = 1; ELEMENT->VeE[1*2+1] = 2;
+	ELEMENT->VeCGmsh[0] = 0; ELEMENT->VeCGmsh[1] = 1; ELEMENT->VeCGmsh[2] = 3; ELEMENT->VeCGmsh[3] = 2;
+	ELEMENT->VeE[0*2+0] = 0; ELEMENT->VeE[0*2+1] = 2;
+	ELEMENT->VeE[1*2+0] = 1; ELEMENT->VeE[1*2+1] = 3;
 	ELEMENT->VeE[2*2+0] = 0; ELEMENT->VeE[2*2+1] = 1;
-	ELEMENT->VeE[3*2+0] = 3; ELEMENT->VeE[3*2+1] = 2; // ToBeDeleted: Modified from matlab code
-	ELEMENT->VeF[0*4+0] = 0; ELEMENT->VeF[0*4+1] = 3;
-	ELEMENT->VeF[1*4+0] = 1; ELEMENT->VeF[1*4+1] = 2;
+	ELEMENT->VeE[3*2+0] = 2; ELEMENT->VeE[3*2+1] = 3; // ToBeDeleted: Modified from matlab code
+	ELEMENT->VeF[0*4+0] = 0; ELEMENT->VeF[0*4+1] = 2;
+	ELEMENT->VeF[1*4+0] = 1; ELEMENT->VeF[1*4+1] = 3;
 	ELEMENT->VeF[2*4+0] = 0; ELEMENT->VeF[2*4+1] = 1;
-	ELEMENT->VeF[3*4+0] = 3; ELEMENT->VeF[3*4+1] = 2; // ToBeDeleted: Modified from matlab code
+	ELEMENT->VeF[3*4+0] = 2; ELEMENT->VeF[3*4+1] = 3; // ToBeDeleted: Modified from matlab code
 
 	ELEMENT->next = New_ELEMENT();
 
@@ -123,7 +125,7 @@ void setup_mesh()
 	ELEMENT->Nve     = 4;
 	ELEMENT->Nf      = 4;
 	ELEMENT->Nfve[0] = 3;
-	ELEMENT->VeC[0]     = 0; ELEMENT->VeC[1]     = 1; ELEMENT->VeC[2]     = 2; ELEMENT->VeC[3]     = 3;
+	ELEMENT->VeCGmsh[0] = 0; ELEMENT->VeCGmsh[1] = 1; ELEMENT->VeCGmsh[2] = 2; ELEMENT->VeCGmsh[3] = 3;
 	ELEMENT->VeE[0*2+0] = 1; ELEMENT->VeE[0*2+1] = 2;
 	ELEMENT->VeE[1*2+0] = 0; ELEMENT->VeE[1*2+1] = 2;
 	ELEMENT->VeE[2*2+0] = 0; ELEMENT->VeE[2*2+1] = 1;
@@ -146,26 +148,26 @@ void setup_mesh()
 	ELEMENT->Nve     = 8;
 	ELEMENT->Nf      = 6;
 	ELEMENT->Nfve[0] = 4;
-	ELEMENT->VeC[0]      = 0; ELEMENT->VeC[1]      = 1; ELEMENT->VeC[2]      = 3; ELEMENT->VeC[3]      = 2;
-	ELEMENT->VeC[4]      = 4; ELEMENT->VeC[5]      = 5; ELEMENT->VeC[6]      = 7; ELEMENT->VeC[7]      = 6;
+	ELEMENT->VeCGmsh[0]  = 0; ELEMENT->VeCGmsh[1]  = 1; ELEMENT->VeCGmsh[2]  = 3; ELEMENT->VeCGmsh[3]  = 2;
+	ELEMENT->VeCGmsh[4]  = 4; ELEMENT->VeCGmsh[5]  = 5; ELEMENT->VeCGmsh[6]  = 7; ELEMENT->VeCGmsh[7]  = 6;
 	ELEMENT->VeE[0*2+0]  = 0; ELEMENT->VeE[0*2+1]  = 1;
-	ELEMENT->VeE[1*2+0]  = 3; ELEMENT->VeE[1*2+1]  = 2;
+	ELEMENT->VeE[1*2+0]  = 2; ELEMENT->VeE[1*2+1]  = 3;
 	ELEMENT->VeE[2*2+0]  = 4; ELEMENT->VeE[2*2+1]  = 5;
-	ELEMENT->VeE[3*2+0]  = 7; ELEMENT->VeE[3*2+1]  = 6;
-	ELEMENT->VeE[4*2+0]  = 0; ELEMENT->VeE[4*2+1]  = 3;
-	ELEMENT->VeE[5*2+0]  = 1; ELEMENT->VeE[5*2+1]  = 2;
-	ELEMENT->VeE[6*2+0]  = 4; ELEMENT->VeE[6*2+1]  = 7;
-	ELEMENT->VeE[7*2+0]  = 5; ELEMENT->VeE[7*2+1]  = 6;
+	ELEMENT->VeE[3*2+0]  = 6; ELEMENT->VeE[3*2+1]  = 7;
+	ELEMENT->VeE[4*2+0]  = 0; ELEMENT->VeE[4*2+1]  = 2;
+	ELEMENT->VeE[5*2+0]  = 1; ELEMENT->VeE[5*2+1]  = 3;
+	ELEMENT->VeE[6*2+0]  = 4; ELEMENT->VeE[6*2+1]  = 6;
+	ELEMENT->VeE[7*2+0]  = 5; ELEMENT->VeE[7*2+1]  = 7;
 	ELEMENT->VeE[8*2+0]  = 0; ELEMENT->VeE[8*2+1]  = 4;
 	ELEMENT->VeE[9*2+0]  = 1; ELEMENT->VeE[9*2+1]  = 5;
-	ELEMENT->VeE[10*2+0] = 3; ELEMENT->VeE[10*2+1] = 7;
-	ELEMENT->VeE[11*2+0] = 2; ELEMENT->VeE[11*2+1] = 6;
-	ELEMENT->VeF[0*4+0]  = 0; ELEMENT->VeF[0*4+1]  = 4; ELEMENT->VeF[0*4+2]  = 3; ELEMENT->VeF[0*4+3]  = 7;
-	ELEMENT->VeF[1*4+0]  = 1; ELEMENT->VeF[1*4+1]  = 5; ELEMENT->VeF[1*4+2]  = 2; ELEMENT->VeF[1*4+3]  = 6;
+	ELEMENT->VeE[10*2+0] = 2; ELEMENT->VeE[10*2+1] = 6;
+	ELEMENT->VeE[11*2+0] = 3; ELEMENT->VeE[11*2+1] = 7;
+	ELEMENT->VeF[0*4+0]  = 0; ELEMENT->VeF[0*4+1]  = 2; ELEMENT->VeF[0*4+2]  = 4; ELEMENT->VeF[0*4+3]  = 6;
+	ELEMENT->VeF[1*4+0]  = 1; ELEMENT->VeF[1*4+1]  = 3; ELEMENT->VeF[1*4+2]  = 5; ELEMENT->VeF[1*4+3]  = 7;
 	ELEMENT->VeF[2*4+0]  = 0; ELEMENT->VeF[2*4+1]  = 1; ELEMENT->VeF[2*4+2]  = 4; ELEMENT->VeF[2*4+3]  = 5;
-	ELEMENT->VeF[3*4+0]  = 3; ELEMENT->VeF[3*4+1]  = 2; ELEMENT->VeF[3*4+2]  = 7; ELEMENT->VeF[3*4+3]  = 6;
-	ELEMENT->VeF[4*4+0]  = 0; ELEMENT->VeF[4*4+1]  = 1; ELEMENT->VeF[4*4+2]  = 3; ELEMENT->VeF[4*4+3]  = 2;
-	ELEMENT->VeF[5*4+0]  = 4; ELEMENT->VeF[5*4+1]  = 5; ELEMENT->VeF[5*4+2]  = 7; ELEMENT->VeF[5*4+3]  = 6;
+	ELEMENT->VeF[3*4+0]  = 2; ELEMENT->VeF[3*4+1]  = 3; ELEMENT->VeF[3*4+2]  = 6; ELEMENT->VeF[3*4+3]  = 7;
+	ELEMENT->VeF[4*4+0]  = 0; ELEMENT->VeF[4*4+1]  = 1; ELEMENT->VeF[4*4+2]  = 2; ELEMENT->VeF[4*4+3]  = 3;
+	ELEMENT->VeF[5*4+0]  = 4; ELEMENT->VeF[5*4+1]  = 5; ELEMENT->VeF[5*4+2]  = 6; ELEMENT->VeF[5*4+3]  = 7;
 
 	ELEMENT->next = New_ELEMENT();
 

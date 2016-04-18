@@ -108,7 +108,7 @@ void gmsh_reader(void)
 
 	// Standard datatypes
 	char         StringRead[STRLEN_MAX], *strings, *stringe;
-	unsigned int i, j, k, iMax, dim, count, flag, IndV, IndE, IndEV, IndP, ntags, type, *Nve, *Ed,
+	unsigned int i, j, k, iMax, dim, count, flag, IndV, IndE, IndEV, IndP, ntags, type, *Nve, *Ed, *VeCGmsh,
 	             SectionNodes, SectionElements,
 	             NVe, NETotal, *NE, *EType, *ETags, *EToVe, *EToPrt,
 	             EPerProc, MPIsize, NVeRed, MPIrank,
@@ -228,13 +228,14 @@ void gmsh_reader(void)
 			// Element Vertex Numbering
 			ELEMENT = DB.ELEMENT; while(ELEMENT->type != EType[IndE]) ELEMENT = ELEMENT->next;
 			type = ELEMENT->type;
+			VeCGmsh = ELEMENT->VeCGmsh;
 
 			Nve[IndE] = ELEMENT->Nve;
 			Ed[IndE]  = ELEMENT->d;   // Used in parmetis initialization
 
 			for (i = 0; i < Nve[IndE]; i++) {
 				tmpl = strtol(strings,&stringe,10); strings = stringe;
-				EToVe[IndE*8+i] = tmpl - 1;
+				EToVe[IndE*8+VeCGmsh[i]] = tmpl - 1;
 			}
 
 			// Initialize remaining entries to NVe; needed for sorting (ToBeModified/Deleted)

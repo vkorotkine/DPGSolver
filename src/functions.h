@@ -37,6 +37,10 @@ extern double     grad_jacobiP              (const double x, const double alpha,
 extern void   setup_structures              (void);
 extern void   setup_geometry                (void);
 extern void     vertices_to_exact_geom      (void);
+extern void     setup_ToBeCurved            (void);
+
+// Plotting
+extern void output_to_paraview (const char OutputType);
 
 // Matrix Functions
 extern double *diag_d     (const double *x, const unsigned int N);

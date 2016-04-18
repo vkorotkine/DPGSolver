@@ -49,7 +49,7 @@ extern struct S_DB DB;
 struct S_ELEMENT {
 	// Mesh
 	unsigned int present, type, d, Nve, Nf,
-	             *Nfve, *VeC, *VeE, *VeF;
+	             *Nfve, *VeCGmsh, *VeE, *VeF;
 
 	// Operators
 	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc, *NvnP,
@@ -67,10 +67,13 @@ struct S_ELEMENT {
 
 struct S_VOLUME {
 	// Structures
-	unsigned int indexl, indexg, P, type, Eclass, curved;
+	unsigned int indexl, indexg, P, type, Eclass, curved, 
+	             *Vneigh, *Fneigh;
+	double *XYZc;
 
 	// Geometry
-	double *XYZc, *XYZs;
+	unsigned int NvnG;
+	double *XYZs, *XYZ;
 
 	// structs
 	struct S_VOLUME *next, *grpnext;

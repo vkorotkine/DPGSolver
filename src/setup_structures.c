@@ -55,8 +55,7 @@ void setup_structures(void)
 	             IndE, IndVC, IndVgrp,
 	             Vs, firstV, vlocal, NVlocal, NECgrp, NVgrp,
 				 indexg, NvnGs,
-	             uMPIrank,
-				 *VeC;
+	             uMPIrank;
 	double       *XYZc;
 
 	struct S_ELEMENT *ELEMENT;
@@ -111,24 +110,40 @@ void setup_structures(void)
 			}
 
 			// Connectivity
-			
+			/*	Element connectivity numbering will be based on numbering supporting h-refinement; for this reason it may
+			 *	seem overly complex while storing the connectivity information on the initially conforming mesh.
+			 *	Supported h-refinements include:
+			 *		TET: Isotropic refinement into 4 TET, 2 PYR (PYR orientation tbd)
+			 *		HEX: Isotropic and anisotropic refinement of opposite facets into 2 horizontal, 2 vertical, 4 equal
+			 *		     QUADs.
+			 *		WEDGE: Isotropic refinement of opposing TRI facets, isotropic and anisotropic refinement of all QUAD
+			 *		       facets.
+			 *		PYR: Isotropic refinement into 6 PYR, 4 TET.
+			 *	Max number of faces (including all h-refined variations:
+			 *		TET: 4*(1+4) = 20
+			 *		HEX: 6*(1+2*2+4) = 54
+			 *		WEDGE: 2*(1+4)+3*(1+2*2+4) = 37
+			 *		PYR: 4*(1+4)+1*(1+2*2+4) = 25
+			 *
+			 *			MAX FACES: 6*9 = 54
+			 */
+
 
 			// Geometry
 			indexg = VOLUME->indexg;
 
 			ELEMENT = get_ELEMENT_type(VOLUME->type);
 
-			VeC   = ELEMENT->VeC;
 			NvnGs = ELEMENT->NvnGs[0];
 
-			XYZc = malloc (NvnGs*d * sizeof *XYZc); // keep
+			XYZc = malloc(NvnGs*d * sizeof *XYZc); // keep
 			VOLUME->XYZc = XYZc;
 
 			// XYZc may be interpreted as [X Y Z] where each of X, Y, Z are column vectors (ToBeDeleted)
 			// Add this comment to notation section.
 			for (ve = 0; ve < NvnGs; ve++) {
 			for (dim = 0; dim < d; dim++) {
-				XYZc[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+indexg)*8+VeC[ve]]*d+dim];
+				XYZc[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+indexg)*8+ve]*d+dim];
 			}}
 
 			// MPI

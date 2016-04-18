@@ -258,10 +258,13 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 void setup_geometry(void)
 {
 	// Initialize DB Parameters
-	char         *MeshType = DB.MeshType;
+	char         *MeshType = DB.MeshType,
+	             *TestCase = DB.TestCase;
 	unsigned int ExactGeom = DB.ExactGeom,
 	             d         = DB.d,
-	             *NE       = DB.NE;
+	             *NE       = DB.NE,
+
+	             Testing   = DB.Testing;
 
 	int          PrintTesting = 0;
 
@@ -269,7 +272,7 @@ void setup_geometry(void)
 	unsigned int i, dim, P, vn,
 	             Vs, NvnGs, NvnGc,
 	             NIn, NOut, NIn_SF[3], NOut_SF[3], NCols, Diag[3], NOut_Total;
-	double       *XYZc, *XYZs,
+	double       *XYZc, *XYZs, *XYZ,
 	             *I_vGs_vGc, *Input_SF, *OP_SF[3];
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_class[2];
@@ -303,8 +306,11 @@ void setup_geometry(void)
 		XYZs = malloc(0 * sizeof *XYZs); // silence
 		if (!VOLUME->curved) {
 			// If not curved, the P1 geometry representation suffices to fully specify the element geometry.
+			VOLUME->NvnG = NvnGs;
+
 			free(XYZs);
 			XYZs = malloc(NvnGs*d * sizeof *XYZs); // keep
+			XYZ  = malloc(NvnGs*d * sizeof *XYZ);  // keep
 			VOLUME->XYZs = XYZs;
 
 			for (dim = 0; dim < d; dim++) {
@@ -342,8 +348,11 @@ void setup_geometry(void)
 				OP_SF[2] = OP_SF[0];
 				for (i = 0; i < 3; i++) Diag[i] = 0;
 
+				VOLUME->NvnG = NOut_Total;
+
 				free(XYZs);
-				XYZs = malloc(NOut_Total*NCols * sizeof *XYZs);
+				XYZs = malloc(NOut_Total*NCols * sizeof *XYZs); // keep
+				XYZ  = malloc(NOut_Total*NCols * sizeof *XYZ);  // keep
 				sf_apply_d(Input_SF,XYZs,NIn_SF,NOut_SF,NCols,OP_SF,Diag,d);
 			} else if (VOLUME->Eclass == C_SI) {
 				NvnGs = ELEMENT->NvnGs[0];
@@ -351,22 +360,45 @@ void setup_geometry(void)
 				I_vGs_vGc = ELEMENT->I_vGs_vGc[P];
 
 				NCols = d*1; // d coordinates * 1 element
-				XYZs = malloc(NvnGc*NCols * sizeof *XYZs);
+
+				VOLUME->NvnG = NvnGc;
+
+				XYZs = malloc(NvnGc*NCols * sizeof *XYZs); // keep
+				XYZ  = malloc(NvnGc*NCols * sizeof *XYZ);  // keep
 				mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnGc,NCols,NvnGs,1.0,I_vGs_vGc,XYZc,XYZs);
 			}
 		}
 		VOLUME->XYZs = XYZs;
-
-//array_print_d(NOut_Total,d,XYZs,'C');
-//exit(1);
 	}
 
+	if (Testing) {
+		// Output straight coordinates to paraview
+
+		// Don't forget to convert to binary for efficiency.
+		output_to_paraview('G');
+
+	}
+
+	// Set up curved geometry nodes
+	if (strstr(MeshType,"ToBeCurved") != NULL) {
+		printf("    Modify vertex nodes of ToBeCurved Mesh\n");
+		setup_ToBeCurved();
+	} else {
+		printf("Add in support for MeshType != ToBeCurved");
+		exit(1);
+	}
+
+
+
+
+
+
+
+
+
+
 	// Find node index ordering on each FACET
-
-
-
-
-
+	// This will be done in setup_structures using XYZc.
 
 	/* WRITE A TEST ROUTINE TO MAKE SURE THAT THIS IS WORKING? (ToBeDeleted)
 	 * Note: Ideally, this information can be given without relying on matching of physical points as there will be a
