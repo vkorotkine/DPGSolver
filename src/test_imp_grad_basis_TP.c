@@ -265,8 +265,7 @@ void test_imp_grad_basis_TP(void)
 	 *				GradChiRef_rst = @(r) [0 sqrt(3/2) sqrt(5/2)*3*r sqrt(7/2)*1/2*(15*r^2-3)]
 	 */
 
-	unsigned int dE, Nn, P, Prst, ToReturn[4];
-	unsigned int *Con;
+	unsigned int dE, Nn, P, Prst;
 	double *rst, *w;
 
 	dE = 1;
@@ -276,8 +275,7 @@ void test_imp_grad_basis_TP(void)
 	P = 3;
 	Prst = 4;
 
-	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,Prst,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
 
 	GradChiRef13_code = grad_basis_TP(P,rst,Nn,dE); // free
 	GradChiRef13_test = grad_basis_TP13(rst,Nn); // free
@@ -332,8 +330,7 @@ void test_imp_grad_basis_TP(void)
 	P = 2;
 	Prst = 4;
 
-	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,Prst,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
 
 	GradChiRef22_code = grad_basis_TP(P,rst,Nn,dE); // free
 	GradChiRef22_test = grad_basis_TP22(rst,Nn); // free
@@ -396,8 +393,7 @@ void test_imp_grad_basis_TP(void)
 	P = 1;
 	Prst = 4;
 
-	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,Prst,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
 
 	GradChiRef31_code = grad_basis_TP(P,rst,Nn,dE); // free
 	GradChiRef31_test = grad_basis_TP31(rst,Nn); // free
@@ -439,8 +435,7 @@ void test_imp_grad_basis_TP(void)
 	// dE = 1
 	dE = 1;
 
-	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Nn,0,P,dE,"GL"); // free
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -486,8 +481,7 @@ void test_imp_grad_basis_TP(void)
 	// dE = 2
 	dE = 2;
 
-	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Nn,0,P,dE,"GL"); // free
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -535,8 +529,7 @@ void test_imp_grad_basis_TP(void)
 	// dE = 3
 	dE = 3;
 
-	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Nn,0,P,dE,"GL"); // free
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free

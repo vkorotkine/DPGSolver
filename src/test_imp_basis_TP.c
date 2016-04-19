@@ -164,8 +164,7 @@ void test_imp_basis_TP(void)
 	 *				ChiRef_rst = @(r) [sqrt(1/2)*1 sqrt(3/2)*r sqrt(5/2)*1/2*(3*r^2-1) sqrt(7/2)*1/2*(5*r^3-3*r)]
 	 */
 
-	unsigned int dE, Nn, P, Prst, ToReturn[4];
-	unsigned int *Con;
+	unsigned int dE, Nn, P, Prst;
 	double *rst, *w;
 
 	dE = 1;
@@ -175,8 +174,7 @@ void test_imp_basis_TP(void)
 	P = 3;
 	Prst = 4;
 
-	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,Prst,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
 
 	ChiRef13_code = basis_TP(P,rst,Nn,dE); // free
 	ChiRef13_test = basis_TP13(rst,Nn); // free
@@ -221,8 +219,7 @@ void test_imp_basis_TP(void)
 	P = 2;
 	Prst = 4;
 
-	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,Prst,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
 
 	ChiRef22_code = basis_TP(P,rst,Nn,dE); // free
 	ChiRef22_test = basis_TP22(rst,Nn); // free
@@ -266,8 +263,7 @@ void test_imp_basis_TP(void)
 	P = 1;
 	Prst = 4;
 
-	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,Prst,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
 
 	ChiRef31_code = basis_TP(P,rst,Nn,dE); // free
 	ChiRef31_test = basis_TP31(rst,Nn); // free
@@ -309,8 +305,7 @@ void test_imp_basis_TP(void)
 
 	// GL
 
-	ToReturn[0] = 1; ToReturn[1] = 1; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Nn,1,P,dE,"GL"); // free
 
 	W = diag_d(w,Nn); // free
 	free(w);
@@ -336,8 +331,7 @@ void test_imp_basis_TP(void)
 
 	// GLL
 
-	ToReturn[0] = 1; ToReturn[1] = 1; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"GLL"); // free
+	cubature_TP(&rst,&w,&Nn,1,P,dE,"GLL"); // free
 
 	W = diag_d(w,Nn); // free
 	free(w);
@@ -348,7 +342,7 @@ void test_imp_basis_TP(void)
 	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2)-1,M,I,"Inf") < EPS)
+	if (array_norm_diff_d(pow(Nbf,2)-1,M,I,"Inf") < EPS*10)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -372,8 +366,7 @@ void test_imp_basis_TP(void)
 
 	// GL
 
-	ToReturn[0] = 1; ToReturn[1] = 1; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Nn,1,P,dE,"GL"); // free
 
 	W = diag_d(w,Nn); // free
 	free(w);
@@ -408,8 +401,7 @@ void test_imp_basis_TP(void)
 
 	// GL
 
-	ToReturn[0] = 1; ToReturn[1] = 1; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst,&w,&Con,&Nn,ToReturn,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&Nn,1,P,dE,"GL"); // free
 
 	W = diag_d(w,Nn); // free
 	free(w);

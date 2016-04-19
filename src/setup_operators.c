@@ -77,7 +77,6 @@ void setup_operators(void)
 	             Nf,
 	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc, *NvnP,
 	             *NfnGc, *NfnIs, *NfnIc,
-	             *ToReturn, *dummyCon,
 	             **Con_rst_vP;
 	double       Theta_eta[6], Theta_zeta[6],
 	             *nr,*dummyw, *dummyrst,
@@ -95,8 +94,6 @@ void setup_operators(void)
 	             **I_vGs_vGc;
 
 	struct S_ELEMENT *ELEMENT;
-
-	ToReturn = malloc(4 * sizeof *ToReturn); // free
 
 	// LINE and TP Class
 	ELEMENT = DB.ELEMENT; while(ELEMENT->type != LINE) ELEMENT = ELEMENT->next;
@@ -152,11 +149,10 @@ void setup_operators(void)
 
 
 	// VOLUME Nodes (Order Independent)
-	ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-	cubature_TP(&rst_vGs[0],&dummyw,&dummyCon,&NvnGs[0],ToReturn,PGs,dE,"GLL"); // tbd
+	cubature_TP(&rst_vGs[0],&dummyw,&NvnGs[0],0,PGs,dE,"GLL"); // tbd
 
-	ToReturn[2] = 1;
-	cubature_TP(&rst_vP[0],&dummyw,&Con_rst_vP[0],&NvnP[0],ToReturn,PP,d,"ES"); // tbd
+	// change dummyw to types
+	plotting_element_info(&rst_vP[0],&Con_rst_vP[0],&dummyw,&NvnP[0],PP,LINE); // tbd
 
 	// Preliminary Operators
 	IGs = identity_d(NvnGs[0]); // tbd
@@ -188,21 +184,19 @@ array_print_d(NvnGs[0],NvnGs[0],TGs,'R');
     for (P = 0; P <= PMax; P++) {
 
 		// VOLUME Nodes (Order dependent)
-		ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-		cubature_TP(&rst_vGc[P],&dummyw,&dummyCon,&NvnGc[P],ToReturn,PGc[P]   ,dE,"GLL"); // tbd
-		cubature_TP(&rst_vCs[P],&dummyw,&dummyCon,&NvnCs[P],ToReturn,PCs[P][0],dE,"GLL"); // tbd
-		cubature_TP(&rst_vCc[P],&dummyw,&dummyCon,&NvnCc[P],ToReturn,PCc[P][0],dE,"GLL"); // tbd
-		cubature_TP(&rst_vJs[P],&dummyw,&dummyCon,&NvnCs[P],ToReturn,PJs[P][0],dE,"GLL"); // tbd
-		cubature_TP(&rst_vJc[P],&dummyw,&dummyCon,&NvnCc[P],ToReturn,PJc[P][0],dE,"GLL"); // tbd
+		cubature_TP(&rst_vGc[P],&dummyw,&NvnGc[P],0,PGc[P]   ,dE,"GLL"); // tbd
+		cubature_TP(&rst_vCs[P],&dummyw,&NvnCs[P],0,PCs[P][0],dE,"GLL"); // tbd
+		cubature_TP(&rst_vCc[P],&dummyw,&NvnCc[P],0,PCc[P][0],dE,"GLL"); // tbd
+		cubature_TP(&rst_vJs[P],&dummyw,&NvnCs[P],0,PJs[P][0],dE,"GLL"); // tbd
+		cubature_TP(&rst_vJc[P],&dummyw,&NvnCc[P],0,PJc[P][0],dE,"GLL"); // tbd
 
-		cubature_TP(&rst_vS[P]  ,&dummyw,&dummyCon,&NvnS[P]  ,ToReturn,P         ,dE,NodeTypeS[P][0]); // tbd
-		cubature_TP(&rst_vF[P]  ,&dummyw,&dummyCon,&NvnF[P]  ,ToReturn,PF[P]     ,dE,NodeTypeF[P][0]); // tbd
-		cubature_TP(&rst_vFrs[P],&dummyw,&dummyCon,&NvnFrs[P],ToReturn,PFrs[P][0],dE,NodeTypeFrs[P][0]); // tbd
-		cubature_TP(&rst_vFrc[P],&dummyw,&dummyCon,&NvnFrc[P],ToReturn,PFrc[P][0],dE,NodeTypeFrc[P][0]); // tbd
+		cubature_TP(&rst_vS[P]  ,&dummyw,&NvnS[P]  ,0,P         ,dE,NodeTypeS[P][0]); // tbd
+		cubature_TP(&rst_vF[P]  ,&dummyw,&NvnF[P]  ,0,PF[P]     ,dE,NodeTypeF[P][0]); // tbd
+		cubature_TP(&rst_vFrs[P],&dummyw,&NvnFrs[P],0,PFrs[P][0],dE,NodeTypeFrs[P][0]); // tbd
+		cubature_TP(&rst_vFrc[P],&dummyw,&NvnFrc[P],0,PFrc[P][0],dE,NodeTypeFrc[P][0]); // tbd
 
-		ToReturn[1] = 1;
-		cubature_TP(&rst_vIs[P],&wvIs[P],&dummyCon,&NvnIs[P],ToReturn,PIvs[P][0],dE,NodeTypeIvs[P][0]); // tbd
-		cubature_TP(&rst_vIc[P],&wvIc[P],&dummyCon,&NvnIc[P],ToReturn,PIvc[P][0],dE,NodeTypeIvc[P][0]); // tbd
+		cubature_TP(&rst_vIs[P],&wvIs[P],&NvnIs[P],1,PIvs[P][0],dE,NodeTypeIvs[P][0]); // tbd
+		cubature_TP(&rst_vIc[P],&wvIc[P],&NvnIc[P],1,PIvc[P][0],dE,NodeTypeIvc[P][0]); // tbd
 
 		// FACET Nodes (Order dependent in the general case => redundant here)
 		wfIs[P] = malloc(1 * sizeof **wfIs); // tbd
@@ -253,8 +247,7 @@ array_print_d(NvnGs[0],NvnGs[0],TGs,'R');
 		NvnGs  = ELEMENT->NvnGs;
 
 		// VOLUME Nodes (Order Independent)
-		ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-		cubature_TP(&dummyrst,&dummyw,&dummyCon,&NvnGs[0],ToReturn,PGs,dE,"GLL"); // tbd
+		cubature_TP(&dummyrst,&dummyw,&NvnGs[0],0,PGs,dE,"GLL"); // tbd
 
 	}
 
@@ -267,8 +260,7 @@ array_print_d(NvnGs[0],NvnGs[0],TGs,'R');
 		NvnGs  = ELEMENT->NvnGs;
 
 		// VOLUME Nodes (Order Independent)
-		ToReturn[0] = 1; ToReturn[1] = 0; ToReturn[2] = 0; ToReturn[3] = 1;
-		cubature_TP(&dummyrst,&dummyw,&dummyCon,&NvnGs[0],ToReturn,PGs,dE,"GLL"); // tbd
+		cubature_TP(&dummyrst,&dummyw,&NvnGs[0],0,PGs,dE,"GLL"); // tbd
 	}
 
 
@@ -278,6 +270,5 @@ array_print_d(NvnGs[0],NvnGs[0],TGs,'R');
 
 
 
-	free(ToReturn);
 
 }

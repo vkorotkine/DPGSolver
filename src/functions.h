@@ -25,8 +25,8 @@ extern void     setup_connectivity          (void);
 extern void     setup_periodic              (void);
 extern void       find_periodic_connections (unsigned int *Pve, unsigned int *pvePointer, const unsigned int VeMax);
 extern void   setup_operators               (void);
-extern void     cubature_TP                 (double **rst, double **w_vec, unsigned int **Con, unsigned int *Nn,
-                                             const unsigned int *ToReturn, const unsigned int P, const unsigned int d,
+extern void     cubature_TP                 (double **rst, double **w_vec, unsigned int *Nn,
+                                             const unsigned int return_w, const unsigned int P, const unsigned int d,
 											 const char *NodeType);
 extern double     *basis_TP                 (const unsigned int P, const double *rst, const unsigned int Nn,
                                              const unsigned int d);
@@ -40,7 +40,9 @@ extern void     vertices_to_exact_geom      (void);
 extern void     setup_ToBeCurved            (void);
 
 // Plotting
-extern void output_to_paraview (const char OutputType);
+extern void output_to_paraview    (const char OutputType);
+extern void plotting_element_info (double **rst, unsigned int **connect, unsigned int **types, unsigned int *Nn,
+                                   const unsigned int P, const unsigned int typeIn);
 
 // Matrix Functions
 extern double *diag_d     (const double *x, const unsigned int N);

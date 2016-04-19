@@ -141,6 +141,8 @@ int main(void)
 	test_imp_basis_TP();
 	test_imp_grad_basis_TP();
 
+	test_imp_plotting();
+
 	te = clock();
 
 	// Speed tests
