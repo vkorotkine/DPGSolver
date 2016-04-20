@@ -28,9 +28,11 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
                            const unsigned int P, const unsigned int typeIn)
 {
 	unsigned int i, j, k, l, m, iMax, jMax, kMax, lMax, row,
-	             d, NnOut, NEOut,
+	             d, Nc, NnOut, NEOut,
+	             layer, lBs, lTs, sum,
 	             *connectOut, *typesOut;
-	double *rstOut;
+	double di, dj, dk,
+	       *rstOut;
 
 	if (P == 0)
 		printf("Error: Input P must be greater than 0 for plotting nodes.\n"), exit(1);
@@ -126,46 +128,48 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		*Nn      = NnOut;
 	} else if (typeIn == TRI) {
 		d = 2;
+		Nc = 3;
 		NnOut = 1.0/2.0*(P+1)*(P+2);
 		NEOut = 0;
 		for (i = 0; i < P; i++)
 			NEOut += 2*i+1;
 
 		unsigned int iStart;
-		double di, dj,
-		       rst_c[3*d], BCoords[NnOut*3];
+		double rst_c[Nc*d], BCoords[NnOut*Nc];
 
-		rstOut     = malloc(NnOut*d * sizeof *rstOut); // keep (requires external free)
 		connectOut = calloc(NEOut*8 , sizeof *connectOut); // keep (requires external free)
 		typesOut   = malloc(NEOut   * sizeof *typesOut); // keep (requires external free)
 
 		// Determine barycentric coordinates of equally spaced nodes
 		row = 0;
-		for (i = 0; i <= P; i++) {
-		for (j = 0, jMax = P-i; j <= jMax; j++) {
+		for (j = 0; j <= P; j++) {
+		for (i = 0, iMax = P-j; i <= iMax; i++) {
 			di = i;
 			dj = j;
 
-			BCoords[row*3+2] = di/P;
-			BCoords[row*3+1] = dj/P;
-			BCoords[row*3+0] = 1.0 - (BCoords[row*3+1]+BCoords[row*3+2]);
+			BCoords[row*Nc+2] = dj/P;
+			BCoords[row*Nc+1] = di/P;
+			BCoords[row*Nc+0] = 1.0 - (BCoords[row*Nc+1]+BCoords[row*Nc+2]);
 
 			row++;
 		}}
 
 		// TRI corner nodes
-		rst_c[0*2+0] = -1.0; rst_c[0*2+1] = -1.0/sqrt(3.0);
-		rst_c[1*2+0] =  1.0; rst_c[1*2+1] = -1.0/sqrt(3.0);
-		rst_c[2*2+0] =  0.0; rst_c[2*2+1] =  2.0/sqrt(3.0);
+		rst_c[0*d+0] = -1.0; rst_c[0*d+1] = -1.0/sqrt(3.0);
+		rst_c[1*d+0] =  1.0; rst_c[1*d+1] = -1.0/sqrt(3.0);
+		rst_c[2*d+0] =  0.0; rst_c[2*d+1] =  2.0/sqrt(3.0);
 
-		rstOut = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NnOut,2,3,1.0,BCoords,rst_c);
+		rstOut = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords,rst_c);
 		// keep (requires external free)
 
-//array_print_d(NnOut,3,BCoords,'R');
+		// Convert to column-major ordering
+		mkl_dimatcopy('R','T',NnOut,d,1.0,rstOut,d,NnOut);
+
+//array_print_d(NnOut,Nc,BCoords,'R');
 //array_print_d(NnOut,d,rstOut,'R');
 
 		row = 0;
-		// Right-side up TRIs
+		// Regular TRIs
 		for (j = P; j; j--) {
 			iStart = 0;
 			for (l = P+1, m = j; P-m; m++, l--)
@@ -179,7 +183,7 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 			}
 		}
 
-		// Upside down TRIs
+		// Inverted  TRIs
 		for (j = P; j; j--) {
 			iStart = 1;
 			for (l = P+1, m = j; P-m; m++, l--)
@@ -205,49 +209,366 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 
 	} else if (typeIn == TET) {
 		d = 3;
+		Nc = 4;
 		NnOut = 1.0/6.0*(P+1)*(P+2)*(P+3);
 		NEOut = 0;
 		for (i = 1; i <= P; i++) {
-		for (j = 1; j <= i; j++) {
-			NEOut += j; // TETs
-			if (i != P)
-				NEOut += 2*j; // PYRs
-		}}
+			// Regular TETs
+			for (j = 1; j <= i; j++)
+				NEOut += j;
 
-		rstOut     = malloc(NnOut*d * sizeof *rstOut); // keep (requires external free)
+			// PYRs
+			NEOut += i*(i-1);
+
+			// Inverted TETs
+			if (i > 2)
+				for (j = 1; j <= (i-2); j++)
+					NEOut += j;
+		}
+
+		double BCoords[NnOut*Nc], rst_c[Nc*d];
+
 		connectOut = calloc(NEOut*8 , sizeof *connectOut); // keep (requires external free)
 		typesOut   = malloc(NEOut   * sizeof *typesOut); // keep (requires external free)
 
+		// Determine barycentric coordinates of equally spaced nodes
+		row = 0;
+		for (k = 0; k <= P; k++) {
+		for (j = 0, jMax = P-k; j <= jMax; j++) {
+		for (i = 0, iMax = P-(j+k); i <= iMax; i++) {
+			di = i;
+			dj = j;
+			dk = k;
 
+			BCoords[row*Nc+3] = dk/P;
+			BCoords[row*Nc+2] = dj/P;
+			BCoords[row*Nc+1] = di/P;
+			BCoords[row*Nc+0] = 1.0 - (BCoords[row*Nc+1]+BCoords[row*Nc+2]+BCoords[row*Nc+3]);
 
+			row++;
+		}}}
 
-		l = 0;
-		for (i = P; i >= 1; i--) {
-			if (i != P) {
-				for (j = 1; j <= i; j++) {
-				for (k = 0; k < 2*j; k++) {
-					typesOut[l] = 14;
-					l++;
-				}}
+		// TET corner nodes
+		rst_c[0*d+0] = -1.0; rst_c[0*d+1] = -1.0/sqrt(3.0); rst_c[0*d+2] = -1.0/sqrt(6);
+		rst_c[1*d+0] =  1.0; rst_c[1*d+1] = -1.0/sqrt(3.0); rst_c[1*d+2] = -1.0/sqrt(6);
+		rst_c[2*d+0] =  0.0; rst_c[2*d+1] =  2.0/sqrt(3.0); rst_c[2*d+2] = -1.0/sqrt(6);
+		rst_c[3*d+0] =  0.0; rst_c[3*d+1] =  0.0          ; rst_c[3*d+2] =  3.0/sqrt(6);
+
+		rstOut = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords,rst_c);
+		// keep (requires external free)
+
+		// Convert to column-major ordering
+		mkl_dimatcopy('R','T',NnOut,d,1.0,rstOut,d,NnOut);
+
+//array_print_d(NnOut,Nc,BCoords,'R');
+//array_print_d(NnOut,d,rstOut,'R');
+
+		row = 0;
+		for (layer = P; layer; layer--) {
+			lBs = 0;
+			for (i = P; i > layer; i--) {
+				sum = 0;
+				for (j = 1; j <= i+1; j++)
+					sum += j;
+				lBs += sum;
 			}
-			for (j = 1; j <= i; j++) {
-			for (k = 0; k < j; k++) {
-				typesOut[l] = 10;
-				l++;
+
+			lTs = 0;
+			for (i = P; i > (layer-1); i--) {
+				sum = 0;
+				for (j = 1; j <= i+1; j++)
+					sum += j;
+				lTs += sum;
+			}
+
+			// Regular TETs
+			for (j = 1; j <= layer; j++) {
+			for (i = 0, iMax = layer-j; i <= iMax; i++) {
+				sum = 0;
+				for (k = 1, kMax = j-1; k <= kMax; k++)
+					sum += layer+2-k;
+
+				connectOut[row*8+0] = lBs + i + sum;
+				connectOut[row*8+1] = connectOut[row*8+0] + 1;
+				connectOut[row*8+2] = connectOut[row*8+0] + layer+2-j;
+
+				sum = 0;
+				for (k = 1, kMax = j-1; k <= kMax; k++)
+					sum += layer+1-k;
+
+				connectOut[row*8+3] = lTs + i + sum;
+
+				row++;
 			}}
+
+			// PYRs
+			for (j = 1, jMax = layer-1; j <= jMax; j++) {
+			for (i = 1, iMax = layer-j; i <= iMax; i++) {
+				sum = 0;
+				for (k = 1, kMax = j-1; k <= kMax; k++)
+					sum += layer+2-k;
+
+				connectOut[row*8+4] = lBs + i + sum;
+				connectOut[row*8+0] = connectOut[row*8+4] + layer+1-j;
+				connectOut[row*8+1] = connectOut[row*8+0] + 1;
+
+				sum = 0;
+				for (k = 1, kMax = j-1; k <= kMax; k++)
+					sum += layer+1-k;
+
+				connectOut[row*8+3] = lTs + i-1 + sum;
+				connectOut[row*8+2] = connectOut[row*8+3] + 1;
+
+				row++;
+
+				connectOut[row*8+0] = connectOut[(row-1)*8+0];
+				connectOut[row*8+1] = connectOut[(row-1)*8+1];
+				connectOut[row*8+2] = connectOut[(row-1)*8+2];
+				connectOut[row*8+3] = connectOut[(row-1)*8+3];
+				connectOut[row*8+4] = connectOut[row*8+3] + layer+1-j;
+
+				row++;
+			}}
+
+			// Inverted TETs
+			for (j = 2, jMax = layer-1; j <= jMax; j++) {
+			for (i = 1, iMax = layer-j; i <= iMax; i++) {
+				sum = 0;
+				for (k = 1, kMax = j-1; k <= kMax; k++)
+					sum += layer+2-k;
+
+				connectOut[row*8+0] = lBs + i +sum;
+
+				sum = 0;
+				for (k = 1, kMax = j-2; k <= kMax; k++)
+					sum += layer+1-k;
+
+				connectOut[row*8+1] = lTs + i + sum;
+				connectOut[row*8+2] = connectOut[row*8+1] + layer+1-j;
+				connectOut[row*8+3] = connectOut[row*8+2] + 1;
+
+				row++;
+			}}
+//array_print_ui(NEOut,8,connectOut,'R');
 		}
 
-printf("%d\n",NEOut);
-array_print_ui(1,NEOut,typesOut,'R');
+		row = 0;
+		for (i = P; i ; i-- ) {
+			// Regular TETs
+			sum = 0;
+			for (j = 1; j <= i; j++)
+				sum += j;
+			for (jMax = sum; jMax--; ) {
+				typesOut[row] = 10;
+				row++;
+			}
+
+			// PYRs
+			for (jMax = i*(i-1); jMax--; ) {
+				typesOut[row] = 14;
+				row++;
+			}
+
+			// Inverted TETs
+			if (i > 2) {
+				sum = 0;
+				for (j = 1; j <= (i-2); j++)
+					sum += j;
+
+				for (jMax = sum; jMax--; ) {
+					typesOut[row] = 10;
+					row++;
+				}
+			}
+		}
+
+//array_print_ui(1,NEOut,typesOut,'R');
 
 		*rst     = rstOut;
 		*connect = connectOut;
 		*types   = typesOut;
 		*Nn      = NnOut;
 	} else if (typeIn == WEDGE) {
-		printf("Add in support for WEDGE (plotting_element_info).\n"), exit(1);
+		d = 3;
+
+		NEOut = 0;
+		for (i = 0; i < P; i++)
+			NEOut += 2*i+1;
+		NEOut *= P;
+
+		double *rst_TRI, *rst_LINE;
+		unsigned int Nn_TRI, Nn_LINE,
+		             *connect_TRI, *connect_LINE, *dummy_types;
+
+		plotting_element_info(&rst_TRI,&connect_TRI,&dummy_types,&Nn_TRI,P,TRI); // free
+		free(dummy_types);
+		plotting_element_info(&rst_LINE,&connect_LINE,&dummy_types,&Nn_LINE,P,LINE); // free
+
+		NnOut = Nn_TRI*Nn_LINE;
+
+		rstOut     = malloc(NnOut*d * sizeof *rstOut);     // keep (requires external free)
+		connectOut = calloc(NEOut*8 , sizeof *connectOut); // keep (requires external free)
+		typesOut   = malloc(NEOut   * sizeof *typesOut);   // keep (requires external free)
+
+		row = 0;
+		for (j = 0; j < Nn_LINE; j++) {
+		for (i = 0; i < Nn_TRI; i++) {
+			for (k = 0; k < 2; k++)
+				rstOut[k*NnOut+row] = rst_TRI[k*Nn_TRI+i];
+
+			rstOut[2*NnOut+row] = rst_LINE[j];
+
+			row++;
+		}}
+
+		row = 0;
+		for (j = 0, jMax = P; j < jMax; j++) {
+		for (i = 0, iMax = NEOut/P; i < iMax; i++) {
+			for (k = 0; k < 3; k++)
+				connectOut[row*8+k] = connect_TRI[i*8+k] + 10*j;
+			for (k = 0; k < 3; k++)
+				connectOut[row*8+3+k] = connect_TRI[i*8+k] + 10*(j+1);
+
+			row++;
+		}}
+
+		for (i = 0; i < NEOut; i++)
+			typesOut[i] = 13;
+
+		free(rst_TRI);
+		free(connect_TRI);
+
+		free(rst_LINE);
+		free(connect_LINE);
+		free(dummy_types);
+
+		*rst     = rstOut;
+		*connect = connectOut;
+		*types   = typesOut;
+		*Nn      = NnOut;
+
 	} else if (typeIn == PYR) {
-		printf("Add in support for PYR (plotting_element_info).\n"), exit(1);
+		d = 3;
+		Nc = 5;
+
+		NnOut = 0;
+		for (i = 1, iMax = P+1; i <= iMax; i++)
+			NnOut += pow(i,2);
+
+		NEOut = 0;
+		for (i = P; i ; i--) {
+			NEOut += pow(i,2);
+			NEOut += 2*i*(i-1);
+			NEOut += pow(i-1,2);
+		}
+
+		double *rst_QUAD;
+		unsigned int Nn_QUAD,
+		             *connect_QUAD, *dummy_types;
+
+		rstOut     = malloc(NnOut*d * sizeof *rstOut);     // keep (requires external free)
+		connectOut = calloc(NEOut*8 , sizeof *connectOut); // keep (requires external free)
+		typesOut   = malloc(NEOut   * sizeof *typesOut);   // keep (requires external free)
+
+		row = 0;
+		for (i = P; i ; i--) {
+			di = i;
+			plotting_element_info(&rst_QUAD,&connect_QUAD,&dummy_types,&Nn_QUAD,i,QUAD); // free
+
+			for (j = 0; j < Nn_QUAD; j++) {
+				for (k = 0; k < 2; k++)
+					rstOut[k*NnOut+row] = rst_QUAD[k*Nn_QUAD+j]*di/P;
+
+				rstOut[2*NnOut+row] = -1.0*di/P + 1.0*(P-di)/P;
+				row++;
+			}
+
+			free(rst_QUAD);
+			free(connect_QUAD);
+			free(dummy_types);
+		}
+		for (k = 0; k < 2; k++)
+			rstOut[k*NnOut+row] = 0.0;
+		rstOut[2*NnOut+row] = 1.0;
+
+		row = 0;
+		for (layer = P; layer; layer--) {
+			lBs = 0;
+			for (i = P; i > layer; i--)
+				lBs += pow(i+1,2);
+
+			lTs = 0;
+			for (i = P; i > (layer-1); i--)
+				lTs += pow(i+1,2);
+
+			// Regular PYRs
+			for (j = 0; j < layer; j++) {
+			for (i = 0; i < layer; i++) {
+				connectOut[row*8+0] = lBs + i + j*(layer+1);
+				connectOut[row*8+1] = connectOut[row*8+0] + 1;
+				connectOut[row*8+2] = connectOut[row*8+1] + layer+1;
+				connectOut[row*8+3] = connectOut[row*8+2] - 1;
+				connectOut[row*8+4] = lTs + i + j*layer;
+				row++;
+			}}
+
+			// TETs
+			for (j = 0; j < layer; j++) {
+			for (i = 1; i < layer; i++) {
+				connectOut[row*8+0] = lBs + i + j*(layer+1);
+				connectOut[row*8+1] = connectOut[row*8+0] + layer+1;
+				connectOut[row*8+2] = lTs + i-1 + j*layer;
+				connectOut[row*8+3] = connectOut[row*8+2] + 1;
+				row++;
+			}}
+
+			for (i = 0; i < layer; i++) {
+			for (j = 1; j < layer; j++) {
+				connectOut[row*8+0] = lBs + i + j*(layer+1);
+				connectOut[row*8+1] = connectOut[row*8+0] + 1;
+				connectOut[row*8+2] = lTs + i + (j-1)*layer;
+				connectOut[row*8+3] = connectOut[row*8+2] + layer;
+				row++;
+			}}
+
+			// Inverted PYRs
+			for (j = 1; j < layer; j++) {
+			for (i = 1; i < layer; i++) {
+				connectOut[row*8+0] = lTs + i-1 + (j-1)*layer;
+				connectOut[row*8+1] = connectOut[row*8+0] + 1;
+				connectOut[row*8+2] = connectOut[row*8+1] + layer;
+				connectOut[row*8+3] = connectOut[row*8+2] - 1;
+				connectOut[row*8+4] = lBs + i + j*(layer+1);
+				row++;
+			}}
+//array_print_ui(NEOut,8,connectOut,'R');
+		}
+
+		row = 0;
+		for (i = P; i ; i--) {
+			// Regular PYRs
+			for (j = 0, jMax = pow(i,2); j < jMax; j++) {
+				typesOut[row] = 14;
+				row++;
+			}
+
+			// TETs
+			for (j = 0, jMax = 2*i*(i-1); j < jMax; j++) {
+				typesOut[row] = 10;
+				row++;
+			}
+
+			// Inverted PYRs
+			for (j = 0, jMax = pow(i-1,2); j < jMax; j++) {
+				typesOut[row] = 14;
+				row++;
+			}
+		}
+
+		*rst     = rstOut;
+		*connect = connectOut;
+		*types   = typesOut;
+		*Nn      = NnOut;
 	}
 
 //array_print_d(NnOut,d,*rst,'C');
