@@ -25,7 +25,7 @@
  */
 
 void plotting_element_info(double **rst, unsigned int **connect, unsigned int **types, unsigned int *Nn,
-                           const unsigned int P, const unsigned int typeIn)
+                           unsigned int *NE, const unsigned int P, const unsigned int typeIn)
 {
 	unsigned int i, j, k, l, m, iMax, jMax, kMax, lMax, row,
 	             d, Nc, NnOut, NEOut,
@@ -126,6 +126,7 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		*connect = connectOut;
 		*types   = typesOut;
 		*Nn      = NnOut;
+		*NE      = NEOut;
 	} else if (typeIn == TRI) {
 		d = 2;
 		Nc = 3;
@@ -206,7 +207,7 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		*connect = connectOut;
 		*types   = typesOut;
 		*Nn      = NnOut;
-
+		*NE      = NEOut;
 	} else if (typeIn == TET) {
 		d = 3;
 		Nc = 4;
@@ -388,6 +389,7 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		*connect = connectOut;
 		*types   = typesOut;
 		*Nn      = NnOut;
+		*NE      = NEOut;
 	} else if (typeIn == WEDGE) {
 		d = 3;
 
@@ -397,12 +399,12 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		NEOut *= P;
 
 		double *rst_TRI, *rst_LINE;
-		unsigned int Nn_TRI, Nn_LINE,
+		unsigned int Nn_TRI, Nn_LINE, NE_TRI, NE_LINE,
 		             *connect_TRI, *connect_LINE, *dummy_types;
 
-		plotting_element_info(&rst_TRI,&connect_TRI,&dummy_types,&Nn_TRI,P,TRI); // free
+		plotting_element_info(&rst_TRI,&connect_TRI,&dummy_types,&Nn_TRI,&NE_TRI,P,TRI); // free
 		free(dummy_types);
-		plotting_element_info(&rst_LINE,&connect_LINE,&dummy_types,&Nn_LINE,P,LINE); // free
+		plotting_element_info(&rst_LINE,&connect_LINE,&dummy_types,&Nn_LINE,&NE_LINE,P,LINE); // free
 
 		NnOut = Nn_TRI*Nn_LINE;
 
@@ -446,7 +448,7 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		*connect = connectOut;
 		*types   = typesOut;
 		*Nn      = NnOut;
-
+		*NE      = NEOut;
 	} else if (typeIn == PYR) {
 		d = 3;
 		Nc = 5;
@@ -463,7 +465,7 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		}
 
 		double *rst_QUAD;
-		unsigned int Nn_QUAD,
+		unsigned int Nn_QUAD, NE_QUAD,
 		             *connect_QUAD, *dummy_types;
 
 		rstOut     = malloc(NnOut*d * sizeof *rstOut);     // keep (requires external free)
@@ -473,7 +475,7 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		row = 0;
 		for (i = P; i ; i--) {
 			di = i;
-			plotting_element_info(&rst_QUAD,&connect_QUAD,&dummy_types,&Nn_QUAD,i,QUAD); // free
+			plotting_element_info(&rst_QUAD,&connect_QUAD,&dummy_types,&Nn_QUAD,&NE_QUAD,i,QUAD); // free
 
 			for (j = 0; j < Nn_QUAD; j++) {
 				for (k = 0; k < 2; k++)
@@ -569,6 +571,7 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		*connect = connectOut;
 		*types   = typesOut;
 		*Nn      = NnOut;
+		*NE      = NEOut;
 	}
 
 //array_print_d(NnOut,d,*rst,'C');

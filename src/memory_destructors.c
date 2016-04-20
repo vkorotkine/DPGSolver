@@ -45,12 +45,12 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free2_d(NP,ELEMENT->rst_vFrc);
 	array_free2_d(NP,ELEMENT->rst_vIs);
 	array_free2_d(NP,ELEMENT->rst_vIc);
-	array_free2_d(1 ,ELEMENT->rst_vP);
 
 	array_free2_d(NP,ELEMENT->wvIs);
 	array_free2_d(NP,ELEMENT->wvIc);
 
-	array_free2_ui(1 ,ELEMENT->Con_rst_vP);
+	free(ELEMENT->connectivity);
+	free(ELEMENT->connect_types);
 
 	free(ELEMENT->NvnGs);
 	free(ELEMENT->NvnGc);
@@ -64,7 +64,6 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->NvnFrc);
 	free(ELEMENT->NvnIs);
 	free(ELEMENT->NvnIc);
-	free(ELEMENT->NvnP);
 
 	// FACET Nodes
 	array_free3_d(NP,ELEMENT->Nf,ELEMENT->rst_fGc);
@@ -80,6 +79,8 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 
 	// Operators
 	//array_free2_d(NP,ELEMENT->I_vGs_vGc);
+	//array_free2_d(1 ,ELEMENT->I_vGs_vP);
+	//array_free2_d(NP,ELEMENT->I_vGs_vP);
 
 	free(ELEMENT);
 }

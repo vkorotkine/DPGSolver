@@ -21,7 +21,8 @@
  *
  */
 
-double **grad_basis_TP(const unsigned int P, const double *rst, const unsigned int Nn, const unsigned int d)
+double **grad_basis_TP(const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
+                       const unsigned int d)
 {
 	unsigned int i, j, k, iMax, jMax, kMax, dim, Indbf, Indn, u1,
 	             N, Nbf;
@@ -106,5 +107,6 @@ double **grad_basis_TP(const unsigned int P, const double *rst, const unsigned i
 	if (d > 1) free(s);
 	if (d > 2) free(t);
 
+	*NbfOut = Nbf;
 	return GradChiRef_rst;
 }

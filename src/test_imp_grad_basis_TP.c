@@ -265,7 +265,7 @@ void test_imp_grad_basis_TP(void)
 	 *				GradChiRef_rst = @(r) [0 sqrt(3/2) sqrt(5/2)*3*r sqrt(7/2)*1/2*(15*r^2-3)]
 	 */
 
-	unsigned int dE, Nn, P, Prst;
+	unsigned int dE, Nn, Nbf, P, Prst;
 	double *rst, *w;
 
 	dE = 1;
@@ -277,7 +277,7 @@ void test_imp_grad_basis_TP(void)
 
 	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
 
-	GradChiRef13_code = grad_basis_TP(P,rst,Nn,dE); // free
+	GradChiRef13_code = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 	GradChiRef13_test = grad_basis_TP13(rst,Nn); // free
 
 	pass = 0;
@@ -332,7 +332,7 @@ void test_imp_grad_basis_TP(void)
 
 	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
 
-	GradChiRef22_code = grad_basis_TP(P,rst,Nn,dE); // free
+	GradChiRef22_code = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 	GradChiRef22_test = grad_basis_TP22(rst,Nn); // free
 
 	pass = 0;
@@ -395,7 +395,7 @@ void test_imp_grad_basis_TP(void)
 
 	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
 
-	GradChiRef31_code = grad_basis_TP(P,rst,Nn,dE); // free
+	GradChiRef31_code = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 	GradChiRef31_test = grad_basis_TP31(rst,Nn); // free
 
 	pass = 0;
@@ -447,10 +447,10 @@ void test_imp_grad_basis_TP(void)
 	}
 
 	I = identity_d(Nn); // free
-	ChiRef_rst = basis_TP(P,rst,Nn,dE); // free
+	ChiRef_rst = basis_TP(P,rst,Nn,&Nbf,dE); // free
 	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,I); // free
 
-	GradChiRef_rst = grad_basis_TP(P,rst,Nn,dE); // free
+	GradChiRef_rst = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 
 	poly2(r,s,t,Nn,&f,&f_r,&f_s,&f_t); // free
 
@@ -493,10 +493,10 @@ void test_imp_grad_basis_TP(void)
 	}
 
 	I = identity_d(Nn); // free
-	ChiRef_rst = basis_TP(P,rst,Nn,dE); // free
+	ChiRef_rst = basis_TP(P,rst,Nn,&Nbf,dE); // free
 	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,I); // free
 
-	GradChiRef_rst = grad_basis_TP(P,rst,Nn,dE); // free
+	GradChiRef_rst = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 
 	poly2(r,s,t,Nn,&f,&f_r,&f_s,&f_t); // free
 
@@ -541,10 +541,10 @@ void test_imp_grad_basis_TP(void)
 	}
 
 	I = identity_d(Nn); // free
-	ChiRef_rst = basis_TP(P,rst,Nn,dE); // free
+	ChiRef_rst = basis_TP(P,rst,Nn,&Nbf,dE); // free
 	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,I); // free
 
-	GradChiRef_rst = grad_basis_TP(P,rst,Nn,dE); // free
+	GradChiRef_rst = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 
 	poly2(r,s,t,Nn,&f,&f_r,&f_s,&f_t); // free
 

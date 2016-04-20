@@ -29,9 +29,9 @@ extern void     cubature_TP                 (double **rst, double **w_vec, unsig
                                              const unsigned int return_w, const unsigned int P, const unsigned int d,
 											 const char *NodeType);
 extern double     *basis_TP                 (const unsigned int P, const double *rst, const unsigned int Nn,
-                                             const unsigned int d);
+                                             unsigned int *NbfOut, const unsigned int d);
 extern double     **grad_basis_TP           (const unsigned int P, const double *rst, const unsigned int Nn,
-                                             const unsigned int d);
+                                             unsigned int *NbfOut, const unsigned int d);
 extern double     jacobiP                   (const double x, const double alpha, const double beta, const int N);
 extern double     grad_jacobiP              (const double x, const double alpha, const double beta, const int N);
 extern void   setup_structures              (void);
@@ -42,7 +42,7 @@ extern void     setup_ToBeCurved            (void);
 // Plotting
 extern void output_to_paraview    (const char OutputType);
 extern void plotting_element_info (double **rst, unsigned int **connect, unsigned int **types, unsigned int *Nn,
-                                   const unsigned int P, const unsigned int typeIn);
+                                   unsigned int *NE, const unsigned int P, const unsigned int typeIn);
 
 // Matrix Functions
 extern double *diag_d     (const double *x, const unsigned int N);

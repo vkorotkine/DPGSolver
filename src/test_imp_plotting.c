@@ -47,7 +47,7 @@ void test_imp_plotting(void)
 	 *				[  3  3  3]
 	 */
 
-	unsigned int i, j, k, iMax, jMax, kMax, row, dim, Indr, d, P, Nn;
+	unsigned int i, j, k, iMax, jMax, kMax, row, dim, Indr, d, P, Nn, NE;
 	unsigned int *connect, *types;
 	double *rst;
 
@@ -73,13 +73,13 @@ void test_imp_plotting(void)
 //		rst13_TP[i] = -1.0 + (2.0*i)/P;
 //	rst13_TP[0] = -2.0;
 
-	plotting_element_info(&rst,&connect,&types,&Nn,P,LINE); // free
+	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,LINE); // free
 
 	pass = 0;
 	if (array_norm_diff_d(Nn13_TP*d,rst13_TP,rst,"Inf")          < EPS &&
 		array_norm_diff_ui(NE13_TP*8,connect13_TP,connect,"Inf") < EPS &&
 		array_norm_diff_ui(NE13_TP,types13_TP,types,"Inf")       < EPS &&
-		Nn == Nn13_TP)
+		Nn == Nn13_TP && NE == NE13_TP)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -157,13 +157,13 @@ void test_imp_plotting(void)
 		row++;
 	}}
 
-	plotting_element_info(&rst,&connect,&types,&Nn,P,QUAD); // free
+	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,QUAD); // free
 
 	pass = 0;
 	if (array_norm_diff_d(Nn23_TP,rst23_TP,rst,"Inf")            < EPS &&
 		array_norm_diff_ui(NE23_TP*8,connect23_TP,connect,"Inf") < EPS &&
 		array_norm_diff_ui(NE23_TP,types23_TP,types,"Inf")       < EPS &&
-		Nn == Nn23_TP)
+		Nn == Nn23_TP && NE == NE23_TP)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -246,13 +246,13 @@ void test_imp_plotting(void)
 		row++;
 	}}}
 
-	plotting_element_info(&rst,&connect,&types,&Nn,P,HEX); // free
+	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,HEX); // free
 
 	pass = 0;
 	if (array_norm_diff_d(Nn33_TP,rst33_TP,rst,"Inf") < EPS &&
 		array_norm_diff_ui(NE33_TP*8,connect33_TP,connect,"Inf")     < EPS &&
 		array_norm_diff_ui(NE33_TP,types33_TP,types,"Inf")     < EPS &&
-		Nn == Nn33_TP)
+		Nn == Nn33_TP && NE == NE33_TP)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -337,13 +337,13 @@ void test_imp_plotting(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn23_SI,d,1.0,rst23_SI,d,Nn23_SI);
 
-	plotting_element_info(&rst,&connect,&types,&Nn,P,TRI); // free
+	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,TRI); // free
 
 	pass = 0;
 	if (array_norm_diff_d(Nn23_SI,rst23_SI,rst,"Inf")            < EPS &&
 		array_norm_diff_ui(NE23_SI*8,connect23_SI,connect,"Inf") < EPS &&
 		array_norm_diff_ui(NE23_SI,types23_SI,types,"Inf")       < EPS &&
-		Nn == Nn23_SI)
+		Nn == Nn23_SI && NE == NE23_SI)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -442,13 +442,13 @@ void test_imp_plotting(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn33_SI,d,1.0,rst33_SI,d,Nn33_SI);
 
-	plotting_element_info(&rst,&connect,&types,&Nn,P,TET); // free
+	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,TET); // free
 
 	pass = 0;
 	if (array_norm_diff_d(Nn33_SI,rst33_SI,rst,"Inf")            < EPS &&
 		array_norm_diff_ui(NE33_SI*8,connect33_SI,connect,"Inf") < EPS &&
 		array_norm_diff_ui(NE33_SI,types33_SI,types,"Inf")       < EPS &&
-		Nn == Nn33_SI)
+		Nn == Nn33_SI && NE == NE33_SI)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -573,13 +573,13 @@ void test_imp_plotting(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn3_WEDGE,d,1.0,rst3_WEDGE,d,Nn3_WEDGE);
 
-	plotting_element_info(&rst,&connect,&types,&Nn,P,WEDGE); // free
+	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,WEDGE); // free
 
 	pass = 0;
 	if (array_norm_diff_d(Nn3_WEDGE,rst3_WEDGE,rst,"Inf")            < EPS &&
 		array_norm_diff_ui(NE3_WEDGE*8,connect3_WEDGE,connect,"Inf") < EPS &&
 		array_norm_diff_ui(NE3_WEDGE,types3_WEDGE,types,"Inf")       < EPS &&
-		Nn == Nn3_WEDGE)
+		Nn == Nn3_WEDGE && NE == NE3_WEDGE)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -709,13 +709,13 @@ void test_imp_plotting(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn3_PYR,d,1.0,rst3_PYR,d,Nn3_PYR);
 
-	plotting_element_info(&rst,&connect,&types,&Nn,P,PYR); // free
+	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,PYR); // free
 
 	pass = 0;
 	if (array_norm_diff_d(Nn3_PYR,rst3_PYR,rst,"Inf")            < EPS &&
 		array_norm_diff_ui(NE3_PYR*8,connect3_PYR,connect,"Inf") < EPS &&
 		array_norm_diff_ui(NE3_PYR,types3_PYR,types,"Inf")       < EPS &&
-		Nn == Nn3_PYR)
+		Nn == Nn3_PYR && NE == NE3_PYR)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50

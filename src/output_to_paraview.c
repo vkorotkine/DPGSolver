@@ -4,7 +4,7 @@
 
 #include "database.h"
 #include "parameters.h"
-//#include "functions.h"
+#include "functions.h"
 
 /*
  *	Purpose:
@@ -38,9 +38,14 @@ static void output_geom()
 
 	// standard datatypes
 	char MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
-	unsigned int i, iMax;
-
+	unsigned int i, iMax,
+	             d, P, NE, NvnP, NvnG,
+	             *connectivity, *types;
+	double *I_vG_vP, *XYZ_vP;
 	FILE *fID;
+
+	struct S_ELEMENT *ELEMENT;
+	struct S_VOLUME *VOLUME;
 
 	sprintf(MPIrank_c,"%d",MPIrank);
 	strcpy(f_name,TestCase);
@@ -85,9 +90,7 @@ static void output_geom()
 	}
 
 	/* To Do:
-	 * Change cubature_TP to no longer output ES nodes, instead, make a cubature_ES script which takes care of all
-	 * element types. It seems convenient to use the barycentric coordinates to find the nodes and it will thus be
-	 * required to implement basisTET and basisPYR as well. After this is done, make a mixed ToBeCurved mesh in gmsh and
+	 * Make a mixed ToBeCurved mesh in gmsh and
 	 * run it through the setup_ToBeCurved. Then output to paraview and make sure that all is working correctly. Note
 	 * the cubature_ES should also output a vector of element types matching the connectivity (required especially for
 	 * TET/PYR).
@@ -101,7 +104,48 @@ static void output_geom()
 	if ((fID = fopen(f_serial,"w")) == NULL)
 		printf("Error: File f_serial did not open.\n"), exit(1);
 
-	fprintf(fID, "Entered serial\n");
+	fprintf_tn(fID,0,"<?xml version=\"1.0\"?>");
+	fprintf_tn(fID,0,"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">");
+	fprintf_tn(fID,1,"<UnstructuredGrid>\n");
+
+	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+		P = VOLUME->P;
+		NvnG = VOLUME->NvnG;
+		ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+		d = ELEMENT->d;
+
+		connectivity = ELEMENT->connectivity;
+		types        = ELEMENT->connect_types;
+		NvnP         = ELEMENT->NvnP;
+		NE           = ELEMENT->connect_NE;
+
+		if (!VOLUME->curved)
+			I_vG_vP = ELEMENT->I_vGs_vP[0];
+		else
+			I_vG_vP = ELEMENT->I_vGc_vP[P];
+
+		array_print_ui(NE,8,connectivity,'R');
+
+		//array_print_d(NvnG,d,VOLUME->XYZs,'C');
+		//array_print_d(NvnP,NvnG,I_vG_vP,'R');
+
+		printf("%d %d %d\n",NvnP,d,NvnG);
+		exit(1);
+
+		XYZ_vP = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnP,d,NvnG,1.0,I_vG_vP,VOLUME->XYZs); // free
+
+		array_print_d(NvnG,d,VOLUME->XYZs,'C');
+		array_print_d(NvnP,d,XYZ_vP,'C');
+		exit(1);
+
+		fprintf(fID,"\t\t<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n",1,2);
+
+		fprintf_tn(fID,2,"</Piece>\n");
+
+		free(XYZ_vP);
+	}
+
 
 	fclose(fID);
 

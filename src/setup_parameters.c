@@ -139,7 +139,7 @@ void setup_parameters()
 	if (DB.P == 0)
 		DB.PP = DB.P+1;
 	else
-		DB.PP = max(6-ML,DB.P);
+		DB.PP = max(4-ML,DB.P);
 
 	// Geometry
 	PGs = 1;

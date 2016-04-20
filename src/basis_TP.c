@@ -20,7 +20,8 @@
  *	References:
  */
 
-double *basis_TP(const unsigned int P, const double *rst, const unsigned int Nn, const unsigned int d)
+double *basis_TP(const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
+                 const unsigned int d)
 {
 	unsigned int i, j, k, iMax, jMax, kMax, Indbf, Indn, u1,
 	             N, Nbf;
@@ -68,5 +69,6 @@ double *basis_TP(const unsigned int P, const double *rst, const unsigned int Nn,
 	if (d > 1) free(s);
 	if (d > 2) free(t);
 
+	*NbfOut = Nbf;
 	return ChiRef_rst;
 }

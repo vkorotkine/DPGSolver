@@ -52,15 +52,16 @@ struct S_ELEMENT {
 	             *Nfve, *VeCGmsh, *VeE, *VeF;
 
 	// Operators
-	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc, *NvnP,
+	unsigned int connect_NE, NvnP,
+	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc,
 	             *NfnGc, *NfnIs, *NfnIc,
-	             **Con_rst_vP;
+	             *connectivity, *connect_types;
 	double       *nr,
 	             **rst_vGs, **rst_vGc, **rst_vCs, **rst_vCc, **rst_vJs, **rst_vJc, **rst_vS, **rst_vF, **rst_vFrs, **rst_vFrc,
-	             **rst_vIs, **rst_vIc, **rst_vP,
+	             **rst_vIs, **rst_vIc,
 	             **wvIs, **wvIc,
 	             ***rst_fGc, ***rst_fIs, ***rst_fIc, **wfIs, **wfIc,
-	             **I_vGs_vGc;
+	             **I_vGs_vGc, **I_vGs_vP, **I_vGc_vP;
 
 	struct S_ELEMENT *next;
 };

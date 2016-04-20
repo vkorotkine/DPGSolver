@@ -349,6 +349,7 @@ void setup_geometry(void)
 				for (i = 0; i < 3; i++) Diag[i] = 0;
 
 				VOLUME->NvnG = NOut_Total;
+				printf("%d %d %d \n",ELEMENT_class[0]->type,NOut, NOut_Total);
 
 				free(XYZs);
 				XYZs = malloc(NOut_Total*NCols * sizeof *XYZs); // keep

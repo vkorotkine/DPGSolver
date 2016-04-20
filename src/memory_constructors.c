@@ -17,9 +17,9 @@
 
 struct S_ELEMENT *New_ELEMENT(void)
 {
-	int NP = DB.NP;
+	unsigned int NP = DB.NP;
 
-	int i, iMax, P;
+	unsigned int i, iMax, P;
 
 	struct S_ELEMENT *ELEMENT;
 	ELEMENT = malloc(sizeof *ELEMENT); // free
@@ -44,9 +44,24 @@ struct S_ELEMENT *New_ELEMENT(void)
 	// Operators
 
 	// Normals
-	ELEMENT->nr = malloc(6*3 * sizeof *(ELEMENT->nr)); // free
+	ELEMENT->nr = calloc(6*3 , sizeof *(ELEMENT->nr)); // free
 
-	for (i = 0, iMax = 6*3; i < iMax; i++) ELEMENT->nr[i] = 0.;
+	// Plotting
+	ELEMENT->connectivity  = NULL;
+	ELEMENT->connect_types = NULL;
+
+	// Necessary Operators
+	ELEMENT->I_vGs_vGc = malloc(NP * sizeof *(ELEMENT->I_vGs_vGc)); // free
+	ELEMENT->I_vGs_vP  = malloc(1  * sizeof *(ELEMENT->I_vGs_vP));  // free
+	ELEMENT->I_vGc_vP  = malloc(NP * sizeof *(ELEMENT->I_vGc_vP));  // free
+
+
+
+
+
+
+
+	// ToBeDeleted: Delete unnecessarily stored arrays
 
 	// VOLUME Nodes
 	ELEMENT->rst_vGs  = malloc(1  * sizeof *(ELEMENT->rst_vGs));  // free
@@ -61,17 +76,12 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->rst_vFrc = malloc(NP * sizeof *(ELEMENT->rst_vFrc)); // free
 	ELEMENT->rst_vIs  = malloc(NP * sizeof *(ELEMENT->rst_vIs));  // free
 	ELEMENT->rst_vIc  = malloc(NP * sizeof *(ELEMENT->rst_vIc));  // free
-	ELEMENT->rst_vP   = malloc(1  * sizeof *(ELEMENT->rst_vP));   // free
 
 	ELEMENT->wvIs = malloc(NP * sizeof *(ELEMENT->wvIs)); // free
 	ELEMENT->wvIc = malloc(NP * sizeof *(ELEMENT->wvIc)); // free
 
-	ELEMENT->Con_rst_vP = malloc(1 * sizeof *(ELEMENT->Con_rst_vP)); // free
-
 	ELEMENT->rst_vGs[0] = NULL;
-	ELEMENT->rst_vP[0]  = NULL;
 
-	ELEMENT->Con_rst_vP[0] = NULL;
 	for (P = 0; P < NP; P++) {
 		ELEMENT->rst_vGc[P]  = NULL;
 		ELEMENT->rst_vCs[P]  = NULL;
@@ -89,7 +99,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->wvIc[P] = NULL;
 	}
 
-	ELEMENT->NvnGs  = malloc(1  * sizeof *(ELEMENT->NvnGs));   // free
+	ELEMENT->NvnGs  = malloc(1  * sizeof *(ELEMENT->NvnGs));  // free
 	ELEMENT->NvnGc  = malloc(NP * sizeof *(ELEMENT->NvnGc));  // free
 	ELEMENT->NvnCs  = malloc(NP * sizeof *(ELEMENT->NvnCs));  // free
 	ELEMENT->NvnCc  = malloc(NP * sizeof *(ELEMENT->NvnCc));  // free
@@ -101,15 +111,15 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->NvnFrc = malloc(NP * sizeof *(ELEMENT->NvnFrc)); // free
 	ELEMENT->NvnIs  = malloc(NP * sizeof *(ELEMENT->NvnIs));  // free
 	ELEMENT->NvnIc  = malloc(NP * sizeof *(ELEMENT->NvnIc));  // free
-	ELEMENT->NvnP   = malloc(1  * sizeof *(ELEMENT->NvnP));   // free
+	ELEMENT->NvnP   = 0;
 
 	// FACET Nodes
-	ELEMENT->rst_fGc  = malloc(NP * sizeof *(ELEMENT->rst_fGc));  // free
-	ELEMENT->rst_fIs  = malloc(NP * sizeof *(ELEMENT->rst_fIs));  // free
-	ELEMENT->rst_fIc  = malloc(NP * sizeof *(ELEMENT->rst_fIc));  // free
+	ELEMENT->rst_fGc  = malloc(NP * sizeof *(ELEMENT->rst_fGc)); // free
+	ELEMENT->rst_fIs  = malloc(NP * sizeof *(ELEMENT->rst_fIs)); // free
+	ELEMENT->rst_fIc  = malloc(NP * sizeof *(ELEMENT->rst_fIc)); // free
 
-	ELEMENT->wfIs  = malloc(NP * sizeof *(ELEMENT->wfIs));  // free
-	ELEMENT->wfIc  = malloc(NP * sizeof *(ELEMENT->wfIc));  // free
+	ELEMENT->wfIs  = malloc(NP * sizeof *(ELEMENT->wfIs)); // free
+	ELEMENT->wfIc  = malloc(NP * sizeof *(ELEMENT->wfIc)); // free
 
 	for (P = 0; P < NP; P++) {
 		ELEMENT->rst_fGc[P] = NULL;
@@ -124,8 +134,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->NfnIs = malloc(NP * sizeof *(ELEMENT->NfnIs)); // free
 	ELEMENT->NfnIc = malloc(NP * sizeof *(ELEMENT->NfnIc)); // free
 
-	// Operators
-	ELEMENT->I_vGs_vGc = malloc(NP * sizeof *(ELEMENT->I_vGs_vGc)); // free
+
+
 
 
 
@@ -153,11 +163,13 @@ struct S_VOLUME *New_VOLUME(void)
 
 	VOLUME->Vneigh = malloc(6*9 * sizeof *(VOLUME->Vneigh)); // free
 	VOLUME->Fneigh = malloc(6*9 * sizeof *(VOLUME->Fneigh)); // free
-	// *XYZc;
+
+	VOLUME->XYZc = NULL;
 
 	// Geometry
 	VOLUME->NvnG = 0;
-	// *XYZs, *XYZ;
+	VOLUME->XYZs = NULL;
+	VOLUME->XYZ  = NULL;
 
 	VOLUME->next    = NULL;
 	VOLUME->grpnext = NULL;

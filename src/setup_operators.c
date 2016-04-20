@@ -74,24 +74,24 @@ void setup_operators(void)
 
 	// Standard datatypes
 	unsigned int i, j, count, dE, f, P,
-	             Nf,
-	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc, *NvnP,
+	             Nf, NE, Nbf,
+	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc, NvnP,
 	             *NfnGc, *NfnIs, *NfnIc,
-	             **Con_rst_vP;
+	             *connectivity, *types;
 	double       Theta_eta[6], Theta_zeta[6],
 	             *nr,*dummyw, *dummyrst,
 	             **rst_vGs, **rst_vGc, **rst_vCs, **rst_vCc, **rst_vJs, **rst_vJc, **rst_vS, **rst_vF, **rst_vFrs, **rst_vFrc,
-	             **rst_vIs, **rst_vIc, **rst_vP, **wvIs, **wvIc,
+	             **rst_vIs, **rst_vIc, *rst_vP, **wvIs, **wvIc,
 	             ***rst_fGc, ***rst_fIs, ***rst_fIc, **wfIs, **wfIc,
-	             *IGs,
-	             *ChiRefGs_vGs,
-	             *ChiGs_vGs,
-	             *ChiRefInvGs_vGs,
-	             *ChiInvGs_vGs,
-	             *TGs,
-	             **ChiRefGs_vGc,
-	             **ChiGs_vGc,
-	             **I_vGs_vGc;
+	             *IP, *IGs, **IGc,
+	             *ChiRefGs_vGs, **ChiRefGc_vGc,
+	             *ChiGs_vGs, **ChiGc_vGc,
+	             *ChiRefInvGs_vGs, **ChiRefInvGc_vGc,
+	             *ChiInvGs_vGs, **ChiInvGc_vGc,
+	             *TGs, **TGc,
+	             **ChiRefGs_vGc, *ChiRefGs_vP, **ChiRefGc_vP,
+	             **ChiGs_vGc, *ChiGs_vP, **ChiGc_vP,
+	             **I_vGs_vGc, **I_vGs_vP, **I_vGc_vP;
 
 	struct S_ELEMENT *ELEMENT;
 
@@ -131,7 +131,9 @@ void setup_operators(void)
 	rst_vFrc = ELEMENT->rst_vFrc; NvnFrc = ELEMENT->NvnFrc;
 	rst_vIs  = ELEMENT->rst_vIs ; NvnIs  = ELEMENT->NvnIs ; wvIs = ELEMENT->wvIs;
 	rst_vIc  = ELEMENT->rst_vIc ; NvnIc  = ELEMENT->NvnIc ; wvIc = ELEMENT->wvIc;
-	rst_vP   = ELEMENT->rst_vP  ; NvnP   = ELEMENT->NvnP  ; Con_rst_vP = ELEMENT->Con_rst_vP;
+
+//  Set element equal to these after they are set
+//	NvnP   = ELEMENT->NvnP  ; connectivity = ELEMENT->connectivity;
 
 	// FACET Nodes
 	rst_fGc = ELEMENT->rst_fGc; NfnGc = ELEMENT->NfnGc;
@@ -139,11 +141,25 @@ void setup_operators(void)
 	rst_fIc = ELEMENT->rst_fIc; NfnIc = ELEMENT->NfnIc; wfIc = ELEMENT->wfIc;
 
 	// Preliminary Operators
+	ChiGs_vGs = NULL;
+
 	ChiRefGs_vGc = malloc(NP * sizeof *ChiRefGs_vGc); // tbd
-	ChiGs_vGc = malloc(NP * sizeof *ChiGs_vGc); // tbd
+	ChiGs_vGc    = malloc(NP * sizeof *ChiGs_vGc);    // tbd
+
+	IGc          = malloc(NP * sizeof *IGc); // tbd
+	ChiRefGc_vGc = malloc(NP * sizeof *ChiRefGc_vGc); // tbd
+	ChiGc_vGc    = malloc(NP * sizeof *ChiGc_vGc); // tbd
+	ChiRefInvGc_vGc = malloc(NP * sizeof *ChiRefInvGc_vGc); // tbd
+	ChiInvGc_vGc = malloc(NP * sizeof *ChiInvGc_vGc); // tbd
+	TGc          = malloc(NP * sizeof *TGc); // tbd
+	ChiRefGc_vP  = malloc(NP * sizeof *ChiRefGc_vP); // tbd
+	ChiGc_vP  = malloc(NP * sizeof *ChiGc_vP); // tbd
+
 
 	// Operators
 	I_vGs_vGc = ELEMENT->I_vGs_vGc;
+	I_vGs_vP  = ELEMENT->I_vGs_vP;
+	I_vGc_vP  = ELEMENT->I_vGc_vP;
 
 
 
@@ -151,13 +167,16 @@ void setup_operators(void)
 	// VOLUME Nodes (Order Independent)
 	cubature_TP(&rst_vGs[0],&dummyw,&NvnGs[0],0,PGs,dE,"GLL"); // tbd
 
-	// change dummyw to types
-	plotting_element_info(&rst_vP[0],&Con_rst_vP[0],&dummyw,&NvnP[0],PP,LINE); // tbd
+	plotting_element_info(&rst_vP,&connectivity,&types,&NvnP,&NE,PP,LINE); // tbd
+	ELEMENT->connectivity  = connectivity;
+	ELEMENT->connect_types = types;
+	ELEMENT->connect_NE    = NE;
+	ELEMENT->NvnP = NvnP;
 
 	// Preliminary Operators
 	IGs = identity_d(NvnGs[0]); // tbd
 
-	ChiRefGs_vGs = basis_TP(PGs,rst_vGs[0],NvnGs[0],dE); // tbd
+	ChiRefGs_vGs = basis_TP(PGs,rst_vGs[0],NvnGs[0],&Nbf,dE); // tbd
 
 	if (strstr(BasisType,"Modal") != NULL) {
 		ChiGs_vGs = ChiRefGs_vGs;
@@ -167,12 +186,17 @@ void setup_operators(void)
 
 	ChiRefInvGs_vGs = inverse_d(NvnGs[0],NvnGs[0],ChiRefGs_vGs,IGs); // tbd
 
-	ChiInvGs_vGs    = inverse_d(NvnGs[0],NvnGs[0],ChiGs_vGs,IGs); // tbd
+	ChiInvGs_vGs = inverse_d(NvnGs[0],NvnGs[0],ChiGs_vGs,IGs); // tbd
 
-/// Add in CBLAS_LAYOUT parameter to mm_Alloc ///
 	TGs = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,
 	                 NvnGs[0],NvnGs[0],NvnGs[0],1.0,ChiRefInvGs_vGs,ChiGs_vGs); // tbd
 
+	ChiRefGs_vP = basis_TP(PGs,rst_vP,NvnP,&Nbf,dE); // tbd
+
+	ChiGs_vP = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NvnP,NvnGs[0],NvnGs[0],1.0,ChiRefGs_vP,TGs); // tbd
+
+	I_vGs_vP[0] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,
+	                         NvnP,NvnGs[0],NvnGs[0],1.0,ChiGs_vP,ChiInvGs_vGs);    // keep
 
 /*
 array_print_d(NvnGs[0],NvnGs[0],ChiRefGs_vGs,'R');
@@ -221,16 +245,40 @@ array_print_d(NvnGs[0],NvnGs[0],TGs,'R');
 		}
 
 		// Preliminary Operators
-		ChiRefGs_vGc[P] = basis_TP(PGs,rst_vGc[P],NvnGc[P],dE); // tbd
+		IGc[P] = identity_d(NvnGc[P]); // tbd
+
+		ChiRefGc_vGc[P] = basis_TP(PGc[P],rst_vGc[P],NvnGc[P],&Nbf,dE); // tbd
+
+		if (strstr(BasisType,"Modal") != NULL) {
+			ChiGc_vGc[P] = ChiRefGc_vGc[P];
+		} else if (strstr(BasisType,"Nodal") != NULL) {
+			ChiGc_vGc[P] = IGc[P];
+		}
+
+		ChiRefInvGc_vGc[P] = inverse_d(NvnGc[P],NvnGc[P],ChiRefGc_vGc[P],IGc[P]); // tbd
+
+		ChiInvGc_vGc[P] = inverse_d(NvnGc[P],NvnGc[P],ChiGc_vGc[P],IGc[P]); // tbd
+
+		TGc[P] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,
+		                    NvnGc[P],NvnGc[P],NvnGc[P],1.0,ChiRefInvGc_vGc[P],ChiGc_vGc[P]); // tbd
+
+
+		ChiRefGs_vGc[P] = basis_TP(PGs,rst_vGc[P],NvnGc[P],&Nbf,dE); // tbd
+		ChiRefGc_vP[P]  = basis_TP(PGc[P],rst_vP,NvnP,&Nbf,dE);      // tbd
 
 		ChiGs_vGc[P] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,
 		                          NvnGc[P],NvnGs[0],NvnGs[0],1.0,ChiRefGs_vGc[P],TGs); // tbd
+		ChiGc_vP[P]  = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,
+		                          NvnP,NvnGc[P],NvnGc[P],1.0,ChiRefGc_vP[P],TGc[P]);   // tbd
 
 
 
 		// Operators
 		I_vGs_vGc[P] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,
 		                          NvnGc[P],NvnGs[0],NvnGs[0],1.0,ChiGs_vGc[P],ChiInvGs_vGs); // keep
+
+		I_vGc_vP[P] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,
+		                         NvnP,NvnGc[P],NvnGc[P],1.0,ChiGc_vP[P],ChiInvGc_vGc[P]);    // keep
 
 //array_print_d(NvnGc[P],NvnGs[0],I_vGs_vGc[P],'R');
 
@@ -249,6 +297,13 @@ array_print_d(NvnGs[0],NvnGs[0],TGs,'R');
 		// VOLUME Nodes (Order Independent)
 		cubature_TP(&dummyrst,&dummyw,&NvnGs[0],0,PGs,dE,"GLL"); // tbd
 
+
+		plotting_element_info(&rst_vP,&connectivity,&types,&NvnP,&NE,PP,QUAD); // tbd
+		ELEMENT->connectivity  = connectivity;
+		ELEMENT->connect_types = types;
+		ELEMENT->connect_NE    = NE;
+		ELEMENT->NvnP = NvnP;
+
 	}
 
 	// HEX
@@ -261,13 +316,55 @@ array_print_d(NvnGs[0],NvnGs[0],TGs,'R');
 
 		// VOLUME Nodes (Order Independent)
 		cubature_TP(&dummyrst,&dummyw,&NvnGs[0],0,PGs,dE,"GLL"); // tbd
+
+		plotting_element_info(&rst_vP,&connectivity,&types,&NvnP,&NE,PP,HEX); // tbd
+		ELEMENT->connectivity  = connectivity;
+		ELEMENT->connect_types = types;
+		ELEMENT->connect_NE    = NE;
+		ELEMENT->NvnP = NvnP;
+
+		NvnGc = ELEMENT->NvnGc;
+
+		for (P = 0; P <= PMax; P++) {
+
+			cubature_TP(&rst_vGc[P],&dummyw,&NvnGc[P],0,PGc[P]   ,dE,"GLL"); // tbd
+
+			IGc[P] = identity_d(NvnGc[P]); // tbd
+
+			ChiRefGc_vGc[P] = basis_TP(PGc[P],rst_vGc[P],NvnGc[P],&Nbf,dE); // tbd
+
+			if (strstr(BasisType,"Modal") != NULL) {
+				ChiGc_vGc[P] = ChiRefGc_vGc[P];
+			} else if (strstr(BasisType,"Nodal") != NULL) {
+				ChiGc_vGc[P] = IGc[P];
+			}
+
+			ChiRefInvGc_vGc[P] = inverse_d(NvnGc[P],NvnGc[P],ChiRefGc_vGc[P],IGc[P]); // tbd
+
+			ChiInvGc_vGc[P] = inverse_d(NvnGc[P],NvnGc[P],ChiGc_vGc[P],IGc[P]); // tbd
+
+			TGc[P] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,
+								NvnGc[P],NvnGc[P],NvnGc[P],1.0,ChiRefInvGc_vGc[P],ChiGc_vGc[P]); // tbd
+
+
+			ChiRefGs_vGc[P] = basis_TP(PGs,rst_vGc[P],NvnGc[P],&Nbf,dE); // tbd
+			ChiRefGc_vP[P]  = basis_TP(PGc[P],rst_vP,NvnP,&Nbf,dE);      // tbd
+
+			ChiGs_vGc[P] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,
+									  NvnGc[P],NvnGs[0],NvnGs[0],1.0,ChiRefGs_vGc[P],TGs); // tbd
+			ChiGc_vP[P]  = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,
+									  NvnP,NvnGc[P],NvnGc[P],1.0,ChiRefGc_vP[P],TGc[P]);   // tbd
+
+
+
+			// Operators
+			I_vGs_vGc[P] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,
+									  NvnGc[P],NvnGs[0],NvnGs[0],1.0,ChiGs_vGc[P],ChiInvGs_vGs); // keep
+
+			I_vGc_vP[P] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,
+		                             NvnP,NvnGc[P],NvnGc[P],1.0,ChiGc_vP[P],ChiInvGc_vGc[P]);    // keep
+		}
 	}
-
-
-
-
-
-
 
 
 

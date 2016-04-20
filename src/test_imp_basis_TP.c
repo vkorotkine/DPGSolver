@@ -164,7 +164,7 @@ void test_imp_basis_TP(void)
 	 *				ChiRef_rst = @(r) [sqrt(1/2)*1 sqrt(3/2)*r sqrt(5/2)*1/2*(3*r^2-1) sqrt(7/2)*1/2*(5*r^3-3*r)]
 	 */
 
-	unsigned int dE, Nn, P, Prst;
+	unsigned int dE, Nn, Nbf, P, Prst;
 	double *rst, *w;
 
 	dE = 1;
@@ -176,7 +176,7 @@ void test_imp_basis_TP(void)
 
 	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
 
-	ChiRef13_code = basis_TP(P,rst,Nn,dE); // free
+	ChiRef13_code = basis_TP(P,rst,Nn,&Nbf,dE); // free
 	ChiRef13_test = basis_TP13(rst,Nn); // free
 
 	pass = 0;
@@ -221,7 +221,7 @@ void test_imp_basis_TP(void)
 
 	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
 
-	ChiRef22_code = basis_TP(P,rst,Nn,dE); // free
+	ChiRef22_code = basis_TP(P,rst,Nn,&Nbf,dE); // free
 	ChiRef22_test = basis_TP22(rst,Nn); // free
 
 	pass = 0;
@@ -265,7 +265,7 @@ void test_imp_basis_TP(void)
 
 	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
 
-	ChiRef31_code = basis_TP(P,rst,Nn,dE); // free
+	ChiRef31_code = basis_TP(P,rst,Nn,&Nbf,dE); // free
 	ChiRef31_test = basis_TP31(rst,Nn); // free
 
 	pass = 0;
@@ -293,7 +293,6 @@ void test_imp_basis_TP(void)
 	 *			M = ChiRef_rst'*W*ChiRef_rst = I with error in highest order entries (GLL)
 	 */
 
-	unsigned int Nbf;
 	double *ChiRef_rst, *W, *WChiRef_rst, *M, *I;
 
 	// dE = 1
@@ -310,7 +309,7 @@ void test_imp_basis_TP(void)
 	W = diag_d(w,Nn); // free
 	free(w);
 
-	ChiRef_rst = basis_TP(P,rst,Nn,dE); // free
+	ChiRef_rst = basis_TP(P,rst,Nn,&Nbf,dE); // free
 
 	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst); // free
 	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
@@ -336,7 +335,7 @@ void test_imp_basis_TP(void)
 	W = diag_d(w,Nn); // free
 	free(w);
 
-	ChiRef_rst = basis_TP(P,rst,Nn,dE); // free
+	ChiRef_rst = basis_TP(P,rst,Nn,&Nbf,dE); // free
 
 	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst); // free
 	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
@@ -371,7 +370,7 @@ void test_imp_basis_TP(void)
 	W = diag_d(w,Nn); // free
 	free(w);
 
-	ChiRef_rst = basis_TP(P,rst,Nn,dE); // free
+	ChiRef_rst = basis_TP(P,rst,Nn,&Nbf,dE); // free
 
 	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst); // free
 	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
@@ -406,7 +405,7 @@ void test_imp_basis_TP(void)
 	W = diag_d(w,Nn); // free
 	free(w);
 
-	ChiRef_rst = basis_TP(P,rst,Nn,dE); // free
+	ChiRef_rst = basis_TP(P,rst,Nn,&Nbf,dE); // free
 
 	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst); // free
 	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
