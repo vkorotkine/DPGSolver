@@ -38,7 +38,7 @@ Line Loop (4001) = {1001,2002,-1002,-2001};
 Plane Surface(4001) = {4001};
 
 Transfinite Surface {4001};
-Recombine Surface{4001};
+//Recombine Surface{4001};
 
 
 

@@ -5,9 +5,9 @@
 /*------------------------------------------------------------*/
 
 BEGIN PARAMETERS
-  Dimension  3
+  Dimension  2
   ML         1
-  MeshType   ToBeCurvedStructuredHEX
+  MeshType   ToBeCurvedStructuredTRI
 
   Form       Weak  // Options: Weak, Strong
   NodeType   GL-AO // Options: GL/GLL-AO/WS/SH

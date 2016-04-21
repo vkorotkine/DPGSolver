@@ -27,7 +27,7 @@ extern void       find_periodic_connections (unsigned int *Pve, unsigned int *pv
 extern void   setup_operators               (void);
 extern void     cubature_TP                 (double **rst, double **w_vec, unsigned int *Nn,
                                              const unsigned int return_w, const unsigned int P, const unsigned int d,
-											 const char *NodeType);
+                                             const char *NodeType);
 extern double     *basis_TP                 (const unsigned int P, const double *rst, const unsigned int Nn,
                                              unsigned int *NbfOut, const unsigned int d);
 extern double     **grad_basis_TP           (const unsigned int P, const double *rst, const unsigned int Nn,
@@ -38,6 +38,16 @@ extern void   setup_structures              (void);
 extern void   setup_geometry                (void);
 extern void     vertices_to_exact_geom      (void);
 extern void     setup_ToBeCurved            (void);
+
+// Sum Factorization
+extern void sf_operate_d (const int NOut, const int NCols, const int NIn, const int BRowMaxIn, double *OP,
+                          double *Input, double *Output);
+extern void sf_swap_d    (double *Input, const unsigned int dim, const unsigned int NIn, const unsigned int step,
+                          const unsigned int NRows, const unsigned int NCols, const unsigned int iBound,
+                          const unsigned int jBound, const unsigned int kBound, const unsigned int iStep,
+                          const unsigned int jStep1, const unsigned int jStep2, const unsigned int kStep);
+extern void sf_apply_d   (double *Input, double *Output, const unsigned int NIn[3], const unsigned int NOut[3],
+                          const unsigned int NCols, double *OP[3], const unsigned int Diag[3], const unsigned int d);
 
 // Plotting
 extern void output_to_paraview    (const char OutputType);

@@ -8,6 +8,7 @@
  *		Free memory of various structures.
  *
  *	Comments:
+ *		ToBeDeleted: Likely need a destructor for elements and element classes which are different.
  *
  *	Notation:
  *
@@ -27,12 +28,23 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->VeE);
 	free(ELEMENT->VeF);
 
-	// Operators
-
 	// Normals
 	free(ELEMENT->nr);
 
+	// Plotting
+	free(ELEMENT->connectivity);
+	free(ELEMENT->connect_types);
+
+	// Operators
+	free(ELEMENT->NvnGs);
+	free(ELEMENT->NvnGc);
+
+	array_free2_d(NP,ELEMENT->I_vGs_vGc);
+	array_free2_d(1 ,ELEMENT->I_vGs_vP);
+	array_free2_d(NP,ELEMENT->I_vGc_vP);
+
 	// VOLUME Nodes
+/*
 	array_free2_d(1 ,ELEMENT->rst_vGs);
 	array_free2_d(NP,ELEMENT->rst_vGc);
 	array_free2_d(NP,ELEMENT->rst_vCs);
@@ -49,11 +61,6 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free2_d(NP,ELEMENT->wvIs);
 	array_free2_d(NP,ELEMENT->wvIc);
 
-	free(ELEMENT->connectivity);
-	free(ELEMENT->connect_types);
-
-	free(ELEMENT->NvnGs);
-	free(ELEMENT->NvnGc);
 	free(ELEMENT->NvnCs);
 	free(ELEMENT->NvnCc);
 	free(ELEMENT->NvnJs);
@@ -76,11 +83,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->NfnGc);
 	free(ELEMENT->NfnIs);
 	free(ELEMENT->NfnIc);
-
-	// Operators
-	//array_free2_d(NP,ELEMENT->I_vGs_vGc);
-	//array_free2_d(1 ,ELEMENT->I_vGs_vP);
-	//array_free2_d(NP,ELEMENT->I_vGs_vP);
+*/
 
 	free(ELEMENT);
 }

@@ -58,7 +58,7 @@ void setup_structures(void)
 	             uMPIrank;
 	double       *XYZc;
 
-	struct S_ELEMENT *ELEMENT;
+	struct S_ELEMENT *ELEMENT, *ELEMENT_class[2];
 	struct S_VOLUME *VOLUME, **Vgrp, **Vgrp_tmp;
 
 	// Arbitrary initializations for variables defined in conditionals (to eliminate compiler warnings)
@@ -133,8 +133,20 @@ void setup_structures(void)
 			indexg = VOLUME->indexg;
 
 			ELEMENT = get_ELEMENT_type(VOLUME->type);
+			if (VOLUME->Eclass == C_TP) {
+				ELEMENT_class[0] = get_ELEMENT_Eclass(VOLUME->Eclass,C_TP);
 
-			NvnGs = ELEMENT->NvnGs[0];
+				NvnGs = pow(ELEMENT_class[0]->NvnGs[0],d);
+			} else if (VOLUME->Eclass == C_WEDGE) {
+				ELEMENT_class[0] = get_ELEMENT_Eclass(VOLUME->Eclass,C_SI);
+				ELEMENT_class[1] = get_ELEMENT_Eclass(VOLUME->Eclass,C_TP);
+
+				NvnGs = pow(ELEMENT_class[0]->NvnGs[0],2)*(ELEMENT_class[1]->NvnGs[0]);
+			} else if (VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR) {
+				NvnGs = ELEMENT->NvnGs[0];
+			} else {
+				printf("Error: Unsupported element type setup_struct (NvnGs).\n"), exit(1);
+			}
 
 			XYZc = malloc(NvnGs*d * sizeof *XYZc); // keep
 			VOLUME->XYZc = XYZc;
@@ -147,7 +159,7 @@ void setup_structures(void)
 			}}
 
 			// MPI
-			IndVgrp = (VOLUME->Eclass*NP*2)+(VOLUME->P*2)+(VOLUME->curved);
+			IndVgrp = ((VOLUME->Eclass)*NP*2)+(VOLUME->P*2)+(VOLUME->curved);
 			if (Vgrp[IndVgrp] == NULL)
 				Vgrp[IndVgrp] = VOLUME;
 			else

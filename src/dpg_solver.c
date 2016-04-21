@@ -138,8 +138,15 @@ int main(void)
 	test_imp_find_periodic_connections();
 
 	test_imp_cubature_TP();
+	test_imp_cubature_TRI();
+
 	test_imp_basis_TP();
 	test_imp_grad_basis_TP();
+
+/*
+	test_imp_basis_TRI();
+	test_imp_grad_basis_TRI();
+*/
 
 	test_imp_plotting();
 
@@ -161,7 +168,7 @@ int main(void)
 		if (TestDB.Nwarnings)
 			if (TestDB.Nwarnings == 1)
 			printf("Warnings (%d) were generated while running tests. "
-				   "Scroll through test passing list and verify that all is OK.\n\n",TestDB.Nwarnings);
+			       "Scroll through test passing list and verify that all is OK.\n\n",TestDB.Nwarnings);
 	}
 
 	return 0;

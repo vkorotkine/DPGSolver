@@ -11,7 +11,6 @@
  *		Test correctness of implementation of cubature_TP.
  *
  *	Comments:
- *		'Con' arrays may need to be modified based on plotting software used. (ToBeDeleted)
  *
  *	Notation:
  *
@@ -180,13 +179,6 @@ void test_imp_cubature_TP(void)
 	 *				rst : Tensor-Product extension of rst13_*
 	 *				w   : Tensor-Product extension of w13_*
 	 *				Nn = 16
-	 *
-	 *				Nodes:
-	 *				12 - 13 - 14 - 15
-	 *				 8 -  9 - 10 - 11
-	 *				 4 -  5 -  6 -  7
-	 *				 0 -  1 -  2 -  3
-	 *
 	 */
 
 	dE = 2;
