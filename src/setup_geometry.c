@@ -70,7 +70,7 @@ void setup_geometry(void)
 				ELEMENT_class[0] = get_ELEMENT_Eclass(VOLUME->Eclass,C_TP);
 
 				NvnG = pow(ELEMENT_class[0]->NvnGs[0],d);
-			} else if (VOLUME->Eclass = C_WEDGE) {
+			} else if (VOLUME->Eclass == C_WEDGE) {
 				ELEMENT_class[0] = get_ELEMENT_Eclass(VOLUME->Eclass,C_SI);
 				ELEMENT_class[1] = get_ELEMENT_Eclass(VOLUME->Eclass,C_TP);
 

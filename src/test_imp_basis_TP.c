@@ -164,7 +164,8 @@ void test_imp_basis_TP(void)
 	 *				ChiRef_rst = @(r) [sqrt(1/2)*1 sqrt(3/2)*r sqrt(5/2)*1/2*(3*r^2-1) sqrt(7/2)*1/2*(5*r^3-3*r)]
 	 */
 
-	unsigned int dE, Nn, Nbf, P, Prst;
+	unsigned int dE, Nn, Ns, Nbf, P, Prst;
+	unsigned int *symms;
 	double *rst, *w;
 
 	dE = 1;
@@ -174,7 +175,7 @@ void test_imp_basis_TP(void)
 	P = 3;
 	Prst = 4;
 
-	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GL"); // free
 
 	ChiRef13_code = basis_TP(P,rst,Nn,&Nbf,dE); // free
 	ChiRef13_test = basis_TP13(rst,Nn); // free
@@ -188,6 +189,7 @@ void test_imp_basis_TP(void)
 	test_print(pass);
 
 	free(rst);
+	free(symms);
 	free(ChiRef13_code);
 	free(ChiRef13_test);
 
@@ -219,7 +221,7 @@ void test_imp_basis_TP(void)
 	P = 2;
 	Prst = 4;
 
-	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GL"); // free
 
 	ChiRef22_code = basis_TP(P,rst,Nn,&Nbf,dE); // free
 	ChiRef22_test = basis_TP22(rst,Nn); // free
@@ -233,6 +235,7 @@ void test_imp_basis_TP(void)
 	test_print(pass);
 
 	free(rst);
+	free(symms);
 	free(ChiRef22_code);
 	free(ChiRef22_test);
 
@@ -263,7 +266,7 @@ void test_imp_basis_TP(void)
 	P = 1;
 	Prst = 4;
 
-	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GL"); // free
 
 	ChiRef31_code = basis_TP(P,rst,Nn,&Nbf,dE); // free
 	ChiRef31_test = basis_TP31(rst,Nn); // free
@@ -277,6 +280,7 @@ void test_imp_basis_TP(void)
 	test_print(pass);
 
 	free(rst);
+	free(symms);
 	free(ChiRef31_code);
 	free(ChiRef31_test);
 
@@ -304,7 +308,7 @@ void test_imp_basis_TP(void)
 
 	// GL
 
-	cubature_TP(&rst,&w,&Nn,1,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GL"); // free
 
 	W = diag_d(w,Nn); // free
 	free(w);
@@ -323,6 +327,7 @@ void test_imp_basis_TP(void)
 	test_print(pass);
 
 	free(rst);
+	free(symms);
 	free(W);
 	free(ChiRef_rst);
 	free(WChiRef_rst);
@@ -330,7 +335,7 @@ void test_imp_basis_TP(void)
 
 	// GLL
 
-	cubature_TP(&rst,&w,&Nn,1,P,dE,"GLL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GLL"); // free
 
 	W = diag_d(w,Nn); // free
 	free(w);
@@ -349,6 +354,7 @@ void test_imp_basis_TP(void)
 	test_print(pass);
 
 	free(rst);
+	free(symms);
 	free(W);
 	free(ChiRef_rst);
 	free(WChiRef_rst);
@@ -365,7 +371,7 @@ void test_imp_basis_TP(void)
 
 	// GL
 
-	cubature_TP(&rst,&w,&Nn,1,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GL"); // free
 
 	W = diag_d(w,Nn); // free
 	free(w);
@@ -384,6 +390,7 @@ void test_imp_basis_TP(void)
 	test_print(pass);
 
 	free(rst);
+	free(symms);
 	free(W);
 	free(ChiRef_rst);
 	free(WChiRef_rst);
@@ -400,7 +407,7 @@ void test_imp_basis_TP(void)
 
 	// GL
 
-	cubature_TP(&rst,&w,&Nn,1,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GL"); // free
 
 	W = diag_d(w,Nn); // free
 	free(w);
@@ -419,6 +426,7 @@ void test_imp_basis_TP(void)
 	test_print(pass);
 
 	free(rst);
+	free(symms);
 	free(W);
 	free(ChiRef_rst);
 	free(WChiRef_rst);

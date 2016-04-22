@@ -25,9 +25,12 @@ extern void     setup_connectivity          (void);
 extern void     setup_periodic              (void);
 extern void       find_periodic_connections (unsigned int *Pve, unsigned int *pvePointer, const unsigned int VeMax);
 extern void   setup_operators               (void);
-extern void     cubature_TP                 (double **rst, double **w_vec, unsigned int *Nn,
-                                             const unsigned int return_w, const unsigned int P, const unsigned int d,
-                                             const char *NodeType);
+extern void     cubature_TP                 (double **rst, double **w, unsigned int **symms, unsigned int *Nn,
+                                             unsigned int *Ns, const unsigned int return_w, const unsigned int P,
+                                             const unsigned int d, const char *NodeType);
+extern void     cubature_TRI                (double **rst, double **w, unsigned int **symms, unsigned int *Nn,
+                                             unsigned int *Ns, const unsigned int return_w, const unsigned int P,
+                                             const unsigned int d, const char *NodeType);
 extern double     *basis_TP                 (const unsigned int P, const double *rst, const unsigned int Nn,
                                              unsigned int *NbfOut, const unsigned int d);
 extern double     **grad_basis_TP           (const unsigned int P, const double *rst, const unsigned int Nn,

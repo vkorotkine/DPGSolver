@@ -4,5 +4,4 @@ change tab spaces to 8 and increase max lines to check alignment of the code und
 
 
 formatting left to be fixed:
-array_find_index.c
-find_periodic_connections.c
+many of the test routines have improper tabbing when checking the pass condition.

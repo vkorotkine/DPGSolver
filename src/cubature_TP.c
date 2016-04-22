@@ -10,12 +10,12 @@
 
 /*
  *	Purpose:
- *		Return nodes and weights for tensor-product cubature depending on the nodetype.
+ *		Return nodes, weights and symmetries for tensor-product cubature depending on the nodetype.
  *
  *	Comments:
- *		Pointers are only returned to desired variables (as indicated in ToReturn); other variables are freed.
- *			Note: rst and Nn are always returned
- *		The order of r, w is important for minimizing memory stride while computing the length 2 Discrete Fourier
+ *		Note that GL nodes are NOT the optimal integration nodes for d > 1. This was discussed in Hughes' FEM book and
+ *		the pyFR code has some nodal sets available for low orders. Possibly implement this later (ToBeDeleted).
+ *		The order of rst, w is important for minimizing memory stride while computing the length 2 Discrete Fourier
  *		Transform (ToBeModified).
  *		Ordering convention:
  *			GL/GLL: 2-blocks of -/+ node with abs(node) going from 1 to 0 followed by optional 0 node.
@@ -24,6 +24,12 @@
  *		performed on XYZ arrays.
  *
  *	Notation:
+ *		rst   : Nodes array of dimension Nn*d (column-major storage)
+ *		w     : Weights array of dimension Nn*1
+ *		symms : Symmetries array
+ *		        This always returns 1d symmetries in the current implementation (ToBeModified)
+ *		Nn    : (N)umber of (n)odes
+ *		Ns    : (N)umber of (s)ymmetries
  *
  *	References:
  *		GL  : http://www.mathworks.com/matlabcentral/fileexchange/26737-legendre-laguerre-and-hermite-gauss-quadrature/
@@ -32,17 +38,16 @@
  *		      lglnodes.m
  */
 
-void cubature_TP(double **rst, double **w_vec, unsigned int *Nn, const unsigned int return_w, const unsigned int P,
-                 const unsigned int d,const char *NodeType)
+void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *Nn, unsigned int *Ns,
+                 const unsigned int return_w, const unsigned int P, const unsigned int d,const char *NodeType)
 {
-
 	// Standard datatypes
 	unsigned int i, j, k, iMax, jMax, kMax, dim, u1,
-	             N, rInd, row, Nrows,
-	             *Indices;
+	             N, rInd, row, Nrows, NsOut,
+	             *symmsOut, *Indices;
 	int          sd, sN;
 	double       norm, swapd,
-	             *r, *rold, *rdiff, *w, *r_d, *w_d, *r_std, *w_std,
+	             *r, *rold, *rdiff, *wOut, *r_d, *wOut_d, *r_std, *wOut_std,
 	             *V, *a, *CM, *eigs;
 
 	// Arbitrary initializations for variables defined in conditionals (to eliminate compiler warnings)
@@ -54,8 +59,8 @@ void cubature_TP(double **rst, double **w_vec, unsigned int *Nn, const unsigned 
 	sd = d;
 	sN = N;
 
-	r = malloc(N * sizeof *r); // free
-	w = malloc(N * sizeof *w); // free
+	r    = malloc(N * sizeof *r); // free
+	wOut = malloc(N * sizeof *wOut); // free
 
 	// Note: GLL must be first as "GL" is in "GLL"
 	if (strstr(NodeType,"GLL") != NULL) {
@@ -103,14 +108,14 @@ void cubature_TP(double **rst, double **w_vec, unsigned int *Nn, const unsigned 
 		}
 
 		for (j = 0; j < N; j++)
-			w[j] = 2./(P*N*pow(V[P*N+j],2));
+			wOut[j] = 2./(P*N*pow(V[P*N+j],2));
 
 		free(rold);
 		free(rdiff);
 		free(V);
 
 // array_print_d(1,N,r,'R');
-// array_print_d(1,N,w,'R');
+// array_print_d(1,N,wOut,'R');
 	} else if (strstr(NodeType,"GL") != NULL) {
 		// Build the companion matrix CM
 		/* CM is defined such that det(rI-CM)=P_n(r), with P_n(r) being the Legendre poynomial under consideration.
@@ -158,39 +163,39 @@ void cubature_TP(double **rst, double **w_vec, unsigned int *Nn, const unsigned 
 		free(Indices);
 
 		for (j = 0; j < N; j++) {
-			r[j] = eigs[j];
-			w[j] = 2*pow(CM[0*i+j],2);
+			r[j]    = eigs[j];
+			wOut[j] = 2*pow(CM[0*i+j],2);
 		}
 		free(CM);
 		free(eigs);
 
 // array_print_d(1,N,r,'R');
-// array_print_d(1,N,w,'R');
+// array_print_d(1,N,wOut,'R');
 	}
 
 	// Re-arrange r and w for GL/GLL nodes
-	r_std = malloc(N * sizeof *r_std); // free
-	w_std = malloc(N * sizeof *w_std); // free
+	r_std    = malloc(N * sizeof *r_std); // free
+	wOut_std = malloc(N * sizeof *wOut_std); // free
 
 	for (i = 0; i < N; i++) {
-		r_std[i] = r[i];
-		w_std[i] = w[i];
+		r_std[i]    = r[i];
+		wOut_std[i] = wOut[i];
 	}
 
 	if (N % 2 == 1) {
 		k = (unsigned int) floor(N/2);
 
-		r[N-1] = r_std[k];
-		w[N-1] = w_std[k];
+		r[N-1]    = r_std[k];
+		wOut[N-1] = wOut_std[k];
 
 		j = k;
 		for (i = 0, iMax = N-1; i < iMax; ) {
-			r[i] = r_std[k-j];
-			w[i] = w_std[k-j];
+			r[i]    = r_std[k-j];
+			wOut[i] = wOut_std[k-j];
 			i++;
 
-			r[i] = r_std[k+j];
-			w[i] = w_std[k+j];
+			r[i]    = r_std[k+j];
+			wOut[i] = wOut_std[k+j];
 			i++;
 
 			j--;
@@ -199,12 +204,12 @@ void cubature_TP(double **rst, double **w_vec, unsigned int *Nn, const unsigned 
 		k = N/2;
 		j = k;
 		for (i = 0, iMax = N; i < iMax; ) {
-			r[i] = r_std[k-j];
-			w[i] = w_std[k-j];
+			r[i]    = r_std[k-j];
+			wOut[i] = wOut_std[k-j];
 			i++;
 
-			r[i] = r_std[k+j-1];
-			w[i] = w_std[k+j-1];
+			r[i]    = r_std[k+j-1];
+			wOut[i] = wOut_std[k+j-1];
 			i++;
 
 			j--;
@@ -212,19 +217,19 @@ void cubature_TP(double **rst, double **w_vec, unsigned int *Nn, const unsigned 
 	}
 
 	free(r_std);
-	free(w_std);
+	free(wOut_std);
 
 
-	r_d     = malloc(pow(N,d)*d        * sizeof *r_d); // keep (requires external free)
-	w_d     = malloc(pow(N,d)*d        * sizeof *w_d); // free/keep (Conditional return_w)
+	r_d    = malloc(pow(N,d)*d * sizeof *r_d);    // keep (requires external free)
+	wOut_d = malloc(pow(N,d)   * sizeof *wOut_d); // free/keep (Conditional return_w)
 
 	row = 0; Nrows = pow(N,d);
 	for (k = 0, kMax = (unsigned int) min(max((sd-2)*sN,1),sN); k < kMax; k++) {
 	for (j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
 	for (i = 0, iMax = min(max((d-0)*N,u1),N); i < iMax; i++) {
-		w_d[row] = w[i];
-		if (d == 2) w_d[row] *= w[j];
-		if (d == 3) w_d[row] *= w[j]*w[k];
+		wOut_d[row] = wOut[i];
+		if (d == 2) wOut_d[row] *= wOut[j];
+		if (d == 3) wOut_d[row] *= wOut[j]*wOut[k];
 		for (dim = 0; dim < d; dim++) {
 			if (dim == 0) rInd = i;
 			if (dim == 1) rInd = j;
@@ -234,14 +239,29 @@ void cubature_TP(double **rst, double **w_vec, unsigned int *Nn, const unsigned 
 		row++;
 	}}}
 	free(r);
-	free(w);
+	free(wOut);
 
-	*rst = r_d;
-	*Nn  = pow(N,d);
+	// Compute symmetries
+	NsOut = (unsigned int) ceil(N/2.0);
+	symmsOut = malloc(NsOut * sizeof *symmsOut); // keep (requires external free)
+	if (N % 2 == 1) {
+		for (i = 0; i < NsOut-1; i++)
+			symmsOut[i] = 2;
+		symmsOut[NsOut-1] = 1;
+	} else {
+		for (i = 0; i < NsOut; i++)
+			symmsOut[i] = 2;
+	}
 
-	if (return_w != 0) *w_vec = w_d;
-	else               *w_vec = NULL, free(w_d);
+	*rst   = r_d;
+	*symms = symmsOut;
+
+	*Nn = pow(N,d);
+	*Ns = NsOut;
+
+	if (return_w != 0) *w = wOut_d;
+	else               *w = NULL, free(wOut_d);
 
 // array_print_d(pow(N,d),d,r_d,'R');
-// array_print_d(pow(N,d),1,w_d,'R');
+// array_print_d(pow(N,d),1,wOut_d,'R');
 }

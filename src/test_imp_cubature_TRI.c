@@ -34,7 +34,7 @@ void test_imp_cubature_TRI(void)
 	 *			w   = N/A
 	 *			Nn  = ToBeModified
 	 *
-	 *		P = 3, Cools:
+	 *		P = 3, WV:
 	 *			rst = [ See below ]
 	 *			w   = [ See below ]
 	 *			Nn  = ToBeModified
@@ -47,17 +47,22 @@ void test_imp_cubature_TRI(void)
 	// P = 3
 	P = 3;
 
-	unsigned int Nn3_AO = 1, Nn3_Cools = 1;
-	double rst3_AO[Nn3_AO], rst3_Cools[Nn3_Cools], w3_Cools[Nn3_Cools];
+	unsigned int Nn3_AO = 1, Nn3_WV = 1;
+	double rst3_AO[Nn3_AO], rst3_WV[Nn3_WV], w3_WV[Nn3_WV];
 
 	// AO
+
+/* Strategy: implement basis_TRI (needed to convert using barycentric coordinates to my reference triangle). Then check
+ * alpha-opt nodes with matlab using input from pyFR
+ */
+
 //	cubature_TRI(&rst,&w,&Nn,1,P,"AO"); // tbd
 
 /*
 	pass = 0;
 	if (array_norm_diff_d(N13,rst13_GL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N13,w13_GL,w,"Inf")     < EPS &&
-		Nn == N13)
+	    array_norm_diff_d(N13,w13_GL,w,"Inf")     < EPS &&
+	    Nn == N13)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50

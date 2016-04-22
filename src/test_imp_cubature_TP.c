@@ -11,6 +11,7 @@
  *		Test correctness of implementation of cubature_TP.
  *
  *	Comments:
+ *		'symms' is only tested for 1d (ToBeModified).
  *
  *	Notation:
  *
@@ -33,18 +34,23 @@ void test_imp_cubature_TP(void)
 	 *		Expected output:
 	 *
 	 *			P = 3/4, GL:
-	 *				rst = [ See below ]
-	 *				w   = [ See below ]
+	 *				rst   = [ See below ]
+	 *				w     = [ See below ]
+	 *				symms = [ 2 2 ]/[ 2 2 1]
 	 *				Nn  = 4/5
+	 *				Ns  = 2/3
 	 *
 	 *			P = 3/4, GLL:
-	 *				rst = [ See below ]
-	 *				w   = [ See below ]
+	 *				rst   = [ See below ]
+	 *				w     = [ See below ]
+	 *				symms = [ 2 2 ]/[ 2 2 1]
 	 *				Nn  = 4/5
+	 *				Ns  = 2/3
 	 */
 
 	unsigned int i, j, k, row;
-	unsigned int dE, Nn, P;
+	unsigned int dE, Nn, Ns, P;
+	unsigned int *symms;
 	double *rst, *w;
 
 	dE = 1;
@@ -52,7 +58,8 @@ void test_imp_cubature_TP(void)
 	// P = 3
 	P = 3;
 
-	unsigned int N13 = P+1;
+	unsigned int N13 = P+1, Ns13 = 2;
+	unsigned int symms13_GL[Ns13], symms13_GLL[Ns13];
 	double rst13_GL[N13], w13_GL[N13], rst13_GLL[N13], w13_GLL[N13];
 
 	rst13_GL[0] = -1.0/35.0*sqrt(525.0+70.0*sqrt(30.0));
@@ -65,6 +72,9 @@ void test_imp_cubature_TP(void)
 	w13_GL[2] = 1.0/36.0*(18.0+sqrt(30.0));
 	w13_GL[3] = 1.0/36.0*(18.0+sqrt(30.0));
 
+	symms13_GL[0] = 2;
+	symms13_GL[1] = 2;
+
 	rst13_GLL[0] = -1.0;
 	rst13_GLL[1] =  1.0;
 	rst13_GLL[2] = -1.0/5.0*sqrt(5.0);
@@ -75,41 +85,47 @@ void test_imp_cubature_TP(void)
 	w13_GLL[2] = 5.0/6.0;
 	w13_GLL[3] = 5.0/6.0;
 
+	symms13_GLL[0] = 2;
+	symms13_GLL[1] = 2;
+
 	// GL
-	cubature_TP(&rst,&w,&Nn,1,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GL"); // free
 
 	pass = 0;
-	if (array_norm_diff_d(N13,rst13_GL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N13,w13_GL,w,"Inf")     < EPS &&
-		Nn == N13)
+	if (array_norm_diff_d(N13,rst13_GL,rst,"Inf")       < EPS &&
+		array_norm_diff_d(N13,w13_GL,w,"Inf")           < EPS &&
+		array_norm_diff_ui(Ns13,symms13_GL,symms,"Inf") < EPS &&
+		Nn == N13 && Ns == Ns13)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("cubature_TP (d1, P3, GL):                        ");
 	test_print(pass);
 
-	free(rst), free(w);
+	free(rst), free(w), free(symms);
 
 	// GLL
-	cubature_TP(&rst,&w,&Nn,1,P,dE,"GLL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GLL"); // free
 
 	pass = 0;
-	if (array_norm_diff_d(N13,rst13_GLL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N13,w13_GLL,w,"Inf")     < EPS &&
-		Nn == N13)
+	if (array_norm_diff_d(N13,rst13_GLL,rst,"Inf")       < EPS &&
+		array_norm_diff_d(N13,w13_GLL,w,"Inf")           < EPS &&
+		array_norm_diff_ui(Ns13,symms13_GLL,symms,"Inf") < EPS &&
+		Nn == N13 && Ns == Ns13)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("            (d1, P3, GLL):                       ");
 	test_print(pass);
 
-	free(rst), free(w);
+	free(rst), free(w), free(symms);
 
 
 	// P = 4;
 	P = 4;
 
-	unsigned int N14 = P+1;
+	unsigned int N14 = P+1, Ns14 = 3;
+	unsigned int symms14_GL[Ns14], symms14_GLL[Ns14];
 	double rst14_GL[N14], w14_GL[N14], rst14_GLL[N14], w14_GLL[N14];
 
 	rst14_GL[0] = -1.0/21.0*sqrt(245.0+14.0*sqrt(70.0));
@@ -124,6 +140,10 @@ void test_imp_cubature_TP(void)
 	w14_GL[3] = 1.0/900.0*(322.0+13.0*sqrt(70.0));
 	w14_GL[4] = 128.0/225.0;
 
+	symms14_GL[0] = 2;
+	symms14_GL[1] = 2;
+	symms14_GL[2] = 1;
+
 	rst14_GLL[0] = -1.0;
 	rst14_GLL[1] =  1.0;
 	rst14_GLL[2] = -1.0/7.0*sqrt(21.0);
@@ -136,35 +156,41 @@ void test_imp_cubature_TP(void)
 	w14_GLL[3] = 49.0/90.0;
 	w14_GLL[4] = 32.0/45.0;
 
+	symms14_GLL[0] = 2;
+	symms14_GLL[1] = 2;
+	symms14_GLL[2] = 1;
+
 	// GL
-	cubature_TP(&rst,&w,&Nn,1,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GL"); // free
 
 	pass = 0;
-	if (array_norm_diff_d(N14,rst14_GL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N14,w14_GL,w,"Inf")     < EPS &&
-		Nn == N14)
+	if (array_norm_diff_d(N14,rst14_GL,rst,"Inf")       < EPS &&
+		array_norm_diff_d(N14,w14_GL,w,"Inf")           < EPS &&
+		array_norm_diff_ui(Ns14,symms14_GL,symms,"Inf") < EPS &&
+		Nn == N14 && Ns == Ns14)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("            (d1, P4, GL):                        ");
 	test_print(pass);
 
-	free(rst), free(w);
+	free(rst), free(w), free(symms);
 
 	// GLL
-	cubature_TP(&rst,&w,&Nn,1,P,dE,"GLL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GLL"); // free
 
 	pass = 0;
-	if (array_norm_diff_d(N14,rst14_GLL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N14,w14_GLL,w,"Inf")     < EPS &&
-		Nn == N14)
+	if (array_norm_diff_d(N14,rst14_GLL,rst,"Inf")       < EPS &&
+		array_norm_diff_d(N14,w14_GLL,w,"Inf")           < EPS &&
+		array_norm_diff_ui(Ns14,symms14_GLL,symms,"Inf") < EPS &&
+		Nn == N14 && Ns == Ns14)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("            (d1, P4, GLL):                       ");
 	test_print(pass);
 
-	free(rst), free(w);
+	free(rst), free(w), free(symms);
 
 	/*
 	 *	Cubature_TP (dE = 2):
@@ -205,7 +231,7 @@ void test_imp_cubature_TP(void)
 	}}
 
 	// GL
-	cubature_TP(&rst,&w,&Nn,1,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GL"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N23,rst23_GL,rst,"Inf") < EPS &&
@@ -217,10 +243,10 @@ void test_imp_cubature_TP(void)
 	printf("            (d2, P3, GL):                        ");
 	test_print(pass);
 
-	free(rst), free(w);
+	free(rst), free(w), free(symms);
 
 	// GLL
-	cubature_TP(&rst,&w,&Nn,1,P,dE,"GLL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GLL"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N23,rst23_GLL,rst,"Inf") < EPS &&
@@ -232,7 +258,7 @@ void test_imp_cubature_TP(void)
 	printf("            (d2, P3, GLL):                       ");
 	test_print(pass);
 
-	free(rst), free(w);
+	free(rst), free(w), free(symms);
 
 	/*
 	 *	Cubature_TP (dE = 3):
@@ -276,7 +302,7 @@ void test_imp_cubature_TP(void)
 	}}}
 
 	// GL
-	cubature_TP(&rst,&w,&Nn,1,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GL"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N33,rst33_GL,rst,"Inf") < EPS &&
@@ -288,10 +314,10 @@ void test_imp_cubature_TP(void)
 	printf("            (d3, P3, GL):                        ");
 	test_print(pass);
 
-	free(rst), free(w);
+	free(rst), free(w), free(symms);
 
 	// GLL
-	cubature_TP(&rst,&w,&Nn,1,P,dE,"GLL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GLL"); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N33,rst33_GLL,rst,"Inf") < EPS &&
@@ -303,5 +329,5 @@ void test_imp_cubature_TP(void)
 	printf("            (d3, P3, GLL):                       ");
 	test_print(pass);
 
-	free(rst), free(w);
+	free(rst), free(w), free(symms);
 }

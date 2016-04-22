@@ -265,7 +265,8 @@ void test_imp_grad_basis_TP(void)
 	 *				GradChiRef_rst = @(r) [0 sqrt(3/2) sqrt(5/2)*3*r sqrt(7/2)*1/2*(15*r^2-3)]
 	 */
 
-	unsigned int dE, Nn, Nbf, P, Prst;
+	unsigned int dE, Nn, Ns, Nbf, P, Prst;
+	unsigned int *symms;
 	double *rst, *w;
 
 	dE = 1;
@@ -275,7 +276,7 @@ void test_imp_grad_basis_TP(void)
 	P = 3;
 	Prst = 4;
 
-	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GL"); // free
 
 	GradChiRef13_code = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 	GradChiRef13_test = grad_basis_TP13(rst,Nn); // free
@@ -289,6 +290,7 @@ void test_imp_grad_basis_TP(void)
 	test_print(pass);
 
 	free(rst);
+	free(symms);
 	array_free2_d(dE,GradChiRef13_code);
 	array_free2_d(dE,GradChiRef13_test);
 
@@ -330,7 +332,7 @@ void test_imp_grad_basis_TP(void)
 	P = 2;
 	Prst = 4;
 
-	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GL"); // free
 
 	GradChiRef22_code = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 	GradChiRef22_test = grad_basis_TP22(rst,Nn); // free
@@ -345,6 +347,7 @@ void test_imp_grad_basis_TP(void)
 	test_print(pass);
 
 	free(rst);
+	free(symms);
 	array_free2_d(dE,GradChiRef22_code);
 	array_free2_d(dE,GradChiRef22_test);
 
@@ -393,7 +396,7 @@ void test_imp_grad_basis_TP(void)
 	P = 1;
 	Prst = 4;
 
-	cubature_TP(&rst,&w,&Nn,0,Prst,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GL"); // free
 
 	GradChiRef31_code = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 	GradChiRef31_test = grad_basis_TP31(rst,Nn); // free
@@ -409,6 +412,7 @@ void test_imp_grad_basis_TP(void)
 	test_print(pass);
 
 	free(rst);
+	free(symms);
 	array_free2_d(dE,GradChiRef31_code);
 	array_free2_d(dE,GradChiRef31_test);
 
@@ -435,7 +439,7 @@ void test_imp_grad_basis_TP(void)
 	// dE = 1
 	dE = 1;
 
-	cubature_TP(&rst,&w,&Nn,0,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,P,dE,"GL"); // free
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -471,6 +475,7 @@ void test_imp_grad_basis_TP(void)
 	test_print(pass);
 
 	free(rst), free(r), free(s), free(t);
+	free(symms);
 	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(dE,GradChiRef_rst);
@@ -481,7 +486,7 @@ void test_imp_grad_basis_TP(void)
 	// dE = 2
 	dE = 2;
 
-	cubature_TP(&rst,&w,&Nn,0,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,P,dE,"GL"); // free
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -519,6 +524,7 @@ void test_imp_grad_basis_TP(void)
 	test_print(pass);
 
 	free(rst), free(r), free(s), free(t);
+	free(symms);
 	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(dE,GradChiRef_rst);
@@ -529,7 +535,7 @@ void test_imp_grad_basis_TP(void)
 	// dE = 3
 	dE = 3;
 
-	cubature_TP(&rst,&w,&Nn,0,P,dE,"GL"); // free
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,P,dE,"GL"); // free
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -569,6 +575,7 @@ void test_imp_grad_basis_TP(void)
 	test_print(pass);
 
 	free(rst), free(r), free(s), free(t);
+	free(symms);
 	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(dE,GradChiRef_rst);

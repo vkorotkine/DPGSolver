@@ -26,8 +26,8 @@
  *				AO        : Best interpolating nodes
  *
  *				2D (TRI):
- *					WS    : Best collocated nodes? => Compare with Taylor(2007) (ToBeModified)
- *					Cools : Best cubature nodes?   => Compare with Xiao(2010) (ToBeModified)
+ *					WS : Best collocated nodes? => Compare with Taylor(2007) (ToBeModified)
+ *					WV : Best cubature nodes?   => Compare with Xiao(2010) (ToBeModified)
  *
  *				3D (TET):
  *					SH    : Best collocated nodes? (ToBeModified)
@@ -322,16 +322,16 @@ void setup_parameters()
 			if (d == 2) {
 				strcpy(NodeTypeIfs[P][1],"GL");
 				strcpy(NodeTypeIfc[P][1],"GL");
-				strcpy(NodeTypeIvs[P][1],"Cools");
-				strcpy(NodeTypeIvc[P][1],"Cools");
+				strcpy(NodeTypeIvs[P][1],"WV");
+				strcpy(NodeTypeIvc[P][1],"WV");
 
 				PIfs[P][1] = floor(1.*IntOrderfs/2.);
 				PIfc[P][1] = floor(1.*IntOrderfc/2.);
 				PIvs[P][1] = IntOrdervs;
 				PIvc[P][1] = IntOrdervc;
 			} else if (d == 3) {
-				strcpy(NodeTypeIfs[P][1],"Cools");
-				strcpy(NodeTypeIfc[P][1],"Cools");
+				strcpy(NodeTypeIfs[P][1],"WV");
+				strcpy(NodeTypeIfc[P][1],"WV");
 				strcpy(NodeTypeIvs[P][1],"Keast"); // ToBeModified: was WV in Matlab code
 				strcpy(NodeTypeIvc[P][1],"Keast");
 
@@ -423,8 +423,8 @@ void setup_parameters()
 				strcpy(NodeTypeFrs[P][1],"SH");
 				strcpy(NodeTypeFrc[P][1],"SH");
 
-				strcpy(NodeTypeIfs[P][1],"Cools");
-				strcpy(NodeTypeIfc[P][1],"Cools");
+				strcpy(NodeTypeIfs[P][1],"WV");
+				strcpy(NodeTypeIfc[P][1],"WV");
 				strcpy(NodeTypeIvs[P][1],"SH");
 				strcpy(NodeTypeIvc[P][1],"SH");
 			}
