@@ -37,8 +37,9 @@
  *		Stiller(2008)_Factorization Techniques for Nodal Spectral Elements in Curved Domains
  */
 
-typedef void (*cubature_tdef) (double **rst, double **w_vec, unsigned int *Nn,const unsigned int return_w,
-                               const unsigned int P, const unsigned int d, const char *NodeType);
+typedef void (*cubature_tdef) (double **rst, double **w_vec, unsigned int **symms, unsigned int *Nn, unsigned int *Ns,
+                               const unsigned int return_w, const unsigned int P, const unsigned int d,
+                               const char *NodeType);
 typedef double *(*basis_tdef) (const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
                                const unsigned int d);
 typedef double **(*grad_basis_tdef) (const unsigned int P, const double *rst, const unsigned int Nn,
@@ -193,7 +194,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(dummyPtr_ui[0]);
 	free(dummyPtr_ui[1]);
 
-	cubature(&rst_vGs,&dummyPtr_d,&NvnGs[0],0,PGs,dE,"GLL"); // free
+	cubature(&rst_vGs,&dummyPtr_d,&dummyPtr_ui[0],&NvnGs[0],&dummy_ui,0,PGs,dE,"GLL"); // free
+	free(dummyPtr_ui[0]);
 
 	// Preliminary Operators
 	IGs = identity_d(NvnGs[0]); // free
@@ -230,7 +232,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(ChiGs_vP);
 
 	for (P = 0; P <= PMax; P++) {
-		cubature(&rst_vGc,&dummyPtr_d,&NvnGc[P],0,PGc[P]   ,dE,"GLL"); // free
+		cubature(&rst_vGc,&dummyPtr_d,&dummyPtr_ui[0],&NvnGc[P],&dummy_ui,0,PGc[P]   ,dE,"GLL"); // free
+		free(dummyPtr_ui[0]);
 
 		// Preliminary Operators
 		IGc = identity_d(NvnGc[P]); // free

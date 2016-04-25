@@ -39,7 +39,7 @@
  */
 
 void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *Nn, unsigned int *Ns,
-                 const unsigned int return_w, const unsigned int P, const unsigned int d,const char *NodeType)
+                 const unsigned int return_w, const unsigned int P, const unsigned int d, const char *NodeType)
 {
 	// Standard datatypes
 	unsigned int i, j, k, iMax, jMax, kMax, dim, u1,

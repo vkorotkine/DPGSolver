@@ -35,6 +35,8 @@ extern double     *basis_TP                 (const unsigned int P, const double 
                                              unsigned int *NbfOut, const unsigned int d);
 extern double     **grad_basis_TP           (const unsigned int P, const double *rst, const unsigned int Nn,
                                              unsigned int *NbfOut, const unsigned int d);
+extern void       rst_to_abc                (const unsigned int Nn, const unsigned int d, const double *rst,
+                                             const double *a, const double *b, const double *c);
 extern double     jacobiP                   (const double x, const double alpha, const double beta, const int N);
 extern double     grad_jacobiP              (const double x, const double alpha, const double beta, const int N);
 extern void   setup_structures              (void);
