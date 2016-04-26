@@ -20,7 +20,12 @@
  *			3-blocks of symmetric nodes going from farthest from center towards the center, followed by 1-block of
  *			center node if present.
  *		rst is stored in memory as r, s, then t (See cubature_TP for the motivation).
-
+ *
+ *		WS nodes have the following [order, cubature strength]:
+ *			[0,1], [1,2], [2,4], [3,5], [4,7], [5,8], [6,10], [7,12], [8,14]
+ *
+ *		Input P for WV nodes is the cubature strength desired.
+ *
  *	Notation:
  *		rst   : Nodes array of dimension Nn*d (column-major storage)
  *		w     : Weights array of dimension Nn*1
@@ -164,7 +169,16 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 	BCoords_complete = malloc(NnOut*Nc * sizeof *BCoords_complete); // free
 
 	IndB = 0; IndBC = 0;
-	IndGroup = 0; GroupCount = 0;
+	GroupCount = 0;
+
+	IndGroup = 0;
+	for (i = 0; i < Nsymms; i++) {
+		if (symms_count[i] == 0)
+			IndGroup++;
+		else
+			break;
+	}
+
 	for (i = 0; i < Ngroups; i++) {
 		GroupCount++;
 

@@ -21,8 +21,7 @@
  *	References:
  */
 
-void rst_to_abc(const unsigned int Nn, const unsigned int d, const double *rst, const double *a, const double *b,
-                const double *c)
+void rst_to_abc(const unsigned int Nn, const unsigned int d, const double *rst, double *a, double *b, double *c)
 {
 	unsigned int i;
 	double r_i, s_i, t_i;
@@ -49,8 +48,8 @@ void rst_to_abc(const unsigned int Nn, const unsigned int d, const double *rst, 
 		s_i = s[i];
 		t_i = t[i];
 
-		if (array_norm_d(1,sqrt(6.0)*t_i-3.0,"Inf") > 100*EPS) {
-			if (array_norm_d(1,2*sqrt(3.0)*s_i+sqrt(6.0)*t_i-3,"Inf") > 100*EPS)
+		if (fabs(sqrt(6.0)*t_i-3.0) > 100*EPS) {
+			if (fabs(2*sqrt(3.0)*s_i+sqrt(6.0)*t_i-3) > 100*EPS)
 				a[i] = -6.0*r_i/(2.0*sqrt(3.0)*s_i+sqrt(6.0)*t_i-3.0);
 			b[i] = 1.0/3.0*(8.0*sqrt(3.0)*s_i/(3.0-sqrt(6.0)*t_i)-1.0);
 		}

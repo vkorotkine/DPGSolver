@@ -29,8 +29,9 @@ extern void test_imp_matrix_inverse            (void);
 extern void test_imp_matrix_mm                 (void);
 extern void test_imp_find_periodic_connections (void);
 extern void test_imp_cubature_TP               (void);
-extern void test_imp_cubature_TRI              (void);
+extern void test_imp_cubature_SI               (void);
 extern void test_imp_basis_TP                  (void);
+extern void test_imp_basis_SI                  (void);
 extern void test_imp_grad_basis_TP             (void);
 extern void test_imp_plotting                  (void);
 

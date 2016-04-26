@@ -3,75 +3,81 @@ clf; hold on;
 format long
 
 % ToBeDeleted: Convert this to python!
-% Note: Only need basisTRI of order 1 for barycentric coordinates
-d = 2;
-Nc = 3;
-Nsymms = 3;
+% Note: Only need basisTET of order 1 for barycentric coordinates
 
-% NodeType = 'AO';
-% NodeType = 'WS';
-NodeType = 'WV';
+GLOBAL.TET.xir_vGs = [          [0 -1 0 1]' ...
+                      1/sqrt(3)*[0 -1 2 -1]' ...
+                      1/sqrt(6)*[3 -1 -1 -1]'];
+                  
+d = 3;
+Nc = 4;
+Nsymms = 5;
 
-if     (~isempty(strfind(NodeType,'AO'))) PMax = 16;
-elseif (~isempty(strfind(NodeType,'WS'))) PMax = 8;
-elseif (~isempty(strfind(NodeType,'WV'))) PMax = 20;
+NodeType = 'AO';
+% NodeType = 'SH';
+% NodeType = 'WV';
+
+if     (~isempty(strfind(NodeType,'AO'))) PMax = 15;
+elseif (~isempty(strfind(NodeType,'WS'))) PMax = 6;
+elseif (~isempty(strfind(NodeType,'WV'))) PMax = 10;
 end
 
 % for P = 1:PMax
-for P = 6
+for P = 4
 
 
 % Read/Obtain rst
 wPresent = 1;
-[rst_cEq,~,Nn_c] = CubatureTRI(GLOBAL,1,'alpha-opt');
+[rst_cEq,~,Nn_c] = CubatureTET(GLOBAL,1,'alpha-opt');
+
 if (~isempty(strfind(NodeType,'AO')))
     wPresent = 0;
     
-    [rst_c,~,Nn_c] = CubatureTRI(GLOBAL,1,'alpha-opt');
-    [rst,w,Nn]     = CubatureTRI(GLOBAL,P,'alpha-opt');
+    [rst_c,~,Nn_c] = CubatureTET(GLOBAL,1,'alpha-opt');
+    [rst,w,Nn]     = CubatureTET(GLOBAL,P,'alpha-opt');
 else
-    wScale = sqrt(3)/2;
-    rst_c = [[-1 -1 1]' [1 -1 -1]'];
-    if (~isempty(strfind(NodeType,'WS')))
-        Nn = 1/2*(P+1)*(P+2);
-        dP = [2 4 5 7 8 10 12 14];
+    wScale = 1/2*sqrt(2);
+    rst_c = [[-1 -1 1 -1]' [1 -1 -1 -1]' [-1 -1 -1 1]'];
+    if (~isempty(strfind(NodeType,'SH')))
+        Nn = 1/6*(P+1)*(P+2)*(P+3);
+        dP = [2 3 5 6 8 9];
     
-        fName = ['williams-shunn-n' ...
+        fName = ['shunn-ham-n' ...
                  num2str(Nn) '-d' num2str(dP(P)) '-spu.txt'];
     elseif (~isempty(strfind(NodeType,'WV')))
-        NnVec = [1 3 6 6 7 12 15 16 19 25 28 33 37 42 49 55 60 67 73 79];
+        NnVec = [1 4 8 14 14 24 35 46 59 81];
         Nn = NnVec(P);
         
         fName = ['witherden-vincent-n' ...
                  num2str(Nn) '-d' num2str(P) '-sp.txt'];
     end
-	fID = fopen(['Testing/Reordering/tri/' fName],'r');
+	fID = fopen(['Testing/Reordering/tet/' fName],'r');
     
-    formatSpec = '%f %f %f';
-    sizeA = [3 Inf];
+    formatSpec = '%f %f %f %f';
+    sizeA = [4 Inf];
     A = fscanf(fID,formatSpec,sizeA);
     A = A';
     
     fclose(fID);
     
-    rst = A(:,1:2);
-    w   = wScale*A(:,3);
+    rst = A(:,1:3);
+    w   = wScale*A(:,4);
 end
 
 % break;
 
 % barycentric coordinates
-Lv = basis_TRI_P1(rst)/basis_TRI_P1(rst_c);
+Lv = basis_TET_P1(rst)/basis_TET_P1(rst_c);
 
-% convert to equilateral triangle
+% convert to regular tetrahedron
 if (~isempty(strfind(NodeType,'WS')) || ...
     ~isempty(strfind(NodeType,'WV')))
         rst = Lv*rst_cEq;
 end
 
 hold on;
-x = rst(:,1); y = rst(:,2);
-scatter(x,y);
+x = rst(:,1); y = rst(:,2); z = rst(:,3);
+plot3(x,y,z,'o');
 
 
 % Find non-redundant barycentric coordinates
@@ -94,11 +100,10 @@ end
 
 
 
-
 Lv_tmp = zeros(Nn,Nc);
 w_tmp  = zeros(Nn,1);
-symms = [1 3 6]; %TRI
-symms_count = zeros(1,Nc);
+symms = [1 4 6 12 24]; %TET
+symms_count = zeros(1,Nsymms);
 symms_ind = zeros(1,Nn);
 
 NsymmsP = 0;
@@ -111,10 +116,19 @@ for i = 1:Nn
         end
         
         % Find type of symmetry
-        [Lv_unique,count_unique,Nuniq] = find_symmetry(Lv(i,:),Nc);
+        [Lv_unique,count_unique] = find_symmetry2(Lv(i,:),Nc);
+        
+        [~,I] = sort(count_unique);
 
-%         Lv_tmp(NsymmsP,1:Nuniq) = Lv_unique;
-        Lv_tmp(NsymmsP,:) = Lv(i,:);
+        % Sort such that Lv is arranged with unique entries at the start of
+        % the array
+        IndLv = 0;
+        for j = 1:length(count_unique)
+            for k = 1:count_unique(I(j))
+                IndLv = IndLv + 1;
+                Lv_tmp(NsymmsP,IndLv) = Lv_unique(I(j));
+            end
+        end
 
         [~,I] = sort(Nc-count_unique);
         count_unique = count_unique(I);
@@ -128,8 +142,8 @@ for i = 1:Nn
     end
 end
 
-symms;
-symms_count;
+% symms
+% symms_count
 symms_ind(NsymmsP+1:Nn) = [];
 Lv_tmp(NsymmsP+1:Nn,:) = [];
 if (wPresent)
@@ -167,6 +181,7 @@ if (wPresent)
 end
 
 rst = BCoords_To_rst(Lv_reduced,symms_ind_reduced,symms_count,NsymmsP,Nc);
+break;
 rst
 
 daspect([1 1 0.0001])

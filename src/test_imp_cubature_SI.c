@@ -16,7 +16,7 @@
  *	References:
  */
 
-void test_imp_cubature_TRI(void)
+void test_imp_cubature_SI(void)
 {
 	unsigned int pass;
 
