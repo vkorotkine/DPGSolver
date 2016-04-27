@@ -4,26 +4,29 @@ format long
 
 % ToBeDeleted: Convert this to python!
 % Note: Only need basisTET of order 1 for barycentric coordinates
+plot_on = 0;
 
 GLOBAL.TET.xir_vGs = [          [0 -1 0 1]' ...
                       1/sqrt(3)*[0 -1 2 -1]' ...
                       1/sqrt(6)*[3 -1 -1 -1]'];
-                  
+
+folder_name = 'Testing/Reordering/tet/updated/';
+EType = 'TET';
 d = 3;
 Nc = 4;
 Nsymms = 5;
 
-NodeType = 'AO';
+% NodeType = 'AO';
 % NodeType = 'SH';
-% NodeType = 'WV';
+NodeType = 'WV';
 
-if     (~isempty(strfind(NodeType,'AO'))) PMax = 15;
-elseif (~isempty(strfind(NodeType,'WS'))) PMax = 6;
-elseif (~isempty(strfind(NodeType,'WV'))) PMax = 10;
+if     (~isempty(strfind(NodeType,'AO'))); PMax = 15;
+elseif (~isempty(strfind(NodeType,'SH'))); PMax = 6;
+elseif (~isempty(strfind(NodeType,'WV'))); PMax = 10;
 end
 
-% for P = 1:PMax
-for P = 4
+for P = 1:PMax
+% for P = 4
 
 
 % Read/Obtain rst
@@ -75,10 +78,11 @@ if (~isempty(strfind(NodeType,'WS')) || ...
         rst = Lv*rst_cEq;
 end
 
-hold on;
-x = rst(:,1); y = rst(:,2); z = rst(:,3);
-plot3(x,y,z,'o');
-
+if (plot_on)
+    x = rst(:,1); y = rst(:,2); z = rst(:,3);
+    plot3(x,y,z,'o');
+    view(32,34)
+end
 
 % Find non-redundant barycentric coordinates
 [~,I] = sortrows(1-Lv,1);
@@ -156,7 +160,7 @@ w_reduced = zeros(NsymmsP,1);
 symms_ind_reduced = zeros(1,NsymmsP);
 
 k = 0;
-for j = Nc:-1:1
+for j = Nsymms:-1:1
     symm = symms(j);
     for i = 1:NsymmsP
         if (symms_ind(i) == symm)
@@ -175,46 +179,64 @@ if (k ~= NsymmsP)
     break;
 end
 
-Lv_reduced
-if (wPresent)
-    w_reduced
+rst = BCoords_To_rst(Lv_reduced,symms_ind_reduced,symms_count,NsymmsP,Nc);
+
+if (plot_on)
+    Lv_reduced
+    if (wPresent)
+        w_reduced
+    end
+
+    rst
 end
 
-rst = BCoords_To_rst(Lv_reduced,symms_ind_reduced,symms_count,NsymmsP,Nc);
-break;
-rst
+if (plot_on)
+    daspect([1 1 1])
+    x = rst(:,1); y = rst(:,2); z = rst(:,3);
+    scatter3(x,y,z,'filled','g');
 
-daspect([1 1 0.0001])
-x = rst(:,1); y = rst(:,2);
-scatter(x,y,'filled');
-a = (1:Nn)'; b = num2str(a); c = cellstr(b);
-% c = cellstr([strcat(b,',') num2str(symms_ind_reduced')]);
-dx = 0.025; dy = 0.025;
-text(x+dx,y+dy,c);
+    r = sqrt(x.^2+y.^2);
+    theta = 0:2*pi/100:2*pi;
 
+    for i = 1:Nn
+        xp = r(i)*cos(theta);
+        yp = r(i)*sin(theta);
+        zp = z(i)+theta*0;
+        plot3(xp,yp,zp,'-r');
+    end
+
+    a = (1:Nn)'; b = num2str(a); c = cellstr(b);
+    dx = 0.025; dy = 0.025; dz = 0.025;
+    text(x+dx,y+dy,z+dz,c);
+end
 
 
 % Output to file
 fName = [NodeType num2str(P) '.txt'];
 
-fID = fopen(['Testing/Reordering/tri/updated/' fName],'w');
+fID = fopen([folder_name fName],'w');
 fprintf(fID,'%d %d\n',NsymmsP,Nsymms);
 for i = Nsymms:-1:1
-    fprintf(fID,'%d %d \n',symms_count(i),symms(i));
+    fprintf(fID,'%d %d\n',symms_count(i),symms(i));
 end
 fprintf(fID,'\n');
 
-fprintf(fID,'Barycentric Coordinates (Regular TRI)\n');
+fprintf(fID,['Barycentric Coordinates (Regular ' EType ')\n']);
 for i = 1:NsymmsP
-    fprintf(fID,'%18.15f ',Lv_reduced(i,:));
-    fprintf(fID,'\n');
+    fprintf(fID,' %18.15f',Lv_reduced(i,:));
+    if (i ~= NsymmsP || wPresent)
+        fprintf(fID,'\n');
+    end
 end
 
 if (wPresent)
     fprintf(fID,'\n');
     fprintf(fID,'Weights\n');
     for i = 1:NsymmsP
-        fprintf(fID,'%18.15f \n',w_reduced(i));
+        fprintf(fID,' %18.15f',w_reduced(i));
+        if (i ~= NsymmsP)
+            fprintf(fID,'\n');
+        end
     end
 end
 

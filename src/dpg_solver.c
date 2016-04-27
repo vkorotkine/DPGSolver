@@ -143,10 +143,7 @@ int main(void)
 	test_imp_basis_TP();
 	test_imp_basis_SI();
 	test_imp_grad_basis_TP();
-
-/*
-	test_imp_grad_basis_TRI();
-*/
+	test_imp_grad_basis_SI();
 
 	test_imp_plotting();
 

@@ -8,21 +8,21 @@
 
 /*
  *	Purpose:
- *		Return nodes, weights and symmetries for triangular cubature depending on the nodetype.
+ *		Return nodes, weights and symmetries for tetrahedral cubature depending on the nodetype.
  *
  *	Comments:
  *		Check that AO nodes correspond to those in pyfr after writing the converter script. (ToBeDeleted)
- *		The WS and WV nodes were determined based off of those from the pyfr code (pyfr/quadrules/tri) after being
- *		transfered to the equilateral reference TRI used in this code.
+ *		The SH and WV nodes were determined based off of those from the pyfr code (pyfr/quadrules/tet) after being
+ *		transfered to the the regular TET used in this code.
  *		The order of rst, w is important for minimizing memory stride while computing the length 3 Discrete Fourier
- *		Transform (ToBeModified).
+ *		Transform (Note: as w is a 1d matrix, its ordering is actually not relevant) (ToBeModified).
  *		Ordering convention:
- *			3-blocks of symmetric nodes going from farthest from center towards the center, followed by 1-block of
- *			center node if present.
+ *			3-blocks of symmetric nodes in the same rotational order, followed by 1-block(s) of center node(s) if
+ *			present.
  *		rst is stored in memory as r, s, then t (See cubature_TP for the motivation).
  *
- *		WS nodes have the following [order, cubature strength]:
- *			[0,1], [1,2], [2,4], [3,5], [4,7], [5,8], [6,10], [7,12], [8,14]
+ *		SH nodes have the following [order, cubature strength]:
+ *			[0,1], [1,2], [2,3], [3,5], [4,6], [5,8], [6,9]
  *
  *		Input P for WV nodes is the cubature strength desired.
  *
@@ -37,26 +37,32 @@
  *		pyfr code : http://www.pyfr.org
  *
  *		AO : Hesthaven(2008)-Nodal_Discontinuous_Galerkin_Methods (ToBeModified: Likely use same conversion)
- *		WS : pyfr/quadrules/tri + conversion to barycentric coordinates (ToBeModified: See python script)
- *		WV : pyfr/quadrules/tri + conversion to barycentric coordinates (ToBeModified: See python script)
+ *		SH : pyfr/quadrules/tet + conversion to barycentric coordinates (ToBeModified: See python script)
+ *		WV : pyfr/quadrules/tet + conversion to barycentric coordinates (ToBeModified: See python script)
  */
 
-void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *Nn, unsigned int *Ns,
+void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *Nn, unsigned int *Ns,
                   const unsigned int return_w, const unsigned int P, const unsigned int d, const char *NodeType)
 {
 	// Standard datatypes
-	static unsigned int perms[18] = { 0, 1, 2,
-	                                  2, 0, 1,
-	                                  1, 2, 0,
-	                                  0, 2, 1,
-	                                  1, 0, 2,
-	                                  2, 1, 0};
-	unsigned int symms31[2] = { 0, 0};
-	double rst_c[6] = { -1.0,            1.0,           0.0,
-	                    -1.0/sqrt(3.0), -1.0/sqrt(3.0), 2.0/sqrt(3.0)};
-	unsigned int i, iMax, j, jMax, k,
-	             IndB, IndBC, IndGroup, GroupCount, Nc,
-	             PMax, NnOut, NsOut, Ngroups, Nsymms;
+	static unsigned int perms_TRI[18] = { 0, 1, 2,
+	                                      2, 0, 1,
+	                                      1, 2, 0,
+	                                      0, 2, 1,
+	                                      1, 0, 2,
+	                                      2, 1, 0},
+	                    perms_TET[16] = { 0, 1, 2, 3,
+	                                      3, 0, 1, 2,
+	                                      2, 3, 0, 1,
+	                                      1, 2, 3, 0};
+	unsigned int symms31[2] = { 0, 0}, NTRIsymms[3], TETperms[4];
+	double rst_c[12] = { -1.0,            1.0,            0.0,           0.0,
+	                     -1.0/sqrt(3.0), -1.0/sqrt(3.0),  2.0/sqrt(3.0), 0.0,
+	                     -1.0/sqrt(6.0), -1.0/sqrt(6.0), -1.0/sqrt(6.0), 3.0/sqrt(6.0)},
+	       BCoords_tmp[4];
+	unsigned int i, iMax, j, jMax, k, kMax, l, lMax, TRIsymm,
+	             IndB, IndBC, IndGroup, Ind1, Indperm, GroupCount, Nc, N1,
+	             PMax, NnOut, NsOut, Ngroups, Nsymms, Nperms;
 	unsigned int *symmsOut, *symms_Nperms, *symms_count;
 	char         *StringRead, *strings, *stringe, *CubFile, *Pc;
 	double       *rstOut, *wOut, *BCoords, *BCoords_complete, *w_read;
@@ -69,25 +75,25 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 
 	if (strstr(NodeType,"AO") != NULL) {
 		if (return_w)
-			printf("Error: Invalid value for return_w in cubature_TRI.\n"), exit(1);
+			printf("Error: Invalid value for return_w in cubature_TET.\n"), exit(1);
 
 		PMax = 15;
-	} else if (strstr(NodeType,"WS") != NULL) {
-		PMax = 8;
+	} else if (strstr(NodeType,"SH") != NULL) {
+		PMax = 6;
 	} else if (strstr(NodeType,"WV") != NULL) {
-		PMax = 20;
+		PMax = 10;
 	}
 
 	if (P > PMax)
-		printf("Error: %s TRI nodes of order %d are not available.\n",NodeType,P), exit(1);
+		printf("Error: %s TET nodes of order %d are not available.\n",NodeType,P), exit(1);
 
-	Nc = 3;
+	Nc = 4;
 
 	CubFile = malloc(STRLEN_MAX * sizeof *CubFile); // free
 	Pc      = malloc(STRLEN_MIN * sizeof *Pc);      // free
 	sprintf(Pc,"%d",P);
 
-	strcpy(CubFile,"../cubature/tri/");
+	strcpy(CubFile,"../cubature/tet/");
 	strcat(CubFile,NodeType);
 	strcat(CubFile,Pc);
 	strcat(CubFile,".txt");
@@ -151,7 +157,6 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 				w_read[i] = strtod(strings,&stringe); strings = stringe;
 			}
 		}
-//array_print_d(Ngroups,1,w_read,'R');
 	}
 
 	fclose(fID);
@@ -159,9 +164,13 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 
 	// Convert barycentric coordinates to rst nodal coordinates
 	// Also set weights in array of size NnOut x 1 if applicable
-	NnOut = 0;
-	for (i = 0; i < Nsymms; i++)
+
+	// Find number of 1 symmetries and total number of nodes
+	for (i = 0, N1 = 0, NnOut = 0; i < Nsymms; i++) {
+		if (i >= Nsymms-2)
+			N1 += symms_count[i];
 		NnOut += symms_count[i]*symms_Nperms[i];
+	}
 
 	if (return_w)
 		wOut = malloc(NnOut * sizeof *wOut); // free/keep (conditional return_w)
@@ -179,23 +188,78 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 			break;
 	}
 
+	Ind1 = 0;
 	for (i = 0; i < Ngroups; i++) {
 		GroupCount++;
 
-		jMax = symms_Nperms[IndGroup];
-		// Count 3/1 symmetries
-		if      (jMax == 6) symms31[0] += 2;
-		else if (jMax == 3) symms31[0] += 1;
-		else if (jMax == 1) symms31[1] += 1;
+		Nperms = symms_Nperms[IndGroup];
+		// Count 3/1 symmetries and establish TRI symmetries to loop over
+		if (Nperms == 24) {
+			symms31[0] += 8;
 
-		for (j = 0; j < jMax; j++) {
+			NTRIsymms[0] = 0; NTRIsymms[1] = 0; NTRIsymms[2] = 4;
+			TETperms[0]  = 0; TETperms[1]  = 1; TETperms[2]  = 2; TETperms[3]  = 3;
+		} else if (Nperms == 12) {
+			symms31[0] += 4;
+
+			NTRIsymms[0] = 0; NTRIsymms[1] = 2; NTRIsymms[2] = 1;
+			TETperms[0]  = 3; TETperms[1]  = 2; TETperms[2]  = 0; TETperms[3]  = 9;
+		} else if (Nperms == 6) {
+			symms31[0] += 2;
+
+			NTRIsymms[0] = 0; NTRIsymms[1] = 2; NTRIsymms[2] = 0;
+			TETperms[0]  = 0; TETperms[1]  = 3; TETperms[2]  = 9; TETperms[3]  = 9;
+		} else if (Nperms == 4) {
+			symms31[0] += 1, symms31[1] += 1;
+
+			NTRIsymms[0] = 1; NTRIsymms[1] = 1; NTRIsymms[2] = 0;
+			TETperms[0]  = 3; TETperms[1]  = 0; TETperms[2]  = 9; TETperms[3]  = 9;
+		} else if (Nperms == 1) {
+			symms31[1] += 1;
+
+			NTRIsymms[0] = 1; NTRIsymms[1] = 0; NTRIsymms[2] = 0;
+			TETperms[0]  = 0; TETperms[1]  = 9; TETperms[2]  = 9; TETperms[3]  = 9;
+		}
+
+		Indperm = 0;
+		if (NTRIsymms[0]) {
+			for (j = 0; j < Nc; j++)
+				BCoords_tmp[j] = BCoords[IndB*Nc+perms_TET[TETperms[Indperm]*Nc+j]];
+			Indperm++;
+
+			for (k = 0; k < Nc; k++)
+				BCoords_complete[(NnOut-N1+Ind1)*Nc+k] = BCoords_tmp[k];
+
 			if (return_w)
-				wOut[IndBC] = w_read[IndB];
+				wOut[NnOut-N1+Ind1] = w_read[IndB];
 
-			for (k = 0; k < Nc; k++) {
-				BCoords_complete[IndBC*Nc+k] = BCoords[IndB*Nc+perms[j*Nc+k]];
+			Ind1++;
+		}
+
+		for (TRIsymm = 1; TRIsymm <= 2; TRIsymm++) {
+			for (l = 0, lMax = NTRIsymms[TRIsymm]; l < lMax; l++) {
+
+				for (j = 0; j < Nc; j++)
+					BCoords_tmp[j] = BCoords[IndB*Nc+perms_TET[TETperms[Indperm]*Nc+j]];
+				Indperm++;
+
+				jMax = 0;
+				for (k = 1, kMax = TRIsymm+1; k <= kMax; k++)
+					jMax += k;
+
+				for (j = 0; j < jMax; j++) {
+					if (return_w)
+						wOut[IndBC] = w_read[IndB];
+
+					for (k = 0; k < Nc-1; k++)
+						BCoords_complete[IndBC*Nc+k] = BCoords_tmp[perms_TRI[j*(Nc-1)+k]];
+
+					k = Nc-1;
+					BCoords_complete[IndBC*Nc+k] = BCoords_tmp[3];
+
+					IndBC++;
+				}
 			}
-			IndBC++;
 		}
 		IndB++;
 
@@ -204,6 +268,8 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 			IndGroup += 1;
 		}
 	}
+//array_print_d(NnOut,Nc,BCoords_complete,'R');
+
 	free(symms_count);
 	free(symms_Nperms);
 	free(BCoords);

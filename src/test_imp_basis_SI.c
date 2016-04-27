@@ -30,7 +30,7 @@ static void get_scaling_basis_TET(const unsigned int i, const unsigned int j, co
                                   double *con_c)
 {
 	get_scaling_basis_TRI(i,j,b,con_i,con_j,con_b);
-	*con_k = 1.0+0.0*k;
+	*con_k = sqrt((2.0*(i+j+k)+3.0)/pow(2.0,2.0*(i+j)+3.0));
 	*con_c = pow(1.0-c,(double) (i+j));
 }
 
@@ -181,7 +181,7 @@ static double *basis_TET2(const double *rst, const unsigned int Nn)
 	unsigned int n, d, Nbf;
 	double       *ChiRef_rst, *a, *b, *c, a_n, b_n, c_n, con, con_b, con_c, con_i, con_j, con_k;
 
-	d = 2;
+	d = 3;
 
 	// Convert from rst to abc coordinates
 	a = calloc(Nn , sizeof *a); // free
@@ -192,8 +192,7 @@ static double *basis_TET2(const double *rst, const unsigned int Nn)
 
 	Nbf = 10;
 
-//	ChiRef_rst = malloc(Nn*Nbf * sizeof *ChiRef_rst); // keep (requires external free)
-	ChiRef_rst = calloc(Nn*Nbf , sizeof *ChiRef_rst); // keep (requires external free)
+	ChiRef_rst = malloc(Nn*Nbf * sizeof *ChiRef_rst); // keep (requires external free)
 
 	con = 4.0/pow(2.0,0.25);
 	for (n = 0; n < Nn; n++) {
@@ -208,49 +207,58 @@ static double *basis_TET2(const double *rst, const unsigned int Nn)
 		                    * con_k*1.0;
 
 		get_scaling_basis_TET(0,0,1,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
-		ChiRef_rst[n*Nbf+1] = con*con_b
+		ChiRef_rst[n*Nbf+1] = con*con_b*con_c
 		                    * con_i*1.0
-		                    * con_j*1.0/2.0*(3.0*b_n+1.0);
+		                    * con_j*1.0
+		                    * con_k*1.0/2.0*(4.0*c_n+2.0);
 
 		get_scaling_basis_TET(0,0,2,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
-		ChiRef_rst[n*Nbf+2] = con*con_b
+		ChiRef_rst[n*Nbf+2] = con*con_b*con_c
 		                    * con_i*1.0
-		                    * con_j*(5.0/2.0*pow(b_n-1.0,2.0)+6.0*(b_n-1.0)+3.0);
+		                    * con_j*1.0
+		                    * con_k*(15.0/4.0*pow(c_n-1.0,2.0)+10.0*(c_n-1.0)+6.0);
 
 		get_scaling_basis_TET(0,1,0,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
-		ChiRef_rst[n*Nbf+3] = con*con_b
+		ChiRef_rst[n*Nbf+3] = con*con_b*con_c
 		                    * con_i*1.0
-		                    * con_j*(35.0/8.0*pow(b_n-1.0,3.0)+15.0*pow(b_n-1.0,2.0)+15.0*(b_n-1)+4.0);
+		                    * con_j*1.0/2.0*(3.0*b_n+1.0)
+		                    * con_k*1.0;
 
 		get_scaling_basis_TET(0,1,1,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
-		ChiRef_rst[n*Nbf+4] = con*con_b
-		                    * con_i*a_n
-		                    * con_j*1.0;
+		ChiRef_rst[n*Nbf+4] = con*con_b*con_c
+		                    * con_i*1.0
+		                    * con_j*1.0/2.0*(3.0*b_n+1.0)
+		                    * con_k*1.0/2.0*(6.0*c_n+4.0);
 
 		get_scaling_basis_TET(0,2,0,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
-		ChiRef_rst[n*Nbf+5] = con*con_b
-		                    * con_i*a_n
-		                    * con_j*1.0/2.0*(5.0*b_n+3.0);
+		ChiRef_rst[n*Nbf+5] = con*con_b*con_c
+		                    * con_i*1.0
+		                    * con_j*(5.0/2.0*pow(b_n-1.0,2.0)+6.0*(b_n-1.0)+3.0)
+		                    * con_k*1.0;
 
 		get_scaling_basis_TET(1,0,0,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
-		ChiRef_rst[n*Nbf+6] = con*con_b
+		ChiRef_rst[n*Nbf+6] = con*con_b*con_c
 		                    * con_i*a_n
-		                    * con_j*(21.0/4.0*pow(b_n-1.0,2.0)+15.0*(b_n-1.0)+10.0);
+		                    * con_j*1.0
+		                    * con_k*1.0;
 
 		get_scaling_basis_TET(1,0,1,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
-		ChiRef_rst[n*Nbf+7] = con*con_b
-		                    * con_i*1.0/2.0*(3.0*pow(a_n,2.0)-1.0)
-		                    * con_j*1.0;
+		ChiRef_rst[n*Nbf+7] = con*con_b*con_c
+		                    * con_i*a_n
+		                    * con_j*1.0
+		                    * con_k*1.0/2.0*(6.0*c_n+4.0);
 
 		get_scaling_basis_TET(1,1,0,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
-		ChiRef_rst[n*Nbf+8] = con*con_b
-		                    * con_i*1.0/2.0*(3.0*pow(a_n,2.0)-1.0)
-		                    * con_j*1.0/2.0*(7.0*b_n+5.0);
+		ChiRef_rst[n*Nbf+8] = con*con_b*con_c
+		                    * con_i*a_n
+		                    * con_j*1.0/2.0*(5.0*b_n+3.0)
+		                    * con_k*1.0;
 
 		get_scaling_basis_TET(2,0,0,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
-		ChiRef_rst[n*Nbf+9] = con*con_b
-		                    * con_i*1.0/2.0*(5.0*pow(a_n,3.0)-3.0*a_n)
-		                    * con_j*1.0;
+		ChiRef_rst[n*Nbf+9] = con*con_b*con_c
+		                    * con_i*1.0/2.0*(3.0*pow(a_n,2.0)-1.0)
+		                    * con_j*1.0
+		                    * con_k*1.0;
 	}
 
 	free(a);
@@ -306,7 +314,7 @@ void test_imp_basis_SI(void)
 
 
 	//     0         10        20        30        40        50
-	printf("basis_SI (P2):                                   ");
+	printf("basis_SI (d2, P2):                               ");
 	test_print(pass);
 
 	free(rst);
@@ -330,7 +338,7 @@ void test_imp_basis_SI(void)
 
 
 	//     0         10        20        30        40        50
-	printf("         (P3):                                   ");
+	printf("         (d2, P3):                               ");
 	test_print(pass);
 
 	free(rst);
@@ -351,11 +359,6 @@ void test_imp_basis_SI(void)
 	 *				ChiRef_rst = @(r,s,t) [ See basis_TET2 ]
 	 */
 
-/*
-	unsigned int d, Nn, Ns, Nbf, P, Prst;
-	unsigned int *symms;
-	double *rst, *w;
-
 	d = 3;
 
 	double *ChiRef32_code, *ChiRef32_test;
@@ -366,7 +369,7 @@ void test_imp_basis_SI(void)
 	cubature_TET(&rst,&w,&symms,&Nn,&Ns,0,Prst,d,"AO"); // free
 
 	ChiRef32_code = basis_SI(P,rst,Nn,&Nbf,d); // free
-	ChiRef32_test = basis_TRI2(rst,Nn);        // free
+	ChiRef32_test = basis_TET2(rst,Nn);        // free
 
 	pass = 0;
 	if (array_norm_diff_d(Nn*Nbf,ChiRef32_code,ChiRef32_test,"Inf") < EPS*10)
@@ -374,14 +377,13 @@ void test_imp_basis_SI(void)
 
 
 	//     0         10        20        30        40        50
-	printf("basis_TRI (P2):                                  ");
+	printf("         (d3, P2):                               ");
 	test_print(pass);
 
 	free(rst);
 	free(symms);
 	free(ChiRef32_code);
 	free(ChiRef32_test);
-*/
 
 	/*
 	 *	basis_SI orthogonality:
@@ -405,6 +407,7 @@ void test_imp_basis_SI(void)
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I with errro in highest order entries (SH)
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I (WV)
 	 */
+
 	double *ChiRef_rst, *W, *WChiRef_rst, *M, *I;
 
 	// d = 2
@@ -529,7 +532,6 @@ void test_imp_basis_SI(void)
 
 	free(I);
 
-/*
 	// d = 3
 	d = 3;
 
@@ -611,7 +613,6 @@ void test_imp_basis_SI(void)
 	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
 	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
-
 	if (printMI) {
 		array_print_d(Nbf,Nbf,M,'R');
 		array_print_d(Nbf,Nbf,I,'R');
@@ -652,5 +653,4 @@ void test_imp_basis_SI(void)
 	free(M);
 
 	free(I);
-*/
 }

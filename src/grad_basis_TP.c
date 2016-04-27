@@ -55,9 +55,9 @@ double **grad_basis_TP(const unsigned int P, const double *rst, const unsigned i
 
 	Nbf = pow(N,d);
 
-	GradChiRef_rst = malloc(d * sizeof *GradChiRef_rst); // keep
+	GradChiRef_rst = malloc(d * sizeof *GradChiRef_rst); // keep (requires external free)
 	for (dim = 0; dim < d; dim++)
-		GradChiRef_rst[dim] = malloc(Nn*Nbf * sizeof **GradChiRef_rst); // keep
+		GradChiRef_rst[dim] = malloc(Nn*Nbf * sizeof **GradChiRef_rst); // keep (requires external free)
 
 	Indbf = 0;
 	if (d == 1) {

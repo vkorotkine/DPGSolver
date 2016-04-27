@@ -5,8 +5,6 @@
 #include "parameters.h"
 #include "functions.h"
 
-//#include "mkl.h"
-
 /*
  *	Purpose:
  *		Return the "matrix" ChiRef_rst representing the orthonormal basis functions evaluated at the provided quadrature
@@ -36,9 +34,7 @@ double *basis_SI(const unsigned int P, const double *rst, const unsigned int Nn,
 
 	rst_to_abc(Nn,d,rst,a,b,c);
 
-	Nbf = 0;
-	for (i = 1, iMax = P+1; i <= iMax; i++)
-		Nbf += i;
+	Nbf = factorial_ui(d+P)/(factorial_ui(d)*factorial_ui(P));
 
 	ChiRef_rst = malloc(Nn*Nbf * sizeof *ChiRef_rst); // keep (requires external free)
 

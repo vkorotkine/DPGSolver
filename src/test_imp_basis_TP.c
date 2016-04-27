@@ -19,8 +19,6 @@
 
 static double *basis_TP13(const double *rst, const unsigned int Nn)
 {
-	// ChiRef_rst = @(r) [sqrt(1/2)*1 sqrt(3/2)*r sqrt(5/2)*1/2*(3*r^2-1) sqrt(7/2)*1/2*(5*r^3-3*r)]
-
 	unsigned int i, N, Nbf;
 	double *ChiRef_rst, *r, r_i;
 
@@ -49,17 +47,6 @@ static double *basis_TP13(const double *rst, const unsigned int Nn)
 
 static double *basis_TP22(const double *rst, const unsigned int Nn)
 {
-	/*	ChiRef_rst = @(r,s) [sqrt(1/2)*1*sqrt(1/2)*1
-	 *	                     sqrt(3/2)*r*sqrt(1/2)*1
-	 *	                     sqrt(5/2)*1/2*(3*r^2-1)*sqrt(1/2)*1
-	 *	                     sqrt(1/2)*1*sqrt(3/2)*s
-	 *	                     sqrt(3/2)*r*sqrt(3/2)*s
-	 *	                     sqrt(5/2)*1/2*(3*r^2-1)*sqrt(3/2)*s
-	 *	                     sqrt(1/2)*1*sqrt(5/2)*1/2*(3*s^2-1)
-	 *	                     sqrt(3/2)*r*sqrt(5/2)*1/2*(3*s^2-1)
-	 *	                     sqrt(5/2)*1/2*(3*r^2-1)*sqrt(5/2)*1/2*(3*s^2-1)]
-	 */
-
 	unsigned int i, N, Nbf;
 	double *ChiRef_rst, *r, *s, r_i, s_i;
 
@@ -98,16 +85,6 @@ static double *basis_TP22(const double *rst, const unsigned int Nn)
 
 static double *basis_TP31(const double *rst, const unsigned int Nn)
 {
-	/*	ChiRef_rst = @(r,s,t) [sqrt(1/2)*1*sqrt(1/2)*1*sqrt(1/2)*1
-	 *	                       sqrt(3/2)*r*sqrt(1/2)*1*sqrt(1/2)*1
-	 *	                       sqrt(1/2)*1*sqrt(3/2)*s*sqrt(1/2)*1
-	 *	                       sqrt(3/2)*r*sqrt(3/2)*s*sqrt(1/2)*1
-	 *	                       sqrt(1/2)*1*sqrt(1/2)*1*sqrt(3/2)*t
-	 *	                       sqrt(3/2)*r*sqrt(1/2)*1*sqrt(3/2)*t
-	 *	                       sqrt(1/2)*1*sqrt(3/2)*s*sqrt(3/2)*t
-	 *	                       sqrt(3/2)*r*sqrt(3/2)*s*sqrt(3/2)*t]
-	 */
-
 	unsigned int i, N, Nbf;
 	double *ChiRef_rst, *r, *s, *t, r_i, s_i, t_i;
 
@@ -161,7 +138,7 @@ void test_imp_basis_TP(void)
 	 *		Expected output:
 	 *
 	 *			P = 3:
-	 *				ChiRef_rst = @(r) [sqrt(1/2)*1 sqrt(3/2)*r sqrt(5/2)*1/2*(3*r^2-1) sqrt(7/2)*1/2*(5*r^3-3*r)]
+	 *				ChiRef_rst = @(r) [ See basis_TP13 ]
 	 */
 
 	unsigned int dE, Nn, Ns, Nbf, P, Prst;
@@ -203,15 +180,7 @@ void test_imp_basis_TP(void)
 	 *		Expected output:
 	 *
 	 *			P = 2:
-	 *				ChiRef_rst = @(r,s) [sqrt(1/2)*1*sqrt(1/2)*1
-	 *				                     sqrt(3/2)*r*sqrt(1/2)*1
-	 *				                     sqrt(5/2)*1/2*(3*r^2-1)*sqrt(1/2)*1
-	 *				                     sqrt(1/2)*1*sqrt(3/2)*s
-	 *				                     sqrt(3/2)*r*sqrt(3/2)*s
-	 *				                     sqrt(5/2)*1/2*(3*r^2-1)*sqrt(3/2)*s
-	 *				                     sqrt(1/2)*1*sqrt(5/2)*1/2*(3*s^2-1)
-	 *				                     sqrt(3/2)*r*sqrt(5/2)*1/2*(3*s^2-1)
-	 *				                     sqrt(5/2)*1/2*(3*r^2-1)*sqrt(5/2)*1/2*(3*s^2-1)]
+	 *				ChiRef_rst = @(r,s) [ See basis_TP22 ]
 	 */
 
 	dE = 2;
@@ -249,14 +218,7 @@ void test_imp_basis_TP(void)
 	 *		Expected output:
 	 *
 	 *			P = 1:
-	 *				ChiRef_rst = @(r,s,t) [sqrt(1/2)*1*sqrt(1/2)*1*sqrt(1/2)*1
-	 *				                       sqrt(3/2)*r*sqrt(1/2)*1*sqrt(1/2)*1
-	 *				                       sqrt(1/2)*1*sqrt(3/2)*s*sqrt(1/2)*1
-	 *				                       sqrt(3/2)*r*sqrt(3/2)*s*sqrt(1/2)*1
-	 *				                       sqrt(1/2)*1*sqrt(1/2)*1*sqrt(3/2)*t
-	 *				                       sqrt(3/2)*r*sqrt(1/2)*1*sqrt(3/2)*t
-	 *				                       sqrt(1/2)*1*sqrt(3/2)*s*sqrt(3/2)*t
-	 *				                       sqrt(3/2)*r*sqrt(3/2)*s*sqrt(3/2)*t]
+	 *				ChiRef_rst = @(r,s,t) [ See basis_TP31 ]
 	 */
 
 	dE = 3;
