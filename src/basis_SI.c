@@ -28,9 +28,9 @@ double *basis_SI(const unsigned int P, const double *rst, const unsigned int Nn,
 		printf("Error: basis_SI only supports d = [2,3].\n"), exit(1);
 
 	// Convert from rst to abc coordinates
-	a = calloc(Nn , sizeof *a); // free
-	b = calloc(Nn , sizeof *b); // free
-	c = calloc(Nn , sizeof *c); // free
+	a = malloc(Nn * sizeof *a); // free
+	b = malloc(Nn * sizeof *b); // free
+	c = malloc(Nn * sizeof *c); // free
 
 	rst_to_abc(Nn,d,rst,a,b,c);
 

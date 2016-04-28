@@ -11,6 +11,7 @@
  *		Test correctness of implementation of grad_basis_SI.
  *
  *	Comments:
+ *		May be better to test grad_basis_SI of order P > 1 to be thorough. (ToBeDeleted)
  *
  *	Notation:
  *
@@ -19,99 +20,152 @@
 
 static double **grad_basis_SI22(const double *rst, const unsigned int Nn)
 {
-	unsigned int i, N, Nbf, dim;
-	double **GradChiRef_rst, *r, *s, r_i, s_i;
+	unsigned int n, Nbf, dim, i, j;
+	double **GradChiRef_rst, *a, *b, *c, a_n, b_n, con, con_i, con_j, con_b;
 
 	Nbf = 6;
 
 	GradChiRef_rst = malloc(2 * sizeof *GradChiRef_rst); // keep (requires external free)
-	for (dim = 0; dim < 2; dim++) {
-//		GradChiRef_rst[dim] = malloc(Nn*Nbf * sizeof **GradChiRef_rst); // keep (requires external free)
-		GradChiRef_rst[dim] = calloc(Nn*Nbf , sizeof **GradChiRef_rst); // keep (requires external free)
+	for (dim = 0; dim < 2; dim++)
+		GradChiRef_rst[dim] = malloc(Nn*Nbf * sizeof **GradChiRef_rst); // keep (requires external free)
+
+	// Convert from rst to abc coordinates
+	a = malloc(Nn * sizeof *a); // free
+	b = malloc(Nn * sizeof *b); // free
+	c = malloc(Nn * sizeof *c); // free
+
+	rst_to_abc(Nn,2,rst,a,b,c);
+
+	con = 2.0/pow(3.0,0.25);
+	for (n = 0; n < Nn; n++) {
+		a_n = a[n];
+		b_n = b[n];
+
+		i = 0; j = 0;
+		get_scaling_basis_TRI(i,j,b_n,&con_i,&con_j,&con_b);
+		GradChiRef_rst[0][n*Nbf+0] = 0.0;
+		GradChiRef_rst[1][n*Nbf+0] = 0.0;
+
+		i = 0; j = 1;
+		get_scaling_basis_TRI(i,j,b_n,&con_i,&con_j,&con_b);
+		GradChiRef_rst[0][n*Nbf+1] = 0.0;
+		GradChiRef_rst[1][n*Nbf+1] = con*( 2.0/3.0*sqrt(3.0)*pow(1.0-b_n,(double) i)
+		                                 * con_i*(1.0)
+		                                 * con_j*(3.0/2.0) );
+
+		i = 0; j = 2;
+		get_scaling_basis_TRI(i,j,b_n,&con_i,&con_j,&con_b);
+		GradChiRef_rst[0][n*Nbf+2] = 0.0;
+		GradChiRef_rst[1][n*Nbf+2] = con*( 2.0/3.0*sqrt(3.0)*pow(1.0-b_n,(double) i)
+		                                 * con_i*(1.0)
+		                                 * con_j*(5.0*(b_n-1.0)+6.0) );
+
+		i = 1; j = 0;
+		get_scaling_basis_TRI(i,j,b_n,&con_i,&con_j,&con_b);
+		GradChiRef_rst[0][n*Nbf+3] = con*2.0*pow(1.0-b_n,i-1.0)
+		                           * con_i*(1.0)
+		                           * con_j*(1.0);
+		GradChiRef_rst[1][n*Nbf+3] = 0.0;
+
+		i = 1; j = 1;
+		get_scaling_basis_TRI(i,j,b_n,&con_i,&con_j,&con_b);
+		GradChiRef_rst[0][n*Nbf+4] = con*2.0*pow(1.0-b_n,i-1.0)
+		                           * con_i*(1.0)
+		                           * con_j*(1.0/2.0*(5.0*b_n+3.0));
+		GradChiRef_rst[1][n*Nbf+4] = con*( -2.0/3.0*sqrt(3.0)*i*pow(1.0-b_n,i-1.0)
+		                                 * con_i*(a_n)
+		                                 * con_j*(1.0/2.0*(5.0*b_n+3.0))
+										 + 2.0/3.0*sqrt(3.0)*a_n*pow(1.0-b_n,i-1.0)
+		                                 * con_i*(1.0)
+		                                 * con_j*(1.0/2.0*(5.0*b_n+3.0))
+										 + 2.0/3.0*sqrt(3.0)*pow(1.0-b_n,(double) i)
+		                                 * con_i*(a_n)
+		                                 * con_j*(5.0/2.0) );
+
+		i = 2; j = 0;
+		get_scaling_basis_TRI(i,j,b_n,&con_i,&con_j,&con_b);
+		GradChiRef_rst[0][n*Nbf+5] = con*2.0*pow(1.0-b_n,i-1.0)
+		                           * con_i*(3.0*a_n)
+		                           * con_j*(1.0);
+		GradChiRef_rst[1][n*Nbf+5] = con*( -2.0/3.0*sqrt(3.0)*i*pow(1.0-b_n,i-1.0)
+		                                 * con_i*(1.0/2.0*(3.0*pow(a_n,2.0)-1.0))
+		                                 * con_j*(1.0)
+										 + 2.0/3.0*sqrt(3.0)*a_n*pow(1.0-b_n,i-1.0)
+		                                 * con_i*(3.0*a_n)
+		                                 * con_j*(1.0) );
 	}
 
-	r = malloc(Nn * sizeof *r); // free
-	s = malloc(Nn * sizeof *s); // free
-	for (i = 0; i < Nn; i++) {
-		r[i] = rst[0*Nn+i];
-		s[i] = rst[1*Nn+i];
-	}
-
-	for (i = 0; i < Nn; i++) {
-		r_i = r[i];
-		s_i = s[i];
-
-/*
-		GradChiRef_rst[0][i*Nbf+0] = 0.0;
-		GradChiRef_rst[0][i*Nbf+1] = sqrt(3.0/2.0)*sqrt(1.0/2.0)*1.0;
-		GradChiRef_rst[0][i*Nbf+2] = sqrt(5.0/2.0)*3.0*r_i*sqrt(1.0/2.0)*1.0;
-		GradChiRef_rst[0][i*Nbf+3] = 0.0;
-		GradChiRef_rst[0][i*Nbf+4] = sqrt(3.0/2.0)*sqrt(3.0/2.0)*s_i;
-		GradChiRef_rst[0][i*Nbf+5] = sqrt(5.0/2.0)*3.0*r_i*sqrt(3.0/2.0)*s_i;
-
-		GradChiRef_rst[1][i*Nbf+0] = 0.0;
-		GradChiRef_rst[1][i*Nbf+1] = 0.0;
-		GradChiRef_rst[1][i*Nbf+2] = 0.0;
-		GradChiRef_rst[1][i*Nbf+3] = sqrt(1.0/2.0)*1.0*sqrt(3.0/2.0);
-		GradChiRef_rst[1][i*Nbf+4] = sqrt(3.0/2.0)*r_i*sqrt(3.0/2.0);
-		GradChiRef_rst[1][i*Nbf+5] = sqrt(5.0/2.0)*1.0/2.0*(3.0*pow(r_i,2.0)-1.0)*sqrt(3.0/2.0);
-*/
-	}
-
-	free(r);
-	free(s);
+	free(a);
+	free(b);
+	free(c);
 
 	return GradChiRef_rst;
 }
 
 static double **grad_basis_SI31(const double *rst, const unsigned int Nn)
 {
-	unsigned int i, N, Nbf, dim;
-	double **GradChiRef_rst, *r, *s, *t, r_i, s_i, t_i;
+	unsigned int n, Nbf, dim, i, j, k;
+	double **GradChiRef_rst, *a, *b, *c, a_n, b_n, c_n, con, con_i, con_j, con_k, con_b, con_c;
+
+	// silence
+	a_n = 0, b_n = a_n+1;
 
 	Nbf = 4;
 
 	GradChiRef_rst = malloc(3 * sizeof *GradChiRef_rst); // keep (requires external free)
-	for (dim = 0; dim < 3; dim++) {
-//		GradChiRef_rst[dim] = malloc(Nn*Nbf * sizeof **GradChiRef_rst); // keep (requires external free)
-		GradChiRef_rst[dim] = calloc(Nn*Nbf , sizeof **GradChiRef_rst); // keep (requires external free)
+	for (dim = 0; dim < 3; dim++)
+		GradChiRef_rst[dim] = malloc(Nn*Nbf * sizeof **GradChiRef_rst); // keep (requires external free)
+
+	// Convert from rst to abc coordinates
+	a = malloc(Nn * sizeof *a); // free
+	b = malloc(Nn * sizeof *b); // free
+	c = malloc(Nn * sizeof *c); // free
+
+	rst_to_abc(Nn,3,rst,a,b,c);
+
+	con = 4.0/pow(2.0,0.25);
+	for (n = 0; n < Nn; n++) {
+		a_n = a[n];
+		b_n = b[n];
+		c_n = c[n];
+
+		i = 0; j = 0; k = 0;
+		get_scaling_basis_TET(i,j,k,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
+		GradChiRef_rst[0][n*Nbf+0] = 0.0;
+		GradChiRef_rst[1][n*Nbf+0] = 0.0;
+		GradChiRef_rst[2][n*Nbf+0] = 0.0;
+
+		i = 0; j = 0; k = 1;
+		get_scaling_basis_TET(i,j,k,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
+		GradChiRef_rst[0][n*Nbf+1] = 0.0;
+		GradChiRef_rst[1][n*Nbf+1] = 0.0;
+		GradChiRef_rst[2][n*Nbf+1] = con*( 1.0/2.0*sqrt(6.0)*pow(1.0-b_n,(double) i)*pow(1.0-c_n,(double) (i+j))
+		                                 * con_i*(1.0)
+		                                 * con_j*(1.0)
+		                                 * con_k*(2.0) );
+
+		i = 0; j = 1; k = 0;
+		get_scaling_basis_TET(i,j,k,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
+		GradChiRef_rst[0][n*Nbf+2] = 0.0;
+		GradChiRef_rst[1][n*Nbf+2] = con*( 4.0/3.0*sqrt(3.0)*pow(1.0-b_n,(double) i)*pow(1.0-c_n,i+j-1.0)
+		                                 * con_i*(1.0)
+		                                 * con_j*(3.0/2.0)
+		                                 * con_k*(1.0) );
+		GradChiRef_rst[2][n*Nbf+2] = 0.0;
+
+		i = 1; j = 0; k = 0;
+		get_scaling_basis_TET(i,j,k,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
+		GradChiRef_rst[0][n*Nbf+3] = con*( 4.0*pow(1.0-b_n,i-1.0)*pow(1.0-c_n,i+j-1.0)
+		                                 * con_i*(1.0)
+		                                 * con_j*(1.0)
+		                                 * con_k*(1.0) );
+		GradChiRef_rst[1][n*Nbf+3] = 0.0;
+		GradChiRef_rst[2][n*Nbf+3] = 0.0;
 	}
 
-	r = malloc(Nn * sizeof *r); // free
-	s = malloc(Nn * sizeof *s); // free
-	t = malloc(Nn * sizeof *t); // free
-	for (i = 0; i < Nn; i++) {
-		r[i] = rst[0*Nn+i];
-		s[i] = rst[1*Nn+i];
-		t[i] = rst[2*Nn+i];
-	}
-
-	for (i = 0; i < Nn; i++) {
-		r_i = r[i];
-		s_i = s[i];
-		t_i = t[i];
-
-/*
-		GradChiRef_rst[0][i*Nbf+0] = sqrt(1.0/2.0)*0.0*sqrt(1.0/2.0)*1.0*sqrt(1.0/2.0)*1.0;
-		GradChiRef_rst[0][i*Nbf+1] = sqrt(3.0/2.0)*1.0*sqrt(1.0/2.0)*1.0*sqrt(1.0/2.0)*1.0;
-		GradChiRef_rst[0][i*Nbf+2] = sqrt(1.0/2.0)*0.0*sqrt(3.0/2.0)*s_i*sqrt(1.0/2.0)*1.0;
-		GradChiRef_rst[0][i*Nbf+3] = sqrt(3.0/2.0)*1.0*sqrt(3.0/2.0)*s_i*sqrt(1.0/2.0)*1.0;
-
-		GradChiRef_rst[1][i*Nbf+0] = sqrt(1.0/2.0)*1.0*sqrt(1.0/2.0)*0.0*sqrt(1.0/2.0)*1.0;
-		GradChiRef_rst[1][i*Nbf+1] = sqrt(3.0/2.0)*r_i*sqrt(1.0/2.0)*0.0*sqrt(1.0/2.0)*1.0;
-		GradChiRef_rst[1][i*Nbf+2] = sqrt(1.0/2.0)*1.0*sqrt(3.0/2.0)*1.0*sqrt(1.0/2.0)*1.0;
-		GradChiRef_rst[1][i*Nbf+3] = sqrt(3.0/2.0)*r_i*sqrt(3.0/2.0)*1.0*sqrt(1.0/2.0)*1.0;
-
-		GradChiRef_rst[2][i*Nbf+0] = sqrt(1.0/2.0)*1.0*sqrt(1.0/2.0)*1.0*sqrt(1.0/2.0)*0.0;
-		GradChiRef_rst[2][i*Nbf+1] = sqrt(3.0/2.0)*r_i*sqrt(1.0/2.0)*1.0*sqrt(1.0/2.0)*0.0;
-		GradChiRef_rst[2][i*Nbf+2] = sqrt(1.0/2.0)*1.0*sqrt(3.0/2.0)*s_i*sqrt(1.0/2.0)*0.0;
-		GradChiRef_rst[2][i*Nbf+3] = sqrt(3.0/2.0)*r_i*sqrt(3.0/2.0)*s_i*sqrt(1.0/2.0)*0.0;
-*/
-	}
-
-	free(r);
-	free(s);
-	free(t);
+	free(a);
+	free(b);
+	free(c);
 
 	return GradChiRef_rst;
 }
@@ -168,7 +222,7 @@ void test_imp_grad_basis_SI(void)
 	 *				GradChiRef_rst[1] = @(r,s) [ See grad_basis_SI22[1] ]
 	 */
 
-	unsigned int i, d, Nn, Ns, Nbf, P, Prst;
+	unsigned int d, Nn, Ns, Nbf, P, Prst;
 	unsigned int *symms;
 	double *rst, *w;
 
@@ -182,14 +236,7 @@ void test_imp_grad_basis_SI(void)
 	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,0,Prst,d,"AO"); // free
 
 	GradChiRef22_code = grad_basis_SI(P,rst,Nn,&Nbf,d); // free
-	GradChiRef22_test = grad_basis_SI22(rst,Nn); // free
-
-//for (i = 0; i < d; i++) {
-for (i = 0; i < 1; i++) {
-	array_print_d(Nn,Nbf,GradChiRef22_code[i],'R');
-	array_print_d(Nn,Nbf,GradChiRef22_test[i],'R');
-}
-exit(1);
+	GradChiRef22_test = grad_basis_SI22(rst,Nn);        // free
 
 	pass = 0;
 	if (array_norm_diff_d(Nn*Nbf,GradChiRef22_code[0],GradChiRef22_test[0],"Inf") < EPS*10 &&
@@ -202,9 +249,8 @@ exit(1);
 
 	free(rst);
 	free(symms);
-//	array_free2_d(d,GradChiRef22_code);
+	array_free2_d(d,GradChiRef22_code);
 	array_free2_d(d,GradChiRef22_test);
-exit(1);
 
 	/*
 	 *	grad_basis_SI (d = 3):
@@ -230,7 +276,7 @@ exit(1);
 
 	cubature_TET(&rst,&w,&symms,&Nn,&Ns,0,Prst,d,"AO"); // free
 
-//	GradChiRef31_code = grad_basis_SI(P,rst,Nn,&Nbf,d); // free
+	GradChiRef31_code = grad_basis_SI(P,rst,Nn,&Nbf,d); // free
 	GradChiRef31_test = grad_basis_SI31(rst,Nn); // free
 
 	pass = 0;
@@ -262,7 +308,6 @@ exit(1);
 	 *			GradChiRef_rst[2]*ChiRefInvP_vP*f(rst_vP) = f_t(rst_vP)
 	 */
 
-/*
 	unsigned int i;
 	double *f, *f_r, *f_s, *f_t, *r, *s, *t, *f_hat, *f_rcomp, *f_scomp, *f_tcomp;
 	double *I, *ChiRef_rst, *ChiRefInv_rst, **GradChiRef_rst;
@@ -368,5 +413,4 @@ exit(1);
 	free(f), free(f_hat);
 	free(f_r), free(f_s), free(f_t);
 	free(f_rcomp), free(f_scomp), free(f_tcomp);
-*/
 }

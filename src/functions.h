@@ -44,6 +44,8 @@ extern double     **grad_basis_SI           (const unsigned int P, const double 
                                              unsigned int *NbfOut, const unsigned int d);
 extern void       rst_to_abc                (const unsigned int Nn, const unsigned int d, const double *rst,
                                              double *a, double *b, double *c);
+//extern void       grad_rst_to_abc           (const unsigned int Nn, const unsigned int d, const double *rst,
+//                                             double *grad_a, double *grad_b, double *grad_c);
 extern double     jacobiP                   (const double x, const double alpha, const double beta, const int N);
 extern double     grad_jacobiP              (const double x, const double alpha, const double beta, const int N);
 extern void   setup_structures              (void);

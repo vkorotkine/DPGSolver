@@ -32,6 +32,11 @@ extern void test_imp_cubature_TP               (void);
 extern void test_imp_cubature_SI               (void);
 extern void test_imp_basis_TP                  (void);
 extern void test_imp_basis_SI                  (void);
+extern void     get_scaling_basis_TRI          (const unsigned int i, const unsigned int j, const double b,
+                                                double *con_i, double *con_j, double *con_b);
+extern void     get_scaling_basis_TET          (const unsigned int i, const unsigned int j, const unsigned int k,
+                                                const double b, const double c, double *con_i, double *con_j,
+                                                double *con_k, double *con_b, double *con_c);
 extern void test_imp_grad_basis_TP             (void);
 extern void test_imp_grad_basis_SI             (void);
 extern void test_imp_plotting                  (void);
