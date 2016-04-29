@@ -4,7 +4,7 @@ format long
 
 % ToBeDeleted: Convert this to python!
 % Note: Only need basisTET of order 1 for barycentric coordinates
-plot_on = 0;
+plot_on = 1;
 
 GLOBAL.TET.xir_vGs = [          [0 -1 0 1]' ...
                       1/sqrt(3)*[0 -1 2 -1]' ...
@@ -16,17 +16,17 @@ d = 3;
 Nc = 4;
 Nsymms = 5;
 
-% NodeType = 'AO';
+NodeType = 'AO';
 % NodeType = 'SH';
-NodeType = 'WV';
+% NodeType = 'WV';
 
 if     (~isempty(strfind(NodeType,'AO'))); PMax = 15;
 elseif (~isempty(strfind(NodeType,'SH'))); PMax = 6;
 elseif (~isempty(strfind(NodeType,'WV'))); PMax = 10;
 end
 
-for P = 1:PMax
-% for P = 4
+% for P = 1:PMax
+for P = 2
 
 
 % Read/Obtain rst
@@ -71,6 +71,10 @@ end
 
 % barycentric coordinates
 Lv = basis_TET_P1(rst)/basis_TET_P1(rst_c);
+% [rst ones(Nn,1)]*inv([rst_c ones(Nc,1)])
+% [rst ones(Nn,1)]/[rst_c ones(Nc,1)]
+
+break;
 
 % convert to regular tetrahedron
 if (~isempty(strfind(NodeType,'WS')) || ...

@@ -139,6 +139,7 @@ int main(void)
 
 	test_imp_cubature_TP();
 	test_imp_cubature_SI();
+	test_imp_cubature_PYR();
 
 	test_imp_basis_TP();
 	test_imp_basis_SI();

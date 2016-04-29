@@ -86,7 +86,48 @@ elseif (Nc == 4) %TET
             end
         end
     end
-
+elseif (Nc == 5) %PYR
+    perms_QUAD = [ 1 2 3 4; 4 1 2 3; 3 4 1 2; 2 3 4 1];
+    rst_c = [          [-1  1  1 -1 0]' ...
+                       [-1 -1  1  1 0]' ...
+             sqrt(2)/5*[-1 -1 -1 -1 4]'];
+    symms = [1 4 8];
+    Nn = sum(symms.*symms_count);
+    
+    % count number of 1 symmetries
+    N1 = symms_count(1);
+    
+    LvC = zeros(Nn,Nc);
+    
+    IndLvC = 0;
+    Ind1 = 0;
+    
+    for i = 1:NLv
+        Lv_tmp = Lv(i,:);
+        
+        if (symms_ind(i) == 1)
+            Nperm = 1;
+        else
+            Nperm = 4;
+            if (symms_ind(i) == 2); NQUADsymms = 1;
+            else                    NQUADsymms = 2;
+            end
+        end
+        
+        if (Nperm == 1)
+            Ind1 = Ind1+1;
+            LvC(Nn-N1+Ind1,:) = Lv_tmp;
+        else
+            for j = 1:NQUADsymms
+                if (j == 1); Lv_tmpQUAD = Lv_tmp;
+                else         Lv_tmpQUAD = Lv_tmp([2 1 4 3 5]);
+                end
+                LvC(IndLvC+(1:Nperm),:) = ...
+                        Lv_tmpQUAD([perms_QUAD ones(Nperm,1)*Nc]);
+                IndLvC = IndLvC + Nperm;
+            end
+        end
+    end
 end
 
 % LvC

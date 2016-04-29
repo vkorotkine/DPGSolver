@@ -8,21 +8,33 @@
 
 /*
  *	Purpose:
- *		Return nodes, weights and symmetries for tetrahedral cubature depending on the nodetype.
+ *		Return nodes, weights and symmetries for pyramidal cubature depending on the nodetype.
  *
  *	Comments:
- *		Check that AO nodes correspond to those in pyfr after writing the converter script. (ToBeDeleted)
- *		The SH and WV nodes were determined based off of those from the pyfr code (pyfr/quadrules/tet) after being
- *		transfered to the regular TET used in this code.
- *		The order of rst, w is important for minimizing memory stride while computing the length 3 Discrete Fourier
+ *		Barycentric coordinates for the PYR element may be negative, unlike for the SI elements. This does not pose any
+ *		challenges or result in any limitations, but is simply a result of the last additional condition (chosen for
+ *		good conditioning of the matrix) when computing the barycentric coordinates of the nodes in the pyfr code.
+ *
+ *		Note:
+ *
+ *			[ones]_{Nn x 1}  = [BCoords]_{Nn x Nc} * [ones]_{Nc x 1}          => Partition of unity (1 condition)
+ *			[rst]_{Nn x d}   = [BCoords]_{Nn x Nc} * [rst_(c)orners]_{Nc x d} => Linear precision   (d conditions)
+ *			[r*s*t]_{Nn x 1} = [BCoords]_{Nn x Nc} * [{r*s*t}_c]_{Nc x 1}     => Arbitrary          (1 condition)
+ *
+ *			Then
+ *				[BCoords] = [ones(Nn,1) rst r*s*t]*inv([ones(Nc,1) rst_c {r*s*t}_c])
+ *
+ *			where
+ *				cond([ones(Nc,1) rst_c {r*s*t}_c]) = 2.0
+ *
+ *		All nodes were determined based off of those from the pyfr code (pyfr/quadrules/tet) after being transfered to
+ *		the regular PYR used in this code.
+ *		The order of rst, w is important for minimizing memory stride while computing the length 4 Discrete Fourier
  *		Transform (Note: as w is a 1d matrix, its ordering is actually not relevant) (ToBeModified).
  *		Ordering convention:
- *			3-blocks of symmetric nodes in the same rotational order, followed by 1-block(s) of center node(s) if
+ *			4-blocks of symmetric nodes in the same rotational order, followed by 1-block(s) of center node(s) if
  *			present.
  *		rst is stored in memory as r, s, then t (See cubature_TP for the motivation).
- *
- *		SH nodes have the following [order, cubature strength]:
- *			[0,1], [1,2], [2,3], [3,5], [4,6], [5,8], [6,9]
  *
  *		Input P for WV nodes is the cubature strength desired.
  *
@@ -36,32 +48,26 @@
  *	References:
  *		pyfr code : http://www.pyfr.org
  *
- *		AO : Hesthaven(2008)-Nodal_Discontinuous_Galerkin_Methods (ToBeModified: Likely use same conversion)
- *		SH : pyfr/quadrules/tet + conversion to barycentric coordinates (ToBeModified: See python script)
- *		WV : pyfr/quadrules/tet + conversion to barycentric coordinates (ToBeModified: See python script)
+ *		GL  : pyfr/quadrules/pyr + conversion to barycentric coordinates (ToBeModified: See python script)
+ *		GLL : pyfr/quadrules/pyr + conversion to barycentric coordinates (ToBeModified: See python script)
+ *		WV  : pyfr/quadrules/pyr + conversion to barycentric coordinates (ToBeModified: See python script)
  */
 
-void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *Nn, unsigned int *Ns,
+void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *Nn, unsigned int *Ns,
                   const unsigned int return_w, const unsigned int P, const unsigned int d, const char *NodeType)
 {
 	// Standard datatypes
-	static unsigned int perms_TRI[18] = { 0, 1, 2,
-	                                      2, 0, 1,
-	                                      1, 2, 0,
-	                                      0, 2, 1,
-	                                      1, 0, 2,
-	                                      2, 1, 0},
-	                    perms_TET[16] = { 0, 1, 2, 3,
-	                                      3, 0, 1, 2,
-	                                      2, 3, 0, 1,
-	                                      1, 2, 3, 0};
-	unsigned int symms31[2] = { 0, 0}, NTRIsymms[3], TETperms[4];
-	double rst_c[12] = { -1.0,            1.0,            0.0,           0.0,
-	                     -1.0/sqrt(3.0), -1.0/sqrt(3.0),  2.0/sqrt(3.0), 0.0,
-	                     -1.0/sqrt(6.0), -1.0/sqrt(6.0), -1.0/sqrt(6.0), 3.0/sqrt(6.0)},
-	       BCoords_tmp[4];
-	unsigned int i, iMax, j, jMax, k, kMax, l, lMax, TRIsymm,
-	             IndB, IndBC, IndGroup, Ind1, Indperm, GroupCount, Nc, N1,
+	static unsigned int perms_QUAD[16] = { 0, 1, 2, 3,
+	                                       3, 0, 1, 2,
+	                                       2, 3, 0, 1,
+	                                       1, 2, 3, 0};
+	unsigned int symms41[2] = { 0, 0}, NQUADsymms = 0;
+	double rst_c[15] = { -1.0,            1.0,            1.0,           -1.0,           0.0,
+	                     -1.0,           -1.0,            1.0,            1.0,           0.0,
+	                     -sqrt(2.0)/5.0, -sqrt(2.0)/5.0, -sqrt(2.0)/5.0, -sqrt(2.0)/5.0, 4.0/5.0*sqrt(2.0)},
+	       BCoords_tmp[5];
+	unsigned int i, iMax, j, jMax, k, QUADsymm,
+	             IndB, IndBC, IndGroup, Ind1, GroupCount, Nc, N1,
 	             PMax, NnOut, NsOut, Ngroups, Nsymms, Nperms;
 	unsigned int *symmsOut, *symms_Nperms, *symms_count;
 	char         *StringRead, *strings, *stringe, *CubFile, *Pc;
@@ -73,27 +79,25 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 	PMax = 0; Nsymms = 0; Ngroups = 0;
 	w_read = malloc(0 * sizeof *w_read); // silence
 
-	if (strstr(NodeType,"AO") != NULL) {
+	if (strstr(NodeType,"GL") != NULL) {
 		if (return_w)
-			printf("Error: Invalid value for return_w in cubature_TET.\n"), exit(1);
+			printf("Error: Invalid value for return_w in cubature_PYR.\n"), exit(1);
 
-		PMax = 15;
-	} else if (strstr(NodeType,"SH") != NULL) {
 		PMax = 6;
 	} else if (strstr(NodeType,"WV") != NULL) {
 		PMax = 10;
 	}
 
 	if (P > PMax)
-		printf("Error: %s TET nodes of order %d are not available.\n",NodeType,P), exit(1);
+		printf("Error: %s PYR nodes of order %d are not available.\n",NodeType,P), exit(1);
 
-	Nc = 4;
+	Nc = 5;
 
 	CubFile = malloc(STRLEN_MAX * sizeof *CubFile); // free
 	Pc      = malloc(STRLEN_MIN * sizeof *Pc);      // free
 	sprintf(Pc,"%d",P);
 
-	strcpy(CubFile,"../cubature/tet/");
+	strcpy(CubFile,"../cubature/pyr/");
 	strcat(CubFile,NodeType);
 	strcat(CubFile,Pc);
 	strcat(CubFile,".txt");
@@ -167,7 +171,7 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 
 	// Find number of 1 symmetries and total number of nodes
 	for (i = 0, N1 = 0, NnOut = 0; i < Nsymms; i++) {
-		if (i >= Nsymms-2)
+		if (i >= Nsymms-1)
 			N1 += symms_count[i];
 		NnOut += symms_count[i]*symms_Nperms[i];
 	}
@@ -193,39 +197,21 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 		GroupCount++;
 
 		Nperms = symms_Nperms[IndGroup];
-		// Count 3/1 symmetries and establish TRI symmetries to loop over
-		if (Nperms == 24) {
-			symms31[0] += 8;
-
-			NTRIsymms[0] = 0; NTRIsymms[1] = 0; NTRIsymms[2] = 4;
-			TETperms[0]  = 0; TETperms[1]  = 1; TETperms[2]  = 2; TETperms[3]  = 3;
-		} else if (Nperms == 12) {
-			symms31[0] += 4;
-
-			NTRIsymms[0] = 0; NTRIsymms[1] = 2; NTRIsymms[2] = 1;
-			TETperms[0]  = 3; TETperms[1]  = 2; TETperms[2]  = 0; TETperms[3]  = 9;
-		} else if (Nperms == 6) {
-			symms31[0] += 2;
-
-			NTRIsymms[0] = 0; NTRIsymms[1] = 2; NTRIsymms[2] = 0;
-			TETperms[0]  = 0; TETperms[1]  = 3; TETperms[2]  = 9; TETperms[3]  = 9;
+		// Count 4/1 symmetries and establish QUAD symmetries to loop over
+		if (Nperms == 8) {
+			symms41[0] += 2;
+			NQUADsymms = 1;
 		} else if (Nperms == 4) {
-			symms31[0] += 1, symms31[1] += 1;
-
-			NTRIsymms[0] = 1; NTRIsymms[1] = 1; NTRIsymms[2] = 0;
-			TETperms[0]  = 3; TETperms[1]  = 0; TETperms[2]  = 9; TETperms[3]  = 9;
+			symms41[0] += 1;
+			NQUADsymms = 0;
 		} else if (Nperms == 1) {
-			symms31[1] += 1;
-
-			NTRIsymms[0] = 1; NTRIsymms[1] = 0; NTRIsymms[2] = 0;
-			TETperms[0]  = 0; TETperms[1]  = 9; TETperms[2]  = 9; TETperms[3]  = 9;
+			symms41[1] += 1;
+			NQUADsymms = 0;
 		}
 
-		Indperm = 0;
-		if (NTRIsymms[0]) {
+		if (Nperms == 1) {
 			for (j = 0; j < Nc; j++)
-				BCoords_tmp[j] = BCoords[IndB*Nc+perms_TET[TETperms[Indperm]*Nc+j]];
-			Indperm++;
+				BCoords_tmp[j] = BCoords[IndB*Nc+j];
 
 			for (k = 0; k < Nc; k++)
 				BCoords_complete[(NnOut-N1+Ind1)*Nc+k] = BCoords_tmp[k];
@@ -234,28 +220,28 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 				wOut[NnOut-N1+Ind1] = w_read[IndB];
 
 			Ind1++;
-		}
+		} else {
+			for (QUADsymm = 0; QUADsymm <= NQUADsymms; QUADsymm++) {
+				if (QUADsymm == 0) {
+					for (j = 0; j < Nc; j++)
+						BCoords_tmp[j] = BCoords[IndB*Nc+j];
+				} else {
+					BCoords_tmp[0] = BCoords[IndB*Nc+1];
+					BCoords_tmp[1] = BCoords[IndB*Nc+0];
+					BCoords_tmp[2] = BCoords[IndB*Nc+3];
+					BCoords_tmp[3] = BCoords[IndB*Nc+2];
+					BCoords_tmp[4] = BCoords[IndB*Nc+4];
+				}
 
-		for (TRIsymm = 1; TRIsymm <= 2; TRIsymm++) {
-			for (l = 0, lMax = NTRIsymms[TRIsymm]; l < lMax; l++) {
-
-				for (j = 0; j < Nc; j++)
-					BCoords_tmp[j] = BCoords[IndB*Nc+perms_TET[TETperms[Indperm]*Nc+j]];
-				Indperm++;
-
-				jMax = 0;
-				for (k = 1, kMax = TRIsymm+1; k <= kMax; k++)
-					jMax += k;
-
-				for (j = 0; j < jMax; j++) {
+				for (j = 0; j < 4; j++) {
 					if (return_w)
 						wOut[IndBC] = w_read[IndB];
 
 					for (k = 0; k < Nc-1; k++)
-						BCoords_complete[IndBC*Nc+k] = BCoords_tmp[perms_TRI[j*(Nc-1)+k]];
+						BCoords_complete[IndBC*Nc+k] = BCoords_tmp[perms_QUAD[j*(Nc-1)+k]];
 
 					k = Nc-1;
-					BCoords_complete[IndBC*Nc+k] = BCoords_tmp[3];
+					BCoords_complete[IndBC*Nc+k] = BCoords_tmp[4];
 
 					IndBC++;
 				}
@@ -282,13 +268,13 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 
 	NsOut = 0;
 	for (i = 0; i < 2; i++)
-		NsOut += symms31[i];
+		NsOut += symms41[i];
 
 	symmsOut = malloc(NsOut * sizeof *symmsOut); // keep (requires external free)
 	k = 0;
 	for (i = 0; i < 2; i++) {
-	for (j = 0; jMax = symms31[i], j < jMax; j++) {
-		if (i == 0) symmsOut[k] = 3;
+	for (j = 0; jMax = symms41[i], j < jMax; j++) {
+		if (i == 0) symmsOut[k] = 4;
 		else        symmsOut[k] = 1;
 		k++;
 	}}

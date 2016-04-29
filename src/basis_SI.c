@@ -16,6 +16,7 @@
  *	Notation:
  *
  *	References:
+ *		Hesthaven(2008)-Nodal_Discontinuous_Galerkin_Methods (Appendix A.1)
  */
 
 double *basis_SI(const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,

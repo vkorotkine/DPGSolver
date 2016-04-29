@@ -567,7 +567,7 @@ void test_imp_basis_SI(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("                         WV (d3, P2):            ");
+	printf("                         WV (d3, P1):            ");
 		test_print(pass);
 
 	free(rst);
