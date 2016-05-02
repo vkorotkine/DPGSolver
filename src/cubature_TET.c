@@ -265,7 +265,8 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 
 		if (symms_count[IndGroup] == GroupCount) {
 			GroupCount = 0;
-			IndGroup += 1;
+			while (symms_count[++IndGroup] == 0)
+				;
 		}
 	}
 //array_print_d(NnOut,Nc,BCoords_complete,'R');

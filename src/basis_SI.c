@@ -33,9 +33,9 @@ double *basis_SI(const unsigned int P, const double *rst, const unsigned int Nn,
 	b = malloc(Nn * sizeof *b); // free
 	c = malloc(Nn * sizeof *c); // free
 
-	rst_to_abc(Nn,d,rst,a,b,c);
+	rst_to_abc_SI(Nn,d,rst,a,b,c);
 
-	Nbf = factorial_ui(d+P)/(factorial_ui(d)*factorial_ui(P));
+	Nbf = factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P));
 
 	ChiRef_rst = malloc(Nn*Nbf * sizeof *ChiRef_rst); // keep (requires external free)
 

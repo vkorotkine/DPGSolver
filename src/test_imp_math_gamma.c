@@ -21,7 +21,7 @@ void test_imp_math_gamma(void)
 	unsigned int pass;
 
 	/*
-	 *	gamma_ui:
+	 *	gamma_ull:
 	 *
 	 *		Input:
 	 *
@@ -34,15 +34,15 @@ void test_imp_math_gamma(void)
 	 *			B : 5040
 	 */
 
-	unsigned int A_ui = 4, B_ui = 8;
+	unsigned int A_ull = 4, B_ull = 8;
 
 	pass = 0;
-	if (gamma_ui(A_ui) == 6   &&
-		gamma_ui(B_ui) == 5040)
+	if (gamma_ull(A_ull) == 6   &&
+		gamma_ull(B_ull) == 5040)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("math_gamma_ui:                                   ");
+	printf("math_gamma_ull:                                  ");
 	test_print(pass);
 
 	/*

@@ -34,7 +34,7 @@ static double **grad_basis_SI22(const double *rst, const unsigned int Nn)
 	b = malloc(Nn * sizeof *b); // free
 	c = malloc(Nn * sizeof *c); // free
 
-	rst_to_abc(Nn,2,rst,a,b,c);
+	rst_to_abc_SI(Nn,2,rst,a,b,c);
 
 	con = 2.0/pow(3.0,0.25);
 	for (n = 0; n < Nn; n++) {
@@ -121,7 +121,7 @@ static double **grad_basis_SI31(const double *rst, const unsigned int Nn)
 	b = malloc(Nn * sizeof *b); // free
 	c = malloc(Nn * sizeof *c); // free
 
-	rst_to_abc(Nn,3,rst,a,b,c);
+	rst_to_abc_SI(Nn,3,rst,a,b,c);
 
 	con = 4.0/pow(2.0,0.25);
 	for (n = 0; n < Nn; n++) {

@@ -41,14 +41,16 @@ extern double     *basis_TP                 (const unsigned int P, const double 
                                              unsigned int *NbfOut, const unsigned int d);
 extern double     *basis_SI                 (const unsigned int P, const double *rst, const unsigned int Nn,
                                              unsigned int *NbfOut, const unsigned int d);
+extern double     *basis_PYR                (const unsigned int P, const double *rst, const unsigned int Nn,
+                                             unsigned int *NbfOut, const unsigned int d);
 extern double     **grad_basis_TP           (const unsigned int P, const double *rst, const unsigned int Nn,
                                              unsigned int *NbfOut, const unsigned int d);
 extern double     **grad_basis_SI           (const unsigned int P, const double *rst, const unsigned int Nn,
                                              unsigned int *NbfOut, const unsigned int d);
-extern void       rst_to_abc                (const unsigned int Nn, const unsigned int d, const double *rst,
+extern void       rst_to_abc_SI             (const unsigned int Nn, const unsigned int d, const double *rst,
                                              double *a, double *b, double *c);
-//extern void       grad_rst_to_abc           (const unsigned int Nn, const unsigned int d, const double *rst,
-//                                             double *grad_a, double *grad_b, double *grad_c);
+extern void       rst_to_abc_PYR            (const unsigned int Nn, const unsigned int d, const double *rst,
+                                             double *a, double *b, double *c);
 extern double     jacobiP                   (const double x, const double alpha, const double beta, const int N);
 extern double     grad_jacobiP              (const double x, const double alpha, const double beta, const int N);
 extern void   setup_structures              (void);
@@ -83,9 +85,9 @@ extern void   mm_d        (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE tran
 extern void   mm_CTN_d    (const int m, const int n, const int k, const double *A, const double *B, double *C);
 
 // Math Functions
-extern unsigned int factorial_ui (const unsigned int n);
-extern unsigned int gamma_ui     (const unsigned int n);
-extern double       gamma_d      (const double x);
+extern unsigned int factorial_ull (const unsigned int n);
+extern unsigned int gamma_ull     (const unsigned int n);
+extern double       gamma_d       (const double x);
 
 // Struct related functions
 extern struct S_ELEMENT *New_ELEMENT        (void);

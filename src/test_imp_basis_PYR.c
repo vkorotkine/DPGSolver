@@ -8,7 +8,7 @@
 
 /*
  *	Purpose:
- *		Test correctness of implementation of basis_SI.
+ *		Test correctness of implementation of basis_PYR.
  *
  *	Comments:
  *
@@ -17,6 +17,7 @@
  *	References:
  */
 
+/*
 static double *basis_TRI2(const double *rst, const unsigned int Nn)
 {
 	unsigned int n, d, Nbf;
@@ -250,14 +251,11 @@ static double *basis_TET2(const double *rst, const unsigned int Nn)
 
 	return ChiRef_rst;
 }
+*/
 
-void test_imp_basis_SI(void)
+void test_imp_basis_PYR(void)
 {
-	printf("\nWarning: Ensure that discrepancy between M and I for WS and SH nodes is as expected\n\n");
-	TestDB.Nwarnings++;
-
 	unsigned int pass;
-	unsigned int printMI = 0;
 
 	/*
 	 *	basis_SI (d = 2):
@@ -274,10 +272,10 @@ void test_imp_basis_SI(void)
 	 *			P = 3:
 	 *				ChiRef_rst = @(r,s) [ See basis_TRI3 ]
 	 */
-
 	unsigned int d, Nn, Ns, Nbf, P, Prst;
 	unsigned int *symms;
 	double *rst, *w;
+/*
 
 	d = 2;
 
@@ -328,6 +326,7 @@ void test_imp_basis_SI(void)
 	free(symms);
 	free(ChiRef23_code);
 	free(ChiRef23_test);
+*/
 
 	/*
 	 *	basis_SI (d = 3):
@@ -341,6 +340,7 @@ void test_imp_basis_SI(void)
 	 *			P = 2:
 	 *				ChiRef_rst = @(r,s,t) [ See basis_TET2 ]
 	 */
+/*
 
 	d = 3;
 
@@ -367,6 +367,7 @@ void test_imp_basis_SI(void)
 	free(symms);
 	free(ChiRef32_code);
 	free(ChiRef32_test);
+*/
 
 	/*
 	 *	basis_SI orthogonality:
@@ -393,49 +394,22 @@ void test_imp_basis_SI(void)
 
 	double *ChiRef_rst, *W, *WChiRef_rst, *M, *I;
 
-	// d = 2
-	d = 2;
+	d = 3;
 
 	// P = 2
 	P = 2;
-	Nbf = 6;
+	Nbf = 14;
 	I = identity_d(Nbf); // free
 
-	// WS
-	Prst = P;
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WS"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
-	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e3)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("         orthogonality - WS (d2, P2):            ");
-		test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
 	// WV
-	Prst = 2*P;
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WV"); // free
+	Prst = 8;
+//	Prst = 10;
+	cubature_PYR(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WV"); // free
 
 	W = diag_d(w,Nn); // free
 	free(w);
 
-	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
+	ChiRef_rst = basis_PYR(P,rst,Nn,&Nbf,d); // free
 
 	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
 	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
@@ -443,6 +417,15 @@ void test_imp_basis_SI(void)
 	pass = 0;
 	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
 		pass = 1, TestDB.Npass++;
+
+array_print_d(Nbf,Nbf,M,'R');
+//array_print_d(Nbf,Nbf,I,'R');
+for (int i = 0; i < Nbf; i++) {
+for (int j = 0; j < Nbf; j++) {
+	if (i == j)
+		printf("%d % .12e\n",i,M[i*Nbf+j]);
+}}
+printf("%d\n",Nn);
 
 	//     0         10        20        30        40        50
 	printf("                         WV (d2, P4):            ");
@@ -455,29 +438,53 @@ void test_imp_basis_SI(void)
 	free(WChiRef_rst);
 	free(M);
 
-	free(I);
+//	free(I);
 
-	// P = 3
-	P = 3;
-	Nbf = 10;
-	I = identity_d(Nbf); // free
+	Prst = 3;
+	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"GL"); // free
 
-	// WS
-	Prst = P;
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WS"); // free
+	double rst_tmp[3], a, b, c;
+
+	for (int i = 0; i < Nn; i++) {
+		a = rst[0*Nn+i];
+		b = rst[1*Nn+i];
+		c = rst[2*Nn+i];
+
+		rst_tmp[0] = 0.5*(1.0-c)*a;
+		rst_tmp[1] = 0.5*(1.0-c)*b;
+		rst_tmp[2] = sqrt(2.0)/2.0*(0.6+c);
+
+		for (int j = 0; j < d; j++)
+			rst[j*Nn+i] = rst_tmp[j];
+		// Add integral Jacobian and scaling to weights
+		w[i] = w[i]*pow(2.0,-2.5)*pow(1.0-c,2.0);
+	}
 
 	W = diag_d(w,Nn); // free
 	free(w);
 
-	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
+	ChiRef_rst = basis_PYR(P,rst,Nn,&Nbf,d); // free
 
 	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
 	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
-	if (printMI) {
-		array_print_d(Nbf,Nbf,M,'R');
-		array_print_d(Nbf,Nbf,I,'R');
-	}
+	pass = 0;
+	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
+		pass = 1, TestDB.Npass++;
+
+array_print_d(Nbf,Nbf,M,'R');
+//array_print_d(Nbf,Nbf,I,'R');
+for (int i = 0; i < Nbf; i++) {
+for (int j = 0; j < Nbf; j++) {
+	if (i == j)
+		printf("%d % .12e\n",i,M[i*Nbf+j]);
+}}
+printf("%d\n",Nn);
+
+	//     0         10        20        30        40        50
+	printf("                         TP (d3, P?):            ");
+		test_print(pass);
+exit(1);
 
 	free(rst);
 	free(symms);
@@ -485,6 +492,14 @@ void test_imp_basis_SI(void)
 	free(ChiRef_rst);
 	free(WChiRef_rst);
 	free(M);
+
+	free(I);
+
+
+
+
+/*	// P = 3
+	P = 3;
 
 	// WV
 	Prst = 2*P;
@@ -514,126 +529,5 @@ void test_imp_basis_SI(void)
 	free(M);
 
 	free(I);
-
-	// d = 3
-	d = 3;
-
-	// P = 1
-	P = 1;
-	Nbf = 4;
-	I = identity_d(Nbf); // free
-
-	// SH
-	Prst = P;
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"SH"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
-	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e3)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("         orthogonality - SH (d3, P1):            ");
-		test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
-	// WV
-	Prst = 2*P;
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WV"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
-	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("                         WV (d3, P1):            ");
-		test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
-	free(I);
-
-	// P = 2
-	P = 2;
-	Nbf = 10;
-	I = identity_d(Nbf); // free
-
-	// SH
-	Prst = P;
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"SH"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
-	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	if (printMI) {
-		array_print_d(Nbf,Nbf,M,'R');
-		array_print_d(Nbf,Nbf,I,'R');
-	}
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
-	// WV
-	Prst = 2*P;
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WV"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
-	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("                         WV (d3, P2):            ");
-		test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
-	free(I);
+*/
 }

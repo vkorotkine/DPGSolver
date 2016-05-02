@@ -20,7 +20,7 @@ void test_imp_math_factorial(void)
 	unsigned int pass;
 
 	/*
-	 *	factorial_ui:
+	 *	factorial_ull:
 	 *
 	 *		Input:
 	 *
@@ -38,13 +38,13 @@ void test_imp_math_factorial(void)
 	unsigned int A = 3, B = 7, C = 12;
 
 	pass = 0;
-	if (factorial_ui(A) == 6         &&
-		factorial_ui(B) == 5040      &&
-		factorial_ui(C) == 479001600)
+	if (factorial_ull(A) == 6         &&
+		factorial_ull(B) == 5040      &&
+		factorial_ull(C) == 479001600)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("math_factorial_ui:                               ");
+	printf("math_factorial_ull:                              ");
 	test_print(pass);
 
 }

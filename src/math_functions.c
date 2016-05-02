@@ -17,19 +17,19 @@
  *		Press(1992-2nd)_Numerical recipes in C- the art of scientific computing (Ch. 6.1)
  */
 
-unsigned int factorial_ui(const unsigned int n)
+unsigned int factorial_ull(const unsigned int n)
 {
 	static unsigned int ntop = 0,
-	                    a[13] = { 1 };
+	                    a[21] = { 1 };
 	unsigned int i;
 
 	// Always false for unsigned int n
 //	if (n < 0)
-//		printf("Error: Input to factorial_ui must be greater than 0.\n"), exit(1);
+//		printf("Error: Input to factorial_ull must be greater than 0.\n"), exit(1);
 
 	// Note: large values overflow
-	if (n > 12)
-		printf("Large inputs to factorial_ui result in overflow.\n"), exit(1);
+	if (n > 20)
+		printf("Large inputs (n > 20) to factorial_ull result in overflow, n = %d.\n",n), exit(1);
 
 	// As ntop and a are static variables, multiple calls do not result in recomputation.
 	while (ntop < n) {
@@ -39,12 +39,12 @@ unsigned int factorial_ui(const unsigned int n)
 	return a[n];
 }
 
-unsigned int gamma_ui(const unsigned int n)
+unsigned int gamma_ull(const unsigned int n)
 {
 	if (n < 1)
-		printf("Error: Input to gamma_ui must be greater than 0.\n"), exit(1);
+		printf("Error: Input to gamma_ull must be greater than 0.\n"), exit(1);
 
-	return factorial_ui(n-1);
+	return factorial_ull(n-1);
 }
 
 double gamma_d(const double x)
@@ -54,7 +54,7 @@ double gamma_d(const double x)
 
 	if (floor(x) == x) {
 		// Unsigned integer case
-		return (double) gamma_ui((unsigned int) x);
+		return (double) gamma_ull((unsigned long long) x);
 	} else {
 		static double cof[6] = { 76.18009172947146,
 		                        -86.50532032941677,

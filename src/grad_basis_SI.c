@@ -34,9 +34,9 @@ double **grad_basis_SI(const unsigned int P, const double *rst, const unsigned i
 	b = malloc(Nn * sizeof *b); // free
 	c = malloc(Nn * sizeof *c); // free
 
-	rst_to_abc(Nn,d,rst,a,b,c);
+	rst_to_abc_SI(Nn,d,rst,a,b,c);
 
-	Nbf = factorial_ui(d+P)/(factorial_ui(d)*factorial_ui(P));
+	Nbf = factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P));
 
 	GradChiRef_rst = malloc(d * sizeof *GradChiRef_rst); // keep (requires external free)
 	for (dim = 0; dim < d; dim++)

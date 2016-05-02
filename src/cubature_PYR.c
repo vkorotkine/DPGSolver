@@ -28,7 +28,21 @@
  *				cond([ones(Nc,1) rst_c {r*s*t}_c]) = 2.0
  *
  *		All nodes were determined based off of those from the pyfr code (pyfr/quadrules/tet) after being transfered to
- *		the regular PYR used in this code.
+ *		the regular PYR used in this code. (ToBeModified if other nodes are added)
+ *			After implementing the traditional PYR orthogonal basis
+ *			(Chan(2015)-Orthogonal_Bases_for_Vertex_Mapped_Pyramids, eq. 2.1) and the orthogonal basis from the pyfr
+ *			code (Witherden(2015,Thesis), eq. 3.20), the following conclusions were drawn:
+ *				Despite being lower-order in the "c" term, the traditional basis mass matrix is not integrated exactly
+ *				using the WV nodes, while the basis in the pyfr code is (eventually); this is odd. Further, given the
+ *				maximum strength WV rule (WV10), even the P3 PYR mass matrix is not given exactly with constant
+ *				Jacobian. Further testing revealed that the WV nodes integrate exactly (with the expected order) only
+ *				when there is variation either in a OR in b, but not in both; the nodes cannot exactly integrate
+ *				polynomials on QUAD cross-sections of the pyramid, unlike the GL nodes.
+ *				Using GL nodes transfered to the PYR element, the cubature strength for exact mass matrix is as
+ *				expected, after accounting for the added contribution to the "c" term from the weight (w =
+ *				w_HEX*pow(1-c,2); GL nodes of order P+1 are required for exact integration of all terms). This actually
+ *				results in significantly fewer nodes being required for exact integration using the WV HEX nodes
+ *				transfered to the PYR element as opposed to using the PYR nodes... (ToBeModified: check this). 
  *		The order of rst, w is important for minimizing memory stride while computing the length 4 Discrete Fourier
  *		Transform (Note: as w is a 1d matrix, its ordering is actually not relevant) (ToBeModified).
  *		Ordering convention:
