@@ -4,7 +4,7 @@ format long
 
 % ToBeDeleted: Convert this to python!
 % Note: Only need basisTET of order 1 for barycentric coordinates
-plot_on = 0;
+plot_on = 1;
 
 folder_name = 'Testing/Reordering/pyr/';
 folder_nameU = [folder_name 'updated/'];
@@ -15,13 +15,19 @@ Nc = 5;
 Nsymms = 3;
 symms = [1 4 8];
 
-NodeType = 'GLL';
-% NodeType = 'GL';
+% NodeType = 'GLL';
+NodeType = 'GL';
 % NodeType = 'WV';
+% NodeType = 'GLLW';
+% NodeType = 'GLW';
+% NodeType = 'WVHToP';
 
-if     (~isempty(strfind(NodeType,'GLL'))); PMax = 6;
-elseif (~isempty(strfind(NodeType,'GL')));  PMax = 6;
-elseif (~isempty(strfind(NodeType,'WV')));  PMax = 10;
+if     (~isempty(strfind(NodeType,'GLLW'))); PMax = 10;
+elseif (~isempty(strfind(NodeType,'GLW')));  PMax = 10;
+elseif (~isempty(strfind(NodeType,'WVHToP'))); PMax = 11;
+elseif (~isempty(strfind(NodeType,'WV')));   PMax = 10;
+elseif (~isempty(strfind(NodeType,'GLL')));  PMax = 6;
+elseif (~isempty(strfind(NodeType,'GL')));   PMax = 6;
 end
 
 rst_cEq = [          [-1  1  1 -1 0]' ...
@@ -34,39 +40,67 @@ rst_c   = [[-1  1  1 -1 0]' ...
 wPresent = 1;
 wScale = 1/sqrt(2);
 
-for P = 1:PMax
-% for P = 8
+% for P = 1:PMax
+for P = 1
 
 % Read rst
 
 if (~isempty(strfind(NodeType,'GL')))
-    wPresent = 0;
-    Nn = round(1/6*(P+1)*(P+2)*(2*P+3));
-    
-    if (~isempty(strfind(NodeType,'GLL')))
-        fName = ['gauss-legendre-lobatto-n' num2str(Nn) '-su.txt'];
-    elseif (~isempty(strfind(NodeType,'GL')))
-        fName = ['gauss-legendre-n' num2str(Nn) '-su.txt'];
+    if (isempty(strfind(NodeType,'W')))
+        wPresent = 0;
+        Nn = round(1/6*(P+1)*(P+2)*(2*P+3));
+
+        if (~isempty(strfind(NodeType,'GLL')))
+            fName = ['gauss-legendre-lobatto-n' num2str(Nn) '-su.txt'];
+        elseif (~isempty(strfind(NodeType,'GL')))
+            fName = ['gauss-legendre-n' num2str(Nn) '-su.txt'];
+        end
+
+        fID = fopen([folder_name fName],'r');
+
+        formatSpec = '%f %f %f';
+        sizeA = [3 Inf];
+        A = fscanf(fID,formatSpec,sizeA);
+        A = A';
+
+        fclose(fID);
+
+        rst = A(:,1:3);
+    else
+        rst_c = rst_cEq;
+        Nn = round((P+1)^3);
+        
+        fName = [NodeType num2str(P) '.txt'];
+        fID = fopen([folder_name fName],'r');
+
+        formatSpec = '%f %f %f %f';
+        sizeA = [4 Inf];
+        A = fscanf(fID,formatSpec,sizeA);
+        A = A';
+
+        fclose(fID);
+
+        rst = A(:,1:3);
+        w   = A(:,4);
     end
-    
-    fID = fopen([folder_name fName],'r');
-
-    formatSpec = '%f %f %f';
-    sizeA = [3 Inf];
-    A = fscanf(fID,formatSpec,sizeA);
-    A = A';
-
-    fclose(fID);
-
-    rst = A(:,1:3);
 elseif (~isempty(strfind(NodeType,'WV')))
-    NnVec = [1 5 6 10 15 24 31 47 62 83];
-    Nn = NnVec(P);
-    
-    fName = ['witherden-vincent-n' ...
-             num2str(Nn) '-d' num2str(P) '-sp.txt'];
-
-    fID = fopen([folder_name fName],'r');
+    if (~isempty(strfind(NodeType,'HToP')))
+        rst_c = rst_cEq;
+        wScale = 1;
+        
+        NnVec = [1 6 6 14 14 34 34 58 58 90 90];
+        Nn = NnVec(P);
+        
+        fName = [NodeType num2str(P) '.txt'];
+        fID = fopen([folder_name 'HEX_To_PYR/' fName],'r');
+    else
+        NnVec = [1 5 6 10 15 24 31 47 62 83];
+        Nn = NnVec(P);
+        
+        fName = ['witherden-vincent-n' ...
+                 num2str(Nn) '-d' num2str(P) '-sp.txt'];
+        fID = fopen([folder_name fName],'r');
+    end
 
     formatSpec = '%f %f %f %f';
     sizeA = [4 Inf];
@@ -136,11 +170,24 @@ for i = 1:Nn
     
     duplicate = 0;
     if (Nuniq == 1)
-        % No chance of being repeated.
-        NsymmsP = NsymmsP+1;
-        Lv_tmp(NsymmsP,:) = Lv(i,:);
+        % Find if the Lv is a duplicate
+        Lv_i_sorted = sort(Lv(i,1:min(Nc,4)));
         
-        symm_type = 1;
+        for j = 1:NsymmsP
+            Lv_j_sorted = sort(Lv_tmp(j,1:min(Nc,4)));
+            
+            if (norm(Lv_i_sorted-Lv_j_sorted,'inf') < 1e1*eps)
+                duplicate = 1;
+                break;
+            end
+        end
+        
+        if (~duplicate)
+            NsymmsP = NsymmsP+1;
+            Lv_tmp(NsymmsP,:) = Lv(i,:);
+
+            symm_type = 1;
+        end
     else
         % Find if the Lv is a duplicate
         Lv_i_sorted = sort(Lv(i,1:min(Nc,4)));
@@ -207,7 +254,9 @@ if (wPresent)
 end
 
 % Check to make sure that the right number of nodes were found
-if (sum(symms.*symms_count) ~= Nn)
+if (~isempty(strfind(NodeType,'LW')))
+    Nn = sum(symms.*symms_count);
+elseif (sum(symms.*symms_count) ~= Nn)
     disp('Problem');
     break;
 end

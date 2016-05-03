@@ -265,8 +265,9 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 
 		if (symms_count[IndGroup] == GroupCount) {
 			GroupCount = 0;
-			while (symms_count[++IndGroup] == 0)
-				;
+			IndGroup++;
+			while (IndGroup < Nsymms && symms_count[IndGroup] == 0)
+				IndGroup++;
 		}
 	}
 //array_print_d(NnOut,Nc,BCoords_complete,'R');
@@ -274,6 +275,7 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 	free(symms_count);
 	free(symms_Nperms);
 	free(BCoords);
+	free(w_read);
 
 	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_c);
 	// keep (requires external free)
@@ -301,7 +303,6 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 	*Ns = NsOut;
 
 	if (return_w) {
-		free(w_read);
 		*w = wOut;
 	} else {
 		*w = NULL;

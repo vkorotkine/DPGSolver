@@ -7,8 +7,8 @@
 
 /*
  *	Purpose:
- *		Return the "matrices" ChiRef_rst representing the gradients of the orthonormal basis functions evaluated at the
- *		provided quadrature nodes for polynomial order P.
+ *		Return the "matrices" GradChiRef_rst representing the gradients of the orthonormal basis functions evaluated at
+ *		the provided quadrature nodes for polynomial order P.
  *
  *	Comments:
  *		The "matrices" are returned as a 1D array.

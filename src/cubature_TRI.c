@@ -207,6 +207,7 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 	free(symms_count);
 	free(symms_Nperms);
 	free(BCoords);
+	free(w_read);
 
 	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_c);
 	// keep (requires external free)
@@ -234,7 +235,6 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 	*Ns = NsOut;
 
 	if (return_w) {
-		free(w_read);
 		*w = wOut;
 	} else {
 		*w = NULL;

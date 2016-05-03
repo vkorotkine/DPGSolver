@@ -27,8 +27,18 @@
  *			where
  *				cond([ones(Nc,1) rst_c {r*s*t}_c]) = 2.0
  *
- *		All nodes were determined based off of those from the pyfr code (pyfr/quadrules/tet) after being transfered to
+ *		All nodes were determined based off of those from the pyfr code (pyfr/quadrules/pyr) after being transfered to
  *		the regular PYR used in this code. (ToBeModified if other nodes are added)
+ *			Options:
+ *				GL     : GL nodes,                       no weights
+ *				GLL    : GLL nodes,                      no weights
+ *				GLW    : GL nodes,                       with weights
+ *				GLLW   : GLL nodes,                      with weights
+ *				WV     : WV PYR nodes,                   with weights
+ *					Exact integration to lower order than expected.
+ *				WVHToP : WV HEX nodes transfered to PYR, with weights
+ *					Exact integration to lower order than expected.
+ *
  *			After implementing the traditional PYR orthogonal basis
  *			(Chan(2015)-Orthogonal_Bases_for_Vertex_Mapped_Pyramids, eq. 2.1) and the orthogonal basis from the pyfr
  *			code (Witherden(2015,Thesis), eq. 3.20), the following conclusions were drawn:
@@ -38,11 +48,13 @@
  *				Jacobian. Further testing revealed that the WV nodes integrate exactly (with the expected order) only
  *				when there is variation either in a OR in b, but not in both; the nodes cannot exactly integrate
  *				polynomials on QUAD cross-sections of the pyramid, unlike the GL nodes.
+ *
  *				Using GL nodes transfered to the PYR element, the cubature strength for exact mass matrix is as
  *				expected, after accounting for the added contribution to the "c" term from the weight (w =
- *				w_HEX*pow(1-c,2); GL nodes of order P+1 are required for exact integration of all terms). This actually
- *				results in significantly fewer nodes being required for exact integration using the WV HEX nodes
- *				transfered to the PYR element as opposed to using the PYR nodes... (ToBeModified: check this). 
+ *				w_HEX*pow(1-c,2); GL nodes of order P+1 are required for exact integration of all terms). Using the WV
+ *				HEX nodes transfered to the PYR element does not result in exact integration (similarly to the PYR
+ *				nodes) either for the traditional or pyfr PYR basis.
+ *
  *		The order of rst, w is important for minimizing memory stride while computing the length 4 Discrete Fourier
  *		Transform (Note: as w is a 1d matrix, its ordering is actually not relevant) (ToBeModified).
  *		Ordering convention:
@@ -60,6 +72,7 @@
  *		Ns    : (N)umber of (s)ymmetries
  *
  *	References:
+ *		ToBeModified: Add reference to Witherden(2015)-On_the_Identification_of_Symmetric_...
  *		pyfr code : http://www.pyfr.org
  *
  *		GL  : pyfr/quadrules/pyr + conversion to barycentric coordinates (ToBeModified: See python script)
@@ -92,14 +105,22 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	// Silence compiler warnings
 	PMax = 0; Nsymms = 0; Ngroups = 0;
 	w_read = malloc(0 * sizeof *w_read); // silence
+	wOut = NULL;
 
 	if (strstr(NodeType,"GL") != NULL) {
-		if (return_w)
-			printf("Error: Invalid value for return_w in cubature_PYR.\n"), exit(1);
+		if (strstr(NodeType,"W") == NULL) {
+			if (return_w)
+				printf("Error: Invalid value for return_w in cubature_PYR.\n"), exit(1);
 
-		PMax = 6;
+			PMax = 6;
+		} else {
+			PMax = 6;
+		}
 	} else if (strstr(NodeType,"WV") != NULL) {
-		PMax = 10;
+		if (strstr(NodeType,"HToP") == NULL)
+			PMax = 10;
+		else
+			PMax = 11;
 	}
 
 	if (P > PMax)
@@ -273,6 +294,7 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	free(symms_count);
 	free(symms_Nperms);
 	free(BCoords);
+	free(w_read);
 
 	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_c);
 	// keep (requires external free)
@@ -300,9 +322,9 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	*Ns = NsOut;
 
 	if (return_w) {
-		free(w_read);
 		*w = wOut;
 	} else {
+		free(wOut);
 		*w = NULL;
 	}
 }

@@ -39,8 +39,15 @@ extern void     get_scaling_basis_TRI          (const unsigned int i, const unsi
 extern void     get_scaling_basis_TET          (const unsigned int i, const unsigned int j, const unsigned int k,
                                                 const double b, const double c, double *con_i, double *con_j,
                                                 double *con_k, double *con_b, double *con_c);
+extern void     get_scaling_basis_PYR          (const unsigned int i, const unsigned int j, const unsigned int k,
+                                                const double c, double *con_i, double *con_j, double *con_k,
+                                                double *con_c);
+extern void     poly2                          (const double *r, const double *s, const double *t,
+                                                const unsigned int Nn, double **f, double **f_r, double **f_s,
+                                                double **f_t);
 extern void test_imp_grad_basis_TP             (void);
 extern void test_imp_grad_basis_SI             (void);
+extern void test_imp_grad_basis_PYR            (void);
 extern void test_imp_plotting                  (void);
 
 // Speed tests

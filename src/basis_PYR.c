@@ -12,11 +12,18 @@
  *
  *	Comments:
  *		The "matrix" is returned as a 1D array.
+ *		The modal PYR basis can be transformed to Chan's semi-nodal basis using a transformation matrix as the two bases
+ *		span the same space.
  *
  *	Notation:
  *
  *	References:
- *		ToBeModified (Possibly Bergot, Chan)
+ *		Chan(2015)-Orthogonal_Bases_for_Vertex-Mapped_Pyramids
+ *			Modal basis        : eq. 2.1
+ *			Semi-nodal basis   : Following Lemma 2.2
+ *		Witherden(2015)-On_the_development_and_Implementatin_of_High-Order_Flux_Reconstruction_Schemes_for_
+ *		                Computational_Fluid_Dynamics
+ *			pyfr (modal) basis : eq. 3.20
  */
 
 double *basis_PYR(const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
@@ -44,61 +51,27 @@ double *basis_PYR(const unsigned int P, const double *rst, const unsigned int Nn
 	for (j = 0, jMax = P; j <= jMax; j++) {
 		mu_ij = max(i,j);
 		for (k = 0, kMax = P-mu_ij; k <= kMax; k++) {
-			printf("%d %d %d %d %d %d\n",Indbf,i,j,k,i+j+k,mu_ij+k);
+//			printf("%d %d %d %d %d %d\n",Indbf,i,j,k,i+j+k,mu_ij+k);
 			for (Indn = 0; Indn < Nn; Indn++) {
 				IndChi = Indbf*Nn+Indn;
 				a_n = a[Indn];
 				b_n = b[Indn];
 				c_n = c[Indn];
 
-// Orthonormal (WV nodes of higher order than expected)
+// Orthonormal (GL nodes as expected, WV nodes of much higher order than expected)
 				ChiRef_rst[IndChi]  = pow(2.0,1.25)*pow(1.0-c_n,(double) mu_ij);
 				ChiRef_rst[IndChi] *= jacobiP(c_n,2.0*(mu_ij+1.0),0.0,(double) k);
 
-// Orthonormal (GL nodes)
-//				ChiRef_rst[IndChi]  = pow(1.0-c_n,(double) mu_ij);
-//				ChiRef_rst[IndChi] *= jacobiP(c_n,2.0*(mu_ij+1.0),0.0,(double) k);
-
-// Orthonormal (WV nodes)
+// Orthonormal (GL nodes as expected, WV nodes of slightly higher order than expected)
+				// Basis from pyfr code (ToBeDeleted)
 //				ChiRef_rst[IndChi]  = pow(2.0,1.25)*pow(1.0-c_n,(double) (i+j));
-//				ChiRef_rst[IndChi] *= jacobiP(c_n,2.0*(i+j+1.0),0.0,(double) k);
-
-// Orthonormal (GL nodes)
-//				ChiRef_rst[IndChi]  = pow(1.0-c_n,(double) (i+j));
 //				ChiRef_rst[IndChi] *= jacobiP(c_n,2.0*(i+j+1.0),0.0,(double) k);
 
 // Remaining part of the basis
-				ChiRef_rst[IndChi]  = 1.0;
+				// Uncomment to test integration capability of variation only in a anb b
+//				ChiRef_rst[IndChi]  = pow(2.0,-0.25)*sqrt(3.0);
 				ChiRef_rst[IndChi] *= jacobiP(a_n,0.0,0.0,(double) i);
 				ChiRef_rst[IndChi] *= jacobiP(b_n,0.0,0.0,(double) j);
-
-/*
-if (Indbf < 10) {
-				ChiRef_rst[IndChi]  = pow(2.0,1.25)*pow(1.0-c_n,(double) mu_ij);
-				ChiRef_rst[IndChi] *= jacobiP(c_n,2.0*(mu_ij+1.0),0.0,(double) k);
-//				ChiRef_rst[IndChi]  = pow(2.0,1.25)*pow(1.0-c_n,(double) (i+j));
-//				ChiRef_rst[IndChi] *= jacobiP(c_n,2.0*(i+j+1.0),0.0,(double) k);
-				ChiRef_rst[IndChi] *= jacobiP(a_n,0.0,0.0,(double) i);
-				ChiRef_rst[IndChi] *= jacobiP(b_n,0.0,0.0,(double) j);
-} else if (Indbf == 10) {
-				ChiRef_rst[IndChi]  = pow(2.0,1.25)*pow(1.0-c_n,(double) 2);
-				ChiRef_rst[IndChi] *= jacobiP(c_n,2.0*(2+1.0),0.0,(double) 0);
-				ChiRef_rst[IndChi] *= jacobiP(a_n,0.0,0.0,(double) 2);
-				ChiRef_rst[IndChi] *= jacobiP(b_n,0.0,0.0,(double) 2);
-} else if (Indbf == 11) {
-	ChiRef_rst[IndChi] = 1.0/4.0*(3.0*pow(a_n,2.0)-1)*(3.0*pow(b_n,2.0)-1.0)*pow(1.0-c_n,2.0);
-} else if (Indbf == 12) {
-	ChiRef_rst[IndChi] = 1.0/4.0*(3.0*pow(a_n,2.0)-1)*(3.0*pow(b_n,2.0)-1.0)*pow(1.0-c_n,4.0);
-} else if (Indbf == 13) {
-				ChiRef_rst[IndChi]  = pow(2.0,1.25)*pow(1.0-c_n,(double) (2+2));
-				ChiRef_rst[IndChi] *= jacobiP(c_n,2.0*(2+2+1.0),0.0,(double) 0);
-				ChiRef_rst[IndChi] *= jacobiP(a_n,0.0,0.0,(double) 2);
-				ChiRef_rst[IndChi] *= jacobiP(b_n,0.0,0.0,(double) 2);
-} else {
-	ChiRef_rst[IndChi] = 0.0;
-}
-*/
-
 		}
 		Indbf++;
 	}}}

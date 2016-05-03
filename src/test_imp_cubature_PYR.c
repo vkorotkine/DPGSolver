@@ -189,5 +189,6 @@ void test_imp_cubature_PYR(void)
 	test_print(pass);
 
 	free(rst);
+	free(w);
 	free(symms);
 }

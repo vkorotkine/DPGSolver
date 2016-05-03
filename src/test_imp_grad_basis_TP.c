@@ -161,40 +161,6 @@ static double **grad_basis_TP31(const double *rst, const unsigned int Nn)
 	return GradChiRef_rst;
 }
 
-static void poly2(const double *r, const double *s, const double *t, const unsigned int Nn, double **f, double **f_r,
-                  double **f_s, double **f_t)
-{
-	unsigned int i;
-	double *f_rst, *f_r_rst, *f_s_rst, *f_t_rst;
-	double r_i, s_i, t_i;
-
-	f_rst   = malloc(Nn * sizeof *f_rst);   // keep (requires external free)
-	f_r_rst = malloc(Nn * sizeof *f_r_rst); // keep (requires external free)
-	f_s_rst = malloc(Nn * sizeof *f_s_rst); // keep (requires external free)
-	f_t_rst = malloc(Nn * sizeof *f_t_rst); // keep (requires external free)
-
-	for (i = 0; i < Nn; i++) {
-		r_i = r[i];
-		s_i = s[i];
-		t_i = t[i];
-
-		f_rst[i] = 1.0
-		         + 2.0*r_i + 3.0*s_i + 4.0*t_i
-		         + 5.0*r_i*r_i + 6.0*r_i*s_i + 7.0*r_i*t_i + 8.0*s_i*s_i + 9.0*s_i*t_i + 10.0*t_i*t_i;
-		f_r_rst[i] = 2.0
-		           + 10.0*r_i + 6.0*s_i + 7.0*t_i;
-		f_s_rst[i] = 3.0
-		           + 6.0*r_i + 16.0*s_i + 9.0*t_i;
-		f_t_rst[i] = 4.0
-		           + 7.0*r_i + 9.0*s_i + 20.0*t_i;
-	}
-
-	*f   = f_rst;
-	*f_r = f_r_rst;
-	*f_s = f_s_rst;
-	*f_t = f_t_rst;
-}
-
 void test_imp_grad_basis_TP(void)
 {
 	unsigned int pass;
@@ -378,7 +344,7 @@ void test_imp_grad_basis_TP(void)
 
 
 	//     0         10        20        30        40        50
-	printf("              derivative (d1):                   ");
+	printf("              derivative  (d1):                  ");
 	test_print(pass);
 
 	free(rst), free(r), free(s), free(t);
