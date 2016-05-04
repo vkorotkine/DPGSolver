@@ -82,6 +82,7 @@ void setup_parameters()
 	             Collocated = DB.Collocated;
 
 	char         *Parametrization,
+	             **NodeTypeG,
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
 	unsigned int i, u1, u2,
@@ -114,14 +115,15 @@ void setup_parameters()
 	PIvc  = malloc(NP * sizeof *PIvc);  // keep
 
 	Parametrization = malloc(STRLEN_MAX * sizeof *NodeTypeS); // keep
-	NodeTypeS       = malloc(NP * sizeof *NodeTypeS);         // keep
-	NodeTypeF       = malloc(NP * sizeof *NodeTypeF);         // keep
-	NodeTypeFrs     = malloc(NP * sizeof *NodeTypeFrs);       // keep
-	NodeTypeFrc     = malloc(NP * sizeof *NodeTypeFrc);       // keep
-	NodeTypeIfs     = malloc(NP * sizeof *NodeTypeIfs);       // keep
-	NodeTypeIfc     = malloc(NP * sizeof *NodeTypeIfc);       // keep
-	NodeTypeIvs     = malloc(NP * sizeof *NodeTypeIvs);       // keep
-	NodeTypeIvc     = malloc(NP * sizeof *NodeTypeIvc);       // keep
+	NodeTypeG       = malloc(NEC * sizeof *NodeTypeG);        // keep
+	NodeTypeS       = malloc(NP  * sizeof *NodeTypeS);        // keep
+	NodeTypeF       = malloc(NP  * sizeof *NodeTypeF);        // keep
+	NodeTypeFrs     = malloc(NP  * sizeof *NodeTypeFrs);      // keep
+	NodeTypeFrc     = malloc(NP  * sizeof *NodeTypeFrc);      // keep
+	NodeTypeIfs     = malloc(NP  * sizeof *NodeTypeIfs);      // keep
+	NodeTypeIfc     = malloc(NP  * sizeof *NodeTypeIfc);      // keep
+	NodeTypeIvs     = malloc(NP  * sizeof *NodeTypeIvs);      // keep
+	NodeTypeIvc     = malloc(NP  * sizeof *NodeTypeIvc);      // keep
 
 
 	// Restart and Plotting
@@ -152,6 +154,13 @@ void setup_parameters()
 	// ToBeModified (likely included in .ctrl file)
 	strcpy(Parametrization,"ArcLength");
 	//strcpy(Parametrization,"RadialProjection");
+
+	for (i = 0; i < NEC; i++)
+		NodeTypeG[i] = malloc(STRLEN_MIN * sizeof **NodeTypeG); // keep
+	
+	strcpy(NodeTypeG[0],"GLL");
+	strcpy(NodeTypeG[1],"AO");
+	strcpy(NodeTypeG[2],"GLL");
 
 	// Order dependent parameters
 	for (P = 0; P <= PMax; P++) {
@@ -466,6 +475,7 @@ void setup_parameters()
 	DB.PIvc  = PIvc;
 
 	DB.Parametrization = Parametrization;
+	DB.NodeTypeG       = NodeTypeG;
 	DB.NodeTypeS       = NodeTypeS;
 	DB.NodeTypeF       = NodeTypeF;
 	DB.NodeTypeFrs     = NodeTypeFrs;

@@ -17,25 +17,11 @@
  *	References:
 */
 
-int get_element_class(const unsigned int type)
-{
-	if (type == POINT || type == LINE || type == QUAD || type == HEX)
-		return C_TP;
-	else if (type == TRI || type == TET)
-		return C_SI;
-	else if (type == WEDGE)
-		return C_WEDGE;
-	else if (type == PYR)
-		return C_PYR;
-	else
-		printf("Error: There is not yet an element class associated with the type provided.\n"), exit(1);
-
-}
-
 void setup_structures(void)
 {
 	// Initialize DB Parameters
 	unsigned int d       = DB.d,
+	             AC      = DB.AC,
 	             P       = DB.P,
 	             NP      = DB.NP,
 	             NV      = DB.NV,
@@ -58,7 +44,7 @@ void setup_structures(void)
 	             uMPIrank;
 	double       *XYZc;
 
-	struct S_ELEMENT *ELEMENT, *ELEMENT_class[2];
+	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME *VOLUME, **Vgrp, **Vgrp_tmp;
 
 	// Arbitrary initializations for variables defined in conditionals (to eliminate compiler warnings)
@@ -100,9 +86,9 @@ void setup_structures(void)
 			VOLUME->indexg = v;
 			VOLUME->P      = P;
 			VOLUME->type   = EType[IndE];
-			VOLUME->Eclass = get_element_class(VOLUME->type);
+			VOLUME->Eclass = get_Eclass(VOLUME->type);
 
-			if (v == VC[IndVC]) {
+			if (AC || v == VC[IndVC]) {
 				VOLUME->curved = 1;
 				IndVC++;
 			} else {
@@ -130,29 +116,23 @@ void setup_structures(void)
 
 
 			// Geometry
-			indexg = VOLUME->indexg;
-
 			ELEMENT = get_ELEMENT_type(VOLUME->type);
-			if (VOLUME->Eclass == C_TP) {
-				ELEMENT_class[0] = get_ELEMENT_Eclass(VOLUME->Eclass,C_TP);
 
-				NvnGs = pow(ELEMENT_class[0]->NvnGs[0],d);
-			} else if (VOLUME->Eclass == C_WEDGE) {
-				ELEMENT_class[0] = get_ELEMENT_Eclass(VOLUME->Eclass,C_SI);
-				ELEMENT_class[1] = get_ELEMENT_Eclass(VOLUME->Eclass,C_TP);
-
-				NvnGs = pow(ELEMENT_class[0]->NvnGs[0],2)*(ELEMENT_class[1]->NvnGs[0]);
-			} else if (VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR) {
+			if (VOLUME->Eclass == C_TP)
+				NvnGs = pow(ELEMENT->ELEMENTclass[0]->NvnGs[0],d);
+			else if (VOLUME->Eclass == C_WEDGE)
+				NvnGs = pow(ELEMENT->ELEMENTclass[0]->NvnGs[0],2)*(ELEMENT->ELEMENTclass[1]->NvnGs[0]);
+			else if (VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR)
 				NvnGs = ELEMENT->NvnGs[0];
-			} else {
+			else
 				printf("Error: Unsupported element type setup_struct (NvnGs).\n"), exit(1);
-			}
 
 			XYZc = malloc(NvnGs*d * sizeof *XYZc); // keep
 			VOLUME->XYZc = XYZc;
 
 			// XYZc may be interpreted as [X Y Z] where each of X, Y, Z are column vectors (ToBeDeleted)
 			// Add this comment to notation section.
+			indexg = VOLUME->indexg;
 			for (ve = 0; ve < NvnGs; ve++) {
 			for (dim = 0; dim < d; dim++) {
 				XYZc[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+indexg)*8+ve]*d+dim];
@@ -182,7 +162,7 @@ void setup_structures(void)
 	}
 	free(Vgrp_tmp);
 
-	if (IndVC > NVC)
+	if (!AC && IndVC > NVC)
 		printf("Error: Found too many curved VOLUMEs.\n"), exit(1);
 
 /*

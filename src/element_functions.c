@@ -18,7 +18,7 @@
  *	References:
  */
 
-int is_ELEMENT_present(const unsigned int type)
+unsigned int is_ELEMENT_present(const unsigned int type)
 {
 	struct S_ELEMENT *ELEMENT = DB.ELEMENT;
 
@@ -34,6 +34,19 @@ int is_ELEMENT_present(const unsigned int type)
 	printf("Error: Element type not found (present).\n"), exit(1);
 }
 
+unsigned int get_Eclass(const unsigned int type)
+{
+	if (type == POINT || type == LINE || type == QUAD || type == HEX)
+		return C_TP;
+	else if (type == TRI || type == TET)
+		return C_SI;
+	else if (type == PYR)
+		return C_PYR;
+	else if (type == WEDGE)
+		return C_WEDGE;
+
+	printf("Error: There is not yet an element class associated with the type provided.\n"), exit(1);
+}
 
 struct S_ELEMENT *get_ELEMENT_type(const unsigned int type)
 {
@@ -45,14 +58,37 @@ struct S_ELEMENT *get_ELEMENT_type(const unsigned int type)
 
 		ELEMENT = ELEMENT->next;
 	}
-
 	printf("Error: Element type not found (type).\n"), exit(1);
 }
 
-struct S_ELEMENT *get_ELEMENT_Eclass(const unsigned int Eclass, const unsigned int Esubclass)
+struct S_ELEMENT *get_ELEMENT_Eclass(const unsigned int type, const unsigned int IndEclass)
 {
 	struct S_ELEMENT *ELEMENT = DB.ELEMENT;
 
+	if (type == POINT || type == LINE || type == QUAD || type == HEX || (type == WEDGE && IndEclass == 1)) {
+		while (ELEMENT != NULL) {
+			if (ELEMENT->type == LINE)
+				return ELEMENT;
+
+			ELEMENT = ELEMENT->next;
+		}
+	} else if (type == TRI || type == TET || (type == WEDGE && IndEclass == 0)) {
+		while (ELEMENT != NULL) {
+			if (ELEMENT->type == TRI)
+				return ELEMENT;
+
+			ELEMENT = ELEMENT->next;
+		}
+	} else if (type == PYR) {
+		while (ELEMENT != NULL) {
+			if (ELEMENT->type == PYR)
+				return ELEMENT;
+
+			ELEMENT = ELEMENT->next;
+		}
+	}
+	printf("Error: Element class not found.\n"), exit(1);
+/*
 	if (Eclass == C_TP || (Eclass == C_WEDGE && Esubclass == C_TP)) {
 		while (ELEMENT != NULL) {
 			if (ELEMENT->type == LINE)
@@ -78,4 +114,5 @@ struct S_ELEMENT *get_ELEMENT_Eclass(const unsigned int Eclass, const unsigned i
 		}
 	}
 	printf("Error: Element class not found.\n"), exit(1);
+*/
 }

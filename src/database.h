@@ -26,6 +26,7 @@ struct S_DB {
 
 	// Parameters
 	char         *Parametrization,
+	             **NodeTypeG,
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
 	unsigned int NP, NEC, AC, ExactGeom, PR, PP, PGs,
@@ -65,6 +66,7 @@ struct S_ELEMENT {
 	             **I_vGs_vGc, **I_vGs_vP, **I_vGc_vP;
 
 	struct S_ELEMENT *next;
+	struct S_ELEMENT **ELEMENTclass;
 };
 
 struct S_VOLUME {

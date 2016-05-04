@@ -30,8 +30,8 @@
 // Element classes
 #define C_TP    0
 #define C_SI    1
-#define C_WEDGE 2
-#define C_PYR   3
+#define C_PYR   2
+#define C_WEDGE 3
 
 // Node Tolerance (for physical coordinate comparison)
 #define NODETOL      1.0e-12

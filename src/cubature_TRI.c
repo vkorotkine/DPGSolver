@@ -65,7 +65,8 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 
 	// Silence compiler warnings
 	PMax = 0; Nsymms = 0; Ngroups = 0;
-	w_read = malloc(0 * sizeof *w_read); // silence
+	w_read = malloc(0 * sizeof *w_read); // silence (ToBeModified: change this to NULL and remove free below)
+	wOut = NULL;
 
 	if (strstr(NodeType,"AO") != NULL) {
 		if (return_w)

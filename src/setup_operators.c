@@ -53,17 +53,19 @@ static void select_functions(basis_tdef *basis, grad_basis_tdef *grad_basis, cub
 		*grad_basis = grad_basis_TP;
 		*cubature   = cubature_TP;
 	} else if (type == TRI) {
-		printf("Add support: select functions (TRI)\n");
-		exit(1);
-//		*basis      = basis_SI;
-//		*grad_basis = grad_basis_SI;
-//		*cubature   = cubature_TRI;
+		*basis      = basis_SI;
+		*grad_basis = grad_basis_SI;
+		*cubature   = cubature_TRI;
 	} else if (type == TET) {
-		printf("Add support: select functions (TET)\n");
+		*basis      = basis_SI;
+		*grad_basis = grad_basis_SI;
+		*cubature   = cubature_TET;
 	} else if (type == WEDGE) {
-		printf("Add support: select functions (WEDGE)\n");
+		printf("Error: WEDGE elements use a combination of TRI and LINE basis functions/nodes.\n"), exit(1);
 	} else if (type == PYR) {
-		printf("Add support: select functions (PYR)\n");
+		*basis      = basis_PYR;
+		*grad_basis = grad_basis_PYR;
+		*cubature   = cubature_PYR;
 	} else {
 		printf("Error: Unsupported type in select_functions.\n"), exit(1);
 	}
@@ -146,11 +148,12 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             *PGc        = DB.PGc,
 	             PP          = DB.PP;
 
-	char         *BasisType  = DB.BasisType;
+	char         *BasisType  = DB.BasisType,
+	             **NodeTypeG = DB.NodeTypeG;
 
 	// Standard datatypes
 	unsigned int dE, P,
-	             Nbf,
+	             Nbf, Eclass,
 	             NvnP,
 	             dummy_ui, *dummyPtr_ui[2];
 	double       *rst_vP, *rst_vGs, *rst_vGc,
@@ -174,10 +177,12 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	ELEMENT = get_ELEMENT_type(EType);
 
+	// No need to consider the second Eclass as WEDGE basis functions will not be built
+	Eclass = get_Eclass(EType);
+
 	dE = ELEMENT->d;
 
 	select_functions(&basis,&grad_basis,&cubature,EType);
-
 
 	// Stored operators
 	NvnGs = ELEMENT->NvnGs;
@@ -190,11 +195,11 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 
 	// VOLUME Nodes (Order Independent)
-	plotting_element_info(&rst_vP,&dummyPtr_ui[0],&dummyPtr_ui[1],&NvnP,&dummy_ui,PP,LINE); // free
+	plotting_element_info(&rst_vP,&dummyPtr_ui[0],&dummyPtr_ui[1],&NvnP,&dummy_ui,PP,EType); // free
 	free(dummyPtr_ui[0]);
 	free(dummyPtr_ui[1]);
 
-	cubature(&rst_vGs,&dummyPtr_d,&dummyPtr_ui[0],&NvnGs[0],&dummy_ui,0,PGs,dE,"GLL"); // free
+	cubature(&rst_vGs,&dummyPtr_d,&dummyPtr_ui[0],&NvnGs[0],&dummy_ui,0,PGs,dE,NodeTypeG[Eclass]); // free
 	free(dummyPtr_ui[0]);
 
 	// Preliminary Operators
@@ -232,7 +237,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(ChiGs_vP);
 
 	for (P = 0; P <= PMax; P++) {
-		cubature(&rst_vGc,&dummyPtr_d,&dummyPtr_ui[0],&NvnGc[P],&dummy_ui,0,PGc[P]   ,dE,"GLL"); // free
+		cubature(&rst_vGc,&dummyPtr_d,&dummyPtr_ui[0],&NvnGc[P],&dummy_ui,0,PGc[P]   ,dE,NodeTypeG[Eclass]); // free
 		free(dummyPtr_ui[0]);
 
 		// Preliminary Operators
@@ -268,6 +273,14 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 		I_vGc_vP[P] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,
 		                         NvnP,NvnGc[P],NvnGc[P],1.0,ChiGc_vP,ChiInvGc_vGc);    // keep
+
+/*
+if (P == 3 && EType == TRI) {
+	printf("%d %d %d %d %d \n",dE,PGc[P],PP,NvnP,NvnGc[P]);
+	array_print_d(NvnP,NvnGc[P],I_vGc_vP[P],'R');
+	exit(1);
+}
+*/
 
 		free(rst_vGc);
 
@@ -332,13 +345,16 @@ void setup_operators(void)
 		setup_ELEMENT_operators(EType);
 
 // Testing
-		ELEMENT = get_ELEMENT_type(EType);
-array_print_d(6,d,ELEMENT->nr,'R');
+//		ELEMENT = get_ELEMENT_type(EType);
+//array_print_d(6,d,ELEMENT->nr,'R');
 	}
 
 	// TET
 	EType = TET;
 	if (is_ELEMENT_present(EType)) {
+		setup_ELEMENT_plotting(EType);
+		setup_ELEMENT_normals(EType);
+		setup_ELEMENT_operators(EType);
 
 	}
 

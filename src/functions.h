@@ -95,9 +95,10 @@ extern double       gamma_d       (const double x);
 extern struct S_ELEMENT *New_ELEMENT        (void);
 extern struct S_VOLUME  *New_VOLUME         (void);
 
-extern int              is_ELEMENT_present  (const unsigned int type);
+extern unsigned int     is_ELEMENT_present  (const unsigned int type);
+extern unsigned int     get_Eclass          (const unsigned int type);
 extern struct S_ELEMENT *get_ELEMENT_type   (const unsigned int type);
-extern struct S_ELEMENT *get_ELEMENT_Eclass (const unsigned int Eclass, const unsigned int Esubclass);
+extern struct S_ELEMENT *get_ELEMENT_Eclass (const unsigned int type, const unsigned int IndEclass);
 
 
 // Memory Management

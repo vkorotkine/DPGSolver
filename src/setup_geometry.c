@@ -67,12 +67,14 @@ void setup_geometry(void)
 		if (!VOLUME->curved) {
 			// If not curved, the P1 geometry representation suffices to fully specify the element geometry.
 			if (VOLUME->Eclass == C_TP) {
-				ELEMENT_class[0] = get_ELEMENT_Eclass(VOLUME->Eclass,C_TP);
+
+// ToBeDeleted: This function does not need to be called anymore, ELEMENT_class[0] is in ELEMENT->ELEMENTclass[0]
+				ELEMENT_class[0] = get_ELEMENT_Eclass(ELEMENT->type,0);
 
 				NvnG = pow(ELEMENT_class[0]->NvnGs[0],d);
 			} else if (VOLUME->Eclass == C_WEDGE) {
-				ELEMENT_class[0] = get_ELEMENT_Eclass(VOLUME->Eclass,C_SI);
-				ELEMENT_class[1] = get_ELEMENT_Eclass(VOLUME->Eclass,C_TP);
+				ELEMENT_class[0] = get_ELEMENT_Eclass(ELEMENT->type,0);
+				ELEMENT_class[1] = get_ELEMENT_Eclass(ELEMENT->type,1);
 
 				NvnG = pow(ELEMENT_class[0]->NvnGs[0],2)*(ELEMENT_class[1]->NvnGs[0]);
 			} else if (VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR) {
@@ -94,7 +96,7 @@ void setup_geometry(void)
 			}}
 		} else {
 			if (VOLUME->Eclass == C_TP) {
-				ELEMENT_class[0] = get_ELEMENT_Eclass(VOLUME->Eclass,C_TP);
+				ELEMENT_class[0] = get_ELEMENT_Eclass(ELEMENT->type,0);
 
 				NvnGs = ELEMENT_class[0]->NvnGs[0];
 				NvnGc = ELEMENT_class[0]->NvnGc[P];
@@ -140,6 +142,7 @@ void setup_geometry(void)
 
 				XYZs = malloc(NvnGc*NCols * sizeof *XYZs); // keep
 				XYZ  = malloc(NvnGc*NCols * sizeof *XYZ);  // keep
+
 				mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnGc,NCols,NvnGs,1.0,I_vGs_vGc,XYZc,XYZs);
 			}
 		}
@@ -148,6 +151,7 @@ void setup_geometry(void)
 //array_print_d(VOLUME->NvnG,d,VOLUME->XYZs,'C');
 //exit(1);
 	}
+//exit(1);
 
 	if (Testing) {
 		// Output straight coordinates to paraview

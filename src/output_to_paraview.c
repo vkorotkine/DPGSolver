@@ -150,7 +150,7 @@ static void output_geom()
 		P = VOLUME->P;
 
 		if (VOLUME->Eclass == C_TP) {
-			ELEMENT_class[0] = get_ELEMENT_Eclass(VOLUME->Eclass,C_TP);
+			ELEMENT_class[0] = get_ELEMENT_Eclass(ELEMENT->type,0);
 
 			NvnP         = ELEMENT_class[0]->NvnP;
 
@@ -196,6 +196,13 @@ static void output_geom()
 				I_vG_vP = ELEMENT->I_vGs_vP[0];
 			else
 				I_vG_vP = ELEMENT->I_vGc_vP[P];
+
+/*			if (VOLUME->indexg == 0)
+				array_print_d(NvnP,NvnG,I_vG_vP,'R');
+
+			printf("%d\n",VOLUME->indexg);
+			array_print_d(NvnG,d,VOLUME->XYZs,'C');
+*/
 
 			XYZ_vP = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnP,d,NvnG,1.0,I_vG_vP,VOLUME->XYZs); // free
 		} else {

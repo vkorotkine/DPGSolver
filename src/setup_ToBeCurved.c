@@ -60,6 +60,9 @@ void setup_ToBeCurved(void)
 		double n = 2.0, A = 0.1, L0 = 2.0, dxyz = 1.0;
 		double *X0, *Y0, *Z0;
 
+		// silence
+		Z0 = NULL;
+
 		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 			NvnG = VOLUME->NvnG;
 			XYZs = VOLUME->XYZs;

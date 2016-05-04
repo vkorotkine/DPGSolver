@@ -31,15 +31,10 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->Nve     = 0;
 	ELEMENT->Nf      = 0;
 
-	ELEMENT->Nfve    = malloc(2    * sizeof *(ELEMENT->Nfve));     // free
-	ELEMENT->VeCGmsh = malloc(8    * sizeof *(ELEMENT->VeCGmsh));  // free
-	ELEMENT->VeE     = malloc(12*2 * sizeof *(ELEMENT->VeE));      // free
-	ELEMENT->VeF     = malloc(6*4  * sizeof *(ELEMENT->VeF));      // free
-
-	for (i = 0; i < 2; i++)                 ELEMENT->Nfve[i]    = 0;
-	for (i = 0; i < 8; i++)                 ELEMENT->VeCGmsh[i] = 0;
-	for (i = 0, iMax = 12*2; i < iMax; i++) ELEMENT->VeE[i]     = 0;
-	for (i = 0, iMax = 6*4;  i < iMax; i++) ELEMENT->VeF[i]     = 0;
+	ELEMENT->Nfve    = calloc(2    , sizeof *(ELEMENT->Nfve));     // free
+	ELEMENT->VeCGmsh = calloc(8    , sizeof *(ELEMENT->VeCGmsh));  // free
+	ELEMENT->VeE     = calloc(12*2 , sizeof *(ELEMENT->VeE));      // free
+	ELEMENT->VeF     = calloc(6*4  , sizeof *(ELEMENT->VeF));      // free
 
 	// Operators
 
@@ -152,6 +147,9 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 
 	ELEMENT->next = NULL;
+	ELEMENT->ELEMENTclass = malloc(2 * sizeof *(ELEMENT->ELEMENTclass)); // free
+
+	for (i = 0; i < 2; i++) ELEMENT->ELEMENTclass[i] = NULL;
 
 	return ELEMENT;
 }

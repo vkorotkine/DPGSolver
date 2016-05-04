@@ -84,6 +84,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->NfnIs);
 	free(ELEMENT->NfnIc);
 */
+	free(ELEMENT->ELEMENTclass);
 
 	free(ELEMENT);
 }

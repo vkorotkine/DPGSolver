@@ -47,12 +47,12 @@ void setup_mesh()
 	ELEMENT = New_ELEMENT();
 	DB.ELEMENT = ELEMENT;
 
-	ELEMENT->present = 0;
-	ELEMENT->type    = POINT;
-	ELEMENT->d       = 0;
-	ELEMENT->Nve     = 1;
-	ELEMENT->Nf      = 1;
-	ELEMENT->Nfve[0] = 1;
+	ELEMENT->present   = 0;
+	ELEMENT->type      = POINT;
+	ELEMENT->d         = 0;
+	ELEMENT->Nve       = 1;
+	ELEMENT->Nf        = 1;
+	ELEMENT->Nfve[0]   = 1;
 	ELEMENT->VeCGmsh[0] = 0;
 	ELEMENT->VeE[0*2+0] = 0;
 	ELEMENT->VeF[0*4+0] = 0;
@@ -62,12 +62,12 @@ void setup_mesh()
 	// LINE
 	ELEMENT = ELEMENT->next;
 
-	ELEMENT->present = 0;
-	ELEMENT->type    = LINE;
-	ELEMENT->d       = 1;
-	ELEMENT->Nve     = 2;
-	ELEMENT->Nf      = 2;
-	ELEMENT->Nfve[0] = 1;
+	ELEMENT->present   = 0;
+	ELEMENT->type      = LINE;
+	ELEMENT->d         = 1;
+	ELEMENT->Nve       = 2;
+	ELEMENT->Nf        = 2;
+	ELEMENT->Nfve[0]   = 1;
 	ELEMENT->VeCGmsh[0] = 0; ELEMENT->VeCGmsh[1] = 1;
 	ELEMENT->VeE[0*2+0] = 0;
 	ELEMENT->VeE[1*2+0] = 1;
@@ -79,12 +79,12 @@ void setup_mesh()
 	// TRI
 	ELEMENT = ELEMENT->next;
 
-	ELEMENT->present = 0;
-	ELEMENT->type    = TRI;
-	ELEMENT->d       = 2;
-	ELEMENT->Nve     = 3;
-	ELEMENT->Nf      = 3;
-	ELEMENT->Nfve[0] = 2;
+	ELEMENT->present   = 0;
+	ELEMENT->type      = TRI;
+	ELEMENT->d         = 2;
+	ELEMENT->Nve       = 3;
+	ELEMENT->Nf        = 3;
+	ELEMENT->Nfve[0]   = 2;
 	ELEMENT->VeCGmsh[0] = 0; ELEMENT->VeCGmsh[1] = 1; ELEMENT->VeCGmsh[2] = 2;
 	ELEMENT->VeE[0*2+0] = 1; ELEMENT->VeE[0*2+1] = 2;
 	ELEMENT->VeE[1*2+0] = 0; ELEMENT->VeE[1*2+1] = 2;
@@ -98,12 +98,12 @@ void setup_mesh()
 	// QUAD
 	ELEMENT = ELEMENT->next;
 
-	ELEMENT->present = 0;
-	ELEMENT->type    = QUAD;
-	ELEMENT->d       = 2;
-	ELEMENT->Nve     = 4;
-	ELEMENT->Nf      = 4;
-	ELEMENT->Nfve[0] = 2;
+	ELEMENT->present   = 0;
+	ELEMENT->type      = QUAD;
+	ELEMENT->d         = 2;
+	ELEMENT->Nve       = 4;
+	ELEMENT->Nf        = 4;
+	ELEMENT->Nfve[0]   = 2;
 	ELEMENT->VeCGmsh[0] = 0; ELEMENT->VeCGmsh[1] = 1; ELEMENT->VeCGmsh[2] = 3; ELEMENT->VeCGmsh[3] = 2;
 	ELEMENT->VeE[0*2+0] = 0; ELEMENT->VeE[0*2+1] = 2;
 	ELEMENT->VeE[1*2+0] = 1; ELEMENT->VeE[1*2+1] = 3;
@@ -119,12 +119,12 @@ void setup_mesh()
 	// TET
 	ELEMENT = ELEMENT->next;
 
-	ELEMENT->present = 0;
-	ELEMENT->type    = TET;
-	ELEMENT->d       = 3;
-	ELEMENT->Nve     = 4;
-	ELEMENT->Nf      = 4;
-	ELEMENT->Nfve[0] = 3;
+	ELEMENT->present   = 0;
+	ELEMENT->type      = TET;
+	ELEMENT->d         = 3;
+	ELEMENT->Nve       = 4;
+	ELEMENT->Nf        = 4;
+	ELEMENT->Nfve[0]   = 3;
 	ELEMENT->VeCGmsh[0] = 0; ELEMENT->VeCGmsh[1] = 1; ELEMENT->VeCGmsh[2] = 2; ELEMENT->VeCGmsh[3] = 3;
 	ELEMENT->VeE[0*2+0] = 1; ELEMENT->VeE[0*2+1] = 2;
 	ELEMENT->VeE[1*2+0] = 0; ELEMENT->VeE[1*2+1] = 2;
@@ -142,12 +142,12 @@ void setup_mesh()
 	// HEX
 	ELEMENT = ELEMENT->next;
 
-	ELEMENT->present = 0;
-	ELEMENT->type    = HEX;
-	ELEMENT->d       = 3;
-	ELEMENT->Nve     = 8;
-	ELEMENT->Nf      = 6;
-	ELEMENT->Nfve[0] = 4;
+	ELEMENT->present   = 0;
+	ELEMENT->type      = HEX;
+	ELEMENT->d         = 3;
+	ELEMENT->Nve       = 8;
+	ELEMENT->Nf        = 6;
+	ELEMENT->Nfve[0]   = 4;
 	ELEMENT->VeCGmsh[0]  = 0; ELEMENT->VeCGmsh[1]  = 1; ELEMENT->VeCGmsh[2]  = 3; ELEMENT->VeCGmsh[3]  = 2;
 	ELEMENT->VeCGmsh[4]  = 4; ELEMENT->VeCGmsh[5]  = 5; ELEMENT->VeCGmsh[6]  = 7; ELEMENT->VeCGmsh[7]  = 6;
 	ELEMENT->VeE[0*2+0]  = 0; ELEMENT->VeE[0*2+1]  = 1;
@@ -174,26 +174,69 @@ void setup_mesh()
 	// WEDGE (ToBeModified)
 	ELEMENT = ELEMENT->next;
 
-	ELEMENT->present = 0;
-	ELEMENT->type    = WEDGE;
-	ELEMENT->d       = 3;
-	ELEMENT->Nve     = 6;
-	ELEMENT->Nf      = 5;
-	ELEMENT->Nfve[0] = 3; ELEMENT->Nfve[1] = 4;
+	ELEMENT->present   = 0;
+	ELEMENT->type      = WEDGE;
+	ELEMENT->d         = 3;
+	ELEMENT->Nve       = 6;
+	ELEMENT->Nf        = 5;
+	ELEMENT->Nfve[0]   = 4; ELEMENT->Nfve[1] = 3;
+	ELEMENT->VeCGmsh[0]  = 0; ELEMENT->VeCGmsh[1]  = 1; ELEMENT->VeCGmsh[2]  = 2;
+	ELEMENT->VeCGmsh[3]  = 3; ELEMENT->VeCGmsh[4]  = 4; ELEMENT->VeCGmsh[5]  = 5;
+	ELEMENT->VeE[0*2+0]  = 1; ELEMENT->VeE[0*2+1]  = 2;
+	ELEMENT->VeE[1*2+0]  = 0; ELEMENT->VeE[1*2+1]  = 2;
+	ELEMENT->VeE[2*2+0]  = 0; ELEMENT->VeE[2*2+1]  = 1;
+	ELEMENT->VeE[3*2+0]  = 4; ELEMENT->VeE[3*2+1]  = 5;
+	ELEMENT->VeE[4*2+0]  = 3; ELEMENT->VeE[4*2+1]  = 5;
+	ELEMENT->VeE[5*2+0]  = 3; ELEMENT->VeE[5*2+1]  = 4;
+	ELEMENT->VeE[6*2+0]  = 0; ELEMENT->VeE[6*2+1]  = 3;
+	ELEMENT->VeE[7*2+0]  = 1; ELEMENT->VeE[7*2+1]  = 4;
+	ELEMENT->VeE[8*2+0]  = 2; ELEMENT->VeE[8*2+1]  = 5;
+	ELEMENT->VeF[0*4+0]  = 1; ELEMENT->VeF[0*4+1]  = 2; ELEMENT->VeF[0*4+2]  = 4; ELEMENT->VeF[0*4+3]  = 5;
+	ELEMENT->VeF[1*4+0]  = 0; ELEMENT->VeF[1*4+1]  = 2; ELEMENT->VeF[1*4+2]  = 3; ELEMENT->VeF[1*4+3]  = 5;
+	ELEMENT->VeF[2*4+0]  = 0; ELEMENT->VeF[2*4+1]  = 1; ELEMENT->VeF[2*4+2]  = 3; ELEMENT->VeF[2*4+3]  = 4;
+	ELEMENT->VeF[3*4+0]  = 0; ELEMENT->VeF[3*4+1]  = 1; ELEMENT->VeF[3*4+2]  = 2;
+	ELEMENT->VeF[4*4+0]  = 3; ELEMENT->VeF[4*4+1]  = 4; ELEMENT->VeF[4*4+2]  = 5;
 
 	ELEMENT->next = New_ELEMENT();
 
 	// PYR (ToBeModified)
 	ELEMENT = ELEMENT->next;
 
-	ELEMENT->present = 0;
-	ELEMENT->type    = PYR;
-	ELEMENT->d       = 3;
-	ELEMENT->Nve     = 5;
-	ELEMENT->Nf      = 5;
-	ELEMENT->Nfve[0] = 3; ELEMENT->Nfve[1] = 4;
+	ELEMENT->present   = 0;
+	ELEMENT->type      = PYR;
+	ELEMENT->d         = 3;
+	ELEMENT->Nve       = 5;
+	ELEMENT->Nf        = 5;
+	ELEMENT->Nfve[0]   = 3; ELEMENT->Nfve[1] = 4;
+	ELEMENT->VeCGmsh[0]  = 0; ELEMENT->VeCGmsh[1]  = 1; ELEMENT->VeCGmsh[2]  = 2; ELEMENT->VeCGmsh[3] = 3;
+	ELEMENT->VeCGmsh[4]  = 4;
+	ELEMENT->VeE[0*2+0]  = 0; ELEMENT->VeE[0*2+1]  = 1;
+	ELEMENT->VeE[1*2+0]  = 3; ELEMENT->VeE[1*2+1]  = 2;
+	ELEMENT->VeE[2*2+0]  = 0; ELEMENT->VeE[2*2+1]  = 3;
+	ELEMENT->VeE[3*2+0]  = 1; ELEMENT->VeE[3*2+1]  = 2;
+	ELEMENT->VeE[4*2+0]  = 0; ELEMENT->VeE[4*2+1]  = 4;
+	ELEMENT->VeE[5*2+0]  = 1; ELEMENT->VeE[5*2+1]  = 4;
+	ELEMENT->VeE[6*2+0]  = 2; ELEMENT->VeE[6*2+1]  = 4;
+	ELEMENT->VeE[7*2+0]  = 3; ELEMENT->VeE[7*2+1]  = 4;
+	ELEMENT->VeF[0*4+0]  = 0; ELEMENT->VeF[0*4+1]  = 3; ELEMENT->VeF[0*4+2]  = 4;
+	ELEMENT->VeF[1*4+0]  = 1; ELEMENT->VeF[1*4+1]  = 2; ELEMENT->VeF[1*4+2]  = 4;
+	ELEMENT->VeF[2*4+0]  = 0; ELEMENT->VeF[2*4+1]  = 1; ELEMENT->VeF[2*4+2]  = 4;
+	ELEMENT->VeF[3*4+0]  = 2; ELEMENT->VeF[3*4+1]  = 3; ELEMENT->VeF[3*4+2]  = 4;
+	ELEMENT->VeF[4*4+0]  = 0; ELEMENT->VeF[4*4+1]  = 1; ELEMENT->VeF[4*4+2]  = 3; ELEMENT->VeF[4*4+3]  = 2;
 
 	// No additional ELEMENTs
+
+	// Set pointers for ELEMENT classes
+	for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
+		type = ELEMENT->type;
+		if (type == POINT || type == LINE || type == QUAD || type == HEX ||
+			type == TRI || type == TET || type == PYR) {
+				ELEMENT->ELEMENTclass[0] = get_ELEMENT_Eclass(ELEMENT->type,0);
+		} else if (type == WEDGE) {
+			ELEMENT->ELEMENTclass[0] = get_ELEMENT_Eclass(ELEMENT->type,0);
+			ELEMENT->ELEMENTclass[1] = get_ELEMENT_Eclass(ELEMENT->type,1);
+		}
+	}
 
 	// Read mesh file
 	if (!DB.MPIrank)
