@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-//#include "functions.h"
+#include "functions.h"
 
 #include "mkl.h"
 #include "petscsys.h"
@@ -73,14 +73,18 @@ void array_sort_ui(unsigned int NRows, unsigned int NCols, unsigned int *A, unsi
 					if (rowM > 0)
 						colMs[rowM] = colMs[rowM-1];
 					col = colMs[rowM]+1;
-					while (col < NCols && A[rowM*NCols+col] == A[rowM*NCols+colMs[rowM]])
+					while (col < NCols && A[rowM*NCols+col] == A[rowM*NCols+colMs[rowM]]) {
+						// Ensure that all rows are taken into account and not only the previous row
+						if (rowM > 0 && col > colMe[rowM-1])
+							break;
 						col++;
+					}
 					colMe[rowM] = col-1;
 				}
 				rowM -= 1;
 				SortLen = colMe[rowM] - colMs[rowM]+1;
 
-//printf("%d %d %d %d %d %d %d \n",row,rowM,colMs[0],colMe[0],colMs[rowM],colMe[rowM],SortLen);
+//printf("%d %d %d %d %d %d %d %d \n",row,col,rowM,colMs[0],colMe[0],colMs[rowM],colMe[rowM],SortLen);
 
 				IndicesInter = malloc(SortLen * sizeof *IndicesInter); // free
 				Indicestmp   = malloc(SortLen * sizeof *Indicestmp); // free
@@ -111,8 +115,8 @@ void array_sort_ui(unsigned int NRows, unsigned int NCols, unsigned int *A, unsi
 				colMs[0] = colMe[row-1]+1;
 			}
 		}
-// array_print_i(NRows,NCols,A,'R');
-// array_print_i(1,NCols,Indices,'R');
+//array_print_ui(NCols,NRows,A,'C');
+//array_print_ui(1,NCols,Indices,'R');
 	}
 
 // array_print_i(NRows,NCols,A,'R');
@@ -177,8 +181,12 @@ void array_sort_i(unsigned int NRows, unsigned int NCols, int *A, unsigned int *
 					if (rowM > 0)
 						colMs[rowM] = colMs[rowM-1];
 					col = colMs[rowM]+1;
-					while (col < NCols && A[rowM*NCols+col] == A[rowM*NCols+colMs[rowM]])
+					while (col < NCols && A[rowM*NCols+col] == A[rowM*NCols+colMs[rowM]]) {
+						// Ensure that all rows are taken into account and not only the previous row
+						if (rowM > 0 && col > colMe[rowM-1])
+							break;
 						col++;
+					}
 					colMe[rowM] = col-1;
 				}
 				rowM -= 1;

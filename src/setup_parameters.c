@@ -167,7 +167,7 @@ void setup_parameters()
 		// Sum Factorization
 		SF_BE[P] = malloc(NEC * sizeof **SF_BE); // keep
 
-		for (i = 0; i < 3; i++) SF_BE[P][i] = 1;
+		for (i = 0; i < NEC; i++) SF_BE[P][i] = 1;
 
 		if ((d == 2 && P <= 10) || (d == 3 && P <= 6)) SF_BE[P][0] = 0;  // ToBeModified
 		if ((d == 2 && P <= 99) || (d == 3 && P <= 99)) SF_BE[P][1] = 0; // ToBeModified
@@ -213,7 +213,7 @@ void setup_parameters()
 		NodeTypeIvs[P] = malloc(NEC * sizeof **NodeTypeIvs); // keep
 		NodeTypeIvc[P] = malloc(NEC * sizeof **NodeTypeIvc); // keep
 
-		for (i = 0; i < 3; i++) {
+		for (i = 0; i < NEC; i++) {
 			NodeTypeS[P][i]   = malloc(STRLEN_MIN * sizeof ***NodeTypeS);   // keep
 			NodeTypeF[P][i]   = malloc(STRLEN_MIN * sizeof ***NodeTypeF);   // keep
 			NodeTypeFrs[P][i] = malloc(STRLEN_MIN * sizeof ***NodeTypeFrs); // keep
@@ -304,11 +304,25 @@ void setup_parameters()
 			}
 
 			// Interpolation (PYR)
-			// ToBeModified
-			strcpy(DB.NodeTypeS  [P][2],"");
-			strcpy(DB.NodeTypeF  [P][2],"");
-			strcpy(DB.NodeTypeFrs[P][2],"");
-			strcpy(DB.NodeTypeFrc[P][2],"");
+			if (strstr(DB.NodeType,"GLL") != NULL) {
+				if (P == 0)
+					strcpy(NodeTypeS[P][2],"GL");
+				else
+					strcpy(NodeTypeS[P][2],"GLL");
+
+				if (PF[P] == 0)
+					strcpy(NodeTypeF[P][2],"GL");
+				else
+					strcpy(NodeTypeF[P][2],"GLL");
+
+				strcpy(NodeTypeFrs[P][2],"GLL");
+				strcpy(NodeTypeFrc[P][2],"GLL");
+			} else {
+				strcpy(NodeTypeS  [P][2],"GL");
+				strcpy(NodeTypeF  [P][2],"GL");
+				strcpy(NodeTypeFrs[P][2],"GL");
+				strcpy(NodeTypeFrc[P][2],"GL");
+			}
 
 			// Integration
 			IntOrderfs = max(2*P,u1);
@@ -341,8 +355,8 @@ void setup_parameters()
 			} else if (d == 3) {
 				strcpy(NodeTypeIfs[P][1],"WV");
 				strcpy(NodeTypeIfc[P][1],"WV");
-				strcpy(NodeTypeIvs[P][1],"Keast"); // ToBeModified: was WV in Matlab code
-				strcpy(NodeTypeIvc[P][1],"Keast");
+				strcpy(NodeTypeIvs[P][1],"WV");
+				strcpy(NodeTypeIvc[P][1],"WV");
 
 				PIfs[P][1] = IntOrderfs;
 				PIfc[P][1] = IntOrderfc;
@@ -351,16 +365,15 @@ void setup_parameters()
 			}
 
 			// PYR
-			// ToBeModified
-			strcpy(NodeTypeIfs[P][2],"");
-			strcpy(NodeTypeIfc[P][2],"");
-			strcpy(NodeTypeIvs[P][2],"");
-			strcpy(NodeTypeIvc[P][2],"");
+			strcpy(NodeTypeIfs[P][2],"NOT_USED");
+			strcpy(NodeTypeIfc[P][2],"NOT_USED");
+			strcpy(NodeTypeIvs[P][2],"GLW");
+			strcpy(NodeTypeIvc[P][2],"GLW");
 
-			PIfs[P][2] = IntOrderfs;
-			PIfc[P][2] = IntOrderfc;
-			PIvs[P][2] = IntOrdervs;
-			PIvc[P][2] = IntOrdervc;
+			PIfs[P][2] = IntOrderfs; // Not used
+			PIfc[P][2] = IntOrderfc; // Not used
+			PIvs[P][2] = floor(1.*IntOrdervs/2.);
+			PIvc[P][2] = floor(1.*IntOrdervc/2.);
 		} else {
 			// THESE PARAMETERS CANNOT BE MODIFIED.
 			// For collocated interpolation and integration nodes, a desired integration order cannot be specified.
@@ -372,7 +385,7 @@ void setup_parameters()
 			}
 
 			if (strstr(DB.BasisType,"Nodal") == NULL) {
-				printf("Selected BasisType: %s\n.",DB.BasisType);
+				printf("Selected BasisType: %s.\n",DB.BasisType);
 				printf("Error: Nodal BasisType must be selected to use a collocated scheme\n"), exit(1);
 			}
 
@@ -442,16 +455,16 @@ void setup_parameters()
 			PFrs[P][2] = P;
 			PFrc[P][2] = P;
 
-			// ToBeModified
-			strcpy(NodeTypeS  [P][2],"");
-			strcpy(NodeTypeF  [P][2],"");
-			strcpy(NodeTypeFrs[P][2],"");
-			strcpy(NodeTypeFrc[P][2],"");
+			// Note: Collocated interpolation/integration nodes for PYR elements are currently unavailable
+			strcpy(NodeTypeS  [P][2],"NOT_SUPPORTED");
+			strcpy(NodeTypeF  [P][2],"NOT_SUPPORTED");
+			strcpy(NodeTypeFrs[P][2],"NOT_SUPPORTED");
+			strcpy(NodeTypeFrc[P][2],"NOT_SUPPORTED");
 
-			strcpy(NodeTypeIfs[P][2],"");
-			strcpy(NodeTypeIfc[P][2],"");
-			strcpy(NodeTypeIvs[P][2],"");
-			strcpy(NodeTypeIvc[P][2],"");
+			strcpy(NodeTypeIfs[P][2],"NOT_SUPPORTED");
+			strcpy(NodeTypeIfc[P][2],"NOT_SUPPORTED");
+			strcpy(NodeTypeIvs[P][2],"NOT_SUPPORTED");
+			strcpy(NodeTypeIvc[P][2],"NOT_SUPPORTED");
 		}
 	}
 

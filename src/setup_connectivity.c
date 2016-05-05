@@ -64,7 +64,7 @@ void setup_connectivity(void)
 	             *EType   = DB.EType,
 	             *ETags   = DB.ETags;
 
-	unsigned int PrintTesting = 1;
+	unsigned int PrintTesting = 0;
 
 	// Standard datatypes
 	unsigned int i, j, count, iMax,
@@ -124,18 +124,12 @@ void setup_connectivity(void)
 			PetscSortInt(Nfve[IndFType],(int *)&FToVe[IndFixed[1]]);
 		}
 	}
-// Correct
-array_print_ui(NGF,NfveMax,FToVe,'R');
 
 	IndicesGF = malloc(NGF * sizeof *IndicesGF); // free
 	for (i = 0; i < NGF; i++)
 		IndicesGF[i] = i;
 
 	array_sort_ui(NGF,NfveMax,FToVe,IndicesGF,'R','T');
-// Mistake in IndicesGF starting at [4 5 8 9]
-array_print_ui(1,NGF,IndicesGF,'R');
-array_print_ui(NGF,NfveMax,FToVe,'R');
-exit(1);
 
 	FNveSwap = malloc(NGF * sizeof *FNveSwap); // free
 	VToVSwap = malloc(NGF * sizeof *VToVSwap); // free
@@ -159,8 +153,6 @@ exit(1);
 		VToF[v*NfMax+f] = VToFSwap[IndicesGF[count]];
 		count++;
 	}}
-// Correct
-//array_print_ui(NGF,1,FNve,'R');
 
 	free(FNveSwap);
 	free(VToVSwap);
@@ -186,15 +178,11 @@ exit(1);
 			}
 		}
 	}
-// Correct
-//array_print_ui(NGF,1,IndicesMatchingOver,'R');
 
 	IndicesMatching = malloc(IndM * sizeof *IndicesMatching); // free
 	for (i = 0; i < IndM; i++)
 		IndicesMatching[i] = IndicesMatchingOver[i];
 	free(IndicesMatchingOver);
-// Correct
-array_print_ui(IndM,1,IndicesMatching,'R');
 
 	// Make links reflexive
 	matchIn  = malloc(3*2*IndM * sizeof *matchIn); // free
@@ -216,8 +204,6 @@ array_print_ui(IndM,1,IndicesMatching,'R');
 		}
 	}
 	free(IndicesMatching);
-array_print_ui(2*IndM,3,matchIn,'R');
-array_print_ui(2*IndM,3,matchOut,'R');
 
 	// Compute VToV and VToF
 	for (v = 0; v < NV; v++) {
@@ -319,7 +305,7 @@ array_print_ui(2*IndM,3,matchOut,'R');
 				VeF  = ELEMENT->VeF;
 
 				if ( type == LINE || type == TRI || type == QUAD || type == TET || type == HEX ||
-				    (type == WEDGE && f < 2) || (type == PYR && f < 4))
+				    (type == WEDGE && f < 3) || (type == PYR && f < 4))
 						Nve = Nfve[0];
 				else if (type == WEDGE || type == PYR)
 					Nve = Nfve[1];
@@ -339,9 +325,11 @@ array_print_ui(2*IndM,3,matchOut,'R');
 
 	GFToVe = malloc(NGF*NfveMax * sizeof *GFToVe); // keep
 	for (gf = 0; gf < NGF; gf++) {
-	for (ve = 0; ve < NveGF[gf]; ve++) {
-		GFToVe[gf*NfveMax+ve] = GFToVeOver[gf*NfveMax+ve];
-	}}
+		for (ve = 0; ve < NveGF[gf]; ve++)
+			GFToVe[gf*NfveMax+ve] = GFToVeOver[gf*NfveMax+ve];
+		for (ve = NveGF[gf]; ve < NfveMax; ve++)
+			GFToVe[gf*NfveMax+ve] = NVe;
+	}
 	free(GFToVeOver);
 	free(NveGF);
 
@@ -400,5 +388,4 @@ array_print_ui(2*IndM,3,matchOut,'R');
 	free(FNve);
 	free(BTags);
 	free(BFToVe);
-exit(1);
 }

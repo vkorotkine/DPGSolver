@@ -85,20 +85,6 @@ void test_imp_array_sort(void)
 	             Ind_ui3[10] = { 5, 6, 0, 7, 1, 2, 9, 8, 3, 4 };
 
 
-	// row(s) sorted: 0
-	for (i = 0; i < 30; i++) A_ui[i]   = A_ui0[i];
-	for (i = 0; i < 10; i++) Ind_ui[i] = Ind_ui0[i];
-
-	pass = 0;
-	if (array_norm_diff_ui(30,A_ui,A_ui0,"Inf") < EPS &&
-		array_norm_diff_ui(10,Ind_ui,Ind_ui0,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("array_sort_ui (0 row(s) sorted):                 ");
-	test_print(pass);
-
-
 	// row(s) sorted: 1
 	for (i = 0; i < 30; i++) A_ui[i]   = A_ui0[i];
 	for (i = 0; i < 10; i++) Ind_ui[i] = Ind_ui0[i];
@@ -110,7 +96,7 @@ void test_imp_array_sort(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("              (1 row(s) sorted):                 ");
+	printf("array_sort_ui (1 row(s) sorted):                 ");
 	test_print(pass);
 
 	// row(s) sorted: 2
@@ -144,23 +130,6 @@ void test_imp_array_sort(void)
 
 
 	// Transposed
-	// row(s) sorted: 0
-	for (i = 0; i < 30; i++) A_ui[i]   = A_ui0[i];
-	for (i = 0; i < 10; i++) Ind_ui[i] = Ind_ui0[i];
-
-	// Transpose, sort, transpose
-	mkl_simatcopy('R','T',3,10,1.,(float *) A_ui,10,3);
-	mkl_simatcopy('R','T',10,3,1.,(float *) A_ui,3,10);
-
-	pass = 0;
-	if (array_norm_diff_ui(30,A_ui,A_ui0,"Inf") < EPS &&
-		array_norm_diff_ui(10,Ind_ui,Ind_ui0,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("array_sort_ui - Transposed (0 row(s) sorted):    ");
-	test_print(pass);
-
 	// row(s) sorted: 1
 	for (i = 0; i < 30; i++) A_ui[i]   = A_ui0[i];
 	for (i = 0; i < 10; i++) Ind_ui[i] = Ind_ui0[i];
@@ -175,7 +144,7 @@ void test_imp_array_sort(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("                           (1 row(s) sorted):    ");
+	printf("array_sort_ui - Transposed (1 row(s) sorted):    ");
 	test_print(pass);
 
 	// row(s) sorted: 2
@@ -213,11 +182,101 @@ void test_imp_array_sort(void)
 	printf("                           (3 row(s) sorted):    ");
 	test_print(pass);
 
+	unsigned int NRows = 30, NCols = 4;
+	unsigned int B_ui[4*30],
+	             B_ui0[4*30] = { 0, 2, 8, 9, 1, 3, 8, 9, 0, 1, 8, 9, 2, 3, 8, 9, 0, 1, 2, 3,
+	                             6, 7, 8, 9, 4, 5, 8, 9, 5, 7, 8, 9, 4, 6, 8, 9, 4, 5, 6, 7,
+	                             4, 5, 8, 9, 0, 1, 8, 9, 1, 5, 8, 9, 0, 4, 8, 9, 0, 1, 4, 5,
+	                             2, 6, 8, 9, 3, 7, 8, 9, 2, 3, 8, 9, 6, 7, 8, 9, 2, 3, 6, 7,
+	                             0, 4, 8, 9, 2, 6, 8, 9, 0, 2, 8, 9, 4, 6, 8, 9, 0, 2, 4, 6,
+	                             5, 7, 8, 9, 1, 3, 8, 9, 3, 7, 8, 9, 1, 5, 8, 9, 1, 3, 5, 7},
+	             B_ui1[4*30] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3,
+	                             3, 4, 4, 4, 4, 4, 5, 5, 6, 6},
+	             B_ui2[4*30] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3,
+	                             3, 4, 4, 4, 4, 4, 5, 5, 6, 6, 1, 1, 1, 1, 2, 2, 2, 4, 4, 3,
+	                             3, 3, 5, 5, 3, 3, 3, 6, 6, 7, 7, 5, 5, 5, 6, 6, 7, 7, 7, 7},
+	             B_ui3[4*30] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3,
+	                             3, 4, 4, 4, 4, 4, 5, 5, 6, 6, 1, 1, 1, 1, 2, 2, 2, 4, 4, 3,
+	                             3, 3, 5, 5, 3, 3, 3, 6, 6, 7, 7, 5, 5, 5, 6, 6, 7, 7, 7, 7,
+	                             2, 4, 8, 8, 4, 8, 8, 8, 8, 5, 8, 8, 8, 8, 6, 8, 8, 8, 8, 8,
+	                             8, 6, 8, 8, 8, 8, 8, 8, 8, 8},
+	             B_ui4[4*30] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3,
+	                             3, 4, 4, 4, 4, 4, 5, 5, 6, 6, 1, 1, 1, 1, 2, 2, 2, 4, 4, 3,
+	                             3, 3, 5, 5, 3, 3, 3, 6, 6, 7, 7, 5, 5, 5, 6, 6, 7, 7, 7, 7,
+	                             2, 4, 8, 8, 4, 8, 8, 8, 8, 5, 8, 8, 8, 8, 6, 8, 8, 8, 8, 8,
+	                             8, 6, 8, 8, 8, 8, 8, 8, 8, 8, 3, 5, 9, 9, 6, 9, 9, 9, 9, 7,
+	                             9, 9, 9, 9, 7, 9, 9, 9, 9, 9, 9, 7, 9, 9, 9, 9, 9, 9, 9, 9};
+	unsigned int IndB_ui[30],
+	             IndB_ui0[30] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+	                              20, 21, 22, 23, 24, 25, 26, 27, 28, 29 },
+	             IndB_ui4[30] = { 4, 14, 11, 2, 24, 0, 22, 13, 20, 29, 26, 1, 12, 28, 19, 17, 3, 15, 21, 16,
+	                              27, 9, 10, 6, 23, 8, 25, 7, 5, 18}; 
+	                              
+	// Test 2
+	// Store B in column-major format
+	mkl_simatcopy('R','T',NRows,NCols,1.,(float *) B_ui0,NCols,NRows);
+
+	// row(s) sorted: 1
+	for (i = 0; i < NRows*NCols; i++) B_ui[i]    = B_ui0[i];
+	for (i = 0; i < NRows; i++)       IndB_ui[i] = IndB_ui0[i];
+
+	array_sort_ui(NCols,NRows,B_ui,IndB_ui,'R','N');
+
+	pass = 0;
+	if (array_norm_diff_ui(NRows*1,B_ui,B_ui1,"Inf") < EPS)
+		pass = 1, TestDB.Npass++;
+
+	//     0         10        20        30        40        50
+	printf("array_sort_ui - test 2 (1 row(s) sorted):        ");
+	test_print(pass);
+
+	// row(s) sorted: 2
+	for (i = 0; i < NRows*NCols; i++) B_ui[i]    = B_ui0[i];
+	for (i = 0; i < NRows; i++)       IndB_ui[i] = IndB_ui0[i];
+
+	array_sort_ui(NCols,NRows,B_ui,IndB_ui,'R','N');
+
+	pass = 0;
+	if (array_norm_diff_ui(NRows*2,B_ui,B_ui2,"Inf") < EPS)
+		pass = 1, TestDB.Npass++;
+
+	//     0         10        20        30        40        50
+	printf("                       (2 row(s) sorted):        ");
+	test_print(pass);
+
+	// row(s) sorted: 3
+	for (i = 0; i < NRows*NCols; i++) B_ui[i]    = B_ui0[i];
+	for (i = 0; i < NRows; i++)       IndB_ui[i] = IndB_ui0[i];
+
+	array_sort_ui(NCols,NRows,B_ui,IndB_ui,'R','N');
+
+	pass = 0;
+	if (array_norm_diff_ui(NRows*3,B_ui,B_ui3,"Inf") < EPS)
+		pass = 1, TestDB.Npass++;
+
+	//     0         10        20        30        40        50
+	printf("                       (3 row(s) sorted):        ");
+	test_print(pass);
+
+	// row(s) sorted: 4
+	for (i = 0; i < NRows*NCols; i++) B_ui[i]    = B_ui0[i];
+	for (i = 0; i < NRows; i++)       IndB_ui[i] = IndB_ui0[i];
+
+	array_sort_ui(NCols,NRows,B_ui,IndB_ui,'R','N');
+
+	pass = 0;
+	if (array_norm_diff_ui(NRows*4,B_ui,B_ui4,"Inf")       < EPS &&
+	    array_norm_diff_ui(NRows*1,IndB_ui,IndB_ui4,"Inf") < EPS)
+			pass = 1, TestDB.Npass++;
+
+	//     0         10        20        30        40        50
+	printf("                       (4 row(s) sorted):        ");
+	test_print(pass);
 
 	/*
 	 *	array_sort_d:
 	 *
-	 *		Same example as above cast to double.
+	 *		Same as first example above cast to double.
 	 */
 
 	double A_d[3*10], A_d0[3*10], A_d1[3*10], A_d2[3*10], A_d3[3*10];

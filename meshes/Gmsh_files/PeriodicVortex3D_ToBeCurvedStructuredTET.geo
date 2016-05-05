@@ -9,7 +9,7 @@
 
 
 // Modifiable Parameters
-Refine = 1;
+Refine = 0;
 
 lc = 1; // Not used.
 

@@ -121,7 +121,7 @@ void setup_structures(void)
 			if (VOLUME->Eclass == C_TP)
 				NvnGs = pow(ELEMENT->ELEMENTclass[0]->NvnGs[0],d);
 			else if (VOLUME->Eclass == C_WEDGE)
-				NvnGs = pow(ELEMENT->ELEMENTclass[0]->NvnGs[0],2)*(ELEMENT->ELEMENTclass[1]->NvnGs[0]);
+				NvnGs = (ELEMENT->ELEMENTclass[0]->NvnGs[0])*(ELEMENT->ELEMENTclass[1]->NvnGs[0]);
 			else if (VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR)
 				NvnGs = ELEMENT->NvnGs[0];
 			else

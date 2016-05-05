@@ -32,13 +32,13 @@ void setup_geometry(void)
 	int          PrintTesting = 0;
 
 	// Standard datatypes
-	unsigned int i, dim, P, vn,
+	unsigned int i, iMax, dim, P, vn,
 	             Vs, NvnG, NvnGs, NvnGc,
 	             NIn, NOut, NIn_SF[3], NOut_SF[3], NCols, Diag[3], NOut_Total;
 	double       *XYZc, *XYZs, *XYZ,
 	             *I_vGs_vGc, *Input_SF, *OP_SF[3];
 
-	struct S_ELEMENT *ELEMENT, *ELEMENT_class[2];
+	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME;
 
 	Vs = 0; for (i = 0; i < d; i++) Vs += NE[i];
@@ -66,22 +66,14 @@ void setup_geometry(void)
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 		if (!VOLUME->curved) {
 			// If not curved, the P1 geometry representation suffices to fully specify the element geometry.
-			if (VOLUME->Eclass == C_TP) {
-
-// ToBeDeleted: This function does not need to be called anymore, ELEMENT_class[0] is in ELEMENT->ELEMENTclass[0]
-				ELEMENT_class[0] = get_ELEMENT_Eclass(ELEMENT->type,0);
-
-				NvnG = pow(ELEMENT_class[0]->NvnGs[0],d);
-			} else if (VOLUME->Eclass == C_WEDGE) {
-				ELEMENT_class[0] = get_ELEMENT_Eclass(ELEMENT->type,0);
-				ELEMENT_class[1] = get_ELEMENT_Eclass(ELEMENT->type,1);
-
-				NvnG = pow(ELEMENT_class[0]->NvnGs[0],2)*(ELEMENT_class[1]->NvnGs[0]);
-			} else if (VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR) {
+			if (VOLUME->Eclass == C_TP)
+				NvnG = pow(ELEMENT->ELEMENTclass[0]->NvnGs[0],d);
+			else if (VOLUME->Eclass == C_WEDGE)
+				NvnG = pow(ELEMENT->ELEMENTclass[0]->NvnGs[0],2)*(ELEMENT->ELEMENTclass[1]->NvnGs[0]);
+			else if (VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR)
 				NvnG = ELEMENT->NvnGs[0];
-			} else {
+			else
 				printf("Error: Unsupported element type setup_geom (NvnG).\n"), exit(1);
-			}
 
 			VOLUME->NvnG = NvnG;
 
@@ -96,12 +88,10 @@ void setup_geometry(void)
 			}}
 		} else {
 			if (VOLUME->Eclass == C_TP) {
-				ELEMENT_class[0] = get_ELEMENT_Eclass(ELEMENT->type,0);
+				NvnGs = ELEMENT->ELEMENTclass[0]->NvnGs[0];
+				NvnGc = ELEMENT->ELEMENTclass[0]->NvnGc[P];
 
-				NvnGs = ELEMENT_class[0]->NvnGs[0];
-				NvnGc = ELEMENT_class[0]->NvnGc[P];
-
-				I_vGs_vGc = ELEMENT_class[0]->I_vGs_vGc[P];
+				I_vGs_vGc = ELEMENT->ELEMENTclass[0]->I_vGs_vGc[P];
 
 				Input_SF = XYZc; // note multi column input
 
@@ -131,7 +121,7 @@ void setup_geometry(void)
 				XYZs = malloc(NOut_Total*NCols * sizeof *XYZs); // keep
 				XYZ  = malloc(NOut_Total*NCols * sizeof *XYZ);  // keep
 				sf_apply_d(Input_SF,XYZs,NIn_SF,NOut_SF,NCols,OP_SF,Diag,d);
-			} else if (VOLUME->Eclass == C_SI) {
+			} else if (VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR) {
 				NvnGs = ELEMENT->NvnGs[0];
 				NvnGc = ELEMENT->NvnGc[P];
 				I_vGs_vGc = ELEMENT->I_vGs_vGc[P];
@@ -144,12 +134,31 @@ void setup_geometry(void)
 				XYZ  = malloc(NvnGc*NCols * sizeof *XYZ);  // keep
 
 				mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnGc,NCols,NvnGs,1.0,I_vGs_vGc,XYZc,XYZs);
+			} else if (VOLUME->Eclass == C_WEDGE) {
+				array_print_d(6,d,XYZc,'C');
+
+				NvnGs = ELEMENT->ELEMENTclass[0]->NvnGs[0];
+				NvnGc = ELEMENT->ELEMENTclass[0]->NvnGc[P];
+				I_vGs_vGc = ELEMENT->ELEMENTclass[0]->I_vGs_vGc[P];
+
+				NCols = d*1;
+
+				for (i = 0; iMax = ELEMENT->ELEMENTclass[1]->NvnGs[0]; i < iMax; i++) {
+					mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnGc,NCols,NvnGs,1.0,I_vGs_vGc,XYZc[range],XYZsInter[range]);
+				}
+				// loop over NvnGs_TP: Multiply blocks (note: memory not continuous) of XYZc by I_vGs_vGc_TRI
+				// loop over NvnGc_TRI: Multiply blocks (note: memory not continuous) of above result by I_vGs_vGc_TP
+				// could also vectorize this (THINK if worthwhile)
+
+				array_print_d(NvnGc,NvnGs,I_vGs_vGc,'R');
+				exit(1);
+
 			}
 		}
 		VOLUME->XYZs = XYZs;
 
-//array_print_d(VOLUME->NvnG,d,VOLUME->XYZs,'C');
-//exit(1);
+array_print_d(VOLUME->NvnG,d,VOLUME->XYZs,'C');
+exit(1);
 	}
 //exit(1);
 

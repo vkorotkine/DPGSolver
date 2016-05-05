@@ -160,7 +160,7 @@ void test_imp_plotting(void)
 	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,QUAD); // free
 
 	pass = 0;
-	if (array_norm_diff_d(Nn23_TP,rst23_TP,rst,"Inf")            < EPS &&
+	if (array_norm_diff_d(Nn23_TP*d,rst23_TP,rst,"Inf")          < EPS &&
 		array_norm_diff_ui(NE23_TP*8,connect23_TP,connect,"Inf") < EPS &&
 		array_norm_diff_ui(NE23_TP,types23_TP,types,"Inf")       < EPS &&
 		Nn == Nn23_TP && NE == NE23_TP)
@@ -241,7 +241,7 @@ void test_imp_plotting(void)
 			if      (dim == 0) Indr = i;
 			else if (dim == 1) Indr = j;
 			else if (dim == 2) Indr = k;
-			rst33_TP[dim*Nn23_TP+row] = rst13_TP[Indr];
+			rst33_TP[dim*Nn33_TP+row] = rst13_TP[Indr];
 		}
 		row++;
 	}}}
@@ -249,9 +249,9 @@ void test_imp_plotting(void)
 	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,HEX); // free
 
 	pass = 0;
-	if (array_norm_diff_d(Nn33_TP,rst33_TP,rst,"Inf") < EPS &&
-		array_norm_diff_ui(NE33_TP*8,connect33_TP,connect,"Inf")     < EPS &&
-		array_norm_diff_ui(NE33_TP,types33_TP,types,"Inf")     < EPS &&
+	if (array_norm_diff_d(Nn33_TP*d,rst33_TP,rst,"Inf")          < EPS &&
+		array_norm_diff_ui(NE33_TP*8,connect33_TP,connect,"Inf") < EPS &&
+		array_norm_diff_ui(NE33_TP,types33_TP,types,"Inf")       < EPS &&
 		Nn == Nn33_TP && NE == NE33_TP)
 			pass = 1, TestDB.Npass++;
 
@@ -340,7 +340,7 @@ void test_imp_plotting(void)
 	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,TRI); // free
 
 	pass = 0;
-	if (array_norm_diff_d(Nn23_SI,rst23_SI,rst,"Inf")            < EPS &&
+	if (array_norm_diff_d(Nn23_SI*d,rst23_SI,rst,"Inf")          < EPS &&
 		array_norm_diff_ui(NE23_SI*8,connect23_SI,connect,"Inf") < EPS &&
 		array_norm_diff_ui(NE23_SI,types23_SI,types,"Inf")       < EPS &&
 		Nn == Nn23_SI && NE == NE23_SI)
@@ -445,7 +445,7 @@ void test_imp_plotting(void)
 	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,TET); // free
 
 	pass = 0;
-	if (array_norm_diff_d(Nn33_SI,rst33_SI,rst,"Inf")            < EPS &&
+	if (array_norm_diff_d(Nn33_SI*d,rst33_SI,rst,"Inf")          < EPS &&
 		array_norm_diff_ui(NE33_SI*8,connect33_SI,connect,"Inf") < EPS &&
 		array_norm_diff_ui(NE33_SI,types33_SI,types,"Inf")       < EPS &&
 		Nn == Nn33_SI && NE == NE33_SI)
@@ -576,7 +576,7 @@ void test_imp_plotting(void)
 	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,WEDGE); // free
 
 	pass = 0;
-	if (array_norm_diff_d(Nn3_WEDGE,rst3_WEDGE,rst,"Inf")            < EPS &&
+	if (array_norm_diff_d(Nn3_WEDGE*d,rst3_WEDGE,rst,"Inf")          < EPS &&
 		array_norm_diff_ui(NE3_WEDGE*8,connect3_WEDGE,connect,"Inf") < EPS &&
 		array_norm_diff_ui(NE3_WEDGE,types3_WEDGE,types,"Inf")       < EPS &&
 		Nn == Nn3_WEDGE && NE == NE3_WEDGE)
@@ -666,36 +666,36 @@ void test_imp_plotting(void)
 	                                   25, 26, 28, 27, 20,  0,  0,  0,
 	                                   25, 26, 28, 27, 29,  0,  0,  0},
 	             types3_PYR[NE3_PYR];
-	double rst3_PYR[90] = { -1.0    , -1.0    , -1.0    ,
-	                        -1.0/3.0, -1.0    , -1.0    ,
-	                         1.0/3.0, -1.0    , -1.0    ,
-	                         1.0    , -1.0    , -1.0    ,
-	                        -1.0    , -1.0/3.0, -1.0    ,
-	                        -1.0/3.0, -1.0/3.0, -1.0    ,
-	                         1.0/3.0, -1.0/3.0, -1.0    ,
-	                         1.0    , -1.0/3.0, -1.0    ,
-	                        -1.0    ,  1.0/3.0, -1.0    ,
-	                        -1.0/3.0,  1.0/3.0, -1.0    ,
-	                         1.0/3.0,  1.0/3.0, -1.0    ,
-	                         1.0    ,  1.0/3.0, -1.0    ,
-	                        -1.0    ,  1.0    , -1.0    ,
-	                        -1.0/3.0,  1.0    , -1.0    ,
-	                         1.0/3.0,  1.0    , -1.0    ,
-	                         1.0    ,  1.0    , -1.0    ,
-	                        -2.0/3.0, -2.0/3.0, -1.0/3.0,
-	                         0.0    , -2.0/3.0, -1.0/3.0,
-	                         2.0/3.0, -2.0/3.0, -1.0/3.0,
-	                        -2.0/3.0,  0.0    , -1.0/3.0,
-	                         0.0    ,  0.0    , -1.0/3.0,
-	                         2.0/3.0,  0.0    , -1.0/3.0,
-	                        -2.0/3.0,  2.0/3.0, -1.0/3.0,
-	                         0.0    ,  2.0/3.0, -1.0/3.0,
-	                         2.0/3.0,  2.0/3.0, -1.0/3.0,
-	                        -1.0/3.0, -1.0/3.0,  1.0/3.0,
-	                         1.0/3.0, -1.0/3.0,  1.0/3.0,
-	                        -1.0/3.0,  1.0/3.0,  1.0/3.0,
-	                         1.0/3.0,  1.0/3.0,  1.0/3.0,
-	                         0.0    ,  0.0    ,  1.0    };
+	double rst3_PYR[90] = { -1.0    , -1.0    , -1.0/5.0 *sqrt(2.0),
+	                        -1.0/3.0, -1.0    , -1.0/5.0 *sqrt(2.0),
+	                         1.0/3.0, -1.0    , -1.0/5.0 *sqrt(2.0),
+	                         1.0    , -1.0    , -1.0/5.0 *sqrt(2.0),
+	                        -1.0    , -1.0/3.0, -1.0/5.0 *sqrt(2.0),
+	                        -1.0/3.0, -1.0/3.0, -1.0/5.0 *sqrt(2.0),
+	                         1.0/3.0, -1.0/3.0, -1.0/5.0 *sqrt(2.0),
+	                         1.0    , -1.0/3.0, -1.0/5.0 *sqrt(2.0),
+	                        -1.0    ,  1.0/3.0, -1.0/5.0 *sqrt(2.0),
+	                        -1.0/3.0,  1.0/3.0, -1.0/5.0 *sqrt(2.0),
+	                         1.0/3.0,  1.0/3.0, -1.0/5.0 *sqrt(2.0),
+	                         1.0    ,  1.0/3.0, -1.0/5.0 *sqrt(2.0),
+	                        -1.0    ,  1.0    , -1.0/5.0 *sqrt(2.0),
+	                        -1.0/3.0,  1.0    , -1.0/5.0 *sqrt(2.0),
+	                         1.0/3.0,  1.0    , -1.0/5.0 *sqrt(2.0),
+	                         1.0    ,  1.0    , -1.0/5.0 *sqrt(2.0),
+	                        -2.0/3.0, -2.0/3.0,  2.0/15.0*sqrt(2.0),
+	                         0.0    , -2.0/3.0,  2.0/15.0*sqrt(2.0),
+	                         2.0/3.0, -2.0/3.0,  2.0/15.0*sqrt(2.0),
+	                        -2.0/3.0,  0.0    ,  2.0/15.0*sqrt(2.0),
+	                         0.0    ,  0.0    ,  2.0/15.0*sqrt(2.0),
+	                         2.0/3.0,  0.0    ,  2.0/15.0*sqrt(2.0),
+	                        -2.0/3.0,  2.0/3.0,  2.0/15.0*sqrt(2.0),
+	                         0.0    ,  2.0/3.0,  2.0/15.0*sqrt(2.0),
+	                         2.0/3.0,  2.0/3.0,  2.0/15.0*sqrt(2.0),
+	                        -1.0/3.0, -1.0/3.0,  7.0/15.0*sqrt(2.0),
+	                         1.0/3.0, -1.0/3.0,  7.0/15.0*sqrt(2.0),
+	                        -1.0/3.0,  1.0/3.0,  7.0/15.0*sqrt(2.0),
+	                         1.0/3.0,  1.0/3.0,  7.0/15.0*sqrt(2.0),
+	                         0.0    ,  0.0    ,  4.0/5.0 *sqrt(2.0)};
 
 	j = 0;
 	for ( i = 0; i < 9 ; i++) types3_PYR[j++] = 14;
@@ -712,7 +712,7 @@ void test_imp_plotting(void)
 	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,PYR); // free
 
 	pass = 0;
-	if (array_norm_diff_d(Nn3_PYR,rst3_PYR,rst,"Inf")            < EPS &&
+	if (array_norm_diff_d(Nn3_PYR*d,rst3_PYR,rst,"Inf")          < EPS &&
 		array_norm_diff_ui(NE3_PYR*8,connect3_PYR,connect,"Inf") < EPS &&
 		array_norm_diff_ui(NE3_PYR,types3_PYR,types,"Inf")       < EPS &&
 		Nn == Nn3_PYR && NE == NE3_PYR)

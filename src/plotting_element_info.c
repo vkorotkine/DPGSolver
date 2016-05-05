@@ -481,7 +481,7 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 				for (k = 0; k < 2; k++)
 					rstOut[k*NnOut+row] = rst_QUAD[k*Nn_QUAD+j]*di/P;
 
-				rstOut[2*NnOut+row] = -1.0*di/P + 1.0*(P-di)/P;
+				rstOut[2*NnOut+row] = -1.0/5.0*sqrt(2.0) + sqrt(2.0)/2.0*(1.0+(-1.0*di/P + 1.0*(P-di)/P));
 				row++;
 			}
 
@@ -491,7 +491,7 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		}
 		for (k = 0; k < 2; k++)
 			rstOut[k*NnOut+row] = 0.0;
-		rstOut[2*NnOut+row] = 1.0;
+		rstOut[2*NnOut+row] = 4.0/5.0*sqrt(2.0);
 
 		row = 0;
 		for (layer = P; layer; layer--) {

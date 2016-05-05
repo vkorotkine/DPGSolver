@@ -197,12 +197,12 @@ static void output_geom()
 			else
 				I_vG_vP = ELEMENT->I_vGc_vP[P];
 
-/*			if (VOLUME->indexg == 0)
+			if (VOLUME->indexg == 0)
 				array_print_d(NvnP,NvnG,I_vG_vP,'R');
 
 			printf("%d\n",VOLUME->indexg);
 			array_print_d(NvnG,d,VOLUME->XYZs,'C');
-*/
+
 
 			XYZ_vP = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnP,d,NvnG,1.0,I_vG_vP,VOLUME->XYZs); // free
 		} else {

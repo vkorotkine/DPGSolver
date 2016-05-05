@@ -124,6 +124,20 @@ static void setup_ELEMENT_normals(const unsigned int EType)
 		Theta_eta[1] = Theta_e - PI/2.0; Theta_zeta[1] = 5.0/6.0*PI;
 		Theta_eta[2] = Theta_e - PI/2.0; Theta_zeta[2] = 9.0/6.0*PI;
 		Theta_eta[3] = PI/2.0          ; Theta_zeta[3] = 0.0       ;
+	} else if (EType == WEDGE) {
+		Theta_eta[0] = 0.0; Theta_zeta[0] = 1.0/6.0*PI;
+		Theta_eta[1] = 0.0; Theta_zeta[1] = 5.0/6.0*PI;
+		Theta_eta[2] = 0.0; Theta_zeta[2] = 9.0/6.0*PI;
+		Theta_eta[3] = 0.0; Theta_zeta[3] = PI ;
+		Theta_eta[4] = 0.0; Theta_zeta[4] = 0.0;
+	} else if (EType == PYR) {
+		double Theta_e = atan(sqrt(2.0));
+
+		Theta_eta[0] = Theta_e - PI/2.0; Theta_zeta[0] = 2.0/2.0*PI;
+		Theta_eta[1] = Theta_e - PI/2.0; Theta_zeta[1] = 0.0/2.0*PI;
+		Theta_eta[2] = Theta_e - PI/2.0; Theta_zeta[2] = 3.0/2.0*PI;
+		Theta_eta[3] = Theta_e - PI/2.0; Theta_zeta[3] = 1.0/2.0*PI;
+		Theta_eta[4] = PI/2.0          ; Theta_zeta[4] = 0.0       ;
 	} else {
 		printf("Add support setup_ELEMENT_normals\n");
 		exit(1);
@@ -305,14 +319,11 @@ if (P == 3 && EType == TRI) {
 void setup_operators(void)
 {
 	// Initialize DB Parameters
-	unsigned int d = DB.d;
 
 	int  PrintTesting = 0;
 
 	// Standard datatypes
 	unsigned int EType;
-
-	struct S_ELEMENT *ELEMENT;
 
 
 
@@ -358,4 +369,12 @@ void setup_operators(void)
 
 	}
 
+	// PYR 
+	EType = PYR;
+	if (is_ELEMENT_present(EType)) {
+		setup_ELEMENT_plotting(EType);
+		setup_ELEMENT_normals(EType);
+		setup_ELEMENT_operators(EType);
+
+	}
 }

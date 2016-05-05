@@ -101,7 +101,7 @@ Plane Surface(4012) = {4012};
 Plane Surface(4013) = {4013};
 Plane Surface(4014) = {4014};
 
-Transfinite Surface {4001:4002,5001:5002,6001:6002};
+//Transfinite Surface {4001:4002,5001:5002,6001:6002};
 Recombine   Surface {4001:4002};
 Recombine   Surface {5001:5002};
 Recombine   Surface {6001:6002};
@@ -114,11 +114,11 @@ Surface Loop (7005) = {6001,4005,4009,4011,4013};
 Surface Loop (7006) = {6002,4006,4010,4012,4014};
 
 Volume(7001) = {7001};
-Volume(7002) = {7002};
-Volume(7003) = {7003};
-Volume(7004) = {7004};
-Volume(7005) = {7005};
-Volume(7006) = {7006};
+//Volume(7002) = {7002};
+//Volume(7003) = {7003};
+//Volume(7004) = {7004};
+//Volume(7005) = {7005};
+//Volume(7006) = {7006};
 
 //Transfinite Volume{7001:7002};
 //Recombine Volume{7001:7006};
@@ -148,7 +148,7 @@ Physical Surface(20054) = {5002}; // Periodic (+y)
 Physical Surface(20055) = {4001}; // Periodic (-z)
 Physical Surface(20056) = {4002}; // Periodic (+z)
 
-Physical Volume(9701) = {7001:7006};
+Physical Volume(9701) = {7001:7001};
 
 
 // Periodic Indicator (Slave = Master)

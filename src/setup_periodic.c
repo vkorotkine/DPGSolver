@@ -103,10 +103,10 @@ void setup_periodic()
 	PFNveS = malloc(NPFTotal * sizeof *PFNveS); // free
 
 	for (i = 0; i < NPFTotal; i++) {
-		ELEMENT = DB.ELEMENT; while(ELEMENT->type != PFTypeMOver[i]) ELEMENT = ELEMENT->next;
+		ELEMENT = get_ELEMENT_type(PFTypeMOver[i]);
 		PFNveM[i] = ELEMENT->Nve;
 
-		ELEMENT = DB.ELEMENT; while(ELEMENT->type != PFTypeSOver[i]) ELEMENT = ELEMENT->next;
+		ELEMENT = get_ELEMENT_type(PFTypeSOver[i]);
 		PFNveS[i] = ELEMENT->Nve;
 	}
 	free(PFTypeMOver);
@@ -114,14 +114,13 @@ void setup_periodic()
 
 	for (i = 0; i < d; i++) {
 		NPFSum[i] = 0;
-		for (j = 0; j < i+1; j++) {
+		for (j = 0; j < i+1; j++)
 			NPFSum[i] += NPF[j];
-		}
 	}
 
-// array_print_i(1,d,NPF,'R');
-// array_print_i(1,d,NPFSum,'R');
-// array_print_i(NETotal,2,ETags,'R');
+//array_print_ui(1,d,NPF,'R');
+//array_print_ui(1,d,NPFSum,'R');
+//array_print_ui(DB.NETotal,2,ETags,'R');
 
 	GFToRemove = malloc(NPFTotal * sizeof *GFToRemove); // free
 	PFToGFM    = malloc(NPFTotal * sizeof *PFToGFM); // free
@@ -147,8 +146,8 @@ void setup_periodic()
 		}}
 	}
 
-// array_print_i(1,NPFTotal,PFToGFM,'R');
-// array_print_i(1,NPFTotal,PFToGFS,'R');
+//array_print_ui(1,NPFTotal,PFToGFM,'R');
+//array_print_ui(1,NPFTotal,PFToGFS,'R');
 
 	PFToVeM = malloc(NPFSum[d-1]*NfveMax * sizeof *PFToVeM); // free
 	PFToVeS = malloc(NPFSum[d-1]*NfveMax * sizeof *PFToVeS); // free
@@ -161,22 +160,23 @@ void setup_periodic()
 		if (dim != 0)
 			BlockStart += NPF[dim-1]*NfveMax;
 		for (i = 0; i < NPF[dim]; i++) {
-			for (j = 0; j < PFNveM[IndPF]; j++) {
+			for (j = 0; j < PFNveM[IndPF]; j++)
 				PFToVeM[BlockStart+i*NfveMax+j] = GFToVe[PFToGFM[IndPF]*NfveMax+j];
-			}
 			PetscSortInt(PFNveM[IndPF],(int *)&PFToVeM[BlockStart+i*NfveMax]);
-			for (j = 0; j < PFNveS[IndPF]; j++) {
+
+			for (j = 0; j < PFNveS[IndPF]; j++)
 				PFToVeS[BlockStart+i*NfveMax+j] = GFToVe[PFToGFS[IndPF]*NfveMax+j];
-			}
 			PetscSortInt(PFNveS[IndPF],(int *)&PFToVeS[BlockStart+i*NfveMax]);
+
 			IndPF++;
 		}
 	}
 	free(PFToGFM);
 	free(PFToGFS);
 
-// array_print_i(NPFSum[d-1],NfveMax,PFToVeM,'R');
-// array_print_i(NPFSum[d-1],NfveMax,PFToVeS,'R');
+//array_print_ui(NPFSum[d-1],NfveMax,PFToVeM,'R');
+//array_print_ui(NPFSum[d-1],NfveMax,PFToVeS,'R');
+//array_print_ui(DB.NPVe,2,DB.PVe,'R');
 
 	// Make array of possible connections for each node
 	for (i = NPVeUnique = 1, IndU = 0; i < NPVe; i++) {
@@ -202,29 +202,27 @@ void setup_periodic()
 		IndPVe += j;
 	}
 
-// array_print_i(1,NPVeUnique,NConn,'R');
-// array_print_i(NPVeUnique,3,PConn,'R');
-// array_print_i(1,NPVeUnique,PVeUnique,'R');
+//array_print_ui(1,NPVeUnique,NConn,'R');
+//array_print_ui(NPVeUnique,3,PConn,'R');
+//array_print_ui(1,NPVeUnique,PVeUnique,'R');
 
 	// Find Corresponding Periodic Facets
 	for (dim = 0, BlockStart = 0, IndPFM = 0; dim < d; dim++) {
 		if (dim != 0)
 			BlockStart += NPF[dim-1]*NfveMax;
 
-		PFSFound = malloc(NPF[dim] * sizeof *PFSFound); // free
-		for (i = 0; i < NPF[dim]; i++)
-			PFSFound[i] = 0;
+		PFSFound = calloc(NPF[dim] , sizeof *PFSFound); // free
 		for (PFM = 0; PFM < NPF[dim]; PFM++) {
 			// For each periodic master facet, find the corresponding slave facet
 			NpveM = PFNveM[IndPFM];
 			veM = malloc(NpveM * sizeof *veM); // free
-			for (IndveM = 0; IndveM < NpveM; IndveM++) {
+			for (IndveM = 0; IndveM < NpveM; IndveM++)
 				veM[IndveM] = PFToVeM[IndPFM*NfveMax+IndveM];
-			}
 
 			veS = malloc(NpveM * sizeof *veS); // free
 			for (i = IndPFS = 0; i < dim; i++)
-				IndPFS += NPF[dim];
+				IndPFS += NPF[i];
+
 			for (PFS = 0; PFS < NPF[dim]; PFS++) {
 				if (PFNveS[IndPFS] != NpveM)
 					continue; // ensure that TRIs and QUADs are not paired.
@@ -368,5 +366,4 @@ void setup_periodic()
 
 	free(GFToRemove);
 	//free(DB.ETags); // No longer needed, but don't want this to be free only if periodic (ToBeModified)
-
 }
