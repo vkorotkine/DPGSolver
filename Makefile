@@ -22,11 +22,9 @@ STD_LIB = -lm
 
 # Machine dependent parameters
 KERNEL  := $(shell uname -s)
-MACHINE := $(shell uname -m)
 
 #all:
 #	@echo $(KERNEL)
-#	@echo ${MACHINE}
 
 # OSX
 ifeq ($(KERNEL),Darwin)
@@ -61,22 +59,42 @@ endif
 
 # LINUX
 ifeq ($(KERNEL),Linux)
-  PROG_PATH = /home/pzwan/programs
+  OS_RELEASE := $(shell uname -r)
+  ifeq ($(OS_RELEASE),4.4.0-21-generic) #Home
+    PROG_PATH = /home/philip/Desktop/research/programs
 
-  CC   = ${PROG_PATH}/petsc/petsc-3.6.3/arch-linux-mpich-c-opt/bin/mpicc -fopenmp -m64
+    CC   = ${PROG_PATH}/petsc/petsc-3.7.0/arch-linux-c-/bin/mpicc -fopenmp -m64
 
-  PETSC_DIR = ${PROG_PATH}/petsc-3.6.3
-  PETSC_ARCH = arch-linux-mpich-c-opt
+    PETSC_DIR = ${PROG_PATH}/petsc/petsc-3.7.0
+    PETSC_ARCH = arch-linux-c-
 
-  METIS_DIR = ${PROG_PATH}/parmetis-4.0.3/build/opt
-  METIS_INC      = -I${METIS_DIR}/metis/include
-  METIS_LDINC    = -L${METIS_DIR}/libmetis -lmetis
-  PARMETIS_INC   = -I${METIS_DIR}/include
-  PARMETIS_LDINC = -L${METIS_DIR}/libparmetis -lparmetis
+    METIS_DIR = ${PROG_PATH}/parmetis/parmetis-4.0.3/build/opt
+    METIS_INC      = -I${METIS_DIR}/metis/include
+    METIS_LDINC    = -L${METIS_DIR}/libmetis -lmetis
+    PARMETIS_INC   = -I${METIS_DIR}/include
+    PARMETIS_LDINC = -L${METIS_DIR}/libparmetis -lparmetis
 
-  MKL_DIR = /software/compilers/Intel/2015-15.0/composer_xe_2015.0.090/mkl
-  MKL_INC   = -I$(MKL_DIR)/include
-  MKL_LDINC = -Wl,--no-as-needed -L$(MKL_DIR)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lgomp
+    MKL_DIR = ${PROG_PATH}/intel/mkl
+    MKL_INC = -I${MKL_DIR}/include
+    MKL_LDINC = -Wl,--no-as-needed -L$(MKL_DIR)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lgomp
+  else #Guillimin
+    PROG_PATH = /home/pzwan/programs
+
+    CC   = ${PROG_PATH}/petsc/petsc-3.6.3/arch-linux-mpich-c-opt/bin/mpicc -fopenmp -m64
+
+    PETSC_DIR = ${PROG_PATH}/petsc-3.6.3
+    PETSC_ARCH = arch-linux-mpich-c-opt
+
+    METIS_DIR = ${PROG_PATH}/parmetis-4.0.3/build/opt
+    METIS_INC      = -I${METIS_DIR}/metis/include
+    METIS_LDINC    = -L${METIS_DIR}/libmetis -lmetis
+    PARMETIS_INC   = -I${METIS_DIR}/include
+    PARMETIS_LDINC = -L${METIS_DIR}/libparmetis -lparmetis
+
+    MKL_DIR = /software/compilers/Intel/2015-15.0/composer_xe_2015.0.090/mkl
+    MKL_INC   = -I$(MKL_DIR)/include
+    MKL_LDINC = -Wl,--no-as-needed -L$(MKL_DIR)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lgomp
+  endif
 endif
 
 PETSC_INC = -I PETSC_DIR/include ${PETSC_CC_INCLUDES}
@@ -106,8 +124,8 @@ OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 # Formatting for "rules" in makefiles is as follows:
 # 	target ... : prerequisites ...
-#   	recipe
-#   	...
+# 		recipe
+# 		...
 #
 # 	Note that a "tab" character must be placed before each line of the recipe
 #

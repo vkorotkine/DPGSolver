@@ -36,7 +36,7 @@ case ${KERNEL} in
 
 		PROG_DIR="/home/philip/Desktop/research/programs"
 		TOP_DIR="/home/philip/Desktop/research/codes/DPGSolver"
-		MPI_DIR="${PROG_DIR}/petsc/petsc-3.7.0/arch-linux-c-/bin/"
+		MPI_DIR="${PROG_DIR}/petsc-3.7.0/arch-linux-c-/bin/"
 		N_PROCS="1"
 
 		;;
@@ -58,6 +58,28 @@ case ${KERNEL} in
 	;;
 esac
 
+case "${OSTYPE}" in
+	*darwin*)
+		CODE_DIR="/Users/philipzwanenburg/Desktop/Research_Codes"
+		TOP_DIR="${CODE_DIR}/DPGC"
+		MPI_DIR="${CODE_DIR}/Downloaded/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/"
+		N_PROCS="1"
+		echo darwin
+
+		;;
+	*linux*)
+    PROG_DIR="/home/pzwan/programs"
+		TOP_DIR="/home/pzwan/Git/DPG"
+		MPI_DIR="${PROG_DIR}/petsc-3.6.3/arch-linux-mpich-c-opt/bin/"
+		#Make sure this is modified with "nodes" above
+		#N_PROCS="2"
+		N_PROCS="1"
+		echo linux
+
+		;;
+esac
+echo test
+
 if [ "$USE_VALGRIND" = "1" ]; then
   VALGRIND_OPTS="valgrind --track-origins=yes --leak-check=yes"
   #VALGRIND_OPTS="valgrind --track-origins=yes --leak-check=yes --leak-check=full --show-reachable=yes"
@@ -65,7 +87,11 @@ else
   VALGRIND_OPTS=""
 fi
 
-clear
+#clear
+
+echo test
+echo ${OS}
+echo "OS"
 
 cd ${TOP_DIR}/cases
 

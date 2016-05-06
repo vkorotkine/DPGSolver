@@ -143,9 +143,11 @@ void setup_geometry(void)
 
 				NCols = d*1;
 
+/*
 				for (i = 0; iMax = ELEMENT->ELEMENTclass[1]->NvnGs[0]; i < iMax; i++) {
 					mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnGc,NCols,NvnGs,1.0,I_vGs_vGc,XYZc[range],XYZsInter[range]);
 				}
+*/
 				// loop over NvnGs_TP: Multiply blocks (note: memory not continuous) of XYZc by I_vGs_vGc_TRI
 				// loop over NvnGc_TRI: Multiply blocks (note: memory not continuous) of above result by I_vGs_vGc_TP
 				// could also vectorize this (THINK if worthwhile)
@@ -157,8 +159,8 @@ void setup_geometry(void)
 		}
 		VOLUME->XYZs = XYZs;
 
-array_print_d(VOLUME->NvnG,d,VOLUME->XYZs,'C');
-exit(1);
+//array_print_d(VOLUME->NvnG,d,VOLUME->XYZs,'C');
+//exit(1);
 	}
 //exit(1);
 
