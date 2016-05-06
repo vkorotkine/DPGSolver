@@ -32,8 +32,8 @@ void setup_geometry(void)
 	int          PrintTesting = 0;
 
 	// Standard datatypes
-	unsigned int i, iMax, dim, P, vn,
-	             Vs, NvnG, NvnGs, NvnGc,
+	unsigned int i, dim, P, vn,
+	             Vs, NvnG, NvnGs, NvnGc, u1,
 	             NIn, NOut, NIn_SF[3], NOut_SF[3], NCols, Diag[3], NOut_Total;
 	double       *XYZc, *XYZs, *XYZ,
 	             *I_vGs_vGc, *Input_SF, *OP_SF[3];
@@ -41,6 +41,12 @@ void setup_geometry(void)
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME;
 
+	// silence
+	NvnGs = 0; NvnGc = 0;
+	XYZs = NULL;
+	I_vGs_vGc = NULL;
+
+	u1 = 1;
 	Vs = 0; for (i = 0; i < d; i++) Vs += NE[i];
 
 	// Modify vertex locations if exact geometry is known
@@ -61,8 +67,6 @@ void setup_geometry(void)
 		P    = VOLUME->P;
 		XYZc = VOLUME->XYZc;
 
-		XYZs = malloc(0 * sizeof *XYZs); // silence
-
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 		if (!VOLUME->curved) {
 			// If not curved, the P1 geometry representation suffices to fully specify the element geometry.
@@ -77,7 +81,6 @@ void setup_geometry(void)
 
 			VOLUME->NvnG = NvnG;
 
-			free(XYZs);
 			XYZs = malloc(NvnG*d * sizeof *XYZs); // keep
 			XYZ  = malloc(NvnG*d * sizeof *XYZ);  // keep
 			VOLUME->XYZs = XYZs;
@@ -96,28 +99,28 @@ void setup_geometry(void)
 				Input_SF = XYZc; // note multi column input
 
 				NIn = NvnGs;
-				for (dim = 0; dim < 3; dim++) {
-					if (dim < d) NIn_SF[dim] = NIn;
-					else         NIn_SF[dim] = 1;
-				}
-
 				NOut = NvnGc;
 				NOut_Total = 1;
 				for (dim = 0; dim < 3; dim++) {
-					if (dim < d) NOut_SF[dim] = NOut;
-					else         NOut_SF[dim] = 1;
+					if (dim < d) {
+						NIn_SF[dim]  = NIn;
+						NOut_SF[dim] = NOut;
+						OP_SF[dim] = I_vGs_vGc;
+						Diag[dim] = 0;
+					} else {
+						NIn_SF[dim]  = 1;
+						NOut_SF[dim] = 1;
+
+						OP_SF[dim] = NULL;
+						Diag[dim]  = 2;
+					}
 					NOut_Total *= NOut_SF[dim];
 				}
 
 				NCols    = d*1; // d coordinates * 1 element
-				OP_SF[0] = I_vGs_vGc;
-				OP_SF[1] = OP_SF[0];
-				OP_SF[2] = OP_SF[0];
-				for (i = 0; i < 3; i++) Diag[i] = 0;
 
 				VOLUME->NvnG = NOut_Total;
 
-				free(XYZs);
 				XYZs = malloc(NOut_Total*NCols * sizeof *XYZs); // keep
 				XYZ  = malloc(NOut_Total*NCols * sizeof *XYZ);  // keep
 				sf_apply_d(Input_SF,XYZs,NIn_SF,NOut_SF,NCols,OP_SF,Diag,d);
@@ -135,32 +138,44 @@ void setup_geometry(void)
 
 				mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnGc,NCols,NvnGs,1.0,I_vGs_vGc,XYZc,XYZs);
 			} else if (VOLUME->Eclass == C_WEDGE) {
-				array_print_d(6,d,XYZc,'C');
+				Input_SF = XYZc;
 
-				NvnGs = ELEMENT->ELEMENTclass[0]->NvnGs[0];
-				NvnGc = ELEMENT->ELEMENTclass[0]->NvnGc[P];
-				I_vGs_vGc = ELEMENT->ELEMENTclass[0]->I_vGs_vGc[P];
+				NOut_Total = 1;
+				for (dim = 0; dim < 3; dim++) {
+					if (dim == 0 || dim == 2) {
+						NIn_SF[dim]  = ELEMENT->ELEMENTclass[min(dim,u1)]->NvnGs[0];
+						NOut_SF[dim] = ELEMENT->ELEMENTclass[min(dim,u1)]->NvnGc[P];
 
-				NCols = d*1;
+						OP_SF[dim] = ELEMENT->ELEMENTclass[min(dim,u1)]->I_vGs_vGc[P];
+						Diag[dim]  = 0;
+					} else {
+						NIn_SF[dim]  = 1;
+						NOut_SF[dim] = 1;
 
-/*
-				for (i = 0; iMax = ELEMENT->ELEMENTclass[1]->NvnGs[0]; i < iMax; i++) {
-					mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnGc,NCols,NvnGs,1.0,I_vGs_vGc,XYZc[range],XYZsInter[range]);
+						OP_SF[dim] = NULL;
+						Diag[dim]  = 2;
+					}
+					NOut_Total  *= NOut_SF[dim];
 				}
-*/
-				// loop over NvnGs_TP: Multiply blocks (note: memory not continuous) of XYZc by I_vGs_vGc_TRI
-				// loop over NvnGc_TRI: Multiply blocks (note: memory not continuous) of above result by I_vGs_vGc_TP
-				// could also vectorize this (THINK if worthwhile)
+
+				NCols = d*1; // d coordinates * 1 element
+
+				VOLUME->NvnG = NOut_Total;
+
+				XYZs = malloc(NOut_Total*NCols * sizeof *XYZs); // keep
+				XYZ  = malloc(NOut_Total*NCols * sizeof *XYZ);  // keep
+				sf_apply_d(Input_SF,XYZs,NIn_SF,NOut_SF,NCols,OP_SF,Diag,d);
+
 
 				array_print_d(NvnGc,NvnGs,I_vGs_vGc,'R');
-				exit(1);
+				array_print_d(6,d,XYZc,'C');
 
 			}
 		}
 		VOLUME->XYZs = XYZs;
 
-//array_print_d(VOLUME->NvnG,d,VOLUME->XYZs,'C');
-//exit(1);
+array_print_d(VOLUME->NvnG,d,VOLUME->XYZs,'C');
+exit(1);
 	}
 //exit(1);
 

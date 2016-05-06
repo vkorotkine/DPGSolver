@@ -15,32 +15,6 @@
  *		ToBeModified.
  */
 
-void sf_operate_d(const int NOut, const int NCols, const int NIn, const int BRowMaxIn, double *OP, double *Input,
-                  double *Output)
-{
-	/*	Purpose:
-	 *		Perform the matrix-matrix operation required by sf_apply_*.
-	 *
-	 *	Comments:
-	 *		See the '*** IMPORTANT ***' comment in sf_apply_*.
-	 *		The 'register' prefix is likely unused here as a lot of work is done in the mm_* call.
-	 */
-
-	register unsigned IndIn, IndOut, stepIndIn, stepIndOut, BRowMax;
-
-	stepIndIn  = NIn*NCols;
-	stepIndOut = NOut*NCols;
-
-	IndIn  = 0;
-	IndOut = 0;
-	for (BRowMax = BRowMaxIn; BRowMax--; ) {
-		mm_CTN_d(NOut,NCols,NIn,OP,&Input[IndIn],&Output[IndOut]);
-
-		IndIn  += stepIndIn;
-		IndOut += stepIndOut;
-	}
-}
-
 void sf_swap_d(double *Input, const unsigned int dim, const unsigned int NIn, const unsigned int step,
                const unsigned int NRows, const unsigned int NCols,
                const unsigned int iBound, const unsigned int jBound, const unsigned int kBound,
@@ -72,6 +46,7 @@ void sf_swap_d(double *Input, const unsigned int dim, const unsigned int NIn, co
 
 			RowInd  = i*iStep+j+k*kStep;
 			ReOrder = i+lInput[j]+k*kStep;
+printf("%d %d %d %d %d\n",i,j,k,RowInd,ReOrder);
 
 			for (RowSub = ReOrder; RowlInput[RowSub] != ReOrder; RowSub = RowlInput[RowSub])
 				;
@@ -83,11 +58,24 @@ void sf_swap_d(double *Input, const unsigned int dim, const unsigned int NIn, co
 		}}}
 		break;
 	case 3:
-		for (i = 0, iMax = iBound; iMax--; i++) {
+array_print_ui(1,NIn,lInput,'R');
+array_print_ui(1,NRows,RowlInput,'R');
+printf("%d %d %d %d\n\n",jStep2,iBound,jBound,kBound);
+RowInd = 0;
 		for (j = 0, jMax = jBound; jMax--; j++) {
+		for (i = 0, iMax = iBound; iMax--; i++) {
 		for (k = 0, kMax = kBound; kMax--; k++) {
-			RowInd  = i*iStep+j*jStep1+k;
-			ReOrder = i+j*jStep2+lInput[k];
+if (kStep != 101) {
+			ReOrder = i+j*iBound+k*(iBound*jBound);
+} else {
+			ReOrder = i*(kBound*kBound)+j+k*kBound;
+}
+printf("%d %d %d %d %d\n",i,j,k,RowInd,ReOrder);
+/*
+To do:
+Input: Loop over i,j,k: ReOrder = i+j+k*(iBound*jBound)
+Output: Loop over k,i,j: ReOrder = (i+j)*kBound+k
+*/
 
 			for (RowSub = ReOrder; RowlInput[RowSub] != ReOrder; RowSub = RowlInput[RowSub])
 				;
@@ -96,6 +84,7 @@ void sf_swap_d(double *Input, const unsigned int dim, const unsigned int NIn, co
 				array_swap_d(&Input[RowInd],&Input[RowSub],NCols,NRows);
 				array_swap_ui(&RowlInput[RowInd],&RowlInput[RowSub],1,1);
 			}
+RowInd++;
 		}}}
 		break;
 	default:
@@ -114,6 +103,7 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 	 *
 	 *	Comments:
 	 *		*** IMPORTANT ***
+	 *
 	 *		It is assumed that the operators are stored in row major layout, while the input is stored in a column major
 	 *		layout. This has several advantages despite the obvious disadvantage of being atypical and potentially
 	 *		confusing:
@@ -124,6 +114,10 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 	 *			   calls using the CblasColMajor layout results in the output being stored in continuous memory for each
 	 *			   element. This results in greatly reduced memory stride when distributing the output back to the
 	 *			   VOLUME/FACET structures.
+	 *
+	 *		After the swapping is performed, note that applying the operator in a loop over the blocks of Input is the
+	 *		same as interpretting the results as applying the operator to a matrix where each column is a block.
+	 *
 	 *		*** IMPORTANT ***
 	 *
 	 *		For the moment, the routine is only implemented using the new non-redundant approach. (ToBeModified)
@@ -185,12 +179,12 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 		Output_Inter[Indd] = malloc(NRows_Out[Indd]*NCols * sizeof *Output_Inter[Indd]); // free
 
 	if (NonRedundant[Indd]) {
-		sf_operate_d(NOut[Indd],NCols,NIn[Indd],BRows[Indd],OP[Indd],Input,Output_Inter[Indd]);
+		mm_CTN_d(NOut[Indd],NCols*BRows[Indd],NIn[Indd],OP[Indd],Input,Output_Inter[Indd]);
 	} else {
 		for (i = 0, iMax = NRows_Out[Indd]*NCols; i < iMax; i++)
 			Output_Inter[Indd][i] = Input[i];
 	}
-//array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
+array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
 
 	if (d == 1) {
 		free(Output_Inter);
@@ -208,8 +202,10 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 	if (NonRedundant[Indd]) {
 		sf_swap_d(Output_Inter[Indd-1],Indd+1,NIn[Indd],NOut[0],NRows_Out[Indd-1],NCols,
 		          NOut[0],NIn[1],NIn[2],NIn[1],0,0,NIn[1]*NOut[0]);
+array_print_d(NRows_Out[Indd-1],NCols,Output_Inter[Indd-1],'C');
 
-		sf_operate_d(NOut[Indd],NCols,NIn[Indd],BRows[Indd],OP[Indd],Output_Inter[Indd-1],Output_Inter[Indd]);
+		mm_CTN_d(NOut[Indd],NCols*BRows[Indd],NIn[Indd],OP[Indd],Output_Inter[Indd-1],Output_Inter[Indd]);
+array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
 
 		sf_swap_d(Output_Inter[Indd],Indd+1,NOut[Indd],NOut[0],NRows_Out[Indd],NCols,
 		          NOut[0],NOut[1],NIn[2],NOut[1],0,0,NOut[1]*NOut[0]);
@@ -218,7 +214,7 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 			Output_Inter[Indd][i] = Output_Inter[Indd-1][i];
 	}
 	free(Output_Inter[Indd-1]);
-//array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
+array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
 
 	if (d == 2) {
 		free(Output_Inter);
@@ -231,19 +227,33 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 	Output_Inter[Indd] = Output;
 
 	if (NonRedundant[Indd]) {
+printf("%d %d %d %d %d %d %d %d %d %d\n",
+//       NIn[Indd],NOut[0]*NOut[1],NRows_Out[Indd-1],NCols,NOut[0],NOut[1],NIn[2],NOut[1]*NIn[2],NIn[2],NOut[0]);
+//		sf_swap_d(Output_Inter[Indd-1],Indd+1,NIn[Indd],NOut[0]*NOut[1],NRows_Out[Indd-1],NCols,
+//		          NOut[0],NOut[1],NIn[2],NOut[1]*NIn[2],NIn[2],NOut[0],0);
+       NIn[Indd],NOut[0]*NOut[1],NRows_Out[Indd-1],NCols,NOut[0],NOut[1],NIn[2],NOut[1]*NIn[2],NIn[2],NOut[0]);
 		sf_swap_d(Output_Inter[Indd-1],Indd+1,NIn[Indd],NOut[0]*NOut[1],NRows_Out[Indd-1],NCols,
 		          NOut[0],NOut[1],NIn[2],NOut[1]*NIn[2],NIn[2],NOut[0],0);
+array_print_d(NRows_Out[Indd-1],NCols,Output_Inter[Indd-1],'C');
 
-		sf_operate_d(NOut[Indd],NCols,NIn[Indd],BRows[Indd],OP[Indd],Output_Inter[Indd-1],Output_Inter[Indd]);
+		mm_CTN_d(NOut[Indd],NCols*BRows[Indd],NIn[Indd],OP[Indd],Output_Inter[Indd-1],Output_Inter[Indd]);
+array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
 
+printf("%d %d %d %d %d %d %d %d %d %d\n",
+       NOut[Indd],NOut[0]*NOut[1],NRows_Out[Indd],NCols,NOut[0],NOut[1],NOut[2],NOut[1]*NOut[2],NOut[2],NOut[0]);
+//		sf_swap_d(Output_Inter[Indd],Indd+1,NOut[Indd],NOut[0]*NOut[1],NRows_Out[Indd],NCols,
+//		          NOut[0],NOut[1],NOut[2],NOut[1]*NOut[2],NOut[2],NOut[0],0);
+printf("%d %d %d %d %d %d %d %d %d %d\n",
+       NOut[Indd],NOut[0]*NOut[1],NRows_Out[Indd],NCols,NOut[0],NOut[1],NOut[2],NOut[1]*NOut[2],1,NOut[0]);
 		sf_swap_d(Output_Inter[Indd],Indd+1,NOut[Indd],NOut[0]*NOut[1],NRows_Out[Indd],NCols,
-		          NOut[0],NOut[1],NOut[2],NOut[1]*NOut[2],NOut[2],NOut[0],0);
+		          NOut[0],NOut[1],NOut[2],NOut[1]*NOut[2],NOut[2],NOut[0],101);
 	} else {
 		for (i = 0, iMax = NRows_Out[Indd]*NCols; i < iMax; i++)
 			Output_Inter[Indd][i] = Output_Inter[Indd-1][i];
 	}
 	free(Output_Inter[Indd-1]);
-//array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
+array_print_d(NRows_Out[Indd],NCols,Output_Inter[Indd],'C');
+exit(1);
 
 	free(Output_Inter);
 }

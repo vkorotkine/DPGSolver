@@ -61,8 +61,8 @@ extern void     vertices_to_exact_geom      (void);
 extern void     setup_ToBeCurved            (void);
 
 // Sum Factorization
-extern void sf_operate_d (const int NOut, const int NCols, const int NIn, const int BRowMaxIn, double *OP,
-                          double *Input, double *Output);
+extern void sf_operate_d (const unsigned int NOut, const unsigned int NCols, const unsigned int NIn,
+                          const unsigned int BRowMaxIn, double *OP, double *Input, double *Output);
 extern void sf_swap_d    (double *Input, const unsigned int dim, const unsigned int NIn, const unsigned int step,
                           const unsigned int NRows, const unsigned int NCols, const unsigned int iBound,
                           const unsigned int jBound, const unsigned int kBound, const unsigned int iStep,

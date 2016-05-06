@@ -20,14 +20,14 @@ USE_VALGRIND="0"
 
 KERNEL=$(uname -s)
 case ${KERNEL} in
-*darwin*)
+*arwin*)
 	CODE_DIR="/Users/philipzwanenburg/Desktop/Research_Codes"
 	TOP_DIR="${CODE_DIR}/DPGC"
 	MPI_DIR="${CODE_DIR}/Downloaded/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/"
 	N_PROCS="1"
 
 	;;
-*Linux*)
+*inux*)
 	OS_RELEASE=$(uname -r)
 	case ${OS_RELEASE} in
 	*4.4.0-21-generic*)
@@ -50,10 +50,6 @@ case ${KERNEL} in
 
 		;;
 	esac
-
-	;;
-*linux*)
-	echo linux not Linux? move guillimin stuff here
 
 	;;
 esac

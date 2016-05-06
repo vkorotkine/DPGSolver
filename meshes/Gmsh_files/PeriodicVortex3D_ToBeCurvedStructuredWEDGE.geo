@@ -65,9 +65,9 @@ Plane Surface(6001) = {6001};
 Plane Surface(6002) = {6002};
 
 Transfinite Surface {4001:4002,5001:5002,6001:6002};
-Recombine   Surface {4001:4002};
+//Recombine   Surface {4001:4002};
 Recombine   Surface {5001:5002};
-//Recombine   Surface {6001:6002};
+Recombine   Surface {6001:6002};
 
 Surface Loop (7001) = {4001:4002,5001:5002,6001:6002};
 
