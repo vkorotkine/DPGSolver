@@ -427,9 +427,9 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		for (j = 0, jMax = P; j < jMax; j++) {
 		for (i = 0, iMax = NEOut/P; i < iMax; i++) {
 			for (k = 0; k < 3; k++)
-				connectOut[row*8+k] = connect_TRI[i*8+k] + 10*j;
+				connectOut[row*8+k] = connect_TRI[i*8+k] + Nn_TRI*j;
 			for (k = 0; k < 3; k++)
-				connectOut[row*8+3+k] = connect_TRI[i*8+k] + 10*(j+1);
+				connectOut[row*8+3+k] = connect_TRI[i*8+k] + Nn_TRI*(j+1);
 
 			row++;
 		}}

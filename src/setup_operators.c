@@ -377,4 +377,11 @@ void setup_operators(void)
 		setup_ELEMENT_operators(EType);
 
 	}
+
+	// WEDGE
+	EType = WEDGE;
+	if (is_ELEMENT_present(EType)) {
+		setup_ELEMENT_plotting(EType);
+
+	}
 }

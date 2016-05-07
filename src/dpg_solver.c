@@ -148,6 +148,7 @@ int main(void)
 	test_imp_grad_basis_SI();
 	test_imp_grad_basis_PYR();
 
+	test_imp_sum_factorization();
 	test_imp_plotting();
 
 	te = clock();

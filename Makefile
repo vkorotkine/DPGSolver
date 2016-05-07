@@ -175,3 +175,7 @@ $(EXECDIR):
 .PHONY : clean
 clean:
 	rm $(EXECUTABLE) $(OBJECTS)
+
+.PHONY : clean_exec
+clean_exec:
+	rm $(OBJDIR)/dpg_solver.o

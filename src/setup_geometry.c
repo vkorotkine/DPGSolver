@@ -105,8 +105,9 @@ void setup_geometry(void)
 					if (dim < d) {
 						NIn_SF[dim]  = NIn;
 						NOut_SF[dim] = NOut;
+
 						OP_SF[dim] = I_vGs_vGc;
-						Diag[dim] = 0;
+						Diag[dim]  = 0;
 					} else {
 						NIn_SF[dim]  = 1;
 						NOut_SF[dim] = 1;
@@ -165,17 +166,12 @@ void setup_geometry(void)
 				XYZs = malloc(NOut_Total*NCols * sizeof *XYZs); // keep
 				XYZ  = malloc(NOut_Total*NCols * sizeof *XYZ);  // keep
 				sf_apply_d(Input_SF,XYZs,NIn_SF,NOut_SF,NCols,OP_SF,Diag,d);
-
-
-				array_print_d(NvnGc,NvnGs,I_vGs_vGc,'R');
-				array_print_d(6,d,XYZc,'C');
-
 			}
 		}
 		VOLUME->XYZs = XYZs;
 
-array_print_d(VOLUME->NvnG,d,VOLUME->XYZs,'C');
-exit(1);
+//array_print_d(VOLUME->NvnG,d,VOLUME->XYZs,'C');
+//exit(1);
 	}
 //exit(1);
 

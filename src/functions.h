@@ -63,10 +63,9 @@ extern void     setup_ToBeCurved            (void);
 // Sum Factorization
 extern void sf_operate_d (const unsigned int NOut, const unsigned int NCols, const unsigned int NIn,
                           const unsigned int BRowMaxIn, double *OP, double *Input, double *Output);
-extern void sf_swap_d    (double *Input, const unsigned int dim, const unsigned int NIn, const unsigned int step,
-                          const unsigned int NRows, const unsigned int NCols, const unsigned int iBound,
-                          const unsigned int jBound, const unsigned int kBound, const unsigned int iStep,
-                          const unsigned int jStep1, const unsigned int jStep2, const unsigned int kStep);
+extern void sf_swap_d    (double *Input, const unsigned int NRows, const unsigned int NCols,
+                          const unsigned int iBound, const unsigned int jBound, const unsigned int kBound,
+                          const unsigned int iStep, const unsigned int jStep, const unsigned int kStep);
 extern void sf_apply_d   (double *Input, double *Output, const unsigned int NIn[3], const unsigned int NOut[3],
                           const unsigned int NCols, double *OP[3], const unsigned int Diag[3], const unsigned int d);
 

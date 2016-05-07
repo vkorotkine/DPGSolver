@@ -72,15 +72,21 @@ static void output_geom()
 
 	// standard datatypes
 	char MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
-	unsigned int i, iMax, j, jMax, dim, sum,
+	unsigned int i, iMax, j, jMax, dim, sum, u1,
 	             P, NE, NvnP, NvnG, NIn, NOut, NOut_Total, NCols,
 				 NIn_SF[3], NOut_SF[3], Diag[3],
 	             *connectivity, *types, *VTK_Ncorners;
 	double *I_vG_vP, *XYZ_vP, *Input_SF, *OP_SF[3];
 	FILE *fID;
 
-	struct S_ELEMENT *ELEMENT, *ELEMENT_class[2];
+	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME *VOLUME;
+
+	// silence
+	NvnP = 0;
+	XYZ_vP = NULL;
+
+	u1 = 1;
 
 	sprintf(MPIrank_c,"%d",MPIrank);
 	strcpy(f_name,TestCase);
@@ -150,39 +156,39 @@ static void output_geom()
 		P = VOLUME->P;
 
 		if (VOLUME->Eclass == C_TP) {
-			ELEMENT_class[0] = get_ELEMENT_Eclass(ELEMENT->type,0);
-
-			NvnP         = ELEMENT_class[0]->NvnP;
+			NvnP         = ELEMENT->ELEMENTclass[0]->NvnP;
 
 			if (!VOLUME->curved) {
-				NvnG = ELEMENT_class[0]->NvnGs[0];
-				I_vG_vP = ELEMENT_class[0]->I_vGs_vP[0];
+				NvnG = ELEMENT->ELEMENTclass[0]->NvnGs[0];
+				I_vG_vP = ELEMENT->ELEMENTclass[0]->I_vGs_vP[0];
 			} else {
-				NvnG = ELEMENT_class[0]->NvnGc[P];
-				I_vG_vP = ELEMENT_class[0]->I_vGc_vP[P];
+				NvnG = ELEMENT->ELEMENTclass[0]->NvnGc[P];
+				I_vG_vP = ELEMENT->ELEMENTclass[0]->I_vGc_vP[P];
 			}
 
 			Input_SF = VOLUME->XYZs;
 
 			NIn = NvnG;
-			for (dim = 0; dim < 3; dim++) {
-				if (dim < d) NIn_SF[dim] = NIn;
-				else         NIn_SF[dim] = 1;
-			}
-			
 			NOut = NvnP;
 			NOut_Total = 1;
 			for (dim = 0; dim < 3; dim++) {
-				if (dim < d) NOut_SF[dim] = NOut;
-				else         NOut_SF[dim] = 1;
+				if (dim < d) {
+					NIn_SF[dim]  = NIn;
+					NOut_SF[dim] = NOut;
+
+					OP_SF[dim] = I_vG_vP;
+					Diag[dim]  = 0;
+				} else {
+					NIn_SF[dim]  = 1;
+					NOut_SF[dim] = 1;
+
+					OP_SF[dim] = NULL;
+					Diag[dim] = 2;
+				}
 				NOut_Total *= NOut_SF[dim];
 			}
-
+			
 			NCols = d*1; // d coordinates * 1 element
-			OP_SF[0] = I_vG_vP;
-			OP_SF[1] = OP_SF[0];
-			OP_SF[2] = OP_SF[0];
-			for (dim = 0; dim < 3; dim++) Diag[dim] = 0;
 
 			XYZ_vP = malloc(NOut_Total*NCols * sizeof *XYZ_vP); // free
 			sf_apply_d(Input_SF,XYZ_vP,NIn_SF,NOut_SF,NCols,OP_SF,Diag,d);
@@ -205,9 +211,40 @@ static void output_geom()
 
 
 			XYZ_vP = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnP,d,NvnG,1.0,I_vG_vP,VOLUME->XYZs); // free
-		} else {
-			printf("Add support: output_to_paraview (XYZ_vP)\n");
-			exit(1);
+		} else if (VOLUME->Eclass == C_WEDGE) {
+			Input_SF = VOLUME->XYZs;
+
+			NOut_Total = 1;
+			for (dim = 0; dim < 3; dim++) {
+				if (dim == 0 || dim == 2) {
+					if (!VOLUME->curved) {
+						NvnG = ELEMENT->ELEMENTclass[min(dim,u1)]->NvnGs[0];
+						I_vG_vP = ELEMENT->ELEMENTclass[min(dim,u1)]->I_vGs_vP[0];
+					} else {
+						NvnG = ELEMENT->ELEMENTclass[min(dim,u1)]->NvnGc[P];
+						I_vG_vP = ELEMENT->ELEMENTclass[min(dim,u1)]->I_vGc_vP[P];
+					}
+					NIn_SF[dim]  = NvnG;
+					NOut_SF[dim] = ELEMENT->ELEMENTclass[min(dim,u1)]->NvnP;
+
+					OP_SF[dim] = I_vG_vP;
+					Diag[dim] = 0;
+				} else {
+					NIn_SF[dim]  = 1;
+					NOut_SF[dim] = 1;
+
+					OP_SF[dim] = NULL;
+					Diag[dim] = 2;
+				}
+				NOut_Total *= NOut_SF[dim];
+			}
+
+			NCols = d*1; // d coordinates * 1 element
+
+			XYZ_vP = malloc(NOut_Total*NCols * sizeof *XYZ_vP); // free
+			sf_apply_d(Input_SF,XYZ_vP,NIn_SF,NOut_SF,NCols,OP_SF,Diag,d);
+
+			NvnP = NOut_Total;
 		}
 
 //array_print_d(NvnP,d,XYZ_vP,'C');
