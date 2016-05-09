@@ -88,6 +88,7 @@ void vertices_to_exact_geom(void)
 
 double f_gaussian_bump(const double x, const double y, const unsigned int d)
 {
+	// ToBeModified: Note that this function is replicated in EvalTPFunction
 	double a, b, c;
 
 	if (d == 2) {

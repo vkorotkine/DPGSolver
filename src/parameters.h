@@ -34,7 +34,7 @@
 #define C_WEDGE 3
 
 // Node Tolerance (for physical coordinate comparison)
-#define NODETOL      1.0e-12
+#define NODETOL      1.0e-10
 #define NODETOL_MESH 1.0e-5
 
 // Value close to double machine zero
@@ -49,6 +49,7 @@
 #define max(a,b) ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _a : _b; })
 #define min(a,b) ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a < _b ? _a : _b; })
 
+#define sign(a) ({ __typeof__ (a) _a = (a); (_a > 0) ? 1 : ((_a < 0) ? -1 : 0); })
 
 
 

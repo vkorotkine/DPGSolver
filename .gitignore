@@ -8,6 +8,9 @@ src/*.swp
 meshes/PeriodicVortex/*
 meshes/VortexRiemann/*
 meshes/SupersonicVortex/*
+meshes/dSphericalBump/*
+meshes/GaussianBump/*
+meshes/PolynomialBump/*
 cases/*.swp
 cases/logfile
 cases/errorfile*

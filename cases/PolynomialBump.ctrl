@@ -5,9 +5,10 @@
 /*------------------------------------------------------------*/
 
 BEGIN PARAMETERS
-  Dimension  3
+  Dimension  2
   ML         0
-  MeshType   ToBeCurvedStructuredWEDGE
+  MeshType   ToBeCurvedStructuredQUAD
+  BumpOrder  4 2
 
   Form       Weak  // Options: Weak, Strong
   NodeType   GL-AO // Options: GL/GLL-AO/WS/SH

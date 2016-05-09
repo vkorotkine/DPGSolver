@@ -173,20 +173,28 @@ void setup_geometry(void)
 //array_print_d(VOLUME->NvnG,d,VOLUME->XYZs,'C');
 //exit(1);
 	}
-//exit(1);
 
 	if (Testing) {
 		// Output straight coordinates to paraview
-		output_to_paraview('G');
+		output_to_paraview("Geom_straight");
 	}
 
 	// Set up curved geometry nodes
 	if (strstr(MeshType,"ToBeCurved") != NULL) {
 		printf("    Modify vertex nodes of ToBeCurved Mesh\n");
-		setup_ToBeCurved();
+		// The loop is placed outside of the function as the same function is used to update individual VOLUMEs after
+		// refinement.
+		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
+			setup_ToBeCurved(VOLUME);
+
 	} else {
 		printf("Add in support for MeshType != ToBeCurved");
 		exit(1);
+	}
+
+	if (Testing) {
+		// Output curved coordinates to paraview
+		output_to_paraview("Geom_curved");
 	}
 
 
@@ -212,6 +220,7 @@ void setup_geometry(void)
 
 
 	// Performing analytical mesh curving if MeshType == ToBeCurved
+	// I don't think that this is needed (ToBeDeleted)
 	if (strstr(MeshType,"ToBeCurved") != NULL) {
 		printf("    Modify Vertex and VOLUME Nodes of ToBeCurved Mesh\n");
 	}

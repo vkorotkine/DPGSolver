@@ -1,6 +1,7 @@
 #ifndef DPG__functions_h__INCLUDED
 #define DPG__functions_h__INCLUDED
 
+#include "database.h"
 #include "mkl.h"
 
 /*
@@ -58,7 +59,7 @@ extern double     grad_jacobiP              (const double x, const double alpha,
 extern void   setup_structures              (void);
 extern void   setup_geometry                (void);
 extern void     vertices_to_exact_geom      (void);
-extern void     setup_ToBeCurved            (void);
+extern void     setup_ToBeCurved            (struct S_VOLUME *VOLUME);
 
 // Sum Factorization
 extern void sf_operate_d (const unsigned int NOut, const unsigned int NCols, const unsigned int NIn,
@@ -70,7 +71,7 @@ extern void sf_apply_d   (double *Input, double *Output, const unsigned int NIn[
                           const unsigned int NCols, double *OP[3], const unsigned int Diag[3], const unsigned int d);
 
 // Plotting
-extern void output_to_paraview    (const char OutputType);
+extern void output_to_paraview    (const char *OutputType);
 extern void plotting_element_info (double **rst, unsigned int **connect, unsigned int **types, unsigned int *Nn,
                                    unsigned int *NE, const unsigned int P, const unsigned int typeIn);
 

@@ -25,7 +25,8 @@
  *
  *			For the code to properly recognize and match corresponding periodic vertices, it is necessary to follow the
  *			format specified below for the definition of Points, Lines, Surfaces, and Volumes in gmsh. This is not
- *			required when periodicity is not present.
+ *			required when periodicity is not present. In this case, Lines and Surfaces are generally defined with
+ *			arbitrary numbering within the appropriate range.
  *
  *			Numbering (Geometry) :
  *

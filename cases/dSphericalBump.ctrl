@@ -7,7 +7,7 @@
 BEGIN PARAMETERS
   Dimension  3
   ML         0
-  MeshType   ToBeCurvedStructuredWEDGE
+  MeshType   ToBeCurvedStructuredTET
 
   Form       Weak  // Options: Weak, Strong
   NodeType   GL-AO // Options: GL/GLL-AO/WS/SH

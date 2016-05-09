@@ -73,9 +73,10 @@ void initialization(int nargc, char **argv)
 	// Set DB Parameters
 	//DB.t_par      = 0; // ToBeModified (Likely initialize all times needed here)
 
-	char *TestCase, *MeshType, *Form, *NodeType, *BasisType, *MeshFile, *ControlFile, *StringRead, *dummys, *MeshPath,
-	     *d, *ML;
-	FILE *fID;
+	char         *TestCase, *MeshType, *Form, *NodeType, *BasisType, *MeshFile, *ControlFile, *StringRead, *dummys,
+	             *MeshPath, *d, *ML;
+	unsigned int *BumpOrder;
+	FILE         *fID;
 
 	// Check for presence of '.ctrl' file name input
 	TestCase  = malloc(STRLEN_MAX * sizeof *TestCase); // keep
@@ -99,6 +100,8 @@ void initialization(int nargc, char **argv)
 	d         = malloc(STRLEN_MIN * sizeof *d);        // free
 	ML        = malloc(STRLEN_MIN * sizeof *ML);       // free
 
+	BumpOrder = calloc(2          , sizeof *BumpOrder); // keep
+
 	// Open control file
 	strcpy(ControlFile,TestCase);
 	strcat(ControlFile,".ctrl");
@@ -106,12 +109,13 @@ void initialization(int nargc, char **argv)
 	if ((fID = fopen(ControlFile,"r")) == NULL)
 		printf("Error: Control file: %s not present.\n",ControlFile), exit(1);
 	free(ControlFile);
-
+	
 	while(fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 
 		if (strstr(StringRead,"Dimension")  != NULL) sscanf(StringRead,"%s %d",dummys,&DB.d);
 		if (strstr(StringRead,"ML")         != NULL) sscanf(StringRead,"%s %d",dummys,&DB.ML);
 		if (strstr(StringRead,"MeshType")   != NULL) sscanf(StringRead,"%s %s",dummys,MeshType);
+		if (strstr(StringRead,"BumpOrder")  != NULL) sscanf(StringRead,"%s %d %d",dummys,&BumpOrder[0],&BumpOrder[1]);
 		if (strstr(StringRead,"Form")       != NULL) sscanf(StringRead,"%s %s",dummys,Form);
 		if (strstr(StringRead,"NodeType")   != NULL) sscanf(StringRead,"%s %s",dummys,NodeType);
 		if (strstr(StringRead,"BasisType")  != NULL) sscanf(StringRead,"%s %s",dummys,BasisType);
@@ -157,6 +161,7 @@ void initialization(int nargc, char **argv)
 	DB.NodeType  = NodeType;
 	DB.BasisType = BasisType;
 	DB.MeshFile  = MeshFile;
+	DB.BumpOrder = BumpOrder;
 
 	// Print some information
 	if (!DB.MPIrank) {

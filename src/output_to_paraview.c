@@ -62,7 +62,7 @@ static void fprintf_tn(FILE *fID, unsigned int Ntabs, const char *String)
 	fprintf(fID,"%s\n",String);
 }
 
-static void output_geom()
+static void output_geom(const char *geom_type)
 {
 	// Initialize database parameters
 	char         *TestCase = DB.TestCase;
@@ -76,7 +76,7 @@ static void output_geom()
 	             P, NE, NvnP, NvnG, NIn, NOut, NOut_Total, NCols,
 				 NIn_SF[3], NOut_SF[3], Diag[3],
 	             *connectivity, *types, *VTK_Ncorners;
-	double *I_vG_vP, *XYZ_vP, *Input_SF, *OP_SF[3];
+	double *I_vG_vP, *XYZ_vP, *Input, *Input_SF, *OP_SF[3];
 	FILE *fID;
 
 	struct S_ELEMENT *ELEMENT;
@@ -127,13 +127,6 @@ static void output_geom()
 		fclose(fID);
 	}
 
-	/* To Do:
-	 * Make a mixed ToBeCurved mesh in gmsh and
-	 * run it through the setup_ToBeCurved. Then output to paraview and make sure that all is working correctly. Note
-	 * the cubature_ES should also output a vector of element types matching the connectivity (required especially for
-	 * TET/PYR).
-	 */
-
 	strcpy(f_serial,"paraview/");
 	strcat(f_serial,f_name);
 	strcat(f_serial,MPIrank_c);
@@ -166,7 +159,10 @@ static void output_geom()
 				I_vG_vP = ELEMENT->ELEMENTclass[0]->I_vGc_vP[P];
 			}
 
-			Input_SF = VOLUME->XYZs;
+			if (strstr(geom_type,"straight") != NULL)
+				Input_SF = VOLUME->XYZs;
+			else
+				Input_SF = VOLUME->XYZ;
 
 			NIn = NvnG;
 			NOut = NvnP;
@@ -203,16 +199,17 @@ static void output_geom()
 			else
 				I_vG_vP = ELEMENT->I_vGc_vP[P];
 
-			if (VOLUME->indexg == 0)
-				array_print_d(NvnP,NvnG,I_vG_vP,'R');
+			if (strstr(geom_type,"straight") != NULL)
+				Input = VOLUME->XYZs;
+			else
+				Input = VOLUME->XYZ;
 
-			printf("%d\n",VOLUME->indexg);
-			array_print_d(NvnG,d,VOLUME->XYZs,'C');
-
-
-			XYZ_vP = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnP,d,NvnG,1.0,I_vG_vP,VOLUME->XYZs); // free
+			XYZ_vP = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnP,d,NvnG,1.0,I_vG_vP,Input); // free
 		} else if (VOLUME->Eclass == C_WEDGE) {
-			Input_SF = VOLUME->XYZs;
+			if (strstr(geom_type,"straight") != NULL)
+				Input_SF = VOLUME->XYZs;
+			else
+				Input_SF = VOLUME->XYZ;
 
 			NOut_Total = 1;
 			for (dim = 0; dim < 3; dim++) {
@@ -329,9 +326,9 @@ static void output_geom()
 	fclose(fID);
 }
 
-void output_to_paraview(const char OutputType)
+void output_to_paraview(const char *OutputType)
 {
-	if (OutputType == 'G')
-		output_geom();
+	if (strstr(OutputType,"Geom") != NULL)
+		output_geom(OutputType);
 
 }
