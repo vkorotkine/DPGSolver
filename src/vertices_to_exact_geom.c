@@ -92,6 +92,7 @@ double f_gaussian_bump(const double x, const double y, const unsigned int d)
 	double a, b, c;
 
 	if (d == 2) {
+		printf("Make sure that the same bump parameters are being used across all functions. Exiting.\n"), exit(1);
 		// use y when d = 2 to eliminate compiler warning
 		a = y;
 

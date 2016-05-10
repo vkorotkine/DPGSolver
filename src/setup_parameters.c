@@ -141,7 +141,7 @@ void setup_parameters()
 	if (DB.P == 0)
 		DB.PP = DB.P+1;
 	else
-		DB.PP = 2; // ToBeModified: max(4-ML,DB.P);
+		DB.PP = 4; // ToBeModified: max(4-ML,DB.P);
 
 	// Geometry
 	PGs = 1;
@@ -157,7 +157,7 @@ void setup_parameters()
 
 	for (i = 0; i < NEC; i++)
 		NodeTypeG[i] = malloc(STRLEN_MIN * sizeof **NodeTypeG); // keep
-	
+
 	strcpy(NodeTypeG[0],"GLL");
 	strcpy(NodeTypeG[1],"AO");
 	strcpy(NodeTypeG[2],"GLL");

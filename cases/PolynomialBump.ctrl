@@ -5,10 +5,10 @@
 /*------------------------------------------------------------*/
 
 BEGIN PARAMETERS
-  Dimension  2
-  ML         0
-  MeshType   ToBeCurvedStructuredQUAD
-  BumpOrder  4 2
+  Dimension  3
+  ML         1
+  MeshType   ToBeCurvedStructuredHEX
+  BumpOrder  2 2   // Options: (2 0), (2 1), (2 2), (4 arbitrary)
 
   Form       Weak  // Options: Weak, Strong
   NodeType   GL-AO // Options: GL/GLL-AO/WS/SH

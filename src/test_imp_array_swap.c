@@ -16,7 +16,6 @@
  *	References:
  */
 
-
 void test_imp_array_swap(void)
 {
 	unsigned int pass;

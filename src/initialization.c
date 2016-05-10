@@ -10,6 +10,9 @@
  *		Declare global variables and read in parameters from the '.ctrl' file.
  *
  *	Comments:
+ *		For the PolynomialBump test case, it is advantageous to use BumpOrder = {2,2} as opposed to {4,0} despite each
+ *		of them having identical C1 smoothness because the arc length can be computed analytically for polynomials of
+ *		order 2 or less, which is much faster.
  *
  *	Notation:
  *
@@ -17,6 +20,10 @@
  *			Dimension  : d = 1-3
  *			ML         : (M)esh (L)evel - Uniform refinement level from base mesh (ML = 0)
  *			MeshType   : Specifies element types used and if the mesh is 'ToBeCurved' in setup_geometry.c
+ *			BumpOrder  : Specifies polynomial order of "Bumps" along the lower surface of the domain for the
+ *			             PolynomialBump test case. The two orders correspond to the two adjacent regions moving away
+ *			             from the origin.
+ *			             Options: {2 0}, {2 1}, {2 2}, {4 0}
  *
  *			Form       : Form of the equations (i.e. how many times they are itnegrated by parts)
  *			             Options: Weak
@@ -27,7 +34,6 @@
  *			                      (SI)mplex         : (A)lpha(O)ptimized
  *			                                          (W)illiams(S)hun - 2D
  *			                                          (S)hun(H)am      - 3D
- *			                                          Keast (ToBeModified)
  *			                      WEDGE             : Combination of TP and SI nodes
  *			                      (PYR)amid         : ToBeModified
  *			BasisType  : Type of basis functions

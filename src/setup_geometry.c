@@ -181,7 +181,7 @@ void setup_geometry(void)
 
 	// Set up curved geometry nodes
 	if (strstr(MeshType,"ToBeCurved") != NULL) {
-		printf("    Modify vertex nodes of ToBeCurved Mesh\n");
+		printf("    Set geometry of VOLUME nodes in ToBeCurved Mesh\n");
 		// The loop is placed outside of the function as the same function is used to update individual VOLUMEs after
 		// refinement.
 		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
@@ -197,6 +197,7 @@ void setup_geometry(void)
 		output_to_paraview("Geom_curved");
 	}
 
+	// Start on setup_geom_factors
 
 
 
@@ -216,14 +217,6 @@ void setup_geometry(void)
 	 *       to have been made in Solomonoff(1992)-A_Fast_Algorithm_for_Spectral_Differentiation, although he does not
 	 *       seem to have considered the interpolation.
 	 */
-
-
-
-	// Performing analytical mesh curving if MeshType == ToBeCurved
-	// I don't think that this is needed (ToBeDeleted)
-	if (strstr(MeshType,"ToBeCurved") != NULL) {
-		printf("    Modify Vertex and VOLUME Nodes of ToBeCurved Mesh\n");
-	}
 
 
 }

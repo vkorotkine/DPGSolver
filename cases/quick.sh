@@ -15,6 +15,7 @@ LOGFILE="logfile"
 #TESTCASE="SupersonicVortex"
 #TESTCASE="dSphericalBump"
 TESTCASE="GaussianBump"
+#TESTCASE="PolynomialBump"
 
 
 USE_VALGRIND="0"
