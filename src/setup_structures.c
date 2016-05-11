@@ -39,7 +39,7 @@ void setup_structures(void)
 	// Standard datatypes
 	unsigned int i, iMax, v, dim, ve,
 	             IndE, IndVC, IndVgrp,
-	             Vs, firstV, vlocal, NVlocal, NECgrp, NVgrp,
+	             Vs, vlocal, NVlocal, NECgrp, NVgrp,
 				 indexg, NvnGs,
 	             uMPIrank;
 	double       *XYZc;
@@ -75,12 +75,8 @@ void setup_structures(void)
 			NVlocal++;
 	}
 
-	for (v = 0, IndE = Vs, IndVC = 0, firstV = 0, vlocal = 0; v < NV; v++) {
+	for (v = 0, IndE = Vs, IndVC = 0, vlocal = 0; v < NV; v++) {
 		if (EToPrt[v] == uMPIrank) {
-
-			if (firstV != 0)
-				VOLUME = VOLUME->next;
-
 			// General
 			VOLUME->indexl = vlocal;
 			VOLUME->indexg = v;
@@ -147,10 +143,11 @@ void setup_structures(void)
 
 			Vgrp_tmp[IndVgrp] = VOLUME;
 
-			if (vlocal != NVlocal-1)
+			if (vlocal != NVlocal-1) {
 				VOLUME->next = New_VOLUME();
+				VOLUME = VOLUME->next;
+			}
 
-			firstV = 1;
 			vlocal++;
 		} else {
 			// Ensure that appropriate global indices are incremented if necessary

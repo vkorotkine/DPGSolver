@@ -17,11 +17,15 @@
 
 struct S_ELEMENT *New_ELEMENT(void)
 {
-	unsigned int NP = DB.NP;
+	// Initialize DB Parameters
+	unsigned int d  = DB.d,
+	             NP = DB.NP;
 
-	unsigned int i, iMax, P;
+	// Standard datatypes
+	unsigned int P;
 
 	struct S_ELEMENT *ELEMENT;
+
 	ELEMENT = malloc(sizeof *ELEMENT); // free
 
 	// Mesh
@@ -48,23 +52,36 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->connect_NE    = 0;
 
 	// Operators
-	ELEMENT->NvnGs  = malloc(1  * sizeof *(ELEMENT->NvnGs));  // free
-	ELEMENT->NvnGc  = malloc(NP * sizeof *(ELEMENT->NvnGc));  // free
+	ELEMENT->NvnGs  = calloc(1  , sizeof *(ELEMENT->NvnGs));  // free
+	ELEMENT->NvnGc  = calloc(NP , sizeof *(ELEMENT->NvnGc));  // free
+	ELEMENT->NvnCs  = calloc(NP , sizeof *(ELEMENT->NvnCs));  // free
+	ELEMENT->NvnCc  = calloc(NP , sizeof *(ELEMENT->NvnCc));  // free
+	ELEMENT->NvnJs  = calloc(NP , sizeof *(ELEMENT->NvnJs));  // free
+	ELEMENT->NvnJc  = calloc(NP , sizeof *(ELEMENT->NvnJc));  // free
 
-	ELEMENT->I_vGs_vGc = malloc(NP * sizeof *(ELEMENT->I_vGs_vGc)); // free
-	ELEMENT->I_vGs_vP  = malloc(1  * sizeof *(ELEMENT->I_vGs_vP));  // free
-	ELEMENT->I_vGc_vP  = malloc(NP * sizeof *(ELEMENT->I_vGc_vP));  // free
+	ELEMENT->ICs       = calloc(NP , sizeof *(ELEMENT->ICs));       // free
+	ELEMENT->ICc       = calloc(NP , sizeof *(ELEMENT->ICc));       // free
+	ELEMENT->I_vGs_vP  = calloc(1  , sizeof *(ELEMENT->I_vGs_vP));  // free
+	ELEMENT->I_vGs_vGc = calloc(NP , sizeof *(ELEMENT->I_vGs_vGc)); // free
+	ELEMENT->I_vGs_vCs = calloc(NP , sizeof *(ELEMENT->I_vGs_vCs)); // free
+	ELEMENT->I_vGs_vJs = calloc(NP , sizeof *(ELEMENT->I_vGs_vJs)); // free
+	ELEMENT->I_vGc_vP  = calloc(NP , sizeof *(ELEMENT->I_vGc_vP));  // free
+	ELEMENT->I_vGc_vCc = calloc(NP , sizeof *(ELEMENT->I_vGc_vCc)); // free
+	ELEMENT->I_vGc_vJc = calloc(NP , sizeof *(ELEMENT->I_vGc_vJc)); // free
+	ELEMENT->D_vGs_vCs = calloc(NP , sizeof *(ELEMENT->D_vGs_vCs)); // free
+	ELEMENT->D_vGs_vJs = calloc(NP , sizeof *(ELEMENT->D_vGs_vJs)); // free
+	ELEMENT->D_vCs_vCs = calloc(NP , sizeof *(ELEMENT->D_vCs_vCs)); // free
+	ELEMENT->D_vGc_vCc = calloc(NP , sizeof *(ELEMENT->D_vGc_vCc)); // free
+	ELEMENT->D_vGc_vJc = calloc(NP , sizeof *(ELEMENT->D_vGc_vJc)); // free
+	ELEMENT->D_vCc_vCc = calloc(NP , sizeof *(ELEMENT->D_vCc_vCc)); // free
 
 	for (P = 0; P < NP; P++) {
-		if (P == 0) {
-			ELEMENT->NvnGs[P] = 0;
-
-			ELEMENT->I_vGs_vP[P] = NULL;
-		}
-		ELEMENT->NvnGc[P] = 0;
-
-		ELEMENT->I_vGs_vGc[P] = NULL;
-		ELEMENT->I_vGc_vP[P]  = NULL;
+		ELEMENT->D_vGs_vCs[P] = calloc(d , sizeof **(ELEMENT->D_vGs_vCs));
+		ELEMENT->D_vGs_vJs[P] = calloc(d , sizeof **(ELEMENT->D_vGs_vJs));
+		ELEMENT->D_vCs_vCs[P] = calloc(d , sizeof **(ELEMENT->D_vCs_vCs));
+		ELEMENT->D_vGc_vCc[P] = calloc(d , sizeof **(ELEMENT->D_vGc_vCc));
+		ELEMENT->D_vGc_vJc[P] = calloc(d , sizeof **(ELEMENT->D_vGc_vJc));
+		ELEMENT->D_vCc_vCc[P] = calloc(d , sizeof **(ELEMENT->D_vCc_vCc));
 	}
 
 
@@ -147,9 +164,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 
 	ELEMENT->next = NULL;
-	ELEMENT->ELEMENTclass = malloc(2 * sizeof *(ELEMENT->ELEMENTclass)); // free
-
-	for (i = 0; i < 2; i++) ELEMENT->ELEMENTclass[i] = NULL;
+	ELEMENT->ELEMENTclass = calloc(2 , sizeof *(ELEMENT->ELEMENTclass)); // free
 
 	return ELEMENT;
 }
@@ -173,12 +188,15 @@ struct S_VOLUME *New_VOLUME(void)
 //	VOLUME->Vneigh = malloc(6*9 * sizeof *(VOLUME->Vneigh)); // tbd
 //	VOLUME->Fneigh = malloc(6*9 * sizeof *(VOLUME->Fneigh)); // tbd
 
-	VOLUME->XYZc = NULL;
+	VOLUME->XYZc = NULL; // free
 
 	// Geometry
 	VOLUME->NvnG = 0;
-	VOLUME->XYZs = NULL;
-	VOLUME->XYZ  = NULL;
+	VOLUME->XYZs = NULL; // free
+	VOLUME->XYZ  = NULL; // free
+
+	VOLUME->detJV = NULL; // free
+	VOLUME->C_vC  = NULL; // free
 
 	VOLUME->next    = NULL;
 	VOLUME->grpnext = NULL;

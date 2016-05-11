@@ -11,10 +11,10 @@
 LOGFILE="logfile"
 
 
-#TESTCASE="PeriodicVortex"
+TESTCASE="PeriodicVortex"
 #TESTCASE="SupersonicVortex"
 #TESTCASE="dSphericalBump"
-TESTCASE="GaussianBump"
+#TESTCASE="GaussianBump"
 
 
 #USE_VALGRIND="0"

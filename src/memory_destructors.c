@@ -20,7 +20,9 @@
 
 void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 {
-	int NP = DB.NP;
+	// Initialize DB Parameters
+	unsigned int d  = DB.d,
+	             NP = DB.NP;
 
 	// Mesh
 	free(ELEMENT->Nfve);
@@ -38,10 +40,26 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	// Operators
 	free(ELEMENT->NvnGs);
 	free(ELEMENT->NvnGc);
+	free(ELEMENT->NvnCs);
+	free(ELEMENT->NvnCc);
+	free(ELEMENT->NvnJs);
+	free(ELEMENT->NvnJc);
 
-	array_free2_d(NP,ELEMENT->I_vGs_vGc);
+	array_free2_d(NP,ELEMENT->ICs);
+	array_free2_d(NP,ELEMENT->ICc);
 	array_free2_d(1 ,ELEMENT->I_vGs_vP);
+	array_free2_d(NP,ELEMENT->I_vGs_vGc);
+	array_free2_d(NP,ELEMENT->I_vGs_vCs);
+	array_free2_d(NP,ELEMENT->I_vGs_vJs);
 	array_free2_d(NP,ELEMENT->I_vGc_vP);
+	array_free2_d(NP,ELEMENT->I_vGc_vCc);
+	array_free2_d(NP,ELEMENT->I_vGc_vJc);
+	array_free3_d(NP,d,ELEMENT->D_vGs_vCs);
+	array_free3_d(NP,d,ELEMENT->D_vGs_vJs);
+	array_free3_d(NP,d,ELEMENT->D_vCs_vCs);
+	array_free3_d(NP,d,ELEMENT->D_vGc_vCc);
+	array_free3_d(NP,d,ELEMENT->D_vGc_vJc);
+	array_free3_d(NP,d,ELEMENT->D_vCc_vCc);
 
 	// VOLUME Nodes
 /*
@@ -61,10 +79,6 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free2_d(NP,ELEMENT->wvIs);
 	array_free2_d(NP,ELEMENT->wvIc);
 
-	free(ELEMENT->NvnCs);
-	free(ELEMENT->NvnCc);
-	free(ELEMENT->NvnJs);
-	free(ELEMENT->NvnJc);
 	free(ELEMENT->NvnS);
 	free(ELEMENT->NvnF);
 	free(ELEMENT->NvnFrs);
@@ -99,6 +113,9 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	// Geometry
 	free(VOLUME->XYZs);
 	free(VOLUME->XYZ);
+
+	free(VOLUME->detJV);
+	free(VOLUME->C_vC);
 
 	free(VOLUME);
 }

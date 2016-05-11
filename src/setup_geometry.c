@@ -12,6 +12,12 @@
  *		Set up geometry.
  *
  *	Comments:
+ *		Loops are placed outside of the functions listed below (ToBeModified) as they are reused to update individual
+ *		VOLUMEs after refinement:
+ *			setup_ToBeCurved
+ *			setup_geom_factors
+ *		Potentially clean up this routine in the future by adding in an initialize operators routine and putting the set
+ *		up for XYZs in a sub function. (ToBeDeleted)
  *
  *	Notation:
  *
@@ -73,7 +79,7 @@ void setup_geometry(void)
 			if (VOLUME->Eclass == C_TP)
 				NvnG = pow(ELEMENT->ELEMENTclass[0]->NvnGs[0],d);
 			else if (VOLUME->Eclass == C_WEDGE)
-				NvnG = pow(ELEMENT->ELEMENTclass[0]->NvnGs[0],2)*(ELEMENT->ELEMENTclass[1]->NvnGs[0]);
+				NvnG = (ELEMENT->ELEMENTclass[0]->NvnGs[0])*(ELEMENT->ELEMENTclass[1]->NvnGs[0]);
 			else if (VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR)
 				NvnG = ELEMENT->NvnGs[0];
 			else
@@ -182,8 +188,6 @@ void setup_geometry(void)
 	// Set up curved geometry nodes
 	if (strstr(MeshType,"ToBeCurved") != NULL) {
 		printf("    Set geometry of VOLUME nodes in ToBeCurved Mesh\n");
-		// The loop is placed outside of the function as the same function is used to update individual VOLUMEs after
-		// refinement.
 		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
 			setup_ToBeCurved(VOLUME);
 
@@ -197,8 +201,10 @@ void setup_geometry(void)
 		output_to_paraview("Geom_curved");
 	}
 
-	// Start on setup_geom_factors
+	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
+		setup_geom_factors(VOLUME);
 
+	// Start on setup_normals: Need to put FACETs into setup_structures
 
 
 	// Find node index ordering on each FACET

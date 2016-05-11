@@ -182,6 +182,7 @@ void setup_parameters()
 		PJs[P] = malloc(NEC * sizeof **PJs); // keep
 		PJc[P] = malloc(NEC * sizeof **PJc); // keep
 
+		// ToBeDeleted: These orders may not be sufficient for 3D. To be investigated.
 		PGc[P]    = max(P,u2);
 		PCs[P][0] = PGs;
 		PCs[P][1] = max(PGs-1,u1);

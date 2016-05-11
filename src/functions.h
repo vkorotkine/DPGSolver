@@ -60,6 +60,7 @@ extern void   setup_structures              (void);
 extern void   setup_geometry                (void);
 extern void     vertices_to_exact_geom      (void);
 extern void     setup_ToBeCurved            (struct S_VOLUME *VOLUME);
+extern void     setup_geom_factors          (struct S_VOLUME *VOLUME);
 
 // Sum Factorization
 extern void sf_operate_d (const unsigned int NOut, const unsigned int NCols, const unsigned int NIn,

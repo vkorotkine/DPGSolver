@@ -54,7 +54,7 @@ struct S_ELEMENT {
 
 	// Operators
 	unsigned int connect_NE, NvnP,
-	             *NvnGs, *NvnGc,
+	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc,
 	//             *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc,
 	//             *NfnGc, *NfnIs, *NfnIc,
 	             *connectivity, *connect_types;
@@ -63,7 +63,13 @@ struct S_ELEMENT {
 	//             **rst_vIs, **rst_vIc,
 	//             **wvIs, **wvIc,
 	//             ***rst_fGc, ***rst_fIs, ***rst_fIc, **wfIs, **wfIc,
-	             **I_vGs_vGc, **I_vGs_vP, **I_vGc_vP;
+	             **ICs, **ICc,
+	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vJs,
+	             **I_vGc_vP, **I_vGc_vCc, **I_vGc_vJc,
+	             ***D_vGs_vCs, ***D_vGs_vJs,
+	             ***D_vGc_vCc, ***D_vGc_vJc,
+	             ***D_vCs_vCs,
+	             ***D_vCc_vCc;
 
 	struct S_ELEMENT *next;
 	struct S_ELEMENT **ELEMENTclass;
@@ -77,7 +83,7 @@ struct S_VOLUME {
 
 	// Geometry
 	unsigned int NvnG;
-	double *XYZs, *XYZ;
+	double *XYZs, *XYZ, *detJV, *C_vC;
 
 	// structs
 	struct S_VOLUME *next, *grpnext;
