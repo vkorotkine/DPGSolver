@@ -54,7 +54,7 @@ struct S_ELEMENT {
 
 	// Operators
 	unsigned int connect_NE, NvnP,
-	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc,
+	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc,
 	//             *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc,
 	//             *NfnGc, *NfnIs, *NfnIc,
 	             *connectivity, *connect_types;
@@ -64,10 +64,12 @@ struct S_ELEMENT {
 	//             **wvIs, **wvIc,
 	//             ***rst_fGc, ***rst_fIs, ***rst_fIc, **wfIs, **wfIc,
 	             **ICs, **ICc,
-	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vJs,
-	             **I_vGc_vP, **I_vGc_vCc, **I_vGc_vJc,
-	             ***D_vGs_vCs, ***D_vGs_vJs,
-	             ***D_vGc_vCc, ***D_vGc_vJc,
+	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs,
+	             **I_vGc_vP, **I_vGc_vCc, **I_vGc_vIc,
+	             **I_vCs_vIs,
+	             **I_vCc_vIc,
+	             ***D_vGs_vCs, ***D_vGs_vIs,
+	             ***D_vGc_vCc, ***D_vGc_vIc,
 	             ***D_vCs_vCs,
 	             ***D_vCc_vCc;
 
@@ -83,11 +85,23 @@ struct S_VOLUME {
 
 	// Geometry
 	unsigned int NvnG;
-	double *XYZs, *XYZ, *detJV, *C_vC;
+	double *XYZs, *XYZ, *detJV_vI, *C_vC, *C_vI, **C_vf;
 
 	// structs
 	struct S_VOLUME *next, *grpnext;
 
+};
+
+struct S_FACET {
+	// Structures
+
+	// Geometry
+	char   curved, typeInt;
+	double *n, *nr;
+
+	// structs
+	struct S_VOLUME *VOLUMEIn, *VOLUMEOut;
+	struct S_FACET  *next, *grpnext;
 };
 
 #endif // DPG__database_h__INCLUDED

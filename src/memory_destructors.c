@@ -42,23 +42,26 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->NvnGc);
 	free(ELEMENT->NvnCs);
 	free(ELEMENT->NvnCc);
-	free(ELEMENT->NvnJs);
-	free(ELEMENT->NvnJc);
+	free(ELEMENT->NvnIs);
+	free(ELEMENT->NvnIc);
 
 	array_free2_d(NP,ELEMENT->ICs);
 	array_free2_d(NP,ELEMENT->ICc);
 	array_free2_d(1 ,ELEMENT->I_vGs_vP);
 	array_free2_d(NP,ELEMENT->I_vGs_vGc);
 	array_free2_d(NP,ELEMENT->I_vGs_vCs);
-	array_free2_d(NP,ELEMENT->I_vGs_vJs);
+	array_free2_d(NP,ELEMENT->I_vGs_vIs);
 	array_free2_d(NP,ELEMENT->I_vGc_vP);
 	array_free2_d(NP,ELEMENT->I_vGc_vCc);
-	array_free2_d(NP,ELEMENT->I_vGc_vJc);
+	array_free2_d(NP,ELEMENT->I_vGc_vIc);
+	array_free2_d(NP,ELEMENT->I_vCs_vIs);
+	array_free2_d(NP,ELEMENT->I_vCc_vIc);
+
 	array_free3_d(NP,d,ELEMENT->D_vGs_vCs);
-	array_free3_d(NP,d,ELEMENT->D_vGs_vJs);
+	array_free3_d(NP,d,ELEMENT->D_vGs_vIs);
 	array_free3_d(NP,d,ELEMENT->D_vCs_vCs);
 	array_free3_d(NP,d,ELEMENT->D_vGc_vCc);
-	array_free3_d(NP,d,ELEMENT->D_vGc_vJc);
+	array_free3_d(NP,d,ELEMENT->D_vGc_vIc);
 	array_free3_d(NP,d,ELEMENT->D_vCc_vCc);
 
 	// VOLUME Nodes
@@ -114,8 +117,9 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	free(VOLUME->XYZs);
 	free(VOLUME->XYZ);
 
-	free(VOLUME->detJV);
-	free(VOLUME->C_vC);
+	free(VOLUME->detJV_vI);
+	free(VOLUME->C_vI);
+	array_free2_d(6,VOLUME->C_vf);
 
 	free(VOLUME);
 }
