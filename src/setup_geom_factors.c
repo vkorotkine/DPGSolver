@@ -28,10 +28,13 @@
  *		Kopriva(2006)-Metric_Identities_and_the_Discontinuous_Spectral_Element_Method_on_Curvilinear_Meshes
  */
 
-static void init_ops(const struct S_VOLUME *VOLUME, const unsigned int IndClass,
-                     unsigned int *NvnG, unsigned int *NvnC, unsigned int *NvnI,
-                     double **IC, double **I_vG_vC, double **I_vG_vI, double **I_vC_vI,
-                     double ***D_vG_vC, double ***D_vG_vI, double ***D_vC_vC);
+static struct S_OPERATORS {
+	unsigned int NvnG, NvnC, NvnI;
+	double *IC, *I_vG_vC, *I_vG_vI, *I_vC_vI,
+	       **D_vG_vC, **D_vG_vI, **D_vC_vC;
+};
+
+static void init_ops(const struct S_VOLUME *VOLUME, const unsigned int IndClass, struct S_OPERATORS *OPERATORS);
 
 void setup_geom_factors(struct S_VOLUME *VOLUME)
 {
@@ -39,27 +42,39 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int n, row, col,
+	unsigned int i, n, row, col,
 	             NvnG0, NvnC0, NvnI0, NvnG1, NvnC1, NvnI1;
 	double       *IC0, *I_vG_vC0, *I_vG_vI0, *I_vC_vI0, **D_vG_vC0, **D_vG_vI0, **D_vC_vC0,
 	             *IC1, *I_vG_vC1, *I_vG_vI1, *I_vC_vI1, **D_vG_vC1, **D_vG_vI1, **D_vC_vC1,
 	             *XYZ, *J_vI, *J_vC, *detJV_vI, *C_vC, *C_vI;
+	struct S_OPERATORS *OPS[2];
 
 	// silence
 	detJV_vI = NULL;
 	C_vC     = NULL;
 	C_vI     = NULL;
 
+	for (i = 0; i < 2; i++)
+		OPS[i] = malloc(sizeof *OPS[i]); // free
+
 	// Obtain operators
-	init_ops(VOLUME,0,&NvnG0,&NvnC0,&NvnI0,&IC0,&I_vG_vC0,&I_vG_vI0,&I_vC_vI0,&D_vG_vC0,&D_vG_vI0,&D_vC_vC0);
+	init_ops(VOLUME,0,OPS[0]);
 	if (VOLUME->type == WEDGE)
-		init_ops(VOLUME,1,&NvnG1,&NvnC1,&NvnI1,&IC1,&I_vG_vC1,&I_vG_vI1,&I_vC_vI1,&D_vG_vC1,&D_vG_vI1,&D_vC_vC1);
+		init_ops(VOLUME,1,OPS[1]);
 
 	XYZ = VOLUME->XYZ;
 	if (VOLUME->Eclass == C_TP) {
 		printf("Add in support for C_TP in setup_geom_factors.\n");
 		exit(1);
 	} else if (VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR) {
+		NvnG0 = OPS[0]->NvnG;
+		NvnC0 = OPS[0]->NvnC;
+		NvnI0 = OPS[0]->NvnI;
+
+		I_vC_vI0 = OPS[0]->I_vC_vI;
+		D_vG_vI0 = OPS[0]->D_vG_vI;
+		D_vG_vC0 = OPS[0]->D_vG_vC;
+
 		J_vI     = malloc(NvnI0*d*d * sizeof *J_vI);     // free
 		J_vC     = malloc(NvnC0*d*d * sizeof *J_vC);     // free
 		detJV_vI = malloc(NvnI0     * sizeof *detJV_vI); // keep
@@ -130,14 +145,15 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 		}
 		mm_CTN_d(NvnI0,d*d,NvnC0,I_vC_vI0,C_vC,C_vI);
 
-/*
+
 array_print_d(NvnG0,d,XYZ,'C');
-for (dim = 0; dim < d; dim++) {
+for (int dim = 0; dim < d; dim++) {
 	array_print_d(NvnC0,d,&J_vC[NvnC0*(d*dim)],'C');
 }
-*/
 
 
+		for (i = 0; i < 2; i++)
+			free(OPS[i]);
 		free(J_vI);
 		free(J_vC);
 
@@ -151,10 +167,7 @@ for (dim = 0; dim < d; dim++) {
 	VOLUME->C_vI     = C_vI;
 }
 
-static void init_ops(const struct S_VOLUME *VOLUME, const unsigned int IndClass,
-                     unsigned int *NvnG, unsigned int *NvnC, unsigned int *NvnI,
-                     double **IC, double **I_vG_vC, double **I_vG_vI, double **I_vC_vI,
-                     double ***D_vG_vC, double ***D_vG_vI, double ***D_vC_vC)
+static void init_ops(const struct S_VOLUME *VOLUME, const unsigned int IndClass, struct S_OPERATORS *OPERATORS)
 {
 	// Standard datatypes
 	unsigned int P, type, curved;
@@ -174,28 +187,28 @@ static void init_ops(const struct S_VOLUME *VOLUME, const unsigned int IndClass,
 		ELEMENT_Ops = ELEMENT;
 
 	if (!curved) {
-		*NvnG = ELEMENT_Ops->NvnGs[0];
-		*NvnC = ELEMENT_Ops->NvnCs[P];
-		*NvnI = ELEMENT_Ops->NvnIs[P];
+		OPERATORS->NvnG = ELEMENT_Ops->NvnGs[0];
+		OPERATORS->NvnC = ELEMENT_Ops->NvnCs[P];
+		OPERATORS->NvnI = ELEMENT_Ops->NvnIs[P];
 
-		*IC      = ELEMENT_Ops->ICs[P];
-		*I_vG_vC = ELEMENT_Ops->I_vGs_vCs[P];
-		*I_vG_vI = ELEMENT_Ops->I_vGs_vIs[P];
-		*I_vC_vI = ELEMENT_Ops->I_vCs_vIs[P];
-		*D_vG_vC = ELEMENT_Ops->D_vGs_vCs[P];
-		*D_vG_vI = ELEMENT_Ops->D_vGs_vIs[P];
-		*D_vC_vC = ELEMENT_Ops->D_vCs_vCs[P];
+		OPERATORS->IC      = ELEMENT_Ops->ICs[P];
+		OPERATORS->I_vG_vC = ELEMENT_Ops->I_vGs_vCs[P];
+		OPERATORS->I_vG_vI = ELEMENT_Ops->I_vGs_vIs[P];
+		OPERATORS->I_vC_vI = ELEMENT_Ops->I_vCs_vIs[P];
+		OPERATORS->D_vG_vC = ELEMENT_Ops->D_vGs_vCs[P];
+		OPERATORS->D_vG_vI = ELEMENT_Ops->D_vGs_vIs[P];
+		OPERATORS->D_vC_vC = ELEMENT_Ops->D_vCs_vCs[P];
 	} else {
-		*NvnG = ELEMENT_Ops->NvnGc[P];
-		*NvnC = ELEMENT_Ops->NvnCc[P];
-		*NvnI = ELEMENT_Ops->NvnIc[P];
+		OPERATORS->NvnG = ELEMENT_Ops->NvnGc[P];
+		OPERATORS->NvnC = ELEMENT_Ops->NvnCc[P];
+		OPERATORS->NvnI = ELEMENT_Ops->NvnIc[P];
 
-		*IC      = ELEMENT_Ops->ICc[P];
-		*I_vG_vC = ELEMENT_Ops->I_vGc_vCc[P];
-		*I_vG_vI = ELEMENT_Ops->I_vGc_vIc[P];
-		*I_vC_vI = ELEMENT_Ops->I_vCc_vIc[P];
-		*D_vG_vC = ELEMENT_Ops->D_vGc_vCc[P];
-		*D_vG_vI = ELEMENT_Ops->D_vGc_vIc[P];
-		*D_vC_vC = ELEMENT_Ops->D_vCc_vCc[P];
+		OPERATORS->IC      = ELEMENT_Ops->ICc[P];
+		OPERATORS->I_vG_vC = ELEMENT_Ops->I_vGc_vCc[P];
+		OPERATORS->I_vG_vI = ELEMENT_Ops->I_vGc_vIc[P];
+		OPERATORS->I_vC_vI = ELEMENT_Ops->I_vCc_vIc[P];
+		OPERATORS->D_vG_vC = ELEMENT_Ops->D_vGc_vCc[P];
+		OPERATORS->D_vG_vI = ELEMENT_Ops->D_vGc_vIc[P];
+		OPERATORS->D_vC_vC = ELEMENT_Ops->D_vCc_vCc[P];
 	}
 }
