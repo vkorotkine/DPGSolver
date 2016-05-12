@@ -4,10 +4,8 @@
 //#include <string.h>
 
 #include "database.h"
-//#include "parameters.h"
-//#include "functions.h"
-
-//#include "petscsys.h"
+#include "parameters.h"
+#include "functions.h"
 
 /*
  *	Purpose:
@@ -21,10 +19,13 @@
  *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_Schemes
  */
 
-/*
-static void init_ops(const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
-                     unsigned int *NvnC, unsigned int *NvnI, unsigned int *NfnI,
-                     double *I_vC_vI, double **I_vC_fI, double *nr);
+static struct S_OPERATORS {
+	unsigned int NvnC, NvnI, NfnI;
+	double       *I_vC_vI, **I_vC_fI, *nr;
+};
+
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+                     const unsigned int IndClass);
 
 void setup_normals(struct S_FACET *FACET)
 {
@@ -32,40 +33,54 @@ void setup_normals(struct S_FACET *FACET)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int fn, fnMax, curved,
+	unsigned int i, fn, fnMax, curved, dim1, dim2,
 	             IndfIn,
 	             NvnC0, NvnI0, NfnI0, NvnC1, NvnI1, NfnI1, NnI;
-	double       *I_vC_vI0, **I_vC_fI0, *nr0,
-	             *I_vC_vI1, **I_vC_fI1, *nr1,
-	             *C_fI, *C_vC, *nrIn, *n;
+	double       *C_fI, *C_vC, *nrIn, *n;
 
-	struct S_VOLUME *VOLUMEIn, *VOLUMEOut;
+	struct S_OPERATORS *OPS[2];
+	struct S_VOLUME    *VOLUMEIn, *VOLUMEOut;
 
-	VOLUMEIn  = FACET->VOLUMEIn;
-	VOLUMEOut = FACET->VOLUMEOut;
+	// silence
+//	C_fI = NULL;
+
+	for (i = 0; i < 2; i++)
+		OPS[i] = malloc(sizeof *OPS[i]); // free
+
+	VOLUMEIn  = FACET->VIn;
+	VOLUMEOut = FACET->VOut;
 
 //  IndfIn = 
 	curved = FACET->curved;
 
-	init_ops(VOLUMEIn,FACET,&NvnC0,&NvnI0,&NfnI0,&I_vC_vI0,&I_vC_fI0,&nr0);
+	init_ops(OPS[0],VOLUMEIn,FACET,0);
 	if (VOLUMEIn->type == WEDGE)
-		init_ops(VOLUMEIn,FACET,&NvnC1,&NvnI1,&NfnI1,&I_vC_vI1,&I_vC_fI1,&nr1);
+		init_ops(OPS[1],VOLUMEIn,FACET,1);
+
+	NvnC0 = OPS[0]->NvnC;
+	NvnI0 = OPS[0]->NvnI;
+	NfnI0 = OPS[0]->NfnI;
 
 	C_vC = VOLUMEIn->C_vC;
 	if (VOLUMEIn->Eclass == C_TP) {
 		printf("Add in support for C_TP in setup_normals.\n");
 		exit(1);
 	} else if (VOLUMEIn->Eclass == C_SI || VOLUMEIn->Eclass == C_PYR) {
+
 		C_fI = malloc(NvnI0*d*d * sizeof *C_fI); // free
 
-		mm_CTN_d(NfnI0,d*d,NvnC0,I_vC_fI0[IndfIn],C_vC,C_fI);
+		mm_CTN_d(NfnI0,d*d,NvnC0,OPS[0]->I_vC_fI[IndfIn],C_vC,C_fI);
 
 		NnI = NfnI0;
 	} else if (VOLUMEIn->Eclass == C_WEDGE) {
+		NvnC1 = OPS[1]->NvnC;
+		NvnI1 = OPS[1]->NvnI;
+		NfnI1 = OPS[1]->NfnI;
+
 		printf("Add in support for C_WEDGE in setup_normals.\n");
 		exit(1);
 	}
-	nrIn = &nr0[IndfIn*3];
+	nrIn = &OPS[0]->nr[IndfIn*3];
 
 	// Store a single normal on straight FACETs
 	if (!curved) fnMax = 1;
@@ -73,8 +88,8 @@ void setup_normals(struct S_FACET *FACET)
 
 	n = calloc(fnMax*d , sizeof *n); // keep
 	for (fn = 0; fn < fnMax; fn++) {
-		for (dim1 = 0, dim1 < d; dim1++) {
-		for (dim2 = 0, dim2 < d; dim2++) {
+		for (dim1 = 0; dim1 < d; dim1++) {
+		for (dim2 = 0; dim2 < d; dim2++) {
 			n[fn*d+dim1] += nrIn[dim2]*C_fI[NnI*(dim1+d*dim2)+fn];
 		}}
 	}
@@ -84,15 +99,17 @@ exit(1);
 
 
 
-	free(C_vI);
+	free(C_fI);
+	for (i = 0; i < 2; i++)
+		free(OPS[i]);
 }
 
-static void init_ops(const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
-                     unsigned int *NvnC, unsigned int *NvnI, unsigned int *NfnI,
-                     double *I_vC_vI, double **I_vC_fI, double *nr)
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+                     const unsigned int IndClass)
 {
 	// Standard datatypes
 	unsigned int P, Vtype, Vcurved, FtypeInt;
+	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS;
 
 	P        = FACET->P;
 	Vtype    = VOLUME->type;
@@ -100,48 +117,47 @@ static void init_ops(const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
 	FtypeInt = FACET->typeInt;
 
 	ELEMENT = get_ELEMENT_type(Vtype);
-	if (type == LINE || type == QUAD || type == HEX || type == WEDGE)
-		ELEMENT_Ops = ELEMENT->ELEMENTclass[IndClass];
-	else if (type == TRI || type == TET || type == PYR)
-		ELEMENT_Ops = ELEMENT;
+	if (Vtype == LINE || Vtype == QUAD || Vtype == HEX || Vtype == WEDGE)
+		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
+	else if (Vtype == TRI || Vtype == TET || Vtype == PYR)
+		ELEMENT_OPS = ELEMENT;
 
 	if (!Vcurved) {
 		// Straight VOLUME
-		*NvnC = ELEMENT_Ops->NvnCs[P];
+		OPS->NvnC = ELEMENT_OPS->NvnCs[P];
 		if (FtypeInt == 's') {
 			// Straight FACET Integration
-			*NvnI = ELEMENT_Ops->NvnIs[P];
-			*NfnI = ELEMENT_Ops->NfnIs[P];
+			OPS->NvnI = ELEMENT_OPS->NvnIs[P];
+			OPS->NfnI = ELEMENT_OPS->NfnIs[P];
 
-			*I_vC_vI = ELEMENT_Ops->I_vCs_vIs[P];
-			*I_vC_fI = ELEMENT_Ops->I_vCs_vfs[P];
+			OPS->I_vC_vI = ELEMENT_OPS->I_vCs_vIs[P];
+			OPS->I_vC_fI = ELEMENT_OPS->I_vCs_fIs[P];
 		} else {
 			// Curved FACET Integration
-			*NvnI = ELEMENT_Ops->NvnIc[P];
-			*NfnI = ELEMENT_Ops->NfnIc[P];
+			OPS->NvnI = ELEMENT_OPS->NvnIc[P];
+			OPS->NfnI = ELEMENT_OPS->NfnIc[P];
 
-			*I_vC_vI = ELEMENT_Ops->I_vCs_vIc[P];
-			*I_vC_fI = ELEMENT_Ops->I_vCs_vfc[P];
+			OPS->I_vC_vI = ELEMENT_OPS->I_vCs_vIc[P];
+			OPS->I_vC_fI = ELEMENT_OPS->I_vCs_fIc[P];
 		}
 	} else {
 		// Curved VOLUME
-		*NvnC = ELEMENT_Ops->NvnCc[P];
+		OPS->NvnC = ELEMENT_OPS->NvnCc[P];
 		if (FtypeInt == 's') {
 			// Straight FACET Integration
-			*NvnI = ELEMENT_Ops->NvnIs[P];
-			*NfnI = ELEMENT_Ops->NfnIs[P];
+			OPS->NvnI = ELEMENT_OPS->NvnIs[P];
+			OPS->NfnI = ELEMENT_OPS->NfnIs[P];
 
-			*I_vC_vI = ELEMENT_Ops->I_vCc_vIs[P];
-			*I_vC_fI = ELEMENT_Ops->I_vCc_vfs[P];
+			OPS->I_vC_vI = ELEMENT_OPS->I_vCc_vIs[P];
+			OPS->I_vC_fI = ELEMENT_OPS->I_vCc_fIs[P];
 		} else {
 			// Curved FACET Integration
-			*NvnI = ELEMENT_Ops->NvnIc[P];
-			*NfnI = ELEMENT_Ops->NfnIc[P];
+			OPS->NvnI = ELEMENT_OPS->NvnIc[P];
+			OPS->NfnI = ELEMENT_OPS->NfnIc[P];
 
-			*I_vC_vI = ELEMENT_Ops->I_vCc_vIc[P];
-			*I_vC_fI = ELEMENT_Ops->I_vCc_vfc[P];
+			OPS->I_vC_vI = ELEMENT_OPS->I_vCc_vIc[P];
+			OPS->I_vC_fI = ELEMENT_OPS->I_vCc_fIc[P];
 		}
 	}
-	*nr = ELEMENT->nr;
+	OPS->nr = ELEMENT->nr;
 }
-*/

@@ -43,7 +43,8 @@ struct S_DB {
 
 	// Structs
 	struct S_ELEMENT *ELEMENT;
-	struct S_VOLUME *VOLUME, **Vgrp;
+	struct S_VOLUME  *VOLUME, **Vgrp;
+	struct S_FACET   *FACET;
 };
 extern struct S_DB DB;
 
@@ -55,6 +56,7 @@ struct S_ELEMENT {
 	// Operators
 	unsigned int connect_NE, NvnP,
 	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc,
+	             *NfnIs, *NfnIc,
 	//             *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc,
 	//             *NfnGc, *NfnIs, *NfnIc,
 	             *connectivity, *connect_types;
@@ -66,8 +68,10 @@ struct S_ELEMENT {
 	             **ICs, **ICc,
 	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs,
 	             **I_vGc_vP, **I_vGc_vCc, **I_vGc_vIc,
-	             **I_vCs_vIs,
-	             **I_vCc_vIc,
+	             **I_vCs_vIs, **I_vCs_vIc,
+	             **I_vCc_vIs, **I_vCc_vIc,
+	             ***I_vCs_fIs, ***I_vCs_fIc,
+	             ***I_vCc_fIs, ***I_vCc_fIc,
 	             ***D_vGs_vCs, ***D_vGs_vIs,
 	             ***D_vGc_vCc, ***D_vGc_vIc,
 	             ***D_vCs_vCs,
@@ -94,13 +98,14 @@ struct S_VOLUME {
 
 struct S_FACET {
 	// Structures
+	unsigned int P, VfIn, VfOut, indexg;
 
 	// Geometry
 	char   curved, typeInt;
 	double *n, *nr;
 
 	// structs
-	struct S_VOLUME *VOLUMEIn, *VOLUMEOut;
+	struct S_VOLUME *VIn, *VOut;
 	struct S_FACET  *next, *grpnext;
 };
 

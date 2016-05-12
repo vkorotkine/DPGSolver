@@ -95,6 +95,7 @@ extern double       gamma_d       (const double x);
 // Struct related functions
 extern struct S_ELEMENT *New_ELEMENT        (void);
 extern struct S_VOLUME  *New_VOLUME         (void);
+extern struct S_FACET   *New_FACET          (void);
 
 extern unsigned int     is_ELEMENT_present  (const unsigned int type);
 extern unsigned int     get_Eclass          (const unsigned int type);
@@ -107,6 +108,7 @@ extern void memory_free         (void);
 extern void memory_constructors (void);
 extern void memory_destructor_E (struct S_ELEMENT *ELEMENT);
 extern void memory_destructor_V (struct S_VOLUME *VOLUME);
+extern void memory_destructor_F (struct S_FACET *FACET);
 
 
 // Array Processing

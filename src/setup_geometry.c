@@ -206,6 +206,8 @@ void setup_geometry(void)
 
 	// Start on setup_normals: Need to put FACETs into setup_structures
 
+	// After setup_normals is finished, free C_vC in all VOLUMEs
+
 
 	// Find node index ordering on each FACET
 	// This will be done in setup_structures using XYZc.

@@ -76,5 +76,11 @@ void memory_free(void)
 		VOLUME = VOLUMEnext;
 	}
 
-
+	// FACETs
+	struct S_FACET *FACET, *FACETnext;
+	for (FACET = DB.FACET; FACET != NULL; ) {
+		FACETnext = FACET->next;
+		memory_destructor_F(FACET);
+		FACET = FACETnext;
+	}
 }

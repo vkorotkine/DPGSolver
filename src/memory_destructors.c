@@ -45,6 +45,9 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->NvnIs);
 	free(ELEMENT->NvnIc);
 
+	free(ELEMENT->NfnIs);
+	free(ELEMENT->NfnIc);
+
 	array_free2_d(NP,ELEMENT->ICs);
 	array_free2_d(NP,ELEMENT->ICc);
 	array_free2_d(1 ,ELEMENT->I_vGs_vP);
@@ -55,7 +58,14 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free2_d(NP,ELEMENT->I_vGc_vCc);
 	array_free2_d(NP,ELEMENT->I_vGc_vIc);
 	array_free2_d(NP,ELEMENT->I_vCs_vIs);
+	array_free2_d(NP,ELEMENT->I_vCs_vIc);
+	array_free2_d(NP,ELEMENT->I_vCc_vIs);
 	array_free2_d(NP,ELEMENT->I_vCc_vIc);
+
+	array_free3_d(NP,6,ELEMENT->I_vCs_fIs);
+	array_free3_d(NP,6,ELEMENT->I_vCs_fIc);
+	array_free3_d(NP,6,ELEMENT->I_vCc_fIs);
+	array_free3_d(NP,6,ELEMENT->I_vCc_fIc);
 
 	array_free3_d(NP,d,ELEMENT->D_vGs_vCs);
 	array_free3_d(NP,d,ELEMENT->D_vGs_vIs);
@@ -122,4 +132,9 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	array_free2_d(6,VOLUME->C_vf);
 
 	free(VOLUME);
+}
+
+void memory_destructor_F(struct S_FACET *FACET)
+{
+	free(FACET);
 }

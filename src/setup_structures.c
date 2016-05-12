@@ -11,6 +11,8 @@
  *		Set up VOLUME and FACET structures.
  *
  *	Comments:
+ *		Will need two different setup_structures functions: One using the initial global arrays and one updating
+ *		elements individually after hp refinement. (ToBeDeleted)
  *
  *	Notation:
  *
@@ -24,30 +26,39 @@ void setup_structures(void)
 	             AC      = DB.AC,
 	             P       = DB.P,
 	             NP      = DB.NP,
+				 NfMax   = DB.NfMax,
 	             NV      = DB.NV,
+	             NGF     = DB.NGF,
+	             NGFC    = DB.NGFC,
 	             NVC     = DB.NVC,
 	             *NE     = DB.NE,
 	             *EToVe  = DB.EToVe,
 	             *EType  = DB.EType,
 	             *EToPrt = DB.EToPrt,
-	             *VC     = DB.VC;
+//	             *VToV   = DB.VToV,
+	             *VToGF  = DB.VToGF,
+	             *VC     = DB.VC,
+	             *GFC    = DB.GFC;
 	int          MPIrank = DB.MPIrank;
 	double       *VeXYZ  = DB.VeXYZ;
 
 	int  PrintTesting = 0;
 
 	// Standard datatypes
-	unsigned int i, iMax, v, dim, ve,
-	             IndE, IndVC, IndVgrp,
+	unsigned int i, iMax, f, v, dim, ve, gf, curved,
+	             IndE, IndVC, IndVgrp, IndGFC,
 	             Vs, vlocal, NVlocal, NECgrp, NVgrp,
 				 indexg, NvnGs,
-	             uMPIrank;
+	             uMPIrank,
+	             *GFToV, *GF_Nv;
 	double       *XYZc;
 
 	struct S_ELEMENT *ELEMENT;
-	struct S_VOLUME *VOLUME, **Vgrp, **Vgrp_tmp;
+	struct S_VOLUME  *VOLUME, **Vgrp, **Vgrp_tmp;
+	struct S_FACET   *FACET, **FoundFACET;
 
-	// Arbitrary initializations for variables defined in conditionals (to eliminate compiler warnings)
+	// silence
+	FACET == NULL;
 	NECgrp = 0;
 
 	uMPIrank = MPIrank;
@@ -55,6 +66,8 @@ void setup_structures(void)
 	if      (d == 1) NECgrp = 1;
 	else if (d == 2) NECgrp = 2;
 	else if (d == 3) NECgrp = 4;
+
+	FoundFACET = calloc(NGF , sizeof *FoundFACET); // tbd
 
 	NVgrp = NECgrp*NP*2;
 	Vgrp     = malloc(NVgrp * sizeof *Vgrp);     // keep
@@ -68,6 +81,7 @@ void setup_structures(void)
 
 	VOLUME = New_VOLUME();
 	DB.VOLUME = VOLUME;
+	DB.FACET  = NULL;
 
 	// Note: only initialize volumes on the current processor.
 	for (v = 0, NVlocal = 0; v < NV; v++) {
@@ -75,7 +89,7 @@ void setup_structures(void)
 			NVlocal++;
 	}
 
-	for (v = 0, IndE = Vs, IndVC = 0, vlocal = 0; v < NV; v++) {
+	for (v = 0, IndE = Vs, IndGFC = IndVC = 0, vlocal = 0; v < NV; v++) {
 		if (EToPrt[v] == uMPIrank) {
 			// General
 			VOLUME->indexl = vlocal;
@@ -109,6 +123,61 @@ void setup_structures(void)
 			 *
 			 *			MAX FACES: 6*9 = 54
 			 */
+
+			// FACETs adjacent to VOLUMEs on the current processor.
+			// Note that GFC and VToGF cycle through the global FACET indices in order
+			for (f = 0; f < NfMax; f++) {
+				gf = VToGF[v*NfMax+f];
+				if (FoundFACET[gf] == NULL) {
+printf("%d %d %d\n",v,f,gf);
+					if (DB.FACET != NULL) {
+						FACET->next = New_FACET();
+						FACET       = FACET->next;
+					} else {
+						DB.FACET = New_FACET();
+						FACET    = DB.FACET;
+					}
+
+//					FACET->indexl = gflocal;
+					FACET->indexg = gf;
+//					FACET->P      = VOLUME->P;
+
+					FACET->VIn   = VOLUME;
+					FACET->VfIn  = f;
+
+					// Overwritten if a second VOLUME is found adjacent to this FACET
+					FACET->VOut  = VOLUME;
+					FACET->VfOut = f;
+
+					if (!VOLUME->curved) {
+						FACET->typeInt = 's';
+					} else {
+						FACET->typeInt = 'c';
+						if (IndGFC < NGFC && gf == GFC[IndGFC]) {
+							FACET->curved = 1;
+							IndGFC++;
+						}
+					}
+
+					FoundFACET[gf] = FACET;
+				} else {
+printf("second: %d %d %d\n",v,f,gf);
+					FACET = FoundFACET[gf];
+
+//					FACET->P = max(FACET->P,VOLUME->P);
+					FACET->VOut  = VOLUME;
+					FACET->VfOut = f;
+					if (VOLUME->curved) {
+						FACET->typeInt = 'c';
+						if (IndGFC < NGFC && gf == GFC[IndGFC]) {
+							FACET->curved = 1;
+							IndGFC++;
+						}
+					}
+				}
+//				// Indexing from connectivity discussion above noting that the mesh is conforming at the start (ToBeDeleted)
+//				VOLUME->GF[f*9] = FoundFACET[gf];
+			}
 
 
 			// Geometry
@@ -153,6 +222,11 @@ void setup_structures(void)
 			// Ensure that appropriate global indices are incremented if necessary
 			if (v == VC[IndVC])
 				IndVC++;
+			for (f = 0; f < NfMax; f++) {
+				gf = VToGF[v*NfMax+f];
+				if (IndGFC < NGFC && gf == GFC[IndGFC])
+					IndGFC++;
+			}
 		}
 
 		IndE++;
@@ -161,6 +235,34 @@ void setup_structures(void)
 
 	if (!AC && IndVC > NVC)
 		printf("Error: Found too many curved VOLUMEs.\n"), exit(1);
+
+/*
+	// Determine GFToV array
+	GFToV = malloc(NGF*2 * sizeof *GFToV); // tbd
+	GF_Nv = calloc(NGF   , sizeof *GF_Nv); // free
+
+	for (gf = 0; gf < NGF; gf++)
+		GFToV[gf*2+1] = NV;
+
+	for (v = 0; v < NV; v++) {
+	for (f = 0; f < NfMax; f++) {
+		gf = VToGF[v*NfMax+f];
+
+		GFToV[gf*2+GF_Nv[gf]] = v;
+		GF_Nv[gf]++;
+	}}
+	free(GF_Nv);
+
+array_print_ui(NGF,2,GFToV,'R');
+exit(1);
+*/
+
+for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
+	printf("%d %d\n",FACET->indexg,FACET->curved);
+}
+
+exit(1);
+
 
 /*
 for (i = 0, iMax = NVgrp; iMax--; i++) {

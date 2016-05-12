@@ -59,7 +59,7 @@ void setup_periodic()
 	             *VToF    = DB.VToF,
 	             *GFC     = DB.GFC;
 
-	unsigned int PrintTesting = 0;
+	unsigned int PrintTesting = 1;
 
 	// Standard datatypes
 	unsigned int i, j, dim, BlockStart, count, gf, iMax,
@@ -362,6 +362,7 @@ void setup_periodic()
 		printf("VToGF:\n");      array_print_ui(DB.NV,DB.NfMax,DB.VToGF,'R');
 		//printf("GFToRemove:\n"); array_print_ui(1,NPFSum[d-1],GFToRemove,'R');
 		printf("GFToVe:\n");     array_print_ui(DB.NGF,DB.NfveMax,DB.GFToVe,'R');
+		printf("GFC:\n");            array_print_ui(1,DB.NGFC,GFC,'R');
 	}
 
 	free(GFToRemove);
