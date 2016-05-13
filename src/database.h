@@ -56,9 +56,7 @@ struct S_ELEMENT {
 	// Operators
 	unsigned int connect_NE, NvnP,
 	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc,
-	             *NfnIs, *NfnIc,
-	//             *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnS, *NvnF, *NvnFrs, *NvnFrc, *NvnIs, *NvnIc,
-	//             *NfnGc, *NfnIs, *NfnIc,
+	             **NfnIs, **NfnIc,
 	             *connectivity, *connect_types;
 	double       *nr,
 	//             **rst_vGs, **rst_vGc, **rst_vCs, **rst_vCc, **rst_vJs, **rst_vJc, **rst_vS, **rst_vF, **rst_vFrs, **rst_vFrc,
@@ -66,8 +64,8 @@ struct S_ELEMENT {
 	//             **wvIs, **wvIc,
 	//             ***rst_fGc, ***rst_fIs, ***rst_fIc, **wfIs, **wfIc,
 	             **ICs, **ICc,
-	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs,
-	             **I_vGc_vP, **I_vGc_vCc, **I_vGc_vIc,
+	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs, ***I_vGs_fIs, ***I_vGs_fIc,
+	             **I_vGc_vP, **I_vGc_vCc, **I_vGc_vIc, ***I_vGc_fIs, ***I_vGc_fIc,
 	             **I_vCs_vIs, **I_vCs_vIc,
 	             **I_vCc_vIs, **I_vCc_vIc,
 	             ***I_vCs_fIs, ***I_vCs_fIc,

@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-//#include <math.h>
+#include <math.h>
 //#include <string.h>
 
 #include "database.h"
@@ -19,7 +19,7 @@
  *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_Schemes
  */
 
-static struct S_OPERATORS {
+struct S_OPERATORS {
 	unsigned int NvnC, NvnI, NfnI;
 	double       *I_vC_vI, **I_vC_fI, *nr;
 };
@@ -33,46 +33,49 @@ void setup_normals(struct S_FACET *FACET)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int i, fn, fnMax, curved, dim1, dim2,
-	             IndfIn,
+	unsigned int i, fn, fnMax, curved, dim, dim1, dim2,
+	             VfIn,
 	             NvnC0, NvnI0, NfnI0, NvnC1, NvnI1, NfnI1, NnI;
-	double       *C_fI, *C_vC, *nrIn, *n;
+	double       nSum, nSum2,
+	             *C_fI, *C_vC, *nrIn, *n;
 
 	struct S_OPERATORS *OPS[2];
-	struct S_VOLUME    *VOLUMEIn, *VOLUMEOut;
+	struct S_VOLUME    *VIn, *VOut;
 
 	// silence
-//	C_fI = NULL;
+//	fnMax = 0;
+	NnI = 0;
+	C_fI = NULL;
 
 	for (i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
 
-	VOLUMEIn  = FACET->VIn;
-	VOLUMEOut = FACET->VOut;
+	VIn  = FACET->VIn;
+	VOut = FACET->VOut;
 
-//  IndfIn = 
+	VfIn = FACET->VfIn;
 	curved = FACET->curved;
 
-	init_ops(OPS[0],VOLUMEIn,FACET,0);
-	if (VOLUMEIn->type == WEDGE)
-		init_ops(OPS[1],VOLUMEIn,FACET,1);
+	init_ops(OPS[0],VIn,FACET,0);
+	if (VIn->type == WEDGE)
+		init_ops(OPS[1],VIn,FACET,1);
 
 	NvnC0 = OPS[0]->NvnC;
 	NvnI0 = OPS[0]->NvnI;
 	NfnI0 = OPS[0]->NfnI;
 
-	C_vC = VOLUMEIn->C_vC;
-	if (VOLUMEIn->Eclass == C_TP) {
+	C_vC = VIn->C_vC;
+	if (VIn->Eclass == C_TP) {
 		printf("Add in support for C_TP in setup_normals.\n");
 		exit(1);
-	} else if (VOLUMEIn->Eclass == C_SI || VOLUMEIn->Eclass == C_PYR) {
+	} else if (VIn->Eclass == C_SI || VIn->Eclass == C_PYR) {
 
 		C_fI = malloc(NvnI0*d*d * sizeof *C_fI); // free
 
-		mm_CTN_d(NfnI0,d*d,NvnC0,OPS[0]->I_vC_fI[IndfIn],C_vC,C_fI);
+		mm_CTN_d(NfnI0,d*d,NvnC0,OPS[0]->I_vC_fI[VfIn],C_vC,C_fI);
 
 		NnI = NfnI0;
-	} else if (VOLUMEIn->Eclass == C_WEDGE) {
+	} else if (VIn->Eclass == C_WEDGE) {
 		NvnC1 = OPS[1]->NvnC;
 		NvnI1 = OPS[1]->NvnI;
 		NfnI1 = OPS[1]->NfnI;
@@ -80,7 +83,7 @@ void setup_normals(struct S_FACET *FACET)
 		printf("Add in support for C_WEDGE in setup_normals.\n");
 		exit(1);
 	}
-	nrIn = &OPS[0]->nr[IndfIn*3];
+	nrIn = &OPS[0]->nr[VfIn*d];
 
 	// Store a single normal on straight FACETs
 	if (!curved) fnMax = 1;
@@ -94,10 +97,20 @@ void setup_normals(struct S_FACET *FACET)
 		}}
 	}
 
-array_print_d(fnMax,d,n,'R');
-exit(1);
+	for (fn = 0; fn < fnMax; fn++) {
+		nSum2 = 0;
+		for (dim = 0; dim < d; dim++)
+			nSum2 += pow(n[fn*d+dim],2.0);
 
+		nSum = sqrt(nSum2); // == detJF_vI
+		for (dim = 0; dim < d; dim++)
+			n[fn*d+dim] /= nSum;
+	}
 
+	FACET->n = n;
+
+//printf("%d %d\n",FACET->indexg,FACET->curved);
+//array_print_d(fnMax,d,n,'R');
 
 	free(C_fI);
 	for (i = 0; i < 2; i++)
@@ -110,6 +123,9 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	// Standard datatypes
 	unsigned int P, Vtype, Vcurved, FtypeInt;
 	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS;
+
+	// silence
+	ELEMENT_OPS = NULL;
 
 	P        = FACET->P;
 	Vtype    = VOLUME->type;
@@ -128,14 +144,14 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		if (FtypeInt == 's') {
 			// Straight FACET Integration
 			OPS->NvnI = ELEMENT_OPS->NvnIs[P];
-			OPS->NfnI = ELEMENT_OPS->NfnIs[P];
+			OPS->NfnI = ELEMENT_OPS->NfnIs[P][IndClass];
 
 			OPS->I_vC_vI = ELEMENT_OPS->I_vCs_vIs[P];
 			OPS->I_vC_fI = ELEMENT_OPS->I_vCs_fIs[P];
 		} else {
 			// Curved FACET Integration
 			OPS->NvnI = ELEMENT_OPS->NvnIc[P];
-			OPS->NfnI = ELEMENT_OPS->NfnIc[P];
+			OPS->NfnI = ELEMENT_OPS->NfnIc[P][IndClass];
 
 			OPS->I_vC_vI = ELEMENT_OPS->I_vCs_vIc[P];
 			OPS->I_vC_fI = ELEMENT_OPS->I_vCs_fIc[P];
@@ -146,14 +162,14 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		if (FtypeInt == 's') {
 			// Straight FACET Integration
 			OPS->NvnI = ELEMENT_OPS->NvnIs[P];
-			OPS->NfnI = ELEMENT_OPS->NfnIs[P];
+			OPS->NfnI = ELEMENT_OPS->NfnIs[P][IndClass];
 
 			OPS->I_vC_vI = ELEMENT_OPS->I_vCc_vIs[P];
 			OPS->I_vC_fI = ELEMENT_OPS->I_vCc_fIs[P];
 		} else {
 			// Curved FACET Integration
 			OPS->NvnI = ELEMENT_OPS->NvnIc[P];
-			OPS->NfnI = ELEMENT_OPS->NfnIc[P];
+			OPS->NfnI = ELEMENT_OPS->NfnIc[P][IndClass];
 
 			OPS->I_vC_vI = ELEMENT_OPS->I_vCc_vIc[P];
 			OPS->I_vC_fI = ELEMENT_OPS->I_vCc_fIc[P];

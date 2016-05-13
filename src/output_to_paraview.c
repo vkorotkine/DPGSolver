@@ -14,7 +14,7 @@
  *		Getting an error from paraview when using less than 3 components for the Points DataArray. (2016-04-21)
  *		Potentially place all of the elements in a single piece to reduce file sizes. (ToBeDeleted)
  *		Possibly convert output to binary if this is found to be slow when profiling. (ToBeDeleted)
- *		The following outputs are supported:
+ *		The following outputs are supported: (ToBeModified)
  *			G : Geometry only
  *
  *	Notation:
@@ -89,8 +89,9 @@ static void output_geom(const char *geom_type)
 	u1 = 1;
 
 	sprintf(MPIrank_c,"%d",MPIrank);
-	strcpy(f_name,TestCase);
-	strcat(f_name,"_geom");
+//	strcpy(f_name,TestCase);
+//	strcat(f_name,"_geom");
+	strcpy(f_name,geom_type);
 
 	if (!DB.MPIrank) {
 		strcpy(f_parallel,"paraview/");
@@ -326,9 +327,66 @@ static void output_geom(const char *geom_type)
 	fclose(fID);
 }
 
+static void output_normals(const char *normals_type)
+{
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
+
+	// Standard datatypes
+	unsigned int P, NfnI, NvnG, IndFType, Eclass, VfIn;
+	double       *Input, *I_vG_vfI, *XYZ_fI;
+
+	struct S_ELEMENT *ELEMENT;
+	struct S_VOLUME  *VIn;
+	struct S_FACET   *FACET;
+
+	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
+		P = FACET->P;
+
+		VIn  = FACET->VIn;
+		VfIn = FACET->VfIn;
+
+		ELEMENT = get_ELEMENT_type(VIn->type);
+		Eclass  = get_Eclass(ELEMENT->type);
+
+		IndFType = get_IndFType(Eclass,VfIn);
+
+		if (VIn->Eclass == C_TP) {
+
+		} else if (VIn->Eclass == C_SI || VIn->Eclass == C_PYR) {
+			NvnG = VIn->NvnG;
+
+			if (FACET->typeInt == 's') {
+				NfnI = ELEMENT->NfnIs[P][IndFType];
+				if (!VIn->curved) I_vG_vfI = ELEMENT->I_vGs_fIs[P][VfIn];
+				else              I_vG_vfI = ELEMENT->I_vGc_fIs[P][VfIn];
+			} else {
+				NfnI = ELEMENT->NfnIc[P][IndFType];
+				if (!VIn->curved) I_vG_vfI = ELEMENT->I_vGs_fIc[P][VfIn];
+				else              I_vG_vfI = ELEMENT->I_vGc_fIc[P][VfIn];
+			}
+
+			Input = VIn->XYZ;
+
+			XYZ_fI = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NfnI,d,NvnG,1.0,I_vG_vfI,Input); // free
+		} else if (VIn->Eclass == C_WEDGE) {
+
+		}
+
+printf("%d\n",FACET->indexg);
+array_print_d(NfnI,d,XYZ_fI,'C');
+
+		free(XYZ_fI);
+	}
+}
+
 void output_to_paraview(const char *OutputType)
 {
 	if (strstr(OutputType,"Geom") != NULL)
 		output_geom(OutputType);
+	else if (strstr(OutputType,"Normals") != NULL)
+		output_normals(OutputType);
+	else
+		printf("Error: Unsupported OutputType in output_to_paraview.\n"), exit(1);
 
 }

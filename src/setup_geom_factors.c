@@ -28,7 +28,7 @@
  *		Kopriva(2006)-Metric_Identities_and_the_Discontinuous_Spectral_Element_Method_on_Curvilinear_Meshes
  */
 
-static struct S_OPERATORS {
+struct S_OPERATORS {
 	unsigned int NvnG, NvnC, NvnI;
 	double       *IC, *I_vG_vC, *I_vG_vI, *I_vC_vI,
 	             **D_vG_vC, **D_vG_vI, **D_vC_vC;

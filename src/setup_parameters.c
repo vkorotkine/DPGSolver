@@ -377,14 +377,6 @@ void setup_parameters()
 			PIvc[P][2] = floor(1.*IntOrdervc/2.);
 		} else {
 			// THESE PARAMETERS CANNOT BE MODIFIED.
-			// For collocated interpolation and integration nodes, a desired integration order cannot be specified.
-			for (i = 0; i < NEC; i++) {
-				PIfs[P][i] = 1;
-				PIfc[P][i] = 1;
-				PIvs[P][i] = 1;
-				PIvc[P][i] = 1;
-			}
-
 			if (strstr(DB.BasisType,"Nodal") == NULL) {
 				printf("Selected BasisType: %s.\n",DB.BasisType);
 				printf("Error: Nodal BasisType must be selected to use a collocated scheme\n"), exit(1);
@@ -466,6 +458,15 @@ void setup_parameters()
 			strcpy(NodeTypeIfc[P][2],"NOT_SUPPORTED");
 			strcpy(NodeTypeIvs[P][2],"NOT_SUPPORTED");
 			strcpy(NodeTypeIvc[P][2],"NOT_SUPPORTED");
+
+			// For collocated interpolation and integration nodes, a desired VOLUME integration order cannot be
+			// specified. Further, if using GLL NodeType, FACET integration order also cannot be specified.
+			for (i = 0; i < NEC; i++) {
+				PIfs[P][i] = P;
+				PIfc[P][i] = P;
+				PIvs[P][i] = P;
+				PIvc[P][i] = P;
+			}
 		}
 	}
 

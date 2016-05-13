@@ -76,6 +76,10 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->I_vCc_vIc = calloc(NP , sizeof *(ELEMENT->I_vCc_vIc)); // free
 	ELEMENT->I_vCc_vIs = calloc(NP , sizeof *(ELEMENT->I_vCc_vIs)); // free
 
+	ELEMENT->I_vGs_fIs = calloc(NP , sizeof *(ELEMENT->I_vGs_fIs)); // free
+	ELEMENT->I_vGs_fIc = calloc(NP , sizeof *(ELEMENT->I_vGs_fIc)); // free
+	ELEMENT->I_vGc_fIs = calloc(NP , sizeof *(ELEMENT->I_vGc_fIs)); // free
+	ELEMENT->I_vGc_fIc = calloc(NP , sizeof *(ELEMENT->I_vGc_fIc)); // free
 	ELEMENT->I_vCs_fIs = calloc(NP , sizeof *(ELEMENT->I_vCs_fIs)); // free
 	ELEMENT->I_vCs_fIc = calloc(NP , sizeof *(ELEMENT->I_vCs_fIc)); // free
 	ELEMENT->I_vCc_fIs = calloc(NP , sizeof *(ELEMENT->I_vCc_fIs)); // free
@@ -89,6 +93,13 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->D_vCc_vCc = calloc(NP , sizeof *(ELEMENT->D_vCc_vCc)); // free
 
 	for (P = 0; P < NP; P++) {
+		ELEMENT->NfnIs[P]     = calloc(2 , sizeof **(ELEMENT->NfnIs));
+		ELEMENT->NfnIc[P]     = calloc(2 , sizeof **(ELEMENT->NfnIc));
+
+		ELEMENT->I_vGs_fIs[P] = calloc(6 , sizeof **(ELEMENT->I_vGs_fIs));
+		ELEMENT->I_vGs_fIc[P] = calloc(6 , sizeof **(ELEMENT->I_vGs_fIc));
+		ELEMENT->I_vGc_fIs[P] = calloc(6 , sizeof **(ELEMENT->I_vGc_fIs));
+		ELEMENT->I_vGc_fIc[P] = calloc(6 , sizeof **(ELEMENT->I_vGc_fIc));
 		ELEMENT->I_vCs_fIs[P] = calloc(6 , sizeof **(ELEMENT->I_vCs_fIs));
 		ELEMENT->I_vCs_fIc[P] = calloc(6 , sizeof **(ELEMENT->I_vCs_fIc));
 		ELEMENT->I_vCc_fIs[P] = calloc(6 , sizeof **(ELEMENT->I_vCc_fIs));
@@ -226,6 +237,8 @@ struct S_FACET *New_FACET(void)
 	FACET->VOut  = NULL; // free (in memory_destructor_V)
 	FACET->VfIn  = 0;
 	FACET->VfOut = 0;
+
+	FACET->n = NULL; // free
 
 	FACET->next = NULL;
 

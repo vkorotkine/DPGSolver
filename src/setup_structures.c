@@ -55,10 +55,9 @@ void setup_structures(void)
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME, **Vgrp, **Vgrp_tmp;
-	struct S_FACET   *FACET, **FoundFACET;
+	struct S_FACET   **FACET, **FoundFACET;
 
 	// silence
-	FACET == NULL;
 	NECgrp = 0;
 
 	uMPIrank = MPIrank;
@@ -67,7 +66,8 @@ void setup_structures(void)
 	else if (d == 2) NECgrp = 2;
 	else if (d == 3) NECgrp = 4;
 
-	FoundFACET = calloc(NGF , sizeof *FoundFACET); // tbd
+	FACET      = calloc(2   , sizeof *FACET); // free
+	FoundFACET = calloc(NGF , sizeof *FoundFACET); // free
 
 	NVgrp = NECgrp*NP*2;
 	Vgrp     = malloc(NVgrp * sizeof *Vgrp);     // keep
@@ -129,48 +129,47 @@ void setup_structures(void)
 			for (f = 0; f < NfMax; f++) {
 				gf = VToGF[v*NfMax+f];
 				if (FoundFACET[gf] == NULL) {
-printf("%d %d %d\n",v,f,gf);
+
 					if (DB.FACET != NULL) {
-						FACET->next = New_FACET();
-						FACET       = FACET->next;
+						FACET[0]->next = New_FACET();
+						FACET[0]       = FACET[0]->next;
 					} else {
 						DB.FACET = New_FACET();
-						FACET    = DB.FACET;
+						FACET[0] = DB.FACET;
 					}
 
-//					FACET->indexl = gflocal;
-					FACET->indexg = gf;
-//					FACET->P      = VOLUME->P;
+//					FACET[0]->indexl = gflocal;
+					FACET[0]->indexg = gf;
+					FACET[0]->P      = VOLUME->P;
 
-					FACET->VIn   = VOLUME;
-					FACET->VfIn  = f;
+					FACET[0]->VIn   = VOLUME;
+					FACET[0]->VfIn  = f;
 
 					// Overwritten if a second VOLUME is found adjacent to this FACET
-					FACET->VOut  = VOLUME;
-					FACET->VfOut = f;
+					FACET[0]->VOut  = VOLUME;
+					FACET[0]->VfOut = f;
 
 					if (!VOLUME->curved) {
-						FACET->typeInt = 's';
+						FACET[0]->typeInt = 's';
 					} else {
-						FACET->typeInt = 'c';
-						if (IndGFC < NGFC && gf == GFC[IndGFC]) {
-							FACET->curved = 1;
+						FACET[0]->typeInt = 'c';
+						if (AC || (IndGFC < NGFC && gf == GFC[IndGFC])) {
+							FACET[0]->curved = 1;
 							IndGFC++;
 						}
 					}
 
-					FoundFACET[gf] = FACET;
+					FoundFACET[gf] = FACET[0];
 				} else {
-printf("second: %d %d %d\n",v,f,gf);
-					FACET = FoundFACET[gf];
+					FACET[1] = FoundFACET[gf];
 
-//					FACET->P = max(FACET->P,VOLUME->P);
-					FACET->VOut  = VOLUME;
-					FACET->VfOut = f;
+					FACET[1]->P = max(FACET[1]->P,VOLUME->P);
+					FACET[1]->VOut  = VOLUME;
+					FACET[1]->VfOut = f;
 					if (VOLUME->curved) {
-						FACET->typeInt = 'c';
-						if (IndGFC < NGFC && gf == GFC[IndGFC]) {
-							FACET->curved = 1;
+						FACET[1]->typeInt = 'c';
+						if (AC || (IndGFC < NGFC && gf == GFC[IndGFC])) {
+							FACET[1]->curved = 1;
 							IndGFC++;
 						}
 					}
@@ -232,6 +231,8 @@ printf("second: %d %d %d\n",v,f,gf);
 		IndE++;
 	}
 	free(Vgrp_tmp);
+	free(FACET);
+	free(FoundFACET);
 
 	if (!AC && IndVC > NVC)
 		printf("Error: Found too many curved VOLUMEs.\n"), exit(1);
@@ -257,11 +258,13 @@ array_print_ui(NGF,2,GFToV,'R');
 exit(1);
 */
 
-for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
-	printf("%d %d\n",FACET->indexg,FACET->curved);
+/*
+for (FACET[0] = DB.FACET; FACET[0] != NULL; FACET[0] = FACET[0]->next) {
+	printf("%d %d %c %d %d %d %d\n",
+	       FACET[0]->indexg,FACET[0]->curved,FACET[0]->typeInt,FACET[0]->VIn->indexg,FACET[0]->VOut->indexg,FACET[0]->VfIn,FACET[0]->VfOut);
 }
-
 exit(1);
+*/
 
 
 /*

@@ -59,7 +59,7 @@ void setup_periodic()
 	             *VToF    = DB.VToF,
 	             *GFC     = DB.GFC;
 
-	unsigned int PrintTesting = 1;
+	unsigned int PrintTesting = 0;
 
 	// Standard datatypes
 	unsigned int i, j, dim, BlockStart, count, gf, iMax,

@@ -46,6 +46,7 @@ void setup_geometry(void)
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME;
+	struct S_FACET   *FACET;
 
 	// silence
 	NvnGs = 0; NvnGc = 0;
@@ -182,7 +183,7 @@ void setup_geometry(void)
 
 	if (Testing) {
 		// Output straight coordinates to paraview
-		output_to_paraview("Geom_straight");
+		output_to_paraview("ZTest_Geom_straight");
 	}
 
 	// Set up curved geometry nodes
@@ -198,15 +199,24 @@ void setup_geometry(void)
 
 	if (Testing) {
 		// Output curved coordinates to paraview
-		output_to_paraview("Geom_curved");
+		output_to_paraview("ZTest_Geom_curved");
 	}
 
+	printf("    Set up geometric factors\n");
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
 		setup_geom_factors(VOLUME);
 
-	// Start on setup_normals: Need to put FACETs into setup_structures
+	printf("    Set up normals\n");
+	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next)
+		setup_normals(FACET);
 
-	// After setup_normals is finished, free C_vC in all VOLUMEs
+	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
+		free(VOLUME->C_vC);
+	
+	if (Testing) {
+		// Output normals to paraview
+		output_to_paraview("ZTest_Normals");
+	}
 
 
 	// Find node index ordering on each FACET

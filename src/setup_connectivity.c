@@ -64,7 +64,7 @@ void setup_connectivity(void)
 	             *EType   = DB.EType,
 	             *ETags   = DB.ETags;
 
-	unsigned int PrintTesting = 1;
+	unsigned int PrintTesting = 0;
 
 	// Standard datatypes
 	unsigned int i, j, count, iMax,
