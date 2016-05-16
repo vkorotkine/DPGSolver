@@ -333,7 +333,7 @@ static void output_normals(const char *normals_type)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int P, NfnI, NvnG, IndFType, Eclass, VfIn;
+	unsigned int PV, PF, NfnI, NvnG, IndFType, Eclass, VfIn;
 	double       *Input, *I_vG_vfI, *XYZ_fI;
 
 	struct S_ELEMENT *ELEMENT;
@@ -341,10 +341,11 @@ static void output_normals(const char *normals_type)
 	struct S_FACET   *FACET;
 
 	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
-		P = FACET->P;
-
 		VIn  = FACET->VIn;
 		VfIn = FACET->VfIn;
+
+		PV = VIn->P;
+		PF = FACET->P;
 
 		ELEMENT = get_ELEMENT_type(VIn->type);
 		Eclass  = get_Eclass(ELEMENT->type);
@@ -357,13 +358,13 @@ static void output_normals(const char *normals_type)
 			NvnG = VIn->NvnG;
 
 			if (FACET->typeInt == 's') {
-				NfnI = ELEMENT->NfnIs[P][IndFType];
-				if (!VIn->curved) I_vG_vfI = ELEMENT->I_vGs_fIs[P][VfIn];
-				else              I_vG_vfI = ELEMENT->I_vGc_fIs[P][VfIn];
+				NfnI = ELEMENT->NfnIs[PF][IndFType];
+				if (!VIn->curved) I_vG_vfI = ELEMENT->I_vGs_fIs[PV][PF][VfIn];
+				else              I_vG_vfI = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
 			} else {
-				NfnI = ELEMENT->NfnIc[P][IndFType];
-				if (!VIn->curved) I_vG_vfI = ELEMENT->I_vGs_fIc[P][VfIn];
-				else              I_vG_vfI = ELEMENT->I_vGc_fIc[P][VfIn];
+				NfnI = ELEMENT->NfnIc[PF][IndFType];
+				if (!VIn->curved) I_vG_vfI = ELEMENT->I_vGs_fIc[PV][PF][VfIn];
+				else              I_vG_vfI = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
 			}
 
 			Input = VIn->XYZ;

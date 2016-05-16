@@ -27,7 +27,11 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	// Mesh
 	free(ELEMENT->Nfve);
 	free(ELEMENT->VeCGmsh);
-	free(ELEMENT->VeE);
+	free(ELEMENT->VeFcon);
+
+	// h-refinement related
+	free(ELEMENT->Nfref);
+	free(ELEMENT->NfMixed);
 	free(ELEMENT->VeF);
 
 	// Normals
@@ -62,14 +66,14 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free2_d(NP,ELEMENT->I_vCc_vIs);
 	array_free2_d(NP,ELEMENT->I_vCc_vIc);
 
-	array_free3_d(NP,6,ELEMENT->I_vGs_fIs);
-	array_free3_d(NP,6,ELEMENT->I_vGs_fIc);
-	array_free3_d(NP,6,ELEMENT->I_vGc_fIs);
-	array_free3_d(NP,6,ELEMENT->I_vGc_fIc);
-	array_free3_d(NP,6,ELEMENT->I_vCs_fIs);
-	array_free3_d(NP,6,ELEMENT->I_vCs_fIc);
-	array_free3_d(NP,6,ELEMENT->I_vCc_fIs);
-	array_free3_d(NP,6,ELEMENT->I_vCc_fIc);
+	array_free4_d(NP,NP,54,ELEMENT->I_vGs_fIs);
+	array_free4_d(NP,NP,54,ELEMENT->I_vGs_fIc);
+	array_free4_d(NP,NP,54,ELEMENT->I_vGc_fIs);
+	array_free4_d(NP,NP,54,ELEMENT->I_vGc_fIc);
+	array_free4_d(NP,NP,54,ELEMENT->I_vCs_fIs);
+	array_free4_d(NP,NP,54,ELEMENT->I_vCs_fIc);
+	array_free4_d(NP,NP,54,ELEMENT->I_vCc_fIs);
+	array_free4_d(NP,NP,54,ELEMENT->I_vCc_fIc);
 
 	array_free3_d(NP,d,ELEMENT->D_vGs_vCs);
 	array_free3_d(NP,d,ELEMENT->D_vGs_vIs);

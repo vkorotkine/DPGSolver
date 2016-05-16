@@ -68,9 +68,9 @@ void setup_connectivity(void)
 
 	// Standard datatypes
 	unsigned int i, j, count, iMax,
-	             IndB, IndM, IndFType, iIn, iOut, NRows, NCols,
-	             Fs, Vs, NV, v, f, gf, ve, vc, gfc, type, IndFixed[3],
-	             *VeF, Nf, *Nfve,
+	             IndB, IndM, iIn, iOut, NRows, NCols,
+	             Fs, Vs, NV, v, f, gf, ve, vc, gfc, IndFixed[3],
+	             *VeFcon, Nf, *Nfve,
 	             NBF, NGF, *IndicesGF, *IndicesBF,
 	             *VToVe, *VType, *FToVe, *FNve, *VToV, *VToF, *VToBC,
 	             *BFToVe, *BTags, *VToGF, *GFToVeOver, *GFToVe, *NveGF,
@@ -100,28 +100,20 @@ void setup_connectivity(void)
 
 	for (v = 0; v < NV; v++) {
 		ELEMENT = DB.ELEMENT; while (ELEMENT->type != VType[v]) ELEMENT = ELEMENT->next;
-		type = ELEMENT->type;
-		VeF  = ELEMENT->VeF;
-		Nf   = ELEMENT->Nf;
-		Nfve = ELEMENT->Nfve;
+		VeFcon = ELEMENT->VeFcon;
+		Nf      = ELEMENT->Nf;
+		Nfve    = ELEMENT->Nfve;
 
 		IndFixed[0] = v*NfMax*NfveMax;
 		for (f = 0; f < Nf; f++) {
-			if ( type == LINE || type == TRI || type == QUAD || type == TET || type == HEX ||
-			    (type == WEDGE && f < 3) || (type == PYR && f < 4))
-					IndFType = 0;
-			else if (type == WEDGE || type == PYR)
-				IndFType = 1;
-			else
-				printf("Error: Element type input from gmsh is not supported.\n"), exit(1);
-			FNve[v*NfMax+f] = Nfve[IndFType];
+			FNve[v*NfMax+f] = Nfve[f];
 
 			IndFixed[1] = IndFixed[0]+f*NfveMax;
 
-			for (ve = 0; ve < Nfve[IndFType]; ve++)
-				FToVe[IndFixed[1]+ve] = VToVe[v*8+VeF[f*4+ve]];
+			for (ve = 0; ve < Nfve[f]; ve++)
+				FToVe[IndFixed[1]+ve] = VToVe[v*8+VeFcon[f*4+ve]];
 
-			PetscSortInt(Nfve[IndFType],(int *)&FToVe[IndFixed[1]]);
+			PetscSortInt(Nfve[f],(int *)&FToVe[IndFixed[1]]);
 		}
 	}
 
@@ -208,7 +200,6 @@ void setup_connectivity(void)
 	// Compute VToV and VToF
 	for (v = 0; v < NV; v++) {
 		ELEMENT = DB.ELEMENT; while (ELEMENT->type != VType[v]) ELEMENT = ELEMENT->next;
-		type = ELEMENT->type;
 		Nf   = ELEMENT->Nf;
 
 		for (f = 0; f < NfMax; f++) {
@@ -300,22 +291,14 @@ void setup_connectivity(void)
 				VToGF[vNeigh*NfMax+fNeigh] = gf;
 
 				ELEMENT = DB.ELEMENT; while(ELEMENT->type != VType[v]) ELEMENT = ELEMENT->next;
-				type = ELEMENT->type;
-				Nfve = ELEMENT->Nfve;
-				VeF  = ELEMENT->VeF;
+				Nfve    = ELEMENT->Nfve;
+				VeFcon = ELEMENT->VeFcon;
 
-				if ( type == LINE || type == TRI || type == QUAD || type == TET || type == HEX ||
-				    (type == WEDGE && f < 3) || (type == PYR && f < 4))
-						Nve = Nfve[0];
-				else if (type == WEDGE || type == PYR)
-					Nve = Nfve[1];
-				else
-					printf("Element type not supported.\n"), exit(1);
-
+				Nve = Nfve[f];
 				NveGF[gf] = Nve;
 
 				for (ve = 0; ve < Nve; ve++)
-					GFToVeOver[gf*NfveMax+ve] = VToVe[v*8+VeF[f*4+ve]];
+					GFToVeOver[gf*NfveMax+ve] = VToVe[v*8+VeFcon[f*4+ve]];
 
 				gf++;
 			}

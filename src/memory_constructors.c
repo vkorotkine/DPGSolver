@@ -18,11 +18,12 @@
 struct S_ELEMENT *New_ELEMENT(void)
 {
 	// Initialize DB Parameters
-	unsigned int d  = DB.d,
-	             NP = DB.NP;
+	unsigned int d    = DB.d,
+	             PMax = DB.PMax,
+	             NP   = DB.NP;
 
 	// Standard datatypes
-	unsigned int P;
+	unsigned int P, Pb, PbMin, PbMax;
 
 	struct S_ELEMENT *ELEMENT;
 
@@ -35,12 +36,16 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->Nve     = 0;
 	ELEMENT->Nf      = 0;
 
-	ELEMENT->Nfve    = calloc(2    , sizeof *(ELEMENT->Nfve));     // free
-	ELEMENT->VeCGmsh = calloc(8    , sizeof *(ELEMENT->VeCGmsh));  // free
-	ELEMENT->VeE     = calloc(12*2 , sizeof *(ELEMENT->VeE));      // free
-	ELEMENT->VeF     = calloc(6*4  , sizeof *(ELEMENT->VeF));      // free
+	ELEMENT->Nfve    = calloc(6       , sizeof *(ELEMENT->Nfve));    // free
+	ELEMENT->VeCGmsh = calloc(8       , sizeof *(ELEMENT->VeCGmsh)); // free
+	ELEMENT->VeFcon  = calloc(6*4     , sizeof *(ELEMENT->VeFcon)); // free
 
 	// Operators
+
+	// h-refinement related
+	ELEMENT->Nfref   = calloc(8       , sizeof *(ELEMENT->Nfref));   // free
+	ELEMENT->NfMixed = calloc(2       , sizeof *(ELEMENT->NfMixed)); // free
+	ELEMENT->VeF     = calloc(4*8*9*6 , sizeof *(ELEMENT->VeF));     // free
 
 	// Normals
 	ELEMENT->nr = calloc(6*3 , sizeof *(ELEMENT->nr)); // free
@@ -96,21 +101,36 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->NfnIs[P]     = calloc(2 , sizeof **(ELEMENT->NfnIs));
 		ELEMENT->NfnIc[P]     = calloc(2 , sizeof **(ELEMENT->NfnIc));
 
-		ELEMENT->I_vGs_fIs[P] = calloc(6 , sizeof **(ELEMENT->I_vGs_fIs));
-		ELEMENT->I_vGs_fIc[P] = calloc(6 , sizeof **(ELEMENT->I_vGs_fIc));
-		ELEMENT->I_vGc_fIs[P] = calloc(6 , sizeof **(ELEMENT->I_vGc_fIs));
-		ELEMENT->I_vGc_fIc[P] = calloc(6 , sizeof **(ELEMENT->I_vGc_fIc));
-		ELEMENT->I_vCs_fIs[P] = calloc(6 , sizeof **(ELEMENT->I_vCs_fIs));
-		ELEMENT->I_vCs_fIc[P] = calloc(6 , sizeof **(ELEMENT->I_vCs_fIc));
-		ELEMENT->I_vCc_fIs[P] = calloc(6 , sizeof **(ELEMENT->I_vCc_fIs));
-		ELEMENT->I_vCc_fIc[P] = calloc(6 , sizeof **(ELEMENT->I_vCc_fIc));
-
 		ELEMENT->D_vGs_vCs[P] = calloc(d , sizeof **(ELEMENT->D_vGs_vCs));
 		ELEMENT->D_vGs_vIs[P] = calloc(d , sizeof **(ELEMENT->D_vGs_vIs));
 		ELEMENT->D_vCs_vCs[P] = calloc(d , sizeof **(ELEMENT->D_vCs_vCs));
 		ELEMENT->D_vGc_vCc[P] = calloc(d , sizeof **(ELEMENT->D_vGc_vCc));
 		ELEMENT->D_vGc_vIc[P] = calloc(d , sizeof **(ELEMENT->D_vGc_vIc));
 		ELEMENT->D_vCc_vCc[P] = calloc(d , sizeof **(ELEMENT->D_vCc_vCc));
+
+		ELEMENT->I_vGs_fIs[P] = calloc(NP, sizeof **(ELEMENT->I_vGs_fIs));
+		ELEMENT->I_vGs_fIc[P] = calloc(NP, sizeof **(ELEMENT->I_vGs_fIc));
+		ELEMENT->I_vGc_fIs[P] = calloc(NP, sizeof **(ELEMENT->I_vGc_fIs));
+		ELEMENT->I_vGc_fIc[P] = calloc(NP, sizeof **(ELEMENT->I_vGc_fIc));
+		ELEMENT->I_vCs_fIs[P] = calloc(NP, sizeof **(ELEMENT->I_vCs_fIs));
+		ELEMENT->I_vCs_fIc[P] = calloc(NP, sizeof **(ELEMENT->I_vCs_fIc));
+		ELEMENT->I_vCc_fIs[P] = calloc(NP, sizeof **(ELEMENT->I_vCc_fIs));
+		ELEMENT->I_vCc_fIc[P] = calloc(NP, sizeof **(ELEMENT->I_vCc_fIc));
+
+		if      (P == 0)    PbMin = P,   PbMax = P+1;
+		else if (P == PMax) PbMin = P-1, PbMax = PMax;
+		else                PbMin = P-1, PbMax = P+1;
+
+		for (Pb = PbMin; Pb <= PbMax; Pb++) {
+			ELEMENT->I_vGs_fIs[P][Pb] = calloc(54 , sizeof ***(ELEMENT->I_vGs_fIs));
+			ELEMENT->I_vGs_fIc[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vGs_fIc));
+			ELEMENT->I_vGc_fIs[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vGc_fIs));
+			ELEMENT->I_vGc_fIc[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vGc_fIc));
+			ELEMENT->I_vCs_fIs[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vCs_fIs));
+			ELEMENT->I_vCs_fIc[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vCs_fIc));
+			ELEMENT->I_vCc_fIs[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vCc_fIs));
+			ELEMENT->I_vCc_fIc[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vCc_fIc));
+		}
 	}
 
 

@@ -34,7 +34,7 @@ struct S_DB {
 	             **SF_BE, **PCs, **PCc, **PJs, **PJc, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
 	// Mesh
-	unsigned int NVe, NPVe, NfMax, NfveMax, NETotal, NV, NGF, NVC, NGFC,
+	unsigned int NVe, NPVe, NfMax, NfveMax, NveMax, NfrefMax, NETotal, NV, NGF, NVC, NGFC,
 	             *PVe, *NE, *EType, *ETags, *EToVe, *EToPrt, *VToV, *VToF, *VToGF, *VToBC, *GFToVe, *VC, *GFC;
 	double *VeXYZ;
 
@@ -51,25 +51,26 @@ extern struct S_DB DB;
 struct S_ELEMENT {
 	// Mesh
 	unsigned int present, type, d, Nve, Nf,
-	             *Nfve, *VeCGmsh, *VeE, *VeF;
+	             *Nfve, *VeCGmsh, *VeFcon;
 
 	// Operators
 	unsigned int connect_NE, NvnP,
 	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc,
 	             **NfnIs, **NfnIc,
+	             *Nfref, *NfMixed,
 	             *connectivity, *connect_types;
-	double       *nr,
+	double       *VeF, *nr,
 	//             **rst_vGs, **rst_vGc, **rst_vCs, **rst_vCc, **rst_vJs, **rst_vJc, **rst_vS, **rst_vF, **rst_vFrs, **rst_vFrc,
 	//             **rst_vIs, **rst_vIc,
 	//             **wvIs, **wvIc,
 	//             ***rst_fGc, ***rst_fIs, ***rst_fIc, **wfIs, **wfIc,
 	             **ICs, **ICc,
-	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs, ***I_vGs_fIs, ***I_vGs_fIc,
-	             **I_vGc_vP, **I_vGc_vCc, **I_vGc_vIc, ***I_vGc_fIs, ***I_vGc_fIc,
+	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs, ****I_vGs_fIs, ****I_vGs_fIc,
+	             **I_vGc_vP, **I_vGc_vCc, **I_vGc_vIc, ****I_vGc_fIs, ****I_vGc_fIc,
 	             **I_vCs_vIs, **I_vCs_vIc,
 	             **I_vCc_vIs, **I_vCc_vIc,
-	             ***I_vCs_fIs, ***I_vCs_fIc,
-	             ***I_vCc_fIs, ***I_vCc_fIc,
+	             ****I_vCs_fIs, ****I_vCs_fIc,
+	             ****I_vCc_fIs, ****I_vCc_fIc,
 	             ***D_vGs_vCs, ***D_vGs_vIs,
 	             ***D_vGc_vCc, ***D_vGc_vIc,
 	             ***D_vCs_vCs,

@@ -167,16 +167,6 @@ static void setup_ELEMENT_normals(const unsigned int EType)
 	}
 }
 
-static unsigned int get_IndFType(const unsigned int Eclass, const unsigned int f)
-{
-	if (Eclass == C_TP || Eclass == C_SI || (Eclass == C_PYR && f < 4)) {
-		return 0;
-	} else if (Eclass == PYR && f == 5) {
-		return 1;
-	}
-	printf("Error: Unsupported Eclass/f combination in get_IndFType.\n"), exit(1);
-}
-
 static double *get_rst_vC(const struct S_ELEMENT *ELEMENT)
 {
 	unsigned int d, Nve, EType;
@@ -189,55 +179,55 @@ static double *get_rst_vC(const struct S_ELEMENT *ELEMENT)
 	rst_vC = malloc(Nve*d * sizeof *rst_vC); // keep (requires external free)
 
 	switch (EType) {
-		case LINE:
-			rst_vC[0*Nve+0] = -1.0;
-			rst_vC[0*Nve+1] =  1.0;
-			break;
-		case TRI:
-			rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0/sqrt(3.0);
-			rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0/sqrt(3.0);
-			rst_vC[0*Nve+2] =  0.0; rst_vC[1*Nve+2] =  2.0/sqrt(3.0);
-			break;
-		case QUAD:
-			rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0;
-			rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0;
-			rst_vC[0*Nve+2] =  1.0; rst_vC[1*Nve+2] =  1.0;
-			rst_vC[0*Nve+3] = -1.0; rst_vC[1*Nve+3] =  1.0;
-			break;
-		case TET:
-			rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0/sqrt(3.0); rst_vC[2*Nve+0] = -1.0/sqrt(6.0);
-			rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0/sqrt(3.0); rst_vC[2*Nve+1] = -1.0/sqrt(6.0);
-			rst_vC[0*Nve+2] =  0.0; rst_vC[1*Nve+2] =  2.0/sqrt(3.0); rst_vC[2*Nve+2] = -1.0/sqrt(6.0);
-			rst_vC[0*Nve+3] =  0.0; rst_vC[1*Nve+3] =  0.0;           rst_vC[2*Nve+3] =  3.0/sqrt(6.0);
-			break;
-		case HEX:
-			rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0; rst_vC[2*Nve+0] = -1.0;
-			rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0; rst_vC[2*Nve+1] = -1.0;
-			rst_vC[0*Nve+2] =  1.0; rst_vC[1*Nve+2] =  1.0; rst_vC[2*Nve+2] = -1.0;
-			rst_vC[0*Nve+3] = -1.0; rst_vC[1*Nve+3] =  1.0; rst_vC[2*Nve+3] = -1.0;
-			rst_vC[0*Nve+4] = -1.0; rst_vC[1*Nve+4] = -1.0; rst_vC[2*Nve+4] =  1.0;
-			rst_vC[0*Nve+5] =  1.0; rst_vC[1*Nve+5] = -1.0; rst_vC[2*Nve+5] =  1.0;
-			rst_vC[0*Nve+6] =  1.0; rst_vC[1*Nve+6] =  1.0; rst_vC[2*Nve+6] =  1.0;
-			rst_vC[0*Nve+7] = -1.0; rst_vC[1*Nve+7] =  1.0; rst_vC[2*Nve+7] =  1.0;
-			break;
-		case WEDGE:
-			rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0/sqrt(3.0); rst_vC[2*Nve+0] = -1.0;
-			rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0/sqrt(3.0); rst_vC[2*Nve+1] = -1.0;
-			rst_vC[0*Nve+2] =  0.0; rst_vC[1*Nve+2] =  2.0/sqrt(3.0); rst_vC[2*Nve+2] = -1.0;
-			rst_vC[0*Nve+3] = -1.0; rst_vC[1*Nve+3] = -1.0/sqrt(3.0); rst_vC[2*Nve+3] =  1.0;
-			rst_vC[0*Nve+4] =  1.0; rst_vC[1*Nve+4] = -1.0/sqrt(3.0); rst_vC[2*Nve+4] =  1.0;
-			rst_vC[0*Nve+5] =  0.0; rst_vC[1*Nve+5] =  2.0/sqrt(3.0); rst_vC[2*Nve+5] =  1.0;
-			break;
-		case PYR:
-			rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0; rst_vC[2*Nve+0] = -1.0/sqrt(5.0);
-			rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0; rst_vC[2*Nve+1] = -1.0/sqrt(5.0);
-			rst_vC[0*Nve+2] =  1.0; rst_vC[1*Nve+2] =  1.0; rst_vC[2*Nve+2] = -1.0/sqrt(5.0);
-			rst_vC[0*Nve+3] = -1.0; rst_vC[1*Nve+3] =  1.0; rst_vC[2*Nve+3] = -1.0/sqrt(5.0);
-			rst_vC[0*Nve+4] =  0.0; rst_vC[1*Nve+4] =  0.0; rst_vC[2*Nve+4] =  4.0/sqrt(5.0);
-			break;
-		default:
-			printf("Error: Unsupported EType in get_rst_vC.\n"), exit(1);
-			break;
+	case LINE:
+		rst_vC[0*Nve+0] = -1.0;
+		rst_vC[0*Nve+1] =  1.0;
+		break;
+	case TRI:
+		rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0/sqrt(3.0);
+		rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0/sqrt(3.0);
+		rst_vC[0*Nve+2] =  0.0; rst_vC[1*Nve+2] =  2.0/sqrt(3.0);
+		break;
+	case QUAD:
+		rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0;
+		rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0;
+		rst_vC[0*Nve+2] =  1.0; rst_vC[1*Nve+2] =  1.0;
+		rst_vC[0*Nve+3] = -1.0; rst_vC[1*Nve+3] =  1.0;
+		break;
+	case TET:
+		rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0/sqrt(3.0); rst_vC[2*Nve+0] = -1.0/sqrt(6.0);
+		rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0/sqrt(3.0); rst_vC[2*Nve+1] = -1.0/sqrt(6.0);
+		rst_vC[0*Nve+2] =  0.0; rst_vC[1*Nve+2] =  2.0/sqrt(3.0); rst_vC[2*Nve+2] = -1.0/sqrt(6.0);
+		rst_vC[0*Nve+3] =  0.0; rst_vC[1*Nve+3] =  0.0;           rst_vC[2*Nve+3] =  3.0/sqrt(6.0);
+		break;
+	case HEX:
+		rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0; rst_vC[2*Nve+0] = -1.0;
+		rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0; rst_vC[2*Nve+1] = -1.0;
+		rst_vC[0*Nve+2] =  1.0; rst_vC[1*Nve+2] =  1.0; rst_vC[2*Nve+2] = -1.0;
+		rst_vC[0*Nve+3] = -1.0; rst_vC[1*Nve+3] =  1.0; rst_vC[2*Nve+3] = -1.0;
+		rst_vC[0*Nve+4] = -1.0; rst_vC[1*Nve+4] = -1.0; rst_vC[2*Nve+4] =  1.0;
+		rst_vC[0*Nve+5] =  1.0; rst_vC[1*Nve+5] = -1.0; rst_vC[2*Nve+5] =  1.0;
+		rst_vC[0*Nve+6] =  1.0; rst_vC[1*Nve+6] =  1.0; rst_vC[2*Nve+6] =  1.0;
+		rst_vC[0*Nve+7] = -1.0; rst_vC[1*Nve+7] =  1.0; rst_vC[2*Nve+7] =  1.0;
+		break;
+	case WEDGE:
+		rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0/sqrt(3.0); rst_vC[2*Nve+0] = -1.0;
+		rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0/sqrt(3.0); rst_vC[2*Nve+1] = -1.0;
+		rst_vC[0*Nve+2] =  0.0; rst_vC[1*Nve+2] =  2.0/sqrt(3.0); rst_vC[2*Nve+2] = -1.0;
+		rst_vC[0*Nve+3] = -1.0; rst_vC[1*Nve+3] = -1.0/sqrt(3.0); rst_vC[2*Nve+3] =  1.0;
+		rst_vC[0*Nve+4] =  1.0; rst_vC[1*Nve+4] = -1.0/sqrt(3.0); rst_vC[2*Nve+4] =  1.0;
+		rst_vC[0*Nve+5] =  0.0; rst_vC[1*Nve+5] =  2.0/sqrt(3.0); rst_vC[2*Nve+5] =  1.0;
+		break;
+	case PYR:
+		rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0; rst_vC[2*Nve+0] = -1.0/sqrt(5.0);
+		rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0; rst_vC[2*Nve+1] = -1.0/sqrt(5.0);
+		rst_vC[0*Nve+2] =  1.0; rst_vC[1*Nve+2] =  1.0; rst_vC[2*Nve+2] = -1.0/sqrt(5.0);
+		rst_vC[0*Nve+3] = -1.0; rst_vC[1*Nve+3] =  1.0; rst_vC[2*Nve+3] = -1.0/sqrt(5.0);
+		rst_vC[0*Nve+4] =  0.0; rst_vC[1*Nve+4] =  0.0; rst_vC[2*Nve+4] =  4.0/sqrt(5.0);
+		break;
+	default:
+		printf("Error: Unsupported EType in get_rst_vC.\n"), exit(1);
+		break;
 	}
 	return rst_vC;
 }
@@ -372,10 +362,10 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	// Returned operators
 	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, **NfnIs, **NfnIc;
 	double       **ICs, **ICc,
-	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs, ***I_vGs_fIs, ***I_vGs_fIc,
-	             **I_vGc_vP,              **I_vGc_vCc, **I_vGc_vIc, ***I_vGc_fIs, ***I_vGc_fIc,
-	             **I_vCs_vIs, **I_vCs_vIc, ***I_vCs_fIs, ***I_vCs_fIc,
-	             **I_vCc_vIs, **I_vCc_vIc, ***I_vCc_fIs, ***I_vCc_fIc,
+	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs, ****I_vGs_fIs, ****I_vGs_fIc,
+	             **I_vGc_vP,              **I_vGc_vCc, **I_vGc_vIc, ****I_vGc_fIs, ****I_vGc_fIc,
+	             **I_vCs_vIs, **I_vCs_vIc, ****I_vCs_fIs, ****I_vCs_fIc,
+	             **I_vCc_vIs, **I_vCc_vIc, ****I_vCc_fIs, ****I_vCc_fIc,
 	             ***D_vGs_vCs, ***D_vGs_vIs,
 	             ***D_vGc_vCc, ***D_vGc_vIc,
 	             ***D_vCs_vCs,
@@ -384,6 +374,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	// Initialize DB Parameters
 	unsigned int NfMax       = DB.NfMax,
 	             NfveMax     = DB.NfveMax,
+	             NveMax      = DB.NveMax,
+	             NfrefMax    = DB.NfrefMax,
 	             PMax        = DB.PMax,
 	             PGs         = DB.PGs,
 	             *PGc        = DB.PGc,
@@ -399,12 +391,12 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             ***NodeTypeIvc = DB.NodeTypeIvc;
 
 	// Standard datatypes
-	unsigned int dim, dE, P, f, IndFType, ve, veMax,
+	unsigned int dim, dE, P, f, IndFType, ve, veMax, Pb, PbMin, PbMax,
 	             Nve, Nf, Nbf, Eclass, NFTypes,
 	             NvnP,
-	             B_Nve[2], *Nfve, *VeF,
+	             B_Nve[2], *Nfve,
 	             dummy_ui, *dummyPtr_ui[2];
-	double       *E_rst_vC, *rst_vC,
+	double       *E_rst_vC, *rst_vC, *VeF,
 	             *rst_vP, *rst_vGs, *rst_vGc, *rst_vCs, *rst_vCc, *rst_vIs, *rst_vIc, **rst_fIs, **rst_fIc,
 	             *IGs, *IGc,
 	             *TGs, *TGc, *TCs, *TCc,
@@ -614,32 +606,12 @@ exit(1);
 */
 
 	for (P = 0; P <= PMax; P++) {
+		// VOLUME Operators
 		cubature(&rst_vGc,&dummyPtr_d,&dummyPtr_ui[0],&NvnGc[P],&dummy_ui,0,PGc[P],         dE,NodeTypeG[Eclass]  );    free(dummyPtr_ui[0]); // free
 		cubature(&rst_vCs,&dummyPtr_d,&dummyPtr_ui[0],&NvnCs[P],&dummy_ui,0,PCs[P][Eclass], dE,NodeTypeG[Eclass]  );    free(dummyPtr_ui[0]); // free
 		cubature(&rst_vCc,&dummyPtr_d,&dummyPtr_ui[0],&NvnCc[P],&dummy_ui,0,PCc[P][Eclass], dE,NodeTypeG[Eclass]  );    free(dummyPtr_ui[0]); // free
 		cubature(&rst_vIs,&dummyPtr_d,&dummyPtr_ui[0],&NvnIs[P],&dummy_ui,0,PIvs[P][Eclass],dE,NodeTypeIvs[P][Eclass]); free(dummyPtr_ui[0]); // free
 		cubature(&rst_vIc,&dummyPtr_d,&dummyPtr_ui[0],&NvnIc[P],&dummy_ui,0,PIvc[P][Eclass],dE,NodeTypeIvc[P][Eclass]); free(dummyPtr_ui[0]); // free
-
-		for (f = 0; f < Nf; f++) {
-			IndFType = get_IndFType(Eclass,f);
-
-			for (dim = 0; dim < dE; dim++) {
-			for (ve = 0, veMax = Nfve[IndFType]; ve < veMax; ve++) {
-				rst_vC[dim*NfveMax+ve] = E_rst_vC[dim*Nve+VeF[f*4+ve]];
-			}}
-
-			rst_fIs[f] = mm_Alloc_d(CblasColMajor,CblasNoTrans,CblasNoTrans,NfnIs[P][IndFType],dE,B_Nve[IndFType],1.0,BCoords[IndFType]->Is[P],rst_vC); // tbd
-			rst_fIc[f] = mm_Alloc_d(CblasColMajor,CblasNoTrans,CblasNoTrans,NfnIc[P][IndFType],dE,B_Nve[IndFType],1.0,BCoords[IndFType]->Ic[P],rst_vC); // tbd
-
-/*
-if (EType != LINE) {
-	printf("%d %d\n",P,f);
-	array_print_d(NfnIs[P][IndFType],dE,rst_fIs[f],'C');
-	array_print_d(NfnIc[P][IndFType],dE,rst_fIc[f],'C');
-//	exit(1);
-}
-*/
-		}
 
 		// Preliminary Operators
 		IGc    = identity_d(NvnGc[P]); // free
@@ -710,28 +682,6 @@ if (EType != LINE) {
 			GradChiCc_vCc[dim] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NvnCc[P],NvnCc[P],NvnCc[P],1.0,GradChiRefCc_vCc[dim],TCc); // free
 		}
 
-		for (f = 0; f < Nf; f++) {
-			IndFType = get_IndFType(Eclass,f);
-
-			ChiRefGs_fIs[f] = basis(PGs           ,rst_fIs[f],NfnIs[P][IndFType],&Nbf,dE); // free
-			ChiRefGs_fIc[f] = basis(PGs           ,rst_fIc[f],NfnIc[P][IndFType],&Nbf,dE); // free
-			ChiRefGc_fIs[f] = basis(PGc[P]        ,rst_fIs[f],NfnIs[P][IndFType],&Nbf,dE); // free
-			ChiRefGc_fIc[f] = basis(PGc[P]        ,rst_fIc[f],NfnIc[P][IndFType],&Nbf,dE); // free
-			ChiRefCs_fIs[f] = basis(PCs[P][Eclass],rst_fIs[f],NfnIs[P][IndFType],&Nbf,dE); // free
-			ChiRefCs_fIc[f] = basis(PCs[P][Eclass],rst_fIc[f],NfnIc[P][IndFType],&Nbf,dE); // free
-			ChiRefCc_fIs[f] = basis(PCc[P][Eclass],rst_fIs[f],NfnIs[P][IndFType],&Nbf,dE); // free
-			ChiRefCc_fIc[f] = basis(PCc[P][Eclass],rst_fIc[f],NfnIc[P][IndFType],&Nbf,dE); // free
-
-			ChiGs_fIs[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[P][IndFType],NvnGs[0],NvnGs[0],1.0,ChiRefGs_fIs[f],TGs); // free
-			ChiGs_fIc[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[P][IndFType],NvnGs[0],NvnGs[0],1.0,ChiRefGs_fIc[f],TGs); // free
-			ChiGc_fIs[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[P][IndFType],NvnGc[P],NvnGc[P],1.0,ChiRefGc_fIs[f],TGc); // free
-			ChiGc_fIc[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[P][IndFType],NvnGc[P],NvnGc[P],1.0,ChiRefGc_fIc[f],TGc); // free
-			ChiCs_fIs[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[P][IndFType],NvnCs[P],NvnCs[P],1.0,ChiRefCs_fIs[f],TCs); // free
-			ChiCs_fIc[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[P][IndFType],NvnCs[P],NvnCs[P],1.0,ChiRefCs_fIc[f],TCs); // free
-			ChiCc_fIs[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[P][IndFType],NvnCc[P],NvnCc[P],1.0,ChiRefCc_fIs[f],TCc); // free
-			ChiCc_fIc[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[P][IndFType],NvnCc[P],NvnCc[P],1.0,ChiRefCc_fIc[f],TCc); // free
-		}
-
 		// Returned Operators
 		I_vGs_vGc[P] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NvnGc[P],NvnGs[0],NvnGs[0],1.0,ChiGs_vGc,ChiInvGs_vGs); // keep
 		I_vGs_vCs[P] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NvnCs[P],NvnGs[0],NvnGs[0],1.0,ChiGs_vCs,ChiInvGs_vGs); // keep
@@ -753,25 +703,91 @@ if (EType != LINE) {
 			D_vCc_vCc[P][dim] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NvnCc[P],NvnCc[P],NvnCc[P],1.0,GradChiCc_vCc[dim],ChiInvCc_vCc); // keep
 		}
 
-		for (f = 0; f < Nf; f++) {
-			IndFType = get_IndFType(Eclass,f);
-			I_vGs_fIs[P][f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[P][IndFType],NvnGs[P],NvnGs[P],1.0,ChiGs_fIs[f],ChiInvGs_vGs); // keep
-			I_vGs_fIc[P][f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[P][IndFType],NvnGs[P],NvnGs[P],1.0,ChiGs_fIc[f],ChiInvGs_vGs); // keep
-			I_vGc_fIs[P][f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[P][IndFType],NvnGc[P],NvnGc[P],1.0,ChiGc_fIs[f],ChiInvGc_vGc); // keep
-			I_vGc_fIc[P][f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[P][IndFType],NvnGc[P],NvnGc[P],1.0,ChiGc_fIc[f],ChiInvGc_vGc); // keep
-			I_vCs_fIs[P][f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[P][IndFType],NvnCs[P],NvnCs[P],1.0,ChiCs_fIs[f],ChiInvCs_vCs); // keep
-			I_vCs_fIc[P][f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[P][IndFType],NvnCs[P],NvnCs[P],1.0,ChiCs_fIc[f],ChiInvCs_vCs); // keep
-			I_vCc_fIs[P][f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[P][IndFType],NvnCc[P],NvnCc[P],1.0,ChiCc_fIs[f],ChiInvCc_vCc); // keep
-			I_vCc_fIc[P][f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[P][IndFType],NvnCc[P],NvnCc[P],1.0,ChiCc_fIc[f],ChiInvCc_vCc); // keep
+		// FACET related operators
+		// Add interpolation to P-1, P, P+1 only (ToBeDeleted)
+		PbMin = P; PbMax = P;
+/*
+		if (P == 0) {
+			PbMin = P;
+			PbMax = P+1;
+		} else if (P == PMax) {
+			PbMin = P-1;
+			PbMax = PMax;
+		} else {
+			PbMin = P-1;
+			PbMax = P+1;
 		}
+*/
+		for (Pb = PbMin; Pb <= PbMax; Pb++) {
+			for (f = 0; f < Nf; f++) {
+				IndFType = get_IndFType(Eclass,f);
+
+				// Note: No additional index in VeF as only the conforming nodes are set up at the moment (ToBeModified)
+				mm_CTN_d(Nfve[f],dE,Nve,&VeF[f*(NfrefMax*NfveMax*NveMax)],E_rst_vC,rst_vC);
+//array_print_d(Nfve[IndFType],dE,rst_vC,'C');
+
+				rst_fIs[f] = mm_Alloc_d(CblasColMajor,CblasNoTrans,CblasNoTrans,NfnIs[Pb][IndFType],dE,B_Nve[IndFType],1.0,BCoords[IndFType]->Is[Pb],rst_vC); // free
+				rst_fIc[f] = mm_Alloc_d(CblasColMajor,CblasNoTrans,CblasNoTrans,NfnIc[Pb][IndFType],dE,B_Nve[IndFType],1.0,BCoords[IndFType]->Ic[Pb],rst_vC); // free
 
 /*
-if (P == 2 && EType == TRI) {
-	array_print_d(NvnCc[P],NvnGc[P],GradChiRefGc_vCc[0],'R');
-	array_print_d(NvnCc[P],NvnGc[P],GradChiRefGc_vCc[1],'R');
-	exit(1);
+if (EType != LINE) {
+	printf("%d %d\n",Pb,f);
+	array_print_d(NfnIs[Pb][IndFType],dE,rst_fIs[f],'C');
+	array_print_d(NfnIc[Pb][IndFType],dE,rst_fIc[f],'C');
+//	exit(1);
 }
 */
+				ChiRefGs_fIs[f] = basis(PGs           ,rst_fIs[f],NfnIs[Pb][IndFType],&Nbf,dE); // free
+				ChiRefGs_fIc[f] = basis(PGs           ,rst_fIc[f],NfnIc[Pb][IndFType],&Nbf,dE); // free
+				ChiRefGc_fIs[f] = basis(PGc[P]        ,rst_fIs[f],NfnIs[Pb][IndFType],&Nbf,dE); // free
+				ChiRefGc_fIc[f] = basis(PGc[P]        ,rst_fIc[f],NfnIc[Pb][IndFType],&Nbf,dE); // free
+				ChiRefCs_fIs[f] = basis(PCs[P][Eclass],rst_fIs[f],NfnIs[Pb][IndFType],&Nbf,dE); // free
+				ChiRefCs_fIc[f] = basis(PCs[P][Eclass],rst_fIc[f],NfnIc[Pb][IndFType],&Nbf,dE); // free
+				ChiRefCc_fIs[f] = basis(PCc[P][Eclass],rst_fIs[f],NfnIs[Pb][IndFType],&Nbf,dE); // free
+				ChiRefCc_fIc[f] = basis(PCc[P][Eclass],rst_fIc[f],NfnIc[Pb][IndFType],&Nbf,dE); // free
+
+				ChiGs_fIs[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[Pb][IndFType],NvnGs[0],NvnGs[0],1.0,ChiRefGs_fIs[f],TGs); // free
+				ChiGs_fIc[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[Pb][IndFType],NvnGs[0],NvnGs[0],1.0,ChiRefGs_fIc[f],TGs); // free
+				ChiGc_fIs[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,ChiRefGc_fIs[f],TGc); // free
+				ChiGc_fIc[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,ChiRefGc_fIc[f],TGc); // free
+				ChiCs_fIs[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[Pb][IndFType],NvnCs[P],NvnCs[P],1.0,ChiRefCs_fIs[f],TCs); // free
+				ChiCs_fIc[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[Pb][IndFType],NvnCs[P],NvnCs[P],1.0,ChiRefCs_fIc[f],TCs); // free
+				ChiCc_fIs[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[Pb][IndFType],NvnCc[P],NvnCc[P],1.0,ChiRefCc_fIs[f],TCc); // free
+				ChiCc_fIc[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[Pb][IndFType],NvnCc[P],NvnCc[P],1.0,ChiRefCc_fIc[f],TCc); // free
+
+				I_vGs_fIs[P][Pb][f*7] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[Pb][IndFType],NvnGs[0],NvnGs[0],1.0,ChiGs_fIs[f],ChiInvGs_vGs); // keep
+				I_vGs_fIc[P][Pb][f*8] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[Pb][IndFType],NvnGs[0],NvnGs[0],1.0,ChiGs_fIc[f],ChiInvGs_vGs); // keep
+				I_vGc_fIs[P][Pb][f*9] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,ChiGc_fIs[f],ChiInvGc_vGc); // keep
+				I_vGc_fIc[P][Pb][f*9] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,ChiGc_fIc[f],ChiInvGc_vGc); // keep
+				I_vCs_fIs[P][Pb][f*9] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[Pb][IndFType],NvnCs[P],NvnCs[P],1.0,ChiCs_fIs[f],ChiInvCs_vCs); // keep
+				I_vCs_fIc[P][Pb][f*9] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[Pb][IndFType],NvnCs[P],NvnCs[P],1.0,ChiCs_fIc[f],ChiInvCs_vCs); // keep
+				I_vCc_fIs[P][Pb][f*9] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[Pb][IndFType],NvnCc[P],NvnCc[P],1.0,ChiCc_fIs[f],ChiInvCc_vCc); // keep
+				I_vCc_fIc[P][Pb][f*9] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[Pb][IndFType],NvnCc[P],NvnCc[P],1.0,ChiCc_fIc[f],ChiInvCc_vCc); // keep
+			}
+
+			for (f = 0; f < Nf; f++) {
+				free(rst_fIs[f]);
+				free(rst_fIc[f]);
+
+				free(ChiRefGs_fIs[f]);
+				free(ChiRefGs_fIc[f]);
+				free(ChiRefGc_fIs[f]);
+				free(ChiRefGc_fIc[f]);
+				free(ChiRefCs_fIs[f]);
+				free(ChiRefCs_fIc[f]);
+				free(ChiRefCc_fIs[f]);
+				free(ChiRefCc_fIc[f]);
+
+				free(ChiGs_fIs[f]);
+				free(ChiGs_fIc[f]);
+				free(ChiGc_fIs[f]);
+				free(ChiGc_fIc[f]);
+				free(ChiCs_fIs[f]);
+				free(ChiCs_fIc[f]);
+				free(ChiCc_fIs[f]);
+				free(ChiCc_fIc[f]);
+			}
+		}
 
 		free(rst_vGc);
 		free(rst_vCs);
@@ -834,28 +850,6 @@ if (P == 2 && EType == TRI) {
 			free(GradChiCc_vCc[dim]);
 		}
 
-		for (f = 0; f < Nf; f++) {
-			free(rst_fIs[f]);
-			free(rst_fIc[f]);
-
-			free(ChiRefGs_fIs[f]);
-			free(ChiRefGs_fIc[f]);
-			free(ChiRefGc_fIs[f]);
-			free(ChiRefGc_fIc[f]);
-			free(ChiRefCs_fIs[f]);
-			free(ChiRefCs_fIc[f]);
-			free(ChiRefCc_fIs[f]);
-			free(ChiRefCc_fIc[f]);
-
-			free(ChiGs_fIs[f]);
-			free(ChiGs_fIc[f]);
-			free(ChiGc_fIs[f]);
-			free(ChiGc_fIc[f]);
-			free(ChiCs_fIs[f]);
-			free(ChiCs_fIc[f]);
-			free(ChiCc_fIs[f]);
-			free(ChiCc_fIc[f]);
-		}
 	}
 
 	for (IndFType = 0; IndFType < NFTypes; IndFType++) {
@@ -891,6 +885,213 @@ if (P == 2 && EType == TRI) {
 	free(ChiCc_fIc);
 }
 
+void setup_ELEMENT_VeF(const unsigned int EType)
+{
+	// Initialize DB Parameters
+	unsigned int NveMax   = DB.NveMax,
+	             NfveMax  = DB.NfveMax,
+	             NfrefMax = DB.NfrefMax;
+
+	// Standard datatypes
+	unsigned int i, j, k, l, iMax, jMax, kMax, lMax, iStep,
+	             f, Nve, *Nfve, *Nfref, Nf, *VeFcon;
+	double *VeF;
+
+	struct S_ELEMENT *ELEMENT;
+
+	// silence
+	VeF = NULL;
+
+	ELEMENT = get_ELEMENT_type(EType);
+	Nve    = ELEMENT->Nve;
+	Nfve   = ELEMENT->Nfve;
+	Nf     = ELEMENT->Nf;
+	VeFcon = ELEMENT->VeFcon;
+
+	// Set Nfref
+	switch(EType) {
+	case LINE:
+		for (f = 0; f < Nf; f++)
+			ELEMENT->Nfref[f] = 1;
+		break;
+	case TRI:
+		for (f = 0; f < Nf; f++)
+			ELEMENT->Nfref[f] = 3;
+		break;
+	case QUAD:
+		for (f = 0; f < Nf; f++)
+			ELEMENT->Nfref[f] = 3;
+		break;
+	case TET:
+		for (f = 0; f < Nf; f++)
+			ELEMENT->Nfref[f] = 5;
+		break;
+	case HEX:
+		for (f = 0; f < Nf; f++)
+			ELEMENT->Nfref[f] = 9;
+		break;
+	case WEDGE:
+		for (f = 0; f < 3; f++)
+			ELEMENT->Nfref[f] = 9;
+		for (f = 3; f < 6; f++)
+			ELEMENT->Nfref[f] = 5;
+		break;
+	case PYR:
+		for (f = 0; f < 4; f++)
+			ELEMENT->Nfref[f] = 5;
+		for (f = 4; f < 5; f++)
+			ELEMENT->Nfref[f] = 9;
+		break;
+	default:
+		printf("Error: Unsupported EType in setup_ELEMENT_VeF.\n"), exit(1);
+		break;
+	}
+
+	Nfref   = ELEMENT->Nfref;
+
+	unsigned int size_VeF = 0;
+	double VeFref_LINE[12]  = {1.0 , 0.0 ,
+	                           0.0 , 1.0 ,
+	                           1.0 , 0.0 ,
+	                           0.5 , 0.5 ,
+	                           0.5 , 0.5 ,
+	                           0.0 , 1.0 },
+	       VeFref_TRI[45]   = {1.0 , 0.0 , 0.0 ,
+	                           0.0 , 1.0 , 0.0 ,
+	                           0.0 , 0.0 , 1.0 ,
+	                           1.0 , 0.0 , 0.0 ,
+	                           0.5 , 0.5 , 0.0 ,
+	                           0.5 , 0.0 , 0.5 ,
+	                           0.5 , 0.5 , 0.0 ,
+	                           0.0 , 1.0 , 0.0 ,
+	                           0.0 , 0.5 , 0.5 ,
+	                           0.5 , 0.0 , 0.5 ,
+	                           0.0 , 0.5 , 0.5 ,
+	                           0.0 , 0.0 , 1.0 ,
+	                           0.0 , 0.5 , 0.5 ,
+	                           0.5 , 0.0 , 0.5 ,
+	                           0.5 , 0.5 , 0.0 },
+	       VeFref_QUAD[144] = {1.0 , 0.0 , 0.0 , 0.0 ,
+	                           0.0 , 1.0 , 0.0 , 0.0 ,
+	                           0.0 , 0.0 , 1.0 , 0.0 ,
+	                           0.0 , 0.0 , 0.0 , 1.0 ,
+	                           1.0 , 0.0 , 0.0 , 0.0 ,
+	                           0.5 , 0.5 , 0.0 , 0.0 ,
+	                           0.0 , 0.0 , 1.0 , 0.0 ,
+	                           0.0 , 0.0 , 0.5 , 0.5 ,
+	                           0.5 , 0.5 , 0.0 , 0.0 ,
+	                           0.0 , 1.0 , 0.0 , 0.0 ,
+	                           0.0 , 0.0 , 0.5 , 0.5 ,
+	                           0.0 , 0.0 , 0.0 , 1.0 ,
+	                           1.0 , 0.0 , 0.0 , 0.0 ,
+	                           0.0 , 1.0 , 0.0 , 0.0 ,
+	                           0.5 , 0.0 , 0.5 , 0.0 ,
+	                           0.0 , 0.5 , 0.0 , 0.5 ,
+	                           0.5 , 0.0 , 0.5 , 0.0 ,
+	                           0.0 , 0.5 , 0.0 , 0.5 ,
+	                           0.0 , 0.0 , 1.0 , 0.0 ,
+	                           0.0 , 0.0 , 0.0 , 1.0 ,
+	                           1.0 , 0.0 , 0.0 , 0.0 ,
+	                           0.5 , 0.5 , 0.0 , 0.0 ,
+	                           0.5 , 0.0 , 0.5 , 0.0 ,
+	                           0.25, 0.25, 0.25, 0.25,
+	                           0.5 , 0.5 , 0.0 , 0.0 ,
+	                           0.0 , 1.0 , 0.0 , 0.0 ,
+	                           0.25, 0.25, 0.25, 0.25,
+	                           0.0 , 0.5 , 0.0 , 0.5 ,
+	                           0.5 , 0.0 , 0.5 , 0.0 ,
+	                           0.25, 0.25, 0.25, 0.25,
+	                           0.0 , 0.0 , 1.0 , 0.0 ,
+	                           0.0 , 0.0 , 0.5 , 0.5 ,
+	                           0.25, 0.25, 0.25, 0.25,
+	                           0.0 , 0.5 , 0.0 , 0.5 ,
+	                           0.0 , 0.0 , 0.5 , 0.5 ,
+	                           0.0 , 0.0 , 0.0 , 1.0 };
+
+	switch(EType) {
+	case LINE:
+		VeF = calloc(Nve*Nfve[0]*Nfref[0]*Nf , sizeof *VeF); // free
+
+		VeF[0] = 1.0; VeF[1] = 0.0;
+		VeF[2] = 0.0; VeF[3] = 1.0;
+
+		break;
+	case TRI:
+		/* fall through */
+	case QUAD:
+		VeF = calloc(Nve*Nfve[0]*Nfref[0]*Nf , sizeof *VeF); // free
+
+		for (i = 0, iMax = Nf;               i < iMax; i++) {
+		for (j = 0, jMax = Nfve[i]*Nfref[i]; j < jMax; j++) {
+		for (k = 0, kMax = Nfve[i];          k < kMax; k++) {
+			VeF[i*(Nfref[i]*Nfve[i]*Nve)+j*Nve+VeFcon[i*4+k]] = VeFref_LINE[j*kMax+k];
+		}}}
+
+		break;
+	case TET:
+		VeF = calloc(Nve*Nfve[0]*Nfref[0]*Nf , sizeof *VeF); // free
+
+		for (i = 0, iMax = Nf;               i < iMax; i++) {
+		for (j = 0, jMax = Nfve[i]*Nfref[i]; j < jMax; j++) {
+		for (k = 0, kMax = Nfve[i];          k < kMax; k++) {
+			VeF[i*(Nfref[i]*Nfve[i]*Nve)+j*Nve+VeFcon[i*4+k]] = VeFref_TRI[j*kMax+k];
+		}}}
+
+		break;
+	case HEX:
+		VeF = calloc(Nve*Nfve[0]*Nfref[0]*Nf , sizeof *VeF); // free
+
+		for (i = 0, iMax = Nf;               i < iMax; i++) {
+		for (j = 0, jMax = Nfve[i]*Nfref[i]; j < jMax; j++) {
+		for (k = 0, kMax = Nfve[i];          k < kMax; k++) {
+			VeF[i*(Nfref[i]*Nfve[i]*Nve)+j*Nve+VeFcon[i*4+k]] = VeFref_QUAD[j*kMax+k];
+		}}}
+
+		break;
+	case WEDGE:
+		/* fall through */
+	case PYR:
+		for (i = 0; i < Nf; i++)
+			size_VeF += Nfve[i]*Nfref[i];
+		size_VeF *= Nve;
+
+		VeF = calloc(size_VeF , sizeof *VeF); // free
+
+		for (i = 0, iMax = Nf; i < iMax; i++) {
+			for (j = iStep = 0; j < i; j++)
+				iStep += Nfref[j]*Nfve[j];
+			iStep *= Nve;
+
+			for (j = 0, jMax = Nfve[i]*Nfref[i]; j < jMax; j++) {
+			for (k = 0, kMax = Nfve[i];          k < kMax; k++) {
+				if (Nfve[i] == 3)
+					VeF[iStep+j*Nve+VeFcon[i*4+k]] = VeFref_TRI[j*kMax+k];
+				else if (Nfve[i] == 4)
+					VeF[iStep+j*Nve+VeFcon[i*4+k]] = VeFref_QUAD[j*kMax+k];
+			}
+		}}
+
+		break;
+	default:
+		// Already caught error above.
+		break;
+	}
+
+	for (i = 0, iMax = Nf;       i < iMax; i++) {
+		for (j = iStep = 0; j < i; j++)
+			iStep += Nfref[j]*Nfve[j];
+		iStep *= Nve;
+
+		for (j = 0, jMax = Nfref[i]; j < jMax; j++) {
+		for (k = 0, kMax = Nfve[i];  k < kMax; k++) {
+		for (l = 0, lMax = Nve;      l < lMax; l++) {
+			ELEMENT->VeF[i*(NfrefMax*NfveMax*NveMax)+j*(Nfve[i]*Nve)+k*(Nve)+l] = VeF[iStep+j*(Nfve[i]*Nve)+k*(Nve)+l];
+		}
+	}}}
+
+	free(VeF);
+}
+
 void setup_operators(void)
 {
 	// Initialize DB Parameters
@@ -905,6 +1106,7 @@ void setup_operators(void)
 	// LINE (Includes TP Class)
 	EType = LINE;
 
+	setup_ELEMENT_VeF(EType);
 	setup_ELEMENT_plotting(EType);
 	setup_ELEMENT_normals(EType);
 	setup_ELEMENT_operators(EType);
@@ -913,6 +1115,7 @@ void setup_operators(void)
 	EType = QUAD;
 
 	if (is_ELEMENT_present(EType)) {
+		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 	}
@@ -921,6 +1124,7 @@ void setup_operators(void)
 	EType = HEX;
 
 	if (is_ELEMENT_present(EType)) {
+		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 	}
@@ -928,6 +1132,7 @@ void setup_operators(void)
 	// TRI
 	EType = TRI;
 	if (is_ELEMENT_present(EType)) {
+		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
@@ -937,6 +1142,7 @@ void setup_operators(void)
 	// TET
 	EType = TET;
 	if (is_ELEMENT_present(EType)) {
+		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
@@ -946,6 +1152,7 @@ void setup_operators(void)
 	// PYR
 	EType = PYR;
 	if (is_ELEMENT_present(EType)) {
+		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
@@ -955,6 +1162,7 @@ void setup_operators(void)
 	// WEDGE
 	EType = WEDGE;
 	if (is_ELEMENT_present(EType)) {
+		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 

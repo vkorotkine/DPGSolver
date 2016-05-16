@@ -143,11 +143,11 @@ void setup_structures(void)
 					FACET[0]->P      = VOLUME->P;
 
 					FACET[0]->VIn   = VOLUME;
-					FACET[0]->VfIn  = f;
+					FACET[0]->VfIn  = 9*f;
 
 					// Overwritten if a second VOLUME is found adjacent to this FACET
 					FACET[0]->VOut  = VOLUME;
-					FACET[0]->VfOut = f;
+					FACET[0]->VfOut = 9*f;
 
 					if (!VOLUME->curved) {
 						FACET[0]->typeInt = 's';
@@ -165,7 +165,7 @@ void setup_structures(void)
 
 					FACET[1]->P = max(FACET[1]->P,VOLUME->P);
 					FACET[1]->VOut  = VOLUME;
-					FACET[1]->VfOut = f;
+					FACET[1]->VfOut = 9*f;
 					if (VOLUME->curved) {
 						FACET[1]->typeInt = 'c';
 						if (AC || (IndGFC < NGFC && gf == GFC[IndGFC])) {

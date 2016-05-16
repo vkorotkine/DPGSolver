@@ -88,31 +88,15 @@ struct S_ELEMENT *get_ELEMENT_Eclass(const unsigned int type, const unsigned int
 		}
 	}
 	printf("Error: Element class not found.\n"), exit(1);
-/*
-	if (Eclass == C_TP || (Eclass == C_WEDGE && Esubclass == C_TP)) {
-		while (ELEMENT != NULL) {
-			if (ELEMENT->type == LINE)
-				return ELEMENT;
-
-			ELEMENT = ELEMENT->next;
-		}
-	} else if (Eclass == C_SI || (Eclass == C_WEDGE && Esubclass == C_SI)) {
-		while (ELEMENT != NULL) {
-			if (ELEMENT->type == TRI)
-				return ELEMENT;
-
-			ELEMENT = ELEMENT->next;
-		}
-	} else if (Eclass == C_WEDGE) {
-		printf("Error: Operators for WEDGE elements must be taken from TP or SI elements.\n"), exit(1);
-	} else if (Eclass == C_PYR) {
-		while (ELEMENT != NULL) {
-			if (ELEMENT->type == PYR)
-				return ELEMENT;
-
-			ELEMENT = ELEMENT->next;
-		}
-	}
-	printf("Error: Element class not found.\n"), exit(1);
-*/
 }
+
+unsigned int get_IndFType(const unsigned int Eclass, const unsigned int f)
+{
+	if (Eclass == C_TP || Eclass == C_SI || (Eclass == C_PYR && f < 4)) {
+		return 0;
+	} else if (Eclass == PYR && f == 5) {
+		return 1;
+	}
+	printf("Error: Unsupported Eclass/f combination in get_IndFType.\n"), exit(1);
+}
+

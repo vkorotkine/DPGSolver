@@ -212,7 +212,7 @@ void setup_geometry(void)
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
 		free(VOLUME->C_vC);
-	
+
 	if (Testing) {
 		// Output normals to paraview
 		output_to_paraview("ZTest_Normals");

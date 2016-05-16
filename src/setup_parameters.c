@@ -93,6 +93,8 @@ void setup_parameters()
 
 	if (DB.P > PMax)
 		printf("Error: P must be less than or equal PMax.\n"), exit(1);
+	if (PMax == 0)
+		printf("Error: Please choose PMax > 0.\n"), exit(1);
 
 	u1 = 1;
 	u2 = 2;
