@@ -64,7 +64,7 @@ static void fprintf_tn(FILE *fID, unsigned int Ntabs, const char *String)
 
 static void output_geom(const char *geom_type)
 {
-	// Initialize database parameters
+	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
 	unsigned int d         = DB.d;
 	int          MPIrank   = DB.MPIrank,
@@ -330,17 +330,72 @@ static void output_geom(const char *geom_type)
 static void output_normals(const char *normals_type)
 {
 	// Initialize DB Parameters
-	unsigned int d = DB.d;
+	char         *TestCase = DB.TestCase;
+	unsigned int d         = DB.d,
+	             NfrefMax  = DB.NfrefMax;
+	int          MPIrank   = DB.MPIrank,
+	             MPIsize   = DB.MPIsize;
 
 	// Standard datatypes
-	unsigned int PV, PF, NfnI, NvnG, IndFType, Eclass, VfIn;
-	double       *Input, *I_vG_vfI, *XYZ_fI;
+	char         MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
+	unsigned int i, iMax, dim, nInd, curved, PV, PF, NfnI, NvnG, IndFType, Eclass, VfIn;
+	double       *Input, *I_vG_vfI, *XYZ_fI, *n;
+	FILE         *fID;
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VIn;
 	struct S_FACET   *FACET;
 
+	sprintf(MPIrank_c,"%d",MPIrank);
+//	strcpy(f_name,TestCase);
+//	strcat(f_name,"_normals");
+	strcpy(f_name,normals_type);
+
+	if (!DB.MPIrank) {
+		strcpy(f_parallel,"paraview/");
+		strcat(f_parallel,f_name);
+		strcat(f_parallel,".pvtp");
+
+		if ((fID = fopen(f_parallel,"w")) == NULL)
+			printf("Error: File f_parallel did not open.\n"), exit(1);
+
+		fprintf_tn(fID,0,"<?xml version=\"1.0\"?>");
+		fprintf_tn(fID,0,"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">");
+		fprintf_tn(fID,1,"<PPolyData GhostLevel=\"0\">\n");
+
+		fprintf_tn(fID,2,"<PPointData Vectors=\"Normals\">");
+		fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"Normals\" NumberOfComponents=\"3\" format=\"ascii\"/>");
+		fprintf_tn(fID,2,"</PPointData>\n");
+
+		fprintf_tn(fID,2,"<PPoints>");
+		fprintf_tn(fID,3,"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"ascii\"/>");
+		fprintf_tn(fID,2,"</PPoints>\n");
+
+		for (i = 0, iMax = (unsigned int) MPIsize; i < iMax; i++)
+			fprintf(fID,"\t\t<Piece Source=\"%s%d.vtp\"/>\n",f_name,i);
+
+		fprintf_tn(fID,1,"</PPolyData>");
+		fprintf_tn(fID,0,"</VTKFile>");
+
+		fclose(fID);
+	}
+
+	strcpy(f_serial,"paraview/");
+	strcat(f_serial,f_name);
+	strcat(f_serial,MPIrank_c);
+	strcat(f_serial,".vtp");
+
+	if ((fID = fopen(f_serial,"w")) == NULL)
+		printf("Error: File f_serial did not open.\n"), exit(1);
+
+	fprintf_tn(fID,0,"<?xml version=\"1.0\"?>");
+	fprintf_tn(fID,0,"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">");
+	fprintf_tn(fID,1,"<PolyData>\n");
+
 	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
+		curved = FACET->curved;
+		n = FACET->n;
+
 		VIn  = FACET->VIn;
 		VfIn = FACET->VfIn;
 
@@ -350,7 +405,7 @@ static void output_normals(const char *normals_type)
 		ELEMENT = get_ELEMENT_type(VIn->type);
 		Eclass  = get_Eclass(ELEMENT->type);
 
-		IndFType = get_IndFType(Eclass,VfIn);
+		IndFType = get_IndFType(Eclass,VfIn/NfrefMax);
 
 		if (VIn->Eclass == C_TP) {
 
@@ -377,8 +432,48 @@ static void output_normals(const char *normals_type)
 printf("%d\n",FACET->indexg);
 array_print_d(NfnI,d,XYZ_fI,'C');
 
+		fprintf(fID,"\t\t<Piece NumberOfPoints=\"%d\" NumberOfVerts=\"%d\" NumberOfLines=\"%d\" NumberOfStrips=\"%d\" "
+		            "NumberOfPolys=\"%d\">\n",NfnI,0,0,0,0);
+
+			fprintf_tn(fID,3,"<Points>");
+				fprintf(fID,"\t\t\t\t<DataArray type=\"Float32\" NumberOfComponents=\"%d\" format=\"ascii\">\n",3);
+				for (i = 0; i < NfnI; i++) {
+					fprintf(fID,"\t\t\t\t");
+					for (dim = 0; dim < d; dim++)
+						fprintf(fID,"% .3f ",XYZ_fI[dim*NfnI+i]);
+					for (dim = d; dim < 3; dim++)
+						fprintf(fID,"% .3f ",0.0);
+					fprintf(fID,"\n");
+				}
+				fprintf_tn(fID,4,"</DataArray>");
+			fprintf_tn(fID,3,"</Points>");
+
+			fprintf_tn(fID,3,"<PointData Vectors=\"Normals\">");
+				fprintf(fID,"\t\t\t\t<DataArray type=\"Float32\" Name=\"Normals\" NumberOfComponents=\"%d\" "
+				                 "format=\"ascii\">\n",3);
+				for (i = 0; i < NfnI; i++) {
+					fprintf(fID,"\t\t\t\t");
+					for (dim = 0; dim < d; dim++) {
+						if (!curved) nInd = dim;
+						else         nInd = i*d+dim;
+						fprintf(fID,"% .3f ",n[nInd]);
+					}
+					for (dim = d; dim < 3; dim++)
+						fprintf(fID,"% .3f ",0.0);
+					fprintf(fID,"\n");
+				}
+				fprintf_tn(fID,4,"</DataArray>");
+			fprintf_tn(fID,3,"</PointData>");
+
+		fprintf_tn(fID,2,"</Piece>\n");
+
 		free(XYZ_fI);
 	}
+
+	fprintf_tn(fID,1,"</PolyData>");
+	fprintf(fID,"</VTKFile>");
+
+	fclose(fID);
 }
 
 void output_to_paraview(const char *OutputType)

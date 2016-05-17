@@ -83,7 +83,7 @@ void setup_normals(struct S_FACET *FACET)
 		printf("Add in support for C_WEDGE in setup_normals.\n");
 		exit(1);
 	}
-	nrIn = &OPS[0]->nr[(VfIn/NfrefMax)*d];
+	nrIn = &(OPS[0]->nr[(VfIn/NfrefMax)*d]);
 
 	// Store a single normal on straight FACETs
 	if (!curved) fnMax = 1;
@@ -93,7 +93,7 @@ void setup_normals(struct S_FACET *FACET)
 	for (fn = 0; fn < fnMax; fn++) {
 		for (dim1 = 0; dim1 < d; dim1++) {
 		for (dim2 = 0; dim2 < d; dim2++) {
-			n[fn*d+dim1] += nrIn[dim2]*C_fI[NnI*(dim1+d*dim2)+fn];
+			n[fn*d+dim1] += nrIn[dim2]*C_fI[NnI*(d*dim1+dim2)+fn];
 		}}
 	}
 
@@ -109,8 +109,8 @@ void setup_normals(struct S_FACET *FACET)
 
 	FACET->n = n;
 
-//printf("%d %d\n",FACET->indexg,FACET->curved);
-//array_print_d(fnMax,d,n,'R');
+printf("%d %d\n",FACET->indexg,VfIn);
+array_print_d(fnMax,d,n,'R');
 
 	free(C_fI);
 	for (i = 0; i < 2; i++)

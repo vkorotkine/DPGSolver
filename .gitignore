@@ -17,5 +17,7 @@ cases/errorfile*
 cases/outputfile*
 cases/paraview/*.vtu
 cases/paraview/*.pvtu
+cases/paraview/*.vtp
+cases/paraview/*.pvtp
 test/*.o
 test/*.exe

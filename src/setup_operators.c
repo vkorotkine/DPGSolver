@@ -54,26 +54,36 @@ typedef double **(*grad_basis_tdef) (const unsigned int P, const double *rst, co
 static void select_functions(basis_tdef *basis, grad_basis_tdef *grad_basis, cubature_tdef *cubature,
                              const unsigned int type)
 {
-	if (type == LINE) {
+	switch(type) {
+	case LINE:
+	case QUAD:
+	case HEX:
 		*basis      = basis_TP;
 		*grad_basis = grad_basis_TP;
 		*cubature   = cubature_TP;
-	} else if (type == TRI) {
+		break;
+	case TRI:
 		*basis      = basis_SI;
 		*grad_basis = grad_basis_SI;
 		*cubature   = cubature_TRI;
-	} else if (type == TET) {
+		break;
+	case TET:
 		*basis      = basis_SI;
 		*grad_basis = grad_basis_SI;
 		*cubature   = cubature_TET;
-	} else if (type == WEDGE) {
+		break;
+	case WEDGE:
 		printf("Error: WEDGE elements use a combination of TRI and LINE basis functions/nodes.\n"), exit(1);
-	} else if (type == PYR) {
+		break;
+	case PYR:
 		*basis      = basis_PYR;
 		*grad_basis = grad_basis_PYR;
 		*cubature   = cubature_PYR;
-	} else {
+		break;
+	default:
+		printf("%d\n",type);
 		printf("Error: Unsupported type in select_functions.\n"), exit(1);
+		break;
 	}
 }
 
@@ -219,11 +229,11 @@ static double *get_rst_vC(const struct S_ELEMENT *ELEMENT)
 		rst_vC[0*Nve+5] =  0.0; rst_vC[1*Nve+5] =  2.0/sqrt(3.0); rst_vC[2*Nve+5] =  1.0;
 		break;
 	case PYR:
-		rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0; rst_vC[2*Nve+0] = -1.0/sqrt(5.0);
-		rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0; rst_vC[2*Nve+1] = -1.0/sqrt(5.0);
-		rst_vC[0*Nve+2] =  1.0; rst_vC[1*Nve+2] =  1.0; rst_vC[2*Nve+2] = -1.0/sqrt(5.0);
-		rst_vC[0*Nve+3] = -1.0; rst_vC[1*Nve+3] =  1.0; rst_vC[2*Nve+3] = -1.0/sqrt(5.0);
-		rst_vC[0*Nve+4] =  0.0; rst_vC[1*Nve+4] =  0.0; rst_vC[2*Nve+4] =  4.0/sqrt(5.0);
+		rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0; rst_vC[2*Nve+0] = -1.0/5.0*sqrt(2.0);
+		rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0; rst_vC[2*Nve+1] = -1.0/5.0*sqrt(2.0);
+		rst_vC[0*Nve+2] =  1.0; rst_vC[1*Nve+2] =  1.0; rst_vC[2*Nve+2] = -1.0/5.0*sqrt(2.0);
+		rst_vC[0*Nve+3] = -1.0; rst_vC[1*Nve+3] =  1.0; rst_vC[2*Nve+3] = -1.0/5.0*sqrt(2.0);
+		rst_vC[0*Nve+4] =  0.0; rst_vC[1*Nve+4] =  0.0; rst_vC[2*Nve+4] =  4.0/5.0*sqrt(2.0);
 		break;
 	default:
 		printf("Error: Unsupported EType in get_rst_vC.\n"), exit(1);
@@ -514,14 +524,14 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	ChiRefCc_fIs  = malloc(NfMax * sizeof *ChiRefCc_fIs); // free
 	ChiRefCc_fIc  = malloc(NfMax * sizeof *ChiRefCc_fIc); // free
 
-	ChiGs_fIs     = malloc(NfMax * sizeof *ChiRefGs_fIs); // free
-	ChiGs_fIc     = malloc(NfMax * sizeof *ChiRefGs_fIc); // free
-	ChiGc_fIs     = malloc(NfMax * sizeof *ChiRefGc_fIs); // free
-	ChiGc_fIc     = malloc(NfMax * sizeof *ChiRefGc_fIc); // free
-	ChiCs_fIs     = malloc(NfMax * sizeof *ChiRefCs_fIs); // free
-	ChiCs_fIc     = malloc(NfMax * sizeof *ChiRefCs_fIc); // free
-	ChiCc_fIs     = malloc(NfMax * sizeof *ChiRefCc_fIs); // free
-	ChiCc_fIc     = malloc(NfMax * sizeof *ChiRefCc_fIc); // free
+	ChiGs_fIs     = malloc(NfMax * sizeof *ChiGs_fIs); // free
+	ChiGs_fIc     = malloc(NfMax * sizeof *ChiGs_fIc); // free
+	ChiGc_fIs     = malloc(NfMax * sizeof *ChiGc_fIs); // free
+	ChiGc_fIc     = malloc(NfMax * sizeof *ChiGc_fIc); // free
+	ChiCs_fIs     = malloc(NfMax * sizeof *ChiCs_fIs); // free
+	ChiCs_fIc     = malloc(NfMax * sizeof *ChiCs_fIc); // free
+	ChiCc_fIs     = malloc(NfMax * sizeof *ChiCc_fIs); // free
+	ChiCc_fIc     = malloc(NfMax * sizeof *ChiCc_fIc); // free
 
 	// VOLUME Nodes (Order Independent)
 	plotting_element_info(&rst_vP,&dummyPtr_ui[0],&dummyPtr_ui[1],&NvnP,&dummy_ui,PP,EType); // free
@@ -589,8 +599,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		free(BCoords_dEm1[IndFType]->NfnIc);
 	}
 
-/*
-if (EType != LINE) {
+if (EType == PYR) {
 printf("here\n");
 for (IndFType = 0; IndFType < NFTypes; IndFType++) {
 	printf("%d \n",B_Nve[IndFType]);
@@ -598,12 +607,11 @@ for (IndFType = 0; IndFType < NFTypes; IndFType++) {
 	for (P = 0; P <= PMax; P++) {
 		printf("%d %d\n",NfnIs[P][IndFType],NfnIc[P][IndFType]);
 		array_print_d(NfnIs[P][IndFType],B_Nve[IndFType],BCoords[IndFType]->Is[P],'C');
-		array_print_d(NfnIc[P][IndFType],B_Nve[IndFType],BCoords[IndFType]->Ic[P],'C');
+//		array_print_d(NfnIc[P][IndFType],B_Nve[IndFType],BCoords[IndFType]->Ic[P],'C');
 	}
 }
-exit(1);
+//exit(1);
 }
-*/
 
 	for (P = 0; P <= PMax; P++) {
 		// VOLUME Operators
@@ -729,14 +737,21 @@ exit(1);
 				rst_fIs[f] = mm_Alloc_d(CblasColMajor,CblasNoTrans,CblasNoTrans,NfnIs[Pb][IndFType],dE,B_Nve[IndFType],1.0,BCoords[IndFType]->Is[Pb],rst_vC); // free
 				rst_fIc[f] = mm_Alloc_d(CblasColMajor,CblasNoTrans,CblasNoTrans,NfnIc[Pb][IndFType],dE,B_Nve[IndFType],1.0,BCoords[IndFType]->Ic[Pb],rst_vC); // free
 
-/*
-if (EType != LINE) {
-	printf("%d %d\n",Pb,f);
+if (EType == PYR) {
+if (f == 0 && P == 0)
+	array_print_d(5,3,E_rst_vC,'C');
+
+	printf("%d %d %d\n",Pb,f,IndFType);
 	array_print_d(NfnIs[Pb][IndFType],dE,rst_fIs[f],'C');
-	array_print_d(NfnIc[Pb][IndFType],dE,rst_fIc[f],'C');
-//	exit(1);
+//	array_print_d(NfnIc[Pb][IndFType],dE,rst_fIc[f],'C');
+if (f == 4 && P == 1) {
+	// SEEMS THERE IS A PROBLEM WITH THE MM_ALLOC_D ABOVE.
+	array_print_d(NfnIs[Pb][IndFType],B_Nve[IndFType],BCoords[IndFType]->Is[Pb],'C');
+	array_print_d(NfnIs[Pb][IndFType],5,BCoords[IndFType]->Is[Pb],'C');
+
+	exit(1);
 }
-*/
+}
 				ChiRefGs_fIs[f] = basis(PGs           ,rst_fIs[f],NfnIs[Pb][IndFType],&Nbf,dE); // free
 				ChiRefGs_fIc[f] = basis(PGs           ,rst_fIc[f],NfnIc[Pb][IndFType],&Nbf,dE); // free
 				ChiRefGc_fIs[f] = basis(PGc[P]        ,rst_fIs[f],NfnIs[Pb][IndFType],&Nbf,dE); // free
@@ -849,7 +864,6 @@ if (EType != LINE) {
 			free(GradChiCs_vCs[dim]);
 			free(GradChiCc_vCc[dim]);
 		}
-
 	}
 
 	for (IndFType = 0; IndFType < NFTypes; IndFType++) {
@@ -875,10 +889,19 @@ if (EType != LINE) {
 	free(GradChiCs_vCs);
 	free(GradChiCc_vCc);
 
+	free(ChiRefGs_fIs);
+	free(ChiRefGs_fIc);
+	free(ChiRefGc_fIs);
+	free(ChiRefGc_fIc);
 	free(ChiRefCs_fIs);
 	free(ChiRefCs_fIc);
 	free(ChiRefCc_fIs);
 	free(ChiRefCc_fIc);
+
+	free(ChiGs_fIs);
+	free(ChiGs_fIc);
+	free(ChiGc_fIs);
+	free(ChiGc_fIc);
 	free(ChiCs_fIs);
 	free(ChiCs_fIc);
 	free(ChiCc_fIs);
@@ -1088,6 +1111,8 @@ void setup_ELEMENT_VeF(const unsigned int EType)
 			ELEMENT->VeF[i*(NfrefMax*NfveMax*NveMax)+j*(Nfve[i]*Nve)+k*(Nve)+l] = VeF[iStep+j*(Nfve[i]*Nve)+k*(Nve)+l];
 		}
 	}}}
+
+//array_print_d(Nfref[i]*Nfve[i],Nve,&ELEMENT->VeF[i*(NfrefMax*NfveMax*NveMax)],'R');
 
 	free(VeF);
 }

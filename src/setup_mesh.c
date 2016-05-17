@@ -215,12 +215,10 @@ void setup_mesh()
 		NfMax    = 2;
 		NfveMax  = 1;
 		NveMax   = 2;
-		NfrefMax = 1;
 	} else if (DB.d == 2) {
 		NfMax    = 3;
 		NfveMax  = 2;
 		NveMax   = 3;
-		NfrefMax = 3;
 
 		ELEMENT = get_ELEMENT_type(QUAD);
 		if (ELEMENT->present == 1) {
@@ -231,14 +229,12 @@ void setup_mesh()
 		NfMax    = 4;
 		NfveMax  = 3;
 		NveMax   = 4;
-		NfrefMax = 5;
 
 		ELEMENT = get_ELEMENT_type(PYR);
 		if (ELEMENT->present == 1) {
 			NfMax    = 5;
 			NfveMax  = 4;
 			NveMax   = 5;
-			NfrefMax = 9;
 		}
 
 		ELEMENT = get_ELEMENT_type(WEDGE);
@@ -246,7 +242,6 @@ void setup_mesh()
 			NfMax    = 5;
 			NfveMax  = 4;
 			NveMax   = 6;
-			NfrefMax = 9;
 		}
 
 		ELEMENT = get_ELEMENT_type(HEX);
@@ -254,9 +249,9 @@ void setup_mesh()
 			NfMax    = 6;
 			NfveMax  = 4;
 			NveMax   = 8;
-			NfrefMax = 9;
 		}
 	}
+	NfrefMax = 9;
 
 	DB.NfMax    = NfMax;
 	DB.NfveMax  = NfveMax;
