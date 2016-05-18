@@ -170,13 +170,13 @@ void setup_mesh()
 	ELEMENT->Nf        = 5;
 	ELEMENT->Nfve[0]   = 3; ELEMENT->Nfve[1]   = 3; ELEMENT->Nfve[2]   = 3; ELEMENT->Nfve[3]   = 3;
 	ELEMENT->Nfve[4]   = 4;
-	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 2; ELEMENT->VeCGmsh[3]   = 3;
+	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 3; ELEMENT->VeCGmsh[3]   = 2;
 	ELEMENT->VeCGmsh[4]    = 4;
-	ELEMENT->VeFcon[0*4+0] = 0; ELEMENT->VeFcon[0*4+1] = 3; ELEMENT->VeFcon[0*4+2] = 4;
-	ELEMENT->VeFcon[1*4+0] = 1; ELEMENT->VeFcon[1*4+1] = 2; ELEMENT->VeFcon[1*4+2] = 4;
+	ELEMENT->VeFcon[0*4+0] = 0; ELEMENT->VeFcon[0*4+1] = 2; ELEMENT->VeFcon[0*4+2] = 4;
+	ELEMENT->VeFcon[1*4+0] = 1; ELEMENT->VeFcon[1*4+1] = 3; ELEMENT->VeFcon[1*4+2] = 4;
 	ELEMENT->VeFcon[2*4+0] = 0; ELEMENT->VeFcon[2*4+1] = 1; ELEMENT->VeFcon[2*4+2] = 4;
 	ELEMENT->VeFcon[3*4+0] = 2; ELEMENT->VeFcon[3*4+1] = 3; ELEMENT->VeFcon[3*4+2] = 4;
-	ELEMENT->VeFcon[4*4+0] = 0; ELEMENT->VeFcon[4*4+1] = 1; ELEMENT->VeFcon[4*4+2] = 3; ELEMENT->VeFcon[4*4+3] = 2;
+	ELEMENT->VeFcon[4*4+0] = 0; ELEMENT->VeFcon[4*4+1] = 1; ELEMENT->VeFcon[4*4+2] = 2; ELEMENT->VeFcon[4*4+3] = 3;
 
 	// No additional ELEMENTs
 

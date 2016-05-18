@@ -13,6 +13,7 @@
  *	Comments:
  *		Will need two different setup_structures functions: One using the initial global arrays and one updating
  *		elements individually after hp refinement. (ToBeDeleted)
+ *		Probably better to change the name of XYZc to XYZ_vC to avoid confusion that this is XYZc(urved). (ToBeDeleted)
  *
  *	Notation:
  *
@@ -51,7 +52,7 @@ void setup_structures(void)
 				 indexg, NvnGs,
 	             uMPIrank,
 	             *GFToV, *GF_Nv;
-	double       *XYZc;
+	double       *XYZ_vC;
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME, **Vgrp, **Vgrp_tmp;
@@ -191,16 +192,18 @@ void setup_structures(void)
 			else
 				printf("Error: Unsupported element type setup_struct (NvnGs).\n"), exit(1);
 
-			XYZc = malloc(NvnGs*d * sizeof *XYZc); // keep
-			VOLUME->XYZc = XYZc;
+			XYZ_vC = malloc(NvnGs*d * sizeof *XYZ_vC); // keep
+			VOLUME->XYZ_vC = XYZ_vC;
 
-			// XYZc may be interpreted as [X Y Z] where each of X, Y, Z are column vectors (ToBeDeleted)
+			// XYZ_vC may be interpreted as [X Y Z] where each of X, Y, Z are column vectors (ToBeDeleted)
 			// Add this comment to notation section.
 			indexg = VOLUME->indexg;
 			for (ve = 0; ve < NvnGs; ve++) {
 			for (dim = 0; dim < d; dim++) {
-				XYZc[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+indexg)*8+ve]*d+dim];
+				XYZ_vC[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+indexg)*8+ve]*d+dim];
 			}}
+//printf("%d\n",VOLUME->indexg);
+//array_print_d(NvnGs,d,XYZ_vC,'C');
 
 			// MPI
 			IndVgrp = ((VOLUME->Eclass)*NP*2)+(VOLUME->P*2)+(VOLUME->curved);
@@ -285,5 +288,4 @@ for (i = 0, iMax = NVgrp; iMax--; i++) {
 	DB.Vgrp = Vgrp;
 
 //VOLUME = DB.VOLUME; while(VOLUME != NULL) printf("%d %d\n",VOLUME->type,VOLUME->curved), VOLUME = VOLUME->next;
-
 }

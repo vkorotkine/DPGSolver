@@ -65,8 +65,8 @@ struct S_ELEMENT {
 	//             **wvIs, **wvIc,
 	//             ***rst_fGc, ***rst_fIs, ***rst_fIc, **wfIs, **wfIc,
 	             **ICs, **ICc,
-	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs, ****I_vGs_fIs, ****I_vGs_fIc,
-	             **I_vGc_vP, **I_vGc_vCc, **I_vGc_vIc, ****I_vGc_fIs, ****I_vGc_fIc,
+	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs, **I_vGs_vIc, ****I_vGs_fIs, ****I_vGs_fIc,
+	             **I_vGc_vP, **I_vGc_vCc,              **I_vGc_vIs, **I_vGc_vIc, ****I_vGc_fIs, ****I_vGc_fIc,
 	             **I_vCs_vIs, **I_vCs_vIc,
 	             **I_vCc_vIs, **I_vCc_vIc,
 	             ****I_vCs_fIs, ****I_vCs_fIc,
@@ -84,11 +84,11 @@ struct S_VOLUME {
 	// Structures
 	unsigned int indexl, indexg, P, type, Eclass, curved, 
 	             *Vneigh, *Fneigh;
-	double *XYZc;
+	double *XYZ_vC;
 
 	// Geometry
 	unsigned int NvnG;
-	double *XYZs, *XYZ, *detJV_vI, *C_vC, *C_vI, **C_vf;
+	double *XYZ_S, *XYZ, *detJV_vI, *C_vC, *C_vI, **C_vf;
 
 	// structs
 	struct S_VOLUME *next, *grpnext;

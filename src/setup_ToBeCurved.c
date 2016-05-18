@@ -22,9 +22,9 @@
  *		Rosca(2011)-Uniform_Spherical_Grids_via_Equal_Area_Projection_from_the_Cube_to_the_Sphere
  */
 
-static void         ToBeCurved_cube_to_sphere (unsigned int Nn, double *XYZs, double *XYZ);
+static void         ToBeCurved_cube_to_sphere (unsigned int Nn, double *XYZ_S, double *XYZ);
 static double         *cube_to_sphere         (double XY[2], unsigned int OrderOut[3], int SignOut, double beta);
-static void         ToBeCurved_TP             (unsigned int Nn, double *XYZs, double *XYZ);
+static void         ToBeCurved_TP             (unsigned int Nn, double *XYZ_S, double *XYZ);
 static unsigned int   is_in_blend_region      (double XYZn[3]);
 static void           get_blend_bounds        (const double Xn, const double Zn, unsigned int *xLoc, unsigned int *zLoc,
                                                double *xBounds, double *zBounds);
@@ -42,10 +42,10 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 	// Standard datatypes
 	unsigned int i, dim,
 	             NvnG;
-	double *XYZ, *XYZs;
+	double *XYZ, *XYZ_S;
 
 	NvnG = VOLUME->NvnG;
-	XYZs = VOLUME->XYZs;
+	XYZ_S = VOLUME->XYZ_S;
 
 	XYZ = malloc (NvnG*d * sizeof *XYZ); // keep
 	VOLUME->XYZ = XYZ;
@@ -53,11 +53,11 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 	if (strstr(TestCase,"dSphericalBump")   != NULL ||
 	    strstr(TestCase,"PorousdSphere")    != NULL ||
 	    strstr(TestCase,"SupersonicVortex") != NULL) {
-			ToBeCurved_cube_to_sphere(NvnG,XYZs,XYZ);
+			ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
 	} else if (strstr(TestCase,"GaussianBump")     != NULL ||
 	           strstr(TestCase,"PolynomialBump")   != NULL) {
-//array_print_d(NvnG,d,XYZs,'C');
-			ToBeCurved_TP(NvnG,XYZs,XYZ);
+//array_print_d(NvnG,d,XYZ_S,'C');
+			ToBeCurved_TP(NvnG,XYZ_S,XYZ);
 //array_print_d(NvnG,d,XYZ,'C');
 	} else if (strstr(TestCase,"PeriodicVortex") != NULL) {
 		double n = 2.0, A = 0.1, L0 = 2.0, dxyz = 1.0;
@@ -68,10 +68,10 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 
 		// d > 1 for this case
 		for (dim = 0; dim < d; dim++) {
-			X0 = &XYZs[0*NvnG];
-			Y0 = &XYZs[1*NvnG];
+			X0 = &XYZ_S[0*NvnG];
+			Y0 = &XYZ_S[1*NvnG];
 			if (dim == 2)
-				Z0 = &XYZs[2*NvnG];
+				Z0 = &XYZ_S[2*NvnG];
 		}
 
 		if (d == 2) {
@@ -93,7 +93,7 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 	}
 }
 
-static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZs, double *XYZ)
+static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZ_S, double *XYZ)
 {
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
@@ -114,7 +114,7 @@ static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZs, double *XYZ
 
 	for (n = 0; n < Nn; n++) {
 		for (dim = 0; dim < d; dim++)
-			XYZn[dim] = XYZs[Nn*dim+n];
+			XYZn[dim] = XYZ_S[Nn*dim+n];
 
 		if (d == 2 || strstr(TestCase,"SupersonicVortex") != NULL)
 			XYZn[2] = 0.0;
@@ -153,7 +153,7 @@ static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZs, double *XYZ
 			if (strstr(TestCase,"SupersonicVortex") == NULL)
 				XYZ[Nn*2+n] = XYZ_Sphere[2];
 			else
-				XYZ[Nn*2+n] = XYZs[Nn*2+n];
+				XYZ[Nn*2+n] = XYZ_S[Nn*2+n];
 		}
 
 		free(XYZ_Sphere);
@@ -197,7 +197,7 @@ static double *cube_to_sphere(double XY[2], unsigned int OrderOut[3], int SignOu
 	return XYZ_Sphere;
 }
 
-static void ToBeCurved_TP(unsigned int Nn, double *XYZs, double *XYZ)
+static void ToBeCurved_TP(unsigned int Nn, double *XYZ_S, double *XYZ)
 {
 	/*
 	 *	Purpose:
@@ -242,7 +242,7 @@ static void ToBeCurved_TP(unsigned int Nn, double *XYZs, double *XYZ)
 	fnCount = 0;
 	for (n = 0; n < Nn; n++) {
 		for (dim = 0; dim < d; dim++)
-			XYZn[dim] = XYZs[Nn*dim+n];
+			XYZn[dim] = XYZ_S[Nn*dim+n];
 
 		if (d == 2)
 			XYZn[2] = 0.0;

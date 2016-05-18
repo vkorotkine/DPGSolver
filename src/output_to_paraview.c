@@ -161,7 +161,7 @@ static void output_geom(const char *geom_type)
 			}
 
 			if (strstr(geom_type,"straight") != NULL)
-				Input_SF = VOLUME->XYZs;
+				Input_SF = VOLUME->XYZ_S;
 			else
 				Input_SF = VOLUME->XYZ;
 
@@ -201,14 +201,14 @@ static void output_geom(const char *geom_type)
 				I_vG_vP = ELEMENT->I_vGc_vP[P];
 
 			if (strstr(geom_type,"straight") != NULL)
-				Input = VOLUME->XYZs;
+				Input = VOLUME->XYZ_S;
 			else
 				Input = VOLUME->XYZ;
 
 			XYZ_vP = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnP,d,NvnG,1.0,I_vG_vP,Input); // free
 		} else if (VOLUME->Eclass == C_WEDGE) {
 			if (strstr(geom_type,"straight") != NULL)
-				Input_SF = VOLUME->XYZs;
+				Input_SF = VOLUME->XYZ_S;
 			else
 				Input_SF = VOLUME->XYZ;
 
@@ -346,6 +346,10 @@ static void output_normals(const char *normals_type)
 	struct S_VOLUME  *VIn;
 	struct S_FACET   *FACET;
 
+	// silence
+	XYZ_fI = NULL;
+	NfnI = 0;
+
 	sprintf(MPIrank_c,"%d",MPIrank);
 //	strcpy(f_name,TestCase);
 //	strcat(f_name,"_normals");
@@ -407,9 +411,7 @@ static void output_normals(const char *normals_type)
 
 		IndFType = get_IndFType(Eclass,VfIn/NfrefMax);
 
-		if (VIn->Eclass == C_TP) {
-
-		} else if (VIn->Eclass == C_SI || VIn->Eclass == C_PYR) {
+		if (VIn->Eclass == C_TP || VIn->Eclass == C_SI || VIn->Eclass == C_PYR) {
 			NvnG = VIn->NvnG;
 
 			if (FACET->typeInt == 's') {
@@ -429,7 +431,7 @@ static void output_normals(const char *normals_type)
 
 		}
 
-printf("%d\n",FACET->indexg);
+printf("\n\n%d\n",FACET->indexg);
 array_print_d(NfnI,d,XYZ_fI,'C');
 
 		fprintf(fID,"\t\t<Piece NumberOfPoints=\"%d\" NumberOfVerts=\"%d\" NumberOfLines=\"%d\" NumberOfStrips=\"%d\" "

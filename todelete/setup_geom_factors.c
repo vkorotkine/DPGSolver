@@ -11,9 +11,6 @@
  *		Set up geometric factors.
  *
  *	Comments:
- *
- *		OPS[0] can be just OPS using the standard approach here. (ToBeDeleted)
- *
  *		Only the curl-form of the cofactor matrix terms is used following the analysis of Kopriva(2006)
  *		The second set of operators is only initialized and used for WEDGE elements.
  *		this may be slightly less readable. Profile and decide. (ToBeModified)
@@ -69,7 +66,10 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 	NvnI0 = OPS[0]->NvnI;
 
 	XYZ = VOLUME->XYZ;
-	if (VOLUME->Eclass == C_TP || VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR) {
+	if (VOLUME->Eclass == C_TP) {
+		printf("Add in support for C_TP in setup_geom_factors.\n");
+		exit(1);
+	} else if (VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR) {
 		J_vI     = malloc(NvnI0*d*d * sizeof *J_vI);     // free
 		J_vC     = malloc(NvnC0*d*d * sizeof *J_vC);     // free
 		detJV_vI = malloc(NvnI0     * sizeof *detJV_vI); // keep
@@ -237,20 +237,29 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	// Standard datatypes
 	unsigned int P, type, curved;
 
-	struct S_ELEMENT *ELEMENT_OPS;
+	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS;
+
+	// silence
+	ELEMENT_OPS = NULL;
 
 	P      = VOLUME->P;
 	type   = VOLUME->type;
 	curved = VOLUME->curved;
 
-	ELEMENT_OPS = get_ELEMENT_type(type);
+	ELEMENT = get_ELEMENT_type(type);
+	if (type == LINE || type == QUAD || type == HEX || type == WEDGE)
+		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
+	else if (type == TRI || type == TET || type == PYR)
+		ELEMENT_OPS = ELEMENT;
 
 	if (!curved) {
 		OPS->NvnG = ELEMENT_OPS->NvnGs[0];
 		OPS->NvnC = ELEMENT_OPS->NvnCs[P];
 		OPS->NvnI = ELEMENT_OPS->NvnIs[P];
 
+		OPS->IC      = ELEMENT_OPS->ICs[P];
 		OPS->I_vG_vC = ELEMENT_OPS->I_vGs_vCs[P];
+		OPS->I_vG_vI = ELEMENT_OPS->I_vGs_vIs[P];
 		OPS->I_vC_vI = ELEMENT_OPS->I_vCs_vIs[P];
 		OPS->D_vG_vC = ELEMENT_OPS->D_vGs_vCs[P];
 		OPS->D_vG_vI = ELEMENT_OPS->D_vGs_vIs[P];
@@ -260,7 +269,9 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		OPS->NvnC = ELEMENT_OPS->NvnCc[P];
 		OPS->NvnI = ELEMENT_OPS->NvnIc[P];
 
+		OPS->IC      = ELEMENT_OPS->ICc[P];
 		OPS->I_vG_vC = ELEMENT_OPS->I_vGc_vCc[P];
+		OPS->I_vG_vI = ELEMENT_OPS->I_vGc_vIc[P];
 		OPS->I_vC_vI = ELEMENT_OPS->I_vCc_vIc[P];
 		OPS->D_vG_vC = ELEMENT_OPS->D_vGc_vCc[P];
 		OPS->D_vG_vI = ELEMENT_OPS->D_vGc_vIc[P];

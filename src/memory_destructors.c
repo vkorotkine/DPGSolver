@@ -58,8 +58,10 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free2_d(NP,ELEMENT->I_vGs_vGc);
 	array_free2_d(NP,ELEMENT->I_vGs_vCs);
 	array_free2_d(NP,ELEMENT->I_vGs_vIs);
+	array_free2_d(NP,ELEMENT->I_vGs_vIc);
 	array_free2_d(NP,ELEMENT->I_vGc_vP);
 	array_free2_d(NP,ELEMENT->I_vGc_vCc);
+	array_free2_d(NP,ELEMENT->I_vGc_vIs);
 	array_free2_d(NP,ELEMENT->I_vGc_vIc);
 	array_free2_d(NP,ELEMENT->I_vCs_vIs);
 	array_free2_d(NP,ELEMENT->I_vCs_vIc);
@@ -129,10 +131,10 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 //	int NP = DB.NP;
 
 	// Structures
-	free(VOLUME->XYZc);
+	free(VOLUME->XYZ_vC);
 
 	// Geometry
-	free(VOLUME->XYZs);
+	free(VOLUME->XYZ_S);
 	free(VOLUME->XYZ);
 
 	free(VOLUME->detJV_vI);

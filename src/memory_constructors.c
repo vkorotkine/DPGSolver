@@ -73,8 +73,10 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->I_vGs_vGc = calloc(NP , sizeof *(ELEMENT->I_vGs_vGc)); // free
 	ELEMENT->I_vGs_vCs = calloc(NP , sizeof *(ELEMENT->I_vGs_vCs)); // free
 	ELEMENT->I_vGs_vIs = calloc(NP , sizeof *(ELEMENT->I_vGs_vIs)); // free
+	ELEMENT->I_vGs_vIc = calloc(NP , sizeof *(ELEMENT->I_vGs_vIc)); // free
 	ELEMENT->I_vGc_vP  = calloc(NP , sizeof *(ELEMENT->I_vGc_vP));  // free
 	ELEMENT->I_vGc_vCc = calloc(NP , sizeof *(ELEMENT->I_vGc_vCc)); // free
+	ELEMENT->I_vGc_vIs = calloc(NP , sizeof *(ELEMENT->I_vGc_vIs)); // free
 	ELEMENT->I_vGc_vIc = calloc(NP , sizeof *(ELEMENT->I_vGc_vIc)); // free
 	ELEMENT->I_vCs_vIs = calloc(NP , sizeof *(ELEMENT->I_vCs_vIs)); // free
 	ELEMENT->I_vCs_vIc = calloc(NP , sizeof *(ELEMENT->I_vCs_vIc)); // free
@@ -225,12 +227,12 @@ struct S_VOLUME *New_VOLUME(void)
 //	VOLUME->Vneigh = malloc(6*9 * sizeof *(VOLUME->Vneigh)); // tbd
 //	VOLUME->Fneigh = malloc(6*9 * sizeof *(VOLUME->Fneigh)); // tbd
 
-	VOLUME->XYZc = NULL; // free
+	VOLUME->XYZ_vC = NULL; // free
 
 	// Geometry
-	VOLUME->NvnG = 0;
-	VOLUME->XYZs = NULL; // free
-	VOLUME->XYZ  = NULL; // free
+	VOLUME->NvnG  = 0;
+	VOLUME->XYZ_S = NULL; // free
+	VOLUME->XYZ   = NULL; // free
 
 	VOLUME->detJV_vI = NULL; // free
 	VOLUME->C_vC     = NULL; // free (in setup_normals)

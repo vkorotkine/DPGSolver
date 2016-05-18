@@ -33,22 +33,21 @@ void setup_normals(struct S_FACET *FACET)
 	             NfrefMax = DB.NfrefMax;
 
 	// Standard datatypes
-	unsigned int i, fn, fnMax, curved, dim, dim1, dim2,
-	             VfIn,
-	             NvnC0, NvnI0, NfnI0, NvnC1, NvnI1, NfnI1, NnI;
+	unsigned int fn, fnMax, curved, dim, dim1, dim2,
+	             VfIn, Eclass, IndFType, fIn,
+	             NvnC0, NvnI0, NfnI0, NnI;
 	double       nSum, nSum2,
 	             *C_fI, *C_vC, *nrIn, *n;
 
-	struct S_OPERATORS *OPS[2];
+	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VIn, *VOut;
+
+	OPS = malloc(sizeof *OPS); // free
 
 	// silence
 //	fnMax = 0;
 	NnI = 0;
 	C_fI = NULL;
-
-	for (i = 0; i < 2; i++)
-		OPS[i] = malloc(sizeof *OPS[i]); // free
 
 	VIn  = FACET->VIn;
 	VOut = FACET->VOut;
@@ -56,34 +55,30 @@ void setup_normals(struct S_FACET *FACET)
 	VfIn = FACET->VfIn;
 	curved = FACET->curved;
 
-	init_ops(OPS[0],VIn,FACET,0);
-	if (VIn->type == WEDGE)
-		init_ops(OPS[1],VIn,FACET,1);
+	fIn = VfIn/NfrefMax;
 
-	NvnC0 = OPS[0]->NvnC;
-	NvnI0 = OPS[0]->NvnI;
-	NfnI0 = OPS[0]->NfnI;
+	Eclass = get_Eclass(VIn->type);
+	IndFType = get_IndFType(Eclass,fIn);
+
+	init_ops(OPS,VIn,FACET,IndFType);
+
+	NvnC0 = OPS->NvnC;
+	NvnI0 = OPS->NvnI;
+	NfnI0 = OPS->NfnI;
 
 	C_vC = VIn->C_vC;
-	if (VIn->Eclass == C_TP) {
-		printf("Add in support for C_TP in setup_normals.\n");
-		exit(1);
-	} else if (VIn->Eclass == C_SI || VIn->Eclass == C_PYR) {
+	if (VIn->Eclass == C_TP || VIn->Eclass == C_SI || VIn->Eclass == C_PYR) {
 
 		C_fI = malloc(NvnI0*d*d * sizeof *C_fI); // free
 
-		mm_CTN_d(NfnI0,d*d,NvnC0,OPS[0]->I_vC_fI[VfIn],C_vC,C_fI);
+		mm_CTN_d(NfnI0,d*d,NvnC0,OPS->I_vC_fI[VfIn],C_vC,C_fI);
 
 		NnI = NfnI0;
 	} else if (VIn->Eclass == C_WEDGE) {
-		NvnC1 = OPS[1]->NvnC;
-		NvnI1 = OPS[1]->NvnI;
-		NfnI1 = OPS[1]->NfnI;
-
 		printf("Add in support for C_WEDGE in setup_normals.\n");
 		exit(1);
 	}
-	nrIn = &(OPS[0]->nr[(VfIn/NfrefMax)*d]);
+	nrIn = &(OPS->nr[fIn*d]);
 
 	// Store a single normal on straight FACETs
 	if (!curved) fnMax = 1;
@@ -109,12 +104,11 @@ void setup_normals(struct S_FACET *FACET)
 
 	FACET->n = n;
 
-printf("%d %d\n",FACET->indexg,VfIn);
+printf("%d %d %d\n",FACET->indexg,VfIn,IndFType);
 array_print_d(fnMax,d,n,'R');
 
 	free(C_fI);
-	for (i = 0; i < 2; i++)
-		free(OPS[i]);
+	free(OPS);
 }
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
@@ -124,20 +118,14 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	unsigned int PV, PF, Vtype, Vcurved, FtypeInt;
 	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS;
 
-	// silence
-	ELEMENT_OPS = NULL;
-
 	PV       = VOLUME->P;
 	PF       = FACET->P;
 	Vtype    = VOLUME->type;
 	Vcurved  = VOLUME->curved;
 	FtypeInt = FACET->typeInt;
 
-	ELEMENT = get_ELEMENT_type(Vtype);
-	if (Vtype == LINE || Vtype == QUAD || Vtype == HEX || Vtype == WEDGE)
-		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
-	else if (Vtype == TRI || Vtype == TET || Vtype == PYR)
-		ELEMENT_OPS = ELEMENT;
+	ELEMENT     = get_ELEMENT_type(Vtype);
+	ELEMENT_OPS = ELEMENT;
 
 	if (!Vcurved) {
 		// Straight VOLUME

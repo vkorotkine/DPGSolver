@@ -78,9 +78,8 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 	 *
 	 *		*** IMPORTANT ***
 	 *
-	 *		For the moment, the routine is only implemented using the new non-redundant approach. (ToBeModified)
-	 *		Operating in the eta/zeta directions requires re-ordering of the matrices before and after operation. To
-	 *		minimize memory usage, re-ordering is done in place, requiring only a single additional row of storage.
+	 *		Operating in the s/t directions requires re-ordering of the matrices before and after operation. To minimize
+	 *		memory usage, re-ordering is done in place, requiring only a single additional row of storage.
 	 *		Add support for NonRedundant == 2 (Diag == 1). (ToBeDeleted)
 	 *			Likely implementation: extract diagonal from OP, then loop over rows performing BLAS 1 row scaling. Note
 	 *			                       that this really does not require re-arranging. If it is found that this option
@@ -128,7 +127,7 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 
 	Output_Inter = malloc(d * sizeof *Output); // free
 
-	// xi
+	// r
 	Indd = 0;
 
 	if (d == 1)
@@ -149,7 +148,7 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 		return;
 	}
 
-	// eta
+	// s
 	Indd = 1;
 
 	if (d == 2)
@@ -179,7 +178,7 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 		return;
 	}
 
-	// zeta
+	// t
 	Indd = 2;
 
 	Output_Inter[Indd] = Output;
