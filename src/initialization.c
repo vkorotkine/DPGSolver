@@ -174,7 +174,7 @@ void initialization(int nargc, char **argv)
 
 	// Print some information
 	if (!DB.MPIrank) {
-		printf("\n\nRunning the %s testcase using the %s mesh type in %dD on mesh level %d.\n\n",
+		printf("\n\nRunning the %s test case using the %s mesh type in %dD on mesh level %d.\n\n",
 		       DB.TestCase,DB.MeshType,DB.d,DB.ML);
 		printf("Parameters:\n\n");
 		printf("Form       : %s\n",    DB.Form);

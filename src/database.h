@@ -44,6 +44,9 @@ struct S_DB {
 	// Structures
 	unsigned int NECgrp;
 
+	// Initialization
+	unsigned int Nvar, Neq;
+
 	// Structs
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME, **Vgrp;

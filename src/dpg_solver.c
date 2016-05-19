@@ -77,6 +77,14 @@ int main(int nargc, char **argv)
 	setup_geometry();
 
 
+	// Solving
+	if (!DB.MPIrank)
+		printf("\n\nSolving:\n\n");
+
+	if (!DB.MPIrank)
+		printf("  Initializing\n");
+	initialize_test_case();
+
 	memory_free();
 
 	// End MPI and PETSC
