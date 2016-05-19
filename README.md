@@ -1,4 +1,4 @@
-# (D)iscontinuous (P)etrov (G)alerkin Solver
+# Discontinuous Petrov Galerkin Solver
 
 ### Code Description
 - Open source using only open source libraries/supporting programs.
@@ -13,8 +13,8 @@
 See the CODE STATUS section below for details regarding current functionality.
 
 ### Installation / Set up
-Follow the instructions in [INSTALL][INSTALL] for the set up of required libraries/programs (Currently running on either OSX or
-Ubuntu). Required:
+Follow the [installation instructions](INSTALL.md) for the set up of required libraries/programs (Currently running on
+either OSX or Ubuntu). Required:
 - PETSc
 - mpi (MPICH or Open MPI)
 - Intel (M)ath (K)ernel (L)ibrary
@@ -22,8 +22,10 @@ Ubuntu). Required:
 - Gmsh
 - Paraview
 
-Follow the instructions in [SETUP][SETUP] regarding additional requirements for running the code:
+Follow the instructions in [SETUP](SETUP.md) regarding additional requirements for running the code:
 - Mesh generation
+
+Please follow the [style guidelines](STYLE.md) when making additions to the code.
 
 
 ## Code Status

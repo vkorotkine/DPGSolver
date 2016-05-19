@@ -1,3 +1,6 @@
+// Copyright 2016 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -66,5 +69,4 @@ double jacobiP(const double x, const double alpha, const double beta, const int 
 	free(PL);
 
 	return P;
-
 }

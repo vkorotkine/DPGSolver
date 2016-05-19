@@ -1,6 +1,8 @@
+// Copyright 2016 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+
 #include <stdlib.h>
 #include <stdio.h>
-//#include <string.h>
 
 /*
  *	Purpose:
@@ -14,43 +16,6 @@
  *	References:
  *
  */
-
-/*
-void array_print(const unsigned int m, const unsigned int n, void *A, char *type)
-{
-	unsigned int i, j;
-
-	long double *Ald = NULL;
-	double      *Ad = NULL;
-	float       *Af = NULL;
-	long long   *All = NULL;
-	long        *Al = NULL;
-	int         *Ai = NULL;
-	char        *Ac = NULL;
-
-	if      (strstr(type,"ld")) Ald = A;
-	else if (strstr(type,"d"))  Ad = A;
-	else if (strstr(type,"f"))  Af = A;
-	else if (strstr(type,"ll")) All = A;
-	else if (strstr(type,"l"))  Al = A;
-	else if (strstr(type,"i"))  Ai = A;
-	else if (strstr(type,"c"))  Ac = A;
-
-	for (i = 0; i < m; i++) {
-		for (j = 0; j < n; j++) {
-			if      (strstr(type,"ld")) printf("% .3Le ", Ald[i*n+j]);
-			else if (strstr(type,"d"))  printf("% .3e ",  Ad[i*n+j]);
-			else if (strstr(type,"f"))  printf("% .3f ",  Af[i*n+j]);
-			else if (strstr(type,"ll")) printf("% 12lld ",All[i*n+j]);
-			else if (strstr(type,"l"))  printf("% 12ld ", Al[i*n+j]);
-			else if (strstr(type,"i"))  printf("% 12d ",  Ai[i*n+j]);
-			else if (strstr(type,"c"))  printf("%c ",   Ac[i*n+j]);
-		}
-		printf("\n");
-	}
-	printf("\n");
-}
-*/
 
 void array_print_ui(const unsigned int m, const unsigned int n, const unsigned int *A, const char layout)
 {

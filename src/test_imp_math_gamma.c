@@ -1,3 +1,6 @@
+// Copyright 2016 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -73,7 +76,7 @@ void test_imp_math_gamma(void)
 	    array_norm_d(1,&errB_d,"Inf") < EPS*10 &&
 	    array_norm_d(1,&errC_d,"Inf") < EPS*10)
 			pass = 1, TestDB.Npass++;
-	
+
 	//     0         10        20        30        40        50
 	printf("math_gamma_d:                                    ");
 	test_print(pass);

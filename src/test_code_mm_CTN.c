@@ -1,7 +1,11 @@
+// Copyright 2016 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "mkl.h"
+
 /*
  *	Purpose:
  *		Provide functions for testing mm_CTN.

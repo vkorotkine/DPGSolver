@@ -1,3 +1,6 @@
+// Copyright 2016 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -9,7 +12,7 @@
 
 /*
  *	Purpose:
- *		Set up geometry.
+ *		Set up geometry related information.
  *
  *	Comments:
  *		Loops are placed outside of the functions listed below (ToBeModified) as they are reused to update individual

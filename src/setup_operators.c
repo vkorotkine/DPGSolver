@@ -1,3 +1,6 @@
+// Copyright 2016 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -8,8 +11,6 @@
 #include "functions.h"
 
 #include "mkl.h"
-
-// DON'T FORGET TO CHANGE COMMENTS (ToBeDeleted)
 
 /*
  *	Purpose:

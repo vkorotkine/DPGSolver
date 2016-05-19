@@ -1,3 +1,6 @@
+// Copyright 2016 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -46,7 +49,7 @@ static unsigned int get_ELEMENT_Ncorners(const unsigned int VTK_type)
 	case 14: // PYR
 		return 5;
 		break;
-	default: 
+	default:
 		printf("Error: Unsupported VTK_type.\n"), exit(1);
 		break;
 	}
@@ -184,7 +187,7 @@ static void output_geom(const char *geom_type)
 				}
 				NOut_Total *= NOut_SF[dim];
 			}
-			
+
 			NCols = d*1; // d coordinates * 1 element
 
 			XYZ_vP = malloc(NOut_Total*NCols * sizeof *XYZ_vP); // free
@@ -314,7 +317,7 @@ static void output_geom(const char *geom_type)
 				fprintf_tn(fID,4,"</DataArray>");
 
 			fprintf_tn(fID,3,"</Cells>");
-		
+
 		fprintf_tn(fID,2,"</Piece>\n");
 
 		free(XYZ_vP);

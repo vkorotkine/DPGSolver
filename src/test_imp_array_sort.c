@@ -1,3 +1,6 @@
+// Copyright 2016 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -210,8 +213,8 @@ void test_imp_array_sort(void)
 	             IndB_ui0[30] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
 	                              20, 21, 22, 23, 24, 25, 26, 27, 28, 29 },
 	             IndB_ui4[30] = { 4, 14, 11, 2, 24, 0, 22, 13, 20, 29, 26, 1, 12, 28, 19, 17, 3, 15, 21, 16,
-	                              27, 9, 10, 6, 23, 8, 25, 7, 5, 18}; 
-	                              
+	                              27, 9, 10, 6, 23, 8, 25, 7, 5, 18};
+
 	// Test 2
 	// Store B in column-major format
 	mkl_simatcopy('R','T',NRows,NCols,1.,(float *) B_ui0,NCols,NRows);

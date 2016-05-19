@@ -1,3 +1,6 @@
+// Copyright 2016 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -72,5 +75,4 @@ double gamma_d(const double x)
 
 		return exp(-tmp+log(2.5066282746310005*ser/z));
 	}
-
 }

@@ -1,3 +1,6 @@
+// Copyright 2016 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -115,7 +118,7 @@ void initialization(int nargc, char **argv)
 	if ((fID = fopen(ControlFile,"r")) == NULL)
 		printf("Error: Control file: %s not present.\n",ControlFile), exit(1);
 	free(ControlFile);
-	
+
 	while(fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 
 		if (strstr(StringRead,"Dimension")  != NULL) sscanf(StringRead,"%s %d",dummys,&DB.d);
