@@ -44,11 +44,6 @@ void setup_normals(struct S_FACET *FACET)
 
 	OPS = malloc(sizeof *OPS); // free
 
-	// silence
-//	fnMax = 0;
-	NnI = 0;
-	C_fI = NULL;
-
 	VIn  = FACET->VIn;
 	VOut = FACET->VOut;
 
@@ -67,17 +62,11 @@ void setup_normals(struct S_FACET *FACET)
 	NfnI0 = OPS->NfnI;
 
 	C_vC = VIn->C_vC;
-	if (VIn->Eclass == C_TP || VIn->Eclass == C_SI || VIn->Eclass == C_PYR) {
+	C_fI = malloc(NvnI0*d*d * sizeof *C_fI); // free
 
-		C_fI = malloc(NvnI0*d*d * sizeof *C_fI); // free
+	mm_CTN_d(NfnI0,d*d,NvnC0,OPS->I_vC_fI[VfIn],C_vC,C_fI);
 
-		mm_CTN_d(NfnI0,d*d,NvnC0,OPS->I_vC_fI[VfIn],C_vC,C_fI);
-
-		NnI = NfnI0;
-	} else if (VIn->Eclass == C_WEDGE) {
-		printf("Add in support for C_WEDGE in setup_normals.\n");
-		exit(1);
-	}
+	NnI = NfnI0;
 	nrIn = &(OPS->nr[fIn*d]);
 
 	// Store a single normal on straight FACETs
@@ -104,8 +93,8 @@ void setup_normals(struct S_FACET *FACET)
 
 	FACET->n = n;
 
-printf("%d %d %d\n",FACET->indexg,VfIn,IndFType);
-array_print_d(fnMax,d,n,'R');
+//printf("%d %d %d\n",FACET->indexg,VfIn,IndFType);
+//array_print_d(fnMax,d,n,'R');
 
 	free(C_fI);
 	free(OPS);

@@ -92,12 +92,26 @@ struct S_ELEMENT *get_ELEMENT_Eclass(const unsigned int type, const unsigned int
 
 unsigned int get_IndFType(const unsigned int Eclass, const unsigned int f)
 {
-	if (Eclass == C_TP || Eclass == C_SI || (Eclass == C_PYR && f < 4)) {
+	switch (Eclass) {
+	case C_TP:
+	case C_SI:
 		return 0;
-	} else if (Eclass == C_PYR && f < 5) {
-		return 1;
+		break;
+	case C_PYR:
+		if (f < 4)
+			return 0;
+		else
+			return 1;
+		break;
+	case C_WEDGE:
+		if (f < 3)
+			return 0;
+		else
+			return 1;
+		break;
+	default:
+		printf("Error: Unsupported Eclass/f combination in get_IndFType.\n"), exit(1);
+		break;
 	}
-	printf("%d %d\n",Eclass,f);
-	printf("Error: Unsupported Eclass/f combination in get_IndFType.\n"), exit(1);
 }
 

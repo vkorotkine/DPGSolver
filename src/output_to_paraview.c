@@ -411,28 +411,20 @@ static void output_normals(const char *normals_type)
 
 		IndFType = get_IndFType(Eclass,VfIn/NfrefMax);
 
-		if (VIn->Eclass == C_TP || VIn->Eclass == C_SI || VIn->Eclass == C_PYR) {
-			NvnG = VIn->NvnG;
+		NvnG = VIn->NvnG;
 
-			if (FACET->typeInt == 's') {
-				NfnI = ELEMENT->NfnIs[PF][IndFType];
-				if (!VIn->curved) I_vG_vfI = ELEMENT->I_vGs_fIs[PV][PF][VfIn];
-				else              I_vG_vfI = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
-			} else {
-				NfnI = ELEMENT->NfnIc[PF][IndFType];
-				if (!VIn->curved) I_vG_vfI = ELEMENT->I_vGs_fIc[PV][PF][VfIn];
-				else              I_vG_vfI = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
-			}
-
-			Input = VIn->XYZ;
-
-			XYZ_fI = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NfnI,d,NvnG,1.0,I_vG_vfI,Input); // free
-		} else if (VIn->Eclass == C_WEDGE) {
-
+		if (FACET->typeInt == 's') {
+			NfnI = ELEMENT->NfnIs[PF][IndFType];
+			if (!VIn->curved) I_vG_vfI = ELEMENT->I_vGs_fIs[PV][PF][VfIn];
+			else              I_vG_vfI = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
+		} else {
+			NfnI = ELEMENT->NfnIc[PF][IndFType];
+			if (!VIn->curved) I_vG_vfI = ELEMENT->I_vGs_fIc[PV][PF][VfIn];
+			else              I_vG_vfI = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
 		}
+		Input = VIn->XYZ;
 
-printf("\n\n%d\n",FACET->indexg);
-array_print_d(NfnI,d,XYZ_fI,'C');
+		XYZ_fI = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NfnI,d,NvnG,1.0,I_vG_vfI,Input); // free
 
 		fprintf(fID,"\t\t<Piece NumberOfPoints=\"%d\" NumberOfVerts=\"%d\" NumberOfLines=\"%d\" NumberOfStrips=\"%d\" "
 		            "NumberOfPolys=\"%d\">\n",NfnI,0,0,0,0);
