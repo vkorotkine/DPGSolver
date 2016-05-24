@@ -66,9 +66,13 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->NvnCc  = calloc(NP , sizeof *(ELEMENT->NvnCc));  // free
 	ELEMENT->NvnIs  = calloc(NP , sizeof *(ELEMENT->NvnIs));  // free
 	ELEMENT->NvnIc  = calloc(NP , sizeof *(ELEMENT->NvnIc));  // free
+	ELEMENT->NvnS   = calloc(NP , sizeof *(ELEMENT->NvnS));   // free
 
 	ELEMENT->NfnIs  = calloc(NP , sizeof *(ELEMENT->NfnIs));  // free
 	ELEMENT->NfnIc  = calloc(NP , sizeof *(ELEMENT->NfnIc));  // free
+
+	ELEMENT->ChiInvS_vS = calloc(NP , sizeof *(ELEMENT->ChiInvS_vS)); // free
+	ELEMENT->ChiS_vP    = calloc(NP , sizeof *(ELEMENT->ChiS_vP));    // free
 
 	ELEMENT->ICs       = calloc(NP , sizeof *(ELEMENT->ICs));       // free
 	ELEMENT->ICc       = calloc(NP , sizeof *(ELEMENT->ICc));       // free
@@ -77,10 +81,12 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->I_vGs_vCs = calloc(NP , sizeof *(ELEMENT->I_vGs_vCs)); // free
 	ELEMENT->I_vGs_vIs = calloc(NP , sizeof *(ELEMENT->I_vGs_vIs)); // free
 	ELEMENT->I_vGs_vIc = calloc(NP , sizeof *(ELEMENT->I_vGs_vIc)); // free
+	ELEMENT->I_vGs_vS  = calloc(NP , sizeof *(ELEMENT->I_vGs_vS));  // free
 	ELEMENT->I_vGc_vP  = calloc(NP , sizeof *(ELEMENT->I_vGc_vP));  // free
 	ELEMENT->I_vGc_vCc = calloc(NP , sizeof *(ELEMENT->I_vGc_vCc)); // free
 	ELEMENT->I_vGc_vIs = calloc(NP , sizeof *(ELEMENT->I_vGc_vIs)); // free
 	ELEMENT->I_vGc_vIc = calloc(NP , sizeof *(ELEMENT->I_vGc_vIc)); // free
+	ELEMENT->I_vGc_vS  = calloc(NP , sizeof *(ELEMENT->I_vGc_vS));  // free
 	ELEMENT->I_vCs_vIs = calloc(NP , sizeof *(ELEMENT->I_vCs_vIs)); // free
 	ELEMENT->I_vCs_vIc = calloc(NP , sizeof *(ELEMENT->I_vCs_vIc)); // free
 	ELEMENT->I_vCc_vIc = calloc(NP , sizeof *(ELEMENT->I_vCc_vIc)); // free
@@ -242,6 +248,11 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->C_vI     = NULL; // free
 	VOLUME->C_vf     = calloc(6 , sizeof *(VOLUME->C_vf)); // free
 
+	// Initialization
+	VOLUME->NvnS = 0;
+	VOLUME->What = NULL; // free
+
+	// structs
 	VOLUME->next    = NULL;
 	VOLUME->grpnext = NULL;
 

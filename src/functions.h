@@ -66,6 +66,10 @@ extern void     setup_ToBeCurved            (struct S_VOLUME *VOLUME);
 extern void     setup_geom_factors          (struct S_VOLUME *VOLUME);
 extern void     setup_normals               (struct S_FACET *FACET);
 
+// Solver
+extern void initialize_test_case   (void);
+extern void solver_RK4_low_storage (void);
+
 // Sum Factorization
 extern void sf_operate_d (const unsigned int NOut, const unsigned int NCols, const unsigned int NIn,
                           const unsigned int BRowMaxIn, double *OP, double *Input, double *Output);
@@ -106,6 +110,10 @@ extern unsigned int     get_Eclass          (const unsigned int type);
 extern struct S_ELEMENT *get_ELEMENT_type   (const unsigned int type);
 extern struct S_ELEMENT *get_ELEMENT_Eclass (const unsigned int type, const unsigned int IndEclass);
 extern unsigned int     get_IndFType        (const unsigned int Eclass, const unsigned int f);
+
+// Variable related functions
+extern void convert_variables (double *VarIn, double *VarOut, const unsigned int dIn, const unsigned int dOut,
+                               const unsigned int Nn, const char TypeIn, const char TypeOut);
 
 // Memory Management
 extern void memory_free         (void);

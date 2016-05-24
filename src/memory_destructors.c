@@ -51,9 +51,13 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->NvnCc);
 	free(ELEMENT->NvnIs);
 	free(ELEMENT->NvnIc);
+	free(ELEMENT->NvnS);
 
 	array_free2_ui(NP,ELEMENT->NfnIs);
 	array_free2_ui(NP,ELEMENT->NfnIc);
+
+	array_free2_d(NP,ELEMENT->ChiInvS_vS);
+	array_free2_d(NP,ELEMENT->ChiS_vP);
 
 	array_free2_d(NP,ELEMENT->ICs);
 	array_free2_d(NP,ELEMENT->ICc);
@@ -62,10 +66,12 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free2_d(NP,ELEMENT->I_vGs_vCs);
 	array_free2_d(NP,ELEMENT->I_vGs_vIs);
 	array_free2_d(NP,ELEMENT->I_vGs_vIc);
+	array_free2_d(NP,ELEMENT->I_vGs_vS);
 	array_free2_d(NP,ELEMENT->I_vGc_vP);
 	array_free2_d(NP,ELEMENT->I_vGc_vCc);
 	array_free2_d(NP,ELEMENT->I_vGc_vIs);
 	array_free2_d(NP,ELEMENT->I_vGc_vIc);
+	array_free2_d(NP,ELEMENT->I_vGc_vS);
 	array_free2_d(NP,ELEMENT->I_vCs_vIs);
 	array_free2_d(NP,ELEMENT->I_vCs_vIc);
 	array_free2_d(NP,ELEMENT->I_vCc_vIs);
@@ -143,6 +149,9 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	free(VOLUME->detJV_vI);
 	free(VOLUME->C_vI);
 	array_free2_d(6,VOLUME->C_vf);
+
+	// Initialization
+	free(VOLUME->What);
 
 	free(VOLUME);
 }

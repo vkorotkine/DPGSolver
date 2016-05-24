@@ -256,7 +256,7 @@ static double *basis_TET2(const double *rst, const unsigned int Nn)
 
 void test_imp_basis_SI(void)
 {
-	printf("\nWarning: Ensure that discrepancy between M and I for WS and SH nodes is as expected\n\n");
+	printf("\nWarning: Ensure that discrepancy between M and I for WSH nodes is as expected\n\n");
 	TestDB.Nwarnings++;
 
 	unsigned int pass;
@@ -375,22 +375,22 @@ void test_imp_basis_SI(void)
 	 *	basis_SI orthogonality:
 	 *
 	 *		Input:
-	 *			rst_WS (d = 2), rst_SH (d = 3), rst_WV, P, d
+	 *			rst_WSH (d = 2), rst_WSH (d = 3), rst_WV, P, d
 	 *
 	 *		Expected Output:
 	 *
-	 *			d = 2, P = 2, rst_WS (P = 2), rst_WV (P = 4):
+	 *			d = 2, P = 2, rst_WSH (P = 2), rst_WV (P = 4):
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I
 	 *
-	 *			d = 2, P = 3, rst_WS (P = 3), rst_WV (P = 6):
-	 *				M = ChiRef_rst'*W*ChiRef_rst = I with errro in highest order entries (WS)
+	 *			d = 2, P = 3, rst_WSH (P = 3), rst_WV (P = 6):
+	 *				M = ChiRef_rst'*W*ChiRef_rst = I with errro in highest order entries (WSH)
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I (WV)
 	 *
-	 *			d = 3, P = 1, rst_SH (P = 1), rst_WV (P = 2):
+	 *			d = 3, P = 1, rst_WSH (P = 1), rst_WV (P = 2):
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I
 	 *
-	 *			d = 2, P = 2, rst_SH (P = 2), rst_WV (P = 4):
-	 *				M = ChiRef_rst'*W*ChiRef_rst = I with errro in highest order entries (SH)
+	 *			d = 2, P = 2, rst_WSH (P = 2), rst_WV (P = 4):
+	 *				M = ChiRef_rst'*W*ChiRef_rst = I with errro in highest order entries (WSH)
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I (WV)
 	 */
 
@@ -404,9 +404,9 @@ void test_imp_basis_SI(void)
 	Nbf = 6;
 	I = identity_d(Nbf); // free
 
-	// WS
+	// WSH
 	Prst = P;
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WS"); // free
+	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WSH"); // free
 
 	W = diag_d(w,Nn); // free
 	free(w);
@@ -421,7 +421,7 @@ void test_imp_basis_SI(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("         orthogonality - WS (d2, P2):            ");
+	printf("         orthogonality - WSH (d2, P2):           ");
 		test_print(pass);
 
 	free(rst);
@@ -465,9 +465,9 @@ void test_imp_basis_SI(void)
 	Nbf = 10;
 	I = identity_d(Nbf); // free
 
-	// WS
+	// WSH
 	Prst = P;
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WS"); // free
+	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WSH"); // free
 
 	W = diag_d(w,Nn); // free
 	free(w);
@@ -526,9 +526,9 @@ void test_imp_basis_SI(void)
 	Nbf = 4;
 	I = identity_d(Nbf); // free
 
-	// SH
+	// WSH
 	Prst = P;
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"SH"); // free
+	cubature_TET(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WSH"); // free
 
 	W = diag_d(w,Nn); // free
 	free(w);
@@ -543,7 +543,7 @@ void test_imp_basis_SI(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("         orthogonality - SH (d3, P1):            ");
+	printf("         orthogonality - WSH (d3, P1):           ");
 		test_print(pass);
 
 	free(rst);
@@ -587,9 +587,9 @@ void test_imp_basis_SI(void)
 	Nbf = 10;
 	I = identity_d(Nbf); // free
 
-	// SH
+	// WSH
 	Prst = P;
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"SH"); // free
+	cubature_TET(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WSH"); // free
 
 	W = diag_d(w,Nn); // free
 	free(w);

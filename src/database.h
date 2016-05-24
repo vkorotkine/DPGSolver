@@ -46,6 +46,7 @@ struct S_DB {
 
 	// Initialization
 	unsigned int Nvar, Neq;
+	double       Xc, Yc, Rc, MInf, pInf, TInf, VInf, Rg, Cscale, PeriodL, FinalTime;
 
 	// Structs
 	struct S_ELEMENT *ELEMENT;
@@ -61,7 +62,7 @@ struct S_ELEMENT {
 
 	// Operators
 	unsigned int connect_NE, NvnP,
-	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc,
+	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS,
 	             **NfnIs, **NfnIc,
 	             *Nfref, *NfMixed,
 	             *connectivity, *connect_types;
@@ -70,9 +71,13 @@ struct S_ELEMENT {
 	//             **rst_vIs, **rst_vIc,
 	//             **wvIs, **wvIc,
 	//             ***rst_fGc, ***rst_fIs, ***rst_fIc, **wfIs, **wfIc,
+	             **ChiInvS_vS,
+	             **ChiS_vP,
 	             **ICs, **ICc,
 	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs, **I_vGs_vIc, ****I_vGs_fIs, ****I_vGs_fIc,
+				 **I_vGs_vS,
 	             **I_vGc_vP, **I_vGc_vCc,              **I_vGc_vIs, **I_vGc_vIc, ****I_vGc_fIs, ****I_vGc_fIc,
+				 **I_vGc_vS,
 	             **I_vCs_vIs, **I_vCs_vIc,
 	             **I_vCc_vIs, **I_vCc_vIc,
 	             ****I_vCs_fIs, ****I_vCs_fIc,
@@ -95,6 +100,10 @@ struct S_VOLUME {
 	// Geometry
 	unsigned int NvnG;
 	double *XYZ_S, *XYZ, *detJV_vI, *C_vC, *C_vI, **C_vf;
+
+	// Initialization
+	unsigned int NvnS;
+	double *What;
 
 	// structs
 	struct S_VOLUME *next, *grpnext;

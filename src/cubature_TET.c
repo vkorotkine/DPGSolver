@@ -15,7 +15,7 @@
  *
  *	Comments:
  *		Check that AO nodes correspond to those in pyfr after writing the converter script. (ToBeDeleted)
- *		The SH and WV nodes were determined based off of those from the pyfr code (pyfr/quadrules/tet) after being
+ *		The WSH and WV nodes were determined based off of those from the pyfr code (pyfr/quadrules/tet) after being
  *		transfered to the regular TET used in this code.
  *		The order of rst, w is important for minimizing memory stride while computing the length 3 Discrete Fourier
  *		Transform (Note: as w is a 1d matrix, its ordering is actually not relevant) (ToBeModified).
@@ -24,7 +24,7 @@
  *			present.
  *		rst is stored in memory as r, s, then t (See cubature_TP for the motivation).
  *
- *		SH nodes have the following [order, cubature strength]:
+ *		WSH nodes have the following [order, cubature strength]:
  *			[0,1], [1,2], [2,3], [3,5], [4,6], [5,8], [6,9]
  *
  *		Input P for WV nodes is the cubature strength desired.
@@ -39,9 +39,9 @@
  *	References:
  *		pyfr code : http://www.pyfr.org
  *
- *		AO : Hesthaven(2008)-Nodal_Discontinuous_Galerkin_Methods (ToBeModified: Likely use same conversion)
- *		SH : pyfr/quadrules/tet + conversion to barycentric coordinates (ToBeModified: See python script)
- *		WV : pyfr/quadrules/tet + conversion to barycentric coordinates (ToBeModified: See python script)
+ *		AO  : Hesthaven(2008)-Nodal_Discontinuous_Galerkin_Methods (ToBeModified: Likely use same conversion)
+ *		WSH : pyfr/quadrules/tet + conversion to barycentric coordinates (ToBeModified: See python script)
+ *		WV  : pyfr/quadrules/tet + conversion to barycentric coordinates (ToBeModified: See python script)
  */
 
 void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *Nn, unsigned int *Ns,
@@ -81,7 +81,7 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 			printf("Error: Invalid value for return_w in cubature_TET.\n"), exit(1);
 
 		PMax = 15;
-	} else if (strstr(NodeType,"SH") != NULL) {
+	} else if (strstr(NodeType,"WSH") != NULL) {
 		PMax = 6;
 	} else if (strstr(NodeType,"WV") != NULL) {
 		PMax = 10;

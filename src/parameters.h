@@ -19,6 +19,7 @@
 // Common variables
 #define PI    3.1415926535897932
 #define GAMMA 1.4
+#define GM1   0.4
 
 // Element types (Gmsh convention)
 #define POINT 15

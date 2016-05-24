@@ -33,8 +33,10 @@
  *					WV : Best cubature nodes?   => Compare with Xiao(2010) (ToBeModified)
  *
  *				3D (TET):
- *					SH    : Best collocated nodes? (ToBeModified)
- *					Keast : Best cubature nodes?   (ToBeModified)
+ *					SH : Best collocated nodes? (ToBeModified)
+ *					WV : Best cubature nodes?   (ToBeModified)
+ *
+ *				Note: For simplicity of treating all elements, WS (2D) and SH (3D) are both stored as WSH (2D-3D).
  *
  *			WEDGE Elements:
  *				Combination of TP and SI Element nodes
@@ -276,19 +278,13 @@ void setup_parameters()
 
 			if (strstr(DB.NodeType,"AO") != NULL) {
 				if (P == 0) {
-					if (d == 2)
-						strcpy(NodeTypeS[P][1],"WS");
-					else if (d == 3)
-						strcpy(NodeTypeS[P][1],"SH");
+					strcpy(NodeTypeS[P][1],"WSH");
 				} else {
 					strcpy(NodeTypeS[P][1],"AO");
 				}
 
 				if (PF[P] == 0) {
-					if (d == 2)
-						strcpy(NodeTypeF[P][1],"WS");
-					else if (d == 3)
-						strcpy(NodeTypeF[P][1],"SH");
+					strcpy(NodeTypeF[P][1],"WSH");
 				} else {
 					strcpy(NodeTypeF[P][1],"AO");
 				}
@@ -296,17 +292,10 @@ void setup_parameters()
 				strcpy(NodeTypeFrs[P][1],"AO");
 				strcpy(NodeTypeFrc[P][1],"AO");
 			} else {
-				if (d == 2) {
-					strcpy(NodeTypeS  [P][1],"WS");
-					strcpy(NodeTypeF  [P][1],"WS");
-					strcpy(NodeTypeFrs[P][1],"WS");
-					strcpy(NodeTypeFrc[P][1],"WS");
-				} else if (d == 3) {
-					strcpy(NodeTypeS  [P][1],"SH");
-					strcpy(NodeTypeF  [P][1],"SH");
-					strcpy(NodeTypeFrs[P][1],"SH");
-					strcpy(NodeTypeFrc[P][1],"SH");
-				}
+				strcpy(NodeTypeS  [P][1],"WSH");
+				strcpy(NodeTypeF  [P][1],"WSH");
+				strcpy(NodeTypeFrs[P][1],"WSH");
+				strcpy(NodeTypeFrc[P][1],"WSH");
 			}
 
 			// Interpolation (PYR)
@@ -427,26 +416,19 @@ void setup_parameters()
 			PFrs[P][1] = P;
 			PFrc[P][1] = P;
 
-			if (d == 2) {
-				strcpy(NodeTypeS  [P][1],"WS");
-				strcpy(NodeTypeF  [P][1],"WS");
-				strcpy(NodeTypeFrs[P][1],"WS");
-				strcpy(NodeTypeFrc[P][1],"WS");
+			strcpy(NodeTypeS  [P][1],"WSH");
+			strcpy(NodeTypeF  [P][1],"WSH");
+			strcpy(NodeTypeFrs[P][1],"WSH");
+			strcpy(NodeTypeFrc[P][1],"WSH");
 
+			strcpy(NodeTypeIvs[P][1],"WSH");
+			strcpy(NodeTypeIvc[P][1],"WSH");
+			if (d == 2) {
 				strcpy(NodeTypeIfs[P][1],"GL");
 				strcpy(NodeTypeIfc[P][1],"GL");
-				strcpy(NodeTypeIvs[P][1],"WS");
-				strcpy(NodeTypeIvc[P][1],"WS");
 			} else if (d == 3) {
-				strcpy(NodeTypeS  [P][1],"SH");
-				strcpy(NodeTypeF  [P][1],"SH");
-				strcpy(NodeTypeFrs[P][1],"SH");
-				strcpy(NodeTypeFrc[P][1],"SH");
-
 				strcpy(NodeTypeIfs[P][1],"WV");
 				strcpy(NodeTypeIfc[P][1],"WV");
-				strcpy(NodeTypeIvs[P][1],"SH");
-				strcpy(NodeTypeIvc[P][1],"SH");
 			}
 
 			// PYR

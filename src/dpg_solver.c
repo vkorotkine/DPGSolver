@@ -85,6 +85,24 @@ int main(int nargc, char **argv)
 		printf("  Initializing\n");
 	initialize_test_case();
 
+	if (DB.Restart >= 0) {
+		if (!DB.MPIrank)
+			printf("  Initializing restarted solution if enabled.\n");
+		// Need to ensure that the same proc distribution is used as for lower order solutions.
+//		restart_read();
+	}
+
+	if (!DB.MPIrank)
+		printf("  Nonlinear Iterative Solve\n\n");
+	
+	if (strstr(DB.SolverType,"Explicit") != NULL) {
+		solver_RK4_low_storage();
+	else if (strstr(DB.SolverType,"Implicit") != NULL) {
+		; //solver_implicit();
+	} else {
+		printf("Error: Unsupported SolverType in dpg_solver.\n"), exit(1);
+	}
+
 	memory_free();
 
 	// End MPI and PETSC

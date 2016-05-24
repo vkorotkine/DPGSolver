@@ -23,7 +23,7 @@
 
 struct S_OPERATORS {
 	unsigned int NvnS;
-	double       *I_vG_vS;
+	double       *I_vG_vS, *ChiInvS_vS;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
@@ -38,7 +38,8 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 
 	ELEMENT_OPS = get_ELEMENT_type(type);
 
-	OPS->NvnS = ELEMENT_OPS->NvnS[P];
+	OPS->NvnS       = ELEMENT_OPS->NvnS[P];
+	OPS->ChiInvS_vS = ELEMENT_OPS->ChiInvS_vS[P];
 	if (!curved) {
 		OPS->I_vG_vS = ELEMENT_OPS->I_vGs_vS[P];
 	} else {
@@ -53,22 +54,27 @@ static void initialize_PeriodicVortex(void)
 
 	DB.Nvar = d+2;
 	DB.Neq  = d+2;
-
-	unsigned int Nvar = DB.Nvar,
-	             Neq  = DB.Neq;
+	
+	unsigned int Nvar = DB.Nvar;
 
 	// Standard datatypes
-	unsigned int NvnS;
-	double       Xc, Yc, Rc, PeriodL, MInf, pInf, TInf, Rg, Cscale, uInf, vInf, wInf, VInf,
-	             *I_vG_vS, *What, *W;
+	char         *SolverType;
+	unsigned int n, NvnS;
+	double       Xc, Yc, Rc, PeriodL, PeriodFraction, MInf, pInf, TInf, Rg, Cscale, uInf, vInf, wInf, VInf, rhoInf,
+	             *XYZ_vS, *X_vS, *Y_vS, *r2, C,
+	             *rho, *u, *v, *w, *p, *U, *What, *W;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME *VOLUME;
 
+	SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
+	strcpy(SolverType,"Explicit");
+
 	Xc = -0.1;
 	Yc =  0.0;
 	Rc =  0.2;
-	PeriodL = 2.0;
+	PeriodL        = 2.0;
+	PeriodFraction = 0.1;
 
 	MInf = 0.5;
 	pInf = 1.0;
@@ -77,45 +83,87 @@ static void initialize_PeriodicVortex(void)
 
 	Cscale = 0.1;
 
-	uInf = MInf*sqrt(GAMMA*Rg*TInf);
-	vInf = 0.0;
-	wInf = 0.0;
-	VInf = sqrt(pow(uInf,2.0)+pow(vInf,2.0)+pow(wInf,2.0));
+	uInf   = MInf*sqrt(GAMMA*Rg*TInf);
+	vInf   = 0.0;
+	wInf   = 0.0;
+	VInf   = sqrt(uInf*uInf+vInf*vInf+wInf*wInf);
+	rhoInf = pInf/(Rg*TInf);
+
+	C = Cscale*VInf;
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-
+		OPS = malloc(sizeof *OPS); // free
 		init_ops(OPS,VOLUME);
 
-		NvnS    = OPS->NvnS;
-		I_vG_vS = OPS->I_vG_vS;
+		NvnS         = OPS->NvnS;
+		VOLUME->NvnS = NvnS;
 
-		What   = malloc(NvnS*Nvar * sizeof *What);   // keep
+		What         = malloc(NvnS*Nvar * sizeof *What); // keep
+		VOLUME->What = What;
+
 		XYZ_vS = malloc(NvnS*d    * sizeof *XYZ_vS); // free
 
-		mm_CTN_d(NvnS,d,VOLUME->NvnG,I_vG_vS,VOLUME->XYZ,XYZ_vS);
+		mm_CTN_d(NvnS,d,VOLUME->NvnG,OPS->I_vG_vS,VOLUME->XYZ,XYZ_vS);
 
 		X_vS = &XYZ_vS[0*NvnS];
 		Y_vS = &XYZ_vS[1*NvnS];
 
 		r2 = malloc(NvnS * sizeof *r2); // free
 		for (n = 0; n < NvnS; n++)
-			r2[n] = (pow(X_vS[n]-Xc,2.0)+pow(Y_vS[n]-Yc,2.0))/pow(Rc,2.0);
+			r2[n] = (pow(X_vS[n]-Xc,2.0)+pow(Y_vS[n]-Yc,2.0))/(Rc*Rc);
 
-// set memory for u v w
-		u[n] = uInf - C*(Y_vS[n]-Yc)/pow(Rc,2.0)*exp(-0.5*r2[n]);
-		v[n] = vInf + C*(X_vS[n]-Xc)/pow(Rc,2.0)*exp(-0.5*r2[n]);
-		w[n] = 0.0;
+		U   = malloc(NvnS*5    * sizeof *U); // free
+		W   = malloc(NvnS*Nvar * sizeof *W); // free
+
+		rho = &U[NvnS*0];
+		u   = &U[NvnS*1];
+		u   = &U[NvnS*1];
+		v   = &U[NvnS*2];
+		w   = &U[NvnS*3];
+		p   = &U[NvnS*4];
+
+		for (n = 0; n < NvnS; n++) {
+			u[n]   = uInf - C*(Y_vS[n]-Yc)/(Rc*Rc)*exp(-0.5*r2[n]);
+			v[n]   = vInf + C*(X_vS[n]-Xc)/(Rc*Rc)*exp(-0.5*r2[n]);
+			w[n]   = 0.0;
+			p[n]   = pInf - rhoInf*(C*C)/(2*Rc*Rc)*exp(-r2[n]);
+			rho[n] = rhoInf;
+		}
+
+		convert_variables(U,W,3,d,NvnS,'p','c');
+
+		mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,W,What);
 
 		free(XYZ_vS);
 		free(r2);
+		free(U);
+		free(W);
+
+		free(OPS);
 	}
 
+	DB.Xc = Xc;
+	DB.Yc = Yc;
+	DB.Rc = Rc;
+
+	DB.MInf   = MInf;
+	DB.pInf   = pInf;
+	DB.TInf   = TInf;
+	DB.VInf   = VInf;
+	DB.Rg     = Rg;
+	DB.Cscale = Cscale;
+
+	DB.PeriodL   = PeriodL;
+	DB.FinalTime = PeriodFraction*PeriodL/VInf;
+
+	DB.SolverType = SolverType;
 }
 
 void initialize_test_case(void)
 {
 	// Initialize DB Parameters
-	char *TestCase = DB.TestCase;
+	char         *TestCase = DB.TestCase;
+	unsigned int *Testing  = DB.Testing;
 
 	if (strstr(TestCase,"dSphericalBump") != NULL)
 		; // initialize_dSphericalBump();
@@ -127,4 +175,9 @@ void initialize_test_case(void)
 		; // initialize_PolynomialBump();
 	else if (strstr(TestCase,"SupersonicVortex") != NULL)
 		; // initialize_SupersoncVortex();
+	
+	if (Testing) {
+		// Output initial solution to paraview
+		output_to_paraview("ZTest_Sol_Init");
+	}
 }

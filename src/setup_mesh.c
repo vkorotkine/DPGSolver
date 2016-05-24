@@ -265,10 +265,10 @@ void setup_mesh()
 	for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
 		if (ELEMENT->type == TRI && ELEMENT->present == 1) {
 			if (DB.PFrc[DB.PMax][1] > 8)
-				printf("\n      WARNING: Reduce PFr if using 2D WS nodes (Max: P8).\n\n");
+				printf("\n      WARNING: Reduce PFr if using 2D WSH nodes (Max: P8).\n\n");
 		} else if (ELEMENT->type == TET && ELEMENT->present == 1) {
 			if (DB.PFrc[DB.PMax][1] > 6)
-				printf("\n      WARNING: Reduce PFr if using 3D WS nodes (Max: P6).\n\n");
+				printf("\n      WARNING: Reduce PFr if using 3D WSH nodes (Max: P6).\n\n");
 		}
 	}
 
