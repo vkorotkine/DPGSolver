@@ -132,7 +132,7 @@ void test_imp_sum_factorization(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("sum_factorization (d = 2):                       ");
+	printf("                  (d = 2):                       ");
 	test_print(pass);
 
 	// r, s, t components
@@ -143,7 +143,7 @@ void test_imp_sum_factorization(void)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("sum_factorization (d = 3):                       ");
+	printf("                  (d = 3):                       ");
 	test_print(pass);
 
 	for (dim = 0; dim < d; dim++)

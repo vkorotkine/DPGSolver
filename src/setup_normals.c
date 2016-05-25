@@ -80,7 +80,7 @@ void setup_normals(struct S_FACET *FACET)
 	for (fn = 0; fn < fnMax; fn++) {
 		for (dim1 = 0; dim1 < d; dim1++) {
 		for (dim2 = 0; dim2 < d; dim2++) {
-			n[fn*d+dim1] += nrIn[dim2]*C_fI[NnI*(d*dim1+dim2)+fn];
+			n[fn*d+dim1] += nrIn[dim2]*C_fI[NnI*(dim1+d*dim2)+fn];
 		}}
 	}
 

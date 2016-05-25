@@ -100,6 +100,7 @@ static void initialize_PeriodicVortex(void)
 
 		What         = malloc(NvnS*Nvar * sizeof *What); // keep
 		VOLUME->What = What;
+		VOLUME->RES  = calloc(NvnS*Nvar , sizeof *(VOLUME->RES)); // keep
 
 		XYZ_vS = malloc(NvnS*d    * sizeof *XYZ_vS); // free
 
@@ -156,7 +157,8 @@ static void initialize_PeriodicVortex(void)
 	DB.PeriodL   = PeriodL;
 	DB.FinalTime = PeriodFraction*PeriodL/VInf;
 
-	DB.SolverType = SolverType;
+	DB.SolverType     = SolverType;
+	DB.OutputInterval = 1e3;
 }
 
 void initialize_test_case(void)

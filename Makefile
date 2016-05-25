@@ -176,6 +176,14 @@ $(EXECDIR):
 clean:
 	rm $(EXECUTABLE) $(OBJECTS)
 
+.PHONY : clean_test
+clean_test:
+	rm $(OBJDIR)/test*
+
+.PHONY : clean_code
+clean_code:
+	find $(OBJDIR)/ -type f -not -name 'test*' -delete
+
 .PHONY : clean_exec
 clean_exec:
 	rm $(OBJDIR)/dpg_solver.o

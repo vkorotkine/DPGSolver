@@ -97,7 +97,7 @@ int main(int nargc, char **argv)
 	
 	if (strstr(DB.SolverType,"Explicit") != NULL) {
 		solver_RK4_low_storage();
-	else if (strstr(DB.SolverType,"Implicit") != NULL) {
+	} else if (strstr(DB.SolverType,"Implicit") != NULL) {
 		; //solver_implicit();
 	} else {
 		printf("Error: Unsupported SolverType in dpg_solver.\n"), exit(1);
@@ -179,6 +179,8 @@ int main(void)
 
 	test_imp_sum_factorization();
 	test_imp_plotting();
+
+	test_imp_fluxes_inviscid();
 
 	te = clock();
 

@@ -58,6 +58,8 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 
 	array_free2_d(NP,ELEMENT->ChiInvS_vS);
 	array_free2_d(NP,ELEMENT->ChiS_vP);
+	array_free2_d(NP,ELEMENT->ChiS_vIs);
+	array_free2_d(NP,ELEMENT->ChiS_vIc);
 
 	array_free2_d(NP,ELEMENT->ICs);
 	array_free2_d(NP,ELEMENT->ICc);
@@ -92,6 +94,9 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free3_d(NP,d,ELEMENT->D_vGc_vCc);
 	array_free3_d(NP,d,ELEMENT->D_vGc_vIc);
 	array_free3_d(NP,d,ELEMENT->D_vCc_vCc);
+
+	array_free3_d(NP,d,ELEMENT->Ds_Weak);
+	array_free3_d(NP,d,ELEMENT->Dc_Weak);
 
 	// VOLUME Nodes
 /*
@@ -152,6 +157,10 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 
 	// Initialization
 	free(VOLUME->What);
+	free(VOLUME->RES);
+
+	// Solving
+	free(VOLUME->RHS);
 
 	free(VOLUME);
 }

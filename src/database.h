@@ -45,7 +45,8 @@ struct S_DB {
 	unsigned int NECgrp;
 
 	// Initialization
-	unsigned int Nvar, Neq;
+	char         *SolverType;
+	unsigned int Nvar, Neq, OutputInterval;
 	double       Xc, Yc, Rc, MInf, pInf, TInf, VInf, Rg, Cscale, PeriodL, FinalTime;
 
 	// Structs
@@ -72,7 +73,7 @@ struct S_ELEMENT {
 	//             **wvIs, **wvIc,
 	//             ***rst_fGc, ***rst_fIs, ***rst_fIc, **wfIs, **wfIc,
 	             **ChiInvS_vS,
-	             **ChiS_vP,
+	             **ChiS_vP, **ChiS_vIs, **ChiS_vIc,
 	             **ICs, **ICc,
 	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs, **I_vGs_vIc, ****I_vGs_fIs, ****I_vGs_fIc,
 				 **I_vGs_vS,
@@ -85,7 +86,8 @@ struct S_ELEMENT {
 	             ***D_vGs_vCs, ***D_vGs_vIs,
 	             ***D_vGc_vCc, ***D_vGc_vIc,
 	             ***D_vCs_vCs,
-	             ***D_vCc_vCc;
+	             ***D_vCc_vCc,
+	             ***Ds_Weak, ***Dc_Weak;
 
 	struct S_ELEMENT *next;
 	struct S_ELEMENT **ELEMENTclass;
@@ -103,7 +105,10 @@ struct S_VOLUME {
 
 	// Initialization
 	unsigned int NvnS;
-	double *What;
+	double *What, *RES;
+
+	// Solving
+	double *RHS;
 
 	// structs
 	struct S_VOLUME *next, *grpnext;

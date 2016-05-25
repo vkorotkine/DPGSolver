@@ -64,6 +64,15 @@
  *
  *		SF_BE[]         : Flag for when (S)um (F)actorization (B)reaks (E)ven.
  *		                  [] : TP [0], SI [1], PYR [2]
+ *		                  Note: Sum factorization is a purely Tensor-product related approach. For SI and PYR elements,
+ *		                        what was initially considered to be Sum factorization is actually just a fast scheme for
+ *		                        multiplication. Moreover, this fast scheme can also be applied to TP elements. As the
+ *		                        break-even for this is likely above P3, and it will add complexity to the code, its
+ *		                        implementation is not a priority. (ToBeModified).
+ *		                        See Hesthaven(2000)-Stable_Spectral_Methods_on_Tetrahedral_Elements for details. Also
+ *		                        see Fladrich-Stiller(2008)-Improved_Performance_for_Nodal_Spectral_Element_Operators for
+ *		                        computational considerations.
+ *
  *		AC              : Specifies whether (a)ll elements are (c)urved or not.
  *		ExactGeom       : Move boundary nodes to exact geometry if enabled.
  *		Parametrization : Type of parametrization used in curved elements.

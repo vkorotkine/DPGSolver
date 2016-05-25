@@ -52,6 +52,8 @@ extern void test_imp_grad_basis_TP             (void);
 extern void test_imp_grad_basis_SI             (void);
 extern void test_imp_grad_basis_PYR            (void);
 extern void test_imp_plotting                  (void);
+extern void test_imp_sum_factorization         (void);
+extern void test_imp_fluxes_inviscid           (void);
 
 // Speed tests
 extern void test_speed_array_swap (void);

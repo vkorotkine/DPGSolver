@@ -42,11 +42,9 @@
  *			BasisType  : Type of basis functions
  *			             Options: Nodal
  *			                      Modal
- *			Vectorized : Type of vectorization to use
+ *			Vectorized : Type of vectorization to use (ToBeModified)
  *			             Options: 0 (None)
- *			                      1 (Standard C loops)
- *			                      2 (BLAS, Dense operators only)
- *			                      3 (BLAS, All operators, i.e. using sparse BLAS routines)
+ *			                      1 (Elements grouped by type/order)
  *			EFE        : (E)exact (F)lux (E)valuation - Reduces aliasing if enabled (The analogue in the strong form is
  *			             the CR (Chain-Rule) approach)
  *			             Options: 0 (Not used)

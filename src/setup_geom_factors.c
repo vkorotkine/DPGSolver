@@ -14,9 +14,10 @@
  *		Set up geometric factors.
  *
  *	Comments:
- *		Only the curl-form of the cofactor matrix terms is used following the analysis of Kopriva(2006)
- *		The second set of operators is only initialized and used for WEDGE elements.
- *		this may be slightly less readable. Profile and decide. (ToBeModified)
+ *		Only the curl-form of the cofactor matrix terms is used following the analysis of Kopriva(2006).
+ *		C is stored sequentially as C = [ C11 C21 C31 C12 C22 C32 C13 C23 C33 ]. This is done so as to reduce memory
+ *		stride while computing reference flux terms as [fr]_(1xd) = [f]_(1xd)*[C]_(dxd).
+ *		J is stored sequentially as J = [ x_r x_s x_t y_r y_s y_t z_r z_s z_t ] (standard).
  *
  *		Investigation into the importance of proper treatment of the metric terms is still required. For this reason,
  *		the cofactor matrix terms are first projected to the basis of order PC and then projected to the VOLUME and
@@ -89,10 +90,10 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 		}
 
 		for (n = 0; n < NvnC0; n++) {
-			C_vC[NvnC0*(d*0+0)+n] =  J_vC[NvnC0*(d*1+1)+n];
-			C_vC[NvnC0*(d*0+1)+n] = -J_vC[NvnC0*(d*1+0)+n];
-			C_vC[NvnC0*(d*1+0)+n] = -J_vC[NvnC0*(d*0+1)+n];
-			C_vC[NvnC0*(d*1+1)+n] =  J_vC[NvnC0*(d*0+0)+n];
+			C_vC[NvnC0*(0+d*0)+n] =  J_vC[NvnC0*(d*1+1)+n]; // C11
+			C_vC[NvnC0*(0+d*1)+n] = -J_vC[NvnC0*(d*1+0)+n]; // C12
+			C_vC[NvnC0*(1+d*0)+n] = -J_vC[NvnC0*(d*0+1)+n]; // C21
+			C_vC[NvnC0*(1+d*1)+n] =  J_vC[NvnC0*(d*0+0)+n]; // C22
 		}
 
 	} else if (d == 3) {
@@ -108,24 +109,24 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 /*
 		// standard form
 		for (n = 0; n < NvnC0; n++) {
-			C_vC[NvnC0*(d*0+0)+n] = J_vC[NvnC0*(d*1+1)+n]*J_vC[NvnC0*(d*2+2)+n]
-								   -J_vC[NvnC0*(d*1+2)+n]*J_vC[NvnC0*(d*2+1)+n];
-			C_vC[NvnC0*(d*0+1)+n] = J_vC[NvnC0*(d*1+2)+n]*J_vC[NvnC0*(d*2+0)+n]
-								   -J_vC[NvnC0*(d*1+0)+n]*J_vC[NvnC0*(d*2+2)+n];
-			C_vC[NvnC0*(d*0+2)+n] = J_vC[NvnC0*(d*1+0)+n]*J_vC[NvnC0*(d*2+1)+n]
-								   -J_vC[NvnC0*(d*1+1)+n]*J_vC[NvnC0*(d*2+0)+n];
-			C_vC[NvnC0*(d*1+0)+n] = J_vC[NvnC0*(d*0+2)+n]*J_vC[NvnC0*(d*2+1)+n]
-								   -J_vC[NvnC0*(d*0+1)+n]*J_vC[NvnC0*(d*2+2)+n];
-			C_vC[NvnC0*(d*1+1)+n] = J_vC[NvnC0*(d*0+0)+n]*J_vC[NvnC0*(d*2+2)+n]
-								   -J_vC[NvnC0*(d*0+2)+n]*J_vC[NvnC0*(d*2+0)+n];
-			C_vC[NvnC0*(d*1+2)+n] = J_vC[NvnC0*(d*0+1)+n]*J_vC[NvnC0*(d*2+0)+n]
-								   -J_vC[NvnC0*(d*0+0)+n]*J_vC[NvnC0*(d*2+1)+n];
-			C_vC[NvnC0*(d*2+0)+n] = J_vC[NvnC0*(d*0+1)+n]*J_vC[NvnC0*(d*1+2)+n]
-								   -J_vC[NvnC0*(d*0+2)+n]*J_vC[NvnC0*(d*1+1)+n];
-			C_vC[NvnC0*(d*2+1)+n] = J_vC[NvnC0*(d*0+2)+n]*J_vC[NvnC0*(d*1+0)+n]
-								   -J_vC[NvnC0*(d*0+0)+n]*J_vC[NvnC0*(d*1+2)+n];
-			C_vC[NvnC0*(d*2+2)+n] = J_vC[NvnC0*(d*0+0)+n]*J_vC[NvnC0*(d*1+1)+n]
-								   -J_vC[NvnC0*(d*0+1)+n]*J_vC[NvnC0*(d*1+0)+n];
+			C_vC[NvnC0*(0+d*0)+n] = J_vC[NvnC0*(d*1+1)+n]*J_vC[NvnC0*(d*2+2)+n]
+								   -J_vC[NvnC0*(d*1+2)+n]*J_vC[NvnC0*(d*2+1)+n]; // C11
+			C_vC[NvnC0*(0+d*1)+n] = J_vC[NvnC0*(d*1+2)+n]*J_vC[NvnC0*(d*2+0)+n]
+								   -J_vC[NvnC0*(d*1+0)+n]*J_vC[NvnC0*(d*2+2)+n]; // C12
+			C_vC[NvnC0*(0+d*2)+n] = J_vC[NvnC0*(d*1+0)+n]*J_vC[NvnC0*(d*2+1)+n]
+								   -J_vC[NvnC0*(d*1+1)+n]*J_vC[NvnC0*(d*2+0)+n]; // C13
+			C_vC[NvnC0*(1+d*0)+n] = J_vC[NvnC0*(d*0+2)+n]*J_vC[NvnC0*(d*2+1)+n]
+								   -J_vC[NvnC0*(d*0+1)+n]*J_vC[NvnC0*(d*2+2)+n]; // C21
+			C_vC[NvnC0*(1+d*1)+n] = J_vC[NvnC0*(d*0+0)+n]*J_vC[NvnC0*(d*2+2)+n]
+								   -J_vC[NvnC0*(d*0+2)+n]*J_vC[NvnC0*(d*2+0)+n]; // C22
+			C_vC[NvnC0*(1+d*2)+n] = J_vC[NvnC0*(d*0+1)+n]*J_vC[NvnC0*(d*2+0)+n]
+								   -J_vC[NvnC0*(d*0+0)+n]*J_vC[NvnC0*(d*2+1)+n]; // C23
+			C_vC[NvnC0*(2+d*0)+n] = J_vC[NvnC0*(d*0+1)+n]*J_vC[NvnC0*(d*1+2)+n]
+								   -J_vC[NvnC0*(d*0+2)+n]*J_vC[NvnC0*(d*1+1)+n]; // C31
+			C_vC[NvnC0*(2+d*1)+n] = J_vC[NvnC0*(d*0+2)+n]*J_vC[NvnC0*(d*1+0)+n]
+								   -J_vC[NvnC0*(d*0+0)+n]*J_vC[NvnC0*(d*1+2)+n]; // C32
+			C_vC[NvnC0*(2+d*2)+n] = J_vC[NvnC0*(d*0+0)+n]*J_vC[NvnC0*(d*1+1)+n]
+								   -J_vC[NvnC0*(d*0+1)+n]*J_vC[NvnC0*(d*1+0)+n]; // C33
 		}
 */
 
@@ -183,10 +184,9 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 		for (row = 0; row < d; row++) {
 			for (col = 0; col < d; col++) {
 				for (n = 0; n < NvnC0; n++) {
-					C_vC[NvnC0*(row*d+col)+n] =
+					C_vC[NvnC0*(row+d*col)+n] =
 						0.5*(CurlXYZJ_vC[NvnC0*IndCurlXYZJ+n]-CurlXYZJ_vC[NvnC0*(IndCurlXYZJ+3)+n]);
 				}
-
 				IndCurlXYZJ++;
 			}
 			IndCurlXYZJ += 3;

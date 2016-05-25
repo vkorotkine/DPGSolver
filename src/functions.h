@@ -69,6 +69,11 @@ extern void     setup_normals               (struct S_FACET *FACET);
 // Solver
 extern void initialize_test_case   (void);
 extern void solver_RK4_low_storage (void);
+extern void   explicit_VOLUME_info (void);
+
+// Fluxes
+extern void flux_inviscid (const unsigned int Nn, const unsigned int Nel, double *W, double *F, const unsigned int d,
+                           const unsigned int Neq);
 
 // Sum Factorization
 extern void sf_operate_d (const unsigned int NOut, const unsigned int NCols, const unsigned int NIn,
