@@ -122,16 +122,15 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	if (!Vcurved) {
 		// Straight VOLUME
 		OPS->NvnC = ELEMENT_OPS->NvnCs[PV];
+		OPS->NvnI = ELEMENT_OPS->NvnIs[PV];
 		if (FtypeInt == 's') {
 			// Straight FACET Integration
-			OPS->NvnI = ELEMENT_OPS->NvnIs[PV];
 			OPS->NfnI = ELEMENT_OPS->NfnIs[PF][IndClass];
 
 			OPS->I_vC_vI = ELEMENT_OPS->I_vCs_vIs[PV];
 			OPS->I_vC_fI = ELEMENT_OPS->I_vCs_fIs[PV][PF];
 		} else {
 			// Curved FACET Integration
-			OPS->NvnI = ELEMENT_OPS->NvnIc[PV];
 			OPS->NfnI = ELEMENT_OPS->NfnIc[PF][IndClass];
 
 			OPS->I_vC_vI = ELEMENT_OPS->I_vCs_vIc[PV];
@@ -140,16 +139,15 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	} else {
 		// Curved VOLUME
 		OPS->NvnC = ELEMENT_OPS->NvnCc[PV];
+		OPS->NvnI = ELEMENT_OPS->NvnIc[PV];
 		if (FtypeInt == 's') {
 			// Straight FACET Integration
-			OPS->NvnI = ELEMENT_OPS->NvnIs[PV];
 			OPS->NfnI = ELEMENT_OPS->NfnIs[PF][IndClass];
 
 			OPS->I_vC_vI = ELEMENT_OPS->I_vCc_vIs[PV];
 			OPS->I_vC_fI = ELEMENT_OPS->I_vCc_fIs[PV][PF];
 		} else {
 			// Curved FACET Integration
-			OPS->NvnI = ELEMENT_OPS->NvnIc[PV];
 			OPS->NfnI = ELEMENT_OPS->NfnIc[PV][IndClass];
 
 			OPS->I_vC_vI = ELEMENT_OPS->I_vCc_vIc[PV];

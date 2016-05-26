@@ -374,7 +374,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 {
 	// Returned operators
 	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS, **NfnIs, **NfnIc;
-	double       **ChiS_vP, **ChiS_vIs, **ChiS_vIc,
+	double       **ChiS_vP, **ChiS_vIs, **ChiS_vIc, ****ChiS_fIs, ****ChiS_fIc,
 	             **ChiInvS_vS,
 	             **ICs, **ICc,
 	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs, **I_vGs_vIc, **I_vGs_vS, ****I_vGs_fIs, ****I_vGs_fIc,
@@ -429,7 +429,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             **ChiRefGc_fIs, **ChiRefGc_fIc,
 	             *ChiRefCs_vIs, *ChiRefCs_vIc, **ChiRefCs_fIs, **ChiRefCs_fIc,
 	             *ChiRefCc_vIs, *ChiRefCc_vIc, **ChiRefCc_fIs, **ChiRefCc_fIc,
-				 *ChiRefS_vP, *ChiRefS_vIs, *ChiRefS_vIc,
+				 *ChiRefS_vP, *ChiRefS_vIs, *ChiRefS_vIc, **ChiRefS_fIs, **ChiRefS_fIc,
 	             *ChiGs_vP, *ChiGs_vGc, *ChiGs_vCs, *ChiGs_vIs, *ChiGs_vIc, *ChiGs_vS,
 	             **ChiGs_fIs, **ChiGs_fIc,
 	             *ChiGc_vP,             *ChiGc_vCc, *ChiGc_vIs, *ChiGc_vIc, *ChiGc_vS,
@@ -497,6 +497,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	ChiS_vIs   = ELEMENT->ChiS_vIs;
 	ChiS_vIc   = ELEMENT->ChiS_vIc;
 
+	ChiS_fIs   = ELEMENT->ChiS_fIs;
+	ChiS_fIc   = ELEMENT->ChiS_fIc;
+
 	ICs = ELEMENT->ICs;
 	ICc = ELEMENT->ICc;
 
@@ -556,6 +559,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	ChiRefCs_fIc  = malloc(NfMax * sizeof *ChiRefCs_fIc); // free
 	ChiRefCc_fIs  = malloc(NfMax * sizeof *ChiRefCc_fIs); // free
 	ChiRefCc_fIc  = malloc(NfMax * sizeof *ChiRefCc_fIc); // free
+	ChiRefS_fIs   = malloc(NfMax * sizeof *ChiRefS_fIs);  // free
+	ChiRefS_fIc   = malloc(NfMax * sizeof *ChiRefS_fIc);  // free
 
 	ChiGs_fIs     = malloc(NfMax * sizeof *ChiGs_fIs); // free
 	ChiGs_fIc     = malloc(NfMax * sizeof *ChiGs_fIc); // free
@@ -838,6 +843,8 @@ if (f == 4 && P == 1) {
 				ChiRefCs_fIc[f] = basis(PCs[P][Eclass],rst_fIc[f],NfnIc[Pb][IndFType],&Nbf,dE); // free
 				ChiRefCc_fIs[f] = basis(PCc[P][Eclass],rst_fIs[f],NfnIs[Pb][IndFType],&Nbf,dE); // free
 				ChiRefCc_fIc[f] = basis(PCc[P][Eclass],rst_fIc[f],NfnIc[Pb][IndFType],&Nbf,dE); // free
+				ChiRefS_fIs[f]  = basis(P             ,rst_fIs[f],NfnIs[Pb][IndFType],&Nbf,dE); // free
+				ChiRefS_fIc[f]  = basis(P             ,rst_fIc[f],NfnIc[Pb][IndFType],&Nbf,dE); // free
 
 				ChiGs_fIs[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[Pb][IndFType],NvnGs[0],NvnGs[0],1.0,ChiRefGs_fIs[f],TGs); // free
 				ChiGs_fIc[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[Pb][IndFType],NvnGs[0],NvnGs[0],1.0,ChiRefGs_fIc[f],TGs); // free
@@ -847,6 +854,9 @@ if (f == 4 && P == 1) {
 				ChiCs_fIc[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[Pb][IndFType],NvnCs[P],NvnCs[P],1.0,ChiRefCs_fIc[f],TCs); // free
 				ChiCc_fIs[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[Pb][IndFType],NvnCc[P],NvnCc[P],1.0,ChiRefCc_fIs[f],TCc); // free
 				ChiCc_fIc[f] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[Pb][IndFType],NvnCc[P],NvnCc[P],1.0,ChiRefCc_fIc[f],TCc); // free
+
+				ChiS_fIs[P][Pb][f*9] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[Pb][IndFType],NvnS[P],NvnS[P],1.0,ChiRefS_fIs[f],TS); // keep
+				ChiS_fIc[P][Pb][f*9] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[Pb][IndFType],NvnS[P],NvnS[P],1.0,ChiRefS_fIc[f],TS); // keep
 
 				I_vGs_fIs[P][Pb][f*9] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIs[Pb][IndFType],NvnGs[0],NvnGs[0],1.0,ChiGs_fIs[f],ChiInvGs_vGs); // keep
 				I_vGs_fIc[P][Pb][f*9] = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NfnIc[Pb][IndFType],NvnGs[0],NvnGs[0],1.0,ChiGs_fIc[f],ChiInvGs_vGs); // keep
@@ -870,6 +880,8 @@ if (f == 4 && P == 1) {
 				free(ChiRefCs_fIc[f]);
 				free(ChiRefCc_fIs[f]);
 				free(ChiRefCc_fIc[f]);
+				free(ChiRefS_fIs[f]);
+				free(ChiRefS_fIc[f]);
 
 				free(ChiGs_fIs[f]);
 				free(ChiGs_fIc[f]);
@@ -1004,6 +1016,8 @@ if (f == 4 && P == 1) {
 	free(ChiRefCs_fIc);
 	free(ChiRefCc_fIs);
 	free(ChiRefCc_fIc);
+	free(ChiRefS_fIs);
+	free(ChiRefS_fIc);
 
 	free(ChiGs_fIs);
 	free(ChiGs_fIc);

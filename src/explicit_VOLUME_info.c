@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-//#include <math.h>
 #include <string.h>
 
 #include "database.h"
@@ -16,6 +15,7 @@
  *
  *	Comments:
  *		Need to add in support for sum factorization when working (ToBeDeleted).
+ *		Compared with Matlab code on TRIs => Identical results. (ToBeDeleted)
  *
  *	Notation:
  *
@@ -70,7 +70,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
 	else if (type == TRI || type == TET || type == PYR)
 		ELEMENT_OPS = ELEMENT;
-	
+
 	OPS->NvnS = ELEMENT_OPS->NvnS[P];
 	if (!curved) {
 		OPS->NvnI = ELEMENT_OPS->NvnIs[P];
@@ -97,7 +97,7 @@ static void compute_VOLUME_RHS_EFE(void)
 	// Standard datatypes
 	unsigned int i, eq, dim1, dim2,
 	             IndFr, IndF, IndC, IndRHS,
-	             NnI, NvnS;
+	             NvnI, NvnS;
 	double       *W_vI, *F_vI, *Fr_vI, *C_vI, *RHS, *DFr, **D;
 
 	struct S_OPERATORS *OPS[2];
@@ -114,31 +114,31 @@ static void compute_VOLUME_RHS_EFE(void)
 				init_ops(OPS[1],VOLUME,1);
 
 			// Obtain W_vI
-			NnI = OPS[0]->NvnI;
+			NvnI = OPS[0]->NvnI;
 			if (Collocated) {
 				W_vI = VOLUME->What;
 			} else {
-				W_vI = malloc(NnI*Nvar * sizeof *W_vI); // free
-				mm_CTN_d(NnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->What,W_vI);
+				W_vI = malloc(NvnI*Nvar * sizeof *W_vI); // free
+				mm_CTN_d(NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->What,W_vI);
 			}
 
 			// Compute Flux in reference space
-			F_vI = malloc(NnI*d*Neq * sizeof *F_vI); // free
-			flux_inviscid(NnI,1,W_vI,F_vI,d,Neq);
+			F_vI = malloc(NvnI*d*Neq * sizeof *F_vI); // free
+			flux_inviscid(NvnI,1,W_vI,F_vI,d,Neq);
 
 			if (!Collocated)
 				free(W_vI);
 
 			C_vI = VOLUME->C_vI;
 
-			Fr_vI = calloc(NnI*d*Neq , sizeof *Fr_vI); // free
+			Fr_vI = calloc(NvnI*d*Neq , sizeof *Fr_vI); // free
 			for (eq = 0; eq < Neq; eq++) {
 			for (dim1 = 0; dim1 < d; dim1++) {
 			for (dim2 = 0; dim2 < d; dim2++) {
-				IndFr = (eq*d+dim1)*NnI;
-				IndF  = (eq*d+dim2)*NnI;
-				IndC  = (dim1*d+dim2)*NnI;
-				for (i = 0; i < NnI; i++)
+				IndFr = (eq*d+dim1)*NvnI;
+				IndF  = (eq*d+dim2)*NvnI;
+				IndC  = (dim1*d+dim2)*NvnI;
+				for (i = 0; i < NvnI; i++)
 					Fr_vI[IndFr+i] += F_vI[IndF+i]*C_vI[IndC+i];
 			}}}
 			free(F_vI);
@@ -147,8 +147,8 @@ static void compute_VOLUME_RHS_EFE(void)
 			NvnS = OPS[0]->NvnS;
 
 // VOLUME->RHS should be freed as soon as it is no longer needed (outside of this function)
-			RHS = VOLUME->RHS;
-			RHS = malloc(NvnS*Nvar * sizeof *RHS); // keep (requires external free)
+			RHS = calloc(NvnS*Neq , sizeof *RHS); // keep (requires external free)
+			VOLUME->RHS = RHS;
 			if (0 && VOLUME->Eclass == C_TP) {
 				; // update this with sum factorization
 			} else if (1 || VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR) {
@@ -157,16 +157,19 @@ static void compute_VOLUME_RHS_EFE(void)
 
 				for (eq = 0; eq < Neq; eq++) {
 				for (dim1 = 0; dim1 < d; dim1++) {
-					mm_CTN_d(NvnS,1,NnI,D[dim1],&Fr_vI[(eq*d+dim1)*NnI],DFr);
-					IndRHS = eq*NnI;
-					for (i = 0; i < NnI; i++)
+					mm_CTN_d(NvnS,1,NvnI,D[dim1],&Fr_vI[(eq*d+dim1)*NvnI],DFr);
+					IndRHS = eq*NvnS;
+					for (i = 0; i < NvnS; i++)
 						RHS[IndRHS+i] += DFr[i];
 				}}
 				free(DFr);
+
 			} else if (VOLUME->Eclass == C_WEDGE) {
 				; // update this with sum factorization
 			}
 			free(Fr_vI);
+
+//array_print_d(NvnS,Nvar,RHS,'C');
 		}
 	} else if (strstr(Form,"Strong") != NULL) {
 		printf("Exiting: Implement the strong form in compute_VOLUME_RHS_EFE.\n"), exit(1);

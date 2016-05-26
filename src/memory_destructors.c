@@ -79,6 +79,9 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free2_d(NP,ELEMENT->I_vCc_vIs);
 	array_free2_d(NP,ELEMENT->I_vCc_vIc);
 
+	array_free4_d(NP,NP,54,ELEMENT->ChiS_fIs);
+	array_free4_d(NP,NP,54,ELEMENT->ChiS_fIc);
+
 	array_free4_d(NP,NP,54,ELEMENT->I_vGs_fIs);
 	array_free4_d(NP,NP,54,ELEMENT->I_vGs_fIc);
 	array_free4_d(NP,NP,54,ELEMENT->I_vGc_fIs);
@@ -160,7 +163,6 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	free(VOLUME->RES);
 
 	// Solving
-	free(VOLUME->RHS);
 
 	free(VOLUME);
 }

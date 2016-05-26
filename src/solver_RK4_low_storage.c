@@ -58,8 +58,8 @@ void solver_RK4_low_storage(void)
 		for (rk = 0; rk < 5; rk++) {
 			// Build the RHS (== -Residual)
 			explicit_VOLUME_info();
+			explicit_FACET_info();
 exit(1);
-//			explicit_FACET_info();
 //			maxRHS = finalize_RHS();
 
 			// Update What

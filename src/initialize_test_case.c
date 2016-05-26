@@ -133,6 +133,10 @@ static void initialize_PeriodicVortex(void)
 
 		convert_variables(U,W,3,d,NvnS,'p','c');
 
+//array_print_d(VOLUME->NvnG,d,VOLUME->XYZ,'C');
+//array_print_d(NvnS,Nvar,W,'C');
+//exit(1);
+
 		mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,W,What);
 
 		free(XYZ_vS);

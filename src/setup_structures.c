@@ -26,36 +26,41 @@
 void setup_structures(void)
 {
 	// Initialize DB Parameters
-	unsigned int d       = DB.d,
-	             AC      = DB.AC,
-	             P       = DB.P,
-	             NP      = DB.NP,
-				 NfMax   = DB.NfMax,
-	             NV      = DB.NV,
-	             NGF     = DB.NGF,
-	             NGFC    = DB.NGFC,
-	             NVC     = DB.NVC,
-	             *NE     = DB.NE,
-	             *EToVe  = DB.EToVe,
-	             *EType  = DB.EType,
-	             *EToPrt = DB.EToPrt,
-//	             *VToV   = DB.VToV,
-	             *VToGF  = DB.VToGF,
-	             *VC     = DB.VC,
-	             *GFC    = DB.GFC;
-	int          MPIrank = DB.MPIrank;
-	double       *VeXYZ  = DB.VeXYZ;
+	unsigned int d        = DB.d,
+	             NveMax   = DB.NveMax,
+	             NfveMax  = DB.NfveMax,
+	             NfrefMax = DB.NfrefMax,
+	             AC       = DB.AC,
+	             P        = DB.P,
+	             NP       = DB.NP,
+				 NfMax    = DB.NfMax,
+	             NV       = DB.NV,
+	             NGF      = DB.NGF,
+	             NGFC     = DB.NGFC,
+	             NVC      = DB.NVC,
+	             *NE      = DB.NE,
+	             *EToVe   = DB.EToVe,
+	             *EType   = DB.EType,
+	             *EToPrt  = DB.EToPrt,
+//	             *VToV    = DB.VToV,
+	             *VToGF   = DB.VToGF,
+	             *VToBC   = DB.VToBC,
+	             *VC      = DB.VC,
+	             *GFC     = DB.GFC;
+	int          MPIrank  = DB.MPIrank;
+	double       *VeXYZ   = DB.VeXYZ;
 
 	int  PrintTesting = 0;
 
 	// Standard datatypes
 	unsigned int i, iMax, f, v, dim, ve, gf, curved,
-	             IndE, IndVC, IndVgrp, IndGFC,
-	             Vs, vlocal, NVlocal, NECgrp, NVgrp,
+	             IndE, IndVC, IndVgrp, IndGFC, IndVIn, IndVeF, Indf, Indsf,
+	             Vs, vlocal, NVlocal, NECgrp, NVgrp, Vf,
+	             Nve,*Nfve, *Nfref, Nfn,
 				 indexg, NvnGs,
 	             uMPIrank,
 	             *GFToV, *GF_Nv;
-	double       *XYZ_vC;
+	double       *XYZ_vC, *VeF, *XYZIn_fC, *XYZOut_fC;
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME, **Vgrp, **Vgrp_tmp;
@@ -146,12 +151,14 @@ void setup_structures(void)
 					FACET[0]->indexg = gf;
 					FACET[0]->P      = VOLUME->P;
 
-					FACET[0]->VIn   = VOLUME;
-					FACET[0]->VfIn  = 9*f;
+					FACET[0]->VIn   = VOLUME; IndVIn = VOLUME->indexg;
+					FACET[0]->VfIn  = NfrefMax*f;
+
+					FACET[0]->BC    = VToBC[IndVIn*NfMax+f];
 
 					// Overwritten if a second VOLUME is found adjacent to this FACET
 					FACET[0]->VOut  = VOLUME;
-					FACET[0]->VfOut = 9*f;
+					FACET[0]->VfOut = NfrefMax*f;
 
 					if (!VOLUME->curved) {
 						FACET[0]->typeInt = 's';
@@ -169,7 +176,7 @@ void setup_structures(void)
 
 					FACET[1]->P = max(FACET[1]->P,VOLUME->P);
 					FACET[1]->VOut  = VOLUME;
-					FACET[1]->VfOut = 9*f;
+					FACET[1]->VfOut = NfrefMax*f;
 					if (VOLUME->curved) {
 						FACET[1]->typeInt = 'c';
 						if (AC || (IndGFC < NGFC && gf == GFC[IndGFC])) {
@@ -179,7 +186,7 @@ void setup_structures(void)
 					}
 				}
 //				// Indexing from connectivity discussion above noting that the mesh is conforming at the start (ToBeDeleted)
-//				VOLUME->GF[f*9] = FoundFACET[gf];
+//				VOLUME->GF[f*NfrefMax] = FoundFACET[gf];
 			}
 
 
@@ -237,12 +244,93 @@ void setup_structures(void)
 		IndE++;
 	}
 	free(Vgrp_tmp);
-	free(FACET);
 	free(FoundFACET);
 
 	if (!AC && IndVC > NVC)
 		printf("Error: Found too many curved VOLUMEs.\n"), exit(1);
 
+	for (FACET[0] = DB.FACET; FACET[0] != NULL; FACET[0] = FACET[0]->next) {
+// May potentially have a problem for PYR-HEX interface due to PYR nodes being ordered for symmetry while QUAD nodes are
+// order for TP extension. (ToBeDeleted)
+
+		// Obtain XYZIn_fC/XYZOut_fC
+		VOLUME  = FACET[0]->VIn;
+		Vf      = FACET[0]->VfIn;
+		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
+		Indsf   = Vf % NfrefMax; // sub face index (ToBeDeleted: Move to notation)
+
+		ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+		Nve   = ELEMENT->Nve;
+		Nfve  = ELEMENT->Nfve;
+		Nfref = ELEMENT->Nfref;
+		VeF   = ELEMENT->VeF;
+
+		NvnGs = ELEMENT->NvnGs[0];
+		XYZ_vC = VOLUME->XYZ_vC;
+
+		for (i = IndVeF = 0; i < Indsf; i++)
+			IndVeF += Nfref[i]*Nfve[i];
+		IndVeF *= Nve;
+		IndVeF += Indf*(NveMax*NfveMax*NfrefMax);
+
+//printf("%d %d %d\n",Indf,Indsf,IndVeF);
+//array_print_d(Nfve[0],Nve,&VeF[IndVeF],'R');
+		XYZIn_fC = malloc(Nfve[Indf]*d * sizeof *XYZIn_fC); // free
+		mm_CTN_d(Nfve[Indf],d,Nve,&VeF[IndVeF],XYZ_vC,XYZIn_fC);
+
+		VOLUME  = FACET[0]->VOut;
+		Vf      = FACET[0]->VfOut;
+		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
+		Indsf   = Vf % NfrefMax; // sub face index (ToBeDeleted: Move to notation)
+
+		ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+		Nve   = ELEMENT->Nve;
+		Nfve  = ELEMENT->Nfve;
+		Nfref = ELEMENT->Nfref;
+		VeF   = ELEMENT->VeF;
+
+		NvnGs = ELEMENT->NvnGs[0];
+		XYZ_vC = VOLUME->XYZ_vC;
+
+		for (i = IndVeF = 0; i < Indsf; i++)
+			IndVeF += Nfve[i];
+		IndVeF *= Nve;
+		IndVeF += Indf*(NveMax*NfveMax*NfrefMax);
+
+//printf("%d %d %d\n",Indf,Indsf,IndVeF);
+//array_print_d(Nfve[0],Nve,&VeF[IndVeF],'R');
+		XYZOut_fC = malloc(Nfve[Indf]*d * sizeof *XYZOut_fC); // free
+		mm_CTN_d(Nfve[Indf],d,Nve,&VeF[IndVeF],XYZ_vC,XYZOut_fC);
+
+array_print_d(NvnGs,d,XYZ_vC,'C');
+array_print_d(Nfve[Indf],d,XYZIn_fC,'C');
+
+array_print_d(NvnGs,d,FACET[0]->VOut->XYZ_vC,'C');
+array_print_d(Nfve[Indf],d,XYZOut_fC,'C');
+
+		// Compute distance matrix
+		Nfn = Nfve[Indf];
+		DXYZ = calloc(Nfn*Nfn , sizeof *DXYZ); // free
+		for (i = 0; i < Nfn; i++) {
+		for (j = 0; j < Nfn; j++) {
+			if (FACET[0].BC % 10000 > 50) { // special case for periodic
+
+			} else {
+			}
+		}}
+			
+
+
+		free(XYZIn_fC);
+		free(XYZOut_fC);
+
+		free(DXYZ);
+
+exit(1);
+	}
+	free(FACET);
 /*
 	// Determine GFToV array
 	GFToV = malloc(NGF*2 * sizeof *GFToV); // tbd
@@ -266,12 +354,12 @@ exit(1);
 
 /*
 for (FACET[0] = DB.FACET; FACET[0] != NULL; FACET[0] = FACET[0]->next) {
-	printf("%d %d %c %d %d %d %d\n",
-	       FACET[0]->indexg,FACET[0]->curved,FACET[0]->typeInt,FACET[0]->VIn->indexg,FACET[0]->VOut->indexg,FACET[0]->VfIn,FACET[0]->VfOut);
+	printf("%d %d %d %c %d %d %d %d\n",
+	       FACET[0]->indexg,FACET[0]->curved,FACET[0]->typeInt,FACET[0]->VIn->indexg,FACET[0]->VOut->indexg,
+		   FACET[0]->VfIn,FACET[0]->VfOut,FACET[0]->BC);
 }
 exit(1);
 */
-
 
 /*
 for (i = 0, iMax = NVgrp; iMax--; i++) {

@@ -19,6 +19,8 @@
  *		VOLUMEs after refinement:
  *			setup_ToBeCurved
  *			setup_geom_factors
+ *		This should likely be changed (i.e. put loops inside for efficiency) as a different function will be used to
+ *		updated than to set up. (ToBeDeleted)
  *
  *	Notation:
  *

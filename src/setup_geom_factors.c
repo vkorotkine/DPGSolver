@@ -91,8 +91,8 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 
 		for (n = 0; n < NvnC0; n++) {
 			C_vC[NvnC0*(0+d*0)+n] =  J_vC[NvnC0*(d*1+1)+n]; // C11
-			C_vC[NvnC0*(0+d*1)+n] = -J_vC[NvnC0*(d*1+0)+n]; // C12
 			C_vC[NvnC0*(1+d*0)+n] = -J_vC[NvnC0*(d*0+1)+n]; // C21
+			C_vC[NvnC0*(0+d*1)+n] = -J_vC[NvnC0*(d*1+0)+n]; // C12
 			C_vC[NvnC0*(1+d*1)+n] =  J_vC[NvnC0*(d*0+0)+n]; // C22
 		}
 
@@ -196,14 +196,8 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 
 		free(CurlXYZJ_vC);
 	}
-	mm_CTN_d(NvnI0,d*d,NvnC0,OPS->I_vC_vI,C_vC,C_vI);
 
-/*
-array_print_d(NvnG0,d,XYZ,'C');
-for (int dim = 0; dim < d; dim++) {
-	array_print_d(NvnC0,d,&J_vC[NvnC0*(d*dim)],'C');
-}
-*/
+	mm_CTN_d(NvnI0,d*d,NvnC0,OPS->I_vC_vI,C_vC,C_vI);
 
 	free(J_vI);
 	free(J_vC);

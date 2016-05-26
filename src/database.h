@@ -73,7 +73,7 @@ struct S_ELEMENT {
 	//             **wvIs, **wvIc,
 	//             ***rst_fGc, ***rst_fIs, ***rst_fIc, **wfIs, **wfIc,
 	             **ChiInvS_vS,
-	             **ChiS_vP, **ChiS_vIs, **ChiS_vIc,
+	             **ChiS_vP, **ChiS_vIs, **ChiS_vIc, ****ChiS_fIs, ****ChiS_fIc,
 	             **ICs, **ICc,
 	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs, **I_vGs_vIc, ****I_vGs_fIs, ****I_vGs_fIc,
 				 **I_vGs_vS,
@@ -117,11 +117,14 @@ struct S_VOLUME {
 
 struct S_FACET {
 	// Structures
-	unsigned int P, VfIn, VfOut, indexg;
+	unsigned int P, VfIn, VfOut, indexg, BC;
 
 	// Geometry
 	char   curved, typeInt;
-	double *n, *nr;
+	double *n;
+
+	// Solving
+	double *RHSIn, *RHSOut;
 
 	// structs
 	struct S_VOLUME *VIn, *VOut;

@@ -41,14 +41,16 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 	ELEMENT->Nfve    = calloc(6       , sizeof *(ELEMENT->Nfve));    // free
 	ELEMENT->VeCGmsh = calloc(8       , sizeof *(ELEMENT->VeCGmsh)); // free
-	ELEMENT->VeFcon  = calloc(6*4     , sizeof *(ELEMENT->VeFcon)); // free
+	ELEMENT->VeFcon  = calloc(6*4     , sizeof *(ELEMENT->VeFcon));  // free
 
 	// Operators
 
 	// h-refinement related
 	ELEMENT->Nfref   = calloc(8       , sizeof *(ELEMENT->Nfref));   // free
 	ELEMENT->NfMixed = calloc(2       , sizeof *(ELEMENT->NfMixed)); // free
-	ELEMENT->VeF     = calloc(4*8*9*6 , sizeof *(ELEMENT->VeF));     // free
+	ELEMENT->VeF     = calloc(8*4*9*6 , sizeof *(ELEMENT->VeF));     // free
+	// 8 VOLUME vertices (HEX), 4 FACET vertices (QUAD),
+	// 9 potential refinements (HEX), 6 FACETs (HEX)
 
 	// Normals
 	ELEMENT->nr = calloc(6*3 , sizeof *(ELEMENT->nr)); // free
@@ -75,6 +77,9 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->ChiS_vP    = calloc(NP , sizeof *(ELEMENT->ChiS_vP));    // free
 	ELEMENT->ChiS_vIs   = calloc(NP , sizeof *(ELEMENT->ChiS_vIs));   // free
 	ELEMENT->ChiS_vIc   = calloc(NP , sizeof *(ELEMENT->ChiS_vIc));   // free
+
+	ELEMENT->ChiS_fIs   = calloc(NP , sizeof *(ELEMENT->ChiS_fIs)); // free
+	ELEMENT->ChiS_fIc   = calloc(NP , sizeof *(ELEMENT->ChiS_fIc)); // free
 
 	ELEMENT->ICs       = calloc(NP , sizeof *(ELEMENT->ICs));       // free
 	ELEMENT->ICc       = calloc(NP , sizeof *(ELEMENT->ICc));       // free
@@ -127,6 +132,9 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->Ds_Weak[P]   = calloc(d , sizeof **(ELEMENT->Ds_Weak));
 		ELEMENT->Dc_Weak[P]   = calloc(d , sizeof **(ELEMENT->Dc_Weak));
 
+		ELEMENT->ChiS_fIs[P]  = calloc(NP, sizeof **(ELEMENT->ChiS_fIs));
+		ELEMENT->ChiS_fIc[P]  = calloc(NP, sizeof **(ELEMENT->ChiS_fIc));
+
 		ELEMENT->I_vGs_fIs[P] = calloc(NP, sizeof **(ELEMENT->I_vGs_fIs));
 		ELEMENT->I_vGs_fIc[P] = calloc(NP, sizeof **(ELEMENT->I_vGs_fIc));
 		ELEMENT->I_vGc_fIs[P] = calloc(NP, sizeof **(ELEMENT->I_vGc_fIs));
@@ -141,7 +149,10 @@ struct S_ELEMENT *New_ELEMENT(void)
 		else                PbMin = P-1, PbMax = P+1;
 
 		for (Pb = PbMin; Pb <= PbMax; Pb++) {
-			ELEMENT->I_vGs_fIs[P][Pb] = calloc(54 , sizeof ***(ELEMENT->I_vGs_fIs));
+			ELEMENT->ChiS_fIs[P][Pb]  = calloc(54, sizeof ***(ELEMENT->ChiS_fIs));
+			ELEMENT->ChiS_fIc[P][Pb]  = calloc(54, sizeof ***(ELEMENT->ChiS_fIc));
+
+			ELEMENT->I_vGs_fIs[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vGs_fIs));
 			ELEMENT->I_vGs_fIc[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vGs_fIc));
 			ELEMENT->I_vGc_fIs[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vGc_fIs));
 			ELEMENT->I_vGc_fIc[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vGc_fIc));
@@ -262,7 +273,7 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->RES  = NULL; // free
 
 	// Solving
-	VOLUME->RHS = NULL; // free
+	VOLUME->RHS = NULL; // tbd
 
 	// structs
 	VOLUME->next    = NULL;
@@ -276,17 +287,27 @@ struct S_FACET *New_FACET(void)
 	struct S_FACET *FACET;
 	FACET = malloc(sizeof *FACET); // free
 
+	// Structures
 	FACET->indexg = 0;
-
-	FACET->curved  = 0;
-	FACET->typeInt = 0;
+	FACET->P      = 0;
+	FACET->VfIn   = 0;
+	FACET->VfOut  = 0;
+	FACET->BC     = 0;
 
 	FACET->VIn   = NULL; // free (in memory_destructor_V)
 	FACET->VOut  = NULL; // free (in memory_destructor_V)
 	FACET->VfIn  = 0;
 	FACET->VfOut = 0;
 
+	// Geometry
+	FACET->curved  = 0;
+	FACET->typeInt = 0;
+
 	FACET->n = NULL; // free
+
+	// Solving
+	FACET->RHSIn  = NULL; // tbd
+	FACET->RHSOut = NULL; // tbd
 
 	FACET->next = NULL;
 
