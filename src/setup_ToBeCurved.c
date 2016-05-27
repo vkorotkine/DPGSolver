@@ -207,7 +207,7 @@ static void ToBeCurved_TP(unsigned int Nn, double *XYZ_S, double *XYZ)
 	 *		Use Boolean sum projection to linearly blend the effect of curved FACETs into the domain.
 	 *
 	 *	Comments:
-	 *		XZnf and XZnf_match are row major orientation.
+	 *		XZnf and XZnf_match are in row major orientation.
 	 *		It is assumed that only one side of element boundaries is curved. This can easily be modified, but would
 	 *		require additional arc length computations to locate node positions on other curved sides.
 	 *		The convention used below for the vertex and edge numbering was chosen arbitrarily and is not related to

@@ -16,7 +16,7 @@ See the CODE STATUS section below for details regarding current functionality.
 Follow the [installation instructions](INSTALL.md) for the set up of required libraries/programs (Currently running on
 either OSX or Ubuntu). Required:
 - PETSc
-- mpi (MPICH or Open MPI)
+- MPI (MPICH or Open MPI)
 - Intel (M)ath (K)ernel (L)ibrary
 - ParMETIS
 - Gmsh
@@ -29,6 +29,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 
 
 ## Code Status
+- MPI solving not yet supported.
 
 ### Preprocessing:  ACTIVE
 - set up parameters: DONE
@@ -41,14 +42,17 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 #### Initialization
 - dSphericalBump   (TO BE DONE)
 - GaussianBump     (TO BE DONE)
-- PeriodicVortex   (ACTIVE)
+- PeriodicVortex:   DONE
 - PolynomialBump   (TO BE DONE)
 - SupersonicVortex (TO BE DONE)
 
 #### Explicit
-- solver RK (TO BE DONE)
-- VOLUME    (TO BE DONE)
-- FACET     (TO BE DONE)
+- solver RK (ACTIVE)
+- VOLUME    (ACTIVE)
+  - Weak Form:   DONE
+  - Strong Form: (TO BE DONE)
+  - Vectorized:  (TO BE DONE)
+- FACET     (ACTIVE)
 - finalize  (TO BE DONE)
 
 #### Implicit
@@ -59,7 +63,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 
 #### Fluxes
 - standard
-  - inviscid       (TO BE DONE)
+  - inviscid:       DONE
   - viscous        (TO BE DONE)
 - numerical
   - Lax-Friedrichs (TO BE DONE)
@@ -71,7 +75,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 - outflow mach (TO BE DONE)
 
 #### Jacobians
-- flux inviscid (TO BE DONE)
+- flux inviscid         (TO BE DONE)
 - flux LF               (TO BE DONE)
 - flux Roe              (TO BE DONE)
 - boundary riemann      (TO BE DONE)

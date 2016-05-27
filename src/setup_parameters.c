@@ -78,8 +78,8 @@
  *		Parametrization : Type of parametrization used in curved elements.
  *
  *		NodeType()[] : Node type used for each type of node () and each type of element [].
- *		               () : (S)olution, (F)lux, (F)lux in (r)eference space (s)traight/(c)urved (I)ntegration
- *		                    (s)traight/(c)urved (f)acet/(v)olume
+ *		               () : (S)olution, (F)lux, (F)lux in (r)eference space, (I)ntegration
+ *		                    (f)acet/(v)olume (s)traight/(c)urved 
  *		               [] : TP [0], SI [1], PYR [2]
  *
  *	References:

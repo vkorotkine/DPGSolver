@@ -14,23 +14,25 @@
  *
  *	Comments:
  *		0-based indexing.
- *		VeCGmsh is based on converting the gmsh node ordering to code's ordering convention; for the gmsh ordering, see
- *		the gmsh manual (Node ordering section). VeE and VeF are then set based on the standard node ordering in the
- *		code.
- *		      1D: VeC (standard) == VeE == VeF
- *		      2D: VeC (standard) != VeE == VeF
- *		      3D: VeC (standard) != VeE != VeF
+ *		VeCGmsh is based on converting the gmsh node ordering to the code's ordering convention; for the gmsh ordering,
+ *		see	the gmsh manual (Node ordering section). VeE and VeF are then set based on the standard node ordering in
+ *		the code.
  *
  *	Notation:
- *		present : Indicator of presence of this element type
- *		          Options: 0, 1
- *		type    : Flag for element type
- *		d       : (d)imension
- *		Nve     : (N)umber of local (ve)rtices
- *		Nfve    : (N)umber of local (f)acet (ve)rtices
- *		Nf      : (N)umber of local (f)acets
- *		VeCGmsh : (Ve)rtices of the (C)orners                       (Gmsh ordering)
- *		VeFcon  : (Ve)rtices of the (F)acets which are (con)forming (Standard ordering)
+ *		present  : Indicator of presence of this element type
+ *		           Options: 0, 1
+ *		type     : Flag for element type
+ *		d        : (d)imension
+ *		Nve      : (N)umber of local (ve)rtices
+ *		Nfve     : (N)umber of local (f)acet (ve)rtices
+ *		Nf       : (N)umber of local (f)acets
+ *		VeCGmsh  : (Ve)rtices of the (C)orners                       (Gmsh ordering)
+ *		VeFcon   : (Ve)rtices of the (F)acets which are (con)forming (Standard ordering)
+ *
+ *		NfMax    : (Max)imum (N)umber of (f)acets on an element
+ *		NfveMax  : (Max)imum (N)umber of (f)acet (ve)rtices on an element
+ *		NveMax   : (Max)imum (N)umber of (ve)rtices on an element
+ *		NfrefMax : (Max)imum (N)umber of (f)acet (ref)inements
  *
  *	References:
  *		http://gmsh.info/doc/texinfo/gmsh.html#Node-ordering
@@ -53,7 +55,7 @@ void setup_mesh()
 	ELEMENT->Nf        = 1;
 	ELEMENT->Nfve[0]   = 1;
 	ELEMENT->VeCGmsh[0]    = 0;
-	ELEMENT->VeFcon[0*4+0] = 0;
+	ELEMENT->VeFcon[0*NFVEMAX+0] = 0;
 
 	ELEMENT->next = New_ELEMENT();
 
@@ -67,8 +69,8 @@ void setup_mesh()
 	ELEMENT->Nf        = 2;
 	ELEMENT->Nfve[0]   = 1; ELEMENT->Nfve[1]   = 1;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1] =    1;
-	ELEMENT->VeFcon[0*4+0] = 0;
-	ELEMENT->VeFcon[1*4+0] = 1;
+	ELEMENT->VeFcon[0*NFVEMAX+0] = 0;
+	ELEMENT->VeFcon[1*NFVEMAX+0] = 1;
 
 	ELEMENT->next = New_ELEMENT();
 
@@ -82,9 +84,9 @@ void setup_mesh()
 	ELEMENT->Nf        = 3;
 	ELEMENT->Nfve[0]   = 2; ELEMENT->Nfve[1]   = 2; ELEMENT->Nfve[2]   = 2;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2] =    2;
-	ELEMENT->VeFcon[0*4+0] = 1; ELEMENT->VeFcon[0*4+1] = 2;
-	ELEMENT->VeFcon[1*4+0] = 0; ELEMENT->VeFcon[1*4+1] = 2;
-	ELEMENT->VeFcon[2*4+0] = 0; ELEMENT->VeFcon[2*4+1] = 1;
+	ELEMENT->VeFcon[0*NFVEMAX+0] = 1; ELEMENT->VeFcon[0*NFVEMAX+1] = 2;
+	ELEMENT->VeFcon[1*NFVEMAX+0] = 0; ELEMENT->VeFcon[1*NFVEMAX+1] = 2;
+	ELEMENT->VeFcon[2*NFVEMAX+0] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1;
 
 	ELEMENT->next = New_ELEMENT();
 
@@ -98,10 +100,10 @@ void setup_mesh()
 	ELEMENT->Nf        = 4;
 	ELEMENT->Nfve[0]   = 2; ELEMENT->Nfve[1]   = 2; ELEMENT->Nfve[2]   = 2; ELEMENT->Nfve[3]   = 2;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1] =    1; ELEMENT->VeCGmsh[2] =    3; ELEMENT->VeCGmsh[3] =    2;
-	ELEMENT->VeFcon[0*4+0] = 0; ELEMENT->VeFcon[0*4+1] = 2;
-	ELEMENT->VeFcon[1*4+0] = 1; ELEMENT->VeFcon[1*4+1] = 3;
-	ELEMENT->VeFcon[2*4+0] = 0; ELEMENT->VeFcon[2*4+1] = 1;
-	ELEMENT->VeFcon[3*4+0] = 2; ELEMENT->VeFcon[3*4+1] = 3; // ToBeDeleted: Modified from matlab code
+	ELEMENT->VeFcon[0*NFVEMAX+0] = 0; ELEMENT->VeFcon[0*NFVEMAX+1] = 2;
+	ELEMENT->VeFcon[1*NFVEMAX+0] = 1; ELEMENT->VeFcon[1*NFVEMAX+1] = 3;
+	ELEMENT->VeFcon[2*NFVEMAX+0] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1;
+	ELEMENT->VeFcon[3*NFVEMAX+0] = 2; ELEMENT->VeFcon[3*NFVEMAX+1] = 3; // ToBeDeleted: Modified from matlab code
 
 	ELEMENT->next = New_ELEMENT();
 
@@ -115,10 +117,10 @@ void setup_mesh()
 	ELEMENT->Nf        = 4;
 	ELEMENT->Nfve[0]   = 3; ELEMENT->Nfve[1]   = 3; ELEMENT->Nfve[2]   = 3; ELEMENT->Nfve[3]   = 3;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 2; ELEMENT->VeCGmsh[3]    = 3;
-	ELEMENT->VeFcon[0*4+0] = 1; ELEMENT->VeFcon[0*4+1] = 2; ELEMENT->VeFcon[0*4+2] = 3;
-	ELEMENT->VeFcon[1*4+0] = 0; ELEMENT->VeFcon[1*4+1] = 2; ELEMENT->VeFcon[1*4+2] = 3;
-	ELEMENT->VeFcon[2*4+0] = 0; ELEMENT->VeFcon[2*4+1] = 1; ELEMENT->VeFcon[2*4+2] = 3;
-	ELEMENT->VeFcon[3*4+0] = 0; ELEMENT->VeFcon[3*4+1] = 1; ELEMENT->VeFcon[3*4+2] = 2;
+	ELEMENT->VeFcon[0*NFVEMAX+0] = 1; ELEMENT->VeFcon[0*NFVEMAX+1] = 2; ELEMENT->VeFcon[0*NFVEMAX+2] = 3;
+	ELEMENT->VeFcon[1*NFVEMAX+0] = 0; ELEMENT->VeFcon[1*NFVEMAX+1] = 2; ELEMENT->VeFcon[1*NFVEMAX+2] = 3;
+	ELEMENT->VeFcon[2*NFVEMAX+0] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1; ELEMENT->VeFcon[2*NFVEMAX+2] = 3;
+	ELEMENT->VeFcon[3*NFVEMAX+0] = 0; ELEMENT->VeFcon[3*NFVEMAX+1] = 1; ELEMENT->VeFcon[3*NFVEMAX+2] = 2;
 
 	ELEMENT->next = New_ELEMENT();
 
@@ -134,12 +136,12 @@ void setup_mesh()
 	ELEMENT->Nfve[3]   = 4; ELEMENT->Nfve[4]   = 4; ELEMENT->Nfve[5]   = 4;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 3; ELEMENT->VeCGmsh[3]    = 2;
 	ELEMENT->VeCGmsh[4]    = 4; ELEMENT->VeCGmsh[5]    = 5; ELEMENT->VeCGmsh[6]    = 7; ELEMENT->VeCGmsh[7]    = 6;
-	ELEMENT->VeFcon[0*4+0] = 0; ELEMENT->VeFcon[0*4+1] = 2; ELEMENT->VeFcon[0*4+2] = 4; ELEMENT->VeFcon[0*4+3] = 6;
-	ELEMENT->VeFcon[1*4+0] = 1; ELEMENT->VeFcon[1*4+1] = 3; ELEMENT->VeFcon[1*4+2] = 5; ELEMENT->VeFcon[1*4+3] = 7;
-	ELEMENT->VeFcon[2*4+0] = 0; ELEMENT->VeFcon[2*4+1] = 1; ELEMENT->VeFcon[2*4+2] = 4; ELEMENT->VeFcon[2*4+3] = 5;
-	ELEMENT->VeFcon[3*4+0] = 2; ELEMENT->VeFcon[3*4+1] = 3; ELEMENT->VeFcon[3*4+2] = 6; ELEMENT->VeFcon[3*4+3] = 7;
-	ELEMENT->VeFcon[4*4+0] = 0; ELEMENT->VeFcon[4*4+1] = 1; ELEMENT->VeFcon[4*4+2] = 2; ELEMENT->VeFcon[4*4+3] = 3;
-	ELEMENT->VeFcon[5*4+0] = 4; ELEMENT->VeFcon[5*4+1] = 5; ELEMENT->VeFcon[5*4+2] = 6; ELEMENT->VeFcon[5*4+3] = 7;
+	ELEMENT->VeFcon[0*NFVEMAX+0] = 0; ELEMENT->VeFcon[0*NFVEMAX+1] = 2; ELEMENT->VeFcon[0*NFVEMAX+2] = 4; ELEMENT->VeFcon[0*NFVEMAX+3] = 6;
+	ELEMENT->VeFcon[1*NFVEMAX+0] = 1; ELEMENT->VeFcon[1*NFVEMAX+1] = 3; ELEMENT->VeFcon[1*NFVEMAX+2] = 5; ELEMENT->VeFcon[1*NFVEMAX+3] = 7;
+	ELEMENT->VeFcon[2*NFVEMAX+0] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1; ELEMENT->VeFcon[2*NFVEMAX+2] = 4; ELEMENT->VeFcon[2*NFVEMAX+3] = 5;
+	ELEMENT->VeFcon[3*NFVEMAX+0] = 2; ELEMENT->VeFcon[3*NFVEMAX+1] = 3; ELEMENT->VeFcon[3*NFVEMAX+2] = 6; ELEMENT->VeFcon[3*NFVEMAX+3] = 7;
+	ELEMENT->VeFcon[4*NFVEMAX+0] = 0; ELEMENT->VeFcon[4*NFVEMAX+1] = 1; ELEMENT->VeFcon[4*NFVEMAX+2] = 2; ELEMENT->VeFcon[4*NFVEMAX+3] = 3;
+	ELEMENT->VeFcon[5*NFVEMAX+0] = 4; ELEMENT->VeFcon[5*NFVEMAX+1] = 5; ELEMENT->VeFcon[5*NFVEMAX+2] = 6; ELEMENT->VeFcon[5*NFVEMAX+3] = 7;
 
 	ELEMENT->next = New_ELEMENT();
 
@@ -155,11 +157,11 @@ void setup_mesh()
 	ELEMENT->Nfve[3]   = 3; ELEMENT->Nfve[4]   = 3;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 2;
 	ELEMENT->VeCGmsh[3]    = 3; ELEMENT->VeCGmsh[4]    = 4; ELEMENT->VeCGmsh[5]    = 5;
-	ELEMENT->VeFcon[0*4+0] = 1; ELEMENT->VeFcon[0*4+1] = 2; ELEMENT->VeFcon[0*4+2] = 4; ELEMENT->VeFcon[0*4+3] = 5;
-	ELEMENT->VeFcon[1*4+0] = 0; ELEMENT->VeFcon[1*4+1] = 2; ELEMENT->VeFcon[1*4+2] = 3; ELEMENT->VeFcon[1*4+3] = 5;
-	ELEMENT->VeFcon[2*4+0] = 0; ELEMENT->VeFcon[2*4+1] = 1; ELEMENT->VeFcon[2*4+2] = 3; ELEMENT->VeFcon[2*4+3] = 4;
-	ELEMENT->VeFcon[3*4+0] = 0; ELEMENT->VeFcon[3*4+1] = 1; ELEMENT->VeFcon[3*4+2] = 2;
-	ELEMENT->VeFcon[4*4+0] = 3; ELEMENT->VeFcon[4*4+1] = 4; ELEMENT->VeFcon[4*4+2] = 5;
+	ELEMENT->VeFcon[0*NFVEMAX+0] = 1; ELEMENT->VeFcon[0*NFVEMAX+1] = 2; ELEMENT->VeFcon[0*NFVEMAX+2] = 4; ELEMENT->VeFcon[0*NFVEMAX+3] = 5;
+	ELEMENT->VeFcon[1*NFVEMAX+0] = 0; ELEMENT->VeFcon[1*NFVEMAX+1] = 2; ELEMENT->VeFcon[1*NFVEMAX+2] = 3; ELEMENT->VeFcon[1*NFVEMAX+3] = 5;
+	ELEMENT->VeFcon[2*NFVEMAX+0] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1; ELEMENT->VeFcon[2*NFVEMAX+2] = 3; ELEMENT->VeFcon[2*NFVEMAX+3] = 4;
+	ELEMENT->VeFcon[3*NFVEMAX+0] = 0; ELEMENT->VeFcon[3*NFVEMAX+1] = 1; ELEMENT->VeFcon[3*NFVEMAX+2] = 2;
+	ELEMENT->VeFcon[4*NFVEMAX+0] = 3; ELEMENT->VeFcon[4*NFVEMAX+1] = 4; ELEMENT->VeFcon[4*NFVEMAX+2] = 5;
 
 	ELEMENT->next = New_ELEMENT();
 
@@ -175,11 +177,11 @@ void setup_mesh()
 	ELEMENT->Nfve[4]   = 4;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 3; ELEMENT->VeCGmsh[3]   = 2;
 	ELEMENT->VeCGmsh[4]    = 4;
-	ELEMENT->VeFcon[0*4+0] = 0; ELEMENT->VeFcon[0*4+1] = 2; ELEMENT->VeFcon[0*4+2] = 4;
-	ELEMENT->VeFcon[1*4+0] = 1; ELEMENT->VeFcon[1*4+1] = 3; ELEMENT->VeFcon[1*4+2] = 4;
-	ELEMENT->VeFcon[2*4+0] = 0; ELEMENT->VeFcon[2*4+1] = 1; ELEMENT->VeFcon[2*4+2] = 4;
-	ELEMENT->VeFcon[3*4+0] = 2; ELEMENT->VeFcon[3*4+1] = 3; ELEMENT->VeFcon[3*4+2] = 4;
-	ELEMENT->VeFcon[4*4+0] = 0; ELEMENT->VeFcon[4*4+1] = 1; ELEMENT->VeFcon[4*4+2] = 2; ELEMENT->VeFcon[4*4+3] = 3;
+	ELEMENT->VeFcon[0*NFVEMAX+0] = 0; ELEMENT->VeFcon[0*NFVEMAX+1] = 2; ELEMENT->VeFcon[0*NFVEMAX+2] = 4;
+	ELEMENT->VeFcon[1*NFVEMAX+0] = 1; ELEMENT->VeFcon[1*NFVEMAX+1] = 3; ELEMENT->VeFcon[1*NFVEMAX+2] = 4;
+	ELEMENT->VeFcon[2*NFVEMAX+0] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1; ELEMENT->VeFcon[2*NFVEMAX+2] = 4;
+	ELEMENT->VeFcon[3*NFVEMAX+0] = 2; ELEMENT->VeFcon[3*NFVEMAX+1] = 3; ELEMENT->VeFcon[3*NFVEMAX+2] = 4;
+	ELEMENT->VeFcon[4*NFVEMAX+0] = 0; ELEMENT->VeFcon[4*NFVEMAX+1] = 1; ELEMENT->VeFcon[4*NFVEMAX+2] = 2; ELEMENT->VeFcon[4*NFVEMAX+3] = 3;
 
 	// No additional ELEMENTs
 
@@ -254,7 +256,7 @@ void setup_mesh()
 			NveMax   = 8;
 		}
 	}
-	NfrefMax = 9;
+	NfrefMax = NFREFMAX;
 
 	DB.NfMax    = NfMax;
 	DB.NfveMax  = NfveMax;

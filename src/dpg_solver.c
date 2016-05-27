@@ -94,7 +94,7 @@ int main(int nargc, char **argv)
 
 	if (!DB.MPIrank)
 		printf("  Nonlinear Iterative Solve\n\n");
-	
+
 	if (strstr(DB.SolverType,"Explicit") != NULL) {
 		solver_RK4_low_storage();
 	} else if (strstr(DB.SolverType,"Implicit") != NULL) {

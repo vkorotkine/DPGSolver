@@ -27,13 +27,7 @@
  *		VToVe : (V)olume to (Ve)rtex correspondence
  *		VType : (V)olume type numbering
  *
- *		NfMax   : (Max)imum (N)umber of local (f)acets for all element types
- *		NfveMax : (Max)imum (N)umber of local (f)acet (ve)rtices for all element types
- *
- *		NGF : (N)umber of (G)lobal (F)acets
- *		      This number is modified as the connectivity/periodicity is established, and non-existent facets are
- *		      identified and eliminated.
- *		NBF : (N)umber of (B)oundary (F)acets
+ *		NBF  : (N)umber of (B)oundary (F)acets
  *
  *		IndicesGF : (G)lobal (F)acet indices
  *		IndicesBF : (B)oundary (F)acet indices
@@ -42,13 +36,21 @@
  *		         This potentially includes non-existent facets. In this case, all facet vertices are set equal to NVe,
  *		         which is not a possible value.
  *		FNve   : (N)umber of local (ve)rtices on each (F)acet.
+ *		BFToVe : (B)oundary (F)acet to (Ve)rtices correspondence.
+ *		BTags  : (B)oundary Tags
+ *
+ *		NGF    : (N)umber of (G)lobal (F)acets
+ *		         This number is modified as the connectivity/periodicity is established, and non-existent facets are
+ *		         identified and eliminated.
+ *		NVC    : (N)umber of (V)OLUMEs which are (C)urved
+ *		NGFC   : (N)umber of (G)lobal (F)acets which are (C)urved
  *		VToV   : (V)olume to (V)olume connectivity
  *		VToF   : (V)olume to local (F)acet connectivity
- *		BFToVe : (B)oundary (F)acet to (Ve)rtices correspondence.
- *		VToBC  : (V)olume to (B)oundary (C)ondition flags
- *		BTags  : (B)oundary Tags
  *		VToGF  : (V)olume to (G)lobal (F)acet correspondence
+ *		VToBC  : (V)olume to (B)oundary (C)ondition flags
  *		GFToVe : (G)lobal (F)acet to (Ve)rtex correspondence
+ *		VC     : List of (V)OLUMEs which are (C)urved
+ *		GFC    : List of (G)lobal (F)acets which are (C)urved
  *
  *	References:
  *		Hesthaven (Nodal DG Code): https://github.com/tcew/nodal-dg

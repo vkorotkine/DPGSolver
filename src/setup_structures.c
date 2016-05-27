@@ -19,6 +19,11 @@
  *		Probably better to change the name of XYZc to XYZ_vC to avoid confusion that this is XYZc(urved). (ToBeDeleted)
  *
  *	Notation:
+ *		XYZ_(1)(2) : Physical node locations (XYZ) of (1) nodes of (2) type
+ *		             (1) : (v)olume, (f)acet
+ *		             (2) : (C)orner
+ *		IndOrd(In/Out)(Out/In) : (Ind)ex of (Ord)ering relating projection from (In)ner VOLUME to the FACET to the
+ *		                         projection from the (Out)er VOLUME to the FACET
  *
  *	References:
 */
@@ -162,7 +167,7 @@ void setup_structures(void)
 	             AC       = DB.AC,
 	             P        = DB.P,
 	             NP       = DB.NP,
-				 NfMax    = DB.NfMax,
+	             NfMax    = DB.NfMax,
 	             NV       = DB.NV,
 	             NGF      = DB.NGF,
 	             NGFC     = DB.NGFC,

@@ -23,6 +23,8 @@
  *		updated than to set up. (ToBeDeleted)
  *
  *	Notation:
+ *		XYZ_S : High-order VOLUME (XYZ) coordinates at (S)tart (i.e. before curving)
+ *		XYZ   : High-order VOLUME (XYZ) coordinates after curving (if applicable)
  *
  *	References:
 */
@@ -61,7 +63,7 @@ void setup_geometry(void)
 		vertices_to_exact_geom();
 	}
 
-	// Set up global XYZ_(S)tart VOLUME coordinates at (S)tart (i.e. before curving)
+	// Set up XYZ_S
 
 	/* For the vectorized version of the code, set up a linked list looping through each type of element and each
 	 * polynomial order; do this for both VOLUMEs and FACETs (eventually). Then this list can be used to sequentially
@@ -88,18 +90,18 @@ void setup_geometry(void)
 				XYZ_S[dim*NvnG+vn] = XYZ_vC[dim*NvnG+vn];
 			}}
 		} else {
-				NvnGs = ELEMENT->NvnGs[0];
-				NvnGc = ELEMENT->NvnGc[P];
-				I_vGs_vGc = ELEMENT->I_vGs_vGc[P];
+			NvnGs = ELEMENT->NvnGs[0];
+			NvnGc = ELEMENT->NvnGc[P];
+			I_vGs_vGc = ELEMENT->I_vGs_vGc[P];
 
-				NCols = d*1; // d coordinates * 1 element
+			NCols = d*1; // d coordinates * 1 element
 
-				VOLUME->NvnG = NvnGc;
+			VOLUME->NvnG = NvnGc;
 
-				XYZ_S = malloc(NvnGc*NCols * sizeof *XYZ_S); // keep
-				XYZ   = malloc(NvnGc*NCols * sizeof *XYZ);   // keep
+			XYZ_S = malloc(NvnGc*NCols * sizeof *XYZ_S); // keep
+			XYZ   = malloc(NvnGc*NCols * sizeof *XYZ);   // keep
 
-				mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnGc,NCols,NvnGs,1.0,I_vGs_vGc,XYZ_vC,XYZ_S);
+			mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnGc,NCols,NvnGs,1.0,I_vGs_vGc,XYZ_vC,XYZ_S);
 		}
 		VOLUME->XYZ_S = XYZ_S;
 
@@ -107,10 +109,8 @@ void setup_geometry(void)
 //exit(1);
 	}
 
-	if (Testing) {
-		// Output straight coordinates to paraview
-		output_to_paraview("ZTest_Geom_straight");
-	}
+	if (Testing)
+		output_to_paraview("ZTest_Geom_straight"); // Output straight coordinates to paraview
 
 	// Set up curved geometry nodes
 	if (strstr(MeshType,"ToBeCurved") != NULL) {
@@ -122,46 +122,19 @@ void setup_geometry(void)
 		exit(1);
 	}
 
-	if (Testing) {
-		// Output curved coordinates to paraview
-		output_to_paraview("ZTest_Geom_curved");
-	}
-
 	printf("    Set up geometric factors\n");
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
 		setup_geom_factors(VOLUME);
-//exit(1);
 
 	printf("    Set up normals\n");
 	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next)
 		setup_normals(FACET);
-//exit(1);
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
 		free(VOLUME->C_vC);
 
 	if (Testing) {
-		// Output normals to paraview
-		output_to_paraview("ZTest_Normals");
+		output_to_paraview("ZTest_Geom_curved"); // Output curved coordinates to paraview
+		output_to_paraview("ZTest_Normals");     // Output normals to paraview
 	}
-
-
-	// Find node index ordering on each FACET
-	// This will be done in setup_structures using XYZ_vC.
-
-	/* WRITE A TEST ROUTINE TO MAKE SURE THAT THIS IS WORKING? (ToBeDeleted)
-	 * Note: Ideally, this information can be given without relying on matching of physical points as there will be a
-	 *       potential for non-conforming elements.
-	 * For the "sum-factorization" on simplex elements, the nodes must be ordered according to their symmetries, which
-	 * is unrelated to the vertex positions? Perhaps define the nodes only in one section (1/3) of the reference
-	 * triangle with the associated multiplicity.
-	 * Note: After having read through Hesthaven(2000) on the sum-factorization on triangles, it seemed intuitive to
-	 *       attempt a similar extension for the TP case, using the symmetry about 0. This succeeded, resulting in an
-	 *       asymptotic complexity reduction of 2. This does require re-ordering of both the nodes and basis functions
-	 *       however => Do this. Also, while I thought I might be onto a new result, a very similar demonstration seems
-	 *       to have been made in Solomonoff(1992)-A_Fast_Algorithm_for_Spectral_Differentiation, although he does not
-	 *       seem to have considered the interpolation.
-	 */
-
-
 }

@@ -691,15 +691,15 @@ void gmsh_reader(void)
 
 	// Assign DB Parameters
 	DB.NVe     = NVe;
-	DB.NETotal = NETotal;
-	DB.NE      = NE;
+	DB.NPVe    = NPVe;
+	DB.PVe     = PVe;
 	DB.VeXYZ   = VeXYZ;
+	DB.NE      = NE;
+	DB.NETotal = NETotal;
 	DB.EType   = EType;
 	DB.ETags   = ETags;
 	DB.EToVe   = EToVe;
 	DB.EToPrt  = EToPrt;
-	DB.NPVe    = NPVe;
-	DB.PVe     = PVe;
 
 	if (!DB.MPIrank && DB.Testing && PrintTesting) {
 		printf("NE:\n");     array_print_ui(1,4,DB.NE,'R');

@@ -370,5 +370,5 @@ void setup_periodic()
 	}
 
 	free(GFToRemove);
-	//free(DB.ETags); // No longer needed, but don't want this to be free only if periodic (ToBeModified)
+	//free(DB.ETags); // No longer needed, but this should not be freed only if periodic (ToBeModified)
 }

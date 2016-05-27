@@ -16,6 +16,7 @@
  *	Comments:
  *
  *	Notation:
+ *		n : physical normal vector evaluated at the FACET cubature nodes.
  *
  *	References:
  *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_Schemes

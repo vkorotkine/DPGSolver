@@ -27,6 +27,9 @@
  *		=> Delete later (ToBeDeleted).
  *
  *	Notation:
+ *		J    : (J)acobian of VOLUME coordinates (XYZ) 
+ *		C    : (C)ofactor terms of the Jacobian matrix
+ *		detJ : (det)erminant of the Jacobian matrix
  *
  *	References:
  *		Kopriva(2006)-Metric_Identities_and_the_Discontinuous_Spectral_Element_Method_on_Curvilinear_Meshes

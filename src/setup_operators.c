@@ -17,20 +17,95 @@
  *		Set up operators to be used throughout the code.
  *
  *	Comments:
- *		Standard (i.e. non sum factorized) operators are only computed for performance critical functions; in all other
- *		functions, the sum factorized operators are used even if they are less efficient than the application of the
- *		standard operator. (ToBeModified)
- *		Intuitively, the collapsed tensor-product elements seem to be less efficient than those developed for other
- *		element types.
+ *		Standard (i.e. non sum-factorized) operators are used for all functions which are not performance critical in
+ *		order to improve code readability. (ToBeModified)
  *		Ensure that operators for hp refinement are only stored when refinement is enabled (ToBeDeleted).
  *		For the PYR element rst_vGs != E_rst_vC because of the TP structures of the TP nodes and the rotational symmetry
  *		ordering of the PYR nodes in layers of 't'. This means that special consideration must be made if attempting to
  *		use the rotational symmetry of rst_vGs PYR nodes.
  *
  *	Notation:
+ *
+ *	General:
+ *
+ *		Eclass : (E)lement (class)
+ *		         Options: TP, SI, PYR, WEDGE
+ *
+ *		N(1)n(2)(3)[4][5] : (N)umber of (1) (n)odes of (2) type on elements which are (3) of order [4] belonging to
+ *		                    element class [5]
+ *		                    (1): (v)olume, (f)acet
+ *		                    (2): [P]lotting, [G]eometry, [C]ofactor, [I]ntegration (ToBeModified)
+ *		                    (3): (s)traight, (c)urved
+ *		  Example: NfnIs[1][0] == (N)umber of (f)acet (n)odes for (I)ntegration on (straight) P1 facets of Eclass 0.
+ *
+ *		rst_(1)(2)(3) : coordinates on the reference element (rst) of (1) nodes of (2) type
+ *		                (1): (v)olume, (f)acet
+ *		                (2): (C)orner
+ *		                (3): (s)traight, (c)urved (optional)
+ *
+ *		(Grad)Chi(Ref)(1)(2)_(3)(4)(5)[6] : (Grad)ient (optional) (Ref)erence (optional) Basis functions (Chi) of type
+ *		                                    (1) which are (2) evaluated at (3) nodes of (4) type which are (5) of order [6]
+ *		                                    (1/4): (P)lotting, (G)eometry, (C)ofactor, (I)ntegration, (S)olution
+ *		                                    (2/5): (s)traight, (c)urved
+ *		                                    (3): (v)olume, (f)acet
+ *
+ *	setup_ELEMENT_plotting:
+ *		connectivity  : connectivity between nodes to form P1 sub-elements (see test_imp_plotting for visualization)
+ *		connect_types : VTK element type numbering for each sub-element
+ *		                Note: This is not trivial as TETs and PYRs are refined into a combination of TETs and PYRs.
+ *		connect_NE    : (N)umber of sub (E)lements in connectivity array
+ *
+ *	setup_ELEMENT_normals:
  *		Theta_[] : Angles for conversion between reference and facet coordinates (Zwanenburg(2016): Table 14)
- *		           Options: eta
- *		                    zeta
+ *		           Options: eta, zeta
+ *		nr       : (n)ormal vector components for the (r)eference element
+ *
+ *	get_BCoords_dEm1: get (B)ary(C)entric (Coord)inates of (d)imension (E)lement (m)inus 1
+ *
+ *		Note: See cubature_PYR for explanation of the method to obtain the barycentric coordinates while noting that
+ *		      using the P1 reference basis provides the partition of unity, linear precision and additional arbitrary
+ *		      conditions needed for the construction.
+ *
+ *	setup_ELEMENT_operators/setup_TP_operators:
+ *		w_(1)(2)(3) : Cubature (w)eights (1) nodes of (2) type which are (3)
+ *		             (1): (v)olume, (f)acet
+ *		             (2): (I)ntegration
+ *		             (3): (s)traight, (c)urved
+ *		I(1)(2) : (I)dentity matrix of type (1) which is (2)
+ *		          (1): (G)eometry, (C)ofactor, (S)olution
+ *		          (2): (s)traight, (c)urved
+ *		T(1)(2) : (T)ransformation matrix of type (1) which is (2). (Zwanenburg(2016): eq. 2.14)
+ *		          (1): (G)eometry, (C)ofactor, (S)olution
+ *		          (2): (s)traight, (c)urved
+ *		I_(1)(2)(3)_(4)(5)(6) : (I)nterpolation operator from (1) nodes of type (2) which are (3) to (4) nodes of type
+ *		                        (5) which are (6)
+ *		                        (1/4): (v)olume, (f)acet
+ *		                        (2/5): (P)lotting, (G)eometry, (C)ofactor, (I)ntegration, (S)olution
+ *		                        (3/6): (s)traight, (c)urved
+ *		  Note: Interpolation operators to FACETs may have up to 4 levels of dereferencing *I_x_x[1][2][3]:
+ *		        [0] : The operator is a pointer to  matrix
+ *		        [1] : Order of the element from which you are interpolating
+ *		        [2] : Order of the element to which you are interpolating
+ *		        [3] : Index of operator (e.g. there is a need for many operators interpolating to different parts of the
+ *		                                 VOLUME FACETs)
+ *		D_(1)(2)(3)_(4)(5)(6) : (D)ifferentiation + interpolation operator from (1) nodes of type (2) which are (3) to
+ *		                        (4) nodes of type (5) which are (6)
+ *		                        (1/4): (v)olume, (f)acet
+ *		                        (2/5): (P)lotting, (G)eometry, (C)ofactor, (I)ntegration, (S)olution
+ *		                        (3/6): (s)traight, (c)urved
+ *		  Note: Differentiation + interpolation operators may have up to 3 levels of dereferencing *D_x_x[1][2]:
+ *		        [0] : The operator is a pointer to  matrix
+ *		        [1] : Order of the element from which you are interpolating with differentiation
+ *		        [2] : Index of dimension of the operator
+ *
+ *	setup_ELEMENT_VeF:
+ *		VeF : (Ve)rtex to (F)acet operator used to project VOLUME vertex nodes to FACET vertex nodes for all supported
+ *		      h-refinements.
+ *
+ *	sf_assemble_d/get_sf_parameters:
+ *		NIn  : (N)umber of (In)puts (i.e. number of columns of the lower dimensional operator)
+ *		NOut : (N)umber of (Out)puts (i.e. number of rows of the lower dimensional operator)
+ *		OP   : (OP)erator
  *
  *	References:
  *		Zwanenburg(2016)_Equivalence between the Energy Stable Flux Reconstruction and Filtered Discontinuous Galerkin
@@ -42,7 +117,7 @@
 
 struct S_BCOORDS {
 	unsigned int Nve,
- 	             *NfnIs, *NfnIc;
+	             *NfnIs, *NfnIc;
 	double       **BCoords_Is, **BCoords_Ic;
 };
 
@@ -84,8 +159,7 @@ static void select_functions(basis_tdef *basis, grad_basis_tdef *grad_basis, cub
 		*cubature   = cubature_PYR;
 		break;
 	default:
-		printf("%d\n",type);
-		printf("Error: Unsupported type in select_functions.\n"), exit(1);
+		printf("Error: Unsupported type (%d) in select_functions.\n",type), exit(1);
 		break;
 	}
 }
@@ -429,7 +503,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             **ChiRefGc_fIs, **ChiRefGc_fIc,
 	             *ChiRefCs_vIs, *ChiRefCs_vIc, **ChiRefCs_fIs, **ChiRefCs_fIc,
 	             *ChiRefCc_vIs, *ChiRefCc_vIc, **ChiRefCc_fIs, **ChiRefCc_fIc,
-				 *ChiRefS_vP, *ChiRefS_vIs, *ChiRefS_vIc, **ChiRefS_fIs, **ChiRefS_fIc,
+	             *ChiRefS_vP, *ChiRefS_vIs, *ChiRefS_vIc, **ChiRefS_fIs, **ChiRefS_fIc,
 	             *ChiGs_vP, *ChiGs_vGc, *ChiGs_vCs, *ChiGs_vIs, *ChiGs_vIc, *ChiGs_vS,
 	             **ChiGs_fIs, **ChiGs_fIc,
 	             *ChiGc_vP,             *ChiGc_vCc, *ChiGc_vIs, *ChiGc_vIc, *ChiGc_vS,
@@ -439,16 +513,16 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             **GradChiRefGs_vCs, **GradChiRefGs_vIs,
 	             **GradChiRefGc_vCc, **GradChiRefGc_vIc,
 	             **GradChiRefCs_vCs, **GradChiRefCc_vCc,
-				 **GradChiRefS_vIs,  **GradChiRefS_vIc,
+	             **GradChiRefS_vIs,  **GradChiRefS_vIc,
 	             **GradChiGs_vCs, **GradChiGs_vIs,
 	             **GradChiGc_vCc, **GradChiGc_vIc,
 	             **GradChiCs_vCs, **GradChiCc_vCc,
-				 **GradChiS_vIs,  **GradChiS_vIc,
+	             **GradChiS_vIs,  **GradChiS_vIc,
 	             *dummyPtr_d;
 
 	struct BCoords {
-	       	double **Is, **Ic;
-	       } *BCoords[2];
+		double **Is, **Ic;
+	} *BCoords[2];
 
 	struct S_BCOORDS *BCoords_dEm1[2];
 	struct S_ELEMENT *ELEMENT;
@@ -1284,12 +1358,6 @@ static double *sf_assemble_d(const unsigned int NIn[3], const unsigned int NOut[
 			BOP[dim] = one_d;
 	}
 
-/*
-for (i = 0; i < 3; i++) {
-	array_print_d(NOut[i],NIn[i],BOP[i],'R');
-}
-*/
-
 	// r
 	Indd = 0;
 
@@ -1397,8 +1465,8 @@ void get_sf_parameters(const unsigned int NIn0, const unsigned int NOut0, double
 	 *		Set up (s)um (f)actorization parameters.
 	 *
 	 *	Comments:
-	 *		Clearly the input parameters are not very elegant, however, this requires the least typing when calling this
-	 *		function (as compared to using a structure for example).
+	 *		Clearly the input parameters are not very elegant, however, this results in the least overhead when calling
+	 *		this function (as compared to using a structure for example).
 	 */
 
 	unsigned int dim;
@@ -1534,7 +1602,7 @@ static void setup_TP_operators(const unsigned int EType)
 		NvnGs[0] = pow(ELEMENTclass[0]->NvnGs[0],dE);
 
 		get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnP,ELEMENTclass[0]->I_vGs_vP[0],
-						  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
+		                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 		I_vGs_vP[0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 		for (P = 0; P <= PMax; P++) {
@@ -1564,7 +1632,7 @@ static void setup_TP_operators(const unsigned int EType)
 			                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 			I_vGs_vS[P] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 			get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnP,ELEMENTclass[0]->I_vGc_vP[P],
-							  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
+			                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 			I_vGc_vP[P] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 			get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->I_vGc_vCc[P],
 			                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
@@ -1657,8 +1725,8 @@ static void setup_TP_operators(const unsigned int EType)
 		NvnGs[0] = (ELEMENTclass[0]->NvnGs[0])*(ELEMENTclass[1]->NvnGs[0]);
 
 		get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnP,ELEMENTclass[0]->I_vGs_vP[0],
-						  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnP,ELEMENTclass[1]->I_vGs_vP[0],
-						  NIn,NOut,OP,dE,3,Eclass);
+		                  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnP,ELEMENTclass[1]->I_vGs_vP[0],
+		                  NIn,NOut,OP,dE,3,Eclass);
 		I_vGs_vP[0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 		for (P = 0; P <= PMax; P++) {
@@ -1695,8 +1763,8 @@ static void setup_TP_operators(const unsigned int EType)
 			                  NIn,NOut,OP,dE,3,Eclass);
 			I_vGs_vS[P] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 			get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnP,ELEMENTclass[0]->I_vGc_vP[P],
-							  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnP,ELEMENTclass[1]->I_vGc_vP[P],
-							  NIn,NOut,OP,dE,3,Eclass);
+			                  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnP,ELEMENTclass[1]->I_vGc_vP[P],
+			                  NIn,NOut,OP,dE,3,Eclass);
 			I_vGc_vP[P] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 			get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->I_vGc_vCc[P],
 			                  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnCc[P],ELEMENTclass[1]->I_vGc_vCc[P],
@@ -1837,7 +1905,6 @@ void setup_operators(void)
 
 	// LINE (Includes TP Class)
 	EType = LINE;
-
 	setup_ELEMENT_VeF(EType);
 	setup_ELEMENT_plotting(EType);
 	setup_ELEMENT_normals(EType);
@@ -1845,7 +1912,6 @@ void setup_operators(void)
 
 	// QUAD
 	EType = QUAD;
-
 	if (is_ELEMENT_present(EType)) {
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
@@ -1855,7 +1921,6 @@ void setup_operators(void)
 
 	// HEX
 	EType = HEX;
-
 	if (is_ELEMENT_present(EType)) {
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
@@ -1870,7 +1935,6 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
-
 	}
 
 	// TET
@@ -1880,7 +1944,6 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
-
 	}
 
 	// PYR
@@ -1890,7 +1953,6 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
-
 	}
 
 	// WEDGE
