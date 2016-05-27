@@ -1056,35 +1056,35 @@ void setup_ELEMENT_VeF(const unsigned int EType)
 	switch(EType) {
 	case LINE:
 		for (f = 0; f < Nf; f++)
-			ELEMENT->Nfref[f] = 1;
+			ELEMENT->Nfref[f] = NFREFMAXPOINT;
 		break;
 	case TRI:
 		for (f = 0; f < Nf; f++)
-			ELEMENT->Nfref[f] = 3;
+			ELEMENT->Nfref[f] = NFREFMAXLINE;
 		break;
 	case QUAD:
 		for (f = 0; f < Nf; f++)
-			ELEMENT->Nfref[f] = 3;
+			ELEMENT->Nfref[f] = NFREFMAXLINE;
 		break;
 	case TET:
 		for (f = 0; f < Nf; f++)
-			ELEMENT->Nfref[f] = 5;
+			ELEMENT->Nfref[f] = NFREFMAXTRI;
 		break;
 	case HEX:
 		for (f = 0; f < Nf; f++)
-			ELEMENT->Nfref[f] = 9;
+			ELEMENT->Nfref[f] = NFREFMAXQUAD;
 		break;
 	case WEDGE:
 		for (f = 0; f < 3; f++)
-			ELEMENT->Nfref[f] = 9;
-		for (f = 3; f < 6; f++)
-			ELEMENT->Nfref[f] = 5;
+			ELEMENT->Nfref[f] = NFREFMAXQUAD;
+		for (f = 3; f < 5; f++)
+			ELEMENT->Nfref[f] = NFREFMAXTRI;
 		break;
 	case PYR:
 		for (f = 0; f < 4; f++)
-			ELEMENT->Nfref[f] = 5;
+			ELEMENT->Nfref[f] = NFREFMAXTRI;
 		for (f = 4; f < 5; f++)
-			ELEMENT->Nfref[f] = 9;
+			ELEMENT->Nfref[f] = NFREFMAXQUAD;
 		break;
 	default:
 		printf("Error: Unsupported EType in setup_ELEMENT_VeF.\n"), exit(1);

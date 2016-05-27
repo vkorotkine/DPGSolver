@@ -5,10 +5,11 @@
 
 #include "database.h"
 #include "functions.h"
+#include "parameters.h"
 
 /*
  *	Purpose:
- *		Allocate memory and initialize new structures.
+ *		Allocate memory for and initialize new structures.
  *
  *	Comments:
  *
@@ -39,21 +40,19 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->Nve     = 0;
 	ELEMENT->Nf      = 0;
 
-	ELEMENT->Nfve    = calloc(6       , sizeof *(ELEMENT->Nfve));    // free
-	ELEMENT->VeCGmsh = calloc(8       , sizeof *(ELEMENT->VeCGmsh)); // free
-	ELEMENT->VeFcon  = calloc(6*4     , sizeof *(ELEMENT->VeFcon));  // free
+	ELEMENT->Nfve    = calloc(NFMAX         , sizeof *(ELEMENT->Nfve));    // free
+	ELEMENT->VeCGmsh = calloc(NVEMAX        , sizeof *(ELEMENT->VeCGmsh)); // free
+	ELEMENT->VeFcon  = calloc(NFMAX*NFVEMAX , sizeof *(ELEMENT->VeFcon));  // free
 
 	// Operators
 
 	// h-refinement related
-	ELEMENT->Nfref   = calloc(8       , sizeof *(ELEMENT->Nfref));   // free
-	ELEMENT->NfMixed = calloc(2       , sizeof *(ELEMENT->NfMixed)); // free
-	ELEMENT->VeF     = calloc(8*4*9*6 , sizeof *(ELEMENT->VeF));     // free
-	// 8 VOLUME vertices (HEX), 4 FACET vertices (QUAD),
-	// 9 potential refinements (HEX), 6 FACETs (HEX)
+	ELEMENT->Nfref   = calloc(NFMAX                         , sizeof *(ELEMENT->Nfref));   // free
+	ELEMENT->NfMixed = calloc(NFMIXEDMAX                    , sizeof *(ELEMENT->NfMixed)); // free
+	ELEMENT->VeF     = calloc(NVEMAX*NFVEMAX*NFREFMAX*NFMAX , sizeof *(ELEMENT->VeF));     // free
 
 	// Normals
-	ELEMENT->nr = calloc(6*3 , sizeof *(ELEMENT->nr)); // free
+	ELEMENT->nr = calloc(NFMAX*DMAX , sizeof *(ELEMENT->nr)); // free
 
 	// Plotting
 	ELEMENT->connectivity  = NULL;
@@ -119,8 +118,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->Dc_Weak   = calloc(NP , sizeof *(ELEMENT->Dc_Weak));   // free
 
 	for (P = 0; P < NP; P++) {
-		ELEMENT->NfnIs[P]     = calloc(2 , sizeof **(ELEMENT->NfnIs));
-		ELEMENT->NfnIc[P]     = calloc(2 , sizeof **(ELEMENT->NfnIc));
+		ELEMENT->NfnIs[P]     = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnIs));
+		ELEMENT->NfnIc[P]     = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnIc));
 
 		ELEMENT->D_vGs_vCs[P] = calloc(d , sizeof **(ELEMENT->D_vGs_vCs));
 		ELEMENT->D_vGs_vIs[P] = calloc(d , sizeof **(ELEMENT->D_vGs_vIs));
@@ -149,17 +148,17 @@ struct S_ELEMENT *New_ELEMENT(void)
 		else                PbMin = P-1, PbMax = P+1;
 
 		for (Pb = PbMin; Pb <= PbMax; Pb++) {
-			ELEMENT->ChiS_fIs[P][Pb]  = calloc(54, sizeof ***(ELEMENT->ChiS_fIs));
-			ELEMENT->ChiS_fIc[P][Pb]  = calloc(54, sizeof ***(ELEMENT->ChiS_fIc));
+			ELEMENT->ChiS_fIs[P][Pb]  = calloc(NFREFMAX*NFMAX, sizeof ***(ELEMENT->ChiS_fIs));
+			ELEMENT->ChiS_fIc[P][Pb]  = calloc(NFREFMAX*NFMAX, sizeof ***(ELEMENT->ChiS_fIc));
 
-			ELEMENT->I_vGs_fIs[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vGs_fIs));
-			ELEMENT->I_vGs_fIc[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vGs_fIc));
-			ELEMENT->I_vGc_fIs[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vGc_fIs));
-			ELEMENT->I_vGc_fIc[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vGc_fIc));
-			ELEMENT->I_vCs_fIs[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vCs_fIs));
-			ELEMENT->I_vCs_fIc[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vCs_fIc));
-			ELEMENT->I_vCc_fIs[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vCc_fIs));
-			ELEMENT->I_vCc_fIc[P][Pb] = calloc(54, sizeof ***(ELEMENT->I_vCc_fIc));
+			ELEMENT->I_vGs_fIs[P][Pb] = calloc(NFREFMAX*NFMAX, sizeof ***(ELEMENT->I_vGs_fIs));
+			ELEMENT->I_vGs_fIc[P][Pb] = calloc(NFREFMAX*NFMAX, sizeof ***(ELEMENT->I_vGs_fIc));
+			ELEMENT->I_vGc_fIs[P][Pb] = calloc(NFREFMAX*NFMAX, sizeof ***(ELEMENT->I_vGc_fIs));
+			ELEMENT->I_vGc_fIc[P][Pb] = calloc(NFREFMAX*NFMAX, sizeof ***(ELEMENT->I_vGc_fIc));
+			ELEMENT->I_vCs_fIs[P][Pb] = calloc(NFREFMAX*NFMAX, sizeof ***(ELEMENT->I_vCs_fIs));
+			ELEMENT->I_vCs_fIc[P][Pb] = calloc(NFREFMAX*NFMAX, sizeof ***(ELEMENT->I_vCs_fIc));
+			ELEMENT->I_vCc_fIs[P][Pb] = calloc(NFREFMAX*NFMAX, sizeof ***(ELEMENT->I_vCc_fIs));
+			ELEMENT->I_vCc_fIc[P][Pb] = calloc(NFREFMAX*NFMAX, sizeof ***(ELEMENT->I_vCc_fIc));
 		}
 	}
 
@@ -231,7 +230,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 
 	ELEMENT->next = NULL;
-	ELEMENT->ELEMENTclass = calloc(2 , sizeof *(ELEMENT->ELEMENTclass)); // free
+	ELEMENT->ELEMENTclass = calloc(NESUBCMAX , sizeof *(ELEMENT->ELEMENTclass)); // free
 
 	return ELEMENT;
 }
@@ -265,7 +264,7 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->detJV_vI = NULL; // free
 	VOLUME->C_vC     = NULL; // free (in setup_normals)
 	VOLUME->C_vI     = NULL; // free
-	VOLUME->C_vf     = calloc(6 , sizeof *(VOLUME->C_vf)); // free
+	VOLUME->C_vf     = calloc(NFMAX , sizeof *(VOLUME->C_vf)); // free
 
 	// Initialization
 	VOLUME->NvnS = 0;

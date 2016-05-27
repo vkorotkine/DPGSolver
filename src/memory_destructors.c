@@ -5,6 +5,7 @@
 
 #include "database.h"
 #include "functions.h"
+#include "parameters.h"
 
 /*
  *	Purpose:
@@ -79,17 +80,17 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free2_d(NP,ELEMENT->I_vCc_vIs);
 	array_free2_d(NP,ELEMENT->I_vCc_vIc);
 
-	array_free4_d(NP,NP,54,ELEMENT->ChiS_fIs);
-	array_free4_d(NP,NP,54,ELEMENT->ChiS_fIc);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->ChiS_fIs);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->ChiS_fIc);
 
-	array_free4_d(NP,NP,54,ELEMENT->I_vGs_fIs);
-	array_free4_d(NP,NP,54,ELEMENT->I_vGs_fIc);
-	array_free4_d(NP,NP,54,ELEMENT->I_vGc_fIs);
-	array_free4_d(NP,NP,54,ELEMENT->I_vGc_fIc);
-	array_free4_d(NP,NP,54,ELEMENT->I_vCs_fIs);
-	array_free4_d(NP,NP,54,ELEMENT->I_vCs_fIc);
-	array_free4_d(NP,NP,54,ELEMENT->I_vCc_fIs);
-	array_free4_d(NP,NP,54,ELEMENT->I_vCc_fIc);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGs_fIs);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGs_fIc);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGc_fIs);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGc_fIc);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vCs_fIs);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vCs_fIc);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vCc_fIs);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vCc_fIc);
 
 	array_free3_d(NP,d,ELEMENT->D_vGs_vCs);
 	array_free3_d(NP,d,ELEMENT->D_vGs_vIs);
@@ -156,7 +157,7 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 
 	free(VOLUME->detJV_vI);
 	free(VOLUME->C_vI);
-	array_free2_d(6,VOLUME->C_vf);
+	array_free2_d(NFMAX,VOLUME->C_vf);
 
 	// Initialization
 	free(VOLUME->What);

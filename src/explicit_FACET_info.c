@@ -193,7 +193,7 @@ static void compute_FACET_RHS_EFE(void)
 		}
 
 		// Compute WOut_fI (Taking BCs into account if applicable)
-		if (BC == 0 || (BC % 10000 > 50)) { // Internal/Periodic FACET
+		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACET
 			if (0 && VOut->Eclass == C_TP) {
 				; // update this with sum factorization
 			} else if (1 || VOut->Eclass == C_SI || VOut->Eclass == C_PYR) {

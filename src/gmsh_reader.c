@@ -30,6 +30,7 @@
  *			format specified below for the definition of Points, Lines, Surfaces, and Volumes in gmsh. This is not
  *			required when periodicity is not present. In this case, Lines and Surfaces are generally defined with
  *			arbitrary numbering within the appropriate range.
+ *			Note: The numbering convention can be changed by changing the appropriate magic numbers in parameters.h.
  *
  *			Numbering (Geometry) :
  *
@@ -277,7 +278,7 @@ void gmsh_reader(void)
 				PVePossibleOver[i] = NVe;
 
 			for (E = 0, IndPVe = 0; E < Vs; E++) {
-				if ((ETags[E*2+0] % 10000 >= 51) && (ETags[E*2+0] % 10000 <= 56)) {
+				if ((ETags[E*2+0] % BC_STEP_SC >= PERIODIC_XL) && (ETags[E*2+0] % BC_STEP_SC <= PERIODIC_ZR)) {
 					ELEMENT = DB.ELEMENT; while(ELEMENT->type != EType[E]) ELEMENT = ELEMENT->next;
 					for (i = 0; i < ELEMENT->Nve; i++) {
 						PVePossibleOver[IndPVe] = EToVe[E*8+i];
@@ -442,12 +443,12 @@ void gmsh_reader(void)
 					VeS = malloc(NnS*dim * sizeof *VeS); // free
 					VeM = malloc(NnS*dim * sizeof *VeM); // free
 
-					if (TagS > 1000 && TagS <= 2000) IndVeXYZ[0] = 0;                  // dim = 1: x-variable
-					if (TagS > 2000 && TagS <= 3000) IndVeXYZ[0] = 1;                  // dim = 1: y-variable
-					if (TagS > 3000 && TagS <= 4000) IndVeXYZ[0] = 2;                  // dim = 1: z-variable
-					if (TagS > 4000 && TagS <= 5000) IndVeXYZ[0] = 0, IndVeXYZ[1] = 1; // dim = 2: xy-variable
-					if (TagS > 5000 && TagS <= 6000) IndVeXYZ[0] = 0, IndVeXYZ[1] = 2; // dim = 2: xz-variable
-					if (TagS > 6000 && TagS <= 7000) IndVeXYZ[0] = 1, IndVeXYZ[1] = 2; // dim = 2: yz-variable
+					if (TagS >= GMSH_XLINE_MIN  && TagS < GMSH_YLINE_MIN)  IndVeXYZ[0] = 0;
+					if (TagS >= GMSH_YLINE_MIN  && TagS < GMSH_ZLINE_MIN)  IndVeXYZ[0] = 1;
+					if (TagS >= GMSH_ZLINE_MIN  && TagS < GMSH_XYFACE_MIN) IndVeXYZ[0] = 2;
+					if (TagS >= GMSH_XYFACE_MIN && TagS < GMSH_XZFACE_MIN) IndVeXYZ[0] = 0, IndVeXYZ[1] = 1;
+					if (TagS >= GMSH_XZFACE_MIN && TagS < GMSH_YZFACE_MIN) IndVeXYZ[0] = 0, IndVeXYZ[1] = 2;
+					if (TagS >= GMSH_YZFACE_MIN && TagS < GMSH_XYZVOL_MIN) IndVeXYZ[0] = 1, IndVeXYZ[1] = 2;
 
 					for (i = 0; i < NnS; i++) {
 					for (j = 0; j < dim; j++) {

@@ -23,6 +23,135 @@
  *	References:
 */
 
+static void compute_distance_matrix(const unsigned int Nn, const unsigned int BC, const unsigned int d, double *XYZIn,
+                                    double *XYZOut, double *DXYZ)
+{
+	// Standard datatypes
+	unsigned int i, j, k, kMax,
+	             tmp_ui, IndDXYZ, IndComp[2];
+	double       tmp_d;
+
+	if (d == 1)
+		return;
+
+	for (i = 0; i < Nn; i++) {
+	for (j = 0; j < Nn; j++) {
+		tmp_ui = BC % BC_STEP_SC;
+		if (tmp_ui > BC_PERIODIC_MIN) { // special case for periodic
+			if (d == 3) {
+				if      ((tmp_ui - BC_PERIODIC_MIN)/2 == 1) IndComp[0] = 1, IndComp[1] = 2; // Periodic in X
+				else if ((tmp_ui - BC_PERIODIC_MIN)/2 == 2) IndComp[0] = 0, IndComp[1] = 2; // Periodic in Y
+				else if ((tmp_ui - BC_PERIODIC_MIN)/2 == 3) IndComp[0] = 0, IndComp[1] = 1; // Periodic in Z
+			} else if (d == 2) {
+				if      ((tmp_ui - BC_PERIODIC_MIN)/2 == 1) IndComp[0] = 1; // Periodic in X
+				else if ((tmp_ui - BC_PERIODIC_MIN)/2 == 2) IndComp[0] = 0; // Periodic in Y
+			}
+			IndDXYZ = i*Nn+j;
+			for (k = 0, kMax = d-1; k < kMax; k++) {
+				tmp_d = fabs(XYZIn[i*d+IndComp[k]]-XYZOut[j*d+IndComp[k]]);
+				if (tmp_d > DXYZ[IndDXYZ])
+					DXYZ[IndDXYZ] = tmp_d;
+			}
+		} else {
+			DXYZ[i*Nn+j] = array_norm_diff_d(d,&XYZIn[i*d],&XYZOut[j*d],"Inf");
+		}
+	}}
+}
+
+static void get_ordering_index(const unsigned int Nn, const unsigned int d, double *DXYZ, unsigned int *IndOrdInOut,
+                               unsigned int *IndOrdOutIn)
+{
+	/*
+	 *	Purpose:
+	 *		Return the ordering index corresponding to the match between two FACETs based on DXYZ.
+	 *
+	 *	Comments:
+	 *		In 1D, IndOrdInOut == IndOrdOutIn == 0.
+	 *		In 2D, IndOrdInOut == IndOrdOutIn.
+	 *
+	 *	Notation:
+	 *		IndZerosP : (Ind)ices of (Zeros) which are (P)ossible.
+	 */
+
+	if (d == 1) {
+		*IndOrdInOut = 0;
+		*IndOrdOutIn = 0;
+		return;
+	} else {
+		unsigned int i, j,
+					 IndZerosInOut[Nn], IndZerosOutIn[Nn];
+		double       zero[1] = {0.0};
+
+		// Find indices of zeros in DXYZ
+		for (i = 0; i < Nn; i++) {
+		for (j = 0; j < Nn; j++) {
+//printf("%d %d\n",i,j);
+			if (array_norm_diff_d(1,&DXYZ[i*Nn+j],zero,"Inf") < EPS) {
+				IndZerosInOut[i] = j;
+				break;
+			}
+		}}
+//array_print_ui(1,Nn,IndZerosInOut,'R');
+
+		if (d == 3) {
+			// Transpose DXYZ and find Out->In Ordering as well
+			mkl_dimatcopy('R','T',Nn,Nn,1.0,DXYZ,Nn,Nn);
+
+			// Find indices of zeros in DXYZ'
+			for (i = 0; i < Nn; i++) {
+			for (j = 0; j < Nn; j++) {
+				if (array_norm_diff_d(1,&DXYZ[i*Nn+j],zero,"Inf") < EPS) {
+					IndZerosOutIn[i] = j;
+					break;
+				}
+			}}
+
+
+			if (Nn == 4) { // QUAD FACET
+				unsigned int IndZerosP[32] = { 0, 1, 2, 3,
+				                               2, 0, 3, 1,
+				                               3, 2, 1, 0,
+				                               1, 3, 0, 2,
+				                               0, 2, 1, 3,
+				                               1, 0, 3, 2,
+				                               3, 1, 2, 0,
+				                               2, 3, 0, 1};
+
+				for (i = 0; i < 8; i++) {
+					if (array_norm_diff_ui(Nn,IndZerosInOut,&IndZerosP[i*Nn],"Inf") < EPS)
+						*IndOrdInOut = i;
+					if (array_norm_diff_ui(Nn,IndZerosOutIn,&IndZerosP[i*Nn],"Inf") < EPS)
+						*IndOrdOutIn = i;
+				}
+			} else if (Nn == 3) { // TRI FACET
+				unsigned int IndZerosP[18] = { 0, 1, 2,
+				                               2, 0, 1,
+				                               1, 2, 0,
+				                               0, 2, 1,
+				                               1, 0, 2,
+				                               2, 1, 0};
+
+				for (i = 0; i < 6; i++) {
+					if (array_norm_diff_ui(Nn,IndZerosInOut,&IndZerosP[i*Nn],"Inf") < EPS)
+						*IndOrdInOut = i;
+					if (array_norm_diff_ui(Nn,IndZerosOutIn,&IndZerosP[i*Nn],"Inf") < EPS)
+						*IndOrdOutIn = i;
+				}
+			}
+		} else if (d == 2) {
+			unsigned int IndZerosP[4] = { 0, 1,
+			                              1, 0};
+			for (i = 0; i < 2; i++) {
+				if (array_norm_diff_ui(Nn,IndZerosInOut,&IndZerosP[i*Nn],"Inf") < EPS) {
+					*IndOrdInOut = i;
+					*IndOrdOutIn = i;
+					return;
+				}
+			}
+		}
+	}
+}
+
 void setup_structures(void)
 {
 	// Initialize DB Parameters
@@ -54,13 +183,13 @@ void setup_structures(void)
 
 	// Standard datatypes
 	unsigned int i, iMax, f, v, dim, ve, gf, curved,
-	             IndE, IndVC, IndVgrp, IndGFC, IndVIn, IndVeF, Indf, Indsf,
+	             IndE, IndVC, IndVgrp, IndGFC, IndVIn, IndVeF, Indf, Indsf, IndOrdInOut, IndOrdOutIn,
 	             Vs, vlocal, NVlocal, NECgrp, NVgrp, Vf,
 	             Nve,*Nfve, *Nfref, Nfn,
 				 indexg, NvnGs,
 	             uMPIrank,
 	             *GFToV, *GF_Nv;
-	double       *XYZ_vC, *VeF, *XYZIn_fC, *XYZOut_fC;
+	double       *XYZ_vC, *VeF, *XYZIn_fC, *XYZOut_fC, *DXYZ;
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME, **Vgrp, **Vgrp_tmp;
@@ -68,6 +197,8 @@ void setup_structures(void)
 
 	// silence
 	NECgrp = 0;
+	IndOrdInOut = 0;
+	IndOrdOutIn = 0;
 
 	uMPIrank = MPIrank;
 
@@ -255,6 +386,7 @@ void setup_structures(void)
 
 		// Obtain XYZIn_fC/XYZOut_fC
 		VOLUME  = FACET[0]->VIn;
+printf("%d\n",VOLUME->indexg);
 		Vf      = FACET[0]->VfIn;
 		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
 		Indsf   = Vf % NfrefMax; // sub face index (ToBeDeleted: Move to notation)
@@ -280,6 +412,7 @@ void setup_structures(void)
 		mm_CTN_d(Nfve[Indf],d,Nve,&VeF[IndVeF],XYZ_vC,XYZIn_fC);
 
 		VOLUME  = FACET[0]->VOut;
+printf("%d\n",VOLUME->indexg);
 		Vf      = FACET[0]->VfOut;
 		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
 		Indsf   = Vf % NfrefMax; // sub face index (ToBeDeleted: Move to notation)
@@ -311,17 +444,25 @@ array_print_d(NvnGs,d,FACET[0]->VOut->XYZ_vC,'C');
 array_print_d(Nfve[Indf],d,XYZOut_fC,'C');
 
 		// Compute distance matrix
-		Nfn = Nfve[Indf];
+		Nfn  = Nfve[Indf];
 		DXYZ = calloc(Nfn*Nfn , sizeof *DXYZ); // free
-		for (i = 0; i < Nfn; i++) {
-		for (j = 0; j < Nfn; j++) {
-			if (FACET[0].BC % 10000 > 50) { // special case for periodic
+		compute_distance_matrix(Nfn,FACET[0]->BC,d,XYZIn_fC,XYZOut_fC,DXYZ);
 
-			} else {
-			}
-		}}
-			
+array_print_d(Nfn,Nfn,DXYZ,'R');
 
+		// Obtain the index of corresponding ordering between FACETs
+		get_ordering_index(Nfn,d,DXYZ,&IndOrdInOut,&IndOrdOutIn);
+
+printf("%d %d\n",IndOrdInOut,IndOrdOutIn);
+
+/* 1) Here: Find number of FACET nodes for integration (or whatever other operator is needed)
+ * 2) Here: Find node reordering
+ * 3) In explicit_FACET_info: Check using VOLUME->What projected to the FACET. Modify What to be different at each
+ *    point so that you can check this as this may not be the case based on the initial solution.
+ */
+
+// 1) Given PF  => NfnI[PF][IndClass]
+// 2) THINK
 
 		free(XYZIn_fC);
 		free(XYZOut_fC);

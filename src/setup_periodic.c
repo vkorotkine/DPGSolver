@@ -6,6 +6,7 @@
 
 #include "database.h"
 #include "functions.h"
+#include "parameters.h"
 
 #include "petscsys.h"
 
@@ -87,11 +88,11 @@ void setup_periodic()
 
 	for (dim = 0, IndPFM = 0, IndPFS = 0; dim < d; dim++) {
 		for (E = Fs; E < Vs; E++) {
-			if (ETags[E*2+0] % 10000 == (51+2*dim)) {
+			if (ETags[E*2+0] % BC_STEP_SC == (PERIODIC_XL+2*dim)) {
 				NPF[dim] += 1;
 				PFTypeMOver[IndPFM] = EType[E];
 				IndPFM++;
-			} else if (ETags[E*2+0] % 10000 == (52+2*dim)) {
+			} else if (ETags[E*2+0] % BC_STEP_SC == (PERIODIC_XR+2*dim)) {
 				PFTypeSOver[IndPFS] = EType[E];
 				IndPFS++;
 			}
@@ -135,12 +136,12 @@ void setup_periodic()
 	for (dim = 0, IndPFM = 0, IndPFS = 0; dim < d; dim++) {
 		for (i = 0; i < NV; i++) {
 		for (j = 0; j < NfMax; j++) {
-			if (VToBC[i*NfMax+j] % 10000 == (51+2*dim)) {
+			if (VToBC[i*NfMax+j] % BC_STEP_SC == (PERIODIC_XL+2*dim)) {
 				PFVFIndM[IndPFM*2  ] = i;
 				PFVFIndM[IndPFM*2+1] = j;
 				PFToGFM[IndPFM]  = VToGF[i*NfMax+j];
 				IndPFM++;
-			} else if (VToBC[i*NfMax+j] % 10000 == (52+2*dim)) {
+			} else if (VToBC[i*NfMax+j] % BC_STEP_SC == (PERIODIC_XR+2*dim)) {
 				PFVFIndS[IndPFS*2  ] = i;
 				PFVFIndS[IndPFS*2+1] = j;
 				PFToGFS[IndPFS]  = VToGF[i*NfMax+j];
