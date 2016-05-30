@@ -9,7 +9,7 @@
 
 /*
  *	Purpose:
- *		Simple element-related functions:
+ *		Provide simple element-related functions: (ToBeModified)
  *			int        is_ELEMENT_present(const unsigned int type);
  *			*S_ELEMENT get_ELEMENT_type(const unsigned int type);
  *			*S_ELEMENT get_ELEMENT_Eclass(const unsigned int Eclass, const unsigned int Esubclass);
@@ -91,6 +91,38 @@ struct S_ELEMENT *get_ELEMENT_Eclass(const unsigned int type, const unsigned int
 		}
 	}
 	printf("Error: Element class not found.\n"), exit(1);
+}
+
+struct S_ELEMENT *get_ELEMENT_FACET(const unsigned int type, const unsigned int IndEclass)
+{
+	struct S_ELEMENT *ELEMENT = DB.ELEMENT;
+
+	if (type == LINE) {
+		while (ELEMENT != NULL) {
+			if (ELEMENT->type == POINT)
+				return ELEMENT;
+			ELEMENT = ELEMENT->next;
+		}
+	} else if (type == TRI || type == QUAD) {
+		while (ELEMENT != NULL) {
+			if (ELEMENT->type == LINE)
+				return ELEMENT;
+			ELEMENT = ELEMENT->next;
+		}
+	} else if (type == TET || (type == WEDGE && IndEclass == 1) || (type == PYR && IndEclass == 0)) {
+		while (ELEMENT != NULL) {
+			if (ELEMENT->type == TRI)
+				return ELEMENT;
+			ELEMENT = ELEMENT->next;
+		}
+	} else if (type == HEX || (type == WEDGE && IndEclass == 0) || (type == PYR && IndEclass == 1)) {
+		while (ELEMENT != NULL) {
+			if (ELEMENT->type == QUAD)
+				return ELEMENT;
+			ELEMENT = ELEMENT->next;
+		}
+	}
+	printf("Error: Element FACET not found.\n"), exit(1);
 }
 
 unsigned int get_IndFType(const unsigned int Eclass, const unsigned int f)

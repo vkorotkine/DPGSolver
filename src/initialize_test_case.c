@@ -118,17 +118,27 @@ static void initialize_PeriodicVortex(void)
 
 		rho = &U[NvnS*0];
 		u   = &U[NvnS*1];
-		u   = &U[NvnS*1];
 		v   = &U[NvnS*2];
 		w   = &U[NvnS*3];
 		p   = &U[NvnS*4];
 
 		for (n = 0; n < NvnS; n++) {
+/*
 			u[n]   = uInf - C*(Y_vS[n]-Yc)/(Rc*Rc)*exp(-0.5*r2[n]);
 			v[n]   = vInf + C*(X_vS[n]-Xc)/(Rc*Rc)*exp(-0.5*r2[n]);
 			w[n]   = 0.0;
 			p[n]   = pInf - rhoInf*(C*C)/(2*Rc*Rc)*exp(-r2[n]);
 			rho[n] = rhoInf;
+*/
+
+			u[n]   = X_vS[n];
+			v[n]   = Y_vS[n];
+			if (DB.d == 3)
+				w[n]   = XYZ_vS[2*NvnS+n];
+			else
+				w[n]   = 0.0;
+			p[n]   = 0.0;
+			rho[n] = 1.0;
 		}
 
 		convert_variables(U,W,3,d,NvnS,'p','c');

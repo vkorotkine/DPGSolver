@@ -117,6 +117,9 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->Ds_Weak   = calloc(NP , sizeof *(ELEMENT->Ds_Weak));   // free
 	ELEMENT->Dc_Weak   = calloc(NP , sizeof *(ELEMENT->Dc_Weak));   // free
 
+	ELEMENT->nOrd_fIs  = calloc(NP , sizeof *(ELEMENT->nOrd_fIs));  // free
+	ELEMENT->nOrd_fIc  = calloc(NP , sizeof *(ELEMENT->nOrd_fIc));  // free
+
 	for (P = 0; P < NP; P++) {
 		ELEMENT->NfnIs[P]     = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnIs));
 		ELEMENT->NfnIc[P]     = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnIc));
@@ -160,7 +163,11 @@ struct S_ELEMENT *New_ELEMENT(void)
 			ELEMENT->I_vCc_fIs[P][Pb] = calloc(NFREFMAX*NFMAX, sizeof ***(ELEMENT->I_vCc_fIs));
 			ELEMENT->I_vCc_fIc[P][Pb] = calloc(NFREFMAX*NFMAX, sizeof ***(ELEMENT->I_vCc_fIc));
 		}
+
+		ELEMENT->nOrd_fIs[P] = calloc(NFORDMAX, sizeof **(ELEMENT->nOrd_fIs));
+		ELEMENT->nOrd_fIc[P] = calloc(NFORDMAX, sizeof **(ELEMENT->nOrd_fIc));
 	}
+
 
 
 
@@ -230,7 +237,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 
 	ELEMENT->next = NULL;
-	ELEMENT->ELEMENTclass = calloc(NESUBCMAX , sizeof *(ELEMENT->ELEMENTclass)); // free
+	ELEMENT->ELEMENTclass  = calloc(NESUBCMAX  , sizeof *(ELEMENT->ELEMENTclass)); // free
+	ELEMENT->ELEMENT_FACET = calloc(NFMIXEDMAX , sizeof *(ELEMENT->ELEMENTclass)); // free
 
 	return ELEMENT;
 }
@@ -289,6 +297,7 @@ struct S_FACET *New_FACET(void)
 	// Structures
 	FACET->indexg = 0;
 	FACET->P      = 0;
+	FACET->type   = 0;
 	FACET->VfIn   = 0;
 	FACET->VfOut  = 0;
 	FACET->BC     = 0;
@@ -297,6 +306,9 @@ struct S_FACET *New_FACET(void)
 	FACET->VOut  = NULL; // free (in memory_destructor_V)
 	FACET->VfIn  = 0;
 	FACET->VfOut = 0;
+
+	FACET->IndOrdInOut = 0;
+	FACET->IndOrdOutIn = 0;
 
 	// Geometry
 	FACET->curved  = 0;

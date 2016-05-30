@@ -185,15 +185,23 @@ void setup_mesh()
 
 	// No additional ELEMENTs
 
-	// Set pointers for ELEMENT classes
+	// Set pointers for ELEMENT classes and ELEMENT FACETs
 	for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
 		type = ELEMENT->type;
-		if (type == POINT || type == LINE || type == QUAD || type == HEX ||
-			type == TRI || type == TET || type == PYR) {
-				ELEMENT->ELEMENTclass[0] = get_ELEMENT_Eclass(ELEMENT->type,0);
+		if (type == POINT) {
+			ELEMENT->ELEMENTclass[0]  = get_ELEMENT_Eclass(ELEMENT->type,0);
+		} else if (type == LINE || type == QUAD || type == HEX || type == TRI || type == TET) {
+			ELEMENT->ELEMENTclass[0]  = get_ELEMENT_Eclass(ELEMENT->type,0);
+			ELEMENT->ELEMENT_FACET[0] = get_ELEMENT_FACET(ELEMENT->type,0);
+		} else if (type == PYR) {
+			ELEMENT->ELEMENTclass[0]  = get_ELEMENT_Eclass(ELEMENT->type,0);
+			ELEMENT->ELEMENT_FACET[0] = get_ELEMENT_FACET(ELEMENT->type,0);
+			ELEMENT->ELEMENT_FACET[1] = get_ELEMENT_FACET(ELEMENT->type,1);
 		} else if (type == WEDGE) {
-			ELEMENT->ELEMENTclass[0] = get_ELEMENT_Eclass(ELEMENT->type,0);
-			ELEMENT->ELEMENTclass[1] = get_ELEMENT_Eclass(ELEMENT->type,1);
+			ELEMENT->ELEMENTclass[0]  = get_ELEMENT_Eclass(ELEMENT->type,0);
+			ELEMENT->ELEMENTclass[1]  = get_ELEMENT_Eclass(ELEMENT->type,1);
+			ELEMENT->ELEMENT_FACET[0] = get_ELEMENT_FACET(ELEMENT->type,0);
+			ELEMENT->ELEMENT_FACET[1] = get_ELEMENT_FACET(ELEMENT->type,1);
 		}
 	}
 

@@ -102,6 +102,9 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free3_d(NP,d,ELEMENT->Ds_Weak);
 	array_free3_d(NP,d,ELEMENT->Dc_Weak);
 
+	array_free3_ui(NP,NFORDMAX,ELEMENT->nOrd_fIs);
+	array_free3_ui(NP,NFORDMAX,ELEMENT->nOrd_fIc);
+
 	// VOLUME Nodes
 /*
 	array_free2_d(1 ,ELEMENT->rst_vGs);
@@ -140,6 +143,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->NfnIc);
 */
 	free(ELEMENT->ELEMENTclass);
+	free(ELEMENT->ELEMENT_FACET);
 
 	free(ELEMENT);
 }

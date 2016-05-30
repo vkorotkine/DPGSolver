@@ -181,6 +181,7 @@ int main(void)
 	test_imp_plotting();
 
 	test_imp_fluxes_inviscid();
+	test_imp_get_facet_ordering();
 
 	te = clock();
 

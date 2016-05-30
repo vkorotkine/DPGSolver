@@ -66,7 +66,8 @@ struct S_ELEMENT {
 	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS,
 	             **NfnIs, **NfnIc,
 	             *Nfref, *NfMixed,
-	             *connectivity, *connect_types;
+	             *connectivity, *connect_types,
+	             ***nOrd_fIs, ***nOrd_fIc;
 	double       *VeF, *nr,
 	//             **rst_vGs, **rst_vGc, **rst_vCs, **rst_vCc, **rst_vJs, **rst_vJc, **rst_vS, **rst_vF, **rst_vFrs, **rst_vFrc,
 	//             **rst_vIs, **rst_vIc,
@@ -90,12 +91,12 @@ struct S_ELEMENT {
 	             ***Ds_Weak, ***Dc_Weak;
 
 	struct S_ELEMENT *next;
-	struct S_ELEMENT **ELEMENTclass;
+	struct S_ELEMENT **ELEMENTclass, **ELEMENT_FACET;
 };
 
 struct S_VOLUME {
 	// Structures
-	unsigned int indexl, indexg, P, type, Eclass, curved, 
+	unsigned int indexl, indexg, P, type, Eclass, curved,
 	             *Vneigh, *Fneigh;
 	double *XYZ_vC;
 
@@ -117,7 +118,7 @@ struct S_VOLUME {
 
 struct S_FACET {
 	// Structures
-	unsigned int P, VfIn, VfOut, indexg, BC;
+	unsigned int P, type, VfIn, VfOut, indexg, BC, IndOrdInOut, IndOrdOutIn;
 
 	// Geometry
 	char   curved, typeInt;

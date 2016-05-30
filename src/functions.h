@@ -71,6 +71,9 @@ extern void initialize_test_case   (void);
 extern void solver_RK4_low_storage (void);
 extern void   explicit_VOLUME_info (void);
 extern void   explicit_FACET_info  (void);
+extern void     get_facet_ordering(const unsigned int d, const unsigned int IndOrd, const unsigned int FType,
+                                   const unsigned int Ns, const unsigned int Nn, const unsigned int *symms,
+                                   unsigned int *nOrd);
 
 // Fluxes
 extern void flux_inviscid (const unsigned int Nn, const unsigned int Nel, double *W, double *F, const unsigned int d,
@@ -115,6 +118,7 @@ extern unsigned int     is_ELEMENT_present  (const unsigned int type);
 extern unsigned int     get_Eclass          (const unsigned int type);
 extern struct S_ELEMENT *get_ELEMENT_type   (const unsigned int type);
 extern struct S_ELEMENT *get_ELEMENT_Eclass (const unsigned int type, const unsigned int IndEclass);
+extern struct S_ELEMENT *get_ELEMENT_FACET  (const unsigned int type, const unsigned int IndEclass);
 extern unsigned int     get_IndFType        (const unsigned int Eclass, const unsigned int f);
 
 // Variable related functions

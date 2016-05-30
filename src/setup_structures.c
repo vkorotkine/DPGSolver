@@ -114,13 +114,13 @@ static void get_ordering_index(const unsigned int Nn, const unsigned int d, doub
 
 			if (Nn == 4) { // QUAD FACET
 				unsigned int IndZerosP[32] = { 0, 1, 2, 3,
-				                               2, 0, 3, 1,
-				                               3, 2, 1, 0,
-				                               1, 3, 0, 2,
-				                               0, 2, 1, 3,
 				                               1, 0, 3, 2,
-				                               3, 1, 2, 0,
-				                               2, 3, 0, 1};
+				                               2, 3, 0, 1,
+				                               3, 2, 1, 0,
+				                               0, 2, 1, 3,
+				                               2, 0, 3, 1,
+				                               1, 3, 0, 2,
+				                               3, 1, 2, 0};
 
 				for (i = 0; i < 8; i++) {
 					if (array_norm_diff_ui(Nn,IndZerosInOut,&IndZerosP[i*Nn],"Inf") < EPS)
@@ -130,11 +130,11 @@ static void get_ordering_index(const unsigned int Nn, const unsigned int d, doub
 				}
 			} else if (Nn == 3) { // TRI FACET
 				unsigned int IndZerosP[18] = { 0, 1, 2,
-				                               2, 0, 1,
 				                               1, 2, 0,
+				                               2, 0, 1,
 				                               0, 2, 1,
-				                               1, 0, 2,
-				                               2, 1, 0};
+				                               2, 1, 0,
+				                               1, 0, 2};
 
 				for (i = 0; i < 6; i++) {
 					if (array_norm_diff_ui(Nn,IndZerosInOut,&IndZerosP[i*Nn],"Inf") < EPS)
@@ -197,7 +197,7 @@ void setup_structures(void)
 	double       *XYZ_vC, *VeF, *XYZIn_fC, *XYZOut_fC, *DXYZ;
 
 	struct S_ELEMENT *ELEMENT;
-	struct S_VOLUME  *VOLUME, **Vgrp, **Vgrp_tmp;
+	struct S_VOLUME  *VOLUME, **Vgrp, **Vgrp_tmp, *VIn, *VOut;
 	struct S_FACET   **FACET, **FoundFACET;
 
 	// silence
@@ -249,25 +249,6 @@ void setup_structures(void)
 			} else {
 				VOLUME->curved = 0;
 			}
-
-			// Connectivity
-			/*	Element connectivity numbering will be based on numbering supporting h-refinement; for this reason it may
-			 *	seem overly complex while storing the connectivity information on the initially conforming mesh.
-			 *	Supported h-refinements include:
-			 *		TET: Isotropic refinement into 4 TET, 2 PYR (PYR orientation tbd)
-			 *		HEX: Isotropic and anisotropic refinement of opposite facets into 2 horizontal, 2 vertical, 4 equal
-			 *		     QUADs.
-			 *		WEDGE: Isotropic refinement of opposing TRI facets, isotropic and anisotropic refinement of all QUAD
-			 *		       facets.
-			 *		PYR: Isotropic refinement into 6 PYR, 4 TET.
-			 *	Max number of faces (including all h-refined variations:
-			 *		TET: 4*(1+4) = 20
-			 *		HEX: 6*(1+2*2+4) = 54
-			 *		WEDGE: 2*(1+4)+3*(1+2*2+4) = 37
-			 *		PYR: 4*(1+4)+1*(1+2*2+4) = 25
-			 *
-			 *			MAX FACES: 6*9 = 54
-			 */
 
 			// FACETs adjacent to VOLUMEs on the current processor.
 			// Note that GFC and VToGF cycle through the global FACET indices in order
@@ -387,11 +368,31 @@ void setup_structures(void)
 
 	for (FACET[0] = DB.FACET; FACET[0] != NULL; FACET[0] = FACET[0]->next) {
 // May potentially have a problem for PYR-HEX interface due to PYR nodes being ordered for symmetry while QUAD nodes are
-// order for TP extension. (ToBeDeleted)
+// ordered for TP extension. (ToBeDeleted)
+// Probably not as the FACET nodes would not be related to the PYR node ordering.
+
+		// Obtain FACET type
+		VOLUME  = FACET[0]->VIn;
+		Vf      = FACET[0]->VfIn;
+		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
+		Indsf   = Vf % NfrefMax; // sub face index (ToBeDeleted: Move to notation)
+
+		if (d == 1) {
+			FACET[0]->type = POINT;
+		} else if (d == 2) {
+			FACET[0]->type = LINE;
+		} else if (d == 3) {
+			VIn  = FACET[0]->VIn;
+			VOut = FACET[0]->VOut;
+
+			if (VIn->type == TET || (VIn->type == WEDGE && Indf > 2) || (VIn->type == PYR && Indf < 4))
+				FACET[0]->type = TRI;
+			else
+				FACET[0]->type = QUAD;
+		}
 
 		// Obtain XYZIn_fC/XYZOut_fC
 		VOLUME  = FACET[0]->VIn;
-printf("%d\n",VOLUME->indexg);
 		Vf      = FACET[0]->VfIn;
 		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
 		Indsf   = Vf % NfrefMax; // sub face index (ToBeDeleted: Move to notation)
@@ -417,7 +418,6 @@ printf("%d\n",VOLUME->indexg);
 		mm_CTN_d(Nfve[Indf],d,Nve,&VeF[IndVeF],XYZ_vC,XYZIn_fC);
 
 		VOLUME  = FACET[0]->VOut;
-printf("%d\n",VOLUME->indexg);
 		Vf      = FACET[0]->VfOut;
 		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
 		Indsf   = Vf % NfrefMax; // sub face index (ToBeDeleted: Move to notation)
@@ -442,39 +442,36 @@ printf("%d\n",VOLUME->indexg);
 		XYZOut_fC = malloc(Nfve[Indf]*d * sizeof *XYZOut_fC); // free
 		mm_CTN_d(Nfve[Indf],d,Nve,&VeF[IndVeF],XYZ_vC,XYZOut_fC);
 
-array_print_d(NvnGs,d,XYZ_vC,'C');
-array_print_d(Nfve[Indf],d,XYZIn_fC,'C');
+//array_print_d(NvnGs,d,XYZ_vC,'C');
+//array_print_d(Nfve[Indf],d,XYZIn_fC,'C');
 
-array_print_d(NvnGs,d,FACET[0]->VOut->XYZ_vC,'C');
-array_print_d(Nfve[Indf],d,XYZOut_fC,'C');
+//array_print_d(NvnGs,d,FACET[0]->VOut->XYZ_vC,'C');
+//array_print_d(Nfve[Indf],d,XYZOut_fC,'C');
 
 		// Compute distance matrix
 		Nfn  = Nfve[Indf];
 		DXYZ = calloc(Nfn*Nfn , sizeof *DXYZ); // free
 		compute_distance_matrix(Nfn,FACET[0]->BC,d,XYZIn_fC,XYZOut_fC,DXYZ);
 
-array_print_d(Nfn,Nfn,DXYZ,'R');
+//array_print_d(Nfn,Nfn,DXYZ,'R');
 
 		// Obtain the index of corresponding ordering between FACETs
 		get_ordering_index(Nfn,d,DXYZ,&IndOrdInOut,&IndOrdOutIn);
 
-printf("%d %d\n",IndOrdInOut,IndOrdOutIn);
+		FACET[0]->IndOrdInOut = IndOrdInOut;
+		FACET[0]->IndOrdOutIn = IndOrdOutIn;
 
-/* 1) Here: Find number of FACET nodes for integration (or whatever other operator is needed)
- * 2) Here: Find node reordering
- * 3) In explicit_FACET_info: Check using VOLUME->What projected to the FACET. Modify What to be different at each
- *    point so that you can check this as this may not be the case based on the initial solution.
- */
+//printf("InOut: %d %d\n",IndOrdInOut,IndOrdOutIn);
 
-// 1) Given PF  => NfnI[PF][IndClass]
-// 2) THINK
+//printf("%d %d\n",ELEMENT->NfnIc[2][0],ELEMENT->ELEMENT_FACET[0]->type);
+//P = 3;
+//for (i = 0; i < 6; i++)
+//	array_print_ui(1,ELEMENT->NfnIc[P][0],ELEMENT->ELEMENT_FACET[0]->nOrd_fIc[P][i],'R');
 
 		free(XYZIn_fC);
 		free(XYZOut_fC);
 
 		free(DXYZ);
-
-exit(1);
 	}
 	free(FACET);
 /*

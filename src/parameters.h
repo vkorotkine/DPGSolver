@@ -21,6 +21,7 @@
  *		NFMAX           : (MAX)imum (N)umber of (F)ACET for an element.
  *		NFMIXEDMAX      : (MAX)imum (N)umber of (MIXED) (F)ACETs for an element.
  *		NESUBCMAX       : (MAX)imum (N)umber of (E)lement (SUB)(C)lasses
+ *		NFORDMAX        : (MAX)imum (N)umber of (F)ACET (ORD)ering possibilities
  *
  *	References:
  *
@@ -52,6 +53,7 @@
 #define NFMAX           6 // HEX
 #define NFMIXEDMAX      2 // WEDGE/PYR (TRI + QUAD)
 #define NESUBCMAX       2 // WEDGE (TRI + LINE)
+#define NFORDMAX        8 // QUAD
 
 #define NFREFMAXPOINT   1
 #define NFREFMAXLINE    3

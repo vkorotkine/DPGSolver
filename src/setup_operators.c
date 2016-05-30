@@ -1892,16 +1892,97 @@ static void setup_TP_operators(const unsigned int EType)
 	}
 }
 
+static void setup_ELEMENT_FACET_ordering(const unsigned int FType)
+{
+	// Returned operators
+	unsigned int ***nOrd_fIs, ***nOrd_fIc;
+
+	// Initialize DB Parameters
+	unsigned int d              = DB.d,
+	             PMax           = DB.PMax,
+	             **PIfs         = DB.PIfs,
+	             **PIfc         = DB.PIfc;
+	char         ***NodeTypeIfs = DB.NodeTypeIfs,
+	             ***NodeTypeIfc = DB.NodeTypeIfc;
+
+	// Standard datatypes
+	unsigned int P, dE,
+	             NfnIs, NfnIc, NsIs, NsIc,
+	             IndOrd, NOrd, Eclass,
+	             *symms_fIs, *symms_fIc;
+	double       *rst_fIs, *rst_fIc, *w;
+
+	struct S_ELEMENT *ELEMENT;
+
+	// Function pointers
+	cubature_tdef   cubature;
+	basis_tdef      basis;
+	grad_basis_tdef grad_basis;
+
+	select_functions(&basis,&grad_basis,&cubature,FType);
+
+	// silence
+	NfnIs = NfnIc = NsIs = NsIc = 0;
+
+	ELEMENT = get_ELEMENT_type(FType);
+	Eclass  = get_Eclass(FType);
+
+	dE = d-1;
+
+	if      (FType == POINT) NOrd = 1;
+	else if (FType == LINE)  NOrd = 2;
+	else if (FType == QUAD)  NOrd = 8;
+	else if (FType == TRI)   NOrd = 6;
+	else    printf("Error: Unsupported FType in setup_ELEMENT_FACET_ordering.\n"), exit(1);
+
+	nOrd_fIs = ELEMENT->nOrd_fIs;
+	nOrd_fIc = ELEMENT->nOrd_fIc;
+
+	for (P = 0; P <= PMax; P++) {
+		cubature(&rst_fIs,&w,&symms_fIs,&NfnIs,&NsIs,0,PIfs[P][Eclass],dE,NodeTypeIfs[P][Eclass]); // free
+		cubature(&rst_fIc,&w,&symms_fIc,&NfnIc,&NsIc,0,PIfc[P][Eclass],dE,NodeTypeIfc[P][Eclass]); // free
+		free(rst_fIs);
+		free(rst_fIc);
+
+		for (IndOrd = 0; IndOrd < NOrd; IndOrd++) {
+			nOrd_fIs[P][IndOrd] = malloc(NfnIs * sizeof ***nOrd_fIs); //  keep
+			nOrd_fIc[P][IndOrd] = malloc(NfnIc * sizeof ***nOrd_fIc); //  keep
+
+			get_facet_ordering(d,IndOrd,FType,NfnIs,NsIs,symms_fIs,nOrd_fIs[P][IndOrd]);
+			get_facet_ordering(d,IndOrd,FType,NfnIc,NsIc,symms_fIc,nOrd_fIc[P][IndOrd]);
+		}
+		free(symms_fIs);
+		free(symms_fIc);
+	}
+
+/*
+	if (FType == POINT || FType == LINE || FType == QUAD) {
+
+
+	} else if (FType == TRI) {
+
+	} else {
+		printf("Error: Unsupported FType in setup_ELEMENT_FACET_ordering.\n"), exit(1);
+	}
+*/
+
+
+}
+
 void setup_operators(void)
 {
 	// Initialize DB Parameters
+	unsigned int d = DB.d;
 
 	int  PrintTesting = 0;
 
 	// Standard datatypes
 	unsigned int EType;
 
-
+	// POINT
+	EType = POINT;
+	if (d == 1)
+		setup_ELEMENT_FACET_ordering(EType);
 
 	// LINE (Includes TP Class)
 	EType = LINE;
@@ -1909,6 +1990,8 @@ void setup_operators(void)
 	setup_ELEMENT_plotting(EType);
 	setup_ELEMENT_normals(EType);
 	setup_ELEMENT_operators(EType);
+	if (d == 2)
+		setup_ELEMENT_FACET_ordering(EType);
 
 	// QUAD
 	EType = QUAD;
@@ -1917,6 +2000,8 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
+		if (d == 3)
+			setup_ELEMENT_FACET_ordering(EType);
 	}
 
 	// HEX
@@ -1935,6 +2020,8 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
+		if (d == 3)
+			setup_ELEMENT_FACET_ordering(EType);
 	}
 
 	// TET

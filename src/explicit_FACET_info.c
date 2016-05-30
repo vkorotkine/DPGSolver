@@ -31,7 +31,7 @@
  */
 
 struct S_OPERATORS {
-	unsigned int NvnS, NfnI;
+	unsigned int NvnS, NfnI, *nOrdInOut, *nOrdOutIn;
 	double       **ChiS_fI;
 };
 
@@ -85,8 +85,12 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	 *		VCurved may not be needed here in the if condition => check when done. (ToBeDeleted)
 	 */
 
+// *** NEEDS TO BE CHANGED *** //
+unsigned int IndFACET = 0;
+// *** NEEDS TO BE CHANGED *** //
+
 	// Standard datatypes
-	unsigned int PV, PF, Vtype, Vcurved, FtypeInt;
+	unsigned int PV, PF, Vtype, Vcurved, FtypeInt, IndOrdInOut, IndOrdOutIn;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS;
 
@@ -97,7 +101,10 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	PF       = FACET->P;
 	Vtype    = VOLUME->type;
 	Vcurved  = VOLUME->curved;
-	FtypeInt = FACET->typeInt;
+
+	FtypeInt    = FACET->typeInt;
+	IndOrdInOut = FACET->IndOrdInOut;
+	IndOrdOutIn = FACET->IndOrdOutIn;
 
 	ELEMENT = get_ELEMENT_type(Vtype);
 	if (Vtype == LINE || Vtype == QUAD || Vtype == HEX || Vtype == WEDGE)
@@ -114,11 +121,17 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 			OPS->NfnI = ELEMENT_OPS->NfnIs[PF][IndClass];
 
 			OPS->ChiS_fI = ELEMENT_OPS->ChiS_fIs[PV][PF];
+
+			OPS->nOrdInOut = ELEMENT->ELEMENT_FACET[IndFACET]->nOrd_fIs[PF][IndOrdInOut];
+			OPS->nOrdOutIn = ELEMENT->ELEMENT_FACET[IndFACET]->nOrd_fIs[PF][IndOrdOutIn];
 		} else {
 			// Curved FACET Integration
 			OPS->NfnI = ELEMENT_OPS->NfnIc[PF][IndClass];
 
 			OPS->ChiS_fI = ELEMENT_OPS->ChiS_fIc[PV][PF];
+
+			OPS->nOrdInOut = ELEMENT->ELEMENT_FACET[IndFACET]->nOrd_fIc[PF][IndOrdInOut];
+			OPS->nOrdOutIn = ELEMENT->ELEMENT_FACET[IndFACET]->nOrd_fIc[PF][IndOrdOutIn];
 		}
 	} else {
 		// Curved VOLUME
@@ -128,11 +141,17 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 			OPS->NfnI = ELEMENT_OPS->NfnIs[PF][IndClass];
 
 			OPS->ChiS_fI = ELEMENT_OPS->ChiS_fIs[PV][PF];
+
+			OPS->nOrdInOut = ELEMENT->ELEMENT_FACET[IndFACET]->nOrd_fIs[PF][IndOrdInOut];
+			OPS->nOrdOutIn = ELEMENT->ELEMENT_FACET[IndFACET]->nOrd_fIs[PF][IndOrdOutIn];
 		} else {
 			// Curved FACET Integration
 			OPS->NfnI = ELEMENT_OPS->NfnIc[PF][IndClass];
 
 			OPS->ChiS_fI = ELEMENT_OPS->ChiS_fIc[PV][PF];
+
+			OPS->nOrdInOut = ELEMENT->ELEMENT_FACET[IndFACET]->nOrd_fIc[PF][IndOrdInOut];
+			OPS->nOrdOutIn = ELEMENT->ELEMENT_FACET[IndFACET]->nOrd_fIc[PF][IndOrdOutIn];
 		}
 	}
 }
@@ -145,14 +164,19 @@ static void compute_FACET_RHS_EFE(void)
 	             Neq      = DB.Neq;
 
 	// Standard datatypes
-	unsigned int i,
+	unsigned int i, j, iInd,
 	             VfIn, VfOut, fIn, fOut, Eclass, IndFType, Boundary, BC,
 	             NfnI, NvnS;
-	double       *WIn_fI, *WOut_fI, *nFluxNum_fI, *RHSIn, *RHSOut;
+	double       *WIn_fI, *WOut_fI, *WOut_fIIn, *nFluxNum_fI, *RHSIn, *RHSOut;
 
 	struct S_OPERATORS *OPSIn, *OPSOut;
 	struct S_VOLUME    *VIn, *VOut;
 	struct S_FACET     *FACET;
+	struct S_ELEMENT   *ELEMENT;
+
+	// silence
+	WOut_fI   = NULL;
+	WOut_fIIn = NULL;
 
 	OPSIn  = malloc(sizeof *OPSIn);  // free
 	OPSOut = malloc(sizeof *OPSOut); // free
@@ -208,11 +232,33 @@ array_print_d(NfnI,NvnS,OPSOut->ChiS_fI[VfOut],'R');
 			}
 
 			// Reorder WOut_fI to correspond to WIn_fI
+			ELEMENT = get_ELEMENT_type(VIn->type);
+
+printf("%d %d\n",FACET->IndOrdInOut,FACET->IndOrdOutIn);
+
+array_print_ui(1,NfnI,OPSIn->nOrdInOut,'R');
+array_print_ui(1,NfnI,OPSOut->nOrdInOut,'R');
+
+			WOut_fIIn = malloc(NfnI*Nvar * sizeof *WOut_fIIn); // free
+			for (i = 0; i < Nvar; i++) {
+				iInd = i*NfnI;
+				for (j = 0; j < NfnI; j++) {
+					if (BC % BC_STEP_SC > 50 || BC % BC_STEP_SC == 0)
+						WOut_fIIn[iInd+j] = WOut_fI[iInd+OPSIn->nOrdInOut[j]];
+					else
+						WOut_fIIn[iInd+j] = WOut_fI[iInd+j];
+				}
+			}
+
+// Not matching => Try I_vGs_fGs in setup_structures instead of VeF
+printf("%d %d %d\n",BC,VfIn,VfOut);
 array_print_d(NfnI,Nvar,WIn_fI,'C');
 array_print_d(NfnI,Nvar,WOut_fI,'C');
+array_print_d(NfnI,Nvar,WOut_fIIn,'C');
 
-			printf("Working on the vOutInIO.\n");
-			exit(1);
+if (FACET->IndOrdInOut)
+	exit(1);
+
 		} else { // Boundary FACET
 			; // Add in support for boundary conditions
 		}
@@ -245,9 +291,11 @@ array_print_d(NfnI,Nvar,WOut_fI,'C');
 
 		free(WIn_fI);
 		free(WOut_fI);
+		free(WOut_fIIn);
 		free(nFluxNum_fI);
 
 	}
+	exit(1);
 
 	free(OPSIn);
 	free(OPSOut);

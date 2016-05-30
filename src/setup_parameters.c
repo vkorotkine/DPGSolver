@@ -15,6 +15,7 @@
  *		Set up parameters based on inputs obtained in initialization.c.
  *
  *	Comments:
+ *		FACET integration nodes must be consistent between FACETs of different element types.
  *
  *		Guidelines: (ToBeModified)
  *			PF           >= P
@@ -79,7 +80,7 @@
  *
  *		NodeType()[] : Node type used for each type of node () and each type of element [].
  *		               () : (S)olution, (F)lux, (F)lux in (r)eference space, (I)ntegration
- *		                    (f)acet/(v)olume (s)traight/(c)urved 
+ *		                    (f)acet/(v)olume (s)traight/(c)urved
  *		               [] : TP [0], SI [1], PYR [2]
  *
  *	References:
@@ -369,13 +370,13 @@ void setup_parameters()
 			}
 
 			// PYR
-			strcpy(NodeTypeIfs[P][2],"NOT_USED");
-			strcpy(NodeTypeIfc[P][2],"NOT_USED");
+			strcpy(NodeTypeIfs[P][2],"WV");
+			strcpy(NodeTypeIfc[P][2],"WV");
 			strcpy(NodeTypeIvs[P][2],"GLW");
 			strcpy(NodeTypeIvc[P][2],"GLW");
 
-			PIfs[P][2] = IntOrderfs; // Not used
-			PIfc[P][2] = IntOrderfc; // Not used
+			PIfs[P][2] = IntOrderfs;
+			PIfc[P][2] = IntOrderfc;
 			PIvs[P][2] = floor(1.*IntOrdervs/2.);
 			PIvc[P][2] = floor(1.*IntOrdervc/2.);
 		} else {
@@ -433,8 +434,13 @@ void setup_parameters()
 			strcpy(NodeTypeIvs[P][1],"WSH");
 			strcpy(NodeTypeIvc[P][1],"WSH");
 			if (d == 2) {
-				strcpy(NodeTypeIfs[P][1],"GL");
-				strcpy(NodeTypeIfc[P][1],"GL");
+				if (strstr(DB.NodeType,"GLL") != NULL && P > 0) {
+					strcpy(NodeTypeIfs[P][1],"GLL");
+					strcpy(NodeTypeIfc[P][1],"GLL");
+				} else {
+					strcpy(NodeTypeIfs[P][1],"GL");
+					strcpy(NodeTypeIfc[P][1],"GL");
+				}
 			} else if (d == 3) {
 				strcpy(NodeTypeIfs[P][1],"WV");
 				strcpy(NodeTypeIfc[P][1],"WV");
