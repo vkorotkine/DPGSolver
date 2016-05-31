@@ -98,6 +98,9 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->I_vCc_vIc = calloc(NP , sizeof *(ELEMENT->I_vCc_vIc)); // free
 	ELEMENT->I_vCc_vIs = calloc(NP , sizeof *(ELEMENT->I_vCc_vIs)); // free
 
+	ELEMENT->Is_Weak   = calloc(NP , sizeof *(ELEMENT->Is_Weak));   // free
+	ELEMENT->Ic_Weak   = calloc(NP , sizeof *(ELEMENT->Ic_Weak));   // free
+
 	ELEMENT->I_vGs_fIs = calloc(NP , sizeof *(ELEMENT->I_vGs_fIs)); // free
 	ELEMENT->I_vGs_fIc = calloc(NP , sizeof *(ELEMENT->I_vGs_fIc)); // free
 	ELEMENT->I_vGc_fIs = calloc(NP , sizeof *(ELEMENT->I_vGc_fIs)); // free

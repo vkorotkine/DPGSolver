@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "database.h"
 #include "parameters.h"
@@ -13,14 +14,17 @@
  *		Compute inviscid fluxes from input W in conservative form.
  *
  *	Comments:
+ *		It is assumed that inputs: W, n and outputs: F, nFluxNum are vectorized (i.e. the memory ordering is by equation
+ *		and not by element).
+ *		Try using BLAS calls for dot products and check if there is a speed-up. (ToBeDeleted)
  *
  *	Notation:
  *
  *	References:
  */
 
-void flux_inviscid (const unsigned int Nn, const unsigned int Nel, double *W, double *F, const unsigned int d,
-                    const unsigned int Neq)
+void flux_inviscid(const unsigned int Nn, const unsigned int Nel, double *W, double *F, const unsigned int d,
+                   const unsigned int Neq)
 {
 	// Standard datatypes
 	unsigned int i, j, iMax, NnTotal;
@@ -138,4 +142,100 @@ void flux_inviscid (const unsigned int Nn, const unsigned int Nel, double *W, do
 		free(u);
 		free(p);
 	}
+}
+
+void flux_LF(const unsigned int Nn, const unsigned int Nel, double *WIn, double *WOut, double *nFluxNum,
+             double *nIn, const unsigned int d, const unsigned int Neq)
+{
+	// Standard datatypes
+	unsigned int i, iMax, jMax, NnTotal;
+	double       *rhoIn, *uIn, *vIn, *wIn, *pIn, *UIn, *rhoOut, *uOut, *vOut, *wOut, *pOut, *UOut, *FIn, *FOut, *maxV,
+	             *maxVptr, *WInptr, *WOutptr, *nxptr, *nyptr, *nzptr, *nFluxNumptr,
+	             *FxInptr, *FyInptr, *FzInptr, *FxOutptr, *FyOutptr, *FzOutptr;
+
+	NnTotal = Nn*Nel;
+
+	UIn  = malloc(NnTotal*Neq   * sizeof *UIn);  // free
+	UOut = malloc(NnTotal*Neq   * sizeof *UOut); // free
+
+	FIn  = malloc(NnTotal*Neq*d * sizeof *FIn);  // free
+	FOut = malloc(NnTotal*Neq*d * sizeof *FOut); // free
+
+	maxV = malloc(NnTotal       * sizeof *maxV); // free
+
+	convert_variables(WIn,UIn,d,d,Nn,Nel,'c','p');
+	convert_variables(WOut,UOut,d,d,Nn,Nel,'c','p');
+
+	flux_inviscid(Nn,Nel,WIn,FIn,d,Neq);
+	flux_inviscid(Nn,Nel,WOut,FOut,d,Neq);
+
+
+	rhoIn = &UIn[NnTotal*0];
+	uIn   = &UIn[NnTotal*1];
+	pIn   = &UIn[NnTotal*(d+1)];
+
+	rhoOut = &UOut[NnTotal*0];
+	uOut   = &UOut[NnTotal*1];
+	pOut   = &UOut[NnTotal*(d+1)];
+
+	if (d == 3) {
+		vIn = &UIn[NnTotal*2];
+		wIn = &UIn[NnTotal*3];
+
+		vOut = &UOut[NnTotal*2];
+		wOut = &UOut[NnTotal*3];
+
+		// Compute wave speed
+		maxVptr = maxV;
+		for (iMax = NnTotal; iMax--; ) {
+			*maxVptr = max(sqrt((*uIn)*(*uIn)+(*vIn)*(*vIn)+(*wIn)*(*wIn))       + sqrt(GAMMA*(*pIn)/(*rhoIn)),
+			               sqrt((*uOut)*(*uOut)+(*vOut)*(*vOut)+(*wOut)*(*wOut)) + sqrt(GAMMA*(*pOut)/(*rhoOut)));
+
+			maxVptr++;
+			rhoIn++; uIn++; vIn++; wIn++; pIn++;
+			rhoOut++; uOut++; vOut++; wOut++; pOut++;
+		}
+
+		// Compute n (dot) FluxNum
+		nFluxNumptr = nFluxNum;
+		WInptr      = WIn;
+		WOutptr     = WOut;
+		for (i = 0; i < Neq; i++) {
+			maxVptr  = maxV;
+
+			nxptr = &nIn[0];
+			nyptr = &nIn[1];
+			nzptr = &nIn[2];
+
+			FxInptr  = &FIn[NnTotal*(i*d+0)];
+			FyInptr  = &FIn[NnTotal*(i*d+1)];
+			FzInptr  = &FIn[NnTotal*(i*d+2)];
+			FxOutptr = &FOut[NnTotal*(i*d+0)];
+			FyOutptr = &FOut[NnTotal*(i*d+1)];
+			FzOutptr = &FOut[NnTotal*(i*d+2)];
+
+			for (jMax = NnTotal; jMax--; ) {
+if (i == 0) {
+	printf("% .4e % .4e % .4e % .4e\n",*nxptr,*FxInptr,*FxOutptr,(*nxptr)*((*FxInptr)+(*FxOutptr)));
+}
+				*nFluxNumptr = 0.5*(  (*nxptr)*((*FxInptr)+(*FxOutptr))
+				                    + (*nyptr)*((*FyInptr)+(*FyOutptr))
+				                    + (*nzptr)*((*FzInptr)+(*FzOutptr)) + (*maxVptr)*((*WInptr)-(*WOutptr)));
+
+				nFluxNumptr++;
+				nxptr += d; nyptr += d; nzptr += d;
+				FxInptr++; FxOutptr++;
+				FyInptr++; FyOutptr++;
+				FzInptr++; FzOutptr++;
+
+				maxVptr++;
+			}
+		}
+	}
+
+	free(UIn);
+	free(UOut);
+	free(FIn);
+	free(FOut);
+	free(maxV);
 }

@@ -66,10 +66,10 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	curved = VOLUME->curved;
 
 	ELEMENT = get_ELEMENT_type(type);
-	if (type == LINE || type == QUAD || type == HEX || type == WEDGE)
-		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
-	else if (type == TRI || type == TET || type == PYR)
+	if (1 || type == TRI || type == TET || type == PYR)
 		ELEMENT_OPS = ELEMENT;
+	else if (type == LINE || type == QUAD || type == HEX || type == WEDGE)
+		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
 
 	OPS->NvnS = ELEMENT_OPS->NvnS[P];
 	if (!curved) {

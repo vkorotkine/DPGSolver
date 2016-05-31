@@ -32,7 +32,7 @@ struct S_DB {
 	             **NodeTypeG,
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
-	unsigned int NP, NEC, AC, ExactGeom, PR, PP, PGs,
+	unsigned int NP, NEC, AC, ExactGeom, InviscidFluxType, PR, PP, PGs,
 	             *PGc, *PF,
 	             **SF_BE, **PCs, **PCc, **PJs, **PJc, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
@@ -82,6 +82,7 @@ struct S_ELEMENT {
 				 **I_vGc_vS,
 	             **I_vCs_vIs, **I_vCs_vIc,
 	             **I_vCc_vIs, **I_vCc_vIc,
+	             **Is_Weak, **Ic_Weak,
 	             ****I_vCs_fIs, ****I_vCs_fIc,
 	             ****I_vCc_fIs, ****I_vCc_fIc,
 	             ***D_vGs_vCs, ***D_vGs_vIs,

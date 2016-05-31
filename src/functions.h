@@ -73,11 +73,13 @@ extern void   explicit_VOLUME_info (void);
 extern void   explicit_FACET_info  (void);
 extern void     get_facet_ordering(const unsigned int d, const unsigned int IndOrd, const unsigned int FType,
                                    const unsigned int Ns, const unsigned int Nn, const unsigned int *symms,
-                                   unsigned int *nOrd);
+                                   const double *rst, unsigned int *nOrd);
 
 // Fluxes
 extern void flux_inviscid (const unsigned int Nn, const unsigned int Nel, double *W, double *F, const unsigned int d,
                            const unsigned int Neq);
+extern void flux_LF       (const unsigned int Nn, const unsigned int Nel, double *WIn, double *WOut, double *nFluxNum,
+                           double *nIn, const unsigned int d, const unsigned int Neq);
 
 // Sum Factorization
 extern void sf_operate_d (const unsigned int NOut, const unsigned int NCols, const unsigned int NIn,
@@ -123,7 +125,7 @@ extern unsigned int     get_IndFType        (const unsigned int Eclass, const un
 
 // Variable related functions
 extern void convert_variables (double *VarIn, double *VarOut, const unsigned int dIn, const unsigned int dOut,
-                               const unsigned int Nn, const char TypeIn, const char TypeOut);
+                               const unsigned int Nn, const unsigned int Nel, const char TypeIn, const char TypeOut);
 
 // Memory Management
 extern void memory_free         (void);

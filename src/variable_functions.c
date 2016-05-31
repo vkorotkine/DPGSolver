@@ -3,18 +3,16 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-//#include <math.h>
-//#include <string.h>
 
-//#include "database.h"
 #include "parameters.h"
-//#include "functions.h"
 
 /*
  *	Purpose:
  *		Provide functions relating to supported variables.
  *
  *	Comments:
+ *		It is assumed that inputs: W, n and outputs: F, nFluxNum are vectorized (i.e. the memory ordering is by equation
+ *		and not by element).
  *
  *	Notation:
  *
@@ -22,7 +20,7 @@
  */
 
 void convert_variables(double *VarIn, double *VarOut, const unsigned int dIn, const unsigned int dOut,
-                       const unsigned int Nn, const char TypeIn, const char TypeOut)
+                       const unsigned int Nn, const unsigned int Nel, const char TypeIn, const char TypeOut)
 {
 	/*
 	 *	Purpose:
@@ -38,26 +36,28 @@ void convert_variables(double *VarIn, double *VarOut, const unsigned int dIn, co
 	 */
 
 	// Standard datatypes
-	unsigned int n, varInMax = dIn + 1, varOutMax = dOut+1;
+	unsigned int n, NnTotal, varInMax = dIn + 1, varOutMax = dOut+1;
 	double       *rho, *u, *v, *w, *p, *rhou, *rhov, *rhow, *E, zeros[Nn], rhoV2[Nn], *U, *W;
 
 	// silence
 	u = NULL; v = NULL; w = NULL;
 	rhov = NULL; rhow = NULL;
 
-	for (n = 0; n < Nn; n++)
+	NnTotal = Nn*Nel;
+
+	for (n = 0; n < NnTotal; n++)
 		zeros[n] = 0.0;
 
 	switch(TypeIn) {
 	case 'p':
-		rho = &VarIn[Nn*0];
-		u   = &VarIn[Nn*1];
-		p   = &VarIn[Nn*varInMax];
+		rho = &VarIn[NnTotal*0];
+		u   = &VarIn[NnTotal*1];
+		p   = &VarIn[NnTotal*varInMax];
 		if (dIn == 3) {
-			v = &VarIn[Nn*2];
-			w = &VarIn[Nn*3];
+			v = &VarIn[NnTotal*2];
+			w = &VarIn[NnTotal*3];
 		} else if (dIn == 2) {
-			v = &VarIn[Nn*2];
+			v = &VarIn[NnTotal*2];
 			w = zeros;
 		} else if (dIn == 1) {
 			v = zeros;
@@ -67,23 +67,23 @@ void convert_variables(double *VarIn, double *VarOut, const unsigned int dIn, co
 		case 'c':
 			W = VarOut;
 
-			for (n = 0; n < Nn; n++)
+			for (n = 0; n < NnTotal; n++)
 				rhoV2[n] = rho[n]*(u[n]*u[n]+v[n]*v[n]+w[n]*w[n]);
 
-			for (n = 0; n < Nn; n++) {
-				W[0*Nn+n]      = rho[n];
-				W[1*Nn+n]      = rho[n]*u[n];
-				W[varOutMax*Nn+n] = p[n]/GM1 + 0.5*rhoV2[n];
+			for (n = 0; n < NnTotal; n++) {
+				W[0*NnTotal+n]         = rho[n];
+				W[1*NnTotal+n]         = rho[n]*u[n];
+				W[varOutMax*NnTotal+n] = p[n]/GM1 + 0.5*rhoV2[n];
 			}
 
 			if (dOut == 3) {
-				for (n = 0; n < Nn; n++) {
-					W[2*Nn+n] = rho[n]*v[n];
-					W[3*Nn+n] = rho[n]*w[n];
+				for (n = 0; n < NnTotal; n++) {
+					W[2*NnTotal+n] = rho[n]*v[n];
+					W[3*NnTotal+n] = rho[n]*w[n];
 				}
 			} else if (dOut == 2) {
-				for (n = 0; n < Nn; n++) {
-					W[2*Nn+n] = rho[n]*v[n];
+				for (n = 0; n < NnTotal; n++) {
+					W[2*NnTotal+n] = rho[n]*v[n];
 				}
 			}
 			break;
@@ -93,14 +93,14 @@ void convert_variables(double *VarIn, double *VarOut, const unsigned int dIn, co
 		}
 		break;
 	case 'c':
-		rho  = &VarIn[Nn*0];
-		rhou = &VarIn[Nn*1];
-		E    = &VarIn[Nn*varInMax];
+		rho  = &VarIn[NnTotal*0];
+		rhou = &VarIn[NnTotal*1];
+		E    = &VarIn[NnTotal*varInMax];
 		if (dIn == 3) {
-			rhov = &VarIn[Nn*2];
-			rhow = &VarIn[Nn*3];
+			rhov = &VarIn[NnTotal*2];
+			rhow = &VarIn[NnTotal*3];
 		} else if (dIn == 2) {
-			rhov = &VarIn[Nn*2];
+			rhov = &VarIn[NnTotal*2];
 			rhow = zeros;
 		} else if (dIn == 1) {
 			rhov = zeros;
@@ -110,23 +110,23 @@ void convert_variables(double *VarIn, double *VarOut, const unsigned int dIn, co
 		case 'p':
 			U = VarOut;
 
-			for (n = 0; n < Nn; n++)
+			for (n = 0; n < NnTotal; n++)
 				rhoV2[n] = (rhou[n]*rhou[n]+rhov[n]*rhov[n]+rhow[n]*rhow[n])/rho[n];
 
-			for (n = 0; n < Nn; n++) {
-				U[0*Nn+n]      = rho[n];
-				U[1*Nn+n]      = rhou[n]/rho[n];
-				U[varOutMax*Nn+n] = GM1*(E[n]-0.5*rhoV2[n]);
+			for (n = 0; n < NnTotal; n++) {
+				U[0*NnTotal+n]         = rho[n];
+				U[1*NnTotal+n]         = rhou[n]/rho[n];
+				U[varOutMax*NnTotal+n] = GM1*(E[n]-0.5*rhoV2[n]);
 			}
 
 			if (dOut == 3) {
-				for (n = 0; n < Nn; n++) {
-					U[2*Nn+n] = rhov[n]/rho[n];
-					U[3*Nn+n] = rhow[n]/rho[n];
+				for (n = 0; n < NnTotal; n++) {
+					U[2*NnTotal+n] = rhov[n]/rho[n];
+					U[3*NnTotal+n] = rhow[n]/rho[n];
 				}
 			} else if (dOut == 2) {
-				for (n = 0; n < Nn; n++) {
-					U[2*Nn+n] = rhov[n]/rho[n];
+				for (n = 0; n < NnTotal; n++) {
+					U[2*NnTotal+n] = rhov[n]/rho[n];
 				}
 			}
 			break;

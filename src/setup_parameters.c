@@ -82,6 +82,8 @@
  *		               () : (S)olution, (F)lux, (F)lux in (r)eference space, (I)ntegration
  *		                    (f)acet/(v)olume (s)traight/(c)urved
  *		               [] : TP [0], SI [1], PYR [2]
+ *		InviscidFluxType : Type of inviscid numerical flux used.
+ *		                   Options: LF, ROE
  *
  *	References:
  *
@@ -471,6 +473,10 @@ void setup_parameters()
 			}
 		}
 	}
+
+	// Solver
+	DB.InviscidFluxType = FLUX_LF;
+//	DB.InviscidFluxType = FLUX_ROE;
 
 	// Assign DB Parameters
 	DB.NP    = NP;

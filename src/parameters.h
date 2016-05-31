@@ -81,6 +81,10 @@
 #define C_PYR   2
 #define C_WEDGE 3
 
+// Flux types
+#define FLUX_LF  0
+#define FLUX_ROE 1
+
 // Node Tolerance (for physical coordinate comparison)
 #define NODETOL      1.0e-10
 #define NODETOL_MESH 1.0e-5

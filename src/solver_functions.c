@@ -18,6 +18,9 @@
  *	Comments:
  *		If it is found that a significant portion of time is spent in this function after profiling, compare speed with
  *		the addition of switch statement with explicitly written out low-order options. (ToBeDeleted)
+ *		TRIs are significantly more complicated to handle because the the somewhat arbitrary position of the nodes
+ *		within the 3-symmetry orbits. Thus, the physical coordinates are used to swap indices for the last three cases,
+ *		which ensures that the ordering will be correct as long as nodes are input in 3 and 1-symmetry blocks.
  *
  *	Notation:
  *
@@ -25,7 +28,8 @@
  */
 
 void get_facet_ordering(const unsigned int d, const unsigned int IndOrd, const unsigned int FType,
-                        const unsigned int Nn, const unsigned int Ns, const unsigned int *symms, unsigned int *nOrd)
+                        const unsigned int Nn, const unsigned int Ns, const unsigned int *symms, const double *rst,
+                        unsigned int *nOrd)
 {
 	/*
 	 *	Purpose:
@@ -142,28 +146,80 @@ void get_facet_ordering(const unsigned int d, const unsigned int IndOrd, const u
 					break;
 			}
 		} else if (FType == TRI) {
-			unsigned int subOrder[3];
+			unsigned int j, k, kMax, iInd, subOrder[3], nOrdswap3[3], nOrdswap[Nn], Foundn[Nn], IndX[Nn];
+			double       DY[Nn*Nn];
 			// Add in switch (Nn) here and write out low order options (ToBeDeleted)
 
+			for (i = 0; i < Nn; i++)
+				nOrd[i] = i;
+
+			// Swap entries if necessary
 			switch(IndOrd) {
-			default: // default case 0
-				subOrder[0] = 0; subOrder[1] = 1; subOrder[2] = 2;
-				break;
-			case 1:
-				subOrder[0] = 1; subOrder[1] = 2; subOrder[2] = 0;
-				break;
-			case 2:
-				subOrder[0] = 2; subOrder[1] = 0; subOrder[2] = 1;
-				break;
-			case 3:
-				subOrder[0] = 0; subOrder[1] = 2; subOrder[2] = 1;
-				break;
-			case 4:
-				subOrder[0] = 2; subOrder[1] = 1; subOrder[2] = 0;
-				break;
-			case 5:
-				subOrder[0] = 1; subOrder[1] = 0; subOrder[2] = 2;
-				break;
+				default: // default cases 0, 1, 2
+					; // Do nothing
+					break;
+				case 3:
+				case 4:
+				case 5:
+					for (i = 0; i < Nn; i++) {
+						iInd = i*Nn;
+						for (j = 0; j < Nn; j++) {
+							DY[iInd+j] = fabs(rst[Nn+i]-rst[Nn+j]);
+						}
+					}
+
+					for (i = 0; i < Nn; i++)
+						Foundn[i] = 0;
+
+					for (i = 0; i < Nn; i++) {
+						if (!Foundn[i]) {
+							iInd = i*Nn;
+							kMax = 0;
+							for (j = 0; j < Nn; j++) {
+								if (i != j && DY[iInd+j] < 10*EPS)
+									IndX[kMax++] = j;
+							}
+							for (k = 0; k < kMax; k++) {
+								if (fabs(rst[i]+rst[IndX[k]]) < 1e3*EPS) {
+									Foundn[i] = 1;
+									Foundn[IndX[k]] = 1;
+									nOrdswap[i] = IndX[k];
+									nOrdswap[IndX[k]] = i;
+
+									break;
+								}
+							}
+							if (kMax == 0) {
+								Foundn[i] = 1;
+								nOrdswap[i] = i;
+							}
+						}
+					}
+
+					for (i = 0; i < Nn; i++) {
+						if (Foundn[i] == 0)
+							printf("Error: Did not find all nodes in get_FACET_reordering (TRI).\n"), exit(1);
+					}
+
+					for (i = 0; i < Nn; i++)
+						nOrd[i] = nOrdswap[i];
+					break;
+			}
+
+			// Rotate entries of 3-symmetry blocks if necessary
+			switch(IndOrd) {
+				default: // cases 0, 5
+					; // No rotations needed
+					return;
+					break;
+				case 1:
+				case 3:
+					subOrder[0] = 1; subOrder[1] = 2; subOrder[2] = 0;
+					break;
+				case 2:
+				case 4:
+					subOrder[0] = 2; subOrder[1] = 0; subOrder[2] = 1;
+					break;
 			}
 
 			iInd = 0;
@@ -171,12 +227,12 @@ void get_facet_ordering(const unsigned int d, const unsigned int IndOrd, const u
 				if (i) iInd += symms[i-1];
 				jMax = symms[i];
 				if (jMax == 3) {
-					for (j = 0; j < jMax; j++) {
-						nOrd[iInd+j] = iInd+subOrder[j];
-					}
-				} else { // jMax == 1
-					nOrd[iInd] = iInd;
+					for (j = 0; j < jMax; j++)
+						nOrdswap3[j] = nOrd[iInd+subOrder[j]];
+					for (j = 0; j < jMax; j++)
+						nOrd[iInd+j] = nOrdswap3[j];
 				}
+				// Setting the 1-symmetry orbit (if present) is redundant as the node position remains unchanged.
 			}
 		} else {
 			printf("Error: Unsupported FType in 3D in get_facet_ordering.\n"), exit(1);

@@ -16,7 +16,6 @@
  *	Comments:
  *		Will need two different setup_structures functions: One using the initial global arrays and one updating
  *		elements individually after hp refinement. (ToBeDeleted)
- *		Probably better to change the name of XYZc to XYZ_vC to avoid confusion that this is XYZc(urved). (ToBeDeleted)
  *
  *	Notation:
  *		XYZ_(1)(2) : Physical node locations (XYZ) of (1) nodes of (2) type
@@ -44,21 +43,23 @@ static void compute_distance_matrix(const unsigned int Nn, const unsigned int BC
 		tmp_ui = BC % BC_STEP_SC;
 		if (tmp_ui > BC_PERIODIC_MIN) { // special case for periodic
 			if (d == 3) {
-				if      ((tmp_ui - BC_PERIODIC_MIN)/2 == 1) IndComp[0] = 1, IndComp[1] = 2; // Periodic in X
-				else if ((tmp_ui - BC_PERIODIC_MIN)/2 == 2) IndComp[0] = 0, IndComp[1] = 2; // Periodic in Y
-				else if ((tmp_ui - BC_PERIODIC_MIN)/2 == 3) IndComp[0] = 0, IndComp[1] = 1; // Periodic in Z
+				if      (tmp_ui == PERIODIC_XL || tmp_ui == PERIODIC_XR) IndComp[0] = 1, IndComp[1] = 2;
+				else if (tmp_ui == PERIODIC_YL || tmp_ui == PERIODIC_YR) IndComp[0] = 0, IndComp[1] = 2;
+				else if (tmp_ui == PERIODIC_ZL || tmp_ui == PERIODIC_ZR) IndComp[0] = 0, IndComp[1] = 1;
 			} else if (d == 2) {
-				if      ((tmp_ui - BC_PERIODIC_MIN)/2 == 1) IndComp[0] = 1; // Periodic in X
-				else if ((tmp_ui - BC_PERIODIC_MIN)/2 == 2) IndComp[0] = 0; // Periodic in Y
+				if      (tmp_ui == PERIODIC_XL || tmp_ui == PERIODIC_XR) IndComp[0] = 1;
+				else if (tmp_ui == PERIODIC_YL || tmp_ui == PERIODIC_YR) IndComp[0] = 0;
 			}
 			IndDXYZ = i*Nn+j;
 			for (k = 0, kMax = d-1; k < kMax; k++) {
-				tmp_d = fabs(XYZIn[i*d+IndComp[k]]-XYZOut[j*d+IndComp[k]]);
+				tmp_d = fabs(XYZIn[IndComp[k]*Nn+i]-XYZOut[IndComp[k]*Nn+j]);
 				if (tmp_d > DXYZ[IndDXYZ])
 					DXYZ[IndDXYZ] = tmp_d;
 			}
 		} else {
-			DXYZ[i*Nn+j] = array_norm_diff_d(d,&XYZIn[i*d],&XYZOut[j*d],"Inf");
+			IndDXYZ = i*Nn+j;
+			for (k = 0; k < d; k++)
+				DXYZ[IndDXYZ] += fabs(XYZIn[k*Nn+i]-XYZOut[k*Nn+j]);
 		}
 	}}
 }
@@ -83,20 +84,21 @@ static void get_ordering_index(const unsigned int Nn, const unsigned int d, doub
 		*IndOrdOutIn = 0;
 		return;
 	} else {
-		unsigned int i, j,
+		unsigned int i, j, countZeros,
 					 IndZerosInOut[Nn], IndZerosOutIn[Nn];
-		double       zero[1] = {0.0};
 
 		// Find indices of zeros in DXYZ
+		countZeros = 0;
 		for (i = 0; i < Nn; i++) {
 		for (j = 0; j < Nn; j++) {
-//printf("%d %d\n",i,j);
-			if (array_norm_diff_d(1,&DXYZ[i*Nn+j],zero,"Inf") < EPS) {
+			if (fabs(DXYZ[i*Nn+j]) < EPS) {
 				IndZerosInOut[i] = j;
+				countZeros++;
 				break;
 			}
 		}}
-//array_print_ui(1,Nn,IndZerosInOut,'R');
+		if (countZeros != Nn)
+			printf("Error: Did not find a sufficient number of zeros in DXYZ (get_ordering_index).\n"), exit(1);
 
 		if (d == 3) {
 			// Transpose DXYZ and find Out->In Ordering as well
@@ -105,12 +107,11 @@ static void get_ordering_index(const unsigned int Nn, const unsigned int d, doub
 			// Find indices of zeros in DXYZ'
 			for (i = 0; i < Nn; i++) {
 			for (j = 0; j < Nn; j++) {
-				if (array_norm_diff_d(1,&DXYZ[i*Nn+j],zero,"Inf") < EPS) {
+				if (fabs(DXYZ[i*Nn+j]) < EPS) {
 					IndZerosOutIn[i] = j;
 					break;
 				}
 			}}
-
 
 			if (Nn == 4) { // QUAD FACET
 				unsigned int IndZerosP[32] = { 0, 1, 2, 3,
@@ -189,7 +190,7 @@ void setup_structures(void)
 	// Standard datatypes
 	unsigned int i, iMax, f, v, dim, ve, gf, curved,
 	             IndE, IndVC, IndVgrp, IndGFC, IndVIn, IndVeF, Indf, Indsf, IndOrdInOut, IndOrdOutIn,
-	             Vs, vlocal, NVlocal, NECgrp, NVgrp, Vf,
+	             Vs, vlocal, NVlocal, NECgrp, NVgrp, Vf, Nf,
 	             Nve,*Nfve, *Nfref, Nfn,
 				 indexg, NvnGs,
 	             uMPIrank,
@@ -201,9 +202,7 @@ void setup_structures(void)
 	struct S_FACET   **FACET, **FoundFACET;
 
 	// silence
-	NECgrp = 0;
-	IndOrdInOut = 0;
-	IndOrdOutIn = 0;
+	Nf = NECgrp = IndOrdInOut = IndOrdOutIn = 0;
 
 	uMPIrank = MPIrank;
 
@@ -252,10 +251,13 @@ void setup_structures(void)
 
 			// FACETs adjacent to VOLUMEs on the current processor.
 			// Note that GFC and VToGF cycle through the global FACET indices in order
-			for (f = 0; f < NfMax; f++) {
+			ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+			Nf = ELEMENT->Nf;
+
+			for (f = 0; f < Nf; f++) {
 				gf = VToGF[v*NfMax+f];
 				if (FoundFACET[gf] == NULL) {
-
 					if (DB.FACET != NULL) {
 						FACET[0]->next = New_FACET();
 						FACET[0]       = FACET[0]->next;
@@ -308,8 +310,6 @@ void setup_structures(void)
 
 
 			// Geometry
-			ELEMENT = get_ELEMENT_type(VOLUME->type);
-
 			if (VOLUME->Eclass == C_TP)
 				NvnGs = pow(ELEMENT->ELEMENTclass[0]->NvnGs[0],d);
 			else if (VOLUME->Eclass == C_WEDGE)
@@ -351,7 +351,7 @@ void setup_structures(void)
 			// Ensure that appropriate global indices are incremented if necessary
 			if (v == VC[IndVC])
 				IndVC++;
-			for (f = 0; f < NfMax; f++) {
+			for (f = 0; f < Nf; f++) {
 				gf = VToGF[v*NfMax+f];
 				if (IndGFC < NGFC && gf == GFC[IndGFC])
 					IndGFC++;
@@ -442,18 +442,10 @@ void setup_structures(void)
 		XYZOut_fC = malloc(Nfve[Indf]*d * sizeof *XYZOut_fC); // free
 		mm_CTN_d(Nfve[Indf],d,Nve,&VeF[IndVeF],XYZ_vC,XYZOut_fC);
 
-//array_print_d(NvnGs,d,XYZ_vC,'C');
-//array_print_d(Nfve[Indf],d,XYZIn_fC,'C');
-
-//array_print_d(NvnGs,d,FACET[0]->VOut->XYZ_vC,'C');
-//array_print_d(Nfve[Indf],d,XYZOut_fC,'C');
-
 		// Compute distance matrix
 		Nfn  = Nfve[Indf];
 		DXYZ = calloc(Nfn*Nfn , sizeof *DXYZ); // free
 		compute_distance_matrix(Nfn,FACET[0]->BC,d,XYZIn_fC,XYZOut_fC,DXYZ);
-
-//array_print_d(Nfn,Nfn,DXYZ,'R');
 
 		// Obtain the index of corresponding ordering between FACETs
 		get_ordering_index(Nfn,d,DXYZ,&IndOrdInOut,&IndOrdOutIn);
@@ -461,12 +453,15 @@ void setup_structures(void)
 		FACET[0]->IndOrdInOut = IndOrdInOut;
 		FACET[0]->IndOrdOutIn = IndOrdOutIn;
 
-//printf("InOut: %d %d\n",IndOrdInOut,IndOrdOutIn);
+/*
+printf("\n\n%d\n",FACET[0]->indexg);
+array_print_d(Nfve[Indf],d,XYZIn_fC,'C');
+array_print_d(Nfve[Indf],d,XYZOut_fC,'C');
 
-//printf("%d %d\n",ELEMENT->NfnIc[2][0],ELEMENT->ELEMENT_FACET[0]->type);
-//P = 3;
-//for (i = 0; i < 6; i++)
-//	array_print_ui(1,ELEMENT->NfnIc[P][0],ELEMENT->ELEMENT_FACET[0]->nOrd_fIc[P][i],'R');
+array_print_d(Nfn,Nfn,DXYZ,'R');
+
+printf("InOut: %d %d\n",IndOrdInOut,IndOrdOutIn);
+*/
 
 		free(XYZIn_fC);
 		free(XYZOut_fC);
@@ -474,35 +469,6 @@ void setup_structures(void)
 		free(DXYZ);
 	}
 	free(FACET);
-/*
-	// Determine GFToV array
-	GFToV = malloc(NGF*2 * sizeof *GFToV); // tbd
-	GF_Nv = calloc(NGF   , sizeof *GF_Nv); // free
-
-	for (gf = 0; gf < NGF; gf++)
-		GFToV[gf*2+1] = NV;
-
-	for (v = 0; v < NV; v++) {
-	for (f = 0; f < NfMax; f++) {
-		gf = VToGF[v*NfMax+f];
-
-		GFToV[gf*2+GF_Nv[gf]] = v;
-		GF_Nv[gf]++;
-	}}
-	free(GF_Nv);
-
-array_print_ui(NGF,2,GFToV,'R');
-exit(1);
-*/
-
-/*
-for (FACET[0] = DB.FACET; FACET[0] != NULL; FACET[0] = FACET[0]->next) {
-	printf("%d %d %d %c %d %d %d %d\n",
-	       FACET[0]->indexg,FACET[0]->curved,FACET[0]->typeInt,FACET[0]->VIn->indexg,FACET[0]->VOut->indexg,
-		   FACET[0]->VfIn,FACET[0]->VfOut,FACET[0]->BC);
-}
-exit(1);
-*/
 
 /*
 for (i = 0, iMax = NVgrp; iMax--; i++) {

@@ -17,6 +17,9 @@
  *		VeCGmsh is based on converting the gmsh node ordering to the code's ordering convention; for the gmsh ordering,
  *		see	the gmsh manual (Node ordering section). VeE and VeF are then set based on the standard node ordering in
  *		the code.
+ *		As Gmsh only stores "physical" elements in the mesh file, it is possible that TRI/QUAD ELEMENTs be marked as not
+ *		present when using 3D mixed meshes if they are none of them on the boundary. Thus, TRI and QUAD ELEMENT presence
+ *		is treated as a special case below.
  *
  *	Notation:
  *		present  : Indicator of presence of this element type
@@ -40,7 +43,7 @@
 
 void setup_mesh()
 {
-	unsigned int i, type, NfveMax, NfMax, NveMax, NfrefMax;
+	unsigned int i, type, NfveMax, NfMax, NveMax, NfrefMax, TRIpresent, QUADpresent;
 
 	struct S_ELEMENT *ELEMENT;
 
@@ -48,7 +51,6 @@ void setup_mesh()
 	ELEMENT = New_ELEMENT();
 	DB.ELEMENT = ELEMENT;
 
-	ELEMENT->present   = 0;
 	ELEMENT->type      = POINT;
 	ELEMENT->d         = 0;
 	ELEMENT->Nve       = 1;
@@ -62,7 +64,6 @@ void setup_mesh()
 	// LINE
 	ELEMENT = ELEMENT->next;
 
-	ELEMENT->present   = 0;
 	ELEMENT->type      = LINE;
 	ELEMENT->d         = 1;
 	ELEMENT->Nve       = 2;
@@ -77,7 +78,6 @@ void setup_mesh()
 	// TRI
 	ELEMENT = ELEMENT->next;
 
-	ELEMENT->present   = 0;
 	ELEMENT->type      = TRI;
 	ELEMENT->d         = 2;
 	ELEMENT->Nve       = 3;
@@ -93,7 +93,6 @@ void setup_mesh()
 	// QUAD
 	ELEMENT = ELEMENT->next;
 
-	ELEMENT->present   = 0;
 	ELEMENT->type      = QUAD;
 	ELEMENT->d         = 2;
 	ELEMENT->Nve       = 4;
@@ -110,7 +109,6 @@ void setup_mesh()
 	// TET
 	ELEMENT = ELEMENT->next;
 
-	ELEMENT->present   = 0;
 	ELEMENT->type      = TET;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 4;
@@ -127,7 +125,6 @@ void setup_mesh()
 	// HEX
 	ELEMENT = ELEMENT->next;
 
-	ELEMENT->present   = 0;
 	ELEMENT->type      = HEX;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 8;
@@ -148,7 +145,6 @@ void setup_mesh()
 	// WEDGE (ToBeModified)
 	ELEMENT = ELEMENT->next;
 
-	ELEMENT->present   = 0;
 	ELEMENT->type      = WEDGE;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 6;
@@ -168,7 +164,6 @@ void setup_mesh()
 	// PYR (ToBeModified)
 	ELEMENT = ELEMENT->next;
 
-	ELEMENT->present   = 0;
 	ELEMENT->type      = PYR;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 5;
@@ -219,9 +214,22 @@ void setup_mesh()
 		for (i = 0; i < NETotal; i++) {
 			if (type == EType[i]) {
 				ELEMENT->present = 1;
+
+				if (!TRIpresent && (type == TET || type == WEDGE || type == PYR))
+					TRIpresent = 1;
+				if (!QUADpresent && (type == HEX || type == WEDGE || type == PYR))
+					QUADpresent = 1;
+
 				break;
 			}
 		}
+	}
+
+	// Ensure that 2D ELEMENTs are marked correctly on 3D mixed meshes
+	for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
+		type = ELEMENT->type;
+		if ((type == TRI && TRIpresent) || (type == QUAD && QUADpresent))
+			ELEMENT->present = 1;
 	}
 
 	if (DB.d == 1) {

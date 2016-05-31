@@ -50,7 +50,7 @@ void test_imp_get_facet_ordering(void)
 	// case 0
 	IndOrd = 0;
 
-	get_facet_ordering(d,IndOrd,FType,Nn,0,NULL,nOrd);
+	get_facet_ordering(d,IndOrd,FType,Nn,0,NULL,NULL,nOrd);
 
 	pass = 0;
 	if (array_norm_diff_ui(Nn,nOrd,nOrd10,"Inf") < EPS)
@@ -99,7 +99,7 @@ void test_imp_get_facet_ordering(void)
 		for (i = 0; i < Nn; i++)
 			nOrd[i] = 0.0;
 
-		get_facet_ordering(d,IndOrd,FType,Nn,0,NULL,nOrd);
+		get_facet_ordering(d,IndOrd,FType,Nn,0,NULL,NULL,nOrd);
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd2P2[IndOrd],"Inf") < EPS)
@@ -122,7 +122,7 @@ void test_imp_get_facet_ordering(void)
 		for (i = 0; i < Nn; i++)
 			nOrd[i] = 0.0;
 
-		get_facet_ordering(d,IndOrd,FType,Nn,0,NULL,nOrd);
+		get_facet_ordering(d,IndOrd,FType,Nn,0,NULL,NULL,nOrd);
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd2P3[IndOrd],"Inf") < EPS)
@@ -200,7 +200,7 @@ void test_imp_get_facet_ordering(void)
 		for (i = 0; i < Nn; i++)
 			nOrd[i] = 0.0;
 
-		get_facet_ordering(d,IndOrd,FType,Nn,0,NULL,nOrd);
+		get_facet_ordering(d,IndOrd,FType,Nn,0,NULL,NULL,nOrd);
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd3P2Q[IndOrd],"Inf") < EPS)
@@ -230,7 +230,7 @@ void test_imp_get_facet_ordering(void)
 		for (i = 0; i < Nn; i++)
 			nOrd[i] = 0.0;
 
-		get_facet_ordering(d,IndOrd,FType,Nn,0,NULL,nOrd);
+		get_facet_ordering(d,IndOrd,FType,Nn,0,NULL,NULL,nOrd);
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd3P3Q[IndOrd],"Inf") < EPS)
@@ -245,39 +245,37 @@ void test_imp_get_facet_ordering(void)
 	/*
 	 *	Expected Output (d = 3, TRI):
 	 *
-	 *		P2:
+	 *		P2 (WSH):
 	 *			nOrd = [ see below ]
 	 *
 	 *			Possible node positions (with indices as in case 0):
-	 *			*** Not identical node ordering the WSH nodes, but same symmetry orbits and hence analogous. ***
 	 *
 	 *			    2           0           1           1           0           2
 	 *			   / \         / \         / \         / \         / \         / \
-	 *			  5 - 4       3 - 5       4 - 3       4 - 5       3 - 4       5 - 3
+	 *			  5 - 4       3 - 5       4 - 3       3 - 4       5 - 3       4 - 5
 	 *			 / \ / \     / \ / \     / \ / \     / \ / \     / \ / \     / \ / \
-	 *			0 - 3 - 1   1 - 4 - 2   2 - 5 - 0   0 - 3 - 2   2 - 5 - 1   1 - 4 - 0
+	 *			0 - 3 - 1   1 - 4 - 2   2 - 5 - 0   0 - 5 - 2   2 - 4 - 1   1 - 3 - 0
 	 *
 	 *			case 0      case 1      case 2      case 3      case 4      case 5
 	 *
-	 *		P3:
+	 *		P3 (WSH):
 	 *			nOrd = [ see below ]
 	 *
 	 *			Possible node positions (with indices as in case 0):
-	 *			*** Not identical node ordering the WSH nodes, but same symmetry orbits and hence analogous. ***
 	 *
-	 *			      2               0               1               1               0               2
+	 *			      8               6               7               7               6               8
 	 *			     / \             / \             / \             / \             / \             / \
-	 *			    5 - 7           3 - 8           4 - 6           4 - 8           3 - 7           5 - 6
+	 *			    2 - 5           0 - 3           1 - 4           4 - 1           3 - 0           5 - 2
 	 *			   / \ / \         / \ / \         / \ / \         / \ / \         / \ / \         / \ / \
-	 *			  8 - 9 - 4       6 - 9 - 5       7 - 9 - 3       7 - 9 - 5       6 - 9 - 4       8 - 9 - 3
+	 *			  3 - 9 - 1       4 - 9 - 2       5 - 9 - 0       0 - 9 - 5       2 - 9 - 4       1 - 9 - 3
 	 *			 / \ / \ / \     / \ / \ / \     / \ / \ / \     / \ / \ / \     / \ / \ / \     / \ / \ / \
-	 *			0 - 3 - 6 - 1   1 - 4 - 7 - 2   2 - 5 - 8 - 0   0 - 3 - 6 - 2   2 - 5 - 8 - 1   1 - 4 - 7 - 0
+	 *			6 - 0 - 4 - 7   7 - 1 - 5 - 8   8 - 2 - 3 - 6   6 - 3 - 2 - 8   8 - 5 - 1 - 7   7 - 4 - 0 - 6
 	 *
 	 *			case 0          case 1          case 2          case 3          case 4          case 5
 	 */
 
 	// d == 3 (FType = TRI)
-	unsigned int P, NnTRI, Ns, *symms;
+	unsigned int P, Ns, *symms;
 	double       *rst, *w;
 
 	d     = 3;
@@ -285,18 +283,14 @@ void test_imp_get_facet_ordering(void)
 
 	// P == 2 (WSH)
 	P     = 2;
-	Nn    = 6;
 	unsigned int nOrd3P2T[6][6] = {{ 0, 1, 2, 3, 4, 5},
 	                               { 1, 2, 0, 4, 5, 3},
 	                               { 2, 0, 1, 5, 3, 4},
-	                               { 0, 2, 1, 3, 5, 4},
-	                               { 2, 1, 0, 5, 4, 3},
-	                               { 1, 0, 2, 4, 3, 5}};
+	                               { 0, 2, 1, 5, 4, 3},
+	                               { 2, 1, 0, 4, 3, 5},
+	                               { 1, 0, 2, 3, 5, 4}};
 
-	cubature_TRI(&rst,&w,&symms,&NnTRI,&Ns,0,P,d-1,"WSH");
-	free(rst);
-	if (NnTRI != Nn)
-		printf("Error: Wrong Number of Nodes in test_imp_get_facet_ordering (TRI P2).\n"), exit(1);
+	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,0,P,d-1,"WSH");
 
 	nOrd = malloc(Nn * sizeof *nOrd); // free
 
@@ -305,34 +299,30 @@ void test_imp_get_facet_ordering(void)
 		for (i = 0; i < Nn; i++)
 			nOrd[i] = 0.0;
 
-		get_facet_ordering(d,IndOrd,FType,Nn,Ns,symms,nOrd);
+		get_facet_ordering(d,IndOrd,FType,Nn,Ns,symms,rst,nOrd);
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd3P2T[IndOrd],"Inf") < EPS)
 			pass = 1, TestDB.Npass++;
 
 		//     0         10        20        30        40        50
-		printf("                   (d = 3 (TRI), case %d (P3)):   ",IndOrd);
+		printf("                   (d = 3 (TRI), case %d (P2)):   ",IndOrd);
 		test_print(pass);
 	}
-
+	free(rst);
 	free(symms);
 	free(nOrd);
 
 	// P == 3 (WSH)
 	P     = 3;
-	Nn    = 10;
 	unsigned int nOrd3P3T[6][10] = {{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
 	                                { 1, 2, 0, 4, 5, 3, 7, 8, 6, 9},
 	                                { 2, 0, 1, 5, 3, 4, 8, 6, 7, 9},
-	                                { 0, 2, 1, 3, 5, 4, 6, 8, 7, 9},
-	                                { 2, 1, 0, 5, 4, 3, 8, 7, 6, 9},
-	                                { 1, 0, 2, 4, 3, 5, 7, 6, 8, 9}};
+	                                { 3, 5, 4, 0, 2, 1, 6, 8, 7, 9},
+	                                { 5, 4, 3, 2, 1, 0, 8, 7, 6, 9},
+	                                { 4, 3, 5, 1, 0, 2, 7, 6, 8, 9}};
 
-	cubature_TRI(&rst,&w,&symms,&NnTRI,&Ns,0,P,d-1,"WSH");
-	free(rst);
-	if (NnTRI != Nn)
-		printf("Error: Wrong Number of Nodes in test_imp_get_facet_ordering (TRI P2).\n"), exit(1);
+	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,0,P,d-1,"WSH");
 
 	nOrd = malloc(Nn * sizeof *nOrd); // free
 
@@ -341,7 +331,7 @@ void test_imp_get_facet_ordering(void)
 		for (i = 0; i < Nn; i++)
 			nOrd[i] = 0.0;
 
-		get_facet_ordering(d,IndOrd,FType,Nn,Ns,symms,nOrd);
+		get_facet_ordering(d,IndOrd,FType,Nn,Ns,symms,rst,nOrd);
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd3P3T[IndOrd],"Inf") < EPS)
@@ -351,6 +341,7 @@ void test_imp_get_facet_ordering(void)
 		printf("                   (d = 3 (TRI), case %d (P3)):   ",IndOrd);
 		test_print(pass);
 	}
+	free(rst);
 	free(symms);
 	free(nOrd);
 }

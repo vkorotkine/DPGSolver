@@ -576,7 +576,7 @@ static void output_solution(const char *sol_type)
 
 		U_vP    = malloc(NvnP*5 * sizeof *U_vP);    // free
 
-		convert_variables(W_vP,U_vP,d,3,NvnP,'c','p');
+		convert_variables(W_vP,U_vP,d,3,NvnP,1,'c','p');
 		varMax = Nvar-1;
 
 		rho = &U_vP[NvnP*0];

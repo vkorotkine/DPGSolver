@@ -133,20 +133,15 @@ unsigned int get_IndFType(const unsigned int Eclass, const unsigned int f)
 		return 0;
 		break;
 	case C_PYR:
-		if (f < 4)
-			return 0;
-		else
-			return 1;
+		if (f < 4) return 0;
+		else       return 1;
 		break;
 	case C_WEDGE:
-		if (f < 3)
-			return 0;
-		else
-			return 1;
+		if (f < 3) return 0;
+		else       return 1;
 		break;
 	default:
 		printf("Error: Unsupported Eclass/f combination in get_IndFType.\n"), exit(1);
 		break;
 	}
 }
-
