@@ -145,7 +145,7 @@ void array_print_d(const unsigned int m, const unsigned int n, double *A, const 
 	case 'R':
 		for (i = 0; i < m; i++) {
 			for (j = 0; j < n; j++)
-				printf("% .3e ",A[i*n+j]);
+				printf("% .4e ",A[i*n+j]);
 			printf("\n");
 		}
 		printf("\n");
@@ -153,7 +153,7 @@ void array_print_d(const unsigned int m, const unsigned int n, double *A, const 
 	case 'C':
 		for (i = 0; i < m; i++) {
 			for (j = 0; j < n; j++)
-				printf("% .3e ",A[i+j*m]);
+				printf("% .4e ",A[i+j*m]);
 			printf("\n");
 		}
 		printf("\n");

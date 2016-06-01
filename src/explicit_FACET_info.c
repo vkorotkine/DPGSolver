@@ -9,6 +9,9 @@
 #include "parameters.h"
 #include "functions.h"
 
+// Can likely be removed later (ToBeDeleted)
+#include "math.h"
+
 /*
  *	Purpose:
  *		Evaluate the FACET contributions to the RHS term.
@@ -277,6 +280,7 @@ for (i = 0; i < NfnI*d; i++)
 	n_fI[i] += 0.02*i;
 
 double tmp_d;
+
 for (i = 0; i < NfnI; i++) {
 	tmp_d = 0;
 	for (j = 0; j < d; j++) {
@@ -288,10 +292,32 @@ for (i = 0; i < NfnI; i++) {
 	}
 }
 
+double *WIn2, *WOut2, *n2;
 
-array_print_d(NfnI,Nvar,WIn_fI,'C');
-array_print_d(NfnI,Nvar,WOut_fIIn,'C');
-array_print_d(NfnI,d,n_fI,'R');
+WIn2 = malloc(NfnI*Neq * sizeof *WIn2);
+WOut2 = malloc(NfnI*Neq * sizeof *WOut2);
+n2 = malloc(NfnI*d * sizeof *n2);
+
+for (i = 0; i < NfnI; i++) {
+	for (j = 0; j < Neq; j++) {
+		WIn2[i*Neq+j] = (double) (((unsigned int) (WIn_fI[i*Neq+j]*1e3))/1e3);
+		WOut2[i*Neq+j] = (double) (((unsigned int) (WOut_fIIn[i*Neq+j]*1e3))/1e3);
+	}
+	for (j = 0; j < d; j++) {
+		n2[i*d+j] = (double) (((unsigned int) (n_fI[i*d+j]*1e4))/1e4);
+	}
+}
+
+array_print_d(NfnI,Nvar,WIn2,'C');
+array_print_d(NfnI,Nvar,WOut2,'C');
+array_print_d(NfnI,d,n2,'R');
+
+flux_LF(NfnI,1,WIn2,WOut2,nFluxNum_fI,n2,d,Neq);
+array_print_d(NfnI,Neq,nFluxNum_fI,'C');
+
+flux_ROE(NfnI,1,WIn2,WOut2,nFluxNum_fI,n2,d,Neq);
+array_print_d(NfnI,Neq,nFluxNum_fI,'C');
+exit(1);
 
 		switch (InviscidFluxType) {
 		case FLUX_LF:  flux_LF(NfnI,1,WIn_fI,WOut_fIIn,nFluxNum_fI,n_fI,d,Neq); break;

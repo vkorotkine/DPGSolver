@@ -78,8 +78,10 @@ extern void     get_facet_ordering(const unsigned int d, const unsigned int IndO
 // Fluxes
 extern void flux_inviscid (const unsigned int Nn, const unsigned int Nel, double *W, double *F, const unsigned int d,
                            const unsigned int Neq);
-extern void flux_LF       (const unsigned int Nn, const unsigned int Nel, double *WIn, double *WOut, double *nFluxNum,
-                           double *nIn, const unsigned int d, const unsigned int Neq);
+extern void flux_LF       (const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
+                           double *nL, const unsigned int d, const unsigned int Neq);
+extern void flux_ROE      (const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
+                           double *nL, const unsigned int d, const unsigned int Neq);
 
 // Sum Factorization
 extern void sf_operate_d (const unsigned int NOut, const unsigned int NCols, const unsigned int NIn,
