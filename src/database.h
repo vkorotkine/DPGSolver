@@ -24,7 +24,7 @@ struct S_DB {
 
 	// Initialization
 	char         *TestCase, *MeshType, *Form, *NodeType, *BasisType, *MeshFile;
-	unsigned int d, ML, Vectorized, EFE, Collocated, Adaptive, P, PMax, Testing, *BumpOrder;
+	unsigned int d, ML, Vectorized, EFE, Collocated, Adapt, P, PMax, Testing, *BumpOrder;
 	int          Restart;
 
 	// Parameters
@@ -34,7 +34,7 @@ struct S_DB {
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
 	unsigned int NP, NEC, AC, ExactGeom, InviscidFluxType, PR, PP, PGs,
 	             *PGc, *PF,
-	             **SF_BE, **PCs, **PCc, **PJs, **PJc, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
+	             ***SF_BE, **PCs, **PCc, **PJs, **PJc, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
 	// Mesh
 	unsigned int NVe, NPVe, NfMax, NfveMax, NveMax, NfrefMax, NETotal, NV, NGF, NVC, NGFC,
@@ -74,7 +74,7 @@ struct S_ELEMENT {
 	//             **wvIs, **wvIc,
 	//             ***rst_fGc, ***rst_fIs, ***rst_fIc, **wfIs, **wfIc,
 	             **ChiInvS_vS,
-	             **ChiS_vP, **ChiS_vIs, **ChiS_vIc, ****ChiS_fIs, ****ChiS_fIc,
+	             ****ChiS_vP, ***ChiS_vIs, ***ChiS_vIc, ****ChiS_fIs, ****ChiS_fIc,
 	             **ICs, **ICc,
 	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs, **I_vGs_vIc, ****I_vGs_fIs, ****I_vGs_fIc,
 				 **I_vGs_vS,
@@ -82,14 +82,14 @@ struct S_ELEMENT {
 				 **I_vGc_vS,
 	             **I_vCs_vIs, **I_vCs_vIc,
 	             **I_vCc_vIs, **I_vCc_vIc,
-	             **Is_Weak, **Ic_Weak,
+	             **Is_Weak_VV, **Ic_Weak_VV,
 	             ****I_vCs_fIs, ****I_vCs_fIc,
 	             ****I_vCc_fIs, ****I_vCc_fIc,
 	             ***D_vGs_vCs, ***D_vGs_vIs,
 	             ***D_vGc_vCc, ***D_vGc_vIc,
 	             ***D_vCs_vCs,
 	             ***D_vCc_vCc,
-	             ***Ds_Weak, ***Dc_Weak;
+	             ***Ds_Weak_VV, ***Dc_Weak_VV;
 
 	struct S_ELEMENT *next;
 	struct S_ELEMENT **ELEMENTclass, **ELEMENT_FACET;
@@ -123,7 +123,7 @@ struct S_FACET {
 
 	// Geometry
 	char   curved, typeInt;
-	double *n;
+	double *n_fI;
 
 	// Solving
 	double *RHSIn, *RHSOut;

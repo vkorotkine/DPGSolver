@@ -49,9 +49,9 @@ void explicit_FACET_info(void)
 {
 	// Initialize DB Parameters
 	unsigned int Vectorized = DB.Vectorized,
-	             Adaptive   = DB.Adaptive;
+	             Adapt      = DB.Adapt;
 
-	switch (Adaptive) {
+	switch (Adapt) {
 	case 0:
 		switch (Vectorized) {
 		case 0:
@@ -62,6 +62,9 @@ void explicit_FACET_info(void)
 			break;
 		}
 		break;
+	case 1:
+	case 2:
+	case 3:
 	default:
 		switch (Vectorized) {
 		case 0:
@@ -159,6 +162,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 static void compute_FACET_RHS_EFE(void)
 {
 	// Initialize DB Parameters
+	char         *Form            = DB.Form;
 	unsigned int d                = DB.d,
 	             NfrefMax         = DB.NfrefMax,
 	             Nvar             = DB.Nvar,
@@ -168,7 +172,7 @@ static void compute_FACET_RHS_EFE(void)
 	// Standard datatypes
 	unsigned int i, j, iInd,
 	             VfIn, VfOut, fIn, fOut, Eclass, IndFType, Boundary, BC, BC_trail,
-	             NfnI, NvnS;
+	             NfnI, NvnSIn, NvnSOut;
 	double       *WIn_fI, *WOut_fI, *WOut_fIIn, *nFluxNum_fI, *RHSIn, *RHSOut, *n_fI;
 
 	struct S_OPERATORS *OPSIn, *OPSOut;
@@ -179,6 +183,7 @@ static void compute_FACET_RHS_EFE(void)
 	// silence
 	WOut_fI   = NULL;
 	WOut_fIIn = NULL;
+	NvnSOut   = 0;
 
 	OPSIn  = malloc(sizeof *OPSIn);  // free
 	OPSOut = malloc(sizeof *OPSOut); // free
@@ -210,10 +215,10 @@ static void compute_FACET_RHS_EFE(void)
 			; // update this with sum factorization
 		} else if (1 || VIn->Eclass == C_SI || VIn->Eclass == C_PYR) {
 			NfnI = OPSIn->NfnI;
-			NvnS = OPSIn->NvnS;
+			NvnSIn = OPSIn->NvnS;
 
 			WIn_fI = malloc(NfnI*Nvar * sizeof *WIn_fI); // free
-			mm_CTN_d(NfnI,Nvar,NvnS,OPSIn->ChiS_fI[VfIn],VIn->What,WIn_fI);
+			mm_CTN_d(NfnI,Nvar,NvnSIn,OPSIn->ChiS_fI[VfIn],VIn->What,WIn_fI);
 		} else if (VIn->Eclass == C_WEDGE) {
 			; // update this with sum factorization
 		}
@@ -223,9 +228,10 @@ static void compute_FACET_RHS_EFE(void)
 			if (0 && VOut->Eclass == C_TP) {
 				; // update this with sum factorization
 			} else if (1 || VOut->Eclass == C_SI || VOut->Eclass == C_PYR) {
-				WOut_fI = malloc(NfnI*Nvar * sizeof *WOut_fI); // free
+				NvnSOut = OPSOut->NvnS;
 
-				mm_CTN_d(NfnI,Nvar,NvnS,OPSOut->ChiS_fI[VfOut],VOut->What,WOut_fI);
+				WOut_fI = malloc(NfnI*Nvar * sizeof *WOut_fI); // free
+				mm_CTN_d(NfnI,Nvar,NvnSOut,OPSOut->ChiS_fI[VfOut],VOut->What,WOut_fI);
 			} else if (VOut->Eclass == C_WEDGE) {
 				; // update this with sum factorization
 			}
@@ -244,111 +250,48 @@ static void compute_FACET_RHS_EFE(void)
 						WOut_fIIn[iInd+j] = WOut_fI[iInd+j];
 				}
 			}
-
-/*
-printf("%d %d %d %d\n",FACET->indexg,BC,VfIn,VfOut);
-printf("%d %d\n",VfIn,VfOut);
-printf("%d %d\n",FACET->IndOrdInOut,FACET->IndOrdOutIn);
-array_print_ui(1,NfnI,OPSIn->nOrdInOut,'R');
-
-for (i = 0; i < NfnI; i++) {
-	for (j = 0; j < Nvar; j++) {
-		printf(" % .3e",WIn_fI[i+NfnI*j]-WOut_fIIn[i+NfnI*j]);
-	}
-	printf("\n");
-}
-printf("\n");
-
-if (0 && FACET->indexg == 0) {
-	array_print_d(NfnI,Nvar,WIn_fI,'C');
-	array_print_d(NfnI,Nvar,WOut_fI,'C');
-	array_print_d(NfnI,Nvar,WOut_fIIn,'C');
-	exit(1);
-}
-*/
 		} else { // Boundary FACET
 			; // Add in support for boundary conditions
 		}
 
 		// Compute numerical flux
 		nFluxNum_fI = malloc(NfnI*Neq * sizeof *nFluxNum_fI); // free
-		n_fI = FACET->n;
-
-for (i = 0; i < NfnI*Nvar; i++)
-	WOut_fIIn[i] += 0.01*i;
-for (i = 0; i < NfnI*d; i++)
-	n_fI[i] += 0.02*i;
-
-double tmp_d;
-
-for (i = 0; i < NfnI; i++) {
-	tmp_d = 0;
-	for (j = 0; j < d; j++) {
-		tmp_d += pow(n_fI[i*d+j],2.0);
-	}
-	tmp_d = sqrt(tmp_d);
-	for (j = 0; j < d; j++) {
-		n_fI[i*d+j] /= tmp_d;
-	}
-}
-
-double *WIn2, *WOut2, *n2;
-
-WIn2 = malloc(NfnI*Neq * sizeof *WIn2);
-WOut2 = malloc(NfnI*Neq * sizeof *WOut2);
-n2 = malloc(NfnI*d * sizeof *n2);
-
-for (i = 0; i < NfnI; i++) {
-	for (j = 0; j < Neq; j++) {
-		WIn2[i*Neq+j] = (double) (((unsigned int) (WIn_fI[i*Neq+j]*1e3))/1e3);
-		WOut2[i*Neq+j] = (double) (((unsigned int) (WOut_fIIn[i*Neq+j]*1e3))/1e3);
-	}
-	for (j = 0; j < d; j++) {
-		n2[i*d+j] = (double) (((unsigned int) (n_fI[i*d+j]*1e4))/1e4);
-	}
-}
-
-array_print_d(NfnI,Nvar,WIn2,'C');
-array_print_d(NfnI,Nvar,WOut2,'C');
-array_print_d(NfnI,d,n2,'R');
-
-flux_LF(NfnI,1,WIn2,WOut2,nFluxNum_fI,n2,d,Neq);
-array_print_d(NfnI,Neq,nFluxNum_fI,'C');
-
-flux_ROE(NfnI,1,WIn2,WOut2,nFluxNum_fI,n2,d,Neq);
-array_print_d(NfnI,Neq,nFluxNum_fI,'C');
-exit(1);
+		n_fI = FACET->n_fI;
 
 		switch (InviscidFluxType) {
-		case FLUX_LF:  flux_LF(NfnI,1,WIn_fI,WOut_fIIn,nFluxNum_fI,n_fI,d,Neq); break;
+		case FLUX_LF:
+			flux_LF(NfnI,1,WIn_fI,WOut_fIIn,nFluxNum_fI,n_fI,d,Neq);
+			break;
 		case FLUX_ROE:
-			; // write the Roe scheme
+			flux_ROE(NfnI,1,WIn_fI,WOut_fIIn,nFluxNum_fI,n_fI,d,Neq);
+			break;
+		default:
+			printf("Error: Unsupported InviscidFluxType used in explicit_FACET_info.\n"), exit(1);
 			break;
 		}
 
 array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 
+		// Compute FACET RHS terms
+		RHSIn  = calloc(NvnSIn*Neq  , sizeof *RHSIn);  // keep (requires external free)
+		RHSOut = calloc(NvnSOut*Neq , sizeof *RHSOut); // keep (requires external free)
+		FACET->RHSIn  = RHSIn;
+		FACET->RHSOut = RHSOut;
+
+		if (strstr(Form,"Weak") != NULL) {
+
+
+
+		} else if (strstr(Form,"Strong") != NULL) {
+			printf("Exiting: Implement the strong form in compute_FACET_RHS_EFE.\n"), exit(1);
+		}
+
 exit(1);
 
 
 
 
 
-
-
-
-
-
-
-/*
-		NvnSIn  = OPSIn->NvnS;
-		NvnSOut = OPSOut->NvnS;
-
-		RHSIn  = calloc(NvnSIn*Neq  , sizeof *RHSIn);  // keep (requires external free)
-		RHSOut = calloc(NvnSOut*Neq , sizeof *RHSOut); // keep (requires external free)
-		FACET->RHSIn  = RHSIn;
-		FACET->RHSOut = RHSOut;
-*/
 
 		free(WIn_fI);
 		free(WOut_fI);

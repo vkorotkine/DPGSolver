@@ -402,7 +402,7 @@ static void output_normals(const char *normals_type)
 
 	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
 		curved = FACET->curved;
-		n = FACET->n;
+		n = FACET->n_fI;
 
 		VIn  = FACET->VIn;
 		VfIn = FACET->VfIn;

@@ -18,6 +18,7 @@
  *		NVEMAX          : (MAX)imum (N)umber of (VE)rtices for an element.
  *		NFVEMAX         : (MAX)imum (N)umber of (F)ACET (VE)rtices for an element.
  *		NFREFMAX        : (MAX)imum (N)umber of (F)ACET (REF)inements.
+ *		NVREFMAX        : (MAX)imum (N)umber of (V)OLUME (REF)inements.
  *		NFMAX           : (MAX)imum (N)umber of (F)ACET for an element.
  *		NFMIXEDMAX      : (MAX)imum (N)umber of (MIXED) (F)ACETs for an element.
  *		NESUBCMAX       : (MAX)imum (N)umber of (E)lement (SUB)(C)lasses
@@ -26,6 +27,12 @@
  *	References:
  *
  */
+
+// Alternate names
+#define CBRM CblasRowMajor
+#define CBCM CblasColMajor
+#define CBT  CblasTrans
+#define CBNT CblasNoTrans
 
 // Magic numbers
 #define DMAX            3
@@ -47,13 +54,14 @@
 #define GMSH_YZFACE_MIN 6001
 #define GMSH_XYZVOL_MIN 7001
 
-#define NVEMAX          8 // HEX
-#define NFVEMAX         4 // QUAD
-#define NFREFMAX        9 // QUAD
-#define NFMAX           6 // HEX
-#define NFMIXEDMAX      2 // WEDGE/PYR (TRI + QUAD)
-#define NESUBCMAX       2 // WEDGE (TRI + LINE)
-#define NFORDMAX        8 // QUAD
+#define NVEMAX          8  // HEX
+#define NFVEMAX         4  // QUAD
+#define NFREFMAX        9  // QUAD
+#define NVREFMAX        27 // HEX
+#define NFMAX           6  // HEX
+#define NFMIXEDMAX      2  // WEDGE/PYR (TRI + QUAD)
+#define NESUBCMAX       2  // WEDGE (TRI + LINE)
+#define NFORDMAX        8  // QUAD
 
 #define NFREFMAXPOINT   1
 #define NFREFMAXLINE    3

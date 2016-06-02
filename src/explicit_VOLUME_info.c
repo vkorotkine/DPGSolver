@@ -75,12 +75,12 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	if (!curved) {
 		OPS->NvnI = ELEMENT_OPS->NvnIs[P];
 
-		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIs[P];
+		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIs[P][P];
 		OPS->D_Weak  = ELEMENT_OPS->Ds_Weak[P];
 	} else {
 		OPS->NvnI = ELEMENT_OPS->NvnIc[P];
 
-		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIc[P];
+		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIc[P][P];
 		OPS->D_Weak  = ELEMENT_OPS->Dc_Weak[P];
 	}
 }

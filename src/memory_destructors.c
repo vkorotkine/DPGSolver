@@ -58,9 +58,9 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free2_ui(NP,ELEMENT->NfnIc);
 
 	array_free2_d(NP,ELEMENT->ChiInvS_vS);
-	array_free2_d(NP,ELEMENT->ChiS_vP);
-	array_free2_d(NP,ELEMENT->ChiS_vIs);
-	array_free2_d(NP,ELEMENT->ChiS_vIc);
+	array_free4_d(NP,NP,1,ELEMENT->ChiS_vP);
+	array_free3_d(NP,NP,ELEMENT->ChiS_vIs);
+	array_free3_d(NP,NP,ELEMENT->ChiS_vIc);
 
 	array_free2_d(NP,ELEMENT->ICs);
 	array_free2_d(NP,ELEMENT->ICc);
@@ -80,8 +80,8 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free2_d(NP,ELEMENT->I_vCc_vIs);
 	array_free2_d(NP,ELEMENT->I_vCc_vIc);
 
-	array_free2_d(NP,ELEMENT->Is_Weak);
-	array_free2_d(NP,ELEMENT->Ic_Weak);
+	array_free2_d(NP,ELEMENT->Is_Weak_VV);
+	array_free2_d(NP,ELEMENT->Ic_Weak_VV);
 
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->ChiS_fIs);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->ChiS_fIc);
@@ -102,8 +102,8 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free3_d(NP,d,ELEMENT->D_vGc_vIc);
 	array_free3_d(NP,d,ELEMENT->D_vCc_vCc);
 
-	array_free3_d(NP,d,ELEMENT->Ds_Weak);
-	array_free3_d(NP,d,ELEMENT->Dc_Weak);
+	array_free3_d(NP,d,ELEMENT->Ds_Weak_VV);
+	array_free3_d(NP,d,ELEMENT->Dc_Weak_VV);
 
 	array_free3_ui(NP,NFORDMAX,ELEMENT->nOrd_fIs);
 	array_free3_ui(NP,NFORDMAX,ELEMENT->nOrd_fIc);
@@ -177,7 +177,7 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 
 void memory_destructor_F(struct S_FACET *FACET)
 {
-	free(FACET->n);
+	free(FACET->n_fI);
 
 	free(FACET);
 }

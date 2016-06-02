@@ -16,7 +16,7 @@
  *	Comments:
  *
  *	Notation:
- *		n : physical normal vector evaluated at the FACET cubature nodes.
+ *		n_fI : physical normal vector evaluated at the FACET integration nodes.
  *
  *	References:
  *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_Schemes
@@ -41,7 +41,7 @@ void setup_normals(struct S_FACET *FACET)
 	             VfIn, Eclass, IndFType, fIn,
 	             NvnC0, NvnI0, NfnI0, NnI;
 	double       nSum, nSum2,
-	             *C_fI, *C_vC, *nrIn, *n;
+	             *C_fI, *C_vC, *nrIn, *n_fI;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VIn, *VOut;
@@ -77,25 +77,25 @@ void setup_normals(struct S_FACET *FACET)
 	if (!curved) fnMax = 1;
 	else         fnMax = NnI;
 
-	n = calloc(fnMax*d , sizeof *n); // keep
+	n_fI = calloc(fnMax*d , sizeof *n_fI); // keep
 	for (fn = 0; fn < fnMax; fn++) {
 		for (dim1 = 0; dim1 < d; dim1++) {
 		for (dim2 = 0; dim2 < d; dim2++) {
-			n[fn*d+dim1] += nrIn[dim2]*C_fI[NnI*(dim1+d*dim2)+fn];
+			n_fI[fn*d+dim1] += nrIn[dim2]*C_fI[NnI*(dim1+d*dim2)+fn];
 		}}
 	}
 
 	for (fn = 0; fn < fnMax; fn++) {
 		nSum2 = 0;
 		for (dim = 0; dim < d; dim++)
-			nSum2 += pow(n[fn*d+dim],2.0);
+			nSum2 += pow(n_fI[fn*d+dim],2.0);
 
 		nSum = sqrt(nSum2); // == detJF_vI
 		for (dim = 0; dim < d; dim++)
-			n[fn*d+dim] /= nSum;
+			n_fI[fn*d+dim] /= nSum;
 	}
 
-	FACET->n = n;
+	FACET->n_fI = n_fI;
 
 //printf("%d %d %d\n",FACET->indexg,VfIn,IndFType);
 //array_print_d(fnMax,d,n,'R');

@@ -63,16 +63,18 @@
  *		           (1) : (v)olume, (f)acet
  *		           (2) : (s)traight, (c)urved
  *
- *		SF_BE[]         : Flag for when (S)um (F)actorization (B)reaks (E)ven.
- *		                  [] : TP [0], SI [1], PYR [2]
- *		                  Note: Sum factorization is a purely Tensor-product related approach. For SI and PYR elements,
- *		                        what was initially considered to be Sum factorization is actually just a fast scheme for
- *		                        multiplication. Moreover, this fast scheme can also be applied to TP elements. As the
- *		                        break-even for this is likely above P3, and it will add complexity to the code, its
- *		                        implementation is not a priority. (ToBeModified).
- *		                        See Hesthaven(2000)-Stable_Spectral_Methods_on_Tetrahedral_Elements for details. Also
- *		                        see Fladrich-Stiller(2008)-Improved_Performance_for_Nodal_Spectral_Element_Operators for
- *		                        computational considerations.
+ *		SF_BE[0][1][2] : Flag for when (S)um (F)actorization (B)reaks (E)ven.
+ *		                 [0] - Polynomial order
+ *		                 [1] - 0: VOLUME, 1: FACET
+ *		                 [2] - 0: TP (QUAD/HEX), 1: WEDGE
+ *		                 Note: It may be beneficial to also add the capability for the fast interpolation/differentiation
+ *		                       using the Fourier transformed operators, certainly if running the code in a very high-order
+ *		                       setting. As the test space in DPG requires higher order than the trial space, this may be
+ *		                       even more relevant if using DPG. Note that the same "trick" can be played for TP elements
+ *		                       using a 2D Fourier Transform.
+ *		                       See Hesthaven(2000)-Stable_Spectral_Methods_on_Tetrahedral_Elements for details. Also see
+ *		                       Fladrich-Stiller(2008)-Improved_Performance_for_Nodal_Spectral_Element_Operators for
+ *		                       computational considerations.
  *
  *		AC              : Specifies whether (a)ll elements are (c)urved or not.
  *		ExactGeom       : Move boundary nodes to exact geometry if enabled.
@@ -104,7 +106,7 @@ void setup_parameters()
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
 	unsigned int i, u1, u2,
 	             P, NP, NEC, IntOrderfs, IntOrderfc, IntOrdervs, IntOrdervc,
-	             **SF_BE,
+	             ***SF_BE,
 	             PGs, *PGc, **PCs, **PCc, **PJs, **PJc,
 	             *PF, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
@@ -184,15 +186,19 @@ void setup_parameters()
 	// Order dependent parameters
 	for (P = 0; P <= PMax; P++) {
 		// Sum Factorization
-		SF_BE[P] = malloc(NEC * sizeof **SF_BE); // keep
+		SF_BE[P] = malloc(2 * sizeof **SF_BE); 
+		for (i = 0; i < 2; i++)
+			SF_BE[P][i] = calloc(2 , sizeof ***SF_BE);
 
-		for (i = 0; i < NEC; i++) SF_BE[P][i] = 1;
+		// TP
+		if ((d == 2 && P > 10) || (d == 3 && P > 6)) SF_BE[P][0][0] = 1; // ToBeModified
+		if ((d == 2 && P > 10) || (d == 3 && P > 6)) SF_BE[P][0][1] = 1; // ToBeModified
 
-		if ((d == 2 && P <= 10) || (d == 3 && P <= 6)) SF_BE[P][0] = 0;  // ToBeModified
-		if ((d == 2 && P <= 99) || (d == 3 && P <= 99)) SF_BE[P][1] = 0; // ToBeModified
-		if ((d == 2 && P <= 99) || (d == 3 && P <= 99)) SF_BE[P][2] = 0; // ToBeModified
+		// WEDGE
+		if (d == 3 && P > 99) SF_BE[P][1][0] = 1; // ToBeModified
+		if (d == 3 && P > 99) SF_BE[P][1][1] = 1; // ToBeModified
 
-		if (SF_BE[P][0] || SF_BE[P][1] || SF_BE[P][2])
+		if (SF_BE[P][0][0] || SF_BE[P][0][1] || SF_BE[P][1][0] || SF_BE[P][1][1])
 			printf("    Using Sum Factorized Operators for P%d.\n",P);
 
 		// Geometry

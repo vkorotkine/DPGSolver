@@ -53,7 +53,7 @@
  *			             space/Integration nodes)
  *			             Options: 0 (Not collocated)
  *			                      1 (Collocated)
- *			Adaptive   : Specify whether adaptation should be used and, if yes, of which type
+ *			Adapt      : Specify whether adaptation should be used and, if yes, of which type
  *			             Options: 0 (None)
  *			                      1 (p)
  *			                      2 (h)
@@ -129,7 +129,7 @@ void initialization(int nargc, char **argv)
 		if (strstr(StringRead,"Vectorized") != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Vectorized);
 		if (strstr(StringRead,"EFE")        != NULL) sscanf(StringRead,"%s %d",dummys,&DB.EFE);
 		if (strstr(StringRead,"Collocated") != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Collocated);
-		if (strstr(StringRead,"Adaptive")   != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Adaptive);
+		if (strstr(StringRead,"Adapt")      != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Adapt);
 		if (strstr(StringRead,"PGlobal")    != NULL) sscanf(StringRead,"%s %d",dummys,&DB.P);
 		if (strstr(StringRead,"PMax")       != NULL) sscanf(StringRead,"%s %d",dummys,&DB.PMax);
 		if (strstr(StringRead,"Restart")    != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Restart);
@@ -181,7 +181,7 @@ void initialization(int nargc, char **argv)
 		printf("Vectorized : %d\n",    DB.Vectorized);
 		printf("EFE        : %d\n",    DB.EFE);
 		printf("Collocated : %d\n",    DB.Collocated);
-		printf("Adaptive   : %d\n\n",  DB.Adaptive);
+		printf("Adapt      : %d\n\n",  DB.Adapt);
 		printf("P          : %d\n",    DB.P);
 		printf("PMax       : %d\n",    DB.PMax);
 		printf("Testing    : %d\n\n\n",DB.Testing);
