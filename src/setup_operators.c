@@ -133,6 +133,83 @@
  *		NOut : (N)umber of (Out)puts (i.e. number of rows of the lower dimensional operator)
  *		OP   : (OP)erator
  *
+ *	Returned operators : [range used depending on Adapt]
+ *		- For maximum array size, see memory_constructors.c.
+ *		- If no range is indicated, look at range of previous operator.
+ *
+ *		- (*) indicates a special case for SF operators.
+ *		- [^] is a placeholder.
+ *		- Further notation simplifications for table below:
+ *			*    : 0:NVREFSFMAX
+ *			^    : 0:NFMAX
+ *			^^   : 0:NFREFMAX*NFMAX
+ *
+ *			rP   : (r)ange P  == 0:PMax
+ *			P(P) : P as a function of P (i.e. for a range in field 1 of [0:PMax] -> [0][0], [1][1], ..., [P][P])
+ *			rPb  : (r)ange Pb (always a function of P) == PbMin:PbMax (PbMin = min(P-1,0), PbMax = max(P+1,PMax))
+ *			rd   : (r)ange (d)imension == 0:d-1
+ *
+ *		                   Adapt
+ *		Returned Op (SF) | 1               2                   3               4
+ *		                 |
+ *		NvnGs            | [0]             [0]                 [0]             [0]
+ *		NvnGc            | [P]             [rP]                [P]             [rP]
+ *		NvnCs            |
+ *		NvnCc            |
+ *		NvnIs            |
+ *		NvnIc            |
+ *		NfnIs            | [P][0:1]        [rP][0:1]           [P][2]          [rP][0:1]
+ *		NfnIc            |
+ *		                 |
+ *		ChiS_vP          | [P][PP][0]      [rP][PP][0]         [P][PP][0]      [rP][PP][0]
+ *		ChiS_vIs     (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rPb][*]
+ *		ChiS_vIc     (*) |
+ *    	ChiInvS_vS       | [P][P][0]       [rP][P(P)][0]       [P][P][0]       [rP][P(P)][0]
+ *		                 |
+ *		ICs              | [P][P][0]       [rP][P(P)][0]       [P][P][0]       [rP][P(P)][0]
+ *		ICc              |
+ *		                 |
+ *		I_vGs_vP         | [0][PP][0]      [0][PP][0]          [0][PP][0]      [0][PP][0]
+ *		I_vGs_vGc        | [P][P][0]       [rP][P(P)][0]       [P][P][0]       [rP][P(P)][0]
+ *		I_vGs_vCs        |
+ *		I_vGs_vIs    (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rPb][*]
+ *		I_vGs_vIc    (*) |
+ *		I_vGs_vS         | [P][P][0]       [rP][P(P)][0]       [P][P][0]       [rP][P(P)][0]
+ *		I_vGc_vP         | [0][PP][0]      [rP][PP][0]         [0][PP][0]      [rP][PP][0]
+ *		I_vGc_vCc        | [P][P][0]       [rP][P(P)][0]       [P][P][0]       [rP][P(P)][0]
+ *		I_vGc_vIs    (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rPb][*]
+ *		I_vGc_vIc    (*) |
+ *		I_vGc_vS         | [P][P][0]       [rP][P(P)][0]       [P][P][0]       [rP][P(P)][0]
+ *		I_vCs_vIs    (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rPb][*]
+ *		I_vCs_vIc    (*) |
+ *		I_vCc_vIs    (*) |
+ *		I_vCc_vIc    (*) |
+ *		                 |
+ *		D_vGs_vCs        | [P][P][0][rd]   [rP][P(P)][0][rd]   [P][P][0][rd]   [rP][P(P)][0][rd]
+ *		D_vGs_vIs        |
+ *		D_vGc_vCc        |
+ *		D_vGc_vIc        |
+ *		D_vCs_vCs        |
+ *		D_vCc_vCc        |
+ *		                 |
+ *    	ChiS_fIs         | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rPb][^^]
+ *    	ChiS_fIc         |
+ *		                 |
+ *    	I_vGs_fIs        | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rPb][^^]
+ *    	I_vGs_fIc        |
+ *    	I_vGc_fIs        |
+ *    	I_vGc_fIc        |
+ *    	I_vCs_fIs        |
+ *    	I_vCs_fIc        |
+ *    	I_vCc_fIs        |
+ *    	I_vCc_fIc        |
+ *		                 |
+ *		Is_Weak_VV       | [P][P][0]       [rP][P(P)][0]       [P][P][0]       [rP][P(P)][0]
+ *		Ic_Weak_VV       |
+ *		Ds_Weak_VV       | [P][P][0][rd]   [rP][P(P)][0][rd]   [P][P][0][rd]   [rP][P(P)][0][rd]
+ *		Dc_Weak_VV       |
+ *
+ *
  *	References:
  *		Zwanenburg(2016)_Equivalence between the Energy Stable Flux Reconstruction and Filtered Discontinuous Galerkin
  *		                 Schemes
@@ -474,19 +551,24 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 {
 	// Returned operators
 	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS, **NfnIs, **NfnIc;
-	double       ****ChiS_vP, ***ChiS_vIs, ***ChiS_vIc, ****ChiS_fIs, ****ChiS_fIc,
-	             **ChiInvS_vS,
-	             **ICs, **ICc,
-	             **I_vGs_vP, **I_vGs_vGc, **I_vGs_vCs, **I_vGs_vIs, **I_vGs_vIc, **I_vGs_vS, ****I_vGs_fIs, ****I_vGs_fIc,
-	             **I_vGc_vP,              **I_vGc_vCc, **I_vGc_vIs, **I_vGc_vIc, **I_vGc_vS, ****I_vGc_fIs, ****I_vGc_fIc,
-	             **I_vCs_vIs, **I_vCs_vIc, ****I_vCs_fIs, ****I_vCs_fIc,
-	             **I_vCc_vIs, **I_vCc_vIc, ****I_vCc_fIs, ****I_vCc_fIc,
-	             **Is_Weak_VV, **Ic_Weak_VV,
-	             ***D_vGs_vCs, ***D_vGs_vIs,
-	             ***D_vGc_vCc, ***D_vGc_vIc,
-	             ***D_vCs_vCs,
-	             ***D_vCc_vCc,
-	             ***Ds_Weak_VV, ***Dc_Weak_VV;
+	double       ****ChiS_vP, ****ChiS_vIs, ****ChiS_vIc,
+	             ****ChiInvS_vS,
+	             ****ICs, ****ICc,
+	             ****I_vGs_vP, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vIs, ****I_vGs_vIc, ****I_vGs_vS,
+	             ****I_vGc_vP,                ****I_vGc_vCc, ****I_vGc_vIs, ****I_vGc_vIc, ****I_vGc_vS,
+	             ****I_vCs_vIs, ****I_vCs_vIc,
+	             ****I_vCc_vIs, ****I_vCc_vIc,
+	             *****D_vGs_vCs, *****D_vGs_vIs,
+	             *****D_vGc_vCc, *****D_vGc_vIc,
+	             *****D_vCs_vCs,
+	             *****D_vCc_vCc,
+	             ****ChiS_fIs, ****ChiS_fIc,
+	             ****I_vGs_fIs, ****I_vGs_fIc,
+	             ****I_vGc_fIs, ****I_vGc_fIc,
+	             ****I_vCs_fIs, ****I_vCs_fIc,
+	             ****I_vCc_fIs, ****I_vCc_fIc,
+	             ****Is_Weak_VV, ****Ic_Weak_VV,
+	             *****Ds_Weak_VV, *****Dc_Weak_VV;
 
 	// Initialize DB Parameters
 	unsigned int Adapt       = DB.Adapt,
@@ -511,7 +593,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             ***NodeTypeS   = DB.NodeTypeS;
 
 	// Standard datatypes
-	unsigned int dim, dE, P, f, IndFType, Pb, PbMin, PbMax,
+	unsigned int dim, dE, P, f, IndFType, PSMin, PSMax, Pb, PbMin, PbMax,
 	             Nve, Nf, Nbf, Eclass, NFTypes,
 	             NvnP,
 	             B_Nve[2], *Nfve,
@@ -577,9 +659,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	Nfve = ELEMENT->Nfve;
 	VeF  = ELEMENT->VeF;
 
-	E_rst_vC = get_rst_vC(ELEMENT);
-	rst_vC = malloc(Nve*dE * sizeof *rst_vC); // free
-
 	select_functions(&basis,&grad_basis,&cubature,EType);
 
 	// Stored operators
@@ -590,17 +669,13 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	NvnIs = ELEMENT->NvnIs;
 	NvnIc = ELEMENT->NvnIc;
 	NvnS  = ELEMENT->NvnS;
-
 	NfnIs = ELEMENT->NfnIs;
 	NfnIc = ELEMENT->NfnIc;
 
-	ChiInvS_vS = ELEMENT->ChiInvS_vS;
 	ChiS_vP    = ELEMENT->ChiS_vP;
 	ChiS_vIs   = ELEMENT->ChiS_vIs;
 	ChiS_vIc   = ELEMENT->ChiS_vIc;
-
-	ChiS_fIs   = ELEMENT->ChiS_fIs;
-	ChiS_fIc   = ELEMENT->ChiS_fIc;
+	ChiInvS_vS = ELEMENT->ChiInvS_vS;
 
 	ICs = ELEMENT->ICs;
 	ICc = ELEMENT->ICc;
@@ -621,9 +696,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	I_vCc_vIs = ELEMENT->I_vCc_vIs;
 	I_vCc_vIc = ELEMENT->I_vCc_vIc;
 
-	Is_Weak_VV = ELEMENT->Is_Weak_VV;
-	Ic_Weak_VV = ELEMENT->Ic_Weak_VV;
-
 	D_vGs_vCs = ELEMENT->D_vGs_vCs;
 	D_vGs_vIs = ELEMENT->D_vGs_vIs;
 	D_vGc_vCc = ELEMENT->D_vGc_vCc;
@@ -631,8 +703,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	D_vCs_vCs = ELEMENT->D_vCs_vCs;
 	D_vCc_vCc = ELEMENT->D_vCc_vCc;
 
-	Ds_Weak_VV = ELEMENT->Ds_Weak_VV;
-	Dc_Weak_VV = ELEMENT->Dc_Weak_VV;
+	ChiS_fIs = ELEMENT->ChiS_fIs;
+	ChiS_fIc = ELEMENT->ChiS_fIc;
 
 	I_vGs_fIs = ELEMENT->I_vGs_fIs;
 	I_vGs_fIc = ELEMENT->I_vGs_fIc;
@@ -642,6 +714,11 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	I_vCs_fIc = ELEMENT->I_vCs_fIc;
 	I_vCc_fIs = ELEMENT->I_vCc_fIs;
 	I_vCc_fIc = ELEMENT->I_vCc_fIc;
+
+	Is_Weak_VV = ELEMENT->Is_Weak_VV;
+	Ic_Weak_VV = ELEMENT->Ic_Weak_VV;
+	Ds_Weak_VV = ELEMENT->Ds_Weak_VV;
+	Dc_Weak_VV = ELEMENT->Dc_Weak_VV;
 
 	// Allocate memory for arrays with multiple levels of dereferencing
 	rst_fIs       = malloc(NfMax * sizeof *rst_fIs); // free
@@ -682,13 +759,16 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(dummyPtr_ui[1]);
 
 	cubature(&rst_vGs,&dummyPtr_d,&dummyPtr_ui[0],&NvnGs[0],&dummy_ui,0,PGs,dE,NodeTypeG[Eclass]); free(dummyPtr_ui[0]); // free
+	// Use E_rst_vC instead of rst_vGs (!= for PYR ELEMENTs)
 	free(rst_vGs);
+	E_rst_vC = get_rst_vC(ELEMENT);
+	rst_vC = malloc(Nve*dE * sizeof *rst_vC); // free
+
 
 	// Preliminary Operators
 	IGs = identity_d(NvnGs[0]); // free
 
 	ChiRefGs_vGs = basis(PGs,E_rst_vC,NvnGs[0],&Nbf,dE); // free
-
 
 	if (strstr(BasisType,"Modal") != NULL) {
 		ChiGs_vGs = ChiRefGs_vGs;
@@ -708,7 +788,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	ChiGs_vP = mm_Alloc_d(CBRM,CBNT,CBNT,NvnP,NvnGs[0],NvnGs[0],1.0,ChiRefGs_vP,TGs); // free
 
 	// Returned Operators
-	I_vGs_vP[0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnP,NvnGs[0],NvnGs[0],1.0,ChiGs_vP,ChiInvGs_vGs); // keep
+	I_vGs_vP[0][PP][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnP,NvnGs[0],NvnGs[0],1.0,ChiGs_vP,ChiInvGs_vGs); // keep
 
 	free(IGs);
 	free(ChiRefGs_vGs);
@@ -716,6 +796,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(ChiRefGs_vP);
 	free(ChiGs_vP);
 
+	// Get Barycentric coordinates for lower dimensional ELEMENTs
 	NFTypes = 1;
 	BCoords_dEm1[0] = get_BCoords_dEm1(ELEMENT,0); // keep/free
 	if (EType == WEDGE || EType == PYR) {
@@ -741,48 +822,36 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		free(BCoords_dEm1[IndFType]->NfnIc);
 	}
 
-/*
-if (EType == PYR) {
-printf("here\n");
-for (IndFType = 0; IndFType < NFTypes; IndFType++) {
-	printf("%d \n",B_Nve[IndFType]);
-
-	for (P = 0; P <= PMax; P++) {
-		printf("%d %d\n",NfnIs[P][IndFType],NfnIc[P][IndFType]);
-		array_print_d(NfnIs[P][IndFType],B_Nve[IndFType],BCoords[IndFType]->Is[P],'C');
-//		array_print_d(NfnIc[P][IndFType],B_Nve[IndFType],BCoords[IndFType]->Ic[P],'C');
+	switch (Adapt) {
+	case ADAPT_0:
+		PSMin = P;
+		PSMax = P;
+		break;
+	case ADAPT_P:
+		PSMin = 0;
+		PSMax = PMax;
+		break;
+	case ADAPT_H:
+		PSMin = P;
+		PSMax = P;
+		break;
+	default: // ADAPT_HP
+		PSMin = 0;
+		PSMax = PMax;
+		break;
 	}
-}
-//exit(1);
-}
-*/
 
-	for (P = 0; P <= PMax; P++) {
-		// Allow transfer between P and [P-1,P+1] only (ToBeDeleted)
-		PbMin = P; PbMax = P;
-/*
-		if (P == 0) {
-			PbMin = P;
-			PbMax = P+1;
-		} else if (P == PMax) {
-			PbMin = P-1;
-			PbMax = PMax;
-		} else {
-			PbMin = P-1;
-			PbMax = P+1;
-		}
-*/
-
+	for (P = PSMin; P <= PSMax; P++) {
 		cubature(&rst_vGc,&dummyPtr_d,&dummyPtr_ui[0],&NvnGc[P],&dummy_ui,0,PGc[P],         dE,NodeTypeG[Eclass]  );    free(dummyPtr_ui[0]); // free
 		cubature(&rst_vCs,&dummyPtr_d,&dummyPtr_ui[0],&NvnCs[P],&dummy_ui,0,PCs[P][Eclass], dE,NodeTypeG[Eclass]  );    free(dummyPtr_ui[0]); // free
 		cubature(&rst_vCc,&dummyPtr_d,&dummyPtr_ui[0],&NvnCc[P],&dummy_ui,0,PCc[P][Eclass], dE,NodeTypeG[Eclass]  );    free(dummyPtr_ui[0]); // free
 		cubature(&rst_vS, &dummyPtr_d,&dummyPtr_ui[0],&NvnS[P], &dummy_ui,0,P,              dE,NodeTypeS[P][Eclass]);   free(dummyPtr_ui[0]); // free
 
 		// Preliminary Operators
-		IGc    = identity_d(NvnGc[P]); // free
-		ICs[P] = identity_d(NvnCs[P]); // keep
-		ICc[P] = identity_d(NvnCc[P]); // keep
-		IS     = identity_d(NvnS[P]);  // free
+		IGc          = identity_d(NvnGc[P]); // free
+		ICs[P][P][0] = identity_d(NvnCs[P]); // keep
+		ICc[P][P][0] = identity_d(NvnCc[P]); // keep
+		IS           = identity_d(NvnS[P]);  // free
 
 		ChiRefGc_vGc = basis(PGc[P],rst_vGc,NvnGc[P],&Nbf,dE);         // free
 		ChiRefCs_vCs = basis(PCs[P][Eclass],rst_vCs,NvnCs[P],&Nbf,dE); // free
@@ -816,6 +885,17 @@ for (IndFType = 0; IndFType < NFTypes; IndFType++) {
 		TCc = mm_Alloc_d(CBRM,CBNT,CBNT,NvnCc[P],NvnCc[P],NvnCc[P],1.0,ChiRefInvCc_vCc,ChiCc_vCc); // free
 		TS  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[P], NvnS[P], NvnS[P], 1.0,ChiRefInvS_vS,ChiS_vS);     // free
 
+		switch (Adapt) {
+			default: // ADAPT_P or ADAPT_HP
+				if      (P == 0)    PbMin = P,   PbMax = P+1;
+				else if (P == PMax) PbMin = P-1, PbMax = PMax;
+				else                PbMin = P-1, PbMax = P+1;
+				break;
+			case ADAPT_0:
+			case ADAPT_H:
+				PbMin = P; PbMax = P;
+				break;
+		}
 		for (Pb = PbMin; Pb <= PbMax; Pb++) {
 			// VOLUME Operators
 			cubature(&rst_vIs,&w_vIs,&dummyPtr_ui[0],&NvnIs[Pb],&dummy_ui,1,PIvs[Pb][Eclass],dE,NodeTypeIvs[Pb][Eclass]); free(dummyPtr_ui[0]); // free
@@ -828,6 +908,13 @@ for (IndFType = 0; IndFType < NFTypes; IndFType++) {
 			ChiRefS_vIc  = basis(P,rst_vIc,NvnIc[Pb],&Nbf,dE); // free
 
 			// VOLUME Operators
+/* Plan of attack: 
+ * 0) Compute range of NVREFSF depending on Adapt (LINE: 0:2, TRI: 0:4, TET/PYR: 0:0)
+ * 1) Compute barycentric coordinates of rst_vIs/c
+ * 2) Use VeF to transfer nodes to correct position in volume.
+ * 3) Compute ChiRefS_vIs in each relevant configuration.
+ * 4) Store ChiS_vIs/c[P][Pb][*] = ChiRefS_vIs/c*TS
+ */
 			ChiS_vIs[P][Pb] =  mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnS[P],NvnS[P],1.0,ChiRefS_vIs,TS);  // keep
 			ChiS_vIc[P][Pb] =  mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnS[P],NvnS[P],1.0,ChiRefS_vIc,TS);  // keep
 

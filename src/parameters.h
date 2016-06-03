@@ -19,6 +19,7 @@
  *		NFVEMAX         : (MAX)imum (N)umber of (F)ACET (VE)rtices for an element.
  *		NFREFMAX        : (MAX)imum (N)umber of (F)ACET (REF)inements.
  *		NVREFMAX        : (MAX)imum (N)umber of (V)OLUME (REF)inements.
+ *		NVREFSFMAX      : (MAX)imum (N)umber of (V)OLUME (REF)inements if using (S)um (F)actorized operators.
  *		NFMAX           : (MAX)imum (N)umber of (F)ACET for an element.
  *		NFMIXEDMAX      : (MAX)imum (N)umber of (MIXED) (F)ACETs for an element.
  *		NESUBCMAX       : (MAX)imum (N)umber of (E)lement (SUB)(C)lasses
@@ -54,15 +55,24 @@
 #define GMSH_YZFACE_MIN 6001
 #define GMSH_XYZVOL_MIN 7001
 
+// ELEMENT related numbers
 #define NVEMAX          8  // HEX
 #define NFVEMAX         4  // QUAD
 #define NFREFMAX        9  // QUAD
 #define NVREFMAX        27 // HEX
+#define NVREFSFMAX      5  // TRI
 #define NFMAX           6  // HEX
 #define NFMIXEDMAX      2  // WEDGE/PYR (TRI + QUAD)
 #define NESUBCMAX       2  // WEDGE (TRI + LINE)
 #define NFORDMAX        8  // QUAD
 
+// Allowed adaptation options
+#define ADAPT_0  0
+#define ADAPT_P  1
+#define ADAPT_H  2
+#define ADAPT_HP 3
+
+// h-refinement related numbers
 #define NFREFMAXPOINT   1
 #define NFREFMAXLINE    3
 #define NFREFMAXTRI     5

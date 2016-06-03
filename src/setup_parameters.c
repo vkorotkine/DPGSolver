@@ -162,7 +162,7 @@ void setup_parameters()
 	if (DB.P == 0)
 		DB.PP = DB.P+1;
 	else
-		DB.PP = 4; // ToBeModified: max(4-ML,DB.P);
+		DB.PP = max(PMax-ML,DB.P);
 
 	// Geometry
 	PGs = 1;

@@ -189,5 +189,6 @@ extern void memory_destructor_F (struct S_FACET *FACET);
 	extern void array_free3_d  (unsigned int iMax, unsigned int jMax, double ***A);
 	extern void array_free3_ld (unsigned int iMax, unsigned int jMax, long double ***A);
 	extern void array_free4_d  (unsigned int iMax, unsigned int jMax, unsigned int kMax, double ****A);
+	extern void array_free5_d  (unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int lMax, double *****A);
 
 #endif // DPG__functions_h__INCLUDED

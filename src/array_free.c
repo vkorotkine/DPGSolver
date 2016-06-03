@@ -236,3 +236,28 @@ void array_free4_d(unsigned int iMax, unsigned int jMax, unsigned int kMax, doub
 	}
 	free(A);
 }
+
+void array_free5_d(unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int lMax, double *****A)
+{
+	unsigned int i, j, k, l;
+
+	for (i = 0; i < iMax; i++) {
+		if (A[i] != NULL) {
+			for (j = 0; j < jMax; j++) {
+				if (A[i][j] != NULL) {
+					for (k = 0; k < kMax; k++) {
+						if (A[i][j][k] != NULL) {
+							for (l = 0; l < lMax; l++)
+								if (A[i][j][k][l] != NULL)
+									free(A[i][j][k][l]);
+							free(A[i][j][k]);
+						}
+					}
+					free(A[i][j]);
+				}
+			}
+			free(A[i]);
+		}
+	}
+	free(A);
+}
