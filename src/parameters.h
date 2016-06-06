@@ -73,10 +73,14 @@
 #define ADAPT_HP 3
 
 // h-refinement related numbers
-#define NFREFMAXPOINT   1
-#define NFREFMAXLINE    3
-#define NFREFMAXTRI     5
-#define NFREFMAXQUAD    9
+#define NREFMAXPOINT 1
+#define NREFMAXLINE  3
+#define NREFMAXTRI   5
+#define NREFMAXQUAD  9
+#define NREFMAXTET   7
+#define NREFMAXHEX   27
+#define NREFMAXWEDGE 15
+#define NREFMAXPYR   11
 
 // Common variables
 #define PI    3.1415926535897932

@@ -20,6 +20,8 @@
  *		As Gmsh only stores "physical" elements in the mesh file, it is possible that TRI/QUAD ELEMENTs be marked as not
  *		present when using 3D mixed meshes if they are none of them on the boundary. Thus, TRI and QUAD ELEMENT presence
  *		is treated as a special case below.
+ *		Potentially move the initial ELEMENT set up to a different function (such as initialize_ELEMENT.c)
+ *		(ToBeDeleted).
  *
  *	Notation:
  *		present  : Indicator of presence of this element type

@@ -68,6 +68,9 @@ void setup_normals(struct S_FACET *FACET)
 	C_vC = VIn->C_vC;
 	C_fI = malloc(NvnI0*d*d * sizeof *C_fI); // free
 
+	if (VfIn % NFREFMAX != 0)
+		printf("Error: VfIn should be h-conforming in setup_normals.\n"), exit(1); 
+
 	mm_CTN_d(NfnI0,d*d,NvnC0,OPS->I_vC_fI[VfIn],C_vC,C_fI);
 
 	NnI = NfnI0;

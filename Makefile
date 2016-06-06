@@ -60,7 +60,7 @@ endif
 # LINUX
 ifeq ($(KERNEL),Linux)
   OS_RELEASE := $(shell uname -r)
-  ifeq ($(OS_RELEASE),4.4.0-21-generic) #Home
+  ifeq ($(OS_RELEASE),4.4.0-22-generic) #Home
     PROG_PATH = /home/philip/Desktop/research/programs
 
     CC   = ${PROG_PATH}/petsc/petsc-3.7.0/arch-linux-c-/bin/mpicc -fopenmp -m64

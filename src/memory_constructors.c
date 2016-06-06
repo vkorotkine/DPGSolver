@@ -12,6 +12,7 @@
  *		Allocate memory for and initialize new structures.
  *
  *	Comments:
+ *		Likely change VeF into a multidimensional array (ToBeDeleted).
  *
  *	Notation:
  *
@@ -51,6 +52,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->Nfref   = calloc(NFMAX                         , sizeof *(ELEMENT->Nfref));   // free
 	ELEMENT->NfMixed = calloc(NFMIXEDMAX                    , sizeof *(ELEMENT->NfMixed)); // free
 	ELEMENT->VeF     = calloc(NVEMAX*NFVEMAX*NFREFMAX*NFMAX , sizeof *(ELEMENT->VeF));     // free
+	ELEMENT->Nvve    = calloc(NVREFMAX                      , sizeof *(ELEMENT->Nvve));    // free
+	ELEMENT->VeV     = calloc(NVREFMAX                      , sizeof *(ELEMENT->VeV));     // free
 
 	// Normals
 	ELEMENT->nr = calloc(NFMAX*DMAX , sizeof *(ELEMENT->nr)); // free

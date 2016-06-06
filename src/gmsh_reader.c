@@ -129,9 +129,11 @@ void gmsh_reader(void)
 
 	struct S_ELEMENT *ELEMENT;
 
-	// Arbitrary initializations for variables defined in conditionals (to eliminate compiler warnings)
+	// silence
 	NVe = 0; NPVe = 0; NETotal = 0; NveMax = 0;
 	PVe = malloc(0 * sizeof *PVe); // keep (freed and reallocated if NPVe > 0 after reading file)
+	IndVeXYZ[0] = 0;
+	IndVeXYZ[1] = 0;
 
 	// Parmetis datatypes
 	idx_t  *elmdist, *eptr, *eind, *numflag, *ncommonnodes,
@@ -152,13 +154,13 @@ void gmsh_reader(void)
 	// Find NVe, NETotal
 	while (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 		if (strstr(StringRead,"$Nodes") != NULL) {
-			fscanf(fID,"%[^\n]\n",StringRead);
-			sscanf(StringRead,"%d",&NVe);
+			if (fscanf(fID,"%[^\n]\n",StringRead) == 1)
+				sscanf(StringRead,"%d",&NVe);
 		}
 
 		if (strstr(StringRead,"$Elements") != NULL) {
-			fscanf(fID,"%[^\n]\n",StringRead);
-			sscanf(StringRead,"%d",&NETotal);
+			if (fscanf(fID,"%[^\n]\n",StringRead) == 1)
+				sscanf(StringRead,"%d",&NETotal);
 		}
 	}
 	rewind(fID);
@@ -175,10 +177,10 @@ void gmsh_reader(void)
 	SectionElements = 0;
 
 	while (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
-
 		if (strstr(StringRead,"$Nodes") != NULL) {
-			fscanf(fID,"%[^\n]\n",StringRead);
-			fscanf(fID,"%[^\n]\n",StringRead);
+			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
+			if (fscanf(fID,"%[^\n]\n",StringRead) == 1)
+				printf("Read Error.\n"), exit(1);
 			SectionNodes = 1;
 		}
 		if (strstr(StringRead,"$EndNodes") != NULL)
@@ -199,9 +201,9 @@ void gmsh_reader(void)
 		}
 
 		if (strstr(StringRead,"$Elements") != NULL) {
-			fscanf(fID,"%[^\n]\n",StringRead);
-			fscanf(fID,"%[^\n]\n",StringRead);
-			SectionElements = 1;
+			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
+			if (fscanf(fID,"%[^\n]\n",StringRead) == 1)
+				SectionElements = 1;
 
 			for (i = 0; i < 4; i++)
 				NE[i] = 0;
@@ -266,8 +268,8 @@ void gmsh_reader(void)
 			for (i = 0; i < 2; i++)
 				dimEntered[i] = 0;
 
-			fscanf(fID,"%[^\n]\n",StringRead);
-			sscanf(StringRead,"%d",&NPeEnt);
+			if (fscanf(fID,"%[^\n]\n",StringRead) == 1)
+				sscanf(StringRead,"%d",&NPeEnt);
 
 			// Find Maximum number of possible periodic connections
 			for (Vs = i = 0; i < d; i++)
@@ -305,22 +307,21 @@ void gmsh_reader(void)
 			PVeOver = malloc(PVeMax*2 * sizeof *PVeOver); // free
 
 			for (PeEnt = 0; PeEnt < NPeEnt; PeEnt++) {
-				fscanf(fID,"%[^\n]\n",StringRead);
-
-				sscanf(StringRead,"%d %d %d",&dim,&TagS,&TagM);
+				if (fscanf(fID,"%[^\n]\n",StringRead) == 1)
+					sscanf(StringRead,"%d %d %d",&dim,&TagS,&TagM);
 				if (dim == 0) { // Periodic 0D
 					// gmsh provides the nodes => use directly
 
-					fscanf(fID,"%[^\n]\n",StringRead);
+					if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 					// skip line beginnning with "Affine" if present
 					if (strstr(StringRead,"Affine") != NULL)
-						fscanf(fID,"%[^\n]\n",StringRead);
+						if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 
 					sscanf(StringRead,"%d",&NEnt);
 
 					for (Ent = 0; Ent < NEnt; Ent++) {
-						fscanf(fID,"%[^\n]\n",StringRead);
-						sscanf(StringRead,"%d %d",&nodes[0],&nodes[1]);
+						if (fscanf(fID,"%[^\n]\n",StringRead) == 1)
+							sscanf(StringRead,"%d %d",&nodes[0],&nodes[1]);
 						for (i = 0; i < 2; i++)
 							PVeOver[NPVe*2+i] = nodes[i]-1;
 						PetscSortInt(2,(int *)&PVeOver[NPVe*2+0]);
@@ -525,13 +526,13 @@ void gmsh_reader(void)
 
 
 					// Jump to next periodic entity
-					fscanf(fID,"%[^\n]\n",StringRead);
+					if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 					// skip line beginnning with "Affine" if present
 					if (strstr(StringRead,"Affine") != NULL)
-						fscanf(fID,"%[^\n]\n",StringRead);
+						if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 					sscanf(StringRead,"%d",&NEnt);
 					for (Ent = 0; Ent < NEnt; Ent++) {
-						fscanf(fID,"%[^\n]\n",StringRead);
+						if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 					}
 //array_print_i(NPVe,2,PVeOver,'R');
 				}

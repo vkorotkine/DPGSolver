@@ -62,13 +62,13 @@ struct S_ELEMENT {
 	             *Nfve, *VeCGmsh, *VeFcon;
 
 	// Operators
-	unsigned int connect_NE, NvnP,
+	unsigned int connect_NE, NvnP, *Nvve,
 	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS,
 	             **NfnIs, **NfnIc,
 	             *Nfref, *NfMixed,
 	             *connectivity, *connect_types,
 	             ***nOrd_fIs, ***nOrd_fIc;
-	double       *VeF, *nr,
+	double       *VeF, **VeV, *nr,
 	             ****ChiS_vP, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS,
 	             ****ICs, ****ICc,

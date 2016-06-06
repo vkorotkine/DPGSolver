@@ -37,6 +37,8 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->Nfref);
 	free(ELEMENT->NfMixed);
 	free(ELEMENT->VeF);
+	free(ELEMENT->Nvve);
+	array_free2_d(NVREFMAX,ELEMENT->VeV);
 
 	// Normals
 	free(ELEMENT->nr);
