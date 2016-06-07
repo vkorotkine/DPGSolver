@@ -49,11 +49,11 @@ struct S_ELEMENT *New_ELEMENT(void)
 	// Operators
 
 	// h-refinement related
-	ELEMENT->Nfref   = calloc(NFMAX                         , sizeof *(ELEMENT->Nfref));   // free
-	ELEMENT->NfMixed = calloc(NFMIXEDMAX                    , sizeof *(ELEMENT->NfMixed)); // free
-	ELEMENT->VeF     = calloc(NVEMAX*NFVEMAX*NFREFMAX*NFMAX , sizeof *(ELEMENT->VeF));     // free
-	ELEMENT->Nvve    = calloc(NVREFMAX                      , sizeof *(ELEMENT->Nvve));    // free
-	ELEMENT->VeV     = calloc(NVREFMAX                      , sizeof *(ELEMENT->VeV));     // free
+	ELEMENT->Nfref   = calloc(NFMAX          , sizeof *(ELEMENT->Nfref));   // free
+	ELEMENT->NfMixed = calloc(NFMIXEDMAX     , sizeof *(ELEMENT->NfMixed)); // free
+	ELEMENT->VeF     = calloc(NFREFMAX*NFMAX , sizeof *(ELEMENT->VeF));     // free
+	ELEMENT->Nvve    = calloc(NVREFMAX       , sizeof *(ELEMENT->Nvve));    // free
+	ELEMENT->VeV     = calloc(NVREFMAX       , sizeof *(ELEMENT->VeV));     // free
 
 	// Normals
 	ELEMENT->nr = calloc(NFMAX*DMAX , sizeof *(ELEMENT->nr)); // free
@@ -332,7 +332,8 @@ struct S_FACET *New_FACET(void)
 	FACET->curved  = 0;
 	FACET->typeInt = 0;
 
-	FACET->n_fI = NULL; // free
+	FACET->n_fI     = NULL; // free
+	FACET->detJF_fI = NULL; // free
 
 	// Solving
 	FACET->RHSIn  = NULL; // tbd

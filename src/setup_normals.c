@@ -14,9 +14,11 @@
  *		Set up normals at integration nodes on element facets.
  *
  *	Comments:
+ *		The unit normal is stored so that the correct normal velocities are computed in the numerical flux functions.
  *
  *	Notation:
- *		n_fI : physical normal vector evaluated at the FACET integration nodes.
+ *		n_fI     : Physical unit normal vector evaluated at the (f)acet (I)ntegration nodes.
+ *		detJF_fI : Area element evaluated at the (f)acet (I)ntegration nodes.
  *
  *	References:
  *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_Schemes
@@ -41,7 +43,7 @@ void setup_normals(struct S_FACET *FACET)
 	             VfIn, Eclass, IndFType, fIn,
 	             NvnC0, NvnI0, NfnI0, NnI;
 	double       nSum, nSum2,
-	             *C_fI, *C_vC, *nrIn, *n_fI;
+	             *C_fI, *C_vC, *nrIn, *n_fI, *detJF_fI;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VIn, *VOut;
@@ -80,7 +82,8 @@ void setup_normals(struct S_FACET *FACET)
 	if (!curved) fnMax = 1;
 	else         fnMax = NnI;
 
-	n_fI = calloc(fnMax*d , sizeof *n_fI); // keep
+	n_fI     = calloc(fnMax*d , sizeof *n_fI);     // keep
+	detJF_fI = calloc(fnMax   , sizeof *detJF_fI); // keep
 	for (fn = 0; fn < fnMax; fn++) {
 		for (dim1 = 0; dim1 < d; dim1++) {
 		for (dim2 = 0; dim2 < d; dim2++) {
@@ -93,12 +96,14 @@ void setup_normals(struct S_FACET *FACET)
 		for (dim = 0; dim < d; dim++)
 			nSum2 += pow(n_fI[fn*d+dim],2.0);
 
-		nSum = sqrt(nSum2); // == detJF_vI
+		nSum = sqrt(nSum2);
+		detJF_fI[fn] = nSum;
 		for (dim = 0; dim < d; dim++)
 			n_fI[fn*d+dim] /= nSum;
 	}
 
 	FACET->n_fI = n_fI;
+	FACET->detJF_fI = det_JF_fI;
 
 //printf("%d %d %d\n",FACET->indexg,VfIn,IndFType);
 //array_print_d(fnMax,d,n,'R');

@@ -36,7 +36,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	// h-refinement related
 	free(ELEMENT->Nfref);
 	free(ELEMENT->NfMixed);
-	free(ELEMENT->VeF);
+	array_free2_d(NFREFMAX*NFMAX,ELEMENT->VeF);
 	free(ELEMENT->Nvve);
 	array_free2_d(NVREFMAX,ELEMENT->VeV);
 
@@ -145,6 +145,7 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 void memory_destructor_F(struct S_FACET *FACET)
 {
 	free(FACET->n_fI);
+	free(FACET->detJF_fI);
 
 	free(FACET);
 }

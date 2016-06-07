@@ -35,7 +35,7 @@
 
 struct S_OPERATORS {
 	unsigned int NvnS, NfnI, *nOrdInOut, *nOrdOutIn;
-	double       **ChiS_fI;
+	double       **ChiS_fI, **I_Weak_FF;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
@@ -92,7 +92,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	 */
 
 	// Standard datatypes
-	unsigned int PV, PF, Vtype, Vcurved, FtypeInt, IndOrdInOut, IndOrdOutIn;
+	unsigned int PV, PF, Vtype, FtypeInt, IndOrdInOut, IndOrdOutIn;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS, *ELEMENT_FACET;
 
@@ -102,7 +102,6 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	PV       = VOLUME->P;
 	PF       = FACET->P;
 	Vtype    = VOLUME->type;
-	Vcurved  = VOLUME->curved;
 
 	FtypeInt    = FACET->typeInt;
 	IndOrdInOut = FACET->IndOrdInOut;
@@ -116,46 +115,24 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
 
 	OPS->NvnS = ELEMENT_OPS->NvnS[PV];
-	if (!Vcurved) {
-		// Straight VOLUME
+	if (FtypeInt == 's') {
+		// Straight FACET Integration
+		OPS->NfnI = ELEMENT_OPS->NfnIs[PF][IndClass];
 
-		if (FtypeInt == 's') {
-			// Straight FACET Integration
-			OPS->NfnI = ELEMENT_OPS->NfnIs[PF][IndClass];
+		OPS->ChiS_fI   = ELEMENT_OPS->ChiS_fIs[PV][PF];
+		OPS->I_Weak_FF = ELEMENT_OPS->Is_Weak_FF[PV][PF];
 
-			OPS->ChiS_fI = ELEMENT_OPS->ChiS_fIs[PV][PF];
-
-			OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIs[PF][IndOrdInOut];
-			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIs[PF][IndOrdOutIn];
-		} else {
-			// Curved FACET Integration
-			OPS->NfnI = ELEMENT_OPS->NfnIc[PF][IndClass];
-
-			OPS->ChiS_fI = ELEMENT_OPS->ChiS_fIc[PV][PF];
-
-			OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIc[PF][IndOrdInOut];
-			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIc[PF][IndOrdOutIn];
-		}
+		OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIs[PF][IndOrdInOut];
+		OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIs[PF][IndOrdOutIn];
 	} else {
-		// Curved VOLUME
+		// Curved FACET Integration
+		OPS->NfnI = ELEMENT_OPS->NfnIc[PF][IndClass];
 
-		if (FtypeInt == 's') {
-			// Straight FACET Integration
-			OPS->NfnI = ELEMENT_OPS->NfnIs[PF][IndClass];
+		OPS->ChiS_fI   = ELEMENT_OPS->ChiS_fIc[PV][PF];
+		OPS->I_Weak_FF = ELEMENT_OPS->Ic_Weak_FF[PV][PF];
 
-			OPS->ChiS_fI = ELEMENT_OPS->ChiS_fIs[PV][PF];
-
-			OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIs[PF][IndOrdInOut];
-			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIs[PF][IndOrdOutIn];
-		} else {
-			// Curved FACET Integration
-			OPS->NfnI = ELEMENT_OPS->NfnIc[PF][IndClass];
-
-			OPS->ChiS_fI = ELEMENT_OPS->ChiS_fIc[PV][PF];
-
-			OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIc[PF][IndOrdInOut];
-			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIc[PF][IndOrdOutIn];
-		}
+		OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIc[PF][IndOrdInOut];
+		OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIc[PF][IndOrdOutIn];
 	}
 }
 
@@ -170,15 +147,15 @@ static void compute_FACET_RHS_EFE(void)
 	             InviscidFluxType = DB.InviscidFluxType;
 
 	// Standard datatypes
-	unsigned int i, j, iInd,
+	unsigned int i, j, iInd, iMax,
 	             VfIn, VfOut, fIn, fOut, Eclass, IndFType, Boundary, BC, BC_trail,
-	             NfnI, NvnSIn, NvnSOut;
-	double       *WIn_fI, *WOut_fI, *WOut_fIIn, *nFluxNum_fI, *RHSIn, *RHSOut, *n_fI;
+	             RowInd, RowSub, ReOrder, *RowTracker,
+	             NfnI, NvnSIn, NvnSOut, *nOrdInOut;
+	double       *WIn_fI, *WOut_fI, *WOut_fIIn, *nFluxNum_fI, *RHSIn, *RHSOut, *n_fI, *detJF_fI, **I_Weak_FF;
 
 	struct S_OPERATORS *OPSIn, *OPSOut;
 	struct S_VOLUME    *VIn, *VOut;
 	struct S_FACET     *FACET;
-	struct S_ELEMENT   *ELEMENT;
 
 	// silence
 	WOut_fI   = NULL;
@@ -224,6 +201,7 @@ static void compute_FACET_RHS_EFE(void)
 		}
 
 		// Compute WOut_fI (Taking BCs into account if applicable)
+		nOrdInOut = OPSIn->nOrdInOut;
 		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACET
 			if (0 && VOut->Eclass == C_TP) {
 				; // update this with sum factorization
@@ -237,15 +215,13 @@ static void compute_FACET_RHS_EFE(void)
 			}
 
 			// Reorder WOut_fI to correspond to WIn_fI
-			ELEMENT = get_ELEMENT_type(VIn->type);
-
 			WOut_fIIn = malloc(NfnI*Nvar * sizeof *WOut_fIIn); // free
 			for (i = 0; i < Nvar; i++) {
 				iInd = i*NfnI;
 				for (j = 0; j < NfnI; j++) {
 					BC_trail = BC % BC_STEP_SC;
 					if (BC_trail > 50 || BC_trail == 0)
-						WOut_fIIn[iInd+j] = WOut_fI[iInd+OPSIn->nOrdInOut[j]];
+						WOut_fIIn[iInd+j] = WOut_fI[iInd+nOrdInOut[j]];
 					else
 						WOut_fIIn[iInd+j] = WOut_fI[iInd+j];
 				}
@@ -256,7 +232,8 @@ static void compute_FACET_RHS_EFE(void)
 
 		// Compute numerical flux
 		nFluxNum_fI = malloc(NfnI*Neq * sizeof *nFluxNum_fI); // free
-		n_fI = FACET->n_fI;
+		n_fI     = FACET->n_fI;
+		detJF_fI = FACET->detJF_fI;
 
 		switch (InviscidFluxType) {
 		case FLUX_LF:
@@ -270,7 +247,21 @@ static void compute_FACET_RHS_EFE(void)
 			break;
 		}
 
+/*
+array_print_d(NfnI,Neq,WIn_fI,'C');
+array_print_d(NfnI,Neq,WOut_fIIn,'C');
+
+flux_LF(NfnI,1,WIn_fI,WOut_fIIn,nFluxNum_fI,n_fI,d,Neq);
 array_print_d(NfnI,Neq,nFluxNum_fI,'C');
+flux_ROE(NfnI,1,WIn_fI,WOut_fIIn,nFluxNum_fI,n_fI,d,Neq);
+array_print_d(NfnI,Neq,nFluxNum_fI,'C');
+*/
+		// Multiply n dot FNum by the area element
+		for (i = 0; i < Neq; i++) {
+			iInd = i*NfnI;
+			for (j = 0; j < NfnI; j++)
+				nFluxNum_fI[iInd+j] *= detJF_fI[j];
+		}
 
 		// Compute FACET RHS terms
 		RHSIn  = calloc(NvnSIn*Neq  , sizeof *RHSIn);  // keep (requires external free)
@@ -278,14 +269,59 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 		FACET->RHSIn  = RHSIn;
 		FACET->RHSOut = RHSOut;
 
+		RowTracker = malloc(NfnI * sizeof *RowTracker); // free
+
 		if (strstr(Form,"Weak") != NULL) {
+			// Interior FACET
+			if (0 && VIn->Eclass == C_TP) {
+				; // update this with sum factorization
+				// Will require both I_Weak_FF and I_Weak_FV
+			} else if (1 || VIn->Eclass == C_SI || VIn->Eclass == C_PYR) {
+				I_Weak_FF = OPSIn->I_Weak_FF;
 
+				mm_CTN_d(NvnSIn,Neq,NfnI,I_Weak_FF[VfIn],nFluxNum_fI,RHSIn);
+//				for (i = 0, iMax = Neq*NvnSIn; i < iMax; i++)
+//					RHSIn[i] *= -1.0;
+			} else if (VIn->Eclass == C_WEDGE) {
+				; // update this with sum factorization
+			}
 
+			// Exterior FACET
+			if (!Boundary) {
+				if (0 && VIn->Eclass == C_TP) {
+					; // update this with sum factorization
+				} else if (1 || VIn->Eclass == C_SI || VIn->Eclass == C_PYR) {
+					I_Weak_FF = OPSOut->I_Weak_FF;
 
+					// Re-arrange nFluxNum to match node ordering from opposite VOLUME
+					for (i = 0; i < NfnI; i++)
+						RowTracker[i] = i;
+
+					for (RowInd = 0; RowInd < NfnI; RowInd++) {
+						ReOrder = nOrdInOut[RowInd];
+						for (RowSub = ReOrder; RowTracker[RowSub] != ReOrder; RowSub = RowTracker[RowSub])
+							;
+
+						if (RowInd != RowSub) {
+							array_swap_d(&nFluxNum_fI[RowInd],&nFluxNum_fI[RowSub],Neq,NfnI);
+							array_swap_ui(&RowTracker[RowInd],&RowTracker[RowSub],1,1);
+						}
+					}
+
+					mm_CTN_d(NvnSOut,Neq,NfnI,I_Weak_FF[VfOut],nFluxNum_fI,RHSOut);
+//					for (i = 0, iMax = Neq*NvnSOut; i < iMax; i++)
+//						RHSOut[i] *= -1.0;
+				} else if (VIn->Eclass == C_WEDGE) {
+					; // update this with sum factorization
+				}
+			}
 		} else if (strstr(Form,"Strong") != NULL) {
 			printf("Exiting: Implement the strong form in compute_FACET_RHS_EFE.\n"), exit(1);
 		}
+array_print_d(NvnSIn,Neq,RHSIn,'C');
+array_print_d(NvnSOut,Neq,RHSOut,'C');
 
+		free(RowTracker);
 exit(1);
 
 

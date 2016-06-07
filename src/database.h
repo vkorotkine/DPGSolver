@@ -68,7 +68,7 @@ struct S_ELEMENT {
 	             *Nfref, *NfMixed,
 	             *connectivity, *connect_types,
 	             ***nOrd_fIs, ***nOrd_fIc;
-	double       *VeF, **VeV, *nr,
+	double       **VeF, **VeV, *nr,
 	             ****ChiS_vP, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS,
 	             ****ICs, ****ICc,
@@ -120,7 +120,7 @@ struct S_FACET {
 
 	// Geometry
 	char   curved, typeInt;
-	double *n_fI;
+	double *n_fI, *detJF_fI;
 
 	// Solving
 	double *RHSIn, *RHSOut;
