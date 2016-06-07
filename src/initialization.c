@@ -130,7 +130,7 @@ void initialization(int nargc, char **argv)
 		if (strstr(StringRead,"EFE")        != NULL) sscanf(StringRead,"%s %d",dummys,&DB.EFE);
 		if (strstr(StringRead,"Collocated") != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Collocated);
 		if (strstr(StringRead,"Adapt")      != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Adapt);
-		if (strstr(StringRead,"PGlobal")    != NULL) sscanf(StringRead,"%s %d",dummys,&DB.P);
+		if (strstr(StringRead,"PGlobal")    != NULL) sscanf(StringRead,"%s %d",dummys,&DB.PGlobal);
 		if (strstr(StringRead,"PMax")       != NULL) sscanf(StringRead,"%s %d",dummys,&DB.PMax);
 		if (strstr(StringRead,"Restart")    != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Restart);
 		if (strstr(StringRead,"Testing")    != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Testing);
@@ -182,7 +182,7 @@ void initialization(int nargc, char **argv)
 		printf("EFE        : %d\n",    DB.EFE);
 		printf("Collocated : %d\n",    DB.Collocated);
 		printf("Adapt      : %d\n\n",  DB.Adapt);
-		printf("P          : %d\n",    DB.P);
+		printf("P          : %d\n",    DB.PGlobal);
 		printf("PMax       : %d\n",    DB.PMax);
 		printf("Testing    : %d\n\n\n",DB.Testing);
 	}

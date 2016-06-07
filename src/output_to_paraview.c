@@ -70,7 +70,8 @@ static void output_geom(const char *geom_type)
 {
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
-	unsigned int d         = DB.d;
+	unsigned int d         = DB.d,
+	             PP        = DB.PP;
 	int          MPIrank   = DB.MPIrank,
 	             MPIsize   = DB.MPIsize;
 
@@ -158,10 +159,10 @@ static void output_geom(const char *geom_type)
 
 			if (!VOLUME->curved) {
 				NvnG = ELEMENT->ELEMENTclass[0]->NvnGs[0];
-				I_vG_vP = ELEMENT->ELEMENTclass[0]->I_vGs_vP[0];
+				I_vG_vP = ELEMENT->ELEMENTclass[0]->I_vGs_vP[0][PP][0];
 			} else {
 				NvnG = ELEMENT->ELEMENTclass[0]->NvnGc[P];
-				I_vG_vP = ELEMENT->ELEMENTclass[0]->I_vGc_vP[P];
+				I_vG_vP = ELEMENT->ELEMENTclass[0]->I_vGc_vP[P][PP][0];
 			}
 
 			if (strstr(geom_type,"straight") != NULL)
@@ -200,9 +201,9 @@ static void output_geom(const char *geom_type)
 			NvnG = VOLUME->NvnG;
 
 			if (!VOLUME->curved)
-				I_vG_vP = ELEMENT->I_vGs_vP[0];
+				I_vG_vP = ELEMENT->I_vGs_vP[0][PP][0];
 			else
-				I_vG_vP = ELEMENT->I_vGc_vP[P];
+				I_vG_vP = ELEMENT->I_vGc_vP[P][PP][0];
 
 			if (strstr(geom_type,"straight") != NULL)
 				Input = VOLUME->XYZ_S;
@@ -221,10 +222,10 @@ static void output_geom(const char *geom_type)
 				if (dim == 0 || dim == 2) {
 					if (!VOLUME->curved) {
 						NvnG = ELEMENT->ELEMENTclass[min(dim,u1)]->NvnGs[0];
-						I_vG_vP = ELEMENT->ELEMENTclass[min(dim,u1)]->I_vGs_vP[0];
+						I_vG_vP = ELEMENT->ELEMENTclass[min(dim,u1)]->I_vGs_vP[0][PP][0];
 					} else {
 						NvnG = ELEMENT->ELEMENTclass[min(dim,u1)]->NvnGc[P];
-						I_vG_vP = ELEMENT->ELEMENTclass[min(dim,u1)]->I_vGc_vP[P];
+						I_vG_vP = ELEMENT->ELEMENTclass[min(dim,u1)]->I_vGc_vP[P][PP][0];
 					}
 					NIn_SF[dim]  = NvnG;
 					NOut_SF[dim] = ELEMENT->ELEMENTclass[min(dim,u1)]->NvnP;
@@ -482,6 +483,7 @@ static void output_solution(const char *sol_type)
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
 	unsigned int d         = DB.d,
+	             PP        = DB.PP,
 	             Nvar      = DB.Nvar;
 	int          MPIrank   = DB.MPIrank,
 	             MPIsize   = DB.MPIsize;
@@ -569,10 +571,10 @@ static void output_solution(const char *sol_type)
 		NvnS = VOLUME->NvnS;
 
 		if (!VOLUME->curved)
-			I_vG_vP = ELEMENT->I_vGs_vP[0];
+			I_vG_vP = ELEMENT->I_vGs_vP[0][PP][0];
 		else
-			I_vG_vP = ELEMENT->I_vGc_vP[P];
-		ChiS_vP = ELEMENT->ChiS_vP[P];
+			I_vG_vP = ELEMENT->I_vGc_vP[P][PP][0];
+		ChiS_vP = ELEMENT->ChiS_vP[P][PP][0];
 
 		XYZ_vP = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnP,d,NvnG,1.0,I_vG_vP,VOLUME->XYZ);     // free
 		W_vP   = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->What); // free

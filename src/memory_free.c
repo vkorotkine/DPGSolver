@@ -43,7 +43,7 @@ void memory_free(void)
 
 			free(DB.PGc);
 			free(DB.PF);
-			array_free2_ui(DB.NP,DB.SF_BE);
+			array_free3_ui(DB.NP,2,DB.SF_BE);
 			array_free2_ui(DB.NP,DB.PCs);
 			array_free2_ui(DB.NP,DB.PCc);
 			array_free2_ui(DB.NP,DB.PJs);

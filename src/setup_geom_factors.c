@@ -235,20 +235,20 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		OPS->NvnC = ELEMENT_OPS->NvnCs[P];
 		OPS->NvnI = ELEMENT_OPS->NvnIs[P];
 
-		OPS->I_vG_vC = ELEMENT_OPS->I_vGs_vCs[P];
-		OPS->I_vC_vI = ELEMENT_OPS->I_vCs_vIs[P];
-		OPS->D_vG_vC = ELEMENT_OPS->D_vGs_vCs[P];
-		OPS->D_vG_vI = ELEMENT_OPS->D_vGs_vIs[P];
-		OPS->D_vC_vC = ELEMENT_OPS->D_vCs_vCs[P];
+		OPS->I_vG_vC = ELEMENT_OPS->I_vGs_vCs[P][P][0];
+		OPS->I_vC_vI = ELEMENT_OPS->I_vCs_vIs[P][P][0];
+		OPS->D_vG_vC = ELEMENT_OPS->D_vGs_vCs[P][P][0];
+		OPS->D_vG_vI = ELEMENT_OPS->D_vGs_vIs[P][P][0];
+		OPS->D_vC_vC = ELEMENT_OPS->D_vCs_vCs[P][P][0];
 	} else {
 		OPS->NvnG = ELEMENT_OPS->NvnGc[P];
 		OPS->NvnC = ELEMENT_OPS->NvnCc[P];
 		OPS->NvnI = ELEMENT_OPS->NvnIc[P];
 
-		OPS->I_vG_vC = ELEMENT_OPS->I_vGc_vCc[P];
-		OPS->I_vC_vI = ELEMENT_OPS->I_vCc_vIc[P];
-		OPS->D_vG_vC = ELEMENT_OPS->D_vGc_vCc[P];
-		OPS->D_vG_vI = ELEMENT_OPS->D_vGc_vIc[P];
-		OPS->D_vC_vC = ELEMENT_OPS->D_vCc_vCc[P];
+		OPS->I_vG_vC = ELEMENT_OPS->I_vGc_vCc[P][P][0];
+		OPS->I_vC_vI = ELEMENT_OPS->I_vCc_vIc[P][P][0];
+		OPS->D_vG_vC = ELEMENT_OPS->D_vGc_vCc[P][P][0];
+		OPS->D_vG_vI = ELEMENT_OPS->D_vGc_vIc[P][P][0];
+		OPS->D_vC_vC = ELEMENT_OPS->D_vCc_vCc[P][P][0];
 	}
 }

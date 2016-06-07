@@ -24,7 +24,7 @@ struct S_DB {
 
 	// Initialization
 	char         *TestCase, *MeshType, *Form, *NodeType, *BasisType, *MeshFile;
-	unsigned int d, ML, Vectorized, EFE, Collocated, Adapt, P, PMax, Testing, *BumpOrder;
+	unsigned int d, ML, Vectorized, EFE, Collocated, Adapt, PGlobal, PMax, Testing, *BumpOrder;
 	int          Restart;
 
 	// Parameters

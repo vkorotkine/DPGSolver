@@ -92,7 +92,7 @@ void setup_geometry(void)
 		} else {
 			NvnGs = ELEMENT->NvnGs[0];
 			NvnGc = ELEMENT->NvnGc[P];
-			I_vGs_vGc = ELEMENT->I_vGs_vGc[P];
+			I_vGs_vGc = ELEMENT->I_vGs_vGc[P][P][0];
 
 			NCols = d*1; // d coordinates * 1 element
 

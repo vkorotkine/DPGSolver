@@ -110,7 +110,7 @@ void setup_parameters()
 	             PGs, *PGc, **PCs, **PCc, **PJs, **PJc,
 	             *PF, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
-	if (DB.P > PMax)
+	if (DB.PGlobal > PMax)
 		printf("Error: P must be less than or equal PMax.\n"), exit(1);
 	if (PMax == 0)
 		printf("Error: Please choose PMax > 0.\n"), exit(1);
@@ -151,18 +151,18 @@ void setup_parameters()
 	if (DB.Restart == -1) {
 		DB.PR = 0;
 	} else if (DB.Restart ==  0) {
-		if (DB.P == 0)
+		if (DB.PGlobal == 0)
 			printf("Invalid entry for Restart.\n"), exit(1);
 		else
-			DB.PR = DB.P-1;
+			DB.PR = DB.PGlobal-1;
 	} else {
-		DB.PR = DB.P;
+		DB.PR = DB.PGlobal;
 	}
 
-	if (DB.P == 0)
-		DB.PP = DB.P+1;
+	if (DB.PGlobal == 0)
+		DB.PP = DB.PGlobal+1;
 	else
-		DB.PP = max(PMax-ML,DB.P);
+		DB.PP = max(PMax-ML,DB.PGlobal);
 
 	// Geometry
 	PGs = 1;

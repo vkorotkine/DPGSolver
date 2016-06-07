@@ -600,7 +600,7 @@ static double get_arc_length(const double XL, const double XR, const double Z, c
 
 	// Initialize DB Parameters
 	char         *TestCase  = DB.TestCase;
-	unsigned int P          = DB.P,
+	unsigned int PGlobal    = DB.PGlobal,
 	             *BumpOrder = DB.BumpOrder;
 
 	// Standard datatypes
@@ -623,7 +623,7 @@ static double get_arc_length(const double XL, const double XR, const double Z, c
 		double       h, xL, xR,
 		             *ArcLen, *XZInt, *dFdX_X, *rst, *w;
 
-		cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,1,"GL"); // free
+		cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,PGlobal,1,"GL"); // free
 
 		lMax = 20;
 

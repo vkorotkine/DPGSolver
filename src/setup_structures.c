@@ -166,7 +166,7 @@ void setup_structures(void)
 	             NfveMax  = DB.NfveMax,
 	             NfrefMax = DB.NfrefMax,
 	             AC       = DB.AC,
-	             P        = DB.P,
+	             PGlobal  = DB.PGlobal,
 	             NP       = DB.NP,
 	             NfMax    = DB.NfMax,
 	             NV       = DB.NV,
@@ -238,7 +238,7 @@ void setup_structures(void)
 			// General
 			VOLUME->indexl = vlocal;
 			VOLUME->indexg = v;
-			VOLUME->P      = P;
+			VOLUME->P      = PGlobal;
 			VOLUME->type   = EType[IndE];
 			VOLUME->Eclass = get_Eclass(VOLUME->type);
 

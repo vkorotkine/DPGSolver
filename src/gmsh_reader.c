@@ -179,8 +179,7 @@ void gmsh_reader(void)
 	while (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 		if (strstr(StringRead,"$Nodes") != NULL) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
-			if (fscanf(fID,"%[^\n]\n",StringRead) == 1)
-				printf("Read Error.\n"), exit(1);
+			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 			SectionNodes = 1;
 		}
 		if (strstr(StringRead,"$EndNodes") != NULL)

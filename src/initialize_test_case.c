@@ -39,11 +39,11 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 	ELEMENT_OPS = get_ELEMENT_type(type);
 
 	OPS->NvnS       = ELEMENT_OPS->NvnS[P];
-	OPS->ChiInvS_vS = ELEMENT_OPS->ChiInvS_vS[P];
+	OPS->ChiInvS_vS = ELEMENT_OPS->ChiInvS_vS[P][P][0];
 	if (!curved) {
-		OPS->I_vG_vS = ELEMENT_OPS->I_vGs_vS[P];
+		OPS->I_vG_vS = ELEMENT_OPS->I_vGs_vS[P][P][0];
 	} else {
-		OPS->I_vG_vS = ELEMENT_OPS->I_vGc_vS[P];
+		OPS->I_vG_vS = ELEMENT_OPS->I_vGc_vS[P][P][0];
 	}
 }
 
@@ -178,7 +178,7 @@ void initialize_test_case(void)
 {
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
-	unsigned int *Testing  = DB.Testing;
+	unsigned int Testing   = DB.Testing;
 
 	if (strstr(TestCase,"dSphericalBump") != NULL)
 		; // initialize_dSphericalBump();
