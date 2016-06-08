@@ -75,6 +75,9 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->NfnIs = calloc(NP , sizeof *(ELEMENT->NfnIs)); // free
 	ELEMENT->NfnIc = calloc(NP , sizeof *(ELEMENT->NfnIc)); // free
 
+	ELEMENT->w_vIs = calloc(NP , sizeof *(ELEMENT->w_vIs)); // free
+	ELEMENT->w_vIc = calloc(NP , sizeof *(ELEMENT->w_vIc)); // free
+
 	ELEMENT->ChiS_vP    = calloc(NP , sizeof *(ELEMENT->ChiS_vP));    // free
 	ELEMENT->ChiS_vIs   = calloc(NP , sizeof *(ELEMENT->ChiS_vIs));   // free
 	ELEMENT->ChiS_vIc   = calloc(NP , sizeof *(ELEMENT->ChiS_vIc));   // free
@@ -120,6 +123,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 	ELEMENT->Is_Weak_VV = calloc(NP , sizeof *(ELEMENT->Is_Weak_VV)); // free
 	ELEMENT->Ic_Weak_VV = calloc(NP , sizeof *(ELEMENT->Ic_Weak_VV)); // free
+	ELEMENT->Is_Weak_FF = calloc(NP , sizeof *(ELEMENT->Is_Weak_FF)); // free
+	ELEMENT->Ic_Weak_FF = calloc(NP , sizeof *(ELEMENT->Ic_Weak_FF)); // free
 	ELEMENT->Ds_Weak_VV = calloc(NP , sizeof *(ELEMENT->Ds_Weak_VV)); // free
 	ELEMENT->Dc_Weak_VV = calloc(NP , sizeof *(ELEMENT->Dc_Weak_VV)); // free
 
@@ -176,6 +181,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 		ELEMENT->Is_Weak_VV[P] = calloc(NP , sizeof **(ELEMENT->Is_Weak_VV));
 		ELEMENT->Ic_Weak_VV[P] = calloc(NP , sizeof **(ELEMENT->Ic_Weak_VV));
+		ELEMENT->Is_Weak_FF[P] = calloc(NP , sizeof **(ELEMENT->Is_Weak_FF));
+		ELEMENT->Ic_Weak_FF[P] = calloc(NP , sizeof **(ELEMENT->Ic_Weak_FF));
 		ELEMENT->Ds_Weak_VV[P] = calloc(NP , sizeof **(ELEMENT->Ds_Weak_VV));
 		ELEMENT->Dc_Weak_VV[P] = calloc(NP , sizeof **(ELEMENT->Dc_Weak_VV));
 
@@ -247,6 +254,9 @@ struct S_ELEMENT *New_ELEMENT(void)
 			ELEMENT->I_vCs_fIc[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->I_vCs_fIc));
 			ELEMENT->I_vCc_fIs[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->I_vCc_fIs));
 			ELEMENT->I_vCc_fIc[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->I_vCc_fIc));
+
+			ELEMENT->Is_Weak_FF[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Is_Weak_FF));
+			ELEMENT->Ic_Weak_FF[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Ic_Weak_FF));
 		}
 
 		ELEMENT->nOrd_fIs[P] = calloc(NFORDMAX, sizeof **(ELEMENT->nOrd_fIs));
@@ -275,6 +285,7 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->P      = 0;
 	VOLUME->type   = 0;
 	VOLUME->Eclass = 0;
+	VOLUME->update = 0;
 	VOLUME->curved = 0;
 
 //	VOLUME->Vneigh = malloc(6*9 * sizeof *(VOLUME->Vneigh)); // tbd
@@ -298,7 +309,9 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->RES  = NULL; // free
 
 	// Solving
-	VOLUME->RHS = NULL; // tbd
+	VOLUME->RHS       = NULL; // tbd
+	VOLUME->wdetJV_vI = NULL; // free
+	VOLUME->MInv      = NULL; // free
 
 	// structs
 	VOLUME->next    = NULL;

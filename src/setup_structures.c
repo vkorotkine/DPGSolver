@@ -162,8 +162,6 @@ void setup_structures(void)
 {
 	// Initialize DB Parameters
 	unsigned int d        = DB.d,
-	             NveMax   = DB.NveMax,
-	             NfveMax  = DB.NfveMax,
 	             NfrefMax = DB.NfrefMax,
 	             AC       = DB.AC,
 	             PGlobal  = DB.PGlobal,
@@ -188,14 +186,13 @@ void setup_structures(void)
 	int  PrintTesting = 0;
 
 	// Standard datatypes
-	unsigned int i, iMax, f, v, dim, ve, gf, curved,
-	             IndE, IndVC, IndVgrp, IndGFC, IndVIn, IndVeF, Indf, Indsf, IndOrdInOut, IndOrdOutIn,
+	unsigned int i, iMax, f, v, dim, ve, gf,
+	             IndE, IndVC, IndVgrp, IndGFC, IndVIn, Indf, IndOrdInOut, IndOrdOutIn,
 	             Vs, vlocal, NVlocal, NECgrp, NVgrp, Vf, Nf,
-	             Nve,*Nfve, *Nfref, Nfn,
+	             Nve,*Nfve, Nfn,
 				 indexg, NvnGs,
-	             uMPIrank,
-	             *GFToV, *GF_Nv;
-	double       *XYZ_vC, *VeF, *XYZIn_fC, *XYZOut_fC, *DXYZ;
+	             uMPIrank;
+	double       *XYZ_vC, **VeF, *XYZIn_fC, *XYZOut_fC, *DXYZ;
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME, **Vgrp, **Vgrp_tmp, *VIn, *VOut;
@@ -241,6 +238,7 @@ void setup_structures(void)
 			VOLUME->P      = PGlobal;
 			VOLUME->type   = EType[IndE];
 			VOLUME->Eclass = get_Eclass(VOLUME->type);
+			VOLUME->update = 1;
 
 			if (AC || v == VC[IndVC]) {
 				VOLUME->curved = 1;
@@ -375,7 +373,6 @@ void setup_structures(void)
 		VOLUME  = FACET[0]->VIn;
 		Vf      = FACET[0]->VfIn;
 		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
-		Indsf   = Vf % NfrefMax; // sub face index (ToBeDeleted: Move to notation)
 
 		if (d == 1) {
 			FACET[0]->type = POINT;
@@ -395,52 +392,34 @@ void setup_structures(void)
 		VOLUME  = FACET[0]->VIn;
 		Vf      = FACET[0]->VfIn;
 		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
-		Indsf   = Vf % NfrefMax; // sub face index (ToBeDeleted: Move to notation)
 
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 
 		Nve   = ELEMENT->Nve;
 		Nfve  = ELEMENT->Nfve;
-		Nfref = ELEMENT->Nfref;
 		VeF   = ELEMENT->VeF;
 
 		NvnGs = ELEMENT->NvnGs[0];
 		XYZ_vC = VOLUME->XYZ_vC;
 
-		for (i = IndVeF = 0; i < Indsf; i++)
-			IndVeF += Nfref[i]*Nfve[i];
-		IndVeF *= Nve;
-		IndVeF += Indf*(NveMax*NfveMax*NfrefMax);
-
-//printf("%d %d %d\n",Indf,Indsf,IndVeF);
-//array_print_d(Nfve[0],Nve,&VeF[IndVeF],'R');
 		XYZIn_fC = malloc(Nfve[Indf]*d * sizeof *XYZIn_fC); // free
-		mm_CTN_d(Nfve[Indf],d,Nve,&VeF[IndVeF],XYZ_vC,XYZIn_fC);
+		mm_CTN_d(Nfve[Indf],d,Nve,VeF[Vf],XYZ_vC,XYZIn_fC);
 
 		VOLUME  = FACET[0]->VOut;
 		Vf      = FACET[0]->VfOut;
 		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
-		Indsf   = Vf % NfrefMax; // sub face index (ToBeDeleted: Move to notation)
 
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 
 		Nve   = ELEMENT->Nve;
 		Nfve  = ELEMENT->Nfve;
-		Nfref = ELEMENT->Nfref;
 		VeF   = ELEMENT->VeF;
 
 		NvnGs = ELEMENT->NvnGs[0];
 		XYZ_vC = VOLUME->XYZ_vC;
 
-		for (i = IndVeF = 0; i < Indsf; i++)
-			IndVeF += Nfve[i];
-		IndVeF *= Nve;
-		IndVeF += Indf*(NveMax*NfveMax*NfrefMax);
-
-//printf("%d %d %d\n",Indf,Indsf,IndVeF);
-//array_print_d(Nfve[0],Nve,&VeF[IndVeF],'R');
 		XYZOut_fC = malloc(Nfve[Indf]*d * sizeof *XYZOut_fC); // free
-		mm_CTN_d(Nfve[Indf],d,Nve,&VeF[IndVeF],XYZ_vC,XYZOut_fC);
+		mm_CTN_d(Nfve[Indf],d,Nve,VeF[Vf],XYZ_vC,XYZOut_fC);
 
 		// Compute distance matrix
 		Nfn  = Nfve[Indf];

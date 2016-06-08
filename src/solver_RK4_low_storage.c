@@ -47,11 +47,15 @@ void solver_RK4_low_storage(void)
 		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free
 
 // Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).
-	dt = 1e-4;
+//	dt = 1e-4;
+	dt = 1.25e-1;
 
 
 	tstep = 0; time = 0.0;
 	while (time < FinalTime) {
+		update_VOLUME_Ops();
+
+
 		if (time+dt > FinalTime)
 			dt = FinalTime-time;
 
@@ -59,8 +63,7 @@ void solver_RK4_low_storage(void)
 			// Build the RHS (== -Residual)
 			explicit_VOLUME_info();
 			explicit_FACET_info();
-exit(1);
-//			maxRHS = finalize_RHS();
+			maxRHS = finalize_RHS();
 
 			// Update What
 			for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
@@ -70,10 +73,13 @@ exit(1);
 				RHS  = VOLUME->RHS;
 				What = VOLUME->What;
 
-				for (i = 0, iMax = Neq*NvnS; i < iMax; i++) {
-					RES[i]   = rk4a[rk]*RES[i] + dt*RHS[i];
-					What[i] += rk4b[rk]*RES[i];
+				for (iMax = Neq*NvnS; iMax--; ) {
+					*RES    *= rk4a[rk];
+					*RES    += dt*(*RHS++);
+					*What++ += rk4b[rk]*(*RES++);
 				}
+//printf("%d\n",VOLUME->indexg);
+//array_print_d(NvnS,Neq,VOLUME->What,'C');
 			}
 		}
 		time += dt;
@@ -90,7 +96,7 @@ exit(1);
 		if (!tstep)
 			maxRHS0 = maxRHS;
 
-		printf("Complete: % .3f %%, tstep: %d, maxRHS: % .3e",time/FinalTime,tstep,maxRHS);
+		printf("Complete: % 7.2f%%, tstep: %8d, maxRHS: % .3e\n",100*time/FinalTime,tstep,maxRHS);
 
 		// Additional exit conditions
 		if (maxRHS0/maxRHS > 1e6 && tstep) {

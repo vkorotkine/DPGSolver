@@ -147,7 +147,7 @@ static void compute_FACET_RHS_EFE(void)
 	             InviscidFluxType = DB.InviscidFluxType;
 
 	// Standard datatypes
-	unsigned int i, j, iInd, iMax,
+	unsigned int i, j, iInd,
 	             VfIn, VfOut, fIn, fOut, Eclass, IndFType, Boundary, BC, BC_trail,
 	             RowInd, RowSub, ReOrder, *RowTracker,
 	             NfnI, NvnSIn, NvnSOut, *nOrdInOut;
@@ -250,12 +250,9 @@ static void compute_FACET_RHS_EFE(void)
 /*
 array_print_d(NfnI,Neq,WIn_fI,'C');
 array_print_d(NfnI,Neq,WOut_fIIn,'C');
-
-flux_LF(NfnI,1,WIn_fI,WOut_fIIn,nFluxNum_fI,n_fI,d,Neq);
-array_print_d(NfnI,Neq,nFluxNum_fI,'C');
-flux_ROE(NfnI,1,WIn_fI,WOut_fIIn,nFluxNum_fI,n_fI,d,Neq);
 array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 */
+
 		// Multiply n dot FNum by the area element
 		for (i = 0; i < Neq; i++) {
 			iInd = i*NfnI;
@@ -280,14 +277,18 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 				I_Weak_FF = OPSIn->I_Weak_FF;
 
 				mm_CTN_d(NvnSIn,Neq,NfnI,I_Weak_FF[VfIn],nFluxNum_fI,RHSIn);
-//				for (i = 0, iMax = Neq*NvnSIn; i < iMax; i++)
-//					RHSIn[i] *= -1.0;
 			} else if (VIn->Eclass == C_WEDGE) {
 				; // update this with sum factorization
 			}
 
 			// Exterior FACET
 			if (!Boundary) {
+				// Use -ve normal for opposite FACET
+				for (i = 0; i < Neq; i++) {
+					iInd = i*NfnI;
+					for (j = 0; j < NfnI; j++)
+						nFluxNum_fI[iInd+j] *= -1.0;
+				}
 				if (0 && VIn->Eclass == C_TP) {
 					; // update this with sum factorization
 				} else if (1 || VIn->Eclass == C_SI || VIn->Eclass == C_PYR) {
@@ -309,8 +310,6 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 					}
 
 					mm_CTN_d(NvnSOut,Neq,NfnI,I_Weak_FF[VfOut],nFluxNum_fI,RHSOut);
-//					for (i = 0, iMax = Neq*NvnSOut; i < iMax; i++)
-//						RHSOut[i] *= -1.0;
 				} else if (VIn->Eclass == C_WEDGE) {
 					; // update this with sum factorization
 				}
@@ -318,24 +317,17 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 		} else if (strstr(Form,"Strong") != NULL) {
 			printf("Exiting: Implement the strong form in compute_FACET_RHS_EFE.\n"), exit(1);
 		}
+/*
 array_print_d(NvnSIn,Neq,RHSIn,'C');
 array_print_d(NvnSOut,Neq,RHSOut,'C');
+*/
 
 		free(RowTracker);
-exit(1);
-
-
-
-
-
-
 		free(WIn_fI);
 		free(WOut_fI);
 		free(WOut_fIIn);
 		free(nFluxNum_fI);
-
 	}
-	exit(1);
 
 	free(OPSIn);
 	free(OPSOut);

@@ -67,13 +67,15 @@ extern void     setup_geom_factors          (struct S_VOLUME *VOLUME);
 extern void     setup_normals               (struct S_FACET *FACET);
 
 // Solver
-extern void initialize_test_case   (void);
-extern void solver_RK4_low_storage (void);
-extern void   explicit_VOLUME_info (void);
-extern void   explicit_FACET_info  (void);
-extern void     get_facet_ordering(const unsigned int d, const unsigned int IndOrd, const unsigned int FType,
-                                   const unsigned int Ns, const unsigned int Nn, const unsigned int *symms,
-                                   const double *rst, unsigned int *nOrd);
+extern void   initialize_test_case   (void);
+extern void   update_VOLUME_Ops      (void);
+extern void   solver_RK4_low_storage (void);
+extern void     explicit_VOLUME_info (void);
+extern void     explicit_FACET_info  (void);
+extern void       get_facet_ordering (const unsigned int d, const unsigned int IndOrd, const unsigned int FType,
+                                      const unsigned int Ns, const unsigned int Nn, const unsigned int *symms,
+                                      const double *rst, unsigned int *nOrd);
+extern double finalize_RHS           (void);
 
 // Fluxes
 extern void flux_inviscid (const unsigned int Nn, const unsigned int Nel, double *W, double *F, const unsigned int d,

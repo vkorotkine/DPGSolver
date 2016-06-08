@@ -27,7 +27,7 @@
  *		=> Delete later (ToBeDeleted).
  *
  *	Notation:
- *		J    : (J)acobian of VOLUME coordinates (XYZ) 
+ *		J    : (J)acobian of VOLUME coordinates (XYZ)
  *		C    : (C)ofactor terms of the Jacobian matrix
  *		detJ : (det)erminant of the Jacobian matrix
  *

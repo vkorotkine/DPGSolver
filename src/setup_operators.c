@@ -432,7 +432,7 @@ static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const
 	unsigned int P, EType, Nve,
 	             *NfnIs, *NfnIc;
 	double       **w_fIs, **w_fIc,
-	             **BCoords_Is, **BCoords_Ic;
+	             **BCoords_Is, **BCoords_Ic, *one;
 
 	struct S_BCOORDS *BCoords_dEm1;
 	struct S_ELEMENT *ELEMENT_F;
@@ -445,6 +445,9 @@ static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const
 	BCoords_Is   = malloc(NP * sizeof *(BCoords_Is)); // keep (requires external free)
 	BCoords_Ic   = malloc(NP * sizeof *(BCoords_Ic)); // keep (requires external free)
 
+	one = malloc(1 * sizeof *one); // free
+	one[0] = 1.0;
+
 	EType = ELEMENT->type;
 	if (EType == LINE) {
 // fix this to be consistent with treatment of other elements if possible (ToBeDeleted)
@@ -455,8 +458,8 @@ static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const
 			NfnIs[P] = 1;
 			NfnIc[P] = 1;
 
-			w_fIs[P] = 1.0;
-			w_fIc[P] = 1.0;
+			w_fIs[P] = mm_Alloc_d(CBCM,CBT,CBT,1,1,1,1.0,one,one); // keep
+			w_fIc[P] = mm_Alloc_d(CBCM,CBT,CBT,1,1,1,1.0,one,one); // keep
 
 			BCoords_Is[P] = malloc(1 * sizeof **(BCoords_Is));
 			BCoords_Ic[P] = malloc(1 * sizeof **(BCoords_Ic));
@@ -542,7 +545,7 @@ static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const
 		free(ChiRefInvGs_vGs);
 	}
 
-//printf("%d %d\n",ELEMENT->type,ELEMENT_F->type);
+	free(one);
 
 	BCoords_dEm1->Nve   = Nve;
 	BCoords_dEm1->NfnIs = NfnIs;
@@ -751,7 +754,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 {
 	// Returned operators
 	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS, **NfnIs, **NfnIc;
-	double       ****ChiS_vP, ****ChiS_vIs, ****ChiS_vIc,
+	double       **w_vIs, **w_vIc,
+	             ****ChiS_vP, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS,
 	             ****ICs, ****ICc,
 	             ****I_vGs_vP, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vIs, ****I_vGs_vIc, ****I_vGs_vS,
@@ -768,11 +772,11 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             ****I_vCs_fIs, ****I_vCs_fIc,
 	             ****I_vCc_fIs, ****I_vCc_fIc,
 	             ****Is_Weak_VV, ****Ic_Weak_VV,
+	             ****Is_Weak_FF, ****Ic_Weak_FF,
 	             *****Ds_Weak_VV, *****Dc_Weak_VV;
 
 	// Initialize DB Parameters
 	unsigned int Adapt       = DB.Adapt,
-	             NfMax       = DB.NfMax,
 	             PMax        = DB.PMax,
 	             NP          = DB.NP,
 	             PGlobal     = DB.PGlobal,
@@ -799,7 +803,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             dummy_ui, *dummyPtr_ui[2];
 	double       *E_rst_vC, *rst_vC, **VeF, **VeV,
 	             *rst_vP, *rst_vGs, *rst_vGc, *rst_vCs, *rst_vCc, **rst_vIs, **rst_vIc, *rst_vS, *rst_fIs, *rst_fIc,
-	             *w_vIs, *w_vIc, *diag_w_vIs, *diag_w_vIc,
+	             *diag_w_vIs, *diag_w_vIc,
 	             ***w_fIs, ***w_fIc, *diag_w_fIs, *diag_w_fIc,
 	             *IGs, *IGc, *IS,
 	             *TGs, *TGc, *TCs, *TCc, *TS,
@@ -877,6 +881,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	NfnIs = ELEMENT->NfnIs;
 	NfnIc = ELEMENT->NfnIc;
 
+	w_vIs = ELEMENT->w_vIs;
+	w_vIc = ELEMENT->w_vIc;
+
 	ChiS_vP    = ELEMENT->ChiS_vP;
 	ChiS_vIs   = ELEMENT->ChiS_vIs;
 	ChiS_vIc   = ELEMENT->ChiS_vIc;
@@ -922,6 +929,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	Is_Weak_VV = ELEMENT->Is_Weak_VV;
 	Ic_Weak_VV = ELEMENT->Ic_Weak_VV;
+	Is_Weak_FF = ELEMENT->Is_Weak_FF;
+	Ic_Weak_FF = ELEMENT->Ic_Weak_FF;
 	Ds_Weak_VV = ELEMENT->Ds_Weak_VV;
 	Dc_Weak_VV = ELEMENT->Dc_Weak_VV;
 
@@ -931,11 +940,11 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	rst_vIs       = malloc(NVREFMAX * sizeof *rst_vIs); // free
 	rst_vIc       = malloc(NVREFMAX * sizeof *rst_vIc); // free
 
-	w_fIs         = malloc(NP * sizeof *w_fIs); // free
-	w_fIc         = malloc(NP * sizeof *w_fIc); // free
+	w_fIs         = calloc(NP , sizeof *w_fIs); // free
+	w_fIc         = calloc(NP , sizeof *w_fIc); // free
 	for (P = 0; P < NP; P++) {
-		w_fIs = malloc(2 * sizeof *w_fIs); // free
-		w_fIc = malloc(2 * sizeof *w_fIc); // free
+		w_fIs[P] = calloc(NESUBCMAX , sizeof **w_fIs); // free
+		w_fIc[P] = calloc(NESUBCMAX , sizeof **w_fIc); // free
 	}
 
 	GradChiGs_vCs = malloc(dE * sizeof *GradChiGs_vCs); // free
@@ -1002,7 +1011,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 
 	for (IndFType = 0; IndFType < NFTypes; IndFType++) {
-		B_Nve[IndFType]       = BCoords_dEm1[IndFType]->Nve;
+		B_Nve[IndFType]         = BCoords_dEm1[IndFType]->Nve;
 		BCoords_F[IndFType]->Is = BCoords_dEm1[IndFType]->BCoords_Is;
 		BCoords_F[IndFType]->Ic = BCoords_dEm1[IndFType]->BCoords_Ic;
 
@@ -1136,11 +1145,11 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		}
 		for (Pb = PbMin; Pb <= PbMax; Pb++) {
 			// VOLUME Operators
-			cubature(&rst_vIs[0],&w_vIs,&dummyPtr_ui[0],&NvnIs[Pb],&dummy_ui,1,PIvs[Pb][Eclass],dE,NodeTypeIvs[Pb][Eclass]); free(dummyPtr_ui[0]); // free
-			cubature(&rst_vIc[0],&w_vIc,&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,1,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+			cubature(&rst_vIs[0],&w_vIs[Pb],&dummyPtr_ui[0],&NvnIs[Pb],&dummy_ui,1,PIvs[Pb][Eclass],dE,NodeTypeIvs[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+			cubature(&rst_vIc[0],&w_vIc[Pb],&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,1,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
 
-			diag_w_vIs = diag_d(w_vIs,NvnIs[Pb]); // free
-			diag_w_vIc = diag_d(w_vIc,NvnIc[Pb]); // free
+			diag_w_vIs = diag_d(w_vIs[Pb],NvnIs[Pb]); // free
+			diag_w_vIc = diag_d(w_vIc[Pb],NvnIc[Pb]); // free
 
 			ChiRefGs_vIs = basis(PGs,rst_vIs[0],NvnIs[Pb],&Nbf,dE); // free
 			ChiRefGs_vIc = basis(PGs,rst_vIc[0],NvnIc[Pb],&Nbf,dE); // free
@@ -1340,6 +1349,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					rst_fIs = mm_Alloc_d(CBCM,CBNT,CBNT,NfnIs[Pb][IndFType],dE,B_Nve[IndFType],1.0,BCoords_F[IndFType]->Is[Pb],rst_vC); // free
 					rst_fIc = mm_Alloc_d(CBCM,CBNT,CBNT,NfnIc[Pb][IndFType],dE,B_Nve[IndFType],1.0,BCoords_F[IndFType]->Ic[Pb],rst_vC); // free
 
+					diag_w_fIs = diag_d(w_fIs[Pb][IndFType],NfnIs[Pb][IndFType]); // free
+					diag_w_fIc = diag_d(w_fIc[Pb][IndFType],NfnIc[Pb][IndFType]); // free
+
 					ChiRefS_fIs  = basis(P,rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
 					ChiRefS_fIc  = basis(P,rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
 
@@ -1348,8 +1360,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					ChiS_fIc[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnS[P],NvnS[P],1.0,ChiRefS_fIc,TS); // keep
 
 // THINK
-					Is_Weak_FF[P][Pb][Vf] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NfnIs[Pb],NfnIs[Pb],-1.0,ChiS_fIs[P][Pb][Vf],diag_w_fIs); // keep
-					Ic_Weak_FF[P][Pb][Vf] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NfnIc[Pb],NfnIc[Pb],-1.0,ChiS_fIc[P][Pb][Vf],diag_w_fIc); // keep
+					Is_Weak_FF[P][Pb][Vf] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NfnIs[Pb][IndFType],NfnIs[Pb][IndFType],-1.0,ChiS_fIs[P][Pb][Vf],diag_w_fIs); // keep
+					Ic_Weak_FF[P][Pb][Vf] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NfnIc[Pb][IndFType],NfnIc[Pb][IndFType],-1.0,ChiS_fIc[P][Pb][Vf],diag_w_fIc); // keep
 
 					if (fh == 0) {
 						ChiRefGs_fIs = basis(PGs           ,rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
@@ -1402,6 +1414,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					free(rst_fIs);
 					free(rst_fIc);
 
+					free(diag_w_fIs);
+					free(diag_w_fIc);
+
 					free(ChiRefS_fIs);
 					free(ChiRefS_fIc);
 				}
@@ -1421,9 +1436,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		}
 		free(rst_vIs);
 		free(rst_vIc);
-
-		free(w_vIs);
-		free(w_vIc);
 
 		free(IGc);
 		free(IS);
@@ -1454,8 +1466,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		free(BCoords_F[IndFType]);
 		free(BCoords_dEm1[IndFType]);
 	}
-	array_free3_d(NP,2,w_fIs);
-	array_free3_d(NP,2,w_fIc);
+
+	array_free3_d(NP,NESUBCMAX,w_fIs);
+	array_free3_d(NP,NESUBCMAX,w_fIc);
 
 	array_free2_d(NP,BCoords_V->Is);
 	array_free2_d(NP,BCoords_V->Ic);
@@ -1958,7 +1971,7 @@ static void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0
 			NOut_SF[0] = NOut0;
 			NIn_SF[2]  = NIn1;
 			NOut_SF[2] = NOut1;
-			
+
 			if (f < 3) { // QUAD FACETs
 				switch (fh) {
 				case 0: OP_SF[0] = OP0[0]; OP_SF[2] = OP1[0]; break;
@@ -2004,7 +2017,8 @@ static void setup_TP_operators(const unsigned int EType)
 
 	// Returned operators
 	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS, **NfnIs, **NfnIc;
-	double       ****ChiS_vP, ****ChiS_vIs, ****ChiS_vIc,
+	double       **w_vIs, **w_vIc,
+	             ****ChiS_vP, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS,
 	             ****I_vGs_vP, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vS,
 	             ****I_vGc_vP, ****I_vGc_vCc,                ****I_vGc_vS,
@@ -2064,6 +2078,9 @@ static void setup_TP_operators(const unsigned int EType)
 	NvnS  = ELEMENT->NvnS;
 	NfnIs = ELEMENT->NfnIs;
 	NfnIc = ELEMENT->NfnIc;
+
+	w_vIs = ELEMENT->w_vIs;
+	w_vIc = ELEMENT->w_vIc;
 
 	ChiS_vP    = ELEMENT->ChiS_vP;
 	ChiS_vIs   = ELEMENT->ChiS_vIs;
@@ -2144,6 +2161,11 @@ static void setup_TP_operators(const unsigned int EType)
 
 				NfnIs[Pb][0] = pow(ELEMENTclass[0]->NvnIs[Pb],dE-1)*(ELEMENTclass[0]->NfnIs[Pb][0]);
 				NfnIc[Pb][0] = pow(ELEMENTclass[0]->NvnIc[Pb],dE-1)*(ELEMENTclass[0]->NfnIc[Pb][0]);
+
+				get_sf_parameters(1,ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->w_vIs[Pb],0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
+				w_vIs[Pb] = sf_assemble_d(NIn,NOut,dE,OP);
+				get_sf_parameters(1,ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->w_vIc[Pb],0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
+				w_vIc[Pb] = sf_assemble_d(NIn,NOut,dE,OP);
 
 				// Note: Most VOLUME operators need not interpolate between different orders
 				if (P == Pb) {
@@ -2315,6 +2337,13 @@ static void setup_TP_operators(const unsigned int EType)
 				NfnIs[P][1] = (ELEMENTclass[0]->NvnIs[P])*   (ELEMENTclass[1]->NfnIs[P][0]);
 				NfnIc[P][0] = (ELEMENTclass[0]->NfnIc[P][0])*(ELEMENTclass[1]->NvnIc[P]);
 				NfnIc[P][1] = (ELEMENTclass[0]->NvnIc[P])*   (ELEMENTclass[1]->NfnIc[P][0]);
+
+				get_sf_parameters(1,ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->w_vIs[Pb],
+				                  1,ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->w_vIs[Pb],NIn,NOut,OP,dE,3,Eclass);
+				w_vIs[Pb] = sf_assemble_d(NIn,NOut,dE,OP);
+				get_sf_parameters(1,ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->w_vIc[Pb],
+				                  1,ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->w_vIc[Pb],NIn,NOut,OP,dE,3,Eclass);
+				w_vIc[Pb] = sf_assemble_d(NIn,NOut,dE,OP);
 
 				// Note: Most VOLUME operators need not interpolate between different orders
 				if (P == Pb) {

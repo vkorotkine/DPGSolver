@@ -103,7 +103,7 @@ void setup_normals(struct S_FACET *FACET)
 	}
 
 	FACET->n_fI = n_fI;
-	FACET->detJF_fI = det_JF_fI;
+	FACET->detJF_fI = detJF_fI;
 
 //printf("%d %d %d\n",FACET->indexg,VfIn,IndFType);
 //array_print_d(fnMax,d,n,'R');

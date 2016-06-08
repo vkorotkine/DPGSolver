@@ -69,6 +69,7 @@ struct S_ELEMENT {
 	             *connectivity, *connect_types,
 	             ***nOrd_fIs, ***nOrd_fIc;
 	double       **VeF, **VeV, *nr,
+	             **w_vIs, **w_vIc,
 	             ****ChiS_vP, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS,
 	             ****ICs, ****ICc,
@@ -86,6 +87,7 @@ struct S_ELEMENT {
 	             ****I_vCs_fIs, ****I_vCs_fIc,
 	             ****I_vCc_fIs, ****I_vCc_fIc,
 	             ****Is_Weak_VV, ****Ic_Weak_VV,
+	             ****Is_Weak_FF, ****Ic_Weak_FF,
 	             *****Ds_Weak_VV, *****Dc_Weak_VV;
 
 	struct S_ELEMENT *next;
@@ -94,7 +96,7 @@ struct S_ELEMENT {
 
 struct S_VOLUME {
 	// Structures
-	unsigned int indexl, indexg, P, type, Eclass, curved,
+	unsigned int indexl, indexg, P, type, Eclass, update, curved,
 	             *Vneigh, *Fneigh;
 	double *XYZ_vC;
 
@@ -107,7 +109,7 @@ struct S_VOLUME {
 	double *What, *RES;
 
 	// Solving
-	double *RHS;
+	double *RHS, *wdetJV_vI, *MInv;
 
 	// structs
 	struct S_VOLUME *next, *grpnext;
