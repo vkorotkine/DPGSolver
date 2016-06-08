@@ -3,12 +3,14 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-//#include <math.h>
 #include <string.h>
 
 #include "database.h"
 #include "parameters.h"
 #include "functions.h"
+
+// ToBeDeleted
+#include <math.h>
 
 /*
  *	Purpose:
@@ -47,9 +49,7 @@ void solver_RK4_low_storage(void)
 		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free
 
 // Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).
-//	dt = 1e-4;
-	dt = 1.25e-1;
-
+	dt = pow(0.5,DB.ML+DB.PGlobal)*0.5*0.1;
 
 	tstep = 0; time = 0.0;
 	while (time < FinalTime) {
@@ -64,6 +64,7 @@ void solver_RK4_low_storage(void)
 			explicit_VOLUME_info();
 			explicit_FACET_info();
 			maxRHS = finalize_RHS();
+exit(1);
 
 			// Update What
 			for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
@@ -78,6 +79,7 @@ void solver_RK4_low_storage(void)
 					*RES    += dt*(*RHS++);
 					*What++ += rk4b[rk]*(*RES++);
 				}
+				free(VOLUME->RHS);
 //printf("%d\n",VOLUME->indexg);
 //array_print_d(NvnS,Neq,VOLUME->What,'C');
 			}
@@ -100,7 +102,7 @@ void solver_RK4_low_storage(void)
 
 		// Additional exit conditions
 		if (maxRHS0/maxRHS > 1e6 && tstep) {
-			printf("Exiting: maxRHS dropped by 6 orders");
+			printf("Exiting: maxRHS dropped by 6 orders.\n");
 			break;
 		}
 

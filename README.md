@@ -8,7 +8,7 @@
 
 ### Supported PDEs
 - Euler         (ACTIVE)
-- Navier-Stokes (TO BE DONE)
+- Navier-Stokes TO BE DONE
 
 See the CODE STATUS section below for details regarding current functionality.
 
@@ -31,59 +31,62 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 ## Code Status
 - MPI solving not yet supported.
 
-### Preprocessing:  ACTIVE
-- set up parameters: DONE
-- set up mesh:       DONE
-- set up operators:  ACTIVE (Solver)
-- set up structures: ACTIVE (Solver)
-- set up geometry:   DONE
+### Preprocessing  : ACTIVE
+- set up parameters : DONE
+- set up mesh       : DONE
+- set up operators  : ACTIVE (Solver)
+- set up structures : ACTIVE (Solver)
+- set up geometry   : DONE
 
-### Solving:        ACTIVE
+### Solving        : ACTIVE
 #### Initialization
-- dSphericalBump   (TO BE DONE)
-- GaussianBump     (TO BE DONE)
-- PeriodicVortex:   DONE
-- PolynomialBump   (TO BE DONE)
-- SupersonicVortex (TO BE DONE)
+- dSphericalBump   : TO BE DONE
+- GaussianBump     : TO BE DONE
+- PeriodicVortex:  : DONE
+- PolynomialBump   : TO BE DONE
+- SupersonicVortex : TO BE DONE
 
 #### Explicit
-- solver RK (ACTIVE)
-- VOLUME    (ACTIVE)
-  - Weak Form:   DONE
-  - Strong Form: (TO BE DONE)
-  - Vectorized:  (TO BE DONE)
-- FACET     (ACTIVE)
-- finalize  (TO BE DONE)
+- solver RK : ACTIVE
+- VOLUME    : ACTIVE
+  - Weak Form   : DONE
+  - Strong Form : TO BE DONE
+  - Vectorized  : TO BE DONE
+- FACET     : ACTIVE
+  - Weak Form   : DONE
+  - Strong Form : TO BE DONE
+  - Vectorized  : TO BE DONE
+- finalize  : DONE
 
 #### Implicit
-- solver implicit (TO BE DONE)
-- VOLUME          (TO BE DONE)
-- FACET           (TO BE DONE)
-- finalize        (TO BE DONE)
+- solver implicit TO BE DONE
+- VOLUME          TO BE DONE
+- FACET           TO BE DONE
+- finalize        TO BE DONE
 
 #### Fluxes
 - standard
-  - inviscid:       DONE
-  - viscous        (TO BE DONE)
+  - inviscid       : DONE
+  - viscous        : TO BE DONE
 - numerical
-  - Lax-Friedrichs (TO BE DONE)
-  - Roe            (TO BE DONE)
+  - Lax-Friedrichs : DONE
+  - Roe-Pike       : DONE
 
 #### Boundary
-- riemann      (TO BE DONE)
-- slip wall    (TO BE DONE)
-- outflow mach (TO BE DONE)
+- riemann      : TO BE DONE
+- slip wall    : TO BE DONE
+- outflow mach : TO BE DONE
 
 #### Jacobians
-- flux inviscid         (TO BE DONE)
-- flux LF               (TO BE DONE)
-- flux Roe              (TO BE DONE)
-- boundary riemann      (TO BE DONE)
-- boundary slip wall    (TO BE DONE)
-- boundary outflow mach (TO BE DONE)
+- flux inviscid         : TO BE DONE
+- flux LF               : TO BE DONE
+- flux Roe              : TO BE DONE
+- boundary riemann      : TO BE DONE
+- boundary slip wall    : TO BE DONE
+- boundary outflow mach : TO BE DONE
 
 
-### Postprocessing: TO BE DONE
+### Postprocessing : TO BE DONE
 
 
 ### License

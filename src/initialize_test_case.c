@@ -74,7 +74,8 @@ static void initialize_PeriodicVortex(void)
 	Yc =  0.0;
 	Rc =  0.2;
 	PeriodL        = 2.0;
-	PeriodFraction = 0.1;
+//	PeriodFraction = 0.1;
+	PeriodFraction = 0.6;
 
 	MInf = 0.5;
 	pInf = 1.0;
@@ -142,9 +143,11 @@ static void initialize_PeriodicVortex(void)
 
 		convert_variables(U,W,3,d,NvnS,1,'p','c');
 
-//array_print_d(VOLUME->NvnG,d,VOLUME->XYZ,'C');
-//array_print_d(NvnS,Nvar,W,'C');
-//exit(1);
+/*
+array_print_d(VOLUME->NvnG,d,XYZ_vS,'C');
+array_print_d(NvnS,Nvar,W,'C');
+exit(1);
+*/
 
 		mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,W,What);
 

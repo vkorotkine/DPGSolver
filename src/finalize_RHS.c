@@ -71,17 +71,17 @@ array_print_d(NvnSOut,Neq,VRHSOut_ptr,'C');
 					*VRHSOut_ptr++ += *FRHSOut_ptr++;
 			}
 		}
-/*
+// Find the corresponding FACET ordering in the Matlab code by looking at the paraview file then compare.
 printf("%d\n",FACET->indexg);
 VRHSIn_ptr  = VIn->RHS;
 VRHSOut_ptr = VOut->RHS;
 array_print_d(NvnSIn,Neq,VRHSIn_ptr,'C');
 array_print_d(NvnSOut,Neq,VRHSOut_ptr,'C');
-*/
 
 		free(FACET->RHSIn);
 		free(FACET->RHSOut);
 	}
+exit(1);
 
 	// Add MInv contribution to RHS for explicit runs
 	maxRHS = 0.0;
@@ -102,15 +102,16 @@ array_print_d(NvnSOut,Neq,VRHSOut_ptr,'C');
 			} else {
 				RHS_Final = malloc(NvnSIn*Neq * sizeof *RHS_Final);
 
-				mm_CTN_d(NvnSIn,Neq,NvnSIn,VOLUME->MInv,VOLUME->RHS,RHS_Final);
-				free(VOLUME->RHS);
-				VOLUME->RHS = RHS_Final;
-/*
 printf("%d\n",VOLUME->indexg);
 array_print_d(NvnSIn,NvnSIn,VOLUME->MInv,'R');
 array_print_d(NvnSIn,Neq,VOLUME->RHS,'C');
+				mm_CTN_d(NvnSIn,Neq,NvnSIn,VOLUME->MInv,VOLUME->RHS,RHS_Final);
+				free(VOLUME->RHS);
+				VOLUME->RHS = RHS_Final;
+
 array_print_d(NvnSIn,Neq,RHS_Final,'C');
-*/
+exit(1);
+
 			}
 
 			// Compute maxRHS for convergence monitoring

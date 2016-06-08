@@ -108,6 +108,7 @@ static void compute_VOLUME_RHS_EFE(void)
 
 	if (strstr(Form,"Weak") != NULL) {
 		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+//printf("%d\n",VOLUME->indexg);
 			// Obtain operators
 			init_ops(OPS[0],VOLUME,0);
 			if (VOLUME->type == WEDGE)
@@ -121,6 +122,7 @@ static void compute_VOLUME_RHS_EFE(void)
 				W_vI = malloc(NvnI*Nvar * sizeof *W_vI); // free
 				mm_CTN_d(NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->What,W_vI);
 			}
+//array_print_d(NvnI,Neq,W_vI,'C');
 
 			// Compute Flux in reference space
 			F_vI = malloc(NvnI*d*Neq * sizeof *F_vI); // free
@@ -146,7 +148,6 @@ static void compute_VOLUME_RHS_EFE(void)
 			// Compute RHS terms
 			NvnS = OPS[0]->NvnS;
 
-// VOLUME->RHS should be freed as soon as it is no longer needed (outside of this function)
 			RHS = calloc(NvnS*Neq , sizeof *RHS); // keep (requires external free)
 			VOLUME->RHS = RHS;
 			if (0 && VOLUME->Eclass == C_TP) {
@@ -170,6 +171,7 @@ static void compute_VOLUME_RHS_EFE(void)
 			free(Fr_vI);
 
 //array_print_d(NvnS,Nvar,RHS,'C');
+//exit(1);
 		}
 	} else if (strstr(Form,"Strong") != NULL) {
 		printf("Exiting: Implement the strong form in compute_VOLUME_RHS_EFE.\n"), exit(1);

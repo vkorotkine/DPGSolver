@@ -70,13 +70,13 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free4_d(NP,NP,1,ELEMENT->ICs);
 	array_free4_d(NP,NP,1,ELEMENT->ICc);
 
-	array_free4_d(1 ,1, 1,         ELEMENT->I_vGs_vP);
+	array_free4_d(1 ,NP,1,         ELEMENT->I_vGs_vP);
 	array_free4_d(NP,NP,1,         ELEMENT->I_vGs_vGc);
 	array_free4_d(NP,NP,1,         ELEMENT->I_vGs_vCs);
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->I_vGs_vIs);
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->I_vGs_vIc);
 	array_free4_d(NP,NP,1,         ELEMENT->I_vGs_vS);
-	array_free4_d(NP,1, 1,         ELEMENT->I_vGc_vP);
+	array_free4_d(NP,NP,1,         ELEMENT->I_vGc_vP);
 	array_free4_d(NP,NP,1,         ELEMENT->I_vGc_vCc);
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->I_vGc_vIs);
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->I_vGc_vIc);

@@ -36,7 +36,11 @@ struct S_DB DB;
 
 int main(int nargc, char **argv)
 {
-	int MPIrank, MPIsize;
+	char *fNameOut, *string;
+	int  MPIrank, MPIsize;
+
+	fNameOut = malloc(STRLEN_MAX * sizeof *fNameOut); // free
+	string   = malloc(STRLEN_MIN * sizeof *string);   // free
 
 	// Start MPI and PETSC
 	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
@@ -85,6 +89,12 @@ int main(int nargc, char **argv)
 		printf("  Initializing\n");
 	initialize_test_case();
 
+	// Output initial solution to paraview
+	strcpy(fNameOut,"SolInitial_");
+	                             strcat(fNameOut,DB.TestCase);
+	sprintf(string,"%dD",DB.d); strcat(fNameOut,string);
+	output_to_paraview(fNameOut);
+
 	if (DB.Restart >= 0) {
 		if (!DB.MPIrank)
 			printf("  Initializing restarted solution if enabled.\n");
@@ -102,6 +112,24 @@ int main(int nargc, char **argv)
 	} else {
 		printf("Error: Unsupported SolverType in dpg_solver.\n"), exit(1);
 	}
+
+	// Postprocessing
+
+	// Output final solution to paraview
+	strcpy(fNameOut,"SolFinal_");
+	                               strcat(fNameOut,DB.TestCase);
+	sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
+	                               strcat(fNameOut,DB.MeshType);
+	sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
+	if (DB.Adapt == ADAPT_0)
+		sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
+	output_to_paraview(fNameOut);
+
+	// Compute errors
+
+
+	free(fNameOut);
+	free(string);
 
 	memory_free();
 

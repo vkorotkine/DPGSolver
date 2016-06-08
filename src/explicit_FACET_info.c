@@ -250,7 +250,10 @@ static void compute_FACET_RHS_EFE(void)
 /*
 array_print_d(NfnI,Neq,WIn_fI,'C');
 array_print_d(NfnI,Neq,WOut_fIIn,'C');
+array_print_d(NfnI,d,n_fI,'R');
+array_print_d(NfnI,1,detJF_fI,'C');
 array_print_d(NfnI,Neq,nFluxNum_fI,'C');
+//exit(1);
 */
 
 		// Multiply n dot FNum by the area element
@@ -318,8 +321,11 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 			printf("Exiting: Implement the strong form in compute_FACET_RHS_EFE.\n"), exit(1);
 		}
 /*
+printf("%d\n",FACET->indexg);
 array_print_d(NvnSIn,Neq,RHSIn,'C');
-array_print_d(NvnSOut,Neq,RHSOut,'C');
+array_print_d(NvnSIn,NfnI,I_Weak_FF[VfIn],'R');
+//array_print_d(NvnSOut,Neq,RHSOut,'C');
+exit(1);
 */
 
 		free(RowTracker);

@@ -481,8 +481,8 @@ void setup_parameters()
 	}
 
 	// Solver
-	DB.InviscidFluxType = FLUX_LF;
-//	DB.InviscidFluxType = FLUX_ROE;
+//	DB.InviscidFluxType = FLUX_LF;
+	DB.InviscidFluxType = FLUX_ROE;
 
 	// Assign DB Parameters
 	DB.NP    = NP;
