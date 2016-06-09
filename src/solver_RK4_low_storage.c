@@ -49,7 +49,7 @@ void solver_RK4_low_storage(void)
 		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free
 
 // Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).
-	dt = pow(0.5,DB.ML+DB.PGlobal)*0.5*0.1;
+	dt = pow(0.5,DB.ML+DB.PGlobal)*0.5;
 
 	tstep = 0; time = 0.0;
 	while (time < FinalTime) {
@@ -62,9 +62,9 @@ void solver_RK4_low_storage(void)
 		for (rk = 0; rk < 5; rk++) {
 			// Build the RHS (== -Residual)
 			explicit_VOLUME_info();
+//exit(1);
 			explicit_FACET_info();
 			maxRHS = finalize_RHS();
-exit(1);
 
 			// Update What
 			for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
@@ -80,10 +80,12 @@ exit(1);
 					*What++ += rk4b[rk]*(*RES++);
 				}
 				free(VOLUME->RHS);
-//printf("%d\n",VOLUME->indexg);
+//printf("%d %d\n",VOLUME->indexg,NvnS);
 //array_print_d(NvnS,Neq,VOLUME->What,'C');
 			}
+//			exit(1);
 		}
+//exit(1);
 		time += dt;
 
 		// Output to paraview

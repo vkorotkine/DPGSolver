@@ -92,7 +92,7 @@ static void get_ordering_index(const unsigned int Nn, const unsigned int d, doub
 		for (i = 0; i < Nn; i++) {
 		for (j = 0; j < Nn; j++) {
 			if (fabs(DXYZ[i*Nn+j]) < EPS) {
-				IndZerosInOut[i] = j;
+				IndZerosOutIn[i] = j;
 				countZeros++;
 				break;
 			}
@@ -108,7 +108,7 @@ static void get_ordering_index(const unsigned int Nn, const unsigned int d, doub
 			for (i = 0; i < Nn; i++) {
 			for (j = 0; j < Nn; j++) {
 				if (fabs(DXYZ[i*Nn+j]) < EPS) {
-					IndZerosOutIn[i] = j;
+					IndZerosInOut[i] = j;
 					break;
 				}
 			}}
@@ -148,7 +148,7 @@ static void get_ordering_index(const unsigned int Nn, const unsigned int d, doub
 			unsigned int IndZerosP[4] = { 0, 1,
 			                              1, 0};
 			for (i = 0; i < 2; i++) {
-				if (array_norm_diff_ui(Nn,IndZerosInOut,&IndZerosP[i*Nn],"Inf") < EPS) {
+				if (array_norm_diff_ui(Nn,IndZerosOutIn,&IndZerosP[i*Nn],"Inf") < EPS) {
 					*IndOrdInOut = i;
 					*IndOrdOutIn = i;
 					return;

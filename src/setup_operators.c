@@ -1275,6 +1275,13 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				if (EFE) {
 					Is_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIs[P],NvnIs[P],1.0,ChiS_vIs[P][P][0],diag_w_vIs); // keep
 					Ic_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIc[P],NvnIc[P],1.0,ChiS_vIc[P][P][0],diag_w_vIc); // keep
+/*
+if (EType == LINE && P == 3) {
+	printf("LINE\n");
+	array_print_d(NvnS[P],NvnIs[P],ChiS_vIs[P][P][0],'C');//transposed
+	array_print_d(NvnIs[P],NvnIs[P],diag_w_vIs,'R');
+}
+*/
 				} else {
 					;
 				}
@@ -1973,15 +1980,15 @@ static void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0
 
 			if (f < 3) { // QUAD FACETs
 				switch (fh) {
-				case 0: OP_SF[0] = OP0[0]; OP_SF[2] = OP1[0]; break;
-				case 1: OP_SF[0] = OP0[1]; OP_SF[2] = OP1[0]; break;
-				case 2: OP_SF[0] = OP0[2]; OP_SF[2] = OP1[0]; break;
-				case 3: OP_SF[0] = OP0[0]; OP_SF[2] = OP1[1]; break;
-				case 4: OP_SF[0] = OP0[0]; OP_SF[2] = OP1[2]; break;
-				case 5: OP_SF[0] = OP0[1]; OP_SF[2] = OP1[1]; break;
-				case 6: OP_SF[0] = OP0[2]; OP_SF[2] = OP1[1]; break;
-				case 7: OP_SF[0] = OP0[1]; OP_SF[2] = OP1[2]; break;
-				case 8: OP_SF[0] = OP0[2]; OP_SF[2] = OP1[2]; break;
+				case 0: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[0]; break;
+				case 1: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[0]; break;
+				case 2: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[0]; break;
+				case 3: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[1]; break;
+				case 4: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[2]; break;
+				case 5: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[1]; break;
+				case 6: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[1]; break;
+				case 7: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[2]; break;
+				case 8: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[2]; break;
 				default:
 					printf("Error: Unsupported fh for f < 3 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
 					break;
@@ -2037,13 +2044,14 @@ static void setup_TP_operators(const unsigned int EType)
 	             *****Ds_Weak_VV, *****Dc_Weak_VV;
 
 	// Initialize DB Parameters
-	unsigned int Adapt = DB.Adapt,
-	             PP    = DB.PP,
-	             PMax  = DB.PMax,
-	             EFE   = DB.EFE;
+	unsigned int Adapt   = DB.Adapt,
+	             PGlobal = DB.PGlobal,
+	             PP      = DB.PP,
+	             PMax    = DB.PMax,
+	             EFE     = DB.EFE;
 
 	// Standard datatypes
-	unsigned int dim, P, f, fh, Pb, PbMin, PbMax, *fhMax,
+	unsigned int dim, P, f, fh, Pb, PSMin, PSMax, PbMin, PbMax, *fhMax,
 	             Eclass, dE, Nf, Vf, *Nfref, *ones_Nf,
 	             NIn[3], NOut[3];
 	double       *OP[3];
@@ -2051,6 +2059,7 @@ static void setup_TP_operators(const unsigned int EType)
 	struct S_ELEMENT *ELEMENT, *ELEMENTclass[2];
 
 	// silence
+	PSMin = PSMax = 0;
 	fhMax = NULL;
 	ELEMENTclass[1] = NULL;
 
@@ -2136,6 +2145,27 @@ static void setup_TP_operators(const unsigned int EType)
 			break;
 	}
 
+	switch (Adapt) {
+	case ADAPT_0:
+		PSMin = PGlobal;
+		PSMax = PGlobal;
+		break;
+	case ADAPT_P:
+		PSMin = 0;
+		PSMax = PMax;
+		break;
+	case ADAPT_H:
+	default: // ADAPT_HP
+		if (Adapt == ADAPT_HP) {
+			PSMin = 0;
+			PSMax = PMax;
+		} else if (Adapt == ADAPT_H) {
+			PSMin = PGlobal;
+			PSMax = PGlobal;
+		}
+		break;
+	}
+
 	if (Eclass == C_TP) {
 		NvnGs[0] = pow(ELEMENTclass[0]->NvnGs[0],dE);
 
@@ -2143,7 +2173,7 @@ static void setup_TP_operators(const unsigned int EType)
 		                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 		I_vGs_vP[0][PP][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
-		for (P = 0; P <= PMax; P++) {
+		for (P = PSMin; P <= PSMax; P++) {
 			NvnGc[P] = pow(ELEMENTclass[0]->NvnGc[P],dE);
 			NvnCs[P] = pow(ELEMENTclass[0]->NvnCs[P],dE);
 			NvnCc[P] = pow(ELEMENTclass[0]->NvnCc[P],dE);
@@ -2219,10 +2249,10 @@ static void setup_TP_operators(const unsigned int EType)
 
 					if (EFE) {
 						get_sf_parameters(ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_VV[P][Pb][0],
-										  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
+						                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 						Is_Weak_VV[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						get_sf_parameters(ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_VV[P][Pb][0],
-										  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
+						                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 						Ic_Weak_VV[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					} else {
 						;
@@ -2256,12 +2286,12 @@ static void setup_TP_operators(const unsigned int EType)
 
 						if (EFE) {
 							get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->Is_Weak_VV[P][Pb][0],
-						                      ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->Ds_Weak_VV[P][Pb][0][0],
-						                      NIn,NOut,OP,dE,dim,Eclass);
+							                  ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->Ds_Weak_VV[P][Pb][0][0],
+							                  NIn,NOut,OP,dE,dim,Eclass);
 							Ds_Weak_VV[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 							get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->Ic_Weak_VV[P][Pb][0],
-						                      ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->Dc_Weak_VV[P][Pb][0][0],
-						                      NIn,NOut,OP,dE,dim,Eclass);
+							                  ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->Dc_Weak_VV[P][Pb][0][0],
+							                  NIn,NOut,OP,dE,dim,Eclass);
 							Dc_Weak_VV[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						} else {
 							;
@@ -2292,43 +2322,43 @@ static void setup_TP_operators(const unsigned int EType)
 
 					if (fh == 0) {
 						get_sf_parametersF(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->I_vGs_vIs[P][Pb],
-										   ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->I_vGs_fIs[P][Pb],
-										   NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->I_vGs_fIs[P][Pb],
+						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGs_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						get_sf_parametersF(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->I_vGs_vIc[P][Pb],
-										   ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->I_vGs_fIc[P][Pb],
-										   NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->I_vGs_fIc[P][Pb],
+						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGs_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->I_vGc_vIs[P][Pb],
-										   ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->I_vGc_fIs[P][Pb],
-										   NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->I_vGc_fIs[P][Pb],
+						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGc_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->I_vGc_vIc[P][Pb],
-										   ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->I_vGc_fIc[P][Pb],
-										   NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->I_vGc_fIc[P][Pb],
+						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGc_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->I_vCs_vIs[P][Pb],
-										   ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->I_vCs_fIs[P][Pb],
-										   NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->I_vCs_fIs[P][Pb],
+						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCs_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->I_vCs_vIc[P][Pb],
-										   ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->I_vCs_fIc[P][Pb],
-										   NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->I_vCs_fIc[P][Pb],
+						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCs_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->I_vCc_vIs[P][Pb],
-										   ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->I_vCc_fIs[P][Pb],
-										   NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->I_vCc_fIs[P][Pb],
+						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCc_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->I_vCc_vIc[P][Pb],
-										   ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->I_vCc_fIc[P][Pb],
-										   NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->I_vCc_fIc[P][Pb],
+						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCc_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					}
 				}}
 			}
 		}
 	} else if (Eclass == C_WEDGE) {
-		unsigned int NOut0, NOut1;
+		unsigned int NIn0, NIn1, NOut0, NOut1;
 		double       *OP0, *OP1, **OPF0, **OPF1;
 
 		NvnGs[0] = (ELEMENTclass[0]->NvnGs[0])*(ELEMENTclass[1]->NvnGs[0]);
@@ -2338,7 +2368,7 @@ static void setup_TP_operators(const unsigned int EType)
 		                  NIn,NOut,OP,dE,3,Eclass);
 		I_vGs_vP[0][PP][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
-		for (P = 0; P <= PMax; P++) {
+		for (P = PSMin; P <= PSMax; P++) {
 			NvnGc[P] = (ELEMENTclass[0]->NvnGc[P])*(ELEMENTclass[1]->NvnGc[P]);
 			NvnCs[P] = (ELEMENTclass[0]->NvnCs[P])*(ELEMENTclass[1]->NvnCs[P]);
 			NvnCc[P] = (ELEMENTclass[0]->NvnCc[P])*(ELEMENTclass[1]->NvnCc[P]);
@@ -2355,7 +2385,7 @@ static void setup_TP_operators(const unsigned int EType)
 					PbMin = P; PbMax = P;
 					break;
 			}
-			for (Pb = 0; Pb <= PbMax; Pb++) {
+			for (Pb = PbMin; Pb <= PbMax; Pb++) {
 				NvnIs[P] = (ELEMENTclass[0]->NvnIs[P])*(ELEMENTclass[1]->NvnIs[P]);
 				NvnIc[P] = (ELEMENTclass[0]->NvnIc[P])*(ELEMENTclass[1]->NvnIc[P]);
 
@@ -2374,109 +2404,126 @@ static void setup_TP_operators(const unsigned int EType)
 				// Note: Most VOLUME operators need not interpolate between different orders
 				if (P == Pb) {
 					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->ChiInvS_vS[P][Pb][0],
-									  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnS[Pb],ELEMENTclass[1]->ChiInvS_vS[P][Pb][0],
-									  NIn,NOut,OP,dE,3,Eclass);
+					                  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnS[Pb],ELEMENTclass[1]->ChiInvS_vS[P][Pb][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
 					ChiInvS_vS[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnP,ELEMENTclass[0]->ChiS_vP[P][PP][0],
-									  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnP,ELEMENTclass[1]->ChiS_vP[P][PP][0],
-									  NIn,NOut,OP,dE,3,Eclass);
+					                  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnP,ELEMENTclass[1]->ChiS_vP[P][PP][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
 					ChiS_vP[P][PP][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->ChiS_vIs[P][Pb][0],
-									  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->ChiS_vIs[P][Pb][0],
-									  NIn,NOut,OP,dE,3,Eclass);
+					                  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->ChiS_vIs[P][Pb][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
 					ChiS_vIs[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->ChiS_vIc[P][Pb][0],
-									  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->ChiS_vIc[P][Pb][0],
-									  NIn,NOut,OP,dE,3,Eclass);
+					                  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->ChiS_vIc[P][Pb][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
 					ChiS_vIc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnGc[Pb],ELEMENTclass[0]->I_vGs_vGc[P][Pb][0],
-									  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnGc[Pb],ELEMENTclass[1]->I_vGs_vGc[P][Pb][0],
-									  NIn,NOut,OP,dE,3,Eclass);
+					                  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnGc[Pb],ELEMENTclass[1]->I_vGs_vGc[P][Pb][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
 					I_vGs_vGc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnCs[Pb],ELEMENTclass[0]->I_vGs_vCs[P][Pb][0],
-									  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnCs[Pb],ELEMENTclass[1]->I_vGs_vCs[P][Pb][0],
-									  NIn,NOut,OP,dE,3,Eclass);
+					                  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnCs[Pb],ELEMENTclass[1]->I_vGs_vCs[P][Pb][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
 					I_vGs_vCs[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->I_vGs_vS[P][Pb][0],
-									  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnS[Pb],ELEMENTclass[1]->I_vGs_vS[P][Pb][0],
-									  NIn,NOut,OP,dE,3,Eclass);
+					                  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnS[Pb],ELEMENTclass[1]->I_vGs_vS[P][Pb][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
 					I_vGs_vS[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnP,ELEMENTclass[0]->I_vGc_vP[P][PP][0],
-									  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnP,ELEMENTclass[1]->I_vGc_vP[P][PP][0],
-									  NIn,NOut,OP,dE,3,Eclass);
+					                  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnP,ELEMENTclass[1]->I_vGc_vP[P][PP][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
 					I_vGc_vP[P][PP][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnCc[Pb],ELEMENTclass[0]->I_vGc_vCc[P][Pb][0],
-									  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnCc[Pb],ELEMENTclass[1]->I_vGc_vCc[P][Pb][0],
-									  NIn,NOut,OP,dE,3,Eclass);
+					                  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnCc[Pb],ELEMENTclass[1]->I_vGc_vCc[P][Pb][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
 					I_vGc_vCc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->I_vGc_vS[P][Pb][0],
-									  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnS[Pb],ELEMENTclass[1]->I_vGc_vS[P][Pb][0],
-									  NIn,NOut,OP,dE,3,Eclass);
+					                  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnS[Pb],ELEMENTclass[1]->I_vGc_vS[P][Pb][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
 					I_vGc_vS[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->I_vCs_vIs[P][Pb][0],
-									  ELEMENTclass[1]->NvnCs[P],ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->I_vCs_vIs[P][Pb][0],
-									  NIn,NOut,OP,dE,3,Eclass);
+					                  ELEMENTclass[1]->NvnCs[P],ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->I_vCs_vIs[P][Pb][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
 					I_vCs_vIs[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->I_vCs_vIc[P][Pb][0],
-									  ELEMENTclass[1]->NvnCs[P],ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->I_vCs_vIc[P][Pb][0],
-									  NIn,NOut,OP,dE,3,Eclass);
+					                  ELEMENTclass[1]->NvnCs[P],ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->I_vCs_vIc[P][Pb][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
 					I_vCs_vIc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->I_vCc_vIs[P][Pb][0],
-									  ELEMENTclass[1]->NvnCc[P],ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->I_vCc_vIs[P][Pb][0],
-									  NIn,NOut,OP,dE,3,Eclass);
+					                  ELEMENTclass[1]->NvnCc[P],ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->I_vCc_vIs[P][Pb][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
 					I_vCc_vIs[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->I_vCc_vIc[P][Pb][0],
-									  ELEMENTclass[1]->NvnCc[P],ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->I_vCc_vIc[P][Pb][0],
-									  NIn,NOut,OP,dE,3,Eclass);
+					                  ELEMENTclass[1]->NvnCc[P],ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->I_vCc_vIc[P][Pb][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
 					I_vCc_vIc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
+					if (EFE) {
+						get_sf_parameters(ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_VV[P][Pb][0],
+						                  ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->Is_Weak_VV[P][Pb][0],
+						                  NIn,NOut,OP,dE,3,Eclass);
+						Is_Weak_VV[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+						get_sf_parameters(ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_VV[P][Pb][0],
+						                  ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->Ic_Weak_VV[P][Pb][0],
+						                  NIn,NOut,OP,dE,3,Eclass);
+						Ic_Weak_VV[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					} else {
+						;
+					}
 
 					for (dim = 0; dim < dE; dim++) {
 						if (dim < 2) OP0 = ELEMENTclass[0]->D_vGs_vCs[P][Pb][0][dim], OP1 = ELEMENTclass[1]->I_vGs_vCs[P][Pb][0];
 						else         OP0 = ELEMENTclass[0]->I_vGs_vCs[P][Pb][0],      OP1 = ELEMENTclass[1]->D_vGs_vCs[P][Pb][0][0];
 						get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnCs[Pb],OP0,
-										  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnCs[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
+						                  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnCs[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
 						D_vGs_vCs[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (dim < 2) OP0 = ELEMENTclass[0]->D_vGs_vIs[P][Pb][0][dim], OP1 = ELEMENTclass[1]->I_vGs_vIs[P][Pb][0];
 						else         OP0 = ELEMENTclass[0]->I_vGs_vIs[P][Pb][0],      OP1 = ELEMENTclass[1]->D_vGs_vIs[P][Pb][0][0];
 						get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnIs[Pb],OP0,
-										  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnIs[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
+						                  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnIs[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
 						D_vGs_vIs[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (dim < 2) OP0 = ELEMENTclass[0]->D_vGc_vCc[P][Pb][0][dim], OP1 = ELEMENTclass[1]->I_vGc_vCc[P][Pb][0];
 						else         OP0 = ELEMENTclass[0]->I_vGc_vCc[P][Pb][0],      OP1 = ELEMENTclass[1]->D_vGc_vCc[P][Pb][0][0];
 						get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnCc[Pb],OP0,
-										  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnCc[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
+						                  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnCc[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
 						D_vGc_vCc[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (dim < 2) OP0 = ELEMENTclass[0]->D_vGc_vIc[P][Pb][0][dim], OP1 = ELEMENTclass[1]->I_vGc_vIc[P][Pb][0];
 						else         OP0 = ELEMENTclass[0]->I_vGc_vIc[P][Pb][0],      OP1 = ELEMENTclass[1]->D_vGc_vIc[P][Pb][0][0];
 						get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIc[Pb],OP0,
-										  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnIc[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
+						                  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnIc[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
 						D_vGc_vIc[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (dim < 2) OP0 = ELEMENTclass[0]->D_vCs_vCs[P][Pb][0][dim], OP1 = ELEMENTclass[1]->ICs[P][Pb][0];
 						else         OP0 = ELEMENTclass[0]->ICs[P][Pb][0],            OP1 = ELEMENTclass[1]->D_vCs_vCs[P][Pb][0][0];
 						get_sf_parameters(ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NvnCs[Pb],OP0,
-										  ELEMENTclass[1]->NvnCs[P],ELEMENTclass[1]->NvnCs[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
+						                  ELEMENTclass[1]->NvnCs[P],ELEMENTclass[1]->NvnCs[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
 						D_vCs_vCs[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (dim < 2) OP0 = ELEMENTclass[0]->D_vCc_vCc[P][Pb][0][dim], OP1 = ELEMENTclass[1]->ICc[P][Pb][0];
 						else         OP0 = ELEMENTclass[0]->ICc[P][Pb][0],            OP1 = ELEMENTclass[1]->D_vCc_vCc[P][Pb][0][0];
 						get_sf_parameters(ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NvnCc[Pb],OP0,
-										  ELEMENTclass[1]->NvnCc[P],ELEMENTclass[1]->NvnCc[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
+						                  ELEMENTclass[1]->NvnCc[P],ELEMENTclass[1]->NvnCc[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
 						D_vCc_vCc[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 						if (EFE) {
 							if (dim < 2) OP0 = ELEMENTclass[0]->Ds_Weak_VV[P][Pb][0][dim], OP1 = ELEMENTclass[1]->Is_Weak_VV[P][Pb][0];
 							else         OP0 = ELEMENTclass[0]->Is_Weak_VV[P][Pb][0],      OP1 = ELEMENTclass[1]->Ds_Weak_VV[P][Pb][0][0];
 							get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],OP0,
-											  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIs[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
+							                  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIs[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
 							Ds_Weak_VV[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+printf("dim: %d\n",dim);
+array_print_d(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],OP0,'R');
+array_print_d(ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIs[Pb],OP1,'R');
 							if (dim < 2) OP0 = ELEMENTclass[0]->Dc_Weak_VV[P][Pb][0][dim], OP1 = ELEMENTclass[1]->Ic_Weak_VV[P][Pb][0];
 							else         OP0 = ELEMENTclass[0]->Ic_Weak_VV[P][Pb][0],      OP1 = ELEMENTclass[1]->Dc_Weak_VV[P][Pb][0][0];
 							get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],OP0,
-											  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIc[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
+							                  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIc[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
 							Dc_Weak_VV[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						} else {
 							;
 						}
 					}
+//if (P == 3) exit(1);
 				}
 
 				for (f = 0; f < Nf; f++) {
@@ -2484,76 +2531,92 @@ static void setup_TP_operators(const unsigned int EType)
 					Vf = f*NFREFMAX+fh;
 
 					if (f < 3) { OPF0  = ELEMENTclass[0]->ChiS_fIs[P][Pb], OPF1  = ELEMENTclass[1]->ChiS_vIs[P][Pb];
-								 NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],    NOut1 = ELEMENTclass[1]->NvnIs[Pb];
+					             NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],    NOut1 = ELEMENTclass[1]->NvnIs[Pb];
 					} else {     OPF0  = ELEMENTclass[0]->ChiS_vIs[P][Pb], OPF1  = ELEMENTclass[1]->ChiS_fIs[P][Pb];
-								 NOut0 = ELEMENTclass[0]->NvnIs[Pb],       NOut1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
+					             NOut0 = ELEMENTclass[0]->NvnIs[Pb],       NOut1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
 					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],NOut0,OPF0,
-									   ELEMENTclass[1]->NvnS[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+					                   ELEMENTclass[1]->NvnS[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 					ChiS_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					if (f < 3) { OPF0  = ELEMENTclass[0]->ChiS_fIc[P][Pb], OPF1  = ELEMENTclass[1]->ChiS_vIc[P][Pb];
-								 NOut0 = ELEMENTclass[0]->NfnIc[Pb][0],    NOut1 = ELEMENTclass[1]->NvnIc[Pb];
+					             NOut0 = ELEMENTclass[0]->NfnIc[Pb][0],    NOut1 = ELEMENTclass[1]->NvnIc[Pb];
 					} else {     OPF0  = ELEMENTclass[0]->ChiS_vIc[P][Pb], OPF1  = ELEMENTclass[1]->ChiS_fIc[P][Pb];
-								 NOut0 = ELEMENTclass[0]->NvnIc[Pb],       NOut1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
+					             NOut0 = ELEMENTclass[0]->NvnIc[Pb],       NOut1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
 					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],NOut0,OPF0,
-									  ELEMENTclass[1]->NvnS[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+					                  ELEMENTclass[1]->NvnS[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 					ChiS_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
+					if (f < 3) { OPF0 = ELEMENTclass[0]->Is_Weak_FF[P][Pb], OPF1 = ELEMENTclass[1]->Is_Weak_VV[P][Pb];
+					             NIn0 = ELEMENTclass[0]->NfnIs[Pb][0],      NIn1 = ELEMENTclass[1]->NvnIs[Pb];
+					} else {     OPF0 = ELEMENTclass[0]->Is_Weak_VV[P][Pb], OPF1 = ELEMENTclass[1]->Is_Weak_FF[P][Pb];
+					             NIn0 = ELEMENTclass[0]->NvnIs[Pb],         NIn1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
+					get_sf_parametersF(NIn0,ELEMENTclass[0]->NvnS[P],OPF0,
+					                   NIn1,ELEMENTclass[1]->NvnS[P],OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+					Is_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					if (f < 3) { OPF0 = ELEMENTclass[0]->Ic_Weak_FF[P][Pb], OPF1 = ELEMENTclass[1]->Ic_Weak_VV[P][Pb];
+					             NIn0 = ELEMENTclass[0]->NfnIc[Pb][0],      NIn1 = ELEMENTclass[1]->NvnIc[Pb];
+					} else {     OPF0 = ELEMENTclass[0]->Ic_Weak_VV[P][Pb], OPF1 = ELEMENTclass[1]->Ic_Weak_FF[P][Pb];
+					             NIn0 = ELEMENTclass[0]->NvnIc[Pb],         NIn1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
+					get_sf_parametersF(NIn0,ELEMENTclass[0]->NvnS[P],OPF0,
+					                   NIn1,ELEMENTclass[1]->NvnS[P],OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+					Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
 					if (fh == 0) {
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vGs_fIs[P][Pb], OPF1  = ELEMENTclass[1]->I_vGs_vIs[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIs[Pb];
+						             NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIs[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vGs_vIs[P][Pb], OPF1  = ELEMENTclass[1]->I_vGs_fIs[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NvnIs[Pb],        NOut1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
+						             NOut0 = ELEMENTclass[0]->NvnIs[Pb],        NOut1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
 						get_sf_parametersF(ELEMENTclass[0]->NvnGs[0],NOut0,OPF0,
-										  ELEMENTclass[1]->NvnGs[0],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[1]->NvnGs[0],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGs_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vGs_fIc[P][Pb], OPF1  = ELEMENTclass[1]->I_vGs_vIc[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NfnIc[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIc[Pb];
+						             NOut0 = ELEMENTclass[0]->NfnIc[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIc[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vGs_vIc[P][Pb], OPF1  = ELEMENTclass[1]->I_vGs_fIc[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NvnIc[Pb],        NOut1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
+						             NOut0 = ELEMENTclass[0]->NvnIc[Pb],        NOut1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
 						get_sf_parametersF(ELEMENTclass[0]->NvnGs[0],NOut0,OPF0,
-										  ELEMENTclass[1]->NvnGs[0],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[1]->NvnGs[0],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGs_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vGc_fIs[P][Pb], OPF1  = ELEMENTclass[1]->I_vGc_vIs[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIs[Pb];
+						             NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIs[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vGc_vIs[P][Pb], OPF1  = ELEMENTclass[1]->I_vGc_fIs[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NvnIs[Pb],        NOut1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
+						             NOut0 = ELEMENTclass[0]->NvnIs[Pb],        NOut1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
 						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],NOut0,OPF0,
-										  ELEMENTclass[1]->NvnGc[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[1]->NvnGc[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGc_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vGc_fIc[P][Pb], OPF1  = ELEMENTclass[1]->I_vGc_vIc[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NfnIc[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIc[Pb];
+						             NOut0 = ELEMENTclass[0]->NfnIc[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIc[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vGc_vIc[P][Pb], OPF1  = ELEMENTclass[1]->I_vGc_fIc[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NvnIc[Pb],        NOut1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
+						             NOut0 = ELEMENTclass[0]->NvnIc[Pb],        NOut1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
 						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],NOut0,OPF0,
-										  ELEMENTclass[1]->NvnGc[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[1]->NvnGc[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGc_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vCs_fIs[P][Pb], OPF1  = ELEMENTclass[1]->I_vCs_vIs[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIs[Pb];
+						             NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIs[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vCs_vIs[P][Pb], OPF1  = ELEMENTclass[1]->I_vCs_fIs[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NvnIs[Pb],        NOut1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
+						             NOut0 = ELEMENTclass[0]->NvnIs[Pb],        NOut1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
 						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],NOut0,OPF0,
-										  ELEMENTclass[1]->NvnCs[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[1]->NvnCs[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCs_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vCs_fIc[P][Pb], OPF1  = ELEMENTclass[1]->I_vCs_vIc[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NfnIc[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIc[Pb];
+						             NOut0 = ELEMENTclass[0]->NfnIc[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIc[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vCs_vIc[P][Pb], OPF1  = ELEMENTclass[1]->I_vCs_fIc[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NvnIc[Pb],        NOut1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
+						             NOut0 = ELEMENTclass[0]->NvnIc[Pb],        NOut1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
 						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],NOut0,OPF0,
-										  ELEMENTclass[1]->NvnCs[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[1]->NvnCs[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCs_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vCc_fIs[P][Pb], OPF1  = ELEMENTclass[1]->I_vCc_vIs[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIs[Pb];
+						             NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIs[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vCc_vIs[P][Pb], OPF1  = ELEMENTclass[1]->I_vCc_fIs[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NvnIs[Pb],        NOut1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
+						             NOut0 = ELEMENTclass[0]->NvnIs[Pb],        NOut1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
 						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],NOut0,OPF0,
-										  ELEMENTclass[1]->NvnCc[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[1]->NvnCc[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCc_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vCc_fIc[P][Pb], OPF1  = ELEMENTclass[1]->I_vCc_vIc[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NfnIc[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIc[Pb];
+						             NOut0 = ELEMENTclass[0]->NfnIc[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIc[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vCc_vIc[P][Pb], OPF1  = ELEMENTclass[1]->I_vCc_fIc[P][Pb];
-									 NOut0 = ELEMENTclass[0]->NvnIc[Pb],        NOut1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
+						             NOut0 = ELEMENTclass[0]->NvnIc[Pb],        NOut1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
 						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],NOut0,OPF0,
-										  ELEMENTclass[1]->NvnCc[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[1]->NvnCc[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCc_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					}
 				}}

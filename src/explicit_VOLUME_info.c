@@ -145,6 +145,12 @@ static void compute_VOLUME_RHS_EFE(void)
 			}}}
 			free(F_vI);
 
+//array_print_d(NvnI,d*d,C_vI,'C');
+
+for (eq = 0; eq < Neq; eq++) {
+//array_print_d(NvnI,d,&Fr_vI[NvnI*d*eq],'C');
+}
+
 			// Compute RHS terms
 			NvnS = OPS[0]->NvnS;
 
@@ -158,7 +164,11 @@ static void compute_VOLUME_RHS_EFE(void)
 
 				for (eq = 0; eq < Neq; eq++) {
 				for (dim1 = 0; dim1 < d; dim1++) {
+//				for (dim1 = 0; dim1 < 1; dim1++) {
 					mm_CTN_d(NvnS,1,NvnI,D[dim1],&Fr_vI[(eq*d+dim1)*NvnI],DFr);
+if (eq == 3) {
+//	array_print_d(NvnS,1,DFr,'R');
+}
 					IndRHS = eq*NvnS;
 					for (i = 0; i < NvnS; i++)
 						RHS[IndRHS+i] += DFr[i];

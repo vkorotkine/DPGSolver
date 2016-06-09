@@ -150,7 +150,7 @@ static void compute_FACET_RHS_EFE(void)
 	unsigned int i, j, iInd,
 	             VfIn, VfOut, fIn, fOut, Eclass, IndFType, Boundary, BC, BC_trail,
 	             RowInd, RowSub, ReOrder, *RowTracker,
-	             NfnI, NvnSIn, NvnSOut, *nOrdInOut;
+	             NfnI, NvnSIn, NvnSOut, *nOrdOutIn, *nOrdInOut;
 	double       *WIn_fI, *WOut_fI, *WOut_fIIn, *nFluxNum_fI, *RHSIn, *RHSOut, *n_fI, *detJF_fI, **I_Weak_FF;
 
 	struct S_OPERATORS *OPSIn, *OPSOut;
@@ -202,6 +202,7 @@ static void compute_FACET_RHS_EFE(void)
 
 		// Compute WOut_fI (Taking BCs into account if applicable)
 		nOrdInOut = OPSIn->nOrdInOut;
+		nOrdOutIn = OPSIn->nOrdOutIn;
 		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACET
 			if (0 && VOut->Eclass == C_TP) {
 				; // update this with sum factorization
@@ -221,7 +222,7 @@ static void compute_FACET_RHS_EFE(void)
 				for (j = 0; j < NfnI; j++) {
 					BC_trail = BC % BC_STEP_SC;
 					if (BC_trail > 50 || BC_trail == 0)
-						WOut_fIIn[iInd+j] = WOut_fI[iInd+nOrdInOut[j]];
+						WOut_fIIn[iInd+j] = WOut_fI[iInd+nOrdOutIn[j]];
 					else
 						WOut_fIIn[iInd+j] = WOut_fI[iInd+j];
 				}
@@ -248,12 +249,14 @@ static void compute_FACET_RHS_EFE(void)
 		}
 
 /*
+//if (FACET->indexg == 4) {
+printf("%d %d %d %d %d\n",FACET->indexg,IndFType,VIn->indexg,VOut->indexg,VfIn);
 array_print_d(NfnI,Neq,WIn_fI,'C');
 array_print_d(NfnI,Neq,WOut_fIIn,'C');
 array_print_d(NfnI,d,n_fI,'R');
 array_print_d(NfnI,1,detJF_fI,'C');
 array_print_d(NfnI,Neq,nFluxNum_fI,'C');
-//exit(1);
+//}
 */
 
 		// Multiply n dot FNum by the area element
@@ -320,13 +323,14 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 		} else if (strstr(Form,"Strong") != NULL) {
 			printf("Exiting: Implement the strong form in compute_FACET_RHS_EFE.\n"), exit(1);
 		}
-/*
-printf("%d\n",FACET->indexg);
-array_print_d(NvnSIn,Neq,RHSIn,'C');
-array_print_d(NvnSIn,NfnI,I_Weak_FF[VfIn],'R');
+
+
+//if (FACET->indexg == 4) {
+//array_print_d(NvnSIn,Neq,RHSIn,'C');
 //array_print_d(NvnSOut,Neq,RHSOut,'C');
-exit(1);
-*/
+//exit(1);
+//}
+
 
 		free(RowTracker);
 		free(WIn_fI);
@@ -334,6 +338,8 @@ exit(1);
 		free(WOut_fIIn);
 		free(nFluxNum_fI);
 	}
+//exit(1);
+//printf("\n\n\n\n\n");
 
 	free(OPSIn);
 	free(OPSOut);

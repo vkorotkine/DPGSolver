@@ -70,12 +70,13 @@ static void initialize_PeriodicVortex(void)
 	SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 	strcpy(SolverType,"Explicit");
 
-	Xc = -0.1;
+//	Xc = -0.1;
+	Xc =  0.0;
 	Yc =  0.0;
 	Rc =  0.2;
 	PeriodL        = 2.0;
 //	PeriodFraction = 0.1;
-	PeriodFraction = 0.6;
+	PeriodFraction = 0.5;
 
 	MInf = 0.5;
 	pInf = 1.0;
@@ -129,16 +130,6 @@ static void initialize_PeriodicVortex(void)
 			w[n]   = 0.0;
 			p[n]   = pInf - rhoInf*(C*C)/(2*Rc*Rc)*exp(-r2[n]);
 			rho[n] = rhoInf;
-/*
-			u[n]   = X_vS[n];
-			v[n]   = Y_vS[n];
-			if (DB.d == 3)
-				w[n]   = XYZ_vS[2*NvnS+n];
-			else
-				w[n]   = 0.0;
-			p[n]   = 0.0;
-			rho[n] = 1.0;
-*/
 		}
 
 		convert_variables(U,W,3,d,NvnS,1,'p','c');

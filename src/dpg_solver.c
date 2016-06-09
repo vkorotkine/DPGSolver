@@ -114,6 +114,8 @@ int main(int nargc, char **argv)
 	}
 
 	// Postprocessing
+	if (!DB.MPIrank)
+		printf("\n\nPostprocessing:\n\n");
 
 	// Output final solution to paraview
 	strcpy(fNameOut,"SolFinal_");
@@ -126,6 +128,8 @@ int main(int nargc, char **argv)
 	output_to_paraview(fNameOut);
 
 	// Compute errors
+	if (!DB.MPIrank)
+		printf("  Computing errors\n");
 
 
 	free(fNameOut);

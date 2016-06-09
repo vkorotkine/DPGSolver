@@ -434,6 +434,13 @@ static void output_normals(const char *normals_type)
 
 		XYZ_fI = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NfnI,d,NvnG,1.0,I_vG_vfI,Input); // free
 
+printf("Try checking XYZ_fI correspondence from both volumes using nOrd\n");
+/*
+printf("%d %d %d\n",FACET->indexg,VIn->indexg,VfIn);
+array_print_d(NfnI,NvnG,I_vG_vfI,'R');
+array_print_d(NfnI,d,XYZ_fI,'C');
+*/
+
 		fprintf(fID,"\t\t<Piece NumberOfPoints=\"%d\" NumberOfVerts=\"%d\" NumberOfLines=\"%d\" NumberOfStrips=\"%d\" "
 		            "NumberOfPolys=\"%d\">\n",NfnI,0,0,0,0);
 
