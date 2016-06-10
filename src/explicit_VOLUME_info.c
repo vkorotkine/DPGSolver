@@ -108,7 +108,7 @@ static void compute_VOLUME_RHS_EFE(void)
 
 	if (strstr(Form,"Weak") != NULL) {
 		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-//printf("%d\n",VOLUME->indexg);
+printf("%d\n",VOLUME->indexg);
 			// Obtain operators
 			init_ops(OPS[0],VOLUME,0);
 			if (VOLUME->type == WEDGE)
@@ -166,7 +166,7 @@ for (eq = 0; eq < Neq; eq++) {
 				for (dim1 = 0; dim1 < d; dim1++) {
 //				for (dim1 = 0; dim1 < 1; dim1++) {
 					mm_CTN_d(NvnS,1,NvnI,D[dim1],&Fr_vI[(eq*d+dim1)*NvnI],DFr);
-if (eq == 3) {
+if (eq == 0) {
 //	array_print_d(NvnS,1,DFr,'R');
 }
 					IndRHS = eq*NvnS;
@@ -180,12 +180,14 @@ if (eq == 3) {
 			}
 			free(Fr_vI);
 
-//array_print_d(NvnS,Nvar,RHS,'C');
+//printf("%d %d\n",NvnS,NvnI);
+array_print_d(NvnS,Nvar,RHS,'C');
 //exit(1);
 		}
 	} else if (strstr(Form,"Strong") != NULL) {
 		printf("Exiting: Implement the strong form in compute_VOLUME_RHS_EFE.\n"), exit(1);
 	}
+exit(1);
 
 	for (i = 0; i < 2; i++)
 		free(OPS[i]);

@@ -326,8 +326,9 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 
 
 //if (FACET->indexg == 4) {
-//array_print_d(NvnSIn,Neq,RHSIn,'C');
-//array_print_d(NvnSOut,Neq,RHSOut,'C');
+printf("%d %d %d %d %d\n",FACET->indexg,IndFType,VIn->indexg,VOut->indexg,VfIn);
+array_print_d(NvnSIn,Neq,RHSIn,'C');
+array_print_d(NvnSOut,Neq,RHSOut,'C');
 //exit(1);
 //}
 
@@ -338,7 +339,7 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 		free(WOut_fIIn);
 		free(nFluxNum_fI);
 	}
-//exit(1);
+exit(1);
 //printf("\n\n\n\n\n");
 
 	free(OPSIn);

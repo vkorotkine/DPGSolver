@@ -86,13 +86,16 @@ extern void flux_ROE      (const unsigned int Nn, const unsigned int Nel, double
                            double *nL, const unsigned int d, const unsigned int Neq);
 
 // Sum Factorization
-extern void sf_operate_d (const unsigned int NOut, const unsigned int NCols, const unsigned int NIn,
-                          const unsigned int BRowMaxIn, double *OP, double *Input, double *Output);
-extern void sf_swap_d    (double *Input, const unsigned int NRows, const unsigned int NCols,
-                          const unsigned int iBound, const unsigned int jBound, const unsigned int kBound,
-                          const unsigned int iStep, const unsigned int jStep, const unsigned int kStep);
-extern void sf_apply_d   (double *Input, double *Output, const unsigned int NIn[3], const unsigned int NOut[3],
-                          const unsigned int NCols, double *OP[3], const unsigned int Diag[3], const unsigned int d);
+extern void   sf_operate_d   (const unsigned int NOut, const unsigned int NCols, const unsigned int NIn,
+                              const unsigned int BRowMaxIn, double *OP, double *Input, double *Output);
+extern void   sf_swap_d      (double *Input, const unsigned int NRows, const unsigned int NCols,
+                              const unsigned int iBound, const unsigned int jBound, const unsigned int kBound,
+                              const unsigned int iStep, const unsigned int jStep, const unsigned int kStep);
+extern void   sf_apply_d     (double *Input, double *Output, const unsigned int NIn[3], const unsigned int NOut[3],
+                              const unsigned int NCols, double *OP[3], const unsigned int Diag[3],
+                              const unsigned int d);
+extern double *sf_assemble_d (const unsigned int NIn[3], const unsigned int NOut[3], const unsigned int d,
+                              double *BOP[3]);
 
 // Plotting
 extern void output_to_paraview    (const char *OutputType);

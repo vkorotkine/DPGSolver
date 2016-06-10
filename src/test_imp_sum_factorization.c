@@ -10,7 +10,7 @@
 
 /*
  *	Purpose:
- *		Test correctness of implementation of sum_factorization.
+ *		Test correctness of implementation of sum_factorization functions.
  *
  *	Comments:
  *
@@ -24,6 +24,8 @@ void test_imp_sum_factorization(void)
 	unsigned int pass;
 
 	/*
+	 *	sf_apply_d:
+	 *
 	 *	Input:
 	 *
 	 *		NIn  = [ 7 5 3 ]

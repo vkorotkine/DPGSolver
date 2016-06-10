@@ -433,8 +433,54 @@ static void output_normals(const char *normals_type)
 		Input = VIn->XYZ;
 
 		XYZ_fI = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NfnI,d,NvnG,1.0,I_vG_vfI,Input); // free
+/*
+unsigned int VfOut, fOut, j, IndFType, Eclass, *nOrdOutIn, IndOrdOutIn;
+double *XYZ_fIOut, *XYZ_fIOutIn, tmp_d;
 
-printf("Try checking XYZ_fI correspondence from both volumes using nOrd\n");
+struct S_ELEMENT *ELEMENT_FACET;
+struct S_VOLUME *VOut;
+
+VOut = FACET->VOut;
+VfOut = FACET->VfOut;
+fOut = VfOut/NFREFMAX;
+
+Eclass = get_Eclass(VOut->type);
+IndFType = get_IndFType(Eclass,fOut);
+
+ELEMENT_FACET = get_ELEMENT_FACET(VOut->type,IndFType);
+
+IndOrdOutIn = FACET->IndOrdOutIn;
+nOrdOutIn = ELEMENT_FACET->nOrd_fIc[PF][IndOrdOutIn];
+
+XYZ_fIOut = mm_Alloc_d(CBCM,CBT,CBNT,NfnI,d,NvnG,1.0,ELEMENT->I_vGc_fIc[PV][PF][VfOut],VOut->XYZ); // free
+XYZ_fIOutIn = malloc(NfnI*d * sizeof *XYZ_fIOutIn);
+
+for (i = 0; i < NfnI; i++) {
+for (j = 0; j < d; j++) {
+	XYZ_fIOutIn[i+j*NfnI] = XYZ_fIOut[nOrdOutIn[i]+j*NfnI];
+}}
+
+printf("%d %d %d\n",FACET->indexg,VIn->indexg,VfIn);
+array_print_ui(1,NfnI,nOrdOutIn,'R');
+for (i = 0; i < NfnI; i++) {
+	for (j = 0; j < d; j++) {
+		tmp_d = XYZ_fI[i+j*NfnI]-XYZ_fIOutIn[i+j*NfnI];
+		if (fabs(tmp_d) < EPS*100)
+			printf(" % .3e",0.0);
+		else
+			printf(" % .3e",XYZ_fI[i+j*NfnI]-XYZ_fIOutIn[i+j*NfnI]);
+	}
+	printf("\n");
+}
+printf("\n");
+//array_print_d(NfnI,d,XYZ_fI,'C');
+//array_print_d(NfnI,d,XYZ_fIOut,'C');
+//array_print_d(NfnI,d,XYZ_fIOutIn,'C');
+
+free(XYZ_fIOut);
+free(XYZ_fIOutIn);
+*/
+
 /*
 printf("%d %d %d\n",FACET->indexg,VIn->indexg,VfIn);
 array_print_d(NfnI,NvnG,I_vG_vfI,'R');

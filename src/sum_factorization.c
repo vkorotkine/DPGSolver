@@ -205,3 +205,146 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 
 	free(Output_Inter);
 }
+
+double *sf_assemble_d (const unsigned int NIn[3], const unsigned int NOut[3], const unsigned int d, double *BOP[3])
+{
+	/*
+	 *	Purpose:
+	 *		Assemble ST(andard) OP(erators) for TP elements using the lower dimensional operators.
+	 *
+	 *	Comments:
+	 *		Standard operators are assembled using sparse BLAS multiplications of lower dimensional operators.
+	 *		Sparse matrices are stored in compressed sparse row (CSR) format.
+	 *
+	 *	Notation:
+	 *		BOP : (B)lock (OP)erator in each TP direction.
+	 *
+	 *	References:
+	 *		Intel MKL Sparse BLAS CSR Matrix Storage Format: https://software.intel.com/en-us/node/599835
+	 */
+
+	char         transa, matdescra[6];
+	unsigned int dim, i, j, k, Bcol, iMax, jMax, kMax, BcolMax, Gcol,
+	             Indd, IndG, IndGrow;
+	double *OP_ST;
+
+	unsigned int NNZ_BOP[3] = {NIn[0]*NOut[0], NIn[1]*NOut[1], NIn[2]*NOut[2]};
+	MKL_INT      BRows[3] = {NIn[1]*NIn[2], NOut[0]*NIn[2], NOut[0]*NOut[1]},
+	             dims_OP_ST[2] = {NOut[0]*NOut[1]*NOut[2], NIn[0]*NIn[1]*NIn[2]},
+	             dims_DOPr[2]  = {NOut[0]*NIn[1]*NIn[2],   NIn[0]*NIn[1]*NIn[2]},
+	             dims_DOPs[2]  = {NOut[0]*NOut[1]*NIn[2],  NOut[0]*NIn[1]*NIn[2]},
+	             dims_DOPt[2]  = {NOut[0]*NOut[1]*NOut[2], NOut[0]*NOut[1]*NIn[2]};
+
+	MKL_INT      OPr_rowIndex[BRows[0]*NOut[0]+1], OPs_rowIndex[BRows[1]*NOut[1]+1], OPt_rowIndex[BRows[2]*NOut[2]+1],
+	             OPr_cols[BRows[0]*NNZ_BOP[0]],    OPs_cols[BRows[1]*NNZ_BOP[1]],    OPt_cols[BRows[2]*NNZ_BOP[2]];
+	double       OPr_vals[BRows[0]*NNZ_BOP[0]],    OPs_vals[BRows[1]*NNZ_BOP[1]],    OPt_vals[BRows[2]*NNZ_BOP[2]],
+	             OPr_ST[dims_DOPr[0]*dims_DOPr[1]], OPInter_ST[dims_DOPs[0]*dims_DOPr[1]],
+	             alpha, beta, one_d[1] = {1.0};
+
+//	OP_ST = malloc(dims_OP_ST[0]*dims_OP_ST[1] * sizeof *OP_ST); // keep (requires external free)
+	OP_ST = calloc(dims_OP_ST[0]*dims_OP_ST[1] , sizeof *OP_ST); // keep (requires external free)
+
+	if (d == 1)
+		printf("Error: d must be greater than 1 in sf_assemble_d.\n"), exit(1);
+
+	for (dim = 0; dim < 3; dim++) {
+		if (BOP[dim] == NULL)
+			BOP[dim] = one_d;
+	}
+
+	// r
+	Indd = 0;
+
+	IndG = 0; IndGrow = 0;
+	for (k = 0, kMax = NIn[2];  k < kMax; k++) {
+	for (j = 0, jMax = NIn[1];  j < jMax; j++) {
+	for (i = 0, iMax = NOut[0]; i < iMax; i++) {
+		OPr_rowIndex[IndGrow] = IndG;
+		IndGrow++;
+
+		for (Bcol = 0, BcolMax = NIn[Indd]; Bcol < BcolMax; Bcol++) {
+			Gcol = Bcol + j*BcolMax + k*BcolMax*jMax;
+
+			OPr_cols[IndG] = Gcol;
+			OPr_vals[IndG] = BOP[Indd][i*BcolMax+Bcol];
+
+			IndG++;
+		}
+	}}}
+	OPr_rowIndex[IndGrow] = BRows[Indd]*NNZ_BOP[Indd];
+
+	// s
+	Indd = 1;
+
+	IndG = 0; IndGrow = 0;
+	for (k = 0, kMax = NIn[2];  k < kMax; k++) {
+	for (j = 0, jMax = NOut[1]; j < jMax; j++) {
+	for (i = 0, iMax = NOut[0]; i < iMax; i++) {
+		OPs_rowIndex[IndGrow] = IndG;
+		IndGrow++;
+
+		for (Bcol = 0, BcolMax = NIn[Indd]; Bcol < BcolMax; Bcol++) {
+			Gcol = i + Bcol*iMax + k*iMax*BcolMax;
+
+			OPs_cols[IndG] = Gcol;
+			OPs_vals[IndG] = BOP[Indd][j*BcolMax+Bcol];
+
+			IndG++;
+		}
+	}}}
+	OPs_rowIndex[IndGrow] = BRows[Indd]*NNZ_BOP[Indd];
+
+/*
+array_print_i(1,BRows[0]*NOut[0]+1,OPr_rowIndex,'R');
+array_print_i(1,BRows[0]*NNZ_BOP[0],OPr_cols,'R');
+array_print_d(1,BRows[0]*NNZ_BOP[0],OPr_vals,'R');
+*/
+
+	MKL_INT job[8] = {1,0,0,2,BRows[0]*NNZ_BOP[0],1}, info = 0;
+	mkl_ddnscsr(job,&dims_DOPr[0],&dims_DOPr[1],OPr_ST,&dims_DOPr[1],OPr_vals,OPr_cols,OPr_rowIndex,&info);
+	if (info != 0)
+		printf("Problem converting from sparse to dense in mkl_ddnscsr.\n"), exit(1);
+
+	alpha = 1.0;
+	beta  = 0.0;
+	transa = 'N';
+	matdescra[0] = 'G';
+	matdescra[1] = 'L'; // not used
+	matdescra[2] = 'N'; // not used
+	matdescra[3] = 'C';
+
+	if (d == 2) {
+		mkl_dcsrmm(&transa,&dims_DOPs[0],&dims_DOPr[1],&dims_DOPs[1],&alpha,matdescra,OPs_vals,OPs_cols,
+		           OPs_rowIndex,&OPs_rowIndex[1],OPr_ST,&dims_DOPr[1],&beta,OP_ST,&dims_DOPr[1]);
+	} else {
+		mkl_dcsrmm(&transa,&dims_DOPs[0],&dims_DOPr[1],&dims_DOPs[1],&alpha,matdescra,OPs_vals,OPs_cols,
+		           OPs_rowIndex,&OPs_rowIndex[1],OPr_ST,&dims_DOPr[1],&beta,OPInter_ST,&dims_DOPr[1]);
+
+		Indd = 2;
+		IndG = 0; IndGrow = 0;
+		for (k = 0, kMax = NOut[2]; k < kMax; k++) {
+		for (j = 0, jMax = NOut[1]; j < jMax; j++) {
+		for (i = 0, iMax = NOut[0]; i < iMax; i++) {
+			OPt_rowIndex[IndGrow] = IndG;
+			IndGrow++;
+
+			for (Bcol = 0, BcolMax = NIn[Indd]; Bcol < BcolMax; Bcol++) {
+				Gcol = i + j*iMax + Bcol*iMax*jMax;
+
+				OPt_cols[IndG] = Gcol;
+				OPt_vals[IndG] = BOP[Indd][k*BcolMax+Bcol];
+
+				IndG++;
+			}
+		}}}
+		OPt_rowIndex[IndGrow] = BRows[Indd]*NNZ_BOP[Indd];
+
+		mkl_dcsrmm(&transa,&dims_DOPt[0],&dims_DOPr[1],&dims_DOPt[1],&alpha,matdescra,OPt_vals,OPt_cols,
+		           OPt_rowIndex,&OPt_rowIndex[1],OPInter_ST,&dims_DOPr[1],&beta,OP_ST,&dims_DOPr[1]);
+	}
+
+//array_print_d(dims_OP_ST[0],dims_OP_ST[1],OP_ST,'R');
+//exit(1);
+
+	return OP_ST;
+}

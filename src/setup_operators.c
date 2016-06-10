@@ -1715,149 +1715,6 @@ for (j = 0; j < Nfref[i]; j++)
 	free(VeF);
 }
 
-static double *sf_assemble_d(const unsigned int NIn[3], const unsigned int NOut[3], const unsigned int d,
-                             double *BOP[3])
-{
-	/*
-	 *	Purpose:
-	 *		Assemble ST(andard) OP(erators) for TP elements using the lower dimensional operators.
-	 *
-	 *	Comments:
-	 *		Standard operators are assembled using sparse BLAS multiplications of lower dimensional operators.
-	 *		Sparse matrices are stored in compressed sparse row (CSR) format.
-	 *
-	 *	Notation:
-	 *		BOP : (B)lock (OP)erator in each TP direction.
-	 *
-	 *	References:
-	 *		Intel MKL Sparse BLAS CSR Matrix Storage Format: https://software.intel.com/en-us/node/599835
-	 */
-
-	char         transa, matdescra[6];
-	unsigned int dim, i, j, k, Bcol, iMax, jMax, kMax, BcolMax, Gcol,
-	             Indd, IndG, IndGrow;
-	double *OP_ST;
-
-	unsigned int NNZ_BOP[3] = {NIn[0]*NOut[0], NIn[1]*NOut[1], NIn[2]*NOut[2]};
-	MKL_INT      BRows[3] = {NIn[1]*NIn[2], NOut[0]*NIn[2], NOut[0]*NOut[1]},
-	             dims_OP_ST[2] = {NOut[0]*NOut[1]*NOut[2], NIn[0]*NIn[1]*NIn[2]},
-	             dims_DOPr[2]  = {NOut[0]*NIn[1]*NIn[2],   NIn[0]*NIn[1]*NIn[2]},
-	             dims_DOPs[2]  = {NOut[0]*NOut[1]*NIn[2],  NOut[0]*NIn[1]*NIn[2]},
-	             dims_DOPt[2]  = {NOut[0]*NOut[1]*NOut[2], NOut[0]*NOut[1]*NIn[2]};
-
-	MKL_INT      OPr_rowIndex[BRows[0]*NOut[0]+1], OPs_rowIndex[BRows[1]*NOut[1]+1], OPt_rowIndex[BRows[2]*NOut[2]+1],
-	             OPr_cols[BRows[0]*NNZ_BOP[0]],    OPs_cols[BRows[1]*NNZ_BOP[1]],    OPt_cols[BRows[2]*NNZ_BOP[2]];
-	double       OPr_vals[BRows[0]*NNZ_BOP[0]],    OPs_vals[BRows[1]*NNZ_BOP[1]],    OPt_vals[BRows[2]*NNZ_BOP[2]],
-	             OPr_ST[dims_DOPr[0]*dims_DOPr[1]], OPInter_ST[dims_DOPs[0]*dims_DOPr[1]],
-	             alpha, beta, one_d[1] = {1.0};
-
-	OP_ST = malloc(dims_OP_ST[0]*dims_OP_ST[1] * sizeof *OP_ST); // keep (requires external free)
-
-	if (d == 1)
-		printf("Error: d must be greater than 1 in sf_assemble_d.\n"), exit(1);
-
-	for (dim = 0; dim < 3; dim++) {
-		if (BOP[dim] == NULL)
-			BOP[dim] = one_d;
-	}
-
-	// r
-	Indd = 0;
-
-	IndG = 0; IndGrow = 0;
-	for (k = 0, kMax = NIn[2];  k < kMax; k++) {
-	for (j = 0, jMax = NIn[1];  j < jMax; j++) {
-	for (i = 0, iMax = NOut[0]; i < iMax; i++) {
-		OPr_rowIndex[IndGrow] = IndG;
-		IndGrow++;
-
-		for (Bcol = 0, BcolMax = NIn[Indd]; Bcol < BcolMax; Bcol++) {
-			Gcol = Bcol + j*BcolMax + k*BcolMax*jMax;
-
-			OPr_cols[IndG] = Gcol;
-			OPr_vals[IndG] = BOP[Indd][i*BcolMax+Bcol];
-
-			IndG++;
-		}
-	}}}
-	OPr_rowIndex[IndGrow] = BRows[Indd]*NNZ_BOP[Indd];
-
-	// s
-	Indd = 1;
-
-	IndG = 0; IndGrow = 0;
-	for (k = 0, kMax = NIn[2];  k < kMax; k++) {
-	for (j = 0, jMax = NOut[1]; j < jMax; j++) {
-	for (i = 0, iMax = NOut[0]; i < iMax; i++) {
-		OPs_rowIndex[IndGrow] = IndG;
-		IndGrow++;
-
-		for (Bcol = 0, BcolMax = NIn[Indd]; Bcol < BcolMax; Bcol++) {
-			Gcol = i + Bcol*iMax + k*iMax*BcolMax;
-
-			OPs_cols[IndG] = Gcol;
-			OPs_vals[IndG] = BOP[Indd][j*BcolMax+Bcol];
-
-			IndG++;
-		}
-	}}}
-	OPs_rowIndex[IndGrow] = BRows[Indd]*NNZ_BOP[Indd];
-
-/*
-array_print_i(1,BRows[0]*NOut[0]+1,OPr_rowIndex,'R');
-array_print_i(1,BRows[0]*NNZ_BOP[0],OPr_cols,'R');
-array_print_d(1,BRows[0]*NNZ_BOP[0],OPr_vals,'R');
-*/
-
-	MKL_INT job[8] = {1,0,0,2,BRows[0]*NNZ_BOP[0],1}, info = 0;
-	mkl_ddnscsr(job,&dims_DOPr[0],&dims_DOPr[1],OPr_ST,&dims_DOPr[1],OPr_vals,OPr_cols,OPr_rowIndex,&info);
-	if (info != 0)
-		printf("Problem converting from sparse to dense in mkl_ddnscsr.\n"), exit(1);
-
-	alpha = 1.0;
-	beta  = 0.0;
-	transa = 'N';
-	matdescra[0] = 'G';
-	matdescra[1] = 'L'; // not used
-	matdescra[2] = 'N'; // not used
-	matdescra[3] = 'C';
-
-	if (d == 2) {
-		mkl_dcsrmm(&transa,&dims_DOPs[0],&dims_DOPr[1],&dims_DOPs[1],&alpha,matdescra,OPs_vals,OPs_cols,
-		           OPs_rowIndex,&OPs_rowIndex[1],OPr_ST,&dims_DOPr[1],&beta,OP_ST,&dims_DOPr[1]);
-	} else {
-		mkl_dcsrmm(&transa,&dims_DOPs[0],&dims_DOPr[1],&dims_DOPs[1],&alpha,matdescra,OPs_vals,OPs_cols,
-		           OPs_rowIndex,&OPs_rowIndex[1],OPr_ST,&dims_DOPr[1],&beta,OPInter_ST,&dims_DOPr[1]);
-
-		Indd = 2;
-		IndG = 0; IndGrow = 0;
-		for (k = 0, kMax = NOut[2]; k < kMax; k++) {
-		for (j = 0, jMax = NOut[1]; j < jMax; j++) {
-		for (i = 0, iMax = NOut[0]; i < iMax; i++) {
-			OPt_rowIndex[IndGrow] = IndG;
-			IndGrow++;
-
-			for (Bcol = 0, BcolMax = NIn[Indd]; Bcol < BcolMax; Bcol++) {
-				Gcol = i + j*iMax + Bcol*iMax*jMax;
-
-				OPt_cols[IndG] = Gcol;
-				OPt_vals[IndG] = BOP[Indd][k*BcolMax+Bcol];
-
-				IndG++;
-			}
-		}}}
-		OPt_rowIndex[IndGrow] = BRows[Indd]*NNZ_BOP[Indd];
-
-		mkl_dcsrmm(&transa,&dims_DOPt[0],&dims_DOPr[1],&dims_DOPt[1],&alpha,matdescra,OPt_vals,OPt_cols,
-		           OPt_rowIndex,&OPt_rowIndex[1],OPInter_ST,&dims_DOPr[1],&beta,OP_ST,&dims_DOPr[1]);
-	}
-
-//array_print_d(dims_OP_ST[0],dims_OP_ST[1],OP_ST,'R');
-//exit(1);
-
-	return OP_ST;
-}
-
 void get_sf_parameters(const unsigned int NIn0, const unsigned int NOut0, double *OP0,
                        const unsigned int NIn1, const unsigned int NOut1, double *OP1,
                        unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
@@ -2285,12 +2142,12 @@ static void setup_TP_operators(const unsigned int EType)
 						D_vCc_vCc[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 						if (EFE) {
-							get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->Is_Weak_VV[P][Pb][0],
-							                  ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->Ds_Weak_VV[P][Pb][0][0],
+							get_sf_parameters(ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_VV[P][Pb][0],
+							                  ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ds_Weak_VV[P][Pb][0][0],
 							                  NIn,NOut,OP,dE,dim,Eclass);
 							Ds_Weak_VV[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-							get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->Ic_Weak_VV[P][Pb][0],
-							                  ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->Dc_Weak_VV[P][Pb][0][0],
+							get_sf_parameters(ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_VV[P][Pb][0],
+							                  ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Dc_Weak_VV[P][Pb][0][0],
 							                  NIn,NOut,OP,dE,dim,Eclass);
 							Dc_Weak_VV[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						} else {
@@ -2508,16 +2365,32 @@ static void setup_TP_operators(const unsigned int EType)
 						if (EFE) {
 							if (dim < 2) OP0 = ELEMENTclass[0]->Ds_Weak_VV[P][Pb][0][dim], OP1 = ELEMENTclass[1]->Is_Weak_VV[P][Pb][0];
 							else         OP0 = ELEMENTclass[0]->Is_Weak_VV[P][Pb][0],      OP1 = ELEMENTclass[1]->Ds_Weak_VV[P][Pb][0][0];
-							get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],OP0,
-							                  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIs[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
+							get_sf_parameters(ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->NvnS[P],OP0,
+							                  ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->NvnS[P],OP1,NIn,NOut,OP,dE,3,Eclass);
 							Ds_Weak_VV[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+/*
+OP[1] = NULL;
+array_print_ui(1,3,NIn,'R');
+array_print_ui(1,3,NOut,'R');
+printf("%d %d\n",ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb]);
+//							Ds_Weak_VV[P][Pb][0][dim] = sf_assemble_d(NOut,NIn,dE,OP); // keep
+exit(1);
 printf("dim: %d\n",dim);
 array_print_d(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],OP0,'R');
 array_print_d(ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIs[Pb],OP1,'R');
+array_print_d(NvnIs[Pb],NvnS[P],Ds_Weak_VV[P][Pb][0][dim],'R');
+for (int i = 0; i < 3; i++)
+	array_print_d(NOut[i],NIn[i],OP[i],'R');
+for (int i = 0; i < 3; i++)
+	if (OP[i] == NULL)
+		printf("%d\n",i);
+
+exit(1);
+*/
 							if (dim < 2) OP0 = ELEMENTclass[0]->Dc_Weak_VV[P][Pb][0][dim], OP1 = ELEMENTclass[1]->Ic_Weak_VV[P][Pb][0];
 							else         OP0 = ELEMENTclass[0]->Ic_Weak_VV[P][Pb][0],      OP1 = ELEMENTclass[1]->Dc_Weak_VV[P][Pb][0][0];
-							get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],OP0,
-							                  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIc[Pb],OP1,NIn,NOut,OP,dE,3,Eclass);
+							get_sf_parameters(ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],OP0,
+							                  ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->NvnS[P],OP1,NIn,NOut,OP,dE,3,Eclass);
 							Dc_Weak_VV[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						} else {
 							;
