@@ -165,6 +165,8 @@ $(OBJDIR):
 $(EXECUTABLE): | $(EXECDIR)
 $(EXECDIR):
 	mkdir $(EXECDIR)
+	mkdir cases/paraview
+	mkdir cases/paraview/PeriodicVortex
 
 
 ### Additional Rules ###

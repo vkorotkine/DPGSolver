@@ -97,6 +97,11 @@ extern void   sf_apply_d     (double *Input, double *Output, const unsigned int 
 extern double *sf_assemble_d (const unsigned int NIn[3], const unsigned int NOut[3], const unsigned int d,
                               double *BOP[3]);
 
+// Postprocessor
+
+// Error computation
+extern void compute_errors (void);
+
 // Plotting
 extern void output_to_paraview    (const char *OutputType);
 extern void plotting_element_info (double **rst, unsigned int **connect, unsigned int **types, unsigned int *Nn,

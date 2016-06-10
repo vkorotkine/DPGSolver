@@ -214,7 +214,7 @@ void setup_parameters()
 		PCs[P][2] = PGs;             // ToBeModified
 		PCc[P][0] = PGc[P];
 		PCc[P][1] = max(PGc[P]-1,u1);
-		PCc[P][2] = PGc[P];          // ToBeModified
+PCc[P][2] = PGc[P]-1;          // ToBeModified
 		PJs[P][0] = PGs;
 		PJs[P][1] = max(PGs-1,u1);
 		PJs[P][2] = PGs;             // ToBeModified
@@ -349,10 +349,10 @@ void setup_parameters()
 			strcpy(NodeTypeIvs[P][0],"GL");
 			strcpy(NodeTypeIvc[P][0],"GL");
 
-			PIfs[P][0] = floor(1.*IntOrderfs/2.);
-			PIfc[P][0] = floor(1.*IntOrderfc/2.);
-			PIvs[P][0] = floor(1.*IntOrdervs/2.);
-			PIvc[P][0] = floor(1.*IntOrdervc/2.);
+			PIfs[P][0] = floor(1.0*IntOrderfs/2.0);
+			PIfc[P][0] = floor(1.0*IntOrderfc/2.0);
+			PIvs[P][0] = floor(1.0*IntOrdervs/2.0);
+			PIvc[P][0] = floor(1.0*IntOrdervc/2.0);
 
 			// SI
 			if (d == 2) {
@@ -361,8 +361,8 @@ void setup_parameters()
 				strcpy(NodeTypeIvs[P][1],"WV");
 				strcpy(NodeTypeIvc[P][1],"WV");
 
-				PIfs[P][1] = floor(1.*IntOrderfs/2.);
-				PIfc[P][1] = floor(1.*IntOrderfc/2.);
+				PIfs[P][1] = floor(1.0*IntOrderfs/2.0);
+				PIfc[P][1] = floor(1.0*IntOrderfc/2.0);
 				PIvs[P][1] = IntOrdervs;
 				PIvc[P][1] = IntOrdervc;
 			} else if (d == 3) {
@@ -384,9 +384,9 @@ void setup_parameters()
 			strcpy(NodeTypeIvc[P][2],"GLW");
 
 			PIfs[P][2] = IntOrderfs;
-			PIfc[P][2] = IntOrderfc;
-			PIvs[P][2] = floor(1.*IntOrdervs/2.);
-			PIvc[P][2] = floor(1.*IntOrdervc/2.);
+PIfc[P][2] = IntOrderfc+1;
+			PIvs[P][2] = floor(1.0*IntOrdervs/2.0);
+PIvc[P][2] = floor(1.0*IntOrdervc/2.0+1.0);
 		} else {
 			// THESE PARAMETERS CANNOT BE MODIFIED.
 			if (strstr(DB.BasisType,"Nodal") == NULL) {

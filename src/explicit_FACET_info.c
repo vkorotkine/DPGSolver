@@ -324,14 +324,14 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 			printf("Exiting: Implement the strong form in compute_FACET_RHS_EFE.\n"), exit(1);
 		}
 
-
+/*
 //if (FACET->indexg == 4) {
 printf("%d %d %d %d %d\n",FACET->indexg,IndFType,VIn->indexg,VOut->indexg,VfIn);
 array_print_d(NvnSIn,Neq,RHSIn,'C');
 array_print_d(NvnSOut,Neq,RHSOut,'C');
 //exit(1);
 //}
-
+*/
 
 		free(RowTracker);
 		free(WIn_fI);
@@ -339,7 +339,7 @@ array_print_d(NvnSOut,Neq,RHSOut,'C');
 		free(WOut_fIIn);
 		free(nFluxNum_fI);
 	}
-exit(1);
+//exit(1);
 //printf("\n\n\n\n\n");
 
 	free(OPSIn);

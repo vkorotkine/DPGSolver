@@ -77,10 +77,18 @@ array_print_d(NvnSOut,Neq,VOut->RHS,'C');
 					*VRHSOut_ptr++ += *FRHSOut_ptr++;
 			}
 		}
+
 /*
+//if (VIn->indexg < 2) {
+printf("%d\n",VIn->indexg);
 array_print_d(NvnSIn,Neq,VIn->RHS,'C');
+//}
+//if (VOut->indexg < 2) {
+printf("%d\n",VOut->indexg);
 array_print_d(NvnSOut,Neq,VOut->RHS,'C');
+//}
 */
+
 		free(FACET->RHSIn);
 		free(FACET->RHSOut);
 	}

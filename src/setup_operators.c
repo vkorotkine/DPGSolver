@@ -2368,25 +2368,6 @@ static void setup_TP_operators(const unsigned int EType)
 							get_sf_parameters(ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->NvnS[P],OP0,
 							                  ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->NvnS[P],OP1,NIn,NOut,OP,dE,3,Eclass);
 							Ds_Weak_VV[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-/*
-OP[1] = NULL;
-array_print_ui(1,3,NIn,'R');
-array_print_ui(1,3,NOut,'R');
-printf("%d %d\n",ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb]);
-//							Ds_Weak_VV[P][Pb][0][dim] = sf_assemble_d(NOut,NIn,dE,OP); // keep
-exit(1);
-printf("dim: %d\n",dim);
-array_print_d(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],OP0,'R');
-array_print_d(ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIs[Pb],OP1,'R');
-array_print_d(NvnIs[Pb],NvnS[P],Ds_Weak_VV[P][Pb][0][dim],'R');
-for (int i = 0; i < 3; i++)
-	array_print_d(NOut[i],NIn[i],OP[i],'R');
-for (int i = 0; i < 3; i++)
-	if (OP[i] == NULL)
-		printf("%d\n",i);
-
-exit(1);
-*/
 							if (dim < 2) OP0 = ELEMENTclass[0]->Dc_Weak_VV[P][Pb][0][dim], OP1 = ELEMENTclass[1]->Ic_Weak_VV[P][Pb][0];
 							else         OP0 = ELEMENTclass[0]->Ic_Weak_VV[P][Pb][0],      OP1 = ELEMENTclass[1]->Dc_Weak_VV[P][Pb][0][0];
 							get_sf_parameters(ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],OP0,
@@ -2396,7 +2377,6 @@ exit(1);
 							;
 						}
 					}
-//if (P == 3) exit(1);
 				}
 
 				for (f = 0; f < Nf; f++) {

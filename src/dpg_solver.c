@@ -130,7 +130,7 @@ int main(int nargc, char **argv)
 	// Compute errors
 	if (!DB.MPIrank)
 		printf("  Computing errors\n");
-
+	compute_errors();
 
 	free(fNameOut);
 	free(string);
