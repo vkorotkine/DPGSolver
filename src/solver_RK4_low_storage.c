@@ -49,8 +49,8 @@ void solver_RK4_low_storage(void)
 		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free
 
 // Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).
-	dt = pow(0.5,DB.ML+DB.PGlobal)*0.5;
-//	dt = pow(0.5,10.0);
+//	dt = pow(0.5,DB.ML+DB.PGlobal+12.0);
+	dt = 4e-6;
 
 	tstep = 0; time = 0.0;
 	while (time < FinalTime) {

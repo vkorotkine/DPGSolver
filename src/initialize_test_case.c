@@ -60,8 +60,8 @@ static void initialize_PeriodicVortex(void)
 	// Standard datatypes
 	char         *SolverType;
 	unsigned int n, NvnS;
-	double       Xc, Yc, Rc, PeriodL, PeriodFraction, MInf, pInf, TInf, Rg, Cscale, uInf, vInf, wInf, VInf, rhoInf,
-	             *XYZ_vS, *X_vS, *Y_vS, *r2, C,
+	double       Xc, Yc, Rc, beta, PeriodL, PeriodFraction, MInf, pInf, TInf, Rg, uInf, vInf, wInf, VInf, rhoInf,
+	             *XYZ_vS, *X_vS, *Y_vS, *r2, T0,
 	             *rho, *u, *v, *w, *p, *U, *What, *W;
 
 	struct S_OPERATORS *OPS;
@@ -70,29 +70,23 @@ static void initialize_PeriodicVortex(void)
 	SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 	strcpy(SolverType,"Explicit");
 
-	Xc = -0.1;
-//	Xc =  0.0;
+	Xc =  0.0;
 	Yc =  0.0;
-	Rc =  0.2;
+	Rc =  0.1;
+	beta = 0.02;
 	PeriodL        = 2.0;
-	PeriodFraction = 0.1;
-//	PeriodFraction = 1.0;
+	PeriodFraction = 1.0;
 
-	MInf = 0.5;
-//	MInf = 0.0;
-	pInf = 1.0;
-	TInf = 1.0;
-	Rg   = 1.0;
-
-	Cscale = 0.1;
+	MInf = 1.0;
+	pInf = 1e5;
+	TInf = 3e2;
+	Rg   = 287.15;
 
 	uInf   = MInf*sqrt(GAMMA*Rg*TInf);
-	vInf   = 0.0;
+	vInf   = EPS;
 	wInf   = 0.0;
 	VInf   = sqrt(uInf*uInf+vInf*vInf+wInf*wInf);
 	rhoInf = pInf/(Rg*TInf);
-
-	C = Cscale*VInf;
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 		OPS = malloc(sizeof *OPS); // free
@@ -126,20 +120,24 @@ static void initialize_PeriodicVortex(void)
 		p   = &U[NvnS*4];
 
 		for (n = 0; n < NvnS; n++) {
-			u[n]   = uInf - C*(Y_vS[n]-Yc)/(Rc*Rc)*exp(-0.5*r2[n]);
-			v[n]   = vInf + C*(X_vS[n]-Xc)/(Rc*Rc)*exp(-0.5*r2[n]);
+			u[n]   = uInf - uInf*beta*(Y_vS[n]-Yc)/Rc*exp(-0.5*r2[n]);
+			v[n]   = vInf + uInf*beta*(X_vS[n]-Xc)/Rc*exp(-0.5*r2[n]);
+//printf("% .3e % .3e % .3e\n",X_vS[n],uInf*beta*(X_vS[n]-Xc)/Rc*exp(-0.5*r2[n]),v[n]);
 			w[n]   = wInf;
-			p[n]   = pInf - rhoInf*(C*C)/(2*Rc*Rc)*exp(-r2[n]);
-			rho[n] = rhoInf;
+			T0     = TInf - 0.00125*pow(uInf*beta,2.0)*exp(-r2[n])*0.4/1.4*Rg;
+			rho[n] = rhoInf*pow(T0/TInf,1.0/GM1);
+			p[n]   = rho[n]*Rg*T0;
+if (VOLUME->indexg == 2) {
+	printf("%e %e %e %e %e %e\n",u[n],v[n],w[n],T0,rho[n],p[n]);
+}
 		}
 
 		convert_variables(U,W,3,d,NvnS,1,'p','c');
 
-/*
-array_print_d(VOLUME->NvnG,d,XYZ_vS,'C');
+//array_print_d(VOLUME->NvnG,d,XYZ_vS,'C');
 array_print_d(NvnS,Nvar,W,'C');
-exit(1);
-*/
+//exit(1);
+
 
 		mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,W,What);
 
@@ -163,7 +161,7 @@ exit(1);
 	DB.vInf   = vInf;
 	DB.wInf   = wInf;
 	DB.Rg     = Rg;
-	DB.Cscale = Cscale;
+	DB.beta   = beta;
 
 	DB.PeriodL        = PeriodL;
 	DB.PeriodFraction = PeriodFraction;
