@@ -159,10 +159,14 @@ void setup_parameters()
 		DB.PR = DB.PGlobal;
 	}
 
-	if (DB.PGlobal == 0)
+	if (DB.PGlobal == 0) {
 		DB.PP = DB.PGlobal+1;
-	else
-		DB.PP = max(PMax-ML,DB.PGlobal);
+	} else {
+		if (PMax >= ML)
+			DB.PP = max(PMax-ML,DB.PGlobal);
+		else
+			DB.PP = DB.PGlobal;
+	}
 
 	// Geometry
 	PGs = 1;
@@ -208,7 +212,7 @@ void setup_parameters()
 		PJc[P] = malloc(NEC * sizeof **PJc); // keep
 
 		// ToBeDeleted: These orders may not be sufficient for 3D. To be investigated.
-		PGc[P]    = max(P,u2);
+		PGc[P]    = max(P+1,u2);
 		PCs[P][0] = PGs;
 		PCs[P][1] = max(PGs-1,u1);
 		PCs[P][2] = PGs;             // ToBeModified
@@ -353,6 +357,7 @@ PCc[P][2] = PGc[P]-1;          // ToBeModified
 			PIfc[P][0] = floor(1.0*IntOrderfc/2.0);
 			PIvs[P][0] = floor(1.0*IntOrdervs/2.0);
 			PIvc[P][0] = floor(1.0*IntOrdervc/2.0);
+printf("%d %d\n",PIfc[P][0],PIvc[P][0]);
 
 			// SI
 			if (d == 2) {

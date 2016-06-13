@@ -47,7 +47,7 @@ struct S_DB {
 	// Initialization
 	char         *SolverType;
 	unsigned int Nvar, Neq, OutputInterval;
-	double       Xc, Yc, Rc, MInf, pInf, TInf, VInf, Rg, Cscale, PeriodL, PeriodFraction, FinalTime;
+	double       Xc, Yc, Rc, MInf, pInf, TInf, VInf, uInf, vInf, wInf, Rg, Cscale, PeriodL, PeriodFraction, FinalTime;
 
 	// Structs
 	struct S_ELEMENT *ELEMENT;

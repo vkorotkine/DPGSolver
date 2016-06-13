@@ -10,6 +10,8 @@
 #include "parameters.h"
 #include "functions.h"
 
+#include <mpi.h>
+
 /*
  *	Purpose:
  *		Compute L2 errors for supported test cases.
@@ -20,6 +22,10 @@
  *
  *	References:
  */
+
+static void output_errors (const double *L2Error, const unsigned int DOF, const double Vol);
+static void collect_errors (void);
+static char *set_fname(const unsigned int collect);
 
 struct S_OPERATORS {
 	unsigned int NvnS, NvnI;
@@ -63,10 +69,13 @@ static void compute_errors_PeriodicVortex(void)
 	// Initialize DB Parameters
 	unsigned int d    = DB.d,
 	             Nvar = DB.Nvar;
-	double       MInf           = DB.MInf,
-	             pInf           = DB.pInf,
+	int          MPIrank = DB.MPIrank;
+	double       pInf           = DB.pInf,
 	             TInf           = DB.TInf,
 	             VInf           = DB.VInf,
+	             uInf           = DB.uInf,
+	             vInf           = DB.vInf,
+	             wInf           = DB.wInf,
 	             Rg             = DB.Rg,
 	             Cscale         = DB.Cscale,
 	             PeriodL        = DB.PeriodL,
@@ -76,13 +85,13 @@ static void compute_errors_PeriodicVortex(void)
 	             Rc             = DB.Rc;
 
 	// Standard datatypes
-	unsigned int i, j, NvnS, NvnI, IndU;
+	unsigned int i, j, NvnS, NvnI, IndU, DOF;
 	double       DistTraveled;
-	double       Xc, uInf, vInf, rhoInf,
+	double       Xc, rhoInf,
 	             *XYZ_vI, *X_vI, *Y_vI, *r2, C,
 	             *rho, *p, *s, *rhoEx, *uEx, *vEx, *wEx, *pEx, *sEx, *U, *UEx, *What, *W,
 	             *detJV_vI, *w_vI, *ChiS_vI, *wdetJV_vI,
-	             Vol, *L2Error, *L2Error2, err;
+	             Vol, *L2Error2, err;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME *VOLUME;
@@ -90,11 +99,8 @@ static void compute_errors_PeriodicVortex(void)
 
 	OPS = malloc(sizeof *OPS); // free
 
-	L2Error  = malloc(NVAR3D+1 * sizeof *L2Error);  // free
 	L2Error2 = calloc(NVAR3D+1 , sizeof *L2Error2); // free
 
-	uInf    = MInf*sqrt(GAMMA*Rg*TInf);
-	vInf   = 1.0;
 	rhoInf = pInf/(Rg*TInf);
 	C      = Cscale*VInf;
 
@@ -102,8 +108,10 @@ static void compute_errors_PeriodicVortex(void)
 	Xc = Xc0 + DistTraveled;
 	while (Xc > 0.5*PeriodL)
 		Xc -= PeriodL;
+printf("%e\n",Xc);
 
-	Vol = 0;
+	DOF = 0;
+	Vol = 0.0;
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 		init_ops(OPS,VOLUME,0);
 
@@ -113,6 +121,8 @@ static void compute_errors_PeriodicVortex(void)
 		ChiS_vI = OPS->ChiS_vI;
 
 		detJV_vI = VOLUME->detJV_vI;
+
+		DOF += NvnS;
 
 		wdetJV_vI = malloc(NvnI * sizeof *wdetJV_vI); // free
 		for (i = 0; i < NvnI; i++)
@@ -154,7 +164,7 @@ static void compute_errors_PeriodicVortex(void)
 		for (i = 0; i < NvnI; i++) {
 			uEx[i]   = uInf - C*(Y_vI[i]-Yc)/(Rc*Rc)*exp(-0.5*r2[i]);
 			vEx[i]   = vInf + C*(X_vI[i]-Xc)/(Rc*Rc)*exp(-0.5*r2[i]);
-			wEx[i]   = 0.0;
+			wEx[i]   = wInf;
 			pEx[i]   = pInf - rhoInf*(C*C)/(2*Rc*Rc)*exp(-r2[i]);
 			rhoEx[i] = rhoInf;
 			sEx[i]   = pEx[i]/pow(rhoEx[i],GAMMA);
@@ -179,7 +189,7 @@ static void compute_errors_PeriodicVortex(void)
 				}
 			}
 		}
-	
+
 		for (i = 0; i < NvnI; i++)
 			Vol += wdetJV_vI[i];
 
@@ -194,16 +204,13 @@ static void compute_errors_PeriodicVortex(void)
 	}
 	free(OPS);
 
-	for (i = 0; i <= NVAR3D; i++)
-		L2Error[i] = sqrt(L2Error2[i]/Vol);
-
+	// Write to files and collect
+	output_errors(L2Error2,DOF,Vol);
 	free(L2Error2);
 
-	// Write to file
-array_print_d(1,NVAR3D+1,L2Error,'R');
-
-
-	free(L2Error);
+	MPI_Barrier(MPI_COMM_WORLD);
+	if (!MPIrank)
+		collect_errors();
 }
 
 void compute_errors(void)
@@ -221,4 +228,124 @@ void compute_errors(void)
 		; // compute_errors_PolynomialBump();
 	else if (strstr(TestCase,"SupersonicVortex") != NULL)
 		; // compute_errors_SupersonicVortex();
+}
+
+static void output_errors(const double *L2Error2, const unsigned int DOF, const double Vol)
+{
+	/*
+	 * Comments:
+	 *		Squared L2 errors are output here.
+	 */
+
+	// standard datatypes
+	unsigned int i;
+	char         *f_name;
+
+	FILE *fID;
+
+	f_name = set_fname(0); // free
+	if ((fID = fopen(f_name,"w")) == NULL)
+		printf("Error: File: %s, did not open.\n",f_name), exit(1);
+
+	fprintf(fID,"DOF         Vol         L2rho2      L2u2        L2v2        L2w2        L2p2        L2s2\n");
+	fprintf(fID,"%-10d  %.4e  ",DOF,Vol);
+	for (i = 0; i <= NVAR3D; i++)
+		fprintf(fID,"%.4e  ",L2Error2[i]);
+
+	fclose(fID);
+	free(f_name);
+}
+
+static void collect_errors(void)
+{
+	// Initialize DB Parameters
+	int MPIsize = DB.MPIsize;
+
+	// Standard datatypes
+	char         *f_name, StringRead[STRLEN_MAX], *data;
+	int          rank, offset;
+	unsigned int i, DOF;
+	double       tmp_d, *L2Error2, Vol, *L2Error;
+
+	FILE *fID;
+
+	L2Error2 = calloc(NVAR3D+1 , sizeof *L2Error2); // free
+	Vol = 0;
+	for (rank = 0; rank < MPIsize; rank++) {
+		f_name = set_fname(0); // free
+		if ((fID = fopen(f_name,"r")) == NULL)
+			printf("Error: File: %s, did not open.\n",f_name), exit(1);
+
+		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
+		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
+			i = 0;
+			data = StringRead;
+			if (sscanf(data," %d%n",&DOF,&offset) == 1)
+				data += offset;
+			if (sscanf(data," %lf%n",&tmp_d,&offset) == 1) {
+				Vol += tmp_d;
+				data += offset;
+			}
+			while (sscanf(data," %lf%n",&tmp_d,&offset) == 1) {
+				L2Error2[i++] += tmp_d;
+				data += offset;
+			}
+		}
+
+		fclose(fID);
+		free(f_name);
+	}
+
+	L2Error = malloc((NVAR3D+1) * sizeof *L2Error); // free
+	for (i = 0; i <= NVAR3D; i++)
+		L2Error[i] = sqrt(L2Error2[i]/Vol);
+	free(L2Error2);
+
+	f_name = set_fname(1); // free
+	if ((fID = fopen(f_name,"w")) == NULL)
+		printf("Error: File: %s, did not open.\n",f_name), exit(1);
+
+	fprintf(fID,"DOF         L2rho       L2u         L2v         L2w         L2p         L2s\n");
+	fprintf(fID,"%-10d  ",DOF);
+	for (i = 0; i <= NVAR3D; i++)
+		fprintf(fID,"%.4e  ",L2Error[i]);
+	free(L2Error);
+
+	fclose(fID);
+	free(f_name);
+}
+
+static char *set_fname(const unsigned int collect)
+{
+	// Initialize DB Parameters
+	char *TestCase = DB.TestCase;
+	int  MPIrank = DB.MPIrank;
+
+	// standard datatypes
+	char *f_name, string[STRLEN_MAX];
+
+	f_name = malloc(STRLEN_MAX * sizeof *f_name); // keep (requires external free)
+
+/* Re-enable this later so that final results are not overwritten (ToBeDeleted) */
+//	strcpy(f_name,"errors/");
+	if (!collect)
+		strcpy(f_name,"errors/");
+	else
+		strcpy(f_name,"results/");
+
+	strcat(f_name,TestCase); strcat(f_name,"/");
+	if (!collect)
+		strcat(f_name,"L2errors2_");
+	else
+		strcat(f_name,"L2errors_");
+	sprintf(string,"%dD_",DB.d);   strcat(f_name,string);
+	                               strcat(f_name,DB.MeshType);
+	sprintf(string,"_ML%d",DB.ML); strcat(f_name,string);
+	if (DB.Adapt == ADAPT_0)
+		sprintf(string,"P%d",DB.PGlobal), strcat(f_name,string);
+	if (!collect)
+		sprintf(string,"_%d",MPIrank), strcat(f_name,string);
+	strcat(f_name,".txt");
+
+	return f_name;
 }

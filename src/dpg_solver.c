@@ -119,7 +119,6 @@ int main(int nargc, char **argv)
 
 	// Output final solution to paraview
 	strcpy(fNameOut,"SolFinal_");
-	                               strcat(fNameOut,DB.TestCase);
 	sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
 	                               strcat(fNameOut,DB.MeshType);
 	sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);

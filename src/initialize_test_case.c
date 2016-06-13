@@ -54,7 +54,7 @@ static void initialize_PeriodicVortex(void)
 
 	DB.Nvar = d+2;
 	DB.Neq  = d+2;
-	
+
 	unsigned int Nvar = DB.Nvar;
 
 	// Standard datatypes
@@ -70,13 +70,13 @@ static void initialize_PeriodicVortex(void)
 	SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 	strcpy(SolverType,"Explicit");
 
-//	Xc = -0.1;
-	Xc =  0.0;
+	Xc = -0.1;
+//	Xc =  0.0;
 	Yc =  0.0;
 	Rc =  0.2;
 	PeriodL        = 2.0;
-//	PeriodFraction = 0.1;
-	PeriodFraction = 1.0;
+	PeriodFraction = 0.1;
+//	PeriodFraction = 1.0;
 
 	MInf = 0.5;
 //	MInf = 0.0;
@@ -92,8 +92,7 @@ static void initialize_PeriodicVortex(void)
 	VInf   = sqrt(uInf*uInf+vInf*vInf+wInf*wInf);
 	rhoInf = pInf/(Rg*TInf);
 
-//	C = Cscale*VInf;
-	C = Cscale*0.5;
+	C = Cscale*VInf;
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 		OPS = malloc(sizeof *OPS); // free
@@ -129,7 +128,7 @@ static void initialize_PeriodicVortex(void)
 		for (n = 0; n < NvnS; n++) {
 			u[n]   = uInf - C*(Y_vS[n]-Yc)/(Rc*Rc)*exp(-0.5*r2[n]);
 			v[n]   = vInf + C*(X_vS[n]-Xc)/(Rc*Rc)*exp(-0.5*r2[n]);
-			w[n]   = 0.0;
+			w[n]   = wInf;
 			p[n]   = pInf - rhoInf*(C*C)/(2*Rc*Rc)*exp(-r2[n]);
 			rho[n] = rhoInf;
 		}
@@ -160,6 +159,9 @@ exit(1);
 	DB.pInf   = pInf;
 	DB.TInf   = TInf;
 	DB.VInf   = VInf;
+	DB.uInf   = uInf;
+	DB.vInf   = vInf;
+	DB.wInf   = wInf;
 	DB.Rg     = Rg;
 	DB.Cscale = Cscale;
 
@@ -190,7 +192,7 @@ void initialize_test_case(void)
 		; // initialize_PolynomialBump();
 	else if (strstr(TestCase,"SupersonicVortex") != NULL)
 		; // initialize_SupersonicVortex();
-	
+
 	if (Testing) {
 		// Output initial solution to paraview
 		output_to_paraview("ZTest_Sol_Init");

@@ -2,6 +2,9 @@ bin/*
 obj/*
 src/*~
 src/*.swp
+src/data_processing/*.swp
+src/data_processing/*.out
+src/data_processing/*.txt
 *~
 *.swp
 
@@ -15,9 +18,12 @@ cases/*.swp
 cases/logfile
 cases/errorfile*
 cases/outputfile*
+cases/errors/*
+cases/paraview/*
 cases/paraview/*.vtu
 cases/paraview/*.pvtu
 cases/paraview/*.vtp
 cases/paraview/*.pvtp
+cases/results/*
 test/*.o
 test/*.exe

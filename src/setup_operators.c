@@ -1883,8 +1883,8 @@ static void setup_TP_operators(const unsigned int EType)
 	double       **w_vIs, **w_vIc,
 	             ****ChiS_vP, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS,
-	             ****I_vGs_vP, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vS,
-	             ****I_vGc_vP, ****I_vGc_vCc,                ****I_vGc_vS,
+	             ****I_vGs_vP, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vS, ****I_vGs_vIs,
+	             ****I_vGc_vP, ****I_vGc_vCc,                ****I_vGc_vS, ****I_vGc_vIc,
 	             ****I_vCs_vIs, ****I_vCs_vIc,
 	             ****I_vCc_vIs, ****I_vCc_vIc,
 	             *****D_vGs_vCs, *****D_vGs_vIs,
@@ -1958,9 +1958,11 @@ static void setup_TP_operators(const unsigned int EType)
 	I_vGs_vGc = ELEMENT->I_vGs_vGc;
 	I_vGs_vCs = ELEMENT->I_vGs_vCs;
 	I_vGs_vS  = ELEMENT->I_vGs_vS;
+	I_vGs_vIs = ELEMENT->I_vGs_vIs;
 	I_vGc_vP  = ELEMENT->I_vGc_vP;
 	I_vGc_vCc = ELEMENT->I_vGc_vCc;
 	I_vGc_vS  = ELEMENT->I_vGc_vS;
+	I_vGc_vIc = ELEMENT->I_vGc_vIc;
 	I_vCs_vIs = ELEMENT->I_vCs_vIs;
 	I_vCs_vIc = ELEMENT->I_vCs_vIc;
 	I_vCc_vIs = ELEMENT->I_vCc_vIs;
@@ -2082,6 +2084,9 @@ static void setup_TP_operators(const unsigned int EType)
 					get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->I_vGs_vS[P][Pb][0],
 					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 					I_vGs_vS[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->I_vGs_vIs[P][Pb][0],
+					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
+					I_vGs_vIs[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnP,ELEMENTclass[0]->I_vGc_vP[P][PP][0],
 					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 					I_vGc_vP[P][PP][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
@@ -2091,6 +2096,9 @@ static void setup_TP_operators(const unsigned int EType)
 					get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->I_vGc_vS[P][Pb][0],
 					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 					I_vGc_vS[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->I_vGc_vIc[P][Pb][0],
+					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
+					I_vGc_vIc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->I_vCs_vIs[P][Pb][0],
 					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 					I_vCs_vIs[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep

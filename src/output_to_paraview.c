@@ -553,10 +553,9 @@ static void output_solution(const char *sol_type)
 	struct S_VOLUME *VOLUME;
 
 	sprintf(MPIrank_c,"%d",MPIrank);
-//	strcpy(f_name,TestCase);
-//	strcat(f_name,"_");
-//	strcat(f_name,sol_type);
-	strcpy(f_name,sol_type);
+	strcpy(f_name,TestCase);
+	strcat(f_name,"/");
+	strcat(f_name,sol_type);
 
 	if (!DB.MPIrank) {
 		strcpy(f_parallel,"paraview/");

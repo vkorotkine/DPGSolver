@@ -160,20 +160,22 @@ $(OBJECTS) : $(OBJDIR)/%.o : $(SRCDIR)/%.c
 # Create directories if not present
 $(OBJECTS): | $(OBJDIR)
 $(OBJDIR):
-	mkdir $(OBJDIR)
+	mkdir -p $(OBJDIR)
 
 $(EXECUTABLE): | $(EXECDIR)
 $(EXECDIR):
-	mkdir $(EXECDIR)
-	mkdir cases/paraview
-	mkdir cases/paraview/PeriodicVortex
+	mkdir -p $(EXECDIR)
+
+TESTCASE_LIST :=dSphericalBump,GaussianBump,PeriodicVortex,PolynomialBump,SupersonicVortex,VortexRiemann
+.PHONY : directories
+directories:
+	mkdir -p meshes/{${TESTCASE_LIST}}
+	mkdir -p cases/paraview/{${TESTCASE_LIST}}
+	mkdir -p cases/errors/{${TESTCASE_LIST}}
+	mkdir -p cases/results/{${TESTCASE_LIST}}
 
 
 ### Additional Rules ###
-
-# Make clean ($ make clean)
-# ".PHONY" is included here to specify that clean is a phony target
-
 .PHONY : clean
 clean:
 	rm $(EXECUTABLE) $(OBJECTS)
