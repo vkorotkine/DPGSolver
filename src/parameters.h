@@ -73,6 +73,12 @@
 #define ADAPT_H  2
 #define ADAPT_HP 3
 
+// Adaptation flags
+#define PREFINE 0
+#define PCOARSE 1
+#define HREFINE 2
+#define HCOARSE 3
+
 // h-refinement related numbers
 #define NREFMAXPOINT 1
 #define NREFMAXLINE  3

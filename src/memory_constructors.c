@@ -12,7 +12,8 @@
  *		Allocate memory for and initialize new structures.
  *
  *	Comments:
- *		Likely change VeF into a multidimensional array (ToBeDeleted).
+ *		All vGs arrays only need a range of 1 for the first dimension, as in I_vGs_vP. Consider removing superfluous
+ *		memory storage in future (ToBeDeleted)
  *
  *	Notation:
  *
@@ -87,7 +88,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->ICc = calloc(NP , sizeof *(ELEMENT->ICc)); // free
 
 	ELEMENT->I_vGs_vP  = calloc(1  , sizeof *(ELEMENT->I_vGs_vP));  // free
-	ELEMENT->I_vGs_vGc = calloc(NP , sizeof *(ELEMENT->I_vGs_vGc)); // free
+	ELEMENT->I_vGs_vGc = calloc(1  , sizeof *(ELEMENT->I_vGs_vGc)); // free
 	ELEMENT->I_vGs_vCs = calloc(NP , sizeof *(ELEMENT->I_vGs_vCs)); // free
 	ELEMENT->I_vGs_vIs = calloc(NP , sizeof *(ELEMENT->I_vGs_vIs)); // free
 	ELEMENT->I_vGs_vIc = calloc(NP , sizeof *(ELEMENT->I_vGs_vIc)); // free
@@ -132,7 +133,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->nOrd_fIc  = calloc(NP , sizeof *(ELEMENT->nOrd_fIc)); // free
 
 
-	ELEMENT->I_vGs_vP[0] = calloc(NP , sizeof **(ELEMENT->I_vGs_vP));
+	ELEMENT->I_vGs_vP[0]  = calloc(NP , sizeof **(ELEMENT->I_vGs_vP));
+	ELEMENT->I_vGs_vGc[0] = calloc(NP , sizeof **(ELEMENT->I_vGs_vGc));
 	for (P = 0; P < NP; P++) {
 		ELEMENT->NfnIs[P] = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnIs));
 		ELEMENT->NfnIc[P] = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnIc));
@@ -145,7 +147,6 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->ICs[P] = calloc(NP , sizeof **(ELEMENT->ICs));
 		ELEMENT->ICc[P] = calloc(NP , sizeof **(ELEMENT->ICc));
 
-		ELEMENT->I_vGs_vGc[P] = calloc(NP , sizeof **(ELEMENT->I_vGs_vGc));
 		ELEMENT->I_vGs_vCs[P] = calloc(NP , sizeof **(ELEMENT->I_vGs_vCs));
 		ELEMENT->I_vGs_vIs[P] = calloc(NP , sizeof **(ELEMENT->I_vGs_vIs));
 		ELEMENT->I_vGs_vIc[P] = calloc(NP , sizeof **(ELEMENT->I_vGs_vIc));
@@ -213,7 +214,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 				ELEMENT->ICs[P][Pb] = calloc(1 , sizeof ***(ELEMENT->ICs));
 				ELEMENT->ICc[P][Pb] = calloc(1 , sizeof ***(ELEMENT->ICc));
 
-				ELEMENT->I_vGs_vGc[P][Pb] = calloc(1          , sizeof ***(ELEMENT->I_vGs_vGc));
+				ELEMENT->I_vGs_vGc[0][Pb] = calloc(1          , sizeof ***(ELEMENT->I_vGs_vGc));
 				ELEMENT->I_vGs_vCs[P][Pb] = calloc(1          , sizeof ***(ELEMENT->I_vGs_vCs));
 				ELEMENT->I_vGs_vS[P][Pb]  = calloc(1          , sizeof ***(ELEMENT->I_vGs_vS));
 				ELEMENT->I_vGc_vP[P][PP]  = calloc(1          , sizeof ***(ELEMENT->I_vGc_vP));
@@ -312,6 +313,14 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->RHS       = NULL; // tbd
 	VOLUME->wdetJV_vI = NULL; // free
 	VOLUME->MInv      = NULL; // free
+
+	// hp adaptivity
+//	VOLUME->minRES = 0.0;
+//	VOLUME->maxRES = 0.0;
+
+	VOLUME->Vadapt     = 0;
+	VOLUME->adapt_type = 0;
+	VOLUME->PNew       = 0;
 
 	// structs
 	VOLUME->next    = NULL;

@@ -46,8 +46,11 @@ struct S_DB {
 
 	// Initialization
 	char         *SolverType;
-	unsigned int Nvar, Neq, OutputInterval;
+	unsigned int Nvar, Neq, OutputInterval, DOF0;
 	double       Xc, Yc, Rc, MInf, pInf, TInf, VInf, uInf, vInf, wInf, Rg, Cscale, PeriodL, PeriodFraction, FinalTime;
+
+	// hp adaptation
+	double DOFcap_frac, refine_frac, coarse_frac;
 
 	// Structs
 	struct S_ELEMENT *ELEMENT;
@@ -110,6 +113,10 @@ struct S_VOLUME {
 
 	// Solving
 	double *RHS, *wdetJV_vI, *MInv;
+
+	// hp adaptivity
+	unsigned int Vadapt, adapt_type, PNew;
+//	double       minRES, maxRES;
 
 	// structs
 	struct S_VOLUME *next, *grpnext;

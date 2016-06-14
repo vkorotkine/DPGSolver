@@ -489,6 +489,11 @@ PIvc[P][2] = floor(1.0*IntOrdervc/2.0+1.0);
 //	DB.InviscidFluxType = FLUX_LF;
 	DB.InviscidFluxType = FLUX_ROE;
 
+	// hp adaptation
+	DB.DOFcap_frac = 10.0;
+	DB.refine_frac = 0.3;
+	DB.coarse_frac = 0.1;
+
 	// Assign DB Parameters
 	DB.NP    = NP;
 	DB.NEC   = NEC;

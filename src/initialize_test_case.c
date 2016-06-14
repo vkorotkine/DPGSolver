@@ -182,6 +182,10 @@ void initialize_test_case(void)
 	char         *TestCase = DB.TestCase;
 	unsigned int Testing   = DB.Testing;
 
+	// Standard datatypes
+	unsigned int DOF0 = 0;
+	struct S_VOLUME *VOLUME;
+
 	if (strstr(TestCase,"dSphericalBump") != NULL)
 		; // initialize_dSphericalBump();
 	else if (strstr(TestCase,"GaussianBump") != NULL)
@@ -192,6 +196,10 @@ void initialize_test_case(void)
 		; // initialize_PolynomialBump();
 	else if (strstr(TestCase,"SupersonicVortex") != NULL)
 		; // initialize_SupersonicVortex();
+
+	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
+		DOF0 += VOLUME->NvnS;
+	DB.DOF0 = DOF0;
 
 	if (Testing) {
 		// Output initial solution to paraview

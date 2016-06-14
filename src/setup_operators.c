@@ -150,7 +150,7 @@
  *			rd   : (r)ange (d)imension == 0:d-1
  *
  *		                   Adapt
- *		Returned Op (SF) | 1               2                   3               4
+ *		Returned Op (SF) | 0               1                   2               3
  *		                 |
  *		NvnGs            | [0]             [0]                 [0]             [0]
  *		NvnGc            | [P]             [rP]                [P]             [rP]
@@ -164,13 +164,13 @@
  *		ChiS_vP          | [P][PP][0]      [rP][PP][0]         [P][PP][0]      [rP][PP][0]
  *		ChiS_vIs     (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rPb][*]
  *		ChiS_vIc     (*) |
- *    	ChiInvS_vS       | [P][P][0]       [rP][P(P)][0]       [P][P][0]       [rP][P(P)][0]
+ *		ChiInvS_vS       | [P][P][0]       [rP][P(P)][0]       [P][P][0]       [rP][P(P)][0]
  *		                 |
  *		ICs              | [P][P][0]       [rP][P(P)][0]       [P][P][0]       [rP][P(P)][0]
  *		ICc              |
  *		                 |
  *		I_vGs_vP         | [0][PP][0]      [0][PP][0]          [0][PP][0]      [0][PP][0]
- *		I_vGs_vGc        | [P][P][0]       [rP][P(P)][0]       [P][P][0]       [rP][P(P)][0]
+ *		I_vGs_vGc        | [0][P][0]       [rP][P(P)][0]       [0][P][0]       [rP][P(P)][0]
  *		I_vGs_vCs        |
  *		I_vGs_vIs    (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rPb][*]
  *		I_vGs_vIc    (*) |
@@ -192,17 +192,17 @@
  *		D_vCs_vCs        |
  *		D_vCc_vCc        |
  *		                 |
- *    	ChiS_fIs         | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rPb][^^]
- *    	ChiS_fIc         |
+ *		ChiS_fIs         | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rPb][^^]
+ *		ChiS_fIc         |
  *		                 |
- *    	I_vGs_fIs        | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rPb][^^]
- *    	I_vGs_fIc        |
- *    	I_vGc_fIs        |
- *    	I_vGc_fIc        |
- *    	I_vCs_fIs        |
- *    	I_vCs_fIc        |
- *    	I_vCc_fIs        |
- *    	I_vCc_fIc        |
+ *		I_vGs_fIs        | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rPb][^^]
+ *		I_vGs_fIc        |
+ *		I_vGc_fIs        |
+ *		I_vGc_fIc        |
+ *		I_vCs_fIs        |
+ *		I_vCs_fIc        |
+ *		I_vCc_fIs        |
+ *		I_vCc_fIc        |
  *		                 |
  *		Is_Weak_VV       | [P][P][0]       [rP][P(P)][0]       [P][P][0]       [rP][P(P)][0]
  *		Ic_Weak_VV       |
@@ -1265,7 +1265,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 				// Returned Operators
 				// VOLUME related operators
-				I_vGs_vGc[P][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],NvnGs[0],NvnGs[0],1.0,ChiGs_vGc,ChiInvGs_vGs); // keep
+				I_vGs_vGc[0][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],NvnGs[0],NvnGs[0],1.0,ChiGs_vGc,ChiInvGs_vGs); // keep
 				I_vGs_vCs[P][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnCs[P],NvnGs[0],NvnGs[0],1.0,ChiGs_vCs,ChiInvGs_vGs); // keep
 				I_vGs_vS[P][Pb][0]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[P] ,NvnGs[0],NvnGs[0],1.0,ChiGs_vS, ChiInvGs_vGs); // keep
 				I_vGc_vP[P][PP][0]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnP,    NvnGc[P],NvnGc[P],1.0,ChiGc_vP, ChiInvGc_vGc); // keep
@@ -2075,9 +2075,9 @@ static void setup_TP_operators(const unsigned int EType)
 					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->ChiS_vIc[P][Pb][0],
 					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 					ChiS_vIc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-					get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnGc[Pb],ELEMENTclass[0]->I_vGs_vGc[P][Pb][0],
+					get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnGc[Pb],ELEMENTclass[0]->I_vGs_vGc[0][Pb][0],
 					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
-					I_vGs_vGc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					I_vGs_vGc[0][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnCs[Pb],ELEMENTclass[0]->I_vGs_vCs[P][Pb][0],
 					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 					I_vGs_vCs[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
@@ -2284,10 +2284,10 @@ static void setup_TP_operators(const unsigned int EType)
 					                  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->ChiS_vIc[P][Pb][0],
 					                  NIn,NOut,OP,dE,3,Eclass);
 					ChiS_vIc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-					get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnGc[Pb],ELEMENTclass[0]->I_vGs_vGc[P][Pb][0],
-					                  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnGc[Pb],ELEMENTclass[1]->I_vGs_vGc[P][Pb][0],
+					get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnGc[Pb],ELEMENTclass[0]->I_vGs_vGc[0][Pb][0],
+					                  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnGc[Pb],ELEMENTclass[1]->I_vGs_vGc[0][Pb][0],
 					                  NIn,NOut,OP,dE,3,Eclass);
-					I_vGs_vGc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					I_vGs_vGc[0][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnCs[Pb],ELEMENTclass[0]->I_vGs_vCs[P][Pb][0],
 					                  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnCs[Pb],ELEMENTclass[1]->I_vGs_vCs[P][Pb][0],
 					                  NIn,NOut,OP,dE,3,Eclass);

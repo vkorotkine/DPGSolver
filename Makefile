@@ -141,6 +141,8 @@ OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 ### Default goal + Additional required rules ###
 
+SHELL=/bin/bash
+
 # Compile executable file (Default goal)
 $(EXECUTABLE) : $(OBJECTS)
 	@echo 

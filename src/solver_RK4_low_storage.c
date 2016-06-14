@@ -29,7 +29,8 @@ void solver_RK4_low_storage(void)
 {
 	// Initialize DB Parameters
 	unsigned int OutputInterval = DB.OutputInterval,
-	             Neq            = DB.Neq;
+	             Neq            = DB.Neq,
+	             Adapt          = DB.Adapt;
 
 	double       FinalTime = DB.FinalTime;
 
@@ -45,6 +46,9 @@ void solver_RK4_low_storage(void)
 
 	struct S_VOLUME *VOLUME;
 
+	// silence
+	maxRHS0 = 0.0;
+
 	for (i = 0; i < 2; i++)
 		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free
 
@@ -54,8 +58,9 @@ void solver_RK4_low_storage(void)
 
 	tstep = 0; time = 0.0;
 	while (time < FinalTime) {
+		if (Adapt)
+			update_VOLUME_hp();
 		update_VOLUME_Ops();
-
 
 		if (time+dt > FinalTime)
 			dt = FinalTime-time;
@@ -108,6 +113,10 @@ void solver_RK4_low_storage(void)
 			printf("Exiting: maxRHS dropped by 6 orders.\n");
 			break;
 		}
+
+		// hp adaptation
+		if (Adapt)
+			adapt_hp();
 
 		tstep++;
 	}

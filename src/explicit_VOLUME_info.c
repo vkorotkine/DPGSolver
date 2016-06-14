@@ -46,7 +46,6 @@ void explicit_VOLUME_info(void)
 			compute_VOLUMEVec_RHS_EFE();
 			break;
 		}
-
 	} else {
 		;
 	}

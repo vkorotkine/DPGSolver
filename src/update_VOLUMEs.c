@@ -15,6 +15,8 @@
  *
  *	Comments:
  *		Think whether it would be possible to add sum factorization capability here for MInv computation (ToBeDeleted).
+ *		May be better not to allow P adaptivity to go down to P = 0, but have the limit at P = 1. Try/THINK
+ *		(ToBeDeleted).
  *
  *	Notation:
  *
@@ -22,19 +24,20 @@
  */
 
 struct S_OPERATORS {
-	unsigned int NvnS, NvnI;
-	double       *w_vI, *ChiS_vI;
+	unsigned int NvnGs, NvnGc, NvnS, NvnSP, NvnI;
+	double       *I_vGs_vGc, *Ihat_vS_vS, *w_vI, *ChiS_vI;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass)
 {
-	unsigned int P, type, curved;
+	unsigned int P, PNew, type, curved;
 	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS;
 
 	// silence
 	ELEMENT_OPS = NULL;
 
 	P      = VOLUME->P;
+	PNew   = VOLUME->PNew;
 	type   = VOLUME->type;
 	curved = VOLUME->curved;
 
@@ -44,18 +47,135 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	else if (type == LINE || type == QUAD || type == HEX || type == WEDGE)
 		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
 
-	OPS->NvnS = ELEMENT_OPS->NvnS[P];
+	OPS->NvnS  = ELEMENT_OPS->NvnS[P];
+	OPS->NvnSP = ELEMENT_OPS->NvnS[PNew];
 	if (!curved) {
 		OPS->NvnI = ELEMENT_OPS->NvnIs[P];
 
 		OPS->w_vI    = ELEMENT_OPS->w_vIs[P];
 		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIs[P][P][0];
 	} else {
-		OPS->NvnI = ELEMENT_OPS->NvnIc[P];
+		OPS->NvnGs = ELEMENT_OPS->NvnGs[0];
+		OPS->NvnGc = ELEMENT_OPS->NvnGc[PNew];
+		OPS->NvnI  = ELEMENT_OPS->NvnIc[P];
+
+		OPS->I_vGs_vGc = ELEMENT_OPS->I_vGs_vGc[0][PNew][0];
 
 		OPS->w_vI    = ELEMENT_OPS->w_vIc[P];
 		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIc[P][P][0];
 	}
+}
+
+void update_VOLUME_hp(void)
+{
+	// Initialize DB Parameters
+	unsigned int d    = DB.d,
+	             PMax = DB.PMax,
+	             Nvar = DB.Nvar;
+
+	// Standard datatypes
+	unsigned int P, PNew, adapt_type;
+	double       NvnGs, NvnGc, NvnS, NvnSP, NCols,
+	             *I_vGs_vGc, *XYZ_vC, *XYZ_S,
+	             *Ihat_vS_vS, *What, *RES, *WhatP, *RESP;
+
+	struct S_OPERATORS *OPS;
+	struct S_VOLUME    *VOLUME;
+
+	OPS = malloc(sizeof *OPS); // free
+
+	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+		if (VOLUME->Vadapt) {
+			VOLUME->update = 1;
+			P = VOLUME->P;
+			adapt_type = VOLUME->adapt_type;
+
+			switch(adapt_type) {
+			case PREFINE:
+				if (P+1 <= PMax)
+					PNew = P+1;
+				else
+					printf("Error: Should not be entering PREFINE in update_VOLUME_hp for P = %d.\n",P), exit(1);
+				VOLUME->PNew = PNew;
+				break;
+			case PCOARSE:
+				if (P >= 1)
+					PNew = P-1;
+				else
+					printf("Error: Should not be entering PREFINE in update_VOLUME_hp for P = %d.\n",P), exit(1);
+				VOLUME->PNew = PNew;
+				break;
+			case HREFINE:
+				// Vh as flag for type of VOLUME h refinement
+				// Also need another flag to make sure that no h refinement is performed on elements of the coarsest
+				// mesh.
+				VOLUME->PNew = P;
+				break;
+			case HCOARSE:
+				VOLUME->PNew = P;
+				break;
+			default:
+				printf("Error: Unsupported adapt_type = %d in update_VOLUME_hp.\n",adapt_type), exit(1);
+				break;
+			}
+
+			init_ops(OPS,VOLUME,0);
+
+			switch(adapt_type) {
+			default: // PREFINE or PCOARSE
+				// Update geometry
+// need C_vI
+// need normals and detJF_fI
+				if (VOLUME->curved) {
+					NvnGs      = OPS->NvnGs;
+					NvnGc      = OPS->NvnGc;
+					I_vGs_vGc  = OPS->I_vGs_vGc;
+
+					NCols = d;
+
+					XYZ_vC = VOLUME->XYZ_vC;
+					XYZ_S  = malloc(NvnGc*NCols * sizeof *XYZ_S); // keep
+					mm_CTN_d(NvnGc,NCols,NvnGs,I_vGs_vGc,XYZ_vC,XYZ_S);
+					free(VOLUME->XYZ_S);
+					VOLUME->XYZ_S = XYZ_S;
+
+				}
+
+				// Project What and RES
+				NvnS       = OPS->NvnS;
+				NvnSP      = OPS->NvnSP;
+				Ihat_vS_vS = OPS->Ihat_vS_vS;
+
+				VOLUME->NvnS = NvnSP;
+
+				What  = VOLUME->What;
+				RES   = VOLUME->RES;
+
+				WhatP = malloc(NvnSP*Nvar * sizeof *WhatP); // keep
+				RESP  = malloc(NvnSP*Nvar * sizeof *RESP);  // keep
+
+				mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS,What,WhatP);
+				mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS,RES,RESP);
+
+				free(What);
+				free(RES);
+
+				VOLUME->What = WhatP;
+				VOLUME->RES  = RESP;
+
+				VOLUME->P = PNew;
+				break;
+			case HREFINE:
+				// Interpolate to finer space
+				break;
+			case HCOARSE:
+				// Galerkin projection to coarser space
+				break;
+			}
+		}
+	}
+
+	free(OPS);
 }
 
 void update_VOLUME_Ops(void)

@@ -85,6 +85,10 @@ extern void flux_LF       (const unsigned int Nn, const unsigned int Nel, double
 extern void flux_ROE      (const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
                            double *nL, const unsigned int d, const unsigned int Neq);
 
+// hp adaptation
+extern void adapt_hp (void);
+extern void   update_VOLUME_hp (void);
+
 // Sum Factorization
 extern void   sf_operate_d   (const unsigned int NOut, const unsigned int NCols, const unsigned int NIn,
                               const unsigned int BRowMaxIn, double *OP, double *Input, double *Output);
