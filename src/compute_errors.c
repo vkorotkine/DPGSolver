@@ -72,11 +72,12 @@ static void compute_errors_PeriodicVortex(void)
 	int          MPIrank = DB.MPIrank;
 	double       pInf           = DB.pInf,
 	             TInf           = DB.TInf,
+	             VInf           = DB.VInf,
 	             uInf           = DB.uInf,
 	             vInf           = DB.vInf,
 	             wInf           = DB.wInf,
 	             Rg             = DB.Rg,
-	             beta           = DB.beta,
+	             Cscale         = DB.Cscale,
 	             PeriodL        = DB.PeriodL,
 	             PeriodFraction = DB.PeriodFraction,
 	             Xc0            = DB.Xc,
@@ -87,7 +88,7 @@ static void compute_errors_PeriodicVortex(void)
 	unsigned int i, j, NvnS, NvnI, IndU, DOF;
 	double       DistTraveled;
 	double       Xc, rhoInf,
-	             *XYZ_vI, *X_vI, *Y_vI, *r2, T0,
+	             *XYZ_vI, *X_vI, *Y_vI, *r2, C,
 	             *rho, *p, *s, *rhoEx, *uEx, *vEx, *wEx, *pEx, *sEx, *U, *UEx, *What, *W,
 	             *detJV_vI, *w_vI, *ChiS_vI, *wdetJV_vI,
 	             Vol, *L2Error2, err;
@@ -101,6 +102,7 @@ static void compute_errors_PeriodicVortex(void)
 	L2Error2 = calloc(NVAR3D+1 , sizeof *L2Error2); // free
 
 	rhoInf = pInf/(Rg*TInf);
+	C      = Cscale*VInf;
 
 	DistTraveled = PeriodL*PeriodFraction;
 	Xc = Xc0 + DistTraveled;
@@ -160,12 +162,11 @@ printf("%e\n",Xc);
 			r2[i] = (pow(X_vI[i]-Xc,2.0)+pow(Y_vI[i]-Yc,2.0))/(Rc*Rc);
 
 		for (i = 0; i < NvnI; i++) {
-			uEx[i]   = uInf - uInf*beta*(Y_vI[i]-Yc)/Rc*exp(-0.5*r2[i]);
-			vEx[i]   = vInf + uInf*beta*(X_vI[i]-Xc)/Rc*exp(-0.5*r2[i]);
+			uEx[i]   = uInf - C*(Y_vI[i]-Yc)/(Rc*Rc)*exp(-0.5*r2[i]);
+			vEx[i]   = vInf + C*(X_vI[i]-Xc)/(Rc*Rc)*exp(-0.5*r2[i]);
 			wEx[i]   = wInf;
-			T0     = TInf - 0.00125*pow(uInf*beta,2.0)*exp(-r2[i])*0.4/1.4*Rg;
-			rhoEx[i] = rhoInf*pow(T0/TInf,1.0/GM1);
-			pEx[i]   = rho[i]*Rg*T0;
+			pEx[i]   = pInf - rhoInf*(C*C)/(2*Rc*Rc)*exp(-r2[i]);
+			rhoEx[i] = rhoInf;
 			sEx[i]   = pEx[i]/pow(rhoEx[i],GAMMA);
 		}
 

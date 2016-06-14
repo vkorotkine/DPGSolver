@@ -6,7 +6,7 @@
 
 BEGIN PARAMETERS
   Dimension  2
-  ML         4
+  ML         3
   MeshType   ToBeCurvedStructuredQUAD
 
   Form       Weak  // Options: Weak, Strong
