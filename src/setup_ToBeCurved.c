@@ -79,8 +79,10 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 
 		if (d == 2) {
 			for (i = 0; i < NvnG; i++) {
-				XYZ[       i] = X0[i];// + A*dxyz*sin(n*PI/L0*Y0[i]);
-				XYZ[1*NvnG+i] = Y0[i];// + A*dxyz*sin(n*PI/L0*X0[i]);
+				XYZ[       i] = 0.05*X0[i];
+				XYZ[1*NvnG+i] = 0.05*Y0[i];
+//				XYZ[       i] = X0[i];// + A*dxyz*sin(n*PI/L0*Y0[i]);
+//				XYZ[1*NvnG+i] = Y0[i];// + A*dxyz*sin(n*PI/L0*X0[i]);
 //				XYZ[       i] = X0[i] + A*dxyz*sin(n*PI/L0*Y0[i]);
 //				XYZ[1*NvnG+i] = Y0[i] + A*dxyz*sin(n*PI/L0*X0[i]);
 			}

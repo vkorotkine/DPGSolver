@@ -50,7 +50,7 @@ void solver_RK4_low_storage(void)
 
 // Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).
 //	dt = pow(0.5,DB.ML+DB.PGlobal+12.0);
-	dt = 4e-6;
+	dt = 5e-7;
 
 	tstep = 0; time = 0.0;
 	while (time < FinalTime) {

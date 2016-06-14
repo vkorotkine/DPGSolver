@@ -51,14 +51,14 @@ int main(void)
 	MLMin = 0; MLMax = 7; NML = MLMax-MLMin+1;
 	PMin  = 0; PMax  = 4; NP  = PMax-PMin+1;
 
-	unsigned int CasesRun[40] = { 0, 1, 1, 1, 0,
-	                              0, 1, 1, 1, 0,
-	                              0, 1, 1, 1, 0,
-	                              0, 1, 1, 1, 0,
-	                              0, 1, 1, 1, 0,
-	                              0, 1, 1, 1, 0,
-	                              0, 1, 1, 1, 0,
-	                              0, 0, 1, 0, 0};
+	unsigned int CasesRun[40] = { 0, 1, 1, 0, 0,
+	                              0, 1, 1, 0, 0,
+	                              0, 1, 1, 0, 0,
+	                              0, 1, 1, 0, 0,
+	                              0, 1, 1, 0, 0,
+	                              0, 1, 1, 0, 0,
+	                              0, 1, 1, 0, 0,
+	                              0, 0, 0, 0, 0};
 
 	L2Errors   = malloc(NVars * sizeof *L2Errors);   // free
 	ConvOrders = malloc(NVars * sizeof *ConvOrders); // free

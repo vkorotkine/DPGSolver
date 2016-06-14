@@ -117,6 +117,9 @@ void update_VOLUME_Ops(void)
 					M    = mm_Alloc_d(CBRM,CBT,CBNT,NvnS,NvnS,NvnI,1.0,ChiS_vI,wdetJVChiS_vI); // free
 					IS   = identity_d(NvnS); // free
 					MInv = inverse_d(NvnS,NvnS,M,IS); // keep
+//array_print_d(NvnS,NvnS,M,'R');
+//array_print_d(NvnI,NvnS,wdetJVChiS_vI,'R');
+//exit(1);
 
 					free(wdetJVChiS_vI);
 					free(M);

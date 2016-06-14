@@ -106,7 +106,6 @@ static void compute_errors_PeriodicVortex(void)
 	Xc = Xc0 + DistTraveled;
 	while (Xc > 0.5*PeriodL)
 		Xc -= PeriodL;
-printf("%e\n",Xc);
 
 	DOF = 0;
 	Vol = 0.0;
@@ -163,7 +162,7 @@ printf("%e\n",Xc);
 			uEx[i]   = uInf - uInf*beta*(Y_vI[i]-Yc)/Rc*exp(-0.5*r2[i]);
 			vEx[i]   = vInf + uInf*beta*(X_vI[i]-Xc)/Rc*exp(-0.5*r2[i]);
 			wEx[i]   = wInf;
-			T0     = TInf - 0.00125*pow(uInf*beta,2.0)*exp(-r2[i])*0.4/1.4*Rg;
+			T0       = TInf - 0.5*pow(uInf*beta,2.0)*exp(-r2[i])*GM1/(GAMMA*Rg);
 			rhoEx[i] = rhoInf*pow(T0/TInf,1.0/GM1);
 			pEx[i]   = rho[i]*Rg*T0;
 			sEx[i]   = pEx[i]/pow(rhoEx[i],GAMMA);

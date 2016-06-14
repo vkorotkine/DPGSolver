@@ -72,12 +72,12 @@ static void initialize_PeriodicVortex(void)
 
 	Xc =  0.0;
 	Yc =  0.0;
-	Rc =  0.1;
+	Rc =  0.005;
 	beta = 0.02;
-	PeriodL        = 2.0;
+	PeriodL        = 0.1;
 	PeriodFraction = 1.0;
 
-	MInf = 1.0;
+	MInf = 0.05;
 	pInf = 1e5;
 	TInf = 3e2;
 	Rg   = 287.15;
@@ -122,9 +122,8 @@ static void initialize_PeriodicVortex(void)
 		for (n = 0; n < NvnS; n++) {
 			u[n]   = uInf - uInf*beta*(Y_vS[n]-Yc)/Rc*exp(-0.5*r2[n]);
 			v[n]   = vInf + uInf*beta*(X_vS[n]-Xc)/Rc*exp(-0.5*r2[n]);
-//printf("% .3e % .3e % .3e\n",X_vS[n],uInf*beta*(X_vS[n]-Xc)/Rc*exp(-0.5*r2[n]),v[n]);
 			w[n]   = wInf;
-			T0     = TInf - 0.00125*pow(uInf*beta,2.0)*exp(-r2[n])*0.4/1.4*Rg;
+			T0     = TInf - 0.5*pow(uInf*beta,2.0)*exp(-r2[n])*GM1/(GAMMA*Rg);
 			rho[n] = rhoInf*pow(T0/TInf,1.0/GM1);
 			p[n]   = rho[n]*Rg*T0;
 if (VOLUME->indexg == 2) {

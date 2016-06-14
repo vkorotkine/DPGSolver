@@ -104,7 +104,7 @@ static void output_geom(const char *geom_type)
 		strcat(f_parallel,".pvtu");
 
 		if ((fID = fopen(f_parallel,"w")) == NULL)
-			printf("Error: File f_parallel did not open.\n"), exit(1);
+			printf("Error: File: %s, did not open.\n",f_parallel), exit(1);
 
 		fprintf_tn(fID,0,"<?xml version=\"1.0\"?>");
 		fprintf_tn(fID,0,"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">");
@@ -366,7 +366,7 @@ static void output_normals(const char *normals_type)
 		strcat(f_parallel,".pvtp");
 
 		if ((fID = fopen(f_parallel,"w")) == NULL)
-			printf("Error: File f_parallel did not open.\n"), exit(1);
+			printf("Error: File: %s, did not open.\n",f_parallel), exit(1);
 
 		fprintf_tn(fID,0,"<?xml version=\"1.0\"?>");
 		fprintf_tn(fID,0,"<VTKFile type=\"PPolyData\" version=\"0.1\" byte_order=\"LittleEndian\">");
@@ -563,7 +563,7 @@ static void output_solution(const char *sol_type)
 		strcat(f_parallel,".pvtu");
 
 		if ((fID = fopen(f_parallel,"w")) == NULL)
-			printf("Error: File f_parallel did not open.\n"), exit(1);
+			printf("Error: File: %s, did not open.\n",f_parallel), exit(1);
 
 		fprintf_tn(fID,0,"<?xml version=\"1.0\"?>");
 		fprintf_tn(fID,0,"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">");

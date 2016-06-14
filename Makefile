@@ -8,7 +8,6 @@
 # Additional Options:
 # 	make clean
 
-
 # C standard and compiler
 CSTD = -std=c99
 
@@ -140,6 +139,8 @@ OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 # 	-o <arg>: output to <arg>
 
 ### Default goal + Additional required rules ###
+
+SHELL=/bin/bash
 
 # Compile executable file (Default goal)
 $(EXECUTABLE) : $(OBJECTS)

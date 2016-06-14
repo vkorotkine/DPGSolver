@@ -33,7 +33,7 @@ case ${KERNEL} in
 *inux*)
 	OS_RELEASE=$(uname -r)
 	case ${OS_RELEASE} in
-	*4.4.0-21-generic*)
+	*4.4.0-22-generic*)
 		echo Linux
 		echo ${OS_RELEASE}
 
