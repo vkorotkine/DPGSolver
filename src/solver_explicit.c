@@ -23,14 +23,16 @@
  *
  *	References:
  *		Carpenter(1994)-Fourth-Order_2N-Storage_Runge-Kutta_Schemes
+ *		Gottlieb(2001)-Strong_Stability-Preserving_High-Order_Time_Discretization_Methods
  */
 
-void solver_RK4_low_storage(void)
+void solver_explicit(void)
 {
 	// Initialize DB Parameters
-	unsigned int OutputInterval = DB.OutputInterval,
-	             Neq            = DB.Neq,
-	             Adapt          = DB.Adapt;
+	unsigned int OutputInterval     = DB.OutputInterval,
+	             Neq                = DB.Neq,
+	             ExplicitSolverType = DB.ExplicitSolverType,
+	             Adapt              = DB.Adapt;
 
 	double       FinalTime = DB.FinalTime;
 
@@ -53,7 +55,7 @@ void solver_RK4_low_storage(void)
 		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free
 
 // Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).
-	dt = pow(0.5,DB.ML+DB.PGlobal)*0.5;
+	dt = pow(0.5,DB.ML+DB.PGlobal+4);
 //	dt = pow(0.5,10.0);
 
 	tstep = 0; time = 0.0;
@@ -65,14 +67,15 @@ void solver_RK4_low_storage(void)
 		if (time+dt > FinalTime)
 			dt = FinalTime-time;
 
-		for (rk = 0; rk < 5; rk++) {
-			// Build the RHS (== -Residual)
+		switch (ExplicitSolverType) {
+		default : // RK3_SSP
+			// RES is used to store the initial solution at the beginning of the time step.
+
+			// Step 1
 			explicit_VOLUME_info();
-//exit(1);
 			explicit_FACET_info();
 			maxRHS = finalize_RHS();
 
-			// Update What
 			for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 				NvnS = VOLUME->NvnS;
 
@@ -81,15 +84,73 @@ void solver_RK4_low_storage(void)
 				What = VOLUME->What;
 
 				for (iMax = Neq*NvnS; iMax--; ) {
-					*RES    *= rk4a[rk];
-					*RES    += dt*(*RHS++);
-					*What++ += rk4b[rk]*(*RES++);
+					*RES++   = *What;
+					*What++ += dt*(*RHS++);
 				}
 				free(VOLUME->RHS);
-//printf("%d %d\n",VOLUME->indexg,NvnS);
-//array_print_d(NvnS,Neq,VOLUME->What,'C');
 			}
-//			exit(1);
+
+			// Step 2
+			explicit_VOLUME_info();
+			explicit_FACET_info();
+			maxRHS = finalize_RHS();
+
+			for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+				NvnS = VOLUME->NvnS;
+
+				RES  = VOLUME->RES;
+				RHS  = VOLUME->RHS;
+				What = VOLUME->What;
+
+				for (iMax = Neq*NvnS; iMax--; ) {
+					*What = (3.0*(*RES++) + *What + dt*(*RHS++))/4.0;
+					What++;
+				}
+				free(VOLUME->RHS);
+			}
+
+			// Step 3
+			explicit_VOLUME_info();
+			explicit_FACET_info();
+			maxRHS = finalize_RHS();
+
+			for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+				NvnS = VOLUME->NvnS;
+
+				RES  = VOLUME->RES;
+				RHS  = VOLUME->RHS;
+				What = VOLUME->What;
+
+				for (iMax = Neq*NvnS; iMax--; ) {
+					*What = (*RES++ + 2.0*(*What) + 2.0*dt*(*RHS++))/3.0;
+					What++;
+				}
+				free(VOLUME->RHS);
+			}
+			break;
+		case RK4_LS:
+			for (rk = 0; rk < 5; rk++) {
+				// Build the RHS (== -Residual)
+				explicit_VOLUME_info();
+				explicit_FACET_info();
+				maxRHS = finalize_RHS();
+
+				// Update What
+				for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+					NvnS = VOLUME->NvnS;
+
+					RES  = VOLUME->RES;
+					RHS  = VOLUME->RHS;
+					What = VOLUME->What;
+
+					for (iMax = Neq*NvnS; iMax--; ) {
+						*RES    *= rk4a[rk];
+						*RES    += dt*(*RHS++);
+						*What++ += rk4b[rk]*(*RES++);
+					}
+					free(VOLUME->RHS);
+				}
+			}
 		}
 //exit(1);
 		time += dt;

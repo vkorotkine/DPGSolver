@@ -106,7 +106,7 @@ int main(int nargc, char **argv)
 		printf("  Nonlinear Iterative Solve\n\n");
 
 	if (strstr(DB.SolverType,"Explicit") != NULL) {
-		solver_RK4_low_storage();
+		solver_explicit();
 	} else if (strstr(DB.SolverType,"Implicit") != NULL) {
 		; //solver_implicit();
 	} else {

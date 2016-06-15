@@ -69,7 +69,7 @@ extern void     setup_normals               (struct S_FACET *FACET);
 // Solver
 extern void   initialize_test_case   (void);
 extern void   update_VOLUME_Ops      (void);
-extern void   solver_RK4_low_storage (void);
+extern void   solver_explicit        (void);
 extern void     explicit_VOLUME_info (void);
 extern void     explicit_FACET_info  (void);
 extern void       get_facet_ordering (const unsigned int d, const unsigned int IndOrd, const unsigned int FType,
@@ -84,6 +84,11 @@ extern void flux_LF       (const unsigned int Nn, const unsigned int Nel, double
                            double *nL, const unsigned int d, const unsigned int Neq);
 extern void flux_ROE      (const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
                            double *nL, const unsigned int d, const unsigned int Neq);
+
+// Boundary conditions
+extern void boundary_Riemann  (const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL, double *WOut,
+                               double *WB, double *nL);
+extern void boundary_SlipWall (const unsigned int Nn, const unsigned int Nel, double *WL, double *WB, double *nL);
 
 // hp adaptation
 extern void adapt_hp (void);

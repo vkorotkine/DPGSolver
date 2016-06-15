@@ -24,10 +24,17 @@
  *
  *	Notation:
  *		XYZ_S : High-order VOLUME (XYZ) coordinates at (S)tart (i.e. before curving)
- *		XYZ   : High-order VOLUME (XYZ) coordinates after curving (if applicable)
  *
  *	References:
 */
+
+struct S_OPERATORS {
+	unsigned int NvnG, NfnI;
+	double       **I_vG_fI;
+};
+
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+                     const unsigned int IndClass);
 
 void setup_geometry(void)
 {
@@ -43,13 +50,14 @@ void setup_geometry(void)
 
 	// Standard datatypes
 	unsigned int dim, P, vn,
-	             NvnG, NvnGs, NvnGc, NCols;
-	double       *XYZ_vC, *XYZ_S, *XYZ,
+	             NvnG, NvnGs, NvnGc, NCols, NfnI, VfIn, fIn, Eclass, IndFType;
+	double       *XYZ_vC, *XYZ_S, *XYZ_fI,
 	             *I_vGs_vGc;
 
-	struct S_ELEMENT *ELEMENT;
-	struct S_VOLUME  *VOLUME;
-	struct S_FACET   *FACET;
+	struct S_OPERATORS *OPS;
+	struct S_ELEMENT   *ELEMENT;
+	struct S_VOLUME    *VOLUME, *VIn;
+	struct S_FACET     *FACET;
 
 	// silence
 	NvnGs = 0; NvnGc = 0;
@@ -82,7 +90,6 @@ void setup_geometry(void)
 			VOLUME->NvnG = NvnG;
 
 			XYZ_S = malloc(NvnG*d * sizeof *XYZ_S); // keep
-			XYZ   = malloc(NvnG*d * sizeof *XYZ);   // keep
 			VOLUME->XYZ_S = XYZ_S;
 
 			for (dim = 0; dim < d; dim++) {
@@ -99,14 +106,10 @@ void setup_geometry(void)
 			VOLUME->NvnG = NvnGc;
 
 			XYZ_S = malloc(NvnGc*NCols * sizeof *XYZ_S); // keep
-			XYZ   = malloc(NvnGc*NCols * sizeof *XYZ);   // keep
 
 			mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnGc,NCols,NvnGs,1.0,I_vGs_vGc,XYZ_vC,XYZ_S);
 		}
 		VOLUME->XYZ_S = XYZ_S;
-
-//array_print_d(VOLUME->NvnG,d,VOLUME->XYZ_S,'C');
-//exit(1);
 	}
 
 	if (Testing)
@@ -122,6 +125,28 @@ void setup_geometry(void)
 		exit(1);
 	}
 
+	// Add XYZ Coordinates to FACETs
+	OPS = malloc(sizeof *OPS);
+	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
+		VIn  = FACET->VIn;
+		VfIn = FACET->VfIn;
+		fIn  = VfIn/NFREFMAX;
+
+		Eclass = get_Eclass(VIn->type);
+		IndFType = get_IndFType(Eclass,fIn);
+
+		init_ops(OPS,VIn,FACET,IndFType);
+
+		NfnI = OPS->NfnI;
+		NvnG = OPS->NvnG;
+
+		XYZ_fI = malloc(NfnI*d *sizeof *XYZ_fI); // keep
+		mm_CTN_d(NfnI,d,NvnG,OPS->I_vG_fI[VfIn],VIn->XYZ,XYZ_fI);
+
+		FACET->XYZ_fI = XYZ_fI;
+	}
+	free(OPS);
+
 	printf("    Set up geometric factors\n");
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
 		setup_geom_factors(VOLUME);
@@ -136,5 +161,33 @@ void setup_geometry(void)
 	if (Testing) {
 		output_to_paraview("ZTest_Geom_curved"); // Output curved coordinates to paraview
 		output_to_paraview("ZTest_Normals");     // Output normals to paraview
+	}
+}
+
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+                     const unsigned int IndClass)
+{
+	// Standard datatypes
+	unsigned int PV, PF, Vtype, Vcurved, FtypeInt;
+	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS;
+
+	PV       = VOLUME->P;
+	PF       = FACET->P;
+	Vtype    = VOLUME->type;
+	Vcurved  = VOLUME->curved;
+	FtypeInt = FACET->typeInt;
+
+	ELEMENT     = get_ELEMENT_type(Vtype);
+	ELEMENT_OPS = ELEMENT;
+
+	OPS->NvnG = VOLUME->NvnG;
+	if (FtypeInt == 's') {
+		OPS->NfnI = ELEMENT_OPS->NfnIs[PF][IndClass];
+		if (!Vcurved) OPS->I_vG_fI = ELEMENT_OPS->I_vGs_fIs[PV][PF];
+		else          OPS->I_vG_fI = ELEMENT_OPS->I_vGc_fIs[PV][PF];
+	} else {
+		OPS->NfnI = ELEMENT_OPS->NfnIc[PF][IndClass];
+		if (!Vcurved) OPS->I_vG_fI = ELEMENT_OPS->I_vGs_fIc[PV][PF];
+		else          OPS->I_vG_fI = ELEMENT_OPS->I_vGc_fIc[PV][PF];
 	}
 }

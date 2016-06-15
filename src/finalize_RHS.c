@@ -89,6 +89,7 @@ array_print_d(NvnSOut,Neq,VOut->RHS,'C');
 //}
 */
 
+
 		free(FACET->RHSIn);
 		free(FACET->RHSOut);
 	}
@@ -118,12 +119,15 @@ printf("%d\n",VOLUME->indexg);
 array_print_d(NvnSIn,NvnSIn,VOLUME->MInv,'R');
 array_print_d(NvnSIn,Neq,VOLUME->RHS,'C');
 */
+
 				mm_CTN_d(NvnSIn,Neq,NvnSIn,VOLUME->MInv,VOLUME->RHS,RHS_Final);
 				free(VOLUME->RHS);
 				VOLUME->RHS = RHS_Final;
+
 /*
+//printf("%d\n",VOLUME->indexg);
 array_print_d(NvnSIn,Neq,RHS_Final,'C');
-exit(1);
+//exit(1);
 */
 
 			}

@@ -18,6 +18,7 @@
  *		Requires that straight VOLUME nodes have already been stored.
  *
  *	Notation:
+ *		XYZ   : High-order VOLUME (XYZ) coordinates after curving.
  *
  *	References:
  *		Gordon(1973)-Construction_of_Curvilinear_Coordinate_Systems_and_Applications_to_Mesh_Generation

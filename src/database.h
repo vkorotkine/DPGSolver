@@ -32,7 +32,7 @@ struct S_DB {
 	             **NodeTypeG,
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
-	unsigned int NP, NEC, AC, ExactGeom, InviscidFluxType, PR, PP, PGs,
+	unsigned int NP, NEC, AC, ExactGeom, InviscidFluxType, ExplicitSolverType, PR, PP, PGs,
 	             *PGc, *PF,
 	             ***SF_BE, **PCs, **PCc, **PJs, **PJc, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
@@ -47,7 +47,9 @@ struct S_DB {
 	// Initialization
 	char         *SolverType;
 	unsigned int Nvar, Neq, OutputInterval, DOF0;
-	double       Xc, Yc, Rc, MInf, pInf, TInf, VInf, uInf, vInf, wInf, Rg, Cscale, PeriodL, PeriodFraction, FinalTime;
+	double       Xc, Yc, Rc, MInf, pInf, TInf, VInf, uInf, vInf, wInf, Rg, Cscale, PeriodL, PeriodFraction, FinalTime,
+	             rIn, MIn, rhoIn, VIn;
+
 
 	// hp adaptation
 	double DOFcap_frac, refine_frac, coarse_frac;
@@ -129,7 +131,7 @@ struct S_FACET {
 
 	// Geometry
 	char   curved, typeInt;
-	double *n_fI, *detJF_fI;
+	double *XYZ_fI, *n_fI, *detJF_fI;
 
 	// Solving
 	double *RHSIn, *RHSOut;

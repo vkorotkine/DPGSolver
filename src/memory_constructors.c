@@ -354,6 +354,7 @@ struct S_FACET *New_FACET(void)
 	FACET->curved  = 0;
 	FACET->typeInt = 0;
 
+	FACET->XYZ_fI   = NULL; // free
 	FACET->n_fI     = NULL; // free
 	FACET->detJF_fI = NULL; // free
 

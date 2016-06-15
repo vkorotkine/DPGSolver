@@ -107,7 +107,7 @@ static void compute_VOLUME_RHS_EFE(void)
 
 	if (strstr(Form,"Weak") != NULL) {
 		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-//printf("%d\n",VOLUME->indexg);
+//printf("VOLUME: %d\n",VOLUME->indexg);
 			// Obtain operators
 			init_ops(OPS[0],VOLUME,0);
 			if (VOLUME->type == WEDGE)

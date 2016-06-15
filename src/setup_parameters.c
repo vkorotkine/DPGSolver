@@ -86,6 +86,8 @@
  *		               [] : TP [0], SI [1], PYR [2]
  *		InviscidFluxType : Type of inviscid numerical flux used.
  *		                   Options: LF, ROE
+ *		ExplicitSolverType : Type of explicit timestepping scheme used.
+ *		                     Options: RK3_(S)trong(S)tability(Preserving), RK4_(L)ow(S)torage
  *
  *	References:
  *
@@ -159,6 +161,8 @@ void setup_parameters()
 		DB.PR = DB.PGlobal;
 	}
 
+	DB.PP = max(DB.PGlobal,u1);
+/*
 	if (DB.PGlobal == 0) {
 		DB.PP = DB.PGlobal+1;
 	} else {
@@ -167,6 +171,7 @@ void setup_parameters()
 		else
 			DB.PP = DB.PGlobal;
 	}
+*/
 
 	// Geometry
 	PGs = 1;
@@ -488,6 +493,9 @@ PIvc[P][2] = floor(1.0*IntOrdervc/2.0+1.0);
 	// Solver
 //	DB.InviscidFluxType = FLUX_LF;
 	DB.InviscidFluxType = FLUX_ROE;
+
+ 	DB.ExplicitSolverType = RK3_SSP;
+// 	DB.ExplicitSolverType = RK4_LS;
 
 	// hp adaptation
 	DB.DOFcap_frac = 10.0;

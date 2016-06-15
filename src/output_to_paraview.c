@@ -344,7 +344,7 @@ static void output_normals(const char *normals_type)
 	// Standard datatypes
 	char         MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
 	unsigned int i, iMax, dim, nInd, curved, PV, PF, NfnI, NvnG, IndFType, Eclass, VfIn;
-	double       *Input, *I_vG_vfI, *XYZ_fI, *n;
+	double       *Input, *I_vG_fI, *XYZ_fI, *n;
 	FILE         *fID;
 
 	struct S_ELEMENT *ELEMENT;
@@ -423,16 +423,16 @@ static void output_normals(const char *normals_type)
 
 		if (FACET->typeInt == 's') {
 			NfnI = ELEMENT->NfnIs[PF][IndFType];
-			if (!VIn->curved) I_vG_vfI = ELEMENT->I_vGs_fIs[PV][PF][VfIn];
-			else              I_vG_vfI = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
+			if (!VIn->curved) I_vG_fI = ELEMENT->I_vGs_fIs[PV][PF][VfIn];
+			else              I_vG_fI = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
 		} else {
 			NfnI = ELEMENT->NfnIc[PF][IndFType];
-			if (!VIn->curved) I_vG_vfI = ELEMENT->I_vGs_fIc[PV][PF][VfIn];
-			else              I_vG_vfI = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
+			if (!VIn->curved) I_vG_fI = ELEMENT->I_vGs_fIc[PV][PF][VfIn];
+			else              I_vG_fI = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
 		}
 		Input = VIn->XYZ;
 
-		XYZ_fI = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NfnI,d,NvnG,1.0,I_vG_vfI,Input); // free
+		XYZ_fI = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NfnI,d,NvnG,1.0,I_vG_fI,Input); // free
 /*
 unsigned int VfOut, fOut, j, IndFType, Eclass, *nOrdOutIn, IndOrdOutIn;
 double *XYZ_fIOut, *XYZ_fIOutIn, tmp_d;
@@ -483,7 +483,7 @@ free(XYZ_fIOutIn);
 
 /*
 printf("%d %d %d\n",FACET->indexg,VIn->indexg,VfIn);
-array_print_d(NfnI,NvnG,I_vG_vfI,'R');
+array_print_d(NfnI,NvnG,I_vG_fI,'R');
 array_print_d(NfnI,d,XYZ_fI,'C');
 */
 

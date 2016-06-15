@@ -201,8 +201,15 @@ static void compute_FACET_RHS_EFE(void)
 		}
 
 		// Compute WOut_fI (Taking BCs into account if applicable)
+		n_fI     = FACET->n_fI;
+
 		nOrdInOut = OPSIn->nOrdInOut;
 		nOrdOutIn = OPSIn->nOrdOutIn;
+
+		WOut_fIIn = malloc(NfnI*Nvar * sizeof *WOut_fIIn); // free
+// Need to initialize NvnSOut for RHSOut calloc (ToBeModified). Make sure that this is done correctly if sum
+// factorization is used.
+NvnSOut = OPSOut->NvnS;
 		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACET
 			if (0 && VOut->Eclass == C_TP) {
 				; // update this with sum factorization
@@ -216,7 +223,6 @@ static void compute_FACET_RHS_EFE(void)
 			}
 
 			// Reorder WOut_fI to correspond to WIn_fI
-			WOut_fIIn = malloc(NfnI*Nvar * sizeof *WOut_fIIn); // free
 			for (i = 0; i < Nvar; i++) {
 				iInd = i*NfnI;
 				for (j = 0; j < NfnI; j++) {
@@ -227,13 +233,24 @@ static void compute_FACET_RHS_EFE(void)
 						WOut_fIIn[iInd+j] = WOut_fI[iInd+j];
 				}
 			}
+			free(WOut_fI);
 		} else { // Boundary FACET
-			; // Add in support for boundary conditions
+			if (BC % BC_STEP_SC == BC_RIEMANN) {
+				boundary_Riemann(NfnI,1,FACET->XYZ_fI,WIn_fI,NULL,WOut_fIIn,n_fI);
+			} else if (BC % BC_STEP_SC == BC_SLIPWALL) {
+				boundary_SlipWall(NfnI,1,WIn_fI,WOut_fIIn,n_fI);
+			} else {
+				printf("Error: Unsupported BC in explicit_FACET_info.\n"), exit(1);
+			}
+/*
+printf("%d\n",FACET->indexg);
+array_print_d(NfnI,Nvar,WIn_fI,'C');
+array_print_d(NfnI,Nvar,WOut_fIIn,'C');
+*/
 		}
 
 		// Compute numerical flux
 		nFluxNum_fI = malloc(NfnI*Neq * sizeof *nFluxNum_fI); // free
-		n_fI     = FACET->n_fI;
 		detJF_fI = FACET->detJF_fI;
 
 		switch (InviscidFluxType) {
@@ -325,17 +342,21 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 		}
 
 /*
-//if (FACET->indexg == 4) {
-printf("%d %d %d %d %d\n",FACET->indexg,IndFType,VIn->indexg,VOut->indexg,VfIn);
+//if (FACET->indexg == 3) {
+printf("%d %d %d %d %d %d %d\n",FACET->indexg,IndFType,VIn->indexg,VOut->indexg,VfIn,BC,Boundary);
 array_print_d(NvnSIn,Neq,RHSIn,'C');
 array_print_d(NvnSOut,Neq,RHSOut,'C');
+//array_print_d(NfnI,d,n_fI,'R');
+//array_print_d(NfnI,d,FACET->XYZ_fI,'C');
+//array_print_d(NfnI,Neq,WIn_fI,'C');
+//array_print_d(NfnI,Neq,WOut_fIIn,'C');
+//array_print_d(NfnI,Neq,nFluxNum_fI,'R');
 //exit(1);
 //}
 */
 
 		free(RowTracker);
 		free(WIn_fI);
-		free(WOut_fI);
 		free(WOut_fIIn);
 		free(nFluxNum_fI);
 	}

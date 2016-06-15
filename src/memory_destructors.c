@@ -151,6 +151,7 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 
 void memory_destructor_F(struct S_FACET *FACET)
 {
+	free(FACET->XYZ_fI);
 	free(FACET->n_fI);
 	free(FACET->detJF_fI);
 

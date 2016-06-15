@@ -51,10 +51,6 @@ static void initialize_PeriodicVortex(void)
 {
 	// Initialize DB Parameters
 	unsigned int d = DB.d;
-
-	DB.Nvar = d+2;
-	DB.Neq  = d+2;
-
 	unsigned int Nvar = DB.Nvar;
 
 	// Standard datatypes
@@ -173,7 +169,106 @@ exit(1);
 		DB.FinalTime = PeriodFraction*PeriodL/VInf;
 
 	DB.SolverType     = SolverType;
-	DB.OutputInterval = 1e3;
+}
+
+static void initialize_SupersonicVortex(void)
+{
+	// Initialize DB Parameters
+	unsigned int d    = DB.d,
+	             Nvar = DB.Nvar;
+
+	// Standard datatypes
+	char         *SolverType;
+	unsigned int i, NvnS;
+	double       rIn, MIn, rhoIn, pIn, cIn, VIn, uIn, vIn, wIn, UIn[5], WIn[5], Vt,
+	             *What, *XYZ_vS, *X_vS, *Y_vS, *r, *t, *rho, *u, *v, *w, *p, *U, *W;
+
+
+	struct S_OPERATORS *OPS;
+	struct S_VOLUME *VOLUME;
+
+	SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
+	strcpy(SolverType,"Explicit");
+//	strcpy(SolverType,"Implicit");
+
+	rIn  = 1.0;
+//	rOut = 1.384;
+
+	MIn = 2.25;
+
+	rhoIn = 1.0;
+	pIn   = pow(rhoIn,GAMMA)/GAMMA;
+
+	cIn = sqrt(GAMMA*pIn/rhoIn);
+	VIn = cIn*MIn/rIn;
+	uIn = VIn;
+	vIn = 0.0;
+	wIn = 0.0;
+
+	UIn[0] = rhoIn; UIn[1] = uIn; UIn[2] = vIn; UIn[3] = wIn; UIn[4] = pIn;
+	convert_variables(UIn,WIn,3,3,1,1,'p','c');
+
+	OPS = malloc(sizeof *OPS); // free
+	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+		init_ops(OPS,VOLUME);
+
+		NvnS         = OPS->NvnS;
+		VOLUME->NvnS = NvnS;
+
+		What         = malloc(NvnS*Nvar * sizeof *What); // keep
+		VOLUME->What = What;
+		VOLUME->RES  = calloc(NvnS*Nvar , sizeof *(VOLUME->RES)); // keep
+
+		XYZ_vS = malloc(NvnS*d    * sizeof *XYZ_vS); // free
+
+		mm_CTN_d(NvnS,d,VOLUME->NvnG,OPS->I_vG_vS,VOLUME->XYZ,XYZ_vS);
+
+		X_vS = &XYZ_vS[0*NvnS];
+		Y_vS = &XYZ_vS[1*NvnS];
+
+		r = malloc(NvnS * sizeof *r); // free
+		t = malloc(NvnS * sizeof *t); // free
+		for (i = 0; i < NvnS; i++) {
+			r[i] = sqrt(X_vS[i]*X_vS[i]+Y_vS[i]*Y_vS[i]);
+			t[i] = atan2(Y_vS[i],X_vS[i]);
+		}
+
+        U   = malloc(NvnS*NVAR3D * sizeof *U); // free
+		W   = malloc(NvnS*Nvar   * sizeof *W); // free
+
+		rho = &U[NvnS*0];
+		u   = &U[NvnS*1];
+		v   = &U[NvnS*2];
+		w   = &U[NvnS*3];
+		p   = &U[NvnS*4];
+
+		for (i = 0; i < NvnS; i++) {
+			rho[i] = rhoIn*pow(1.0+0.5*GM1*MIn*MIn*(1.0-pow(rIn/r[i],2.0)),1.0/GM1);
+			p[i]   = pow(rho[i],GAMMA)/GAMMA;
+
+			Vt = -MIn*cIn/r[i];
+			u[i] = -sin(t[i])*Vt;
+			v[i] =  cos(t[i])*Vt;
+			w[i] =  0.0;
+		}
+		convert_variables(U,W,3,d,NvnS,1,'p','c');
+		mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,W,What);
+
+		free(XYZ_vS);
+		free(r);
+		free(t);
+		free(U);
+		free(W);
+	}
+	free(OPS);
+
+	DB.rIn   = rIn;
+	DB.MIn   = MIn;
+	DB.rhoIn = rhoIn;
+	DB.VIn   = VIn;
+
+	DB.SolverType = SolverType;
+	DB.FinalTime  = 1e10;
 }
 
 void initialize_test_case(void)
@@ -181,6 +276,11 @@ void initialize_test_case(void)
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
 	unsigned int Testing   = DB.Testing;
+
+	DB.Nvar = DB.d+2;
+	DB.Neq  = DB.d+2;
+
+	DB.OutputInterval = 1e3;
 
 	// Standard datatypes
 	unsigned int DOF0 = 0;
@@ -195,7 +295,7 @@ void initialize_test_case(void)
 	else if (strstr(TestCase,"PolynomialBump") != NULL)
 		; // initialize_PolynomialBump();
 	else if (strstr(TestCase,"SupersonicVortex") != NULL)
-		; // initialize_SupersonicVortex();
+		initialize_SupersonicVortex();
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
 		DOF0 += VOLUME->NvnS;

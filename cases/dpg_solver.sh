@@ -11,8 +11,8 @@
 LOGFILE="logfile"
 
 
-TESTCASE="PeriodicVortex"
-#TESTCASE="SupersonicVortex"
+#TESTCASE="PeriodicVortex"
+TESTCASE="SupersonicVortex"
 #TESTCASE="dSphericalBump"
 #TESTCASE="GaussianBump"
 
