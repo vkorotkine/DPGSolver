@@ -64,32 +64,100 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	}
 }
 
-static void compute_errors_PeriodicVortex(void)
+static void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, double *sEx)
+{
+	// Initialize DB Parameters
+	char *TestCase = DB.TestCase;
+
+	// Standard datatypes
+	unsigned int i;
+	double       *X, *Y, *rhoEx, *uEx, *vEx, *wEx, *pEx;
+
+	rhoEx = &UEx[Nn*0];
+	uEx   = &UEx[Nn*1];
+	vEx   = &UEx[Nn*2];
+	wEx   = &UEx[Nn*3];
+	pEx   = &UEx[Nn*4];
+
+	X = &XYZ[0*Nn];
+	Y = &XYZ[1*Nn];
+
+	if (strstr(TestCase,"PeriodicVortex") != NULL) {
+		// Initialize DB Parameters
+		double       pInf           = DB.pInf,
+					 TInf           = DB.TInf,
+					 VInf           = DB.VInf,
+					 uInf           = DB.uInf,
+					 vInf           = DB.vInf,
+					 wInf           = DB.wInf,
+					 Rg             = DB.Rg,
+					 Cscale         = DB.Cscale,
+					 PeriodL        = DB.PeriodL,
+					 PeriodFraction = DB.PeriodFraction,
+					 Xc0            = DB.Xc,
+					 Yc             = DB.Yc,
+					 Rc             = DB.Rc;
+
+		// Standard datatypes
+		double DistTraveled, Xc, rhoInf, r2, C;
+
+		rhoInf = pInf/(Rg*TInf);
+		C      = Cscale*VInf;
+
+		DistTraveled = PeriodL*PeriodFraction;
+		Xc = Xc0 + DistTraveled;
+		while (Xc > 0.5*PeriodL)
+			Xc -= PeriodL;
+
+		for (i = 0; i < Nn; i++) {
+			r2 = (pow(X[i]-Xc,2.0)+pow(Y[i]-Yc,2.0))/(Rc*Rc);
+
+			uEx[i]   = uInf - C*(Y[i]-Yc)/(Rc*Rc)*exp(-0.5*r2);
+			vEx[i]   = vInf + C*(X[i]-Xc)/(Rc*Rc)*exp(-0.5*r2);
+			wEx[i]   = wInf;
+			pEx[i]   = pInf - rhoInf*(C*C)/(2*Rc*Rc)*exp(-r2);
+			rhoEx[i] = rhoInf;
+			sEx[i]   = pEx[i]/pow(rhoEx[i],GAMMA);
+		}
+	} else if (strstr(TestCase,"SupersonicVortex") != NULL) {
+		// Initialize DB Parameters
+		double rIn   = DB.rIn,
+		       MIn   = DB.MIn,
+		       rhoIn = DB.rhoIn,
+		       VIn   = DB.VIn;
+
+		// Standard datatypes
+		double r, t, Vt;
+
+		for (i = 0; i < Nn; i++) {
+			r = sqrt(X[i]*X[i]+Y[i]*Y[i]);
+			t = atan2(Y[i],X[i]);
+
+			rhoEx[i] = rhoIn*pow(1.0+0.5*GM1*MIn*MIn*(1.0-pow(rIn/r,2.0)),1.0/GM1);
+			pEx[i]   = pow(rhoEx[i],GAMMA)/GAMMA;
+
+			Vt = -VIn/r;
+			uEx[i] = -sin(t)*Vt;
+			vEx[i] =  cos(t)*Vt;
+			wEx[i] =  0.0;
+			sEx[i]   = pEx[i]/pow(rhoEx[i],GAMMA);
+		}
+	} else {
+		printf("Error: Unsupported test case in compute_errors.\n"), exit(1);
+	}
+}
+
+void compute_errors(void)
 {
 	// Initialize DB Parameters
 	unsigned int d    = DB.d,
 	             Nvar = DB.Nvar;
 	int          MPIrank = DB.MPIrank;
-	double       pInf           = DB.pInf,
-	             TInf           = DB.TInf,
-	             VInf           = DB.VInf,
-	             uInf           = DB.uInf,
-	             vInf           = DB.vInf,
-	             wInf           = DB.wInf,
-	             Rg             = DB.Rg,
-	             Cscale         = DB.Cscale,
-	             PeriodL        = DB.PeriodL,
-	             PeriodFraction = DB.PeriodFraction,
-	             Xc0            = DB.Xc,
-	             Yc             = DB.Yc,
-	             Rc             = DB.Rc;
 
 	// Standard datatypes
 	unsigned int i, j, NvnS, NvnI, IndU, DOF;
-	double       DistTraveled;
-	double       Xc, rhoInf,
-	             *XYZ_vI, *X_vI, *Y_vI, *r2, C,
-	             *rho, *p, *s, *rhoEx, *uEx, *vEx, *wEx, *pEx, *sEx, *U, *UEx, *What, *W,
+	double       *XYZ_vI, 
+	             *rho, *p, *s, *sEx, *U, *UEx, *What, *W,
 	             *detJV_vI, *w_vI, *ChiS_vI, *wdetJV_vI,
 	             Vol, *L2Error2, err;
 
@@ -100,15 +168,6 @@ static void compute_errors_PeriodicVortex(void)
 	OPS = malloc(sizeof *OPS); // free
 
 	L2Error2 = calloc(NVAR3D+1 , sizeof *L2Error2); // free
-
-	rhoInf = pInf/(Rg*TInf);
-	C      = Cscale*VInf;
-
-	DistTraveled = PeriodL*PeriodFraction;
-	Xc = Xc0 + DistTraveled;
-	while (Xc > 0.5*PeriodL)
-		Xc -= PeriodL;
-printf("%e\n",Xc);
 
 	DOF = 0;
 	Vol = 0.0;
@@ -142,33 +201,13 @@ printf("%e\n",Xc);
 		for (i = 0; i < NvnI; i++)
 			s[i] = p[i]/pow(rho[i],GAMMA);
 
-		UEx = malloc(NvnI*NVAR3D * sizeof *UEx); // free
-		sEx = malloc(NvnI        * sizeof *sEx); // free
-
-		rhoEx = &UEx[NvnI*0];
-		uEx   = &UEx[NvnI*1];
-		vEx   = &UEx[NvnI*2];
-		wEx   = &UEx[NvnI*3];
-		pEx   = &UEx[NvnI*4];
-
 		XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
 		mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
 
-		X_vI = &XYZ_vI[0*NvnI];
-		Y_vI = &XYZ_vI[1*NvnI];
+		UEx = malloc(NvnI*NVAR3D * sizeof *UEx); // free
+		sEx = malloc(NvnI        * sizeof *sEx); // free
 
-		r2 = malloc(NvnI * sizeof *r2); // free
-		for (i = 0; i < NvnI; i++)
-			r2[i] = (pow(X_vI[i]-Xc,2.0)+pow(Y_vI[i]-Yc,2.0))/(Rc*Rc);
-
-		for (i = 0; i < NvnI; i++) {
-			uEx[i]   = uInf - C*(Y_vI[i]-Yc)/(Rc*Rc)*exp(-0.5*r2[i]);
-			vEx[i]   = vInf + C*(X_vI[i]-Xc)/(Rc*Rc)*exp(-0.5*r2[i]);
-			wEx[i]   = wInf;
-			pEx[i]   = pInf - rhoInf*(C*C)/(2*Rc*Rc)*exp(-r2[i]);
-			rhoEx[i] = rhoInf;
-			sEx[i]   = pEx[i]/pow(rhoEx[i],GAMMA);
-		}
+		compute_exact_solution(NvnI,XYZ_vI,UEx,sEx);
 
 		for (i = 0; i <= NVAR3D; i++) {
 			IndU = i*NvnI;
@@ -200,7 +239,6 @@ printf("%e\n",Xc);
 		free(UEx);
 		free(sEx);
 		free(XYZ_vI);
-		free(r2);
 	}
 	free(OPS);
 
@@ -211,23 +249,6 @@ printf("%e\n",Xc);
 	MPI_Barrier(MPI_COMM_WORLD);
 	if (!MPIrank)
 		collect_errors();
-}
-
-void compute_errors(void)
-{
-	// Initialize DB Parameters
-	char *TestCase = DB.TestCase;
-
-	if (strstr(TestCase,"dSphericalBump") != NULL)
-		; // compute_errors_dSphericalBump();
-	else if (strstr(TestCase,"GaussianBump") != NULL)
-		; // compute_errors_GaussianBump();
-	else if (strstr(TestCase,"PeriodicVortex") != NULL)
-		compute_errors_PeriodicVortex();
-	else if (strstr(TestCase,"PolynomialBump") != NULL)
-		; // compute_errors_PolynomialBump();
-	else if (strstr(TestCase,"SupersonicVortex") != NULL)
-		; // compute_errors_SupersonicVortex();
 }
 
 static void output_errors(const double *L2Error2, const unsigned int DOF, const double Vol)

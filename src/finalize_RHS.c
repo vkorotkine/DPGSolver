@@ -99,6 +99,11 @@ array_print_d(NvnSOut,Neq,VOut->RHS,'C');
 	maxRHS = 0.0;
 	if (strstr(SolverType,"Explicit") != NULL) {
 		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+			// Compute maxRHS for convergence monitoring
+			maxRHSV = array_norm_d(NvnSIn,VOLUME->RHS,"Inf");
+			if (maxRHSV > maxRHS)
+				maxRHS = maxRHSV;
+
 			// Add (remaining) MInv contribution to RHS
 			NvnSIn = VOLUME->NvnS;
 
@@ -132,10 +137,6 @@ array_print_d(NvnSIn,Neq,RHS_Final,'C');
 
 			}
 
-			// Compute maxRHS for convergence monitoring
-			maxRHSV = array_norm_d(NvnSIn,VOLUME->RHS,"Inf");
-			if (maxRHSV > maxRHS)
-				maxRHS = maxRHSV;
 		}
 	}
 //exit(1);

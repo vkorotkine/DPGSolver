@@ -42,15 +42,23 @@ int main(void)
 	TestCase = malloc(STRLEN_MAX * sizeof *TestCase); // free
 	MeshType = malloc(STRLEN_MAX * sizeof *MeshType); // free
 
-	strcpy(TestCase,"PeriodicVortex");
+//	strcpy(TestCase,"PeriodicVortex");
+	strcpy(TestCase,"SupersonicVortex");
 //	strcpy(MeshType,"ToBeCurvedStructuredTRI");
 	strcpy(MeshType,"ToBeCurvedStructuredQUAD");
 
 	d     = 2;
 	NVars = 6;
-	MLMin = 0; MLMax = 8; NML = MLMax-MLMin+1;
+	MLMin = 0; MLMax = 5; NML = MLMax-MLMin+1;
 	PMin  = 0; PMax  = 4; NP  = PMax-PMin+1;
 
+	unsigned int CasesRun[30] = { 0, 1, 1, 1, 1,
+	                              0, 1, 1, 1, 1,
+	                              0, 1, 1, 1, 1,
+	                              1, 1, 1, 1, 1,
+	                              1, 1, 1, 1, 1,
+	                              1, 1, 1, 1, 0};
+/*
 	unsigned int CasesRun[45] = { 1, 1, 1, 1, 1,
 	                              1, 1, 1, 1, 1,
 	                              1, 1, 1, 1, 1,
@@ -60,6 +68,7 @@ int main(void)
 	                              1, 1, 1, 1, 1,
 	                              1, 1, 1, 1, 1,
 	                              1, 1, 0, 0, 0};
+*/
 
 	L2Errors   = malloc(NVars * sizeof *L2Errors);   // free
 	ConvOrders = malloc(NVars * sizeof *ConvOrders); // free
@@ -141,7 +150,8 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 
 	FILE *fID;
 
-	if (strstr(TestCase,"PeriodicVortex") != NULL) {
+	if (strstr(TestCase,"PeriodicVortex") != NULL ||
+		strstr(TestCase,"SupersonicVortex") != NULL) {
 		if      (d == 2) Indp = 3;
 		else if (d == 3) Indp = 4;
 
@@ -225,7 +235,6 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 			}
 		}
 	}
-
 
 	fprintf(fID,"\t\\hline\n");
 	fprintf(fID,"\\end{tabular}\n");

@@ -152,7 +152,6 @@ void solver_explicit(void)
 				}
 			}
 		}
-//exit(1);
 		time += dt;
 
 		// Output to paraview
@@ -167,11 +166,11 @@ void solver_explicit(void)
 		if (!tstep)
 			maxRHS0 = maxRHS;
 
-		printf("Complete: % 7.2f%%, tstep: %8d, maxRHS: % .3e\n",100*time/FinalTime,tstep,maxRHS);
+		printf("Complete: % 7.2f%%, tstep: %8d, maxRHS (no MInv): % .3e\n",100*time/FinalTime,tstep,maxRHS);
 
 		// Additional exit conditions
-		if (maxRHS0/maxRHS > 1e6 && tstep) {
-			printf("Exiting: maxRHS dropped by 6 orders.\n");
+		if ((maxRHS0/maxRHS > 1e10 && tstep) || maxRHS < 8e-14) {
+			printf("Exiting: maxRHS dropped by 10 orders or is below 8e-14.\n");
 			break;
 		}
 
