@@ -64,11 +64,14 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 			ToBeCurved_TP(NvnG,XYZ_S,XYZ);
 //array_print_d(NvnG,d,XYZ,'C');
 	} else if (strstr(TestCase,"PeriodicVortex") != NULL) {
-		double n = 2.0, A = 0.1, L0 = 2.0, dxyz = 1.0;
-		double *X0, *Y0, *Z0;
+		double n = 2.0, A = 0.1, L0 = 2.0, dxyz = 1.0, scale,
+		       *X0, *Y0, *Z0;
 
 		// silence
 		Z0 = NULL;
+
+		scale = 2.0;
+		DB.PeriodL = scale*2.0;
 
 		// d > 1 for this case
 		for (dim = 0; dim < d; dim++) {
@@ -80,19 +83,17 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 
 		if (d == 2) {
 			for (i = 0; i < NvnG; i++) {
-//				XYZ[       i] = X0[i];// + A*dxyz*sin(n*PI/L0*Y0[i]);
-//				XYZ[1*NvnG+i] = Y0[i];// + A*dxyz*sin(n*PI/L0*X0[i]);
-				XYZ[       i] = X0[i] + A*dxyz*sin(n*PI/L0*Y0[i]);
-				XYZ[1*NvnG+i] = Y0[i] + A*dxyz*sin(n*PI/L0*X0[i]);
+				XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i]));
+				XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i]));
 			}
 		} else if (d == 3) {
 			for (i = 0; i < NvnG; i++) {
-//				XYZ[       i] = X0[i];// + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*Z0[i]);
-//				XYZ[1*NvnG+i] = Y0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Z0[i]);
-//				XYZ[2*NvnG+i] = Z0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]);
-				XYZ[       i] = X0[i] + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*(Z0[i]+0.5));
-				XYZ[1*NvnG+i] = Y0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*(Z0[i]+0.5));
-				XYZ[2*NvnG+i] = Z0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]);
+//				XYZ[       i] = scale*X0[i];// + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*Z0[i]);
+//				XYZ[1*NvnG+i] = scale*Y0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Z0[i]);
+//				XYZ[2*NvnG+i] = scale*Z0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]);
+				XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
+				XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
+				XYZ[2*NvnG+i] = scale*(Z0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]));
 			}
 		} else {
 			printf("Error: PeriodicVortex TestCase not supported for dimension d = %d.\n",d), exit(1);

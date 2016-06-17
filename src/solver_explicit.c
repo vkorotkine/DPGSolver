@@ -55,7 +55,8 @@ void solver_explicit(void)
 		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free
 
 // Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).
-	dt = pow(0.5,DB.ML+DB.PGlobal+4);
+	dt = pow(0.5,DB.ML+DB.PGlobal+2);
+//	dt = pow(0.5,DB.ML+DB.PGlobal+4);
 //	dt = pow(0.5,10.0);
 
 	tstep = 0; time = 0.0;
@@ -169,7 +170,7 @@ void solver_explicit(void)
 		printf("Complete: % 7.2f%%, tstep: %8d, maxRHS (no MInv): % .3e\n",100*time/FinalTime,tstep,maxRHS);
 
 		// Additional exit conditions
-		if ((maxRHS0/maxRHS > 1e10 && tstep) || maxRHS < 8e-14) {
+		if ((maxRHS0/maxRHS > 1e10 || maxRHS < 8e-14) && tstep > 2) {
 			printf("Exiting: maxRHS dropped by 10 orders or is below 8e-14.\n");
 			break;
 		}

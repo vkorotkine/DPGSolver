@@ -534,7 +534,8 @@ array_print_d(NfnI,d,XYZ_fI,'C');
 static void output_solution(const char *sol_type)
 {
 	// Initialize DB Parameters
-	char         *TestCase = DB.TestCase;
+	char         *TestCase = DB.TestCase,
+	             *MeshType = DB.MeshType;
 	unsigned int d         = DB.d,
 	             PP        = DB.PP,
 	             Nvar      = DB.Nvar;
@@ -553,8 +554,8 @@ static void output_solution(const char *sol_type)
 	struct S_VOLUME *VOLUME;
 
 	sprintf(MPIrank_c,"%d",MPIrank);
-	strcpy(f_name,TestCase);
-	strcat(f_name,"/");
+	strcpy(f_name,TestCase); strcat(f_name,"/");
+	strcat(f_name,MeshType); strcat(f_name,"/");
 	strcat(f_name,sol_type);
 
 	if (!DB.MPIrank) {
@@ -563,7 +564,7 @@ static void output_solution(const char *sol_type)
 		strcat(f_parallel,".pvtu");
 
 		if ((fID = fopen(f_parallel,"w")) == NULL)
-			printf("Error: File f_parallel did not open.\n"), exit(1);
+			printf("Error: File: %s, did not open.\n",f_parallel), exit(1);
 
 		fprintf_tn(fID,0,"<?xml version=\"1.0\"?>");
 		fprintf_tn(fID,0,"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">");

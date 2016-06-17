@@ -23,8 +23,8 @@
  */
 
 struct S_OPERATORS {
-	unsigned int NvnI, NvnS;
-	double       *ChiS_vI, **D_Weak;
+	unsigned int NvnI, NvnS, NvnS_SF, NvnI_SF;
+	double       *ChiS_vI, **D_Weak, *I_Weak;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass);
@@ -53,8 +53,11 @@ void explicit_VOLUME_info(void)
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass)
 {
+	// Initialize DB Parameters
+	unsigned int ***SF_BE = DB.SF_BE;
+
 	// Standard datatypes
-	unsigned int P, type, curved;
+	unsigned int P, type, curved, Eclass;
 	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS;
 
 	// silence
@@ -63,24 +66,33 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	P      = VOLUME->P;
 	type   = VOLUME->type;
 	curved = VOLUME->curved;
+	Eclass = VOLUME->Eclass;
 
 	ELEMENT = get_ELEMENT_type(type);
-	if (1 || type == TRI || type == TET || type == PYR)
-		ELEMENT_OPS = ELEMENT;
-	else if (type == LINE || type == QUAD || type == HEX || type == WEDGE)
+	if ((Eclass == C_TP && SF_BE[P][0][0]) || (Eclass == C_WEDGE && SF_BE[P][1][0]))
 		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
+//	else if (Eclass == C_TP || Eclass == C_SI || Eclass == C_PYR || Eclass == C_WEDGE)
+	else
+		ELEMENT_OPS = ELEMENT;
 
-	OPS->NvnS = ELEMENT_OPS->NvnS[P];
+printf("%d\n",ELEMENT->type);
+printf("%d\n",ELEMENT_OPS->type);
+	OPS->NvnS    = ELEMENT->NvnS[P];
+	OPS->NvnS_SF = ELEMENT_OPS->NvnS[P];
 	if (!curved) {
-		OPS->NvnI = ELEMENT_OPS->NvnIs[P];
+		OPS->NvnI    = ELEMENT->NvnIs[P];
+		OPS->NvnI_SF = ELEMENT_OPS->NvnIs[P];
 
 		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIs[P][P][0];
 		OPS->D_Weak  = ELEMENT_OPS->Ds_Weak_VV[P][P][0];
+		OPS->I_Weak  = ELEMENT_OPS->Is_Weak_VV[P][P][0];
 	} else {
-		OPS->NvnI = ELEMENT_OPS->NvnIc[P];
+		OPS->NvnI    = ELEMENT->NvnIc[P];
+		OPS->NvnI_SF = ELEMENT_OPS->NvnIc[P];
 
 		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIc[P][P][0];
 		OPS->D_Weak  = ELEMENT_OPS->Dc_Weak_VV[P][P][0];
+		OPS->I_Weak  = ELEMENT_OPS->Ic_Weak_VV[P][P][0];
 	}
 }
 
@@ -91,13 +103,14 @@ static void compute_VOLUME_RHS_EFE(void)
 	unsigned int d          = DB.d,
 	             Collocated = DB.Collocated,
 				 Nvar       = DB.Nvar,
-				 Neq        = DB.Neq;
+				 Neq        = DB.Neq,
+	             ***SF_BE   = DB.SF_BE;
 
 	// Standard datatypes
-	unsigned int i, eq, dim1, dim2,
-	             IndFr, IndF, IndC, IndRHS,
-	             NvnI, NvnS;
-	double       *W_vI, *F_vI, *Fr_vI, *C_vI, *RHS, *DFr, **D;
+	unsigned int i, eq, dim1, dim2, P,
+	             IndFr, IndF, IndC, IndRHS, Eclass,
+	             NvnI, NvnS, NvnI_SF[2], NvnS_SF[2], NIn[3], NOut[3], Diag[3];
+	double       *W_vI, *F_vI, *Fr_vI, *C_vI, *RHS, *DFr, **D, *I, *OP[3];
 
 	struct S_OPERATORS *OPS[2];
 	struct S_VOLUME    *VOLUME;
@@ -107,11 +120,14 @@ static void compute_VOLUME_RHS_EFE(void)
 
 	if (strstr(Form,"Weak") != NULL) {
 		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+			P = VOLUME->P;
 //printf("VOLUME: %d\n",VOLUME->indexg);
 			// Obtain operators
 			init_ops(OPS[0],VOLUME,0);
 			if (VOLUME->type == WEDGE)
 				init_ops(OPS[1],VOLUME,1);
+
+			Eclass = VOLUME->Eclass;
 
 			// Obtain W_vI
 			NvnI = OPS[0]->NvnI;
@@ -119,7 +135,27 @@ static void compute_VOLUME_RHS_EFE(void)
 				W_vI = VOLUME->What;
 			} else {
 				W_vI = malloc(NvnI*Nvar * sizeof *W_vI); // free
-				mm_CTN_d(NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->What,W_vI);
+				
+				if (Eclass == C_TP && SF_BE[P][0][0]) {
+					for (i = 0; i < 1; i++) {
+						NvnS_SF[i] = OPS[i]->NvnS_SF;
+						NvnI_SF[i] = OPS[i]->NvnI_SF;
+					}
+					get_sf_parameters(NvnS_SF[0],NvnI_SF[0],OPS[0]->ChiS_vI,0,0,NULL,NIn,NOut,OP,d,3,Eclass);
+
+					if (Collocated) {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 1;
+					} else {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 0;
+					}
+					sf_apply_d(VOLUME->What,W_vI,NIn,NOut,Nvar,OP,Diag,d);
+				} else if (Eclass == C_WEDGE && SF_BE[P][1][0]) {
+
+				} else {
+					mm_CTN_d(NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->What,W_vI);
+				}
 			}
 //array_print_d(NvnI,Neq,W_vI,'C');
 
@@ -155,33 +191,70 @@ for (eq = 0; eq < Neq; eq++) {
 
 			RHS = calloc(NvnS*Neq , sizeof *RHS); // keep (requires external free)
 			VOLUME->RHS = RHS;
-			if (0 && VOLUME->Eclass == C_TP) {
+			if (Eclass == C_TP && SF_BE[P][0][0]) {
+				DFr = malloc(NvnS * sizeof *DFr); // free
+
+				for (i = 0; i < 1; i++) {
+					NvnS_SF[i] = OPS[i]->NvnS_SF;
+					NvnI_SF[i] = OPS[i]->NvnI_SF;
+				}
+
+				I = OPS[0]->I_Weak;
+				D = OPS[0]->D_Weak;
+
+				for (dim1 = 0; dim1 < d; dim1++) {
+					get_sf_parameters(NvnI_SF[0],NvnS_SF[0],I,NvnI_SF[0],NvnS_SF[0],D[0],NIn,NOut,OP,d,dim1,Eclass);
+
+					if (Collocated) {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 1;
+						Diag[dim1] = 0;
+					} else {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 0;
+					}
+
+					for (eq = 0; eq < Neq; eq++) {
+						sf_apply_d(&Fr_vI[(eq*d+dim1)*NvnI],DFr,NIn,NOut,1,OP,Diag,d);
+
+if (eq == 0 && dim1 == 0) {
+	array_print_d(NvnI,1,&Fr_vI[(eq*d+dim1)*NvnI],'C');
+	array_print_d(NvnS,1,DFr,'C');
+}
+
+						IndRHS = eq*NvnS;
+						for (i = 0; i < NvnS; i++)
+							RHS[IndRHS+i] += DFr[i];
+					}
+				}
+				free(DFr);
+			} else if (Eclass == C_WEDGE && SF_BE[P][1][0]) {
 				; // update this with sum factorization
-			} else if (1 || VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR) {
+			} else {
 				DFr = malloc(NvnS * sizeof *DFr); // free
 				D = OPS[0]->D_Weak;
 
 				for (eq = 0; eq < Neq; eq++) {
 				for (dim1 = 0; dim1 < d; dim1++) {
-//				for (dim1 = 0; dim1 < 1; dim1++) {
 					mm_CTN_d(NvnS,1,NvnI,D[dim1],&Fr_vI[(eq*d+dim1)*NvnI],DFr);
-if (eq == 0) {
-//	array_print_d(NvnS,1,DFr,'R');
+
+if (eq == 0 && dim1 == 0) {
+	array_print_d(NvnI,1,&Fr_vI[(eq*d+dim1)*NvnI],'C');
+	array_print_d(NvnS,1,DFr,'C');
 }
+
 					IndRHS = eq*NvnS;
 					for (i = 0; i < NvnS; i++)
 						RHS[IndRHS+i] += DFr[i];
 				}}
 				free(DFr);
 
-			} else if (VOLUME->Eclass == C_WEDGE) {
-				; // update this with sum factorization
 			}
 			free(Fr_vI);
 
-//printf("%d %d\n",NvnS,NvnI);
-//array_print_d(NvnS,Nvar,RHS,'C');
-//exit(1);
+printf("%d %d %d\n",NvnS,NvnI,SF_BE[P][0][0]);
+array_print_d(NvnS,Nvar,RHS,'C');
+exit(1);
 		}
 	} else if (strstr(Form,"Strong") != NULL) {
 		printf("Exiting: Implement the strong form in compute_VOLUME_RHS_EFE.\n"), exit(1);

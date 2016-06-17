@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include "functions.h"
+#include "parameters.h"
 
 /*
  *	Purpose:
@@ -17,6 +18,59 @@
  *	References:
  *		ToBeModified.
  */
+
+void get_sf_parameters(const unsigned int NIn0, const unsigned int NOut0, double *OP0,
+                       const unsigned int NIn1, const unsigned int NOut1, double *OP1,
+                       unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+                       const unsigned int d, const unsigned int dim1, const unsigned int Eclass)
+{
+	/*
+	 *	Purpose:
+	 *		Set up (s)um (f)actorization parameters.
+	 *
+	 *	Comments:
+	 *		Clearly the input parameters are not very elegant, however, this results in the least overhead when calling
+	 *		this function (as compared to using a structure for example).
+	 */
+
+	unsigned int dim;
+
+	if (Eclass == C_TP) {
+		for (dim = 0; dim < 3; dim++) {
+			if (dim == dim1) {
+				NIn_SF[dim]  = NIn1;
+				NOut_SF[dim] = NOut1;
+				OP_SF[dim]   = OP1;
+			} else if (dim < d) {
+				NIn_SF[dim]  = NIn0;
+				NOut_SF[dim] = NOut0;
+				OP_SF[dim]   = OP0;
+			} else {
+				NIn_SF[dim]  = 1;
+				NOut_SF[dim] = 1;
+				OP_SF[dim]   = NULL;
+			}
+		}
+	} else if (Eclass == C_WEDGE) {
+		for (dim = 0; dim < 3; dim++) {
+			if (dim == 0) {
+				NIn_SF[dim]  = NIn0;
+				NOut_SF[dim] = NOut0;
+				OP_SF[dim]   = OP0;
+			} else if (dim == 2) {
+				NIn_SF[dim]  = NIn1;
+				NOut_SF[dim] = NOut1;
+				OP_SF[dim]   = OP1;
+			} else {
+				NIn_SF[dim]  = 1;
+				NOut_SF[dim] = 1;
+				OP_SF[dim]   = NULL;
+			}
+		}
+	} else {
+		printf("Error: Unsupported Eclass in get_sf_parameters.\n"), exit(1);
+	}
+}
 
 void sf_swap_d(double *Input, const unsigned int NRows, const unsigned int NCols,
                const unsigned int iBound, const unsigned int jBound, const unsigned int kBound,

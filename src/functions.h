@@ -67,6 +67,8 @@ extern void     setup_geom_factors          (struct S_VOLUME *VOLUME);
 extern void     setup_normals               (struct S_FACET *FACET);
 
 // Solver
+extern void   compute_exact_solution (const unsigned int Nn, double *XYZ, double *UEx, double *sEx,
+                                      const unsigned int solved);
 extern void   initialize_test_case   (void);
 extern void   update_VOLUME_Ops      (void);
 extern void   solver_explicit        (void);
@@ -95,6 +97,10 @@ extern void adapt_hp (void);
 extern void   update_VOLUME_hp (void);
 
 // Sum Factorization
+extern void   get_sf_parameters(const unsigned int NIn0, const unsigned int NOut0, double *OP0,
+                                const unsigned int NIn1, const unsigned int NOut1, double *OP1,
+                                unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+                                const unsigned int d, const unsigned int dim1, const unsigned int Eclass);
 extern void   sf_operate_d   (const unsigned int NOut, const unsigned int NCols, const unsigned int NIn,
                               const unsigned int BRowMaxIn, double *OP, double *Input, double *Output);
 extern void   sf_swap_d      (double *Input, const unsigned int NRows, const unsigned int NCols,

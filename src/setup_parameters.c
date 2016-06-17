@@ -200,7 +200,7 @@ void setup_parameters()
 			SF_BE[P][i] = calloc(2 , sizeof ***SF_BE);
 
 		// TP
-		if ((d == 2 && P > 10) || (d == 3 && P > 6)) SF_BE[P][0][0] = 1; // ToBeModified
+		if ((d == 2 && P > 0) || (d == 3 && P > 6)) SF_BE[P][0][0] = 1; // ToBeModified
 		if ((d == 2 && P > 10) || (d == 3 && P > 6)) SF_BE[P][0][1] = 1; // ToBeModified
 
 		// WEDGE
@@ -362,7 +362,6 @@ PCc[P][2] = PGc[P]-1;          // ToBeModified
 			PIfc[P][0] = floor(1.0*IntOrderfc/2.0);
 			PIvs[P][0] = floor(1.0*IntOrdervs/2.0);
 			PIvc[P][0] = floor(1.0*IntOrdervc/2.0);
-printf("%d %d\n",PIfc[P][0],PIvc[P][0]);
 
 			// SI
 			if (d == 2) {
