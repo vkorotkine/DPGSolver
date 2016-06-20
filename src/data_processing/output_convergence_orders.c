@@ -46,20 +46,21 @@ int main(void)
 //	strcpy(TestCase,"SupersonicVortex");
 //	strcpy(MeshType,"ToBeCurvedStructuredTRI");
 //	strcpy(MeshType,"ToBeCurvedStructuredQUAD");
-	strcpy(MeshType,"ToBeCurvedStructuredTET");
+//	strcpy(MeshType,"ToBeCurvedStructuredTET");
+	strcpy(MeshType,"ToBeCurvedStructuredHEX");
 
 	d     = 3;
 	NVars = 6;
-	MLMin = 0; MLMax = 5; NML = MLMax-MLMin+1;
+	MLMin = 0; MLMax = 6; NML = MLMax-MLMin+1;
 	PMin  = 0; PMax  = 4; NP  = PMax-PMin+1;
 
-	unsigned int CasesRun[45] = { 1, 1, 1, 1, 1,
-	                              1, 1, 1, 1, 1,
-	                              1, 1, 1, 1, 1,
-	                              1, 1, 1, 1, 1,
-	                              1, 1, 1, 1, 1,
-	                              0, 0, 1, 0, 0,
-	                              1, 1, 1, 1, 1,
+	unsigned int CasesRun[45] = { 0, 1, 1, 1, 1,
+	                              0, 1, 1, 1, 1,
+	                              0, 1, 1, 1, 1,
+	                              0, 1, 1, 1, 1,
+	                              0, 1, 1, 1, 1,
+	                              0, 1, 1, 1, 0,
+	                              0, 1, 0, 0, 0,
 	                              1, 1, 1, 1, 1,
 	                              1, 1, 1, 1, 1};
 

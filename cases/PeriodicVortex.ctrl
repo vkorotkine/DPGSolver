@@ -5,9 +5,9 @@
 /*------------------------------------------------------------*/
 
 BEGIN PARAMETERS
-  Dimension  2
-  ML         5
-  MeshType   ToBeCurvedStructuredQUAD
+  Dimension  3
+  ML         6
+  MeshType   ToBeCurvedStructuredHEX
 
   Form       Weak  // Options: Weak, Strong
   NodeType   GLL-AO // Options: GL/GLL-AO/WS/SH
@@ -18,12 +18,12 @@ BEGIN PARAMETERS
   Collocated 1     // Options: 0, 1
   Adapt      0     // Options: 0 (Likely add h, p, hp options later)
 
-  PGlobal    4
-  PMax       8
+  PGlobal    3
+  PMax       4
 
   Restart    -1    // Options: -1, 0, Iteration #
 
-  Testing    1     // Options: 0, 1
+  Testing    0     // Options: 0, 1
 END PARAMETERS
 
 BEGIN MESH
