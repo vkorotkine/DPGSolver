@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include <mpi.h>
 #include <petscksp.h>
 
@@ -39,6 +40,13 @@ int main(int nargc, char **argv)
 	char *fNameOut, *string;
 	int  MPIrank, MPIsize;
 
+	struct S_TIME {
+		clock_t ts, te;
+		double  tt;
+	} total, preproc, solving, postproc;
+
+	total.ts = clock();
+
 	fNameOut = malloc(STRLEN_MAX * sizeof *fNameOut); // free
 	string   = malloc(STRLEN_MIN * sizeof *string);   // free
 
@@ -54,6 +62,7 @@ int main(int nargc, char **argv)
 	DB.MPIrank = MPIrank;
 
 	// Initialization
+	preproc.ts = clock();
 	initialization(nargc,argv);
 
 	// Preprocessing
@@ -80,8 +89,10 @@ int main(int nargc, char **argv)
 		printf("  Set up Geometry\n");
 	setup_geometry();
 
+	preproc.te = clock();
 
 	// Solving
+	solving.ts = clock();
 	if (!DB.MPIrank)
 		printf("\n\nSolving:\n\n");
 
@@ -112,8 +123,10 @@ int main(int nargc, char **argv)
 	} else {
 		printf("Error: Unsupported SolverType in dpg_solver.\n"), exit(1);
 	}
+	solving.te = clock();
 
 	// Postprocessing
+	postproc.ts = clock();
 	if (!DB.MPIrank)
 		printf("\n\nPostprocessing:\n\n");
 
@@ -131,6 +144,8 @@ int main(int nargc, char **argv)
 		printf("  Computing errors\n");
 	compute_errors();
 
+	postproc.te = clock();
+
 	free(fNameOut);
 	free(string);
 
@@ -138,6 +153,14 @@ int main(int nargc, char **argv)
 
 	// End MPI and PETSC
 	PetscFinalize();
+
+	total.te = clock();
+
+	printf("\n\n\nTotal time       : % .2f s\n\n",(total.te-total.ts)/(double) CLOCKS_PER_SEC);
+	printf("  Preprocessing  : % .2f s\n",(preproc.te-preproc.ts)/(double) CLOCKS_PER_SEC);
+	printf("  Solving        : % .2f s\n",(solving.te-solving.ts)/(double) CLOCKS_PER_SEC);
+	printf("  Postprocessing : % .2f s\n",(postproc.te-postproc.ts)/(double) CLOCKS_PER_SEC);
+	printf("\n\n\n");
 
 	return 0;
 }

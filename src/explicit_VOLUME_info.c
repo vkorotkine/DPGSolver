@@ -75,8 +75,6 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	else
 		ELEMENT_OPS = ELEMENT;
 
-printf("%d\n",ELEMENT->type);
-printf("%d\n",ELEMENT_OPS->type);
 	OPS->NvnS    = ELEMENT->NvnS[P];
 	OPS->NvnS_SF = ELEMENT_OPS->NvnS[P];
 	if (!curved) {
@@ -217,10 +215,9 @@ for (eq = 0; eq < Neq; eq++) {
 					for (eq = 0; eq < Neq; eq++) {
 						sf_apply_d(&Fr_vI[(eq*d+dim1)*NvnI],DFr,NIn,NOut,1,OP,Diag,d);
 
-if (eq == 0 && dim1 == 0) {
-	array_print_d(NvnI,1,&Fr_vI[(eq*d+dim1)*NvnI],'C');
-	array_print_d(NvnS,1,DFr,'C');
-}
+//if (eq == 0 && dim1 == 0) {
+//	array_print_d(NvnS,1,DFr,'C');
+//}
 
 						IndRHS = eq*NvnS;
 						for (i = 0; i < NvnS; i++)
@@ -237,12 +234,12 @@ if (eq == 0 && dim1 == 0) {
 				for (eq = 0; eq < Neq; eq++) {
 				for (dim1 = 0; dim1 < d; dim1++) {
 					mm_CTN_d(NvnS,1,NvnI,D[dim1],&Fr_vI[(eq*d+dim1)*NvnI],DFr);
-
+/*
 if (eq == 0 && dim1 == 0) {
 	array_print_d(NvnI,1,&Fr_vI[(eq*d+dim1)*NvnI],'C');
 	array_print_d(NvnS,1,DFr,'C');
 }
-
+*/
 					IndRHS = eq*NvnS;
 					for (i = 0; i < NvnS; i++)
 						RHS[IndRHS+i] += DFr[i];
@@ -251,10 +248,11 @@ if (eq == 0 && dim1 == 0) {
 
 			}
 			free(Fr_vI);
-
+/*
 printf("%d %d %d\n",NvnS,NvnI,SF_BE[P][0][0]);
 array_print_d(NvnS,Nvar,RHS,'C');
 exit(1);
+*/
 		}
 	} else if (strstr(Form,"Strong") != NULL) {
 		printf("Exiting: Implement the strong form in compute_VOLUME_RHS_EFE.\n"), exit(1);

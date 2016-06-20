@@ -19,6 +19,9 @@
  */
 
 struct S_DB {
+	// Time
+	double time_total;
+
 	// MPI and PETSC
 	int MPIsize, MPIrank;
 

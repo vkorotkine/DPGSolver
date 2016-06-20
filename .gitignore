@@ -2,9 +2,13 @@ bin/*
 obj/*
 src/*~
 src/*.swp
+src/*.txt
 src/data_processing/*.swp
 src/data_processing/*.out
 src/data_processing/*.txt
+src/support_functions/*.swp
+src/support_functions/*.out
+src/support_functions/*.txt
 *~
 *.swp
 

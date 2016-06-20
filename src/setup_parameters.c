@@ -200,8 +200,8 @@ void setup_parameters()
 			SF_BE[P][i] = calloc(2 , sizeof ***SF_BE);
 
 		// TP
-		if ((d == 2 && P > 0) || (d == 3 && P > 6)) SF_BE[P][0][0] = 1; // ToBeModified
-		if ((d == 2 && P > 10) || (d == 3 && P > 6)) SF_BE[P][0][1] = 1; // ToBeModified
+		if ((d == 2 && P > 8) || (d == 3 && P > 4)) SF_BE[P][0][0] = 1; // ToBeModified
+		if ((d == 2 && P > 9) || (d == 3 && P > 9)) SF_BE[P][0][1] = 1; // ToBeModified
 
 		// WEDGE
 		if (d == 3 && P > 99) SF_BE[P][1][0] = 1; // ToBeModified
