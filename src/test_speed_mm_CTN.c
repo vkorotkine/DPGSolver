@@ -53,7 +53,7 @@ void test_speed_mm_CTN(void)
 	 */
 
 	// (m)atrix-(v)ector: m = k = 5
-	NIter = pow(2,16);
+	NIter = pow(2,20);
 	m = 5;
 	n = 1;
 	k = m;
@@ -135,7 +135,7 @@ void test_speed_mm_CTN(void)
 
 
 	// (m)atrix-(v)ector: m = k = 8
-	NIter = pow(2,16);
+	NIter = pow(2,20);
 	m = 8;
 	n = 1;
 	k = m;
@@ -218,9 +218,9 @@ void test_speed_mm_CTN(void)
 
 
 	// (m)atrix-(m)atrix: m = k, n = LARGE NUMBER (~Number of elements)
-	NIter = pow(2,10);
-	m = 12;
-	n = 400;
+	NIter = pow(2,12);
+	m = 40;
+	n = 200;
 	k = m;
 	flops = m*n*(2*k-1);
 
@@ -237,21 +237,21 @@ void test_speed_mm_CTN(void)
 
 	mm_CTN_d(m,n,k,A,B,C0);
 
-	printf("\nflops (%d) x NIter (%d) = Total flops (%d)\n",flops,NIter,flops*NIter);
+	printf("\nflops (%d) x NIter (%d) = Total flops (%llu)\n",flops,NIter,(long long unsigned int) flops*NIter);
 	printf("m = %d, k = %d\n",m,k);
 
 	for (i = 0, iMax = m*n; iMax--; i++)
 		C[i] = 0.0;
 	ts = clock();
 	for (iMax = NIter; iMax--; ) {
-		mm_CTN_fully_unrolled_mv_d(m,n,k,A,B,C);
+//		mm_CTN_fully_unrolled_mv_d(m,n,k,A,B,C);
 	}
 	te = clock();
 	tt = (te-ts)/(double) CLOCKS_PER_SEC;
 
-	printf("mm_CTN_fully_unrolled_mv_d          : %10.6f\n",tt);
-	if (array_norm_diff_d(m*n,C,C0,"Inf") > EPS*10)
-		printf("Incorrect output, error: %e\n",array_norm_diff_d(m*n,C,C0,"Inf"));
+//	printf("mm_CTN_fully_unrolled_mv_d          : %10.6f\n",tt);
+//	if (array_norm_diff_d(m*n,C,C0,"Inf") > EPS*10)
+//		printf("Incorrect output, error: %e\n",array_norm_diff_d(m*n,C,C0,"Inf"));
 
 	for (i = 0, iMax = m*n; iMax--; i++)
 		C[i] = 0.0;

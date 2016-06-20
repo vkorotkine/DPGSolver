@@ -37,6 +37,9 @@ struct S_DB DB;
 
 int main(int nargc, char **argv)
 {
+	printf("\n\n\n*** Test to see when unrolled mv multiplications break even with BLAS on Guillimin before running"
+	       " any large jobs. ***\n\n\n");
+
 	char *fNameOut, *string;
 	int  MPIrank, MPIsize;
 
@@ -205,6 +208,7 @@ int main(void)
 	ts = clock();
 
 	// Implementation tests
+/*
 	test_imp_array_find_index();
 	test_imp_array_norm();
 	test_imp_array_sort();
@@ -236,12 +240,13 @@ int main(void)
 
 	test_imp_fluxes_inviscid();
 	test_imp_get_facet_ordering();
+*/
 
 	te = clock();
 
 	// Speed tests
 //	test_speed_array_swap();
-//	test_speed_mm_CTN();
+	test_speed_mm_CTN();
 
 
 	printf("\n\nRan %d test(s) in %.4f seconds.\n",TestDB.Ntest,(te-ts)/(float)CLOCKS_PER_SEC);
