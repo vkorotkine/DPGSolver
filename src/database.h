@@ -53,6 +53,8 @@ struct S_DB {
 	double       Xc, Yc, Rc, MInf, pInf, TInf, VInf, uInf, vInf, wInf, Rg, Cscale, PeriodL, PeriodFraction, FinalTime,
 	             rIn, MIn, rhoIn, VIn;
 
+	// Vectorization
+	unsigned int update, NTVgrp, *NVgrp;
 
 	// hp adaptation
 	double DOFcap_frac, refine_frac, coarse_frac;

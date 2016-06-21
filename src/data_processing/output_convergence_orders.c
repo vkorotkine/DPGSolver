@@ -54,13 +54,13 @@ int main(void)
 	MLMin = 0; MLMax = 6; NML = MLMax-MLMin+1;
 	PMin  = 0; PMax  = 4; NP  = PMax-PMin+1;
 
-	unsigned int CasesRun[45] = { 0, 1, 1, 1, 1,
-	                              0, 1, 1, 1, 1,
-	                              0, 1, 1, 1, 1,
-	                              0, 1, 1, 1, 1,
-	                              0, 1, 1, 1, 1,
+	unsigned int CasesRun[45] = { 0, 1, 1, 1, 0,
 	                              0, 1, 1, 1, 0,
-	                              0, 1, 0, 0, 0,
+	                              0, 1, 1, 1, 0,
+	                              0, 1, 1, 1, 0,
+	                              0, 1, 1, 1, 0,
+	                              0, 1, 1, 1, 0,
+	                              0, 1, 1, 0, 0,
 	                              1, 1, 1, 1, 1,
 	                              1, 1, 1, 1, 1};
 
@@ -214,13 +214,15 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 		for (ML = 0; ML < NML; ML++) {
 			Indh = ML*NP+P;
 			if (!ML) {
-				fprintf(fID,"P%1d\t& % .3e",P,h[Indh]);
-				for (i = 0; i < 2; i++) {
-				for (j = 0; j < NVarsOut; j++) {
-					if      (i == 0) fprintf(fID," & % .3e",L2Errors[IndVars[j]][Indh]);
-					else if (i == 1) fprintf(fID," & -");
-				}}
-				fprintf(fID," \\\\\n");
+				if (CasesRun[Indh]) {
+					fprintf(fID,"P%1d\t& % .3e",P,h[Indh]);
+					for (i = 0; i < 2; i++) {
+					for (j = 0; j < NVarsOut; j++) {
+						if      (i == 0) fprintf(fID," & % .3e",L2Errors[IndVars[j]][Indh]);
+						else if (i == 1) fprintf(fID," & -");
+					}}
+					fprintf(fID," \\\\\n");
+				}
 			} else {
 				if (CasesRun[Indh]) {
 					fprintf(fID,"\t& % .3e",h[Indh]);

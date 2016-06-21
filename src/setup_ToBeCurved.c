@@ -16,6 +16,8 @@
  *
  *	Comments:
  *		Requires that straight VOLUME nodes have already been stored.
+ *		May want to change parameters in PeriodicVortex case to take the scaling into account (ToBeDeleted). The orders
+ *		obtained seem to be correct however.
  *
  *	Notation:
  *		XYZ   : High-order VOLUME (XYZ) coordinates after curving.

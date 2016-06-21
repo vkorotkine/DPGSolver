@@ -186,9 +186,9 @@ void setup_structures(void)
 	int  PrintTesting = 0;
 
 	// Standard datatypes
-	unsigned int i, iMax, f, v, dim, ve, gf,
+	unsigned int i, f, v, dim, ve, gf,
 	             IndE, IndVC, IndVgrp, IndGFC, IndVIn, Indf, IndOrdInOut, IndOrdOutIn,
-	             Vs, vlocal, NVlocal, NECgrp, NVgrp, Vf, Nf,
+	             Vs, vlocal, NTVgrp, NVlocal, NECgrp, *NVgrp, Vf, Nf,
 	             Nve,*Nfve, Nfn,
 				 indexg, NvnGs,
 	             uMPIrank;
@@ -210,13 +210,10 @@ void setup_structures(void)
 	FACET      = calloc(2   , sizeof *FACET); // free
 	FoundFACET = calloc(NGF , sizeof *FoundFACET); // free
 
-	NVgrp = NECgrp*NP*2;
-	Vgrp     = malloc(NVgrp * sizeof *Vgrp);     // keep
-	Vgrp_tmp = malloc(NVgrp * sizeof *Vgrp_tmp); // free
-	for (i = 0, iMax = NVgrp; iMax--; i++) {
-		Vgrp[i]     = NULL;
-		Vgrp_tmp[i] = NULL;
-	}
+	NTVgrp = NECgrp*NP*2;
+	NVgrp    = calloc(NTVgrp , sizeof *NVgrp);    // keep
+	Vgrp     = calloc(NTVgrp , sizeof *Vgrp);     // keep
+	Vgrp_tmp = calloc(NTVgrp , sizeof *Vgrp_tmp); // free
 
 	Vs = 0; for (i = 0; i < d; i++) Vs += NE[i];
 
@@ -332,11 +329,12 @@ void setup_structures(void)
 
 			// MPI
 			IndVgrp = ((VOLUME->Eclass)*NP*2)+(VOLUME->P*2)+(VOLUME->curved);
-			if (Vgrp[IndVgrp] == NULL)
+			if (!NVgrp[IndVgrp])
 				Vgrp[IndVgrp] = VOLUME;
 			else
 				Vgrp_tmp[IndVgrp]->grpnext = VOLUME;
 
+			NVgrp[IndVgrp]++;
 			Vgrp_tmp[IndVgrp] = VOLUME;
 
 			if (vlocal != NVlocal-1) {
@@ -450,7 +448,7 @@ printf("InOut: %d %d\n",IndOrdInOut,IndOrdOutIn);
 	free(FACET);
 
 /*
-for (i = 0, iMax = NVgrp; iMax--; i++) {
+for (i = 0, iMax = NTVgrp; iMax--; i++) {
 	for (VOLUME = Vgrp[i]; VOLUME != NULL; VOLUME = VOLUME->grpnext) {
 		printf("%d %d %d %d\n",i,VOLUME->Eclass,VOLUME->P,VOLUME->curved);
 	}
@@ -462,8 +460,9 @@ for (i = 0, iMax = NVgrp; iMax--; i++) {
 
 	// Assign/Overwrite DB parameters
 	DB.NV     = NVlocal;
+	DB.NTVgrp = NTVgrp,
 	DB.NECgrp = NECgrp;
-
+	DB.NVgrp  = NVgrp;
 	DB.Vgrp = Vgrp;
 
 //VOLUME = DB.VOLUME; while(VOLUME != NULL) printf("%d %d\n",VOLUME->type,VOLUME->curved), VOLUME = VOLUME->next;

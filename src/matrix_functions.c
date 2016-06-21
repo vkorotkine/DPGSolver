@@ -238,7 +238,9 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 	 *			Testing done using -O3.
 	 *			With matrix-vector product unrolling:
 	 *				The custom implementation is generally equivalent to or faster than BLAS, even with a huge number of
-	 *				switch statements. INVESTIGATE FURTHER WHEN PROFILING THE CODE (ToBeDeleted)
+	 *				switch statements only on OSX. On Ubuntu, BLAS breaks-even with the custom implementation for
+	 *				A_{3x3} and becomes significantly faster for larger A. In both cases, only between 30-40% of peak
+	 *				flops are achieved. (Investigate further, ToBeModified)
 	 *
 	 *	Notation:
 	 *		m : Number of rows of A'

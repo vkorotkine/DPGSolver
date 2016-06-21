@@ -178,6 +178,45 @@ void update_VOLUME_hp(void)
 	free(OPS);
 }
 
+void update_Vgrp(void)
+{
+	// Initialize DB Parameters
+	unsigned int NP     = DB.NP,
+	             NTVgrp = DB.NTVgrp,
+	             *NVgrp = DB.NVgrp;
+
+	// Standard datatypes
+	unsigned int i, P, Eclass, curved, IndVgrp;
+
+	struct S_VOLUME *VOLUME, **VOLUME_prev;
+
+	if (DB.update) {
+		DB.update = 0;
+
+		VOLUME_prev = malloc(NTVgrp * sizeof *VOLUME_prev); // free
+
+		for (i = 0; i < NTVgrp; i++)
+			NVgrp[i] = 0;
+
+		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+			Eclass = VOLUME->Eclass;
+			P      = VOLUME->P;
+			curved = VOLUME->curved;
+
+			IndVgrp = Eclass*NP*2 + P*2 + curved;
+
+			if (!NVgrp[IndVgrp])
+				DB.Vgrp[IndVgrp] = VOLUME;
+			else
+				VOLUME_prev[IndVgrp]->grpnext = VOLUME;
+
+			NVgrp[IndVgrp]++;
+			VOLUME_prev[IndVgrp] = VOLUME;
+		}
+		free(VOLUME_prev);
+	}
+}
+
 void update_VOLUME_Ops(void)
 {
 	// Initialize DB Parameters

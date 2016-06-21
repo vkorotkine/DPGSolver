@@ -134,6 +134,7 @@ int main(int nargc, char **argv)
 		printf("\n\nPostprocessing:\n\n");
 
 	// Output final solution to paraview
+	printf("  Output final solution to paraview\n");
 	strcpy(fNameOut,"SolFinal_");
 	sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
 	                               strcat(fNameOut,DB.MeshType);
