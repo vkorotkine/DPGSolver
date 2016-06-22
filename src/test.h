@@ -30,6 +30,7 @@ extern void test_imp_matrix_diag               (void);
 extern void test_imp_matrix_identity           (void);
 extern void test_imp_matrix_inverse            (void);
 extern void test_imp_matrix_mm                 (void);
+extern void test_imp_convert_to_CSR            (void);
 extern void test_imp_find_periodic_connections (void);
 extern void test_imp_cubature_TP               (void);
 extern void test_imp_cubature_SI               (void);

@@ -787,6 +787,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             **PIvs      = DB.PIvs,
 	             **PIvc      = DB.PIvc,
 	             PP          = DB.PP,
+	             Collocated  = DB.Collocated,
 	             EFE         = DB.EFE;
 
 	char         *BasisType     = DB.BasisType,
@@ -796,14 +797,15 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             ***NodeTypeS   = DB.NodeTypeS;
 
 	// Standard datatypes
-	unsigned int dim, dE, P, f, fh, Vf, IndFType, PSMin, PSMax, Pb, PbMin, PbMax, *fhMax,
+	unsigned int i, iMax, dim, dE, P, f, fh, Vf, IndFType, PSMin, PSMax, Pb, PbMin, PbMax, *fhMax,
 	             Nve, Nf, Nbf, Eclass, NFTypes, Nvref, vref, vrefSF, NvrefSF, *Nfref, *ones_Nf,
 	             NvnP,
 	             B_Nve[2], *Nfve, *Nvve,
 	             dummy_ui, *dummyPtr_ui[2];
 	double       *E_rst_vC, *rst_vC, **VeF, **VeV,
 	             *rst_vP, *rst_vGs, *rst_vGc, *rst_vCs, *rst_vCc, **rst_vIs, **rst_vIc, *rst_vS, *rst_fIs, *rst_fIc,
-	             *diag_w_vIs, *diag_w_vIc,
+	             *wInv_vIs, *wInv_vIc,
+	             *diag_w_vIs, *diag_w_vIc, *diag_wInv_vIs, *diag_wInv_vIc,
 	             ***w_fIs, ***w_fIc, *diag_w_fIs, *diag_w_fIc,
 	             *IGs, *IGc, *IS,
 	             *TGs, *TGc, *TCs, *TCc, *TS,
@@ -1148,8 +1150,22 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 			cubature(&rst_vIs[0],&w_vIs[Pb],&dummyPtr_ui[0],&NvnIs[Pb],&dummy_ui,1,PIvs[Pb][Eclass],dE,NodeTypeIvs[Pb][Eclass]); free(dummyPtr_ui[0]); // free
 			cubature(&rst_vIc[0],&w_vIc[Pb],&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,1,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
 
-			diag_w_vIs = diag_d(w_vIs[Pb],NvnIs[Pb]); // free
-			diag_w_vIc = diag_d(w_vIc[Pb],NvnIc[Pb]); // free
+			wInv_vIs = malloc(NvnIs[Pb] * sizeof *wInv_vIs); // free
+			wInv_vIc = malloc(NvnIc[Pb] * sizeof *wInv_vIc); // free
+
+			for (i = 0, iMax = NvnIs[Pb]; i < iMax; i++)
+				wInv_vIs[i] = 1./w_vIs[Pb][i];
+
+			for (i = 0, iMax = NvnIc[Pb]; i < iMax; i++)
+				wInv_vIc[i] = 1./w_vIc[Pb][i];
+
+			diag_w_vIs    = diag_d(w_vIs[Pb],NvnIs[Pb]); // free
+			diag_w_vIc    = diag_d(w_vIc[Pb],NvnIc[Pb]); // free
+			diag_wInv_vIs = diag_d(wInv_vIs,NvnIs[Pb]);  // free
+			diag_wInv_vIc = diag_d(wInv_vIc,NvnIc[Pb]);  // free
+
+			free(wInv_vIs);
+			free(wInv_vIc);
 
 			ChiRefGs_vIs = basis(PGs,rst_vIs[0],NvnIs[Pb],&Nbf,dE); // free
 			ChiRefGs_vIc = basis(PGs,rst_vIc[0],NvnIc[Pb],&Nbf,dE); // free
@@ -1286,6 +1302,15 @@ if (EType == LINE && P == 3) {
 					;
 				}
 
+				if (Collocated) {
+					dummyPtr_d = Is_Weak_VV[P][Pb][0];
+					Is_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnIs[Pb],NvnS[Pb],1.0,diag_wInv_vIs,dummyPtr_d); // keep
+					free(dummyPtr_d);
+					dummyPtr_d = Ic_Weak_VV[P][Pb][0];
+					Ic_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnIc[Pb],NvnS[Pb],1.0,diag_wInv_vIc,dummyPtr_d); // keep
+					free(dummyPtr_d);
+				}
+
 				for (dim = 0; dim < dE; dim++) {
 					D_vGs_vCs[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnCs[P],NvnGs[0],NvnGs[0],1.0,GradChiGs_vCs[dim],ChiInvGs_vGs); // keep
 					D_vGs_vIs[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[P],NvnGs[0],NvnGs[0],1.0,GradChiGs_vIs[dim],ChiInvGs_vGs); // keep
@@ -1299,6 +1324,14 @@ if (EType == LINE && P == 3) {
 						Dc_Weak_VV[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIc[P],NvnIc[P],1.0,GradChiS_vIc[dim],diag_w_vIc); // keep
 					} else {
 						;
+					}
+					if (Collocated) {
+						dummyPtr_d = Ds_Weak_VV[P][Pb][0][dim];
+						Ds_Weak_VV[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnIs[Pb],NvnS[Pb],1.0,diag_wInv_vIs,dummyPtr_d); // keep
+						free(dummyPtr_d);
+						dummyPtr_d = Dc_Weak_VV[P][Pb][0][dim];
+						Dc_Weak_VV[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnIc[Pb],NvnS[Pb],1.0,diag_wInv_vIc,dummyPtr_d); // keep
+						free(dummyPtr_d);
 					}
 				}
 
@@ -1369,6 +1402,15 @@ if (EType == LINE && P == 3) {
 					Is_Weak_FF[P][Pb][Vf] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NfnIs[Pb][IndFType],NfnIs[Pb][IndFType],-1.0,ChiS_fIs[P][Pb][Vf],diag_w_fIs); // keep
 					Ic_Weak_FF[P][Pb][Vf] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NfnIc[Pb][IndFType],NfnIc[Pb][IndFType],-1.0,ChiS_fIc[P][Pb][Vf],diag_w_fIc); // keep
 
+					if (Collocated) {
+						dummyPtr_d = Is_Weak_FF[P][Pb][Vf];
+						Is_Weak_FF[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NfnIs[Pb][IndFType],NvnS[Pb],1.0,diag_wInv_vIs,dummyPtr_d); // keep
+						free(dummyPtr_d);
+						dummyPtr_d = Ic_Weak_FF[P][Pb][Vf];
+						Ic_Weak_FF[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NfnIc[Pb][IndFType],NvnS[Pb],1.0,diag_wInv_vIc,dummyPtr_d); // keep
+						free(dummyPtr_d);
+					}
+
 					if (fh == 0) {
 						ChiRefGs_fIs = basis(PGs           ,rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
 						ChiRefGs_fIc = basis(PGs           ,rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
@@ -1429,6 +1471,8 @@ if (EType == LINE && P == 3) {
 			}
 			free(diag_w_vIs);
 			free(diag_w_vIc);
+			free(diag_wInv_vIs);
+			free(diag_wInv_vIc);
 		}
 
 		free(rst_vGc);
@@ -1715,106 +1759,6 @@ for (j = 0; j < Nfref[i]; j++)
 	free(VeF);
 }
 
-static void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, double **OP0,
-                               const unsigned int NIn1, const unsigned int NOut1, double **OP1,
-                               unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
-                               const unsigned int d, const unsigned int Vf, const unsigned int Eclass)
-{
-	/*
-	 *	Purpose:
-	 *		Set up (s)um (f)actorization parameters for (F)ACET operators.
-	 *
-	 *	Comments:
-	 *		While get_sf_parameters is sufficient for QUADs, HEX ELEMENTs may require three different FACET operators if
-	 *		h-refinement is employed.
-	 */
-
-	unsigned int f, fh, dimF, dimV1, dimV2;
-
-	f  = Vf/NFREFMAX;
-	fh = Vf % NFREFMAX;
-
-	dimF = f/2;
-
-	switch (d) {
-	default: // 3D
-		switch (Eclass) {
-		default: // C_TP
-			// FACET term (standard treatment)
-			NIn_SF[dimF]  = NIn1;
-			NOut_SF[dimF] = NOut1;
-			OP_SF[dimF]   = OP1[(f%2)*NFREFMAX];
-
-			// VOLUME term NIn/NOut (standard treatment)
-			dimV1 = (dimF+1)%3;
-			dimV2 = (dimV1+1)%3;
-
-			NIn_SF[dimV1]  = NIn0;
-			NOut_SF[dimV1] = NOut0;
-			NIn_SF[dimV2]  = NIn0;
-			NOut_SF[dimV2] = NOut0;
-
-			// VOLUME term OP_SF
-			switch (fh) {
-			case 0: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[0]; break; // Conforming
-			case 1: OP_SF[dimV1] = OP0[1]; OP_SF[dimV2] = OP0[0]; break;
-			case 2: OP_SF[dimV1] = OP0[2]; OP_SF[dimV2] = OP0[0]; break;
-			case 3: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[1]; break;
-			case 4: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[2]; break;
-			case 5: OP_SF[dimV1] = OP0[1]; OP_SF[dimV2] = OP0[1]; break;
-			case 6: OP_SF[dimV1] = OP0[2]; OP_SF[dimV2] = OP0[1]; break;
-			case 7: OP_SF[dimV1] = OP0[1]; OP_SF[dimV2] = OP0[2]; break;
-			case 8: OP_SF[dimV1] = OP0[2]; OP_SF[dimV2] = OP0[2]; break;
-			default:
-				printf("Error: Unsupported fh in get_sf_parametersF.\n"), exit(1);
-				break;
-			}
-			break;
-		case C_WEDGE:
-			// OP_SF[1] (standard)
-			NIn_SF[1]  = 1;
-			NOut_SF[1] = 1;
-			OP_SF[1]   = NULL;
-
-			// dim = 0 and dim = 2
-			NIn_SF[0]  = NIn0;
-			NOut_SF[0] = NOut0;
-			NIn_SF[2]  = NIn1;
-			NOut_SF[2] = NOut1;
-
-			if (f < 3) { // QUAD FACETs
-				switch (fh) {
-				case 0: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[0]; break;
-				case 1: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[0]; break;
-				case 2: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[0]; break;
-				case 3: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[1]; break;
-				case 4: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[2]; break;
-				case 5: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[1]; break;
-				case 6: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[1]; break;
-				case 7: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[2]; break;
-				case 8: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[2]; break;
-				default:
-					printf("Error: Unsupported fh for f < 3 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
-					break;
-				}
-			} else if (f < 5) { // TRI FACETs
-				if (fh > 4)
-					printf("Error: Unsupported fh for f < 5 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
-
-				OP_SF[0] = OP0[fh];
-				OP_SF[2] = OP1[((f+1)%2)*NFREFMAX];
-			} else {
-				printf("Error: Unsupported f in get_sf_parametersF (C_WEDGE).\n"), exit(1);
-			}
-			break;
-		}
-		break;
-	case 2:
-		get_sf_parameters(NIn0,NOut0,OP0[fh],NIn1,NOut1,OP1[(f%2)*NFREFMAX],NIn_SF,NOut_SF,OP_SF,d,dimF,C_TP);
-		break;
-	}
-}
-
 static void setup_TP_operators(const unsigned int EType)
 {
 	/*
@@ -1848,11 +1792,12 @@ static void setup_TP_operators(const unsigned int EType)
 	             *****Ds_Weak_VV, *****Dc_Weak_VV;
 
 	// Initialize DB Parameters
-	unsigned int Adapt   = DB.Adapt,
-	             PGlobal = DB.PGlobal,
-	             PP      = DB.PP,
-	             PMax    = DB.PMax,
-	             EFE     = DB.EFE;
+	unsigned int Adapt      = DB.Adapt,
+	             PGlobal    = DB.PGlobal,
+	             PP         = DB.PP,
+	             PMax       = DB.PMax,
+	             EFE        = DB.EFE,
+	             Collocated = DB.Collocated;
 
 	// Standard datatypes
 	unsigned int dim, P, f, fh, Pb, PSMin, PSMax, PbMin, PbMax, *fhMax,
@@ -2060,12 +2005,15 @@ static void setup_TP_operators(const unsigned int EType)
 					I_vCc_vIc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 					if (EFE) {
+						// Not needed (ToBeDeleted)
+/*
 						get_sf_parameters(ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_VV[P][Pb][0],
 						                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 						Is_Weak_VV[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						get_sf_parameters(ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_VV[P][Pb][0],
 						                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 						Ic_Weak_VV[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+*/
 					} else {
 						;
 					}
@@ -2101,6 +2049,20 @@ static void setup_TP_operators(const unsigned int EType)
 							                  ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ds_Weak_VV[P][Pb][0][0],
 							                  NIn,NOut,OP,dE,dim,Eclass);
 							Ds_Weak_VV[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
+						struct S_OpCSR *A_sp;
+						A_sp = malloc(sizeof *A_sp); // free
+
+							if (Collocated) {
+//								Ds_Weak_VV_sp[P][Pb][0][dim] = convert_to_CSR_d(NvnS[P],NvnIs[Pb],Ds_Weak_VV[P][Pb][0][dim]); // keep
+								convert_to_CSR_d(NvnS[P],NvnIs[Pb],Ds_Weak_VV[P][Pb][0][dim],A_sp); // keep
+							}
+array_print_d(NvnS[P],NvnIs[Pb],Ds_Weak_VV[P][Pb][0][dim],'R');
+array_print_ui(1,A_sp->NRows,A_sp->rowIndex,'R');
+array_print_ui(1,A_sp->NVals,A_sp->columns,'R');
+array_print_d(1,A_sp->NVals,A_sp->values,'R');
+exit(1);
+
 							get_sf_parameters(ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_VV[P][Pb][0],
 							                  ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Dc_Weak_VV[P][Pb][0][0],
 							                  NIn,NOut,OP,dE,dim,Eclass);

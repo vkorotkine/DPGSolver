@@ -72,6 +72,106 @@ void get_sf_parameters(const unsigned int NIn0, const unsigned int NOut0, double
 	}
 }
 
+void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, double **OP0,
+                        const unsigned int NIn1, const unsigned int NOut1, double **OP1,
+                        unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+                        const unsigned int d, const unsigned int Vf, const unsigned int Eclass)
+{
+	/*
+	 *	Purpose:
+	 *		Set up (s)um (f)actorization parameters for (F)ACET operators.
+	 *
+	 *	Comments:
+	 *		While get_sf_parameters is sufficient for QUADs, HEX ELEMENTs may require three different FACET operators if
+	 *		h-refinement is employed.
+	 */
+
+	unsigned int f, fh, dimF, dimV1, dimV2;
+
+	f  = Vf/NFREFMAX;
+	fh = Vf % NFREFMAX;
+
+	dimF = f/2;
+
+	switch (d) {
+	default: // 3D
+		switch (Eclass) {
+		default: // C_TP
+			// FACET term (standard treatment)
+			NIn_SF[dimF]  = NIn1;
+			NOut_SF[dimF] = NOut1;
+			OP_SF[dimF]   = OP1[(f%2)*NFREFMAX];
+
+			// VOLUME term NIn/NOut (standard treatment)
+			dimV1 = (dimF+1)%3;
+			dimV2 = (dimV1+1)%3;
+
+			NIn_SF[dimV1]  = NIn0;
+			NOut_SF[dimV1] = NOut0;
+			NIn_SF[dimV2]  = NIn0;
+			NOut_SF[dimV2] = NOut0;
+
+			// VOLUME term OP_SF
+			switch (fh) {
+			case 0: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[0]; break; // Conforming
+			case 1: OP_SF[dimV1] = OP0[1]; OP_SF[dimV2] = OP0[0]; break;
+			case 2: OP_SF[dimV1] = OP0[2]; OP_SF[dimV2] = OP0[0]; break;
+			case 3: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[1]; break;
+			case 4: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[2]; break;
+			case 5: OP_SF[dimV1] = OP0[1]; OP_SF[dimV2] = OP0[1]; break;
+			case 6: OP_SF[dimV1] = OP0[2]; OP_SF[dimV2] = OP0[1]; break;
+			case 7: OP_SF[dimV1] = OP0[1]; OP_SF[dimV2] = OP0[2]; break;
+			case 8: OP_SF[dimV1] = OP0[2]; OP_SF[dimV2] = OP0[2]; break;
+			default:
+				printf("Error: Unsupported fh in get_sf_parametersF.\n"), exit(1);
+				break;
+			}
+			break;
+		case C_WEDGE:
+			// OP_SF[1] (standard)
+			NIn_SF[1]  = 1;
+			NOut_SF[1] = 1;
+			OP_SF[1]   = NULL;
+
+			// dim = 0 and dim = 2
+			NIn_SF[0]  = NIn0;
+			NOut_SF[0] = NOut0;
+			NIn_SF[2]  = NIn1;
+			NOut_SF[2] = NOut1;
+
+			if (f < 3) { // QUAD FACETs
+				switch (fh) {
+				case 0: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[0]; break;
+				case 1: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[0]; break;
+				case 2: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[0]; break;
+				case 3: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[1]; break;
+				case 4: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[2]; break;
+				case 5: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[1]; break;
+				case 6: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[1]; break;
+				case 7: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[2]; break;
+				case 8: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[2]; break;
+				default:
+					printf("Error: Unsupported fh for f < 3 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
+					break;
+				}
+			} else if (f < 5) { // TRI FACETs
+				if (fh > 4)
+					printf("Error: Unsupported fh for f < 5 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
+
+				OP_SF[0] = OP0[fh];
+				OP_SF[2] = OP1[((f+1)%2)*NFREFMAX];
+			} else {
+				printf("Error: Unsupported f in get_sf_parametersF (C_WEDGE).\n"), exit(1);
+			}
+			break;
+		}
+		break;
+	case 2:
+		get_sf_parameters(NIn0,NOut0,OP0[fh],NIn1,NOut1,OP1[(f%2)*NFREFMAX],NIn_SF,NOut_SF,OP_SF,d,dimF,C_TP);
+		break;
+	}
+}
+
 void sf_swap_d(double *Input, const unsigned int NRows, const unsigned int NCols,
                const unsigned int iBound, const unsigned int jBound, const unsigned int kBound,
                const unsigned int iStep, const unsigned int jStep, const unsigned int kStep)
@@ -260,7 +360,7 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 	free(Output_Inter);
 }
 
-double *sf_assemble_d (const unsigned int NIn[3], const unsigned int NOut[3], const unsigned int d, double *BOP[3])
+double *sf_assemble_d(const unsigned int NIn[3], const unsigned int NOut[3], const unsigned int d, double *BOP[3])
 {
 	/*
 	 *	Purpose:

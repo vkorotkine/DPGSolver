@@ -3,6 +3,10 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
+
+#include "database.h"
+#include "parameters.h"
 
 #include "mkl.h"
 
@@ -1786,4 +1790,59 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 		printf("Error: Unsupported value of useBLAS (%d) in mm_d_CTN.\n",useBLAS), exit(1);
 		break;
 	}
+}
+
+void convert_to_CSR_d(const unsigned int NRows, const unsigned int NCols, const double *Input, struct S_OpCSR *Output)
+{
+	/*
+	 *	Purpose:
+	 *		Return rowIndex, columns, and values of sparse operator in compressed sparse row (CSR) format.
+	 *
+	 *	Comments:
+	 *		This format can not be used if there is a row which is composed entirely of zeros.
+	 *
+	 *	References:
+	 *		Intel MKL Sparse BLAS CSR Matrix Storage Format: https://software.intel.com/en-us/node/599835
+	 */
+
+	// Initialize DB Parameters
+	unsigned int i, iInd, j, Nval,
+	             *rowIndex, *columns, *columnsOver;
+	double       *values, *valuesOver, tmp_d;
+
+	Nval = 0;
+	rowIndex    = malloc((NRows+1)   * sizeof *rowIndex);    // keep
+	columnsOver = malloc(NRows*NCols * sizeof *columnsOver); // free
+	valuesOver  = malloc(NRows*NCols * sizeof *valuesOver);  // free
+
+	rowIndex[0] = 0;
+	for (i = 0; i < NRows; i++) {
+		iInd = i*NCols;
+		for (j = 0; j < NCols; j++) {
+			tmp_d = Input[iInd+j];
+			if (fabs(tmp_d) > EPS) {
+				columnsOver[Nval] = j;
+				valuesOver[Nval] = tmp_d;
+				Nval++;
+			}
+		}
+		rowIndex[i+1] = Nval;
+	}
+
+	columns = malloc(Nval * sizeof *columns); // keep
+	values  = malloc(Nval * sizeof *values);  // keep
+
+	for (i = 0; i < Nval; i++) {
+		columns[i] = columnsOver[i];
+		values[i]  = valuesOver[i];
+	}
+
+	free(columnsOver);
+	free(valuesOver);
+
+	Output->NRows = NRows;
+	Output->NVals = Nval;
+	Output->rowIndex = rowIndex;
+	Output->columns = columns;
+	Output->values = values;
 }

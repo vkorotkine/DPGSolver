@@ -204,7 +204,7 @@ for (eq = 0; eq < Neq; eq++) {
 
 					if (Collocated) {
 						for (dim2 = 0; dim2 < d; dim2++)
-							Diag[dim2] = 1;
+							Diag[dim2] = 2;
 						Diag[dim1] = 0;
 					} else {
 						for (dim2 = 0; dim2 < d; dim2++)
@@ -233,6 +233,10 @@ for (eq = 0; eq < Neq; eq++) {
 				for (eq = 0; eq < Neq; eq++) {
 				for (dim1 = 0; dim1 < d; dim1++) {
 					mm_CTN_d(NvnS,1,NvnI,D[dim1],&Fr_vI[(eq*d+dim1)*NvnI],DFr);
+
+if (eq)
+	break;
+array_print_d(NvnS,NvnI,D[dim1],'R');
 /*
 if (eq == 0 && dim1 == 0) {
 	array_print_d(NvnI,1,&Fr_vI[(eq*d+dim1)*NvnI],'C');
@@ -243,18 +247,19 @@ if (eq == 0 && dim1 == 0) {
 					for (i = 0; i < NvnS; i++)
 						RHS[IndRHS+i] += DFr[i];
 				}}
+				exit(1);
 				free(DFr);
 
 			}
 			free(Fr_vI);
 //printf("%d %d %d\n",NvnS,NvnI,SF_BE[P][0][0]);
-array_print_d(NvnS,Nvar,RHS,'C');
+//array_print_d(NvnS,Nvar,RHS,'C');
 //exit(1);
 		}
 	} else if (strstr(Form,"Strong") != NULL) {
 		printf("Exiting: Implement the strong form in compute_VOLUME_RHS_EFE.\n"), exit(1);
 	}
-exit(1);
+//exit(1);
 
 	for (i = 0; i < 2; i++)
 		free(OPS[i]);
@@ -410,7 +415,7 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 
 					if (Collocated) {
 						for (dim2 = 0; dim2 < d; dim2++)
-							Diag[dim2] = 1;
+							Diag[dim2] = 2;
 						Diag[dim1] = 0;
 					} else {
 						for (dim2 = 0; dim2 < d; dim2++)
@@ -443,6 +448,7 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 				free(DFr);
 			}
 			free(Fr_vI);
+//array_print_d(NvnS*NV,Neq,RHS,'C');
 
 			// Copy values of Global RHS into local VOLUME RHS arrays
 			// Profile and, if expensive, keep global RHS array
@@ -459,10 +465,10 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 						*RHSl++ = *RHSVec++;
 					RHS_ptr[eq] = RHSVec;
 				}
-array_print_d(NvnS,Neq,RHSl,'C');
+//array_print_d(NvnS,Neq,VOLUME->RHS,'C');
 			}
 			free(RHS);
-exit(1);
+//exit(1);
 
 		}}}
 	}
@@ -473,6 +479,4 @@ exit(1);
 
 	for (i = 0; i < 2; i++)
 		free(OPS[i]);
-
-
 }

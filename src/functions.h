@@ -101,6 +101,10 @@ extern void   get_sf_parameters(const unsigned int NIn0, const unsigned int NOut
                                 const unsigned int NIn1, const unsigned int NOut1, double *OP1,
                                 unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
                                 const unsigned int d, const unsigned int dim1, const unsigned int Eclass);
+extern void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, double **OP0, 
+                               const unsigned int NIn1, const unsigned int NOut1, double **OP1, 
+                               unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+                               const unsigned int d, const unsigned int Vf, const unsigned int Eclass);
 extern void   sf_operate_d   (const unsigned int NOut, const unsigned int NCols, const unsigned int NIn,
                               const unsigned int BRowMaxIn, double *OP, double *Input, double *Output);
 extern void   sf_swap_d      (double *Input, const unsigned int NRows, const unsigned int NCols,
@@ -132,6 +136,8 @@ extern void   mm_d        (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE tran
                            const int m, const int n, const int k, const double alpha, const double *A, const double *B,
                            double *C);
 extern void   mm_CTN_d    (const int m, const int n, const int k, const double *A, const double *B, double *C);
+extern void   convert_to_CSR_d (const unsigned int NRows, const unsigned int NCols, const double *Input,
+                                struct S_OpCSR *Output);
 
 // Math Functions
 extern unsigned int factorial_ull (const unsigned int n);

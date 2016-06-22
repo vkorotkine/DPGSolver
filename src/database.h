@@ -146,4 +146,9 @@ struct S_FACET {
 	struct S_FACET  *next, *grpnext;
 };
 
+struct S_OpCSR {
+	unsigned int NRows, NVals, *rowIndex, *columns;
+	double       *values;
+};
+
 #endif // DPG__database_h__INCLUDED

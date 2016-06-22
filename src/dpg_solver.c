@@ -209,7 +209,7 @@ int main(void)
 	ts = clock();
 
 	// Implementation tests
-/*
+
 	test_imp_array_find_index();
 	test_imp_array_norm();
 	test_imp_array_sort();
@@ -222,6 +222,7 @@ int main(void)
 	test_imp_matrix_identity();
 	test_imp_matrix_inverse();
 	test_imp_matrix_mm();
+	test_imp_convert_to_CSR();
 
 	test_imp_find_periodic_connections();
 
@@ -241,13 +242,13 @@ int main(void)
 
 	test_imp_fluxes_inviscid();
 	test_imp_get_facet_ordering();
-*/
+
 
 	te = clock();
 
 	// Speed tests
 //	test_speed_array_swap();
-	test_speed_mm_CTN();
+//	test_speed_mm_CTN();
 
 
 	printf("\n\nRan %d test(s) in %.4f seconds.\n",TestDB.Ntest,(te-ts)/(float)CLOCKS_PER_SEC);

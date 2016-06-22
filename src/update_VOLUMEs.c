@@ -238,26 +238,26 @@ void update_VOLUME_Ops(void)
 		if (VOLUME->update) {
 			VOLUME->update = 0;
 			if (strstr(SolverType,"Explicit") != NULL) {
-				init_ops(OPS,VOLUME,0);
-
-				NvnS = OPS->NvnS;
-				NvnI = OPS->NvnI;
-				w_vI    = OPS->w_vI;
-				ChiS_vI = OPS->ChiS_vI;
-
-				detJV_vI = VOLUME->detJV_vI;
-
-				// Compute required portion of MInv
-				wdetJV_vI = malloc(NvnI * sizeof *wdetJV_vI); // keep
-				MInv      = NULL;
-
-				w_vI_ptr      = w_vI;
-				detJV_vI_ptr  = detJV_vI;
-				wdetJV_vI_ptr = wdetJV_vI;
-				for (iMax = NvnI; iMax--; )
-					*wdetJV_vI_ptr++ = (*w_vI_ptr++)*(*detJV_vI_ptr++);
-
 				if (!Collocated) {
+					init_ops(OPS,VOLUME,0);
+
+					NvnS = OPS->NvnS;
+					NvnI = OPS->NvnI;
+					w_vI    = OPS->w_vI;
+					ChiS_vI = OPS->ChiS_vI;
+
+					detJV_vI = VOLUME->detJV_vI;
+
+					// Compute required portion of MInv
+					wdetJV_vI = malloc(NvnI * sizeof *wdetJV_vI); // keep
+					MInv      = NULL;
+
+					w_vI_ptr      = w_vI;
+					detJV_vI_ptr  = detJV_vI;
+					wdetJV_vI_ptr = wdetJV_vI;
+					for (iMax = NvnI; iMax--; )
+						*wdetJV_vI_ptr++ = (*w_vI_ptr++)*(*detJV_vI_ptr++);
+
 					wdetJVChiS_vI = malloc(NvnI*NvnS * sizeof *wdetJVChiS_vI); // free
 
 					ChiS_vI_ptr       = ChiS_vI;
@@ -280,13 +280,12 @@ void update_VOLUME_Ops(void)
 					free(wdetJVChiS_vI);
 					free(M);
 					free(IS);
+					free(VOLUME->wdetJV_vI);
+					free(VOLUME->MInv);
+
+					VOLUME->wdetJV_vI = wdetJV_vI;
+					VOLUME->MInv      = MInv;
 				}
-				free(VOLUME->wdetJV_vI);
-				free(VOLUME->MInv);
-
-				VOLUME->wdetJV_vI = wdetJV_vI;
-				VOLUME->MInv      = MInv;
-
 			} else {
 				; // Updates for implicit.
 			}
