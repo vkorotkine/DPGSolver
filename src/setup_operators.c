@@ -1791,6 +1791,8 @@ static void setup_TP_operators(const unsigned int EType)
 	             ****Is_Weak_FF, ****Ic_Weak_FF,
 	             *****Ds_Weak_VV, *****Dc_Weak_VV;
 
+	struct S_OpCSR *****Ds_Weak_VV_sp, *****Dc_Weak_VV_sp;
+
 	// Initialize DB Parameters
 	unsigned int Adapt      = DB.Adapt,
 	             PGlobal    = DB.PGlobal,
@@ -1883,8 +1885,11 @@ static void setup_TP_operators(const unsigned int EType)
 	Ic_Weak_VV = ELEMENT->Ic_Weak_VV;
 	Is_Weak_FF = ELEMENT->Is_Weak_FF;
 	Ic_Weak_FF = ELEMENT->Ic_Weak_FF;
-	Ds_Weak_VV = ELEMENT->Ds_Weak_VV;
-	Dc_Weak_VV = ELEMENT->Dc_Weak_VV;
+
+	Ds_Weak_VV    = ELEMENT->Ds_Weak_VV;
+	Dc_Weak_VV    = ELEMENT->Dc_Weak_VV;
+	Ds_Weak_VV_sp = ELEMENT->Ds_Weak_VV_sp;
+	Dc_Weak_VV_sp = ELEMENT->Dc_Weak_VV_sp;
 
 	switch (Adapt) {
 		default: // ADAPT_H or ADAPT_HP
@@ -2050,23 +2055,15 @@ static void setup_TP_operators(const unsigned int EType)
 							                  NIn,NOut,OP,dE,dim,Eclass);
 							Ds_Weak_VV[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
-						struct S_OpCSR *A_sp;
-						A_sp = malloc(sizeof *A_sp); // free
-
-							if (Collocated) {
-//								Ds_Weak_VV_sp[P][Pb][0][dim] = convert_to_CSR_d(NvnS[P],NvnIs[Pb],Ds_Weak_VV[P][Pb][0][dim]); // keep
-								convert_to_CSR_d(NvnS[P],NvnIs[Pb],Ds_Weak_VV[P][Pb][0][dim],A_sp); // keep
-							}
-array_print_d(NvnS[P],NvnIs[Pb],Ds_Weak_VV[P][Pb][0][dim],'R');
-array_print_ui(1,A_sp->NRows,A_sp->rowIndex,'R');
-array_print_ui(1,A_sp->NVals,A_sp->columns,'R');
-array_print_d(1,A_sp->NVals,A_sp->values,'R');
-exit(1);
-
 							get_sf_parameters(ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_VV[P][Pb][0],
 							                  ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Dc_Weak_VV[P][Pb][0][0],
 							                  NIn,NOut,OP,dE,dim,Eclass);
 							Dc_Weak_VV[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
+							if (Collocated) {
+								convert_to_CSR_d(NvnS[P],NvnIs[Pb],Ds_Weak_VV[P][Pb][0][dim],&Ds_Weak_VV_sp[P][Pb][0][dim]); // keep
+								convert_to_CSR_d(NvnS[P],NvnIc[Pb],Dc_Weak_VV[P][Pb][0][dim],&Dc_Weak_VV_sp[P][Pb][0][dim]); // keep
+							}
 						} else {
 							;
 						}

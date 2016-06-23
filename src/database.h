@@ -100,6 +100,8 @@ struct S_ELEMENT {
 	             ****Is_Weak_FF, ****Ic_Weak_FF,
 	             *****Ds_Weak_VV, *****Dc_Weak_VV;
 
+	struct S_OpCSR *****Ds_Weak_VV_sp, *****Dc_Weak_VV_sp;
+
 	struct S_ELEMENT *next;
 	struct S_ELEMENT **ELEMENTclass, **ELEMENT_FACET;
 };

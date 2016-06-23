@@ -114,7 +114,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	ELEMENT_FACET = get_ELEMENT_FACET(Vtype,IndClass);
 	if ((Eclass == C_TP && SF_BE[PF][0][1]) || (Eclass == C_WEDGE && SF_BE[PF][1][1]))
 		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
-	else 
+	else
 		ELEMENT_OPS = ELEMENT;
 
 	OPS->NvnS    = ELEMENT->NvnS[PV];
@@ -214,21 +214,25 @@ static void compute_FACET_RHS_EFE(void)
 		NvnSIn = OPSIn[0]->NvnS;
 
 		WIn_fI = malloc(NfnI*Nvar * sizeof *WIn_fI); // free
-		if (VIn->Eclass == C_TP && SF_BE[P][0][1]) {
-			get_sf_parametersF(OPSIn[0]->NvnS_SF,OPSIn[0]->NvnI_SF,OPSIn[0]->ChiS_vI,
-			                   OPSIn[0]->NvnS_SF,OPSIn[0]->NfnI_SF,OPSIn[0]->ChiS_fI,NIn,NOut,OP,d,VfIn,C_TP);
+		if (VIn->Eclass == C_TP && (SF_BE[P][0][1] || Collocated)) {
+			if (SF_BE[P][0][1]) {
+				get_sf_parametersF(OPSIn[0]->NvnS_SF,OPSIn[0]->NvnI_SF,OPSIn[0]->ChiS_vI,
+				                   OPSIn[0]->NvnS_SF,OPSIn[0]->NfnI_SF,OPSIn[0]->ChiS_fI,NIn,NOut,OP,d,VfIn,C_TP);
 
 // Note: Needs modification for h-adaptation (ToBeDeleted)
-			if (Collocated) {
-				for (dim = 0; dim < d; dim++)
-					Diag[dim] = 2;
-				Diag[fIn/2] = 0;
-			} else {
-				for (dim = 0; dim < d; dim++)
-					Diag[dim] = 0;
-			}
+				if (Collocated) {
+					for (dim = 0; dim < d; dim++)
+						Diag[dim] = 2;
+					Diag[fIn/2] = 0;
+				} else {
+					for (dim = 0; dim < d; dim++)
+						Diag[dim] = 0;
+				}
 
-			sf_apply_d(VIn->What,WIn_fI,NIn,NOut,Nvar,OP,Diag,d);
+				sf_apply_d(VIn->What,WIn_fI,NIn,NOut,Nvar,OP,Diag,d);
+			} else { // Collocated
+				mm_CTN_CSR_d(NfnI,Nvar,NvnSIn,OPSIn[0]->ChiS_fI_sp[VfIn],VIn->What,WIn_fI);
+			}
 		} else if (VIn->Eclass == C_WEDGE && SF_BE[P][1][1]) {
 			; // update this with sum factorization
 		} else {
@@ -245,21 +249,25 @@ static void compute_FACET_RHS_EFE(void)
 		WOut_fI = malloc(NfnI*Nvar * sizeof *WOut_fI); // free
 		WOut_fIIn = malloc(NfnI*Nvar * sizeof *WOut_fIIn); // free
 		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACET
-			if (VOut->Eclass == C_TP && SF_BE[P][0][1]) {
-				get_sf_parametersF(OPSOut[0]->NvnS_SF,OPSOut[0]->NvnI_SF,OPSOut[0]->ChiS_vI,
-								   OPSOut[0]->NvnS_SF,OPSOut[0]->NfnI_SF,OPSOut[0]->ChiS_fI,NIn,NOut,OP,d,VfOut,C_TP);
+			if (VOut->Eclass == C_TP && (SF_BE[P][0][1] || Collocated)) {
+				if (SF_BE[P][0][1]) {
+					get_sf_parametersF(OPSOut[0]->NvnS_SF,OPSOut[0]->NvnI_SF,OPSOut[0]->ChiS_vI,
+					                   OPSOut[0]->NvnS_SF,OPSOut[0]->NfnI_SF,OPSOut[0]->ChiS_fI,NIn,NOut,OP,d,VfOut,C_TP);
 
 // Note: Needs modification for h-adaptation (ToBeDeleted)
-				if (Collocated) {
-					for (dim = 0; dim < d; dim++)
-						Diag[dim] = 2;
-					Diag[fOut/2] = 0;
-				} else {
-					for (dim = 0; dim < d; dim++)
-						Diag[dim] = 0;
-				}
+					if (Collocated) {
+						for (dim = 0; dim < d; dim++)
+							Diag[dim] = 2;
+						Diag[fOut/2] = 0;
+					} else {
+						for (dim = 0; dim < d; dim++)
+							Diag[dim] = 0;
+					}
 
-				sf_apply_d(VOut->What,WOut_fI,NIn,NOut,Nvar,OP,Diag,d);
+					sf_apply_d(VOut->What,WOut_fI,NIn,NOut,Nvar,OP,Diag,d);
+				} else { // Collocated
+					mm_CTN_CSR_d(NfnI,Nvar,NvnSOut,OPSOut[0]->ChiS_fI_sp[VfOut],VOut->What,WOut_fI);
+				}
 			} else if (VOut->Eclass == C_WEDGE && SF_BE[P][1][1]) {
 				; // update this with sum factorization
 			} else {

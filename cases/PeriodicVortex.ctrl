@@ -6,7 +6,7 @@
 
 BEGIN PARAMETERS
   Dimension  3
-  ML         4
+  ML         3
   MeshType   ToBeCurvedStructuredHEX
 
   Form       Weak  // Options: Weak, Strong
@@ -18,7 +18,7 @@ BEGIN PARAMETERS
   Collocated 1     // Options: 0, 1
   Adapt      0     // Options: 0 (Likely add h, p, hp options later)
 
-  PGlobal    2
+  PGlobal    4
   PMax       6
 
   Restart    -1    // Options: -1, 0, Iteration #

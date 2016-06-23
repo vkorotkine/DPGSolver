@@ -52,9 +52,7 @@ void test_imp_convert_to_CSR(void)
 
 	struct S_OpCSR *A_sp;
 
-	A_sp = malloc(sizeof *A_sp); // free
-
-	convert_to_CSR_d(NRows,NCols,A,A_sp);
+	convert_to_CSR_d(NRows,NCols,A,&A_sp);
 
 	pass = 0;
 	if (array_norm_diff_ui(6,A_sp->rowIndex,rowIndex55,"Inf") < EPS &&
@@ -66,5 +64,5 @@ void test_imp_convert_to_CSR(void)
 	printf("convert_to_CSR_d:                                ");
 	test_print(pass);
 
-	free(A_sp);
+	array_free1_CSR_d(A_sp);
 }

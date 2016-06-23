@@ -7,6 +7,7 @@
 
 #include "database.h"
 #include "parameters.h"
+#include "functions.h"
 
 #include "mkl.h"
 
@@ -1792,7 +1793,62 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 	}
 }
 
-void convert_to_CSR_d(const unsigned int NRows, const unsigned int NCols, const double *Input, struct S_OpCSR *Output)
+void mm_CTN_CSR_d(const int m, const int n, const int k, const struct S_OpCSR *A, double *B, double *C)
+{
+	/*
+	 *	Purpose:
+	 *		Compute matrix-matrix and matrix-vector products:
+	 *			0) return C = A'*B
+	 *			1) Row-major storage of A
+	 *			2) Column-major storage of B and C
+	 *
+	 *	Comments:
+	 *		Comparison with mkl_dcsrmm showed that the c code was faster for all cases considered, becoming increasingly
+	 *		better as the size of A was increased. This was surprising and will be further investigated in the future.
+	 *		As a result of the tests, only the c code is used here. (ToBeModified)
+	 *
+	 *		Note that entries 2 and 3 of matdescra are not used in this function. Further, entries 5 and 6 were reserved
+	 *		for future use by the intel MKL developers at the time that this function was written.
+	 *		Transposing of input B and then outputs B and C is required when using mkl_dcsrmm which seems to expect
+	 *		row-major ordering of all entries.
+	 */
+
+	// Standard datatypes
+	register unsigned int *rowIndex, *columns;
+	register double       *values;
+
+	register double *C_ptr = C;
+	for (register unsigned int l = 0, lMax = n; l < lMax; l++) {
+		register double *B_ptr = &B[l*k];
+		rowIndex = A->rowIndex;
+		columns  = A->columns;
+		values   = A->values;
+
+		for (register unsigned int i = 0, iMax = m; i < iMax; i++) {
+			*C_ptr = 0.0;
+			for (register unsigned int jInd = *rowIndex, jIndMax = *(++rowIndex); jInd < jIndMax; jInd++)
+				*C_ptr += (*values++)*B_ptr[*columns++];
+			C_ptr++;
+		}
+	}
+
+/*
+	// Code for mkl_dcsrmm function call
+	char transa = 'N', matdescra[6] = {'G','L','N','C'};
+	double alpha = 1.0, beta = 0.0;
+
+	rowIndex = A->rowIndex;
+	columns  = A->columns;
+	values   = A->values;
+
+	mkl_dimatcopy('C','T',k,n,1.0,B,k,n);
+	mkl_dcsrmm(&transa,&m,&n,&k,&alpha,matdescra,values,(int*)columns,(int*)rowIndex,(int*)&(rowIndex[1]),B,&n,&beta,C,&n);
+	mkl_dimatcopy('C','T',n,k,1.0,B,n,k);
+	mkl_dimatcopy('C','T',n,m,1.0,C,n,m);
+*/
+}
+
+void convert_to_CSR_d(const unsigned int NRows, const unsigned int NCols, const double *Input, struct S_OpCSR **Output)
 {
 	/*
 	 *	Purpose:
@@ -1809,6 +1865,8 @@ void convert_to_CSR_d(const unsigned int NRows, const unsigned int NCols, const 
 	unsigned int i, iInd, j, Nval,
 	             *rowIndex, *columns, *columnsOver;
 	double       *values, *valuesOver, tmp_d;
+
+	*Output = malloc(sizeof **Output); // keep
 
 	Nval = 0;
 	rowIndex    = malloc((NRows+1)   * sizeof *rowIndex);    // keep
@@ -1840,9 +1898,9 @@ void convert_to_CSR_d(const unsigned int NRows, const unsigned int NCols, const 
 	free(columnsOver);
 	free(valuesOver);
 
-	Output->NRows = NRows;
-	Output->NVals = Nval;
-	Output->rowIndex = rowIndex;
-	Output->columns = columns;
-	Output->values = values;
+	(*Output)->NRows = NRows;
+	(*Output)->NVals = Nval;
+	(*Output)->rowIndex = rowIndex;
+	(*Output)->columns = columns;
+	(*Output)->values = values;
 }
