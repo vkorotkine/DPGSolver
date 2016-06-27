@@ -14,8 +14,7 @@
  *		Evaluate the VOLUME contributions to the RHS term.
  *
  *	Comments:
- *		Need to add in support for sum factorization when working (ToBeDeleted).
- *		Compared with Matlab code on TRIs => Identical results. (ToBeDeleted)
+ *		Vectorization does not improve performance based on preliminary testing.
  *
  *	Notation:
  *
@@ -73,7 +72,6 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	ELEMENT = get_ELEMENT_type(type);
 	if ((Eclass == C_TP && SF_BE[P][0][0]) || (Eclass == C_WEDGE && SF_BE[P][1][0]))
 		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
-//	else if (Eclass == C_TP || Eclass == C_SI || Eclass == C_PYR || Eclass == C_WEDGE)
 	else
 		ELEMENT_OPS = ELEMENT;
 
@@ -114,12 +112,16 @@ static void compute_VOLUME_RHS_EFE(void)
 	unsigned int i, eq, dim1, dim2, P,
 	             IndFr, IndF, IndC, IndRHS, Eclass,
 	             NvnI, NvnS, NvnI_SF[2], NvnS_SF[2], NIn[3], NOut[3], Diag[3];
-	double       *W_vI, *F_vI, *Fr_vI, *C_vI, *RHS, *DFr, **D, *I, *OP[3];
+	double       *W_vI, *F_vI, *Fr_vI, *C_vI, *RHS, *DFr, **D, *I, *OP[3], *OP0, *OP1;
 
 	struct S_OpCSR **D_sp;
 
 	struct S_OPERATORS *OPS[2];
 	struct S_VOLUME    *VOLUME;
+
+	// silence
+	NvnI_SF[1] = 0;
+	NvnS_SF[1] = 0;
 
 	for (i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
@@ -154,7 +156,18 @@ static void compute_VOLUME_RHS_EFE(void)
 
 					sf_apply_d(VOLUME->What,W_vI,NIn,NOut,Nvar,OP,Diag,d);
 				} else if (Eclass == C_WEDGE && SF_BE[P][1][0]) {
+					for (i = 0; i < 2; i++) {
+						NvnS_SF[i] = OPS[i]->NvnS_SF;
+						NvnI_SF[i] = OPS[i]->NvnI_SF;
+					}
+					get_sf_parameters(NvnS_SF[0],NvnI_SF[0],OPS[0]->ChiS_vI,
+					                  NvnS_SF[1],NvnI_SF[1],OPS[1]->ChiS_vI,NIn,NOut,OP,d,3,Eclass);
 
+					for (dim2 = 0; dim2 < d; dim2++)
+						Diag[dim2] = 0;
+					Diag[1] = 2;
+
+					sf_apply_d(VOLUME->What,W_vI,NIn,NOut,Nvar,OP,Diag,d);
 				} else {
 					mm_CTN_d(NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->What,W_vI);
 				}
@@ -198,50 +211,78 @@ for (eq = 0; eq < Neq; eq++) {
 			VOLUME->RHS = RHS;
 
 			DFr = malloc(NvnS * sizeof *DFr); // free
-			if (Eclass == C_TP && (SF_BE[P][0][0] || Collocated)) {
-				if (SF_BE[P][0][0]) {
-					for (i = 0; i < 1; i++) {
-						NvnS_SF[i] = OPS[i]->NvnS_SF;
-						NvnI_SF[i] = OPS[i]->NvnI_SF;
+			if (Eclass == C_TP && SF_BE[P][0][0]) {
+				for (i = 0; i < 1; i++) {
+					NvnS_SF[i] = OPS[i]->NvnS_SF;
+					NvnI_SF[i] = OPS[i]->NvnI_SF;
+				}
+
+				I = OPS[0]->I_Weak;
+				D = OPS[0]->D_Weak;
+
+				for (dim1 = 0; dim1 < d; dim1++) {
+					get_sf_parameters(NvnI_SF[0],NvnS_SF[0],I,NvnI_SF[0],NvnS_SF[0],D[0],NIn,NOut,OP,d,dim1,Eclass);
+
+					if (Collocated) {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 2;
+						Diag[dim1] = 0;
+					} else {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 0;
 					}
-
-					I = OPS[0]->I_Weak;
-					D = OPS[0]->D_Weak;
-
-					for (dim1 = 0; dim1 < d; dim1++) {
-						get_sf_parameters(NvnI_SF[0],NvnS_SF[0],I,NvnI_SF[0],NvnS_SF[0],D[0],NIn,NOut,OP,d,dim1,Eclass);
-
-						if (Collocated) {
-							for (dim2 = 0; dim2 < d; dim2++)
-								Diag[dim2] = 2;
-							Diag[dim1] = 0;
-						} else {
-							for (dim2 = 0; dim2 < d; dim2++)
-								Diag[dim2] = 0;
-						}
-
-						for (eq = 0; eq < Neq; eq++) {
-							sf_apply_d(&Fr_vI[(eq*d+dim1)*NvnI],DFr,NIn,NOut,1,OP,Diag,d);
-
-							IndRHS = eq*NvnS;
-							for (i = 0; i < NvnS; i++)
-								RHS[IndRHS+i] += DFr[i];
-						}
-					}
-				} else { // Collocated
-					D_sp = OPS[0]->D_Weak_sp;
 
 					for (eq = 0; eq < Neq; eq++) {
-					for (dim1 = 0; dim1 < d; dim1++) {
-						mm_CTN_CSR_d(NvnS,1,NvnI,D_sp[dim1],&Fr_vI[(eq*d+dim1)*NvnI],DFr);
+						sf_apply_d(&Fr_vI[(eq*d+dim1)*NvnI],DFr,NIn,NOut,1,OP,Diag,d);
 
 						IndRHS = eq*NvnS;
 						for (i = 0; i < NvnS; i++)
 							RHS[IndRHS+i] += DFr[i];
-					}}
+					}
 				}
 			} else if (Eclass == C_WEDGE && SF_BE[P][1][0]) {
-				; // update this with sum factorization
+				for (i = 0; i < 2; i++) {
+					NvnS_SF[i] = OPS[i]->NvnS_SF;
+					NvnI_SF[i] = OPS[i]->NvnI_SF;
+				}
+
+				for (dim1 = 0; dim1 < d; dim1++) {
+					if (dim1 < 2) OP0 = OPS[0]->D_Weak[dim1], OP1 = OPS[1]->I_Weak;
+					else          OP0 = OPS[0]->I_Weak,       OP1 = OPS[1]->D_Weak[0];
+					get_sf_parameters(NvnI_SF[0],NvnS_SF[0],OP0,NvnI_SF[1],NvnS_SF[1],OP1,NIn,NOut,OP,d,3,Eclass);
+
+					if (Collocated) {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 2;
+						if (dim1 < 2)
+							Diag[0] = 0;
+						else
+							Diag[dim1] = 0;
+					} else {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 0;
+						Diag[1] = 2;
+					}
+
+					for (eq = 0; eq < Neq; eq++) {
+						sf_apply_d(&Fr_vI[(eq*d+dim1)*NvnI],DFr,NIn,NOut,1,OP,Diag,d);
+
+						IndRHS = eq*NvnS;
+						for (i = 0; i < NvnS; i++)
+							RHS[IndRHS+i] += DFr[i];
+					}
+				}
+			} else if (Collocated && (Eclass == C_TP || Eclass == C_WEDGE)) {
+				D_sp = OPS[0]->D_Weak_sp;
+
+				for (eq = 0; eq < Neq; eq++) {
+				for (dim1 = 0; dim1 < d; dim1++) {
+					mm_CTN_CSR_d(NvnS,1,NvnI,D_sp[dim1],&Fr_vI[(eq*d+dim1)*NvnI],DFr);
+
+					IndRHS = eq*NvnS;
+					for (i = 0; i < NvnS; i++)
+						RHS[IndRHS+i] += DFr[i];
+				}}
 			} else {
 				D = OPS[0]->D_Weak;
 
@@ -288,7 +329,7 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 	             NvnS_SF[2], NvnI_SF[2], NIn[3], NOut[3], Diag[3];
 	double       *What_vS, *W_vI, **What_vS_ptr, *What, *WhatVec, *F_vI, *Fr_vI,
 	             **C_vI_ptr, *C_vIl, *C_vI, *C_vIVec,
-	             **RHS_ptr, *RHSl, *RHS, *RHSVec, *DFr, **D, *I, *OP[3];
+	             **RHS_ptr, *RHSl, *RHS, *RHSVec, *DFr, **D, *I, *OP[3], *OP0, *OP1;
 
 	struct S_OpCSR **D_sp;
 
@@ -371,7 +412,17 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 
 					sf_apply_d(What_vS,W_vI,NIn,NOut,NV*Nvar,OP,Diag,d);
 				} else if (Eclass == C_WEDGE && SF_BE[P][1][0]) {
+					for (i = 0; i < 2; i++) {
+						NvnS_SF[i] = OPS[i]->NvnS_SF;
+						NvnI_SF[i] = OPS[i]->NvnI_SF;
+					}
+					get_sf_parameters(NvnS_SF[0],NvnI_SF[0],OPS[0]->ChiS_vI,
+					                  NvnS_SF[1],NvnI_SF[1],OPS[1]->ChiS_vI,NIn,NOut,OP,d,3,Eclass);
 
+					for (dim2 = 0; dim2 < d; dim2++)
+						Diag[dim2] = 0;
+
+					sf_apply_d(What_vS,W_vI,NIn,NOut,NV*Nvar,OP,Diag,d);
 				} else {
 					mm_CTN_d(NvnI,NV*Nvar,NvnS,OPS[0]->ChiS_vI,What_vS,W_vI);
 				}
@@ -406,50 +457,77 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 			// Compute RHS terms
 			DFr = malloc(NvnS*NV * sizeof *DFr); // free
 			RHS = calloc(NvnS*NV*Neq , sizeof *RHS); // free
-			if (Eclass == C_TP && (SF_BE[P][0][0] || Collocated)) {
-				if (SF_BE[P][0][0]) {
-					for (i = 0; i < 1; i++) {
-						NvnS_SF[i] = OPS[i]->NvnS_SF;
-						NvnI_SF[i] = OPS[i]->NvnI_SF;
+			if (Eclass == C_TP && SF_BE[P][0][0]) {
+				for (i = 0; i < 1; i++) {
+					NvnS_SF[i] = OPS[i]->NvnS_SF;
+					NvnI_SF[i] = OPS[i]->NvnI_SF;
+				}
+
+				I = OPS[0]->I_Weak;
+				D = OPS[0]->D_Weak;
+
+				for (dim1 = 0; dim1 < d; dim1++) {
+					get_sf_parameters(NvnI_SF[0],NvnS_SF[0],I,NvnI_SF[0],NvnS_SF[0],D[0],NIn,NOut,OP,d,dim1,Eclass);
+
+					if (Collocated) {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 2;
+						Diag[dim1] = 0;
+					} else {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 0;
 					}
-
-					I = OPS[0]->I_Weak;
-					D = OPS[0]->D_Weak;
-
-					for (dim1 = 0; dim1 < d; dim1++) {
-						get_sf_parameters(NvnI_SF[0],NvnS_SF[0],I,NvnI_SF[0],NvnS_SF[0],D[0],NIn,NOut,OP,d,dim1,Eclass);
-
-						if (Collocated) {
-							for (dim2 = 0; dim2 < d; dim2++)
-								Diag[dim2] = 2;
-							Diag[dim1] = 0;
-						} else {
-							for (dim2 = 0; dim2 < d; dim2++)
-								Diag[dim2] = 0;
-						}
-
-						for (eq = 0; eq < Neq; eq++) {
-							sf_apply_d(&Fr_vI[(eq*d+dim1)*NvnI*NV],DFr,NIn,NOut,NV,OP,Diag,d);
-
-							IndRHS = eq*NvnS*NV;
-							for (i = 0, iMax = NvnS*NV; i < iMax; i++)
-								RHS[IndRHS+i] += DFr[i];
-						}
-					}
-				} else { // Collocated
-					D_sp = OPS[0]->D_Weak_sp;
 
 					for (eq = 0; eq < Neq; eq++) {
-					for (dim1 = 0; dim1 < d; dim1++) {
-						mm_CTN_CSR_d(NvnS,NV,NvnI,D_sp[dim1],&Fr_vI[(eq*d+dim1)*NvnI*NV],DFr);
+						sf_apply_d(&Fr_vI[(eq*d+dim1)*NvnI*NV],DFr,NIn,NOut,NV,OP,Diag,d);
 
 						IndRHS = eq*NvnS*NV;
 						for (i = 0, iMax = NvnS*NV; i < iMax; i++)
 							RHS[IndRHS+i] += DFr[i];
-					}}
+					}
 				}
 			} else if (Eclass == C_WEDGE && SF_BE[P][1][0]) {
-				; // update this with sum factorization
+				for (i = 0; i < 2; i++) {
+					NvnS_SF[i] = OPS[i]->NvnS_SF;
+					NvnI_SF[i] = OPS[i]->NvnI_SF;
+				}
+
+				for (dim1 = 0; dim1 < d; dim1++) {
+					if (dim1 < 2) OP0 = OPS[0]->D_Weak[dim1], OP1 = OPS[1]->I_Weak;
+					else          OP0 = OPS[0]->I_Weak,       OP1 = OPS[1]->D_Weak[0];
+					get_sf_parameters(NvnI_SF[0],NvnS_SF[0],OP0,NvnI_SF[1],NvnS_SF[1],OP1,NIn,NOut,OP,d,3,Eclass);
+
+					if (Collocated) {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 2;
+						if (dim1 < 2)
+							Diag[0] = 0;
+						else
+							Diag[dim1] = 0;
+					} else {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 0;
+					}
+
+					for (eq = 0; eq < Neq; eq++) {
+						sf_apply_d(&Fr_vI[(eq*d+dim1)*NvnI*NV],DFr,NIn,NOut,NV,OP,Diag,d);
+
+						IndRHS = eq*NvnS*NV;
+						for (i = 0, iMax = NvnS*NV; i < iMax; i++)
+							RHS[IndRHS+i] += DFr[i];
+					}
+				}
+			} else if (Collocated && (Eclass == C_TP || Eclass == C_WEDGE)) {
+				D_sp = OPS[0]->D_Weak_sp;
+
+				for (eq = 0; eq < Neq; eq++) {
+				for (dim1 = 0; dim1 < d; dim1++) {
+					mm_CTN_CSR_d(NvnS,NV,NvnI,D_sp[dim1],&Fr_vI[(eq*d+dim1)*NvnI*NV],DFr);
+
+					IndRHS = eq*NvnS*NV;
+					for (i = 0, iMax = NvnS*NV; i < iMax; i++)
+						RHS[IndRHS+i] += DFr[i];
+				}}
 			} else {
 				DFr = malloc(NvnS*NV * sizeof *DFr); // free
 				D = OPS[0]->D_Weak;

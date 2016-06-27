@@ -45,6 +45,11 @@
  *			PYR Elements:
  *				ToBeModified
  *
+ *		For the collocated scheme, it is advantageous to use WV nodes for TET FACET cubature nodes as they have better
+ *		integration properties and there is no collocated with the FACET between the 2D and 3D WSH nodes anyways.
+ *		However, if WEDGEs are also present, this cannot be done as it destroys the sum factorization capabilities.
+ *		Perhaps make a modification to allow for this in the future when only TETs are present. (ToBeDeleted)
+ *
  *	Notation:
  *		NP       : (N)umber of (P)olynomial orders available
  *		NEC      : (N)umber of (E)lement (C)lasses
@@ -195,20 +200,17 @@ void setup_parameters()
 	// Order dependent parameters
 	for (P = 0; P <= PMax; P++) {
 		// Sum Factorization
-		SF_BE[P] = malloc(2 * sizeof **SF_BE); 
+		SF_BE[P] = malloc(2 * sizeof **SF_BE);
 		for (i = 0; i < 2; i++)
 			SF_BE[P][i] = calloc(2 , sizeof ***SF_BE);
 
 		// TP (2D is possibly higher than P8, 3D was tested on the PeriodicVortex case)
-		if (d == 1 || (d == 2 && P > 8) || (d == 3 && P > 2)) SF_BE[P][0][0] = 1; // ToBeModified
-		if (d == 1 || (d == 2 && P > 8) || (d == 3 && P > 2)) SF_BE[P][0][1] = 1; // ToBeModified
+		if (d == 1 || (d == 2 && P > 8) || (d == 3 && P > 2)) SF_BE[P][0][0] = 1;
+		if (d == 1 || (d == 2 && P > 8) || (d == 3 && P > 2)) SF_BE[P][0][1] = 1;
 
 		// WEDGE
-		if (d == 3 && P > 99) SF_BE[P][1][0] = 1; // ToBeModified
-		if (d == 3 && P > 99) SF_BE[P][1][1] = 1; // ToBeModified
-
-		if (SF_BE[P][0][0] || SF_BE[P][0][1] || SF_BE[P][1][0] || SF_BE[P][1][1])
-			printf("    Using Sum Factorized Operators for P%d.\n",P);
+		if (d == 3 && P > 4) SF_BE[P][1][0] = 1;
+		if (d == 3 && P > 4) SF_BE[P][1][1] = 1;
 
 		// Geometry
 		PCs[P] = malloc(NEC * sizeof **PCs); // keep
@@ -459,8 +461,10 @@ PIvc[P][2] = floor(1.0*IntOrdervc/2.0+1.0);
 					strcpy(NodeTypeIfc[P][1],"GL");
 				}
 			} else if (d == 3) {
-				strcpy(NodeTypeIfs[P][1],"WV");
-				strcpy(NodeTypeIfc[P][1],"WV");
+				strcpy(NodeTypeIfs[P][1],"WSH");
+				strcpy(NodeTypeIfc[P][1],"WSH");
+//				strcpy(NodeTypeIfs[P][1],"WV");
+//				strcpy(NodeTypeIfc[P][1],"WV");
 			}
 
 			// PYR

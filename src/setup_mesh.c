@@ -228,11 +228,16 @@ void setup_mesh()
 	}
 
 	// Ensure that 2D ELEMENTs are marked correctly on 3D mixed meshes
+	printf("      ELEMENT types present: ");
 	for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
 		type = ELEMENT->type;
 		if ((type == TRI && TRIpresent) || (type == QUAD && QUADpresent))
 			ELEMENT->present = 1;
+
+		if (ELEMENT->present)
+			printf("%d, ",type);
 	}
+	printf("\n");
 
 	if (DB.d == 1) {
 		NfMax    = 2;

@@ -21,10 +21,10 @@
  *		whether adaptivity is desired:
  *			LINE  : Standard operators + additional SF operators if QUADs are present (standard assembly)
  *			TRI   : Standard operators + additional SF operators if WEDGEs are present (standard assembly)
- *			QUAD  : Standard operators (TP asssembly)
+ *			QUAD  : Standard operators + sparse versions of heavily used operators (TP asssembly)
  *			TET   : Standard operators (standard assembly)
- *			HEX   : Standard operators (TP asssembly)
- *			WEDGE : Standard operators (TP asssembly)
+ *			HEX   : Standard operators + sparse versions of heavily used operators (TP asssembly)
+ *			WEDGE : Standard operators + sparse versions of heavily used operators (TP asssembly)
  *			PYR   : Standard operators (standard assembly)
  *
  *			This is done so that the only operators computed are those which are used. The additional SF operators are
@@ -40,8 +40,9 @@
  *			can be done when sum factorization is included in the solver).
  *
  *		Standard (i.e. non sum-factorized) operators are used for all functions which are not performance critical in
- *		order to improve code readability. (ToBeModified)
+ *		order to improve code readability.
  *		Ensure that operators for hp refinement are only stored when refinement is enabled (ToBeDeleted).
+ *
  *		For the PYR element rst_vGs != E_rst_vC because of the TP structures of the TP nodes and the rotational symmetry
  *		ordering of the PYR nodes in layers of 't'. This means that special consideration must be made if attempting to
  *		use the rotational symmetry of rst_vGs PYR nodes.
@@ -124,8 +125,13 @@
  *		        [1] : Order of the element from which you are interpolating with differentiation
  *		        [2] : Index of dimension of the operator
  *
+ *		*_sp : Standard (*) operator stored in (sp)arse format ((C)ompressed (S)parse (R)ow), only used for TP ELEMENTs.
+ *
+ *	setup_ELEMENT_VeV:
  *	setup_ELEMENT_VeF:
- *		VeF : (Ve)rtex to (F)acet operator used to project VOLUME vertex nodes to FACET vertex nodes for all supported
+ *		VeV : (Ve)rtex to (V)OLUME operator used to project VOLUME vertex nodes to VOLUME vertex nodes for all supported
+ *		      h-refinements.
+ *		VeF : (Ve)rtex to (F)ACET operator used to project VOLUME vertex nodes to FACET vertex nodes for all supported
  *		      h-refinements.
  *
  *	sf_assemble_d/get_sf_parameters:
@@ -150,7 +156,7 @@
  *			rd   : (r)ange (d)imension == 0:d-1
  *
  *		                   Adapt
- *		Returned Op (SF) | 0               1                   2               3
+ *		Returned Op (SF) | ADAPT_0         ADAPT_P             ADAPT_H         ADAPT_HP
  *		                 |
  *		NvnGs            | [0]             [0]                 [0]             [0]
  *		NvnGc            | [P]             [rP]                [P]             [rP]
@@ -161,6 +167,9 @@
  *		NfnIs            | [P][0:1]        [rP][0:1]           [P][2]          [rP][0:1]
  *		NfnIc            |
  *		                 |
+ *		w_vIs            | [P]             [rP]                [P]             [rP]
+ *		w_vIc            |
+ *
  *		ChiS_vP          | [P][PP][0]      [rP][PP][0]         [P][PP][0]      [rP][PP][0]
  *		ChiS_vIs     (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rPb][*]
  *		ChiS_vIc     (*) |
@@ -208,6 +217,16 @@
  *		Ic_Weak_VV       |
  *		Ds_Weak_VV       | [P][P][0][rd]   [rP][P(P)][0][rd]   [P][P][0][rd]   [rP][P(P)][0][rd]
  *		Dc_Weak_VV       |
+ *		                 |
+ *		Is_Weak_FF       | [P][P][^]       [rP][rPb][^]       [P][P][^^]      [rP][rPb][^^]
+ *		Ic_Weak_FF       |
+ *		                 |
+ *		ChiS_fIs_sp      | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rPb][^^]
+ *		ChiS_fIc_sp      |
+ *		Ds_Weak_VV_sp    | [P][P][0][rd]   [rP][P(P)][0][rd]   [P][P][0][rd]   [rP][P(P)][0][rd]
+ *		Dc_Weak_VV_sp    |
+ *		Is_Weak_FF_sp    | [P][P][^]       [rP][rPb][^]       [P][P][^^]      [rP][rPb][^^]
+ *		Ic_Weak_FF_sp    |
  *
  *
  *	References:
@@ -1804,7 +1823,7 @@ static void setup_TP_operators(const unsigned int EType)
 	             Collocated = DB.Collocated;
 
 	// Standard datatypes
-	unsigned int dim, P, f, fh, Pb, PSMin, PSMax, PbMin, PbMax, *fhMax,
+	unsigned int dim, P, f, fh, Pb, PSMin, PSMax, PbMin, PbMax, *fhMax, IndClass,
 	             Eclass, dE, Nf, Vf, *Nfref, *ones_Nf,
 	             NIn[3], NOut[3];
 	double       *OP[3];
@@ -2015,20 +2034,6 @@ static void setup_TP_operators(const unsigned int EType)
 					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 					I_vCc_vIc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
-					if (EFE) {
-						// Not needed (ToBeDeleted)
-/*
-						get_sf_parameters(ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_VV[P][Pb][0],
-						                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
-						Is_Weak_VV[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-						get_sf_parameters(ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_VV[P][Pb][0],
-						                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
-						Ic_Weak_VV[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-*/
-					} else {
-						;
-					}
-
 					for (dim = 0; dim < dE; dim++) {
 						get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnCs[Pb],ELEMENTclass[0]->I_vGs_vCs[P][Pb][0],
 						                  ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnCs[Pb],ELEMENTclass[0]->D_vGs_vCs[P][Pb][0][0],
@@ -2216,6 +2221,10 @@ static void setup_TP_operators(const unsigned int EType)
 					                  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnS[Pb],ELEMENTclass[1]->I_vGs_vS[P][Pb][0],
 					                  NIn,NOut,OP,dE,3,Eclass);
 					I_vGs_vS[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					get_sf_parameters(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->I_vGs_vIs[P][Pb][0],
+					                  ELEMENTclass[1]->NvnGs[0],ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->I_vGs_vIs[P][Pb][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
+					I_vGs_vIs[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnP,ELEMENTclass[0]->I_vGc_vP[P][PP][0],
 					                  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnP,ELEMENTclass[1]->I_vGc_vP[P][PP][0],
 					                  NIn,NOut,OP,dE,3,Eclass);
@@ -2228,6 +2237,10 @@ static void setup_TP_operators(const unsigned int EType)
 					                  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnS[Pb],ELEMENTclass[1]->I_vGc_vS[P][Pb][0],
 					                  NIn,NOut,OP,dE,3,Eclass);
 					I_vGc_vS[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->I_vGc_vIc[P][Pb][0],
+					                  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->I_vGc_vIc[P][Pb][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
+					I_vGc_vIc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->I_vCs_vIs[P][Pb][0],
 					                  ELEMENTclass[1]->NvnCs[P],ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->I_vCs_vIs[P][Pb][0],
 					                  NIn,NOut,OP,dE,3,Eclass);
@@ -2301,6 +2314,11 @@ static void setup_TP_operators(const unsigned int EType)
 							get_sf_parameters(ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],OP0,
 							                  ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->NvnS[P],OP1,NIn,NOut,OP,dE,3,Eclass);
 							Dc_Weak_VV[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
+							if (Collocated) {
+								convert_to_CSR_d(NvnS[P],NvnIs[Pb],Ds_Weak_VV[P][Pb][0][dim],&Ds_Weak_VV_sp[P][Pb][0][dim]); // keep
+								convert_to_CSR_d(NvnS[P],NvnIc[Pb],Dc_Weak_VV[P][Pb][0][dim],&Dc_Weak_VV_sp[P][Pb][0][dim]); // keep
+							}
 						} else {
 							;
 						}
@@ -2340,6 +2358,17 @@ static void setup_TP_operators(const unsigned int EType)
 					get_sf_parametersF(NIn0,ELEMENTclass[0]->NvnS[P],OPF0,
 					                   NIn1,ELEMENTclass[1]->NvnS[P],OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 					Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
+					if (Collocated) {
+						if (f < 3) IndClass = 0;
+						else       IndClass = 1;
+
+						convert_to_CSR_d(NfnIs[Pb][IndClass],NvnS[P],ChiS_fIs[P][Pb][Vf],&ChiS_fIs_sp[P][Pb][Vf]); // keep
+						convert_to_CSR_d(NfnIc[Pb][IndClass],NvnS[P],ChiS_fIc[P][Pb][Vf],&ChiS_fIc_sp[P][Pb][Vf]); // keep
+
+						convert_to_CSR_d(NvnS[P],NfnIs[Pb][IndClass],Is_Weak_FF[P][Pb][Vf],&Is_Weak_FF_sp[P][Pb][Vf]); // keep
+						convert_to_CSR_d(NvnS[P],NfnIc[Pb][IndClass],Ic_Weak_FF[P][Pb][Vf],&Ic_Weak_FF_sp[P][Pb][Vf]); // keep
+					}
 
 					if (fh == 0) {
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vGs_fIs[P][Pb], OPF1  = ELEMENTclass[1]->I_vGs_vIs[P][Pb];
@@ -2466,7 +2495,6 @@ static void setup_ELEMENT_FACET_ordering(const unsigned int FType)
 			get_facet_ordering(d,IndOrd,FType,NfnIs,NsIs,symms_fIs,rst_fIs,nOrd_fIs[P][IndOrd]);
 			get_facet_ordering(d,IndOrd,FType,NfnIc,NsIc,symms_fIc,rst_fIc,nOrd_fIc[P][IndOrd]);
 		}
-
 		free(rst_fIs);
 		free(rst_fIc);
 		free(symms_fIs);

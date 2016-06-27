@@ -9,9 +9,6 @@
 #include "parameters.h"
 #include "functions.h"
 
-// Can likely be removed later (ToBeDeleted)
-#include "math.h"
-
 /*
  *	Purpose:
  *		Evaluate the FACET contributions to the RHS term.
@@ -29,6 +26,10 @@
  *
  *		When adding in MPI functionality, will not have access to VIn/VOut => Store what is needed for each FACET in an
  *		MPI communication routine before running this function. (ToBeDeleted)
+ *
+ *		Vectorization is more involved for FACET terms as there are many more possible combinations than for VOLUME
+ *		terms. Given that the VOLUME vectorization seems not to have a significant impact on performance, the FACET
+ *		vectorization may not be pursued. (ToBeDeleted)
  *
  *	Notation:
  *
@@ -56,7 +57,7 @@ void explicit_FACET_info(void)
 	             Adapt      = DB.Adapt;
 
 	switch (Adapt) {
-	case 0:
+	case ADAPT_0:
 		switch (Vectorized) {
 		case 0:
 			compute_FACET_RHS_EFE();
@@ -67,9 +68,9 @@ void explicit_FACET_info(void)
 			break;
 		}
 		break;
-	case 1:
-	case 2:
-	case 3:
+	case ADAPT_P:
+	case ADAPT_H:
+	case ADAPT_HP:
 	default:
 		switch (Vectorized) {
 		case 0:
@@ -124,7 +125,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	if (FtypeInt == 's') {
 		// Straight FACET Integration
 		OPS->NfnI    = ELEMENT->NfnIs[PF][IndClass];
-		OPS->NfnI_SF = ELEMENT_OPS->NfnIs[PF][IndClass];
+		OPS->NfnI_SF = ELEMENT_OPS->NfnIs[PF][0];
 		OPS->NvnI_SF = ELEMENT_OPS->NvnIs[PF];
 
 		OPS->ChiS_fI   = ELEMENT_OPS->ChiS_fIs[PV][PF];
@@ -140,7 +141,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	} else {
 		// Curved FACET Integration
 		OPS->NfnI    = ELEMENT->NfnIc[PF][IndClass];
-		OPS->NfnI_SF = ELEMENT_OPS->NfnIc[PF][IndClass];
+		OPS->NfnI_SF = ELEMENT_OPS->NfnIc[PF][0];
 		OPS->NvnI_SF = ELEMENT_OPS->NvnIc[PF];
 
 		OPS->ChiS_fI   = ELEMENT_OPS->ChiS_fIc[PV][PF];
@@ -173,8 +174,8 @@ static void compute_FACET_RHS_EFE(void)
 	             VfIn, VfOut, fIn, fOut, Eclass, IndFType, Boundary, BC, BC_trail,
 	             RowInd, RowSub, ReOrder, *RowTracker,
 	             NfnI, NvnSIn, NvnSOut, *nOrdOutIn, *nOrdInOut,
-	             NIn[3], NOut[3], Diag[3];
-	double       *WIn_fI, *WOut_fI, *WOut_fIIn, *nFluxNum_fI, *RHSIn, *RHSOut, *n_fI, *detJF_fI, *OP[3];
+	             NIn[3], NOut[3], Diag[3], NOut0, NOut1, NIn0, NIn1;
+	double       *WIn_fI, *WOut_fI, *WOut_fIIn, *nFluxNum_fI, *RHSIn, *RHSOut, *n_fI, *detJF_fI, *OP[3], **OPF0, **OPF1;
 
 	struct S_OPERATORS *OPSIn[2], *OPSOut[2];
 	struct S_VOLUME    *VIn, *VOut;
@@ -201,7 +202,7 @@ static void compute_FACET_RHS_EFE(void)
 		Eclass = get_Eclass(VIn->type);
 		IndFType = get_IndFType(Eclass,fIn);
 		init_ops(OPSIn[0],VIn,FACET,0);
-		if (VIn->type == WEDGE)
+		if (VIn->type == WEDGE || VIn->type == PYR)
 			init_ops(OPSIn[1],VIn,FACET,1);
 
 		VOut  = FACET->VOut;
@@ -210,7 +211,7 @@ static void compute_FACET_RHS_EFE(void)
 
 		Eclass = get_Eclass(VOut->type);
 		init_ops(OPSOut[0],VOut,FACET,0);
-		if (VOut->type == WEDGE)
+		if (VOut->type == WEDGE || VOut->type == PYR)
 			init_ops(OPSOut[1],VOut,FACET,1);
 
 		BC = FACET->BC;
@@ -218,31 +219,52 @@ static void compute_FACET_RHS_EFE(void)
 		// The second condition is for periodic elements which are connected to themselves
 
 		// Compute WIn_fI
-		NfnI   = OPSIn[0]->NfnI;
-		NvnSIn = OPSIn[0]->NvnS;
+		NfnI   = OPSIn[IndFType]->NfnI;
+		NvnSIn = OPSIn[IndFType]->NvnS;
 
 		WIn_fI = malloc(NfnI*Nvar * sizeof *WIn_fI); // free
-		if (VIn->Eclass == C_TP && (SF_BE[P][0][1] || Collocated)) {
-			if (SF_BE[P][0][1]) {
-				get_sf_parametersF(OPSIn[0]->NvnS_SF,OPSIn[0]->NvnI_SF,OPSIn[0]->ChiS_vI,
-				                   OPSIn[0]->NvnS_SF,OPSIn[0]->NfnI_SF,OPSIn[0]->ChiS_fI,NIn,NOut,OP,d,VfIn,C_TP);
+		if (VIn->Eclass == C_TP && SF_BE[P][0][1]) {
+			get_sf_parametersF(OPSIn[0]->NvnS_SF,OPSIn[0]->NvnI_SF,OPSIn[0]->ChiS_vI,
+							   OPSIn[0]->NvnS_SF,OPSIn[0]->NfnI_SF,OPSIn[0]->ChiS_fI,NIn,NOut,OP,d,VfIn,C_TP);
 
 // Note: Needs modification for h-adaptation (ToBeDeleted)
-				if (Collocated) {
-					for (dim = 0; dim < d; dim++)
-						Diag[dim] = 2;
-					Diag[fIn/2] = 0;
-				} else {
-					for (dim = 0; dim < d; dim++)
-						Diag[dim] = 0;
-				}
-
-				sf_apply_d(VIn->What,WIn_fI,NIn,NOut,Nvar,OP,Diag,d);
-			} else { // Collocated
-				mm_CTN_CSR_d(NfnI,Nvar,NvnSIn,OPSIn[0]->ChiS_fI_sp[VfIn],VIn->What,WIn_fI);
+			if (Collocated) {
+				for (dim = 0; dim < d; dim++)
+					Diag[dim] = 2;
+				Diag[fIn/2] = 0;
+			} else {
+				for (dim = 0; dim < d; dim++)
+					Diag[dim] = 0;
+				Diag[1] = 2;
 			}
+
+			sf_apply_d(VIn->What,WIn_fI,NIn,NOut,Nvar,OP,Diag,d);
 		} else if (VIn->Eclass == C_WEDGE && SF_BE[P][1][1]) {
-			; // update this with sum factorization
+			if (fIn < 3) { OPF0  = OPSIn[0]->ChiS_fI, OPF1  = OPSIn[1]->ChiS_vI;
+			               NOut0 = OPSIn[0]->NfnI_SF, NOut1 = OPSIn[1]->NvnI_SF;
+			} else {       OPF0  = OPSIn[0]->ChiS_vI, OPF1  = OPSIn[1]->ChiS_fI;
+			               NOut0 = OPSIn[0]->NvnI_SF, NOut1 = OPSIn[1]->NfnI_SF; }
+			get_sf_parametersF(OPSIn[0]->NvnS_SF,NOut0,OPF0,OPSIn[1]->NvnS_SF,NOut1,OPF1,NIn,NOut,OP,d,VfIn,C_WEDGE);
+
+// Note: Needs modification for h-adaptation (ToBeDeleted)
+			if (Collocated) {
+				for (dim = 0; dim < d; dim++)
+					Diag[dim] = 2;
+				if (fIn < 3)
+					Diag[0] = 0;
+				else
+					Diag[2] = 0;
+			} else {
+				for (dim = 0; dim < d; dim++)
+					Diag[dim] = 0;
+				Diag[1] = 2;
+			}
+
+			sf_apply_d(VIn->What,WIn_fI,NIn,NOut,Nvar,OP,Diag,d);
+		} else if (Collocated && (VIn->Eclass == C_TP || VIn->Eclass == C_WEDGE)) {
+// Note: May need modification for h-adaptation (ToBeDeleted)
+//       The operator is not necessarily sparse in this case.
+			mm_CTN_CSR_d(NfnI,Nvar,NvnSIn,OPSIn[0]->ChiS_fI_sp[VfIn],VIn->What,WIn_fI);
 		} else {
 			mm_CTN_d(NfnI,Nvar,NvnSIn,OPSIn[0]->ChiS_fI[VfIn],VIn->What,WIn_fI);
 		}
@@ -257,27 +279,46 @@ static void compute_FACET_RHS_EFE(void)
 		WOut_fI = malloc(NfnI*Nvar * sizeof *WOut_fI); // free
 		WOut_fIIn = malloc(NfnI*Nvar * sizeof *WOut_fIIn); // free
 		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACET
-			if (VOut->Eclass == C_TP && (SF_BE[P][0][1] || Collocated)) {
-				if (SF_BE[P][0][1]) {
-					get_sf_parametersF(OPSOut[0]->NvnS_SF,OPSOut[0]->NvnI_SF,OPSOut[0]->ChiS_vI,
-					                   OPSOut[0]->NvnS_SF,OPSOut[0]->NfnI_SF,OPSOut[0]->ChiS_fI,NIn,NOut,OP,d,VfOut,C_TP);
+			if (VOut->Eclass == C_TP && SF_BE[P][0][1]) {
+				get_sf_parametersF(OPSOut[0]->NvnS_SF,OPSOut[0]->NvnI_SF,OPSOut[0]->ChiS_vI,
+								   OPSOut[0]->NvnS_SF,OPSOut[0]->NfnI_SF,OPSOut[0]->ChiS_fI,NIn,NOut,OP,d,VfOut,C_TP);
 
 // Note: Needs modification for h-adaptation (ToBeDeleted)
-					if (Collocated) {
-						for (dim = 0; dim < d; dim++)
-							Diag[dim] = 2;
-						Diag[fOut/2] = 0;
-					} else {
-						for (dim = 0; dim < d; dim++)
-							Diag[dim] = 0;
-					}
-
-					sf_apply_d(VOut->What,WOut_fI,NIn,NOut,Nvar,OP,Diag,d);
-				} else { // Collocated
-					mm_CTN_CSR_d(NfnI,Nvar,NvnSOut,OPSOut[0]->ChiS_fI_sp[VfOut],VOut->What,WOut_fI);
+				if (Collocated) {
+					for (dim = 0; dim < d; dim++)
+						Diag[dim] = 2;
+					Diag[fOut/2] = 0;
+				} else {
+					for (dim = 0; dim < d; dim++)
+						Diag[dim] = 0;
+					Diag[1] = 2;
 				}
+
+				sf_apply_d(VOut->What,WOut_fI,NIn,NOut,Nvar,OP,Diag,d);
 			} else if (VOut->Eclass == C_WEDGE && SF_BE[P][1][1]) {
-				; // update this with sum factorization
+				if (fOut < 3) { OPF0  = OPSOut[0]->ChiS_fI, OPF1  = OPSOut[1]->ChiS_vI;
+				                NOut0 = OPSOut[0]->NfnI_SF, NOut1 = OPSOut[1]->NvnI_SF;
+				} else {        OPF0  = OPSOut[0]->ChiS_vI, OPF1  = OPSOut[1]->ChiS_fI;
+				                NOut0 = OPSOut[0]->NvnI_SF, NOut1 = OPSOut[1]->NfnI_SF; }
+				get_sf_parametersF(OPSOut[0]->NvnS_SF,NOut0,OPF0,OPSOut[1]->NvnS_SF,NOut1,OPF1,NIn,NOut,OP,d,VfOut,C_WEDGE);
+
+// Note: Needs modification for h-adaptation (ToBeDeleted)
+				if (Collocated) {
+					for (dim = 0; dim < d; dim++)
+						Diag[dim] = 2;
+					if (fOut < 3)
+						Diag[0] = 0;
+					else
+						Diag[2] = 0;
+				} else {
+					for (dim = 0; dim < d; dim++)
+						Diag[dim] = 0;
+					Diag[1] = 2;
+				}
+
+				sf_apply_d(VOut->What,WOut_fI,NIn,NOut,Nvar,OP,Diag,d);
+			} else if (Collocated && (VOut->Eclass == C_TP || VOut->Eclass == C_WEDGE)) {
+				mm_CTN_CSR_d(NfnI,Nvar,NvnSOut,OPSOut[0]->ChiS_fI_sp[VfOut],VOut->What,WOut_fI);
 			} else {
 				mm_CTN_d(NfnI,Nvar,NvnSOut,OPSOut[0]->ChiS_fI[VfOut],VOut->What,WOut_fI);
 			}
@@ -308,6 +349,9 @@ static void compute_FACET_RHS_EFE(void)
 printf("%d\n",FACET->indexg);
 array_print_d(NfnI,Nvar,WIn_fI,'C');
 array_print_d(NfnI,Nvar,WOut_fIIn,'C');
+//if (FACET->indexg == 2)
+//	exit(1);
+//exit(1);
 */
 
 		// Compute numerical flux
@@ -354,27 +398,46 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 
 		if (strstr(Form,"Weak") != NULL) {
 			// Interior FACET
-			if (VIn->Eclass == C_TP && (SF_BE[P][0][1] || Collocated)) {
-				if (SF_BE[P][0][1]) {
-					get_sf_parametersF(OPSIn[0]->NvnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_VV,
-									   OPSIn[0]->NfnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_FF,NIn,NOut,OP,d,VfIn,C_TP);
+			if (VIn->Eclass == C_TP && SF_BE[P][0][1]) {
+				get_sf_parametersF(OPSIn[0]->NvnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_VV,
+								   OPSIn[0]->NfnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_FF,NIn,NOut,OP,d,VfIn,C_TP);
 
 // Note: Needs modification for h-adaptation (ToBeDeleted)
-					if (Collocated) {
-						for (dim = 0; dim < d; dim++)
-							Diag[dim] = 2;
-						Diag[fIn/2] = 0;
-					} else {
-						for (dim = 0; dim < d; dim++)
-							Diag[dim] = 0;
-					}
-
-					sf_apply_d(nFluxNum_fI,RHSIn,NIn,NOut,Neq,OP,Diag,d);
-				} else { // Collocated
-					mm_CTN_CSR_d(NvnSIn,Neq,NfnI,OPSIn[0]->I_Weak_FF_sp[VfIn],nFluxNum_fI,RHSIn);
+				if (Collocated) {
+					for (dim = 0; dim < d; dim++)
+						Diag[dim] = 2;
+					Diag[fIn/2] = 0;
+				} else {
+					for (dim = 0; dim < d; dim++)
+						Diag[dim] = 0;
+					Diag[1] = 2;
 				}
+
+				sf_apply_d(nFluxNum_fI,RHSIn,NIn,NOut,Neq,OP,Diag,d);
 			} else if (VIn->Eclass == C_WEDGE && SF_BE[P][1][1]) {
-				; // update this with sum factorization
+				if (fIn < 3) { OPF0 = OPSIn[0]->I_Weak_FF, OPF1 = OPSIn[1]->I_Weak_VV;
+							   NIn0 = OPSIn[0]->NfnI_SF,   NIn1 = OPSIn[1]->NvnI_SF;
+				} else {       OPF0 = OPSIn[0]->I_Weak_VV, OPF1 = OPSIn[1]->I_Weak_FF;
+							   NIn0 = OPSIn[0]->NvnI_SF,   NIn1 = OPSIn[1]->NfnI_SF; }
+				get_sf_parametersF(NIn0,OPSIn[0]->NvnS_SF,OPF0,NIn1,OPSIn[1]->NvnS_SF,OPF1,NIn,NOut,OP,d,VfIn,C_WEDGE);
+
+// Note: Needs modification for h-adaptation (ToBeDeleted)
+				if (Collocated) {
+					for (dim = 0; dim < d; dim++)
+						Diag[dim] = 2;
+					if (fIn < 3)
+						Diag[0] = 0;
+					else
+						Diag[2] = 0;
+				} else {
+					for (dim = 0; dim < d; dim++)
+						Diag[dim] = 0;
+					Diag[1] = 2;
+				}
+
+				sf_apply_d(nFluxNum_fI,RHSIn,NIn,NOut,Neq,OP,Diag,d);
+			} else if (Collocated && (VIn->Eclass == C_TP || VIn->Eclass == C_WEDGE)) {
+				mm_CTN_CSR_d(NvnSIn,Neq,NfnI,OPSIn[0]->I_Weak_FF_sp[VfIn],nFluxNum_fI,RHSIn);
 			} else  {
 				mm_CTN_d(NvnSIn,Neq,NfnI,OPSIn[0]->I_Weak_FF[VfIn],nFluxNum_fI,RHSIn);
 			}
@@ -403,27 +466,46 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 					}
 				}
 
-				if (VOut->Eclass == C_TP && (SF_BE[P][0][1] || Collocated)) {
-					if (SF_BE[P][0][1]) {
-						get_sf_parametersF(OPSOut[0]->NvnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_VV,
-										   OPSOut[0]->NfnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_FF,NIn,NOut,OP,d,VfOut,C_TP);
+				if (VOut->Eclass == C_TP && SF_BE[P][0][1]) {
+					get_sf_parametersF(OPSOut[0]->NvnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_VV,
+									   OPSOut[0]->NfnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_FF,NIn,NOut,OP,d,VfOut,C_TP);
 
 // Note: Needs modification for h-adaptation (ToBeDeleted)
-						if (Collocated) {
-							for (dim = 0; dim < d; dim++)
-								Diag[dim] = 2;
-							Diag[fOut/2] = 0;
-						} else {
-							for (dim = 0; dim < d; dim++)
-								Diag[dim] = 0;
-						}
-
-						sf_apply_d(nFluxNum_fI,RHSOut,NIn,NOut,Neq,OP,Diag,d);
-					} else { // Collocated
-						mm_CTN_CSR_d(NvnSOut,Neq,NfnI,OPSOut[0]->I_Weak_FF_sp[VfOut],nFluxNum_fI,RHSOut);
+					if (Collocated) {
+						for (dim = 0; dim < d; dim++)
+							Diag[dim] = 2;
+						Diag[fOut/2] = 0;
+					} else {
+						for (dim = 0; dim < d; dim++)
+							Diag[dim] = 0;
+						Diag[1] = 2;
 					}
-				} else if (VIn->Eclass == C_WEDGE && SF_BE[P][1][1]) {
-					; // update this with sum factorization
+
+					sf_apply_d(nFluxNum_fI,RHSOut,NIn,NOut,Neq,OP,Diag,d);
+				} else if (VOut->Eclass == C_WEDGE && SF_BE[P][1][1]) {
+					if (fOut < 3) { OPF0 = OPSOut[0]->I_Weak_FF, OPF1 = OPSOut[1]->I_Weak_VV;
+					                NIn0 = OPSOut[0]->NfnI_SF,   NIn1 = OPSOut[1]->NvnI_SF;
+					} else {        OPF0 = OPSOut[0]->I_Weak_VV, OPF1 = OPSOut[1]->I_Weak_FF;
+					                NIn0 = OPSOut[0]->NvnI_SF,   NIn1 = OPSOut[1]->NfnI_SF; }
+					get_sf_parametersF(NIn0,OPSOut[0]->NvnS_SF,OPF0,NIn1,OPSOut[1]->NvnS_SF,OPF1,NIn,NOut,OP,d,VfOut,C_WEDGE);
+
+// Note: Needs modification for h-adaptation (ToBeDeleted)
+					if (Collocated) {
+						for (dim = 0; dim < d; dim++)
+							Diag[dim] = 2;
+						if (fOut < 3)
+							Diag[0] = 0;
+						else
+							Diag[2] = 0;
+					} else {
+						for (dim = 0; dim < d; dim++)
+							Diag[dim] = 0;
+						Diag[1] = 2;
+					}
+
+					sf_apply_d(nFluxNum_fI,RHSOut,NIn,NOut,Neq,OP,Diag,d);
+				} else if (Collocated && (VOut->Eclass == C_TP || VOut->Eclass == C_WEDGE)) {
+					mm_CTN_CSR_d(NvnSOut,Neq,NfnI,OPSOut[0]->I_Weak_FF_sp[VfOut],nFluxNum_fI,RHSOut);
 				} else {
 					mm_CTN_d(NvnSOut,Neq,NfnI,OPSOut[0]->I_Weak_FF[VfOut],nFluxNum_fI,RHSOut);
 				}
@@ -432,8 +514,8 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 			printf("Exiting: Implement the strong form in compute_FACET_RHS_EFE.\n"), exit(1);
 		}
 
-/*
-//if (FACET->indexg == 3) {
+
+//if (FACET->indexg == 2) {
 printf("%d %d %d %d %d %d %d\n",FACET->indexg,IndFType,VIn->indexg,VOut->indexg,VfIn,BC,Boundary);
 array_print_d(NvnSIn,Neq,RHSIn,'C');
 array_print_d(NvnSOut,Neq,RHSOut,'C');
@@ -442,16 +524,16 @@ array_print_d(NvnSOut,Neq,RHSOut,'C');
 //array_print_d(NfnI,Neq,WIn_fI,'C');
 //array_print_d(NfnI,Neq,WOut_fIIn,'C');
 //array_print_d(NfnI,Neq,nFluxNum_fI,'R');
-exit(1);
+//exit(1);
 //}
-*/
+
 
 		free(RowTracker);
 		free(WIn_fI);
 		free(WOut_fIIn);
 		free(nFluxNum_fI);
 	}
-//exit(1);
+exit(1);
 //printf("\n\n\n\n\n");
 
 	for (i = 0; i < 2; i++) {

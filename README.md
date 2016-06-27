@@ -44,18 +44,18 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 - GaussianBump     : TO BE DONE
 - PeriodicVortex:  : DONE
 - PolynomialBump   : TO BE DONE
-- SupersonicVortex : TO BE DONE
+- SupersonicVortex : DONE
 
 #### Explicit
 - solver RK : ACTIVE
 - VOLUME    : ACTIVE
   - Weak Form   : DONE
   - Strong Form : TO BE DONE
-  - Vectorized  : TO BE DONE
+  - Vectorized  : DONE
 - FACET     : ACTIVE
   - Weak Form   : DONE
   - Strong Form : TO BE DONE
-  - Vectorized  : TO BE DONE
+  - Vectorized  : UNDER CONSIDERATION
 - finalize  : DONE
 
 #### Implicit
@@ -73,8 +73,8 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
   - Roe-Pike       : DONE
 
 #### Boundary
-- riemann      : TO BE DONE
-- slip wall    : TO BE DONE
+- riemann      : DONE
+- slip wall    : DONE
 - outflow mach : TO BE DONE
 
 #### Jacobians
@@ -86,7 +86,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 - boundary outflow mach : TO BE DONE
 
 
-### Postprocessing : TO BE DONE
+### Postprocessing : ACTIVE (As cases are added)
 
 
 ### License
