@@ -274,6 +274,31 @@ void array_free1_CSR_d(struct S_OpCSR *A)
 	}
 }
 
+void array_free4_CSR_d(unsigned int iMax, unsigned int jMax, unsigned int kMax, struct S_OpCSR ****A)
+{
+	unsigned int i, j, k;
+
+	for (i = 0; i < iMax; i++) {
+		if (A[i] != NULL) {
+			for (j = 0; j < jMax; j++) {
+				if (A[i][j] != NULL) {
+					for (k = 0; k < kMax; k++) {
+						if (A[i][j][k] != NULL) {
+							free(A[i][j][k]->rowIndex);
+							free(A[i][j][k]->columns);
+							free(A[i][j][k]->values);
+							free(A[i][j][k]);
+						}
+					}
+					free(A[i][j]);
+				}
+			}
+			free(A[i]);
+		}
+	}
+	free(A);
+}
+
 void array_free5_CSR_d(unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int lMax, struct S_OpCSR *****A)
 {
 	unsigned int i, j, k, l;

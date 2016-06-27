@@ -110,8 +110,10 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->D_vGc_vIc = calloc(NP , sizeof *(ELEMENT->D_vGc_vIc)); // free
 	ELEMENT->D_vCc_vCc = calloc(NP , sizeof *(ELEMENT->D_vCc_vCc)); // free
 
-	ELEMENT->ChiS_fIs = calloc(NP , sizeof *(ELEMENT->ChiS_fIs)); // free
-	ELEMENT->ChiS_fIc = calloc(NP , sizeof *(ELEMENT->ChiS_fIc)); // free
+	ELEMENT->ChiS_fIs    = calloc(NP , sizeof *(ELEMENT->ChiS_fIs));    // free
+	ELEMENT->ChiS_fIc    = calloc(NP , sizeof *(ELEMENT->ChiS_fIc));    // free
+	ELEMENT->ChiS_fIs_sp = calloc(NP , sizeof *(ELEMENT->ChiS_fIs_sp)); // free
+	ELEMENT->ChiS_fIc_sp = calloc(NP , sizeof *(ELEMENT->ChiS_fIc_sp)); // free
 
 	ELEMENT->I_vGs_fIs = calloc(NP , sizeof *(ELEMENT->I_vGs_fIs)); // free
 	ELEMENT->I_vGs_fIc = calloc(NP , sizeof *(ELEMENT->I_vGs_fIc)); // free
@@ -124,12 +126,14 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 	ELEMENT->Is_Weak_VV    = calloc(NP , sizeof *(ELEMENT->Is_Weak_VV));    // free
 	ELEMENT->Ic_Weak_VV    = calloc(NP , sizeof *(ELEMENT->Ic_Weak_VV));    // free
-	ELEMENT->Is_Weak_FF    = calloc(NP , sizeof *(ELEMENT->Is_Weak_FF));    // free
-	ELEMENT->Ic_Weak_FF    = calloc(NP , sizeof *(ELEMENT->Ic_Weak_FF));    // free
 	ELEMENT->Ds_Weak_VV    = calloc(NP , sizeof *(ELEMENT->Ds_Weak_VV));    // free
 	ELEMENT->Dc_Weak_VV    = calloc(NP , sizeof *(ELEMENT->Dc_Weak_VV));    // free
 	ELEMENT->Ds_Weak_VV_sp = calloc(NP , sizeof *(ELEMENT->Ds_Weak_VV_sp)); // free
 	ELEMENT->Dc_Weak_VV_sp = calloc(NP , sizeof *(ELEMENT->Dc_Weak_VV_sp)); // free
+	ELEMENT->Is_Weak_FF    = calloc(NP , sizeof *(ELEMENT->Is_Weak_FF));    // free
+	ELEMENT->Ic_Weak_FF    = calloc(NP , sizeof *(ELEMENT->Ic_Weak_FF));    // free
+	ELEMENT->Is_Weak_FF_sp = calloc(NP , sizeof *(ELEMENT->Is_Weak_FF_sp)); // free
+	ELEMENT->Ic_Weak_FF_sp = calloc(NP , sizeof *(ELEMENT->Ic_Weak_FF_sp)); // free
 
 	ELEMENT->nOrd_fIs  = calloc(NP , sizeof *(ELEMENT->nOrd_fIs)); // free
 	ELEMENT->nOrd_fIc  = calloc(NP , sizeof *(ELEMENT->nOrd_fIc)); // free
@@ -170,8 +174,10 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->D_vCs_vCs[P] = calloc(NP , sizeof **(ELEMENT->D_vCs_vCs));
 		ELEMENT->D_vCc_vCc[P] = calloc(NP , sizeof **(ELEMENT->D_vCc_vCc));
 
-		ELEMENT->ChiS_fIs[P] = calloc(NP , sizeof **(ELEMENT->ChiS_fIs));
-		ELEMENT->ChiS_fIc[P] = calloc(NP , sizeof **(ELEMENT->ChiS_fIc));
+		ELEMENT->ChiS_fIs[P]    = calloc(NP , sizeof **(ELEMENT->ChiS_fIs));
+		ELEMENT->ChiS_fIc[P]    = calloc(NP , sizeof **(ELEMENT->ChiS_fIc));
+		ELEMENT->ChiS_fIs_sp[P] = calloc(NP , sizeof **(ELEMENT->ChiS_fIs_sp));
+		ELEMENT->ChiS_fIc_sp[P] = calloc(NP , sizeof **(ELEMENT->ChiS_fIc_sp));
 
 		ELEMENT->I_vGs_fIs[P] = calloc(NP , sizeof **(ELEMENT->I_vGs_fIs));
 		ELEMENT->I_vGs_fIc[P] = calloc(NP , sizeof **(ELEMENT->I_vGs_fIc));
@@ -184,12 +190,14 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 		ELEMENT->Is_Weak_VV[P]    = calloc(NP , sizeof **(ELEMENT->Is_Weak_VV));
 		ELEMENT->Ic_Weak_VV[P]    = calloc(NP , sizeof **(ELEMENT->Ic_Weak_VV));
-		ELEMENT->Is_Weak_FF[P]    = calloc(NP , sizeof **(ELEMENT->Is_Weak_FF));
-		ELEMENT->Ic_Weak_FF[P]    = calloc(NP , sizeof **(ELEMENT->Ic_Weak_FF));
 		ELEMENT->Ds_Weak_VV[P]    = calloc(NP , sizeof **(ELEMENT->Ds_Weak_VV));
 		ELEMENT->Dc_Weak_VV[P]    = calloc(NP , sizeof **(ELEMENT->Dc_Weak_VV));
 		ELEMENT->Ds_Weak_VV_sp[P] = calloc(NP , sizeof **(ELEMENT->Ds_Weak_VV_sp));
 		ELEMENT->Dc_Weak_VV_sp[P] = calloc(NP , sizeof **(ELEMENT->Dc_Weak_VV_sp));
+		ELEMENT->Is_Weak_FF[P]    = calloc(NP , sizeof **(ELEMENT->Is_Weak_FF));
+		ELEMENT->Ic_Weak_FF[P]    = calloc(NP , sizeof **(ELEMENT->Ic_Weak_FF));
+		ELEMENT->Is_Weak_FF_sp[P] = calloc(NP , sizeof **(ELEMENT->Is_Weak_FF_sp));
+		ELEMENT->Ic_Weak_FF_sp[P] = calloc(NP , sizeof **(ELEMENT->Ic_Weak_FF_sp));
 
 		if (P == PP) {
 			ELEMENT->I_vGs_vP[0][PP] = calloc(1 , sizeof ***(ELEMENT->I_vGs_vP));
@@ -252,8 +260,10 @@ struct S_ELEMENT *New_ELEMENT(void)
 				ELEMENT->Dc_Weak_VV_sp[P][Pb][0] = calloc(d , sizeof ****(ELEMENT->Dc_Weak_VV_sp));
 			}
 
-			ELEMENT->ChiS_fIs[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->ChiS_fIs));
-			ELEMENT->ChiS_fIc[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->ChiS_fIc));
+			ELEMENT->ChiS_fIs[P][Pb]    = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->ChiS_fIs));
+			ELEMENT->ChiS_fIc[P][Pb]    = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->ChiS_fIc));
+			ELEMENT->ChiS_fIs_sp[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->ChiS_fIs_sp));
+			ELEMENT->ChiS_fIc_sp[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->ChiS_fIc_sp));
 
 			ELEMENT->I_vGs_fIs[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->I_vGs_fIs));
 			ELEMENT->I_vGs_fIc[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->I_vGs_fIc));
@@ -266,6 +276,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 			ELEMENT->Is_Weak_FF[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Is_Weak_FF));
 			ELEMENT->Ic_Weak_FF[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Ic_Weak_FF));
+			ELEMENT->Is_Weak_FF_sp[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Is_Weak_FF_sp));
+			ELEMENT->Ic_Weak_FF_sp[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Ic_Weak_FF_sp));
 		}
 
 		ELEMENT->nOrd_fIs[P] = calloc(NFORDMAX, sizeof **(ELEMENT->nOrd_fIs));

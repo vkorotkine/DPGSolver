@@ -56,7 +56,7 @@ void solver_explicit(void)
 
 // Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).
 //	dt = pow(0.5,DB.ML+DB.PGlobal+1);
-	dt = pow(0.5,DB.ML+DB.PGlobal+0);
+	dt = pow(0.5,DB.ML+DB.PGlobal+2);
 //	dt = pow(0.5,10.0);
 
 	tstep = 0; time = 0.0;

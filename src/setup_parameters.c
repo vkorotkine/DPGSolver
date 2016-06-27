@@ -199,9 +199,9 @@ void setup_parameters()
 		for (i = 0; i < 2; i++)
 			SF_BE[P][i] = calloc(2 , sizeof ***SF_BE);
 
-		// TP
-		if (d == 1 || (d == 2 && P > 9) || (d == 3 && P > 9)) SF_BE[P][0][0] = 1; // ToBeModified
-		if (d == 1 || (d == 2 && P > 9) || (d == 3 && P > 9)) SF_BE[P][0][1] = 1; // ToBeModified
+		// TP (2D is possibly higher than P8, 3D was tested on the PeriodicVortex case)
+		if (d == 1 || (d == 2 && P > 8) || (d == 3 && P > 2)) SF_BE[P][0][0] = 1; // ToBeModified
+		if (d == 1 || (d == 2 && P > 8) || (d == 3 && P > 2)) SF_BE[P][0][1] = 1; // ToBeModified
 
 		// WEDGE
 		if (d == 3 && P > 99) SF_BE[P][1][0] = 1; // ToBeModified

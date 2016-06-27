@@ -224,6 +224,7 @@ extern void memory_destructor_F (struct S_FACET *FACET);
 	extern void array_free5_d  (unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int lMax, double *****A);
 
 	extern void array_free1_CSR_d (struct S_OpCSR *A);
+	extern void array_free4_CSR_d (unsigned int iMax, unsigned int jMax, unsigned int kMax, struct S_OpCSR *****A);
 	extern void array_free5_CSR_d (unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int lMax,
 	                               struct S_OpCSR *****A);
 

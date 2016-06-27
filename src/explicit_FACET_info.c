@@ -38,6 +38,8 @@
 struct S_OPERATORS {
 	unsigned int NvnS, NfnI, NvnS_SF, NfnI_SF, NvnI_SF, *nOrdInOut, *nOrdOutIn;
 	double       **ChiS_fI, **ChiS_vI, **I_Weak_FF, **I_Weak_VV;
+
+	struct S_OpCSR **ChiS_fI_sp, **I_Weak_FF_sp;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
@@ -130,6 +132,9 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		OPS->I_Weak_FF = ELEMENT_OPS->Is_Weak_FF[PV][PF];
 		OPS->I_Weak_VV = ELEMENT_OPS->Is_Weak_VV[PV][PF];
 
+		OPS->ChiS_fI_sp   = ELEMENT->ChiS_fIs_sp[PV][PF];
+		OPS->I_Weak_FF_sp = ELEMENT->Is_Weak_FF_sp[PV][PF];
+
 		OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIs[PF][IndOrdInOut];
 		OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIs[PF][IndOrdOutIn];
 	} else {
@@ -142,6 +147,9 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		OPS->ChiS_vI   = ELEMENT_OPS->ChiS_vIc[PV][PF];
 		OPS->I_Weak_FF = ELEMENT_OPS->Ic_Weak_FF[PV][PF];
 		OPS->I_Weak_VV = ELEMENT_OPS->Ic_Weak_VV[PV][PF];
+
+		OPS->ChiS_fI_sp   = ELEMENT->ChiS_fIc_sp[PV][PF];
+		OPS->I_Weak_FF_sp = ELEMENT->Ic_Weak_FF_sp[PV][PF];
 
 		OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIc[PF][IndOrdInOut];
 		OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIc[PF][IndOrdOutIn];
@@ -346,21 +354,25 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 
 		if (strstr(Form,"Weak") != NULL) {
 			// Interior FACET
-			if (VIn->Eclass == C_TP && SF_BE[P][0][1]) {
-				get_sf_parametersF(OPSIn[0]->NvnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_VV,
-								   OPSIn[0]->NfnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_FF,NIn,NOut,OP,d,VfIn,C_TP);
+			if (VIn->Eclass == C_TP && (SF_BE[P][0][1] || Collocated)) {
+				if (SF_BE[P][0][1]) {
+					get_sf_parametersF(OPSIn[0]->NvnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_VV,
+									   OPSIn[0]->NfnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_FF,NIn,NOut,OP,d,VfIn,C_TP);
 
 // Note: Needs modification for h-adaptation (ToBeDeleted)
-				if (Collocated) {
-					for (dim = 0; dim < d; dim++)
-						Diag[dim] = 2;
-					Diag[fIn/2] = 0;
-				} else {
-					for (dim = 0; dim < d; dim++)
-						Diag[dim] = 0;
-				}
+					if (Collocated) {
+						for (dim = 0; dim < d; dim++)
+							Diag[dim] = 2;
+						Diag[fIn/2] = 0;
+					} else {
+						for (dim = 0; dim < d; dim++)
+							Diag[dim] = 0;
+					}
 
-				sf_apply_d(nFluxNum_fI,RHSIn,NIn,NOut,Neq,OP,Diag,d);
+					sf_apply_d(nFluxNum_fI,RHSIn,NIn,NOut,Neq,OP,Diag,d);
+				} else { // Collocated
+					mm_CTN_CSR_d(NvnSIn,Neq,NfnI,OPSIn[0]->I_Weak_FF_sp[VfIn],nFluxNum_fI,RHSIn);
+				}
 			} else if (VIn->Eclass == C_WEDGE && SF_BE[P][1][1]) {
 				; // update this with sum factorization
 			} else  {
@@ -391,22 +403,25 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 					}
 				}
 
-				if (VIn->Eclass == C_TP && SF_BE[P][0][1]) {
-					get_sf_parametersF(OPSOut[0]->NvnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_VV,
-									   OPSOut[0]->NfnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_FF,NIn,NOut,OP,d,VfOut,C_TP);
+				if (VOut->Eclass == C_TP && (SF_BE[P][0][1] || Collocated)) {
+					if (SF_BE[P][0][1]) {
+						get_sf_parametersF(OPSOut[0]->NvnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_VV,
+										   OPSOut[0]->NfnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_FF,NIn,NOut,OP,d,VfOut,C_TP);
 
 // Note: Needs modification for h-adaptation (ToBeDeleted)
-					if (Collocated) {
-						for (dim = 0; dim < d; dim++)
-							Diag[dim] = 2;
-						Diag[fOut/2] = 0;
-					} else {
-						for (dim = 0; dim < d; dim++)
-							Diag[dim] = 0;
+						if (Collocated) {
+							for (dim = 0; dim < d; dim++)
+								Diag[dim] = 2;
+							Diag[fOut/2] = 0;
+						} else {
+							for (dim = 0; dim < d; dim++)
+								Diag[dim] = 0;
+						}
+
+						sf_apply_d(nFluxNum_fI,RHSOut,NIn,NOut,Neq,OP,Diag,d);
+					} else { // Collocated
+						mm_CTN_CSR_d(NvnSOut,Neq,NfnI,OPSOut[0]->I_Weak_FF_sp[VfOut],nFluxNum_fI,RHSOut);
 					}
-
-					sf_apply_d(nFluxNum_fI,RHSOut,NIn,NOut,Neq,OP,Diag,d);
-
 				} else if (VIn->Eclass == C_WEDGE && SF_BE[P][1][1]) {
 					; // update this with sum factorization
 				} else {
@@ -427,7 +442,7 @@ array_print_d(NvnSOut,Neq,RHSOut,'C');
 //array_print_d(NfnI,Neq,WIn_fI,'C');
 //array_print_d(NfnI,Neq,WOut_fIIn,'C');
 //array_print_d(NfnI,Neq,nFluxNum_fI,'R');
-//exit(1);
+exit(1);
 //}
 */
 

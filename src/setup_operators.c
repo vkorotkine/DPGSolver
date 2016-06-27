@@ -1791,7 +1791,9 @@ static void setup_TP_operators(const unsigned int EType)
 	             ****Is_Weak_FF, ****Ic_Weak_FF,
 	             *****Ds_Weak_VV, *****Dc_Weak_VV;
 
-	struct S_OpCSR *****Ds_Weak_VV_sp, *****Dc_Weak_VV_sp;
+	struct S_OpCSR ****ChiS_fIs_sp, ****ChiS_fIc_sp,
+	               *****Ds_Weak_VV_sp, *****Dc_Weak_VV_sp,
+	               ****Is_Weak_FF_sp, ****Ic_Weak_FF_sp;
 
 	// Initialize DB Parameters
 	unsigned int Adapt      = DB.Adapt,
@@ -1869,8 +1871,10 @@ static void setup_TP_operators(const unsigned int EType)
 	D_vCs_vCs = ELEMENT->D_vCs_vCs;
 	D_vCc_vCc = ELEMENT->D_vCc_vCc;
 
-	ChiS_fIs   = ELEMENT->ChiS_fIs;
-	ChiS_fIc   = ELEMENT->ChiS_fIc;
+	ChiS_fIs    = ELEMENT->ChiS_fIs;
+	ChiS_fIc    = ELEMENT->ChiS_fIc;
+	ChiS_fIs_sp = ELEMENT->ChiS_fIs_sp;
+	ChiS_fIc_sp = ELEMENT->ChiS_fIc_sp;
 
 	I_vGs_fIs = ELEMENT->I_vGs_fIs;
 	I_vGs_fIc = ELEMENT->I_vGs_fIc;
@@ -1881,10 +1885,12 @@ static void setup_TP_operators(const unsigned int EType)
 	I_vCc_fIs = ELEMENT->I_vCc_fIs;
 	I_vCc_fIc = ELEMENT->I_vCc_fIc;
 
-	Is_Weak_VV = ELEMENT->Is_Weak_VV;
-	Ic_Weak_VV = ELEMENT->Ic_Weak_VV;
-	Is_Weak_FF = ELEMENT->Is_Weak_FF;
-	Ic_Weak_FF = ELEMENT->Ic_Weak_FF;
+	Is_Weak_VV    = ELEMENT->Is_Weak_VV;
+	Ic_Weak_VV    = ELEMENT->Ic_Weak_VV;
+	Is_Weak_FF    = ELEMENT->Is_Weak_FF;
+	Ic_Weak_FF    = ELEMENT->Ic_Weak_FF;
+	Is_Weak_FF_sp = ELEMENT->Is_Weak_FF_sp;
+	Ic_Weak_FF_sp = ELEMENT->Ic_Weak_FF_sp;
 
 	Ds_Weak_VV    = ELEMENT->Ds_Weak_VV;
 	Dc_Weak_VV    = ELEMENT->Dc_Weak_VV;
@@ -2090,6 +2096,14 @@ static void setup_TP_operators(const unsigned int EType)
 					                   ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_FF[P][Pb],
 					                   NIn,NOut,OP,dE,Vf,Eclass);
 					Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
+					if (Collocated) {
+						convert_to_CSR_d(NfnIs[Pb][0],NvnS[P],ChiS_fIs[P][Pb][Vf],&ChiS_fIs_sp[P][Pb][Vf]); // keep
+						convert_to_CSR_d(NfnIc[Pb][0],NvnS[P],ChiS_fIc[P][Pb][Vf],&ChiS_fIc_sp[P][Pb][Vf]); // keep
+
+						convert_to_CSR_d(NvnS[P],NfnIs[Pb][0],Is_Weak_FF[P][Pb][Vf],&Is_Weak_FF_sp[P][Pb][Vf]); // keep
+						convert_to_CSR_d(NvnS[P],NfnIc[Pb][0],Ic_Weak_FF[P][Pb][Vf],&Ic_Weak_FF_sp[P][Pb][Vf]); // keep
+					}
 
 					if (fh == 0) {
 						get_sf_parametersF(ELEMENTclass[0]->NvnGs[0],ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->I_vGs_vIs[P][Pb],
