@@ -14,9 +14,8 @@
  *		Update VOLUME operators in ELEMENTs which have undergone hp refinement.
  *
  *	Comments:
- *		Think whether it would be possible to add sum factorization capability here for MInv computation (ToBeDeleted).
- *		May be better not to allow P adaptivity to go down to P = 0, but have the limit at P = 1. Try/THINK
- *		(ToBeDeleted).
+ *		May be better not to allow P adaptivity to go down to P = 0, but have the limit at P = 1. Try/THINK (ToBeDeleted).
+ *		Sum factorization not currently used here. Profile and re-evaluate. (ToBeDeleted)
  *
  *	Notation:
  *
@@ -31,10 +30,7 @@ struct S_OPERATORS {
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass)
 {
 	unsigned int P, PNew, type, curved;
-	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS;
-
-	// silence
-	ELEMENT_OPS = NULL;
+	struct S_ELEMENT *ELEMENT;
 
 	P      = VOLUME->P;
 	PNew   = VOLUME->PNew;
@@ -42,27 +38,24 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	curved = VOLUME->curved;
 
 	ELEMENT = get_ELEMENT_type(type);
-	if (1 || type == TRI || type == TET || type == PYR)
-		ELEMENT_OPS = ELEMENT;
-	else if (type == LINE || type == QUAD || type == HEX || type == WEDGE)
-		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
 
-	OPS->NvnS  = ELEMENT_OPS->NvnS[P];
-	OPS->NvnSP = ELEMENT_OPS->NvnS[PNew];
+	OPS->NvnS  = ELEMENT->NvnS[P];
+	OPS->NvnSP = ELEMENT->NvnS[PNew];
+	OPS->Ihat_vS_vS = ELEMENT->Ihat_vS_vS[P][PNew];
 	if (!curved) {
-		OPS->NvnI = ELEMENT_OPS->NvnIs[P];
+		OPS->NvnI = ELEMENT->NvnIs[P];
 
-		OPS->w_vI    = ELEMENT_OPS->w_vIs[P];
-		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIs[P][P][0];
+		OPS->w_vI    = ELEMENT->w_vIs[P];
+		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P][0];
 	} else {
-		OPS->NvnGs = ELEMENT_OPS->NvnGs[0];
-		OPS->NvnGc = ELEMENT_OPS->NvnGc[PNew];
-		OPS->NvnI  = ELEMENT_OPS->NvnIc[P];
+		OPS->NvnGs = ELEMENT->NvnGs[0];
+		OPS->NvnGc = ELEMENT->NvnGc[PNew];
+		OPS->NvnI  = ELEMENT->NvnIc[P];
 
-		OPS->I_vGs_vGc = ELEMENT_OPS->I_vGs_vGc[0][PNew][0];
+		OPS->I_vGs_vGc = ELEMENT->I_vGs_vGc[0][PNew][0];
 
-		OPS->w_vI    = ELEMENT_OPS->w_vIc[P];
-		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIc[P][P][0];
+		OPS->w_vI    = ELEMENT->w_vIc[P];
+		OPS->ChiS_vI = ELEMENT->ChiS_vIc[P][P][0];
 	}
 }
 
@@ -72,6 +65,8 @@ void update_VOLUME_hp(void)
 	unsigned int d    = DB.d,
 	             PMax = DB.PMax,
 	             Nvar = DB.Nvar;
+
+	char         *MeshType = DB.MeshType;
 
 	// Standard datatypes
 	unsigned int P, PNew, adapt_type;
@@ -124,7 +119,6 @@ void update_VOLUME_hp(void)
 			switch(adapt_type) {
 			default: // PREFINE or PCOARSE
 				// Update geometry
-// need C_vI
 // need normals and detJF_fI
 				if (VOLUME->curved) {
 					NvnGs      = OPS->NvnGs;
@@ -138,8 +132,14 @@ void update_VOLUME_hp(void)
 					mm_CTN_d(NvnGc,NCols,NvnGs,I_vGs_vGc,XYZ_vC,XYZ_S);
 					free(VOLUME->XYZ_S);
 					VOLUME->XYZ_S = XYZ_S;
-
 				}
+
+				if (strstr(MeshType,"ToBeCurved") != NULL)
+					setup_ToBeCurved(VOLUME);
+				else
+					printf("Error: Add in support for MeshType != ToBeCurved\n"), exit(1);
+
+				setup_geom_factors(VOLUME); // ToBeDeleted: Don't forget to free VOLUME->C_vC
 
 				// Project What and RES
 				NvnS       = OPS->NvnS;

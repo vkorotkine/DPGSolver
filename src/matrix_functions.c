@@ -1855,7 +1855,6 @@ void convert_to_CSR_d(const unsigned int NRows, const unsigned int NCols, const 
 	 *		Return rowIndex, columns, and values of sparse operator in compressed sparse row (CSR) format.
 	 *
 	 *	Comments:
-	 *		This format can not be used if there is a row which is composed entirely of zeros.
 	 *
 	 *	References:
 	 *		Intel MKL Sparse BLAS CSR Matrix Storage Format: https://software.intel.com/en-us/node/599835

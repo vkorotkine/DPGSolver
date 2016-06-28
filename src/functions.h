@@ -95,6 +95,7 @@ extern void boundary_SlipWall (const unsigned int Nn, const unsigned int Nel, do
 // hp adaptation
 extern void adapt_hp (void);
 extern void   update_VOLUME_hp (void);
+extern void   update_Vgrp      (void);
 
 // Sum Factorization
 extern void   get_sf_parameters(const unsigned int NIn0, const unsigned int NOut0, double *OP0,

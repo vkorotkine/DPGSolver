@@ -61,11 +61,19 @@ void solver_explicit(void)
 
 	tstep = 0; time = 0.0;
 	while (time < FinalTime) {
+
+VOLUME = DB.VOLUME->next;
+VOLUME->Vadapt = 1;
+VOLUME->adapt_type = PREFINE;
+
 		if (Adapt) {
 			update_VOLUME_hp();
 			update_Vgrp();
 		}
 		update_VOLUME_Ops();
+
+output_to_paraview("0SolAdapt");
+exit(1);
 
 		if (time+dt > FinalTime)
 			dt = FinalTime-time;
@@ -74,61 +82,36 @@ void solver_explicit(void)
 		default : // RK3_SSP
 			// RES is used to store the initial solution at the beginning of the time step.
 
-			// Step 1
-			explicit_VOLUME_info();
-			explicit_FACET_info();
-			maxRHS = finalize_RHS();
+			for (rk = 0; rk < 3; rk++) {
+				explicit_VOLUME_info();
+				explicit_FACET_info();
+				maxRHS = finalize_RHS();
 
-			for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-				NvnS = VOLUME->NvnS;
+				for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+					NvnS = VOLUME->NvnS;
 
-				RES  = VOLUME->RES;
-				RHS  = VOLUME->RHS;
-				What = VOLUME->What;
+					RES  = VOLUME->RES;
+					RHS  = VOLUME->RHS;
+					What = VOLUME->What;
 
-				for (iMax = Neq*NvnS; iMax--; ) {
-					*RES++   = *What;
-					*What++ += dt*(*RHS++);
+					if (rk == 0) {
+						for (iMax = Neq*NvnS; iMax--; ) {
+							*RES++   = *What;
+							*What++ += dt*(*RHS++);
+						}
+					} else if (rk == 1) {
+						for (iMax = Neq*NvnS; iMax--; ) {
+							*What = 0.25*(3.0*(*RES++) + *What + dt*(*RHS++));
+							What++;
+						}
+					} else if (rk == 2) {
+						for (iMax = Neq*NvnS; iMax--; ) {
+							*What = (1.0/3.0)*(*RES++ + 2.0*(*What) + 2.0*dt*(*RHS++));
+							What++;
+						}
+					}
+					free(VOLUME->RHS);
 				}
-				free(VOLUME->RHS);
-			}
-
-			// Step 2
-			explicit_VOLUME_info();
-			explicit_FACET_info();
-			maxRHS = finalize_RHS();
-
-			for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-				NvnS = VOLUME->NvnS;
-
-				RES  = VOLUME->RES;
-				RHS  = VOLUME->RHS;
-				What = VOLUME->What;
-
-				for (iMax = Neq*NvnS; iMax--; ) {
-					*What = 0.25*(3.0*(*RES++) + *What + dt*(*RHS++));
-					What++;
-				}
-				free(VOLUME->RHS);
-			}
-
-			// Step 3
-			explicit_VOLUME_info();
-			explicit_FACET_info();
-			maxRHS = finalize_RHS();
-
-			for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-				NvnS = VOLUME->NvnS;
-
-				RES  = VOLUME->RES;
-				RHS  = VOLUME->RHS;
-				What = VOLUME->What;
-
-				for (iMax = Neq*NvnS; iMax--; ) {
-					*What = (1.0/3.0)*(*RES++ + 2.0*(*What) + 2.0*dt*(*RHS++));
-					What++;
-				}
-				free(VOLUME->RHS);
 			}
 			break;
 		case RK4_LS:

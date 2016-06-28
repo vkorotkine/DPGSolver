@@ -57,6 +57,8 @@
  *		represent the solution of order P on the FACET, the other nodes have no contribution.
  *		Note that for HEX ELEMENTs, results have shown that this can lead to a deterioration in accuracy. This may be
  *		acceptable however given the performance gains.
+ *		Also, it is important to find a break-even with the standard BLAS call here as the sparsity is not as
+ *		significant as that for the sum-factorized operators (ToBeDeleted).
  *
  *	Notation:
  *		NP       : (N)umber of (P)olynomial orders available
@@ -506,6 +508,7 @@ void setup_parameters()
 		}
 	}
 
+// Check break-even with standard BLAS call (ToBeDeleted)
 	for (i = 0, iMax = NEC+1; i < iMax; i++) {
 		if ((i == 0 && strstr(DB.NodeType,"GLL")    != NULL) ||
 		    (i == 1 && strstr(DB.NodeType,"AO")     != NULL) ||
