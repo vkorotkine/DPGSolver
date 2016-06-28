@@ -106,7 +106,7 @@ void solver_explicit(void)
 				What = VOLUME->What;
 
 				for (iMax = Neq*NvnS; iMax--; ) {
-					*What = (3.0*(*RES++) + *What + dt*(*RHS++))/4.0;
+					*What = 0.25*(3.0*(*RES++) + *What + dt*(*RHS++));
 					What++;
 				}
 				free(VOLUME->RHS);
@@ -125,7 +125,7 @@ void solver_explicit(void)
 				What = VOLUME->What;
 
 				for (iMax = Neq*NvnS; iMax--; ) {
-					*What = (*RES++ + 2.0*(*What) + 2.0*dt*(*RHS++))/3.0;
+					*What = (1.0/3.0)*(*RES++ + 2.0*(*What) + 2.0*dt*(*RHS++));
 					What++;
 				}
 				free(VOLUME->RHS);

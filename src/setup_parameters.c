@@ -50,6 +50,14 @@
  *		However, if WEDGEs are also present, this cannot be done as it destroys the sum factorization capabilities.
  *		Perhaps make a modification to allow for this in the future when only TETs are present. (ToBeDeleted)
  *
+ *		For computational efficiency, it is beneficial to use GLL-AO nodes (i.e. VOLUME nodes which have a subset
+ *		situated on ELEMENT FACETs) as this results in sparse FACET operators. Intuitively, this can be understood by
+ *		noting that basis functions represent the solution to order P both in the VOLUME and on FACETs in this case.
+ *		Thus, when operating on VOLUME nodes for FACET operators, as the VOLUME nodes on the FACET already fully
+ *		represent the solution of order P on the FACET, the other nodes have no contribution.
+ *		Note that for HEX ELEMENTs, results have shown that this can lead to a deterioration in accuracy. This may be
+ *		acceptable however given the performance gains.
+ *
  *	Notation:
  *		NP       : (N)umber of (P)olynomial orders available
  *		NEC      : (N)umber of (E)lement (C)lasses
@@ -81,6 +89,8 @@
  *		                       Fladrich-Stiller(2008)-Improved_Performance_for_Nodal_Spectral_Element_Operators for
  *		                       computational considerations.
  *
+ *		VFPartUnity     : Flag for whether the (V)OLUME nodes form a (Part)ition of (Unity) on the ELEMENT (F)ACETs.
+ *
  *		AC              : Specifies whether (a)ll elements are (c)urved or not.
  *		ExactGeom       : Move boundary nodes to exact geometry if enabled.
  *		Parametrization : Type of parametrization used in curved elements.
@@ -111,9 +121,9 @@ void setup_parameters()
 	             **NodeTypeG,
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
-	unsigned int i, u1, u2,
+	unsigned int i, iMax, u1, u2,
 	             P, NP, NEC, IntOrderfs, IntOrderfc, IntOrdervs, IntOrdervc,
-	             ***SF_BE,
+	             ***SF_BE, *VFPartUnity,
 	             PGs, *PGc, **PCs, **PCc, **PJs, **PJc,
 	             *PF, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
@@ -141,6 +151,8 @@ void setup_parameters()
 	PIfc  = malloc(NP * sizeof *PIfc);  // keep
 	PIvs  = malloc(NP * sizeof *PIvs);  // keep
 	PIvc  = malloc(NP * sizeof *PIvc);  // keep
+
+	VFPartUnity = calloc((NEC+1) , sizeof *VFPartUnity); // keep
 
 	Parametrization = malloc(STRLEN_MAX * sizeof *NodeTypeS); // keep
 	NodeTypeG       = malloc(NEC * sizeof *NodeTypeG);        // keep
@@ -219,13 +231,14 @@ void setup_parameters()
 		PJc[P] = malloc(NEC * sizeof **PJc); // keep
 
 		// ToBeDeleted: These orders may not be sufficient for 3D. To be investigated.
+//		PGc[P]    = max(P,u2);
 		PGc[P]    = max(P+1,u2);
 		PCs[P][0] = PGs;
 		PCs[P][1] = max(PGs-1,u1);
 		PCs[P][2] = PGs;             // ToBeModified
 		PCc[P][0] = PGc[P];
 		PCc[P][1] = max(PGc[P]-1,u1);
-PCc[P][2] = PGc[P]-1;          // ToBeModified
+		PCc[P][2] = PGc[P];          // ToBeModified
 		PJs[P][0] = PGs;
 		PJs[P][1] = max(PGs-1,u1);
 		PJs[P][2] = PGs;             // ToBeModified
@@ -389,16 +402,16 @@ PCc[P][2] = PGc[P]-1;          // ToBeModified
 			}
 
 			// PYR
-			strcpy(NodeTypeIfs[P][2],"WV");
-			strcpy(NodeTypeIfc[P][2],"WV");
+			strcpy(NodeTypeIfs[P][2],"NOT_USED");
+			strcpy(NodeTypeIfc[P][2],"NOT_USED");
 			strcpy(NodeTypeIvs[P][2],"GLW");
 			strcpy(NodeTypeIvc[P][2],"GLW");
 
-			PIfs[P][2] = IntOrderfs;
-PIfc[P][2] = IntOrderfc+1;
+			PIfs[P][2] = 0; // Not used
+			PIfc[P][2] = 0; // Not used
 			PIvs[P][2] = floor(1.0*IntOrdervs/2.0);
-PIvc[P][2] = floor(1.0*IntOrdervc/2.0+1.0);
-		} else {
+			PIvc[P][2] = floor(1.0*IntOrdervc/2.0);
+		} else { // Collocated
 			// THESE PARAMETERS CANNOT BE MODIFIED.
 			if (strstr(DB.BasisType,"Nodal") == NULL) {
 				printf("Selected BasisType: %s.\n",DB.BasisType);
@@ -493,6 +506,14 @@ PIvc[P][2] = floor(1.0*IntOrdervc/2.0+1.0);
 		}
 	}
 
+	for (i = 0, iMax = NEC+1; i < iMax; i++) {
+		if ((i == 0 && strstr(DB.NodeType,"GLL")    != NULL) ||
+		    (i == 1 && strstr(DB.NodeType,"AO")     != NULL) ||
+		    (i == 2 && strstr(DB.NodeType,"GLL")    != NULL) ||
+		    (i == 3 && strstr(DB.NodeType,"GLL-AO") != NULL))
+				VFPartUnity[i] = 1;
+	}
+
 	// Solver
 //	DB.InviscidFluxType = FLUX_LF;
 	DB.InviscidFluxType = FLUX_ROE;
@@ -534,4 +555,6 @@ PIvc[P][2] = floor(1.0*IntOrdervc/2.0+1.0);
 	DB.NodeTypeIfc     = NodeTypeIfc;
 	DB.NodeTypeIvs     = NodeTypeIvs;
 	DB.NodeTypeIvc     = NodeTypeIvc;
+
+	DB.VFPartUnity = VFPartUnity;
 }

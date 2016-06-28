@@ -54,6 +54,7 @@ void memory_free(void)
 			array_free2_ui(DB.NP,DB.PIfc);
 			array_free2_ui(DB.NP,DB.PIvs);
 			array_free2_ui(DB.NP,DB.PIvc);
+			free(DB.VFPartUnity);
 
 			// SetupMesh
 			free(DB.PVe), free(DB.NE), free(DB.EType), free(DB.ETags), free(DB.EToVe), free(DB.EToPrt);

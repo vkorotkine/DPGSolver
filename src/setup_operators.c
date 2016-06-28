@@ -794,20 +794,24 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             ****Is_Weak_FF, ****Ic_Weak_FF,
 	             *****Ds_Weak_VV, *****Dc_Weak_VV;
 
+	struct S_OpCSR ****ChiS_fIs_sp, ****ChiS_fIc_sp,
+	               ****Is_Weak_FF_sp, ****Ic_Weak_FF_sp;
+
 	// Initialize DB Parameters
-	unsigned int Adapt       = DB.Adapt,
-	             PMax        = DB.PMax,
-	             NP          = DB.NP,
-	             PGlobal     = DB.PGlobal,
-	             PGs         = DB.PGs,
-	             *PGc        = DB.PGc,
-	             **PCs       = DB.PCs,
-	             **PCc       = DB.PCc,
-	             **PIvs      = DB.PIvs,
-	             **PIvc      = DB.PIvc,
-	             PP          = DB.PP,
-	             Collocated  = DB.Collocated,
-	             EFE         = DB.EFE;
+	unsigned int Adapt        = DB.Adapt,
+	             PMax         = DB.PMax,
+	             NP           = DB.NP,
+	             PGlobal      = DB.PGlobal,
+	             PGs          = DB.PGs,
+	             *PGc         = DB.PGc,
+	             **PCs        = DB.PCs,
+	             **PCc        = DB.PCc,
+	             **PIvs       = DB.PIvs,
+	             **PIvc       = DB.PIvc,
+	             PP           = DB.PP,
+	             Collocated   = DB.Collocated,
+	             EFE          = DB.EFE,
+	             *VFPartUnity = DB.VFPartUnity;
 
 	char         *BasisType     = DB.BasisType,
 	             **NodeTypeG    = DB.NodeTypeG,
@@ -936,8 +940,10 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	D_vCs_vCs = ELEMENT->D_vCs_vCs;
 	D_vCc_vCc = ELEMENT->D_vCc_vCc;
 
-	ChiS_fIs = ELEMENT->ChiS_fIs;
-	ChiS_fIc = ELEMENT->ChiS_fIc;
+	ChiS_fIs    = ELEMENT->ChiS_fIs;
+	ChiS_fIc    = ELEMENT->ChiS_fIc;
+	ChiS_fIs_sp = ELEMENT->ChiS_fIs_sp;
+	ChiS_fIc_sp = ELEMENT->ChiS_fIc_sp;
 
 	I_vGs_fIs = ELEMENT->I_vGs_fIs;
 	I_vGs_fIc = ELEMENT->I_vGs_fIc;
@@ -948,10 +954,13 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	I_vCc_fIs = ELEMENT->I_vCc_fIs;
 	I_vCc_fIc = ELEMENT->I_vCc_fIc;
 
-	Is_Weak_VV = ELEMENT->Is_Weak_VV;
-	Ic_Weak_VV = ELEMENT->Ic_Weak_VV;
-	Is_Weak_FF = ELEMENT->Is_Weak_FF;
-	Ic_Weak_FF = ELEMENT->Ic_Weak_FF;
+	Is_Weak_VV    = ELEMENT->Is_Weak_VV;
+	Ic_Weak_VV    = ELEMENT->Ic_Weak_VV;
+	Is_Weak_FF    = ELEMENT->Is_Weak_FF;
+	Ic_Weak_FF    = ELEMENT->Ic_Weak_FF;
+	Is_Weak_FF_sp = ELEMENT->Is_Weak_FF_sp;
+	Ic_Weak_FF_sp = ELEMENT->Ic_Weak_FF_sp;
+
 	Ds_Weak_VV = ELEMENT->Ds_Weak_VV;
 	Dc_Weak_VV = ELEMENT->Dc_Weak_VV;
 
@@ -1430,6 +1439,14 @@ if (EType == LINE && P == 3) {
 						free(dummyPtr_d);
 					}
 
+					if (VFPartUnity[Eclass]) {
+						convert_to_CSR_d(NfnIs[Pb][IndFType],NvnS[P],ChiS_fIs[P][Pb][Vf],&ChiS_fIs_sp[P][Pb][Vf]); // keep
+						convert_to_CSR_d(NfnIc[Pb][IndFType],NvnS[P],ChiS_fIc[P][Pb][Vf],&ChiS_fIc_sp[P][Pb][Vf]); // keep
+
+						convert_to_CSR_d(NvnS[P],NfnIs[Pb][IndFType],Is_Weak_FF[P][Pb][Vf],&Is_Weak_FF_sp[P][Pb][Vf]); // keep
+						convert_to_CSR_d(NvnS[P],NfnIc[Pb][IndFType],Ic_Weak_FF[P][Pb][Vf],&Ic_Weak_FF_sp[P][Pb][Vf]); // keep
+					}
+
 					if (fh == 0) {
 						ChiRefGs_fIs = basis(PGs           ,rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
 						ChiRefGs_fIc = basis(PGs           ,rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
@@ -1815,12 +1832,13 @@ static void setup_TP_operators(const unsigned int EType)
 	               ****Is_Weak_FF_sp, ****Ic_Weak_FF_sp;
 
 	// Initialize DB Parameters
-	unsigned int Adapt      = DB.Adapt,
-	             PGlobal    = DB.PGlobal,
-	             PP         = DB.PP,
-	             PMax       = DB.PMax,
-	             EFE        = DB.EFE,
-	             Collocated = DB.Collocated;
+	unsigned int Adapt        = DB.Adapt,
+	             PGlobal      = DB.PGlobal,
+	             PP           = DB.PP,
+	             PMax         = DB.PMax,
+	             EFE          = DB.EFE,
+	             Collocated   = DB.Collocated,
+	             *VFPartUnity = DB.VFPartUnity;
 
 	// Standard datatypes
 	unsigned int dim, P, f, fh, Pb, PSMin, PSMax, PbMin, PbMax, *fhMax, IndClass,
@@ -2102,7 +2120,7 @@ static void setup_TP_operators(const unsigned int EType)
 					                   NIn,NOut,OP,dE,Vf,Eclass);
 					Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
-					if (Collocated) {
+					if (Collocated || VFPartUnity[Eclass]) {
 						convert_to_CSR_d(NfnIs[Pb][0],NvnS[P],ChiS_fIs[P][Pb][Vf],&ChiS_fIs_sp[P][Pb][Vf]); // keep
 						convert_to_CSR_d(NfnIc[Pb][0],NvnS[P],ChiS_fIc[P][Pb][Vf],&ChiS_fIc_sp[P][Pb][Vf]); // keep
 
@@ -2359,7 +2377,7 @@ static void setup_TP_operators(const unsigned int EType)
 					                   NIn1,ELEMENTclass[1]->NvnS[P],OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 					Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
-					if (Collocated) {
+					if (Collocated || VFPartUnity[Eclass]) {
 						if (f < 3) IndClass = 0;
 						else       IndClass = 1;
 
