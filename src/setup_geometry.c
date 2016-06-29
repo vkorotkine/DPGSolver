@@ -85,7 +85,7 @@ void setup_geometry(void)
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 		if (!VOLUME->curved) {
 			// If not curved, the P1 geometry representation suffices to fully specify the element geometry.
-			NvnG = ELEMENT->NvnGs[0];
+			NvnG = ELEMENT->NvnGs[1];
 
 			VOLUME->NvnG = NvnG;
 
@@ -97,9 +97,9 @@ void setup_geometry(void)
 				XYZ_S[dim*NvnG+vn] = XYZ_vC[dim*NvnG+vn];
 			}}
 		} else {
-			NvnGs = ELEMENT->NvnGs[0];
+			NvnGs = ELEMENT->NvnGs[1];
 			NvnGc = ELEMENT->NvnGc[P];
-			I_vGs_vGc = ELEMENT->I_vGs_vGc[0][P][0];
+			I_vGs_vGc = ELEMENT->I_vGs_vGc[1][P][0];
 
 			NCols = d*1; // d coordinates * 1 element
 
@@ -183,11 +183,11 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	OPS->NvnG = VOLUME->NvnG;
 	if (FtypeInt == 's') {
 		OPS->NfnI = ELEMENT_OPS->NfnIs[PF][IndClass];
-		if (!Vcurved) OPS->I_vG_fI = ELEMENT_OPS->I_vGs_fIs[PV][PF];
+		if (!Vcurved) OPS->I_vG_fI = ELEMENT_OPS->I_vGs_fIs[1][PF];
 		else          OPS->I_vG_fI = ELEMENT_OPS->I_vGc_fIs[PV][PF];
 	} else {
 		OPS->NfnI = ELEMENT_OPS->NfnIc[PF][IndClass];
-		if (!Vcurved) OPS->I_vG_fI = ELEMENT_OPS->I_vGs_fIc[PV][PF];
+		if (!Vcurved) OPS->I_vG_fI = ELEMENT_OPS->I_vGs_fIc[1][PF];
 		else          OPS->I_vG_fI = ELEMENT_OPS->I_vGc_fIc[PV][PF];
 	}
 }

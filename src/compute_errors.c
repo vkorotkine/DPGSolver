@@ -52,7 +52,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	if (!curved) {
 		OPS->NvnI = ELEMENT_OPS->NvnIs[P];
 
-		OPS->I_vG_vI = ELEMENT_OPS->I_vGs_vIs[P][P][0];
+		OPS->I_vG_vI = ELEMENT_OPS->I_vGs_vIs[1][P][0];
 		OPS->w_vI    = ELEMENT_OPS->w_vIs[P];
 		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIs[P][P][0];
 	} else {

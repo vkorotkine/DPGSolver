@@ -23,6 +23,58 @@
  *	References:
  */
 
+void get_PS_range(unsigned int *PSMin, unsigned int *PSMax)
+{
+	/*
+	 *	Purpose:
+	 *		Return the range of orders used for the solution.
+	 */
+
+	// Initialize DB Parameters
+	unsigned int PMax    = DB.PMax,
+	             PGlobal = DB.PGlobal,
+	             Adapt   = DB.Adapt;
+
+	switch (Adapt) {
+		default: // ADAPT_P or ADAPT_HP
+			*PSMin = 0;
+			*PSMax = PMax;
+			break;
+		case ADAPT_0:
+		case ADAPT_H:
+			*PSMin = PGlobal;
+			*PSMax = PGlobal;
+			break;
+	}
+
+}
+
+void get_Pb_range(const unsigned int P, unsigned int *PbMin, unsigned int *PbMax)
+{
+	/*
+	 *	Purpose:
+	 *		Return the range of orders used for operators which interpolate between different orders.
+	 */
+
+	// Initialize DB Parameters
+	unsigned int PMax  = DB.PMax,
+	             Adapt = DB.Adapt;
+
+	switch (Adapt) {
+		default: // ADAPT_P or ADAPT_HP
+			if      (P == 0)    *PbMin = P,   *PbMax = P+1;
+			else if (P == PMax) *PbMin = P-1, *PbMax = PMax;
+			else                *PbMin = P-1, *PbMax = P+1;
+			break;
+		case ADAPT_0:
+		case ADAPT_H:
+			*PbMin = P;
+			*PbMax = P;
+			break;
+	}
+}
+
+
 void adapt_hp(void)
 {
 	// Initialize DB Parameters

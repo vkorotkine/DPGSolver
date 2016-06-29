@@ -72,11 +72,11 @@ struct S_ELEMENT {
 	             *Nfve, *VeCGmsh, *VeFcon;
 
 	// Operators
-	unsigned int connect_NE, NvnP, *Nvve,
+	unsigned int *connect_NE, *NvnP, *Nvve,
 	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS,
 	             **NfnIs, **NfnIc,
 	             *Nfref, *NfMixed,
-	             *connectivity, *connect_types,
+	             **connectivity, **connect_types,
 	             ***nOrd_fIs, ***nOrd_fIc;
 	double       **VeF, **VeV, *nr,
 	             **w_vIs, **w_vIc,

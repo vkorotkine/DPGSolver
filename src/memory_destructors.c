@@ -12,7 +12,6 @@
  *		Free memory of various structures.
  *
  *	Comments:
- *		ToBeDeleted: Likely need a destructor for elements and element classes which are different.
  *
  *	Notation:
  *
@@ -44,8 +43,10 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->nr);
 
 	// Plotting
-	free(ELEMENT->connectivity);
-	free(ELEMENT->connect_types);
+	free(ELEMENT->NvnP);
+	free(ELEMENT->connect_NE);
+	array_free2_ui(NP,ELEMENT->connectivity);
+	array_free2_ui(NP,ELEMENT->connect_types);
 
 	// Operators
 	free(ELEMENT->NvnGs);
@@ -70,8 +71,8 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free4_d(NP,NP,1,ELEMENT->ICs);
 	array_free4_d(NP,NP,1,ELEMENT->ICc);
 
-	array_free4_d(1 ,NP,1,         ELEMENT->I_vGs_vP);
-	array_free4_d(1 ,NP,1,         ELEMENT->I_vGs_vGc);
+	array_free4_d(NP,NP,1,         ELEMENT->I_vGs_vP);
+	array_free4_d(NP,NP,1,         ELEMENT->I_vGs_vGc);
 	array_free4_d(NP,NP,1,         ELEMENT->I_vGs_vCs);
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->I_vGs_vIs);
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->I_vGs_vIc);
@@ -85,6 +86,8 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->I_vCs_vIc);
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->I_vCc_vIs);
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->I_vCc_vIc);
+
+	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->Ihat_vS_vS);
 
 	array_free5_d(NP,NP,1,d,ELEMENT->D_vGs_vCs);
 	array_free5_d(NP,NP,1,d,ELEMENT->D_vGs_vIs);

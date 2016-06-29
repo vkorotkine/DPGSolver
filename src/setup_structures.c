@@ -306,11 +306,11 @@ void setup_structures(void)
 
 			// Geometry
 			if (VOLUME->Eclass == C_TP)
-				NvnGs = pow(ELEMENT->ELEMENTclass[0]->NvnGs[0],d);
+				NvnGs = pow(ELEMENT->ELEMENTclass[0]->NvnGs[1],d);
 			else if (VOLUME->Eclass == C_WEDGE)
-				NvnGs = (ELEMENT->ELEMENTclass[0]->NvnGs[0])*(ELEMENT->ELEMENTclass[1]->NvnGs[0]);
+				NvnGs = (ELEMENT->ELEMENTclass[0]->NvnGs[1])*(ELEMENT->ELEMENTclass[1]->NvnGs[1]);
 			else if (VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR)
-				NvnGs = ELEMENT->NvnGs[0];
+				NvnGs = ELEMENT->NvnGs[1];
 			else
 				printf("Error: Unsupported element type setup_struct (NvnGs).\n"), exit(1);
 
@@ -397,7 +397,7 @@ void setup_structures(void)
 		Nfve  = ELEMENT->Nfve;
 		VeF   = ELEMENT->VeF;
 
-		NvnGs = ELEMENT->NvnGs[0];
+		NvnGs = ELEMENT->NvnGs[1];
 		XYZ_vC = VOLUME->XYZ_vC;
 
 		XYZIn_fC = malloc(Nfve[Indf]*d * sizeof *XYZIn_fC); // free
@@ -413,7 +413,7 @@ void setup_structures(void)
 		Nfve  = ELEMENT->Nfve;
 		VeF   = ELEMENT->VeF;
 
-		NvnGs = ELEMENT->NvnGs[0];
+		NvnGs = ELEMENT->NvnGs[1];
 		XYZ_vC = VOLUME->XYZ_vC;
 
 		XYZOut_fC = malloc(Nfve[Indf]*d * sizeof *XYZOut_fC); // free

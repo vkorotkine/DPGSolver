@@ -41,7 +41,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 	OPS->NvnS       = ELEMENT_OPS->NvnS[P];
 	OPS->ChiInvS_vS = ELEMENT_OPS->ChiInvS_vS[P][P][0];
 	if (!curved) {
-		OPS->I_vG_vS = ELEMENT_OPS->I_vGs_vS[P][P][0];
+		OPS->I_vG_vS = ELEMENT_OPS->I_vGs_vS[1][P][0];
 	} else {
 		OPS->I_vG_vS = ELEMENT_OPS->I_vGc_vS[P][P][0];
 	}
@@ -81,12 +81,12 @@ void initialize_test_case(void)
 		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 		strcpy(SolverType,"Explicit");
 
-		DB.Xc = -DB.PeriodL*0.05;
-//		DB.Xc =  0.0;
+//		DB.Xc = -DB.PeriodL*0.05;
+		DB.Xc =  0.0;
 		DB.Yc =  0.0;
 		DB.Rc =  0.2;
-		DB.PeriodFraction = 0.1;
-//		DB.PeriodFraction = 1.0;
+//		DB.PeriodFraction = 0.1;
+		DB.PeriodFraction = 1.0;
 
 		DB.MInf = 0.5;
 //		DB.MInf = 0.0;
@@ -97,8 +97,8 @@ void initialize_test_case(void)
 		DB.Cscale = 0.1;
 
 		DB.uInf   = DB.MInf*sqrt(GAMMA*DB.Rg*DB.TInf);
-		DB.vInf   = 0.0;
-		DB.wInf   = 0.0;
+		DB.vInf   = 0.1*EPS;
+		DB.wInf   = 0.1*EPS;
 		DB.VInf   = sqrt(DB.uInf*DB.uInf+DB.vInf*DB.vInf+DB.wInf*DB.wInf);
 
 		if (fabs(DB.VInf) < 10*EPS)
@@ -136,6 +136,7 @@ void initialize_test_case(void)
 		OPS = malloc(sizeof *OPS); // free
 		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 			init_ops(OPS,VOLUME);
+//printf("%d\n",VOLUME->indexg);
 
 			NvnS         = OPS->NvnS;
 			VOLUME->NvnS = NvnS;

@@ -70,8 +70,7 @@ static void output_geom(const char *geom_type)
 {
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
-	unsigned int d         = DB.d,
-	             PP        = DB.PP;
+	unsigned int d         = DB.d;
 	int          MPIrank   = DB.MPIrank,
 	             MPIsize   = DB.MPIsize;
 
@@ -108,7 +107,7 @@ static void output_geom(const char *geom_type)
 		fprintf_tn(fID,1,"<PUnstructuredGrid GhostLevel=\"0\">\n");
 
 		fprintf_tn(fID,2,"<PPointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
-		fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"dummy\" format=\"ascii\"/>");
+		fprintf_tn(fID,3,"<PDataArray type=\"UInt8\" Name=\"P\" format=\"ascii\"/>");
 		fprintf_tn(fID,2,"</PPointData>\n");
 
 		fprintf_tn(fID,2,"<PPoints>");
@@ -145,19 +144,19 @@ static void output_geom(const char *geom_type)
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 
-		connectivity = ELEMENT->connectivity;
-		types        = ELEMENT->connect_types;
-		NE           = ELEMENT->connect_NE;
-
 		P = VOLUME->P;
 
-		NvnP = ELEMENT->NvnP;
+		connectivity = ELEMENT->connectivity[P];
+		types        = ELEMENT->connect_types[P];
+		NE           = ELEMENT->connect_NE[P];
+
+		NvnP = ELEMENT->NvnP[P];
 		NvnG = VOLUME->NvnG;
 
 		if (!VOLUME->curved)
-			I_vG_vP = ELEMENT->I_vGs_vP[0][PP][0];
+			I_vG_vP = ELEMENT->I_vGs_vP[1][P][0];
 		else
-			I_vG_vP = ELEMENT->I_vGc_vP[P][PP][0];
+			I_vG_vP = ELEMENT->I_vGc_vP[P][P][0];
 
 		if (strstr(geom_type,"straight") != NULL)
 			Input = VOLUME->XYZ_S;
@@ -182,10 +181,10 @@ static void output_geom(const char *geom_type)
 			fprintf_tn(fID,3,"</Points>");
 
 			fprintf_tn(fID,3,"<PointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
-				fprintf_tn(fID,4,"<DataArray type=\"Float32\" Name=\"dummy\" format=\"ascii\">");
+				fprintf_tn(fID,4,"<DataArray type=\"UInt8\" Name=\"P\" format=\"ascii\">");
 				fprintf(fID,"\t\t\t\t");
 				for (i = 0; i < NvnP; i++) {
-					fprintf(fID,"% .3f ",0.0);
+					fprintf(fID,"%d ",P);
 					if ((i+1) % 5 == 0 && i != NvnP-1)
 						fprintf(fID,"\n\t\t\t\t");
 					else if (i == NvnP-1)
@@ -337,11 +336,11 @@ static void output_normals(const char *normals_type)
 
 		if (FACET->typeInt == 's') {
 			NfnI = ELEMENT->NfnIs[PF][IndFType];
-			if (!VIn->curved) I_vG_fI = ELEMENT->I_vGs_fIs[PV][PF][VfIn];
+			if (!VIn->curved) I_vG_fI = ELEMENT->I_vGs_fIs[1][PF][VfIn];
 			else              I_vG_fI = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
 		} else {
 			NfnI = ELEMENT->NfnIc[PF][IndFType];
-			if (!VIn->curved) I_vG_fI = ELEMENT->I_vGs_fIc[PV][PF][VfIn];
+			if (!VIn->curved) I_vG_fI = ELEMENT->I_vGs_fIc[1][PF][VfIn];
 			else              I_vG_fI = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
 		}
 		Input = VIn->XYZ;
@@ -451,7 +450,7 @@ static void output_solution(const char *sol_type)
 	char         *TestCase = DB.TestCase,
 	             *MeshType = DB.MeshType;
 	unsigned int d         = DB.d,
-	             PP        = DB.PP,
+	             PMax      = DB.PMax,
 	             Nvar      = DB.Nvar;
 	int          MPIrank   = DB.MPIrank,
 	             MPIsize   = DB.MPIsize;
@@ -459,7 +458,7 @@ static void output_solution(const char *sol_type)
 	// standard datatypes
 	char MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
 	unsigned int i, iMax, j, jMax, dim, sum, varMax,
-	             P, NE, NvnP, NvnG, NvnS,
+	             P, PP, NE, NvnP, NvnG, NvnS,
 	             *connectivity, *types, *VTK_Ncorners;
 	double *I_vG_vP, *ChiS_vP, *XYZ_vP, *W_vP, *U_vP, *rho, *u, *v, *w, *p, *E, *s, *Mach, V2, c2;
 	FILE *fID;
@@ -527,18 +526,24 @@ static void output_solution(const char *sol_type)
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 
-		connectivity = ELEMENT->connectivity;
-		types        = ELEMENT->connect_types;
-		NE           = ELEMENT->connect_NE;
-
 		P = VOLUME->P;
 
-		NvnP = ELEMENT->NvnP;
+		// Visualize with higher order to see curved geometry if applicable (P+1 is the maximum currently supported)
+		if (!VOLUME->curved || DB.Adapt == ADAPT_0 || DB.Adapt == ADAPT_H)
+			PP = P;
+		else
+			PP = min(PMax,P+1);
+
+		connectivity = ELEMENT->connectivity[PP];
+		types        = ELEMENT->connect_types[PP];
+		NE           = ELEMENT->connect_NE[PP];
+
+		NvnP = ELEMENT->NvnP[PP];
 		NvnG = VOLUME->NvnG;
 		NvnS = VOLUME->NvnS;
 
 		if (!VOLUME->curved)
-			I_vG_vP = ELEMENT->I_vGs_vP[0][PP][0];
+			I_vG_vP = ELEMENT->I_vGs_vP[1][P][0];
 		else
 			I_vG_vP = ELEMENT->I_vGc_vP[P][PP][0];
 		ChiS_vP = ELEMENT->ChiS_vP[P][PP][0];

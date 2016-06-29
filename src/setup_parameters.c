@@ -509,12 +509,14 @@ void setup_parameters()
 	}
 
 // Check break-even with standard BLAS call (ToBeDeleted)
-	for (i = 0, iMax = NEC+1; i < iMax; i++) {
-		if ((i == 0 && strstr(DB.NodeType,"GLL")    != NULL) ||
-		    (i == 1 && strstr(DB.NodeType,"AO")     != NULL) ||
-		    (i == 2 && strstr(DB.NodeType,"GLL")    != NULL) ||
-		    (i == 3 && strstr(DB.NodeType,"GLL-AO") != NULL))
-				VFPartUnity[i] = 1;
+	if (strstr(DB.BasisType,"Nodal") != NULL) {
+		for (i = 0, iMax = NEC+1; i < iMax; i++) {
+			if ((i == 0 && strstr(DB.NodeType,"GLL")    != NULL) ||
+			    (i == 1 && strstr(DB.NodeType,"AO")     != NULL) ||
+			    (i == 2 && strstr(DB.NodeType,"GLL")    != NULL) ||
+			    (i == 3 && strstr(DB.NodeType,"GLL-AO") != NULL))
+					VFPartUnity[i] = 1;
+		}
 	}
 
 	// Solver

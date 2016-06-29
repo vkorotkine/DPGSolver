@@ -543,17 +543,13 @@ array_print_d(NvnSOut,Neq,RHSOut,'C');
 	}
 }
 
-static void compute_FACETVec_RHS_EFE(void)
-{
-
-}
+//static void compute_FACETVec_RHS_EFE(void) { }
 
 static void compute_FACET_RHS(void)
 {
 
-}
-
-static void compute_FACETVec_RHS(void)
-{
+	// Compute WIn_fS
 
 }
+
+//static void compute_FACETVec_RHS(void) { }

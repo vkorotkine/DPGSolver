@@ -24,7 +24,7 @@
 
 struct S_OPERATORS {
 	unsigned int NvnGs, NvnGc, NvnS, NvnSP, NvnI;
-	double       *I_vGs_vGc, *Ihat_vS_vS, *w_vI, *ChiS_vI;
+	double       *I_vGs_vGc, **Ihat_vS_vS, *w_vI, *ChiS_vI;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass)
@@ -48,11 +48,11 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		OPS->w_vI    = ELEMENT->w_vIs[P];
 		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P][0];
 	} else {
-		OPS->NvnGs = ELEMENT->NvnGs[0];
+		OPS->NvnGs = ELEMENT->NvnGs[1];
 		OPS->NvnGc = ELEMENT->NvnGc[PNew];
 		OPS->NvnI  = ELEMENT->NvnIc[P];
 
-		OPS->I_vGs_vGc = ELEMENT->I_vGs_vGc[0][PNew][0];
+		OPS->I_vGs_vGc = ELEMENT->I_vGs_vGc[1][PNew][0];
 
 		OPS->w_vI    = ELEMENT->w_vIc[P];
 		OPS->ChiS_vI = ELEMENT->ChiS_vIc[P][P][0];
@@ -72,7 +72,7 @@ void update_VOLUME_hp(void)
 	unsigned int P, PNew, adapt_type;
 	double       NvnGs, NvnGc, NvnS, NvnSP, NCols,
 	             *I_vGs_vGc, *XYZ_vC, *XYZ_S,
-	             *Ihat_vS_vS, *What, *RES, *WhatP, *RESP;
+	             **Ihat_vS_vS, *What, *RES, *WhatP, *RESP;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME;
@@ -118,6 +118,8 @@ void update_VOLUME_hp(void)
 
 			switch(adapt_type) {
 			default: // PREFINE or PCOARSE
+				VOLUME->P = PNew;
+
 				// Update geometry
 // need normals and detJF_fI
 				if (VOLUME->curved) {
@@ -130,10 +132,13 @@ void update_VOLUME_hp(void)
 					XYZ_vC = VOLUME->XYZ_vC;
 					XYZ_S  = malloc(NvnGc*NCols * sizeof *XYZ_S); // keep
 					mm_CTN_d(NvnGc,NCols,NvnGs,I_vGs_vGc,XYZ_vC,XYZ_S);
+
 					free(VOLUME->XYZ_S);
 					VOLUME->XYZ_S = XYZ_S;
+					VOLUME->NvnG  = NvnGc;
 				}
 
+				free(VOLUME->XYZ);
 				if (strstr(MeshType,"ToBeCurved") != NULL)
 					setup_ToBeCurved(VOLUME);
 				else
@@ -154,16 +159,14 @@ void update_VOLUME_hp(void)
 				WhatP = malloc(NvnSP*Nvar * sizeof *WhatP); // keep
 				RESP  = malloc(NvnSP*Nvar * sizeof *RESP);  // keep
 
-				mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS,What,WhatP);
-				mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS,RES,RESP);
+				mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS[0],What,WhatP);
+				mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS[0],RES,RESP);
 
 				free(What);
 				free(RES);
 
 				VOLUME->What = WhatP;
 				VOLUME->RES  = RESP;
-
-				VOLUME->P = PNew;
 				break;
 			case HREFINE:
 				// Interpolate to finer space
@@ -236,6 +239,7 @@ void update_VOLUME_Ops(void)
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 		if (VOLUME->update) {
+//printf("update_VOLUME_Ops: %d\n",VOLUME->indexg);
 			VOLUME->update = 0;
 			if (strstr(SolverType,"Explicit") != NULL) {
 				if (!Collocated) {

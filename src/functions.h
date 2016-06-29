@@ -93,6 +93,8 @@ extern void boundary_Riemann  (const unsigned int Nn, const unsigned int Nel, do
 extern void boundary_SlipWall (const unsigned int Nn, const unsigned int Nel, double *WL, double *WB, double *nL);
 
 // hp adaptation
+extern void get_PS_range (unsigned int *PSMin, unsigned int *PSMax);
+extern void get_Pb_range (const unsigned int P, unsigned int *PbMin, unsigned int *PbMax);
 extern void adapt_hp (void);
 extern void   update_VOLUME_hp (void);
 extern void   update_Vgrp      (void);

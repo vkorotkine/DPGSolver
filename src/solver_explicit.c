@@ -61,10 +61,15 @@ void solver_explicit(void)
 
 	tstep = 0; time = 0.0;
 	while (time < FinalTime) {
-
+/*
+//DB.VOLUME->Vadapt = 1;
+//DB.VOLUME->adapt_type = PREFINE;
 VOLUME = DB.VOLUME->next;
 VOLUME->Vadapt = 1;
 VOLUME->adapt_type = PREFINE;
+VOLUME = VOLUME->next->next;
+VOLUME->Vadapt = 1;
+VOLUME->adapt_type = PCOARSE;
 
 		if (Adapt) {
 			update_VOLUME_hp();
@@ -74,6 +79,8 @@ VOLUME->adapt_type = PREFINE;
 
 output_to_paraview("0SolAdapt");
 exit(1);
+*/
+		update_VOLUME_Ops();
 
 		if (time+dt > FinalTime)
 			dt = FinalTime-time;
@@ -83,10 +90,12 @@ exit(1);
 			// RES is used to store the initial solution at the beginning of the time step.
 
 			for (rk = 0; rk < 3; rk++) {
-				explicit_VOLUME_info();
-				explicit_FACET_info();
-				maxRHS = finalize_RHS();
+				// Build the RHS (== -Residual)
+				printf("V");  explicit_VOLUME_info();
+				printf("F");  explicit_FACET_info();
+				printf("F "); maxRHS = finalize_RHS();
 
+				// Update What
 				for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 					NvnS = VOLUME->NvnS;
 
@@ -117,9 +126,9 @@ exit(1);
 		case RK4_LS:
 			for (rk = 0; rk < 5; rk++) {
 				// Build the RHS (== -Residual)
-				explicit_VOLUME_info();
-				explicit_FACET_info();
-				maxRHS = finalize_RHS();
+				printf("V");  explicit_VOLUME_info();
+				printf("F");  explicit_FACET_info();
+				printf("F "); maxRHS = finalize_RHS();
 
 				// Update What
 				for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
