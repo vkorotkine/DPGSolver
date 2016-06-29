@@ -87,6 +87,7 @@ struct S_ELEMENT {
 	             ****I_vGc_vP,                ****I_vGc_vCc, ****I_vGc_vIs, ****I_vGc_vIc, ****I_vGc_vS,
 	             ****I_vCs_vIs, ****I_vCs_vIc,
 	             ****I_vCc_vIs, ****I_vCc_vIc,
+	             ****Ihat_vS_vS,
 	             *****D_vGs_vCs, *****D_vGs_vIs,
 	             *****D_vGc_vCc, *****D_vGc_vIc,
 	             *****D_vCs_vCs,

@@ -194,6 +194,8 @@
  *		I_vCc_vIs    (*) |
  *		I_vCc_vIc    (*) |
  *		                 |
+ *		Ihat_vS_vS       | NOT_USED        [rP][rPb][0]        [P][P][*]       [rP][rPb][0] & [P][P][*]
+ *		                 |
  *		D_vGs_vCs        | [P][P][0][rd]   [rP][P(P)][0][rd]   [P][P][0][rd]   [rP][P(P)][0][rd]
  *		D_vGs_vIs        |
  *		D_vGc_vCc        |
@@ -781,6 +783,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             ****I_vGc_vP,                ****I_vGc_vCc, ****I_vGc_vIs, ****I_vGc_vIc, ****I_vGc_vS,
 	             ****I_vCs_vIs, ****I_vCs_vIc,
 	             ****I_vCc_vIs, ****I_vCc_vIc,
+	             ****Ihat_vS_vS,
 	             *****D_vGs_vCs, *****D_vGs_vIs,
 	             *****D_vGc_vCc, *****D_vGc_vIc,
 	             *****D_vCs_vCs,
@@ -826,7 +829,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             B_Nve[2], *Nfve, *Nvve,
 	             dummy_ui, *dummyPtr_ui[2];
 	double       *E_rst_vC, *rst_vC, **VeF, **VeV,
-	             *rst_vP, *rst_vGs, *rst_vGc, *rst_vCs, *rst_vCc, **rst_vIs, **rst_vIc, *rst_vS, *rst_fIs, *rst_fIc,
+	             *rst_vP, *rst_vGs, *rst_vGc, *rst_vCs, *rst_vCc, **rst_vIs, **rst_vIc, **rst_vS, *rst_fIs, *rst_fIc,
 	             *wInv_vIs, *wInv_vIc,
 	             *diag_w_vIs, *diag_w_vIc, *diag_wInv_vIs, *diag_wInv_vIc,
 	             ***w_fIs, ***w_fIc, *diag_w_fIs, *diag_w_fIc,
@@ -860,7 +863,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             *dummyPtr_d;
 
 	struct BCoords {
-		double **Is, **Ic;
+		double **Is, **Ic, **S;
 	} *BCoords_F[2], *BCoords_V;
 
 	struct S_BCOORDS *BCoords_dEm1[2];
@@ -933,6 +936,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	I_vCc_vIs = ELEMENT->I_vCc_vIs;
 	I_vCc_vIc = ELEMENT->I_vCc_vIc;
 
+	Ihat_vS_vS = ELEMENT->Ihat_vS_vS;
+
 	D_vGs_vCs = ELEMENT->D_vGs_vCs;
 	D_vGs_vIs = ELEMENT->D_vGs_vIs;
 	D_vGc_vCc = ELEMENT->D_vGc_vCc;
@@ -967,6 +972,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	// Allocate memory for arrays with multiple levels of dereferencing
 	BCoords_V     = malloc(           sizeof *BCoords_V); // free
 
+	rst_vS        = malloc(NVREFMAX * sizeof *rst_vS);  // free
 	rst_vIs       = malloc(NVREFMAX * sizeof *rst_vIs); // free
 	rst_vIc       = malloc(NVREFMAX * sizeof *rst_vIc); // free
 
@@ -1115,14 +1121,49 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 			break;
 	}
 
+	BCoords_V->S  = calloc(NP , sizeof *(BCoords_V->S));  // free
 	BCoords_V->Is = calloc(NP , sizeof *(BCoords_V->Is)); // free
 	BCoords_V->Ic = calloc(NP , sizeof *(BCoords_V->Ic)); // free
 
 	for (P = PSMin; P <= PSMax; P++) {
+		switch (Adapt) {
+			default: // ADAPT_P or ADAPT_HP
+				if      (P == 0)    PbMin = P,   PbMax = P+1;
+				else if (P == PMax) PbMin = P-1, PbMax = PMax;
+				else                PbMin = P-1, PbMax = P+1;
+				break;
+			case ADAPT_0:
+			case ADAPT_H:
+				PbMin = P; PbMax = P;
+				break;
+		}
+
+
+		// Build preliminary operators needed for P adaptation.
+		for (Pb = PbMax; Pb >= P; Pb--) {
+			cubature(&rst_vS[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnS[Pb],&dummy_ui,0,Pb,dE,NodeTypeS[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+
+			IS         = identity_d(NvnS[Pb]);  // free
+			ChiRefS_vS = basis(Pb,rst_vS[0],NvnS[Pb],&Nbf,dE); // free
+			if (strstr(BasisType,"Modal") != NULL) {
+				ChiS_vS = ChiRefS_vS;
+			} else if (strstr(BasisType,"Nodal") != NULL) {
+				ChiS_vS = IS;
+			}
+
+			if (ChiInvS_vS[Pb][Pb][0] == NULL)
+				ChiInvS_vS[Pb][Pb][0] = inverse_d(NvnS[Pb],NvnS[Pb],ChiS_vS,IS); // keep
+
+			if (Pb != P) {
+				free(rst_vS[0]);
+				free(IS);
+				free(ChiRefS_vS);
+			}
+		}
+
 		cubature(&rst_vGc,&dummyPtr_d,&dummyPtr_ui[0],&NvnGc[P],&dummy_ui,0,PGc[P],         dE,NodeTypeG[Eclass]  );    free(dummyPtr_ui[0]); // free
 		cubature(&rst_vCs,&dummyPtr_d,&dummyPtr_ui[0],&NvnCs[P],&dummy_ui,0,PCs[P][Eclass], dE,NodeTypeG[Eclass]  );    free(dummyPtr_ui[0]); // free
 		cubature(&rst_vCc,&dummyPtr_d,&dummyPtr_ui[0],&NvnCc[P],&dummy_ui,0,PCc[P][Eclass], dE,NodeTypeG[Eclass]  );    free(dummyPtr_ui[0]); // free
-		cubature(&rst_vS, &dummyPtr_d,&dummyPtr_ui[0],&NvnS[P], &dummy_ui,0,P,              dE,NodeTypeS[P][Eclass]);   free(dummyPtr_ui[0]); // free
 
 		cubature(&rst_vIs[0],&w_vIs[P],&dummyPtr_ui[0],&NvnIs[P],&dummy_ui,1,PIvs[P][Eclass],dE,NodeTypeIvs[P][Eclass]); free(dummyPtr_ui[0]); // free
 		cubature(&rst_vIc[0],&w_vIc[P],&dummyPtr_ui[0],&NvnIc[P],&dummy_ui,1,PIvc[P][Eclass],dE,NodeTypeIvc[P][Eclass]); free(dummyPtr_ui[0]); // free
@@ -1150,27 +1191,20 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		IGc          = identity_d(NvnGc[P]); // free
 		ICs[P][P][0] = identity_d(NvnCs[P]); // keep
 		ICc[P][P][0] = identity_d(NvnCc[P]); // keep
-		IS           = identity_d(NvnS[P]);  // free
 
 		ChiRefGc_vGc = basis(PGc[P],rst_vGc,NvnGc[P],&Nbf,dE);         // free
 		ChiRefCs_vCs = basis(PCs[P][Eclass],rst_vCs,NvnCs[P],&Nbf,dE); // free
 		ChiRefCc_vCc = basis(PCc[P][Eclass],rst_vCc,NvnCc[P],&Nbf,dE); // free
-		ChiRefS_vS   = basis(P,             rst_vS, NvnS[P], &Nbf,dE); // free
 
 		if (strstr(BasisType,"Modal") != NULL) {
 			ChiGc_vGc = ChiRefGc_vGc;
 			ChiCs_vCs = ChiRefCs_vCs;
 			ChiCc_vCc = ChiRefCc_vCc;
-			ChiS_vS   = ChiRefS_vS;
 		} else if (strstr(BasisType,"Nodal") != NULL) {
 			ChiGc_vGc = IGc;
 			ChiCs_vCs = ICs[P][P][0];
 			ChiCc_vCc = ICc[P][P][0];
-			ChiS_vS   = IS;
 		}
-
-// Move the free's here for ChiRefS_vS and ChiRefInvS_vS then recompute for different orders in the Pb loop to obtain
-Ihat_vS_vS
 
 		ChiRefInvGc_vGc = inverse_d(NvnGc[P],NvnGc[P],ChiRefGc_vGc,IGc);          // free
 		ChiRefInvCs_vCs = inverse_d(NvnCs[P],NvnCs[P],ChiRefCs_vCs,ICs[P][P][0]); // free
@@ -1180,41 +1214,48 @@ Ihat_vS_vS
 		ChiInvGc_vGc        = inverse_d(NvnGc[P],NvnGc[P],ChiGc_vGc,IGc);          // free
 		ChiInvCs_vCs        = inverse_d(NvnCs[P],NvnCs[P],ChiCs_vCs,ICs[P][P][0]); // free
 		ChiInvCc_vCc        = inverse_d(NvnCc[P],NvnCc[P],ChiCc_vCc,ICc[P][P][0]); // free
-		ChiInvS_vS[P][P][0] = inverse_d(NvnS[P], NvnS[P], ChiS_vS,  IS);           // keep
 
 		TGc = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],NvnGc[P],NvnGc[P],1.0,ChiRefInvGc_vGc,ChiGc_vGc); // free
 		TCs = mm_Alloc_d(CBRM,CBNT,CBNT,NvnCs[P],NvnCs[P],NvnCs[P],1.0,ChiRefInvCs_vCs,ChiCs_vCs); // free
 		TCc = mm_Alloc_d(CBRM,CBNT,CBNT,NvnCc[P],NvnCc[P],NvnCc[P],1.0,ChiRefInvCc_vCc,ChiCc_vCc); // free
 		TS  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[P], NvnS[P], NvnS[P], 1.0,ChiRefInvS_vS,ChiS_vS);     // free
 
-		switch (Adapt) {
-			default: // ADAPT_P or ADAPT_HP
-				if      (P == 0)    PbMin = P,   PbMax = P+1;
-				else if (P == PMax) PbMin = P-1, PbMax = PMax;
-				else                PbMin = P-1, PbMax = P+1;
-				break;
-			case ADAPT_0:
-			case ADAPT_H:
-				PbMin = P; PbMax = P;
-				break;
-		}
+		free(IGc);
+		free(IS);
+
+		free(ChiRefGc_vGc);
+		free(ChiRefCs_vCs);
+		free(ChiRefCc_vCc);
+		free(ChiRefS_vS);
+
+		free(ChiRefInvGc_vGc);
+		free(ChiRefInvCs_vCs);
+		free(ChiRefInvCc_vCc);
+		free(ChiRefInvS_vS);
+
 		for (Pb = PbMin; Pb <= PbMax; Pb++) {
 			// VOLUME Operators
+			cubature(&rst_vS[0], &dummyPtr_d,&dummyPtr_ui[0],&NvnS[Pb], &dummy_ui,0,Pb,              dE,NodeTypeS[Pb][Eclass]);   free(dummyPtr_ui[0]); // free
 			cubature(&rst_vIs[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIs[Pb],&dummy_ui,0,PIvs[Pb][Eclass],dE,NodeTypeIvs[Pb][Eclass]); free(dummyPtr_ui[0]); // free
 			cubature(&rst_vIc[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,0,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
 
+			ChiRefGs_vS  = basis(PGs,rst_vS[0], NvnS[Pb], &Nbf,dE); // free
 			ChiRefGs_vIs = basis(PGs,rst_vIs[0],NvnIs[Pb],&Nbf,dE); // free
 			ChiRefGs_vIc = basis(PGs,rst_vIc[0],NvnIc[Pb],&Nbf,dE); // free
 
 			// VOLUME Operators
 
+			BCoords_V->S[Pb]  = mm_Alloc_d(CBCM,CBT,CBT,NvnS[Pb], NvnGs[0],NvnGs[0],1.0,ChiRefGs_vS, ChiRefInvGs_vGs); // free
 			BCoords_V->Is[Pb] = mm_Alloc_d(CBCM,CBT,CBT,NvnIs[Pb],NvnGs[0],NvnGs[0],1.0,ChiRefGs_vIs,ChiRefInvGs_vGs); // free
 			BCoords_V->Ic[Pb] = mm_Alloc_d(CBCM,CBT,CBT,NvnIc[Pb],NvnGs[0],NvnGs[0],1.0,ChiRefGs_vIc,ChiRefInvGs_vGs); // free
+
+			free(ChiRefGs_vS);
 
 //printf("NvrefSF: %d\n",NvrefSF);
 			for (vrefSF = 0; vrefSF < NvrefSF; vrefSF++) {
 				if (vrefSF) {
 					mm_CTN_d(Nvve[vrefSF],dE,Nve,VeV[vrefSF],E_rst_vC,rst_vC);
+					rst_vS[vrefSF]  = mm_Alloc_d(CBCM,CBNT,CBNT,NvnS[Pb], dE,Nvve[vrefSF],1.0,BCoords_V->S[Pb], rst_vC); // free
 					rst_vIs[vrefSF] = mm_Alloc_d(CBCM,CBNT,CBNT,NvnIs[Pb],dE,Nvve[vrefSF],1.0,BCoords_V->Is[Pb],rst_vC); // free
 					rst_vIc[vrefSF] = mm_Alloc_d(CBCM,CBNT,CBNT,NvnIc[Pb],dE,Nvve[vrefSF],1.0,BCoords_V->Ic[Pb],rst_vC); // free
 					free(rst_vC);
@@ -1231,6 +1272,7 @@ Ihat_vS_vS
 				ChiRefCc_vIc = basis(PCc[P][Eclass],rst_vIc[vrefSF],NvnIc[Pb],&Nbf,dE); // free
 				ChiRefS_vIs  = basis(P,             rst_vIs[vrefSF],NvnIs[Pb],&Nbf,dE); // free
 				ChiRefS_vIc  = basis(P,             rst_vIc[vrefSF],NvnIc[Pb],&Nbf,dE); // free
+				ChiRefS_vS   = basis(P,             rst_vS[vrefSF], NvnS[Pb], &Nbf,dE); // free
 
 				ChiGs_vIs               = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnGs[0],NvnGs[0],1.0,ChiRefGs_vIs,TGs); // free
 				ChiGs_vIc               = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnGs[0],NvnGs[0],1.0,ChiRefGs_vIc,TGs); // free
@@ -1240,6 +1282,7 @@ Ihat_vS_vS
 				ChiCs_vIc               = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnCs[P],NvnCs[P],1.0,ChiRefCs_vIc,TCs); // free
 				ChiCc_vIs               = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnCc[P],NvnCc[P],1.0,ChiRefCc_vIs,TCc); // free
 				ChiCc_vIc               = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnCc[P],NvnCc[P],1.0,ChiRefCc_vIc,TCc); // free
+				ChiS_vS                 = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb], NvnS[P], NvnS[P], 1.0,ChiRefS_vS,  TS);  // free
 
 				// Returned Operators
 				ChiS_vIs[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnS[P],NvnS[P],1.0,ChiRefS_vIs,TS);    // keep
@@ -1254,6 +1297,11 @@ Ihat_vS_vS
 				I_vCc_vIs[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnCc[P],NvnCc[P],1.0,ChiCc_vIs,ChiInvCc_vCc); // keep
 				I_vCc_vIc[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnCc[P],NvnCc[P],1.0,ChiCc_vIc,ChiInvCc_vCc); // keep
 
+				// Used for either for p or h refinement and never both at once
+				if (vrefSF == 0 || P == Pb) {
+					Ihat_vS_vS[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnCc[P],NvnCc[P],1.0,ChiInvS_vS[Pb][Pb][0],ChiS_vS); // keep
+				}
+
 				free(ChiRefGs_vIs);
 				free(ChiRefGs_vIc);
 				free(ChiRefGc_vIs);
@@ -1262,6 +1310,7 @@ Ihat_vS_vS
 				free(ChiRefCs_vIc);
 				free(ChiRefCc_vIs);
 				free(ChiRefCc_vIc);
+				free(ChiRefS_vS);
 
 				free(ChiGs_vIs);
 				free(ChiGs_vIc);
@@ -1271,6 +1320,7 @@ Ihat_vS_vS
 				free(ChiCs_vIc);
 				free(ChiCc_vIs);
 				free(ChiCc_vIc);
+				free(ChiS_vS);
 
 				free(ChiRefS_vIs);
 				free(ChiRefS_vIc);
@@ -1280,10 +1330,10 @@ Ihat_vS_vS
 			if (P == Pb) {
 				ChiRefGs_vGc = basis(PGs,           rst_vGc,   NvnGc[P],&Nbf,dE); // free
 				ChiRefGs_vCs = basis(PGs,           rst_vCs,   NvnCs[P],&Nbf,dE); // free
-				ChiRefGs_vS  = basis(PGs,           rst_vS,    NvnS[P], &Nbf,dE); // free
+				ChiRefGs_vS  = basis(PGs,           rst_vS[0], NvnS[P], &Nbf,dE); // free
 				ChiRefGc_vP  = basis(PGc[P],        rst_vP,    NvnP,    &Nbf,dE); // free
 				ChiRefGc_vCc = basis(PGc[P],        rst_vCc,   NvnCc[P],&Nbf,dE); // free
-				ChiRefGc_vS  = basis(PGc[P],        rst_vS,    NvnS[P], &Nbf,dE); // free
+				ChiRefGc_vS  = basis(PGc[P],        rst_vS[0], NvnS[P], &Nbf,dE); // free
 				ChiRefS_vP   = basis(P,             rst_vP,    NvnP,    &Nbf,dE); // free
 				ChiRefS_vIs  = basis(P,             rst_vIs[0],NvnIs[P],&Nbf,dE); // free
 				ChiRefS_vIc  = basis(P,             rst_vIc[0],NvnIc[P],&Nbf,dE); // free
@@ -1523,24 +1573,12 @@ Ihat_vS_vS
 		free(rst_vGc);
 		free(rst_vCs);
 		free(rst_vCc);
-		free(rst_vS);
 
 		for (vref = 0; vref < Nvref; vref++) {
+			free(rst_vS[vref]);
 			free(rst_vIs[vref]);
 			free(rst_vIc[vref]);
 		}
-		free(IGc);
-		free(IS);
-
-		free(ChiRefGc_vGc);
-		free(ChiRefCs_vCs);
-		free(ChiRefCc_vCc);
-		free(ChiRefS_vS);
-
-		free(ChiRefInvGc_vGc);
-		free(ChiRefInvCs_vCs);
-		free(ChiRefInvCc_vCc);
-		free(ChiRefInvS_vS);
 
 		free(ChiInvGc_vGc);
 		free(ChiInvCs_vCs);
@@ -1565,6 +1603,7 @@ Ihat_vS_vS
 	array_free3_d(NP,NESUBCMAX,w_fIs);
 	array_free3_d(NP,NESUBCMAX,w_fIc);
 
+	array_free2_d(NP,BCoords_V->S);
 	array_free2_d(NP,BCoords_V->Is);
 	array_free2_d(NP,BCoords_V->Ic);
 	free(BCoords_V);
