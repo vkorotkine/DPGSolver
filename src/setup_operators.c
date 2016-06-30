@@ -47,6 +47,15 @@
  *		ordering of the PYR nodes in layers of 't'. This means that special consideration must be made if attempting to
  *		use the rotational symmetry of rst_vGs PYR nodes.
  *
+ *		The most intuitive method for obtaining projections between different h-refined spaces is to use the
+ *		(Q)uadrature (M)irror (F)ilter coefficient matrices from the multiresolution framework. As the code discards the
+ *		detail coefficients when projecting from fine to coarser spaces, the wavelet basis functions are not needed.
+ *		Furthermore, the information embedded in the detail coefficients is simply an elegant representation of lack of
+ *		smoothness.
+ *		When imagining the use of a modal basis in the discussion of Kopriva(1996) in the context of h-adaptation
+ *		related Galerkin projections, it is easily seen that the QMF coef. matrices perform exactly such projections.
+ *		See Alpert(2002) for their definitions.
+ *
  *	Notation:
  *
  *	General:
@@ -234,11 +243,14 @@
  *
  *
  *	References:
- *		Zwanenburg(2016)_Equivalence between the Energy Stable Flux Reconstruction and Filtered Discontinuous Galerkin
- *		                 Schemes
+ *		Zwanenburg(2016)_Equivalence between the Energy Stable Flux Reconstruction and Filtered Discontinuous Galerkin Schemes
  *		Karniadakis(1999)_Spectral hp Element Methods for CFD
  *		Hesthaven(2000)_Stable Spectral Methods on Tetrahedral Elements
  *		Stiller(2008)_Factorization Techniques for Nodal Spectral Elements in Curved Domains
+ *		Alpert(2002)-Adaptive_Solution_of_Partial_Differential_Equations_in_Multiwavelet_Bases
+ *		Kopriva(1996)-A_Conservative_Staggered-Grid_Chebyshev_Multidomain_Method_for_Compressible_Flows_II._A_Semi-Structured_Method
+ *
+ *		ToBeDeleted: Potentially add in MATH578 report instead of Alpert(2002) for the QMF discussion.
  */
 
 struct S_BCOORDS {
