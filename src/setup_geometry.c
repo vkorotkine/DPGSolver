@@ -29,8 +29,8 @@
 */
 
 struct S_OPERATORS {
-	unsigned int NvnG, NfnI;
-	double       **I_vG_fI;
+	unsigned int NvnG, NfnI, NfnS;
+	double       **I_vG_fI, **I_vG_fS;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
@@ -43,6 +43,7 @@ void setup_geometry(void)
 	             *TestCase = DB.TestCase;
 	unsigned int ExactGeom = DB.ExactGeom,
 	             d         = DB.d,
+	             Adapt     = DB.Adapt,
 
 	             Testing   = DB.Testing;
 
@@ -50,8 +51,8 @@ void setup_geometry(void)
 
 	// Standard datatypes
 	unsigned int dim, P, vn,
-	             NvnG, NvnGs, NvnGc, NCols, NfnI, VfIn, fIn, Eclass, IndFType;
-	double       *XYZ_vC, *XYZ_S, *XYZ_fI,
+	             NvnG, NvnGs, NvnGc, NCols, NfnI, NfnS, VfIn, fIn, Eclass, IndFType;
+	double       *XYZ_vC, *XYZ_S, *XYZ_fI, *XYZ_fS,
 	             *I_vGs_vGc;
 
 	struct S_OPERATORS *OPS;
@@ -137,13 +138,25 @@ void setup_geometry(void)
 
 		init_ops(OPS,VIn,FACET,IndFType);
 
-		NfnI = OPS->NfnI;
 		NvnG = OPS->NvnG;
+		switch (Adapt) {
+		default: // ADAPT_P, ADAPT_H, ADAPT_HP
+			NfnS = OPS->NfnS;
 
-		XYZ_fI = malloc(NfnI*d *sizeof *XYZ_fI); // keep
-		mm_CTN_d(NfnI,d,NvnG,OPS->I_vG_fI[VfIn],VIn->XYZ,XYZ_fI);
+			XYZ_fS = malloc(NfnS*d *sizeof *XYZ_fS); // keep
+			mm_CTN_d(NfnS,d,NvnG,OPS->I_vG_fS[VfIn],VIn->XYZ,XYZ_fS);
 
-		FACET->XYZ_fI = XYZ_fI;
+			FACET->XYZ_fS = XYZ_fS;
+			break;
+		case ADAPT_0:
+			NfnI = OPS->NfnI;
+
+			XYZ_fI = malloc(NfnI*d *sizeof *XYZ_fI); // keep
+			mm_CTN_d(NfnI,d,NvnG,OPS->I_vG_fI[VfIn],VIn->XYZ,XYZ_fI);
+
+			FACET->XYZ_fI = XYZ_fI;
+			break;
+		}
 	}
 	free(OPS);
 
@@ -181,13 +194,24 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	ELEMENT_OPS = ELEMENT;
 
 	OPS->NvnG = VOLUME->NvnG;
+	OPS->NfnS = ELEMENT_OPS->NfnS[PF][IndClass];
 	if (FtypeInt == 's') {
 		OPS->NfnI = ELEMENT_OPS->NfnIs[PF][IndClass];
-		if (!Vcurved) OPS->I_vG_fI = ELEMENT_OPS->I_vGs_fIs[1][PF];
-		else          OPS->I_vG_fI = ELEMENT_OPS->I_vGc_fIs[PV][PF];
+		if (!Vcurved) {
+			OPS->I_vG_fI = ELEMENT_OPS->I_vGs_fIs[1][PF];
+			OPS->I_vG_fS = ELEMENT_OPS->I_vGs_fS[1][PF];
+		} else {
+			OPS->I_vG_fI = ELEMENT_OPS->I_vGc_fIs[PV][PF];
+			OPS->I_vG_fS = ELEMENT_OPS->I_vGc_fS[PV][PF];
+		}
 	} else {
 		OPS->NfnI = ELEMENT_OPS->NfnIc[PF][IndClass];
-		if (!Vcurved) OPS->I_vG_fI = ELEMENT_OPS->I_vGs_fIc[1][PF];
-		else          OPS->I_vG_fI = ELEMENT_OPS->I_vGc_fIc[PV][PF];
+		if (!Vcurved) {
+			OPS->I_vG_fI = ELEMENT_OPS->I_vGs_fIc[1][PF];
+			OPS->I_vG_fS = ELEMENT_OPS->I_vGs_fS[1][PF];
+		} else {
+			OPS->I_vG_fI = ELEMENT_OPS->I_vGc_fIc[PV][PF];
+			OPS->I_vG_fS = ELEMENT_OPS->I_vGc_fS[PV][PF];
+		}
 	}
 }

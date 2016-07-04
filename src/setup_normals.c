@@ -25,8 +25,8 @@
  */
 
 struct S_OPERATORS {
-	unsigned int NvnC, NvnI, NfnI;
-	double       *I_vC_vI, **I_vC_fI, *nr;
+	unsigned int NvnC, NvnI, NfnI, NfnS;
+	double       *I_vC_vI, **I_vC_fI, **I_vC_fS, *nr;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
@@ -36,14 +36,15 @@ void setup_normals(struct S_FACET *FACET)
 {
 	// Initialize DB Parameters
 	unsigned int d        = DB.d,
+	             Adapt    = DB.Adapt,
 	             NfrefMax = DB.NfrefMax;
 
 	// Standard datatypes
 	unsigned int fn, fnMax, curved, dim, dim1, dim2,
 	             VfIn, Eclass, IndFType, fIn,
-	             NvnC0, NvnI0, NfnI0, NnI;
+	             NvnC0, NvnI0, NfnI0, NfnS0, Nn;
 	double       nSum, nSum2,
-	             *C_fI, *C_vC, *nrIn, *n_fI, *detJF_fI;
+	             *C_fI, *C_fS, *C_vC, *nrIn, *n_fI, *n_fS, *detJF_fI, *detJF_fS;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VIn, *VOut;
@@ -66,49 +67,88 @@ void setup_normals(struct S_FACET *FACET)
 	NvnC0 = OPS->NvnC;
 	NvnI0 = OPS->NvnI;
 	NfnI0 = OPS->NfnI;
+	NfnS0 = OPS->NfnS;
 
 	C_vC = VIn->C_vC;
-	C_fI = malloc(NvnI0*d*d * sizeof *C_fI); // free
 
 	if (VfIn % NFREFMAX != 0)
 		printf("Error: VfIn should be h-conforming in setup_normals.\n"), exit(1); 
 
-	mm_CTN_d(NfnI0,d*d,NvnC0,OPS->I_vC_fI[VfIn],C_vC,C_fI);
-
-	NnI = NfnI0;
 	nrIn = &(OPS->nr[fIn*d]);
+	switch (Adapt) {
+	default: // ADAPT_P, ADAPT_H, ADAPT_HP
+		C_fS = malloc(NfnS0*d*d * sizeof *C_fS); // free
+		mm_CTN_d(NfnS0,d*d,NvnC0,OPS->I_vC_fS[VfIn],C_vC,C_fS);
 
-	// Store a single normal on straight FACETs
-	if (!curved) fnMax = 1;
-	else         fnMax = NnI;
+		Nn = NfnS0;
 
-	n_fI     = calloc(fnMax*d , sizeof *n_fI);     // keep
-	detJF_fI = calloc(fnMax   , sizeof *detJF_fI); // keep
-	for (fn = 0; fn < fnMax; fn++) {
-		for (dim1 = 0; dim1 < d; dim1++) {
-		for (dim2 = 0; dim2 < d; dim2++) {
-			n_fI[fn*d+dim1] += nrIn[dim2]*C_fI[NnI*(dim1+d*dim2)+fn];
-		}}
+		// Store a single normal on straight FACETs
+		if (!curved) fnMax = 1;
+		else         fnMax = Nn;
+
+		n_fS     = calloc(fnMax*d , sizeof *n_fS);     // keep
+		detJF_fS = calloc(fnMax   , sizeof *detJF_fS); // keep
+		for (fn = 0; fn < fnMax; fn++) {
+			for (dim1 = 0; dim1 < d; dim1++) {
+			for (dim2 = 0; dim2 < d; dim2++) {
+				n_fS[fn*d+dim1] += nrIn[dim2]*C_fS[Nn*(dim1+d*dim2)+fn];
+			}}
+		}
+		free(C_fS);
+
+		for (fn = 0; fn < fnMax; fn++) {
+			nSum2 = 0;
+			for (dim = 0; dim < d; dim++)
+				nSum2 += pow(n_fS[fn*d+dim],2.0);
+
+			nSum = sqrt(nSum2);
+			detJF_fS[fn] = nSum;
+			for (dim = 0; dim < d; dim++)
+				n_fS[fn*d+dim] /= nSum;
+		}
+
+		FACET->n_fS = n_fS;
+		FACET->detJF_fS = detJF_fS;
+		break;
+	case ADAPT_0:
+		C_fI = malloc(NfnI0*d*d * sizeof *C_fI); // free
+		mm_CTN_d(NfnI0,d*d,NvnC0,OPS->I_vC_fI[VfIn],C_vC,C_fI);
+
+		Nn = NfnI0;
+
+		// Store a single normal on straight FACETs
+		if (!curved) fnMax = 1;
+		else         fnMax = Nn;
+
+		n_fI     = calloc(fnMax*d , sizeof *n_fI);     // keep
+		detJF_fI = calloc(fnMax   , sizeof *detJF_fI); // keep
+		for (fn = 0; fn < fnMax; fn++) {
+			for (dim1 = 0; dim1 < d; dim1++) {
+			for (dim2 = 0; dim2 < d; dim2++) {
+				n_fI[fn*d+dim1] += nrIn[dim2]*C_fI[Nn*(dim1+d*dim2)+fn];
+			}}
+		}
+		free(C_fI);
+
+		for (fn = 0; fn < fnMax; fn++) {
+			nSum2 = 0;
+			for (dim = 0; dim < d; dim++)
+				nSum2 += pow(n_fI[fn*d+dim],2.0);
+
+			nSum = sqrt(nSum2);
+			detJF_fI[fn] = nSum;
+			for (dim = 0; dim < d; dim++)
+				n_fI[fn*d+dim] /= nSum;
+		}
+
+		FACET->n_fI = n_fI;
+		FACET->detJF_fI = detJF_fI;
+		break;
 	}
-
-	for (fn = 0; fn < fnMax; fn++) {
-		nSum2 = 0;
-		for (dim = 0; dim < d; dim++)
-			nSum2 += pow(n_fI[fn*d+dim],2.0);
-
-		nSum = sqrt(nSum2);
-		detJF_fI[fn] = nSum;
-		for (dim = 0; dim < d; dim++)
-			n_fI[fn*d+dim] /= nSum;
-	}
-
-	FACET->n_fI = n_fI;
-	FACET->detJF_fI = detJF_fI;
 
 //printf("%d %d %d\n",FACET->indexg,VfIn,IndFType);
 //array_print_d(fnMax,d,n,'R');
 
-	free(C_fI);
 	free(OPS);
 }
 
@@ -128,10 +168,13 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	ELEMENT     = get_ELEMENT_type(Vtype);
 	ELEMENT_OPS = ELEMENT;
 
+	OPS->NfnS    = ELEMENT_OPS->NfnS[PF][IndClass];
 	if (!Vcurved) {
 		// Straight VOLUME
 		OPS->NvnC = ELEMENT_OPS->NvnCs[PV];
 		OPS->NvnI = ELEMENT_OPS->NvnIs[PV];
+
+		OPS->I_vC_fS = ELEMENT_OPS->I_vCs_fS[PV][PF];
 		if (FtypeInt == 's') {
 			// Straight FACET Integration
 			OPS->NfnI = ELEMENT_OPS->NfnIs[PF][IndClass];
@@ -149,6 +192,8 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		// Curved VOLUME
 		OPS->NvnC = ELEMENT_OPS->NvnCc[PV];
 		OPS->NvnI = ELEMENT_OPS->NvnIc[PV];
+
+		OPS->I_vC_fS = ELEMENT_OPS->I_vCc_fS[PV][PF];
 		if (FtypeInt == 's') {
 			// Straight FACET Integration
 			OPS->NfnI = ELEMENT_OPS->NfnIs[PF][IndClass];

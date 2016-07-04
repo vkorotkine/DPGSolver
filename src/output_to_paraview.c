@@ -250,14 +250,15 @@ static void output_normals(const char *normals_type)
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
 	unsigned int d         = DB.d,
+	             Adapt     = DB.Adapt,
 	             NfrefMax  = DB.NfrefMax;
 	int          MPIrank   = DB.MPIrank,
 	             MPIsize   = DB.MPIsize;
 
 	// Standard datatypes
 	char         MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
-	unsigned int i, iMax, dim, nInd, curved, PV, PF, NfnI, NvnG, IndFType, Eclass, VfIn;
-	double       *Input, *I_vG_fI, *XYZ_fI, *n;
+	unsigned int i, iMax, dim, nInd, curved, PV, PF, Nfn, NvnG, IndFType, Eclass, VfIn;
+	double       *Input, *I_vG_f, *XYZ_f, *n;
 	FILE         *fID;
 
 	struct S_ELEMENT *ELEMENT;
@@ -265,8 +266,8 @@ static void output_normals(const char *normals_type)
 	struct S_FACET   *FACET;
 
 	// silence
-	XYZ_fI = NULL;
-	NfnI = 0;
+	XYZ_f = NULL;
+	Nfn = 0;
 
 	sprintf(MPIrank_c,"%d",MPIrank);
 //	strcpy(f_name,TestCase);
@@ -316,7 +317,6 @@ static void output_normals(const char *normals_type)
 
 	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
 		curved = FACET->curved;
-		n = FACET->n_fI;
 
 		VIn  = FACET->VIn;
 		VfIn = FACET->VfIn;
@@ -334,81 +334,41 @@ static void output_normals(const char *normals_type)
 
 		NvnG = VIn->NvnG;
 
-		if (FACET->typeInt == 's') {
-			NfnI = ELEMENT->NfnIs[PF][IndFType];
-			if (!VIn->curved) I_vG_fI = ELEMENT->I_vGs_fIs[1][PF][VfIn];
-			else              I_vG_fI = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
-		} else {
-			NfnI = ELEMENT->NfnIc[PF][IndFType];
-			if (!VIn->curved) I_vG_fI = ELEMENT->I_vGs_fIc[1][PF][VfIn];
-			else              I_vG_fI = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
-		}
 		Input = VIn->XYZ;
 
-		XYZ_fI = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NfnI,d,NvnG,1.0,I_vG_fI,Input); // free
-/*
-unsigned int VfOut, fOut, j, IndFType, Eclass, *nOrdOutIn, IndOrdOutIn;
-double *XYZ_fIOut, *XYZ_fIOutIn, tmp_d;
+		switch (Adapt) {
+		default: // ADAPT_P, ADAPT_H, ADAPT_HP
+			Nfn = ELEMENT->NfnS[PF][IndFType];
+			if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fS[1][PF][VfIn];
+			else              I_vG_f = ELEMENT->I_vGc_fS[PV][PF][VfIn];
 
-struct S_ELEMENT *ELEMENT_FACET;
-struct S_VOLUME *VOut;
-
-VOut = FACET->VOut;
-VfOut = FACET->VfOut;
-fOut = VfOut/NFREFMAX;
-
-Eclass = get_Eclass(VOut->type);
-IndFType = get_IndFType(Eclass,fOut);
-
-ELEMENT_FACET = get_ELEMENT_FACET(VOut->type,IndFType);
-
-IndOrdOutIn = FACET->IndOrdOutIn;
-nOrdOutIn = ELEMENT_FACET->nOrd_fIc[PF][IndOrdOutIn];
-
-XYZ_fIOut = mm_Alloc_d(CBCM,CBT,CBNT,NfnI,d,NvnG,1.0,ELEMENT->I_vGc_fIc[PV][PF][VfOut],VOut->XYZ); // free
-XYZ_fIOutIn = malloc(NfnI*d * sizeof *XYZ_fIOutIn);
-
-for (i = 0; i < NfnI; i++) {
-for (j = 0; j < d; j++) {
-	XYZ_fIOutIn[i+j*NfnI] = XYZ_fIOut[nOrdOutIn[i]+j*NfnI];
-}}
-
-printf("%d %d %d\n",FACET->indexg,VIn->indexg,VfIn);
-array_print_ui(1,NfnI,nOrdOutIn,'R');
-for (i = 0; i < NfnI; i++) {
-	for (j = 0; j < d; j++) {
-		tmp_d = XYZ_fI[i+j*NfnI]-XYZ_fIOutIn[i+j*NfnI];
-		if (fabs(tmp_d) < EPS*100)
-			printf(" % .3e",0.0);
-		else
-			printf(" % .3e",XYZ_fI[i+j*NfnI]-XYZ_fIOutIn[i+j*NfnI]);
-	}
-	printf("\n");
-}
-printf("\n");
-//array_print_d(NfnI,d,XYZ_fI,'C');
-//array_print_d(NfnI,d,XYZ_fIOut,'C');
-//array_print_d(NfnI,d,XYZ_fIOutIn,'C');
-
-free(XYZ_fIOut);
-free(XYZ_fIOutIn);
-*/
-
-/*
-printf("%d %d %d\n",FACET->indexg,VIn->indexg,VfIn);
-array_print_d(NfnI,NvnG,I_vG_fI,'R');
-array_print_d(NfnI,d,XYZ_fI,'C');
-*/
+			n = FACET->n_fS;
+			XYZ_f = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
+			break;
+		case ADAPT_0:
+			if (FACET->typeInt == 's') {
+				Nfn = ELEMENT->NfnIs[PF][IndFType];
+				if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIs[1][PF][VfIn];
+				else              I_vG_f = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
+			} else {
+				Nfn = ELEMENT->NfnIc[PF][IndFType];
+				if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIc[1][PF][VfIn];
+				else              I_vG_f = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
+			}
+			n = FACET->n_fI;
+			XYZ_f = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
+			break;
+		}
 
 		fprintf(fID,"\t\t<Piece NumberOfPoints=\"%d\" NumberOfVerts=\"%d\" NumberOfLines=\"%d\" NumberOfStrips=\"%d\" "
-		            "NumberOfPolys=\"%d\">\n",NfnI,0,0,0,0);
+		            "NumberOfPolys=\"%d\">\n",Nfn,0,0,0,0);
 
 			fprintf_tn(fID,3,"<Points>");
 				fprintf(fID,"\t\t\t\t<DataArray type=\"Float32\" NumberOfComponents=\"%d\" format=\"ascii\">\n",3);
-				for (i = 0; i < NfnI; i++) {
+				for (i = 0; i < Nfn; i++) {
 					fprintf(fID,"\t\t\t\t");
 					for (dim = 0; dim < d; dim++)
-						fprintf(fID,"% .3f ",XYZ_fI[dim*NfnI+i]);
+						fprintf(fID,"% .3f ",XYZ_f[dim*Nfn+i]);
 					for (dim = d; dim < 3; dim++)
 						fprintf(fID,"% .3f ",0.0);
 					fprintf(fID,"\n");
@@ -419,7 +379,7 @@ array_print_d(NfnI,d,XYZ_fI,'C');
 			fprintf_tn(fID,3,"<PointData Vectors=\"Normals\">");
 				fprintf(fID,"\t\t\t\t<DataArray type=\"Float32\" Name=\"Normals\" NumberOfComponents=\"%d\" "
 				                 "format=\"ascii\">\n",3);
-				for (i = 0; i < NfnI; i++) {
+				for (i = 0; i < Nfn; i++) {
 					fprintf(fID,"\t\t\t\t");
 					for (dim = 0; dim < d; dim++) {
 						if (!curved) nInd = dim;
@@ -435,7 +395,7 @@ array_print_d(NfnI,d,XYZ_fI,'C');
 
 		fprintf_tn(fID,2,"</Piece>\n");
 
-		free(XYZ_fI);
+		free(XYZ_f);
 	}
 
 	fprintf_tn(fID,1,"</PolyData>");

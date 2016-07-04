@@ -21,6 +21,8 @@
  *			PF           >= P
  *			PFr          >= P (PFr = PF+PC is the order needed to represent Fr exactly)
  *			PI(v/f)(s/c) >= 2*P
+ *				Note: For the collocated scheme, if PIv < 2*P (GLL/WSH nodes), the Galerkin projection operators are no
+ *				      longer exact. This may have a negative impact on the code (ToBeModified).
  *
  *			TP Elements:
  *				GL  : Best cubature nodes
