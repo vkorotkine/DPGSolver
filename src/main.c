@@ -140,7 +140,7 @@ int main(int nargc, char **argv)
 	                               strcat(fNameOut,DB.MeshType);
 	sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
 	if (DB.Adapt == ADAPT_0)
-		sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
+		sprintf(string,"P%d_",DB.PGlobal), strcat(fNameOut,string);
 	output_to_paraview(fNameOut);
 
 	// Compute errors

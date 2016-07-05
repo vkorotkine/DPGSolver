@@ -123,6 +123,8 @@ exit(1);
 					free(VOLUME->RHS);
 				}
 			}
+//if (tstep)
+//exit(1);
 			break;
 		case RK4_LS:
 			for (rk = 0; rk < 5; rk++) {

@@ -412,7 +412,14 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 			for (j = 0; j < NfnI; j++)
 				nFluxNum_fI[iInd+j] *= detJF_fI[j];
 		}
-
+/*
+if (FACET->indexg == 240) {
+printf("%d %d\n",FACET->indexg,IndFType);
+//array_print_d(NfnI,Neq,WIn_fI,'C');
+//array_print_d(NfnI,Neq,WOut_fIIn,'C');
+array_print_d(NfnI,Neq,nFluxNum_fI,'C');
+}
+*/
 		// Compute FACET RHS terms
 		RHSIn  = calloc(NvnSIn*Neq  , sizeof *RHSIn);  // keep (requires external free)
 		RHSOut = calloc(NvnSOut*Neq , sizeof *RHSOut); // keep (requires external free)
@@ -489,6 +496,11 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 						array_swap_ui(&RowTracker[RowInd],&RowTracker[RowSub],1,1);
 					}
 				}
+
+if (FACET->indexg == 240) {
+//array_print_d(NfnI,Neq,nFluxNum_fI,'C');
+//exit(1);
+}
 
 				if (EclassOut == C_TP && SF_BE[P][0][1]) {
 					get_sf_parametersF(OPSOut[0]->NvnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_VV,
@@ -676,8 +688,11 @@ static void compute_FACET_RHS(void)
 			}
 		}
 /*
-array_print_d(NfnS,Nvar,WIn_fS,'C');
-array_print_d(NfnS,Nvar,WOut_fSIn,'C');
+if (FACET->indexg == 240) {
+printf("%d\n",FACET->indexg);
+//array_print_d(NfnS,Nvar,WIn_fS,'C');
+//array_print_d(NfnS,Nvar,WOut_fSIn,'C');
+}
 */
 		// Compute numerical flux
 		nFluxNum_fS = malloc(NfnS*Neq * sizeof *nFluxNum_fS); // free
@@ -749,10 +764,42 @@ array_print_d(NfnS,Neq,nFluxNum_fS,'C');
 		}
 		free(RowTracker);
 		free(nFluxNum_fS);
+
 /*
-printf("%d\n",NfnI);
+		RowTracker = malloc(NfnI * sizeof *RowTracker); // free
+
+struct S_ELEMENT *ELEMENT, *ELEMENT_FACET;
+
+ELEMENT = get_ELEMENT_type(VIn->type);
+ELEMENT_FACET = get_ELEMENT_FACET(VIn->type,IndFType);
+nOrdInOut = ELEMENT_FACET->nOrd_fIc[FACET->P][FACET->IndOrdInOut];
+
+		for (i = 0; i < NfnI*Neq; i++)
+			nFluxNum_fIOut[i] = nFluxNum_fIIn[i];
+
+			for (i = 0; i < NfnI; i++)
+				RowTracker[i] = i;
+
+			for (RowInd = 0; RowInd < NfnI; RowInd++) {
+				ReOrder = nOrdInOut[RowInd];
+				for (RowSub = ReOrder; RowTracker[RowSub] != ReOrder; RowSub = RowTracker[RowSub])
+					;
+
+				if (RowInd != RowSub) {
+					array_swap_d(&nFluxNum_fIOut[RowInd],&nFluxNum_fIOut[RowSub],Neq,NfnI);
+					array_swap_ui(&RowTracker[RowInd],&RowTracker[RowSub],1,1);
+				}
+			}
+
+		free(RowTracker);
+*/
+
+/*
+if (FACET->indexg == 240) {
 array_print_d(NfnI,Neq,nFluxNum_fIIn,'C');
-array_print_d(NfnI,Neq,nFluxNum_fIOut,'C');
+//array_print_d(NfnI,Neq,nFluxNum_fIOut,'C');
+//exit(1);
+}
 */
 		// Compute FACET RHS terms
 		RHSIn  = calloc(NvnSIn*Neq  , sizeof *RHSIn);  // keep (requires external free)
@@ -760,6 +807,7 @@ array_print_d(NfnI,Neq,nFluxNum_fIOut,'C');
 		FACET->RHSIn  = RHSIn;
 		FACET->RHSOut = RHSOut;
 
+// Needs modification of collocated option, the Adapt == ADAPT_0 option never happens in this function (ToBeDeleted)
 		if (strstr(Form,"Weak") != NULL) {
 			// Interior FACET
 			if (EclassIn == C_TP && SF_BE[P][0][1]) {
@@ -783,8 +831,7 @@ array_print_d(NfnI,Neq,nFluxNum_fIOut,'C');
 							   NIn0 = OPSIn[0]->NvnI_SF,   NIn1 = OPSIn[1]->NfnI_SF; }
 				get_sf_parametersF(NIn0,OPSIn[0]->NvnS_SF,OPF0,NIn1,OPSIn[1]->NvnS_SF,OPF1,NIn,NOut,OP,d,VfIn,C_WEDGE);
 
-// Note: Needs modification for h-adaptation (ToBeDeleted)
-				if (Collocated) {
+				if (Collocated && Adapt == ADAPT_0) {
 					for (dim = 0; dim < d; dim++)
 						Diag[dim] = 2;
 					if (fIn < 3)
@@ -834,8 +881,7 @@ array_print_d(NfnI,Neq,nFluxNum_fIOut,'C');
 					get_sf_parametersF(OPSOut[0]->NvnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_VV,
 									   OPSOut[0]->NfnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_FF,NIn,NOut,OP,d,VfOut,C_TP);
 
-// Note: Needs modification for h-adaptation (ToBeDeleted)
-					if (Collocated) {
+					if (Collocated && Adapt == ADAPT_0) {
 						for (dim = 0; dim < d; dim++)
 							Diag[dim] = 2;
 						Diag[fOut/2] = 0;
@@ -852,8 +898,7 @@ array_print_d(NfnI,Neq,nFluxNum_fIOut,'C');
 					                NIn0 = OPSOut[0]->NvnI_SF,   NIn1 = OPSOut[1]->NfnI_SF; }
 					get_sf_parametersF(NIn0,OPSOut[0]->NvnS_SF,OPF0,NIn1,OPSOut[1]->NvnS_SF,OPF1,NIn,NOut,OP,d,VfOut,C_WEDGE);
 
-// Note: Needs modification for h-adaptation (ToBeDeleted)
-					if (Collocated) {
+					if (Collocated && Adapt == ADAPT_0) {
 						for (dim = 0; dim < d; dim++)
 							Diag[dim] = 2;
 						if (fOut < 3)
