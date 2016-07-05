@@ -30,6 +30,7 @@ extern void test_imp_matrix_diag               (void);
 extern void test_imp_matrix_identity           (void);
 extern void test_imp_matrix_inverse            (void);
 extern void test_imp_matrix_mm                 (void);
+extern void test_imp_convert_to_CSR            (void);
 extern void test_imp_find_periodic_connections (void);
 extern void test_imp_cubature_TP               (void);
 extern void test_imp_cubature_SI               (void);
@@ -67,17 +68,9 @@ extern void     array_swap1_d     (register double *arr1, register double *arr2,
 extern void     array_swap2_d     (register double *arr1, register double *arr2, const unsigned int NIn,
                                    const unsigned int stepIn);
 extern void test_speed_mm_CTN     (void);
-extern void     mm_CTN_mv1_d               (const int m, const int n, const int k, double *A, double *B, double *C);
-extern void     mm_CTN_mv2_d               (const int m, const int n, const int k, double *A, double *B, double *C);
-extern void     mm_CTN_mv3_d               (const int m, const int n, const int k, double *A, double *B, double *C);
-extern void     mm_CTN_mv4_5d              (const int m, const int n, const int k, double *A, double *B, double *C);
-extern void     mm_CTN_mv_unrolled_d       (const int m, const int n, const int k, double *A, double *B, double *C);
 extern void     mm_CTN_mv_fully_unrolled_d (const int m, const int n, const int k, double *A, double *B, double *C);
 extern void     mm_CTN_mvBLAS_d            (const int m, const int n, const int k, double *A, double *B, double *C);
 extern void     mm_CTN_fully_unrolled_mv_d (const int m, const int n, const int k, double *A, double *B, double *C);
-extern void     mm_CTN_mm1_d               (const int m, const int n, const int k, double *A, double *B, double *C);
-extern void     mm_CTN_mm2_d               (const int m, const int n, const int k, double *A, double *B, double *C);
-extern void     mm_CTN_mm3_d               (const int m, const int n, const int k, double *A, double *B, double *C);
 extern void     mm_CTN_mmBLAS_d            (const int m, const int n, const int k, double *A, double *B, double *C);
 
 struct S_TEST {

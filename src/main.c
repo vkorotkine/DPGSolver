@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include <mpi.h>
 #include <petscksp.h>
 
@@ -36,8 +37,18 @@ struct S_DB DB;
 
 int main(int nargc, char **argv)
 {
+	printf("\n\n\n*** Test to see when unrolled mv multiplications break even with BLAS on Guillimin before running"
+	       " any large jobs. ***\n\n\n");
+
 	char *fNameOut, *string;
 	int  MPIrank, MPIsize;
+
+	struct S_TIME {
+		clock_t ts, te;
+		double  tt;
+	} total, preproc, solving, postproc;
+
+	total.ts = clock();
 
 	fNameOut = malloc(STRLEN_MAX * sizeof *fNameOut); // free
 	string   = malloc(STRLEN_MIN * sizeof *string);   // free
@@ -54,6 +65,7 @@ int main(int nargc, char **argv)
 	DB.MPIrank = MPIrank;
 
 	// Initialization
+	preproc.ts = clock();
 	initialization(nargc,argv);
 
 	// Preprocessing
@@ -80,8 +92,10 @@ int main(int nargc, char **argv)
 		printf("  Set up Geometry\n");
 	setup_geometry();
 
+	preproc.te = clock();
 
 	// Solving
+	solving.ts = clock();
 	if (!DB.MPIrank)
 		printf("\n\nSolving:\n\n");
 
@@ -106,30 +120,35 @@ int main(int nargc, char **argv)
 		printf("  Nonlinear Iterative Solve\n\n");
 
 	if (strstr(DB.SolverType,"Explicit") != NULL) {
-		solver_RK4_low_storage();
+		solver_explicit();
 	} else if (strstr(DB.SolverType,"Implicit") != NULL) {
 		; //solver_implicit();
 	} else {
 		printf("Error: Unsupported SolverType in dpg_solver.\n"), exit(1);
 	}
+	solving.te = clock();
 
 	// Postprocessing
+	postproc.ts = clock();
 	if (!DB.MPIrank)
 		printf("\n\nPostprocessing:\n\n");
 
 	// Output final solution to paraview
+	printf("  Output final solution to paraview\n");
 	strcpy(fNameOut,"SolFinal_");
 	sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
 	                               strcat(fNameOut,DB.MeshType);
 	sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
 	if (DB.Adapt == ADAPT_0)
-		sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
+		sprintf(string,"P%d_",DB.PGlobal), strcat(fNameOut,string);
 	output_to_paraview(fNameOut);
 
 	// Compute errors
 	if (!DB.MPIrank)
 		printf("  Computing errors\n");
 	compute_errors();
+
+	postproc.te = clock();
 
 	free(fNameOut);
 	free(string);
@@ -138,6 +157,14 @@ int main(int nargc, char **argv)
 
 	// End MPI and PETSC
 	PetscFinalize();
+
+	total.te = clock();
+
+	printf("\n\n\nTotal time       : % .2f s\n\n",(total.te-total.ts)/(double) CLOCKS_PER_SEC);
+	printf("  Preprocessing  : % .2f s\n",(preproc.te-preproc.ts)/(double) CLOCKS_PER_SEC);
+	printf("  Solving        : % .2f s\n",(solving.te-solving.ts)/(double) CLOCKS_PER_SEC);
+	printf("  Postprocessing : % .2f s\n",(postproc.te-postproc.ts)/(double) CLOCKS_PER_SEC);
+	printf("\n\n\n");
 
 	return 0;
 }
@@ -182,6 +209,7 @@ int main(void)
 	ts = clock();
 
 	// Implementation tests
+
 	test_imp_array_find_index();
 	test_imp_array_norm();
 	test_imp_array_sort();
@@ -194,6 +222,7 @@ int main(void)
 	test_imp_matrix_identity();
 	test_imp_matrix_inverse();
 	test_imp_matrix_mm();
+	test_imp_convert_to_CSR();
 
 	test_imp_find_periodic_connections();
 
@@ -213,6 +242,7 @@ int main(void)
 
 	test_imp_fluxes_inviscid();
 	test_imp_get_facet_ordering();
+
 
 	te = clock();
 

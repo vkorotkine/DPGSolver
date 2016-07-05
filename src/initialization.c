@@ -46,7 +46,7 @@
  *			             Options: 0 (None)
  *			                      1 (Elements grouped by type/order)
  *			EFE        : (E)exact (F)lux (E)valuation - Reduces aliasing if enabled (The analogue in the strong form is
- *			             the CR (Chain-Rule) approach)
+ *			             the (C)hain(R)ule approach)
  *			             Options: 0 (Not used)
  *			                      1 (Used)
  *			Collocated : Specify whether VOLUME nodes should be collocated (Solution/Flux/Flux in reference
@@ -60,7 +60,7 @@
  *			                      3 (hp)
  *
  *			P          : Polynomial order to be used (not used if p-adaptation is enabled)
- *			PMax       : Maximum polynomial order to be used (used onnly if p-adaptation is enabled)
+ *			PMax       : Maximum polynomial order to be used (used only if p-adaptation is enabled)
  *
  *			Restart    : Specify whether the solution initialization should be based on a previous solution
  *			             Options: -1           (None)

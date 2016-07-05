@@ -43,22 +43,27 @@ int main(void)
 	MeshType = malloc(STRLEN_MAX * sizeof *MeshType); // free
 
 	strcpy(TestCase,"PeriodicVortex");
+//	strcpy(TestCase,"SupersonicVortex");
 //	strcpy(MeshType,"ToBeCurvedStructuredTRI");
-	strcpy(MeshType,"ToBeCurvedStructuredQUAD");
+//	strcpy(MeshType,"ToBeCurvedStructuredQUAD");
+//	strcpy(MeshType,"ToBeCurvedStructuredTET");
+	strcpy(MeshType,"ToBeCurvedStructuredHEX");
 
-	d     = 2;
+	d     = 3;
 	NVars = 6;
-	MLMin = 0; MLMax = 7; NML = MLMax-MLMin+1;
+	MLMin = 0; MLMax = 6; NML = MLMax-MLMin+1;
 	PMin  = 0; PMax  = 4; NP  = PMax-PMin+1;
 
-	unsigned int CasesRun[40] = { 0, 1, 1, 0, 0,
+	unsigned int CasesRun[45] = { 0, 1, 1, 1, 0,
+	                              0, 1, 1, 1, 0,
+	                              0, 1, 1, 1, 0,
+	                              0, 1, 1, 1, 0,
+	                              0, 1, 1, 1, 0,
+	                              0, 1, 1, 1, 0,
 	                              0, 1, 1, 0, 0,
-	                              0, 1, 1, 0, 0,
-	                              0, 1, 1, 0, 0,
-	                              0, 1, 1, 0, 0,
-	                              0, 1, 1, 0, 0,
-	                              0, 1, 1, 0, 0,
-	                              0, 0, 0, 0, 0};
+	                              1, 1, 1, 1, 1,
+	                              1, 1, 1, 1, 1};
+
 
 	L2Errors   = malloc(NVars * sizeof *L2Errors);   // free
 	ConvOrders = malloc(NVars * sizeof *ConvOrders); // free
@@ -75,6 +80,7 @@ int main(void)
 		if (CasesRun[Indh]) {
 			strcpy(f_name,"../../cases/results/");
 			strcat(f_name,TestCase); strcat(f_name,"/");
+			strcat(f_name,MeshType); strcat(f_name,"/");
 			strcat(f_name,"L2errors_");
 			sprintf(string,"%dD_",d);   strcat(f_name,string);
 										strcat(f_name,MeshType);
@@ -140,7 +146,8 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 
 	FILE *fID;
 
-	if (strstr(TestCase,"PeriodicVortex") != NULL) {
+	if (strstr(TestCase,"PeriodicVortex") != NULL ||
+		strstr(TestCase,"SupersonicVortex") != NULL) {
 		if      (d == 2) Indp = 3;
 		else if (d == 3) Indp = 4;
 
@@ -173,6 +180,7 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 
 	fprintf(fID,"\\begin{table}[!htbp]\n");
 	fprintf(fID,"\\begin{center}\n");
+	fprintf(fID,"\\resizebox{\\textwidth}{!}{\n");
 	fprintf(fID,"\\begin{tabular}{| l | l | ");
 	for (i = 0; i < 2; i++) {
 		for (j = 0; j < NVarsOut; j++)
@@ -206,31 +214,35 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 		for (ML = 0; ML < NML; ML++) {
 			Indh = ML*NP+P;
 			if (!ML) {
-				fprintf(fID,"P%1d\t& % .3e",P,h[Indh]);
-				for (i = 0; i < 2; i++) {
-				for (j = 0; j < NVarsOut; j++) {
-					if      (i == 0) fprintf(fID," & % .3e",L2Errors[IndVars[j]][Indh]);
-					else if (i == 1) fprintf(fID," & -");
-				}}
-				fprintf(fID," \\\\\n");
+				if (CasesRun[Indh]) {
+					fprintf(fID,"P%1d\t& % .3e",P,h[Indh]);
+					for (i = 0; i < 2; i++) {
+					for (j = 0; j < NVarsOut; j++) {
+						if      (i == 0) fprintf(fID," & % .3e",L2Errors[IndVars[j]][Indh]);
+						else if (i == 1) fprintf(fID," & -");
+					}}
+					fprintf(fID," \\\\\n");
+				}
 			} else {
-				fprintf(fID,"\t& % .3e",h[Indh]);
-				for (i = 0; i < 2; i++) {
-				for (j = 0; j < NVarsOut; j++) {
-					if      (i == 0) fprintf(fID," & % .3e",L2Errors[IndVars[j]][Indh]);
-					else if (i == 1) fprintf(fID," & % .3e",ConvOrders[IndVars[j]][Indh]);
-				}}
-				fprintf(fID," \\\\\n");
+				if (CasesRun[Indh]) {
+					fprintf(fID,"\t& % .3e",h[Indh]);
+					for (i = 0; i < 2; i++) {
+					for (j = 0; j < NVarsOut; j++) {
+						if      (i == 0) fprintf(fID," & % .3e",L2Errors[IndVars[j]][Indh]);
+						else if (i == 1) fprintf(fID," & % .3e",ConvOrders[IndVars[j]][Indh]);
+					}}
+					fprintf(fID," \\\\\n");
+				}
 			}
 		}
 	}
 
-
 	fprintf(fID,"\t\\hline\n");
 	fprintf(fID,"\\end{tabular}\n");
+	fprintf(fID,"}\n");
 	fprintf(fID,"\\caption{ %s }\n",caption);
 	fprintf(fID,"\\end{center}\n");
-	fprintf(fID,"\\end{table}\n");
+	fprintf(fID,"\\end{table}");
 
 	for (i = 0; i < NVarsOut; i++)
 		free(Vars_c[i]);

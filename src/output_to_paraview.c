@@ -70,18 +70,16 @@ static void output_geom(const char *geom_type)
 {
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
-	unsigned int d         = DB.d,
-	             PP        = DB.PP;
+	unsigned int d         = DB.d;
 	int          MPIrank   = DB.MPIrank,
 	             MPIsize   = DB.MPIsize;
 
 	// standard datatypes
 	char MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
-	unsigned int i, iMax, j, jMax, dim, sum, u1,
-	             P, NE, NvnP, NvnG, NIn, NOut, NOut_Total, NCols,
-				 NIn_SF[3], NOut_SF[3], Diag[3],
+	unsigned int i, iMax, j, jMax, dim, sum,
+	             P, NE, NvnP, NvnG,
 	             *connectivity, *types, *VTK_Ncorners;
-	double *I_vG_vP, *XYZ_vP, *Input, *Input_SF, *OP_SF[3];
+	double *I_vG_vP, *XYZ_vP, *Input;
 	FILE *fID;
 
 	struct S_ELEMENT *ELEMENT;
@@ -90,8 +88,6 @@ static void output_geom(const char *geom_type)
 	// silence
 	NvnP = 0;
 	XYZ_vP = NULL;
-
-	u1 = 1;
 
 	sprintf(MPIrank_c,"%d",MPIrank);
 //	strcpy(f_name,TestCase);
@@ -111,7 +107,7 @@ static void output_geom(const char *geom_type)
 		fprintf_tn(fID,1,"<PUnstructuredGrid GhostLevel=\"0\">\n");
 
 		fprintf_tn(fID,2,"<PPointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
-		fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"dummy\" format=\"ascii\"/>");
+		fprintf_tn(fID,3,"<PDataArray type=\"UInt8\" Name=\"P\" format=\"ascii\"/>");
 		fprintf_tn(fID,2,"</PPointData>\n");
 
 		fprintf_tn(fID,2,"<PPoints>");
@@ -148,109 +144,26 @@ static void output_geom(const char *geom_type)
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 
-		connectivity = ELEMENT->connectivity;
-		types        = ELEMENT->connect_types;
-		NE           = ELEMENT->connect_NE;
-
 		P = VOLUME->P;
 
-		if (VOLUME->Eclass == C_TP) {
-			NvnP         = ELEMENT->ELEMENTclass[0]->NvnP;
+		connectivity = ELEMENT->connectivity[P];
+		types        = ELEMENT->connect_types[P];
+		NE           = ELEMENT->connect_NE[P];
 
-			if (!VOLUME->curved) {
-				NvnG = ELEMENT->ELEMENTclass[0]->NvnGs[0];
-				I_vG_vP = ELEMENT->ELEMENTclass[0]->I_vGs_vP[0][PP][0];
-			} else {
-				NvnG = ELEMENT->ELEMENTclass[0]->NvnGc[P];
-				I_vG_vP = ELEMENT->ELEMENTclass[0]->I_vGc_vP[P][PP][0];
-			}
+		NvnP = ELEMENT->NvnP[P];
+		NvnG = VOLUME->NvnG;
 
-			if (strstr(geom_type,"straight") != NULL)
-				Input_SF = VOLUME->XYZ_S;
-			else
-				Input_SF = VOLUME->XYZ;
+		if (!VOLUME->curved)
+			I_vG_vP = ELEMENT->I_vGs_vP[1][P][0];
+		else
+			I_vG_vP = ELEMENT->I_vGc_vP[P][P][0];
 
-			NIn = NvnG;
-			NOut = NvnP;
-			NOut_Total = 1;
-			for (dim = 0; dim < 3; dim++) {
-				if (dim < d) {
-					NIn_SF[dim]  = NIn;
-					NOut_SF[dim] = NOut;
+		if (strstr(geom_type,"straight") != NULL)
+			Input = VOLUME->XYZ_S;
+		else
+			Input = VOLUME->XYZ;
 
-					OP_SF[dim] = I_vG_vP;
-					Diag[dim]  = 0;
-				} else {
-					NIn_SF[dim]  = 1;
-					NOut_SF[dim] = 1;
-
-					OP_SF[dim] = NULL;
-					Diag[dim] = 2;
-				}
-				NOut_Total *= NOut_SF[dim];
-			}
-
-			NCols = d*1; // d coordinates * 1 element
-
-			XYZ_vP = malloc(NOut_Total*NCols * sizeof *XYZ_vP); // free
-			sf_apply_d(Input_SF,XYZ_vP,NIn_SF,NOut_SF,NCols,OP_SF,Diag,d);
-
-			NvnP = NOut_Total;
-		} else if (VOLUME->Eclass == C_SI || VOLUME->Eclass == C_PYR) {
-			NvnP = ELEMENT->NvnP;
-			NvnG = VOLUME->NvnG;
-
-			if (!VOLUME->curved)
-				I_vG_vP = ELEMENT->I_vGs_vP[0][PP][0];
-			else
-				I_vG_vP = ELEMENT->I_vGc_vP[P][PP][0];
-
-			if (strstr(geom_type,"straight") != NULL)
-				Input = VOLUME->XYZ_S;
-			else
-				Input = VOLUME->XYZ;
-
-			XYZ_vP = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnP,d,NvnG,1.0,I_vG_vP,Input); // free
-		} else if (VOLUME->Eclass == C_WEDGE) {
-			if (strstr(geom_type,"straight") != NULL)
-				Input_SF = VOLUME->XYZ_S;
-			else
-				Input_SF = VOLUME->XYZ;
-
-			NOut_Total = 1;
-			for (dim = 0; dim < 3; dim++) {
-				if (dim == 0 || dim == 2) {
-					if (!VOLUME->curved) {
-						NvnG = ELEMENT->ELEMENTclass[min(dim,u1)]->NvnGs[0];
-						I_vG_vP = ELEMENT->ELEMENTclass[min(dim,u1)]->I_vGs_vP[0][PP][0];
-					} else {
-						NvnG = ELEMENT->ELEMENTclass[min(dim,u1)]->NvnGc[P];
-						I_vG_vP = ELEMENT->ELEMENTclass[min(dim,u1)]->I_vGc_vP[P][PP][0];
-					}
-					NIn_SF[dim]  = NvnG;
-					NOut_SF[dim] = ELEMENT->ELEMENTclass[min(dim,u1)]->NvnP;
-
-					OP_SF[dim] = I_vG_vP;
-					Diag[dim] = 0;
-				} else {
-					NIn_SF[dim]  = 1;
-					NOut_SF[dim] = 1;
-
-					OP_SF[dim] = NULL;
-					Diag[dim] = 2;
-				}
-				NOut_Total *= NOut_SF[dim];
-			}
-
-			NCols = d*1; // d coordinates * 1 element
-
-			XYZ_vP = malloc(NOut_Total*NCols * sizeof *XYZ_vP); // free
-			sf_apply_d(Input_SF,XYZ_vP,NIn_SF,NOut_SF,NCols,OP_SF,Diag,d);
-
-			NvnP = NOut_Total;
-		}
-
-//array_print_d(NvnP,d,XYZ_vP,'C');
+		XYZ_vP = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnP,d,NvnG,1.0,I_vG_vP,Input); // free
 
 		fprintf(fID,"\t\t<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n",NvnP,NE);
 
@@ -268,10 +181,10 @@ static void output_geom(const char *geom_type)
 			fprintf_tn(fID,3,"</Points>");
 
 			fprintf_tn(fID,3,"<PointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
-				fprintf_tn(fID,4,"<DataArray type=\"Float32\" Name=\"dummy\" format=\"ascii\">");
+				fprintf_tn(fID,4,"<DataArray type=\"UInt8\" Name=\"P\" format=\"ascii\">");
 				fprintf(fID,"\t\t\t\t");
 				for (i = 0; i < NvnP; i++) {
-					fprintf(fID,"% .3f ",0.0);
+					fprintf(fID,"%d ",P);
 					if ((i+1) % 5 == 0 && i != NvnP-1)
 						fprintf(fID,"\n\t\t\t\t");
 					else if (i == NvnP-1)
@@ -337,14 +250,15 @@ static void output_normals(const char *normals_type)
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
 	unsigned int d         = DB.d,
+	             Adapt     = DB.Adapt,
 	             NfrefMax  = DB.NfrefMax;
 	int          MPIrank   = DB.MPIrank,
 	             MPIsize   = DB.MPIsize;
 
 	// Standard datatypes
 	char         MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
-	unsigned int i, iMax, dim, nInd, curved, PV, PF, NfnI, NvnG, IndFType, Eclass, VfIn;
-	double       *Input, *I_vG_vfI, *XYZ_fI, *n;
+	unsigned int i, iMax, dim, nInd, curved, PV, PF, Nfn, NvnG, IndFType, Eclass, VfIn;
+	double       *Input, *I_vG_f, *XYZ_f, *n;
 	FILE         *fID;
 
 	struct S_ELEMENT *ELEMENT;
@@ -352,8 +266,8 @@ static void output_normals(const char *normals_type)
 	struct S_FACET   *FACET;
 
 	// silence
-	XYZ_fI = NULL;
-	NfnI = 0;
+	XYZ_f = NULL;
+	Nfn = 0;
 
 	sprintf(MPIrank_c,"%d",MPIrank);
 //	strcpy(f_name,TestCase);
@@ -403,7 +317,6 @@ static void output_normals(const char *normals_type)
 
 	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
 		curved = FACET->curved;
-		n = FACET->n_fI;
 
 		VIn  = FACET->VIn;
 		VfIn = FACET->VfIn;
@@ -421,81 +334,41 @@ static void output_normals(const char *normals_type)
 
 		NvnG = VIn->NvnG;
 
-		if (FACET->typeInt == 's') {
-			NfnI = ELEMENT->NfnIs[PF][IndFType];
-			if (!VIn->curved) I_vG_vfI = ELEMENT->I_vGs_fIs[PV][PF][VfIn];
-			else              I_vG_vfI = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
-		} else {
-			NfnI = ELEMENT->NfnIc[PF][IndFType];
-			if (!VIn->curved) I_vG_vfI = ELEMENT->I_vGs_fIc[PV][PF][VfIn];
-			else              I_vG_vfI = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
-		}
 		Input = VIn->XYZ;
 
-		XYZ_fI = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NfnI,d,NvnG,1.0,I_vG_vfI,Input); // free
-/*
-unsigned int VfOut, fOut, j, IndFType, Eclass, *nOrdOutIn, IndOrdOutIn;
-double *XYZ_fIOut, *XYZ_fIOutIn, tmp_d;
+		switch (Adapt) {
+		default: // ADAPT_P, ADAPT_H, ADAPT_HP
+			Nfn = ELEMENT->NfnS[PF][IndFType];
+			if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fS[1][PF][VfIn];
+			else              I_vG_f = ELEMENT->I_vGc_fS[PV][PF][VfIn];
 
-struct S_ELEMENT *ELEMENT_FACET;
-struct S_VOLUME *VOut;
-
-VOut = FACET->VOut;
-VfOut = FACET->VfOut;
-fOut = VfOut/NFREFMAX;
-
-Eclass = get_Eclass(VOut->type);
-IndFType = get_IndFType(Eclass,fOut);
-
-ELEMENT_FACET = get_ELEMENT_FACET(VOut->type,IndFType);
-
-IndOrdOutIn = FACET->IndOrdOutIn;
-nOrdOutIn = ELEMENT_FACET->nOrd_fIc[PF][IndOrdOutIn];
-
-XYZ_fIOut = mm_Alloc_d(CBCM,CBT,CBNT,NfnI,d,NvnG,1.0,ELEMENT->I_vGc_fIc[PV][PF][VfOut],VOut->XYZ); // free
-XYZ_fIOutIn = malloc(NfnI*d * sizeof *XYZ_fIOutIn);
-
-for (i = 0; i < NfnI; i++) {
-for (j = 0; j < d; j++) {
-	XYZ_fIOutIn[i+j*NfnI] = XYZ_fIOut[nOrdOutIn[i]+j*NfnI];
-}}
-
-printf("%d %d %d\n",FACET->indexg,VIn->indexg,VfIn);
-array_print_ui(1,NfnI,nOrdOutIn,'R');
-for (i = 0; i < NfnI; i++) {
-	for (j = 0; j < d; j++) {
-		tmp_d = XYZ_fI[i+j*NfnI]-XYZ_fIOutIn[i+j*NfnI];
-		if (fabs(tmp_d) < EPS*100)
-			printf(" % .3e",0.0);
-		else
-			printf(" % .3e",XYZ_fI[i+j*NfnI]-XYZ_fIOutIn[i+j*NfnI]);
-	}
-	printf("\n");
-}
-printf("\n");
-//array_print_d(NfnI,d,XYZ_fI,'C');
-//array_print_d(NfnI,d,XYZ_fIOut,'C');
-//array_print_d(NfnI,d,XYZ_fIOutIn,'C');
-
-free(XYZ_fIOut);
-free(XYZ_fIOutIn);
-*/
-
-/*
-printf("%d %d %d\n",FACET->indexg,VIn->indexg,VfIn);
-array_print_d(NfnI,NvnG,I_vG_vfI,'R');
-array_print_d(NfnI,d,XYZ_fI,'C');
-*/
+			n = FACET->n_fS;
+			XYZ_f = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
+			break;
+		case ADAPT_0:
+			if (FACET->typeInt == 's') {
+				Nfn = ELEMENT->NfnIs[PF][IndFType];
+				if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIs[1][PF][VfIn];
+				else              I_vG_f = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
+			} else {
+				Nfn = ELEMENT->NfnIc[PF][IndFType];
+				if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIc[1][PF][VfIn];
+				else              I_vG_f = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
+			}
+			n = FACET->n_fI;
+			XYZ_f = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
+			break;
+		}
 
 		fprintf(fID,"\t\t<Piece NumberOfPoints=\"%d\" NumberOfVerts=\"%d\" NumberOfLines=\"%d\" NumberOfStrips=\"%d\" "
-		            "NumberOfPolys=\"%d\">\n",NfnI,0,0,0,0);
+		            "NumberOfPolys=\"%d\">\n",Nfn,0,0,0,0);
 
 			fprintf_tn(fID,3,"<Points>");
 				fprintf(fID,"\t\t\t\t<DataArray type=\"Float32\" NumberOfComponents=\"%d\" format=\"ascii\">\n",3);
-				for (i = 0; i < NfnI; i++) {
+				for (i = 0; i < Nfn; i++) {
 					fprintf(fID,"\t\t\t\t");
 					for (dim = 0; dim < d; dim++)
-						fprintf(fID,"% .3f ",XYZ_fI[dim*NfnI+i]);
+						fprintf(fID,"% .3f ",XYZ_f[dim*Nfn+i]);
 					for (dim = d; dim < 3; dim++)
 						fprintf(fID,"% .3f ",0.0);
 					fprintf(fID,"\n");
@@ -506,7 +379,7 @@ array_print_d(NfnI,d,XYZ_fI,'C');
 			fprintf_tn(fID,3,"<PointData Vectors=\"Normals\">");
 				fprintf(fID,"\t\t\t\t<DataArray type=\"Float32\" Name=\"Normals\" NumberOfComponents=\"%d\" "
 				                 "format=\"ascii\">\n",3);
-				for (i = 0; i < NfnI; i++) {
+				for (i = 0; i < Nfn; i++) {
 					fprintf(fID,"\t\t\t\t");
 					for (dim = 0; dim < d; dim++) {
 						if (!curved) nInd = dim;
@@ -522,7 +395,7 @@ array_print_d(NfnI,d,XYZ_fI,'C');
 
 		fprintf_tn(fID,2,"</Piece>\n");
 
-		free(XYZ_fI);
+		free(XYZ_f);
 	}
 
 	fprintf_tn(fID,1,"</PolyData>");
@@ -534,9 +407,10 @@ array_print_d(NfnI,d,XYZ_fI,'C');
 static void output_solution(const char *sol_type)
 {
 	// Initialize DB Parameters
-	char         *TestCase = DB.TestCase;
+	char         *TestCase = DB.TestCase,
+	             *MeshType = DB.MeshType;
 	unsigned int d         = DB.d,
-	             PP        = DB.PP,
+	             PMax      = DB.PMax,
 	             Nvar      = DB.Nvar;
 	int          MPIrank   = DB.MPIrank,
 	             MPIsize   = DB.MPIsize;
@@ -544,7 +418,7 @@ static void output_solution(const char *sol_type)
 	// standard datatypes
 	char MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
 	unsigned int i, iMax, j, jMax, dim, sum, varMax,
-	             P, NE, NvnP, NvnG, NvnS,
+	             P, PP, NE, NvnP, NvnG, NvnS,
 	             *connectivity, *types, *VTK_Ncorners;
 	double *I_vG_vP, *ChiS_vP, *XYZ_vP, *W_vP, *U_vP, *rho, *u, *v, *w, *p, *E, *s, *Mach, V2, c2;
 	FILE *fID;
@@ -553,8 +427,8 @@ static void output_solution(const char *sol_type)
 	struct S_VOLUME *VOLUME;
 
 	sprintf(MPIrank_c,"%d",MPIrank);
-	strcpy(f_name,TestCase);
-	strcat(f_name,"/");
+	strcpy(f_name,TestCase); strcat(f_name,"/");
+	strcat(f_name,MeshType); strcat(f_name,"/");
 	strcat(f_name,sol_type);
 
 	if (!DB.MPIrank) {
@@ -612,18 +486,24 @@ static void output_solution(const char *sol_type)
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 
-		connectivity = ELEMENT->connectivity;
-		types        = ELEMENT->connect_types;
-		NE           = ELEMENT->connect_NE;
-
 		P = VOLUME->P;
 
-		NvnP = ELEMENT->NvnP;
+		// Visualize with higher order to see curved geometry if applicable (P+1 is the maximum currently supported)
+		if (!VOLUME->curved || DB.Adapt == ADAPT_0 || DB.Adapt == ADAPT_H)
+			PP = P;
+		else
+			PP = min(PMax,P+1);
+
+		connectivity = ELEMENT->connectivity[PP];
+		types        = ELEMENT->connect_types[PP];
+		NE           = ELEMENT->connect_NE[PP];
+
+		NvnP = ELEMENT->NvnP[PP];
 		NvnG = VOLUME->NvnG;
 		NvnS = VOLUME->NvnS;
 
 		if (!VOLUME->curved)
-			I_vG_vP = ELEMENT->I_vGs_vP[0][PP][0];
+			I_vG_vP = ELEMENT->I_vGs_vP[1][P][0];
 		else
 			I_vG_vP = ELEMENT->I_vGc_vP[P][PP][0];
 		ChiS_vP = ELEMENT->ChiS_vP[P][PP][0];

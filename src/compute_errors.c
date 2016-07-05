@@ -52,7 +52,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	if (!curved) {
 		OPS->NvnI = ELEMENT_OPS->NvnIs[P];
 
-		OPS->I_vG_vI = ELEMENT_OPS->I_vGs_vIs[P][P][0];
+		OPS->I_vG_vI = ELEMENT_OPS->I_vGs_vIs[1][P][0];
 		OPS->w_vI    = ELEMENT_OPS->w_vIs[P];
 		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIs[P][P][0];
 	} else {
@@ -64,31 +64,17 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	}
 }
 
-static void compute_errors_PeriodicVortex(void)
+void compute_errors(void)
 {
 	// Initialize DB Parameters
 	unsigned int d    = DB.d,
 	             Nvar = DB.Nvar;
 	int          MPIrank = DB.MPIrank;
-	double       pInf           = DB.pInf,
-	             TInf           = DB.TInf,
-	             uInf           = DB.uInf,
-	             vInf           = DB.vInf,
-	             wInf           = DB.wInf,
-	             Rg             = DB.Rg,
-	             beta           = DB.beta,
-	             PeriodL        = DB.PeriodL,
-	             PeriodFraction = DB.PeriodFraction,
-	             Xc0            = DB.Xc,
-	             Yc             = DB.Yc,
-	             Rc             = DB.Rc;
 
 	// Standard datatypes
 	unsigned int i, j, NvnS, NvnI, IndU, DOF;
-	double       DistTraveled;
-	double       Xc, rhoInf,
-	             *XYZ_vI, *X_vI, *Y_vI, *r2, T0,
-	             *rho, *p, *s, *rhoEx, *uEx, *vEx, *wEx, *pEx, *sEx, *U, *UEx, *What, *W,
+	double       *XYZ_vI, 
+	             *rho, *p, *s, *sEx, *U, *UEx, *What, *W,
 	             *detJV_vI, *w_vI, *ChiS_vI, *wdetJV_vI,
 	             Vol, *L2Error2, err;
 
@@ -99,13 +85,6 @@ static void compute_errors_PeriodicVortex(void)
 	OPS = malloc(sizeof *OPS); // free
 
 	L2Error2 = calloc(NVAR3D+1 , sizeof *L2Error2); // free
-
-	rhoInf = pInf/(Rg*TInf);
-
-	DistTraveled = PeriodL*PeriodFraction;
-	Xc = Xc0 + DistTraveled;
-	while (Xc > 0.5*PeriodL)
-		Xc -= PeriodL;
 
 	DOF = 0;
 	Vol = 0.0;
@@ -139,34 +118,13 @@ static void compute_errors_PeriodicVortex(void)
 		for (i = 0; i < NvnI; i++)
 			s[i] = p[i]/pow(rho[i],GAMMA);
 
-		UEx = malloc(NvnI*NVAR3D * sizeof *UEx); // free
-		sEx = malloc(NvnI        * sizeof *sEx); // free
-
-		rhoEx = &UEx[NvnI*0];
-		uEx   = &UEx[NvnI*1];
-		vEx   = &UEx[NvnI*2];
-		wEx   = &UEx[NvnI*3];
-		pEx   = &UEx[NvnI*4];
-
 		XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
 		mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
 
-		X_vI = &XYZ_vI[0*NvnI];
-		Y_vI = &XYZ_vI[1*NvnI];
+		UEx = malloc(NvnI*NVAR3D * sizeof *UEx); // free
+		sEx = malloc(NvnI        * sizeof *sEx); // free
 
-		r2 = malloc(NvnI * sizeof *r2); // free
-		for (i = 0; i < NvnI; i++)
-			r2[i] = (pow(X_vI[i]-Xc,2.0)+pow(Y_vI[i]-Yc,2.0))/(Rc*Rc);
-
-		for (i = 0; i < NvnI; i++) {
-			uEx[i]   = uInf - uInf*beta*(Y_vI[i]-Yc)/Rc*exp(-0.5*r2[i]);
-			vEx[i]   = vInf + uInf*beta*(X_vI[i]-Xc)/Rc*exp(-0.5*r2[i]);
-			wEx[i]   = wInf;
-			T0       = TInf - 0.5*pow(uInf*beta,2.0)*exp(-r2[i])*GM1/(GAMMA*Rg);
-			rhoEx[i] = rhoInf*pow(T0/TInf,1.0/GM1);
-			pEx[i]   = rho[i]*Rg*T0;
-			sEx[i]   = pEx[i]/pow(rhoEx[i],GAMMA);
-		}
+		compute_exact_solution(NvnI,XYZ_vI,UEx,sEx,1);
 
 		for (i = 0; i <= NVAR3D; i++) {
 			IndU = i*NvnI;
@@ -198,7 +156,6 @@ static void compute_errors_PeriodicVortex(void)
 		free(UEx);
 		free(sEx);
 		free(XYZ_vI);
-		free(r2);
 	}
 	free(OPS);
 
@@ -209,23 +166,6 @@ static void compute_errors_PeriodicVortex(void)
 	MPI_Barrier(MPI_COMM_WORLD);
 	if (!MPIrank)
 		collect_errors();
-}
-
-void compute_errors(void)
-{
-	// Initialize DB Parameters
-	char *TestCase = DB.TestCase;
-
-	if (strstr(TestCase,"dSphericalBump") != NULL)
-		; // compute_errors_dSphericalBump();
-	else if (strstr(TestCase,"GaussianBump") != NULL)
-		; // compute_errors_GaussianBump();
-	else if (strstr(TestCase,"PeriodicVortex") != NULL)
-		compute_errors_PeriodicVortex();
-	else if (strstr(TestCase,"PolynomialBump") != NULL)
-		; // compute_errors_PolynomialBump();
-	else if (strstr(TestCase,"SupersonicVortex") != NULL)
-		; // compute_errors_SupersonicVortex();
 }
 
 static void output_errors(const double *L2Error2, const unsigned int DOF, const double Vol)
@@ -316,7 +256,8 @@ static void collect_errors(void)
 static char *set_fname(const unsigned int collect)
 {
 	// Initialize DB Parameters
-	char *TestCase = DB.TestCase;
+	char *TestCase = DB.TestCase,
+	     *MeshType = DB.MeshType;
 	int  MPIrank = DB.MPIrank;
 
 	// standard datatypes
@@ -324,20 +265,19 @@ static char *set_fname(const unsigned int collect)
 
 	f_name = malloc(STRLEN_MAX * sizeof *f_name); // keep (requires external free)
 
-/* Re-enable this later so that final results are not overwritten (ToBeDeleted) */
-//	strcpy(f_name,"errors/");
 	if (!collect)
 		strcpy(f_name,"errors/");
 	else
 		strcpy(f_name,"results/");
 
 	strcat(f_name,TestCase); strcat(f_name,"/");
+	strcat(f_name,MeshType); strcat(f_name,"/");
 	if (!collect)
 		strcat(f_name,"L2errors2_");
 	else
 		strcat(f_name,"L2errors_");
 	sprintf(string,"%dD_",DB.d);   strcat(f_name,string);
-	                               strcat(f_name,DB.MeshType);
+	                               strcat(f_name,MeshType);
 	sprintf(string,"_ML%d",DB.ML); strcat(f_name,string);
 	if (DB.Adapt == ADAPT_0)
 		sprintf(string,"P%d",DB.PGlobal), strcat(f_name,string);

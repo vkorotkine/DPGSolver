@@ -4,7 +4,7 @@
 - Open source using only open source libraries/supporting programs.
 - Methods: Discontinuous Petrov Galerkin (DPG) with the option for standard Discontinuous Galerkin (DG).
 - Supported elements: LINEs, TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
-- Supported refinement: anisotropic (LINE/QUAD/HEX)/ isotropic (TRI/TET/WEDGE/PYR) h (size), p (order).
+- Supported refinements: anisotropic (LINE/QUAD/HEX)/ isotropic (TRI/TET/WEDGE/PYR) h (size), p (order).
 
 ### Supported PDEs
 - Euler         (ACTIVE)
@@ -29,7 +29,8 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 
 
 ## Code Status
-- MPI solving not yet supported.
+- MPI           : TO BE DONE
+- hp Adaptation : ACTIVE
 
 ### Preprocessing  : ACTIVE
 - set up parameters : DONE
@@ -42,27 +43,27 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 #### Initialization
 - dSphericalBump   : TO BE DONE
 - GaussianBump     : TO BE DONE
-- PeriodicVortex:  : DONE
+- PeriodicVortex   : DONE
 - PolynomialBump   : TO BE DONE
-- SupersonicVortex : TO BE DONE
+- SupersonicVortex : DONE
 
 #### Explicit
 - solver RK : ACTIVE
 - VOLUME    : ACTIVE
   - Weak Form   : DONE
   - Strong Form : TO BE DONE
-  - Vectorized  : TO BE DONE
+  - Vectorized  : DONE
 - FACET     : ACTIVE
   - Weak Form   : DONE
   - Strong Form : TO BE DONE
-  - Vectorized  : TO BE DONE
+  - Vectorized  : UNDER CONSIDERATION
 - finalize  : DONE
 
 #### Implicit
-- solver implicit TO BE DONE
-- VOLUME          TO BE DONE
-- FACET           TO BE DONE
-- finalize        TO BE DONE
+- solver implicit : TO BE DONE
+- VOLUME          : TO BE DONE
+- FACET           : TO BE DONE
+- finalize        : TO BE DONE
 
 #### Fluxes
 - standard
@@ -73,8 +74,8 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
   - Roe-Pike       : DONE
 
 #### Boundary
-- riemann      : TO BE DONE
-- slip wall    : TO BE DONE
+- riemann      : DONE
+- slip wall    : DONE
 - outflow mach : TO BE DONE
 
 #### Jacobians
@@ -86,7 +87,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 - boundary outflow mach : TO BE DONE
 
 
-### Postprocessing : TO BE DONE
+### Postprocessing : ACTIVE (As cases are added)
 
 
 ### License

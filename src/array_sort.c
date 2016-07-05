@@ -32,7 +32,7 @@ void array_sort_ui(unsigned int NRows, unsigned int NCols, unsigned int *A, unsi
                    const char trans)
 {
 	unsigned int i, count, swap,
-	             row, col, colMs[NRows], colMe[NRows], SortLen, rowM, rowS,
+	             row, col, *colMs, *colMe, SortLen, rowM, rowS,
 	             *Indicestmp, *IndicesInter, *Atmp;
 
 	if ((ordering == 'R' && trans == 'T') || (ordering == 'C' && trans == 'N')) {
@@ -44,6 +44,8 @@ void array_sort_ui(unsigned int NRows, unsigned int NCols, unsigned int *A, unsi
 		printf("Error: Invalid ordering/trans input to array_sort_i"), exit(1);
 	}
 // array_print_i(NRows,NCols,A,'R');
+	colMs = malloc(NRows * sizeof *colMs); // free
+	colMe = malloc(NRows * sizeof *colMe); // free
 
 	for (row = 0; row < NRows; row++) {
 		if (row == 0) {
@@ -122,6 +124,9 @@ void array_sort_ui(unsigned int NRows, unsigned int NCols, unsigned int *A, unsi
 //array_print_ui(1,NCols,Indices,'R');
 	}
 
+	free(colMs);
+	free(colMe);
+
 // array_print_i(NRows,NCols,A,'R');
 
 	if ((ordering == 'R' && trans == 'T') || (ordering == 'C' && trans == 'N')) {
@@ -139,7 +144,7 @@ void array_sort_i(unsigned int NRows, unsigned int NCols, int *A, unsigned int *
                   const char trans)
 {
 	unsigned int i, count, swap,
-	             row, col, colMs[NRows], colMe[NRows], SortLen, rowM, rowS,
+	             row, col, *colMs, *colMe, SortLen, rowM, rowS,
 	             *Indicestmp, *IndicesInter;
 	int          *Atmp;
 
@@ -152,6 +157,9 @@ void array_sort_i(unsigned int NRows, unsigned int NCols, int *A, unsigned int *
 		printf("Error: Invalid ordering/trans input to array_sort_i"), exit(1);
 	}
 // array_print_i(NRows,NCols,A,'R');
+
+	colMs = malloc(NRows * sizeof *colMs); // free
+	colMe = malloc(NRows * sizeof *colMe); // free
 
 	for (row = 0; row < NRows; row++) {
 		if (row == 0) {
@@ -230,6 +238,9 @@ void array_sort_i(unsigned int NRows, unsigned int NCols, int *A, unsigned int *
 // array_print_i(1,NCols,Indices,'R');
 	}
 
+	free(colMs);
+	free(colMe);
+
 // array_print_i(NRows,NCols,A,'R');
 
 	if ((ordering == 'R' && trans == 'T') || (ordering == 'C' && trans == 'N')) {
@@ -247,7 +258,7 @@ void array_sort_d(unsigned int NRows, unsigned int NCols, double *A, unsigned in
                   const char trans)
 {
 	unsigned int i, count, swap,
-	             row, col, colMs[NRows], colMe[NRows], SortLen, rowM, rowS,
+	             row, col, *colMs, *colMe, SortLen, rowM, rowS,
 	             *Indicestmp, *IndicesInter;
 	double       *Atmp;
 
@@ -260,6 +271,9 @@ void array_sort_d(unsigned int NRows, unsigned int NCols, double *A, unsigned in
 		printf("Error: Invalid ordering/trans input to array_sort_d"), exit(1);
 	}
 // array_print_d(NRows,NCols,A,'R');
+
+	colMs = malloc(NRows * sizeof *colMs); // free
+	colMe = malloc(NRows * sizeof *colMe); // free
 
 	for (row = 0; row < NRows; row++) {
 		if (row == 0) {
@@ -334,6 +348,9 @@ void array_sort_d(unsigned int NRows, unsigned int NCols, double *A, unsigned in
 // array_print_d(NRows,NCols,A,'R');
 // array_print_i(1,NCols,Indices,'R');
 	}
+
+	free(colMs);
+	free(colMe);
 
 // array_print_d(NRows,NCols,A,'R');
 

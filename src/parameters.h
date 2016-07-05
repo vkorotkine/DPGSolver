@@ -67,11 +67,25 @@
 #define NESUBCMAX       2  // WEDGE (TRI + LINE)
 #define NFORDMAX        8  // QUAD
 
+// Solver related parameters
+#define RK3_SSP 0
+#define RK4_LS  1
+
+// Boundary conditions
+#define BC_RIEMANN  1
+#define BC_SLIPWALL 2
+
 // Allowed adaptation options
 #define ADAPT_0  0
 #define ADAPT_P  1
 #define ADAPT_H  2
 #define ADAPT_HP 3
+
+// Adaptation flags
+#define PREFINE 0
+#define PCOARSE 1
+#define HREFINE 2
+#define HCOARSE 3
 
 // h-refinement related numbers
 #define NREFMAXPOINT 1

@@ -26,7 +26,7 @@ void test_imp_matrix_mm(void)
 	unsigned int pass;
 
 	/*
-	 *	mm_d:
+	 *	mm_d (permutations):
 	 *
 	 *		Input:
 	 *
@@ -242,7 +242,7 @@ void test_imp_matrix_mm(void)
 	free(CT_cTT);
 
 	/*
-	 *	mm_CTN_d:
+	 *	mm_CTN_d (useBlas = 0, 1):
 	 *
 	 *		Input:
 	 *

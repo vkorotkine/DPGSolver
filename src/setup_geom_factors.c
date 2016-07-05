@@ -231,14 +231,14 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	ELEMENT_OPS = get_ELEMENT_type(type);
 
 	if (!curved) {
-		OPS->NvnG = ELEMENT_OPS->NvnGs[0];
+		OPS->NvnG = ELEMENT_OPS->NvnGs[1];
 		OPS->NvnC = ELEMENT_OPS->NvnCs[P];
 		OPS->NvnI = ELEMENT_OPS->NvnIs[P];
 
-		OPS->I_vG_vC = ELEMENT_OPS->I_vGs_vCs[P][P][0];
+		OPS->I_vG_vC = ELEMENT_OPS->I_vGs_vCs[1][P][0];
 		OPS->I_vC_vI = ELEMENT_OPS->I_vCs_vIs[P][P][0];
-		OPS->D_vG_vC = ELEMENT_OPS->D_vGs_vCs[P][P][0];
-		OPS->D_vG_vI = ELEMENT_OPS->D_vGs_vIs[P][P][0];
+		OPS->D_vG_vC = ELEMENT_OPS->D_vGs_vCs[1][P][0];
+		OPS->D_vG_vI = ELEMENT_OPS->D_vGs_vIs[1][P][0];
 		OPS->D_vC_vC = ELEMENT_OPS->D_vCs_vCs[P][P][0];
 	} else {
 		OPS->NvnG = ELEMENT_OPS->NvnGc[P];

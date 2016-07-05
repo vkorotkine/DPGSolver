@@ -15,6 +15,11 @@
  *		explicit runs.
  *
  *	Comments:
+ *		When the 'Collocated' option is enabled, the inverse VOLUME cubature weights are already included in the VV and
+ *		FF operators used in the VOLUME and FACET info functions. Thus, only the inverse VOLUME element must be applied
+ *		to RHS terms. When the option is disabled, the standard procedure of multiplication with the inverse mass matrix
+ *		is carried out. The motivation for this is that a particular sum factorized operator becomes identity for the
+ *		collocated scheme when this approach is adopted; see cases where diag = 2 in the VOLUME/FACET info routines.
  *
  *	Notation:
  *
@@ -31,11 +36,14 @@ double finalize_RHS(void)
 	// Standard datatypes
 	unsigned int iMax, jMax,
 	             VfIn, VfOut, fIn, fOut, NvnSIn, NvnSOut, Boundary;
-	double       maxRHS, maxRHSV, *VRHSIn_ptr, *VRHSOut_ptr, *FRHSIn_ptr, *FRHSOut_ptr, *wdetJV_vI, *wdetJV_vI_ptr,
+	double       maxRHS, maxRHSV, *VRHSIn_ptr, *VRHSOut_ptr, *FRHSIn_ptr, *FRHSOut_ptr, *detJV_vI_ptr,
 	             *RHS_Final;
 
 	struct S_VOLUME  *VIn, *VOut, *VOLUME;
 	struct S_FACET   *FACET;
+
+	// silence
+	NvnSIn = 0;
 
 	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
 		VIn    = FACET->VIn;
@@ -89,6 +97,7 @@ array_print_d(NvnSOut,Neq,VOut->RHS,'C');
 //}
 */
 
+
 		free(FACET->RHSIn);
 		free(FACET->RHSOut);
 	}
@@ -98,17 +107,20 @@ array_print_d(NvnSOut,Neq,VOut->RHS,'C');
 	maxRHS = 0.0;
 	if (strstr(SolverType,"Explicit") != NULL) {
 		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+			// Compute maxRHS for convergence monitoring
+			maxRHSV = array_norm_d(NvnSIn,VOLUME->RHS,"Inf");
+			if (maxRHSV > maxRHS)
+				maxRHS = maxRHSV;
+
 			// Add (remaining) MInv contribution to RHS
 			NvnSIn = VOLUME->NvnS;
 
 			if (Collocated) {
-				wdetJV_vI = VOLUME->wdetJV_vI;
-
 				VRHSIn_ptr = VOLUME->RHS;
 				for (iMax = Neq; iMax--; ) {
-					wdetJV_vI_ptr = wdetJV_vI;
+					detJV_vI_ptr = VOLUME->detJV_vI;
 					for (jMax = NvnSIn; jMax--; )
-						*VRHSIn_ptr++ /= *wdetJV_vI_ptr++;
+						*VRHSIn_ptr++ /= *detJV_vI_ptr++;
 				}
 			} else {
 				RHS_Final = malloc(NvnSIn*Neq * sizeof *RHS_Final);
@@ -118,20 +130,19 @@ printf("%d\n",VOLUME->indexg);
 array_print_d(NvnSIn,NvnSIn,VOLUME->MInv,'R');
 array_print_d(NvnSIn,Neq,VOLUME->RHS,'C');
 */
+
 				mm_CTN_d(NvnSIn,Neq,NvnSIn,VOLUME->MInv,VOLUME->RHS,RHS_Final);
 				free(VOLUME->RHS);
 				VOLUME->RHS = RHS_Final;
+
 /*
+//printf("%d\n",VOLUME->indexg);
 array_print_d(NvnSIn,Neq,RHS_Final,'C');
-exit(1);
+//exit(1);
 */
 
 			}
 
-			// Compute maxRHS for convergence monitoring
-			maxRHSV = array_norm_d(NvnSIn,VOLUME->RHS,"Inf");
-			if (maxRHSV > maxRHS)
-				maxRHS = maxRHSV;
 		}
 	}
 //exit(1);

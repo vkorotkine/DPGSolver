@@ -3,6 +3,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
+
+#include "database.h"
+#include "parameters.h"
+#include "functions.h"
 
 #include "mkl.h"
 
@@ -236,12 +241,11 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 	 *
 	 *		Conclusions from test_speed_mm:
 	 *			Testing done using -O3.
-	 *			Without any manual loop unrolling (potentially to be done after profiling; ToBeModified):
-	 *				BLAS_mv breaks even when more than ~120 flops are performed.
-	 *				BLAS_mm breaks even when more than ~330 flops are performed.
 	 *			With matrix-vector product unrolling:
 	 *				The custom implementation is generally equivalent to or faster than BLAS, even with a huge number of
-	 *				switch statements. INVESTIGATE FURTHER WHEN PROFILING THE CODE (ToBeDeleted)
+	 *				switch statements only on OSX. On Ubuntu, BLAS breaks-even with the custom implementation for
+	 *				A_{3x3} and becomes significantly faster for larger A. In both cases, only between 30-40% of peak
+	 *				flops are achieved. (Investigate further, ToBeModified)
 	 *
 	 *	Notation:
 	 *		m : Number of rows of A'
@@ -252,133 +256,1516 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 	 *
 	 */
 
-	int useBLAS;
+	unsigned int useBLAS;
 
-	// Note: Flops = m*n*(2*k-1) ~= 2*m*n*k
-	switch(n) {
-	case 1:
-		if (m*k > 60) // 60 = (breakeven flops)/2
-			useBLAS = 1;
-		else
-			useBLAS = 0;
-
-		break;
-	default:
-		if (m*n*k > 165) // 165 = (breakeven flops)/2
-			useBLAS = 1;
-		else
-			useBLAS = 0;
-
-		break;
-	}
-
+	if (m > 8 || k > 8)
+		useBLAS = 1;
+	else
+		useBLAS = 0;
 
 	switch (useBLAS) {
 	case 0:
-		switch (n) {
-			case 1: { // matrix-vector
-				register unsigned int mMax, kMax;
-				register double *pA = A, *pB = B, *pC = C;
+		switch(m) {
+		case 1: {
+			switch(k) {
+			case 1: {
+				register double *a0  = A   ,
+				                *b0  = B   ;
 
-				// First row of A
-				*pC = (*pA)*(*pB);
-				for (kMax = k-1; kMax--; ) { // loop over columns of A/rows of B/C
-					pA++;
-					pB++;
+				*C     = (*a0 )*(*b0 );
 
-					*pC += (*pA)*(*pB);
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k;
+
+					*(++C) = (*a0 )*(*b0 );
 				}
+				break; // m1k1
+			} case 2: {
+				register double *a0  = A   , *a1  = A+1 ,
+				                *b0  = B   , *b1  = B+1 ;
 
-				// Remaining rows of A
-				for (mMax = m-1; mMax--; ) { // loop over rows of A
-					pA++;
-					pC++;
-					pB = B;
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
 
-					*pC = (*pA)*(*pB);
-					for (kMax = k-1; kMax--; ) { // loop over columns of A/rows of B/C
-						pA++;
-						pB++;
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k;
 
-						*pC += (*pA)*(*pB);
-					}
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
 				}
+				break; // m1k2
+			} case 3: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 ;
 
-/* Very slightly slower than pointer version above (1-2%)
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
 
-				register unsigned int i, j, iMax, jMax, IndA;
-				for (i = 0, iMax = m; i < iMax; i++) {
-					C[i] = 0.0;
-					IndA = i*k;
-					for (j = 0, jMax = k; j < jMax; j++) {
-						C[i] += A[IndA+j]*B[j];
-					}
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
 				}
-*/
-				break;
-			}
-			default: { // matrix-matrix
-				register unsigned int mMax, nMax, kMax;
-				register double *pA = A, *pB = B, *pC = C;
+				break; // m1k3
+			} case 4: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 ;
 
-				// First column of B/C
-				// First row of A
-				*pC = (*pA)*(*pB);
-				for (kMax = k-1; kMax--; ) { // loop over columns of A/rows of B/C
-					pA++;
-					pB++;
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
 
-					*pC += (*pA)*(*pB);
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
 				}
+				break; // m1k4
+			} case 5: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 ;
 
-				// Remaining rows of A
-				for (mMax = m-1; mMax--; ) { // loop over rows of A
-					pA++;
-					pC++;
-					pB = B;
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
 
-					*pC = (*pA)*(*pB);
-					for (kMax = k-1; kMax--; ) { // loop over columns of A/rows of B/C
-						pA++;
-						pB++;
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k;
 
-						*pC += (*pA)*(*pB);
-					}
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
 				}
+				break; // m1k5
+			} case 6: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 ;
 
-				// Remaining columns of B/C
-				for (nMax = n-1; nMax--; ) { // loop over columns of B/C
-					pA = A;
-					pB = B+(n-nMax-1)*k;
-					pC++;
-					*pC = (*pA)*(*pB);
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
 
-					for (kMax = k-1; kMax--; ) { // loop over columns of A/rows of B/C
-						pA++;
-						pB++;
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k;
 
-						*pC += (*pA)*(*pB);
-					}
-
-					// Remaining rows of A
-					for (mMax = m-1; mMax--; ) { // loop over rows of A
-						pA++;
-						pC++;
-						pB = B+(n-nMax-1)*k;
-
-						*pC = (*pA)*(*pB);
-						for (kMax = k-1; kMax--; ) { // loop over columns of A/rows of B/C
-							pA++;
-							pB++;
-
-							*pC += (*pA)*(*pB);
-						}
-					}
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
 				}
+				break; // m1k6
+			} case 7: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 ;
 
-				break;
-			}
-		}
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+				}
+				break; // m1k7
+			} case 8: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 , *b7  = B+7 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k, b7  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+				}
+				break; // m1k8
+			} default: {
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				break; // m1
+			}}
+			break;
+		} case 2: {
+			switch(k) {
+			case 1: {
+				register double *a0  = A   ,
+				                *a1  = A+1 ,
+				                *b0  = B   ;
+
+				*C     = (*a0 )*(*b0 );
+				*(++C) = (*a1 )*(*b0 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k;
+
+					*(++C) = (*a0 )*(*b0 );
+					*(++C) = (*a1 )*(*b0 );
+				}
+				break; // m2k1
+			} case 2: {
+				register double *a0  = A   , *a1  = A+1 ,
+				                *a2  = A+2 , *a3  = A+3 ,
+				                *b0  = B   , *b1  = B+1 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
+				*(++C) = (*a2 )*(*b0 ) + (*a3 )*(*b1 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
+					*(++C) = (*a2 )*(*b0 ) + (*a3 )*(*b1 );
+				}
+				break; // m2k2
+			} case 3: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				                *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
+				*(++C) = (*a3 )*(*b0 ) + (*a4 )*(*b1 ) + (*a5 )*(*b2 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
+					*(++C) = (*a3 )*(*b0 ) + (*a4 )*(*b1 ) + (*a5 )*(*b2 );
+				}
+				break; // m2k3
+			} case 4: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				                *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
+				*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 ) + (*a6 )*(*b2 ) + (*a7 )*(*b3 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
+					*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 ) + (*a6 )*(*b2 ) + (*a7 )*(*b3 );
+				}
+				break; // m2k4
+			} case 5: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				                *a5  = A+5 , *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 ,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
+				*(++C) = (*a5 )*(*b0 ) + (*a6 )*(*b1 ) + (*a7 )*(*b2 ) + (*a8 )*(*b3 ) + (*a9 )*(*b4 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
+					*(++C) = (*a5 )*(*b0 ) + (*a6 )*(*b1 ) + (*a7 )*(*b2 ) + (*a8 )*(*b3 ) + (*a9 )*(*b4 );
+				}
+				break; // m2k5
+			} case 6: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 ) + (*a9 )*(*b3 ) + (*a10)*(*b4 ) + (*a11)*(*b5 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 ) + (*a9 )*(*b3 ) + (*a10)*(*b4 ) + (*a11)*(*b5 );
+				}
+				break; // m2k6
+			} case 7: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				                *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+				*(++C) = (*a7 )*(*b0 ) + (*a8 )*(*b1 ) + (*a9 )*(*b2 ) + (*a10)*(*b3 ) + (*a11)*(*b4 ) + (*a12)*(*b5 ) + (*a13)*(*b6 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+					*(++C) = (*a7 )*(*b0 ) + (*a8 )*(*b1 ) + (*a9 )*(*b2 ) + (*a10)*(*b3 ) + (*a11)*(*b4 ) + (*a12)*(*b5 ) + (*a13)*(*b6 );
+				}
+				break; // m2k7
+			} case 8: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 , *b7  = B+7 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 ) + (*a12)*(*b4 ) + (*a13)*(*b5 ) + (*a14)*(*b6 ) + (*a15)*(*b7 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k, b7  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 ) + (*a12)*(*b4 ) + (*a13)*(*b5 ) + (*a14)*(*b6 ) + (*a15)*(*b7 );
+				}
+				break; // m2k8
+			} default: {
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				break; // m2
+			}}
+			break;
+		} case 3: {
+			switch(k) {
+			case 1: {
+				register double *a0  = A   ,
+				                *a1  = A+1 ,
+				                *a2  = A+2 ,
+				                *b0  = B   ;
+
+				*C     = (*a0 )*(*b0 );
+				*(++C) = (*a1 )*(*b0 );
+				*(++C) = (*a2 )*(*b0 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k;
+
+					*(++C) = (*a0 )*(*b0 );
+					*(++C) = (*a1 )*(*b0 );
+					*(++C) = (*a2 )*(*b0 );
+				}
+				break; // m3k1
+			} case 2: {
+				register double *a0  = A   , *a1  = A+1 ,
+				                *a2  = A+2 , *a3  = A+3 ,
+				                *a4  = A+4 , *a5  = A+5 ,
+				                *b0  = B   , *b1  = B+1 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
+				*(++C) = (*a2 )*(*b0 ) + (*a3 )*(*b1 );
+				*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
+					*(++C) = (*a2 )*(*b0 ) + (*a3 )*(*b1 );
+					*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 );
+				}
+				break; // m3k2
+			} case 3: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				                *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 ,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
+				*(++C) = (*a3 )*(*b0 ) + (*a4 )*(*b1 ) + (*a5 )*(*b2 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
+					*(++C) = (*a3 )*(*b0 ) + (*a4 )*(*b1 ) + (*a5 )*(*b2 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 );
+				}
+				break; // m3k3
+			} case 4: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				                *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
+				*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 ) + (*a6 )*(*b2 ) + (*a7 )*(*b3 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
+					*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 ) + (*a6 )*(*b2 ) + (*a7 )*(*b3 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 );
+				}
+				break; // m3k4
+			} case 5: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				                *a5  = A+5 , *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 ,
+				                *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
+				*(++C) = (*a5 )*(*b0 ) + (*a6 )*(*b1 ) + (*a7 )*(*b2 ) + (*a8 )*(*b3 ) + (*a9 )*(*b4 );
+				*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 ) + (*a12)*(*b2 ) + (*a13)*(*b3 ) + (*a14)*(*b4 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
+					*(++C) = (*a5 )*(*b0 ) + (*a6 )*(*b1 ) + (*a7 )*(*b2 ) + (*a8 )*(*b3 ) + (*a9 )*(*b4 );
+					*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 ) + (*a12)*(*b2 ) + (*a13)*(*b3 ) + (*a14)*(*b4 );
+				}
+				break; // m3k5
+			} case 6: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 ) + (*a9 )*(*b3 ) + (*a10)*(*b4 ) + (*a11)*(*b5 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 ) + (*a16)*(*b4 ) + (*a17)*(*b5 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 ) + (*a9 )*(*b3 ) + (*a10)*(*b4 ) + (*a11)*(*b5 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 ) + (*a16)*(*b4 ) + (*a17)*(*b5 );
+				}
+				break; // m3k6
+			} case 7: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				                *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13,
+				                *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+				*(++C) = (*a7 )*(*b0 ) + (*a8 )*(*b1 ) + (*a9 )*(*b2 ) + (*a10)*(*b3 ) + (*a11)*(*b4 ) + (*a12)*(*b5 ) + (*a13)*(*b6 );
+				*(++C) = (*a14)*(*b0 ) + (*a15)*(*b1 ) + (*a16)*(*b2 ) + (*a17)*(*b3 ) + (*a18)*(*b4 ) + (*a19)*(*b5 ) + (*a20)*(*b6 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+					*(++C) = (*a7 )*(*b0 ) + (*a8 )*(*b1 ) + (*a9 )*(*b2 ) + (*a10)*(*b3 ) + (*a11)*(*b4 ) + (*a12)*(*b5 ) + (*a13)*(*b6 );
+					*(++C) = (*a14)*(*b0 ) + (*a15)*(*b1 ) + (*a16)*(*b2 ) + (*a17)*(*b3 ) + (*a18)*(*b4 ) + (*a19)*(*b5 ) + (*a20)*(*b6 );
+				}
+				break; // m3k7
+			} case 8: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
+				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 , *b7  = B+7 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 ) + (*a12)*(*b4 ) + (*a13)*(*b5 ) + (*a14)*(*b6 ) + (*a15)*(*b7 );
+				*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 ) + (*a20)*(*b4 ) + (*a21)*(*b5 ) + (*a22)*(*b6 ) + (*a23)*(*b7 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k, b7  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 ) + (*a12)*(*b4 ) + (*a13)*(*b5 ) + (*a14)*(*b6 ) + (*a15)*(*b7 );
+					*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 ) + (*a20)*(*b4 ) + (*a21)*(*b5 ) + (*a22)*(*b6 ) + (*a23)*(*b7 );
+				}
+				break; // m3k8
+			} default: {
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				break; // m3
+			}}
+			break;
+		} case 4: {
+			switch(k) {
+			case 1: {
+				register double *a0  = A   ,
+				                *a1  = A+1 ,
+				                *a2  = A+2 ,
+				                *a3  = A+3 ,
+				                *b0  = B   ;
+
+				*C     = (*a0 )*(*b0 );
+				*(++C) = (*a1 )*(*b0 );
+				*(++C) = (*a2 )*(*b0 );
+				*(++C) = (*a3 )*(*b0 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k;
+
+					*(++C) = (*a0 )*(*b0 );
+					*(++C) = (*a1 )*(*b0 );
+					*(++C) = (*a2 )*(*b0 );
+					*(++C) = (*a3 )*(*b0 );
+				}
+				break; // m4k1
+			} case 2: {
+				register double *a0  = A   , *a1  = A+1 ,
+				                *a2  = A+2 , *a3  = A+3 ,
+				                *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 ,
+				                *b0  = B   , *b1  = B+1 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
+				*(++C) = (*a2 )*(*b0 ) + (*a3 )*(*b1 );
+				*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
+					*(++C) = (*a2 )*(*b0 ) + (*a3 )*(*b1 );
+					*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 );
+				}
+				break; // m4k2
+			} case 3: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				                *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 ,
+				                *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
+				*(++C) = (*a3 )*(*b0 ) + (*a4 )*(*b1 ) + (*a5 )*(*b2 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 );
+				*(++C) = (*a9 )*(*b0 ) + (*a10)*(*b1 ) + (*a11)*(*b2 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
+					*(++C) = (*a3 )*(*b0 ) + (*a4 )*(*b1 ) + (*a5 )*(*b2 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 );
+					*(++C) = (*a9 )*(*b0 ) + (*a10)*(*b1 ) + (*a11)*(*b2 );
+				}
+				break; // m4k3
+			} case 4: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				                *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
+				*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 ) + (*a6 )*(*b2 ) + (*a7 )*(*b3 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
+					*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 ) + (*a6 )*(*b2 ) + (*a7 )*(*b3 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 );
+				}
+				break; // m4k4
+			} case 5: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				                *a5  = A+5 , *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 ,
+				                *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14,
+				                *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
+				*(++C) = (*a5 )*(*b0 ) + (*a6 )*(*b1 ) + (*a7 )*(*b2 ) + (*a8 )*(*b3 ) + (*a9 )*(*b4 );
+				*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 ) + (*a12)*(*b2 ) + (*a13)*(*b3 ) + (*a14)*(*b4 );
+				*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 ) + (*a18)*(*b3 ) + (*a19)*(*b4 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
+					*(++C) = (*a5 )*(*b0 ) + (*a6 )*(*b1 ) + (*a7 )*(*b2 ) + (*a8 )*(*b3 ) + (*a9 )*(*b4 );
+					*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 ) + (*a12)*(*b2 ) + (*a13)*(*b3 ) + (*a14)*(*b4 );
+					*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 ) + (*a18)*(*b3 ) + (*a19)*(*b4 );
+				}
+				break; // m4k5
+			} case 6: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17,
+				                *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 ) + (*a9 )*(*b3 ) + (*a10)*(*b4 ) + (*a11)*(*b5 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 ) + (*a16)*(*b4 ) + (*a17)*(*b5 );
+				*(++C) = (*a18)*(*b0 ) + (*a19)*(*b1 ) + (*a20)*(*b2 ) + (*a21)*(*b3 ) + (*a22)*(*b4 ) + (*a23)*(*b5 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 ) + (*a9 )*(*b3 ) + (*a10)*(*b4 ) + (*a11)*(*b5 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 ) + (*a16)*(*b4 ) + (*a17)*(*b5 );
+					*(++C) = (*a18)*(*b0 ) + (*a19)*(*b1 ) + (*a20)*(*b2 ) + (*a21)*(*b3 ) + (*a22)*(*b4 ) + (*a23)*(*b5 );
+				}
+				break; // m4k6
+			} case 7: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				                *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13,
+				                *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20,
+				                *a21 = A+21, *a22 = A+22, *a23 = A+23, *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+				*(++C) = (*a7 )*(*b0 ) + (*a8 )*(*b1 ) + (*a9 )*(*b2 ) + (*a10)*(*b3 ) + (*a11)*(*b4 ) + (*a12)*(*b5 ) + (*a13)*(*b6 );
+				*(++C) = (*a14)*(*b0 ) + (*a15)*(*b1 ) + (*a16)*(*b2 ) + (*a17)*(*b3 ) + (*a18)*(*b4 ) + (*a19)*(*b5 ) + (*a20)*(*b6 );
+				*(++C) = (*a21)*(*b0 ) + (*a22)*(*b1 ) + (*a23)*(*b2 ) + (*a24)*(*b3 ) + (*a25)*(*b4 ) + (*a26)*(*b5 ) + (*a27)*(*b6 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+					*(++C) = (*a7 )*(*b0 ) + (*a8 )*(*b1 ) + (*a9 )*(*b2 ) + (*a10)*(*b3 ) + (*a11)*(*b4 ) + (*a12)*(*b5 ) + (*a13)*(*b6 );
+					*(++C) = (*a14)*(*b0 ) + (*a15)*(*b1 ) + (*a16)*(*b2 ) + (*a17)*(*b3 ) + (*a18)*(*b4 ) + (*a19)*(*b5 ) + (*a20)*(*b6 );
+					*(++C) = (*a21)*(*b0 ) + (*a22)*(*b1 ) + (*a23)*(*b2 ) + (*a24)*(*b3 ) + (*a25)*(*b4 ) + (*a26)*(*b5 ) + (*a27)*(*b6 );
+				}
+				break; // m4k7
+			} case 8: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
+				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
+				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29, *a30 = A+30, *a31 = A+31,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 , *b7  = B+7 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 ) + (*a12)*(*b4 ) + (*a13)*(*b5 ) + (*a14)*(*b6 ) + (*a15)*(*b7 );
+				*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 ) + (*a20)*(*b4 ) + (*a21)*(*b5 ) + (*a22)*(*b6 ) + (*a23)*(*b7 );
+				*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 ) + (*a30)*(*b6 ) + (*a31)*(*b7 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k, b7  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 ) + (*a12)*(*b4 ) + (*a13)*(*b5 ) + (*a14)*(*b6 ) + (*a15)*(*b7 );
+					*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 ) + (*a20)*(*b4 ) + (*a21)*(*b5 ) + (*a22)*(*b6 ) + (*a23)*(*b7 );
+					*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 ) + (*a30)*(*b6 ) + (*a31)*(*b7 );
+				}
+				break; // m4k8
+			} default: {
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				break; // m4
+			}}
+			break;
+		} case 5: {
+			switch(k) {
+			case 1: {
+				register double *a0  = A   ,
+				                *a1  = A+1 ,
+				                *a2  = A+2 ,
+				                *a3  = A+3 ,
+				                *a4  = A+4 ,
+				                *b0  = B   ;
+
+				*C     = (*a0 )*(*b0 );
+				*(++C) = (*a1 )*(*b0 );
+				*(++C) = (*a2 )*(*b0 );
+				*(++C) = (*a3 )*(*b0 );
+				*(++C) = (*a4 )*(*b0 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k;
+
+					*(++C) = (*a0 )*(*b0 );
+					*(++C) = (*a1 )*(*b0 );
+					*(++C) = (*a2 )*(*b0 );
+					*(++C) = (*a3 )*(*b0 );
+					*(++C) = (*a4 )*(*b0 );
+				}
+				break; // m5k1
+			} case 2: {
+				register double *a0  = A   , *a1  = A+1 ,
+				                *a2  = A+2 , *a3  = A+3 ,
+				                *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 ,
+				                *b0  = B   , *b1  = B+1 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
+				*(++C) = (*a2 )*(*b0 ) + (*a3 )*(*b1 );
+				*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
+					*(++C) = (*a2 )*(*b0 ) + (*a3 )*(*b1 );
+					*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 );
+				}
+				break; // m5k2
+			} case 3: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				                *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 ,
+				                *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13, *a14 = A+14,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
+				*(++C) = (*a3 )*(*b0 ) + (*a4 )*(*b1 ) + (*a5 )*(*b2 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 );
+				*(++C) = (*a9 )*(*b0 ) + (*a10)*(*b1 ) + (*a11)*(*b2 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
+					*(++C) = (*a3 )*(*b0 ) + (*a4 )*(*b1 ) + (*a5 )*(*b2 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 );
+					*(++C) = (*a9 )*(*b0 ) + (*a10)*(*b1 ) + (*a11)*(*b2 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 );
+				}
+				break; // m5k3
+			} case 4: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				                *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
+				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
+				*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 ) + (*a6 )*(*b2 ) + (*a7 )*(*b3 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 );
+				*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
+					*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 ) + (*a6 )*(*b2 ) + (*a7 )*(*b3 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 );
+					*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 );
+				}
+				break; // m5k4
+			} case 5: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				                *a5  = A+5 , *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 ,
+				                *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14,
+				                *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19,
+				                *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23, *a24 = A+24,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
+				*(++C) = (*a5 )*(*b0 ) + (*a6 )*(*b1 ) + (*a7 )*(*b2 ) + (*a8 )*(*b3 ) + (*a9 )*(*b4 );
+				*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 ) + (*a12)*(*b2 ) + (*a13)*(*b3 ) + (*a14)*(*b4 );
+				*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 ) + (*a18)*(*b3 ) + (*a19)*(*b4 );
+				*(++C) = (*a20)*(*b0 ) + (*a21)*(*b1 ) + (*a22)*(*b2 ) + (*a23)*(*b3 ) + (*a24)*(*b4 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
+					*(++C) = (*a5 )*(*b0 ) + (*a6 )*(*b1 ) + (*a7 )*(*b2 ) + (*a8 )*(*b3 ) + (*a9 )*(*b4 );
+					*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 ) + (*a12)*(*b2 ) + (*a13)*(*b3 ) + (*a14)*(*b4 );
+					*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 ) + (*a18)*(*b3 ) + (*a19)*(*b4 );
+					*(++C) = (*a20)*(*b0 ) + (*a21)*(*b1 ) + (*a22)*(*b2 ) + (*a23)*(*b3 ) + (*a24)*(*b4 );
+				}
+				break; // m5k5
+			} case 6: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17,
+				                *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
+				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 ) + (*a9 )*(*b3 ) + (*a10)*(*b4 ) + (*a11)*(*b5 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 ) + (*a16)*(*b4 ) + (*a17)*(*b5 );
+				*(++C) = (*a18)*(*b0 ) + (*a19)*(*b1 ) + (*a20)*(*b2 ) + (*a21)*(*b3 ) + (*a22)*(*b4 ) + (*a23)*(*b5 );
+				*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 ) + (*a9 )*(*b3 ) + (*a10)*(*b4 ) + (*a11)*(*b5 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 ) + (*a16)*(*b4 ) + (*a17)*(*b5 );
+					*(++C) = (*a18)*(*b0 ) + (*a19)*(*b1 ) + (*a20)*(*b2 ) + (*a21)*(*b3 ) + (*a22)*(*b4 ) + (*a23)*(*b5 );
+					*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 );
+				}
+				break; // m5k6
+			} case 7: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				                *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13,
+				                *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20,
+				                *a21 = A+21, *a22 = A+22, *a23 = A+23, *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27,
+				                *a28 = A+28, *a29 = A+29, *a30 = A+30, *a31 = A+31, *a32 = A+32, *a33 = A+33, *a34 = A+34,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+				*(++C) = (*a7 )*(*b0 ) + (*a8 )*(*b1 ) + (*a9 )*(*b2 ) + (*a10)*(*b3 ) + (*a11)*(*b4 ) + (*a12)*(*b5 ) + (*a13)*(*b6 );
+				*(++C) = (*a14)*(*b0 ) + (*a15)*(*b1 ) + (*a16)*(*b2 ) + (*a17)*(*b3 ) + (*a18)*(*b4 ) + (*a19)*(*b5 ) + (*a20)*(*b6 );
+				*(++C) = (*a21)*(*b0 ) + (*a22)*(*b1 ) + (*a23)*(*b2 ) + (*a24)*(*b3 ) + (*a25)*(*b4 ) + (*a26)*(*b5 ) + (*a27)*(*b6 );
+				*(++C) = (*a28)*(*b0 ) + (*a29)*(*b1 ) + (*a30)*(*b2 ) + (*a31)*(*b3 ) + (*a32)*(*b4 ) + (*a33)*(*b5 ) + (*a34)*(*b6 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+					*(++C) = (*a7 )*(*b0 ) + (*a8 )*(*b1 ) + (*a9 )*(*b2 ) + (*a10)*(*b3 ) + (*a11)*(*b4 ) + (*a12)*(*b5 ) + (*a13)*(*b6 );
+					*(++C) = (*a14)*(*b0 ) + (*a15)*(*b1 ) + (*a16)*(*b2 ) + (*a17)*(*b3 ) + (*a18)*(*b4 ) + (*a19)*(*b5 ) + (*a20)*(*b6 );
+					*(++C) = (*a21)*(*b0 ) + (*a22)*(*b1 ) + (*a23)*(*b2 ) + (*a24)*(*b3 ) + (*a25)*(*b4 ) + (*a26)*(*b5 ) + (*a27)*(*b6 );
+					*(++C) = (*a28)*(*b0 ) + (*a29)*(*b1 ) + (*a30)*(*b2 ) + (*a31)*(*b3 ) + (*a32)*(*b4 ) + (*a33)*(*b5 ) + (*a34)*(*b6 );
+				}
+				break; // m5k7
+			} case 8: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
+				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
+				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29, *a30 = A+30, *a31 = A+31,
+				                *a32 = A+32, *a33 = A+33, *a34 = A+34, *a35 = A+35, *a36 = A+36, *a37 = A+37, *a38 = A+38, *a39 = A+39,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 , *b7  = B+7 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 ) + (*a12)*(*b4 ) + (*a13)*(*b5 ) + (*a14)*(*b6 ) + (*a15)*(*b7 );
+				*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 ) + (*a20)*(*b4 ) + (*a21)*(*b5 ) + (*a22)*(*b6 ) + (*a23)*(*b7 );
+				*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 ) + (*a30)*(*b6 ) + (*a31)*(*b7 );
+				*(++C) = (*a32)*(*b0 ) + (*a33)*(*b1 ) + (*a34)*(*b2 ) + (*a35)*(*b3 ) + (*a36)*(*b4 ) + (*a37)*(*b5 ) + (*a38)*(*b6 ) + (*a39)*(*b7 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k, b7  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 ) + (*a12)*(*b4 ) + (*a13)*(*b5 ) + (*a14)*(*b6 ) + (*a15)*(*b7 );
+					*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 ) + (*a20)*(*b4 ) + (*a21)*(*b5 ) + (*a22)*(*b6 ) + (*a23)*(*b7 );
+					*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 ) + (*a30)*(*b6 ) + (*a31)*(*b7 );
+					*(++C) = (*a32)*(*b0 ) + (*a33)*(*b1 ) + (*a34)*(*b2 ) + (*a35)*(*b3 ) + (*a36)*(*b4 ) + (*a37)*(*b5 ) + (*a38)*(*b6 ) + (*a39)*(*b7 );
+				}
+				break; // m5k8
+			} default: {
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				break; // m5
+			}}
+			break;
+		} case 6: {
+			switch(k) {
+			case 1: {
+				register double *a0  = A   ,
+				                *a1  = A+1 ,
+				                *a2  = A+2 ,
+				                *a3  = A+3 ,
+				                *a4  = A+4 ,
+				                *a5  = A+5 ,
+				                *b0  = B   ;
+
+				*C     = (*a0 )*(*b0 );
+				*(++C) = (*a1 )*(*b0 );
+				*(++C) = (*a2 )*(*b0 );
+				*(++C) = (*a3 )*(*b0 );
+				*(++C) = (*a4 )*(*b0 );
+				*(++C) = (*a5 )*(*b0 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k;
+
+					*(++C) = (*a0 )*(*b0 );
+					*(++C) = (*a1 )*(*b0 );
+					*(++C) = (*a2 )*(*b0 );
+					*(++C) = (*a3 )*(*b0 );
+					*(++C) = (*a4 )*(*b0 );
+					*(++C) = (*a5 )*(*b0 );
+				}
+				break; // m6k1
+			} case 2: {
+				register double *a0  = A   , *a1  = A+1 ,
+				                *a2  = A+2 , *a3  = A+3 ,
+				                *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 ,
+				                *a10 = A+10, *a11 = A+11,
+				                *b0  = B   , *b1  = B+1 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
+				*(++C) = (*a2 )*(*b0 ) + (*a3 )*(*b1 );
+				*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 );
+				*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
+					*(++C) = (*a2 )*(*b0 ) + (*a3 )*(*b1 );
+					*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 );
+					*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 );
+				}
+				break; // m6k2
+			} case 3: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				                *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 ,
+				                *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13, *a14 = A+14,
+				                *a15 = A+15, *a16 = A+16, *a17 = A+17,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
+				*(++C) = (*a3 )*(*b0 ) + (*a4 )*(*b1 ) + (*a5 )*(*b2 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 );
+				*(++C) = (*a9 )*(*b0 ) + (*a10)*(*b1 ) + (*a11)*(*b2 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 );
+				*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
+					*(++C) = (*a3 )*(*b0 ) + (*a4 )*(*b1 ) + (*a5 )*(*b2 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 );
+					*(++C) = (*a9 )*(*b0 ) + (*a10)*(*b1 ) + (*a11)*(*b2 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 );
+					*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 );
+				}
+				break; // m6k3
+			} case 4: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				                *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
+				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19,
+				                *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
+				*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 ) + (*a6 )*(*b2 ) + (*a7 )*(*b3 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 );
+				*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 );
+				*(++C) = (*a20)*(*b0 ) + (*a21)*(*b1 ) + (*a22)*(*b2 ) + (*a23)*(*b3 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
+					*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 ) + (*a6 )*(*b2 ) + (*a7 )*(*b3 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 );
+					*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 );
+					*(++C) = (*a20)*(*b0 ) + (*a21)*(*b1 ) + (*a22)*(*b2 ) + (*a23)*(*b3 );
+				}
+				break; // m6k4
+			} case 5: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				                *a5  = A+5 , *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 ,
+				                *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14,
+				                *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19,
+				                *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23, *a24 = A+24,
+				                *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
+				*(++C) = (*a5 )*(*b0 ) + (*a6 )*(*b1 ) + (*a7 )*(*b2 ) + (*a8 )*(*b3 ) + (*a9 )*(*b4 );
+				*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 ) + (*a12)*(*b2 ) + (*a13)*(*b3 ) + (*a14)*(*b4 );
+				*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 ) + (*a18)*(*b3 ) + (*a19)*(*b4 );
+				*(++C) = (*a20)*(*b0 ) + (*a21)*(*b1 ) + (*a22)*(*b2 ) + (*a23)*(*b3 ) + (*a24)*(*b4 );
+				*(++C) = (*a25)*(*b0 ) + (*a26)*(*b1 ) + (*a27)*(*b2 ) + (*a28)*(*b3 ) + (*a29)*(*b4 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
+					*(++C) = (*a5 )*(*b0 ) + (*a6 )*(*b1 ) + (*a7 )*(*b2 ) + (*a8 )*(*b3 ) + (*a9 )*(*b4 );
+					*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 ) + (*a12)*(*b2 ) + (*a13)*(*b3 ) + (*a14)*(*b4 );
+					*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 ) + (*a18)*(*b3 ) + (*a19)*(*b4 );
+					*(++C) = (*a20)*(*b0 ) + (*a21)*(*b1 ) + (*a22)*(*b2 ) + (*a23)*(*b3 ) + (*a24)*(*b4 );
+					*(++C) = (*a25)*(*b0 ) + (*a26)*(*b1 ) + (*a27)*(*b2 ) + (*a28)*(*b3 ) + (*a29)*(*b4 );
+				}
+				break; // m6k5
+			} case 6: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17,
+				                *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
+				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29,
+				                *a30 = A+30, *a31 = A+31, *a32 = A+32, *a33 = A+33, *a34 = A+34, *a35 = A+35,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 ) + (*a9 )*(*b3 ) + (*a10)*(*b4 ) + (*a11)*(*b5 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 ) + (*a16)*(*b4 ) + (*a17)*(*b5 );
+				*(++C) = (*a18)*(*b0 ) + (*a19)*(*b1 ) + (*a20)*(*b2 ) + (*a21)*(*b3 ) + (*a22)*(*b4 ) + (*a23)*(*b5 );
+				*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 );
+				*(++C) = (*a30)*(*b0 ) + (*a31)*(*b1 ) + (*a32)*(*b2 ) + (*a33)*(*b3 ) + (*a34)*(*b4 ) + (*a35)*(*b5 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 ) + (*a9 )*(*b3 ) + (*a10)*(*b4 ) + (*a11)*(*b5 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 ) + (*a16)*(*b4 ) + (*a17)*(*b5 );
+					*(++C) = (*a18)*(*b0 ) + (*a19)*(*b1 ) + (*a20)*(*b2 ) + (*a21)*(*b3 ) + (*a22)*(*b4 ) + (*a23)*(*b5 );
+					*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 );
+					*(++C) = (*a30)*(*b0 ) + (*a31)*(*b1 ) + (*a32)*(*b2 ) + (*a33)*(*b3 ) + (*a34)*(*b4 ) + (*a35)*(*b5 );
+				}
+				break; // m6k6
+			} case 7: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				                *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13,
+				                *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20,
+				                *a21 = A+21, *a22 = A+22, *a23 = A+23, *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27,
+				                *a28 = A+28, *a29 = A+29, *a30 = A+30, *a31 = A+31, *a32 = A+32, *a33 = A+33, *a34 = A+34,
+				                *a35 = A+35, *a36 = A+36, *a37 = A+37, *a38 = A+38, *a39 = A+39, *a40 = A+40, *a41 = A+41,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+				*(++C) = (*a7 )*(*b0 ) + (*a8 )*(*b1 ) + (*a9 )*(*b2 ) + (*a10)*(*b3 ) + (*a11)*(*b4 ) + (*a12)*(*b5 ) + (*a13)*(*b6 );
+				*(++C) = (*a14)*(*b0 ) + (*a15)*(*b1 ) + (*a16)*(*b2 ) + (*a17)*(*b3 ) + (*a18)*(*b4 ) + (*a19)*(*b5 ) + (*a20)*(*b6 );
+				*(++C) = (*a21)*(*b0 ) + (*a22)*(*b1 ) + (*a23)*(*b2 ) + (*a24)*(*b3 ) + (*a25)*(*b4 ) + (*a26)*(*b5 ) + (*a27)*(*b6 );
+				*(++C) = (*a28)*(*b0 ) + (*a29)*(*b1 ) + (*a30)*(*b2 ) + (*a31)*(*b3 ) + (*a32)*(*b4 ) + (*a33)*(*b5 ) + (*a34)*(*b6 );
+				*(++C) = (*a35)*(*b0 ) + (*a36)*(*b1 ) + (*a37)*(*b2 ) + (*a38)*(*b3 ) + (*a39)*(*b4 ) + (*a40)*(*b5 ) + (*a41)*(*b6 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+					*(++C) = (*a7 )*(*b0 ) + (*a8 )*(*b1 ) + (*a9 )*(*b2 ) + (*a10)*(*b3 ) + (*a11)*(*b4 ) + (*a12)*(*b5 ) + (*a13)*(*b6 );
+					*(++C) = (*a14)*(*b0 ) + (*a15)*(*b1 ) + (*a16)*(*b2 ) + (*a17)*(*b3 ) + (*a18)*(*b4 ) + (*a19)*(*b5 ) + (*a20)*(*b6 );
+					*(++C) = (*a21)*(*b0 ) + (*a22)*(*b1 ) + (*a23)*(*b2 ) + (*a24)*(*b3 ) + (*a25)*(*b4 ) + (*a26)*(*b5 ) + (*a27)*(*b6 );
+					*(++C) = (*a28)*(*b0 ) + (*a29)*(*b1 ) + (*a30)*(*b2 ) + (*a31)*(*b3 ) + (*a32)*(*b4 ) + (*a33)*(*b5 ) + (*a34)*(*b6 );
+					*(++C) = (*a35)*(*b0 ) + (*a36)*(*b1 ) + (*a37)*(*b2 ) + (*a38)*(*b3 ) + (*a39)*(*b4 ) + (*a40)*(*b5 ) + (*a41)*(*b6 );
+				}
+				break; // m6k7
+			} case 8: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
+				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
+				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29, *a30 = A+30, *a31 = A+31,
+				                *a32 = A+32, *a33 = A+33, *a34 = A+34, *a35 = A+35, *a36 = A+36, *a37 = A+37, *a38 = A+38, *a39 = A+39,
+				                *a40 = A+40, *a41 = A+41, *a42 = A+42, *a43 = A+43, *a44 = A+44, *a45 = A+45, *a46 = A+46, *a47 = A+47,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 , *b7  = B+7 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 ) + (*a12)*(*b4 ) + (*a13)*(*b5 ) + (*a14)*(*b6 ) + (*a15)*(*b7 );
+				*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 ) + (*a20)*(*b4 ) + (*a21)*(*b5 ) + (*a22)*(*b6 ) + (*a23)*(*b7 );
+				*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 ) + (*a30)*(*b6 ) + (*a31)*(*b7 );
+				*(++C) = (*a32)*(*b0 ) + (*a33)*(*b1 ) + (*a34)*(*b2 ) + (*a35)*(*b3 ) + (*a36)*(*b4 ) + (*a37)*(*b5 ) + (*a38)*(*b6 ) + (*a39)*(*b7 );
+				*(++C) = (*a40)*(*b0 ) + (*a41)*(*b1 ) + (*a42)*(*b2 ) + (*a43)*(*b3 ) + (*a44)*(*b4 ) + (*a45)*(*b5 ) + (*a46)*(*b6 ) + (*a47)*(*b7 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k, b7  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 ) + (*a12)*(*b4 ) + (*a13)*(*b5 ) + (*a14)*(*b6 ) + (*a15)*(*b7 );
+					*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 ) + (*a20)*(*b4 ) + (*a21)*(*b5 ) + (*a22)*(*b6 ) + (*a23)*(*b7 );
+					*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 ) + (*a30)*(*b6 ) + (*a31)*(*b7 );
+					*(++C) = (*a32)*(*b0 ) + (*a33)*(*b1 ) + (*a34)*(*b2 ) + (*a35)*(*b3 ) + (*a36)*(*b4 ) + (*a37)*(*b5 ) + (*a38)*(*b6 ) + (*a39)*(*b7 );
+					*(++C) = (*a40)*(*b0 ) + (*a41)*(*b1 ) + (*a42)*(*b2 ) + (*a43)*(*b3 ) + (*a44)*(*b4 ) + (*a45)*(*b5 ) + (*a46)*(*b6 ) + (*a47)*(*b7 );
+				}
+				break; // m6k8
+			} default: {
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				break; // m6
+			}}
+			break;
+		} case 7: {
+			switch(k) {
+			case 1: {
+				register double *a0  = A   ,
+				                *a1  = A+1 ,
+				                *a2  = A+2 ,
+				                *a3  = A+3 ,
+				                *a4  = A+4 ,
+				                *a5  = A+5 ,
+				                *a6  = A+6 ,
+				                *b0  = B   ;
+
+				*C     = (*a0 )*(*b0 );
+				*(++C) = (*a1 )*(*b0 );
+				*(++C) = (*a2 )*(*b0 );
+				*(++C) = (*a3 )*(*b0 );
+				*(++C) = (*a4 )*(*b0 );
+				*(++C) = (*a5 )*(*b0 );
+				*(++C) = (*a6 )*(*b0 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k;
+
+					*(++C) = (*a0 )*(*b0 );
+					*(++C) = (*a1 )*(*b0 );
+					*(++C) = (*a2 )*(*b0 );
+					*(++C) = (*a3 )*(*b0 );
+					*(++C) = (*a4 )*(*b0 );
+					*(++C) = (*a5 )*(*b0 );
+					*(++C) = (*a6 )*(*b0 );
+				}
+				break; // m7k1
+			} case 2: {
+				register double *a0  = A   , *a1  = A+1 ,
+				                *a2  = A+2 , *a3  = A+3 ,
+				                *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 ,
+				                *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13,
+				                *b0  = B   , *b1  = B+1 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
+				*(++C) = (*a2 )*(*b0 ) + (*a3 )*(*b1 );
+				*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 );
+				*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
+					*(++C) = (*a2 )*(*b0 ) + (*a3 )*(*b1 );
+					*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 );
+					*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 );
+				}
+				break; // m7k2
+			} case 3: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				                *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 ,
+				                *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13, *a14 = A+14,
+				                *a15 = A+15, *a16 = A+16, *a17 = A+17,
+				                *a18 = A+18, *a19 = A+19, *a20 = A+20,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
+				*(++C) = (*a3 )*(*b0 ) + (*a4 )*(*b1 ) + (*a5 )*(*b2 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 );
+				*(++C) = (*a9 )*(*b0 ) + (*a10)*(*b1 ) + (*a11)*(*b2 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 );
+				*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 );
+				*(++C) = (*a18)*(*b0 ) + (*a19)*(*b1 ) + (*a20)*(*b2 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
+					*(++C) = (*a3 )*(*b0 ) + (*a4 )*(*b1 ) + (*a5 )*(*b2 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 );
+					*(++C) = (*a9 )*(*b0 ) + (*a10)*(*b1 ) + (*a11)*(*b2 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 );
+					*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 );
+					*(++C) = (*a18)*(*b0 ) + (*a19)*(*b1 ) + (*a20)*(*b2 );
+				}
+				break; // m7k3
+			} case 4: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				                *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
+				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19,
+				                *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
+				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
+				*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 ) + (*a6 )*(*b2 ) + (*a7 )*(*b3 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 );
+				*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 );
+				*(++C) = (*a20)*(*b0 ) + (*a21)*(*b1 ) + (*a22)*(*b2 ) + (*a23)*(*b3 );
+				*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
+					*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 ) + (*a6 )*(*b2 ) + (*a7 )*(*b3 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 );
+					*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 );
+					*(++C) = (*a20)*(*b0 ) + (*a21)*(*b1 ) + (*a22)*(*b2 ) + (*a23)*(*b3 );
+					*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 );
+				}
+				break; // m7k4
+			} case 5: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				                *a5  = A+5 , *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 ,
+				                *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14,
+				                *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19,
+				                *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23, *a24 = A+24,
+				                *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29,
+				                *a30 = A+30, *a31 = A+31, *a32 = A+32, *a33 = A+33, *a34 = A+34,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
+				*(++C) = (*a5 )*(*b0 ) + (*a6 )*(*b1 ) + (*a7 )*(*b2 ) + (*a8 )*(*b3 ) + (*a9 )*(*b4 );
+				*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 ) + (*a12)*(*b2 ) + (*a13)*(*b3 ) + (*a14)*(*b4 );
+				*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 ) + (*a18)*(*b3 ) + (*a19)*(*b4 );
+				*(++C) = (*a20)*(*b0 ) + (*a21)*(*b1 ) + (*a22)*(*b2 ) + (*a23)*(*b3 ) + (*a24)*(*b4 );
+				*(++C) = (*a25)*(*b0 ) + (*a26)*(*b1 ) + (*a27)*(*b2 ) + (*a28)*(*b3 ) + (*a29)*(*b4 );
+				*(++C) = (*a30)*(*b0 ) + (*a31)*(*b1 ) + (*a32)*(*b2 ) + (*a33)*(*b3 ) + (*a34)*(*b4 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
+					*(++C) = (*a5 )*(*b0 ) + (*a6 )*(*b1 ) + (*a7 )*(*b2 ) + (*a8 )*(*b3 ) + (*a9 )*(*b4 );
+					*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 ) + (*a12)*(*b2 ) + (*a13)*(*b3 ) + (*a14)*(*b4 );
+					*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 ) + (*a18)*(*b3 ) + (*a19)*(*b4 );
+					*(++C) = (*a20)*(*b0 ) + (*a21)*(*b1 ) + (*a22)*(*b2 ) + (*a23)*(*b3 ) + (*a24)*(*b4 );
+					*(++C) = (*a25)*(*b0 ) + (*a26)*(*b1 ) + (*a27)*(*b2 ) + (*a28)*(*b3 ) + (*a29)*(*b4 );
+					*(++C) = (*a30)*(*b0 ) + (*a31)*(*b1 ) + (*a32)*(*b2 ) + (*a33)*(*b3 ) + (*a34)*(*b4 );
+				}
+				break; // m7k5
+			} case 6: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17,
+				                *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
+				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29,
+				                *a30 = A+30, *a31 = A+31, *a32 = A+32, *a33 = A+33, *a34 = A+34, *a35 = A+35,
+				                *a36 = A+36, *a37 = A+37, *a38 = A+38, *a39 = A+39, *a40 = A+40, *a41 = A+41,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 ) + (*a9 )*(*b3 ) + (*a10)*(*b4 ) + (*a11)*(*b5 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 ) + (*a16)*(*b4 ) + (*a17)*(*b5 );
+				*(++C) = (*a18)*(*b0 ) + (*a19)*(*b1 ) + (*a20)*(*b2 ) + (*a21)*(*b3 ) + (*a22)*(*b4 ) + (*a23)*(*b5 );
+				*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 );
+				*(++C) = (*a30)*(*b0 ) + (*a31)*(*b1 ) + (*a32)*(*b2 ) + (*a33)*(*b3 ) + (*a34)*(*b4 ) + (*a35)*(*b5 );
+				*(++C) = (*a36)*(*b0 ) + (*a37)*(*b1 ) + (*a38)*(*b2 ) + (*a39)*(*b3 ) + (*a40)*(*b4 ) + (*a41)*(*b5 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 ) + (*a9 )*(*b3 ) + (*a10)*(*b4 ) + (*a11)*(*b5 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 ) + (*a16)*(*b4 ) + (*a17)*(*b5 );
+					*(++C) = (*a18)*(*b0 ) + (*a19)*(*b1 ) + (*a20)*(*b2 ) + (*a21)*(*b3 ) + (*a22)*(*b4 ) + (*a23)*(*b5 );
+					*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 );
+					*(++C) = (*a30)*(*b0 ) + (*a31)*(*b1 ) + (*a32)*(*b2 ) + (*a33)*(*b3 ) + (*a34)*(*b4 ) + (*a35)*(*b5 );
+					*(++C) = (*a36)*(*b0 ) + (*a37)*(*b1 ) + (*a38)*(*b2 ) + (*a39)*(*b3 ) + (*a40)*(*b4 ) + (*a41)*(*b5 );
+				}
+				break; // m7k6
+			} case 7: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				                *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13,
+				                *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20,
+				                *a21 = A+21, *a22 = A+22, *a23 = A+23, *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27,
+				                *a28 = A+28, *a29 = A+29, *a30 = A+30, *a31 = A+31, *a32 = A+32, *a33 = A+33, *a34 = A+34,
+				                *a35 = A+35, *a36 = A+36, *a37 = A+37, *a38 = A+38, *a39 = A+39, *a40 = A+40, *a41 = A+41,
+				                *a42 = A+42, *a43 = A+43, *a44 = A+44, *a45 = A+45, *a46 = A+46, *a47 = A+47, *a48 = A+48,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+				*(++C) = (*a7 )*(*b0 ) + (*a8 )*(*b1 ) + (*a9 )*(*b2 ) + (*a10)*(*b3 ) + (*a11)*(*b4 ) + (*a12)*(*b5 ) + (*a13)*(*b6 );
+				*(++C) = (*a14)*(*b0 ) + (*a15)*(*b1 ) + (*a16)*(*b2 ) + (*a17)*(*b3 ) + (*a18)*(*b4 ) + (*a19)*(*b5 ) + (*a20)*(*b6 );
+				*(++C) = (*a21)*(*b0 ) + (*a22)*(*b1 ) + (*a23)*(*b2 ) + (*a24)*(*b3 ) + (*a25)*(*b4 ) + (*a26)*(*b5 ) + (*a27)*(*b6 );
+				*(++C) = (*a28)*(*b0 ) + (*a29)*(*b1 ) + (*a30)*(*b2 ) + (*a31)*(*b3 ) + (*a32)*(*b4 ) + (*a33)*(*b5 ) + (*a34)*(*b6 );
+				*(++C) = (*a35)*(*b0 ) + (*a36)*(*b1 ) + (*a37)*(*b2 ) + (*a38)*(*b3 ) + (*a39)*(*b4 ) + (*a40)*(*b5 ) + (*a41)*(*b6 );
+				*(++C) = (*a42)*(*b0 ) + (*a43)*(*b1 ) + (*a44)*(*b2 ) + (*a45)*(*b3 ) + (*a46)*(*b4 ) + (*a47)*(*b5 ) + (*a48)*(*b6 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+					*(++C) = (*a7 )*(*b0 ) + (*a8 )*(*b1 ) + (*a9 )*(*b2 ) + (*a10)*(*b3 ) + (*a11)*(*b4 ) + (*a12)*(*b5 ) + (*a13)*(*b6 );
+					*(++C) = (*a14)*(*b0 ) + (*a15)*(*b1 ) + (*a16)*(*b2 ) + (*a17)*(*b3 ) + (*a18)*(*b4 ) + (*a19)*(*b5 ) + (*a20)*(*b6 );
+					*(++C) = (*a21)*(*b0 ) + (*a22)*(*b1 ) + (*a23)*(*b2 ) + (*a24)*(*b3 ) + (*a25)*(*b4 ) + (*a26)*(*b5 ) + (*a27)*(*b6 );
+					*(++C) = (*a28)*(*b0 ) + (*a29)*(*b1 ) + (*a30)*(*b2 ) + (*a31)*(*b3 ) + (*a32)*(*b4 ) + (*a33)*(*b5 ) + (*a34)*(*b6 );
+					*(++C) = (*a35)*(*b0 ) + (*a36)*(*b1 ) + (*a37)*(*b2 ) + (*a38)*(*b3 ) + (*a39)*(*b4 ) + (*a40)*(*b5 ) + (*a41)*(*b6 );
+					*(++C) = (*a42)*(*b0 ) + (*a43)*(*b1 ) + (*a44)*(*b2 ) + (*a45)*(*b3 ) + (*a46)*(*b4 ) + (*a47)*(*b5 ) + (*a48)*(*b6 );
+				}
+				break; // m7k7
+			} case 8: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
+				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
+				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29, *a30 = A+30, *a31 = A+31,
+				                *a32 = A+32, *a33 = A+33, *a34 = A+34, *a35 = A+35, *a36 = A+36, *a37 = A+37, *a38 = A+38, *a39 = A+39,
+				                *a40 = A+40, *a41 = A+41, *a42 = A+42, *a43 = A+43, *a44 = A+44, *a45 = A+45, *a46 = A+46, *a47 = A+47,
+				                *a48 = A+48, *a49 = A+49, *a50 = A+50, *a51 = A+51, *a52 = A+52, *a53 = A+53, *a54 = A+54, *a55 = A+55,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 , *b7  = B+7 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 ) + (*a12)*(*b4 ) + (*a13)*(*b5 ) + (*a14)*(*b6 ) + (*a15)*(*b7 );
+				*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 ) + (*a20)*(*b4 ) + (*a21)*(*b5 ) + (*a22)*(*b6 ) + (*a23)*(*b7 );
+				*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 ) + (*a30)*(*b6 ) + (*a31)*(*b7 );
+				*(++C) = (*a32)*(*b0 ) + (*a33)*(*b1 ) + (*a34)*(*b2 ) + (*a35)*(*b3 ) + (*a36)*(*b4 ) + (*a37)*(*b5 ) + (*a38)*(*b6 ) + (*a39)*(*b7 );
+				*(++C) = (*a40)*(*b0 ) + (*a41)*(*b1 ) + (*a42)*(*b2 ) + (*a43)*(*b3 ) + (*a44)*(*b4 ) + (*a45)*(*b5 ) + (*a46)*(*b6 ) + (*a47)*(*b7 );
+				*(++C) = (*a48)*(*b0 ) + (*a49)*(*b1 ) + (*a50)*(*b2 ) + (*a51)*(*b3 ) + (*a52)*(*b4 ) + (*a53)*(*b5 ) + (*a54)*(*b6 ) + (*a55)*(*b7 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k, b7  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 ) + (*a12)*(*b4 ) + (*a13)*(*b5 ) + (*a14)*(*b6 ) + (*a15)*(*b7 );
+					*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 ) + (*a20)*(*b4 ) + (*a21)*(*b5 ) + (*a22)*(*b6 ) + (*a23)*(*b7 );
+					*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 ) + (*a30)*(*b6 ) + (*a31)*(*b7 );
+					*(++C) = (*a32)*(*b0 ) + (*a33)*(*b1 ) + (*a34)*(*b2 ) + (*a35)*(*b3 ) + (*a36)*(*b4 ) + (*a37)*(*b5 ) + (*a38)*(*b6 ) + (*a39)*(*b7 );
+					*(++C) = (*a40)*(*b0 ) + (*a41)*(*b1 ) + (*a42)*(*b2 ) + (*a43)*(*b3 ) + (*a44)*(*b4 ) + (*a45)*(*b5 ) + (*a46)*(*b6 ) + (*a47)*(*b7 );
+					*(++C) = (*a48)*(*b0 ) + (*a49)*(*b1 ) + (*a50)*(*b2 ) + (*a51)*(*b3 ) + (*a52)*(*b4 ) + (*a53)*(*b5 ) + (*a54)*(*b6 ) + (*a55)*(*b7 );
+				}
+				break; // m7k8
+			} default: {
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				break; // m7
+			}}
+			break;
+		} case 8: {
+			switch(k) {
+			case 1: {
+				register double *a0  = A   ,
+				                *a1  = A+1 ,
+				                *a2  = A+2 ,
+				                *a3  = A+3 ,
+				                *a4  = A+4 ,
+				                *a5  = A+5 ,
+				                *a6  = A+6 ,
+				                *a7  = A+7 ,
+				                *b0  = B   ;
+
+				*C     = (*a0 )*(*b0 );
+				*(++C) = (*a1 )*(*b0 );
+				*(++C) = (*a2 )*(*b0 );
+				*(++C) = (*a3 )*(*b0 );
+				*(++C) = (*a4 )*(*b0 );
+				*(++C) = (*a5 )*(*b0 );
+				*(++C) = (*a6 )*(*b0 );
+				*(++C) = (*a7 )*(*b0 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k;
+
+					*(++C) = (*a0 )*(*b0 );
+					*(++C) = (*a1 )*(*b0 );
+					*(++C) = (*a2 )*(*b0 );
+					*(++C) = (*a3 )*(*b0 );
+					*(++C) = (*a4 )*(*b0 );
+					*(++C) = (*a5 )*(*b0 );
+					*(++C) = (*a6 )*(*b0 );
+					*(++C) = (*a7 )*(*b0 );
+				}
+				break; // m8k1
+			} case 2: {
+				register double *a0  = A   , *a1  = A+1 ,
+				                *a2  = A+2 , *a3  = A+3 ,
+				                *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 ,
+				                *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13,
+				                *a14 = A+14, *a15 = A+15,
+				                *b0  = B   , *b1  = B+1 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
+				*(++C) = (*a2 )*(*b0 ) + (*a3 )*(*b1 );
+				*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 );
+				*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 );
+				*(++C) = (*a14)*(*b0 ) + (*a15)*(*b1 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
+					*(++C) = (*a2 )*(*b0 ) + (*a3 )*(*b1 );
+					*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 );
+					*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 );
+					*(++C) = (*a14)*(*b0 ) + (*a15)*(*b1 );
+				}
+				break; // m8k2
+			} case 3: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				                *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 ,
+				                *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13, *a14 = A+14,
+				                *a15 = A+15, *a16 = A+16, *a17 = A+17,
+				                *a18 = A+18, *a19 = A+19, *a20 = A+20,
+				                *a21 = A+21, *a22 = A+22, *a23 = A+23,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
+				*(++C) = (*a3 )*(*b0 ) + (*a4 )*(*b1 ) + (*a5 )*(*b2 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 );
+				*(++C) = (*a9 )*(*b0 ) + (*a10)*(*b1 ) + (*a11)*(*b2 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 );
+				*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 );
+				*(++C) = (*a18)*(*b0 ) + (*a19)*(*b1 ) + (*a20)*(*b2 );
+				*(++C) = (*a21)*(*b0 ) + (*a22)*(*b1 ) + (*a23)*(*b2 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
+					*(++C) = (*a3 )*(*b0 ) + (*a4 )*(*b1 ) + (*a5 )*(*b2 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 );
+					*(++C) = (*a9 )*(*b0 ) + (*a10)*(*b1 ) + (*a11)*(*b2 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 );
+					*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 );
+					*(++C) = (*a18)*(*b0 ) + (*a19)*(*b1 ) + (*a20)*(*b2 );
+					*(++C) = (*a21)*(*b0 ) + (*a22)*(*b1 ) + (*a23)*(*b2 );
+				}
+				break; // m8k3
+			} case 4: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				                *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
+				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19,
+				                *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
+				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27,
+				                *a28 = A+28, *a29 = A+29, *a30 = A+30, *a31 = A+31,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
+				*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 ) + (*a6 )*(*b2 ) + (*a7 )*(*b3 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 );
+				*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 );
+				*(++C) = (*a20)*(*b0 ) + (*a21)*(*b1 ) + (*a22)*(*b2 ) + (*a23)*(*b3 );
+				*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 );
+				*(++C) = (*a28)*(*b0 ) + (*a29)*(*b1 ) + (*a30)*(*b2 ) + (*a31)*(*b3 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
+					*(++C) = (*a4 )*(*b0 ) + (*a5 )*(*b1 ) + (*a6 )*(*b2 ) + (*a7 )*(*b3 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 );
+					*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 );
+					*(++C) = (*a20)*(*b0 ) + (*a21)*(*b1 ) + (*a22)*(*b2 ) + (*a23)*(*b3 );
+					*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 );
+					*(++C) = (*a28)*(*b0 ) + (*a29)*(*b1 ) + (*a30)*(*b2 ) + (*a31)*(*b3 );
+				}
+				break; // m8k4
+			} case 5: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				                *a5  = A+5 , *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 ,
+				                *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14,
+				                *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19,
+				                *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23, *a24 = A+24,
+				                *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29,
+				                *a30 = A+30, *a31 = A+31, *a32 = A+32, *a33 = A+33, *a34 = A+34,
+				                *a35 = A+35, *a36 = A+36, *a37 = A+37, *a38 = A+38, *a39 = A+39,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
+				*(++C) = (*a5 )*(*b0 ) + (*a6 )*(*b1 ) + (*a7 )*(*b2 ) + (*a8 )*(*b3 ) + (*a9 )*(*b4 );
+				*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 ) + (*a12)*(*b2 ) + (*a13)*(*b3 ) + (*a14)*(*b4 );
+				*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 ) + (*a18)*(*b3 ) + (*a19)*(*b4 );
+				*(++C) = (*a20)*(*b0 ) + (*a21)*(*b1 ) + (*a22)*(*b2 ) + (*a23)*(*b3 ) + (*a24)*(*b4 );
+				*(++C) = (*a25)*(*b0 ) + (*a26)*(*b1 ) + (*a27)*(*b2 ) + (*a28)*(*b3 ) + (*a29)*(*b4 );
+				*(++C) = (*a30)*(*b0 ) + (*a31)*(*b1 ) + (*a32)*(*b2 ) + (*a33)*(*b3 ) + (*a34)*(*b4 );
+				*(++C) = (*a35)*(*b0 ) + (*a36)*(*b1 ) + (*a37)*(*b2 ) + (*a38)*(*b3 ) + (*a39)*(*b4 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
+					*(++C) = (*a5 )*(*b0 ) + (*a6 )*(*b1 ) + (*a7 )*(*b2 ) + (*a8 )*(*b3 ) + (*a9 )*(*b4 );
+					*(++C) = (*a10)*(*b0 ) + (*a11)*(*b1 ) + (*a12)*(*b2 ) + (*a13)*(*b3 ) + (*a14)*(*b4 );
+					*(++C) = (*a15)*(*b0 ) + (*a16)*(*b1 ) + (*a17)*(*b2 ) + (*a18)*(*b3 ) + (*a19)*(*b4 );
+					*(++C) = (*a20)*(*b0 ) + (*a21)*(*b1 ) + (*a22)*(*b2 ) + (*a23)*(*b3 ) + (*a24)*(*b4 );
+					*(++C) = (*a25)*(*b0 ) + (*a26)*(*b1 ) + (*a27)*(*b2 ) + (*a28)*(*b3 ) + (*a29)*(*b4 );
+					*(++C) = (*a30)*(*b0 ) + (*a31)*(*b1 ) + (*a32)*(*b2 ) + (*a33)*(*b3 ) + (*a34)*(*b4 );
+					*(++C) = (*a35)*(*b0 ) + (*a36)*(*b1 ) + (*a37)*(*b2 ) + (*a38)*(*b3 ) + (*a39)*(*b4 );
+				}
+				break; // m8k5
+			} case 6: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
+				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17,
+				                *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
+				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29,
+				                *a30 = A+30, *a31 = A+31, *a32 = A+32, *a33 = A+33, *a34 = A+34, *a35 = A+35,
+				                *a36 = A+36, *a37 = A+37, *a38 = A+38, *a39 = A+39, *a40 = A+40, *a41 = A+41,
+				                *a42 = A+42, *a43 = A+43, *a44 = A+44, *a45 = A+45, *a46 = A+46, *a47 = A+47,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
+				*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 ) + (*a9 )*(*b3 ) + (*a10)*(*b4 ) + (*a11)*(*b5 );
+				*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 ) + (*a16)*(*b4 ) + (*a17)*(*b5 );
+				*(++C) = (*a18)*(*b0 ) + (*a19)*(*b1 ) + (*a20)*(*b2 ) + (*a21)*(*b3 ) + (*a22)*(*b4 ) + (*a23)*(*b5 );
+				*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 );
+				*(++C) = (*a30)*(*b0 ) + (*a31)*(*b1 ) + (*a32)*(*b2 ) + (*a33)*(*b3 ) + (*a34)*(*b4 ) + (*a35)*(*b5 );
+				*(++C) = (*a36)*(*b0 ) + (*a37)*(*b1 ) + (*a38)*(*b2 ) + (*a39)*(*b3 ) + (*a40)*(*b4 ) + (*a41)*(*b5 );
+				*(++C) = (*a42)*(*b0 ) + (*a43)*(*b1 ) + (*a44)*(*b2 ) + (*a45)*(*b3 ) + (*a46)*(*b4 ) + (*a47)*(*b5 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
+					*(++C) = (*a6 )*(*b0 ) + (*a7 )*(*b1 ) + (*a8 )*(*b2 ) + (*a9 )*(*b3 ) + (*a10)*(*b4 ) + (*a11)*(*b5 );
+					*(++C) = (*a12)*(*b0 ) + (*a13)*(*b1 ) + (*a14)*(*b2 ) + (*a15)*(*b3 ) + (*a16)*(*b4 ) + (*a17)*(*b5 );
+					*(++C) = (*a18)*(*b0 ) + (*a19)*(*b1 ) + (*a20)*(*b2 ) + (*a21)*(*b3 ) + (*a22)*(*b4 ) + (*a23)*(*b5 );
+					*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 );
+					*(++C) = (*a30)*(*b0 ) + (*a31)*(*b1 ) + (*a32)*(*b2 ) + (*a33)*(*b3 ) + (*a34)*(*b4 ) + (*a35)*(*b5 );
+					*(++C) = (*a36)*(*b0 ) + (*a37)*(*b1 ) + (*a38)*(*b2 ) + (*a39)*(*b3 ) + (*a40)*(*b4 ) + (*a41)*(*b5 );
+					*(++C) = (*a42)*(*b0 ) + (*a43)*(*b1 ) + (*a44)*(*b2 ) + (*a45)*(*b3 ) + (*a46)*(*b4 ) + (*a47)*(*b5 );
+				}
+				break; // m8k6
+			} case 7: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				                *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13,
+				                *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20,
+				                *a21 = A+21, *a22 = A+22, *a23 = A+23, *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27,
+				                *a28 = A+28, *a29 = A+29, *a30 = A+30, *a31 = A+31, *a32 = A+32, *a33 = A+33, *a34 = A+34,
+				                *a35 = A+35, *a36 = A+36, *a37 = A+37, *a38 = A+38, *a39 = A+39, *a40 = A+40, *a41 = A+41,
+				                *a42 = A+42, *a43 = A+43, *a44 = A+44, *a45 = A+45, *a46 = A+46, *a47 = A+47, *a48 = A+48,
+				                *a49 = A+49, *a50 = A+50, *a51 = A+51, *a52 = A+52, *a53 = A+53, *a54 = A+54, *a55 = A+55,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+				*(++C) = (*a7 )*(*b0 ) + (*a8 )*(*b1 ) + (*a9 )*(*b2 ) + (*a10)*(*b3 ) + (*a11)*(*b4 ) + (*a12)*(*b5 ) + (*a13)*(*b6 );
+				*(++C) = (*a14)*(*b0 ) + (*a15)*(*b1 ) + (*a16)*(*b2 ) + (*a17)*(*b3 ) + (*a18)*(*b4 ) + (*a19)*(*b5 ) + (*a20)*(*b6 );
+				*(++C) = (*a21)*(*b0 ) + (*a22)*(*b1 ) + (*a23)*(*b2 ) + (*a24)*(*b3 ) + (*a25)*(*b4 ) + (*a26)*(*b5 ) + (*a27)*(*b6 );
+				*(++C) = (*a28)*(*b0 ) + (*a29)*(*b1 ) + (*a30)*(*b2 ) + (*a31)*(*b3 ) + (*a32)*(*b4 ) + (*a33)*(*b5 ) + (*a34)*(*b6 );
+				*(++C) = (*a35)*(*b0 ) + (*a36)*(*b1 ) + (*a37)*(*b2 ) + (*a38)*(*b3 ) + (*a39)*(*b4 ) + (*a40)*(*b5 ) + (*a41)*(*b6 );
+				*(++C) = (*a42)*(*b0 ) + (*a43)*(*b1 ) + (*a44)*(*b2 ) + (*a45)*(*b3 ) + (*a46)*(*b4 ) + (*a47)*(*b5 ) + (*a48)*(*b6 );
+				*(++C) = (*a49)*(*b0 ) + (*a50)*(*b1 ) + (*a51)*(*b2 ) + (*a52)*(*b3 ) + (*a53)*(*b4 ) + (*a54)*(*b5 ) + (*a55)*(*b6 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
+					*(++C) = (*a7 )*(*b0 ) + (*a8 )*(*b1 ) + (*a9 )*(*b2 ) + (*a10)*(*b3 ) + (*a11)*(*b4 ) + (*a12)*(*b5 ) + (*a13)*(*b6 );
+					*(++C) = (*a14)*(*b0 ) + (*a15)*(*b1 ) + (*a16)*(*b2 ) + (*a17)*(*b3 ) + (*a18)*(*b4 ) + (*a19)*(*b5 ) + (*a20)*(*b6 );
+					*(++C) = (*a21)*(*b0 ) + (*a22)*(*b1 ) + (*a23)*(*b2 ) + (*a24)*(*b3 ) + (*a25)*(*b4 ) + (*a26)*(*b5 ) + (*a27)*(*b6 );
+					*(++C) = (*a28)*(*b0 ) + (*a29)*(*b1 ) + (*a30)*(*b2 ) + (*a31)*(*b3 ) + (*a32)*(*b4 ) + (*a33)*(*b5 ) + (*a34)*(*b6 );
+					*(++C) = (*a35)*(*b0 ) + (*a36)*(*b1 ) + (*a37)*(*b2 ) + (*a38)*(*b3 ) + (*a39)*(*b4 ) + (*a40)*(*b5 ) + (*a41)*(*b6 );
+					*(++C) = (*a42)*(*b0 ) + (*a43)*(*b1 ) + (*a44)*(*b2 ) + (*a45)*(*b3 ) + (*a46)*(*b4 ) + (*a47)*(*b5 ) + (*a48)*(*b6 );
+					*(++C) = (*a49)*(*b0 ) + (*a50)*(*b1 ) + (*a51)*(*b2 ) + (*a52)*(*b3 ) + (*a53)*(*b4 ) + (*a54)*(*b5 ) + (*a55)*(*b6 );
+				}
+				break; // m8k7
+			} case 8: {
+				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
+				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
+				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29, *a30 = A+30, *a31 = A+31,
+				                *a32 = A+32, *a33 = A+33, *a34 = A+34, *a35 = A+35, *a36 = A+36, *a37 = A+37, *a38 = A+38, *a39 = A+39,
+				                *a40 = A+40, *a41 = A+41, *a42 = A+42, *a43 = A+43, *a44 = A+44, *a45 = A+45, *a46 = A+46, *a47 = A+47,
+				                *a48 = A+48, *a49 = A+49, *a50 = A+50, *a51 = A+51, *a52 = A+52, *a53 = A+53, *a54 = A+54, *a55 = A+55,
+				                *a56 = A+56, *a57 = A+57, *a58 = A+58, *a59 = A+59, *a60 = A+60, *a61 = A+61, *a62 = A+62, *a63 = A+63,
+				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 , *b7  = B+7 ;
+
+				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+				*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 ) + (*a12)*(*b4 ) + (*a13)*(*b5 ) + (*a14)*(*b6 ) + (*a15)*(*b7 );
+				*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 ) + (*a20)*(*b4 ) + (*a21)*(*b5 ) + (*a22)*(*b6 ) + (*a23)*(*b7 );
+				*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 ) + (*a30)*(*b6 ) + (*a31)*(*b7 );
+				*(++C) = (*a32)*(*b0 ) + (*a33)*(*b1 ) + (*a34)*(*b2 ) + (*a35)*(*b3 ) + (*a36)*(*b4 ) + (*a37)*(*b5 ) + (*a38)*(*b6 ) + (*a39)*(*b7 );
+				*(++C) = (*a40)*(*b0 ) + (*a41)*(*b1 ) + (*a42)*(*b2 ) + (*a43)*(*b3 ) + (*a44)*(*b4 ) + (*a45)*(*b5 ) + (*a46)*(*b6 ) + (*a47)*(*b7 );
+				*(++C) = (*a48)*(*b0 ) + (*a49)*(*b1 ) + (*a50)*(*b2 ) + (*a51)*(*b3 ) + (*a52)*(*b4 ) + (*a53)*(*b5 ) + (*a54)*(*b6 ) + (*a55)*(*b7 );
+				*(++C) = (*a56)*(*b0 ) + (*a57)*(*b1 ) + (*a58)*(*b2 ) + (*a59)*(*b3 ) + (*a60)*(*b4 ) + (*a61)*(*b5 ) + (*a62)*(*b6 ) + (*a63)*(*b7 );
+
+				for (register unsigned int nRem = n-1; nRem--; ) {
+					b0  += k, b1  += k, b2  += k, b3  += k, b4  += k, b5  += k, b6  += k, b7  += k;
+
+					*(++C) = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
+					*(++C) = (*a8 )*(*b0 ) + (*a9 )*(*b1 ) + (*a10)*(*b2 ) + (*a11)*(*b3 ) + (*a12)*(*b4 ) + (*a13)*(*b5 ) + (*a14)*(*b6 ) + (*a15)*(*b7 );
+					*(++C) = (*a16)*(*b0 ) + (*a17)*(*b1 ) + (*a18)*(*b2 ) + (*a19)*(*b3 ) + (*a20)*(*b4 ) + (*a21)*(*b5 ) + (*a22)*(*b6 ) + (*a23)*(*b7 );
+					*(++C) = (*a24)*(*b0 ) + (*a25)*(*b1 ) + (*a26)*(*b2 ) + (*a27)*(*b3 ) + (*a28)*(*b4 ) + (*a29)*(*b5 ) + (*a30)*(*b6 ) + (*a31)*(*b7 );
+					*(++C) = (*a32)*(*b0 ) + (*a33)*(*b1 ) + (*a34)*(*b2 ) + (*a35)*(*b3 ) + (*a36)*(*b4 ) + (*a37)*(*b5 ) + (*a38)*(*b6 ) + (*a39)*(*b7 );
+					*(++C) = (*a40)*(*b0 ) + (*a41)*(*b1 ) + (*a42)*(*b2 ) + (*a43)*(*b3 ) + (*a44)*(*b4 ) + (*a45)*(*b5 ) + (*a46)*(*b6 ) + (*a47)*(*b7 );
+					*(++C) = (*a48)*(*b0 ) + (*a49)*(*b1 ) + (*a50)*(*b2 ) + (*a51)*(*b3 ) + (*a52)*(*b4 ) + (*a53)*(*b5 ) + (*a54)*(*b6 ) + (*a55)*(*b7 );
+					*(++C) = (*a56)*(*b0 ) + (*a57)*(*b1 ) + (*a58)*(*b2 ) + (*a59)*(*b3 ) + (*a60)*(*b4 ) + (*a61)*(*b5 ) + (*a62)*(*b6 ) + (*a63)*(*b7 );
+				}
+				break; // m8k8
+			} default: {
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				break; // m8
+			}}
+			break;
+		} default: {
+			printf("Error: Unsupported m = %d, in mm_CTN_d (useBlas = 0).\n",m), exit(1);
+			break;
+		}}
 		break;
 	case 1:
 		switch (n) {
@@ -401,7 +1788,118 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 		}
 		break;
 	default:
-		printf("Error: Unsupported value of 'useBLAS' passed to mm_d_CTN.\n"), exit(1);
+		printf("Error: Unsupported value of useBLAS (%d) in mm_d_CTN.\n",useBLAS), exit(1);
 		break;
 	}
+}
+
+void mm_CTN_CSR_d(const int m, const int n, const int k, const struct S_OpCSR *A, double *B, double *C)
+{
+	/*
+	 *	Purpose:
+	 *		Compute matrix-matrix and matrix-vector products:
+	 *			0) return C = A'*B
+	 *			1) Row-major storage of A
+	 *			2) Column-major storage of B and C
+	 *
+	 *	Comments:
+	 *		Comparison with mkl_dcsrmm showed that the c code was faster for all cases considered, becoming increasingly
+	 *		better as the size of A was increased. This was surprising and will be further investigated in the future.
+	 *		As a result of the tests, only the c code is used here. (ToBeModified)
+	 *
+	 *		Note that entries 2 and 3 of matdescra are not used in this function. Further, entries 5 and 6 were reserved
+	 *		for future use by the intel MKL developers at the time that this function was written.
+	 *		Transposing of input B and then outputs B and C is required when using mkl_dcsrmm which seems to expect
+	 *		row-major ordering of all entries.
+	 */
+
+	// Standard datatypes
+	register unsigned int *rowIndex, *columns;
+	register double       *values;
+
+	register double *C_ptr = C;
+	for (register unsigned int l = 0, lMax = n; l < lMax; l++) {
+		register double *B_ptr = &B[l*k];
+		rowIndex = A->rowIndex;
+		columns  = A->columns;
+		values   = A->values;
+
+		for (register unsigned int i = 0, iMax = m; i < iMax; i++) {
+			*C_ptr = 0.0;
+			for (register unsigned int jInd = *rowIndex, jIndMax = *(++rowIndex); jInd < jIndMax; jInd++)
+				*C_ptr += (*values++)*B_ptr[*columns++];
+			C_ptr++;
+		}
+	}
+
+/*
+	// Code for mkl_dcsrmm function call
+	char transa = 'N', matdescra[6] = {'G','L','N','C'};
+	double alpha = 1.0, beta = 0.0;
+
+	rowIndex = A->rowIndex;
+	columns  = A->columns;
+	values   = A->values;
+
+	mkl_dimatcopy('C','T',k,n,1.0,B,k,n);
+	mkl_dcsrmm(&transa,&m,&n,&k,&alpha,matdescra,values,(int*)columns,(int*)rowIndex,(int*)&(rowIndex[1]),B,&n,&beta,C,&n);
+	mkl_dimatcopy('C','T',n,k,1.0,B,n,k);
+	mkl_dimatcopy('C','T',n,m,1.0,C,n,m);
+*/
+}
+
+void convert_to_CSR_d(const unsigned int NRows, const unsigned int NCols, const double *Input, struct S_OpCSR **Output)
+{
+	/*
+	 *	Purpose:
+	 *		Return rowIndex, columns, and values of sparse operator in compressed sparse row (CSR) format.
+	 *
+	 *	Comments:
+	 *
+	 *	References:
+	 *		Intel MKL Sparse BLAS CSR Matrix Storage Format: https://software.intel.com/en-us/node/599835
+	 */
+
+	// Initialize DB Parameters
+	unsigned int i, iInd, j, Nval,
+	             *rowIndex, *columns, *columnsOver;
+	double       *values, *valuesOver, tmp_d;
+
+	*Output = malloc(sizeof **Output); // keep
+
+	Nval = 0;
+	rowIndex    = malloc((NRows+1)   * sizeof *rowIndex);    // keep
+	columnsOver = malloc(NRows*NCols * sizeof *columnsOver); // free
+	valuesOver  = malloc(NRows*NCols * sizeof *valuesOver);  // free
+
+	rowIndex[0] = 0;
+	for (i = 0; i < NRows; i++) {
+		iInd = i*NCols;
+		for (j = 0; j < NCols; j++) {
+			tmp_d = Input[iInd+j];
+			if (fabs(tmp_d) > EPS) {
+				columnsOver[Nval] = j;
+				valuesOver[Nval] = tmp_d;
+				Nval++;
+			}
+		}
+		rowIndex[i+1] = Nval;
+	}
+
+	columns = malloc(Nval * sizeof *columns); // keep
+	values  = malloc(Nval * sizeof *values);  // keep
+
+	for (i = 0; i < Nval; i++) {
+		columns[i] = columnsOver[i];
+		values[i]  = valuesOver[i];
+	}
+
+	free(columnsOver);
+	free(valuesOver);
+
+	(*Output)->NRows = NRows;
+	(*Output)->NVals = Nval;
+	(*Output)->rowIndex = rowIndex;
+	(*Output)->columns = columns;
+	(*Output)->values = values;
 }

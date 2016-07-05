@@ -45,7 +45,7 @@
 
 void setup_mesh()
 {
-	unsigned int i, type, NfveMax, NfMax, NveMax, NfrefMax, TRIpresent, QUADpresent;
+	unsigned int i, type, NfveMax, NfMax, NveMax, NfrefMax, TRIpresent3D, QUADpresent3D;
 
 	struct S_ELEMENT *ELEMENT;
 
@@ -211,16 +211,18 @@ void setup_mesh()
 	unsigned int NETotal = DB.NETotal,
 	             *EType  = DB.EType;
 
+	TRIpresent3D = 0;
+	QUADpresent3D = 0;
 	for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
 		type = ELEMENT->type;
 		for (i = 0; i < NETotal; i++) {
 			if (type == EType[i]) {
 				ELEMENT->present = 1;
 
-				if (!TRIpresent && (type == TET || type == WEDGE || type == PYR))
-					TRIpresent = 1;
-				if (!QUADpresent && (type == HEX || type == WEDGE || type == PYR))
-					QUADpresent = 1;
+				if (!TRIpresent3D && (type == TET || type == WEDGE || type == PYR))
+					TRIpresent3D = 1;
+				if (!QUADpresent3D && (type == HEX || type == WEDGE || type == PYR))
+					QUADpresent3D = 1;
 
 				break;
 			}
@@ -228,11 +230,16 @@ void setup_mesh()
 	}
 
 	// Ensure that 2D ELEMENTs are marked correctly on 3D mixed meshes
+	printf("      ELEMENT types present: ");
 	for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
 		type = ELEMENT->type;
-		if ((type == TRI && TRIpresent) || (type == QUAD && QUADpresent))
+		if ((type == TRI && TRIpresent3D) || (type == QUAD && QUADpresent3D))
 			ELEMENT->present = 1;
+
+		if (ELEMENT->present)
+			printf("%d, ",type);
 	}
+	printf("\n");
 
 	if (DB.d == 1) {
 		NfMax    = 2;

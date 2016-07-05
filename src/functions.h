@@ -67,9 +67,11 @@ extern void     setup_geom_factors          (struct S_VOLUME *VOLUME);
 extern void     setup_normals               (struct S_FACET *FACET);
 
 // Solver
+extern void   compute_exact_solution (const unsigned int Nn, double *XYZ, double *UEx, double *sEx,
+                                      const unsigned int solved);
 extern void   initialize_test_case   (void);
 extern void   update_VOLUME_Ops      (void);
-extern void   solver_RK4_low_storage (void);
+extern void   solver_explicit        (void);
 extern void     explicit_VOLUME_info (void);
 extern void     explicit_FACET_info  (void);
 extern void       get_facet_ordering (const unsigned int d, const unsigned int IndOrd, const unsigned int FType,
@@ -85,7 +87,27 @@ extern void flux_LF       (const unsigned int Nn, const unsigned int Nel, double
 extern void flux_ROE      (const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
                            double *nL, const unsigned int d, const unsigned int Neq);
 
+// Boundary conditions
+extern void boundary_Riemann  (const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL, double *WOut,
+                               double *WB, double *nL);
+extern void boundary_SlipWall (const unsigned int Nn, const unsigned int Nel, double *WL, double *WB, double *nL);
+
+// hp adaptation
+extern void get_PS_range (unsigned int *PSMin, unsigned int *PSMax);
+extern void get_Pb_range (const unsigned int P, unsigned int *PbMin, unsigned int *PbMax);
+extern void adapt_hp (void);
+extern void   update_VOLUME_hp (void);
+extern void   update_Vgrp      (void);
+
 // Sum Factorization
+extern void   get_sf_parameters(const unsigned int NIn0, const unsigned int NOut0, double *OP0,
+                                const unsigned int NIn1, const unsigned int NOut1, double *OP1,
+                                unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+                                const unsigned int d, const unsigned int dim1, const unsigned int Eclass);
+extern void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, double **OP0, 
+                               const unsigned int NIn1, const unsigned int NOut1, double **OP1, 
+                               unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+                               const unsigned int d, const unsigned int Vf, const unsigned int Eclass);
 extern void   sf_operate_d   (const unsigned int NOut, const unsigned int NCols, const unsigned int NIn,
                               const unsigned int BRowMaxIn, double *OP, double *Input, double *Output);
 extern void   sf_swap_d      (double *Input, const unsigned int NRows, const unsigned int NCols,
@@ -116,7 +138,10 @@ extern double *mm_Alloc_d (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE tran
 extern void   mm_d        (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb,
                            const int m, const int n, const int k, const double alpha, const double *A, const double *B,
                            double *C);
-extern void   mm_CTN_d    (const int m, const int n, const int k, const double *A, const double *B, double *C);
+extern void   mm_CTN_d    (const int m, const int n, const int k, double *A, double *B, double *C);
+extern void   mm_CTN_CSR_d     (const int m, const int n, const int k, const struct S_OpCSR *A, double *B, double *C);
+extern void   convert_to_CSR_d (const unsigned int NRows, const unsigned int NCols, const double *Input,
+                                struct S_OpCSR **Output);
 
 // Math Functions
 extern unsigned int factorial_ull (const unsigned int n);
@@ -200,5 +225,10 @@ extern void memory_destructor_F (struct S_FACET *FACET);
 	extern void array_free3_ld (unsigned int iMax, unsigned int jMax, long double ***A);
 	extern void array_free4_d  (unsigned int iMax, unsigned int jMax, unsigned int kMax, double ****A);
 	extern void array_free5_d  (unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int lMax, double *****A);
+
+	extern void array_free1_CSR_d (struct S_OpCSR *A);
+	extern void array_free4_CSR_d (unsigned int iMax, unsigned int jMax, unsigned int kMax, struct S_OpCSR ****A);
+	extern void array_free5_CSR_d (unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int lMax,
+	                               struct S_OpCSR *****A);
 
 #endif // DPG__functions_h__INCLUDED

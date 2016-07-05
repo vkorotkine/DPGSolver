@@ -176,7 +176,7 @@ void get_facet_ordering(const unsigned int d, const unsigned int IndOrd, const u
 							iInd = i*Nn;
 							kMax = 0;
 							for (j = 0; j < Nn; j++) {
-								if (i != j && DY[iInd+j] < 10*EPS)
+								if (!Foundn[j] && i != j && DY[iInd+j] < 10*EPS)
 									IndX[kMax++] = j;
 							}
 							for (k = 0; k < kMax; k++) {
@@ -198,7 +198,7 @@ void get_facet_ordering(const unsigned int d, const unsigned int IndOrd, const u
 
 					for (i = 0; i < Nn; i++) {
 						if (Foundn[i] == 0)
-							printf("Error: Did not find all nodes in get_FACET_reordering (TRI).\n"), exit(1);
+							printf("Error: Did not find all nodes in get_facet_ordering (TRI).\n"), exit(1);
 					}
 
 					for (i = 0; i < Nn; i++)

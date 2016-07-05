@@ -168,12 +168,16 @@ $(EXECDIR):
 	mkdir -p $(EXECDIR)
 
 TESTCASE_LIST :=dSphericalBump,GaussianBump,PeriodicVortex,PolynomialBump,SupersonicVortex,VortexRiemann
+MESHTYPE_LIST :=ToBeCurvedStructuredTRI,ToBeCurvedStructuredQUAD,ToBeCurvedStructuredTET,ToBeCurvedStructuredHEX,ToBeCurvedStructuredWEDGE,ToBeCurvedStructuredPYR
 .PHONY : directories
 directories:
 	mkdir -p meshes/{${TESTCASE_LIST}}
 	mkdir -p cases/paraview/{${TESTCASE_LIST}}
 	mkdir -p cases/errors/{${TESTCASE_LIST}}
 	mkdir -p cases/results/{${TESTCASE_LIST}}
+	mkdir -p cases/paraview/{${TESTCASE_LIST}}/{${MESHTYPE_LIST}}
+	mkdir -p cases/errors/{${TESTCASE_LIST}}/{${MESHTYPE_LIST}}
+	mkdir -p cases/results/{${TESTCASE_LIST}}/{${MESHTYPE_LIST}}
 
 
 ### Additional Rules ###

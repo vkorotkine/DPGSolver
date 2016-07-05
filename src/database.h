@@ -19,6 +19,9 @@
  */
 
 struct S_DB {
+	// Time
+	double time_total;
+
 	// MPI and PETSC
 	int MPIsize, MPIrank;
 
@@ -32,8 +35,8 @@ struct S_DB {
 	             **NodeTypeG,
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
-	unsigned int NP, NEC, AC, ExactGeom, InviscidFluxType, PR, PP, PGs,
-	             *PGc, *PF,
+	unsigned int NP, NEC, AC, ExactGeom, InviscidFluxType, ExplicitSolverType, PR, PP, PGs,
+	             *PGc, *PF, *VFPartUnity,
 	             ***SF_BE, **PCs, **PCc, **PJs, **PJc, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
 	// Mesh
@@ -46,9 +49,15 @@ struct S_DB {
 
 	// Initialization
 	char         *SolverType;
-	unsigned int Nvar, Neq, OutputInterval;
+	unsigned int Nvar, Neq, OutputInterval, DOF0;
 	double       Xc, Yc, Rc, MInf, pInf, TInf, VInf, uInf, vInf, wInf, Rg, Cscale, PeriodL, PeriodFraction, FinalTime,
-	             beta;
+	             rIn, MIn, rhoIn, VIn;
+
+	// Vectorization
+	unsigned int update, NTVgrp, *NVgrp;
+
+	// hp adaptation
+	double DOFcap_frac, refine_frac, coarse_frac;
 
 	// Structs
 	struct S_ELEMENT *ELEMENT;
@@ -63,33 +72,39 @@ struct S_ELEMENT {
 	             *Nfve, *VeCGmsh, *VeFcon;
 
 	// Operators
-	unsigned int connect_NE, NvnP, *Nvve,
+	unsigned int *connect_NE, *NvnP, *Nvve,
 	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS,
-	             **NfnIs, **NfnIc,
+	             **NfnS, **NfnIs, **NfnIc,
 	             *Nfref, *NfMixed,
-	             *connectivity, *connect_types,
-	             ***nOrd_fIs, ***nOrd_fIc;
+	             **connectivity, **connect_types,
+	             ***nOrd_fS, ***nOrd_fIs, ***nOrd_fIc;
 	double       **VeF, **VeV, *nr,
 	             **w_vIs, **w_vIc,
-	             ****ChiS_vP, ****ChiS_vIs, ****ChiS_vIc,
+	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS,
 	             ****ICs, ****ICc,
-	             ****I_vGs_vP, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vIs, ****I_vGs_vIc, ****I_vGs_vS,
-	             ****I_vGc_vP,                ****I_vGc_vCc, ****I_vGc_vIs, ****I_vGc_vIc, ****I_vGc_vS,
-	             ****I_vCs_vIs, ****I_vCs_vIc,
-	             ****I_vCc_vIs, ****I_vCc_vIc,
+	             ****I_vGs_vP, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vS, ****I_vGs_vIs, ****I_vGs_vIc,
+	             ****I_vGc_vP,                ****I_vGc_vCc, ****I_vGc_vS, ****I_vGc_vIs, ****I_vGc_vIc,
+	             ****I_vCs_vS, ****I_vCs_vIs, ****I_vCs_vIc,
+	             ****I_vCc_vS, ****I_vCc_vIs, ****I_vCc_vIc,
+	             ****Ihat_vS_vS,
 	             *****D_vGs_vCs, *****D_vGs_vIs,
 	             *****D_vGc_vCc, *****D_vGc_vIc,
 	             *****D_vCs_vCs,
 	             *****D_vCc_vCc,
-	             ****ChiS_fIs, ****ChiS_fIc,
-	             ****I_vGs_fIs, ****I_vGs_fIc,
-	             ****I_vGc_fIs, ****I_vGc_fIc,
-	             ****I_vCs_fIs, ****I_vCs_fIc,
-	             ****I_vCc_fIs, ****I_vCc_fIc,
+	             ****ChiS_fS, ****ChiS_fIs, ****ChiS_fIc,
+	             ****I_vGs_fS, ****I_vGs_fIs, ****I_vGs_fIc,
+	             ****I_vGc_fS, ****I_vGc_fIs, ****I_vGc_fIc,
+	             ****I_vCs_fS, ****I_vCs_fIs, ****I_vCs_fIc,
+	             ****I_vCc_fS, ****I_vCc_fIs, ****I_vCc_fIc,
 	             ****Is_Weak_VV, ****Ic_Weak_VV,
 	             ****Is_Weak_FF, ****Ic_Weak_FF,
-	             *****Ds_Weak_VV, *****Dc_Weak_VV;
+	             *****Ds_Weak_VV, *****Dc_Weak_VV,
+	             ****GvShat_fS, ****GfS_fIs, ****GfS_fIc;
+
+	struct S_OpCSR ****ChiS_fIs_sp, ****ChiS_fIc_sp,
+	               *****Ds_Weak_VV_sp, *****Dc_Weak_VV_sp,
+	               ****Is_Weak_FF_sp, ****Ic_Weak_FF_sp;
 
 	struct S_ELEMENT *next;
 	struct S_ELEMENT **ELEMENTclass, **ELEMENT_FACET;
@@ -112,6 +127,10 @@ struct S_VOLUME {
 	// Solving
 	double *RHS, *wdetJV_vI, *MInv;
 
+	// hp adaptivity
+	unsigned int Vadapt, adapt_type, PNew;
+//	double       minRES, maxRES;
+
 	// structs
 	struct S_VOLUME *next, *grpnext;
 
@@ -123,7 +142,7 @@ struct S_FACET {
 
 	// Geometry
 	char   curved, typeInt;
-	double *n_fI, *detJF_fI;
+	double *XYZ_fI, *XYZ_fS, *n_fI, *n_fS, *detJF_fI, *detJF_fS;
 
 	// Solving
 	double *RHSIn, *RHSOut;
@@ -131,6 +150,11 @@ struct S_FACET {
 	// structs
 	struct S_VOLUME *VIn, *VOut;
 	struct S_FACET  *next, *grpnext;
+};
+
+struct S_OpCSR {
+	unsigned int NRows, NVals, *rowIndex, *columns;
+	double       *values;
 };
 
 #endif // DPG__database_h__INCLUDED
