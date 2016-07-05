@@ -11,7 +11,7 @@
 
 /*
  *	Purpose:
- *		Update VOLUME operators in ELEMENTs which have undergone hp refinement.
+ *		Update VOLUME related information/operators in ELEMENTs which have undergone hp refinement.
  *
  *	Comments:
  *		May be better not to allow P adaptivity to go down to P = 0, but have the limit at P = 1. Try/THINK (ToBeDeleted).
@@ -121,7 +121,6 @@ void update_VOLUME_hp(void)
 				VOLUME->P = PNew;
 
 				// Update geometry
-// need normals and detJF_fI
 				if (VOLUME->curved) {
 					NvnGs      = OPS->NvnGs;
 					NvnGc      = OPS->NvnGc;
@@ -169,6 +168,7 @@ void update_VOLUME_hp(void)
 				VOLUME->RES  = RESP;
 				break;
 			case HREFINE:
+				// Don't forget about VOLUME->curved (may not all be curved anymore)
 				// Interpolate to finer space
 				break;
 			case HCOARSE:
@@ -177,7 +177,6 @@ void update_VOLUME_hp(void)
 			}
 		}
 	}
-
 	free(OPS);
 }
 

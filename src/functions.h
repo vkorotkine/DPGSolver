@@ -97,6 +97,7 @@ extern void get_PS_range (unsigned int *PSMin, unsigned int *PSMax);
 extern void get_Pb_range (const unsigned int P, unsigned int *PbMin, unsigned int *PbMax);
 extern void adapt_hp (void);
 extern void   update_VOLUME_hp (void);
+extern void   update_FACET_hp  (void);
 extern void   update_Vgrp      (void);
 
 // Sum Factorization
