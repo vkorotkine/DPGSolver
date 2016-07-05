@@ -92,7 +92,8 @@ exit(1);
 			for (rk = 0; rk < 3; rk++) {
 				// Build the RHS (== -Residual)
 				printf("V");  explicit_VOLUME_info();
-				printf("F (newlines in solver_explicit)\n\n");  explicit_FACET_info();
+				printf("F");  explicit_FACET_info();
+				//printf("F (newlines in solver_explicit)\n\n");  explicit_FACET_info();
 				printf("F "); maxRHS = finalize_RHS();
 
 				// Update What

@@ -7,7 +7,7 @@
 BEGIN PARAMETERS
   Dimension  2
   ML         0
-  MeshType   ToBeCurvedStructuredQUAD
+  MeshType   ToBeCurvedStructuredTRI
 
   Form       Weak  // Options: Weak, Strong
   NodeType   GLL-AO // Options: GL/GLL-AO/WSH
@@ -19,7 +19,7 @@ BEGIN PARAMETERS
   Adapt      1     // Options: 0 (Likely add h, p, hp options later)
 
   PGlobal    2
-  PMax       4
+  PMax       2
 
   Restart    -1    // Options: -1, 0, Iteration #
 

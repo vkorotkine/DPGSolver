@@ -133,6 +133,8 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free4_CSR_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->Ic_Weak_FF_sp);
 
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->GvShat_fS);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->GfS_fIs);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->GfS_fIc);
 
 	array_free3_ui(NP,NFORDMAX,ELEMENT->nOrd_fS);
 	array_free3_ui(NP,NFORDMAX,ELEMENT->nOrd_fIs);

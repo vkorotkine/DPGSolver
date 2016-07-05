@@ -100,7 +100,7 @@ struct S_ELEMENT {
 	             ****Is_Weak_VV, ****Ic_Weak_VV,
 	             ****Is_Weak_FF, ****Ic_Weak_FF,
 	             *****Ds_Weak_VV, *****Dc_Weak_VV,
-	             ****GvShat_fS;
+	             ****GvShat_fS, ****GfS_fIs, ****GfS_fIc;
 
 	struct S_OpCSR ****ChiS_fIs_sp, ****ChiS_fIc_sp,
 	               *****Ds_Weak_VV_sp, *****Dc_Weak_VV_sp,

@@ -144,6 +144,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->Ic_Weak_FF_sp = calloc(NP , sizeof *(ELEMENT->Ic_Weak_FF_sp)); // free
 
 	ELEMENT->GvShat_fS = calloc(NP , sizeof *(ELEMENT->GvShat_fS)); // free
+	ELEMENT->GfS_fIs   = calloc(NP , sizeof *(ELEMENT->GfS_fIs));   // free
+	ELEMENT->GfS_fIc   = calloc(NP , sizeof *(ELEMENT->GfS_fIc));   // free
 
 	ELEMENT->nOrd_fS   = calloc(NP , sizeof *(ELEMENT->nOrd_fS));  // free
 	ELEMENT->nOrd_fIs  = calloc(NP , sizeof *(ELEMENT->nOrd_fIs)); // free
@@ -225,6 +227,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->Ic_Weak_FF_sp[P] = calloc(NP , sizeof **(ELEMENT->Ic_Weak_FF_sp));
 
 		ELEMENT->GvShat_fS[P] = calloc(NP , sizeof **(ELEMENT->GvShat_fS));
+		ELEMENT->GfS_fIs[P]   = calloc(NP , sizeof **(ELEMENT->GfS_fIs));
+		ELEMENT->GfS_fIc[P]   = calloc(NP , sizeof **(ELEMENT->GfS_fIc));
 
 		if      (P == 0)    PbMin = P,   PbMax = P+1;
 		else if (P == PMax) PbMin = P-1, PbMax = PMax;
@@ -316,6 +320,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 			ELEMENT->Ic_Weak_FF_sp[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Ic_Weak_FF_sp));
 
 			ELEMENT->GvShat_fS[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->GvShat_fS));
+			ELEMENT->GfS_fIs[P][Pb]   = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->GfS_fIs));
+			ELEMENT->GfS_fIc[P][Pb]   = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->GfS_fIc));
 		}
 
 		ELEMENT->nOrd_fS[P]  = calloc(NFORDMAX, sizeof **(ELEMENT->nOrd_fS));

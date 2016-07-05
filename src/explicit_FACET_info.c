@@ -38,7 +38,7 @@
 
 struct S_OPERATORS {
 	unsigned int NvnS, NfnI, NfnS, NvnS_SF, NfnI_SF, NvnI_SF, *nOrdInOut, *nOrdOutIn;
-	double       **ChiS_fI, **ChiS_vI, **I_Weak_FF, **I_Weak_VV, **GvShat_fS;
+	double       **ChiS_fI, **ChiS_vI, **I_Weak_FF, **I_Weak_VV, **GvShat_fS, **GfS_fI;
 
 	struct S_OpCSR **ChiS_fI_sp, **I_Weak_FF_sp;
 };
@@ -140,7 +140,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		OPS->ChiS_fI_sp   = ELEMENT->ChiS_fIs_sp[PV][PF];
 		OPS->I_Weak_FF_sp = ELEMENT->Is_Weak_FF_sp[PV][PF];
 
-		OPS->GfS_fI    = ELEMENT_FACET->GvS_vIs[PF][PF];
+		OPS->GfS_fI    = ELEMENT->GfS_fIs[PF][PF];
 
 		switch (Adapt) {
 		default: // ADAPT_P, ADAPT_H, ADAPT_HP
@@ -166,7 +166,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		OPS->ChiS_fI_sp   = ELEMENT->ChiS_fIc_sp[PV][PF];
 		OPS->I_Weak_FF_sp = ELEMENT->Ic_Weak_FF_sp[PV][PF];
 
-		OPS->GfS_fI    = ELEMENT_FACET->GvS_vIc[PF][PF];
+		OPS->GfS_fI    = ELEMENT->GfS_fIc[PF][PF];
 
 		switch (Adapt) {
 		default: // ADAPT_P, ADAPT_H, ADAPT_HP
@@ -435,7 +435,6 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 				} else {
 					for (dim = 0; dim < d; dim++)
 						Diag[dim] = 0;
-					Diag[1] = 2;
 				}
 
 				sf_apply_d(nFluxNum_fI,RHSIn,NIn,NOut,Neq,OP,Diag,d);
@@ -503,7 +502,6 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 					} else {
 						for (dim = 0; dim < d; dim++)
 							Diag[dim] = 0;
-						Diag[1] = 2;
 					}
 
 					sf_apply_d(nFluxNum_fI,RHSOut,NIn,NOut,Neq,OP,Diag,d);
@@ -582,6 +580,7 @@ static void compute_FACET_RHS(void)
 	             NfrefMax         = DB.NfrefMax,
 	             Nvar             = DB.Nvar,
 	             Neq              = DB.Neq,
+	             Adapt            = DB.Adapt,
 	             InviscidFluxType = DB.InviscidFluxType,
 	             Collocated       = DB.Collocated,
 	             *VFPartUnity     = DB.VFPartUnity,
@@ -594,6 +593,7 @@ static void compute_FACET_RHS(void)
 	             NfnS, NfnI, NvnSIn, NvnSOut, *nOrdOutIn, *nOrdInOut,
 	             NIn[3], NOut[3], Diag[3], NOut0, NOut1, NIn0, NIn1;
 	double       *WIn_fS, *WOut_fS, *WOut_fSIn, *nFluxNum_fS, *nFluxNum_fI, *RHSIn, *RHSOut, *n_fS, *detJF_fS,
+	             *nFluxNum_fIIn, *nFluxNum_fIOut,
 	             *OP[3], **OPF0, **OPF1;
 
 	struct S_OPERATORS *OPSIn[2], *OPSOut[2];
@@ -649,9 +649,9 @@ static void compute_FACET_RHS(void)
 		nOrdOutIn = OPSIn[IndFType]->nOrdOutIn;
 
 		NvnSOut = OPSOut[0]->NvnS;
-		WOut_fS   = malloc(NfnS*Nvar * sizeof *WOut_fS); // free
 		WOut_fSIn = malloc(NfnS*Nvar * sizeof *WOut_fSIn); // free
 		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACET
+			WOut_fS   = malloc(NfnS*Nvar * sizeof *WOut_fS); // free
 			mm_CTN_d(NfnS,Nvar,NvnSOut,OPSOut[0]->GvShat_fS[VfOut],VOut->What,WOut_fS);
 
 			// Reorder WOut_fS to correspond to WIn_fS
@@ -675,10 +675,10 @@ static void compute_FACET_RHS(void)
 				printf("Error: Unsupported BC in explicit_FACET_info.\n"), exit(1);
 			}
 		}
-
+/*
 array_print_d(NfnS,Nvar,WIn_fS,'C');
 array_print_d(NfnS,Nvar,WOut_fSIn,'C');
-
+*/
 		// Compute numerical flux
 		nFluxNum_fS = malloc(NfnS*Neq * sizeof *nFluxNum_fS); // free
 		detJF_fS = FACET->detJF_fS;
@@ -694,7 +694,12 @@ array_print_d(NfnS,Nvar,WOut_fSIn,'C');
 			printf("Error: Unsupported InviscidFluxType used in explicit_FACET_info.\n"), exit(1);
 			break;
 		}
-
+		free(WIn_fS);
+		free(WOut_fSIn);
+/*
+array_print_d(NfnS,d,n_fS,'R');
+array_print_d(NfnS,Neq,nFluxNum_fS,'C');
+*/
 		// Multiply n dot FNum by the area element
 		// Potentially do this after projection? Test and see. ToBeDeleted
 		for (i = 0; i < Neq; i++) {
@@ -704,17 +709,21 @@ array_print_d(NfnS,Nvar,WOut_fSIn,'C');
 		}
 
 		// Galerkin projection to FACET cubature nodes
+		NfnI   = OPSIn[IndFType]->NfnI;
 
+		RowTracker = malloc(NfnS * sizeof *RowTracker); // free
 // Don't forget to reorder nF_I for Outer FACET
 
 		switch (Adapt) {
 		default: // ADAPT_HP
 			break;
 		case ADAPT_P:
-			nFluxNum_fIIn = malloc(NfnI * sizeof *nFluxNum_fIIn); // free
+		case ADAPT_H:
+			nFluxNum_fIIn = malloc(NfnI*Neq * sizeof *nFluxNum_fIIn); // free
 			mm_CTN_d(NfnI,Neq,NfnS,OPSIn[0]->GfS_fI[VfIn],nFluxNum_fS,nFluxNum_fIIn);
 
 // Potentially perform the rearrangement after projection to fI nodes.
+// In this case, make sure that nOrdInOut is for the cubature nodes.
 			// Re-arrange nFluxNum to match node ordering from opposite VOLUME
 			for (i = 0; i < NfnS; i++)
 				RowTracker[i] = i;
@@ -729,27 +738,27 @@ array_print_d(NfnS,Nvar,WOut_fSIn,'C');
 					array_swap_ui(&RowTracker[RowInd],&RowTracker[RowSub],1,1);
 				}
 			}
-			nFluxNum_fIOut = malloc(NfnI * sizeof *nFluxNum_fIOut); // free
+			nFluxNum_fIOut = malloc(NfnI*Neq * sizeof *nFluxNum_fIOut); // free
 			mm_CTN_d(NfnI,Neq,NfnS,OPSOut[0]->GfS_fI[VfOut],nFluxNum_fS,nFluxNum_fIOut);
+			// -ve sign (opposite normal vector) is added below
 
 			break;
-		case ADAPT_H:
 		// Note: Need not sum the contributions from all of the refined FACETs as they will be taken care of based on
 		//       other FACETs. Need to ensure that RHSOut is only initialized once. ADAPT_P and ADAPT_H should then be
 		//       extremely similar.
-			break;
 		}
-
-// Free everything.
-exit(1);
-
+		free(RowTracker);
+		free(nFluxNum_fS);
+/*
+printf("%d\n",NfnI);
+array_print_d(NfnI,Neq,nFluxNum_fIIn,'C');
+array_print_d(NfnI,Neq,nFluxNum_fIOut,'C');
+*/
 		// Compute FACET RHS terms
 		RHSIn  = calloc(NvnSIn*Neq  , sizeof *RHSIn);  // keep (requires external free)
 		RHSOut = calloc(NvnSOut*Neq , sizeof *RHSOut); // keep (requires external free)
 		FACET->RHSIn  = RHSIn;
 		FACET->RHSOut = RHSOut;
-
-		RowTracker = malloc(NfnI * sizeof *RowTracker); // free
 
 		if (strstr(Form,"Weak") != NULL) {
 			// Interior FACET
@@ -757,18 +766,16 @@ exit(1);
 				get_sf_parametersF(OPSIn[0]->NvnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_VV,
 								   OPSIn[0]->NfnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_FF,NIn,NOut,OP,d,VfIn,C_TP);
 
-// Note: Needs modification for h-adaptation (ToBeDeleted)
-				if (Collocated) {
+				if (Collocated && Adapt == ADAPT_0) {
 					for (dim = 0; dim < d; dim++)
 						Diag[dim] = 2;
 					Diag[fIn/2] = 0;
 				} else {
 					for (dim = 0; dim < d; dim++)
 						Diag[dim] = 0;
-					Diag[1] = 2;
 				}
 
-				sf_apply_d(nFluxNum_fI,RHSIn,NIn,NOut,Neq,OP,Diag,d);
+				sf_apply_d(nFluxNum_fIIn,RHSIn,NIn,NOut,Neq,OP,Diag,d);
 			} else if (EclassIn == C_WEDGE && SF_BE[P][1][1]) {
 				if (fIn < 3) { OPF0 = OPSIn[0]->I_Weak_FF, OPF1 = OPSIn[1]->I_Weak_VV;
 							   NIn0 = OPSIn[0]->NfnI_SF,   NIn1 = OPSIn[1]->NvnI_SF;
@@ -790,11 +797,11 @@ exit(1);
 					Diag[1] = 2;
 				}
 
-				sf_apply_d(nFluxNum_fI,RHSIn,NIn,NOut,Neq,OP,Diag,d);
+				sf_apply_d(nFluxNum_fIIn,RHSIn,NIn,NOut,Neq,OP,Diag,d);
 			} else if ((Collocated && (EclassIn == C_TP || EclassIn == C_WEDGE)) || (VFPartUnity[EclassIn])) {
-				mm_CTN_CSR_d(NvnSIn,Neq,NfnI,OPSIn[0]->I_Weak_FF_sp[VfIn],nFluxNum_fI,RHSIn);
+				mm_CTN_CSR_d(NvnSIn,Neq,NfnI,OPSIn[0]->I_Weak_FF_sp[VfIn],nFluxNum_fIIn,RHSIn);
 			} else  {
-				mm_CTN_d(NvnSIn,Neq,NfnI,OPSIn[0]->I_Weak_FF[VfIn],nFluxNum_fI,RHSIn);
+				mm_CTN_d(NvnSIn,Neq,NfnI,OPSIn[0]->I_Weak_FF[VfIn],nFluxNum_fIIn,RHSIn);
 			}
 
 			// Exterior FACET
@@ -803,9 +810,10 @@ exit(1);
 				for (i = 0; i < Neq; i++) {
 					iInd = i*NfnI;
 					for (j = 0; j < NfnI; j++)
-						nFluxNum_fI[iInd+j] *= -1.0;
+						nFluxNum_fIOut[iInd+j] *= -1.0;
 				}
 
+/*
 				// Re-arrange nFluxNum to match node ordering from opposite VOLUME
 				for (i = 0; i < NfnI; i++)
 					RowTracker[i] = i;
@@ -820,6 +828,7 @@ exit(1);
 						array_swap_ui(&RowTracker[RowInd],&RowTracker[RowSub],1,1);
 					}
 				}
+*/
 
 				if (EclassOut == C_TP && SF_BE[P][0][1]) {
 					get_sf_parametersF(OPSOut[0]->NvnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_VV,
@@ -833,10 +842,9 @@ exit(1);
 					} else {
 						for (dim = 0; dim < d; dim++)
 							Diag[dim] = 0;
-						Diag[1] = 2;
 					}
 
-					sf_apply_d(nFluxNum_fI,RHSOut,NIn,NOut,Neq,OP,Diag,d);
+					sf_apply_d(nFluxNum_fIOut,RHSOut,NIn,NOut,Neq,OP,Diag,d);
 				} else if (EclassOut == C_WEDGE && SF_BE[P][1][1]) {
 					if (fOut < 3) { OPF0 = OPSOut[0]->I_Weak_FF, OPF1 = OPSOut[1]->I_Weak_VV;
 					                NIn0 = OPSOut[0]->NfnI_SF,   NIn1 = OPSOut[1]->NvnI_SF;
@@ -858,30 +866,26 @@ exit(1);
 						Diag[1] = 2;
 					}
 
-					sf_apply_d(nFluxNum_fI,RHSOut,NIn,NOut,Neq,OP,Diag,d);
+					sf_apply_d(nFluxNum_fIOut,RHSOut,NIn,NOut,Neq,OP,Diag,d);
 				} else if ((Collocated && (EclassOut == C_TP || EclassOut == C_WEDGE)) || (VFPartUnity[EclassOut])) {
-					mm_CTN_CSR_d(NvnSOut,Neq,NfnI,OPSOut[0]->I_Weak_FF_sp[VfOut],nFluxNum_fI,RHSOut);
+					mm_CTN_CSR_d(NvnSOut,Neq,NfnI,OPSOut[0]->I_Weak_FF_sp[VfOut],nFluxNum_fIOut,RHSOut);
 				} else {
-					mm_CTN_d(NvnSOut,Neq,NfnI,OPSOut[0]->I_Weak_FF[VfOut],nFluxNum_fI,RHSOut);
+					mm_CTN_d(NvnSOut,Neq,NfnI,OPSOut[0]->I_Weak_FF[VfOut],nFluxNum_fIOut,RHSOut);
 				}
 			}
 		} else if (strstr(Form,"Strong") != NULL) {
 			printf("Exiting: Implement the strong form in compute_FACET_RHS_EFE.\n"), exit(1);
 		}
-
-		free(RowTracker);
-		free(WIn_fS);
-		free(WOut_fSIn);
-		free(nFluxNum_fS);
+		free(nFluxNum_fIIn);
+		free(nFluxNum_fIOut);
+//exit(1);
 	}
 
 	for (i = 0; i < 2; i++) {
 		free(OPSIn[i]);
 		free(OPSOut[i]);
 	}
-
-	printf("Exiting: compute_FACET_RHS\n");
-	exit(1);
+//exit(1);
 }
 
 //static void compute_FACETVec_RHS(void) { }
