@@ -492,7 +492,8 @@ static void output_solution(const char *sol_type)
 		if (!VOLUME->curved || DB.Adapt == ADAPT_0 || DB.Adapt == ADAPT_H)
 			PP = P;
 		else
-			PP = min(PMax,P+1);
+			PP = P;
+//			PP = min(PMax,P+1);
 
 		connectivity = ELEMENT->connectivity[PP];
 		types        = ELEMENT->connect_types[PP];

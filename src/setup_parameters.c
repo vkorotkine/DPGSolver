@@ -534,7 +534,8 @@ void setup_parameters()
 // 	DB.ExplicitSolverType = RK4_LS;
 
 	// hp adaptation
-	DB.DOFcap_frac = 10.0;
+//	DB.DOFcap_frac = 10.0;
+	DB.DOFcap_frac = 1.5;
 	DB.refine_frac = 0.3;
 	DB.coarse_frac = 0.1;
 

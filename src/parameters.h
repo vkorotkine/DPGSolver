@@ -122,12 +122,14 @@
 #define FLUX_LF  0
 #define FLUX_ROE 1
 
-// Node Tolerance (for physical coordinate comparison)
+// Tolerances (for physical coordinate comparison)
 #define NODETOL      1.0e-10
 #define NODETOL_MESH 1.0e-5
 
 // Value close to double machine zero
-#define EPS     1.0e-15
+#define EPS        1.0e-15
+#define REFINE_TOL 1.0e-4
+#define COARSE_TOL 1.0e-6
 
 // Min/Max String Lengths
 // Min/Max length slightly less than 2^6, 2^9

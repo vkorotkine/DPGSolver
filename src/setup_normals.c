@@ -72,7 +72,7 @@ void setup_normals(struct S_FACET *FACET)
 	C_vC = VIn->C_vC;
 
 	if (VfIn % NFREFMAX != 0)
-		printf("Error: VfIn should be h-conforming in setup_normals.\n"), exit(1); 
+		printf("Error: VfIn should be h-conforming in setup_normals.\n"), exit(1);
 
 	nrIn = &(OPS->nr[fIn*d]);
 	switch (Adapt) {

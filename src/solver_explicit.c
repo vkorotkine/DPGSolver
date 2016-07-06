@@ -55,32 +55,55 @@ void solver_explicit(void)
 		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free
 
 // Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).
+	if (!Adapt) {
 //	dt = pow(0.5,DB.ML+DB.PGlobal+1);
 	dt = pow(0.5,DB.ML+DB.PGlobal+2);
 //	dt = pow(0.5,10.0);
+	} else {
+		dt = pow(0.5,DB.ML+DB.PMax+1);
+	}
+
+	// Compute Mass matrix for uncollocated schemes
+	update_VOLUME_Ops();
+	update_VOLUME_finalize();
 
 	tstep = 0; time = 0.0;
 	while (time < FinalTime) {
-/*
-//DB.VOLUME->Vadapt = 1;
-//DB.VOLUME->adapt_type = PREFINE;
-VOLUME = DB.VOLUME->next;
-VOLUME->Vadapt = 1;
-VOLUME->adapt_type = PREFINE;
-VOLUME = VOLUME->next->next;
-VOLUME->Vadapt = 1;
-VOLUME->adapt_type = PCOARSE;
 
+/*
+DB.VOLUME->Vadapt = 1;
+DB.VOLUME->adapt_type = PCOARSE;
+//VOLUME = DB.VOLUME->next;
+//VOLUME->Vadapt = 1;
+//VOLUME->adapt_type = PREFINE;
+*/
 		if (Adapt) {
 			update_VOLUME_hp();
+			update_FACET_hp();
 			update_Vgrp();
-		}
-		update_VOLUME_Ops();
+			update_VOLUME_Ops();
 
-output_to_paraview("0SolAdapt");
-exit(1);
-*/
-		update_VOLUME_Ops();
+			update_VOLUME_finalize();
+//			for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+//				printf("%d %d\n",VOLUME->indexg,VOLUME->P);
+//			}
+		}
+
+if (tstep == 20) {
+	char *string;
+	string   = malloc(STRLEN_MIN * sizeof *string);   // free
+	sprintf(string,"%d",tstep);
+	strcat(string,"SolAdapt");
+
+//	output_to_paraview("ZTest_NormalsP");
+	output_to_paraview(string);
+	printf("Exiting after outputting to paraview.\n");
+	free(string);
+
+	exit(1);
+
+}
+
 
 		if (time+dt > FinalTime)
 			dt = FinalTime-time;
@@ -120,7 +143,6 @@ exit(1);
 							What++;
 						}
 					}
-					free(VOLUME->RHS);
 				}
 			}
 //if (tstep)
@@ -146,7 +168,6 @@ exit(1);
 						*RES    += dt*(*RHS++);
 						*What++ += rk4b[rk]*(*RES++);
 					}
-					free(VOLUME->RHS);
 				}
 			}
 		}
@@ -173,6 +194,7 @@ exit(1);
 		}
 
 		// hp adaptation
+//		if (Adapt && tstep == 0)
 		if (Adapt)
 			adapt_hp();
 

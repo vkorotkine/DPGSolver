@@ -175,7 +175,7 @@ void setup_structures(void)
 	             *EToVe   = DB.EToVe,
 	             *EType   = DB.EType,
 	             *EToPrt  = DB.EToPrt,
-//	             *VToV    = DB.VToV,
+	             *VToV    = DB.VToV,
 	             *VToGF   = DB.VToGF,
 	             *VToBC   = DB.VToBC,
 	             *VC      = DB.VC,
@@ -186,7 +186,7 @@ void setup_structures(void)
 	int  PrintTesting = 0;
 
 	// Standard datatypes
-	unsigned int i, f, v, dim, ve, gf,
+	unsigned int i, f, v, dim, ve, gf, fh, fhMax,
 	             IndE, IndVC, IndVgrp, IndGFC, IndVIn, Indf, IndOrdInOut, IndOrdOutIn,
 	             Vs, vlocal, NTVgrp, NVlocal, NECgrp, *NVgrp, Vf, Nf,
 	             Nve,*Nfve, Nfn,
@@ -362,6 +362,19 @@ void setup_structures(void)
 	if (!AC && IndVC > NVC)
 		printf("Error: Found too many curved VOLUMEs.\n"), exit(1);
 
+	// Initialize VOLUME connectivity
+	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+		// Initialize to NV (impossible value)
+		for (fh = 0, fhMax = NFMAX*NFREFMAX; fh < fhMax; fh++)
+			VOLUME->neigh[fh] = NV;
+
+		indexg = VOLUME->indexg;
+		ELEMENT = get_ELEMENT_type(VOLUME->type);
+		Nf = ELEMENT->Nf;
+		for (f = 0; f < Nf; f++)
+			VOLUME->neigh[f*NFREFMAX] = VToV[NfMax*indexg+f];
+	}
+
 	for (FACET[0] = DB.FACET; FACET[0] != NULL; FACET[0] = FACET[0]->next) {
 // May potentially have a problem for PYR-HEX interface due to PYR nodes being ordered for symmetry while QUAD nodes are
 // ordered for TP extension. (ToBeDeleted)
@@ -459,11 +472,12 @@ for (i = 0, iMax = NTVgrp; iMax--; i++) {
 
 
 	// Assign/Overwrite DB parameters
-	DB.NV     = NVlocal;
-	DB.NTVgrp = NTVgrp,
-	DB.NECgrp = NECgrp;
-	DB.NVgrp  = NVgrp;
-	DB.Vgrp = Vgrp;
+	DB.NVglobal = NV;
+	DB.NV       = NVlocal;
+	DB.NTVgrp   = NTVgrp,
+	DB.NECgrp   = NECgrp;
+	DB.NVgrp    = NVgrp;
+	DB.Vgrp     = Vgrp;
 
 //VOLUME = DB.VOLUME; while(VOLUME != NULL) printf("%d %d\n",VOLUME->type,VOLUME->curved), VOLUME = VOLUME->next;
 }

@@ -36,6 +36,52 @@ struct S_OPERATORS {
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
                      const unsigned int IndClass);
 
+void setup_FACET_XYZ(struct S_FACET *FACET)
+{
+	// Initialize DB Parameters
+	unsigned int d     = DB.d,
+	             Adapt = DB.Adapt;
+
+	// Standard datatypes
+	unsigned int VfIn, fIn, Eclass, IndFType, NvnG, NfnS, NfnI;
+	double       *XYZ_fS, *XYZ_fI;
+
+	struct S_OPERATORS *OPS;
+	struct S_VOLUME    *VIn;
+
+	OPS = malloc(sizeof *OPS); // free
+
+	VIn  = FACET->VIn;
+	VfIn = FACET->VfIn;
+	fIn  = VfIn/NFREFMAX;
+
+	Eclass = get_Eclass(VIn->type);
+	IndFType = get_IndFType(Eclass,fIn);
+
+	init_ops(OPS,VIn,FACET,IndFType);
+
+	NvnG = OPS->NvnG;
+	switch (Adapt) {
+	default: // ADAPT_P, ADAPT_H, ADAPT_HP
+		NfnS = OPS->NfnS;
+
+		XYZ_fS = malloc(NfnS*d *sizeof *XYZ_fS); // keep
+		mm_CTN_d(NfnS,d,NvnG,OPS->I_vG_fS[VfIn],VIn->XYZ,XYZ_fS);
+
+		FACET->XYZ_fS = XYZ_fS;
+		break;
+	case ADAPT_0:
+		NfnI = OPS->NfnI;
+
+		XYZ_fI = malloc(NfnI*d *sizeof *XYZ_fI); // keep
+		mm_CTN_d(NfnI,d,NvnG,OPS->I_vG_fI[VfIn],VIn->XYZ,XYZ_fI);
+
+		FACET->XYZ_fI = XYZ_fI;
+		break;
+	}
+	free(OPS);
+}
+
 void setup_geometry(void)
 {
 	// Initialize DB Parameters
@@ -43,7 +89,6 @@ void setup_geometry(void)
 	             *TestCase = DB.TestCase;
 	unsigned int ExactGeom = DB.ExactGeom,
 	             d         = DB.d,
-	             Adapt     = DB.Adapt,
 
 	             Testing   = DB.Testing;
 
@@ -51,13 +96,11 @@ void setup_geometry(void)
 
 	// Standard datatypes
 	unsigned int dim, P, vn,
-	             NvnG, NvnGs, NvnGc, NCols, NfnI, NfnS, VfIn, fIn, Eclass, IndFType;
-	double       *XYZ_vC, *XYZ_S, *XYZ_fI, *XYZ_fS,
-	             *I_vGs_vGc;
+	             NvnG, NvnGs, NvnGc, NCols;
+	double       *XYZ_vC, *XYZ_S, *I_vGs_vGc;
 
-	struct S_OPERATORS *OPS;
 	struct S_ELEMENT   *ELEMENT;
-	struct S_VOLUME    *VOLUME, *VIn;
+	struct S_VOLUME    *VOLUME;
 	struct S_FACET     *FACET;
 
 	// silence
@@ -126,39 +169,9 @@ void setup_geometry(void)
 		exit(1);
 	}
 
-	// Add XYZ Coordinates to FACETs
-	OPS = malloc(sizeof *OPS);
-	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
-		VIn  = FACET->VIn;
-		VfIn = FACET->VfIn;
-		fIn  = VfIn/NFREFMAX;
-
-		Eclass = get_Eclass(VIn->type);
-		IndFType = get_IndFType(Eclass,fIn);
-
-		init_ops(OPS,VIn,FACET,IndFType);
-
-		NvnG = OPS->NvnG;
-		switch (Adapt) {
-		default: // ADAPT_P, ADAPT_H, ADAPT_HP
-			NfnS = OPS->NfnS;
-
-			XYZ_fS = malloc(NfnS*d *sizeof *XYZ_fS); // keep
-			mm_CTN_d(NfnS,d,NvnG,OPS->I_vG_fS[VfIn],VIn->XYZ,XYZ_fS);
-
-			FACET->XYZ_fS = XYZ_fS;
-			break;
-		case ADAPT_0:
-			NfnI = OPS->NfnI;
-
-			XYZ_fI = malloc(NfnI*d *sizeof *XYZ_fI); // keep
-			mm_CTN_d(NfnI,d,NvnG,OPS->I_vG_fI[VfIn],VIn->XYZ,XYZ_fI);
-
-			FACET->XYZ_fI = XYZ_fI;
-			break;
-		}
-	}
-	free(OPS);
+	printf("    Set FACET XYZ\n");
+	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next)
+		setup_FACET_XYZ(FACET);
 
 	printf("    Set up geometric factors\n");
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
@@ -167,9 +180,6 @@ void setup_geometry(void)
 	printf("    Set up normals\n");
 	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next)
 		setup_normals(FACET);
-
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
-		free(VOLUME->C_vC);
 
 	if (Testing) {
 		output_to_paraview("ZTest_Geom_curved"); // Output curved coordinates to paraview

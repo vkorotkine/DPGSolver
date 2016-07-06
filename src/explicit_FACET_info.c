@@ -126,6 +126,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 
 	OPS->NfnS      = ELEMENT_FACET->NvnS[PF];
 	OPS->GvShat_fS = ELEMENT->GvShat_fS[PV][PF];
+//printf("%d %d %p\n",PV,PF,OPS->GvShat_fS);
 	if (FtypeInt == 's') {
 		// Straight FACET Integration
 		OPS->NfnI    = ELEMENT->NfnIs[PF][IndClass];
@@ -664,7 +665,7 @@ static void compute_FACET_RHS(void)
 		NvnSOut = OPSOut[0]->NvnS;
 		WOut_fSIn = malloc(NfnS*Nvar * sizeof *WOut_fSIn); // free
 		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACET
-			WOut_fS   = malloc(NfnS*Nvar * sizeof *WOut_fS); // free
+			WOut_fS = malloc(NfnS*Nvar * sizeof *WOut_fS); // free
 			mm_CTN_d(NfnS,Nvar,NvnSOut,OPSOut[0]->GvShat_fS[VfOut],VOut->What,WOut_fS);
 
 			// Reorder WOut_fS to correspond to WIn_fS

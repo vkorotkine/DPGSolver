@@ -234,8 +234,8 @@
  *		I_vCc_fIs        |
  *		I_vCc_fIc        |
  *		                 |
- *		Is_Weak_VV       | [P][P][0]       [rP][P(P)][0]       [P][P][0]       [rP][P(P)][0]
- *		Ic_Weak_VV       |
+ *		Is_Weak_VV   (*) | [P][P][0]       [rP][rPb][0]        [P][P][0]       [rP][rPb][0]
+ *		Ic_Weak_VV   (*) |
  *		Ds_Weak_VV       | [P][P][0][rd]   [rP][P(P)][0][rd]   [P][P][0][rd]   [rP][P(P)][0][rd]
  *		Dc_Weak_VV       |
  *		                 |
@@ -1188,28 +1188,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		cubature(&rst_vCs,&dummyPtr_d,&dummyPtr_ui[0],&NvnCs[P],&dummy_ui,0,PCs[P][Eclass], dE,NodeTypeG[Eclass]  );    free(dummyPtr_ui[0]); // free
 		cubature(&rst_vCc,&dummyPtr_d,&dummyPtr_ui[0],&NvnCc[P],&dummy_ui,0,PCc[P][Eclass], dE,NodeTypeG[Eclass]  );    free(dummyPtr_ui[0]); // free
 
-		cubature(&rst_vIs[0],&w_vIs[P],&dummyPtr_ui[0],&NvnIs[P],&dummy_ui,1,PIvs[P][Eclass],dE,NodeTypeIvs[P][Eclass]); free(dummyPtr_ui[0]); // free
-		cubature(&rst_vIc[0],&w_vIc[P],&dummyPtr_ui[0],&NvnIc[P],&dummy_ui,1,PIvc[P][Eclass],dE,NodeTypeIvc[P][Eclass]); free(dummyPtr_ui[0]); // free
-		free(rst_vIs[0]);
-		free(rst_vIc[0]);
-
-		wInv_vIs = malloc(NvnIs[P] * sizeof *wInv_vIs); // free
-		wInv_vIc = malloc(NvnIc[P] * sizeof *wInv_vIc); // free
-
-		for (i = 0, iMax = NvnIs[P]; i < iMax; i++)
-			wInv_vIs[i] = 1./w_vIs[P][i];
-
-		for (i = 0, iMax = NvnIc[P]; i < iMax; i++)
-			wInv_vIc[i] = 1./w_vIc[P][i];
-
-		diag_w_vIs    = diag_d(w_vIs[P],NvnIs[P]); // free
-		diag_w_vIc    = diag_d(w_vIc[P],NvnIc[P]); // free
-		diag_wInv_vIs = diag_d(wInv_vIs,NvnIs[P]);  // free
-		diag_wInv_vIc = diag_d(wInv_vIc,NvnIc[P]);  // free
-
-		free(wInv_vIs);
-		free(wInv_vIc);
-
 		// Preliminary Operators
 		IGc          = identity_d(NvnGc[P]); // free
 		ICs[P][P][0] = identity_d(NvnCs[P]); // keep
@@ -1257,6 +1235,32 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		free(ChiRefInvS_vS);
 
 		for (Pb = PbMin; Pb <= PbMax; Pb++) {
+			if (w_vIs[Pb] != NULL)
+				free(w_vIs[Pb]);
+			cubature(&rst_vIs[0],&w_vIs[Pb],&dummyPtr_ui[0],&NvnIs[Pb],&dummy_ui,1,PIvs[Pb][Eclass],dE,NodeTypeIvs[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+			if (w_vIc[Pb] != NULL)
+				free(w_vIc[Pb]);
+			cubature(&rst_vIc[0],&w_vIc[Pb],&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,1,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+			free(rst_vIs[0]);
+			free(rst_vIc[0]);
+
+			wInv_vIs = malloc(NvnIs[Pb] * sizeof *wInv_vIs); // free
+			wInv_vIc = malloc(NvnIc[Pb] * sizeof *wInv_vIc); // free
+
+			for (i = 0, iMax = NvnIs[Pb]; i < iMax; i++)
+				wInv_vIs[i] = 1./w_vIs[Pb][i];
+
+			for (i = 0, iMax = NvnIc[Pb]; i < iMax; i++)
+				wInv_vIc[i] = 1./w_vIc[Pb][i];
+
+			diag_w_vIs    = diag_d(w_vIs[Pb],NvnIs[Pb]); // free
+			diag_w_vIc    = diag_d(w_vIc[Pb],NvnIc[Pb]); // free
+			diag_wInv_vIs = diag_d(wInv_vIs, NvnIs[Pb]); // free
+			diag_wInv_vIc = diag_d(wInv_vIc, NvnIc[Pb]); // free
+
+			free(wInv_vIs);
+			free(wInv_vIc);
+
 			// VOLUME Operators
 			cubature(&rst_vS[0], &dummyPtr_d,&dummyPtr_ui[0],&NvnS[Pb], &dummy_ui,0,Pb,              dE,NodeTypeS[Pb][Eclass]);   free(dummyPtr_ui[0]); // free
 			cubature(&rst_vIs[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIs[Pb],&dummy_ui,0,PIvs[Pb][Eclass],dE,NodeTypeIvs[Pb][Eclass]); free(dummyPtr_ui[0]); // free
@@ -1379,6 +1383,22 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 			ChiS_vP[P][Pb][0]   = mm_Alloc_d(CBRM,CBNT,CBNT,NvnP,    NvnS[P], NvnS[P], 1.0,ChiRefS_vP,TS);           // keep
 			I_vGc_vP[P][Pb][0]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnP,    NvnGc[P],NvnGc[P],1.0,ChiGc_vP,  ChiInvGc_vGc); // keep
 
+			if (EFE) {
+				Is_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIs[Pb],NvnIs[Pb],1.0,ChiS_vIs[P][Pb][0],diag_w_vIs); // keep
+				Ic_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIc[Pb],NvnIc[Pb],1.0,ChiS_vIc[P][Pb][0],diag_w_vIc); // keep
+			} else {
+				;
+			}
+
+			if (Collocated) {
+				dummyPtr_d = Is_Weak_VV[P][Pb][0];
+				Is_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnIs[Pb],NvnS[P],1.0,diag_wInv_vIs,dummyPtr_d); // keep
+				free(dummyPtr_d);
+				dummyPtr_d = Ic_Weak_VV[P][Pb][0];
+				Ic_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnIc[Pb],NvnS[P],1.0,diag_wInv_vIc,dummyPtr_d); // keep
+				free(dummyPtr_d);
+			}
+
 			free(ChiRefGc_vP);
 			free(ChiRefS_vP);
 			free(ChiGc_vP);
@@ -1423,22 +1443,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				I_vGs_vGc[1][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],NvnGs[1],NvnGs[1],1.0,ChiGs_vGc,ChiInvGs_vGs); // keep
 				I_vGs_vCs[1][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnCs[P],NvnGs[1],NvnGs[1],1.0,ChiGs_vCs,ChiInvGs_vGs); // keep
 				I_vGc_vCc[P][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnCc[P],NvnGc[P],NvnGc[P],1.0,ChiGc_vCc,ChiInvGc_vGc); // keep
-
-				if (EFE) {
-					Is_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIs[P],NvnIs[P],1.0,ChiS_vIs[P][P][0],diag_w_vIs); // keep
-					Ic_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIc[P],NvnIc[P],1.0,ChiS_vIc[P][P][0],diag_w_vIc); // keep
-				} else {
-					;
-				}
-
-				if (Collocated) {
-					dummyPtr_d = Is_Weak_VV[P][Pb][0];
-					Is_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[P],NvnIs[Pb],NvnS[P],1.0,diag_wInv_vIs,dummyPtr_d); // keep
-					free(dummyPtr_d);
-					dummyPtr_d = Ic_Weak_VV[P][Pb][0];
-					Ic_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[P],NvnIc[Pb],NvnS[P],1.0,diag_wInv_vIc,dummyPtr_d); // keep
-					free(dummyPtr_d);
-				}
 
 				for (dim = 0; dim < dE; dim++) {
 					D_vGs_vCs[1][Pb][0][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnCs[P],NvnGs[1],NvnGs[1],1.0,GradChiGs_vCs[dim],ChiInvGs_vGs); // keep
@@ -1647,12 +1651,12 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 			free(BCoords_V->Ic[Pb]);
 
 			free(rst_vP);
-		}
-		free(diag_w_vIs);
-		free(diag_w_vIc);
-		free(diag_wInv_vIs);
-		free(diag_wInv_vIc);
 
+			free(diag_w_vIs);
+			free(diag_w_vIc);
+			free(diag_wInv_vIs);
+			free(diag_wInv_vIc);
+		}
 		free(rst_vGc);
 		free(rst_vCs);
 		free(rst_vCc);
@@ -2307,20 +2311,18 @@ unsigned int vrefSF = 0;
 						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCc_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
-						if (P == Pb) {
-							get_sf_parametersF(ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_VV[P][Pb],
-											   ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_FF[P][Pb],
-											   NIn,NOut,OP,dE,Vf,Eclass);
-							Is_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-							get_sf_parametersF(ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_VV[P][Pb],
-											   ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_FF[P][Pb],
-											   NIn,NOut,OP,dE,Vf,Eclass);
-							Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+						get_sf_parametersF(ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_VV[P][Pb],
+										   ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_FF[P][Pb],
+										   NIn,NOut,OP,dE,Vf,Eclass);
+						Is_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+						get_sf_parametersF(ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_VV[P][Pb],
+										   ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_FF[P][Pb],
+										   NIn,NOut,OP,dE,Vf,Eclass);
+						Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
-							if (Collocated || VFPartUnity[Eclass]) {
-								convert_to_CSR_d(NvnS[P],NfnIs[Pb][0],Is_Weak_FF[P][Pb][Vf],&Is_Weak_FF_sp[P][Pb][Vf]); // keep
-								convert_to_CSR_d(NvnS[P],NfnIc[Pb][0],Ic_Weak_FF[P][Pb][Vf],&Ic_Weak_FF_sp[P][Pb][Vf]); // keep
-							}
+						if (Collocated || VFPartUnity[Eclass]) {
+							convert_to_CSR_d(NvnS[P],NfnIs[Pb][0],Is_Weak_FF[P][Pb][Vf],&Is_Weak_FF_sp[P][Pb][Vf]); // keep
+							convert_to_CSR_d(NvnS[P],NfnIc[Pb][0],Ic_Weak_FF[P][Pb][Vf],&Ic_Weak_FF_sp[P][Pb][Vf]); // keep
 						}
 					}
 				}}

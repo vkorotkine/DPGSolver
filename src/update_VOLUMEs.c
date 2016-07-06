@@ -143,7 +143,7 @@ void update_VOLUME_hp(void)
 				else
 					printf("Error: Add in support for MeshType != ToBeCurved\n"), exit(1);
 
-				setup_geom_factors(VOLUME); // ToBeDeleted: Don't forget to free VOLUME->C_vC
+				setup_geom_factors(VOLUME);
 
 				// Project What and RES
 				NvnS       = OPS->NvnS;
@@ -238,8 +238,8 @@ void update_VOLUME_Ops(void)
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 		if (VOLUME->update) {
-//printf("update_VOLUME_Ops: %d\n",VOLUME->indexg);
 			VOLUME->update = 0;
+//printf("update_VOLUME_Ops: %d\n",VOLUME->indexg);
 			if (strstr(SolverType,"Explicit") != NULL) {
 				if (!Collocated) {
 					init_ops(OPS,VOLUME,0);
@@ -252,7 +252,7 @@ void update_VOLUME_Ops(void)
 					detJV_vI = VOLUME->detJV_vI;
 
 					// Compute required portion of MInv
-					wdetJV_vI = malloc(NvnI * sizeof *wdetJV_vI); // keep
+					wdetJV_vI = malloc(NvnI * sizeof *wdetJV_vI); // free
 					MInv      = NULL;
 
 					w_vI_ptr      = w_vI;
@@ -286,11 +286,10 @@ void update_VOLUME_Ops(void)
 					free(wdetJVChiS_vI);
 					free(M);
 					free(IS);
-					free(VOLUME->wdetJV_vI);
-					free(VOLUME->MInv);
+					free(wdetJV_vI);
 
-					VOLUME->wdetJV_vI = wdetJV_vI;
-					VOLUME->MInv      = MInv;
+					free(VOLUME->MInv);
+					VOLUME->MInv = MInv;
 				}
 			} else {
 				; // Updates for implicit.
@@ -299,4 +298,15 @@ void update_VOLUME_Ops(void)
 	}
 
 	free(OPS);
+}
+
+void update_VOLUME_finalize(void)
+{
+	struct S_VOLUME *VOLUME;
+
+	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+		if (VOLUME->Vadapt) {
+			VOLUME->Vadapt = 0;
+		}
+	}
 }

@@ -253,6 +253,9 @@ struct S_ELEMENT *New_ELEMENT(void)
 			ELEMENT->ChiS_vP[P][Pb]    = calloc(1          , sizeof ***(ELEMENT->ChiS_vP));
 
 			ELEMENT->I_vGc_vP[P][Pb]  = calloc(1          , sizeof ***(ELEMENT->I_vGc_vP));
+
+			ELEMENT->Is_Weak_VV[P][Pb]    = calloc(1 , sizeof ***(ELEMENT->Is_Weak_VV));
+			ELEMENT->Ic_Weak_VV[P][Pb]    = calloc(1 , sizeof ***(ELEMENT->Ic_Weak_VV));
 			if (P == Pb) {
 				ELEMENT->ChiInvS_vS[P][Pb] = calloc(1          , sizeof ***(ELEMENT->ChiInvS_vS));
 
@@ -281,8 +284,6 @@ struct S_ELEMENT *New_ELEMENT(void)
 				ELEMENT->D_vCs_vCs[P][Pb][0] = calloc(d , sizeof ****(ELEMENT->D_vCs_vCs));
 				ELEMENT->D_vCc_vCc[P][Pb][0] = calloc(d , sizeof ****(ELEMENT->D_vCc_vCc));
 
-				ELEMENT->Is_Weak_VV[P][Pb]    = calloc(1 , sizeof ***(ELEMENT->Is_Weak_VV));
-				ELEMENT->Ic_Weak_VV[P][Pb]    = calloc(1 , sizeof ***(ELEMENT->Ic_Weak_VV));
 				ELEMENT->Ds_Weak_VV[P][Pb]    = calloc(1 , sizeof ***(ELEMENT->Ds_Weak_VV));
 				ELEMENT->Dc_Weak_VV[P][Pb]    = calloc(1 , sizeof ***(ELEMENT->Dc_Weak_VV));
 				ELEMENT->Ds_Weak_VV_sp[P][Pb] = calloc(1 , sizeof ***(ELEMENT->Ds_Weak_VV_sp));
@@ -353,9 +354,9 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->Eclass = 0;
 	VOLUME->update = 0;
 	VOLUME->curved = 0;
+	VOLUME->hlevel = 0;
 
-//	VOLUME->Vneigh = malloc(6*9 * sizeof *(VOLUME->Vneigh)); // tbd
-//	VOLUME->Fneigh = malloc(6*9 * sizeof *(VOLUME->Fneigh)); // tbd
+	VOLUME->neigh = calloc(NFMAX*NFREFMAX , sizeof *(VOLUME->neigh)); // free
 
 	VOLUME->XYZ_vC = NULL; // free
 
@@ -365,7 +366,7 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->XYZ   = NULL; // free
 
 	VOLUME->detJV_vI = NULL; // free
-	VOLUME->C_vC     = NULL; // free (in setup_normals)
+	VOLUME->C_vC     = NULL; // free
 	VOLUME->C_vI     = NULL; // free
 	VOLUME->C_vf     = calloc(NFMAX , sizeof *(VOLUME->C_vf)); // free
 
@@ -375,17 +376,17 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->RES  = NULL; // free
 
 	// Solving
-	VOLUME->RHS       = NULL; // tbd
-	VOLUME->wdetJV_vI = NULL; // free
+	VOLUME->RHS       = NULL; // free
 	VOLUME->MInv      = NULL; // free
 
 	// hp adaptivity
 //	VOLUME->minRES = 0.0;
 //	VOLUME->maxRES = 0.0;
 
-	VOLUME->Vadapt     = 0;
-	VOLUME->adapt_type = 0;
-	VOLUME->PNew       = 0;
+	VOLUME->refine_current = 0; // ToBeDeleted: Potentially not needed.
+	VOLUME->Vadapt         = 0;
+	VOLUME->adapt_type     = 0;
+	VOLUME->PNew           = 0;
 
 	// structs
 	VOLUME->next    = NULL;

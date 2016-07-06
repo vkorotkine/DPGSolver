@@ -153,12 +153,14 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 
 	// Structures
 	free(VOLUME->XYZ_vC);
+	free(VOLUME->neigh);
 
 	// Geometry
 	free(VOLUME->XYZ_S);
 	free(VOLUME->XYZ);
 
 	free(VOLUME->detJV_vI);
+	free(VOLUME->C_vC);
 	free(VOLUME->C_vI);
 	array_free2_d(NFMAX,VOLUME->C_vf);
 
@@ -167,7 +169,7 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	free(VOLUME->RES);
 
 	// Solving
-	free(VOLUME->wdetJV_vI);
+	free(VOLUME->RHS);
 	free(VOLUME->MInv);
 
 	free(VOLUME);

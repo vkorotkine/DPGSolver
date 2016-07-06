@@ -40,7 +40,7 @@ struct S_DB {
 	             ***SF_BE, **PCs, **PCc, **PJs, **PJc, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
 	// Mesh
-	unsigned int NVe, NPVe, NfMax, NfveMax, NveMax, NfrefMax, NETotal, NV, NGF, NVC, NGFC,
+	unsigned int NVe, NPVe, NfMax, NfveMax, NveMax, NfrefMax, NETotal, NV, NVglobal, NGF, NVC, NGFC,
 	             *PVe, *NE, *EType, *ETags, *EToVe, *EToPrt, *VToV, *VToF, *VToGF, *VToBC, *GFToVe, *VC, *GFC;
 	double *VeXYZ;
 
@@ -112,8 +112,8 @@ struct S_ELEMENT {
 
 struct S_VOLUME {
 	// Structures
-	unsigned int indexl, indexg, P, type, Eclass, update, curved,
-	             *Vneigh, *Fneigh;
+	unsigned int indexl, indexg, P, type, Eclass, update, curved, hlevel,
+	             *neigh;
 	double *XYZ_vC;
 
 	// Geometry
@@ -128,7 +128,7 @@ struct S_VOLUME {
 	double *RHS, *wdetJV_vI, *MInv;
 
 	// hp adaptivity
-	unsigned int Vadapt, adapt_type, PNew;
+	unsigned int refine_current, Vadapt, adapt_type, PNew;
 //	double       minRES, maxRES;
 
 	// structs
