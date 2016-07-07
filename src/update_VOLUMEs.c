@@ -24,7 +24,7 @@
 
 struct S_OPERATORS {
 	unsigned int NvnGs, NvnGc, NvnS, NvnSP, NvnI;
-	double       *I_vGs_vGc, **Ihat_vS_vS, *w_vI, *ChiS_vI;
+	double       *I_vGs_vGc, **Ihat_vS_vS, **Ghat_vS_vS, *w_vI, *ChiS_vI;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass)
@@ -41,7 +41,9 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 
 	OPS->NvnS  = ELEMENT->NvnS[P];
 	OPS->NvnSP = ELEMENT->NvnS[PNew];
-	OPS->Ihat_vS_vS = ELEMENT->Ihat_vS_vS[P][PNew];
+	OPS->Ihat_vS_vS = ELEMENT->Ihat_vS_vS[P][PNew]; // ToBeDeleted: Remove all instances of Ihat_vS_vS from the code if
+	                                                //              not used here.
+	OPS->Ghat_vS_vS = ELEMENT->Ghat_vS_vS[P][PNew];
 	if (!curved) {
 		OPS->NvnI = ELEMENT->NvnIs[P];
 
@@ -72,7 +74,7 @@ void update_VOLUME_hp(void)
 	unsigned int P, PNew, adapt_type;
 	double       NvnGs, NvnGc, NvnS, NvnSP, NCols,
 	             *I_vGs_vGc, *XYZ_vC, *XYZ_S,
-	             **Ihat_vS_vS, *What, *RES, *WhatP, *RESP;
+	             **Ihat_vS_vS, **Ghat_vS_vS, *What, *RES, *WhatP, *RESP;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME;
@@ -149,6 +151,7 @@ void update_VOLUME_hp(void)
 				NvnS       = OPS->NvnS;
 				NvnSP      = OPS->NvnSP;
 				Ihat_vS_vS = OPS->Ihat_vS_vS;
+				Ghat_vS_vS = OPS->Ghat_vS_vS;
 
 				VOLUME->NvnS = NvnSP;
 
@@ -158,8 +161,10 @@ void update_VOLUME_hp(void)
 				WhatP = malloc(NvnSP*Nvar * sizeof *WhatP); // keep
 				RESP  = malloc(NvnSP*Nvar * sizeof *RESP);  // keep
 
-				mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS[0],What,WhatP);
-				mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS[0],RES,RESP);
+//				mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS[0],What,WhatP);
+//				mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS[0],RES,RESP);
+				mm_CTN_d(NvnSP,Nvar,NvnS,Ghat_vS_vS[0],What,WhatP);
+				mm_CTN_d(NvnSP,Nvar,NvnS,Ghat_vS_vS[0],RES,RESP);
 
 				free(What);
 				free(RES);

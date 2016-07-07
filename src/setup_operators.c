@@ -617,16 +617,17 @@ static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const
 static void setup_ELEMENT_VeV(const unsigned int EType)
 {
 	// Standard datatypes
-	unsigned int i, j, jMax, VeVrefInd, Nve, *Nvve;
+	unsigned int i, j, jMax, VeVrefInd, Nve, *Nvve, Nvref;
 	double       **VeV;
 
 	struct S_ELEMENT *ELEMENT;
 
 	ELEMENT = get_ELEMENT_type(EType);
 
-	Nve  = ELEMENT->Nve;
-	Nvve = ELEMENT->Nvve;
-	VeV  = ELEMENT->VeV;
+	Nve   = ELEMENT->Nve;
+	Nvve  = ELEMENT->Nvve;
+	VeV   = ELEMENT->VeV;
+	Nvref = ELEMENT->Nvref;
 
 	double VeVref_LINE[12] = { 1.0, 0.0 ,
 		                       0.0, 1.0 ,
@@ -734,11 +735,11 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 
 	switch(EType) {
 	case LINE:
-		for (i = 0; i < NREFMAXLINE; i++)
+		for (i = 0; i < Nvref; i++)
 			Nvve[i] = 2;
 
 		VeVrefInd = 0;
-		for (i = 0; i < NREFMAXLINE; i++) {
+		for (i = 0; i < Nvref; i++) {
 			jMax = Nve*Nvve[i];
 			if (i)
 				VeVrefInd += jMax;
@@ -748,11 +749,11 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 		}
 		break;
 	case TRI:
-		for (i = 0; i < NREFMAXTRI; i++)
+		for (i = 0; i < Nvref; i++)
 			Nvve[i] = 3;
 
 		VeVrefInd = 0;
-		for (i = 0; i < NREFMAXTRI; i++) {
+		for (i = 0; i < Nvref; i++) {
 			jMax = Nve*Nvve[i];
 			if (i)
 				VeVrefInd += jMax;
@@ -765,11 +766,11 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 		// Original TET, 4 TETs, 2 PYRs
 		for (i = 0; i < 5; i++)
 			Nvve[i] = Nve;
-		for (i = 5; i < NREFMAXTET; i++)
+		for (i = 5; i < Nvref; i++)
 			Nvve[i] = 5;
 
 		VeVrefInd = 0;
-		for (i = 0; i < NREFMAXTET; i++) {
+		for (i = 0; i < Nvref; i++) {
 			jMax = Nve*Nvve[i];
 			if (i)
 				VeVrefInd += jMax;
@@ -784,11 +785,11 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 			Nvve[i] = Nve;
 		for (i = 5; i < 9; i++)
 			Nvve[i] = 4;
-		for (i = 9; i < NREFMAXPYR; i++)
+		for (i = 9; i < Nvref; i++)
 			Nvve[i] = Nve;
 
 		VeVrefInd = 0;
-		for (i = 0; i < NREFMAXPYR; i++) {
+		for (i = 0; i < Nvref; i++) {
 			jMax = Nve*Nvve[i];
 			if (i)
 				VeVrefInd += jMax;
@@ -836,10 +837,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	               ****Is_Weak_FF_sp, ****Ic_Weak_FF_sp;
 
 	// Initialize DB Parameters
-	unsigned int Adapt        = DB.Adapt,
-	             PMax         = DB.PMax,
+	unsigned int PMax         = DB.PMax,
 	             NP           = DB.NP,
-	             PGlobal      = DB.PGlobal,
 	             PGs          = DB.PGs,
 	             *PGc         = DB.PGc,
 	             **PCs        = DB.PCs,
@@ -857,7 +856,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             ***NodeTypeS   = DB.NodeTypeS;
 
 	// Standard datatypes
-	unsigned int i, iMax, dim, dE, P, f, fh, Vf, IndFType, PSMin, PSMax, Pb, PbMin, PbMax, *fhMax,
+	unsigned int i, iMax, dim, dE, P, f, fh, Vf, IndFType, PSMin, PSMax, Pb, PbMin, PbMax, fhMax,
 	             Nve, Nf, Nbf, Eclass, NFTypes, Nvref, vref, vrefSF, NvrefSF, *Nfref, *ones_Nf,
 	             NvnP, u1 = 1,
 	             B_Nve[2], *Nfve, *Nvve,
@@ -910,7 +909,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	grad_basis_tdef grad_basis;
 
 	// silence
-	PSMin = PSMax = 0;
 	ChiGs_vGs = NULL; ChiGc_vGc = NULL;
 	ChiCs_vCs = NULL; ChiCc_vCc = NULL;
 
@@ -921,14 +919,16 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	Eclass = get_Eclass(EType);
 	setup_ELEMENT_VeV(EType);
 
-	dE    = ELEMENT->d;
-	Nve   = ELEMENT->Nve;
-	Nf    = ELEMENT->Nf;
-	Nfref = ELEMENT->Nfref;
-	Nfve  = ELEMENT->Nfve;
-	VeF   = ELEMENT->VeF;
-	VeV   = ELEMENT->VeV;
-	Nvve  = ELEMENT->Nvve;
+	dE      = ELEMENT->d;
+	Nve     = ELEMENT->Nve;
+	Nf      = ELEMENT->Nf;
+	Nfref   = ELEMENT->Nfref;
+	Nfve    = ELEMENT->Nfve;
+	VeF     = ELEMENT->VeF;
+	VeV     = ELEMENT->VeV;
+	Nvve    = ELEMENT->Nvve;
+	Nvref   = ELEMENT->Nvref;
+	NvrefSF = ELEMENT->NvrefSF;
 
 	select_functions(&basis,&grad_basis,&cubature,EType);
 
@@ -1093,67 +1093,15 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		free(BCoords_dEm1[IndFType]->w_fIc);
 	}
 
-	// NvrefSF used to build higher-dimensional operators.
-	switch (Adapt) {
-	case ADAPT_0:
-		PSMin = PGlobal;
-		PSMax = PGlobal;
-		Nvref = NvrefSF = 1;
-		break;
-	case ADAPT_P:
-		PSMin = 0;
-		PSMax = PMax;
-		Nvref = NvrefSF = 1;
-		break;
-	case ADAPT_H:
-	default: // ADAPT_HP
-		if (Adapt == ADAPT_HP) {
-			PSMin = 0;
-			PSMax = PMax;
-		} else if (Adapt == ADAPT_H) {
-			PSMin = PGlobal;
-			PSMax = PGlobal;
-		}
-		switch (EType) {
-		case LINE:
-			Nvref   = NvrefSF = NREFMAXLINE;
-			break;
-		case TRI:
-			Nvref   = NvrefSF = NREFMAXTRI;
-			break;
-		case TET:
-			Nvref   = NREFMAXTET;
-			NvrefSF = 1;
-			break;
-		case PYR:
-			Nvref   = NREFMAXPYR;
-			NvrefSF = 1;
-			break;
-		default:
-			printf("Error: Unsupported EType in get_NvrefSF.\n"), exit(1);
-			break;
-		}
-		break;
-	}
-
 	ones_Nf = malloc(Nf * sizeof *ones_Nf); // free
 	for (f = 0; f < Nf; f++)
 		ones_Nf[f] = 1;
-
-	switch (Adapt) {
-		default: // ADAPT_H or ADAPT_HP
-			fhMax = Nfref;
-			break;
-		case ADAPT_0:
-		case ADAPT_P:
-			fhMax = ones_Nf;
-			break;
-	}
 
 	BCoords_V->S  = calloc(NP , sizeof *(BCoords_V->S));  // free
 	BCoords_V->Is = calloc(NP , sizeof *(BCoords_V->Is)); // free
 	BCoords_V->Ic = calloc(NP , sizeof *(BCoords_V->Ic)); // free
 
+	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
 		get_Pb_range(P,&PbMin,&PbMax);
 
@@ -1280,6 +1228,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 //printf("NvrefSF: %d\n",NvrefSF);
 			for (vrefSF = 0; vrefSF < NvrefSF; vrefSF++) {
+// Will need to move some of these operators to vref loop for 3D with adaptation. (ToBeDeleted)
 				if (vrefSF) {
 					mm_CTN_d(Nvve[vrefSF],dE,Nve,VeV[vrefSF],E_rst_vC,rst_vC);
 					rst_vS[vrefSF]  = mm_Alloc_d(CBCM,CBNT,CBNT,NvnS[Pb], dE,Nvve[vrefSF],1.0,BCoords_V->S[Pb], rst_vC); // free
@@ -1509,7 +1458,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 			for (f = 0; f < Nf; f++) {
 				IndFType = get_IndFType(Eclass,f);
 
-				for (fh = 0; fh < fhMax[f]; fh++) {
+				for (fh = 0, fhMax = Nfref[f]; fh < fhMax; fh++) {
 					Vf = f*NFREFMAX+fh;
 
 					mm_CTN_d(Nfve[f],dE,Nve,VeF[Vf],E_rst_vC,rst_vC);
@@ -1720,7 +1669,7 @@ void setup_ELEMENT_VeF(const unsigned int EType)
 
 	// Standard datatypes
 	unsigned int i, j, k, l, iMax, jMax, kMax, lMax, iStep,
-	             f, Nve, *Nfve, *Nfref, Nf, *VeFcon;
+	             Nve, *Nfve, *Nfref, Nf, *VeFcon;
 	double *VeF;
 
 	struct S_ELEMENT *ELEMENT;
@@ -1733,45 +1682,6 @@ void setup_ELEMENT_VeF(const unsigned int EType)
 	Nfve   = ELEMENT->Nfve;
 	Nf     = ELEMENT->Nf;
 	VeFcon = ELEMENT->VeFcon;
-
-	// Set Nfref
-	switch(EType) {
-	case LINE:
-		for (f = 0; f < Nf; f++)
-			ELEMENT->Nfref[f] = NREFMAXPOINT;
-		break;
-	case TRI:
-		for (f = 0; f < Nf; f++)
-			ELEMENT->Nfref[f] = NREFMAXLINE;
-		break;
-	case QUAD:
-		for (f = 0; f < Nf; f++)
-			ELEMENT->Nfref[f] = NREFMAXLINE;
-		break;
-	case TET:
-		for (f = 0; f < Nf; f++)
-			ELEMENT->Nfref[f] = NREFMAXTRI;
-		break;
-	case HEX:
-		for (f = 0; f < Nf; f++)
-			ELEMENT->Nfref[f] = NREFMAXQUAD;
-		break;
-	case WEDGE:
-		for (f = 0; f < 3; f++)
-			ELEMENT->Nfref[f] = NREFMAXQUAD;
-		for (f = 3; f < 5; f++)
-			ELEMENT->Nfref[f] = NREFMAXTRI;
-		break;
-	case PYR:
-		for (f = 0; f < 4; f++)
-			ELEMENT->Nfref[f] = NREFMAXTRI;
-		for (f = 4; f < 5; f++)
-			ELEMENT->Nfref[f] = NREFMAXQUAD;
-		break;
-	default:
-		printf("Error: Unsupported EType in setup_ELEMENT_VeF.\n"), exit(1);
-		break;
-	}
 
 	Nfref   = ELEMENT->Nfref;
 
@@ -1963,15 +1873,12 @@ static void setup_TP_operators(const unsigned int EType)
 	               ****Is_Weak_FF_sp, ****Ic_Weak_FF_sp;
 
 	// Initialize DB Parameters
-	unsigned int Adapt        = DB.Adapt,
-	             PGlobal      = DB.PGlobal,
-	             PMax         = DB.PMax,
-	             EFE          = DB.EFE,
+	unsigned int EFE          = DB.EFE,
 	             Collocated   = DB.Collocated,
 	             *VFPartUnity = DB.VFPartUnity;
 
 	// Standard datatypes
-	unsigned int dim, P, f, fh, Pb, PSMin, PSMax, PbMin, PbMax, *fhMax, IndClass,
+	unsigned int dim, P, f, fh, Pb, PSMin, PSMax, PbMin, PbMax, fhMax, IndClass,
 	             Eclass, dE, Nf, Vf, *Nfref, *ones_Nf,
 	             NIn[3], NOut[3];
 	double       *OP[3];
@@ -1979,8 +1886,6 @@ static void setup_TP_operators(const unsigned int EType)
 	struct S_ELEMENT *ELEMENT, *ELEMENTclass[2];
 
 	// silence
-	PSMin = PSMax = 0;
-	fhMax = NULL;
 	ELEMENTclass[1] = NULL;
 
 	Eclass = get_Eclass(EType);
@@ -2073,37 +1978,7 @@ static void setup_TP_operators(const unsigned int EType)
 	Ds_Weak_VV_sp = ELEMENT->Ds_Weak_VV_sp;
 	Dc_Weak_VV_sp = ELEMENT->Dc_Weak_VV_sp;
 
-	switch (Adapt) {
-		default: // ADAPT_H or ADAPT_HP
-			fhMax = Nfref;
-			break;
-		case ADAPT_0:
-		case ADAPT_P:
-			fhMax = ones_Nf;
-			break;
-	}
-
-	switch (Adapt) {
-	case ADAPT_0:
-		PSMin = PGlobal;
-		PSMax = PGlobal;
-		break;
-	case ADAPT_P:
-		PSMin = 0;
-		PSMax = PMax;
-		break;
-	case ADAPT_H:
-	default: // ADAPT_HP
-		if (Adapt == ADAPT_HP) {
-			PSMin = 0;
-			PSMax = PMax;
-		} else if (Adapt == ADAPT_H) {
-			PSMin = PGlobal;
-			PSMax = PGlobal;
-		}
-		break;
-	}
-
+	get_PS_range(&PSMin,&PSMax);
 	if (Eclass == C_TP) {
 		NvnGs[1] = pow(ELEMENTclass[0]->NvnGs[1],dE);
 
@@ -2136,6 +2011,9 @@ unsigned int vrefSF = 0;
 				get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnP[Pb],ELEMENTclass[0]->ChiS_vP[P][Pb][0],
 								  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 				ChiS_vP[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+				get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->ChiS_vIc[P][Pb][0],
+								  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
+				ChiS_vIc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 				get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnP[Pb],ELEMENTclass[0]->I_vGc_vP[P][Pb][0],
 								  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 				I_vGc_vP[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
@@ -2154,9 +2032,6 @@ unsigned int vrefSF = 0;
 					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->ChiS_vIs[P][Pb][0],
 					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 					ChiS_vIs[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->ChiS_vIc[P][Pb][0],
-					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
-					ChiS_vIc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnGc[Pb],ELEMENTclass[0]->I_vGs_vGc[1][Pb][0],
 					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 					I_vGs_vGc[1][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
@@ -2239,7 +2114,7 @@ unsigned int vrefSF = 0;
 				}
 
 				for (f = 0; f < Nf; f++) {
-				for (fh = 0; fh < fhMax[f]; fh++) {
+				for (fh = 0, fhMax = Nfref[f]; fh < fhMax; fh++) {
 					Vf = f*NFREFMAX+fh;
 					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],   ELEMENTclass[0]->ChiS_vS[P][Pb],
 					                   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NfnS[Pb][0],ELEMENTclass[0]->ChiS_fS[P][Pb],
@@ -2342,13 +2217,15 @@ unsigned int vrefSF = 0;
 
 			get_Pb_range(P,&PbMin,&PbMax);
 			for (Pb = PbMin; Pb <= PbMax; Pb++) {
-				NvnIs[P] = (ELEMENTclass[0]->NvnIs[P])*(ELEMENTclass[1]->NvnIs[P]);
-				NvnIc[P] = (ELEMENTclass[0]->NvnIc[P])*(ELEMENTclass[1]->NvnIc[P]);
+				NvnIs[Pb] = (ELEMENTclass[0]->NvnIs[Pb])*(ELEMENTclass[1]->NvnIs[Pb]);
+				NvnIc[Pb] = (ELEMENTclass[0]->NvnIc[Pb])*(ELEMENTclass[1]->NvnIc[Pb]);
 
-				NfnIs[P][0] = (ELEMENTclass[0]->NfnIs[P][0])*(ELEMENTclass[1]->NvnIs[P]);
-				NfnIs[P][1] = (ELEMENTclass[0]->NvnIs[P])*   (ELEMENTclass[1]->NfnIs[P][0]);
-				NfnIc[P][0] = (ELEMENTclass[0]->NfnIc[P][0])*(ELEMENTclass[1]->NvnIc[P]);
-				NfnIc[P][1] = (ELEMENTclass[0]->NvnIc[P])*   (ELEMENTclass[1]->NfnIc[P][0]);
+				NfnS[Pb][0]  = (ELEMENTclass[0]->NfnS[Pb][0])* (ELEMENTclass[1]->NvnS[Pb]);
+				NfnS[Pb][1]  = (ELEMENTclass[0]->NvnS[Pb])*    (ELEMENTclass[1]->NfnS[Pb][0]);
+				NfnIs[Pb][0] = (ELEMENTclass[0]->NfnIs[Pb][0])*(ELEMENTclass[1]->NvnIs[Pb]);
+				NfnIs[Pb][1] = (ELEMENTclass[0]->NvnIs[Pb])*   (ELEMENTclass[1]->NfnIs[Pb][0]);
+				NfnIc[Pb][0] = (ELEMENTclass[0]->NfnIc[Pb][0])*(ELEMENTclass[1]->NvnIc[Pb]);
+				NfnIc[Pb][1] = (ELEMENTclass[0]->NvnIc[Pb])*   (ELEMENTclass[1]->NfnIc[Pb][0]);
 
 				get_sf_parameters(1,ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->w_vIs[Pb],
 				                  1,ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->w_vIs[Pb],NIn,NOut,OP,dE,3,Eclass);
@@ -2356,6 +2233,26 @@ unsigned int vrefSF = 0;
 				get_sf_parameters(1,ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->w_vIc[Pb],
 				                  1,ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->w_vIc[Pb],NIn,NOut,OP,dE,3,Eclass);
 				w_vIc[Pb] = sf_assemble_d(NIn,NOut,dE,OP);
+
+// Will need a loop over vrefSF here when h-adaptation is added (ToBeDeleted)
+unsigned int vrefSF = 0;
+				get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->Ihat_vS_vS[P][Pb][0],
+								  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnS[Pb],ELEMENTclass[1]->Ihat_vS_vS[P][Pb][0],
+								  NIn,NOut,OP,dE,3,Eclass);
+				Ihat_vS_vS[P][Pb][vrefSF] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
+				get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnP[Pb],ELEMENTclass[0]->ChiS_vP[P][Pb][0],
+								  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnP[Pb],ELEMENTclass[1]->ChiS_vP[P][Pb][0],
+								  NIn,NOut,OP,dE,3,Eclass);
+				ChiS_vP[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+				get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->ChiS_vIc[P][Pb][0],
+								  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->ChiS_vIc[P][Pb][0],
+								  NIn,NOut,OP,dE,3,Eclass);
+				ChiS_vIc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+				get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnP[Pb],ELEMENTclass[0]->I_vGc_vP[P][Pb][0],
+								  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnP[Pb],ELEMENTclass[1]->I_vGc_vP[P][Pb][0],
+								  NIn,NOut,OP,dE,3,Eclass);
+				I_vGc_vP[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 				// Note: Most VOLUME operators need not interpolate between different orders
 				if (P == Pb) {
@@ -2367,18 +2264,10 @@ unsigned int vrefSF = 0;
 					                  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->ChiInvS_vS[P][Pb][0],
 					                  NIn,NOut,OP,dE,3,Eclass);
 					ChiInvS_vS[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnP[P],ELEMENTclass[0]->ChiS_vP[P][Pb][0],
-					                  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnP[P],ELEMENTclass[1]->ChiS_vP[P][Pb][0],
-					                  NIn,NOut,OP,dE,3,Eclass);
-					ChiS_vP[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->ChiS_vIs[P][Pb][0],
 					                  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->ChiS_vIs[P][Pb][0],
 					                  NIn,NOut,OP,dE,3,Eclass);
 					ChiS_vIs[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->ChiS_vIc[P][Pb][0],
-					                  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->ChiS_vIc[P][Pb][0],
-					                  NIn,NOut,OP,dE,3,Eclass);
-					ChiS_vIc[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnGc[Pb],ELEMENTclass[0]->I_vGs_vGc[1][Pb][0],
 					                  ELEMENTclass[1]->NvnGs[1],ELEMENTclass[1]->NvnGc[Pb],ELEMENTclass[1]->I_vGs_vGc[1][Pb][0],
 					                  NIn,NOut,OP,dE,3,Eclass);
@@ -2395,10 +2284,6 @@ unsigned int vrefSF = 0;
 					                  ELEMENTclass[1]->NvnGs[1],ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->I_vGs_vIs[1][Pb][0],
 					                  NIn,NOut,OP,dE,3,Eclass);
 					I_vGs_vIs[1][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-					get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnP[P],ELEMENTclass[0]->I_vGc_vP[P][Pb][0],
-					                  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnP[P],ELEMENTclass[1]->I_vGc_vP[P][Pb][0],
-					                  NIn,NOut,OP,dE,3,Eclass);
-					I_vGc_vP[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnCc[Pb],ELEMENTclass[0]->I_vGc_vCc[P][Pb][0],
 					                  ELEMENTclass[1]->NvnGc[P],ELEMENTclass[1]->NvnCc[Pb],ELEMENTclass[1]->I_vGc_vCc[P][Pb][0],
 					                  NIn,NOut,OP,dE,3,Eclass);
@@ -2496,9 +2381,16 @@ unsigned int vrefSF = 0;
 				}
 
 				for (f = 0; f < Nf; f++) {
-				for (fh = 0; fh < fhMax[f]; fh++) {
+				for (fh = 0, fhMax = Nfref[f]; fh < fhMax; fh++) {
 					Vf = f*NFREFMAX+fh;
 
+					if (f < 3) { OPF0  = ELEMENTclass[0]->ChiS_fS[P][Pb], OPF1  = ELEMENTclass[1]->ChiS_vS[P][Pb];
+					             NOut0 = ELEMENTclass[0]->NfnS[Pb][0],    NOut1 = ELEMENTclass[1]->NvnS[Pb];
+					} else {     OPF0  = ELEMENTclass[0]->ChiS_vS[P][Pb], OPF1  = ELEMENTclass[1]->ChiS_fS[P][Pb];
+					             NOut0 = ELEMENTclass[0]->NvnS[Pb],       NOut1 = ELEMENTclass[1]->NfnS[Pb][0]; }
+					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],NOut0,OPF0,
+					                   ELEMENTclass[1]->NvnS[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+					ChiS_fS[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					if (f < 3) { OPF0  = ELEMENTclass[0]->ChiS_fIs[P][Pb], OPF1  = ELEMENTclass[1]->ChiS_vIs[P][Pb];
 					             NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],    NOut1 = ELEMENTclass[1]->NvnIs[Pb];
 					} else {     OPF0  = ELEMENTclass[0]->ChiS_vIs[P][Pb], OPF1  = ELEMENTclass[1]->ChiS_fIs[P][Pb];
@@ -2514,30 +2406,12 @@ unsigned int vrefSF = 0;
 					                  ELEMENTclass[1]->NvnS[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 					ChiS_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
-					if (f < 3) { OPF0 = ELEMENTclass[0]->Is_Weak_FF[P][Pb], OPF1 = ELEMENTclass[1]->Is_Weak_VV[P][Pb];
-					             NIn0 = ELEMENTclass[0]->NfnIs[Pb][0],      NIn1 = ELEMENTclass[1]->NvnIs[Pb];
-					} else {     OPF0 = ELEMENTclass[0]->Is_Weak_VV[P][Pb], OPF1 = ELEMENTclass[1]->Is_Weak_FF[P][Pb];
-					             NIn0 = ELEMENTclass[0]->NvnIs[Pb],         NIn1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
-					get_sf_parametersF(NIn0,ELEMENTclass[0]->NvnS[P],OPF0,
-					                   NIn1,ELEMENTclass[1]->NvnS[P],OPF1,NIn,NOut,OP,dE,Vf,Eclass);
-					Is_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-					if (f < 3) { OPF0 = ELEMENTclass[0]->Ic_Weak_FF[P][Pb], OPF1 = ELEMENTclass[1]->Ic_Weak_VV[P][Pb];
-					             NIn0 = ELEMENTclass[0]->NfnIc[Pb][0],      NIn1 = ELEMENTclass[1]->NvnIc[Pb];
-					} else {     OPF0 = ELEMENTclass[0]->Ic_Weak_VV[P][Pb], OPF1 = ELEMENTclass[1]->Ic_Weak_FF[P][Pb];
-					             NIn0 = ELEMENTclass[0]->NvnIc[Pb],         NIn1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
-					get_sf_parametersF(NIn0,ELEMENTclass[0]->NvnS[P],OPF0,
-					                   NIn1,ELEMENTclass[1]->NvnS[P],OPF1,NIn,NOut,OP,dE,Vf,Eclass);
-					Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-
 					if (Collocated || VFPartUnity[Eclass]) {
 						if (f < 3) IndClass = 0;
 						else       IndClass = 1;
 
 						convert_to_CSR_d(NfnIs[Pb][IndClass],NvnS[P],ChiS_fIs[P][Pb][Vf],&ChiS_fIs_sp[P][Pb][Vf]); // keep
 						convert_to_CSR_d(NfnIc[Pb][IndClass],NvnS[P],ChiS_fIc[P][Pb][Vf],&ChiS_fIc_sp[P][Pb][Vf]); // keep
-
-						convert_to_CSR_d(NvnS[P],NfnIs[Pb][IndClass],Is_Weak_FF[P][Pb][Vf],&Is_Weak_FF_sp[P][Pb][Vf]); // keep
-						convert_to_CSR_d(NvnS[P],NfnIc[Pb][IndClass],Ic_Weak_FF[P][Pb][Vf],&Ic_Weak_FF_sp[P][Pb][Vf]); // keep
 					}
 
 					if (fh == 0) {
@@ -2628,6 +2502,29 @@ unsigned int vrefSF = 0;
 						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],NOut0,OPF0,
 						                   ELEMENTclass[1]->NvnCc[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCc_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
+						if (f < 3) { OPF0 = ELEMENTclass[0]->Is_Weak_FF[P][Pb], OPF1 = ELEMENTclass[1]->Is_Weak_VV[P][Pb];
+									 NIn0 = ELEMENTclass[0]->NfnIs[Pb][0],      NIn1 = ELEMENTclass[1]->NvnIs[Pb];
+						} else {     OPF0 = ELEMENTclass[0]->Is_Weak_VV[P][Pb], OPF1 = ELEMENTclass[1]->Is_Weak_FF[P][Pb];
+									 NIn0 = ELEMENTclass[0]->NvnIs[Pb],         NIn1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
+						get_sf_parametersF(NIn0,ELEMENTclass[0]->NvnS[P],OPF0,
+										   NIn1,ELEMENTclass[1]->NvnS[P],OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						Is_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+						if (f < 3) { OPF0 = ELEMENTclass[0]->Ic_Weak_FF[P][Pb], OPF1 = ELEMENTclass[1]->Ic_Weak_VV[P][Pb];
+									 NIn0 = ELEMENTclass[0]->NfnIc[Pb][0],      NIn1 = ELEMENTclass[1]->NvnIc[Pb];
+						} else {     OPF0 = ELEMENTclass[0]->Ic_Weak_VV[P][Pb], OPF1 = ELEMENTclass[1]->Ic_Weak_FF[P][Pb];
+									 NIn0 = ELEMENTclass[0]->NvnIc[Pb],         NIn1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
+						get_sf_parametersF(NIn0,ELEMENTclass[0]->NvnS[P],OPF0,
+										   NIn1,ELEMENTclass[1]->NvnS[P],OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
+						if (Collocated || VFPartUnity[Eclass]) {
+							if (f < 3) IndClass = 0;
+							else       IndClass = 1;
+
+							convert_to_CSR_d(NvnS[P],NfnIs[Pb][IndClass],Is_Weak_FF[P][Pb][Vf],&Is_Weak_FF_sp[P][Pb][Vf]); // keep
+							convert_to_CSR_d(NvnS[P],NfnIc[Pb][IndClass],Ic_Weak_FF[P][Pb][Vf],&Ic_Weak_FF_sp[P][Pb][Vf]); // keep
+						}
 					}
 				}}
 			}
@@ -2641,26 +2538,32 @@ unsigned int vrefSF = 0;
 static void setup_galerkin_projection_operators(const unsigned int EType)
 {
 	// Returned Operators
-	double ****GvShat_fS, ****GfS_fIs, ****GfS_fIc;
+	double ****Ghat_vS_vS,
+	       ****GvShat_fS, ****GfS_fIs, ****GfS_fIc;
 
 	// Initialize DB Parameters
 	unsigned int Adapt = DB.Adapt;
 
 	// Standard datatypes
-	unsigned int P, Pb, f, fh, PSMin, PSMax, PbMin, PbMax, Nf, *fhMax,
-	             Vf, PM, *Nfref, Eclass, IndFType,
-	             NvnS, NfnM, NfnF, NfnIs, NfnIc,
+	unsigned int P, Pb, vref, f, fh, PSMin, PSMax, PbMin, PbMax, Nf, fhMax,
+	             Vf, PM, *Nfref, Eclass, IndFType, Nvref,
+	             NvnS, NvnSN, NvnI, NfnM, NfnF, NfnIs, NfnIc,
 	             *ones_Nf;
-	double       *one_d, *ChiS_vF, *ChiM_vI, *ChiM_vS, *ChiF_vIs, *ChiF_vIc,
+	double       *ChiSN_vI, *wSN_vI, *diag_wSN_vI, *ISN, *ChiTW_SN, *MSN, *MSNInv, *ChiS_vI, *SSNS,
+	             *one_d, *ChiS_vF, *ChiM_vI, *ChiM_vS, *ChiF_vIs, *ChiF_vIc,
 	             *ChiInvF_vF, *ChiInvM_vM, *wM_vI, *diag_wM_vI, *IF, *IM, *ChiTW_M, *ChiTW_F,
 	             *SMF, *SFM, *MM, *MF, *MMInv, *MFInv, *MInvSMF, *MInvSFM,
 	             *IhatS_fS, *GhatvS_fS, *GhatfS_fI;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_F;
 
-
 	if (Adapt == ADAPT_0)
 		return;
+
+	// silence
+	IF = IM = NULL;
+	diag_wM_vI = ChiTW_M = NULL;
+	MM = MMInv = NULL;
 
 	one_d = malloc(1 * sizeof *one_d); // free
 	one_d[0] = 1.0;
@@ -2670,79 +2573,112 @@ static void setup_galerkin_projection_operators(const unsigned int EType)
 
 	Nf    = ELEMENT->Nf;
 	Nfref = ELEMENT->Nfref;
+	Nvref = ELEMENT->Nvref;
 
 	// Stored operators
-	GvShat_fS = ELEMENT->GvShat_fS;
-	GfS_fIs   = ELEMENT->GfS_fIs;
-	GfS_fIc   = ELEMENT->GfS_fIc;
+	Ghat_vS_vS = ELEMENT->Ghat_vS_vS;
+	GvShat_fS  = ELEMENT->GvShat_fS;
+	GfS_fIs    = ELEMENT->GfS_fIs;
+	GfS_fIc    = ELEMENT->GfS_fIc;
 
 
 	ones_Nf = malloc(Nf * sizeof *ones_Nf); // free
 	for (f = 0; f < Nf; f++)
 		ones_Nf[f] = 1;
 
-	switch (Adapt) {
-		default: // ADAPT_H or ADAPT_HP
-			fhMax = Nfref;
-			break;
-		case ADAPT_0:
-		case ADAPT_P:
-			fhMax = ones_Nf;
-			break;
-	}
-
 	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
+		NvnS = ELEMENT->NvnS[P];
+
 		get_Pb_range(P,&PbMin,&PbMax);
+		for (Pb = PbMin; Pb <= PbMax; Pb++) {
+			PM = max(P,Pb);
+
+			NvnSN = ELEMENT->NvnS[Pb]; // N: New
+			NvnI  = ELEMENT->NvnIc[Pb];
+
+			ChiSN_vI = ELEMENT->ChiS_vIc[Pb][Pb][0];
+
+			wSN_vI      = ELEMENT->w_vIc[Pb];
+			diag_wSN_vI = diag_d(wSN_vI,NvnI); // free
+
+			ISN      = identity_d(NvnSN); // free
+			ChiTW_SN = mm_Alloc_d(CBRM,CBT, CBNT,NvnSN,NvnI, NvnI,1.0,ChiSN_vI,diag_wSN_vI); // free
+			MSN      = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSN,NvnSN,NvnI,1.0,ChiTW_SN,ChiSN_vI);    // free
+			MSNInv   = inverse_d(NvnSN,NvnSN,MSN,ISN);                                       // free
+			for (vref = 0; vref < Nvref; vref++) {
+//printf("P,Pb,vref: %d %d %d\n",P,Pb,vref);
+				ChiS_vI  = ELEMENT->ChiS_vIc[P][Pb][vref];
+				SSNS     = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSN,NvnS, NvnI,1.0,ChiTW_SN,ChiS_vI); // free
+
+				// Returned Operators
+				Ghat_vS_vS[P][Pb][vref] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSN,NvnS,NvnSN,1.0,MSNInv,SSNS); // keep
+
+				free(SSNS);
+			}
+
+			free(diag_wSN_vI);
+			free(ISN);
+			free(ChiTW_SN);
+			free(MSN);
+			free(MSNInv);
+		}
+
 		for (Pb = P; Pb <= PbMax; Pb++) {
 			PM = max(P,Pb);
 			for (f = 0; f < Nf; f++) {
 				IndFType = get_IndFType(Eclass,f);
 				ELEMENT_F = get_ELEMENT_FACET(EType,IndFType);
-				for (fh = 0; fh < fhMax[f]; fh++) {
+
+				if (EType == LINE) {
+					NfnM = 1; // (M)ortar
+					NfnF = 1; // (F)acet
+					NfnIs = 1;
+					NfnIc = 1;
+
+					ChiM_vS   = one_d;
+				} else {
+					NfnM = ELEMENT_F->NvnS[PM];
+					NfnF = ELEMENT_F->NvnS[Pb];
+					NfnIs = ELEMENT_F->NvnIs[PM];
+					NfnIc = ELEMENT_F->NvnIc[PM];
+
+					ChiM_vS  = ELEMENT_F->ChiS_vS[PM][PM][0];
+					ChiM_vI  = ELEMENT_F->ChiS_vIc[PM][PM][0];
+					wM_vI    = ELEMENT_F->w_vIc[PM];
+
+					ChiInvF_vF = ELEMENT_F->ChiInvS_vS[Pb][Pb][0];
+					ChiInvM_vM = ELEMENT_F->ChiInvS_vS[PM][PM][0];
+
+					IF   = identity_d(NfnF); // free
+					IM   = identity_d(NfnM); // free
+
+					diag_wM_vI = diag_d(wM_vI,NfnIc); // free
+					ChiTW_M    = mm_Alloc_d(CBRM,CBT,CBNT,NfnM,NfnIc,NfnIc,1.0,ChiM_vI,diag_wM_vI); // free
+					MM         = mm_Alloc_d(CBRM,CBNT,CBNT,NfnM,NfnM,NfnIc,1.0,ChiTW_M,ChiM_vI);    // free
+					MMInv      = inverse_d(NfnM,NfnM,MM,IM);                                        // free
+				}
+
+				for (fh = 0, fhMax = Nfref[f]; fh < fhMax; fh++) {
 					Vf = f*NFREFMAX+fh;
 //printf("P, Pb, f, fh, Vf: %d %d %d %d %d\n",P,Pb,f,fh,Vf);
 
 					ChiS_vF = ELEMENT->ChiS_fS[P][Pb][f*NFREFMAX];
-					NvnS    = ELEMENT->NvnS[P];
 
 					if (EType == LINE) {
-						NfnM = 1;
-						NfnF = 1;
-						NfnIs = 1;
-						NfnIc = 1;
-
-						ChiM_vS   = one_d;
 						ChiF_vIs  = one_d;
 						ChiF_vIc  = one_d;
 						GhatvS_fS = mm_Alloc_d(CBRM,CBNT,CBNT,1,NvnS,1,1.0,one_d,ChiS_vF); // free
 						GhatfS_fI = mm_Alloc_d(CBRM,CBNT,CBNT,1,1,1,1.0,one_d,one_d);      // free
 					} else {
-						NfnM = ELEMENT_F->NvnS[PM]; // (M)ortar
-						NfnF = ELEMENT_F->NvnS[Pb]; // (F)acet
-						NfnIs = ELEMENT_F->NvnIs[PM];
-						NfnIc = ELEMENT_F->NvnIc[PM];
-
-						ChiM_vI  = ELEMENT_F->ChiS_vIs[PM][PM][0];
-						ChiM_vS  = ELEMENT_F->ChiS_vS[PM][PM][0];
 						ChiF_vIs = ELEMENT_F->ChiS_vIs[Pb][PM][fh];
 						ChiF_vIc = ELEMENT_F->ChiS_vIc[Pb][PM][fh];
-						wM_vI    = ELEMENT_F->w_vIs[PM];
-						ChiInvF_vF = ELEMENT_F->ChiInvS_vS[Pb][Pb][0];
-						ChiInvM_vM = ELEMENT_F->ChiInvS_vS[PM][PM][0];
 
-						IF   = identity_d(NfnF); // free
-						IM   = identity_d(NfnM); // free
+						ChiTW_F  = mm_Alloc_d(CBRM,CBT,CBNT,NfnF,NfnIc,NfnIc,1.0,ChiF_vIc,diag_wM_vI); // free
 
-						diag_wM_vI = diag_d(wM_vI,NfnIs); // free
-						ChiTW_M    = mm_Alloc_d(CBRM,CBT,CBNT,NfnM,NfnIs,NfnIs,1.0,ChiM_vI,diag_wM_vI);  // free
-						ChiTW_F    = mm_Alloc_d(CBRM,CBT,CBNT,NfnF,NfnIs,NfnIs,1.0,ChiF_vIs,diag_wM_vI); // free
-
-						SMF      = mm_Alloc_d(CBRM,CBNT,CBNT,NfnM,NfnF,NfnIs,1.0,ChiTW_M,ChiF_vIs);  // free
-						SFM      = mm_Alloc_d(CBRM,CBNT,CBNT,NfnF,NfnM,NfnIs,1.0,ChiTW_M,ChiF_vIs);  // free
-						MM       = mm_Alloc_d(CBRM,CBNT,CBNT,NfnM,NfnM,NfnIs,1.0,ChiTW_M,ChiM_vI);   // free
-						MF       = mm_Alloc_d(CBRM,CBNT,CBNT,NfnF,NfnF,NfnIs,1.0,ChiTW_F,ChiF_vIs);  // free
-						MMInv    = inverse_d(NfnM,NfnM,MM,IM);                                       // free
+						SMF      = mm_Alloc_d(CBRM,CBNT,CBNT,NfnM,NfnF,NfnIc,1.0,ChiTW_M,ChiF_vIc);  // free
+						SFM      = mm_Alloc_d(CBRM,CBNT,CBNT,NfnF,NfnM,NfnIc,1.0,ChiTW_M,ChiF_vIc);  // free
+						MF        = mm_Alloc_d(CBRM,CBNT,CBNT,NfnF,NfnF,NfnIc,1.0,ChiTW_F,ChiF_vIc); // free
 						MFInv    = inverse_d(NfnF,NfnF,MF,IF);                                       // free
 						MInvSMF  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnM,NfnF,NfnM,1.0,MMInv,SMF);          // free
 						MInvSFM  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnF,NfnM,NfnF,1.0,MFInv,SFM);          // free
@@ -2754,10 +2690,9 @@ static void setup_galerkin_projection_operators(const unsigned int EType)
 printf("%d %d\n",NfnM,NvnS);
 array_print_d(NfnM,NfnF,MInvSMF,'R');
 */
-						free(IF), free(IM);
-						free(diag_wM_vI), free(ChiTW_M); free(ChiTW_F);
-						free(SMF), free(SFM), free(MM), free(MF);
-						free(MMInv), free(MFInv), free(MInvSMF), free(MInvSFM);
+						free(ChiTW_F);
+						free(SMF), free(SFM), free(MF);
+						free(MFInv), free(MInvSMF), free(MInvSFM);
 						free(IhatS_fS);
 					}
 
@@ -2775,6 +2710,10 @@ exit(1);
 					free(GhatvS_fS);
 					free(GhatfS_fI);
 				}
+				free(IF), free(IM);
+				free(diag_wM_vI), free(ChiTW_M);
+				free(MM);
+				free(MMInv);
 			}
 		}
 	}

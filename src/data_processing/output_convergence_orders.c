@@ -180,6 +180,7 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 
 	fprintf(fID,"\\begin{table}[!htbp]\n");
 	fprintf(fID,"\\begin{center}\n");
+	fprintf(fID,"\\caption{ %s }\n",caption);
 	fprintf(fID,"\\resizebox{\\textwidth}{!}{\n");
 	fprintf(fID,"\\begin{tabular}{| l | l | ");
 	for (i = 0; i < 2; i++) {
@@ -240,7 +241,6 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 	fprintf(fID,"\t\\hline\n");
 	fprintf(fID,"\\end{tabular}\n");
 	fprintf(fID,"}\n");
-	fprintf(fID,"\\caption{ %s }\n",caption);
 	fprintf(fID,"\\end{center}\n");
 	fprintf(fID,"\\end{table}");
 

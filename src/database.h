@@ -68,7 +68,7 @@ extern struct S_DB DB;
 
 struct S_ELEMENT {
 	// Mesh
-	unsigned int present, type, d, Nve, Nf,
+	unsigned int present, type, d, Nve, Nf, Nvref, NvrefSF, Eclass,
 	             *Nfve, *VeCGmsh, *VeFcon;
 
 	// Operators
@@ -100,6 +100,7 @@ struct S_ELEMENT {
 	             ****Is_Weak_VV, ****Ic_Weak_VV,
 	             ****Is_Weak_FF, ****Ic_Weak_FF,
 	             *****Ds_Weak_VV, *****Dc_Weak_VV,
+	             ****Ghat_vS_vS,
 	             ****GvShat_fS, ****GfS_fIs, ****GfS_fIc;
 
 	struct S_OpCSR ****ChiS_fIs_sp, ****ChiS_fIc_sp,

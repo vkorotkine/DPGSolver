@@ -5,12 +5,12 @@
 /*------------------------------------------------------------*/
 
 BEGIN PARAMETERS
-  Dimension  2
-  ML         2
-  MeshType   ToBeCurvedStructuredTRI
+  Dimension  3
+  ML         4
+  MeshType   ToBeCurvedStructuredWEDGE
 
   Form       Weak  // Options: Weak, Strong
-  NodeType   GLL-WSH // Options: GL/GLL-AO/WSH
+  NodeType   GLL-AO // Options: GL/GLL-AO/WSH
   BasisType  Nodal // Options: Nodal, Modal
 
   Vectorized 0     // Options: 0, 1, 2, 3
@@ -19,7 +19,7 @@ BEGIN PARAMETERS
   Adapt      1     // Options: 0 (Likely add h, p, hp options later)
 
   PGlobal    2
-  PMax       4
+  PMax       3
 
   Restart    -1    // Options: -1, 0, Iteration #
 

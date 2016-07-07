@@ -122,7 +122,7 @@ struct S_ELEMENT *get_ELEMENT_FACET(const unsigned int type, const unsigned int 
 			ELEMENT = ELEMENT->next;
 		}
 	}
-	printf("Error: Element FACET not found.\n"), exit(1);
+	printf("Error: Element FACET of type %d and IndFType %d was not found.\n",type,IndEclass), exit(1);
 }
 
 unsigned int get_IndFType(const unsigned int Eclass, const unsigned int f)

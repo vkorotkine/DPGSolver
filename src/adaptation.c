@@ -75,7 +75,7 @@ void get_Pb_range(const unsigned int P, unsigned int *PbMin, unsigned int *PbMax
 }
 
 static void check_levels_refine(const unsigned int indexg, const unsigned int *VNeigh, const unsigned int *VType,
-                                const unsigned int *hp_levels, unsigned int *hp_refine_current, const char hp_type)
+                                unsigned int *hp_levels, unsigned int *hp_refine_current, const char hp_type)
 {
 	// Standard datatypes
 	unsigned int Nf, *Nfref, indexg_neigh, f, fh, fhMax;
@@ -86,24 +86,27 @@ static void check_levels_refine(const unsigned int indexg, const unsigned int *V
 	Nf = ELEMENT->Nf;
 	Nfref = ELEMENT->Nfref;
 
-	hp_refine_current[indexg] = 1;
+	if (!hp_refine_current[indexg]) {
+		hp_refine_current[indexg] = 1;
 
-	switch (hp_type) {
-	default: // p
-		for (f = 0; f < Nf; f++) {
-			indexg_neigh = VNeigh[indexg*NFREFMAX*NFMAX+f*NFREFMAX];
+		switch (hp_type) {
+		default: // p
+			hp_levels[indexg]++;
+			for (f = 0; f < Nf; f++) {
+				indexg_neigh = VNeigh[indexg*NFREFMAX*NFMAX+f*NFREFMAX];
 //if (indexg == 24)
 //	printf("indexg_neigh: %d\n",indexg_neigh);
-			if (!hp_refine_current[indexg_neigh] && ((int) hp_levels[indexg] - (int) hp_levels[indexg_neigh]) > 0)
-				check_levels_refine(indexg_neigh,VNeigh,VType,hp_levels,hp_refine_current,'p');
+				if (!hp_refine_current[indexg_neigh] && ((int) hp_levels[indexg] - (int) hp_levels[indexg_neigh]) > 1)
+					check_levels_refine(indexg_neigh,VNeigh,VType,hp_levels,hp_refine_current,'p');
+			}
+			break;
+		case 'h':
+			for (f = 0; f < Nf; f++) {
+			for (fh = 0, fhMax = Nfref[f]; fh < fhMax; fh++) {
+			}}
+			printf("Error: Write check_levels_refine for hp_type = 'h'.\n"), exit(1);
+			break;
 		}
-		break;
-	case 'h':
-		for (f = 0; f < Nf; f++) {
-		for (fh = 0, fhMax = Nfref[f]; fh < fhMax; fh++) {
-		}}
-		printf("Error: Write check_levels_refine for hp_type = 'h'.\n"), exit(1);
-		break;
 	}
 }
 
@@ -152,11 +155,11 @@ void adapt_hp(void)
 
 	// Standard datatypes
 	unsigned int i, iMax, j, jMax, iInd, DOF, NvnS, indexg, PMaxP1, Nf, *Nfref, f, fh, Vf, fhMax,
-	             NFREFMAX_Total, refine_conflict,
+	             NFREFMAX_Total, refine_conflict, coarse_conflict,
 	             *IndminRHS, *IndmaxRHS, *VNeigh, *VType_global,
 	             *p_levels, *h_levels, *hp_refine_current, *hp_coarse_current, *hp_coarse_current_local;
 	double       minRHS, maxRHS, tmp_d, refine_frac_lim,
-	             *RHS, *minRHS_Vec, *maxRHS_Vec;
+	             *RHS, *minRHS_Vec, *maxRHS_Vec, *minRHS_Vec_unsorted;
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME, **VOLUME_Vec;
@@ -169,6 +172,7 @@ void adapt_hp(void)
 	maxRHS_Vec = malloc(NV * sizeof *maxRHS_Vec); // free
 	VOLUME_Vec = malloc(NV * sizeof *VOLUME_Vec); // free
 
+// Change this from i to indexg (for MPI). Also then initialize min/maxRHS_Vec so that they can be sorted correctly.
 	i = 0; DOF = 0;
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 		// Compute maxRHS in each VOLUME
@@ -179,7 +183,7 @@ void adapt_hp(void)
 
 		minRHS = 1e10;
 		maxRHS = 0.0;
-		// Density residual
+		// Density RHS
 		for (iMax = NvnS; iMax--; ) {
 			tmp_d = fabs(*RHS);
 			if (tmp_d < minRHS)
@@ -194,11 +198,14 @@ void adapt_hp(void)
 		i++;
 	}
 
+	minRHS_Vec_unsorted = malloc(NV * sizeof *minRHS_Vec_unsorted); // free
+
 	IndminRHS = malloc(NV * sizeof *IndminRHS); // free
 	IndmaxRHS = malloc(NV * sizeof *IndmaxRHS); // free
 	for (i = 0; i < NV; i++) {
 		IndminRHS[i] = i;
 		IndmaxRHS[i] = i;
+		minRHS_Vec_unsorted[i] = minRHS_Vec[i];
 	}
 
 	array_sort_d(1,NV,minRHS_Vec,IndminRHS,'R','N');
@@ -296,7 +303,7 @@ for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next){
 			printf("Error: Fix case ADAPT_HP.\n"), exit(1);
 			break;
 		case ADAPT_P:
-			if (hp_refine_current[indexg] && p_levels[indexg] != PMax) {
+			if (hp_refine_current[indexg] && p_levels[indexg] <= PMax) {
 				VOLUME->Vadapt = 1;
 				VOLUME->adapt_type = PREFINE;
 			}
@@ -313,9 +320,9 @@ for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next){
 
 	// Mark coarse_frac VOLUMEs for coarsening
 	for (i = 0, iMax = (unsigned int) (coarse_frac*NV); i < iMax; i++) {
-//printf("i, minRHS: %d, % .3e\n",i,minRHS_Vec[i]);
 		if (minRHS_Vec[i] < COARSE_TOL) {
 			VOLUME = VOLUME_Vec[IndminRHS[i]];
+//printf("indexg, minRHS: %d, % .3e\n",VOLUME->indexg,minRHS_Vec[i]);
 
 			hp_coarse_current_local = calloc(NVglobal , sizeof *hp_coarse_current_local); // free
 
@@ -327,10 +334,12 @@ for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next){
 				check_levels_coarse(VOLUME->indexg,VNeigh,VType_global,p_levels,hp_coarse_current_local,'p');
 /*
 for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next){
-	printf("%d %d\n",VOLUME->indexg,hp_coarse_current_local[VOLUME->indexg]);
+	printf("%d %d %d\n",VOLUME->indexg,hp_coarse_current_local[VOLUME->indexg],p_levels[VOLUME->indexg]);
 }
 printf("\n\n\n");
+exit(1);
 */
+
 				break;
 			case ADAPT_H:
 				check_levels_coarse(VOLUME->indexg,VNeigh,VType_global,h_levels,hp_coarse_current_local,'h');
@@ -342,14 +351,25 @@ printf("\n\n\n");
 			for (j = 0; j < NVglobal; j++) {
 				if (hp_refine_current[j] && hp_coarse_current_local[j]) {
 					refine_conflict = 1;
-printf("refine conflict found!\n");
+//printf("refine conflict found!\n");
 					break;
 				}
 			}
 			if (!refine_conflict) {
+				// Ensure that all elements to which the coarsening will propagate also have minRHS < COARSE_TOL
+				coarse_conflict = 0;
 				for (j = 0; j < NVglobal; j++) {
-					if (hp_coarse_current_local[j])
-						hp_coarse_current[j] = 1;
+					if (hp_coarse_current_local[j] && minRHS_Vec_unsorted[j] > COARSE_TOL) {
+						coarse_conflict = 1;
+						break;
+					}
+				}
+
+				if (!coarse_conflict) {
+					for (j = 0; j < NVglobal; j++) {
+						if (hp_coarse_current_local[j])
+							hp_coarse_current[j] = 1;
+					}
 				}
 			}
 			free(hp_coarse_current_local);
@@ -378,14 +398,16 @@ printf("refine conflict found!\n");
 	}
 /*
 for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next){
+	if (VOLUME->Vadapt)
+		printf("\t");
 	printf("indexg, P, Vadapt, adapt_type: %d %d %d %d\n",VOLUME->indexg,VOLUME->P,VOLUME->Vadapt,VOLUME->adapt_type);
 }
-array_print_ui(NVglobal,1,hp_refine_current,'R');
+//array_print_ui(NVglobal,1,hp_refine_current,'R');
 */
+
 // ToBeDeleted: Note that there is no conflict after the max DOF is reached as refinement is not attempted and all
 //elements are marked as if they need not be refined. Probably add a flag indicating whether elements wanted to be refined
 //but could not be.
-// Also change the if condition for coarsening to include all affected elements.
 
 //exit(1);
 
@@ -393,6 +415,7 @@ array_print_ui(NVglobal,1,hp_refine_current,'R');
 	free(maxRHS_Vec);
 	free(VOLUME_Vec);
 
+	free(minRHS_Vec_unsorted);
 	free(IndminRHS);
 	free(IndmaxRHS);
 

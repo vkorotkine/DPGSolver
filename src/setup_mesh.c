@@ -43,17 +43,22 @@
  *		http://gmsh.info/doc/texinfo/gmsh.html#Node-ordering
  */
 
-void setup_mesh()
+static void initialize_ELEMENTs(void)
 {
-	unsigned int i, type, NfveMax, NfMax, NveMax, NfrefMax, TRIpresent3D, QUADpresent3D;
+	// Initialize DB Parameters
+	const unsigned int Adapt = DB.Adapt;
 
-	struct S_ELEMENT *ELEMENT;
+	// Standard datatypes
+	unsigned int type, f, Nf, IndFType;
+
+	struct S_ELEMENT *ELEMENT, *ELEMENT_FACET;
 
 	// POINT
 	ELEMENT = New_ELEMENT();
 	DB.ELEMENT = ELEMENT;
 
 	ELEMENT->type      = POINT;
+	ELEMENT->Eclass    = C_TP;
 	ELEMENT->d         = 0;
 	ELEMENT->Nve       = 1;
 	ELEMENT->Nf        = 1;
@@ -67,6 +72,7 @@ void setup_mesh()
 	ELEMENT = ELEMENT->next;
 
 	ELEMENT->type      = LINE;
+	ELEMENT->Eclass    = C_TP;
 	ELEMENT->d         = 1;
 	ELEMENT->Nve       = 2;
 	ELEMENT->Nf        = 2;
@@ -81,6 +87,7 @@ void setup_mesh()
 	ELEMENT = ELEMENT->next;
 
 	ELEMENT->type      = TRI;
+	ELEMENT->Eclass    = C_SI;
 	ELEMENT->d         = 2;
 	ELEMENT->Nve       = 3;
 	ELEMENT->Nf        = 3;
@@ -96,6 +103,7 @@ void setup_mesh()
 	ELEMENT = ELEMENT->next;
 
 	ELEMENT->type      = QUAD;
+	ELEMENT->Eclass    = C_TP;
 	ELEMENT->d         = 2;
 	ELEMENT->Nve       = 4;
 	ELEMENT->Nf        = 4;
@@ -112,6 +120,7 @@ void setup_mesh()
 	ELEMENT = ELEMENT->next;
 
 	ELEMENT->type      = TET;
+	ELEMENT->Eclass    = C_SI;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 4;
 	ELEMENT->Nf        = 4;
@@ -128,6 +137,7 @@ void setup_mesh()
 	ELEMENT = ELEMENT->next;
 
 	ELEMENT->type      = HEX;
+	ELEMENT->Eclass    = C_TP;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 8;
 	ELEMENT->Nf        = 6;
@@ -148,6 +158,7 @@ void setup_mesh()
 	ELEMENT = ELEMENT->next;
 
 	ELEMENT->type      = WEDGE;
+	ELEMENT->Eclass    = C_WEDGE;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 6;
 	ELEMENT->Nf        = 5;
@@ -167,6 +178,7 @@ void setup_mesh()
 	ELEMENT = ELEMENT->next;
 
 	ELEMENT->type      = PYR;
+	ELEMENT->Eclass    = C_PYR;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 5;
 	ELEMENT->Nf        = 5;
@@ -201,6 +213,76 @@ void setup_mesh()
 			ELEMENT->ELEMENT_FACET[1] = get_ELEMENT_FACET(ELEMENT->type,1);
 		}
 	}
+
+	// Set Nvref/Nfref
+	switch (Adapt) {
+	case ADAPT_0:
+	case ADAPT_P:
+		for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
+			ELEMENT->Nvref   = 1;
+			ELEMENT->NvrefSF = 1;
+		}
+		break;
+	default: // ADAPT_H and ADAPT_HP
+		for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
+			type = ELEMENT->type;
+			switch (type) {
+			case POINT:
+				ELEMENT->Nvref   = NREFMAXPOINT;
+				ELEMENT->NvrefSF = 0; // Not used.
+			case LINE:
+				ELEMENT->Nvref   = NREFMAXLINE;
+				ELEMENT->NvrefSF = NREFMAXLINE;
+				break;
+			case TRI:
+				ELEMENT->Nvref   = NREFMAXTRI;
+				ELEMENT->NvrefSF = NREFMAXTRI;
+				break;
+			case QUAD:
+				ELEMENT->Nvref   = NREFMAXQUAD;
+				ELEMENT->NvrefSF = 0; // Not used.
+				break;
+			case TET:
+				ELEMENT->Nvref   = NREFMAXTET;
+				ELEMENT->NvrefSF = 1;
+				break;
+			case HEX:
+				ELEMENT->Nvref   = NREFMAXHEX;
+				ELEMENT->NvrefSF = 0; // Not used.
+				break;
+			case WEDGE:
+				ELEMENT->Nvref   = NREFMAXWEDGE;
+				ELEMENT->NvrefSF = 0; // Not used.
+				break;
+			case PYR:
+				ELEMENT->Nvref   = NREFMAXPYR;
+				ELEMENT->NvrefSF = 1;
+				break;
+			default:
+				printf("Error: Unsupported type in Nvref initialization.\n"), exit(1);
+				break;
+			}
+		}
+		break;
+	}
+
+	for (ELEMENT = DB.ELEMENT->next; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
+		Nf = ELEMENT->Nf;
+		for (f = 0; f < Nf; f++) {
+			IndFType = get_IndFType(ELEMENT->Eclass,f);
+			ELEMENT_FACET = get_ELEMENT_FACET(ELEMENT->type,IndFType);
+			ELEMENT->Nfref[f] = ELEMENT_FACET->Nvref;
+		}
+	}
+}
+
+void setup_mesh()
+{
+	unsigned int i, type, NfveMax, NfMax, NveMax, NfrefMax, TRIpresent3D, QUADpresent3D;
+
+	struct S_ELEMENT *ELEMENT;
+
+	initialize_ELEMENTs();
 
 	// Read mesh file
 	if (!DB.MPIrank)

@@ -89,7 +89,8 @@ DB.VOLUME->adapt_type = PCOARSE;
 //			}
 		}
 
-if (tstep == 20) {
+if (0&&tstep == 500) {
+//if (tstep == 8) {
 	char *string;
 	string   = malloc(STRLEN_MIN * sizeof *string);   // free
 	sprintf(string,"%d",tstep);
