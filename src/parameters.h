@@ -24,6 +24,7 @@
  *		NFMIXEDMAX      : (MAX)imum (N)umber of (MIXED) (F)ACETs for an element.
  *		NESUBCMAX       : (MAX)imum (N)umber of (E)lement (SUB)(C)lasses
  *		NFORDMAX        : (MAX)imum (N)umber of (F)ACET (ORD)ering possibilities
+ *		NREFVVARMAX     : (MAX)imum (N)umber of h-adaptive (REF)ined (V)olume (VAR)iations
  *
  *	References:
  *
@@ -66,6 +67,7 @@
 #define NFMIXEDMAX      2  // WEDGE/PYR (TRI + QUAD)
 #define NESUBCMAX       2  // WEDGE (TRI + LINE)
 #define NFORDMAX        8  // QUAD
+#define NREFVVARMAX     7  // HEX
 
 // Solver related parameters
 #define RK3_SSP 0
@@ -122,11 +124,10 @@
 #define FLUX_LF  0
 #define FLUX_ROE 1
 
-// Tolerances (for physical coordinate comparison)
+// Tolerances
 #define NODETOL      1.0e-10
 #define NODETOL_MESH 1.0e-5
 
-// Value close to double machine zero
 #define EPS        1.0e-15
 #define REFINE_TOL 1.0e-8 // Decrease for additional refinement
 #define COARSE_TOL 1.0e-2 // Increase for additional coarsening

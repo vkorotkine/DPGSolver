@@ -1271,9 +1271,11 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				ChiS_vIs[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnS[P],NvnS[P],1.0,ChiRefS_vIs,TS); // keep
 				ChiS_vIc[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnS[P],NvnS[P],1.0,ChiRefS_vIc,TS); // keep
 
-				I_vGs_vS[1][Pb][vrefSF]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb] ,NvnGs[1],NvnGs[1],1.0,ChiGs_vS, ChiInvGs_vGs); // keep
-				I_vGs_vIs[1][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnGs[1],NvnGs[1],1.0,ChiGs_vIs,ChiInvGs_vGs); // keep
-				I_vGs_vIc[1][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnGs[1],NvnGs[1],1.0,ChiGs_vIc,ChiInvGs_vGs); // keep
+				if (P == 1) {
+					I_vGs_vS[1][Pb][vrefSF]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb] ,NvnGs[1],NvnGs[1],1.0,ChiGs_vS, ChiInvGs_vGs); // keep
+					I_vGs_vIs[1][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnGs[1],NvnGs[1],1.0,ChiGs_vIs,ChiInvGs_vGs); // keep
+					I_vGs_vIc[1][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnGs[1],NvnGs[1],1.0,ChiGs_vIc,ChiInvGs_vGs); // keep
+				}
 				I_vGc_vS[P][Pb][vrefSF]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb], NvnGc[P],NvnGc[P],1.0,ChiGc_vS, ChiInvGc_vGc); // keep
 				I_vGc_vIs[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnGc[P],NvnGc[P],1.0,ChiGc_vIs,ChiInvGc_vGc); // keep
 				I_vGc_vIc[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnGc[P],NvnGc[P],1.0,ChiGc_vIc,ChiInvGc_vGc); // keep
@@ -1580,12 +1582,14 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 						free(ChiCc_fIc);
 					}
 
+					free(rst_fS);
 					free(rst_fIs);
 					free(rst_fIc);
 
 					free(diag_w_fIs);
 					free(diag_w_fIc);
 
+					free(ChiRefS_fS);
 					free(ChiRefS_fIs);
 					free(ChiRefS_fIc);
 				}
@@ -1998,9 +2002,11 @@ static void setup_TP_operators(const unsigned int EType)
 				NfnIc[Pb][0] = pow(ELEMENTclass[0]->NvnIc[Pb],dE-1)*(ELEMENTclass[0]->NfnIc[Pb][0]);
 
 				get_sf_parameters(1,ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->w_vIs[Pb],0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
-				w_vIs[Pb] = sf_assemble_d(NIn,NOut,dE,OP);
+				if (w_vIs[Pb] == NULL)
+					w_vIs[Pb] = sf_assemble_d(NIn,NOut,dE,OP);
 				get_sf_parameters(1,ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->w_vIc[Pb],0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
-				w_vIc[Pb] = sf_assemble_d(NIn,NOut,dE,OP);
+				if (w_vIc[Pb] == NULL)
+					w_vIc[Pb] = sf_assemble_d(NIn,NOut,dE,OP);
 
 // Will need a loop over vrefSF here when h-adaptation is added (ToBeDeleted)
 unsigned int vrefSF = 0;
@@ -2229,10 +2235,12 @@ unsigned int vrefSF = 0;
 
 				get_sf_parameters(1,ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->w_vIs[Pb],
 				                  1,ELEMENTclass[1]->NvnIs[Pb],ELEMENTclass[1]->w_vIs[Pb],NIn,NOut,OP,dE,3,Eclass);
-				w_vIs[Pb] = sf_assemble_d(NIn,NOut,dE,OP);
+				if (w_vIs[Pb] == NULL)
+					w_vIs[Pb] = sf_assemble_d(NIn,NOut,dE,OP);
 				get_sf_parameters(1,ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->w_vIc[Pb],
 				                  1,ELEMENTclass[1]->NvnIc[Pb],ELEMENTclass[1]->w_vIc[Pb],NIn,NOut,OP,dE,3,Eclass);
-				w_vIc[Pb] = sf_assemble_d(NIn,NOut,dE,OP);
+				if (w_vIc[Pb] == NULL)
+					w_vIc[Pb] = sf_assemble_d(NIn,NOut,dE,OP);
 
 // Will need a loop over vrefSF here when h-adaptation is added (ToBeDeleted)
 unsigned int vrefSF = 0;

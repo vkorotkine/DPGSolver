@@ -27,7 +27,7 @@ struct S_DB {
 
 	// Initialization
 	char         *TestCase, *MeshType, *Form, *NodeType, *BasisType, *MeshFile;
-	unsigned int d, ML, Vectorized, EFE, Collocated, Adapt, PGlobal, PMax, Testing, *BumpOrder;
+	unsigned int d, ML, Vectorized, EFE, Collocated, Adapt, PGlobal, PMax, LevelsMax, Testing, *BumpOrder;
 	int          Restart;
 
 	// Parameters
@@ -69,7 +69,7 @@ extern struct S_DB DB;
 struct S_ELEMENT {
 	// Mesh
 	unsigned int present, type, d, Nve, Nf, Nvref, NvrefSF, Eclass,
-	             *Nfve, *VeCGmsh, *VeFcon;
+	             *Nfve, *VeCGmsh, *VeFcon, *NrefV;
 
 	// Operators
 	unsigned int *connect_NE, *NvnP, *Nvve,
@@ -113,7 +113,7 @@ struct S_ELEMENT {
 
 struct S_VOLUME {
 	// Structures
-	unsigned int indexl, indexg, P, type, Eclass, update, curved, hlevel,
+	unsigned int indexl, indexg, P, type, Eclass, update, curved, level,
 	             *neigh;
 	double *XYZ_vC;
 
@@ -129,7 +129,7 @@ struct S_VOLUME {
 	double *RHS, *wdetJV_vI, *MInv;
 
 	// hp adaptivity
-	unsigned int refine_current, Vadapt, adapt_type, PNew;
+	unsigned int refine_current, Vadapt, adapt_type, PNew, hrefine_type;
 //	double       minRES, maxRES;
 
 	// structs

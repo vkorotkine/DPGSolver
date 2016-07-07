@@ -15,6 +15,8 @@
  *		Initialize solution on all VOLUMEs for each test case.
  *
  *	Comments:
+ *		For unsteady cases, it would be advantageous to write an adaptive initialization function. Consider implementing
+ *		this (ToBeDeleted).
  *
  *	Notation:
  *

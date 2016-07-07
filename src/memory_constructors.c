@@ -46,6 +46,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->Nfve    = calloc(NFMAX         , sizeof *(ELEMENT->Nfve));    // free
 	ELEMENT->VeCGmsh = calloc(NVEMAX        , sizeof *(ELEMENT->VeCGmsh)); // free
 	ELEMENT->VeFcon  = calloc(NFMAX*NFVEMAX , sizeof *(ELEMENT->VeFcon));  // free
+	ELEMENT->NrefV   = calloc(NREFVVARMAX   , sizeof *(ELEMENT->NrefV));     // free
 
 	// Operators
 
@@ -360,7 +361,7 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->Eclass = 0;
 	VOLUME->update = 0;
 	VOLUME->curved = 0;
-	VOLUME->hlevel = 0;
+	VOLUME->level  = 0;
 
 	VOLUME->neigh = calloc(NFMAX*NFREFMAX , sizeof *(VOLUME->neigh)); // free
 
@@ -393,6 +394,7 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->Vadapt         = 0;
 	VOLUME->adapt_type     = 0;
 	VOLUME->PNew           = 0;
+	VOLUME->hrefine_type   = 0;
 
 	// structs
 	VOLUME->next    = NULL;

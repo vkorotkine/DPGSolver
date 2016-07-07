@@ -64,14 +64,15 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 void update_VOLUME_hp(void)
 {
 	// Initialize DB Parameters
-	unsigned int d    = DB.d,
-	             PMax = DB.PMax,
-	             Nvar = DB.Nvar;
+	unsigned int d         = DB.d,
+	             PMax      = DB.PMax,
+				 LevelsMax = DB.LevelsMax,
+	             Nvar      = DB.Nvar;
 
 	char         *MeshType = DB.MeshType;
 
 	// Standard datatypes
-	unsigned int P, PNew, adapt_type;
+	unsigned int P, PNew, level, adapt_type;
 	double       NvnGs, NvnGc, NvnS, NvnSP, NCols,
 	             *I_vGs_vGc, *XYZ_vC, *XYZ_S,
 	             **Ihat_vS_vS, **Ghat_vS_vS, *What, *RES, *WhatP, *RESP;
@@ -89,7 +90,7 @@ void update_VOLUME_hp(void)
 
 			switch(adapt_type) {
 			case PREFINE:
-				if (P+1 <= PMax)
+				if (P < PMax)
 					PNew = P+1;
 				else
 					printf("Error: Should not be entering PREFINE in update_VOLUME_hp for P = %d.\n",P), exit(1);
@@ -99,16 +100,17 @@ void update_VOLUME_hp(void)
 				if (P >= 1)
 					PNew = P-1;
 				else
-					printf("Error: Should not be entering PREFINE in update_VOLUME_hp for P = %d.\n",P), exit(1);
+					printf("Error: Should not be entering PCOARSE in update_VOLUME_hp for P = %d.\n",P), exit(1);
 				VOLUME->PNew = PNew;
 				break;
 			case HREFINE:
-				// Vh as flag for type of VOLUME h refinement
-				// Also need another flag to make sure that no h refinement is performed on elements of the coarsest
-				// mesh.
+				if (level >= LevelsMax)
+					printf("Error: Should not be entering HREFINE in update_VOLUME_hp for level = %d.\n",level), exit(1);
 				VOLUME->PNew = P;
 				break;
 			case HCOARSE:
+				if (level = 0)
+					printf("Error: Should not be entering HCOARSE in update_VOLUME_hp for level = %d.\n",level), exit(1);
 				VOLUME->PNew = P;
 				break;
 			default:
@@ -145,6 +147,8 @@ void update_VOLUME_hp(void)
 				else
 					printf("Error: Add in support for MeshType != ToBeCurved\n"), exit(1);
 
+				free(VOLUME->detJV_vI);
+				free(VOLUME->C_vI);
 				setup_geom_factors(VOLUME);
 
 				// Project What and RES
@@ -173,8 +177,22 @@ void update_VOLUME_hp(void)
 				VOLUME->RES  = RESP;
 				break;
 			case HREFINE:
-				// Don't forget about VOLUME->curved (may not all be curved anymore)
-				// Interpolate to finer space
+				// Create new VOLUMEs
+/*
+				for (v = 0; v < nv; v++) {
+
+				}
+*/
+				// Fix VOLUME linked list
+
+				// Update geometry
+				// Don't forget about VOLUME->curved (check based on BCs)
+
+				// Project What and RES
+
+
+
+
 				break;
 			case HCOARSE:
 				// Galerkin projection to coarser space

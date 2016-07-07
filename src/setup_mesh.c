@@ -80,6 +80,7 @@ static void initialize_ELEMENTs(void)
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1] =    1;
 	ELEMENT->VeFcon[0*NFVEMAX+0] = 0;
 	ELEMENT->VeFcon[1*NFVEMAX+0] = 1;
+	ELEMENT->NfrefV[0] = 2;
 
 	ELEMENT->next = New_ELEMENT();
 
@@ -96,6 +97,7 @@ static void initialize_ELEMENTs(void)
 	ELEMENT->VeFcon[0*NFVEMAX+0] = 1; ELEMENT->VeFcon[0*NFVEMAX+1] = 2;
 	ELEMENT->VeFcon[1*NFVEMAX+0] = 0; ELEMENT->VeFcon[1*NFVEMAX+1] = 2;
 	ELEMENT->VeFcon[2*NFVEMAX+0] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1;
+	ELEMENT->NfrefV[0] = 4;
 
 	ELEMENT->next = New_ELEMENT();
 
@@ -113,6 +115,7 @@ static void initialize_ELEMENTs(void)
 	ELEMENT->VeFcon[1*NFVEMAX+0] = 1; ELEMENT->VeFcon[1*NFVEMAX+1] = 3;
 	ELEMENT->VeFcon[2*NFVEMAX+0] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1;
 	ELEMENT->VeFcon[3*NFVEMAX+0] = 2; ELEMENT->VeFcon[3*NFVEMAX+1] = 3; // ToBeDeleted: Modified from matlab code
+	ELEMENT->NfrefV[0] = 4; ELEMENT->NfrefV[1] = 2; ELEMENT->NfrefV[2] = 2;
 
 	ELEMENT->next = New_ELEMENT();
 
@@ -130,6 +133,7 @@ static void initialize_ELEMENTs(void)
 	ELEMENT->VeFcon[1*NFVEMAX+0] = 0; ELEMENT->VeFcon[1*NFVEMAX+1] = 2; ELEMENT->VeFcon[1*NFVEMAX+2] = 3;
 	ELEMENT->VeFcon[2*NFVEMAX+0] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1; ELEMENT->VeFcon[2*NFVEMAX+2] = 3;
 	ELEMENT->VeFcon[3*NFVEMAX+0] = 0; ELEMENT->VeFcon[3*NFVEMAX+1] = 1; ELEMENT->VeFcon[3*NFVEMAX+2] = 2;
+	ELEMENT->NfrefV[0] = 6;
 
 	ELEMENT->next = New_ELEMENT();
 
@@ -151,6 +155,8 @@ static void initialize_ELEMENTs(void)
 	ELEMENT->VeFcon[3*NFVEMAX+0] = 2; ELEMENT->VeFcon[3*NFVEMAX+1] = 3; ELEMENT->VeFcon[3*NFVEMAX+2] = 6; ELEMENT->VeFcon[3*NFVEMAX+3] = 7;
 	ELEMENT->VeFcon[4*NFVEMAX+0] = 0; ELEMENT->VeFcon[4*NFVEMAX+1] = 1; ELEMENT->VeFcon[4*NFVEMAX+2] = 2; ELEMENT->VeFcon[4*NFVEMAX+3] = 3;
 	ELEMENT->VeFcon[5*NFVEMAX+0] = 4; ELEMENT->VeFcon[5*NFVEMAX+1] = 5; ELEMENT->VeFcon[5*NFVEMAX+2] = 6; ELEMENT->VeFcon[5*NFVEMAX+3] = 7;
+	ELEMENT->NfrefV[0] = 8; ELEMENT->NfrefV[1] = 4; ELEMENT->NfrefV[2] = 4; ELEMENT->NfrefV[3] = 4;
+	ELEMENT->NfrefV[4] = 2; ELEMENT->NfrefV[5] = 2; ELEMENT->NfrefV[6] = 2;
 
 	ELEMENT->next = New_ELEMENT();
 
@@ -171,6 +177,7 @@ static void initialize_ELEMENTs(void)
 	ELEMENT->VeFcon[2*NFVEMAX+0] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1; ELEMENT->VeFcon[2*NFVEMAX+2] = 3; ELEMENT->VeFcon[2*NFVEMAX+3] = 4;
 	ELEMENT->VeFcon[3*NFVEMAX+0] = 0; ELEMENT->VeFcon[3*NFVEMAX+1] = 1; ELEMENT->VeFcon[3*NFVEMAX+2] = 2;
 	ELEMENT->VeFcon[4*NFVEMAX+0] = 3; ELEMENT->VeFcon[4*NFVEMAX+1] = 4; ELEMENT->VeFcon[4*NFVEMAX+2] = 5;
+	ELEMENT->NfrefV[0] = 8; ELEMENT->NfrefV[1] = 4; ELEMENT->NfrefV[2] = 2;
 
 	ELEMENT->next = New_ELEMENT();
 
@@ -191,6 +198,7 @@ static void initialize_ELEMENTs(void)
 	ELEMENT->VeFcon[2*NFVEMAX+0] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1; ELEMENT->VeFcon[2*NFVEMAX+2] = 4;
 	ELEMENT->VeFcon[3*NFVEMAX+0] = 2; ELEMENT->VeFcon[3*NFVEMAX+1] = 3; ELEMENT->VeFcon[3*NFVEMAX+2] = 4;
 	ELEMENT->VeFcon[4*NFVEMAX+0] = 0; ELEMENT->VeFcon[4*NFVEMAX+1] = 1; ELEMENT->VeFcon[4*NFVEMAX+2] = 2; ELEMENT->VeFcon[4*NFVEMAX+3] = 3;
+	ELEMENT->NfrefV[0] = 10;
 
 	// No additional ELEMENTs
 

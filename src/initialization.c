@@ -61,6 +61,7 @@
  *
  *			P          : Polynomial order to be used (not used if p-adaptation is enabled)
  *			PMax       : Maximum polynomial order to be used (used only if p-adaptation is enabled)
+ *			LevelsMax  : Maximum number of h refinement levels permitted (used only if h-adaptation is enabled)
  *
  *			Restart    : Specify whether the solution initialization should be based on a previous solution
  *			             Options: -1           (None)
@@ -132,6 +133,7 @@ void initialization(int nargc, char **argv)
 		if (strstr(StringRead,"Adapt")      != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Adapt);
 		if (strstr(StringRead,"PGlobal")    != NULL) sscanf(StringRead,"%s %d",dummys,&DB.PGlobal);
 		if (strstr(StringRead,"PMax")       != NULL) sscanf(StringRead,"%s %d",dummys,&DB.PMax);
+		if (strstr(StringRead,"LevelsMax")  != NULL) sscanf(StringRead,"%s %d",dummys,&DB.LevelsMax);
 		if (strstr(StringRead,"Restart")    != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Restart);
 		if (strstr(StringRead,"Testing")    != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Testing);
 
@@ -184,6 +186,7 @@ void initialization(int nargc, char **argv)
 		printf("Adapt      : %d\n\n",  DB.Adapt);
 		printf("P          : %d\n",    DB.PGlobal);
 		printf("PMax       : %d\n",    DB.PMax);
+		printf("LevelsMax  : %d\n",    DB.LevelsMax);
 		printf("Testing    : %d\n\n\n",DB.Testing);
 	}
 }

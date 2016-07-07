@@ -233,6 +233,7 @@ void setup_structures(void)
 			VOLUME->indexl = vlocal;
 			VOLUME->indexg = v;
 			VOLUME->P      = PGlobal;
+			VOLUME->level  = 0;
 			VOLUME->type   = EType[IndE];
 			VOLUME->Eclass = get_Eclass(VOLUME->type);
 			VOLUME->update = 1;

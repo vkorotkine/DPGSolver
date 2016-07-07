@@ -69,24 +69,15 @@ void solver_explicit(void)
 
 	tstep = 0; time = 0.0;
 	while (time < FinalTime) {
-
-/*
-DB.VOLUME->Vadapt = 1;
-DB.VOLUME->adapt_type = PCOARSE;
-//VOLUME = DB.VOLUME->next;
-//VOLUME->Vadapt = 1;
-//VOLUME->adapt_type = PREFINE;
-*/
-		if (Adapt) {
+		if (Adapt && tstep) {
 			update_VOLUME_hp();
 			update_FACET_hp();
 			update_Vgrp();
 			update_VOLUME_Ops();
 
 			update_VOLUME_finalize();
-//			for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-//				printf("%d %d\n",VOLUME->indexg,VOLUME->P);
-//			}
+//printf("Exiting solver_explicit\n");
+//exit(1);
 		}
 
 if (0&&tstep == 500) {
