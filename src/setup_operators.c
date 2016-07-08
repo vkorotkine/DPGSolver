@@ -1192,19 +1192,19 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 			free(rst_vIs[0]);
 			free(rst_vIc[0]);
 
-			wInv_vIs = malloc(NvnIs[Pb] * sizeof *wInv_vIs); // free
-			wInv_vIc = malloc(NvnIc[Pb] * sizeof *wInv_vIc); // free
+			wInv_vIs = malloc(NvnIs[P] * sizeof *wInv_vIs); // free
+			wInv_vIc = malloc(NvnIc[P] * sizeof *wInv_vIc); // free
 
-			for (i = 0, iMax = NvnIs[Pb]; i < iMax; i++)
-				wInv_vIs[i] = 1./w_vIs[Pb][i];
+			for (i = 0, iMax = NvnIs[P]; i < iMax; i++)
+				wInv_vIs[i] = 1./w_vIs[P][i];
 
-			for (i = 0, iMax = NvnIc[Pb]; i < iMax; i++)
-				wInv_vIc[i] = 1./w_vIc[Pb][i];
+			for (i = 0, iMax = NvnIc[P]; i < iMax; i++)
+				wInv_vIc[i] = 1./w_vIc[P][i];
 
 			diag_w_vIs    = diag_d(w_vIs[Pb],NvnIs[Pb]); // free
 			diag_w_vIc    = diag_d(w_vIc[Pb],NvnIc[Pb]); // free
-			diag_wInv_vIs = diag_d(wInv_vIs, NvnIs[Pb]); // free
-			diag_wInv_vIc = diag_d(wInv_vIc, NvnIc[Pb]); // free
+			diag_wInv_vIs = diag_d(wInv_vIs, NvnIs[P]);  // free
+			diag_wInv_vIc = diag_d(wInv_vIc, NvnIc[P]);  // free
 
 			free(wInv_vIs);
 			free(wInv_vIc);
@@ -1343,10 +1343,10 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 			if (Collocated) {
 				dummyPtr_d = Is_Weak_VV[P][Pb][0];
-				Is_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnIs[Pb],NvnS[P],1.0,diag_wInv_vIs,dummyPtr_d); // keep
+				Is_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[P],NvnIs[Pb],NvnS[P],1.0,diag_wInv_vIs,dummyPtr_d); // keep
 				free(dummyPtr_d);
 				dummyPtr_d = Ic_Weak_VV[P][Pb][0];
-				Ic_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnIc[Pb],NvnS[P],1.0,diag_wInv_vIc,dummyPtr_d); // keep
+				Ic_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[P],NvnIc[Pb],NvnS[P],1.0,diag_wInv_vIc,dummyPtr_d); // keep
 				free(dummyPtr_d);
 			}
 
@@ -2735,68 +2735,90 @@ static void setup_ELEMENT_FACET_ordering(const unsigned int FType)
 	unsigned int ***nOrd_fS, ***nOrd_fIs, ***nOrd_fIc;
 
 	// Initialize DB Parameters
-	unsigned int d              = DB.d,
-	             PMax           = DB.PMax,
-	             **PIfs         = DB.PIfs,
-	             **PIfc         = DB.PIfc;
-	char         ***NodeTypeS   = DB.NodeTypeS,
-	             ***NodeTypeIfs = DB.NodeTypeIfs,
-	             ***NodeTypeIfc = DB.NodeTypeIfc;
+	const unsigned int d    = DB.d,
+	                   PMax = DB.PMax;
 
 	// Standard datatypes
-	unsigned int P, dE,
-	             NfnS, NfnIs, NfnIc, NsS, NsIs, NsIc,
-	             IndOrd, NOrd, Eclass,
-	             *symms_fS, *symms_fIs, *symms_fIc;
-	double       *rst_fS, *rst_fIs, *rst_fIc, *w;
+	unsigned int P, NOrd, IndOrd;
 
 	struct S_ELEMENT *ELEMENT;
 
-	// Function pointers
-	cubature_tdef   cubature;
-	basis_tdef      basis;
-	grad_basis_tdef grad_basis;
-
-	select_functions(&basis,&grad_basis,&cubature,FType);
-
-	// silence
-	NfnS = NfnIs = NfnIc = NsS = NsIs = NsIc = 0;
-
 	ELEMENT = get_ELEMENT_type(FType);
-	Eclass  = get_Eclass(FType);
 
-	dE = d-1;
+	if (FType != POINT) {
+		// Initialize DB Parameters
+		unsigned int **PIfs         = DB.PIfs,
+		             **PIfc         = DB.PIfc;
+		char         ***NodeTypeS   = DB.NodeTypeS,
+		             ***NodeTypeIfs = DB.NodeTypeIfs,
+		             ***NodeTypeIfc = DB.NodeTypeIfc;
 
-	if      (FType == POINT) NOrd = 1;
-	else if (FType == LINE)  NOrd = 2;
-	else if (FType == QUAD)  NOrd = 8;
-	else if (FType == TRI)   NOrd = 6;
-	else    printf("Error: Unsupported FType in setup_ELEMENT_FACET_ordering.\n"), exit(1);
+		// Standard datatypes
+		unsigned int dE, NfnS, NfnIs, NfnIc, NsS, NsIs, NsIc, Eclass,
+		             *symms_fS, *symms_fIs, *symms_fIc;
+		double       *rst_fS, *rst_fIs, *rst_fIc, *w;
 
-	nOrd_fS  = ELEMENT->nOrd_fS;
-	nOrd_fIs = ELEMENT->nOrd_fIs;
-	nOrd_fIc = ELEMENT->nOrd_fIc;
+		// Function pointers
+		cubature_tdef   cubature;
+		basis_tdef      basis;
+		grad_basis_tdef grad_basis;
 
-	for (P = 0; P <= PMax; P++) {
-		cubature(&rst_fS, &w,&symms_fS, &NfnS, &NsS, 0,P,              dE,NodeTypeS[P][Eclass]);   // free
-		cubature(&rst_fIs,&w,&symms_fIs,&NfnIs,&NsIs,0,PIfs[P][Eclass],dE,NodeTypeIfs[P][Eclass]); // free
-		cubature(&rst_fIc,&w,&symms_fIc,&NfnIc,&NsIc,0,PIfc[P][Eclass],dE,NodeTypeIfc[P][Eclass]); // free
+		select_functions(&basis,&grad_basis,&cubature,FType);
 
-		for (IndOrd = 0; IndOrd < NOrd; IndOrd++) {
-			nOrd_fS[P][IndOrd]  = malloc(NfnS  * sizeof ***nOrd_fS);  //  keep
-			nOrd_fIs[P][IndOrd] = malloc(NfnIs * sizeof ***nOrd_fIs); //  keep
-			nOrd_fIc[P][IndOrd] = malloc(NfnIc * sizeof ***nOrd_fIc); //  keep
+		// silence
+		NfnS = NfnIs = NfnIc = NsS = NsIs = NsIc = 0;
 
-			get_facet_ordering(d,IndOrd,FType,NfnS, NsS, symms_fS, rst_fS, nOrd_fS[P][IndOrd]);
-			get_facet_ordering(d,IndOrd,FType,NfnIs,NsIs,symms_fIs,rst_fIs,nOrd_fIs[P][IndOrd]);
-			get_facet_ordering(d,IndOrd,FType,NfnIc,NsIc,symms_fIc,rst_fIc,nOrd_fIc[P][IndOrd]);
+		Eclass  = get_Eclass(FType);
+
+		dE = d-1;
+
+		if      (FType == LINE)  NOrd = 2;
+		else if (FType == QUAD)  NOrd = 8;
+		else if (FType == TRI)   NOrd = 6;
+		else    printf("Error: Unsupported FType in setup_ELEMENT_FACET_ordering.\n"), exit(1);
+
+		nOrd_fS  = ELEMENT->nOrd_fS;
+		nOrd_fIs = ELEMENT->nOrd_fIs;
+		nOrd_fIc = ELEMENT->nOrd_fIc;
+
+		for (P = 0; P <= PMax; P++) {
+			cubature(&rst_fS, &w,&symms_fS, &NfnS, &NsS, 0,P,              dE,NodeTypeS[P][Eclass]);   // free
+			cubature(&rst_fIs,&w,&symms_fIs,&NfnIs,&NsIs,0,PIfs[P][Eclass],dE,NodeTypeIfs[P][Eclass]); // free
+			cubature(&rst_fIc,&w,&symms_fIc,&NfnIc,&NsIc,0,PIfc[P][Eclass],dE,NodeTypeIfc[P][Eclass]); // free
+
+			for (IndOrd = 0; IndOrd < NOrd; IndOrd++) {
+				nOrd_fS[P][IndOrd]  = malloc(NfnS  * sizeof ***nOrd_fS);  //  keep
+				nOrd_fIs[P][IndOrd] = malloc(NfnIs * sizeof ***nOrd_fIs); //  keep
+				nOrd_fIc[P][IndOrd] = malloc(NfnIc * sizeof ***nOrd_fIc); //  keep
+
+				get_facet_ordering(d,IndOrd,FType,NfnS, NsS, symms_fS, rst_fS, nOrd_fS[P][IndOrd]);
+				get_facet_ordering(d,IndOrd,FType,NfnIs,NsIs,symms_fIs,rst_fIs,nOrd_fIs[P][IndOrd]);
+				get_facet_ordering(d,IndOrd,FType,NfnIc,NsIc,symms_fIc,rst_fIc,nOrd_fIc[P][IndOrd]);
+			}
+			free(rst_fS);
+			free(rst_fIs);
+			free(rst_fIc);
+			free(symms_fS);
+			free(symms_fIs);
+			free(symms_fIc);
 		}
-		free(rst_fS);
-		free(rst_fIs);
-		free(rst_fIc);
-		free(symms_fS);
-		free(symms_fIs);
-		free(symms_fIc);
+	} else {
+		NOrd = 1;
+
+		nOrd_fS  = ELEMENT->nOrd_fS;
+		nOrd_fIs = ELEMENT->nOrd_fIs;
+		nOrd_fIc = ELEMENT->nOrd_fIc;
+
+		for (P = 0; P <= PMax; P++) {
+		for (IndOrd = 0; IndOrd < NOrd; IndOrd++) {
+			nOrd_fS[P][IndOrd]  = malloc(1 * sizeof ***nOrd_fS);  //  keep
+			nOrd_fIs[P][IndOrd] = malloc(1 * sizeof ***nOrd_fIs); //  keep
+			nOrd_fIc[P][IndOrd] = malloc(1 * sizeof ***nOrd_fIc); //  keep
+
+			get_facet_ordering(d,0,0,0,0,NULL,NULL,nOrd_fS[P][IndOrd]);
+			get_facet_ordering(d,0,0,0,0,NULL,NULL,nOrd_fIs[P][IndOrd]);
+			get_facet_ordering(d,0,0,0,0,NULL,NULL,nOrd_fIc[P][IndOrd]);
+		}}
 	}
 }
 

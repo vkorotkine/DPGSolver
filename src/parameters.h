@@ -130,7 +130,7 @@
 
 #define EPS        1.0e-15
 #define REFINE_TOL 1.0e-8 // Decrease for additional refinement
-#define COARSE_TOL 1.0e-2 // Increase for additional coarsening
+#define COARSE_TOL 1.0e-4 // Increase for additional coarsening
 
 // Min/Max String Lengths
 // Min/Max length slightly less than 2^6, 2^9

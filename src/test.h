@@ -56,6 +56,7 @@ extern void test_imp_plotting                  (void);
 extern void test_imp_sum_factorization         (void);
 extern void test_imp_fluxes_inviscid           (void);
 extern void test_imp_get_facet_ordering        (void);
+extern void test_imp_update_connectivity       (int nargc, char **argv);
 
 // Speed tests
 extern void test_speed_array_swap (void);

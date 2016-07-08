@@ -32,7 +32,8 @@ void solver_explicit(void)
 	unsigned int OutputInterval     = DB.OutputInterval,
 	             Neq                = DB.Neq,
 	             ExplicitSolverType = DB.ExplicitSolverType,
-	             Adapt              = DB.Adapt;
+	             Adapt              = DB.Adapt,
+	             Testing            = DB.Testing;
 
 	double       FinalTime = DB.FinalTime;
 
@@ -56,9 +57,9 @@ void solver_explicit(void)
 
 // Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).
 	if (!Adapt) {
-//	dt = pow(0.5,DB.ML+DB.PGlobal+1);
-	dt = pow(0.5,DB.ML+DB.PGlobal+2);
-//	dt = pow(0.5,10.0);
+		dt = pow(0.5,DB.ML+DB.PGlobal+1);
+//		dt = pow(0.5,DB.ML+DB.PGlobal+2);
+//		dt = pow(0.5,10.0);
 	} else {
 		dt = pow(0.5,DB.ML+DB.PMax+1);
 	}
@@ -166,7 +167,7 @@ if (0&&tstep == 500) {
 		time += dt;
 
 		// Output to paraview
-		if (tstep % OutputInterval == 0 || tstep < 3) {
+		if (Testing && (tstep % OutputInterval == 0 || tstep < 5)) {
 			sprintf(dummyPtr_c[1],"%d",tstep);
 			strcpy(dummyPtr_c[0],"SolStart");
 			strcat(dummyPtr_c[0],dummyPtr_c[1]);

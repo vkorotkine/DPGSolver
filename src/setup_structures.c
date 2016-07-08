@@ -323,7 +323,7 @@ void setup_structures(void)
 			indexg = VOLUME->indexg;
 			for (ve = 0; ve < NvnGs; ve++) {
 			for (dim = 0; dim < d; dim++) {
-				XYZ_vC[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+indexg)*8+ve]*d+dim];
+				XYZ_vC[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+indexg)*NVEMAX+ve]*d+dim];
 			}}
 //printf("%d\n",VOLUME->indexg);
 //array_print_d(NvnGs,d,XYZ_vC,'C');

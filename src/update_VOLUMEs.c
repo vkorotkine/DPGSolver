@@ -61,10 +61,32 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	}
 }
 
+static unsigned int get_VOLUMEh_type(const unsigned int VType, const unsigned int vh)
+{
+	switch (VType) {
+	case TET:
+		if (vh < 4)
+			return TET;
+		else
+			return PYR;
+		break;
+	case PYR:
+		if (vh < 4 || vh > 7)
+			return PYR;
+		else
+			return TET;
+		break;
+	default:
+		printf("Error: Unsupported VType in get_VOLUMEh_type.\n"), exit(1);
+		break;
+	}
+}
+
 void update_VOLUME_hp(void)
 {
 	// Initialize DB Parameters
 	unsigned int d         = DB.d,
+	             AC        = DB.AC,
 	             PMax      = DB.PMax,
 				 LevelsMax = DB.LevelsMax,
 	             Nvar      = DB.Nvar;
@@ -72,13 +94,14 @@ void update_VOLUME_hp(void)
 	char         *MeshType = DB.MeshType;
 
 	// Standard datatypes
-	unsigned int P, PNew, level, adapt_type;
+	unsigned int P, PNew, level, adapt_type, vh, vhMax, href_type, *NrefV, VType;
 	double       NvnGs, NvnGc, NvnS, NvnSP, NCols,
 	             *I_vGs_vGc, *XYZ_vC, *XYZ_S,
 	             **Ihat_vS_vS, **Ghat_vS_vS, *What, *RES, *WhatP, *RESP;
 
 	struct S_OPERATORS *OPS;
-	struct S_VOLUME    *VOLUME;
+	struct S_ELEMENT   *ELEMENT;
+	struct S_VOLUME    *VOLUME, *VOLUMEh;
 
 	OPS = malloc(sizeof *OPS); // free
 
@@ -178,14 +201,57 @@ void update_VOLUME_hp(void)
 				break;
 			case HREFINE:
 				// Create new VOLUMEs
-/*
-				for (v = 0; v < nv; v++) {
+				VType = VOLUME->type;
+
+				ELEMENT = get_ELEMENT_type(VType);
+				NrefV = ELEMENT->NrefV;
+
+				href_type = VOLUME->hrefine_type;
+
+				for (vh = 0, vhMax = NrefV[href_type]; vh < vhMax; vh++) {
+					if (!vh) {
+						VOLUMEh = New_VOLUME();
+					} else {
+						VOLUMEh->next = New_VOLUME();
+						VOLUMEh = VOLUMEh->next;
+					}
+
+					VOLUMEh->P = VOLUME->P;
+					VOLUMEh->level = (VOLUME->level)+1;
+					switch (VType) {
+					default: // LINE, TRI, QUAD, HEX, WEDGE
+						VOLUMEh->type = VType;		
+						break;
+					case TET:
+					case PYR:
+						VOLUMEh->type = get_VOLUMEh_type(VType,vh);
+						break;
+					}
+					VOLUMEh->Eclass = get_Eclass(VOLUMEh->type);
+					VOLUMEh->update = 1;
+
+					if (AC) {
+						VOLUMEh->curved = 1;
+					} else {
+						printf("Error: Add support for h-refinement VOLUMEh->curved.\n"), exit(1);
+						// Use VToBC and knowledge of whether the new VOLUME shares the BC.
+					}
+
+
 
 				}
-*/
-				// Fix VOLUME linked list
+
+				// Fix VOLUME linked list and Vgrp linked list
+				// Also update indexg and indexl
+
+				// When updating connectivity, start with groups of elements of the lowest level and move to those with
+				// the highest level to avoid having more than 1 level of non-conformity.
 
 				// Update geometry
+				// When updating XYZ_vC, ensure that corners on curved boundaries are placed on the boundary.
+				// Note: It would be intuitive to do the hrefinement on straight elements and then fix any curving after
+
+
 				// Don't forget about VOLUME->curved (check based on BCs)
 
 				// Project What and RES

@@ -13,8 +13,8 @@ CSTD = -std=c99
 
 # Options
 #OPTS = -O3
-OPTS = -g -Wall -Wextra -O3
-#OPTS = -g -Wall -Wextra -O3 -DTEST
+#OPTS = -g -Wall -Wextra -O3
+OPTS = -g -Wall -Wextra -O3 -DTEST
 
 # Standard libraries (Math)
 STD_LIB = -lm
@@ -195,4 +195,4 @@ clean_code:
 
 .PHONY : clean_exec
 clean_exec:
-	rm $(OBJDIR)/dpg_solver.o
+	rm $(OBJDIR)/main.o

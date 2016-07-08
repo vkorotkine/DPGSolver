@@ -24,6 +24,8 @@
 extern void   initialization                (int nargc, char **argv);
 extern void   setup_parameters              (void);
 extern void   setup_mesh                    (void);
+extern void     initialize_ELEMENTs         (void);
+extern void     finalize_ELEMENTs           (void);
 extern void     gmsh_reader                 (void);
 extern void     setup_connectivity          (void);
 extern void     setup_periodic              (void);

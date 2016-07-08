@@ -196,7 +196,7 @@ struct S_TEST TestDB;
 
 #define TOL 1e-15
 
-int main(void)
+int main(int nargc, char **argv)
 {
 	clock_t ts, te;
 
@@ -209,7 +209,7 @@ int main(void)
 	ts = clock();
 
 	// Implementation tests
-
+/*
 	test_imp_array_find_index();
 	test_imp_array_norm();
 	test_imp_array_sort();
@@ -242,6 +242,8 @@ int main(void)
 
 	test_imp_fluxes_inviscid();
 	test_imp_get_facet_ordering();
+*/
+	test_imp_update_connectivity(nargc,argv);
 
 
 	te = clock();

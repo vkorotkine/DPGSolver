@@ -180,6 +180,18 @@ void sf_swap_d(double *Input, const unsigned int NRows, const unsigned int NCols
 	 *		Perform the row swapping operation required by sf_apply_*.
 	 *
 	 *	Comments:
+	 *		Upon further reflection about the sf algorithm, it is now obvious that sf_swap is doing the same operations
+	 *		as a non-square matrix transpose on each of the Ncols of Input using a recursive swapping algorithm. This is
+	 *		thus likely inefficient due to:
+	 *			Additional memory movement (as compared to matrix transpose algorithms) due to movement of the same
+	 *			memory multiple times due to the recursion.
+	 *			Cache misses from processing the Input array with an inner loop over the columns (in array_swap) as
+	 *			opposed to doing the swapping 1 column at a time. This was originally done in order to avoid the
+	 *			recomputation of RowSub (which can be computed and stored when swapping the first column).
+	 *		Profile the code and include modifications in this function to address the points above and potentially
+	 *		rewrite this as a non-square matrix transpose function if this is found to take significant time.
+	 *		(ToBeModified).
+	 *
 	 *		See the '*** IMPORTANT ***' comment in sf_apply_*.
 	 */
 
