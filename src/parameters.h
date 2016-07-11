@@ -25,6 +25,7 @@
  *		NESUBCMAX       : (MAX)imum (N)umber of (E)lement (SUB)(C)lasses
  *		NFORDMAX        : (MAX)imum (N)umber of (F)ACET (ORD)ering possibilities
  *		NREFVVARMAX     : (MAX)imum (N)umber of h-adaptive (REF)ined (V)olume (VAR)iations
+ *		NSUBFMAX        : (MAX)imum (N)umber of h-adaptive (SUB)-(F)acets (on each FACET).
  *
  *	References:
  *
@@ -68,6 +69,7 @@
 #define NESUBCMAX       2  // WEDGE (TRI + LINE)
 #define NFORDMAX        8  // QUAD
 #define NREFVVARMAX     7  // HEX
+#define NFREFUNIMAX     4  // QUAD/TRI (Isotropic refinement)
 
 // Solver related parameters
 #define RK3_SSP 0

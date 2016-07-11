@@ -21,6 +21,15 @@
  *		The following outputs are supported: (ToBeModified)
  *			G : Geometry only
  *
+ *		Mesh visualization in paraview:
+ *			0) Load .vtk file
+ *			1) Change 'Representation' to 'wireframe'
+ *			2) Split the screen and select 'SpreadSheet View' in the second window. Change 'Attribute' to 'Cell Data'.
+ *			3) From the 'View' menu, select 'Selection Display Inspector' and enable Cell/Point Label IDs.
+ *
+ *			Any selection of ELEMENTs in the spreadsheet should not show Cell and Point Labels in the first screen.
+ *			Note: Use P1 ELEMENTs so that the cells in paraview are the ELEMENTs themselves.
+ *
  *	Notation:
  *
  *	References:

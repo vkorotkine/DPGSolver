@@ -74,6 +74,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free4_d(NP,NP,1,ELEMENT->ICc);
 
 	array_free4_d(NP,NP,1,         ELEMENT->I_vGs_vP);
+	array_free4_d(NP,NP,NVREFMAX,  ELEMENT->I_vGs_vGs);
 	array_free4_d(NP,NP,1,         ELEMENT->I_vGs_vGc);
 	array_free4_d(NP,NP,1,         ELEMENT->I_vGs_vCs);
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->I_vGs_vIs);
@@ -91,7 +92,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->I_vCc_vIs);
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->I_vCc_vIc);
 
-	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->Ihat_vS_vS);
+	array_free4_d(NP,NP,NVREFMAX,ELEMENT->Ihat_vS_vS);
 
 	array_free5_d(NP,NP,1,d,ELEMENT->D_vGs_vCs);
 	array_free5_d(NP,NP,1,d,ELEMENT->D_vGs_vIs);
@@ -154,7 +155,9 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 
 	// Structures
 	free(VOLUME->XYZ_vC);
+	free(VOLUME->NsubF);
 	free(VOLUME->neigh);
+	free(VOLUME->neigh_f);
 
 	// Geometry
 	free(VOLUME->XYZ_S);
@@ -172,6 +175,9 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	// Solving
 	free(VOLUME->RHS);
 	free(VOLUME->MInv);
+
+	// structs
+	free(VOLUME->FACET);
 
 	free(VOLUME);
 }

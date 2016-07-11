@@ -83,8 +83,8 @@ struct S_ELEMENT {
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS,
 	             ****ICs, ****ICc,
-	             ****I_vGs_vP, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vS, ****I_vGs_vIs, ****I_vGs_vIc,
-	             ****I_vGc_vP,                ****I_vGc_vCc, ****I_vGc_vS, ****I_vGc_vIs, ****I_vGc_vIc,
+	             ****I_vGs_vP, ****I_vGs_vGs, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vS, ****I_vGs_vIs, ****I_vGs_vIc,
+	             ****I_vGc_vP,                               ****I_vGc_vCc, ****I_vGc_vS, ****I_vGc_vIs, ****I_vGc_vIc,
 	             ****I_vCs_vS, ****I_vCs_vIs, ****I_vCs_vIc,
 	             ****I_vCc_vS, ****I_vCc_vIs, ****I_vCc_vIc,
 	             ****Ihat_vS_vS,
@@ -114,7 +114,7 @@ struct S_ELEMENT {
 struct S_VOLUME {
 	// Structures
 	unsigned int indexl, indexg, P, type, Eclass, update, curved, level,
-	             *neigh;
+	             *NsubF, *neigh, *neigh_f;
 	double *XYZ_vC;
 
 	// Geometry
@@ -133,13 +133,13 @@ struct S_VOLUME {
 //	double       minRES, maxRES;
 
 	// structs
-	struct S_VOLUME *next, *grpnext;
-
+	struct S_VOLUME *next, *grpnext, *child0, *parent;
+	struct S_FACET  **FACET;
 };
 
 struct S_FACET {
 	// Structures
-	unsigned int P, type, VfIn, VfOut, indexg, BC, IndOrdInOut, IndOrdOutIn;
+	unsigned int P, type, VfIn, VfOut, indexg, BC, IndOrdInOut, IndOrdOutIn, level, update, adapt_type;
 
 	// Geometry
 	char   curved, typeInt;

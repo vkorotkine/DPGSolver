@@ -74,6 +74,25 @@ void get_Pb_range(const unsigned int P, unsigned int *PbMin, unsigned int *PbMax
 	}
 }
 
+void get_vh_range(const unsigned int VType, const unsigned int href_type, unsigned int *vhMin, unsigned int *vhMax)
+{
+	// Standard datatypes
+	struct S_ELEMENT *ELEMENT;
+
+	ELEMENT = get_ELEMENT_type(VType);
+
+	switch (VType) {
+	case TRI:
+		// Supported href_type: 0 (Isotropic)
+		*vhMin = 1;
+		*vhMax = 4;
+		break;
+	default:
+		printf("Error: Unsupported VType in get_vh_range.\n"), exit(1);
+		break;
+	}
+}
+
 static void check_levels_refine(const unsigned int indexg, const unsigned int *VNeigh, const unsigned int *VType,
                                 unsigned int *hp_levels, unsigned int *hp_refine_current, const char hp_type)
 {

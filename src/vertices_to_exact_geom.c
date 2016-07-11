@@ -86,6 +86,8 @@ void vertices_to_exact_geom(void)
 				}
 			}
 		}
+	} else if (strstr(TestCase,"Test") != NULL) {
+		// No vertex movement required.
 	}
 }
 

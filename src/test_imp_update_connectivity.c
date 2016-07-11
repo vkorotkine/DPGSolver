@@ -46,6 +46,7 @@ static void code_startup(int nargc, char **argv)
 	setup_mesh();
 	setup_operators();
 	setup_structures();
+	setup_geometry();
 }
 
 void test_imp_update_connectivity(int nargc, char **argv)
@@ -63,10 +64,12 @@ void test_imp_update_connectivity(int nargc, char **argv)
 	 *
 	 */
 
-	char **argvNew;
+	char         **argvNew;
+	unsigned int indexg;
+
+	struct S_VOLUME *VOLUME;
 
 	// LINEs
-// Start with d = 1? Can ensure that the code set up is working for this case at the same time.
 
 
 	// TRIs
@@ -77,11 +80,28 @@ void test_imp_update_connectivity(int nargc, char **argv)
 	strcpy(argvNew[0],argv[0]);
 	strcpy(argvNew[1],"test/TestTRI");
 
-	for (int i = 0; i < 2; i++)
-		printf("%s\n",argvNew[i]);
-
 	code_startup(nargc,argvNew);
+	output_to_paraview("ZTest_GeomTRI");
 
+	// Mark VOLUME 3 for isotropic h-refinement
+	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+		indexg = VOLUME->indexg;
+
+		if (indexg == 3) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HREFINE;
+			VOLUME->hrefine_type = 0;
+			break;
+		}
+	}
+
+	update_VOLUME_hp();
+
+	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+		printf("%d\n",VOLUME->indexg);
+	}
+
+	output_to_paraview("ZTest_GeomTRI_up");
 
 
 exit(1);

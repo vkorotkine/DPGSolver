@@ -176,6 +176,7 @@ void setup_structures(void)
 	             *EType   = DB.EType,
 	             *EToPrt  = DB.EToPrt,
 	             *VToV    = DB.VToV,
+	             *VToF    = DB.VToF,
 	             *VToGF   = DB.VToGF,
 	             *VToBC   = DB.VToBC,
 	             *VC      = DB.VC,
@@ -236,9 +237,10 @@ void setup_structures(void)
 			VOLUME->level  = 0;
 			VOLUME->type   = EType[IndE];
 			VOLUME->Eclass = get_Eclass(VOLUME->type);
+			VOLUME->NsubF  = 1;
 			VOLUME->update = 1;
 
-			if (AC || v == VC[IndVC]) {
+			if (AC || (NVC && v == VC[IndVC])) {
 				VOLUME->curved = 1;
 				IndVC++;
 			} else {
@@ -265,6 +267,7 @@ void setup_structures(void)
 //					FACET[0]->indexl = gflocal;
 					FACET[0]->indexg = gf;
 					FACET[0]->P      = VOLUME->P;
+					FACET[0]->level  = 0;
 
 					FACET[0]->VIn   = VOLUME; IndVIn = VOLUME->indexg;
 					FACET[0]->VfIn  = NfrefMax*f;
@@ -285,6 +288,8 @@ void setup_structures(void)
 						}
 					}
 
+					FACET->VOut->FACET[f*NSUBFMAX] = FACET[0];
+
 					FoundFACET[gf] = FACET[0];
 				} else {
 					FACET[1] = FoundFACET[gf];
@@ -292,6 +297,7 @@ void setup_structures(void)
 					FACET[1]->P = max(FACET[1]->P,VOLUME->P);
 					FACET[1]->VOut  = VOLUME;
 					FACET[1]->VfOut = NfrefMax*f;
+					FACET->VOut->FACET[f*NSUBFMAX] = FACET[0];
 					if (VOLUME->curved) {
 						FACET[1]->typeInt = 'c';
 						if (AC || (IndGFC < NGFC && gf == GFC[IndGFC])) {
@@ -346,7 +352,7 @@ void setup_structures(void)
 			vlocal++;
 		} else {
 			// Ensure that appropriate global indices are incremented if necessary
-			if (v == VC[IndVC])
+			if (NVC && v == VC[IndVC])
 				IndVC++;
 			for (f = 0; f < Nf; f++) {
 				gf = VToGF[v*NfMax+f];
@@ -372,8 +378,10 @@ void setup_structures(void)
 		indexg = VOLUME->indexg;
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 		Nf = ELEMENT->Nf;
-		for (f = 0; f < Nf; f++)
-			VOLUME->neigh[f*NFREFMAX] = VToV[NfMax*indexg+f];
+		for (f = 0; f < Nf; f++) {
+			VOLUME->neigh[f*NFREFMAX]   = VToV[NfMax*indexg+f];
+			VOLUME->neigh_f[f*NFREFMAX] = VToF[NfMax*indexg+f];
+		}
 	}
 
 	for (FACET[0] = DB.FACET; FACET[0] != NULL; FACET[0] = FACET[0]->next) {

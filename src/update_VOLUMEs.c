@@ -24,7 +24,7 @@
 
 struct S_OPERATORS {
 	unsigned int NvnGs, NvnGc, NvnS, NvnSP, NvnI;
-	double       *I_vGs_vGc, **Ihat_vS_vS, **Ghat_vS_vS, *w_vI, *ChiS_vI;
+	double       *I_vGs_vGc, **I_vGs_vGs, **Ihat_vS_vS, **Ghat_vS_vS, *w_vI, *ChiS_vI;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass)
@@ -39,8 +39,12 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 
 	ELEMENT = get_ELEMENT_type(type);
 
+	OPS->NvnGs = ELEMENT->NvnGs[1];
+	OPS->NvnGc = ELEMENT->NvnGc[PNew];
 	OPS->NvnS  = ELEMENT->NvnS[P];
 	OPS->NvnSP = ELEMENT->NvnS[PNew];
+	OPS->I_vGs_vGs  = ELEMENT->I_vGs_vGs[1][1];
+	OPS->I_vGs_vGc  = ELEMENT->I_vGs_vGc[1][PNew][0];
 	OPS->Ihat_vS_vS = ELEMENT->Ihat_vS_vS[P][PNew]; // ToBeDeleted: Remove all instances of Ihat_vS_vS from the code if
 	                                                //              not used here.
 	OPS->Ghat_vS_vS = ELEMENT->Ghat_vS_vS[P][PNew];
@@ -50,11 +54,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		OPS->w_vI    = ELEMENT->w_vIs[P];
 		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P][0];
 	} else {
-		OPS->NvnGs = ELEMENT->NvnGs[1];
-		OPS->NvnGc = ELEMENT->NvnGc[PNew];
 		OPS->NvnI  = ELEMENT->NvnIc[P];
-
-		OPS->I_vGs_vGc = ELEMENT->I_vGs_vGc[1][PNew][0];
 
 		OPS->w_vI    = ELEMENT->w_vIc[P];
 		OPS->ChiS_vI = ELEMENT->ChiS_vIc[P][P][0];
@@ -86,6 +86,7 @@ void update_VOLUME_hp(void)
 {
 	// Initialize DB Parameters
 	unsigned int d         = DB.d,
+	             NV        = DB.NV,
 	             AC        = DB.AC,
 	             PMax      = DB.PMax,
 				 LevelsMax = DB.LevelsMax,
@@ -94,21 +95,28 @@ void update_VOLUME_hp(void)
 	char         *MeshType = DB.MeshType;
 
 	// Standard datatypes
-	unsigned int P, PNew, level, adapt_type, vh, vhMax, href_type, *NrefV, VType;
-	double       NvnGs, NvnGc, NvnS, NvnSP, NCols,
-	             *I_vGs_vGc, *XYZ_vC, *XYZ_S,
-	             **Ihat_vS_vS, **Ghat_vS_vS, *What, *RES, *WhatP, *RESP;
+	unsigned int P, PNew, f, sf, level, adapt_type, vh, vhMin, vhMax, sfMax, href_type, VType, Nf,
+	             fInd,
+	             NvnGs, NvnGc, NvnG, NvnS, NvnSP, NCols, *NsubF;
+	double       *I_vGs_vGc, *XYZ_vC, *XYZ_S,
+	             **Ihat_vS_vS, **I_vGs_vGs, **Ghat_vS_vS, *What, *RES, *WhatP, *RESP;
 
 	struct S_OPERATORS *OPS;
 	struct S_ELEMENT   *ELEMENT;
-	struct S_VOLUME    *VOLUME, *VOLUMEh;
+	struct S_VOLUME    *VOLUME, *VOLUMEh, **VOLUME_ptr;
+	struct S_FACET     *FACET;
+
+	// silence
+	I_vGs_vGs = NULL;
+	VOLUMEh   = NULL;
 
 	OPS = malloc(sizeof *OPS); // free
 
+	VOLUME_ptr = &(DB.VOLUME);
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 		if (VOLUME->Vadapt) {
-			VOLUME->update = 1;
-			P = VOLUME->P;
+			P     = VOLUME->P;
+			level = VOLUME->level;
 			adapt_type = VOLUME->adapt_type;
 
 			switch(adapt_type) {
@@ -132,7 +140,7 @@ void update_VOLUME_hp(void)
 				VOLUME->PNew = P;
 				break;
 			case HCOARSE:
-				if (level = 0)
+				if (level == 0)
 					printf("Error: Should not be entering HCOARSE in update_VOLUME_hp for level = %d.\n",level), exit(1);
 				VOLUME->PNew = P;
 				break;
@@ -143,6 +151,7 @@ void update_VOLUME_hp(void)
 
 			init_ops(OPS,VOLUME,0);
 
+			VOLUME->update = 1;
 			switch(adapt_type) {
 			default: // PREFINE or PCOARSE
 				VOLUME->P = PNew;
@@ -198,29 +207,49 @@ void update_VOLUME_hp(void)
 
 				VOLUME->What = WhatP;
 				VOLUME->RES  = RESP;
+
+				VOLUME_ptr = &VOLUME->next;
 				break;
 			case HREFINE:
-				// Create new VOLUMEs
 				VType = VOLUME->type;
+				NsubF = VOLUME->NsubF;
+
+
+				NvnGs     = OPS->NvnGs;
+				NvnGc     = OPS->NvnGc;
+				I_vGs_vGs = OPS->I_vGs_vGs;
+				I_vGs_vGc = OPS->I_vGs_vGc;
+
+				NCols = d;
+
 
 				ELEMENT = get_ELEMENT_type(VType);
-				NrefV = ELEMENT->NrefV;
+				Nf = ELEMENT->Nf;
 
 				href_type = VOLUME->hrefine_type;
 
-				for (vh = 0, vhMax = NrefV[href_type]; vh < vhMax; vh++) {
-					if (!vh) {
+				get_vh_range(VType,href_type,&vhMin,&vhMax);
+				for (vh = vhMin; vh <= vhMax; vh++) {
+					if (vh == vhMin) {
 						VOLUMEh = New_VOLUME();
+						VOLUME->child0 = VOLUMEh;
 					} else {
 						VOLUMEh->next = New_VOLUME();
 						VOLUMEh = VOLUMEh->next;
 					}
+					VOLUMEh->update = 1;
+					VOLUMEh->parent = VOLUME;
+					if (vh == vhMin)
+						*VOLUME_ptr = VOLUMEh;
+					else if (vh == vhMax)
+						VOLUMEh->next = VOLUME->next;
+					VOLUMEh->indexg = NV++;
 
 					VOLUMEh->P = VOLUME->P;
 					VOLUMEh->level = (VOLUME->level)+1;
 					switch (VType) {
 					default: // LINE, TRI, QUAD, HEX, WEDGE
-						VOLUMEh->type = VType;		
+						VOLUMEh->type = VType;
 						break;
 					case TET:
 					case PYR:
@@ -228,17 +257,49 @@ void update_VOLUME_hp(void)
 						break;
 					}
 					VOLUMEh->Eclass = get_Eclass(VOLUMEh->type);
-					VOLUMEh->update = 1;
 
 					if (AC) {
 						VOLUMEh->curved = 1;
-					} else {
+					} else if (VOLUME->curved) {
 						printf("Error: Add support for h-refinement VOLUMEh->curved.\n"), exit(1);
 						// Use VToBC and knowledge of whether the new VOLUME shares the BC.
+					} else {
+						VOLUMEh->curved = 0;
 					}
 
+					// Update geometry
+// When updating XYZ_vC, ensure that corners on curved boundaries are placed on the boundary.
+					VOLUMEh->XYZ_vC = malloc(NvnGs*d * sizeof *XYZ_vC); // keep
+					XYZ_vC = VOLUMEh->XYZ_vC;
 
+					mm_CTN_d(NvnGs,NCols,NvnGs,I_vGs_vGs[vh],VOLUME->XYZ_vC,VOLUMEh->XYZ_vC);
+					if (!VOLUMEh->curved) {
+						double *XYZ;
 
+						VOLUMEh->NvnG = NvnGs;
+
+						VOLUMEh->XYZ_S = malloc(NvnGs*NCols * sizeof *XYZ_S); // keep
+						VOLUMEh->XYZ   = malloc(NvnGs*NCols * sizeof *XYZ);   // keep
+						XYZ_S = VOLUMEh->XYZ_S;
+						XYZ   = VOLUMEh->XYZ;
+						for (unsigned int i = 0, iMax = NCols*NvnGs; i < iMax; i++) {
+							XYZ_S[i] = XYZ_vC[i];
+							XYZ[i]   = XYZ_S[i];
+						}
+					} else {
+						VOLUMEh->NvnG = NvnGc;
+
+						VOLUMEh->XYZ_S = malloc(NvnGc*NCols * sizeof *XYZ_S); // keep
+						mm_CTN_d(NvnGc,NCols,NvnGs,I_vGs_vGc,XYZ_vC,VOLUMEh->XYZ_S);
+
+						if (strstr(MeshType,"ToBeCurved") != NULL) {
+							setup_ToBeCurved(VOLUMEh);
+						} else {
+							printf("Add in support for MeshType != ToBeCurved");
+							exit(1);
+						}
+					}
+					setup_geom_factors(VOLUMEh);
 				}
 
 				// Fix VOLUME linked list and Vgrp linked list
@@ -247,26 +308,26 @@ void update_VOLUME_hp(void)
 				// When updating connectivity, start with groups of elements of the lowest level and move to those with
 				// the highest level to avoid having more than 1 level of non-conformity.
 
-				// Update geometry
-				// When updating XYZ_vC, ensure that corners on curved boundaries are placed on the boundary.
-				// Note: It would be intuitive to do the hrefinement on straight elements and then fix any curving after
-
-
-				// Don't forget about VOLUME->curved (check based on BCs)
 
 				// Project What and RES
+				// free VOLUME->What and VOLUME->RES after projection.
 
 
 
 
 				break;
 			case HCOARSE:
+			// Don't forget VOLUME_ptr
 				// Galerkin projection to coarser space
 				break;
 			}
+		} else {
+			VOLUME_ptr = &VOLUME->next;
 		}
 	}
 	free(OPS);
+
+	DB.NV = NV;
 }
 
 void update_Vgrp(void)

@@ -326,7 +326,7 @@ void setup_connectivity(void)
 	GFCOver = malloc(NV*NfMax * sizeof *GFCOver); // free
 	for (v = 0, vc = 0, gfc = 0; v < NV; v++) {
 	for (f = 0; f < NfMax; f++) {
-		if (VToBC[v*NfMax+f] >= 2000) {
+		if (VToBC[v*NfMax+f] >= 20000) {
 			if (vc == 0 || VCOver[vc-1] != v) {
 				VCOver[vc] = v;
 				vc++;

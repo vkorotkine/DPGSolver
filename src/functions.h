@@ -99,6 +99,8 @@ extern void boundary_SlipWall (const unsigned int Nn, const unsigned int Nel, do
 // hp adaptation
 extern void get_PS_range (unsigned int *PSMin, unsigned int *PSMax);
 extern void get_Pb_range (const unsigned int P, unsigned int *PbMin, unsigned int *PbMax);
+extern void get_vh_range (const unsigned int VType, const unsigned int href_type, unsigned int *vhMin,
+                          unsigned int *vhMax);
 extern void adapt_hp (void);
 extern void   update_VOLUME_hp (void);
 extern void   update_FACET_hp  (void);

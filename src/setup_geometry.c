@@ -111,7 +111,7 @@ void setup_geometry(void)
 	// Modify vertex locations if exact geometry is known
 	if (ExactGeom) {
 		if(!DB.MPIrank) printf("    Modify vertex nodes if exact geometry is known\n");
-		printf("Did not yet verify the implementation.\n");
+		printf("\n\n*** Verify the implementation. ***\n\n\n");
 		vertices_to_exact_geom();
 	}
 
@@ -164,9 +164,21 @@ void setup_geometry(void)
 		printf("    Set geometry of VOLUME nodes in ToBeCurved Mesh\n");
 		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
 			setup_ToBeCurved(VOLUME);
-	} else {
+	} else if (strstr(MeshType,"Curved") != NULL) {
 		printf("Add in support for MeshType != ToBeCurved");
 		exit(1);
+	} else {
+		double *XYZ;
+
+		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+			NvnG  = VOLUME->NvnG;
+			XYZ_S = VOLUME->XYZ_S;
+
+			XYZ = malloc(NvnG*d * sizeof *XYZ); // keep
+			for (unsigned int i = 0, iMax = d*NvnG; i < iMax; i++)
+				XYZ[i] = XYZ_S[i];
+			VOLUME->XYZ = XYZ;
+		}
 	}
 
 	printf("    Set FACET XYZ\n");
