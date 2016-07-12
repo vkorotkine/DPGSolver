@@ -102,9 +102,10 @@ extern void get_Pb_range (const unsigned int P, unsigned int *PbMin, unsigned in
 extern void get_vh_range (const unsigned int VType, const unsigned int href_type, unsigned int *vhMin,
                           unsigned int *vhMax);
 extern void adapt_hp (void);
-extern void   update_VOLUME_hp (void);
-extern void   update_FACET_hp  (void);
-extern void   update_Vgrp      (void);
+extern void   update_VOLUME_hp   (void);
+extern void   update_FACET_hp    (void);
+extern void   update_Vgrp        (void);
+extern void   update_VOLUME_list (void);
 
 // Sum Factorization
 extern void   get_sf_parameters(const unsigned int NIn0, const unsigned int NOut0, double *OP0,

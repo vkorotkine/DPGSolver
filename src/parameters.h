@@ -69,7 +69,7 @@
 #define NESUBCMAX       2  // WEDGE (TRI + LINE)
 #define NFORDMAX        8  // QUAD
 #define NREFVVARMAX     7  // HEX
-#define NFREFUNIMAX     4  // QUAD/TRI (Isotropic refinement)
+#define NSUBFMAX        4  // QUAD/TRI (Isotropic refinement)
 
 // Solver related parameters
 #define RK3_SSP 0

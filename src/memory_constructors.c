@@ -404,8 +404,8 @@ struct S_VOLUME *New_VOLUME(void)
 	// structs
 	VOLUME->next    = NULL;
 	VOLUME->grpnext = NULL;
-	VOLUME->child0  = NULL;
-	VOLUME->parent  = NULL;
+	VOLUME->child0  = NULL; // tbd
+	VOLUME->parent  = NULL; // tbd
 	VOLUME->FACET   = calloc(NFMAX*NSUBFMAX , sizeof *(VOLUME->FACET)); // free
 
 	return VOLUME;
@@ -450,7 +450,9 @@ struct S_FACET *New_FACET(void)
 	FACET->RHSIn  = NULL; // tbd
 	FACET->RHSOut = NULL; // tbd
 
-	FACET->next = NULL;
+	FACET->next   = NULL;
+	FACET->child0 = NULL; // tbd
+	FACET->parent = NULL; // tbd
 
 	return FACET;
 }

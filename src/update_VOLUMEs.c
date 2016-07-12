@@ -95,15 +95,14 @@ void update_VOLUME_hp(void)
 	char         *MeshType = DB.MeshType;
 
 	// Standard datatypes
-	unsigned int P, PNew, f, sf, level, adapt_type, vh, vhMin, vhMax, sfMax, href_type, VType, Nf,
-	             fInd,
-	             NvnGs, NvnGc, NvnG, NvnS, NvnSP, NCols, *NsubF;
+	unsigned int P, PNew, f, level, adapt_type, vh, vhMin, vhMax, href_type, VType, Nf,
+	             NvnGs, NvnGc, NvnG, NvnS, NvnSP, NCols;
 	double       *I_vGs_vGc, *XYZ_vC, *XYZ_S,
 	             **Ihat_vS_vS, **I_vGs_vGs, **Ghat_vS_vS, *What, *RES, *WhatP, *RESP;
 
 	struct S_OPERATORS *OPS;
 	struct S_ELEMENT   *ELEMENT;
-	struct S_VOLUME    *VOLUME, *VOLUMEh, **VOLUME_ptr;
+	struct S_VOLUME    *VOLUME, *VOLUMEh, *VOLUMEnext;
 	struct S_FACET     *FACET;
 
 	// silence
@@ -112,7 +111,6 @@ void update_VOLUME_hp(void)
 
 	OPS = malloc(sizeof *OPS); // free
 
-	VOLUME_ptr = &(DB.VOLUME);
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 		if (VOLUME->Vadapt) {
 			P     = VOLUME->P;
@@ -207,12 +205,9 @@ void update_VOLUME_hp(void)
 
 				VOLUME->What = WhatP;
 				VOLUME->RES  = RESP;
-
-				VOLUME_ptr = &VOLUME->next;
 				break;
 			case HREFINE:
 				VType = VOLUME->type;
-				NsubF = VOLUME->NsubF;
 
 
 				NvnGs     = OPS->NvnGs;
@@ -222,9 +217,6 @@ void update_VOLUME_hp(void)
 
 				NCols = d;
 
-
-				ELEMENT = get_ELEMENT_type(VType);
-				Nf = ELEMENT->Nf;
 
 				href_type = VOLUME->hrefine_type;
 
@@ -239,10 +231,6 @@ void update_VOLUME_hp(void)
 					}
 					VOLUMEh->update = 1;
 					VOLUMEh->parent = VOLUME;
-					if (vh == vhMin)
-						*VOLUME_ptr = VOLUMEh;
-					else if (vh == vhMax)
-						VOLUMEh->next = VOLUME->next;
 					VOLUMEh->indexg = NV++;
 
 					VOLUMEh->P = VOLUME->P;
@@ -256,6 +244,11 @@ void update_VOLUME_hp(void)
 						VOLUMEh->type = get_VOLUMEh_type(VType,vh);
 						break;
 					}
+					ELEMENT = get_ELEMENT_type(VOLUMEh->type);
+					Nf = ELEMENT->Nf;
+					for (f = 0; f < Nf; f++)
+						VOLUMEh->NsubF[f] = 1;
+
 					VOLUMEh->Eclass = get_Eclass(VOLUMEh->type);
 
 					if (AC) {
@@ -317,17 +310,66 @@ void update_VOLUME_hp(void)
 
 				break;
 			case HCOARSE:
-			// Don't forget VOLUME_ptr
 				// Galerkin projection to coarser space
 				break;
 			}
-		} else {
-			VOLUME_ptr = &VOLUME->next;
 		}
 	}
 	free(OPS);
 
 	DB.NV = NV;
+}
+
+void update_VOLUME_list(void)
+{
+	/*
+	 *	Comments:
+	 *		This is done inelegantly because it was required to keep the pointer to the parent VOLUME.
+	 */
+
+	unsigned int adapt_type;
+
+	struct S_VOLUME *VOLUME, *VOLUMEh, *VOLUMEnext;
+
+	// Fix list head if necessary
+	VOLUME = DB.VOLUME;
+
+	if (VOLUME->update) {
+		adapt_type = VOLUME->adapt_type;
+		if (adapt_type == HREFINE) {
+			VOLUME->update = 0;
+			DB.VOLUME = VOLUME->child0;
+			for (VOLUMEh = DB.VOLUME; VOLUMEh->next != NULL; VOLUMEh = VOLUMEh->next)
+				;
+			VOLUMEh->next = VOLUME->next;
+		} else if (adapt_type == HCOARSE) {
+			DB.VOLUME = VOLUME->parent;
+			for (VOLUMEh = VOLUME; VOLUMEh->next->parent == DB.VOLUME; VOLUMEh = VOLUMEh->next)
+				VOLUMEh->update = 0;
+			DB.VOLUME->next = VOLUMEh->next;
+		}
+	}
+
+	// Fix remainder of list
+	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+		VOLUMEnext = VOLUME->next;
+		if (VOLUMEnext && VOLUMEnext->update) {
+			adapt_type = VOLUMEnext->adapt_type;
+			if (adapt_type == HREFINE) {
+				VOLUME->update = 0;
+				VOLUME->next = VOLUMEnext->child0;
+//				for (VOLUMEh = VOLUME->next; VOLUMEh->next->parent == VOLUMEnext; VOLUMEh = VOLUMEh->next)
+				for (VOLUMEh = VOLUME->next; VOLUMEh->next != NULL; VOLUMEh = VOLUMEh->next)
+					;
+				VOLUMEh->next = VOLUMEnext->next;
+			} else if (adapt_type == HCOARSE) {
+				VOLUME->next = VOLUMEnext->parent;
+				for (VOLUMEh = VOLUMEnext; VOLUMEh->next->parent == VOLUME->next; VOLUMEh = VOLUMEh->next)
+					VOLUMEh->update = 0;
+				VOLUME->next->next = VOLUMEh->next;
+			}
+		}
+	}
 }
 
 void update_Vgrp(void)

@@ -68,6 +68,7 @@ void test_imp_update_connectivity(int nargc, char **argv)
 	unsigned int indexg;
 
 	struct S_VOLUME *VOLUME;
+	struct S_FACET  *FACET;
 
 	// LINEs
 
@@ -87,21 +88,73 @@ void test_imp_update_connectivity(int nargc, char **argv)
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 		indexg = VOLUME->indexg;
 
+//		if (indexg == 0 || indexg == 3) {
+//		if (indexg == 3 || indexg == 4) {
 		if (indexg == 3) {
 			VOLUME->Vadapt = 1;
 			VOLUME->adapt_type = HREFINE;
 			VOLUME->hrefine_type = 0;
-			break;
 		}
 	}
 
 	update_VOLUME_hp();
+	update_FACET_hp();
+
+	update_VOLUME_list();
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-		printf("%d\n",VOLUME->indexg);
+		printf("%d %d ",VOLUME->indexg,VOLUME->level);
+		if (VOLUME->level > 0)
+			printf("%d ",VOLUME->parent->indexg);
+		printf("\n");
+	}
+
+	printf("\n\n\n");
+	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
+		printf("%d ",FACET->indexg);
+		if (FACET->level > 0 && FACET->parent)
+			printf("%d ",FACET->parent->indexg);
+		printf("\n");
 	}
 
 	output_to_paraview("ZTest_GeomTRI_up");
+	output_to_paraview("ZTest_NormalsTRI_up");
+
+printf("\n\n\n");
+
+	// Mark VOLUME 4 for isotropic h-refinement
+	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+		indexg = VOLUME->indexg;
+
+		if (indexg == 4) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HREFINE;
+			VOLUME->hrefine_type = 0;
+		}
+	}
+
+	update_VOLUME_hp();
+	update_FACET_hp();
+
+	update_VOLUME_list();
+
+	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+		printf("%d %d ",VOLUME->indexg,VOLUME->level);
+		if (VOLUME->level > 0)
+			printf("%d ",VOLUME->parent->indexg);
+		printf("\n");
+	}
+
+	printf("\n\n\n");
+	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
+		printf("%d ",FACET->indexg);
+		if (FACET->level > 0 && FACET->parent)
+			printf("%d ",FACET->parent->indexg);
+		printf("\n");
+	}
+
+	output_to_paraview("ZTest_GeomTRI_up");
+	output_to_paraview("ZTest_NormalsTRI_up");
 
 
 exit(1);

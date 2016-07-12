@@ -237,7 +237,6 @@ void setup_structures(void)
 			VOLUME->level  = 0;
 			VOLUME->type   = EType[IndE];
 			VOLUME->Eclass = get_Eclass(VOLUME->type);
-			VOLUME->NsubF  = 1;
 			VOLUME->update = 1;
 
 			if (AC || (NVC && v == VC[IndVC])) {
@@ -254,6 +253,7 @@ void setup_structures(void)
 			Nf = ELEMENT->Nf;
 
 			for (f = 0; f < Nf; f++) {
+				VOLUME->NsubF[f] = 1;
 				gf = VToGF[v*NfMax+f];
 				if (FoundFACET[gf] == NULL) {
 					if (DB.FACET != NULL) {
@@ -288,7 +288,7 @@ void setup_structures(void)
 						}
 					}
 
-					FACET->VOut->FACET[f*NSUBFMAX] = FACET[0];
+					FACET[0]->VOut->FACET[f*NSUBFMAX] = FACET[0];
 
 					FoundFACET[gf] = FACET[0];
 				} else {
@@ -297,7 +297,7 @@ void setup_structures(void)
 					FACET[1]->P = max(FACET[1]->P,VOLUME->P);
 					FACET[1]->VOut  = VOLUME;
 					FACET[1]->VfOut = NfrefMax*f;
-					FACET->VOut->FACET[f*NSUBFMAX] = FACET[0];
+					FACET[1]->VOut->FACET[f*NSUBFMAX] = FACET[1];
 					if (VOLUME->curved) {
 						FACET[1]->typeInt = 'c';
 						if (AC || (IndGFC < NGFC && gf == GFC[IndGFC])) {

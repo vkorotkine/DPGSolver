@@ -150,7 +150,7 @@ struct S_FACET {
 
 	// structs
 	struct S_VOLUME *VIn, *VOut;
-	struct S_FACET  *next, *grpnext;
+	struct S_FACET  *next, *grpnext, *child0, *parent;
 };
 
 struct S_OpCSR {
