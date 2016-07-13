@@ -54,6 +54,10 @@ void get_Pb_range(const unsigned int P, unsigned int *PbMin, unsigned int *PbMax
 	/*
 	 *	Purpose:
 	 *		Return the range of orders used for operators which interpolate between different orders.
+	 *
+	 *	Comments:
+	 *		For Adapt == ADAPT_HP, the full range must be available such that FACET orders are acceptable if
+	 *		h-coarsening is applied to a single neighbouring VOLUME having a range of orders.
 	 */
 
 	// Initialize DB Parameters
@@ -61,7 +65,11 @@ void get_Pb_range(const unsigned int P, unsigned int *PbMin, unsigned int *PbMax
 	             Adapt = DB.Adapt;
 
 	switch (Adapt) {
-		default: // ADAPT_P or ADAPT_HP
+		default: // ADAPT_HP
+			*PbMin = 0;
+			*PbMax = PMax;
+			break;
+		case ADAPT_P:
 			if      (P == 0)    *PbMin = P,   *PbMax = P+1;
 			else if (P == PMax) *PbMin = P-1, *PbMax = PMax;
 			else                *PbMin = P-1, *PbMax = P+1;
@@ -74,12 +82,16 @@ void get_Pb_range(const unsigned int P, unsigned int *PbMin, unsigned int *PbMax
 	}
 }
 
-void get_vh_range(const unsigned int VType, const unsigned int href_type, unsigned int *vhMin, unsigned int *vhMax)
+void get_vh_range(const struct S_VOLUME *VOLUME, unsigned int *vhMin, unsigned int *vhMax)
 {
 	// Standard datatypes
-	struct S_ELEMENT *ELEMENT;
+	unsigned int VType, href_type;
 
-	ELEMENT = get_ELEMENT_type(VType);
+//	struct S_ELEMENT *ELEMENT;
+//	ELEMENT = get_ELEMENT_type(VType);
+
+	VType = VOLUME->type;
+	href_type = VOLUME->hrefine_type;
 
 	switch (VType) {
 	case TRI:
@@ -385,7 +397,7 @@ exit(1);
 				}
 			}
 			if (!refine_conflict) {
-				// Ensure that all elements to which the coarsening will propagate also have minRHS < COARSE_TOL
+				// Ensure that all elements to which the coarsening will propagate also have minRHS > COARSE_TOL
 				coarse_conflict = 0;
 				for (j = 0; j < NVglobal; j++) {
 					if (hp_coarse_current_local[j] && minRHS_Vec_unsorted[j] > COARSE_TOL) {

@@ -15,8 +15,9 @@
  *		Initialize solution on all VOLUMEs for each test case.
  *
  *	Comments:
- *		For unsteady cases, it would be advantageous to write an adaptive initialization function. Consider implementing
- *		this (ToBeDeleted).
+ *		For unsteady cases, it would be advantageous to write an adaptive initialization function. This could most
+ *		easily be done by updating the mesh to be in a much finer space than the original, initializing the solution
+ *		there, and only coarsening in regions where the initial solution error is low (ToBeDeleted).
  *
  *	Notation:
  *

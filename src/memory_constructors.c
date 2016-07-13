@@ -370,6 +370,9 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->neigh   = calloc(NFMAX*NFREFMAX , sizeof *(VOLUME->neigh));   // free
 	VOLUME->neigh_f = calloc(NFMAX*NFREFMAX , sizeof *(VOLUME->neigh_f)); // free
 
+	for (unsigned int i = 0, iMax = NFMAX*NFREFMAX; i < iMax; i++)
+		VOLUME->neigh_f[i] = 999;
+
 	VOLUME->XYZ_vC = NULL; // free
 
 	// Geometry

@@ -187,7 +187,7 @@
  *		w_vIc            |
  *
  *		ChiS_vP          | [P][P][0]       [rP][P(P)][0]       [P][P][0]       [rP][P(P)][0]
- *		ChiS_vS      (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rPb][*]
+ *		ChiS_vS      (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rP][*]
  *		ChiS_vIs     (*) |
  *		ChiS_vIc     (*) |
  *		ChiInvS_vS       | [P][P][0]       [rP][P(P)][0]       [P][P][0]       [rP][P(P)][0]
@@ -199,22 +199,22 @@
  *		I_vGs_vGs        | NOT_USED        NOT_USED            [1][1][**]      [1][1][**]
  *		I_vGs_vGc        | [1][P][0]       [1][rP][0]          [1][P][0]       [1][rP][0]
  *		I_vGs_vCs        |
- *		I_vGs_vS     (*) | [1][P][0]       [1][rPb][0]         [1][P][*]       [1][rPb][*]
+ *		I_vGs_vS     (*) | [1][P][0]       [1][rPb][0]         [1][P][*]       [1][rP][*]
  *		I_vGs_vIs    (*) |
  *		I_vGs_vIc    (*) |
  *		I_vGc_vP         | [1][P][0]       [1][P(P)][0]        [1][P][0]       [1][P(P)][0]
  *		I_vGc_vCc        |
- *		I_vGc_vS     (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rPb][*]
- *		I_vGc_vIs    (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rPb][*]
+ *		I_vGc_vS     (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rP][*]
+ *		I_vGc_vIs    (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rP][*]
  *		I_vGc_vIc    (*) |
- *		I_vCs_vS     (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rPb][*]
+ *		I_vCs_vS     (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rP][*]
  *		I_vCs_vIs    (*) |
  *		I_vCs_vIc    (*) |
  *		I_vCc_vS     (*) |
  *		I_vCc_vIs    (*) |
  *		I_vCc_vIc    (*) |
  *		                 |
- *		Ihat_vS_vS       | NOT_USED        [rP][rPb][0]        [P][P][*]       [rP][rPb][0] & [P][P][*]
+ *		Ihat_vS_vS       | NOT_USED        [rP][rPb][0]        [P][P][*]       [rP][rP][0] & [P][P][*]
  *		                 |
  *		D_vGs_vCs        | [1][P][0][rd]   [1][rP][0][rd]      [1][P][0][rd]   [1][rP][0][rd]
  *		D_vGs_vIs        |
@@ -223,13 +223,13 @@
  *		D_vCs_vCs        |
  *		D_vCc_vCc        |
  *		                 |
- *		ChiS_fIs         | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rPb][^^]
+ *		ChiS_fIs         | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rP][^^]
  *		ChiS_fIc         |
  *		                 |
  *		I_vGs_fS         | [1][P][^]       [P][rP][^]          [1][P][^^]      [1][rP][^^]
  *		I_vGs_fIs        |
  *		I_vGs_fIc        |
- *		I_vGc_fS         | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rPb][^^]
+ *		I_vGc_fS         | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rP][^^]
  *		I_vGc_fIs        |
  *		I_vGc_fIc        |
  *		I_vCs_fIs        |
@@ -237,19 +237,19 @@
  *		I_vCc_fIs        |
  *		I_vCc_fIc        |
  *		                 |
- *		Is_Weak_VV   (*) | [P][P][0]       [rP][rPb][0]        [P][P][0]       [rP][rPb][0]
+ *		Is_Weak_VV   (*) | [P][P][0]       [rP][rPb][0]        [P][P][0]       [rP][rP][0]
  *		Ic_Weak_VV   (*) |
  *		Ds_Weak_VV       | [P][P][0][rd]   [rP][P(P)][0][rd]   [P][P][0][rd]   [rP][P(P)][0][rd]
  *		Dc_Weak_VV       |
  *		                 |
- *		Is_Weak_FF       | [P][P][^]       [rP][rPb][^]       [P][P][^^]      [rP][rPb][^^]
+ *		Is_Weak_FF       | [P][P][^]       [rP][rPb][^]       [P][P][^^]       [rP][rP][^^]
  *		Ic_Weak_FF       |
  *		                 |
- *		ChiS_fIs_sp      | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rPb][^^]
+ *		ChiS_fIs_sp      | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rP][^^]
  *		ChiS_fIc_sp      |
  *		Ds_Weak_VV_sp    | [P][P][0][rd]   [rP][P(P)][0][rd]   [P][P][0][rd]   [rP][P(P)][0][rd]
  *		Dc_Weak_VV_sp    |
- *		Is_Weak_FF_sp    | [P][P][^]       [rP][rPb][^]       [P][P][^^]      [rP][rPb][^^]
+ *		Is_Weak_FF_sp    | [P][P][^]       [rP][rPb][^]       [P][P][^^]       [rP][rP][^^]
  *		Ic_Weak_FF_sp    |
  *
  *
@@ -1526,36 +1526,40 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 //printf("VFPartUnity\n");
 
 //printf("fh: %d\n",fh);
+					ChiRefGs_fS  = basis(PGs           ,rst_fS, NfnS[Pb][IndFType], &Nbf,dE); // free
+					ChiRefGs_fIs = basis(PGs           ,rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
+					ChiRefGs_fIc = basis(PGs           ,rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
+					ChiRefGc_fS  = basis(PGc[P]        ,rst_fS, NfnS[Pb][IndFType], &Nbf,dE); // free
+					ChiRefGc_fIs = basis(PGc[P]        ,rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
+					ChiRefGc_fIc = basis(PGc[P]        ,rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
+					ChiRefCs_fS  = basis(PCs[P][Eclass],rst_fS, NfnS[Pb][IndFType], &Nbf,dE); // free
+					ChiRefCs_fIs = basis(PCs[P][Eclass],rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
+					ChiRefCs_fIc = basis(PCs[P][Eclass],rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
+					ChiRefCc_fS  = basis(PCc[P][Eclass],rst_fS, NfnS[Pb][IndFType], &Nbf,dE); // free
+					ChiRefCc_fIs = basis(PCc[P][Eclass],rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
+					ChiRefCc_fIc = basis(PCc[P][Eclass],rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
+
+					ChiGs_fS  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnGs[1],NvnGs[1],1.0,ChiRefGs_fS, TGs); // free
+					ChiGs_fIs = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,ChiRefGs_fIs,TGs); // free
+					ChiGs_fIc = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,ChiRefGs_fIc,TGs); // free
+					ChiGc_fS  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnGc[P],NvnGc[P],1.0,ChiRefGc_fS, TGc); // free
+					ChiGc_fIs = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,ChiRefGc_fIs,TGc); // free
+					ChiGc_fIc = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,ChiRefGc_fIc,TGc); // free
+					ChiCs_fS  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnCs[P],NvnCs[P],1.0,ChiRefCs_fS, TCs); // free
+					ChiCs_fIs = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnCs[P],NvnCs[P],1.0,ChiRefCs_fIs,TCs); // free
+					ChiCs_fIc = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnCs[P],NvnCs[P],1.0,ChiRefCs_fIc,TCs); // free
+					ChiCc_fS  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnCc[P],NvnCc[P],1.0,ChiRefCc_fS, TCc); // free
+					ChiCc_fIs = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnCc[P],NvnCc[P],1.0,ChiRefCc_fIs,TCc); // free
+					ChiCc_fIc = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnCc[P],NvnCc[P],1.0,ChiRefCc_fIc,TCc); // free
+
+					// Returned Operators
+					if (P == Pb) {
+						// Outside of fh == 0 if condition as operator is used for testing h-adaptation connectivity.
+						I_vGs_fS[1][Pb][Vf]  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnGs[1],NvnGs[1],1.0,ChiGs_fS, ChiInvGs_vGs); // keep
+					}
+
 					if (fh == 0) {
-						ChiRefGs_fS  = basis(PGs           ,rst_fS, NfnS[Pb][IndFType], &Nbf,dE); // free
-						ChiRefGs_fIs = basis(PGs           ,rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
-						ChiRefGs_fIc = basis(PGs           ,rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
-						ChiRefGc_fS  = basis(PGc[P]        ,rst_fS, NfnS[Pb][IndFType], &Nbf,dE); // free
-						ChiRefGc_fIs = basis(PGc[P]        ,rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
-						ChiRefGc_fIc = basis(PGc[P]        ,rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
-						ChiRefCs_fS  = basis(PCs[P][Eclass],rst_fS, NfnS[Pb][IndFType], &Nbf,dE); // free
-						ChiRefCs_fIs = basis(PCs[P][Eclass],rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
-						ChiRefCs_fIc = basis(PCs[P][Eclass],rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
-						ChiRefCc_fS  = basis(PCc[P][Eclass],rst_fS, NfnS[Pb][IndFType], &Nbf,dE); // free
-						ChiRefCc_fIs = basis(PCc[P][Eclass],rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
-						ChiRefCc_fIc = basis(PCc[P][Eclass],rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
-
-						ChiGs_fS  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnGs[1],NvnGs[1],1.0,ChiRefGs_fS, TGs); // free
-						ChiGs_fIs = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,ChiRefGs_fIs,TGs); // free
-						ChiGs_fIc = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,ChiRefGs_fIc,TGs); // free
-						ChiGc_fS  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnGc[P],NvnGc[P],1.0,ChiRefGc_fS, TGc); // free
-						ChiGc_fIs = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,ChiRefGc_fIs,TGc); // free
-						ChiGc_fIc = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,ChiRefGc_fIc,TGc); // free
-						ChiCs_fS  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnCs[P],NvnCs[P],1.0,ChiRefCs_fS, TCs); // free
-						ChiCs_fIs = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnCs[P],NvnCs[P],1.0,ChiRefCs_fIs,TCs); // free
-						ChiCs_fIc = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnCs[P],NvnCs[P],1.0,ChiRefCs_fIc,TCs); // free
-						ChiCc_fS  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnCc[P],NvnCc[P],1.0,ChiRefCc_fS, TCc); // free
-						ChiCc_fIs = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnCc[P],NvnCc[P],1.0,ChiRefCc_fIs,TCc); // free
-						ChiCc_fIc = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnCc[P],NvnCc[P],1.0,ChiRefCc_fIc,TCc); // free
-
-						// Returned Operators
 						if (P == Pb) {
-							I_vGs_fS[1][Pb][Vf]  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnGs[1],NvnGs[1],1.0,ChiGs_fS, ChiInvGs_vGs); // keep
 							I_vGs_fIs[1][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,ChiGs_fIs,ChiInvGs_vGs); // keep
 							I_vGs_fIc[1][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,ChiGs_fIc,ChiInvGs_vGs); // keep
 						}
@@ -1568,33 +1572,33 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 						I_vCc_fS[P][Pb][Vf]  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnCc[P],NvnCc[P],1.0,ChiCc_fS, ChiInvCc_vCc); // keep
 						I_vCc_fIs[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnCc[P],NvnCc[P],1.0,ChiCc_fIs,ChiInvCc_vCc); // keep
 						I_vCc_fIc[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnCc[P],NvnCc[P],1.0,ChiCc_fIc,ChiInvCc_vCc); // keep
-
-						free(ChiRefGs_fS);
-						free(ChiRefGs_fIs);
-						free(ChiRefGs_fIc);
-						free(ChiRefGc_fS);
-						free(ChiRefGc_fIs);
-						free(ChiRefGc_fIc);
-						free(ChiRefCs_fS);
-						free(ChiRefCs_fIs);
-						free(ChiRefCs_fIc);
-						free(ChiRefCc_fS);
-						free(ChiRefCc_fIs);
-						free(ChiRefCc_fIc);
-
-						free(ChiGs_fS);
-						free(ChiGs_fIs);
-						free(ChiGs_fIc);
-						free(ChiGc_fS);
-						free(ChiGc_fIs);
-						free(ChiGc_fIc);
-						free(ChiCs_fS);
-						free(ChiCs_fIs);
-						free(ChiCs_fIc);
-						free(ChiCc_fS);
-						free(ChiCc_fIs);
-						free(ChiCc_fIc);
 					}
+
+					free(ChiRefGs_fS);
+					free(ChiRefGs_fIs);
+					free(ChiRefGs_fIc);
+					free(ChiRefGc_fS);
+					free(ChiRefGc_fIs);
+					free(ChiRefGc_fIc);
+					free(ChiRefCs_fS);
+					free(ChiRefCs_fIs);
+					free(ChiRefCs_fIc);
+					free(ChiRefCc_fS);
+					free(ChiRefCc_fIs);
+					free(ChiRefCc_fIc);
+
+					free(ChiGs_fS);
+					free(ChiGs_fIs);
+					free(ChiGs_fIc);
+					free(ChiGc_fS);
+					free(ChiGc_fIs);
+					free(ChiGc_fIc);
+					free(ChiCs_fS);
+					free(ChiCs_fIs);
+					free(ChiCs_fIc);
+					free(ChiCc_fS);
+					free(ChiCc_fIs);
+					free(ChiCc_fIc);
 
 					free(rst_fS);
 					free(rst_fIs);

@@ -61,7 +61,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	}
 }
 
-static unsigned int get_VOLUMEh_type(const unsigned int VType, const unsigned int vh)
+static unsigned int get_VOLUMEc_type(const unsigned int VType, const unsigned int vh)
 {
 	switch (VType) {
 	case TET:
@@ -77,7 +77,7 @@ static unsigned int get_VOLUMEh_type(const unsigned int VType, const unsigned in
 			return TET;
 		break;
 	default:
-		printf("Error: Unsupported VType in get_VOLUMEh_type.\n"), exit(1);
+		printf("Error: Unsupported VType in get_VOLUMEc_type.\n"), exit(1);
 		break;
 	}
 }
@@ -102,12 +102,12 @@ void update_VOLUME_hp(void)
 
 	struct S_OPERATORS *OPS;
 	struct S_ELEMENT   *ELEMENT;
-	struct S_VOLUME    *VOLUME, *VOLUMEh, *VOLUMEnext;
+	struct S_VOLUME    *VOLUME, *VOLUMEc, *VOLUMEnext;
 	struct S_FACET     *FACET;
 
 	// silence
 	I_vGs_vGs = NULL;
-	VOLUMEh   = NULL;
+	VOLUMEc   = NULL;
 
 	OPS = malloc(sizeof *OPS); // free
 
@@ -220,104 +220,128 @@ void update_VOLUME_hp(void)
 
 				href_type = VOLUME->hrefine_type;
 
-				get_vh_range(VType,href_type,&vhMin,&vhMax);
+				get_vh_range(VOLUME,&vhMin,&vhMax);
 				for (vh = vhMin; vh <= vhMax; vh++) {
 					if (vh == vhMin) {
-						VOLUMEh = New_VOLUME();
-						VOLUME->child0 = VOLUMEh;
+						VOLUMEc = New_VOLUME();
+						VOLUME->child0 = VOLUMEc;
 					} else {
-						VOLUMEh->next = New_VOLUME();
-						VOLUMEh = VOLUMEh->next;
+						VOLUMEc->next = New_VOLUME();
+						VOLUMEc = VOLUMEc->next;
 					}
-					VOLUMEh->update = 1;
-					VOLUMEh->parent = VOLUME;
-					VOLUMEh->indexg = NV++;
+					VOLUMEc->update = 1;
+					VOLUMEc->parent = VOLUME;
+					VOLUMEc->indexg = NV++;
 
-					VOLUMEh->P = VOLUME->P;
-					VOLUMEh->level = (VOLUME->level)+1;
+					VOLUMEc->P = VOLUME->P;
+					VOLUMEc->level = (VOLUME->level)+1;
 					switch (VType) {
 					default: // LINE, TRI, QUAD, HEX, WEDGE
-						VOLUMEh->type = VType;
+						VOLUMEc->type = VType;
 						break;
 					case TET:
 					case PYR:
-						VOLUMEh->type = get_VOLUMEh_type(VType,vh);
+						VOLUMEc->type = get_VOLUMEc_type(VType,vh);
 						break;
 					}
-					ELEMENT = get_ELEMENT_type(VOLUMEh->type);
+					ELEMENT = get_ELEMENT_type(VOLUMEc->type);
 					Nf = ELEMENT->Nf;
 					for (f = 0; f < Nf; f++)
-						VOLUMEh->NsubF[f] = 1;
+						VOLUMEc->NsubF[f] = 1;
 
-					VOLUMEh->Eclass = get_Eclass(VOLUMEh->type);
+					VOLUMEc->Eclass = get_Eclass(VOLUMEc->type);
 
 					if (AC) {
-						VOLUMEh->curved = 1;
+						VOLUMEc->curved = 1;
 					} else if (VOLUME->curved) {
-						printf("Error: Add support for h-refinement VOLUMEh->curved.\n"), exit(1);
+						printf("Error: Add support for h-refinement VOLUMEc->curved.\n"), exit(1);
 						// Use VToBC and knowledge of whether the new VOLUME shares the BC.
 					} else {
-						VOLUMEh->curved = 0;
+						VOLUMEc->curved = 0;
 					}
 
 					// Update geometry
 // When updating XYZ_vC, ensure that corners on curved boundaries are placed on the boundary.
-					VOLUMEh->XYZ_vC = malloc(NvnGs*d * sizeof *XYZ_vC); // keep
-					XYZ_vC = VOLUMEh->XYZ_vC;
+					VOLUMEc->XYZ_vC = malloc(NvnGs*d * sizeof *XYZ_vC); // keep
+					XYZ_vC = VOLUMEc->XYZ_vC;
 
-					mm_CTN_d(NvnGs,NCols,NvnGs,I_vGs_vGs[vh],VOLUME->XYZ_vC,VOLUMEh->XYZ_vC);
-					if (!VOLUMEh->curved) {
+					mm_CTN_d(NvnGs,NCols,NvnGs,I_vGs_vGs[vh],VOLUME->XYZ_vC,VOLUMEc->XYZ_vC);
+					if (!VOLUMEc->curved) {
 						double *XYZ;
 
-						VOLUMEh->NvnG = NvnGs;
+						VOLUMEc->NvnG = NvnGs;
 
-						VOLUMEh->XYZ_S = malloc(NvnGs*NCols * sizeof *XYZ_S); // keep
-						VOLUMEh->XYZ   = malloc(NvnGs*NCols * sizeof *XYZ);   // keep
-						XYZ_S = VOLUMEh->XYZ_S;
-						XYZ   = VOLUMEh->XYZ;
+						VOLUMEc->XYZ_S = malloc(NvnGs*NCols * sizeof *XYZ_S); // keep
+						VOLUMEc->XYZ   = malloc(NvnGs*NCols * sizeof *XYZ);   // keep
+						XYZ_S = VOLUMEc->XYZ_S;
+						XYZ   = VOLUMEc->XYZ;
 						for (unsigned int i = 0, iMax = NCols*NvnGs; i < iMax; i++) {
 							XYZ_S[i] = XYZ_vC[i];
 							XYZ[i]   = XYZ_S[i];
 						}
 					} else {
-						VOLUMEh->NvnG = NvnGc;
+						VOLUMEc->NvnG = NvnGc;
 
-						VOLUMEh->XYZ_S = malloc(NvnGc*NCols * sizeof *XYZ_S); // keep
-						mm_CTN_d(NvnGc,NCols,NvnGs,I_vGs_vGc,XYZ_vC,VOLUMEh->XYZ_S);
+						VOLUMEc->XYZ_S = malloc(NvnGc*NCols * sizeof *XYZ_S); // keep
+						mm_CTN_d(NvnGc,NCols,NvnGs,I_vGs_vGc,XYZ_vC,VOLUMEc->XYZ_S);
 
 						if (strstr(MeshType,"ToBeCurved") != NULL) {
-							setup_ToBeCurved(VOLUMEh);
+							setup_ToBeCurved(VOLUMEc);
 						} else {
 							printf("Add in support for MeshType != ToBeCurved");
 							exit(1);
 						}
 					}
-					setup_geom_factors(VOLUMEh);
+					setup_geom_factors(VOLUMEc);
 				}
 
 				// Fix VOLUME linked list and Vgrp linked list
 				// Also update indexg and indexl
 
-				// When updating connectivity, start with groups of elements of the lowest level and move to those with
-				// the highest level to avoid having more than 1 level of non-conformity.
-
-
 				// Project What and RES
 				// free VOLUME->What and VOLUME->RES after projection.
-
-
-
-
 				break;
 			case HCOARSE:
-				// Galerkin projection to coarser space
+				VOLUMEp = VOLUME->parent;
+
+				if (VOLUME == VOLUMEp->child0) {
+					level = VOLUME->level;
+
+					update = 1;
+					maxP = VOLUME->P;
+
+					get_vh_range(VOLUME->parent,&vhMin,&vhMax);
+					VOLUMEc = VOLUME;
+					for (vh = vhMin+1; vh <= vhMax; vh++) {
+						VOLUMEc = VOLUMEc->next;
+						maxP = max(maxP,VOLUMEc->P);
+
+						if (VOLUMEc->level != level) {
+							update = 0;
+							VOLUME->update = 0;
+							break;
+						}
+					}
+					VOLUMEp->update = update;
+
+					if (update) {
+						// Most of the information of VOLUMEp has been stored.
+						VOLUMEp->update = 1;
+						VOLUMEp->indexg = NV++;
+
+						VOLUMEp->P = maxP;
+						VOLUMEp->adapt_type = HCOARSE;
+						// Project What and RES
+						// free all child VOLUMEs when finished.
+					}
+				}
+
+
 				break;
 			}
 		}
 	}
 	free(OPS);
-
-	DB.NV = NV;
 }
 
 void update_VOLUME_list(void)
@@ -329,7 +353,7 @@ void update_VOLUME_list(void)
 
 	unsigned int adapt_type;
 
-	struct S_VOLUME *VOLUME, *VOLUMEh, *VOLUMEnext;
+	struct S_VOLUME *VOLUME, *VOLUMEc, *VOLUMEnext;
 
 	// Fix list head if necessary
 	VOLUME = DB.VOLUME;
@@ -339,14 +363,14 @@ void update_VOLUME_list(void)
 		if (adapt_type == HREFINE) {
 			VOLUME->update = 0;
 			DB.VOLUME = VOLUME->child0;
-			for (VOLUMEh = DB.VOLUME; VOLUMEh->next != NULL; VOLUMEh = VOLUMEh->next)
+			for (VOLUMEc = DB.VOLUME; VOLUMEc->next != NULL; VOLUMEc = VOLUMEc->next)
 				;
-			VOLUMEh->next = VOLUME->next;
+			VOLUMEc->next = VOLUME->next;
 		} else if (adapt_type == HCOARSE) {
 			DB.VOLUME = VOLUME->parent;
-			for (VOLUMEh = VOLUME; VOLUMEh->next->parent == DB.VOLUME; VOLUMEh = VOLUMEh->next)
-				VOLUMEh->update = 0;
-			DB.VOLUME->next = VOLUMEh->next;
+			for (VOLUMEc = VOLUME; VOLUMEc->next->parent == DB.VOLUME; VOLUMEc = VOLUMEc->next)
+				VOLUMEc->update = 0;
+			DB.VOLUME->next = VOLUMEc->next;
 		}
 	}
 
@@ -358,15 +382,14 @@ void update_VOLUME_list(void)
 			if (adapt_type == HREFINE) {
 				VOLUME->update = 0;
 				VOLUME->next = VOLUMEnext->child0;
-//				for (VOLUMEh = VOLUME->next; VOLUMEh->next->parent == VOLUMEnext; VOLUMEh = VOLUMEh->next)
-				for (VOLUMEh = VOLUME->next; VOLUMEh->next != NULL; VOLUMEh = VOLUMEh->next)
+				for (VOLUMEc = VOLUME->next; VOLUMEc->next != NULL; VOLUMEc = VOLUMEc->next)
 					;
-				VOLUMEh->next = VOLUMEnext->next;
+				VOLUMEc->next = VOLUMEnext->next;
 			} else if (adapt_type == HCOARSE) {
 				VOLUME->next = VOLUMEnext->parent;
-				for (VOLUMEh = VOLUMEnext; VOLUMEh->next->parent == VOLUME->next; VOLUMEh = VOLUMEh->next)
-					VOLUMEh->update = 0;
-				VOLUME->next->next = VOLUMEh->next;
+				for (VOLUMEc = VOLUMEnext; VOLUMEc->next->parent == VOLUME->next; VOLUMEc = VOLUMEc->next)
+					VOLUMEc->update = 0;
+				VOLUME->next->next = VOLUMEc->next;
 			}
 		}
 	}
