@@ -88,3 +88,40 @@ void memory_free(void)
 		FACET = FACETnext;
 	}
 }
+
+void memory_free_children(void)
+{
+	/*
+	 *	Purpose:
+	 *		Free memory of non-leaf VOLUME and FACET children.
+	 */
+
+// freeing past the coarsed VOLUME/FACET? Investigate (ToBeDeleted)
+
+	// VOLUMEs
+	struct S_VOLUME *VOLUME, *VOLUMEc, *VOLUMEcnext;
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		VOLUMEc = VOLUME->child0;
+		while (VOLUMEc) {
+			VOLUMEcnext = VOLUMEc->next;
+			memory_destructor_V(VOLUMEc);
+			VOLUMEc = VOLUMEcnext;
+		}
+		VOLUME->child0 = NULL;
+	}
+
+	// FACETs
+	struct S_FACET *FACET, *FACETc, *FACETcnext;
+	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
+		FACETc = FACET->child0;
+ptrdiff_t count = 0;
+		while (FACETc) {
+			FACETcnext = FACETc->next;
+			memory_destructor_F(FACETc);
+			FACETc = FACETcnext;
+printf("FACETfree: %d\n",count++);
+		}
+		FACET->child0 = NULL;
+	}
+
+}

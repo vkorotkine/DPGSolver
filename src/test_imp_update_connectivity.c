@@ -109,14 +109,14 @@ static void check_correspondence(unsigned int *pass)
 		nOrdInOut = OPS->nOrdInOut;
 		nOrdOutIn = OPS->nOrdOutIn;
 
-		XYZ_fSIn = mm_Alloc_d(CBCM,CBT,CBNT,NfnS,d,OPS->NvnGs,1.0,OPS->I_vGs_fS[Vf],VOLUME->XYZ_vC);
+		XYZ_fSIn = mm_Alloc_d(CBCM,CBT,CBNT,NfnS,d,OPS->NvnGs,1.0,OPS->I_vGs_fS[Vf],VOLUME->XYZ_vC); // free
 
 		VOLUME = FACET->VOut;
 		Vf     = FACET->VfOut;
 
 		IndFType = get_IndFType(VOLUME->Eclass,Vf/NFREFMAX);
 		init_ops(OPS,VOLUME,FACET,IndFType);
-		XYZ_fSOut = mm_Alloc_d(CBCM,CBT,CBNT,NfnS,d,OPS->NvnGs,1.0,OPS->I_vGs_fS[Vf],VOLUME->XYZ_vC);
+		XYZ_fSOut = mm_Alloc_d(CBCM,CBT,CBNT,NfnS,d,OPS->NvnGs,1.0,OPS->I_vGs_fS[Vf],VOLUME->XYZ_vC); // free
 
 		XYZ_fSInOut = malloc(NfnS*d * sizeof *XYZ_fSInOut); // free
 		XYZ_fSOutIn = malloc(NfnS*d * sizeof *XYZ_fSOutIn); // free
@@ -148,6 +148,8 @@ printf("%d %d\n",FACET->VOut->indexg,FACET->VfOut);
 				break;
 		}
 
+		free(XYZ_fSIn);
+		free(XYZ_fSOut);
 		free(XYZ_fSInOut);
 		free(XYZ_fSOutIn);
 	}
@@ -167,6 +169,58 @@ static void renumber_VOLUMEs(void)
 		VOLUME->indexg = NV++;
 	
 	DB.NV = NV;
+}
+
+static void run_test(unsigned int *pass, const char *test_type)
+{
+	struct S_VOLUME *VOLUME;
+
+	if (strstr(test_type,"FullREFINE") != NULL) {
+		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HREFINE;
+		}
+	} else if (strstr(test_type,"FullCOARSE")) {
+		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HCOARSE;
+		}
+	} else {
+		// VOLUME processing done outside of this function.
+	}
+	update_VOLUME_hp();
+	update_FACET_hp();
+	update_VOLUME_list();
+	renumber_VOLUMEs();
+	memory_free_children();
+
+	check_correspondence(pass);
+}
+
+static void mesh_refine(const unsigned int Nref)
+{
+	unsigned int ref;
+	struct S_VOLUME *VOLUME;
+
+	for (ref = 0; ref < Nref; ref++) {
+		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HREFINE;
+		}
+		update_VOLUME_hp();
+		update_FACET_hp();
+		update_VOLUME_list();
+		renumber_VOLUMEs();
+	}
+}
+
+static void mesh_update(void)
+{
+	update_VOLUME_hp();
+	update_FACET_hp();
+	update_VOLUME_list();
+	renumber_VOLUMEs();
+//	memory_free_children();
 }
 
 void test_imp_update_connectivity(int nargc, char **argv)
@@ -202,107 +256,51 @@ void test_imp_update_connectivity(int nargc, char **argv)
 	strcpy(argvNew[1],"test/TestTRI");
 
 	code_startup(nargc,argvNew);
-	output_to_paraview("ZTest_GeomTRI");
+	mesh_refine(2);
 
-	// Mark VOLUMEs for isotropic h-refinement
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+	//     0         10        20        30        40        50
+	run_test(&pass,"FullREFINE");
+	printf("update_connectivity (d = 2, TRI, FullREFINE):    ");
+	test_print(pass);
+
+	//     0         10        20        30        40        50
+	run_test(&pass,"FullCOARSE");
+	printf("update_connectivity (d = 2, TRI, FullCOARSE):    ");
+	test_print(pass);
+//exit(1);
+
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		indexg = VOLUME->indexg;
-
-		if (indexg == 0 || indexg == 3) {
+		if (indexg == 0) {
 			VOLUME->Vadapt = 1;
 			VOLUME->adapt_type = HREFINE;
-			VOLUME->hrefine_type = 0;
+		} else if (indexg >= 16) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HCOARSE;
 		}
 	}
-
-	update_VOLUME_hp();
-	update_FACET_hp();
-
-	update_VOLUME_list();
-	renumber_VOLUMEs();
-
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-		printf("VOL: %d %d ",VOLUME->indexg,VOLUME->level);
-		if (VOLUME->level > 0)
-			printf("%d ",VOLUME->parent->indexg);
-		printf("\n");
-	}
-
-	printf("\n\n\n");
-	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
-		printf("%d %d   ",FACET->indexg,FACET->update);
-		if (FACET->level > 0 && FACET->parent)
-			printf("%d ",FACET->parent->indexg);
-		printf("\n");
-	}
-
-	output_to_paraview("ZTest_GeomTRI_up");
-	output_to_paraview("ZTest_NormalsTRI_up");
-
-printf("\n\n\n");
-//exit(1);
-
-	//     0         10        20        30        40        50
-	check_correspondence(&pass);
-	printf("update_connectivity (d = 2, TRI):                ");
+	mesh_update();
+	run_test(&pass,"Mixed");
+	printf("testing memory_free_children  ");
 	test_print(pass);
-//exit(1);
-
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-//printf("%d\n",VOLUME->indexg);
-//array_print_ui(3,NFREFMAX,VOLUME->neigh_f,'R');
-		VOLUME->Vadapt = 1;
-		VOLUME->adapt_type = HREFINE;
-		VOLUME->hrefine_type = 0;
-	}
-//exit(1);
-
-	update_VOLUME_hp();
-	update_FACET_hp();
-
-	update_VOLUME_list();
-	renumber_VOLUMEs();
-
-	output_to_paraview("ZTest_GeomTRI_up");
-	output_to_paraview("ZTest_NormalsTRI_up");
-
-/*
-printf("\n\n\n");
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-		printf("VOL: %d %d ",VOLUME->indexg,VOLUME->level);
-		if (VOLUME->level > 0)
-			printf("%d ",VOLUME->parent->indexg);
-		printf("\n");
-	}
-*/
-
-	//     0         10        20        30        40        50
-	check_correspondence(&pass);
-	printf("update_connectivity (d = 2, TRI):                ");
-	test_print(pass);
-
-
-/*
-for (VOLUME = DB.VOLUME; VOLUME->indexg != 5; VOLUME = VOLUME->next)
-	;
-for (int i = 0; i < 3; i++) {
-	printf("NsubF %d",VOLUME->NsubF[i]);
-	for (int j = 0; j < VOLUME->NsubF[i]; j++)
-		printf(" %d",VOLUME->FACET[i*NSUBFMAX+j]->indexg);
-	printf("\n");
-}
-*/
-
 exit(1);
 
-/*
-	pass = 0;
-	if (array_norm_diff_ui(Nn,nOrd,nOrd10,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
-
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		indexg = VOLUME->indexg;
+		if (indexg <= 6) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HREFINE;
+		} else if ((indexg >= 7 && indexg <= 14) || indexg >= 19) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HCOARSE;
+		}
+	}
 	//     0         10        20        30        40        50
-	printf("get_facet_ordering (d = 1, case 0):              ");
+	run_test(&pass,"Mixed");
+	printf("update_connectivity (d = 2, TRI, Mixed):         ");
 	test_print(pass);
-*/
+
+//	output_to_paraview("ZTest_Geom");
+//	output_to_paraview("ZTest_Normals");
 
 }

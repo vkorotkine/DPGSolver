@@ -96,14 +96,13 @@ void update_VOLUME_hp(void)
 
 	// Standard datatypes
 	unsigned int P, PNew, f, level, adapt_type, vh, vhMin, vhMax, href_type, VType, Nf,
-	             NvnGs, NvnGc, NvnG, NvnS, NvnSP, NCols;
+	             NvnGs, NvnGc, NvnS, NvnSP, NCols, update, maxP;
 	double       *I_vGs_vGc, *XYZ_vC, *XYZ_S,
 	             **Ihat_vS_vS, **I_vGs_vGs, **Ghat_vS_vS, *What, *RES, *WhatP, *RESP;
 
 	struct S_OPERATORS *OPS;
 	struct S_ELEMENT   *ELEMENT;
-	struct S_VOLUME    *VOLUME, *VOLUMEc, *VOLUMEnext;
-	struct S_FACET     *FACET;
+	struct S_VOLUME    *VOLUME, *VOLUMEc, *VOLUMEp;
 
 	// silence
 	I_vGs_vGs = NULL;
@@ -112,6 +111,7 @@ void update_VOLUME_hp(void)
 	OPS = malloc(sizeof *OPS); // free
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+//printf("upV: %d %d %d\n",VOLUME->indexg,VOLUME->Vadapt,VOLUME->update);
 		if (VOLUME->Vadapt) {
 			P     = VOLUME->P;
 			level = VOLUME->level;
@@ -310,15 +310,14 @@ void update_VOLUME_hp(void)
 					update = 1;
 					maxP = VOLUME->P;
 
-					get_vh_range(VOLUME->parent,&vhMin,&vhMax);
+					get_vh_range(VOLUMEp,&vhMin,&vhMax);
 					VOLUMEc = VOLUME;
 					for (vh = vhMin+1; vh <= vhMax; vh++) {
 						VOLUMEc = VOLUMEc->next;
 						maxP = max(maxP,VOLUMEc->P);
 
-						if (VOLUMEc->level != level) {
+						if (VOLUMEc->level != level || !VOLUMEc->Vadapt) {
 							update = 0;
-							VOLUME->update = 0;
 							break;
 						}
 					}
@@ -333,6 +332,20 @@ void update_VOLUME_hp(void)
 						VOLUMEp->adapt_type = HCOARSE;
 						// Project What and RES
 						// free all child VOLUMEs when finished.
+					} else {
+						// Ensure that all children are marked as not to be updated.
+						VOLUMEc = VOLUME;
+						for (vh = vhMin; vh <= vhMax; vh++) {
+							VOLUMEc->Vadapt = 0;
+							VOLUMEc->update = 0;
+							VOLUMEc = VOLUMEc->next;
+						}
+					}
+				} else {
+					VOLUMEc = VOLUMEp->child0;
+					if (!(VOLUMEc->adapt_type == HCOARSE && VOLUMEc->Vadapt)) {
+//						VOLUME->Vadapt = 0;
+						VOLUME->update = 0;
 					}
 				}
 
@@ -340,6 +353,7 @@ void update_VOLUME_hp(void)
 				break;
 			}
 		}
+//printf("upV: %d %d %d\n",VOLUME->indexg,VOLUME->Vadapt,VOLUME->update);
 	}
 	free(OPS);
 }
@@ -361,7 +375,6 @@ void update_VOLUME_list(void)
 	if (VOLUME->update) {
 		adapt_type = VOLUME->adapt_type;
 		if (adapt_type == HREFINE) {
-			VOLUME->update = 0;
 			DB.VOLUME = VOLUME->child0;
 			for (VOLUMEc = DB.VOLUME; VOLUMEc->next != NULL; VOLUMEc = VOLUMEc->next)
 				;
@@ -371,6 +384,7 @@ void update_VOLUME_list(void)
 			for (VOLUMEc = VOLUME; VOLUMEc->next->parent == DB.VOLUME; VOLUMEc = VOLUMEc->next)
 				VOLUMEc->update = 0;
 			DB.VOLUME->next = VOLUMEc->next;
+			VOLUMEc->next = NULL;
 		}
 	}
 
@@ -380,18 +394,23 @@ void update_VOLUME_list(void)
 		if (VOLUMEnext && VOLUMEnext->update) {
 			adapt_type = VOLUMEnext->adapt_type;
 			if (adapt_type == HREFINE) {
-				VOLUME->update = 0;
 				VOLUME->next = VOLUMEnext->child0;
 				for (VOLUMEc = VOLUME->next; VOLUMEc->next != NULL; VOLUMEc = VOLUMEc->next)
 					;
 				VOLUMEc->next = VOLUMEnext->next;
 			} else if (adapt_type == HCOARSE) {
 				VOLUME->next = VOLUMEnext->parent;
-				for (VOLUMEc = VOLUMEnext; VOLUMEc->next->parent == VOLUME->next; VOLUMEc = VOLUMEc->next)
+				for (VOLUMEc = VOLUMEnext; VOLUMEc->next && VOLUMEc->next->parent == VOLUME->next; VOLUMEc = VOLUMEc->next)
 					VOLUMEc->update = 0;
 				VOLUME->next->next = VOLUMEc->next;
+				VOLUMEc->next = NULL;
 			}
 		}
+	}
+
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		VOLUME->Vadapt = 0;
+		VOLUME->update = 0;
 	}
 }
 

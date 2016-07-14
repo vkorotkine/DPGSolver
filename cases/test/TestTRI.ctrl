@@ -20,7 +20,7 @@ BEGIN PARAMETERS
 
   PGlobal    1
   PMax       2
-  LevelsMax  2
+  LevelsMax  5
 
   Restart    -1    // Options: -1, 0, Iteration #
 

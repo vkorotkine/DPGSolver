@@ -26,6 +26,7 @@
  *		NFORDMAX        : (MAX)imum (N)umber of (F)ACET (ORD)ering possibilities
  *		NREFVVARMAX     : (MAX)imum (N)umber of h-adaptive (REF)ined (V)olume (VAR)iations
  *		NSUBFMAX        : (MAX)imum (N)umber of h-adaptive (SUB)-(F)acets (on each FACET).
+ *		NVISUBFMAX      : (MAX)imum (N)umber of h-adaptive (V)OLUME (I)nternal (SUB)-(F)acets (within the VOLUME).
  *
  *	References:
  *
@@ -70,6 +71,7 @@
 #define NFORDMAX        8  // QUAD
 #define NREFVVARMAX     7  // HEX
 #define NSUBFMAX        4  // QUAD/TRI (Isotropic refinement)
+#define NVISUBFMAX      13 // PYR (Isotropic refinement)
 
 // Solver related parameters
 #define RK3_SSP 0
@@ -90,6 +92,7 @@
 #define PCOARSE 1
 #define HREFINE 2
 #define HCOARSE 3
+#define HDELETE 10
 
 // h-refinement related numbers
 #define NREFMAXPOINT 1
