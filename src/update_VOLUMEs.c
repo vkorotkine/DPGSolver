@@ -150,7 +150,7 @@ void update_VOLUME_hp(void)
 			init_ops(OPS,VOLUME,0);
 
 			VOLUME->update = 1;
-			switch(adapt_type) {
+			switch (adapt_type) {
 			default: // PREFINE or PCOARSE
 				VOLUME->P = PNew;
 

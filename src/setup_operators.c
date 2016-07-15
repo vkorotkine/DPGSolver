@@ -1017,8 +1017,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	Dc_Weak_VV = ELEMENT->Dc_Weak_VV;
 
 	// Allocate memory for arrays with multiple levels of dereferencing
-	BCoords_V     = malloc(           sizeof *BCoords_V); // free
-
 	rst_vS        = malloc(NVREFMAX * sizeof *rst_vS);  // free
 	rst_vIs       = malloc(NVREFMAX * sizeof *rst_vIs); // free
 	rst_vIc       = malloc(NVREFMAX * sizeof *rst_vIc); // free
@@ -1073,7 +1071,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	}
 
 	for (IndFType = 0; IndFType < NFTypes; IndFType++)
-		BCoords_F[IndFType] = malloc(sizeof *BCoords_F[IndFType]); // tbd
+		BCoords_F[IndFType] = malloc(sizeof *BCoords_F[IndFType]); // free
 
 
 	for (IndFType = 0; IndFType < NFTypes; IndFType++) {
@@ -1101,6 +1099,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	for (f = 0; f < Nf; f++)
 		ones_Nf[f] = 1;
 
+	BCoords_V     = malloc(     sizeof *BCoords_V);       // free
 	BCoords_V->S  = calloc(NP , sizeof *(BCoords_V->S));  // free
 	BCoords_V->Is = calloc(NP , sizeof *(BCoords_V->Is)); // free
 	BCoords_V->Ic = calloc(NP , sizeof *(BCoords_V->Ic)); // free
@@ -1298,8 +1297,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				// Returned Adaptation Operators
 				if (vh == 0 || P == Pb) {
 					Ihat_vS_vS[P][Pb][vh] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb],NvnS[P],NvnS[Pb],1.0,ChiInvS_vS[Pb][Pb][0],ChiS_vS[P][Pb][vh]); // keep
-					if (P == Pb && P == 1) {
-						I_vGs_vGs[P][Pb][vh] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGs[1],NvnGs[1],NvnGs[1],1.0,ChiGs_vGs,ChiInvGs_vGs); // keep
+					if (P == Pb) {
+						I_vGs_vGs[1][1][vh] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGs[1],NvnGs[1],NvnGs[1],1.0,ChiGs_vGs,ChiInvGs_vGs); // keep
 					}
 				}
 

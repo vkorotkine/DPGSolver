@@ -46,7 +46,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->Nfve    = calloc(NFMAX         , sizeof *(ELEMENT->Nfve));    // free
 	ELEMENT->VeCGmsh = calloc(NVEMAX        , sizeof *(ELEMENT->VeCGmsh)); // free
 	ELEMENT->VeFcon  = calloc(NFMAX*NFVEMAX , sizeof *(ELEMENT->VeFcon));  // free
-	ELEMENT->NrefV   = calloc(NREFVVARMAX   , sizeof *(ELEMENT->NrefV));     // free
+	ELEMENT->NrefV   = calloc(NREFVVARMAX   , sizeof *(ELEMENT->NrefV));   // free
 
 	// Operators
 

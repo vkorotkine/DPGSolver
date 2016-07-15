@@ -305,13 +305,13 @@ static unsigned int is_VOLUME_VIn(const unsigned int indexgVOLUME, const unsigne
 
 static void coarse_update(struct S_VOLUME *VOLUME)
 {
-	unsigned int i, iMax, f, Nf, VType, vhMin, vhMax, sf, sfMax, sfMax_i,
+	unsigned int i, iMax, f, Nf, VType, vhMin, vhMax, sf, sfMax, sfMax_i, fIn, fOut,
 	             IndVc[NVISUBFMAX],Indsf[NVISUBFMAX], recombine_FACETs,
 	             dummy_ui;
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUMEc, **VOLUMEc_list, *VIn, *VOut;
-	struct S_FACET   *FACET;
+	struct S_FACET   *FACET, *FACETp;
 
 	ELEMENT = get_ELEMENT_type(VOLUME->type);
 	Nf = ELEMENT->Nf;
@@ -390,6 +390,16 @@ for (int i = 0; i < NFMAX*NSUBFMAX; i++) {
 			}
 
 			VOLUME->FACET[f*NSUBFMAX] = FACET->parent;
+			FACETp = FACET->parent;
+			if (is_VOLUME_VIn(VOLUME->indexg,FACETp->VIn->indexg)) {
+				fOut = (FACETp->VfOut)/NFREFMAX;
+				FACETp->VOut->NsubF[fOut] = 1;
+				FACETp->VOut->FACET[fOut*NSUBFMAX] = FACETp;
+			} else {
+				fIn = (FACETp->VfIn)/NFREFMAX;
+				FACETp->VIn->NsubF[fIn] = 1;
+				FACETp->VIn->FACET[fIn*NSUBFMAX] = FACETp;
+			}
 		} else {
 			for (sf = 0; sf < sfMax; sf++) {
 				VOLUMEc = VOLUMEc_list[IndVc[sf]];
@@ -499,6 +509,7 @@ void update_FACET_hp(void)
 					Nf = ELEMENT->Nf;
 
 					for (f = 0; f < Nf; f++) {
+//printf("VOLind,f,Nf,NsubF: %d %d %d %d\n",VOLUME->indexg,f,Nf,NsubF[f]);
 						Indf = f*NSUBFMAX;
 						sfMax = NsubF[f];
 //printf("  f, sfMax: %d %d\n",f,sfMax);
@@ -507,7 +518,11 @@ void update_FACET_hp(void)
 //printf("342 %d\n",FACET->indexg);
 							FACET->update = 1;
 							FACET->adapt_type = HREFINE;
-
+/*
+printf("FACETpoint: %p",FACET);
+printf("FACETpoint: %p",FACET->VIn);
+printf("FACETpoint: %p\n",FACET->VOut);
+*/
 							VIn   = FACET->VIn;
 							VOut  = FACET->VOut;
 
@@ -576,6 +591,7 @@ if (VOLUME->indexg == 1 && f == 1) {
 									FACETc->IndOrdOutIn = FACET->IndOrdInOut;
 
 								}
+								FACETc->VIn->NsubF[(FACETc->VfIn)/NFREFMAX] = 1;
 								FACETc->VOut->NsubF[(FACETc->VfOut)/NFREFMAX] = fhMax;
 								VOLUMEc->neigh_f[FACETc->VfIn] = (FACETc->VfOut)/NFREFMAX;
 
@@ -602,6 +618,7 @@ if (FACETc->indexg == 99) {
 //								printf("%d\n",FACETc->VfOut);
 
 								// Only connectivity needs updating in FACETc->VOut
+//printf("VOL: %d\n",VOLUME->indexg);
 								set_FACET_Out_External(FACETc,VOLUME);
 							}
 //printf("Exiting\n");
@@ -622,7 +639,6 @@ if (FACETc->indexg == 99) {
 								FACETc->next = New_FACET();
 								FACETc = FACETc->next;
 								FACETc->update = 1;
-								FACETc->parent = NULL;
 								FACETc->indexg = NGF++;
 								FACETc->level  = (VOLUME->level)+1;
 								FACETc->BC     = 0; // Internal (Note: May have a curved edge in 3D)
@@ -756,6 +772,16 @@ if (VOLUMEc->indexg == 20) {
 			FACETnext = FACET->next;
 			if (FACETnext && FACETnext->update) {
 				adapt_type = FACETnext->adapt_type;
+
+				if (adapt_type == HDELETE) {
+					while (FACETnext && FACETnext->adapt_type == HDELETE) {
+						FACETtmp = FACETnext->next;
+						memory_destructor_F(FACETnext);
+						FACETnext = FACETtmp;
+					}
+					adapt_type = FACETnext->adapt_type;
+				}
+
 				if (adapt_type == HCOARSE) {
 					FACET->next = FACETnext->parent;
 					for (FACETc = FACETnext; FACETc->next && FACETc->next->parent == FACET->next; FACETc = FACETc->next)
@@ -770,12 +796,7 @@ if (VOLUMEc->indexg == 20) {
 
 					FACET->next->next = FACETc->next;
 					FACETc->next = NULL;
-				} else if (adapt_type == HDELETE) {
-					while (FACETnext && FACETnext->adapt_type == HDELETE) {
-						FACETtmp = FACETnext->next;
-						memory_destructor_F(FACETnext);
-						FACETnext = FACETtmp;
-					}
+				} else {
 					FACET->next = FACETnext;
 				}
 			}

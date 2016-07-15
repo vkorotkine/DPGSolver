@@ -12,7 +12,6 @@
  *		Set function prototypes.
  *
  *	Comments:
- *		ToBeDeleted: Ensure that lines are not longer than 120 characters.
  *
  *	Notation:
  *
@@ -196,7 +195,8 @@ extern void memory_free_children (void);
 	extern double       array_norm_d       (const unsigned int LenA, const double *A, const char *NormType);
 	extern unsigned int array_norm_diff_ui (const unsigned int LenA, const unsigned int *A, const unsigned int *B,
 	                                        const char *NormType);
-	extern double       array_norm_diff_d  (const unsigned int LenA, const double *A, const double *B, const char *NormType);
+	extern double       array_norm_diff_d  (const unsigned int LenA, const double *A, const double *B,
+	                                        const char *NormType);
 
 	// Swapping
 	extern void array_swap_ui (register unsigned int *arr1, register unsigned int *arr2, const unsigned int NIn,

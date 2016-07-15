@@ -31,6 +31,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->Nfve);
 	free(ELEMENT->VeCGmsh);
 	free(ELEMENT->VeFcon);
+	free(ELEMENT->NrefV);
 
 	// h-refinement related
 	free(ELEMENT->Nfref);

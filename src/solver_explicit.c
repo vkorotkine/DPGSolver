@@ -77,6 +77,8 @@ void solver_explicit(void)
 			update_VOLUME_Ops();
 
 			update_VOLUME_finalize();
+			// Probably need to renumber VOLUMEs in update_VOLUME_finalize
+			// Potentially need updating: VOLUME->neigh
 //printf("Exiting solver_explicit\n");
 //exit(1);
 		}

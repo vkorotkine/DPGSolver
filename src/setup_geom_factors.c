@@ -89,7 +89,7 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 	} else if (d == 2) {
 		for (n = 0; n < NvnI0; n++) {
 			detJV_vI[n] =   J_vI[NvnI0*(d*0+0)+n]*J_vI[NvnI0*(d*1+1)+n]
-						  - J_vI[NvnI0*(d*0+1)+n]*J_vI[NvnI0*(d*1+0)+n];
+			              - J_vI[NvnI0*(d*0+1)+n]*J_vI[NvnI0*(d*1+0)+n];
 		}
 
 		for (n = 0; n < NvnC0; n++) {
@@ -102,34 +102,34 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 	} else if (d == 3) {
 		for (n = 0; n < NvnI0; n++) {
 			detJV_vI[n] =   J_vI[NvnI0*(d*0+0)+n]*(  J_vI[NvnI0*(d*1+1)+n]*J_vI[NvnI0*(d*2+2)+n]
-												   - J_vI[NvnI0*(d*1+2)+n]*J_vI[NvnI0*(d*2+1)+n])
+						                           - J_vI[NvnI0*(d*1+2)+n]*J_vI[NvnI0*(d*2+1)+n])
 						  - J_vI[NvnI0*(d*0+1)+n]*(  J_vI[NvnI0*(d*1+0)+n]*J_vI[NvnI0*(d*2+2)+n]
-												   - J_vI[NvnI0*(d*1+2)+n]*J_vI[NvnI0*(d*2+0)+n])
+						                           - J_vI[NvnI0*(d*1+2)+n]*J_vI[NvnI0*(d*2+0)+n])
 						  + J_vI[NvnI0*(d*0+2)+n]*(  J_vI[NvnI0*(d*1+0)+n]*J_vI[NvnI0*(d*2+1)+n]
-												   - J_vI[NvnI0*(d*1+1)+n]*J_vI[NvnI0*(d*2+0)+n]);
+						                           - J_vI[NvnI0*(d*1+1)+n]*J_vI[NvnI0*(d*2+0)+n]);
 		}
 
 /*
 		// standard form
 		for (n = 0; n < NvnC0; n++) {
 			C_vC[NvnC0*(0+d*0)+n] = J_vC[NvnC0*(d*1+1)+n]*J_vC[NvnC0*(d*2+2)+n]
-								   -J_vC[NvnC0*(d*1+2)+n]*J_vC[NvnC0*(d*2+1)+n]; // C11
+			                       -J_vC[NvnC0*(d*1+2)+n]*J_vC[NvnC0*(d*2+1)+n]; // C11
 			C_vC[NvnC0*(0+d*1)+n] = J_vC[NvnC0*(d*1+2)+n]*J_vC[NvnC0*(d*2+0)+n]
-								   -J_vC[NvnC0*(d*1+0)+n]*J_vC[NvnC0*(d*2+2)+n]; // C12
+			                       -J_vC[NvnC0*(d*1+0)+n]*J_vC[NvnC0*(d*2+2)+n]; // C12
 			C_vC[NvnC0*(0+d*2)+n] = J_vC[NvnC0*(d*1+0)+n]*J_vC[NvnC0*(d*2+1)+n]
-								   -J_vC[NvnC0*(d*1+1)+n]*J_vC[NvnC0*(d*2+0)+n]; // C13
+			                       -J_vC[NvnC0*(d*1+1)+n]*J_vC[NvnC0*(d*2+0)+n]; // C13
 			C_vC[NvnC0*(1+d*0)+n] = J_vC[NvnC0*(d*0+2)+n]*J_vC[NvnC0*(d*2+1)+n]
-								   -J_vC[NvnC0*(d*0+1)+n]*J_vC[NvnC0*(d*2+2)+n]; // C21
+			                       -J_vC[NvnC0*(d*0+1)+n]*J_vC[NvnC0*(d*2+2)+n]; // C21
 			C_vC[NvnC0*(1+d*1)+n] = J_vC[NvnC0*(d*0+0)+n]*J_vC[NvnC0*(d*2+2)+n]
-								   -J_vC[NvnC0*(d*0+2)+n]*J_vC[NvnC0*(d*2+0)+n]; // C22
+			                       -J_vC[NvnC0*(d*0+2)+n]*J_vC[NvnC0*(d*2+0)+n]; // C22
 			C_vC[NvnC0*(1+d*2)+n] = J_vC[NvnC0*(d*0+1)+n]*J_vC[NvnC0*(d*2+0)+n]
-								   -J_vC[NvnC0*(d*0+0)+n]*J_vC[NvnC0*(d*2+1)+n]; // C23
+			                       -J_vC[NvnC0*(d*0+0)+n]*J_vC[NvnC0*(d*2+1)+n]; // C23
 			C_vC[NvnC0*(2+d*0)+n] = J_vC[NvnC0*(d*0+1)+n]*J_vC[NvnC0*(d*1+2)+n]
-								   -J_vC[NvnC0*(d*0+2)+n]*J_vC[NvnC0*(d*1+1)+n]; // C31
+			                       -J_vC[NvnC0*(d*0+2)+n]*J_vC[NvnC0*(d*1+1)+n]; // C31
 			C_vC[NvnC0*(2+d*1)+n] = J_vC[NvnC0*(d*0+2)+n]*J_vC[NvnC0*(d*1+0)+n]
-								   -J_vC[NvnC0*(d*0+0)+n]*J_vC[NvnC0*(d*1+2)+n]; // C32
+			                       -J_vC[NvnC0*(d*0+0)+n]*J_vC[NvnC0*(d*1+2)+n]; // C32
 			C_vC[NvnC0*(2+d*2)+n] = J_vC[NvnC0*(d*0+0)+n]*J_vC[NvnC0*(d*1+1)+n]
-								   -J_vC[NvnC0*(d*0+1)+n]*J_vC[NvnC0*(d*1+0)+n]; // C33
+			                       -J_vC[NvnC0*(d*0+1)+n]*J_vC[NvnC0*(d*1+0)+n]; // C33
 		}
 */
 
@@ -150,7 +150,7 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 			for (dim = 0; dim < d; dim++) {
 				for (n = 0; n < NvnC0; n++) {
 					XYZJ_vC[NvnC0*IndXYZJ+n] = XYZ_vC[NvnC0*(OrderCurl[IndCurl])+n]
-											 * J_vC[NvnC0*(OrderCurl[IndCurl+1]*d+dim)+n];
+					                         * J_vC[NvnC0*(OrderCurl[IndCurl+1]*d+dim)+n];
 				}
 				IndXYZJ++;
 			}
@@ -167,9 +167,9 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 			IndCurl = 0;
 			for (dim = 0; dim < d; dim++) {
 				mm_CTN_d(NvnC0,1,NvnC0,OPS->D_vC_vC[OrderCurl[IndCurl+0]],
-						 &XYZJ_vC[NvnC0*(i*3+OrderCurl[IndCurl+2])],&CurlXYZJ_vC[NvnC0*IndCurlXYZJ]);
+				         &XYZJ_vC[NvnC0*(i*3+OrderCurl[IndCurl+2])],&CurlXYZJ_vC[NvnC0*IndCurlXYZJ]);
 				mm_CTN_d(NvnC0,1,NvnC0,OPS->D_vC_vC[OrderCurl[IndCurl+1]],
-						 &XYZJ_vC[NvnC0*(i*3+OrderCurl[IndCurl+2+1])],tmp_vC);
+				         &XYZJ_vC[NvnC0*(i*3+OrderCurl[IndCurl+2+1])],tmp_vC);
 				for (n = 0; n < NvnC0; n++)
 					CurlXYZJ_vC[NvnC0*IndCurlXYZJ+n] -= tmp_vC[n];
 

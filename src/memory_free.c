@@ -2,6 +2,7 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "database.h"
 #include "functions.h"
@@ -96,8 +97,6 @@ void memory_free_children(void)
 	 *		Free memory of non-leaf VOLUME and FACET children.
 	 */
 
-// freeing past the coarsed VOLUME/FACET? Investigate (ToBeDeleted)
-
 	// VOLUMEs
 	struct S_VOLUME *VOLUME, *VOLUMEc, *VOLUMEcnext;
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -114,12 +113,10 @@ void memory_free_children(void)
 	struct S_FACET *FACET, *FACETc, *FACETcnext;
 	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 		FACETc = FACET->child0;
-ptrdiff_t count = 0;
 		while (FACETc) {
 			FACETcnext = FACETc->next;
 			memory_destructor_F(FACETc);
 			FACETc = FACETcnext;
-printf("FACETfree: %d\n",count++);
 		}
 		FACET->child0 = NULL;
 	}

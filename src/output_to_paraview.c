@@ -425,7 +425,8 @@ static void output_solution(const char *sol_type)
 	             MPIsize   = DB.MPIsize;
 
 	// standard datatypes
-	char MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
+	char          MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_name_source[STRLEN_MAX],
+	              f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
 	unsigned int i, iMax, j, jMax, dim, sum, varMax,
 	             P, PP, NE, NvnP, NvnG, NvnS,
 	             *connectivity, *types, *VTK_Ncorners;
@@ -439,6 +440,7 @@ static void output_solution(const char *sol_type)
 	strcpy(f_name,TestCase); strcat(f_name,"/");
 	strcat(f_name,MeshType); strcat(f_name,"/");
 	strcat(f_name,sol_type);
+	strcpy(f_name_source,sol_type);
 
 	if (!DB.MPIrank) {
 		strcpy(f_parallel,"paraview/");
@@ -472,7 +474,7 @@ static void output_solution(const char *sol_type)
 		fprintf_tn(fID,2,"</PCells>\n");
 
 		for (i = 0, iMax = (unsigned int) MPIsize; i < iMax; i++)
-			fprintf(fID,"\t\t<Piece Source=\"%s%d.vtu\"/>\n",f_name,i);
+			fprintf(fID,"\t\t<Piece Source=\"%s%d.vtu\"/>\n",f_name_source,i);
 
 		fprintf_tn(fID,1,"</PUnstructuredGrid>");
 		fprintf_tn(fID,0,"</VTKFile>");
