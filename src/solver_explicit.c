@@ -26,6 +26,19 @@
  *		Gottlieb(2001)-Strong_Stability-Preserving_High-Order_Time_Discretization_Methods
  */
 
+static void renumber_VOLUMEs(void)
+{
+	unsigned int NV = 0;
+
+	struct S_VOLUME *VOLUME;
+
+	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
+		VOLUME->indexg = NV++;
+	
+	DB.NV = NV;
+	DB.NVglobal = NV;
+}
+
 void solver_explicit(void)
 {
 	// Initialize DB Parameters
@@ -61,7 +74,8 @@ void solver_explicit(void)
 //		dt = pow(0.5,DB.ML+DB.PGlobal+2);
 //		dt = pow(0.5,10.0);
 	} else {
-		dt = pow(0.5,DB.ML+DB.PMax+1);
+//		dt = pow(0.5,DB.ML+DB.PMax+1);
+		dt = pow(0.5,DB.ML+DB.PMax+5);
 	}
 
 	// Compute Mass matrix for uncollocated schemes
@@ -71,9 +85,13 @@ void solver_explicit(void)
 	tstep = 0; time = 0.0;
 	while (time < FinalTime) {
 		if (Adapt && tstep) {
+//output_to_paraview("SolAdapt");
 			update_VOLUME_hp();
 			update_FACET_hp();
-			update_Vgrp();
+			update_VOLUME_list();
+			renumber_VOLUMEs();
+			memory_free_children();
+//			update_Vgrp();
 			update_VOLUME_Ops();
 
 			update_VOLUME_finalize();
@@ -83,14 +101,17 @@ void solver_explicit(void)
 //exit(1);
 		}
 
-if (0&&tstep == 500) {
-//if (tstep == 8) {
+	output_to_paraview("GeomFinal");
+//if (0&&tstep == 500) {
+if (tstep == 1000) {
+//if (tstep == 11) {
+//if (tstep > 1 && Adapt >= ADAPT_H) {
 	char *string;
 	string   = malloc(STRLEN_MIN * sizeof *string);   // free
 	sprintf(string,"%d",tstep);
 	strcat(string,"SolAdapt");
 
-//	output_to_paraview("ZTest_NormalsP");
+	output_to_paraview("ZTest_Normals");
 	output_to_paraview(string);
 	printf("Exiting after outputting to paraview.\n");
 	free(string);
@@ -189,9 +210,27 @@ if (0&&tstep == 500) {
 		}
 
 		// hp adaptation
-//		if (Adapt && tstep == 0)
+//		if (Adapt && tstep <= 1000)
 		if (Adapt)
 			adapt_hp();
+
+/*
+if (tstep == 0) {
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		if (VOLUME->indexg == 6) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HREFINE;
+		}
+	}
+} else if (tstep == 1) {
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		if (VOLUME->indexg >= 6 && VOLUME->indexg <= 9) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HCOARSE;
+		}
+	}
+}
+*/
 
 		tstep++;
 	}

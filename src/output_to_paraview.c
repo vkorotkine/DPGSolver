@@ -86,7 +86,7 @@ static void output_geom(const char *geom_type)
 	// standard datatypes
 	char MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
 	unsigned int i, iMax, j, jMax, dim, sum,
-	             P, NE, NvnP, NvnG,
+	             P, level, NE, NvnP, NvnG,
 	             *connectivity, *types, *VTK_Ncorners;
 	double *I_vG_vP, *XYZ_vP, *Input;
 	FILE *fID;
@@ -117,6 +117,7 @@ static void output_geom(const char *geom_type)
 
 		fprintf_tn(fID,2,"<PPointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
 		fprintf_tn(fID,3,"<PDataArray type=\"UInt8\" Name=\"P\" format=\"ascii\"/>");
+		fprintf_tn(fID,3,"<PDataArray type=\"UInt8\" Name=\"level\" format=\"ascii\"/>");
 		fprintf_tn(fID,2,"</PPointData>\n");
 
 		fprintf_tn(fID,2,"<PPoints>");
@@ -153,7 +154,8 @@ static void output_geom(const char *geom_type)
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 
-		P = VOLUME->P;
+		P     = VOLUME->P;
+		level = VOLUME->level;
 
 		connectivity = ELEMENT->connectivity[P];
 		types        = ELEMENT->connect_types[P];
@@ -194,6 +196,16 @@ static void output_geom(const char *geom_type)
 				fprintf(fID,"\t\t\t\t");
 				for (i = 0; i < NvnP; i++) {
 					fprintf(fID,"%d ",P);
+					if ((i+1) % 5 == 0 && i != NvnP-1)
+						fprintf(fID,"\n\t\t\t\t");
+					else if (i == NvnP-1)
+						fprintf(fID,"\n");
+				}
+				fprintf_tn(fID,4,"</DataArray>");
+				fprintf_tn(fID,4,"<DataArray type=\"UInt8\" Name=\"level\" format=\"ascii\">");
+				fprintf(fID,"\t\t\t\t");
+				for (i = 0; i < NvnP; i++) {
+					fprintf(fID,"%d ",level);
 					if ((i+1) % 5 == 0 && i != NvnP-1)
 						fprintf(fID,"\n\t\t\t\t");
 					else if (i == NvnP-1)

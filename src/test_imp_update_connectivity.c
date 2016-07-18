@@ -121,6 +121,8 @@ void test_imp_update_connectivity(int nargc, char **argv)
 	strcpy(argvNew[0],argv[0]);
 	strcpy(argvNew[1],"test/TestQUAD");
 
+printf("\n\n\nLikely need to move update_VOLUME_list/renumber_VOLUMEs before update_FACET_hp.\n ***\n\n\n");
+
 // Continue testing after the h adaptation is working for TRIs
 
 //	code_startup(nargc,argvNew);

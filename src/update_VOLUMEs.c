@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "database.h"
 #include "parameters.h"
@@ -16,6 +17,7 @@
  *	Comments:
  *		May be better not to allow P adaptivity to go down to P = 0, but have the limit at P = 1. Try/THINK (ToBeDeleted).
  *		Sum factorization not currently used here. Profile and re-evaluate. (ToBeDeleted)
+ *		If the HCOARSE projection is slow, consider allowing the BLAS call with beta = 1.0 (ToBeDeleted).
  *
  *	Notation:
  *
@@ -95,10 +97,10 @@ void update_VOLUME_hp(void)
 	char         *MeshType = DB.MeshType;
 
 	// Standard datatypes
-	unsigned int P, PNew, f, level, adapt_type, vh, vhMin, vhMax, href_type, VType, Nf,
+	unsigned int i, iMax, P, PNew, f, level, adapt_type, vh, vhMin, vhMax, href_type, VType, Nf,
 	             NvnGs, NvnGc, NvnS, NvnSP, NCols, update, maxP;
 	double       *I_vGs_vGc, *XYZ_vC, *XYZ_S,
-	             **Ihat_vS_vS, **I_vGs_vGs, **Ghat_vS_vS, *What, *RES, *WhatP, *RESP;
+	             **Ihat_vS_vS, **I_vGs_vGs, **Ghat_vS_vS, *What, *RES, *WhatP, *WhatH, *RESP, *RESH, *dummyPtr_d;
 
 	struct S_OPERATORS *OPS;
 	struct S_ELEMENT   *ELEMENT;
@@ -133,7 +135,7 @@ void update_VOLUME_hp(void)
 				VOLUME->PNew = PNew;
 				break;
 			case HREFINE:
-				if (level >= LevelsMax)
+				if (level == LevelsMax)
 					printf("Error: Should not be entering HREFINE in update_VOLUME_hp for level = %d.\n",level), exit(1);
 				VOLUME->PNew = P;
 				break;
@@ -208,12 +210,16 @@ void update_VOLUME_hp(void)
 				break;
 			case HREFINE:
 				VType = VOLUME->type;
+				What  = VOLUME->What;
+				RES   = VOLUME->RES;
 
 
-				NvnGs     = OPS->NvnGs;
-				NvnGc     = OPS->NvnGc;
-				I_vGs_vGs = OPS->I_vGs_vGs;
-				I_vGs_vGc = OPS->I_vGs_vGc;
+				NvnGs      = OPS->NvnGs;
+				NvnGc      = OPS->NvnGc;
+				NvnS       = OPS->NvnS;
+				I_vGs_vGs  = OPS->I_vGs_vGs;
+				I_vGs_vGc  = OPS->I_vGs_vGc;
+				Ghat_vS_vS = OPS->Ghat_vS_vS;
 
 				NCols = d;
 
@@ -233,7 +239,8 @@ void update_VOLUME_hp(void)
 					VOLUMEc->parent = VOLUME;
 					VOLUMEc->indexg = NV++;
 
-					VOLUMEc->P = VOLUME->P;
+					VOLUMEc->P    = VOLUME->P;
+					VOLUMEc->PNew = VOLUME->P;
 					VOLUMEc->level = (VOLUME->level)+1;
 					switch (VType) {
 					default: // LINE, TRI, QUAD, HEX, WEDGE
@@ -293,13 +300,24 @@ void update_VOLUME_hp(void)
 						}
 					}
 					setup_geom_factors(VOLUMEc);
+
+// Fix Vgrp linked list (ToBeDeleted)
+
+					// Project What and RES
+					WhatH = malloc(NvnS*Nvar * sizeof *WhatH); // keep
+					RESH  = malloc(NvnS*Nvar * sizeof *RESH);  // keep
+
+					mm_CTN_d(NvnS,Nvar,NvnS,Ghat_vS_vS[vh],What,WhatH);
+					mm_CTN_d(NvnS,Nvar,NvnS,Ghat_vS_vS[vh],RES,RESH);
+
+					VOLUMEc->NvnS = NvnS;
+					VOLUMEc->What = WhatH;
+					VOLUMEc->RES  = RESH;
 				}
+//printf("HREF: %p %p %ld %p\n",VOLUME->What,VOLUMEc->What,(VOLUME->What)-(VOLUMEc->What),VOLUMEc->next);
+				free(VOLUME->What);
+				free(VOLUME->RES);
 
-				// Fix VOLUME linked list and Vgrp linked list
-				// Also update indexg and indexl
-
-				// Project What and RES
-				// free VOLUME->What and VOLUME->RES after projection.
 				break;
 			case HCOARSE:
 				VOLUMEp = VOLUME->parent;
@@ -316,7 +334,7 @@ void update_VOLUME_hp(void)
 						VOLUMEc = VOLUMEc->next;
 						maxP = max(maxP,VOLUMEc->P);
 
-						if (VOLUMEc->level != level || !VOLUMEc->Vadapt) {
+						if (VOLUMEc->level != level || !VOLUMEc->Vadapt || VOLUMEc->adapt_type != HCOARSE) {
 							update = 0;
 							break;
 						}
@@ -328,10 +346,46 @@ void update_VOLUME_hp(void)
 						VOLUMEp->update = 1;
 						VOLUMEp->indexg = NV++;
 
-						VOLUMEp->P = maxP;
+						VOLUMEp->P    = maxP;
+						VOLUMEp->PNew = maxP;
 						VOLUMEp->adapt_type = HCOARSE;
+
 						// Project What and RES
-						// free all child VOLUMEs when finished.
+						NvnS = OPS->NvnS;
+						Ghat_vS_vS = OPS->Ghat_vS_vS;
+
+						NCols = d;
+
+						What = calloc(NvnS*Nvar , sizeof *What); // keep
+						RES  = calloc(NvnS*Nvar , sizeof *RES);  // keep
+
+						dummyPtr_d = malloc(NvnS*Nvar * sizeof *dummyPtr_d); // free
+
+						VOLUMEc = VOLUME;
+						for (vh = vhMin; vh <= vhMax; vh++) {
+							if (vh > vhMin)
+								VOLUMEc = VOLUMEc->next;
+
+							WhatH = VOLUMEc->What;
+							RESH  = VOLUMEc->RES;
+
+// Only valid for Nodal TRIs!!! Modify the Ghat_vS_vS operator used here!!! (ToBeDeleted)
+							mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0/4.0,Ghat_vS_vS[vh],WhatH,dummyPtr_d);
+							for (i = 0, iMax = NvnS*Nvar; i < iMax; i++)
+								What[i] += dummyPtr_d[i];
+							mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0/4.0,Ghat_vS_vS[vh],RESH,dummyPtr_d);
+							for (i = 0, iMax = NvnS*Nvar; i < iMax; i++)
+								RES[i] += dummyPtr_d[i];
+						}
+printf("\n\n **************** VOLUME coarse *********************\n\n\n");
+
+
+						free(dummyPtr_d);
+
+						VOLUMEp->What = What;
+						VOLUMEp->RES  = RES;
+
+
 					} else {
 						// Ensure that all children are marked as not to be updated.
 						VOLUMEc = VOLUME;
@@ -344,7 +398,7 @@ void update_VOLUME_hp(void)
 				} else {
 					VOLUMEc = VOLUMEp->child0;
 					if (!(VOLUMEc->adapt_type == HCOARSE && VOLUMEc->Vadapt)) {
-//						VOLUME->Vadapt = 0;
+						VOLUME->Vadapt = 0;
 						VOLUME->update = 0;
 					}
 				}
@@ -369,6 +423,9 @@ void update_VOLUME_list(void)
 
 	struct S_VOLUME *VOLUME, *VOLUMEc, *VOLUMEnext;
 
+//	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+//		printf("%d %d %d\n",VOLUME->indexg,VOLUME->level,VOLUME->adapt_type);
+
 	// Fix list head if necessary
 	VOLUME = DB.VOLUME;
 
@@ -376,10 +433,14 @@ void update_VOLUME_list(void)
 		adapt_type = VOLUME->adapt_type;
 		if (adapt_type == HREFINE) {
 			DB.VOLUME = VOLUME->child0;
-			for (VOLUMEc = DB.VOLUME; VOLUMEc->next != NULL; VOLUMEc = VOLUMEc->next)
-				;
+			int count = 0;
+			for (VOLUMEc = DB.VOLUME; VOLUMEc->next; VOLUMEc = VOLUMEc->next)
+				printf("%d %d %d\n",count++,VOLUMEc->level,VOLUMEc->next->level);
 			VOLUMEc->next = VOLUME->next;
+//printf("VOL HEAD Refine\n");
 		} else if (adapt_type == HCOARSE) {
+//printf("VOL HEAD Coarse\n");
+//exit(1);
 			DB.VOLUME = VOLUME->parent;
 			for (VOLUMEc = VOLUME; VOLUMEc->next->parent == DB.VOLUME; VOLUMEc = VOLUMEc->next)
 				VOLUMEc->update = 0;
@@ -390,8 +451,12 @@ void update_VOLUME_list(void)
 
 	// Fix remainder of list
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+//printf("Fixing: %d %p",VOLUME->indexg,VOLUME->child0);
+//if (VOLUME->indexg == 310)
+//	printf("%d %p\n",VOLUME->indexg,VOLUME->child0);
 		VOLUMEnext = VOLUME->next;
 		if (VOLUMEnext && VOLUMEnext->update) {
+//printf(" %d %d",VOLUMEnext->adapt_type,VOLUMEnext->indexg);
 			adapt_type = VOLUMEnext->adapt_type;
 			if (adapt_type == HREFINE) {
 				VOLUME->next = VOLUMEnext->child0;
@@ -399,19 +464,27 @@ void update_VOLUME_list(void)
 					;
 				VOLUMEc->next = VOLUMEnext->next;
 			} else if (adapt_type == HCOARSE) {
+//printf(" Parent id: %d %d %d ",VOLUMEnext->parent->indexg,VOLUMEnext->parent->level,VOLUMEnext->level);
+//printf("\n");
+//VOLUMEc = VOLUMEnext;
+//for (int i = 0; i < 6; i++) {
+//	printf("%d %d\n",VOLUMEc->indexg,VOLUMEc->level);
+//	VOLUMEc = VOLUMEc->next;
+//}
 				VOLUME->next = VOLUMEnext->parent;
+				int count = 0;
 				for (VOLUMEc = VOLUMEnext; VOLUMEc->next && VOLUMEc->next->parent == VOLUME->next; VOLUMEc = VOLUMEc->next)
-					VOLUMEc->update = 0;
+					printf("count %d %d\n",count++,VOLUMEc->indexg), VOLUMEc->update = 0;
+//printf("%d\n",VOLUMEc->next->indexg);
 				VOLUME->next->next = VOLUMEc->next;
 				VOLUMEc->next = NULL;
 			}
 		}
+//printf("\n");
 	}
 
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		VOLUME->Vadapt = 0;
-		VOLUME->update = 0;
-	}
+//	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+//		printf("%d %p\n",VOLUME->indexg,VOLUME->child0);
 }
 
 void update_Vgrp(void)
@@ -536,11 +609,30 @@ void update_VOLUME_Ops(void)
 
 void update_VOLUME_finalize(void)
 {
-	struct S_VOLUME *VOLUME;
+	unsigned int VfIn, VfOut; 
+
+	struct S_VOLUME *VOLUME, *VIn, *VOut;
+	struct S_FACET  *FACET;
+
+	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
+		VIn   = FACET->VIn;
+		VfIn  = FACET->VfIn;
+
+		VOut  = FACET->VOut;
+		VfOut = FACET->VfOut;
+
+		VIn->neigh[VfIn]   = VOut->indexg;
+		VOut->neigh[VfOut] = VIn->indexg;
+
+		if (fabs((int) VIn->level - (int) VOut->level) > 1.0) {
+			printf("%d %d\n",VIn->indexg,VOut->indexg);
+			printf("Error: Adjacent VOLUMEs are more than 1-irregular.\n"), exit(1);
+		}
+
+	}
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-		if (VOLUME->Vadapt) {
-			VOLUME->Vadapt = 0;
-		}
+		VOLUME->Vadapt = 0;
+		VOLUME->update = 0;
 	}
 }

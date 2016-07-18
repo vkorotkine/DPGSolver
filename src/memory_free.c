@@ -101,7 +101,9 @@ void memory_free_children(void)
 	struct S_VOLUME *VOLUME, *VOLUMEc, *VOLUMEcnext;
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		VOLUMEc = VOLUME->child0;
+//		int count = 0;
 		while (VOLUMEc) {
+//			printf("free: %d\n",count++);
 			VOLUMEcnext = VOLUMEc->next;
 			memory_destructor_V(VOLUMEc);
 			VOLUMEc = VOLUMEcnext;

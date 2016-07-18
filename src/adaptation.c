@@ -24,7 +24,7 @@
  */
 
 struct S_VInfo {
-	unsigned int *neigh, *type, *fh_range, *href_type, *p_levels, *h_levels, *hp_refine, *hp_coarse;
+	unsigned int *neigh, *type, *fh_range, *href_type, *p_levels, *h_levels, *hp_refine, *hp_coarse, *hp_coarse_l;
 } *VInfo;
 
 void get_PS_range(unsigned int *PSMin, unsigned int *PSMax)
@@ -140,8 +140,8 @@ static void get_fh_range(const struct S_VOLUME *VOLUME, const unsigned int f, un
 static void check_levels_refine(const unsigned int indexg, const struct S_VInfo *VInfo, const char hp_type)
 {
 	// Standard datatypes
-	unsigned int Nf, indexg_neigh, f, fh, fhMin, fhMax, Indf, Indfh, *NsubF;
-	unsigned int *VNeigh, *VType, *hp_levels, *hp_refine_current;
+	unsigned int Nf, indexg_neigh, f, fh, fhMin, fhMax, Indf, Indfh,
+	             *VNeigh, *VType, *hp_levels, *hp_refine_current, *fh_range;
 
 	struct S_ELEMENT *ELEMENT;
 
@@ -162,6 +162,7 @@ static void check_levels_refine(const unsigned int indexg, const struct S_VInfo 
 	Nf = ELEMENT->Nf;
 
 	hp_refine_current[indexg] = 1;
+// Maybe this is entering twice for certain indexg's? (ToBeDeleted)
 	hp_levels[indexg]++;
 
 	Indf = indexg*NFREFMAX*NFMAX;
@@ -169,21 +170,20 @@ static void check_levels_refine(const unsigned int indexg, const struct S_VInfo 
 	default: // p
 		for (f = 0; f < Nf; f++) {
 			indexg_neigh = VNeigh[Indf+f*NFREFMAX];
-//if (indexg == 24)
-//	printf("indexg_neigh: %d\n",indexg_neigh);
 			if (!hp_refine_current[indexg_neigh] && ((int) hp_levels[indexg] - (int) hp_levels[indexg_neigh]) > 1)
 				check_levels_refine(indexg_neigh,VInfo,'p');
 		}
 		break;
 	case 'h':
-//		NsubF  = VOLUME->NsubF;
+		fh_range = VInfo->fh_range;
 		for (f = 0; f < Nf; f++) {
 			Indfh = Indf + f*NFREFMAX;
-//			get_fh_range(VOLUME,f,&fhMin,&fhMax);
-fhMin = 10; fhMax = 10;
+			fhMin = fh_range[(indexg*NFMAX+f)*2  ];
+			fhMax = fh_range[(indexg*NFMAX+f)*2+1];
 			for (fh = fhMin; fh <= fhMax; fh++) {
 				indexg_neigh = VNeigh[Indfh+fh];
-printf("%d %d\n",indexg,indexg_neigh);
+//printf("indexg and neigh: %d %d\n",indexg,indexg_neigh);
+//array_print_ui(NFMAX,NFREFMAX,&VNeigh[Indf],'R');
 				if (!hp_refine_current[indexg_neigh] && ((int) hp_levels[indexg] - (int) hp_levels[indexg_neigh]) > 1)
 					check_levels_refine(indexg_neigh,VInfo,'h');
 			}
@@ -192,17 +192,31 @@ printf("%d %d\n",indexg,indexg_neigh);
 	}
 }
 
-static void check_levels_coarse(const unsigned int indexg, const unsigned int *VNeigh, const unsigned int *VType,
-                                const unsigned int *hp_levels, unsigned int *hp_coarse_current, const char hp_type)
+//static void check_levels_coarse(const unsigned int indexg, const unsigned int *VNeigh, const unsigned int *VType,
+ //                               const unsigned int *hp_levels, unsigned int *hp_coarse_current, const char hp_type)
+static void check_levels_coarse(const unsigned int indexg, const struct S_VInfo *VInfo, const char hp_type)
 {
 	// Standard datatypes
-	unsigned int Nf, *Nfref, indexg_neigh, f, fh, fhMax, Indf, Indfh;
+	unsigned int Nf, indexg_neigh, f, fh, fhMin, fhMax, Indf, Indfh, 
+	             *VNeigh, *VType, *hp_levels, *hp_coarse_current, *fh_range;
 
 	struct S_ELEMENT *ELEMENT;
 
+	VNeigh = VInfo->neigh;
+	VType  = VInfo->type;
+	hp_coarse_current = VInfo->hp_coarse_l;
+
+	switch (hp_type) {
+	default: // p
+		hp_levels = VInfo->p_levels;
+		break;
+	case 'h':
+		hp_levels = VInfo->h_levels;
+		break;
+	}
+
 	ELEMENT = get_ELEMENT_type(VType[indexg]);
 	Nf    = ELEMENT->Nf;
-	Nfref = ELEMENT->Nfref;
 
 	hp_coarse_current[indexg] = 1;
 
@@ -212,16 +226,19 @@ static void check_levels_coarse(const unsigned int indexg, const unsigned int *V
 		for (f = 0; f < Nf; f++) {
 			indexg_neigh = VNeigh[Indf+f*NFREFMAX];
 			if (!hp_coarse_current[indexg_neigh] && ((int) hp_levels[indexg_neigh] - (int) hp_levels[indexg]) > 0)
-				check_levels_coarse(indexg_neigh,VNeigh,VType,hp_levels,hp_coarse_current,'p');
+				check_levels_coarse(indexg_neigh,VInfo,'p');
 		}
 		break;
 	case 'h':
+		fh_range = VInfo->fh_range;
 		for (f = 0; f < Nf; f++) {
 			Indfh = Indf + f*NFREFMAX;
-			for (fh = 0, fhMax = Nfref[f]; fh < fhMax; fh++) {
+			fhMin = fh_range[(indexg*NFMAX+f)*2  ];
+			fhMax = fh_range[(indexg*NFMAX+f)*2+1];
+			for (fh = fhMin; fh <= fhMax; fh++) {
 				indexg_neigh = VNeigh[Indfh+fh];
 				if (!hp_coarse_current[indexg_neigh] && ((int) hp_levels[indexg_neigh] - (int) hp_levels[indexg]) > 0)
-					check_levels_coarse(indexg_neigh,VNeigh,VType,hp_levels,hp_coarse_current,'h');
+					check_levels_coarse(indexg_neigh,VInfo,'h');
 			}
 		}
 		break;
@@ -309,22 +326,24 @@ printf("ref_frac_lim: %f\n",refine_frac_lim);
 	}
 
 	VInfo = malloc(sizeof *VInfo); // free
-	VInfo->neigh     = malloc(NVglobal*NFMAX*NFREFMAX * sizeof *(VInfo->neigh));     // free
-	VInfo->type      = calloc(NVglobal                , sizeof *(VInfo->type));      // free
-	VInfo->fh_range  = calloc(NVglobal*NFMAX*2        , sizeof *(VInfo->fh_range));  // free
-	VInfo->href_type = calloc(NVglobal                , sizeof *(VInfo->href_type)); // free
-	VInfo->p_levels  = malloc(NVglobal                * sizeof *(VInfo->p_levels));  // free
-	VInfo->h_levels  = malloc(NVglobal                * sizeof *(VInfo->h_levels));  // free
-	VInfo->hp_refine = calloc(NVglobal                , sizeof *(VInfo->hp_refine)); // free
-	VInfo->hp_coarse = calloc(NVglobal                , sizeof *(VInfo->hp_coarse)); // free
+	VInfo->neigh       = malloc(NVglobal*NFMAX*NFREFMAX * sizeof *(VInfo->neigh));       // free
+	VInfo->type        = calloc(NVglobal                , sizeof *(VInfo->type));        // free
+	VInfo->fh_range    = calloc(NVglobal*NFMAX*2        , sizeof *(VInfo->fh_range));    // free
+	VInfo->href_type   = calloc(NVglobal                , sizeof *(VInfo->href_type));   // free
+	VInfo->p_levels    = malloc(NVglobal                * sizeof *(VInfo->p_levels));    // free
+	VInfo->h_levels    = malloc(NVglobal                * sizeof *(VInfo->h_levels));    // free
+	VInfo->hp_refine   = calloc(NVglobal                , sizeof *(VInfo->hp_refine));   // free
+	VInfo->hp_coarse   = calloc(NVglobal                , sizeof *(VInfo->hp_coarse));   // free
+	VInfo->hp_coarse_l = calloc(NVglobal                , sizeof *(VInfo->hp_coarse_l)); // free
 
-	VNeigh            = VInfo->neigh;
-	VType_global      = VInfo->type;
-	fh_range          = VInfo->fh_range;
-	p_levels          = VInfo->p_levels;
-	h_levels          = VInfo->h_levels;
-	hp_refine_current = VInfo->hp_refine;
-	hp_coarse_current = VInfo->hp_coarse;
+	VNeigh                  = VInfo->neigh;
+	VType_global            = VInfo->type;
+	fh_range                = VInfo->fh_range;
+	p_levels                = VInfo->p_levels;
+	h_levels                = VInfo->h_levels;
+	hp_refine_current       = VInfo->hp_refine;
+	hp_coarse_current       = VInfo->hp_coarse;
+	hp_coarse_current_local = VInfo->hp_coarse_l;
 
 	NFREFMAX_Total = NFMAX*NFREFMAX;
 
@@ -430,17 +449,18 @@ printf("\n\n\n");
 			VOLUME = VOLUME_Vec[IndminRHS[i]];
 //printf("indexg, minRHS: %d, % .3e\n",VOLUME->indexg,minRHS_Vec[i]);
 
-			hp_coarse_current_local = calloc(NVglobal , sizeof *hp_coarse_current_local); // free
+			for (j = 0; j < NVglobal; j++)
+				hp_coarse_current_local[j] = 0;
 
 			switch (Adapt) {
 			default: // ADAPT_HP
 				printf("Error: Code up the smoothness based indicator to choose h or p.\n"), exit(1);
 				break;
 			case ADAPT_P:
-				check_levels_coarse(VOLUME->indexg,VNeigh,VType_global,p_levels,hp_coarse_current_local,'p');
+				check_levels_coarse(VOLUME->indexg,VInfo,'p');
 				break;
 			case ADAPT_H:
-				check_levels_coarse(VOLUME->indexg,VNeigh,VType_global,h_levels,hp_coarse_current_local,'h');
+				check_levels_coarse(VOLUME->indexg,VInfo,'h');
 /*
 for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next){
 	printf("%d %d %d\n",VOLUME->indexg,hp_coarse_current_local[VOLUME->indexg],h_levels[VOLUME->indexg]);
@@ -477,7 +497,6 @@ exit(1);
 					}
 				}
 			}
-			free(hp_coarse_current_local);
 		}
 	}
 
@@ -528,5 +547,6 @@ exit(1);
 	free(VInfo->h_levels);
 	free(VInfo->hp_refine);
 	free(VInfo->hp_coarse);
+	free(VInfo->hp_coarse_l);
 	free(VInfo);
 }

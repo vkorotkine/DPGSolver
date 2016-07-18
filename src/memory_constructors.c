@@ -2,6 +2,7 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
 #include <stdlib.h>
+#include <limits.h>
 
 #include "database.h"
 #include "functions.h"
@@ -12,6 +13,7 @@
  *		Allocate memory for and initialize new structures.
  *
  *	Comments:
+ *		Change all initializations from 0 to UINT_MAX. (ToBeDeleted)
  *
  *	Notation:
  *
@@ -35,13 +37,13 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 	// Mesh
 	ELEMENT->present = 0;
-	ELEMENT->type    = 0;
-	ELEMENT->Eclass  = 0;
-	ELEMENT->d       = 0;
-	ELEMENT->Nve     = 0;
-	ELEMENT->Nf      = 0;
-	ELEMENT->Nvref   = 0;
-	ELEMENT->NvrefSF = 0;
+	ELEMENT->type    = UINT_MAX;
+	ELEMENT->Eclass  = UINT_MAX;
+	ELEMENT->d       = UINT_MAX;
+	ELEMENT->Nve     = UINT_MAX;
+	ELEMENT->Nf      = UINT_MAX;
+	ELEMENT->Nvref   = UINT_MAX;
+	ELEMENT->NvrefSF = UINT_MAX;
 
 	ELEMENT->Nfve    = calloc(NFMAX         , sizeof *(ELEMENT->Nfve));    // free
 	ELEMENT->VeCGmsh = calloc(NVEMAX        , sizeof *(ELEMENT->VeCGmsh)); // free
@@ -357,11 +359,11 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME = malloc(sizeof *VOLUME); // free
 
 	// Structures
-	VOLUME->indexl = 0;
-	VOLUME->indexg = 0;
-	VOLUME->P      = 0;
-	VOLUME->type   = 0;
-	VOLUME->Eclass = 0;
+	VOLUME->indexl = UINT_MAX;
+	VOLUME->indexg = UINT_MAX;
+	VOLUME->P      = UINT_MAX;
+	VOLUME->type   = UINT_MAX;
+	VOLUME->Eclass = UINT_MAX;
 	VOLUME->update = 0;
 	VOLUME->curved = 0;
 	VOLUME->level  = 0;
@@ -370,13 +372,15 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->neigh   = calloc(NFMAX*NFREFMAX , sizeof *(VOLUME->neigh));   // free
 	VOLUME->neigh_f = calloc(NFMAX*NFREFMAX , sizeof *(VOLUME->neigh_f)); // free
 
-	for (unsigned int i = 0, iMax = NFMAX*NFREFMAX; i < iMax; i++)
-		VOLUME->neigh_f[i] = 999;
+	for (unsigned int i = 0, iMax = NFMAX*NFREFMAX; i < iMax; i++) {
+		VOLUME->neigh[i]   = UINT_MAX;
+		VOLUME->neigh_f[i] = UINT_MAX;
+	}
 
 	VOLUME->XYZ_vC = NULL; // free
 
 	// Geometry
-	VOLUME->NvnG  = 0;
+	VOLUME->NvnG  = UINT_MAX;
 	VOLUME->XYZ_S = NULL; // free
 	VOLUME->XYZ   = NULL; // free
 
@@ -386,7 +390,7 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->C_vf     = calloc(NFMAX , sizeof *(VOLUME->C_vf)); // free
 
 	// Initialization
-	VOLUME->NvnS = 0;
+	VOLUME->NvnS = UINT_MAX;
 	VOLUME->What = NULL; // free
 	VOLUME->RES  = NULL; // free
 
@@ -400,9 +404,9 @@ struct S_VOLUME *New_VOLUME(void)
 
 	VOLUME->refine_current = 0; // ToBeDeleted: Potentially not needed.
 	VOLUME->Vadapt         = 0;
-	VOLUME->adapt_type     = 0;
-	VOLUME->PNew           = 0;
-	VOLUME->hrefine_type   = 0;
+	VOLUME->adapt_type     = UINT_MAX;
+	VOLUME->PNew           = UINT_MAX;
+	VOLUME->hrefine_type   = UINT_MAX;
 
 	// structs
 	VOLUME->next    = NULL;
@@ -420,27 +424,27 @@ struct S_FACET *New_FACET(void)
 	FACET = malloc(sizeof *FACET); // free
 
 	// Structures
-	FACET->indexg = 0;
-	FACET->P      = 0;
-	FACET->type   = 0;
-	FACET->VfIn   = 0;
-	FACET->VfOut  = 0;
-	FACET->BC     = 0;
+	FACET->indexg = UINT_MAX;
+	FACET->P      = UINT_MAX;
+	FACET->type   = UINT_MAX;
+	FACET->VfIn   = UINT_MAX;
+	FACET->VfOut  = UINT_MAX;
+	FACET->BC     = UINT_MAX;
 	FACET->level  = 0;
 	FACET->update = 0;
-	FACET->adapt_type = 0;
+	FACET->adapt_type = UINT_MAX;
 
 	FACET->VIn   = NULL; // free (in memory_destructor_V)
 	FACET->VOut  = NULL; // free (in memory_destructor_V)
-	FACET->VfIn  = 0;
-	FACET->VfOut = 0;
+	FACET->VfIn  = UINT_MAX;
+	FACET->VfOut = UINT_MAX;
 
-	FACET->IndOrdInOut = 0;
-	FACET->IndOrdOutIn = 0;
+	FACET->IndOrdInOut = UINT_MAX;
+	FACET->IndOrdOutIn = UINT_MAX;
 
 	// Geometry
-	FACET->curved  = 0;
-	FACET->typeInt = 0;
+	FACET->curved  = UINT_MAX;
+	FACET->typeInt = UINT_MAX;
 
 	FACET->XYZ_fI   = NULL; // free
 	FACET->XYZ_fS   = NULL; // free

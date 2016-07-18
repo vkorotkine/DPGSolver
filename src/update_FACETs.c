@@ -185,7 +185,7 @@ static void set_FACET_Out(const unsigned int vh, struct S_FACET *FACETc, struct 
 	FACETc->VOut->FACET[sfOut] = FACETc;
 	FACETc->type = get_FACET_type(FACETc);
 
-	FACETc->VIn->neigh_f[FACETc->VfIn] = (FACETc->VfOut)/NFREFMAX;
+	FACETc->VIn->neigh_f[FACETc->VfIn]   = (FACETc->VfOut)/NFREFMAX;
 	FACETc->VOut->neigh_f[FACETc->VfOut] = (FACETc->VfIn)/NFREFMAX;
 }
 
@@ -719,7 +719,10 @@ if (VOLUMEc->indexg == 20) {
 				FACET->update = 0;
 				if (FACET->parent && FACET->parent->update)
 					FACET->parent->update = 0;
-				FACET->P = max(FACET->VIn->P,FACET->VOut->P);
+				VIn  = FACET->VIn;
+				VOut = FACET->VOut;
+				FACET->P      = max(VIn->P,VOut->P);
+				FACET->curved = max(VIn->curved,VOut->curved);
 
 				// Compute XYZ_fS, n_fS, and detJF_fS
 				setup_FACET_XYZ(FACET);

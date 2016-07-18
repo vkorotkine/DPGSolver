@@ -142,8 +142,8 @@ struct S_FACET {
 	unsigned int P, type, VfIn, VfOut, indexg, BC, IndOrdInOut, IndOrdOutIn, level, update, adapt_type;
 
 	// Geometry
-	char   curved, typeInt;
-	double *XYZ_fI, *XYZ_fS, *n_fI, *n_fS, *detJF_fI, *detJF_fS;
+	unsigned int curved, typeInt;
+	double       *XYZ_fI, *XYZ_fS, *n_fI, *n_fS, *detJF_fI, *detJF_fS;
 
 	// Solving
 	double *RHSIn, *RHSOut;
