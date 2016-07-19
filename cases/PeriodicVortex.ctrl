@@ -6,7 +6,7 @@
 
 BEGIN PARAMETERS
   Dimension  2
-  ML         2
+  ML         0
   MeshType   ToBeCurvedStructuredTRI
 
   Form       Weak  // Options: Weak, (Strong)
@@ -18,9 +18,9 @@ BEGIN PARAMETERS
   Collocated 0     // Options: 0, 1
   Adapt      2     // Options: 0, 1, 2, (3)
 
-  PGlobal    2
-  PMax       3
-  LevelsMax  3
+  PGlobal    4
+  PMax       4
+  LevelsMax  4
 
   Restart    -1    // Options: -1, 0, Iteration #
 

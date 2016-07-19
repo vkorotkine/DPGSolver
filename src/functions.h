@@ -99,6 +99,7 @@ extern void boundary_SlipWall (const unsigned int Nn, const unsigned int Nel, do
 extern void get_PS_range (unsigned int *PSMin, unsigned int *PSMax);
 extern void get_Pb_range (const unsigned int P, unsigned int *PbMin, unsigned int *PbMax);
 extern void get_vh_range (const struct S_VOLUME *VOLUME, unsigned int *vhMin, unsigned int *vhMax);
+extern void get_fh_range (const struct S_VOLUME *VOLUME, const unsigned int f, unsigned int *fhMin, unsigned int *fhMax);
 extern void adapt_hp (void);
 extern void   update_VOLUME_hp   (void);
 extern void   update_FACET_hp    (void);
@@ -128,7 +129,9 @@ extern double *sf_assemble_d (const unsigned int NIn[3], const unsigned int NOut
 // Postprocessor
 
 // Error computation
-extern void compute_errors (void);
+extern void compute_errors        (const struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsigned int *DOF,
+                                   const unsigned int solved);
+extern void compute_errors_global (void);
 
 // Plotting
 extern void output_to_paraview    (const char *OutputType);

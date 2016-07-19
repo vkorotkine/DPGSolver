@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <limits.h>
 
 #include "database.h"
 #include "parameters.h"
@@ -29,6 +30,13 @@ struct S_OPERATORS {
 	double       *I_vG_vS, *ChiInvS_vS;
 };
 
+struct S_VInfo {
+	int          P, level;
+	unsigned int type, refine_p, refine_h, adapt_class, adapt_type,
+	             fh_range[NFMAX*2], neigh[NFMAX*NFREFMAX];
+	double       L2s;
+};
+
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 {
 	// Standard datatypes
@@ -50,11 +58,16 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 	}
 }
 
+static void compute_initial_solution(const unsigned int Nn, double *XYZ, double *UEx, double *sEx);
+static void adapt_initial(unsigned int *adapt_update);
+static void check_levels_refine(const unsigned int indexg, struct S_VInfo **VInfo_list, const unsigned int adapt_class);
+
 void initialize_test_case(void)
 {
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
 	unsigned int d         = DB.d,
+	             Adapt     = DB.Adapt,
 	             Testing   = DB.Testing;
 
 	DB.Nvar = d+2;
@@ -67,7 +80,7 @@ void initialize_test_case(void)
 	// Standard datatypes
 	char         *SolverType;
 	unsigned int DOF0 = 0;
-	unsigned int NvnS;
+	unsigned int NvnS, adapt_update;
 	double       *XYZ_vS, *U, *s, *W, *What;
 
 	struct S_OPERATORS *OPS;
@@ -133,48 +146,274 @@ void initialize_test_case(void)
 	}
 	DB.SolverType = SolverType;
 
-	if (strstr(TestCase,"PeriodicVortex")   != NULL ||
-	    strstr(TestCase,"SupersonicVortex") != NULL) {
+	adapt_update = 1;
+	while (adapt_update) {
+		adapt_update = 0;
+		if (strstr(TestCase,"PeriodicVortex")   != NULL ||
+			strstr(TestCase,"SupersonicVortex") != NULL) {
 
-		OPS = malloc(sizeof *OPS); // free
-		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-			init_ops(OPS,VOLUME);
-//printf("%d\n",VOLUME->indexg);
+			OPS = malloc(sizeof *OPS); // free
+			for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+				init_ops(OPS,VOLUME);
 
-			NvnS         = OPS->NvnS;
-			VOLUME->NvnS = NvnS;
+				NvnS         = OPS->NvnS;
+				VOLUME->NvnS = NvnS;
 
-			What         = malloc(NvnS*Nvar * sizeof *What); // keep
-			VOLUME->What = What;
-			VOLUME->RES  = calloc(NvnS*Nvar , sizeof *(VOLUME->RES)); // keep
+				What         = malloc(NvnS*Nvar * sizeof *What); // keep
+				VOLUME->What = What;
+				VOLUME->RES  = calloc(NvnS*Nvar , sizeof *(VOLUME->RES)); // keep
 
-			XYZ_vS = malloc(NvnS*d    * sizeof *XYZ_vS); // free
+				XYZ_vS = malloc(NvnS*d    * sizeof *XYZ_vS); // free
 
-			mm_CTN_d(NvnS,d,VOLUME->NvnG,OPS->I_vG_vS,VOLUME->XYZ,XYZ_vS);
+				mm_CTN_d(NvnS,d,VOLUME->NvnG,OPS->I_vG_vS,VOLUME->XYZ,XYZ_vS);
 
-			U   = malloc(NvnS*NVAR3D * sizeof *U); // free
-			W   = malloc(NvnS*Nvar   * sizeof *W); // free
-			s   = malloc(NvnS*1      * sizeof *s); // free
+				U   = malloc(NvnS*NVAR3D * sizeof *U); // free
+				W   = malloc(NvnS*Nvar   * sizeof *W); // free
+				s   = malloc(NvnS*1      * sizeof *s); // free
 
-			compute_exact_solution(NvnS,XYZ_vS,U,s,0);
-			free(s);
+				compute_initial_solution(NvnS,XYZ_vS,U,s);
+				free(s);
 
-			convert_variables(U,W,3,d,NvnS,1,'p','c');
-			mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,W,What);
+				convert_variables(U,W,3,d,NvnS,1,'p','c');
+				mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,W,What);
 
-			free(XYZ_vS);
-			free(U);
-			free(W);
+				free(XYZ_vS);
+				free(U);
+				free(W);
+			}
+			free(OPS);
 		}
-		free(OPS);
+
+		switch (Adapt) {
+		default: // ADAPT_P, ADAPT_H, ADAPT_HP
+			adapt_initial(&adapt_update);
+			break;
+		case ADAPT_0:
+			// Exit while loop.
+			break;
+		}
 	}
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
 		DOF0 += VOLUME->NvnS;
 	DB.DOF0 = DOF0;
 
+	// Ensure that update_VOLUME_Ops will be executed
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+		VOLUME->update = 1;
+
 	if (Testing) {
 		// Output initial solution to paraview
 		output_to_paraview("ZTest_Sol_Init");
+	}
+}
+
+static void compute_initial_solution(const unsigned int Nn, double *XYZ, double *UEx, double *sEx)
+{
+	// Initialize DB Parameters
+	char *TestCase = DB.TestCase;
+
+	if (strstr(TestCase,"PeriodicVortex") ||
+	    strstr(TestCase,"SupersonicVortex")) {
+		compute_exact_solution(Nn,XYZ,UEx,sEx,0);
+	} else {
+		printf("Error: Unsupported TestCase in compute_initial_solution.\n"), exit(1);
+	}
+}
+
+static void adapt_initial(unsigned int *adapt_update)
+{
+	/*
+	 *	Purpose:
+	 *		Perform h/p-adaptation of the initial mesh such that the discretization is either at the maximum allowed
+	 *		resolution or the L2 error of the initial solution is below REFINE_TOL.
+	 *
+	 *	Comments:
+	 *		Simultaneous h and p refinement is allowed for VOLUMEs which obtain refinement indication based on
+	 *		refinement propagation.
+	 *
+	 *		This function is similar to adapt_hp, but only employs refinement and uses the solution L2 error as the
+	 *		indicator.
+	 *		The function is structured in preparation for MPI where structs of limited parts of VOLUMEs will be passed
+	 *		between processors.
+	 */
+
+	// Initialize DB Parameters
+	unsigned int NV        = DB.NV,
+	             NVglobal  = DB.NVglobal,
+	             Adapt     = DB.Adapt,
+	             PMax      = DB.PMax,
+	             LevelsMax = DB.LevelsMax;
+
+	// Standard datatypes
+	unsigned int i, f, Nf, fh, fhMin, fhMax, Vf, indexg,
+	             adapt_type, p_allow, h_allow, dummy_ui;
+	double       *L2Error2, dummy_d;
+
+	struct S_ELEMENT *ELEMENT;
+	struct S_VOLUME  *VOLUME;
+	struct S_VInfo   *VInfo, **VInfo_list;
+
+	VInfo_list = malloc(NVglobal * sizeof *VInfo_list); // free
+
+	L2Error2 = malloc((NVAR3D+1) *sizeof *L2Error2); // free
+
+	// Initialize VInfo structs
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		indexg = VOLUME->indexg;
+
+		VInfo = malloc(sizeof *VInfo); // free
+
+		VInfo->P          = (int) VOLUME->P;
+		VInfo->level      = (int) VOLUME->level;
+		VInfo->type       = VOLUME->type;
+		VInfo->refine_p   = 0;
+		VInfo->refine_h   = 0;
+		VInfo->adapt_type = ADAPT_0;
+
+		ELEMENT = get_ELEMENT_type(VInfo->type);
+		Nf = ELEMENT->Nf;
+
+		for (f = 0; f < Nf; f++) {
+			get_fh_range(VOLUME,f,&fhMin,&fhMax);
+			VInfo->fh_range[f*2  ] = fhMin;
+			VInfo->fh_range[f*2+1] = fhMax;
+			for (fh = fhMin; fh <= fhMax; fh++) {
+				Vf = f*NFREFMAX+fh;
+				VInfo->neigh[Vf] = VOLUME->neigh[Vf];
+			}
+		}
+		VInfo_list[indexg] = VInfo;
+	}
+
+	// Compute L2 Errors
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		compute_errors(VOLUME,L2Error2,&dummy_d,&dummy_ui,0);
+
+		VInfo = VInfo_list[VOLUME->indexg];
+		VInfo->L2s = sqrt(L2Error2[NVAR3D]);
+
+		switch (Adapt) {
+		default: // ADAPT_HP
+			// h vs p indicator goes here (ToBeDeleted).
+			break;
+		case ADAPT_P: VInfo->adapt_class = ADAPT_P; break;
+		case ADAPT_H: VInfo->adapt_class = ADAPT_H; break;
+		}
+	}
+
+	// MPI communication goes here. (ToBeDeleted)
+	for (i = 0; i < NVglobal; i++) {
+		VInfo = VInfo_list[i];
+		if (!VInfo)
+			printf("Error: MPI not supported in adapt_initial.\n"), exit(1);
+//if (VInfo)	
+//	printf("%d %d %d % .3e\n",i,VInfo->P,VInfo->level,VInfo->L2s);
+	}
+
+	// Mark VOLUMEs for refinement (No limits on refinement)
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		indexg = VOLUME->indexg;
+
+		VInfo = VInfo_list[indexg];
+		if (VInfo->L2s > REFINE_TOL)
+			check_levels_refine(indexg,VInfo_list,VInfo->adapt_class);
+	}
+
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		indexg = VOLUME->indexg;
+
+		VInfo = VInfo_list[indexg];
+		if (VInfo->refine_p || VInfo->refine_h) {
+			adapt_type = VInfo->adapt_type;
+			switch (Adapt) {
+			default: // ADAPT_HP
+				p_allow = (unsigned int) VInfo->P < PMax;
+				h_allow = (unsigned int) VInfo->level < LevelsMax;
+				break;
+			case ADAPT_P:
+				p_allow = (unsigned int) VInfo->P < PMax;
+				h_allow = 0;
+				break;
+			case ADAPT_H:
+				p_allow = 0;
+				h_allow = (unsigned int) VInfo->level < LevelsMax;
+				break;
+			}
+			if (p_allow || h_allow) {
+				*adapt_update = 1;
+				VOLUME->Vadapt = 1;
+				if (adapt_type == HPREFINE) {
+					if (p_allow && h_allow)
+						VOLUME->adapt_type = VInfo->adapt_type;
+					else if (p_allow)
+						VOLUME->adapt_type = PREFINE;
+					else
+						VOLUME->adapt_type = HREFINE;
+				} else {
+					VOLUME->adapt_type = VInfo->adapt_type;
+				}
+			}
+		}
+		free(VInfo);
+	}
+
+	free(VInfo_list);
+	free(L2Error2);
+
+	// Call update_VOLUME_hp, update_FACET_hp
+	update_VOLUME_hp();
+	update_FACET_hp();
+	update_VOLUME_list();
+//	memory_free_children(); // Note: No coarsening performed.
+//	update_Vgrp();
+	if (DB.Vectorized)
+		printf("Error: update_Vgrp requires modifications when adaptation is enabled.\n"), exit(1);
+	update_VOLUME_finalize();
+}
+
+static void check_levels_refine(const unsigned int indexg, struct S_VInfo **VInfo_list, const unsigned int adapt_class)
+{
+	unsigned int f, Nf, fh, fhMin, fhMax, indexg_n;
+
+	struct S_ELEMENT *ELEMENT;
+	struct S_VInfo   *VInfo, *VInfo_n;
+
+	VInfo = VInfo_list[indexg];
+
+	ELEMENT = get_ELEMENT_type(VInfo->type);
+	Nf = ELEMENT->Nf;
+
+	switch (adapt_class) {
+	default: // ADAPT_P
+		VInfo->refine_p   = 1;
+		VInfo->adapt_type = PREFINE;
+		if (VInfo->refine_h)
+			VInfo->adapt_type = HPREFINE;
+
+		for (f = 0; f < Nf; f++) {
+			indexg_n = VInfo->neigh[f*NFREFMAX];
+			VInfo_n  = VInfo_list[indexg_n];
+			if (!(VInfo_n->refine_p) && (VInfo->P - VInfo_n->P) > 0)
+				check_levels_refine(indexg_n,VInfo_list,adapt_class);
+		}
+		break;
+	case ADAPT_H:
+		VInfo->refine_h   = 1;
+		VInfo->adapt_type = HREFINE;
+		if (VInfo->refine_p)
+			VInfo->adapt_type = HPREFINE;
+
+		for (f = 0; f < Nf; f++) {
+			fhMin = VInfo->fh_range[f*2  ];
+			fhMax = VInfo->fh_range[f*2+1];
+			for (fh = fhMin; fh <= fhMax; fh++) {
+				indexg_n = VInfo->neigh[f*NFREFMAX+fh];
+				VInfo_n  = VInfo_list[indexg_n];
+				if (!(VInfo_n->refine_h) && (VInfo->level - VInfo_n->level) > 0)
+					check_levels_refine(indexg_n,VInfo_list,adapt_class);
+			}
+		}
+		break;
 	}
 }

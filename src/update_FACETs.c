@@ -562,7 +562,7 @@ if (FACET->level == 1) {
 
 									FACETc->VOut  = VOut;
 									FACETc->VfOut = get_FACET_VfOut(fh,FACET->IndOrdOutIn,VIn->neigh_f[f*NFREFMAX],VIn->type);
-									// Valid for TET/PYR? (ToBeDeleted)
+								// Valid for TET/PYR? (ToBeDeleted)
 									FACETc->IndOrdInOut = FACET->IndOrdInOut;
 									FACETc->IndOrdOutIn = FACET->IndOrdOutIn;
 
@@ -721,6 +721,10 @@ if (VOLUMEc->indexg == 20) {
 					FACET->parent->update = 0;
 				VIn  = FACET->VIn;
 				VOut = FACET->VOut;
+if (max(VIn->level,VOut->level)-min(VIn->level,VOut->level) > 1) {
+	printf("%d %d %d\n",FACET->indexg,VIn->indexg,VOut->indexg);
+	printf("Error: More than 1-irregular VOLUMEs (update_FACET).\n"), exit(1);
+}
 				FACET->P      = max(VIn->P,VOut->P);
 				FACET->curved = max(VIn->curved,VOut->curved);
 

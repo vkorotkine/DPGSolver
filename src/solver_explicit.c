@@ -26,19 +26,6 @@
  *		Gottlieb(2001)-Strong_Stability-Preserving_High-Order_Time_Discretization_Methods
  */
 
-static void renumber_VOLUMEs(void)
-{
-	unsigned int NV = 0;
-
-	struct S_VOLUME *VOLUME;
-
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
-		VOLUME->indexg = NV++;
-	
-	DB.NV = NV;
-	DB.NVglobal = NV;
-}
-
 void solver_explicit(void)
 {
 	// Initialize DB Parameters
@@ -74,8 +61,7 @@ void solver_explicit(void)
 //		dt = pow(0.5,DB.ML+DB.PGlobal+2);
 //		dt = pow(0.5,10.0);
 	} else {
-//		dt = pow(0.5,DB.ML+DB.PMax+1);
-		dt = pow(0.5,DB.ML+DB.PMax+5);
+		dt = pow(0.5,max(DB.ML,DB.LevelsMax)+DB.PMax+1);
 	}
 
 	// Compute Mass matrix for uncollocated schemes
@@ -89,13 +75,11 @@ void solver_explicit(void)
 			update_VOLUME_hp();
 			update_FACET_hp();
 			update_VOLUME_list();
-			renumber_VOLUMEs();
 			memory_free_children();
 //			update_Vgrp();
 			update_VOLUME_Ops();
 
 			update_VOLUME_finalize();
-			// Probably need to renumber VOLUMEs in update_VOLUME_finalize
 			// Potentially need updating: VOLUME->neigh
 //printf("Exiting solver_explicit\n");
 //exit(1);

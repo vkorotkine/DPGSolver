@@ -24,7 +24,8 @@
  */
 
 struct S_VInfo {
-	unsigned int *neigh, *type, *fh_range, *href_type, *p_levels, *h_levels, *hp_refine, *hp_coarse, *hp_coarse_l;
+	unsigned int *neigh, *type, *fh_range, *href_type, *p_levels, *h_levels, *h_siblings, *h_forbid_c,
+	             *hp_refine, *hp_coarse, *hp_coarse_l;
 } *VInfo;
 
 void get_PS_range(unsigned int *PSMin, unsigned int *PSMax)
@@ -109,7 +110,7 @@ void get_vh_range(const struct S_VOLUME *VOLUME, unsigned int *vhMin, unsigned i
 	}
 }
 
-static void get_fh_range(const struct S_VOLUME *VOLUME, const unsigned int f, unsigned int *fhMin, unsigned int *fhMax)
+void get_fh_range(const struct S_VOLUME *VOLUME, const unsigned int f, unsigned int *fhMin, unsigned int *fhMax)
 {
 	unsigned int VType, href_type, NsubF;
 
@@ -135,8 +136,6 @@ static void get_fh_range(const struct S_VOLUME *VOLUME, const unsigned int f, un
 	}
 }
 
-//static void check_levels_refine(const unsigned int indexg, const unsigned int *VNeigh, const unsigned int *VType,
-//                                unsigned int *hp_levels, unsigned int *hp_refine_current, const char hp_type)
 static void check_levels_refine(const unsigned int indexg, const struct S_VInfo *VInfo, const char hp_type)
 {
 	// Standard datatypes
@@ -192,12 +191,10 @@ static void check_levels_refine(const unsigned int indexg, const struct S_VInfo 
 	}
 }
 
-//static void check_levels_coarse(const unsigned int indexg, const unsigned int *VNeigh, const unsigned int *VType,
- //                               const unsigned int *hp_levels, unsigned int *hp_coarse_current, const char hp_type)
 static void check_levels_coarse(const unsigned int indexg, const struct S_VInfo *VInfo, const char hp_type)
 {
 	// Standard datatypes
-	unsigned int Nf, indexg_neigh, f, fh, fhMin, fhMax, Indf, Indfh, 
+	unsigned int Nf, indexg_neigh, f, fh, fhMin, fhMax, Indf, Indfh,
 	             *VNeigh, *VType, *hp_levels, *hp_coarse_current, *fh_range;
 
 	struct S_ELEMENT *ELEMENT;
@@ -250,24 +247,26 @@ void adapt_hp(void)
 	// Initialize DB Parameters
 	unsigned int DOF0       = DB.DOF0,
 	             NV         = DB.NV,
-				 NVglobal   = DB.NVglobal,
-				 PMax       = DB.PMax,
-				 LevelsMax  = DB.LevelsMax,
+	             NVglobal   = DB.NVglobal,
+	             PMax       = DB.PMax,
+	             LevelsMax  = DB.LevelsMax,
 	             Adapt      = DB.Adapt;
 	double       refine_frac = DB.refine_frac,
 	             coarse_frac = DB.coarse_frac,
 	             DOFcap_frac = DB.DOFcap_frac;
 
 	// Standard datatypes
-	unsigned int i, iMax, j, jMax, iInd, DOF, NvnS, indexg, PMaxP1, LevelsMaxP1, Nf, f, fh, Vf, fhMin, fhMax,
+	unsigned int i, iMax, j, jMax, Nf, f, fh, Vf, fhMin, fhMax, vh, vhMin, vhMax,
+	             iInd, Indsib, DOF, NvnS, indexg, PMaxP1, LevelsMaxP1,
 	             NFREFMAX_Total, refine_conflict, coarse_conflict, Indf,
 	             *IndminRHS, *IndmaxRHS, *VNeigh, *VType_global, *fh_range,
-	             *p_levels, *h_levels, *hp_refine_current, *hp_coarse_current, *hp_coarse_current_local;
+	             *p_levels, *h_levels, *h_siblings, *h_forbid_coarse,
+	             *hp_refine_current, *hp_coarse_current, *hp_coarse_current_local;
 	double       minRHS, maxRHS, tmp_d, refine_frac_lim,
 	             *RHS, *minRHS_Vec, *maxRHS_Vec, *minRHS_Vec_unsorted;
 
 	struct S_ELEMENT *ELEMENT;
-	struct S_VOLUME  *VOLUME, **VOLUME_Vec;
+	struct S_VOLUME  *VOLUME, **VOLUME_Vec, *VOLUMEp, *VOLUMEc;
 
 	// silence
 	indexg = NVglobal;
@@ -332,6 +331,8 @@ printf("ref_frac_lim: %f\n",refine_frac_lim);
 	VInfo->href_type   = calloc(NVglobal                , sizeof *(VInfo->href_type));   // free
 	VInfo->p_levels    = malloc(NVglobal                * sizeof *(VInfo->p_levels));    // free
 	VInfo->h_levels    = malloc(NVglobal                * sizeof *(VInfo->h_levels));    // free
+	VInfo->h_siblings  = malloc(NVglobal*NSIBMAX        * sizeof *(VInfo->h_siblings));  // free
+	VInfo->h_forbid_c  = calloc(NVglobal                , sizeof *(VInfo->h_forbid_c));  // free
 	VInfo->hp_refine   = calloc(NVglobal                , sizeof *(VInfo->hp_refine));   // free
 	VInfo->hp_coarse   = calloc(NVglobal                , sizeof *(VInfo->hp_coarse));   // free
 	VInfo->hp_coarse_l = calloc(NVglobal                , sizeof *(VInfo->hp_coarse_l)); // free
@@ -341,6 +342,8 @@ printf("ref_frac_lim: %f\n",refine_frac_lim);
 	fh_range                = VInfo->fh_range;
 	p_levels                = VInfo->p_levels;
 	h_levels                = VInfo->h_levels;
+	h_siblings              = VInfo->h_siblings;
+	h_forbid_coarse         = VInfo->h_forbid_c;
 	hp_refine_current       = VInfo->hp_refine;
 	hp_coarse_current       = VInfo->hp_coarse;
 	hp_coarse_current_local = VInfo->hp_coarse_l;
@@ -377,6 +380,23 @@ printf("ref_frac_lim: %f\n",refine_frac_lim);
 		VType_global[indexg] = VOLUME->type;
 		p_levels[indexg]     = VOLUME->P;
 		h_levels[indexg]     = VOLUME->level;
+
+		get_vh_range(VOLUME,&vhMin,&vhMax);
+
+		VOLUMEp = VOLUME->parent;
+		if (VOLUMEp) {
+			VOLUMEc = VOLUMEp->child0;
+			for (i = 0, vh = vhMin; vh <= vhMax; vh++) {
+				if (VOLUME->level != VOLUMEc->level) {
+					h_forbid_coarse[indexg] = 1;
+					break;
+				}
+				h_siblings[indexg*NSIBMAX+i] = VOLUMEc->indexg;
+				i++;
+			}
+		} else {
+			h_forbid_coarse[indexg] = 1;
+		}
 	}
 	// Needs modification for MPI (ToBeDeleted)
 	for (i = 0, iMax = NVglobal; i < iMax; i++) {
@@ -385,6 +405,9 @@ printf("ref_frac_lim: %f\n",refine_frac_lim);
 			// Not all VOLUMEs are on this processor.
 		}
 	}
+
+//for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+//	printf("%d %d\n",VOLUME->indexg,VOLUME->level);
 
 //array_print_ui(NVglobal,1,p_levels,'R');
 //array_print_ui(NVglobal,NFREFMAX_Total,VNeigh,'R');
@@ -444,10 +467,11 @@ printf("\n\n\n");
 	}
 
 	// Mark coarse_frac VOLUMEs for coarsening
+printf("%d %d\n",(unsigned int) (coarse_frac*NV),NV);
 	for (i = 0, iMax = (unsigned int) (coarse_frac*NV); i < iMax; i++) {
 		if (minRHS_Vec[i] < COARSE_TOL) {
 			VOLUME = VOLUME_Vec[IndminRHS[i]];
-//printf("indexg, minRHS: %d, % .3e\n",VOLUME->indexg,minRHS_Vec[i]);
+printf("indexg, minRHS: %d, % .3e % .3e %d\n",VOLUME->indexg,minRHS_Vec[i],COARSE_TOL,h_forbid_coarse[VOLUME->indexg]);
 
 			for (j = 0; j < NVglobal; j++)
 				hp_coarse_current_local[j] = 0;
@@ -460,7 +484,13 @@ printf("\n\n\n");
 				check_levels_coarse(VOLUME->indexg,VInfo,'p');
 				break;
 			case ADAPT_H:
-				check_levels_coarse(VOLUME->indexg,VInfo,'h');
+				indexg = VOLUME->indexg;
+				if (!h_forbid_coarse[indexg]) {
+					Indsib = indexg*NSIBMAX;
+					get_vh_range(VOLUME,&vhMin,&vhMax);
+					for (j = 0, jMax = vhMax-vhMin; j <= jMax; j++)
+						check_levels_coarse(h_siblings[Indsib+j],VInfo,'h');
+				}
 /*
 for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next){
 	printf("%d %d %d\n",VOLUME->indexg,hp_coarse_current_local[VOLUME->indexg],h_levels[VOLUME->indexg]);
@@ -545,6 +575,8 @@ exit(1);
 	free(VInfo->href_type);
 	free(VInfo->p_levels);
 	free(VInfo->h_levels);
+	free(VInfo->h_siblings);
+	free(VInfo->h_forbid_c);
 	free(VInfo->hp_refine);
 	free(VInfo->hp_coarse);
 	free(VInfo->hp_coarse_l);

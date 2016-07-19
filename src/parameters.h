@@ -27,6 +27,7 @@
  *		NREFVVARMAX     : (MAX)imum (N)umber of h-adaptive (REF)ined (V)olume (VAR)iations
  *		NSUBFMAX        : (MAX)imum (N)umber of h-adaptive (SUB)-(F)acets (on each FACET).
  *		NVISUBFMAX      : (MAX)imum (N)umber of h-adaptive (V)OLUME (I)nternal (SUB)-(F)acets (within the VOLUME).
+ *		NSIBMAX         : (MAX)imum (N)umber of (SIB)lings on the same level after h-refinement.
  *
  *	References:
  *
@@ -72,6 +73,7 @@
 #define NREFVVARMAX     7  // HEX
 #define NSUBFMAX        4  // QUAD/TRI (Isotropic refinement)
 #define NVISUBFMAX      13 // PYR (Isotropic refinement)
+#define NSIBMAX         10 // PYR (6 PYR + 4 TET)
 
 // Solver related parameters
 #define RK3_SSP 0
@@ -88,11 +90,13 @@
 #define ADAPT_HP 3
 
 // Adaptation flags
-#define PREFINE 0
-#define PCOARSE 1
-#define HREFINE 2
-#define HCOARSE 3
-#define HDELETE 10
+#define PREFINE  0
+#define PCOARSE  1
+#define HREFINE  2
+#define HCOARSE  3
+#define HPREFINE 4
+#define HPCOARSE 5
+#define HDELETE  10
 
 // h-refinement related numbers
 #define NREFMAXPOINT 1

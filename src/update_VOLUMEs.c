@@ -387,17 +387,21 @@ printf("\n\n **************** VOLUME coarse *********************\n\n\n");
 
 
 					} else {
-						// Ensure that all children are marked as not to be updated.
+						// Ensure that all children are marked as not to be coarsened.
 						VOLUMEc = VOLUME;
 						for (vh = vhMin; vh <= vhMax; vh++) {
-							VOLUMEc->Vadapt = 0;
-							VOLUMEc->update = 0;
+//printf("Reset Vadapt: %d %d %d %d\n",VOLUME->indexg,VOLUMEc->indexg,VOLUMEc->Vadapt,VOLUMEc->adapt_type);
+							if (VOLUMEc->adapt_type == HCOARSE) {
+								VOLUMEc->Vadapt = 0;
+								VOLUMEc->update = 0;
+							}
 							VOLUMEc = VOLUMEc->next;
 						}
 					}
 				} else {
 					VOLUMEc = VOLUMEp->child0;
 					if (!(VOLUMEc->adapt_type == HCOARSE && VOLUMEc->Vadapt)) {
+//printf("Reset Vadapt 2: %d\n",VOLUMEc->indexg);
 						VOLUME->Vadapt = 0;
 						VOLUME->update = 0;
 					}
@@ -609,10 +613,20 @@ void update_VOLUME_Ops(void)
 
 void update_VOLUME_finalize(void)
 {
+	unsigned int NV = 0;
 	unsigned int VfIn, VfOut; 
 
 	struct S_VOLUME *VOLUME, *VIn, *VOut;
 	struct S_FACET  *FACET;
+
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		VOLUME->indexg = NV++;
+		VOLUME->Vadapt = 0;
+		VOLUME->update = 0;
+	}
+
+	DB.NV = NV;
+	DB.NVglobal = NV;
 
 	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 		VIn   = FACET->VIn;
@@ -625,14 +639,9 @@ void update_VOLUME_finalize(void)
 		VOut->neigh[VfOut] = VIn->indexg;
 
 		if (fabs((int) VIn->level - (int) VOut->level) > 1.0) {
-			printf("%d %d\n",VIn->indexg,VOut->indexg);
-			printf("Error: Adjacent VOLUMEs are more than 1-irregular.\n"), exit(1);
+			printf("%d %d %d\n",VIn->indexg,VOut->indexg,VIn->parent->indexg);
+			printf("Error: Adjacent VOLUMEs are more than 1-irregular (update_VOL_fin).\n"), exit(1);
 		}
 
-	}
-
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-		VOLUME->Vadapt = 0;
-		VOLUME->update = 0;
 	}
 }

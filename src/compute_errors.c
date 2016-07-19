@@ -64,100 +64,131 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	}
 }
 
-void compute_errors(void)
+void compute_errors(const struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsigned int *DOF,
+                    const unsigned int solved)
 {
 	// Initialize DB Parameters
 	unsigned int d    = DB.d,
 	             Nvar = DB.Nvar;
-	int          MPIrank = DB.MPIrank;
 
 	// Standard datatypes
-	unsigned int i, j, NvnS, NvnI, IndU, DOF;
+	unsigned int i, iMax, j, NvnS, NvnI, IndU;
 	double       *XYZ_vI, 
 	             *rho, *p, *s, *sEx, *U, *UEx, *What, *W,
-	             *detJV_vI, *w_vI, *ChiS_vI, *wdetJV_vI,
-	             Vol, *L2Error2, err;
+	             *detJV_vI, *w_vI, *ChiS_vI, *wdetJV_vI, err;
 
 	struct S_OPERATORS *OPS;
-	struct S_VOLUME *VOLUME;
-
 
 	OPS = malloc(sizeof *OPS); // free
 
-	L2Error2 = calloc(NVAR3D+1 , sizeof *L2Error2); // free
+	for (i = 0, iMax = NVAR3D+1; i < iMax; i++)
+		L2Error2[i] = 0.0;
+
+	init_ops(OPS,VOLUME,0);
+
+	NvnS    = OPS->NvnS;
+	NvnI    = OPS->NvnI;
+	w_vI    = OPS->w_vI;
+	ChiS_vI = OPS->ChiS_vI;
+
+	detJV_vI = VOLUME->detJV_vI;
+
+	wdetJV_vI = malloc(NvnI * sizeof *wdetJV_vI); // free
+	for (i = 0; i < NvnI; i++)
+		wdetJV_vI[i] = w_vI[i]*detJV_vI[i];
+
+	W = malloc(NvnI*Nvar   * sizeof *W); // free
+	U = malloc(NvnI*NVAR3D * sizeof *U); // free
+	s = malloc(NvnI        * sizeof *s); // free
+
+	What = VOLUME->What;
+
+	mm_CTN_d(NvnI,Nvar,NvnS,ChiS_vI,What,W);
+
+	convert_variables(W,U,d,3,NvnI,1,'c','p');
+
+	rho = &U[NvnI*0];
+	p   = &U[NvnI*(NVAR3D-1)];
+	for (i = 0; i < NvnI; i++)
+		s[i] = p[i]/pow(rho[i],GAMMA);
+
+	XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
+	mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
+
+	UEx = malloc(NvnI*NVAR3D * sizeof *UEx); // free
+	sEx = malloc(NvnI        * sizeof *sEx); // free
+
+	compute_exact_solution(NvnI,XYZ_vI,UEx,sEx,solved);
+
+	for (i = 0; i <= NVAR3D; i++) {
+		IndU = i*NvnI;
+		if (i == 0 || i == NVAR3D-1) { // rho, p
+			for (j = 0; j < NvnI; j++) {
+				err = (U[IndU+j]-UEx[IndU+j])/UEx[IndU+j];
+				L2Error2[i] += err*err*wdetJV_vI[j];
+			}
+		} else if (i > 0 && i < NVAR3D-1) { // u, v, w (Not normalized as variables may be negative)
+			for (j = 0; j < NvnI; j++) {
+				err = U[IndU+j]-UEx[IndU+j];
+				L2Error2[i] += err*err*wdetJV_vI[j];
+			}
+		} else if (i == NVAR3D) { // s
+			for (j = 0; j < NvnI; j++) {
+				err = (s[j]-sEx[j])/sEx[j];
+				L2Error2[i] += err*err*wdetJV_vI[j];
+			}
+		}
+	}
+
+	*DOF = NvnS;
+	for (i = 0; i < NvnI; i++)
+		*Vol += wdetJV_vI[i];
+
+	free(wdetJV_vI);
+	free(W);
+	free(U);
+	free(s);
+	free(UEx);
+	free(sEx);
+	free(XYZ_vI);
+
+	free(OPS);
+}
+
+void compute_errors_global(void)
+{
+	/*
+	 *	Purpose:
+	 *		Compute and output global L2 solution errors.
+	 *
+	 *	Comments:
+	 *		The VOLUME loop is placed outside of the compute_errors function as the same function is used on a VOLUME
+	 *		basis in adapt_initial.
+	 */
+
+	// Initialize DB Parameters
+	int MPIrank = DB.MPIrank;
+
+	// Standard datatypes
+	unsigned int i, DOF, DOF_l;
+	double       Vol, Vol_l, *L2Error2, *L2Error2_l;
+
+	struct S_VOLUME *VOLUME;
+
+	L2Error2   = calloc(NVAR3D+1   , sizeof *L2Error2);   // free
+	L2Error2_l = malloc((NVAR3D+1) * sizeof *L2Error2_l); // free
 
 	DOF = 0;
 	Vol = 0.0;
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-		init_ops(OPS,VOLUME,0);
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		compute_errors(VOLUME,L2Error2_l,&Vol_l,&DOF_l,1);
 
-		NvnS    = OPS->NvnS;
-		NvnI    = OPS->NvnI;
-		w_vI    = OPS->w_vI;
-		ChiS_vI = OPS->ChiS_vI;
+		Vol += Vol_l;
+		DOF += DOF_l;
 
-		detJV_vI = VOLUME->detJV_vI;
-
-		DOF += NvnS;
-
-		wdetJV_vI = malloc(NvnI * sizeof *wdetJV_vI); // free
-		for (i = 0; i < NvnI; i++)
-			wdetJV_vI[i] = w_vI[i]*detJV_vI[i];
-
-		W = malloc(NvnI*Nvar   * sizeof *W); // free
-		U = malloc(NvnI*NVAR3D * sizeof *U); // free
-		s = malloc(NvnI        * sizeof *s); // free
-
-		What = VOLUME->What;
-		mm_CTN_d(NvnI,Nvar,NvnS,ChiS_vI,What,W);
-
-		convert_variables(W,U,d,3,NvnI,1,'c','p');
-
-		rho = &U[NvnI*0];
-		p   = &U[NvnI*(NVAR3D-1)];
-		for (i = 0; i < NvnI; i++)
-			s[i] = p[i]/pow(rho[i],GAMMA);
-
-		XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
-		mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
-
-		UEx = malloc(NvnI*NVAR3D * sizeof *UEx); // free
-		sEx = malloc(NvnI        * sizeof *sEx); // free
-
-		compute_exact_solution(NvnI,XYZ_vI,UEx,sEx,1);
-
-		for (i = 0; i <= NVAR3D; i++) {
-			IndU = i*NvnI;
-			if (i == 0 || i == NVAR3D-1) { // rho, p
-				for (j = 0; j < NvnI; j++) {
-					err = (U[IndU+j]-UEx[IndU+j])/UEx[IndU+j];
-					L2Error2[i] += err*err*wdetJV_vI[j];
-				}
-			} else if (i > 0 && i < NVAR3D-1) { // u, v, w (Not normalized as variables may be negative)
-				for (j = 0; j < NvnI; j++) {
-					err = U[IndU+j]-UEx[IndU+j];
-					L2Error2[i] += err*err*wdetJV_vI[j];
-				}
-			} else if (i == NVAR3D) { // s
-				for (j = 0; j < NvnI; j++) {
-					err = (s[j]-sEx[j])/sEx[j];
-					L2Error2[i] += err*err*wdetJV_vI[j];
-				}
-			}
-		}
-
-		for (i = 0; i < NvnI; i++)
-			Vol += wdetJV_vI[i];
-
-		free(wdetJV_vI);
-		free(W);
-		free(U);
-		free(s);
-		free(UEx);
-		free(sEx);
-		free(XYZ_vI);
+		for (i = 0; i <= NVAR3D; i++)
+			L2Error2[i] += L2Error2_l[i];
 	}
-	free(OPS);
 
 	// Write to files and collect
 	output_errors(L2Error2,DOF,Vol);

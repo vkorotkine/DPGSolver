@@ -537,8 +537,8 @@ void setup_parameters()
 	DB.DOFcap_frac = 10.0;
 //	DB.DOFcap_frac = 3.5;
 //	DB.DOFcap_frac = 0.8;
-	DB.refine_frac = 0.3;
-	DB.coarse_frac = 0.1;
+	DB.refine_frac = 0.1;
+	DB.coarse_frac = 0.5;
 
 	// Assign DB Parameters
 	DB.NP    = NP;
