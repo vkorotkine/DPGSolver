@@ -21,8 +21,8 @@
  *			PF           >= P
  *			PFr          >= P (PFr = PF+PC is the order needed to represent Fr exactly)
  *			PI(v/f)(s/c) >= 2*P
- *				Note: For the collocated scheme, if PIv < 2*P (GLL/WSH nodes), the Galerkin projection operators are no
- *				      longer exact. This may have a negative impact on the code (ToBeModified).
+ *				Note: For the collocated scheme, if PIv < 2*P (GLL/WSH nodes), the L2 projection operators are no longer
+ *				      exact. This may have a negative impact on the code (ToBeModified).
  *
  *			TP Elements:
  *				GL  : Best cubature nodes
@@ -534,11 +534,11 @@ void setup_parameters()
 // 	DB.ExplicitSolverType = RK4_LS;
 
 	// hp adaptation
-	DB.DOFcap_frac = 10.0;
+//	DB.DOFcap_frac = 10.0;
 //	DB.DOFcap_frac = 3.5;
-//	DB.DOFcap_frac = 0.8;
-	DB.refine_frac = 0.1;
-	DB.coarse_frac = 0.5;
+	DB.DOFcap_frac = 2.0;
+	DB.refine_frac = 0.2;
+	DB.coarse_frac = 0.2;
 
 	// Assign DB Parameters
 	DB.NP    = NP;

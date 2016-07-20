@@ -323,6 +323,7 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 	VOLUMEc = VOLUME->child0;
 	for (i = 0; i < iMax; i++) {
 		VOLUMEc_list[i] = VOLUMEc;
+printf("VOL indexg, level: %d %d\n",VOLUMEc->indexg,VOLUMEc->level);
 		VOLUMEc = VOLUMEc->next;
 	}
 
@@ -381,12 +382,14 @@ for (int i = 0; i < NFMAX*NSUBFMAX; i++) {
 		if (recombine_FACETs) {
 			VOLUME->NsubF[f] = 1;
 
+int count = 0;
 			for (sf = 0; sf < sfMax; sf++) {
 				VOLUMEc = VOLUMEc_list[IndVc[sf]];
 				FACET = VOLUMEc->FACET[Indsf[sf]];
 //printf("Recombup: %d %d %d\n",f,sf,FACET->indexg);
 				FACET->update = 1;
 				FACET->adapt_type = HCOARSE;
+printf("FHCOARSE: %d %d %d\n",count++,FACET->indexg,FACET->level);
 			}
 
 			VOLUME->FACET[f*NSUBFMAX] = FACET->parent;
@@ -670,6 +673,14 @@ if (VOLUMEc->indexg == 20) {
 		DB.NGF = NGF;
 
 		// Update FACET linked list (For HREFINE)
+/*
+for (FACET = DB.FACET; FACET; FACET = FACET->next) {
+	printf("FTestREF: %d %d %d %d\n",FACET->indexg,FACET->level,FACET->update,FACET->adapt_type);
+	if (FACET->indexg == 240)
+		printf("\n");
+}
+printf("\n\n\n");
+*/
 // No need to look at HCOARSE here (ToBeDeleted).
 // This is done inelegantly because it was required to keep the pointer to the parent FACET.
 
@@ -680,7 +691,7 @@ if (VOLUMEc->indexg == 20) {
 			adapt_type = FACET->adapt_type;
 			if (adapt_type == HREFINE) {
 				DB.FACET = FACET->child0;
-				for (FACETc = DB.FACET; FACETc->next != NULL; FACETc = FACETc->next)
+				for (FACETc = DB.FACET; FACETc->next; FACETc = FACETc->next)
 					;
 				FACETc->next = FACET->next;
 //			} else if (adapt_type == HCOARSE) {
@@ -702,7 +713,7 @@ if (VOLUMEc->indexg == 20) {
 				adapt_type = FACETnext->adapt_type;
 				if (adapt_type == HREFINE) {
 					FACET->next = FACETnext->child0;
-					for (FACETc = FACET->next; FACETc->next != NULL; FACETc = FACETc->next)
+					for (FACETc = FACET->next; FACETc->next; FACETc = FACETc->next)
 						;
 					FACETc->next = FACETnext->next;
 //				} else if (adapt_type == HCOARSE) {
@@ -752,6 +763,13 @@ if (max(VIn->level,VOut->level)-min(VIn->level,VOut->level) > 1) {
 		}
 
 		// Fix list head if necessary
+/*
+for (FACET = DB.FACET; FACET; FACET = FACET->next) {
+	printf("FTestCOA: %d %d %d\n",FACET->indexg,FACET->update,FACET->adapt_type);
+}
+printf("\n\n\n");
+output_to_paraview("Geomadapt");
+*/
 		FACET = DB.FACET;
 
 		if (FACET->update) {
@@ -759,7 +777,8 @@ if (max(VIn->level,VOut->level)-min(VIn->level,VOut->level) > 1) {
 			if (adapt_type == HCOARSE) {
 				// DB.FACET->parent can never be NULL.
 				DB.FACET = FACET->parent;
-				for (FACETc = FACET; FACETc->next && FACETc->next->parent == DB.FACET; FACETc = FACETc->next)
+//				for (FACETc = FACET; FACETc->next && FACETc->next->parent == DB.FACET; FACETc = FACETc->next)
+				for (FACETc = FACET; FACETc->next->parent == DB.FACET; FACETc = FACETc->next)
 					;
 				while (FACETc->next && FACETc->next->adapt_type == HDELETE) {
 					FACETtmp = FACETc->next->next;
@@ -774,6 +793,8 @@ if (max(VIn->level,VOut->level)-min(VIn->level,VOut->level) > 1) {
 		}
 
 		// Fix remainder of list
+
+
 		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 //printf("%d %d\n",FACET->indexg,FACET->level);
 			FACETnext = FACET->next;
@@ -781,12 +802,17 @@ if (max(VIn->level,VOut->level)-min(VIn->level,VOut->level) > 1) {
 				adapt_type = FACETnext->adapt_type;
 
 				if (adapt_type == HDELETE) {
-					while (FACETnext && FACETnext->adapt_type == HDELETE) {
-						FACETtmp = FACETnext->next;
-						memory_destructor_F(FACETnext);
-						FACETnext = FACETtmp;
+					while (FACETnext) {
+						if (FACETnext->adapt_type == HDELETE) {
+							FACETtmp = FACETnext->next;
+							memory_destructor_F(FACETnext);
+							FACETnext = FACETtmp;
+						} else {
+							break;
+						}
 					}
-					adapt_type = FACETnext->adapt_type;
+					if (FACETnext)
+						adapt_type = FACETnext->adapt_type;
 				}
 
 				if (adapt_type == HCOARSE) {

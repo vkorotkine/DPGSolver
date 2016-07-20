@@ -118,6 +118,11 @@ static void output_geom(const char *geom_type)
 		fprintf_tn(fID,2,"<PPointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
 		fprintf_tn(fID,3,"<PDataArray type=\"UInt8\" Name=\"P\" format=\"ascii\"/>");
 		fprintf_tn(fID,3,"<PDataArray type=\"UInt8\" Name=\"level\" format=\"ascii\"/>");
+		if (strstr(geom_type,"adapt")) {
+			fprintf_tn(fID,3,"<PDataArray type=\"UInt8\" Name=\"Vadapt\" format=\"ascii\"/>");
+			fprintf_tn(fID,3,"<PDataArray type=\"Int8\" Name=\"adapt_type\" format=\"ascii\"/>");
+			fprintf_tn(fID,3,"<PDataArray type=\"UInt32\" Name=\"indexg\" format=\"ascii\"/>");
+		}
 		fprintf_tn(fID,2,"</PPointData>\n");
 
 		fprintf_tn(fID,2,"<PPoints>");
@@ -212,6 +217,39 @@ static void output_geom(const char *geom_type)
 						fprintf(fID,"\n");
 				}
 				fprintf_tn(fID,4,"</DataArray>");
+
+				if (strstr(geom_type,"adapt")) {
+					fprintf_tn(fID,4,"<DataArray type=\"UInt8\" Name=\"Vadapt\" format=\"ascii\">");
+					fprintf(fID,"\t\t\t\t");
+					for (i = 0; i < NvnP; i++) {
+						fprintf(fID,"%d ",VOLUME->Vadapt);
+						if ((i+1) % 5 == 0 && i != NvnP-1)
+							fprintf(fID,"\n\t\t\t\t");
+						else if (i == NvnP-1)
+							fprintf(fID,"\n");
+					}
+					fprintf_tn(fID,4,"</DataArray>");
+					fprintf_tn(fID,4,"<DataArray type=\"Int8\" Name=\"adapt_type\" format=\"ascii\">");
+					fprintf(fID,"\t\t\t\t");
+					for (i = 0; i < NvnP; i++) {
+						fprintf(fID,"%d ",VOLUME->adapt_type);
+						if ((i+1) % 5 == 0 && i != NvnP-1)
+							fprintf(fID,"\n\t\t\t\t");
+						else if (i == NvnP-1)
+							fprintf(fID,"\n");
+					}
+					fprintf_tn(fID,4,"</DataArray>");
+					fprintf_tn(fID,4,"<DataArray type=\"UInt32\" Name=\"indexg\" format=\"ascii\">");
+					fprintf(fID,"\t\t\t\t");
+					for (i = 0; i < NvnP; i++) {
+						fprintf(fID,"%d ",VOLUME->indexg);
+						if ((i+1) % 5 == 0 && i != NvnP-1)
+							fprintf(fID,"\n\t\t\t\t");
+						else if (i == NvnP-1)
+							fprintf(fID,"\n");
+					}
+					fprintf_tn(fID,4,"</DataArray>");
+				}
 			fprintf_tn(fID,3,"</PointData>");
 
 			fprintf_tn(fID,3,"<Cells>");

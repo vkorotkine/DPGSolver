@@ -53,7 +53,7 @@
  *		Furthermore, the information embedded in the detail coefficients is simply an elegant representation of lack of
  *		smoothness.
  *		When imagining the use of a modal basis in the discussion of Kopriva(1996) in the context of h-adaptation
- *		related Galerkin projections, it is easily seen that the QMF coef. matrices perform exactly such projections.
+ *		related L2 projections, it is easily seen that the QMF coefficient matrices perform exactly such projections.
  *		See Alpert(2002) for their definitions.
  *
  *	Notation:
@@ -138,7 +138,7 @@
  *
  *		*_sp : Standard (*) operator stored in (sp)arse format ((C)ompressed (S)parse (R)ow), only used for TP ELEMENTs.
  *
- *	setup_galerkin_projection_operators:
+ *	setup_L2_projection_operators:
  *		ADD IN NOTATION (ToBeDeleted)
  *
  *
@@ -2560,11 +2560,17 @@ unsigned int vrefSF = 0;
 	free(ones_Nf);
 }
 
-static void setup_galerkin_projection_operators(const unsigned int EType)
+static void setup_L2_projection_operators(const unsigned int EType)
 {
+	/*
+	 *	Comments:
+	 *		L2 projection operators are only needed for coarsening operations. During refinement, these operators reduce
+	 *		to standard interpolations.
+	 */
+
 	// Returned Operators
-	double ****Ghat_vS_vS,
-	       ****GvShat_fS, ****GfS_fIs, ****GfS_fIc;
+	double ****L2hat_vS_vS,
+	       ****GfS_fIs, ****GfS_fIc;
 
 	// Initialize DB Parameters
 	unsigned int Adapt = DB.Adapt;
@@ -2578,7 +2584,7 @@ static void setup_galerkin_projection_operators(const unsigned int EType)
 	             *one_d, *ChiS_vF, *ChiM_vI, *ChiM_vS, *ChiF_vIs, *ChiF_vIc,
 	             *ChiInvF_vF, *ChiInvM_vM, *wM_vI, *diag_wM_vI, *IF, *IM, *ChiTW_M, *ChiTW_F,
 	             *SMF, *SFM, *MM, *MF, *MMInv, *MFInv, *MInvSMF, *MInvSFM,
-	             *IhatS_fS, *GhatvS_fS, *GhatfS_fI;
+	             *IhatS_fS, *L2hatvS_fS, *L2hatfS_fI;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_F;
 
@@ -2601,8 +2607,7 @@ static void setup_galerkin_projection_operators(const unsigned int EType)
 	Nvref = ELEMENT->Nvref;
 
 	// Stored operators
-	Ghat_vS_vS = ELEMENT->Ghat_vS_vS;
-	GvShat_fS  = ELEMENT->GvShat_fS;
+	L2hat_vS_vS = ELEMENT->L2hat_vS_vS;
 	GfS_fIs    = ELEMENT->GfS_fIs;
 	GfS_fIc    = ELEMENT->GfS_fIc;
 
@@ -2632,12 +2637,29 @@ static void setup_galerkin_projection_operators(const unsigned int EType)
 			MSN      = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSN,NvnSN,NvnI,1.0,ChiTW_SN,ChiSN_vI);    // free
 			MSNInv   = inverse_d(NvnSN,NvnSN,MSN,ISN);                                       // free
 			for (vref = 0; vref < Nvref; vref++) {
-//printf("P,Pb,vref: %d %d %d\n",P,Pb,vref);
 				ChiS_vI  = ELEMENT->ChiS_vIc[P][Pb][vref];
 				SSNS     = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSN,NvnS, NvnI,1.0,ChiTW_SN,ChiS_vI); // free
 
 				// Returned Operators
-				Ghat_vS_vS[P][Pb][vref] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSN,NvnS,NvnSN,1.0,MSNInv,SSNS); // keep
+				L2hat_vS_vS[P][Pb][vref] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSN,NvnS,NvnSN,1.0,MSNInv,SSNS); // keep
+
+				double *ChiTW_SNr, *MSNr, *MSNrInv, *SSNSr, *tmp_Mat, *tmp_Mat2;
+
+				ChiTW_SNr = mm_Alloc_d(CBRM,CBT, CBNT,NvnS,NvnI, NvnI,1.0,ChiS_vI,diag_wSN_vI); // tbd
+				SSNSr    = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnSN, NvnI,1.0,ChiTW_SNr,ChiSN_vI); // tbd
+				tmp_Mat2 = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSN,NvnS,NvnSN,1.0/4.0,MSNInv,SSNSr); // tbd
+
+if (EType == TRI) {
+	// Needs to be scaled and transposed?
+	if (vref) {
+				printf("%d\n",vref);
+				array_print_d(NvnSN,NvnS,tmp_Mat2,'R');
+//				if (vref == 4)
+//				exit(1);
+	}
+}
+
+				free(ChiTW_SNr), free(SSNSr), free(tmp_Mat2);
 
 				free(SSNS);
 			}
@@ -2693,8 +2715,8 @@ static void setup_galerkin_projection_operators(const unsigned int EType)
 					if (EType == LINE) {
 						ChiF_vIs  = one_d;
 						ChiF_vIc  = one_d;
-						GhatvS_fS = mm_Alloc_d(CBRM,CBNT,CBNT,1,NvnS,1,1.0,one_d,ChiS_vF); // free
-						GhatfS_fI = mm_Alloc_d(CBRM,CBNT,CBNT,1,1,1,1.0,one_d,one_d);      // free
+						L2hatvS_fS = mm_Alloc_d(CBRM,CBNT,CBNT,1,NvnS,1,1.0,one_d,ChiS_vF); // free
+						L2hatfS_fI = mm_Alloc_d(CBRM,CBNT,CBNT,1,1,1,1.0,one_d,one_d);      // free
 					} else {
 						ChiF_vIs = ELEMENT_F->ChiS_vIs[Pb][PM][fh];
 						ChiF_vIc = ELEMENT_F->ChiS_vIc[Pb][PM][fh];
@@ -2709,8 +2731,8 @@ static void setup_galerkin_projection_operators(const unsigned int EType)
 						MInvSFM  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnF,NfnM,NfnF,1.0,MFInv,SFM);          // free
 						IhatS_fS = mm_Alloc_d(CBRM,CBNT,CBNT,NfnF,NvnS,NfnF,1.0,ChiInvF_vF,ChiS_vF); // free
 
-						GhatvS_fS = mm_Alloc_d(CBRM,CBNT,CBNT,NfnM,NvnS,NfnF,1.0,MInvSMF,IhatS_fS);   // free
-						GhatfS_fI = mm_Alloc_d(CBRM,CBNT,CBNT,NfnF,NfnM,NfnM,1.0,MInvSFM,ChiInvM_vM); // free
+						L2hatvS_fS = mm_Alloc_d(CBRM,CBNT,CBNT,NfnM,NvnS,NfnF,1.0,MInvSMF,IhatS_fS);   // free
+						L2hatfS_fI = mm_Alloc_d(CBRM,CBNT,CBNT,NfnF,NfnM,NfnM,1.0,MInvSFM,ChiInvM_vM); // free
 /*
 printf("%d %d\n",NfnM,NvnS);
 array_print_d(NfnM,NfnF,MInvSMF,'R');
@@ -2722,18 +2744,16 @@ array_print_d(NfnM,NfnF,MInvSMF,'R');
 					}
 
 					// Returned Operators
-					GvShat_fS[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnM, NvnS,NfnM,1.0,ChiM_vS, GhatvS_fS); // keep
-					GfS_fIs[P][Pb][Vf]   = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs,NfnM,NfnF,1.0,ChiF_vIs,GhatfS_fI); // keep
-					GfS_fIc[P][Pb][Vf]   = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc,NfnM,NfnF,1.0,ChiF_vIc,GhatfS_fI); // keep
+					GfS_fIs[P][Pb][Vf]   = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs,NfnM,NfnF,1.0,ChiF_vIs,L2hatfS_fI); // keep
+					GfS_fIc[P][Pb][Vf]   = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc,NfnM,NfnF,1.0,ChiF_vIc,L2hatfS_fI); // keep
 
 //array_print_d(NfnIc,NfnM,GfS_fIc[P][Pb][Vf],'R');
 /*
-array_print_d(NfnM,NvnS,GvShat_fS[P][Pb][Vf],'R');
 if (f == 2 && fh == 2)
 exit(1);
 */
-					free(GhatvS_fS);
-					free(GhatfS_fI);
+					free(L2hatvS_fS);
+					free(L2hatfS_fI);
 				}
 				free(IF), free(IM);
 				free(diag_wM_vI), free(ChiTW_M);
@@ -2861,7 +2881,7 @@ void setup_operators(void)
 	setup_ELEMENT_plotting(EType);
 	setup_ELEMENT_normals(EType);
 	setup_ELEMENT_operators(EType);
-	setup_galerkin_projection_operators(EType);
+	setup_L2_projection_operators(EType);
 	if (d == 2)
 		setup_ELEMENT_FACET_ordering(EType);
 
@@ -2873,8 +2893,8 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
-		setup_galerkin_projection_operators(EType);
-//		setup_galerkin_projection_operators(EType); // Include in setup_TP_operators? (ToBeDeleted)
+		setup_L2_projection_operators(EType);
+//		setup_L2_projection_operators(EType); // Include in setup_TP_operators? (ToBeDeleted)
 		if (d == 3)
 			setup_ELEMENT_FACET_ordering(EType);
 	}
@@ -2887,7 +2907,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
-		setup_galerkin_projection_operators(EType);
+		setup_L2_projection_operators(EType);
 	}
 
 	// TRI
@@ -2898,7 +2918,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
-		setup_galerkin_projection_operators(EType);
+		setup_L2_projection_operators(EType);
 		if (d == 3)
 			setup_ELEMENT_FACET_ordering(EType);
 	}
@@ -2911,7 +2931,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
-		setup_galerkin_projection_operators(EType);
+		setup_L2_projection_operators(EType);
 	}
 
 	// PYR
@@ -2922,7 +2942,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
-		setup_galerkin_projection_operators(EType);
+		setup_L2_projection_operators(EType);
 	}
 
 	// WEDGE
@@ -2933,7 +2953,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
-		setup_galerkin_projection_operators(EType);
+		setup_L2_projection_operators(EType);
 	}
 
 	// Free unused operators (including unused lower dimensional operators (if applicable) and sum factorized operators)

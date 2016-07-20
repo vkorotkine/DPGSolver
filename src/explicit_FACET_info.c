@@ -38,7 +38,7 @@
 
 struct S_OPERATORS {
 	unsigned int NvnS, NfnI, NfnS, NvnS_SF, NfnI_SF, NvnI_SF, *nOrdInOut, *nOrdOutIn;
-	double       **ChiS_fI, **ChiS_vI, **I_Weak_FF, **I_Weak_VV, **GvShat_fS, **GfS_fI;
+	double       **ChiS_fI, **ChiS_vI, **I_Weak_FF, **I_Weak_VV, **ChiS_fS, **GfS_fI;
 
 	struct S_OpCSR **ChiS_fI_sp, **I_Weak_FF_sp;
 };
@@ -76,7 +76,7 @@ void explicit_FACET_info(void)
 		case 0:
 			compute_FACET_RHS();
 			/* Difference: Interpolate to FACET basis, evaluate numerical flux, interpolate the cubature nodes on each
-			 *             side. Requires n_Sf (Solution facet) for curved elements. Make sure that Galerkin projections
+			 *             side. Requires n_Sf (Solution facet) for curved elements. Make sure that L2 projections
 			 *             are used.
 			 * Note:       On TP FACETs, this routine should give identical results to EFE for conforming meshes.
 			 */
@@ -125,8 +125,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	OPS->NvnS_SF = ELEMENT_OPS->NvnS[PV];
 
 	OPS->NfnS      = ELEMENT_FACET->NvnS[PF];
-	OPS->GvShat_fS = ELEMENT->GvShat_fS[PV][PF];
-//printf("%d %d %p\n",PV,PF,OPS->GvShat_fS);
+	OPS->ChiS_fS   = ELEMENT->ChiS_fS[PV][PF];
 	if (FtypeInt == 's') {
 		// Straight FACET Integration
 		OPS->NfnI    = ELEMENT->NfnIs[PF][IndClass];
@@ -654,7 +653,7 @@ static void compute_FACET_RHS(void)
 
 		WIn_fS = malloc(NfnS*Nvar * sizeof *WIn_fS); // free
 		// If VFPartUnity == 1, this operator would be sparse.
-		mm_CTN_d(NfnS,Nvar,NvnSIn,OPSIn[0]->GvShat_fS[VfIn],VIn->What,WIn_fS);
+		mm_CTN_d(NfnS,Nvar,NvnSIn,OPSIn[0]->ChiS_fS[VfIn],VIn->What,WIn_fS);
 
 		// Compute WOut_fI (Taking BCs into account if applicable)
 		n_fS     = FACET->n_fS;
@@ -666,7 +665,7 @@ static void compute_FACET_RHS(void)
 		WOut_fSIn = malloc(NfnS*Nvar * sizeof *WOut_fSIn); // free
 		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACET
 			WOut_fS = malloc(NfnS*Nvar * sizeof *WOut_fS); // free
-			mm_CTN_d(NfnS,Nvar,NvnSOut,OPSOut[0]->GvShat_fS[VfOut],VOut->What,WOut_fS);
+			mm_CTN_d(NfnS,Nvar,NvnSOut,OPSOut[0]->ChiS_fS[VfOut],VOut->What,WOut_fS);
 
 			// Reorder WOut_fS to correspond to WIn_fS
 			for (i = 0; i < Nvar; i++) {
@@ -725,7 +724,7 @@ array_print_d(NfnS,Neq,nFluxNum_fS,'C');
 				nFluxNum_fS[iInd+j] *= detJF_fS[j];
 		}
 
-		// Galerkin projection to FACET cubature nodes
+		// L2 projection to FACET cubature nodes
 		NfnI   = OPSIn[IndFType]->NfnI;
 
 // Don't forget to reorder nF_I for Outer FACET

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 
 #include "database.h"
 #include "parameters.h"
@@ -26,7 +27,7 @@
 
 struct S_OPERATORS {
 	unsigned int NvnGs, NvnGc, NvnS, NvnSP, NvnI;
-	double       *I_vGs_vGc, **I_vGs_vGs, **Ihat_vS_vS, **Ghat_vS_vS, *w_vI, *ChiS_vI;
+	double       *I_vGs_vGc, **I_vGs_vGs, **Ihat_vS_vS, **L2hat_vS_vS, *w_vI, *ChiS_vI;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass)
@@ -49,7 +50,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	OPS->I_vGs_vGc  = ELEMENT->I_vGs_vGc[1][PNew][0];
 	OPS->Ihat_vS_vS = ELEMENT->Ihat_vS_vS[P][PNew]; // ToBeDeleted: Remove all instances of Ihat_vS_vS from the code if
 	                                                //              not used here.
-	OPS->Ghat_vS_vS = ELEMENT->Ghat_vS_vS[P][PNew];
+	OPS->L2hat_vS_vS = ELEMENT->L2hat_vS_vS[P][PNew];
 	if (!curved) {
 		OPS->NvnI = ELEMENT->NvnIs[P];
 
@@ -100,7 +101,7 @@ void update_VOLUME_hp(void)
 	unsigned int i, iMax, P, PNew, f, level, adapt_type, vh, vhMin, vhMax, href_type, VType, Nf,
 	             NvnGs, NvnGc, NvnS, NvnSP, NCols, update, maxP;
 	double       *I_vGs_vGc, *XYZ_vC, *XYZ_S,
-	             **Ihat_vS_vS, **I_vGs_vGs, **Ghat_vS_vS, *What, *RES, *WhatP, *WhatH, *RESP, *RESH, *dummyPtr_d;
+	             **Ihat_vS_vS, **I_vGs_vGs, **L2hat_vS_vS, *What, *RES, *WhatP, *WhatH, *RESP, *RESH, *dummyPtr_d;
 
 	struct S_OPERATORS *OPS;
 	struct S_ELEMENT   *ELEMENT;
@@ -186,8 +187,6 @@ void update_VOLUME_hp(void)
 				// Project What and RES
 				NvnS       = OPS->NvnS;
 				NvnSP      = OPS->NvnSP;
-				Ihat_vS_vS = OPS->Ihat_vS_vS;
-				Ghat_vS_vS = OPS->Ghat_vS_vS;
 
 				VOLUME->NvnS = NvnSP;
 
@@ -197,10 +196,15 @@ void update_VOLUME_hp(void)
 				WhatP = malloc(NvnSP*Nvar * sizeof *WhatP); // keep
 				RESP  = malloc(NvnSP*Nvar * sizeof *RESP);  // keep
 
-//				mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS[0],What,WhatP);
-//				mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS[0],RES,RESP);
-				mm_CTN_d(NvnSP,Nvar,NvnS,Ghat_vS_vS[0],What,WhatP);
-				mm_CTN_d(NvnSP,Nvar,NvnS,Ghat_vS_vS[0],RES,RESP);
+				if (adapt_type == PREFINE) {
+					Ihat_vS_vS = OPS->Ihat_vS_vS;
+					mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS[0],What,WhatP);
+					mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS[0],RES,RESP);
+				} else {
+					L2hat_vS_vS = OPS->L2hat_vS_vS;
+					mm_CTN_d(NvnSP,Nvar,NvnS,L2hat_vS_vS[0],What,WhatP);
+					mm_CTN_d(NvnSP,Nvar,NvnS,L2hat_vS_vS[0],RES,RESP);
+				}
 
 				free(What);
 				free(RES);
@@ -219,7 +223,6 @@ void update_VOLUME_hp(void)
 				NvnS       = OPS->NvnS;
 				I_vGs_vGs  = OPS->I_vGs_vGs;
 				I_vGs_vGc  = OPS->I_vGs_vGc;
-				Ghat_vS_vS = OPS->Ghat_vS_vS;
 
 				NCols = d;
 
@@ -307,8 +310,10 @@ void update_VOLUME_hp(void)
 					WhatH = malloc(NvnS*Nvar * sizeof *WhatH); // keep
 					RESH  = malloc(NvnS*Nvar * sizeof *RESH);  // keep
 
-					mm_CTN_d(NvnS,Nvar,NvnS,Ghat_vS_vS[vh],What,WhatH);
-					mm_CTN_d(NvnS,Nvar,NvnS,Ghat_vS_vS[vh],RES,RESH);
+//					Ihat_vS_vS = OPS->Ihat_vS_vS;
+					Ihat_vS_vS = OPS->L2hat_vS_vS;
+					mm_CTN_d(NvnS,Nvar,NvnS,Ihat_vS_vS[vh],What,WhatH);
+					mm_CTN_d(NvnS,Nvar,NvnS,Ihat_vS_vS[vh],RES,RESH);
 
 					VOLUMEc->NvnS = NvnS;
 					VOLUMEc->What = WhatH;
@@ -352,7 +357,7 @@ void update_VOLUME_hp(void)
 
 						// Project What and RES
 						NvnS = OPS->NvnS;
-						Ghat_vS_vS = OPS->Ghat_vS_vS;
+						L2hat_vS_vS = OPS->L2hat_vS_vS;
 
 						NCols = d;
 
@@ -369,15 +374,18 @@ void update_VOLUME_hp(void)
 							WhatH = VOLUMEc->What;
 							RESH  = VOLUMEc->RES;
 
-// Only valid for Nodal TRIs!!! Modify the Ghat_vS_vS operator used here!!! (ToBeDeleted)
-							mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0/4.0,Ghat_vS_vS[vh],WhatH,dummyPtr_d);
+// Only valid for Nodal TRIs!!! Modify the L2hat_vS_vS operator used here!!! (ToBeDeleted)
+							mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0/4.0,L2hat_vS_vS[vh],WhatH,dummyPtr_d);
 							for (i = 0, iMax = NvnS*Nvar; i < iMax; i++)
 								What[i] += dummyPtr_d[i];
-							mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0/4.0,Ghat_vS_vS[vh],RESH,dummyPtr_d);
+							mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0/4.0,L2hat_vS_vS[vh],RESH,dummyPtr_d);
 							for (i = 0, iMax = NvnS*Nvar; i < iMax; i++)
 								RES[i] += dummyPtr_d[i];
+//printf("%d\n",vh);
+//array_print_d(NvnS,NvnS,L2hat_vS_vS[vh],'C');
 						}
-printf("\n\n **************** VOLUME coarse *********************\n\n\n");
+//exit(1);
+//printf("\n\n **************** VOLUME coarse *********************\n\n\n");
 
 
 						free(dummyPtr_d);
@@ -437,9 +445,9 @@ void update_VOLUME_list(void)
 		adapt_type = VOLUME->adapt_type;
 		if (adapt_type == HREFINE) {
 			DB.VOLUME = VOLUME->child0;
-			int count = 0;
+//			int count = 0;
 			for (VOLUMEc = DB.VOLUME; VOLUMEc->next; VOLUMEc = VOLUMEc->next)
-				printf("%d %d %d\n",count++,VOLUMEc->level,VOLUMEc->next->level);
+				; //printf("%d %d %d\n",count++,VOLUMEc->level,VOLUMEc->next->level);
 			VOLUMEc->next = VOLUME->next;
 //printf("VOL HEAD Refine\n");
 		} else if (adapt_type == HCOARSE) {
@@ -476,9 +484,9 @@ void update_VOLUME_list(void)
 //	VOLUMEc = VOLUMEc->next;
 //}
 				VOLUME->next = VOLUMEnext->parent;
-				int count = 0;
+//				int count = 0;
 				for (VOLUMEc = VOLUMEnext; VOLUMEc->next && VOLUMEc->next->parent == VOLUME->next; VOLUMEc = VOLUMEc->next)
-					printf("count %d %d\n",count++,VOLUMEc->indexg), VOLUMEc->update = 0;
+					; // printf("count %d %d\n",count++,VOLUMEc->indexg), VOLUMEc->update = 0;
 //printf("%d\n",VOLUMEc->next->indexg);
 				VOLUME->next->next = VOLUMEc->next;
 				VOLUMEc->next = NULL;
@@ -622,6 +630,7 @@ void update_VOLUME_finalize(void)
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		VOLUME->indexg = NV++;
 		VOLUME->Vadapt = 0;
+		VOLUME->adapt_type = UINT_MAX; // Done for debugging only
 		VOLUME->update = 0;
 	}
 

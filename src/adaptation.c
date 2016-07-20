@@ -261,7 +261,7 @@ void adapt_hp(void)
 	             NFREFMAX_Total, refine_conflict, coarse_conflict, Indf,
 	             *IndminRHS, *IndmaxRHS, *VNeigh, *VType_global, *fh_range,
 	             *p_levels, *h_levels, *h_siblings, *h_forbid_coarse,
-	             *hp_refine_current, *hp_coarse_current, *hp_coarse_current_local;
+	             *hp_refine_current, *hp_coarse_current, *hp_coarse_current_local, *hp_coarse_current_err;
 	double       minRHS, maxRHS, tmp_d, refine_frac_lim,
 	             *RHS, *minRHS_Vec, *maxRHS_Vec, *minRHS_Vec_unsorted;
 
@@ -332,7 +332,7 @@ printf("ref_frac_lim: %f\n",refine_frac_lim);
 	VInfo->p_levels    = malloc(NVglobal                * sizeof *(VInfo->p_levels));    // free
 	VInfo->h_levels    = malloc(NVglobal                * sizeof *(VInfo->h_levels));    // free
 	VInfo->h_siblings  = malloc(NVglobal*NSIBMAX        * sizeof *(VInfo->h_siblings));  // free
-	VInfo->h_forbid_c  = calloc(NVglobal                , sizeof *(VInfo->h_forbid_c));  // free
+	VInfo->h_forbid_c  = malloc(NVglobal                * sizeof *(VInfo->h_forbid_c));  // free
 	VInfo->hp_refine   = calloc(NVglobal                , sizeof *(VInfo->hp_refine));   // free
 	VInfo->hp_coarse   = calloc(NVglobal                , sizeof *(VInfo->hp_coarse));   // free
 	VInfo->hp_coarse_l = calloc(NVglobal                , sizeof *(VInfo->hp_coarse_l)); // free
@@ -347,8 +347,12 @@ printf("ref_frac_lim: %f\n",refine_frac_lim);
 	hp_refine_current       = VInfo->hp_refine;
 	hp_coarse_current       = VInfo->hp_coarse;
 	hp_coarse_current_local = VInfo->hp_coarse_l;
+	hp_coarse_current_err   = calloc(NVglobal , sizeof *hp_coarse_current_err); // free
 
 	NFREFMAX_Total = NFMAX*NFREFMAX;
+
+	for (i = 0; i < NVglobal; i++)
+		h_forbid_coarse[i] = 1;
 
 // Can remove initializations when the code is working (ToBeDeleted)
 	PMaxP1      = PMax+1;
@@ -358,6 +362,15 @@ printf("ref_frac_lim: %f\n",refine_frac_lim);
 			VNeigh[i*jMax+j] = NVglobal;
 		p_levels[i] = PMaxP1;
 		h_levels[i] = LevelsMaxP1;
+	}
+
+	// Remove forbid for coarse_frac VOLUMES which satisfy tolerance condition
+	for (i = 0, iMax = (unsigned int) (coarse_frac*NV); i < iMax; i++) {
+		if (minRHS_Vec[i] < COARSE_TOL) {
+			VOLUME = VOLUME_Vec[IndminRHS[i]];
+			indexg = VOLUME->indexg;
+			h_forbid_coarse[indexg] = 0;
+		}
 	}
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
@@ -386,18 +399,34 @@ printf("ref_frac_lim: %f\n",refine_frac_lim);
 		VOLUMEp = VOLUME->parent;
 		if (VOLUMEp) {
 			VOLUMEc = VOLUMEp->child0;
-			for (i = 0, vh = vhMin; vh <= vhMax; vh++) {
-				if (VOLUME->level != VOLUMEc->level) {
-					h_forbid_coarse[indexg] = 1;
-					break;
+			if (VOLUMEc->child0) {
+				h_forbid_coarse[indexg] = 1;
+			} else {
+				for (i = 0, vh = vhMin; vh <= vhMax; vh++) {
+					if (VOLUME->level != VOLUMEc->level || h_forbid_coarse[VOLUMEc->indexg]) {
+						h_forbid_coarse[indexg] = 1;
+						break;
+					}
+					h_siblings[indexg*NSIBMAX+i] = VOLUMEc->indexg;
+					i++;
+					VOLUMEc = VOLUMEc->next;
 				}
-				h_siblings[indexg*NSIBMAX+i] = VOLUMEc->indexg;
-				i++;
 			}
 		} else {
 			h_forbid_coarse[indexg] = 1;
 		}
 	}
+
+	// Only VOLUMEs allowed to be coarsened.
+	for (i = 0, iMax = (unsigned int) (coarse_frac*NV); i < iMax; i++) {
+		if (minRHS_Vec[i] < COARSE_TOL) {
+			VOLUME = VOLUME_Vec[IndminRHS[i]];
+			indexg = VOLUME->indexg;
+			if (Adapt == ADAPT_P || !h_forbid_coarse[indexg])
+				hp_coarse_current_err[indexg] = 1;
+		}
+	}
+
 	// Needs modification for MPI (ToBeDeleted)
 	for (i = 0, iMax = NVglobal; i < iMax; i++) {
 		if (VType_global[i] == 0) {
@@ -448,15 +477,17 @@ printf("\n\n\n");
 			printf("Error: Fix case ADAPT_HP.\n"), exit(1);
 			break;
 		case ADAPT_P:
-			if (hp_refine_current[indexg] && p_levels[indexg] <= PMax) {
-				VOLUME->Vadapt = 1;
+			if (hp_refine_current[indexg]) {
 				VOLUME->adapt_type = PREFINE;
+				if (p_levels[indexg] <= PMax)
+					VOLUME->Vadapt = 1;
 			}
 			break;
 		case ADAPT_H:
-			if (hp_refine_current[indexg] && h_levels[indexg] <= LevelsMax) {
-				VOLUME->Vadapt = 1;
+			if (hp_refine_current[indexg]) {
 				VOLUME->adapt_type = HREFINE;
+				if (h_levels[indexg] <= LevelsMax)
+					VOLUME->Vadapt = 1;
 // ToBeDeleted: Add in support for choosing which type of h-refinement to perform (isotropic (0)/several anisotropic)
 // Perform isotropic refinement for elements refined due to refinement propagation in order to avoid unsupported
 // match ups.
@@ -467,11 +498,12 @@ printf("\n\n\n");
 	}
 
 	// Mark coarse_frac VOLUMEs for coarsening
-printf("%d %d\n",(unsigned int) (coarse_frac*NV),NV);
+
+//printf("%d %d\n",(unsigned int) (coarse_frac*NV),NV);
 	for (i = 0, iMax = (unsigned int) (coarse_frac*NV); i < iMax; i++) {
 		if (minRHS_Vec[i] < COARSE_TOL) {
 			VOLUME = VOLUME_Vec[IndminRHS[i]];
-printf("indexg, minRHS: %d, % .3e % .3e %d\n",VOLUME->indexg,minRHS_Vec[i],COARSE_TOL,h_forbid_coarse[VOLUME->indexg]);
+//printf("indexg, minRHS: %d, % .3e % .3e %d\n",VOLUME->indexg,minRHS_Vec[i],COARSE_TOL,h_forbid_coarse[VOLUME->indexg]);
 
 			for (j = 0; j < NVglobal; j++)
 				hp_coarse_current_local[j] = 0;
@@ -482,6 +514,35 @@ printf("indexg, minRHS: %d, % .3e % .3e %d\n",VOLUME->indexg,minRHS_Vec[i],COARS
 				break;
 			case ADAPT_P:
 				check_levels_coarse(VOLUME->indexg,VInfo,'p');
+				// Check for conflicts with elements flagged for refinement
+				refine_conflict = 0;
+				for (j = 0; j < NVglobal; j++) {
+					if (hp_refine_current[j] && hp_coarse_current_local[j]) {
+						refine_conflict = 1;
+//printf("refine conflict found!\n");
+						break;
+					}
+				}
+				if (!refine_conflict) {
+					// Ensure that all elements to which the coarsening will propagate also have minRHS > COARSE_TOL
+					coarse_conflict = 0;
+					for (j = 0; j < NVglobal; j++) {
+						if (hp_coarse_current_local[j] && minRHS_Vec_unsorted[j] > COARSE_TOL) {
+							coarse_conflict = 1;
+//printf("coarse conflict found!\n");
+							break;
+						}
+					}
+
+					if (!coarse_conflict) {
+						for (j = 0; j < NVglobal; j++) {
+							if (hp_coarse_current_local[j])
+								hp_coarse_current[j] = 1;
+//if (hp_coarse_current_local[j] && indexg == 105)
+//	printf("indexg, j: %d %d\n",indexg,j);
+						}
+					}
+				}
 				break;
 			case ADAPT_H:
 				indexg = VOLUME->indexg;
@@ -491,41 +552,20 @@ printf("indexg, minRHS: %d, % .3e % .3e %d\n",VOLUME->indexg,minRHS_Vec[i],COARS
 					for (j = 0, jMax = vhMax-vhMin; j <= jMax; j++)
 						check_levels_coarse(h_siblings[Indsib+j],VInfo,'h');
 				}
-/*
-for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next){
-	printf("%d %d %d\n",VOLUME->indexg,hp_coarse_current_local[VOLUME->indexg],h_levels[VOLUME->indexg]);
-}
-printf("\n\n\n");
-exit(1);
-*/
-				break;
-			}
-
-			// Check for conflicts with elements flagged for refinement
-			refine_conflict = 0;
-			for (j = 0; j < NVglobal; j++) {
-				if (hp_refine_current[j] && hp_coarse_current_local[j]) {
-					refine_conflict = 1;
-//printf("refine conflict found!\n");
-					break;
-				}
-			}
-			if (!refine_conflict) {
-				// Ensure that all elements to which the coarsening will propagate also have minRHS > COARSE_TOL
 				coarse_conflict = 0;
 				for (j = 0; j < NVglobal; j++) {
-					if (hp_coarse_current_local[j] && minRHS_Vec_unsorted[j] > COARSE_TOL) {
+					if (hp_coarse_current_local[j] && !hp_coarse_current_err[j]) {
 						coarse_conflict = 1;
 						break;
 					}
 				}
-
 				if (!coarse_conflict) {
 					for (j = 0; j < NVglobal; j++) {
 						if (hp_coarse_current_local[j])
 							hp_coarse_current[j] = 1;
 					}
 				}
+				break;
 			}
 		}
 	}
@@ -537,18 +577,29 @@ exit(1);
 			printf("Error: Fix case ADAPT_HP.\n"), exit(1);
 			break;
 		case ADAPT_P:
-			if (hp_coarse_current[indexg] && p_levels[indexg] != 0) {
-				VOLUME->Vadapt = 1;
+			if (hp_coarse_current[indexg]) {
 				VOLUME->adapt_type = PCOARSE;
+				if (p_levels[indexg] != 0)
+					VOLUME->Vadapt = 1;
 			}
 			break;
 		case ADAPT_H:
-			if (hp_coarse_current[indexg] && h_levels[indexg] != 0) {
-				VOLUME->Vadapt = 1;
+			if (hp_coarse_current[indexg]) {
 				VOLUME->adapt_type = HCOARSE;
+				if (h_levels[indexg] != 0)
+					VOLUME->Vadapt = 1;
 			}
 			break;
 		}
+// ToBeDeleted	
+if (hp_coarse_current_err[indexg]) {
+	if (Adapt == ADAPT_P) {
+		if (!VOLUME->adapt_type == PREFINE)
+			VOLUME->adapt_type = PCOARSE;
+	} else if (Adapt == ADAPT_H) {
+		VOLUME->adapt_type = HCOARSE;
+	}
+}
 	}
 
 /*
@@ -581,4 +632,6 @@ exit(1);
 	free(VInfo->hp_coarse);
 	free(VInfo->hp_coarse_l);
 	free(VInfo);
+
+	free(hp_coarse_current_err);
 }

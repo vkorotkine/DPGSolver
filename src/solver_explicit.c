@@ -61,7 +61,12 @@ void solver_explicit(void)
 //		dt = pow(0.5,DB.ML+DB.PGlobal+2);
 //		dt = pow(0.5,10.0);
 	} else {
-		dt = pow(0.5,max(DB.ML,DB.LevelsMax)+DB.PMax+1);
+		if (Adapt == ADAPT_P)
+			dt = pow(0.5,DB.ML+DB.PMax+1);
+		else if (Adapt == ADAPT_H)
+			dt = pow(0.5,(DB.ML+DB.LevelsMax)+DB.PGlobal+1);
+		else if (Adapt == ADAPT_HP)
+			dt = pow(0.5,max(DB.ML,DB.LevelsMax)+DB.PMax+1);
 	}
 
 	// Compute Mass matrix for uncollocated schemes
@@ -72,6 +77,8 @@ void solver_explicit(void)
 	while (time < FinalTime) {
 		if (Adapt && tstep) {
 //output_to_paraview("SolAdapt");
+if (tstep == 500)
+	output_to_paraview("Geomadapt");
 			update_VOLUME_hp();
 			update_FACET_hp();
 			update_VOLUME_list();
@@ -86,8 +93,8 @@ void solver_explicit(void)
 		}
 
 	output_to_paraview("GeomFinal");
-//if (0&&tstep == 500) {
-if (tstep == 1000) {
+if (0&&tstep == 500) {
+//if (tstep == 1000) {
 //if (tstep == 11) {
 //if (tstep > 1 && Adapt >= ADAPT_H) {
 	char *string;
@@ -197,6 +204,10 @@ if (tstep == 1000) {
 //		if (Adapt && tstep <= 1000)
 		if (Adapt)
 			adapt_hp();
+if (tstep == 100) {
+//	output_to_paraview("Geomadapt");
+//	exit(1);
+}
 
 /*
 if (tstep == 0) {
