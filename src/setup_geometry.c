@@ -36,6 +36,24 @@ struct S_OPERATORS {
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
                      const unsigned int IndClass);
 
+void setup_straight(struct S_VOLUME *VOLUME)
+{
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
+
+	// Standard datatypes
+	unsigned int NvnG;
+	double       *XYZ, *XYZ_S;
+
+	NvnG = VOLUME->NvnG;
+	XYZ_S = VOLUME->XYZ_S;
+
+	XYZ = malloc(NvnG*d * sizeof *XYZ); // keep
+	for (unsigned int i = 0, iMax = d*NvnG; i < iMax; i++)
+		XYZ[i] = XYZ_S[i];
+	VOLUME->XYZ = XYZ;
+}
+
 void setup_FACET_XYZ(struct S_FACET *FACET)
 {
 	// Initialize DB Parameters
@@ -160,25 +178,16 @@ void setup_geometry(void)
 		output_to_paraview("ZTest_Geom_straight"); // Output straight coordinates to paraview
 
 	// Set up curved geometry nodes
-	if (strstr(MeshType,"ToBeCurved") != NULL) {
+	if (strstr(MeshType,"ToBeCurved")) {
 		printf("    Set geometry of VOLUME nodes in ToBeCurved Mesh\n");
-		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 			setup_ToBeCurved(VOLUME);
-	} else if (strstr(MeshType,"Curved") != NULL) {
-		printf("Add in support for MeshType != ToBeCurved");
+	} else if (strstr(MeshType,"Curved")) {
+		printf("Add in support for MeshType == Curved (setup_geometry)");
 		exit(1);
 	} else {
-		double *XYZ;
-
-		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-			NvnG  = VOLUME->NvnG;
-			XYZ_S = VOLUME->XYZ_S;
-
-			XYZ = malloc(NvnG*d * sizeof *XYZ); // keep
-			for (unsigned int i = 0, iMax = d*NvnG; i < iMax; i++)
-				XYZ[i] = XYZ_S[i];
-			VOLUME->XYZ = XYZ;
-		}
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+			setup_straight(VOLUME);
 	}
 
 	printf("    Set FACET XYZ\n");

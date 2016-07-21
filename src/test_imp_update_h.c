@@ -14,7 +14,7 @@
 
 /*
  *	Purpose:
- *		Test correctness of implementation of update_connectivity.
+ *		Test correctness of implementation of update_VOLUME_hp and update_FACET_hp for h-adaptation.
  *
  *	Comments:
  *		Ensure to test with BCs other than periodic as well. (ToBeDeleted)
@@ -25,16 +25,14 @@
  *	References:
  */
 
-static void code_startup(int nargc, char **argv);
+static void code_startup(int nargc, char **argv, const unsigned int Nref);
 static void code_cleanup(const unsigned int final);
 static void check_correspondence(unsigned int *pass);
-static void renumber_VOLUMEs(void);
 static void run_test(unsigned int *pass, const char *test_type);
-static void mesh_refine(const unsigned int Nref);
 static void mesh_update(void);
 static void mesh_to_level(const unsigned int level);
 
-void test_imp_update_connectivity(int nargc, char **argv)
+void test_imp_update_h(int nargc, char **argv)
 {
 	unsigned int pass = 0;
 	char         **argvNew;
@@ -63,19 +61,18 @@ void test_imp_update_connectivity(int nargc, char **argv)
 
 	// TRIs
 	strcpy(argvNew[0],argv[0]);
-	strcpy(argvNew[1],"test/TestTRI");
+	strcpy(argvNew[1],"test/Test_update_h_TRI");
 
-	code_startup(nargc,argvNew);
-	mesh_refine(2);
+	code_startup(nargc,argvNew,2);
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullREFINE");
-	printf("update_connectivity (TRI, FullREFINE):           ");
+	printf("update_h (TRI, FullREFINE):                      ");
 	test_print(pass);
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullCOARSE");
-	printf("update_connectivity (TRI, FullCOARSE):           ");
+	printf("update_h (TRI, FullCOARSE):                      ");
 	test_print(pass);
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -102,13 +99,13 @@ void test_imp_update_connectivity(int nargc, char **argv)
 	}
 	//     0         10        20        30        40        50
 	run_test(&pass,"Mixed");
-	printf("update_connectivity (TRI, Mixed):                ");
+	printf("update_h (TRI, Mixed):                           ");
 	test_print(pass);
 
 	mesh_to_level(2);
 	//     0         10        20        30        40        50
 	run_test(&pass,"ToLevel2");
-	printf("update_connectivity (TRI, ToLevel2):             ");
+	printf("update_h (TRI, ToLevel2):                        ");
 	test_print(pass);
 
 //	output_to_paraview("ZTest_Geom");
@@ -119,14 +116,11 @@ void test_imp_update_connectivity(int nargc, char **argv)
 
 	// QUADs
 	strcpy(argvNew[0],argv[0]);
-	strcpy(argvNew[1],"test/TestQUAD");
-
-printf("\n\n\nLikely need to move update_VOLUME_list/renumber_VOLUMEs before update_FACET_hp.\n ***\n\n\n");
+	strcpy(argvNew[1],"test/Test_update_h_QUAD");
 
 // Continue testing after the h adaptation is working for TRIs
 
-//	code_startup(nargc,argvNew);
-//	mesh_refine(3);
+//	code_startup(nargc,argvNew,3);
 
 
 //	output_to_paraview("ZTest_Geom");
@@ -136,7 +130,7 @@ printf("\n\n\nLikely need to move update_VOLUME_list/renumber_VOLUMEs before upd
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 }
 
-static void code_startup(int nargc, char **argv)
+static void code_startup(int nargc, char **argv, const unsigned int Nref)
 {
 	int  MPIrank, MPIsize;
 
@@ -158,6 +152,8 @@ static void code_startup(int nargc, char **argv)
 	setup_operators();
 	setup_structures();
 	setup_geometry();
+
+	initialize_test_case(Nref);
 }
 
 static void code_cleanup(const unsigned int final)
@@ -177,11 +173,11 @@ struct S_OPERATORS {
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
                      const unsigned int IndFType)
 {
-	unsigned int PV, PF, VType, IndOrdInOut, IndOrdOutIn;
+	unsigned int PF, VType, IndOrdInOut, IndOrdOutIn;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_FACET;
 
-	PV    = VOLUME->P;
+//	PV    = VOLUME->P;
 	VType = VOLUME->type;
 
 	PF = FACET->P;
@@ -279,18 +275,6 @@ printf("%d %d\n",FACET->VOut->indexg,FACET->VfOut);
 		TestDB.Npass++;
 }
 
-static void renumber_VOLUMEs(void)
-{
-	unsigned int NV = 0;
-
-	struct S_VOLUME *VOLUME;
-
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
-		VOLUME->indexg = NV++;
-	
-	DB.NV = NV;
-}
-
 static void run_test(unsigned int *pass, const char *test_type)
 {
 	struct S_VOLUME *VOLUME;
@@ -311,28 +295,11 @@ static void run_test(unsigned int *pass, const char *test_type)
 	update_VOLUME_hp();
 	update_FACET_hp();
 	update_VOLUME_list();
-	renumber_VOLUMEs();
 	memory_free_children();
+	update_VOLUME_finalize();
+
 
 	check_correspondence(pass);
-}
-
-static void mesh_refine(const unsigned int Nref)
-{
-	unsigned int ref;
-	struct S_VOLUME *VOLUME;
-
-	for (ref = 0; ref < Nref; ref++) {
-		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HREFINE;
-		}
-		update_VOLUME_hp();
-		update_FACET_hp();
-		update_VOLUME_list();
-		renumber_VOLUMEs();
-		memory_free_children();
-	}
 }
 
 static void mesh_update(void)
@@ -340,8 +307,8 @@ static void mesh_update(void)
 	update_VOLUME_hp();
 	update_FACET_hp();
 	update_VOLUME_list();
-	renumber_VOLUMEs();
 	memory_free_children();
+	update_VOLUME_finalize();
 }
 
 static void mesh_to_level(const unsigned int level)

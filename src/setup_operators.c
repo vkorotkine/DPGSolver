@@ -1278,7 +1278,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					ChiS_vIs[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnS[P],NvnS[P],1.0,ChiRefS_vIs,TS); // keep
 					ChiS_vIc[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnS[P],NvnS[P],1.0,ChiRefS_vIc,TS); // keep
 
-					if (P == 1) {
+					if (P == Pb) {
 						I_vGs_vS[1][Pb][vrefSF]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb] ,NvnGs[1],NvnGs[1],1.0,ChiGs_vS, ChiInvGs_vGs); // keep
 						I_vGs_vIs[1][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnGs[1],NvnGs[1],1.0,ChiGs_vIs,ChiInvGs_vGs); // keep
 						I_vGs_vIc[1][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnGs[1],NvnGs[1],1.0,ChiGs_vIc,ChiInvGs_vGs); // keep

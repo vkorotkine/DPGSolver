@@ -56,7 +56,6 @@ extern void test_imp_plotting                  (void);
 extern void test_imp_sum_factorization         (void);
 extern void test_imp_fluxes_inviscid           (void);
 extern void test_imp_get_facet_ordering        (void);
-extern void test_imp_update_connectivity       (int nargc, char **argv);
 
 // Speed tests
 extern void test_speed_array_swap (void);
@@ -73,6 +72,11 @@ extern void     mm_CTN_mv_fully_unrolled_d (const int m, const int n, const int 
 extern void     mm_CTN_mvBLAS_d            (const int m, const int n, const int k, double *A, double *B, double *C);
 extern void     mm_CTN_fully_unrolled_mv_d (const int m, const int n, const int k, double *A, double *B, double *C);
 extern void     mm_CTN_mmBLAS_d            (const int m, const int n, const int k, double *A, double *B, double *C);
+
+// Solver tests
+extern void test_imp_update_h       (int nargc, char **argv);
+extern void test_imp_L2_projections (int nargc, char **argv);
+
 
 struct S_TEST {
 	// Counters

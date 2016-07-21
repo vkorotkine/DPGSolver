@@ -101,7 +101,7 @@ int main(int nargc, char **argv)
 
 	if (!DB.MPIrank)
 		printf("  Initializing\n");
-	initialize_test_case();
+	initialize_test_case(DB.LevelsMax+1);
 
 	// Output initial solution to paraview
 	strcpy(fNameOut,"SolInitial_");
@@ -243,7 +243,8 @@ int main(int nargc, char **argv)
 	test_imp_fluxes_inviscid();
 	test_imp_get_facet_ordering();
 */
-	test_imp_update_connectivity(nargc,argv);
+	test_imp_update_h(nargc,argv);
+	test_imp_L2_projections(nargc,argv);
 
 
 	te = clock();

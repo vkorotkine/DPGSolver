@@ -62,7 +62,7 @@ static void compute_initial_solution(const unsigned int Nn, double *XYZ, double 
 static void adapt_initial(unsigned int *adapt_update);
 static void check_levels_refine(const unsigned int indexg, struct S_VInfo **VInfo_list, const unsigned int adapt_class);
 
-void initialize_test_case(void)
+void initialize_test_case(const unsigned int adapt_update_MAX)
 {
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
@@ -80,7 +80,7 @@ void initialize_test_case(void)
 	// Standard datatypes
 	char         *SolverType;
 	unsigned int DOF0 = 0;
-	unsigned int NvnS, adapt_update;
+	unsigned int NvnS, adapt_update, adapt_count;
 	double       *XYZ_vS, *U, *s, *W, *What;
 
 	struct S_OPERATORS *OPS;
@@ -89,11 +89,12 @@ void initialize_test_case(void)
 	// silence
 	SolverType = NULL;
 
-	if (strstr(TestCase,"dSphericalBump") != NULL) {
+	if (strstr(TestCase,"dSphericalBump")) {
 		; // initialize_dSphericalBump();
-	} else if (strstr(TestCase,"GaussianBump") != NULL) {
+	} else if (strstr(TestCase,"GaussianBump")) {
 		; // initialize_GaussianBump();
-	} else if (strstr(TestCase,"PeriodicVortex") != NULL) {
+	} else if (strstr(TestCase,"PeriodicVortex") ||
+	           strstr(TestCase,"Test")) {
 		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 		strcpy(SolverType,"Explicit");
 
@@ -121,9 +122,9 @@ void initialize_test_case(void)
 			DB.FinalTime = 0.3;
 		else
 			DB.FinalTime = DB.PeriodFraction*DB.PeriodL/DB.VInf;
-	} else if (strstr(TestCase,"PolynomialBump") != NULL) {
-		; // initialize_PolynomialBump();
-	} else if (strstr(TestCase,"SupersonicVortex") != NULL) {
+	} else if (strstr(TestCase,"PolynomialBump")) {
+		;
+	} else if (strstr(TestCase,"SupersonicVortex")) {
 		// Standard datatypes
 		double       pIn, cIn;
 
@@ -143,25 +144,29 @@ void initialize_test_case(void)
 		DB.VIn = cIn*DB.MIn/DB.rIn;
 
 		DB.FinalTime  = 1e10;
+	} else {
+		printf("Error: Unsupported TestCase: (%s) in initialize_test_case.\n",TestCase), exit(1);
 	}
 	DB.SolverType = SolverType;
 
+	adapt_count = 0;
 	adapt_update = 1;
 	while (adapt_update) {
 		adapt_update = 0;
-		if (strstr(TestCase,"PeriodicVortex")   != NULL ||
-			strstr(TestCase,"SupersonicVortex") != NULL) {
+		if (strstr(TestCase,"PeriodicVortex")   ||
+		    strstr(TestCase,"SupersonicVortex") ||
+		    strstr(TestCase,"Test")) {
 
 			OPS = malloc(sizeof *OPS); // free
-			for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 				init_ops(OPS,VOLUME);
 
 				NvnS         = OPS->NvnS;
 				VOLUME->NvnS = NvnS;
 
-				What         = malloc(NvnS*Nvar * sizeof *What); // keep
-				VOLUME->What = What;
-				VOLUME->RES  = calloc(NvnS*Nvar , sizeof *(VOLUME->RES)); // keep
+				VOLUME->What = malloc(NvnS*Nvar * sizeof *(VOLUME->What)); // keep
+				VOLUME->RES  = calloc(NvnS*Nvar , sizeof *(VOLUME->RES));  // keep
+				What = VOLUME->What;
 
 				XYZ_vS = malloc(NvnS*d    * sizeof *XYZ_vS); // free
 
@@ -182,16 +187,21 @@ void initialize_test_case(void)
 				free(W);
 			}
 			free(OPS);
+		} else {
+			printf("Error: Unsupported TestCase in initialize_test_case (adapt_update).\n"), exit(1);
 		}
 
-		switch (Adapt) {
-		default: // ADAPT_P, ADAPT_H, ADAPT_HP
-			adapt_initial(&adapt_update);
-			break;
-		case ADAPT_0:
-			// Exit while loop.
-			break;
+		if (adapt_count < adapt_update_MAX) {
+			switch (Adapt) {
+			default: // ADAPT_P, ADAPT_H, ADAPT_HP
+				adapt_initial(&adapt_update);
+				break;
+			case ADAPT_0:
+				// Exit while loop.
+				break;
+			}
 		}
+		adapt_count++;
 	}
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
@@ -204,7 +214,7 @@ void initialize_test_case(void)
 
 	if (Testing) {
 		// Output initial solution to paraview
-		output_to_paraview("ZTest_Sol_Init");
+//		output_to_paraview("ZTest_Sol_Init");
 	}
 }
 
@@ -213,11 +223,10 @@ static void compute_initial_solution(const unsigned int Nn, double *XYZ, double 
 	// Initialize DB Parameters
 	char *TestCase = DB.TestCase;
 
-	if (strstr(TestCase,"PeriodicVortex") ||
-	    strstr(TestCase,"SupersonicVortex")) {
+	if (strstr(TestCase,"PeriodicVortex") || strstr(TestCase,"SupersonicVortex") || strstr(TestCase,"Test")) {
 		compute_exact_solution(Nn,XYZ,UEx,sEx,0);
 	} else {
-		printf("Error: Unsupported TestCase in compute_initial_solution.\n"), exit(1);
+		printf("Error: Unsupported TestCase: (%s) in compute_initial_solution.\n",TestCase), exit(1);
 	}
 }
 
@@ -256,7 +265,7 @@ static void adapt_initial(unsigned int *adapt_update)
 
 	VInfo_list = malloc(NVglobal * sizeof *VInfo_list); // free
 
-	L2Error2 = malloc((NVAR3D+1) *sizeof *L2Error2); // free
+	L2Error2 = malloc((NVAR3D+1) * sizeof *L2Error2); // free
 
 	// Initialize VInfo structs
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -322,36 +331,46 @@ static void adapt_initial(unsigned int *adapt_update)
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		indexg = VOLUME->indexg;
-
 		VInfo = VInfo_list[indexg];
-		if (VInfo->refine_p || VInfo->refine_h) {
-			adapt_type = VInfo->adapt_type;
-			switch (Adapt) {
-			default: // ADAPT_HP
-				p_allow = (unsigned int) VInfo->P < PMax;
-				h_allow = (unsigned int) VInfo->level < LevelsMax;
-				break;
-			case ADAPT_P:
-				p_allow = (unsigned int) VInfo->P < PMax;
-				h_allow = 0;
-				break;
-			case ADAPT_H:
-				p_allow = 0;
-				h_allow = (unsigned int) VInfo->level < LevelsMax;
-				break;
-			}
-			if (p_allow || h_allow) {
-				*adapt_update = 1;
-				VOLUME->Vadapt = 1;
-				if (adapt_type == HPREFINE) {
-					if (p_allow && h_allow)
+		if (strstr(DB.TestCase,"Test")) {
+			*adapt_update = 1;
+			VOLUME->Vadapt = 1;
+			if (Adapt == ADAPT_P)
+				VOLUME->adapt_type = PREFINE;
+			else if (Adapt == ADAPT_H)
+				VOLUME->adapt_type = HREFINE;
+			else
+				printf("Error: Unsupported Adapt (%d) in initialize_test_case (Test).\n",Adapt), exit(1);
+		} else {
+			if (VInfo->refine_p || VInfo->refine_h) {
+				adapt_type = VInfo->adapt_type;
+				switch (Adapt) {
+				default: // ADAPT_HP
+					p_allow = (unsigned int) VInfo->P < PMax;
+					h_allow = (unsigned int) VInfo->level < LevelsMax;
+					break;
+				case ADAPT_P:
+					p_allow = (unsigned int) VInfo->P < PMax;
+					h_allow = 0;
+					break;
+				case ADAPT_H:
+					p_allow = 0;
+					h_allow = (unsigned int) VInfo->level < LevelsMax;
+					break;
+				}
+				if (p_allow || h_allow) {
+					*adapt_update = 1;
+					VOLUME->Vadapt = 1;
+					if (adapt_type == HPREFINE) {
+						if (p_allow && h_allow)
+							VOLUME->adapt_type = VInfo->adapt_type;
+						else if (p_allow)
+							VOLUME->adapt_type = PREFINE;
+						else
+							VOLUME->adapt_type = HREFINE;
+					} else {
 						VOLUME->adapt_type = VInfo->adapt_type;
-					else if (p_allow)
-						VOLUME->adapt_type = PREFINE;
-					else
-						VOLUME->adapt_type = HREFINE;
-				} else {
-					VOLUME->adapt_type = VInfo->adapt_type;
+					}
 				}
 			}
 		}

@@ -114,7 +114,7 @@ void update_VOLUME_hp(void)
 	OPS = malloc(sizeof *OPS); // free
 
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
-//printf("upV: %d %d %d\n",VOLUME->indexg,VOLUME->Vadapt,VOLUME->update);
+//printf("upV: %d %d %d %d\n",VOLUME->indexg,VOLUME->Vadapt,VOLUME->update,VOLUME->adapt_type);
 		if (VOLUME->Vadapt) {
 			P     = VOLUME->P;
 			level = VOLUME->level;
@@ -172,13 +172,13 @@ void update_VOLUME_hp(void)
 					free(VOLUME->XYZ_S);
 					VOLUME->XYZ_S = XYZ_S;
 					VOLUME->NvnG  = NvnGc;
-				}
 
-				free(VOLUME->XYZ);
-				if (strstr(MeshType,"ToBeCurved") != NULL)
-					setup_ToBeCurved(VOLUME);
-				else
-					printf("Error: Add in support for MeshType != ToBeCurved\n"), exit(1);
+					free(VOLUME->XYZ);
+					if (strstr(MeshType,"ToBeCurved"))
+						setup_ToBeCurved(VOLUME);
+					else if (strstr(MeshType,"Curved"))
+						printf("Add in support for MeshType == Curved (update_VOLUMEs P)"), exit(1);
+				}
 
 				free(VOLUME->detJV_vI);
 				free(VOLUME->C_vI);
@@ -295,12 +295,10 @@ void update_VOLUME_hp(void)
 						VOLUMEc->XYZ_S = malloc(NvnGc*NCols * sizeof *XYZ_S); // keep
 						mm_CTN_d(NvnGc,NCols,NvnGs,I_vGs_vGc,XYZ_vC,VOLUMEc->XYZ_S);
 
-						if (strstr(MeshType,"ToBeCurved") != NULL) {
+						if (strstr(MeshType,"ToBeCurved"))
 							setup_ToBeCurved(VOLUMEc);
-						} else {
-							printf("Add in support for MeshType != ToBeCurved");
-							exit(1);
-						}
+						else if (strstr(MeshType,"Curved"))
+							printf("Add in support for MeshType == Curved (update_VOLUMEs HREFINE)"), exit(1);
 					}
 					setup_geom_factors(VOLUMEc);
 

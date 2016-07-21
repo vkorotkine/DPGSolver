@@ -42,8 +42,8 @@ void test_imp_math_factorial(void)
 
 	pass = 0;
 	if (factorial_ull(A) == 6         &&
-		factorial_ull(B) == 5040      &&
-		factorial_ull(C) == 479001600)
+	    factorial_ull(B) == 5040      &&
+	    factorial_ull(C) == 479001600)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50

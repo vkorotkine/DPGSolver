@@ -541,7 +541,9 @@ printf("FACETpoint: %p\n",FACET->VOut);
 								FACETc->indexg = NGF++;
 //printf("362 %d\n",FACETc->indexg);
 								FACETc->level  = (VOLUME->level)+1;
-								FACETc->BC     = FACET->BC;
+								int BC = FACET->BC;
+								FACETc->BC     = BC;
+								int internal_BC = (BC == 0 || (BC % BC_STEP_SC > 50));
 
 								// Find out if VOLUME == VIn or VOut
 if (FACET->level == 1) {
@@ -560,8 +562,14 @@ if (FACET->level == 1) {
 									FACETc->VIn  = VOLUMEc;
 									FACETc->VfIn = Vfh*NFREFMAX;
 
-									FACETc->VOut  = VOut;
-									FACETc->VfOut = get_FACET_VfOut(fh,FACET->IndOrdOutIn,VIn->neigh_f[f*NFREFMAX],VIn->type);
+									if (internal_BC) {
+										FACETc->VOut  = VOut;
+										FACETc->VfOut = get_FACET_VfOut(fh,FACET->IndOrdOutIn,
+										                                VIn->neigh_f[f*NFREFMAX],VIn->type);
+									} else {
+										FACETc->VOut  = FACETc->VIn;
+										FACETc->VfOut = FACETc->VfIn;
+									}
 								// Valid for TET/PYR? (ToBeDeleted)
 									FACETc->IndOrdInOut = FACET->IndOrdInOut;
 									FACETc->IndOrdOutIn = FACET->IndOrdOutIn;
@@ -592,7 +600,8 @@ if (VOLUME->indexg == 1 && f == 1) {
 
 								}
 								FACETc->VIn->NsubF[(FACETc->VfIn)/NFREFMAX] = 1;
-								FACETc->VOut->NsubF[(FACETc->VfOut)/NFREFMAX] = fhMax;
+								if (internal_BC)
+									FACETc->VOut->NsubF[(FACETc->VfOut)/NFREFMAX] = fhMax;
 								VOLUMEc->neigh_f[FACETc->VfIn] = (FACETc->VfOut)/NFREFMAX;
 
 if (FACETc->VOut->indexg == 3) {
@@ -600,9 +609,6 @@ if (FACETc->VOut->indexg == 3) {
 }
 
 //printf("%d %d %d %d %d %d\n",FACET->indexg,VIn->indexg,VOut->indexg,FACETc->VfIn,FACETc->VfOut,FACETc->BC);
-if (FACETc->indexg == 99) {
-//	exit(1);
-}
 
 								get_Indsf(FACETc,&sfIn,&sfOut);
 //printf("sf: %d %d %d %d\n",FACETc->VfIn,FACETc->VfOut,sfIn,sfOut);
@@ -730,7 +736,12 @@ printf("\n\n\n");
 				VIn  = FACET->VIn;
 				VOut = FACET->VOut;
 if (max(VIn->level,VOut->level)-min(VIn->level,VOut->level) > 1) {
-	printf("%d %d %d\n",FACET->indexg,VIn->indexg,VOut->indexg);
+	printf("%d %d %d %d %d\n",FACET->indexg,VIn->indexg,VOut->indexg,VIn->level,VOut->level);
+	if (VIn->parent)
+		printf("VIn:  %d %d %d\n",VIn->parent->indexg,VIn->parent->Vadapt,VIn->parent->adapt_type);
+	if (VOut->parent)
+		printf("VOut: %d %d %d\n",VOut->parent->indexg,VOut->parent->Vadapt,VOut->parent->adapt_type);
+printf("%d\n",FACET->BC);
 	printf("Error: More than 1-irregular VOLUMEs (update_FACET).\n"), exit(1);
 }
 				FACET->P      = max(VIn->P,VOut->P);

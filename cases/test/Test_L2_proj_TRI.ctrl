@@ -7,20 +7,20 @@
 BEGIN PARAMETERS
   Dimension  2
   ML         0
-  MeshType   QUAD
+  MeshType   TRI_p
 
   Form       Weak  // Options: Weak, (Strong)
-  NodeType   GLL-AO // Options: GL/GLL-AO/WSH
-  BasisType  Nodal // Options: Nodal, Modal
+  NodeType   GL-AO // Options: GL/GLL-AO/WSH
+  BasisType  Modal // Options: Nodal, Modal
 
   Vectorized 0     // Options: 0, 1
   EFE        1     // Options: (0), 1
-  Collocated 1     // Options: 0, 1
-  Adapt      2     // Options: 0, 1, 2, (3)
+  Collocated 0     // Options: 0, 1
+  Adapt      1     // Options: 0, 1, 2, (3)
 
-  PGlobal    1
-  PMax       2
-  LevelsMax  6
+  PGlobal    0
+  PMax       3
+  LevelsMax  5
 
   Restart    -1    // Options: -1, 0, Iteration #
 

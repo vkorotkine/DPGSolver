@@ -39,7 +39,7 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, dou
 	X = &XYZ[0*Nn];
 	Y = &XYZ[1*Nn];
 
-	if (strstr(TestCase,"PeriodicVortex") != NULL) {
+	if (strstr(TestCase,"PeriodicVortex") || strstr(TestCase,"Test")) {
 		// Initialize DB Parameters
 		double       pInf           = DB.pInf,
 					 TInf           = DB.TInf,

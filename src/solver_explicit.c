@@ -77,7 +77,7 @@ void solver_explicit(void)
 	while (time < FinalTime) {
 		if (Adapt && tstep) {
 //output_to_paraview("SolAdapt");
-if (tstep == 82) {
+if (tstep == 1748) {
 	output_to_paraview("Geomadapt");
 //	exit(1);
 }

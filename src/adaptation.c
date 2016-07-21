@@ -331,9 +331,11 @@ void adapt_hp(void)
 
 		RHS = VOLUME->RHS;
 
+		RHS += DB.d*NvnS;
+
 		minRHS = 1e10;
 		maxRHS = 0.0;
-		// Density RHS
+		// Energy RHS
 		for (iMax = NvnS; iMax--; ) {
 			tmp_d = fabs(*RHS);
 			if (tmp_d < minRHS)
@@ -365,7 +367,7 @@ void adapt_hp(void)
 
 	// Make sure that the DOF cap is not exceeded
 	refine_frac_lim = max(min((DOFcap_frac*DOF0)/DOF-1.0,refine_frac),0.0);
-printf("ref_frac_lim: %f\n",refine_frac_lim);
+printf("DOF, DOFcap: %d %d\n",DOF,(unsigned int) (DOFcap_frac*DOF0));
 	if (refine_frac_lim < EPS) {
 		printf("*** Warning: Consider raising DOFcap_frac. *** \n");
 	}
@@ -651,7 +653,8 @@ if (hp_coarse_current_err[indexg]) {
 		if (!VOLUME->adapt_type == PREFINE)
 			VOLUME->adapt_type = PCOARSE;
 	} else if (Adapt == ADAPT_H) {
-		VOLUME->adapt_type = HCOARSE;
+		if (!VOLUME->adapt_type == HREFINE)
+			VOLUME->adapt_type = HCOARSE;
 	}
 }
 	}

@@ -64,6 +64,7 @@ extern void   setup_structures              (void);
 extern void   setup_geometry                (void);
 extern void     vertices_to_exact_geom      (void);
 extern void     setup_ToBeCurved            (struct S_VOLUME *VOLUME);
+extern void     setup_straight              (struct S_VOLUME *VOLUME);
 extern void     setup_FACET_XYZ             (struct S_FACET *FACET);
 extern void     setup_geom_factors          (struct S_VOLUME *VOLUME);
 extern void     setup_normals               (struct S_FACET *FACET);
@@ -71,7 +72,7 @@ extern void     setup_normals               (struct S_FACET *FACET);
 // Solver
 extern void   compute_exact_solution (const unsigned int Nn, double *XYZ, double *UEx, double *sEx,
                                       const unsigned int solved);
-extern void   initialize_test_case   (void);
+extern void   initialize_test_case   (const unsigned int adapt_update_MAX);
 extern void   update_VOLUME_Ops      (void);
 extern void   update_VOLUME_finalize (void);
 extern void   solver_explicit        (void);
