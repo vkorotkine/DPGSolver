@@ -404,6 +404,9 @@ static void output_normals(const char *normals_type)
 			n = FACET->n_fS;
 			XYZ_f = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
 			break;
+//case ADAPT_P:
+//case ADAPT_H:
+//case ADAPT_HP:
 		case ADAPT_0:
 			if (FACET->typeInt == 's') {
 				Nfn = ELEMENT->NfnIs[PF][IndFType];

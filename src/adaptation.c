@@ -24,7 +24,7 @@
  */
 
 struct S_VInfo {
-	unsigned int *neigh, *type, *fh_range, *href_type, *p_levels, *h_levels, *h_siblings, *h_forbid_c,
+	unsigned int *neigh, *type, *vh_range, *fh_range, *href_type, *p_levels, *h_levels, *h_siblings, *h_forbid_c,
 	             *hp_refine, *hp_coarse, *hp_coarse_l;
 } *VInfo;
 
@@ -194,8 +194,9 @@ static void check_levels_refine(const unsigned int indexg, const struct S_VInfo 
 static void check_levels_coarse(const unsigned int indexg, const struct S_VInfo *VInfo, const char hp_type)
 {
 	// Standard datatypes
-	unsigned int Nf, indexg_neigh, f, fh, fhMin, fhMax, Indf, Indfh,
-	             *VNeigh, *VType, *hp_levels, *hp_coarse_current, *fh_range;
+	unsigned int i, iMax, Nf, f, fh, vhMin, vhMax, fhMin, fhMax, Indf, Indfh, Indsib,
+	             indexg_sib, indexg_neigh, 
+	             *VNeigh, *VType, *hp_levels, *hp_coarse_current, *fh_range, *vh_range, *h_siblings, *h_forbid_c;
 
 	struct S_ELEMENT *ELEMENT;
 
@@ -212,14 +213,14 @@ static void check_levels_coarse(const unsigned int indexg, const struct S_VInfo 
 		break;
 	}
 
-	ELEMENT = get_ELEMENT_type(VType[indexg]);
-	Nf    = ELEMENT->Nf;
-
-	hp_coarse_current[indexg] = 1;
-
-	Indf = indexg*NFREFMAX*NFMAX;
 	switch (hp_type) {
 	default: // p
+		ELEMENT = get_ELEMENT_type(VType[indexg]);
+		Nf    = ELEMENT->Nf;
+
+		hp_coarse_current[indexg] = 1;
+
+		Indf = indexg*NFREFMAX*NFMAX;
 		for (f = 0; f < Nf; f++) {
 			indexg_neigh = VNeigh[Indf+f*NFREFMAX];
 			if (!hp_coarse_current[indexg_neigh] && ((int) hp_levels[indexg_neigh] - (int) hp_levels[indexg]) > 0)
@@ -227,16 +228,61 @@ static void check_levels_coarse(const unsigned int indexg, const struct S_VInfo 
 		}
 		break;
 	case 'h':
-		fh_range = VInfo->fh_range;
-		for (f = 0; f < Nf; f++) {
-			Indfh = Indf + f*NFREFMAX;
-			fhMin = fh_range[(indexg*NFMAX+f)*2  ];
-			fhMax = fh_range[(indexg*NFMAX+f)*2+1];
-			for (fh = fhMin; fh <= fhMax; fh++) {
-				indexg_neigh = VNeigh[Indfh+fh];
-				if (!hp_coarse_current[indexg_neigh] && ((int) hp_levels[indexg_neigh] - (int) hp_levels[indexg]) > 0)
-					check_levels_coarse(indexg_neigh,VInfo,'h');
+		vh_range   = VInfo->vh_range;
+		fh_range   = VInfo->fh_range;
+		h_siblings = VInfo->h_siblings;
+		h_forbid_c = VInfo->h_forbid_c;
+
+		if (!h_forbid_c[indexg]) { // Check siblings and neighbours
+			Indsib = indexg*NSIBMAX;
+			vhMin = vh_range[indexg*2  ];
+			vhMax = vh_range[indexg*2+1];
+			for (i = 0, iMax = vhMax-vhMin; i <= iMax; i++) {
+				indexg_sib = h_siblings[Indsib+i];
+
+//printf("241: %d %d %d",indexg,h_forbid_c[indexg],indexg_sib);
+//printf(" %d\n",VType[indexg_sib]);
+				ELEMENT = get_ELEMENT_type(VType[indexg_sib]);
+				Nf    = ELEMENT->Nf;
+
+				if (!hp_coarse_current[indexg_sib]) {
+					hp_coarse_current[indexg_sib] = 1;
+
+					Indf = indexg_sib*NFREFMAX*NFMAX;
+					for (f = 0; f < Nf; f++) {
+						Indfh = Indf + f*NFREFMAX;
+						fhMin = fh_range[(indexg_sib*NFMAX+f)*2  ];
+						fhMax = fh_range[(indexg_sib*NFMAX+f)*2+1];
+						for (fh = fhMin; fh <= fhMax; fh++) {
+							indexg_neigh = VNeigh[Indfh+fh];
+//printf("%d %d %d\n",indexg,indexg_sib,indexg_neigh);
+							if (!hp_coarse_current[indexg_neigh] &&
+								((int) hp_levels[indexg_neigh] - (int) hp_levels[indexg_sib]) > 0)
+									check_levels_coarse(indexg_neigh,VInfo,'h');
+						}
+					}
+				}
 			}
+		} else { // Check only neighbours
+			hp_coarse_current[indexg] = 1;
+/*			ELEMENT = get_ELEMENT_type(VType[indexg]);
+			Nf    = ELEMENT->Nf;
+
+			hp_coarse_current[indexg] = 1;
+
+			Indf = indexg*NFREFMAX*NFMAX;
+			for (f = 0; f < Nf; f++) {
+				Indfh = Indf + f*NFREFMAX;
+				fhMin = fh_range[(indexg*NFMAX+f)*2  ];
+				fhMax = fh_range[(indexg*NFMAX+f)*2+1];
+				for (fh = fhMin; fh <= fhMax; fh++) {
+					indexg_neigh = VNeigh[Indfh+fh];
+					if (!hp_coarse_current[indexg_neigh] &&
+						((int) hp_levels[indexg_neigh] - (int) hp_levels[indexg]) > 0)
+							check_levels_coarse(indexg_neigh,VInfo,'h');
+				}
+			}
+*/
 		}
 		break;
 	}
@@ -259,7 +305,7 @@ void adapt_hp(void)
 	unsigned int i, iMax, j, jMax, Nf, f, fh, Vf, fhMin, fhMax, vh, vhMin, vhMax,
 	             iInd, Indsib, DOF, NvnS, indexg, PMaxP1, LevelsMaxP1,
 	             NFREFMAX_Total, refine_conflict, coarse_conflict, Indf,
-	             *IndminRHS, *IndmaxRHS, *VNeigh, *VType_global, *fh_range,
+	             *IndminRHS, *IndmaxRHS, *VNeigh, *VType_global, *vh_range, *fh_range,
 	             *p_levels, *h_levels, *h_siblings, *h_forbid_coarse,
 	             *hp_refine_current, *hp_coarse_current, *hp_coarse_current_local, *hp_coarse_current_err;
 	double       minRHS, maxRHS, tmp_d, refine_frac_lim,
@@ -327,7 +373,8 @@ printf("ref_frac_lim: %f\n",refine_frac_lim);
 	VInfo = malloc(sizeof *VInfo); // free
 	VInfo->neigh       = malloc(NVglobal*NFMAX*NFREFMAX * sizeof *(VInfo->neigh));       // free
 	VInfo->type        = calloc(NVglobal                , sizeof *(VInfo->type));        // free
-	VInfo->fh_range    = calloc(NVglobal*NFMAX*2        , sizeof *(VInfo->fh_range));    // free
+	VInfo->vh_range    = malloc(NVglobal*2              * sizeof *(VInfo->vh_range));    // free
+	VInfo->fh_range    = malloc(NVglobal*NFMAX*2        * sizeof *(VInfo->fh_range));    // free
 	VInfo->href_type   = calloc(NVglobal                , sizeof *(VInfo->href_type));   // free
 	VInfo->p_levels    = malloc(NVglobal                * sizeof *(VInfo->p_levels));    // free
 	VInfo->h_levels    = malloc(NVglobal                * sizeof *(VInfo->h_levels));    // free
@@ -339,6 +386,8 @@ printf("ref_frac_lim: %f\n",refine_frac_lim);
 
 	VNeigh                  = VInfo->neigh;
 	VType_global            = VInfo->type;
+	vh_range                = VInfo->vh_range;
+	vh_range                = VInfo->vh_range;
 	fh_range                = VInfo->fh_range;
 	p_levels                = VInfo->p_levels;
 	h_levels                = VInfo->h_levels;
@@ -395,6 +444,8 @@ printf("ref_frac_lim: %f\n",refine_frac_lim);
 		h_levels[indexg]     = VOLUME->level;
 
 		get_vh_range(VOLUME,&vhMin,&vhMax);
+		vh_range[indexg*2  ] = vhMin;
+		vh_range[indexg*2+1] = vhMax;
 
 		VOLUMEp = VOLUME->parent;
 		if (VOLUMEp) {
@@ -514,6 +565,7 @@ printf("\n\n\n");
 				break;
 			case ADAPT_P:
 				check_levels_coarse(VOLUME->indexg,VInfo,'p');
+
 				// Check for conflicts with elements flagged for refinement
 				refine_conflict = 0;
 				for (j = 0; j < NVglobal; j++) {
@@ -547,10 +599,11 @@ printf("\n\n\n");
 			case ADAPT_H:
 				indexg = VOLUME->indexg;
 				if (!h_forbid_coarse[indexg]) {
-					Indsib = indexg*NSIBMAX;
-					get_vh_range(VOLUME,&vhMin,&vhMax);
-					for (j = 0, jMax = vhMax-vhMin; j <= jMax; j++)
-						check_levels_coarse(h_siblings[Indsib+j],VInfo,'h');
+					check_levels_coarse(indexg,VInfo,'h');
+//					Indsib = indexg*NSIBMAX;
+//					get_vh_range(VOLUME,&vhMin,&vhMax);
+//					for (j = 0, jMax = vhMax-vhMin; j <= jMax; j++)
+//						check_levels_coarse(h_siblings[Indsib+j],VInfo,'h');
 				}
 				coarse_conflict = 0;
 				for (j = 0; j < NVglobal; j++) {
@@ -593,6 +646,7 @@ printf("\n\n\n");
 		}
 // ToBeDeleted	
 if (hp_coarse_current_err[indexg]) {
+//printf("%d\n",VOLUME->indexg);
 	if (Adapt == ADAPT_P) {
 		if (!VOLUME->adapt_type == PREFINE)
 			VOLUME->adapt_type = PCOARSE;
@@ -622,6 +676,7 @@ exit(1);
 
 	free(VInfo->neigh);
 	free(VInfo->type);
+	free(VInfo->vh_range);
 	free(VInfo->fh_range);
 	free(VInfo->href_type);
 	free(VInfo->p_levels);

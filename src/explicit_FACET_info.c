@@ -14,12 +14,26 @@
  *		Evaluate the FACET contributions to the RHS term.
  *
  *	Comments:
+ *		When adaptation is enabled, the method used here to lift the FACET information to the VOLUME remains quite
+ *		similar to that of the conforming case. The normal numerical flux is computed on each of the FACETs of the mesh
+ *		and is used directly to form RHSIn/Out terms to be added to the appropriate VOLUME. This is in contrast to the
+ *		traditional mortar element method (based on my current understanding), which first uses an L2 projection of the
+ *		normal numerical flux of all non-conforming FACETs to standard VOLUME FACETs and then computes RHSIn/Out exactly
+ *		as if the mesh were conforming. As no L2 projection is required for the current approach, compute_FACET_RHS_EFE
+ *		can in fact be called even for the case of non-conforming discretizations allowing for:
+ *			1) Reduced cost because the interpolation from FACET solution to FACET cubature nodes is not required;
+ *			2) Reduced aliasing because the normal numerical flux can be computed at the cubature nodes.
+ *		Based on this discussion, it is unclear why this approach is not adopted instead of the traditional mortar
+ *		method (Kopriva(1996)) as this alternative seems to satisfy both the conservation and outflow condition
+ *		requirements which motivated the use of the mortar element method.
+ *		=> Perform convergence order verification for both methods and finalize conclusions (ToBeDeleted).
+ *
  *		When adaptivity is used, exact flux evaluation on the FACETs cannot be used in 3D whenever TRIs are present
  *		because the cubature nodes do not form a basis for the mortar element. This implies that adaptivity necessarily
  *		introduces aliasing errors unless the WSH nodes are used for the FACET integration. Of course, aliasing will
  *		always be introduced for the lower order FACET because of the projection, but this seemed not to be significant
  *		based on previous results using PF = P+1 in the VOLUME and interpolating to integration nodes giving optimal
- *		convergence orders.
+ *		convergence orders. (ToBeModified)
  *
  *		For WEDGE ELEMENTs, the nOrd arrays for QUAD FACETs are stored with the TRI OPs, while those for TRI FACETs are
  *		stored with the LINE OPs. While this is not logical, it precludes the need for an additional OP structure.
@@ -27,13 +41,14 @@
  *		When adding in MPI functionality, will not have access to VIn/VOut => Store what is needed for each FACET in an
  *		MPI communication routine before running this function. (ToBeDeleted)
  *
- *		Vectorization is more involved for FACET terms as there are many more possible combinations than for VOLUME
- *		terms. Given that the VOLUME vectorization seems not to have a significant impact on performance, the FACET
+ *		Vectorization is more involved for FACET terms as there are many more possible combinations than for VOLUMEs.
+ *		Given that the VOLUME vectorization seems not to have a significant impact on performance, the FACET
  *		vectorization may not be pursued. (ToBeDeleted)
  *
  *	Notation:
  *
  *	References:
+ *		Kopriva(1996)-A_Conservative_Staggered-Grid_Chebyshev_Multidomain_Method_for_Compressible_Flows_II._A_Semi-Structured_Method
  */
 
 struct S_OPERATORS {
@@ -57,6 +72,9 @@ void explicit_FACET_info(void)
 	             Adapt      = DB.Adapt;
 
 	switch (Adapt) {
+//case ADAPT_P:
+//case ADAPT_H:
+//case ADAPT_HP:
 	case ADAPT_0:
 		switch (Vectorized) {
 		case 0:
@@ -68,10 +86,7 @@ void explicit_FACET_info(void)
 			break;
 		}
 		break;
-	case ADAPT_P:
-	case ADAPT_H:
-	case ADAPT_HP:
-	default:
+	default: // ADAPT_P, ADAPT_H, ADAPT_HP
 		switch (Vectorized) {
 		case 0:
 			compute_FACET_RHS();

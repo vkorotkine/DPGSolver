@@ -15,10 +15,7 @@
  *
  *	Notation:
  *
- *	Memory freed:
- *
  *	References:
- *
  */
 
 void memory_destructor_E(struct S_ELEMENT *ELEMENT)

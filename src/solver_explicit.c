@@ -77,8 +77,10 @@ void solver_explicit(void)
 	while (time < FinalTime) {
 		if (Adapt && tstep) {
 //output_to_paraview("SolAdapt");
-if (tstep == 500)
+if (tstep == 82) {
 	output_to_paraview("Geomadapt");
+//	exit(1);
+}
 			update_VOLUME_hp();
 			update_FACET_hp();
 			update_VOLUME_list();

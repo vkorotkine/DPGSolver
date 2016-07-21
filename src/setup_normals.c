@@ -110,6 +110,9 @@ void setup_normals(struct S_FACET *FACET)
 		FACET->n_fS = n_fS;
 		FACET->detJF_fS = detJF_fS;
 		break;
+//case ADAPT_P:
+//case ADAPT_H:
+//case ADAPT_HP:
 	case ADAPT_0:
 		C_fI = malloc(NfnI0*d*d * sizeof *C_fI); // free
 		mm_CTN_d(NfnI0,d*d,NvnC0,OPS->I_vC_fI[VfIn],C_vC,C_fI);

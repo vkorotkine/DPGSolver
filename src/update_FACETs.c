@@ -323,7 +323,6 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 	VOLUMEc = VOLUME->child0;
 	for (i = 0; i < iMax; i++) {
 		VOLUMEc_list[i] = VOLUMEc;
-printf("VOL indexg, level: %d %d\n",VOLUMEc->indexg,VOLUMEc->level);
 		VOLUMEc = VOLUMEc->next;
 	}
 
@@ -382,14 +381,12 @@ for (int i = 0; i < NFMAX*NSUBFMAX; i++) {
 		if (recombine_FACETs) {
 			VOLUME->NsubF[f] = 1;
 
-int count = 0;
 			for (sf = 0; sf < sfMax; sf++) {
 				VOLUMEc = VOLUMEc_list[IndVc[sf]];
 				FACET = VOLUMEc->FACET[Indsf[sf]];
 //printf("Recombup: %d %d %d\n",f,sf,FACET->indexg);
 				FACET->update = 1;
 				FACET->adapt_type = HCOARSE;
-printf("FHCOARSE: %d %d %d\n",count++,FACET->indexg,FACET->level);
 			}
 
 			VOLUME->FACET[f*NSUBFMAX] = FACET->parent;

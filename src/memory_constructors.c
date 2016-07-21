@@ -14,11 +14,12 @@
  *
  *	Comments:
  *		Change all initializations from 0 to UINT_MAX. (ToBeDeleted)
+ *		GfS_fIs/c may not be needed based on FACET_info testing. See comments at the start of explicit_FACET_Info.
+ *		(ToBeDeleted)
  *
  *	Notation:
  *
  *	References:
- *
  */
 
 struct S_ELEMENT *New_ELEMENT(void)

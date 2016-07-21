@@ -2652,8 +2652,8 @@ static void setup_L2_projection_operators(const unsigned int EType)
 if (EType == TRI) {
 	// Needs to be scaled and transposed?
 	if (vref) {
-				printf("%d\n",vref);
-				array_print_d(NvnSN,NvnS,tmp_Mat2,'R');
+//				printf("%d\n",vref);
+//				array_print_d(NvnSN,NvnS,tmp_Mat2,'R');
 //				if (vref == 4)
 //				exit(1);
 	}

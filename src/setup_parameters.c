@@ -536,7 +536,7 @@ void setup_parameters()
 	// hp adaptation
 //	DB.DOFcap_frac = 10.0;
 //	DB.DOFcap_frac = 3.5;
-	DB.DOFcap_frac = 2.0;
+	DB.DOFcap_frac = 3.0;
 	DB.refine_frac = 0.2;
 	DB.coarse_frac = 0.2;
 
