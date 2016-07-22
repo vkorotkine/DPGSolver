@@ -841,6 +841,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	// Initialize DB Parameters
 	unsigned int PMax         = DB.PMax,
+	             PGlobal      = DB.PGlobal,
 	             NP           = DB.NP,
 	             PGs          = DB.PGs,
 	             *PGc         = DB.PGc,
@@ -1297,7 +1298,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				// Returned Adaptation Operators
 				if (vh == 0 || P == Pb) {
 					Ihat_vS_vS[P][Pb][vh] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb],NvnS[P],NvnS[Pb],1.0,ChiInvS_vS[Pb][Pb][0],ChiS_vS[P][Pb][vh]); // keep
-					if (P == Pb) {
+					if (P == PGlobal && Pb == PGlobal) {
 						I_vGs_vGs[1][1][vh] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGs[1],NvnGs[1],NvnGs[1],1.0,ChiGs_vGs,ChiInvGs_vGs); // keep
 					}
 				}

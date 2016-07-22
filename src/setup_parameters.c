@@ -69,7 +69,6 @@
  *
  *	Notation:
  *		NP       : (N)umber of (P)olynomial orders available
- *		NEC      : (N)umber of (E)lement (C)lasses
  *		PR       : Order of solution to read in from the (R)estart file.
  *		PP       : Order used for (P)lotting.
  *
@@ -122,7 +121,7 @@ void setup_parameters()
 	// Initialize DB Parameters
 	unsigned int d          = DB.d,
 	             PMax       = DB.PMax,
-	             ML         = DB.ML,
+//	             ML         = DB.ML,
 	             EFE        = DB.EFE,
 	             Collocated = DB.Collocated;
 
@@ -131,7 +130,7 @@ void setup_parameters()
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
 	unsigned int i, iMax, u1, u2,
-	             P, NP, NEC, IntOrderfs, IntOrderfc, IntOrdervs, IntOrdervc,
+	             P, NP, IntOrderfs, IntOrderfc, IntOrdervs, IntOrdervc,
 	             ***SF_BE, *VFPartUnity,
 	             PGs, *PGc, **PCs, **PCc, **PJs, **PJc,
 	             *PF, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
@@ -145,7 +144,6 @@ void setup_parameters()
 	u2 = 2;
 
 	NP  = PMax+1;
-	NEC = 3;
 
 	SF_BE = malloc(NP * sizeof *SF_BE); // keep
 	PGc   = malloc(NP * sizeof *PGc);   // keep
@@ -542,7 +540,6 @@ void setup_parameters()
 
 	// Assign DB Parameters
 	DB.NP    = NP;
-	DB.NEC   = NEC;
 
 	DB.SF_BE = SF_BE;
 	DB.PGs   = PGs;

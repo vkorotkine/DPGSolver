@@ -693,3 +693,39 @@ exit(1);
 
 	free(hp_coarse_current_err);
 }
+
+void mesh_update(void)
+{
+	update_VOLUME_hp();
+	update_FACET_hp();
+	update_VOLUME_list();
+	memory_free_children();
+//	update_Vgrp();
+	if (DB.Vectorized)
+		printf("Error: update_Vgrp requires modifications when adaptation is enabled.\n"), exit(1);
+	update_VOLUME_finalize();
+}
+
+void mesh_to_level(const unsigned int level)
+{
+	unsigned int updated = 1;
+	struct S_VOLUME *VOLUME;
+
+	while (updated) {
+		updated = 0;
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			if (VOLUME->level != level) {
+				updated = 1;
+
+				VOLUME->Vadapt = 1;
+				if (VOLUME->level > level)
+					VOLUME->adapt_type = HCOARSE;
+				else
+					VOLUME->adapt_type = HREFINE;
+			}
+		}
+
+		if (updated)
+			mesh_update();
+	}
+}

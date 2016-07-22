@@ -29,8 +29,6 @@ static void code_startup(int nargc, char **argv, const unsigned int Nref);
 static void code_cleanup(const unsigned int final);
 static void check_correspondence(unsigned int *pass);
 static void run_test(unsigned int *pass, const char *test_type);
-static void mesh_update(void);
-static void mesh_to_level(const unsigned int level);
 
 void test_imp_update_h(int nargc, char **argv)
 {
@@ -158,6 +156,7 @@ static void code_startup(int nargc, char **argv, const unsigned int Nref)
 
 static void code_cleanup(const unsigned int final)
 {
+	mesh_to_level(0);
 	memory_free();
 	if (final)
 		PetscFinalize();
@@ -300,38 +299,4 @@ static void run_test(unsigned int *pass, const char *test_type)
 
 
 	check_correspondence(pass);
-}
-
-static void mesh_update(void)
-{
-	update_VOLUME_hp();
-	update_FACET_hp();
-	update_VOLUME_list();
-	memory_free_children();
-	update_VOLUME_finalize();
-}
-
-static void mesh_to_level(const unsigned int level)
-{
-	unsigned int updated = 1;
-	struct S_VOLUME *VOLUME;
-
-	while (updated) {
-		updated = 0;
-		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-			if (VOLUME->level != level) {
-				updated = 1;
-
-				VOLUME->Vadapt = 1;
-				if (VOLUME->level > level)
-					VOLUME->adapt_type = HCOARSE;
-				else
-					VOLUME->adapt_type = HREFINE;
-			}
-		}
-
-		if (updated)
-			mesh_update();
-	}
-
 }

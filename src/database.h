@@ -35,7 +35,7 @@ struct S_DB {
 	             **NodeTypeG,
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
-	unsigned int NP, NEC, AC, ExactGeom, InviscidFluxType, ExplicitSolverType, PR, PP, PGs,
+	unsigned int NP, AC, ExactGeom, InviscidFluxType, ExplicitSolverType, PR, PP, PGs,
 	             *PGc, *PF, *VFPartUnity,
 	             ***SF_BE, **PCs, **PCc, **PJs, **PJc, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 

@@ -12,6 +12,7 @@
  *		See gmsh_reader.c for further discussion regarding periodic related mesh file parameters.
  *
  *	Notation:
+ *		NEC             : (N)umber of (E)lement (C)lasses: TP, SI, PYR
  *		DMAX            : (MAX)imum (D)imension
  *		BC_STEP_SC      : (B)oundary(C)ondition step between (S)traight and (C)urved BCs.
  *		BC_PERIODIC_MIN : (B)oundary(C)ondition (PERIODIC) (MIN)imum.
@@ -40,6 +41,7 @@
 #define CBNT CblasNoTrans
 
 // Magic numbers
+#define NEC             3
 #define DMAX            3
 #define NVAR3D          5
 

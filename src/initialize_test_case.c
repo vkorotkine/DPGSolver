@@ -164,6 +164,9 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				NvnS         = OPS->NvnS;
 				VOLUME->NvnS = NvnS;
 
+				free(VOLUME->What);
+				free(VOLUME->RES);
+
 				VOLUME->What = malloc(NvnS*Nvar * sizeof *(VOLUME->What)); // keep
 				VOLUME->RES  = calloc(NvnS*Nvar , sizeof *(VOLUME->RES));  // keep
 				What = VOLUME->What;
@@ -380,15 +383,7 @@ static void adapt_initial(unsigned int *adapt_update)
 	free(VInfo_list);
 	free(L2Error2);
 
-	// Call update_VOLUME_hp, update_FACET_hp
-	update_VOLUME_hp();
-	update_FACET_hp();
-	update_VOLUME_list();
-//	memory_free_children(); // Note: No coarsening performed.
-//	update_Vgrp();
-	if (DB.Vectorized)
-		printf("Error: update_Vgrp requires modifications when adaptation is enabled.\n"), exit(1);
-	update_VOLUME_finalize();
+	mesh_update();
 }
 
 static void check_levels_refine(const unsigned int indexg, struct S_VInfo **VInfo_list, const unsigned int adapt_class)

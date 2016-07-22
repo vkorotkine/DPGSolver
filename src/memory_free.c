@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include "database.h"
+#include "parameters.h"
 #include "functions.h"
 
 /*
@@ -24,23 +25,41 @@
 
 void memory_free(void)
 {
+	// Project to ML0 if h-adaptation is enabled.
+	switch (DB.Adapt) {
+	default: // ADAPT_H, ADAPT_HP
+		mesh_to_level(0);
+		break;
+	case ADAPT_0:
+	case ADAPT_P:
+		// Don't do anything.
+		break;
+	}
+
 	// DB Parameters
 
 		// Initialization
-		free(DB.TestCase), free(DB.MeshType), free(DB.Form), free(DB.NodeType), free(DB.BasisType), free(DB.MeshFile);
+		free(DB.TestCase);
+		free(DB.MeshType);
+		free(DB.BumpOrder);
+		free(DB.Form);
+		free(DB.NodeType);
+		free(DB.BasisType);
+		free(DB.MeshFile);
 
 		// Preprocessing
 
-			// SetupParameters
+			// setup_parameters
 			free(DB.Parametrization);
-			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeS);
-			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeF);
-			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeFrs);
-			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeFrc);
-			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeIfs);
-			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeIfc);
-			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeIvs);
-			array_free3_c(DB.NP,DB.NEC,DB.NodeTypeIvc);
+			array_free2_c(NEC,DB.NodeTypeG);
+			array_free3_c(DB.NP,NEC,DB.NodeTypeS);
+			array_free3_c(DB.NP,NEC,DB.NodeTypeF);
+			array_free3_c(DB.NP,NEC,DB.NodeTypeFrs);
+			array_free3_c(DB.NP,NEC,DB.NodeTypeFrc);
+			array_free3_c(DB.NP,NEC,DB.NodeTypeIfs);
+			array_free3_c(DB.NP,NEC,DB.NodeTypeIfc);
+			array_free3_c(DB.NP,NEC,DB.NodeTypeIvs);
+			array_free3_c(DB.NP,NEC,DB.NodeTypeIvc);
 
 			free(DB.PGc);
 			free(DB.PF);
@@ -57,16 +76,24 @@ void memory_free(void)
 			array_free2_ui(DB.NP,DB.PIvc);
 			free(DB.VFPartUnity);
 
-			// SetupMesh
+			// setup_mesh
 			free(DB.PVe), free(DB.NE), free(DB.EType), free(DB.ETags), free(DB.EToVe), free(DB.EToPrt);
 			free(DB.VToV), free(DB.VToF), free(DB.VToGF), free(DB.VToBC), free(DB.GFToVe), free(DB.VC), free(DB.GFC);
 			free(DB.VeXYZ);
 
+			// setup_structures
+			free(DB.NVgrp);
+			free(DB.Vgrp);
+
+		// Solving
+
+			// Initialize_test_case
+			free(DB.SolverType);
+
 	// ELEMENTs
 	struct S_ELEMENT *ELEMENT, *ELEMENTnext;
 
-	ELEMENT = DB.ELEMENT;
-	while (ELEMENT != NULL) {
+	for (ELEMENT = DB.ELEMENT; ELEMENT; ) {
 		ELEMENTnext = ELEMENT->next;
 		memory_destructor_E(ELEMENT);
 		ELEMENT = ELEMENTnext;
@@ -74,16 +101,19 @@ void memory_free(void)
 
 	// VOLUMEs
 	struct S_VOLUME *VOLUME, *VOLUMEnext;
-	VOLUME = DB.VOLUME;
-	while (VOLUME != NULL) {
+	for (VOLUME = DB.VOLUME; VOLUME; ) {
 		VOLUMEnext = VOLUME->next;
+		if (VOLUME->parent) {
+			printf("Error: memory_free (VOLUMEs) requires that the mesh be projected to ML0 before executing.\n");
+			exit(1);
+		}
 		memory_destructor_V(VOLUME);
 		VOLUME = VOLUMEnext;
 	}
 
 	// FACETs
 	struct S_FACET *FACET, *FACETnext;
-	for (FACET = DB.FACET; FACET != NULL; ) {
+	for (FACET = DB.FACET; FACET; ) {
 		FACETnext = FACET->next;
 		memory_destructor_F(FACET);
 		FACET = FACETnext;

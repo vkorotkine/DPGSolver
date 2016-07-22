@@ -29,16 +29,12 @@ static void   code_startup  (int nargc, char **argv, const unsigned int Nref);
 static void   code_cleanup  (const unsigned int final);
 static double *get_L2err    (void);
 static void   mark_VOLUMEs  (const unsigned int adapt_type);
-static void   mesh_update   (void);
-static void   mesh_to_level (const unsigned int level);
 
 void test_imp_L2_projections(int nargc, char **argv)
 {
-	unsigned int pass, count;
+	unsigned int pass;
 	char         **argvNew;
 	double       *L2err[2];
-
-	struct S_VOLUME *VOLUME;
 
 	argvNew    = malloc(2          * sizeof *argvNew);  // free
 	argvNew[0] = malloc(STRLEN_MAX * sizeof **argvNew); // free
@@ -96,6 +92,7 @@ void test_imp_L2_projections(int nargc, char **argv)
 	//     0         10        20        30        40        50
 	printf("L2_projections (TRI, ADAPT_H):                   ");
 	test_print(pass);
+	free(L2err[0]), free(L2err[1]);
 
 	code_cleanup(0);
 
@@ -150,32 +147,6 @@ struct S_OPERATORS {
 	double       **I_vGs_fS;
 };
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
-                     const unsigned int IndFType)
-{
-	unsigned int PF, VType, IndOrdInOut, IndOrdOutIn;
-
-	struct S_ELEMENT *ELEMENT, *ELEMENT_FACET;
-
-//	PV    = VOLUME->P;
-	VType = VOLUME->type;
-
-	PF = FACET->P;
-	IndOrdInOut = FACET->IndOrdInOut;
-	IndOrdOutIn = FACET->IndOrdOutIn;
-
-	ELEMENT = get_ELEMENT_type(VType);
-	ELEMENT_FACET = get_ELEMENT_FACET(VType,IndFType);
-
-	OPS->NvnGs = ELEMENT->NvnGs[1];
-	OPS->NfnS  = ELEMENT_FACET->NvnS[PF];
-
-	OPS->I_vGs_fS = ELEMENT->I_vGs_fS[1][PF];
-
-	OPS->nOrdInOut = ELEMENT_FACET->nOrd_fS[PF][IndOrdInOut];
-	OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fS[PF][IndOrdOutIn];
-}
-
 static double *get_L2err(void)
 {
 	unsigned int i, iMax, dummy_ui;
@@ -207,38 +178,5 @@ static void mark_VOLUMEs(const unsigned int adapt_type)
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		VOLUME->Vadapt = 1;
 		VOLUME->adapt_type = adapt_type;
-	}
-}
-
-static void mesh_update(void)
-{
-	update_VOLUME_hp();
-	update_FACET_hp();
-	update_VOLUME_list();
-	memory_free_children();
-	update_VOLUME_finalize();
-}
-
-static void mesh_to_level(const unsigned int level)
-{
-	unsigned int updated = 1;
-	struct S_VOLUME *VOLUME;
-
-	while (updated) {
-		updated = 0;
-		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-			if (VOLUME->level != level) {
-				updated = 1;
-
-				VOLUME->Vadapt = 1;
-				if (VOLUME->level > level)
-					VOLUME->adapt_type = HCOARSE;
-				else
-					VOLUME->adapt_type = HREFINE;
-			}
-		}
-
-		if (updated)
-			mesh_update();
 	}
 }

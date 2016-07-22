@@ -190,8 +190,8 @@ void update_VOLUME_hp(void)
 
 				VOLUME->NvnS = NvnSP;
 
-				What  = VOLUME->What;
-				RES   = VOLUME->RES;
+				What = VOLUME->What;
+				RES  = VOLUME->RES;
 
 				WhatP = malloc(NvnSP*Nvar * sizeof *WhatP); // keep
 				RESP  = malloc(NvnSP*Nvar * sizeof *RESP);  // keep
@@ -319,7 +319,6 @@ void update_VOLUME_hp(void)
 //printf("HREF: %p %p %ld %p\n",VOLUME->What,VOLUMEc->What,(VOLUME->What)-(VOLUMEc->What),VOLUMEc->next);
 				free(VOLUME->What);
 				free(VOLUME->RES);
-
 				break;
 			case HCOARSE:
 				VOLUMEp = VOLUME->parent;
@@ -377,28 +376,11 @@ void update_VOLUME_hp(void)
 							mm_CTN_d(NvnS,Nvar,NvnS,L2hat_vS_vS[vh],RESH,dummyPtr_d);
 							for (i = 0, iMax = NvnS*Nvar; i < iMax; i++)
 								RES[i] += dummyPtr_d[i];
-// Only valid for Nodal TRIs!!! Modify the L2hat_vS_vS operator used here!!! (ToBeDeleted)
-/*
-							mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0/4.0,L2hat_vS_vS[vh],WhatH,dummyPtr_d);
-							for (i = 0, iMax = NvnS*Nvar; i < iMax; i++)
-								What[i] += dummyPtr_d[i];
-							mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0/4.0,L2hat_vS_vS[vh],RESH,dummyPtr_d);
-							for (i = 0, iMax = NvnS*Nvar; i < iMax; i++)
-								RES[i] += dummyPtr_d[i];
-*/
-//printf("%d\n",vh);
-//array_print_d(NvnS,NvnS,Ihat_vS_vS[vh],'C');
 						}
-//exit(1);
-//printf("\n\n **************** VOLUME coarse *********************\n\n\n");
-
-
 						free(dummyPtr_d);
 
 						VOLUMEp->What = What;
 						VOLUMEp->RES  = RES;
-
-
 					} else {
 						// Ensure that all children are marked as not to be coarsened.
 						VOLUMEc = VOLUME;
@@ -419,8 +401,6 @@ void update_VOLUME_hp(void)
 						VOLUME->update = 0;
 					}
 				}
-
-
 				break;
 			}
 		}
