@@ -34,9 +34,11 @@ static void   mesh_to_level (const unsigned int level);
 
 void test_imp_L2_projections(int nargc, char **argv)
 {
-	unsigned int pass;
+	unsigned int pass, count;
 	char         **argvNew;
 	double       *L2err[2];
+
+	struct S_VOLUME *VOLUME;
 
 	argvNew    = malloc(2          * sizeof *argvNew);  // free
 	argvNew[0] = malloc(STRLEN_MAX * sizeof **argvNew); // free
@@ -58,7 +60,7 @@ void test_imp_L2_projections(int nargc, char **argv)
 
 	// TRIs
 	strcpy(argvNew[0],argv[0]);
-	strcpy(argvNew[1],"test/Test_L2_proj_TRI");
+	strcpy(argvNew[1],"test/Test_L2_proj_p_TRI");
 
 	code_startup(nargc,argvNew,2);
 
@@ -73,12 +75,13 @@ void test_imp_L2_projections(int nargc, char **argv)
 	//     0         10        20        30        40        50
 	printf("L2_projections (TRI, ADAPT_P):                   ");
 	test_print(pass);
+	free(L2err[0]), free(L2err[1]);
 
 	code_cleanup(0);
 
-/*
+
 	strcpy(argvNew[0],argv[0]);
-	strcpy(argvNew[1],"test/Test_L2_proj_TRI");
+	strcpy(argvNew[1],"test/Test_L2_proj_h_TRI");
 
 	code_startup(nargc,argvNew,2);
 
@@ -88,14 +91,14 @@ void test_imp_L2_projections(int nargc, char **argv)
 	L2err[1] = get_L2err();
 
 	pass = 0;
-	if (array_norm_diff_d(1,&L2err[0],&L2err[1],"Inf") < EPS)
+	if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 100*EPS)
 		pass = 1, TestDB.Npass++;
 	//     0         10        20        30        40        50
 	printf("L2_projections (TRI, ADAPT_H):                   ");
 	test_print(pass);
 
 	code_cleanup(0);
-*/
+
 
 	// QUADs
 	strcpy(argvNew[0],argv[0]);

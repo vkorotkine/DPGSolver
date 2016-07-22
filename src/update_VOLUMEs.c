@@ -308,8 +308,7 @@ void update_VOLUME_hp(void)
 					WhatH = malloc(NvnS*Nvar * sizeof *WhatH); // keep
 					RESH  = malloc(NvnS*Nvar * sizeof *RESH);  // keep
 
-//					Ihat_vS_vS = OPS->Ihat_vS_vS;
-					Ihat_vS_vS = OPS->L2hat_vS_vS;
+					Ihat_vS_vS = OPS->Ihat_vS_vS;
 					mm_CTN_d(NvnS,Nvar,NvnS,Ihat_vS_vS[vh],What,WhatH);
 					mm_CTN_d(NvnS,Nvar,NvnS,Ihat_vS_vS[vh],RES,RESH);
 
@@ -372,15 +371,23 @@ void update_VOLUME_hp(void)
 							WhatH = VOLUMEc->What;
 							RESH  = VOLUMEc->RES;
 
+							mm_CTN_d(NvnS,Nvar,NvnS,L2hat_vS_vS[vh],WhatH,dummyPtr_d);
+							for (i = 0, iMax = NvnS*Nvar; i < iMax; i++)
+								What[i] += dummyPtr_d[i];
+							mm_CTN_d(NvnS,Nvar,NvnS,L2hat_vS_vS[vh],RESH,dummyPtr_d);
+							for (i = 0, iMax = NvnS*Nvar; i < iMax; i++)
+								RES[i] += dummyPtr_d[i];
 // Only valid for Nodal TRIs!!! Modify the L2hat_vS_vS operator used here!!! (ToBeDeleted)
+/*
 							mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0/4.0,L2hat_vS_vS[vh],WhatH,dummyPtr_d);
 							for (i = 0, iMax = NvnS*Nvar; i < iMax; i++)
 								What[i] += dummyPtr_d[i];
 							mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0/4.0,L2hat_vS_vS[vh],RESH,dummyPtr_d);
 							for (i = 0, iMax = NvnS*Nvar; i < iMax; i++)
 								RES[i] += dummyPtr_d[i];
+*/
 //printf("%d\n",vh);
-//array_print_d(NvnS,NvnS,L2hat_vS_vS[vh],'C');
+//array_print_d(NvnS,NvnS,Ihat_vS_vS[vh],'C');
 						}
 //exit(1);
 //printf("\n\n **************** VOLUME coarse *********************\n\n\n");

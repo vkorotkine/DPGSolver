@@ -2560,6 +2560,29 @@ unsigned int vrefSF = 0;
 	free(ones_Nf);
 }
 
+static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
+{
+	switch (EType) {
+	case LINE:
+		if (vref == 0)
+			return 1.0;
+		else
+			return 0.5;
+		break;
+	case TRI:
+		if (vref == 0)
+			return 1.0;
+		else if (vref < 5)
+			return 0.25;
+		else
+			printf("Error: Unsupported vref (%d) (anisotropic) for TRIs in get_L2_scaling.\n",vref), exit(1);
+		break;
+	default:
+		printf("Error: Unsupported EType (%d) in get_L2_scaling.\n",EType), exit(1);
+		break;
+	}
+}
+
 static void setup_L2_projection_operators(const unsigned int EType)
 {
 	/*
@@ -2570,7 +2593,7 @@ static void setup_L2_projection_operators(const unsigned int EType)
 
 	// Returned Operators
 	double ****L2hat_vS_vS,
-	       ****GfS_fIs, ****GfS_fIc;
+	       ****GfS_fIs, ****GfS_fIc; // Change G to L2 if these operators are kept (ToBeDeleted)
 
 	// Initialize DB Parameters
 	unsigned int Adapt = DB.Adapt;
@@ -2580,9 +2603,9 @@ static void setup_L2_projection_operators(const unsigned int EType)
 	             Vf, PM, *Nfref, Eclass, IndFType, Nvref,
 	             NvnS, NvnSN, NvnI, NfnM, NfnF, NfnIs, NfnIc,
 	             *ones_Nf;
-	double       *ChiSN_vI, *wSN_vI, *diag_wSN_vI, *ISN, *ChiTW_SN, *MSN, *MSNInv, *ChiS_vI, *SSNS,
+	double       L2_scale, *ChiSN_vI, *wSN_vI, *diag_wSN_vI, *ISN, *ChiTW_SN, *MSN, *MSNInv, *ChiS_vI, *SSNS,
 	             *one_d, *ChiS_vF, *ChiM_vI, *ChiM_vS, *ChiF_vIs, *ChiF_vIc,
-	             *ChiInvF_vF, *ChiInvM_vM, *wM_vI, *diag_wM_vI, *IF, *IM, *ChiTW_M, *ChiTW_F,
+	             *ChiInvF_vF, *ChiInvM_vM, *wM_vI, *diag_wM_vI, *IF, *IM, *ChiTW_M, *ChiTW_F, *ChiTW_SNr,
 	             *SMF, *SFM, *MM, *MF, *MMInv, *MFInv, *MInvSMF, *MInvSFM,
 	             *IhatS_fS, *L2hatvS_fS, *L2hatfS_fI;
 
@@ -2608,8 +2631,8 @@ static void setup_L2_projection_operators(const unsigned int EType)
 
 	// Stored operators
 	L2hat_vS_vS = ELEMENT->L2hat_vS_vS;
-	GfS_fIs    = ELEMENT->GfS_fIs;
-	GfS_fIc    = ELEMENT->GfS_fIc;
+	GfS_fIs     = ELEMENT->GfS_fIs;
+	GfS_fIc     = ELEMENT->GfS_fIc;
 
 
 	ones_Nf = malloc(Nf * sizeof *ones_Nf); // free
@@ -2636,31 +2659,20 @@ static void setup_L2_projection_operators(const unsigned int EType)
 			ChiTW_SN = mm_Alloc_d(CBRM,CBT, CBNT,NvnSN,NvnI, NvnI,1.0,ChiSN_vI,diag_wSN_vI); // free
 			MSN      = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSN,NvnSN,NvnI,1.0,ChiTW_SN,ChiSN_vI);    // free
 			MSNInv   = inverse_d(NvnSN,NvnSN,MSN,ISN);                                       // free
+
+			ChiS_vI  = ELEMENT->ChiS_vIc[P][Pb][0];
 			for (vref = 0; vref < Nvref; vref++) {
-				ChiS_vI  = ELEMENT->ChiS_vIc[P][Pb][vref];
-				SSNS     = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSN,NvnS, NvnI,1.0,ChiTW_SN,ChiS_vI); // free
+				ChiSN_vI = ELEMENT->ChiS_vIc[Pb][Pb][vref];
+
+				ChiTW_SNr = mm_Alloc_d(CBRM,CBT, CBNT,NvnSN,NvnI,NvnI,1.0,ChiSN_vI, diag_wSN_vI); // free
+				SSNS      = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSN,NvnS,NvnI,1.0,ChiTW_SNr,ChiS_vI);     // free
+
+				L2_scale = get_L2_scaling(EType,vref);
 
 				// Returned Operators
-				L2hat_vS_vS[P][Pb][vref] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSN,NvnS,NvnSN,1.0,MSNInv,SSNS); // keep
+				L2hat_vS_vS[P][Pb][vref] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSN,NvnS,NvnSN,L2_scale,MSNInv,SSNS); // keep
 
-				double *ChiTW_SNr, *MSNr, *MSNrInv, *SSNSr, *tmp_Mat, *tmp_Mat2;
-
-				ChiTW_SNr = mm_Alloc_d(CBRM,CBT, CBNT,NvnS,NvnI, NvnI,1.0,ChiS_vI,diag_wSN_vI); // tbd
-				SSNSr    = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnSN, NvnI,1.0,ChiTW_SNr,ChiSN_vI); // tbd
-				tmp_Mat2 = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSN,NvnS,NvnSN,1.0/4.0,MSNInv,SSNSr); // tbd
-
-if (EType == TRI) {
-	// Needs to be scaled and transposed?
-	if (vref) {
-//				printf("%d\n",vref);
-//				array_print_d(NvnSN,NvnS,tmp_Mat2,'R');
-//				if (vref == 4)
-//				exit(1);
-	}
-}
-
-				free(ChiTW_SNr), free(SSNSr), free(tmp_Mat2);
-
+				free(ChiTW_SNr);
 				free(SSNS);
 			}
 
