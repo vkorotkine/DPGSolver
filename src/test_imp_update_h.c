@@ -39,6 +39,8 @@ void test_imp_update_h(int nargc, char **argv)
 	argvNew[0] = malloc(STRLEN_MAX * sizeof **argvNew); // free
 	argvNew[1] = malloc(STRLEN_MAX * sizeof **argvNew); // free
 
+	strcpy(argvNew[0],argv[0]);
+
 	/*
 	 *	Input:
 	 *
@@ -58,19 +60,18 @@ void test_imp_update_h(int nargc, char **argv)
 
 
 	// TRIs
-	strcpy(argvNew[0],argv[0]);
 	strcpy(argvNew[1],"test/Test_update_h_TRI");
 
 	code_startup(nargc,argvNew,2);
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullREFINE");
-	printf("update_h (TRI, FullREFINE):                      ");
+	printf("update_h (TRI,   FullREFINE):                    ");
 	test_print(pass);
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullCOARSE");
-	printf("update_h (TRI, FullCOARSE):                      ");
+	printf("update_h (       FullCOARSE):                    ");
 	test_print(pass);
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -95,15 +96,16 @@ void test_imp_update_h(int nargc, char **argv)
 			VOLUME->adapt_type = HCOARSE;
 		}
 	}
+
 	//     0         10        20        30        40        50
 	run_test(&pass,"Mixed");
-	printf("update_h (TRI, Mixed):                           ");
+	printf("update_h (       Mixed):                         ");
 	test_print(pass);
 
 	mesh_to_level(2);
 	//     0         10        20        30        40        50
 	run_test(&pass,"ToLevel2");
-	printf("update_h (TRI, ToLevel2):                        ");
+	printf("update_h (       ToLevel2):                      ");
 	test_print(pass);
 
 //	output_to_paraview("ZTest_Geom");
@@ -112,18 +114,61 @@ void test_imp_update_h(int nargc, char **argv)
 
 	code_cleanup(0);
 
+
 	// QUADs
-	strcpy(argvNew[0],argv[0]);
 	strcpy(argvNew[1],"test/Test_update_h_QUAD");
 
-// Continue testing after the h adaptation is working for TRIs
+	code_startup(nargc,argvNew,3);
 
-//	code_startup(nargc,argvNew,3);
+	//     0         10        20        30        40        50
+	run_test(&pass,"FullREFINE");
+	printf("update_h (QUAD,  FullREFINE):                    ");
+	test_print(pass);
 
+	//     0         10        20        30        40        50
+	run_test(&pass,"FullCOARSE");
+	printf("update_h (       FullCOARSE):                    ");
+	test_print(pass);
+
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		indexg = VOLUME->indexg;
+		if (indexg <= 3) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HREFINE;
+		} else if (indexg >= 48) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HCOARSE;
+		}
+	}
+	mesh_update();
+
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		indexg = VOLUME->indexg;
+		if (indexg <= 23) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HREFINE;
+		} else if ((indexg >= 32 && indexg <= 43) || indexg >= 48) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HCOARSE;
+		}
+	}
+
+	//     0         10        20        30        40        50
+	run_test(&pass,"Mixed");
+	printf("update_h (       Mixed):                         ");
+	test_print(pass);
+
+	mesh_to_level(2);
+	//     0         10        20        30        40        50
+	run_test(&pass,"ToLevel2");
+	printf("update_h (       ToLevel2):                      ");
+	test_print(pass);
 
 //	output_to_paraview("ZTest_Geom");
 //	output_to_paraview("ZTest_Normals");
 //	exit(1);
+
+	code_cleanup(0);
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 }
@@ -291,12 +336,6 @@ static void run_test(unsigned int *pass, const char *test_type)
 	} else {
 		// VOLUME processing done outside of this function.
 	}
-	update_VOLUME_hp();
-	update_FACET_hp();
-	update_VOLUME_list();
-	memory_free_children();
-	update_VOLUME_finalize();
-
-
+	mesh_update();
 	check_correspondence(pass);
 }

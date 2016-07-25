@@ -26,6 +26,8 @@
  *		Based on this discussion, it is unclear why this approach is not adopted instead of the traditional mortar
  *		method (Kopriva(1996)) as this alternative seems to satisfy both the conservation and outflow condition
  *		requirements which motivated the use of the mortar element method.
+ *		If the adaptation method currently implemented is used, it GfS_fI (or L2fS_fI) should be changed to IfS_fI as
+ *		there is no L2 projection currently being used. Note that IfS_fI == I_vS_vI of the FACET ELEMENT (ToBeDeleted).
  *		=> Perform convergence order verification for both methods and finalize conclusions (ToBeDeleted).
  *
  *		When adaptivity is used, exact flux evaluation on the FACETs cannot be used in 3D whenever TRIs are present
@@ -72,9 +74,9 @@ void explicit_FACET_info(void)
 	             Adapt      = DB.Adapt;
 
 	switch (Adapt) {
-//case ADAPT_P:
-//case ADAPT_H:
-//case ADAPT_HP:
+case ADAPT_P: // ToBeModified (Also change setup_normals and output_to_paraview)
+case ADAPT_H:
+case ADAPT_HP:
 	case ADAPT_0:
 		switch (Vectorized) {
 		case 0:

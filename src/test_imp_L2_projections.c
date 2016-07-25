@@ -40,6 +40,8 @@ void test_imp_L2_projections(int nargc, char **argv)
 	argvNew[0] = malloc(STRLEN_MAX * sizeof **argvNew); // free
 	argvNew[1] = malloc(STRLEN_MAX * sizeof **argvNew); // free
 
+	strcpy(argvNew[0],argv[0]);
+
 	/*
 	 *	Input:
 	 *
@@ -55,7 +57,6 @@ void test_imp_L2_projections(int nargc, char **argv)
 
 
 	// TRIs
-	strcpy(argvNew[0],argv[0]);
 	strcpy(argvNew[1],"test/Test_L2_proj_p_TRI");
 
 	code_startup(nargc,argvNew,2);
@@ -69,7 +70,7 @@ void test_imp_L2_projections(int nargc, char **argv)
 	if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 10*EPS)
 		pass = 1, TestDB.Npass++;
 	//     0         10        20        30        40        50
-	printf("L2_projections (TRI, ADAPT_P):                   ");
+	printf("L2_projections (TRI,   ADAPT_P):                 ");
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
@@ -90,7 +91,7 @@ void test_imp_L2_projections(int nargc, char **argv)
 	if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 100*EPS)
 		pass = 1, TestDB.Npass++;
 	//     0         10        20        30        40        50
-	printf("L2_projections (TRI, ADAPT_H):                   ");
+	printf("L2_projections (       ADAPT_H):                 ");
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
@@ -98,10 +99,45 @@ void test_imp_L2_projections(int nargc, char **argv)
 
 
 	// QUADs
-	strcpy(argvNew[0],argv[0]);
-	strcpy(argvNew[1],"test/Test_L2_proj_QUAD");
+	strcpy(argvNew[1],"test/Test_L2_proj_p_QUAD");
 
-//	code_startup(nargc,argvNew,3);
+	code_startup(nargc,argvNew,2);
+
+	L2err[0] = get_L2err();
+	mark_VOLUMEs(PREFINE); mesh_update();
+	mark_VOLUMEs(PCOARSE); mesh_update();
+	L2err[1] = get_L2err();
+
+	pass = 0;
+	if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 10*EPS)
+		pass = 1, TestDB.Npass++;
+	//     0         10        20        30        40        50
+	printf("L2_projections (QUAD,  ADAPT_P):                 ");
+	test_print(pass);
+	free(L2err[0]), free(L2err[1]);
+
+	code_cleanup(0);
+
+
+	strcpy(argvNew[0],argv[0]);
+	strcpy(argvNew[1],"test/Test_L2_proj_h_QUAD");
+
+	code_startup(nargc,argvNew,3);
+
+	L2err[0] = get_L2err();
+	mark_VOLUMEs(HREFINE); mesh_update();
+	mark_VOLUMEs(HCOARSE); mesh_update();
+	L2err[1] = get_L2err();
+
+	pass = 0;
+	if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 100*EPS)
+		pass = 1, TestDB.Npass++;
+	//     0         10        20        30        40        50
+	printf("L2_projections (       ADAPT_H):                 ");
+	test_print(pass);
+	free(L2err[0]), free(L2err[1]);
+
+	code_cleanup(0);
 
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
@@ -166,7 +202,7 @@ static double *get_L2err(void)
 		for (i = 0; i < iMax; i++)
 			L2Error[i] += sqrt(L2Error2[i]);
 	}
-	array_print_d(1,iMax,L2Error,'R');
+//	array_print_d(1,iMax,L2Error,'R');
 
 	free(L2Error2);
 	return L2Error;

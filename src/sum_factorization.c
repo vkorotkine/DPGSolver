@@ -72,6 +72,124 @@ void get_sf_parameters(const unsigned int NIn0, const unsigned int NOut0, double
 	}
 }
 
+void get_sf_parametersV(const unsigned int NIn0, const unsigned int NOut0, double **OP0,
+                        const unsigned int NIn1, const unsigned int NOut1, double **OP1,
+                        unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+                        const unsigned int d, const unsigned int vh, const unsigned int Eclass)
+{
+	/*
+	 *	Purpose:
+	 *		Set up (s)um (f)actorization parameters for (V)OLUME operators.
+	 *
+	 *	Comments:
+	 *		This function is not completely general in the sense that it is assumed that the same 1D operator is used in
+	 *		each of the d directions for TP ELEMENTs.
+	 */
+
+	unsigned int dim;
+
+	switch (d) {
+	default: // d = 3
+		switch (Eclass) {
+		default: // C_TP
+			for (dim = 0; dim < d; dim++) {
+				NIn_SF[dim]  = NIn0;
+				NOut_SF[dim] = NOut0;
+			}
+
+			switch (vh) {
+			case 0:  OP_SF[0] = OP0[0]; OP_SF[1] = OP0[0]; OP_SF[2] = OP0[0]; break; // Conforming
+			case 1:  OP_SF[0] = OP0[1]; OP_SF[1] = OP0[1]; OP_SF[2] = OP0[1]; break; // Isotropic (1 -> 8)
+			case 2:  OP_SF[0] = OP0[2]; OP_SF[1] = OP0[1]; OP_SF[2] = OP0[1]; break;
+			case 3:  OP_SF[0] = OP0[1]; OP_SF[1] = OP0[2]; OP_SF[2] = OP0[1]; break;
+			case 4:  OP_SF[0] = OP0[2]; OP_SF[1] = OP0[2]; OP_SF[2] = OP0[1]; break;
+			case 5:  OP_SF[0] = OP0[1]; OP_SF[1] = OP0[1]; OP_SF[2] = OP0[2]; break;
+			case 6:  OP_SF[0] = OP0[2]; OP_SF[1] = OP0[1]; OP_SF[2] = OP0[2]; break;
+			case 7:  OP_SF[0] = OP0[1]; OP_SF[1] = OP0[2]; OP_SF[2] = OP0[2]; break;
+			case 8:  OP_SF[0] = OP0[2]; OP_SF[1] = OP0[2]; OP_SF[2] = OP0[2]; break;
+			case 9:  OP_SF[0] = OP0[1]; OP_SF[1] = OP0[1]; OP_SF[2] = OP0[0]; break; // Anisotropic (1 -> 4)
+			case 10: OP_SF[0] = OP0[2]; OP_SF[1] = OP0[1]; OP_SF[2] = OP0[0]; break;
+			case 11: OP_SF[0] = OP0[1]; OP_SF[1] = OP0[2]; OP_SF[2] = OP0[0]; break;
+			case 12: OP_SF[0] = OP0[2]; OP_SF[1] = OP0[2]; OP_SF[2] = OP0[0]; break;
+			case 13: OP_SF[0] = OP0[1]; OP_SF[1] = OP0[0]; OP_SF[2] = OP0[1]; break;
+			case 14: OP_SF[0] = OP0[2]; OP_SF[1] = OP0[0]; OP_SF[2] = OP0[1]; break;
+			case 15: OP_SF[0] = OP0[1]; OP_SF[1] = OP0[0]; OP_SF[2] = OP0[2]; break;
+			case 16: OP_SF[0] = OP0[2]; OP_SF[1] = OP0[0]; OP_SF[2] = OP0[2]; break;
+			case 17: OP_SF[0] = OP0[0]; OP_SF[1] = OP0[1]; OP_SF[2] = OP0[1]; break;
+			case 18: OP_SF[0] = OP0[0]; OP_SF[1] = OP0[2]; OP_SF[2] = OP0[1]; break;
+			case 19: OP_SF[0] = OP0[0]; OP_SF[1] = OP0[1]; OP_SF[2] = OP0[2]; break;
+			case 20: OP_SF[0] = OP0[0]; OP_SF[1] = OP0[2]; OP_SF[2] = OP0[2]; break;
+			case 21: OP_SF[0] = OP0[1]; OP_SF[1] = OP0[0]; OP_SF[2] = OP0[0]; break; // Anisotropic (1 -> 2)
+			case 22: OP_SF[0] = OP0[2]; OP_SF[1] = OP0[0]; OP_SF[2] = OP0[0]; break;
+			case 23: OP_SF[0] = OP0[0]; OP_SF[1] = OP0[1]; OP_SF[2] = OP0[0]; break;
+			case 24: OP_SF[0] = OP0[0]; OP_SF[1] = OP0[2]; OP_SF[2] = OP0[0]; break;
+			case 25: OP_SF[0] = OP0[0]; OP_SF[1] = OP0[0]; OP_SF[2] = OP0[1]; break;
+			case 26: OP_SF[0] = OP0[0]; OP_SF[1] = OP0[0]; OP_SF[2] = OP0[2]; break;
+			default:
+				printf("Error: Unsupported vh in get_sf_parametersV (C_TP, d = 3).\n"), exit(1);
+				break;
+			}
+			break;
+		case C_WEDGE:
+			NIn_SF[1]  = 1;
+			NOut_SF[1] = 1;
+			OP_SF[1]   = NULL;
+
+			NIn_SF[0]  = NIn0;
+			NOut_SF[0] = NOut0;
+			NIn_SF[2]  = NIn1;
+			NOut_SF[2] = NOut1;
+
+			switch (vh) {
+			case 0:  OP_SF[0] = OP0[0]; OP_SF[2] = OP1[0]; break; // Conforming
+			case 1:  OP_SF[0] = OP0[1]; OP_SF[2] = OP1[1]; break; // Isotropic (1 -> 8)
+			case 2:  OP_SF[0] = OP0[2]; OP_SF[2] = OP1[1]; break;
+			case 3:  OP_SF[0] = OP0[3]; OP_SF[2] = OP1[1]; break;
+			case 4:  OP_SF[0] = OP0[4]; OP_SF[2] = OP1[1]; break;
+			case 5:  OP_SF[0] = OP0[1]; OP_SF[2] = OP1[2]; break;
+			case 6:  OP_SF[0] = OP0[2]; OP_SF[2] = OP1[2]; break;
+			case 7:  OP_SF[0] = OP0[3]; OP_SF[2] = OP1[2]; break;
+			case 8:  OP_SF[0] = OP0[4]; OP_SF[2] = OP1[2]; break;
+			case 9:  OP_SF[0] = OP0[1]; OP_SF[2] = OP1[0]; break; // Anisotropic (1 -> 4)
+			case 10: OP_SF[0] = OP0[2]; OP_SF[2] = OP1[0]; break;
+			case 11: OP_SF[0] = OP0[3]; OP_SF[2] = OP1[0]; break;
+			case 12: OP_SF[0] = OP0[4]; OP_SF[2] = OP1[0]; break;
+			case 13: OP_SF[0] = OP0[0]; OP_SF[2] = OP1[1]; break; // Anisotropic (1 -> 2)
+			case 14: OP_SF[0] = OP0[0]; OP_SF[2] = OP1[2]; break;
+			default:
+				printf("Error: Unsupported vh in get_sf_parametersV (C_WEDGE).\n"), exit(1);
+				break;
+			}
+			break;
+		}
+		break;
+	case 2:
+		for (dim = 0; dim < d; dim++) {
+			NIn_SF[dim]  = NIn0;
+			NOut_SF[dim] = NOut0;
+		}
+		NIn_SF[2]  = 1;
+		NOut_SF[2] = 1;
+		OP_SF[2]   = NULL;
+
+		switch (vh) {
+		case 0: OP_SF[0] = OP0[0]; OP_SF[1] = OP0[0]; break; // Conforming
+		case 1: OP_SF[0] = OP0[1]; OP_SF[1] = OP0[1]; break; // Isotropic (1 -> 4)
+		case 2: OP_SF[0] = OP0[2]; OP_SF[1] = OP0[1]; break;
+		case 3: OP_SF[0] = OP0[1]; OP_SF[1] = OP0[2]; break;
+		case 4: OP_SF[0] = OP0[2]; OP_SF[1] = OP0[2]; break;
+		case 5: OP_SF[0] = OP0[1]; OP_SF[1] = OP0[0]; break; // Anisotropic (1 -> 2)
+		case 6: OP_SF[0] = OP0[2]; OP_SF[1] = OP0[0]; break;
+		case 7: OP_SF[0] = OP0[0]; OP_SF[1] = OP0[1]; break;
+		case 8: OP_SF[0] = OP0[0]; OP_SF[1] = OP0[2]; break;
+		default:
+			printf("Error: Unsupported vh in get_sf_parametersV (C_TP, d = 2).\n"), exit(1);
+			break;
+		}
+		break;
+	}
+}
+
 void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, double **OP0,
                         const unsigned int NIn1, const unsigned int NOut1, double **OP1,
                         unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
@@ -114,14 +232,14 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 			// VOLUME term OP_SF
 			switch (fh) {
 			case 0: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[0]; break; // Conforming
-			case 1: OP_SF[dimV1] = OP0[1]; OP_SF[dimV2] = OP0[0]; break;
-			case 2: OP_SF[dimV1] = OP0[2]; OP_SF[dimV2] = OP0[0]; break;
-			case 3: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[1]; break;
-			case 4: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[2]; break;
-			case 5: OP_SF[dimV1] = OP0[1]; OP_SF[dimV2] = OP0[1]; break;
-			case 6: OP_SF[dimV1] = OP0[2]; OP_SF[dimV2] = OP0[1]; break;
-			case 7: OP_SF[dimV1] = OP0[1]; OP_SF[dimV2] = OP0[2]; break;
-			case 8: OP_SF[dimV1] = OP0[2]; OP_SF[dimV2] = OP0[2]; break;
+			case 1: OP_SF[dimV1] = OP0[1]; OP_SF[dimV2] = OP0[1]; break;
+			case 2: OP_SF[dimV1] = OP0[2]; OP_SF[dimV2] = OP0[1]; break;
+			case 3: OP_SF[dimV1] = OP0[1]; OP_SF[dimV2] = OP0[2]; break;
+			case 4: OP_SF[dimV1] = OP0[2]; OP_SF[dimV2] = OP0[2]; break;
+			case 5: OP_SF[dimV1] = OP0[1]; OP_SF[dimV2] = OP0[0]; break;
+			case 6: OP_SF[dimV1] = OP0[2]; OP_SF[dimV2] = OP0[0]; break;
+			case 7: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[1]; break;
+			case 8: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[2]; break;
 			default:
 				printf("Error: Unsupported fh in get_sf_parametersF.\n"), exit(1);
 				break;

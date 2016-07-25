@@ -100,6 +100,7 @@ void get_vh_range(const struct S_VOLUME *VOLUME, unsigned int *vhMin, unsigned i
 
 	switch (VType) {
 	case TRI:
+	case QUAD:
 		// Supported href_type: 0 (Isotropic)
 		*vhMin = 1;
 		*vhMax = 4;
@@ -125,6 +126,7 @@ void get_fh_range(const struct S_VOLUME *VOLUME, const unsigned int f, unsigned 
 
 		switch (VType) {
 		case TRI:
+		case QUAD:
 			// Supported href_type: 0 (Isotropic)
 			*fhMin = 1;
 			*fhMax = 2;
@@ -708,24 +710,58 @@ void mesh_update(void)
 
 void mesh_to_level(const unsigned int level)
 {
-	unsigned int updated = 1;
+	unsigned int updated = 1, Vlevel, VlevelMax;
 	struct S_VOLUME *VOLUME;
 
-	while (updated) {
-		updated = 0;
-		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-			if (VOLUME->level != level) {
-				updated = 1;
+	if (level != 0 && !TEST) {
+		// Potentially full refine to levelMax then uniform coarsen.
+		printf("Error: It must be ensured that only VOLUMEs of the appropriate level are marked in mesh_to_level.\n");
+		exit(1);
+	}
 
-				VOLUME->Vadapt = 1;
-				if (VOLUME->level > level)
-					VOLUME->adapt_type = HCOARSE;
-				else
-					VOLUME->adapt_type = HREFINE;
+	if (level == 0) {
+		while (updated) {
+			updated = 0;
+			VlevelMax = 0;
+			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+				Vlevel = VOLUME->level;
+				if (Vlevel > VlevelMax)
+					VlevelMax = Vlevel;
 			}
-		}
 
-		if (updated)
-			mesh_update();
+			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+				Vlevel = VOLUME->level;
+				if (Vlevel != level && Vlevel == VlevelMax) {
+					updated = 1;
+
+					VOLUME->Vadapt = 1;
+					if (VOLUME->level > level)
+						VOLUME->adapt_type = HCOARSE;
+					else
+						VOLUME->adapt_type = HREFINE;
+				}
+			}
+
+			if (updated)
+				mesh_update();
+		}
+	} else {
+		while (updated) {
+			updated = 0;
+			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+				if (VOLUME->level != level) {
+					updated = 1;
+
+					VOLUME->Vadapt = 1;
+					if (VOLUME->level > level)
+						VOLUME->adapt_type = HCOARSE;
+					else
+						VOLUME->adapt_type = HREFINE;
+				}
+			}
+
+			if (updated)
+				mesh_update();
+		}
 	}
 }

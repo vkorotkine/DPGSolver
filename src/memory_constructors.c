@@ -263,8 +263,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 			ELEMENT->I_vGc_vP[P][Pb]  = calloc(1          , sizeof ***(ELEMENT->I_vGc_vP));
 
-			ELEMENT->Is_Weak_VV[P][Pb]    = calloc(1 , sizeof ***(ELEMENT->Is_Weak_VV));
-			ELEMENT->Ic_Weak_VV[P][Pb]    = calloc(1 , sizeof ***(ELEMENT->Ic_Weak_VV));
+			ELEMENT->Is_Weak_VV[P][Pb]    = calloc(NVREFSFMAX , sizeof ***(ELEMENT->Is_Weak_VV));
+			ELEMENT->Ic_Weak_VV[P][Pb]    = calloc(NVREFSFMAX , sizeof ***(ELEMENT->Ic_Weak_VV));
 			if (P == Pb) {
 				ELEMENT->ChiInvS_vS[P][Pb] = calloc(1          , sizeof ***(ELEMENT->ChiInvS_vS));
 

@@ -128,8 +128,10 @@ void setup_geometry(void)
 
 	// Modify vertex locations if exact geometry is known
 	if (ExactGeom) {
-		if(!DB.MPIrank) printf("    Modify vertex nodes if exact geometry is known\n");
-		printf("\n\n*** Verify the implementation. ***\n\n\n");
+		if(!DB.MPIrank && !TEST) {
+			printf("    Modify vertex nodes if exact geometry is known\n");
+			printf("\n\n*** Verify the implementation. ***\n\n\n");
+		}
 		vertices_to_exact_geom();
 	}
 
@@ -190,15 +192,18 @@ void setup_geometry(void)
 			setup_straight(VOLUME);
 	}
 
-	printf("    Set FACET XYZ\n");
+	if (!DB.MPIrank && !TEST)
+		printf("    Set FACET XYZ\n");
 	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next)
 		setup_FACET_XYZ(FACET);
 
-	printf("    Set up geometric factors\n");
+	if (!DB.MPIrank && !TEST)
+		printf("    Set up geometric factors\n");
 	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
 		setup_geom_factors(VOLUME);
 
-	printf("    Set up normals\n");
+	if (!DB.MPIrank && !TEST)
+		printf("    Set up normals\n");
 	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next)
 		setup_normals(FACET);
 

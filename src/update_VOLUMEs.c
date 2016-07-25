@@ -113,7 +113,7 @@ void update_VOLUME_hp(void)
 
 	OPS = malloc(sizeof *OPS); // free
 
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 //printf("upV: %d %d %d %d\n",VOLUME->indexg,VOLUME->Vadapt,VOLUME->update,VOLUME->adapt_type);
 		if (VOLUME->Vadapt) {
 			P     = VOLUME->P;
@@ -439,15 +439,15 @@ void update_VOLUME_list(void)
 //printf("VOL HEAD Coarse\n");
 //exit(1);
 			DB.VOLUME = VOLUME->parent;
-			for (VOLUMEc = VOLUME; VOLUMEc->next->parent == DB.VOLUME; VOLUMEc = VOLUMEc->next)
-				VOLUMEc->update = 0;
+			for (VOLUMEc = VOLUME; VOLUMEc->next && VOLUMEc->next->parent == DB.VOLUME; VOLUMEc = VOLUMEc->next)
+				;
 			DB.VOLUME->next = VOLUMEc->next;
 			VOLUMEc->next = NULL;
 		}
 	}
 
 	// Fix remainder of list
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 //printf("Fixing: %d %p",VOLUME->indexg,VOLUME->child0);
 //if (VOLUME->indexg == 310)
 //	printf("%d %p\n",VOLUME->indexg,VOLUME->child0);

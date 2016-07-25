@@ -10,7 +10,7 @@ BEGIN PARAMETERS
   MeshType   QUAD_h
 
   Form       Weak  // Options: Weak, (Strong)
-  NodeType   GLL-AO // Options: GL/GLL-AO/WSH
+  NodeType   GL-AO // Options: GL/GLL-AO/WSH
   BasisType  Nodal // Options: Nodal, Modal
 
   Vectorized 0     // Options: 0, 1

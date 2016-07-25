@@ -34,6 +34,10 @@
  *
  */
 
+#ifndef TEST
+	#define TEST 0
+#endif // TEST
+
 // Alternate names
 #define CBRM CblasRowMajor
 #define CBCM CblasColMajor

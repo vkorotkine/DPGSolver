@@ -232,18 +232,19 @@ void initialize_ELEMENTs(void)
 	switch (Adapt) {
 	case ADAPT_0:
 	case ADAPT_P:
-		for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
+		for (ELEMENT = DB.ELEMENT; ELEMENT; ELEMENT = ELEMENT->next) {
 			ELEMENT->Nvref   = 1;
 			ELEMENT->NvrefSF = 1;
 		}
 		break;
 	default: // ADAPT_H and ADAPT_HP
-		for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
+		for (ELEMENT = DB.ELEMENT; ELEMENT; ELEMENT = ELEMENT->next) {
 			type = ELEMENT->type;
 			switch (type) {
 			case POINT:
 				ELEMENT->Nvref   = NREFMAXPOINT;
 				ELEMENT->NvrefSF = 0; // Not used.
+				break;
 			case LINE:
 				ELEMENT->Nvref   = NREFMAXLINE;
 				ELEMENT->NvrefSF = NREFMAXLINE;
@@ -280,7 +281,7 @@ void initialize_ELEMENTs(void)
 		break;
 	}
 
-	for (ELEMENT = DB.ELEMENT->next; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
+	for (ELEMENT = DB.ELEMENT->next; ELEMENT; ELEMENT = ELEMENT->next) {
 		Nf = ELEMENT->Nf;
 		for (f = 0; f < Nf; f++) {
 			IndFType = get_IndFType(ELEMENT->Eclass,f);
@@ -341,16 +342,21 @@ void finalize_ELEMENTs(void)
 	}
 
 	// Ensure that 2D ELEMENTs are marked correctly on 3D mixed meshes
-	printf("      ELEMENT types present: ");
+	if (!DB.MPIrank && !TEST)
+		printf("      ELEMENT types present: ");
+
 	for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
 		type = ELEMENT->type;
 		if ((type == TRI && TRIpresent3D) || (type == QUAD && QUADpresent3D))
 			ELEMENT->present = 1;
 
-		if (ELEMENT->present)
-			printf("%d, ",type);
+		if (ELEMENT->present) {
+			if (!DB.MPIrank && !TEST)
+				printf("%d, ",type);
+		}
 	}
-	printf("\n");
+	if (!DB.MPIrank && !TEST)
+		printf("\n");
 
 	if (d == 1) {
 		NfMax    = 2;

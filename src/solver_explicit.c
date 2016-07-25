@@ -85,16 +85,12 @@ if (tstep == 1748) {
 			update_FACET_hp();
 			update_VOLUME_list();
 			memory_free_children();
-//			update_Vgrp();
 			update_VOLUME_Ops();
 
 			update_VOLUME_finalize();
-			// Potentially need updating: VOLUME->neigh
-//printf("Exiting solver_explicit\n");
-//exit(1);
 		}
 
-	output_to_paraview("GeomFinal");
+//	output_to_paraview("GeomFinal");
 if (0&&tstep == 500) {
 //if (tstep == 1000) {
 //if (tstep == 11) {

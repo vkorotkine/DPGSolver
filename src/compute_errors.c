@@ -141,6 +141,7 @@ void compute_errors(const struct S_VOLUME *VOLUME, double *L2Error2, double *Vol
 	}
 
 	*DOF = NvnS;
+	*Vol = 0.0;
 	for (i = 0; i < NvnI; i++)
 		*Vol += wdetJV_vI[i];
 
@@ -175,11 +176,12 @@ void compute_errors_global(void)
 
 	struct S_VOLUME *VOLUME;
 
+	// silence
+	DOF = 0; Vol = 0.0;
+
 	L2Error2   = calloc(NVAR3D+1   , sizeof *L2Error2);   // free
 	L2Error2_l = malloc((NVAR3D+1) * sizeof *L2Error2_l); // free
 
-	DOF = 0;
-	Vol = 0.0;
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		compute_errors(VOLUME,L2Error2_l,&Vol_l,&DOF_l,1);
 

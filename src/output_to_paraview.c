@@ -179,7 +179,7 @@ static void output_geom(const char *geom_type)
 		else
 			Input = VOLUME->XYZ;
 
-		XYZ_vP = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnP,d,NvnG,1.0,I_vG_vP,Input); // free
+		XYZ_vP = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,d,NvnG,1.0,I_vG_vP,Input); // free
 
 		fprintf(fID,"\t\t<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n",NvnP,NE);
 
@@ -402,11 +402,11 @@ static void output_normals(const char *normals_type)
 			else              I_vG_f = ELEMENT->I_vGc_fS[PV][PF][VfIn];
 
 			n = FACET->n_fS;
-			XYZ_f = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
+			XYZ_f = mm_Alloc_d(CBCM,CBT,CBNT,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
 			break;
-//case ADAPT_P:
-//case ADAPT_H:
-//case ADAPT_HP:
+case ADAPT_P: // ToBeModified
+case ADAPT_H:
+case ADAPT_HP:
 		case ADAPT_0:
 			if (FACET->typeInt == 's') {
 				Nfn = ELEMENT->NfnIs[PF][IndFType];
@@ -418,7 +418,7 @@ static void output_normals(const char *normals_type)
 				else              I_vG_f = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
 			}
 			n = FACET->n_fI;
-			XYZ_f = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
+			XYZ_f = mm_Alloc_d(CBCM,CBT,CBNT,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
 			break;
 		}
 
@@ -573,8 +573,8 @@ static void output_solution(const char *sol_type)
 			I_vG_vP = ELEMENT->I_vGc_vP[P][PP][0];
 		ChiS_vP = ELEMENT->ChiS_vP[P][PP][0];
 
-		XYZ_vP = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnP,d,NvnG,1.0,I_vG_vP,VOLUME->XYZ);     // free
-		W_vP   = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->What); // free
+		XYZ_vP = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,d,NvnG,1.0,I_vG_vP,VOLUME->XYZ);     // free
+		W_vP   = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->What); // free
 
 		U_vP    = malloc(NvnP*5 * sizeof *U_vP);    // free
 

@@ -237,7 +237,7 @@
  *		I_vCc_fIs        |
  *		I_vCc_fIc        |
  *		                 |
- *		Is_Weak_VV   (*) | [P][P][0]       [rP][rPb][0]        [P][P][0]       [rP][rP][0]
+ *		Is_Weak_VV   (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rP][*]
  *		Ic_Weak_VV   (*) |
  *		Ds_Weak_VV       | [P][P][0][rd]   [rP][P(P)][0][rd]   [P][P][0][rd]   [rP][P(P)][0][rd]
  *		Dc_Weak_VV       |
@@ -653,7 +653,7 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 	                           0.0 , 0.5 , 0.5 ,
 	                           0.5 , 0.0 , 0.5 ,
 	                           0.5 , 0.5 , 0.0 },
-	       VeVref_TET[120]  = {1.0 , 0.0 , 0.0 , 0.0 ,
+	       VeVref_TET[120]  = {1.0 , 0.0 , 0.0 , 0.0 , // Needs modification (TET to TETs only) ToBeDeleted
 	                           0.0 , 1.0 , 0.0 , 0.0 ,
 	                           0.0 , 0.0 , 1.0 , 0.0 ,
 	                           0.0 , 0.0 , 0.0 , 1.0 ,
@@ -806,6 +806,33 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 	case WEDGE:
 	default:
 		printf("Error: Unsupported EType in setup_ELEMENT_VeV.\n"), exit(1);
+		break;
+	}
+}
+
+static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
+{
+	if (vref == 0)
+		return 1.0;
+
+	switch (EType) {
+	case LINE:
+		return 0.5;
+		break;
+	case TRI:
+		if (vref < 5)
+			return 0.25;
+		else
+			printf("Error: Unsupported vref (%d) (anisotropic) for TRIs in get_L2_scaling.\n",vref), exit(1);
+		break;
+	case QUAD:
+		if (vref < 5)
+			return 0.25;
+		else
+			printf("Error: Unsupported vref (%d) (anisotropic) for QUADs in get_L2_scaling.\n",vref), exit(1);
+		break;
+	default:
+		printf("Error: Unsupported EType (%d) in get_L2_scaling.\n",EType), exit(1);
 		break;
 	}
 }
@@ -979,7 +1006,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	I_vCc_vIs = ELEMENT->I_vCc_vIs;
 	I_vCc_vIc = ELEMENT->I_vCc_vIc;
 
-	Ihat_vS_vS = ELEMENT->Ihat_vS_vS;
+	Ihat_vS_vS  = ELEMENT->Ihat_vS_vS;
 
 	D_vGs_vCs = ELEMENT->D_vGs_vCs;
 	D_vGs_vIs = ELEMENT->D_vGs_vIs;
@@ -1293,11 +1320,28 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					I_vCc_vS[P][Pb][vrefSF]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb], NvnCc[P],NvnCc[P],1.0,ChiCc_vS, ChiInvCc_vCc); // keep
 					I_vCc_vIs[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnCc[P],NvnCc[P],1.0,ChiCc_vIs,ChiInvCc_vCc); // keep
 					I_vCc_vIc[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnCc[P],NvnCc[P],1.0,ChiCc_vIc,ChiInvCc_vCc); // keep
+
+					if (EFE) {
+						Is_Weak_VV[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIs[Pb],NvnIs[Pb],1.0,ChiS_vIs[P][Pb][vrefSF],diag_w_vIs); // keep
+						Ic_Weak_VV[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIc[Pb],NvnIc[Pb],1.0,ChiS_vIc[P][Pb][vrefSF],diag_w_vIc); // keep
+					} else {
+						;
+					}
+
+					if (Collocated) {
+						dummyPtr_d = Is_Weak_VV[P][Pb][vrefSF];
+						Is_Weak_VV[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[P],NvnIs[Pb],NvnS[P],1.0,diag_wInv_vIs,dummyPtr_d); // keep
+						free(dummyPtr_d);
+						dummyPtr_d = Ic_Weak_VV[P][Pb][vrefSF];
+						Ic_Weak_VV[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[P],NvnIc[Pb],NvnS[P],1.0,diag_wInv_vIc,dummyPtr_d); // keep
+						free(dummyPtr_d);
+					}
+
 				}
 
 				// Returned Adaptation Operators
 				if (vh == 0 || P == Pb) {
-					Ihat_vS_vS[P][Pb][vh] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb],NvnS[P],NvnS[Pb],1.0,ChiInvS_vS[Pb][Pb][0],ChiS_vS[P][Pb][vh]); // keep
+					Ihat_vS_vS[P][Pb][vh]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb],NvnS[P],NvnS[Pb],1.0,ChiInvS_vS[Pb][Pb][0],ChiS_vS[P][Pb][vh]); // keep
 					if (P == PGlobal && Pb == PGlobal) {
 						I_vGs_vGs[1][1][vh] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGs[1],NvnGs[1],NvnGs[1],1.0,ChiGs_vGs,ChiInvGs_vGs); // keep
 					}
@@ -1335,6 +1379,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				free(ChiRefS_vIs);
 				free(ChiRefS_vIc);
 			}
+
 			plotting_element_info(&rst_vP,&dummyPtr_ui[0],&dummyPtr_ui[1],&NvnP,&dummy_ui,max(Pb,u1),EType); // free
 			free(dummyPtr_ui[0]);
 			free(dummyPtr_ui[1]);
@@ -1347,22 +1392,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 			// Returned Operators
 			ChiS_vP[P][Pb][0]   = mm_Alloc_d(CBRM,CBNT,CBNT,NvnP,    NvnS[P], NvnS[P], 1.0,ChiRefS_vP,TS);           // keep
 			I_vGc_vP[P][Pb][0]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnP,    NvnGc[P],NvnGc[P],1.0,ChiGc_vP,  ChiInvGc_vGc); // keep
-
-			if (EFE) {
-				Is_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIs[Pb],NvnIs[Pb],1.0,ChiS_vIs[P][Pb][0],diag_w_vIs); // keep
-				Ic_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIc[Pb],NvnIc[Pb],1.0,ChiS_vIc[P][Pb][0],diag_w_vIc); // keep
-			} else {
-				;
-			}
-
-			if (Collocated) {
-				dummyPtr_d = Is_Weak_VV[P][Pb][0];
-				Is_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[P],NvnIs[Pb],NvnS[P],1.0,diag_wInv_vIs,dummyPtr_d); // keep
-				free(dummyPtr_d);
-				dummyPtr_d = Ic_Weak_VV[P][Pb][0];
-				Ic_Weak_VV[P][Pb][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[P],NvnIc[Pb],NvnS[P],1.0,diag_wInv_vIc,dummyPtr_d); // keep
-				free(dummyPtr_d);
-			}
 
 			free(ChiRefGc_vP);
 			free(ChiRefS_vP);
@@ -1470,7 +1499,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 //Is_Weak_FV[P][Pb] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIs[Pb],NvnIs[Pb],ChiS_vIs[P][Pb],diag_w_vIs); // keep
 //Ic_Weak_FV[P][Pb] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIc[Pb],NvnIc[Pb],ChiS_vIc[P][Pb],diag_w_vIc); // keep
 
-//printf("Nf: %d\n",Nf);
 			for (f = 0; f < Nf; f++) {
 				IndFType = get_IndFType(Eclass,f);
 
@@ -1478,12 +1506,10 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					Vf = f*NFREFMAX+fh;
 
 					mm_CTN_d(Nfve[f],dE,Nve,VeF[Vf],E_rst_vC,rst_vC);
-//array_print_d(Nfve[IndFType],dE,rst_vC,'C');
 
 					rst_fS  = mm_Alloc_d(CBCM,CBNT,CBNT,NfnS[Pb][IndFType], dE,B_Nve[IndFType],1.0,BCoords_F[IndFType]->S[Pb], rst_vC); // free
 					rst_fIs = mm_Alloc_d(CBCM,CBNT,CBNT,NfnIs[Pb][IndFType],dE,B_Nve[IndFType],1.0,BCoords_F[IndFType]->Is[Pb],rst_vC); // free
 					rst_fIc = mm_Alloc_d(CBCM,CBNT,CBNT,NfnIc[Pb][IndFType],dE,B_Nve[IndFType],1.0,BCoords_F[IndFType]->Ic[Pb],rst_vC); // free
-//printf("rst_fIs\n");
 
 					diag_w_fIs = diag_d(w_fIs[Pb][IndFType],NfnIs[Pb][IndFType]); // free
 					diag_w_fIc = diag_d(w_fIc[Pb][IndFType],NfnIc[Pb][IndFType]); // free
@@ -1493,18 +1519,12 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					ChiRefS_fIc = basis(P,rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
 
 					// Returned Operators
-//printf("%d %d %d %d %d\n",P,Pb,f,fh,IndFType);
-//printf("%d \n",B_Nve[IndFType]);
-//array_print_d(Nfve[f],dE,rst_vC,'C');
 					ChiS_fS[P][Pb][Vf]  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnS[P],NvnS[P],1.0,ChiRefS_fS, TS); // keep
 					ChiS_fIs[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnS[P],NvnS[P],1.0,ChiRefS_fIs,TS); // keep
 					ChiS_fIc[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnS[P],NvnS[P],1.0,ChiRefS_fIc,TS); // keep
-//array_print_d(NfnS[Pb][IndFType],NvnS[P],ChiS_fS[P][Pb][Vf],'R');
-//printf("ChiS_fIs\n");
 
 					Is_Weak_FF[P][Pb][Vf] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NfnIs[Pb][IndFType],NfnIs[Pb][IndFType],-1.0,ChiS_fIs[P][Pb][Vf],diag_w_fIs); // keep
 					Ic_Weak_FF[P][Pb][Vf] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NfnIc[Pb][IndFType],NfnIc[Pb][IndFType],-1.0,ChiS_fIc[P][Pb][Vf],diag_w_fIc); // keep
-//printf("Is_Weak_fIs\n");
 
 					if (Collocated) {
 						dummyPtr_d = Is_Weak_FF[P][Pb][Vf];
@@ -1514,7 +1534,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 						Ic_Weak_FF[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[P],NfnIc[Pb][IndFType],NvnS[P],1.0,diag_wInv_vIc,dummyPtr_d); // keep
 						free(dummyPtr_d);
 					}
-//printf("Collocated\n");
 
 					if (VFPartUnity[Eclass]) {
 						convert_to_CSR_d(NfnIs[Pb][IndFType],NvnS[P],ChiS_fIs[P][Pb][Vf],&ChiS_fIs_sp[P][Pb][Vf]); // keep
@@ -1523,9 +1542,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 						convert_to_CSR_d(NvnS[P],NfnIs[Pb][IndFType],Is_Weak_FF[P][Pb][Vf],&Is_Weak_FF_sp[P][Pb][Vf]); // keep
 						convert_to_CSR_d(NvnS[P],NfnIc[Pb][IndFType],Ic_Weak_FF[P][Pb][Vf],&Ic_Weak_FF_sp[P][Pb][Vf]); // keep
 					}
-//printf("VFPartUnity\n");
 
-//printf("fh: %d\n",fh);
 					ChiRefGs_fS  = basis(PGs           ,rst_fS, NfnS[Pb][IndFType], &Nbf,dE); // free
 					ChiRefGs_fIs = basis(PGs           ,rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
 					ChiRefGs_fIc = basis(PGs           ,rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
@@ -1708,62 +1725,62 @@ void setup_ELEMENT_VeF(const unsigned int EType)
 	Nfref   = ELEMENT->Nfref;
 
 	unsigned int size_VeF = 0;
-	double VeVref_LINE[12]  = {1.0 , 0.0 ,
+	double VeVref_LINE[12]  = {1.0 , 0.0 , // 0
 	                           0.0 , 1.0 ,
-	                           1.0 , 0.0 ,
+	                           1.0 , 0.0 , // 1
 	                           0.5 , 0.5 ,
-	                           0.5 , 0.5 ,
+	                           0.5 , 0.5 , // 2
 	                           0.0 , 1.0 },
-	       VeVref_TRI[45]   = {1.0 , 0.0 , 0.0 ,
+	       VeVref_TRI[45]   = {1.0 , 0.0 , 0.0 , // 0
 	                           0.0 , 1.0 , 0.0 ,
 	                           0.0 , 0.0 , 1.0 ,
-	                           1.0 , 0.0 , 0.0 ,
+	                           1.0 , 0.0 , 0.0 , // 1
 	                           0.5 , 0.5 , 0.0 ,
 	                           0.5 , 0.0 , 0.5 ,
-	                           0.5 , 0.5 , 0.0 ,
+	                           0.5 , 0.5 , 0.0 , // 2
 	                           0.0 , 1.0 , 0.0 ,
 	                           0.0 , 0.5 , 0.5 ,
-	                           0.5 , 0.0 , 0.5 ,
+	                           0.5 , 0.0 , 0.5 , // 3
 	                           0.0 , 0.5 , 0.5 ,
 	                           0.0 , 0.0 , 1.0 ,
-	                           0.0 , 0.5 , 0.5 ,
+	                           0.0 , 0.5 , 0.5 , // 4
 	                           0.5 , 0.0 , 0.5 ,
 	                           0.5 , 0.5 , 0.0 },
-	       VeVref_QUAD[144] = {1.0 , 0.0 , 0.0 , 0.0 ,
+	       VeVref_QUAD[144] = {1.0 , 0.0 , 0.0 , 0.0 , // 0
 	                           0.0 , 1.0 , 0.0 , 0.0 ,
 	                           0.0 , 0.0 , 1.0 , 0.0 ,
 	                           0.0 , 0.0 , 0.0 , 1.0 ,
-	                           1.0 , 0.0 , 0.0 , 0.0 ,
+	                           1.0 , 0.0 , 0.0 , 0.0 , // 1
+	                           0.5 , 0.5 , 0.0 , 0.0 ,
+	                           0.5 , 0.0 , 0.5 , 0.0 ,
+	                           0.25, 0.25, 0.25, 0.25,
+	                           0.5 , 0.5 , 0.0 , 0.0 , // 2
+	                           0.0 , 1.0 , 0.0 , 0.0 ,
+	                           0.25, 0.25, 0.25, 0.25,
+	                           0.0 , 0.5 , 0.0 , 0.5 ,
+	                           0.5 , 0.0 , 0.5 , 0.0 , // 3
+	                           0.25, 0.25, 0.25, 0.25,
+	                           0.0 , 0.0 , 1.0 , 0.0 ,
+	                           0.0 , 0.0 , 0.5 , 0.5 ,
+	                           0.25, 0.25, 0.25, 0.25, // 4
+	                           0.0 , 0.5 , 0.0 , 0.5 ,
+	                           0.0 , 0.0 , 0.5 , 0.5 ,
+	                           0.0 , 0.0 , 0.0 , 1.0 ,
+	                           1.0 , 0.0 , 0.0 , 0.0 , // 5
 	                           0.5 , 0.5 , 0.0 , 0.0 ,
 	                           0.0 , 0.0 , 1.0 , 0.0 ,
 	                           0.0 , 0.0 , 0.5 , 0.5 ,
-	                           0.5 , 0.5 , 0.0 , 0.0 ,
+	                           0.5 , 0.5 , 0.0 , 0.0 , // 6
 	                           0.0 , 1.0 , 0.0 , 0.0 ,
 	                           0.0 , 0.0 , 0.5 , 0.5 ,
 	                           0.0 , 0.0 , 0.0 , 1.0 ,
-	                           1.0 , 0.0 , 0.0 , 0.0 ,
+	                           1.0 , 0.0 , 0.0 , 0.0 , // 7
 	                           0.0 , 1.0 , 0.0 , 0.0 ,
 	                           0.5 , 0.0 , 0.5 , 0.0 ,
 	                           0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.5 , 0.0 , 0.5 , 0.0 ,
+	                           0.5 , 0.0 , 0.5 , 0.0 , // 8
 	                           0.0 , 0.5 , 0.0 , 0.5 ,
 	                           0.0 , 0.0 , 1.0 , 0.0 ,
-	                           0.0 , 0.0 , 0.0 , 1.0 ,
-	                           1.0 , 0.0 , 0.0 , 0.0 ,
-	                           0.5 , 0.5 , 0.0 , 0.0 ,
-	                           0.5 , 0.0 , 0.5 , 0.0 ,
-	                           0.25, 0.25, 0.25, 0.25,
-	                           0.5 , 0.5 , 0.0 , 0.0 ,
-	                           0.0 , 1.0 , 0.0 , 0.0 ,
-	                           0.25, 0.25, 0.25, 0.25,
-	                           0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.5 , 0.0 , 0.5 , 0.0 ,
-	                           0.25, 0.25, 0.25, 0.25,
-	                           0.0 , 0.0 , 1.0 , 0.0 ,
-	                           0.0 , 0.0 , 0.5 , 0.5 ,
-	                           0.25, 0.25, 0.25, 0.25,
-	                           0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.0 , 0.0 , 0.5 , 0.5 ,
 	                           0.0 , 0.0 , 0.0 , 1.0 };
 
 	switch(EType) {
@@ -1864,6 +1881,7 @@ static void setup_TP_operators(const unsigned int EType)
 	 *		Compute operators for elements which are tensor-products of lower dimensional elements.
 	 *
 	 *	Comments:
+	 *		Need to clean up tabs here (ToBeDeleted).
 	 *		Add comment about general idea of how this is done. (ToBeModified)
 	 */
 
@@ -1872,11 +1890,12 @@ static void setup_TP_operators(const unsigned int EType)
 	double       **w_vIs, **w_vIc,
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS,
-	             ****I_vGs_vP, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vS, ****I_vGs_vIs,
-	             ****I_vGc_vP, ****I_vGc_vCc,                ****I_vGc_vS, ****I_vGc_vIc,
+	             ****I_vGs_vP, ****I_vGs_vGs, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vS, ****I_vGs_vIs,
+	             ****I_vGc_vP,                ****I_vGc_vCc,                ****I_vGc_vS, ****I_vGc_vIc,
 	             ****I_vCs_vIs, ****I_vCs_vIc,
 	             ****I_vCc_vIs, ****I_vCc_vIc,
 	             ****Ihat_vS_vS,
+	             ****L2hat_vS_vS,
 	             *****D_vGs_vCs, *****D_vGs_vIs,
 	             *****D_vGc_vCc, *****D_vGc_vIc,
 	             *****D_vCs_vCs,
@@ -1896,11 +1915,12 @@ static void setup_TP_operators(const unsigned int EType)
 
 	// Initialize DB Parameters
 	unsigned int EFE          = DB.EFE,
+	             PGlobal      = DB.PGlobal,
 	             Collocated   = DB.Collocated,
 	             *VFPartUnity = DB.VFPartUnity;
 
 	// Standard datatypes
-	unsigned int dim, P, f, fh, Pb, PSMin, PSMax, PbMin, PbMax, fhMax, IndClass,
+	unsigned int dim, P, vh, f, fh, Pb, PSMin, PSMax, PbMin, PbMax, fhMax, Nvref, IndClass,
 	             Eclass, dE, Nf, Vf, *Nfref, *ones_Nf,
 	             NIn[3], NOut[3];
 	double       *OP[3];
@@ -1920,6 +1940,7 @@ static void setup_TP_operators(const unsigned int EType)
 	dE    = ELEMENT->d;
 	Nf    = ELEMENT->Nf;
 	Nfref = ELEMENT->Nfref;
+	Nvref = ELEMENT->Nvref;
 
 	ones_Nf = malloc(Nf * sizeof *ones_Nf); // free
 	for (f = 0; f < Nf; f++)
@@ -1947,6 +1968,7 @@ static void setup_TP_operators(const unsigned int EType)
 	ChiInvS_vS = ELEMENT->ChiInvS_vS;
 
 	I_vGs_vP  = ELEMENT->I_vGs_vP;
+	I_vGs_vGs = ELEMENT->I_vGs_vGs;
 	I_vGs_vGc = ELEMENT->I_vGs_vGc;
 	I_vGs_vCs = ELEMENT->I_vGs_vCs;
 	I_vGs_vS  = ELEMENT->I_vGs_vS;
@@ -1960,7 +1982,8 @@ static void setup_TP_operators(const unsigned int EType)
 	I_vCc_vIs = ELEMENT->I_vCc_vIs;
 	I_vCc_vIc = ELEMENT->I_vCc_vIc;
 
-	Ihat_vS_vS = ELEMENT->Ihat_vS_vS;
+	Ihat_vS_vS  = ELEMENT->Ihat_vS_vS;
+	L2hat_vS_vS = ELEMENT->L2hat_vS_vS;
 
 	D_vGs_vCs = ELEMENT->D_vGs_vCs;
 	D_vGs_vIs = ELEMENT->D_vGs_vIs;
@@ -2026,11 +2049,24 @@ static void setup_TP_operators(const unsigned int EType)
 				if (w_vIc[Pb] == NULL)
 					w_vIc[Pb] = sf_assemble_d(NIn,NOut,dE,OP);
 
-// Will need a loop over vrefSF here when h-adaptation is added (ToBeDeleted)
-unsigned int vrefSF = 0;
-				get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->Ihat_vS_vS[P][Pb][0],
-								  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
-				Ihat_vS_vS[P][Pb][vrefSF] = sf_assemble_d(NIn,NOut,dE,OP);
+				for (vh = 0; vh < Nvref; vh++) {
+					if (vh == 0 || P == Pb) {
+						get_sf_parametersV(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->Ihat_vS_vS[P][Pb],
+						                   0,0,NULL,NIn,NOut,OP,dE,vh,Eclass);
+						Ihat_vS_vS[P][Pb][vh] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+						get_sf_parametersV(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->L2hat_vS_vS[P][Pb],
+						                   0,0,NULL,NIn,NOut,OP,dE,vh,Eclass);
+						L2hat_vS_vS[P][Pb][vh] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+						if (P == PGlobal && Pb == PGlobal) {
+							get_sf_parametersV(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->I_vGs_vGs[1][1],
+							                   0,0,NULL,NIn,NOut,OP,dE,vh,Eclass);
+							I_vGs_vGs[1][1][vh] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+						}
+					}
+				}
+//				get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->Ihat_vS_vS[P][Pb][0],
+//								  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
+//				Ihat_vS_vS[P][Pb][vrefSF] = sf_assemble_d(NIn,NOut,dE,OP);
 
 				get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnP[Pb],ELEMENTclass[0]->ChiS_vP[P][Pb][0],
 								  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
@@ -2158,12 +2194,30 @@ unsigned int vrefSF = 0;
 						convert_to_CSR_d(NfnIc[Pb][0],NvnS[P],ChiS_fIc[P][Pb][Vf],&ChiS_fIc_sp[P][Pb][Vf]); // keep
 					}
 
+					if (P == Pb) {
+						// Outside of fh == 0 if condition as operator is used for testing h-adaptation connectivity.
+						get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnS[Pb],   ELEMENTclass[0]->I_vGs_vS[1][Pb],
+										   ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NfnS[Pb][0],ELEMENTclass[0]->I_vGs_fS[1][Pb],
+										   NIn,NOut,OP,dE,Vf,Eclass);
+						I_vGs_fS[1][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					}
+
+					get_sf_parametersF(ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_VV[P][Pb],
+									   ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_FF[P][Pb],
+									   NIn,NOut,OP,dE,Vf,Eclass);
+					Is_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					get_sf_parametersF(ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_VV[P][Pb],
+									   ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_FF[P][Pb],
+									   NIn,NOut,OP,dE,Vf,Eclass);
+					Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
+					if (Collocated || VFPartUnity[Eclass]) {
+						convert_to_CSR_d(NvnS[P],NfnIs[Pb][0],Is_Weak_FF[P][Pb][Vf],&Is_Weak_FF_sp[P][Pb][Vf]); // keep
+						convert_to_CSR_d(NvnS[P],NfnIc[Pb][0],Ic_Weak_FF[P][Pb][Vf],&Ic_Weak_FF_sp[P][Pb][Vf]); // keep
+					}
+
 					if (fh == 0) {
 						if (P == Pb) {
-							get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnS[Pb],   ELEMENTclass[0]->I_vGs_vS[1][Pb],
-											   ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NfnS[Pb][0],ELEMENTclass[0]->I_vGs_fS[1][Pb],
-											   NIn,NOut,OP,dE,Vf,Eclass);
-							I_vGs_fS[1][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 							get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->I_vGs_vIs[1][Pb],
 											   ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->I_vGs_fIs[1][Pb],
 											   NIn,NOut,OP,dE,Vf,Eclass);
@@ -2209,20 +2263,6 @@ unsigned int vrefSF = 0;
 						                   ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->I_vCc_fIc[P][Pb],
 						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCc_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-
-						get_sf_parametersF(ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_VV[P][Pb],
-										   ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_FF[P][Pb],
-										   NIn,NOut,OP,dE,Vf,Eclass);
-						Is_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-						get_sf_parametersF(ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_VV[P][Pb],
-										   ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_FF[P][Pb],
-										   NIn,NOut,OP,dE,Vf,Eclass);
-						Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-
-						if (Collocated || VFPartUnity[Eclass]) {
-							convert_to_CSR_d(NvnS[P],NfnIs[Pb][0],Is_Weak_FF[P][Pb][Vf],&Is_Weak_FF_sp[P][Pb][Vf]); // keep
-							convert_to_CSR_d(NvnS[P],NfnIc[Pb][0],Ic_Weak_FF[P][Pb][Vf],&Ic_Weak_FF_sp[P][Pb][Vf]); // keep
-						}
 					}
 				}}
 			}
@@ -2561,37 +2601,81 @@ unsigned int vrefSF = 0;
 	free(ones_Nf);
 }
 
-static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
-{
-	switch (EType) {
-	case LINE:
-		if (vref == 0)
-			return 1.0;
-		else
-			return 0.5;
-		break;
-	case TRI:
-		if (vref == 0)
-			return 1.0;
-		else if (vref < 5)
-			return 0.25;
-		else
-			printf("Error: Unsupported vref (%d) (anisotropic) for TRIs in get_L2_scaling.\n",vref), exit(1);
-		break;
-	default:
-		printf("Error: Unsupported EType (%d) in get_L2_scaling.\n",EType), exit(1);
-		break;
-	}
-}
-
 static void setup_L2_projection_operators(const unsigned int EType)
 {
 	/*
 	 *	Comments:
+	 *		This function is separated from the setup_ELEMENT_operators function as the order P operators defined here
+	 *		rely on order Pb operators for their assembly.
 	 *		L2 projection operators are only needed for coarsening operations. During refinement, these operators reduce
 	 *		to standard interpolations.
 	 */
 
+	// Returned Operators
+	double ****L2hat_vS_vS;
+
+	// Initialize DB Parameters
+	unsigned int Adapt = DB.Adapt;
+
+	// Standard datatypes
+	unsigned int P, Pb, vh, PSMin, PSMax, PbMin, PbMax,
+	             Nvref, *NvnS, *NvnIc;
+	double       L2_scale, *IS, *ChiTW, *M, *MInv, *S, *diag_w_vIc,
+	             ****ChiS_vIc, **w_vIc;
+
+	struct S_ELEMENT *ELEMENT;
+
+	if (Adapt == ADAPT_0)
+		return;
+
+	ELEMENT = get_ELEMENT_type(EType);
+
+	// Stored operators
+	L2hat_vS_vS = ELEMENT->L2hat_vS_vS;
+
+
+	Nvref = ELEMENT->Nvref;
+	NvnS  = ELEMENT->NvnS;
+	NvnIc = ELEMENT->NvnIc;
+
+	ChiS_vIc = ELEMENT->ChiS_vIc;
+	w_vIc    = ELEMENT->w_vIc;
+
+	get_PS_range(&PSMin,&PSMax);
+	for (P = PSMin; P <= PSMax; P++) {
+		get_Pb_range(P,&PbMin,&PbMax);
+		for (Pb = PbMin; Pb <= PbMax; Pb++) {
+			diag_w_vIc = diag_d(w_vIc[Pb],NvnIc[Pb]); // free
+
+			IS    = identity_d(NvnS[Pb]);                                                                       // free
+			ChiTW = mm_Alloc_d(CBRM,CBT, CBNT,NvnS[Pb],NvnIc[Pb],NvnIc[Pb],1.0,ChiS_vIc[Pb][Pb][0],diag_w_vIc); // free
+			M     = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb],NvnS[Pb], NvnIc[Pb],1.0,ChiTW,ChiS_vIc[Pb][Pb][0]);      // free
+			MInv  = inverse_d(NvnS[Pb],NvnS[Pb],M,IS);                                                          // free
+
+			free(IS);
+			free(ChiTW);
+			free(M);
+			for (vh = 0; vh < Nvref; vh++) {
+				if (vh == 0 || P == Pb) {
+					ChiTW = mm_Alloc_d(CBRM,CBT, CBNT,NvnS[Pb],NvnIc[Pb],NvnIc[Pb],1.0,ChiS_vIc[Pb][Pb][vh],diag_w_vIc); // free
+					S     = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb],NvnS[P],  NvnIc[Pb],1.0,ChiTW,ChiS_vIc[P][Pb][0]);        // free
+
+					L2_scale = get_L2_scaling(EType,vh);
+
+					// Returned Operators
+					L2hat_vS_vS[P][Pb][vh] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb],NvnS[P],NvnS[Pb],L2_scale,MInv,S); // keep
+
+					free(ChiTW);
+					free(S);
+				}
+			}
+			free(diag_w_vIc);
+			free(MInv);
+		}
+	}
+
+
+/*
 	// Returned Operators
 	double ****L2hat_vS_vS,
 	       ****GfS_fIs, ****GfS_fIc; // Change G to L2 if these operators are kept (ToBeDeleted)
@@ -2605,7 +2689,7 @@ static void setup_L2_projection_operators(const unsigned int EType)
 	             NvnS, NvnSN, NvnI, NfnM, NfnF, NfnIs, NfnIc,
 	             *ones_Nf;
 	double       L2_scale, *ChiSN_vI, *wSN_vI, *diag_wSN_vI, *ISN, *ChiTW_SN, *MSN, *MSNInv, *ChiS_vI, *SSNS,
-	             *one_d, *ChiS_vF, *ChiM_vI, *ChiM_vS, *ChiF_vIs, *ChiF_vIc,
+	             *one_d, *ChiS_vF, *ChiM_vI, *ChiF_vIs, *ChiF_vIc,
 	             *ChiInvF_vF, *ChiInvM_vM, *wM_vI, *diag_wM_vI, *IF, *IM, *ChiTW_M, *ChiTW_F, *ChiTW_SNr,
 	             *SMF, *SFM, *MM, *MF, *MMInv, *MFInv, *MInvSMF, *MInvSFM,
 	             *IhatS_fS, *L2hatvS_fS, *L2hatfS_fI;
@@ -2696,14 +2780,14 @@ static void setup_L2_projection_operators(const unsigned int EType)
 					NfnIs = 1;
 					NfnIc = 1;
 
-					ChiM_vS   = one_d;
+//					ChiM_vS   = one_d;
 				} else {
 					NfnM = ELEMENT_F->NvnS[PM];
 					NfnF = ELEMENT_F->NvnS[Pb];
 					NfnIs = ELEMENT_F->NvnIs[PM];
 					NfnIc = ELEMENT_F->NvnIc[PM];
 
-					ChiM_vS  = ELEMENT_F->ChiS_vS[PM][PM][0];
+//					ChiM_vS  = ELEMENT_F->ChiS_vS[PM][PM][0];
 					ChiM_vI  = ELEMENT_F->ChiS_vIc[PM][PM][0];
 					wM_vI    = ELEMENT_F->w_vIc[PM];
 
@@ -2738,7 +2822,7 @@ static void setup_L2_projection_operators(const unsigned int EType)
 
 						SMF      = mm_Alloc_d(CBRM,CBNT,CBNT,NfnM,NfnF,NfnIc,1.0,ChiTW_M,ChiF_vIc);  // free
 						SFM      = mm_Alloc_d(CBRM,CBNT,CBNT,NfnF,NfnM,NfnIc,1.0,ChiTW_M,ChiF_vIc);  // free
-						MF        = mm_Alloc_d(CBRM,CBNT,CBNT,NfnF,NfnF,NfnIc,1.0,ChiTW_F,ChiF_vIc); // free
+						MF       = mm_Alloc_d(CBRM,CBNT,CBNT,NfnF,NfnF,NfnIc,1.0,ChiTW_F,ChiF_vIc);  // free
 						MFInv    = inverse_d(NfnF,NfnF,MF,IF);                                       // free
 						MInvSMF  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnM,NfnF,NfnM,1.0,MMInv,SMF);          // free
 						MInvSFM  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnF,NfnM,NfnF,1.0,MFInv,SFM);          // free
@@ -2746,10 +2830,7 @@ static void setup_L2_projection_operators(const unsigned int EType)
 
 						L2hatvS_fS = mm_Alloc_d(CBRM,CBNT,CBNT,NfnM,NvnS,NfnF,1.0,MInvSMF,IhatS_fS);   // free
 						L2hatfS_fI = mm_Alloc_d(CBRM,CBNT,CBNT,NfnF,NfnM,NfnM,1.0,MInvSFM,ChiInvM_vM); // free
-/*
-printf("%d %d\n",NfnM,NvnS);
-array_print_d(NfnM,NfnF,MInvSMF,'R');
-*/
+
 						free(ChiTW_F);
 						free(SMF), free(SFM), free(MF);
 						free(MFInv), free(MInvSMF), free(MInvSFM);
@@ -2760,11 +2841,6 @@ array_print_d(NfnM,NfnF,MInvSMF,'R');
 					GfS_fIs[P][Pb][Vf]   = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs,NfnM,NfnF,1.0,ChiF_vIs,L2hatfS_fI); // keep
 					GfS_fIc[P][Pb][Vf]   = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc,NfnM,NfnF,1.0,ChiF_vIc,L2hatfS_fI); // keep
 
-//array_print_d(NfnIc,NfnM,GfS_fIc[P][Pb][Vf],'R');
-/*
-if (f == 2 && fh == 2)
-exit(1);
-*/
 					free(L2hatvS_fS);
 					free(L2hatfS_fI);
 				}
@@ -2777,6 +2853,7 @@ exit(1);
 	}
 	free(one_d);
 	free(ones_Nf);
+*/
 }
 
 static void setup_ELEMENT_FACET_ordering(const unsigned int FType)
@@ -2888,7 +2965,8 @@ void setup_operators(void)
 		setup_ELEMENT_FACET_ordering(EType);
 
 	// LINE (Includes TP Class)
-	printf("    LINE\n");
+	if (!DB.MPIrank && !TEST)
+		printf("    LINE\n");
 	EType = LINE;
 	setup_ELEMENT_VeF(EType);
 	setup_ELEMENT_plotting(EType);
@@ -2901,12 +2979,12 @@ void setup_operators(void)
 	// QUAD
 	EType = QUAD;
 	if (is_ELEMENT_present(EType)) {
-		printf("    QUAD\n");
+		if (!DB.MPIrank && !TEST)
+			printf("    QUAD\n");
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
-		setup_L2_projection_operators(EType);
 //		setup_L2_projection_operators(EType); // Include in setup_TP_operators? (ToBeDeleted)
 		if (d == 3)
 			setup_ELEMENT_FACET_ordering(EType);
@@ -2915,18 +2993,19 @@ void setup_operators(void)
 	// HEX
 	EType = HEX;
 	if (is_ELEMENT_present(EType)) {
-		printf("    HEX\n");
+		if (!DB.MPIrank && !TEST)
+			printf("    HEX\n");
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
-		setup_L2_projection_operators(EType);
 	}
 
 	// TRI
 	EType = TRI;
 	if (is_ELEMENT_present(EType)) {
-		printf("    TRI\n");
+		if (!DB.MPIrank && !TEST)
+			printf("    TRI\n");
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
@@ -2939,7 +3018,8 @@ void setup_operators(void)
 	// TET
 	EType = TET;
 	if (is_ELEMENT_present(EType)) {
-		printf("    TET\n");
+		if (!DB.MPIrank && !TEST)
+			printf("    TET\n");
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
@@ -2950,7 +3030,8 @@ void setup_operators(void)
 	// PYR
 	EType = PYR;
 	if (is_ELEMENT_present(EType)) {
-		printf("    PYR\n");
+		if (!DB.MPIrank && !TEST)
+			printf("    PYR\n");
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
@@ -2961,12 +3042,12 @@ void setup_operators(void)
 	// WEDGE
 	EType = WEDGE;
 	if (is_ELEMENT_present(EType)) {
-		printf("    WEDGE\n");
+		if (!DB.MPIrank && !TEST)
+			printf("    WEDGE\n");
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
-		setup_L2_projection_operators(EType);
 	}
 
 	// Free unused operators (including unused lower dimensional operators (if applicable) and sum factorized operators)

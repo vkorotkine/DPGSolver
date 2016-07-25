@@ -180,7 +180,7 @@ void initialization(int nargc, char **argv)
 	DB.BumpOrder = BumpOrder;
 
 	// Print some information
-	if (!DB.MPIrank) {
+	if (!DB.MPIrank && !TEST) {
 		printf("\n\nRunning the %s test case using the %s mesh type in %dD on mesh level %d.\n\n",
 		       DB.TestCase,DB.MeshType,DB.d,DB.ML);
 		printf("Parameters:\n\n");
