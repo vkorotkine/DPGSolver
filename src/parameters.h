@@ -109,7 +109,7 @@
 #define NREFMAXLINE  3
 #define NREFMAXTRI   5
 #define NREFMAXQUAD  9
-#define NREFMAXTET   7
+#define NREFMAXTET   9
 #define NREFMAXHEX   27
 #define NREFMAXWEDGE 15
 #define NREFMAXPYR   11

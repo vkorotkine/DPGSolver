@@ -56,9 +56,11 @@ void test_imp_update_h(int nargc, char **argv)
 	unsigned int indexg;
 	struct S_VOLUME *VOLUME;
 
+	// ******************************************************************************************************** //
 	// LINEs
 
 
+	// ******************************************************************************************************** //
 	// TRIs
 	strcpy(argvNew[1],"test/Test_update_h_TRI");
 
@@ -108,13 +110,10 @@ void test_imp_update_h(int nargc, char **argv)
 	printf("update_h (       ToLevel2):                      ");
 	test_print(pass);
 
-//	output_to_paraview("ZTest_Geom");
-//	output_to_paraview("ZTest_Normals");
-//	exit(1);
-
 	code_cleanup(0);
 
 
+	// ******************************************************************************************************** //
 	// QUADs
 	strcpy(argvNew[1],"test/Test_update_h_QUAD");
 
@@ -163,6 +162,77 @@ void test_imp_update_h(int nargc, char **argv)
 	run_test(&pass,"ToLevel2");
 	printf("update_h (       ToLevel2):                      ");
 	test_print(pass);
+
+	code_cleanup(0);
+
+
+	// ******************************************************************************************************** //
+	// TETs
+	strcpy(argvNew[1],"test/Test_update_h_TET");
+
+	code_startup(nargc,argvNew,2);
+
+	//     0         10        20        30        40        50
+	run_test(&pass,"FullREFINE");
+	printf("update_h (TET,   FullREFINE):                    ");
+	test_print(pass);
+
+	//     0         10        20        30        40        50
+	run_test(&pass,"FullCOARSE");
+	printf("update_h (       FullCOARSE):                    ");
+	test_print(pass);
+
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		indexg = VOLUME->indexg;
+		if (indexg >= 24 && indexg <= 31) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HREFINE;
+		} else if (indexg >= 64 && indexg <= 127) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HCOARSE;
+		}
+	}
+	run_test(&pass,"test");
+	printf("update_h (       test):                      ");
+	test_print(pass);
+
+	output_to_paraview("ZTest_Geomadapt");
+	output_to_paraview("ZTest_Normals");
+	exit(1);
+
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		indexg = VOLUME->indexg;
+		if (indexg >= 24 && indexg <= 87) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HREFINE;
+		} else if (indexg >= 120 && indexg <= 127) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HCOARSE;
+		}
+	}
+/*
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		indexg = VOLUME->indexg;
+		if (indexg <= 23) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HREFINE;
+		} else if ((indexg >= 32 && indexg <= 43) || indexg >= 48) {
+			VOLUME->Vadapt = 1;
+			VOLUME->adapt_type = HCOARSE;
+		}
+	}
+
+	//     0         10        20        30        40        50
+	run_test(&pass,"Mixed");
+	printf("update_h (       Mixed):                         ");
+	test_print(pass);
+
+	mesh_to_level(2);
+	//     0         10        20        30        40        50
+	run_test(&pass,"ToLevel2");
+	printf("update_h (       ToLevel2):                      ");
+	test_print(pass);
+*/
 
 //	output_to_paraview("ZTest_Geom");
 //	output_to_paraview("ZTest_Normals");

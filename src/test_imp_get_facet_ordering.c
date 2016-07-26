@@ -243,6 +243,9 @@ void test_imp_get_facet_ordering(void)
 	free(nOrd);
 
 	/*
+	 *	Comments:
+	 *		Note that case 1 and 2 result in the special case that IndOrdInOut != IndOrdOutIn.
+	 *
 	 *	Expected Output (d = 3, TRI):
 	 *
 	 *		P2 (WSH):

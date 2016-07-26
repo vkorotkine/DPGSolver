@@ -105,6 +105,11 @@ void get_vh_range(const struct S_VOLUME *VOLUME, unsigned int *vhMin, unsigned i
 		*vhMin = 1;
 		*vhMax = 4;
 		break;
+	case TET:
+		// Supported href_type: 0 (Isotropic - 1st internal TET orientation)
+		*vhMin = 1;
+		*vhMax = 8;
+		break;
 	default:
 		printf("Error: Unsupported VType in get_vh_range.\n"), exit(1);
 		break;

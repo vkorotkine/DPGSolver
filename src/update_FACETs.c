@@ -29,7 +29,7 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 {
 	/*
 	 *	Comments:
-	 *		Vfh != f for TET/PYR refinement. (ToBeDeleted)
+	 *		Vfh != f for PYR refinement. (ToBeDeleted)
 	 */
 
 	// Standard datatypes
@@ -71,7 +71,7 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 		default: // FACE 0
 			switch (fh) {
 			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 2; break;  
+			case 1: *IndVInh = 2; break;
 			default: printf("Error: Unsupported (%d, %d, %d) in get_FACET_IndVIn.\n",VType,f,fh), exit(1); break;
 			}
 			*Vfh = 0;
@@ -79,7 +79,7 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 		case 1:
 			switch (fh) {
 			case 0: *IndVInh = 1; break;
-			case 1: *IndVInh = 3; break;  
+			case 1: *IndVInh = 3; break;
 			default: printf("Error: Unsupported (%d, %d, %d) in get_FACET_IndVIn.\n",VType,f,fh), exit(1); break;
 			}
 			*Vfh = 1;
@@ -87,7 +87,7 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 		case 2:
 			switch (fh) {
 			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 1; break;  
+			case 1: *IndVInh = 1; break;
 			default: printf("Error: Unsupported (%d, %d, %d) in get_FACET_IndVIn.\n",VType,f,fh), exit(1); break;
 			}
 			*Vfh = 2;
@@ -95,7 +95,51 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 		case 3:
 			switch (fh) {
 			case 0: *IndVInh = 2; break;
-			case 1: *IndVInh = 3; break;  
+			case 1: *IndVInh = 3; break;
+			default: printf("Error: Unsupported (%d, %d, %d) in get_FACET_IndVIn.\n",VType,f,fh), exit(1); break;
+			}
+			*Vfh = 3;
+			break;
+		}
+		break;
+	case TET:
+		switch (f) {
+		default: // FACE 0
+			switch (fh) {
+			case 0: *IndVInh = 1; break;
+			case 1: *IndVInh = 2; break;
+			case 2: *IndVInh = 3; break;
+			case 3: *IndVInh = 4; break;
+			default: printf("Error: Unsupported (%d, %d, %d) in get_FACET_IndVIn.\n",VType,f,fh), exit(1); break;
+			}
+			*Vfh = 0;
+			break;
+		case 1:
+			switch (fh) {
+			case 0: *IndVInh = 0; break;
+			case 1: *IndVInh = 2; break;
+			case 2: *IndVInh = 3; break;
+			case 3: *IndVInh = 5; break;
+			default: printf("Error: Unsupported (%d, %d, %d) in get_FACET_IndVIn.\n",VType,f,fh), exit(1); break;
+			}
+			*Vfh = 1;
+			break;
+		case 2:
+			switch (fh) {
+			case 0: *IndVInh = 0; break;
+			case 1: *IndVInh = 1; break;
+			case 2: *IndVInh = 3; break;
+			case 3: *IndVInh = 6; break;
+			default: printf("Error: Unsupported (%d, %d, %d) in get_FACET_IndVIn.\n",VType,f,fh), exit(1); break;
+			}
+			*Vfh = 2;
+			break;
+		case 3:
+			switch (fh) {
+			case 0: *IndVInh = 0; break;
+			case 1: *IndVInh = 1; break;
+			case 2: *IndVInh = 2; break;
+			case 3: *IndVInh = 7; break;
 			default: printf("Error: Unsupported (%d, %d, %d) in get_FACET_IndVIn.\n",VType,f,fh), exit(1); break;
 			}
 			*Vfh = 3;
@@ -111,16 +155,62 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 static unsigned int get_FACET_VfOut(const unsigned int fh, const unsigned int IndOrd, const unsigned int neigh_f,
                                     const unsigned int VType)
 {
+	unsigned int Vfl;
+
+	// silence
+	Vfl = 0;
+
 	switch (VType) {
 	case TRI:
 	case QUAD:
 		// Isotropic refinement only
 		switch (IndOrd) {
 		default: // case 0
-			return neigh_f*NFREFMAX+fh+1;
+			Vfl = fh+1;
 			break;
 		case 1:
-			return neigh_f*NFREFMAX+((fh+1)%2)+1;
+			if      (fh == 0) Vfl = 2;
+			else if (fh == 1) Vfl = 1;
+			else
+				printf("Error: Unsupported fh for VType %d, IndOrd %d in get_FACET_VfOut.\n",VType,IndOrd), exit(1);
+			break;
+		}
+		break;
+	case TET:
+		// Isotropic refinement only
+		switch (IndOrd) {
+		default: // case 0
+			Vfl = fh+1;
+			break;
+		case 1:
+			if      (fh == 0) Vfl = 2;
+			else if (fh == 1) Vfl = 3;
+			else if (fh == 2) Vfl = 1;
+			else if (fh == 3) Vfl = fh+1;
+			break;
+		case 2:
+			if      (fh == 0) Vfl = 3;
+			else if (fh == 1) Vfl = 1;
+			else if (fh == 2) Vfl = 2;
+			else if (fh == 3) Vfl = fh+1;
+			break;
+		case 3:
+			if      (fh == 0) Vfl = 1;
+			else if (fh == 1) Vfl = 3;
+			else if (fh == 2) Vfl = 2;
+			else if (fh == 3) Vfl = fh+1;
+			break;
+		case 4:
+			if      (fh == 0) Vfl = 3;
+			else if (fh == 1) Vfl = 2;
+			else if (fh == 2) Vfl = 1;
+			else if (fh == 3) Vfl = fh+1;
+			break;
+		case 5:
+			if      (fh == 0) Vfl = 2;
+			else if (fh == 1) Vfl = 1;
+			else if (fh == 2) Vfl = 3;
+			else if (fh == 3) Vfl = fh+1;
 			break;
 		}
 		break;
@@ -128,6 +218,7 @@ static unsigned int get_FACET_VfOut(const unsigned int fh, const unsigned int In
 		printf("Error: Unsupported VType in get_VfOut.\n"), exit(1);
 		break;
 	}
+	return neigh_f*NFREFMAX+Vfl;
 }
 
 static unsigned int get_FACET_type(struct S_FACET *FACET)
@@ -168,6 +259,10 @@ static unsigned int get_fhMax(const unsigned int VType, const unsigned int href_
 		// Supported href_type: 0 (Isotropic)
 		return 2;
 		break;
+	case TET:
+		// Supported href_type: 0 (Isotropic)
+		return 4;
+		break;
 	default:
 		printf("Error: Unsupported VType in get_fhMax.\n"), exit(1);
 		return 0;
@@ -182,6 +277,9 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 	unsigned int i, VType, IndVhOut, f, IndOrdInOut, IndOrdOutIn, sfIn, sfOut;
 
 	struct S_VOLUME *VOLUMEc;
+
+	// silence
+	IndVhOut = IndOrdInOut = IndOrdOutIn = 0;
 
 //printf("%d %d\n",VOLUME->indexg,vh);
 	VType = VOLUME->type;
@@ -212,6 +310,25 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 		IndOrdInOut = 0; // Same
 		IndOrdOutIn = 0; // Same
 		break;
+	case TET:
+		// Isotropic refinement only.
+		switch (vh) {
+		case 0: IndVhOut = 6; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fh = 0
+		case 1: IndVhOut = 7; f = 1; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fh = 1
+		case 2: IndVhOut = 4; f = 2; IndOrdInOut = 3; IndOrdOutIn = 3; break; // fh = 2
+		case 3: IndVhOut = 5; f = 3; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fh = 3
+		case 4:
+			if      (fIn == 1) { IndVhOut = 7; IndOrdInOut = 2; IndOrdOutIn = 1; } // fh = 1
+			else if (fIn == 3) { IndVhOut = 5; IndOrdInOut = 1; IndOrdOutIn = 2; } // fh = 3
+			f = 2;
+			break;
+		case 5: IndVhOut = 6; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fh = 0
+		case 6: IndVhOut = 7; f = 0; IndOrdInOut = 1; IndOrdOutIn = 2; break; // fh = 1
+		default: // Should already have found all FACETs
+			printf("Error: Should not be entering set_FACET_Out for vh %d for VType %d.\n",vh,VType), exit(1);
+			break;
+		}
+		break;
 	default:
 		printf("Error: Unsupported VType in set_FACET_Out.\n"), exit(1);
 		break;
@@ -239,58 +356,85 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 
 static void set_FACET_Out_External(struct S_FACET *FACETc, struct S_VOLUME *VOLUME)
 {
-	unsigned int i, VType, IndVhOut, f, sfIn, sfOut;
+	unsigned int i, VType, IndVhOut, VfOut, f, sfIn, sfOut;
 
 	struct S_VOLUME *VOLUMEc;
 
 	VType = VOLUME->type;
+	VfOut = FACETc->VfOut;
 	switch (VType) {
 	case TRI:
 		// Isotropic refinement only.
-		switch (FACETc->VfOut) {
+		switch (VfOut) {
 		case NFREFMAX+1:
 		case 2*NFREFMAX+1:
-			IndVhOut = 0;
-			break;
+			IndVhOut = 0; break;
 		case 1:
 		case 2*NFREFMAX+2:
-			IndVhOut = 1;
-			break;
+			IndVhOut = 1; break;
 		case 2:
 		case NFREFMAX+2:
-			IndVhOut = 2;
-			break;
+			IndVhOut = 2; break;
 		default:
-printf("%d %d\n",FACETc->VIn->indexg,FACETc->VOut->indexg);
-			printf("Error: Unsupported VfOut = %d in set_FACET_Out_External.\n",FACETc->VfOut), exit(1);
+//printf("%d %d\n",FACETc->VIn->indexg,FACETc->VOut->indexg);
+			printf("Error: Unsupported VfOut = %d in set_FACET_Out_External.\n",VfOut), exit(1);
 			break;
 		}
-		f = (FACETc->VfOut)/NFREFMAX;
+		f = VfOut/NFREFMAX;
 		break;
 	case QUAD:
 		// Isotropic refinement only.
-		switch (FACETc->VfOut) {
+		switch (VfOut) {
 		case 1:
 		case 2*NFREFMAX+1:
-			IndVhOut = 0;
-			break;
+			IndVhOut = 0; break;
 		case NFREFMAX+1:
 		case 2*NFREFMAX+2:
-			IndVhOut = 1;
-			break;
+			IndVhOut = 1; break;
 		case 2:
 		case 3*NFREFMAX+1:
-			IndVhOut = 2;
-			break;
+			IndVhOut = 2; break;
 		case NFREFMAX+2:
 		case 3*NFREFMAX+2:
-			IndVhOut = 3;
-			break;
+			IndVhOut = 3; break;
 		default:
-			printf("Error: Unsupported VfOut = %d in set_FACET_Out_External.\n",FACETc->VfOut), exit(1);
+			printf("Error: Unsupported VfOut = %d in set_FACET_Out_External.\n",VfOut), exit(1);
 			break;
 		}
-		f = (FACETc->VfOut)/NFREFMAX;
+		f = VfOut/NFREFMAX;
+		break;
+	case TET:
+		// Isotropic refinement only.
+		switch (VfOut) {
+		case NFREFMAX+1:
+		case 2*NFREFMAX+1:
+		case 3*NFREFMAX+1:
+			IndVhOut = 0; break;
+		case 1:
+		case 2*NFREFMAX+2:
+		case 3*NFREFMAX+2:
+			IndVhOut = 1; break;
+		case 2:
+		case NFREFMAX+2:
+		case 3*NFREFMAX+3:
+			IndVhOut = 2; break;
+		case 3:
+		case NFREFMAX+3:
+		case 2*NFREFMAX+3:
+			IndVhOut = 3; break;
+		case 4:
+			IndVhOut = 4; break;
+		case NFREFMAX+4:
+			IndVhOut = 5; break;
+		case 2*NFREFMAX+4:
+			IndVhOut = 6; break;
+		case 3*NFREFMAX+4:
+			IndVhOut = 7; break;
+		default:
+			printf("Error: Unsupported VfOut = %d in set_FACET_Out_External.\n",VfOut), exit(1);
+			break;
+		}
+		f = VfOut/NFREFMAX;
 		break;
 	default:
 		printf("Error: Unsupported VType in set_FACET_Out_External.\n"), exit(1);
@@ -312,63 +456,61 @@ printf("%d %d\n",FACETc->VIn->indexg,FACETc->VOut->indexg);
 
 static void get_Indsf(struct S_FACET *FACET, unsigned int *sfIn, unsigned int *sfOut)
 {
-	unsigned int VType, Vf, f, Vfl;
+	unsigned int i, VType, Vf, f, Vfl, sf[2];
 
-	Vf   = FACET->VfIn;
-	f    = Vf/NFREFMAX;
-	Vfl  = Vf%NFREFMAX;
+	for (i = 0; i < 2; i++) {
+		if (i == 0) {
+			Vf    = FACET->VfIn;
+			VType = FACET->VIn->type;
+		} else {
+			Vf    = FACET->VfOut;
+			VType = FACET->VOut->type;
+		}
+		f     = Vf/NFREFMAX;
+		Vfl   = Vf%NFREFMAX;
 
-	VType = FACET->VIn->type;
-	switch (VType) {
-	case TRI:
-	case QUAD:
-		// Isotropic refinement only.
-		switch (Vfl) {
-		case 0:
-		case 1:
-			*sfIn = 0;
+		switch (VType) {
+		case TRI:
+		case QUAD:
+			// Isotropic refinement only.
+			switch (Vfl) {
+			case 0:
+				sf[i] = 0;
+				break;
+			case 1:
+			case 2:
+				sf[i] = Vfl-1;
+				break;
+			default:
+				printf("Error: Unsupported Vfl in case %d of get_Indsf (%d).\n",VType,i), exit(1);
+				break;
+			}
 			break;
-		case 2:
-			*sfIn = 1;
+		case TET:
+			// Isotropic refinement only.
+			switch (Vfl) {
+			case 0:
+				sf[i] = 0;
+				break;
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+				sf[i] = Vfl-1;
+				break;
+			default:
+				printf("Error: Unsupported Vfl in case %d of get_Indsf (%d).\n",VType,i), exit(1);
+				break;
+			}
 			break;
 		default:
-			printf("Error: Unsupported VfInl in case %d of get_Indsf.\n",VType), exit(1);
+			printf("Error: Unsupported VType in get_Indsf (%d).\n",i), exit(1);
 			break;
 		}
-		*sfIn += f*NSUBFMAX;
-		break;
-	default:
-		printf("Error: Unsupported VIn->type in get_Indsf.\n"), exit(1);
-		break;
+		sf[i] += f*NSUBFMAX;
 	}
-
-	Vf   = FACET->VfOut;
-	f    = Vf/NFREFMAX;
-	Vfl  = Vf%NFREFMAX;
-
-	VType = FACET->VOut->type;
-	switch (VType) {
-	case TRI:
-	case QUAD:
-		// Isotropic refinement only.
-		switch (Vfl) {
-		case 0:
-		case 1:
-			*sfOut = 0;
-			break;
-		case 2:
-			*sfOut = 1;
-			break;
-		default:
-			printf("Error: Unsupported VfOutl in case %d of get_Indsf.\n",VType), exit(1);
-			break;
-		}
-		*sfOut += f*NSUBFMAX;
-		break;
-	default:
-		printf("Error: Unsupported VOut->type in get_Indsf.\n"), exit(1);
-		break;
-	}
+	*sfIn  = sf[0];
+	*sfOut = sf[1];
 }
 
 static unsigned int is_VOLUME_VIn(const unsigned int indexgVOLUME, const unsigned int indexgVIn)
@@ -444,6 +586,18 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 				Indsf[0] = 3*NSUBFMAX; Indsf[1] = 3*NSUBFMAX;
 				break;
 			}
+			break;
+		case TET:
+			// Supported: Isotropic refinement
+			sfMax = 4;
+			switch (f) {
+			default: IndVc[0] = 1; IndVc[1] = 2; IndVc[2] = 3; IndVc[3] = 4; break;
+			case 1:  IndVc[0] = 0; IndVc[1] = 2; IndVc[2] = 3; IndVc[3] = 5; break;
+			case 2:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 3; IndVc[3] = 6; break;
+			case 3:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 7; break;
+			}
+			for (sf = 0; sf < sfMax; sf++)
+				Indsf[sf] = f*NSUBFMAX;
 			break;
 		default:
 			printf("Error: Unsupported VType in coarse_update.\n"), exit(1);
@@ -543,7 +697,7 @@ for (int i = 0; i < NFMAX*NSUBFMAX; i++) {
 		// Supported: Isotropic refinement
 		sfMax_i = 3;
 
-		IndVc[0] = 3; IndVc[1] = 3; IndVc[2] = 3; 
+		IndVc[0] = 3; IndVc[1] = 3; IndVc[2] = 3;
 		Indsf[0] = 0; Indsf[1] = 1; Indsf[2] = 2;
 		for (i = 0; i < sfMax_i; i++)
 			Indsf[i] *= NSUBFMAX;
@@ -551,8 +705,16 @@ for (int i = 0; i < NFMAX*NSUBFMAX; i++) {
 	case QUAD:
 		sfMax_i = 4;
 
-		IndVc[0] = 0; IndVc[1] = 0; IndVc[2] = 1; IndVc[3] = 2; 
+		IndVc[0] = 0; IndVc[1] = 0; IndVc[2] = 1; IndVc[3] = 2;
 		Indsf[0] = 1; Indsf[1] = 3; Indsf[2] = 3; Indsf[3] = 1;
+		for (i = 0; i < sfMax_i; i++)
+			Indsf[i] *= NSUBFMAX;
+		break;
+	case TET:
+		sfMax_i = 8;
+
+		IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 3; IndVc[4] = 4; IndVc[5] = 4; IndVc[6] = 5; IndVc[7] = 6;
+		Indsf[0] = 0; Indsf[1] = 1; Indsf[2] = 2; Indsf[3] = 3; Indsf[4] = 1; Indsf[5] = 3; Indsf[6] = 0; Indsf[7] = 1;
 		for (i = 0; i < sfMax_i; i++)
 			Indsf[i] *= NSUBFMAX;
 		break;
@@ -587,7 +749,7 @@ void update_FACET_hp(void)
 
 	// Standard datatypes
 	unsigned int l, Nf, f, fh, Vfh, vh, sf, sfIn, sfOut, fhMax, sfMax, dummy_ui,
-	             Indf, IndVInh, adapt_type,
+	             Indf, IndVInh, adapt_type, BC, internal_BC,
 	             *NsubF;
 
 	struct S_ELEMENT *ELEMENT;
@@ -628,8 +790,11 @@ printf("FACETpoint: %p",FACET);
 printf("FACETpoint: %p",FACET->VIn);
 printf("FACETpoint: %p\n",FACET->VOut);
 */
-							VIn   = FACET->VIn;
-							VOut  = FACET->VOut;
+							VIn  = FACET->VIn;
+							VOut = FACET->VOut;
+							BC   = FACET->BC;
+
+							internal_BC = (BC == 0 || (BC % BC_STEP_SC > 50));
 
 							fhMax = get_fhMax(VOLUME->type,VOLUME->hrefine_type);
 							for (fh = 0; fh < fhMax; fh++) {
@@ -646,9 +811,7 @@ printf("FACETpoint: %p\n",FACET->VOut);
 								FACETc->indexg = NGF++;
 //printf("362 %d\n",FACETc->indexg);
 								FACETc->level  = (VOLUME->level)+1;
-								int BC = FACET->BC;
 								FACETc->BC     = BC;
-								int internal_BC = (BC == 0 || (BC % BC_STEP_SC > 50));
 
 								// Find out if VOLUME == VIn or VOut
 if (FACET->level == 1) {
@@ -698,7 +861,6 @@ if (VOLUME->indexg == 1 && f == 1) {
 
 									FACETc->VOut  = VIn;
 									FACETc->VfOut = get_FACET_VfOut(fh,FACET->IndOrdInOut,VOut->neigh_f[f*NFREFMAX],VOut->type);
-//									FACETc->VfOut = get_FACET_VfOut(fh,FACET->IndOrdOutIn,VOLUMEc->neigh_f[f*NFREFMAX],VOLUME->type);
 
 									FACETc->IndOrdInOut = FACET->IndOrdOutIn;
 									FACETc->IndOrdOutIn = FACET->IndOrdInOut;
@@ -739,7 +901,7 @@ if (FACETc->VOut->indexg == 3) {
 
 					// Internal FACETs (Always created)
 					vh = 0;
-					for (VOLUMEc = VOLUME->child0; VOLUMEc != NULL; VOLUMEc = VOLUMEc->next) {
+					for (VOLUMEc = VOLUME->child0; VOLUMEc; VOLUMEc = VOLUMEc->next) {
 						ELEMENT = get_ELEMENT_type(VOLUMEc->type);
 						Nf = ELEMENT->Nf;
 

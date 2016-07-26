@@ -245,7 +245,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 		for (Pb = PbMin; Pb <= PbMax; Pb++) {
 			ELEMENT->ChiS_vS[P][Pb]    = calloc(NVREFSFMAX , sizeof ***(ELEMENT->ChiS_vS));
 			ELEMENT->ChiS_vIs[P][Pb]   = calloc(NVREFSFMAX , sizeof ***(ELEMENT->ChiS_vIs));
-			ELEMENT->ChiS_vIc[P][Pb]   = calloc(NVREFSFMAX , sizeof ***(ELEMENT->ChiS_vIc));
+			ELEMENT->ChiS_vIc[P][Pb]   = calloc(NVREFMAX   , sizeof ***(ELEMENT->ChiS_vIc));
 
 			ELEMENT->I_vGc_vS[P][Pb]  = calloc(NVREFSFMAX , sizeof ***(ELEMENT->I_vGc_vS));
 			ELEMENT->I_vGc_vIs[P][Pb] = calloc(NVREFSFMAX , sizeof ***(ELEMENT->I_vGc_vIs));

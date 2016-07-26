@@ -67,12 +67,6 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 static unsigned int get_VOLUMEc_type(const unsigned int VType, const unsigned int vh)
 {
 	switch (VType) {
-	case TET:
-		if (vh < 4)
-			return TET;
-		else
-			return PYR;
-		break;
 	case PYR:
 		if (vh < 4 || vh > 7)
 			return PYR;
@@ -249,7 +243,6 @@ void update_VOLUME_hp(void)
 					default: // LINE, TRI, QUAD, HEX, WEDGE
 						VOLUMEc->type = VType;
 						break;
-					case TET:
 					case PYR:
 						VOLUMEc->type = get_VOLUMEc_type(VType,vh);
 						break;

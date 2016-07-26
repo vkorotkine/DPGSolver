@@ -619,6 +619,13 @@ static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const
 
 static void setup_ELEMENT_VeV(const unsigned int EType)
 {
+	/*
+	 *	Comments:
+	 *		For VeVref_TET, note that there are 3 options for the internal TET positioning. Here only one option is
+	 *		supported but the others can be added if, for example, it is desired to refine TETs by splitting along the
+	 *		longest physical diagonal.
+	 */
+
 	// Standard datatypes
 	unsigned int i, j, jMax, VeVrefInd, Nve, *Nvve, Nvref;
 	double       **VeV;
@@ -653,11 +660,11 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 	                           0.0 , 0.5 , 0.5 ,
 	                           0.5 , 0.0 , 0.5 ,
 	                           0.5 , 0.5 , 0.0 },
-	       VeVref_TET[120]  = {1.0 , 0.0 , 0.0 , 0.0 , // Needs modification (TET to TETs only) ToBeDeleted
+	       VeVref_TET[144]  = {1.0 , 0.0 , 0.0 , 0.0 , // Conforming
 	                           0.0 , 1.0 , 0.0 , 0.0 ,
 	                           0.0 , 0.0 , 1.0 , 0.0 ,
 	                           0.0 , 0.0 , 0.0 , 1.0 ,
-	                           1.0 , 0.0 , 0.0 , 0.0 ,
+	                           1.0 , 0.0 , 0.0 , 0.0 , // Corner
 	                           0.5 , 0.5 , 0.0 , 0.0 ,
 	                           0.5 , 0.0 , 0.5 , 0.0 ,
 	                           0.5 , 0.0 , 0.0 , 0.5 ,
@@ -669,21 +676,27 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 	                           0.0 , 0.5 , 0.5 , 0.0 ,
 	                           0.0 , 0.0 , 1.0 , 0.0 ,
 	                           0.0 , 0.0 , 0.5 , 0.5 ,
-	                           0.5 , 0.0 , 0.5 , 0.0 ,
+	                           0.5 , 0.0 , 0.0 , 0.5 ,
+	                           0.0 , 0.5 , 0.0 , 0.5 ,
+	                           0.0 , 0.0 , 0.5 , 0.5 ,
+	                           0.0 , 0.0 , 0.0 , 1.0 ,
+	                           0.5 , 0.0 , 0.5 , 0.0 , // Internal
+	                           0.0 , 0.0 , 0.5 , 0.5 ,
+	                           0.0 , 0.5 , 0.0 , 0.5 ,
 	                           0.0 , 0.5 , 0.5 , 0.0 ,
+	                           0.0 , 0.0 , 0.5 , 0.5 ,
 	                           0.0 , 0.5 , 0.0 , 0.5 ,
 	                           0.5 , 0.0 , 0.0 , 0.5 ,
+	                           0.5 , 0.0 , 0.5 , 0.0 ,
+	                           0.0 , 0.5 , 0.0 , 0.5 ,
+	                           0.5 , 0.0 , 0.0 , 0.5 ,
+	                           0.5 , 0.0 , 0.5 , 0.0 ,
 	                           0.5 , 0.5 , 0.0 , 0.0 ,
-	                           0.5 , 0.0 , 0.5 , 0.0 ,
 	                           0.0 , 0.5 , 0.5 , 0.0 ,
-	                           0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.5 , 0.0 , 0.0 , 0.5 ,
-	                           0.0 , 0.0 , 0.5 , 0.5 ,
-	                           0.5 , 0.0 , 0.0 , 0.5 ,
-	                           0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.0 , 0.0 , 0.5 , 0.5 ,
-	                           0.0 , 0.0 , 0.0 , 1.0 },
-	       VeVref_PYR[255]  = {1.0 , 0.0 , 0.0 , 0.0 , 0.0 ,
+	                           0.5 , 0.0 , 0.5 , 0.0 ,
+	                           0.5 , 0.5 , 0.0 , 0.0 ,
+	                           0.0 , 0.5 , 0.0 , 0.5 },
+	       VeVref_PYR[255]  = {1.0 , 0.0 , 0.0 , 0.0 , 0.0 , // Likely change ordering such that Vfh = f here (ToBeDeleted)
 	                           0.0 , 1.0 , 0.0 , 0.0 , 0.0 ,
 	                           0.0 , 0.0 , 1.0 , 0.0 , 0.0 ,
 	                           0.0 , 0.0 , 0.0 , 1.0 , 0.0 ,
@@ -739,7 +752,7 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 	switch(EType) {
 	case LINE:
 		for (i = 0; i < Nvref; i++)
-			Nvve[i] = 2;
+			Nvve[i] = Nve;
 
 		VeVrefInd = 0;
 		for (i = 0; i < Nvref; i++) {
@@ -753,7 +766,7 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 		break;
 	case TRI:
 		for (i = 0; i < Nvref; i++)
-			Nvve[i] = 3;
+			Nvve[i] = Nve;
 
 		VeVrefInd = 0;
 		for (i = 0; i < Nvref; i++) {
@@ -766,11 +779,9 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 		}
 		break;
 	case TET:
-		// Original TET, 4 TETs, 2 PYRs
-		for (i = 0; i < 5; i++)
+		// Original TET, 8 TETs (4 corner TETs + 2 PYRs divided into 2 TETs each)
+		for (i = 0; i < Nvref; i++)
 			Nvve[i] = Nve;
-		for (i = 5; i < Nvref; i++)
-			Nvve[i] = 5;
 
 		VeVrefInd = 0;
 		for (i = 0; i < Nvref; i++) {
@@ -830,6 +841,12 @@ static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
 			return 0.25;
 		else
 			printf("Error: Unsupported vref (%d) (anisotropic) for QUADs in get_L2_scaling.\n",vref), exit(1);
+		break;
+	case TET:
+		if (vref < 9)
+			return 0.125;
+		else
+			printf("Error: Unsupported vref (%d) (anisotropic) for TETs in get_L2_scaling.\n",vref), exit(1);
 		break;
 	default:
 		printf("Error: Unsupported EType (%d) in get_L2_scaling.\n",EType), exit(1);
@@ -1263,6 +1280,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				vrefSF = vh; // Used for operators defined only for setup_TP_operators
 				mm_CTN_d(Nvve[vh],dE,Nve,VeV[vh],E_rst_vC,rst_vC);
 				if (vh) {
+if (Nvve[vh] != NvnGs[1])
+	printf("Error: BCoords must be fixed in setup_operators.\n"), exit(1);
+// Note: This occurs for PYR refinement into PYR+TET
 					rst_vS[vh]  = mm_Alloc_d(CBCM,CBNT,CBNT,NvnS[Pb], dE,Nvve[vh],1.0,BCoords_V->S[Pb], rst_vC); // free
 					rst_vIs[vh] = mm_Alloc_d(CBCM,CBNT,CBNT,NvnIs[Pb],dE,Nvve[vh],1.0,BCoords_V->Is[Pb],rst_vC); // free
 					rst_vIc[vh] = mm_Alloc_d(CBCM,CBNT,CBNT,NvnIc[Pb],dE,Nvve[vh],1.0,BCoords_V->Ic[Pb],rst_vC); // free
@@ -1301,10 +1321,10 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				ChiCc_vIc = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnCc[P],NvnCc[P],1.0,ChiRefCc_vIc,TCc); // free
 
 				// Returned SF Operators
+				ChiS_vIc[P][Pb][vh] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnS[P],NvnS[P],1.0,ChiRefS_vIc,TS); // keep
 				if (vrefSF < NvrefSF) {
 					ChiS_vS[P][Pb][vrefSF]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb], NvnS[P],NvnS[P],1.0,ChiRefS_vS,TS);  // keep
 					ChiS_vIs[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnS[P],NvnS[P],1.0,ChiRefS_vIs,TS); // keep
-					ChiS_vIc[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnS[P],NvnS[P],1.0,ChiRefS_vIc,TS); // keep
 
 					if (P == Pb) {
 						I_vGs_vS[1][Pb][vrefSF]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb] ,NvnGs[1],NvnGs[1],1.0,ChiGs_vS, ChiInvGs_vGs); // keep
@@ -1341,7 +1361,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 				// Returned Adaptation Operators
 				if (vh == 0 || P == Pb) {
-					Ihat_vS_vS[P][Pb][vh]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb],NvnS[P],NvnS[Pb],1.0,ChiInvS_vS[Pb][Pb][0],ChiS_vS[P][Pb][vh]); // keep
+				    dummyPtr_d = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb], NvnS[P],NvnS[P],1.0,ChiRefS_vS,TS);  // free
+					Ihat_vS_vS[P][Pb][vh]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb],NvnS[P],NvnS[Pb],1.0,ChiInvS_vS[Pb][Pb][0],dummyPtr_d); // keep
+					free(dummyPtr_d);
 					if (P == PGlobal && Pb == PGlobal) {
 						I_vGs_vGs[1][1][vh] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGs[1],NvnGs[1],NvnGs[1],1.0,ChiGs_vGs,ChiInvGs_vGs); // keep
 					}

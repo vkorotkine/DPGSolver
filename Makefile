@@ -13,8 +13,8 @@ CSTD = -std=c99
 
 # Options
 #OPTS = -O3
-OPTS = -g -Wall -Wextra -O3
-#OPTS = -g -Wall -Wextra -O3 -DTEST
+#OPTS = -g -Wall -Wextra -O3
+OPTS = -g -Wall -Wextra -O3 -DTEST
 
 # Standard libraries (Math)
 STD_LIB = -lm
@@ -144,7 +144,7 @@ SHELL=/bin/bash
 
 # Compile executable file (Default goal)
 $(EXECUTABLE) : $(OBJECTS)
-	@echo 
+	@echo
 	@echo Building executable file
 	@echo
 	$(CC) -o $@ $(OPTS) $^ $(INCS) $(LIBS)
@@ -153,7 +153,7 @@ $(EXECUTABLE) : $(OBJECTS)
 # Still need to figure out how to include header dependencies.
 # See Miller(2008)-Recursive_Make_Considered_Harmful
 $(OBJECTS) : $(OBJDIR)/%.o : $(SRCDIR)/%.c
-	@echo 
+	@echo
 	@echo Building/updating object files
 	@echo
 	$(CC) $(OPTS) $(CSTD) -c -o $@ $< $(INCS)
