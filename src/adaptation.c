@@ -92,9 +92,6 @@ void get_vh_range(const struct S_VOLUME *VOLUME, unsigned int *vhMin, unsigned i
 	// Standard datatypes
 	unsigned int VType, href_type;
 
-//	struct S_ELEMENT *ELEMENT;
-//	ELEMENT = get_ELEMENT_type(VType);
-
 	VType = VOLUME->type;
 	href_type = VOLUME->hrefine_type;
 
@@ -107,6 +104,11 @@ void get_vh_range(const struct S_VOLUME *VOLUME, unsigned int *vhMin, unsigned i
 		break;
 	case TET:
 		// Supported href_type: 0 (Isotropic - 1st internal TET orientation)
+		*vhMin = 1;
+		*vhMax = 8;
+		break;
+	case HEX:
+		// Supported href_type: 0 (Isotropic)
 		*vhMin = 1;
 		*vhMax = 8;
 		break;

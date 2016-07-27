@@ -118,8 +118,8 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vCc_fIs);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vCc_fIc);
 
-	array_free4_d(NP,NP,1,ELEMENT->Is_Weak_VV);
-	array_free4_d(NP,NP,1,ELEMENT->Ic_Weak_VV);
+	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->Is_Weak_VV);
+	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->Ic_Weak_VV);
 
 	array_free5_d(NP,NP,1,d,ELEMENT->Ds_Weak_VV);
 	array_free5_d(NP,NP,1,d,ELEMENT->Dc_Weak_VV);

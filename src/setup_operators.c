@@ -1820,7 +1820,7 @@ void setup_ELEMENT_VeF(const unsigned int EType)
 		for (i = 0, iMax = Nf;               i < iMax; i++) {
 		for (j = 0, jMax = Nfve[i]*Nfref[i]; j < jMax; j++) {
 		for (k = 0, kMax = Nfve[i];          k < kMax; k++) {
-			VeF[i*(Nfref[i]*Nfve[i]*Nve)+j*Nve+VeFcon[i*4+k]] = VeVref_LINE[j*kMax+k];
+			VeF[i*(Nfref[i]*Nfve[i]*Nve)+j*Nve+VeFcon[i*NFVEMAX+k]] = VeVref_LINE[j*kMax+k];
 		}}}
 
 		break;
@@ -1830,7 +1830,7 @@ void setup_ELEMENT_VeF(const unsigned int EType)
 		for (i = 0, iMax = Nf;               i < iMax; i++) {
 		for (j = 0, jMax = Nfve[i]*Nfref[i]; j < jMax; j++) {
 		for (k = 0, kMax = Nfve[i];          k < kMax; k++) {
-			VeF[i*(Nfref[i]*Nfve[i]*Nve)+j*Nve+VeFcon[i*4+k]] = VeVref_TRI[j*kMax+k];
+			VeF[i*(Nfref[i]*Nfve[i]*Nve)+j*Nve+VeFcon[i*NFVEMAX+k]] = VeVref_TRI[j*kMax+k];
 		}}}
 
 		break;
@@ -1840,7 +1840,7 @@ void setup_ELEMENT_VeF(const unsigned int EType)
 		for (i = 0, iMax = Nf;               i < iMax; i++) {
 		for (j = 0, jMax = Nfve[i]*Nfref[i]; j < jMax; j++) {
 		for (k = 0, kMax = Nfve[i];          k < kMax; k++) {
-			VeF[i*(Nfref[i]*Nfve[i]*Nve)+j*Nve+VeFcon[i*4+k]] = VeVref_QUAD[j*kMax+k];
+			VeF[i*(Nfref[i]*Nfve[i]*Nve)+j*Nve+VeFcon[i*NFVEMAX+k]] = VeVref_QUAD[j*kMax+k];
 		}}}
 
 		break;
@@ -1860,9 +1860,9 @@ void setup_ELEMENT_VeF(const unsigned int EType)
 			for (j = 0, jMax = Nfve[i]*Nfref[i]; j < jMax; j++) {
 			for (k = 0, kMax = Nfve[i];          k < kMax; k++) {
 				if (Nfve[i] == 3)
-					VeF[iStep+j*Nve+VeFcon[i*4+k]] = VeVref_TRI[j*kMax+k];
+					VeF[iStep+j*Nve+VeFcon[i*NFVEMAX+k]] = VeVref_TRI[j*kMax+k];
 				else if (Nfve[i] == 4)
-					VeF[iStep+j*Nve+VeFcon[i*4+k]] = VeVref_QUAD[j*kMax+k];
+					VeF[iStep+j*Nve+VeFcon[i*NFVEMAX+k]] = VeVref_QUAD[j*kMax+k];
 			}
 		}}
 
@@ -1888,7 +1888,7 @@ void setup_ELEMENT_VeF(const unsigned int EType)
 
 /*
 printf("\n\nEType: %d\n\n\n",EType);
-i = 0;
+i = 2;
 for (j = 0; j < Nfref[i]; j++)
 	array_print_d(Nfve[i],Nve,ELEMENT->VeF[i*NFREFMAX+j],'R');
 */

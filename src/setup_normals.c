@@ -107,7 +107,12 @@ void setup_normals(struct S_FACET *FACET)
 				n_fS[fn*d+dim] /= nSum;
 		}
 
+		if (FACET->n_fS)
+			free(FACET->n_fS);
 		FACET->n_fS = n_fS;
+
+		if (FACET->detJF_fS)
+			free(FACET->detJF_fS);
 		FACET->detJF_fS = detJF_fS;
 		break;
 case ADAPT_P: // ToBeModified
@@ -144,7 +149,12 @@ case ADAPT_HP:
 				n_fI[fn*d+dim] /= nSum;
 		}
 
+		if (FACET->n_fI)
+			free(FACET->n_fI);
 		FACET->n_fI = n_fI;
+
+		if (FACET->detJF_fI)
+			free(FACET->detJF_fI);
 		FACET->detJF_fI = detJF_fI;
 		break;
 	}

@@ -206,6 +206,9 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 
 	unsigned int f, fh, dimF, dimV1, dimV2;
 
+	// silence
+	dimV1 = dimV2 = -1;
+
 	f  = Vf/NFREFMAX;
 	fh = Vf % NFREFMAX;
 
@@ -221,8 +224,16 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 			OP_SF[dimF]   = OP1[(f%2)*NFREFMAX];
 
 			// VOLUME term NIn/NOut (standard treatment)
-			dimV1 = (dimF+1)%3;
-			dimV2 = (dimV1+1)%3;
+			if (dimF == 0) {
+				dimV1 = 1;
+				dimV2 = 2;
+			} else if (dimF == 1) {
+				dimV1 = 0;
+				dimV2 = 2;
+			} else if (dimF == 2) {
+				dimV1 = 0;
+				dimV2 = 1;
+			}
 
 			NIn_SF[dimV1]  = NIn0;
 			NOut_SF[dimV1] = NOut0;

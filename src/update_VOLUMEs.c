@@ -240,7 +240,7 @@ void update_VOLUME_hp(void)
 					VOLUMEc->PNew = VOLUME->P;
 					VOLUMEc->level = (VOLUME->level)+1;
 					switch (VType) {
-					default: // LINE, TRI, QUAD, HEX, WEDGE
+					default: // LINE, TRI, QUAD, TET, HEX, WEDGE
 						VOLUMEc->type = VType;
 						break;
 					case PYR:
