@@ -112,6 +112,11 @@ void get_vh_range(const struct S_VOLUME *VOLUME, unsigned int *vhMin, unsigned i
 		*vhMin = 1;
 		*vhMax = 8;
 		break;
+	case WEDGE:
+		// Supported href_type: 0 (Isotropic)
+		*vhMin = 1;
+		*vhMax = 8;
+		break;
 	default:
 		printf("Error: Unsupported VType in get_vh_range.\n"), exit(1);
 		break;

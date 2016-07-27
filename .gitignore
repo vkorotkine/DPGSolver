@@ -18,6 +18,7 @@ meshes/SupersonicVortex/*
 meshes/dSphericalBump/*
 meshes/GaussianBump/*
 meshes/PolynomialBump/*
+meshes/Test/*
 cases/*.swp
 cases/logfile
 cases/errorfile*
