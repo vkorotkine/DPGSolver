@@ -722,14 +722,14 @@ void mesh_update(void)
 
 void mesh_to_level(const unsigned int level)
 {
+	/*
+	 *	Comments:
+	 *		This function does not attempt to achieve the minimal L2 solution error while switching levels as it may
+	 *		first project to level 0 even if the desired final level is above 0.
+	 */
+
 	unsigned int updated = 1, Vlevel, VlevelMax;
 	struct S_VOLUME *VOLUME;
-
-	if (level != 0 && !TEST) {
-		// Potentially full refine to levelMax then uniform coarsen.
-		printf("Error: It must be ensured that only VOLUMEs of the appropriate level are marked in mesh_to_level.\n");
-		exit(1);
-	}
 
 	if (level == 0) {
 		while (updated) {
@@ -747,10 +747,7 @@ void mesh_to_level(const unsigned int level)
 					updated = 1;
 
 					VOLUME->Vadapt = 1;
-					if (VOLUME->level > level)
-						VOLUME->adapt_type = HCOARSE;
-					else
-						VOLUME->adapt_type = HREFINE;
+					VOLUME->adapt_type = HCOARSE;
 				}
 			}
 
@@ -758,6 +755,14 @@ void mesh_to_level(const unsigned int level)
 				mesh_update();
 		}
 	} else {
+		// First project to level 0 if VOLUMEs are on different levels
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			if (VOLUME->level != DB.VOLUME->level) {
+				mesh_to_level(0);
+				break;
+			}
+		}
+
 		while (updated) {
 			updated = 0;
 			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {

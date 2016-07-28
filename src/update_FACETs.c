@@ -557,6 +557,17 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 			printf("Error: Should not be entering set_FACET_Out for vh %d for VType %d.\n",vh,VType), exit(1);
 			break;
 		}
+
+// ToBeDeleted (asdf)
+if (!((vh == 0 && (fIn == 0 || fIn == 4)) ||
+      (vh == 1 && (fIn == 1 || fIn == 4)) ||
+      (vh == 2 && (fIn == 2 || fIn == 4)) ||
+      (vh == 3 && fIn == 4) ||
+      (vh == 4 && fIn == 0) ||
+      (vh == 5 && fIn == 1) ||
+      (vh == 6 && fIn == 2)))
+	printf("Error: Invalid vh %d, fIn %d combination in set_FACET_Out (WEDGE).\n",vh,fIn), exit(1);
+
 		break;
 	default:
 		printf("Error: Unsupported VType in set_FACET_Out.\n"), exit(1);
@@ -605,7 +616,6 @@ static void set_FACET_Out_External(struct S_FACET *FACETc, struct S_VOLUME *VOLU
 		case NFREFMAX+2:
 			IndVhOut = 2; break;
 		default:
-//printf("%d %d\n",FACETc->VIn->indexg,FACETc->VOut->indexg);
 			printf("Error: Unsupported VfOut = %d in set_FACET_Out_External.\n",VfOut), exit(1);
 			break;
 		}
@@ -890,6 +900,8 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 		switch (VType) {
 		case TRI:
 			// Supported: Isotropic refinement
+			// NOTE: The computation of FACET->VfOut must be modified if anisotropic refinement is enabled.
+			//       (ToBeDeleted)
 			sfMax = 2;
 			switch (f) {
 			default: // f = 0
@@ -958,7 +970,7 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 			// Supported: Isotropic refinement
 			sfMax = 4;
 			switch (f) {
-			default: IndVc[0] = 1; IndVc[1] = 2; IndVc[2] = 4; IndVc[3] = 5; break;
+			default: IndVc[0] = 1; IndVc[1] = 2; IndVc[2] = 5; IndVc[3] = 6; break;
 			case 1:  IndVc[0] = 0; IndVc[1] = 2; IndVc[2] = 4; IndVc[3] = 6; break;
 			case 2:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 4; IndVc[3] = 5; break;
 			case 3:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 3; break;
@@ -1023,7 +1035,6 @@ for (int i = 0; i < NFMAX*NSUBFMAX; i++) {
 			for (sf = 0; sf < sfMax; sf++) {
 				VOLUMEc = VOLUMEc_list[IndVc[sf]];
 				FACET = VOLUMEc->FACET[Indsf[sf]];
-//				FACET->adapt_type = HCOARSE;
 
 				if (is_VOLUME_VIn(VOLUMEc->indexg,FACET->VIn->indexg)) {
 					FACET->VIn  = FACET->VOut;

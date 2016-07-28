@@ -271,14 +271,14 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 			if (f < 3) { // QUAD FACETs
 				switch (fh) {
 				case 0: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[0]; break;
-				case 1: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[0]; break;
-				case 2: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[0]; break;
-				case 3: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[1]; break;
-				case 4: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[2]; break;
-				case 5: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[1]; break;
-				case 6: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[1]; break;
-				case 7: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[2]; break;
-				case 8: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[2]; break;
+				case 1: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[1]; break;
+				case 2: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[1]; break;
+				case 3: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[2]; break;
+				case 4: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[2]; break;
+				case 5: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[0]; break;
+				case 6: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[0]; break;
+				case 7: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[1]; break;
+				case 8: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[2]; break;
 				default:
 					printf("Error: Unsupported fh for f < 3 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
 					break;

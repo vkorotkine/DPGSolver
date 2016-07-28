@@ -17,11 +17,6 @@
  *		Test correctness of implementation of update_VOLUME_hp and update_FACET_hp for h-adaptation.
  *
  *	Comments:
- *		Gmsh potentially renumbers the TETs in the TET_h.msh file. If the mixed TET test fails, inspect the mesh in
- *		paraview and change the VOLUMEs to be refined/coarsened such that the 1-irregularity of the mesh is maintained.
- *		(ToBeModified).
- *		=> It would be preferable to mark VOLUMEs for refinement/coarsening automatically. Just use the VOLUME centroids
- *		within a certain region. (ToBeDeleted)
  *
  *	Notation:
  *
@@ -29,7 +24,9 @@
  */
 
 struct S_Limits {
-	double XYZ[6];
+	unsigned int index; // 0: < (All dims), 1: > (All dims)
+	char         type;  // (a)nd, (d)iagonal, (o)r
+	double       XYZ[3];
 };
 
 static void code_startup(int nargc, char **argv, const unsigned int Nref);
@@ -60,10 +57,6 @@ void test_imp_update_h(int nargc, char **argv)
 	 *
 	 */
 
-printf("*** test_imp_update_h: Set PGlobal = 2 in .ctrl files for final tests. ***\n");
-
-	unsigned int indexg;
-	struct S_VOLUME *VOLUME;
 	struct S_Limits *XYZ_lim;
 
 	XYZ_lim = malloc(sizeof *XYZ_lim); // free
@@ -77,6 +70,8 @@ printf("*** test_imp_update_h: Set PGlobal = 2 in .ctrl files for final tests. *
 	strcpy(argvNew[1],"test/Test_update_h_TRI");
 
 	code_startup(nargc,argvNew,2);
+	if (DB.PGlobal <= 1)
+		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullREFINE");
@@ -87,50 +82,22 @@ printf("*** test_imp_update_h: Set PGlobal = 2 in .ctrl files for final tests. *
 	run_test(&pass,"FullCOARSE");
 	printf("update_h (       FullCOARSE):                    ");
 	test_print(pass);
-output_to_paraview("ZTest_Geomadapt");
 
-	XYZ_lim->XYZ[0] = -1.0; XYZ_lim->XYZ[1] = -0.75;
-	XYZ_lim->XYZ[2] = -1.0; XYZ_lim->XYZ[3] = -0.75;
+	XYZ_lim->XYZ[0] = -0.75; XYZ_lim->XYZ[1] = -0.75; XYZ_lim->type = 'd'; XYZ_lim->index = 0;
 	mark_VOLUMEs(HREFINE,XYZ_lim);
+	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->type = 'd'; XYZ_lim->index = 1;
+	mark_VOLUMEs(HCOARSE,XYZ_lim);
 
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-printf("%d %d %d\n",VOLUME->indexg,VOLUME->Vadapt,VOLUME->adapt_type);
-	}
-
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		indexg = VOLUME->indexg;
-		if (indexg == 0) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HREFINE;
-		} else if (indexg >= 16) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HCOARSE;
-		}
-printf("%d %d %d\n",VOLUME->indexg,VOLUME->Vadapt,VOLUME->adapt_type);
-	}
-exit(1);
 	mesh_update();
 
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		indexg = VOLUME->indexg;
-		if (indexg <= 6) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HREFINE;
-		} else if ((indexg >= 7 && indexg <= 14) || indexg >= 19) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HCOARSE;
-		}
-	}
+	XYZ_lim->XYZ[0] = -0.50; XYZ_lim->XYZ[1] = -0.50; XYZ_lim->type = 'd'; XYZ_lim->index = 0;
+	mark_VOLUMEs(HREFINE,XYZ_lim);
+	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->type = 'o'; XYZ_lim->index = 1;
+	mark_VOLUMEs(HCOARSE,XYZ_lim);
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"Mixed");
 	printf("update_h (       Mixed):                         ");
-	test_print(pass);
-
-	mesh_to_level(2);
-	//     0         10        20        30        40        50
-	run_test(&pass,"ToLevel2");
-	printf("update_h (       ToLevel2):                      ");
 	test_print(pass);
 
 	code_cleanup(0);
@@ -141,6 +108,8 @@ exit(1);
 	strcpy(argvNew[1],"test/Test_update_h_QUAD");
 
 	code_startup(nargc,argvNew,3);
+	if (DB.PGlobal <= 1)
+		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullREFINE");
@@ -152,38 +121,21 @@ exit(1);
 	printf("update_h (       FullCOARSE):                    ");
 	test_print(pass);
 
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		indexg = VOLUME->indexg;
-		if (indexg <= 3) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HREFINE;
-		} else if (indexg >= 48) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HCOARSE;
-		}
-	}
+	XYZ_lim->XYZ[0] = -0.50; XYZ_lim->XYZ[1] = -0.50; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
+	mark_VOLUMEs(HREFINE,XYZ_lim);
+	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->type = 'a'; XYZ_lim->index = 1;
+	mark_VOLUMEs(HCOARSE,XYZ_lim);
+
 	mesh_update();
 
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		indexg = VOLUME->indexg;
-		if (indexg <= 23) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HREFINE;
-		} else if ((indexg >= 32 && indexg <= 43) || indexg >= 48) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HCOARSE;
-		}
-	}
+	XYZ_lim->XYZ[0] = -0.25; XYZ_lim->XYZ[1] = -0.25; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
+	mark_VOLUMEs(HREFINE,XYZ_lim);
+	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->type = 'o'; XYZ_lim->index = 1;
+	mark_VOLUMEs(HCOARSE,XYZ_lim);
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"Mixed");
 	printf("update_h (       Mixed):                         ");
-	test_print(pass);
-
-	mesh_to_level(2);
-	//     0         10        20        30        40        50
-	run_test(&pass,"ToLevel2");
-	printf("update_h (       ToLevel2):                      ");
 	test_print(pass);
 
 	code_cleanup(0);
@@ -194,6 +146,8 @@ exit(1);
 	strcpy(argvNew[1],"test/Test_update_h_TET");
 
 	code_startup(nargc,argvNew,2);
+	if (DB.PGlobal <= 1)
+		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullREFINE");
@@ -205,39 +159,24 @@ exit(1);
 	printf("update_h (       FullCOARSE):                    ");
 	test_print(pass);
 
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		indexg = VOLUME->indexg;
-		if (indexg >= 24 && indexg <= 31) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HREFINE;
-		} else if (indexg >= 64 && indexg <= 127) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HCOARSE;
-		}
-	}
+	XYZ_lim->XYZ[0] =  1.00; XYZ_lim->XYZ[1] =  1.00; XYZ_lim->XYZ[2] =  0.00; XYZ_lim->type = 'd'; XYZ_lim->index = 1;
+	mark_VOLUMEs(HREFINE,XYZ_lim);
+	XYZ_lim->XYZ[0] = -1.00; XYZ_lim->XYZ[1] = -1.00; XYZ_lim->XYZ[2] =  1.00; XYZ_lim->type = 'd'; XYZ_lim->index = 0;
+	mark_VOLUMEs(HCOARSE,XYZ_lim);
+
 	mesh_update();
 
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		indexg = VOLUME->indexg;
-		if (indexg <= 119) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HREFINE;
-		} else if (indexg >= 120 && indexg <= 191) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HCOARSE;
-		}
-	}
+	XYZ_lim->XYZ[0] =  1.00; XYZ_lim->XYZ[1] =  1.00; XYZ_lim->XYZ[2] = -0.50; XYZ_lim->type = 'd'; XYZ_lim->index = 1;
+	mark_VOLUMEs(HREFINE,XYZ_lim);
+	XYZ_lim->XYZ[0] =  1.00; XYZ_lim->XYZ[1] =  1.00; XYZ_lim->XYZ[2] = -1.00; XYZ_lim->type = 'd'; XYZ_lim->index = 0;
+	mark_VOLUMEs(HCOARSE,XYZ_lim);
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"Mixed");
 	printf("update_h (       Mixed):                         ");
 	test_print(pass);
 
-	mesh_to_level(2);
-	//     0         10        20        30        40        50
-	run_test(&pass,"ToLevel2");
-	printf("update_h (       ToLevel2):                      ");
-	test_print(pass);
+	code_cleanup(0);
 
 
 	// **************************************************************************************************** //
@@ -245,6 +184,8 @@ exit(1);
 	strcpy(argvNew[1],"test/Test_update_h_HEX");
 
 	code_startup(nargc,argvNew,3);
+	if (DB.PGlobal <= 1)
+		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullREFINE");
@@ -256,39 +197,24 @@ exit(1);
 	printf("update_h (       FullCOARSE):                    ");
 	test_print(pass);
 
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		indexg = VOLUME->indexg;
-		if (indexg <= 7) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HREFINE;
-		} else if (indexg >= 448 && indexg <= 511) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HCOARSE;
-		}
-	}
+	XYZ_lim->XYZ[0] = -0.50; XYZ_lim->XYZ[1] = -0.50; XYZ_lim->XYZ[2] = -0.50; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
+	mark_VOLUMEs(HREFINE,XYZ_lim);
+	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->XYZ[2] =  0.00; XYZ_lim->type = 'a'; XYZ_lim->index = 1;
+	mark_VOLUMEs(HCOARSE,XYZ_lim);
+
 	mesh_update();
 
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		indexg = VOLUME->indexg;
-		if (indexg <= 119) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HREFINE;
-		} else if ((indexg >= 248 && indexg <= 311) || indexg >= 376) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HCOARSE;
-		}
-	}
+	XYZ_lim->XYZ[0] = -0.25; XYZ_lim->XYZ[1] = -0.25; XYZ_lim->XYZ[2] = -0.25; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
+	mark_VOLUMEs(HREFINE,XYZ_lim);
+	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->XYZ[2] =  0.00; XYZ_lim->type = 'o'; XYZ_lim->index = 1;
+	mark_VOLUMEs(HCOARSE,XYZ_lim);
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"Mixed");
 	printf("update_h (       Mixed):                         ");
 	test_print(pass);
 
-	mesh_to_level(2);
-	//     0         10        20        30        40        50
-	run_test(&pass,"ToLevel2");
-	printf("update_h (       ToLevel2):                      ");
-	test_print(pass);
+	code_cleanup(0);
 
 
 	// **************************************************************************************************** //
@@ -296,6 +222,8 @@ exit(1);
 	strcpy(argvNew[1],"test/Test_update_h_WEDGE");
 
 	code_startup(nargc,argvNew,3);
+	if (DB.PGlobal <= 1)
+		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullREFINE");
@@ -306,52 +234,69 @@ exit(1);
 	run_test(&pass,"FullCOARSE");
 	printf("update_h (       FullCOARSE):                    ");
 	test_print(pass);
-output_to_paraview("ZTest_Geomadapt");
-output_to_paraview("ZTest_Normals");
-exit(1);
 
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		indexg = VOLUME->indexg;
-		if (indexg <= 7) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HREFINE;
-		} else if (indexg >= 448 && indexg <= 511) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HCOARSE;
-		}
-	}
+	XYZ_lim->XYZ[0] = -0.50; XYZ_lim->XYZ[1] = -0.50; XYZ_lim->XYZ[2] = -0.50; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
+	mark_VOLUMEs(HREFINE,XYZ_lim);
+	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->XYZ[2] =  0.00; XYZ_lim->type = 'a'; XYZ_lim->index = 1;
+	mark_VOLUMEs(HCOARSE,XYZ_lim);
+
 	mesh_update();
-output_to_paraview("ZTest_Geomadapt");
-output_to_paraview("ZTest_Normals");
-exit(1);
 
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		indexg = VOLUME->indexg;
-		if (indexg <= 119) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HREFINE;
-		} else if ((indexg >= 248 && indexg <= 311) || indexg >= 376) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HCOARSE;
-		}
-	}
+	XYZ_lim->XYZ[0] = -0.25; XYZ_lim->XYZ[1] = -0.25; XYZ_lim->XYZ[2] = -0.25; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
+	mark_VOLUMEs(HREFINE,XYZ_lim);
+	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->XYZ[2] =  0.00; XYZ_lim->type = 'o'; XYZ_lim->index = 1;
+	mark_VOLUMEs(HCOARSE,XYZ_lim);
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"Mixed");
 	printf("update_h (       Mixed):                         ");
 	test_print(pass);
 
-	mesh_to_level(2);
+	code_cleanup(0);
+
+	// **************************************************************************************************** //
+	// PYRs
+	strcpy(argvNew[1],"test/Test_update_h_PYR");
+
+	code_startup(nargc,argvNew,2);
+	if (DB.PGlobal <= 1)
+		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
+	printf("Potentially remove TETs from the initial PYR mesh\n"), TestDB.Nwarnings++;
+
 	//     0         10        20        30        40        50
-	run_test(&pass,"ToLevel2");
-	printf("update_h (       ToLevel2):                      ");
+	run_test(&pass,"FullREFINE");
+	printf("update_h (PYR,   FullREFINE):                    ");
 	test_print(pass);
 
+	//     0         10        20        30        40        50
+	run_test(&pass,"FullCOARSE");
+	printf("update_h (       FullCOARSE):                    ");
+	test_print(pass);
+output_to_paraview("ZTest_Geomadapt");
+exit(1);
+
+	XYZ_lim->XYZ[0] = -0.50; XYZ_lim->XYZ[1] = -0.50; XYZ_lim->XYZ[2] = -0.50; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
+	mark_VOLUMEs(HREFINE,XYZ_lim);
+	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->XYZ[2] =  0.00; XYZ_lim->type = 'a'; XYZ_lim->index = 1;
+	mark_VOLUMEs(HCOARSE,XYZ_lim);
+
+	mesh_update();
+
+	XYZ_lim->XYZ[0] = -0.25; XYZ_lim->XYZ[1] = -0.25; XYZ_lim->XYZ[2] = -0.25; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
+	mark_VOLUMEs(HREFINE,XYZ_lim);
+	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->XYZ[2] =  0.00; XYZ_lim->type = 'o'; XYZ_lim->index = 1;
+	mark_VOLUMEs(HCOARSE,XYZ_lim);
+
+	//     0         10        20        30        40        50
+	run_test(&pass,"Mixed");
+	printf("update_h (       Mixed):                         ");
+	test_print(pass);
+
+	code_cleanup(0);
 //output_to_paraview("ZTest_Geomadapt");
 //output_to_paraview("ZTest_Normals");
 //exit(1);
 
-	code_cleanup(0);
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 	free(XYZ_lim);
@@ -393,13 +338,12 @@ static void code_cleanup(const unsigned int final)
 
 static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *XYZ_lim)
 {
-This requires modification to have some kind of functional dependence (e.g. Centroid above y = -x line)
 	// Initialize DB Parameters
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int i, dim, Nve, IndXYZ, IndLim, update;
-	double       XYZ_cent[3], *XYZ_vC;
+	unsigned int i, dim, Nve, IndXYZ, update;
+	double       XYZ_cent[3], *XYZ_vC, XYZ_lim_sum, XYZ_cent_sum;
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME;
@@ -422,13 +366,50 @@ This requires modification to have some kind of functional dependence (e.g. Cent
 		}
 
 		// Mark VOLUME if centroid is within limits
-		update = 1;
-		for (dim = 0; dim < d; dim++) {
-			IndLim = dim*2;
-			if (!(XYZ_cent[dim] > XYZ_lim->XYZ[IndLim+0] && XYZ_cent[dim] < XYZ_lim->XYZ[IndLim+1])) {
-				update = 0;
+		switch (XYZ_lim->type) {
+		case 'a':
+			update = 1;
+			for (dim = 0; dim < d; dim++) {
+				switch (XYZ_lim->index) {
+				case 0: if (!(XYZ_cent[dim] < XYZ_lim->XYZ[dim])) update = 0; break;
+				case 1: if (!(XYZ_cent[dim] > XYZ_lim->XYZ[dim])) update = 0; break;
+				default:
+					printf("Error: Unsupported index in mark_VOLUMEs for type (a).\n"), exit(1);
+					break;
+				}
+			}
+			break;
+		case 'o':
+			update = 0;
+			for (dim = 0; dim < d; dim++) {
+				switch (XYZ_lim->index) {
+				case 0: if (XYZ_cent[dim] < XYZ_lim->XYZ[dim]) update = 1; break;
+				case 1: if (XYZ_cent[dim] > XYZ_lim->XYZ[dim]) update = 1; break;
+				default:
+					printf("Error: Unsupported index in mark_VOLUMEs for type (o).\n"), exit(1);
+					break;
+				}
+			}
+			break;
+		case 'd':
+			update = 1;
+			XYZ_lim_sum  = 0.0;
+			XYZ_cent_sum = 0.0;
+			for (dim = 0; dim < d; dim++) {
+				XYZ_lim_sum  += XYZ_lim->XYZ[dim];
+				XYZ_cent_sum += XYZ_cent[dim];
+			}
+			switch (XYZ_lim->index) {
+			case 0: if (!(XYZ_cent_sum < XYZ_lim_sum)) update = 0; break;
+			case 1: if (!(XYZ_cent_sum > XYZ_lim_sum)) update = 0; break;
+			default:
+				printf("Error: Unsupported index in mark_VOLUMEs for type (d).\n"), exit(1);
 				break;
 			}
+			break;
+		default:
+			printf("Error: Unsupported type in mark_VOLUMEs.\n"), exit(1);
+			break;
 		}
 
 		if (update) {
@@ -503,9 +484,11 @@ static void check_correspondence(unsigned int *pass)
 
 		VOLUME = FACET->VOut;
 		Vf     = FACET->VfOut;
+//printf("check: %d %d %d\n",FACET->indexg,VOLUME->indexg,VOLUME->level);
 
 		IndFType = get_IndFType(VOLUME->Eclass,Vf/NFREFMAX);
 		init_ops(OPS,VOLUME,FACET,IndFType);
+//printf("check2: %p %p\n",OPS->I_vGs_fS[Vf],VOLUME->XYZ_vC);
 		XYZ_fSOut = mm_Alloc_d(CBCM,CBT,CBNT,NfnS,d,OPS->NvnGs,1.0,OPS->I_vGs_fS[Vf],VOLUME->XYZ_vC); // free
 
 		XYZ_fSInOut = malloc(NfnS*d * sizeof *XYZ_fSInOut); // free
@@ -527,8 +510,8 @@ static void check_correspondence(unsigned int *pass)
 				*pass = 0;
 				printf("Problem in check_correspondence\n");
 printf("%d %d %d\n",FACET->indexg,FACET->IndOrdInOut,FACET->IndOrdOutIn);
-printf("%d %d\n",FACET->VIn->indexg,FACET->VfIn);
-printf("%d %d\n",FACET->VOut->indexg,FACET->VfOut);
+printf("%d %d %d\n",FACET->VIn->indexg,FACET->VfIn,FACET->VIn->level);
+printf("%d %d %d\n",FACET->VOut->indexg,FACET->VfOut,FACET->VOut->level);
 				printf("Errors: %e %e\n\n",array_norm_diff_d(NfnS*d,XYZ_fSIn,XYZ_fSOutIn,"Inf"),
 		                                   array_norm_diff_d(NfnS*d,XYZ_fSInOut,XYZ_fSOut,"Inf"));
 				array_print_d(NfnS,d,XYZ_fSIn,'C');

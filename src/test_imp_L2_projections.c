@@ -229,6 +229,49 @@ void test_imp_L2_projections(int nargc, char **argv)
 	code_cleanup(0);
 
 
+	// **************************************************************************************************** //
+	// WEDGEs
+	strcpy(argvNew[1],"test/Test_L2_proj_p_WEDGE");
+
+	code_startup(nargc,argvNew,2);
+
+	L2err[0] = get_L2err();
+	mark_VOLUMEs(PREFINE); mesh_update();
+	mark_VOLUMEs(PCOARSE); mesh_update();
+	L2err[1] = get_L2err();
+
+	pass = 0;
+	if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 1e2*EPS)
+		pass = 1, TestDB.Npass++;
+	//     0         10        20        30        40        50
+	printf("L2_projections (WEDGE, ADAPT_P):                 ");
+	test_print(pass);
+	free(L2err[0]), free(L2err[1]);
+
+	code_cleanup(0);
+
+
+	strcpy(argvNew[0],argv[0]);
+	strcpy(argvNew[1],"test/Test_L2_proj_h_WEDGE");
+
+	code_startup(nargc,argvNew,3);
+
+	L2err[0] = get_L2err();
+	mark_VOLUMEs(HREFINE); mesh_update();
+	mark_VOLUMEs(HCOARSE); mesh_update();
+	L2err[1] = get_L2err();
+
+	pass = 0;
+	if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e3*EPS)
+		pass = 1, TestDB.Npass++;
+	//     0         10        20        30        40        50
+	printf("L2_projections (       ADAPT_H):                 ");
+	test_print(pass);
+	free(L2err[0]), free(L2err[1]);
+
+	code_cleanup(0);
+
+
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 }
 

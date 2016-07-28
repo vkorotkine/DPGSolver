@@ -2507,15 +2507,19 @@ static void setup_TP_operators(const unsigned int EType)
 						convert_to_CSR_d(NfnIc[Pb][IndClass],NvnS[P],ChiS_fIc[P][Pb][Vf],&ChiS_fIc_sp[P][Pb][Vf]); // keep
 					}
 
+					if (P == Pb) {
+						// Outside of fh == 0 if condition as operator is used for testing h-adaptation connectivity.
+						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vGs_fS[1][Pb], OPF1  = ELEMENTclass[1]->I_vGs_vS[1][Pb];
+									 NOut0 = ELEMENTclass[0]->NfnS[Pb][0],     NOut1 = ELEMENTclass[1]->NvnS[Pb];
+						} else {     OPF0  = ELEMENTclass[0]->I_vGs_vS[1][Pb], OPF1  = ELEMENTclass[1]->I_vGs_fS[1][Pb];
+									 NOut0 = ELEMENTclass[0]->NvnS[Pb],        NOut1 = ELEMENTclass[1]->NfnS[Pb][0]; }
+						get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],NOut0,OPF0,
+										   ELEMENTclass[1]->NvnGs[1],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						I_vGs_fS[1][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					}
+
 					if (fh == 0) {
 						if (P == Pb) {
-							if (f < 3) { OPF0  = ELEMENTclass[0]->I_vGs_fS[1][Pb], OPF1  = ELEMENTclass[1]->I_vGs_vS[1][Pb];
-							             NOut0 = ELEMENTclass[0]->NfnS[Pb][0],     NOut1 = ELEMENTclass[1]->NvnS[Pb];
-							} else {     OPF0  = ELEMENTclass[0]->I_vGs_vS[1][Pb], OPF1  = ELEMENTclass[1]->I_vGs_fS[1][Pb];
-							             NOut0 = ELEMENTclass[0]->NvnS[Pb],        NOut1 = ELEMENTclass[1]->NfnS[Pb][0]; }
-							get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],NOut0,OPF0,
-							                   ELEMENTclass[1]->NvnGs[1],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
-							I_vGs_fS[1][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 							if (f < 3) { OPF0  = ELEMENTclass[0]->I_vGs_fIs[1][Pb], OPF1  = ELEMENTclass[1]->I_vGs_vIs[1][Pb];
 							             NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIs[Pb];
 							} else {     OPF0  = ELEMENTclass[0]->I_vGs_vIs[1][Pb], OPF1  = ELEMENTclass[1]->I_vGs_fIs[1][Pb];

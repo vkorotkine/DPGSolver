@@ -622,6 +622,9 @@ void update_VOLUME_finalize(void)
 		VOut  = FACET->VOut;
 		VfOut = FACET->VfOut;
 
+//printf("upVfin: %d\n",FACET->indexg);
+//printf("In: %d\n",VIn->indexg);
+//printf("Out: %d\n",VOut->indexg);
 		VIn->neigh[VfIn]   = VOut->indexg;
 		VOut->neigh[VfOut] = VIn->indexg;
 

@@ -10,7 +10,7 @@ BEGIN PARAMETERS
   MeshType   WEDGE_h
 
   Form       Weak  // Options: Weak, (Strong)
-  NodeType   GL-AO // Options: GL/GLL-AO/WSH
+  NodeType   GLL-AO // Options: GL/GLL-AO/WSH
   BasisType  Nodal // Options: Nodal, Modal
 
   Vectorized 0     // Options: 0, 1
@@ -18,7 +18,7 @@ BEGIN PARAMETERS
   Collocated 0     // Options: 0, 1
   Adapt      2     // Options: 0, 1, 2, (3)
 
-  PGlobal    2
+  PGlobal    3
   PMax       3
   LevelsMax  5
 
