@@ -68,8 +68,8 @@ extern struct S_DB DB;
 
 struct S_ELEMENT {
 	// Mesh
-	unsigned int present, type, d, Nve, Nf, Nvref, NvrefSF, Eclass,
-	             *Nfve, *VeCGmsh, *VeFcon, *NrefV;
+	unsigned int present, type, d, Nve, Nf, Nvref, NvrefSF, Eclass, NEhref,
+	             *Nfve, *VeCGmsh, *VeFcon, *NrefV, *type_h;
 
 	// Operators
 	unsigned int *connect_NE, *NvnP, *Nvve,

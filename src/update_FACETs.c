@@ -854,6 +854,23 @@ static void get_Indsf(struct S_FACET *FACET, unsigned int *sfIn, unsigned int *s
 				break;
 			}
 			break;
+		case PYR:
+			// Isotropic refinement only.
+			switch (Vfl) {
+			case 0:
+				sf[i] = 0;
+				break;
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+				sf[i] = Vfl-1;
+				break;
+			default:
+				printf("Error: Unsupported Vfl in case %d of get_Indsf (%d).\n",VType,i), exit(1);
+				break;
+			}
+			break;
 		default:
 			printf("Error: Unsupported VType in get_Indsf (%d).\n",i), exit(1);
 			break;

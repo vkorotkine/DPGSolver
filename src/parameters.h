@@ -29,6 +29,7 @@
  *		NSUBFMAX        : (MAX)imum (N)umber of h-adaptive (SUB)-(F)acets (on each FACET).
  *		NVISUBFMAX      : (MAX)imum (N)umber of h-adaptive (V)OLUME (I)nternal (SUB)-(F)acets (within the VOLUME).
  *		NSIBMAX         : (MAX)imum (N)umber of (SIB)lings on the same level after h-refinement.
+ *		NEHREFMAX       : (MAX)imum (N)umber of (E)LEMENT types present in (H)-(REF)ined ELEMENT
  *
  *	References:
  *
@@ -105,6 +106,8 @@
 #define HDELETE  10
 
 // h-refinement related numbers
+#define NEHREFMAX    2 // PYR (PYR + TET)
+
 #define NREFMAXPOINT 1
 #define NREFMAXLINE  3
 #define NREFMAXTRI   5

@@ -54,6 +54,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 	// Operators
 
 	// h-refinement related
+	ELEMENT->NEhref  = UINT_MAX;
+	ELEMENT->type_h  = calloc(NEHREFMAX      , sizeof *(ELEMENT->type_h));  // free
 	ELEMENT->Nfref   = calloc(NFMAX          , sizeof *(ELEMENT->Nfref));   // free
 	ELEMENT->NfMixed = calloc(NFMIXEDMAX     , sizeof *(ELEMENT->NfMixed)); // free
 	ELEMENT->VeF     = calloc(NFREFMAX*NFMAX , sizeof *(ELEMENT->VeF));     // free

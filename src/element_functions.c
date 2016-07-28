@@ -35,11 +35,13 @@ void initialize_ELEMENTs(void)
 	 *
 	 *	Notation:
 	 *		type     : Flag for element type
+	 *		type_h   : Type of ELEMENTs present in h-refined ELEMENT
 	 *		Eclass   : (E)lement (class)
 	 *		d        : (d)imension
 	 *		Nve      : (N)umber of local (ve)rtices
 	 *		Nfve     : (N)umber of local (f)acet (ve)rtices
 	 *		Nf       : (N)umber of local (f)acets
+	 *		NEhref   : (N)umber of (E)lement types after (h)-(ref)inement
 	 *		VeCGmsh  : (Ve)rtices of the (C)orners                       (Gmsh ordering)
 	 *		VeFcon   : (Ve)rtices of the (F)acets which are (con)forming (Standard ordering)
 	 *		Nvref    : (N)umber of (v)olume h-refinements needed for standard refinement.
@@ -68,6 +70,8 @@ void initialize_ELEMENTs(void)
 	ELEMENT->d         = 0;
 	ELEMENT->Nve       = 1;
 	ELEMENT->Nf        = 1;
+	ELEMENT->NEhref    = 1;
+	ELEMENT->type_h[0] = POINT;
 	ELEMENT->Nfve[0]   = 1;
 	ELEMENT->VeCGmsh[0]    = 0;
 	ELEMENT->VeFcon[0*NFVEMAX  ] = 0;
@@ -82,6 +86,8 @@ void initialize_ELEMENTs(void)
 	ELEMENT->d         = 1;
 	ELEMENT->Nve       = 2;
 	ELEMENT->Nf        = 2;
+	ELEMENT->NEhref    = 1;
+	ELEMENT->type_h[0] = LINE;
 	ELEMENT->Nfve[0]   = 1; ELEMENT->Nfve[1]   = 1;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1] =    1;
 	ELEMENT->VeFcon[0*NFVEMAX  ] = 0;
@@ -98,6 +104,8 @@ void initialize_ELEMENTs(void)
 	ELEMENT->d         = 2;
 	ELEMENT->Nve       = 3;
 	ELEMENT->Nf        = 3;
+	ELEMENT->NEhref    = 1;
+	ELEMENT->type_h[0] = TRI;
 	ELEMENT->Nfve[0]   = 2; ELEMENT->Nfve[1]   = 2; ELEMENT->Nfve[2]   = 2;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2] =    2;
 	ELEMENT->VeFcon[0*NFVEMAX  ] = 1; ELEMENT->VeFcon[0*NFVEMAX+1] = 2;
@@ -115,6 +123,8 @@ void initialize_ELEMENTs(void)
 	ELEMENT->d         = 2;
 	ELEMENT->Nve       = 4;
 	ELEMENT->Nf        = 4;
+	ELEMENT->NEhref    = 1;
+	ELEMENT->type_h[0] = QUAD;
 	ELEMENT->Nfve[0]   = 2; ELEMENT->Nfve[1]   = 2; ELEMENT->Nfve[2]   = 2; ELEMENT->Nfve[3]   = 2;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1] =    1; ELEMENT->VeCGmsh[2] =    3; ELEMENT->VeCGmsh[3] =    2;
 	ELEMENT->VeFcon[0*NFVEMAX  ] = 0; ELEMENT->VeFcon[0*NFVEMAX+1] = 2;
@@ -133,6 +143,8 @@ void initialize_ELEMENTs(void)
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 4;
 	ELEMENT->Nf        = 4;
+	ELEMENT->NEhref    = 1;
+	ELEMENT->type_h[0] = TET;
 	ELEMENT->Nfve[0]   = 3; ELEMENT->Nfve[1]   = 3; ELEMENT->Nfve[2]   = 3; ELEMENT->Nfve[3]   = 3;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 2; ELEMENT->VeCGmsh[3]    = 3;
 	ELEMENT->VeFcon[0*NFVEMAX  ] = 1; ELEMENT->VeFcon[0*NFVEMAX+1] = 2; ELEMENT->VeFcon[0*NFVEMAX+2] = 3;
@@ -151,6 +163,8 @@ void initialize_ELEMENTs(void)
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 8;
 	ELEMENT->Nf        = 6;
+	ELEMENT->NEhref    = 1;
+	ELEMENT->type_h[0] = HEX;
 	ELEMENT->Nfve[0]   = 4; ELEMENT->Nfve[1]   = 4; ELEMENT->Nfve[2]   = 4;
 	ELEMENT->Nfve[3]   = 4; ELEMENT->Nfve[4]   = 4; ELEMENT->Nfve[5]   = 4;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 3; ELEMENT->VeCGmsh[3]    = 2;
@@ -166,7 +180,7 @@ void initialize_ELEMENTs(void)
 
 	ELEMENT->next = New_ELEMENT();
 
-	// WEDGE (ToBeModified)
+	// WEDGE
 	ELEMENT = ELEMENT->next;
 
 	ELEMENT->type      = WEDGE;
@@ -174,6 +188,8 @@ void initialize_ELEMENTs(void)
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 6;
 	ELEMENT->Nf        = 5;
+	ELEMENT->NEhref    = 1;
+	ELEMENT->type_h[0] = WEDGE;
 	ELEMENT->Nfve[0]   = 4; ELEMENT->Nfve[1]   = 4; ELEMENT->Nfve[2]   = 4;
 	ELEMENT->Nfve[3]   = 3; ELEMENT->Nfve[4]   = 3;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 2;
@@ -187,7 +203,7 @@ void initialize_ELEMENTs(void)
 
 	ELEMENT->next = New_ELEMENT();
 
-	// PYR (ToBeModified)
+	// PYR
 	ELEMENT = ELEMENT->next;
 
 	ELEMENT->type      = PYR;
@@ -195,6 +211,8 @@ void initialize_ELEMENTs(void)
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 5;
 	ELEMENT->Nf        = 5;
+	ELEMENT->NEhref    = 2;
+	ELEMENT->type_h[0] = PYR; ELEMENT->type_h[1] = TET;
 	ELEMENT->Nfve[0]   = 3; ELEMENT->Nfve[1]   = 3; ELEMENT->Nfve[2]   = 3; ELEMENT->Nfve[3]   = 3;
 	ELEMENT->Nfve[4]   = 4;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 3; ELEMENT->VeCGmsh[3]   = 2;

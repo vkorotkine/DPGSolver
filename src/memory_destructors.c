@@ -31,6 +31,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->NrefV);
 
 	// h-refinement related
+	free(ELEMENT->type_h);
 	free(ELEMENT->Nfref);
 	free(ELEMENT->NfMixed);
 	array_free2_d(NFREFMAX*NFMAX,ELEMENT->VeF);

@@ -660,89 +660,89 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 	                           0.0 , 0.5 , 0.5 ,
 	                           0.5 , 0.0 , 0.5 ,
 	                           0.5 , 0.5 , 0.0 },
-	       VeVref_TET[144]  = {1.0 , 0.0 , 0.0 , 0.0 , // Conforming
+	       VeVref_TET[144]  = {1.0 , 0.0 , 0.0 , 0.0 , // Conforming TET
 	                           0.0 , 1.0 , 0.0 , 0.0 ,
 	                           0.0 , 0.0 , 1.0 , 0.0 ,
 	                           0.0 , 0.0 , 0.0 , 1.0 ,
-	                           1.0 , 0.0 , 0.0 , 0.0 , // Corner
+	                           1.0 , 0.0 , 0.0 , 0.0 , // Corner TETs
 	                           0.5 , 0.5 , 0.0 , 0.0 ,
 	                           0.5 , 0.0 , 0.5 , 0.0 ,
 	                           0.5 , 0.0 , 0.0 , 0.5 ,
-	                           0.5 , 0.5 , 0.0 , 0.0 ,
+	                           0.5 , 0.5 , 0.0 , 0.0 , // 2
 	                           0.0 , 1.0 , 0.0 , 0.0 ,
 	                           0.0 , 0.5 , 0.5 , 0.0 ,
 	                           0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.5 , 0.0 , 0.5 , 0.0 ,
+	                           0.5 , 0.0 , 0.5 , 0.0 , // 3
 	                           0.0 , 0.5 , 0.5 , 0.0 ,
 	                           0.0 , 0.0 , 1.0 , 0.0 ,
 	                           0.0 , 0.0 , 0.5 , 0.5 ,
-	                           0.5 , 0.0 , 0.0 , 0.5 ,
+	                           0.5 , 0.0 , 0.0 , 0.5 , // 4
 	                           0.0 , 0.5 , 0.0 , 0.5 ,
 	                           0.0 , 0.0 , 0.5 , 0.5 ,
 	                           0.0 , 0.0 , 0.0 , 1.0 ,
-	                           0.5 , 0.0 , 0.5 , 0.0 , // Internal
+	                           0.5 , 0.0 , 0.5 , 0.0 , // Internal TETs
 	                           0.0 , 0.0 , 0.5 , 0.5 ,
 	                           0.0 , 0.5 , 0.0 , 0.5 ,
 	                           0.0 , 0.5 , 0.5 , 0.0 ,
-	                           0.0 , 0.0 , 0.5 , 0.5 ,
+	                           0.0 , 0.0 , 0.5 , 0.5 , // 6
 	                           0.0 , 0.5 , 0.0 , 0.5 ,
 	                           0.5 , 0.0 , 0.0 , 0.5 ,
 	                           0.5 , 0.0 , 0.5 , 0.0 ,
-	                           0.0 , 0.5 , 0.0 , 0.5 ,
+	                           0.0 , 0.5 , 0.0 , 0.5 , // 7
 	                           0.5 , 0.0 , 0.0 , 0.5 ,
 	                           0.5 , 0.0 , 0.5 , 0.0 ,
 	                           0.5 , 0.5 , 0.0 , 0.0 ,
-	                           0.0 , 0.5 , 0.5 , 0.0 ,
+	                           0.0 , 0.5 , 0.5 , 0.0 , // 8
 	                           0.5 , 0.0 , 0.5 , 0.0 ,
 	                           0.5 , 0.5 , 0.0 , 0.0 ,
 	                           0.0 , 0.5 , 0.0 , 0.5 },
-	       VeVref_PYR[255]  = {1.0 , 0.0 , 0.0 , 0.0 , 0.0 , // Likely change ordering such that Vfh = f here (ToBeDeleted)
+	       VeVref_PYR[255]  = {1.0 , 0.0 , 0.0 , 0.0 , 0.0 , // Conforming
 	                           0.0 , 1.0 , 0.0 , 0.0 , 0.0 ,
 	                           0.0 , 0.0 , 1.0 , 0.0 , 0.0 ,
 	                           0.0 , 0.0 , 0.0 , 1.0 , 0.0 ,
 	                           0.0 , 0.0 , 0.0 , 0.0 , 1.0 ,
-	                           1.0 , 0.0 , 0.0 , 0.0 , 0.0 ,
+	                           1.0 , 0.0 , 0.0 , 0.0 , 0.0 , // First 4 PYRs
 	                           0.5 , 0.5 , 0.0 , 0.0 , 0.0 ,
+	                           0.5 , 0.0 , 0.5 , 0.0 , 0.0 ,
 	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
-	                           0.5 , 0.0 , 0.0 , 0.5 , 0.0 ,
 	                           0.5 , 0.0 , 0.0 , 0.0 , 0.5 ,
-	                           0.5 , 0.5 , 0.0 , 0.0 , 0.0 ,
+	                           0.5 , 0.5 , 0.0 , 0.0 , 0.0 , // 2
 	                           0.0 , 1.0 , 0.0 , 0.0 , 0.0 ,
-	                           0.0 , 0.5 , 0.5 , 0.0 , 0.0 ,
 	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
+	                           0.0 , 0.5 , 0.0 , 0.5 , 0.0 ,
 	                           0.0 , 0.5 , 0.0 , 0.0 , 0.5 ,
-	                           0.5 , 0.0 , 0.0 , 0.5 , 0.0 ,
+	                           0.5 , 0.0 , 0.5 , 0.0 , 0.0 , // 3
 	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
-	                           0.0 , 0.0 , 0.5 , 0.5 , 0.0 ,
-	                           0.0 , 0.0 , 0.0 , 1.0 , 0.0 ,
-	                           0.0 , 0.0 , 0.0 , 0.5 , 0.5 ,
-	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
-	                           0.0 , 0.5 , 0.5 , 0.0 , 0.0 ,
 	                           0.0 , 0.0 , 1.0 , 0.0 , 0.0 ,
 	                           0.0 , 0.0 , 0.5 , 0.5 , 0.0 ,
 	                           0.0 , 0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.5 , 0.5 , 0.0 , 0.0 , 0.0 ,
-	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
-	                           0.5 , 0.0 , 0.0 , 0.0 , 0.5 ,
-	                           0.0 , 0.5 , 0.0 , 0.0 , 0.5 ,
-	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
+	                           0.25, 0.25, 0.25, 0.25, 0.0 , // 4
+	                           0.0 , 0.5 , 0.0 , 0.5 , 0.0 ,
 	                           0.0 , 0.0 , 0.5 , 0.5 , 0.0 ,
+	                           0.0 , 0.0 , 0.0 , 1.0 , 0.0 ,
 	                           0.0 , 0.0 , 0.0 , 0.5 , 0.5 ,
+	                           0.25, 0.25, 0.25, 0.25, 0.0 , // 4 TETs
 	                           0.0 , 0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.5 , 0.0 , 0.0 , 0.5 , 0.0 ,
-	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
 	                           0.5 , 0.0 , 0.0 , 0.0 , 0.5 ,
-	                           0.0 , 0.0 , 0.0 , 0.5 , 0.5 ,
+	                           0.5 , 0.0 , 0.5 , 0.0 , 0.0 ,
+	                           0.0 , 0.0 , 0.0 , 0.5 , 0.5 , // 6
 	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
-	                           0.0 , 0.5 , 0.5 , 0.0 , 0.0 ,
+	                           0.0 , 0.5 , 0.0 , 0.0 , 0.5 ,
+	                           0.0 , 0.5 , 0.0 , 0.5 , 0.0 ,
+	                           0.0 , 0.5 , 0.0 , 0.0 , 0.5 , // 7
+	                           0.5 , 0.0 , 0.0 , 0.0 , 0.5 ,
+	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
+	                           0.5 , 0.5 , 0.0 , 0.0 , 0.0 ,
+	                           0.0 , 0.0 , 0.0 , 0.5 , 0.5 , // 8
+	                           0.0 , 0.0 , 0.5 , 0.0 , 0.5 ,
+	                           0.0 , 0.0 , 0.5 , 0.5 , 0.0 ,
+	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
+	                           0.5 , 0.0 , 0.0 , 0.0 , 0.5 , // Last 2 PYRs
 	                           0.0 , 0.5 , 0.0 , 0.0 , 0.5 ,
 	                           0.0 , 0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.5 , 0.0 , 0.0 , 0.0 , 0.5 ,
-	                           0.0 , 0.5 , 0.0 , 0.0 , 0.5 ,
-	                           0.0 , 0.0 , 0.5 , 0.0 , 0.5 ,
 	                           0.0 , 0.0 , 0.0 , 0.5 , 0.5 ,
 	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
-	                           0.5 , 0.0 , 0.0 , 0.0 , 0.5 ,
+	                           0.5 , 0.0 , 0.0 , 0.0 , 0.5 , // 10
 	                           0.0 , 0.5 , 0.0 , 0.0 , 0.5 ,
 	                           0.0 , 0.0 , 0.5 , 0.0 , 0.5 ,
 	                           0.0 , 0.0 , 0.0 , 0.5 , 0.5 ,
@@ -823,6 +823,11 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 
 static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
 {
+	/*
+	 *	Purpose:
+	 *		Returns the VOLUME ratio of the refined VOLUME as compared to the initial VOLUME.
+	 */
+
 	if (vref == 0)
 		return 1.0;
 
@@ -842,11 +847,42 @@ static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
 		else
 			printf("Error: Unsupported vref (%d) (anisotropic) for TETs in get_L2_scaling.\n",vref), exit(1);
 		break;
+	case PYR:
+		if (vref < 5 || vref > 8)
+			return 0.125;
+		else
+			return 0.0625;
+		break;
 	case QUAD:
 	case HEX:
 	case WEDGE:
 	default:
 		printf("Error: Unsupported EType (%d) in get_L2_scaling.\n",EType), exit(1);
+		break;
+	}
+}
+
+static unsigned int get_Indh(const unsigned int EType, const unsigned int vh)
+{
+	// Only isotropic PYR refinement supported.
+	switch (EType) {
+	case POINT:
+	case LINE:
+	case TRI:
+	case QUAD:
+	case TET:
+	case HEX:
+	case WEDGE:
+		return 0;
+		break;
+	case PYR:
+		if (vh < 5 || vh > 8)
+			return 0;
+		else
+			return 1;
+		break;
+	default:
+		printf("Error: Unsupported EType (%d) in get_Indh.\n",EType), exit(1);
 		break;
 	}
 }
@@ -902,9 +938,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	// Standard datatypes
 	unsigned int i, iMax, dim, dE, P, f, vh, fh, Vf, IndFType, PSMin, PSMax, Pb, PbMin, PbMax, fhMax,
-	             Nve, Nf, Nbf, Eclass, NFTypes, Nvref, vref, vrefSF, NvrefSF, *Nfref, *ones_Nf,
-	             NvnP, u1 = 1,
-	             B_Nve[2], *Nfve, *Nvve,
+	             Nve, Nf, Nbf, Eclass, NFTypes, Nvref, vref, vrefSF, NvrefSF, *Nfref, *ones_Nf, NEhref,
+	             Indh, NvnP, u1 = 1,
+	             B_Nve[2], *Nfve, *Nvve, *EType_h,
 	             dummy_ui, *dummyPtr_ui[2];
 	double       *E_rst_vC, *rst_vC, **VeF, **VeV,
 	             *rst_vP, *rst_vGs, *rst_vGc, *rst_vCs, *rst_vCc, **rst_vIs, **rst_vIc, **rst_vS,
@@ -943,7 +979,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	struct BCoords {
 		double **Is, **Ic, **S;
-	} *BCoords_F[2], *BCoords_V;
+	} *BCoords_F[2], **BCoords_V;
 
 	struct S_BCOORDS *BCoords_dEm1[2];
 	struct S_ELEMENT *ELEMENT;
@@ -956,6 +992,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	// silence
 	ChiGs_vGs = NULL; ChiGc_vGc = NULL;
 	ChiCs_vCs = NULL; ChiCc_vCc = NULL;
+	ChiRefGs_vIs = ChiRefGs_vIc = NULL;
 
 	ELEMENT = get_ELEMENT_type(EType);
 
@@ -974,6 +1011,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	Nvve    = ELEMENT->Nvve;
 	Nvref   = ELEMENT->Nvref;
 	NvrefSF = ELEMENT->NvrefSF;
+	NEhref  = ELEMENT->NEhref;
+	EType_h = ELEMENT->type_h;
 
 	select_functions(&basis,&grad_basis,&cubature,EType);
 
@@ -1083,8 +1122,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	cubature(&rst_vGs,&dummyPtr_d,&dummyPtr_ui[0],&NvnGs[1],&dummy_ui,0,PGs,dE,NodeTypeG[Eclass]); free(dummyPtr_ui[0]); // free
 	// Use E_rst_vC instead of rst_vGs (!= for PYR ELEMENTs)
 	free(rst_vGs);
-	E_rst_vC = get_rst_vC(ELEMENT);
-	rst_vC = malloc((Nve+1)*dE * sizeof *rst_vC); // free (+1 for h-refined TET -> PYR)
+	E_rst_vC = get_rst_vC(ELEMENT); // free
+	rst_vC = malloc((Nve+1)*dE * sizeof *rst_vC); // free (+1 for h-refined TET -> PYR) ToBeModified (remove +1)
 
 
 	// Preliminary Operators
@@ -1098,7 +1137,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		ChiGs_vGs = IGs;
 
 	ChiRefInvGs_vGs = inverse_d(NvnGs[1],NvnGs[1],ChiRefGs_vGs,IGs); // free
-	ChiInvGs_vGs    = inverse_d(NvnGs[1],NvnGs[1],ChiGs_vGs,IGs); // free
+	ChiInvGs_vGs    = inverse_d(NvnGs[1],NvnGs[1],ChiGs_vGs,IGs);    // free
 	TGs             = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGs[1],NvnGs[1],NvnGs[1],1.0,ChiRefInvGs_vGs,ChiGs_vGs); // free
 
 	free(IGs);
@@ -1141,10 +1180,13 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	for (f = 0; f < Nf; f++)
 		ones_Nf[f] = 1;
 
-	BCoords_V     = malloc(     sizeof *BCoords_V);       // free
-	BCoords_V->S  = calloc(NP , sizeof *(BCoords_V->S));  // free
-	BCoords_V->Is = calloc(NP , sizeof *(BCoords_V->Is)); // free
-	BCoords_V->Ic = calloc(NP , sizeof *(BCoords_V->Ic)); // free
+	BCoords_V = malloc(NEhref * sizeof *BCoords_V); // free
+	for (i = 0, iMax = NEhref; i < iMax; i++) {
+		BCoords_V[i]     = malloc(     sizeof *BCoords_V[i]);       // free
+		BCoords_V[i]->S  = calloc(NP , sizeof *(BCoords_V[i]->S));  // free
+		BCoords_V[i]->Is = calloc(NP , sizeof *(BCoords_V[i]->Is)); // free
+		BCoords_V[i]->Ic = calloc(NP , sizeof *(BCoords_V[i]->Ic)); // free
+	}
 
 	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
@@ -1255,34 +1297,67 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 			free(wInv_vIc);
 
 			// VOLUME Operators
-			cubature(&rst_vS[0], &dummyPtr_d,&dummyPtr_ui[0],&NvnS[Pb], &dummy_ui,0,Pb,              dE,NodeTypeS[Pb][Eclass]);   free(dummyPtr_ui[0]); // free
-			cubature(&rst_vIs[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIs[Pb],&dummy_ui,0,PIvs[Pb][Eclass],dE,NodeTypeIvs[Pb][Eclass]); free(dummyPtr_ui[0]); // free
-			cubature(&rst_vIc[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,0,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+			for (i = iMax = NEhref; i--; ) {
+				ELEMENT = get_ELEMENT_type(EType_h[i]);
 
-			ChiRefGs_vS  = basis(PGs,rst_vS[0], NvnS[Pb], &Nbf,dE); // free
-			ChiRefGs_vIs = basis(PGs,rst_vIs[0],NvnIs[Pb],&Nbf,dE); // free
-			ChiRefGs_vIc = basis(PGs,rst_vIc[0],NvnIc[Pb],&Nbf,dE); // free
+				Eclass = get_Eclass(EType_h[i]);
+				select_functions(&basis,&grad_basis,&cubature,EType_h[i]);
 
-			// VOLUME Operators
+				NvnGs = ELEMENT->NvnGs;
 
-			BCoords_V->S[Pb]  = mm_Alloc_d(CBCM,CBT,CBT,NvnS[Pb], NvnGs[1],NvnGs[1],1.0,ChiRefGs_vS, ChiRefInvGs_vGs); // free
-			BCoords_V->Is[Pb] = mm_Alloc_d(CBCM,CBT,CBT,NvnIs[Pb],NvnGs[1],NvnGs[1],1.0,ChiRefGs_vIs,ChiRefInvGs_vGs); // free
-			BCoords_V->Ic[Pb] = mm_Alloc_d(CBCM,CBT,CBT,NvnIc[Pb],NvnGs[1],NvnGs[1],1.0,ChiRefGs_vIc,ChiRefInvGs_vGs); // free
 
-			free(ChiRefGs_vS);
+				cubature(&rst_vS[0], &dummyPtr_d,&dummyPtr_ui[0],&NvnS[Pb], &dummy_ui,0,Pb,              dE,NodeTypeS[Pb][Eclass]);   free(dummyPtr_ui[0]); // free
+				cubature(&rst_vIs[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIs[Pb],&dummy_ui,0,PIvs[Pb][Eclass],dE,NodeTypeIvs[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+				cubature(&rst_vIc[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,0,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
 
-//printf("NvrefSF: %d\n",NvrefSF);
+				ChiRefGs_vS  = basis(PGs,rst_vS[0], NvnS[Pb], &Nbf,dE); // free
+				ChiRefGs_vIs = basis(PGs,rst_vIs[0],NvnIs[Pb],&Nbf,dE); // free
+				ChiRefGs_vIc = basis(PGs,rst_vIc[0],NvnIc[Pb],&Nbf,dE); // free
+
+				free(E_rst_vC);
+				free(ChiRefInvGs_vGs);
+
+				E_rst_vC        = get_rst_vC(ELEMENT);                           // free
+				IGs             = identity_d(NvnGs[1]);                          // free
+				ChiRefGs_vGs    = basis(PGs,E_rst_vC,NvnGs[1],&Nbf,dE);          // free
+				ChiRefInvGs_vGs = inverse_d(NvnGs[1],NvnGs[1],ChiRefGs_vGs,IGs); // free
+				free(IGs);
+				free(ChiRefGs_vGs);
+
+				BCoords_V[i]->S[Pb]  = mm_Alloc_d(CBCM,CBT,CBT,NvnS[Pb], NvnGs[1],NvnGs[1],1.0,ChiRefGs_vS, ChiRefInvGs_vGs); // free
+				BCoords_V[i]->Is[Pb] = mm_Alloc_d(CBCM,CBT,CBT,NvnIs[Pb],NvnGs[1],NvnGs[1],1.0,ChiRefGs_vIs,ChiRefInvGs_vGs); // free
+				BCoords_V[i]->Ic[Pb] = mm_Alloc_d(CBCM,CBT,CBT,NvnIc[Pb],NvnGs[1],NvnGs[1],1.0,ChiRefGs_vIc,ChiRefInvGs_vGs); // free
+
+				if (i == iMax) {
+					free(rst_vS[0]);
+					free(rst_vIs[0]);
+					free(rst_vIc[0]);
+
+					free(ChiRefGs_vIs);
+					free(ChiRefGs_vIc);
+				}
+
+				free(ChiRefGs_vS);
+			}
+
 			// Note: Nvref >= NvrefSF
 			for (vh = 0; vh < Nvref; vh++) {
 				vrefSF = vh; // Used for operators defined only for setup_TP_operators
 				mm_CTN_d(Nvve[vh],dE,Nve,VeV[vh],E_rst_vC,rst_vC);
 				if (vh) {
-if (Nvve[vh] != NvnGs[1])
-	printf("Error: BCoords must be fixed in setup_operators.\n"), exit(1);
-// Note: This occurs for PYR refinement into PYR+TET
-					rst_vS[vh]  = mm_Alloc_d(CBCM,CBNT,CBNT,NvnS[Pb], dE,Nvve[vh],1.0,BCoords_V->S[Pb], rst_vC); // free
-					rst_vIs[vh] = mm_Alloc_d(CBCM,CBNT,CBNT,NvnIs[Pb],dE,Nvve[vh],1.0,BCoords_V->Is[Pb],rst_vC); // free
-					rst_vIc[vh] = mm_Alloc_d(CBCM,CBNT,CBNT,NvnIc[Pb],dE,Nvve[vh],1.0,BCoords_V->Ic[Pb],rst_vC); // free
+
+					Indh = get_Indh(EType,vh);
+					if (EType == PYR) {
+						ELEMENT = get_ELEMENT_type(EType_h[Indh]);
+
+						NvnS  = ELEMENT->NvnS;
+						NvnIs = ELEMENT->NvnIs;
+						NvnIc = ELEMENT->NvnIc;
+					}
+
+					rst_vS[vh]  = mm_Alloc_d(CBCM,CBNT,CBNT,NvnS[Pb], dE,Nvve[vh],1.0,BCoords_V[Indh]->S[Pb], rst_vC); // free
+					rst_vIs[vh] = mm_Alloc_d(CBCM,CBNT,CBNT,NvnIs[Pb],dE,Nvve[vh],1.0,BCoords_V[Indh]->Is[Pb],rst_vC); // free
+					rst_vIc[vh] = mm_Alloc_d(CBCM,CBNT,CBNT,NvnIc[Pb],dE,Nvve[vh],1.0,BCoords_V[Indh]->Ic[Pb],rst_vC); // free
 
 					ChiRefGs_vIs = basis(PGs,rst_vIs[vh],NvnIs[Pb],&Nbf,dE); // free
 					ChiRefGs_vIc = basis(PGs,rst_vIc[vh],NvnIc[Pb],&Nbf,dE); // free
@@ -1652,9 +1727,11 @@ if (Nvve[vh] != NvnGs[1])
 				free(rst_vIs[vref]);
 				free(rst_vIc[vref]);
 			}
-			free(BCoords_V->S[Pb]);
-			free(BCoords_V->Is[Pb]);
-			free(BCoords_V->Ic[Pb]);
+			for (i = 0; i < NEhref; i++) {
+				free(BCoords_V[i]->S[Pb]);
+				free(BCoords_V[i]->Is[Pb]);
+				free(BCoords_V[i]->Ic[Pb]);
+			}
 
 			free(rst_vP);
 
@@ -1692,9 +1769,12 @@ if (Nvve[vh] != NvnGs[1])
 	array_free3_d(NP,NESUBCMAX,w_fIs);
 	array_free3_d(NP,NESUBCMAX,w_fIc);
 
-	free(BCoords_V->S);
-	free(BCoords_V->Is);
-	free(BCoords_V->Ic);
+	for (i = 0; i < NEhref; i++) {
+		free(BCoords_V[i]->S);
+		free(BCoords_V[i]->Is);
+		free(BCoords_V[i]->Ic);
+		free(BCoords_V[i]);
+	}
 	free(BCoords_V);
 
 	free(E_rst_vC);
@@ -2982,6 +3062,11 @@ static void setup_ELEMENT_FACET_ordering(const unsigned int FType)
 
 void setup_operators(void)
 {
+	/*
+	 *	Comments:
+	 *		TETs are set up if PYRs are present as PYRs h-refine into TETs.
+	 */
+
 	// Initialize DB Parameters
 	unsigned int d = DB.d;
 
@@ -3016,7 +3101,6 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
-//		setup_L2_projection_operators(EType); // Include in setup_TP_operators? (ToBeDeleted)
 		if (d == 3)
 			setup_ELEMENT_FACET_ordering(EType);
 	}
@@ -3048,7 +3132,7 @@ void setup_operators(void)
 
 	// TET
 	EType = TET;
-	if (is_ELEMENT_present(EType)) {
+	if (is_ELEMENT_present(EType) || is_ELEMENT_present(PYR)) {
 		if (!DB.MPIrank && !TEST)
 			printf("    TET\n");
 		setup_ELEMENT_VeF(EType);
