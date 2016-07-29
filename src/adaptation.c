@@ -155,6 +155,21 @@ void get_fh_range(const struct S_VOLUME *VOLUME, const unsigned int f, unsigned 
 	}
 }
 
+unsigned int get_VOLUMEc_type(const unsigned int VType, const unsigned int vh)
+{
+	switch (VType) {
+	case PYR:
+		if (vh < 5 || vh > 8)
+			return PYR;
+		else
+			return TET;
+		break;
+	default:
+		printf("Error: Unsupported VType in get_VOLUMEc_type.\n"), exit(1);
+		break;
+	}
+}
+
 static void check_levels_refine(const unsigned int indexg, const struct S_VInfo *VInfo, const char hp_type)
 {
 	// Standard datatypes

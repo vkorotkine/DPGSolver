@@ -627,7 +627,7 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 	 */
 
 	// Standard datatypes
-	unsigned int i, j, jMax, VeVrefInd, Nve, *Nvve, Nvref;
+	unsigned int i, j, jMax, VeVrefInd, Nve, *Nvve, Nvref, EcType;
 	double       **VeV;
 
 	struct S_ELEMENT *ELEMENT;
@@ -795,18 +795,19 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 		break;
 	case PYR:
 		// Original PYR, 4 PYRs, 4 TETs, 2 PYRs
-		for (i = 0; i < 5; i++)
-			Nvve[i] = Nve;
-		for (i = 5; i < 9; i++)
-			Nvve[i] = 4;
-		for (i = 9; i < Nvref; i++)
-			Nvve[i] = Nve;
+		for (i = 0; i < Nvref; i++) {
+			EcType = get_VOLUMEc_type(EType,i);
+			if      (EcType == PYR) Nvve[i] = Nve;
+			else if (EcType == TET) Nvve[i] = 4;
+			else
+				printf("Error: Unsupported EcType in setup_ELEMENT_VeV (PYR).\n"), exit(1);
+		}
 
 		VeVrefInd = 0;
 		for (i = 0; i < Nvref; i++) {
-			jMax = Nve*Nvve[i];
 			if (i)
 				VeVrefInd += jMax;
+			jMax = Nve*Nvve[i];
 			VeV[i] = malloc(jMax * sizeof *VeV[i]); // keep
 			for (j = 0; j < jMax; j++)
 				VeV[i][j] = VeVref_PYR[VeVrefInd+j];
@@ -1344,6 +1345,12 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 			for (vh = 0; vh < Nvref; vh++) {
 				vrefSF = vh; // Used for operators defined only for setup_TP_operators
 				mm_CTN_d(Nvve[vh],dE,Nve,VeV[vh],E_rst_vC,rst_vC);
+/*
+if (EType == PYR) {
+printf("so PYR: %d %d %d %d\n",vh,Nvve[vh],dE,Nve);
+array_print_d(Nvve[vh],Nve,VeV[vh],'R');
+}
+*/
 				if (vh) {
 
 					Indh = get_Indh(EType,vh);
@@ -1363,7 +1370,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					ChiRefGs_vIc = basis(PGs,rst_vIc[vh],NvnIc[Pb],&Nbf,dE); // free
 				}
 
-				ChiRefGs_vGs = basis(PGs,           rst_vC,     NvnGs[1], &Nbf,dE); // free
+				ChiRefGs_vGs = basis(PGs,           rst_vC,     Nvve[vh], &Nbf,dE); // free
 				ChiRefGs_vS  = basis(PGs,           rst_vS[vh], NvnS[Pb], &Nbf,dE); // free
 				ChiRefGc_vIs = basis(PGc[P],        rst_vIs[vh],NvnIs[Pb],&Nbf,dE); // free
 				ChiRefGc_vIc = basis(PGc[P],        rst_vIc[vh],NvnIc[Pb],&Nbf,dE); // free
@@ -1378,7 +1385,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				ChiRefS_vIc  = basis(P,             rst_vIc[vh],NvnIc[Pb],&Nbf,dE); // free
 				ChiRefS_vS   = basis(P,             rst_vS[vh], NvnS[Pb], &Nbf,dE); // free
 
-				ChiGs_vGs = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGs[1], NvnGs[1],NvnGs[1],1.0,ChiRefGs_vGs,TGs); // free
+				ChiGs_vGs = mm_Alloc_d(CBRM,CBNT,CBNT,Nvve[vh], NvnGs[1],NvnGs[1],1.0,ChiRefGs_vGs,TGs); // free
 				ChiGs_vS  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb], NvnGs[1],NvnGs[1],1.0,ChiRefGs_vS, TGs); // free
 				ChiGs_vIs = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[Pb],NvnGs[1],NvnGs[1],1.0,ChiRefGs_vIs,TGs); // free
 				ChiGs_vIc = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[Pb],NvnGs[1],NvnGs[1],1.0,ChiRefGs_vIc,TGs); // free
@@ -1436,7 +1443,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					Ihat_vS_vS[P][Pb][vh]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[Pb],NvnS[P],NvnS[Pb],1.0,ChiInvS_vS[Pb][Pb][0],dummyPtr_d); // keep
 					free(dummyPtr_d);
 					if (P == PGlobal && Pb == PGlobal) {
-						I_vGs_vGs[1][1][vh] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGs[1],NvnGs[1],NvnGs[1],1.0,ChiGs_vGs,ChiInvGs_vGs); // keep
+						I_vGs_vGs[1][1][vh] = mm_Alloc_d(CBRM,CBNT,CBNT,Nvve[vh],NvnGs[1],NvnGs[1],1.0,ChiGs_vGs,ChiInvGs_vGs); // keep
 					}
 				}
 

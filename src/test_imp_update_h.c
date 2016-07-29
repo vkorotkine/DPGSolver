@@ -254,6 +254,7 @@ void test_imp_update_h(int nargc, char **argv)
 
 	code_cleanup(0);
 
+
 	// **************************************************************************************************** //
 	// PYRs
 	strcpy(argvNew[1],"test/Test_update_h_PYR");
@@ -261,7 +262,6 @@ void test_imp_update_h(int nargc, char **argv)
 	code_startup(nargc,argvNew,2);
 	if (DB.PGlobal <= 1)
 		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
-	printf("Potentially remove TETs from the initial PYR mesh\n"), TestDB.Nwarnings++;
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullREFINE");
@@ -272,8 +272,6 @@ void test_imp_update_h(int nargc, char **argv)
 	run_test(&pass,"FullCOARSE");
 	printf("update_h (       FullCOARSE):                    ");
 	test_print(pass);
-output_to_paraview("ZTest_Geomadapt");
-exit(1);
 
 	XYZ_lim->XYZ[0] = -0.50; XYZ_lim->XYZ[1] = -0.50; XYZ_lim->XYZ[2] = -0.50; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
 	mark_VOLUMEs(HREFINE,XYZ_lim);
@@ -293,10 +291,10 @@ exit(1);
 	test_print(pass);
 
 	code_cleanup(0);
+
 //output_to_paraview("ZTest_Geomadapt");
 //output_to_paraview("ZTest_Normals");
 //exit(1);
-
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 	free(XYZ_lim);
@@ -505,13 +503,13 @@ static void check_correspondence(unsigned int *pass)
 		BC = FACET->BC;
 		FACET_is_internal = (BC == 0 || (BC % BC_STEP_SC > 50));
 
-		if (FACET_is_internal && (array_norm_diff_d(NfnS*d,XYZ_fSIn,XYZ_fSOutIn,"Inf")  > EPS ||
-		                          array_norm_diff_d(NfnS*d,XYZ_fSInOut,XYZ_fSOut,"Inf") > EPS)) {
+		if (FACET_is_internal && (array_norm_diff_d(NfnS*d,XYZ_fSIn,XYZ_fSOutIn,"Inf")  > 10*EPS ||
+		                          array_norm_diff_d(NfnS*d,XYZ_fSInOut,XYZ_fSOut,"Inf") > 10*EPS)) {
 				*pass = 0;
 				printf("Problem in check_correspondence\n");
 printf("%d %d %d\n",FACET->indexg,FACET->IndOrdInOut,FACET->IndOrdOutIn);
-printf("%d %d %d\n",FACET->VIn->indexg,FACET->VfIn,FACET->VIn->level);
-printf("%d %d %d\n",FACET->VOut->indexg,FACET->VfOut,FACET->VOut->level);
+printf("%d %d %d %d\n",FACET->VIn->type,FACET->VIn->indexg,FACET->VfIn,FACET->VIn->level);
+printf("%d %d %d %d\n",FACET->VOut->type,FACET->VOut->indexg,FACET->VfOut,FACET->VOut->level);
 				printf("Errors: %e %e\n\n",array_norm_diff_d(NfnS*d,XYZ_fSIn,XYZ_fSOutIn,"Inf"),
 		                                   array_norm_diff_d(NfnS*d,XYZ_fSInOut,XYZ_fSOut,"Inf"));
 				array_print_d(NfnS,d,XYZ_fSIn,'C');

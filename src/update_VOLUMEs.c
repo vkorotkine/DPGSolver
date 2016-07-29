@@ -26,11 +26,11 @@
  */
 
 struct S_OPERATORS {
-	unsigned int NvnGs, NvnGc, NvnS, NvnSP, NvnI;
+	unsigned int NvnGs, NvnGc, NvnS, *Nvve, NvnSP, NvnI;
 	double       *I_vGs_vGc, **I_vGs_vGs, **Ihat_vS_vS, **L2hat_vS_vS, *w_vI, *ChiS_vI;
 };
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass)
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndEType_h)
 {
 	unsigned int P, PNew, type, curved;
 	struct S_ELEMENT *ELEMENT;
@@ -41,10 +41,13 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	curved = VOLUME->curved;
 
 	ELEMENT = get_ELEMENT_type(type);
+	if (IndEType_h)
+		ELEMENT = get_ELEMENT_type(ELEMENT->type_h[IndEType_h]);
 
 	OPS->NvnGs = ELEMENT->NvnGs[1];
 	OPS->NvnGc = ELEMENT->NvnGc[PNew];
 	OPS->NvnS  = ELEMENT->NvnS[P];
+	OPS->Nvve  = ELEMENT->Nvve;
 	OPS->NvnSP = ELEMENT->NvnS[PNew];
 	OPS->I_vGs_vGs  = ELEMENT->I_vGs_vGs[1][1];
 	OPS->I_vGs_vGc  = ELEMENT->I_vGs_vGc[1][PNew][0];
@@ -64,21 +67,6 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	}
 }
 
-static unsigned int get_VOLUMEc_type(const unsigned int VType, const unsigned int vh)
-{
-	switch (VType) {
-	case PYR:
-		if (vh < 4 || vh > 7)
-			return PYR;
-		else
-			return TET;
-		break;
-	default:
-		printf("Error: Unsupported VType in get_VOLUMEc_type.\n"), exit(1);
-		break;
-	}
-}
-
 void update_VOLUME_hp(void)
 {
 	// Initialize DB Parameters
@@ -93,8 +81,8 @@ void update_VOLUME_hp(void)
 
 	// Standard datatypes
 	unsigned int i, iMax, P, PNew, f, level, adapt_type, vh, vhMin, vhMax, href_type, VType, Nf,
-	             NvnGs, NvnGc, NvnS, NvnSP, NCols, update, maxP;
-	double       *I_vGs_vGc, *XYZ_vC, *XYZ_S,
+	             IndEhref, NvnGs[2], NvnGc[2], NvnS, NvnSP, NCols, update, maxP;
+	double       *I_vGs_vGc[2], *XYZ_vC, *XYZ_S,
 	             **Ihat_vS_vS, **I_vGs_vGs, **L2hat_vS_vS, *What, *RES, *WhatP, *WhatH, *RESP, *RESH, *dummyPtr_d;
 
 	struct S_OPERATORS *OPS;
@@ -144,6 +132,17 @@ void update_VOLUME_hp(void)
 				break;
 			}
 
+			if (adapt_type == HREFINE) {
+				if (VOLUME->type == PYR)
+					init_ops(OPS,VOLUME,1);
+				else
+					init_ops(OPS,VOLUME,0);
+
+				NvnGs[1]     = OPS->NvnGs;
+				NvnGc[1]     = OPS->NvnGc;
+				I_vGs_vGc[1] = OPS->I_vGs_vGc;
+			}
+
 			init_ops(OPS,VOLUME,0);
 
 			VOLUME->update = 1;
@@ -153,19 +152,19 @@ void update_VOLUME_hp(void)
 
 				// Update geometry
 				if (VOLUME->curved) {
-					NvnGs      = OPS->NvnGs;
-					NvnGc      = OPS->NvnGc;
-					I_vGs_vGc  = OPS->I_vGs_vGc;
+					NvnGs[0]     = OPS->NvnGs;
+					NvnGc[0]     = OPS->NvnGc;
+					I_vGs_vGc[0] = OPS->I_vGs_vGc;
 
 					NCols = d;
 
 					XYZ_vC = VOLUME->XYZ_vC;
-					XYZ_S  = malloc(NvnGc*NCols * sizeof *XYZ_S); // keep
-					mm_CTN_d(NvnGc,NCols,NvnGs,I_vGs_vGc,XYZ_vC,XYZ_S);
+					XYZ_S  = malloc(NvnGc[0]*NCols * sizeof *XYZ_S); // keep
+					mm_CTN_d(NvnGc[0],NCols,NvnGs[0],I_vGs_vGc[0],XYZ_vC,XYZ_S);
 
 					free(VOLUME->XYZ_S);
 					VOLUME->XYZ_S = XYZ_S;
-					VOLUME->NvnG  = NvnGc;
+					VOLUME->NvnG  = NvnGc[0];
 
 					free(VOLUME->XYZ);
 					if (strstr(MeshType,"ToBeCurved"))
@@ -212,11 +211,10 @@ void update_VOLUME_hp(void)
 				RES   = VOLUME->RES;
 
 
-				NvnGs      = OPS->NvnGs;
-				NvnGc      = OPS->NvnGc;
+				NvnGs[0]   = OPS->NvnGs;
+				NvnGc[0]   = OPS->NvnGc;
 				NvnS       = OPS->NvnS;
 				I_vGs_vGs  = OPS->I_vGs_vGs;
-				I_vGs_vGc  = OPS->I_vGs_vGc;
 
 				NCols = d;
 
@@ -264,29 +262,42 @@ void update_VOLUME_hp(void)
 					}
 
 					// Update geometry
-// When updating XYZ_vC, ensure that corners on curved boundaries are placed on the boundary.
-					VOLUMEc->XYZ_vC = malloc(NvnGs*d * sizeof *XYZ_vC); // keep
-					XYZ_vC = VOLUMEc->XYZ_vC;
+					IndEhref = 0;
+					if (VType == PYR && VOLUMEc->type == TET)
+						IndEhref = 1;
 
-					mm_CTN_d(NvnGs,NCols,NvnGs,I_vGs_vGs[vh],VOLUME->XYZ_vC,VOLUMEc->XYZ_vC);
+// When updating XYZ_vC, ensure that corners on curved boundaries are placed on the boundary.
+					VOLUMEc->XYZ_vC = malloc(NvnGs[IndEhref]*d * sizeof *XYZ_vC); // keep
+					XYZ_vC = VOLUMEc->XYZ_vC;
+/*
+if (VType == PYR) {
+printf("%d %d %d\n",vh,NvnGs[IndEhref],IndEhref);
+array_print_d(NvnGs[IndEhref],NvnGs[0],I_vGs_vGs[vh],'R');
+}
+*/
+					mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vC,VOLUMEc->XYZ_vC);
 					if (!VOLUMEc->curved) {
 						double *XYZ;
 
-						VOLUMEc->NvnG = NvnGs;
+						VOLUMEc->NvnG = NvnGs[IndEhref];
 
-						VOLUMEc->XYZ_S = malloc(NvnGs*NCols * sizeof *XYZ_S); // keep
-						VOLUMEc->XYZ   = malloc(NvnGs*NCols * sizeof *XYZ);   // keep
+						VOLUMEc->XYZ_S = malloc(NvnGs[IndEhref]*NCols * sizeof *XYZ_S); // keep
+						VOLUMEc->XYZ   = malloc(NvnGs[IndEhref]*NCols * sizeof *XYZ);   // keep
 						XYZ_S = VOLUMEc->XYZ_S;
 						XYZ   = VOLUMEc->XYZ;
-						for (unsigned int i = 0, iMax = NCols*NvnGs; i < iMax; i++) {
+						for (unsigned int i = 0, iMax = NCols*NvnGs[IndEhref]; i < iMax; i++) {
 							XYZ_S[i] = XYZ_vC[i];
 							XYZ[i]   = XYZ_S[i];
 						}
 					} else {
-						VOLUMEc->NvnG = NvnGc;
+if (VType == PYR) {
+// Likely remove Nvve and just use appropriate operators (based on NEhref): NvnGs, NvnGc, I_vGs_vGc, (more?)
+printf("Error: Need to ensure that TETs and PYRs are treated properly in update_VOLUMEs.\n"), exit(1);
+}
+						VOLUMEc->NvnG = NvnGc[IndEhref];
 
-						VOLUMEc->XYZ_S = malloc(NvnGc*NCols * sizeof *XYZ_S); // keep
-						mm_CTN_d(NvnGc,NCols,NvnGs,I_vGs_vGc,XYZ_vC,VOLUMEc->XYZ_S);
+						VOLUMEc->XYZ_S = malloc(NvnGc[IndEhref]*NCols * sizeof *XYZ_S); // keep
+						mm_CTN_d(NvnGc[IndEhref],NCols,NvnGs[IndEhref],I_vGs_vGc[IndEhref],XYZ_vC,VOLUMEc->XYZ_S);
 
 						if (strstr(MeshType,"ToBeCurved"))
 							setup_ToBeCurved(VOLUMEc);
@@ -309,6 +320,8 @@ void update_VOLUME_hp(void)
 					VOLUMEc->What = WhatH;
 					VOLUMEc->RES  = RESH;
 				}
+//if (VType == PYR)
+//exit(1);
 //printf("HREF: %p %p %ld %p\n",VOLUME->What,VOLUMEc->What,(VOLUME->What)-(VOLUMEc->What),VOLUMEc->next);
 				free(VOLUME->What);
 				free(VOLUME->RES);

@@ -18,6 +18,8 @@
  *		HCOARSE in order to ensure that neighbouring elements are no more than 1-irregular.
  *		Clean up this function: function names, variable names, comments, potentially combine the COARSE and FINE FACET
  *		list updating (ToBeDeleted)
+ *		coarse_update and get_FACET_IndVIn use the same IndVInh => combine these during cleanup (ToBeDeleted)
+ *		Likely included FACET renumbering as well to avoid overflow for long-time simulations. (ToBeDeleted)
  *
  *	Notation:
  *
@@ -264,8 +266,62 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 			break;
 		}
 		break;
+	case PYR:
+		switch (f) {
+		default: // FACE 0
+			switch (fh) {
+			case 0: *IndVInh = 0; break;
+			case 1: *IndVInh = 2; break;
+			case 2: *IndVInh = 9; break;
+			case 3: *IndVInh = 4; break;
+			default: printf("Error: Unsupported (%d, %d, %d) in get_FACET_IndVIn.\n",VType,f,fh), exit(1); break;
+			}
+			*Vfh = 0;
+			break;
+		case 1:
+			switch (fh) {
+			case 0: *IndVInh = 1; break;
+			case 1: *IndVInh = 3; break;
+			case 2: *IndVInh = 9; break;
+			case 3: *IndVInh = 5; break;
+			default: printf("Error: Unsupported (%d, %d, %d) in get_FACET_IndVIn.\n",VType,f,fh), exit(1); break;
+			}
+			*Vfh = 1;
+			break;
+		case 2:
+			switch (fh) {
+			case 0: *IndVInh = 0; break;
+			case 1: *IndVInh = 1; break;
+			case 2: *IndVInh = 9; break;
+			case 3: *IndVInh = 6; break;
+			default: printf("Error: Unsupported (%d, %d, %d) in get_FACET_IndVIn.\n",VType,f,fh), exit(1); break;
+			}
+			*Vfh = 2;
+			break;
+		case 3:
+			switch (fh) {
+			case 0: *IndVInh = 2; break;
+			case 1: *IndVInh = 3; break;
+			case 2: *IndVInh = 9; break;
+			case 3: *IndVInh = 7; break;
+			default: printf("Error: Unsupported (%d, %d, %d) in get_FACET_IndVIn.\n",VType,f,fh), exit(1); break;
+			}
+			*Vfh = 3;
+			break;
+		case 4:
+			switch (fh) {
+			case 0: *IndVInh = 0; break;
+			case 1: *IndVInh = 1; break;
+			case 2: *IndVInh = 2; break;
+			case 3: *IndVInh = 3; break;
+			default: printf("Error: Unsupported (%d, %d, %d) in get_FACET_IndVIn.\n",VType,f,fh), exit(1); break;
+			}
+			*Vfh = 4;
+			break;
+		}
+		break;
 	default:
-		printf("Error: Unsupported VType in get_FACET_IndVIn.\n");
+		printf("Error: Unsupported VType in get_FACET_IndVIn.\n"), exit(1);
 		break;
 	}
 }
@@ -438,6 +494,10 @@ static unsigned int get_fhMax(const unsigned int VType, const unsigned int href_
 		// Supported href_type: 0 (Isotropic)
 		return 4;
 		break;
+	case PYR:
+		// Supported href_type: 0 (Isotropic)
+		return 4;
+		break;
 	default:
 		printf("Error: Unsupported VType in get_fhMax.\n"), exit(1);
 		return 0;
@@ -454,7 +514,7 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 	struct S_VOLUME *VOLUMEc;
 
 	// silence
-	IndVhOut = IndOrdInOut = IndOrdOutIn = 0;
+	IndVhOut = IndOrdInOut = IndOrdOutIn = f = 0;
 
 //printf("%d %d\n",VOLUME->indexg,vh);
 	VType = VOLUME->type;
@@ -557,17 +617,35 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 			printf("Error: Should not be entering set_FACET_Out for vh %d for VType %d.\n",vh,VType), exit(1);
 			break;
 		}
-
-// ToBeDeleted (asdf)
-if (!((vh == 0 && (fIn == 0 || fIn == 4)) ||
-      (vh == 1 && (fIn == 1 || fIn == 4)) ||
-      (vh == 2 && (fIn == 2 || fIn == 4)) ||
-      (vh == 3 && fIn == 4) ||
-      (vh == 4 && fIn == 0) ||
-      (vh == 5 && fIn == 1) ||
-      (vh == 6 && fIn == 2)))
-	printf("Error: Invalid vh %d, fIn %d combination in set_FACET_Out (WEDGE).\n",vh,fIn), exit(1);
-
+		break;
+	case PYR:
+		// Isotropic refinement only.
+		switch (vh) {
+		case 0:
+			if      (fIn == 1) { IndVhOut = 6; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; }
+			else if (fIn == 3) { IndVhOut = 4; f = 1; IndOrdInOut = 1; IndOrdOutIn = 2; }
+			break;
+		case 1:
+			if      (fIn == 0) { IndVhOut = 6; f = 1; IndOrdInOut = 4; IndOrdOutIn = 4; }
+			else if (fIn == 3) { IndVhOut = 5; f = 0; IndOrdInOut = 3; IndOrdOutIn = 3; }
+			break;
+		case 2:
+			if      (fIn == 1) { IndVhOut = 7; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; }
+			else if (fIn == 2) { IndVhOut = 4; f = 2; IndOrdInOut = 1; IndOrdOutIn = 2; }
+			break;
+		case 3:
+			if      (fIn == 0) { IndVhOut = 7; f = 1; IndOrdInOut = 4; IndOrdOutIn = 4; }
+			else if (fIn == 2) { IndVhOut = 5; f = 2; IndOrdInOut = 2; IndOrdOutIn = 1; }
+			break;
+		case 4: IndVhOut = 8; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fIn = 3
+		case 5: IndVhOut = 8; f = 1; IndOrdInOut = 2; IndOrdOutIn = 1; break; // fIn = 3
+		case 6: IndVhOut = 8; f = 2; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 3
+		case 7: IndVhOut = 8; f = 3; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 2
+		case 8: IndVhOut = 9; f = 4; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 4
+		default: // Should already have found all FACETs
+			printf("Error: Should not be entering set_FACET_Out for vh %d for VType %d.\n",vh,VType), exit(1);
+			break;
+		}
 		break;
 	default:
 		printf("Error: Unsupported VType in set_FACET_Out.\n"), exit(1);
@@ -747,6 +825,44 @@ static void set_FACET_Out_External(struct S_FACET *FACETc, struct S_VOLUME *VOLU
 			IndVhOut = 6; break;
 		case 4*NFREFMAX+4:
 			IndVhOut = 7; break;
+		default:
+			printf("Error: Unsupported VfOut = %d in set_FACET_Out_External.\n",VfOut), exit(1);
+			break;
+		}
+		f = VfOut/NFREFMAX;
+		break;
+	case PYR:
+		// Isotropic refinement only.
+		switch (VfOut) {
+		case 1:
+		case 2*NFREFMAX+1:
+		case 4*NFREFMAX+1:
+			IndVhOut = 0; break;
+		case NFREFMAX+1:
+		case 2*NFREFMAX+2:
+		case 4*NFREFMAX+2:
+			IndVhOut = 1; break;
+		case 2:
+		case 3*NFREFMAX+1:
+		case 4*NFREFMAX+3:
+			IndVhOut = 2; break;
+		case NFREFMAX+2:
+		case 3*NFREFMAX+2:
+		case 4*NFREFMAX+4:
+			IndVhOut = 3; break;
+		case 4:
+			IndVhOut = 4; break;
+		case NFREFMAX+4:
+			IndVhOut = 5; break;
+		case 2*NFREFMAX+4:
+			IndVhOut = 6; break;
+		case 3*NFREFMAX+4:
+			IndVhOut = 7; break;
+		case 3:
+		case NFREFMAX+3:
+		case 2*NFREFMAX+3:
+		case 3*NFREFMAX+3:
+			IndVhOut = 9; break;
 		default:
 			printf("Error: Unsupported VfOut = %d in set_FACET_Out_External.\n",VfOut), exit(1);
 			break;
@@ -996,6 +1112,19 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 			for (sf = 0; sf < sfMax; sf++)
 				Indsf[sf] = f*NSUBFMAX;
 			break;
+		case PYR:
+			// Supported: Isotropic refinement
+			sfMax = 4;
+			switch (f) {
+			default: IndVc[0] = 0; IndVc[1] = 2; IndVc[2] = 9; IndVc[3] = 4; break;
+			case 1:  IndVc[0] = 1; IndVc[1] = 3; IndVc[2] = 9; IndVc[3] = 5; break;
+			case 2:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 9; IndVc[3] = 6; break;
+			case 3:  IndVc[0] = 2; IndVc[1] = 3; IndVc[2] = 9; IndVc[3] = 7; break;
+			case 4:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 3; break;
+			}
+			for (sf = 0; sf < sfMax; sf++)
+				Indsf[sf] = f*NSUBFMAX;
+			break;
 		default:
 			printf("Error: Unsupported VType in coarse_update.\n"), exit(1);
 			break;
@@ -1138,6 +1267,19 @@ for (int i = 0; i < NFMAX*NSUBFMAX; i++) {
 
 		Indsf[0] = 0; Indsf[1] = 4; Indsf[2] = 1; Indsf[3] = 4; Indsf[4] = 2;
 		Indsf[5] = 4; Indsf[6] = 4; Indsf[7] = 0; Indsf[8] = 1; Indsf[9] = 2;
+		for (i = 0; i < sfMax_i; i++)
+			Indsf[i] *= NSUBFMAX;
+		break;
+	case PYR:
+		sfMax_i = 13;
+
+		IndVc[0]  = 0; IndVc[1]  = 0; IndVc[2]  = 1; IndVc[3] = 1; IndVc[4] = 2;
+		IndVc[5]  = 2; IndVc[6]  = 3; IndVc[7]  = 3; IndVc[8] = 4; IndVc[9] = 5;
+		IndVc[10] = 6; IndVc[11] = 7; IndVc[12] = 8;
+
+		Indsf[0]  = 1; Indsf[1]  = 3; Indsf[2]  = 0; Indsf[3] = 3; Indsf[4] = 1;
+		Indsf[5]  = 2; Indsf[6]  = 0; Indsf[7]  = 2; Indsf[8] = 3; Indsf[9] = 3;
+		Indsf[10] = 3; Indsf[11] = 2; Indsf[12] = 4;
 		for (i = 0; i < sfMax_i; i++)
 			Indsf[i] *= NSUBFMAX;
 		break;
@@ -1317,6 +1459,7 @@ if (FACETc->VOut->indexg == 3) {
 
 					// Internal FACETs (Always created)
 					vh = 0;
+//printf("\n");
 					for (VOLUMEc = VOLUME->child0; VOLUMEc; VOLUMEc = VOLUMEc->next) {
 						ELEMENT = get_ELEMENT_type(VOLUMEc->type);
 						Nf = ELEMENT->Nf;
@@ -1336,7 +1479,7 @@ if (FACETc->VOut->indexg == 3) {
 
 								FACETc->VIn = VOLUMEc;
 								FACETc->VfIn = f*NFREFMAX;
-//printf("upF sF: %d %d\n",vh,f);
+//printf("upF sF: %d %d %d\n",vh,f,VOLUMEc->type);
 								set_FACET_Out(vh,f,FACETc,VOLUME);
 							}
 						}
