@@ -148,6 +148,14 @@ void get_fh_range(const struct S_VOLUME *VOLUME, const unsigned int f, unsigned 
 			*fhMin = 1;
 			*fhMax = 2;
 			break;
+		case TET:
+		case HEX:
+		case WEDGE:
+		case PYR:
+			// Supported href_type: 0 (Isotropic)
+			*fhMin = 1;
+			*fhMax = 4;
+			break;
 		default:
 			printf("Error: Unsupported VType in get_fh_range.\n"), exit(1);
 			break;

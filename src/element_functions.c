@@ -501,25 +501,25 @@ struct S_ELEMENT *get_ELEMENT_FACET(const unsigned int type, const unsigned int 
 	struct S_ELEMENT *ELEMENT = DB.ELEMENT;
 
 	if (type == LINE) {
-		while (ELEMENT != NULL) {
+		while (ELEMENT) {
 			if (ELEMENT->type == POINT)
 				return ELEMENT;
 			ELEMENT = ELEMENT->next;
 		}
 	} else if (type == TRI || type == QUAD) {
-		while (ELEMENT != NULL) {
+		while (ELEMENT) {
 			if (ELEMENT->type == LINE)
 				return ELEMENT;
 			ELEMENT = ELEMENT->next;
 		}
 	} else if (type == TET || (type == WEDGE && IndEclass == 1) || (type == PYR && IndEclass == 0)) {
-		while (ELEMENT != NULL) {
+		while (ELEMENT) {
 			if (ELEMENT->type == TRI)
 				return ELEMENT;
 			ELEMENT = ELEMENT->next;
 		}
 	} else if (type == HEX || (type == WEDGE && IndEclass == 0) || (type == PYR && IndEclass == 1)) {
-		while (ELEMENT != NULL) {
+		while (ELEMENT) {
 			if (ELEMENT->type == QUAD)
 				return ELEMENT;
 			ELEMENT = ELEMENT->next;

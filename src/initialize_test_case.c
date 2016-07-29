@@ -102,8 +102,8 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 		DB.Xc =  0.0;
 		DB.Yc =  0.0;
 		DB.Rc =  0.2;
-//		DB.PeriodFraction = 0.1;
-		DB.PeriodFraction = 1.0;
+		DB.PeriodFraction = 0.2;
+//		DB.PeriodFraction = 1.0;
 
 		DB.MInf = 0.5;
 //		DB.MInf = 0.0;

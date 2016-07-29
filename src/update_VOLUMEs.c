@@ -211,10 +211,11 @@ void update_VOLUME_hp(void)
 				RES   = VOLUME->RES;
 
 
-				NvnGs[0]   = OPS->NvnGs;
-				NvnGc[0]   = OPS->NvnGc;
-				NvnS       = OPS->NvnS;
-				I_vGs_vGs  = OPS->I_vGs_vGs;
+				NvnGs[0]     = OPS->NvnGs;
+				NvnGc[0]     = OPS->NvnGc;
+				NvnS         = OPS->NvnS;
+				I_vGs_vGs    = OPS->I_vGs_vGs;
+				I_vGs_vGc[0] = OPS->I_vGs_vGc;
 
 				NCols = d;
 

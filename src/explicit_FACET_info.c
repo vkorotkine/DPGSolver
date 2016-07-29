@@ -164,6 +164,9 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		default: // ADAPT_P, ADAPT_H, ADAPT_HP
 			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fS[PF][IndOrdOutIn];
 			break;
+case ADAPT_P: // ToBeModified (Also change setup_normals and output_to_paraview)
+case ADAPT_H:
+case ADAPT_HP:
 		case ADAPT_0:
 			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIs[PF][IndOrdOutIn];
 			break;
@@ -189,6 +192,9 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		default: // ADAPT_P, ADAPT_H, ADAPT_HP
 			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fS[PF][IndOrdOutIn];
 			break;
+case ADAPT_P: // ToBeModified (Also change setup_normals and output_to_paraview)
+case ADAPT_H:
+case ADAPT_HP:
 		case ADAPT_0:
 			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIc[PF][IndOrdOutIn];
 			break;
@@ -275,7 +281,6 @@ static void compute_FACET_RHS_EFE(void)
 			} else {
 				for (dim = 0; dim < d; dim++)
 					Diag[dim] = 0;
-				Diag[1] = 2;
 			}
 
 			sf_apply_d(VIn->What,WIn_fI,NIn,NOut,Nvar,OP,Diag,d);
@@ -331,7 +336,6 @@ static void compute_FACET_RHS_EFE(void)
 				} else {
 					for (dim = 0; dim < d; dim++)
 						Diag[dim] = 0;
-					Diag[1] = 2;
 				}
 
 				sf_apply_d(VOut->What,WOut_fI,NIn,NOut,Nvar,OP,Diag,d);
@@ -411,14 +415,14 @@ array_print_d(NfnI,Nvar,WOut_fIIn,'C');
 		}
 
 /*
-//if (FACET->indexg == 4) {
+if (FACET->indexg == 2) {
 printf("%d %d %d %d %d\n",FACET->indexg,IndFType,VIn->indexg,VOut->indexg,VfIn);
 array_print_d(NfnI,Neq,WIn_fI,'C');
 array_print_d(NfnI,Neq,WOut_fIIn,'C');
 array_print_d(NfnI,d,n_fI,'R');
 array_print_d(NfnI,1,detJF_fI,'C');
 array_print_d(NfnI,Neq,nFluxNum_fI,'C');
-//}
+}
 */
 
 		// Multiply n dot FNum by the area element
@@ -565,7 +569,7 @@ if (FACET->indexg == 240) {
 		}
 
 /*
-//if (FACET->indexg == 2) {
+if (FACET->indexg == 2) {
 printf("%d %d %d %d %d %d %d\n",FACET->indexg,IndFType,VIn->indexg,VOut->indexg,VfIn,BC,Boundary);
 array_print_d(NvnSIn,Neq,RHSIn,'C');
 array_print_d(NvnSOut,Neq,RHSOut,'C');
@@ -575,7 +579,7 @@ array_print_d(NvnSOut,Neq,RHSOut,'C');
 //array_print_d(NfnI,Neq,WOut_fIIn,'C');
 //array_print_d(NfnI,Neq,nFluxNum_fI,'R');
 //exit(1);
-//}
+}
 */
 
 		free(RowTracker);
