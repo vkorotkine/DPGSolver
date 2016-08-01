@@ -1197,11 +1197,7 @@ for (int i = 0; i < NFMAX*NSUBFMAX; i++) {
 
 					// Recompute XYZ_fS, n_fS, and detJF_fS
 // Need not be recomputed, just reordered (and potentially negated) (ToBeDeleted)
-					free(FACET->XYZ_fS);
 					setup_FACET_XYZ(FACET);
-
-					free(FACET->n_fS);
-					free(FACET->detJF_fS);
 					setup_normals(FACET);
 				} else {
 					FACET->VOut  = VOLUME;
@@ -1305,7 +1301,7 @@ void update_FACET_hp(void)
 	 *		Parameters to (potentially) modify:
 	 *			P, typeInt, BC, indexg,
 	 *			VIn/VOut, VfIn/VfOut, IndOrdInOut/IndOrdOutIn,
-	 *			n_fS, XYZ_fS, detJF_fS
+	 *			n_fS, XYZ_fS, detJF_fS (ToBeModified (potentially to _fI))
 	 */
 	// Initialize DB Parameters
 	unsigned int Adapt     = DB.Adapt,
@@ -1331,7 +1327,7 @@ void update_FACET_hp(void)
 	case ADAPT_H:
 		// HREFINE
 		for (l = 0; l < LevelsMax; l++) {
-			for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 				if (VOLUME->update && VOLUME->adapt_type == HREFINE && l == VOLUME->level) {
 					NsubF = VOLUME->NsubF;
 
@@ -1404,7 +1400,6 @@ if (FACET->level == 1) {
 										FACETc->VOut  = FACETc->VIn;
 										FACETc->VfOut = FACETc->VfIn;
 									}
-								// Valid for PYR? (ToBeDeleted)
 									FACETc->IndOrdInOut = FACET->IndOrdInOut;
 									FACETc->IndOrdOutIn = FACET->IndOrdOutIn;
 								} else {
@@ -1522,7 +1517,7 @@ printf("\n\n\n");
 		}
 
 		// Fix remainder of list
-		for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
+		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 			FACETnext = FACET->next;
 //printf("FUp: %d ",FACET->indexg);
 //if (FACETnext)
@@ -1562,8 +1557,12 @@ printf("%d\n",FACET->BC);
 }
 				FACET->P      = max(VIn->P,VOut->P);
 				FACET->curved = max(VIn->curved,VOut->curved);
+				if (!FACET->curved)
+					FACET->typeInt = 's';
+				else
+					FACET->typeInt = 'c';
 
-				// Compute XYZ_fS, n_fS, and detJF_fS
+				// Compute XYZ_fS, n_fS, and detJF_fS (ToBeModified)
 				setup_FACET_XYZ(FACET);
 				setup_normals(FACET);
 			}
@@ -1572,7 +1571,7 @@ printf("%d\n",FACET->BC);
 
 		// HCOARSE
 		for (l = LevelsMax; l > 0; l--) {
-		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		if (VOLUME->update && VOLUME->adapt_type == HCOARSE && l == VOLUME->level) {
 		if (VOLUME == VOLUME->parent->child0) {
 			VOLUMEp = VOLUME->parent;
@@ -1582,7 +1581,7 @@ printf("%d\n",FACET->BC);
 			}
 		}}}}
 
-		for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
+		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 //			printf("Fpar: %d %d %d %d %p\n",FACET->indexg,FACET->level,FACET->update,FACET->adapt_type,FACET->parent);
 		}
 
@@ -1668,7 +1667,7 @@ output_to_paraview("Geomadapt");
 		/*	No modifications required for:
 		 *		indexg, typeInt, BC
 		 */
-		for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
+		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 			VIn  = FACET->VIn;
 			VOut = FACET->VOut;
 
@@ -1690,11 +1689,7 @@ output_to_paraview("Geomadapt");
 				}
 
 				// Recompute XYZ_fS, n_fS, and detJF_fS
-				free(FACET->XYZ_fS);
 				setup_FACET_XYZ(FACET);
-
-				free(FACET->n_fS);
-				free(FACET->detJF_fS);
 				setup_normals(FACET);
 			}
 		}

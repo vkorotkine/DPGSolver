@@ -77,6 +77,7 @@ void setup_normals(struct S_FACET *FACET)
 	nrIn = &(OPS->nr[fIn*d]);
 	switch (Adapt) {
 	default: // ADAPT_P, ADAPT_H, ADAPT_HP
+printf("Error: Should not be entering default in setup_normals.\n"), exit(1);
 		C_fS = malloc(NfnS0*d*d * sizeof *C_fS); // free
 		mm_CTN_d(NfnS0,d*d,NvnC0,OPS->I_vC_fS[VfIn],C_vC,C_fS);
 

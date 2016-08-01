@@ -200,7 +200,7 @@ void setup_parameters()
 	// Geometry
 	PGs = 1;
 
-	if (strstr(DB.MeshType,"ToBeCurved") != NULL)
+	if (strstr(DB.MeshType,"ToBeCurved"))
 		DB.AC = 1, DB.ExactGeom = 0;
 	else
 		DB.AC = 0, DB.ExactGeom = 1;

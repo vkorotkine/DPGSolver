@@ -45,7 +45,7 @@ double finalize_RHS(void)
 	// silence
 	NvnSIn = 0;
 
-	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
+	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 		VIn    = FACET->VIn;
 		VfIn   = FACET->VfIn;
 		fIn    = VfIn/NFREFMAX;
@@ -105,8 +105,8 @@ array_print_d(NvnSOut,Neq,VOut->RHS,'C');
 
 	// Add MInv contribution to RHS for explicit runs
 	maxRHS = 0.0;
-	if (strstr(SolverType,"Explicit") != NULL) {
-		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+	if (strstr(SolverType,"Explicit")) {
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			// Compute maxRHS for convergence monitoring
 			NvnSIn = VOLUME->NvnS;
 			maxRHSV = array_norm_d(NvnSIn,VOLUME->RHS,"Inf");
@@ -134,11 +134,11 @@ array_print_d(NvnSIn,Neq,VOLUME->RHS,'C');
 				free(VOLUME->RHS);
 				VOLUME->RHS = RHS_Final;
 
-/*
-//printf("%d\n",VOLUME->indexg);
-array_print_d(NvnSIn,Neq,RHS_Final,'C');
+
+//printf("%d %d %d \n",VOLUME->indexg,VOLUME->type,VOLUME->level);
+//array_print_d(NvnSIn,Neq,RHS_Final,'C');
 //exit(1);
-*/
+
 
 			}
 

@@ -207,7 +207,7 @@ for (eq = 0; eq < Neq; eq++) {
 			// Compute RHS terms
 			NvnS = OPS[0]->NvnS;
 
-			if (VOLUME->RHS != NULL)
+			if (VOLUME->RHS)
 				free(VOLUME->RHS);
 			RHS = calloc(NvnS*Neq , sizeof *RHS); // keep (requires external free)
 			VOLUME->RHS = RHS;

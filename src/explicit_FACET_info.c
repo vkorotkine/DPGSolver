@@ -89,6 +89,7 @@ case ADAPT_HP:
 		}
 		break;
 	default: // ADAPT_P, ADAPT_H, ADAPT_HP
+printf("Error: Should not be entering default in explicit_FACET_info.\n"), exit(1);
 		switch (Vectorized) {
 		case 0:
 			compute_FACET_RHS();
@@ -162,6 +163,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIs[PF][IndOrdInOut];
 		switch (Adapt) {
 		default: // ADAPT_P, ADAPT_H, ADAPT_HP
+printf("Error: Should not be entering default in explicit_FACET_info.\n"), exit(1);
 			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fS[PF][IndOrdOutIn];
 			break;
 case ADAPT_P: // ToBeModified (Also change setup_normals and output_to_paraview)
@@ -190,6 +192,7 @@ case ADAPT_HP:
 		OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIc[PF][IndOrdInOut];
 		switch (Adapt) {
 		default: // ADAPT_P, ADAPT_H, ADAPT_HP
+printf("Error: Should not be entering default in explicit_FACET_info.\n"), exit(1);
 			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fS[PF][IndOrdOutIn];
 			break;
 case ADAPT_P: // ToBeModified (Also change setup_normals and output_to_paraview)
@@ -217,7 +220,7 @@ static void compute_FACET_RHS_EFE(void)
 
 	// Standard datatypes
 	unsigned int i, j, iInd, dim, P,
-	             VfIn, VfOut, fIn, fOut, EclassIn, EclassOut, IndFType, Boundary, BC, BC_trail,
+	             VfIn, VfOut, fIn, fOut, EclassIn, EclassOut, IndFType, Boundary, BC, BC_trail, SpOpIn, SpOpOut,
 	             RowInd, RowSub, ReOrder, *RowTracker,
 	             NfnI, NvnSIn, NvnSOut, *nOrdOutIn, *nOrdInOut,
 	             NIn[3], NOut[3], Diag[3], NOut0, NOut1, NIn0, NIn1;
@@ -237,13 +240,14 @@ static void compute_FACET_RHS_EFE(void)
 		OPSOut[i] = malloc(sizeof *OPSOut[i]); // free
 	}
 
-	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
+	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 		P = FACET->P;
 
 		// Obtain operators
-		VIn  = FACET->VIn;
-		VfIn = FACET->VfIn;
-		fIn  = VfIn/NfrefMax;
+		VIn    = FACET->VIn;
+		VfIn   = FACET->VfIn;
+		fIn    = VfIn/NfrefMax;
+		SpOpIn = Collocated && (VfIn % NFREFMAX == 0 && VIn->P == P);
 
 		EclassIn = VIn->Eclass;
 		IndFType = get_IndFType(EclassIn,fIn);
@@ -251,9 +255,10 @@ static void compute_FACET_RHS_EFE(void)
 		if (VIn->type == WEDGE || VIn->type == PYR)
 			init_ops(OPSIn[1],VIn,FACET,1);
 
-		VOut  = FACET->VOut;
-		VfOut = FACET->VfOut;
-		fOut  = VfOut/NfrefMax;
+		VOut    = FACET->VOut;
+		VfOut   = FACET->VfOut;
+		fOut    = VfOut/NfrefMax;
+		SpOpOut = Collocated && (VfOut % NFREFMAX == 0 && VOut->P == P);
 
 		EclassOut = VOut->Eclass;
 		init_ops(OPSOut[0],VOut,FACET,0);
@@ -273,8 +278,7 @@ static void compute_FACET_RHS_EFE(void)
 			get_sf_parametersF(OPSIn[0]->NvnS_SF,OPSIn[0]->NvnI_SF,OPSIn[0]->ChiS_vI,
 							   OPSIn[0]->NvnS_SF,OPSIn[0]->NfnI_SF,OPSIn[0]->ChiS_fI,NIn,NOut,OP,d,VfIn,C_TP);
 
-// Note: Needs modification for h-adaptation (ToBeDeleted)
-			if (Collocated) {
+			if (SpOpIn) {
 				for (dim = 0; dim < d; dim++)
 					Diag[dim] = 2;
 				Diag[fIn/2] = 0;
@@ -291,8 +295,7 @@ static void compute_FACET_RHS_EFE(void)
 			               NOut0 = OPSIn[0]->NvnI_SF, NOut1 = OPSIn[1]->NfnI_SF; }
 			get_sf_parametersF(OPSIn[0]->NvnS_SF,NOut0,OPF0,OPSIn[1]->NvnS_SF,NOut1,OPF1,NIn,NOut,OP,d,VfIn,C_WEDGE);
 
-// Note: Needs modification for h-adaptation (ToBeDeleted)
-			if (Collocated) {
+			if (SpOpIn) {
 				for (dim = 0; dim < d; dim++)
 					Diag[dim] = 2;
 				if (fIn < 3)
@@ -306,9 +309,7 @@ static void compute_FACET_RHS_EFE(void)
 			}
 
 			sf_apply_d(VIn->What,WIn_fI,NIn,NOut,Nvar,OP,Diag,d);
-		} else if ((Collocated && (EclassIn == C_TP || EclassIn == C_WEDGE)) || (VFPartUnity[EclassIn])) {
-// Note: May need modification for h-adaptation (ToBeDeleted)
-//       The operator is not necessarily sparse in this case.
+		} else if ((SpOpIn && (EclassIn == C_TP || EclassIn == C_WEDGE)) || (VFPartUnity[EclassIn])) {
 			mm_CTN_CSR_d(NfnI,Nvar,NvnSIn,OPSIn[0]->ChiS_fI_sp[VfIn],VIn->What,WIn_fI);
 		} else {
 			mm_CTN_d(NfnI,Nvar,NvnSIn,OPSIn[0]->ChiS_fI[VfIn],VIn->What,WIn_fI);
@@ -329,7 +330,7 @@ static void compute_FACET_RHS_EFE(void)
 								   OPSOut[0]->NvnS_SF,OPSOut[0]->NfnI_SF,OPSOut[0]->ChiS_fI,NIn,NOut,OP,d,VfOut,C_TP);
 
 // Note: Needs modification for h-adaptation (ToBeDeleted)
-				if (Collocated) {
+				if (SpOpOut) {
 					for (dim = 0; dim < d; dim++)
 						Diag[dim] = 2;
 					Diag[fOut/2] = 0;
@@ -346,8 +347,7 @@ static void compute_FACET_RHS_EFE(void)
 				                NOut0 = OPSOut[0]->NvnI_SF, NOut1 = OPSOut[1]->NfnI_SF; }
 				get_sf_parametersF(OPSOut[0]->NvnS_SF,NOut0,OPF0,OPSOut[1]->NvnS_SF,NOut1,OPF1,NIn,NOut,OP,d,VfOut,C_WEDGE);
 
-// Note: Needs modification for h-adaptation (ToBeDeleted)
-				if (Collocated) {
+				if (SpOpOut) {
 					for (dim = 0; dim < d; dim++)
 						Diag[dim] = 2;
 					if (fOut < 3)
@@ -361,7 +361,7 @@ static void compute_FACET_RHS_EFE(void)
 				}
 
 				sf_apply_d(VOut->What,WOut_fI,NIn,NOut,Nvar,OP,Diag,d);
-			} else if ((Collocated && (EclassOut == C_TP || EclassOut == C_WEDGE)) || (VFPartUnity[EclassOut])) {
+			} else if ((SpOpOut && (EclassOut == C_TP || EclassOut == C_WEDGE)) || (VFPartUnity[EclassOut])) {
 				mm_CTN_CSR_d(NfnI,Nvar,NvnSOut,OPSOut[0]->ChiS_fI_sp[VfOut],VOut->What,WOut_fI);
 			} else {
 				mm_CTN_d(NfnI,Nvar,NvnSOut,OPSOut[0]->ChiS_fI[VfOut],VOut->What,WOut_fI);
@@ -431,6 +431,8 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 			for (j = 0; j < NfnI; j++)
 				nFluxNum_fI[iInd+j] *= detJF_fI[j];
 		}
+//printf("%d %d %d % .3e\n",FACET->indexg,VIn->type,VOut->type,
+//array_norm_diff_d(NfnI*Neq,WIn_fI,WOut_fIIn,"Inf"));
 /*
 if (FACET->indexg == 240) {
 printf("%d %d\n",FACET->indexg,IndFType);
@@ -447,14 +449,13 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 
 		RowTracker = malloc(NfnI * sizeof *RowTracker); // free
 
-		if (strstr(Form,"Weak") != NULL) {
+		if (strstr(Form,"Weak")) {
 			// Interior FACET
 			if (EclassIn == C_TP && SF_BE[P][0][1]) {
 				get_sf_parametersF(OPSIn[0]->NvnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_VV,
 								   OPSIn[0]->NfnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_FF,NIn,NOut,OP,d,VfIn,C_TP);
 
-// Note: Needs modification for h-adaptation (ToBeDeleted)
-				if (Collocated) {
+				if (SpOpIn) {
 					for (dim = 0; dim < d; dim++)
 						Diag[dim] = 2;
 					Diag[fIn/2] = 0;
@@ -471,8 +472,7 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 							   NIn0 = OPSIn[0]->NvnI_SF,   NIn1 = OPSIn[1]->NfnI_SF; }
 				get_sf_parametersF(NIn0,OPSIn[0]->NvnS_SF,OPF0,NIn1,OPSIn[1]->NvnS_SF,OPF1,NIn,NOut,OP,d,VfIn,C_WEDGE);
 
-// Note: Needs modification for h-adaptation (ToBeDeleted)
-				if (Collocated) {
+				if (SpOpIn) {
 					for (dim = 0; dim < d; dim++)
 						Diag[dim] = 2;
 					if (fIn < 3)
@@ -486,7 +486,7 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 				}
 
 				sf_apply_d(nFluxNum_fI,RHSIn,NIn,NOut,Neq,OP,Diag,d);
-			} else if ((Collocated && (EclassIn == C_TP || EclassIn == C_WEDGE)) || (VFPartUnity[EclassIn])) {
+			} else if ((SpOpIn && (EclassIn == C_TP || EclassIn == C_WEDGE)) || (VFPartUnity[EclassIn])) {
 				mm_CTN_CSR_d(NvnSIn,Neq,NfnI,OPSIn[0]->I_Weak_FF_sp[VfIn],nFluxNum_fI,RHSIn);
 			} else  {
 				mm_CTN_d(NvnSIn,Neq,NfnI,OPSIn[0]->I_Weak_FF[VfIn],nFluxNum_fI,RHSIn);
@@ -525,8 +525,7 @@ if (FACET->indexg == 240) {
 					get_sf_parametersF(OPSOut[0]->NvnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_VV,
 									   OPSOut[0]->NfnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_FF,NIn,NOut,OP,d,VfOut,C_TP);
 
-// Note: Needs modification for h-adaptation (ToBeDeleted)
-					if (Collocated) {
+					if (SpOpOut) {
 						for (dim = 0; dim < d; dim++)
 							Diag[dim] = 2;
 						Diag[fOut/2] = 0;
@@ -543,8 +542,7 @@ if (FACET->indexg == 240) {
 					                NIn0 = OPSOut[0]->NvnI_SF,   NIn1 = OPSOut[1]->NfnI_SF; }
 					get_sf_parametersF(NIn0,OPSOut[0]->NvnS_SF,OPF0,NIn1,OPSOut[1]->NvnS_SF,OPF1,NIn,NOut,OP,d,VfOut,C_WEDGE);
 
-// Note: Needs modification for h-adaptation (ToBeDeleted)
-					if (Collocated) {
+					if (SpOpOut) {
 						for (dim = 0; dim < d; dim++)
 							Diag[dim] = 2;
 						if (fOut < 3)
@@ -558,18 +556,18 @@ if (FACET->indexg == 240) {
 					}
 
 					sf_apply_d(nFluxNum_fI,RHSOut,NIn,NOut,Neq,OP,Diag,d);
-				} else if ((Collocated && (EclassOut == C_TP || EclassOut == C_WEDGE)) || (VFPartUnity[EclassOut])) {
+				} else if ((SpOpOut && (EclassOut == C_TP || EclassOut == C_WEDGE)) || (VFPartUnity[EclassOut])) {
 					mm_CTN_CSR_d(NvnSOut,Neq,NfnI,OPSOut[0]->I_Weak_FF_sp[VfOut],nFluxNum_fI,RHSOut);
 				} else {
 					mm_CTN_d(NvnSOut,Neq,NfnI,OPSOut[0]->I_Weak_FF[VfOut],nFluxNum_fI,RHSOut);
 				}
 			}
-		} else if (strstr(Form,"Strong") != NULL) {
+		} else if (strstr(Form,"Strong")) {
 			printf("Exiting: Implement the strong form in compute_FACET_RHS_EFE.\n"), exit(1);
 		}
 
 /*
-if (FACET->indexg == 2) {
+//if (FACET->indexg == 2) {
 printf("%d %d %d %d %d %d %d\n",FACET->indexg,IndFType,VIn->indexg,VOut->indexg,VfIn,BC,Boundary);
 array_print_d(NvnSIn,Neq,RHSIn,'C');
 array_print_d(NvnSOut,Neq,RHSOut,'C');
@@ -579,8 +577,9 @@ array_print_d(NvnSOut,Neq,RHSOut,'C');
 //array_print_d(NfnI,Neq,WOut_fIIn,'C');
 //array_print_d(NfnI,Neq,nFluxNum_fI,'R');
 //exit(1);
-}
+//}
 */
+//printf("%d %d %d\n",FACET->indexg,VfIn%NFREFMAX,VfOut%NFREFMAX);
 
 		free(RowTracker);
 		free(WIn_fI);
@@ -641,7 +640,7 @@ static void compute_FACET_RHS(void)
 		OPSOut[i] = malloc(sizeof *OPSOut[i]); // free
 	}
 
-	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
+	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 		P = FACET->P;
 
 		// Obtain operators
@@ -777,7 +776,7 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 		FACET->RHSIn  = RHSIn;
 		FACET->RHSOut = RHSOut;
 
-		if (strstr(Form,"Weak") != NULL) {
+		if (strstr(Form,"Weak")) {
 			// Interior FACET
 			if (EclassIn == C_TP && SF_BE[P][0][1]) {
 				get_sf_parametersF(OPSIn[0]->NvnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_VV,
@@ -855,7 +854,7 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 					mm_CTN_d(NvnSOut,Neq,NfnI,OPSOut[0]->I_Weak_FF[VfOut],nFluxNum_fI,RHSOut);
 				}
 			}
-		} else if (strstr(Form,"Strong") != NULL) {
+		} else if (strstr(Form,"Strong")) {
 			printf("Exiting: Implement the strong form in compute_FACET_RHS_EFE.\n"), exit(1);
 		}
 		free(RowTracker);

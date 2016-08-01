@@ -18,9 +18,9 @@ BEGIN PARAMETERS
   Collocated 0     // Options: 0, 1
   Adapt      2     // Options: 0, 1, 2, (3)
 
-  PGlobal    4
-  PMax       4
-  LevelsMax  2
+  PGlobal    2
+  PMax       2
+  LevelsMax  1
 
   Restart    -1    // Options: -1, 0, Iteration #
 

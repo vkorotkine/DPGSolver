@@ -81,6 +81,7 @@ void setup_FACET_XYZ(struct S_FACET *FACET)
 	NvnG = OPS->NvnG;
 	switch (Adapt) {
 	default: // ADAPT_P, ADAPT_H, ADAPT_HP
+printf("Error: Should not be entering default in setup_FACET_XYZ.\n"), exit(1);
 		NfnS = OPS->NfnS;
 
 		XYZ_fS = malloc(NfnS*d *sizeof *XYZ_fS); // keep
@@ -88,12 +89,17 @@ void setup_FACET_XYZ(struct S_FACET *FACET)
 
 		FACET->XYZ_fS = XYZ_fS;
 		break;
+case ADAPT_P: // ToBeModified
+case ADAPT_H:
+case ADAPT_HP:
 	case ADAPT_0:
 		NfnI = OPS->NfnI;
 
 		XYZ_fI = malloc(NfnI*d *sizeof *XYZ_fI); // keep
 		mm_CTN_d(NfnI,d,NvnG,OPS->I_vG_fI[VfIn],VIn->XYZ,XYZ_fI);
 
+		if (FACET->XYZ_fI)
+			free(FACET->XYZ_fI);
 		FACET->XYZ_fI = XYZ_fI;
 		break;
 	}

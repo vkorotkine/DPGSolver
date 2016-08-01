@@ -197,7 +197,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 		if (adapt_count < adapt_update_MAX) {
 			switch (Adapt) {
 			default: // ADAPT_P, ADAPT_H, ADAPT_HP
-				adapt_initial(&adapt_update);
+//				adapt_initial(&adapt_update);
 				break;
 			case ADAPT_0:
 				// Exit while loop.
@@ -207,7 +207,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 		adapt_count++;
 	}
 
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 		DOF0 += VOLUME->NvnS;
 	DB.DOF0 = DOF0;
 

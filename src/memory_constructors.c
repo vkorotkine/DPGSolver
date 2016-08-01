@@ -427,8 +427,6 @@ struct S_FACET *New_FACET(void)
 	FACET->indexg = UINT_MAX;
 	FACET->P      = UINT_MAX;
 	FACET->type   = UINT_MAX;
-	FACET->VfIn   = UINT_MAX;
-	FACET->VfOut  = UINT_MAX;
 	FACET->BC     = UINT_MAX;
 	FACET->level  = 0;
 	FACET->update = 0;

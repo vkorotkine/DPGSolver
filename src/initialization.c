@@ -198,5 +198,5 @@ void initialization(int nargc, char **argv)
 	}
 
 	if ((DB.Adapt == ADAPT_H || DB.Adapt == ADAPT_HP) && DB.LevelsMax == 0)
-		printf("Error: LevelsMax should be greater than 0 if h-adaptation is enabled.\n");
+		printf("\n\n***** Warning: LevelsMax should be greater than 0 if h-adaptation is enabled. *****\n\n\n");
 }

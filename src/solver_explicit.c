@@ -73,6 +73,8 @@ void solver_explicit(void)
 	update_VOLUME_Ops();
 	update_VOLUME_finalize();
 
+output_to_paraview("ZTest_Sol_Init");
+
 	tstep = 0; time = 0.0;
 	while (time < FinalTime) {
 		if (Adapt && tstep) {
@@ -109,7 +111,6 @@ if (0&&tstep == 500) {
 
 }
 
-
 		if (time+dt > FinalTime)
 			dt = FinalTime-time;
 
@@ -125,7 +126,7 @@ if (0&&tstep == 500) {
 				printf("F "); maxRHS = finalize_RHS();
 
 				// Update What
-				for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+				for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 					NvnS = VOLUME->NvnS;
 
 					RES  = VOLUME->RES;
@@ -149,6 +150,16 @@ if (0&&tstep == 500) {
 						}
 					}
 				}
+if (tstep) {
+output_to_paraview("ZTest_Normals");
+output_to_paraview("ZTest_Sol_Init");
+
+for (struct S_FACET *FACET = DB.FACET; FACET; FACET = FACET->next) {
+	printf("%d %d %d %d\n",FACET->indexg,FACET->level,FACET->VIn->level,FACET->VOut->level);
+}
+
+exit(1);
+}
 			}
 //if (tstep)
 //exit(1);
@@ -200,8 +211,11 @@ if (0&&tstep == 500) {
 
 		// hp adaptation
 //		if (Adapt && tstep <= 1000)
-		if (Adapt)
+		if (0&&Adapt)
 			adapt_hp();
+DB.VOLUME->Vadapt = 1;
+DB.VOLUME->adapt_type = HREFINE;
+printf("Modified Adapt in solver explicit.\n");
 if (tstep == 100) {
 //	output_to_paraview("Geomadapt");
 //	exit(1);

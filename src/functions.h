@@ -103,6 +103,7 @@ extern void         get_vh_range         (const struct S_VOLUME *VOLUME, unsigne
 extern void         get_fh_range         (const struct S_VOLUME *VOLUME, const unsigned int f, unsigned int *fhMin,
                                           unsigned int *fhMax);
 extern unsigned int get_VOLUMEc_type     (const unsigned int VType, const unsigned int vh);
+extern unsigned int get_IndEhref         (const unsigned int VType, const unsigned int vh);
 extern void         mesh_update          (void);
 extern void         mesh_to_level        (const unsigned int level);
 extern void         adapt_hp             (void);

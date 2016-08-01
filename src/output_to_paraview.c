@@ -397,6 +397,7 @@ static void output_normals(const char *normals_type)
 
 		switch (Adapt) {
 		default: // ADAPT_P, ADAPT_H, ADAPT_HP
+printf("Error: Should not be entering default in output_to_paraview.\n"), exit(1);
 			Nfn = ELEMENT->NfnS[PF][IndFType];
 			if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fS[1][PF][VfIn];
 			else              I_vG_f = ELEMENT->I_vGc_fS[PV][PF][VfIn];

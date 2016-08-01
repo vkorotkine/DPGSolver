@@ -178,6 +178,30 @@ unsigned int get_VOLUMEc_type(const unsigned int VType, const unsigned int vh)
 	}
 }
 
+unsigned int get_IndEhref(const unsigned int VType, const unsigned int vh)
+{
+	switch (VType) {
+	case POINT:
+	case LINE:
+	case TRI:
+	case QUAD:
+	case TET:
+	case HEX:
+	case WEDGE:
+		return 0;
+		break;
+	case PYR:
+		if (vh < 5 || vh > 8)
+			return 0;
+		else
+			return 1;
+		break;
+	default:
+		printf("Error: Unsupported VType in get_IndEhref.\n"), exit(1);
+		break;
+	}
+}
+
 static void check_levels_refine(const unsigned int indexg, const struct S_VInfo *VInfo, const char hp_type)
 {
 	// Standard datatypes
@@ -745,6 +769,7 @@ void mesh_update(void)
 //	update_Vgrp();
 	if (DB.Vectorized)
 		printf("Error: update_Vgrp requires modifications when adaptation is enabled.\n"), exit(1);
+	update_VOLUME_Ops();
 	update_VOLUME_finalize();
 }
 

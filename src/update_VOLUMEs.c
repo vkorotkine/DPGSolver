@@ -81,7 +81,7 @@ void update_VOLUME_hp(void)
 
 	// Standard datatypes
 	unsigned int i, iMax, P, PNew, f, level, adapt_type, vh, vhMin, vhMax, href_type, VType, Nf,
-	             IndEhref, NvnGs[2], NvnGc[2], NvnS, NvnSP, NCols, update, maxP;
+	             IndEhref, NvnGs[2], NvnGc[2], NvnS[2], NvnSP, NCols, update, maxP;
 	double       *I_vGs_vGc[2], *XYZ_vC, *XYZ_S,
 	             **Ihat_vS_vS, **I_vGs_vGs, **L2hat_vS_vS, *What, *RES, *WhatP, *WhatH, *RESP, *RESH, *dummyPtr_d;
 
@@ -126,6 +126,9 @@ void update_VOLUME_hp(void)
 				if (level == 0)
 					printf("Error: Should not be entering HCOARSE in update_VOLUME_hp for level = %d.\n",level), exit(1);
 				VOLUME->PNew = P;
+//VOLUME->Vadapt = 0;
+//VOLUME->update = 0;
+//continue;
 				break;
 			default:
 				printf("Error: Unsupported adapt_type = %d in update_VOLUME_hp.\n",adapt_type), exit(1);
@@ -140,7 +143,15 @@ void update_VOLUME_hp(void)
 
 				NvnGs[1]     = OPS->NvnGs;
 				NvnGc[1]     = OPS->NvnGc;
+				NvnS[1]      = OPS->NvnS;
 				I_vGs_vGc[1] = OPS->I_vGs_vGc;
+			} else if (adapt_type == HCOARSE) {
+				if (VOLUME->type == PYR && VOLUME->parent->type == PYR)
+					init_ops(OPS,VOLUME,1);
+				else
+					init_ops(OPS,VOLUME,0);
+
+				NvnS[1]      = OPS->NvnS;
 			}
 
 			init_ops(OPS,VOLUME,0);
@@ -178,7 +189,7 @@ void update_VOLUME_hp(void)
 				setup_geom_factors(VOLUME);
 
 				// Project What and RES
-				NvnS       = OPS->NvnS;
+				NvnS[0]    = OPS->NvnS;
 				NvnSP      = OPS->NvnSP;
 
 				VOLUME->NvnS = NvnSP;
@@ -191,12 +202,12 @@ void update_VOLUME_hp(void)
 
 				if (adapt_type == PREFINE) {
 					Ihat_vS_vS = OPS->Ihat_vS_vS;
-					mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS[0],What,WhatP);
-					mm_CTN_d(NvnSP,Nvar,NvnS,Ihat_vS_vS[0],RES,RESP);
+					mm_CTN_d(NvnSP,Nvar,NvnS[0],Ihat_vS_vS[0],What,WhatP);
+					mm_CTN_d(NvnSP,Nvar,NvnS[0],Ihat_vS_vS[0],RES,RESP);
 				} else {
 					L2hat_vS_vS = OPS->L2hat_vS_vS;
-					mm_CTN_d(NvnSP,Nvar,NvnS,L2hat_vS_vS[0],What,WhatP);
-					mm_CTN_d(NvnSP,Nvar,NvnS,L2hat_vS_vS[0],RES,RESP);
+					mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],What,WhatP);
+					mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],RES,RESP);
 				}
 
 				free(What);
@@ -213,7 +224,7 @@ void update_VOLUME_hp(void)
 
 				NvnGs[0]     = OPS->NvnGs;
 				NvnGc[0]     = OPS->NvnGc;
-				NvnS         = OPS->NvnS;
+				NvnS[0]      = OPS->NvnS;
 				I_vGs_vGs    = OPS->I_vGs_vGs;
 				I_vGs_vGc[0] = OPS->I_vGs_vGc;
 
@@ -263,9 +274,8 @@ void update_VOLUME_hp(void)
 					}
 
 					// Update geometry
-					IndEhref = 0;
-					if (VType == PYR && VOLUMEc->type == TET)
-						IndEhref = 1;
+					IndEhref = get_IndEhref(VType,vh);
+//printf("upV: %d %d\n",vh,IndEhref);
 
 // When updating XYZ_vC, ensure that corners on curved boundaries are placed on the boundary.
 					VOLUMEc->XYZ_vC = malloc(NvnGs[IndEhref]*d * sizeof *XYZ_vC); // keep
@@ -277,6 +287,9 @@ array_print_d(NvnGs[IndEhref],NvnGs[0],I_vGs_vGs[vh],'R');
 }
 */
 					mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vC,VOLUMEc->XYZ_vC);
+printf("upV: %d %d\n",vh,IndEhref);
+array_print_d(NvnGs[IndEhref],NvnGs[0],I_vGs_vGs[vh],'R');
+array_print_d(NvnGs[IndEhref],NCols,VOLUMEc->XYZ_vC,'C');
 					if (!VOLUMEc->curved) {
 						double *XYZ;
 
@@ -292,8 +305,7 @@ array_print_d(NvnGs[IndEhref],NvnGs[0],I_vGs_vGs[vh],'R');
 						}
 					} else {
 if (VType == PYR) {
-// Likely remove Nvve and just use appropriate operators (based on NEhref): NvnGs, NvnGc, I_vGs_vGc, (more?)
-printf("Error: Need to ensure that TETs and PYRs are treated properly in update_VOLUMEs.\n"), exit(1);
+//printf("Error: Need to ensure that TETs and PYRs are treated properly in update_VOLUMEs.\n"), exit(1);
 }
 						VOLUMEc->NvnG = NvnGc[IndEhref];
 
@@ -306,23 +318,28 @@ printf("Error: Need to ensure that TETs and PYRs are treated properly in update_
 							printf("Add in support for MeshType == Curved (update_VOLUMEs HREFINE)"), exit(1);
 					}
 					setup_geom_factors(VOLUMEc);
+array_print_d(1,5,VOLUMEc->detJV_vI,'R');
 
 // Fix Vgrp linked list (ToBeDeleted)
 
 					// Project What and RES
-					WhatH = malloc(NvnS*Nvar * sizeof *WhatH); // keep
-					RESH  = malloc(NvnS*Nvar * sizeof *RESH);  // keep
+					WhatH = malloc(NvnS[IndEhref]*Nvar * sizeof *WhatH); // keep
+					RESH  = malloc(NvnS[IndEhref]*Nvar * sizeof *RESH);  // keep
 
 					Ihat_vS_vS = OPS->Ihat_vS_vS;
-					mm_CTN_d(NvnS,Nvar,NvnS,Ihat_vS_vS[vh],What,WhatH);
-					mm_CTN_d(NvnS,Nvar,NvnS,Ihat_vS_vS[vh],RES,RESH);
+					mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],What,WhatH);
+					mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],RES,RESH);
+if (VType == PYR) {
+//	printf("%d %d %d %d\n",vh,NvnS[IndEhref],Nvar,NvnS[0]);
+//	array_print_d(NvnS[IndEhref],NvnS[0],Ihat_vS_vS[vh],'R');
+}
 
-					VOLUMEc->NvnS = NvnS;
+					VOLUMEc->NvnS = NvnS[IndEhref];
 					VOLUMEc->What = WhatH;
 					VOLUMEc->RES  = RESH;
 				}
-//if (VType == PYR)
-//exit(1);
+if (VType == PYR)
+exit(1);
 //printf("HREF: %p %p %ld %p\n",VOLUME->What,VOLUMEc->What,(VOLUME->What)-(VOLUMEc->What),VOLUMEc->next);
 				free(VOLUME->What);
 				free(VOLUME->RES);
@@ -359,29 +376,31 @@ printf("Error: Need to ensure that TETs and PYRs are treated properly in update_
 						VOLUMEp->adapt_type = HCOARSE;
 
 						// Project What and RES
-						NvnS = OPS->NvnS;
+						NvnS[0] = OPS->NvnS;
 						L2hat_vS_vS = OPS->L2hat_vS_vS;
 
 						NCols = d;
 
-						What = calloc(NvnS*Nvar , sizeof *What); // keep
-						RES  = calloc(NvnS*Nvar , sizeof *RES);  // keep
+						What = calloc(NvnS[0]*Nvar , sizeof *What); // keep
+						RES  = calloc(NvnS[0]*Nvar , sizeof *RES);  // keep
 
-						dummyPtr_d = malloc(NvnS*Nvar * sizeof *dummyPtr_d); // free
+						dummyPtr_d = malloc(NvnS[0]*Nvar * sizeof *dummyPtr_d); // free
 
 						VOLUMEc = VOLUME;
 						for (vh = vhMin; vh <= vhMax; vh++) {
+							IndEhref = get_IndEhref(VOLUMEp->type,vh);
+//printf("upV: %d %d %d %d\n",VOLUME->indexg,vh,VOLUMEp->type,IndEhref);
 							if (vh > vhMin)
 								VOLUMEc = VOLUMEc->next;
 
 							WhatH = VOLUMEc->What;
 							RESH  = VOLUMEc->RES;
 
-							mm_CTN_d(NvnS,Nvar,NvnS,L2hat_vS_vS[vh],WhatH,dummyPtr_d);
-							for (i = 0, iMax = NvnS*Nvar; i < iMax; i++)
+							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],WhatH,dummyPtr_d);
+							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
 								What[i] += dummyPtr_d[i];
-							mm_CTN_d(NvnS,Nvar,NvnS,L2hat_vS_vS[vh],RESH,dummyPtr_d);
-							for (i = 0, iMax = NvnS*Nvar; i < iMax; i++)
+							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],RESH,dummyPtr_d);
+							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
 								RES[i] += dummyPtr_d[i];
 						}
 						free(dummyPtr_d);
@@ -547,11 +566,11 @@ void update_VOLUME_Ops(void)
 
 	OPS = malloc(sizeof *OPS); // free
 
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		if (VOLUME->update) {
 			VOLUME->update = 0;
 //printf("update_VOLUME_Ops: %d\n",VOLUME->indexg);
-			if (strstr(SolverType,"Explicit") != NULL) {
+			if (strstr(SolverType,"Explicit")) {
 				if (!Collocated) {
 					init_ops(OPS,VOLUME,0);
 

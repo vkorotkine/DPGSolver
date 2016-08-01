@@ -209,7 +209,7 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 //printf("Exiting setup_geom_factors.\n"), exit(1);
 
 	VOLUME->detJV_vI = detJV_vI;
-	if (VOLUME->C_vC != NULL)
+	if (VOLUME->C_vC)
 		free(VOLUME->C_vC);
 	VOLUME->C_vC     = C_vC;
 	VOLUME->C_vI     = C_vI;

@@ -65,7 +65,8 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 //array_print_d(NvnG,d,XYZ_S,'C');
 			ToBeCurved_TP(NvnG,XYZ_S,XYZ);
 //array_print_d(NvnG,d,XYZ,'C');
-	} else if (strstr(TestCase,"PeriodicVortex") != NULL) {
+	} else if (strstr(TestCase,"PeriodicVortex") ||
+	           strstr(TestCase,"Test")) {
 		double n = 2.0, A = 0.1, L0 = 2.0, dxyz = 1.0, scale,
 		       *X0, *Y0, *Z0;
 
@@ -90,12 +91,12 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 			}
 		} else if (d == 3) {
 			for (i = 0; i < NvnG; i++) {
-//				XYZ[       i] = scale*X0[i];// + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*Z0[i]);
-//				XYZ[1*NvnG+i] = scale*Y0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Z0[i]);
-//				XYZ[2*NvnG+i] = scale*Z0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]);
-				XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
-				XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
-				XYZ[2*NvnG+i] = scale*(Z0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]));
+				XYZ[       i] = scale*X0[i];// + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*Z0[i]);
+				XYZ[1*NvnG+i] = scale*Y0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Z0[i]);
+				XYZ[2*NvnG+i] = scale*Z0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]);
+//				XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
+//				XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
+//				XYZ[2*NvnG+i] = scale*(Z0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]));
 			}
 		} else {
 			printf("Error: PeriodicVortex TestCase not supported for dimension d = %d.\n",d), exit(1);

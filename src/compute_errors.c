@@ -191,6 +191,7 @@ void compute_errors_global(void)
 		for (i = 0; i <= NVAR3D; i++)
 			L2Error2[i] += L2Error2_l[i];
 	}
+	free(L2Error2_l);
 
 	// Write to files and collect
 	output_errors(L2Error2,DOF,Vol);
