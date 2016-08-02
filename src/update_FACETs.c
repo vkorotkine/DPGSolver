@@ -31,7 +31,7 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 {
 	/*
 	 *	Comments:
-	 *		Vfh != f for PYR refinement. (ToBeDeleted)
+	 *		Vfh != f for PYR refinement.
 	 */
 
 	// Standard datatypes
@@ -270,23 +270,21 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 		switch (f) {
 		default: // FACE 0
 			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 2; break;
-			case 2: *IndVInh = 9; break;
-			case 3: *IndVInh = 4; break;
+			case 0: *IndVInh = 0; *Vfh = 0; break;
+			case 1: *IndVInh = 2; *Vfh = 0; break;
+			case 2: *IndVInh = 9; *Vfh = 0; break;
+			case 3: *IndVInh = 4; *Vfh = 1; break;
 			default: printf("Error: Unsupported (%d, %d, %d) in get_FACET_IndVIn.\n",VType,f,fh), exit(1); break;
 			}
-			*Vfh = 0;
 			break;
 		case 1:
 			switch (fh) {
-			case 0: *IndVInh = 1; break;
-			case 1: *IndVInh = 3; break;
-			case 2: *IndVInh = 9; break;
-			case 3: *IndVInh = 5; break;
+			case 0: *IndVInh = 1; *Vfh = 1; break;
+			case 1: *IndVInh = 3; *Vfh = 1; break;
+			case 2: *IndVInh = 9; *Vfh = 1; break;
+			case 3: *IndVInh = 5; *Vfh = 0; break;
 			default: printf("Error: Unsupported (%d, %d, %d) in get_FACET_IndVIn.\n",VType,f,fh), exit(1); break;
 			}
-			*Vfh = 1;
 			break;
 		case 2:
 			switch (fh) {
@@ -623,25 +621,25 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 		switch (vh) {
 		case 0:
 			if      (fIn == 1) { IndVhOut = 6; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; }
-			else if (fIn == 3) { IndVhOut = 4; f = 1; IndOrdInOut = 1; IndOrdOutIn = 2; }
+			else if (fIn == 3) { IndVhOut = 4; f = 0; IndOrdInOut = 1; IndOrdOutIn = 2; }
 			break;
 		case 1:
 			if      (fIn == 0) { IndVhOut = 6; f = 1; IndOrdInOut = 4; IndOrdOutIn = 4; }
-			else if (fIn == 3) { IndVhOut = 5; f = 0; IndOrdInOut = 3; IndOrdOutIn = 3; }
+			else if (fIn == 3) { IndVhOut = 5; f = 1; IndOrdInOut = 3; IndOrdOutIn = 3; }
 			break;
 		case 2:
 			if      (fIn == 1) { IndVhOut = 7; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; }
-			else if (fIn == 2) { IndVhOut = 4; f = 2; IndOrdInOut = 1; IndOrdOutIn = 2; }
+			else if (fIn == 2) { IndVhOut = 4; f = 2; IndOrdInOut = 4; IndOrdOutIn = 4; }
 			break;
 		case 3:
 			if      (fIn == 0) { IndVhOut = 7; f = 1; IndOrdInOut = 4; IndOrdOutIn = 4; }
-			else if (fIn == 2) { IndVhOut = 5; f = 2; IndOrdInOut = 2; IndOrdOutIn = 1; }
+			else if (fIn == 2) { IndVhOut = 5; f = 2; IndOrdInOut = 3; IndOrdOutIn = 3; }
 			break;
-		case 4: IndVhOut = 8; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fIn = 3
-		case 5: IndVhOut = 8; f = 1; IndOrdInOut = 2; IndOrdOutIn = 1; break; // fIn = 3
-		case 6: IndVhOut = 8; f = 2; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 3
-		case 7: IndVhOut = 8; f = 3; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 2
-		case 8: IndVhOut = 9; f = 4; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 4
+		case 4: IndVhOut = 8; f = 1; IndOrdInOut = 2; IndOrdOutIn = 1; break; // fIn = 3
+		case 5: IndVhOut = 8; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fIn = 3
+		case 6: IndVhOut = 8; f = 2; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 3
+		case 7: IndVhOut = 8; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 2
+		case 8: IndVhOut = 9; f = 4; IndOrdInOut = 1; IndOrdOutIn = 1; break; // fIn = 4
 		default: // Should already have found all FACETs
 			printf("Error: Should not be entering set_FACET_Out for vh %d for VType %d.\n",vh,VType), exit(1);
 			break;
@@ -867,7 +865,14 @@ static void set_FACET_Out_External(struct S_FACET *FACETc, struct S_VOLUME *VOLU
 			printf("Error: Unsupported VfOut = %d in set_FACET_Out_External.\n",VfOut), exit(1);
 			break;
 		}
-		f = VfOut/NFREFMAX;
+
+		if (!(VfOut == 4 || VfOut == NFREFMAX+4))
+			f = VfOut/NFREFMAX;
+		else if (VfOut == 4)
+			f = 1;
+		else
+			f = 0;
+
 		break;
 	default:
 		printf("Error: Unsupported VType in set_FACET_Out_External.\n"), exit(1);
@@ -880,7 +885,8 @@ static void set_FACET_Out_External(struct S_FACET *FACETc, struct S_VOLUME *VOLU
 
 	FACETc->VOut  = VOLUMEc;
 	FACETc->VfOut = f*NFREFMAX;
-//printf("\t\t\t\tset_FACET_Ex: %d %d %d\n",VOLUME->indexg,VOLUMEc->indexg-8,FACETc->VfOut);
+
+	FACETc->VIn->neigh_f[FACETc->VfIn]   = (FACETc->VfOut)/NFREFMAX;
 	FACETc->VOut->neigh_f[FACETc->VfOut] = (FACETc->VfIn)/NFREFMAX;
 
 	get_Indsf(FACETc,&sfIn,&sfOut);
@@ -1124,6 +1130,12 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 			}
 			for (sf = 0; sf < sfMax; sf++)
 				Indsf[sf] = f*NSUBFMAX;
+
+			if (f == 0)
+				Indsf[sfMax-1] = 1*NSUBFMAX;
+			else if (f == 1)
+				Indsf[sfMax-1] = 0*NSUBFMAX;
+				
 			break;
 		default:
 			printf("Error: Unsupported VType in coarse_update.\n"), exit(1);
@@ -1382,6 +1394,8 @@ if (FACET->level == 1) {
 }
 								if (is_VOLUME_VIn(VOLUME->indexg,VIn->indexg)) {
 // If condition can be outside of fh loop
+//if (FACETc->indexg == 88)
+//	printf("Found88\n");
 									get_FACET_IndVIn(FACET->VfIn,fh,VIn->type,&IndVInh,&Vfh);
 
 									VOLUMEc = VOLUME->child0;
@@ -1400,6 +1414,14 @@ if (FACET->level == 1) {
 										FACETc->VOut  = FACETc->VIn;
 										FACETc->VfOut = FACETc->VfIn;
 									}
+/*
+if (FACETc->indexg == 88) {
+	printf("%d %d %d %d\n",FACETc->VfIn,FACETc->VfOut,FACET->IndOrdOutIn,FACET->IndOrdInOut);
+printf("%d\n",f);
+array_print_ui(Nf,NFREFMAX,VIn->neigh_f,'R');
+}
+*/
+
 									FACETc->IndOrdInOut = FACET->IndOrdInOut;
 									FACETc->IndOrdOutIn = FACET->IndOrdOutIn;
 								} else {
@@ -1446,6 +1468,9 @@ if (FACETc->VOut->indexg == 3) {
 								// Only connectivity needs updating in FACETc->VOut
 //printf("VOL: %d\n",VOLUME->indexg);
 								set_FACET_Out_External(FACETc,VOLUME);
+//if (FACETc->indexg == 15818) {
+//	printf("conEx: %d %d %d\n",FACET->indexg,FACET->VIn->indexg,FACET->VOut->indexg);
+//}
 							}
 //printf("Exiting\n");
 //exit(1);
@@ -1474,12 +1499,13 @@ if (FACETc->VOut->indexg == 3) {
 
 								FACETc->VIn = VOLUMEc;
 								FACETc->VfIn = f*NFREFMAX;
-//printf("upF sF: %d %d %d\n",vh,f,VOLUMEc->type);
+//printf("upF sF: %d %d %d %d\n",vh,f,VOLUMEc->type,VOLUME->type);
 								set_FACET_Out(vh,f,FACETc,VOLUME);
 							}
 						}
 						vh++;
 					}
+//if (VOLUME->type == PYR)
 //exit(1);
 				}
 			}
@@ -1546,8 +1572,12 @@ printf("\n\n\n");
 					FACET->parent->update = 0;
 				VIn  = FACET->VIn;
 				VOut = FACET->VOut;
+//if (max(VIn->level,VOut->level)-min(VIn->level,VOut->level) > 0) {
+//	if (max(VIn->level,VOut->level)-min(VIn->level,VOut->level) == 1)
+//		printf("Entering for 1-irregular.\n");
 if (max(VIn->level,VOut->level)-min(VIn->level,VOut->level) > 1) {
 	printf("%d %d %d %d %d\n",FACET->indexg,VIn->indexg,VOut->indexg,VIn->level,VOut->level);
+	printf("%d %d\n",VIn->type,VOut->type);
 	if (VIn->parent)
 		printf("VIn:  %d %d %d\n",VIn->parent->indexg,VIn->parent->Vadapt,VIn->parent->adapt_type);
 	if (VOut->parent)

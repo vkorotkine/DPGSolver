@@ -769,7 +769,7 @@ void mesh_update(void)
 //	update_Vgrp();
 	if (DB.Vectorized)
 		printf("Error: update_Vgrp requires modifications when adaptation is enabled.\n"), exit(1);
-	update_VOLUME_Ops();
+//	update_VOLUME_Ops();
 	update_VOLUME_finalize();
 }
 

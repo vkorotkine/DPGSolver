@@ -126,9 +126,6 @@ void update_VOLUME_hp(void)
 				if (level == 0)
 					printf("Error: Should not be entering HCOARSE in update_VOLUME_hp for level = %d.\n",level), exit(1);
 				VOLUME->PNew = P;
-//VOLUME->Vadapt = 0;
-//VOLUME->update = 0;
-//continue;
 				break;
 			default:
 				printf("Error: Unsupported adapt_type = %d in update_VOLUME_hp.\n",adapt_type), exit(1);
@@ -287,9 +284,11 @@ array_print_d(NvnGs[IndEhref],NvnGs[0],I_vGs_vGs[vh],'R');
 }
 */
 					mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vC,VOLUMEc->XYZ_vC);
+/*
 printf("upV: %d %d\n",vh,IndEhref);
 array_print_d(NvnGs[IndEhref],NvnGs[0],I_vGs_vGs[vh],'R');
 array_print_d(NvnGs[IndEhref],NCols,VOLUMEc->XYZ_vC,'C');
+*/
 					if (!VOLUMEc->curved) {
 						double *XYZ;
 
@@ -304,9 +303,6 @@ array_print_d(NvnGs[IndEhref],NCols,VOLUMEc->XYZ_vC,'C');
 							XYZ[i]   = XYZ_S[i];
 						}
 					} else {
-if (VType == PYR) {
-//printf("Error: Need to ensure that TETs and PYRs are treated properly in update_VOLUMEs.\n"), exit(1);
-}
 						VOLUMEc->NvnG = NvnGc[IndEhref];
 
 						VOLUMEc->XYZ_S = malloc(NvnGc[IndEhref]*NCols * sizeof *XYZ_S); // keep
@@ -318,7 +314,10 @@ if (VType == PYR) {
 							printf("Add in support for MeshType == Curved (update_VOLUMEs HREFINE)"), exit(1);
 					}
 					setup_geom_factors(VOLUMEc);
-array_print_d(1,5,VOLUMEc->detJV_vI,'R');
+if (VType == PYR) {
+//printf("upV: %d %d\n",vh,IndEhref);
+//array_print_d(1,1,VOLUMEc->detJV_vI,'R');
+}
 
 // Fix Vgrp linked list (ToBeDeleted)
 
@@ -338,8 +337,8 @@ if (VType == PYR) {
 					VOLUMEc->What = WhatH;
 					VOLUMEc->RES  = RESH;
 				}
-if (VType == PYR)
-exit(1);
+//if (VType == PYR)
+//exit(1);
 //printf("HREF: %p %p %ld %p\n",VOLUME->What,VOLUMEc->What,(VOLUME->What)-(VOLUMEc->What),VOLUMEc->next);
 				free(VOLUME->What);
 				free(VOLUME->RES);
@@ -396,6 +395,8 @@ exit(1);
 							WhatH = VOLUMEc->What;
 							RESH  = VOLUMEc->RES;
 
+//printf("%d \n",vh);
+//array_print_d(NvnS[0],NvnS[IndEhref],L2hat_vS_vS[vh],'R');
 							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],WhatH,dummyPtr_d);
 							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
 								What[i] += dummyPtr_d[i];
@@ -403,6 +404,8 @@ exit(1);
 							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
 								RES[i] += dummyPtr_d[i];
 						}
+//array_print_d(NvnS[0],Nvar,What,'C');
+//exit(1);
 						free(dummyPtr_d);
 
 						VOLUMEp->What = What;
@@ -655,7 +658,7 @@ void update_VOLUME_finalize(void)
 		VOut  = FACET->VOut;
 		VfOut = FACET->VfOut;
 
-//printf("upVfin: %d\n",FACET->indexg);
+//printf("upVfin: %d %d %d\n",FACET->indexg,VIn->level,VOut->level);
 //printf("In: %d\n",VIn->indexg);
 //printf("Out: %d\n",VOut->indexg);
 		VIn->neigh[VfIn]   = VOut->indexg;
@@ -665,6 +668,7 @@ void update_VOLUME_finalize(void)
 			printf("%d %d %d\n",VIn->indexg,VOut->indexg,VIn->parent->indexg);
 			printf("Error: Adjacent VOLUMEs are more than 1-irregular (update_VOL_fin).\n"), exit(1);
 		}
-
 	}
+//printf("\n\n\n\n");
+//exit(1);
 }
