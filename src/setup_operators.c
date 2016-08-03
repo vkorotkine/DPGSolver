@@ -1248,10 +1248,10 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		free(ChiRefInvS_vS);
 
 		for (Pb = PbMin; Pb <= PbMax; Pb++) {
-			if (w_vIs[Pb] != NULL)
+			if (w_vIs[Pb])
 				free(w_vIs[Pb]);
 			cubature(&rst_vIs[0],&w_vIs[Pb],&dummyPtr_ui[0],&NvnIs[Pb],&dummy_ui,1,PIvs[Pb][Eclass],dE,NodeTypeIvs[Pb][Eclass]); free(dummyPtr_ui[0]); // free
-			if (w_vIc[Pb] != NULL)
+			if (w_vIc[Pb])
 				free(w_vIc[Pb]);
 			cubature(&rst_vIc[0],&w_vIc[Pb],&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,1,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
 			free(rst_vIs[0]);
@@ -2691,6 +2691,172 @@ static void setup_TP_operators(const unsigned int EType)
 	free(ones_Nf);
 }
 
+static void setup_L2_projection_preoperators(const unsigned int EType)
+{
+// free all ops (ToBeDeleted)
+
+	// Returned operators
+	unsigned int *NvnIc, *NvnS;
+	double       **w_vIc, ****ChiS_vIc;
+
+	// Initialize DB Parameters
+	unsigned int PGs          = DB.PGs,
+	             NP           = DB.NP;
+
+	char         *BasisType     = DB.BasisType,
+	             ***NodeTypeIvc = DB.NodeTypeIvc,
+	             ***NodeTypeS   = DB.NodeTypeS;
+
+	// Standard datatypes
+	unsigned int i, iMax, dE, P, vh, PSMin, PSMax, Pb, PbMin, PbMax, PIvc[NEC],
+	             Nve, Nbf, Eclass, Nvref, NEhref, Indh, *Nvve, *EType_h, dummy_ui, *dummyPtr_ui[2];
+	double       *E_rst_vC, *rst_vC, **VeV, **rst_vIc, *rst_vS,
+	             *IGs, *IS, *TS, *ChiRefS_vS, *ChiRefInvGs_vGs, *ChiRefInvS_vS,
+	             *ChiRefGs_vGs, *ChiRefGs_vIc, *ChiRefS_vIc, *ChiS_vS, *dummyPtr_d;
+
+	struct BCoords {
+		double **Ic;
+	} **BCoords_V;
+	struct S_ELEMENT *ELEMENT, *ELEMENT_h;
+
+	// Function pointers
+	cubature_tdef   cubature;
+	basis_tdef      basis;
+	grad_basis_tdef grad_basis;
+
+	// silence
+	E_rst_vC = ChiS_vS = NULL;
+
+	PIvc[C_SI]  = PIvcMaxTET;
+	PIvc[C_PYR] = PIvcMaxPYR;
+	if (!(EType == TET || EType == PYR))
+		printf("Error: Unsupported EType.\n"), EXIT_MSG;
+
+	ELEMENT   = get_ELEMENT_type(EType);
+	ELEMENT_h = ELEMENT;
+
+	Eclass = get_Eclass(EType);
+	setup_ELEMENT_VeV(EType);
+
+	dE      = ELEMENT->d;
+	Nve     = ELEMENT->Nve;
+	VeV     = ELEMENT->VeV;
+	Nvve    = ELEMENT->Nvve;
+	Nvref   = ELEMENT->Nvref;
+	NEhref  = ELEMENT->NEhref;
+	EType_h = ELEMENT->type_h;
+
+	select_functions(&basis,&grad_basis,&cubature,EType);
+
+
+	// Stored operators
+	NvnIc    = ELEMENT->NvnIc;
+	NvnS     = ELEMENT->NvnS;
+	w_vIc    = ELEMENT->w_vIc;
+	ChiS_vIc = ELEMENT->ChiS_vIc;
+
+	// Allocate memory for arrays with multiple levels of dereferencing
+	rst_vIc = malloc(NVREFMAX * sizeof *rst_vIc); // free
+
+	BCoords_V = malloc(NEhref * sizeof *BCoords_V); // free
+	for (i = 0, iMax = NEhref; i < iMax; i++) {
+		BCoords_V[i]     = malloc(     sizeof *BCoords_V[i]);       // free
+		BCoords_V[i]->Ic = calloc(NP , sizeof *(BCoords_V[i]->Ic)); // free
+	}
+
+	rst_vC = malloc(Nve*dE * sizeof *rst_vC); // free
+
+	get_PS_range(&PSMin,&PSMax);
+	for (P = PSMin; P <= PSMax; P++) {
+
+		cubature(&rst_vS,&dummyPtr_d,&dummyPtr_ui[0],&NvnS[P],&dummy_ui,0,P,dE,NodeTypeS[P][Eclass]); free(dummyPtr_ui[0]); // free
+
+		IS         = identity_d(NvnS[P]);             // free
+		ChiRefS_vS = basis(P,rst_vS,NvnS[P],&Nbf,dE); // free
+		free(rst_vS);
+		if (strstr(BasisType,"Modal")) {
+			ChiS_vS = ChiRefS_vS;
+		} else if (strstr(BasisType,"Nodal")) {
+			ChiS_vS = IS;
+		}
+
+		ChiRefInvS_vS = inverse_d(NvnS[P],NvnS[P],ChiRefS_vS,IS);                                     // free
+		TS            = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[P],NvnS[P],NvnS[P],1.0,ChiRefInvS_vS,ChiS_vS); // free
+
+		free(IS);
+		free(ChiRefS_vS);
+		free(ChiRefInvS_vS);
+
+		get_Pb_range(P,&PbMin,&PbMax);
+		for (Pb = PbMin; Pb <= PbMax; Pb++) {
+			if (w_vIc[Pb])
+				free(w_vIc[Pb]);
+			cubature(&rst_vIc[0],&w_vIc[Pb],&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,1,PIvc[Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+			free(rst_vIc[0]);
+
+			for (i = iMax = NEhref; i--; ) {
+				ELEMENT = get_ELEMENT_type(EType_h[i]);
+
+				Eclass = get_Eclass(EType_h[i]);
+				select_functions(&basis,&grad_basis,&cubature,EType_h[i]);
+
+				Nve = ELEMENT->Nve;
+
+				cubature(&rst_vIc[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,0,PIvc[Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+
+				E_rst_vC        = get_rst_vC(ELEMENT);                     // free
+				IGs             = identity_d(Nve);                         // free
+				ChiRefGs_vGs    = basis(PGs,E_rst_vC,Nve,&Nbf,dE);         // free
+				ChiRefInvGs_vGs = inverse_d(Nve,Nve,ChiRefGs_vGs,IGs);     // free
+				ChiRefGs_vIc    = basis(PGs,rst_vIc[0],NvnIc[Pb],&Nbf,dE); // free
+
+				BCoords_V[i]->Ic[Pb] = mm_Alloc_d(CBCM,CBT,CBT,NvnIc[Pb],Nve,Nve,1.0,ChiRefGs_vIc,ChiRefInvGs_vGs); // free
+
+				free(IGs);
+				free(ChiRefGs_vGs);
+				free(ChiRefInvGs_vGs);
+				free(ChiRefGs_vIc);
+
+				if (i) {
+					free(E_rst_vC);
+					free(rst_vIc[0]);
+				}
+			}
+
+			for (vh = 0; vh < Nvref; vh++) {
+				mm_CTN_d(Nvve[vh],dE,Nve,VeV[vh],E_rst_vC,rst_vC);
+				if (vh) {
+					Indh = get_IndEhref(EType,vh);
+					if (EType == PYR)
+						ELEMENT_h = get_ELEMENT_type(EType_h[Indh]);
+					else
+						ELEMENT_h = ELEMENT;
+
+					rst_vIc[vh] = mm_Alloc_d(CBCM,CBNT,CBNT,ELEMENT_h->NvnIc[Pb],dE,Nvve[vh],1.0,BCoords_V[Indh]->Ic[Pb],rst_vC); // free
+				}
+
+				ChiRefS_vIc         = basis(P,rst_vIc[vh],ELEMENT_h->NvnIc[Pb],&Nbf,dE);                                  // free
+				ChiS_vIc[P][Pb][vh] = mm_Alloc_d(CBRM,CBNT,CBNT,ELEMENT_h->NvnIc[Pb],NvnS[P],NvnS[P],1.0,ChiRefS_vIc,TS); // keep
+
+				free(ChiRefS_vIc);
+			}
+
+			for (vh = 0; vh < Nvref; vh++)
+				free(rst_vIc[vh]);
+
+			for (i = 0; i < NEhref; i++)
+				free(BCoords_V[i]->Ic[Pb]);
+		}
+		free(TS);
+	}
+	free(rst_vIc);
+	for (i = 0; i < NEhref; i++) {
+		free(BCoords_V[i]->Ic);
+		free(BCoords_V[i]);
+	}
+	free(BCoords_V);
+}
+
 static void setup_L2_projection_operators(const unsigned int EType)
 {
 	/*
@@ -2699,6 +2865,11 @@ static void setup_L2_projection_operators(const unsigned int EType)
 	 *		rely on order Pb operators for their assembly.
 	 *		L2 projection operators are only needed for coarsening operations. During refinement, these operators reduce
 	 *		to standard interpolations.
+	 *		For PYR ELEMENTs, the order used for the cubature nodes has a signifiant impact on the accuracy of the L2
+	 *		projections (several orders of magnitude), which remain quite poor even when using the highest order
+	 *		cubature nodes supported (TET: P10, PYR: P6). As the cubature order is not seen in the L2 projection
+	 *		operator, it is advantageous to compute it using the highest possible cubature order. However, this order is
+	 *		not required for other operators in the code and is thus redefined appropriately in setup_operators.
 	 */
 
 	// Returned Operators
@@ -2719,6 +2890,10 @@ static void setup_L2_projection_operators(const unsigned int EType)
 		return;
 
 	ELEMENT   = get_ELEMENT_type(EType);
+
+	if (EType == TET || EType == PYR)
+		setup_L2_projection_preoperators(EType);
+
 	ELEMENT_h = ELEMENT;
 
 	// Stored operators
@@ -3122,26 +3297,38 @@ void setup_operators(void)
 
 	// TET
 	EType = TET;
-	if (is_ELEMENT_present(EType) || is_ELEMENT_present(PYR)) {
+	if (is_ELEMENT_present(EType)) {
 		if (!DB.MPIrank && !TEST)
 			printf("    TET\n");
+
+		if (is_ELEMENT_present(PYR)) {
+			setup_L2_projection_operators(EType);
+			setup_L2_projection_operators(PYR);
+
+			memory_destructor_L2_projection(EType);
+			memory_destructor_L2_projection(PYR);
+		} else {
+			setup_L2_projection_operators(EType);
+			memory_destructor_L2_projection(EType);
+		}
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
-		setup_L2_projection_operators(EType);
 	}
 
 	// PYR
 	EType = PYR;
 	if (is_ELEMENT_present(EType)) {
+		if (!is_ELEMENT_present(TET))
+			printf("Error: TETs must be set up if PYRs are used.\n"), EXIT_MSG;
+
 		if (!DB.MPIrank && !TEST)
 			printf("    PYR\n");
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
-		setup_L2_projection_operators(EType);
 	}
 
 	// WEDGE

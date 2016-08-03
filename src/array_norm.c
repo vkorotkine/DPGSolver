@@ -6,6 +6,8 @@
 #include <string.h>
 #include <math.h>
 
+#include "parameters.h"
+
 /*
  *	Purpose:
  *		Compute various norms.
@@ -40,6 +42,11 @@ double array_norm_d(const unsigned int LenA, const double *A, const char *NormTy
 {
 	unsigned int i;
 	double       norm = 0.0;
+
+	for (i = 0; i < LenA; i++) {
+		if (isnan(A[i]))
+			printf("Error: Entry in array is 'nan'.\n"), EXIT_MSG;
+	}
 
 	if (strstr(NormType,"Inf") != NULL) {
 		for (i = 0; i < LenA; i++)
@@ -81,6 +88,11 @@ double array_norm_diff_d(const unsigned int LenA, const double *A, const double 
 {
 	unsigned int i;
 	double       norm = 0.0;
+
+	for (i = 0; i < LenA; i++) {
+		if (isnan(A[i]) || isnan(B[i]))
+			printf("Error: Entry in array is 'nan'.\n"), EXIT_MSG;
+	}
 
 	if (strstr(NormType,"Inf") != NULL) {
 		for (i = 0; i < LenA; i++)

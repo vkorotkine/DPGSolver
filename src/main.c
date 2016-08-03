@@ -243,7 +243,7 @@ int main(int nargc, char **argv)
 	test_imp_fluxes_inviscid();
 	test_imp_get_facet_ordering();
 */
-//	test_imp_update_h(nargc,argv);
+	test_imp_update_h(nargc,argv);
 	test_imp_L2_projections(nargc,argv);
 
 

@@ -147,6 +147,31 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT);
 }
 
+void memory_destructor_L2_projection(const unsigned int EType)
+{
+	unsigned int NP = DB.NP;
+
+	unsigned int i, P, Pb, PbMin, PbMax;
+	struct S_ELEMENT *ELEMENT = get_ELEMENT_type(EType);
+
+	for (P = 0; P < NP; P++) {
+		if (ELEMENT->w_vIc[P]) {
+			free(ELEMENT->w_vIc[P]);
+			ELEMENT->w_vIc[P] = NULL;
+		}
+
+		get_Pb_range(P,&PbMin,&PbMax);
+		for (Pb = PbMin; Pb <= PbMax; Pb++) {
+			for (i = 0; i < NVREFMAX; i++) {
+				if (ELEMENT->ChiS_vIc[P][Pb][i]) {
+					free(ELEMENT->ChiS_vIc[P][Pb][i]);
+					ELEMENT->ChiS_vIc[P][Pb][i] = NULL;
+				}
+			}
+		}
+	}
+}
+
 void memory_destructor_V(struct S_VOLUME *VOLUME)
 {
 //	int NP = DB.NP;

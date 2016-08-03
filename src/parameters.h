@@ -82,6 +82,10 @@
 #define NVISUBFMAX      13 // PYR (Isotropic refinement)
 #define NSIBMAX         10 // PYR (6 PYR + 4 TET)
 
+// Cubature related numbers
+#define PIvcMaxTET 10
+#define PIvcMaxPYR 6
+
 // Solver related parameters
 #define RK3_SSP 0
 #define RK4_LS  1
@@ -161,6 +165,7 @@
 
 #define sign(a) ({ __typeof__ (a) _a = (a); (_a > 0) ? 1 : ((_a < 0) ? -1 : 0); })
 
+#define EXIT_MSG ({ printf("FILE: %s, FUNCTION: %s (LINE: %d)\n",__FILE__,__func__,__LINE__); exit(1); })
 
 
 #endif // DPG__parameters_h__INCLUDED

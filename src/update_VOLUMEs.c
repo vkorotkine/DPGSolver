@@ -395,17 +395,32 @@ if (VType == PYR) {
 							WhatH = VOLUMEc->What;
 							RESH  = VOLUMEc->RES;
 
+if (VOLUMEp->type == PYR) {
 //printf("%d \n",vh);
 //array_print_d(NvnS[0],NvnS[IndEhref],L2hat_vS_vS[vh],'R');
+}
+//if (1||(vh < 5 || vh > 8)) {
 							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],WhatH,dummyPtr_d);
 							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
 								What[i] += dummyPtr_d[i];
+//}
 							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],RESH,dummyPtr_d);
 							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
 								RES[i] += dummyPtr_d[i];
 						}
+if (VOLUMEp->type == PYR) {
+/*
+for (i = 0; i < NvnS[0]; i++) {
+	for (int j = 0; j < Nvar; j++) {
+		printf(" % .15e",What[i+j*NvnS[0]]);
+	}
+	printf("\n");
+}
+printf("\n");
 //array_print_d(NvnS[0],Nvar,What,'C');
-//exit(1);
+exit(1);
+*/
+}
 						free(dummyPtr_d);
 
 						VOLUMEp->What = What;

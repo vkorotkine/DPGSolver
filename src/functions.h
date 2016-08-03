@@ -185,11 +185,12 @@ extern void convert_variables (double *VarIn, double *VarOut, const unsigned int
 
 // Memory Management
 extern void memory_free          (void);
+extern void memory_free_children (void);
 extern void memory_constructors  (void);
 extern void memory_destructor_E  (struct S_ELEMENT *ELEMENT);
 extern void memory_destructor_V  (struct S_VOLUME *VOLUME);
 extern void memory_destructor_F  (struct S_FACET *FACET);
-extern void memory_free_children (void);
+extern void memory_destructor_L2_projection (const unsigned int EType);
 
 
 // Array Processing
