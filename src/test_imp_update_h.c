@@ -14,7 +14,8 @@
 
 /*
  *	Purpose:
- *		Test correctness of implementation of update_VOLUME_hp and update_FACET_hp for h-adaptation.
+ *		Test correctness of implementation of update_VOLUME_hp and update_FACET_hp for h-adaptation. Also ensures that
+ *		Jacobians of refined VOLUMEs are positive.
  *
  *	Comments:
  *
@@ -331,7 +332,7 @@ void test_imp_update_h(int nargc, char **argv)
 
 //output_to_paraview("ZTest_Geomadapt");
 //output_to_paraview("ZTest_Normals");
-//exit(1);
+//EXIT_MSG;
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 	free(XYZ_lim);
@@ -345,9 +346,6 @@ static void code_startup(int nargc, char **argv, const unsigned int Nref)
 	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
 	MPI_Comm_size(MPI_COMM_WORLD,&MPIsize);
 	MPI_Comm_rank(MPI_COMM_WORLD,&MPIrank);
-
-	// Test memory leaks only from Petsc and MPI using valgrind
-	//PetscFinalize(), exit(1);
 
 	DB.MPIsize = MPIsize;
 	DB.MPIrank = MPIrank;
@@ -409,7 +407,7 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *X
 				case 0: if (!(XYZ_cent[dim] < XYZ_lim->XYZ[dim])) update = 0; break;
 				case 1: if (!(XYZ_cent[dim] > XYZ_lim->XYZ[dim])) update = 0; break;
 				default:
-					printf("Error: Unsupported index in mark_VOLUMEs for type (a).\n"), exit(1);
+					printf("Error: Unsupported index in mark_VOLUMEs for type (a).\n"), EXIT_MSG;
 					break;
 				}
 			}
@@ -421,7 +419,7 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *X
 				case 0: if (XYZ_cent[dim] < XYZ_lim->XYZ[dim]) update = 1; break;
 				case 1: if (XYZ_cent[dim] > XYZ_lim->XYZ[dim]) update = 1; break;
 				default:
-					printf("Error: Unsupported index in mark_VOLUMEs for type (o).\n"), exit(1);
+					printf("Error: Unsupported index in mark_VOLUMEs for type (o).\n"), EXIT_MSG;
 					break;
 				}
 			}
@@ -438,12 +436,12 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *X
 			case 0: if (!(XYZ_cent_sum < XYZ_lim_sum)) update = 0; break;
 			case 1: if (!(XYZ_cent_sum > XYZ_lim_sum)) update = 0; break;
 			default:
-				printf("Error: Unsupported index in mark_VOLUMEs for type (d).\n"), exit(1);
+				printf("Error: Unsupported index in mark_VOLUMEs for type (d).\n"), EXIT_MSG;
 				break;
 			}
 			break;
 		default:
-			printf("Error: Unsupported type in mark_VOLUMEs.\n"), exit(1);
+			printf("Error: Unsupported type in mark_VOLUMEs.\n"), EXIT_MSG;
 			break;
 		}
 

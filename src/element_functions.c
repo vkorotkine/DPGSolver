@@ -337,14 +337,16 @@ void finalize_ELEMENTs(void)
 	                   *EType  = DB.EType;
 
 	// Standard datatypes
-	unsigned int i, NfMax, NfveMax, NveMax, NfrefMax, TRIpresent3D, QUADpresent3D, type;
+	unsigned int i, NfMax, NfveMax, NveMax, NfrefMax, TRIpresent3D, QUADpresent3D, PYRpresent, type;
 
 	struct S_ELEMENT *ELEMENT;
 
-	TRIpresent3D = 0;
+	TRIpresent3D  = 0;
 	QUADpresent3D = 0;
-	for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
+	PYRpresent    = 0;
+	for (ELEMENT = DB.ELEMENT; ELEMENT; ELEMENT = ELEMENT->next) {
 		type = ELEMENT->type;
+
 		for (i = 0; i < NETotal; i++) {
 			if (type == EType[i]) {
 				ELEMENT->present = 1;
@@ -357,15 +359,17 @@ void finalize_ELEMENTs(void)
 				break;
 			}
 		}
+		if (type == PYR && ELEMENT->present == 1)
+			PYRpresent = 1;
 	}
 
 	// Ensure that 2D ELEMENTs are marked correctly on 3D mixed meshes
 	if (!DB.MPIrank && !TEST)
 		printf("      ELEMENT types present: ");
 
-	for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
+	for (ELEMENT = DB.ELEMENT; ELEMENT; ELEMENT = ELEMENT->next) {
 		type = ELEMENT->type;
-		if ((type == TRI && TRIpresent3D) || (type == QUAD && QUADpresent3D))
+		if ((type == TRI && TRIpresent3D) || (type == QUAD && QUADpresent3D) || (type == TET && PYRpresent))
 			ELEMENT->present = 1;
 
 		if (ELEMENT->present) {

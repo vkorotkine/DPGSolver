@@ -102,8 +102,8 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 		DB.Xc =  0.0;
 		DB.Yc =  0.0;
 		DB.Rc =  0.2;
-		DB.PeriodFraction = 0.2;
-//		DB.PeriodFraction = 1.0;
+//		DB.PeriodFraction = 0.5;
+		DB.PeriodFraction = 1.0;
 
 		DB.MInf = 0.5;
 //		DB.MInf = 0.0;
@@ -145,7 +145,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 
 		DB.FinalTime  = 1e10;
 	} else {
-		printf("Error: Unsupported TestCase: (%s) in initialize_test_case.\n",TestCase), exit(1);
+		printf("Error: Unsupported TestCase: %s.\n",TestCase), EXIT_MSG;
 	}
 	DB.SolverType = SolverType;
 
@@ -191,7 +191,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 			}
 			free(OPS);
 		} else {
-			printf("Error: Unsupported TestCase in initialize_test_case (adapt_update).\n"), exit(1);
+			printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
 		}
 
 		if (adapt_count < adapt_update_MAX) {
@@ -229,7 +229,7 @@ static void compute_initial_solution(const unsigned int Nn, double *XYZ, double 
 	if (strstr(TestCase,"PeriodicVortex") || strstr(TestCase,"SupersonicVortex") || strstr(TestCase,"Test")) {
 		compute_exact_solution(Nn,XYZ,UEx,sEx,0);
 	} else {
-		printf("Error: Unsupported TestCase: (%s) in compute_initial_solution.\n",TestCase), exit(1);
+		printf("Error: Unsupported TestCase: %s.\n",TestCase), EXIT_MSG;
 	}
 }
 
@@ -318,9 +318,7 @@ static void adapt_initial(unsigned int *adapt_update)
 	for (i = 0; i < NVglobal; i++) {
 		VInfo = VInfo_list[i];
 		if (!VInfo)
-			printf("Error: MPI not supported in adapt_initial.\n"), exit(1);
-//if (VInfo)	
-//	printf("%d %d %d % .3e\n",i,VInfo->P,VInfo->level,VInfo->L2s);
+			printf("Error: MPI not supported.\n"), EXIT_MSG;
 	}
 
 	// Mark VOLUMEs for refinement (No limits on refinement)
@@ -343,7 +341,7 @@ static void adapt_initial(unsigned int *adapt_update)
 			else if (Adapt == ADAPT_H)
 				VOLUME->adapt_type = HREFINE;
 			else
-				printf("Error: Unsupported Adapt (%d) in initialize_test_case (Test).\n",Adapt), exit(1);
+				printf("Error: Unsupported Adapt = %d.\n",Adapt), EXIT_MSG;
 		} else {
 			if (VInfo->refine_p || VInfo->refine_h) {
 				adapt_type = VInfo->adapt_type;

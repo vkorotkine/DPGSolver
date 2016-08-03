@@ -96,7 +96,6 @@ void update_VOLUME_hp(void)
 	OPS = malloc(sizeof *OPS); // free
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-//printf("upV: %d %d %d %d\n",VOLUME->indexg,VOLUME->Vadapt,VOLUME->update,VOLUME->adapt_type);
 		if (VOLUME->Vadapt) {
 			P     = VOLUME->P;
 			level = VOLUME->level;
@@ -107,28 +106,28 @@ void update_VOLUME_hp(void)
 				if (P < PMax)
 					PNew = P+1;
 				else
-					printf("Error: Should not be entering PREFINE in update_VOLUME_hp for P = %d.\n",P), exit(1);
+					printf("Error: Should not be entering PREFINE for P = %d.\n",P), EXIT_MSG;
 				VOLUME->PNew = PNew;
 				break;
 			case PCOARSE:
 				if (P >= 1)
 					PNew = P-1;
 				else
-					printf("Error: Should not be entering PCOARSE in update_VOLUME_hp for P = %d.\n",P), exit(1);
+					printf("Error: Should not be entering PCOARSE for P = %d.\n",P), EXIT_MSG;
 				VOLUME->PNew = PNew;
 				break;
 			case HREFINE:
 				if (level == LevelsMax)
-					printf("Error: Should not be entering HREFINE in update_VOLUME_hp for level = %d.\n",level), exit(1);
+					printf("Error: Should not be entering HREFINE for level = %d.\n",level), EXIT_MSG;
 				VOLUME->PNew = P;
 				break;
 			case HCOARSE:
 				if (level == 0)
-					printf("Error: Should not be entering HCOARSE in update_VOLUME_hp for level = %d.\n",level), exit(1);
+					printf("Error: Should not be entering HCOARSE for level = %d.\n",level), EXIT_MSG;
 				VOLUME->PNew = P;
 				break;
 			default:
-				printf("Error: Unsupported adapt_type = %d in update_VOLUME_hp.\n",adapt_type), exit(1);
+				printf("Error: Unsupported adapt_type = %d.\n",adapt_type), EXIT_MSG;
 				break;
 			}
 
@@ -178,7 +177,7 @@ void update_VOLUME_hp(void)
 					if (strstr(MeshType,"ToBeCurved"))
 						setup_ToBeCurved(VOLUME);
 					else if (strstr(MeshType,"Curved"))
-						printf("Add in support for MeshType == Curved (update_VOLUMEs P)"), exit(1);
+						printf("Add in support for MeshType == Curved.\n"), EXIT_MSG;
 				}
 
 				free(VOLUME->detJV_vI);
@@ -264,7 +263,7 @@ void update_VOLUME_hp(void)
 					if (AC) {
 						VOLUMEc->curved = 1;
 					} else if (VOLUME->curved) {
-						printf("Error: Add support for h-refinement VOLUMEc->curved.\n"), exit(1);
+						printf("Error: Add support for h-refinement VOLUMEc->curved.\n"), EXIT_MSG;
 						// Use VToBC and knowledge of whether the new VOLUME shares the BC.
 					} else {
 						VOLUMEc->curved = 0;
@@ -272,23 +271,12 @@ void update_VOLUME_hp(void)
 
 					// Update geometry
 					IndEhref = get_IndEhref(VType,vh);
-//printf("upV: %d %d\n",vh,IndEhref);
 
-// When updating XYZ_vC, ensure that corners on curved boundaries are placed on the boundary.
+// When updating XYZ_vC, ensure that corners on curved boundaries are placed on the boundary. (ToBeDeleted)
 					VOLUMEc->XYZ_vC = malloc(NvnGs[IndEhref]*d * sizeof *XYZ_vC); // keep
 					XYZ_vC = VOLUMEc->XYZ_vC;
-/*
-if (VType == PYR) {
-printf("%d %d %d\n",vh,NvnGs[IndEhref],IndEhref);
-array_print_d(NvnGs[IndEhref],NvnGs[0],I_vGs_vGs[vh],'R');
-}
-*/
+
 					mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vC,VOLUMEc->XYZ_vC);
-/*
-printf("upV: %d %d\n",vh,IndEhref);
-array_print_d(NvnGs[IndEhref],NvnGs[0],I_vGs_vGs[vh],'R');
-array_print_d(NvnGs[IndEhref],NCols,VOLUMEc->XYZ_vC,'C');
-*/
 					if (!VOLUMEc->curved) {
 						double *XYZ;
 
@@ -311,13 +299,9 @@ array_print_d(NvnGs[IndEhref],NCols,VOLUMEc->XYZ_vC,'C');
 						if (strstr(MeshType,"ToBeCurved"))
 							setup_ToBeCurved(VOLUMEc);
 						else if (strstr(MeshType,"Curved"))
-							printf("Add in support for MeshType == Curved (update_VOLUMEs HREFINE)"), exit(1);
+							printf("Add in support for MeshType == Curved.\n"), EXIT_MSG;
 					}
 					setup_geom_factors(VOLUMEc);
-if (VType == PYR) {
-//printf("upV: %d %d\n",vh,IndEhref);
-//array_print_d(1,1,VOLUMEc->detJV_vI,'R');
-}
 
 // Fix Vgrp linked list (ToBeDeleted)
 
@@ -328,18 +312,11 @@ if (VType == PYR) {
 					Ihat_vS_vS = OPS->Ihat_vS_vS;
 					mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],What,WhatH);
 					mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],RES,RESH);
-if (VType == PYR) {
-//	printf("%d %d %d %d\n",vh,NvnS[IndEhref],Nvar,NvnS[0]);
-//	array_print_d(NvnS[IndEhref],NvnS[0],Ihat_vS_vS[vh],'R');
-}
 
 					VOLUMEc->NvnS = NvnS[IndEhref];
 					VOLUMEc->What = WhatH;
 					VOLUMEc->RES  = RESH;
 				}
-//if (VType == PYR)
-//exit(1);
-//printf("HREF: %p %p %ld %p\n",VOLUME->What,VOLUMEc->What,(VOLUME->What)-(VOLUMEc->What),VOLUMEc->next);
 				free(VOLUME->What);
 				free(VOLUME->RES);
 				break;
@@ -388,39 +365,19 @@ if (VType == PYR) {
 						VOLUMEc = VOLUME;
 						for (vh = vhMin; vh <= vhMax; vh++) {
 							IndEhref = get_IndEhref(VOLUMEp->type,vh);
-//printf("upV: %d %d %d %d\n",VOLUME->indexg,vh,VOLUMEp->type,IndEhref);
 							if (vh > vhMin)
 								VOLUMEc = VOLUMEc->next;
 
 							WhatH = VOLUMEc->What;
 							RESH  = VOLUMEc->RES;
 
-if (VOLUMEp->type == PYR) {
-//printf("%d \n",vh);
-//array_print_d(NvnS[0],NvnS[IndEhref],L2hat_vS_vS[vh],'R');
-}
-//if (1||(vh < 5 || vh > 8)) {
 							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],WhatH,dummyPtr_d);
 							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
 								What[i] += dummyPtr_d[i];
-//}
 							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],RESH,dummyPtr_d);
 							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
 								RES[i] += dummyPtr_d[i];
 						}
-if (VOLUMEp->type == PYR) {
-/*
-for (i = 0; i < NvnS[0]; i++) {
-	for (int j = 0; j < Nvar; j++) {
-		printf(" % .15e",What[i+j*NvnS[0]]);
-	}
-	printf("\n");
-}
-printf("\n");
-//array_print_d(NvnS[0],Nvar,What,'C');
-exit(1);
-*/
-}
 						free(dummyPtr_d);
 
 						VOLUMEp->What = What;
@@ -429,7 +386,6 @@ exit(1);
 						// Ensure that all children are marked as not to be coarsened.
 						VOLUMEc = VOLUME;
 						for (vh = vhMin; vh <= vhMax; vh++) {
-//printf("Reset Vadapt: %d %d %d %d\n",VOLUME->indexg,VOLUMEc->indexg,VOLUMEc->Vadapt,VOLUMEc->adapt_type);
 							if (VOLUMEc->adapt_type == HCOARSE) {
 								VOLUMEc->Vadapt = 0;
 								VOLUMEc->update = 0;
@@ -440,7 +396,6 @@ exit(1);
 				} else {
 					VOLUMEc = VOLUMEp->child0;
 					if (!(VOLUMEc->adapt_type == HCOARSE && VOLUMEc->Vadapt)) {
-//printf("Reset Vadapt 2: %d\n",VOLUMEc->indexg);
 						VOLUME->Vadapt = 0;
 						VOLUME->update = 0;
 					}
@@ -448,7 +403,6 @@ exit(1);
 				break;
 			}
 		}
-//printf("upV: %d %d %d\n",VOLUME->indexg,VOLUME->Vadapt,VOLUME->update);
 	}
 	free(OPS);
 }
@@ -464,9 +418,6 @@ void update_VOLUME_list(void)
 
 	struct S_VOLUME *VOLUME, *VOLUMEc, *VOLUMEnext;
 
-//	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
-//		printf("%d %d %d\n",VOLUME->indexg,VOLUME->level,VOLUME->adapt_type);
-
 	// Fix list head if necessary
 	VOLUME = DB.VOLUME;
 
@@ -474,14 +425,10 @@ void update_VOLUME_list(void)
 		adapt_type = VOLUME->adapt_type;
 		if (adapt_type == HREFINE) {
 			DB.VOLUME = VOLUME->child0;
-//			int count = 0;
 			for (VOLUMEc = DB.VOLUME; VOLUMEc->next; VOLUMEc = VOLUMEc->next)
-				; //printf("%d %d %d\n",count++,VOLUMEc->level,VOLUMEc->next->level);
+				;
 			VOLUMEc->next = VOLUME->next;
-//printf("VOL HEAD Refine\n");
 		} else if (adapt_type == HCOARSE) {
-//printf("VOL HEAD Coarse\n");
-//exit(1);
 			DB.VOLUME = VOLUME->parent;
 			for (VOLUMEc = VOLUME; VOLUMEc->next && VOLUMEc->next->parent == DB.VOLUME; VOLUMEc = VOLUMEc->next)
 				;
@@ -492,12 +439,8 @@ void update_VOLUME_list(void)
 
 	// Fix remainder of list
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-//printf("Fixing: %d %p",VOLUME->indexg,VOLUME->child0);
-//if (VOLUME->indexg == 310)
-//	printf("%d %p\n",VOLUME->indexg,VOLUME->child0);
 		VOLUMEnext = VOLUME->next;
 		if (VOLUMEnext && VOLUMEnext->update) {
-//printf(" %d %d",VOLUMEnext->adapt_type,VOLUMEnext->indexg);
 			adapt_type = VOLUMEnext->adapt_type;
 			if (adapt_type == HREFINE) {
 				VOLUME->next = VOLUMEnext->child0;
@@ -505,27 +448,14 @@ void update_VOLUME_list(void)
 					;
 				VOLUMEc->next = VOLUMEnext->next;
 			} else if (adapt_type == HCOARSE) {
-//printf(" Parent id: %d %d %d ",VOLUMEnext->parent->indexg,VOLUMEnext->parent->level,VOLUMEnext->level);
-//printf("\n");
-//VOLUMEc = VOLUMEnext;
-//for (int i = 0; i < 6; i++) {
-//	printf("%d %d\n",VOLUMEc->indexg,VOLUMEc->level);
-//	VOLUMEc = VOLUMEc->next;
-//}
 				VOLUME->next = VOLUMEnext->parent;
-//				int count = 0;
 				for (VOLUMEc = VOLUMEnext; VOLUMEc->next && VOLUMEc->next->parent == VOLUME->next; VOLUMEc = VOLUMEc->next)
-					; // printf("count %d %d\n",count++,VOLUMEc->indexg), VOLUMEc->update = 0;
-//printf("%d\n",VOLUMEc->next->indexg);
+					;
 				VOLUME->next->next = VOLUMEc->next;
 				VOLUMEc->next = NULL;
 			}
 		}
-//printf("\n");
 	}
-
-//	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
-//		printf("%d %p\n",VOLUME->indexg,VOLUME->child0);
 }
 
 void update_Vgrp(void)
@@ -587,7 +517,6 @@ void update_VOLUME_Ops(void)
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		if (VOLUME->update) {
 			VOLUME->update = 0;
-//printf("update_VOLUME_Ops: %d\n",VOLUME->indexg);
 			if (strstr(SolverType,"Explicit")) {
 				if (!Collocated) {
 					init_ops(OPS,VOLUME,0);
@@ -625,11 +554,8 @@ void update_VOLUME_Ops(void)
 					}
 
 					M    = mm_Alloc_d(CBRM,CBT,CBNT,NvnS,NvnS,NvnI,1.0,ChiS_vI,wdetJVChiS_vI); // free
-					IS   = identity_d(NvnS); // free
-					MInv = inverse_d(NvnS,NvnS,M,IS); // keep
-//array_print_d(NvnS,NvnS,M,'R');
-//array_print_d(NvnI,NvnS,wdetJVChiS_vI,'R');
-//exit(1);
+					IS   = identity_d(NvnS);                                                   // free
+					MInv = inverse_d(NvnS,NvnS,M,IS);                                          // keep
 
 					free(wdetJVChiS_vI);
 					free(M);
@@ -640,7 +566,7 @@ void update_VOLUME_Ops(void)
 					VOLUME->MInv = MInv;
 				}
 			} else {
-				; // Updates for implicit.
+				printf("Error: Unsupported SolverType.\n"), EXIT_MSG;
 			}
 		}
 	}
@@ -651,7 +577,7 @@ void update_VOLUME_Ops(void)
 void update_VOLUME_finalize(void)
 {
 	unsigned int NV = 0;
-	unsigned int VfIn, VfOut; 
+	unsigned int VfIn, VfOut;
 
 	struct S_VOLUME *VOLUME, *VIn, *VOut;
 	struct S_FACET  *FACET;
@@ -673,17 +599,12 @@ void update_VOLUME_finalize(void)
 		VOut  = FACET->VOut;
 		VfOut = FACET->VfOut;
 
-//printf("upVfin: %d %d %d\n",FACET->indexg,VIn->level,VOut->level);
-//printf("In: %d\n",VIn->indexg);
-//printf("Out: %d\n",VOut->indexg);
 		VIn->neigh[VfIn]   = VOut->indexg;
 		VOut->neigh[VfOut] = VIn->indexg;
 
 		if (fabs((int) VIn->level - (int) VOut->level) > 1.0) {
 			printf("%d %d %d\n",VIn->indexg,VOut->indexg,VIn->parent->indexg);
-			printf("Error: Adjacent VOLUMEs are more than 1-irregular (update_VOL_fin).\n"), exit(1);
+			printf("Error: Adjacent VOLUMEs are more than 1-irregular.\n"), EXIT_MSG;
 		}
 	}
-//printf("\n\n\n\n");
-//exit(1);
 }

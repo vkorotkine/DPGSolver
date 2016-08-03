@@ -62,9 +62,7 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 			ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
 	} else if (strstr(TestCase,"GaussianBump")     != NULL ||
 	           strstr(TestCase,"PolynomialBump")   != NULL) {
-//array_print_d(NvnG,d,XYZ_S,'C');
 			ToBeCurved_TP(NvnG,XYZ_S,XYZ);
-//array_print_d(NvnG,d,XYZ,'C');
 	} else if (strstr(TestCase,"PeriodicVortex") ||
 	           strstr(TestCase,"Test")) {
 		double n = 2.0, A = 0.1, L0 = 2.0, dxyz = 1.0, scale,
@@ -91,18 +89,18 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 			}
 		} else if (d == 3) {
 			for (i = 0; i < NvnG; i++) {
-				XYZ[       i] = scale*X0[i];// + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*Z0[i]);
-				XYZ[1*NvnG+i] = scale*Y0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Z0[i]);
-				XYZ[2*NvnG+i] = scale*Z0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]);
-//				XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
-//				XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
-//				XYZ[2*NvnG+i] = scale*(Z0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]));
+//				XYZ[       i] = scale*X0[i];// + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*Z0[i]);
+//				XYZ[1*NvnG+i] = scale*Y0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Z0[i]);
+//				XYZ[2*NvnG+i] = scale*Z0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]);
+				XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
+				XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
+				XYZ[2*NvnG+i] = scale*(Z0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]));
 			}
 		} else {
-			printf("Error: PeriodicVortex TestCase not supported for dimension d = %d.\n",d), exit(1);
+			printf("Error: PeriodicVortex TestCase not supported for dimension d = %d.\n",d), EXIT_MSG;
 		}
 	} else {
-		printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), exit(1);
+		printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
 	}
 }
 
@@ -150,7 +148,7 @@ static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZ_S, double *XY
 			OrderOut[0] = 0; OrderOut[1] = 2; OrderOut[2] = 1;
 		} else if (dim == 2) {
 			if (d == 2)
-				printf("Error: Invalid entry in ToBeCurved_cube_to_sphere for d = 2.\n"), exit(1);
+				printf("Error: Invalid entry for d = 2.\n"), EXIT_MSG;
 
 			XYn[0] = XYZn[0];
 			XYn[1] = XYZn[1];
@@ -192,7 +190,7 @@ static double *cube_to_sphere(double XY[2], unsigned int OrderOut[3], int SignOu
 		XY[0] = pow(2.0,0.25)*Y/beta*(sqrt(2.0)*sin(X*PI/(12.0*Y)))/sqrt(sqrt(2.0)-cos(X*PI/(12.0*Y)));
 		XY[1] = pow(2.0,0.25)*Y/beta*(sqrt(2.0)*cos(X*PI/(12.0*Y))-1.0)/sqrt(sqrt(2.0)-cos(X*PI/(12.0*Y)));
 	} else {
-		printf("Error: Invalid condition in cube_to_sphere.\n"), exit(1);
+		printf("Error: Invalid condition.\n"), EXIT_MSG;
 	}
 
 	X = XY[0];
@@ -306,7 +304,7 @@ static void ToBeCurved_TP(unsigned int Nn, double *XYZ_S, double *XYZ)
 						free(dfdxz_XZnew);
 
 						if (count == 1e2)
-							printf("Error: Newton's method not converging in ToBeCurved_TP (X).\n"), exit(1);
+							printf("Error: Newton's method not converging.\n"), EXIT_MSG;
 					}
 
 					if (d == 3) {
@@ -335,7 +333,7 @@ static void ToBeCurved_TP(unsigned int Nn, double *XYZ_S, double *XYZ)
 							free(dfdxz_XZnew);
 
 							if (count == 1e2)
-								printf("Error: Newton's method not converging in ToBeCurved_TP (Z).\n"), exit(1);
+								printf("Error: Newton's method not converging.\n"), EXIT_MSG;
 						}
 					}
 				}
@@ -644,7 +642,7 @@ static double get_arc_length(const double XL, const double XR, const double Z, c
 
 		if      (DOrder[0] == 1) IndX = 0, IndZ = 1;
 		else if (DOrder[1] == 1) IndX = 1, IndZ = 0;
-		else                     printf("Error: One entry of DOrder must be 1.\n"), exit(1);
+		else                     printf("Error: One entry of DOrder must be 1.\n"), EXIT_MSG;
 
 		for (n = 0; n < Nn; n++) {
 			XZInt[Nn*IndZ+n] = Z;
@@ -683,7 +681,7 @@ static double get_arc_length(const double XL, const double XR, const double Z, c
 			h /= 2.0;
 		}
 		if (!FoundArcLen)
-			printf("Error: Arc length was not found using lMax = %d.\n",lMax), exit(1);
+			printf("Error: Arc length was not found using lMax = %d.\n",lMax), EXIT_MSG;
 //array_print_d(lMax,lMax,ArcLen,'R');
 
 		free(ArcLen);
@@ -782,18 +780,18 @@ static double *eval_TP_function(const unsigned int Nn, const double *XZ, const u
 				if      (DOrder[0] == 0) F_X = a*exp(-1.0*pow(X-b,2.0)/(2.0*pow(c,2.0)));
 				else if (DOrder[0] == 1) F_X = a*(b-X)/pow(c,2.0)*exp(-1.0*pow(X-b,2.0)/(2.0*pow(c,2.0)));
 				else
-					printf("Error: Add in support for higher derivatives.\n"), exit(1);
+					printf("Error: Add in support for higher derivatives.\n"), EXIT_MSG;
 			} else {
-				printf("Error: Invalid function evaluation for GaussianBump.\n"), exit(1);
+				printf("Error: Invalid function evaluation for GaussianBump.\n"), EXIT_MSG;
 			}
 
 			if (zLoc == 1 || zLoc == 2) {
 				if      (DOrder[1] == 0) F_Z = a*exp(-1.0*pow(Z-b,2.0)/(2.0*pow(c,2.0)));
 				else if (DOrder[1] == 1) F_Z = a*(b-Z)/pow(c,2.0)*exp(-1.0*pow(Z-b,2.0)/(2.0*pow(c,2.0)));
 				else
-					printf("Error: Add in support for higher derivatives.\n"), exit(1);
+					printf("Error: Add in support for higher derivatives.\n"), EXIT_MSG;
 			} else {
-				printf("Error: Invalid function evaluation for GaussianBump.\n"), exit(1);
+				printf("Error: Invalid function evaluation for GaussianBump.\n"), EXIT_MSG;
 			}
 		} else if (strstr(TestCase,"PolynomialBump") != NULL) {
 			h = 0.5;
@@ -856,7 +854,7 @@ static double *eval_TP_function(const unsigned int Nn, const double *XZ, const u
 					else if (DOrder[0] == 1) F_X = h*(2.0*c*X+4.0*e*pow(X,3.0));
 				} else {
 					printf("Error: eval_TP_function should not be needed in this region for the high-order Bump.\n");
-					exit(1);
+					EXIT_MSG;
 				}
 
 				if (zLoc == 1 || zLoc == 2) {
@@ -864,11 +862,11 @@ static double *eval_TP_function(const unsigned int Nn, const double *XZ, const u
 					else if (DOrder[1] == 1) F_Z = h*(2.0*c*Z+4.0*e*pow(Z,3.0));
 				} else {
 					printf("Error: eval_TP_function should not be needed in this region for the high-order Bump.\n");
-					exit(1);
+					EXIT_MSG;
 				}
 			}
 		} else {
-			printf("Error: Unsupported TP_function.\n"), exit(1);
+			printf("Error: Unsupported TP_function.\n"), EXIT_MSG;
 		}
 		if (!Single) {
 			Output[n] = F_X*F_Z;
@@ -882,7 +880,7 @@ static double *eval_TP_function(const unsigned int Nn, const double *XZ, const u
 				for (dim = 0; dim < 3; dim++)
 					abcOut[dim] = abcZ[dim];
 			} else {
-				printf("Error: Invalid value for Single in eval_TP_function.\n"), exit(1);
+				printf("Error: Invalid value for Single.\n"), EXIT_MSG;
 			}
 		}
 	}

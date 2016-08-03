@@ -139,8 +139,7 @@
  *		*_sp : Standard (*) operator stored in (sp)arse format ((C)ompressed (S)parse (R)ow), only used for TP ELEMENTs.
  *
  *	setup_L2_projection_operators:
- *		ADD IN NOTATION (ToBeDeleted)
- *
+ *		L2hat_vS_vS : L2 projection operator from coefficients of the VOLUMEs on level l+1 to the VOLUME on level l.
  *
  *	setup_ELEMENT_VeV:
  *	setup_ELEMENT_VeF:
@@ -300,7 +299,7 @@ static void select_functions(basis_tdef *basis, grad_basis_tdef *grad_basis, cub
 		*cubature   = cubature_TET;
 		break;
 	case WEDGE:
-		printf("Error: WEDGE elements use a combination of TRI and LINE basis functions/nodes.\n"), exit(1);
+		printf("Error: WEDGE elements use a combination of TRI and LINE basis functions/nodes.\n"), EXIT_MSG;
 		break;
 	case PYR:
 		*basis      = basis_PYR;
@@ -308,7 +307,7 @@ static void select_functions(basis_tdef *basis, grad_basis_tdef *grad_basis, cub
 		*cubature   = cubature_PYR;
 		break;
 	default:
-		printf("Error: Unsupported type (%d) in select_functions.\n",type), exit(1);
+		printf("Error: Unsupported type = %d.\n",type), EXIT_MSG;
 		break;
 	}
 }
@@ -393,7 +392,7 @@ static void setup_ELEMENT_normals(const unsigned int EType)
 		Theta_eta[3] = Theta_e - 0.5*PI; Theta_zeta[3] = 0.5*PI;
 		Theta_eta[4] = 0.5*PI;           Theta_zeta[4] = 0.0;
 	} else {
-		printf("Add support setup_ELEMENT_normals\n"), exit(1);
+		printf("Error: Unsupported EType.\n"), EXIT_MSG;
 	}
 
 	for (f = 0; f < Nf; f++) {
@@ -462,7 +461,7 @@ static double *get_rst_vC(const struct S_ELEMENT *ELEMENT)
 		rst_vC[0*Nve+4] =  0.0; rst_vC[1*Nve+4] =  0.0; rst_vC[2*Nve+4] =  4.0/5.0*sqrt(2.0);
 		break;
 	default:
-		printf("Error: Unsupported EType in get_rst_vC.\n"), exit(1);
+		printf("Error: Unsupported EType.\n"), EXIT_MSG;
 		break;
 	}
 	return rst_vC;
@@ -526,7 +525,7 @@ static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const
 		} else if (EType == HEX || (EType == WEDGE && IndFType == 0) || (EType == PYR && IndFType == 1)) {
 			ELEMENT_F = get_ELEMENT_type(QUAD);
 		} else {
-			printf("Error: Unsupported EType/IndFType combination in get_BCoords_dEm1.\n"), exit(1);
+			printf("Error: Unsupported EType/IndFType combination.\n"), EXIT_MSG;
 		}
 
 		// Initialize DB Parameters
@@ -623,7 +622,8 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 	 *	Comments:
 	 *		For VeVref_TET, note that there are 3 options for the internal TET positioning. Here only one option is
 	 *		supported but the others can be added if, for example, it is desired to refine TETs by splitting along the
-	 *		longest physical diagonal.
+	 *		longest physical diagonal. Similarly, if it is found that TETs are advantageous over PYRs, the top two PYRs
+	 *		in the refined PYR can be split into four TETs.
 	 */
 
 	// Standard datatypes
@@ -800,7 +800,7 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 			if      (EcType == PYR) Nvve[i] = Nve;
 			else if (EcType == TET) Nvve[i] = 4;
 			else
-				printf("Error: Unsupported EcType in setup_ELEMENT_VeV (PYR).\n"), exit(1);
+				printf("Error: Unsupported EcType (PYR).\n"), EXIT_MSG;
 		}
 
 		VeVrefInd = 0;
@@ -817,7 +817,7 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 	case HEX:
 	case WEDGE:
 	default:
-		printf("Error: Unsupported EType in setup_ELEMENT_VeV.\n"), exit(1);
+		printf("Error: Unsupported EType.\n"), EXIT_MSG;
 		break;
 	}
 }
@@ -840,26 +840,25 @@ static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
 		if (vref < 5)
 			return 0.25;
 		else
-			printf("Error: Unsupported vref (%d) (anisotropic) for TRIs in get_L2_scaling.\n",vref), exit(1);
+			printf("Error: Unsupported vref (%d) (anisotropic) for TRIs.\n",vref), EXIT_MSG;
 		break;
 	case TET:
 		if (vref < 9)
 			return 0.125;
 		else
-			printf("Error: Unsupported vref (%d) (anisotropic) for TETs in get_L2_scaling.\n",vref), exit(1);
+			printf("Error: Unsupported vref (%d) (anisotropic) for TETs.\n",vref), EXIT_MSG;
 		break;
 	case PYR:
 		if (vref < 5 || vref > 8)
 			return 0.125;
 		else
 			return 0.125; // 1/8 of reference TET
-//			return 0.0625; // 1/16 of reference PYR (ToBeDeleted)
 		break;
 	case QUAD:
 	case HEX:
 	case WEDGE:
 	default:
-		printf("Error: Unsupported EType (%d) in get_L2_scaling.\n",EType), exit(1);
+		printf("Error: Unsupported EType (%d).\n",EType), EXIT_MSG;
 		break;
 	}
 }
@@ -977,7 +976,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	// No need to consider the second Eclass as WEDGE basis functions will be built through a combination of lower
 	// dimensional operators.
 	Eclass = get_Eclass(EType);
-	setup_ELEMENT_VeV(EType);
+	if (EType != TET && EType != PYR)
+		setup_ELEMENT_VeV(EType);
 
 	dE      = ELEMENT->d;
 	Nve     = ELEMENT->Nve;
@@ -1393,7 +1393,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 						Is_Weak_VV[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIs[Pb],NvnIs[Pb], 1.0,ChiS_vIs[P][Pb][vrefSF],diag_w_vIs); // keep
 						Ic_Weak_VV[P][Pb][vrefSF] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIc[Pb],NvnIc[Pb], 1.0,ChiS_vIc[P][Pb][vrefSF],diag_w_vIc); // keep
 					} else {
-						;
+						printf("Error: Unsupported EFE.\n"), EXIT_MSG;
 					}
 
 					if (Collocated) {
@@ -1410,7 +1410,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				// Returned Adaptation Operators
 				if (vh == 0 || P == Pb) {
 					i = get_IndEhref(EType,vh);
-				    dummyPtr_d = mm_Alloc_d(CBRM,CBNT,CBNT,ELEMENT_h->NvnS[Pb], NvnS[P],NvnS[P],1.0,ChiRefS_vS,TS);  // free
+					dummyPtr_d = mm_Alloc_d(CBRM,CBNT,CBNT,ELEMENT_h->NvnS[Pb], NvnS[P],NvnS[P],1.0,ChiRefS_vS,TS);  // free
 					Ihat_vS_vS[P][Pb][vh]  = mm_Alloc_d(CBRM,CBNT,CBNT,ELEMENT_h->NvnS[Pb],NvnS[P],ELEMENT_h->NvnS[Pb],
 					                                    1.0,ELEMENT_h->ChiInvS_vS[Pb][Pb][0],dummyPtr_d); // keep
 					free(dummyPtr_d);
@@ -1522,7 +1522,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 						Ds_Weak_VV[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIs[P],NvnIs[P],1.0,GradChiS_vIs[dim],diag_w_vIs); // keep
 						Dc_Weak_VV[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIc[P],NvnIc[P],1.0,GradChiS_vIc[dim],diag_w_vIc); // keep
 					} else {
-						printf("Error: Unsupported EFE in setup_operators.\n"), exit(1);
+						printf("Error: Unsupported EFE.\n"), EXIT_MSG;
 					}
 					if (Collocated) {
 						dummyPtr_d = Ds_Weak_VV[P][Pb][0][dim];
@@ -1568,9 +1568,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 			}
 
 			// FACET related operators
-//Is_Weak_FV[P][Pb] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIs[Pb],NvnIs[Pb],ChiS_vIs[P][Pb],diag_w_vIs); // keep
-//Ic_Weak_FV[P][Pb] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIc[Pb],NvnIc[Pb],ChiS_vIc[P][Pb],diag_w_vIc); // keep
-
 			for (f = 0; f < Nf; f++) {
 				IndFType = get_IndFType(Eclass,f);
 
@@ -1940,14 +1937,6 @@ void setup_ELEMENT_VeF(const unsigned int EType)
 			}}
 		}
 	}
-
-/*
-printf("\n\nEType: %d\n\n\n",EType);
-i = 2;
-for (j = 0; j < Nfref[i]; j++)
-	array_print_d(Nfve[i],Nve,ELEMENT->VeF[i*NFREFMAX+j],'R');
-*/
-
 	free(VeF);
 }
 
@@ -1958,8 +1947,12 @@ static void setup_TP_operators(const unsigned int EType)
 	 *		Compute operators for elements which are tensor-products of lower dimensional elements.
 	 *
 	 *	Comments:
-	 *		Need to clean up tabs here (ToBeDeleted).
-	 *		Add comment about general idea of how this is done. (ToBeModified)
+	 *		This functions works by taking tensor-products of the operators of lower-dimensional ELEMENT operators. This
+	 *		allows for a reduction in the computational complexity of computing these operators and is very intuitive
+	 *		once the concept is understood.
+	 *
+	 *	References:
+	 *		Thesis (ToBeModified)
 	 */
 
 	// Returned operators
@@ -2242,7 +2235,7 @@ static void setup_TP_operators(const unsigned int EType)
 								convert_to_CSR_d(NvnS[P],NvnIc[Pb],Dc_Weak_VV[P][Pb][0][dim],&Dc_Weak_VV_sp[P][Pb][0][dim]); // keep
 							}
 						} else {
-							;
+							printf("Error: Unsupported EFE.\n"), EXIT_MSG;
 						}
 					}
 				}
@@ -2475,7 +2468,7 @@ static void setup_TP_operators(const unsigned int EType)
 						                  NIn,NOut,OP,dE,3,Eclass);
 						Ic_Weak_VV[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					} else {
-						;
+						printf("Error: Unsupported EFE.\n"), EXIT_MSG;
 					}
 
 					for (dim = 0; dim < dE; dim++) {
@@ -2569,27 +2562,27 @@ static void setup_TP_operators(const unsigned int EType)
 					if (P == Pb) {
 						// Outside of fh == 0 if condition as operator is used for testing h-adaptation connectivity.
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vGs_fS[1][Pb], OPF1  = ELEMENTclass[1]->I_vGs_vS[1][Pb];
-									 NOut0 = ELEMENTclass[0]->NfnS[Pb][0],     NOut1 = ELEMENTclass[1]->NvnS[Pb];
+						             NOut0 = ELEMENTclass[0]->NfnS[Pb][0],     NOut1 = ELEMENTclass[1]->NvnS[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vGs_vS[1][Pb], OPF1  = ELEMENTclass[1]->I_vGs_fS[1][Pb];
-									 NOut0 = ELEMENTclass[0]->NvnS[Pb],        NOut1 = ELEMENTclass[1]->NfnS[Pb][0]; }
+						             NOut0 = ELEMENTclass[0]->NvnS[Pb],        NOut1 = ELEMENTclass[1]->NfnS[Pb][0]; }
 						get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],NOut0,OPF0,
-										   ELEMENTclass[1]->NvnGs[1],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						                   ELEMENTclass[1]->NvnGs[1],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGs_fS[1][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					}
 
 					if (f < 3) { OPF0 = ELEMENTclass[0]->Is_Weak_FF[P][Pb], OPF1 = ELEMENTclass[1]->Is_Weak_VV[P][Pb];
-								 NIn0 = ELEMENTclass[0]->NfnIs[Pb][0],      NIn1 = ELEMENTclass[1]->NvnIs[Pb];
+					             NIn0 = ELEMENTclass[0]->NfnIs[Pb][0],      NIn1 = ELEMENTclass[1]->NvnIs[Pb];
 					} else {     OPF0 = ELEMENTclass[0]->Is_Weak_VV[P][Pb], OPF1 = ELEMENTclass[1]->Is_Weak_FF[P][Pb];
-								 NIn0 = ELEMENTclass[0]->NvnIs[Pb],         NIn1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
+					             NIn0 = ELEMENTclass[0]->NvnIs[Pb],         NIn1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
 					get_sf_parametersF(NIn0,ELEMENTclass[0]->NvnS[P],OPF0,
-									   NIn1,ELEMENTclass[1]->NvnS[P],OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+					                   NIn1,ELEMENTclass[1]->NvnS[P],OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 					Is_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					if (f < 3) { OPF0 = ELEMENTclass[0]->Ic_Weak_FF[P][Pb], OPF1 = ELEMENTclass[1]->Ic_Weak_VV[P][Pb];
-								 NIn0 = ELEMENTclass[0]->NfnIc[Pb][0],      NIn1 = ELEMENTclass[1]->NvnIc[Pb];
+					             NIn0 = ELEMENTclass[0]->NfnIc[Pb][0],      NIn1 = ELEMENTclass[1]->NvnIc[Pb];
 					} else {     OPF0 = ELEMENTclass[0]->Ic_Weak_VV[P][Pb], OPF1 = ELEMENTclass[1]->Ic_Weak_FF[P][Pb];
-								 NIn0 = ELEMENTclass[0]->NvnIc[Pb],         NIn1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
+					             NIn0 = ELEMENTclass[0]->NvnIc[Pb],         NIn1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
 					get_sf_parametersF(NIn0,ELEMENTclass[0]->NvnS[P],OPF0,
-									   NIn1,ELEMENTclass[1]->NvnS[P],OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+					                   NIn1,ELEMENTclass[1]->NvnS[P],OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 					Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 					if (Collocated || VFPartUnity[Eclass]) {
@@ -2686,15 +2679,13 @@ static void setup_TP_operators(const unsigned int EType)
 			}
 		}
 	} else {
-		printf("Error: Unsupported Eclass in setup_TP_operators.\n"), exit(1);
+		printf("Error: Unsupported Eclass.\n"), EXIT_MSG;
 	}
 	free(ones_Nf);
 }
 
 static void setup_L2_projection_preoperators(const unsigned int EType)
 {
-// free all ops (ToBeDeleted)
-
 	// Returned operators
 	unsigned int *NvnIc, *NvnS;
 	double       **w_vIc, ****ChiS_vIc;
@@ -2841,6 +2832,7 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 				free(ChiRefS_vIc);
 			}
 
+			free(E_rst_vC);
 			for (vh = 0; vh < Nvref; vh++)
 				free(rst_vIc[vh]);
 
@@ -2849,6 +2841,7 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 		}
 		free(TS);
 	}
+	free(rst_vC);
 	free(rst_vIc);
 	for (i = 0; i < NEhref; i++) {
 		free(BCoords_V[i]->Ic);
@@ -3178,7 +3171,7 @@ static void setup_ELEMENT_FACET_ordering(const unsigned int FType)
 		if      (FType == LINE)  NOrd = 2;
 		else if (FType == QUAD)  NOrd = 8;
 		else if (FType == TRI)   NOrd = 6;
-		else    printf("Error: Unsupported FType in setup_ELEMENT_FACET_ordering.\n"), exit(1);
+		else    printf("Error: Unsupported FType.\n"), EXIT_MSG;
 
 		nOrd_fS  = ELEMENT->nOrd_fS;
 		nOrd_fIs = ELEMENT->nOrd_fIs;
