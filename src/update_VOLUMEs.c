@@ -287,9 +287,9 @@ array_print_d(NvnGs[IndEhref],NvnGs[0],I_vGs_vGs[vh],'R');
 }
 */
 					mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vC,VOLUMEc->XYZ_vC);
-printf("upV: %d %d\n",vh,IndEhref);
-array_print_d(NvnGs[IndEhref],NvnGs[0],I_vGs_vGs[vh],'R');
-array_print_d(NvnGs[IndEhref],NCols,VOLUMEc->XYZ_vC,'C');
+//printf("upV: %d %d\n",vh,IndEhref);
+//array_print_d(NvnGs[IndEhref],NvnGs[0],I_vGs_vGs[vh],'R');
+//array_print_d(NvnGs[IndEhref],NCols,VOLUMEc->XYZ_vC,'C');
 					if (!VOLUMEc->curved) {
 						double *XYZ;
 
@@ -318,7 +318,7 @@ if (VType == PYR) {
 							printf("Add in support for MeshType == Curved (update_VOLUMEs HREFINE)"), exit(1);
 					}
 					setup_geom_factors(VOLUMEc);
-array_print_d(1,5,VOLUMEc->detJV_vI,'R');
+//array_print_d(1,5,VOLUMEc->detJV_vI,'R');
 
 // Fix Vgrp linked list (ToBeDeleted)
 
@@ -338,8 +338,8 @@ if (VType == PYR) {
 					VOLUMEc->What = WhatH;
 					VOLUMEc->RES  = RESH;
 				}
-if (VType == PYR)
-exit(1);
+//if (VType == PYR)
+//exit(1);
 //printf("HREF: %p %p %ld %p\n",VOLUME->What,VOLUMEc->What,(VOLUME->What)-(VOLUMEc->What),VOLUMEc->next);
 				free(VOLUME->What);
 				free(VOLUME->RES);
@@ -389,13 +389,14 @@ exit(1);
 						VOLUMEc = VOLUME;
 						for (vh = vhMin; vh <= vhMax; vh++) {
 							IndEhref = get_IndEhref(VOLUMEp->type,vh);
-//printf("upV: %d %d %d %d\n",VOLUME->indexg,vh,VOLUMEp->type,IndEhref);
+printf("upV: %d %d %d %d\n",VOLUME->indexg,vh,VOLUMEp->type,IndEhref);
 							if (vh > vhMin)
 								VOLUMEc = VOLUMEc->next;
 
 							WhatH = VOLUMEc->What;
 							RESH  = VOLUMEc->RES;
 
+array_print_d(NvnS[0],NvnS[IndEhref],L2hat_vS_vS[vh],'R');
 							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],WhatH,dummyPtr_d);
 							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
 								What[i] += dummyPtr_d[i];
@@ -403,6 +404,9 @@ exit(1);
 							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
 								RES[i] += dummyPtr_d[i];
 						}
+array_print_d(NvnS[0],Nvar,What,'C');
+//if (VOLUMEp->type == PYR)
+//	exit(1);
 						free(dummyPtr_d);
 
 						VOLUMEp->What = What;

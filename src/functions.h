@@ -252,4 +252,7 @@ extern void memory_free_children (void);
 	extern void array_free5_CSR_d (unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int lMax,
 	                               struct S_OpCSR *****A);
 
+// Support
+extern void exit_trace (void);
+
 #endif // DPG__functions_h__INCLUDED

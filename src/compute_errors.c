@@ -119,6 +119,12 @@ void compute_errors(const struct S_VOLUME *VOLUME, double *L2Error2, double *Vol
 	sEx = malloc(NvnI        * sizeof *sEx); // free
 
 	compute_exact_solution(NvnI,XYZ_vI,UEx,sEx,solved);
+/*
+printf("%d\n",VOLUME->indexg);
+array_print_d(NvnI,Nvar,U,'C');
+array_print_d(NvnI,Nvar,UEx,'C');
+array_print_d(NvnI,1,wdetJV_vI,'R');
+*/
 
 	for (i = 0; i <= NVAR3D; i++) {
 		IndU = i*NvnI;
@@ -126,6 +132,8 @@ void compute_errors(const struct S_VOLUME *VOLUME, double *L2Error2, double *Vol
 			for (j = 0; j < NvnI; j++) {
 				err = (U[IndU+j]-UEx[IndU+j])/UEx[IndU+j];
 				L2Error2[i] += err*err*wdetJV_vI[j];
+//if (i == NVAR3D-1)
+//	printf("% .3e % .3e % .3e\n",err,err*err*wdetJV_vI[j],L2Error2[i]);
 			}
 		} else if (i > 0 && i < NVAR3D-1) { // u, v, w (Not normalized as variables may be negative)
 			for (j = 0; j < NvnI; j++) {
