@@ -91,6 +91,9 @@ extern void flux_LF       (const unsigned int Nn, const unsigned int Nel, double
 extern void flux_ROE      (const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
                            double *nL, const unsigned int d, const unsigned int Neq);
 
+extern void jacobian_flux_inviscid (const unsigned int Nn, const unsigned int Nel, double *W, double *dFdW,
+                                    const unsigned int d, const unsigned int Neq);
+
 // Boundary conditions
 extern void boundary_Riemann  (const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL, double *WOut,
                                double *WB, double *nL);
