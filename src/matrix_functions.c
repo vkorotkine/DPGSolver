@@ -57,15 +57,15 @@ double *identity_d(const unsigned int N)
 	 */
 
 	unsigned int i, j;
-	double *I;
+	double *Imat; // ToBeModified (name)
 
-	I = malloc(N*N * sizeof *I); // keep (requires external free)
+	Imat = malloc(N*N * sizeof *Imat); // keep (requires external free)
 	for (i = 0; i < N; i++) {
 	for (j = 0; j < N; j++) {
-		if (i == j) I[i*N+j] = 1.0;
-		else        I[i*N+j] = 0.0;
+		if (i == j) Imat[i*N+j] = 1.0;
+		else        Imat[i*N+j] = 0.0;
 	}}
-	return I;
+	return Imat;
 }
 
 double *inverse_d(const unsigned int N, const unsigned int NRHS, const double *AIn, const double *b)

@@ -4,6 +4,8 @@
 #ifndef DPG__functions_h__INCLUDED
 #define DPG__functions_h__INCLUDED
 
+#include <complex.h>
+
 #include "database.h"
 #include "mkl.h"
 
@@ -84,12 +86,14 @@ extern void       get_facet_ordering (const unsigned int d, const unsigned int I
 extern double finalize_RHS           (void);
 
 // Fluxes
-extern void flux_inviscid (const unsigned int Nn, const unsigned int Nel, double *W, double *F, const unsigned int d,
-                           const unsigned int Neq);
-extern void flux_LF       (const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
-                           double *nL, const unsigned int d, const unsigned int Neq);
-extern void flux_ROE      (const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
-                           double *nL, const unsigned int d, const unsigned int Neq);
+extern void flux_inviscid   (const unsigned int Nn, const unsigned int Nel, double *W, double *F, const unsigned int d,
+                             const unsigned int Neq);
+extern void flux_LF         (const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
+                             double *nL, const unsigned int d, const unsigned int Neq);
+extern void flux_ROE        (const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
+                             double *nL, const unsigned int d, const unsigned int Neq);
+extern void flux_inviscid_c (const unsigned int Nn, const unsigned int Nel, double complex *W, double complex *F,
+                             const unsigned int d, const unsigned int Neq);
 
 extern void jacobian_flux_inviscid (const unsigned int Nn, const unsigned int Nel, double *W, double *dFdW,
                                     const unsigned int d, const unsigned int Neq);

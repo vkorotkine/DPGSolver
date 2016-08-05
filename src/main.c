@@ -209,7 +209,7 @@ int main(int nargc, char **argv)
 	ts = clock();
 
 	// Implementation tests
-
+/*
 	test_imp_array_find_index();
 	test_imp_array_norm();
 	test_imp_array_sort();
@@ -239,15 +239,15 @@ int main(int nargc, char **argv)
 
 	test_imp_sum_factorization();
 	test_imp_plotting();
-
+*/
 	test_imp_fluxes_inviscid();
 	test_imp_jacobian_fluxes_inviscid();
 //	test_imp_get_facet_ordering();
 
-/*
-	test_imp_update_h(nargc,argv);
+
+//	test_imp_update_h(nargc,argv);
 	test_imp_L2_projections(nargc,argv);
-*/
+
 
 	te = clock();
 
