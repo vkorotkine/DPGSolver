@@ -360,7 +360,7 @@ exit(1);
 
 	unsigned int i;
 	double *f, *f_r, *f_s, *f_t, *r, *s, *t, *f_hat, *f_rcomp, *f_scomp, *f_tcomp;
-	double *I, *ChiRef_rst, *ChiRefInv_rst, **GradChiRef_rst;
+	double *Imat, *ChiRef_rst, *ChiRefInv_rst, **GradChiRef_rst; // ToBeModified (name)
 
 	P = 4; // should work for P >= 2
 
@@ -377,9 +377,9 @@ exit(1);
 		t[i] = rst[2*Nn+i];
 	}
 
-	I = identity_d(Nn); // free
+	Imat = identity_d(Nn); // free
 	ChiRef_rst = basis_PYR(P,rst,Nn,&Nbf,d); // free
-	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,I); // free
+	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,Imat); // free
 
 	GradChiRef_rst = grad_basis_PYR(P,rst,Nn,&Nbf,d); // free
 
@@ -407,7 +407,7 @@ exit(1);
 
 	free(rst), free(r), free(s), free(t);
 	free(symms);
-	free(I);
+	free(Imat);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(d,GradChiRef_rst);
 	free(f), free(f_hat);

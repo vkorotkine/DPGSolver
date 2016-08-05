@@ -262,14 +262,14 @@ void test_imp_basis_TP(void)
 	 *			M = ChiRef_rst'*W*ChiRef_rst = I with error in highest order entries (GLL)
 	 */
 
-	double *ChiRef_rst, *W, *WChiRef_rst, *M, *I;
+	double *ChiRef_rst, *W, *WChiRef_rst, *M, *Imat;
 
 	// dE = 1
 	dE = 1;
 
 	P = 4;
 	Nbf = pow(P+1,dE);
-	I = identity_d(Nbf); // free
+	Imat = identity_d(Nbf); // free
 
 	// GL
 
@@ -284,7 +284,7 @@ void test_imp_basis_TP(void)
 	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS)
+	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -311,7 +311,7 @@ void test_imp_basis_TP(void)
 	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2)-1,M,I,"Inf") < EPS*10)
+	if (array_norm_diff_d(pow(Nbf,2)-1,M,Imat,"Inf") < EPS*10)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -325,14 +325,14 @@ void test_imp_basis_TP(void)
 	free(WChiRef_rst);
 	free(M);
 
-	free(I);
+	free(Imat);
 
 	// dE = 2
 	dE = 2;
 
 	P = 4;
 	Nbf = pow(P+1,dE);
-	I = identity_d(Nbf); // free
+	Imat = identity_d(Nbf); // free
 
 	// GL
 
@@ -347,7 +347,7 @@ void test_imp_basis_TP(void)
 	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS)
+	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -361,14 +361,14 @@ void test_imp_basis_TP(void)
 	free(WChiRef_rst);
 	free(M);
 
-	free(I);
+	free(Imat);
 
 	// dE = 3
 	dE = 3;
 
 	P = 4;
 	Nbf = pow(P+1,dE);
-	I = identity_d(Nbf); // free
+	Imat = identity_d(Nbf); // free
 
 	// GL
 
@@ -383,7 +383,7 @@ void test_imp_basis_TP(void)
 	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*10)
+	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS*10)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -397,5 +397,5 @@ void test_imp_basis_TP(void)
 	free(WChiRef_rst);
 	free(M);
 
-	free(I);
+	free(Imat);
 }

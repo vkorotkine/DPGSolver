@@ -1,12 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-
-#include "functions.h"
-
-#include "mkl.h"
-#include "petscsys.h"
+#include "array_sort.h"
 
 /*
  *	Purpose:
@@ -41,7 +36,7 @@ void array_sort_ui(unsigned int NRows, unsigned int NCols, unsigned int *A, unsi
 	} else if ((ordering == 'R' && trans == 'N') || (ordering == 'C' && trans == 'T')) {
 		// Don't do anything.
 	} else {
-		printf("Error: Invalid ordering/trans input to array_sort_i"), exit(1);
+		printf("Error: Invalid ordering/trans input.\n"), EXIT_MSG;
 	}
 // array_print_i(NRows,NCols,A,'R');
 	colMs = malloc(NRows * sizeof *colMs); // free
@@ -154,7 +149,7 @@ void array_sort_i(unsigned int NRows, unsigned int NCols, int *A, unsigned int *
 	} else if ((ordering == 'R' && trans == 'N') || (ordering == 'C' && trans == 'T')) {
 		// Don't do anything.
 	} else {
-		printf("Error: Invalid ordering/trans input to array_sort_i"), exit(1);
+		printf("Error: Invalid ordering/trans input.\n"), EXIT_MSG;
 	}
 // array_print_i(NRows,NCols,A,'R');
 
@@ -252,8 +247,6 @@ void array_sort_i(unsigned int NRows, unsigned int NCols, int *A, unsigned int *
 // array_print_i(NRows,NCols,A,'R');
 }
 
-
-
 void array_sort_d(unsigned int NRows, unsigned int NCols, double *A, unsigned int *Indices, const char ordering,
                   const char trans)
 {
@@ -268,7 +261,7 @@ void array_sort_d(unsigned int NRows, unsigned int NCols, double *A, unsigned in
 	} else if ((ordering == 'R' && trans == 'N') || (ordering == 'C' && trans == 'T')) {
 		// Don't do anything.
 	} else {
-		printf("Error: Invalid ordering/trans input to array_sort_d"), exit(1);
+		printf("Error: Invalid ordering/trans input.\n"), EXIT_MSG;
 	}
 // array_print_d(NRows,NCols,A,'R');
 

@@ -196,14 +196,14 @@ void test_imp_basis_PYR(void)
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I
 	 */
 
-	double *ChiRef_rst, *W, *WChiRef_rst, *M, *I;
+	double *ChiRef_rst, *W, *WChiRef_rst, *M, *Imat; // ToBeModified (name)
 
 	d = 3;
 
 	// P = 3
 	P = 3;
 	Nbf = 30;
-	I = identity_d(Nbf); // free
+	Imat = identity_d(Nbf); // free
 
 	// GL (HEX To PYR)
 	Prst = P+1;
@@ -218,7 +218,7 @@ void test_imp_basis_PYR(void)
 	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e3)
+	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS*1e3)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -245,7 +245,7 @@ void test_imp_basis_PYR(void)
 	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
+	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS*1e2)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -259,5 +259,5 @@ void test_imp_basis_PYR(void)
 	free(WChiRef_rst);
 	free(M);
 
-	free(I);
+	free(Imat);
 }

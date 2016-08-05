@@ -97,7 +97,7 @@ void test_imp_jacobian_fluxes_inviscid(void)
 	for (i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
 		W[i] = W1[i];
 
-	jacobian_flux_inviscid(Nn,Nel,W1,dFdW,d,Neq);
+	jacobian_flux_inviscid(Nn,Nel,W,dFdW,d,Neq);
 	compute_dFdW_cs(Neq,Nn,Nel,d,W,dFdW_cs);
 
 	pass = 0;
@@ -130,7 +130,7 @@ void test_imp_jacobian_fluxes_inviscid(void)
 	for (i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
 		W[i] = W2[i];
 
-	jacobian_flux_inviscid(Nn,Nel,W2,dFdW,d,Neq);
+	jacobian_flux_inviscid(Nn,Nel,W,dFdW,d,Neq);
 	compute_dFdW_cs(Neq,Nn,Nel,d,W,dFdW_cs);
 
 	pass = 0;
@@ -164,7 +164,7 @@ void test_imp_jacobian_fluxes_inviscid(void)
 	for (i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
 		W[i] = W3[i];
 
-	jacobian_flux_inviscid(Nn,Nel,W3,dFdW,d,Neq);
+	jacobian_flux_inviscid(Nn,Nel,W,dFdW,d,Neq);
 	compute_dFdW_cs(Neq,Nn,Nel,d,W,dFdW_cs);
 
 	pass = 0;

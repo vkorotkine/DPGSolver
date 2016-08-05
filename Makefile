@@ -9,15 +9,15 @@
 # 	make clean
 
 # C standard and compiler
-CSTD = -std=c99
+CSTD := -std=c99
 
 # Options
-#OPTS = -O3
-#OPTS = -g -Wall -Wextra -O3
-OPTS = -g -Wall -Wextra -O3 -DTEST
+#OPTS := -O3
+#OPTS := -g -Wall -Wextra -O3
+OPTS := -g -Wall -Wextra -O3 -DTEST
 
 # Standard libraries (Math)
-STD_LIB = -lm
+STD_LIB := -lm
 
 # Machine dependent parameters
 KERNEL  := $(shell uname -s)
@@ -25,100 +25,100 @@ KERNEL  := $(shell uname -s)
 #all:
 #	@echo $(KERNEL)
 
+LOCAL_INC := -I./include
+
 # OSX
 ifeq ($(KERNEL),Darwin)
-  PROG_PATH = /Users/philipzwanenburg/Desktop/Research_Codes/Downloaded
+  PROG_PATH := /Users/philipzwanenburg/Desktop/Research_Codes/Downloaded
 
   CC := ${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/mpicc -fopenmp -m64
-#  CC = ${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-opt/bin/mpicc -fopenmp -m64
-#  CC = mpicc -fopenmp -m64
+#  CC := ${PROG_PATH}/petsc/petsc-3.6.3/arch-darwin-mpich-c-opt/bin/mpicc -fopenmp -m64
+#  CC := mpicc -fopenmp -m64
 
 # There is a problem that the -fopenmp -m64 flag is not included in CC. Compiling fine for now => fix later. (ToBeDeleted)
 
-#  PETSC_DIR = ${PROG_PATH}/petsc/petsc-3.2-p7 (ToBeDeleted)
-  PETSC_DIR = ${PROG_PATH}/petsc/petsc-3.6.3
-  PETSC_ARCH = arch-darwin-mpich-c-debug
-#  PETSC_ARCH = arch-darwin-mpich-c-opt
-#  PETSC_ARCH = arch-darwin-c-opt
+#  PETSC_DIR := ${PROG_PATH}/petsc/petsc-3.2-p7 (ToBeDeleted)
+  PETSC_DIR := ${PROG_PATH}/petsc/petsc-3.6.3
+  PETSC_ARCH := arch-darwin-mpich-c-debug
+#  PETSC_ARCH := arch-darwin-mpich-c-opt
+#  PETSC_ARCH := arch-darwin-c-opt
 
-  # METIS_DIR = ${PROG_PATH}/parmetis/parmetis-4.0.3
-  METIS_DIR = ${PROG_PATH}/parmetis_mpich/parmetis-4.0.3/build/debug
-#  METIS_DIR = ${PROG_PATH}/parmetis_mpich/parmetis-4.0.3/build/opt
+  # METIS_DIR := ${PROG_PATH}/parmetis/parmetis-4.0.3
+  METIS_DIR := ${PROG_PATH}/parmetis_mpich/parmetis-4.0.3/build/debug
+#  METIS_DIR := ${PROG_PATH}/parmetis_mpich/parmetis-4.0.3/build/opt
 
-  METIS_INC      = -I${METIS_DIR}/metis/include
-  METIS_LDINC    = -L${METIS_DIR}/libmetis -lmetis
-  PARMETIS_INC   = -I${METIS_DIR}/include
-  PARMETIS_LDINC = -L${METIS_DIR}/libparmetis -lparmetis
+  METIS_INC      := -I${METIS_DIR}/metis/include
+  METIS_LDINC    := -L${METIS_DIR}/libmetis -lmetis
+  PARMETIS_INC   := -I${METIS_DIR}/include
+  PARMETIS_LDINC := -L${METIS_DIR}/libparmetis -lparmetis
 
-  MKL_DIR   = ${PROG_PATH}/intel/mkl
-  MKL_INC = -I${MKL_DIR}/include
+  MKL_DIR := ${PROG_PATH}/intel/mkl
+  MKL_INC   := -I${MKL_DIR}/include
   # MKL statically linked on OSX as the -Wl,--no-as-needed option is not supported by the OSX linker
-  MKL_LDINC = ${MKL_DIR}/lib/libmkl_intel_lp64.a ${MKL_DIR}/lib/libmkl_core.a ${MKL_DIR}/lib/libmkl_sequential.a -lpthread
+  MKL_LDINC := ${MKL_DIR}/lib/libmkl_intel_lp64.a ${MKL_DIR}/lib/libmkl_core.a ${MKL_DIR}/lib/libmkl_sequential.a -lpthread
 endif
 
 # LINUX
 ifeq ($(KERNEL),Linux)
   OS_RELEASE := $(shell uname -r)
   ifeq ($(OS_RELEASE),4.4.0-22-generic) #Home
-    PROG_PATH = /home/philip/Desktop/research/programs
+    PROG_PATH := /home/philip/Desktop/research/programs
 
-    CC   = ${PROG_PATH}/petsc/petsc-3.7.0/arch-linux-c-/bin/mpicc -fopenmp -m64
+    CC   := ${PROG_PATH}/petsc/petsc-3.7.0/arch-linux-c-/bin/mpicc -fopenmp -m64
 
-    PETSC_DIR = ${PROG_PATH}/petsc/petsc-3.7.0
-    PETSC_ARCH = arch-linux-c-
+    PETSC_DIR := ${PROG_PATH}/petsc/petsc-3.7.0
+    PETSC_ARCH := arch-linux-c-
 
-    METIS_DIR = ${PROG_PATH}/parmetis/parmetis-4.0.3/build/opt
-    METIS_INC      = -I${METIS_DIR}/metis/include
-    METIS_LDINC    = -L${METIS_DIR}/libmetis -lmetis
-    PARMETIS_INC   = -I${METIS_DIR}/include
-    PARMETIS_LDINC = -L${METIS_DIR}/libparmetis -lparmetis
+    METIS_DIR := ${PROG_PATH}/parmetis/parmetis-4.0.3/build/opt
+    METIS_INC      := -I${METIS_DIR}/metis/include
+    METIS_LDINC    := -L${METIS_DIR}/libmetis -lmetis
+    PARMETIS_INC   := -I${METIS_DIR}/include
+    PARMETIS_LDINC := -L${METIS_DIR}/libparmetis -lparmetis
 
-    MKL_DIR = ${PROG_PATH}/intel/mkl
-    MKL_INC = -I${MKL_DIR}/include
-    MKL_LDINC = -Wl,--no-as-needed -L$(MKL_DIR)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lgomp
+    MKL_DIR := ${PROG_PATH}/intel/mkl
+    MKL_INC := -I${MKL_DIR}/include
+    MKL_LDINC := -Wl,--no-as-needed -L$(MKL_DIR)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lgomp
   else #Guillimin
-    PROG_PATH = /home/pzwan/programs
+    PROG_PATH := /home/pzwan/programs
 
-    CC   = ${PROG_PATH}/petsc/petsc-3.6.3/arch-linux-mpich-c-opt/bin/mpicc -fopenmp -m64
+    CC   := ${PROG_PATH}/petsc/petsc-3.6.3/arch-linux-mpich-c-opt/bin/mpicc -fopenmp -m64
 
-    PETSC_DIR = ${PROG_PATH}/petsc-3.6.3
-    PETSC_ARCH = arch-linux-mpich-c-opt
+    PETSC_DIR := ${PROG_PATH}/petsc-3.6.3
+    PETSC_ARCH := arch-linux-mpich-c-opt
 
-    METIS_DIR = ${PROG_PATH}/parmetis-4.0.3/build/opt
-    METIS_INC      = -I${METIS_DIR}/metis/include
-    METIS_LDINC    = -L${METIS_DIR}/libmetis -lmetis
-    PARMETIS_INC   = -I${METIS_DIR}/include
-    PARMETIS_LDINC = -L${METIS_DIR}/libparmetis -lparmetis
+    METIS_DIR := ${PROG_PATH}/parmetis-4.0.3/build/opt
+    METIS_INC      := -I${METIS_DIR}/metis/include
+    METIS_LDINC    := -L${METIS_DIR}/libmetis -lmetis
+    PARMETIS_INC   := -I${METIS_DIR}/include
+    PARMETIS_LDINC := -L${METIS_DIR}/libparmetis -lparmetis
 
-    MKL_DIR = /software/compilers/Intel/2015-15.0/composer_xe_2015.0.090/mkl
-    MKL_INC   = -I$(MKL_DIR)/include
-    MKL_LDINC = -Wl,--no-as-needed -L$(MKL_DIR)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lgomp
+    MKL_DIR := /software/compilers/Intel/2015-15.0/composer_xe_2015.0.090/mkl
+    MKL_INC   := -I$(MKL_DIR)/include
+    MKL_LDINC := -Wl,--no-as-needed -L$(MKL_DIR)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lgomp
   endif
 endif
 
 PETSC_INC = -I PETSC_DIR/include ${PETSC_CC_INCLUDES}
-# Run PETSC's 'variables' makefile
+# PETSC's 'variables' makefile
 include ${PETSC_DIR}/lib/petsc/conf/variables
 
 # missing LIBPATH, DEFINES (as compared to Brian's makefile)
 # Parmetis must be linked before metis
 #LIBS = $(STD_LIB) $(PETSC_INC) $(PETSC_LIB) $(PARMETIS_INC) $(PARMETIS_LDINC) $(METIS_INC) $(METIS_LDINC) $(MKL_INC) $(MKL_LDINC)
-LIBS = $(STD_LIB) $(PETSC_LIB) $(PARMETIS_LDINC) $(METIS_LDINC) $(MKL_LDINC)
-INCS = $(PETSC_INC) $(PARMETIS_INC) $(METIS_INC) $(MKL_INC)
+LIBS := $(STD_LIB) $(PETSC_LIB) $(PARMETIS_LDINC) $(METIS_LDINC) $(MKL_LDINC)
+INCS := $(LOCAL_INC) $(PETSC_INC) $(PARMETIS_INC) $(METIS_INC) $(MKL_INC)
 
-EXECUTABLE = DPGSolver.exe
+EXECUTABLE := DPGSolver.exe
 
-SRCDIR  = src
-OBJDIR  = obj
-EXECDIR = bin
+SRCDIR  := src
+OBJDIR  := obj
+EXECDIR := bin
 
-# OBJECTS    := $(addprefix $(OBJDIR)/,$(OBJECTS))
 EXECUTABLE := $(addprefix $(EXECDIR)/,$(EXECUTABLE))
 
-SOURCES = $(wildcard $(SRCDIR)/*.c)
-HEADERS = $(wildcard $(SRCDIR)/*.h)
-#OBJECTS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/*.c))
-OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+SOURCES := $(wildcard $(SRCDIR)/*.c)
+HEADERS := $(wildcard $(SRCDIR)/*.h)
+OBJECTS := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 
 # Formatting for "rules" in makefiles is as follows:
@@ -140,7 +140,7 @@ OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 ### Default goal + Additional required rules ###
 
-SHELL=/bin/bash
+SHELL:=/bin/bash
 
 # Compile executable file (Default goal)
 $(EXECUTABLE) : $(OBJECTS)

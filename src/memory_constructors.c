@@ -1,12 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <limits.h>
-
-#include "database.h"
-#include "functions.h"
-#include "parameters.h"
+#include "memory_constructors.h"
 
 /*
  *	Purpose:
@@ -341,7 +336,6 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->nOrd_fIs[P] = calloc(NFORDMAX, sizeof **(ELEMENT->nOrd_fIs));
 		ELEMENT->nOrd_fIc[P] = calloc(NFORDMAX, sizeof **(ELEMENT->nOrd_fIc));
 	}
-
 
 	ELEMENT->next = NULL;
 	ELEMENT->ELEMENTclass  = calloc(NESUBCMAX  , sizeof *(ELEMENT->ELEMENTclass)); // free

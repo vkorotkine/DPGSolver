@@ -25,8 +25,6 @@
 extern void   initialization                (int nargc, char **argv);
 extern void   setup_parameters              (void);
 extern void   setup_mesh                    (void);
-extern void     initialize_ELEMENTs         (void);
-extern void     finalize_ELEMENTs           (void);
 extern void     gmsh_reader                 (void);
 extern void     setup_connectivity          (void);
 extern void     setup_periodic              (void);
@@ -174,18 +172,6 @@ extern unsigned int factorial_ull (const unsigned int n);
 extern unsigned int gamma_ull     (const unsigned int n);
 extern double       gamma_d       (const double x);
 
-// Struct related functions
-extern struct S_ELEMENT *New_ELEMENT        (void);
-extern struct S_VOLUME  *New_VOLUME         (void);
-extern struct S_FACET   *New_FACET          (void);
-
-extern unsigned int     is_ELEMENT_present  (const unsigned int type);
-extern unsigned int     get_Eclass          (const unsigned int type);
-extern struct S_ELEMENT *get_ELEMENT_type   (const unsigned int type);
-extern struct S_ELEMENT *get_ELEMENT_Eclass (const unsigned int type, const unsigned int IndEclass);
-extern struct S_ELEMENT *get_ELEMENT_FACET  (const unsigned int type, const unsigned int IndEclass);
-extern unsigned int     get_IndFType        (const unsigned int Eclass, const unsigned int f);
-
 // Variable related functions
 extern void convert_variables (double *VarIn, double *VarOut, const unsigned int dIn, const unsigned int dOut,
                                const unsigned int Nn, const unsigned int Nel, const char TypeIn, const char TypeOut);
@@ -202,12 +188,6 @@ extern void memory_destructor_L2_projection (const unsigned int EType);
 
 // Array Processing
 	// Sorting
-	extern void array_sort_ui        (unsigned int NRows, unsigned int NCols, unsigned int *A, unsigned int *Indices,
-	                                  const char ordering, const char trans);
-	extern void array_sort_i         (unsigned int NRows, unsigned int NCols, int *A, unsigned int *Indices,
-	                                  const char ordering, const char trans);
-	extern void array_sort_d         (unsigned int NRows, unsigned int NCols, double *A, unsigned int *Indices,
-	                                  const char ordering, const char trans);
 	extern void array_find_indexo_ui (const unsigned int LenA, const unsigned int *A, const unsigned int val,
 	                                  unsigned int *IdxF, unsigned int *LenF);
 
@@ -224,16 +204,6 @@ extern void memory_destructor_L2_projection (const unsigned int EType);
 	                           const unsigned int stepIn);
 //	extern void array_swap_i  (register int *arr1, register int *arr2, const int NIn, const int stepIn);
 	extern void array_swap_d  (register double *arr1, register double *arr2, const int NIn, const int stepIn);
-
-	// Printing
-//	extern void array_print    (const unsigned int m, const unsigned int n, void *A, char *type);
-	extern void array_print_ui (const unsigned int m, const unsigned int n, const unsigned int *A, const char layout);
-	extern void array_print_i  (const unsigned int m, const unsigned int n, int *A, const char layout);
-	extern void array_print_l  (const unsigned int m, const unsigned int n, long *A, const char layout);
-	extern void array_print_ll (const unsigned int m, const unsigned int n, long long *A, const char layout);
-	extern void array_print_f  (const unsigned int m, const unsigned int n, float *A, const char layout);
-	extern void array_print_d  (const unsigned int m, const unsigned int n, double *A, const char layout);
-	extern void array_print_ld (const unsigned int m, const unsigned int n, long double *A, const char layout);
 
 	// Memory Management
 	extern void array_free2_c  (unsigned int iMax, char **A);

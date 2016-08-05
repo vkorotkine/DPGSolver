@@ -1,13 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
-#include "database.h"
-#include "parameters.h"
-#include "functions.h"
+#include "adaptation.h"
 
 /*
  *	Purpose:
@@ -89,10 +83,10 @@ void get_Pb_range(const unsigned int P, unsigned int *PbMin, unsigned int *PbMax
 void get_vh_range(const struct S_VOLUME *VOLUME, unsigned int *vhMin, unsigned int *vhMax)
 {
 	// Standard datatypes
-	unsigned int VType, href_type;
+	unsigned int VType;
 
 	VType = VOLUME->type;
-	href_type = VOLUME->hrefine_type;
+//	href_type = VOLUME->hrefine_type;
 
 	switch (VType) {
 	case TRI:
@@ -129,7 +123,7 @@ void get_vh_range(const struct S_VOLUME *VOLUME, unsigned int *vhMin, unsigned i
 
 void get_fh_range(const struct S_VOLUME *VOLUME, const unsigned int f, unsigned int *fhMin, unsigned int *fhMax)
 {
-	unsigned int VType, href_type, NsubF;
+	unsigned int VType, NsubF;
 
 	NsubF = VOLUME->NsubF[f];
 
@@ -138,7 +132,7 @@ void get_fh_range(const struct S_VOLUME *VOLUME, const unsigned int f, unsigned 
 		*fhMax = 0;
 	} else {
 		VType = VOLUME->type;
-		href_type = VOLUME->hrefine_type;
+//		href_type = VOLUME->hrefine_type;
 
 		switch (VType) {
 		case TRI:
