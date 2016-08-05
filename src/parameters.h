@@ -82,6 +82,10 @@
 #define NVISUBFMAX      13 // PYR (Isotropic refinement)
 #define NSIBMAX         10 // PYR (6 PYR + 4 TET)
 
+// Cubature related numbers
+#define PIvcMaxTET 10
+#define PIvcMaxPYR 6
+
 // Solver related parameters
 #define RK3_SSP 0
 #define RK4_LS  1
@@ -121,6 +125,7 @@
 #define PI    3.1415926535897932
 #define GAMMA 1.4
 #define GM1   0.4
+#define GM3   -1.6
 
 // Element types (Gmsh convention)
 #define POINT 15

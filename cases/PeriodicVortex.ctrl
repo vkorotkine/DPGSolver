@@ -5,9 +5,9 @@
 /*------------------------------------------------------------*/
 
 BEGIN PARAMETERS
-  Dimension  3
+  Dimension  2
   ML         0
-  MeshType   ToBeCurvedStructuredPYR
+  MeshType   ToBeCurvedStructuredTRI
 
   Form       Weak  // Options: Weak, (Strong)
   NodeType   GLL-AO // Options: GL/GLL-AO/WSH
@@ -18,9 +18,9 @@ BEGIN PARAMETERS
   Collocated 0     // Options: 0, 1
   Adapt      2     // Options: 0, 1, 2, (3)
 
-  PGlobal    2
-  PMax       2
-  LevelsMax  1
+  PGlobal    4
+  PMax       4
+  LevelsMax  3
 
   Restart    -1    // Options: -1, 0, Iteration #
 

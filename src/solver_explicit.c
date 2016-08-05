@@ -55,11 +55,9 @@ void solver_explicit(void)
 	for (i = 0; i < 2; i++)
 		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free
 
-// Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).
+// Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).  (ToBeDeleted)
 	if (!Adapt) {
 		dt = pow(0.5,DB.ML+DB.PGlobal+1);
-//		dt = pow(0.5,DB.ML+DB.PGlobal+2);
-//		dt = pow(0.5,10.0);
 	} else {
 		if (Adapt == ADAPT_P)
 			dt = pow(0.5,DB.ML+DB.PMax+1);
@@ -73,43 +71,10 @@ void solver_explicit(void)
 	update_VOLUME_Ops();
 	update_VOLUME_finalize();
 
-output_to_paraview("ZTest_Sol_Init");
-
 	tstep = 0; time = 0.0;
 	while (time < FinalTime) {
-		if (Adapt && tstep) {
-//output_to_paraview("SolAdapt");
-if (tstep == 1748) {
-	output_to_paraview("Geomadapt");
-//	exit(1);
-}
-			update_VOLUME_hp();
-			update_FACET_hp();
-			update_VOLUME_list();
-			memory_free_children();
-			update_VOLUME_Ops();
-
-			update_VOLUME_finalize();
-		}
-
-//	output_to_paraview("GeomFinal");
-if (0&&tstep == 500) {
-//if (tstep == 1000) {
-//if (tstep == 11) {
-//if (tstep > 1 && Adapt >= ADAPT_H) {
-	char *string;
-	string   = malloc(STRLEN_MIN * sizeof *string);   // free
-	sprintf(string,"%d",tstep);
-	strcat(string,"SolAdapt");
-
-	output_to_paraview("ZTest_Normals");
-	output_to_paraview(string);
-	printf("Exiting after outputting to paraview.\n");
-	free(string);
-
-	exit(1);
-
-}
+		if (Adapt && tstep)
+			mesh_update();
 
 		if (time+dt > FinalTime)
 			dt = FinalTime-time;
@@ -122,7 +87,6 @@ if (0&&tstep == 500) {
 				// Build the RHS (== -Residual)
 				printf("V");  explicit_VOLUME_info();
 				printf("F");  explicit_FACET_info();
-				//printf("F (newlines in solver_explicit)\n\n");  explicit_FACET_info();
 				printf("F "); maxRHS = finalize_RHS();
 
 				// Update What
@@ -150,19 +114,7 @@ if (0&&tstep == 500) {
 						}
 					}
 				}
-if (tstep) {
-output_to_paraview("ZTest_Normals");
-output_to_paraview("ZTest_Sol_Init");
-
-for (struct S_FACET *FACET = DB.FACET; FACET; FACET = FACET->next) {
-	printf("%d %d %d %d\n",FACET->indexg,FACET->level,FACET->VIn->level,FACET->VOut->level);
-}
-
-exit(1);
-}
 			}
-//if (tstep)
-//exit(1);
 			break;
 		case RK4_LS:
 			for (rk = 0; rk < 5; rk++) {
@@ -210,34 +162,8 @@ exit(1);
 		}
 
 		// hp adaptation
-//		if (Adapt && tstep <= 1000)
-		if (0&&Adapt)
+		if (Adapt)
 			adapt_hp();
-DB.VOLUME->Vadapt = 1;
-DB.VOLUME->adapt_type = HREFINE;
-printf("Modified Adapt in solver explicit.\n");
-if (tstep == 100) {
-//	output_to_paraview("Geomadapt");
-//	exit(1);
-}
-
-/*
-if (tstep == 0) {
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		if (VOLUME->indexg == 6) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HREFINE;
-		}
-	}
-} else if (tstep == 1) {
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		if (VOLUME->indexg >= 6 && VOLUME->indexg <= 9) {
-			VOLUME->Vadapt = 1;
-			VOLUME->adapt_type = HCOARSE;
-		}
-	}
-}
-*/
 
 		tstep++;
 	}

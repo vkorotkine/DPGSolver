@@ -14,6 +14,7 @@
  *		Compute inviscid fluxes from input W in conservative form.
  *
  *	Comments:
+ *		The memory allocations in flux_inviscid can be removed as in jacobian_flux_inviscid (ToBeDeleted).
  *		It is assumed that inputs: W, n and outputs: F, nFluxNum are vectorized (i.e. the memory ordering is by equation
  *		and not by element).
  *		Numerical flux functions were intentionally written with if statements for each dimension in order to avoid
@@ -41,120 +42,133 @@ void flux_inviscid(const unsigned int Nn, const unsigned int Nel, double *W, dou
                    const unsigned int Neq)
 {
 	// Standard datatypes
-	unsigned int i, j, iMax, NnTotal;
-	double *rho, *rhou, *rhov, *rhow, *E, *u, *v, *w, *p, *Fptr[15];
+	unsigned int i, n, eq, dim, iMax, NnTotal, IndF;
+	double       *rho_ptr, *rhou_ptr, *rhov_ptr, *rhow_ptr, *E_ptr,
+	             rho, rhou, rhov, rhow, E, u, v, w, p, *F_ptr[DMAX*Neq];
 
 	NnTotal = Nn*Nel;
 
-	rho  = &W[NnTotal*0];
-	rhou = &W[NnTotal*1];
-	E    = &W[NnTotal*(d+1)];
+	rho_ptr  = &W[NnTotal*0];
+	rhou_ptr = &W[NnTotal*1];
+	E_ptr    = &W[NnTotal*(d+1)];
 
-	for (i = 0; i < Neq; i++) {
-	for (j = 0; j < d;   j++) {
-		Fptr[i*3+j] = &F[(i*d+j)*NnTotal];
+	for (eq  = 0; eq  < Neq;  eq++)  {
+	for (dim = 0; dim < d;    dim++) {
+		F_ptr[eq*DMAX+dim] = &F[(eq*d+dim)*NnTotal];
 	}}
 
 	if (d == 3) {
-		rhov = &W[NnTotal*2];
-		rhow = &W[NnTotal*3];
+		rhov_ptr = &W[NnTotal*2];
+		rhow_ptr = &W[NnTotal*3];
 
-		u = malloc(Nn*Nel * sizeof *u); // free
-		v = malloc(Nn*Nel * sizeof *v); // free
-		w = malloc(Nn*Nel * sizeof *w); // free
-		p = malloc(Nn*Nel * sizeof *p); // free
+		for (n = 0; n < NnTotal; n++) {
+			rho  = *rho_ptr;
+			rhou = *rhou_ptr;
+			rhov = *rhov_ptr;
+			rhow = *rhow_ptr;
+			E    = *E_ptr;
 
-		for (i = 0; i < NnTotal; i++) {
-			u[i] = rhou[i]/rho[i];
-			v[i] = rhov[i]/rho[i];
-			w[i] = rhow[i]/rho[i];
-			p[i] = GM1*(E[i]-0.5*rho[i]*(u[i]*u[i]+v[i]*v[i]+w[i]*w[i]));
-		}
+			u   = rhou/rho;
+			v   = rhov/rho;
+			w   = rhow/rho;
 
-		for (i = 0; i < NnTotal; i++) {
+			p = GM1*(E-0.5*rho*(u*u+v*v+w*w));
+
+			IndF = 0;
 			// eq 1
-			Fptr[0][i] = rhou[i];
-			Fptr[1][i] = rhov[i];
-			Fptr[2][i] = rhow[i];
+			*F_ptr[IndF++] = rhou;
+			*F_ptr[IndF++] = rhov;
+			*F_ptr[IndF++] = rhow;
 
 			// eq 2
-			Fptr[3][i] = rhou[i]*u[i] + p[i];
-			Fptr[4][i] = rhou[i]*v[i];
-			Fptr[5][i] = rhou[i]*w[i];
+			*F_ptr[IndF++] = rhou*u + p;
+			*F_ptr[IndF++] = rhou*v;
+			*F_ptr[IndF++] = rhou*w;
 
 			// eq 3
-			Fptr[6][i] = rhov[i]*u[i];
-			Fptr[7][i] = rhov[i]*v[i] + p[i];
-			Fptr[8][i] = rhov[i]*w[i];
+			*F_ptr[IndF++] = rhov*u;
+			*F_ptr[IndF++] = rhov*v + p;
+			*F_ptr[IndF++] = rhov*w;
 
 			// eq 4
-			Fptr[9][i]  = rhow[i]*u[i];
-			Fptr[10][i] = rhow[i]*v[i];
-			Fptr[11][i] = rhow[i]*w[i] + p[i];
+			*F_ptr[IndF++] = rhow*u;
+			*F_ptr[IndF++] = rhow*v;
+			*F_ptr[IndF++] = rhow*w + p;
 
 			// eq 5
-			Fptr[12][i] = (E[i]+p[i])*u[i];
-			Fptr[13][i] = (E[i]+p[i])*v[i];
-			Fptr[14][i] = (E[i]+p[i])*w[i];
+			*F_ptr[IndF++] = (E+p)*u;
+			*F_ptr[IndF++] = (E+p)*v;
+			*F_ptr[IndF++] = (E+p)*w;
+
+			rho_ptr++; rhou_ptr++; rhov_ptr++; rhow_ptr++; E_ptr++;
+			for (i = 0, iMax = Neq*DMAX; i < iMax; i++)
+				F_ptr[i]++;
 		}
-		free(u);
-		free(v);
-		free(w);
-		free(p);
 	} else if (d == 2) {
-		rhov = &W[NnTotal*2];
+		rhov_ptr = &W[NnTotal*2];
 
-		u = malloc(Nn*Nel * sizeof *u); // free
-		v = malloc(Nn*Nel * sizeof *v); // free
-		p = malloc(Nn*Nel * sizeof *p); // free
+		for (n = 0; n < NnTotal; n++) {
+			rho  = *rho_ptr;
+			rhou = *rhou_ptr;
+			rhov = *rhov_ptr;
+			E    = *E_ptr;
 
-		for (i = 0; i < NnTotal; i++) {
-			u[i] = rhou[i]/rho[i];
-			v[i] = rhov[i]/rho[i];
-			p[i] = GM1*(E[i]-0.5*rho[i]*(u[i]*u[i]+v[i]*v[i]));
-		}
+			u   = rhou/rho;
+			v   = rhov/rho;
 
-		for (i = 0; i < NnTotal; i++) {
+			p = GM1*(E-0.5*rho*(u*u+v*v));
+
+			IndF = 0;
 			// eq 1
-			Fptr[0][i] = rhou[i];
-			Fptr[1][i] = rhov[i];
+			*F_ptr[IndF++] = rhou;
+			*F_ptr[IndF++] = rhov;
+			IndF += 1;
 
 			// eq 2
-			Fptr[3][i] = rhou[i]*u[i] + p[i];
-			Fptr[4][i] = rhou[i]*v[i];
+			*F_ptr[IndF++] = rhou*u + p;
+			*F_ptr[IndF++] = rhou*v;
+			IndF += 1;
 
 			// eq 3
-			Fptr[6][i] = rhov[i]*u[i];
-			Fptr[7][i] = rhov[i]*v[i] + p[i];
+			*F_ptr[IndF++] = rhov*u;
+			*F_ptr[IndF++] = rhov*v + p;
+			IndF += 1;
 
 			// eq 4
-			Fptr[9][i]  = (E[i]+p[i])*u[i];
-			Fptr[10][i] = (E[i]+p[i])*v[i];
+			*F_ptr[IndF++] = (E+p)*u;
+			*F_ptr[IndF++] = (E+p)*v;
+
+			rho_ptr++; rhou_ptr++; rhov_ptr++; E_ptr++;
+			for (i = 0, iMax = Neq*DMAX; i < iMax; i++)
+				F_ptr[i]++;
 		}
-		free(u);
-		free(v);
-		free(p);
 	} else if (d == 1) {
-		u = malloc(Nn*Nel * sizeof *u); // free
-		p = malloc(Nn*Nel * sizeof *p); // free
+		for (n = 0; n < NnTotal; n++) {
+			rho  = *rho_ptr;
+			rhou = *rhou_ptr;
+			E    = *E_ptr;
 
-		for (i = 0, iMax = Nn*Nel; i < iMax; i++) {
-			u[i] = rhou[i]/rho[i];
-			p[i] = GM1*(E[i]-0.5*rho[i]*(u[i]*u[i]));
-		}
+			u   = rhou/rho;
 
-		for (i = 0; i < NnTotal; i++) {
+			p = GM1*(E-0.5*rho*(u*u));
+
+			IndF = 0;
 			// eq 1
-			Fptr[0][i] = rhou[i];
+			*F_ptr[IndF++] = rhou;
+			IndF += 2;
 
 			// eq 2
-			Fptr[3][i] = rhou[i]*u[i] + p[i];
+			*F_ptr[IndF++] = rhou*u + p;
+			IndF += 2;
 
 			// eq 3
-			Fptr[6][i] = (E[i]+p[i])*u[i];
+			*F_ptr[IndF++] = (E+p)*u;
+			IndF += 2;
+
+			rho_ptr++; rhou_ptr++; E_ptr++;
+			for (i = 0, iMax = Neq*DMAX; i < iMax; i++)
+				F_ptr[i]++;
 		}
-		free(u);
-		free(p);
 	}
 }
 

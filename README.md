@@ -4,11 +4,11 @@
 - Open source using only open source libraries/supporting programs.
 - Methods: Discontinuous Petrov Galerkin (DPG) with the option for standard Discontinuous Galerkin (DG).
 - Supported elements: LINEs, TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
-- Supported refinements: anisotropic (LINE/QUAD/HEX)/ isotropic (TRI/TET/WEDGE/PYR) h (size), p (order).
+- Supported refinements: isotropic h (size) or p (order).
 
 ### Supported PDEs
-- Euler         (ACTIVE)
-- Navier-Stokes TO BE DONE
+- Euler         : ACTIVE
+- Navier-Stokes : TO BE DONE
 
 See the CODE STATUS section below for details regarding current functionality.
 
@@ -29,8 +29,8 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 
 
 ## Code Status
-- MPI           : TO BE DONE
-- hp Adaptation : ACTIVE
+- MPI            : TO BE DONE
+- h/p Adaptation  : DONE
 
 ### Preprocessing  : ACTIVE
 - set up parameters : DONE
@@ -78,7 +78,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 - slip wall    : DONE
 - outflow mach : TO BE DONE
 
-#### Jacobians
+#### Jacobians          : ACTIVE
 - flux inviscid         : TO BE DONE
 - flux LF               : TO BE DONE
 - flux Roe              : TO BE DONE

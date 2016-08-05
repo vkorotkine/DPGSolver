@@ -59,7 +59,7 @@ int main(int nargc, char **argv)
 	MPI_Comm_rank(MPI_COMM_WORLD,&MPIrank);
 
 	// Test memory leaks only from Petsc and MPI using valgrind
-	//PetscFinalize(), exit(1);
+	//PetscFinalize(), EXIT_MSG;
 
 	DB.MPIsize = MPIsize;
 	DB.MPIrank = MPIrank;
@@ -124,7 +124,7 @@ int main(int nargc, char **argv)
 	} else if (strstr(DB.SolverType,"Implicit") != NULL) {
 		; //solver_implicit();
 	} else {
-		printf("Error: Unsupported SolverType in dpg_solver.\n"), exit(1);
+		printf("Error: Unsupported SolverType in dpg_solver.\n"), EXIT_MSG;
 	}
 	solving.te = clock();
 
@@ -182,7 +182,7 @@ int main(int nargc, char **argv)
  *	Purpose:
  *		Run test functions:
  *			1) Speed comparisons
- *			2) Correctness of implementation
+ *			2) Correctness of implementation (Individual functions as well as overall code)
  *
  *	Comments:
  *
@@ -239,10 +239,12 @@ int main(int nargc, char **argv)
 
 	test_imp_sum_factorization();
 	test_imp_plotting();
-
-	test_imp_fluxes_inviscid();
-	test_imp_get_facet_ordering();
 */
+	test_imp_fluxes_inviscid();
+	test_imp_jacobian_fluxes_inviscid();
+//	test_imp_get_facet_ordering();
+
+
 //	test_imp_update_h(nargc,argv);
 	test_imp_L2_projections(nargc,argv);
 

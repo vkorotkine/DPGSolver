@@ -51,7 +51,6 @@ void get_PS_range(unsigned int *PSMin, unsigned int *PSMax)
 			*PSMax = PGlobal;
 			break;
 	}
-
 }
 
 void get_Pb_range(const unsigned int P, unsigned int *PbMin, unsigned int *PbMax)
@@ -123,7 +122,7 @@ void get_vh_range(const struct S_VOLUME *VOLUME, unsigned int *vhMin, unsigned i
 		*vhMax = 10;
 		break;
 	default:
-		printf("Error: Unsupported VType in get_vh_range.\n"), exit(1);
+		printf("Error: Unsupported VType.\n"), EXIT_MSG;
 		break;
 	}
 }
@@ -157,7 +156,7 @@ void get_fh_range(const struct S_VOLUME *VOLUME, const unsigned int f, unsigned 
 			*fhMax = 4;
 			break;
 		default:
-			printf("Error: Unsupported VType in get_fh_range.\n"), exit(1);
+			printf("Error: Unsupported VType.\n"), EXIT_MSG;
 			break;
 		}
 	}
@@ -173,7 +172,7 @@ unsigned int get_VOLUMEc_type(const unsigned int VType, const unsigned int vh)
 			return TET;
 		break;
 	default:
-		printf("Error: Unsupported VType in get_VOLUMEc_type.\n"), exit(1);
+		printf("Error: Unsupported VType.\n"), EXIT_MSG;
 		break;
 	}
 }
@@ -197,7 +196,7 @@ unsigned int get_IndEhref(const unsigned int VType, const unsigned int vh)
 			return 1;
 		break;
 	default:
-		printf("Error: Unsupported VType in get_IndEhref.\n"), exit(1);
+		printf("Error: Unsupported VType.\n"), EXIT_MSG;
 		break;
 	}
 }
@@ -227,7 +226,6 @@ static void check_levels_refine(const unsigned int indexg, const struct S_VInfo 
 	Nf = ELEMENT->Nf;
 
 	hp_refine_current[indexg] = 1;
-// Maybe this is entering twice for certain indexg's? (ToBeDeleted)
 	hp_levels[indexg]++;
 
 	Indf = indexg*NFREFMAX*NFMAX;
@@ -247,8 +245,6 @@ static void check_levels_refine(const unsigned int indexg, const struct S_VInfo 
 			fhMax = fh_range[(indexg*NFMAX+f)*2+1];
 			for (fh = fhMin; fh <= fhMax; fh++) {
 				indexg_neigh = VNeigh[Indfh+fh];
-//printf("indexg and neigh: %d %d\n",indexg,indexg_neigh);
-//array_print_ui(NFMAX,NFREFMAX,&VNeigh[Indf],'R');
 				if (!hp_refine_current[indexg_neigh] && ((int) hp_levels[indexg] - (int) hp_levels[indexg_neigh]) > 1)
 					check_levels_refine(indexg_neigh,VInfo,'h');
 			}
@@ -306,8 +302,6 @@ static void check_levels_coarse(const unsigned int indexg, const struct S_VInfo 
 			for (i = 0, iMax = vhMax-vhMin; i <= iMax; i++) {
 				indexg_sib = h_siblings[Indsib+i];
 
-//printf("241: %d %d %d",indexg,h_forbid_c[indexg],indexg_sib);
-//printf(" %d\n",VType[indexg_sib]);
 				ELEMENT = get_ELEMENT_type(VType[indexg_sib]);
 				Nf    = ELEMENT->Nf;
 
@@ -321,7 +315,6 @@ static void check_levels_coarse(const unsigned int indexg, const struct S_VInfo 
 						fhMax = fh_range[(indexg_sib*NFMAX+f)*2+1];
 						for (fh = fhMin; fh <= fhMax; fh++) {
 							indexg_neigh = VNeigh[Indfh+fh];
-//printf("%d %d %d\n",indexg,indexg_sib,indexg_neigh);
 							if (!hp_coarse_current[indexg_neigh] &&
 								((int) hp_levels[indexg_neigh] - (int) hp_levels[indexg_sib]) > 0)
 									check_levels_coarse(indexg_neigh,VInfo,'h');
@@ -331,24 +324,6 @@ static void check_levels_coarse(const unsigned int indexg, const struct S_VInfo 
 			}
 		} else { // Check only neighbours
 			hp_coarse_current[indexg] = 1;
-/*			ELEMENT = get_ELEMENT_type(VType[indexg]);
-			Nf    = ELEMENT->Nf;
-
-			hp_coarse_current[indexg] = 1;
-
-			Indf = indexg*NFREFMAX*NFMAX;
-			for (f = 0; f < Nf; f++) {
-				Indfh = Indf + f*NFREFMAX;
-				fhMin = fh_range[(indexg*NFMAX+f)*2  ];
-				fhMax = fh_range[(indexg*NFMAX+f)*2+1];
-				for (fh = fhMin; fh <= fhMax; fh++) {
-					indexg_neigh = VNeigh[Indfh+fh];
-					if (!hp_coarse_current[indexg_neigh] &&
-						((int) hp_levels[indexg_neigh] - (int) hp_levels[indexg]) > 0)
-							check_levels_coarse(indexg_neigh,VInfo,'h');
-				}
-			}
-*/
 		}
 		break;
 	}
@@ -433,7 +408,7 @@ void adapt_hp(void)
 
 	// Make sure that the DOF cap is not exceeded
 	refine_frac_lim = max(min((DOFcap_frac*DOF0)/DOF-1.0,refine_frac),0.0);
-printf("DOF, DOFcap: %d %d\n",DOF,(unsigned int) (DOFcap_frac*DOF0));
+	printf("DOF, DOFcap: %d %d\n",DOF,(unsigned int) (DOFcap_frac*DOF0));
 	if (refine_frac_lim < EPS) {
 		printf("*** Warning: Consider raising DOFcap_frac. *** \n");
 	}
@@ -549,41 +524,27 @@ printf("DOF, DOFcap: %d %d\n",DOF,(unsigned int) (DOFcap_frac*DOF0));
 	// Needs modification for MPI (ToBeDeleted)
 	for (i = 0, iMax = NVglobal; i < iMax; i++) {
 		if (VType_global[i] == 0) {
-			printf("Error: Modifications needed for MPI in adapt_hp.\n"), exit(1);
+			printf("Error: Modifications needed for MPI in adapt_hp.\n"), EXIT_MSG;
 			// Not all VOLUMEs are on this processor.
 		}
 	}
 
-//for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
-//	printf("%d %d\n",VOLUME->indexg,VOLUME->level);
-
-//array_print_ui(NVglobal,1,p_levels,'R');
-//array_print_ui(NVglobal,NFREFMAX_Total,VNeigh,'R');
-
 	// Mark refine_frac VOLUMEs for refinement
-//printf("\n\n\nrefinement marking\n\n");
 	for (i = 0, iMax = (unsigned int) (refine_frac_lim*NV); i < iMax; i++) {
 		iInd = NV-i-1;
-//printf("i, indexg, maxRHS: %d, %d, % .3e\n",i,VOLUME_Vec[IndmaxRHS[iInd]]->indexg,maxRHS_Vec[iInd]);
 		if (maxRHS_Vec[iInd] > REFINE_TOL) {
 			VOLUME = VOLUME_Vec[IndmaxRHS[iInd]];
 
 			switch (Adapt) {
 			default: // ADAPT_HP
-				printf("Error: Code up the smoothness based indicator to choose h or p.\n"), exit(1);
+				printf("Error: Code up the smoothness based indicator to choose h or p.\n"), EXIT_MSG;
 				break;
 			case ADAPT_P:
-// No need to recompute VNeigh/VType_global for ADAPT_P at each time step
+// No need to recompute VNeigh/VType_global for ADAPT_P at each time step (ToBeDeleted)
 				check_levels_refine(VOLUME->indexg,VInfo,'p');
 				break;
 			case ADAPT_H:
 				check_levels_refine(VOLUME->indexg,VInfo,'h');
-/*
-for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next){
-	printf("%d %d\n",VOLUME->indexg,hp_refine_current[VOLUME->indexg]);
-}
-printf("\n\n\n");
-*/
 				break;
 			}
 		}
@@ -593,7 +554,7 @@ printf("\n\n\n");
 		indexg = VOLUME->indexg;
 		switch (Adapt) {
 		default: // ADAPT_HP
-			printf("Error: Fix case ADAPT_HP.\n"), exit(1);
+			printf("Error: Fix case ADAPT_HP.\n"), EXIT_MSG;
 			break;
 		case ADAPT_P:
 			if (hp_refine_current[indexg]) {
@@ -617,19 +578,16 @@ printf("\n\n\n");
 	}
 
 	// Mark coarse_frac VOLUMEs for coarsening
-
-//printf("%d %d\n",(unsigned int) (coarse_frac*NV),NV);
 	for (i = 0, iMax = (unsigned int) (coarse_frac*NV); i < iMax; i++) {
 		if (minRHS_Vec[i] < COARSE_TOL) {
 			VOLUME = VOLUME_Vec[IndminRHS[i]];
-//printf("indexg, minRHS: %d, % .3e % .3e %d\n",VOLUME->indexg,minRHS_Vec[i],COARSE_TOL,h_forbid_coarse[VOLUME->indexg]);
 
 			for (j = 0; j < NVglobal; j++)
 				hp_coarse_current_local[j] = 0;
 
 			switch (Adapt) {
 			default: // ADAPT_HP
-				printf("Error: Code up the smoothness based indicator to choose h or p.\n"), exit(1);
+				printf("Error: Code up the smoothness based indicator to choose h or p.\n"), EXIT_MSG;
 				break;
 			case ADAPT_P:
 				check_levels_coarse(VOLUME->indexg,VInfo,'p');
@@ -639,7 +597,6 @@ printf("\n\n\n");
 				for (j = 0; j < NVglobal; j++) {
 					if (hp_refine_current[j] && hp_coarse_current_local[j]) {
 						refine_conflict = 1;
-//printf("refine conflict found!\n");
 						break;
 					}
 				}
@@ -649,7 +606,6 @@ printf("\n\n\n");
 					for (j = 0; j < NVglobal; j++) {
 						if (hp_coarse_current_local[j] && minRHS_Vec_unsorted[j] > COARSE_TOL) {
 							coarse_conflict = 1;
-//printf("coarse conflict found!\n");
 							break;
 						}
 					}
@@ -658,21 +614,15 @@ printf("\n\n\n");
 						for (j = 0; j < NVglobal; j++) {
 							if (hp_coarse_current_local[j])
 								hp_coarse_current[j] = 1;
-//if (hp_coarse_current_local[j] && indexg == 105)
-//	printf("indexg, j: %d %d\n",indexg,j);
 						}
 					}
 				}
 				break;
 			case ADAPT_H:
 				indexg = VOLUME->indexg;
-				if (!h_forbid_coarse[indexg]) {
+				if (!h_forbid_coarse[indexg])
 					check_levels_coarse(indexg,VInfo,'h');
-//					Indsib = indexg*NSIBMAX;
-//					get_vh_range(VOLUME,&vhMin,&vhMax);
-//					for (j = 0, jMax = vhMax-vhMin; j <= jMax; j++)
-//						check_levels_coarse(h_siblings[Indsib+j],VInfo,'h');
-				}
+
 				coarse_conflict = 0;
 				for (j = 0; j < NVglobal; j++) {
 					if (hp_coarse_current_local[j] && !hp_coarse_current_err[j]) {
@@ -695,7 +645,7 @@ printf("\n\n\n");
 		indexg = VOLUME->indexg;
 		switch (Adapt) {
 		default: // ADAPT_HP
-			printf("Error: Fix case ADAPT_HP.\n"), exit(1);
+			printf("Error: Fix case ADAPT_HP.\n"), EXIT_MSG;
 			break;
 		case ADAPT_P:
 			if (hp_coarse_current[indexg]) {
@@ -713,8 +663,8 @@ printf("\n\n\n");
 			break;
 		}
 // ToBeDeleted	
+/*
 if (hp_coarse_current_err[indexg]) {
-//printf("%d\n",VOLUME->indexg);
 	if (Adapt == ADAPT_P) {
 		if (!VOLUME->adapt_type == PREFINE)
 			VOLUME->adapt_type = PCOARSE;
@@ -723,17 +673,8 @@ if (hp_coarse_current_err[indexg]) {
 			VOLUME->adapt_type = HCOARSE;
 	}
 }
-	}
-
-/*
-for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next){
-	if (VOLUME->Vadapt)
-		printf("\t");
-	printf("indexg, P, Vadapt, adapt_type: %d %d %d %d\n",VOLUME->indexg,VOLUME->P,VOLUME->Vadapt,VOLUME->adapt_type);
-}
-//array_print_ui(NVglobal,1,hp_refine_current,'R');
-exit(1);
 */
+	}
 
 	free(minRHS_Vec);
 	free(maxRHS_Vec);
@@ -768,7 +709,7 @@ void mesh_update(void)
 	memory_free_children();
 //	update_Vgrp();
 	if (DB.Vectorized)
-		printf("Error: update_Vgrp requires modifications when adaptation is enabled.\n"), exit(1);
+		printf("Error: update_Vgrp requires modifications when adaptation is enabled.\n"), EXIT_MSG;
 	update_VOLUME_Ops();
 	update_VOLUME_finalize();
 }
