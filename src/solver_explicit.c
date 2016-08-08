@@ -1,16 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "database.h"
-#include "parameters.h"
-#include "functions.h"
-
-// ToBeDeleted
-#include <math.h>
+#include "solver_explicit.h"
 
 /*
  *	Purpose:
@@ -39,8 +30,8 @@ void solver_explicit(void)
 
 	// Standard datatypes
 	static double rk4a[5] = { 0.0,              -0.417890474499852, -1.192151694642677, -1.697784692471528, -1.514183444257156 },
-	              rk4b[5] = { 0.149659021999229, 0.379210312999627,  0.822955029386982,  0.699450455949122,  0.153057247968152 },
-	              rk4c[5] = { 0.0,               0.149659021999229,  0.370400957364205,  0.622255763134443,  0.958282130674690 };
+	              rk4b[5] = { 0.149659021999229, 0.379210312999627,  0.822955029386982,  0.699450455949122,  0.153057247968152 };
+//	              rk4c[5] = { 0.0,               0.149659021999229,  0.370400957364205,  0.622255763134443,  0.958282130674690 };
 
 	char         *dummyPtr_c[2];
 	unsigned int i, iMax, tstep, rk,
@@ -50,7 +41,7 @@ void solver_explicit(void)
 	struct S_VOLUME *VOLUME;
 
 	// silence
-	maxRHS0 = 0.0;
+	dt = maxRHS0 = 0.0;
 
 	for (i = 0; i < 2; i++)
 		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free

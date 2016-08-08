@@ -1,11 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "functions.h"
-#include "parameters.h"
+#include "sum_factorization.h"
 
 /*
  *	Purpose:

@@ -8,8 +8,9 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "database.h"
-#include "parameters.h"
+#include "Database.h"
+#include "Parameters.h"
+
 #include "memory_constructors.h"
 
 

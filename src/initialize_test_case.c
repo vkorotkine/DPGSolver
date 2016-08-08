@@ -1,15 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <limits.h>
-
-#include "database.h"
-#include "parameters.h"
-#include "functions.h"
+#include "initialize_test_case.h"
 
 /*
  *	Purpose:
@@ -251,8 +243,7 @@ static void adapt_initial(unsigned int *adapt_update)
 	 */
 
 	// Initialize DB Parameters
-	unsigned int NV        = DB.NV,
-	             NVglobal  = DB.NVglobal,
+	unsigned int NVglobal  = DB.NVglobal,
 	             Adapt     = DB.Adapt,
 	             PMax      = DB.PMax,
 	             LevelsMax = DB.LevelsMax;

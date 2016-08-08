@@ -1,11 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-
-#include "database.h"
-#include "functions.h"
-#include "parameters.h"
+#include "memory_destructors.h"
 
 /*
  *	Purpose:
@@ -174,8 +170,6 @@ void memory_destructor_L2_projection(const unsigned int EType)
 
 void memory_destructor_V(struct S_VOLUME *VOLUME)
 {
-//	int NP = DB.NP;
-
 	// Structures
 	free(VOLUME->XYZ_vC);
 	free(VOLUME->NsubF);

@@ -1,12 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "database.h"
-#include "parameters.h"
-#include "functions.h"
+#include "memory_free.h"
 
 /*
  *	Purpose:
@@ -105,7 +100,7 @@ void memory_free(void)
 		VOLUMEnext = VOLUME->next;
 		if (VOLUME->parent) {
 			printf("Error: memory_free (VOLUMEs) requires that the mesh be projected to ML0 before executing.\n");
-			exit(1);
+			EXIT_MSG;
 		}
 		memory_destructor_V(VOLUME);
 		VOLUME = VOLUMEnext;

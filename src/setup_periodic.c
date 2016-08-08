@@ -1,14 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "database.h"
-#include "functions.h"
-#include "parameters.h"
-
-#include "petscsys.h"
+#include "setup_periodic.h"
 
 /*
  *	Purpose:

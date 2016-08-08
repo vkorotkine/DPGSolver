@@ -338,7 +338,7 @@ void adapt_hp(void)
 
 	// Standard datatypes
 	unsigned int i, iMax, j, jMax, Nf, f, fh, Vf, fhMin, fhMax, vh, vhMin, vhMax,
-	             iInd, Indsib, DOF, NvnS, indexg, PMaxP1, LevelsMaxP1,
+	             iInd, DOF, NvnS, indexg, PMaxP1, LevelsMaxP1,
 	             NFREFMAX_Total, refine_conflict, coarse_conflict, Indf,
 	             *IndminRHS, *IndmaxRHS, *VNeigh, *VType_global, *vh_range, *fh_range,
 	             *p_levels, *h_levels, *h_siblings, *h_forbid_coarse,

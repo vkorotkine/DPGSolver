@@ -1,12 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
-#include "parameters.h"
-#include "functions.h"
+#include "plotting_element_info.h"
 
 /*
  *	Purpose:

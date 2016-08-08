@@ -1,13 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
-#include "database.h"
-#include "parameters.h"
-#include "functions.h"
+#include "setup_structures.h"
 
 /*
  *	Purpose:
@@ -184,8 +178,6 @@ void setup_structures(void)
 	int          MPIrank  = DB.MPIrank;
 	double       *VeXYZ   = DB.VeXYZ;
 
-	int  PrintTesting = 0;
-
 	// Standard datatypes
 	unsigned int i, f, v, dim, ve, gf, fh, fhMax,
 	             IndE, IndVC, IndVgrp, IndGFC, IndVIn, Indf, IndOrdInOut, IndOrdOutIn,
@@ -196,7 +188,7 @@ void setup_structures(void)
 	double       *XYZ_vC, **VeF, *XYZIn_fC, *XYZOut_fC, *DXYZ;
 
 	struct S_ELEMENT *ELEMENT;
-	struct S_VOLUME  *VOLUME, **Vgrp, **Vgrp_tmp, *VIn, *VOut;
+	struct S_VOLUME  *VOLUME, **Vgrp, **Vgrp_tmp, *VIn;
 	struct S_FACET   **FACET, **FoundFACET;
 
 	// silence
@@ -401,7 +393,6 @@ void setup_structures(void)
 			FACET[0]->type = LINE;
 		} else if (d == 3) {
 			VIn  = FACET[0]->VIn;
-			VOut = FACET[0]->VOut;
 
 			if (VIn->type == TET || (VIn->type == WEDGE && Indf > 2) || (VIn->type == PYR && Indf < 4))
 				FACET[0]->type = TRI;

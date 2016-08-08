@@ -1,14 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-
-#include "database.h"
-#include "parameters.h"
-#include "functions.h"
+#include "boundary_conditions.h"
 
 /*
  *	Purpose:
@@ -44,6 +37,9 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 	double       *rhoL, *uL, *vL, *wL, *pL, cL, *VnL, sL, *rhoR, *uR, *vR, *wR, *pR, cR, *VnR, sR, *UL, *UR,
 	             *rhoB, *uB, *vB, *wB, *pB, *UB,
 	             *X, *Y, *n, r, t, Vt, RL, RR, Vn, c, ut, vt, wt;
+
+	// silence
+	UL = WOut;
 
 	NnTotal = Nn*Nel;
 

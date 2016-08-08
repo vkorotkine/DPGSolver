@@ -1,9 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
+#include "math_functions.h"
 
 /*
  *	Purpose:
@@ -25,10 +23,6 @@ unsigned int factorial_ull(const unsigned int n)
 	static unsigned int ntop = 0,
 	                    a[21] = { 1 };
 	unsigned int i;
-
-	// Always false for unsigned int n
-//	if (n < 0)
-//		printf("Error: Input to factorial_ull must be greater than 0.\n"), exit(1);
 
 	// Note: large values overflow
 	if (n > 20)

@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include "database.h"
-#include "parameters.h"
+#include "Database.h"
+#include "Parameters.h"
 
 
 extern struct S_ELEMENT *New_ELEMENT        (void);

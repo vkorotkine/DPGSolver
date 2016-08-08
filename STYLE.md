@@ -12,6 +12,7 @@ into the line.
 
 The limit on the length of lines is 120 columns
 - 120 seemed justifiable based on the size of current terminal screens.
+- Longer lines are sometimes used when declaring/passing arguments to functions.
 
 
 Multiple statements are placed on the same line only in the following situations:

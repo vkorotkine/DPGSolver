@@ -1,20 +1,12 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#ifndef TEST
+#include "main.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#include <mpi.h>
-#include <petscksp.h>
-
-#include "database.h"
-#include "parameters.h"
-#include "functions.h"
-
-#include "test.h"
+struct S_DB   DB;
 struct S_TEST TestDB;
+
+#ifndef TEST
 
 /*
  *	Purpose:
@@ -32,8 +24,6 @@ struct S_TEST TestDB;
  *		ToBeModified: Add significant references.
  *
  */
-
-struct S_DB DB;
 
 int main(int nargc, char **argv)
 {
@@ -171,13 +161,6 @@ int main(int nargc, char **argv)
 
 #else // Run if -DTEST is passed as a compilation flag
 
-#include <stdio.h>
-#include <time.h>
-
-#include "test.h"
-#include "database.h"
-#include "functions.h"
-
 /*
  *	Purpose:
  *		Run test functions:
@@ -185,16 +168,15 @@ int main(int nargc, char **argv)
  *			2) Correctness of implementation (Individual functions as well as overall code)
  *
  *	Comments:
+ *		Modify names to: (ToBeDeleted)
+ *			test_unit
+ *			test_regression
+ *		Get some kind of code coverage figure as well (ToBeDeleted)
  *
  *	Notation:
  *
  *	References:
  */
-
-struct S_DB DB;
-struct S_TEST TestDB;
-
-#define TOL 1e-15
 
 int main(int nargc, char **argv)
 {
@@ -208,7 +190,7 @@ int main(int nargc, char **argv)
 	printf("\n\nRunning Tests:\n\n\n");
 	ts = clock();
 
-	// Implementation tests
+	// Unit tests
 
 	test_imp_array_find_index();
 	test_imp_array_norm();

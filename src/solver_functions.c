@@ -1,19 +1,11 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
-#include "parameters.h"
-#include "functions.h"
+#include "solver_functions.h"
 
 /*
  *	Purpose:
- *		Provide simple solver-related functions:
- *			void get_facet_ordering(const unsigned int d, const unsigned int IndOrd, const unsigned int FType,
- *			                        const unsigned int Nn, const unsigned int Ns, const unsigned int symms,
- *			                        unsigned int nOrd)
+ *		Provide solver-related functions.
  *
  *	Comments:
  *		If it is found that a significant portion of time is spent in this function after profiling, compare speed with
@@ -239,6 +231,4 @@ void get_facet_ordering(const unsigned int d, const unsigned int IndOrd, const u
 		}
 		break;
 	}
-
-
 }

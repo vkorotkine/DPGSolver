@@ -1,14 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-
-#include "database.h"
-#include "parameters.h"
-#include "functions.h"
+#include "output_to_paraview.h"
 
 /*
  *	Purpose:
@@ -78,7 +71,7 @@ static void fprintf_tn(FILE *fID, unsigned int Ntabs, const char *String)
 static void output_geom(const char *geom_type)
 {
 	// Initialize DB Parameters
-	char         *TestCase = DB.TestCase;
+//	char         *TestCase = DB.TestCase;
 	unsigned int d         = DB.d;
 	int          MPIrank   = DB.MPIrank,
 	             MPIsize   = DB.MPIsize;
@@ -307,7 +300,7 @@ static void output_geom(const char *geom_type)
 static void output_normals(const char *normals_type)
 {
 	// Initialize DB Parameters
-	char         *TestCase = DB.TestCase;
+//	char         *TestCase = DB.TestCase;
 	unsigned int d         = DB.d,
 	             Adapt     = DB.Adapt,
 	             NfrefMax  = DB.NfrefMax;
@@ -473,7 +466,6 @@ static void output_solution(const char *sol_type)
 	char         *TestCase = DB.TestCase,
 	             *MeshType = DB.MeshType;
 	unsigned int d         = DB.d,
-	             PMax      = DB.PMax,
 	             Nvar      = DB.Nvar;
 	int          MPIrank   = DB.MPIrank,
 	             MPIsize   = DB.MPIsize;

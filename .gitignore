@@ -1,5 +1,6 @@
 bin/*
 obj/*
+depend/*
 src/*~
 src/*.swp
 src/*.txt

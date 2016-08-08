@@ -1,13 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
-#include "database.h"
-#include "parameters.h"
-#include "functions.h"
+#include "setup_normals.h"
 
 /*
  *	Purpose:
@@ -42,17 +36,16 @@ void setup_normals(struct S_FACET *FACET)
 	// Standard datatypes
 	unsigned int fn, fnMax, curved, dim, dim1, dim2,
 	             VfIn, Eclass, IndFType, fIn,
-	             NvnC0, NvnI0, NfnI0, NfnS0, Nn;
+	             NvnC0, NfnI0, NfnS0, Nn;
 	double       nSum, nSum2,
 	             *C_fI, *C_fS, *C_vC, *nrIn, *n_fI, *n_fS, *detJF_fI, *detJF_fS;
 
 	struct S_OPERATORS *OPS;
-	struct S_VOLUME    *VIn, *VOut;
+	struct S_VOLUME    *VIn;
 
 	OPS = malloc(sizeof *OPS); // free
 
 	VIn  = FACET->VIn;
-	VOut = FACET->VOut;
 
 	VfIn = FACET->VfIn;
 	curved = FACET->curved;
@@ -65,7 +58,6 @@ void setup_normals(struct S_FACET *FACET)
 	init_ops(OPS,VIn,FACET,IndFType);
 
 	NvnC0 = OPS->NvnC;
-	NvnI0 = OPS->NvnI;
 	NfnI0 = OPS->NfnI;
 	NfnS0 = OPS->NfnS;
 

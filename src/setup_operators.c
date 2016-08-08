@@ -1,16 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-
-#include "database.h"
-#include "parameters.h"
-#include "functions.h"
-
-#include "mkl.h"
+#include "setup_operators.h"
 
 /*
  *	Purpose:
@@ -1772,7 +1763,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(ones_Nf);
 }
 
-void setup_ELEMENT_VeF(const unsigned int EType)
+static void setup_ELEMENT_VeF(const unsigned int EType)
 {
 	/*
 	 *	Comments:
@@ -3227,8 +3218,6 @@ void setup_operators(void)
 
 	// Initialize DB Parameters
 	unsigned int d = DB.d;
-
-	int  PrintTesting = 0;
 
 	// Standard datatypes
 	unsigned int EType;

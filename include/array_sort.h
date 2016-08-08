@@ -10,8 +10,7 @@
 #include "mkl.h"
 #include "petscsys.h"
 
-#include "parameters.h"
-#include "array_print.h"
+#include "Macros.h"
 
 
 extern void array_sort_ui (unsigned int NRows, unsigned int NCols, unsigned int *A, unsigned int *Indices, const char ordering, const char trans);

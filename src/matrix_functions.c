@@ -1,15 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
-#include "database.h"
-#include "parameters.h"
-#include "functions.h"
-
-#include "mkl.h"
+#include "matrix_functions.h"
 
 /*
  *	Purpose:
@@ -32,11 +24,6 @@
 
 double *diag_d(const double *x, const unsigned int N)
 {
-	/*
-	 *	Comments:
-	 *		The returned array requires an external free.
-	 */
-
 	unsigned int i, j;
 	double *X;
 
@@ -51,11 +38,6 @@ double *diag_d(const double *x, const unsigned int N)
 
 double *identity_d(const unsigned int N)
 {
-	/*
-	 *	Comments:
-	 *		The returned array requires an external free.
-	 */
-
 	unsigned int i, j;
 	double *Imat; // ToBeModified (name)
 
@@ -74,8 +56,6 @@ double *inverse_d(const unsigned int N, const unsigned int NRHS, const double *A
 	 *	Comments:
 	 *		The LAPACKE_dgesv modifies A while solving for x (which overwrites b's memory). Thus, new memory is
 	 *		allocated such that both AIn and b remain unchanged after solving in this routine.
-	 *
-	 *		The returned array requires an external free.
 	 */
 
 	unsigned int i, iMax;
@@ -113,7 +93,6 @@ double *mm_Alloc_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, cons
 	 *		Returns: C = alpha*op(A)*op(B)
 	 *
 	 *	Comments:
-	 *		The returned array requires an external free.
 	 *
 	 *	Notation:
 	 *		m : Number of rows of matrix op(A)

@@ -1,0 +1,39 @@
+// Copyright 2016 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+
+#ifndef DPG__sum_factorization_h__INCLUDED
+#define DPG__sum_factorization_h__INCLUDED
+
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "mkl.h"
+
+#include "Parameters.h"
+
+#include "array_swap.h"
+#include "matrix_functions.h"
+
+
+extern void   get_sf_parameters  (const unsigned int NIn0, const unsigned int NOut0, double *OP0,
+                                  const unsigned int NIn1, const unsigned int NOut1, double *OP1,
+                                  unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+                                  const unsigned int d, const unsigned int dim1, const unsigned int Eclass);
+extern void   get_sf_parametersV (const unsigned int NIn0, const unsigned int NOut0, double **OP0,
+                                  const unsigned int NIn1, const unsigned int NOut1, double **OP1,
+                                  unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+                                  const unsigned int d, const unsigned int vh, const unsigned int Eclass);
+extern void   get_sf_parametersF (const unsigned int NIn0, const unsigned int NOut0, double **OP0,
+                                  const unsigned int NIn1, const unsigned int NOut1, double **OP1,
+                                  unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+                                  const unsigned int d, const unsigned int Vf, const unsigned int Eclass);
+extern void   sf_operate_d       (const unsigned int NOut, const unsigned int NCols, const unsigned int NIn,
+                                  const unsigned int BRowMaxIn, double *OP, double *Input, double *Output);
+extern void   sf_swap_d          (double *Input, const unsigned int NRows, const unsigned int NCols,
+                                  const unsigned int iBound, const unsigned int jBound, const unsigned int kBound,
+                                  const unsigned int iStep, const unsigned int jStep, const unsigned int kStep);
+extern void   sf_apply_d         (double *Input, double *Output, const unsigned int NIn[3], const unsigned int NOut[3],
+                                  const unsigned int NCols, double *OP[3], const unsigned int Diag[3], const unsigned int d);
+extern double *sf_assemble_d     (const unsigned int NIn[3], const unsigned int NOut[3], const unsigned int d, double *BOP[3]);
+
+#endif // DPG__sum_factorization_h__INCLUDED

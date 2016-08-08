@@ -1,14 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-
-#include "database.h"
-#include "parameters.h"
-#include "functions.h"
+#include "setup_geometry.h"
 
 /*
  *	Purpose:
@@ -36,7 +29,7 @@ struct S_OPERATORS {
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
                      const unsigned int IndClass);
 
-void setup_straight(struct S_VOLUME *VOLUME)
+static void setup_straight(struct S_VOLUME *VOLUME)
 {
 	// Initialize DB Parameters
 	unsigned int d = DB.d;
@@ -109,14 +102,11 @@ case ADAPT_HP:
 void setup_geometry(void)
 {
 	// Initialize DB Parameters
-	char         *MeshType = DB.MeshType,
-	             *TestCase = DB.TestCase;
+	char         *MeshType = DB.MeshType;
 	unsigned int ExactGeom = DB.ExactGeom,
 	             d         = DB.d,
 
 	             Testing   = DB.Testing;
-
-	int          PrintTesting = 0;
 
 	// Standard datatypes
 	unsigned int dim, P, vn,

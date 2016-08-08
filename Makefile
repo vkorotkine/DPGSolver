@@ -15,6 +15,8 @@ CSTD := -std=c99
 #OPTS := -O3
 #OPTS := -g -Wall -Wextra -O3
 OPTS := -g -Wall -Wextra -O3 -DTEST
+OPTS += -Werror
+
 
 # Standard libraries (Math)
 STD_LIB := -lm
@@ -98,25 +100,26 @@ ifeq ($(KERNEL),Linux)
   endif
 endif
 
-PETSC_INC = -I PETSC_DIR/include ${PETSC_CC_INCLUDES}
 # PETSC's 'variables' makefile
 include ${PETSC_DIR}/lib/petsc/conf/variables
+PETSC_INC := -I PETSC_DIR/include ${PETSC_CC_INCLUDES}
 
-# missing LIBPATH, DEFINES (as compared to Brian's makefile)
 # Parmetis must be linked before metis
-#LIBS = $(STD_LIB) $(PETSC_INC) $(PETSC_LIB) $(PARMETIS_INC) $(PARMETIS_LDINC) $(METIS_INC) $(METIS_LDINC) $(MKL_INC) $(MKL_LDINC)
 LIBS := $(STD_LIB) $(PETSC_LIB) $(PARMETIS_LDINC) $(METIS_LDINC) $(MKL_LDINC)
 INCS := $(LOCAL_INC) $(PETSC_INC) $(PARMETIS_INC) $(METIS_INC) $(MKL_INC)
 
 EXECUTABLE := DPGSolver.exe
 
 SRCDIR  := src
+INCDIR  := include
+DEPDIR  := depend
 OBJDIR  := obj
 EXECDIR := bin
 
 EXECUTABLE := $(addprefix $(EXECDIR)/,$(EXECUTABLE))
 
 SOURCES := $(wildcard $(SRCDIR)/*.c)
+DEPENDS := $(SOURCES:$(SRCDIR)/%.c=$(DEPDIR)/%.d)
 HEADERS := $(wildcard $(SRCDIR)/*.h)
 OBJECTS := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
@@ -145,18 +148,27 @@ SHELL:=/bin/bash
 # Compile executable file (Default goal)
 $(EXECUTABLE) : $(OBJECTS)
 	@echo
-	@echo Building executable file
+	@echo Creating executable: $@
 	@echo
 	$(CC) -o $@ $(OPTS) $^ $(INCS) $(LIBS)
+
+# Include dependencies
+include $(DEPDIR)/adaptation.d $(DEPDIR)/main.d
 
 # Create objects
 # Still need to figure out how to include header dependencies.
 # See Miller(2008)-Recursive_Make_Considered_Harmful
 $(OBJECTS) : $(OBJDIR)/%.o : $(SRCDIR)/%.c
 	@echo
-	@echo Building/updating object files
+	@echo Creating/updating: $@
 	@echo
 	$(CC) $(OPTS) $(CSTD) -c -o $@ $< $(INCS)
+
+$(DEPENDS) : $(DEPDIR)/%.d : $(SRCDIR)/%.c
+	gcc -MM -MG $< > $@; sed -e 's@^\(.*\)\.o:@\1.o \1.d:@' < $@ > tmp; mv tmp $@
+
+$(SOURCES) : $(SRCDIR)/%.c : $(INCDIR)/%.h
+
 
 # Create directories if not present
 $(OBJECTS): | $(OBJDIR)
