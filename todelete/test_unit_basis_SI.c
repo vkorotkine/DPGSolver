@@ -1,13 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
-#include "test.h"
-#include "functions.h"
-#include "parameters.h"
+#include "test_unit_basis_SI.h"
 
 /*
  *	Purpose:
@@ -254,7 +248,7 @@ static double *basis_TET2(const double *rst, const unsigned int Nn)
 	return ChiRef_rst;
 }
 
-void test_imp_basis_SI(void)
+void test_unit_basis_SI(void)
 {
 	printf("\nWarning: Ensure that discrepancy between M and I for WSH nodes is as expected\n\n");
 	TestDB.Nwarnings++;

@@ -10,8 +10,18 @@
 #include <string.h>
 #include <limits.h>
 
-//#include "Database.h"
-//#include "Parameters.h"
+#include "mkl.h"
+
+#include "Database.h"
+#include "Parameters.h"
+#include "Macros.h"
+
+#include "adaptation.h"
+#include "element_functions.h"
+#include "matrix_functions.h"
+#include "setup_ToBeCurved.h"
+#include "setup_geom_factors.h"
+#include "memory_constructors.h"
 
 
 extern void update_VOLUME_hp       (void);

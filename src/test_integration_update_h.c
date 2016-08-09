@@ -1,16 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#include <mpi.h>
-#include <petscksp.h>
-
-#include "test.h"
-#include "parameters.h"
-#include "functions.h"
-#include "database.h"
+#include "test_integration_update_h.h"
 
 /*
  *	Purpose:
@@ -37,7 +28,7 @@ static void check_correspondence(unsigned int *pass);
 static void check_Jacobians(unsigned int *pass);
 static void run_test(unsigned int *pass, const char *test_type);
 
-void test_imp_update_h(int nargc, char **argv)
+void test_integration_update_h(int nargc, char **argv)
 {
 	unsigned int pass = 0;
 	char         **argvNew;
@@ -517,11 +508,10 @@ static void check_correspondence(unsigned int *pass)
 
 		VOLUME = FACET->VOut;
 		Vf     = FACET->VfOut;
-//printf("check: %d %d %d\n",FACET->indexg,VOLUME->indexg,VOLUME->level);
 
 		IndFType = get_IndFType(VOLUME->Eclass,Vf/NFREFMAX);
 		init_ops(OPS,VOLUME,FACET,IndFType);
-//printf("check2: %p %p\n",OPS->I_vGs_fS[Vf],VOLUME->XYZ_vC);
+
 		XYZ_fSOut = mm_Alloc_d(CBCM,CBT,CBNT,NfnS,d,OPS->NvnGs,1.0,OPS->I_vGs_fS[Vf],VOLUME->XYZ_vC); // free
 
 		XYZ_fSInOut = malloc(NfnS*d * sizeof *XYZ_fSInOut); // free

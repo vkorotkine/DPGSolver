@@ -1,12 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-
-#include "test.h"
-#include "functions.h"
+#include "test_speed_array_swap.h"
 
 /*
  *	Purpose:

@@ -72,7 +72,7 @@ void update_VOLUME_hp(void)
 	char         *MeshType = DB.MeshType;
 
 	// Standard datatypes
-	unsigned int i, iMax, P, PNew, f, level, adapt_type, vh, vhMin, vhMax, href_type, VType, Nf,
+	unsigned int i, iMax, P, PNew, f, level, adapt_type, vh, vhMin, vhMax, VType, Nf,
 	             IndEhref, NvnGs[2], NvnGc[2], NvnS[2], NvnSP, NCols, update, maxP;
 	double       *I_vGs_vGc[2], *XYZ_vC, *XYZ_S,
 	             **Ihat_vS_vS, **I_vGs_vGs, **L2hat_vS_vS, *What, *RES, *WhatP, *WhatH, *RESP, *RESH, *dummyPtr_d;
@@ -218,8 +218,7 @@ void update_VOLUME_hp(void)
 
 				NCols = d;
 
-
-				href_type = VOLUME->hrefine_type;
+				VOLUME->hrefine_type = 0;
 
 				get_vh_range(VOLUME,&vhMin,&vhMax);
 				for (vh = vhMin; vh <= vhMax; vh++) {

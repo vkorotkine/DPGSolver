@@ -1,13 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
-#include "test.h"
-#include "functions.h"
-#include "parameters.h"
+#include "test_unit_basis_PYR.h"
 
 /*
  *	Purpose:
@@ -139,7 +133,7 @@ static double *basis_PYR2(const double *rst, const unsigned int Nn)
 	return ChiRef_rst;
 }
 
-void test_imp_basis_PYR(void)
+void test_unit_basis_PYR(void)
 {
 	unsigned int pass;
 

@@ -1,12 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "test.h"
-#include "parameters.h"
-#include "functions.h"
+#include "test_unit_sum_factorization.h"
 
 /*
  *	Purpose:
@@ -19,7 +14,7 @@
  *	References:
  */
 
-void test_imp_sum_factorization(void)
+void test_unit_sum_factorization(void)
 {
 	unsigned int pass;
 

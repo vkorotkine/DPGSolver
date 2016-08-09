@@ -1,12 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "test.h"
-#include "functions.h"
-#include "parameters.h"
+#include "test_unit_array_norm.h"
 
 /*
  *	Purpose:
@@ -19,7 +14,7 @@
  *	References:
  */
 
-void test_imp_array_norm(void)
+void test_unit_array_norm(void)
 {
 	unsigned int pass;
 

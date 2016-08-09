@@ -1,12 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "test.h"
-#include "functions.h"
-#include "parameters.h"
+#include "test_unit_find_periodic_connections.h"
 
 /*
  *	Purpose:
@@ -19,7 +14,7 @@
  *	References:
  */
 
-void test_imp_find_periodic_connections(void)
+void test_unit_find_periodic_connections(void)
 {
 	unsigned int pass;
 

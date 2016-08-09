@@ -1,13 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "database.h"
-#include "parameters.h"
-#include "functions.h"
+#include "update_FACETs.h"
 
 /*
  *	Purpose:
@@ -474,6 +468,9 @@ static unsigned int get_FACET_type(struct S_FACET *FACET)
 
 static unsigned int get_fhMax(const unsigned int VType, const unsigned int href_type)
 {
+	if (href_type)
+		printf("Error: Unsupported href_type (%d).\n",href_type), EXIT_MSG;
+
 	switch (VType) {
 	case TRI:
 	case QUAD:

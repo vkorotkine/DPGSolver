@@ -1,10 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "mkl.h"
+#include "test_code_mm_CTN.h"
 
 /*
  *	Purpose:
@@ -20,9 +17,13 @@
 
 void mm_CTN_mvBLAS_d(const int m, const int n, const int k, double *A, double *B, double *C)
 {
+	// silence
+	MKL_INT inc_MKL = n;
+
 	MKL_INT m_MKL   = k,
-			k_MKL   = m,
-			inc_MKL = 1;
+			k_MKL   = m;
+
+	inc_MKL = 1;
 
 	cblas_dgemv(CblasColMajor,CblasTrans,m_MKL,k_MKL,1.0,A,m_MKL,B,inc_MKL,0.0,C,inc_MKL);
 }
@@ -40,6 +41,10 @@ void mm_CTN_mv_fully_unrolled_d(const int m, const int n, const int k, double *A
 {
 	// Square A inputs only (for the time being)!
 	// C/A values only used once, b values used many times => for mm, A values used many times (generalize here)
+
+	// silence
+	if (!n)
+		printf("Error: Invalid value of n.\n"), EXIT_MSG;
 
 	switch(m) {
 	case 1: {

@@ -1,12 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "test.h"
-#include "parameters.h"
-#include "functions.h"
+#include "test_unit_get_facet_ordering.h"
 
 /*
  *	Purpose:
@@ -19,7 +14,7 @@
  *	References:
  */
 
-void test_imp_get_facet_ordering(void)
+void test_unit_get_facet_ordering(void)
 {
 	unsigned int pass;
 

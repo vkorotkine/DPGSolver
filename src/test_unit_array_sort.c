@@ -1,14 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "test.h"
-#include "functions.h"
-#include "parameters.h"
-
-#include "mkl.h"
+#include "test_unit_array_sort.h"
 
 /*
  *	Purpose:
@@ -22,7 +15,7 @@
  *	References:
  */
 
-void test_imp_array_sort(void)
+void test_unit_array_sort(void)
 {
 	unsigned int pass;
 

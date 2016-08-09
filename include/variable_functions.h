@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "Parameters.h"
+
 
 extern void convert_variables (double *VarIn, double *VarOut, const unsigned int dIn, const unsigned int dOut,
                                const unsigned int Nn, const unsigned int Nel, const char TypeIn, const char TypeOut);

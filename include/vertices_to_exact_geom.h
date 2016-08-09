@@ -9,18 +9,10 @@
 #include <math.h>
 #include <string.h>
  
-/*
-#include "mkl.h"
-
 #include "Database.h"
 #include "Parameters.h"
 
-#include "element_functions.h"
-#include "matrix_functions.h"
-#include "output_to_paraview.h"
-#include "setup_ToBeCurved.h"
-#include "setup_geom_factors.h"
-*/
+#include "array_norm.h"
 
 extern void vertices_to_exact_geom (void);
 

@@ -1,9 +1,7 @@
-#include <stdlib.h>
-#include <stdio.h>
+// Copyright 2016 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include "test.h"
-#include "parameters.h"
-#include "functions.h"
+#include "test_unit_array_swap.h"
 
 /*
  *	Purpose:
@@ -16,7 +14,7 @@
  *	References:
  */
 
-void test_imp_array_swap(void)
+void test_unit_array_swap(void)
 {
 	unsigned int pass;
 

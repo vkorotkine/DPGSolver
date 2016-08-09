@@ -168,9 +168,6 @@ int main(int nargc, char **argv)
  *			2) Correctness of implementation (Individual functions as well as overall code)
  *
  *	Comments:
- *		Modify names to: (ToBeDeleted)
- *			test_unit
- *			test_regression
  *		Get some kind of code coverage figure as well (ToBeDeleted)
  *
  *	Notation:
@@ -180,62 +177,75 @@ int main(int nargc, char **argv)
 
 int main(int nargc, char **argv)
 {
+	struct S_RunTest {
+		unsigned int unit, integration, speed;
+	} RunTest;
+
 	clock_t ts, te;
 
 	TestDB.Ntest = 0;
 	TestDB.Npass = 0;
 	TestDB.Nwarnings = 0;
 
+	RunTest.unit        = 1;
+	RunTest.integration = 1;
+	RunTest.speed       = 0;
+
 
 	printf("\n\nRunning Tests:\n\n\n");
 	ts = clock();
 
 	// Unit tests
+	if (RunTest.unit) {
+		test_unit_array_find_index();
+		test_unit_array_norm();
+		test_unit_array_sort();
+		test_unit_array_swap();
 
-	test_imp_array_find_index();
-	test_imp_array_norm();
-	test_imp_array_sort();
-	test_imp_array_swap();
+		test_unit_math_factorial();
+		test_unit_math_gamma();
 
-	test_imp_math_factorial();
-	test_imp_math_gamma();
+		test_unit_matrix_diag();
+		test_unit_matrix_identity();
+		test_unit_matrix_inverse();
+		test_unit_matrix_mm();
+		test_unit_convert_to_CSR();
 
-	test_imp_matrix_diag();
-	test_imp_matrix_identity();
-	test_imp_matrix_inverse();
-	test_imp_matrix_mm();
-	test_imp_convert_to_CSR();
+		test_unit_find_periodic_connections();
 
-	test_imp_find_periodic_connections();
+		test_unit_cubature_TP();
+		test_unit_cubature_SI();
+		test_unit_cubature_PYR();
 
-	test_imp_cubature_TP();
-	test_imp_cubature_SI();
-	test_imp_cubature_PYR();
+		test_unit_basis_TP();
+		test_unit_basis_SI();
+		test_unit_basis_PYR();
+		test_unit_grad_basis_TP();
+		test_unit_grad_basis_SI();
+		test_unit_grad_basis_PYR();
 
-	test_imp_basis_TP();
-	test_imp_basis_SI();
-	test_imp_basis_PYR();
-	test_imp_grad_basis_TP();
-	test_imp_grad_basis_SI();
-	test_imp_grad_basis_PYR();
+		test_unit_sum_factorization();
+		test_unit_plotting();
 
-	test_imp_sum_factorization();
-	test_imp_plotting();
+		test_unit_fluxes_inviscid();
+		test_unit_jacobian_fluxes_inviscid();
+		test_unit_get_facet_ordering();
+	}
 
-	test_imp_fluxes_inviscid();
-	test_imp_jacobian_fluxes_inviscid();
-	test_imp_get_facet_ordering();
-
-
-	test_imp_update_h(nargc,argv);
-	test_imp_L2_projections(nargc,argv);
+	// Integration tests
+	if (RunTest.integration) {
+		test_integration_update_h(nargc,argv);
+		test_integration_L2_projections(nargc,argv);
+	}
 
 
 	te = clock();
 
 	// Speed tests
-//	test_speed_array_swap();
-//	test_speed_mm_CTN();
+	if (RunTest.speed) {
+		test_speed_array_swap();
+		test_speed_mm_CTN();
+	}
 
 
 	printf("\n\nRan %d test(s) in %.4f seconds.\n",TestDB.Ntest,(te-ts)/(float)CLOCKS_PER_SEC);

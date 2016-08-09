@@ -1,24 +1,13 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <time.h>
-#include <mpi.h>
-#include <petscksp.h>
-
-#include "test.h"
-#include "parameters.h"
-#include "functions.h"
-#include "database.h"
+#include "test_integration_L2_projections.h"
 
 /*
  *	Purpose:
  *		Test correctness of implementation of L2 projection operators.
  *
  *	Comments:
- *		Fix memory leaks. (ToBeDeleted)
  *
  *	Notation:
  *
@@ -30,7 +19,7 @@ static void   code_cleanup  (const unsigned int final);
 static double *get_L2err    (void);
 static void   mark_VOLUMEs  (const unsigned int adapt_type);
 
-void test_imp_L2_projections(int nargc, char **argv)
+void test_integration_L2_projections(int nargc, char **argv)
 {
 	unsigned int pass;
 	char         **argvNew;
