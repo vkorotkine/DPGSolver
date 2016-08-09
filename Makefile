@@ -1,5 +1,6 @@
 # Makefile
 # See the GNU Make manual for guidelines.
+# See Miller(2008)-Recursive_Make_Considered_Harmful
 
 # Additional Options:
 # 	make clean
@@ -100,7 +101,7 @@ endif
 
 # PETSC's 'variables' makefile
 include $(PETSC_DIR)/lib/petsc/conf/variables
-PETSC_INC := -I PETSC_DIR/include $(PETSC_CC_INCLUDES)
+PETSC_INC := $(PETSC_CC_INCLUDES)
 
 # Parmetis must be linked before metis
 LIBS := $(STD_LIB) $(PETSC_LIB) $(PARMETIS_LDINC) $(METIS_LDINC) $(MKL_LDINC)
@@ -110,15 +111,22 @@ EXECUTABLE := DPGSolver.exe
 
 SRCDIR  := src
 INCDIR  := include
-DEPDIR  := depend
 OBJDIR  := obj
+DEPDIR  := $(OBJDIR)
 EXECDIR := bin
+
+space :=
+space +=
+
+INC_DIRS := $(subst -I,,$(INCS))
+INC_DIRS := $(subst $(space),:,$(INC_DIRS))
+VPATH := $(SRCDIR):$(INC_DIRS)
 
 EXECUTABLE := $(addprefix $(EXECDIR)/,$(EXECUTABLE))
 
 SOURCES := $(wildcard $(SRCDIR)/*.c)
 DEPENDS := $(SOURCES:$(SRCDIR)/%.c=$(DEPDIR)/%.d)
-HEADERS := $(wildcard $(SRCDIR)/*.h)
+HEADERS := $(wildcard $(INCDIR)/*.h)
 OBJECTS := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 
@@ -151,22 +159,25 @@ $(EXECUTABLE) : $(OBJECTS)
 	$(CC) -o $@ $(OPTS) $^ $(INCS) $(LIBS)
 
 # Include dependencies
-include $(DEPDIR)/adaptation.d $(DEPDIR)/main.d
+#include $(DEPDIR)/adaptation.d $(DEPDIR)/main.d
 
 # Create objects
-# Still need to figure out how to include header dependencies.
-# See Miller(2008)-Recursive_Make_Considered_Harmful
+-include $(DEPENDS)
+
 $(OBJECTS) : $(OBJDIR)/%.o : $(SRCDIR)/%.c
 	@echo
 	@echo Creating/updating: $@
 	@echo
 	$(CC) $(OPTS) $(CSTD) -c -o $@ $< $(INCS)
 
-$(DEPENDS) : $(DEPDIR)/%.d : $(SRCDIR)/%.c
-	gcc -MM -MG $< > $@; sed -e 's@^\(.*\)\.o:@\1.o \1.d:@' < $@ > tmp; mv tmp $@
-
-$(SOURCES) : $(SRCDIR)/%.c : $(INCDIR)/%.h
-
+$(DEPDIR)/adaptation.d : adaptation.c adaptation.h
+#$(DEPDIR)/%.d : %.c %.h
+	@echo
+	@echo Creating/updating: $@
+	@echo
+	@gcc -MM -MG $^ > $@;
+#	@sed -e 's|.*:|$(OBJDIR)/$*.o $(DEPDIR)/$*.d:|' < $@ > $@.tmp; mv $@.tmp $@
+	@sed -e 's|.*:|$(OBJDIR)/adaptation.o $(DEPDIR)/adaptation.d:|' < $@ > $@.tmp; mv $@.tmp $@
 
 # Create directories if not present
 $(OBJECTS): | $(OBJDIR)
