@@ -4,14 +4,9 @@
 #ifndef DPG__memory_destructors_h__INCLUDED
 #define DPG__memory_destructors_h__INCLUDED
 
-#include <stdlib.h>
-
-#include "Database.h"
-#include "Parameters.h"
-
-#include "array_free.h"
-#include "element_functions.h"
-#include "adaptation.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+#include "S_FACET.h"
 
 
 extern void memory_destructor_E             (struct S_ELEMENT *ELEMENT);

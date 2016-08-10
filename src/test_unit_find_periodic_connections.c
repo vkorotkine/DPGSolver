@@ -3,6 +3,16 @@
 
 #include "test_unit_find_periodic_connections.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "Parameters.h"
+#include "Test.h"
+
+#include "test_support.h"
+#include "array_norm.h"
+#include "gmsh_reader.h"
+
 /*
  *	Purpose:
  *		Test correctness of implementation of find_periodic_connections.

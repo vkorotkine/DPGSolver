@@ -9,8 +9,8 @@
 //#include <math.h>
 //#include <string.h>
 
-//#include "Database.h"
 //#include "Parameters.h"
+//#include "S_DB.h"
 
 
 #endif // DPG__template_h__INCLUDED

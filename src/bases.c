@@ -3,6 +3,17 @@
 
 #include "bases.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
+#include "mkl.h"
+ 
+#include "Parameters.h"
+#include "Macros.h"
+
+#include "math_functions.h"
+
 /*
  *	Purpose:
  *		Return the "matrix" ChiRef_rst representing the orthonormal basis functions evaluated at the provided quadrature

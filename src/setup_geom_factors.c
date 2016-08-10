@@ -3,6 +3,17 @@
 
 #include "setup_geom_factors.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+ 
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+
+#include "element_functions.h"
+#include "matrix_functions.h"
+
 /*
  *	Purpose:
  *		Set up geometric factors.

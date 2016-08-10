@@ -3,6 +3,8 @@
 
 #include "array_swap.h"
 
+#include <stdlib.h>
+ 
 /*
  *	Purpose:
  *		Swap arrays.

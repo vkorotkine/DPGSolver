@@ -3,6 +3,14 @@
 
 #include "array_sort.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "mkl.h"
+#include "petscsys.h"
+
+#include "Macros.h"
+
 /*
  *	Purpose:
  *		Sort multidimensional arrays maintaining fixed columns, with decreasing priority from first to last row.

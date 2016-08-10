@@ -3,6 +3,17 @@
 
 #include "plotting_element_info.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+ 
+#include "mkl.h"
+
+#include "Parameters.h"
+#include "Macros.h"
+
+#include "matrix_functions.h"
+
 /*
  *	Purpose:
  *		Return nodes and connectivity information required for plotting with paraview using the VTK format.

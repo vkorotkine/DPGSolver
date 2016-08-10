@@ -3,6 +3,13 @@
 
 #include "test_speed_array_swap.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+
+#include "test_code_array_swap.h"
+#include "array_swap.h"
+
 /*
  *	Purpose:
  *		Test speed of various implementations of array_swap.

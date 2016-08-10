@@ -3,6 +3,16 @@
 
 #include "vertices_to_exact_geom.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+ 
+#include "Parameters.h"
+#include "S_DB.h"
+
+#include "array_norm.h"
+
 /*
  *	Purpose:
  *		Move vertices to correspond with the exact geometry (eliminating errors from the mesh generator)

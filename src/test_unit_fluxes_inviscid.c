@@ -3,6 +3,16 @@
 
 #include "test_unit_fluxes_inviscid.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "Parameters.h"
+#include "Test.h"
+
+#include "test_support.h"
+#include "array_norm.h"
+#include "fluxes_inviscid.h"
+
 /*
  *	Purpose:
  *		Test correctness of implementation of functions relating to inviscid flux computation.

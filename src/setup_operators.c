@@ -3,6 +3,31 @@
 
 #include "setup_operators.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+ 
+#include "mkl.h"
+
+#include "Parameters.h"
+#include "Macros.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_OpCSR.h"
+
+#include "bases.h"
+#include "cubature.h"
+
+#include "element_functions.h"
+#include "matrix_functions.h"
+#include "sum_factorization.h"
+#include "array_free.h"
+#include "plotting_element_info.h"
+#include "solver_functions.h"
+#include "adaptation.h"
+#include "memory_destructors.h"
+
 /*
  *	Purpose:
  *		Set up operators to be used throughout the code.

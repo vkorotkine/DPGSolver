@@ -4,17 +4,6 @@
 #ifndef DPG__sum_factorization_h__INCLUDED
 #define DPG__sum_factorization_h__INCLUDED
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "mkl.h"
-
-#include "Parameters.h"
-
-#include "array_swap.h"
-#include "matrix_functions.h"
-
-
 extern void   get_sf_parameters  (const unsigned int NIn0, const unsigned int NOut0, double *OP0,
                                   const unsigned int NIn1, const unsigned int NOut1, double *OP1,
                                   unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],

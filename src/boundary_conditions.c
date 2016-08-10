@@ -3,6 +3,16 @@
 
 #include "boundary_conditions.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+
+#include "Parameters.h"
+#include "S_DB.h"
+
+#include "variable_functions.h"
+
 /*
  *	Purpose:
  *		Compute boundary conditions for given input parameters: XYZ, WL, WOut, nL

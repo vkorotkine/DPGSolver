@@ -4,18 +4,6 @@
 #ifndef DPG__bases_h__INCLUDED
 #define DPG__bases_h__INCLUDED
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
-#include "mkl.h"
- 
-#include "Parameters.h"
-#include "Macros.h"
-
-#include "math_functions.h"
-
-
 extern double *basis_TP        (const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut, const unsigned int d);
 extern double *basis_SI        (const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut, const unsigned int d);
 extern double *basis_PYR       (const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut, const unsigned int d);

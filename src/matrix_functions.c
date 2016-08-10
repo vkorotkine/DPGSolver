@@ -3,6 +3,15 @@
 
 #include "matrix_functions.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
+#include "mkl.h"
+
+#include "Parameters.h"
+#include "S_OpCSR.h"
+
 /*
  *	Purpose:
  *		Provide matrix functions (ToBeModified):
@@ -1839,7 +1848,6 @@ void convert_to_CSR_d(const unsigned int NRows, const unsigned int NCols, const 
 	 *		Intel MKL Sparse BLAS CSR Matrix Storage Format: https://software.intel.com/en-us/node/599835
 	 */
 
-	// Initialize DB Parameters
 	unsigned int i, iInd, j, Nval,
 	             *rowIndex, *columns, *columnsOver;
 	double       *values, *valuesOver, tmp_d;

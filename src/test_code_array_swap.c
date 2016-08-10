@@ -3,6 +3,9 @@
 
 #include "test_code_array_swap.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
 /*
  *	Purpose:
  *		Provide functions for testing array_swap.

@@ -3,6 +3,13 @@
 
 #include "fluxes_inviscid_c.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <complex.h>
+
+#include "Parameters.h"
+
 /*
  *	Purpose:
  *		Identical functions to fluxes_inviscid using complex variables used for complex step verification.

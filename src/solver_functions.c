@@ -3,6 +3,12 @@
 
 #include "solver_functions.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
+#include "Parameters.h"
+
 /*
  *	Purpose:
  *		Provide solver-related functions.

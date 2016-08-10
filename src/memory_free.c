@@ -3,6 +3,20 @@
 
 #include "memory_free.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+ 
+#include "Parameters.h"
+#include "Macros.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+#include "S_FACET.h"
+
+#include "array_free.h"
+#include "memory_destructors.h"
+#include "adaptation.h"
+
 /*
  *	Purpose:
  *		Free remaining allocated memory.
@@ -11,11 +25,7 @@
  *
  *	Notation:
  *
- *	Memory freed:
- *
- *
  *	References:
- *
  */
 
 void memory_free(void)

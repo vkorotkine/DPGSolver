@@ -3,6 +3,11 @@
 
 #include "variable_functions.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "Parameters.h"
+
 /*
  *	Purpose:
  *		Provide functions relating to supported variables.

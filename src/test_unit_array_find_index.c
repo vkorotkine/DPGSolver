@@ -3,6 +3,14 @@
 
 #include "test_unit_array_find_index.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "Test.h"
+
+#include "test_support.h"
+#include "array_find_index.h"
+
 /*
  *	Purpose:
  *		Test correctness of implementation of array_find_index.

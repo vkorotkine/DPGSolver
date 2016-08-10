@@ -3,6 +3,13 @@
 
 #include "array_norm.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+ 
+#include "Macros.h"
+
 /*
  *	Purpose:
  *		Compute various norms.

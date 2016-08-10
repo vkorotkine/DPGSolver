@@ -3,6 +3,9 @@
 
 #include "array_find_index.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+ 
 /*
  *	Purpose:
  *		Find the pointer to the first index whose array entries correspond to the value to be found.

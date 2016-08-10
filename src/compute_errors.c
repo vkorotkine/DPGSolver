@@ -3,6 +3,23 @@
 
 #include "compute_errors.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <mpi.h>
+
+#include "Parameters.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+#include "S_OpCSR.h"
+
+#include "element_functions.h"
+#include "matrix_functions.h"
+#include "variable_functions.h"
+#include "exact_solutions.h"
+
 /*
  *	Purpose:
  *		Compute L2 errors for supported test cases.

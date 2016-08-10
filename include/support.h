@@ -4,13 +4,6 @@
 #ifndef DPG__support_h__INCLUDED
 #define DPG__support_h__INCLUDED
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <execinfo.h>
-//#include <signal.h>
-//#include <unistd.h>
-
-
 extern void exit_trace (void);
 
 #endif // DPG__support_h__INCLUDED

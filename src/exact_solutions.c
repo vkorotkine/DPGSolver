@@ -3,6 +3,14 @@
 
 #include "exact_solutions.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+
+#include "Parameters.h"
+#include "S_DB.h"
+
 /*
  *	Purpose:
  *		Provide functions related to exact solutions.

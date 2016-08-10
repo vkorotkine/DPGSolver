@@ -3,6 +3,19 @@
 
 #include "setup_ToBeCurved.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+ 
+#include "Parameters.h"
+#include "Macros.h"
+#include "S_DB.h"
+#include "S_VOLUME.h"
+
+#include "array_norm.h"
+#include "cubature.h"
+
 /*
  *	Purpose:
  *		Set up to be curved meshes.

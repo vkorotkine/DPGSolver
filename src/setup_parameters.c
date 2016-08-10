@@ -3,6 +3,15 @@
 
 #include "setup_parameters.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+ 
+#include "Parameters.h"
+#include "Macros.h"
+#include "S_DB.h"
+
 /*
  *	Purpose:
  *		Set up parameters based on inputs obtained in initialization.c.

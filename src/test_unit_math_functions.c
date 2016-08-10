@@ -3,6 +3,16 @@
 
 #include "test_unit_math_functions.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "Parameters.h"
+#include "Test.h"
+
+#include "test_support.h"
+#include "array_norm.h"
+#include "math_functions.h"
+
 /*
  *	Purpose:
  *		Test correctness of implementation of math functions.

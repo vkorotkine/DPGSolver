@@ -3,6 +3,15 @@
 
 #include "fluxes_inviscid.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
+#include "Parameters.h"
+#include "Macros.h"
+
+#include "variable_functions.h"
+
 /*
  *	Purpose:
  *		Compute inviscid fluxes from input W in conservative form.

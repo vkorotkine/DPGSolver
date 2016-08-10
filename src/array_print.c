@@ -3,6 +3,9 @@
 
 #include "array_print.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
 /*
  *	Purpose:
  *		Print arrays for debugging purposes.
@@ -40,7 +43,7 @@ void array_print_ui(const unsigned int m, const unsigned int n, const unsigned i
 	}
 }
 
-void array_print_i(const unsigned int m, const unsigned int n, int *A, const char layout)
+void array_print_i(const unsigned int m, const unsigned int n, const int *A, const char layout)
 {
 	unsigned int i, j;
 
@@ -64,7 +67,7 @@ void array_print_i(const unsigned int m, const unsigned int n, int *A, const cha
 	}
 }
 
-void array_print_l(const unsigned int m, const unsigned int n, long *A, const char layout)
+void array_print_l(const unsigned int m, const unsigned int n, const long *A, const char layout)
 {
 	unsigned int i, j;
 
@@ -88,7 +91,7 @@ void array_print_l(const unsigned int m, const unsigned int n, long *A, const ch
 	}
 }
 
-void array_print_ll(const unsigned int m, const unsigned int n, long long *A, const char layout)
+void array_print_ll(const unsigned int m, const unsigned int n, const long long *A, const char layout)
 {
 	unsigned int i, j;
 
@@ -112,7 +115,7 @@ void array_print_ll(const unsigned int m, const unsigned int n, long long *A, co
 	}
 }
 
-void array_print_f(const unsigned int m, const unsigned int n, float *A, const char layout)
+void array_print_f(const unsigned int m, const unsigned int n, const float *A, const char layout)
 {
 	unsigned int i, j;
 
@@ -136,7 +139,7 @@ void array_print_f(const unsigned int m, const unsigned int n, float *A, const c
 	}
 }
 
-void array_print_d(const unsigned int m, const unsigned int n, double *A, const char layout)
+void array_print_d(const unsigned int m, const unsigned int n, const double *A, const char layout)
 {
 	unsigned int i, j;
 
@@ -160,7 +163,7 @@ void array_print_d(const unsigned int m, const unsigned int n, double *A, const 
 	}
 }
 
-void array_print_ld(const unsigned int m, const unsigned int n, long double *A, const char layout)
+void array_print_ld(const unsigned int m, const unsigned int n, const long double *A, const char layout)
 {
 	unsigned int i, j;
 

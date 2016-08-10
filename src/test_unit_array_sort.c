@@ -3,6 +3,18 @@
 
 #include "test_unit_array_sort.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "mkl.h"
+
+#include "Parameters.h"
+#include "Test.h"
+
+#include "test_support.h"
+#include "array_sort.h"
+#include "array_norm.h"
+
 /*
  *	Purpose:
  *		Test correctness of implementation of array_sort.

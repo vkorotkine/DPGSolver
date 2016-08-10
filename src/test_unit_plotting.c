@@ -3,6 +3,19 @@
 
 #include "test_unit_plotting.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
+#include "mkl.h"
+
+#include "Parameters.h"
+#include "Test.h"
+
+#include "test_support.h"
+#include "array_norm.h"
+#include "plotting_element_info.h"
+
 /*
  *	Purpose:
  *		Test correctness of implementation of plotting_element_info.

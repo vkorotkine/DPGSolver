@@ -1,6 +1,8 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
+#include "support.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <execinfo.h>

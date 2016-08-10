@@ -3,6 +3,12 @@
 
 #include "jacobian_fluxes_inviscid.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
+#include "Parameters.h"
+
 /*
  *	Purpose:
  *		Compute inviscid flux jacobians from input W in conservative form.

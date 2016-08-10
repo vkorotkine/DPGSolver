@@ -4,17 +4,7 @@
 #ifndef DPG__setup_ToBeCurved_h__INCLUDED
 #define DPG__setup_ToBeCurved_h__INCLUDED
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
- 
-#include "Database.h"
-#include "Parameters.h"
-#include "Macros.h"
-
-#include "array_norm.h"
-#include "cubature.h"
+#include "S_VOLUME.h"
 
 
 extern void setup_ToBeCurved (struct S_VOLUME *VOLUME);

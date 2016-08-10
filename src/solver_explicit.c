@@ -3,6 +3,23 @@
 
 #include "solver_explicit.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h> // ToBeModified
+#include <string.h>
+ 
+#include "Parameters.h"
+#include "Macros.h"
+#include "S_DB.h"
+#include "S_VOLUME.h"
+
+#include "adaptation.h"
+#include "update_VOLUMEs.h"
+#include "explicit_VOLUME_info.h"
+#include "explicit_FACET_info.h"
+#include "finalize_RHS.h"
+#include "output_to_paraview.h"
+
 /*
  *	Purpose:
  *		Perform time-stepping using a low storage 4th order (R)unge-(K)utta scheme.

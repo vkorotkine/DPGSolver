@@ -3,6 +3,17 @@
 
 #include "setup_connectivity.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "petscsys.h"
+ 
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+
+#include "array_sort.h"
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Build global connectivity arrays. The main algorithm is based on tiConnect3D from Hesthaven's nodal DG code.

@@ -3,6 +3,21 @@
 
 #include "output_to_paraview.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+ 
+#include "Parameters.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+#include "S_FACET.h"
+
+#include "element_functions.h"
+#include "matrix_functions.h"
+#include "variable_functions.h"
+
 /*
  *	Purpose:
  *		Output data to paraview for visualization.

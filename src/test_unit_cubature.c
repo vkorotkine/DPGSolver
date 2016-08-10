@@ -3,6 +3,19 @@
 
 #include "test_unit_cubature.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
+#include "mkl.h"
+
+#include "Parameters.h"
+#include "Test.h"
+
+#include "test_support.h"
+#include "array_norm.h"
+#include "cubature.h"
+
 void test_unit_cubature_TP(void)
 {
 	/*

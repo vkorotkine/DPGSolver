@@ -3,6 +3,22 @@
 
 #include "adaptation.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
+#include "Parameters.h"
+#include "Macros.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+
+#include "element_functions.h"
+#include "array_sort.h"
+#include "update_VOLUMEs.h"
+#include "update_FACETs.h"
+#include "memory_free.h"
+
 /*
  *	Purpose:
  *		Determine which VOLUMEs should be adapted based on specified error indicator and fixed fraction.

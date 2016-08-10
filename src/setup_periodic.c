@@ -3,6 +3,19 @@
 
 #include "setup_periodic.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "petscsys.h"
+ 
+#include "Parameters.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+
+#include "element_functions.h"
+#include "array_find_index.h"
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Modify connectivity if using a periodic mesh.

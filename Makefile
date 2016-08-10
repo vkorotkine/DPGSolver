@@ -1,19 +1,26 @@
 # Makefile
-# See the GNU Make manual for guidelines.
-# See Miller(2008)-Recursive_Make_Considered_Harmful
 
-# Additional Options:
-# 	make clean
-# 	make clean_code
-# 	make clean_test
-# 	make clean_exec
+# References
+#   GNU Make manual
+#   Miller(2008)-Recursive_Make_Considered_Harmful
+
+# Notes
+# - .RECIPEPREFIX == \t (TAB)
+
+# Additional make targets:
+# $ make directories
+#
+# $ make clean
+# $ make clean_code
+# $ make clean_test
+# $ make clean_exec
 
 # C standard and compiler
 CSTD := -std=c99
 
 # Options
-#OPTS := -O3
-OPTS := -g -Wall -Wextra -Werror -O3
+OPTS := -O3
+OPTS += -g -Wall -Wextra -Werror
 OPTS += -DTEST
 
 
@@ -22,9 +29,6 @@ STD_LIB := -lm
 
 # Machine dependent parameters
 KERNEL  := $(shell uname -s)
-
-#all:
-#	@echo $(KERNEL)
 
 LOCAL_INC := -I./include
 
@@ -103,7 +107,7 @@ endif
 include $(PETSC_DIR)/lib/petsc/conf/variables
 PETSC_INC := $(PETSC_CC_INCLUDES)
 
-# Parmetis must be linked before metis
+# Note: Parmetis must be linked before metis
 LIBS := $(STD_LIB) $(PETSC_LIB) $(PARMETIS_LDINC) $(METIS_LDINC) $(MKL_LDINC)
 INCS := $(LOCAL_INC) $(PETSC_INC) $(PARMETIS_INC) $(METIS_INC) $(MKL_INC)
 
@@ -112,108 +116,105 @@ EXECUTABLE := DPGSolver.exe
 SRCDIR  := src
 INCDIR  := include
 OBJDIR  := obj
-DEPDIR  := $(OBJDIR)
+DEPDIR  := depend
 EXECDIR := bin
 
-space :=
-space +=
+nullstring :=
+space := $(nullstring) # Single space
+comma := ,
 
 INC_DIRS := $(subst -I,,$(INCS))
 INC_DIRS := $(subst $(space),:,$(INC_DIRS))
-VPATH := $(SRCDIR):$(INC_DIRS)
+vpath %.c $(SRCDIR)
+vpath %.h $(INC_DIRS)
+
 
 EXECUTABLE := $(addprefix $(EXECDIR)/,$(EXECUTABLE))
 
 SOURCES := $(wildcard $(SRCDIR)/*.c)
-DEPENDS := $(SOURCES:$(SRCDIR)/%.c=$(DEPDIR)/%.d)
 HEADERS := $(wildcard $(INCDIR)/*.h)
 OBJECTS := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+DEPENDS := $(SOURCES:$(SRCDIR)/%.c=$(DEPDIR)/%.d)
 
-
-# Formatting for "rules" in makefiles is as follows:
-# 	target ... : prerequisites ...
-# 		recipe
-# 		...
-#
-# 	Note that a "tab" character must be placed before each line of the recipe
-#
-# Automatic variables:
-#
-# 	$@: target
-# 	$^: prerequisites
-# 	$<: first prerequisite only (desired if excluding headers for example)
-#
-# Compile commands:
-# 	-c:       no linking is done
-# 	-o <arg>: output to <arg>
-
+SHELL := /bin/bash
 ### Default goal + Additional required rules ###
-
-SHELL:=/bin/bash
 
 # Compile executable file (Default goal)
 $(EXECUTABLE) : $(OBJECTS)
 	@echo
-	@echo Creating executable: $@
-	@echo
-	$(CC) -o $@ $(OPTS) $^ $(INCS) $(LIBS)
+	@echo Creating/updating: $@
+	@$(CC) -o $@ $(OPTS) $^ $(INCS) $(LIBS)
 
-# Include dependencies
-#include $(DEPDIR)/adaptation.d $(DEPDIR)/main.d
-
-# Create objects
+# Include dependencies (Must be placed after default goal)
 -include $(DEPENDS)
 
-$(OBJECTS) : $(OBJDIR)/%.o : $(SRCDIR)/%.c
-	@echo
+# Create object and dependency files
+$(OBJDIR)/%.o : %.c
 	@echo Creating/updating: $@
-	@echo
-	$(CC) $(OPTS) $(CSTD) -c -o $@ $< $(INCS)
+	@$(CC) $(OPTS) $(CSTD) -c -o $@ $< $(INCS)
 
-$(DEPDIR)/adaptation.d : adaptation.c adaptation.h
-#$(DEPDIR)/%.d : %.c %.h
-	@echo
+$(DEPDIR)/%.d : %.c
 	@echo Creating/updating: $@
+	@gcc -MM -MG $< > $@; # Use first prerequisite only as other prereqs are included from the existing %.d file
+	@sed -i '' -e 's|.*:|$(OBJDIR)/$*.o $(DEPDIR)/$*.d:|' $@
+
+# Additional dependencies needed for modified dynamic memory allocation
+DYN_MEM_DEPS_NOPATH := S_ELEMENT.h S_VOLUME.h S_FACET.h
+DYN_MEM_DEPS        := $(INCDIR)/S_ELEMENT.h $(INCDIR)/S_VOLUME.h $(INCDIR)/S_FACET.h
+
+$(DYN_MEM_DEPS_NOPATH) : $(DYN_MEM_DEPS)
+$(DYN_MEM_DEPS) : memory_constructors.c
 	@echo
-	@gcc -MM -MG $^ > $@;
-#	@sed -e 's|.*:|$(OBJDIR)/$*.o $(DEPDIR)/$*.d:|' < $@ > $@.tmp; mv $@.tmp $@
-	@sed -e 's|.*:|$(OBJDIR)/adaptation.o $(DEPDIR)/adaptation.d:|' < $@ > $@.tmp; mv $@.tmp $@
+	@echo Updating memory_constructor dependencies.
+	@echo
+	@touch $(DYN_MEM_DEPS)
+
 
 # Create directories if not present
 $(OBJECTS): | $(OBJDIR)
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
+$(DEPENDS): | $(DEPDIR)
+$(DEPDIR):
+	mkdir -p $(DEPDIR)
+
 $(EXECUTABLE): | $(EXECDIR)
 $(EXECDIR):
 	mkdir -p $(EXECDIR)
 
-TESTCASE_LIST :=dSphericalBump,GaussianBump,PeriodicVortex,PolynomialBump,SupersonicVortex,VortexRiemann
-MESHTYPE_LIST :=ToBeCurvedStructuredTRI,ToBeCurvedStructuredQUAD,ToBeCurvedStructuredTET,ToBeCurvedStructuredHEX,ToBeCurvedStructuredWEDGE,ToBeCurvedStructuredPYR
-.PHONY : directories
-directories:
-	mkdir -p meshes/($(TESTCASE_LIST))
-	mkdir -p cases/paraview/($(TESTCASE_LIST))
-	mkdir -p cases/errors/($(TESTCASE_LIST))
-	mkdir -p cases/results/($(TESTCASE_LIST))
-	mkdir -p cases/paraview/($(TESTCASE_LIST))/($(MESHTYPE_LIST))
-	mkdir -p cases/errors/($(TESTCASE_LIST))/($(MESHTYPE_LIST))
-	mkdir -p cases/results/($(TESTCASE_LIST))/($(MESHTYPE_LIST))
+
+OUTPUT_LIST   := paraview errors results
+TESTCASE_LIST := dSphericalBump GaussianBump PeriodicVortex \
+                 PolynomialBump SupersonicVortex VortexRiemann
+MESHTYPE_LIST := ToBeCurvedStructuredTRI ToBeCurvedStructuredQUAD \
+                 ToBeCurvedStructuredTET ToBeCurvedStructuredHEX \
+                 ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR
+
+OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))
+TESTCASE_LIST := $(subst $(space),$(comma),$(TESTCASE_LIST))
+MESHTYPE_LIST := $(subst $(space),$(comma),$(MESHTYPE_LIST))
 
 
 ### Additional Rules ###
+.PHONY : directories
+directories:
+	mkdir -p cases/{$(OUTPUT_LIST)}/{$(TESTCASE_LIST)}/{$(MESHTYPE_LIST)}
+
+
 .PHONY : clean
 clean:
-	rm $(EXECUTABLE) $(OBJECTS)
+	rm $(EXECUTABLE) $(OBJECTS) $(DEPENDS)
 
 .PHONY : clean_test
 clean_test:
-	rm $(OBJDIR)/test*
+	rm $(OBJDIR)/test* $(DEPDIR)/test*
 
 .PHONY : clean_code
 clean_code:
 	find $(OBJDIR)/ -type f -not -name 'test*' -delete
+	find $(DEPDIR)/ -type f -not -name 'test*' -delete
 
 .PHONY : clean_exec
 clean_exec:
-	rm $(OBJDIR)/main.o
+	rm $(OBJDIR)/main.o $(DEPDIR)/main.o

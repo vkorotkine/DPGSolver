@@ -3,6 +3,17 @@
 
 #include "test_speed_mm_CTN.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <time.h>
+
+#include "Parameters.h"
+
+#include "test_code_mm_CTN.h"
+#include "matrix_functions.h"
+#include "array_norm.h"
+
 /*
  *	Purpose:
  *		Test speed of various implementations (with varying matrix sizes) of mm_CTN_*.

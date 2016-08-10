@@ -3,6 +3,15 @@
 
 #include "memory_constructors.h"
 
+#include <stdlib.h>
+#include <limits.h>
+
+#include "Parameters.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+#include "S_FACET.h"
+
 /*
  *	Purpose:
  *		Allocate memory for and initialize new structures.

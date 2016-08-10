@@ -4,16 +4,6 @@
 #ifndef DPG__element_functions_h__INCLUDED
 #define DPG__element_functions_h__INCLUDED
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
-#include "Database.h"
-#include "Parameters.h"
-
-#include "memory_constructors.h"
-
-
 extern void             initialize_ELEMENTs (void);
 extern void             finalize_ELEMENTs   (void);
 extern unsigned int     get_IndFType        (const unsigned int Eclass, const unsigned int f);

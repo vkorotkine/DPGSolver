@@ -3,6 +3,24 @@
 
 #include "update_FACETs.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "Parameters.h"
+#include "Macros.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+#include "S_FACET.h"
+
+#include "element_functions.h"
+#include "adaptation.h"
+#include "setup_geometry.h"
+#include "setup_normals.h"
+#include "memory_constructors.h"
+#include "memory_destructors.h"
+
 /*
  *	Purpose:
  *		Update FACET information/operators in ELEMENTs which have undergone hp refinement.

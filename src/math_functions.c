@@ -3,6 +3,10 @@
 
 #include "math_functions.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
 /*
  *	Purpose:
  *		Provide several standard math functions:

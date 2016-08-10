@@ -3,6 +3,20 @@
 
 #include "test_unit_matrix_functions.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "mkl.h"
+
+#include "Parameters.h"
+#include "Test.h"
+#include "S_OpCSR.h"
+
+#include "test_support.h"
+#include "array_norm.h"
+#include "matrix_functions.h"
+#include "array_free.h"
+
 /*
  *	Purpose:
  *		Test correctness of implementation of matrix functions.

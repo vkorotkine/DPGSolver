@@ -3,6 +3,24 @@
 
 #include "explicit_FACET_info.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "Parameters.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+#include "S_FACET.h"
+#include "S_OpCSR.h"
+
+#include "element_functions.h"
+#include "sum_factorization.h"
+#include "matrix_functions.h"
+#include "boundary_conditions.h"
+#include "fluxes_inviscid.h"
+#include "array_swap.h"
+
 /*
  *	Purpose:
  *		Evaluate the FACET contributions to the RHS term.

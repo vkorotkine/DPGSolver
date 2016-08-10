@@ -3,6 +3,18 @@
 
 #include "finalize_RHS.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "Parameters.h"
+#include "S_DB.h"
+#include "S_VOLUME.h"
+#include "S_FACET.h"
+
+#include "array_norm.h"
+#include "matrix_functions.h"
+
 /*
  *	Purpose:
  *		Finalize RHS term by summing VOLUME and FACET contributions and multiplying by the inverse mass matrix for

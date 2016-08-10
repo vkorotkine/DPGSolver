@@ -3,6 +3,32 @@
 
 #include "test_integration_L2_projections.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <time.h>
+
+#include <mpi.h>
+#include <petscksp.h>
+
+#include "Parameters.h"
+#include "Test.h"
+#include "S_DB.h"
+#include "S_VOLUME.h"
+
+#include "test_support.h"
+#include "initialization.h"
+#include "setup_parameters.h"
+#include "setup_mesh.h"
+#include "setup_operators.h"
+#include "setup_structures.h"
+#include "setup_geometry.h"
+#include "initialize_test_case.h"
+#include "compute_errors.h"
+#include "adaptation.h"
+#include "array_norm.h"
+#include "memory_free.h"
+
 /*
  *	Purpose:
  *		Test correctness of implementation of L2 projection operators.

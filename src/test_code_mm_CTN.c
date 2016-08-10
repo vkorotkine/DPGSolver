@@ -3,6 +3,13 @@
 
 #include "test_code_mm_CTN.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "mkl.h"
+
+#include "Macros.h"
+
 /*
  *	Purpose:
  *		Provide functions for testing mm_CTN.

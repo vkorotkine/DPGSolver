@@ -3,6 +3,13 @@
 
 #include "initialization.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+ 
+#include "Parameters.h"
+#include "S_DB.h"
+
 /*
  *	Purpose:
  *		Declare global variables and read in parameters from the '.ctrl' file.

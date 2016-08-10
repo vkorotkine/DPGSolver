@@ -3,6 +3,27 @@
 
 #include "setup_geometry.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+ 
+#include "mkl.h"
+
+#include "Parameters.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+#include "S_FACET.h"
+
+#include "element_functions.h"
+#include "matrix_functions.h"
+#include "output_to_paraview.h"
+#include "setup_ToBeCurved.h"
+#include "setup_geom_factors.h"
+#include "setup_normals.h"
+#include "vertices_to_exact_geom.h"
+
 /*
  *	Purpose:
  *		Set up geometry related information.

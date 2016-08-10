@@ -3,6 +3,19 @@
 
 #include "setup_normals.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+ 
+#include "Parameters.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+#include "S_FACET.h"
+
+#include "element_functions.h"
+#include "matrix_functions.h"
+
 /*
  *	Purpose:
  *		Set up normals at integration nodes on element facets.

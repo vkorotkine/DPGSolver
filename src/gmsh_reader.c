@@ -3,6 +3,22 @@
 
 #include "gmsh_reader.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "metis.h"
+#include "parmetis.h"
+#include "petscsys.h"
+#include "mkl.h"
+ 
+#include "Parameters.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+
+#include "array_sort.h"
+#include "array_print.h"
+#include "array_find_index.h"
+
 /*
  *	Purpose:
  *		Read in mesh file in gmsh format.

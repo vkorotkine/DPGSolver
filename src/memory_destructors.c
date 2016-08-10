@@ -3,6 +3,18 @@
 
 #include "memory_destructors.h"
 
+#include <stdlib.h>
+
+#include "Parameters.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+#include "S_FACET.h"
+
+#include "array_free.h"
+#include "element_functions.h"
+#include "adaptation.h"
+
 /*
  *	Purpose:
  *		Free memory of various structures.

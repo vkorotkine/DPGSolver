@@ -4,18 +4,7 @@
 #ifndef DPG__adaptation_h__INCLUDED
 #define DPG__adaptation_h__INCLUDED
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
-#include "Database.h"
-#include "Macros.h"
-
-#include "element_functions.h"
-#include "array_sort.h"
-#include "update_VOLUMEs.h"
-#include "update_FACETs.h"
-#include "memory_free.h"
+#include "S_VOLUME.h"
 
 
 extern void         adapt_hp         (void);

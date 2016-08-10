@@ -4,18 +4,20 @@
 #ifndef DPG__main_h__INCLUDED
 #define DPG__main_h__INCLUDED
 
+#include "S_DB.h"
+#include "Test.h"
+
+
 #ifndef TEST
 
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include <mpi.h>
+#include <mpi.h> // ToBeModified: Likely not use system headers for mpi/petsc
 #include <petscksp.h>
  
-#include "database.h"
-#include "parameters.h"
-#include "test.h"
+#include "Parameters.h"
 
 #include "initialization.h"
 #include "setup_parameters.h"
@@ -33,6 +35,7 @@
 #else // Used if -DTEST is passed as a compilation flag
 
 
+#include <stdio.h>
 #include <time.h>
 
 #include "test_unit_array_find_index.h"

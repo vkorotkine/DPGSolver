@@ -4,13 +4,6 @@
 #ifndef DPG__jacobian_fluxes_inviscid_h__INCLUDED
 #define DPG__jacobian_fluxes_inviscid_h__INCLUDED
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
-#include "Parameters.h"
-
-
 extern void jacobian_flux_inviscid (const unsigned int Nn, const unsigned int Nel, double *W, double *dFdW,
                                     const unsigned int d, const unsigned int Neq);
 

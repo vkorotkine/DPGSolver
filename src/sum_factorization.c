@@ -3,6 +3,16 @@
 
 #include "sum_factorization.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "mkl.h"
+
+#include "Parameters.h"
+
+#include "array_swap.h"
+#include "matrix_functions.h"
+
 /*
  *	Purpose:
  *		Perform operations using sum factorization for Tensor-Product elements.

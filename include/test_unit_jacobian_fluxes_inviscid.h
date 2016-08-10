@@ -4,19 +4,6 @@
 #ifndef DPG__test_unit_jacobian_fluxes_inviscid_h__INCLUDED
 #define DPG__test_unit_jacobian_fluxes_inviscid_h__INCLUDED
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <complex.h>
-
-#include "Parameters.h"
-#include "Test.h"
-
-#include "test_support.h"
-#include "array_norm.h"
-#include "fluxes_inviscid_c.h"
-#include "jacobian_fluxes_inviscid.h"
-
-
 extern void test_unit_jacobian_fluxes_inviscid (void);
 
 #endif // DPG__test_unit_jacobian_fluxes_inviscid_h__INCLUDED

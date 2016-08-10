@@ -3,6 +3,17 @@
 
 #include "test_unit_get_facet_ordering.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "Parameters.h"
+#include "Test.h"
+
+#include "test_support.h"
+#include "array_norm.h"
+#include "solver_functions.h"
+#include "cubature.h"
+
 /*
  *	Purpose:
  *		Test correctness of implementation of get_facet_ordering.

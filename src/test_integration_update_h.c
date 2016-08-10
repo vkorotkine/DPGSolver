@@ -3,6 +3,37 @@
 
 #include "test_integration_update_h.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+
+#include "mkl.h"
+#include <mpi.h>
+#include <petscksp.h>
+
+#include "Parameters.h"
+#include "Macros.h"
+#include "Test.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+#include "S_FACET.h"
+
+#include "test_support.h"
+#include "initialization.h"
+#include "setup_parameters.h"
+#include "setup_mesh.h"
+#include "setup_operators.h"
+#include "setup_structures.h"
+#include "setup_geometry.h"
+#include "initialize_test_case.h"
+#include "adaptation.h"
+#include "array_norm.h"
+#include "array_print.h"
+#include "memory_free.h"
+#include "element_functions.h"
+#include "matrix_functions.h"
+
 /*
  *	Purpose:
  *		Test correctness of implementation of update_VOLUME_hp and update_FACET_hp for h-adaptation. Also ensures that

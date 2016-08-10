@@ -3,6 +3,16 @@
 
 #include "setup_mesh.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "S_DB.h"
+ 
+#include "element_functions.h"
+#include "gmsh_reader.h"
+#include "setup_connectivity.h"
+#include "setup_periodic.h"
+
 /*
  *	Purpose:
  *		Set up mesh related parameters.

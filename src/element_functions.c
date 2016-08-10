@@ -3,6 +3,16 @@
 
 #include "element_functions.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
+#include "Parameters.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+
+#include "memory_constructors.h"
+
 /*
  *	Purpose:
  *		Provide simple element-related functions: (ToBeModified)

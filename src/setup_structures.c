@@ -3,6 +3,24 @@
 
 #include "setup_structures.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+ 
+#include "mkl.h"
+
+#include "Parameters.h"
+#include "Macros.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+#include "S_FACET.h"
+
+#include "array_norm.h"
+#include "memory_constructors.h"
+#include "element_functions.h"
+#include "matrix_functions.h"
+
 /*
  *	Purpose:
  *		Set up VOLUME and FACET structures.

@@ -4,15 +4,7 @@
 #ifndef DPG__setup_normals_h__INCLUDED
 #define DPG__setup_normals_h__INCLUDED
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
- 
-#include "Database.h"
-#include "Parameters.h"
-
-#include "element_functions.h"
-#include "matrix_functions.h"
+#include "S_FACET.h"
 
 
 extern void setup_normals (struct S_FACET *FACET);

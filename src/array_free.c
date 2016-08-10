@@ -3,6 +3,10 @@
 
 #include "array_free.h"
 
+#include "S_OpCSR.h"
+
+#include <stdlib.h>
+ 
 /*
  *	Purpose:
  *		Free dynamically allocated arrays with more than one level of pointer abstraction.

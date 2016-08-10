@@ -3,6 +3,10 @@
 
 #include "test_support.h"
 
+#include <stdio.h>
+
+#include "Test.h"
+
 void test_print(const unsigned int pass)
 {
 	/*

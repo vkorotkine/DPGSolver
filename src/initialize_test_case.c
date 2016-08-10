@@ -3,6 +3,25 @@
 
 #include "initialize_test_case.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <limits.h>
+ 
+#include "Parameters.h"
+#include "Macros.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+
+#include "element_functions.h"
+#include "matrix_functions.h"
+#include "variable_functions.h"
+#include "exact_solutions.h"
+#include "adaptation.h"
+#include "compute_errors.h"
+
 /*
  *	Purpose:
  *		Initialize solution on all VOLUMEs for each test case.

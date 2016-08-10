@@ -3,6 +3,12 @@
 
 #include "test_code_bases.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
+#include "Macros.h"
+
 /*
  *	Purpose:
  *		Provide functions for testing basis_* and grad_basis_*.

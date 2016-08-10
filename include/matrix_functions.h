@@ -4,14 +4,9 @@
 #ifndef DPG__matrix_functions_h__INCLUDED
 #define DPG__matrix_functions_h__INCLUDED
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
 #include "mkl.h"
 
-#include "Database.h"
-#include "Parameters.h"
+#include "S_OpCSR.h"
 
 
 extern double *diag_d          (const double *x, const unsigned int N);

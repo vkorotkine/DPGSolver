@@ -6,16 +6,14 @@
 
 /*
  *	Purpose:
- *		Define global parameters and objects.
+ *		Declares variables in the S_DB struct (DB: (D)ata(B)ase).
  *
  *	Comments:
- *		The notation is presented in the first routine in which parameters appear.
- *		Memory for the S_DB structure is freed in memory_free.c. (ToBeModified)
+ *		The notation is explained in the first routine in which variables appear.
  *
  *	Notation:
  *
  *	References:
- *
  */
 
 struct S_DB {

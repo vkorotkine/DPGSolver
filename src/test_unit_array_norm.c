@@ -3,6 +3,15 @@
 
 #include "test_unit_array_norm.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "Parameters.h"
+#include "Test.h"
+
+#include "test_support.h"
+#include "array_norm.h"
+
 /*
  *	Purpose:
  *		Test correctness of implementation of array_norm.

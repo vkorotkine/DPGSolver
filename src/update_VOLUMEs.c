@@ -3,6 +3,28 @@
 
 #include "update_VOLUMEs.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <limits.h>
+
+#include "mkl.h"
+
+#include "Parameters.h"
+#include "Macros.h"
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+#include "S_FACET.h"
+
+#include "adaptation.h"
+#include "element_functions.h"
+#include "matrix_functions.h"
+#include "setup_ToBeCurved.h"
+#include "setup_geom_factors.h"
+#include "memory_constructors.h"
+
 /*
  *	Purpose:
  *		Update VOLUME related information/operators in ELEMENTs which have undergone hp refinement.
