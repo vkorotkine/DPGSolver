@@ -38,7 +38,7 @@ void vertices_to_exact_geom(void)
 	unsigned int dM1, ve;
 
 	dM1 = d-1;
-	if (strstr(TestCase,"GaussianBump") != NULL) {
+	if (strstr(TestCase,"GaussianBump")) {
 		double F_xy;
 
 		for (ve = 0; ve < NVe; ve++) {
@@ -46,7 +46,7 @@ void vertices_to_exact_geom(void)
 			if (fabs(VeXYZ[ve*d+dM1]-F_xy) < NODETOL_MESH)
 				VeXYZ[ve*d+dM1] = F_xy;
 		}
-	} else if (strstr(TestCase,"SupersonicVortex") != NULL) {
+	} else if (strstr(TestCase,"SupersonicVortex")) {
 		double rIn, rOut, ve_norm2, theta;
 
 		rIn  = 1.0;
@@ -65,7 +65,7 @@ void vertices_to_exact_geom(void)
 				VeXYZ[ve*d+1] = rOut*sin(theta);
 			}
 		}
-	} else if (strstr(TestCase,"dSphericalBump") != NULL) {
+	} else if (strstr(TestCase,"dSphericalBump")) {
 		double r, ve_norm2, theta, phi;
 
 		r = 0.1;
@@ -87,7 +87,7 @@ void vertices_to_exact_geom(void)
 				}
 			}
 		}
-	} else if (strstr(TestCase,"Test") != NULL) {
+	} else if (strstr(TestCase,"Test")) {
 		// No vertex movement required.
 	}
 }

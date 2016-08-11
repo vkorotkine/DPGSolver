@@ -1,8 +1,8 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#ifndef DPG__macros_h__INCLUDED
-#define DPG__macros_h__INCLUDED
+#ifndef DPG__Macros_h__INCLUDED
+#define DPG__Macros_h__INCLUDED
 
 /*
  *	Purpose:
@@ -23,4 +23,4 @@
 #define EXIT_MSG ({ printf("FILE: %s, FUNCTION: %s (LINE: %d)\n",__FILE__,__func__,__LINE__); exit(1); })
 
 
-#endif // DPG__macros_h__INCLUDED
+#endif // DPG__Macros_h__INCLUDED

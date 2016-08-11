@@ -3,10 +3,36 @@
 
 #include "main.h"
 
+#include "S_DB.h"
+#include "Test.h"
+
 struct S_DB   DB;
 struct S_TEST TestDB;
 
+
 #ifndef TEST
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+#include <mpi.h> // ToBeModified: Likely not use system headers for mpi/petsc
+#include <petscksp.h>
+ 
+#include "Parameters.h"
+#include "Macros.h"
+
+#include "initialization.h"
+#include "setup_parameters.h"
+#include "setup_mesh.h"
+#include "setup_operators.h"
+#include "setup_structures.h"
+#include "setup_geometry.h"
+#include "initialize_test_case.h"
+#include "output_to_paraview.h"
+#include "solver_explicit.h"
+//#include "solver_implicit.h"
+#include "compute_errors.h"
+#include "memory_free.h"
 
 /*
  *	Purpose:
@@ -109,9 +135,9 @@ int main(int nargc, char **argv)
 	if (!DB.MPIrank)
 		printf("  Nonlinear Iterative Solve\n\n");
 
-	if (strstr(DB.SolverType,"Explicit") != NULL) {
+	if (strstr(DB.SolverType,"Explicit")) {
 		solver_explicit();
-	} else if (strstr(DB.SolverType,"Implicit") != NULL) {
+	} else if (strstr(DB.SolverType,"Implicit")) {
 		; //solver_implicit();
 	} else {
 		printf("Error: Unsupported SolverType in dpg_solver.\n"), EXIT_MSG;
@@ -160,6 +186,31 @@ int main(int nargc, char **argv)
 }
 
 #else // Run if -DTEST is passed as a compilation flag
+
+#include <stdio.h>
+#include <time.h>
+
+#include "test_unit_array_find_index.h"
+#include "test_unit_array_norm.h"
+#include "test_unit_array_sort.h"
+#include "test_unit_array_swap.h"
+#include "test_unit_math_functions.h"
+#include "test_unit_matrix_functions.h"
+#include "test_unit_bases.h"
+#include "test_unit_grad_bases.h"
+#include "test_unit_cubature.h"
+#include "test_unit_find_periodic_connections.h"
+#include "test_unit_sum_factorization.h"
+#include "test_unit_plotting.h"
+#include "test_unit_fluxes_inviscid.h"
+#include "test_unit_jacobian_fluxes_inviscid.h"
+#include "test_unit_get_facet_ordering.h"
+
+#include "test_integration_L2_projections.h"
+#include "test_integration_update_h.h"
+
+#include "test_speed_array_swap.h"
+#include "test_speed_mm_CTN.h"
 
 /*
  *	Purpose:

@@ -267,7 +267,7 @@ void setup_structures(void)
 				VOLUME->NsubF[f] = 1;
 				gf = VToGF[v*NfMax+f];
 				if (FoundFACET[gf] == NULL) {
-					if (DB.FACET != NULL) {
+					if (DB.FACET) {
 						FACET[0]->next = New_FACET();
 						FACET[0]       = FACET[0]->next;
 					} else {
@@ -381,7 +381,7 @@ void setup_structures(void)
 		printf("Error: Found too many curved VOLUMEs.\n"), exit(1);
 
 	// Initialize VOLUME connectivity
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		// Initialize to NV (impossible value)
 		for (fh = 0, fhMax = NFMAX*NFREFMAX; fh < fhMax; fh++)
 			VOLUME->neigh[fh] = NV;
@@ -395,7 +395,7 @@ void setup_structures(void)
 		}
 	}
 
-	for (FACET[0] = DB.FACET; FACET[0] != NULL; FACET[0] = FACET[0]->next) {
+	for (FACET[0] = DB.FACET; FACET[0]; FACET[0] = FACET[0]->next) {
 // May potentially have a problem for PYR-HEX interface due to PYR nodes being ordered for symmetry while QUAD nodes are
 // ordered for TP extension. (ToBeDeleted)
 // Probably not as the FACET nodes would not be related to the PYR node ordering.
@@ -481,7 +481,7 @@ printf("InOut: %d %d\n",IndOrdInOut,IndOrdOutIn);
 
 /*
 for (i = 0, iMax = NTVgrp; iMax--; i++) {
-	for (VOLUME = Vgrp[i]; VOLUME != NULL; VOLUME = VOLUME->grpnext) {
+	for (VOLUME = Vgrp[i]; VOLUME; VOLUME = VOLUME->grpnext) {
 		printf("%d %d %d %d\n",i,VOLUME->Eclass,VOLUME->P,VOLUME->curved);
 	}
 	printf("\t\t%p\n",Vgrp[i]);
@@ -498,5 +498,5 @@ for (i = 0, iMax = NTVgrp; iMax--; i++) {
 	DB.NVgrp    = NVgrp;
 	DB.Vgrp     = Vgrp;
 
-//VOLUME = DB.VOLUME; while(VOLUME != NULL) printf("%d %d\n",VOLUME->type,VOLUME->curved), VOLUME = VOLUME->next;
+//VOLUME = DB.VOLUME; while(VOLUME) printf("%d %d\n",VOLUME->type,VOLUME->curved), VOLUME = VOLUME->next;
 }

@@ -62,12 +62,12 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 	XYZ = malloc (NvnG*d * sizeof *XYZ); // keep
 	VOLUME->XYZ = XYZ;
 
-	if (strstr(TestCase,"dSphericalBump")   != NULL ||
-	    strstr(TestCase,"PorousdSphere")    != NULL ||
-	    strstr(TestCase,"SupersonicVortex") != NULL) {
+	if (strstr(TestCase,"dSphericalBump") ||
+	    strstr(TestCase,"PorousdSphere")  ||
+	    strstr(TestCase,"SupersonicVortex")) {
 			ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
-	} else if (strstr(TestCase,"GaussianBump")     != NULL ||
-	           strstr(TestCase,"PolynomialBump")   != NULL) {
+	} else if (strstr(TestCase,"GaussianBump") ||
+	           strstr(TestCase,"PolynomialBump")) {
 			ToBeCurved_TP(NvnG,XYZ_S,XYZ);
 	} else if (strstr(TestCase,"PeriodicVortex") ||
 	           strstr(TestCase,"Test")) {
@@ -133,7 +133,7 @@ static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZ_S, double *XY
 		for (dim = 0; dim < d; dim++)
 			XYZn[dim] = XYZ_S[Nn*dim+n];
 
-		if (d == 2 || strstr(TestCase,"SupersonicVortex") != NULL)
+		if (d == 2 || strstr(TestCase,"SupersonicVortex"))
 			XYZn[2] = 0.0;
 
 		for (dim = 0; dim < d; dim++) {
@@ -514,14 +514,14 @@ static unsigned int is_in_blend_region(double XYZn[3])
 	zBounds = malloc(5 * sizeof *zBounds); // free
 
 	Inside = 0;
-	if (strstr(TestCase,"GaussianBump") != NULL) {
+	if (strstr(TestCase,"GaussianBump")) {
 		get_blend_bounds(XYZn[0],XYZn[2],&xLoc,&zLoc,xBounds,zBounds);
 		xR = xBounds[3];
 		zR = zBounds[3];
 
 		if (fabs(XYZn[0]) < xR-NODETOL && fabs(XYZn[2]) < zR-NODETOL)
 			Inside = u1;
-	} else if (strstr(TestCase,"PolynomialBump") != NULL) {
+	} else if (strstr(TestCase,"PolynomialBump")) {
 		get_blend_bounds(XYZn[0],XYZn[2],&xLoc,&zLoc,xBounds,zBounds);
 
 		if (BumpOrder[0] <= 2)
@@ -557,10 +557,10 @@ static void get_blend_bounds(const double Xn, const double Zn, unsigned int *xLo
 	// Standard datatypes
 	unsigned int xLocOut, zLocOut;
 
-	if (strstr(TestCase,"GaussianBump") != NULL) {
+	if (strstr(TestCase,"GaussianBump")) {
 		xBounds[0] = -100.0; xBounds[1] = -4.0; xBounds[2] = 0.0; xBounds[3] = 4.0; xBounds[4] = 100.0;
 		zBounds[0] = -100.0; zBounds[1] = -4.0; zBounds[2] = 0.0; zBounds[3] = 4.0; zBounds[4] = 100.0;
-	} else if (strstr(TestCase,"PolynomialBump") != NULL) {
+	} else if (strstr(TestCase,"PolynomialBump")) {
 		if (BumpOrder[0] <= 2) {
 			xBounds[0] = -2.0; xBounds[1] = -1.0; xBounds[2] = 0.0; xBounds[3] = 1.0; xBounds[4] = 2.0;
 			zBounds[0] = -2.0; zBounds[1] = -1.0; zBounds[2] = 0.0; zBounds[3] = 1.0; zBounds[4] = 2.0;
@@ -626,7 +626,7 @@ static double get_arc_length(const double XL, const double XR, const double Z, c
 	f_XZ = NULL;
 
 	AnalyticalArcLen = 0;
-	if (strstr(TestCase,"PolynomialBump") != NULL) {
+	if (strstr(TestCase,"PolynomialBump")) {
 		if (array_norm_ui(2,BumpOrder,"Inf") <= 2)
 			AnalyticalArcLen = 1;
 	}
@@ -773,7 +773,7 @@ static double *eval_TP_function(const unsigned int Nn, const double *XZ, const u
 		get_blend_bounds(X,Z,&xLoc,&zLoc,xBounds,zBounds);
 
 		// Compute function output in the correct region
-		if (strstr(TestCase,"GaussianBump") != NULL) {
+		if (strstr(TestCase,"GaussianBump")) {
 			// f2(X) = f3(X) = a*exp(-(X-b).^2/(2*c^2))
 			// f2(Z) = f3(Z) = a*exp(-(Z-b).^2/(2*c^2))
 			// f1(X),f4(X),f1(Z),f4(Z): Not Needed
@@ -799,7 +799,7 @@ static double *eval_TP_function(const unsigned int Nn, const double *XZ, const u
 			} else {
 				printf("Error: Invalid function evaluation for GaussianBump.\n"), EXIT_MSG;
 			}
-		} else if (strstr(TestCase,"PolynomialBump") != NULL) {
+		} else if (strstr(TestCase,"PolynomialBump")) {
 			h = 0.5;
 
 			if (array_norm_ui(2,BumpOrder,"Inf") <= 2) {

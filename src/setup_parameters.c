@@ -298,7 +298,7 @@ void setup_parameters()
 				PFrc[P][0] = P;
 			}
 
-			if (strstr(DB.NodeType,"GLL") != NULL) {
+			if (strstr(DB.NodeType,"GLL")) {
 				if (P == 0)
 					strcpy(NodeTypeS[P][0],"GL");
 				else
@@ -327,7 +327,7 @@ void setup_parameters()
 				PFrc[P][1] = P;
 			}
 
-			if (strstr(DB.NodeType,"AO") != NULL) {
+			if (strstr(DB.NodeType,"AO")) {
 				if (P == 0) {
 					strcpy(NodeTypeS[P][1],"WSH");
 				} else {
@@ -350,7 +350,7 @@ void setup_parameters()
 			}
 
 			// Interpolation (PYR)
-			if (strstr(DB.NodeType,"GLL") != NULL) {
+			if (strstr(DB.NodeType,"GLL")) {
 				if (P == 0)
 					strcpy(NodeTypeS[P][2],"GL");
 				else
@@ -433,7 +433,7 @@ void setup_parameters()
 			PFrs[P][0] = P;
 			PFrc[P][0] = P;
 
-			if (strstr(DB.NodeType,"GLL") != NULL && P > 0) {
+			if (strstr(DB.NodeType,"GLL") && P > 0) {
 				/*
 				 * Brian's original code parameters
 				 * This is the only version of the scheme where all nodes are collocated (i.e. FACET nodes are
@@ -475,7 +475,7 @@ void setup_parameters()
 			strcpy(NodeTypeIvs[P][1],"WSH");
 			strcpy(NodeTypeIvc[P][1],"WSH");
 			if (d == 2) {
-				if (strstr(DB.NodeType,"GLL") != NULL && P > 0) {
+				if (strstr(DB.NodeType,"GLL") && P > 0) {
 					strcpy(NodeTypeIfs[P][1],"GLL");
 					strcpy(NodeTypeIfc[P][1],"GLL");
 				} else {
@@ -516,12 +516,12 @@ void setup_parameters()
 	}
 
 // Check break-even with standard BLAS call (ToBeDeleted)
-	if (strstr(DB.BasisType,"Nodal") != NULL) {
+	if (strstr(DB.BasisType,"Nodal")) {
 		for (i = 0, iMax = NEC+1; i < iMax; i++) {
-			if ((i == 0 && strstr(DB.NodeType,"GLL")    != NULL) ||
-			    (i == 1 && strstr(DB.NodeType,"AO")     != NULL) ||
-			    (i == 2 && strstr(DB.NodeType,"GLL")    != NULL) ||
-			    (i == 3 && strstr(DB.NodeType,"GLL-AO") != NULL))
+			if ((i == 0 && strstr(DB.NodeType,"GLL")) ||
+			    (i == 1 && strstr(DB.NodeType,"AO"))  ||
+			    (i == 2 && strstr(DB.NodeType,"GLL")) ||
+			    (i == 3 && strstr(DB.NodeType,"GLL-AO")))
 					VFPartUnity[i] = 1;
 		}
 	}

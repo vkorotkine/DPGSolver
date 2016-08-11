@@ -1125,9 +1125,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	ChiRefGs_vGs = basis(PGs,E_rst_vC,NvnGs[1],&Nbf,dE); // free
 
-	if (strstr(BasisType,"Modal") != NULL)
+	if (strstr(BasisType,"Modal"))
 		ChiGs_vGs = ChiRefGs_vGs;
-	else if (strstr(BasisType,"Nodal") != NULL)
+	else if (strstr(BasisType,"Nodal"))
 		ChiGs_vGs = IGs;
 
 	ChiRefInvGs_vGs = inverse_d(NvnGs[1],NvnGs[1],ChiRefGs_vGs,IGs); // free
@@ -1195,9 +1195,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 			IS         = identity_d(NvnS[Pb]);  // free
 			ChiRefS_vS = basis(Pb,rst_vS[0],NvnS[Pb],&Nbf,dE); // free
-			if (strstr(BasisType,"Modal") != NULL) {
+			if (strstr(BasisType,"Modal")) {
 				ChiS_vS[P][Pb][0] = ChiRefS_vS;
-			} else if (strstr(BasisType,"Nodal") != NULL) {
+			} else if (strstr(BasisType,"Nodal")) {
 				ChiS_vS[P][Pb][0] = IS;
 			}
 
@@ -1226,11 +1226,11 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		ChiRefCs_vCs = basis(PCs[P][Eclass],rst_vCs,NvnCs[P],&Nbf,dE); // free
 		ChiRefCc_vCc = basis(PCc[P][Eclass],rst_vCc,NvnCc[P],&Nbf,dE); // free
 
-		if (strstr(BasisType,"Modal") != NULL) {
+		if (strstr(BasisType,"Modal")) {
 			ChiGc_vGc = ChiRefGc_vGc;
 			ChiCs_vCs = ChiRefCs_vCs;
 			ChiCc_vCc = ChiRefCc_vCc;
-		} else if (strstr(BasisType,"Nodal") != NULL) {
+		} else if (strstr(BasisType,"Nodal")) {
 			ChiGc_vGc = IGc;
 			ChiCs_vCs = ICs[P][P][0];
 			ChiCc_vCc = ICc[P][P][0];
@@ -3253,7 +3253,7 @@ void setup_operators(void)
 		setup_ELEMENT_FACET_ordering(EType);
 
 	// LINE (Includes TP Class)
-	if (!DB.MPIrank && !TEST)
+	if (!DB.MPIrank && !DB.Testing)
 		printf("    LINE\n");
 	EType = LINE;
 	setup_ELEMENT_VeF(EType);
@@ -3267,7 +3267,7 @@ void setup_operators(void)
 	// QUAD
 	EType = QUAD;
 	if (is_ELEMENT_present(EType)) {
-		if (!DB.MPIrank && !TEST)
+		if (!DB.MPIrank && !DB.Testing)
 			printf("    QUAD\n");
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
@@ -3280,7 +3280,7 @@ void setup_operators(void)
 	// HEX
 	EType = HEX;
 	if (is_ELEMENT_present(EType)) {
-		if (!DB.MPIrank && !TEST)
+		if (!DB.MPIrank && !DB.Testing)
 			printf("    HEX\n");
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
@@ -3291,7 +3291,7 @@ void setup_operators(void)
 	// TRI
 	EType = TRI;
 	if (is_ELEMENT_present(EType)) {
-		if (!DB.MPIrank && !TEST)
+		if (!DB.MPIrank && !DB.Testing)
 			printf("    TRI\n");
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
@@ -3305,7 +3305,7 @@ void setup_operators(void)
 	// TET
 	EType = TET;
 	if (is_ELEMENT_present(EType)) {
-		if (!DB.MPIrank && !TEST)
+		if (!DB.MPIrank && !DB.Testing)
 			printf("    TET\n");
 
 		if (is_ELEMENT_present(PYR)) {
@@ -3330,7 +3330,7 @@ void setup_operators(void)
 		if (!is_ELEMENT_present(TET))
 			printf("Error: TETs must be set up if PYRs are used.\n"), EXIT_MSG;
 
-		if (!DB.MPIrank && !TEST)
+		if (!DB.MPIrank && !DB.Testing)
 			printf("    PYR\n");
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
@@ -3341,7 +3341,7 @@ void setup_operators(void)
 	// WEDGE
 	EType = WEDGE;
 	if (is_ELEMENT_present(EType)) {
-		if (!DB.MPIrank && !TEST)
+		if (!DB.MPIrank && !DB.Testing)
 			printf("    WEDGE\n");
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);

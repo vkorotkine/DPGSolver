@@ -232,7 +232,7 @@ void initialize_ELEMENTs(void)
 	// No additional ELEMENTs
 
 	// Set pointers for ELEMENT classes and ELEMENT FACETs
-	for (ELEMENT = DB.ELEMENT; ELEMENT != NULL; ELEMENT = ELEMENT->next) {
+	for (ELEMENT = DB.ELEMENT; ELEMENT; ELEMENT = ELEMENT->next) {
 		type = ELEMENT->type;
 		if (type == POINT) {
 			ELEMENT->ELEMENTclass[0]  = get_ELEMENT_Eclass(ELEMENT->type,0);
@@ -369,7 +369,7 @@ void finalize_ELEMENTs(void)
 	}
 
 	// Ensure that 2D ELEMENTs are marked correctly on 3D mixed meshes
-	if (!DB.MPIrank && !TEST)
+	if (!DB.MPIrank && !DB.Testing)
 		printf("      ELEMENT types present: ");
 
 	for (ELEMENT = DB.ELEMENT; ELEMENT; ELEMENT = ELEMENT->next) {
@@ -378,11 +378,11 @@ void finalize_ELEMENTs(void)
 			ELEMENT->present = 1;
 
 		if (ELEMENT->present) {
-			if (!DB.MPIrank && !TEST)
+			if (!DB.MPIrank && !DB.Testing)
 				printf("%d, ",type);
 		}
 	}
-	if (!DB.MPIrank && !TEST)
+	if (!DB.MPIrank && !DB.Testing)
 		printf("\n");
 
 	if (d == 1) {
@@ -437,7 +437,7 @@ unsigned int is_ELEMENT_present(const unsigned int type)
 {
 	struct S_ELEMENT *ELEMENT = DB.ELEMENT;
 
-	while (ELEMENT != NULL) {
+	while (ELEMENT) {
 		if (type == ELEMENT->type) {
 			if (ELEMENT->present)
 				return 1;
@@ -467,7 +467,7 @@ struct S_ELEMENT *get_ELEMENT_type(const unsigned int type)
 {
 	struct S_ELEMENT *ELEMENT = DB.ELEMENT;
 
-	while (ELEMENT != NULL) {
+	while (ELEMENT) {
 		if (type == ELEMENT->type)
 			return ELEMENT;
 
@@ -481,21 +481,21 @@ struct S_ELEMENT *get_ELEMENT_Eclass(const unsigned int type, const unsigned int
 	struct S_ELEMENT *ELEMENT = DB.ELEMENT;
 
 	if (type == POINT || type == LINE || type == QUAD || type == HEX || (type == WEDGE && IndEclass == 1)) {
-		while (ELEMENT != NULL) {
+		while (ELEMENT) {
 			if (ELEMENT->type == LINE)
 				return ELEMENT;
 
 			ELEMENT = ELEMENT->next;
 		}
 	} else if (type == TRI || type == TET || (type == WEDGE && IndEclass == 0)) {
-		while (ELEMENT != NULL) {
+		while (ELEMENT) {
 			if (ELEMENT->type == TRI)
 				return ELEMENT;
 
 			ELEMENT = ELEMENT->next;
 		}
 	} else if (type == PYR) {
-		while (ELEMENT != NULL) {
+		while (ELEMENT) {
 			if (ELEMENT->type == PYR)
 				return ELEMENT;
 

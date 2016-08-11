@@ -1,8 +1,8 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#ifndef DPG__parameters_h__INCLUDED
-#define DPG__parameters_h__INCLUDED
+#ifndef DPG__Parameters_h__INCLUDED
+#define DPG__Parameters_h__INCLUDED
 
 /*
  *	Purpose:
@@ -161,4 +161,4 @@
 #define STRLEN_MAX 508
 
 
-#endif // DPG__parameters_h__INCLUDED
+#endif // DPG__Parameters_h__INCLUDED

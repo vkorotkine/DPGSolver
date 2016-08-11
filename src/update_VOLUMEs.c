@@ -457,7 +457,7 @@ void update_VOLUME_list(void)
 			adapt_type = VOLUMEnext->adapt_type;
 			if (adapt_type == HREFINE) {
 				VOLUME->next = VOLUMEnext->child0;
-				for (VOLUMEc = VOLUME->next; VOLUMEc->next != NULL; VOLUMEc = VOLUMEc->next)
+				for (VOLUMEc = VOLUME->next; VOLUMEc->next; VOLUMEc = VOLUMEc->next)
 					;
 				VOLUMEc->next = VOLUMEnext->next;
 			} else if (adapt_type == HCOARSE) {
@@ -491,7 +491,7 @@ void update_Vgrp(void)
 		for (i = 0; i < NTVgrp; i++)
 			NVgrp[i] = 0;
 
-		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			Eclass = VOLUME->Eclass;
 			P      = VOLUME->P;
 			curved = VOLUME->curved;

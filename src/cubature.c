@@ -73,7 +73,7 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 	wOut = malloc(N * sizeof *wOut); // free
 
 	// Note: GLL must be first as "GL" is in "GLL"
-	if (strstr(NodeType,"GLL") != NULL) {
+	if (strstr(NodeType,"GLL")) {
 		if (P == 0)
 			printf("Error: Cannot use GLL nodes of order P0.\n"), exit(1);
 
@@ -126,7 +126,7 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 
 // array_print_d(1,N,r,'R');
 // array_print_d(1,N,wOut,'R');
-	} else if (strstr(NodeType,"GL") != NULL) {
+	} else if (strstr(NodeType,"GL")) {
 		// Build the companion matrix CM
 		/* CM is defined such that det(rI-CM)=P_n(r), with P_n(r) being the Legendre poynomial under consideration.
 		 * Moreover, CM is constructed in such a way so as to be symmetrical.
@@ -338,14 +338,14 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 	w_read = malloc(0 * sizeof *w_read); // silence (ToBeModified: change this to NULL and remove free below)
 	wOut = NULL;
 
-	if (strstr(NodeType,"AO") != NULL) {
+	if (strstr(NodeType,"AO")) {
 		if (return_w)
 			printf("Error: Invalid value for return_w in cubature_TRI.\n"), exit(1);
 
 		PMax = 15;
-	} else if (strstr(NodeType,"WSH") != NULL) {
+	} else if (strstr(NodeType,"WSH")) {
 		PMax = 8;
-	} else if (strstr(NodeType,"WV") != NULL) {
+	} else if (strstr(NodeType,"WV")) {
 		PMax = 20;
 	}
 
@@ -579,14 +579,14 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 	PMax = 0; Nsymms = 0; Ngroups = 0;
 	w_read = malloc(0 * sizeof *w_read); // silence
 
-	if (strstr(NodeType,"AO") != NULL) {
+	if (strstr(NodeType,"AO")) {
 		if (return_w)
 			printf("Error: Invalid value for return_w in cubature_TET.\n"), exit(1);
 
 		PMax = 15;
-	} else if (strstr(NodeType,"WSH") != NULL) {
+	} else if (strstr(NodeType,"WSH")) {
 		PMax = 6;
-	} else if (strstr(NodeType,"WV") != NULL) {
+	} else if (strstr(NodeType,"WV")) {
 		PMax = 10;
 	}
 
@@ -917,7 +917,7 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	w_read = malloc(0 * sizeof *w_read); // silence
 	wOut = NULL;
 
-	if (strstr(NodeType,"GL") != NULL) {
+	if (strstr(NodeType,"GL")) {
 		if (strstr(NodeType,"W") == NULL) {
 			if (return_w)
 				printf("Error: Invalid value for return_w in cubature_PYR.\n"), exit(1);
@@ -926,7 +926,7 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 		} else {
 			PMax = 6;
 		}
-	} else if (strstr(NodeType,"WV") != NULL) {
+	} else if (strstr(NodeType,"WV")) {
 		if (strstr(NodeType,"HToP") == NULL)
 			PMax = 10;
 		else

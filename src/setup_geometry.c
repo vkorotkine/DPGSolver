@@ -125,9 +125,9 @@ void setup_geometry(void)
 	// Initialize DB Parameters
 	char         *MeshType = DB.MeshType;
 	unsigned int ExactGeom = DB.ExactGeom,
-	             d         = DB.d,
+	             d         = DB.d;
 
-	             Testing   = DB.Testing;
+	unsigned int PrintTesting = 0;
 
 	// Standard datatypes
 	unsigned int dim, P, vn,
@@ -145,7 +145,7 @@ void setup_geometry(void)
 
 	// Modify vertex locations if exact geometry is known
 	if (ExactGeom) {
-		if(!DB.MPIrank && !TEST) {
+		if(!DB.MPIrank && !DB.Testing) {
 			printf("    Modify vertex nodes if exact geometry is known\n");
 			printf("\n\n*** Verify the implementation. ***\n\n\n");
 		}
@@ -159,7 +159,7 @@ void setup_geometry(void)
 	 * performed vectorized operations on each type of element at once.
 	 */
 
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		P      = VOLUME->P;
 		XYZ_vC = VOLUME->XYZ_vC;
 
@@ -193,7 +193,7 @@ void setup_geometry(void)
 		VOLUME->XYZ_S = XYZ_S;
 	}
 
-	if (Testing)
+	if (PrintTesting)
 		output_to_paraview("ZTest_Geom_straight"); // Output straight coordinates to paraview
 
 	// Set up curved geometry nodes
@@ -209,22 +209,22 @@ void setup_geometry(void)
 			setup_straight(VOLUME);
 	}
 
-	if (!DB.MPIrank && !TEST)
+	if (!DB.MPIrank && !DB.Testing)
 		printf("    Set FACET XYZ\n");
-	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next)
+	for (FACET = DB.FACET; FACET; FACET = FACET->next)
 		setup_FACET_XYZ(FACET);
 
-	if (!DB.MPIrank && !TEST)
+	if (!DB.MPIrank && !DB.Testing)
 		printf("    Set up geometric factors\n");
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next)
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 		setup_geom_factors(VOLUME);
 
-	if (!DB.MPIrank && !TEST)
+	if (!DB.MPIrank && !DB.Testing)
 		printf("    Set up normals\n");
-	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next)
+	for (FACET = DB.FACET; FACET; FACET = FACET->next)
 		setup_normals(FACET);
 
-	if (Testing) {
+	if (PrintTesting) {
 		output_to_paraview("ZTest_Geom_curved"); // Output curved coordinates to paraview
 		output_to_paraview("ZTest_Normals");     // Output normals to paraview
 	}

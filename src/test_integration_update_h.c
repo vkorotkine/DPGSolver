@@ -523,7 +523,7 @@ static void check_correspondence(unsigned int *pass)
 	OPS = malloc(sizeof *OPS); // free
 
 	*pass = 1;
-	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
+	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 		VOLUME = FACET->VIn;
 		Vf     = FACET->VfIn;
 
@@ -621,13 +621,13 @@ static void run_test(unsigned int *pass, const char *test_type)
 {
 	struct S_VOLUME *VOLUME;
 
-	if (strstr(test_type,"FullREFINE") != NULL) {
-		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+	if (strstr(test_type,"FullREFINE")) {
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			VOLUME->Vadapt = 1;
 			VOLUME->adapt_type = HREFINE;
 		}
 	} else if (strstr(test_type,"FullCOARSE")) {
-		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			VOLUME->Vadapt = 1;
 			VOLUME->adapt_type = HCOARSE;
 		}

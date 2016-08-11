@@ -86,20 +86,20 @@ void test_unit_matrix_identity(void)
 	 */
 
 	unsigned int N = 4;
-	double *Imat, // ToBeModified (name)
+	double *I,
 	       I4[16] = {1.0, 0.0, 0.0 , 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
 
-	Imat = identity_d(N); // free
+	I = identity_d(N); // free
 
 	pass = 0;
-	if (array_norm_diff_d(16,Imat,I4,"Inf") < EPS)
+	if (array_norm_diff_d(16,I,I4,"Inf") < EPS)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("matrix_identity_d:                               ");
 	test_print(pass);
 
-	free(Imat);
+	free(I);
 }
 
 void test_unit_matrix_inverse(void)

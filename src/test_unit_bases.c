@@ -274,14 +274,14 @@ void test_unit_basis_TP(void)
 	 *			M = ChiRef_rst'*W*ChiRef_rst = I with error in highest order entries (GLL)
 	 */
 
-	double *ChiRef_rst, *W, *WChiRef_rst, *M, *Imat;
+	double *ChiRef_rst, *W, *WChiRef_rst, *M, *I;
 
 	// dE = 1
 	dE = 1;
 
 	P = 4;
 	Nbf = pow(P+1,dE);
-	Imat = identity_d(Nbf); // free
+	I = identity_d(Nbf); // free
 
 	// GL
 
@@ -296,7 +296,7 @@ void test_unit_basis_TP(void)
 	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS)
+	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -323,7 +323,7 @@ void test_unit_basis_TP(void)
 	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2)-1,M,Imat,"Inf") < EPS*10)
+	if (array_norm_diff_d(pow(Nbf,2)-1,M,I,"Inf") < EPS*10)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -337,14 +337,14 @@ void test_unit_basis_TP(void)
 	free(WChiRef_rst);
 	free(M);
 
-	free(Imat);
+	free(I);
 
 	// dE = 2
 	dE = 2;
 
 	P = 4;
 	Nbf = pow(P+1,dE);
-	Imat = identity_d(Nbf); // free
+	I = identity_d(Nbf); // free
 
 	// GL
 
@@ -359,7 +359,7 @@ void test_unit_basis_TP(void)
 	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS)
+	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -373,14 +373,14 @@ void test_unit_basis_TP(void)
 	free(WChiRef_rst);
 	free(M);
 
-	free(Imat);
+	free(I);
 
 	// dE = 3
 	dE = 3;
 
 	P = 4;
 	Nbf = pow(P+1,dE);
-	Imat = identity_d(Nbf); // free
+	I = identity_d(Nbf); // free
 
 	// GL
 
@@ -395,7 +395,7 @@ void test_unit_basis_TP(void)
 	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS*10)
+	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*10)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -409,7 +409,7 @@ void test_unit_basis_TP(void)
 	free(WChiRef_rst);
 	free(M);
 
-	free(Imat);
+	free(I);
 }
 
 /*
@@ -797,7 +797,7 @@ void test_unit_basis_SI(void)
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I (WV)
 	 */
 
-	double *ChiRef_rst, *W, *WChiRef_rst, *M, *Imat; // ToBeModified (name)
+	double *ChiRef_rst, *W, *WChiRef_rst, *M, *I;
 
 	// d = 2
 	d = 2;
@@ -805,7 +805,7 @@ void test_unit_basis_SI(void)
 	// P = 2
 	P = 2;
 	Nbf = 6;
-	Imat = identity_d(Nbf); // free
+	I = identity_d(Nbf); // free
 
 	// WSH
 	Prst = P;
@@ -820,7 +820,7 @@ void test_unit_basis_SI(void)
 	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS*1e3)
+	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e3)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -847,7 +847,7 @@ void test_unit_basis_SI(void)
 	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS*1e2)
+	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -861,12 +861,12 @@ void test_unit_basis_SI(void)
 	free(WChiRef_rst);
 	free(M);
 
-	free(Imat);
+	free(I);
 
 	// P = 3
 	P = 3;
 	Nbf = 10;
-	Imat = identity_d(Nbf); // free
+	I = identity_d(Nbf); // free
 
 	// WSH
 	Prst = P;
@@ -882,7 +882,7 @@ void test_unit_basis_SI(void)
 
 	if (printMI) {
 		array_print_d(Nbf,Nbf,M,'R');
-		array_print_d(Nbf,Nbf,Imat,'R');
+		array_print_d(Nbf,Nbf,I,'R');
 	}
 
 	free(rst);
@@ -905,7 +905,7 @@ void test_unit_basis_SI(void)
 	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS*1e2)
+	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -919,7 +919,7 @@ void test_unit_basis_SI(void)
 	free(WChiRef_rst);
 	free(M);
 
-	free(Imat);
+	free(I);
 
 	// d = 3
 	d = 3;
@@ -927,7 +927,7 @@ void test_unit_basis_SI(void)
 	// P = 1
 	P = 1;
 	Nbf = 4;
-	Imat = identity_d(Nbf); // free
+	I = identity_d(Nbf); // free
 
 	// WSH
 	Prst = P;
@@ -942,7 +942,7 @@ void test_unit_basis_SI(void)
 	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS*1e3)
+	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e3)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -969,7 +969,7 @@ void test_unit_basis_SI(void)
 	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS*1e2)
+	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -983,12 +983,12 @@ void test_unit_basis_SI(void)
 	free(WChiRef_rst);
 	free(M);
 
-	free(Imat);
+	free(I);
 
 	// P = 2
 	P = 2;
 	Nbf = 10;
-	Imat = identity_d(Nbf); // free
+	I = identity_d(Nbf); // free
 
 	// WSH
 	Prst = P;
@@ -1004,7 +1004,7 @@ void test_unit_basis_SI(void)
 
 	if (printMI) {
 		array_print_d(Nbf,Nbf,M,'R');
-		array_print_d(Nbf,Nbf,Imat,'R');
+		array_print_d(Nbf,Nbf,I,'R');
 	}
 
 	free(rst);
@@ -1027,7 +1027,7 @@ void test_unit_basis_SI(void)
 	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS*1e2)
+	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -1041,7 +1041,7 @@ void test_unit_basis_SI(void)
 	free(WChiRef_rst);
 	free(M);
 
-	free(Imat);
+	free(I);
 }
 
 /*
@@ -1231,14 +1231,14 @@ void test_unit_basis_PYR(void)
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I
 	 */
 
-	double *ChiRef_rst, *W, *WChiRef_rst, *M, *Imat; // ToBeModified (name)
+	double *ChiRef_rst, *W, *WChiRef_rst, *M, *I;
 
 	d = 3;
 
 	// P = 3
 	P = 3;
 	Nbf = 30;
-	Imat = identity_d(Nbf); // free
+	I = identity_d(Nbf); // free
 
 	// GL (HEX To PYR)
 	Prst = P+1;
@@ -1253,7 +1253,7 @@ void test_unit_basis_PYR(void)
 	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS*1e3)
+	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e3)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -1280,7 +1280,7 @@ void test_unit_basis_PYR(void)
 	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,Imat,"Inf") < EPS*1e2)
+	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -1294,5 +1294,5 @@ void test_unit_basis_PYR(void)
 	free(WChiRef_rst);
 	free(M);
 
-	free(Imat);
+	free(I);
 }

@@ -81,7 +81,7 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, dou
 			rhoEx[i] = rhoInf;
 			sEx[i]   = pEx[i]/pow(rhoEx[i],GAMMA);
 		}
-	} else if (strstr(TestCase,"SupersonicVortex") != NULL) {
+	} else if (strstr(TestCase,"SupersonicVortex")) {
 		// Initialize DB Parameters
 		double rIn   = DB.rIn,
 		       MIn   = DB.MIn,

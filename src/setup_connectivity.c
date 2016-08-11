@@ -360,7 +360,7 @@ void setup_connectivity(void)
 	DB.VC     = VC;
 	DB.GFC    = GFC;
 
-	if (PrintTesting && DB.Testing && !DB.MPIrank) {
+	if (PrintTesting && !DB.MPIrank) {
 		printf("VToVe:\n");          array_print_ui(DB.NV,8,VToVe,'R');
 		//printf("VType:\n");          array_print_ui(DB.NV,1,VType,'R');
 		printf("FNve (Sorted):\n");  array_print_ui(DB.NGF,1,FNve,'R');

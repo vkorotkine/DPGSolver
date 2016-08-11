@@ -375,7 +375,7 @@ void adapt_hp(void)
 
 // Change this from i to indexg (for MPI). Also then initialize min/maxRHS_Vec so that they can be sorted correctly.
 	i = 0; DOF = 0;
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		// Compute maxRHS in each VOLUME
 		NvnS = VOLUME->NvnS;
 		DOF += NvnS;
@@ -475,7 +475,7 @@ void adapt_hp(void)
 		}
 	}
 
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		indexg = VOLUME->indexg;
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 
@@ -560,7 +560,7 @@ void adapt_hp(void)
 		}
 	}
 
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		indexg = VOLUME->indexg;
 		switch (Adapt) {
 		default: // ADAPT_HP
@@ -651,7 +651,7 @@ void adapt_hp(void)
 		}
 	}
 
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		indexg = VOLUME->indexg;
 		switch (Adapt) {
 		default: // ADAPT_HP

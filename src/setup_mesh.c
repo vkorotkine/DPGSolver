@@ -29,20 +29,20 @@ void setup_mesh()
 	initialize_ELEMENTs();
 
 	// Read mesh file
-	if (!DB.MPIrank && !TEST)
+	if (!DB.MPIrank && !DB.Testing)
 		printf("    Read MeshFile\n");
 	gmsh_reader();
 
 	finalize_ELEMENTs();
 
 	// Build Connectivity
-	if (!DB.MPIrank && !TEST)
+	if (!DB.MPIrank && !DB.Testing)
 		printf("    Set up connectivity\n");
 	setup_connectivity();
 
 	// Modify connectivity if periodic
 	if (DB.NPVe != 0) {
-		if (!DB.MPIrank && !TEST)
+		if (!DB.MPIrank && !DB.Testing)
 			printf("    Modify connectivity for periodic\n");
 		setup_periodic();
 	}

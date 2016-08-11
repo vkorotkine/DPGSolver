@@ -319,7 +319,7 @@ void test_unit_grad_basis_TP(void)
 
 	unsigned int i;
 	double *f, *f_r, *f_s, *f_t, *r, *s, *t, *f_hat, *f_rcomp, *f_scomp, *f_tcomp;
-	double *Imat, *ChiRef_rst, *ChiRefInv_rst, **GradChiRef_rst; // ToBeModified (name)
+	double *I, *ChiRef_rst, *ChiRefInv_rst, **GradChiRef_rst;
 
 	P = 4; // should work for P >= 2
 
@@ -337,9 +337,9 @@ void test_unit_grad_basis_TP(void)
 		t[i] = 0.0;
 	}
 
-	Imat = identity_d(Nn); // free
+	I = identity_d(Nn); // free
 	ChiRef_rst = basis_TP(P,rst,Nn,&Nbf,dE); // free
-	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,Imat); // free
+	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,I); // free
 
 	GradChiRef_rst = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 
@@ -363,7 +363,7 @@ void test_unit_grad_basis_TP(void)
 
 	free(rst), free(r), free(s), free(t);
 	free(symms);
-	free(Imat);
+	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(dE,GradChiRef_rst);
 	free(f), free(f_hat);
@@ -384,9 +384,9 @@ void test_unit_grad_basis_TP(void)
 		t[i] = 0.0;
 	}
 
-	Imat = identity_d(Nn); // free
+	I = identity_d(Nn); // free
 	ChiRef_rst = basis_TP(P,rst,Nn,&Nbf,dE); // free
-	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,Imat); // free
+	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,I); // free
 
 	GradChiRef_rst = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 
@@ -412,7 +412,7 @@ void test_unit_grad_basis_TP(void)
 
 	free(rst), free(r), free(s), free(t);
 	free(symms);
-	free(Imat);
+	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(dE,GradChiRef_rst);
 	free(f), free(f_hat);
@@ -433,9 +433,9 @@ void test_unit_grad_basis_TP(void)
 		t[i] = rst[2*Nn+i];
 	}
 
-	Imat = identity_d(Nn); // free
+	I = identity_d(Nn); // free
 	ChiRef_rst = basis_TP(P,rst,Nn,&Nbf,dE); // free
-	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,Imat); // free
+	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,I); // free
 
 	GradChiRef_rst = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 
@@ -463,7 +463,7 @@ void test_unit_grad_basis_TP(void)
 
 	free(rst), free(r), free(s), free(t);
 	free(symms);
-	free(Imat);
+	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(dE,GradChiRef_rst);
 	free(f), free(f_hat);
@@ -741,7 +741,7 @@ void test_unit_grad_basis_SI(void)
 
 	unsigned int i;
 	double *f, *f_r, *f_s, *f_t, *r, *s, *t, *f_hat, *f_rcomp, *f_scomp, *f_tcomp;
-	double *Imat, *ChiRef_rst, *ChiRefInv_rst, **GradChiRef_rst; // ToBeModified (name)
+	double *I, *ChiRef_rst, *ChiRefInv_rst, **GradChiRef_rst;
 
 	P = 4; // should work for P >= 2
 
@@ -759,9 +759,9 @@ void test_unit_grad_basis_SI(void)
 		t[i] = 0.0;
 	}
 
-	Imat = identity_d(Nn); // free
+	I = identity_d(Nn); // free
 	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
-	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,Imat); // free
+	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,I); // free
 
 	GradChiRef_rst = grad_basis_SI(P,rst,Nn,&Nbf,d); // free
 
@@ -787,7 +787,7 @@ void test_unit_grad_basis_SI(void)
 
 	free(rst), free(r), free(s), free(t);
 	free(symms);
-	free(Imat);
+	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(d,GradChiRef_rst);
 	free(f), free(f_hat);
@@ -808,9 +808,9 @@ void test_unit_grad_basis_SI(void)
 		t[i] = rst[2*Nn+i];
 	}
 
-	Imat = identity_d(Nn); // free
+	I = identity_d(Nn); // free
 	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
-	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,Imat); // free
+	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,I); // free
 
 	GradChiRef_rst = grad_basis_SI(P,rst,Nn,&Nbf,d); // free
 
@@ -838,7 +838,7 @@ void test_unit_grad_basis_SI(void)
 
 	free(rst), free(r), free(s), free(t);
 	free(symms);
-	free(Imat);
+	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(d,GradChiRef_rst);
 	free(f), free(f_hat);
@@ -1197,7 +1197,7 @@ exit(1);
 
 	unsigned int i;
 	double *f, *f_r, *f_s, *f_t, *r, *s, *t, *f_hat, *f_rcomp, *f_scomp, *f_tcomp;
-	double *Imat, *ChiRef_rst, *ChiRefInv_rst, **GradChiRef_rst; // ToBeModified (name)
+	double *I, *ChiRef_rst, *ChiRefInv_rst, **GradChiRef_rst;
 
 	P = 4; // should work for P >= 2
 
@@ -1214,9 +1214,9 @@ exit(1);
 		t[i] = rst[2*Nn+i];
 	}
 
-	Imat = identity_d(Nn); // free
+	I = identity_d(Nn); // free
 	ChiRef_rst = basis_PYR(P,rst,Nn,&Nbf,d); // free
-	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,Imat); // free
+	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,I); // free
 
 	GradChiRef_rst = grad_basis_PYR(P,rst,Nn,&Nbf,d); // free
 
@@ -1244,7 +1244,7 @@ exit(1);
 
 	free(rst), free(r), free(s), free(t);
 	free(symms);
-	free(Imat);
+	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(d,GradChiRef_rst);
 	free(f), free(f_hat);

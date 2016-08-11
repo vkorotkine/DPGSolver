@@ -121,7 +121,7 @@ static void compute_VOLUME_RHS_EFE(void)
 	unsigned int i, eq, dim1, dim2, P,
 	             IndFr, IndF, IndC, IndRHS, Eclass,
 	             NvnI, NvnS, NvnI_SF[2], NvnS_SF[2], NIn[3], NOut[3], Diag[3];
-	double       *W_vI, *F_vI, *Fr_vI, *C_vI, *RHS, *DFr, **D, *Imat, *OP[3], *OP0, *OP1;
+	double       *W_vI, *F_vI, *Fr_vI, *C_vI, *RHS, *DFr, **D, *I, *OP[3], *OP0, *OP1;
 
 	struct S_OpCSR **D_sp;
 
@@ -135,8 +135,8 @@ static void compute_VOLUME_RHS_EFE(void)
 	for (i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
 
-	if (strstr(Form,"Weak") != NULL) {
-		for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+	if (strstr(Form,"Weak")) {
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			P = VOLUME->P;
 //printf("VOLUME: %d\n",VOLUME->indexg);
 			// Obtain operators
@@ -228,11 +228,11 @@ for (eq = 0; eq < Neq; eq++) {
 					NvnI_SF[i] = OPS[i]->NvnI_SF;
 				}
 
-				Imat = OPS[0]->I_Weak; // ToBeModified (name)
+				I = OPS[0]->I_Weak;
 				D = OPS[0]->D_Weak;
 
 				for (dim1 = 0; dim1 < d; dim1++) {
-					get_sf_parameters(NvnI_SF[0],NvnS_SF[0],Imat,NvnI_SF[0],NvnS_SF[0],D[0],NIn,NOut,OP,d,dim1,Eclass);
+					get_sf_parameters(NvnI_SF[0],NvnS_SF[0],I,NvnI_SF[0],NvnS_SF[0],D[0],NIn,NOut,OP,d,dim1,Eclass);
 
 					if (Collocated) {
 						for (dim2 = 0; dim2 < d; dim2++)
@@ -312,7 +312,7 @@ for (eq = 0; eq < Neq; eq++) {
 //array_print_d(NvnS,Nvar,RHS,'C');
 //exit(1);
 		}
-	} else if (strstr(Form,"Strong") != NULL) {
+	} else if (strstr(Form,"Strong")) {
 		printf("Exiting: Implement the strong form in compute_VOLUME_RHS_EFE.\n"), exit(1);
 	}
 //exit(1);
@@ -340,7 +340,7 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 	             NvnS_SF[2], NvnI_SF[2], NIn[3], NOut[3], Diag[3];
 	double       *What_vS, *W_vI, **What_vS_ptr, *What, *WhatVec, *F_vI, *Fr_vI,
 	             **C_vI_ptr, *C_vIl, *C_vI, *C_vIVec,
-	             **RHS_ptr, *RHSl, *RHS, *RHSVec, *DFr, **D, *Imat, *OP[3], *OP0, *OP1;
+	             **RHS_ptr, *RHSl, *RHS, *RHSVec, *DFr, **D, *I, *OP[3], *OP0, *OP1;
 
 	struct S_OpCSR **D_sp;
 
@@ -354,7 +354,7 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 	C_vI_ptr    = malloc(d*d  * sizeof *C_vI_ptr);    // free
 	RHS_ptr     = malloc(Neq  * sizeof *RHS_ptr);     // free
 
-	if (strstr(Form,"Weak") != NULL) {
+	if (strstr(Form,"Weak")) {
 		for (Eclass = 0; Eclass < NECgrp; Eclass++) {
 		for (P = 0; P < NP; P++) {
 		for (curved = 0; curved < 2; curved++) {
@@ -474,11 +474,11 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 					NvnI_SF[i] = OPS[i]->NvnI_SF;
 				}
 
-				Imat = OPS[0]->I_Weak; // ToBeModified (name)
+				I = OPS[0]->I_Weak;
 				D = OPS[0]->D_Weak;
 
 				for (dim1 = 0; dim1 < d; dim1++) {
-					get_sf_parameters(NvnI_SF[0],NvnS_SF[0],Imat,NvnI_SF[0],NvnS_SF[0],D[0],NIn,NOut,OP,d,dim1,Eclass);
+					get_sf_parameters(NvnI_SF[0],NvnS_SF[0],I,NvnI_SF[0],NvnS_SF[0],D[0],NIn,NOut,OP,d,dim1,Eclass);
 
 					if (Collocated) {
 						for (dim2 = 0; dim2 < d; dim2++)
@@ -561,7 +561,7 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 			for (i = 0; i < Neq; i++)
 				RHS_ptr[i] = &RHS[i*NV*NvnS];
 
-			for (VOLUME = DB.Vgrp[IndVgrp]; VOLUME != NULL; VOLUME = VOLUME->grpnext) {
+			for (VOLUME = DB.Vgrp[IndVgrp]; VOLUME; VOLUME = VOLUME->grpnext) {
 				VOLUME->RHS = malloc(NvnS*Neq * sizeof *RHSl); // keep
 				RHSl = VOLUME->RHS;
 

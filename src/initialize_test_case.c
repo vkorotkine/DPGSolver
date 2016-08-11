@@ -78,8 +78,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
 	unsigned int d         = DB.d,
-	             Adapt     = DB.Adapt,
-	             Testing   = DB.Testing;
+	             Adapt     = DB.Adapt;
 
 	DB.Nvar = d+2;
 	DB.Neq  = d+2;
@@ -226,10 +225,8 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 		VOLUME->update = 1;
 
-	if (Testing) {
-		// Output initial solution to paraview
-//		output_to_paraview("ZTest_Sol_Init");
-	}
+	// Output initial solution to paraview
+//	output_to_paraview("ZTest_Sol_Init");
 }
 
 static void compute_initial_solution(const unsigned int Nn, double *XYZ, double *UEx, double *sEx)

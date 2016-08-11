@@ -161,12 +161,12 @@ void gmsh_reader(void)
 
 	// Find NVe, NETotal
 	while (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
-		if (strstr(StringRead,"$Nodes") != NULL) {
+		if (strstr(StringRead,"$Nodes")) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1)
 				sscanf(StringRead,"%d",&NVe);
 		}
 
-		if (strstr(StringRead,"$Elements") != NULL) {
+		if (strstr(StringRead,"$Elements")) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1)
 				sscanf(StringRead,"%d",&NETotal);
 		}
@@ -185,12 +185,12 @@ void gmsh_reader(void)
 	SectionElements = 0;
 
 	while (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
-		if (strstr(StringRead,"$Nodes") != NULL) {
+		if (strstr(StringRead,"$Nodes")) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 			SectionNodes = 1;
 		}
-		if (strstr(StringRead,"$EndNodes") != NULL)
+		if (strstr(StringRead,"$EndNodes"))
 			SectionNodes = 0;
 
 		if (SectionNodes) {
@@ -207,7 +207,7 @@ void gmsh_reader(void)
 			}
 		}
 
-		if (strstr(StringRead,"$Elements") != NULL) {
+		if (strstr(StringRead,"$Elements")) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1)
 				SectionElements = 1;
@@ -215,7 +215,7 @@ void gmsh_reader(void)
 			for (i = 0; i < 4; i++)
 				NE[i] = 0;
 		}
-		if (strstr(StringRead,"$EndElements") != NULL)
+		if (strstr(StringRead,"$EndElements"))
 			SectionElements = 0;
 
 		// It is assumed that element types are grouped together in the msh file
@@ -265,7 +265,7 @@ void gmsh_reader(void)
 				printf("Unsupported element type read from gmsh file.\n"), exit(1);
 		}
 
-		if (strstr(StringRead,"$Periodic") != NULL) {
+		if (strstr(StringRead,"$Periodic")) {
 			for (i = 0; i < 4; i++) Es[i] = 0;
 			for (i = 0; i < 4; i++) {
 			for (j = 0; j < i; j++) {
@@ -321,7 +321,7 @@ void gmsh_reader(void)
 
 					if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 					// skip line beginnning with "Affine" if present
-					if (strstr(StringRead,"Affine") != NULL)
+					if (strstr(StringRead,"Affine"))
 						if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 
 					sscanf(StringRead,"%d",&NEnt);
@@ -535,7 +535,7 @@ void gmsh_reader(void)
 					// Jump to next periodic entity
 					if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 					// skip line beginnning with "Affine" if present
-					if (strstr(StringRead,"Affine") != NULL)
+					if (strstr(StringRead,"Affine"))
 						if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 					sscanf(StringRead,"%d",&NEnt);
 					for (Ent = 0; Ent < NEnt; Ent++) {
@@ -709,7 +709,7 @@ void gmsh_reader(void)
 	DB.EToVe   = EToVe;
 	DB.EToPrt  = EToPrt;
 
-	if (!DB.MPIrank && DB.Testing && PrintTesting) {
+	if (!DB.MPIrank && PrintTesting) {
 		printf("NE:\n");     array_print_ui(1,4,DB.NE,'R');
 		printf("VeXYZ:\n");  array_print_d(DB.NVe,d,DB.VeXYZ,'R');
 		printf("EType:\n");  array_print_ui(1,DB.NETotal,DB.EType,'R');

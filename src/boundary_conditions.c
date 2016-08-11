@@ -95,7 +95,7 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 	}
 
 	// Outer VOLUME
-	if (strstr(TestCase,"SupersonicVortex") != NULL) {
+	if (strstr(TestCase,"SupersonicVortex")) {
 		// Use the exact solution for the Outer VOLUME
 		for (i = 0; i < NnTotal; i++) {
 			r = sqrt(X[i]*X[i]+Y[i]*Y[i]);

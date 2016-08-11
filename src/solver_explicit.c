@@ -40,8 +40,9 @@ void solver_explicit(void)
 	unsigned int OutputInterval     = DB.OutputInterval,
 	             Neq                = DB.Neq,
 	             ExplicitSolverType = DB.ExplicitSolverType,
-	             Adapt              = DB.Adapt,
-	             Testing            = DB.Testing;
+	             Adapt              = DB.Adapt;
+
+	unsigned int PrintTesting = 1;
 
 	double       FinalTime = DB.FinalTime;
 
@@ -132,7 +133,7 @@ void solver_explicit(void)
 				printf("F "); maxRHS = finalize_RHS();
 
 				// Update What
-				for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+				for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 					NvnS = VOLUME->NvnS;
 
 					RES  = VOLUME->RES;
@@ -150,7 +151,7 @@ void solver_explicit(void)
 		time += dt;
 
 		// Output to paraview
-		if (Testing && (tstep % OutputInterval == 0 || tstep < 5)) {
+		if (PrintTesting && (tstep % OutputInterval == 0 || tstep < 5)) {
 			sprintf(dummyPtr_c[1],"%d",tstep);
 			strcpy(dummyPtr_c[0],"SolStart");
 			strcat(dummyPtr_c[0],dummyPtr_c[1]);

@@ -164,7 +164,7 @@ static void output_geom(const char *geom_type)
 	fprintf_tn(fID,0,"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">");
 	fprintf_tn(fID,1,"<UnstructuredGrid>\n");
 
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 
 		P     = VOLUME->P;
@@ -182,7 +182,7 @@ static void output_geom(const char *geom_type)
 		else
 			I_vG_vP = ELEMENT->I_vGc_vP[P][P][0];
 
-		if (strstr(geom_type,"straight") != NULL)
+		if (strstr(geom_type,"straight"))
 			Input = VOLUME->XYZ_S;
 		else
 			Input = VOLUME->XYZ;
@@ -382,7 +382,7 @@ static void output_normals(const char *normals_type)
 	fprintf_tn(fID,0,"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">");
 	fprintf_tn(fID,1,"<PolyData>\n");
 
-	for (FACET = DB.FACET; FACET != NULL; FACET = FACET->next) {
+	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 		curved = FACET->curved;
 
 		VIn  = FACET->VIn;
@@ -555,7 +555,7 @@ static void output_solution(const char *sol_type)
 	fprintf_tn(fID,0,"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">");
 	fprintf_tn(fID,1,"<UnstructuredGrid>\n");
 
-	for (VOLUME = DB.VOLUME; VOLUME != NULL; VOLUME = VOLUME->next) {
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 
 		P = VOLUME->P;
@@ -745,11 +745,11 @@ static void output_solution(const char *sol_type)
 
 void output_to_paraview(const char *OutputType)
 {
-	if (strstr(OutputType,"Geom") != NULL)
+	if (strstr(OutputType,"Geom"))
 		output_geom(OutputType);
-	else if (strstr(OutputType,"Normals") != NULL)
+	else if (strstr(OutputType,"Normals"))
 		output_normals(OutputType);
-	else if (strstr(OutputType,"Sol") != NULL)
+	else if (strstr(OutputType,"Sol"))
 		output_solution(OutputType);
 	else
 		printf("Error: Unsupported OutputType in output_to_paraview.\n"), exit(1);

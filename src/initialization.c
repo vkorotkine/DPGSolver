@@ -122,25 +122,25 @@ void initialization(int nargc, char **argv)
 
 	while(fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 
-		if (strstr(StringRead,"Dimension")  != NULL) sscanf(StringRead,"%s %d",dummys,&DB.d);
-		if (strstr(StringRead,"ML")         != NULL) sscanf(StringRead,"%s %d",dummys,&DB.ML);
-		if (strstr(StringRead,"MeshType")   != NULL) sscanf(StringRead,"%s %s",dummys,MeshType);
-		if (strstr(StringRead,"BumpOrder")  != NULL) sscanf(StringRead,"%s %d %d",dummys,&BumpOrder[0],&BumpOrder[1]);
-		if (strstr(StringRead,"Form")       != NULL) sscanf(StringRead,"%s %s",dummys,Form);
-		if (strstr(StringRead,"NodeType")   != NULL) sscanf(StringRead,"%s %s",dummys,NodeType);
-		if (strstr(StringRead,"BasisType")  != NULL) sscanf(StringRead,"%s %s",dummys,BasisType);
-		if (strstr(StringRead,"Vectorized") != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Vectorized);
-		if (strstr(StringRead,"EFE")        != NULL) sscanf(StringRead,"%s %d",dummys,&DB.EFE);
-		if (strstr(StringRead,"Collocated") != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Collocated);
-		if (strstr(StringRead,"Adapt")      != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Adapt);
-		if (strstr(StringRead,"PGlobal")    != NULL) sscanf(StringRead,"%s %d",dummys,&DB.PGlobal);
-		if (strstr(StringRead,"PMax")       != NULL) sscanf(StringRead,"%s %d",dummys,&DB.PMax);
-		if (strstr(StringRead,"LevelsMax")  != NULL) sscanf(StringRead,"%s %d",dummys,&DB.LevelsMax);
-		if (strstr(StringRead,"Restart")    != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Restart);
-		if (strstr(StringRead,"Testing")    != NULL) sscanf(StringRead,"%s %d",dummys,&DB.Testing);
+		if (strstr(StringRead,"Dimension"))  sscanf(StringRead,"%s %d",dummys,&DB.d);
+		if (strstr(StringRead,"ML"))         sscanf(StringRead,"%s %d",dummys,&DB.ML);
+		if (strstr(StringRead,"MeshType"))   sscanf(StringRead,"%s %s",dummys,MeshType);
+		if (strstr(StringRead,"BumpOrder"))  sscanf(StringRead,"%s %d %d",dummys,&BumpOrder[0],&BumpOrder[1]);
+		if (strstr(StringRead,"Form"))       sscanf(StringRead,"%s %s",dummys,Form);
+		if (strstr(StringRead,"NodeType"))   sscanf(StringRead,"%s %s",dummys,NodeType);
+		if (strstr(StringRead,"BasisType"))  sscanf(StringRead,"%s %s",dummys,BasisType);
+		if (strstr(StringRead,"Vectorized")) sscanf(StringRead,"%s %d",dummys,&DB.Vectorized);
+		if (strstr(StringRead,"EFE"))        sscanf(StringRead,"%s %d",dummys,&DB.EFE);
+		if (strstr(StringRead,"Collocated")) sscanf(StringRead,"%s %d",dummys,&DB.Collocated);
+		if (strstr(StringRead,"Adapt"))      sscanf(StringRead,"%s %d",dummys,&DB.Adapt);
+		if (strstr(StringRead,"PGlobal"))    sscanf(StringRead,"%s %d",dummys,&DB.PGlobal);
+		if (strstr(StringRead,"PMax"))       sscanf(StringRead,"%s %d",dummys,&DB.PMax);
+		if (strstr(StringRead,"LevelsMax"))  sscanf(StringRead,"%s %d",dummys,&DB.LevelsMax);
+		if (strstr(StringRead,"Restart"))    sscanf(StringRead,"%s %d",dummys,&DB.Restart);
+		if (strstr(StringRead,"Testing"))    sscanf(StringRead,"%s %d",dummys,&DB.Testing);
 
 		// Mesh file
-		if (strstr(StringRead,"BEGIN MESH") != NULL) {
+		if (strstr(StringRead,"BEGIN MESH")) {
 			if(fscanf(fID,"%s %s\n",dummys,MeshPath) == 2) {
 				sprintf(d,"%d",DB.d);
 				sprintf(ML,"%d",DB.ML);
@@ -182,7 +182,7 @@ void initialization(int nargc, char **argv)
 	DB.BumpOrder = BumpOrder;
 
 	// Print some information
-	if (!DB.MPIrank && !TEST) {
+	if (!DB.MPIrank && !DB.Testing) {
 		printf("\n\nRunning the %s test case using the %s mesh type in %dD on mesh level %d.\n\n",
 		       DB.TestCase,DB.MeshType,DB.d,DB.ML);
 		printf("Parameters:\n\n");
@@ -195,8 +195,7 @@ void initialization(int nargc, char **argv)
 		printf("Adapt      : %d\n\n",  DB.Adapt);
 		printf("P          : %d\n",    DB.PGlobal);
 		printf("PMax       : %d\n",    DB.PMax);
-		printf("LevelsMax  : %d\n",    DB.LevelsMax);
-		printf("Testing    : %d\n\n\n",DB.Testing);
+		printf("LevelsMax  : %d\n\n\n",DB.LevelsMax);
 	}
 
 	if ((DB.Adapt == ADAPT_H || DB.Adapt == ADAPT_HP) && DB.LevelsMax == 0)

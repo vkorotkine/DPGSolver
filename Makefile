@@ -217,4 +217,4 @@ clean_code:
 
 .PHONY : clean_exec
 clean_exec:
-	rm $(OBJDIR)/main.o $(DEPDIR)/main.o
+	rm $(OBJDIR)/main.o $(DEPDIR)/main.d

@@ -365,8 +365,7 @@ void setup_periodic()
 	DB.GFC    = GFC;
 	DB.GFToVe = GFToVeUnder;
 
-	// Testing
-	if (PrintTesting && DB.Testing && !DB.MPIrank) {
+	if (PrintTesting && !DB.MPIrank) {
 		printf("VToV:\n");       array_print_ui(DB.NV,DB.NfMax,DB.VToV,'R');
 		printf("VToF:\n");       array_print_ui(DB.NV,DB.NfMax,DB.VToF,'R');
 		printf("VToGF:\n");      array_print_ui(DB.NV,DB.NfMax,DB.VToGF,'R');

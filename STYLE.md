@@ -14,7 +14,6 @@ first one listed.
   - Special note: If a user-defined header is already included in the source file as part of the first header, it is
   recommended to provide a redundant include statement in the source file as well. This is done to simplify the
   dependency generation. (ToBeModified)
-- This rule is broken only for main.h, which is never included in any other files.
 - This [discussion](http://stackoverflow.com/questions/1804486/should-i-use-include-in-headers) motivates these
 recommendations.
 - To find struct header (S_*.h) dependencies hidden through the inclusion of other header files, use the following
