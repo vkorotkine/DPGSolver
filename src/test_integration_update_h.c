@@ -5,11 +5,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
+#include <string.h>
 
 #include "mkl.h"
-#include <mpi.h>
-#include <petscksp.h>
 
 #include "Parameters.h"
 #include "Macros.h"
@@ -19,18 +17,11 @@
 #include "S_VOLUME.h"
 #include "S_FACET.h"
 
+#include "test_code_integration.h"
 #include "test_support.h"
-#include "initialization.h"
-#include "setup_parameters.h"
-#include "setup_mesh.h"
-#include "setup_operators.h"
-#include "setup_structures.h"
-#include "setup_geometry.h"
-#include "initialize_test_case.h"
-#include "adaptation.h"
 #include "array_norm.h"
 #include "array_print.h"
-#include "memory_free.h"
+#include "adaptation.h"
 #include "element_functions.h"
 #include "matrix_functions.h"
 
@@ -52,8 +43,6 @@ struct S_Limits {
 	double       XYZ[3];
 };
 
-static void code_startup(int nargc, char **argv, const unsigned int Nref);
-static void code_cleanup(const unsigned int final);
 static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *XYZ_lim);
 static void check_correspondence(unsigned int *pass);
 static void check_Jacobians(unsigned int *pass);
@@ -358,37 +347,6 @@ void test_integration_update_h(int nargc, char **argv)
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 	free(XYZ_lim);
-}
-
-static void code_startup(int nargc, char **argv, const unsigned int Nref)
-{
-	int  MPIrank, MPIsize;
-
-	// Start MPI and PETSC
-	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
-	MPI_Comm_size(MPI_COMM_WORLD,&MPIsize);
-	MPI_Comm_rank(MPI_COMM_WORLD,&MPIrank);
-
-	DB.MPIsize = MPIsize;
-	DB.MPIrank = MPIrank;
-
-	// Initialization
-	initialization(nargc,argv);
-	setup_parameters();
-	setup_mesh();
-	setup_operators();
-	setup_structures();
-	setup_geometry();
-
-	initialize_test_case(Nref);
-}
-
-static void code_cleanup(const unsigned int final)
-{
-	mesh_to_level(0);
-	memory_free();
-	if (final)
-		PetscFinalize();
 }
 
 static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *XYZ_lim)

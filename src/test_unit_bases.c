@@ -21,6 +21,8 @@
 #include "array_norm.h"
 #include "array_print.h"
 
+#undef I // No complex variables used here
+
 /*
  *	Purpose:
  *		Test correctness of implementation of basis_TP.

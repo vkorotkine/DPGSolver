@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <complex.h>
 
 /*
  *	Purpose:
@@ -180,6 +181,40 @@ void array_print_ld(const unsigned int m, const unsigned int n, const long doubl
 		for (i = 0; i < m; i++) {
 			for (j = 0; j < n; j++)
 				printf("% .3Le ",A[i+j*m]);
+			printf("\n");
+		}
+		printf("\n");
+		break;
+	}
+}
+
+void array_print_cmplx(const unsigned int m, const unsigned int n, const double complex *A, const char layout)
+{
+	unsigned int   i, j;
+	double         Ar, Ac;
+	double complex Arc;
+
+	switch (layout) {
+	case 'R':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++) {
+				Arc = A[i*n+j];
+				Ar   = creal(Arc);
+				Ac   = cimag(Arc);
+				printf("% .4e%c%.4ei ",Ar,(Ac >= 0.0)?'+':'\0',Ac);
+			}
+			printf("\n");
+		}
+		printf("\n");
+		break;
+	case 'C':
+		for (i = 0; i < m; i++) {
+			for (j = 0; j < n; j++) {
+				Arc = A[i+j*m];
+				Ar   = creal(Arc);
+				Ac   = cimag(Arc);
+				printf("% .4e%c%.4ei ",Ar,(Ac >= 0.0)?'+':'\0',Ac);
+			}
 			printf("\n");
 		}
 		printf("\n");

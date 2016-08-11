@@ -21,12 +21,12 @@
  *	References:
  */
 
-void flux_inviscid_c(const unsigned int Nn, const unsigned int Nel, complex double *W, complex double *F,
+void flux_inviscid_c(const unsigned int Nn, const unsigned int Nel, double complex *W, double complex *F,
                      const unsigned int d, const unsigned int Neq)
 {
 	// Standard datatypes
 	unsigned int   i, n, eq, dim, iMax, NnTotal, IndF;
-	complex double *rho_ptr, *rhou_ptr, *rhov_ptr, *rhow_ptr, *E_ptr,
+	double complex *rho_ptr, *rhou_ptr, *rhov_ptr, *rhow_ptr, *E_ptr,
 	               rho, rhou, rhov, rhow, E, u, v, w, p, *F_ptr[DMAX*Neq];
 
 	NnTotal = Nn*Nel;

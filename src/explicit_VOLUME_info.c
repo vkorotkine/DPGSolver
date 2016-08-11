@@ -17,13 +17,24 @@
 #include "sum_factorization.h"
 #include "matrix_functions.h"
 #include "fluxes_inviscid.h"
+#include "array_print.h"
+
+#undef I // No complex variables used here
 
 /*
  *	Purpose:
  *		Evaluate the VOLUME contributions to the RHS term.
  *
  *	Comments:
- *		Vectorization does not improve performance based on preliminary testing.
+ *		Much of the explicit_VOLUME_info and implicit_VOLUME_info functions are identical, consider combining them
+ *		(ToBeDeleted).
+ *		Certain multiplications can be avoided when computing either Fr from F or when computing RHS terms based on the
+ *		sparsity of the flux Jacobian. Test performance improvement if these terms are neglected (ToBeModified).
+ *		Vectorization does not improve performance based on preliminary testing. This is likely a result of the large
+ *		memory allocation/deallocation overhead which is required for the adaptive code. For non-adaptive versions of
+ *		the code, this flexibility is not required and comparison may yield favourable results for the vectorized code.
+ *		However, the ultimate goal of the code is only to run in the adaptive setting, thus this may not be worth
+ *		pursuing. (ToBeModified)
  *
  *	Notation:
  *

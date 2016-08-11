@@ -203,6 +203,7 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 
 	// Solving
 	free(VOLUME->RHS);
+	free(VOLUME->LHS);
 	free(VOLUME->MInv);
 
 	// structs

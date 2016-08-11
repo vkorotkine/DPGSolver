@@ -17,6 +17,7 @@
  *		Allocate memory for and initialize new structures.
  *
  *	Comments:
+ *		Split this function into memory_constructor for each struct type to minimize dependencies. (ToBeDeleted)
  *		Change all initializations from 0 to UINT_MAX. (ToBeDeleted)
  *		GfS_fIs/c may not be needed based on FACET_info testing. See comments at the start of explicit_FACET_Info.
  *		(ToBeDeleted)
@@ -399,6 +400,7 @@ struct S_VOLUME *New_VOLUME(void)
 
 	// Solving
 	VOLUME->RHS       = NULL; // free
+	VOLUME->LHS       = NULL; // free
 	VOLUME->MInv      = NULL; // free
 
 	// hp adaptivity

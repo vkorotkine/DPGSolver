@@ -205,9 +205,11 @@ int main(int nargc, char **argv)
 #include "test_unit_fluxes_inviscid.h"
 #include "test_unit_jacobian_fluxes_inviscid.h"
 #include "test_unit_get_facet_ordering.h"
+#include "test_unit_equivalence_real_complex.h"
 
 #include "test_integration_L2_projections.h"
 #include "test_integration_update_h.h"
+#include "test_integration_linearization.h"
 
 #include "test_speed_array_swap.h"
 #include "test_speed_mm_CTN.h"
@@ -239,7 +241,7 @@ int main(int nargc, char **argv)
 	TestDB.Nwarnings = 0;
 
 	RunTest.unit        = 1;
-	RunTest.integration = 1;
+	RunTest.integration = 0;
 	RunTest.speed       = 0;
 
 
@@ -281,6 +283,8 @@ int main(int nargc, char **argv)
 		test_unit_fluxes_inviscid();
 		test_unit_jacobian_fluxes_inviscid();
 		test_unit_get_facet_ordering();
+
+		test_unit_equivalence_real_complex();
 	}
 
 	// Integration tests
@@ -288,6 +292,7 @@ int main(int nargc, char **argv)
 		test_integration_update_h(nargc,argv);
 		test_integration_L2_projections(nargc,argv);
 	}
+	test_integration_linearization(nargc,argv);
 
 
 	te = clock();

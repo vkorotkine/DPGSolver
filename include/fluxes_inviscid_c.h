@@ -7,7 +7,7 @@
 #include <complex.h>
 
 
-extern void flux_inviscid_c (const unsigned int Nn, const unsigned int Nel, complex double *W, complex double *F,
+extern void flux_inviscid_c (const unsigned int Nn, const unsigned int Nel, double complex *W, double complex *F,
                              const unsigned int d, const unsigned int Neq);
 
 #endif // DPG__fluxes_inviscid_c_h__INCLUDED

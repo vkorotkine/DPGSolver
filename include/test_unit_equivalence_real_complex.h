@@ -4,7 +4,6 @@
 #ifndef DPG__template_h__INCLUDED
 #define DPG__template_h__INCLUDED
 
-//#include "S_DB.h"
-
+extern void test_unit_equivalence_real_complex (void);
 
 #endif // DPG__template_h__INCLUDED
