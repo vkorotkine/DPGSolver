@@ -39,6 +39,9 @@ struct S_DB {
 	double       Xc, Yc, Rc, MInf, pInf, TInf, VInf, uInf, vInf, wInf, Rg, Cscale, PeriodL, PeriodFraction, FinalTime,
 	             rIn, MIn, rhoIn, VIn;
 
+	// Solving
+	unsigned int dof;
+
 	// Vectorization
 	unsigned int update, NTVgrp, *NVgrp;
 

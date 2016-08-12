@@ -15,6 +15,8 @@
 #include "test_code_integration.h"
 #include "test_support.h"
 #include "array_norm.h"
+#include "implicit_VOLUME_info.h"
+#include "finalize_LHS.h"
 
 /*
  *	Purpose:
@@ -50,7 +52,8 @@ void test_integration_linearization(int nargc, char **argv)
 	 */
 
 //	PetscInt m, n, M, N, d_nz, *d_nnz, o_nz, *o_nnz;
-//	Mat      *A;
+	Mat      A = NULL;
+	Vec      b = NULL;
 //	MPI_Comm comm = MPI_COMM_WORLD;
 
 	// **************************************************************************************************** //
@@ -61,13 +64,22 @@ void test_integration_linearization(int nargc, char **argv)
 	// TRIs
 	strcpy(argvNew[1],"test/Test_linearization_TRI");
 
-	// if(CHKERRQ(MatCreateMPIAIJ(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt M,PetscInt N,PetscInt d_nz,const PetscInt d_nnz[],PetscInt o_nz,const PetscInt o_nnz[],Mat *A))) EXIT_MSG;
+	code_startup(nargc,argvNew,2);
+
+	implicit_VOLUME_info();
+	compute_dof();
+	finalize_LHS(A,b,1);
+
+
+
+//	if(CHKERRQ(MatCreateSeqAIJ(comm,m,n,0,nnz[],*A))) EXIT_MSG;
+	if (A == NULL)
+		printf("A NULL\n");
 
 pass = nargc;
 printf("%d\n",pass);
-//	code_startup(nargc,argvNew,2);
 
-//	code_cleanup(0);
+	code_cleanup(0);
 
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);

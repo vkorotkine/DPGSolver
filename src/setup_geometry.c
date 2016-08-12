@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
- 
+
 #include "mkl.h"
 
 #include "Parameters.h"
@@ -23,6 +23,7 @@
 #include "setup_geom_factors.h"
 #include "setup_normals.h"
 #include "vertices_to_exact_geom.h"
+#include "array_print.h"
 
 /*
  *	Purpose:

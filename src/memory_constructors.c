@@ -399,9 +399,12 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->RES  = NULL; // free
 
 	// Solving
-	VOLUME->RHS       = NULL; // free
-	VOLUME->LHS       = NULL; // free
-	VOLUME->MInv      = NULL; // free
+	VOLUME->IndA  = UINT_MAX;
+	VOLUME->nnz_d = UINT_MAX;
+	VOLUME->nnz_o = UINT_MAX;
+	VOLUME->RHS   = NULL; // free
+	VOLUME->LHS   = NULL; // free
+	VOLUME->MInv  = NULL; // free
 
 	// hp adaptivity
 //	VOLUME->minRES = 0.0;

@@ -21,6 +21,7 @@
 #include "exact_solutions.h"
 #include "adaptation.h"
 #include "compute_errors.h"
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -104,7 +105,8 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	} else if (strstr(TestCase,"GaussianBump")) {
 		; // initialize_GaussianBump();
 	} else if (strstr(TestCase,"PeriodicVortex") ||
-	           strstr(TestCase,"Test")) {
+	           strstr(TestCase,"Test_L2_proj")   ||
+	           strstr(TestCase,"Test_update_h")) {
 		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 		strcpy(SolverType,"Explicit");
 
@@ -134,7 +136,8 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 			DB.FinalTime = DB.PeriodFraction*DB.PeriodL/DB.VInf;
 	} else if (strstr(TestCase,"PolynomialBump")) {
 		;
-	} else if (strstr(TestCase,"SupersonicVortex")) {
+	} else if (strstr(TestCase,"SupersonicVortex") ||
+	           strstr(TestCase,"Test_linearization")) {
 		// Standard datatypes
 		double       pIn, cIn;
 

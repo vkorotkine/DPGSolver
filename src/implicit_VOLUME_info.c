@@ -18,9 +18,7 @@
 #include "sum_factorization.h"
 #include "matrix_functions.h"
 #include "jacobian_fluxes_inviscid.h"
-
-//#include "array_print.h"
-//#undef I // No complex variables used here
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -29,6 +27,9 @@
  *	Comments:
  *		Certain multiplications can be avoided when computing either Fr from F or when computing LHS terms based on the
  *		sparsity of the flux Jacobian. Test performance improvement if these terms are neglected (ToBeModified).
+ *		As the LHS terms for each (eq,var) combination are stored as row-major arrays, mm_d is used to compute these
+ *		terms for the uncollocated scheme. Potentially investigate whether a custom mm implementation would be faster
+ *		than the BLAS call (ToBeModified).
  *
  *	Notation:
  *
@@ -185,15 +186,33 @@ static void compute_VOLUME_LHS_EFE(void)
 					mm_CTN_d(NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->What,W_vI);
 				}
 			}
+/*
+if (VOLUME->indexg == 0) {
+printf("VOLUME %d\n",VOLUME->indexg);
+array_print_d(OPS[0]->NvnS,Nvar,VOLUME->What,'C');
+array_print_d(NvnI,Nvar,W_vI,'C');
+}
+*/
 
 			// Compute Flux in reference space
 			dFdW_vI = malloc(NvnI*d*Nvar*Neq * sizeof *dFdW_vI); // free
 			jacobian_flux_inviscid(NvnI,1,W_vI,dFdW_vI,d,Neq);
+/*
+for (eq = 0; eq < Neq; eq++) {
+for (var = 0; var < Nvar; var++) {
+	printf("%d %d\n",eq,var);
+	array_print_d(NvnI,d,&dFdW_vI[(eq*Nvar+var)*NvnI*d],'C');
+}}
+EXIT_MSG;
+*/
 
 			if (!Collocated)
 				free(W_vI);
 
 			C_vI = VOLUME->C_vI;
+//array_print_d(NvnI,d,C_vI,'C');
+//array_print_d(NvnI,d,&C_vI[NvnI*d],'C');
+//EXIT_MSG;
 
 			dFrdW_vI = calloc(NvnI*d*Nvar*Neq , sizeof *dFrdW_vI); // free
 			for (eq = 0; eq < Neq; eq++) {
@@ -210,7 +229,14 @@ static void compute_VOLUME_LHS_EFE(void)
 				}
 			}}
 			free(dFdW_vI);
-
+/*
+for (eq = 0; eq < Neq; eq++) {
+for (var = 0; var < Nvar; var++) {
+	printf("%d %d\n",eq,var);
+	array_print_d(NvnI,d,&dFrdW_vI[(eq*Nvar+var)*NvnI*d],'C');
+}}
+EXIT_MSG;
+*/
 
 			// Compute LHS terms
 			NvnS = OPS[0]->NvnS;
@@ -247,6 +273,7 @@ static void compute_VOLUME_LHS_EFE(void)
 					DdFrdW = calloc(NvnS*NvnI , sizeof *DdFrdW); // free
 					for (dim1 = 0; dim1 < d; dim1++) {
 						Ddim = D[dim1];
+//array_print_d(OPS[0]->NvnS,NvnI,Ddim,'R');
 
 						InddFrdW = (Indeqvar+dim1)*NvnI;
 						for (i = 0; i < NvnS; i++) {
@@ -255,18 +282,30 @@ static void compute_VOLUME_LHS_EFE(void)
 								DdFrdW[IndD+j] += Ddim[IndD+j]*dFrdW_vI[InddFrdW+j];
 						}
 					}
+//EXIT_MSG;
 
 					IndLHS = (eq*Nvar+var)*NvnS*NvnS;
 					if (Collocated) {
 						for (i = 0, iMax = NvnS*NvnS; i < iMax; i++)
 							LHS[IndLHS+i] = DdFrdW[i];
 					} else {
-						mm_CTN_d(NvnS,NvnS,NvnI,DdFrdW,OPS[0]->ChiS_vI,&LHS[IndLHS]);
+						mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,DdFrdW,OPS[0]->ChiS_vI,&LHS[IndLHS]);
 					}
 					free(DdFrdW);
 				}}
 			}
 			free(dFrdW_vI);
+/*
+if (VOLUME->indexg == 0) {
+printf("VOLUME %d\n",VOLUME->indexg);
+for (eq = 0; eq < Neq; eq++) {
+for (var = 0; var < Nvar; var++) {
+	printf("%d %d\n",eq,var);
+	array_print_d(NvnS,NvnS,&LHS[(eq*Nvar+var)*NvnS*NvnS],'R');
+}}
+}
+EXIT_MSG;
+*/
 		}
 	} else if (strstr(Form,"Strong")) {
 		printf("Exiting: Implement the strong form in compute_VOLUME_RHS_EFE.\n"), exit(1);

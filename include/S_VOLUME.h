@@ -19,7 +19,8 @@ struct S_VOLUME {
 	double *What, *RES;
 
 	// Solving
-	double *RHS, *LHS, *wdetJV_vI, *MInv;
+	unsigned int IndA, nnz_d, nnz_o;
+	double       *RHS, *LHS, *wdetJV_vI, *MInv;
 
 	// hp adaptivity
 	unsigned int refine_current, Vadapt, adapt_type, PNew, hrefine_type;

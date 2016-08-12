@@ -62,15 +62,17 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 	XYZ = malloc (NvnG*d * sizeof *XYZ); // keep
 	VOLUME->XYZ = XYZ;
 
-	if (strstr(TestCase,"dSphericalBump") ||
-	    strstr(TestCase,"PorousdSphere")  ||
-	    strstr(TestCase,"SupersonicVortex")) {
+	if (strstr(TestCase,"dSphericalBump")   ||
+	    strstr(TestCase,"PorousdSphere")    ||
+	    strstr(TestCase,"SupersonicVortex") ||
+	    strstr(TestCase,"Test_linearization")) {
 			ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
 	} else if (strstr(TestCase,"GaussianBump") ||
 	           strstr(TestCase,"PolynomialBump")) {
 			ToBeCurved_TP(NvnG,XYZ_S,XYZ);
 	} else if (strstr(TestCase,"PeriodicVortex") ||
-	           strstr(TestCase,"Test")) {
+	           strstr(TestCase,"Test_L2_proj")   ||
+	           strstr(TestCase,"Test_update_h")) {
 		double n = 2.0, A = 0.1, L0 = 2.0, dxyz = 1.0, scale,
 		       *X0, *Y0, *Z0;
 
