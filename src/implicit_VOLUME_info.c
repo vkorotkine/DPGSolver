@@ -246,7 +246,6 @@ EXIT_MSG;
 			LHS = calloc(NvnS*NvnS*Neq*Nvar , sizeof *LHS); // keep (requires external free)
 			VOLUME->LHS = LHS;
 
-//			DdFrdW = malloc(NvnS*NvnI * sizeof *DdFrdW); // free
 			if (Collocated && (Eclass == C_TP || Eclass == C_WEDGE)) {
 // Note: Collocated here implies that ChiS_vI == Identity
 				printf("Error: Modifications required.\n"), EXIT_MSG;

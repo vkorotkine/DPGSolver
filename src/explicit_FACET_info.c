@@ -393,9 +393,9 @@ static void compute_FACET_RHS_EFE(void)
 			free(WOut_fI);
 		} else { // Boundary FACET
 			if (BC % BC_STEP_SC == BC_RIEMANN) {
-				boundary_Riemann(NfnI,1,FACET->XYZ_fI,WIn_fI,NULL,WOut_fIIn,n_fI);
+				boundary_Riemann(NfnI,1,FACET->XYZ_fI,WIn_fI,NULL,WOut_fIIn,n_fI,d);
 			} else if (BC % BC_STEP_SC == BC_SLIPWALL) {
-				boundary_SlipWall(NfnI,1,WIn_fI,WOut_fIIn,n_fI);
+				boundary_SlipWall(NfnI,1,WIn_fI,WOut_fIIn,n_fI,d);
 			} else {
 				printf("Error: Unsupported BC in explicit_FACET_info.\n"), exit(1);
 			}
@@ -713,9 +713,9 @@ static void compute_FACET_RHS(void)
 			free(WOut_fS);
 		} else { // Boundary FACET
 			if (BC % BC_STEP_SC == BC_RIEMANN) {
-				boundary_Riemann(NfnS,1,FACET->XYZ_fS,WIn_fS,NULL,WOut_fSIn,n_fS);
+				boundary_Riemann(NfnS,1,FACET->XYZ_fS,WIn_fS,NULL,WOut_fSIn,n_fS,d);
 			} else if (BC % BC_STEP_SC == BC_SLIPWALL) {
-				boundary_SlipWall(NfnS,1,WIn_fS,WOut_fSIn,n_fS);
+				boundary_SlipWall(NfnS,1,WIn_fS,WOut_fSIn,n_fS,d);
 			} else {
 				printf("Error: Unsupported BC in explicit_FACET_info.\n"), exit(1);
 			}

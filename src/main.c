@@ -57,6 +57,7 @@ int main(int nargc, char **argv)
 	       " any large jobs. ***\n\n\n");
 	printf("\n\n\n*** Test to see whether the use of floats initially then transferring to doubles results in speed-up."
 	       " ***\n\n\n");
+	printf("\n\n\n*** Combine explicit and implicit info for implicit runs (ToBeDeleted) ***\n\n\n");
 
 	char *fNameOut, *string;
 	int  MPIrank, MPIsize;
@@ -206,6 +207,7 @@ int main(int nargc, char **argv)
 #include "test_unit_plotting.h"
 #include "test_unit_fluxes_inviscid.h"
 #include "test_unit_jacobian_fluxes_inviscid.h"
+#include "test_unit_jacobian_boundary.h"
 #include "test_unit_get_facet_ordering.h"
 #include "test_unit_equivalence_real_complex.h"
 
@@ -287,7 +289,10 @@ int main(int nargc, char **argv)
 		test_unit_get_facet_ordering();
 
 		test_unit_equivalence_real_complex();
+printf("Add tests for real/complex equivalence for all relevant functions.\n"); TestDB.Nwarnings++;
 	}
+test_unit_jacobian_fluxes_inviscid();
+	test_unit_jacobian_boundary();
 
 	// Integration tests
 	if (RunTest.integration) {

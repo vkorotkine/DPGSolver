@@ -146,7 +146,7 @@ $(EXECUTABLE) : $(OBJECTS)
 	@$(CC) -o $@ $(OPTS) $^ $(INCS) $(LIBS)
 
 # Include dependencies (Must be placed after default goal)
--include $(DEPENDS)
+include $(DEPENDS)
 
 # Create object and dependency files
 $(OBJDIR)/%.o : %.c

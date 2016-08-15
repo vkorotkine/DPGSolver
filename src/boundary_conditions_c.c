@@ -1,33 +1,32 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include "boundary_conditions.h"
+#include "boundary_conditions_c.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <complex.h>
 
 #include "Parameters.h"
 #include "S_DB.h"
 
-#include "variable_functions.h"
+#include "variable_functions_c.h"
 
 /*
  *	Purpose:
- *		Compute boundary conditions for given input parameters: XYZ, WL, WOut, nL
+ *		Identical to fluxes_inviscid using complex variables (for complex step verification).
  *
  *	Comments:
- *		If this is found to be slow after profiling, separate cases for different dimensions to avoid unnecessary
- *		operations (ToBeDeleted).
  *
  *	Notation:
  *
  *	References:
  */
 
-void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL, double *WOut, double *WB,
-                      double *nL, const unsigned int d)
+void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, double *XYZ, double complex *WL,
+                        double complex *WOut, double complex *WB, double *nL, const unsigned int d)
 {
 	/*
 	 *	Comments:
@@ -42,10 +41,11 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 	             VIn       = DB.VIn;
 
 	// Standard datatypes
-	unsigned int i, j, Indn, NnTotal;
-	double       *rhoL, *uL, *vL, *wL, *pL, cL, *VnL, sL, *rhoR, *uR, *vR, *wR, *pR, cR, *VnR, sR, *UL, *UR,
-	             *rhoB, *uB, *vB, *wB, *pB, *UB,
-	             *X, *Y, *n, r, t, Vt, RL, RR, Vn, c, ut, vt, wt;
+	unsigned int   i, j, Indn, NnTotal;
+	double         *X, *Y, *n, r, t;
+	double complex *rhoL, *uL, *vL, *wL, *pL, cL, *VnL, sL, *rhoR, *uR, *vR, *wR, *pR, cR, *VnR, sR, *UL, *UR,
+	               *rhoB, *uB, *vB, *wB, *pB, *UB,
+	               Vt, RL, RR, Vn, c, ut, vt, wt;
 
 	// silence
 	UL = WOut;
@@ -87,7 +87,7 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 	}}
 
 	// Inner VOLUME
-	convert_variables(WL,UL,d,DMAX,Nn,Nel,'c','p');
+	convert_variables_c(WL,UL,d,DMAX,Nn,Nel,'c','p');
 	for (i = 0; i < NnTotal; i++) {
 		Indn = i*DMAX;
 		VnL[i] = n[Indn  ]*uL[i]+n[Indn+1]*vL[i]+n[Indn+2]*wL[i];
@@ -100,8 +100,8 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 			r = sqrt(X[i]*X[i]+Y[i]*Y[i]);
 			t = atan2(Y[i],X[i]);
 
-			rhoR[i] = rhoIn*pow(1.0+0.5*GM1*MIn*MIn*(1.0-pow(rIn/r,2.0)),1.0/GM1);
-			pR[i]   = pow(rhoR[i],GAMMA)/GAMMA;
+			rhoR[i] = rhoIn*cpow(1.0+0.5*GM1*MIn*MIn*(1.0-cpow(rIn/r,2.0)),1.0/GM1);
+			pR[i]   = cpow(rhoR[i],GAMMA)/GAMMA;
 
 			Vt = -VIn/r;
 			uR[i] = -sin(t)*Vt;
@@ -128,8 +128,8 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 		Vn = 0.5*(RL+RR);
 		c  = 0.25*GM1*(RL-RR);
 
-		if (fabs(Vn) >= c) { // Supersonic
-			if (Vn < 0.0) { // Inlet
+		if (cabs(Vn) >= cabs(c)) { // Supersonic
+			if (creal(Vn) < 0.0) { // Inlet
 				rhoB[i] = rhoR[i];
 				uB[i]   = uR[i];
 				vB[i]   = vR[i];
@@ -143,22 +143,22 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 				pB[i]   = pL[i];
 			}
 		} else {                   // Subsonic
-			if (Vn < 0.0) { // Inlet
-				sR = sqrt(pR[i]/pow(rhoR[i],GAMMA));
+			if (creal(Vn) < 0.0) { // Inlet
+				sR = sqrt(pR[i]/cpow(rhoR[i],GAMMA));
 
 				ut = uR[i] - VnR[i]*n[i  ];
 				vt = vR[i] - VnR[i]*n[i+1];
 				wt = wR[i] - VnR[i]*n[i+2];
 
-				rhoB[i] = pow(1.0/GAMMA*c*c/(sR*sR),1.0/GM1);
+				rhoB[i] = cpow(1.0/GAMMA*c*c/(sR*sR),1.0/GM1);
 			} else {         // Outlet
-				sL = sqrt(pL[i]/pow(rhoL[i],GAMMA));
+				sL = sqrt(pL[i]/cpow(rhoL[i],GAMMA));
 
 				ut = uL[i] - VnL[i]*n[i  ];
 				vt = vL[i] - VnL[i]*n[i+1];
 				wt = wL[i] - VnL[i]*n[i+2];
 
-				rhoB[i] = pow(1.0/GAMMA*c*c/(sL*sL),1.0/GM1);
+				rhoB[i] = cpow(1.0/GAMMA*c*c/(sL*sL),1.0/GM1);
 			}
 			uB[i] = Vn*n[Indn  ] + ut;
 			vB[i] = Vn*n[Indn+1] + vt;
@@ -167,7 +167,7 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 			pB[i] = 1.0/GAMMA*c*c*rhoB[i];
 		}
 	}
-	convert_variables(UB,WB,3,d,Nn,Nel,'p','c');
+	convert_variables_c(UB,WB,3,d,Nn,Nel,'p','c');
 
 	free(UL);
 	free(UR);
@@ -177,12 +177,12 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 	free(n);
 }
 
-void boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, double *WL, double *WB, double *nL,
-                       const unsigned int d)
+void boundary_SlipWall_c(const unsigned int Nn, const unsigned int Nel, double complex *WL, double complex *WB,
+                         double *nL, const unsigned int d)
 {
 	// Standard datatypes
-	unsigned int i, NnTotal, IndE;
-	double *rhoL, *rhouL, *rhovL, *rhowL, *EL, *rhoB, *rhouB, *rhovB, *rhowB, *EB, rhoVL;
+	unsigned int   i, NnTotal, IndE;
+	double complex *rhoL, *rhouL, *rhovL, *rhowL, *EL, *rhoB, *rhouB, *rhovB, *rhowB, *EB, rhoVL;
 
 	NnTotal = Nn*Nel;
 	IndE = d+1;
