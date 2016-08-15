@@ -26,7 +26,7 @@
  *	References:
  */
 
-static void initialize_KSP(Mat A, Vec b)
+void initialize_KSP(Mat *A, Vec *b)
 {
 	/*
 	 *	Comments:
@@ -58,40 +58,16 @@ static void initialize_KSP(Mat A, Vec b)
 		Indi += nnz_d;
 	}
 
-	MatCreateSeqAIJ(comm,dof,dof,0,nnz,&A); // keep (requires external MatDestroy)
+	MatCreateSeqAIJ(comm,dof,dof,0,nnz,A); // keep (requires external MatDestroy)
 
-/*
-PetscInt    *m, *n;
-PetscScalar *vv;
-
-	vv = malloc(4 * sizeof *vv); // free
-	vv[0] = 0.2; vv[1] = 1.2;
-	vv[2] = 2.2; vv[3] = 3.2;
-
-	m = malloc(2 * sizeof *m); // free
-	n = malloc(2 * sizeof *n); // free
-	m[0] = 20; m[1] = 30;
-	n[0] = 21; n[1] = 31;
-
-	MatSetValues(A,2,n,2,m,vv,INSERT_VALUES);
-
-	free(vv);
-	free(m);
-	free(n);
-
-MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);
-MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);
-MatView(A,PETSC_VIEWER_STDOUT_SELF);
-*/
-
-	b = NULL;
-	if (b)
+	*b = NULL;
+	if (*b)
 		printf("placeholder\n");
 
 	free(nnz);
 }
 
-void finalize_LHS(Mat A, Vec b, const unsigned int assemble_type)
+void finalize_LHS(Mat *A, Vec *b, const unsigned int assemble_type)
 {
 	/*
 	 *	Comments:
@@ -103,7 +79,7 @@ void finalize_LHS(Mat A, Vec b, const unsigned int assemble_type)
 	             Neq  = DB.Neq;
 
 	// Standard datatypes
-	unsigned int i, NvnS, nnz_d, eq, var,
+	unsigned int i, NvnS, eq, var,
 	             IndA, Indm, Indn;
 
 	struct S_VOLUME *VOLUME;
@@ -111,7 +87,9 @@ void finalize_LHS(Mat A, Vec b, const unsigned int assemble_type)
 	PetscInt    *m, *n;
 	PetscScalar *vv;
 
-	if (A == NULL)
+	compute_dof();
+
+	if (*A == NULL)
 		initialize_KSP(A,b);
 
 	switch (assemble_type) {
@@ -122,14 +100,11 @@ void finalize_LHS(Mat A, Vec b, const unsigned int assemble_type)
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			IndA  = VOLUME->IndA;
 			NvnS  = VOLUME->NvnS;
-			nnz_d = VOLUME->nnz_d;
 
 			m = malloc(NvnS * sizeof *m); // free
 			n = malloc(NvnS * sizeof *n); // free
 
-//			for (eq = 0; eq < Neq; eq++) {
-i = Neq;
-			for (eq = 0; eq < 1; eq++) {
+			for (eq = 0; eq < Neq; eq++) {
 				Indm = IndA + eq*NvnS;
 				for (i = 0; i < NvnS; i++)
 					m[i] = Indm+i;
@@ -141,31 +116,33 @@ i = Neq;
 
 					vv = &(VOLUME->LHS[(eq*Nvar+var)*NvnS*NvnS]);
 
-					MatSetValues(A,nnz_d,m,nnz_d,n,vv,INSERT_VALUES);
+					MatSetValues(*A,NvnS,m,NvnS,n,vv,INSERT_VALUES);
 				}
 			}
-
-MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);
-MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);
-MatView(A,PETSC_VIEWER_STDOUT_SELF);
-
 			free(m); free(n);
 		}
-
-
-
-		EXIT_MSG;
-
 		break;
 	case 2: // diagonal FACET contributions
 		break;
 	case 3: // offdiagonal contributions
 		break;
 	}
+
+	MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY);
+	MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY);
+//	MatView(*A,PETSC_VIEWER_STDOUT_SELF);
 }
 
 void compute_dof(void)
 {
+	/*
+	 *	Comments:
+	 *		Likely put in a reordering algorithm based on conclusions of Persson (2008). (ToBeDeleted)
+	 *
+	 *	References:
+	 *		Persson(2008)-Newton-GMRES_Preconditioning_for_Discontinuous_Galerkin_Discretizations_of_the_Navier-Stokes_
+	 *		              Equations
+	 */
 	// Initialize DB Parameters
 	unsigned int Nvar = DB.Nvar;
 

@@ -20,6 +20,8 @@
 #include "array_free.h"
 #include "matrix_functions.h"
 
+#undef I // No complex variables used here
+
 /*
  *	Purpose:
  *		Test correctness of implementation of grad_basis_TP.

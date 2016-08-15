@@ -192,8 +192,13 @@ static void compute_VOLUME_RHS_EFE(void)
 					mm_CTN_d(NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->What,W_vI);
 				}
 			}
-//array_print_d(NvnI,Neq,W_vI,'C');
-
+/*
+if (VOLUME->indexg == 0) {
+printf("eVi: %d\n",VOLUME->indexg);
+//array_print_d(OPS[0]->NvnS,Neq,VOLUME->What,'C');
+array_print_d(NvnI,Neq,W_vI,'C');
+}
+*/
 			// Compute Flux in reference space
 			F_vI = malloc(NvnI*d*Neq * sizeof *F_vI); // free
 			flux_inviscid(NvnI,1,W_vI,F_vI,d,Neq);

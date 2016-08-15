@@ -29,62 +29,82 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 
 
 ## Code Status
-- MPI            : TO BE DONE
-- h/p Adaptation  : DONE
+| Functionality  |            |
+|----------------|------------|
+| MPI            | TO BE DONE |
+| h/p Adaptation | DONE       |
 
-### Preprocessing  : ACTIVE
-- set up parameters : DONE
-- set up mesh       : DONE
-- set up operators  : ACTIVE (Solver)
-- set up structures : ACTIVE (Solver)
-- set up geometry   : DONE
+### Preprocessing : ACTIVE
+| Function          |                 |
+|-------------------|-----------------|
+| set up parameters | DONE            |
+| set up mesh       | DONE            |
+| set up operators  | ACTIVE (Solver) |
+| set up structures | ACTIVE (Solver) |
+| set up geometry   | DONE            |
 
-### Solving        : ACTIVE
+### Solving : ACTIVE
 #### Initialization
-- dSphericalBump   : TO BE DONE
-- GaussianBump     : TO BE DONE
-- PeriodicVortex   : DONE
-- PolynomialBump   : TO BE DONE
-- SupersonicVortex : DONE
+| Test case        |            |
+|------------------|------------|
+| dSphericalBump   | TO BE DONE |
+| GaussianBump     | TO BE DONE |
+| PeriodicVortex   | DONE       |
+| PolynomialBump   | TO BE DONE |
+| SupersonicVortex | DONE       |
 
 #### Explicit
-- solver RK : ACTIVE
-- VOLUME    : ACTIVE
-  - Weak Form   : DONE
-  - Strong Form : TO BE DONE
-  - Vectorized  : DONE
-- FACET     : ACTIVE
-  - Weak Form   : DONE
-  - Strong Form : TO BE DONE
-  - Vectorized  : UNDER CONSIDERATION
-- finalize  : DONE
+| Function        |             |                         |
+|-----------------|-------------|-------------------------|
+| solver explicit |             | DONE FOR THE TIME BEING |
+| volume info     |             | DONE FOR THE TIME BEING |
+|                 | Weak Form   | DONE                    |
+|                 | Strong Form | UNDER CONSIDERATION     |
+|                 | Vectorized  | DONE                    |
+| facet info      |             | DONE FOR THE TIME BEING |
+|                 | Weak Form   | DONE                    |
+|                 | Strong Form | UNDER CONSIDERATION     |
+|                 | Vectorized  | UNDER CONSIDERATION     |
+| finalize        |             | DONE                    |
 
 #### Implicit
-- solver implicit : TO BE DONE
-- VOLUME          : TO BE DONE
-- FACET           : TO BE DONE
-- finalize        : TO BE DONE
+| Function        |             |                         |
+|-----------------|-------------|-------------------------|
+| solver implicit |             | TO BE DONE              |
+| volume info     |             | DONE FOR THE TIME BEING |
+|                 | Weak Form   | DONE                    |
+|                 | Strong Form | UNDER CONSIDERATION     |
+|                 | Vectorized  | UNDER CONSIDERATION     |
+| facet info      |             | TO BE DONE              |
+|                 | Weak Form   | TO BE DONE              |
+|                 | Strong Form | UNDER CONSIDERATION     |
+|                 | Vectorized  | UNDER CONSIDERATION     |
+| finalize        |             | TO BE DONE              |
 
 #### Fluxes
-- standard
-  - inviscid       : DONE
-  - viscous        : TO BE DONE
-- numerical
-  - Lax-Friedrichs : DONE
-  - Roe-Pike       : DONE
+|           | Function       |                         |
+|-----------|----------------|-------------------------|
+| Standard  |                | DONE FOR THE TIME BEING |
+|           | inviscid       | DONE                    |
+|           | viscous        | TO BE DONE              |
+| Numerical |                | DONE FOR THE TIME BEING |
+|           | lax-friedrichs | DONE                    |
+|           | roe-pike       | DONE                    |
 
 #### Boundary
-- riemann      : DONE
-- slip wall    : DONE
-- outflow mach : TO BE DONE
+| Function  |                |
+|-----------|----------------|
+| riemann   | DONE           |
+| slip wall | DONE           |
 
 #### Jacobians          : ACTIVE
-- flux inviscid         : TO BE DONE
-- flux LF               : TO BE DONE
-- flux Roe              : TO BE DONE
-- boundary riemann      : TO BE DONE
-- boundary slip wall    : TO BE DONE
-- boundary outflow mach : TO BE DONE
+| Function            |            |
+|---------------------|------------|
+| flux inviscid       | DONE       |
+| flux lax-friedrichs | TO BE DONE |
+| flux roe-pike       | TO BE DONE |
+| boundary riemann    | TO BE DONE |
+| boundary slip wall  | TO BE DONE |
 
 
 ### Postprocessing : ACTIVE (As cases are added)

@@ -1332,6 +1332,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				}
 
 				free(ChiRefGs_vS);
+				free(ChiRefInvGs_vGs);
 			}
 
 			// Note: Nvref >= NvrefSF
@@ -1772,7 +1773,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(E_rst_vC);
 	free(rst_vC);
 
-	free(ChiRefInvGs_vGs);
 	free(ChiInvGs_vGs);
 	free(TGs);
 

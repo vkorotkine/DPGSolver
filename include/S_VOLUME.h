@@ -4,6 +4,8 @@
 #ifndef DPG__S_VOLUME_h__INCLUDED
 #define DPG__S_VOLUME_h__INCLUDED
 
+#include <complex.h>
+
 struct S_VOLUME {
 	// Structures
 	unsigned int indexl, indexg, P, type, Eclass, update, curved, level,
@@ -19,8 +21,11 @@ struct S_VOLUME {
 	double *What, *RES;
 
 	// Solving
-	unsigned int IndA, nnz_d, nnz_o;
-	double       *RHS, *LHS, *wdetJV_vI, *MInv;
+	unsigned int   IndA, nnz_d, nnz_o;
+	double         *RHS, *LHS, *wdetJV_vI, *MInv;
+
+	// Linearization testing
+	double complex *RHS_c, *What_c;
 
 	// hp adaptivity
 	unsigned int refine_current, Vadapt, adapt_type, PNew, hrefine_type;

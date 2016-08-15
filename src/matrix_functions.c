@@ -6,10 +6,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <complex.h>
 
 #include "mkl.h"
 
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_OpCSR.h"
 
 /*
@@ -48,15 +50,15 @@ double *diag_d(const double *x, const unsigned int N)
 double *identity_d(const unsigned int N)
 {
 	unsigned int i, j;
-	double *I;
+	double *A;
 
-	I = malloc(N*N * sizeof *I); // keep (requires external free)
+	A = malloc(N*N * sizeof *A); // keep (requires external free)
 	for (i = 0; i < N; i++) {
 	for (j = 0; j < N; j++) {
-		if (i == j) I[i*N+j] = 1.0;
-		else        I[i*N+j] = 0.0;
+		if (i == j) A[i*N+j] = 1.0;
+		else        A[i*N+j] = 0.0;
 	}}
-	return I;
+	return A;
 }
 
 double *inverse_d(const unsigned int N, const unsigned int NRHS, const double *AIn, const double *b)
@@ -195,6 +197,74 @@ void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_T
 	} else {
 		printf("Error: Invalid layout in mm_*.\n"), exit(1);
 	}
+}
+
+void mm_dcc(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m,
+            const int n, const int k, const double alpha, double *A, void *B, void *C)
+{
+	/*
+	 *	Purpose:
+	 *		Returns: C = alpha*op(A)*op(B) with memory already allocated in calling function.
+	 *
+	 *	Comments:
+	 *		The 'C' array pointer is not declared 'const' as this prefix is discarded by the cblas_zgemm call.
+	 *
+	 *	Notation:
+	 *		m : Number of rows of matrix op(A)
+	 *		n : Number of columns of matrix op(B)
+	 *		k : Number of columns of matrix op(A)
+	 *
+	 *		op() : Transpose, Conjugate Transpose
+	 *
+	 *	Options: (ToBeModified - update as usage is made)
+	 *		transa/transb: CblasNoTrans, CblasTrans, CblasConjTrans
+	 */
+
+	unsigned int  i, iMax;
+	MKL_INT       m_MKL, n_MKL, k_MKL, ldA, ldB, ldC;
+	MKL_Complex16 alpha_c, beta_c, *A_c, *B_c, *C_c;
+
+	m_MKL = (MKL_INT) m;
+	n_MKL = (MKL_INT) n;
+	k_MKL = (MKL_INT) k;
+
+	alpha_c.real = alpha;
+	alpha_c.imag = 0.0;
+	beta_c.real  = 0.0;
+	beta_c.imag  = 0.0;
+
+	A_c = malloc(m*k * sizeof *A_c); // free
+	for (i = 0, iMax = m*k; i < iMax; i++) {
+		A_c[i].real = A[i];
+		A_c[i].imag = 0.0;
+	}
+
+	B_c = B;
+	C_c = C;
+
+	if (layout == CblasColMajor) {
+		if (transa == CblasNoTrans) ldA = m_MKL;
+		else                        ldA = k_MKL;
+
+		if (transb == CblasNoTrans) ldB = k_MKL;
+		else                        ldB = n_MKL;
+
+		ldC = m_MKL;
+		cblas_zgemm(CblasColMajor,transa,transb,m_MKL,n_MKL,k_MKL,&alpha_c,A_c,ldA,B_c,ldB,&beta_c,C_c,ldC);
+	} else if (layout == CblasRowMajor) {
+		if (transa == CblasNoTrans) ldA = k_MKL;
+		else                        ldA = m_MKL;
+
+		if (transb == CblasNoTrans) ldB = n_MKL;
+		else                        ldB = k_MKL;
+
+		ldC = n_MKL;
+		cblas_zgemm(CblasRowMajor,transa,transb,m_MKL,n_MKL,k_MKL,&alpha_c,A_c,ldA,B_c,ldB,&beta_c,C_c,ldC);
+	} else {
+		printf("Error: Invalid layout.\n"), EXIT_MSG;
+	}
+
+	free(A_c);
 }
 
 void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, double *C)

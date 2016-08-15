@@ -16,6 +16,8 @@ extern double *mm_Alloc_d      (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE
                                 const int m, const int n, const int k, const double alpha, const double *A, const double *B);
 extern void   mm_d             (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb,
                                 const int m, const int n, const int k, const double alpha, const double *A, const double *B, double *C);
+extern void   mm_dcc           (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb,
+                                const int m, const int n, const int k, const double alpha, double *A, void *B, void *C);
 extern void   mm_CTN_d         (const int m, const int n, const int k, double *A, double *B, double *C);
 extern void   mm_CTN_CSR_d     (const int m, const int n, const int k, const struct S_OpCSR *A, double *B, double *C);
 extern void   convert_to_CSR_d (const unsigned int NRows, const unsigned int NCols, const double *Input,

@@ -12,7 +12,7 @@
 
 /*
  *	Purpose:
- *		Identical functions to fluxes_inviscid using complex variables used for complex step verification.
+ *		Identical to fluxes_inviscid using complex variables (for complex step verification).
  *
  *	Comments:
  *

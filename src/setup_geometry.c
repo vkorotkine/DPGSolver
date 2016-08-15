@@ -199,11 +199,14 @@ void setup_geometry(void)
 
 	// Set up curved geometry nodes
 	if (strstr(MeshType,"ToBeCurved")) {
-		printf("    Set geometry of VOLUME nodes in ToBeCurved Mesh\n");
+		if (!DB.MPIrank && !DB.Testing)
+			printf("    Set geometry of VOLUME nodes in ToBeCurved Mesh\n");
+
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 			setup_ToBeCurved(VOLUME);
 	} else if (strstr(MeshType,"Curved")) {
-		printf("Add in support for MeshType == Curved (setup_geometry)");
+		if (!DB.MPIrank && !DB.Testing)
+			printf("Add in support for MeshType == Curved (setup_geometry)");
 		exit(1);
 	} else {
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)

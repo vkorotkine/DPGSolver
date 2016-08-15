@@ -55,6 +55,8 @@ int main(int nargc, char **argv)
 {
 	printf("\n\n\n*** Test to see when unrolled mv multiplications break even with BLAS on Guillimin before running"
 	       " any large jobs. ***\n\n\n");
+	printf("\n\n\n*** Test to see whether the use of floats initially then transferring to doubles results in speed-up."
+	       " ***\n\n\n");
 
 	char *fNameOut, *string;
 	int  MPIrank, MPIsize;
@@ -240,7 +242,7 @@ int main(int nargc, char **argv)
 	TestDB.Npass = 0;
 	TestDB.Nwarnings = 0;
 
-	RunTest.unit        = 1;
+	RunTest.unit        = 0;
 	RunTest.integration = 0;
 	RunTest.speed       = 0;
 

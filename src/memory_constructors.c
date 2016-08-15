@@ -406,6 +406,10 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->LHS   = NULL; // free
 	VOLUME->MInv  = NULL; // free
 
+	// Linearization testing
+	VOLUME->What_c = NULL; // free
+	VOLUME->RHS_c  = NULL; // free
+
 	// hp adaptivity
 //	VOLUME->minRES = 0.0;
 //	VOLUME->maxRES = 0.0;

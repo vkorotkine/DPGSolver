@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+
+#include "petscmat.h"
  
 #include "Macros.h"
 
@@ -125,4 +127,37 @@ double array_norm_diff_d(const unsigned int LenA, const double *A, const double 
 	}
 	else
 		return norm_num;
+}
+
+double PetscMatAIJ_norm_diff_d(const unsigned int NRows, Mat A, Mat B, const char *NormType)
+{
+	unsigned int i;
+	double       norm_row, norm;
+
+	int               ncols[2];
+	const PetscInt    *cols[2];
+	const PetscScalar *vals[2];
+
+	norm = 0.0;
+	if (strstr(NormType,"Inf")) {
+		for (i = 0; i < NRows; i++) {
+
+			MatGetRow(A,i,&ncols[0],&cols[0],&vals[0]);
+			MatGetRow(B,i,&ncols[1],&cols[1],&vals[1]);
+
+			if (ncols[0] != ncols[1])
+				printf("Error: Different number of non-zero columns in A and B.\n"), EXIT_MSG;
+
+			norm_row = array_norm_diff_d(ncols[0],vals[0],vals[1],"Inf");
+			if (norm_row > norm)
+				norm = norm_row;
+
+			MatRestoreRow(A,i,&ncols[0],&cols[0],&vals[0]);
+			MatRestoreRow(A,i,&ncols[1],&cols[1],&vals[1]);
+		}
+	} else {
+		printf("Error: Only infinity norm is supported.\n"), EXIT_MSG;
+	}
+
+	return norm;
 }

@@ -17,6 +17,8 @@
 #include "matrix_functions.h"
 #include "array_free.h"
 
+#undef I // No complex variables used here
+
 /*
  *	Purpose:
  *		Test correctness of implementation of matrix functions.
