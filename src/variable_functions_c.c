@@ -25,13 +25,15 @@ void convert_variables_c(double complex *VarIn, double complex *VarOut, const un
 {
 	// Standard datatypes
 	unsigned int   n, NnTotal, varInMax = dIn + 1, varOutMax = dOut+1;
-	double complex *rho, *u, *v, *w, *p, *rhou, *rhov, *rhow, *E, zeros[Nn], rhoV2[Nn], *U, *W;
+	double complex *rho, *u, *v, *w, *p, *rhou, *rhov, *rhow, *E, *U, *W;
 
 	// silence
 	u = v = w = NULL;
 	rhov = rhow = NULL;
 
 	NnTotal = Nn*Nel;
+
+	double complex zeros[NnTotal], rhoV2[NnTotal];
 
 	for (n = 0; n < NnTotal; n++)
 		zeros[n] = 0.0;

@@ -39,13 +39,15 @@ void convert_variables(double *VarIn, double *VarOut, const unsigned int dIn, co
 
 	// Standard datatypes
 	unsigned int n, NnTotal, varInMax = dIn + 1, varOutMax = dOut+1;
-	double       *rho, *u, *v, *w, *p, *rhou, *rhov, *rhow, *E, zeros[Nn], rhoV2[Nn], *U, *W;
+	double       *rho, *u, *v, *w, *p, *rhou, *rhov, *rhow, *E, *U, *W;
 
 	// silence
 	u = NULL; v = NULL; w = NULL;
 	rhov = NULL; rhow = NULL;
 
 	NnTotal = Nn*Nel;
+
+	double zeros[NnTotal], rhoV2[NnTotal];
 
 	for (n = 0; n < NnTotal; n++)
 		zeros[n] = 0.0;

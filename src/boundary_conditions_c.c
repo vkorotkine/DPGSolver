@@ -100,7 +100,7 @@ void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, double *X
 			r = sqrt(X[i]*X[i]+Y[i]*Y[i]);
 			t = atan2(Y[i],X[i]);
 
-			rhoR[i] = rhoIn*cpow(1.0+0.5*GM1*MIn*MIn*(1.0-cpow(rIn/r,2.0)),1.0/GM1);
+			rhoR[i] = rhoIn*pow(1.0+0.5*GM1*MIn*MIn*(1.0-pow(rIn/r,2.0)),1.0/GM1);
 			pR[i]   = cpow(rhoR[i],GAMMA)/GAMMA;
 
 			Vt = -VIn/r;
@@ -118,8 +118,8 @@ void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, double *X
 
 	for (i = 0; i < NnTotal; i++) {
 		Indn = i*DMAX;
-		cL = sqrt(GAMMA*pL[i]/rhoL[i]);
-		cR = sqrt(GAMMA*pR[i]/rhoR[i]);
+		cL = csqrt(GAMMA*pL[i]/rhoL[i]);
+		cR = csqrt(GAMMA*pR[i]/rhoR[i]);
 
 		// Riemann invariants
 		RL = VnL[i] + 2.0/GM1*cL;
@@ -144,19 +144,19 @@ void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, double *X
 			}
 		} else {                   // Subsonic
 			if (creal(Vn) < 0.0) { // Inlet
-				sR = sqrt(pR[i]/cpow(rhoR[i],GAMMA));
+				sR = csqrt(pR[i]/cpow(rhoR[i],GAMMA));
 
-				ut = uR[i] - VnR[i]*n[i  ];
-				vt = vR[i] - VnR[i]*n[i+1];
-				wt = wR[i] - VnR[i]*n[i+2];
+				ut = uR[i] - VnR[i]*n[Indn  ];
+				vt = vR[i] - VnR[i]*n[Indn+1];
+				wt = wR[i] - VnR[i]*n[Indn+2];
 
 				rhoB[i] = cpow(1.0/GAMMA*c*c/(sR*sR),1.0/GM1);
 			} else {         // Outlet
-				sL = sqrt(pL[i]/cpow(rhoL[i],GAMMA));
+				sL = csqrt(pL[i]/cpow(rhoL[i],GAMMA));
 
-				ut = uL[i] - VnL[i]*n[i  ];
-				vt = vL[i] - VnL[i]*n[i+1];
-				wt = wL[i] - VnL[i]*n[i+2];
+				ut = uL[i] - VnL[i]*n[Indn  ];
+				vt = vL[i] - VnL[i]*n[Indn+1];
+				wt = wL[i] - VnL[i]*n[Indn+2];
 
 				rhoB[i] = cpow(1.0/GAMMA*c*c/(sL*sL),1.0/GM1);
 			}

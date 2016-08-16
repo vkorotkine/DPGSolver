@@ -8,7 +8,7 @@
 #include <math.h>
 #include <string.h>
 #include <limits.h>
- 
+
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
@@ -74,36 +74,14 @@ static void compute_initial_solution(const unsigned int Nn, double *XYZ, double 
 static void adapt_initial(unsigned int *adapt_update);
 static void check_levels_refine(const unsigned int indexg, struct S_VInfo **VInfo_list, const unsigned int adapt_class);
 
-void initialize_test_case(const unsigned int adapt_update_MAX)
+void initialize_test_case_parameters(char *TestCase)
 {
-	// Initialize DB Parameters
-	char         *TestCase = DB.TestCase;
-	unsigned int d         = DB.d,
-	             Adapt     = DB.Adapt;
-
-	DB.Nvar = d+2;
-	DB.Neq  = d+2;
-
-	unsigned int Nvar = DB.Nvar;
-
-	DB.OutputInterval = 1e3;
-
-	// Standard datatypes
-	char         *SolverType;
-	unsigned int DOF0 = 0;
-	unsigned int NvnS, adapt_update, adapt_count;
-	double       *XYZ_vS, *U, *s, *W, *What;
-
-	struct S_OPERATORS *OPS;
-	struct S_VOLUME    *VOLUME;
-
-	// silence
-	SolverType = NULL;
+	char *SolverType = NULL;
 
 	if (strstr(TestCase,"dSphericalBump")) {
-		; // initialize_dSphericalBump();
+		EXIT_MSG;
 	} else if (strstr(TestCase,"GaussianBump")) {
-		; // initialize_GaussianBump();
+		EXIT_MSG;
 	} else if (strstr(TestCase,"PeriodicVortex") ||
 	           strstr(TestCase,"Test_L2_proj")   ||
 	           strstr(TestCase,"Test_update_h")) {
@@ -135,11 +113,11 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 		else
 			DB.FinalTime = DB.PeriodFraction*DB.PeriodL/DB.VInf;
 	} else if (strstr(TestCase,"PolynomialBump")) {
-		;
+		EXIT_MSG;
 	} else if (strstr(TestCase,"SupersonicVortex") ||
 	           strstr(TestCase,"Test_linearization")) {
 		// Standard datatypes
-		double       pIn, cIn;
+		double pIn, cIn;
 
 		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 		strcpy(SolverType,"Explicit");
@@ -161,6 +139,31 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 		printf("Error: Unsupported TestCase: %s.\n",TestCase), EXIT_MSG;
 	}
 	DB.SolverType = SolverType;
+}
+
+void initialize_test_case(const unsigned int adapt_update_MAX)
+{
+	// Initialize DB Parameters
+	char         *TestCase = DB.TestCase;
+	unsigned int d         = DB.d,
+	             Adapt     = DB.Adapt;
+
+	DB.Nvar = d+2;
+	DB.Neq  = d+2;
+
+	unsigned int Nvar = DB.Nvar;
+
+	DB.OutputInterval = 1e3;
+
+	// Standard datatypes
+	unsigned int DOF0 = 0;
+	unsigned int NvnS, adapt_update, adapt_count;
+	double       *XYZ_vS, *U, *s, *W, *What;
+
+	struct S_OPERATORS *OPS;
+	struct S_VOLUME    *VOLUME;
+
+	initialize_test_case_parameters(TestCase);
 
 	adapt_count = 0;
 	adapt_update = 1;

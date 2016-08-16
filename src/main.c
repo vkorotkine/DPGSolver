@@ -58,6 +58,7 @@ int main(int nargc, char **argv)
 	printf("\n\n\n*** Test to see whether the use of floats initially then transferring to doubles results in speed-up."
 	       " ***\n\n\n");
 	printf("\n\n\n*** Combine explicit and implicit info for implicit runs (ToBeDeleted) ***\n\n\n");
+	// Note: The same recombination can be done for the flux and boundary condition functions as well (ToBeDeleted).
 
 	char *fNameOut, *string;
 	int  MPIrank, MPIsize;

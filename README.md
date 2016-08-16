@@ -92,10 +92,10 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 |           | roe-pike       | DONE                    |
 
 #### Boundary
-| Function  |                |
-|-----------|----------------|
-| riemann   | DONE           |
-| slip wall | DONE           |
+| Function |                |
+|----------|----------------|
+| Riemann  | DONE           |
+| SlipWall | DONE           |
 
 #### Jacobians          : ACTIVE
 | Function            |            |
@@ -103,8 +103,8 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 | flux inviscid       | DONE       |
 | flux lax-friedrichs | TO BE DONE |
 | flux roe-pike       | TO BE DONE |
-| boundary riemann    | TO BE DONE |
-| boundary slip wall  | TO BE DONE |
+| boundary Riemann    | TO BE DONE |
+| boundary SlipWall   | DONE       |
 
 
 ### Postprocessing : ACTIVE (As cases are added)

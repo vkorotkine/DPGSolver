@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
 
 #include "variable_functions.h"
@@ -113,7 +114,7 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 			VnR[i] = n[Indn  ]*uR[i]+n[Indn+1]*vR[i]; // wR == 0
 		}
 	} else {
-		printf("Error: Unsupported TestCase in boundary_Riemann.\n"), exit(1);
+		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
 	}
 
 	for (i = 0; i < NnTotal; i++) {
@@ -146,17 +147,17 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 			if (Vn < 0.0) { // Inlet
 				sR = sqrt(pR[i]/pow(rhoR[i],GAMMA));
 
-				ut = uR[i] - VnR[i]*n[i  ];
-				vt = vR[i] - VnR[i]*n[i+1];
-				wt = wR[i] - VnR[i]*n[i+2];
+				ut = uR[i] - VnR[i]*n[Indn  ];
+				vt = vR[i] - VnR[i]*n[Indn+1];
+				wt = wR[i] - VnR[i]*n[Indn+2];
 
 				rhoB[i] = pow(1.0/GAMMA*c*c/(sR*sR),1.0/GM1);
 			} else {         // Outlet
 				sL = sqrt(pL[i]/pow(rhoL[i],GAMMA));
 
-				ut = uL[i] - VnL[i]*n[i  ];
-				vt = vL[i] - VnL[i]*n[i+1];
-				wt = wL[i] - VnL[i]*n[i+2];
+				ut = uL[i] - VnL[i]*n[Indn  ];
+				vt = vL[i] - VnL[i]*n[Indn+1];
+				wt = wL[i] - VnL[i]*n[Indn+2];
 
 				rhoB[i] = pow(1.0/GAMMA*c*c/(sL*sL),1.0/GM1);
 			}

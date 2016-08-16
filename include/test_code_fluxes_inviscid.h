@@ -4,7 +4,8 @@
 #ifndef DPG__test_code_fluxes_inviscid_h__INCLUDED
 #define DPG__test_code_fluxes_inviscid_h__INCLUDED
 
-extern double *initialize_W (unsigned int *Nn,      unsigned int *Nel,      const unsigned int d);
-extern double *initialize_n (const unsigned int Nn, const unsigned int Nel, const unsigned int d);
+extern double *initialize_W   (unsigned int *Nn,      unsigned int *Nel,      const unsigned int d);
+extern double *initialize_n   (const unsigned int Nn, const unsigned int Nel, const unsigned int d);
+extern double *initialize_XYZ (const unsigned int Nn, const unsigned int Nel, const unsigned int d);
 
 #endif // DPG__test_code_fluxes_inviscid_h__INCLUDED
