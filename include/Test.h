@@ -6,7 +6,7 @@
 
 struct S_TEST {
 	// Counters
-	unsigned int Ntest, Npass, Nwarnings;
+	unsigned int Ntest, Npass, Nwarnings, EnteredRiemann[4];
 };
 extern struct S_TEST TestDB;
 

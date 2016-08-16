@@ -11,6 +11,7 @@
 
 #include "Parameters.h"
 #include "S_DB.h"
+#include "Test.h"
 
 #include "variable_functions_c.h"
 
@@ -130,12 +131,16 @@ void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, double *X
 
 		if (cabs(Vn) >= cabs(c)) { // Supersonic
 			if (creal(Vn) < 0.0) { // Inlet
+				TestDB.EnteredRiemann[0]++;
+
 				rhoB[i] = rhoR[i];
 				uB[i]   = uR[i];
 				vB[i]   = vR[i];
 				wB[i]   = wR[i];
 				pB[i]   = pR[i];
 			} else {         // Outlet
+				TestDB.EnteredRiemann[1]++;
+
 				rhoB[i] = rhoL[i];
 				uB[i]   = uL[i];
 				vB[i]   = vL[i];
@@ -144,6 +149,8 @@ void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, double *X
 			}
 		} else {                   // Subsonic
 			if (creal(Vn) < 0.0) { // Inlet
+				TestDB.EnteredRiemann[2]++;
+
 				sR = csqrt(pR[i]/cpow(rhoR[i],GAMMA));
 
 				ut = uR[i] - VnR[i]*n[Indn  ];
@@ -152,6 +159,8 @@ void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, double *X
 
 				rhoB[i] = cpow(1.0/GAMMA*c*c/(sR*sR),1.0/GM1);
 			} else {         // Outlet
+				TestDB.EnteredRiemann[3]++;
+
 				sL = csqrt(pL[i]/cpow(rhoL[i],GAMMA));
 
 				ut = uL[i] - VnL[i]*n[Indn  ];

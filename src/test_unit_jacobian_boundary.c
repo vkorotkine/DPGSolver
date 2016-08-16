@@ -83,7 +83,7 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 {
 	unsigned int pass = 0;
 
-	unsigned int NnTotal, Nvar;
+	unsigned int NnTotal, Nvar, i, CheckedAllRiemann;
 	double       *dWdW, *dWdW_cs;
 
 	NnTotal = Nn*Nel;
@@ -101,8 +101,23 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 
 	compute_dWdW_cs(Neq,Nn,Nel,d,W,dWdW_cs,nL,XYZ,BType);
 
-	if (array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+	if (strstr(BType,"Riemann") == NULL) {
+		if (array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < EPS)
+			pass = 1, TestDB.Npass++;
+	} else {
+		CheckedAllRiemann = 1;
+		for (i = 0; i < 4; i++) {
+			if (!TestDB.EnteredRiemann[i]) {
+				CheckedAllRiemann = 0;
+				break;
+			}
+		}
+array_print_ui(1,4,TestDB.EnteredRiemann,'R');
+		if (CheckedAllRiemann && array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < EPS)
+			pass = 1, TestDB.Npass++;
+	}
+
+
 
 	free(dWdW);
 	free(dWdW_cs);
@@ -123,14 +138,15 @@ void test_unit_jacobian_boundary(void)
 	 *
 	 */
 
-printf("Ensure that all cases of the riemann boundary are checked.\n"); TestDB.Nwarnings++;
 printf("\nWarning: boundary_Riemann is currently not being tested for d = 1.\n\n"); TestDB.Nwarnings++;
-// This may need to wait for a case that actually uses all the BCs (ToBeDeleted)
+// This requires a case where a d = 1 Riemann BC is supported.
+
+printf("Ensure that all cases of the riemann boundary are checked.\n"); TestDB.Nwarnings++;
 
 	unsigned int NBTypes = 2;
 
 	char         *BType[NBTypes], *TestCase;
-	unsigned int i, Nn, Nel, d, Neq, dMin[NBTypes], dMax[NBTypes];
+	unsigned int i, j, Nn, Nel, d, Neq, dMin[NBTypes], dMax[NBTypes];
 	double       *W, *nL, *XYZ;
 
 	TestCase = malloc(STRLEN_MAX * sizeof *TestCase); // free
@@ -149,8 +165,12 @@ printf("\nWarning: boundary_Riemann is currently not being tested for d = 1.\n\n
 	dMin[1] = 2; dMax[1] = 3;
 
 	for (i = 0; i < NBTypes; i++) {
-//	for (d = 1; d <= 3; d++) {
 	for (d = dMin[i]; d <= dMax[i]; d++) {
+		if (strstr(BType[i],"Riemann")) {
+			for (j = 0; j < 4; j++)
+				TestDB.EnteredRiemann[j] = 0;
+		}
+
 		Neq = d+2;
 
 		W    = initialize_W(&Nn,&Nel,d); // free

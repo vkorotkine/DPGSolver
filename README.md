@@ -103,7 +103,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 | flux inviscid       | DONE       |
 | flux lax-friedrichs | TO BE DONE |
 | flux roe-pike       | TO BE DONE |
-| boundary Riemann    | TO BE DONE |
+| boundary Riemann    | DONE       |
 | boundary SlipWall   | DONE       |
 
 
