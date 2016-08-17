@@ -245,8 +245,8 @@ int main(int nargc, char **argv)
 	TestDB.Npass = 0;
 	TestDB.Nwarnings = 0;
 
-	RunTest.unit        = 0;
-	RunTest.integration = 0;
+	RunTest.unit        = 1;
+	RunTest.integration = 1;
 	RunTest.speed       = 0;
 
 
@@ -287,13 +287,15 @@ int main(int nargc, char **argv)
 
 		test_unit_fluxes_inviscid();
 		test_unit_jacobian_fluxes_inviscid();
+		test_unit_jacobian_boundary();
 		test_unit_get_facet_ordering();
 
 		test_unit_equivalence_real_complex();
-printf("Add tests for real/complex equivalence for all relevant functions.\n"); TestDB.Nwarnings++;
+		printf("\nAdd tests for real/complex equivalence for all relevant functions.\n\n");
+		printf("\nFor the VOLUME/FACET info functions, test that all 'versions' give identical results.\n\n");
+		TestDB.Nwarnings++;
 	}
 test_unit_jacobian_fluxes_inviscid();
-	test_unit_jacobian_boundary();
 
 	// Integration tests
 	if (RunTest.integration) {

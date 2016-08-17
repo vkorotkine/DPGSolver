@@ -93,7 +93,7 @@ void test_integration_update_h(int nargc, char **argv)
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullCOARSE");
-	printf("update_h (       FullCOARSE):                    ");
+	printf("         (       FullCOARSE):                    ");
 	test_print(pass);
 
 	XYZ_lim->XYZ[0] = -0.75; XYZ_lim->XYZ[1] = -0.75; XYZ_lim->type = 'd'; XYZ_lim->index = 0;
@@ -110,13 +110,13 @@ void test_integration_update_h(int nargc, char **argv)
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"Mixed");
-	printf("update_h (       Mixed):                         ");
+	printf("         (       Mixed):                         ");
 	test_print(pass);
 
 	pass = 1;
 	check_Jacobians(&pass);
 	//     0         10        20        30        40        50
-	printf("update_h (       Jacobians):                     ");
+	printf("         (       Jacobians):                     ");
 	test_print(pass);
 
 	code_cleanup(0);
@@ -132,12 +132,12 @@ void test_integration_update_h(int nargc, char **argv)
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullREFINE");
-	printf("update_h (QUAD,  FullREFINE):                    ");
+	printf("         (QUAD,  FullREFINE):                    ");
 	test_print(pass);
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullCOARSE");
-	printf("update_h (       FullCOARSE):                    ");
+	printf("         (       FullCOARSE):                    ");
 	test_print(pass);
 
 	XYZ_lim->XYZ[0] = -0.50; XYZ_lim->XYZ[1] = -0.50; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
@@ -154,13 +154,13 @@ void test_integration_update_h(int nargc, char **argv)
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"Mixed");
-	printf("update_h (       Mixed):                         ");
+	printf("         (       Mixed):                         ");
 	test_print(pass);
 
 	pass = 1;
 	check_Jacobians(&pass);
 	//     0         10        20        30        40        50
-	printf("update_h (       Jacobians):                     ");
+	printf("         (       Jacobians):                     ");
 	test_print(pass);
 
 	code_cleanup(0);
@@ -176,12 +176,12 @@ void test_integration_update_h(int nargc, char **argv)
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullREFINE");
-	printf("update_h (TET,   FullREFINE):                    ");
+	printf("         (TET,   FullREFINE):                    ");
 	test_print(pass);
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullCOARSE");
-	printf("update_h (       FullCOARSE):                    ");
+	printf("         (       FullCOARSE):                    ");
 	test_print(pass);
 
 	XYZ_lim->XYZ[0] =  1.00; XYZ_lim->XYZ[1] =  1.00; XYZ_lim->XYZ[2] =  0.00; XYZ_lim->type = 'd'; XYZ_lim->index = 1;
@@ -198,13 +198,13 @@ void test_integration_update_h(int nargc, char **argv)
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"Mixed");
-	printf("update_h (       Mixed):                         ");
+	printf("         (       Mixed):                         ");
 	test_print(pass);
 
 	pass = 1;
 	check_Jacobians(&pass);
 	//     0         10        20        30        40        50
-	printf("update_h (       Jacobians):                     ");
+	printf("         (       Jacobians):                     ");
 	test_print(pass);
 
 	code_cleanup(0);
@@ -220,12 +220,12 @@ void test_integration_update_h(int nargc, char **argv)
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullREFINE");
-	printf("update_h (HEX,   FullREFINE):                    ");
+	printf("         (HEX,   FullREFINE):                    ");
 	test_print(pass);
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullCOARSE");
-	printf("update_h (       FullCOARSE):                    ");
+	printf("         (       FullCOARSE):                    ");
 	test_print(pass);
 
 	XYZ_lim->XYZ[0] = -0.50; XYZ_lim->XYZ[1] = -0.50; XYZ_lim->XYZ[2] = -0.50; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
@@ -242,13 +242,13 @@ void test_integration_update_h(int nargc, char **argv)
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"Mixed");
-	printf("update_h (       Mixed):                         ");
+	printf("         (       Mixed):                         ");
 	test_print(pass);
 
 	pass = 1;
 	check_Jacobians(&pass);
 	//     0         10        20        30        40        50
-	printf("update_h (       Jacobians):                     ");
+	printf("         (       Jacobians):                     ");
 	test_print(pass);
 
 	code_cleanup(0);
@@ -264,12 +264,12 @@ void test_integration_update_h(int nargc, char **argv)
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullREFINE");
-	printf("update_h (WEDGE, FullREFINE):                    ");
+	printf("         (WEDGE, FullREFINE):                    ");
 	test_print(pass);
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullCOARSE");
-	printf("update_h (       FullCOARSE):                    ");
+	printf("         (       FullCOARSE):                    ");
 	test_print(pass);
 
 	XYZ_lim->XYZ[0] = -0.50; XYZ_lim->XYZ[1] = -0.50; XYZ_lim->XYZ[2] = -0.50; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
@@ -286,13 +286,13 @@ void test_integration_update_h(int nargc, char **argv)
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"Mixed");
-	printf("update_h (       Mixed):                         ");
+	printf("         (       Mixed):                         ");
 	test_print(pass);
 
 	pass = 1;
 	check_Jacobians(&pass);
 	//     0         10        20        30        40        50
-	printf("update_h (       Jacobians):                     ");
+	printf("         (       Jacobians):                     ");
 	test_print(pass);
 
 	code_cleanup(0);
@@ -308,12 +308,12 @@ void test_integration_update_h(int nargc, char **argv)
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullREFINE");
-	printf("update_h (PYR,   FullREFINE):                    ");
+	printf("         (PYR,   FullREFINE):                    ");
 	test_print(pass);
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"FullCOARSE");
-	printf("update_h (       FullCOARSE):                    ");
+	printf("         (       FullCOARSE):                    ");
 	test_print(pass);
 
 	XYZ_lim->XYZ[0] = -0.50; XYZ_lim->XYZ[1] = -0.50; XYZ_lim->XYZ[2] = -0.50; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
@@ -330,13 +330,13 @@ void test_integration_update_h(int nargc, char **argv)
 
 	//     0         10        20        30        40        50
 	run_test(&pass,"Mixed");
-	printf("update_h (       Mixed):                         ");
+	printf("         (       Mixed):                         ");
 	test_print(pass);
 
 	pass = 1;
 	check_Jacobians(&pass);
 	//     0         10        20        30        40        50
-	printf("update_h (       Jacobians):                     ");
+	printf("         (       Jacobians):                     ");
 	test_print(pass);
 
 	code_cleanup(0);

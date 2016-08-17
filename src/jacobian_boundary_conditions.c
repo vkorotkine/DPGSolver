@@ -51,8 +51,8 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 	 *	            0  0  0  1  0
 	 *	            0  0  0  0  1 ]
 	 *
-	 *	Subsonic Inlet
-	 *		ToBeModified
+	 *	Subsonic Inlet/Outlet
+	 *		See below.
 	 *
 	 */
 
@@ -65,8 +65,8 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 
 	// Standard datatypes
 	unsigned int i, iMax, n, eq, var, NnTotal, Nvar, InddWdW;
-	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *E_ptr, *n_ptr, *X_ptr, *Y_ptr,
-	             rhoL, rhoL_inv, uL, vL, wL, EL, V2L, VL, pL, rhoR, uR, vR, wR, pR,
+	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *X_ptr, *Y_ptr,
+	             rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL, rhoR, uR, vR, wR, pR,
 	             cL, RL, VnL, cR, RR, VnR, c, Vn,
 	             X, Y, r, t, Vt, n1, n2, n3, *dWdW_ptr[Neq*Neq];
 
@@ -77,14 +77,14 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 	NnTotal = Nn*Nel;
 	Nvar    = Neq;
 
-	double zeros_NnTotal[NnTotal];
+	double zeros[NnTotal];
 
 	for (i = 0; i < NnTotal; i++)
-		zeros_NnTotal[i] = 0.0;
+		zeros[i] = 0.0;
 
 	rhoL_ptr  = &WL[        0];
 	rhouL_ptr = &WL[NnTotal*1];
-	E_ptr     = &WL[NnTotal*(d+1)];
+	EL_ptr    = &WL[NnTotal*(d+1)];
 
 	n_ptr = nL;
 
@@ -93,10 +93,10 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 		rhowL_ptr = &WL[NnTotal*3];
 	} else if (d == 2) {
 		rhovL_ptr = &WL[NnTotal*2];
-		rhowL_ptr = zeros_NnTotal;
+		rhowL_ptr = zeros;
 	} else if (d == 1) {
-		rhovL_ptr = zeros_NnTotal;
-		rhowL_ptr = zeros_NnTotal;
+		rhovL_ptr = zeros;
+		rhowL_ptr = zeros;
 	}
 
 	X_ptr = &XYZ[NnTotal*0];
@@ -117,10 +117,9 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 		uL   = (*rhouL_ptr++)*rhoL_inv;
 		vL   = (*rhovL_ptr++)*rhoL_inv;
 		wL   = (*rhowL_ptr++)*rhoL_inv;
-		EL   = *E_ptr++;
+		EL   = *EL_ptr++;
 
 		V2L = uL*uL+vL*vL+wL*wL;
-		VL  = sqrt(V2L);
 
 		pL  = GM1*(EL-0.5*rhoL*V2L);
 
@@ -189,8 +188,8 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 			un = vn = wn = 0.0;
 
 			if (d == 3) {
-				drhoLdW[0] = 1.0;       drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0; drhoLdW[4] = 0.0;
-				dpLdW[0]   = 0.5*VL*VL; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = -wL; dpLdW[4]   = 1.0;
+				drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0; drhoLdW[4] = 0.0;
+				dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = -wL; dpLdW[4]   = 1.0;
 
 				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;      duLdW[4] = 0.0;
 				dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;      dvLdW[4] = 0.0;
@@ -205,8 +204,8 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 				vn = Vn*n2;
 				wn = Vn*n3;
 			} else if (d == 2) {
-				drhoLdW[0] = 1.0;       drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0;
-				dpLdW[0]   = 0.5*VL*VL; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = 1.0;
+				drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0;
+				dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = 1.0;
 
 				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;
 				dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;
@@ -219,8 +218,8 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 				un = Vn*n1;
 				vn = Vn*n2;
 			} else if (d == 1) {
-				drhoLdW[0] = 1.0;       drhoLdW[1] = 0.0; drhoLdW[2] = 0.0;
-				dpLdW[0]   = 0.5*VL*VL; dpLdW[1]   = -uL; dpLdW[2]   = 1.0;
+				drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0;
+				dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = 1.0;
 
 				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;
 
@@ -233,7 +232,7 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 			}
 
 			for (var = 0; var < Nvar; var++) {
-				dcLdW      = 0.5*GAMMA*sqrt(rhoL/(GAMMA*pL))/(rhoL*rhoL)*(dpLdW[var]*rhoL-pL*drhoLdW[var]);
+				dcLdW      = 0.5*GAMMA/(cL*rhoL*rhoL)*(dpLdW[var]*rhoL-pL*drhoLdW[var]);
 				dRLdW[var] = dVnLdW[var] + 2.0/GM1*dcLdW;
 				dcdW[var]  = 0.25*GM1*dRLdW[var];
 			}

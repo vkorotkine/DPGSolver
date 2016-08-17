@@ -35,7 +35,7 @@ double *initialize_W(unsigned int *Nn, unsigned int *Nel, const unsigned int d)
 	switch (d) {
 		case 1: {
 			double W1[18] = {  1.01,  1.02,  1.03,  1.11,  1.12,  1.13,
-			                   2.01, -2.02,  2.03, -2.11,  2.12,  2.13,
+			                   2.01, -2.02,  2.03, -2.11,  2.12,  2.53,
 			                   9.01,  9.02,  9.03,  9.11,  9.12,  9.13};
 
 			for (i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
@@ -44,8 +44,8 @@ double *initialize_W(unsigned int *Nn, unsigned int *Nel, const unsigned int d)
 			break;
 		} case 2: {
 			double W2[24] = {  1.01,  1.02,  1.03,  1.11,  1.12,  1.13,
-			                   2.01, -2.22,  2.03, -2.11,  2.12,  2.13,
-			                   2.04, -2.25,  2.06, -2.14,  2.15,  2.16,
+			                   2.01, -2.22,  2.03, -2.11,  2.12,  2.53,
+			                   2.04, -2.25,  2.06, -2.14,  2.15,  2.56,
 			                   9.01,  9.02,  9.03,  9.11,  9.12,  9.13};
 
 			for (i = 0, iMax = NnTotal*Nvar; i < iMax; i++)

@@ -396,3 +396,529 @@ void jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, doubl
 		}
 	}
 }
+
+void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *dnFdW,
+                      double *nL, const unsigned int d, const unsigned int Neq, const char side)
+{
+	// Standard datatypes
+	char         sideMaxV;
+	unsigned int i, n, eq, var, iMax, Nvar, NnTotal, InddnFdW;
+	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr,
+	             *rhoR_ptr, *rhouR_ptr, *rhovR_ptr, *rhowR_ptr, *ER_ptr,
+	             rhoL, rhouL, rhovL, rhowL, EL, rhoL_inv, uL, vL, wL, V2L, VL, pL, cL,
+	             rhoR, rhouR, rhovR, rhowR, ER, rhoR_inv, uR, vR, wR, V2R, VR, pR, cR,
+	             maxlL, maxlR, maxV,
+	             n1, n2, n3, *n_ptr, *dnFdW_ptr[Neq*Neq];
+
+	Nvar    = Neq;
+	NnTotal = Nn*Nel;
+
+	rhoL_ptr  = &WL[NnTotal*0];
+	rhouL_ptr = &WL[NnTotal*1];
+	EL_ptr    = &WL[NnTotal*(d+1)];
+
+	rhoR_ptr  = &WR[NnTotal*0];
+	rhouR_ptr = &WR[NnTotal*1];
+	ER_ptr    = &WR[NnTotal*(d+1)];
+
+	n_ptr = nL;
+
+	for (eq  = 0; eq  < Neq;  eq++)  {
+	for (var = 0; var < Nvar; var++) {
+		dnFdW_ptr[eq*Nvar+var] = &dnFdW[(eq*Nvar+var)*NnTotal];
+	}}
+
+	if (d == 3) {
+		rhovL_ptr = &WL[NnTotal*2];
+		rhowL_ptr = &WL[NnTotal*3];
+
+		rhovR_ptr = &WR[NnTotal*2];
+		rhowR_ptr = &WR[NnTotal*3];
+
+		for (n = 0; n < NnTotal; n++) {
+			InddnFdW = 0;
+
+			// Inner VOLUME
+			rhoL  = *rhoL_ptr++;
+			rhouL = *rhouL_ptr++;
+			rhovL = *rhovL_ptr++;
+			rhowL = *rhowL_ptr++;
+			EL    = *EL_ptr++;
+
+			rhoL_inv = 1.0/rhoL;
+			uL = rhouL*rhoL_inv;
+			vL = rhovL*rhoL_inv;
+			wL = rhowL*rhoL_inv;
+
+			V2L = uL*uL+vL*vL+wL*wL;
+			VL  = sqrt(V2L);
+
+			pL  = GM1*(EL-0.5*rhoL*V2L);
+			cL  = sqrt(GAMMA*pL/rhoL);
+
+			// Outer VOLUME
+			rhoR  = *rhoR_ptr++;
+			rhouR = *rhouR_ptr++;
+			rhovR = *rhovR_ptr++;
+			rhowR = *rhowR_ptr++;
+			ER    = *ER_ptr++;
+
+			rhoR_inv = 1.0/rhoR;
+			uR = rhouR*rhoR_inv;
+			vR = rhovR*rhoR_inv;
+			wR = rhowR*rhoR_inv;
+
+			V2R = uR*uR+vR*vR+wR*wR;
+			VR  = sqrt(V2R);
+
+			pR  = GM1*(ER-0.5*rhoR*V2R);
+			cR  = sqrt(GAMMA*pR/rhoR);
+
+
+			maxlL = VL+cL;
+			maxlR = VR+cR;
+
+			if (maxlL > maxlR) {
+				sideMaxV = 'L';
+				maxV = maxlL;
+			} else {
+				sideMaxV = 'R';
+				maxV = maxlR;
+			}
+
+			n1 = *n_ptr++;
+			n2 = *n_ptr++;
+			n3 = *n_ptr++;
+
+			double dFdWn[Nvar*Nvar*d], *dF1dW_ptr, *dF2dW_ptr, *dF3dW_ptr;
+			if (side == 'L') {
+				// Flux term
+				double WLn[Nvar];
+
+				WLn[0] = rhoL; WLn[1] = rhouL; WLn[2] = rhovL; WLn[3] = rhowL; WLn[4] = EL;
+				jacobian_flux_inviscid(1,1,WLn,dFdWn,d,Neq);
+
+				dF1dW_ptr = dFdWn;
+				dF2dW_ptr = dF1dW_ptr+1;
+				dF3dW_ptr = dF2dW_ptr+1;
+
+				InddnFdW = 0;
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					*dnFdW_ptr[InddnFdW++] = 0.5*(n1*(*dF1dW_ptr)+n2*(*dF2dW_ptr)+n3*(*dF3dW_ptr));
+
+					dF1dW_ptr += d;
+					dF2dW_ptr += d;
+					dF3dW_ptr += d;
+				}}
+
+				// Dissipation term
+				InddnFdW = 0;
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					if (var == eq)
+						*dnFdW_ptr[InddnFdW] += 0.5*maxV;
+					InddnFdW++;
+				}}
+				if (sideMaxV == 'L') {
+					double WRn[Nvar], dudW[Nvar], dvdW[Nvar], dwdW[Nvar], drhodW[Nvar], dpdW[Nvar],
+					       dVdW, dcdW, dmaxVdW[Nvar];
+
+					WRn[0] = rhoR; WRn[1] = rhouR; WRn[2] = rhovR; WRn[3] = rhowR; WRn[4] = ER;
+
+					dudW[0] = -uL*rhoL_inv; dudW[1] = rhoL_inv; dudW[2] = 0.0;      dudW[3] = 0.0;      dudW[4] = 0.0;
+					dvdW[0] = -vL*rhoL_inv; dvdW[1] = 0.0;      dvdW[2] = rhoL_inv; dvdW[3] = 0.0;      dvdW[4] = 0.0;
+					dwdW[0] = -wL*rhoL_inv; dwdW[1] = 0.0;      dwdW[2] = 0.0;      dwdW[3] = rhoL_inv; dwdW[4] = 0.0;
+
+					drhodW[0] = 1.0;     drhodW[1] = 0.0; drhodW[2] = 0.0; drhodW[3] = 0.0; drhodW[4] = 0.0;
+					dpdW[0]   = 0.5*V2L; dpdW[1]   = -uL; dpdW[2]   = -vL; dpdW[3]   = -wL; dpdW[4]   = 1.0;
+
+					for (var = 0; var < Nvar; var++) {
+						dpdW[var] *= GM1;
+						dVdW = 1/VL*(uL*dudW[var]+vL*dvdW[var]+wL*dwdW[var]);
+						dcdW = GAMMA/(2.0*cL*rhoL*rhoL)*(dpdW[var]*rhoL-pL*drhodW[var]);
+						dmaxVdW[var] = dVdW+dcdW;
+					}
+
+					InddnFdW = 0;
+					for (eq = 0; eq < Neq; eq++) {
+					for (var = 0; var < Nvar; var++) {
+						*dnFdW_ptr[InddnFdW++] += 0.5*dmaxVdW[var]*(WLn[eq]-WRn[eq]);
+					}}
+				}
+			} else {
+				// Flux term
+				double WRn[Nvar];
+
+				WRn[0] = rhoR; WRn[1] = rhouR; WRn[2] = rhovR; WRn[3] = rhowR; WRn[4] = ER;
+				jacobian_flux_inviscid(1,1,WRn,dFdWn,d,Neq);
+
+				dF1dW_ptr = dFdWn;
+				dF2dW_ptr = dF1dW_ptr+1;
+				dF3dW_ptr = dF2dW_ptr+1;
+
+				InddnFdW = 0;
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					*dnFdW_ptr[InddnFdW++] = 0.5*(n1*(*dF1dW_ptr)+n2*(*dF2dW_ptr)+n3*(*dF3dW_ptr));
+
+					dF1dW_ptr += d;
+					dF2dW_ptr += d;
+					dF3dW_ptr += d;
+				}}
+
+				// Dissipation term
+				InddnFdW = 0;
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					if (var == eq)
+						*dnFdW_ptr[InddnFdW] -= 0.5*maxV;
+					InddnFdW++;
+				}}
+				if (sideMaxV == 'R') {
+					double WLn[Nvar], dudW[Nvar], dvdW[Nvar], dwdW[Nvar], drhodW[Nvar], dpdW[Nvar],
+					       dVdW, dcdW, dmaxVdW[Nvar];
+
+					WLn[0] = rhoL; WLn[1] = rhouL; WLn[2] = rhovL; WLn[3] = rhowL; WLn[4] = EL;
+
+					dudW[0] = -uR*rhoR_inv; dudW[1] = rhoR_inv; dudW[2] = 0.0;      dudW[3] = 0.0;      dudW[4] = 0.0;
+					dvdW[0] = -vR*rhoR_inv; dvdW[1] = 0.0;      dvdW[2] = rhoR_inv; dvdW[3] = 0.0;      dvdW[4] = 0.0;
+					dwdW[0] = -wR*rhoR_inv; dwdW[1] = 0.0;      dwdW[2] = 0.0;      dwdW[3] = rhoR_inv; dwdW[4] = 0.0;
+
+					drhodW[0] = 1.0;     drhodW[1] = 0.0; drhodW[2] = 0.0; drhodW[3] = 0.0; drhodW[4] = 0.0;
+					dpdW[0]   = 0.5*V2R; dpdW[1]   = -uR; dpdW[2]   = -vR; dpdW[3]   = -wR; dpdW[4]   = 1.0;
+
+					for (var = 0; var < Nvar; var++) {
+						dpdW[var] *= GM1;
+						dVdW = 1/VR*(uR*dudW[var]+vR*dvdW[var]+wR*dwdW[var]);
+						dcdW = GAMMA/(2.0*cR*rhoR*rhoR)*(dpdW[var]*rhoR-pR*drhodW[var]);
+						dmaxVdW[var] = dVdW+dcdW;
+					}
+
+					InddnFdW = 0;
+					for (eq = 0; eq < Neq; eq++) {
+					for (var = 0; var < Nvar; var++) {
+						*dnFdW_ptr[InddnFdW++] += 0.5*dmaxVdW[var]*(WLn[eq]-WRn[eq]);
+					}}
+				}
+			}
+
+			for (i = 0, iMax = Neq*Nvar; i < iMax; i++)
+				dnFdW_ptr[i]++;
+		}
+	} else if (d == 2) {
+		rhovL_ptr = &WL[NnTotal*2];
+		rhovR_ptr = &WR[NnTotal*2];
+
+		for (n = 0; n < NnTotal; n++) {
+			InddnFdW = 0;
+
+			// Inner VOLUME
+			rhoL  = *rhoL_ptr++;
+			rhouL = *rhouL_ptr++;
+			rhovL = *rhovL_ptr++;
+			EL    = *EL_ptr++;
+
+			rhoL_inv = 1.0/rhoL;
+			uL = rhouL*rhoL_inv;
+			vL = rhovL*rhoL_inv;
+
+			V2L = uL*uL+vL*vL;
+			VL  = sqrt(V2L);
+
+			pL  = GM1*(EL-0.5*rhoL*V2L);
+			cL  = sqrt(GAMMA*pL/rhoL);
+
+			// Outer VOLUME
+			rhoR  = *rhoR_ptr++;
+			rhouR = *rhouR_ptr++;
+			rhovR = *rhovR_ptr++;
+			ER    = *ER_ptr++;
+
+			rhoR_inv = 1.0/rhoR;
+			uR = rhouR*rhoR_inv;
+			vR = rhovR*rhoR_inv;
+
+			V2R = uR*uR+vR*vR;
+			VR  = sqrt(V2R);
+
+			pR  = GM1*(ER-0.5*rhoR*V2R);
+			cR  = sqrt(GAMMA*pR/rhoR);
+
+
+			maxlL = VL+cL;
+			maxlR = VR+cR;
+
+			if (maxlL > maxlR) {
+				sideMaxV = 'L';
+				maxV = maxlL;
+			} else {
+				sideMaxV = 'R';
+				maxV = maxlR;
+			}
+
+			n1 = *n_ptr++;
+			n2 = *n_ptr++;
+
+			double dFdWn[Nvar*Nvar*d], *dF1dW_ptr, *dF2dW_ptr;
+			if (side == 'L') {
+				// Flux term
+				double WLn[Nvar];
+
+				WLn[0] = rhoL; WLn[1] = rhouL; WLn[2] = rhovL; WLn[3] = EL;
+				jacobian_flux_inviscid(1,1,WLn,dFdWn,d,Neq);
+
+				dF1dW_ptr = dFdWn;
+				dF2dW_ptr = dF1dW_ptr+1;
+
+				InddnFdW = 0;
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					*dnFdW_ptr[InddnFdW++] = 0.5*(n1*(*dF1dW_ptr)+n2*(*dF2dW_ptr));
+
+					dF1dW_ptr += d;
+					dF2dW_ptr += d;
+				}}
+
+				// Dissipation term
+				InddnFdW = 0;
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					if (var == eq)
+						*dnFdW_ptr[InddnFdW] += 0.5*maxV;
+					InddnFdW++;
+				}}
+				if (sideMaxV == 'L') {
+					double WRn[Nvar], dudW[Nvar], dvdW[Nvar], drhodW[Nvar], dpdW[Nvar],
+					       dVdW, dcdW, dmaxVdW[Nvar];
+
+					WRn[0] = rhoR; WRn[1] = rhouR; WRn[2] = rhovR; WRn[3] = ER;
+
+					dudW[0] = -uL*rhoL_inv; dudW[1] = rhoL_inv; dudW[2] = 0.0;      dudW[3] = 0.0;
+					dvdW[0] = -vL*rhoL_inv; dvdW[1] = 0.0;      dvdW[2] = rhoL_inv; dvdW[3] = 0.0;
+
+					drhodW[0] = 1.0;     drhodW[1] = 0.0; drhodW[2] = 0.0; drhodW[3] = 0.0;
+					dpdW[0]   = 0.5*V2L; dpdW[1]   = -uL; dpdW[2]   = -vL; dpdW[3]   = 1.0;
+
+					for (var = 0; var < Nvar; var++) {
+						dpdW[var] *= GM1;
+						dVdW = 1/VL*(uL*dudW[var]+vL*dvdW[var]);
+						dcdW = GAMMA/(2.0*cL*rhoL*rhoL)*(dpdW[var]*rhoL-pL*drhodW[var]);
+						dmaxVdW[var] = dVdW+dcdW;
+					}
+
+					InddnFdW = 0;
+					for (eq = 0; eq < Neq; eq++) {
+					for (var = 0; var < Nvar; var++) {
+						*dnFdW_ptr[InddnFdW++] += 0.5*dmaxVdW[var]*(WLn[eq]-WRn[eq]);
+					}}
+				}
+			} else {
+				// Flux term
+				double WRn[Nvar];
+
+				WRn[0] = rhoR; WRn[1] = rhouR; WRn[2] = rhovR; WRn[3] = ER;
+				jacobian_flux_inviscid(1,1,WRn,dFdWn,d,Neq);
+
+				dF1dW_ptr = dFdWn;
+				dF2dW_ptr = dF1dW_ptr+1;
+
+				InddnFdW = 0;
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					*dnFdW_ptr[InddnFdW++] = 0.5*(n1*(*dF1dW_ptr)+n2*(*dF2dW_ptr));
+
+					dF1dW_ptr += d;
+					dF2dW_ptr += d;
+				}}
+
+				// Dissipation term
+				InddnFdW = 0;
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					if (var == eq)
+						*dnFdW_ptr[InddnFdW] -= 0.5*maxV;
+					InddnFdW++;
+				}}
+				if (sideMaxV == 'R') {
+					double WLn[Nvar], dudW[Nvar], dvdW[Nvar], drhodW[Nvar], dpdW[Nvar],
+					       dVdW, dcdW, dmaxVdW[Nvar];
+
+					WLn[0] = rhoL; WLn[1] = rhouL; WLn[2] = rhovL; WLn[3] = EL;
+
+					dudW[0] = -uR*rhoR_inv; dudW[1] = rhoR_inv; dudW[2] = 0.0;      dudW[3] = 0.0;
+					dvdW[0] = -vR*rhoR_inv; dvdW[1] = 0.0;      dvdW[2] = rhoR_inv; dvdW[3] = 0.0;
+
+					drhodW[0] = 1.0;     drhodW[1] = 0.0; drhodW[2] = 0.0; drhodW[3] = 0.0;
+					dpdW[0]   = 0.5*V2R; dpdW[1]   = -uR; dpdW[2]   = -vR; dpdW[3]   = 1.0;
+
+					for (var = 0; var < Nvar; var++) {
+						dpdW[var] *= GM1;
+						dVdW = 1/VR*(uR*dudW[var]+vR*dvdW[var]);
+						dcdW = GAMMA/(2.0*cR*rhoR*rhoR)*(dpdW[var]*rhoR-pR*drhodW[var]);
+						dmaxVdW[var] = dVdW+dcdW;
+					}
+
+					InddnFdW = 0;
+					for (eq = 0; eq < Neq; eq++) {
+					for (var = 0; var < Nvar; var++) {
+						*dnFdW_ptr[InddnFdW++] += 0.5*dmaxVdW[var]*(WLn[eq]-WRn[eq]);
+					}}
+				}
+			}
+
+			for (i = 0, iMax = Neq*Nvar; i < iMax; i++)
+				dnFdW_ptr[i]++;
+		}
+	} else if (d == 1) {
+		for (n = 0; n < NnTotal; n++) {
+			InddnFdW = 0;
+
+			// Inner VOLUME
+			rhoL  = *rhoL_ptr++;
+			rhouL = *rhouL_ptr++;
+			EL    = *EL_ptr++;
+
+			rhoL_inv = 1.0/rhoL;
+			uL = rhouL*rhoL_inv;
+
+			V2L = uL*uL;
+			VL  = sqrt(V2L);
+
+			pL  = GM1*(EL-0.5*rhoL*V2L);
+			cL  = sqrt(GAMMA*pL/rhoL);
+
+			// Outer VOLUME
+			rhoR  = *rhoR_ptr++;
+			rhouR = *rhouR_ptr++;
+			ER    = *ER_ptr++;
+
+			rhoR_inv = 1.0/rhoR;
+			uR = rhouR*rhoR_inv;
+
+			V2R = uR*uR;
+			VR  = sqrt(V2R);
+
+			pR  = GM1*(ER-0.5*rhoR*V2R);
+			cR  = sqrt(GAMMA*pR/rhoR);
+
+
+			maxlL = VL+cL;
+			maxlR = VR+cR;
+
+			if (maxlL > maxlR) {
+				sideMaxV = 'L';
+				maxV = maxlL;
+			} else {
+				sideMaxV = 'R';
+				maxV = maxlR;
+			}
+
+			n1 = *n_ptr++;
+
+			double dFdWn[Nvar*Nvar*d], *dF1dW_ptr;
+			if (side == 'L') {
+				// Flux term
+				double WLn[Nvar];
+
+				WLn[0] = rhoL; WLn[1] = rhouL; WLn[2] = EL;
+				jacobian_flux_inviscid(1,1,WLn,dFdWn,d,Neq);
+
+				dF1dW_ptr = dFdWn;
+
+				InddnFdW = 0;
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					*dnFdW_ptr[InddnFdW++] = 0.5*(n1*(*dF1dW_ptr));
+
+					dF1dW_ptr += d;
+				}}
+
+				// Dissipation term
+				InddnFdW = 0;
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					if (var == eq)
+						*dnFdW_ptr[InddnFdW] += 0.5*maxV;
+					InddnFdW++;
+				}}
+				if (sideMaxV == 'L') {
+					double WRn[Nvar], dudW[Nvar], drhodW[Nvar], dpdW[Nvar],
+					       dVdW, dcdW, dmaxVdW[Nvar];
+
+					WRn[0] = rhoR; WRn[1] = rhouR; WRn[2] = ER;
+
+					dudW[0] = -uL*rhoL_inv; dudW[1] = rhoL_inv; dudW[2] = 0.0;
+
+					drhodW[0] = 1.0;     drhodW[1] = 0.0; drhodW[2] = 0.0;
+					dpdW[0]   = 0.5*V2L; dpdW[1]   = -uL; dpdW[2]   = 1.0;
+
+					for (var = 0; var < Nvar; var++) {
+						dpdW[var] *= GM1;
+						dVdW = 1/VL*(uL*dudW[var]);
+						dcdW = GAMMA/(2.0*cL*rhoL*rhoL)*(dpdW[var]*rhoL-pL*drhodW[var]);
+						dmaxVdW[var] = dVdW+dcdW;
+					}
+
+					InddnFdW = 0;
+					for (eq = 0; eq < Neq; eq++) {
+					for (var = 0; var < Nvar; var++) {
+						*dnFdW_ptr[InddnFdW++] += 0.5*dmaxVdW[var]*(WLn[eq]-WRn[eq]);
+					}}
+				}
+			} else {
+				// Flux term
+				double WRn[Nvar];
+
+				WRn[0] = rhoR; WRn[1] = rhouR; WRn[2] = ER;
+				jacobian_flux_inviscid(1,1,WRn,dFdWn,d,Neq);
+
+				dF1dW_ptr = dFdWn;
+
+				InddnFdW = 0;
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					*dnFdW_ptr[InddnFdW++] = 0.5*(n1*(*dF1dW_ptr));
+
+					dF1dW_ptr += d;
+				}}
+
+				// Dissipation term
+				InddnFdW = 0;
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					if (var == eq)
+						*dnFdW_ptr[InddnFdW] -= 0.5*maxV;
+					InddnFdW++;
+				}}
+				if (sideMaxV == 'R') {
+					double WLn[Nvar], dudW[Nvar], drhodW[Nvar], dpdW[Nvar],
+					       dVdW, dcdW, dmaxVdW[Nvar];
+
+					WLn[0] = rhoL; WLn[1] = rhouL; WLn[2] = EL;
+
+					dudW[0] = -uR*rhoR_inv; dudW[1] = rhoR_inv; dudW[2] = 0.0;
+
+					drhodW[0] = 1.0;     drhodW[1] = 0.0; drhodW[2] = 0.0;
+					dpdW[0]   = 0.5*V2R; dpdW[1]   = -uR; dpdW[2]   = 1.0;
+
+					for (var = 0; var < Nvar; var++) {
+						dpdW[var] *= GM1;
+						dVdW = 1/VR*(uR*dudW[var]);
+						dcdW = GAMMA/(2.0*cR*rhoR*rhoR)*(dpdW[var]*rhoR-pR*drhodW[var]);
+						dmaxVdW[var] = dVdW+dcdW;
+					}
+
+					InddnFdW = 0;
+					for (eq = 0; eq < Neq; eq++) {
+					for (var = 0; var < Nvar; var++) {
+						*dnFdW_ptr[InddnFdW++] += 0.5*dmaxVdW[var]*(WLn[eq]-WRn[eq]);
+					}}
+				}
+			}
+
+			for (i = 0, iMax = Neq*Nvar; i < iMax; i++)
+				dnFdW_ptr[i]++;
+		}
+	}
+}

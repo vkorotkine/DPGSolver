@@ -112,8 +112,8 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 				break;
 			}
 		}
-array_print_ui(1,4,TestDB.EnteredRiemann,'R');
-		if (CheckedAllRiemann && array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < EPS)
+//		array_print_ui(1,4,TestDB.EnteredRiemann,'R');
+		if (CheckedAllRiemann && array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS)
 			pass = 1, TestDB.Npass++;
 	}
 
@@ -140,8 +140,6 @@ void test_unit_jacobian_boundary(void)
 
 printf("\nWarning: boundary_Riemann is currently not being tested for d = 1.\n\n"); TestDB.Nwarnings++;
 // This requires a case where a d = 1 Riemann BC is supported.
-
-printf("Ensure that all cases of the riemann boundary are checked.\n"); TestDB.Nwarnings++;
 
 	unsigned int NBTypes = 2;
 
@@ -178,7 +176,7 @@ printf("Ensure that all cases of the riemann boundary are checked.\n"); TestDB.N
 		XYZ  = initialize_XYZ(Nn,Nel,d); // free
 		pass = compare_jacobian_boundary(Nn,Nel,d,Neq,W,nL,XYZ,BType[i]);
 
-		if (d == 1) {
+		if (d == dMin[i]) {
 			//     0         10        20        30        40        50
 			printf("jacobian_boundary_%s (d = %d):              ",BType[i],d);
 		} else {

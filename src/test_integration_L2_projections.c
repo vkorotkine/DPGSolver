@@ -96,7 +96,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e2*EPS)
 		pass = 1, TestDB.Npass++;
 	//     0         10        20        30        40        50
-	printf("L2_projections (       ADAPT_H):                 ");
+	printf("               (       ADAPT_H):                 ");
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
@@ -118,7 +118,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 10*EPS)
 		pass = 1, TestDB.Npass++;
 	//     0         10        20        30        40        50
-	printf("L2_projections (QUAD,  ADAPT_P):                 ");
+	printf("               (QUAD,  ADAPT_P):                 ");
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
@@ -139,7 +139,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e2*EPS)
 		pass = 1, TestDB.Npass++;
 	//     0         10        20        30        40        50
-	printf("L2_projections (       ADAPT_H):                 ");
+	printf("               (       ADAPT_H):                 ");
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
@@ -161,7 +161,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 1e2*EPS)
 		pass = 1, TestDB.Npass++;
 	//     0         10        20        30        40        50
-	printf("L2_projections (TET,   ADAPT_P):                 ");
+	printf("               (TET,   ADAPT_P):                 ");
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
@@ -182,7 +182,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e4*EPS)
 		pass = 1, TestDB.Npass++;
 	//     0         10        20        30        40        50
-	printf("L2_projections (       ADAPT_H):                 ");
+	printf("               (       ADAPT_H):                 ");
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
@@ -204,7 +204,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 1e2*EPS)
 		pass = 1, TestDB.Npass++;
 	//     0         10        20        30        40        50
-	printf("L2_projections (HEX,   ADAPT_P):                 ");
+	printf("               (HEX,   ADAPT_P):                 ");
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
@@ -225,7 +225,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e3*EPS)
 		pass = 1, TestDB.Npass++;
 	//     0         10        20        30        40        50
-	printf("L2_projections (       ADAPT_H):                 ");
+	printf("               (       ADAPT_H):                 ");
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
@@ -247,7 +247,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 1e2*EPS)
 		pass = 1, TestDB.Npass++;
 	//     0         10        20        30        40        50
-	printf("L2_projections (WEDGE, ADAPT_P):                 ");
+	printf("               (WEDGE, ADAPT_P):                 ");
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
@@ -268,7 +268,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e3*EPS)
 		pass = 1, TestDB.Npass++;
 	//     0         10        20        30        40        50
-	printf("L2_projections (       ADAPT_H):                 ");
+	printf("               (       ADAPT_H):                 ");
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
@@ -290,7 +290,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 1e3*EPS)
 		pass = 1, TestDB.Npass++;
 	//     0         10        20        30        40        50
-	printf("L2_projections (PYR,   ADAPT_P):                 ");
+	printf("               (PYR,   ADAPT_P):                 ");
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
@@ -318,7 +318,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	}
 
 	//     0         10        20        30        40        50
-	printf("L2_projections (       ADAPT_H):                 ");
+	printf("               (       ADAPT_H):                 ");
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
