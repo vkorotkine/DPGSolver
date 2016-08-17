@@ -922,3 +922,133 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, double *WL,
 		}
 	}
 }
+
+void jacobian_flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *dnFdW,
+                       double *nL, const unsigned int d, const unsigned int Neq, const char side)
+{
+	// Standard datatypes
+	unsigned int i, n, eq, var, iMax, Nvar, NnTotal, InddnFdW;
+	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr,
+	             *rhoR_ptr, *rhouR_ptr, *rhovR_ptr, *rhowR_ptr, *ER_ptr,
+	             rhoL, rhouL, rhovL, rhowL, EL, rhoL_inv, uL, vL, wL, V2L, VL, VnL, pL, cL,
+	             rhoR, rhouR, rhovR, rhowR, ER, rhoR_inv, uR, vR, wR, V2R, VR, VnR, pR, cR,
+	             n1, n2, n3, *n_ptr, *dnFdW_ptr[Neq*Neq];
+
+
+	Nvar    = Neq;
+	NnTotal = Nn*Nel;
+
+	rhoL_ptr  = &WL[NnTotal*0];
+	rhouL_ptr = &WL[NnTotal*1];
+	EL_ptr    = &WL[NnTotal*(d+1)];
+
+	rhoR_ptr  = &WR[NnTotal*0];
+	rhouR_ptr = &WR[NnTotal*1];
+	ER_ptr    = &WR[NnTotal*(d+1)];
+
+	n_ptr = nL;
+
+	for (eq  = 0; eq  < Neq;  eq++)  {
+	for (var = 0; var < Nvar; var++) {
+		dnFdW_ptr[eq*Nvar+var] = &dnFdW[(eq*Nvar+var)*NnTotal];
+	}}
+
+	if (d == 3) {
+		rhovL_ptr = &WL[NnTotal*2];
+		rhowL_ptr = &WL[NnTotal*3];
+
+		rhovR_ptr = &WR[NnTotal*2];
+		rhowR_ptr = &WR[NnTotal*3];
+
+		for (n = 0; n < NnTotal; n++) {
+			n1 = *n_ptr++;
+			n2 = *n_ptr++;
+			n3 = *n_ptr++;
+
+			// Inner VOLUME
+			rhoL  = *rhoL_ptr++;
+			rhouL = *rhouL_ptr++;
+			rhovL = *rhovL_ptr++;
+			rhowL = *rhowL_ptr++;
+			EL    = *EL_ptr++;
+
+			rhoL_inv = 1.0/rhoL;
+			uL = rhouL*rhoL_inv;
+			vL = rhovL*rhoL_inv;
+			wL = rhowL*rhoL_inv;
+
+			V2L = uL*uL+vL*vL+wL*wL;
+			VL  = sqrt(V2L);
+			VnL = n1*uL+n2*vL+n3*wL;
+
+			pL  = GM1*(EL-0.5*rhoL*V2L);
+			cL  = sqrt(GAMMA*pL/rhoL);
+
+			// Outer VOLUME
+			rhoR  = *rhoR_ptr++;
+			rhouR = *rhouR_ptr++;
+			rhovR = *rhovR_ptr++;
+			rhowR = *rhowR_ptr++;
+			ER    = *ER_ptr++;
+
+			rhoR_inv = 1.0/rhoR;
+			uR = rhouR*rhoR_inv;
+			vR = rhovR*rhoR_inv;
+			wR = rhowR*rhoR_inv;
+
+			V2R = uR*uR+vR*vR+wR*wR;
+			VR  = sqrt(V2R);
+			VnR = n1*uR+n2*vR+n3*wR;
+
+			pR  = GM1*(ER-0.5*rhoR*V2R);
+			cR  = sqrt(GAMMA*pR/rhoR);
+
+
+
+			double dudW[Nvar], dvdW[Nvar], dwdW[Nvar], drhodW[Nvar], dEdW[Nvar], dpdW[Nvar],
+				   rhoVn, dVndW, drhoVndW,
+				   dnF1dW[Nvar], dnF2dW[Nvar], dnF3dW[Nvar], dnF4dW[Nvar], dnF5dW[Nvar];
+
+			if (side == 'L') {
+				// Flux term
+				rhoVn = rhoL*VnL;
+
+				dudW[0] = -uL*rhoL_inv; dudW[1] = rhoL_inv; dudW[2] = 0.0;      dudW[3] = 0.0;      dudW[4] = 0.0;
+				dvdW[0] = -vL*rhoL_inv; dvdW[1] = 0.0;      dvdW[2] = rhoL_inv; dvdW[3] = 0.0;      dvdW[4] = 0.0;
+				dwdW[0] = -wL*rhoL_inv; dwdW[1] = 0.0;      dwdW[2] = 0.0;      dwdW[3] = rhoL_inv; dwdW[4] = 0.0;
+
+				drhodW[0] = 1.0;     drhodW[1] = 0.0; drhodW[2] = 0.0; drhodW[3] = 0.0; drhodW[4] = 0.0;
+				dEdW[0]   = 0.0;     dEdW[1]   = 0.0; dEdW[2]   = 0.0; dEdW[3]   = 0.0; dEdW[4]   = 1.0;
+				dpdW[0]   = 0.5*V2L; dpdW[1]   = -uL; dpdW[2]   = -vL; dpdW[3]   = -wL; dpdW[4]   = 1.0;
+
+				for (var = 0; var < Nvar; var++) {
+					dpdW[var] *= GM1;
+
+					dVndW    = n1*dudW[var]+n2*dvdW[var]+n3*dwdW[var];
+					drhoVndW = drhodW[var]*VnL + rhoL*dVndW;
+
+					dnF1dW[var] = drhoVndW;
+					dnF2dW[var] = drhoVndW*uL + rhoVn*dudW[var] + n1*dpdW[var];
+					dnF3dW[var] = drhoVndW*vL + rhoVn*dvdW[var] + n2*dpdW[var];
+					dnF4dW[var] = drhoVndW*wL + rhoVn*dwdW[var] + n3*dpdW[var];
+					dnF5dW[var] = dVndW*(EL+pL) * VnL*(dEdW[var]+dpdW[var]);
+				}
+
+				InddnFdW = 0;
+				for (var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*dnF1dW[var];
+				for (var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*dnF2dW[var];
+				for (var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*dnF3dW[var];
+				for (var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*dnF4dW[var];
+				for (var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*dnF5dW[var];
+			} else {
+				pL = cR = VnR = VR = cL = VL;
+			}
+
+			for (i = 0, iMax = Neq*Nvar; i < iMax; i++)
+				dnFdW_ptr[i]++;
+		}
+	} else if (d == 2) {
+	} else if (d == 1) {
+	}
+
+}

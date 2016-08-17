@@ -348,3 +348,349 @@ void flux_LF_c(const unsigned int Nn, const unsigned int Nel, double complex *WL
 	free(FR);
 	free(maxV);
 }
+
+void flux_Roe_c(const unsigned int Nn, const unsigned int Nel, double complex *WL, double complex *WR,
+                double complex *nFluxNum, double *nL, const unsigned int d, const unsigned int Neq)
+{
+	// Standard datatypes
+	unsigned int   iMax, NnTotal;
+	double         *nx, *ny, *nz;
+	double complex eps, r, rP1, rho, u, v, w, H, Vn, V2, c, l1, l234, l5,
+	               VnL, rhoVnL, VnR, rhoVnR, pLR, drho, drhou, drhov, drhow, dE, dp, dVn, lc1, lc2, disInter1, disInter2,
+	               *W1L, *W2L, *W3L, *W4L, *W5L, *W1R, *W2R, *W3R, *W4R, *W5R,
+	               rhoL, uL, vL, wL, pL, EL, cL, rhoR, uR, vR, wR, pR, ER, cR, dl1, dl5,
+	               *nFluxNum_ptr1, *nFluxNum_ptr2, *nFluxNum_ptr3, *nFluxNum_ptr4, *nFluxNum_ptr5,
+	               dis1, dis2, dis3, dis4, dis5, nF1, nF2, nF3, nF4, nF5;
+
+	eps = 1e-4;
+
+	// silence
+	iMax = Neq;
+	r    = eps;
+
+	NnTotal = Nn*Nel;
+
+	if (d == 3) {
+		nx = &nL[0];
+		ny = &nL[1];
+		nz = &nL[2];
+
+		W1L = &WL[NnTotal*0];
+		W2L = &WL[NnTotal*1];
+		W3L = &WL[NnTotal*2];
+		W4L = &WL[NnTotal*3];
+		W5L = &WL[NnTotal*(d+1)];
+
+		W1R = &WR[NnTotal*0];
+		W2R = &WR[NnTotal*1];
+		W3R = &WR[NnTotal*2];
+		W4R = &WR[NnTotal*3];
+		W5R = &WR[NnTotal*(d+1)];
+
+		nFluxNum_ptr1 = &nFluxNum[NnTotal*0];
+		nFluxNum_ptr2 = &nFluxNum[NnTotal*1];
+		nFluxNum_ptr3 = &nFluxNum[NnTotal*2];
+		nFluxNum_ptr4 = &nFluxNum[NnTotal*3];
+		nFluxNum_ptr5 = &nFluxNum[NnTotal*(d+1)];
+
+		for (iMax = NnTotal; iMax--; ) {
+			// Initialize left and right states at the current node
+			rhoL = (*W1L++);
+			uL   = (*W2L++)/rhoL;
+			vL   = (*W3L++)/rhoL;
+			wL   = (*W4L++)/rhoL;
+			EL   = (*W5L++);
+			pL   = GM1*(EL-0.5*rhoL*(uL*uL+vL*vL+wL*wL));
+
+			rhoR = (*W1R++);
+			uR   = (*W2R++)/rhoR;
+			vR   = (*W3R++)/rhoR;
+			wR   = (*W4R++)/rhoR;
+			ER   = (*W5R++);
+			pR   = GM1*(ER-0.5*rhoR*(uR*uR+vR*vR+wR*wR));
+
+			// Compute Roe-averaged states
+			r = csqrt(rhoR/rhoL);
+			rP1 = r+1;
+
+			rho = r*rhoL;
+			u   = (r*uR+uL)/rP1;
+			v   = (r*vR+vL)/rP1;
+			w   = (r*wR+wL)/rP1;
+			H   = (r*(ER+pR)/rhoR+(EL+pL)/rhoL)/rP1;
+			Vn  = (*nx)*u+(*ny)*v+(*nz)*w;
+			V2  = u*u+v*v+w*w;
+			c   = csqrt(GM1*(H-0.5*V2));
+
+			// Compute eigenvalues (with entropy fix if required)
+			cL  = csqrt(GAMMA*pL/rhoL);
+			VnL = (*nx)*uL+(*ny)*vL+(*nz)*wL;
+
+			cR  = csqrt(GAMMA*pR/rhoR);
+			VnR = (*nx)*uR+(*ny)*vR+(*nz)*wR;
+
+			l1   = cabs(Vn-c);
+			l234 = cabs(Vn);
+			l5   = cabs(Vn+c);
+
+			dl1 = max(cabs(VnR-cR)-cabs(VnL-cL),0.0);
+			dl5 = max(cabs(VnR+cR)-cabs(VnL+cL),0.0);
+
+			if (creal(l1) < creal(2*dl1))
+				l1 = (l1*l1)/(4*dl1)+dl1;
+			if (creal(l5) < creal(2*dl5))
+				l5 = (l5*l5)/(4*dl5)+dl5;
+
+/*
+			if (l1 < eps)
+				l1 = (l1*l1+eps*eps)/(2*eps);
+			if (l5 < eps)
+				l5 = (l5*l5+eps*eps)/(2*eps);
+*/
+
+			// Compute combined eigenvalues, eigenvectors and linearized wave strengths
+			drho  = rhoR-rhoL;
+			drhou = rhoR*uR-rhoL*uL;
+			drhov = rhoR*vR-rhoL*vL;
+			drhow = rhoR*wR-rhoL*wL;
+			dE    = ER-EL;
+			dp    = pR-pL;
+			dVn   = VnR-VnL;
+
+			lc1 = 0.5*(l5+l1) - l234;
+			lc2 = 0.5*(l5-l1);
+
+			disInter1 = lc1*dp/(c*c) + lc2*rho*dVn/c;
+			disInter2 = lc1*rho*dVn  + lc2*dp/c;
+
+			dis1 = l234*drho  + disInter1;
+			dis2 = l234*drhou + disInter1*u + disInter2*(*nx);
+			dis3 = l234*drhov + disInter1*v + disInter2*(*ny);
+			dis4 = l234*drhow + disInter1*w + disInter2*(*nz);
+			dis5 = l234*dE    + disInter1*H + disInter2*(Vn);
+
+			// Compute contribution of normal flux components (multiplied by 0.5 below)
+			rhoVnL = rhoL*VnL;
+			rhoVnR = rhoR*VnR;
+			pLR    = pL + pR;
+
+			nF1 = rhoVnL      + rhoVnR;
+			nF2 = rhoVnL*uL   + rhoVnR*uR  + (*nx)*pLR;
+			nF3 = rhoVnL*vL   + rhoVnR*vR  + (*ny)*pLR;
+			nF4 = rhoVnL*wL   + rhoVnR*wR  + (*nz)*pLR;
+			nF5 = VnL*(EL+pL) + VnR*(ER+pR);
+
+			// Assemble components
+//			*nFluxNum_ptr1++ = 0.5*(nF1 - dis1);
+//			*nFluxNum_ptr2++ = 0.5*(nF2 - dis2);
+//			*nFluxNum_ptr3++ = 0.5*(nF3 - dis3);
+//			*nFluxNum_ptr4++ = 0.5*(nF4 - dis4);
+//			*nFluxNum_ptr5++ = 0.5*(nF5 - dis5);
+*nFluxNum_ptr1++ = 0.5*(nF1);
+*nFluxNum_ptr2++ = 0.5*(nF2);
+*nFluxNum_ptr3++ = 0.5*(nF3);
+*nFluxNum_ptr4++ = 0.5*(nF4);
+*nFluxNum_ptr5++ = 0.5*(nF5);
+dis1 = dis4;
+
+			nx += d; ny += d; nz += d;
+		}
+	} else if (d == 2) {
+		nx = &nL[0];
+		ny = &nL[1];
+
+		W1L = &WL[NnTotal*0];
+		W2L = &WL[NnTotal*1];
+		W3L = &WL[NnTotal*2];
+		W5L = &WL[NnTotal*(d+1)];
+
+		W1R = &WR[NnTotal*0];
+		W2R = &WR[NnTotal*1];
+		W3R = &WR[NnTotal*2];
+		W5R = &WR[NnTotal*(d+1)];
+
+		nFluxNum_ptr1 = &nFluxNum[NnTotal*0];
+		nFluxNum_ptr2 = &nFluxNum[NnTotal*1];
+		nFluxNum_ptr3 = &nFluxNum[NnTotal*2];
+		nFluxNum_ptr5 = &nFluxNum[NnTotal*(d+1)];
+
+		for (iMax = NnTotal; iMax--; ) {
+			// Initialize left and right states at the current node
+			rhoL = (*W1L++);
+			uL   = (*W2L++)/rhoL;
+			vL   = (*W3L++)/rhoL;
+			EL   = (*W5L++);
+			pL   = GM1*(EL-0.5*rhoL*(uL*uL+vL*vL));
+
+			rhoR = (*W1R++);
+			uR   = (*W2R++)/rhoR;
+			vR   = (*W3R++)/rhoR;
+			ER   = (*W5R++);
+			pR   = GM1*(ER-0.5*rhoR*(uR*uR+vR*vR));
+
+			// Compute Roe-averaged states
+			r = csqrt(rhoR/rhoL);
+			rP1 = r+1;
+
+			rho = r*rhoL;
+			u   = (r*uR+uL)/rP1;
+			v   = (r*vR+vL)/rP1;
+			H   = (r*(ER+pR)/rhoR+(EL+pL)/rhoL)/rP1;
+			Vn  = (*nx)*u+(*ny)*v;
+			V2  = u*u+v*v;
+			c   = csqrt(GM1*(H-0.5*V2));
+
+			// Compute eigenvalues (with entropy fix if required)
+			cL  = csqrt(GAMMA*pL/rhoL);
+			VnL = (*nx)*uL+(*ny)*vL;
+
+			cR  = csqrt(GAMMA*pR/rhoR);
+			VnR = (*nx)*uR+(*ny)*vR;
+
+			l1   = cabs(Vn-c);
+			l234 = cabs(Vn);
+			l5   = cabs(Vn+c);
+
+			dl1 = max(cabs(VnR-cR)-cabs(VnL-cL),0.0);
+			dl5 = max(cabs(VnR+cR)-cabs(VnL+cL),0.0);
+
+			if (creal(l1) < creal(2*dl1))
+				l1 = (l1*l1)/(4*dl1)+dl1;
+			if (creal(l5) < creal(2*dl5))
+				l5 = (l5*l5)/(4*dl5)+dl5;
+
+			// Compute combined eigenvalues, eigenvectors and linearized wave strengths
+			VnL = (*nx)*uL+(*ny)*vL;
+			VnR = (*nx)*uR+(*ny)*vR;
+
+			drho  = rhoR-rhoL;
+			drhou = rhoR*uR-rhoL*uL;
+			drhov = rhoR*vR-rhoL*vL;
+			dE    = ER-EL;
+			dp    = pR-pL;
+			dVn   = VnR-VnL;
+
+			lc1 = 0.5*(l5+l1) - l234;
+			lc2 = 0.5*(l5-l1);
+
+			disInter1 = lc1*dp/(c*c) + lc2*rho*dVn/c;
+			disInter2 = lc1*rho*dVn  + lc2*dp/c;
+
+			dis1 = l234*drho  + disInter1;
+			dis2 = l234*drhou + disInter1*u + disInter2*(*nx);
+			dis3 = l234*drhov + disInter1*v + disInter2*(*ny);
+			dis5 = l234*dE    + disInter1*H + disInter2*(Vn);
+
+			// Compute contribution of normal flux components (multiplied by 0.5 below)
+			rhoVnL = rhoL*VnL;
+			rhoVnR = rhoR*VnR;
+			pLR    = pL + pR;
+
+			nF1 = rhoVnL      + rhoVnR;
+			nF2 = rhoVnL*uL   + rhoVnR*uR  + (*nx)*pLR;
+			nF3 = rhoVnL*vL   + rhoVnR*vR  + (*ny)*pLR;
+			nF5 = VnL*(EL+pL) + VnR*(ER+pR);
+
+			// Assemble components
+			*nFluxNum_ptr1++ = 0.5*(nF1 - dis1);
+			*nFluxNum_ptr2++ = 0.5*(nF2 - dis2);
+			*nFluxNum_ptr3++ = 0.5*(nF3 - dis3);
+			*nFluxNum_ptr5++ = 0.5*(nF5 - dis5);
+
+			nx += d; ny += d;
+		}
+	} else if (d == 1) {
+		nx = &nL[0];
+
+		W1L = &WL[NnTotal*0];
+		W2L = &WL[NnTotal*1];
+		W5L = &WL[NnTotal*(d+1)];
+
+		W1R = &WR[NnTotal*0];
+		W2R = &WR[NnTotal*1];
+		W5R = &WR[NnTotal*(d+1)];
+
+		nFluxNum_ptr1 = &nFluxNum[NnTotal*0];
+		nFluxNum_ptr2 = &nFluxNum[NnTotal*1];
+		nFluxNum_ptr5 = &nFluxNum[NnTotal*(d+1)];
+
+		for (iMax = NnTotal; iMax--; ) {
+			// Initialize left and right states at the current node
+			rhoL = (*W1L++);
+			uL   = (*W2L++)/rhoL;
+			EL   = (*W5L++);
+			pL   = GM1*(EL-0.5*rhoL*(uL*uL));
+
+			rhoR = (*W1R++);
+			uR   = (*W2R++)/rhoR;
+			ER   = (*W5R++);
+			pR   = GM1*(ER-0.5*rhoR*(uR*uR));
+
+			// Compute Roe-averaged states
+			r = csqrt(rhoR/rhoL);
+			rP1 = r+1;
+
+			rho = r*rhoL;
+			u   = (r*uR+uL)/rP1;
+			H   = (r*(ER+pR)/rhoR+(EL+pL)/rhoL)/rP1;
+			Vn  = (*nx)*u;
+			V2  = u*u;
+			c   = csqrt(GM1*(H-0.5*V2));
+
+			// Compute eigenvalues (with entropy fix if required)
+			cL  = csqrt(GAMMA*pL/rhoL);
+			VnL = (*nx)*uL;
+
+			cR  = csqrt(GAMMA*pR/rhoR);
+			VnR = (*nx)*uR;
+
+			l1   = cabs(Vn-c);
+			l234 = cabs(Vn);
+			l5   = cabs(Vn+c);
+
+			dl1 = max(cabs(VnR-cR)-cabs(VnL-cL),0.0);
+			dl5 = max(cabs(VnR+cR)-cabs(VnL+cL),0.0);
+
+			if (creal(l1) < creal(2*dl1))
+				l1 = (l1*l1)/(4*dl1)+dl1;
+			if (creal(l5) < creal(2*dl5))
+				l5 = (l5*l5)/(4*dl5)+dl5;
+
+			// Compute combined eigenvalues, eigenvectors and linearized wave strengths
+			VnL = (*nx)*uL;
+			VnR = (*nx)*uR;
+
+			drho  = rhoR-rhoL;
+			drhou = rhoR*uR-rhoL*uL;
+			dE    = ER-EL;
+			dp    = pR-pL;
+			dVn   = VnR-VnL;
+
+			lc1 = 0.5*(l5+l1) - l234;
+			lc2 = 0.5*(l5-l1);
+
+			disInter1 = lc1*dp/(c*c) + lc2*rho*dVn/c;
+			disInter2 = lc1*rho*dVn  + lc2*dp/c;
+
+			dis1 = l234*drho  + disInter1;
+			dis2 = l234*drhou + disInter1*u + disInter2*(*nx);
+			dis5 = l234*dE    + disInter1*H + disInter2*(Vn);
+
+			// Compute contribution of normal flux components (multiplied by 0.5 below)
+			rhoVnL = rhoL*VnL;
+			rhoVnR = rhoR*VnR;
+			pLR    = pL + pR;
+
+			nF1 = rhoVnL      + rhoVnR;
+			nF2 = rhoVnL*uL   + rhoVnR*uR  + (*nx)*pLR;
+			nF5 = VnL*(EL+pL) + VnR*(ER+pR);
+
+			// Assemble components
+			*nFluxNum_ptr1++ = 0.5*(nF1 - dis1);
+			*nFluxNum_ptr2++ = 0.5*(nF2 - dis2);
+			*nFluxNum_ptr5++ = 0.5*(nF5 - dis5);
+
+			nx += d;
+		}
+	}
+}

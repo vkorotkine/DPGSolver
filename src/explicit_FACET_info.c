@@ -419,7 +419,7 @@ array_print_d(NfnI,Nvar,WOut_fIIn,'C');
 			flux_LF(NfnI,1,WIn_fI,WOut_fIIn,nFluxNum_fI,n_fI,d,Neq);
 			break;
 		case FLUX_ROE:
-			flux_ROE(NfnI,1,WIn_fI,WOut_fIIn,nFluxNum_fI,n_fI,d,Neq);
+			flux_Roe(NfnI,1,WIn_fI,WOut_fIIn,nFluxNum_fI,n_fI,d,Neq);
 			break;
 		default:
 			printf("Error: Unsupported InviscidFluxType used in explicit_FACET_info.\n"), exit(1);
@@ -736,7 +736,7 @@ printf("%d\n",FACET->indexg);
 			flux_LF(NfnS,1,WIn_fS,WOut_fSIn,nFluxNum_fS,n_fS,d,Neq);
 			break;
 		case FLUX_ROE:
-			flux_ROE(NfnS,1,WIn_fS,WOut_fSIn,nFluxNum_fS,n_fS,d,Neq);
+			flux_Roe(NfnS,1,WIn_fS,WOut_fSIn,nFluxNum_fS,n_fS,d,Neq);
 			break;
 		default:
 			printf("Error: Unsupported InviscidFluxType used in explicit_FACET_info.\n"), exit(1);

@@ -87,7 +87,7 @@ void test_unit_equivalence_real_complex(void)
 		printf("            flux_LF                  :           ");
 		test_print(pass);
 
-		// flux_ROE
+		// flux_Roe
 
 		// boundary_SlipWall
 		pass = compare_boundary(Nn,Nel,d,Neq,W,nL,XYZ,"SlipWall");

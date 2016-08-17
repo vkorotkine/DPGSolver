@@ -98,13 +98,13 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 | SlipWall | DONE           |
 
 #### Jacobians          : ACTIVE
-| Function            |            |
-|---------------------|------------|
-| flux inviscid       | DONE       |
-| flux lax-friedrichs | DONE       |
-| flux roe-pike       | TO BE DONE |
-| boundary Riemann    | DONE       |
-| boundary SlipWall   | DONE       |
+| Function            |      |
+|---------------------|------|
+| flux inviscid       | DONE |
+| flux lax-friedrichs | DONE |
+| flux roe-pike       | ACTIVE |
+| boundary Riemann    | DONE |
+| boundary SlipWall   | DONE |
 
 
 ### Postprocessing : ACTIVE (As cases are added)

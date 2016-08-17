@@ -24,7 +24,7 @@
  *		redundant calculations if d < 3.
  *		Try using BLAS calls for dot products and check if there is a speed-up. (ToBeDeleted)
  *		The Roe flux function is very difficult to parallelize due to the large amount of required memory.
- *		There is some additional discussion in Obward(2015) regarding incorrect dissipation of the ROE scheme at low
+ *		There is some additional discussion in Obward(2015) regarding incorrect dissipation of the Roe scheme at low
  *		mach numbers. The proposed method to correct this requires evaluation of a shock indicator on all FACETs
  *		adjacent to the inner VOLUME of the FACET on which the numerical flux is being computed (which seems quite
  *		expensive to do). In the same paper, there is a reference to Thornber(2008) which motivates a local normal
@@ -36,7 +36,7 @@
  *
  *	References:
  *		flux_LF : Based off of Hesthaven's NodalDG function.(https://github.com/tcew/nodal-dg/.../CFD2D/EulerLF2D)
- *		flux_ROE: Toro(2009)-Riemann_Solvers_and_Numerical_Methods_for_Fluid_Dynamics (Ch. 11.3)
+ *		flux_Roe: Toro(2009)-Riemann_Solvers_and_Numerical_Methods_for_Fluid_Dynamics (Ch. 11.3)
  *		        : Obwald(2015)-L2Roe:_A_Low_Dissipation_Version_of_Roe's_Approximate_Riemann_Solver_for_Low_Mach_Numbers
  *				: Thornber(2008)-An_improved_reconstruction_method_for_compressible_flows_with_low_Mach_number_features
  */
@@ -345,7 +345,7 @@ void flux_LF(const unsigned int Nn, const unsigned int Nel, double *WL, double *
 	free(maxV);
 }
 
-void flux_ROE(const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
+void flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
               double *nL, const unsigned int d, const unsigned int Neq)
 {
 	/*
@@ -353,6 +353,7 @@ void flux_ROE(const unsigned int Nn, const unsigned int Nel, double *WL, double 
 	 *		This is the Roe-Pike version of the scheme which is different from the original Roe scheme in that the wave
 	 *		numbers are linearized for faster computation.
 	 */
+
 	// Standard datatypes
 	unsigned int iMax, NnTotal;
 	double       eps, r, rP1, rho, u, v, w, H, Vn, V2, c, l1, l234, l5,

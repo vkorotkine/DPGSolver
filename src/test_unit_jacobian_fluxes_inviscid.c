@@ -123,7 +123,7 @@ static void compute_dnFdW_cs(const unsigned int Nn, const unsigned int Nel, cons
 		if (strstr(nFType,"LF"))
 			flux_LF_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
 		else if (strstr(nFType,"Roe"))
-			printf("Add support Roe.\n"), EXIT_MSG;
+			flux_Roe_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
 		else
 			printf("Error: Unsupported nFType.\n"), EXIT_MSG;
 
@@ -143,7 +143,7 @@ static void compute_dnFdW_cs(const unsigned int Nn, const unsigned int Nel, cons
 		if (strstr(nFType,"LF"))
 			flux_LF_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
 		else if (strstr(nFType,"Roe"))
-			printf("Add support Roe.\n"), EXIT_MSG;
+			flux_Roe_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
 		else
 			printf("Error: Unsupported nFType.\n"), EXIT_MSG;
 
@@ -193,14 +193,19 @@ static unsigned int compare_jacobian_flux_Num(const unsigned int Nn, const unsig
 		jacobian_flux_LF(Nn,1,WL,WR,dnFdWL,nL,d,Neq,'L');
 		jacobian_flux_LF(Nn,1,WL,WR,dnFdWR,nL,d,Neq,'R');
 	} else if (strstr(nFType,"Roe")) {
-		printf("Add support Roe.\n"), EXIT_MSG;
+		jacobian_flux_Roe(Nn,1,WL,WR,dnFdWL,nL,d,Neq,'L');
+		jacobian_flux_Roe(Nn,1,WL,WR,dnFdWR,nL,d,Neq,'R');
 	} else {
 		printf("Error: Unsupported nFType.\n"), EXIT_MSG;
 	}
 	compute_dnFdW_cs(Nn,1,d,Neq,WL,WR,dnFdWL_cs,dnFdWR_cs,nL,nFType);
 
-//array_print_d(Nn*Nvar,Neq,dnFdWL,'C');
-//array_print_d(Nn*Nvar,Neq,dnFdWL_cs,'C');
+if (strstr(nFType,"Roe")) {
+array_print_d(Nn*Nvar,Neq,dnFdWL,'C');
+array_print_d(Nn*Nvar,Neq,dnFdWL_cs,'C');
+printf("%e\n",array_norm_diff_d(Nn*Nvar*Neq,dnFdWL,dnFdWL_cs,"Inf"));
+EXIT_MSG;
+}
 
 	if (strstr(nFType,"LF")) {
 		CheckedAllLF = 1;
@@ -246,7 +251,8 @@ void test_unit_jacobian_fluxes_inviscid(void)
 	unsigned int Nn, Nel, d, Neq;
 	double       *W, *nL;
 
-	for (d = 1; d <= 3; d++) {
+//	for (d = 1; d <= 3; d++) {
+	for (d = 3; d <= 3; d++) {
 		Neq = d+2;
 
 		W  = initialize_W(&Nn,&Nel,d); // free
@@ -261,6 +267,11 @@ void test_unit_jacobian_fluxes_inviscid(void)
 		// flux_LF
 		pass = compare_jacobian_flux_Num(Nn,Nel,d,Neq,W,nL,"LF");
 		printf("         flux_LF              :                  ");
+		test_print(pass);
+
+		// flux_Roe
+		pass = compare_jacobian_flux_Num(Nn,Nel,d,Neq,W,nL,"Roe");
+		printf("         flux_Roe             :                  ");
 		test_print(pass);
 
 		free(W);
