@@ -930,8 +930,8 @@ void jacobian_flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL
 	unsigned int i, n, eq, var, iMax, Nvar, NnTotal, InddnFdW;
 	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr,
 	             *rhoR_ptr, *rhouR_ptr, *rhovR_ptr, *rhowR_ptr, *ER_ptr,
-	             rhoL, rhouL, rhovL, rhowL, EL, rhoL_inv, uL, vL, wL, V2L, VL, VnL, pL, cL,
-	             rhoR, rhouR, rhovR, rhowR, ER, rhoR_inv, uR, vR, wR, V2R, VR, VnR, pR, cR,
+	             rhoL, rhouL, rhovL, rhowL, EL, rhoL_inv, rhoLr_inv, uL, vL, wL, V2L, VL, VnL, pL, cL, HL,
+	             rhoR, rhouR, rhovR, rhowR, ER, rhoR_inv, rhoRr_inv, uR, vR, wR, V2R, VR, VnR, pR, cR, HR,
 	             n1, n2, n3, *n_ptr, *dnFdW_ptr[Neq*Neq];
 
 
@@ -972,7 +972,9 @@ void jacobian_flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL
 			rhowL = *rhowL_ptr++;
 			EL    = *EL_ptr++;
 
-			rhoL_inv = 1.0/rhoL;
+			rhoL_inv  = 1.0/rhoL;
+			rhoLr_inv = sqrt(rhoL_inv);
+
 			uL = rhouL*rhoL_inv;
 			vL = rhovL*rhoL_inv;
 			wL = rhowL*rhoL_inv;
@@ -983,6 +985,7 @@ void jacobian_flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL
 
 			pL  = GM1*(EL-0.5*rhoL*V2L);
 			cL  = sqrt(GAMMA*pL/rhoL);
+			HL  = (EL+pL)*rhoL_inv;
 
 			// Outer VOLUME
 			rhoR  = *rhoR_ptr++;
@@ -991,7 +994,9 @@ void jacobian_flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL
 			rhowR = *rhowR_ptr++;
 			ER    = *ER_ptr++;
 
-			rhoR_inv = 1.0/rhoR;
+			rhoR_inv  = 1.0/rhoR;
+			rhoRr_inv = sqrt(rhoR_inv);
+
 			uR = rhouR*rhoR_inv;
 			vR = rhovR*rhoR_inv;
 			wR = rhowR*rhoR_inv;
@@ -1002,20 +1007,60 @@ void jacobian_flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL
 
 			pR  = GM1*(ER-0.5*rhoR*V2R);
 			cR  = sqrt(GAMMA*pR/rhoR);
+			HR  = (ER+pR)*rhoR_inv;
+
+			// Roe-averaged states
+double r, rP1, rho, u, v, w, H, Vn, V2, c, Den, mult, drho;
+double sign_l1 = 1.0, sign_l234 = 1.0, sign_l5 = 1.0, l1, l234, l5, dl1, dl5;
+
+			r = sqrt(rhoR/rhoL);
+			rP1 = r+1;
+
+			rho = r*rhoL;
+			u   = (r*uR+uL)/rP1;
+			v   = (r*vR+vL)/rP1;
+			w   = (r*wR+wL)/rP1;
+			H   = (r*HR+HL)/rP1;
+			Vn  = n1*u+n2*v+n3*w;
+			V2  = u*u+v*v+w*w;
+			c   = sqrt(GM1*(H-0.5*V2));
+
+			Den  = sqrt(rhoL) + sqrt(rhoR);
+
+			if (Vn-c < 0.0) sign_l1   = -1.0;
+			if (Vn   < 0.0) sign_l234 = -1.0;
+			if (Vn+c < 0.0) sign_l5   = -1.0;
+
+			l1   = sign_l1*(Vn-c);
+			l234 = sign_l234*(Vn);
+			l5   = sign_l5*(Vn+c);
+
+// Looking into the entropy fix (ToBeDeleted)
+			dl1 = max(fabs(VnR-cR)-fabs(VnL-cL),0.0);
+			dl5 = max(fabs(VnR+cR)-fabs(VnL+cL),0.0);
+
+			if (l1 < 2*dl1)
+				l1 = (l1*l1)/(4*dl1)+dl1;
+			if (l5 < 2*dl5)
+				l5 = (l5*l5)/(4*dl5)+dl5;
 
 
+			drho = rhoR-rhoL;
 
-			double dudW[Nvar], dvdW[Nvar], dwdW[Nvar], drhodW[Nvar], dEdW[Nvar], dpdW[Nvar],
-				   rhoVn, dVndW, drhoVndW,
-				   dnF1dW[Nvar], dnF2dW[Nvar], dnF3dW[Nvar], dnF4dW[Nvar], dnF5dW[Nvar];
+			double duLdW[Nvar], dvLdW[Nvar], dwLdW[Nvar], drhodW[Nvar], dEdW[Nvar], dpdW[Nvar],
+				   rhoVn, dVndW, drhoVndW, dcdW,
+				   dudW[Nvar], dvdW[Nvar], dwdW[Nvar], dHdW[Nvar],
+				   dl234dW,
+				   dnF1dW[Nvar], dnF2dW[Nvar], dnF3dW[Nvar], dnF4dW[Nvar], dnF5dW[Nvar],
+				   ddis1dW[Nvar], ddis2dW[Nvar], ddis3dW[Nvar], ddis4dW[Nvar], ddis5dW[Nvar];
 
 			if (side == 'L') {
 				// Flux term
 				rhoVn = rhoL*VnL;
 
-				dudW[0] = -uL*rhoL_inv; dudW[1] = rhoL_inv; dudW[2] = 0.0;      dudW[3] = 0.0;      dudW[4] = 0.0;
-				dvdW[0] = -vL*rhoL_inv; dvdW[1] = 0.0;      dvdW[2] = rhoL_inv; dvdW[3] = 0.0;      dvdW[4] = 0.0;
-				dwdW[0] = -wL*rhoL_inv; dwdW[1] = 0.0;      dwdW[2] = 0.0;      dwdW[3] = rhoL_inv; dwdW[4] = 0.0;
+				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;      duLdW[4] = 0.0;
+				dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;      dvLdW[4] = 0.0;
+				dwLdW[0] = -wL*rhoL_inv; dwLdW[1] = 0.0;      dwLdW[2] = 0.0;      dwLdW[3] = rhoL_inv; dwLdW[4] = 0.0;
 
 				drhodW[0] = 1.0;     drhodW[1] = 0.0; drhodW[2] = 0.0; drhodW[3] = 0.0; drhodW[4] = 0.0;
 				dEdW[0]   = 0.0;     dEdW[1]   = 0.0; dEdW[2]   = 0.0; dEdW[3]   = 0.0; dEdW[4]   = 1.0;
@@ -1024,14 +1069,14 @@ void jacobian_flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL
 				for (var = 0; var < Nvar; var++) {
 					dpdW[var] *= GM1;
 
-					dVndW    = n1*dudW[var]+n2*dvdW[var]+n3*dwdW[var];
+					dVndW    = n1*duLdW[var]+n2*dvLdW[var]+n3*dwLdW[var];
 					drhoVndW = drhodW[var]*VnL + rhoL*dVndW;
 
 					dnF1dW[var] = drhoVndW;
-					dnF2dW[var] = drhoVndW*uL + rhoVn*dudW[var] + n1*dpdW[var];
-					dnF3dW[var] = drhoVndW*vL + rhoVn*dvdW[var] + n2*dpdW[var];
-					dnF4dW[var] = drhoVndW*wL + rhoVn*dwdW[var] + n3*dpdW[var];
-					dnF5dW[var] = dVndW*(EL+pL) * VnL*(dEdW[var]+dpdW[var]);
+					dnF2dW[var] = drhoVndW*uL + rhoVn*duLdW[var] + n1*dpdW[var];
+					dnF3dW[var] = drhoVndW*vL + rhoVn*dvLdW[var] + n2*dpdW[var];
+					dnF4dW[var] = drhoVndW*wL + rhoVn*dwLdW[var] + n3*dpdW[var];
+					dnF5dW[var] = dVndW*(EL+pL) + VnL*(dEdW[var]+dpdW[var]);
 				}
 
 				InddnFdW = 0;
@@ -1040,8 +1085,47 @@ void jacobian_flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL
 				for (var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*dnF3dW[var];
 				for (var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*dnF4dW[var];
 				for (var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*dnF5dW[var];
+
+				// Dissipation term
+				mult    = rhoLr_inv/Den;
+				dudW[0] = -0.5*(uL+u)*mult; dudW[1] = mult; dudW[2] = 0.0;  dudW[3] = 0.0;  dudW[4] = 0.0;
+				dvdW[0] = -0.5*(vL+v)*mult; dvdW[1] = 0.0;  dvdW[2] = mult; dvdW[3] = 0.0;  dvdW[4] = 0.0;
+				dwdW[0] = -0.5*(wL+w)*mult; dwdW[1] = 0.0;  dwdW[2] = 0.0;  dwdW[3] = mult; dwdW[4] = 0.0;
+
+				dHdW[0] = -0.5*(HL+H-GM1*V2L)*mult;
+				dHdW[1] = -GM1*uL*mult;
+				dHdW[2] = -GM1*vL*mult;
+				dHdW[3] = -GM1*wL*mult;
+				dHdW[4] = GAMMA*mult;
+
+
+
+				for (var = 0; var < Nvar; var++) {
+					dcdW = 0.5*GM1/c*(dHdW[var]-(u*dudW[var]+v*dvdW[var]+w*dwdW[var]));
+
+					dl234dW = sign_l234*(n1*dudW[var]+n2*dvdW[var]+n3*dwdW[var]);
+
+					ddis1dW[var] = dl234dW*drho - l234*drhodW[var];
+					ddis2dW[var] = dcdW;
+					ddis3dW[var] = ddis1dW[var];
+					ddis4dW[var] = ddis1dW[var];
+					ddis5dW[var] = ddis1dW[var];
+				}
+
+				InddnFdW = 0;
+				for (var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = -0.5*ddis1dW[var];
+				for (var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = ddis2dW[var];
+				for (var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.0;
+				for (var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.0;
+				for (var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.0;
+
+				ddis1dW[0] = ddis2dW[0];
+				ddis1dW[0] = ddis3dW[0];
+				ddis1dW[0] = ddis4dW[0];
+				ddis1dW[0] = ddis5dW[0];
+
 			} else {
-				pL = cR = VnR = VR = cL = VL;
+				pL = cR = VnR = VR = cL = VL = rho = rhoRr_inv;
 			}
 
 			for (i = 0, iMax = Neq*Nvar; i < iMax; i++)

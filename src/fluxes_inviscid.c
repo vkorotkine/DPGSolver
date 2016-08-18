@@ -435,8 +435,8 @@ void flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL, double 
 			l234 = fabs(Vn);
 			l5   = fabs(Vn+c);
 
-			dl1 = max(fabs(VnR-cR)-fabs(VnL-cL),0.0);
-			dl5 = max(fabs(VnR+cR)-fabs(VnL+cL),0.0);
+			dl1 = max((VnR-cR)-(VnL-cL),0.0);
+			dl5 = max((VnR+cR)-(VnL+cL),0.0);
 
 			if (l1 < 2*dl1)
 				l1 = (l1*l1)/(4*dl1)+dl1;

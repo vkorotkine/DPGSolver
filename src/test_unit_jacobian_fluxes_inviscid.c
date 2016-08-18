@@ -175,9 +175,11 @@ static unsigned int compare_jacobian_flux_Num(const unsigned int Nn, const unsig
 
 	WL        = malloc(Nn*Nvar     * sizeof *WL);        // free
 	WR        = malloc(Nn*Nvar     * sizeof *WR);        // free
-	dnFdWL    = malloc(Nn*Nvar*Neq * sizeof *dnFdWL);    // free
+//	dnFdWL    = malloc(Nn*Nvar*Neq * sizeof *dnFdWL);    // free
+dnFdWL    = calloc(Nn*Nvar*Neq , sizeof *dnFdWL);    // free
 	dnFdWR    = malloc(Nn*Nvar*Neq * sizeof *dnFdWR);    // free
-	dnFdWL_cs = malloc(Nn*Nvar*Neq * sizeof *dnFdWL_cs); // free
+//	dnFdWL_cs = malloc(Nn*Nvar*Neq * sizeof *dnFdWL_cs); // free
+dnFdWL_cs = calloc(Nn*Nvar*Neq , sizeof *dnFdWL_cs); // free
 	dnFdWR_cs = malloc(Nn*Nvar*Neq * sizeof *dnFdWR_cs); // free
 
 	W_ptr = W;
@@ -251,6 +253,8 @@ void test_unit_jacobian_fluxes_inviscid(void)
 	unsigned int Nn, Nel, d, Neq;
 	double       *W, *nL;
 
+printf("\nTest Roe with entropy fix.\n\n"); TestDB.Nwarnings++;
+
 //	for (d = 1; d <= 3; d++) {
 	for (d = 3; d <= 3; d++) {
 		Neq = d+2;
@@ -264,10 +268,12 @@ void test_unit_jacobian_fluxes_inviscid(void)
 		else        printf("         flux_inviscid (d = %d):                  ",d);
 		test_print(pass);
 
+/*
 		// flux_LF
 		pass = compare_jacobian_flux_Num(Nn,Nel,d,Neq,W,nL,"LF");
 		printf("         flux_LF              :                  ");
 		test_print(pass);
+*/
 
 		// flux_Roe
 		pass = compare_jacobian_flux_Num(Nn,Nel,d,Neq,W,nL,"Roe");

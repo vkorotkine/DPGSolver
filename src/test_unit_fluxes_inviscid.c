@@ -18,6 +18,7 @@
  *		Test correctness of implementation of functions relating to inviscid flux computation.
  *
  *	Comments:
+ *		Add in test for numerical flux functions through comparison with Godunov (ToBeDeleted).
  *
  *	Notation:
  *

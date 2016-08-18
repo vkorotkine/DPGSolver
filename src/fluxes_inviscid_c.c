@@ -429,12 +429,18 @@ void flux_Roe_c(const unsigned int Nn, const unsigned int Nel, double complex *W
 			cR  = csqrt(GAMMA*pR/rhoR);
 			VnR = (*nx)*uR+(*ny)*vR+(*nz)*wR;
 
-			l1   = cabs(Vn-c);
-			l234 = cabs(Vn);
-			l5   = cabs(Vn+c);
+			double sign_l1 = 1.0, sign_l234 = 1.0, sign_l5 = 1.0;
 
-			dl1 = max(cabs(VnR-cR)-cabs(VnL-cL),0.0);
-			dl5 = max(cabs(VnR+cR)-cabs(VnL+cL),0.0);
+			if (cabs(Vn-c) < 0.0) sign_l1   = -1.0;
+			if (cabs(Vn)   < 0.0) sign_l234 = -1.0;
+			if (cabs(Vn+c) < 0.0) sign_l5   = -1.0;
+
+			l1   = sign_l1*(Vn-c);
+			l234 = sign_l234*(Vn);
+			l5   = sign_l5*(Vn+c);
+
+			dl1 = max((VnR-cR)-(VnL-cL),0.0);
+			dl5 = max((VnR+cR)-(VnL+cL),0.0);
 
 			if (creal(l1) < creal(2*dl1))
 				l1 = (l1*l1)/(4*dl1)+dl1;
@@ -463,7 +469,8 @@ void flux_Roe_c(const unsigned int Nn, const unsigned int Nel, double complex *W
 			disInter1 = lc1*dp/(c*c) + lc2*rho*dVn/c;
 			disInter2 = lc1*rho*dVn  + lc2*dp/c;
 
-			dis1 = l234*drho  + disInter1;
+//			dis1 = l234*drho  + disInter1;
+dis1 = l234*drho;
 			dis2 = l234*drhou + disInter1*u + disInter2*(*nx);
 			dis3 = l234*drhov + disInter1*v + disInter2*(*ny);
 			dis4 = l234*drhow + disInter1*w + disInter2*(*nz);
@@ -486,12 +493,14 @@ void flux_Roe_c(const unsigned int Nn, const unsigned int Nel, double complex *W
 //			*nFluxNum_ptr3++ = 0.5*(nF3 - dis3);
 //			*nFluxNum_ptr4++ = 0.5*(nF4 - dis4);
 //			*nFluxNum_ptr5++ = 0.5*(nF5 - dis5);
-*nFluxNum_ptr1++ = 0.5*(nF1);
-*nFluxNum_ptr2++ = 0.5*(nF2);
-*nFluxNum_ptr3++ = 0.5*(nF3);
-*nFluxNum_ptr4++ = 0.5*(nF4);
-*nFluxNum_ptr5++ = 0.5*(nF5);
+//printf("% .3e % .3e % .3e\n",cimag(dis1),cimag(l234),cimag(drho));
+*nFluxNum_ptr1++ = 0.5*(-dis1);
+*nFluxNum_ptr2++ = c;
+*nFluxNum_ptr3++ = 0.0;
+*nFluxNum_ptr4++ = 0.0;
+*nFluxNum_ptr5++ = 0.0;
 dis1 = dis4;
+nF1  = nF4;
 
 			nx += d; ny += d; nz += d;
 		}
@@ -547,9 +556,15 @@ dis1 = dis4;
 			cR  = csqrt(GAMMA*pR/rhoR);
 			VnR = (*nx)*uR+(*ny)*vR;
 
-			l1   = cabs(Vn-c);
-			l234 = cabs(Vn);
-			l5   = cabs(Vn+c);
+			double sign_l1 = 1.0, sign_l234 = 1.0, sign_l5 = 1.0;
+
+			if (cabs(Vn-c) < 0.0) sign_l1   = -1.0;
+			if (cabs(Vn)   < 0.0) sign_l234 = -1.0;
+			if (cabs(Vn+c) < 0.0) sign_l5   = -1.0;
+
+			l1   = sign_l1*(Vn-c);
+			l234 = sign_l234*(Vn);
+			l5   = sign_l5*(Vn+c);
 
 			dl1 = max(cabs(VnR-cR)-cabs(VnL-cL),0.0);
 			dl5 = max(cabs(VnR+cR)-cabs(VnL+cL),0.0);
@@ -644,9 +659,15 @@ dis1 = dis4;
 			cR  = csqrt(GAMMA*pR/rhoR);
 			VnR = (*nx)*uR;
 
-			l1   = cabs(Vn-c);
-			l234 = cabs(Vn);
-			l5   = cabs(Vn+c);
+			double sign_l1 = 1.0, sign_l234 = 1.0, sign_l5 = 1.0;
+
+			if (cabs(Vn-c) < 0.0) sign_l1   = -1.0;
+			if (cabs(Vn)   < 0.0) sign_l234 = -1.0;
+			if (cabs(Vn+c) < 0.0) sign_l5   = -1.0;
+
+			l1   = sign_l1*(Vn-c);
+			l234 = sign_l234*(Vn);
+			l5   = sign_l5*(Vn+c);
 
 			dl1 = max(cabs(VnR-cR)-cabs(VnL-cL),0.0);
 			dl5 = max(cabs(VnR+cR)-cabs(VnL+cL),0.0);
