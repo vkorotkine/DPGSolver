@@ -32,6 +32,22 @@
  *		context of a finite volume scheme with MUSCL reconstruction. Perhaps look into whether this problem is important
  *		for high-order methods and add a fix similar to Thornber(2008). (ToBeModified)
  *
+ *		Further discussion of Roe scheme advancements:
+ *		1) Several changes to the Roe scheme have been proposed based on incorrect asymptotic scaling of certain terms.
+ *		See Li(2016) x2, Qu(2015) for latest developments. Also note that the two papers by Li from 2016 recommend
+ *		different modifications when using the Roe scheme in standard test cases vs. LES cases. However, the large
+ *		majority of the results are tested in 1st order FV frameworks using MUSCL reconstruction and the results may
+ *		hence not be as relevant for the high-order setting of this code. => Compare traditional Roe flux (only with
+ *		simple entropy fix), improved Roe flux with several fixes (Li(2016)) and DPG before making conclusions.
+ *		(ToBeModified).
+ *		2) It was also noted that a lot of discussion regarding the superiority of Flux Vector Splitting methods over
+ *		the Roe scheme was found. See Kitamura(2016), Kitamura(2013) (fig. 3) and contained references for AUSM, SLAU, 
+ *		LDFSS2001, and Roe scheme comparisons. If flux vector splitting is found to be acceptable, it is likely cheaper
+ *		to compute than the Roe flux. => Compare with Flux Difference Splitting schemes and DPG above and make
+ *		conclusions then. (ToBeModified).
+ *
+ *		The simple entropy fix is taken from Qu(2015), eq. 35.
+ *
  *	Notation:
  *
  *	References:
@@ -39,6 +55,13 @@
  *		flux_Roe: Toro(2009)-Riemann_Solvers_and_Numerical_Methods_for_Fluid_Dynamics (Ch. 11.3)
  *		        : Obwald(2015)-L2Roe:_A_Low_Dissipation_Version_of_Roe's_Approximate_Riemann_Solver_for_Low_Mach_Numbers
  *				: Thornber(2008)-An_improved_reconstruction_method_for_compressible_flows_with_low_Mach_number_features
+ *
+ *		Additional: (ToBeModified)
+ *		Kitamura(2013)-Towards_Shock-Stable_and_Accurate_Hypersonic_Heating_Computations-_A_New_Pressure_Flux_for_AUSM-family_Schemes
+ *		Kitamura(2015)-Reduced_Dissipation_AUSM-family_Fluxes-_HR-SLAU2_and_HR-AUSMp-up_for_High_Resolution_Unsteady_Flow_Simulations
+ *		Qu(2015)-A_New_Roe-Type_Scheme_for_All_Speeds
+ *		Li(2016)-All-Speed_Roe_Scheme_for_the_Large_Eddy_Simulation_of_Homogeneous_Decaying_Turbulence
+ *		Li(2016)-Cures_for_the_Expansion_Shock_and_the_Shock_Instability_of_the_Roe_Scheme
  */
 
 void flux_inviscid(const unsigned int Nn, const unsigned int Nel, double *W, double *F, const unsigned int d,
@@ -359,7 +382,7 @@ void flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL, double 
 	double       eps, r, rP1, rho, u, v, w, H, Vn, V2, c, l1, l234, l5,
 	             VnL, rhoVnL, VnR, rhoVnR, pLR, drho, drhou, drhov, drhow, dE, dp, dVn, lc1, lc2, disInter1, disInter2,
 	             *W1L, *W2L, *W3L, *W4L, *W5L, *W1R, *W2R, *W3R, *W4R, *W5R,
-	             rhoL, uL, vL, wL, pL, EL, cL, rhoR, uR, vR, wR, pR, ER, cR, dl1, dl5,
+	             rhoL, uL, vL, wL, pL, EL, rhoR, uR, vR, wR, pR, ER,
 	             *nx, *ny, *nz,
 	             *nFluxNum_ptr1, *nFluxNum_ptr2, *nFluxNum_ptr3, *nFluxNum_ptr4, *nFluxNum_ptr5,
 	             dis1, dis2, dis3, dis4, dis5, nF1, nF2, nF3, nF4, nF5;
@@ -424,31 +447,13 @@ void flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL, double 
 			V2  = u*u+v*v+w*w;
 			c   = sqrt(GM1*(H-0.5*V2));
 
-			// Compute eigenvalues (with entropy fix if required)
-			cL  = sqrt(GAMMA*pL/rhoL);
+			// Compute eigenvalues (with entropy fix)
 			VnL = (*nx)*uL+(*ny)*vL+(*nz)*wL;
-
-			cR  = sqrt(GAMMA*pR/rhoR);
 			VnR = (*nx)*uR+(*ny)*vR+(*nz)*wR;
 
-			l1   = fabs(Vn-c);
+			l1   = min(fabs(Vn-c),fabs(VnL-c));
 			l234 = fabs(Vn);
-			l5   = fabs(Vn+c);
-
-			dl1 = max((VnR-cR)-(VnL-cL),0.0);
-			dl5 = max((VnR+cR)-(VnL+cL),0.0);
-
-			if (l1 < 2*dl1)
-				l1 = (l1*l1)/(4*dl1)+dl1;
-			if (l5 < 2*dl5)
-				l5 = (l5*l5)/(4*dl5)+dl5;
-
-/*
-			if (l1 < eps)
-				l1 = (l1*l1+eps*eps)/(2*eps);
-			if (l5 < eps)
-				l5 = (l5*l5+eps*eps)/(2*eps);
-*/
+			l5   = max(fabs(Vn+c),fabs(VnR+c));
 
 			// Compute combined eigenvalues, eigenvectors and linearized wave strengths
 			drho  = rhoR-rhoL;
@@ -536,24 +541,13 @@ void flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL, double 
 			V2  = u*u+v*v;
 			c   = sqrt(GM1*(H-0.5*V2));
 
-			// Compute eigenvalues (with entropy fix if required)
-			cL  = sqrt(GAMMA*pL/rhoL);
+			// Compute eigenvalues (with entropy fix)
 			VnL = (*nx)*uL+(*ny)*vL;
-
-			cR  = sqrt(GAMMA*pR/rhoR);
 			VnR = (*nx)*uR+(*ny)*vR;
 
-			l1   = fabs(Vn-c);
+			l1   = min(fabs(Vn-c),fabs(VnL-c));
 			l234 = fabs(Vn);
-			l5   = fabs(Vn+c);
-
-			dl1 = max(fabs(VnR-cR)-fabs(VnL-cL),0.0);
-			dl5 = max(fabs(VnR+cR)-fabs(VnL+cL),0.0);
-
-			if (l1 < 2*dl1)
-				l1 = (l1*l1)/(4*dl1)+dl1;
-			if (l5 < 2*dl5)
-				l5 = (l5*l5)/(4*dl5)+dl5;
+			l5   = max(fabs(Vn+c),fabs(VnR+c));
 
 			// Compute combined eigenvalues, eigenvectors and linearized wave strengths
 			VnL = (*nx)*uL+(*ny)*vL;
@@ -633,24 +627,13 @@ void flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL, double 
 			V2  = u*u;
 			c   = sqrt(GM1*(H-0.5*V2));
 
-			// Compute eigenvalues (with entropy fix if required)
-			cL  = sqrt(GAMMA*pL/rhoL);
+			// Compute eigenvalues (with entropy fix)
 			VnL = (*nx)*uL;
-
-			cR  = sqrt(GAMMA*pR/rhoR);
 			VnR = (*nx)*uR;
 
-			l1   = fabs(Vn-c);
+			l1   = min(fabs(Vn-c),fabs(VnL-c));
 			l234 = fabs(Vn);
-			l5   = fabs(Vn+c);
-
-			dl1 = max(fabs(VnR-cR)-fabs(VnL-cL),0.0);
-			dl5 = max(fabs(VnR+cR)-fabs(VnL+cL),0.0);
-
-			if (l1 < 2*dl1)
-				l1 = (l1*l1)/(4*dl1)+dl1;
-			if (l5 < 2*dl5)
-				l5 = (l5*l5)/(4*dl5)+dl5;
+			l5   = max(fabs(Vn+c),fabs(VnR+c));
 
 			// Compute combined eigenvalues, eigenvectors and linearized wave strengths
 			VnL = (*nx)*uL;

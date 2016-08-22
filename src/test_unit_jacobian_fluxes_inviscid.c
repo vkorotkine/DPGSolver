@@ -143,7 +143,7 @@ static void compute_dnFdW_cs(const unsigned int Nn, const unsigned int Nel, cons
 		if (strstr(nFType,"LF"))
 			flux_LF_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
 		else if (strstr(nFType,"Roe"))
-			flux_Roe_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
+; //flux_Roe_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
 		else
 			printf("Error: Unsupported nFType.\n"), EXIT_MSG;
 
@@ -196,7 +196,7 @@ dnFdWL_cs = calloc(Nn*Nvar*Neq , sizeof *dnFdWL_cs); // free
 		jacobian_flux_LF(Nn,1,WL,WR,dnFdWR,nL,d,Neq,'R');
 	} else if (strstr(nFType,"Roe")) {
 		jacobian_flux_Roe(Nn,1,WL,WR,dnFdWL,nL,d,Neq,'L');
-		jacobian_flux_Roe(Nn,1,WL,WR,dnFdWR,nL,d,Neq,'R');
+//		jacobian_flux_Roe(Nn,1,WL,WR,dnFdWR,nL,d,Neq,'R');
 	} else {
 		printf("Error: Unsupported nFType.\n"), EXIT_MSG;
 	}

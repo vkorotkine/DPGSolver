@@ -14,6 +14,8 @@
 
 #include "variable_functions_c.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Identical to fluxes_inviscid using complex variables (for complex step verification).
@@ -422,37 +424,45 @@ void flux_Roe_c(const unsigned int Nn, const unsigned int Nel, double complex *W
 			V2  = u*u+v*v+w*w;
 			c   = csqrt(GM1*(H-0.5*V2));
 
-			// Compute eigenvalues (with entropy fix if required)
+			// Compute eigenvalues (with entropy fix)
 			cL  = csqrt(GAMMA*pL/rhoL);
 			VnL = (*nx)*uL+(*ny)*vL+(*nz)*wL;
 
 			cR  = csqrt(GAMMA*pR/rhoR);
 			VnR = (*nx)*uR+(*ny)*vR+(*nz)*wR;
 
-			double sign_l1 = 1.0, sign_l234 = 1.0, sign_l5 = 1.0;
+double sign_l1 = 1.0, sign_l234 = 1.0, sign_l5 = 1.0;
+double complex l1L, l5R;
 
-			if (cabs(Vn-c) < 0.0) sign_l1   = -1.0;
-			if (cabs(Vn)   < 0.0) sign_l234 = -1.0;
-			if (cabs(Vn+c) < 0.0) sign_l5   = -1.0;
+			l1L = VnL-c;
+			l1  = Vn-c;
 
-			l1   = sign_l1*(Vn-c);
-			l234 = sign_l234*(Vn);
-			l5   = sign_l5*(Vn+c);
+			if (cabs(l1L) < cabs(l1)) {
+				if (creal(l1L) < 0.0)
+					sign_l1 = -1.0;
+				l1 = sign_l1*l1L;
+			} else {
+				if (creal(l1) < 0.0)
+					sign_l1 = -1.0;
+				l1 = sign_l1*l1;
+			}
 
-			dl1 = max((VnR-cR)-(VnL-cL),0.0);
-			dl5 = max((VnR+cR)-(VnL+cL),0.0);
+			l5R = VnR+c;
+			l5  = Vn+c;
 
-			if (creal(l1) < creal(2*dl1))
-				l1 = (l1*l1)/(4*dl1)+dl1;
-			if (creal(l5) < creal(2*dl5))
-				l5 = (l5*l5)/(4*dl5)+dl5;
+			if (cabs(l5R) > cabs(l5)) {
+				if (creal(l5R) < 0.0)
+					sign_l5 = -1.0;
+				l5 = sign_l5*l5R;
+			} else {
+				if (creal(l5) < 0.0)
+					sign_l5 = -1.0;
+				l5 = sign_l5*l5;
+			}
 
-/*
-			if (l1 < eps)
-				l1 = (l1*l1+eps*eps)/(2*eps);
-			if (l5 < eps)
-				l5 = (l5*l5+eps*eps)/(2*eps);
-*/
+			if (cabs(Vn) < 0.0) sign_l234 = -1.0;
+			l234 = sign_l234*Vn;
+
 
 			// Compute combined eigenvalues, eigenvectors and linearized wave strengths
 			drho  = rhoR-rhoL;
@@ -466,7 +476,8 @@ void flux_Roe_c(const unsigned int Nn, const unsigned int Nel, double complex *W
 			lc1 = 0.5*(l5+l1) - l234;
 			lc2 = 0.5*(l5-l1);
 
-			disInter1 = lc1*dp/(c*c) + lc2*rho*dVn/c;
+//			disInter1 = lc1*dp/(c*c) + lc2*rho*dVn/c;
+			disInter1 = lc1*dp/(c*c);
 			disInter2 = lc1*rho*dVn  + lc2*dp/c;
 
 //			dis1 = l234*drho  + disInter1;
@@ -496,7 +507,7 @@ dis1 = l234*drho;
 //printf("% .3e % .3e % .3e\n",cimag(dis1),cimag(l234),cimag(drho));
 *nFluxNum_ptr1++ = 0.5*(-dis1);
 *nFluxNum_ptr2++ = c;
-*nFluxNum_ptr3++ = 0.0;
+*nFluxNum_ptr3++ = disInter1;
 *nFluxNum_ptr4++ = 0.0;
 *nFluxNum_ptr5++ = 0.0;
 dis1 = dis4;
@@ -549,7 +560,7 @@ nF1  = nF4;
 			V2  = u*u+v*v;
 			c   = csqrt(GM1*(H-0.5*V2));
 
-			// Compute eigenvalues (with entropy fix if required)
+			// Compute eigenvalues (with entropy fix)
 			cL  = csqrt(GAMMA*pL/rhoL);
 			VnL = (*nx)*uL+(*ny)*vL;
 
@@ -652,7 +663,7 @@ nF1  = nF4;
 			V2  = u*u;
 			c   = csqrt(GM1*(H-0.5*V2));
 
-			// Compute eigenvalues (with entropy fix if required)
+			// Compute eigenvalues (with entropy fix)
 			cL  = csqrt(GAMMA*pL/rhoL);
 			VnL = (*nx)*uL;
 
