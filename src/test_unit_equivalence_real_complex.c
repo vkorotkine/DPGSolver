@@ -23,8 +23,6 @@
 #include "variable_functions.h"
 #include "variable_functions_c.h"
 
-#include "array_print.h"
-
 /*
  *	Purpose:
  *		Test equivalence of output between real and complex versions of the same functions.
@@ -59,6 +57,9 @@ void test_unit_equivalence_real_complex(void)
 	 *
 	 */
 
+	printf("\nWarning: Ensure that tests for real/complex equivalence for all relevant functions are implemented.\n\n");
+	TestDB.Nwarnings++;
+
 	char         *TestCase;
 	unsigned int Nn, Nel, d, Neq;
 	double       *W, *nL, *XYZ;
@@ -88,6 +89,9 @@ void test_unit_equivalence_real_complex(void)
 		test_print(pass);
 
 		// flux_Roe
+		pass = compare_flux_Num(Nn,Nel,d,Neq,W,nL,"Roe");
+		printf("            flux_Roe                 :           ");
+		test_print(pass);
 
 		// boundary_SlipWall
 		pass = compare_boundary(Nn,Nel,d,Neq,W,nL,XYZ,"SlipWall");
@@ -191,7 +195,8 @@ static unsigned int compare_flux_Num(const unsigned int Nn, const unsigned int N
 		flux_LF(Nn,1,WLr,WRr,nFr,nL,d,Neq);
 		flux_LF_c(Nn,1,WLc,WRc,nFc,nL,d,Neq);
 	} else if (strstr(nFType,"Roe")) {
-		printf("Add support Roe.\n"), EXIT_MSG;
+		flux_Roe(Nn,1,WLr,WRr,nFr,nL,d,Neq);
+		flux_Roe_c(Nn,1,WLc,WRc,nFc,nL,d,Neq);
 	} else {
 		printf("Error: Unsupported nFType.\n"), EXIT_MSG;
 	}

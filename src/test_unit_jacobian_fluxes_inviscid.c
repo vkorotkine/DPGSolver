@@ -17,8 +17,6 @@
 #include "fluxes_inviscid_c.h"
 #include "jacobian_fluxes_inviscid.h"
 
-#include "array_print.h"
-
 /*
  *	Purpose:
  *		Test correctness of implementation of functions relating to jacobians of inviscid fluxes.
@@ -143,7 +141,7 @@ static void compute_dnFdW_cs(const unsigned int Nn, const unsigned int Nel, cons
 		if (strstr(nFType,"LF"))
 			flux_LF_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
 		else if (strstr(nFType,"Roe"))
-; //flux_Roe_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
+			flux_Roe_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
 		else
 			printf("Error: Unsupported nFType.\n"), EXIT_MSG;
 
@@ -165,7 +163,7 @@ static unsigned int compare_jacobian_flux_Num(const unsigned int Nn, const unsig
 {
 	unsigned int pass = 0;
 
-	unsigned int i, n, var, Nvar, IndWLR, CheckedAllLF;
+	unsigned int i, n, var, Nvar, IndWLR, CheckedAllLF, CheckedAllRoe;
 	double       *W_ptr, *WL, *WR, *dnFdWL, *dnFdWR, *dnFdWL_cs, *dnFdWR_cs;
 
 	if (Nel != 2)
@@ -175,11 +173,9 @@ static unsigned int compare_jacobian_flux_Num(const unsigned int Nn, const unsig
 
 	WL        = malloc(Nn*Nvar     * sizeof *WL);        // free
 	WR        = malloc(Nn*Nvar     * sizeof *WR);        // free
-//	dnFdWL    = malloc(Nn*Nvar*Neq * sizeof *dnFdWL);    // free
-dnFdWL    = calloc(Nn*Nvar*Neq , sizeof *dnFdWL);    // free
+	dnFdWL    = malloc(Nn*Nvar*Neq * sizeof *dnFdWL);    // free
 	dnFdWR    = malloc(Nn*Nvar*Neq * sizeof *dnFdWR);    // free
-//	dnFdWL_cs = malloc(Nn*Nvar*Neq * sizeof *dnFdWL_cs); // free
-dnFdWL_cs = calloc(Nn*Nvar*Neq , sizeof *dnFdWL_cs); // free
+	dnFdWL_cs = malloc(Nn*Nvar*Neq * sizeof *dnFdWL_cs); // free
 	dnFdWR_cs = malloc(Nn*Nvar*Neq * sizeof *dnFdWR_cs); // free
 
 	W_ptr = W;
@@ -196,18 +192,11 @@ dnFdWL_cs = calloc(Nn*Nvar*Neq , sizeof *dnFdWL_cs); // free
 		jacobian_flux_LF(Nn,1,WL,WR,dnFdWR,nL,d,Neq,'R');
 	} else if (strstr(nFType,"Roe")) {
 		jacobian_flux_Roe(Nn,1,WL,WR,dnFdWL,nL,d,Neq,'L');
-//		jacobian_flux_Roe(Nn,1,WL,WR,dnFdWR,nL,d,Neq,'R');
+		jacobian_flux_Roe(Nn,1,WL,WR,dnFdWR,nL,d,Neq,'R');
 	} else {
 		printf("Error: Unsupported nFType.\n"), EXIT_MSG;
 	}
 	compute_dnFdW_cs(Nn,1,d,Neq,WL,WR,dnFdWL_cs,dnFdWR_cs,nL,nFType);
-
-if (strstr(nFType,"Roe")) {
-array_print_d(Nn*Nvar,Neq,dnFdWL,'C');
-array_print_d(Nn*Nvar,Neq,dnFdWL_cs,'C');
-printf("%e\n",array_norm_diff_d(Nn*Nvar*Neq,dnFdWL,dnFdWL_cs,"Inf"));
-EXIT_MSG;
-}
 
 	if (strstr(nFType,"LF")) {
 		CheckedAllLF = 1;
@@ -218,6 +207,18 @@ EXIT_MSG;
 			}
 		}
 		if (CheckedAllLF &&
+		    array_norm_diff_d(Nn*Nvar*Neq,dnFdWL,dnFdWL_cs,"Inf") < EPS &&
+		    array_norm_diff_d(Nn*Nvar*Neq,dnFdWR,dnFdWR_cs,"Inf") < EPS)
+				pass = 1, TestDB.Npass++;
+	} else if (strstr(nFType,"Roe")) {
+		CheckedAllRoe = 1;
+		for (i = 0; i < 4; i++) {
+			if (!TestDB.EnteredRoe[i]) {
+				CheckedAllRoe = 0;
+				break;
+			}
+		}
+		if (CheckedAllRoe &&
 		    array_norm_diff_d(Nn*Nvar*Neq,dnFdWL,dnFdWL_cs,"Inf") < EPS &&
 		    array_norm_diff_d(Nn*Nvar*Neq,dnFdWR,dnFdWR_cs,"Inf") < EPS)
 				pass = 1, TestDB.Npass++;
@@ -253,10 +254,7 @@ void test_unit_jacobian_fluxes_inviscid(void)
 	unsigned int Nn, Nel, d, Neq;
 	double       *W, *nL;
 
-printf("\nTest Roe with entropy fix.\n\n"); TestDB.Nwarnings++;
-
-//	for (d = 1; d <= 3; d++) {
-	for (d = 3; d <= 3; d++) {
+	for (d = 1; d <= 3; d++) {
 		Neq = d+2;
 
 		W  = initialize_W(&Nn,&Nel,d); // free
@@ -268,12 +266,12 @@ printf("\nTest Roe with entropy fix.\n\n"); TestDB.Nwarnings++;
 		else        printf("         flux_inviscid (d = %d):                  ",d);
 		test_print(pass);
 
-/*
+
 		// flux_LF
 		pass = compare_jacobian_flux_Num(Nn,Nel,d,Neq,W,nL,"LF");
 		printf("         flux_LF              :                  ");
 		test_print(pass);
-*/
+
 
 		// flux_Roe
 		pass = compare_jacobian_flux_Num(Nn,Nel,d,Neq,W,nL,"Roe");
