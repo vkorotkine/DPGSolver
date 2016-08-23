@@ -4,6 +4,8 @@
 #ifndef DPG__S_FACET_h__INCLUDED
 #define DPG__S_FACET_h__INCLUDED
 
+#include <complex.h>
+
 struct S_FACET {
 	// Structures
 	unsigned int P, type, VfIn, VfOut, indexg, BC, IndOrdInOut, IndOrdOutIn, level, update, adapt_type;
@@ -14,6 +16,9 @@ struct S_FACET {
 
 	// Solving
 	double *RHSIn, *RHSOut;
+
+	// Linearization testing
+	double complex *RHSIn_c, *RHSOut_c;
 
 	// structs
 	struct S_VOLUME *VIn, *VOut;

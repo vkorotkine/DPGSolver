@@ -134,7 +134,8 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 		Y = *Y_ptr++;
 
 		// Outer VOLUME
-		if (strstr(TestCase,"SupersonicVortex")) {
+		if (strstr(TestCase,"SupersonicVortex") ||
+		    strstr(TestCase,"Test_linearization")) {
 			// Use the exact solution for the Outer VOLUME
 			r = sqrt(X*X+Y*Y);
 			t = atan2(Y,X);
@@ -149,6 +150,7 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 
 			VnR = n1*uR+n2*vR; // wR == 0
 		} else {
+			printf("TestCase: %s\n",TestCase);
 			printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
 		}
 

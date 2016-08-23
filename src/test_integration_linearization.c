@@ -23,9 +23,9 @@
 #include "array_print.h"
 #include "explicit_VOLUME_info_c.h"
 #include "implicit_VOLUME_info.h"
+#include "explicit_FACET_info_c.h"
+#include "implicit_FACET_info.h"
 #include "finalize_LHS.h"
-
-#include "explicit_VOLUME_info.h" // ToBeDeleted
 
 /*
  *	Purpose:
@@ -80,7 +80,7 @@ static void compute_A_cs(Mat *A, Vec *b, const unsigned int assemble_type)
 			switch (assemble_type) {
 			default: // 0
 				explicit_VOLUME_info_c();
-//				explicit_FACET_info_c();
+				explicit_FACET_info_c();
 				printf("Error: Not yet implemented.\n"), EXIT_MSG;
 				break;
 			case 1:
@@ -88,20 +88,16 @@ static void compute_A_cs(Mat *A, Vec *b, const unsigned int assemble_type)
 				break;
 			case 2:
 			case 3:
-//				explicit_FACET_info_c();
+				explicit_FACET_info_c();
 				printf("Error: Not yet implemented.\n"), EXIT_MSG;
 				break;
 			}
 
 			if (assemble_type == 0 || assemble_type == 1) {
 				for (VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
-					if (assemble_type == 0) {
-						// Use a return value on array_find_index_ui to check for neighbour.
-						printf("Error: Not yet implemented.\n"), EXIT_MSG;
-					} else {
-						if (VOLUME->indexg != VOLUME2->indexg)
-							continue;
-					}
+					if (VOLUME->indexg != VOLUME2->indexg)
+						continue;
+
 					IndA[1] = VOLUME2->IndA;
 					NvnS[1] = VOLUME2->NvnS;
 					nnz_d   = VOLUME2->nnz_d;
@@ -131,17 +127,47 @@ static void compute_A_cs(Mat *A, Vec *b, const unsigned int assemble_type)
 					else
 						VOLUME2 = FACET->VOut;
 
-					// Check VIn and VOut
-					if (assemble_type == 2) {
-						if (VOLUME->indexg != VOLUME2->indexg)
-							continue;
-					} else if (assemble_type == 3) {
-						// Use a return value on array_find_index_ui to check for neighbour.
-						printf("Error: Not yet implemented.\n"), EXIT_MSG;
-					}
+					if (VOLUME->indexg == VOLUME2->indexg) {
+						IndA[1] = VOLUME2->IndA;
+						NvnS[1] = VOLUME2->NvnS;
+						nnz_d   = VOLUME2->nnz_d;
 
-					if (assemble_type == 0)
-						printf("Error: Not yet implemented.\n"), EXIT_MSG;
+						m  = malloc(NvnS[1]*Nvar * sizeof *m);  // free
+						n  = malloc(NvnS[1]*Nvar * sizeof *n);  // free
+						vv = malloc(NvnS[1]*Nvar * sizeof *vv); // free
+
+						if (assemble_type == 0 || assemble_type == 2) {
+							if (side == 0)
+								RHS_c = FACET->RHSIn_c;
+							else
+								RHS_c = FACET->RHSOut_c;
+
+							for (j = 0, jMax = NvnS[1]*Nvar; j < jMax; j++) {
+								m[j]  = IndA[1]+j;
+								n[j]  = IndA[0]+i;
+								vv[j] = cimag(RHS_c[j])/h;
+							}
+
+							MatSetValues(*A,nnz_d,m,1,n,vv,INSERT_VALUES);
+						}
+
+						if (assemble_type == 0 || assemble_type == 3) {
+							if (side == 0)
+								RHS_c = FACET->RHSOut_c;
+							else
+								RHS_c = FACET->RHSIn_c;
+
+							for (j = 0, jMax = NvnS[1]*Nvar; j < jMax; j++) {
+								m[j]  = IndA[1]+j;
+								n[j]  = IndA[0]+i;
+								vv[j] = cimag(RHS_c[j])/h;
+							}
+
+							MatSetValues(*A,nnz_d,m,1,n,vv,INSERT_VALUES);
+						}
+
+						free(m); free(n); free(vv);
+					}
 				}}
 			}
 			VOLUME->What_c[i] -= h*I;
@@ -188,6 +214,11 @@ void test_integration_linearization(int nargc, char **argv)
 	code_startup(nargc,argvNew,2);
 
 	implicit_VOLUME_info();
+
+implicit_FACET_info();
+finalize_LHS(&A,&b,1);
+compute_A_cs(&A_cs,&b_cs,2);
+
 	finalize_LHS(&A,&b,1);
 
 	compute_A_cs(&A_cs,&b_cs,1);

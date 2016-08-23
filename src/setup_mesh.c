@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 #include "S_DB.h"
- 
+
 #include "element_functions.h"
 #include "gmsh_reader.h"
 #include "setup_connectivity.h"

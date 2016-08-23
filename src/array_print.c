@@ -201,7 +201,7 @@ void array_print_cmplx(const unsigned int m, const unsigned int n, const double 
 				Arc = A[i*n+j];
 				Ar   = creal(Arc);
 				Ac   = cimag(Arc);
-				printf("% .3e%c%.3ei ",Ar,(Ac >= 0.0)?'+':'\0',Ac);
+				printf("% .4e%c%.4ei ",Ar,(Ac >= 0.0)?'+':'\0',Ac);
 			}
 			printf("\n");
 		}
@@ -213,7 +213,7 @@ void array_print_cmplx(const unsigned int m, const unsigned int n, const double 
 				Arc = A[i+j*m];
 				Ar   = creal(Arc);
 				Ac   = cimag(Arc);
-				printf("% .3e%c%.3ei ",Ar,(Ac >= 0.0)?'+':'\0',Ac);
+				printf("% .4e%c%.4ei ",Ar,(Ac >= 0.0)?'+':'\0',Ac);
 			}
 			printf("\n");
 		}

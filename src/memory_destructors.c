@@ -218,12 +218,23 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 
 void memory_destructor_F(struct S_FACET *FACET)
 {
+	// Geometry
 	free(FACET->XYZ_fI);
 	free(FACET->XYZ_fS);
 	free(FACET->n_fI);
 	free(FACET->n_fS);
 	free(FACET->detJF_fI);
 	free(FACET->detJF_fS);
+
+	// Solving
+	if (FACET->RHSIn)
+		free(FACET->RHSIn);
+	if (FACET->RHSOut)
+		free(FACET->RHSOut);
+
+	// Linearization testing
+	free(FACET->RHSIn_c);
+	free(FACET->RHSOut_c);
 
 	free(FACET);
 }

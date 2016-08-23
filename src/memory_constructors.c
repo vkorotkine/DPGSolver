@@ -423,8 +423,8 @@ struct S_VOLUME *New_VOLUME(void)
 	// structs
 	VOLUME->next    = NULL;
 	VOLUME->grpnext = NULL;
-	VOLUME->child0  = NULL; // tbd
-	VOLUME->parent  = NULL; // tbd
+	VOLUME->child0  = NULL; // free (in memory_free_children)
+	VOLUME->parent  = NULL; // need not be freed
 	VOLUME->FACET   = calloc(NFMAX*NSUBFMAX , sizeof *(VOLUME->FACET)); // free
 
 	return VOLUME;
@@ -464,12 +464,16 @@ struct S_FACET *New_FACET(void)
 	FACET->detJF_fS = NULL; // free
 
 	// Solving
-	FACET->RHSIn  = NULL; // tbd
-	FACET->RHSOut = NULL; // tbd
+	FACET->RHSIn  = NULL; // free
+	FACET->RHSOut = NULL; // free
+
+	// Linearization testing
+	FACET->RHSIn_c  = NULL; // free
+	FACET->RHSOut_c = NULL; // free
 
 	FACET->next   = NULL;
-	FACET->child0 = NULL; // tbd
-	FACET->parent = NULL; // tbd
+	FACET->child0 = NULL; // free (in memory_free_children)
+	FACET->parent = NULL; // need not be freed
 
 	return FACET;
 }

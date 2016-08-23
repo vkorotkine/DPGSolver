@@ -95,7 +95,8 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 	}
 
 	// Outer VOLUME
-	if (strstr(TestCase,"SupersonicVortex")) {
+	if (strstr(TestCase,"SupersonicVortex") ||
+	    strstr(TestCase,"Test_linearization")) {
 		// Use the exact solution for the Outer VOLUME
 		for (i = 0; i < NnTotal; i++) {
 			r = sqrt(X[i]*X[i]+Y[i]*Y[i]);
@@ -114,6 +115,7 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 			VnR[i] = n[Indn  ]*uR[i]+n[Indn+1]*vR[i]; // wR == 0
 		}
 	} else {
+		printf("TestCase: %s\n",TestCase);
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
 	}
 
