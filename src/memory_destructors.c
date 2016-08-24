@@ -232,6 +232,15 @@ void memory_destructor_F(struct S_FACET *FACET)
 	if (FACET->RHSOut)
 		free(FACET->RHSOut);
 
+	if (FACET->LHSInIn)
+		free(FACET->LHSInIn);
+	if (FACET->LHSOutIn)
+		free(FACET->LHSOutIn);
+	if (FACET->LHSInOut)
+		free(FACET->LHSInOut);
+	if (FACET->LHSOutOut)
+		free(FACET->LHSOutOut);
+
 	// Linearization testing
 	free(FACET->RHSIn_c);
 	free(FACET->RHSOut_c);

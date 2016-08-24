@@ -590,7 +590,7 @@ void update_VOLUME_Ops(void)
 void update_VOLUME_finalize(void)
 {
 	unsigned int NV = 0;
-	unsigned int VfIn, VfOut;
+	unsigned int VfIn, VfOut, fIn, fOut;
 
 	struct S_VOLUME *VOLUME, *VIn, *VOut;
 	struct S_FACET  *FACET;
@@ -608,9 +608,13 @@ void update_VOLUME_finalize(void)
 	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 		VIn   = FACET->VIn;
 		VfIn  = FACET->VfIn;
+		fIn   = VfIn/NFREFMAX;
 
 		VOut  = FACET->VOut;
 		VfOut = FACET->VfOut;
+		fOut  = VfOut/NFREFMAX;
+
+		FACET->Boundary = !((VIn->indexg != VOut->indexg) || (VIn->indexg == VOut->indexg && fIn != fOut));
 
 		VIn->neigh[VfIn]   = VOut->indexg;
 		VOut->neigh[VfOut] = VIn->indexg;

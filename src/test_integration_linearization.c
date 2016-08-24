@@ -40,6 +40,15 @@
 
 static void compute_A_cs(Mat *A, Vec *b, const unsigned int assemble_type)
 {
+	if (!assemble_type) {
+		compute_A_cs(A,b,1);
+		compute_A_cs(A,b,2);
+		compute_A_cs(A,b,3);
+
+		finalize_Mat(A,1);
+		return;
+	}
+
 	// Initialize DB Paramters
 	unsigned int Nvar = DB.Nvar;
 
@@ -81,7 +90,6 @@ static void compute_A_cs(Mat *A, Vec *b, const unsigned int assemble_type)
 			default: // 0
 				explicit_VOLUME_info_c();
 				explicit_FACET_info_c();
-				printf("Error: Not yet implemented.\n"), EXIT_MSG;
 				break;
 			case 1:
 				explicit_VOLUME_info_c();
@@ -89,7 +97,6 @@ static void compute_A_cs(Mat *A, Vec *b, const unsigned int assemble_type)
 			case 2:
 			case 3:
 				explicit_FACET_info_c();
-				printf("Error: Not yet implemented.\n"), EXIT_MSG;
 				break;
 			}
 
@@ -113,8 +120,7 @@ static void compute_A_cs(Mat *A, Vec *b, const unsigned int assemble_type)
 						vv[j] = cimag(RHS_c[j])/h;
 					}
 
-					MatSetValues(*A,nnz_d,m,1,n,vv,INSERT_VALUES);
-
+					MatSetValues(*A,nnz_d,m,1,n,vv,ADD_VALUES);
 					free(m); free(n); free(vv);
 				}
 			}
@@ -122,12 +128,51 @@ static void compute_A_cs(Mat *A, Vec *b, const unsigned int assemble_type)
 			if (assemble_type == 0 || assemble_type == 2 || assemble_type == 3) {
 				for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 				for (side = 0; side < 2; side++) {
-					if (side == 0)
-						VOLUME2 = FACET->VIn;
-					else
-						VOLUME2 = FACET->VOut;
+					if (assemble_type == 0 || assemble_type == 2) {
+						if (side == 0) {
+							VOLUME2 = FACET->VIn;
+							RHS_c = FACET->RHSIn_c;
+						} else {
+							if (FACET->Boundary)
+								continue;
+							VOLUME2 = FACET->VOut;
+							RHS_c = FACET->RHSOut_c;
+						}
+						if (VOLUME->indexg != VOLUME2->indexg)
+							continue;
 
-					if (VOLUME->indexg == VOLUME2->indexg) {
+						IndA[1] = VOLUME2->IndA;
+						NvnS[1] = VOLUME2->NvnS;
+						nnz_d   = VOLUME2->nnz_d;
+
+						m  = malloc(NvnS[0]*Nvar * sizeof *m);  // free
+						n  = malloc(NvnS[0]*Nvar * sizeof *n);  // free
+						vv = malloc(NvnS[0]*Nvar * sizeof *vv); // free
+
+						for (j = 0, jMax = NvnS[0]*Nvar; j < jMax; j++) {
+							m[j]  = IndA[0]+j;
+							n[j]  = IndA[0]+i;
+							vv[j] = cimag(RHS_c[j])/h;
+						}
+
+						MatSetValues(*A,nnz_d,m,1,n,vv,ADD_VALUES);
+						free(m); free(n); free(vv);
+					} else if (assemble_type == 0 || assemble_type == 3) {
+						if (FACET->Boundary)
+							continue;
+
+						if (side == 0) {
+							if (VOLUME->indexg != FACET->VIn->indexg)
+								continue;
+							VOLUME2 = FACET->VOut;
+							RHS_c = FACET->RHSOut_c;
+						} else {
+							if (VOLUME->indexg != FACET->VOut->indexg)
+								continue;
+							VOLUME2 = FACET->VIn;
+							RHS_c = FACET->RHSIn_c;
+						}
+
 						IndA[1] = VOLUME2->IndA;
 						NvnS[1] = VOLUME2->NvnS;
 						nnz_d   = VOLUME2->nnz_d;
@@ -136,36 +181,13 @@ static void compute_A_cs(Mat *A, Vec *b, const unsigned int assemble_type)
 						n  = malloc(NvnS[1]*Nvar * sizeof *n);  // free
 						vv = malloc(NvnS[1]*Nvar * sizeof *vv); // free
 
-						if (assemble_type == 0 || assemble_type == 2) {
-							if (side == 0)
-								RHS_c = FACET->RHSIn_c;
-							else
-								RHS_c = FACET->RHSOut_c;
-
-							for (j = 0, jMax = NvnS[1]*Nvar; j < jMax; j++) {
-								m[j]  = IndA[1]+j;
-								n[j]  = IndA[0]+i;
-								vv[j] = cimag(RHS_c[j])/h;
-							}
-
-							MatSetValues(*A,nnz_d,m,1,n,vv,INSERT_VALUES);
+						for (j = 0, jMax = NvnS[1]*Nvar; j < jMax; j++) {
+							m[j]  = IndA[1]+j;
+							n[j]  = IndA[0]+i;
+							vv[j] = cimag(RHS_c[j])/h;
 						}
 
-						if (assemble_type == 0 || assemble_type == 3) {
-							if (side == 0)
-								RHS_c = FACET->RHSOut_c;
-							else
-								RHS_c = FACET->RHSIn_c;
-
-							for (j = 0, jMax = NvnS[1]*Nvar; j < jMax; j++) {
-								m[j]  = IndA[1]+j;
-								n[j]  = IndA[0]+i;
-								vv[j] = cimag(RHS_c[j])/h;
-							}
-
-							MatSetValues(*A,nnz_d,m,1,n,vv,INSERT_VALUES);
-						}
-
+						MatSetValues(*A,nnz_d,m,1,n,vv,ADD_VALUES);
 						free(m); free(n); free(vv);
 					}
 				}}
@@ -173,9 +195,6 @@ static void compute_A_cs(Mat *A, Vec *b, const unsigned int assemble_type)
 			VOLUME->What_c[i] -= h*I;
 		}
 	}
-	MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY);
-	MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY);
-//	MatView(*A,PETSC_VIEWER_STDOUT_SELF);
 }
 
 void test_integration_linearization(int nargc, char **argv)
@@ -214,16 +233,26 @@ void test_integration_linearization(int nargc, char **argv)
 	code_startup(nargc,argvNew,2);
 
 	implicit_VOLUME_info();
+	implicit_FACET_info();
+//	finalize_LHS(&A,&b,1);
+//	finalize_LHS(&A,&b,2);
+//	finalize_LHS(&A,&b,3);
+//	finalize_Mat(&A,1);
 
-implicit_FACET_info();
-finalize_LHS(&A,&b,1);
-compute_A_cs(&A_cs,&b_cs,2);
+//	compute_A_cs(&A_cs,&b_cs,1);
+//	compute_A_cs(&A_cs,&b_cs,2);
+//	compute_A_cs(&A_cs,&b_cs,3);
+//	finalize_Mat(&A_cs,1);
 
-	finalize_LHS(&A,&b,1);
+//	MatView(A,PETSC_VIEWER_STDOUT_SELF);
+//	MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
+//	EXIT_MSG;
 
-	compute_A_cs(&A_cs,&b_cs,1);
+	finalize_LHS(&A,&b,0);
+	compute_A_cs(&A_cs,&b_cs,0);
 
 	pass = 0;
+printf("% .3e\n",PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf"));
 	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf") < EPS)
 		pass = 1, TestDB.Npass++;
 	//     0         10        20        30        40        50
@@ -234,6 +263,7 @@ compute_A_cs(&A_cs,&b_cs,2);
 	// Don't forget to MatDestroy b when implemented (ToBeDeleted)
 	MatDestroy(&A);    A    = NULL;
 	MatDestroy(&A_cs); A_cs = NULL;
+EXIT_MSG;
 
 	code_cleanup(0);
 

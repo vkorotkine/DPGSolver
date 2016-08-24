@@ -200,13 +200,14 @@ void setup_structures(void)
 	unsigned int i, f, v, dim, ve, gf, fh, fhMax,
 	             IndE, IndVC, IndVgrp, IndGFC, IndVIn, Indf, IndOrdInOut, IndOrdOutIn,
 	             Vs, vlocal, NTVgrp, NVlocal, NECgrp, *NVgrp, Vf, Nf,
+	             VfIn, fIn, VfOut, fOut,
 	             Nve,*Nfve, Nfn,
 				 indexg, NvnGs,
 	             uMPIrank;
 	double       *XYZ_vC, **VeF, *XYZIn_fC, *XYZOut_fC, *DXYZ;
 
 	struct S_ELEMENT *ELEMENT;
-	struct S_VOLUME  *VOLUME, **Vgrp, **Vgrp_tmp, *VIn;
+	struct S_VOLUME  *VOLUME, **Vgrp, **Vgrp_tmp, *VIn, *VOut;
 	struct S_FACET   **FACET, **FoundFACET;
 
 	// silence
@@ -379,6 +380,19 @@ void setup_structures(void)
 
 	if (!AC && IndVC > NVC)
 		printf("Error: Found too many curved VOLUMEs.\n"), exit(1);
+
+	// Flag boundary FACETs
+	for (FACET[0] = DB.FACET; FACET[0]; FACET[0] = FACET[0]->next) {
+		VIn   = FACET[0]->VIn;
+		VfIn  = FACET[0]->VfIn;
+		fIn   = VfIn/NFREFMAX;
+
+		VOut  = FACET[0]->VOut;
+		VfOut = FACET[0]->VfOut;
+		fOut  = VfOut/NFREFMAX;
+
+		FACET[0]->Boundary = !((VIn->indexg != VOut->indexg) || (VIn->indexg == VOut->indexg && fIn != fOut));
+	}
 
 	// Initialize VOLUME connectivity
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {

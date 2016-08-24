@@ -146,7 +146,7 @@ double PetscMatAIJ_norm_diff_d(const unsigned int NRows, Mat A, Mat B, const cha
 			MatGetRow(B,i,&ncols[1],&cols[1],&vals[1]);
 
 			if (ncols[0] != ncols[1])
-				printf("Error: Different number of non-zero columns in A and B.\n"), EXIT_MSG;
+				printf("Error: Different number of non-zero columns in A (%d) and B (%d).\n",ncols[0],ncols[1]), EXIT_MSG;
 
 			norm_row = array_norm_diff_d(ncols[0],vals[0],vals[1],"Inf");
 			if (norm_row > norm)

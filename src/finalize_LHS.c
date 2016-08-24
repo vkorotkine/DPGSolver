@@ -47,6 +47,7 @@ void initialize_KSP(Mat *A, Vec *b)
 	PetscInt *nnz;
 
 	nnz = malloc(dof * sizeof *nnz); // free
+printf("inKSP: %d \n",dof);
 
 	Indi = 0;
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -67,6 +68,19 @@ void initialize_KSP(Mat *A, Vec *b)
 	free(nnz);
 }
 
+void finalize_Mat(Mat *A, const unsigned int finalize_type)
+{
+	switch (finalize_type) {
+		case 1:
+			MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY);
+			MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY);
+			break;
+		default:
+			printf("Error: Unsupported finalize_type.\n"), EXIT_MSG;
+			break;
+	}
+}
+
 void finalize_LHS(Mat *A, Vec *b, const unsigned int assemble_type)
 {
 	/*
@@ -79,10 +93,12 @@ void finalize_LHS(Mat *A, Vec *b, const unsigned int assemble_type)
 	             Neq  = DB.Neq;
 
 	// Standard datatypes
-	unsigned int i, NvnS, eq, var,
-	             IndA, Indm, Indn;
+	unsigned int i, NvnS, NvnS2, eq, var, side,
+	             IndA, IndA2, Indm, Indn;
+	double       *LHS;
 
-	struct S_VOLUME *VOLUME;
+	struct S_VOLUME *VOLUME, *VOLUME2;
+	struct S_FACET  *FACET;
 
 	PetscInt    *m, *n;
 	PetscScalar *vv;
@@ -94,7 +110,19 @@ void finalize_LHS(Mat *A, Vec *b, const unsigned int assemble_type)
 
 	switch (assemble_type) {
 	default: // 0
-		printf("Error: Not yet implemented.\n"), EXIT_MSG;
+		finalize_LHS(A,b,1);
+		finalize_LHS(A,b,2);
+		finalize_LHS(A,b,3);
+
+		finalize_Mat(A,1);
+
+		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
+			free(FACET->LHSInIn);
+			free(FACET->LHSOutIn);
+			free(FACET->LHSInOut);
+			free(FACET->LHSOutOut);
+		}
+
 		break;
 	case 1: // diagonal VOLUME contributions
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -116,21 +144,96 @@ void finalize_LHS(Mat *A, Vec *b, const unsigned int assemble_type)
 
 					vv = &(VOLUME->LHS[(eq*Nvar+var)*NvnS*NvnS]);
 
-					MatSetValues(*A,NvnS,m,NvnS,n,vv,INSERT_VALUES);
+					MatSetValues(*A,NvnS,m,NvnS,n,vv,ADD_VALUES);
 				}
 			}
 			free(m); free(n);
 		}
 		break;
 	case 2: // diagonal FACET contributions
+		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
+		for (side = 0; side < 2; side++) {
+			if (side == 0) {
+				VOLUME = FACET->VIn;
+				LHS = FACET->LHSInIn;
+			} else {
+				if (FACET->Boundary)
+					continue;
+				VOLUME = FACET->VOut;
+				LHS = FACET->LHSOutOut;
+			}
+
+			IndA = VOLUME->IndA;
+			NvnS = VOLUME->NvnS;
+
+			m = malloc(NvnS * sizeof *m); // free
+			n = malloc(NvnS * sizeof *n); // free
+
+			for (eq = 0; eq < Neq; eq++) {
+				Indm = IndA + eq*NvnS;
+				for (i = 0; i < NvnS; i++)
+					m[i] = Indm+i;
+
+				for (var = 0; var < Nvar; var++) {
+					Indn = IndA + var*NvnS;
+					for (i = 0; i < NvnS; i++)
+						n[i] = Indn+i;
+
+					vv = &LHS[(eq*Nvar+var)*NvnS*NvnS];
+
+					MatSetValues(*A,NvnS,m,NvnS,n,vv,ADD_VALUES);
+				}
+			}
+			free(m); free(n);
+		}}
 		break;
 	case 3: // offdiagonal contributions
+		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
+		for (side = 0; side < 2; side++) {
+			if (FACET->Boundary)
+				continue;
+
+			if (side == 0) {
+				VOLUME  = FACET->VOut;
+				VOLUME2 = FACET->VIn;
+				LHS = FACET->LHSInOut;
+			} else {
+				VOLUME  = FACET->VIn;
+				VOLUME2 = FACET->VOut;
+				LHS = FACET->LHSOutIn;
+			}
+
+			IndA  = VOLUME->IndA;
+			IndA2 = VOLUME2->IndA;
+			NvnS  = VOLUME->NvnS;
+			NvnS2 = VOLUME2->NvnS;
+
+			m = malloc(NvnS  * sizeof *m); // free
+			n = malloc(NvnS2 * sizeof *n); // free
+
+			for (eq = 0; eq < Neq; eq++) {
+				Indm = IndA + eq*NvnS;
+				for (i = 0; i < NvnS; i++)
+					m[i] = Indm+i;
+
+				for (var = 0; var < Nvar; var++) {
+					Indn = IndA2 + var*NvnS2;
+					for (i = 0; i < NvnS2; i++)
+						n[i] = Indn+i;
+
+					vv = &LHS[(eq*Nvar+var)*NvnS*NvnS2];
+/*
+printf("%d %d %d\n",FACET->indexg,FACET->Boundary,side);
+array_print_i(1,NvnS,m,'R');
+array_print_i(1,NvnS2,n,'R');
+*/
+					MatSetValues(*A,NvnS,m,NvnS2,n,vv,ADD_VALUES);
+				}
+			}
+			free(m); free(n);
+		}}
 		break;
 	}
-
-	MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY);
-	MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY);
-//	MatView(*A,PETSC_VIEWER_STDOUT_SELF);
 }
 
 void compute_dof(void)

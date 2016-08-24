@@ -467,6 +467,11 @@ struct S_FACET *New_FACET(void)
 	FACET->RHSIn  = NULL; // free
 	FACET->RHSOut = NULL; // free
 
+	FACET->LHSInIn   = NULL; // free
+	FACET->LHSOutIn  = NULL; // free
+	FACET->LHSInOut  = NULL; // free
+	FACET->LHSOutOut = NULL; // free
+
 	// Linearization testing
 	FACET->RHSIn_c  = NULL; // free
 	FACET->RHSOut_c = NULL; // free

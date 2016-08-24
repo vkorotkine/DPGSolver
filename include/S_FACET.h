@@ -15,7 +15,8 @@ struct S_FACET {
 	double       *XYZ_fI, *XYZ_fS, *n_fI, *n_fS, *detJF_fI, *detJF_fS;
 
 	// Solving
-	double *RHSIn, *RHSOut;
+	unsigned int Boundary;
+	double       *RHSIn, *RHSOut, *LHSInIn, *LHSOutIn, *LHSInOut, *LHSOutOut;
 
 	// Linearization testing
 	double complex *RHSIn_c, *RHSOut_c;

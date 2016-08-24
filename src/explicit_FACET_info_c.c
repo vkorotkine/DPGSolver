@@ -182,7 +182,7 @@ static void compute_FACET_RHS_EFE(void)
 	             InviscidFluxType = DB.InviscidFluxType;
 
 	// Standard datatypes
-	unsigned int   i, j, iInd,
+	unsigned int   i, j, iInd, iMax,
 	               VfIn, VfOut, fIn, fOut, EclassIn, IndFType, Boundary, BC, BC_trail,
 	               RowInd, RowSub, ReOrder, *RowTracker,
 	               NfnI, NvnSIn, NvnSOut, *nOrdOutIn, *nOrdInOut;
@@ -283,9 +283,6 @@ static void compute_FACET_RHS_EFE(void)
 			printf("Error: Unsupported InviscidFluxType used in explicit_FACET_info.\n"), exit(1);
 			break;
 		}
-printf("expF: %d %d\n",FACET->indexg,Boundary);
-array_print_cmplx(NfnI,Neq,nFluxNum_fI,'C');
-EXIT_MSG;
 
 		// Multiply n dot FNum by the area element
 		for (i = 0; i < Neq; i++) {
@@ -314,11 +311,8 @@ EXIT_MSG;
 			// Exterior FACET
 			if (!Boundary) {
 				// Use -ve normal for opposite FACET
-				for (i = 0; i < Neq; i++) {
-					iInd = i*NfnI;
-					for (j = 0; j < NfnI; j++)
-						nFluxNum_fI[iInd+j] *= -1.0;
-				}
+				for (i = 0, iMax = Neq*NfnI; i < iMax; i++)
+					nFluxNum_fI[i] *= -1.0;
 
 				// Re-arrange nFluxNum to match node ordering from opposite VOLUME
 				for (i = 0; i < NfnI; i++)

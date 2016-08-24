@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
@@ -280,6 +281,9 @@ static void compute_FACET_RHS_EFE(void)
 		BC = FACET->BC;
 		Boundary = !((VIn->indexg != VOut->indexg) || (VIn->indexg == VOut->indexg && fIn != fOut));
 		// The second condition is for periodic elements which are connected to themselves
+		if (Boundary != FACET->Boundary)
+			printf("Error: Incorrect Boundary flag.\n"), EXIT_MSG;
+		// ToBeDeleted: Replace with Boundary = FACET->Boundary
 
 		// Compute WIn_fI
 		NfnI   = OPSIn[IndFType]->NfnI;
@@ -288,7 +292,7 @@ static void compute_FACET_RHS_EFE(void)
 		WIn_fI = malloc(NfnI*Nvar * sizeof *WIn_fI); // free
 		if (EclassIn == C_TP && SF_BE[P][0][1]) {
 			get_sf_parametersF(OPSIn[0]->NvnS_SF,OPSIn[0]->NvnI_SF,OPSIn[0]->ChiS_vI,
-							   OPSIn[0]->NvnS_SF,OPSIn[0]->NfnI_SF,OPSIn[0]->ChiS_fI,NIn,NOut,OP,d,VfIn,C_TP);
+			                   OPSIn[0]->NvnS_SF,OPSIn[0]->NfnI_SF,OPSIn[0]->ChiS_fI,NIn,NOut,OP,d,VfIn,C_TP);
 
 			if (SpOpIn) {
 				for (dim = 0; dim < d; dim++)
@@ -339,7 +343,7 @@ static void compute_FACET_RHS_EFE(void)
 		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACET
 			if (EclassOut == C_TP && SF_BE[P][0][1]) {
 				get_sf_parametersF(OPSOut[0]->NvnS_SF,OPSOut[0]->NvnI_SF,OPSOut[0]->ChiS_vI,
-								   OPSOut[0]->NvnS_SF,OPSOut[0]->NfnI_SF,OPSOut[0]->ChiS_fI,NIn,NOut,OP,d,VfOut,C_TP);
+				                   OPSOut[0]->NvnS_SF,OPSOut[0]->NfnI_SF,OPSOut[0]->ChiS_fI,NIn,NOut,OP,d,VfOut,C_TP);
 
 // Note: Needs modification for h-adaptation (ToBeDeleted)
 				if (SpOpOut) {
@@ -465,7 +469,7 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 			// Interior FACET
 			if (EclassIn == C_TP && SF_BE[P][0][1]) {
 				get_sf_parametersF(OPSIn[0]->NvnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_VV,
-								   OPSIn[0]->NfnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_FF,NIn,NOut,OP,d,VfIn,C_TP);
+				                   OPSIn[0]->NfnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_FF,NIn,NOut,OP,d,VfIn,C_TP);
 
 				if (SpOpIn) {
 					for (dim = 0; dim < d; dim++)
@@ -479,9 +483,9 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 				sf_apply_d(nFluxNum_fI,RHSIn,NIn,NOut,Neq,OP,Diag,d);
 			} else if (EclassIn == C_WEDGE && SF_BE[P][1][1]) {
 				if (fIn < 3) { OPF0 = OPSIn[0]->I_Weak_FF, OPF1 = OPSIn[1]->I_Weak_VV;
-							   NIn0 = OPSIn[0]->NfnI_SF,   NIn1 = OPSIn[1]->NvnI_SF;
+				               NIn0 = OPSIn[0]->NfnI_SF,   NIn1 = OPSIn[1]->NvnI_SF;
 				} else {       OPF0 = OPSIn[0]->I_Weak_VV, OPF1 = OPSIn[1]->I_Weak_FF;
-							   NIn0 = OPSIn[0]->NvnI_SF,   NIn1 = OPSIn[1]->NfnI_SF; }
+				               NIn0 = OPSIn[0]->NvnI_SF,   NIn1 = OPSIn[1]->NfnI_SF; }
 				get_sf_parametersF(NIn0,OPSIn[0]->NvnS_SF,OPF0,NIn1,OPSIn[1]->NvnS_SF,OPF1,NIn,NOut,OP,d,VfIn,C_WEDGE);
 
 				if (SpOpIn) {
@@ -535,7 +539,7 @@ if (FACET->indexg == 240) {
 
 				if (EclassOut == C_TP && SF_BE[P][0][1]) {
 					get_sf_parametersF(OPSOut[0]->NvnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_VV,
-									   OPSOut[0]->NfnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_FF,NIn,NOut,OP,d,VfOut,C_TP);
+					                   OPSOut[0]->NfnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_FF,NIn,NOut,OP,d,VfOut,C_TP);
 
 					if (SpOpOut) {
 						for (dim = 0; dim < d; dim++)

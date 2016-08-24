@@ -32,6 +32,7 @@
  *
  *	Comments:
  *		Check for relevant comments in implicit_VOLUME_info.
+ *		After profiling, decide whether it would be important to include the sparse operators here. (ToBeDeleted)
  *
  *	Notation:
  *
@@ -196,15 +197,16 @@ static void compute_FACET_EFE(void)
 	             ***SF_BE         = DB.SF_BE;
 
 	// Standard datatypes
-	unsigned int i, j, n, iInd, dim, P, eq, var,
-	             InddnFdWIn, InddnFdWOut, InddWOutdWIn,
+	unsigned int i, j, n, iInd, dim, P, eq, var, iMax,
+	             InddnFdWIn, InddnFdWOut, InddWOutdWIn, IndnF, IndI, Indeqvar, IndLHS,
 	             VfIn, VfOut, fIn, fOut, EclassIn, EclassOut, IndFType, Boundary, BC, BC_trail, SpOpIn, SpOpOut,
 	             RowInd, RowSub, ReOrder, *RowTracker,
 	             NfnI, NvnSIn, NvnSOut, *nOrdOutIn, *nOrdInOut,
 	             NIn[3], NOut[3], Diag[3], NOut0, NOut1, NIn0, NIn1;
 	double       *WIn_fI, *WOut_fI, *WOut_fIIn,
 	             *nFluxNum_fI, *dnFluxNumdWIn_fI, *dnFluxNumdWOut_fI, *dWOutdWIn,
-	             *RHSIn, *RHSOut, *n_fI, *detJF_fI,
+	             *RHSIn, *RHSOut, *LHSInIn, *LHSOutIn, *LHSInOut, *LHSOutOut, *n_fI, *detJF_fI, *I_FF, *IdnFdW,
+	             *ChiS_fI, *ChiS_fIOutIn, *ChiS_fIInOut,
 	             *OP[3], **OPF0, **OPF1;
 
 	struct S_OPERATORS *OPSIn[2], *OPSOut[2];
@@ -249,6 +251,9 @@ static void compute_FACET_EFE(void)
 		BC = FACET->BC;
 		Boundary = !((VIn->indexg != VOut->indexg) || (VIn->indexg == VOut->indexg && fIn != fOut));
 		// The second condition is for periodic elements which are connected to themselves
+		if (Boundary != FACET->Boundary)
+			printf("Error: Incorrect Boundary flag.\n"), EXIT_MSG;
+		// ToBeDeleted: Replace with Boundary = FACET->Boundary
 
 		// Compute WIn_fI
 		NfnI   = OPSIn[IndFType]->NfnI;
@@ -257,7 +262,7 @@ static void compute_FACET_EFE(void)
 		WIn_fI = malloc(NfnI*Nvar * sizeof *WIn_fI); // free
 		if (EclassIn == C_TP && SF_BE[P][0][1]) {
 			get_sf_parametersF(OPSIn[0]->NvnS_SF,OPSIn[0]->NvnI_SF,OPSIn[0]->ChiS_vI,
-							   OPSIn[0]->NvnS_SF,OPSIn[0]->NfnI_SF,OPSIn[0]->ChiS_fI,NIn,NOut,OP,d,VfIn,C_TP);
+			                   OPSIn[0]->NvnS_SF,OPSIn[0]->NfnI_SF,OPSIn[0]->ChiS_fI,NIn,NOut,OP,d,VfIn,C_TP);
 
 			if (SpOpIn) {
 				for (dim = 0; dim < d; dim++)
@@ -308,9 +313,8 @@ static void compute_FACET_EFE(void)
 		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACET
 			if (EclassOut == C_TP && SF_BE[P][0][1]) {
 				get_sf_parametersF(OPSOut[0]->NvnS_SF,OPSOut[0]->NvnI_SF,OPSOut[0]->ChiS_vI,
-								   OPSOut[0]->NvnS_SF,OPSOut[0]->NfnI_SF,OPSOut[0]->ChiS_fI,NIn,NOut,OP,d,VfOut,C_TP);
+				                   OPSOut[0]->NvnS_SF,OPSOut[0]->NfnI_SF,OPSOut[0]->ChiS_fI,NIn,NOut,OP,d,VfOut,C_TP);
 
-// Note: Needs modification for h-adaptation (ToBeDeleted)
 				if (SpOpOut) {
 					for (dim = 0; dim < d; dim++)
 						Diag[dim] = 2;
@@ -370,7 +374,7 @@ static void compute_FACET_EFE(void)
 			}
 		}
 
-		// Compute numerical flux and its jacobian
+		// Compute numerical flux and its Jacobian
 		nFluxNum_fI       = malloc(NfnI*Neq      * sizeof *nFluxNum_fI);       // free
 		dnFluxNumdWIn_fI  = malloc(NfnI*Neq*Nvar * sizeof *dnFluxNumdWIn_fI);  // free
 		dnFluxNumdWOut_fI = malloc(NfnI*Neq*Nvar * sizeof *dnFluxNumdWOut_fI); // free
@@ -405,7 +409,7 @@ static void compute_FACET_EFE(void)
 
 			for (eq = 0; eq < Neq; eq++) {
 			for (var = 0; var < Nvar; var++) {
-				InddnFdWIn = (eq*Neq+var)*NfnI;
+				InddnFdWIn = (eq*Nvar+var)*NfnI;
 
 				for (i = 0; i < Nvar; i++) {
 					InddnFdWOut  = (eq*Neq+i)*NfnI;
@@ -417,33 +421,46 @@ static void compute_FACET_EFE(void)
 
 			free(dWOutdWIn);
 		}
-if (FACET->indexg == 0) {
-printf("impF: %d %d\n",FACET->indexg,Boundary);
-array_print_d(NfnI,Neq,nFluxNum_fI,'C');
-array_print_d(NfnI*Neq,Neq,dnFluxNumdWIn_fI,'C');
-}
-continue here.
 
-		// Multiply n dot FNum by the area element
-		for (i = 0; i < Neq; i++) {
-			iInd = i*NfnI;
-			for (j = 0; j < NfnI; j++)
-				nFluxNum_fI[iInd+j] *= detJF_fI[j];
+		// Multiply nFNum and its Jacobian by the area element
+		for (eq = 0; eq < Neq; eq++) {
+			IndnF = eq*NfnI;
+			for (n = 0; n < NfnI; n++)
+				nFluxNum_fI[IndnF+n] *= detJF_fI[n];
+
+			for (var = 0; var < Nvar; var++) {
+				InddnFdWIn = (eq*Nvar+var)*NfnI;
+				for (n = 0; n < NfnI; n++) {
+					dnFluxNumdWIn_fI[InddnFdWIn+n]  *= detJF_fI[n];
+					dnFluxNumdWOut_fI[InddnFdWIn+n] *= detJF_fI[n];
+				}
+			}
 		}
 
-		// Compute FACET RHS terms
-		RHSIn  = calloc(NvnSIn*Neq  , sizeof *RHSIn);  // keep (requires external free)
-		RHSOut = calloc(NvnSOut*Neq , sizeof *RHSOut); // keep (requires external free)
-		FACET->RHSIn  = RHSIn;
-		FACET->RHSOut = RHSOut;
+		// Compute FACET RHS and LHS terms
+		RHSIn     = calloc(NvnSIn*Neq               , sizeof *RHSIn);     // keep (requires external free)
+		RHSOut    = calloc(NvnSOut*Neq              , sizeof *RHSOut);    // keep (requires external free)
+		LHSInIn   = calloc(NvnSIn*NvnSIn*Neq*Nvar   , sizeof *LHSInIn);   // keep (requires external free)
+		LHSOutIn  = calloc(NvnSIn*NvnSOut*Neq*Nvar  , sizeof *LHSOutIn);  // keep (requires external free)
+		LHSInOut  = calloc(NvnSOut*NvnSIn*Neq*Nvar  , sizeof *LHSInOut);  // keep (requires external free)
+		LHSOutOut = calloc(NvnSOut*NvnSOut*Neq*Nvar , sizeof *LHSOutOut); // keep (requires external free)
+
+		FACET->RHSIn     = RHSIn;
+		FACET->RHSOut    = RHSOut;
+		FACET->LHSInIn   = LHSInIn;
+		FACET->LHSOutIn  = LHSOutIn;
+		FACET->LHSInOut  = LHSInOut;
+		FACET->LHSOutOut = LHSOutOut;
 
 		RowTracker = malloc(NfnI * sizeof *RowTracker); // free
 
 		if (strstr(Form,"Weak")) {
 			// Interior FACET
+
+			// RHS
 			if (EclassIn == C_TP && SF_BE[P][0][1]) {
 				get_sf_parametersF(OPSIn[0]->NvnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_VV,
-								   OPSIn[0]->NfnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_FF,NIn,NOut,OP,d,VfIn,C_TP);
+				                   OPSIn[0]->NfnI_SF,OPSIn[0]->NvnS_SF,OPSIn[0]->I_Weak_FF,NIn,NOut,OP,d,VfIn,C_TP);
 
 				if (SpOpIn) {
 					for (dim = 0; dim < d; dim++)
@@ -457,9 +474,9 @@ continue here.
 				sf_apply_d(nFluxNum_fI,RHSIn,NIn,NOut,Neq,OP,Diag,d);
 			} else if (EclassIn == C_WEDGE && SF_BE[P][1][1]) {
 				if (fIn < 3) { OPF0 = OPSIn[0]->I_Weak_FF, OPF1 = OPSIn[1]->I_Weak_VV;
-							   NIn0 = OPSIn[0]->NfnI_SF,   NIn1 = OPSIn[1]->NvnI_SF;
+				               NIn0 = OPSIn[0]->NfnI_SF,   NIn1 = OPSIn[1]->NvnI_SF;
 				} else {       OPF0 = OPSIn[0]->I_Weak_VV, OPF1 = OPSIn[1]->I_Weak_FF;
-							   NIn0 = OPSIn[0]->NvnI_SF,   NIn1 = OPSIn[1]->NfnI_SF; }
+				               NIn0 = OPSIn[0]->NvnI_SF,   NIn1 = OPSIn[1]->NfnI_SF; }
 				get_sf_parametersF(NIn0,OPSIn[0]->NvnS_SF,OPF0,NIn1,OPSIn[1]->NvnS_SF,OPF1,NIn,NOut,OP,d,VfIn,C_WEDGE);
 
 				if (SpOpIn) {
@@ -482,14 +499,36 @@ continue here.
 				mm_CTN_d(NvnSIn,Neq,NfnI,OPSIn[0]->I_Weak_FF[VfIn],nFluxNum_fI,RHSIn);
 			}
 
+			// LHS
+//			if ((SpOpIn && (EclassIn == C_TP || EclassIn == C_WEDGE)) || (VFPartUnity[EclassIn])) {
+//			} else  {
+				I_FF = OPSIn[0]->I_Weak_FF[VfIn];
+				IdnFdW = malloc(NvnSIn*NfnI * sizeof *IdnFdW); // free
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					Indeqvar = eq*Nvar+var;
+
+					InddnFdWIn = Indeqvar*NfnI;
+					for (i = 0; i < NvnSIn; i++) {
+						IndI = i*NfnI;
+						for (j = 0; j < NfnI; j++)
+							IdnFdW[IndI+j] = I_FF[IndI+j]*dnFluxNumdWIn_fI[InddnFdWIn+j];
+					}
+
+					IndLHS = Indeqvar*NvnSIn*NvnSIn;
+					mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSIn,NfnI,1.0,IdnFdW,OPSIn[0]->ChiS_fI[VfIn],&LHSInIn[IndLHS]);
+				}}
+
+				free(IdnFdW);
+//			}
+
 			// Exterior FACET
 			if (!Boundary) {
+				// RHS
+
 				// Use -ve normal for opposite FACET
-				for (i = 0; i < Neq; i++) {
-					iInd = i*NfnI;
-					for (j = 0; j < NfnI; j++)
-						nFluxNum_fI[iInd+j] *= -1.0;
-				}
+				for (i = 0, iMax = Neq*NfnI; i < iMax; i++)
+					nFluxNum_fI[i] *= -1.0;
 
 				// Re-arrange nFluxNum to match node ordering from opposite VOLUME
 				for (i = 0; i < NfnI; i++)
@@ -508,7 +547,7 @@ continue here.
 
 				if (EclassOut == C_TP && SF_BE[P][0][1]) {
 					get_sf_parametersF(OPSOut[0]->NvnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_VV,
-									   OPSOut[0]->NfnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_FF,NIn,NOut,OP,d,VfOut,C_TP);
+					                   OPSOut[0]->NfnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_FF,NIn,NOut,OP,d,VfOut,C_TP);
 
 					if (SpOpOut) {
 						for (dim = 0; dim < d; dim++)
@@ -546,6 +585,111 @@ continue here.
 				} else {
 					mm_CTN_d(NvnSOut,Neq,NfnI,OPSOut[0]->I_Weak_FF[VfOut],nFluxNum_fI,RHSOut);
 				}
+
+				// LHS
+
+				// OutIn (Effect of Out on In)
+				IdnFdW       = malloc(NvnSIn*NfnI  * sizeof *IdnFdW);       // free
+				ChiS_fIOutIn = malloc(NvnSOut*NfnI * sizeof *ChiS_fIOutIn); // free
+
+				I_FF = OPSIn[0]->I_Weak_FF[VfIn];
+
+				ChiS_fI = OPSOut[0]->ChiS_fI[VfOut];
+				for (i = 0; i < NfnI; i++) {
+				for (j = 0; j < NvnSOut; j++) {
+					ChiS_fIOutIn[i*NvnSOut+j] = ChiS_fI[nOrdOutIn[i]*NvnSOut+j];
+				}}
+
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					Indeqvar = eq*Nvar+var;
+
+					InddnFdWOut = Indeqvar*NfnI;
+					for (i = 0; i < NvnSIn; i++) {
+						IndI = i*NfnI;
+						for (j = 0; j < NfnI; j++)
+							IdnFdW[IndI+j] = I_FF[IndI+j]*dnFluxNumdWOut_fI[InddnFdWOut+j];
+					}
+
+					IndLHS = Indeqvar*NvnSIn*NvnSOut;
+					mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSOut,NfnI,1.0,IdnFdW,ChiS_fIOutIn,&LHSOutIn[IndLHS]);
+				}}
+
+				free(ChiS_fIOutIn);
+				free(IdnFdW);
+
+
+				// Use -ve normal for opposite FACET
+				for (i = 0, iMax = Neq*Nvar*NfnI; i < iMax; i++) {
+					dnFluxNumdWIn_fI[i] *= -1.0;
+					dnFluxNumdWOut_fI[i] *= -1.0;
+				}
+
+				// Re-arrange dnFluxNumdWIn/Out to match node ordering from opposite VOLUME
+				for (i = 0; i < NfnI; i++)
+					RowTracker[i] = i;
+
+				for (RowInd = 0; RowInd < NfnI; RowInd++) {
+					ReOrder = nOrdInOut[RowInd];
+					for (RowSub = ReOrder; RowTracker[RowSub] != ReOrder; RowSub = RowTracker[RowSub])
+						;
+
+					if (RowInd != RowSub) {
+						array_swap_d(&dnFluxNumdWIn_fI[RowInd], &dnFluxNumdWIn_fI[RowSub], Neq*Nvar,NfnI);
+						array_swap_d(&dnFluxNumdWOut_fI[RowInd],&dnFluxNumdWOut_fI[RowSub],Neq*Nvar,NfnI);
+						array_swap_ui(&RowTracker[RowInd],&RowTracker[RowSub],1,1);
+					}
+				}
+
+				I_FF = OPSOut[0]->I_Weak_FF[VfOut];
+
+				// InOut (Effect of In on Out)
+				IdnFdW       = malloc(NvnSOut*NfnI * sizeof *IdnFdW);       // free
+				ChiS_fIInOut = malloc(NvnSIn*NfnI  * sizeof *ChiS_fIInOut); // free
+
+				ChiS_fI = OPSIn[0]->ChiS_fI[VfIn];
+				for (i = 0; i < NfnI; i++) {
+				for (j = 0; j < NvnSIn; j++) {
+					ChiS_fIInOut[i*NvnSIn+j] = ChiS_fI[nOrdInOut[i]*NvnSIn+j];
+				}}
+
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					Indeqvar = eq*Nvar+var;
+
+					InddnFdWIn  = Indeqvar*NfnI;
+					for (i = 0; i < NvnSOut; i++) {
+						IndI = i*NfnI;
+						for (j = 0; j < NfnI; j++)
+							IdnFdW[IndI+j] = I_FF[IndI+j]*dnFluxNumdWIn_fI[InddnFdWIn+j];
+					}
+
+					IndLHS = Indeqvar*NvnSOut*NvnSIn;
+					mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSIn,NfnI,1.0,IdnFdW,ChiS_fIInOut,&LHSInOut[IndLHS]);
+				}}
+
+				free(ChiS_fIInOut);
+				free(IdnFdW);
+
+				// OutOut
+				IdnFdW       = malloc(NvnSOut*NfnI * sizeof *IdnFdW);       // free
+
+				for (eq = 0; eq < Neq; eq++) {
+				for (var = 0; var < Nvar; var++) {
+					Indeqvar = eq*Nvar+var;
+
+					InddnFdWOut = Indeqvar*NfnI;
+					for (i = 0; i < NvnSOut; i++) {
+						IndI = i*NfnI;
+						for (j = 0; j < NfnI; j++)
+							IdnFdW[IndI+j] = I_FF[IndI+j]*dnFluxNumdWOut_fI[InddnFdWOut+j];
+					}
+
+					IndLHS = (eq*Nvar+var)*NvnSOut*NvnSOut;
+					mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NfnI,1.0,IdnFdW,OPSOut[0]->ChiS_fI[VfOut],&LHSOutOut[IndLHS]);
+				}}
+
+				free(IdnFdW);
 			}
 		} else if (strstr(Form,"Strong")) {
 			printf("Exiting: Implement the strong form in compute_FACET_EFE.\n"), exit(1);

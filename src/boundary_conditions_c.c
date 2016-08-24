@@ -10,6 +10,7 @@
 #include <complex.h>
 
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
 #include "Test.h"
 
@@ -95,7 +96,8 @@ void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, double *X
 	}
 
 	// Outer VOLUME
-	if (strstr(TestCase,"SupersonicVortex")) {
+	if (strstr(TestCase,"SupersonicVortex") ||
+	    strstr(TestCase,"Test_linearization")) {
 		// Use the exact solution for the Outer VOLUME
 		for (i = 0; i < NnTotal; i++) {
 			r = sqrt(X[i]*X[i]+Y[i]*Y[i]);
@@ -114,7 +116,7 @@ void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, double *X
 			VnR[i] = n[Indn  ]*uR[i]+n[Indn+1]*vR[i]; // wR == 0
 		}
 	} else {
-		printf("Error: Unsupported TestCase in boundary_Riemann.\n"), exit(1);
+		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
 	}
 
 	for (i = 0; i < NnTotal; i++) {

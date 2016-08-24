@@ -265,11 +265,12 @@ EXIT_MSG;
 			} else {
 				D = OPS[0]->D_Weak;
 
+				DdFrdW = malloc(NvnS*NvnI * sizeof *DdFrdW); // free
 				for (eq = 0; eq < Neq; eq++) {
 				for (var = 0; var < Nvar; var++) {
 					Indeqvar = (eq*Nvar+var)*d;
 
-					DdFrdW = calloc(NvnS*NvnI , sizeof *DdFrdW); // free
+					memset(DdFrdW, 0.0, NvnS*NvnI * sizeof *DdFrdW);
 					for (dim1 = 0; dim1 < d; dim1++) {
 						Ddim = D[dim1];
 //array_print_d(OPS[0]->NvnS,NvnI,Ddim,'R');
@@ -290,8 +291,8 @@ EXIT_MSG;
 					} else {
 						mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,DdFrdW,OPS[0]->ChiS_vI,&LHS[IndLHS]);
 					}
-					free(DdFrdW);
 				}}
+				free(DdFrdW);
 			}
 			free(dFrdW_vI);
 /*
