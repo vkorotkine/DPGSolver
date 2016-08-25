@@ -48,13 +48,12 @@
  *	References:
  */
 
-static void compute_A_cs(Mat *A, Vec *b, const unsigned int assemble_type)
+static void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 {
-// Remove all occurences of assemble_type == 0 below (ToBeDeleted)
 	if (!assemble_type) {
-		compute_A_cs(A,b,1);
-		compute_A_cs(A,b,2);
-		compute_A_cs(A,b,3);
+		compute_A_cs(A,b,x,1);
+		compute_A_cs(A,b,x,2);
+		compute_A_cs(A,b,x,3);
 
 		finalize_Mat(A,1);
 		return;
@@ -77,7 +76,7 @@ static void compute_A_cs(Mat *A, Vec *b, const unsigned int assemble_type)
 	h = EPS*EPS;
 
 	if (*A == NULL)
-		initialize_KSP(A,b);
+		initialize_KSP(A,b,x);
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		NvnS[0] = VOLUME->NvnS;
@@ -111,7 +110,7 @@ static void compute_A_cs(Mat *A, Vec *b, const unsigned int assemble_type)
 				break;
 			}
 
-			if (assemble_type == 0 || assemble_type == 1) {
+			if (assemble_type == 1) {
 				for (VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
 					if (VOLUME->indexg != VOLUME2->indexg)
 						continue;
@@ -136,10 +135,10 @@ static void compute_A_cs(Mat *A, Vec *b, const unsigned int assemble_type)
 				}
 			}
 
-			if (assemble_type == 0 || assemble_type == 2 || assemble_type == 3) {
+			if (assemble_type == 2 || assemble_type == 3) {
 				for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 				for (side = 0; side < 2; side++) {
-					if (assemble_type == 0 || assemble_type == 2) {
+					if (assemble_type == 2) {
 						if (side == 0) {
 							VOLUME2 = FACET->VIn;
 							RHS_c = FACET->RHSIn_c;
@@ -168,7 +167,7 @@ static void compute_A_cs(Mat *A, Vec *b, const unsigned int assemble_type)
 
 						MatSetValues(*A,nnz_d,m,1,n,vv,ADD_VALUES);
 						free(m); free(n); free(vv);
-					} else if (assemble_type == 0 || assemble_type == 3) {
+					} else if (assemble_type == 3) {
 						if (FACET->Boundary)
 							continue;
 
@@ -270,7 +269,7 @@ static void flag_nonzero_LHS(unsigned int *A)
 	}
 }
 
-static void compute_A_cs_complete(Mat *A, Vec *b)
+static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 {
 	// Initialize DB Parameters
 	unsigned int Nvar = DB.Nvar,
@@ -292,7 +291,7 @@ static void compute_A_cs_complete(Mat *A, Vec *b)
 
 	if (*A == NULL) {
 		flag_nonzero_LHS(A_nz);
-		initialize_KSP(A,b);
+		initialize_KSP(A,b,x);
 	}
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -358,7 +357,8 @@ void test_integration_linearization(int nargc, char **argv)
 	 */
 
 	Mat A = NULL, A_cs = NULL, A_csc = NULL;
-	Vec b = NULL, b_cs = NULL, b_csc = NULL;
+	Vec b = NULL, b_cs = NULL, b_csc = NULL,
+	    x = NULL, x_cs = NULL, x_csc = NULL;
 
 	// **************************************************************************************************** //
 	// LINEs
@@ -377,18 +377,18 @@ void test_integration_linearization(int nargc, char **argv)
 //	finalize_LHS(&A,&b,3);
 //	finalize_Mat(&A,1);
 
-//	compute_A_cs(&A_cs,&b_cs,1);
-//	compute_A_cs(&A_cs,&b_cs,2);
-//	compute_A_cs(&A_cs,&b_cs,3);
+//	compute_A_cs(&A_cs,&b_cs,&x_cs,1);
+//	compute_A_cs(&A_cs,&b_cs,&x_cs,2);
+//	compute_A_cs(&A_cs,&b_cs,&x_cs,3);
 //	finalize_Mat(&A_cs,1);
 
 //	MatView(A,PETSC_VIEWER_STDOUT_SELF);
 //	MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
 //	EXIT_MSG;
 
-	finalize_LHS(&A,&b,0);
-	compute_A_cs(&A_cs,&b_cs,0);
-	compute_A_cs_complete(&A_csc,&b_csc);
+	finalize_LHS(&A,&b,&x,0);
+	compute_A_cs(&A_cs,&b_cs,&x_cs,0);
+	compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
 
 //	MatView(A_csc,PETSC_VIEWER_STDOUT_SELF);
 
@@ -403,14 +403,12 @@ void test_integration_linearization(int nargc, char **argv)
 
 
 	// Don't forget to MatDestroy b when implemented (ToBeDeleted)
-	MatDestroy(&A);     A    = NULL;
-	MatDestroy(&A_cs);  A_cs = NULL;
-	MatDestroy(&A_csc); A_cs = NULL;
-EXIT_MSG;
+	finalize_ksp(&A,&b,&x,2);
+	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
+	finalize_ksp(&A_csc,&b_csc,&x_csc,2);
 
 	code_cleanup(0);
 
-
-
+// last code_cleanup should take an argument of 1 (ToBeModified)
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 }

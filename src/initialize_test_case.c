@@ -22,6 +22,7 @@
 #include "adaptation.h"
 #include "compute_errors.h"
 #include "array_print.h"
+#include "output_to_paraview.h"
 
 /*
  *	Purpose:

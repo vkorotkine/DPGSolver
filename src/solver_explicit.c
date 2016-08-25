@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <math.h> // ToBeModified
 #include <string.h>
- 
+
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
@@ -22,7 +22,9 @@
 
 /*
  *	Purpose:
- *		Perform time-stepping using a low storage 4th order (R)unge-(K)utta scheme.
+ *		Perform explicit time-stepping using:
+ *			1) a 3rd order (S)trong (S)tability (P)reserving (R)unge-(K)utta scheme.
+ *			2) a low storage 4th order RK scheme.
  *
  *	Comments:
  *		rk4c is only needed if there is a time-dependent term in the residual (e.g. a time-dependent source term).
@@ -67,6 +69,7 @@ void solver_explicit(void)
 // Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).  (ToBeDeleted)
 	if (!Adapt) {
 		dt = pow(0.5,DB.ML+DB.PGlobal+1);
+		dt *= 1e-1;
 	} else {
 		if (Adapt == ADAPT_P)
 			dt = pow(0.5,DB.ML+DB.PMax+1);

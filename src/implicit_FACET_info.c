@@ -213,11 +213,6 @@ static void compute_FACET_EFE(void)
 	struct S_VOLUME    *VIn, *VOut;
 	struct S_FACET     *FACET;
 
-	// silence
-	WOut_fI   = NULL;
-	WOut_fIIn = NULL;
-	NvnSOut   = 0;
-
 	for (i = 0; i < 2; i++) {
 		OPSIn[i]  = malloc(sizeof *OPSIn[i]);  // free
 		OPSOut[i] = malloc(sizeof *OPSOut[i]); // free
@@ -308,9 +303,9 @@ static void compute_FACET_EFE(void)
 		nOrdOutIn = OPSIn[IndFType]->nOrdOutIn;
 
 		NvnSOut = OPSOut[0]->NvnS;
-		WOut_fI = malloc(NfnI*Nvar * sizeof *WOut_fI); // free
 		WOut_fIIn = malloc(NfnI*Nvar * sizeof *WOut_fIIn); // free
 		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACET
+			WOut_fI = malloc(NfnI*Nvar * sizeof *WOut_fI); // free
 			if (EclassOut == C_TP && SF_BE[P][0][1]) {
 				get_sf_parametersF(OPSOut[0]->NvnS_SF,OPSOut[0]->NvnI_SF,OPSOut[0]->ChiS_vI,
 				                   OPSOut[0]->NvnS_SF,OPSOut[0]->NfnI_SF,OPSOut[0]->ChiS_fI,NIn,NOut,OP,d,VfOut,C_TP);

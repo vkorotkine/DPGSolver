@@ -218,6 +218,12 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 
 void memory_destructor_F(struct S_FACET *FACET)
 {
+	/*
+	 *	Comments:
+	 *		LHS** terms are not necessarily freed while testing functions as finalize_LHS need not be called in all
+	 *		cases.
+	 */
+
 	// Geometry
 	free(FACET->XYZ_fI);
 	free(FACET->XYZ_fS);
@@ -227,11 +233,6 @@ void memory_destructor_F(struct S_FACET *FACET)
 	free(FACET->detJF_fS);
 
 	// Solving
-	if (FACET->RHSIn)
-		free(FACET->RHSIn);
-	if (FACET->RHSOut)
-		free(FACET->RHSOut);
-
 	if (FACET->LHSInIn)
 		free(FACET->LHSInIn);
 	if (FACET->LHSOutIn)

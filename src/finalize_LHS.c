@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "petscvec.h"
 #include "petscmat.h"
 
 #include "Macros.h"
@@ -13,7 +14,7 @@
 #include "S_VOLUME.h"
 #include "S_FACET.h"
 
-#include "array_print.h"
+#include "finalize_RHS.h"
 
 /*
  *	Purpose:
@@ -26,7 +27,7 @@
  *	References:
  */
 
-void initialize_KSP(Mat *A, Vec *b)
+void initialize_KSP(Mat *A, Vec *b, Vec *x)
 {
 	/*
 	 *	Comments:
@@ -59,20 +60,22 @@ void initialize_KSP(Mat *A, Vec *b)
 	}
 
 	MatCreateSeqAIJ(comm,dof,dof,0,nnz,A); // keep (requires external MatDestroy)
-
-	*b = NULL;
-	if (*b)
-		printf("placeholder\n");
+	VecCreateSeq(comm,dof,b);              // keep (requires external VecDestroy)
+	VecCreateSeq(comm,dof,x);              // keep (requires external VecDestroy)
 
 	free(nnz);
 }
 
-void finalize_Mat(Mat *A, const unsigned int finalize_type)
+void finalize_Vec(Vec *a, const unsigned int finalize_type)
 {
 	switch (finalize_type) {
-		case 1:
-			MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY);
-			MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY);
+		case 1: // Petsc assemble
+			VecAssemblyBegin(*a);
+			VecAssemblyEnd(*a);
+			break;
+		case 2: // Petsc destroy
+			VecDestroy(a);
+			a = NULL;
 			break;
 		default:
 			printf("Error: Unsupported finalize_type.\n"), EXIT_MSG;
@@ -80,7 +83,67 @@ void finalize_Mat(Mat *A, const unsigned int finalize_type)
 	}
 }
 
-void finalize_LHS(Mat *A, Vec *b, const unsigned int assemble_type)
+void finalize_Mat(Mat *A, const unsigned int finalize_type)
+{
+	switch (finalize_type) {
+		case 1: // Petsc assemble
+			MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY);
+			MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY);
+			break;
+		case 2: // Petsc destroy
+			MatDestroy(A);
+			A = NULL;
+			break;
+		default:
+			printf("Error: Unsupported finalize_type.\n"), EXIT_MSG;
+			break;
+	}
+}
+
+void finalize_ksp(Mat *A, Vec *b, Vec *x, const unsigned int finalize_type)
+{
+	finalize_Mat(A,finalize_type);
+	finalize_Vec(b,finalize_type);
+	finalize_Vec(x,finalize_type);
+}
+
+void assemble_RHS(Vec *b, Vec *x)
+{
+	// Initialize DB Parameters
+	unsigned int Nvar = DB.Nvar;
+
+	// Standard datatypes
+	unsigned int i, iMax, Indb, NvnS;
+	double       *RHS;
+
+	struct S_VOLUME *VOLUME;
+
+	PetscInt    *ix;
+	PetscScalar *y;
+
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		Indb = VOLUME->IndA;
+		NvnS = VOLUME->NvnS;
+		RHS  = VOLUME->RHS;
+
+		iMax = NvnS*Nvar;
+		ix = malloc(iMax * sizeof *ix); // free
+		y  = malloc(iMax * sizeof *y);  // free
+
+		for (i = 0; i < iMax; i++) {
+			ix[i] = Indb+i;
+			y[i]  = -(*RHS++);
+		}
+
+		VecSetValues(*b,iMax,ix,y,INSERT_VALUES);
+		VecSetValues(*x,iMax,ix,y,INSERT_VALUES);
+
+		free(ix);
+		free(y);
+	}
+}
+
+double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 {
 	/*
 	 *	Comments:
@@ -94,7 +157,7 @@ void finalize_LHS(Mat *A, Vec *b, const unsigned int assemble_type)
 	// Standard datatypes
 	unsigned int i, NvnS, NvnS2, eq, var, side,
 	             IndA, IndA2, Indm, Indn;
-	double       *LHS;
+	double       maxRHS, *LHS;
 
 	struct S_VOLUME *VOLUME, *VOLUME2;
 	struct S_FACET  *FACET;
@@ -105,21 +168,26 @@ void finalize_LHS(Mat *A, Vec *b, const unsigned int assemble_type)
 	compute_dof();
 
 	if (*A == NULL)
-		initialize_KSP(A,b);
+		initialize_KSP(A,b,x);
 
+	maxRHS = 1.0;
 	switch (assemble_type) {
 	default: // 0
-		finalize_LHS(A,b,1);
-		finalize_LHS(A,b,2);
-		finalize_LHS(A,b,3);
+		maxRHS = finalize_RHS();
 
-		finalize_Mat(A,1);
+		finalize_LHS(A,b,x,1);
+		finalize_LHS(A,b,x,2);
+		finalize_LHS(A,b,x,3);
+
+		assemble_RHS(b,x);
+
+		finalize_ksp(A,b,x,1);
 
 		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-			free(FACET->LHSInIn);
-			free(FACET->LHSOutIn);
-			free(FACET->LHSInOut);
-			free(FACET->LHSOutOut);
+			free(FACET->LHSInIn);   FACET->LHSInIn   = NULL;
+			free(FACET->LHSOutIn);  FACET->LHSOutIn  = NULL;
+			free(FACET->LHSInOut);  FACET->LHSInOut  = NULL;
+			free(FACET->LHSOutOut); FACET->LHSOutOut = NULL;
 		}
 
 		break;
@@ -186,7 +254,7 @@ void finalize_LHS(Mat *A, Vec *b, const unsigned int assemble_type)
 			free(m); free(n);
 		}}
 		break;
-	case 3: // offdiagonal contributions
+	case 3: // off-diagonal contributions
 		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 		for (side = 0; side < 2; side++) {
 			if (FACET->Boundary)
@@ -221,11 +289,7 @@ void finalize_LHS(Mat *A, Vec *b, const unsigned int assemble_type)
 						n[i] = Indn+i;
 
 					vv = &LHS[(eq*Nvar+var)*NvnS*NvnS2];
-/*
-printf("%d %d %d\n",FACET->indexg,FACET->Boundary,side);
-array_print_i(1,NvnS,m,'R');
-array_print_i(1,NvnS2,n,'R');
-*/
+
 					MatSetValues(*A,NvnS,m,NvnS2,n,vv,ADD_VALUES);
 				}
 			}
@@ -233,6 +297,7 @@ array_print_i(1,NvnS2,n,'R');
 		}}
 		break;
 	}
+	return maxRHS;
 }
 
 void compute_dof(void)

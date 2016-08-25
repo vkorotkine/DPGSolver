@@ -4,11 +4,15 @@
 #ifndef DPG__finalize_LHS_h__INCLUDED
 #define DPG__finalize_LHS_h__INCLUDED
 
+#include "petscvec.h"
 #include "petscmat.h"
 
-extern void finalize_LHS   (Mat *A, Vec *b, const unsigned int assemble_type);
-extern void initialize_KSP (Mat *A, Vec *b);
-extern void compute_dof    (void);
-extern void finalize_Mat   (Mat *A, const unsigned int finalize_type);
+extern double finalize_LHS   (Mat *A, Vec *b, Vec *x, const unsigned int assemble_type);
+extern void   initialize_KSP (Mat *A, Vec *b, Vec *x);
+extern void   compute_dof    (void);
+extern void   finalize_Vec   (Vec *a, const unsigned int finalize_type);
+extern void   finalize_Mat   (Mat *A, const unsigned int finalize_type);
+extern void   finalize_ksp   (Mat *A, Vec *b, Vec *x, const unsigned int finalize_type);
+extern void   assemble_RHS   (Vec *b, Vec *x);
 
 #endif // DPG__finalize_LHS_h__INCLUDED

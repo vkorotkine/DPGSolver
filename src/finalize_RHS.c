@@ -7,8 +7,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "petscvec.h"
-
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
@@ -34,53 +32,6 @@
  *
  *	References:
  */
-
-void finalize_Vec(Vec *a, const unsigned int finalize_type)
-{
-	switch (finalize_type) {
-		case 1:
-			VecAssemblyBegin(*a);
-			VecAssemblyEnd(*a);
-			break;
-		default:
-			printf("Error: Unsupported finalize_type.\n"), EXIT_MSG;
-			break;
-	}
-}
-
-void assemble_RHS(Vec *b)
-{
-	// Initialize DB Parameters
-	unsigned int Nvar = DB.Nvar;
-
-	// Standard datatypes
-	unsigned int i, iMax, Indb, NvnS;
-	double       *RHS;
-
-	struct S_VOLUME *VOLUME;
-
-	PetscInt    *ix;
-	PetscScalar *y;
-
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		Indb = VOLUME->IndA;
-		NvnS = VOLUME->NvnS;
-		RHS  = VOLUME->RHS;
-
-		ix = malloc(NvnS*Nvar * sizeof *ix); // free
-		y  = malloc(NvnS*Nvar * sizeof *y);  // free
-
-		for (i = 0, iMax = NvnS*Nvar; i < iMax; i++) {
-			ix[i] = Indb+i;
-			y[i]  = *RHS++;
-		}
-
-		VecSetValues(*b,NvnS*Nvar,ix,y,INSERT_VALUES);
-
-		free(ix);
-		free(y);
-	}
-}
 
 double finalize_RHS(void)
 {
@@ -157,14 +108,16 @@ array_print_d(NvnSOut,Neq,VOut->RHS,'C');
 
 	// Add MInv contribution to RHS for explicit runs
 	maxRHS = 0.0;
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		// Compute maxRHS for convergence monitoring
+		NvnSIn = VOLUME->NvnS;
+		maxRHSV = array_norm_d(NvnSIn,VOLUME->RHS,"Inf");
+		if (maxRHSV > maxRHS)
+			maxRHS = maxRHSV;
+	}
+
 	if (strstr(SolverType,"Explicit")) {
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-			// Compute maxRHS for convergence monitoring
-			NvnSIn = VOLUME->NvnS;
-			maxRHSV = array_norm_d(NvnSIn,VOLUME->RHS,"Inf");
-			if (maxRHSV > maxRHS)
-				maxRHS = maxRHSV;
-
 			// Add (remaining) MInv contribution to RHS
 			if (Collocated) {
 				VRHSIn_ptr = VOLUME->RHS;

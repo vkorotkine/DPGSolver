@@ -30,40 +30,6 @@
  *	References:
  */
 
-void assemble_RHS_c(Vec *b)
-{
-	// Initialize DB Parameters
-	unsigned int Nvar = DB.Nvar;
-
-	// Standard datatypes
-	unsigned int   i, iMax, Indb, NvnS;
-	double complex *RHS;
-
-	struct S_VOLUME *VOLUME;
-
-	PetscInt    *ix;
-	PetscScalar *y;
-
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		Indb = VOLUME->IndA;
-		NvnS = VOLUME->NvnS;
-		RHS  = VOLUME->RHS_c;
-
-		ix = malloc(NvnS*Nvar * sizeof *ix); // free
-		y  = malloc(NvnS*Nvar * sizeof *y);  // free
-
-		for (i = 0, iMax = NvnS*Nvar; i < iMax; i++) {
-			ix[i] = Indb+i;
-			y[i]  = *RHS++;
-		}
-
-		VecSetValues(*b,NvnS*Nvar,ix,y,INSERT_VALUES);
-
-		free(ix);
-		free(y);
-	}
-}
-
 void finalize_RHS_c(void)
 {
 	// Initialize DB Parameters

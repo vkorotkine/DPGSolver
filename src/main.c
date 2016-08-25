@@ -30,7 +30,7 @@ struct S_TEST TestDB;
 #include "initialize_test_case.h"
 #include "output_to_paraview.h"
 #include "solver_explicit.h"
-//#include "solver_implicit.h"
+#include "solver_implicit.h"
 #include "compute_errors.h"
 #include "memory_free.h"
 
@@ -142,7 +142,7 @@ int main(int nargc, char **argv)
 	if (strstr(DB.SolverType,"Explicit")) {
 		solver_explicit();
 	} else if (strstr(DB.SolverType,"Implicit")) {
-		; //solver_implicit();
+		solver_implicit();
 	} else {
 		printf("Error: Unsupported SolverType in dpg_solver.\n"), EXIT_MSG;
 	}

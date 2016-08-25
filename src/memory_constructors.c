@@ -464,17 +464,17 @@ struct S_FACET *New_FACET(void)
 	FACET->detJF_fS = NULL; // free
 
 	// Solving
-	FACET->RHSIn  = NULL; // free
-	FACET->RHSOut = NULL; // free
+	FACET->RHSIn  = NULL; // free (in finalize_RHS)
+	FACET->RHSOut = NULL; // free (in finalize_RHS)
 
-	FACET->LHSInIn   = NULL; // free
-	FACET->LHSOutIn  = NULL; // free
-	FACET->LHSInOut  = NULL; // free
-	FACET->LHSOutOut = NULL; // free
+	FACET->LHSInIn   = NULL; // free (in finalize_LHS)
+	FACET->LHSOutIn  = NULL; // free (in finalize_LHS)
+	FACET->LHSInOut  = NULL; // free (in finalize_LHS)
+	FACET->LHSOutOut = NULL; // free (in finalize_LHS)
 
 	// Linearization testing
-	FACET->RHSIn_c  = NULL; // free
-	FACET->RHSOut_c = NULL; // free
+	FACET->RHSIn_c  = NULL; // free (in finalize_RHS_c)
+	FACET->RHSOut_c = NULL; // free (in finalize_RHS_c)
 
 	FACET->next   = NULL;
 	FACET->child0 = NULL; // free (in memory_free_children)
