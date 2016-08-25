@@ -7,7 +7,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "petscvec.h"
+
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
 #include "S_VOLUME.h"
 #include "S_FACET.h"
@@ -32,6 +35,53 @@
  *	References:
  */
 
+void finalize_Vec(Vec *a, const unsigned int finalize_type)
+{
+	switch (finalize_type) {
+		case 1:
+			VecAssemblyBegin(*a);
+			VecAssemblyEnd(*a);
+			break;
+		default:
+			printf("Error: Unsupported finalize_type.\n"), EXIT_MSG;
+			break;
+	}
+}
+
+void assemble_RHS(Vec *b)
+{
+	// Initialize DB Parameters
+	unsigned int Nvar = DB.Nvar;
+
+	// Standard datatypes
+	unsigned int i, iMax, Indb, NvnS;
+	double       *RHS;
+
+	struct S_VOLUME *VOLUME;
+
+	PetscInt    *ix;
+	PetscScalar *y;
+
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		Indb = VOLUME->IndA;
+		NvnS = VOLUME->NvnS;
+		RHS  = VOLUME->RHS;
+
+		ix = malloc(NvnS*Nvar * sizeof *ix); // free
+		y  = malloc(NvnS*Nvar * sizeof *y);  // free
+
+		for (i = 0, iMax = NvnS*Nvar; i < iMax; i++) {
+			ix[i] = Indb+i;
+			y[i]  = *RHS++;
+		}
+
+		VecSetValues(*b,NvnS*Nvar,ix,y,INSERT_VALUES);
+
+		free(ix);
+		free(y);
+	}
+}
+
 double finalize_RHS(void)
 {
 	// Initialize DB Parameters
@@ -41,7 +91,7 @@ double finalize_RHS(void)
 
 	// Standard datatypes
 	unsigned int iMax, jMax,
-	             VfIn, VfOut, fIn, fOut, NvnSIn, NvnSOut, Boundary;
+	             NvnSIn, NvnSOut, Boundary;
 	double       maxRHS, maxRHSV, *VRHSIn_ptr, *VRHSOut_ptr, *FRHSIn_ptr, *FRHSOut_ptr, *detJV_vI_ptr,
 	             *RHS_Final;
 
@@ -53,13 +103,9 @@ double finalize_RHS(void)
 
 	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 		VIn    = FACET->VIn;
-		VfIn   = FACET->VfIn;
-		fIn    = VfIn/NFREFMAX;
 		NvnSIn = VIn->NvnS;
 
 		VOut    = FACET->VOut;
-		VfOut   = FACET->VfOut;
-		fOut    = VfOut/NFREFMAX;
 		NvnSOut = VOut->NvnS;
 
 		VRHSIn_ptr  = VIn->RHS;
@@ -82,7 +128,7 @@ array_print_d(NvnSIn,Neq,VIn->RHS,'C');
 array_print_d(NvnSOut,Neq,VOut->RHS,'C');
 */
 
-		Boundary = !((VIn->indexg != VOut->indexg) || (VIn->indexg == VOut->indexg && fIn != fOut));
+		Boundary = FACET->Boundary;
 		for (iMax = Neq; iMax--; ) {
 			for (jMax = NvnSIn; jMax--; )
 				*VRHSIn_ptr++ += *FRHSIn_ptr++;

@@ -17,8 +17,11 @@
 #include "element_functions.h"
 #include "sum_factorization.h"
 #include "matrix_functions.h"
+#include "fluxes_inviscid.h"
 #include "jacobian_fluxes_inviscid.h"
 #include "array_print.h"
+
+#undef I // No complex variables used here
 
 /*
  *	Purpose:
@@ -124,11 +127,12 @@ static void compute_VOLUME_LHS_EFE(void)
 
 	// Standard datatypes
 	unsigned int i, j, eq, var, dim1, dim2, P, iMax,
-	             Indeqvar, InddFrdW, InddFdW, IndC, IndD, IndLHS, Eclass,
+	             Indeqvar, IndFr, IndF, IndC, IndD, IndRHS, IndLHS, Eclass,
 	             NvnI, NvnS, NvnI_SF[2], NvnS_SF[2], NIn[3], NOut[3], Diag[3];
-	double       *W_vI, *dFdW_vI, *dFrdW_vI, *C_vI, *LHS, *DdFrdW, **D, *Ddim, *OP[3];
+	double       *W_vI, *F_vI, *dFdW_vI, *Fr_vI, *dFrdW_vI, *C_vI,
+	             *RHS, *LHS, *DFr, *DdFrdW, *I, **D, *Ddim, *OP[3], *OP0, *OP1;
 
-//	struct S_OpCSR **D_sp;
+	struct S_OpCSR **D_sp;
 
 	struct S_OPERATORS *OPS[2];
 	struct S_VOLUME    *VOLUME;
@@ -186,71 +190,120 @@ static void compute_VOLUME_LHS_EFE(void)
 					mm_CTN_d(NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->What,W_vI);
 				}
 			}
-/*
-if (VOLUME->indexg == 0) {
-printf("VOLUME %d\n",VOLUME->indexg);
-array_print_d(OPS[0]->NvnS,Nvar,VOLUME->What,'C');
-array_print_d(NvnI,Nvar,W_vI,'C');
-}
-*/
 
-			// Compute Flux in reference space
+			// Compute Flux in reference space and its Jacobian
+			F_vI    = malloc(NvnI*d*Neq      * sizeof *F_vI);    // free
 			dFdW_vI = malloc(NvnI*d*Nvar*Neq * sizeof *dFdW_vI); // free
+
+			flux_inviscid(NvnI,1,W_vI,F_vI,d,Neq);
 			jacobian_flux_inviscid(NvnI,1,W_vI,dFdW_vI,d,Neq);
-/*
-for (eq = 0; eq < Neq; eq++) {
-for (var = 0; var < Nvar; var++) {
-	printf("%d %d\n",eq,var);
-	array_print_d(NvnI,d,&dFdW_vI[(eq*Nvar+var)*NvnI*d],'C');
-}}
-EXIT_MSG;
-*/
 
 			if (!Collocated)
 				free(W_vI);
 
 			C_vI = VOLUME->C_vI;
-//array_print_d(NvnI,d,C_vI,'C');
-//array_print_d(NvnI,d,&C_vI[NvnI*d],'C');
-//EXIT_MSG;
+
+			Fr_vI = calloc(NvnI*d*Neq , sizeof *Fr_vI); // free
+			for (eq = 0; eq < Neq; eq++) {
+			for (dim1 = 0; dim1 < d; dim1++) {
+				IndFr = (eq*d+dim1)*NvnI;
+				for (dim2 = 0; dim2 < d; dim2++) {
+					IndF  = (eq*d+dim2)*NvnI;
+					IndC  = (dim1*d+dim2)*NvnI;
+					for (i = 0; i < NvnI; i++)
+						Fr_vI[IndFr+i] += F_vI[IndF+i]*C_vI[IndC+i];
+				}
+			}}
+			free(F_vI);
 
 			dFrdW_vI = calloc(NvnI*d*Nvar*Neq , sizeof *dFrdW_vI); // free
 			for (eq = 0; eq < Neq; eq++) {
 			for (var = 0; var < Nvar; var++) {
 				Indeqvar = (eq*Nvar+var)*d;
 				for (dim1 = 0; dim1 < d; dim1++) {
-					InddFrdW = (Indeqvar+dim1)*NvnI;
+					IndFr = (Indeqvar+dim1)*NvnI;
 					for (dim2 = 0; dim2 < d; dim2++) {
-						InddFdW = (Indeqvar+dim2)*NvnI;
-						IndC    = (dim1*d+dim2)*NvnI;
+						IndF = (Indeqvar+dim2)*NvnI;
+						IndC = (dim1*d+dim2)*NvnI;
 						for (i = 0; i < NvnI; i++)
-							dFrdW_vI[InddFrdW+i] += dFdW_vI[InddFdW+i]*C_vI[IndC+i];
+							dFrdW_vI[IndFr+i] += dFdW_vI[IndF+i]*C_vI[IndC+i];
 					}
 				}
 			}}
 			free(dFdW_vI);
-/*
-for (eq = 0; eq < Neq; eq++) {
-for (var = 0; var < Nvar; var++) {
-	printf("%d %d\n",eq,var);
-	array_print_d(NvnI,d,&dFrdW_vI[(eq*Nvar+var)*NvnI*d],'C');
-}}
-EXIT_MSG;
-*/
 
-			// Compute LHS terms
+			// Compute RHS and LHS terms
 			NvnS = OPS[0]->NvnS;
 
-			if (VOLUME->LHS)
-				free(VOLUME->LHS);
-			LHS = calloc(NvnS*NvnS*Neq*Nvar , sizeof *LHS); // keep (requires external free)
-			VOLUME->LHS = LHS;
+			// RHS
+			if (VOLUME->RHS)
+				free(VOLUME->RHS);
+			RHS = calloc(NvnS*Neq , sizeof *RHS); // keep (requires external free)
+			VOLUME->RHS = RHS;
 
-			if (Collocated && (Eclass == C_TP || Eclass == C_WEDGE)) {
-// Note: Collocated here implies that ChiS_vI == Identity
-				printf("Error: Modifications required.\n"), EXIT_MSG;
+			DFr = malloc(NvnS * sizeof *DFr); // free
+			if (Eclass == C_TP && SF_BE[P][0][0]) {
+				for (i = 0; i < 1; i++) {
+					NvnS_SF[i] = OPS[i]->NvnS_SF;
+					NvnI_SF[i] = OPS[i]->NvnI_SF;
+				}
 
-/*
+				I = OPS[0]->I_Weak;
+				D = OPS[0]->D_Weak;
+
+				for (dim1 = 0; dim1 < d; dim1++) {
+					get_sf_parameters(NvnI_SF[0],NvnS_SF[0],I,NvnI_SF[0],NvnS_SF[0],D[0],NIn,NOut,OP,d,dim1,Eclass);
+
+					if (Collocated) {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 2;
+						Diag[dim1] = 0;
+					} else {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 0;
+					}
+
+					for (eq = 0; eq < Neq; eq++) {
+						sf_apply_d(&Fr_vI[(eq*d+dim1)*NvnI],DFr,NIn,NOut,1,OP,Diag,d);
+
+						IndRHS = eq*NvnS;
+						for (i = 0; i < NvnS; i++)
+							RHS[IndRHS+i] += DFr[i];
+					}
+				}
+			} else if (Eclass == C_WEDGE && SF_BE[P][1][0]) {
+				for (i = 0; i < 2; i++) {
+					NvnS_SF[i] = OPS[i]->NvnS_SF;
+					NvnI_SF[i] = OPS[i]->NvnI_SF;
+				}
+
+				for (dim1 = 0; dim1 < d; dim1++) {
+					if (dim1 < 2) OP0 = OPS[0]->D_Weak[dim1], OP1 = OPS[1]->I_Weak;
+					else          OP0 = OPS[0]->I_Weak,       OP1 = OPS[1]->D_Weak[0];
+					get_sf_parameters(NvnI_SF[0],NvnS_SF[0],OP0,NvnI_SF[1],NvnS_SF[1],OP1,NIn,NOut,OP,d,3,Eclass);
+
+					if (Collocated) {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 2;
+						if (dim1 < 2)
+							Diag[0] = 0;
+						else
+							Diag[dim1] = 0;
+					} else {
+						for (dim2 = 0; dim2 < d; dim2++)
+							Diag[dim2] = 0;
+						Diag[1] = 2;
+					}
+
+					for (eq = 0; eq < Neq; eq++) {
+						sf_apply_d(&Fr_vI[(eq*d+dim1)*NvnI],DFr,NIn,NOut,1,OP,Diag,d);
+
+						IndRHS = eq*NvnS;
+						for (i = 0; i < NvnS; i++)
+							RHS[IndRHS+i] += DFr[i];
+					}
+				}
+			} else if (Collocated && (Eclass == C_TP || Eclass == C_WEDGE)) {
 				D_sp = OPS[0]->D_Weak_sp;
 
 				for (eq = 0; eq < Neq; eq++) {
@@ -261,7 +314,32 @@ EXIT_MSG;
 					for (i = 0; i < NvnS; i++)
 						RHS[IndRHS+i] += DFr[i];
 				}}
-*/
+			} else {
+				D = OPS[0]->D_Weak;
+
+				for (eq = 0; eq < Neq; eq++) {
+				for (dim1 = 0; dim1 < d; dim1++) {
+					mm_CTN_d(NvnS,1,NvnI,D[dim1],&Fr_vI[(eq*d+dim1)*NvnI],DFr);
+
+					IndRHS = eq*NvnS;
+					for (i = 0; i < NvnS; i++)
+						RHS[IndRHS+i] += DFr[i];
+				}}
+			}
+			free(DFr);
+			free(Fr_vI);
+
+
+			// LHS
+			if (VOLUME->LHS)
+				free(VOLUME->LHS);
+			LHS = calloc(NvnS*NvnS*Neq*Nvar , sizeof *LHS); // keep (requires external free)
+			VOLUME->LHS = LHS;
+
+			if (Collocated && (Eclass == C_TP || Eclass == C_WEDGE)) {
+// Note: Collocated here implies that ChiS_vI == Identity
+// Note: This would use mm_RNN_CSR_d
+				printf("Error: Modifications required.\n"), EXIT_MSG;
 			} else {
 				D = OPS[0]->D_Weak;
 
@@ -273,16 +351,14 @@ EXIT_MSG;
 					memset(DdFrdW, 0.0, NvnS*NvnI * sizeof *DdFrdW);
 					for (dim1 = 0; dim1 < d; dim1++) {
 						Ddim = D[dim1];
-//array_print_d(OPS[0]->NvnS,NvnI,Ddim,'R');
 
-						InddFrdW = (Indeqvar+dim1)*NvnI;
+						IndFr = (Indeqvar+dim1)*NvnI;
 						for (i = 0; i < NvnS; i++) {
 							IndD = i*NvnI;
 							for (j = 0; j < NvnI; j++)
-								DdFrdW[IndD+j] += Ddim[IndD+j]*dFrdW_vI[InddFrdW+j];
+								DdFrdW[IndD+j] += Ddim[IndD+j]*dFrdW_vI[IndFr+j];
 						}
 					}
-//EXIT_MSG;
 
 					IndLHS = (eq*Nvar+var)*NvnS*NvnS;
 					if (Collocated) {
@@ -295,17 +371,6 @@ EXIT_MSG;
 				free(DdFrdW);
 			}
 			free(dFrdW_vI);
-/*
-if (VOLUME->indexg == 0) {
-printf("VOLUME %d\n",VOLUME->indexg);
-for (eq = 0; eq < Neq; eq++) {
-for (var = 0; var < Nvar; var++) {
-	printf("%d %d\n",eq,var);
-	array_print_d(NvnS,NvnS,&LHS[(eq*Nvar+var)*NvnS*NvnS],'R');
-}}
-}
-EXIT_MSG;
-*/
 		}
 	} else if (strstr(Form,"Strong")) {
 		printf("Exiting: Implement the strong form in compute_VOLUME_RHS_EFE.\n"), exit(1);

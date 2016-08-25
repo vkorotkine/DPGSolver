@@ -47,7 +47,6 @@ void initialize_KSP(Mat *A, Vec *b)
 	PetscInt *nnz;
 
 	nnz = malloc(dof * sizeof *nnz); // free
-printf("inKSP: %d \n",dof);
 
 	Indi = 0;
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {

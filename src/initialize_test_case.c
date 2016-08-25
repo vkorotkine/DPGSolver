@@ -120,8 +120,8 @@ void initialize_test_case_parameters(char *TestCase)
 		double pIn, cIn;
 
 		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
-		strcpy(SolverType,"Explicit");
-//		strcpy(SolverType,"Implicit");
+//		strcpy(SolverType,"Explicit");
+		strcpy(SolverType,"Implicit");
 
 		DB.rIn  = 1.0;
 //		rOut = 1.384;

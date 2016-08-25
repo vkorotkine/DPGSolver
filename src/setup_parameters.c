@@ -527,8 +527,8 @@ void setup_parameters()
 	}
 
 	// Solver
-	DB.InviscidFluxType = FLUX_LF;
-//	DB.InviscidFluxType = FLUX_ROE;
+//	DB.InviscidFluxType = FLUX_LF;
+	DB.InviscidFluxType = FLUX_ROE;
 
  	DB.ExplicitSolverType = RK3_SSP;
 // 	DB.ExplicitSolverType = RK4_LS;
