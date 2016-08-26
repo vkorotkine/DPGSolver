@@ -43,26 +43,26 @@ int main(void)
 	MeshType = malloc(STRLEN_MAX * sizeof *MeshType); // free
 
 	strcpy(TestCase,"PeriodicVortex");
-//	strcpy(TestCase,"SupersonicVortex");
-//	strcpy(MeshType,"ToBeCurvedStructuredTRI");
+	strcpy(TestCase,"SupersonicVortex");
+	strcpy(MeshType,"ToBeCurvedStructuredTRI");
 //	strcpy(MeshType,"ToBeCurvedStructuredQUAD");
 //	strcpy(MeshType,"ToBeCurvedStructuredTET");
-	strcpy(MeshType,"ToBeCurvedStructuredHEX");
+//	strcpy(MeshType,"ToBeCurvedStructuredHEX");
 
-	d     = 3;
+	d     = 2;
 	NVars = 6;
 	MLMin = 0; MLMax = 6; NML = MLMax-MLMin+1;
 	PMin  = 0; PMax  = 4; NP  = PMax-PMin+1;
 
-	unsigned int CasesRun[45] = { 0, 1, 1, 1, 0,
-	                              0, 1, 1, 1, 0,
-	                              0, 1, 1, 1, 0,
-	                              0, 1, 1, 1, 0,
-	                              0, 1, 1, 1, 0,
-	                              0, 1, 1, 1, 0,
-	                              0, 1, 1, 0, 0,
+	unsigned int CasesRun[45] = { 0, 1, 1, 1, 1,
+	                              0, 1, 1, 1, 1,
+	                              0, 1, 1, 1, 1,
 	                              1, 1, 1, 1, 1,
-	                              1, 1, 1, 1, 1};
+	                              1, 1, 1, 1, 1,
+	                              1, 1, 1, 1, 1,
+	                              1, 1, 1, 0, 0,
+	                              0, 0, 0, 0, 0,
+	                              0, 0, 0, 0, 0};
 
 
 	L2Errors   = malloc(NVars * sizeof *L2Errors);   // free
@@ -141,8 +141,8 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
                            const double *h, double **L2Errors, double **ConvOrders,
                            char *TestCase, char *MeshType)
 {
-	char **Vars_c, caption[STRLEN_MAX];
-	unsigned int i, j, ML, P, NP, NVarsOut, Indp, Indh, IndVars[6];
+	char         **Vars_c, caption[STRLEN_MAX];
+	unsigned int i, j, ML, P, NP, NVarsOut, Indp, Indh, IndVars[6], P_Print;
 
 	FILE *fID;
 
@@ -211,11 +211,13 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 
 	NP = PMax-PMin+1;
 	for (P = PMin; P <= PMax; P++) {
+		P_Print = 1;
 		fprintf(fID,"\t\\hline\n");
 		for (ML = 0; ML < NML; ML++) {
 			Indh = ML*NP+P;
-			if (!ML) {
-				if (CasesRun[Indh]) {
+			if (CasesRun[Indh]) {
+				if (P_Print) {
+					P_Print = 0;
 					fprintf(fID,"P%1d\t& % .3e",P,h[Indh]);
 					for (i = 0; i < 2; i++) {
 					for (j = 0; j < NVarsOut; j++) {
@@ -223,9 +225,7 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 						else if (i == 1) fprintf(fID," & -");
 					}}
 					fprintf(fID," \\\\\n");
-				}
-			} else {
-				if (CasesRun[Indh]) {
+				} else {
 					fprintf(fID,"\t& % .3e",h[Indh]);
 					for (i = 0; i < 2; i++) {
 					for (j = 0; j < NVarsOut; j++) {

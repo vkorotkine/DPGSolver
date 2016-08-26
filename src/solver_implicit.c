@@ -58,7 +58,7 @@ void solver_implicit(void)
 
 	update_VOLUME_finalize();
 
-output_to_paraview("ZTest_Sol_Init");
+//	output_to_paraview("ZTest_Sol_Init");
 
 	iteration = 0;
 	maxRHS = 1.0; maxRHS0 = 1.0;
@@ -67,10 +67,11 @@ output_to_paraview("ZTest_Sol_Init");
 			mesh_update();
 
 		// Build the RHS and LHS terms
-		Mat A = NULL;
-		Vec b = NULL, x = NULL;
-		KSP ksp;
-//		PC  pc;
+		Mat                A = NULL;
+		Vec                b = NULL, x = NULL;
+		KSP                ksp;
+		PC                 pc;
+		KSPConvergedReason reason;
 
 		PetscInt *ix;
 
@@ -79,38 +80,36 @@ output_to_paraview("ZTest_Sol_Init");
 		printf("F "); maxRHS = finalize_LHS(&A,&b,&x,0);
 
 		// Solve linear system
+		printf("S");
 		KSPCreate(MPI_COMM_WORLD,&ksp);
 
-		KSPSetOperators(ksp,A,A);//,DIFFERENT_NONZERO_PATTERN); ToBeDeleted (This was included in Brian's code)
-// Potentially modify preconditioner matrix (ToBeDeleted)
-//		KSPSetInitialGuessNonzero(ksp,PETSC_TRUE);
-//		KSPSetTolerances(ksp,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
-		KSPSetTolerances(ksp,1e-15,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
+		KSPSetOperators(ksp,A,A);
+		KSPSetTolerances(ksp,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
 
-//KSPGetPC(ksp,&pc);
-//PCSetType(pc,PCJACOBI);
-//PCSetType(pc,PCILU);
-
-//		KSPSetTolerances(ksp,0.0,0.0,1e250,100);
-
-
-// Modify parameters here (ToBeDeleted)
-
-//		KSPSetFromOptions(ksp);
+		KSPSetType(ksp,KSPGMRES);
+		KSPGMRESSetOrthogonalization(ksp,KSPGMRESModifiedGramSchmidtOrthogonalization);
+//		KSPGMRESSetRestart(ksp,60); // Default: 30
 		KSPSetUp(ksp);
 
+		KSPGetPC(ksp,&pc);
+
+		// Iterative Solve (Using ILU(1) with (R)everse (C)uthill-(M)cKee ordering)
+		KSPSetInitialGuessNonzero(ksp,PETSC_TRUE);
+		PCSetType(pc,PCILU);
+		PCFactorSetLevels(pc,1); // Cannot use MatOrdering with 0 fill
+		PCFactorSetMatOrderingType(pc,MATORDERINGRCM);
+/*
+		// Direct Solve (Using LU Factorization)
+		KSPSetType(ksp,KSPPREONLY);
+		PCSetType(pc,PCLU);
+*/
+		PCSetUp(pc);
+
+		printf("S ");
 		KSPSolve(ksp,b,x);
-//seems to be diverging...
-
-PetscBool flg  = PETSC_FALSE;
-PetscOptionsGetBool(NULL,"-ksp_reason",&flg,NULL);
-printf("flg: %d\n",flg);
-KSPConvergedReason reason;
-KSPGetConvergedReason(ksp,&reason);
-PetscPrintf(PETSC_COMM_WORLD,"KSPConvergedReason: %D\n", reason);
-
+		KSPGetConvergedReason(ksp,&reason);
 		KSPGetIterationNumber(ksp,&iteration_ksp);
-printf("%d\n",iteration_ksp);
+//		KSPView(ksp,PETSC_VIEWER_STDOUT_WORLD);
 
 		// Update What
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -126,12 +125,6 @@ printf("%d\n",iteration_ksp);
 
 			VecGetValues(x,iMax,ix,dWhat);
 			free(ix);
-if (1||iteration == 100) {
-printf("\n");
-array_print_d(NvnS,Nvar,What,'C');
-array_print_d(NvnS,Nvar,dWhat,'C');
-EXIT_MSG;
-}
 
 			for (i = 0; i < iMax; i++)
 				(*What++) += dWhat[i];
@@ -153,11 +146,12 @@ EXIT_MSG;
 		if (!iteration)
 			maxRHS0 = maxRHS;
 
-		printf("Iteration: %8d, KSP iterations: %8d, maxRHS (no MInv): % .3e\n",iteration,iteration_ksp,maxRHS);
+		printf("Iteration: %5d, KSP iterations (reason): %5d (%d), maxRHS (no MInv): % .3e\n",
+		       iteration,iteration_ksp,reason,maxRHS);
 
 		// Additional exit conditions
-		if (maxRHS < 8e-14 && iteration > 2) {
-			printf("Exiting: maxRHS is below 8e-14.\n");
+		if (maxRHS < 10*EPS && iteration) {
+			printf("Exiting: maxRHS is below 10*EPS.\n");
 			break;
 		}
 

@@ -105,7 +105,7 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, dou
 			uEx[i] = -sin(t)*Vt;
 			vEx[i] =  cos(t)*Vt;
 			wEx[i] =  0.0;
-			sEx[i]   = pEx[i]/pow(rhoEx[i],GAMMA);
+			sEx[i] =  pEx[i]/pow(rhoEx[i],GAMMA);
 		}
 	} else {
 		printf("Error: Unsupported test case in compute_exact_solution.\n"), exit(1);
