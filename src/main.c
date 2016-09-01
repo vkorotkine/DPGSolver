@@ -164,6 +164,7 @@ int main(int nargc, char **argv)
 	output_to_paraview(fNameOut);
 
 	// Compute errors
+	DB.TestL2projection = 0;
 	if (!DB.MPIrank)
 		printf("  Computing errors\n");
 	compute_errors_global();
@@ -215,6 +216,7 @@ int main(int nargc, char **argv)
 #include "test_integration_L2_projections.h"
 #include "test_integration_update_h.h"
 #include "test_integration_linearization.h"
+#include "test_integration_L2_projection_errors.h"
 
 #include "test_speed_array_swap.h"
 #include "test_speed_mm_CTN.h"
@@ -300,7 +302,8 @@ int main(int nargc, char **argv)
 		test_integration_update_h(nargc,argv);
 		test_integration_L2_projections(nargc,argv);
 	}
-	test_integration_linearization(nargc,argv);
+//	test_integration_linearization(nargc,argv);
+	test_integration_L2_projection_errors(nargc,argv);
 
 
 	te = clock();

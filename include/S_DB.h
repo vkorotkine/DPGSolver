@@ -12,7 +12,7 @@ struct S_DB {
 	int MPIsize, MPIrank;
 
 	// Initialization
-	char         *TestCase, *MeshType, *Form, *NodeType, *BasisType, *MeshFile;
+	char         *TestCase, *MeshType, *MeshPath, *Form, *NodeType, *BasisType, *MeshFile;
 	unsigned int d, ML, Vectorized, EFE, Collocated, Adapt, PGlobal, PMax, LevelsMax, Testing, *BumpOrder;
 	int          Restart;
 
@@ -47,6 +47,9 @@ struct S_DB {
 
 	// hp adaptation
 	double DOFcap_frac, refine_frac, coarse_frac;
+
+	// Testing
+	unsigned int TestL2projection;
 
 	// Structs
 	struct S_ELEMENT *ELEMENT;

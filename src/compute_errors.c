@@ -19,6 +19,9 @@
 #include "matrix_functions.h"
 #include "variable_functions.h"
 #include "exact_solutions.h"
+#include "update_VOLUMEs.h"
+
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -72,18 +75,20 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	}
 }
 
-void compute_errors(const struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsigned int *DOF,
+void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsigned int *DOF,
                     const unsigned int solved)
 {
 	// Initialize DB Parameters
-	unsigned int d    = DB.d,
-	             Nvar = DB.Nvar;
+	unsigned int d                = DB.d,
+	             Nvar             = DB.Nvar,
+	             TestL2projection = DB.TestL2projection;
 
 	// Standard datatypes
 	unsigned int i, iMax, j, NvnS, NvnI, IndU;
 	double       *XYZ_vI, 
 	             *rho, *p, *s, *sEx, *U, *UEx, *What, *W,
-	             *detJV_vI, *w_vI, *ChiS_vI, *wdetJV_vI, err;
+	             *detJV_vI, *w_vI, *ChiS_vI, *wdetJV_vI, err,
+	             *ChiSwdetJV_vI, *MInvChiSwdetJV_vI, *L2_Ex_vI, *diag_wdetJV_vI;
 
 	struct S_OPERATORS *OPS;
 
@@ -105,21 +110,6 @@ void compute_errors(const struct S_VOLUME *VOLUME, double *L2Error2, double *Vol
 	for (i = 0; i < NvnI; i++)
 		wdetJV_vI[i] = w_vI[i]*detJV_vI[i];
 
-	W = malloc(NvnI*Nvar   * sizeof *W); // free
-	U = malloc(NvnI*NVAR3D * sizeof *U); // free
-	s = malloc(NvnI        * sizeof *s); // free
-
-	What = VOLUME->What;
-
-	mm_CTN_d(NvnI,Nvar,NvnS,ChiS_vI,What,W);
-
-	convert_variables(W,U,d,3,NvnI,1,'c','p');
-
-	rho = &U[NvnI*0];
-	p   = &U[NvnI*(NVAR3D-1)];
-	for (i = 0; i < NvnI; i++)
-		s[i] = p[i]/pow(rho[i],GAMMA);
-
 	XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
 	mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
 
@@ -127,12 +117,41 @@ void compute_errors(const struct S_VOLUME *VOLUME, double *L2Error2, double *Vol
 	sEx = malloc(NvnI        * sizeof *sEx); // free
 
 	compute_exact_solution(NvnI,XYZ_vI,UEx,sEx,solved);
-/*
-printf("%d\n",VOLUME->indexg);
-array_print_d(NvnI,Nvar,U,'C');
-array_print_d(NvnI,Nvar,UEx,'C');
-array_print_d(NvnI,1,wdetJV_vI,'R');
-*/
+
+	W = malloc(NvnI*Nvar   * sizeof *W); // free
+	U = malloc(NvnI*NVAR3D * sizeof *U); // free
+	s = malloc(NvnI        * sizeof *s); // free
+
+	if (!TestL2projection) {
+		What = VOLUME->What;
+		mm_CTN_d(NvnI,Nvar,NvnS,ChiS_vI,What,W);
+
+		convert_variables(W,U,d,3,NvnI,1,'c','p');
+	} else {
+		compute_inverse_mass(VOLUME);
+
+		ChiSwdetJV_vI     = malloc(NvnS*NvnI * sizeof *ChiSwdetJV_vI);     // free
+		MInvChiSwdetJV_vI = malloc(NvnS*NvnI * sizeof *MInvChiSwdetJV_vI); // free
+		L2_Ex_vI          = malloc(NvnI*NvnI * sizeof *L2_Ex_vI);          // free
+
+		diag_wdetJV_vI = diag_d(wdetJV_vI,NvnI); // free
+
+		mm_d(CBRM,CBT,CBNT,NvnS,NvnI,NvnI,1.0,ChiS_vI,diag_wdetJV_vI,ChiSwdetJV_vI);
+		mm_d(CBRM,CBNT,CBNT,NvnS,NvnI,NvnS,1.0,VOLUME->MInv,ChiSwdetJV_vI,MInvChiSwdetJV_vI);
+		mm_d(CBRM,CBNT,CBNT,NvnI,NvnI,NvnS,1.0,ChiS_vI,MInvChiSwdetJV_vI,L2_Ex_vI);
+
+		mm_d(CBCM,CBT,CBNT,NvnI,NVAR3D,NvnI,1.0,L2_Ex_vI,UEx,U);
+
+		free(ChiSwdetJV_vI);
+		free(MInvChiSwdetJV_vI);
+		free(L2_Ex_vI);
+		free(diag_wdetJV_vI);
+	}
+
+	rho = &U[NvnI*0];
+	p   = &U[NvnI*(NVAR3D-1)];
+	for (i = 0; i < NvnI; i++)
+		s[i] = p[i]/pow(rho[i],GAMMA);
 
 	for (i = 0; i <= NVAR3D; i++) {
 		IndU = i*NvnI;
@@ -140,8 +159,6 @@ array_print_d(NvnI,1,wdetJV_vI,'R');
 			for (j = 0; j < NvnI; j++) {
 				err = (U[IndU+j]-UEx[IndU+j])/UEx[IndU+j];
 				L2Error2[i] += err*err*wdetJV_vI[j];
-//if (i == NVAR3D-1)
-//	printf("% .3e % .3e % .3e\n",err,err*err*wdetJV_vI[j],L2Error2[i]);
 			}
 		} else if (i > 0 && i < NVAR3D-1) { // u, v, w (Not normalized as variables may be negative)
 			for (j = 0; j < NvnI; j++) {

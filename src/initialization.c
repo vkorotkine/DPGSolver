@@ -106,7 +106,7 @@ void initialization(int nargc, char **argv)
 	BasisType = malloc(STRLEN_MIN * sizeof *BasisType); // keep
 	MeshFile  = malloc(STRLEN_MAX * sizeof *MeshFile);  // keep
 
-	MeshPath  = malloc(STRLEN_MAX * sizeof *MeshPath); // free
+	MeshPath  = malloc(STRLEN_MAX * sizeof *MeshPath); // keep
 	d         = malloc(STRLEN_MIN * sizeof *d);        // free
 	ML        = malloc(STRLEN_MIN * sizeof *ML);       // free
 
@@ -168,13 +168,13 @@ void initialization(int nargc, char **argv)
 
 	free(StringRead);
 	free(dummys);
-	free(MeshPath);
 	free(d);
 	free(ML);
 
 	// Assign DB Parameters
 	DB.TestCase  = TestCase;
 	DB.MeshType  = MeshType;
+	DB.MeshPath  = MeshPath;
 	DB.Form      = Form;
 	DB.NodeType  = NodeType;
 	DB.BasisType = BasisType;

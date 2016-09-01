@@ -64,7 +64,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	// TRIs
 	strcpy(argvNew[1],"test/Test_L2_proj_p_TRI");
 
-	code_startup(nargc,argvNew,2);
+	code_startup(nargc,argvNew,2,0);
 
 	L2err[0] = get_L2err();
 	mark_VOLUMEs(PREFINE); mesh_update();
@@ -85,7 +85,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	strcpy(argvNew[0],argv[0]);
 	strcpy(argvNew[1],"test/Test_L2_proj_h_TRI");
 
-	code_startup(nargc,argvNew,2);
+	code_startup(nargc,argvNew,2,0);
 
 	L2err[0] = get_L2err();
 	mark_VOLUMEs(HREFINE); mesh_update();
@@ -107,7 +107,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	// QUADs
 	strcpy(argvNew[1],"test/Test_L2_proj_p_QUAD");
 
-	code_startup(nargc,argvNew,2);
+	code_startup(nargc,argvNew,2,0);
 
 	L2err[0] = get_L2err();
 	mark_VOLUMEs(PREFINE); mesh_update();
@@ -128,7 +128,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	strcpy(argvNew[0],argv[0]);
 	strcpy(argvNew[1],"test/Test_L2_proj_h_QUAD");
 
-	code_startup(nargc,argvNew,3);
+	code_startup(nargc,argvNew,3,0);
 
 	L2err[0] = get_L2err();
 	mark_VOLUMEs(HREFINE); mesh_update();
@@ -150,7 +150,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	// TETs
 	strcpy(argvNew[1],"test/Test_L2_proj_p_TET");
 
-	code_startup(nargc,argvNew,2);
+	code_startup(nargc,argvNew,2,0);
 
 	L2err[0] = get_L2err();
 	mark_VOLUMEs(PREFINE); mesh_update();
@@ -171,7 +171,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	strcpy(argvNew[0],argv[0]);
 	strcpy(argvNew[1],"test/Test_L2_proj_h_TET");
 
-	code_startup(nargc,argvNew,2);
+	code_startup(nargc,argvNew,2,0);
 
 	L2err[0] = get_L2err();
 	mark_VOLUMEs(HREFINE); mesh_update();
@@ -193,7 +193,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	// HEXs
 	strcpy(argvNew[1],"test/Test_L2_proj_p_HEX");
 
-	code_startup(nargc,argvNew,2);
+	code_startup(nargc,argvNew,2,0);
 
 	L2err[0] = get_L2err();
 	mark_VOLUMEs(PREFINE); mesh_update();
@@ -214,7 +214,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	strcpy(argvNew[0],argv[0]);
 	strcpy(argvNew[1],"test/Test_L2_proj_h_HEX");
 
-	code_startup(nargc,argvNew,3);
+	code_startup(nargc,argvNew,3,0);
 
 	L2err[0] = get_L2err();
 	mark_VOLUMEs(HREFINE); mesh_update();
@@ -236,7 +236,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	// WEDGEs
 	strcpy(argvNew[1],"test/Test_L2_proj_p_WEDGE");
 
-	code_startup(nargc,argvNew,2);
+	code_startup(nargc,argvNew,2,0);
 
 	L2err[0] = get_L2err();
 	mark_VOLUMEs(PREFINE); mesh_update();
@@ -257,7 +257,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	strcpy(argvNew[0],argv[0]);
 	strcpy(argvNew[1],"test/Test_L2_proj_h_WEDGE");
 
-	code_startup(nargc,argvNew,3);
+	code_startup(nargc,argvNew,3,0);
 
 	L2err[0] = get_L2err();
 	mark_VOLUMEs(HREFINE); mesh_update();
@@ -279,7 +279,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	// PYRs
 	strcpy(argvNew[1],"test/Test_L2_proj_p_PYR");
 
-	code_startup(nargc,argvNew,2);
+	code_startup(nargc,argvNew,2,0);
 
 	L2err[0] = get_L2err();
 	mark_VOLUMEs(PREFINE); mesh_update();
@@ -300,7 +300,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	strcpy(argvNew[0],argv[0]);
 	strcpy(argvNew[1],"test/Test_L2_proj_h_PYR");
 
-	code_startup(nargc,argvNew,2);
+	code_startup(nargc,argvNew,2,0);
 
 	L2err[0] = get_L2err();
 	mark_VOLUMEs(HREFINE); mesh_update();

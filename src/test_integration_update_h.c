@@ -82,7 +82,7 @@ void test_integration_update_h(int nargc, char **argv)
 	// TRIs
 	strcpy(argvNew[1],"test/Test_update_h_TRI");
 
-	code_startup(nargc,argvNew,2);
+	code_startup(nargc,argvNew,2,0);
 	if (DB.PGlobal <= 1)
 		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
 
@@ -126,7 +126,7 @@ void test_integration_update_h(int nargc, char **argv)
 	// QUADs
 	strcpy(argvNew[1],"test/Test_update_h_QUAD");
 
-	code_startup(nargc,argvNew,3);
+	code_startup(nargc,argvNew,3,0);
 	if (DB.PGlobal <= 1)
 		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
 
@@ -170,7 +170,7 @@ void test_integration_update_h(int nargc, char **argv)
 	// TETs
 	strcpy(argvNew[1],"test/Test_update_h_TET");
 
-	code_startup(nargc,argvNew,2);
+	code_startup(nargc,argvNew,2,0);
 	if (DB.PGlobal <= 1)
 		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
 
@@ -214,7 +214,7 @@ void test_integration_update_h(int nargc, char **argv)
 	// HEXs
 	strcpy(argvNew[1],"test/Test_update_h_HEX");
 
-	code_startup(nargc,argvNew,3);
+	code_startup(nargc,argvNew,3,0);
 	if (DB.PGlobal <= 1)
 		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
 
@@ -258,7 +258,7 @@ void test_integration_update_h(int nargc, char **argv)
 	// WEDGEs
 	strcpy(argvNew[1],"test/Test_update_h_WEDGE");
 
-	code_startup(nargc,argvNew,3);
+	code_startup(nargc,argvNew,3,0);
 	if (DB.PGlobal <= 1)
 		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
 
@@ -302,7 +302,7 @@ void test_integration_update_h(int nargc, char **argv)
 	// PYRs
 	strcpy(argvNew[1],"test/Test_update_h_PYR");
 
-	code_startup(nargc,argvNew,2);
+	code_startup(nargc,argvNew,2,0);
 	if (DB.PGlobal <= 1)
 		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
 

@@ -24,7 +24,7 @@ Line(1006) = {6,2};
 Line(1007) = {4,6};
 
 Transfinite Line {1003:1006}      = 2 Using Progression 1;
-Transfinite Line {1001,1002,1007} = 2 Using Progression 1;
+Transfinite Line {1001,1002,1007} = 5 Using Progression 1;
 
 //Line Loop (4001) = {1003,1002,-1005,-1007};
 Line Loop (4001) = {1007,1005,-1002,-1003};

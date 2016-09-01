@@ -368,7 +368,7 @@ void test_integration_linearization(int nargc, char **argv)
 	// TRIs
 	strcpy(argvNew[1],"test/Test_linearization_TRI");
 
-	code_startup(nargc,argvNew,2);
+	code_startup(nargc,argvNew,2,0);
 
 	implicit_VOLUME_info();
 	implicit_FACET_info();

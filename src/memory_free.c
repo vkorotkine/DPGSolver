@@ -46,6 +46,7 @@ void memory_free(void)
 		// Initialization
 		free(DB.TestCase);
 		free(DB.MeshType);
+		free(DB.MeshPath);
 		free(DB.BumpOrder);
 		free(DB.Form);
 		free(DB.NodeType);

@@ -89,7 +89,6 @@ void solver_implicit(void)
 		KSPSetType(ksp,KSPGMRES);
 		KSPGMRESSetOrthogonalization(ksp,KSPGMRESModifiedGramSchmidtOrthogonalization);
 //		KSPGMRESSetRestart(ksp,60); // Default: 30
-		KSPSetUp(ksp);
 
 		KSPGetPC(ksp,&pc);
 
@@ -104,6 +103,7 @@ void solver_implicit(void)
 		PCSetType(pc,PCLU);
 */
 		PCSetUp(pc);
+		KSPSetUp(ksp);
 
 		printf("S ");
 		KSPSolve(ksp,b,x);

@@ -10,6 +10,7 @@
  
 #include "Parameters.h"
 #include "Macros.h"
+#include "Test.h"
 #include "S_DB.h"
 
 /*
@@ -240,8 +241,9 @@ void setup_parameters()
 		PJc[P] = malloc(NEC * sizeof **PJc); // keep
 
 		// ToBeDeleted: These orders may not be sufficient for 3D. To be investigated.
-		PGc[P]    = max(P,u2);
-//		PGc[P]    = max(P+1,u2);
+//		PGc[P]    = max(P,u1);
+u1 = u2; u1 = 1;
+		PGc[P]    = max(P+1,u2);
 		PCs[P][0] = PGs;
 		PCs[P][1] = max(PGs-1,u1);
 		PCs[P][2] = PGs;             // ToBeModified
@@ -570,4 +572,82 @@ void setup_parameters()
 	DB.NodeTypeIvc     = NodeTypeIvc;
 
 	DB.VFPartUnity = VFPartUnity;
+}
+
+void setup_parameters_L2proj(void)
+{
+	/*
+	 *	Purpose:
+	 *		Modify geometry and integration related parameters for L2 projection error testing.
+	 */
+
+	// Initialize DB and TestDB Parameters
+	unsigned int PG_add        = TestDB.PG_add,
+	             IntOrder_mult = TestDB.IntOrder_mult;
+
+	unsigned int d    = DB.d,
+	             PMax = DB.PMax;
+
+	// Standard datatypes
+	unsigned int u1 = 1, P, PGs, *PGc, **PCs, **PCc, **PJs, **PJc, **PIfs, **PIfc, **PIvs, **PIvc, IntOrder;
+
+	if (DB.Collocated)
+		printf("Error: L2 projection error testing requires the use of an uncollocated scheme.\n"), EXIT_MSG;
+
+	PGs = DB.PGs;
+	PGc = DB.PGc;
+	PCs = DB.PCs;
+	PCc = DB.PCc;
+	PJs = DB.PJs;
+	PJc = DB.PJc;
+
+	PIfs = DB.PIfs;
+	PIfc = DB.PIfc;
+	PIvs = DB.PIvs;
+	PIvc = DB.PIvc;
+
+	for (P = 0; P <= PMax; P++) {
+		// Geometry
+		PGc[P]    = max(P,u1)+PG_add;
+		PCs[P][0] = PGs;
+		PCs[P][1] = max(PGs-1,u1);
+		PCs[P][2] = PGs;             // ToBeModified
+		PCc[P][0] = PGc[P];
+		PCc[P][1] = max(PGc[P]-1,u1);
+		PCc[P][2] = PGc[P];          // ToBeModified
+		PJs[P][0] = PGs;
+		PJs[P][1] = max(PGs-1,u1);
+		PJs[P][2] = PGs;             // ToBeModified
+		PJc[P][0] = PGc[P];
+		PJc[P][1] = max(PGc[P]-1,u1);
+		PJc[P][2] = PGc[P];          // ToBeModified
+
+		// Integration
+		IntOrder = max(P*IntOrder_mult,u1);
+
+		// TP
+		PIfs[P][0] = floor(1.0*IntOrder/2.0);
+		PIfc[P][0] = floor(1.0*IntOrder/2.0);
+		PIvs[P][0] = floor(1.0*IntOrder/2.0);
+		PIvc[P][0] = floor(1.0*IntOrder/2.0);
+
+		// SI
+		if (d == 2) {
+			PIfs[P][1] = floor(1.0*IntOrder/2.0);
+			PIfc[P][1] = floor(1.0*IntOrder/2.0);
+			PIvs[P][1] = IntOrder;
+			PIvc[P][1] = IntOrder;
+		} else if (d == 3) {
+			PIfs[P][1] = IntOrder;
+			PIfc[P][1] = IntOrder;
+			PIvs[P][1] = IntOrder;
+			PIvc[P][1] = IntOrder;
+		}
+
+		// PYR
+		PIfs[P][2] = 0; // Not used
+		PIfc[P][2] = 0; // Not used
+		PIvs[P][2] = floor(1.0*IntOrder/2.0);
+		PIvc[P][2] = floor(1.0*IntOrder/2.0);
+	}
 }

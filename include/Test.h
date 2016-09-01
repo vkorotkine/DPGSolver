@@ -7,6 +7,13 @@
 struct S_TEST {
 	// Counters
 	unsigned int Ntest, Npass, Nwarnings, EnteredRiemann[4], EnteredLF[2], EnteredRoe[4];
+
+	// Initialization
+	char         *TestCase;
+	unsigned int PGlobal, ML;
+
+	// Parameters
+	unsigned int PG_add, IntOrder_mult;
 };
 extern struct S_TEST TestDB;
 

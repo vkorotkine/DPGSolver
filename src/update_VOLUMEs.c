@@ -510,12 +510,8 @@ void update_Vgrp(void)
 	}
 }
 
-void update_VOLUME_Ops(void)
+void compute_inverse_mass(struct S_VOLUME *VOLUME)
 {
-	// Initialize DB Parameters
-	char         *SolverType = DB.SolverType;
-	unsigned int Collocated  = DB.Collocated;
-
 	// Standard datatypes
 	unsigned int iMax, jMax,
 	             NvnS, NvnI;
@@ -523,68 +519,78 @@ void update_VOLUME_Ops(void)
 	             *wdetJVChiS_vI, *wdetJVChiS_vI_ptr, *IS, *M, *MInv;
 
 	struct S_OPERATORS *OPS;
-	struct S_VOLUME    *VOLUME;
 
 	OPS = malloc(sizeof *OPS); // free
+
+	init_ops(OPS,VOLUME,0);
+
+	NvnS = OPS->NvnS;
+	NvnI = OPS->NvnI;
+	w_vI    = OPS->w_vI;
+	ChiS_vI = OPS->ChiS_vI;
+
+	detJV_vI = VOLUME->detJV_vI;
+
+	// Compute required portion of MInv
+	wdetJV_vI = malloc(NvnI * sizeof *wdetJV_vI); // free
+	MInv      = NULL;
+
+	w_vI_ptr      = w_vI;
+	detJV_vI_ptr  = detJV_vI;
+	wdetJV_vI_ptr = wdetJV_vI;
+	for (iMax = NvnI; iMax--; )
+		*wdetJV_vI_ptr++ = (*w_vI_ptr++)*(*detJV_vI_ptr++);
+
+	wdetJVChiS_vI = malloc(NvnI*NvnS * sizeof *wdetJVChiS_vI); // free
+
+	ChiS_vI_ptr       = ChiS_vI;
+	wdetJVChiS_vI_ptr = wdetJVChiS_vI;
+	for (iMax = NvnI*NvnS; iMax--; )
+		*wdetJVChiS_vI_ptr++ = *ChiS_vI_ptr++;
+
+	wdetJV_vI_ptr     = wdetJV_vI;
+	wdetJVChiS_vI_ptr = wdetJVChiS_vI;
+	for (iMax = NvnI; iMax--; ) {
+		for (jMax = NvnS; jMax--; )
+			*wdetJVChiS_vI_ptr++ *= *wdetJV_vI_ptr;
+		wdetJV_vI_ptr++;
+	}
+
+	M    = mm_Alloc_d(CBRM,CBT,CBNT,NvnS,NvnS,NvnI,1.0,ChiS_vI,wdetJVChiS_vI); // free
+	IS   = identity_d(NvnS);                                                   // free
+	MInv = inverse_d(NvnS,NvnS,M,IS);                                          // keep
+
+	free(wdetJVChiS_vI);
+	free(M);
+	free(IS);
+	free(wdetJV_vI);
+
+	free(VOLUME->MInv);
+	VOLUME->MInv = MInv;
+
+	free(OPS);
+}
+
+void update_VOLUME_Ops(void)
+{
+	// Initialize DB Parameters
+	char         *SolverType = DB.SolverType;
+	unsigned int Collocated  = DB.Collocated;
+
+	// Standard datatypes
+	struct S_VOLUME    *VOLUME;
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		if (VOLUME->update) {
 			VOLUME->update = 0;
 			if (strstr(SolverType,"Explicit")) {
-				if (!Collocated) {
-					init_ops(OPS,VOLUME,0);
-
-					NvnS = OPS->NvnS;
-					NvnI = OPS->NvnI;
-					w_vI    = OPS->w_vI;
-					ChiS_vI = OPS->ChiS_vI;
-
-					detJV_vI = VOLUME->detJV_vI;
-
-					// Compute required portion of MInv
-					wdetJV_vI = malloc(NvnI * sizeof *wdetJV_vI); // free
-					MInv      = NULL;
-
-					w_vI_ptr      = w_vI;
-					detJV_vI_ptr  = detJV_vI;
-					wdetJV_vI_ptr = wdetJV_vI;
-					for (iMax = NvnI; iMax--; )
-						*wdetJV_vI_ptr++ = (*w_vI_ptr++)*(*detJV_vI_ptr++);
-
-					wdetJVChiS_vI = malloc(NvnI*NvnS * sizeof *wdetJVChiS_vI); // free
-
-					ChiS_vI_ptr       = ChiS_vI;
-					wdetJVChiS_vI_ptr = wdetJVChiS_vI;
-					for (iMax = NvnI*NvnS; iMax--; )
-						*wdetJVChiS_vI_ptr++ = *ChiS_vI_ptr++;
-
-					wdetJV_vI_ptr     = wdetJV_vI;
-					wdetJVChiS_vI_ptr = wdetJVChiS_vI;
-					for (iMax = NvnI; iMax--; ) {
-						for (jMax = NvnS; jMax--; )
-							*wdetJVChiS_vI_ptr++ *= *wdetJV_vI_ptr;
-						wdetJV_vI_ptr++;
-					}
-
-					M    = mm_Alloc_d(CBRM,CBT,CBNT,NvnS,NvnS,NvnI,1.0,ChiS_vI,wdetJVChiS_vI); // free
-					IS   = identity_d(NvnS);                                                   // free
-					MInv = inverse_d(NvnS,NvnS,M,IS);                                          // keep
-
-					free(wdetJVChiS_vI);
-					free(M);
-					free(IS);
-					free(wdetJV_vI);
-
-					free(VOLUME->MInv);
-					VOLUME->MInv = MInv;
-				}
+				if (!Collocated)
+					compute_inverse_mass(VOLUME);
 			} else {
 				printf("Error: Unsupported SolverType.\n"), EXIT_MSG;
 			}
 		}
 	}
-
-	free(OPS);
 }
 
 void update_VOLUME_finalize(void)

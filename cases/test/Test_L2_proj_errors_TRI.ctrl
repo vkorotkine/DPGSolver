@@ -6,25 +6,25 @@
 
 BEGIN PARAMETERS
   Dimension  2
-  ML         3
+  ML         0
   MeshType   ToBeCurvedStructuredTRI
 
-  Form       Weak  // Options: Weak, Strong
-  NodeType   GL-AO // Options: GL/GLL-AO/WS/SH
+  Form       Weak  // Options: Weak, (Strong)
+  NodeType   GL-AO // Options: GL/GLL-AO/WSH
   BasisType  Nodal // Options: Nodal, Modal
 
-  Vectorized 0     // Options: 0, 1, 2, 3
-  EFE        1     // Options: 0, 1
+  Vectorized 0     // Options: 0, 1
+  EFE        1     // Options: (0), 1
   Collocated 0     // Options: 0, 1
-  Adaptive   0     // Options: 0 (Likely add h, p, hp options later)
+  Adapt      0     // Options: 0, 1, 2, (3)
 
-  PGlobal    3
+  PGlobal    0
   PMax       4
   LevelsMax  5
 
   Restart    -1    // Options: -1, 0, Iteration #
 
-  Testing    0     // Options: 0, 1
+  Testing    1     // Options: 0, 1
 END PARAMETERS
 
 BEGIN MESH

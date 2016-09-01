@@ -30,6 +30,8 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 
 int main(void)
 {
+	unsigned int Testing;
+
 	char         *TestCase, *MeshType, f_name[STRLEN_MAX], string[STRLEN_MIN], *data, StringRead[STRLEN_MAX];
 	unsigned int i, ML, P,
 	             Indh,
@@ -42,6 +44,8 @@ int main(void)
 	TestCase = malloc(STRLEN_MAX * sizeof *TestCase); // free
 	MeshType = malloc(STRLEN_MAX * sizeof *MeshType); // free
 
+	Testing = 1;
+
 	strcpy(TestCase,"PeriodicVortex");
 	strcpy(TestCase,"SupersonicVortex");
 	strcpy(MeshType,"ToBeCurvedStructuredTRI");
@@ -51,19 +55,26 @@ int main(void)
 
 	d     = 2;
 	NVars = 6;
-	MLMin = 0; MLMax = 6; NML = MLMax-MLMin+1;
+	MLMin = 0; MLMax = 4; NML = MLMax-MLMin+1;
 	PMin  = 0; PMax  = 4; NP  = PMax-PMin+1;
 
-	unsigned int CasesRun[45] = { 0, 1, 1, 1, 1,
-	                              0, 1, 1, 1, 1,
-	                              0, 1, 1, 1, 1,
-	                              1, 1, 1, 1, 1,
-	                              1, 1, 1, 1, 1,
-	                              1, 1, 1, 1, 1,
+	unsigned int CasesRun[45] = { 0, 0, 1, 1, 1,
+	                              0, 0, 1, 1, 1,
+	                              0, 0, 1, 1, 1,
+	                              1, 0, 1, 1, 1,
+	                              1, 0, 1, 0, 0,
+	                              1, 1, 1, 0, 0,
 	                              1, 1, 1, 0, 0,
 	                              0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0};
 
+	if (Testing) {
+		for (ML = MLMin; ML <= MLMax; ML++) {
+		for (P = PMin; P <= PMax; P++) {
+			Indh = ML*NP+P;
+			CasesRun[Indh] = 1;
+		}}
+	}
 
 	L2Errors   = malloc(NVars * sizeof *L2Errors);   // free
 	ConvOrders = malloc(NVars * sizeof *ConvOrders); // free
