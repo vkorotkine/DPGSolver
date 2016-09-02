@@ -1,6 +1,8 @@
 // Modifiable Parameters
 lc = 1; // Not used.
 
+Refine = 5;
+
 rIn = 1;
 rOut = 1.384;
 
@@ -23,10 +25,10 @@ Line(1005) = {6,5};
 Line(1006) = {6,2};
 Line(1007) = {4,6};
 
-Transfinite Line {1003:1006}      = 2 Using Progression 1;
-Transfinite Line {1001,1002,1007} = 5 Using Progression 1;
+Transfinite Line {1003:1006}      = 2^(Refine)+1 Using Progression 1;
+Transfinite Line {1001,1002,1007} = 2^(Refine)+1 Using Progression 1;
+//Transfinite Line {1001,1002,-1007} = 2^(Refine+2)+1 Using Progression 1.1-0.09*(Refine/5);
 
-//Line Loop (4001) = {1003,1002,-1005,-1007};
 Line Loop (4001) = {1007,1005,-1002,-1003};
 Line Loop (4002) = {-1007,1004,1001,-1006};
 

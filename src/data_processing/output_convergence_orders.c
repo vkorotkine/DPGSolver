@@ -44,7 +44,7 @@ int main(void)
 	TestCase = malloc(STRLEN_MAX * sizeof *TestCase); // free
 	MeshType = malloc(STRLEN_MAX * sizeof *MeshType); // free
 
-	Testing = 1;
+	Testing = 0;
 
 	strcpy(TestCase,"PeriodicVortex");
 	strcpy(TestCase,"SupersonicVortex");
@@ -55,16 +55,16 @@ int main(void)
 
 	d     = 2;
 	NVars = 6;
-	MLMin = 0; MLMax = 4; NML = MLMax-MLMin+1;
+	MLMin = 0; MLMax = 5; NML = MLMax-MLMin+1;
 	PMin  = 0; PMax  = 4; NP  = PMax-PMin+1;
 
 	unsigned int CasesRun[45] = { 0, 0, 1, 1, 1,
 	                              0, 0, 1, 1, 1,
 	                              0, 0, 1, 1, 1,
 	                              1, 0, 1, 1, 1,
-	                              1, 0, 1, 0, 0,
-	                              1, 1, 1, 0, 0,
-	                              1, 1, 1, 0, 0,
+	                              1, 1, 1, 1, 1,
+	                              1, 1, 0, 0, 0,
+	                              1, 1, 0, 0, 0,
 	                              0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0};
 

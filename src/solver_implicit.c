@@ -102,8 +102,8 @@ void solver_implicit(void)
 		KSPSetType(ksp,KSPPREONLY);
 		PCSetType(pc,PCLU);
 */
-		PCSetUp(pc);
 		KSPSetUp(ksp);
+		PCSetUp(pc);
 
 		printf("S ");
 		KSPSolve(ksp,b,x);

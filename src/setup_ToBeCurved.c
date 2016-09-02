@@ -16,6 +16,8 @@
 #include "array_norm.h"
 #include "cubature.h"
 
+#include "array_print.h" // ToBeDeleted
+
 /*
  *	Purpose:
  *		Set up to be curved meshes.
@@ -114,6 +116,12 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 
 static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZ_S, double *XYZ)
 {
+	/*
+	 *	Comments:
+	 *		Uses exact parametrization (through polar coordinate transformation) for 2D and Rosca(2011)'s formula for
+	 *		the 3D spherical projection.
+	 */
+
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
 	unsigned int d         = DB.d;
@@ -122,7 +130,7 @@ static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZ_S, double *XY
 	unsigned int dim, n,
 	             OrderOut[3];
 	int          SignOut;
-	double       XYZn[3], XYn[2], XYZn_normInf, beta, *XYZ_Sphere;
+	double       XYZn[3], r, t, XYn[2], XYZn_normInf, beta, *XYZ_Sphere, PIo4;
 
 	// silence
 	for (dim = 0; dim < 3; dim++) {
@@ -131,51 +139,74 @@ static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZ_S, double *XY
 		OrderOut[dim] = 0;
 	}
 
-	for (n = 0; n < Nn; n++) {
-		for (dim = 0; dim < d; dim++)
-			XYZn[dim] = XYZ_S[Nn*dim+n];
+	if (d == 3) {
+		for (n = 0; n < Nn; n++) {
+			for (dim = 0; dim < d; dim++)
+				XYZn[dim] = XYZ_S[Nn*dim+n];
 
-		if (d == 2 || strstr(TestCase,"SupersonicVortex"))
-			XYZn[2] = 0.0;
+			if (d == 2 || strstr(TestCase,"SupersonicVortex"))
+				XYZn[2] = 0.0;
 
-		for (dim = 0; dim < d; dim++) {
-			beta = array_norm_d(1,&XYZn[dim],"Inf");
-			XYZn_normInf = array_norm_d(3,XYZn,"Inf");
-			if (array_norm_diff_d(1,&XYZn_normInf,&beta,"Inf") < EPS)
-				break;
+			for (dim = 0; dim < d; dim++) {
+				beta = array_norm_d(1,&XYZn[dim],"Inf");
+				XYZn_normInf = array_norm_d(3,XYZn,"Inf");
+				if (array_norm_diff_d(1,&XYZn_normInf,&beta,"Inf") < EPS)
+					break;
+			}
+
+			SignOut = sign(XYZn[dim]);
+			if (dim == 0) {
+				XYn[0] = XYZn[1];
+				XYn[1] = XYZn[2];
+				OrderOut[0] = 2; OrderOut[1] = 0; OrderOut[2] = 1;
+			} else if (dim == 1) {
+				XYn[0] = XYZn[0];
+				XYn[1] = XYZn[2];
+				OrderOut[0] = 0; OrderOut[1] = 2; OrderOut[2] = 1;
+			} else if (dim == 2) {
+				if (d == 2)
+					printf("Error: Invalid entry for d = 2.\n"), EXIT_MSG;
+
+				XYn[0] = XYZn[0];
+				XYn[1] = XYZn[1];
+				OrderOut[0] = 0; OrderOut[1] = 1; OrderOut[2] = 2;
+			}
+
+			XYZ_Sphere = cube_to_sphere(XYn,OrderOut,SignOut,beta); // free
+
+			for (dim = 0; dim < 2; dim++)
+				XYZ[Nn*dim+n] = XYZ_Sphere[dim];
+
+			if (d == 3) {
+				if (strstr(TestCase,"SupersonicVortex") == NULL)
+					XYZ[Nn*2+n] = XYZ_Sphere[2];
+				else
+					XYZ[Nn*2+n] = XYZ_S[Nn*2+n];
+			}
+
+			free(XYZ_Sphere);
 		}
+	} else if (d == 2) {
+		PIo4 = 0.25*PI;
+		for (n = 0; n < Nn; n++) {
+			for (dim = 0; dim < d; dim++)
+				XYZn[dim] = XYZ_S[Nn*dim+n];
 
-		SignOut = sign(XYZn[dim]);
-		if (dim == 0) {
-			XYn[0] = XYZn[1];
-			XYn[1] = XYZn[2];
-			OrderOut[0] = 2; OrderOut[1] = 0; OrderOut[2] = 1;
-		} else if (dim == 1) {
-			XYn[0] = XYZn[0];
-			XYn[1] = XYZn[2];
-			OrderOut[0] = 0; OrderOut[1] = 2; OrderOut[2] = 1;
-		} else if (dim == 2) {
-			if (d == 2)
-				printf("Error: Invalid entry for d = 2.\n"), EXIT_MSG;
+			r = array_norm_d(d,XYZn,"Inf");
+			t = atan2(XYZn[1],XYZn[0]);
 
-			XYn[0] = XYZn[0];
-			XYn[1] = XYZn[1];
-			OrderOut[0] = 0; OrderOut[1] = 1; OrderOut[2] = 2;
-		}
-
-		XYZ_Sphere = cube_to_sphere(XYn,OrderOut,SignOut,beta); // free
-
-		for (dim = 0; dim < 2; dim++)
-			XYZ[Nn*dim+n] = XYZ_Sphere[dim];
-
-		if (d == 3) {
-			if (strstr(TestCase,"SupersonicVortex") == NULL)
-				XYZ[Nn*2+n] = XYZ_Sphere[2];
+			if      (t >= -    PIo4 && t <      PIo4) t =          XYZn[1]/r*PIo4;
+			else if (t >=      PIo4 && t <  3.0*PIo4) t = 0.5*PI - XYZn[0]/r*PIo4;
+			else if (t >=  3.0*PIo4 && t < -3.0*PIo4) t =     PI - XYZn[1]/r*PIo4;
+			else if (t >= -3.0*PIo4 && t < -    PIo4) t = 1.5*PI + XYZn[0]/r*PIo4;
 			else
-				XYZ[Nn*2+n] = XYZ_S[Nn*2+n];
-		}
+				printf("Error\n");
 
-		free(XYZ_Sphere);
+			XYZ[     n] = r*cos(t);
+			XYZ[Nn*1+n] = r*sin(t);
+		}
+	} else {
+		printf("Error: Unsupported d.\n"), EXIT_MSG;
 	}
 }
 

@@ -241,9 +241,9 @@ void setup_parameters()
 		PJc[P] = malloc(NEC * sizeof **PJc); // keep
 
 		// ToBeDeleted: These orders may not be sufficient for 3D. To be investigated.
-//		PGc[P]    = max(P,u1);
+		PGc[P]    = max(P,u1);
 u1 = u2; u1 = 1;
-		PGc[P]    = max(P+1,u2);
+//		PGc[P]    = max(P+1,u2);
 		PCs[P][0] = PGs;
 		PCs[P][1] = max(PGs-1,u1);
 		PCs[P][2] = PGs;             // ToBeModified
@@ -609,6 +609,7 @@ void setup_parameters_L2proj(void)
 	for (P = 0; P <= PMax; P++) {
 		// Geometry
 		PGc[P]    = max(P,u1)+PG_add;
+PGc[P] = PGs;
 		PCs[P][0] = PGs;
 		PCs[P][1] = max(PGs-1,u1);
 		PCs[P][2] = PGs;             // ToBeModified
@@ -623,7 +624,7 @@ void setup_parameters_L2proj(void)
 		PJc[P][2] = PGc[P];          // ToBeModified
 
 		// Integration
-		IntOrder = max(P*IntOrder_mult,u1);
+		IntOrder = max(P*IntOrder_mult,u1)+1;
 
 		// TP
 		PIfs[P][0] = floor(1.0*IntOrder/2.0);
