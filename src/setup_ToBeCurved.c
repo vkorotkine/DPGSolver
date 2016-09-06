@@ -139,7 +139,8 @@ static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZ_S, double *XY
 		OrderOut[dim] = 0;
 	}
 
-	if (d == 3) {
+//	if (d == 3) {
+	if (1||d == 3) {
 		for (n = 0; n < Nn; n++) {
 			for (dim = 0; dim < d; dim++)
 				XYZn[dim] = XYZ_S[Nn*dim+n];

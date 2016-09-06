@@ -24,7 +24,8 @@
 #include "jacobian_fluxes_inviscid.h"
 #include "array_swap.h"
 
-#include "array_print.h"
+//#include "exact_solutions.h" // ToBeDeleted
+//#include "variable_functions.h" // ToBeDeleted
 
 /*
  *	Purpose:
@@ -364,6 +365,15 @@ static void compute_FACET_EFE(void)
 				boundary_Riemann(NfnI,1,FACET->XYZ_fI,WIn_fI,NULL,WOut_fIIn,n_fI,d);
 			} else if (BC % BC_STEP_SC == BC_SLIPWALL) {
 				boundary_SlipWall(NfnI,1,WIn_fI,WOut_fIIn,n_fI,d);
+/*
+double *UEx, *sEx;
+UEx = malloc(NVAR3D*NfnI * sizeof *UEx); // free
+sEx = malloc(NfnI        * sizeof *sEx); // free
+compute_exact_solution(NfnI,FACET->XYZ_fI,UEx,sEx,0);
+convert_variables(UEx,WOut_fIIn,3,d,NfnI,1,'p','c');
+free(UEx);
+free(sEx);
+*/
 			} else {
 				printf("Error: Unsupported BC in implicit_FACET_info.\n"), exit(1);
 			}
