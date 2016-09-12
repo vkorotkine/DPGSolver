@@ -992,7 +992,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	// No need to consider the second Eclass as WEDGE basis functions will be built through a combination of lower
 	// dimensional operators.
 	Eclass = get_Eclass(EType);
-	if (EType != TET && EType != PYR)
+//	if (EType != TET && EType != PYR)
 		setup_ELEMENT_VeV(EType);
 
 	dE      = ELEMENT->d;
@@ -1332,13 +1332,13 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				}
 
 				free(ChiRefGs_vS);
-				free(ChiRefInvGs_vGs);
 			}
 
 			// Note: Nvref >= NvrefSF
 			for (vh = 0; vh < Nvref; vh++) {
 				vrefSF = vh; // Used for operators defined only for setup_TP_operators
 				mm_CTN_d(Nvve[vh],dE,Nve,VeV[vh],E_rst_vC,rst_vC);
+
 				if (vh) {
 					Indh = get_IndEhref(EType,vh);
 					if (EType == PYR)
@@ -1750,6 +1750,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(rst_vIs);
 	free(rst_vIc);
 
+	free(ChiRefInvGs_vGs);
 
 	for (IndFType = 0; IndFType < NFTypes; IndFType++) {
 		array_free2_d(PMax+1,BCoords_F[IndFType]->S);

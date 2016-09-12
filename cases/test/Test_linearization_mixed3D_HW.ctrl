@@ -5,9 +5,9 @@
 /*------------------------------------------------------------*/
 
 BEGIN PARAMETERS
-  Dimension  2
+  Dimension  3
   ML         0
-  MeshType   TRI_ToBeCurvedlinearization
+  MeshType   Mixed3D_ToBeCurvedlinearizationHW1x
 
   Form       Weak  // Options: Weak, (Strong)
   NodeType   GL-AO // Options: GL/GLL-AO/WSH

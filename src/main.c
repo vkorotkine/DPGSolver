@@ -195,6 +195,8 @@ int main(int nargc, char **argv)
 #include <stdio.h>
 #include <time.h>
 
+#include "petscsys.h"
+
 #include "test_unit_array_find_index.h"
 #include "test_unit_array_norm.h"
 #include "test_unit_array_sort.h"
@@ -247,8 +249,8 @@ int main(int nargc, char **argv)
 	TestDB.Npass = 0;
 	TestDB.Nwarnings = 0;
 
-	RunTest.unit        = 0;
-	RunTest.integration = 0;
+	RunTest.unit        = 1;
+	RunTest.integration = 1;
 	RunTest.speed       = 0;
 
 
@@ -301,9 +303,10 @@ int main(int nargc, char **argv)
 	if (RunTest.integration) {
 		test_integration_update_h(nargc,argv);
 		test_integration_L2_projections(nargc,argv);
+		test_integration_linearization(nargc,argv);
+		PetscFinalize();
 	}
-//	test_integration_linearization(nargc,argv);
-	test_integration_L2_projection_errors(nargc,argv);
+//	test_integration_L2_projection_errors(nargc,argv);
 
 
 	te = clock();

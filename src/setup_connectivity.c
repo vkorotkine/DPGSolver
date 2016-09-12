@@ -8,6 +8,7 @@
 
 #include "petscsys.h"
  
+#include "Macros.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 
@@ -291,26 +292,27 @@ void setup_connectivity(void)
 
 	for (v = 0, gf = 0; v < NV; v++) {
 	for (f = 0; f < NfMax; f++) {
-		if (VToVe[v*8+f] != NVe) {
-			vNeigh = VToV[v*NfMax+f];
-			fNeigh = VToF[v*NfMax+f];
+		vNeigh = VToV[v*NfMax+f];
+		fNeigh = VToF[v*NfMax+f];
 
-			if (VToGF[v*NfMax+f] == NGF) {
-				VToGF[v*NfMax+f] = gf;
-				VToGF[vNeigh*NfMax+fNeigh] = gf;
+		if (vNeigh == NV)
+			continue;
 
-				ELEMENT = DB.ELEMENT; while(ELEMENT->type != VType[v]) ELEMENT = ELEMENT->next;
-				Nfve    = ELEMENT->Nfve;
-				VeFcon = ELEMENT->VeFcon;
+		if (VToGF[v*NfMax+f] == NGF) {
+			VToGF[v*NfMax+f] = gf;
+			VToGF[vNeigh*NfMax+fNeigh] = gf;
 
-				Nve = Nfve[f];
-				NveGF[gf] = Nve;
+			ELEMENT = DB.ELEMENT; while(ELEMENT->type != VType[v]) ELEMENT = ELEMENT->next;
+			Nfve    = ELEMENT->Nfve;
+			VeFcon = ELEMENT->VeFcon;
 
-				for (ve = 0; ve < Nve; ve++)
-					GFToVeOver[gf*NfveMax+ve] = VToVe[v*8+VeFcon[f*4+ve]];
+			Nve = Nfve[f];
+			NveGF[gf] = Nve;
 
-				gf++;
-			}
+			for (ve = 0; ve < Nve; ve++)
+				GFToVeOver[gf*NfveMax+ve] = VToVe[v*8+VeFcon[f*4+ve]];
+
+			gf++;
 		}
 	}}
 	NGF = gf;

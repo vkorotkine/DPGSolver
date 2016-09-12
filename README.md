@@ -3,7 +3,7 @@
 ### Code Description
 - Open source using only open source libraries/supporting programs.
 - Methods: Discontinuous Petrov Galerkin (DPG) with the option for standard Discontinuous Galerkin (DG).
-- Supported elements: LINEs, TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
+- Supported elements: TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
 - Supported refinements: isotropic h (size) or p (order).
 
 ### Supported PDEs
@@ -102,7 +102,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 |---------------------|------|
 | flux inviscid       | DONE |
 | flux lax-friedrichs | DONE |
-| flux roe-pike       | ACTIVE |
+| flux roe-pike       | DONE |
 | boundary Riemann    | DONE |
 | boundary SlipWall   | DONE |
 

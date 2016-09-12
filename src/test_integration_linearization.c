@@ -35,7 +35,7 @@
  *
  *	Comments:
  *		By default, the complete linearization is checked here. However, linearizations of the individual contributions
- *		listed below may be checked separately (See the commented code in 'test_integration_linearization':
+ *		listed below may be checked separately (See the commented code in 'test_integration_linearization'):
  *			0) complete check (default)
  *			1) diagonal VOLUME contributions
  *			2) diagonal FACET contributions
@@ -361,12 +361,8 @@ void test_integration_linearization(int nargc, char **argv)
 	    x = NULL, x_cs = NULL, x_csc = NULL;
 
 	// **************************************************************************************************** //
-	// LINEs
-
-
-	// **************************************************************************************************** //
-	// TRIs
-	strcpy(argvNew[1],"test/Test_linearization_TRI");
+	// 2D (Mixed TRI/QUAD mesh)
+	strcpy(argvNew[1],"test/Test_linearization_mixed2D");
 
 	code_startup(nargc,argvNew,2,0);
 
@@ -398,17 +394,68 @@ void test_integration_linearization(int nargc, char **argv)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("Linearization - VOLUME diag (TRI  ):             ");
+	printf("Linearization (2D - Mixed):                      ");
 	test_print(pass);
 
-
-	// Don't forget to MatDestroy b when implemented (ToBeDeleted)
 	finalize_ksp(&A,&b,&x,2);
 	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
 	finalize_ksp(&A_csc,&b_csc,&x_csc,2);
-
 	code_cleanup(0);
 
-// last code_cleanup should take an argument of 1 (ToBeModified)
+	// **************************************************************************************************** //
+	// 3D (Mixed TET/PYR mesh)
+	strcpy(argvNew[1],"test/Test_linearization_mixed3D_TP");
+
+	code_startup(nargc,argvNew,2,0);
+
+	implicit_VOLUME_info();
+	implicit_FACET_info();
+
+	finalize_LHS(&A,&b,&x,0);
+	compute_A_cs(&A_cs,&b_cs,&x_cs,0);
+	compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
+
+	pass = 0;
+	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < EPS &&
+	    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < EPS)
+		pass = 1, TestDB.Npass++;
+
+	//     0         10        20        30        40        50
+	printf("Linearization (3D - Mixed SI/PYR):               ");
+	test_print(pass);
+
+	finalize_ksp(&A,&b,&x,2);
+	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
+	finalize_ksp(&A_csc,&b_csc,&x_csc,2);
+	code_cleanup(0);
+
+
+	// **************************************************************************************************** //
+	// 3D (Mixed HEX/WEDGE mesh)
+	strcpy(argvNew[1],"test/Test_linearization_mixed3D_HW");
+
+	code_startup(nargc,argvNew,2,0);
+
+	implicit_VOLUME_info();
+	implicit_FACET_info();
+
+	finalize_LHS(&A,&b,&x,0);
+	compute_A_cs(&A_cs,&b_cs,&x_cs,0);
+	compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
+
+	pass = 0;
+	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < EPS &&
+	    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < EPS)
+		pass = 1, TestDB.Npass++;
+
+	//     0         10        20        30        40        50
+	printf("Linearization (3D - Mixed HEX/WEDGE):            ");
+	test_print(pass);
+
+	finalize_ksp(&A,&b,&x,2);
+	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
+	finalize_ksp(&A_csc,&b_csc,&x_csc,2);
+	code_cleanup(0);
+
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 }

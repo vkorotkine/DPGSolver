@@ -21,7 +21,7 @@ CSTD := -std=c99
 # Options
 OPTS := -O3
 OPTS += -g -Wall -Wextra -Werror
-#OPTS += -DTEST
+OPTS += -DTEST
 
 
 # Standard libraries (Math)

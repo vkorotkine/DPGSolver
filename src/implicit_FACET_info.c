@@ -24,8 +24,13 @@
 #include "jacobian_fluxes_inviscid.h"
 #include "array_swap.h"
 
-//#include "exact_solutions.h" // ToBeDeleted
-//#include "variable_functions.h" // ToBeDeleted
+/*
+#include "exact_solutions.h" // ToBeDeleted
+#include "variable_functions.h" // ToBeDeleted
+#include "array_print.h" // ToBeDeleted
+#include <math.h> // ToBeDeleted
+#include "array_norm.h" // ToBeDeleted
+*/
 
 /*
  *	Purpose:
@@ -394,6 +399,55 @@ free(sEx);
 			break;
 		case FLUX_ROE:
 			flux_Roe(NfnI,1,WIn_fI,WOut_fIIn,nFluxNum_fI,n_fI,d,Neq);
+/*
+if (BC % BC_STEP_SC == BC_SLIPWALL) {
+// Modify computed nFluxNum_fI by using the solution to the Riemann problem for a reflection.
+// See Toro(2009): eq. 6.23 to 6.25.
+
+double *U_fI, *P_fI, *u_fI, *v_fI, *rho_fI;
+
+U_fI = malloc(NfnI*Nvar * sizeof *U_fI); // free
+
+convert_variables(WIn_fI,U_fI,d,d,NfnI,1,'c','p');
+P_fI = &U_fI[NfnI*(Nvar-1)];
+rho_fI = U_fI;
+u_fI = &U_fI[NfnI*1];
+v_fI = &U_fI[NfnI*2];
+
+double n1, n2, uL, vL, pL, p, AL, BL, rhoL, aL, Vn;
+for (n = 0; n < NfnI; n++) {
+	n1 = n_fI[n*d+0];
+	n2 = n_fI[n*d+1];
+
+	rhoL = rho_fI[n];
+	uL = u_fI[n];
+	vL = v_fI[n];
+	pL = P_fI[n];
+
+	Vn = uL*n1+vL*n2;
+	if (Vn < 0.0) { // Rarefaction
+		aL = sqrt(GAMMA*pL/rhoL);
+		p = pL*pow((1.0+0.5*GM1*Vn/aL),2.0*GAMMA/GM1);
+	} else { // Shock
+		AL = 2.0/((GAMMA+1)*rhoL);
+		BL = GM1/(GAMMA+1)*pL;
+		p = pL+0.5*Vn/AL*(Vn+sqrt(Vn*Vn+4*AL*(pL+BL)));
+	}
+
+	nFluxNum_fI[NfnI*0+n] = 0.0;
+//	nFluxNum_fI[NfnI*1+n] = pL*n1;
+//	nFluxNum_fI[NfnI*2+n] = pL*n2;
+	nFluxNum_fI[NfnI*1+n] = p*n1;
+	nFluxNum_fI[NfnI*2+n] = p*n2;
+	nFluxNum_fI[NfnI*3+n] = 0.0;
+
+	pL = p;
+	p = pL;
+}
+free(U_fI);
+//EXIT_MSG;
+}
+*/
 			jacobian_flux_Roe(NfnI,1,WIn_fI,WOut_fIIn,dnFluxNumdWIn_fI,n_fI,d,Neq,'L');
 			jacobian_flux_Roe(NfnI,1,WIn_fI,WOut_fIIn,dnFluxNumdWOut_fI,n_fI,d,Neq,'R');
 			break;

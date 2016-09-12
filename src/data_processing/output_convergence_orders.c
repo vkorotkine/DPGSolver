@@ -59,7 +59,7 @@ int main(void)
 	PMin  = 0; PMax  = 4; NP  = PMax-PMin+1;
 
 	unsigned int CasesRun[45] = { 0, 0, 1, 1, 1,
-	                              1, 1, 1, 1, 1,
+	                              0, 0, 1, 1, 1,
 	                              1, 1, 1, 1, 1,
 	                              1, 1, 1, 1, 1,
 	                              1, 1, 1, 1, 1,
