@@ -186,7 +186,8 @@ $(EXECDIR):
 
 OUTPUT_LIST   := paraview errors results
 TESTCASE_LIST := dSphericalBump GaussianBump PeriodicVortex \
-                 PolynomialBump SupersonicVortex VortexRiemann
+                 PolynomialBump SupersonicVortex VortexRiemann \
+                 Poisson
 MESHTYPE_LIST := ToBeCurvedStructuredTRI ToBeCurvedStructuredQUAD \
                  ToBeCurvedStructuredTET ToBeCurvedStructuredHEX \
                  ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR

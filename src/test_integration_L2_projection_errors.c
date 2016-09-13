@@ -85,7 +85,7 @@ void test_integration_L2_projection_errors(int nargc, char **argv)
 
 		code_startup(nargc,argvNew,0,1);
 		compute_errors_global();
-		code_cleanup(0);
+		code_cleanup();
 	}}
 
 pass = 0;

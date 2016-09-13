@@ -115,7 +115,7 @@ void test_integration_update_h(int nargc, char **argv)
 	printf("         (       Jacobians):                     ");
 	test_print(pass);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	// **************************************************************************************************** //
@@ -159,7 +159,7 @@ void test_integration_update_h(int nargc, char **argv)
 	printf("         (       Jacobians):                     ");
 	test_print(pass);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	// **************************************************************************************************** //
@@ -203,7 +203,7 @@ void test_integration_update_h(int nargc, char **argv)
 	printf("         (       Jacobians):                     ");
 	test_print(pass);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	// **************************************************************************************************** //
@@ -247,7 +247,7 @@ void test_integration_update_h(int nargc, char **argv)
 	printf("         (       Jacobians):                     ");
 	test_print(pass);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	// **************************************************************************************************** //
@@ -291,7 +291,7 @@ void test_integration_update_h(int nargc, char **argv)
 	printf("         (       Jacobians):                     ");
 	test_print(pass);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	// **************************************************************************************************** //
@@ -335,7 +335,7 @@ void test_integration_update_h(int nargc, char **argv)
 	printf("         (       Jacobians):                     ");
 	test_print(pass);
 
-	code_cleanup(0);
+	code_cleanup();
 
 //output_to_paraview("ZTest_Geomadapt");
 //output_to_paraview("ZTest_Normals");

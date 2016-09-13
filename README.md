@@ -75,11 +75,11 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 |                 | Weak Form   | DONE                    |
 |                 | Strong Form | UNDER CONSIDERATION     |
 |                 | Vectorized  | UNDER CONSIDERATION     |
-| facet info      |             | TO BE DONE              |
-|                 | Weak Form   | TO BE DONE              |
+| facet info      |             | DONE FOR THE TIME BEING |
+|                 | Weak Form   | DONE                    |
 |                 | Strong Form | UNDER CONSIDERATION     |
 |                 | Vectorized  | UNDER CONSIDERATION     |
-| finalize        |             | TO BE DONE              |
+| finalize        |             | DONE                    |
 
 #### Fluxes
 |           | Function       |                         |

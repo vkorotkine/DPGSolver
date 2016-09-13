@@ -92,10 +92,8 @@ void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigne
 	initialize_test_case(Nref);
 }
 
-void code_cleanup(const unsigned int final)
+void code_cleanup(void)
 {
 	mesh_to_level(0);
 	memory_free();
-	if (final)
-		PetscFinalize();
 }

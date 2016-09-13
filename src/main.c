@@ -139,12 +139,16 @@ int main(int nargc, char **argv)
 	if (!DB.MPIrank)
 		printf("  Nonlinear Iterative Solve\n\n");
 
-	if (strstr(DB.SolverType,"Explicit")) {
-		solver_explicit();
-	} else if (strstr(DB.SolverType,"Implicit")) {
-		solver_implicit();
+	if (strstr(DB.TestCase,"Poisson")) {
+		solver_poisson();
 	} else {
-		printf("Error: Unsupported SolverType in dpg_solver.\n"), EXIT_MSG;
+		if (strstr(DB.SolverType,"Explicit")) {
+			solver_explicit();
+		} else if (strstr(DB.SolverType,"Implicit")) {
+			solver_implicit();
+		} else {
+			printf("Error: Unsupported SolverType in dpg_solver.\n"), EXIT_MSG;
+		}
 	}
 	solving.te = clock();
 

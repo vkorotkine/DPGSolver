@@ -13,6 +13,7 @@ src/support_functions/*.txt
 *~
 *.swp
 
+meshes/Poisson/*
 meshes/PeriodicVortex/*
 meshes/VortexRiemann/*
 meshes/SupersonicVortex/*

@@ -400,7 +400,7 @@ void test_integration_linearization(int nargc, char **argv)
 	finalize_ksp(&A,&b,&x,2);
 	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
 	finalize_ksp(&A_csc,&b_csc,&x_csc,2);
-	code_cleanup(0);
+	code_cleanup();
 
 	// **************************************************************************************************** //
 	// 3D (Mixed TET/PYR mesh)
@@ -427,7 +427,7 @@ void test_integration_linearization(int nargc, char **argv)
 	finalize_ksp(&A,&b,&x,2);
 	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
 	finalize_ksp(&A_csc,&b_csc,&x_csc,2);
-	code_cleanup(0);
+	code_cleanup();
 
 
 	// **************************************************************************************************** //
@@ -455,7 +455,7 @@ void test_integration_linearization(int nargc, char **argv)
 	finalize_ksp(&A,&b,&x,2);
 	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
 	finalize_ksp(&A_csc,&b_csc,&x_csc,2);
-	code_cleanup(0);
+	code_cleanup();
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 }

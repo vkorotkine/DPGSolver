@@ -75,7 +75,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	strcpy(argvNew[0],argv[0]);
@@ -96,7 +96,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	// **************************************************************************************************** //
@@ -118,7 +118,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	strcpy(argvNew[0],argv[0]);
@@ -139,7 +139,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	// **************************************************************************************************** //
@@ -161,7 +161,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	strcpy(argvNew[0],argv[0]);
@@ -182,7 +182,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	// **************************************************************************************************** //
@@ -204,7 +204,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	strcpy(argvNew[0],argv[0]);
@@ -225,7 +225,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	// **************************************************************************************************** //
@@ -247,7 +247,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	strcpy(argvNew[0],argv[0]);
@@ -268,7 +268,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	// **************************************************************************************************** //
@@ -290,7 +290,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
-	code_cleanup(0);
+	code_cleanup();
 
 
 	strcpy(argvNew[0],argv[0]);
@@ -318,7 +318,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	test_print(pass);
 	free(L2err[0]), free(L2err[1]);
 
-	code_cleanup(0);
+	code_cleanup();
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 }

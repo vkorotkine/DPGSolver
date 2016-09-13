@@ -91,8 +91,10 @@
 #define RK4_LS  1
 
 // Boundary conditions
-#define BC_RIEMANN  1
-#define BC_SLIPWALL 2
+#define BC_RIEMANN   1
+#define BC_SLIPWALL  2
+#define BC_DIRICHLET 11
+#define BC_NEUMANN   12
 
 // Allowed adaptation options
 #define ADAPT_0  0
