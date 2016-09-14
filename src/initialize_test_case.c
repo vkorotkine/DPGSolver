@@ -29,6 +29,9 @@
  *		Initialize solution on all VOLUMEs for each test case.
  *
  *	Comments:
+ *		For the Poisson case, the solution is initialized to 0 such that the update in the linear solve returns the
+ *		exact solution (i.e. du = u-u0 = u).
+ *
  *		For unsteady cases, it would be advantageous to write an adaptive initialization function. This could most
  *		easily be done by updating the mesh to be in a much finer space than the original, initializing the solution
  *		there, and only coarsening in regions where the initial solution error is low (ToBeDeleted).
@@ -77,9 +80,21 @@ static void check_levels_refine(const unsigned int indexg, struct S_VInfo **VInf
 
 void initialize_test_case_parameters(char *TestCase)
 {
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
+
+	DB.Nvar = d+2; // Euler and NS Equations
+	DB.Neq  = d+2;
+
+	// Standard datatypes
 	char *SolverType = NULL;
 
-	if (strstr(TestCase,"dSphericalBump")) {
+	if (strstr(TestCase,"Poisson")) {
+		SolverType = NULL; // Always implicit
+
+		DB.Nvar = 1;
+		DB.Neq  = 1;
+	} else if (strstr(TestCase,"dSphericalBump")) {
 		EXIT_MSG;
 	} else if (strstr(TestCase,"GaussianBump")) {
 		EXIT_MSG;
@@ -147,12 +162,8 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
 	unsigned int d         = DB.d,
+	             Nvar      = DB.Nvar,
 	             Adapt     = DB.Adapt;
-
-	DB.Nvar = d+2;
-	DB.Neq  = d+2;
-
-	unsigned int Nvar = DB.Nvar;
 
 	DB.OutputInterval = 1e3;
 
@@ -166,6 +177,8 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 
 	initialize_test_case_parameters(TestCase);
 
+	OPS = malloc(sizeof *OPS); // free
+
 	adapt_count = 0;
 	adapt_update = 1;
 	while (adapt_update) {
@@ -174,7 +187,6 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 		    strstr(TestCase,"SupersonicVortex") ||
 		    strstr(TestCase,"Test")) {
 
-			OPS = malloc(sizeof *OPS); // free
 			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 				init_ops(OPS,VOLUME);
 
@@ -206,7 +218,18 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				free(U);
 				free(W);
 			}
-			free(OPS);
+		} else if (strstr(TestCase,"Poisson")) {
+			adapt_count = adapt_update_MAX; // No need for updating
+
+			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+				init_ops(OPS,VOLUME);
+
+				NvnS         = OPS->NvnS;
+				VOLUME->NvnS = NvnS;
+
+				VOLUME->What = calloc(NvnS*Nvar , sizeof *(VOLUME->What)); // keep
+				VOLUME->RES  = NULL;
+			}
 		} else {
 			printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
 		}
@@ -223,6 +246,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 		}
 		adapt_count++;
 	}
+	free(OPS);
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 		DOF0 += VOLUME->NvnS;

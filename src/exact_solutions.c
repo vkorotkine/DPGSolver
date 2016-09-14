@@ -107,6 +107,10 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, dou
 			wEx[i] =  0.0;
 			sEx[i] =  pEx[i]/pow(rhoEx[i],GAMMA);
 		}
+	} else if (strstr(TestCase,"Poisson")) {
+		for (i = 0; i < Nn; i++) {
+			u[i] = sin(PI*X[i])*sin(PI*Y[i]);
+		}
 	} else {
 		printf("Error: Unsupported test case in compute_exact_solution.\n"), exit(1);
 	}

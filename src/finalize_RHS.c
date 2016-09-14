@@ -65,20 +65,6 @@ double finalize_RHS(void)
 		FRHSIn_ptr  = FACET->RHSIn;
 		FRHSOut_ptr = FACET->RHSOut;
 
-/*
-printf("%d\n",FACET->indexg);
-array_print_d(NvnSIn,Neq,VRHSIn_ptr,'C');
-array_print_d(NvnSOut,Neq,VRHSOut_ptr,'C');
-//array_print_d(NvnSIn,Neq,FRHSIn_ptr,'C');
-//array_print_d(NvnSOut,Neq,FRHSOut_ptr,'C');
-*/
-
-/*
-printf("%d\n",FACET->indexg);
-array_print_d(NvnSIn,Neq,VIn->RHS,'C');
-array_print_d(NvnSOut,Neq,VOut->RHS,'C');
-*/
-
 		Boundary = FACET->Boundary;
 		for (iMax = Neq; iMax--; ) {
 			for (jMax = NvnSIn; jMax--; )
@@ -89,22 +75,9 @@ array_print_d(NvnSOut,Neq,VOut->RHS,'C');
 			}
 		}
 
-/*
-//if (VIn->indexg < 2) {
-printf("%d\n",VIn->indexg);
-array_print_d(NvnSIn,Neq,VIn->RHS,'C');
-//}
-//if (VOut->indexg < 2) {
-printf("%d\n",VOut->indexg);
-array_print_d(NvnSOut,Neq,VOut->RHS,'C');
-//}
-*/
-
-
 		free(FACET->RHSIn);
 		free(FACET->RHSOut);
 	}
-//exit(1);
 
 	// Add MInv contribution to RHS for explicit runs
 	maxRHS = 0.0;

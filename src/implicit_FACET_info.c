@@ -589,7 +589,7 @@ free(U_fI);
 				for (i = 0, iMax = Neq*NfnI; i < iMax; i++)
 					nFluxNum_fI[i] *= -1.0;
 
-				// Re-arrange nFluxNum to match node ordering from opposite VOLUME
+				// Rearrange nFluxNum to match node ordering from opposite VOLUME
 				for (i = 0; i < NfnI; i++)
 					RowTracker[i] = i;
 
@@ -684,7 +684,7 @@ free(U_fI);
 					dnFluxNumdWOut_fI[i] *= -1.0;
 				}
 
-				// Re-arrange dnFluxNumdWIn/Out to match node ordering from opposite VOLUME
+				// Rearrange dnFluxNumdWIn/Out to match node ordering from opposite VOLUME
 				for (i = 0; i < NfnI; i++)
 					RowTracker[i] = i;
 
