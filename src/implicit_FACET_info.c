@@ -575,7 +575,7 @@ free(U_fI);
 					}
 
 					IndLHS = Indeqvar*NvnSIn*NvnSIn;
-					mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSIn,NfnI,1.0,IdnFdW,OPSIn[0]->ChiS_fI[VfIn],&LHSInIn[IndLHS]);
+					mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSIn,NfnI,1.0,0.0,IdnFdW,OPSIn[0]->ChiS_fI[VfIn],&LHSInIn[IndLHS]);
 				}}
 
 				free(IdnFdW);
@@ -671,7 +671,7 @@ free(U_fI);
 					}
 
 					IndLHS = Indeqvar*NvnSIn*NvnSOut;
-					mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSOut,NfnI,1.0,IdnFdW,ChiS_fIOutIn,&LHSOutIn[IndLHS]);
+					mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSOut,NfnI,1.0,0.0,IdnFdW,ChiS_fIOutIn,&LHSOutIn[IndLHS]);
 				}}
 
 				free(ChiS_fIOutIn);
@@ -724,7 +724,7 @@ free(U_fI);
 					}
 
 					IndLHS = Indeqvar*NvnSOut*NvnSIn;
-					mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSIn,NfnI,1.0,IdnFdW,ChiS_fIInOut,&LHSInOut[IndLHS]);
+					mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSIn,NfnI,1.0,0.0,IdnFdW,ChiS_fIInOut,&LHSInOut[IndLHS]);
 				}}
 
 				free(ChiS_fIInOut);
@@ -745,7 +745,7 @@ free(U_fI);
 					}
 
 					IndLHS = (eq*Nvar+var)*NvnSOut*NvnSOut;
-					mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NfnI,1.0,IdnFdW,OPSOut[0]->ChiS_fI[VfOut],&LHSOutOut[IndLHS]);
+					mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NfnI,1.0,0.0,IdnFdW,OPSOut[0]->ChiS_fI[VfOut],&LHSOutOut[IndLHS]);
 				}}
 
 				free(IdnFdW);

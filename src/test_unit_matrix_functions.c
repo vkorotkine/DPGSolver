@@ -215,7 +215,7 @@ void test_unit_matrix_mm(void)
 	// Row-Major
 
 	// NoTrans, NoTrans
-	mm_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,3,2,4,1.0,A,B,C_c);
+	mm_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,3,2,4,1.0,0.0,A,B,C_c);
 
 	pass = 0;
 	if (array_norm_diff_d(6,C,C_c,"Inf") < EPS)
@@ -227,7 +227,7 @@ void test_unit_matrix_mm(void)
 
 
 	// Trans, NoTrans
-	mm_d(CblasRowMajor,CblasTrans,CblasNoTrans,3,2,4,1.0,AT,B,C_c);
+	mm_d(CblasRowMajor,CblasTrans,CblasNoTrans,3,2,4,1.0,0.0,AT,B,C_c);
 
 	pass = 0;
 	if (array_norm_diff_d(6,C,C_c,"Inf") < EPS)
@@ -239,7 +239,7 @@ void test_unit_matrix_mm(void)
 
 
 	// NoTrans, Trans
-	mm_d(CblasRowMajor,CblasNoTrans,CblasTrans,3,2,4,1.0,A,BT,C_c);
+	mm_d(CblasRowMajor,CblasNoTrans,CblasTrans,3,2,4,1.0,0.0,A,BT,C_c);
 
 	pass = 0;
 	if (array_norm_diff_d(6,C,C_c,"Inf") < EPS)
@@ -251,7 +251,7 @@ void test_unit_matrix_mm(void)
 
 
 	// Trans, Trans
-	mm_d(CblasRowMajor,CblasTrans,CblasTrans,3,2,4,1.0,AT,BT,C_c);
+	mm_d(CblasRowMajor,CblasTrans,CblasTrans,3,2,4,1.0,0.0,AT,BT,C_c);
 
 	pass = 0;
 	if (array_norm_diff_d(6,C,C_c,"Inf") < EPS)
@@ -266,7 +266,7 @@ void test_unit_matrix_mm(void)
 	// Col-Major
 
 	// NoTrans, NoTrans
-	mm_d(CblasColMajor,CblasNoTrans,CblasNoTrans,3,2,4,1.0,AT,BT,CT_c);
+	mm_d(CblasColMajor,CblasNoTrans,CblasNoTrans,3,2,4,1.0,0.0,AT,BT,CT_c);
 
 	pass = 0;
 	if (array_norm_diff_d(6,CT,CT_c,"Inf") < EPS)
@@ -278,7 +278,7 @@ void test_unit_matrix_mm(void)
 
 
 	// Trans, NoTrans
-	mm_d(CblasColMajor,CblasTrans,CblasNoTrans,3,2,4,1.0,A,BT,CT_c);
+	mm_d(CblasColMajor,CblasTrans,CblasNoTrans,3,2,4,1.0,0.0,A,BT,CT_c);
 
 	pass = 0;
 	if (array_norm_diff_d(6,CT,CT_c,"Inf") < EPS)
@@ -290,7 +290,7 @@ void test_unit_matrix_mm(void)
 
 
 	// NoTrans, Trans
-	mm_d(CblasColMajor,CblasNoTrans,CblasTrans,3,2,4,1.0,AT,B,CT_c);
+	mm_d(CblasColMajor,CblasNoTrans,CblasTrans,3,2,4,1.0,0.0,AT,B,CT_c);
 
 	pass = 0;
 	if (array_norm_diff_d(6,CT,CT_c,"Inf") < EPS)
@@ -302,7 +302,7 @@ void test_unit_matrix_mm(void)
 
 
 	// Trans, Trans
-	mm_d(CblasColMajor,CblasTrans,CblasTrans,3,2,4,1.0,A,B,CT_c);
+	mm_d(CblasColMajor,CblasTrans,CblasTrans,3,2,4,1.0,0.0,A,B,CT_c);
 
 	pass = 0;
 	if (array_norm_diff_d(6,CT,CT_c,"Inf") < EPS)

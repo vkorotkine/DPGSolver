@@ -189,7 +189,7 @@ void setup_geometry(void)
 
 			XYZ_S = malloc(NvnGc*NCols * sizeof *XYZ_S); // keep
 
-			mm_d(CblasColMajor,CblasTrans,CblasNoTrans,NvnGc,NCols,NvnGs,1.0,I_vGs_vGc,XYZ_vC,XYZ_S);
+			mm_d(CBCM,CBT,CBNT,NvnGc,NCols,NvnGs,1.0,0.0,I_vGs_vGc,XYZ_vC,XYZ_S);
 		}
 		VOLUME->XYZ_S = XYZ_S;
 	}

@@ -227,7 +227,7 @@ static void compute_FACET_RHS_EFE(void)
 		NvnSIn = OPSIn[IndFType]->NvnS;
 
 		WIn_fI = malloc(NfnI*Nvar * sizeof *WIn_fI); // free
-		mm_dcc(CBCM,CBT,CBNT,NfnI,Nvar,NvnSIn,1.0,OPSIn[0]->ChiS_fI[VfIn],VIn->What_c,WIn_fI);
+		mm_dcc(CBCM,CBT,CBNT,NfnI,Nvar,NvnSIn,1.0,0.0,OPSIn[0]->ChiS_fI[VfIn],VIn->What_c,WIn_fI);
 
 		// Compute WOut_fI (Taking BCs into account if applicable)
 		n_fI     = FACET->n_fI;
@@ -239,7 +239,7 @@ static void compute_FACET_RHS_EFE(void)
 		WOut_fIIn = malloc(NfnI*Nvar * sizeof *WOut_fIIn); // free
 		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACET
 			WOut_fI = malloc(NfnI*Nvar * sizeof *WOut_fI); // free
-			mm_dcc(CBCM,CBT,CBNT,NfnI,Nvar,NvnSOut,1.0,OPSOut[0]->ChiS_fI[VfOut],VOut->What_c,WOut_fI);
+			mm_dcc(CBCM,CBT,CBNT,NfnI,Nvar,NvnSOut,1.0,0.0,OPSOut[0]->ChiS_fI[VfOut],VOut->What_c,WOut_fI);
 
 			// Reorder WOut_fI to correspond to WIn_fI
 			for (i = 0; i < Nvar; i++) {
@@ -301,7 +301,7 @@ static void compute_FACET_RHS_EFE(void)
 
 		if (strstr(Form,"Weak")) {
 			// Interior FACET
-			mm_dcc(CBCM,CBT,CBNT,NvnSIn,Neq,NfnI,1.0,OPSIn[0]->I_Weak_FF[VfIn],nFluxNum_fI,RHSIn);
+			mm_dcc(CBCM,CBT,CBNT,NvnSIn,Neq,NfnI,1.0,0.0,OPSIn[0]->I_Weak_FF[VfIn],nFluxNum_fI,RHSIn);
 
 			// Exterior FACET
 			if (!Boundary) {
@@ -324,7 +324,7 @@ static void compute_FACET_RHS_EFE(void)
 					}
 				}
 
-				mm_dcc(CBCM,CBT,CBNT,NvnSOut,Neq,NfnI,1.0,OPSOut[0]->I_Weak_FF[VfOut],nFluxNum_fI,RHSOut);
+				mm_dcc(CBCM,CBT,CBNT,NvnSOut,Neq,NfnI,1.0,0.0,OPSOut[0]->I_Weak_FF[VfOut],nFluxNum_fI,RHSOut);
 			}
 		} else if (strstr(Form,"Strong")) {
 			printf("Exiting: Implement the strong form in compute_FACET_RHS_EFE.\n"), exit(1);

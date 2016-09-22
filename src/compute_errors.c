@@ -136,11 +136,12 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 
 		diag_wdetJV_vI = diag_d(wdetJV_vI,NvnI); // free
 
-		mm_d(CBRM,CBT,CBNT,NvnS,NvnI,NvnI,1.0,ChiS_vI,diag_wdetJV_vI,ChiSwdetJV_vI);
-		mm_d(CBRM,CBNT,CBNT,NvnS,NvnI,NvnS,1.0,VOLUME->MInv,ChiSwdetJV_vI,MInvChiSwdetJV_vI);
-		mm_d(CBRM,CBNT,CBNT,NvnI,NvnI,NvnS,1.0,ChiS_vI,MInvChiSwdetJV_vI,L2_Ex_vI);
+		mm_d(CBRM,CBT,CBNT,NvnS,NvnI,NvnI,1.0,0.0,ChiS_vI,diag_wdetJV_vI,ChiSwdetJV_vI);
+		mm_d(CBRM,CBNT,CBNT,NvnS,NvnI,NvnS,1.0,0.0,VOLUME->MInv,ChiSwdetJV_vI,MInvChiSwdetJV_vI);
+		mm_d(CBRM,CBNT,CBNT,NvnI,NvnI,NvnS,1.0,0.0,ChiS_vI,MInvChiSwdetJV_vI,L2_Ex_vI);
 
-		mm_d(CBCM,CBT,CBNT,NvnI,NVAR3D,NvnI,1.0,L2_Ex_vI,UEx,U);
+		mm_CTN_d(NvnI,NVAR3D,NvnI,L2_Ex_vI,UEx,U);
+//		mm_d(CBCM,CBT,CBNT,NvnI,NVAR3D,NvnI,1.0,0.0,L2_Ex_vI,UEx,U); // ToBeDeleted
 
 		free(ChiSwdetJV_vI);
 		free(MInvChiSwdetJV_vI);

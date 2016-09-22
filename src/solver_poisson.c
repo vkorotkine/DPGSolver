@@ -32,6 +32,8 @@
  *		Perform the implicit solve for the Poisson equation.
  *
  *	Comments:
+ *		CHECK FOR MEMORY LEAKS. ToBeDeleted
+ *
  *		Many of the RHS terms computed are 0. They are included as they are used to check the linearization. Further,
  *		the computational cost is dominated by the global system solve making this additional cost negligible.
  *		When finished with the implicit functions, include these contributions, include these redundant terms only in
@@ -41,6 +43,8 @@
  *
  *	References:
  */
+
+#define CONST_IP 200
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 {
@@ -92,7 +96,7 @@ static void compute_qhat_VOLUME(void)
 
 		// Obtain u_vI
 		u_vI = malloc(NvnI * sizeof *u_vI); // free
-		mm_CTN_d(NvnI,1,NvnS,ChiS_vI,VOLUME->What,u_vI);
+		mm_CTN_d(NvnI,1,NvnS,ChiS_vI,VOLUME->uhat,u_vI);
 
 		MInv = VOLUME->MInv;
 		C_vI = VOLUME->C_vI;
@@ -127,7 +131,7 @@ static void compute_qhat_VOLUME(void)
 			Sxyz = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnI,NvnS,-1.0,MInv,DxyzChiS[dim1]); // keep
 
 			// RHS
-			mm_Alloc_d(CBCM,CBT,CBNT,NvnS,1,NvnI,1.0,Sxyz,VOLUME->What,qhat); // keep
+			mm_Alloc_d(CBCM,CBT,CBNT,NvnS,1,NvnI,1.0,Sxyz,VOLUME->uhat,qhat); // keep
 			VOLUME->qhat[dim1] = qhat;
 
 			// LHS
@@ -138,7 +142,7 @@ static void compute_qhat_VOLUME(void)
 	free(OPS);
 }
 
-static void boundary_Dirichlet(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *uB)
+static void boundary_Dirichlet(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *uB, double *grad_uB)
 {
 	compute_exact_solution(Nn*Nel,XYZ,*uB,NULL,0);
 }
@@ -201,11 +205,20 @@ static void compute_qhat_FACET(void)
 		NvnSIn = OPSIn[IndFType]->NvnS;
 
 		// Compute uIn_fI
-		uIn_fI = calloc(nfnI * sizeof *uIn_fI); // free
+		uIn_fI = malloc(nfnI * sizeof *uIn_fI); // free
+		mm_CTN_d(NfnI,1,NvnSIn,OPSIn->ChiS_fI[VfIn],VIn->uhat,uIn_fI);
 
 		// Compute_uOut_fI (Taking BCs into account if applicable)
-		uOut_fIIn = calloc(nfnI * sizeof *uOut_fIIn); // free
-		if (Boundary) {
+		uOut_fIIn = malloc(nfnI * sizeof *uOut_fIIn); // free
+		if (!Boundary) {
+			uOut_fI = malloc(nfnI * sizeof *uOut_fI); // free
+			mm_CTN_d(NfnI,1,NvnSOut,OPSOut->ChiS_fI[VfOut],VOut->uhat,uOut_fI);
+
+			// Reorder uOut_fI to correspond to uIn_fI
+			for (n = 0; n < NfnI; n++)
+				uOut_fIIn[n] = uOut_fI[nOrdOutIn[n]];
+			free(uOut_fI);
+		} else {
 			if (BC % BC_STEP_SC == BC_DIRICHLET) {
 				boundary_Dirichlet(NfnI,1,FACET->XYZ_fI,uOut_fIIn);
 			} else if (BC % BC_STEP_SC == BC_NEUMANN) {
@@ -215,15 +228,15 @@ static void compute_qhat_FACET(void)
 			}
 		}
 
-		// Compute numerical trace and its Jacobian
-		switch (PoissonTraceFluxType) {
+		// Compute numerical trace and its Jacobians
+		switch (PoissonTraceType) {
 		case IP:
 			trace_IP(NfnI,1,uIn_fI,uOut_fIIn,uNum_fI);
 			jacobian_trace_IP(NfnI,1,duNumduIn_fI,'L');
 			jacobian_trace_IP(NfnI,1,duNumduOut_fI,'R');
 			break;
 		default:
-			printf("Error: Unsupported PoissonTraceFluxType.\n"), EXIT_MSG;
+			printf("Error: Unsupported PoissonTraceType.\n"), EXIT_MSG;
 			break;
 		}
 		free(uIn_fI);
@@ -537,6 +550,64 @@ static void compute_uhat_VOLUME(void)
 	free(OPS);
 }
 
+static void flux_IP(const unsigned int Nn, const unsigned int Nel, double *uIn, double *uOut, double *grad_uIn,
+                    double *grad_uOut, double *qIn, double *qOut, double *h, const unsigned int P, double *nqNum,
+                    double *nIn, const unsigned int d)
+{
+	unsigned int n, dim;
+	double       tau;
+
+	if (Nel != 1) // Vectorization not supported
+		printf("Error: Unsupported Nel.\n"), EXIT_MSG;
+
+	for (n = 0; n < Nn; n++) {
+		tau = CONST_IP*(P+1)*(P+1)/h[n];
+
+		for (dim = 0; dim < d; dim++)
+			nqNum[n] = nIn[n*d+dim]*(0.5*(grad_uIn[Nn*dim+n]+grad_uOut[Nn*dim+n]) - tau*(nIn[n*d+dim]*(uIn[n]-uOut[n])));
+	}
+}
+
+static void jacobian_flux_coef(const unsigned int Nn, const unsigned int Nel, const double *nIn, const double *h,
+                               const unsigned int P, const double *gradu_avg, double *u_jump, double *q_avg, double *q_jump,
+                               const unsigned int d, char *flux_type, char side)
+{
+	/*
+	 *	Comments:
+	 *		Likely a good idea to define flux_IP similarly (i.e. simply returning coefficients for various terms. Then
+	 *		only one of the two functions would be required.
+	 *
+	 *	References:
+	 *		Add references for definition of flux coefficients (e.g. Hesthaven(2008) Table 7.3) ToBeModified
+	 */
+
+	unsigned int dim, n;
+	double       tau;
+
+	if (Nel != 1)
+		printf("Error: Unsupported Nel.\n"), EXIT_MSG;
+
+	if (strstr(flux_type,"IP")) {
+		for (dim = 0; dim < d; dim++) {
+		for (n = 0; n < Nn; n++) {
+			tau = CONST_IP*(P+1)*(P+1)/h[n];
+
+			gradu_avg[Nn*dim+n] = 0.5*nIn[n*d+dim];
+			q_avg[Nn*dim+n]     = 0.0;
+
+			u_jump[Nn*dim+n] = tau*nIn[n*d+dim];
+			q_jump[Nn*dim+n] = 0.0;
+
+			if (side == 'L') {
+				u_jump[Nn*dim+n] *= -1.0;
+				q_jump[Nn*dim+n] *= -1.0;
+			}
+		}}
+	} else {
+		printf("Error: Unsupported flux_type.\n"), EXIT_MSG;
+	}
+}
+
 static void compute_uhat_FACET()
 {
 	// Standard datatypes
@@ -552,25 +623,194 @@ static void compute_uhat_FACET()
 
 		Boundary = FACET->Boundary;
 
-		// LHS (InIn) - VOLUME term
+
+
 		DxyzChiS = VIn->DxyzChiS;
 
-		LHSInIn   = calloc(NvnSIn*NvnSIn   , sizeof *LHSInIn); // keep
+		LHSInIn   = calloc(NvnSIn*NvnSIn   , sizeof *LHSInIn);   // keep
+		LHSOutIn  = calloc(NvnSIn*NvnSOut  , sizeof *LHSOutIn);  // keep
+		LHSInOut  = calloc(NvnSOut*NvnSIn  , sizeof *LHSInOut);  // keep
+		LHSOutOut = calloc(NvnSOut*NvnSOut , sizeof *LHSOutOut); // keep
 
 		FACET->LHSInIn   = LHSInIn;
-
-		LHSd = malloc(NvnSIn*NvnSIn * sizeof *LHSd); // free
+		FACET->LHSOutIn  = LHSOutIn;
+		FACET->LHSInOut  = LHSInOut;
+		FACET->LHSOutOut = LHSOutOut;
 
 		for (dim = 0; dim < d; dim++) {
-			LHSd = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSIn,NvnSIn,NvnSIn,-1.0,DxyzChiS[dim],FACET->qhat_uhatInIn[dim]); // free
-
-			for (i = 0, iMax = NvnSIn*NvnSIn; i < iMax; i++)
-				LHSInIn[i] += LHSd;
+			// LHS - VOLUME terms
+			mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSIn, NvnSIn, -1.0,1.0,DxyzChiS[dim],FACET->qhat_uhatInIn[dim],  LHSInIn);
+			mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSOut,NvnSIn, -1.0,1.0,DxyzChiS[dim],FACET->qhat_uhatOutIn[dim], LHSOutIn);
+			mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSIn, NvnSOut,-1.0,1.0,DxyzChiS[dim],FACET->qhat_uhatInOut[dim], LHSInOut);
+			mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NvnSOut,-1.0,1.0,DxyzChiS[dim],FACET->qhat_uhatOutOut[dim],LHSOutOut);
 		}
 
-		// LHS (OutIn) - VOLUME term
+		// Compute uIn_fI and gradu_In_fI
+		detJV_fI = FACET->detJV_fI;
 
-		free(LHSd);
+		uIn_fI         = malloc(NfnI   * sizeof *uIn_fI);         // tbd
+		gradref_uIn_fI = malloc(NfnI*d * sizeof *gradref_uIn_fI); // free
+		grad_uIn_fI    = calloc(NfnI*d , sizeof *graduIn_fI);     // tbd
+
+		mm_CTN_d(NfnI,1,NvnSIn,OPSIn->ChiS_fI[VfIn],VIn->uhat,uIn_fI);
+
+		for (dim = 0; dim < d; dim++)
+			mm_CTN_d(NfnI,1,NvnSIn,OPSIn->GradChiS_fI[VfIn][dim],VIn->uhat,&gradref_uIn_fI[NfnI*dim]);
+
+		for (dim1 = 0; dim1 < d; dim1++) {
+			for (dim2 = 0; dim2 < d; dim2++) {
+				IndC = (dim1+dim2*d)*NfnI;
+				for (n = 0; n < NfnI; n++)
+					grad_uIn_fI[dim1*NfnI+n] += gradref_uIn_fI[dim2*NfnI+n]*C_fI[IndC+n];
+			}
+			for (n = 0; n < NfnI; n++)
+				grad_uIn_fI[dim1*NfnI+n] /= detJV_fI[n];
+		}
+		free(gradref_uIn_fI);
+
+array_print_d(NfnI,d,grad_uIn_fI,'C');
+
+// Alternate computation (first assembling operator)
+// Don't need gradref_uIn_fI in this case (ToBeDeleted)
+		GradChiS_fI = OPSIn->GradChiS_fI;
+
+		GradxyzIn = malloc(d * sizeof *GradxyzIn); // tbd
+		for (dim1 = 0; dim1 < d; dim1++) {
+			GradxyzIn[dim1] = calloc(NfnI*NvnSIn , sizeof **GradxyzIn); // tbd
+
+			for (dim2 = 0; dim2 < d; dim2++) {
+				IndC = (dim1+dim2*d)*NfnI;
+				for (n = 0; n < NfnI; n++) {
+					for (j = 0; j < NvnSIn; j++)
+						GradxyzIn[dim1][n*NvnSIn+j] += GradChiS_fI[VfIn][dim2][n*NvnSIn+j]*C_fI[IndC+n];
+				}
+			}
+			for (n = 0; n < NfnI; n++) {
+				for (j = 0; j < NvnSIn; j++)
+					GradxyzIn[dim1][n*NvnSIn+j] /= detJV_fI[n];
+			}
+		}
+
+		for (dim = 0; dim < d; dim++)
+			mm_CTN_d(NfnI,1,NvnSIn,GradxyzIn[dim],VIn->uhat,&grad_uIn_fI[NfnI*dim]);
+
+array_print_d(NfnI,d,graduIn_fI,'C');
+
+
+
+		// Compute_uOut_fI (Taking BCs into account if applicable)
+		uOut_fIIn         = malloc(NfnI   * sizeof *uOut_fIIn);       // tbd
+		gradref_uOut_fIIn = malloc(NfnI*d * sizeof *gradref_uOut_fI); // free
+		grad_uOut_fIIn    = calloc(NfnI*d , sizeof *graduOut_fI);     // tbd
+
+		if (!Boundary) {
+			uOut_fI         = malloc(NfnI   * sizeof *uOut_fI);         // free
+			gradref_uOut_fI = malloc(NfnI*d * sizeof *gradref_uOut_fI); // free
+
+			mm_CTN_d(NfnI,1,NvnSOut,OPSOut->ChiS_fI[VfOut],VOut->uhat,uOut_fI);
+
+			for (dim = 0; dim < d; dim++)
+				mm_CTN_d(NfnI,1,NvnSOut,OPSOut->GradChiS_fI[VfOut][dim],VOut->uhat,&gradref_uOut_fI[NfnI*dim]);
+
+			// Reorder uOut_fI and gradref_uOut_fI to correspond to inner VOLUME ordering
+			for (n = 0; n < NfnI; n++) {
+				uOut_fIIn[n]         = uOut_fI[nOrdOutIn[n]];
+				gradref_uOut_fIIn[n] = gradref_uOut_fI[nOrdOutIn[n]];
+			}
+			free(uOut_fI);
+			free(gradref_uOut_fI);
+
+			for (dim1 = 0; dim1 < d; dim1++) {
+				for (dim2 = 0; dim2 < d; dim2++) {
+					IndC = (dim1+dim2*d)*NfnI;
+					for (n = 0; n < NfnI; n++)
+						grad_uOut_fIIn[dim1*NfnI+n] += gradref_uOut_fIIn[dim2*NfnI+n]*C_fI[IndC+n];
+				}
+				for (n = 0; n < NfnI; n++)
+					grad_uOut_fIIn[dim1*NfnI+n] /= detJV_fI[n];
+			}
+			free(gradref_uOut_fIIn);
+
+array_print_d(NfnI,d,grad_uOut_fIIn,'C');
+// Alternate (ToBeDeleted (comment))
+// note: already re-arranged
+		GradChiS_fI = OPSOut->GradChiS_fI;
+
+		GradxyzOut = malloc(d * sizeof *GradxyzOut); // tbd
+		for (dim1 = 0; dim1 < d; dim1++) {
+			GradxyzOut[dim1] = calloc(NfnI*NvnSIn , sizeof **GradxyzOut); // tbd
+
+			for (dim2 = 0; dim2 < d; dim2++) {
+				IndC = (dim1+dim2*d)*NfnI;
+				for (n = 0; n < NfnI; n++) {
+					for (j = 0; j < NvnSOut; j++)
+						GradxyzOut[dim1][n*NvnSOut+j] += GradChiS_fI[VfOut][dim2][nOrdOutIn[n]*NvnSOut+j]*C_fI[IndC+n];
+				}
+			}
+			for (n = 0; n < NfnI; n++) {
+				for (j = 0; j < NvnSOut; j++)
+					GradxyzOut[dim1][n*NvnSOut+j] /= detJV_fI[n];
+			}
+		}
+
+		for (dim = 0; dim < d; dim++)
+			mm_CTN_d(NfnI,1,NvnSOut,GradxyzOut[dim],VOut->uhat,&grad_uOut_fIIn[NfnI*dim]);
+
+array_print_d(NfnI,d,graduOut_fIIn,'C');
+		} else {
+			if (BC % BC_STEP_SC == BC_DIRICHLET) {
+				boundary_Dirichlet(NfnI,1,FACET->XYZ_fI,uOut_fIIn);
+				for (dim = 0; dim < d; dim++) {
+				for (n = 0; n < NfnI; n++) {
+					grad_uOut_fIIn[dim*NfnI+n] = grad_uIn_fI[dim*NfnI+n];
+				}}
+			} else if (BC % BC_STEP_SC == BC_NEUMANN) {
+				printf("Add support.\n"), EXIT_MSG;
+			} else {
+				printf("Error: Unsupported BC.\n"), EXIT_MSG;
+			}
+		}
+
+		// Compute numerical flux and its Jacobians
+		nqNum_fI = malloc(NfnI * sizeof *nqNum_fI); // tbd
+
+		switch (PoissonFluxType) {
+		case IP:
+			flux_IP(NfnI,1,uIn_fI,uOut_fIIn,graduIn_fI,graduOut_fIIn,NULL,NULL,h,FACET->P,nqNum_fI,n_fI,d);
+// use jacobian_flux_IP to return coefficients which multiply each possible term in the linearized flux
+// here, coefs are 0.5 on grad_u and -tau on jump u
+			dnqNumduhatIn_fI    = calloc(NfnI , sizeof *dnqNumduhatIn_fI);    // tbd
+			dnqNumduhatOut_fIIn = calloc(NfnI , sizeof *dnqNumduhatOut_fIIn); // tbd
+
+			jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'L');
+			ChiS_fI = OPSIn->ChiS_fI;
+
+			for (dim = 0; dim < d; dim++) {
+				for (n = 0; n < NfnI; n++) {
+					for (j = 0; j < NvnSIn; j++) {
+						dnqNumduhatIn_fI[n] += u_avg[NfnI*dim+n]*GradxyzIn[dim][n*NvnSIn+j]
+						                    +  u_jump[NfnI*dim+n]*ChiS_fI[VfIn][n*NvnSIn+j]
+						                    +  (q_avg[NfnI*dim+n]+q_jump[NfnI*dim+n])*0;
+/*
+The last term here requires VIn/VOut->qhatuhat, FACET->qhatuhatInIn/OutIn/InOut/OutOut in general.
+Ensure that the correct ordering is used based on which linearized term is being computed
+*/
+					}
+				}
+			}
+// Don't forget contribution from boundary.
+
+
+
+
+
+//			jacobian_flux_IP(NfnI,1,duNumduIn_fI,'L');
+//			jacobian_flux_IP(NfnI,1,duNumduOut_fI,'R');
+			break;
+		default:
+			printf("Error: Unsupported PoissonFluxType.\n"), EXIT_MSG;
+			break;
+		}
 
 	}
 }

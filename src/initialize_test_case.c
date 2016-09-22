@@ -227,8 +227,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				NvnS         = OPS->NvnS;
 				VOLUME->NvnS = NvnS;
 
-				VOLUME->What = calloc(NvnS*Nvar , sizeof *(VOLUME->What)); // keep
-				VOLUME->RES  = NULL;
+				VOLUME->uhat = calloc(NvnS*Nvar , sizeof *(VOLUME->uhat)); // keep
 			}
 		} else {
 			printf("Error: Unsupported TestCase.\n"), EXIT_MSG;

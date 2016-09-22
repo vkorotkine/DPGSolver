@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
- 
+
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
@@ -41,12 +41,13 @@
  */
 
 struct S_OPERATORS {
-	unsigned int NvnG, NvnC, NvnI;
+	unsigned int NvnG, NvnC, NvnI, NfnI;
 	double       *IC, *I_vG_vC, *I_vG_vI, *I_vC_vI,
-	             **D_vG_vC, **D_vG_vI, **D_vC_vC;
+	             **D_vG_vC, **D_vG_vI, **D_vC_vC, ***D_vG_fI;
 };
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass);
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+                     const unsigned int IndClass);
 
 void setup_geom_factors(struct S_VOLUME *VOLUME)
 {
@@ -63,7 +64,7 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 	OPS = malloc(sizeof *OPS); // free
 
 	// Obtain operators
-	init_ops(OPS,VOLUME,0);
+	init_ops(OPS,VOLUME,NULL,0);
 
 	NvnG0 = OPS->NvnG;
 	NvnC0 = OPS->NvnC;
@@ -107,11 +108,11 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 	} else if (d == 3) {
 		for (n = 0; n < NvnI0; n++) {
 			detJV_vI[n] =   J_vI[NvnI0*(d*0+0)+n]*(  J_vI[NvnI0*(d*1+1)+n]*J_vI[NvnI0*(d*2+2)+n]
-						                           - J_vI[NvnI0*(d*1+2)+n]*J_vI[NvnI0*(d*2+1)+n])
-						  - J_vI[NvnI0*(d*0+1)+n]*(  J_vI[NvnI0*(d*1+0)+n]*J_vI[NvnI0*(d*2+2)+n]
-						                           - J_vI[NvnI0*(d*1+2)+n]*J_vI[NvnI0*(d*2+0)+n])
-						  + J_vI[NvnI0*(d*0+2)+n]*(  J_vI[NvnI0*(d*1+0)+n]*J_vI[NvnI0*(d*2+1)+n]
-						                           - J_vI[NvnI0*(d*1+1)+n]*J_vI[NvnI0*(d*2+0)+n]);
+			                                       - J_vI[NvnI0*(d*1+2)+n]*J_vI[NvnI0*(d*2+1)+n])
+			              - J_vI[NvnI0*(d*0+1)+n]*(  J_vI[NvnI0*(d*1+0)+n]*J_vI[NvnI0*(d*2+2)+n]
+			                                       - J_vI[NvnI0*(d*1+2)+n]*J_vI[NvnI0*(d*2+0)+n])
+			              + J_vI[NvnI0*(d*0+2)+n]*(  J_vI[NvnI0*(d*1+0)+n]*J_vI[NvnI0*(d*2+1)+n]
+			                                       - J_vI[NvnI0*(d*1+1)+n]*J_vI[NvnI0*(d*2+0)+n]);
 		}
 
 /*
@@ -221,7 +222,77 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 
 }
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass)
+void setup_geom_factors_highorder(struct S_FACET *FACET)
+{
+	/*
+	 *	Purpose:
+	 *		Compute detJV_fI.
+	 *
+	 *	Comments:
+	 *		detJV_fI is only used for computing gradients at FACET nodes and thus not required for systems of 1st order
+	 *		equations (such as when solving only the Euler equations).
+	 */
+
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
+
+	// Standard datatypes
+	unsigned int i, n, row, col,
+	             NvnG,;
+	double       *XYZ;
+
+	struct S_OPERATORS *OPS;
+	struct S_VOLUME    *VIn;
+
+	OPS = malloc(sizeof *OPS); // free
+
+	// Obtain operators
+	VIn = FACET->VIn;
+	VfIn = FACET->VfIn;
+	fIn = VfIn/NFREFMAX;
+
+	Eclass = get_Eclass(VOLUME->type);
+	IndFType = get_IndFType(Eclass,fIn);
+
+	init_ops(OPS,VIn,FACET,IndFType);
+
+	NvnG = OPS->NvnG;
+	NfnI = OPS->NfnI;
+
+	XYZ = VOLUME->XYZ;
+
+	J_fI     = malloc(NfnI*d*d * sizeof *J_fI);     // free
+	detJV_fI = malloc(NfnI     * sizeof *detJV_fI); // keep
+
+	for (row = 0; row < d; row++) {
+	for (col = 0; col < d; col++) {
+		mm_CTN_d(NfnI,1,NvnG,OPS->D_vG_fI[VfIn][col],&XYZ[NvnG*row],&J_fI[NfnI*(d*row+col)]);
+	}}
+
+	if (d == 1) {
+		for (n = 0; n < NfnI; n++) {
+			detJV_fI[n] = J_fI[n];
+		}
+	} else if (d == 2) {
+		for (n = 0; n < NfnI; n++) {
+			detJV_fI[n] =   J_fI[NfnI*(d*0+0)+n]*J_fI[NfnI*(d*1+1)+n]
+			              - J_fI[NfnI*(d*0+1)+n]*J_fI[NfnI*(d*1+0)+n];
+		}
+	} else if (d == 3) {
+		for (n = 0; n < NfnI; n++) {
+			detJV_fI[n] =   J_fI[NfnI*(d*0+0)+n]*(  J_fI[NfnI*(d*1+1)+n]*J_fI[NfnI*(d*2+2)+n]
+			                                      - J_fI[NfnI*(d*1+2)+n]*J_fI[NfnI*(d*2+1)+n])
+			              - J_fI[NfnI*(d*0+1)+n]*(  J_fI[NfnI*(d*1+0)+n]*J_fI[NfnI*(d*2+2)+n]
+			                                      - J_fI[NfnI*(d*1+2)+n]*J_fI[NfnI*(d*2+0)+n])
+			              + J_fI[NfnI*(d*0+2)+n]*(  J_fI[NfnI*(d*1+0)+n]*J_fI[NfnI*(d*2+1)+n]
+			                                      - J_fI[NfnI*(d*1+1)+n]*J_fI[NfnI*(d*2+0)+n]);
+		}
+	}
+	FACET->detJV_fI = detJV_fI;
+}
+
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+                     const unsigned int IndClass)
 {
 	// Standard datatypes
 	unsigned int P, type, curved;
@@ -257,5 +328,34 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		OPS->D_vG_vC = ELEMENT_OPS->D_vGc_vCc[P][P][0];
 		OPS->D_vG_vI = ELEMENT_OPS->D_vGc_vIc[P][P][0];
 		OPS->D_vC_vC = ELEMENT_OPS->D_vCc_vCc[P][P][0];
+	}
+
+	if (FACET) {
+		unsigned int PF, PV;
+
+		PV = P;
+		PF = FACET->P;
+
+		if (!curved) {
+			// Straight VOLUME
+			if (FtypeInt == 's') {
+				// Straight FACET Integration
+				OPS->NfnI    = ELEMENT->NfnIs[PF][IndFType];
+				OPS->D_vG_fI = ELEMENT->D_vGs_fIs[PV][PF];
+			} else {
+				// Curved FACET Integration
+				OPS->NfnI    = ELEMENT->NfnIc[PF][IndFType];
+				OPS->D_vG_fI = ELEMENT->D_vGs_fIc[PV][PF];
+			}
+		} else {
+			// Curved VOLUME
+			if (FtypeInt == 's') {
+				OPS->NfnI    = ELEMENT->NfnIs[PF][IndFType];
+				OPS->D_vG_fI = ELEMENT->D_vGc_fIs[PV][PF];
+			} else {
+				OPS->NfnI    = ELEMENT->NfnIc[PF][IndFType];
+				OPS->D_vG_fI = ELEMENT->D_vGc_fIc[PV][PF];
+			}
+		}
 	}
 }

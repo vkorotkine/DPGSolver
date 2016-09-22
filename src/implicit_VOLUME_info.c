@@ -365,7 +365,7 @@ static void compute_VOLUME_LHS_EFE(void)
 						for (i = 0, iMax = NvnS*NvnS; i < iMax; i++)
 							LHS[IndLHS+i] = DdFrdW[i];
 					} else {
-						mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,DdFrdW,OPS[0]->ChiS_vI,&LHS[IndLHS]);
+						mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,0.0,DdFrdW,OPS[0]->ChiS_vI,&LHS[IndLHS]);
 					}
 				}}
 				free(DdFrdW);

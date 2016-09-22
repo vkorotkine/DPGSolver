@@ -150,11 +150,11 @@ double *mm_Alloc_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, cons
 }
 
 void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m,
-          const int n, const int k, const double alpha, const double *A, const double *B, double *C)
+          const int n, const int k, const double alpha, const double beta, const double *A, const double *B, double *C)
 {
 	/*
 	 *	Purpose:
-	 *		Returns: C = alpha*op(A)*op(B) with memory already allocated in calling function.
+	 *		Returns: C = alpha*op(A)*op(B)+beta*C with memory already allocated in calling function.
 	 *
 	 *	Comments:
 	 *		The 'C' array pointer is not declared 'const' as this prefix is discarded by the cblas_dgemm call.
@@ -184,7 +184,7 @@ void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_T
 		else                        ldB = n_MKL;
 
 		ldC = m_MKL;
-		cblas_dgemm(CblasColMajor,transa,transb,m_MKL,n_MKL,k_MKL,alpha,A,ldA,B,ldB,0.0,C,ldC);
+		cblas_dgemm(CblasColMajor,transa,transb,m_MKL,n_MKL,k_MKL,alpha,A,ldA,B,ldB,beta,C,ldC);
 	} else if (layout == CblasRowMajor) {
 		if (transa == CblasNoTrans) ldA = k_MKL;
 		else                        ldA = m_MKL;
@@ -193,18 +193,18 @@ void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_T
 		else                        ldB = k_MKL;
 
 		ldC = n_MKL;
-		cblas_dgemm(CblasRowMajor,transa,transb,m_MKL,n_MKL,k_MKL,alpha,A,ldA,B,ldB,0.0,C,ldC);
+		cblas_dgemm(CblasRowMajor,transa,transb,m_MKL,n_MKL,k_MKL,alpha,A,ldA,B,ldB,beta,C,ldC);
 	} else {
 		printf("Error: Invalid layout in mm_*.\n"), exit(1);
 	}
 }
 
 void mm_dcc(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m,
-            const int n, const int k, const double alpha, double *A, void *B, void *C)
+            const int n, const int k, const double alpha, const double beta, double *A, void *B, void *C)
 {
 	/*
 	 *	Purpose:
-	 *		Returns: C = alpha*op(A)*op(B) with memory already allocated in calling function.
+	 *		Returns: C = alpha*op(A)*op(B)+beta*C with memory already allocated in calling function.
 	 *
 	 *	Comments:
 	 *		The 'C' array pointer is not declared 'const' as this prefix is discarded by the cblas_zgemm call.
@@ -230,7 +230,7 @@ void mm_dcc(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS
 
 	alpha_c.real = alpha;
 	alpha_c.imag = 0.0;
-	beta_c.real  = 0.0;
+	beta_c.real  = beta;
 	beta_c.imag  = 0.0;
 
 	A_c = malloc(m*k * sizeof *A_c); // free
@@ -1846,7 +1846,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 		}
 		break;
 	default:
-		printf("Error: Unsupported value of useBLAS (%d) in mm_d_CTN.\n",useBLAS), exit(1);
+		printf("Error: Unsupported value of useBLAS (%d) in mm_CTN_d.\n",useBLAS), exit(1);
 		break;
 	}
 }

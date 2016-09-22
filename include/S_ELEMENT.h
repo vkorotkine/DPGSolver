@@ -13,7 +13,7 @@ struct S_ELEMENT {
 
 	// Operators
 	unsigned int *connect_NE, *NvnP, *Nvve,
-	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS,
+	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnIs, *NvnIc, *NvnS,
 	             **NfnS, **NfnIs, **NfnIc,
 	             *Nfref, *NfMixed,
 	             **connectivity, **connect_types,
@@ -33,10 +33,13 @@ struct S_ELEMENT {
 	             *****D_vCs_vCs,
 	             *****D_vCc_vCc,
 	             ****ChiS_fS, ****ChiS_fIs, ****ChiS_fIc,
+				 *****GradChiS_fIs, *****GradChiS_fIc,
 	             ****I_vGs_fS, ****I_vGs_fIs, ****I_vGs_fIc,
 	             ****I_vGc_fS, ****I_vGc_fIs, ****I_vGc_fIc,
 	             ****I_vCs_fS, ****I_vCs_fIs, ****I_vCs_fIc,
 	             ****I_vCc_fS, ****I_vCc_fIs, ****I_vCc_fIc,
+				 *****D_vGs_fIs, *****D_vGs_fIc,
+				 *****D_vGc_fIs, *****D_vGc_fIc,
 	             ****Is_Weak_VV, ****Ic_Weak_VV,
 	             ****Is_Weak_FF, ****Ic_Weak_FF,
 	             *****Ds_Weak_VV, *****Dc_Weak_VV,

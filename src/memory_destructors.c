@@ -114,6 +114,9 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free4_CSR_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->ChiS_fIs_sp);
 	array_free4_CSR_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->ChiS_fIc_sp);
 
+	array_free5_d(NP,NP,NFREFMAX*NFMAX,d,ELEMENT->GradChiS_fIs);
+	array_free5_d(NP,NP,NFREFMAX*NFMAX,d,ELEMENT->GradChiS_fIc);
+
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGs_fS);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGs_fIs);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGs_fIc);
@@ -126,6 +129,11 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vCc_fS);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vCc_fIs);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vCc_fIc);
+
+	array_free5_d(NP,NP,NFREFMAX*NFMAX,d,ELEMENT->D_vGs_fIs);
+	array_free5_d(NP,NP,NFREFMAX*NFMAX,d,ELEMENT->D_vGs_fIc);
+	array_free5_d(NP,NP,NFREFMAX*NFMAX,d,ELEMENT->D_vGc_fIs);
+	array_free5_d(NP,NP,NFREFMAX*NFMAX,d,ELEMENT->D_vGc_fIc);
 
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->Is_Weak_VV);
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->Ic_Weak_VV);

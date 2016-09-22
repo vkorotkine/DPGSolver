@@ -137,7 +137,7 @@ static void compute_VOLUME_RHS_EFE(void)
 			} else {
 				W_vI = malloc(NvnI*Nvar * sizeof *W_vI); // free
 
-				mm_dcc(CBCM,CBT,CBNT,NvnI,Nvar,OPS[0]->NvnS,1.0,OPS[0]->ChiS_vI,VOLUME->What_c,W_vI);
+				mm_dcc(CBCM,CBT,CBNT,NvnI,Nvar,OPS[0]->NvnS,1.0,0.0,OPS[0]->ChiS_vI,VOLUME->What_c,W_vI);
 			}
 
 			// Compute Flux in reference space
@@ -175,7 +175,7 @@ static void compute_VOLUME_RHS_EFE(void)
 
 			for (eq = 0; eq < Neq; eq++) {
 			for (dim1 = 0; dim1 < d; dim1++) {
-				mm_dcc(CBCM,CBT,CBNT,NvnS,1,NvnI,1.0,D[dim1],&Fr_vI[(eq*d+dim1)*NvnI],DFr);
+				mm_dcc(CBCM,CBT,CBNT,NvnS,1,NvnI,1.0,0.0,D[dim1],&Fr_vI[(eq*d+dim1)*NvnI],DFr);
 
 				IndRHS = eq*NvnS;
 				for (i = 0; i < NvnS; i++)
