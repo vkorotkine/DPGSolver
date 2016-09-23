@@ -21,7 +21,7 @@ struct S_DB {
 	             **NodeTypeG,
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
-	unsigned int NP, AC, ExactGeom, InviscidFluxType, ExplicitSolverType, PR, PP, PGs,
+	unsigned int NP, AC, ExactGeom, InviscidFluxType, ViscousFluxType, ExplicitSolverType, PR, PP, PGs,
 	             *PGc, *PF, *VFPartUnity,
 	             ***SF_BE, **PCs, **PCc, **PJs, **PJc, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
@@ -35,7 +35,7 @@ struct S_DB {
 
 	// Initialization
 	char         *SolverType;
-	unsigned int Nvar, Neq, OutputInterval, DOF0;
+	unsigned int Nvar, Neq, OutputInterval, DOF0, SourcePresent;
 	double       Xc, Yc, Rc, MInf, pInf, TInf, VInf, uInf, vInf, wInf, Rg, Cscale, PeriodL, PeriodFraction, FinalTime,
 	             rIn, MIn, rhoIn, VIn;
 

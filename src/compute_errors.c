@@ -85,7 +85,7 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 
 	// Standard datatypes
 	unsigned int i, iMax, j, NvnS, NvnI, IndU;
-	double       *XYZ_vI, 
+	double       *XYZ_vI,
 	             *rho, *p, *s, *sEx, *U, *UEx, *What, *W,
 	             *detJV_vI, *w_vI, *ChiS_vI, *wdetJV_vI, err,
 	             *ChiSwdetJV_vI, *MInvChiSwdetJV_vI, *L2_Ex_vI, *diag_wdetJV_vI;

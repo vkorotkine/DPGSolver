@@ -7,9 +7,11 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "Parameters.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
+#include "S_FACET.h"
 
 #include "element_functions.h"
 #include "matrix_functions.h"
@@ -47,7 +49,7 @@ struct S_OPERATORS {
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
-                     const unsigned int IndClass);
+                     const unsigned int IndFType);
 
 void setup_geom_factors(struct S_VOLUME *VOLUME)
 {
@@ -237,9 +239,10 @@ void setup_geom_factors_highorder(struct S_FACET *FACET)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int i, n, row, col,
-	             NvnG,;
-	double       *XYZ;
+	unsigned int n, row, col, IndFType,
+	             NvnG, NfnI,
+	             VfIn, fIn, Eclass;
+	double       *XYZ, *J_fI, *detJV_fI;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VIn;
@@ -247,11 +250,11 @@ void setup_geom_factors_highorder(struct S_FACET *FACET)
 	OPS = malloc(sizeof *OPS); // free
 
 	// Obtain operators
-	VIn = FACET->VIn;
+	VIn  = FACET->VIn;
 	VfIn = FACET->VfIn;
-	fIn = VfIn/NFREFMAX;
+	fIn  = VfIn/NFREFMAX;
 
-	Eclass = get_Eclass(VOLUME->type);
+	Eclass = get_Eclass(VIn->type);
 	IndFType = get_IndFType(Eclass,fIn);
 
 	init_ops(OPS,VIn,FACET,IndFType);
@@ -259,7 +262,7 @@ void setup_geom_factors_highorder(struct S_FACET *FACET)
 	NvnG = OPS->NvnG;
 	NfnI = OPS->NfnI;
 
-	XYZ = VOLUME->XYZ;
+	XYZ = VIn->XYZ;
 
 	J_fI     = malloc(NfnI*d*d * sizeof *J_fI);     // free
 	detJV_fI = malloc(NfnI     * sizeof *detJV_fI); // keep
@@ -292,15 +295,12 @@ void setup_geom_factors_highorder(struct S_FACET *FACET)
 }
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
-                     const unsigned int IndClass)
+                     const unsigned int IndFType)
 {
 	// Standard datatypes
 	unsigned int P, type, curved;
 
 	struct S_ELEMENT *ELEMENT_OPS;
-
-	// silence
-	P = IndClass;
 
 	P      = VOLUME->P;
 	type   = VOLUME->type;
@@ -331,30 +331,32 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	}
 
 	if (FACET) {
-		unsigned int PF, PV;
+		unsigned int PF, PV, FtypeInt;
 
 		PV = P;
 		PF = FACET->P;
+
+		FtypeInt = FACET->typeInt;
 
 		if (!curved) {
 			// Straight VOLUME
 			if (FtypeInt == 's') {
 				// Straight FACET Integration
-				OPS->NfnI    = ELEMENT->NfnIs[PF][IndFType];
-				OPS->D_vG_fI = ELEMENT->D_vGs_fIs[PV][PF];
+				OPS->NfnI    = ELEMENT_OPS->NfnIs[PF][IndFType];
+				OPS->D_vG_fI = ELEMENT_OPS->D_vGs_fIs[PV][PF];
 			} else {
 				// Curved FACET Integration
-				OPS->NfnI    = ELEMENT->NfnIc[PF][IndFType];
-				OPS->D_vG_fI = ELEMENT->D_vGs_fIc[PV][PF];
+				OPS->NfnI    = ELEMENT_OPS->NfnIc[PF][IndFType];
+				OPS->D_vG_fI = ELEMENT_OPS->D_vGs_fIc[PV][PF];
 			}
 		} else {
 			// Curved VOLUME
 			if (FtypeInt == 's') {
-				OPS->NfnI    = ELEMENT->NfnIs[PF][IndFType];
-				OPS->D_vG_fI = ELEMENT->D_vGc_fIs[PV][PF];
+				OPS->NfnI    = ELEMENT_OPS->NfnIs[PF][IndFType];
+				OPS->D_vG_fI = ELEMENT_OPS->D_vGc_fIs[PV][PF];
 			} else {
-				OPS->NfnI    = ELEMENT->NfnIc[PF][IndFType];
-				OPS->D_vG_fI = ELEMENT->D_vGc_fIc[PV][PF];
+				OPS->NfnI    = ELEMENT_OPS->NfnIc[PF][IndFType];
+				OPS->D_vG_fI = ELEMENT_OPS->D_vGc_fIc[PV][PF];
 			}
 		}
 	}

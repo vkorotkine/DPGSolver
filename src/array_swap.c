@@ -141,3 +141,25 @@ void array_swap_cmplx(register double complex *arr1, register double complex *ar
 		break;
 	}
 }
+
+void array_rearrange_d(const unsigned int NRows, const unsigned int NCols, const unsigned int *Ordering, double *A)
+{
+	unsigned int i, RowInd, RowSub, ReOrder, *RowTracker;
+
+	RowTracker = malloc(NRows * sizeof *RowTracker); // free
+
+	for (i = 0; i < NRows; i++)
+		RowTracker[i] = i;
+
+	for (RowInd = 0; RowInd < NRows; RowInd++) {
+		ReOrder = Ordering[RowInd];
+		for (RowSub = ReOrder; RowTracker[RowSub] != ReOrder; RowSub = RowTracker[RowSub])
+			;
+
+		if (RowInd != RowSub) {
+			array_swap_d(&A[RowInd],&A[RowSub],NCols,NRows);
+			array_swap_ui(&RowTracker[RowInd],&RowTracker[RowSub],1,1);
+		}
+	}
+	free(RowTracker);
+}

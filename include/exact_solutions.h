@@ -5,5 +5,6 @@
 #define DPG__exact_solutions_h__INCLUDED
 
 extern void compute_exact_solution (const unsigned int Nn, double *XYZ, double *UEx, double *sEx, const unsigned int solved);
+extern void compute_source         (const unsigned int Nn, double *XYZ, double *source);
 
 #endif // DPG__exact_solutions_h__INCLUDED

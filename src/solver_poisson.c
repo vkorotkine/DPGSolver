@@ -11,21 +11,21 @@
 #include "petscmat.h"
 #include "petscksp.h"
 
-/*
 #include "Parameters.h"
-#include "S_DB.h"
-#include "S_VOLUME.h"
-
-#include "adaptation.h"
-#include "update_VOLUMEs.h"
-#include "implicit_VOLUME_info.h"
-#include "implicit_FACET_info.h"
-#include "finalize_LHS.h"
-#include "output_to_paraview.h"
-
 #include "Macros.h"
-#include "array_print.h"
-*/
+#include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
+#include "S_FACET.h"
+
+// When errors are fixed, comment all headers below and include ALL that are necessary (ToBeDeleted)
+#include "element_functions.h"
+#include "matrix_functions.h"
+#include "exact_solutions.h"
+
+
+
+#include "array_print.h" // ToBeDeleted
 
 /*
  *	Purpose:
@@ -44,7 +44,11 @@
  *	References:
  */
 
-#define CONST_IP 200
+struct S_OPERATORS {
+	unsigned int NvnS, NvnI, NfnI,
+	             *nOrdOutIn, *nOrdInOut;
+	double       *ChiS_vI, **D_Weak, **ChiS_fI, **I_Weak_FF;
+};
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 {
@@ -73,13 +77,57 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 	}
 }
 
+static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+                      const unsigned int IndFType)
+{
+	// Standard datatypes
+	unsigned int PV, PF, Vtype, FtypeInt, IndOrdOutIn, IndOrdInOut;
+
+	struct S_ELEMENT *ELEMENT, *ELEMENT_FACET;
+
+	PV     = VOLUME->P;
+	PF     = FACET->P;
+	Vtype  = VOLUME->type;
+
+	FtypeInt = FACET->typeInt;
+	IndOrdOutIn = FACET->IndOrdOutIn;
+	IndOrdInOut = FACET->IndOrdInOut;
+
+	ELEMENT       = get_ELEMENT_type(Vtype);
+	ELEMENT_FACET = get_ELEMENT_FACET(Vtype,IndFType);
+
+	if (FtypeInt == 's') {
+		// Straight FACET Integration
+		OPS->NfnI = ELEMENT->NfnIs[PF][IndFType];
+
+		OPS->ChiS_fI   = ELEMENT->ChiS_fIs[PV][PF];
+		OPS->I_Weak_FF = ELEMENT->Is_Weak_FF[PV][PF];
+
+		OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIs[PF][IndOrdInOut];
+		OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIs[PF][IndOrdOutIn];
+	} else {
+		// Curved FACET Integration
+		OPS->NfnI = ELEMENT->NfnIc[PF][IndFType];
+
+		OPS->ChiS_fI   = ELEMENT->ChiS_fIc[PV][PF];
+		OPS->I_Weak_FF = ELEMENT->Ic_Weak_FF[PV][PF];
+
+		OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIc[PF][IndOrdInOut];
+		OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIc[PF][IndOrdOutIn];
+	}
+}
+
 static void compute_qhat_VOLUME(void)
 {
 	// Initialize DB Parameters
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	double *MInv, **D, *C_vI, **Dxyz, *Sxyz;
+	unsigned int i, j, dim1, dim2, 
+	             IndD, IndC,
+	             NvnI, NvnS;
+	double       *u_vI;
+	double       *ChiS_vI, *MInv, **D, *C_vI, *Dxyz, **DxyzChiS, *Sxyz;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME;
@@ -131,8 +179,7 @@ static void compute_qhat_VOLUME(void)
 			Sxyz = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnI,NvnS,-1.0,MInv,DxyzChiS[dim1]); // keep
 
 			// RHS
-			mm_Alloc_d(CBCM,CBT,CBNT,NvnS,1,NvnI,1.0,Sxyz,VOLUME->uhat,qhat); // keep
-			VOLUME->qhat[dim1] = qhat;
+			VOLUME->qhat[dim1] = mm_Alloc_d(CBCM,CBT,CBNT,NvnS,1,NvnI,1.0,Sxyz,VOLUME->uhat); // keep
 
 			// LHS
 			VOLUME->qhat_uhat[dim1] = Sxyz;
@@ -142,9 +189,21 @@ static void compute_qhat_VOLUME(void)
 	free(OPS);
 }
 
-static void boundary_Dirichlet(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *uB, double *grad_uB)
+static void boundary_Dirichlet(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *uB)
 {
-	compute_exact_solution(Nn*Nel,XYZ,*uB,NULL,0);
+	// Is this right? Or should uB == -uIn? ToBeDeleted
+	compute_exact_solution(Nn*Nel,XYZ,uB,NULL,0);
+}
+
+static void jacobian_boundary_Dirichlet(const unsigned int Nn, const unsigned int Nel, double *duOutduIn)
+{
+	unsigned int n;
+
+	if (Nel != 1)
+		printf("Error: Vectorization unsupported.\n"), EXIT_MSG;
+
+	for (n = 0; n < Nn; n++)
+		duOutduIn[n] = 0.0;
 }
 
 static void trace_IP(const unsigned int Nn, const unsigned int Nel, double *uL, double *uR, double *uNum)
@@ -178,7 +237,19 @@ static void jacobian_trace_IP(const unsigned int Nn, const unsigned int Nel, dou
 
 static void compute_qhat_FACET(void)
 {
+	// Initialize DB Parameters
+	unsigned int d               = DB.d,
+	             ViscousFluxType = DB.ViscousFluxType;
+
 	// Standard datatypes
+	unsigned int n, dim, i, j;
+	unsigned int NfnI, NvnSIn, NvnSOut;
+	unsigned int VfIn, VfOut, fIn, EclassIn, IndFType, BC, Boundary;
+	unsigned int *nOrdOutIn, *nOrdInOut;
+	double       nJ, *n_fI, *detJF_fI;
+	double       *uIn_fI, *uOut_fIIn, *uOut_fI, *uNum_fI, *duNumduIn_fI, *duNumduOut_fI, *duOutduIn,
+	             *nuNum_fI, *dnuNumduIn_fI, *dnuNumduOut_fI;
+	double       *I_FF, *MInvI_FF;
 
 	struct S_OPERATORS *OPSIn, *OPSOut;
 	struct S_VOLUME    *VIn, *VOut;
@@ -187,31 +258,34 @@ static void compute_qhat_FACET(void)
 	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 		VIn  = FACET->VIn;
 		VfIn = FACET->VfIn;
-		fIn  = FACET->fIn;
+		fIn  = VfIn/NFREFMAX;
 
 		EclassIn = VIn->Eclass;
 		IndFType = get_IndFType(EclassIn,fIn);
-		init_opsF(OPSIn,VIn,FACET,0);
+		init_opsF(OPSIn,VIn,FACET,IndFType);
 
 		VOut  = FACET->VOut;
 		VfOut = FACET->VfOut;
 
-		init_opsF(OPSOut,VOut,FACET,0);
+		init_opsF(OPSOut,VOut,FACET,IndFType);
 
 		BC       = FACET->BC;
 		Boundary = FACET->Boundary;
 
-		NfnI   = OPSIn[IndFType]->NfnI;
-		NvnSIn = OPSIn[IndFType]->NvnS;
+		NfnI   = OPSIn->NfnI;
+		NvnSIn = OPSIn->NvnS;
+
+		nOrdOutIn = OPSIn->nOrdOutIn;
+		nOrdInOut = OPSIn->nOrdInOut;
 
 		// Compute uIn_fI
-		uIn_fI = malloc(nfnI * sizeof *uIn_fI); // free
+		uIn_fI = malloc(NfnI * sizeof *uIn_fI); // free
 		mm_CTN_d(NfnI,1,NvnSIn,OPSIn->ChiS_fI[VfIn],VIn->uhat,uIn_fI);
 
 		// Compute_uOut_fI (Taking BCs into account if applicable)
-		uOut_fIIn = malloc(nfnI * sizeof *uOut_fIIn); // free
+		uOut_fIIn = malloc(NfnI * sizeof *uOut_fIIn); // free
 		if (!Boundary) {
-			uOut_fI = malloc(nfnI * sizeof *uOut_fI); // free
+			uOut_fI = malloc(NfnI * sizeof *uOut_fI); // free
 			mm_CTN_d(NfnI,1,NvnSOut,OPSOut->ChiS_fI[VfOut],VOut->uhat,uOut_fI);
 
 			// Reorder uOut_fI to correspond to uIn_fI
@@ -229,14 +303,14 @@ static void compute_qhat_FACET(void)
 		}
 
 		// Compute numerical trace and its Jacobians
-		switch (PoissonTraceType) {
-		case IP:
+		switch (ViscousFluxType) {
+		case FLUX_IP:
 			trace_IP(NfnI,1,uIn_fI,uOut_fIIn,uNum_fI);
 			jacobian_trace_IP(NfnI,1,duNumduIn_fI,'L');
 			jacobian_trace_IP(NfnI,1,duNumduOut_fI,'R');
 			break;
 		default:
-			printf("Error: Unsupported PoissonTraceType.\n"), EXIT_MSG;
+			printf("Error: Unsupported ViscousFluxType.\n"), EXIT_MSG;
 			break;
 		}
 		free(uIn_fI);
@@ -254,7 +328,7 @@ static void compute_qhat_FACET(void)
 				printf("Error: Unsupported BC.\n"), EXIT_MSG;
 
 			for (n = 0; n < NfnI; n++)
-				duNumduIn_fI[n] += duNumduOut[n]*duOutduIn[n];
+				duNumduIn_fI[n] += duNumduOut_fI[n]*duOutduIn[n];
 
 if (BC % BC_STEP_SC == BC_DIRICHLET) { // ToBeDeleted
 printf("Should be zero.\n");
@@ -272,20 +346,19 @@ EXIT_MSG;
 		for (dim = 0; dim < d; dim++) {
 		for (n = 0; n < NfnI; n++) {
 			nJ = n_fI[n*d+dim]*detJF_fI[n];
-			nuNum_fI[dim*NfnI+n]      = uNum_fI[n]*nJ;
-			duNumduIn_fI[dim*NfnI+n]  = duNumduIn_fI[n]*nJ;
-			duNumduOut_fI[dim*NfnI+n] = duNumduOut_fI[n]*nJ;
+			nuNum_fI[dim*NfnI+n]       = uNum_fI[n]*nJ;
+			dnuNumduIn_fI[dim*NfnI+n]  = duNumduIn_fI[n]*nJ;
+			dnuNumduOut_fI[dim*NfnI+n] = duNumduOut_fI[n]*nJ;
 		}}
 
+
 		// Compute FACET RHS and LHS terms
-		RowTracker = malloc(NfnI * sizeof *RowTracker); // free
 
 		// Interior VOLUME
 
 		I_FF     = OPSIn->I_Weak_FF[VfIn];
 		MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSIn,NfnI,NvnSIn,1.0,VIn->MInv,I_FF); // free
 
-		nuNum         = malloc(NfnI * sizeof *nuNum); // free
 		MInvIdnuNumdu = malloc(NvnSIn*NfnI * sizeof *MInvIdnuNumdu); // free
 		for (dim = 0; dim < d; dim++) {
 			// RHSIn
@@ -333,21 +406,9 @@ EXIT_MSG;
 			}
 
 			// Rearrange numerical trace and its Jacobians to match node ordering from opposite VOLUME
-			for (i = 0; i < NfnI; i++)
-				RowTracker[i] = i;
-
-			for (RowInd = 0; RowInd < NfnI; RowInd++) {
-				ReOrder = nOrdInOut[RowInd];
-				for (RowSub = ReOrder; RowTracker[RowSub] != ReOrder; RowSub = RowTracker[RowSub])
-					;
-
-				if (RowInd != RowSub) {
-					array_swap_d(&nuNum[RowInd],&nuNum[RowSub],d,NfnI);
-					array_swap_d(&dnuNumduIn[RowInd],&dnuNumduIn[RowSub],d,NfnI);
-					array_swap_d(&dnuNumduOut[RowInd],&dnuNumduOut[RowSub],d,NfnI);
-					array_swap_ui(&RowTracker[RowInd],&RowTracker[RowSub],1,1);
-				}
-			}
+			array_rearrange(NfnI,d,nOrdInOut,nuNum);
+			array_rearrange(NfnI,d,nOrdInOut,dnuNumduIn);
+			array_rearrange(NfnI,d,nOrdInOut,dnuNumduOut);
 
 			I_FF     = OPSOut->I_Weak_FF[VfOut];
 			MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSOut,NfnI,NvnSOut,1.0,VOut->MInv,I_FF); // free
@@ -438,23 +499,6 @@ static void finalize_qhat(void)
 
 		free(FACET->qhatIn);
 		free(FACET->qhatOut);
-	}
-}
-
-static void compute_source(const unsigned int Nn, double *XYZ, double *source)
-{
-	// Initialize DB Parameters
-	char *TestCase = DB.TestCase;
-
-	// Standard datatypes
-	double *X, *Y;
-
-	X = &XYZ[0*Nn];
-	Y = &XYZ[1*Nn];
-
-	if (strstr(TestCase,"Poisson")) {
-		for (n = 0; n < Nn; n++)
-			source[n] = -2.0*PI*PI*sin(PI*X[n])*sin(PI*Y[n]);
 	}
 }
 
@@ -640,6 +684,7 @@ static void compute_uhat_FACET()
 		for (dim = 0; dim < d; dim++) {
 			// LHS - VOLUME terms
 			mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSIn, NvnSIn, -1.0,1.0,DxyzChiS[dim],FACET->qhat_uhatInIn[dim],  LHSInIn);
+// Something relating to whether this is a boundary VOLUME here? (ToBeDeleted)
 			mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSOut,NvnSIn, -1.0,1.0,DxyzChiS[dim],FACET->qhat_uhatOutIn[dim], LHSOutIn);
 			mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSIn, NvnSOut,-1.0,1.0,DxyzChiS[dim],FACET->qhat_uhatInOut[dim], LHSInOut);
 			mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NvnSOut,-1.0,1.0,DxyzChiS[dim],FACET->qhat_uhatOutOut[dim],LHSOutOut);
@@ -774,61 +819,216 @@ array_print_d(NfnI,d,graduOut_fIIn,'C');
 		// Compute numerical flux and its Jacobians
 		nqNum_fI = malloc(NfnI * sizeof *nqNum_fI); // tbd
 
-		switch (PoissonFluxType) {
-		case IP:
+		switch (ViscousFluxType) {
+		case FLUX_IP:
 			flux_IP(NfnI,1,uIn_fI,uOut_fIIn,graduIn_fI,graduOut_fIIn,NULL,NULL,h,FACET->P,nqNum_fI,n_fI,d);
-// use jacobian_flux_IP to return coefficients which multiply each possible term in the linearized flux
-// here, coefs are 0.5 on grad_u and -tau on jump u
-			dnqNumduhatIn_fI    = calloc(NfnI , sizeof *dnqNumduhatIn_fI);    // tbd
-			dnqNumduhatOut_fIIn = calloc(NfnI , sizeof *dnqNumduhatOut_fIIn); // tbd
-
-			jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'L');
-			ChiS_fI = OPSIn->ChiS_fI;
-
-			for (dim = 0; dim < d; dim++) {
-				for (n = 0; n < NfnI; n++) {
-					for (j = 0; j < NvnSIn; j++) {
-						dnqNumduhatIn_fI[n] += u_avg[NfnI*dim+n]*GradxyzIn[dim][n*NvnSIn+j]
-						                    +  u_jump[NfnI*dim+n]*ChiS_fI[VfIn][n*NvnSIn+j]
-						                    +  (q_avg[NfnI*dim+n]+q_jump[NfnI*dim+n])*0;
-/*
-The last term here requires VIn/VOut->qhatuhat, FACET->qhatuhatInIn/OutIn/InOut/OutOut in general.
-Ensure that the correct ordering is used based on which linearized term is being computed
-*/
-					}
-				}
-			}
-// Don't forget contribution from boundary.
-
-
-
-
-
-//			jacobian_flux_IP(NfnI,1,duNumduIn_fI,'L');
-//			jacobian_flux_IP(NfnI,1,duNumduOut_fI,'R');
 			break;
 		default:
-			printf("Error: Unsupported PoissonFluxType.\n"), EXIT_MSG;
+			printf("Error: Unsupported ViscousFluxType.\n"), EXIT_MSG;
 			break;
 		}
 
+// If using ViscousFluxType == "IP", what is done below is quite inefficient as there is no dependence on q. It is very
+// general however and supports many different FluxTypes.
+		dnqNumduhatIn_fI    = calloc(NfnI*NvnSIn  , sizeof *dnqNumduhatIn_fI);    // tbd
+		dnqNumduhatOut_fIIn = calloc(NfnI*NvnSOut , sizeof *dnqNumduhatOut_fIIn); // tbd
+
+
+		// InIn contributions
+		jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'L');
+		ChiS_fI = OPSIn->ChiS_fI[VfIn];
+
+		for (dim = 0; dim < d; dim++) {
+			q_uhatV = mm_Alloc_d(CBRM,CBNT,CBNT,NfnI,NvnSIn,NvnSIn,1.0,ChiS_fI,VIn->qhat_uhat[dim]);       // free
+			q_uhatF = mm_Alloc_d(CBRM,CBNT,CBNT,NfnI,NvnSIn,NvnSIn,1.0,ChiS_fI,FACET->qhat_uhatInIn[dim]); // free
+			for (n = 0; n < NfnI; n++) {
+			for (j = 0; j < NvnSIn; j++) {
+				dnqNumduhatIn_fI[n*NvnSIn+j] // row-major
+					+= u_avg[NfnI*dim+n]*GradxyzIn[dim][n*NvnSIn+j]
+					+  u_jump[NfnI*dim+n]*ChiS_fI[n*NvnSIn+j]
+					+  (q_avg[NfnI*dim+n]+q_jump[NfnI*dim+n])*(q_uhatV[n*NvnSIn+j]+q_uhatF[n*NvnSIn+j]);
+			}}
+			free(q_uhatV);
+			free(q_uhatF);
+		}
+
+		// If on a boundary, there is no qhat contribution other than qhat_uhatInIn. However, there is a still a
+		// contribution from terms depending on the solution, which are added to dnqNumduhatIn_fI using the chain
+		// rule.
+		// Note: Both dnqNumduhatIn and dnqNumduhatOut are ordered corresponding to VIn. 
+
+		// OutOut contribution (u)
+		jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'R');
+		ChiS_fI_std = OPSOut->ChiS_fI[VfOut];
+		ChiS_fI = malloc(NfnI*NvnSOut * sizeof *ChiS_fI); // free
+
+		// Reordering
+		for (i = 0; i < NfnI; i++) {
+		for (j = 0; j < NvnSOut; j++) {
+			ChiS_fI[i*NvnSOut+j] = ChiS_fI_std[nOrdOutIn[i]*NvnSOut+j];
+		}}
+
+		for (dim = 0; dim < d; dim++) {
+			for (n = 0; n < NfnI; n++) {
+			for (j = 0; j < NvnSOut; j++) {
+				dnqNumduhatOut_fI[n*NvnSOut+j] += u_avg[NfnI*dim+n]*GradxyzOut[dim][n*NvnSOut+j]
+				                               +  u_jump[NfnI*dim+n]*ChiS_fI[n*NvnSOut+j];
+			}}
+		}
+
+		if (!Boundary) {
+			// InOut contribution
+			jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'R');
+
+			// ChiS_fI reordered above.
+			for (dim = 0; dim < d; dim++) {
+				q_uhatF = mm_Alloc_d(CBRM,CBNT,CBNT,NfnI,NvnSIn,NvnSOut,1.0,ChiS_fI,FACET->qhat_uhatInOut[dim]); // free
+				for (n = 0; n < NfnI; n++) {
+				for (j = 0; j < NvnSIn; j++) {
+					dnqNumduhatIn_fI[n*NvnSIn+j] += (q_avg[NfnI*dim+n]+q_jump[NfnI*dim+n])*(q_uhatF[n*NvnSIn+j]);
+				}}
+				free(q_uhatF);
+			}
+			free(ChiS_fI);
+
+			// OutIn contribution
+			jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'L');
+			ChiS_fI = OPSIn->ChiS_fI[VfIn];
+
+			for (dim = 0; dim < d; dim++) {
+				q_uhatF = mm_Alloc_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSIn,1.0,ChiS_fI,FACET->qhat_uhatOutIn[dim]); // free
+				for (n = 0; n < NfnI; n++) {
+				for (j = 0; j < NvnSOut; j++) {
+					dnqNumduhatOut_fI[n*NvnSOut+j] += (q_avg[NfnI*dim+n]+q_jump[NfnI*dim+n])*(q_uhatF[n*NvnSOut+j]);
+				}}
+				free(q_uhatF);
+			}
+
+			// OutOut contribution
+			jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'R');
+
+			ChiS_fI_std = OPSOut->ChiS_fI[VfOut];
+			ChiS_fI = malloc(NfnI*NvnSOut * sizeof *ChiS_fI); // free
+
+			// Reordering
+			for (i = 0; i < NfnI; i++) {
+			for (j = 0; j < NvnSOut; j++) {
+				ChiS_fI[i*NvnSOut+j] = ChiS_fI_std[nOrdOutIn[i]*NvnSOut+j];
+			}}
+
+			for (dim = 0; dim < d; dim++) {
+				q_uhatV = mm_Alloc_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,ChiS_fI,VOut->qhat_uhat[dim]);        // free
+				q_uhatF = mm_Alloc_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,ChiS_fI,FACET->qhat_uhatOutOut[dim]); // free
+				for (n = 0; n < NfnI; n++) {
+				for (j = 0; j < NvnSOut; j++) {
+					dnqNumduhatOut_fI[n*NvnSOut+j]
+						+= (q_avg[NfnI*dim+n]+q_jump[NfnI*dim+n])*(q_uhatV[n*NvnSOut+j]+q_uhatF[n*NvnSOut+j]);
+				}}
+				free(q_uhatV);
+				free(q_uhatF);
+			}
+			free(ChiS_fI);
+		} else {
+			free(ChiS_fI);
+
+			// Include BC information in dnqNumduhatIn_fI
+
+			// Note: This approach is only possible because duOutduIn is a constant here. Otherwise, it would be
+			//       better to linearize the flux wrt the solution itself (not the coefficients), add the duOutduIn
+			//       term, and then add the final contribution for the linearization (du/duhat).
+			duOutduIn = malloc(NfnI * sizeof *duOutduIn); // free
+
+			if (BC % BC_STEP_SC == BC_DIRICHLET)
+				jacobian_boundary_Dirichlet(NfnI,1,duOutduIn);
+			else if (BC % BC_STEP_SC == BC_NEUMANN)
+				printf("Error: Add support.\n"), EXIT_MSG;
+			else
+				printf("Error: Unsupported BC.\n"), EXIT_MSG;
+
+			for (n = 0; n < NfnI; n++) {
+			for (j = 0; j < NvnSIn; j++) {
+				dnqNumduhatIn_fI[n] += dnqNumduhatOut[n]*duOutduIn[n];
+			}}
+
+			free(duOutduIn);
+		}
+
+		// Multiply by area element
+		for (n = 0; n < NfnI; n++) {
+			nqNum_fI[n] *= detJF_fI[n];
+			for (j = 0; j < NvnSIn; j++)
+				dnqNumduhatIn_fI[n*NvnSIn+j] *= detJF_fI[n];
+			for (j = 0; j < NvnSOut; j++)
+				dnqNumduhatOut_fI[n*NvnSOut+j] *= detJF_fI[n];
+		}
+
+		// Finalize FACET RHS and LHS terms
+
+		// Interior FACET
+
+		mm_CTN_d(NvnSIn,1,NfnI,OPSIn->I_Weak_FF[VfIn],nqNum_fI,RHSIn);
+		mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSIn,NfnI,1.0,1.0,OPSIn->I_Weak_FF[VfIn],dnqNumduhatIn_fI,&LHSInIn);
+
+		// Exterior FACET
+		if (!Boundary) {
+			// RHS
+
+			// Use -ve normal for opposite VOLUME
+			for (n = 0; n < NfnI; n++)
+				nqNum_fI[n] *= -1.0;
+
+			// Rearrange nqNum to match node ordering from VOut
+			array_rearrange(NfnI,1,nOrdInOut,nqNum_fI);
+
+			mm_CTN_d(NvnSOut,1,NfnI,OPSOut->I_Weak_FF[VfOut],nqNum_fI,RHSOut);
+
+			// LHS
+
+			// OutIn
+			mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSOut,NfnI,1.0,1.0,OPSIn->I_Weak_FF[VfIn],dnqNumduhatOut_fI,&LHSOutIn);
+
+			// Use -ve normal for opposite VOLUME
+			for (n = 0; n < NfnI; n++) {
+				for (j = 0; j < NvnSIn; j++)
+					dnqNumduhatIn_fI[n*NvnSIn+j] *= -1.0;
+				for (j = 0; j < NvnSOut; j++)
+					dnqNumduhatOut_fI[n*NvnSOut+j] *= -1.0;
+			}
+
+			// Rearrange to match ordering from VOut
+			array_rearrange(NfnI,NvnSIn, nOrdInOut,dnqNumduhatIn_fI);
+			array_rearrange(NfnI,NvnSOut,nOrdInOut,dnqNumduhatOut_fI);
+
+			// InOut
+			mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSIn,NfnI,1.0,1.0,OPSOut->I_Weak_FF[VfOut],dnqNumduhatIn_fI,&LHSInOut);
+
+			// OutOut
+			mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NfnI,1.0,1.0,OPSOut->I_Weak_FF[VfOut],dnqNumduhatOut_fI,&LHSOutOut);
+		}
 	}
 }
 
-void solver_poisson(void)
+void implicit_info_Poisson(void)
 {
-	// Initialize DB Parameters
-	unsigned int OutputInterval = DB.OutputInterval,
-	             Nvar           = DB.Nvar;
-
-	// Standard datatypes
-
 	compute_qhat_VOLUME();
 	compute_qhat_FACET();
 	finalize_qhat();
 
 	compute_uhat_VOLUME();
 	compute_uhat_FACET();
+}
+
+void solver_Poisson(void)
+{
+	// Initialize DB Parameters
+	unsigned int OutputInterval = DB.OutputInterval,
+	             Nvar           = DB.Nvar;
+
+	// Standard datatypes
+	double maxRHS;
+
+	implicit_info_Poisson();
+	maxRHS = finalize_LHS();
 
 	// add source contribution to VOLUME->RHS
 

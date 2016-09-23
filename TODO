@@ -7,9 +7,7 @@ grep through all files for 'ToBeModified' and 'ToBeDeleted' comments, making app
 
 change tab spaces to 8 and increase max lines to check alignment of the code under different options in .vimrc
 
-fix Makefile to include header dependencies
 put src code into logical subfolders
-remove redundant headers from source files by defining smaller header files
 
 
 formatting left to be fixed:

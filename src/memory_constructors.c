@@ -398,7 +398,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 struct S_VOLUME *New_VOLUME(void)
 {
-	//unsigned int NP = DB.NP;
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
 
 	struct S_VOLUME *VOLUME;
 	VOLUME = malloc(sizeof *VOLUME); // free
@@ -461,6 +462,13 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->PNew           = UINT_MAX;
 	VOLUME->hrefine_type   = UINT_MAX;
 
+	// Poisson
+	VOLUME->uhat      = NULL; // free
+	VOLUME->qhat      = calloc(d , sizeof *(VOLUME->qhat)); // free
+	VOLUME->qhat_uhat = calloc(d , sizeof *(VOLUME->qhat)); // free
+
+	VOLUME->DxyzChiS = calloc(d , sizeof *(VOLUME->DxyzChiS)); // free
+
 	// structs
 	VOLUME->next    = NULL;
 	VOLUME->grpnext = NULL;
@@ -503,6 +511,7 @@ struct S_FACET *New_FACET(void)
 	FACET->n_fS     = NULL; // free
 	FACET->detJF_fI = NULL; // free
 	FACET->detJF_fS = NULL; // free
+	FACET->detJV_fI = NULL; // free
 
 	// Solving
 	FACET->RHSIn  = NULL; // free (in finalize_RHS)

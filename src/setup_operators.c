@@ -882,7 +882,7 @@ static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
 static void setup_ELEMENT_operators(const unsigned int EType)
 {
 	// Returned operators
-	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnIs, *NvnIc, *NvnS, **NfnS, **NfnIs, **NfnIc;
+	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS, **NfnS, **NfnIs, **NfnIc;
 	double       **w_vIs, **w_vIc,
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS,
@@ -1023,8 +1023,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	NvnGc = ELEMENT->NvnGc;
 	NvnCs = ELEMENT->NvnCs;
 	NvnCc = ELEMENT->NvnCc;
-	NvnJs = ELEMENT->NvnJs;
-	NvnJc = ELEMENT->NvnJc;
 	NvnIs = ELEMENT->NvnIs;
 	NvnIc = ELEMENT->NvnIc;
 	NvnS  = ELEMENT->NvnS;
@@ -1077,6 +1075,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	ChiS_fIc    = ELEMENT->ChiS_fIc;
 	ChiS_fIs_sp = ELEMENT->ChiS_fIs_sp;
 	ChiS_fIc_sp = ELEMENT->ChiS_fIc_sp;
+
+	GradChiS_fIs = ELEMENT->GradChiS_fIs;
+	GradChiS_fIc = ELEMENT->GradChiS_fIc;
 
 	I_vGs_fS  = ELEMENT->I_vGs_fS;
 	I_vGs_fIs = ELEMENT->I_vGs_fIs;
@@ -1670,10 +1671,10 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					ChiRefCc_fIs = basis(PCc[P][Eclass],rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
 					ChiRefCc_fIc = basis(PCc[P][Eclass],rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
 
-					GradChiRefGs_fIs = grad_basis(PGs,   rst_fIs,NfnIs[P],&Nbf,dE); // free
-					GradChiRefGs_fIc = grad_basis(PGs,   rst_fIc,NfnIc[P],&Nbf,dE); // free
-					GradChiRefGc_fIs = grad_basis(PGc[P],rst_fIs,NfnIs[P],&Nbf,dE); // free
-					GradChiRefGc_fIc = grad_basis(PGc[P],rst_fIc,NfnIc[P],&Nbf,dE); // free
+					GradChiRefGs_fIs = grad_basis(PGs,   rst_fIs,NfnIs[P][IndFType],&Nbf,dE); // free
+					GradChiRefGs_fIc = grad_basis(PGs,   rst_fIc,NfnIc[P][IndFType],&Nbf,dE); // free
+					GradChiRefGc_fIs = grad_basis(PGc[P],rst_fIs,NfnIs[P][IndFType],&Nbf,dE); // free
+					GradChiRefGc_fIc = grad_basis(PGc[P],rst_fIc,NfnIc[P][IndFType],&Nbf,dE); // free
 
 					ChiGs_fS  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnGs[1],NvnGs[1],1.0,ChiRefGs_fS, TGs); // free
 					ChiGs_fIs = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,ChiRefGs_fIs,TGs); // free
@@ -1776,8 +1777,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					free(ChiRefS_fIs);
 					free(ChiRefS_fIc);
 
-					array_free2_d(dE,gradChiRefS_fIs);
-					array_free2_d(dE,gradChiRefS_fIc);
+					array_free2_d(dE,GradChiRefS_fIs);
+					array_free2_d(dE,GradChiRefS_fIc);
 				}
 			}
 			for (vref = 0; vref < Nvref; vref++) {

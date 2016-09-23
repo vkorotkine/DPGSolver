@@ -31,6 +31,10 @@ struct S_VOLUME {
 	unsigned int refine_current, Vadapt, adapt_type, PNew, hrefine_type;
 //	double       minRES, maxRES;
 
+	// Poisson
+	double *uhat, **qhat, **qhat_uhat;
+	double **DxyzChiS;
+
 	// structs
 	struct S_VOLUME *next, *grpnext, *child0, *parent;
 	struct S_FACET  **FACET;

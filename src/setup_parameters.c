@@ -532,6 +532,8 @@ u1 = u2; u1 = 1;
 //	DB.InviscidFluxType = FLUX_LF;
 	DB.InviscidFluxType = FLUX_ROE;
 
+	DB.ViscousFluxType  = FLUX_IP;
+
  	DB.ExplicitSolverType = RK3_SSP;
 // 	DB.ExplicitSolverType = RK4_LS;
 

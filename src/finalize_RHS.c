@@ -10,11 +10,14 @@
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
+#include "S_ELEMENT.h"
 #include "S_VOLUME.h"
 #include "S_FACET.h"
 
 #include "array_norm.h"
 #include "matrix_functions.h"
+#include "element_functions.h"
+#include "exact_solutions.h"
 
 /*
  *	Purpose:
@@ -33,12 +36,80 @@
  *	References:
  */
 
+struct S_OPERATORS {
+	unsigned int NvnI;
+	double       *I_vG_vI, *I_Weak;
+};
+
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
+{
+	// Standard datatypes
+	unsigned int P, type, curved;
+	struct S_ELEMENT *ELEMENT;
+
+	P      = VOLUME->P;
+	type   = VOLUME->type;
+	curved = VOLUME->curved;
+
+	ELEMENT = get_ELEMENT_type(type);
+
+	if (!curved) {
+		OPS->NvnI = ELEMENT->NvnIs[P];
+
+		OPS->I_vG_vI = ELEMENT->I_vGs_vIs[1][P][0];
+		OPS->I_Weak  = ELEMENT->Is_Weak_VV[P][P][0];
+	} else {
+		OPS->NvnI = ELEMENT->NvnIc[P];
+
+		OPS->I_vG_vI = ELEMENT->I_vGc_vIc[P][P][0];
+		OPS->I_Weak  = ELEMENT->Ic_Weak_VV[P][P][0];
+	}
+}
+
+static void add_source(const struct S_VOLUME *VOLUME)
+{
+	// Initialize DB Parameters
+	unsigned int d   = DB.d,
+	             Neq = DB.Neq;
+
+	// Standard datatypes
+	unsigned int eq, n, NvnI;
+	double    *XYZ_vI, *f_vI, *detJV_vI_ptr;
+
+	struct S_OPERATORS *OPS;
+
+	OPS = malloc(sizeof *OPS); // free
+
+	init_ops(OPS,VOLUME);
+
+	NvnI = OPS->NvnI;
+
+	XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
+	mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
+
+	f_vI = malloc(NvnI*Neq * sizeof *f_vI); // free
+	compute_source(NvnI,XYZ_vI,f_vI);
+
+	for (eq = 0; eq < Neq; eq++) {
+		detJV_vI_ptr = VOLUME->detJV_vI;
+		for (n = 0; n < NvnI; n++)
+			f_vI[eq*NvnI+n] *= *detJV_vI_ptr++;
+	}
+
+	mm_d(CBCM,CBT,CBNT,VOLUME->NvnS,Neq,NvnI,-1.0,1.0,OPS->I_Weak,f_vI,VOLUME->RHS);
+
+	free(f_vI);
+
+	free(OPS);
+}
+
 double finalize_RHS(void)
 {
 	// Initialize DB Parameters
-	char         *SolverType = DB.SolverType;
-	unsigned int Neq         = DB.Neq,
-	             Collocated  = DB.Collocated;
+	char         *SolverType   = DB.SolverType;
+	unsigned int Neq           = DB.Neq,
+	             SourcePresent = DB.SourcePresent,
+	             Collocated    = DB.Collocated;
 
 	// Standard datatypes
 	unsigned int iMax, jMax,
@@ -46,8 +117,8 @@ double finalize_RHS(void)
 	double       maxRHS, maxRHSV, *VRHSIn_ptr, *VRHSOut_ptr, *FRHSIn_ptr, *FRHSOut_ptr, *detJV_vI_ptr,
 	             *RHS_Final;
 
-	struct S_VOLUME  *VIn, *VOut, *VOLUME;
-	struct S_FACET   *FACET;
+	struct S_VOLUME    *VIn, *VOut, *VOLUME;
+	struct S_FACET     *FACET;
 
 	// silence
 	NvnSIn = 0;
@@ -79,7 +150,13 @@ double finalize_RHS(void)
 		free(FACET->RHSOut);
 	}
 
-	// Add MInv contribution to RHS for explicit runs
+	// Add source contribution
+	if (SourcePresent) {
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+			add_source(VOLUME);
+	}
+
+	// Compute maxRHS for convergence monitoring
 	maxRHS = 0.0;
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		// Compute maxRHS for convergence monitoring
@@ -89,7 +166,11 @@ double finalize_RHS(void)
 			maxRHS = maxRHSV;
 	}
 
+	// Add MInv contribution to RHS for explicit runs
 	if (strstr(SolverType,"Explicit")) {
+		if (SourcePresent)
+			printf("Warning: Ensure that sources are being treated properly.\n");
+
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			// Add (remaining) MInv contribution to RHS
 			if (Collocated) {
@@ -102,26 +183,12 @@ double finalize_RHS(void)
 			} else {
 				RHS_Final = malloc(NvnSIn*Neq * sizeof *RHS_Final);
 
-/*
-printf("%d\n",VOLUME->indexg);
-array_print_d(NvnSIn,NvnSIn,VOLUME->MInv,'R');
-array_print_d(NvnSIn,Neq,VOLUME->RHS,'C');
-*/
-
 				mm_CTN_d(NvnSIn,Neq,NvnSIn,VOLUME->MInv,VOLUME->RHS,RHS_Final);
 				free(VOLUME->RHS);
 				VOLUME->RHS = RHS_Final;
-
-
-//printf("%d %d %d \n",VOLUME->indexg,VOLUME->type,VOLUME->level);
-//array_print_d(NvnSIn,Neq,RHS_Final,'C');
-//exit(1);
-
-
 			}
 
 		}
 	}
-//exit(1);
 	return maxRHS;
 }

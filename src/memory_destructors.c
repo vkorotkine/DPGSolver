@@ -190,6 +190,9 @@ void memory_destructor_L2_projection(const unsigned int EType)
 
 void memory_destructor_V(struct S_VOLUME *VOLUME)
 {
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
+
 	// Structures
 	free(VOLUME->XYZ_vC);
 	free(VOLUME->NsubF);
@@ -218,6 +221,12 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	free(VOLUME->What_c);
 	free(VOLUME->RHS_c);
 
+	// Poisson
+	free(VOLUME->uhat);
+	array_free2_d(d,VOLUME->qhat);
+	array_free2_d(d,VOLUME->qhat_uhat);
+	array_free2_d(d,VOLUME->DxyzChiS);
+
 	// structs
 	free(VOLUME->FACET);
 
@@ -239,6 +248,7 @@ void memory_destructor_F(struct S_FACET *FACET)
 	free(FACET->n_fS);
 	free(FACET->detJF_fI);
 	free(FACET->detJF_fS);
+	free(FACET->detJV_fI);
 
 	// Solving
 	if (FACET->LHSInIn)

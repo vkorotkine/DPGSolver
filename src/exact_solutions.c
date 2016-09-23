@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
 
 /*
@@ -40,6 +41,7 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, dou
 	X = &XYZ[0*Nn];
 	Y = &XYZ[1*Nn];
 
+	// Perhaps modify TestCase for Test_L2_proj and Test_update_h to make this cleaner, also in other functions (ToBeDeleted)
 	if (strstr(TestCase,"PeriodicVortex") ||
 	    strstr(TestCase,"Test_L2_proj")   ||
 	    strstr(TestCase,"Test_update_h")) {
@@ -109,9 +111,37 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, dou
 		}
 	} else if (strstr(TestCase,"Poisson")) {
 		for (i = 0; i < Nn; i++) {
-			u[i] = sin(PI*X[i])*sin(PI*Y[i]);
+			UEx[i] = sin(PI*X[i])*sin(PI*Y[i]);
 		}
 	} else {
-		printf("Error: Unsupported test case in compute_exact_solution.\n"), exit(1);
+		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
+	}
+}
+
+void compute_source(const unsigned int Nn, double *XYZ, double *source)
+{
+	/*
+	 *	Purpose:
+	 *		Computes source terms.
+	 */
+
+	// Initialize DB Parameters
+	char         *TestCase = DB.TestCase;
+	unsigned int Neq       = DB.Neq;
+
+	// Standard datatypes
+	unsigned int n, eq;
+	double       *X, *Y;
+
+	if (strstr(TestCase,"Poisson")) {
+		X = &XYZ[Nn*0];
+		Y = &XYZ[Nn*1];
+
+		for (eq = 0; eq < Neq; eq++) {
+			for (n = 0; n < Nn; n++)
+				source[eq*Nn+n] = -2*PI*PI*sin(X[n])*sin(Y[n]);
+		}
+	} else {
+		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
 	}
 }

@@ -87,10 +87,12 @@ void initialize_test_case_parameters(char *TestCase)
 	DB.Neq  = d+2;
 
 	// Standard datatypes
-	char *SolverType = NULL;
+	char         *SolverType;
+	unsigned int SourcePresent;
 
 	if (strstr(TestCase,"Poisson")) {
 		SolverType = NULL; // Always implicit
+		SourcePresent = 1;
 
 		DB.Nvar = 1;
 		DB.Neq  = 1;
@@ -103,6 +105,7 @@ void initialize_test_case_parameters(char *TestCase)
 	           strstr(TestCase,"Test_update_h")) {
 		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 		strcpy(SolverType,"Explicit");
+		SourcePresent = 0;
 
 //		DB.Xc = -DB.PeriodL*0.05;
 		DB.Xc =  0.0;
@@ -138,6 +141,7 @@ void initialize_test_case_parameters(char *TestCase)
 		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 //		strcpy(SolverType,"Explicit");
 		strcpy(SolverType,"Implicit");
+		SourcePresent = 0;
 
 		DB.rIn  = 1.0;
 //		rOut = 1.384;
@@ -154,7 +158,8 @@ void initialize_test_case_parameters(char *TestCase)
 	} else {
 		printf("Error: Unsupported TestCase: %s.\n",TestCase), EXIT_MSG;
 	}
-	DB.SolverType = SolverType;
+	DB.SolverType    = SolverType;
+	DB.SourcePresent = SourcePresent;
 }
 
 void initialize_test_case(const unsigned int adapt_update_MAX)

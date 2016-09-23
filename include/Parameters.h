@@ -149,6 +149,11 @@
 #define FLUX_LF  0
 #define FLUX_ROE 1
 
+#define FLUX_IP  10
+
+// Flux parameters
+#define CONST_IP 200
+
 // Tolerances
 #define NODETOL      1.0e-10
 #define NODETOL_MESH 1.0e-5
