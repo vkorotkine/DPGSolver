@@ -5,8 +5,10 @@
 #define DPG__setup_geom_factors_h__INCLUDED
 
 #include "S_VOLUME.h"
+#include "S_FACET.h"
 
 
-extern void setup_geom_factors (struct S_VOLUME *VOLUME);
+extern void setup_geom_factors           (struct S_VOLUME *VOLUME);
+extern void setup_geom_factors_highorder (struct S_FACET *FACET);
 
 #endif // DPG__setup_geom_factors_h__INCLUDED

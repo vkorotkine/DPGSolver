@@ -3,9 +3,10 @@
 
 #include "array_free.h"
 
-#include "S_OpCSR.h"
-
 #include <stdlib.h>
+#include <complex.h>
+
+#include "S_OpCSR.h"
  
 /*
  *	Purpose:
@@ -90,6 +91,16 @@ void array_free2_d(unsigned int iMax, double **A)
 }
 
 void array_free2_ld(unsigned int iMax, long double **A)
+{
+	unsigned int i;
+
+	for (i = 0; i < iMax; i++)
+		if (A[i])
+			free(A[i]);
+	free(A);
+}
+
+void array_free2_cmplx(unsigned int iMax, double complex **A)
 {
 	unsigned int i;
 

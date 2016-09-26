@@ -22,6 +22,7 @@
 #include "array_norm.h"
 #include "array_print.h"
 #include "array_free.h"
+#include "solver_poisson_c.h"
 #include "explicit_VOLUME_info_c.h"
 #include "implicit_VOLUME_info.h"
 #include "explicit_FACET_info_c.h"
@@ -48,7 +49,7 @@
  *	References:
  */
 
-static void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
+void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 {
 	if (!assemble_type) {
 		compute_A_cs(A,b,x,1);
@@ -60,7 +61,8 @@ static void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_typ
 	}
 
 	// Initialize DB Paramters
-	unsigned int Nvar = DB.Nvar;
+	char         *TestCase = DB.TestCase;
+	unsigned int Nvar      = DB.Nvar;
 
 	// Standard datatypes
 	unsigned int   i, j, iMax, jMax, side, NvnS[2], IndA[2], nnz_d;
@@ -81,33 +83,62 @@ static void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_typ
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		NvnS[0] = VOLUME->NvnS;
 
-		if (VOLUME->What_c)
-			free(VOLUME->What_c);
+		// Note: Initialize with zeros for linear cases.
+		if (strstr(TestCase,"Poisson")) {
+			if (VOLUME->uhat_c)
+				free(VOLUME->uhat_c);
 
-		VOLUME->What_c = malloc(NvnS[0]*Nvar * sizeof *(VOLUME->What_c));
+			VOLUME->uhat_c = calloc(NvnS[0]*Nvar , sizeof *(VOLUME->uhat_c));
+		} else {
+			if (VOLUME->What_c)
+				free(VOLUME->What_c);
 
-		for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
-			VOLUME->What_c[i] = VOLUME->What[i];
+			VOLUME->What_c = malloc(NvnS[0]*Nvar * sizeof *(VOLUME->What_c));
+
+			for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
+				VOLUME->What_c[i] = VOLUME->What[i];
+		}
 	}
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		IndA[0] = VOLUME->IndA;
 		NvnS[0] = VOLUME->NvnS;
 		for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++) {
-			VOLUME->What_c[i] += h*I;
+			if (strstr(TestCase,"Poisson")) {
+				VOLUME->uhat_c[i] += h*I;
 
-			switch (assemble_type) {
-			default: // 0
-				explicit_VOLUME_info_c();
-				explicit_FACET_info_c();
-				break;
-			case 1:
-				explicit_VOLUME_info_c();
-				break;
-			case 2:
-			case 3:
-				explicit_FACET_info_c();
-				break;
+				compute_qhat_VOLUME_c();
+				compute_qhat_FACET_c();
+				finalize_qhat_c();
+				switch (assemble_type) {
+				default: // 0
+					compute_uhat_VOLUME_c();
+					compute_uhat_FACET_c();
+					break;
+				case 1:
+					compute_uhat_VOLUME_c();
+					break;
+				case 2:
+				case 3:
+					compute_uhat_FACET_c();
+					break;
+				}
+			} else {
+				VOLUME->What_c[i] += h*I;
+
+				switch (assemble_type) {
+				default: // 0
+					explicit_VOLUME_info_c();
+					explicit_FACET_info_c();
+					break;
+				case 1:
+					explicit_VOLUME_info_c();
+					break;
+				case 2:
+				case 3:
+					explicit_FACET_info_c();
+					break;
+				}
 			}
 
 			if (assemble_type == 1) {
@@ -150,6 +181,7 @@ static void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_typ
 						}
 						if (VOLUME->indexg != VOLUME2->indexg)
 							continue;
+printf("Inside %d %d %d %d\n",VOLUME->indexg,i,FACET->indexg,side);
 
 						IndA[1] = VOLUME2->IndA;
 						NvnS[1] = VOLUME2->NvnS;
@@ -202,7 +234,11 @@ static void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_typ
 					}
 				}}
 			}
-			VOLUME->What_c[i] -= h*I;
+			if (strstr(TestCase,"Poisson")) {
+				VOLUME->uhat_c[i] -= h*I;
+			} else {
+				VOLUME->What_c[i] -= h*I;
+			}
 		}
 	}
 }
@@ -368,9 +404,9 @@ void test_integration_linearization(int nargc, char **argv)
 
 	implicit_VOLUME_info();
 	implicit_FACET_info();
-//	finalize_LHS(&A,&b,1);
-//	finalize_LHS(&A,&b,2);
-//	finalize_LHS(&A,&b,3);
+//	finalize_LHS(&A,&b,&x,1);
+//	finalize_LHS(&A,&b,&x,2);
+//	finalize_LHS(&A,&b,&x,3);
 //	finalize_Mat(&A,1);
 
 //	compute_A_cs(&A_cs,&b_cs,&x_cs,1);

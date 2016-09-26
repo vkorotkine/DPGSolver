@@ -163,3 +163,26 @@ void array_rearrange_d(const unsigned int NRows, const unsigned int NCols, const
 	}
 	free(RowTracker);
 }
+
+void array_rearrange_cmplx(const unsigned int NRows, const unsigned int NCols, const unsigned int *Ordering,
+                           double complex *A)
+{
+	unsigned int i, RowInd, RowSub, ReOrder, *RowTracker;
+
+	RowTracker = malloc(NRows * sizeof *RowTracker); // free
+
+	for (i = 0; i < NRows; i++)
+		RowTracker[i] = i;
+
+	for (RowInd = 0; RowInd < NRows; RowInd++) {
+		ReOrder = Ordering[RowInd];
+		for (RowSub = ReOrder; RowTracker[RowSub] != ReOrder; RowSub = RowTracker[RowSub])
+			;
+
+		if (RowInd != RowSub) {
+			array_swap_cmplx(&A[RowInd],&A[RowSub],NCols,NRows);
+			array_swap_ui(&RowTracker[RowInd],&RowTracker[RowSub],1,1);
+		}
+	}
+	free(RowTracker);
+}

@@ -13,15 +13,6 @@
 
 #include "test_code_integration.h"
 #include "compute_errors.h"
-/*
-#include "Test.h"
-#include "S_VOLUME.h"
-
-#include "test_support.h"
-#include "compute_errors.h"
-#include "adaptation.h"
-#include "array_norm.h"
-*/
 
 /*
  *	Purpose:

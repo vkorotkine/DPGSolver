@@ -18,8 +18,11 @@ struct S_FACET {
 	unsigned int Boundary;
 	double       *RHSIn, *RHSOut, *LHSInIn, *LHSOutIn, *LHSInOut, *LHSOutOut;
 
+	// Poisson
+	double **qhatIn, **qhatOut, **qhat_uhatInIn, **qhat_uhatOutIn, **qhat_uhatInOut, **qhat_uhatOutOut;
+
 	// Linearization testing
-	double complex *RHSIn_c, *RHSOut_c;
+	double complex *RHSIn_c, *RHSOut_c, **qhatIn_c, **qhatOut_c;
 
 	// structs
 	struct S_VOLUME *VIn, *VOut;

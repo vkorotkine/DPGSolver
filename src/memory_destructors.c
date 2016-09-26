@@ -221,6 +221,9 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	free(VOLUME->What_c);
 	free(VOLUME->RHS_c);
 
+	free(VOLUME->uhat_c);
+	array_free2_cmplx(d,VOLUME->qhat_c);
+
 	// Poisson
 	free(VOLUME->uhat);
 	array_free2_d(d,VOLUME->qhat);
@@ -241,6 +244,9 @@ void memory_destructor_F(struct S_FACET *FACET)
 	 *		cases.
 	 */
 
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
+
 	// Geometry
 	free(FACET->XYZ_fI);
 	free(FACET->XYZ_fS);
@@ -260,9 +266,20 @@ void memory_destructor_F(struct S_FACET *FACET)
 	if (FACET->LHSOutOut)
 		free(FACET->LHSOutOut);
 
+	// Poisson
+	array_free2_d(d,FACET->qhatIn);
+	array_free2_d(d,FACET->qhatOut);
+	array_free2_d(d,FACET->qhat_uhatInIn);
+	array_free2_d(d,FACET->qhat_uhatOutIn);
+	array_free2_d(d,FACET->qhat_uhatInOut);
+	array_free2_d(d,FACET->qhat_uhatOutOut);
+
 	// Linearization testing
 	free(FACET->RHSIn_c);
 	free(FACET->RHSOut_c);
+
+	array_free2_cmplx(d,FACET->qhatIn_c);
+	array_free2_cmplx(d,FACET->qhatOut_c);
 
 	free(FACET);
 }

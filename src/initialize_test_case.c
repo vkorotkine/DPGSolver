@@ -164,6 +164,8 @@ void initialize_test_case_parameters(char *TestCase)
 
 void initialize_test_case(const unsigned int adapt_update_MAX)
 {
+	initialize_test_case_parameters(DB.TestCase);
+
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
 	unsigned int d         = DB.d,
@@ -179,8 +181,6 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME;
-
-	initialize_test_case_parameters(TestCase);
 
 	OPS = malloc(sizeof *OPS); // free
 

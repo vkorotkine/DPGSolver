@@ -343,11 +343,11 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 			if (FtypeInt == 's') {
 				// Straight FACET Integration
 				OPS->NfnI    = ELEMENT_OPS->NfnIs[PF][IndFType];
-				OPS->D_vG_fI = ELEMENT_OPS->D_vGs_fIs[PV][PF];
+				OPS->D_vG_fI = ELEMENT_OPS->D_vGs_fIs[1][PF];
 			} else {
 				// Curved FACET Integration
 				OPS->NfnI    = ELEMENT_OPS->NfnIc[PF][IndFType];
-				OPS->D_vG_fI = ELEMENT_OPS->D_vGs_fIc[PV][PF];
+				OPS->D_vG_fI = ELEMENT_OPS->D_vGs_fIc[1][PF];
 			}
 		} else {
 			// Curved VOLUME

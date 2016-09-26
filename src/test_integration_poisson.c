@@ -7,24 +7,23 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "Parameters.h"
-#include "Test.h"
-#include "S_DB.h"
-
 #include "petscmat.h"
 
-/*
-#include "test_code_integration.h"
-#include "compute_errors.h"
-*/
-/*
+#include "Parameters.h"
+#include "Macros.h"
+#include "S_DB.h"
 #include "S_VOLUME.h"
+#include "S_FACET.h"
+#include "Test.h"
 
+#include "test_code_integration.h"
 #include "test_support.h"
+#include "test_integration_linearization.h"
 #include "compute_errors.h"
-#include "adaptation.h"
 #include "array_norm.h"
-*/
+#include "solver_poisson.h"
+#include "finalize_LHS.h"
+// ToBeDeleted: Check for unnecessary includes above
 
 /*
  *	Purpose:
@@ -39,6 +38,7 @@
  *	References:
  */
 
+/*
 static void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 {
 	if (!assemble_type) {
@@ -197,6 +197,7 @@ static void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_typ
 		}
 	}
 }
+*/
 
 void test_integration_poisson(int nargc, char **argv)
 {
@@ -237,26 +238,27 @@ void test_integration_poisson(int nargc, char **argv)
 	TestDB.IntOrder_mult = 2;
 
 	// Linearization
-	TestDB.PGlobal = DB.PGlobal;
-	TestDB.ML      = DB.ML;
+// ToBeModified
+	TestDB.PGlobal = 2;
+	TestDB.ML      = 0;
 
 	code_startup(nargc,argvNew,0,1);
 
 	implicit_info_Poisson();
 
-	finalize_LHS(&A,&b,1);
-//	finalize_LHS(&A,&b,2);
-//	finalize_LHS(&A,&b,3);
+//	finalize_LHS(&A,&b,&x,1);
+	finalize_LHS(&A,&b,&x,2);
+//	finalize_LHS(&A,&b,&x,3);
 	finalize_Mat(&A,1);
 
-	compute_A_cs(&A_cs,&b_cs,&x_cs,1);
-//	compute_A_cs(&A_cs,&b_cs,&x_cs,2);
+//	compute_A_cs(&A_cs,&b_cs,&x_cs,1);
+	compute_A_cs(&A_cs,&b_cs,&x_cs,2);
 //	compute_A_cs(&A_cs,&b_cs,&x_cs,3);
 	finalize_Mat(&A_cs,1);
 
 	MatView(A,PETSC_VIEWER_STDOUT_SELF);
 	MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
-	EXIT_MSG;
+//	EXIT_MSG;
 
 //	finalize_LHS(&A,&b,&x,0);
 //	compute_A_cs(&A_cs,&b_cs,&x_cs,0);
@@ -265,13 +267,15 @@ void test_integration_poisson(int nargc, char **argv)
 //	MatView(A_csc,PETSC_VIEWER_STDOUT_SELF);
 
 	pass = 0;
-	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < EPS &&
-	    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < EPS)
+//	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < EPS &&
+//	    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < EPS)
+	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < EPS)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("Linearization Poisson (2D - TRI  ):              ");
 	test_print(pass);
+EXIT_MSG;
 
 	finalize_ksp(&A,&b,&x,2);
 	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
@@ -284,15 +288,17 @@ void test_integration_poisson(int nargc, char **argv)
 
 	for (P = PMin; P <= PMax; P++) {
 	for (ML = MLMin; ML <= MLMax; ML++) {
+/*
 		TestDB.PGlobal = P;
 		TestDB.ML = ML;
 
 		code_startup(nargc,argvNew,0,1);
 
-		solver_poisson();
+		solver_Poisson();
 		compute_errors_global();
 
 		code_cleanup();
+*/
 	}}
 	// test with various boundary conditions and fluxes (ToBeDeleted)
 

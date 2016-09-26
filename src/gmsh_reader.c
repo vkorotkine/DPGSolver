@@ -12,6 +12,7 @@
 #include "mkl.h"
  
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 
@@ -157,7 +158,7 @@ void gmsh_reader(void)
 	NE = malloc(4 * sizeof *NE); //keep
 
 	if ((fID = fopen(MeshFile,"r")) == NULL)
-		printf("Mesh file: %s not present.\n",MeshFile), exit(1);
+		printf("Mesh file: %s not present.\n",MeshFile), EXIT_MSG;
 
 	// Find NVe, NETotal
 	while (fscanf(fID,"%[^\n]\n",StringRead) == 1) {

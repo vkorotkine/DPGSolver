@@ -245,8 +245,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->I_vCc_fIs[P] = calloc(NP , sizeof **(ELEMENT->I_vCc_fIs));
 		ELEMENT->I_vCc_fIc[P] = calloc(NP , sizeof **(ELEMENT->I_vCc_fIc));
 
-		ELEMENT->D_vGs_fIs[P] = calloc(NP , sizeof **(ELEMENT->D_vGc_fIs));
-		ELEMENT->D_vGs_fIc[P] = calloc(NP , sizeof **(ELEMENT->D_vGc_fIc));
+		ELEMENT->D_vGc_fIs[P] = calloc(NP , sizeof **(ELEMENT->D_vGc_fIs));
+		ELEMENT->D_vGc_fIc[P] = calloc(NP , sizeof **(ELEMENT->D_vGc_fIc));
 
 		ELEMENT->Is_Weak_VV[P]    = calloc(NP , sizeof **(ELEMENT->Is_Weak_VV));
 		ELEMENT->Ic_Weak_VV[P]    = calloc(NP , sizeof **(ELEMENT->Ic_Weak_VV));
@@ -365,12 +365,12 @@ struct S_ELEMENT *New_ELEMENT(void)
 			ELEMENT->I_vCc_fIs[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->I_vCc_fIs));
 			ELEMENT->I_vCc_fIc[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->I_vCc_fIc));
 
-			ELEMENT->D_vGs_fIs[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->D_vGs_fIs));
-			ELEMENT->D_vGs_fIc[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->D_vGs_fIc));
+			ELEMENT->D_vGc_fIs[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->D_vGc_fIs));
+			ELEMENT->D_vGc_fIc[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->D_vGc_fIc));
 
 			for (Vf = 0; Vf < NFREFMAX*NFMAX; Vf++) {
-				ELEMENT->D_vGs_fIs[P][Pb][Vf] = calloc(d , sizeof ****(ELEMENT->D_vGs_fIs));
-				ELEMENT->D_vGs_fIc[P][Pb][Vf] = calloc(d , sizeof ****(ELEMENT->D_vGs_fIc));
+				ELEMENT->D_vGc_fIs[P][Pb][Vf] = calloc(d , sizeof ****(ELEMENT->D_vGc_fIs));
+				ELEMENT->D_vGc_fIc[P][Pb][Vf] = calloc(d , sizeof ****(ELEMENT->D_vGc_fIc));
 			}
 
 			ELEMENT->Is_Weak_FF[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Is_Weak_FF));
@@ -452,6 +452,9 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->What_c = NULL; // free
 	VOLUME->RHS_c  = NULL; // free
 
+	VOLUME->uhat_c = NULL; // free
+	VOLUME->qhat_c = calloc(d , sizeof *(VOLUME->qhat_c)); // free
+
 	// hp adaptivity
 //	VOLUME->minRES = 0.0;
 //	VOLUME->maxRES = 0.0;
@@ -481,6 +484,9 @@ struct S_VOLUME *New_VOLUME(void)
 
 struct S_FACET *New_FACET(void)
 {
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
+
 	struct S_FACET *FACET;
 	FACET = malloc(sizeof *FACET); // free
 
@@ -522,9 +528,20 @@ struct S_FACET *New_FACET(void)
 	FACET->LHSInOut  = NULL; // free (in finalize_LHS)
 	FACET->LHSOutOut = NULL; // free (in finalize_LHS)
 
+	// Poisson
+	FACET->qhatIn  = calloc(d , sizeof *(FACET->qhatIn));  // free
+	FACET->qhatOut = calloc(d , sizeof *(FACET->qhatOut)); // free
+	FACET->qhat_uhatInIn   = calloc(d , sizeof *(FACET->qhat_uhatInIn));   // free
+	FACET->qhat_uhatOutIn  = calloc(d , sizeof *(FACET->qhat_uhatOutIn));  // free
+	FACET->qhat_uhatInOut  = calloc(d , sizeof *(FACET->qhat_uhatInOut));  // free
+	FACET->qhat_uhatOutOut = calloc(d , sizeof *(FACET->qhat_uhatOutOut)); // free
+
 	// Linearization testing
 	FACET->RHSIn_c  = NULL; // free (in finalize_RHS_c)
 	FACET->RHSOut_c = NULL; // free (in finalize_RHS_c)
+
+	FACET->qhatIn_c  = calloc(d , sizeof *(FACET->qhatIn_c));  // free
+	FACET->qhatOut_c = calloc(d , sizeof *(FACET->qhatOut_c)); // free
 
 	FACET->next   = NULL;
 	FACET->child0 = NULL; // free (in memory_free_children)
