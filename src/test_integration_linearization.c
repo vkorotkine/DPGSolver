@@ -181,7 +181,6 @@ void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 						}
 						if (VOLUME->indexg != VOLUME2->indexg)
 							continue;
-printf("Inside %d %d %d %d\n",VOLUME->indexg,i,FACET->indexg,side);
 
 						IndA[1] = VOLUME2->IndA;
 						NvnS[1] = VOLUME2->NvnS;

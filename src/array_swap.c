@@ -5,7 +5,7 @@
 
 #include <stdlib.h>
 #include <complex.h>
- 
+
 /*
  *	Purpose:
  *		Swap arrays.
@@ -142,7 +142,8 @@ void array_swap_cmplx(register double complex *arr1, register double complex *ar
 	}
 }
 
-void array_rearrange_d(const unsigned int NRows, const unsigned int NCols, const unsigned int *Ordering, double *A)
+void array_rearrange_d(const unsigned int NRows, const unsigned int NCols, const unsigned int *Ordering,
+                       const char layout, double *A)
 {
 	unsigned int i, RowInd, RowSub, ReOrder, *RowTracker;
 
@@ -157,7 +158,10 @@ void array_rearrange_d(const unsigned int NRows, const unsigned int NCols, const
 			;
 
 		if (RowInd != RowSub) {
-			array_swap_d(&A[RowInd],&A[RowSub],NCols,NRows);
+			if (layout == 'C')
+				array_swap_d(&A[RowInd],&A[RowSub],NCols,NRows);
+			else
+				array_swap_d(&A[RowInd*NCols],&A[RowSub*NCols],NCols,1);
 			array_swap_ui(&RowTracker[RowInd],&RowTracker[RowSub],1,1);
 		}
 	}
@@ -165,7 +169,7 @@ void array_rearrange_d(const unsigned int NRows, const unsigned int NCols, const
 }
 
 void array_rearrange_cmplx(const unsigned int NRows, const unsigned int NCols, const unsigned int *Ordering,
-                           double complex *A)
+                           const char layout, double complex *A)
 {
 	unsigned int i, RowInd, RowSub, ReOrder, *RowTracker;
 
@@ -180,7 +184,10 @@ void array_rearrange_cmplx(const unsigned int NRows, const unsigned int NCols, c
 			;
 
 		if (RowInd != RowSub) {
-			array_swap_cmplx(&A[RowInd],&A[RowSub],NCols,NRows);
+			if (layout == 'C')
+				array_swap_cmplx(&A[RowInd],&A[RowSub],NCols,NRows);
+			else
+				array_swap_cmplx(&A[RowInd*NCols],&A[RowSub*NCols],NCols,1);
 			array_swap_ui(&RowTracker[RowInd],&RowTracker[RowSub],1,1);
 		}
 	}

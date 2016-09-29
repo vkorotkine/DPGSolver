@@ -19,6 +19,7 @@
 #include "matrix_functions.h"
 #include "exact_solutions.h"
 #include "array_swap.h"
+#include "array_free.h"
 
 #include "array_print.h" // ToBeDeleted
 
@@ -179,50 +180,19 @@ static void boundary_Dirichlet_c(const unsigned int Nn, const unsigned int Nel, 
                                  double complex *uR)
 {
 	unsigned int n;
-	double       *uL_d, *uR_d;
+	double       *uB_d;
 
 	if (Nel != 1)
 		printf("Error: Vectorization unsupported.\n"), EXIT_MSG;
 
-	uL_d = malloc(Nn * sizeof *uL_d); // free
-	uR_d = malloc(Nn * sizeof *uR_d); // free
+	uB_d = malloc(Nn * sizeof *uB_d); // free
+	compute_exact_solution(Nn*Nel,XYZ,uB_d,NULL,0);
+
 	for (n = 0; n < Nn; n++) {
-		uL_d[n] = creal(uL[n]);
-		uR_d[n] = creal(uR[n]);
+		uR[n] = 2.0*uB_d[n];
+		uR[n] -= uL[n];
 	}
-
-	boundary_Dirichlet(Nn,Nel,XYZ,uL_d,uR_d);
-	free(uL_d);
-
-	for (n = 0; n < Nn; n++)
-		uR[n] = uR_d[n];
-
-	free(uR_d);
-}
-
-static void trace_IP_c(const unsigned int Nn, const unsigned int Nel, double complex *uL, double complex *uR,
-                       double complex *uNum)
-{
-	unsigned int n, NnTotal;
-	double       *uL_d, *uR_d, *uNum_d;
-
-	NnTotal = Nn*Nel;
-
-	uL_d   = malloc(NnTotal * sizeof *uL_d);   // free
-	uR_d   = malloc(NnTotal * sizeof *uR_d);   // free
-	uNum_d = malloc(NnTotal * sizeof *uNum_d); // free
-
-	for (n = 0; n < NnTotal; n++) {
-		uL_d[n] = creal(uL[n]);
-		uR_d[n] = creal(uR[n]);
-	}
-	trace_IP(Nn,Nel,uL_d,uR_d,uNum_d);
-	free(uL_d);
-	free(uR_d);
-
-	for (n = 0; n < NnTotal; n++)
-		uNum[n] = uNum_d[n];
-	free(uNum_d);
+	free(uB_d);
 }
 
 void compute_qhat_FACET_c(void)
@@ -236,7 +206,7 @@ void compute_qhat_FACET_c(void)
 	               NfnI, NvnSIn, NvnSOut,
 	               VfIn, VfOut, fIn, EclassIn, IndFType, BC, Boundary,
 	               *nOrdOutIn, *nOrdInOut;
-	double         nJ, *n_fI, *detJF_fI,
+	double         nJ, *n_fI, *detJF_fI, *u_avg, *u_jump,
 	               *I_FF, *MInvI_FF, *ChiS_fI, *ChiS_fIInOut;
 	double complex *uIn_fI, *uOut_fIIn, *uOut_fI, *uNum_fI, *qhatIn, *qhatOut, *nuNum_fI;
 
@@ -299,15 +269,24 @@ void compute_qhat_FACET_c(void)
 		}
 
 		// Compute numerical trace
+		u_avg   = malloc(NfnI * sizeof *u_avg);   // free
+		u_jump  = malloc(NfnI * sizeof *u_jump);  // free
 		uNum_fI = malloc(NfnI * sizeof *uNum_fI); // free
 		switch (ViscousFluxType) {
 		case FLUX_IP:
-			trace_IP_c(NfnI,1,uIn_fI,uOut_fIIn,uNum_fI);
+			trace_coef(NfnI,1,n_fI,u_avg,u_jump,d,"IP");
 			break;
 		default:
 			printf("Error: Unsupported ViscousFluxType.\n"), EXIT_MSG;
 			break;
 		}
+
+		for (n = 0; n < NfnI; n++)
+			uNum_fI[n] = u_avg[n]*(uIn_fI[n]+uOut_fIIn[n]) + u_jump[n]*(uIn_fI[n]-uOut_fIIn[n]);
+
+		free(u_avg);
+		free(u_jump);
+
 		free(uIn_fI);
 		free(uOut_fIIn);
 
@@ -346,7 +325,7 @@ void compute_qhat_FACET_c(void)
 			}
 
 			// Rearrange numerical trace to match node ordering from opposite VOLUME
-			array_rearrange_cmplx(NfnI,d,nOrdInOut,nuNum_fI);
+			array_rearrange_cmplx(NfnI,d,nOrdInOut,'C',nuNum_fI);
 
 			I_FF     = OPSOut->I_Weak_FF[VfOut];
 			MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSOut,NfnI,NvnSOut,1.0,VOut->MInv,I_FF); // free
@@ -388,6 +367,7 @@ void finalize_qhat_c(void)
 	struct S_VOLUME *VIn, *VOut;
 
 	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
+continue; // ToBeDeleted
 		VIn    = FACET->VIn;
 		NvnSIn = VIn->NvnS;
 
@@ -503,57 +483,6 @@ void compute_uhat_VOLUME_c(void)
 	free(OPS);
 }
 
-static void flux_IP_c(const unsigned int Nn, const unsigned int Nel, double complex *uL, double complex *uR,
-                      double complex *grad_uL, double complex *grad_uR, double complex *qL, double complex *qR,
-                      double *h, const unsigned int P, double complex *nqNum, double *nL, const unsigned int d)
-{
-	unsigned int n;
-	double       *uL_d, *uR_d, *grad_uL_d, *grad_uR_d, *qL_d, *qR_d, *nqNum_d;
-
-	// silence
-//	double complex *tmp;
-//	tmp = qL; qL = tmp;
-//	tmp = qR; qR = tmp;
-
-	if (Nel != 1) // Vectorization not supported
-		printf("Error: Unsupported Nel.\n"), EXIT_MSG;
-
-	uL_d      = malloc(Nn * sizeof *uL_d);      // free
-	uR_d      = malloc(Nn * sizeof *uR_d);      // free
-	grad_uL_d = malloc(Nn * sizeof *grad_uL_d); // free
-	grad_uR_d = malloc(Nn * sizeof *grad_uR_d); // free
-	qL_d      = malloc(Nn * sizeof *qL_d);      // free
-	qR_d      = malloc(Nn * sizeof *qR_d);      // free
-	nqNum_d   = malloc(Nn * sizeof *nqNum_d);   // free
-
-	for (n = 0; n < Nn; n++) {
-		uL_d[n]      = creal(uL[n]);
-		uR_d[n]      = creal(uR[n]);
-		grad_uL_d[n] = creal(grad_uL[n]);
-		grad_uR_d[n] = creal(grad_uR[n]);
-	}
-
-	// Remove if NULL is no longer passed for qL/qR
-	if (qL) {
-		for (n = 0; n < Nn; n++) {
-			qL_d[n] = creal(qL[n]);
-			qR_d[n] = creal(qR[n]);
-		}
-	}
-
-	flux_IP(Nn,Nel,uL_d,uR_d,grad_uL_d,grad_uR_d,qL_d,qR_d,h,P,nqNum_d,nL,d);
-	free(uL_d);
-	free(uR_d);
-	free(grad_uL_d);
-	free(grad_uR_d);
-	free(qL_d);
-	free(qR_d);
-
-	for (n = 0; n < Nn; n++)
-		nqNum[n] = nqNum_d[n];
-	free(nqNum_d);
-}
-
 void compute_uhat_FACET_c()
 {
 	// Initialize DB Parameters
@@ -566,8 +495,9 @@ void compute_uhat_FACET_c()
 	               BC, Boundary, VfIn, VfOut, fIn, EclassIn, IndFType,
 	               *nOrdOutIn, *nOrdInOut;
 	double         ***GradChiS_fI, **GradxyzIn, **GradxyzOut,
+	               *gradu_avg, *u_jump, *q_avg, *q_jump,
 	               *detJV_fI, *C_fI, *h, *n_fI, *detJF_fI, *C_vC;
-	double complex *uIn_fI, *grad_uIn_fI, *uOut_fIIn, *grad_uOut_fIIn, *uOut_fI,
+	double complex *uIn_fI, *grad_uIn_fI, *uOut_fIIn, *grad_uOut_fIIn, *uOut_fI, **qhatIn_fI, **qhatOut_fIIn,
 	               *nqNum_fI, *RHSIn, *RHSOut;
 
 	struct S_OPERATORS *OPSIn, *OPSOut;
@@ -612,6 +542,19 @@ void compute_uhat_FACET_c()
 		h = malloc(NfnI * sizeof *h); // free
 		for (n = 0; n < NfnI; n++)
 			h[n] = detJV_fI[n]/detJF_fI[n];
+
+		// Add VOLUME contributions to RHS
+		RHSIn  = calloc(NvnSIn  , sizeof *RHSIn);  // keep (requires external free)
+		RHSOut = calloc(NvnSOut , sizeof *RHSOut); // keep (requires external free)
+		FACET->RHSIn_c  = RHSIn;
+		FACET->RHSOut_c = RHSOut;
+
+		for (dim = 0; dim < d; dim++) {
+			// RHS
+			mm_dcc(CBCM,CBT,CBNT,NvnSIn, 1,NvnSIn, -1.0,1.0,VIn->DxyzChiS[dim], FACET->qhatIn_c[dim], RHSIn);
+			if (!Boundary)
+				mm_dcc(CBCM,CBT,CBNT,NvnSOut,1,NvnSOut,-1.0,1.0,VOut->DxyzChiS[dim],FACET->qhatOut_c[dim],RHSOut);
+		}
 
 		// Compute uIn_fI and gradu_In_fI
 
@@ -693,16 +636,44 @@ void compute_uhat_FACET_c()
 		}
 
 		// Compute numerical flux
-		nqNum_fI = malloc(NfnI * sizeof *nqNum_fI); // free
+		nqNum_fI = calloc(NfnI , sizeof *nqNum_fI); // free
+
+		gradu_avg = malloc(NfnI*d * sizeof *gradu_avg); // free
+		u_jump    = malloc(NfnI*d * sizeof *u_jump);    // free
+		q_avg     = malloc(NfnI*d * sizeof *q_avg);     // free
+		q_jump    = malloc(NfnI*d * sizeof *q_jump);    // free
 
 		switch (ViscousFluxType) {
 		case FLUX_IP:
-			flux_IP_c(NfnI,1,uIn_fI,uOut_fIIn,grad_uIn_fI,grad_uOut_fIIn,NULL,NULL,h,FACET->P,nqNum_fI,n_fI,d);
+			jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'L');
 			break;
 		default:
 			printf("Error: Unsupported PoissonFluxType.\n"), EXIT_MSG;
 			break;
 		}
+
+		qhatIn_fI    = malloc(d * sizeof *qhatIn_fI);    // free
+		qhatOut_fIIn = malloc(d * sizeof *qhatOut_fIIn); // free
+
+		for (dim = 0; dim < d; dim++) {
+			qhatIn_fI[dim]    = malloc(NfnI * sizeof *qhatIn_fI[dim]);    // free
+			qhatOut_fIIn[dim] = malloc(NfnI * sizeof *qhatOut_fIIn[dim]); // free
+
+			mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSIn, 1.0,0.0,OPSIn->ChiS_fI[VfIn],  VIn->qhat_c[dim], qhatIn_fI[dim]);
+			mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSOut,1.0,0.0,OPSOut->ChiS_fI[VfOut],VOut->qhat_c[dim],qhatOut_fIIn[dim]);
+			array_rearrange_cmplx(NfnI,1,nOrdOutIn,'C',qhatOut_fIIn[dim]);
+		}
+
+		for (dim = 0; dim < d; dim++) {
+		for (n = 0; n < NfnI; n++) {
+			nqNum_fI[n] += gradu_avg[NfnI*dim+n] * (grad_uIn_fI[NfnI*dim+n] + grad_uOut_fIIn[NfnI*dim+n])
+			            +  u_jump[NfnI*dim+n]    * (uIn_fI[n] - uOut_fIIn[n])
+			            +  q_avg[NfnI*dim+n]     * (qhatIn_fI[dim][n] + qhatOut_fIIn[dim][n])
+			            +  q_jump[NfnI*dim+n]    * (qhatIn_fI[dim][n] - qhatOut_fIIn[dim][n]);
+		}}
+
+		array_free2_cmplx(d,qhatIn_fI);
+		array_free2_cmplx(d,qhatOut_fIIn);
 
 		// Multiply by area element
 		for (n = 0; n < NfnI; n++) {
@@ -710,13 +681,9 @@ void compute_uhat_FACET_c()
 		}
 
 		// Finalize FACET RHS terms
-		RHSIn  = calloc(NvnSIn  , sizeof *RHSIn);  // keep (requires external free)
-		RHSOut = calloc(NvnSOut , sizeof *RHSOut); // keep (requires external free)
-		FACET->RHSIn_c  = RHSIn;
-		FACET->RHSOut_c = RHSOut;
 
 		// Interior FACET
-		mm_dcc(CBCM,CBT,CBNT,NvnSIn,1,NfnI,1.0,0.0,OPSIn->I_Weak_FF[VfIn],nqNum_fI,RHSIn);
+		mm_dcc(CBCM,CBT,CBNT,NvnSIn,1,NfnI,1.0,1.0,OPSIn->I_Weak_FF[VfIn],nqNum_fI,RHSIn);
 
 		// Exterior FACET
 		if (!Boundary) {
@@ -727,9 +694,9 @@ void compute_uhat_FACET_c()
 				nqNum_fI[n] *= -1.0;
 
 			// Rearrange nqNum to match node ordering from VOut
-			array_rearrange_cmplx(NfnI,1,nOrdInOut,nqNum_fI);
+			array_rearrange_cmplx(NfnI,1,nOrdInOut,'C',nqNum_fI);
 
-			mm_dcc(CBCM,CBT,CBNT,NvnSOut,1,NfnI,1.0,0.0,OPSOut->I_Weak_FF[VfOut],nqNum_fI,RHSOut);
+			mm_dcc(CBCM,CBT,CBNT,NvnSOut,1,NfnI,1.0,1.0,OPSOut->I_Weak_FF[VfOut],nqNum_fI,RHSOut);
 		}
 	}
 }

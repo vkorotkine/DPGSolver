@@ -25,6 +25,7 @@
 #include "matrix_functions.h"
 #include "exact_solutions.h"
 #include "array_swap.h"
+#include "array_free.h"
 #include "finalize_LHS.h"
 
 
@@ -247,33 +248,30 @@ static void jacobian_boundary_Dirichlet(const unsigned int Nn, const unsigned in
 		duRduL[n] = -1.0;
 }
 
-void trace_IP(const unsigned int Nn, const unsigned int Nel, double *uL, double *uR, double *uNum)
+void trace_coef(const unsigned int Nn, const unsigned int Nel, const double *nL, double *u_avg, double *jump_u,
+                const unsigned int d, const char *trace_type)
 {
 	/*
 	 *	Comments:
-	 *		(T)race (flux) for the (I)nternal (P)enalty method:
-	 *			uNum = 1/2*(uL+uR)
+	 *		(T)race coefs for the various options are given as follows
+	 *			uNum = u_avg * (uL+uR) + u_jump * (uL-uR)
 	 */
 
-	unsigned int n, NnTotal;
+	unsigned int n, dim;
 
-	NnTotal = Nn*Nel;
+	if (Nel != 1)
+		printf("Error: Unsupported Nel.\n"), EXIT_MSG;
 
-	for (n = 0; n < NnTotal; n++)
-		uNum[n] = 0.5*(uL[n]+uR[n]);
-}
-
-static void jacobian_trace_IP(const unsigned int Nn, const unsigned int Nel, double *duNumdu, const char side)
-{
-	unsigned int n, NnTotal;
-
-	if (side != 'L' && side != 'R')
-		printf("Error: Invalid side.\n"), EXIT_MSG;
-
-	NnTotal = Nn*Nel;
-
-	for (n = 0; n < NnTotal; n++)
-		duNumdu[n] = 0.5;
+	if (strstr(trace_type,"IP")) {
+		for (n = 0; n < Nn; n++) {
+			u_avg[n]  = 0.5;
+			jump_u[n] = 0.0;
+			for (dim = 0; dim < d; dim++)
+				jump_u[n] += 0.0*nL[n*d+dim];
+		}
+	} else {
+		printf("Error: Unsupported trace_type.\n"), EXIT_MSG;
+	}
 }
 
 static void compute_qhat_FACET(void)
@@ -289,7 +287,7 @@ static void compute_qhat_FACET(void)
 	             *nOrdOutIn, *nOrdInOut;
 	double       nJ, *n_fI, *detJF_fI,
 	             *uIn_fI, *uOut_fIIn, *uOut_fI, *uNum_fI, *duNumduIn_fI, *duNumduOut_fI, *duOutduIn,
-	             *nuNum_fI, *dnuNumduIn_fI, *dnuNumduOut_fI,
+	             *u_avg, *u_jump, *nuNum_fI, *dnuNumduIn_fI, *dnuNumduOut_fI,
 	             *I_FF, *MInvI_FF, *ChiS_fI, *ChiS_fIOutIn, *ChiS_fIInOut,
 	             *MInvIdnuNumdu;
 
@@ -354,19 +352,28 @@ static void compute_qhat_FACET(void)
 		}
 
 		// Compute numerical trace and its Jacobians
+		u_avg         = malloc(NfnI * sizeof *u_avg);         // free
+		u_jump        = malloc(NfnI * sizeof *u_jump);        // free
 		uNum_fI       = malloc(NfnI * sizeof *uNum_fI);       // free
 		duNumduIn_fI  = malloc(NfnI * sizeof *duNumduIn_fI);  // free
 		duNumduOut_fI = malloc(NfnI * sizeof *duNumduOut_fI); // free
 		switch (ViscousFluxType) {
 		case FLUX_IP:
-			trace_IP(NfnI,1,uIn_fI,uOut_fIIn,uNum_fI);
-			jacobian_trace_IP(NfnI,1,duNumduIn_fI,'L');
-			jacobian_trace_IP(NfnI,1,duNumduOut_fI,'R');
+			trace_coef(NfnI,1,n_fI,u_avg,u_jump,d,"IP");
 			break;
 		default:
 			printf("Error: Unsupported ViscousFluxType.\n"), EXIT_MSG;
 			break;
 		}
+
+		for (n = 0; n < NfnI; n++) {
+			uNum_fI[n]       = u_avg[n]*(uIn_fI[n]+uOut_fIIn[n]) + u_jump[n]*(uIn_fI[n]-uOut_fIIn[n]);
+			duNumduIn_fI[n]  = u_avg[n] + u_jump[n];
+			duNumduOut_fI[n] = u_avg[n] - u_jump[n];
+		}
+		free(u_avg);
+		free(u_jump);
+
 		free(uIn_fI);
 		free(uOut_fIIn);
 
@@ -455,9 +462,9 @@ static void compute_qhat_FACET(void)
 			}
 
 			// Rearrange numerical trace and its Jacobians to match node ordering from opposite VOLUME
-			array_rearrange_d(NfnI,d,nOrdInOut,nuNum_fI);
-			array_rearrange_d(NfnI,d,nOrdInOut,dnuNumduIn_fI);
-			array_rearrange_d(NfnI,d,nOrdInOut,dnuNumduOut_fI);
+			array_rearrange_d(NfnI,d,nOrdInOut,'C',nuNum_fI);
+			array_rearrange_d(NfnI,d,nOrdInOut,'C',dnuNumduIn_fI);
+			array_rearrange_d(NfnI,d,nOrdInOut,'C',dnuNumduOut_fI);
 
 			I_FF     = OPSOut->I_Weak_FF[VfOut];
 			MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSOut,NfnI,NvnSOut,1.0,VOut->MInv,I_FF); // free
@@ -520,6 +527,8 @@ static void finalize_qhat(void)
 	struct S_VOLUME *VIn, *VOut;
 
 	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
+// ToBeDeleted: Remove this entire function likely
+continue;
 		VIn    = FACET->VIn;
 		NvnSIn = VIn->NvnS;
 
@@ -628,37 +637,11 @@ static void compute_uhat_VOLUME(void)
 	free(OPS);
 }
 
-void flux_IP(const unsigned int Nn, const unsigned int Nel, double *uL, double *uR, double *grad_uL, double *grad_uR,
-             double *qL, double *qR, double *h, const unsigned int P, double *nqNum, double *nL, const unsigned int d)
-{
-	unsigned int n, dim;
-	double       tau;
-
-	// silence
-	double *tmp;
-	tmp = qL; qL = tmp;
-	tmp = qR; qR = tmp;
-
-	if (Nel != 1) // Vectorization not supported
-		printf("Error: Unsupported Nel.\n"), EXIT_MSG;
-
-	for (n = 0; n < Nn; n++) {
-		tau = CONST_IP*(P+1)*(P+1)/h[n];
-
-		for (dim = 0; dim < d; dim++)
-			nqNum[n] = nL[n*d+dim]*(0.5*(grad_uL[Nn*dim+n]+grad_uR[Nn*dim+n]) - tau*(nL[n*d+dim]*(uL[n]-uR[n])));
-	}
-}
-
-static void jacobian_flux_coef(const unsigned int Nn, const unsigned int Nel, const double *nIn, const double *h,
-                               const unsigned int P, double *gradu_avg, double *u_jump, double *q_avg, double *q_jump,
-                               const unsigned int d, char *flux_type, char side)
+void jacobian_flux_coef(const unsigned int Nn, const unsigned int Nel, const double *nIn, const double *h,
+                        const unsigned int P, double *gradu_avg, double *u_jump, double *q_avg, double *q_jump,
+                        const unsigned int d, char *flux_type, char side)
 {
 	/*
-	 *	Comments:
-	 *		Likely a good idea to define flux_IP similarly (i.e. simply returning coefficients for various terms. Then
-	 *		only one of the two functions would be required.
-	 *
 	 *	References:
 	 *		Add references for definition of flux coefficients (e.g. Hesthaven(2008) Table 7.3) ToBeModified
 	 */
@@ -672,15 +655,16 @@ static void jacobian_flux_coef(const unsigned int Nn, const unsigned int Nel, co
 	if (strstr(flux_type,"IP")) {
 		for (dim = 0; dim < d; dim++) {
 		for (n = 0; n < Nn; n++) {
-			tau = CONST_IP*(P+1)*(P+1)/h[n];
+			tau = CONST_IP*(P+1)*(P+1)/h[n]; // ToBeModified
+//			tau = 0.0*CONST_IP*(P+1)*(P+1)/h[n];
 
 			gradu_avg[Nn*dim+n] = 0.5*nIn[n*d+dim];
 			q_avg[Nn*dim+n]     = 0.0;
 
-			u_jump[Nn*dim+n] = tau*nIn[n*d+dim];
+			u_jump[Nn*dim+n] = -tau*nIn[n*d+dim]*nIn[n*d+dim];
 			q_jump[Nn*dim+n] = 0.0;
 
-			if (side == 'L') {
+			if (side == 'R') {
 				u_jump[Nn*dim+n] *= -1.0;
 				q_jump[Nn*dim+n] *= -1.0;
 			}
@@ -701,10 +685,10 @@ static void compute_uhat_FACET()
 	             NvnSIn, NvnSOut, NfnI, NvnCIn,
 	             BC, Boundary, VfIn, VfOut, fIn, EclassIn, IndFType,
 	             *nOrdOutIn, *nOrdInOut;
-	double       **DxyzChiS, ***GradChiS_fI, **GradxyzIn, **GradxyzOut, *ChiS_fI, *ChiS_fI_std,
+	double       ***GradChiS_fI, **GradxyzIn, **GradxyzOut, *ChiS_fI, *ChiS_fI_std,
 	             *LHSInIn, *LHSOutIn, *LHSInOut, *LHSOutOut,
 	             *detJV_fI, *C_fI, *h, *n_fI, *detJF_fI, *C_vC,
-	             *uIn_fI, *grad_uIn_fI, *uOut_fIIn, *grad_uOut_fIIn, *uOut_fI,
+	             *uIn_fI, *grad_uIn_fI, *uOut_fIIn, *grad_uOut_fIIn, *uOut_fI, **qhatIn_fI, **qhatOut_fIIn,
 	             *nqNum_fI, *dnqNumduhatIn_fI, *dnqNumduhatOut_fIIn, *dnqNumduhatOut_fI, *duOutduIn,
 	             *gradu_avg, *u_jump, *q_avg, *q_jump, *q_uhatV, *q_uhatF,
 	             *RHSIn, *RHSOut;
@@ -752,7 +736,12 @@ static void compute_uhat_FACET()
 		for (n = 0; n < NfnI; n++)
 			h[n] = detJV_fI[n]/detJF_fI[n];
 
-		DxyzChiS = VIn->DxyzChiS;
+		// Add VOLUME contributions to RHS and LHS
+		RHSIn  = calloc(NvnSIn  , sizeof *RHSIn);  // keep (requires external free)
+		RHSOut = calloc(NvnSOut , sizeof *RHSOut); // keep (requires external free)
+
+		FACET->RHSIn  = RHSIn;
+		FACET->RHSOut = RHSOut;
 
 		LHSInIn   = calloc(NvnSIn*NvnSIn   , sizeof *LHSInIn);   // keep
 		LHSOutIn  = calloc(NvnSIn*NvnSOut  , sizeof *LHSOutIn);  // keep
@@ -765,12 +754,17 @@ static void compute_uhat_FACET()
 		FACET->LHSOutOut = LHSOutOut;
 
 		for (dim = 0; dim < d; dim++) {
-			// LHS - VOLUME terms
-			mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSIn, NvnSIn, -1.0,1.0,DxyzChiS[dim],FACET->qhat_uhatInIn[dim],  LHSInIn);
+			// RHS
+			mm_d(CBCM,CBT,CBNT,NvnSIn, 1,NvnSIn, -1.0,1.0,VIn->DxyzChiS[dim], FACET->qhatIn[dim], RHSIn);
+			if (!Boundary)
+				mm_d(CBCM,CBT,CBNT,NvnSOut,1,NvnSOut,-1.0,1.0,VOut->DxyzChiS[dim],FACET->qhatOut[dim],RHSOut);
+
+			// LHS
+			mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSIn, NvnSIn, -1.0,1.0,VIn->DxyzChiS[dim], FACET->qhat_uhatInIn[dim],  LHSInIn);
 			if (!Boundary) {
-				mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSOut,NvnSIn, -1.0,1.0,DxyzChiS[dim],FACET->qhat_uhatOutIn[dim], LHSOutIn);
-				mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSIn, NvnSOut,-1.0,1.0,DxyzChiS[dim],FACET->qhat_uhatInOut[dim], LHSInOut);
-				mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NvnSOut,-1.0,1.0,DxyzChiS[dim],FACET->qhat_uhatOutOut[dim],LHSOutOut);
+				mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSOut,NvnSIn, -1.0,1.0,VIn->DxyzChiS[dim], FACET->qhat_uhatOutIn[dim], LHSOutIn);
+				mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSIn, NvnSOut,-1.0,1.0,VOut->DxyzChiS[dim],FACET->qhat_uhatInOut[dim], LHSInOut);
+				mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NvnSOut,-1.0,1.0,VOut->DxyzChiS[dim],FACET->qhat_uhatOutOut[dim],LHSOutOut);
 			}
 		}
 
@@ -854,7 +848,7 @@ static void compute_uhat_FACET()
 		}
 
 		// Compute numerical flux and its Jacobians
-		nqNum_fI = malloc(NfnI * sizeof *nqNum_fI); // free
+		nqNum_fI = calloc(NfnI , sizeof *nqNum_fI); // free
 
 		gradu_avg = malloc(NfnI*d * sizeof *gradu_avg); // free
 		u_jump    = malloc(NfnI*d * sizeof *u_jump);    // free
@@ -863,12 +857,32 @@ static void compute_uhat_FACET()
 
 		switch (ViscousFluxType) {
 		case FLUX_IP:
-			flux_IP(NfnI,1,uIn_fI,uOut_fIIn,grad_uIn_fI,grad_uOut_fIIn,NULL,NULL,h,FACET->P,nqNum_fI,n_fI,d);
+			jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'L');
 			break;
 		default:
 			printf("Error: Unsupported ViscousFluxType.\n"), EXIT_MSG;
 			break;
 		}
+
+		qhatIn_fI    = malloc(d * sizeof *qhatIn_fI);    // free
+		qhatOut_fIIn = malloc(d * sizeof *qhatOut_fIIn); // free
+
+		for (dim = 0; dim < d; dim++) {
+			qhatIn_fI[dim]    = mm_Alloc_d(CBCM,CBT,CBNT,NfnI,1,NvnSIn, 1.0,OPSIn->ChiS_fI[VfIn],  VIn->qhat[dim]);  // free
+			qhatOut_fIIn[dim] = mm_Alloc_d(CBCM,CBT,CBNT,NfnI,1,NvnSOut,1.0,OPSOut->ChiS_fI[VfOut],VOut->qhat[dim]); // free
+			array_rearrange_d(NfnI,1,nOrdOutIn,'C',qhatOut_fIIn[dim]);
+		}
+
+		for (n = 0; n < NfnI; n++) {
+		for (dim = 0; dim < d; dim++) {
+			nqNum_fI[n] += gradu_avg[NfnI*dim+n] * (grad_uIn_fI[NfnI*dim+n] + grad_uOut_fIIn[NfnI*dim+n])
+			            +  u_jump[NfnI*dim+n]    * (uIn_fI[n] - uOut_fIIn[n])
+			            +  q_avg[NfnI*dim+n]     * (qhatIn_fI[dim][n] + qhatOut_fIIn[dim][n])
+			            +  q_jump[NfnI*dim+n]    * (qhatIn_fI[dim][n] - qhatOut_fIIn[dim][n]);
+		}}
+
+		array_free2_d(d,qhatIn_fI);
+		array_free2_d(d,qhatOut_fIIn);
 
 // If using ViscousFluxType == "IP", what is done below is quite inefficient as there is no dependence on q. It is very
 // general however and supports many different FluxTypes.
@@ -898,42 +912,9 @@ static void compute_uhat_FACET()
 		// If on a boundary, there is no qhat contribution other than qhat_uhatInIn. However, there is a still a
 		// contribution from terms depending on the solution, which are added to dnqNumduhatIn_fI using the chain
 		// rule.
-		// Note: Both dnqNumduhatIn and dnqNumduhatOut are ordered corresponding to VIn. 
-
-		// OutOut contribution (u)
-		jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'R');
-		ChiS_fI_std = OPSOut->ChiS_fI[VfOut];
-		ChiS_fI = malloc(NfnI*NvnSOut * sizeof *ChiS_fI); // free
-
-		// Reordering
-		for (i = 0; i < NfnI; i++) {
-		for (j = 0; j < NvnSOut; j++) {
-			ChiS_fI[i*NvnSOut+j] = ChiS_fI_std[nOrdOutIn[i]*NvnSOut+j];
-		}}
-
-		for (dim = 0; dim < d; dim++) {
-			for (n = 0; n < NfnI; n++) {
-			for (j = 0; j < NvnSOut; j++) {
-				dnqNumduhatOut_fI[n*NvnSOut+j] += gradu_avg[NfnI*dim+n]*GradxyzOut[dim][n*NvnSOut+j]
-				                               +  u_jump[NfnI*dim+n]*ChiS_fI[n*NvnSOut+j];
-			}}
-		}
+		// Note: Both dnqNumduhatIn and dnqNumduhatOut are ordered corresponding to VIn.
 
 		if (!Boundary) {
-			// InOut contribution
-			jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'R');
-
-			// ChiS_fI reordered above.
-			for (dim = 0; dim < d; dim++) {
-				q_uhatF = mm_Alloc_d(CBRM,CBNT,CBNT,NfnI,NvnSIn,NvnSOut,1.0,ChiS_fI,FACET->qhat_uhatInOut[dim]); // free
-				for (n = 0; n < NfnI; n++) {
-				for (j = 0; j < NvnSIn; j++) {
-					dnqNumduhatIn_fI[n*NvnSIn+j] += (q_avg[NfnI*dim+n]+q_jump[NfnI*dim+n])*(q_uhatF[n*NvnSIn+j]);
-				}}
-				free(q_uhatF);
-			}
-			free(ChiS_fI);
-
 			// OutIn contribution
 			jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'L');
 			ChiS_fI = OPSIn->ChiS_fI[VfIn];
@@ -947,9 +928,7 @@ static void compute_uhat_FACET()
 				free(q_uhatF);
 			}
 
-			// OutOut contribution
-			jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'R');
-
+			// InOut contribution
 			ChiS_fI_std = OPSOut->ChiS_fI[VfOut];
 			ChiS_fI = malloc(NfnI*NvnSOut * sizeof *ChiS_fI); // free
 
@@ -959,21 +938,34 @@ static void compute_uhat_FACET()
 				ChiS_fI[i*NvnSOut+j] = ChiS_fI_std[nOrdOutIn[i]*NvnSOut+j];
 			}}
 
+			jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'R');
+
+			for (dim = 0; dim < d; dim++) {
+				q_uhatF = mm_Alloc_d(CBRM,CBNT,CBNT,NfnI,NvnSIn,NvnSOut,1.0,ChiS_fI,FACET->qhat_uhatInOut[dim]); // free
+				for (n = 0; n < NfnI; n++) {
+				for (j = 0; j < NvnSIn; j++) {
+					dnqNumduhatIn_fI[n*NvnSIn+j] += (q_avg[NfnI*dim+n]+q_jump[NfnI*dim+n])*(q_uhatF[n*NvnSIn+j]);
+				}}
+				free(q_uhatF);
+			}
+			// OutOut contribution
+			jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'R');
+
 			for (dim = 0; dim < d; dim++) {
 				q_uhatV = mm_Alloc_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,ChiS_fI,VOut->qhat_uhat[dim]);        // free
 				q_uhatF = mm_Alloc_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,ChiS_fI,FACET->qhat_uhatOutOut[dim]); // free
 				for (n = 0; n < NfnI; n++) {
 				for (j = 0; j < NvnSOut; j++) {
 					dnqNumduhatOut_fI[n*NvnSOut+j]
-						+= (q_avg[NfnI*dim+n]+q_jump[NfnI*dim+n])*(q_uhatV[n*NvnSOut+j]+q_uhatF[n*NvnSOut+j]);
+						+= gradu_avg[NfnI*dim+n]*GradxyzOut[dim][n*NvnSOut+j]
+				        +  u_jump[NfnI*dim+n]*ChiS_fI[n*NvnSOut+j]
+						+ (q_avg[NfnI*dim+n]+q_jump[NfnI*dim+n])*(q_uhatV[n*NvnSOut+j]+q_uhatF[n*NvnSOut+j]);
 				}}
 				free(q_uhatV);
 				free(q_uhatF);
 			}
 			free(ChiS_fI);
 		} else {
-			free(ChiS_fI);
-
 			// Include BC information in dnqNumduhatIn_fI
 
 			// Note: This approach is only possible because duOutduIn is a constant here. Otherwise, it would be
@@ -988,11 +980,19 @@ static void compute_uhat_FACET()
 			else
 				printf("Error: Unsupported BC.\n"), EXIT_MSG;
 
-			for (n = 0; n < NfnI; n++) {
-			for (j = 0; j < NvnSIn; j++) {
-				dnqNumduhatIn_fI[n] += dnqNumduhatOut_fI[n]*duOutduIn[n];
-			}}
+			// OutOut contribution (u)
+			jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'R');
+			ChiS_fI = OPSIn->ChiS_fI[VfIn];
 
+			// Note: dgraduOutduIn == -duOutduIn.
+			//       Contribution from qhat included above.
+			for (dim = 0; dim < d; dim++) {
+				for (n = 0; n < NfnI; n++) {
+				for (j = 0; j < NvnSIn; j++) {
+					dnqNumduhatIn_fI[n*NvnSIn+j] += -duOutduIn[n]*gradu_avg[NfnI*dim+n]*GradxyzOut[dim][n*NvnSIn+j]
+				                                    +duOutduIn[n]*u_jump[NfnI*dim+n]*ChiS_fI[n*NvnSIn+j];
+				}}
+			}
 			free(duOutduIn);
 		}
 		free(gradu_avg);
@@ -1011,14 +1011,10 @@ static void compute_uhat_FACET()
 		}
 
 		// Finalize FACET RHS and LHS terms
-		RHSIn  = calloc(NvnSIn  , sizeof *RHSIn);  // keep (requires external free)
-		RHSOut = calloc(NvnSOut , sizeof *RHSOut); // keep (requires external free)
-		FACET->RHSIn  = RHSIn;
-		FACET->RHSOut = RHSOut;
 
 		// Interior FACET
 
-		mm_CTN_d(NvnSIn,1,NfnI,OPSIn->I_Weak_FF[VfIn],nqNum_fI,RHSIn);
+		mm_d(CBCM,CBT,CBNT,NvnSIn,1,NfnI,1.0,1.0,OPSIn->I_Weak_FF[VfIn],nqNum_fI,RHSIn);
 		mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSIn,NfnI,1.0,1.0,OPSIn->I_Weak_FF[VfIn],dnqNumduhatIn_fI,LHSInIn);
 
 		// Exterior FACET
@@ -1030,9 +1026,9 @@ static void compute_uhat_FACET()
 				nqNum_fI[n] *= -1.0;
 
 			// Rearrange nqNum to match node ordering from VOut
-			array_rearrange_d(NfnI,1,nOrdInOut,nqNum_fI);
+			array_rearrange_d(NfnI,1,nOrdInOut,'C',nqNum_fI);
 
-			mm_CTN_d(NvnSOut,1,NfnI,OPSOut->I_Weak_FF[VfOut],nqNum_fI,RHSOut);
+			mm_d(CBCM,CBT,CBNT,NvnSOut,1,NfnI,1.0,1.0,OPSOut->I_Weak_FF[VfOut],nqNum_fI,RHSOut);
 
 			// LHS
 
@@ -1048,8 +1044,8 @@ static void compute_uhat_FACET()
 			}
 
 			// Rearrange to match ordering from VOut
-			array_rearrange_d(NfnI,NvnSIn, nOrdInOut,dnqNumduhatIn_fI);
-			array_rearrange_d(NfnI,NvnSOut,nOrdInOut,dnqNumduhatOut_fI);
+			array_rearrange_d(NfnI,NvnSIn,nOrdInOut,'R',dnqNumduhatIn_fI);
+			array_rearrange_d(NfnI,NvnSOut,nOrdInOut,'R',dnqNumduhatOut_fI);
 
 			// InOut
 			mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSIn,NfnI,1.0,1.0,OPSOut->I_Weak_FF[VfOut],dnqNumduhatIn_fI,LHSInOut);
