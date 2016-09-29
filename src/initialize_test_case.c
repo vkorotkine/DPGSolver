@@ -91,7 +91,8 @@ void initialize_test_case_parameters(char *TestCase)
 	unsigned int SourcePresent;
 
 	if (strstr(TestCase,"Poisson")) {
-		SolverType = NULL; // Always implicit
+		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
+		strcpy(SolverType,"Implicit");
 		SourcePresent = 1;
 
 		DB.Nvar = 1;

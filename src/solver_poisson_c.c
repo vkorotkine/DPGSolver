@@ -367,7 +367,7 @@ void finalize_qhat_c(void)
 	struct S_VOLUME *VIn, *VOut;
 
 	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-continue; // ToBeDeleted
+//continue; // ToBeDeleted
 		VIn    = FACET->VIn;
 		NvnSIn = VIn->NvnS;
 
@@ -393,8 +393,8 @@ continue; // ToBeDeleted
 		}
 
 		for (dim = 0; dim < d; dim++) {
-			free(FACET->qhatIn_c[dim]);
-			free(FACET->qhatOut_c[dim]);
+//			free(FACET->qhatIn_c[dim]);
+//			free(FACET->qhatOut_c[dim]);
 		}
 	}
 }
@@ -697,6 +697,7 @@ void compute_uhat_FACET_c()
 			array_rearrange_cmplx(NfnI,1,nOrdInOut,'C',nqNum_fI);
 
 			mm_dcc(CBCM,CBT,CBNT,NvnSOut,1,NfnI,1.0,1.0,OPSOut->I_Weak_FF[VfOut],nqNum_fI,RHSOut);
+//mm_dcc(CBCM,CBT,CBNT,NvnSOut,1,NfnI,1.0,0.0,OPSOut->I_Weak_FF[VfOut],nqNum_fI,RHSOut);
 		}
 	}
 }

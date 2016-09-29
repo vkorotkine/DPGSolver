@@ -109,10 +109,10 @@ void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 
 				compute_qhat_VOLUME_c();
 				compute_qhat_FACET_c();
-				finalize_qhat_c();
 				switch (assemble_type) {
 				default: // 0
 					compute_uhat_VOLUME_c();
+					finalize_qhat_c();
 					compute_uhat_FACET_c();
 					break;
 				case 1:
@@ -120,6 +120,7 @@ void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 					break;
 				case 2:
 				case 3:
+					finalize_qhat_c();
 					compute_uhat_FACET_c();
 					break;
 				}
@@ -304,11 +305,12 @@ static void flag_nonzero_LHS(unsigned int *A)
 	}
 }
 
-static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
+void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 {
 	// Initialize DB Parameters
-	unsigned int Nvar = DB.Nvar,
-	             dof  = DB.dof;
+	char         *TestCase = DB.TestCase;
+	unsigned int Nvar      = DB.Nvar,
+	             dof       = DB.dof;
 
 	// Standard datatypes
 	unsigned int   i, j, iMax, jMax, NvnS[2], IndA[2], nnz_d, *A_nz;
@@ -333,11 +335,21 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 		IndA[0] = VOLUME->IndA;
 		NvnS[0] = VOLUME->NvnS;
 		for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++) {
-			VOLUME->What_c[i] += h*I;
+			if (strstr(TestCase,"Poisson")) {
+				VOLUME->uhat_c[i] += h*I;
 
-			explicit_VOLUME_info_c();
-			explicit_FACET_info_c();
-			finalize_RHS_c();
+				compute_qhat_VOLUME_c();
+				compute_qhat_FACET_c();
+				compute_uhat_VOLUME_c();
+				finalize_qhat_c();
+				compute_uhat_FACET_c();
+			} else {
+				VOLUME->What_c[i] += h*I;
+
+				explicit_VOLUME_info_c();
+				explicit_FACET_info_c();
+				finalize_RHS_c();
+			}
 
 			for (VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
 				IndA[1] = VOLUME2->IndA;
@@ -361,7 +373,12 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 				MatSetValues(*A,nnz_d,m,1,n,vv,ADD_VALUES);
 				free(m); free(n); free(vv);
 			}
-			VOLUME->What_c[i] -= h*I;
+
+			if (strstr(TestCase,"Poisson")) {
+				VOLUME->uhat_c[i] -= h*I;
+			} else {
+				VOLUME->What_c[i] -= h*I;
+			}
 		}
 	}
 	free(A_nz);

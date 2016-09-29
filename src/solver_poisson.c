@@ -642,6 +642,10 @@ void jacobian_flux_coef(const unsigned int Nn, const unsigned int Nel, const dou
                         const unsigned int d, char *flux_type, char side)
 {
 	/*
+	 *	Comments:
+	 *		Use of q_avg and q_jump terms in numerical flux result in extended stencils which will not be allowed in the
+	 *		current implementation. These options should thus be removed (ToBeDeleted).
+	 *
 	 *	References:
 	 *		Add references for definition of flux coefficients (e.g. Hesthaven(2008) Table 7.3) ToBeModified
 	 */
@@ -655,8 +659,7 @@ void jacobian_flux_coef(const unsigned int Nn, const unsigned int Nel, const dou
 	if (strstr(flux_type,"IP")) {
 		for (dim = 0; dim < d; dim++) {
 		for (n = 0; n < Nn; n++) {
-			tau = CONST_IP*(P+1)*(P+1)/h[n]; // ToBeModified
-//			tau = 0.0*CONST_IP*(P+1)*(P+1)/h[n];
+			tau = CONST_IP*(P+1)*(P+1)/h[n];
 
 			gradu_avg[Nn*dim+n] = 0.5*nIn[n*d+dim];
 			q_avg[Nn*dim+n]     = 0.0;
@@ -989,8 +992,8 @@ static void compute_uhat_FACET()
 			for (dim = 0; dim < d; dim++) {
 				for (n = 0; n < NfnI; n++) {
 				for (j = 0; j < NvnSIn; j++) {
-					dnqNumduhatIn_fI[n*NvnSIn+j] += -duOutduIn[n]*gradu_avg[NfnI*dim+n]*GradxyzOut[dim][n*NvnSIn+j]
-				                                    +duOutduIn[n]*u_jump[NfnI*dim+n]*ChiS_fI[n*NvnSIn+j];
+					dnqNumduhatIn_fI[n*NvnSIn+j] += (-duOutduIn[n]*gradu_avg[NfnI*dim+n]*GradxyzOut[dim][n*NvnSIn+j]
+				                                     +duOutduIn[n]*u_jump[NfnI*dim+n]*ChiS_fI[n*NvnSIn+j]);
 				}}
 			}
 			free(duOutduIn);
@@ -1052,6 +1055,7 @@ static void compute_uhat_FACET()
 
 			// OutOut
 			mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NfnI,1.0,1.0,OPSOut->I_Weak_FF[VfOut],dnqNumduhatOut_fI,LHSOutOut);
+//mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NfnI,1.0,0.0,OPSOut->I_Weak_FF[VfOut],dnqNumduhatOut_fI,LHSOutOut);
 		}
 	}
 }

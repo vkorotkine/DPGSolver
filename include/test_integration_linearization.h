@@ -9,5 +9,6 @@
 
 extern void test_integration_linearization (int nargc, char **argv);
 extern void compute_A_cs                   (Mat *A, Vec *b, Vec *x, const unsigned int assemble_type);
+extern void compute_A_cs_complete          (Mat *A, Vec *b, Vec *x);
 
 #endif // DPG__test_integration_linearization_h__INCLUDED
