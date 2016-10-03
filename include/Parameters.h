@@ -152,6 +152,7 @@
 #define FLUX_IP  10
 
 // Flux parameters
+//#define CONST_IP 200.0
 #define CONST_IP 200.0
 
 // Tolerances

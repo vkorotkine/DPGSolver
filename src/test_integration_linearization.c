@@ -348,8 +348,8 @@ void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 
 				explicit_VOLUME_info_c();
 				explicit_FACET_info_c();
-				finalize_RHS_c();
 			}
+			finalize_RHS_c();
 
 			for (VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
 				IndA[1] = VOLUME2->IndA;

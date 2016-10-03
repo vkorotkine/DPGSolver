@@ -371,13 +371,11 @@ static void compute_FACET_EFE(void)
 			} else if (BC % BC_STEP_SC == BC_SLIPWALL) {
 				boundary_SlipWall(NfnI,1,WIn_fI,WOut_fIIn,n_fI,d);
 /*
-double *UEx, *sEx;
+double *UEx;
 UEx = malloc(NVAR3D*NfnI * sizeof *UEx); // free
-sEx = malloc(NfnI        * sizeof *sEx); // free
-compute_exact_solution(NfnI,FACET->XYZ_fI,UEx,sEx,0);
+compute_exact_solution(NfnI,FACET->XYZ_fI,UEx,0);
 convert_variables(UEx,WOut_fIIn,3,d,NfnI,1,'p','c');
 free(UEx);
-free(sEx);
 */
 			} else {
 				printf("Error: Unsupported BC in implicit_FACET_info.\n"), exit(1);

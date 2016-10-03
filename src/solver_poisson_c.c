@@ -138,9 +138,9 @@ void compute_qhat_VOLUME_c(void)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int   dim1, NvnI, NvnS;
-	double         *ChiS_vI, *MInv, **DxyzChiS, *Sxyz;
-	double complex *u_vI, *qhat;
+	unsigned int   dim1, NvnS;
+	double         *MInv, **DxyzChiS, *Sxyz;
+	double complex *qhat;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME;
@@ -150,28 +150,24 @@ void compute_qhat_VOLUME_c(void)
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		init_ops(OPS,VOLUME);
 
-		NvnI = OPS->NvnI;
 		NvnS = OPS->NvnS;
 
-		ChiS_vI = OPS->ChiS_vI;
-
-		// Obtain u_vI
-		u_vI = malloc(NvnI * sizeof *u_vI); // free
-		mm_dcc(CBCM,CBT,CBNT,NvnI,1,NvnS,1.0,0.0,ChiS_vI,VOLUME->uhat_c,u_vI);
-
+		// Compute RHS term
 		MInv     = VOLUME->MInv;
 		DxyzChiS = VOLUME->DxyzChiS;
 
-		// Compute RHS term
 		for (dim1 = 0; dim1 < d; dim1++) {
-			Sxyz = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,-1.0,MInv,DxyzChiS[dim1]); // keep
+			Sxyz = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,-1.0,MInv,DxyzChiS[dim1]); // free
 
 			// RHS
 			qhat = malloc(NvnS*1 * sizeof *qhat); // keep
 			mm_dcc(CBCM,CBT,CBNT,NvnS,1,NvnS,1.0,0.0,Sxyz,VOLUME->uhat_c,qhat);
+			free(Sxyz);
+
+			if (VOLUME->qhat_c[dim1])
+				free(VOLUME->qhat_c[dim1]);
 			VOLUME->qhat_c[dim1] = qhat;
 		}
-		free(u_vI);
 	}
 	free(OPS);
 }
@@ -186,7 +182,7 @@ static void boundary_Dirichlet_c(const unsigned int Nn, const unsigned int Nel, 
 		printf("Error: Vectorization unsupported.\n"), EXIT_MSG;
 
 	uB_d = malloc(Nn * sizeof *uB_d); // free
-	compute_exact_solution(Nn*Nel,XYZ,uB_d,NULL,0);
+	compute_exact_solution(Nn*Nel,XYZ,uB_d,0);
 
 	for (n = 0; n < Nn; n++) {
 		uR[n] = 2.0*uB_d[n];
@@ -304,12 +300,15 @@ void compute_qhat_FACET_c(void)
 		// Interior VOLUME
 
 		I_FF     = OPSIn->I_Weak_FF[VfIn];
-		MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSIn,NfnI,NvnSIn,1.0,VIn->MInv,I_FF); // free
+		MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSIn,NfnI,NvnSIn,-1.0,VIn->MInv,I_FF); // free
 
 		for (dim = 0; dim < d; dim++) {
 			// RHSIn
 			qhatIn = malloc(NvnSIn*1 * sizeof *qhatIn); // keep
 			mm_dcc(CBCM,CBT,CBNT,NvnSIn,1,NfnI,1.0,0.0,MInvI_FF,&nuNum_fI[NfnI*dim],qhatIn);
+
+			if (FACET->qhatIn_c[dim])
+				free(FACET->qhatIn_c[dim]);
 			FACET->qhatIn_c[dim] = qhatIn;
 		}
 
@@ -328,7 +327,7 @@ void compute_qhat_FACET_c(void)
 			array_rearrange_cmplx(NfnI,d,nOrdInOut,'C',nuNum_fI);
 
 			I_FF     = OPSOut->I_Weak_FF[VfOut];
-			MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSOut,NfnI,NvnSOut,1.0,VOut->MInv,I_FF); // free
+			MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSOut,NfnI,NvnSOut,-1.0,VOut->MInv,I_FF); // free
 
 			ChiS_fIInOut = malloc(NvnSOut*NfnI * sizeof *ChiS_fIInOut); // free
 
@@ -342,6 +341,9 @@ void compute_qhat_FACET_c(void)
 				// RHSOut
 				qhatOut = malloc(NvnSOut*1 * sizeof *qhatOut); // keep
 				mm_dcc(CBCM,CBT,CBNT,NvnSOut,1,NfnI,1.0,0.0,MInvI_FF,&nuNum_fI[NfnI*dim],qhatOut);
+
+				if (FACET->qhatOut_c[dim])
+					free(FACET->qhatOut_c[dim]);
 				FACET->qhatOut_c[dim] = qhatOut;
 			}
 			free(ChiS_fIInOut);
@@ -546,7 +548,12 @@ void compute_uhat_FACET_c()
 		// Add VOLUME contributions to RHS
 		RHSIn  = calloc(NvnSIn  , sizeof *RHSIn);  // keep (requires external free)
 		RHSOut = calloc(NvnSOut , sizeof *RHSOut); // keep (requires external free)
+
+		if (FACET->RHSIn_c)
+			free(FACET->RHSIn_c);
 		FACET->RHSIn_c  = RHSIn;
+		if (FACET->RHSOut_c)
+			free(FACET->RHSOut_c);
 		FACET->RHSOut_c = RHSOut;
 
 		for (dim = 0; dim < d; dim++) {
@@ -584,6 +591,7 @@ void compute_uhat_FACET_c()
 
 		for (dim = 0; dim < d; dim++)
 			mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSIn,1.0,0.0,GradxyzIn[dim],VIn->uhat_c,&grad_uIn_fI[NfnI*dim]);
+		array_free2_d(d,GradxyzIn);
 
 		GradChiS_fI = OPSOut->GradChiS_fI;
 
@@ -604,6 +612,7 @@ void compute_uhat_FACET_c()
 					GradxyzOut[dim1][n*NvnSOut+j] /= detJV_fI[n];
 			}
 		}
+		free(C_fI);
 
 		// Compute_uOut_fI (Taking BCs into account if applicable)
 		uOut_fIIn      = malloc(NfnI   * sizeof *uOut_fIIn);      // free
@@ -634,6 +643,7 @@ void compute_uhat_FACET_c()
 				printf("Error: Unsupported BC.\n"), EXIT_MSG;
 			}
 		}
+		array_free2_d(d,GradxyzOut);
 
 		// Compute numerical flux
 		nqNum_fI = calloc(NfnI , sizeof *nqNum_fI); // free
@@ -651,6 +661,7 @@ void compute_uhat_FACET_c()
 			printf("Error: Unsupported PoissonFluxType.\n"), EXIT_MSG;
 			break;
 		}
+		free(h);
 
 		qhatIn_fI    = malloc(d * sizeof *qhatIn_fI);    // free
 		qhatOut_fIIn = malloc(d * sizeof *qhatOut_fIIn); // free
@@ -671,6 +682,15 @@ void compute_uhat_FACET_c()
 			            +  q_avg[NfnI*dim+n]     * (qhatIn_fI[dim][n] + qhatOut_fIIn[dim][n])
 			            +  q_jump[NfnI*dim+n]    * (qhatIn_fI[dim][n] - qhatOut_fIIn[dim][n]);
 		}}
+		free(gradu_avg);
+		free(u_jump);
+		free(q_avg);
+		free(q_jump);
+
+		free(grad_uIn_fI);
+		free(grad_uOut_fIIn);
+		free(uIn_fI);
+		free(uOut_fIIn);
 
 		array_free2_cmplx(d,qhatIn_fI);
 		array_free2_cmplx(d,qhatOut_fIIn);
@@ -683,7 +703,7 @@ void compute_uhat_FACET_c()
 		// Finalize FACET RHS terms
 
 		// Interior FACET
-		mm_dcc(CBCM,CBT,CBNT,NvnSIn,1,NfnI,1.0,1.0,OPSIn->I_Weak_FF[VfIn],nqNum_fI,RHSIn);
+		mm_dcc(CBCM,CBT,CBNT,NvnSIn,1,NfnI,-1.0,1.0,OPSIn->I_Weak_FF[VfIn],nqNum_fI,RHSIn);
 
 		// Exterior FACET
 		if (!Boundary) {
@@ -696,8 +716,11 @@ void compute_uhat_FACET_c()
 			// Rearrange nqNum to match node ordering from VOut
 			array_rearrange_cmplx(NfnI,1,nOrdInOut,'C',nqNum_fI);
 
-			mm_dcc(CBCM,CBT,CBNT,NvnSOut,1,NfnI,1.0,1.0,OPSOut->I_Weak_FF[VfOut],nqNum_fI,RHSOut);
+			mm_dcc(CBCM,CBT,CBNT,NvnSOut,1,NfnI,-1.0,1.0,OPSOut->I_Weak_FF[VfOut],nqNum_fI,RHSOut);
 //mm_dcc(CBCM,CBT,CBNT,NvnSOut,1,NfnI,1.0,0.0,OPSOut->I_Weak_FF[VfOut],nqNum_fI,RHSOut);
 		}
+		free(nqNum_fI);
 	}
+	free(OPSIn);
+	free(OPSOut);
 }

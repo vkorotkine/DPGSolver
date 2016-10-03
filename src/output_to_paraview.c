@@ -9,6 +9,7 @@
 #include <string.h>
  
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
@@ -486,16 +487,20 @@ static void output_solution(const char *sol_type)
 	             MPIsize   = DB.MPIsize;
 
 	// standard datatypes
-	char          MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_name_source[STRLEN_MAX],
-	              f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
+	char         MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_name_source[STRLEN_MAX],
+	             f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
 	unsigned int i, iMax, j, jMax, dim, sum, varMax,
 	             P, PP, NE, NvnP, NvnG, NvnS,
 	             *connectivity, *types, *VTK_Ncorners;
-	double *I_vG_vP, *ChiS_vP, *XYZ_vP, *W_vP, *U_vP, *rho, *u, *v, *w, *p, *E, *s, *Mach, V2, c2;
+	double       *I_vG_vP, *ChiS_vP, *XYZ_vP, *W_vP, *U_vP, *rho, *u, *v, *w, *p, *E, *s, *Mach, V2, c2, *q;
 	FILE *fID;
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME *VOLUME;
+
+	// silence
+	W_vP = U_vP = NULL;
+	rho = u = v = w = p = E = s = Mach = q = NULL;
 
 	sprintf(MPIrank_c,"%d",MPIrank);
 	strcpy(f_name,TestCase); strcat(f_name,"/");
@@ -516,12 +521,17 @@ static void output_solution(const char *sol_type)
 		fprintf_tn(fID,1,"<PUnstructuredGrid GhostLevel=\"0\">\n");
 
 		fprintf_tn(fID,2,"<PPointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
-		fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"rho\" format=\"ascii\"/>");
-		fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"V\" NumberOfComponents=\"3\" format=\"ascii\"/>");
-		fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"p\" format=\"ascii\"/>");
-		fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"E\" format=\"ascii\"/>");
-		fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"s\" format=\"ascii\"/>");
-		fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"Mach\" format=\"ascii\"/>");
+		if (strstr(TestCase,"Poisson")) {
+			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"u\" format=\"ascii\"/>");
+			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"q\" NumberOfComponents=\"3\" format=\"ascii\"/>");
+		} else {
+			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"rho\" format=\"ascii\"/>");
+			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"V\" NumberOfComponents=\"3\" format=\"ascii\"/>");
+			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"p\" format=\"ascii\"/>");
+			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"E\" format=\"ascii\"/>");
+			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"s\" format=\"ascii\"/>");
+			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"Mach\" format=\"ascii\"/>");
+		}
 		fprintf_tn(fID,2,"</PPointData>\n");
 
 		fprintf_tn(fID,2,"<PPoints>");
@@ -582,29 +592,37 @@ static void output_solution(const char *sol_type)
 		ChiS_vP = ELEMENT->ChiS_vP[P][PP][0];
 
 		XYZ_vP = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,d,NvnG,1.0,I_vG_vP,VOLUME->XYZ);     // free
-		W_vP   = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->What); // free
 
-		U_vP    = malloc(NvnP*5 * sizeof *U_vP);    // free
+		if (strstr(TestCase,"Poisson")) {
+			u = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->uhat); // free
+			q = calloc(DMAX*NvnP , sizeof *q); // free
+			for (dim = 0; dim < d; dim++)
+				mm_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,0.0,ChiS_vP,VOLUME->qhat[dim],&q[dim*NvnP]);
+		} else {
+			W_vP = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->What); // free
 
-		convert_variables(W_vP,U_vP,d,3,NvnP,1,'c','p');
-		varMax = Nvar-1;
+			U_vP = malloc(NvnP*5 * sizeof *U_vP); // free
 
-		rho = &U_vP[NvnP*0];
-		u   = &U_vP[NvnP*1];
-		v   = &U_vP[NvnP*2];
-		w   = &U_vP[NvnP*3];
-		p   = &U_vP[NvnP*4];
-		E   = &W_vP[NvnP*varMax];
+			convert_variables(W_vP,U_vP,d,3,NvnP,1,'c','p');
+			varMax = Nvar-1;
 
-		s    = malloc(NvnP * sizeof *s);    // free
-		Mach = malloc(NvnP * sizeof *Mach); // free
+			rho = &U_vP[NvnP*0];
+			u   = &U_vP[NvnP*1];
+			v   = &U_vP[NvnP*2];
+			w   = &U_vP[NvnP*3];
+			p   = &U_vP[NvnP*4];
+			E   = &W_vP[NvnP*varMax];
 
-		for (i = 0; i < NvnP; i++) {
-			V2 = u[i]*u[i] + v[i]*v[i] + w[i]*w[i];
-			c2 = GAMMA*p[i]/rho[i];
+			s    = malloc(NvnP * sizeof *s);    // free
+			Mach = malloc(NvnP * sizeof *Mach); // free
 
-			s[i]    = p[i]/pow(rho[i],GAMMA);
-			Mach[i] = sqrt(V2/c2);
+			for (i = 0; i < NvnP; i++) {
+				V2 = u[i]*u[i] + v[i]*v[i] + w[i]*w[i];
+				c2 = GAMMA*p[i]/rho[i];
+
+				s[i]    = p[i]/pow(rho[i],GAMMA);
+				Mach[i] = sqrt(V2/c2);
+			}
 		}
 
 		fprintf(fID,"\t\t<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n",NvnP,NE);
@@ -623,6 +641,23 @@ static void output_solution(const char *sol_type)
 			fprintf_tn(fID,3,"</Points>");
 
 			fprintf_tn(fID,3,"<PointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
+			if (strstr(TestCase,"Poisson")) {
+				fprintf_tn(fID,4,"<DataArray type=\"Float32\" Name=\"u\" format=\"ascii\">");
+				fprintf(fID,"\t\t\t\t");
+				for (i = 0; i < NvnP; i++) {
+					fprintf(fID,"% .8e ",u[i]);
+					if ((i+1) % 5 == 0 && i != NvnP-1)
+						fprintf(fID,"\n\t\t\t\t");
+					else if (i == NvnP-1)
+						fprintf(fID,"\n");
+				}
+				fprintf_tn(fID,4,"</DataArray>");
+
+				fprintf(fID,"\t\t\t\t<DataArray type=\"Float32\" Name=\"q\" NumberOfComponents=\"%d\" format=\"ascii\">\n",3);
+				for (i = 0; i < NvnP; i++)
+					fprintf(fID,"\t\t\t\t % .8e % .8e % .8e\n",q[NvnP*0+i],q[NvnP*1+i],q[NvnP*2+i]);
+				fprintf_tn(fID,4,"</DataArray>");
+			} else {
 				fprintf_tn(fID,4,"<DataArray type=\"Float32\" Name=\"rho\" format=\"ascii\">");
 				fprintf(fID,"\t\t\t\t");
 				for (i = 0; i < NvnP; i++) {
@@ -682,6 +717,7 @@ static void output_solution(const char *sol_type)
 						fprintf(fID,"\n");
 				}
 				fprintf_tn(fID,4,"</DataArray>");
+			}
 
 			fprintf_tn(fID,3,"</PointData>");
 
@@ -729,10 +765,15 @@ static void output_solution(const char *sol_type)
 		fprintf_tn(fID,2,"</Piece>\n");
 
 		free(XYZ_vP);
-		free(W_vP);
-		free(U_vP);
-		free(s);
-		free(Mach);
+		if (strstr(TestCase,"Poisson")) {
+			free(u);
+			free(q);
+		} else {
+			free(W_vP);
+			free(U_vP);
+			free(s);
+			free(Mach);
+		}
 		free(VTK_Ncorners);
 	}
 

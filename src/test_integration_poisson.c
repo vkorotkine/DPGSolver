@@ -81,6 +81,7 @@ void test_integration_poisson(int nargc, char **argv)
 	TestDB.PGlobal = 1;
 	TestDB.ML      = 0;
 
+
 	code_startup(nargc,argvNew,0,1);
 
 	implicit_info_Poisson();
@@ -102,33 +103,34 @@ void test_integration_poisson(int nargc, char **argv)
 	compute_A_cs(&A_cs,&b_cs,&x_cs,0);
 	compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
 
-MatView(A,PETSC_VIEWER_STDOUT_SELF);
-MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
-	MatView(A_csc,PETSC_VIEWER_STDOUT_SELF);
+//	MatView(A_csc,PETSC_VIEWER_STDOUT_SELF);
 
 	pass = 0;
 	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < EPS &&
 	    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < EPS)
-//	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < EPS)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("Linearization Poisson (2D - TRI  ):              ");
 	test_print(pass);
-EXIT_MSG;
 
 	finalize_ksp(&A,&b,&x,2);
 	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
 	finalize_ksp(&A_csc,&b_csc,&x_csc,2);
 	code_cleanup();
 
+
 	// Convergence orders
 	PMin = 0;  PMax = 4;
 	MLMin = 0; MLMax = 4;
 
+PMin = 2;
+PMax = 2;
+MLMin = 0;
+MLMax = 4;
+
 	for (P = PMin; P <= PMax; P++) {
 	for (ML = MLMin; ML <= MLMax; ML++) {
-/*
 		TestDB.PGlobal = P;
 		TestDB.ML = ML;
 
@@ -138,9 +140,10 @@ EXIT_MSG;
 		compute_errors_global();
 
 		code_cleanup();
-*/
 	}}
 	// test with various boundary conditions and fluxes (ToBeDeleted)
+pass = 0;
+printf("%d\n",pass);
 
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);

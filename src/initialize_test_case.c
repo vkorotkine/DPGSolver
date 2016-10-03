@@ -74,7 +74,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 	}
 }
 
-static void compute_initial_solution(const unsigned int Nn, double *XYZ, double *UEx, double *sEx);
+static void compute_initial_solution(const unsigned int Nn, double *XYZ, double *UEx);
 static void adapt_initial(unsigned int *adapt_update);
 static void check_levels_refine(const unsigned int indexg, struct S_VInfo **VInfo_list, const unsigned int adapt_class);
 
@@ -178,7 +178,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	// Standard datatypes
 	unsigned int DOF0 = 0;
 	unsigned int NvnS, adapt_update, adapt_count;
-	double       *XYZ_vS, *U, *s, *W, *What;
+	double       *XYZ_vS, *U, *W, *What;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME;
@@ -212,10 +212,8 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 
 				U   = malloc(NvnS*NVAR3D * sizeof *U); // free
 				W   = malloc(NvnS*Nvar   * sizeof *W); // free
-				s   = malloc(NvnS*1      * sizeof *s); // free
 
-				compute_initial_solution(NvnS,XYZ_vS,U,s);
-				free(s);
+				compute_initial_solution(NvnS,XYZ_vS,U);
 
 				convert_variables(U,W,3,d,NvnS,1,'p','c');
 				mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,W,What);
@@ -234,6 +232,16 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				VOLUME->NvnS = NvnS;
 
 				VOLUME->uhat = calloc(NvnS*Nvar , sizeof *(VOLUME->uhat)); // keep
+
+ // ToBeDeleted
+XYZ_vS = malloc(NvnS*d * sizeof *XYZ_vS); // free
+mm_CTN_d(NvnS,d,VOLUME->NvnG,OPS->I_vG_vS,VOLUME->XYZ,XYZ_vS);
+
+double *u = malloc(NvnS * sizeof *u); // free
+compute_initial_solution(NvnS,XYZ_vS,u);
+mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,u,VOLUME->uhat);
+free(XYZ_vS);
+free(u);
 			}
 		} else {
 			printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
@@ -265,13 +273,15 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 //	output_to_paraview("ZTest_Sol_Init");
 }
 
-static void compute_initial_solution(const unsigned int Nn, double *XYZ, double *UEx, double *sEx)
+static void compute_initial_solution(const unsigned int Nn, double *XYZ, double *UEx)
 {
 	// Initialize DB Parameters
 	char *TestCase = DB.TestCase;
 
 	if (strstr(TestCase,"PeriodicVortex") || strstr(TestCase,"SupersonicVortex") || strstr(TestCase,"Test")) {
-		compute_exact_solution(Nn,XYZ,UEx,sEx,0);
+		compute_exact_solution(Nn,XYZ,UEx,0);
+} else if (strstr(TestCase,"Poisson")) { // ToBeDeleted
+	compute_exact_solution(Nn,XYZ,UEx,0);
 	} else {
 		printf("Error: Unsupported TestCase: %s.\n",TestCase), EXIT_MSG;
 	}

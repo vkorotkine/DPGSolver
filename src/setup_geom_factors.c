@@ -271,6 +271,7 @@ void setup_geom_factors_highorder(struct S_FACET *FACET)
 	for (col = 0; col < d; col++) {
 		mm_CTN_d(NfnI,1,NvnG,OPS->D_vG_fI[VfIn][col],&XYZ[NvnG*row],&J_fI[NfnI*(d*row+col)]);
 	}}
+	free(OPS);
 
 	if (d == 1) {
 		for (n = 0; n < NfnI; n++) {
@@ -291,6 +292,7 @@ void setup_geom_factors_highorder(struct S_FACET *FACET)
 			                                      - J_fI[NfnI*(d*1+1)+n]*J_fI[NfnI*(d*2+0)+n]);
 		}
 	}
+	free(J_fI);
 	FACET->detJV_fI = detJV_fI;
 }
 

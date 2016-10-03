@@ -27,6 +27,8 @@
 #include "array_swap.h"
 #include "array_free.h"
 #include "finalize_LHS.h"
+#include "solver_implicit.h"
+#include "output_to_paraview.h"
 
 
 
@@ -153,7 +155,6 @@ static void compute_qhat_VOLUME(void)
 
 	// Standard datatypes
 	unsigned int i, j, dim1, dim2, IndD, IndC, NvnI, NvnS;
-	double       *u_vI;
 	double       *ChiS_vI, *MInv, **D, *C_vI, *Dxyz, **DxyzChiS, *Sxyz;
 
 	struct S_OPERATORS *OPS;
@@ -171,36 +172,31 @@ static void compute_qhat_VOLUME(void)
 
 		ChiS_vI = OPS->ChiS_vI;
 
-		// Obtain u_vI
-// u_vI is not needed (ToBeDeleted) also in solver_poisson_c
-		u_vI = malloc(NvnI * sizeof *u_vI); // free
-		mm_CTN_d(NvnI,1,NvnS,ChiS_vI,VOLUME->uhat,u_vI);
-
+		// Construct physical derivative operator matrices
 		MInv = VOLUME->MInv;
 		C_vI = VOLUME->C_vI;
 
-		// Construct physical derivative operator matrices
 		D = OPS->D_Weak;
 
-		DxyzChiS = malloc(d * sizeof *Dxyz); // keep
+// Note: Storage of DxyzChiS is not necessary if cofactor terms are included in uhat^ref and qhat^ref as in the paper.
+// ToBeDeleted
+//		DxyzChiS = malloc(d * sizeof *Dxyz); // keep
+		DxyzChiS = VOLUME->DxyzChiS;
 		for (dim1 = 0; dim1 < d; dim1++) {
 			Dxyz = calloc(NvnS*NvnI , sizeof *Dxyz); // free
 			for (dim2 = 0; dim2 < d; dim2++) {
 				IndD = 0;
 				IndC = (dim1+dim2*d)*NvnI;
 				for (i = 0; i < NvnS; i++) {
-					for (j = 0; j < NvnI; j++)
+					for (j = 0; j < NvnI; j++) {
 						Dxyz[IndD+j] += D[dim2][IndD+j]*C_vI[IndC+j];
+					}
 					IndD += NvnI;
 				}
 			}
 			DxyzChiS[dim1] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // keep
 			free(Dxyz);
 		}
-
-// Note: Storage of DxyzChiS is not necessary if cofactor terms are included in uhat^ref and qhat^ref as in the paper.
-// ToBeDeleted
-		VOLUME->DxyzChiS = DxyzChiS;
 
 		// Compute RHS and LHS terms
 		for (dim1 = 0; dim1 < d; dim1++) {
@@ -212,7 +208,6 @@ static void compute_qhat_VOLUME(void)
 			// LHS
 			VOLUME->qhat_uhat[dim1] = Sxyz;
 		}
-		free(u_vI);
 	}
 	free(OPS);
 }
@@ -229,7 +224,7 @@ void boundary_Dirichlet(const unsigned int Nn, const unsigned int Nel, double *X
 	if (Nel != 1)
 		printf("Error: Vectorization unsupported.\n"), EXIT_MSG;
 
-	compute_exact_solution(Nn*Nel,XYZ,uR,NULL,0);
+	compute_exact_solution(Nn*Nel,XYZ,uR,0);
 
 	for (n = 0; n < Nn; n++) {
 		uR[n] *= 2.0;
@@ -266,6 +261,7 @@ void trace_coef(const unsigned int Nn, const unsigned int Nel, const double *nL,
 		for (n = 0; n < Nn; n++) {
 			u_avg[n]  = 0.5;
 			jump_u[n] = 0.0;
+			// ToBeDeleted
 			for (dim = 0; dim < d; dim++)
 				jump_u[n] += 0.0*nL[n*d+dim];
 		}
@@ -413,8 +409,9 @@ static void compute_qhat_FACET(void)
 
 		// Interior VOLUME
 
+		// Note: There is a "-ve" sign embedded in the I_Weak_FF operator!
 		I_FF     = OPSIn->I_Weak_FF[VfIn];
-		MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSIn,NfnI,NvnSIn,1.0,VIn->MInv,I_FF); // free
+		MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSIn,NfnI,NvnSIn,-1.0,VIn->MInv,I_FF); // free
 
 		MInvIdnuNumdu = malloc(NvnSIn*NfnI * sizeof *MInvIdnuNumdu); // free
 		for (dim = 0; dim < d; dim++) {
@@ -467,7 +464,7 @@ static void compute_qhat_FACET(void)
 			array_rearrange_d(NfnI,d,nOrdInOut,'C',dnuNumduOut_fI);
 
 			I_FF     = OPSOut->I_Weak_FF[VfOut];
-			MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSOut,NfnI,NvnSOut,1.0,VOut->MInv,I_FF); // free
+			MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSOut,NfnI,NvnSOut,-1.0,VOut->MInv,I_FF); // free
 
 			MInvIdnuNumdu = malloc(NvnSOut*NfnI * sizeof *MInvIdnuNumdu); // free
 
@@ -528,7 +525,7 @@ static void finalize_qhat(void)
 
 	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 // ToBeDeleted: Remove this entire function likely
-continue;
+//continue;
 		VIn    = FACET->VIn;
 		NvnSIn = VIn->NvnS;
 
@@ -537,8 +534,11 @@ continue;
 			FqhatIn_ptr  = FACET->qhatIn[dim];
 
 			for (iMax = NvnSIn; iMax--; )
-				*VqhatIn_ptr++ += *FqhatIn_ptr;
+				*VqhatIn_ptr++ += *FqhatIn_ptr++;
 		}
+//asdf ToBeDeleted
+//printf("fq: %d %d\n",FACET->indexg,VIn->indexg);
+//array_print_d(NvnSIn,1,VIn->qhat[0],'C');
 
 		if(!(FACET->Boundary)) {
 			VOut    = FACET->VOut;
@@ -549,13 +549,15 @@ continue;
 				FqhatOut_ptr = FACET->qhatOut[dim];
 
 				for (iMax = NvnSOut; iMax--; )
-					*VqhatOut_ptr++ += *FqhatOut_ptr;
+					*VqhatOut_ptr++ += *FqhatOut_ptr++;
 			}
 		}
 
 		for (dim = 0; dim < d; dim++) {
 			free(FACET->qhatIn[dim]);
+			FACET->qhatIn[dim] = NULL;
 			free(FACET->qhatOut[dim]);
+			FACET->qhatOut[dim] = NULL;
 		}
 	}
 }
@@ -622,6 +624,10 @@ static void compute_uhat_VOLUME(void)
 		free(XYZ_vI);
 
 		mm_d(CBCM,CBT,CBNT,NvnS,1,NvnI,-1.0,1.0,I_Weak_detJV_vI,f_vI,RHS);
+// ToBeDeleted
+//		mm_d(CBCM,CBT,CBNT,NvnS,1,NvnI,-1.0,0.0,I_Weak_detJV_vI,f_vI,RHS);
+//printf("RHS\n");
+//array_print_d(NvnS,1,RHS,'C');
 		free(I_Weak_detJV_vI);
 		free(f_vI);
 
@@ -659,9 +665,10 @@ void jacobian_flux_coef(const unsigned int Nn, const unsigned int Nel, const dou
 	if (strstr(flux_type,"IP")) {
 		for (dim = 0; dim < d; dim++) {
 		for (n = 0; n < Nn; n++) {
-			tau = CONST_IP*(P+1)*(P+1)/h[n];
+			tau = 0.5*CONST_IP*(P+1)*(P+1)/h[n];
+//printf("1/h: % .3e\n",1.0/h[n]);
 
-			gradu_avg[Nn*dim+n] = 0.5*nIn[n*d+dim];
+			gradu_avg[Nn*dim+n] = 0.0*0.5*nIn[n*d+dim];
 			q_avg[Nn*dim+n]     = 0.0;
 
 			u_jump[Nn*dim+n] = -tau*nIn[n*d+dim]*nIn[n*d+dim];
@@ -692,7 +699,7 @@ static void compute_uhat_FACET()
 	             *LHSInIn, *LHSOutIn, *LHSInOut, *LHSOutOut,
 	             *detJV_fI, *C_fI, *h, *n_fI, *detJF_fI, *C_vC,
 	             *uIn_fI, *grad_uIn_fI, *uOut_fIIn, *grad_uOut_fIIn, *uOut_fI, **qhatIn_fI, **qhatOut_fIIn,
-	             *nqNum_fI, *dnqNumduhatIn_fI, *dnqNumduhatOut_fIIn, *dnqNumduhatOut_fI, *duOutduIn,
+	             *nqNum_fI, *dnqNumduhatIn_fI, *dnqNumduhatOut_fI, *duOutduIn,
 	             *gradu_avg, *u_jump, *q_avg, *q_jump, *q_uhatV, *q_uhatF,
 	             *RHSIn, *RHSOut;
 
@@ -738,6 +745,7 @@ static void compute_uhat_FACET()
 		h = malloc(NfnI * sizeof *h); // free
 		for (n = 0; n < NfnI; n++)
 			h[n] = detJV_fI[n]/detJF_fI[n];
+//			h[n] = detJV_fI[n]/detJF_fI[n]*sqrt(3.0)/2.0;
 
 		// Add VOLUME contributions to RHS and LHS
 		RHSIn  = calloc(NvnSIn  , sizeof *RHSIn);  // keep (requires external free)
@@ -763,7 +771,8 @@ static void compute_uhat_FACET()
 				mm_d(CBCM,CBT,CBNT,NvnSOut,1,NvnSOut,-1.0,1.0,VOut->DxyzChiS[dim],FACET->qhatOut[dim],RHSOut);
 
 			// LHS
-			mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSIn, NvnSIn, -1.0,1.0,VIn->DxyzChiS[dim], FACET->qhat_uhatInIn[dim],  LHSInIn);
+//			mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSIn, NvnSIn, -1.0,1.0,VIn->DxyzChiS[dim], FACET->qhat_uhatInIn[dim],  LHSInIn);
+			mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSIn, NvnSIn, 0.0,1.0,VIn->DxyzChiS[dim], FACET->qhat_uhatInIn[dim],  LHSInIn);
 			if (!Boundary) {
 				mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSOut,NvnSIn, -1.0,1.0,VIn->DxyzChiS[dim], FACET->qhat_uhatOutIn[dim], LHSOutIn);
 				mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSIn, NvnSOut,-1.0,1.0,VOut->DxyzChiS[dim],FACET->qhat_uhatInOut[dim], LHSInOut);
@@ -819,6 +828,7 @@ static void compute_uhat_FACET()
 					GradxyzOut[dim1][n*NvnSOut+j] /= detJV_fI[n];
 			}
 		}
+		free(C_fI);
 
 		// Compute_uOut_fI (Taking BCs into account if applicable)
 		uOut_fIIn      = malloc(NfnI   * sizeof *uOut_fIIn);      // free
@@ -883,6 +893,10 @@ static void compute_uhat_FACET()
 			            +  q_avg[NfnI*dim+n]     * (qhatIn_fI[dim][n] + qhatOut_fIIn[dim][n])
 			            +  q_jump[NfnI*dim+n]    * (qhatIn_fI[dim][n] - qhatOut_fIIn[dim][n]);
 		}}
+		free(grad_uIn_fI);
+		free(grad_uOut_fIIn);
+		free(uIn_fI);
+		free(uOut_fIIn);
 
 		array_free2_d(d,qhatIn_fI);
 		array_free2_d(d,qhatOut_fIIn);
@@ -890,7 +904,6 @@ static void compute_uhat_FACET()
 // If using ViscousFluxType == "IP", what is done below is quite inefficient as there is no dependence on q. It is very
 // general however and supports many different FluxTypes.
 		dnqNumduhatIn_fI    = calloc(NfnI*NvnSIn  , sizeof *dnqNumduhatIn_fI);    // free
-		dnqNumduhatOut_fIIn = calloc(NfnI*NvnSOut , sizeof *dnqNumduhatOut_fIIn); // free
 		dnqNumduhatOut_fI   = calloc(NfnI*NvnSOut , sizeof *dnqNumduhatOut_fI);   // free
 
 
@@ -911,6 +924,7 @@ static void compute_uhat_FACET()
 			free(q_uhatV);
 			free(q_uhatF);
 		}
+		array_free2_d(d,GradxyzIn);
 
 		// If on a boundary, there is no qhat contribution other than qhat_uhatInIn. However, there is a still a
 		// contribution from terms depending on the solution, which are added to dnqNumduhatIn_fI using the chain
@@ -994,6 +1008,7 @@ static void compute_uhat_FACET()
 				for (j = 0; j < NvnSIn; j++) {
 					dnqNumduhatIn_fI[n*NvnSIn+j] += (-duOutduIn[n]*gradu_avg[NfnI*dim+n]*GradxyzOut[dim][n*NvnSIn+j]
 				                                     +duOutduIn[n]*u_jump[NfnI*dim+n]*ChiS_fI[n*NvnSIn+j]);
+//printf("%d %d % .3e\n",n,j,duOutduIn[n]);
 				}}
 			}
 			free(duOutduIn);
@@ -1003,6 +1018,8 @@ static void compute_uhat_FACET()
 		free(q_avg);
 		free(q_jump);
 		free(h);
+
+		array_free2_d(d,GradxyzOut);
 
 		// Multiply by area element
 		for (n = 0; n < NfnI; n++) {
@@ -1017,8 +1034,15 @@ static void compute_uhat_FACET()
 
 		// Interior FACET
 
-		mm_d(CBCM,CBT,CBNT,NvnSIn,1,NfnI,1.0,1.0,OPSIn->I_Weak_FF[VfIn],nqNum_fI,RHSIn);
-		mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSIn,NfnI,1.0,1.0,OPSIn->I_Weak_FF[VfIn],dnqNumduhatIn_fI,LHSInIn);
+		mm_d(CBCM,CBT,CBNT,NvnSIn,1,NfnI,-1.0,1.0,OPSIn->I_Weak_FF[VfIn],nqNum_fI,RHSIn);
+//asdf ToBeDeleted
+printf("LHSInIn\n");
+//array_print_d(NvnSIn,NvnSIn,LHSInIn,'R');
+		mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSIn,NfnI,-1.0,1.0,OPSIn->I_Weak_FF[VfIn],dnqNumduhatIn_fI,LHSInIn);
+//mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSIn,NfnI,0.0,1.0,OPSIn->I_Weak_FF[VfIn],dnqNumduhatIn_fI,LHSInIn);
+array_print_d(NvnSIn,NvnSIn,LHSInIn,'R');
+//array_print_d(NvnSIn,NvnSIn,VIn->LHS,'R');
+
 
 		// Exterior FACET
 		if (!Boundary) {
@@ -1031,12 +1055,12 @@ static void compute_uhat_FACET()
 			// Rearrange nqNum to match node ordering from VOut
 			array_rearrange_d(NfnI,1,nOrdInOut,'C',nqNum_fI);
 
-			mm_d(CBCM,CBT,CBNT,NvnSOut,1,NfnI,1.0,1.0,OPSOut->I_Weak_FF[VfOut],nqNum_fI,RHSOut);
+			mm_d(CBCM,CBT,CBNT,NvnSOut,1,NfnI,-1.0,1.0,OPSOut->I_Weak_FF[VfOut],nqNum_fI,RHSOut);
 
 			// LHS
 
 			// OutIn
-			mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSOut,NfnI,1.0,1.0,OPSIn->I_Weak_FF[VfIn],dnqNumduhatOut_fI,LHSOutIn);
+			mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSOut,NfnI,-1.0,1.0,OPSIn->I_Weak_FF[VfIn],dnqNumduhatOut_fI,LHSOutIn);
 
 			// Use -ve normal for opposite VOLUME
 			for (n = 0; n < NfnI; n++) {
@@ -1051,49 +1075,113 @@ static void compute_uhat_FACET()
 			array_rearrange_d(NfnI,NvnSOut,nOrdInOut,'R',dnqNumduhatOut_fI);
 
 			// InOut
-			mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSIn,NfnI,1.0,1.0,OPSOut->I_Weak_FF[VfOut],dnqNumduhatIn_fI,LHSInOut);
+			mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSIn,NfnI,-1.0,1.0,OPSOut->I_Weak_FF[VfOut],dnqNumduhatIn_fI,LHSInOut);
 
 			// OutOut
-			mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NfnI,1.0,1.0,OPSOut->I_Weak_FF[VfOut],dnqNumduhatOut_fI,LHSOutOut);
+			mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NfnI,-1.0,1.0,OPSOut->I_Weak_FF[VfOut],dnqNumduhatOut_fI,LHSOutOut);
 //mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NfnI,1.0,0.0,OPSOut->I_Weak_FF[VfOut],dnqNumduhatOut_fI,LHSOutOut);
 		}
+		free(nqNum_fI);
+		free(dnqNumduhatIn_fI);
+		free(dnqNumduhatOut_fI);
 	}
+	free(OPSIn);
+	free(OPSOut);
 }
 
 void implicit_info_Poisson(void)
 {
 	compute_qhat_VOLUME();
-printf("cqV\n");
 	compute_qhat_FACET();
-printf("cqF\n");
-	finalize_qhat();
-printf("fq\n");
+//	finalize_qhat();
 
 	compute_uhat_VOLUME();
-printf("cuV\n");
 	compute_uhat_FACET();
-printf("cfV\n");
 }
 
 void solver_Poisson(void)
 {
 	// Initialize DB Parameters
-	unsigned int OutputInterval = DB.OutputInterval,
-	             Nvar           = DB.Nvar;
+	unsigned int Nvar           = DB.Nvar;
 
 	// Standard datatypes
-	double maxRHS;
+	char         *string, *fNameOut;
+	unsigned int i, iMax, IndA, NvnS;
+	int          iteration_ksp;
+	double       maxRHS, *uhat, *duhat;
 
+	struct S_VOLUME *VOLUME;
+
+	fNameOut = malloc(STRLEN_MAX * sizeof *fNameOut); // free
+	string   = malloc(STRLEN_MIN * sizeof *string);   // free
+
+	// Build the RHS and LHS terms
 	Mat                A = NULL;
 	Vec                b = NULL, x = NULL;
-//	KSP                ksp;
-//	PC                 pc;
-//	KSPConvergedReason reason;
+	KSP                ksp;
+	KSPConvergedReason reason;
 
-	implicit_info_Poisson();
-	maxRHS = finalize_LHS(&A,&b,&x,0);
+	PetscInt *ix;
 
-printf("% .3e %d %d\n",maxRHS,OutputInterval,Nvar);
-	// add source contribution to VOLUME->RHS
+	printf("RL"); implicit_info_Poisson();
+	printf("F "); maxRHS = finalize_LHS(&A,&b,&x,0);
 
+//MatView(A,PETSC_VIEWER_STDOUT_SELF);
+//VecView(b,PETSC_VIEWER_STDOUT_SELF);
+EXIT_MSG;
+
+	// Solve linear system
+	printf("S");
+	KSPCreate(MPI_COMM_WORLD,&ksp);
+	setup_KSP(A,ksp);
+
+	printf("S ");
+	KSPSolve(ksp,b,x);
+	KSPGetConvergedReason(ksp,&reason);
+	KSPGetIterationNumber(ksp,&iteration_ksp);
+//	KSPView(ksp,PETSC_VIEWER_STDOUT_WORLD);
+
+	// Update uhat
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		IndA = VOLUME->IndA;
+		NvnS = VOLUME->NvnS;
+		uhat = VOLUME->uhat;
+
+		iMax = NvnS*Nvar;
+		ix    = malloc(iMax * sizeof *ix);    // free
+		duhat = malloc(iMax * sizeof *duhat); // free
+		for (i = 0; i < iMax; i++)
+			ix[i] = IndA+i;
+
+		VecGetValues(x,iMax,ix,duhat);
+		free(ix);
+
+		for (i = 0; i < iMax; i++)
+			(*uhat++) += duhat[i];
+		free(duhat);
+	}
+
+	KSPDestroy(&ksp);
+	finalize_ksp(&A,&b,&x,2);
+
+	// Update qhat
+	compute_qhat_VOLUME();
+	compute_qhat_FACET();
+	finalize_qhat();
+
+	// Output to paraview
+	strcpy(fNameOut,"SolFinal_");
+	sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
+	                               strcat(fNameOut,DB.MeshType);
+	sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
+	if (DB.Adapt == ADAPT_0)
+		sprintf(string,"P%d_",DB.PGlobal), strcat(fNameOut,string);
+	output_to_paraview(fNameOut);
+
+	printf("KSP iterations (reason): %5d (%d), maxRHS (no MInv): % .3e\n",iteration_ksp,reason,maxRHS);
+
+	free(fNameOut);
+	free(string);
+
+	// Potentially adaptation option (ToBeDeleted)
 }

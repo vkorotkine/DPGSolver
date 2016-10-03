@@ -34,8 +34,8 @@
  *	References:
  */
 
-static void output_errors (const double *L2Error, const unsigned int DOF, const double Vol);
-static void collect_errors (void);
+static void output_errors (const double *L2Error, const unsigned int NvarError, const unsigned int DOF, const double Vol);
+static void collect_errors (const unsigned int NvarError);
 static char *set_fname(const unsigned int collect);
 
 struct S_OPERATORS {
@@ -79,23 +79,21 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
                     const unsigned int solved)
 {
 	// Initialize DB Parameters
+	char         *TestCase        = DB.TestCase;
 	unsigned int d                = DB.d,
 	             Nvar             = DB.Nvar,
 	             TestL2projection = DB.TestL2projection;
 
 	// Standard datatypes
-	unsigned int i, iMax, j, NvnS, NvnI, IndU;
+	unsigned int i, iMax, j, NvnS, NvnI, IndU, dim, Indq;
 	double       *XYZ_vI,
-	             *rho, *p, *s, *sEx, *U, *UEx, *What, *W,
+	             *rho, *p, *s, *rhoEx, *pEx, *sEx, *U, *UEx, *What, *W, *u, *q, *uEx, *qEx,
 	             *detJV_vI, *w_vI, *ChiS_vI, *wdetJV_vI, err,
 	             *ChiSwdetJV_vI, *MInvChiSwdetJV_vI, *L2_Ex_vI, *diag_wdetJV_vI;
 
 	struct S_OPERATORS *OPS;
 
 	OPS = malloc(sizeof *OPS); // free
-
-	for (i = 0, iMax = NVAR3D+1; i < iMax; i++)
-		L2Error2[i] = 0.0;
 
 	init_ops(OPS,VOLUME,0);
 
@@ -113,65 +111,113 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 	XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
 	mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
 
-	UEx = malloc(NvnI*NVAR3D * sizeof *UEx); // free
-	sEx = malloc(NvnI        * sizeof *sEx); // free
+	if (strstr(TestCase,"Poisson")) {
+		for (i = 0, iMax = DMAX+1; i < iMax; i++)
+			L2Error2[i] = 0.0;
 
-	compute_exact_solution(NvnI,XYZ_vI,UEx,sEx,solved);
+		u = malloc(NvnI      * sizeof *u); // free
+		q = calloc(NvnI*DMAX , sizeof *q); // free
+		mm_CTN_d(NvnI,1,NvnS,ChiS_vI,VOLUME->uhat,u);
+		for (dim = 0; dim < d; dim++)
+			mm_CTN_d(NvnI,1,NvnS,ChiS_vI,VOLUME->qhat[dim],&q[dim*NvnI]);
 
-	W = malloc(NvnI*Nvar   * sizeof *W); // free
-	U = malloc(NvnI*NVAR3D * sizeof *U); // free
-	s = malloc(NvnI        * sizeof *s); // free
+		uEx = malloc(NvnI      * sizeof *uEx); // free
+		qEx = calloc(NvnI*DMAX , sizeof *qEx); // free
 
-	if (!TestL2projection) {
-		What = VOLUME->What;
-		mm_CTN_d(NvnI,Nvar,NvnS,ChiS_vI,What,W);
+		compute_exact_solution(NvnI,XYZ_vI,uEx,solved);
+		compute_exact_gradient(NvnI,XYZ_vI,qEx);
 
-		convert_variables(W,U,d,3,NvnI,1,'c','p');
-	} else {
-		compute_inverse_mass(VOLUME);
-
-		ChiSwdetJV_vI     = malloc(NvnS*NvnI * sizeof *ChiSwdetJV_vI);     // free
-		MInvChiSwdetJV_vI = malloc(NvnS*NvnI * sizeof *MInvChiSwdetJV_vI); // free
-		L2_Ex_vI          = malloc(NvnI*NvnI * sizeof *L2_Ex_vI);          // free
-
-		diag_wdetJV_vI = diag_d(wdetJV_vI,NvnI); // free
-
-		mm_d(CBRM,CBT,CBNT,NvnS,NvnI,NvnI,1.0,0.0,ChiS_vI,diag_wdetJV_vI,ChiSwdetJV_vI);
-		mm_d(CBRM,CBNT,CBNT,NvnS,NvnI,NvnS,1.0,0.0,VOLUME->MInv,ChiSwdetJV_vI,MInvChiSwdetJV_vI);
-		mm_d(CBRM,CBNT,CBNT,NvnI,NvnI,NvnS,1.0,0.0,ChiS_vI,MInvChiSwdetJV_vI,L2_Ex_vI);
-
-		mm_CTN_d(NvnI,NVAR3D,NvnI,L2_Ex_vI,UEx,U);
-//		mm_d(CBCM,CBT,CBNT,NvnI,NVAR3D,NvnI,1.0,0.0,L2_Ex_vI,UEx,U); // ToBeDeleted
-
-		free(ChiSwdetJV_vI);
-		free(MInvChiSwdetJV_vI);
-		free(L2_Ex_vI);
-		free(diag_wdetJV_vI);
-	}
-
-	rho = &U[NvnI*0];
-	p   = &U[NvnI*(NVAR3D-1)];
-	for (i = 0; i < NvnI; i++)
-		s[i] = p[i]/pow(rho[i],GAMMA);
-
-	for (i = 0; i <= NVAR3D; i++) {
-		IndU = i*NvnI;
-		if (i == 0 || i == NVAR3D-1) { // rho, p
-			for (j = 0; j < NvnI; j++) {
-				err = (U[IndU+j]-UEx[IndU+j])/UEx[IndU+j];
-				L2Error2[i] += err*err*wdetJV_vI[j];
-			}
-		} else if (i > 0 && i < NVAR3D-1) { // u, v, w (Not normalized as variables may be negative)
-			for (j = 0; j < NvnI; j++) {
-				err = U[IndU+j]-UEx[IndU+j];
-				L2Error2[i] += err*err*wdetJV_vI[j];
-			}
-		} else if (i == NVAR3D) { // s
-			for (j = 0; j < NvnI; j++) {
-				err = (s[j]-sEx[j])/sEx[j];
-				L2Error2[i] += err*err*wdetJV_vI[j];
+		for (i = 0, iMax = 1+d; i <= iMax; i++) {
+			if (i == 0) { // u
+				for (j = 0; j < NvnI; j++) {
+					err = u[j]-uEx[j];
+					L2Error2[i] += err*err*wdetJV_vI[j];
+				}
+			} else { // q
+				Indq = (i-1)*NvnI;
+				for (j = 0; j < NvnI; j++) {
+					err = q[Indq+j]-qEx[Indq+j];
+					L2Error2[i] += err*err*wdetJV_vI[j];
+				}
 			}
 		}
+		free(u);
+		free(q);
+		free(uEx);
+		free(qEx);
+	} else {
+		for (i = 0, iMax = NVAR3D+1; i < iMax; i++)
+			L2Error2[i] = 0.0;
+
+		UEx = malloc(NvnI*NVAR3D * sizeof *UEx); // free
+
+		compute_exact_solution(NvnI,XYZ_vI,UEx,solved);
+
+		W = malloc(NvnI*Nvar   * sizeof *W); // free
+		U = malloc(NvnI*NVAR3D * sizeof *U); // free
+		if (!TestL2projection) {
+			What = VOLUME->What;
+			mm_CTN_d(NvnI,Nvar,NvnS,ChiS_vI,What,W);
+
+			convert_variables(W,U,d,3,NvnI,1,'c','p');
+		} else {
+			compute_inverse_mass(VOLUME);
+
+			ChiSwdetJV_vI     = malloc(NvnS*NvnI * sizeof *ChiSwdetJV_vI);     // free
+			MInvChiSwdetJV_vI = malloc(NvnS*NvnI * sizeof *MInvChiSwdetJV_vI); // free
+			L2_Ex_vI          = malloc(NvnI*NvnI * sizeof *L2_Ex_vI);          // free
+
+			diag_wdetJV_vI = diag_d(wdetJV_vI,NvnI); // free
+
+			mm_d(CBRM,CBT,CBNT,NvnS,NvnI,NvnI,1.0,0.0,ChiS_vI,diag_wdetJV_vI,ChiSwdetJV_vI);
+			mm_d(CBRM,CBNT,CBNT,NvnS,NvnI,NvnS,1.0,0.0,VOLUME->MInv,ChiSwdetJV_vI,MInvChiSwdetJV_vI);
+			mm_d(CBRM,CBNT,CBNT,NvnI,NvnI,NvnS,1.0,0.0,ChiS_vI,MInvChiSwdetJV_vI,L2_Ex_vI);
+
+			mm_CTN_d(NvnI,NVAR3D,NvnI,L2_Ex_vI,UEx,U);
+//			mm_d(CBCM,CBT,CBNT,NvnI,NVAR3D,NvnI,1.0,0.0,L2_Ex_vI,UEx,U); // ToBeDeleted
+
+			free(ChiSwdetJV_vI);
+			free(MInvChiSwdetJV_vI);
+			free(L2_Ex_vI);
+			free(diag_wdetJV_vI);
+		}
+
+		rhoEx = &UEx[NvnI*0];
+		pEx   = &UEx[NvnI*(NVAR3D-1)];
+		rho   = &U[NvnI*0];
+		p     = &U[NvnI*(NVAR3D-1)];
+
+		sEx = malloc(NvnI * sizeof *sEx); // free
+		s   = malloc(NvnI * sizeof *s);   // free
+		for (i = 0; i < NvnI; i++) {
+			sEx[i] = pEx[i]/pow(rhoEx[i],GAMMA);
+			s[i]   = p[i]/pow(rho[i],GAMMA);
+		}
+
+		for (i = 0; i <= NVAR3D; i++) {
+			IndU = i*NvnI;
+			if (i == 0 || i == NVAR3D-1) { // rho, p
+				for (j = 0; j < NvnI; j++) {
+					err = (U[IndU+j]-UEx[IndU+j])/UEx[IndU+j];
+					L2Error2[i] += err*err*wdetJV_vI[j];
+				}
+			} else if (i > 0 && i < NVAR3D-1) { // u, v, w (Not normalized as variables may be negative)
+				for (j = 0; j < NvnI; j++) {
+					err = U[IndU+j]-UEx[IndU+j];
+					L2Error2[i] += err*err*wdetJV_vI[j];
+				}
+			} else if (i == NVAR3D) { // s
+				for (j = 0; j < NvnI; j++) {
+					err = (s[j]-sEx[j])/sEx[j];
+					L2Error2[i] += err*err*wdetJV_vI[j];
+				}
+			}
+		}
+		free(W);
+		free(U);
+		free(s);
+		free(UEx);
+		free(sEx);
 	}
 
 	*DOF = NvnS;
@@ -180,11 +226,6 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		*Vol += wdetJV_vI[i];
 
 	free(wdetJV_vI);
-	free(W);
-	free(U);
-	free(s);
-	free(UEx);
-	free(sEx);
 	free(XYZ_vI);
 
 	free(OPS);
@@ -202,10 +243,11 @@ void compute_errors_global(void)
 	 */
 
 	// Initialize DB Parameters
-	int MPIrank = DB.MPIrank;
+	char *TestCase = DB.TestCase;
+	int  MPIrank   = DB.MPIrank;
 
 	// Standard datatypes
-	unsigned int i, DOF, DOF_l;
+	unsigned int i, DOF, DOF_l, NvarError;
 	double       Vol, Vol_l, *L2Error2, *L2Error2_l;
 
 	struct S_VOLUME *VOLUME;
@@ -213,8 +255,13 @@ void compute_errors_global(void)
 	// silence
 	DOF = 0; Vol = 0.0;
 
-	L2Error2   = calloc(NVAR3D+1   , sizeof *L2Error2);   // free
-	L2Error2_l = malloc((NVAR3D+1) * sizeof *L2Error2_l); // free
+	if (strstr(TestCase,"Poisson"))
+		NvarError = DMAX+1;
+	else
+		NvarError = NVAR3D+1;
+
+	L2Error2   = calloc(NvarError , sizeof *L2Error2);   // free
+	L2Error2_l = malloc(NvarError * sizeof *L2Error2_l); // free
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		compute_errors(VOLUME,L2Error2_l,&Vol_l,&DOF_l,1);
@@ -222,26 +269,29 @@ void compute_errors_global(void)
 		Vol += Vol_l;
 		DOF += DOF_l;
 
-		for (i = 0; i <= NVAR3D; i++)
+		for (i = 0; i < NvarError; i++)
 			L2Error2[i] += L2Error2_l[i];
 	}
 	free(L2Error2_l);
 
 	// Write to files and collect
-	output_errors(L2Error2,DOF,Vol);
+	output_errors(L2Error2,NvarError,DOF,Vol);
 	free(L2Error2);
 
 	MPI_Barrier(MPI_COMM_WORLD);
 	if (!MPIrank)
-		collect_errors();
+		collect_errors(NvarError);
 }
 
-static void output_errors(const double *L2Error2, const unsigned int DOF, const double Vol)
+static void output_errors(const double *L2Error2, const unsigned int NvarError, const unsigned int DOF, const double Vol)
 {
 	/*
 	 * Comments:
 	 *		Squared L2 errors are output here.
 	 */
+
+	// Initialize DB Parameters
+	char *TestCase = DB.TestCase;
 
 	// standard datatypes
 	unsigned int i;
@@ -253,19 +303,24 @@ static void output_errors(const double *L2Error2, const unsigned int DOF, const 
 	if ((fID = fopen(f_name,"w")) == NULL)
 		printf("Error: File: %s, did not open.\n",f_name), exit(1);
 
-	fprintf(fID,"DOF         Vol         L2rho2      L2u2        L2v2        L2w2        L2p2        L2s2\n");
+	if (strstr(TestCase,"Poisson")) {
+		fprintf(fID,"DOF         Vol         L2u2        L2q1_2      L2q2_2      L2q3_2\n");
+	} else {
+		fprintf(fID,"DOF         Vol         L2rho2      L2u2        L2v2        L2w2        L2p2        L2s2\n");
+	}
 	fprintf(fID,"%-10d  %.4e  ",DOF,Vol);
-	for (i = 0; i <= NVAR3D; i++)
+	for (i = 0; i < NvarError; i++)
 		fprintf(fID,"%.4e  ",L2Error2[i]);
 
 	fclose(fID);
 	free(f_name);
 }
 
-static void collect_errors(void)
+static void collect_errors(const unsigned int NvarError)
 {
 	// Initialize DB Parameters
-	int MPIsize = DB.MPIsize;
+	char *TestCase = DB.TestCase;
+	int  MPIsize   = DB.MPIsize;
 
 	// Standard datatypes
 	char         *f_name, StringRead[STRLEN_MAX], *data;
@@ -275,7 +330,7 @@ static void collect_errors(void)
 
 	FILE *fID;
 
-	L2Error2 = calloc(NVAR3D+1 , sizeof *L2Error2); // free
+	L2Error2 = calloc(NvarError , sizeof *L2Error2); // free
 	Vol = 0;
 	for (rank = 0; rank < MPIsize; rank++) {
 		f_name = set_fname(0); // free
@@ -302,8 +357,8 @@ static void collect_errors(void)
 		free(f_name);
 	}
 
-	L2Error = malloc((NVAR3D+1) * sizeof *L2Error); // free
-	for (i = 0; i <= NVAR3D; i++)
+	L2Error = malloc(NvarError * sizeof *L2Error); // free
+	for (i = 0; i < NvarError; i++)
 		L2Error[i] = sqrt(L2Error2[i]/Vol);
 	free(L2Error2);
 
@@ -311,9 +366,13 @@ static void collect_errors(void)
 	if ((fID = fopen(f_name,"w")) == NULL)
 		printf("Error: File: %s, did not open.\n",f_name), exit(1);
 
-	fprintf(fID,"DOF         L2rho       L2u         L2v         L2w         L2p         L2s\n");
+	if (strstr(TestCase,"Poisson")) {
+		fprintf(fID,"DOF         L2u         L2q1        L2q2        L2q3\n");
+	} else {
+		fprintf(fID,"DOF         L2rho       L2u         L2v         L2w         L2p         L2s\n");
+	}
 	fprintf(fID,"%-10d  ",DOF);
-	for (i = 0; i <= NVAR3D; i++)
+	for (i = 0; i < NvarError; i++)
 		fprintf(fID,"%.4e  ",L2Error[i]);
 	free(L2Error);
 

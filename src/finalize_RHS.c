@@ -89,6 +89,7 @@ static void add_source(const struct S_VOLUME *VOLUME)
 
 	f_vI = malloc(NvnI*Neq * sizeof *f_vI); // free
 	compute_source(NvnI,XYZ_vI,f_vI);
+	free(XYZ_vI);
 
 	for (eq = 0; eq < Neq; eq++) {
 		detJV_vI_ptr = VOLUME->detJV_vI;

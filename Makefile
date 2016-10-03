@@ -190,7 +190,8 @@ TESTCASE_LIST := dSphericalBump GaussianBump PeriodicVortex \
                  Poisson
 MESHTYPE_LIST := ToBeCurvedStructuredTRI ToBeCurvedStructuredQUAD \
                  ToBeCurvedStructuredTET ToBeCurvedStructuredHEX \
-                 ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR
+                 ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR \
+				 StructuredTRI
 
 OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))
 TESTCASE_LIST := $(subst $(space),$(comma),$(TESTCASE_LIST))

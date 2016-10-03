@@ -72,6 +72,8 @@
  *		related L2 projections, it is easily seen that the QMF coefficient matrices perform exactly such projections.
  *		See Alpert(2002) for their definitions.
  *
+ *		Consider removing the "-ve" sign included in the I()_Weak_FF operator to avoid confusion. (ToBeModified)
+ *
  *	Notation:
  *
  *	General:

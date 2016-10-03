@@ -23,7 +23,7 @@
  *	References:
  */
 
-void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, double *sEx, const unsigned int solved)
+void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, const unsigned int solved)
 {
 	// Initialize DB Parameters
 	char *TestCase = DB.TestCase;
@@ -83,7 +83,6 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, dou
 			wEx[i]   = wInf;
 			pEx[i]   = pInf - rhoInf*(C*C)/(2*Rc*Rc)*exp(-r2);
 			rhoEx[i] = rhoInf;
-			sEx[i]   = pEx[i]/pow(rhoEx[i],GAMMA);
 		}
 	} else if (strstr(TestCase,"SupersonicVortex") ||
 	           strstr(TestCase,"Test_linearization")) {
@@ -107,11 +106,36 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, dou
 			uEx[i] = -sin(t)*Vt;
 			vEx[i] =  cos(t)*Vt;
 			wEx[i] =  0.0;
-			sEx[i] =  pEx[i]/pow(rhoEx[i],GAMMA);
 		}
 	} else if (strstr(TestCase,"Poisson")) {
 		for (i = 0; i < Nn; i++) {
 			UEx[i] = sin(PI*X[i])*sin(PI*Y[i]);
+		}
+	} else {
+		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
+	}
+}
+
+void compute_exact_gradient(const unsigned int Nn, double *XYZ, double *QEx)
+{
+	// Initialize DB Parameters
+	char         *TestCase = DB.TestCase;
+	unsigned int d         = DB.d;
+
+	// Standard datatypes
+	unsigned int i;
+	double       *X, *Y;
+
+	if (d != 2)
+		printf("Error: Unsupported d.\n"), EXIT_MSG;
+
+	X = &XYZ[0*Nn];
+	Y = &XYZ[1*Nn];
+
+	if (strstr(TestCase,"Poisson")) {
+		for (i = 0; i < Nn; i++) {
+			QEx[Nn*0+i] = PI*cos(PI*X[i])*sin(PI*Y[i]);
+			QEx[Nn*1+i] = PI*sin(PI*X[i])*cos(PI*Y[i]);
 		}
 	} else {
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;

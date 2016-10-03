@@ -36,6 +36,38 @@
  *	References:
  */
 
+void setup_KSP(Mat A, KSP ksp)
+{
+	// Standard datatypes
+	char SolverType = 'i'; // Options: (i)terative, (d)irect
+
+	// Petsc datatypes
+	PC pc;
+
+	KSPSetOperators(ksp,A,A);
+	KSPSetTolerances(ksp,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
+
+	KSPSetType(ksp,KSPGMRES);
+	KSPGMRESSetOrthogonalization(ksp,KSPGMRESModifiedGramSchmidtOrthogonalization);
+//	KSPGMRESSetRestart(ksp,60); // Default: 30
+
+	KSPGetPC(ksp,&pc);
+
+	if (SolverType == 'i') {
+		// Iterative Solve (Using ILU(1) with (R)everse (C)uthill-(M)cKee ordering)
+		KSPSetInitialGuessNonzero(ksp,PETSC_TRUE);
+		PCSetType(pc,PCILU);
+		PCFactorSetLevels(pc,1); // Cannot use MatOrdering with 0 fill
+		PCFactorSetMatOrderingType(pc,MATORDERINGRCM);
+	} else {
+		// Direct Solve (Using LU Factorization)
+		KSPSetType(ksp,KSPPREONLY);
+		PCSetType(pc,PCLU);
+	}
+	KSPSetUp(ksp);
+	PCSetUp(pc);
+}
+
 void solver_implicit(void)
 {
 	// Initialize DB Parameters
@@ -70,7 +102,7 @@ void solver_implicit(void)
 		Mat                A = NULL;
 		Vec                b = NULL, x = NULL;
 		KSP                ksp;
-		PC                 pc;
+//		PC                 pc;
 		KSPConvergedReason reason;
 
 		PetscInt *ix;
@@ -82,28 +114,7 @@ void solver_implicit(void)
 		// Solve linear system
 		printf("S");
 		KSPCreate(MPI_COMM_WORLD,&ksp);
-
-		KSPSetOperators(ksp,A,A);
-		KSPSetTolerances(ksp,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
-
-		KSPSetType(ksp,KSPGMRES);
-		KSPGMRESSetOrthogonalization(ksp,KSPGMRESModifiedGramSchmidtOrthogonalization);
-//		KSPGMRESSetRestart(ksp,60); // Default: 30
-
-		KSPGetPC(ksp,&pc);
-
-		// Iterative Solve (Using ILU(1) with (R)everse (C)uthill-(M)cKee ordering)
-		KSPSetInitialGuessNonzero(ksp,PETSC_TRUE);
-		PCSetType(pc,PCILU);
-		PCFactorSetLevels(pc,1); // Cannot use MatOrdering with 0 fill
-		PCFactorSetMatOrderingType(pc,MATORDERINGRCM);
-/*
-		// Direct Solve (Using LU Factorization)
-		KSPSetType(ksp,KSPPREONLY);
-		PCSetType(pc,PCLU);
-*/
-		KSPSetUp(ksp);
-		PCSetUp(pc);
+		setup_KSP(A,ksp);
 
 		printf("S ");
 		KSPSolve(ksp,b,x);
