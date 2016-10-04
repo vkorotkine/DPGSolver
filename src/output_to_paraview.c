@@ -19,6 +19,8 @@
 #include "matrix_functions.h"
 #include "variable_functions.h"
 
+#include "exact_solutions.h" // ToBeDeleted
+
 /*
  *	Purpose:
  *		Output data to paraview for visualization.
@@ -598,6 +600,17 @@ static void output_solution(const char *sol_type)
 			q = calloc(DMAX*NvnP , sizeof *q); // free
 			for (dim = 0; dim < d; dim++)
 				mm_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,0.0,ChiS_vP,VOLUME->qhat[dim],&q[dim*NvnP]);
+
+// ToBeDeleted
+if (d != 2)
+	printf("Error: Delete this.\n"), EXIT_MSG;
+double *uEx;
+uEx = malloc(NvnP * sizeof *uEx); // free
+
+compute_exact_solution(NvnP,XYZ_vP,uEx,0);
+for (i = 0; i < NvnP; i++)
+	q[2*NvnP+i] = fabs(uEx[i]-u[i]);
+free(uEx);
 		} else {
 			W_vP = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->What); // free
 

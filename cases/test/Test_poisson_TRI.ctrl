@@ -6,7 +6,7 @@
 
 BEGIN PARAMETERS
   Dimension  2
-  ML         1
+  ML         4
   MeshType   StructuredTRI
 
   Form       Weak  // Options: Weak, (Strong)

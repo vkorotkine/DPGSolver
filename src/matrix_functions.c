@@ -96,6 +96,42 @@ double *inverse_d(const unsigned int N, const unsigned int NRHS, const double *A
 	return x;
 }
 
+void mm_diag_d(const unsigned int NRows, const unsigned int NCols, double *a, double *A, double *Output,
+               const char side, const char layout)
+{
+	unsigned int i, j;
+
+	if (layout == 'R') {
+		if (side == 'L') {
+			for (i = 0; i < NRows; i++) {
+			for (j = 0; j < NCols; j++) {
+				Output[i*NCols+j] = a[i]*A[i*NCols+j];
+			}}
+		} else if (side == 'R') {
+			for (i = 0; i < NRows; i++) {
+			for (j = 0; j < NCols; j++) {
+				Output[i*NCols+j] = a[j]*A[i*NCols+j];
+			}}
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+		}
+	} else if (layout == 'C') {
+		if (side == 'L') {
+			for (j = 0; j < NCols; j++) {
+			for (i = 0; i < NRows; i++) {
+				Output[i+j*NRows] = a[j]*A[i+j*NRows];
+			}}
+		} else if (side == 'R') {
+			for (j = 0; j < NCols; j++) {
+			for (i = 0; i < NRows; i++) {
+				Output[i+j*NRows] = a[i]*A[i+j*NRows];
+			}}
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+		}
+	}
+}
+
 double *mm_Alloc_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb,
                    const int m, const int n, const int k, const double alpha, const double *A, const double *B)
 {

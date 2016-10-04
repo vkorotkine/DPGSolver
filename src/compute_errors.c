@@ -10,6 +10,7 @@
 #include <mpi.h>
 
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"

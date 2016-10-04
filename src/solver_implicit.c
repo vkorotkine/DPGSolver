@@ -38,6 +38,9 @@
 
 void setup_KSP(Mat A, KSP ksp)
 {
+	// Initialize DB Parameters
+	char *TestCase = DB.TestCase;
+
 	// Standard datatypes
 	char SolverType = 'i'; // Options: (i)terative, (d)irect
 
@@ -47,9 +50,13 @@ void setup_KSP(Mat A, KSP ksp)
 	KSPSetOperators(ksp,A,A);
 	KSPSetTolerances(ksp,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
 
-	KSPSetType(ksp,KSPGMRES);
-	KSPGMRESSetOrthogonalization(ksp,KSPGMRESModifiedGramSchmidtOrthogonalization);
-//	KSPGMRESSetRestart(ksp,60); // Default: 30
+	if (strstr(TestCase,"Poisson")) {
+		KSPCGSetType(ksp,KSP_CG_SYMMETRIC);
+	} else {
+		KSPSetType(ksp,KSPGMRES);
+		KSPGMRESSetOrthogonalization(ksp,KSPGMRESModifiedGramSchmidtOrthogonalization);
+//		KSPGMRESSetRestart(ksp,60); // Default: 30
+	}
 
 	KSPGetPC(ksp,&pc);
 

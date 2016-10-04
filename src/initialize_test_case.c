@@ -233,6 +233,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 
 				VOLUME->uhat = calloc(NvnS*Nvar , sizeof *(VOLUME->uhat)); // keep
 
+/*
  // ToBeDeleted
 XYZ_vS = malloc(NvnS*d * sizeof *XYZ_vS); // free
 mm_CTN_d(NvnS,d,VOLUME->NvnG,OPS->I_vG_vS,VOLUME->XYZ,XYZ_vS);
@@ -242,6 +243,7 @@ compute_initial_solution(NvnS,XYZ_vS,u);
 mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,u,VOLUME->uhat);
 free(XYZ_vS);
 free(u);
+*/
 			}
 		} else {
 			printf("Error: Unsupported TestCase.\n"), EXIT_MSG;

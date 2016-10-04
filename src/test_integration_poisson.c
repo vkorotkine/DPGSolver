@@ -78,8 +78,8 @@ void test_integration_poisson(int nargc, char **argv)
 
 	// Linearization
 // ToBeModified
-	TestDB.PGlobal = 1;
-	TestDB.ML      = 0;
+	TestDB.PGlobal = 3;
+	TestDB.ML      = 1;
 
 
 	code_startup(nargc,argvNew,0,1);
@@ -113,6 +113,7 @@ void test_integration_poisson(int nargc, char **argv)
 	//     0         10        20        30        40        50
 	printf("Linearization Poisson (2D - TRI  ):              ");
 	test_print(pass);
+EXIT_MSG;
 
 	finalize_ksp(&A,&b,&x,2);
 	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
@@ -124,8 +125,8 @@ void test_integration_poisson(int nargc, char **argv)
 	PMin = 0;  PMax = 4;
 	MLMin = 0; MLMax = 4;
 
-PMin = 2;
-PMax = 2;
+PMin = 4;
+PMax = 4;
 MLMin = 0;
 MLMax = 4;
 

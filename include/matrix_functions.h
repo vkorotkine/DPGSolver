@@ -12,6 +12,8 @@
 extern double *diag_d          (const double *x, const unsigned int N);
 extern double *identity_d      (const unsigned int N);
 extern double *inverse_d       (const unsigned int N, const unsigned int NRHS, const double *A, const double *b);
+extern void   mm_diag_d        (const unsigned int NRows, const unsigned int NCols, double *a, double *A, double *Output,
+                                const char side, const char layout);
 extern double *mm_Alloc_d      (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb,
                                 const int m, const int n, const int k, const double alpha, const double *A, const double *B);
 extern void   mm_d             (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb,

@@ -276,6 +276,7 @@ int main(int nargc, char **argv)
 		test_unit_matrix_identity();
 		test_unit_matrix_inverse();
 		test_unit_matrix_mm();
+		printf("\nNeed a test for mm_diag_d\n\n"); TestDB.Nwarnings++;
 		test_unit_convert_to_CSR();
 
 		test_unit_find_periodic_connections();

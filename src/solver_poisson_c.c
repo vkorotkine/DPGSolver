@@ -37,7 +37,7 @@
 struct S_OPERATORS {
 	unsigned int NvnS, NvnI, NfnI, NvnC,
 	             *nOrdOutIn, *nOrdInOut;
-	double       *ChiS_vI, **D_Weak, **ChiS_fI, **I_Weak_FF, *I_Weak_VV, *I_vG_vI, ***GradChiS_fI, **I_vC_fI;
+	double       *ChiS_vI, **D_Weak, **ChiS_fI, **I_Weak_FF, ***GradChiS_fI, **I_vC_fI;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
@@ -58,16 +58,12 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 		OPS->NvnI = ELEMENT->NvnIs[P];
 
 		OPS->ChiS_vI   = ELEMENT->ChiS_vIs[P][P][0];
-		OPS->I_Weak_VV = ELEMENT->Is_Weak_VV[P][P][0];
 		OPS->D_Weak    = ELEMENT->Ds_Weak_VV[P][P][0];
-		OPS->I_vG_vI   = ELEMENT->I_vGs_vIs[1][P][0];
 	} else {
 		OPS->NvnI = ELEMENT->NvnIc[P];
 
 		OPS->ChiS_vI   = ELEMENT->ChiS_vIc[P][P][0];
-		OPS->I_Weak_VV = ELEMENT->Ic_Weak_VV[P][P][0];
 		OPS->D_Weak    = ELEMENT->Dc_Weak_VV[P][P][0];
-		OPS->I_vG_vI   = ELEMENT->I_vGc_vIc[P][P][0];
 	}
 }
 
@@ -198,12 +194,12 @@ void compute_qhat_FACET_c(void)
 	             ViscousFluxType = DB.ViscousFluxType;
 
 	// Standard datatypes
-	unsigned int   n, dim, i, j, iMax,
+	unsigned int   n, dim, i, iMax,
 	               NfnI, NvnSIn, NvnSOut,
 	               VfIn, VfOut, fIn, EclassIn, IndFType, BC, Boundary,
 	               *nOrdOutIn, *nOrdInOut;
 	double         nJ, *n_fI, *detJF_fI, *u_avg, *u_jump,
-	               *I_FF, *MInvI_FF, *ChiS_fI, *ChiS_fIInOut;
+	               *I_FF, *MInvI_FF;
 	double complex *uIn_fI, *uOut_fIIn, *uOut_fI, *uNum_fI, *qhatIn, *qhatOut, *nuNum_fI;
 
 	struct S_OPERATORS *OPSIn, *OPSOut;
@@ -314,8 +310,6 @@ void compute_qhat_FACET_c(void)
 
 		// Exterior VOLUME
 		if (!Boundary) {
-			ChiS_fI = OPSOut->ChiS_fI[VfOut];
-
 			free(MInvI_FF);
 
 			// Use "-ve" normal for opposite VOLUME
@@ -324,18 +318,14 @@ void compute_qhat_FACET_c(void)
 			}
 
 			// Rearrange numerical trace to match node ordering from opposite VOLUME
+printf("Spc\n");
+array_print_cmplx(NfnI,d,nuNum_fI,'C');
 			array_rearrange_cmplx(NfnI,d,nOrdInOut,'C',nuNum_fI);
+array_print_ui(1,NfnI,nOrdInOut,'C');
+array_print_cmplx(NfnI,d,nuNum_fI,'C');
 
 			I_FF     = OPSOut->I_Weak_FF[VfOut];
 			MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSOut,NfnI,NvnSOut,-1.0,VOut->MInv,I_FF); // free
-
-			ChiS_fIInOut = malloc(NvnSOut*NfnI * sizeof *ChiS_fIInOut); // free
-
-			ChiS_fI = OPSIn->ChiS_fI[VfIn];
-			for (i = 0; i < NfnI; i++) {
-			for (j = 0; j < NvnSIn; j++) {
-				ChiS_fIInOut[i*NvnSIn+j] = ChiS_fI[nOrdInOut[i]*NvnSIn+j];
-			}}
 
 			for (dim = 0; dim < d; dim++) {
 				// RHSOut
@@ -346,7 +336,6 @@ void compute_qhat_FACET_c(void)
 					free(FACET->qhatOut_c[dim]);
 				FACET->qhatOut_c[dim] = qhatOut;
 			}
-			free(ChiS_fIInOut);
 		}
 		free(MInvI_FF);
 
@@ -401,33 +390,15 @@ void finalize_qhat_c(void)
 	}
 }
 
-static void compute_source_c(const unsigned int Nn, double *XYZ, double complex *source)
-{
-	unsigned int   n;
-	double         *source_d;
-//	double complex *tmp;
-
-	// silence
-//	tmp = source; source = tmp;
-
-	source_d = malloc(Nn * sizeof *source_d); // free
-	compute_source(Nn,XYZ,source_d);
-
-	for (n = 0; n < Nn; n++)
-		source[n] = source_d[n];
-	free(source_d);
-}
-
 void compute_uhat_VOLUME_c(void)
 {
 	// Initialize DB Parameters
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int   i, j, dim1,
-	               NvnI, NvnS;
-	double         *ChiS_vI, **DxyzChiS, *detJV_vI, *I_Weak, *I_Weak_detJV_vI, *XYZ_vI;
-	double complex *q_vI, *f_vI, *RHS;
+	unsigned int   dim1, NvnI, NvnS;
+	double         *ChiS_vI, **DxyzChiS;
+	double complex *q_vI, *RHS;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME;
@@ -460,27 +431,6 @@ void compute_uhat_VOLUME_c(void)
 			mm_dcc(CBCM,CBT,CBNT,NvnS,1,NvnS,-1.0,1.0,DxyzChiS[dim1],VOLUME->qhat_c[dim1],RHS);
 
 		free(q_vI);
-
-		// RHS (Source)
-		I_Weak = OPS->I_Weak_VV;
-		detJV_vI = VOLUME->detJV_vI;
-
-		I_Weak_detJV_vI = malloc(NvnS*NvnI * sizeof *I_Weak_detJV_vI); // free
-		for (i = 0; i < NvnS; i++) {
-		for (j = 0; j < NvnI; j++) {
-			I_Weak_detJV_vI[i*NvnI+j] = I_Weak[i*NvnI+j]*detJV_vI[j];
-		}}
-
-		XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
-		mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
-
-		f_vI = malloc(NvnI * sizeof *f_vI); // free
-		compute_source_c(NvnI,XYZ_vI,f_vI);
-		free(XYZ_vI);
-
-		mm_dcc(CBCM,CBT,CBNT,NvnS,1,NvnI,-1.0,1.0,I_Weak_detJV_vI,f_vI,RHS);
-		free(I_Weak_detJV_vI);
-		free(f_vI);
 	}
 	free(OPS);
 }

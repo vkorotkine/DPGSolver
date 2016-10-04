@@ -163,7 +163,7 @@ void compute_source(const unsigned int Nn, double *XYZ, double *source)
 
 		for (eq = 0; eq < Neq; eq++) {
 			for (n = 0; n < Nn; n++)
-				source[eq*Nn+n] = -2*PI*PI*sin(X[n])*sin(Y[n]);
+				source[eq*Nn+n] = -2.0*PI*PI*sin(PI*X[n])*sin(PI*Y[n]);
 		}
 	} else {
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;

@@ -54,7 +54,7 @@
 struct S_OPERATORS {
 	unsigned int NvnS, NvnI, NfnI, NvnC,
 	             *nOrdOutIn, *nOrdInOut;
-	double       *ChiS_vI, **D_Weak, **ChiS_fI, **I_Weak_FF, *I_Weak_VV, *I_vG_vI, ***GradChiS_fI, **I_vC_fI;
+	double       *ChiS_vI, **D_Weak, **ChiS_fI, **I_Weak_FF, ***GradChiS_fI, **I_vC_fI;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
@@ -75,16 +75,12 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 		OPS->NvnI = ELEMENT->NvnIs[P];
 
 		OPS->ChiS_vI   = ELEMENT->ChiS_vIs[P][P][0];
-		OPS->I_Weak_VV = ELEMENT->Is_Weak_VV[P][P][0];
 		OPS->D_Weak    = ELEMENT->Ds_Weak_VV[P][P][0];
-		OPS->I_vG_vI   = ELEMENT->I_vGs_vIs[1][P][0];
 	} else {
 		OPS->NvnI = ELEMENT->NvnIc[P];
 
 		OPS->ChiS_vI   = ELEMENT->ChiS_vIc[P][P][0];
-		OPS->I_Weak_VV = ELEMENT->Ic_Weak_VV[P][P][0];
 		OPS->D_Weak    = ELEMENT->Dc_Weak_VV[P][P][0];
-		OPS->I_vG_vI   = ELEMENT->I_vGc_vIc[P][P][0];
 	}
 }
 
@@ -568,10 +564,9 @@ static void compute_uhat_VOLUME(void)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int i, j, dim1,
-	             NvnI, NvnS;
-	double       *ChiS_vI, **DxyzChiS, *detJV_vI, *I_Weak, *I_Weak_detJV_vI,
-	             *q_vI, *RHS, *f_vI, *XYZ_vI, *LHS;
+	unsigned int dim1, NvnI, NvnS;
+	double       *ChiS_vI, **DxyzChiS,
+	             *q_vI, *RHS, *LHS;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME;
@@ -605,32 +600,6 @@ static void compute_uhat_VOLUME(void)
 
 		free(q_vI);
 
-		// RHS (Source)
-		I_Weak = OPS->I_Weak_VV;
-		detJV_vI = VOLUME->detJV_vI;
-
-		I_Weak_detJV_vI = malloc(NvnS*NvnI * sizeof *I_Weak_detJV_vI); // free
-// Write matrix function for multiplication by diag. (ToBeDeleted)
-		for (i = 0; i < NvnS; i++) {
-		for (j = 0; j < NvnI; j++) {
-			I_Weak_detJV_vI[i*NvnI+j] = I_Weak[i*NvnI+j]*detJV_vI[j];
-		}}
-
-		XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
-		mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
-
-		f_vI = malloc(NvnI * sizeof *f_vI); // free
-		compute_source(NvnI,XYZ_vI,f_vI);
-		free(XYZ_vI);
-
-		mm_d(CBCM,CBT,CBNT,NvnS,1,NvnI,-1.0,1.0,I_Weak_detJV_vI,f_vI,RHS);
-// ToBeDeleted
-//		mm_d(CBCM,CBT,CBNT,NvnS,1,NvnI,-1.0,0.0,I_Weak_detJV_vI,f_vI,RHS);
-//printf("RHS\n");
-//array_print_d(NvnS,1,RHS,'C');
-		free(I_Weak_detJV_vI);
-		free(f_vI);
-
 		// LHS
 		if (VOLUME->LHS)
 			free(VOLUME->LHS);
@@ -639,6 +608,7 @@ static void compute_uhat_VOLUME(void)
 
 		for (dim1 = 0; dim1 < d; dim1++)
 			mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,-1.0,1.0,DxyzChiS[dim1],VOLUME->qhat_uhat[dim1],LHS);
+//mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,-0.0,1.0,DxyzChiS[dim1],VOLUME->qhat_uhat[dim1],LHS);
 	}
 	free(OPS);
 }
@@ -665,10 +635,10 @@ void jacobian_flux_coef(const unsigned int Nn, const unsigned int Nel, const dou
 	if (strstr(flux_type,"IP")) {
 		for (dim = 0; dim < d; dim++) {
 		for (n = 0; n < Nn; n++) {
-			tau = 0.5*CONST_IP*(P+1)*(P+1)/h[n];
-//printf("1/h: % .3e\n",1.0/h[n]);
+// Adjust constant on tau (note: additional scaling to correspond to Hesthaven) ToBeDeleted
+			tau = 0.1*0.5*2.0/sqrt(3.0)*CONST_IP*(P+1)*(P+1)/h[n];
 
-			gradu_avg[Nn*dim+n] = 0.0*0.5*nIn[n*d+dim];
+			gradu_avg[Nn*dim+n] = 0.5*nIn[n*d+dim];
 			q_avg[Nn*dim+n]     = 0.0;
 
 			u_jump[Nn*dim+n] = -tau*nIn[n*d+dim]*nIn[n*d+dim];
@@ -771,8 +741,8 @@ static void compute_uhat_FACET()
 				mm_d(CBCM,CBT,CBNT,NvnSOut,1,NvnSOut,-1.0,1.0,VOut->DxyzChiS[dim],FACET->qhatOut[dim],RHSOut);
 
 			// LHS
-//			mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSIn, NvnSIn, -1.0,1.0,VIn->DxyzChiS[dim], FACET->qhat_uhatInIn[dim],  LHSInIn);
-			mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSIn, NvnSIn, 0.0,1.0,VIn->DxyzChiS[dim], FACET->qhat_uhatInIn[dim],  LHSInIn);
+			mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSIn, NvnSIn, -1.0,1.0,VIn->DxyzChiS[dim], FACET->qhat_uhatInIn[dim],  LHSInIn);
+//mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSIn, NvnSIn, 0.0,1.0,VIn->DxyzChiS[dim], FACET->qhat_uhatInIn[dim],  LHSInIn);
 			if (!Boundary) {
 				mm_d(CBRM,CBNT,CBNT,NvnSIn, NvnSOut,NvnSIn, -1.0,1.0,VIn->DxyzChiS[dim], FACET->qhat_uhatOutIn[dim], LHSOutIn);
 				mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSIn, NvnSOut,-1.0,1.0,VOut->DxyzChiS[dim],FACET->qhat_uhatInOut[dim], LHSInOut);
@@ -1036,11 +1006,13 @@ static void compute_uhat_FACET()
 
 		mm_d(CBCM,CBT,CBNT,NvnSIn,1,NfnI,-1.0,1.0,OPSIn->I_Weak_FF[VfIn],nqNum_fI,RHSIn);
 //asdf ToBeDeleted
-printf("LHSInIn\n");
+//printf("RHSIn\n");
+//array_print_d(NvnSIn,1,RHSIn,'R');
+//printf("LHSInIn\n");
 //array_print_d(NvnSIn,NvnSIn,LHSInIn,'R');
 		mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSIn,NfnI,-1.0,1.0,OPSIn->I_Weak_FF[VfIn],dnqNumduhatIn_fI,LHSInIn);
-//mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSIn,NfnI,0.0,1.0,OPSIn->I_Weak_FF[VfIn],dnqNumduhatIn_fI,LHSInIn);
-array_print_d(NvnSIn,NvnSIn,LHSInIn,'R');
+//mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSIn,NfnI,-1.0,0.0,OPSIn->I_Weak_FF[VfIn],dnqNumduhatIn_fI,LHSInIn);
+//array_print_d(NvnSIn,NvnSIn,LHSInIn,'R');
 //array_print_d(NvnSIn,NvnSIn,VIn->LHS,'R');
 
 
@@ -1128,7 +1100,7 @@ void solver_Poisson(void)
 
 //MatView(A,PETSC_VIEWER_STDOUT_SELF);
 //VecView(b,PETSC_VIEWER_STDOUT_SELF);
-EXIT_MSG;
+//EXIT_MSG;
 
 	// Solve linear system
 	printf("S");
@@ -1160,6 +1132,7 @@ EXIT_MSG;
 			(*uhat++) += duhat[i];
 		free(duhat);
 	}
+//EXIT_MSG;
 
 	KSPDestroy(&ksp);
 	finalize_ksp(&A,&b,&x,2);
