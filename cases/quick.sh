@@ -70,6 +70,7 @@ clear
 cd ${TOP_DIR}/cases
 
 ${MPI_DIR}mpiexec -n ${N_PROCS} ${VALGRIND_OPTS} ${TOP_DIR}/bin/DPGSolver.exe ${TESTCASE}
+#${MPI_DIR}mpiexec -n ${N_PROCS} -ksp_monitor_true_residual ${VALGRIND_OPTS} ${TOP_DIR}/bin/DPGSolver.exe ${TESTCASE}
 #${MPI_DIR}/mpiexec -n ${N_PROCS} ${VALGRIND_OPTS} ${TOP_DIR}/bin/DPGSolver.exe ${TESTCASE} > ${LOGFILE}
 
 

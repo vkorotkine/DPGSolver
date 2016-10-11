@@ -21,8 +21,6 @@
 #include "array_swap.h"
 #include "array_free.h"
 
-#include "array_print.h" // ToBeDeleted
-
 /*
  *	Purpose:
  *		Compute RHS for Poisson solver using complex variables (for linearization testing).
@@ -318,11 +316,7 @@ void compute_qhat_FACET_c(void)
 			}
 
 			// Rearrange numerical trace to match node ordering from opposite VOLUME
-printf("Spc\n");
-array_print_cmplx(NfnI,d,nuNum_fI,'C');
 			array_rearrange_cmplx(NfnI,d,nOrdInOut,'C',nuNum_fI);
-array_print_ui(1,NfnI,nOrdInOut,'C');
-array_print_cmplx(NfnI,d,nuNum_fI,'C');
 
 			I_FF     = OPSOut->I_Weak_FF[VfOut];
 			MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSOut,NfnI,NvnSOut,-1.0,VOut->MInv,I_FF); // free
@@ -358,7 +352,6 @@ void finalize_qhat_c(void)
 	struct S_VOLUME *VIn, *VOut;
 
 	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-//continue; // ToBeDeleted
 		VIn    = FACET->VIn;
 		NvnSIn = VIn->NvnS;
 
@@ -381,11 +374,6 @@ void finalize_qhat_c(void)
 				for (iMax = NvnSOut; iMax--; )
 					*VqhatOut_ptr++ += *FqhatOut_ptr;
 			}
-		}
-
-		for (dim = 0; dim < d; dim++) {
-//			free(FACET->qhatIn_c[dim]);
-//			free(FACET->qhatOut_c[dim]);
 		}
 	}
 }
@@ -447,7 +435,7 @@ void compute_uhat_FACET_c()
 	               BC, Boundary, VfIn, VfOut, fIn, EclassIn, IndFType,
 	               *nOrdOutIn, *nOrdInOut;
 	double         ***GradChiS_fI, **GradxyzIn, **GradxyzOut,
-	               *gradu_avg, *u_jump, *q_avg, *q_jump,
+	               *gradu_avg, *u_jump,
 	               *detJV_fI, *C_fI, *h, *n_fI, *detJF_fI, *C_vC;
 	double complex *uIn_fI, *grad_uIn_fI, *uOut_fIIn, *grad_uOut_fIIn, *uOut_fI, **qhatIn_fI, **qhatOut_fIIn,
 	               *nqNum_fI, *RHSIn, *RHSOut;
@@ -600,12 +588,10 @@ void compute_uhat_FACET_c()
 
 		gradu_avg = malloc(NfnI*d * sizeof *gradu_avg); // free
 		u_jump    = malloc(NfnI*d * sizeof *u_jump);    // free
-		q_avg     = malloc(NfnI*d * sizeof *q_avg);     // free
-		q_jump    = malloc(NfnI*d * sizeof *q_jump);    // free
 
 		switch (ViscousFluxType) {
 		case FLUX_IP:
-			jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,q_avg,q_jump,d,"IP",'L');
+			jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,d,"IP",'L');
 			break;
 		default:
 			printf("Error: Unsupported PoissonFluxType.\n"), EXIT_MSG;
@@ -628,14 +614,10 @@ void compute_uhat_FACET_c()
 		for (dim = 0; dim < d; dim++) {
 		for (n = 0; n < NfnI; n++) {
 			nqNum_fI[n] += gradu_avg[NfnI*dim+n] * (grad_uIn_fI[NfnI*dim+n] + grad_uOut_fIIn[NfnI*dim+n])
-			            +  u_jump[NfnI*dim+n]    * (uIn_fI[n] - uOut_fIIn[n])
-			            +  q_avg[NfnI*dim+n]     * (qhatIn_fI[dim][n] + qhatOut_fIIn[dim][n])
-			            +  q_jump[NfnI*dim+n]    * (qhatIn_fI[dim][n] - qhatOut_fIIn[dim][n]);
+			            +  u_jump[NfnI*dim+n]    * (uIn_fI[n] - uOut_fIIn[n]);
 		}}
 		free(gradu_avg);
 		free(u_jump);
-		free(q_avg);
-		free(q_jump);
 
 		free(grad_uIn_fI);
 		free(grad_uOut_fIIn);
@@ -667,7 +649,6 @@ void compute_uhat_FACET_c()
 			array_rearrange_cmplx(NfnI,1,nOrdInOut,'C',nqNum_fI);
 
 			mm_dcc(CBCM,CBT,CBNT,NvnSOut,1,NfnI,-1.0,1.0,OPSOut->I_Weak_FF[VfOut],nqNum_fI,RHSOut);
-//mm_dcc(CBCM,CBT,CBNT,NvnSOut,1,NfnI,1.0,0.0,OPSOut->I_Weak_FF[VfOut],nqNum_fI,RHSOut);
 		}
 		free(nqNum_fI);
 	}

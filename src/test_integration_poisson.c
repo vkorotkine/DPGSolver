@@ -78,8 +78,8 @@ void test_integration_poisson(int nargc, char **argv)
 
 	// Linearization
 // ToBeModified
-	TestDB.PGlobal = 3;
-	TestDB.ML      = 1;
+	TestDB.PGlobal = 1;
+	TestDB.ML      = 0;
 
 
 	code_startup(nargc,argvNew,0,1);
@@ -103,7 +103,7 @@ void test_integration_poisson(int nargc, char **argv)
 	compute_A_cs(&A_cs,&b_cs,&x_cs,0);
 	compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
 
-//	MatView(A_csc,PETSC_VIEWER_STDOUT_SELF);
+	MatView(A_csc,PETSC_VIEWER_STDOUT_SELF);
 
 	pass = 0;
 	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < EPS &&
@@ -125,10 +125,10 @@ EXIT_MSG;
 	PMin = 0;  PMax = 4;
 	MLMin = 0; MLMax = 4;
 
-PMin = 4;
-PMax = 4;
+PMin = 1;
+PMax = 3;
 MLMin = 0;
-MLMax = 4;
+MLMax = 5;
 
 	for (P = PMin; P <= PMax; P++) {
 	for (ML = MLMin; ML <= MLMax; ML++) {

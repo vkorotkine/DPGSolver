@@ -532,6 +532,7 @@ void compute_inverse_mass(struct S_VOLUME *VOLUME)
 	detJV_vI = VOLUME->detJV_vI;
 
 	// Compute required portion of MInv
+	// ToBeModified (Extra work being done here for collocated)
 	wdetJV_vI = malloc(NvnI * sizeof *wdetJV_vI); // free
 	MInv      = NULL;
 
