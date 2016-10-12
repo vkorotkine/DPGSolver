@@ -517,7 +517,9 @@ struct S_FACET *New_FACET(void)
 	FACET->n_fS     = NULL; // free
 	FACET->detJF_fI = NULL; // free
 	FACET->detJF_fS = NULL; // free
-	FACET->detJV_fI = NULL; // free
+
+	FACET->detJVIn_fI  = NULL; // free
+	FACET->detJVOut_fI = NULL; // free
 
 	// Solving
 	FACET->RHSIn  = NULL; // free (in finalize_RHS)

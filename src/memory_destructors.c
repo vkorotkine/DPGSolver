@@ -254,7 +254,8 @@ void memory_destructor_F(struct S_FACET *FACET)
 	free(FACET->n_fS);
 	free(FACET->detJF_fI);
 	free(FACET->detJF_fS);
-	free(FACET->detJV_fI);
+	free(FACET->detJVIn_fI);
+	free(FACET->detJVOut_fI);
 
 	// Solving
 	if (FACET->LHSInIn)

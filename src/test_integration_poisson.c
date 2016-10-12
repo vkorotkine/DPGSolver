@@ -80,8 +80,8 @@ void test_integration_poisson(int nargc, char **argv)
 
 	// Linearization
 // ToBeModified
-	TestDB.PGlobal = 1;
-	TestDB.ML      = 0;
+	TestDB.PGlobal = 2;
+	TestDB.ML      = 1;
 
 
 	code_startup(nargc,argvNew,0,1);
@@ -114,6 +114,9 @@ void test_integration_poisson(int nargc, char **argv)
 	    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < EPS &&
 	    Symmetric)
 		pass = 1, TestDB.Npass++;
+	else
+		printf("%d %d %d\n",PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < EPS,
+		                    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < EPS,Symmetric);
 
 	//     0         10        20        30        40        50
 	printf("Linearization Poisson (2D - TRI  ):              ");

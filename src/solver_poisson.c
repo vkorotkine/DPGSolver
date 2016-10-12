@@ -29,6 +29,8 @@
 #include "solver_implicit.h"
 #include "output_to_paraview.h"
 
+#include "array_print.h" // ToBeDeleted
+
 /*
  *	Purpose:
  *		Perform the implicit solve for the Poisson equation.
@@ -625,7 +627,7 @@ static void compute_uhat_FACET()
 	             *nOrdOutIn, *nOrdInOut;
 	double       **GradChiS_fI, **GradxyzIn, **GradxyzOut, *ChiS_fI, *ChiS_fI_std,
 	             *LHSInIn, *LHSOutIn, *LHSInOut, *LHSOutOut,
-	             *detJV_fI, *C_fI, *h, *n_fI, *detJF_fI, *C_vC,
+	             *detJVIn_fI, *detJVOut_fI, *C_fI, *h, *n_fI, *detJF_fI, *C_vC,
 	             *uIn_fI, *grad_uIn_fI, *uOut_fIIn, *grad_uOut_fIIn, *uOut_fI,
 	             *nqNum_fI, *dnqNumduhatIn_fI, *dnqNumduhatOut_fI, *duOutduIn,
 	             *gradu_avg, *u_jump,
@@ -668,11 +670,20 @@ static void compute_uhat_FACET()
 		mm_CTN_d(NfnI,d*d,NvnCIn,OPSIn->I_vC_fI[VfIn],C_vC,C_fI);
 		n_fI = FACET->n_fI;
 
-		detJV_fI = FACET->detJV_fI;
+		detJVIn_fI = FACET->detJVIn_fI;
+		if (!Boundary) {
+			detJVOut_fI = FACET->detJVOut_fI;
+
+			// Reorder detJVOut_fI
+			array_rearrange_d(NfnI,1,nOrdOutIn,'R',detJVOut_fI);
+		} else {
+			detJVOut_fI = detJVIn_fI;
+		}
+
 		detJF_fI = FACET->detJF_fI;
 		h = malloc(NfnI * sizeof *h); // free
 		for (n = 0; n < NfnI; n++)
-			h[n] = detJV_fI[n]/detJF_fI[n];
+			h[n] = max(detJVIn_fI[n],detJVOut_fI[n])/detJF_fI[n];
 
 		// Add VOLUME contributions to RHS and LHS
 		RHSIn  = calloc(NvnSIn  , sizeof *RHSIn);  // keep (requires external free)
@@ -728,7 +739,7 @@ static void compute_uhat_FACET()
 			}
 			for (n = 0; n < NfnI; n++) {
 				for (j = 0; j < NvnSIn; j++)
-					GradxyzIn[dim1][n*NvnSIn+j] /= detJV_fI[n];
+					GradxyzIn[dim1][n*NvnSIn+j] /= detJVIn_fI[n];
 			}
 		}
 
@@ -752,7 +763,7 @@ static void compute_uhat_FACET()
 			}
 			for (n = 0; n < NfnI; n++) {
 				for (j = 0; j < NvnSOut; j++)
-					GradxyzOut[dim1][n*NvnSOut+j] /= detJV_fI[n];
+					GradxyzOut[dim1][n*NvnSOut+j] /= detJVOut_fI[n];
 			}
 		}
 		free(C_fI);

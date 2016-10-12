@@ -12,7 +12,7 @@ struct S_FACET {
 
 	// Geometry
 	unsigned int curved, typeInt;
-	double       *XYZ_fI, *XYZ_fS, *n_fI, *n_fS, *detJF_fI, *detJF_fS, *detJV_fI;
+	double       *XYZ_fI, *XYZ_fS, *n_fI, *n_fS, *detJF_fI, *detJF_fS, *detJVIn_fI, *detJVOut_fI;
 
 	// Solving
 	unsigned int Boundary;

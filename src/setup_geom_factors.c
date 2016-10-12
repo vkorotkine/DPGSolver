@@ -224,11 +224,46 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 
 }
 
+static void compute_detJV(const unsigned int Nn, double *J, double *detJV)
+{
+	/*
+	 *	Comments:
+	 *		Consider implementing the symmetric conservative form from:
+	 *		Abe(2016)-Conservative_high-order_flux-reconstruction_schemes_on_moving_and_deforming_grids
+	 */
+
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
+
+	// Standard datatypes
+	unsigned int n;
+
+	if (d == 1) {
+		for (n = 0; n < Nn; n++) {
+			detJV[n] = J[n];
+		}
+	} else if (d == 2) {
+		for (n = 0; n < Nn; n++) {
+			detJV[n] =   J[Nn*(d*0+0)+n]*J[Nn*(d*1+1)+n]
+			           - J[Nn*(d*0+1)+n]*J[Nn*(d*1+0)+n];
+		}
+	} else if (d == 3) {
+		for (n = 0; n < Nn; n++) {
+			detJV[n] =   J[Nn*(d*0+0)+n]*(  J[Nn*(d*1+1)+n]*J[Nn*(d*2+2)+n]
+			                              - J[Nn*(d*1+2)+n]*J[Nn*(d*2+1)+n])
+			           - J[Nn*(d*0+1)+n]*(  J[Nn*(d*1+0)+n]*J[Nn*(d*2+2)+n]
+			                              - J[Nn*(d*1+2)+n]*J[Nn*(d*2+0)+n])
+			           + J[Nn*(d*0+2)+n]*(  J[Nn*(d*1+0)+n]*J[Nn*(d*2+1)+n]
+			                              - J[Nn*(d*1+1)+n]*J[Nn*(d*2+0)+n]);
+		}
+	}
+}
+
 void setup_geom_factors_highorder(struct S_FACET *FACET)
 {
 	/*
 	 *	Purpose:
-	 *		Compute detJV_fI.
+	 *		Compute detJV_fI from each VOLUME.
 	 *
 	 *	Comments:
 	 *		detJV_fI is only used for computing gradients at FACET nodes and thus not required for systems of 1st order
@@ -239,61 +274,62 @@ void setup_geom_factors_highorder(struct S_FACET *FACET)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int n, row, col, IndFType,
+	unsigned int row, col, IndFType,
 	             NvnG, NfnI,
-	             VfIn, fIn, Eclass;
+	             Vf, f, Eclass;
 	double       *XYZ, *J_fI, *detJV_fI;
 
 	struct S_OPERATORS *OPS;
-	struct S_VOLUME    *VIn;
+	struct S_VOLUME    *VOLUME;
 
 	OPS = malloc(sizeof *OPS); // free
 
 	// Obtain operators
-	VIn  = FACET->VIn;
-	VfIn = FACET->VfIn;
-	fIn  = VfIn/NFREFMAX;
+	VOLUME = FACET->VIn;
+	Vf     = FACET->VfIn;
+	f      = Vf/NFREFMAX;
 
-	Eclass = get_Eclass(VIn->type);
-	IndFType = get_IndFType(Eclass,fIn);
+	Eclass = get_Eclass(VOLUME->type);
+	IndFType = get_IndFType(Eclass,f);
 
-	init_ops(OPS,VIn,FACET,IndFType);
+	init_ops(OPS,VOLUME,FACET,IndFType);
 
 	NvnG = OPS->NvnG;
 	NfnI = OPS->NfnI;
 
-	XYZ = VIn->XYZ;
+	XYZ = VOLUME->XYZ;
 
-	J_fI     = malloc(NfnI*d*d * sizeof *J_fI);     // free
-	detJV_fI = malloc(NfnI     * sizeof *detJV_fI); // keep
-
+	J_fI = malloc(NfnI*d*d * sizeof *J_fI); // free
 	for (row = 0; row < d; row++) {
 	for (col = 0; col < d; col++) {
-		mm_CTN_d(NfnI,1,NvnG,OPS->D_vG_fI[VfIn][col],&XYZ[NvnG*row],&J_fI[NfnI*(d*row+col)]);
+		mm_CTN_d(NfnI,1,NvnG,OPS->D_vG_fI[Vf][col],&XYZ[NvnG*row],&J_fI[NfnI*(d*row+col)]);
 	}}
-	free(OPS);
 
-	if (d == 1) {
-		for (n = 0; n < NfnI; n++) {
-			detJV_fI[n] = J_fI[n];
-		}
-	} else if (d == 2) {
-		for (n = 0; n < NfnI; n++) {
-			detJV_fI[n] =   J_fI[NfnI*(d*0+0)+n]*J_fI[NfnI*(d*1+1)+n]
-			              - J_fI[NfnI*(d*0+1)+n]*J_fI[NfnI*(d*1+0)+n];
-		}
-	} else if (d == 3) {
-		for (n = 0; n < NfnI; n++) {
-			detJV_fI[n] =   J_fI[NfnI*(d*0+0)+n]*(  J_fI[NfnI*(d*1+1)+n]*J_fI[NfnI*(d*2+2)+n]
-			                                      - J_fI[NfnI*(d*1+2)+n]*J_fI[NfnI*(d*2+1)+n])
-			              - J_fI[NfnI*(d*0+1)+n]*(  J_fI[NfnI*(d*1+0)+n]*J_fI[NfnI*(d*2+2)+n]
-			                                      - J_fI[NfnI*(d*1+2)+n]*J_fI[NfnI*(d*2+0)+n])
-			              + J_fI[NfnI*(d*0+2)+n]*(  J_fI[NfnI*(d*1+0)+n]*J_fI[NfnI*(d*2+1)+n]
-			                                      - J_fI[NfnI*(d*1+1)+n]*J_fI[NfnI*(d*2+0)+n]);
-		}
+	FACET->detJVIn_fI = malloc(NfnI * sizeof *detJV_fI); // keep
+	compute_detJV(NfnI,J_fI,FACET->detJVIn_fI);
+
+	if (!FACET->Boundary) {
+		VOLUME = FACET->VOut;
+		Vf     = FACET->VfOut;
+		f      = Vf/NFREFMAX;
+
+		init_ops(OPS,VOLUME,FACET,IndFType);
+
+		NvnG = OPS->NvnG;
+
+		XYZ = VOLUME->XYZ;
+
+		for (row = 0; row < d; row++) {
+		for (col = 0; col < d; col++) {
+			mm_CTN_d(NfnI,1,NvnG,OPS->D_vG_fI[Vf][col],&XYZ[NvnG*row],&J_fI[NfnI*(d*row+col)]);
+		}}
+
+		FACET->detJVOut_fI = malloc(NfnI * sizeof *detJV_fI); // keep
+		compute_detJV(NfnI,J_fI,FACET->detJVOut_fI);
 	}
 	free(J_fI);
-	FACET->detJV_fI = detJV_fI;
+
+	free(OPS);
 }
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,

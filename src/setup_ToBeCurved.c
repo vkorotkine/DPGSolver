@@ -67,6 +67,7 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 	if (strstr(TestCase,"dSphericalBump")   ||
 	    strstr(TestCase,"PorousdSphere")    ||
 	    strstr(TestCase,"SupersonicVortex") ||
+	    strstr(TestCase,"Poisson")          ||
 	    strstr(TestCase,"Test_linearization")) {
 			ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
 	} else if (strstr(TestCase,"GaussianBump") ||
@@ -79,7 +80,7 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 		       *X0, *Y0, *Z0;
 
 		// silence
-		Z0 = NULL;
+		X0 = Y0 = Z0 = NULL;
 
 		scale = 2.0;
 		DB.PeriodL = scale*2.0;

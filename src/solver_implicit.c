@@ -52,7 +52,7 @@ void setup_KSP(Mat A, KSP ksp)
 	PC pc;
 
 	KSPSetOperators(ksp,A,A);
-	KSPSetTolerances(ksp,1e-10,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
+	KSPSetTolerances(ksp,1e-12,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
 	KSPSetComputeSingularValues(ksp,PETSC_TRUE);
 
 	KSPGetPC(ksp,&pc);
