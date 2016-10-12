@@ -29,8 +29,6 @@
 #include "solver_implicit.h"
 #include "output_to_paraview.h"
 
-#include "array_print.h" // ToBeDeleted
-
 /*
  *	Purpose:
  *		Perform the implicit solve for the Poisson equation.
@@ -119,8 +117,6 @@ static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, co
 			OPS->I_vC_fI = ELEMENT->I_vCc_fIs[PV][PF];
 		}
 	} else {
-printf("Curved F\n");
-EXIT_MSG;
 		// Curved FACET Integration
 		OPS->NfnI = ELEMENT->NfnIc[PF][IndFType];
 
@@ -581,8 +577,6 @@ static void compute_uhat_VOLUME(void)
 
 		for (dim1 = 0; dim1 < d; dim1++)
 			mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,-1.0,1.0,DxyzChiS[dim1],VOLUME->qhat_uhat[dim1],LHS);
-printf("LHS\n");
-array_print_d(NvnS,NvnS,LHS,'R');
 	}
 	free(OPS);
 }
@@ -605,8 +599,7 @@ void jacobian_flux_coef(const unsigned int Nn, const unsigned int Nel, const dou
 	if (strstr(flux_type,"IP")) {
 		for (dim = 0; dim < d; dim++) {
 		for (n = 0; n < Nn; n++) {
-//			tau = 1e5*(P+1)*(P+1)/h[n];
-			tau = 0.0*100.0*sqrt(3.0)/2.0*(P+1)*(P+1)/h[n];
+			tau = 1e2*(P+1)*(P+1)/h[n];
 
 			gradu_avg[Nn*dim+n] =  0.5*nIn[n*d+dim];
 			u_jump[Nn*dim+n]    = -tau*nIn[n*d+dim]*nIn[n*d+dim];
@@ -680,7 +673,6 @@ static void compute_uhat_FACET()
 		h = malloc(NfnI * sizeof *h); // free
 		for (n = 0; n < NfnI; n++)
 			h[n] = detJV_fI[n]/detJF_fI[n];
-//			h[n] = detJV_fI[n]/detJF_fI[n]*sqrt(3.0)/2.0;
 
 		// Add VOLUME contributions to RHS and LHS
 		RHSIn  = calloc(NvnSIn  , sizeof *RHSIn);  // keep (requires external free)
@@ -713,10 +705,6 @@ static void compute_uhat_FACET()
 				mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NvnSOut,-1.0,1.0,VOut->DxyzChiS[dim],FACET->qhat_uhatOutOut[dim],LHSOutOut);
 			}
 		}
-//printf("LHSInIn\n");
-//array_print_d(NvnSIn,NvnSIn,LHSInIn,'R');
-printf("LHSOutOut\n");
-array_print_d(NvnSOut,NvnSOut,LHSOutOut,'R');
 
 		// Compute uIn_fI and gradu_In_fI
 
@@ -747,6 +735,7 @@ array_print_d(NvnSOut,NvnSOut,LHSOutOut,'R');
 		for (dim = 0; dim < d; dim++)
 			mm_CTN_d(NfnI,1,NvnSIn,GradxyzIn[dim],VIn->uhat,&grad_uIn_fI[NfnI*dim]);
 
+		mm_CTN_d(NfnI,d*d,OPSOut->NvnC,OPSOut->I_vC_fI[VfOut],VOut->C_vC,C_fI);
 		GradChiS_fI = OPSOut->GradChiS_fI[VfOut];
 
 		// Note: Rearrangement is embedded in the operator
@@ -758,7 +747,7 @@ array_print_d(NvnSOut,NvnSOut,LHSOutOut,'R');
 				IndC = (dim1+dim2*d)*NfnI;
 				for (n = 0; n < NfnI; n++) {
 					for (j = 0; j < NvnSOut; j++)
-						GradxyzOut[dim1][n*NvnSOut+j] += GradChiS_fI[dim2][nOrdOutIn[n]*NvnSOut+j]*C_fI[IndC+n];
+						GradxyzOut[dim1][n*NvnSOut+j] += GradChiS_fI[dim2][nOrdOutIn[n]*NvnSOut+j]*C_fI[IndC+nOrdOutIn[n]];
 				}
 			}
 			for (n = 0; n < NfnI; n++) {
@@ -913,8 +902,6 @@ array_print_d(NvnSOut,NvnSOut,LHSOutOut,'R');
 
 		mm_d(CBCM,CBT,CBNT,NvnSIn,1,NfnI,-1.0,1.0,OPSIn->I_Weak_FF[VfIn],nqNum_fI,RHSIn);
 		mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSIn,NfnI,-1.0,1.0,OPSIn->I_Weak_FF[VfIn],dnqNumduhatIn_fI,LHSInIn);
-//printf("LHSInIn2\n");
-//array_print_d(NvnSIn,NvnSIn,LHSInIn,'R');
 
 		// Exterior FACET
 		if (!Boundary) {
@@ -950,9 +937,7 @@ array_print_d(NvnSOut,NvnSOut,LHSOutOut,'R');
 			mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSIn,NfnI,-1.0,1.0,OPSOut->I_Weak_FF[VfOut],dnqNumduhatIn_fI,LHSInOut);
 
 			// OutOut
-			mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NfnI,-0.5,1.0,OPSOut->I_Weak_FF[VfOut],dnqNumduhatOut_fI,LHSOutOut);
-printf("LHSOutOut2\n");
-array_print_d(NvnSOut,NvnSOut,LHSOutOut,'R');
+			mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NfnI,-1.0,1.0,OPSOut->I_Weak_FF[VfOut],dnqNumduhatOut_fI,LHSOutOut);
 		}
 		free(nqNum_fI);
 		free(dnqNumduhatIn_fI);

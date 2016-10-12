@@ -531,6 +531,7 @@ void compute_uhat_FACET_c()
 			mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSIn,1.0,0.0,GradxyzIn[dim],VIn->uhat_c,&grad_uIn_fI[NfnI*dim]);
 		array_free2_d(d,GradxyzIn);
 
+		mm_CTN_d(NfnI,d*d,OPSOut->NvnC,OPSOut->I_vC_fI[VfOut],VOut->C_vC,C_fI);
 		GradChiS_fI = OPSOut->GradChiS_fI;
 
 		// Note: Rearrangement is embedded in the operator

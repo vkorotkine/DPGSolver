@@ -23,9 +23,6 @@
 #include "finalize_LHS.h"
 #include "output_to_paraview.h"
 
-#include "Macros.h"
-#include "array_print.h"
-
 /*
  *	Purpose:
  *		Perform the implicit solve using Petsc's KSP object.
@@ -33,6 +30,10 @@
  *	Comments:
  *		Using the residual as the initial guess for the iterative KSP solve resulted in divergence for the Poisson case.
  *		Chih-Hao mentioned that he never uses a non-zero initial guess and has not had problems. (ToBeModified)
+ *
+ *		Petsc's Cholesky solvers (direct and indirect) are much slower than the LU solvers (Petsc 3.6.3). ToBeModified
+ *		
+ *		Likely include a dynamic rtol value for KSPSetTolerances.
  *
  *	Notation:
  *
@@ -45,33 +46,42 @@ void setup_KSP(Mat A, KSP ksp)
 	char *TestCase = DB.TestCase;
 
 	// Standard datatypes
-	char SolverType = 'd'; // Options: (i)terative, (d)irect
+	char SolverType = 'i'; // Options: (i)terative, (d)irect
 
 	// Petsc datatypes
 	PC pc;
 
 	KSPSetOperators(ksp,A,A);
-	KSPSetTolerances(ksp,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
+	KSPSetTolerances(ksp,1e-10,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
 	KSPSetComputeSingularValues(ksp,PETSC_TRUE);
 
 	KSPGetPC(ksp,&pc);
 	if (strstr(TestCase,"Poisson")) {
-		KSPSetType(ksp,KSPCG);
 		if (SolverType == 'i') {
+			// Iterative Solve (Using Incomplete Cholesky)
+			KSPSetInitialGuessNonzero(ksp,PETSC_TRUE);
+
+			KSPSetType(ksp,KSPCG);
+
+//			PCSetType(pc,PCICC);
+			PCSetType(pc,PCILU);
+			PCFactorSetLevels(pc,1); // Cannot use MatOrdering with 0 fill
+			PCFactorSetMatOrderingType(pc,MATORDERINGRCM);
 		} else {
-			// Direct Solve (Using LU Factorization)
+			// Direct Solve (Using Cholesky Factorization)
 			KSPSetType(ksp,KSPPREONLY);
 //			PCSetType(pc,PCCHOLESKY);
 			PCSetType(pc,PCLU);
 		}
 	} else {
-		KSPSetType(ksp,KSPGMRES);
-		KSPGMRESSetOrthogonalization(ksp,KSPGMRESModifiedGramSchmidtOrthogonalization);
-//		KSPGMRESSetRestart(ksp,60); // Default: 30
-
 		if (SolverType == 'i') {
 			// Iterative Solve (Using ILU(1) with (R)everse (C)uthill-(M)cKee ordering)
-//			KSPSetInitialGuessNonzero(ksp,PETSC_TRUE);
+			KSPSetInitialGuessNonzero(ksp,PETSC_TRUE);
+
+			KSPSetType(ksp,KSPGMRES);
+			KSPGMRESSetOrthogonalization(ksp,KSPGMRESModifiedGramSchmidtOrthogonalization);
+//			KSPGMRESSetRestart(ksp,60); // Default: 30
+
 			PCSetType(pc,PCILU);
 			PCFactorSetLevels(pc,1); // Cannot use MatOrdering with 0 fill
 			PCFactorSetMatOrderingType(pc,MATORDERINGRCM);

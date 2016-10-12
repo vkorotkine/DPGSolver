@@ -64,6 +64,8 @@ void test_integration_poisson(int nargc, char **argv)
 
 	unsigned int P, ML, PMin, PMax, MLMin, MLMax;
 
+	PetscBool Symmetric;
+
 	Mat A = NULL, A_cs = NULL, A_csc = NULL;
 	Vec b = NULL, b_cs = NULL, b_csc = NULL,
 	    x = NULL, x_cs = NULL, x_csc = NULL;
@@ -103,17 +105,20 @@ void test_integration_poisson(int nargc, char **argv)
 	compute_A_cs(&A_cs,&b_cs,&x_cs,0);
 	compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
 
-	MatView(A_csc,PETSC_VIEWER_STDOUT_SELF);
+//	MatView(A,PETSC_VIEWER_STDOUT_SELF);
+
+	MatIsSymmetric(A,1e3*EPS,&Symmetric);
 
 	pass = 0;
 	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < EPS &&
-	    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < EPS)
+	    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < EPS &&
+	    Symmetric)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("Linearization Poisson (2D - TRI  ):              ");
 	test_print(pass);
-EXIT_MSG;
+//	EXIT_MSG;
 
 	finalize_ksp(&A,&b,&x,2);
 	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
@@ -142,7 +147,7 @@ MLMax = 5;
 
 		code_cleanup();
 	}}
-	// test with various boundary conditions and fluxes (ToBeDeleted)
+	// test with various boundary conditions (and all fluxes) (ToBeDeleted)
 pass = 0;
 printf("%d\n",pass);
 
