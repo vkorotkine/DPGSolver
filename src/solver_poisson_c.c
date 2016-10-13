@@ -430,11 +430,11 @@ void compute_uhat_FACET_c()
 	             ViscousFluxType = DB.ViscousFluxType;
 
 	// Standard datatypes
-	unsigned int   j, n, dim, dim1, dim2, IndC,
+	unsigned int   n, dim, dim1,
 	               NvnSIn, NvnSOut, NfnI, NvnCIn,
 	               BC, Boundary, VfIn, VfOut, fIn, EclassIn, IndFType,
 	               *nOrdOutIn, *nOrdInOut;
-	double         ***GradChiS_fI, **GradxyzIn, **GradxyzOut,
+	double         **GradxyzIn, **GradxyzOut, *SxyzIn, *SxyzOut,
 	               *gradu_avg, *u_jump,
 	               *detJVIn_fI, *detJVOut_fI, *C_fI, *h, *n_fI, *detJF_fI, *C_vC;
 	double complex *uIn_fI, *grad_uIn_fI, *uOut_fIIn, *grad_uOut_fIIn, *uOut_fI, **qhatIn_fI, **qhatOut_fIIn,
@@ -515,8 +515,35 @@ void compute_uhat_FACET_c()
 		uIn_fI      = malloc(NfnI   * sizeof *uIn_fI);      // free
 		grad_uIn_fI = calloc(NfnI*d , sizeof *grad_uIn_fI); // free
 
+		SxyzIn  = malloc(NvnSIn*NvnSIn   * sizeof *SxyzIn);  // free
+		SxyzOut = malloc(NvnSOut*NvnSOut * sizeof *SxyzOut); // free
+
+		// Note: GradxyzOut only needed if not on a boundary (ToBeDeleted)
+		GradxyzIn  = malloc(d * sizeof *GradxyzIn);  // free
+		GradxyzOut = malloc(d * sizeof *GradxyzOut); // free
+		for (dim1 = 0; dim1 < d; dim1++) {
+			GradxyzIn[dim1] = malloc(NfnI*NvnSIn * sizeof **GradxyzIn); // free
+
+			mm_d(CBRM,CBNT,CBT,NvnSIn,NvnSIn,NvnSIn,1.0,0.0,VIn->MInv,VIn->DxyzChiS[dim1],SxyzIn);
+			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSIn,NvnSIn,1.0,0.0,OPSIn->ChiS_fI[VfIn],SxyzIn,GradxyzIn[dim1]);
+
+			GradxyzOut[dim1] = malloc(NfnI*NvnSOut * sizeof **GradxyzOut); // free
+
+			mm_d(CBRM,CBNT,CBT,NvnSOut,NvnSOut,NvnSOut,1.0,0.0,VOut->MInv,VOut->DxyzChiS[dim1],SxyzOut);
+			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,0.0,OPSOut->ChiS_fI[VfOut],SxyzOut,GradxyzOut[dim1]);
+			array_rearrange_d(NfnI,NvnSOut,nOrdOutIn,'R',GradxyzOut[dim1]);
+		}
+		free(SxyzIn);
+		free(SxyzOut);
+
 		mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSIn,1.0,0.0,OPSIn->ChiS_fI[VfIn],VIn->uhat_c,uIn_fI);
 
+		for (dim = 0; dim < d; dim++)
+			mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSIn,1.0,0.0,GradxyzIn[dim],VIn->uhat_c,&grad_uIn_fI[NfnI*dim]);
+		array_free2_d(d,GradxyzIn);
+/*
+unsigned int j, IndC, dim2;
+double ***GradChiS_fI;
 		GradChiS_fI = OPSIn->GradChiS_fI;
 
 		GradxyzIn = malloc(d * sizeof *GradxyzIn); // free
@@ -561,6 +588,7 @@ void compute_uhat_FACET_c()
 			}
 		}
 		free(C_fI);
+*/
 
 		// Compute_uOut_fI (Taking BCs into account if applicable)
 		uOut_fIIn      = malloc(NfnI   * sizeof *uOut_fIIn);      // free

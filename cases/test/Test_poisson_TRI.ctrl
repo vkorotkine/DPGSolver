@@ -7,7 +7,7 @@
 BEGIN PARAMETERS
   Dimension  2
   ML         1
-  MeshType   ToBeCurvedStructuredTRI
+  MeshType   ToBeCurvedStructuredhalfTRI
 
   Form       Weak  // Options: Weak, (Strong)
   NodeType   GL-AO // Options: GL/GLL-AO/WSH
@@ -18,7 +18,7 @@ BEGIN PARAMETERS
   Collocated 0     // Options: 0, 1
   Adapt      0     // Options: 0, 1, 2, (3)
 
-  PGlobal    1
+  PGlobal    3
   PMax       4
   LevelsMax  5
 

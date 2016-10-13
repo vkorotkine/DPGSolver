@@ -80,8 +80,8 @@ void test_integration_poisson(int nargc, char **argv)
 
 	// Linearization
 // ToBeModified
-	TestDB.PGlobal = 2;
-	TestDB.ML      = 1;
+	TestDB.PGlobal = 1;
+	TestDB.ML      = 0;
 
 
 	code_startup(nargc,argvNew,0,1);
@@ -105,23 +105,25 @@ void test_integration_poisson(int nargc, char **argv)
 	compute_A_cs(&A_cs,&b_cs,&x_cs,0);
 	compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
 
-//	MatView(A,PETSC_VIEWER_STDOUT_SELF);
+	MatView(A,PETSC_VIEWER_STDOUT_SELF);
+	MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
 
 	MatIsSymmetric(A,1e3*EPS,&Symmetric);
+//	MatIsSymmetric(A_cs,1e3*EPS,&Symmetric);
 
 	pass = 0;
-	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < EPS &&
-	    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < EPS &&
+	if (PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf")     < EPS &&
+	    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf") < EPS &&
 	    Symmetric)
 		pass = 1, TestDB.Npass++;
 	else
-		printf("%d %d %d\n",PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < EPS,
-		                    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < EPS,Symmetric);
+		printf("%e %e %d\n",PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf"),
+		                    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf"),Symmetric);
 
 	//     0         10        20        30        40        50
 	printf("Linearization Poisson (2D - TRI  ):              ");
 	test_print(pass);
-//	EXIT_MSG;
+EXIT_MSG;
 
 	finalize_ksp(&A,&b,&x,2);
 	finalize_ksp(&A_cs,&b_cs,&x_cs,2);

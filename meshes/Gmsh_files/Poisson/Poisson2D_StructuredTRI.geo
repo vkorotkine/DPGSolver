@@ -32,7 +32,8 @@ Transfinite Surface {4001};
 
 // Physical parameters for '.msh' file
 
-Physical Line(10011) = {2001:2002,1001:1002}; // Dirichlet
+Physical Line(10011) = {2001,1001}; // Dirichlet
+Physical Line(10012) = {2002,1002}; // Neumann
 
 Physical Surface(9401) = 4001;
 

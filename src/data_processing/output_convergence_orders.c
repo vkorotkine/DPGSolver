@@ -51,8 +51,8 @@ int main(void)
 	strcpy(TestCase,"PeriodicVortex");
 	strcpy(TestCase,"SupersonicVortex");
 	strcpy(TestCase,"Poisson");
-	strcpy(MeshType,"StructuredTRI");
-//	strcpy(MeshType,"ToBeCurvedStructuredTRI");
+//	strcpy(MeshType,"StructuredTRI");
+	strcpy(MeshType,"ToBeCurvedStructuredTRI");
 //	strcpy(MeshType,"ToBeCurvedStructuredQUAD");
 //	strcpy(MeshType,"ToBeCurvedStructuredTET");
 //	strcpy(MeshType,"ToBeCurvedStructuredHEX");

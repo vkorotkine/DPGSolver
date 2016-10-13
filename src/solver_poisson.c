@@ -234,6 +234,10 @@ static void jacobian_boundary_Dirichlet(const unsigned int Nn, const unsigned in
 		duRduL[n] = -1.0;
 }
 
+//void boundary_Neumann(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *uL, double *uR)
+//{
+//}
+
 void trace_coef(const unsigned int Nn, const unsigned int Nel, const double *nL, double *u_avg, double *u_jump,
                 const unsigned int d, const char *trace_type)
 {
@@ -267,6 +271,15 @@ void trace_coef(const unsigned int Nn, const unsigned int Nel, const double *nL,
 
 static void compute_qhat_FACET(void)
 {
+	/*
+	 *	Comments:
+	 *		Note that the symmetry of the LHS matrix depends on using the same method for computing derivatives on the
+	 *		element boundaries when curved geometry is used, i.e.
+	 *			GradxyzChiS_fI != ChiS_fI * ChiSInv_vI * GradxyzChiS_vI.
+	 *		In order to maintain the definition of FACET->qhat, the second option is used to compute contributions to
+	 *		the LHS VOLUME term.
+	 */
+
 	// Initialize DB Parameters
 	unsigned int d               = DB.d,
 	             ViscousFluxType = DB.ViscousFluxType;
@@ -384,6 +397,20 @@ static void compute_qhat_FACET(void)
 
 			free(duOutduIn);
 		}
+printf("sp b: %d\n",Boundary);
+array_print_d(1,NfnI,duNumduIn_fI,'R');
+array_print_d(1,NfnI,duNumduOut_fI,'R');
+for (n = 0; n < NfnI; n++) {
+//duNumduIn_fI[n] = 1.0;
+//duNumduOut_fI[n] = 1.0;
+if (!Boundary) {
+//duNumduIn_fI[n] = -0.5;
+//duNumduOut_fI[n] = -0.5;
+} else {
+//duNumduIn_fI[n] = -1.0;
+//duNumduOut_fI[n] = -1.0;
+}
+}
 
 		// Multiply uNum and its Jacobian by the normal vector and area element
 		nuNum_fI       = malloc(NfnI*d * sizeof *nuNum_fI);       // free
@@ -603,7 +630,7 @@ void jacobian_flux_coef(const unsigned int Nn, const unsigned int Nel, const dou
 		for (n = 0; n < Nn; n++) {
 			tau = 1e2*(P+1)*(P+1)/h[n];
 
-			gradu_avg[Nn*dim+n] =  0.5*nIn[n*d+dim];
+			gradu_avg[Nn*dim+n] =  0.0*0.5*nIn[n*d+dim];
 			u_jump[Nn*dim+n]    = -tau*nIn[n*d+dim]*nIn[n*d+dim];
 
 			if (side == 'R')
@@ -621,11 +648,11 @@ static void compute_uhat_FACET()
 	             ViscousFluxType = DB.ViscousFluxType;
 
 	// Standard datatypes
-	unsigned int i, j, n, dim, dim1, dim2, IndC,
+	unsigned int i, j, n, dim, dim1,
 	             NvnSIn, NvnSOut, NfnI, NvnCIn,
 	             BC, Boundary, VfIn, VfOut, fIn, EclassIn, IndFType,
 	             *nOrdOutIn, *nOrdInOut;
-	double       **GradChiS_fI, **GradxyzIn, **GradxyzOut, *ChiS_fI, *ChiS_fI_std,
+	double       **GradxyzIn, **GradxyzOut, *ChiS_fI, *ChiS_fI_std, *SxyzIn, *SxyzOut,
 	             *LHSInIn, *LHSOutIn, *LHSInOut, *LHSOutOut,
 	             *detJVIn_fI, *detJVOut_fI, *C_fI, *h, *n_fI, *detJF_fI, *C_vC,
 	             *uIn_fI, *grad_uIn_fI, *uOut_fIIn, *grad_uOut_fIIn, *uOut_fI,
@@ -716,13 +743,47 @@ static void compute_uhat_FACET()
 				mm_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NvnSOut,-1.0,1.0,VOut->DxyzChiS[dim],FACET->qhat_uhatOutOut[dim],LHSOutOut);
 			}
 		}
+printf("LHSInIn\n");
+array_print_d(NvnSIn,NvnSIn,LHSInIn,'R');
 
 		// Compute uIn_fI and gradu_In_fI
 
 		uIn_fI      = malloc(NfnI   * sizeof *uIn_fI);      // free
 		grad_uIn_fI = calloc(NfnI*d , sizeof *grad_uIn_fI); // free
 
+		SxyzIn  = malloc(NvnSIn*NvnSIn   * sizeof *SxyzIn);  // free
+		SxyzOut = malloc(NvnSOut*NvnSOut * sizeof *SxyzOut); // free
+
+		// Note: GradxyzOut only needed if not on a boundary (ToBeDeleted)
+		GradxyzIn  = malloc(d * sizeof *GradxyzIn);  // free
+		GradxyzOut = malloc(d * sizeof *GradxyzOut); // free
+		for (dim1 = 0; dim1 < d; dim1++) {
+			GradxyzIn[dim1] = malloc(NfnI*NvnSIn * sizeof **GradxyzIn); // free
+
+			mm_d(CBRM,CBNT,CBT,NvnSIn,NvnSIn,NvnSIn,1.0,0.0,VIn->MInv,VIn->DxyzChiS[dim1],SxyzIn);
+			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSIn,NvnSIn,1.0,0.0,OPSIn->ChiS_fI[VfIn],SxyzIn,GradxyzIn[dim1]);
+
+			GradxyzOut[dim1] = malloc(NfnI*NvnSOut * sizeof **GradxyzOut); // free
+
+			mm_d(CBRM,CBNT,CBT,NvnSOut,NvnSOut,NvnSOut,1.0,0.0,VOut->MInv,VOut->DxyzChiS[dim1],SxyzOut);
+			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,0.0,OPSOut->ChiS_fI[VfOut],SxyzOut,GradxyzOut[dim1]);
+			array_rearrange_d(NfnI,NvnSOut,nOrdOutIn,'R',GradxyzOut[dim1]);
+		}
+		free(SxyzIn);
+		free(SxyzOut);
+
 		mm_CTN_d(NfnI,1,NvnSIn,OPSIn->ChiS_fI[VfIn],VIn->uhat,uIn_fI);
+
+		for (dim = 0; dim < d; dim++)
+			mm_CTN_d(NfnI,1,NvnSIn,GradxyzIn[dim],VIn->uhat,&grad_uIn_fI[NfnI*dim]);
+
+
+/*
+unsigned int IndC, dim2;
+double       **GradChiS_fI;
+printf("Gradxyz\n");
+for (dim1 = 0; dim1 < d; dim1++)
+array_print_d(NfnI,NvnSIn,GradxyzIn[dim1],'R');
 
 		GradChiS_fI = OPSIn->GradChiS_fI[VfIn];
 
@@ -742,6 +803,10 @@ static void compute_uhat_FACET()
 					GradxyzIn[dim1][n*NvnSIn+j] /= detJVIn_fI[n];
 			}
 		}
+
+for (dim1 = 0; dim1 < d; dim1++)
+array_print_d(NfnI,NvnSIn,GradxyzIn[dim1],'R');
+EXIT_MSG;
 
 		for (dim = 0; dim < d; dim++)
 			mm_CTN_d(NfnI,1,NvnSIn,GradxyzIn[dim],VIn->uhat,&grad_uIn_fI[NfnI*dim]);
@@ -767,6 +832,7 @@ static void compute_uhat_FACET()
 			}
 		}
 		free(C_fI);
+*/
 
 		// Compute_uOut_fI (Taking BCs into account if applicable)
 		uOut_fIIn      = malloc(NfnI   * sizeof *uOut_fIIn);      // free
@@ -890,6 +956,7 @@ static void compute_uhat_FACET()
 				                                     + duOutduIn[n]*u_jump[NfnI*dim+n]*ChiS_fI[n*NvnSIn+j]);
 				}}
 			}
+array_print_d(1,NfnI,duOutduIn,'R');
 			free(duOutduIn);
 		}
 		free(gradu_avg);
@@ -913,6 +980,8 @@ static void compute_uhat_FACET()
 
 		mm_d(CBCM,CBT,CBNT,NvnSIn,1,NfnI,-1.0,1.0,OPSIn->I_Weak_FF[VfIn],nqNum_fI,RHSIn);
 		mm_d(CBRM,CBNT,CBNT,NvnSIn,NvnSIn,NfnI,-1.0,1.0,OPSIn->I_Weak_FF[VfIn],dnqNumduhatIn_fI,LHSInIn);
+printf("LHSInIn2\n");
+array_print_d(NvnSIn,NvnSIn,LHSInIn,'R');
 
 		// Exterior FACET
 		if (!Boundary) {

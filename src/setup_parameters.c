@@ -610,13 +610,13 @@ void setup_parameters_L2proj(void)
 
 	for (P = 0; P <= PMax; P++) {
 		// Geometry
-		PGc[P]    = max(P,u1)+PG_add;
-PGc[P] = PGs;
+		PGc[P]    = max(P+1,u1)+PG_add;
+//PGc[P] = PGs;
 		PCs[P][0] = PGs;
 		PCs[P][1] = max(PGs-1,u1);
 		PCs[P][2] = PGs;             // ToBeModified
 		PCc[P][0] = PGc[P];
-		PCc[P][1] = max(PGc[P]-1,u1);
+PCc[P][1] = max(PGc[P],u1);
 		PCc[P][2] = PGc[P];          // ToBeModified
 		PJs[P][0] = PGs;
 		PJs[P][1] = max(PGs-1,u1);
@@ -627,6 +627,7 @@ PGc[P] = PGs;
 
 		// Integration
 		IntOrder = max(P*IntOrder_mult,u1)+1;
+printf("SetP: %d %d\n",P,IntOrder);
 
 		// TP
 		PIfs[P][0] = floor(1.0*IntOrder/2.0);
