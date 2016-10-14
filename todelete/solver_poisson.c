@@ -42,14 +42,6 @@
  *		When finished with the implicit functions, include these redundant terms only in the explicit functions.
  *		(ToBeDeleted)
  *
- *		Originally, the Weak form was employed for both of the equations resulting from the transformation of the 2nd
- *		order equation to the system of 1st order equations. It was then determined that, for high enough order
- *		solutions (P > 5 for TRIs), the global system matrix failed to be symmetric (even when using straight elements).
- *		This was found to be a result of the impossibility of exactly integrating by parts the VOLUME term in the
- *		equation for qhat (even with very high cubature order (3P)). While it seems that the exact IBP should be
- *		possible in this case, the investigation was not pursued. Further, the strong form of the scheme very easily
- *		retains the symmetry required and is hence a more intuitive discretization.
- *
  *	Notation:
  *
  *	References:
@@ -200,7 +192,7 @@ static void compute_qhat_VOLUME(void)
 
 		// Compute RHS and LHS terms
 		for (dim1 = 0; dim1 < d; dim1++) {
-			Sxyz = mm_Alloc_d(CBRM,CBNT,CBT,NvnS,NvnS,NvnS,1.0,MInv,DxyzChiS[dim1]); // keep
+			Sxyz = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,-1.0,MInv,DxyzChiS[dim1]); // keep
 
 			// RHS
 			VOLUME->qhat[dim1] = mm_Alloc_d(CBCM,CBT,CBNT,NvnS,1,NvnS,1.0,Sxyz,VOLUME->uhat); // keep
@@ -247,25 +239,36 @@ static void jacobian_boundary_Dirichlet(const unsigned int Nn, const unsigned in
 //{
 //}
 
-/*
-void trace_coef(const unsigned int Nn, const unsigned int Nel, const double *nL, double *u_avg, const unsigned int d,
-                const char *trace_type)
+void trace_coef(const unsigned int Nn, const unsigned int Nel, const double *nL, double *u_avg, double *u_jump,
+                const unsigned int d, const char *trace_type)
 {
+	/*
+	 *	Comments:
+	 *		(T)race coefs for the various options are given as follows
+	 *			uNum = u_avg * (uL+uR) + u_jump * (uL-uR)
+	 *
+	 *		Likely include normal here in future (ToBeDeleted).
+	 *		Mistake in u_jump here. Should have components in 'd' directions. If normal is included, then u_avg would
+	 *		have components in the 'd' directions instead (ToBeDeleted).
+	 */
+
 	unsigned int n, dim;
 
 	if (Nel != 1)
 		printf("Error: Unsupported Nel.\n"), EXIT_MSG;
 
 	if (strstr(trace_type,"IP")) {
-		for (dim = 0; dim < d; dim++) {
 		for (n = 0; n < Nn; n++) {
-			u_avg[Nn*dim+n] = 0.5*nIn[n*d+dim];
-		}}
+			u_avg[n]  = 0.5;
+			u_jump[n] = 0.0;
+			// ToBeDeleted
+			for (dim = 0; dim < d; dim++)
+				u_jump[n] += 0.0*nL[n*d+dim];
+		}
 	} else {
 		printf("Error: Unsupported trace_type.\n"), EXIT_MSG;
 	}
 }
-*/
 
 static void compute_qhat_FACET(void)
 {
@@ -279,23 +282,23 @@ static void compute_qhat_FACET(void)
 	 */
 
 	// Initialize DB Parameters
-	unsigned int d = DB.d;
+	unsigned int d               = DB.d,
+	             ViscousFluxType = DB.ViscousFluxType;
 
 	// Standard datatypes
-	unsigned int n, dim, i, j,
+	unsigned int n, dim, i, j, iMax,
 	             NfnI, NvnSIn, NvnSOut,
 	             VfIn, VfOut, fIn, EclassIn, IndFType, BC, Boundary,
 	             *nOrdOutIn, *nOrdInOut;
-	double       *n_fI, *detJF_fI, *nJ_fI, *mult_diag,
+	double       nJ, *n_fI, *detJF_fI,
 	             *uIn_fI, *uOut_fIIn, *uOut_fI, *uNum_fI, *duNumduIn_fI, *duNumduOut_fI, *duOutduIn,
-	             *ChiS_fI, *ChiS_fIOutIn, *ChiS_fIInOut;
+	             *u_avg, *u_jump, *nuNum_fI, *dnuNumduIn_fI, *dnuNumduOut_fI,
+	             *I_FF, *MInvI_FF, *ChiS_fI, *ChiS_fIOutIn, *ChiS_fIInOut,
+	             *MInvIdnuNumdu;
 
 	struct S_OPERATORS *OPSIn, *OPSOut;
 	struct S_VOLUME    *VIn, *VOut;
 	struct S_FACET     *FACET;
-
-	// silence
-	uOut_fI = NULL;
 
 	OPSIn  = malloc(sizeof *OPSIn);  // free
 	OPSOut = malloc(sizeof *OPSOut); // free
@@ -342,6 +345,7 @@ static void compute_qhat_FACET(void)
 			// Reorder uOut_fI to correspond to uIn_fI
 			for (n = 0; n < NfnI; n++)
 				uOut_fIIn[n] = uOut_fI[nOrdOutIn[n]];
+			free(uOut_fI);
 		} else {
 			if (BC % BC_STEP_SC == BC_DIRICHLET) {
 				boundary_Dirichlet(NfnI,1,FACET->XYZ_fI,uIn_fI,uOut_fIIn);
@@ -353,16 +357,29 @@ static void compute_qhat_FACET(void)
 		}
 
 		// Compute numerical trace and its Jacobians
+		u_avg         = malloc(NfnI * sizeof *u_avg);         // free
+		u_jump        = malloc(NfnI * sizeof *u_jump);        // free
 		uNum_fI       = malloc(NfnI * sizeof *uNum_fI);       // free
 		duNumduIn_fI  = malloc(NfnI * sizeof *duNumduIn_fI);  // free
 		duNumduOut_fI = malloc(NfnI * sizeof *duNumduOut_fI); // free
-
-	 	// Numerical trace: uNum = 0.5 * (uL+uR)
-		for (n = 0; n < NfnI; n++) {
-			uNum_fI[n]       = 0.5*(uIn_fI[n]+uOut_fIIn[n]);
-			duNumduIn_fI[n]  = 0.5;
-			duNumduOut_fI[n] = 0.5;
+		switch (ViscousFluxType) {
+		case FLUX_IP:
+			trace_coef(NfnI,1,n_fI,u_avg,u_jump,d,"IP");
+			break;
+		default:
+			printf("Error: Unsupported ViscousFluxType.\n"), EXIT_MSG;
+			break;
 		}
+
+		for (n = 0; n < NfnI; n++) {
+			uNum_fI[n]       = u_avg[n]*(uIn_fI[n]+uOut_fIIn[n]) + u_jump[n]*(uIn_fI[n]-uOut_fIIn[n]);
+			duNumduIn_fI[n]  = u_avg[n] + u_jump[n];
+			duNumduOut_fI[n] = u_avg[n] - u_jump[n];
+		}
+		free(u_avg);
+		free(u_jump);
+
+		free(uIn_fI);
 		free(uOut_fIIn);
 
 		// Include BC information in duNumduIn_fI if on a boundary
@@ -381,33 +398,55 @@ static void compute_qhat_FACET(void)
 
 			free(duOutduIn);
 		}
+//printf("sp b: %d\n",Boundary);
+//array_print_d(1,NfnI,duNumduIn_fI,'R');
+//array_print_d(1,NfnI,duNumduOut_fI,'R');
+for (n = 0; n < NfnI; n++) {
+//asdf
+duNumduIn_fI[n] = 1.0;
+duNumduOut_fI[n] = 1.0;
+if (!Boundary) {
+//duNumduIn_fI[n] = -0.5;
+//duNumduOut_fI[n] = -0.5;
+} else {
+//duNumduIn_fI[n] = -1.0;
+//duNumduOut_fI[n] = -1.0;
+}
+}
 
-		nJ_fI = malloc(NfnI*d * sizeof *nJ_fI); // free
+		// Multiply uNum and its Jacobian by the normal vector and area element
+		nuNum_fI       = malloc(NfnI*d * sizeof *nuNum_fI);       // free
+		dnuNumduIn_fI  = malloc(NfnI*d * sizeof *dnuNumduIn_fI);  // free
+		dnuNumduOut_fI = malloc(NfnI*d * sizeof *dnuNumduOut_fI); // free
 		for (dim = 0; dim < d; dim++) {
 		for (n = 0; n < NfnI; n++) {
-			nJ_fI[dim*NfnI+n] = detJF_fI[n]*n_fI[n*d+dim];
+			nJ = n_fI[n*d+dim]*detJF_fI[n];
+			nuNum_fI[dim*NfnI+n]       = uNum_fI[n]*nJ;
+			dnuNumduIn_fI[dim*NfnI+n]  = duNumduIn_fI[n]*nJ;
+			dnuNumduOut_fI[dim*NfnI+n] = duNumduOut_fI[n]*nJ;
 		}}
+		free(uNum_fI);
+		free(duNumduIn_fI);
+		free(duNumduOut_fI);
 
-		// Compute partial FACET RHS and LHS terms
+		// Compute FACET RHS and LHS terms
 
 		// Interior VOLUME
+
+		// Note: There is a "-ve" sign embedded in the I_Weak_FF operator!
+		I_FF     = OPSIn->I_Weak_FF[VfIn];
+		MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSIn,NfnI,NvnSIn,-1.0,VIn->MInv,I_FF); // free
+
+		MInvIdnuNumdu = malloc(NvnSIn*NfnI * sizeof *MInvIdnuNumdu); // free
 		for (dim = 0; dim < d; dim++) {
-			// RHSIn (partial)
-			for (n = 0; n < NfnI; n++) {
-				FACET->qhatIn[dim][n] = nJ_fI[dim*NfnI+n]*(uNum_fI[n]-uIn_fI[n]);
-			}
+			// RHSIn
+			FACET->qhatIn[dim] = mm_Alloc_d(CBCM,CBT,CBNT,NvnSIn,1,NfnI,1.0,MInvI_FF,&nuNum_fI[NfnI*dim]); // keep
 
-			// LHSInIn (partial)
-			FACET->qhat_uhatInIn[dim] = calloc(NfnI*NvnSIn , sizeof *(FACET->qhat_uhatInIn[dim])); // keep
+			// LHS (InIn)
+			mm_diag_d(NvnSIn,NfnI,&dnuNumduIn_fI[NfnI*dim],MInvI_FF,MInvIdnuNumdu,'R','R');
 
-			mult_diag = malloc(NfnI * sizeof *mult_diag); // free
-			for (n = 0; n < NfnI; n++)
-				mult_diag[n] = nJ_fI[dim*NfnI+n]*(duNumduIn_fI[n]-1.0);
-
-			mm_diag_d(NvnSIn,NfnI,mult_diag,OPSIn->ChiS_fI[VfIn],FACET->qhat_uhatInIn[dim],1.0,'L','R');
-			free(mult_diag);
+			FACET->qhat_uhatInIn[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSIn,NvnSIn,NfnI,1.0,MInvIdnuNumdu,OPSIn->ChiS_fI[VfIn]);
 		}
-		free(uIn_fI);
 
 		// Exterior VOLUME
 		if (!Boundary) {
@@ -420,29 +459,34 @@ static void compute_qhat_FACET(void)
 			}}
 
 			for (dim = 0; dim < d; dim++) {
-				// LHSOutIn (partial)
-				FACET->qhat_uhatOutIn[dim] = calloc(NfnI*NvnSOut , sizeof *(FACET->qhat_uhatOutIn[dim])); // keep
+				// LHS (OutIn)
+				mm_diag_d(NvnSIn,NfnI,&dnuNumduOut_fI[NfnI*dim],MInvI_FF,MInvIdnuNumdu,'R','R');
 
-				mult_diag = malloc(NfnI * sizeof *mult_diag); // free
-				for (n = 0; n < NfnI; n++)
-					mult_diag[n] = nJ_fI[dim*NfnI+n]*(duNumduOut_fI[n]);
-
-				mm_diag_d(NvnSOut,NfnI,&nJ_fI[dim*NfnI],ChiS_fIOutIn,FACET->qhat_uhatOutIn[dim],1.0,'L','R');
-				free(mult_diag);
+				FACET->qhat_uhatOutIn[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSIn,NvnSOut,NfnI,1.0,MInvIdnuNumdu,ChiS_fIOutIn);
 			}
 			free(ChiS_fIOutIn);
+			free(MInvIdnuNumdu);
+
+			free(MInvI_FF);
 
 			// Use "-ve" normal for opposite VOLUME
-			for (n = 0; n < NfnI; n++) {
-				nJ_fI[n] *= -1.0;
+			for (i = 0, iMax = NfnI*d; i < iMax; i++) {
+				nuNum_fI[i]       *= -1.0;
+				dnuNumduIn_fI[i]  *= -1.0;
+				dnuNumduOut_fI[i] *= -1.0;
 			}
 
-			array_rearrange_d(NfnI,1,nOrdInOut,'R',nJ_fI);
-			array_rearrange_d(NfnI,1,nOrdInOut,'R',uNum_fI);
-			array_rearrange_d(NfnI,1,nOrdInOut,'R',duNumduIn_fI);
-			array_rearrange_d(NfnI,1,nOrdInOut,'R',duNumduOut_fI);
+			// Rearrange numerical trace and its Jacobians to match node ordering from opposite VOLUME
+			array_rearrange_d(NfnI,d,nOrdInOut,'C',nuNum_fI);
+			array_rearrange_d(NfnI,d,nOrdInOut,'C',dnuNumduIn_fI);
+			array_rearrange_d(NfnI,d,nOrdInOut,'C',dnuNumduOut_fI);
 
-			ChiS_fIInOut = malloc(NfnI*NvnSIn * sizeof *ChiS_fIInOut); // free
+			I_FF     = OPSOut->I_Weak_FF[VfOut];
+			MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSOut,NfnI,NvnSOut,-1.0,VOut->MInv,I_FF); // free
+
+			MInvIdnuNumdu = malloc(NvnSOut*NfnI * sizeof *MInvIdnuNumdu); // free
+
+			ChiS_fIInOut = malloc(NfnI*NvnSOut * sizeof *ChiS_fIInOut); // free
 
 			ChiS_fI = OPSIn->ChiS_fI[VfIn];
 			for (i = 0; i < NfnI; i++) {
@@ -451,39 +495,28 @@ static void compute_qhat_FACET(void)
 			}}
 
 			for (dim = 0; dim < d; dim++) {
-				// RHSOut (partial)
-				for (n = 0; n < NfnI; n++) {
-					FACET->qhatOut[dim][n] = nJ_fI[n]*(uNum_fI[n]-uOut_fI[n]);
-				}
+				// RHSOut
+				FACET->qhatOut[dim] = mm_Alloc_d(CBCM,CBT,CBNT,NvnSOut,1,NfnI,1.0,MInvI_FF,&nuNum_fI[NfnI*dim]); // keep
 
-				// LHSInOut (partial)
-				FACET->qhat_uhatInOut[dim] = calloc(NfnI*NvnSIn , sizeof *(FACET->qhat_uhatInOut[dim])); // keep
+				// LHS (InOut)
+				mm_diag_d(NvnSOut,NfnI,&dnuNumduIn_fI[NfnI*dim],MInvI_FF,MInvIdnuNumdu,'R','R');
 
-				mult_diag = malloc(NfnI * sizeof *mult_diag); // free
-				for (n = 0; n < NfnI; n++)
-					mult_diag[n] = nJ_fI[dim*NfnI+n]*(duNumduIn_fI[n]);
+				FACET->qhat_uhatInOut[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSOut,NvnSIn,NfnI,1.0,MInvIdnuNumdu,ChiS_fIInOut);
 
-				mm_diag_d(NvnSIn,NfnI,&nJ_fI[dim*NfnI],ChiS_fIInOut,FACET->qhat_uhatInOut[dim],1.0,'L','R');
-				free(mult_diag);
+				// LHS (OutOut)
+				mm_diag_d(NvnSOut,NfnI,&dnuNumduOut_fI[NfnI*dim],MInvI_FF,MInvIdnuNumdu,'R','R');
 
-				// LHSOutOut (partial)
-				FACET->qhat_uhatOutOut[dim] = calloc(NfnI*NvnSOut , sizeof *(FACET->qhat_uhatOutOut[dim])); // keep
-
-				mult_diag = malloc(NfnI * sizeof *mult_diag); // free
-				for (n = 0; n < NfnI; n++)
-					mult_diag[n] = nJ_fI[dim*NfnI+n]*(duNumduOut_fI[n]-1.0);
-
-				mm_diag_d(NvnSOut,NfnI,&nJ_fI[dim*NfnI],OPSOut->ChiS_fI[VfOut],FACET->qhat_uhatOutOut[dim],1.0,'L','R');
-				free(mult_diag);
+				FACET->qhat_uhatOutOut[dim] =
+					mm_Alloc_d(CBRM,CBNT,CBNT,NvnSOut,NvnSOut,NfnI,1.0,MInvIdnuNumdu,OPSOut->ChiS_fI[VfOut]);
 			}
 			free(ChiS_fIInOut);
-
-			free(uOut_fI);
 		}
-		free(uNum_fI);
-		free(duNumduIn_fI);
-		free(duNumduOut_fI);
-		free(nJ_fI);
+		free(MInvIdnuNumdu);
+		free(MInvI_FF);
+
+		free(nuNum_fI);
+		free(dnuNumduIn_fI);
+		free(dnuNumduOut_fI);
 	}
 
 	free(OPSIn);
@@ -496,73 +529,44 @@ static void finalize_qhat(void)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int dim, iMax, NvnSIn, NvnSOut, NfnI, VfIn, VfOut;
-	double       *I_FF, *MInvI_FF;
-	double       *VqhatIn_ptr, *FqhatIn_ptr, *VqhatOut_ptr, *FqhatOut_ptr, *Fqhat;
+	unsigned int dim, iMax, NvnSIn, NvnSOut;
+	double       *VqhatIn_ptr, *FqhatIn_ptr, *VqhatOut_ptr, *FqhatOut_ptr;
 
-	struct S_OPERATORS *OPSIn, *OPSOut;
-	struct S_FACET     *FACET;
-	struct S_VOLUME    *VIn, *VOut;
-
-	OPSIn  = malloc(sizeof *OPSIn);  // free
-	OPSOut = malloc(sizeof *OPSOut); // free
+	struct S_FACET  *FACET;
+	struct S_VOLUME *VIn, *VOut;
 
 	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
 		VIn    = FACET->VIn;
-		VfIn   = FACET->VfIn;
 		NvnSIn = VIn->NvnS;
 
-		init_opsF(OPSIn,VIn,FACET,get_IndFType(VIn->Eclass,VfIn/NFREFMAX));
-
-		NfnI = OPSIn->NfnI;
-
-		// Note: There is a "-ve" sign embedded in the I_Weak_FF operator!
-		I_FF     = OPSIn->I_Weak_FF[VfIn];
-		MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSIn,NfnI,NvnSIn,-1.0,VIn->MInv,I_FF); // free
-
-		Fqhat = malloc(NfnI * sizeof *Fqhat); // free
 		for (dim = 0; dim < d; dim++) {
-			mm_d(CBCM,CBT,CBNT,NvnSIn,1,NfnI,1.0,0.0,MInvI_FF,FACET->qhatIn[dim],Fqhat);
-
 			VqhatIn_ptr  = VIn->qhat[dim];
-			FqhatIn_ptr  = Fqhat;
+			FqhatIn_ptr  = FACET->qhatIn[dim];
 
 			for (iMax = NvnSIn; iMax--; )
 				*VqhatIn_ptr++ += *FqhatIn_ptr++;
 		}
-		free(MInvI_FF);
 
 		if(!(FACET->Boundary)) {
 			VOut    = FACET->VOut;
-			VfOut   = FACET->VfOut;
 			NvnSOut = VOut->NvnS;
 
-			init_opsF(OPSOut,VOut,FACET,get_IndFType(VOut->Eclass,VfOut/NFREFMAX));
-
-			// Note: There is a "-ve" sign embedded in the I_Weak_FF operator!
-			I_FF     = OPSOut->I_Weak_FF[VfOut];
-			MInvI_FF = mm_Alloc_d(CBRM,CBNT,CBNT,NvnSOut,NfnI,NvnSOut,-1.0,VOut->MInv,I_FF); // free
-
 			for (dim = 0; dim < d; dim++) {
-				mm_d(CBCM,CBT,CBNT,NvnSOut,1,NfnI,1.0,0.0,MInvI_FF,FACET->qhatIn[dim],Fqhat);
-
 				VqhatOut_ptr = VOut->qhat[dim];
-				FqhatOut_ptr = Fqhat;
+				FqhatOut_ptr = FACET->qhatOut[dim];
 
 				for (iMax = NvnSOut; iMax--; )
 					*VqhatOut_ptr++ += *FqhatOut_ptr++;
 			}
-			free(MInvI_FF);
 		}
-		free(Fqhat);
 
 		for (dim = 0; dim < d; dim++) {
-			free(FACET->qhatIn[dim]);  FACET->qhatIn[dim]  = NULL;
-			free(FACET->qhatOut[dim]); FACET->qhatOut[dim] = NULL;
+			free(FACET->qhatIn[dim]);
+			FACET->qhatIn[dim] = NULL;
+			free(FACET->qhatOut[dim]);
+			FACET->qhatOut[dim] = NULL;
 		}
 	}
-	free(OPSIn);
-	free(OPSOut);
 }
 
 static void compute_uhat_VOLUME(void)

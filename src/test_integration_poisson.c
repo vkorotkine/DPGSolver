@@ -80,9 +80,11 @@ void test_integration_poisson(int nargc, char **argv)
 
 	// Linearization
 // ToBeModified
-	TestDB.PGlobal = 1;
+	TestDB.PGlobal = 6;
 	TestDB.ML      = 0;
 
+printf("Try running with nonzero initial solution.\n");
+// Should not affect the results. (ToBeDeleted)
 
 	code_startup(nargc,argvNew,0,1);
 
@@ -106,9 +108,9 @@ void test_integration_poisson(int nargc, char **argv)
 	compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
 
 	MatView(A,PETSC_VIEWER_STDOUT_SELF);
-	MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
+//	MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
 
-	MatIsSymmetric(A,1e3*EPS,&Symmetric);
+	MatIsSymmetric(A,1e5*EPS,&Symmetric);
 //	MatIsSymmetric(A_cs,1e3*EPS,&Symmetric);
 
 	pass = 0;

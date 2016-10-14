@@ -129,7 +129,7 @@ static void add_source(const struct S_VOLUME *VOLUME)
 		// Assemble mass matrix
 		detJV_ChiS = malloc(NvnI*NvnS * sizeof *detJV_ChiS); // free
 
-		mm_diag_d(NvnI,NvnS,VOLUME->detJV_vI,OPS->ChiS_vI,detJV_ChiS,'L','R');
+		mm_diag_d(NvnI,NvnS,VOLUME->detJV_vI,OPS->ChiS_vI,detJV_ChiS,1.0,'L','R');
 
 		M = malloc(NvnS*NvnS * sizeof *M); // free
 		mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,0.0,OPS->I_Weak,detJV_ChiS,M);

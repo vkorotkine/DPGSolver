@@ -610,13 +610,13 @@ void setup_parameters_L2proj(void)
 
 	for (P = 0; P <= PMax; P++) {
 		// Geometry
-		PGc[P]    = max(P+1,u1)+PG_add;
+		PGc[P]    = max(P,u1)+PG_add;
 //PGc[P] = PGs;
 		PCs[P][0] = PGs;
 		PCs[P][1] = max(PGs-1,u1);
 		PCs[P][2] = PGs;             // ToBeModified
 		PCc[P][0] = PGc[P];
-PCc[P][1] = max(PGc[P],u1);
+		PCc[P][1] = max(PGc[P]-1,u1);
 		PCc[P][2] = PGc[P];          // ToBeModified
 		PJs[P][0] = PGs;
 		PJs[P][1] = max(PGs-1,u1);
@@ -626,27 +626,29 @@ PCc[P][1] = max(PGc[P],u1);
 		PJc[P][2] = PGc[P];          // ToBeModified
 
 		// Integration
-		IntOrder = max(P*IntOrder_mult,u1)+1;
-printf("SetP: %d %d\n",P,IntOrder);
+		IntOrder = max(P*IntOrder_mult,u1)+3;
 
 		// TP
-		PIfs[P][0] = floor(1.0*IntOrder/2.0);
-		PIfc[P][0] = floor(1.0*IntOrder/2.0);
-		PIvs[P][0] = floor(1.0*IntOrder/2.0);
-		PIvc[P][0] = floor(1.0*IntOrder/2.0);
+		PIfs[P][0] = floor(IntOrder/2.0);
+		PIfc[P][0] = floor(IntOrder/2.0);
+PIfc[P][0] = P+6;
+		PIvs[P][0] = floor(IntOrder/2.0);
+		PIvc[P][0] = floor(IntOrder/2.0);
 
 		// SI
 		if (d == 2) {
-			PIfs[P][1] = floor(1.0*IntOrder/2.0);
-			PIfc[P][1] = floor(1.0*IntOrder/2.0);
+			PIfs[P][1] = floor(IntOrder/2.0);
+			PIfc[P][1] = floor(IntOrder/2.0);
 			PIvs[P][1] = IntOrder;
 			PIvc[P][1] = IntOrder;
+PIvc[P][1] = 2*P+6;
 		} else if (d == 3) {
 			PIfs[P][1] = IntOrder;
 			PIfc[P][1] = IntOrder;
 			PIvs[P][1] = IntOrder;
 			PIvc[P][1] = IntOrder;
 		}
+printf("SetP: %d %d %d %d %d\n",P,PGc[P],IntOrder,PIfc[P][0],PIvc[P][1]);
 
 		// PYR
 		PIfs[P][2] = 0; // Not used

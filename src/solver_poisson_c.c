@@ -21,6 +21,8 @@
 #include "array_swap.h"
 #include "array_free.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Compute RHS for Poisson solver using complex variables (for linearization testing).
@@ -479,18 +481,20 @@ void compute_uhat_FACET_c()
 
 		detJVIn_fI = FACET->detJVIn_fI;
 		if (!Boundary) {
-			detJVOut_fI = FACET->detJVOut_fI;
-
-			// Reorder detJVOut_fI
-			array_rearrange_d(NfnI,1,nOrdOutIn,'R',detJVOut_fI);
+			detJVOut_fI = malloc(NfnI * sizeof *detJVOut_fI); // free
+			for (n = 0; n < NfnI; n++)
+				detJVOut_fI[n] = FACET->detJVOut_fI[nOrdOutIn[n]];
 		} else {
 			detJVOut_fI = detJVIn_fI;
 		}
-		
+
 		detJF_fI = FACET->detJF_fI;
 		h = malloc(NfnI * sizeof *h); // free
 		for (n = 0; n < NfnI; n++)
 			h[n] = max(detJVIn_fI[n],detJVOut_fI[n])/detJF_fI[n];
+
+		if (!Boundary)
+			free(detJVOut_fI);
 
 		// Add VOLUME contributions to RHS
 		RHSIn  = calloc(NvnSIn  , sizeof *RHSIn);  // keep (requires external free)

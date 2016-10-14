@@ -19,7 +19,7 @@ BEGIN PARAMETERS
   Adapt      0     // Options: 0, 1, 2, (3)
 
   PGlobal    3
-  PMax       4
+  PMax       6
   LevelsMax  5
 
   Restart    -1    // Options: -1, 0, Iteration #
