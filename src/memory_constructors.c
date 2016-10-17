@@ -88,6 +88,9 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->NfnIs = calloc(NP , sizeof *(ELEMENT->NfnIs)); // free
 	ELEMENT->NfnIc = calloc(NP , sizeof *(ELEMENT->NfnIc)); // free
 
+	ELEMENT->w_fIs = calloc(NP , sizeof *(ELEMENT->w_fIs)); // free
+	ELEMENT->w_fIc = calloc(NP , sizeof *(ELEMENT->w_fIc)); // free
+
 	ELEMENT->w_vIs = calloc(NP , sizeof *(ELEMENT->w_vIs)); // free
 	ELEMENT->w_vIc = calloc(NP , sizeof *(ELEMENT->w_vIc)); // free
 
@@ -197,6 +200,9 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->NfnS[P]  = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnS));
 		ELEMENT->NfnIs[P] = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnIs));
 		ELEMENT->NfnIc[P] = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnIc));
+
+		ELEMENT->w_fIs[P] = calloc(NESUBCMAX , sizeof **(ELEMENT->w_fIs));
+		ELEMENT->w_fIc[P] = calloc(NESUBCMAX , sizeof **(ELEMENT->w_fIc));
 
 		ELEMENT->ChiS_vP[P]    = calloc(NP , sizeof **(ELEMENT->ChiS_vP));
 		ELEMENT->ChiS_vS[P]    = calloc(NP , sizeof **(ELEMENT->ChiS_vS));

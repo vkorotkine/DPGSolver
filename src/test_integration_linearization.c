@@ -112,7 +112,6 @@ void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 				switch (assemble_type) {
 				default: // 0
 					compute_uhat_VOLUME_c();
-					finalize_qhat_c();
 					compute_uhat_FACET_c();
 					break;
 				case 1:
@@ -120,7 +119,6 @@ void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 					break;
 				case 2:
 				case 3:
-					finalize_qhat_c();
 					compute_uhat_FACET_c();
 					break;
 				}
@@ -341,7 +339,6 @@ void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 				compute_qhat_VOLUME_c();
 				compute_qhat_FACET_c();
 				compute_uhat_VOLUME_c();
-				finalize_qhat_c();
 				compute_uhat_FACET_c();
 			} else {
 				VOLUME->What_c[i] += h*I;

@@ -626,12 +626,12 @@ void setup_parameters_L2proj(void)
 		PJc[P][2] = PGc[P];          // ToBeModified
 
 		// Integration
-		IntOrder = max(P*IntOrder_mult,u1)+3;
+		IntOrder = max(P*IntOrder_mult,u1)+1;
 
 		// TP
 		PIfs[P][0] = floor(IntOrder/2.0);
 		PIfc[P][0] = floor(IntOrder/2.0);
-PIfc[P][0] = P+6;
+//PIfc[P][0] = P+1;
 		PIvs[P][0] = floor(IntOrder/2.0);
 		PIvc[P][0] = floor(IntOrder/2.0);
 
@@ -641,14 +641,14 @@ PIfc[P][0] = P+6;
 			PIfc[P][1] = floor(IntOrder/2.0);
 			PIvs[P][1] = IntOrder;
 			PIvc[P][1] = IntOrder;
-PIvc[P][1] = 2*P+6;
+//PIvc[P][1] = 2*P+6;
 		} else if (d == 3) {
 			PIfs[P][1] = IntOrder;
 			PIfc[P][1] = IntOrder;
 			PIvs[P][1] = IntOrder;
 			PIvc[P][1] = IntOrder;
 		}
-printf("SetP: %d %d %d %d %d\n",P,PGc[P],IntOrder,PIfc[P][0],PIvc[P][1]);
+//printf("SetP: %d %d %d %d %d\n",P,PGc[P],IntOrder,PIfc[P][0],PIvc[P][1]);
 
 		// PYR
 		PIfs[P][2] = 0; // Not used

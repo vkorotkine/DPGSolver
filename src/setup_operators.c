@@ -885,7 +885,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 {
 	// Returned operators
 	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS, **NfnS, **NfnIs, **NfnIc;
-	double       **w_vIs, **w_vIc,
+	double       **w_vIs, **w_vIc, ***w_fIs, ***w_fIc,
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS,
 	             ****ICs, ****ICc,
@@ -944,7 +944,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             *rst_fS, *rst_fIs, *rst_fIc,
 	             *wInv_vIs, *wInv_vIc,
 	             *diag_w_vIs, *diag_w_vIc, *diag_wInv_vIs, *diag_wInv_vIc,
-	             ***w_fIs, ***w_fIc, *diag_w_fIs, *diag_w_fIc,
+	             *diag_w_fIs, *diag_w_fIc,
 	             *IGs, *IGc, *IS,
 	             *TGs, *TGc, *TCs, *TCc, *TS,
 	             *ChiRefGc_vGc, *ChiRefCs_vCs, *ChiRefCc_vCc, *ChiRefS_vS,
@@ -1032,6 +1032,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	NfnIs = ELEMENT->NfnIs;
 	NfnIc = ELEMENT->NfnIc;
 
+	w_fIs = ELEMENT->w_fIs;
+	w_fIc = ELEMENT->w_fIc;
+
 	w_vIs = ELEMENT->w_vIs;
 	w_vIc = ELEMENT->w_vIc;
 
@@ -1113,13 +1116,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	rst_vS        = malloc(NVREFMAX * sizeof *rst_vS);  // free
 	rst_vIs       = malloc(NVREFMAX * sizeof *rst_vIs); // free
 	rst_vIc       = malloc(NVREFMAX * sizeof *rst_vIc); // free
-
-	w_fIs         = calloc(NP , sizeof *w_fIs); // free
-	w_fIc         = calloc(NP , sizeof *w_fIc); // free
-	for (P = 0; P < NP; P++) {
-		w_fIs[P] = calloc(NESUBCMAX , sizeof **w_fIs); // free
-		w_fIc[P] = calloc(NESUBCMAX , sizeof **w_fIc); // free
-	}
 
 	GradChiGs_vCs = malloc(dE * sizeof *GradChiGs_vCs); // free
 	GradChiGs_vIs = malloc(dE * sizeof *GradChiGs_vIs); // free
@@ -1827,9 +1823,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		free(BCoords_F[IndFType]);
 		free(BCoords_dEm1[IndFType]);
 	}
-
-	array_free3_d(NP,NESUBCMAX,w_fIs);
-	array_free3_d(NP,NESUBCMAX,w_fIc);
 
 	for (i = 0; i < NEhref; i++) {
 		free(BCoords_V[i]->S);

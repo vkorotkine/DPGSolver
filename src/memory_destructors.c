@@ -64,6 +64,9 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->NvnIc);
 	free(ELEMENT->NvnS);
 
+	array_free3_d(NP,NESUBCMAX,ELEMENT->w_fIs);
+	array_free3_d(NP,NESUBCMAX,ELEMENT->w_fIc);
+
 	array_free2_d(NP,ELEMENT->w_vIs);
 	array_free2_d(NP,ELEMENT->w_vIc);
 

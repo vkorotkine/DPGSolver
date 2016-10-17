@@ -19,7 +19,7 @@ struct S_ELEMENT {
 	             **connectivity, **connect_types,
 	             ***nOrd_fS, ***nOrd_fIs, ***nOrd_fIc;
 	double       **VeF, **VeV, *nr,
-	             **w_vIs, **w_vIc,
+	             **w_vIs, **w_vIc, ***w_fIs, ***w_fIc,
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS,
 	             ****ICs, ****ICc,

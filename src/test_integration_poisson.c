@@ -75,13 +75,13 @@ void test_integration_poisson(int nargc, char **argv)
 	strcpy(argvNew[1],"test/Test_poisson_TRI");
 	strcpy(TestDB.TestCase,"Poisson");
 
-	TestDB.PG_add = 0;
+	TestDB.PG_add = 1;
 	TestDB.IntOrder_mult = 2;
 
 	// Linearization
 // ToBeModified
-	TestDB.PGlobal = 6;
-	TestDB.ML      = 0;
+	TestDB.PGlobal = 3;
+	TestDB.ML      = 1;
 
 printf("Try running with nonzero initial solution.\n");
 // Should not affect the results. (ToBeDeleted)
@@ -107,15 +107,14 @@ printf("Try running with nonzero initial solution.\n");
 	compute_A_cs(&A_cs,&b_cs,&x_cs,0);
 	compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
 
-	MatView(A,PETSC_VIEWER_STDOUT_SELF);
+//	MatView(A,PETSC_VIEWER_STDOUT_SELF);
 //	MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
 
 	MatIsSymmetric(A,1e5*EPS,&Symmetric);
-//	MatIsSymmetric(A_cs,1e3*EPS,&Symmetric);
 
 	pass = 0;
-	if (PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf")     < EPS &&
-	    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf") < EPS &&
+	if (PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf")     < 1e1*EPS &&
+	    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf") < 1e1*EPS &&
 	    Symmetric)
 		pass = 1, TestDB.Npass++;
 	else
@@ -125,7 +124,7 @@ printf("Try running with nonzero initial solution.\n");
 	//     0         10        20        30        40        50
 	printf("Linearization Poisson (2D - TRI  ):              ");
 	test_print(pass);
-EXIT_MSG;
+//	EXIT_MSG;
 
 	finalize_ksp(&A,&b,&x,2);
 	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
