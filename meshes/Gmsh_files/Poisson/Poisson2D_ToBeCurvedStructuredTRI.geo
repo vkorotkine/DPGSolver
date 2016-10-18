@@ -1,7 +1,7 @@
 // Modifiable Parameters
 lc = 1; // Not used.
 
-Refine = 0;
+Refine = 6;
 
 rIn = 0.5;
 rOut = 1.0;
@@ -42,8 +42,10 @@ Transfinite Surface{4002} Right;
 
 // Physical Parameters for '.msh' file
 
-Physical Line(10011) = {1001,1002}; // Straight Dirichlet
-Physical Line(20011) = {1003:1006}; // Curved Dirichlet
+Physical Line(10011) = {1002}; // Straight Dirichlet
+Physical Line(10012) = {1001}; // Straight Neumann
+Physical Line(20011) = {1003:1004}; // Curved Dirichlet
+Physical Line(20012) = {1005:1006}; // Curved Neumann
 
 Physical Surface(9401) = {4001};
 Physical Surface(9402) = {4002};

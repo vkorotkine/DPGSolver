@@ -79,12 +79,8 @@ void test_integration_poisson(int nargc, char **argv)
 	TestDB.IntOrder_mult = 2;
 
 	// Linearization
-// ToBeModified
 	TestDB.PGlobal = 3;
 	TestDB.ML      = 1;
-
-printf("Try running with nonzero initial solution.\n");
-// Should not affect the results. (ToBeDeleted)
 
 	code_startup(nargc,argvNew,0,1);
 
@@ -113,8 +109,8 @@ printf("Try running with nonzero initial solution.\n");
 	MatIsSymmetric(A,1e5*EPS,&Symmetric);
 
 	pass = 0;
-	if (PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf")     < 1e1*EPS &&
-	    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf") < 1e1*EPS &&
+	if (PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf")     < 1e2*EPS &&
+	    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf") < 1e2*EPS &&
 	    Symmetric)
 		pass = 1, TestDB.Npass++;
 	else
@@ -133,13 +129,11 @@ printf("Try running with nonzero initial solution.\n");
 
 
 	// Convergence orders
-	PMin = 0;  PMax = 4;
-	MLMin = 0; MLMax = 4;
+	PMin = 1;  PMax = 3;
+	MLMin = 0; MLMax = 5;
 
-PMin = 1;
-PMax = 3;
-MLMin = 0;
-MLMax = 5;
+	PMin = 1;  PMax = 3;
+	MLMin = 0; MLMax = 5;
 
 	for (P = PMin; P <= PMax; P++) {
 	for (ML = MLMin; ML <= MLMax; ML++) {
@@ -154,9 +148,6 @@ MLMax = 5;
 		code_cleanup();
 	}}
 	// test with various boundary conditions (and all fluxes) (ToBeDeleted)
-pass = 0;
-printf("%d\n",pass);
-
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 	free(TestDB.TestCase);

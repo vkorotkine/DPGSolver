@@ -305,6 +305,8 @@ void setup_geom_factors_highorder(struct S_FACET *FACET)
 		mm_CTN_d(NfnI,1,NvnG,OPS->D_vG_fI[Vf][col],&XYZ[NvnG*row],&J_fI[NfnI*(d*row+col)]);
 	}}
 
+	if (FACET->detJVIn_fI)
+		free(FACET->detJVIn_fI);
 	FACET->detJVIn_fI = malloc(NfnI * sizeof *detJV_fI); // keep
 	compute_detJV(NfnI,J_fI,FACET->detJVIn_fI);
 
@@ -324,6 +326,8 @@ void setup_geom_factors_highorder(struct S_FACET *FACET)
 			mm_CTN_d(NfnI,1,NvnG,OPS->D_vG_fI[Vf][col],&XYZ[NvnG*row],&J_fI[NfnI*(d*row+col)]);
 		}}
 
+		if (FACET->detJVOut_fI)
+			free(FACET->detJVOut_fI);
 		FACET->detJVOut_fI = malloc(NfnI * sizeof *detJV_fI); // keep
 		compute_detJV(NfnI,J_fI,FACET->detJVOut_fI);
 	}
