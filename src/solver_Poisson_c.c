@@ -1,7 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include "solver_poisson_c.h"
+#include "solver_Poisson_c.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -14,7 +14,7 @@
 #include "S_VOLUME.h"
 #include "S_FACET.h"
 
-#include "solver_poisson.h"
+#include "solver_Poisson.h"
 #include "element_functions.h"
 #include "matrix_functions.h"
 #include "exact_solutions.h"

@@ -46,11 +46,12 @@ int main(void)
 	TestCase = malloc(STRLEN_MAX * sizeof *TestCase); // free
 	MeshType = malloc(STRLEN_MAX * sizeof *MeshType); // free
 
-	Testing = 1;
+	Testing = 0;
 
-	strcpy(TestCase,"PeriodicVortex");
+//	strcpy(TestCase,"PeriodicVortex");
 	strcpy(TestCase,"SupersonicVortex");
-	strcpy(TestCase,"Poisson");
+//	strcpy(TestCase,"Poisson");
+
 //	strcpy(MeshType,"StructuredTRI");
 	strcpy(MeshType,"ToBeCurvedStructuredTRI");
 //	strcpy(MeshType,"ToBeCurvedStructuredQUAD");
@@ -58,18 +59,18 @@ int main(void)
 //	strcpy(MeshType,"ToBeCurvedStructuredHEX");
 
 	d     = 2;
-//	NVars = DMAX+2+1;
-	NVars = DMAX+1;
+	NVars = DMAX+2+1;
+//	NVars = DMAX+1;
 	MLMin = 1; MLMax = 5; NML = MLMax-MLMin+1;
-	PMin  = 1; PMax  = 3; NP  = PMax-PMin+1;
+	PMin  = 0; PMax  = 4; NP  = PMax-PMin+1;
 
-	unsigned int CasesRun[45] = { 1, 1, 1, 1, 1,
-	                              1, 1, 1, 1, 1,
-	                              1, 1, 1, 1, 1,
-	                              1, 1, 1, 1, 1,
-	                              1, 1, 1, 1, 1,
-	                              1, 1, 1, 1, 1,
-	                              1, 1, 0, 0, 0,
+	unsigned int CasesRun[45] = { 0, 1, 1, 1, 0,
+	                              0, 1, 1, 1, 0,
+	                              0, 1, 1, 1, 0,
+	                              0, 1, 1, 1, 0,
+	                              0, 1, 1, 0, 0,
+	                              0, 1, 1, 1, 0,
+	                              0, 1, 1, 1, 0,
 	                              0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0};
 

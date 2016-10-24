@@ -1,7 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include "solver_poisson.h"
+#include "solver_Poisson.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -48,7 +48,7 @@
  *	Notation:
  *
  *	References:
- *		See alternate/solver_poisson_weak.c for weak form implementation.
+ *		See alternate/solver_Poisson_weak.c for weak form implementation.
  */
 
 struct S_OPERATORS {
@@ -789,7 +789,7 @@ static void compute_uhat_FACET()
 		GradxyzOut = malloc(d * sizeof *GradxyzOut); // free
 
 		// Note: This is analogous to Hesthaven's BuildCurvedOPS2D (Chapter 9.1)
-		// See poisson_solver_weak under 'alternate/' for alternative computation of GradxyzIn/Out
+		// See solver_Poisson_weak under 'alternate/' for alternative computation of GradxyzIn/Out
 		for (dim1 = 0; dim1 < d; dim1++) {
 			GradxyzIn[dim1] = malloc(NfnI*NvnSIn * sizeof **GradxyzIn); // free
 
@@ -1051,19 +1051,17 @@ void solver_Poisson(void)
 	PetscInt  *ix;
 	PetscReal emax, emin;
 
-	printf("RL"); implicit_info_Poisson();
-	printf("F "); maxRHS = finalize_LHS(&A,&b,&x,0);
+	implicit_info_Poisson();
+	maxRHS = finalize_LHS(&A,&b,&x,0);
 
 //	MatView(A,PETSC_VIEWER_STDOUT_SELF);
 //	VecView(b,PETSC_VIEWER_STDOUT_SELF);
 //	EXIT_MSG;
 
 	// Solve linear system
-	printf("S");
 	KSPCreate(MPI_COMM_WORLD,&ksp);
 	setup_KSP(A,ksp);
 
-	printf("S ");
 	KSPSolve(ksp,b,x);
 	KSPGetConvergedReason(ksp,&reason);
 	KSPGetIterationNumber(ksp,&iteration_ksp);
@@ -1108,7 +1106,8 @@ void solver_Poisson(void)
 		sprintf(string,"P%d_",DB.PGlobal), strcat(fNameOut,string);
 	output_to_paraview(fNameOut);
 
-	printf("KSP iterations (cond, reason): %5d (% .3e, %d)\n",iteration_ksp,emax/emin,reason);
+//	if (!DB.Testing)
+		printf("KSP iterations (cond, reason): %5d (% .3e, %d)\n",iteration_ksp,emax/emin,reason);
 
 	// Note: maxRHS is meaningless as it is based on the initial (zero) solution.
 	if (0)

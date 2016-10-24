@@ -191,7 +191,7 @@ TESTCASE_LIST := dSphericalBump GaussianBump PeriodicVortex \
 MESHTYPE_LIST := ToBeCurvedStructuredTRI ToBeCurvedStructuredQUAD \
                  ToBeCurvedStructuredTET ToBeCurvedStructuredHEX \
                  ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR \
-				 StructuredTRI
+				 ToBeCurvedStructuredMixed
 
 OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))
 TESTCASE_LIST := $(subst $(space),$(comma),$(TESTCASE_LIST))

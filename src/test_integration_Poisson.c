@@ -1,7 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include "test_integration_poisson.h"
+#include "test_integration_Poisson.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -21,9 +21,8 @@
 #include "test_integration_linearization.h"
 #include "compute_errors.h"
 #include "array_norm.h"
-#include "solver_poisson.h"
+#include "solver_Poisson.h"
 #include "finalize_LHS.h"
-// ToBeDeleted: Check for unnecessary includes above
 
 /*
  *	Purpose:
@@ -38,7 +37,7 @@
  *	References:
  */
 
-void test_integration_poisson(int nargc, char **argv)
+void test_integration_Poisson(int nargc, char **argv)
 {
 	unsigned int pass;
 	char         **argvNew;
@@ -70,12 +69,21 @@ void test_integration_poisson(int nargc, char **argv)
 	Vec b = NULL, b_cs = NULL, b_csc = NULL,
 	    x = NULL, x_cs = NULL, x_csc = NULL;
 
-	// **************************************************************************************************** //
-	// TRIs (change to Mixed) ToBeModified
-	strcpy(argvNew[1],"test/Test_poisson_TRI");
 	strcpy(TestDB.TestCase,"Poisson");
 
-	TestDB.PG_add = 1;
+	// **************************************************************************************************** //
+	// Linearization testing
+	// **************************************************************************************************** //
+	// 2D (Mixed TRI/QHAD mesh)
+	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed2D");
+// Indirect solver is failing for the mixed mesh
+// Try with purely QUAD mesh and with alternative flux (Br2) (ToBeDeleted)
+
+	// **************************************************************************************************** //
+	// TRIs (change to Mixed for linearization testing) ToBeModified
+//	strcpy(argvNew[1],"test/Test_Poisson_TRI");
+
+	TestDB.PG_add = 0;
 	TestDB.IntOrder_mult = 2;
 
 	// Linearization
@@ -85,19 +93,6 @@ void test_integration_poisson(int nargc, char **argv)
 	code_startup(nargc,argvNew,0,1);
 
 	implicit_info_Poisson();
-//	finalize_LHS(&A,&b,&x,1);
-//	finalize_LHS(&A,&b,&x,2);
-//	finalize_LHS(&A,&b,&x,3);
-//	finalize_Mat(&A,1);
-
-//	compute_A_cs(&A_cs,&b_cs,&x_cs,1);
-//	compute_A_cs(&A_cs,&b_cs,&x_cs,2);
-//	compute_A_cs(&A_cs,&b_cs,&x_cs,3);
-//	finalize_Mat(&A_cs,1);
-
-//	MatView(A,PETSC_VIEWER_STDOUT_SELF);
-//	MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
-//	EXIT_MSG;
 
 	finalize_LHS(&A,&b,&x,0);
 	compute_A_cs(&A_cs,&b_cs,&x_cs,0);
@@ -130,10 +125,7 @@ void test_integration_poisson(int nargc, char **argv)
 
 	// Convergence orders
 	PMin = 1;  PMax = 3;
-	MLMin = 0; MLMax = 5;
-
-	PMin = 1;  PMax = 3;
-	MLMin = 0; MLMax = 5;
+	MLMin = 0; MLMax = 3;
 
 	for (P = PMin; P <= PMax; P++) {
 	for (ML = MLMin; ML <= MLMax; ML++) {
@@ -145,9 +137,19 @@ void test_integration_poisson(int nargc, char **argv)
 		solver_Poisson();
 		compute_errors_global();
 
+		if (P == PMax && ML == MLMax)
+			check_convergence_orders(MLMin,MLMax,PMin,PMax,&pass);
+
 		code_cleanup();
 	}}
-	// test with various boundary conditions (and all fluxes) (ToBeDeleted)
+	// test with all fluxes as they are implemented (ToBeModified)
+
+	printf("Convergence Orders - Poisson (2D - TRI  ):       ");
+	test_print(pass);
+
+
+
+
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 	free(TestDB.TestCase);

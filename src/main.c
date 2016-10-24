@@ -31,6 +31,7 @@ struct S_TEST TestDB;
 #include "output_to_paraview.h"
 #include "solver_explicit.h"
 #include "solver_implicit.h"
+#include "solver_Poisson.h"
 #include "compute_errors.h"
 #include "memory_free.h"
 
@@ -140,7 +141,7 @@ int main(int nargc, char **argv)
 		printf("  Nonlinear Iterative Solve\n\n");
 
 	if (strstr(DB.TestCase,"Poisson")) {
-		solver_poisson();
+		solver_Poisson();
 	} else {
 		if (strstr(DB.SolverType,"Explicit")) {
 			solver_explicit();
@@ -223,7 +224,7 @@ int main(int nargc, char **argv)
 #include "test_integration_update_h.h"
 #include "test_integration_linearization.h"
 #include "test_integration_L2_projection_errors.h"
-#include "test_integration_poisson.h"
+#include "test_integration_Poisson.h"
 
 #include "test_speed_array_swap.h"
 #include "test_speed_mm_CTN.h"
@@ -312,7 +313,7 @@ int main(int nargc, char **argv)
 		test_integration_linearization(nargc,argv);
 		PetscFinalize();
 	}
-	test_integration_poisson(nargc,argv);
+	test_integration_Poisson(nargc,argv);
 	PetscFinalize();
 
 

@@ -57,6 +57,7 @@ void setup_KSP(Mat A, KSP ksp)
 
 	KSPGetPC(ksp,&pc);
 	if (strstr(TestCase,"Poisson")) {
+//		SolverType = 'd';
 		if (SolverType == 'i') {
 			// Iterative Solve (Using Incomplete Cholesky)
 			KSPSetInitialGuessNonzero(ksp,PETSC_TRUE);

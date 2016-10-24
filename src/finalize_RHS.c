@@ -41,7 +41,7 @@
 
 struct S_OPERATORS {
 	unsigned int NvnI, NvnS;
-	double       *I_vG_vI, *I_vG_vS, *I_Weak, *ChiInvS_vS, *ChiS_vI;
+	double       *w_vI, *I_vG_vI, *ChiS_vI;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
@@ -57,20 +57,19 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 	ELEMENT = get_ELEMENT_type(type);
 
 	OPS->NvnS = ELEMENT->NvnS[P];
-	OPS->ChiInvS_vS = ELEMENT->ChiInvS_vS[P][P][0];
 	if (!curved) {
 		OPS->NvnI = ELEMENT->NvnIs[P];
 
+		OPS->w_vI = ELEMENT->w_vIs[P];
+
 		OPS->I_vG_vI = ELEMENT->I_vGs_vIs[1][P][0];
-		OPS->I_vG_vS = ELEMENT->I_vGs_vS[1][P][0];
-		OPS->I_Weak  = ELEMENT->Is_Weak_VV[P][P][0];
 		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P][0];
 	} else {
 		OPS->NvnI = ELEMENT->NvnIc[P];
 
+		OPS->w_vI = ELEMENT->w_vIc[P];
+
 		OPS->I_vG_vI = ELEMENT->I_vGc_vIc[P][P][0];
-		OPS->I_vG_vS = ELEMENT->I_vGc_vS[P][P][0];
-		OPS->I_Weak  = ELEMENT->Ic_Weak_VV[P][P][0];
 		OPS->ChiS_vI = ELEMENT->ChiS_vIc[P][P][0];
 	}
 }
@@ -82,63 +81,35 @@ static void add_source(const struct S_VOLUME *VOLUME)
 	             Neq = DB.Neq;
 
 	// Standard datatypes
-	unsigned int eq, n, NvnI, NvnS, ESE;
-	double       *XYZ_vI, *XYZ_vS, *f_vI, *f_vS, *fhat_vS, *detJV_vI_ptr, *detJV_ChiS, *M;
+	unsigned int eq, n, NvnI, NvnS;
+	double       *XYZ_vI, *f_vI, *detJV_vI, *w_vI;
 
 	struct S_OPERATORS *OPS;
-
-	ESE = 1; // (E)xact (S)ource (E)valuation. Options: 0, 1
 
 	OPS = malloc(sizeof *OPS); // free
 
 	init_ops(OPS,VOLUME);
 
-	if (ESE) {
-		NvnS = OPS->NvnS;
-		NvnI = OPS->NvnI;
+	NvnS = OPS->NvnS;
+	NvnI = OPS->NvnI;
 
-		XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
-		mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
+	w_vI = OPS->w_vI;
 
-		f_vI = malloc(NvnI*Neq * sizeof *f_vI); // free
-		compute_source(NvnI,XYZ_vI,f_vI);
-		free(XYZ_vI);
+	XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
+	mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
 
-		for (eq = 0; eq < Neq; eq++) {
-			detJV_vI_ptr = VOLUME->detJV_vI;
-			for (n = 0; n < NvnI; n++)
-				f_vI[eq*NvnI+n] *= *detJV_vI_ptr++;
-		}
+	f_vI = malloc(NvnI*Neq * sizeof *f_vI); // free
+	compute_source(NvnI,XYZ_vI,f_vI);
+	free(XYZ_vI);
 
-		mm_d(CBCM,CBT,CBNT,NvnS,Neq,NvnI,-1.0,1.0,OPS->I_Weak,f_vI,VOLUME->RHS);
-		free(f_vI);
-	} else {
-		NvnS = OPS->NvnS;
-		NvnI = OPS->NvnI;
-
-		XYZ_vS = malloc(NvnS*d * sizeof *XYZ_vS); // free
-		mm_CTN_d(NvnS,d,VOLUME->NvnG,OPS->I_vG_vS,VOLUME->XYZ,XYZ_vS);
-
-		f_vS = malloc(NvnS*Neq * sizeof *f_vS); // free
-		compute_source(NvnS,XYZ_vS,f_vS);
-
-		fhat_vS = malloc(NvnS*Neq * sizeof *fhat_vS); // free
-		mm_CTN_d(NvnS,Neq,NvnS,OPS->ChiInvS_vS,f_vS,fhat_vS);
-		free(f_vS);
-
-		// Assemble mass matrix
-		detJV_ChiS = malloc(NvnI*NvnS * sizeof *detJV_ChiS); // free
-
-		mm_diag_d(NvnI,NvnS,VOLUME->detJV_vI,OPS->ChiS_vI,detJV_ChiS,1.0,'L','R');
-
-		M = malloc(NvnS*NvnS * sizeof *M); // free
-		mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,0.0,OPS->I_Weak,detJV_ChiS,M);
-		free(detJV_ChiS);
-
-		mm_d(CBCM,CBT,CBNT,NvnS,Neq,NvnS,-1.0,1.0,M,fhat_vS,VOLUME->RHS);
-		free(M);
-		free(fhat_vS);
+	detJV_vI = VOLUME->detJV_vI;
+	for (eq = 0; eq < Neq; eq++) {
+		for (n = 0; n < NvnI; n++)
+			f_vI[eq*NvnI+n] *= w_vI[n]*detJV_vI[n];
 	}
+
+	mm_d(CBCM,CBNT,CBNT,NvnS,Neq,NvnI,-1.0,1.0,OPS->ChiS_vI,f_vI,VOLUME->RHS);
+	free(f_vI);
 
 	free(OPS);
 }

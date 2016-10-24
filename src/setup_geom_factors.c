@@ -342,34 +342,34 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	// Standard datatypes
 	unsigned int P, type, curved;
 
-	struct S_ELEMENT *ELEMENT_OPS;
+	struct S_ELEMENT *ELEMENT;
 
 	P      = VOLUME->P;
 	type   = VOLUME->type;
 	curved = VOLUME->curved;
 
-	ELEMENT_OPS = get_ELEMENT_type(type);
+	ELEMENT = get_ELEMENT_type(type);
 
 	if (!curved) {
-		OPS->NvnG = ELEMENT_OPS->NvnGs[1];
-		OPS->NvnC = ELEMENT_OPS->NvnCs[P];
-		OPS->NvnI = ELEMENT_OPS->NvnIs[P];
+		OPS->NvnG = ELEMENT->NvnGs[1];
+		OPS->NvnC = ELEMENT->NvnCs[P];
+		OPS->NvnI = ELEMENT->NvnIs[P];
 
-		OPS->I_vG_vC = ELEMENT_OPS->I_vGs_vCs[1][P][0];
-		OPS->I_vC_vI = ELEMENT_OPS->I_vCs_vIs[P][P][0];
-		OPS->D_vG_vC = ELEMENT_OPS->D_vGs_vCs[1][P][0];
-		OPS->D_vG_vI = ELEMENT_OPS->D_vGs_vIs[1][P][0];
-		OPS->D_vC_vC = ELEMENT_OPS->D_vCs_vCs[P][P][0];
+		OPS->I_vG_vC = ELEMENT->I_vGs_vCs[1][P][0];
+		OPS->I_vC_vI = ELEMENT->I_vCs_vIs[P][P][0];
+		OPS->D_vG_vC = ELEMENT->D_vGs_vCs[1][P][0];
+		OPS->D_vG_vI = ELEMENT->D_vGs_vIs[1][P][0];
+		OPS->D_vC_vC = ELEMENT->D_vCs_vCs[P][P][0];
 	} else {
-		OPS->NvnG = ELEMENT_OPS->NvnGc[P];
-		OPS->NvnC = ELEMENT_OPS->NvnCc[P];
-		OPS->NvnI = ELEMENT_OPS->NvnIc[P];
+		OPS->NvnG = ELEMENT->NvnGc[P];
+		OPS->NvnC = ELEMENT->NvnCc[P];
+		OPS->NvnI = ELEMENT->NvnIc[P];
 
-		OPS->I_vG_vC = ELEMENT_OPS->I_vGc_vCc[P][P][0];
-		OPS->I_vC_vI = ELEMENT_OPS->I_vCc_vIc[P][P][0];
-		OPS->D_vG_vC = ELEMENT_OPS->D_vGc_vCc[P][P][0];
-		OPS->D_vG_vI = ELEMENT_OPS->D_vGc_vIc[P][P][0];
-		OPS->D_vC_vC = ELEMENT_OPS->D_vCc_vCc[P][P][0];
+		OPS->I_vG_vC = ELEMENT->I_vGc_vCc[P][P][0];
+		OPS->I_vC_vI = ELEMENT->I_vCc_vIc[P][P][0];
+		OPS->D_vG_vC = ELEMENT->D_vGc_vCc[P][P][0];
+		OPS->D_vG_vI = ELEMENT->D_vGc_vIc[P][P][0];
+		OPS->D_vC_vC = ELEMENT->D_vCc_vCc[P][P][0];
 	}
 
 	if (FACET) {
@@ -384,21 +384,21 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 			// Straight VOLUME
 			if (FtypeInt == 's') {
 				// Straight FACET Integration
-				OPS->NfnI    = ELEMENT_OPS->NfnIs[PF][IndFType];
-				OPS->D_vG_fI = ELEMENT_OPS->D_vGs_fIs[1][PF];
+				OPS->NfnI    = ELEMENT->NfnIs[PF][IndFType];
+				OPS->D_vG_fI = ELEMENT->D_vGs_fIs[1][PF];
 			} else {
 				// Curved FACET Integration
-				OPS->NfnI    = ELEMENT_OPS->NfnIc[PF][IndFType];
-				OPS->D_vG_fI = ELEMENT_OPS->D_vGs_fIc[1][PF];
+				OPS->NfnI    = ELEMENT->NfnIc[PF][IndFType];
+				OPS->D_vG_fI = ELEMENT->D_vGs_fIc[1][PF];
 			}
 		} else {
 			// Curved VOLUME
 			if (FtypeInt == 's') {
-				OPS->NfnI    = ELEMENT_OPS->NfnIs[PF][IndFType];
-				OPS->D_vG_fI = ELEMENT_OPS->D_vGc_fIs[PV][PF];
+				OPS->NfnI    = ELEMENT->NfnIs[PF][IndFType];
+				OPS->D_vG_fI = ELEMENT->D_vGc_fIs[PV][PF];
 			} else {
-				OPS->NfnI    = ELEMENT_OPS->NfnIc[PF][IndFType];
-				OPS->D_vG_fI = ELEMENT_OPS->D_vGc_fIc[PV][PF];
+				OPS->NfnI    = ELEMENT->NfnIc[PF][IndFType];
+				OPS->D_vG_fI = ELEMENT->D_vGc_fIc[PV][PF];
 			}
 		}
 	}

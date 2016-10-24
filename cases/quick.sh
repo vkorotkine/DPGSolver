@@ -10,10 +10,8 @@
 
 LOGFILE="logfile"
 
-TESTCASE="Poisson"
-
 #TESTCASE="PeriodicVortex"
-#TESTCASE="SupersonicVortex"
+TESTCASE="SupersonicVortex"
 #TESTCASE="dSphericalBump"
 #TESTCASE="GaussianBump"
 #TESTCASE="PolynomialBump"

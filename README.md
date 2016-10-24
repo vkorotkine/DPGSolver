@@ -1,13 +1,14 @@
 # Discontinuous Petrov Galerkin Solver
 
 ### Code Description
-- Open source using only open source libraries/supporting programs.
+- Uses only open source libraries/supporting programs.
 - Methods: Discontinuous Petrov Galerkin (DPG) with the option for standard Discontinuous Galerkin (DG).
 - Supported elements: TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
 - Supported refinements: isotropic h (size) or p (order).
 
 ### Supported PDEs
-- Euler         : ACTIVE
+- Poisson       : DONE
+- Euler         : DONE
 - Navier-Stokes : TO BE DONE
 
 See the CODE STATUS section below for details regarding current functionality.
@@ -34,14 +35,14 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 | MPI            | TO BE DONE |
 | h/p Adaptation | DONE       |
 
-### Preprocessing : ACTIVE
-| Function          |                 |
-|-------------------|-----------------|
-| set up parameters | DONE            |
-| set up mesh       | DONE            |
-| set up operators  | ACTIVE (Solver) |
-| set up structures | ACTIVE (Solver) |
-| set up geometry   | DONE            |
+### Preprocessing : ACTIVE (AS NEEDED)
+| Function          |                    |
+|-------------------|--------------------|
+| set up parameters | DONE               |
+| set up mesh       | DONE               |
+| set up operators  | ACTIVE (AS NEEDED) |
+| set up structures | DONE               |
+| set up geometry   | DONE               |
 
 ### Solving : ACTIVE
 #### Initialization
@@ -70,7 +71,8 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 #### Implicit
 | Function        |             |                         |
 |-----------------|-------------|-------------------------|
-| solver implicit |             | TO BE DONE              |
+| solver Poisson  |             | DONE                    |
+| solver implicit |             | DONE FOR THE TIME BEING |
 | volume info     |             | DONE FOR THE TIME BEING |
 |                 | Weak Form   | DONE                    |
 |                 | Strong Form | UNDER CONSIDERATION     |
@@ -82,22 +84,26 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 | finalize        |             | DONE                    |
 
 #### Fluxes
-|           | Function       |                         |
-|-----------|----------------|-------------------------|
-| Standard  |                | DONE FOR THE TIME BEING |
-|           | inviscid       | DONE                    |
-|           | viscous        | TO BE DONE              |
-| Numerical |                | DONE FOR THE TIME BEING |
-|           | lax-friedrichs | DONE                    |
-|           | roe-pike       | DONE                    |
+|           | Function         |                         |
+|-----------|------------------|-------------------------|
+| Standard  |                  | DONE FOR THE TIME BEING |
+|           | inviscid         | DONE                    |
+|           | viscous          | TO BE DONE              |
+| Numerical |                  | DONE FOR THE TIME BEING |
+|           | internal penalty | DONE                    |
+|           | bassi-rebay 2    | TO BE DONE              |
+|           | lax-friedrichs   | DONE                    |
+|           | roe-pike         | DONE                    |
 
 #### Boundary
-| Function |                |
-|----------|----------------|
-| Riemann  | DONE           |
-| SlipWall | DONE           |
+| Function  |      |
+|-----------|------|
+| Dirichlet | DONE |
+| Neumann   | DONE |
+| Riemann   | DONE |
+| SlipWall  | DONE |
 
-#### Jacobians          : ACTIVE
+#### Jacobians
 | Function            |      |
 |---------------------|------|
 | flux inviscid       | DONE |

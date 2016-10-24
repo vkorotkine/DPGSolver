@@ -22,7 +22,7 @@
 #include "array_norm.h"
 #include "array_print.h"
 #include "array_free.h"
-#include "solver_poisson_c.h"
+#include "solver_Poisson_c.h"
 #include "explicit_VOLUME_info_c.h"
 #include "implicit_VOLUME_info.h"
 #include "explicit_FACET_info_c.h"

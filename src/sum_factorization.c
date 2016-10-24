@@ -307,6 +307,115 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 	}
 }
 
+void get_sf_parametersFd(const unsigned int NIn0, const unsigned int NOut0, double **OP0,
+                         const unsigned int NIn1, const unsigned int NOut1, double ***OP1,
+                         unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+                         const unsigned int d, const unsigned int Vf, const unsigned int Eclass,
+                         const unsigned int dimF, const unsigned int dimD)
+{
+	/*
+	 *	Purpose:
+	 *		Set up (s)um (f)actorization parameters for (F)ACET (d)erivative operators.
+	 *
+	 *	Comments:
+	 *		This function is nearly identical to get_sf_parametersF, except for the level of dereferencing on OP1.
+	 */
+
+	unsigned int f, fh, dimV1, dimV2;
+
+	// silence
+	dimV1 = dimV2 = -1;
+
+	f  = Vf/NFREFMAX;
+	fh = Vf % NFREFMAX;
+
+	switch (d) {
+	default: // 3D
+		switch (Eclass) {
+		default: // C_TP
+			// FACET term (standard treatment)
+			NIn_SF[dimF]  = NIn1;
+			NOut_SF[dimF] = NOut1;
+			OP_SF[dimF]   = OP1[(f%2)*NFREFMAX][dimD];
+
+			// VOLUME term NIn/NOut (standard treatment)
+			if (dimF == 0) {
+				dimV1 = 1;
+				dimV2 = 2;
+			} else if (dimF == 1) {
+				dimV1 = 0;
+				dimV2 = 2;
+			} else if (dimF == 2) {
+				dimV1 = 0;
+				dimV2 = 1;
+			}
+
+			NIn_SF[dimV1]  = NIn0;
+			NOut_SF[dimV1] = NOut0;
+			NIn_SF[dimV2]  = NIn0;
+			NOut_SF[dimV2] = NOut0;
+
+			// VOLUME term OP_SF
+			switch (fh) {
+			case 0: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[0]; break; // Conforming
+			case 1: OP_SF[dimV1] = OP0[1]; OP_SF[dimV2] = OP0[1]; break;
+			case 2: OP_SF[dimV1] = OP0[2]; OP_SF[dimV2] = OP0[1]; break;
+			case 3: OP_SF[dimV1] = OP0[1]; OP_SF[dimV2] = OP0[2]; break;
+			case 4: OP_SF[dimV1] = OP0[2]; OP_SF[dimV2] = OP0[2]; break;
+			case 5: OP_SF[dimV1] = OP0[1]; OP_SF[dimV2] = OP0[0]; break;
+			case 6: OP_SF[dimV1] = OP0[2]; OP_SF[dimV2] = OP0[0]; break;
+			case 7: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[1]; break;
+			case 8: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[2]; break;
+			default:
+				printf("Error: Unsupported fh in get_sf_parametersF.\n"), exit(1);
+				break;
+			}
+			break;
+		case C_WEDGE:
+			// OP_SF[1] (standard)
+			NIn_SF[1]  = 1;
+			NOut_SF[1] = 1;
+			OP_SF[1]   = NULL;
+
+			// dim = 0 and dim = 2
+			NIn_SF[0]  = NIn0;
+			NOut_SF[0] = NOut0;
+			NIn_SF[2]  = NIn1;
+			NOut_SF[2] = NOut1;
+
+			if (f < 3) { // QUAD FACETs
+				switch (fh) {
+				case 0: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[0][dimD]; break;
+				case 1: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[1][dimD]; break;
+				case 2: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[1][dimD]; break;
+				case 3: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[2][dimD]; break;
+				case 4: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[2][dimD]; break;
+				case 5: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[0][dimD]; break;
+				case 6: OP_SF[0] = OP0[f*NFREFMAX+2]; OP_SF[2] = OP1[0][dimD]; break;
+				case 7: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[1][dimD]; break;
+				case 8: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[2][dimD]; break;
+				default:
+					printf("Error: Unsupported fh for f < 3 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
+					break;
+				}
+			} else if (f < 5) { // TRI FACETs
+				if (fh > 4)
+					printf("Error: Unsupported fh for f < 5 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
+
+				OP_SF[0] = OP0[fh];
+				OP_SF[2] = OP1[((f+1)%2)*NFREFMAX][dimD];
+			} else {
+				printf("Error: Unsupported f in get_sf_parametersF (C_WEDGE).\n"), exit(1);
+			}
+			break;
+		}
+		break;
+	case 2:
+		get_sf_parameters(NIn0,NOut0,OP0[fh],NIn1,NOut1,OP1[(f%2)*NFREFMAX][dimD],NIn_SF,NOut_SF,OP_SF,d,dimF,C_TP);
+		break;
+	}
+}
+
 void sf_swap_d(double *Input, const unsigned int NRows, const unsigned int NCols,
                const unsigned int iBound, const unsigned int jBound, const unsigned int kBound,
                const unsigned int iStep, const unsigned int jStep, const unsigned int kStep)

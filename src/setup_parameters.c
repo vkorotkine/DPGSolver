@@ -132,7 +132,7 @@ void setup_parameters()
 	             **NodeTypeG,
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
-	unsigned int i, iMax, u1, u2,
+	unsigned int i, iMax, u1,
 	             P, NP, IntOrderfs, IntOrderfc, IntOrdervs, IntOrdervc,
 	             ***SF_BE, *VFPartUnity,
 	             PGs, *PGc, **PCs, **PCc, **PJs, **PJc,
@@ -144,7 +144,6 @@ void setup_parameters()
 		printf("Error: Please choose PMax > 0.\n"), exit(1);
 
 	u1 = 1;
-	u2 = 2;
 
 	NP  = PMax+1;
 
@@ -241,9 +240,8 @@ void setup_parameters()
 		PJc[P] = malloc(NEC * sizeof **PJc); // keep
 
 		// ToBeDeleted: These orders may not be sufficient for 3D. To be investigated.
-		PGc[P]    = max(P,u1);
-u1 = u2; u1 = 1;
-//		PGc[P]    = max(P+1,u2);
+//		PGc[P]    = max(P,u1);
+		PGc[P]    = P+1;
 		PCs[P][0] = PGs;
 		PCs[P][1] = max(PGs-1,u1);
 		PCs[P][2] = PGs;             // ToBeModified
@@ -611,7 +609,6 @@ void setup_parameters_L2proj(void)
 	for (P = 0; P <= PMax; P++) {
 		// Geometry
 		PGc[P]    = max(P,u1)+PG_add;
-//		PGc[P]    = PGs;
 		PCs[P][0] = PGs;
 		PCs[P][1] = max(PGs-1,u1);
 		PCs[P][2] = PGs;             // ToBeModified
