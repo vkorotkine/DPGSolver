@@ -470,7 +470,7 @@ void test_integration_linearization(int nargc, char **argv)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("Linearization (3D - Mixed SI/PYR):               ");
+	printf("Linearization (3D - Mixed TET/PYR):              ");
 	test_print(pass);
 
 	finalize_ksp(&A,&b,&x,2);

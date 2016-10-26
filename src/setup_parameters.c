@@ -530,7 +530,9 @@ void setup_parameters()
 //	DB.InviscidFluxType = FLUX_LF;
 	DB.InviscidFluxType = FLUX_ROE;
 
-	DB.ViscousFluxType  = FLUX_IP;
+//	DB.ViscousFluxType  = FLUX_IP;
+//	DB.ViscousFluxType  = FLUX_BR2;
+	DB.ViscousFluxType  = FLUX_CDG2;
 
  	DB.ExplicitSolverType = RK3_SSP;
 // 	DB.ExplicitSolverType = RK4_LS;
@@ -609,6 +611,7 @@ void setup_parameters_L2proj(void)
 	for (P = 0; P <= PMax; P++) {
 		// Geometry
 		PGc[P]    = max(P,u1)+PG_add;
+PGc[P] = PGs;
 		PCs[P][0] = PGs;
 		PCs[P][1] = max(PGs-1,u1);
 		PCs[P][2] = PGs;             // ToBeModified

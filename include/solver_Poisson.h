@@ -10,7 +10,7 @@ extern void project_to_sphere     (const unsigned int Nn, double *XYZIn, double 
 extern void boundary_Poisson      (const unsigned int Nn, const unsigned int Nel, double *XYZ, double *uL, double *uR,
                                    double *graduL, double *graduR, const unsigned int BC, const unsigned int curved);
 extern void jacobian_flux_coef    (const unsigned int Nn, const unsigned int Nel, const double *nIn, const double *h,
-                                   const unsigned int P, double *gradu_avg, double *u_jump, const unsigned int d, char *flux_type,
-                                   char side);
+                                   const unsigned int P, double *gradu_avg, double *u_jump, const unsigned int d,
+                                   const unsigned int flux_type);
 
 #endif // DPG__solver_Poisson_h__INCLUDED

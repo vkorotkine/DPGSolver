@@ -235,6 +235,13 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 	} else {
 		TestDB.Npass++;
 	}
+printf("ViscousFluxType: %d\n",DB.ViscousFluxType);
+printf("L2Errors: \n");
+for (i = 0; i < NVars; i++)
+array_print_d(NML,NP,L2Errors[i],'R');
+printf("Conv Orders: \n");
+for (i = 0; i < NVars; i++)
+array_print_d(NML,NP,ConvOrders[i],'R');
 
 	for (i = 0; i < NVars; i++) {
 		free(L2Errors[i]);

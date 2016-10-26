@@ -10,26 +10,41 @@
 
 LOGFILE="logfile"
 
-
 #TESTCASE="PeriodicVortex"
 TESTCASE="SupersonicVortex"
 #TESTCASE="dSphericalBump"
 #TESTCASE="GaussianBump"
+#TESTCASE="PolynomialBump"
 
 
 #USE_VALGRIND="0"
 USE_VALGRIND="1"
 
-case "${OSTYPE}" in
-	*darwin*)
-		CODE_DIR="/Users/philipzwanenburg/Desktop/Research_Codes"
-		TOP_DIR="${CODE_DIR}/DPGC"
-		MPI_DIR="${CODE_DIR}/Downloaded/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/"
+KERNEL=$(uname -s)
+case ${KERNEL} in
+*arwin*)
+	CODE_DIR="/Users/philipzwanenburg/Desktop/Research_Codes"
+	TOP_DIR="${CODE_DIR}/DPGC"
+	MPI_DIR="${CODE_DIR}/Downloaded/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/"
+	N_PROCS="1"
+
+	;;
+*inux*)
+	OS_RELEASE=$(uname -r)
+	case ${OS_RELEASE} in
+	*4.4.0-38-generic*)
+#		echo Linux
+#		echo ${OS_RELEASE}
+
+		PROG_DIR="/home/philip/Desktop/research/programs"
+#		TOP_DIR="/home/philip/Desktop/research/codes/DPGSolver"
+		TOP_DIR="/media/philip/40EB-97EF/code/DPGC/"
+		MPI_DIR="${PROG_DIR}/petsc/petsc-3.7.0/arch-linux-c-/bin/"
 		N_PROCS="1"
 
 		;;
-	*linux*)
-    PROG_DIR="/home/pzwan/programs"
+	*2.6.32-504.30.3.el6.x86_64*)
+		PROG_DIR="/home/pzwan/programs"
 		TOP_DIR="/home/pzwan/Git/DPG"
 		MPI_DIR="${PROG_DIR}/petsc-3.6.3/arch-linux-mpich-c-opt/bin/"
 		#Make sure this is modified with "nodes" above
@@ -37,6 +52,9 @@ case "${OSTYPE}" in
 		N_PROCS="1"
 
 		;;
+	esac
+
+	;;
 esac
 
 if [ "$USE_VALGRIND" = "1" ]; then
@@ -47,6 +65,7 @@ else
 fi
 
 clear
+
 cd ${TOP_DIR}/cases
 
 ${MPI_DIR}mpiexec -n ${N_PROCS} ${VALGRIND_OPTS} ${TOP_DIR}/bin/DPGSolver.exe ${TESTCASE}

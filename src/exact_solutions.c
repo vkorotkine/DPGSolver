@@ -26,11 +26,12 @@
 void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, const unsigned int solved)
 {
 	// Initialize DB Parameters
-	char *TestCase = DB.TestCase;
+	char         *TestCase = DB.TestCase;
+	unsigned int d         = DB.d;
 
 	// Standard datatypes
 	unsigned int i;
-	double       *X, *Y, *rhoEx, *uEx, *vEx, *wEx, *pEx;
+	double       *X, *Y, *Z, *rhoEx, *uEx, *vEx, *wEx, *pEx;
 
 	rhoEx = &UEx[Nn*0];
 	uEx   = &UEx[Nn*1];
@@ -40,6 +41,7 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, con
 
 	X = &XYZ[0*Nn];
 	Y = &XYZ[1*Nn];
+	Z = &XYZ[(d-1)*Nn];
 
 	// Perhaps modify TestCase for Test_L2_proj and Test_update_h to make this cleaner, also in other functions (ToBeDeleted)
 	if (strstr(TestCase,"PeriodicVortex") ||
@@ -109,7 +111,10 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, con
 		}
 	} else if (strstr(TestCase,"Poisson")) {
 		for (i = 0; i < Nn; i++) {
-			UEx[i] = sin(PI*X[i])*sin(PI*Y[i]);
+			if (d == 2)
+				UEx[i] = sin(PI*X[i])*sin(PI*Y[i]);
+			else if (d == 3)
+				UEx[i] = sin(PI*X[i])*sin(PI*Y[i])*sin(PI*Z[i]);
 		}
 	} else {
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
@@ -124,18 +129,22 @@ void compute_exact_gradient(const unsigned int Nn, double *XYZ, double *QEx)
 
 	// Standard datatypes
 	unsigned int i;
-	double       *X, *Y;
-
-	if (d != 2)
-		printf("Error: Unsupported d.\n"), EXIT_MSG;
+	double       *X, *Y, *Z;
 
 	X = &XYZ[0*Nn];
 	Y = &XYZ[1*Nn];
+	Z = &XYZ[(d-1)*Nn];
 
 	if (strstr(TestCase,"Poisson")) {
 		for (i = 0; i < Nn; i++) {
-			QEx[Nn*0+i] = PI*cos(PI*X[i])*sin(PI*Y[i]);
-			QEx[Nn*1+i] = PI*sin(PI*X[i])*cos(PI*Y[i]);
+			if (d == 2) {
+				QEx[Nn*0+i] = PI*cos(PI*X[i])*sin(PI*Y[i]);
+				QEx[Nn*1+i] = PI*sin(PI*X[i])*cos(PI*Y[i]);
+			} else if (d == 3) {
+				QEx[Nn*0+i] = PI*cos(PI*X[i])*sin(PI*Y[i])*sin(PI*Z[i]);
+				QEx[Nn*1+i] = PI*sin(PI*X[i])*cos(PI*Y[i])*sin(PI*Z[i]);
+				QEx[Nn*2+i] = PI*sin(PI*X[i])*sin(PI*Y[i])*cos(PI*Z[i]);
+			}
 		}
 	} else {
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
@@ -151,19 +160,25 @@ void compute_source(const unsigned int Nn, double *XYZ, double *source)
 
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
-	unsigned int Neq       = DB.Neq;
+	unsigned int d         = DB.d,
+	             Neq       = DB.Neq;
 
 	// Standard datatypes
 	unsigned int n, eq;
-	double       *X, *Y;
+	double       *X, *Y, *Z;
 
 	if (strstr(TestCase,"Poisson")) {
 		X = &XYZ[Nn*0];
 		Y = &XYZ[Nn*1];
+		Z = &XYZ[Nn*(d-1)];
 
 		for (eq = 0; eq < Neq; eq++) {
-			for (n = 0; n < Nn; n++)
-				source[eq*Nn+n] = -2.0*PI*PI*sin(PI*X[n])*sin(PI*Y[n]);
+			for (n = 0; n < Nn; n++) {
+				if (d == 2)
+					source[eq*Nn+n] = -2.0*PI*PI*sin(PI*X[n])*sin(PI*Y[n]);
+				else if (d == 3)
+					source[eq*Nn+n] = -3.0*PI*PI*sin(PI*X[n])*sin(PI*Y[n])*sin(PI*Z[n]);
+			}
 		}
 	} else {
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;

@@ -57,7 +57,7 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int i, n, row, col,
+	unsigned int n, row, col,
 	             NvnG0, NvnC0, NvnI0;
 	double       *XYZ, *J_vI, *J_vC, *detJV_vI, *C_vC, *C_vI;
 
@@ -142,7 +142,7 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 */
 
 		// curl form
-		unsigned int dim, IndCurl, IndXYZJ, IndCurlXYZJ;
+		unsigned int i, dim, IndCurl, IndXYZJ, IndCurlXYZJ;
 		unsigned int OrderCurl[12] = {1, 2, 2, 1, 2, 0, 0, 2, 0, 1, 1, 0};
 		double *XYZJ_vC, *XYZ_vC, *tmp_vC, *CurlXYZJ_vC;
 
@@ -206,6 +206,7 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 //array_print_d(NvnC0,9,C_vC,'C');
 
 		free(CurlXYZJ_vC);
+
 	}
 
 	mm_CTN_d(NvnI0,d*d,NvnC0,OPS->I_vC_vI,C_vC,C_vI);

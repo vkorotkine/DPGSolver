@@ -644,12 +644,24 @@ double *sf_assemble_d(const unsigned int NIn[3], const unsigned int NOut[3], con
 	             dims_DOPr[2]  = {NOut[0]*NIn[1]*NIn[2],   NIn[0]*NIn[1]*NIn[2]},
 	             dims_DOPs[2]  = {NOut[0]*NOut[1]*NIn[2],  NOut[0]*NIn[1]*NIn[2]},
 	             dims_DOPt[2]  = {NOut[0]*NOut[1]*NOut[2], NOut[0]*NOut[1]*NIn[2]};
+	MKL_INT      *OPr_rowIndex, *OPs_rowIndex, *OPt_rowIndex, *OPr_cols, *OPs_cols, *OPt_cols;
+	double       *OPr_vals, *OPs_vals, *OPt_vals, *OPr_ST, *OPInter_ST, alpha, beta, one_d[1] = {1.0};
 
-	MKL_INT      OPr_rowIndex[BRows[0]*NOut[0]+1], OPs_rowIndex[BRows[1]*NOut[1]+1], OPt_rowIndex[BRows[2]*NOut[2]+1],
-	             OPr_cols[BRows[0]*NNZ_BOP[0]],    OPs_cols[BRows[1]*NNZ_BOP[1]],    OPt_cols[BRows[2]*NNZ_BOP[2]];
-	double       OPr_vals[BRows[0]*NNZ_BOP[0]],    OPs_vals[BRows[1]*NNZ_BOP[1]],    OPt_vals[BRows[2]*NNZ_BOP[2]],
-	             OPr_ST[dims_DOPr[0]*dims_DOPr[1]], OPInter_ST[dims_DOPs[0]*dims_DOPr[1]],
-	             alpha, beta, one_d[1] = {1.0};
+	OPr_rowIndex = malloc((BRows[0]*NOut[0]+1) * sizeof *OPr_rowIndex); // free
+	OPs_rowIndex = malloc((BRows[1]*NOut[1]+1) * sizeof *OPs_rowIndex); // free
+	OPt_rowIndex = malloc((BRows[2]*NOut[2]+1) * sizeof *OPt_rowIndex); // free
+
+	OPr_cols = malloc((BRows[0]*NNZ_BOP[0]) * sizeof *OPr_cols); // free
+	OPs_cols = malloc((BRows[1]*NNZ_BOP[1]) * sizeof *OPs_cols); // free
+	OPt_cols = malloc((BRows[2]*NNZ_BOP[2]) * sizeof *OPt_cols); // free
+
+	OPr_vals = malloc((BRows[0]*NNZ_BOP[0]) * sizeof *OPr_vals); // free
+	OPs_vals = malloc((BRows[1]*NNZ_BOP[1]) * sizeof *OPs_vals); // free
+	OPt_vals = malloc((BRows[2]*NNZ_BOP[2]) * sizeof *OPt_vals); // free
+
+	OPr_ST     = malloc((dims_DOPr[0]*dims_DOPr[1]) * sizeof *OPr_ST);     // free
+	OPInter_ST = malloc((dims_DOPs[0]*dims_DOPr[1]) * sizeof *OPInter_ST); // free
+
 
 //	OP_ST = malloc(dims_OP_ST[0]*dims_OP_ST[1] * sizeof *OP_ST); // keep (requires external free)
 	OP_ST = calloc(dims_OP_ST[0]*dims_OP_ST[1] , sizeof *OP_ST); // keep (requires external free)
@@ -752,6 +764,21 @@ array_print_d(1,BRows[0]*NNZ_BOP[0],OPr_vals,'R');
 		mkl_dcsrmm(&transa,&dims_DOPt[0],&dims_DOPr[1],&dims_DOPt[1],&alpha,matdescra,OPt_vals,OPt_cols,
 		           OPt_rowIndex,&OPt_rowIndex[1],OPInter_ST,&dims_DOPr[1],&beta,OP_ST,&dims_DOPr[1]);
 	}
+
+	free(OPr_rowIndex);
+	free(OPs_rowIndex);
+	free(OPt_rowIndex);
+
+	free(OPr_cols);
+	free(OPs_cols);
+	free(OPt_cols);
+
+	free(OPr_vals);
+	free(OPs_vals);
+	free(OPt_vals);
+
+	free(OPr_ST);
+	free(OPInter_ST);
 
 //array_print_d(dims_OP_ST[0],dims_OP_ST[1],OP_ST,'R');
 //exit(1);

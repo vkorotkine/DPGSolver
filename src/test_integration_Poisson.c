@@ -72,23 +72,19 @@ void test_integration_Poisson(int nargc, char **argv)
 	strcpy(TestDB.TestCase,"Poisson");
 
 	// **************************************************************************************************** //
-	// Linearization testing
+	// Linearization Testing
 	// **************************************************************************************************** //
-	// 2D (Mixed TRI/QHAD mesh)
-	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed2D");
-// Indirect solver is failing for the mixed mesh
-// Try with purely QUAD mesh and with alternative flux (Br2) (ToBeDeleted)
-
-	// **************************************************************************************************** //
-	// TRIs (change to Mixed for linearization testing) ToBeModified
-//	strcpy(argvNew[1],"test/Test_Poisson_TRI");
-
 	TestDB.PG_add = 0;
 	TestDB.IntOrder_mult = 2;
 
-	// Linearization
+	// **************************************************************************************************** //
+	// 2D (Mixed TRI/QUAD mesh)
 	TestDB.PGlobal = 3;
 	TestDB.ML      = 1;
+TestDB.PGlobal = 1;
+TestDB.ML      = 0;
+
+	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed2D");
 
 	code_startup(nargc,argvNew,0,1);
 
@@ -102,6 +98,7 @@ void test_integration_Poisson(int nargc, char **argv)
 //	MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
 
 	MatIsSymmetric(A,1e5*EPS,&Symmetric);
+//	MatIsSymmetric(A_cs,1e5*EPS,&Symmetric);
 
 	pass = 0;
 	if (PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf")     < 1e2*EPS &&
@@ -113,7 +110,7 @@ void test_integration_Poisson(int nargc, char **argv)
 		                    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf"),Symmetric);
 
 	//     0         10        20        30        40        50
-	printf("Linearization Poisson (2D - TRI  ):              ");
+	printf("Linearization Poisson (2D - Mixed):              ");
 	test_print(pass);
 //	EXIT_MSG;
 
@@ -122,9 +119,67 @@ void test_integration_Poisson(int nargc, char **argv)
 	finalize_ksp(&A_csc,&b_csc,&x_csc,2);
 	code_cleanup();
 
+/*
+	// **************************************************************************************************** //
+	// 3D (Mixed TET/PYR mesh)
+	TestDB.PGlobal = 2;
+	TestDB.ML      = 0;
+
+//	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_TP");
+	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_HW");
+
+	code_startup(nargc,argvNew,0,1);
+
+	implicit_info_Poisson();
+
+	finalize_LHS(&A,&b,&x,0);
+	compute_A_cs(&A_cs,&b_cs,&x_cs,0);
+	compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
+
+//	MatView(A,PETSC_VIEWER_STDOUT_SELF);
+//	MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
+
+	MatIsSymmetric(A,1e5*EPS,&Symmetric);
+//	MatIsSymmetric(A_cs,1e5*EPS,&Symmetric);
+
+	pass = 0;
+	if (PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf")     < 1e2*EPS &&
+	    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf") < 1e2*EPS &&
+	    Symmetric)
+		pass = 1, TestDB.Npass++;
+	else
+		printf("%e %e %d\n",PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf"),
+		                    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf"),Symmetric);
+
+	//     0         10        20        30        40        50
+	printf("Linearization Poisson (3D - Mixed TET/PYR):      ");
+	test_print(pass);
+//	EXIT_MSG;
+
+	finalize_ksp(&A,&b,&x,2);
+	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
+	finalize_ksp(&A_csc,&b_csc,&x_csc,2);
+	code_cleanup();
+*/
+
+	// **************************************************************************************************** //
+	// Convergence Order Testing
+	// **************************************************************************************************** //
+//	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_TP");
+	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_HW");
+
+/* Getting incorrect orders on TET mesh even with straight elements. Getting correct orders on structed Hex meshes.
+ * Getting incorrect orders on unstructured Hex meshes with straight elements. All curved element trials are giving
+ * suboptimal convergence. All results above using only Dirichlet BCs.
+ *	-> Potentially have a bug with TET treatment and likely the parametrization using cube_to_sphere may introduce some
+ *	problems. Also try on the unstructured hex mesh without using the cube_to_sphere projection and see if optimal
+ *	orders are obtained.
+ */
+	TestDB.PG_add = 0;
+	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin = 1;  PMax = 3;
+	PMin = 1;  PMax = 2;
 	MLMin = 0; MLMax = 3;
 
 	for (P = PMin; P <= PMax; P++) {

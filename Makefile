@@ -66,7 +66,7 @@ endif
 # LINUX
 ifeq ($(KERNEL),Linux)
   OS_RELEASE := $(shell uname -r)
-  ifeq ($(OS_RELEASE),4.4.0-22-generic) #Home
+  ifeq ($(OS_RELEASE),4.4.0-38-generic) #Home
     PROG_PATH := /home/philip/Desktop/research/programs
 
     CC   := $(PROG_PATH)/petsc/petsc-3.7.0/arch-linux-c-/bin/mpicc -fopenmp -m64
@@ -154,9 +154,9 @@ $(OBJDIR)/%.o : %.c
 	@$(CC) $(OPTS) $(CSTD) -c -o $@ $< $(INCS)
 
 $(DEPDIR)/%.d : %.c
-	@echo Creating/updating: $@
 	@gcc -MM -MG $< > $@; # Use first prerequisite only as other prereqs are included from the existing %.d file
-	@sed -i '' -e 's|.*:|$(OBJDIR)/$*.o $(DEPDIR)/$*.d:|' $@
+	@sed -i -e 's|.*:|$(OBJDIR)/$*.o $(DEPDIR)/$*.d:|' $@
+	@echo Creating/updating: $@
 
 # Additional dependencies needed for modified dynamic memory allocation
 DYN_MEM_DEPS_NOPATH := S_ELEMENT.h S_VOLUME.h S_FACET.h
@@ -191,7 +191,8 @@ TESTCASE_LIST := dSphericalBump GaussianBump PeriodicVortex \
 MESHTYPE_LIST := ToBeCurvedStructuredTRI ToBeCurvedStructuredQUAD \
                  ToBeCurvedStructuredTET ToBeCurvedStructuredHEX \
                  ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR \
-				 ToBeCurvedStructuredMixed
+				 ToBeCurvedStructuredMixed ToBeCurvedStructuredMixedTP \
+				 ToBeCurvedStructuredMixedHW ToBeCurvedMixedHW
 
 OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))
 TESTCASE_LIST := $(subst $(space),$(comma),$(TESTCASE_LIST))

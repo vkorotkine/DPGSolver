@@ -32,12 +32,13 @@ case ${KERNEL} in
 *inux*)
 	OS_RELEASE=$(uname -r)
 	case ${OS_RELEASE} in
-	*4.4.0-22-generic*)
-		echo Linux
-		echo ${OS_RELEASE}
+	*4.4.0-38-generic*)
+#		echo Linux
+#		echo ${OS_RELEASE}
 
 		PROG_DIR="/home/philip/Desktop/research/programs"
-		TOP_DIR="/home/philip/Desktop/research/codes/DPGSolver"
+#		TOP_DIR="/home/philip/Desktop/research/codes/DPGSolver"
+		TOP_DIR="/media/philip/40EB-97EF/code/DPGC/"
 		MPI_DIR="${PROG_DIR}/petsc/petsc-3.7.0/arch-linux-c-/bin/"
 		N_PROCS="1"
 

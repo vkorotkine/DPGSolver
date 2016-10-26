@@ -32,7 +32,7 @@
  *		Chih-Hao mentioned that he never uses a non-zero initial guess and has not had problems. (ToBeModified)
  *
  *		Petsc's Cholesky solvers (direct and indirect) are much slower than the LU solvers (Petsc 3.6.3). ToBeModified
- *		
+ *
  *		Likely include a dynamic rtol value for KSPSetTolerances.
  *
  *	Notation:
@@ -52,12 +52,15 @@ void setup_KSP(Mat A, KSP ksp)
 	PC pc;
 
 	KSPSetOperators(ksp,A,A);
-	KSPSetTolerances(ksp,1e-12,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
+//	KSPSetTolerances(ksp,1e-12,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
+	KSPSetTolerances(ksp,1e-10,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
 	KSPSetComputeSingularValues(ksp,PETSC_TRUE);
 
 	KSPGetPC(ksp,&pc);
 	if (strstr(TestCase,"Poisson")) {
-//		SolverType = 'd';
+		if (DB.ViscousFluxType == FLUX_IP)
+			SolverType = 'd';
+
 		if (SolverType == 'i') {
 			// Iterative Solve (Using Incomplete Cholesky)
 			KSPSetInitialGuessNonzero(ksp,PETSC_TRUE);

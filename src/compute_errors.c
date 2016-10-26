@@ -128,7 +128,7 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		compute_exact_solution(NvnI,XYZ_vI,uEx,solved);
 		compute_exact_gradient(NvnI,XYZ_vI,qEx);
 
-		for (i = 0, iMax = 1+d; i <= iMax; i++) {
+		for (i = 0, iMax = DMAX+1; i < iMax; i++) {
 			if (i == 0) { // u
 				for (j = 0; j < NvnI; j++) {
 					err = u[j]-uEx[j];
