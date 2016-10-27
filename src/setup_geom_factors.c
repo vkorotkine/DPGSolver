@@ -16,6 +16,8 @@
 #include "element_functions.h"
 #include "matrix_functions.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Set up geometric factors.
@@ -50,6 +52,41 @@ struct S_OPERATORS {
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
                      const unsigned int IndFType);
+
+static void compute_detJV(const unsigned int Nn, double *J, double *detJV)
+{
+	/*
+	 *	Comments:
+	 *		Consider implementing the symmetric conservative form from:
+	 *		Abe(2016)-Conservative_high-order_flux-reconstruction_schemes_on_moving_and_deforming_grids
+	 */
+
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
+
+	// Standard datatypes
+	unsigned int n;
+
+	if (d == 1) {
+		for (n = 0; n < Nn; n++) {
+			detJV[n] = J[n];
+		}
+	} else if (d == 2) {
+		for (n = 0; n < Nn; n++) {
+			detJV[n] =   J[Nn*(d*0+0)+n]*J[Nn*(d*1+1)+n]
+			           - J[Nn*(d*0+1)+n]*J[Nn*(d*1+0)+n];
+		}
+	} else if (d == 3) {
+		for (n = 0; n < Nn; n++) {
+			detJV[n] =   J[Nn*(d*0+0)+n]*(  J[Nn*(d*1+1)+n]*J[Nn*(d*2+2)+n]
+			                              - J[Nn*(d*1+2)+n]*J[Nn*(d*2+1)+n])
+			           - J[Nn*(d*0+1)+n]*(  J[Nn*(d*1+0)+n]*J[Nn*(d*2+2)+n]
+			                              - J[Nn*(d*1+2)+n]*J[Nn*(d*2+0)+n])
+			           + J[Nn*(d*0+2)+n]*(  J[Nn*(d*1+0)+n]*J[Nn*(d*2+1)+n]
+			                              - J[Nn*(d*1+1)+n]*J[Nn*(d*2+0)+n]);
+		}
+	}
+}
 
 void setup_geom_factors(struct S_VOLUME *VOLUME)
 {
@@ -86,20 +123,12 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 		mm_CTN_d(NvnC0,1,NvnG0,OPS->D_vG_vC[col],&XYZ[NvnG0*row],&J_vC[NvnC0*(d*row+col)]);
 	}}
 
+	compute_detJV(NvnI0,J_vI,detJV_vI);
 	if (d == 1) {
-		for (n = 0; n < NvnI0; n++) {
-			detJV_vI[n] = J_vI[n];
-		}
-
 		for (n = 0; n < NvnC0; n++) {
 			C_vC[n] = 1.0;
 		}
 	} else if (d == 2) {
-		for (n = 0; n < NvnI0; n++) {
-			detJV_vI[n] =   J_vI[NvnI0*(d*0+0)+n]*J_vI[NvnI0*(d*1+1)+n]
-			              - J_vI[NvnI0*(d*0+1)+n]*J_vI[NvnI0*(d*1+0)+n];
-		}
-
 		for (n = 0; n < NvnC0; n++) {
 			C_vC[NvnC0*(0+d*0)+n] =  J_vC[NvnC0*(d*1+1)+n]; // C11
 			C_vC[NvnC0*(1+d*0)+n] = -J_vC[NvnC0*(d*0+1)+n]; // C21
@@ -108,15 +137,6 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 		}
 
 	} else if (d == 3) {
-		for (n = 0; n < NvnI0; n++) {
-			detJV_vI[n] =   J_vI[NvnI0*(d*0+0)+n]*(  J_vI[NvnI0*(d*1+1)+n]*J_vI[NvnI0*(d*2+2)+n]
-			                                       - J_vI[NvnI0*(d*1+2)+n]*J_vI[NvnI0*(d*2+1)+n])
-			              - J_vI[NvnI0*(d*0+1)+n]*(  J_vI[NvnI0*(d*1+0)+n]*J_vI[NvnI0*(d*2+2)+n]
-			                                       - J_vI[NvnI0*(d*1+2)+n]*J_vI[NvnI0*(d*2+0)+n])
-			              + J_vI[NvnI0*(d*0+2)+n]*(  J_vI[NvnI0*(d*1+0)+n]*J_vI[NvnI0*(d*2+1)+n]
-			                                       - J_vI[NvnI0*(d*1+1)+n]*J_vI[NvnI0*(d*2+0)+n]);
-		}
-
 /*
 		// standard form
 		for (n = 0; n < NvnC0; n++) {
@@ -223,41 +243,6 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 	VOLUME->C_vC     = C_vC;
 	VOLUME->C_vI     = C_vI;
 
-}
-
-static void compute_detJV(const unsigned int Nn, double *J, double *detJV)
-{
-	/*
-	 *	Comments:
-	 *		Consider implementing the symmetric conservative form from:
-	 *		Abe(2016)-Conservative_high-order_flux-reconstruction_schemes_on_moving_and_deforming_grids
-	 */
-
-	// Initialize DB Parameters
-	unsigned int d = DB.d;
-
-	// Standard datatypes
-	unsigned int n;
-
-	if (d == 1) {
-		for (n = 0; n < Nn; n++) {
-			detJV[n] = J[n];
-		}
-	} else if (d == 2) {
-		for (n = 0; n < Nn; n++) {
-			detJV[n] =   J[Nn*(d*0+0)+n]*J[Nn*(d*1+1)+n]
-			           - J[Nn*(d*0+1)+n]*J[Nn*(d*1+0)+n];
-		}
-	} else if (d == 3) {
-		for (n = 0; n < Nn; n++) {
-			detJV[n] =   J[Nn*(d*0+0)+n]*(  J[Nn*(d*1+1)+n]*J[Nn*(d*2+2)+n]
-			                              - J[Nn*(d*1+2)+n]*J[Nn*(d*2+1)+n])
-			           - J[Nn*(d*0+1)+n]*(  J[Nn*(d*1+0)+n]*J[Nn*(d*2+2)+n]
-			                              - J[Nn*(d*1+2)+n]*J[Nn*(d*2+0)+n])
-			           + J[Nn*(d*0+2)+n]*(  J[Nn*(d*1+0)+n]*J[Nn*(d*2+1)+n]
-			                              - J[Nn*(d*1+1)+n]*J[Nn*(d*2+0)+n]);
-		}
-	}
 }
 
 void setup_geom_factors_highorder(struct S_FACET *FACET)

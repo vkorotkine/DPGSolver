@@ -56,7 +56,7 @@
 struct S_OPERATORS {
 	unsigned int NvnS, NvnI, NfnI, NvnC,
 	             *nOrdOutIn, *nOrdInOut;
-	double       *w_fI, *ChiS_vI, **D_Weak, **ChiS_fI, ***GradChiS_fI, **I_vC_fI;
+	double       *w_fI, *w_vI, *ChiS_vI, **GradChiS_vI, **ChiS_fI, ***GradChiS_fI, **I_vC_fI;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
@@ -76,13 +76,17 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 	if (!curved) {
 		OPS->NvnI = ELEMENT->NvnIs[P];
 
-		OPS->ChiS_vI   = ELEMENT->ChiS_vIs[P][P][0];
-		OPS->D_Weak    = ELEMENT->Ds_Weak_VV[P][P][0];
+		OPS->w_vI = ELEMENT->w_vIs[P];
+
+		OPS->ChiS_vI     = ELEMENT->ChiS_vIs[P][P][0];
+		OPS->GradChiS_vI = ELEMENT->GradChiS_vIs[P][P][0];
 	} else {
 		OPS->NvnI = ELEMENT->NvnIc[P];
 
-		OPS->ChiS_vI   = ELEMENT->ChiS_vIc[P][P][0];
-		OPS->D_Weak    = ELEMENT->Dc_Weak_VV[P][P][0];
+		OPS->w_vI = ELEMENT->w_vIc[P];
+
+		OPS->ChiS_vI     = ELEMENT->ChiS_vIc[P][P][0];
+		OPS->GradChiS_vI = ELEMENT->GradChiS_vIc[P][P][0];
 	}
 }
 
@@ -155,7 +159,7 @@ static void compute_qhat_VOLUME(void)
 
 	// Standard datatypes
 	unsigned int i, j, dim1, dim2, IndD, IndC, NvnI, NvnS;
-	double       *ChiS_vI, *MInv, **D, *C_vI, *Dxyz, **DxyzChiS, *Sxyz;
+	double       *w_vI, *diag_w_vI, *ChiS_vI, **GradChiS_vI, *MInv, **D, *C_vI, *Dxyz, **DxyzChiS, *Sxyz;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME;
@@ -170,13 +174,19 @@ static void compute_qhat_VOLUME(void)
 		NvnI = OPS->NvnI;
 		NvnS = OPS->NvnS;
 
-		ChiS_vI = OPS->ChiS_vI;
+		ChiS_vI     = OPS->ChiS_vI;
+		GradChiS_vI = OPS->GradChiS_vI;
 
 		// Construct physical derivative operator matrices
 		MInv = VOLUME->MInv;
 		C_vI = VOLUME->C_vI;
+		w_vI = OPS->w_vI;
 
-		D = OPS->D_Weak;
+		diag_w_vI = diag_d(w_vI,NvnI);
+
+		D = malloc(d * sizeof *D); // free
+		for (dim1 = 0; dim1 < d; dim1++)
+			D[dim1] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS,NvnI,NvnI,1.0,GradChiS_vI[dim1],diag_w_vI);
 
 		DxyzChiS = VOLUME->DxyzChiS;
 		for (dim1 = 0; dim1 < d; dim1++) {
@@ -196,6 +206,7 @@ static void compute_qhat_VOLUME(void)
 			DxyzChiS[dim1] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // keep
 			free(Dxyz);
 		}
+		array_free2_d(d,D);
 
 		// Compute RHS and LHS terms
 		for (dim1 = 0; dim1 < d; dim1++) {
@@ -729,7 +740,7 @@ void jacobian_flux_coef(const unsigned int Nn, const unsigned int Nel, const dou
 	case FLUX_IP:
 		for (dim = 0; dim < d; dim++) {
 		for (n = 0; n < Nn; n++) {
-			tau = 1e2*(P+1)*(P+1)/h[n];
+			tau = 1e1*(P+1)*(P+1)/h[n];
 
 			gradu_avg[Nn*dim+n] = 0.5;
 			u_jump[Nn*dim+n]    = -tau*nIn[n*d+dim];

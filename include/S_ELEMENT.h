@@ -28,6 +28,7 @@ struct S_ELEMENT {
 	             ****I_vCs_vS, ****I_vCs_vIs, ****I_vCs_vIc,
 	             ****I_vCc_vS, ****I_vCc_vIs, ****I_vCc_vIc,
 	             ****Ihat_vS_vS,
+	             *****GradChiS_vIs, *****GradChiS_vIc,
 	             *****D_vGs_vCs, *****D_vGs_vIs,
 	             *****D_vGc_vCc, *****D_vGc_vIc,
 	             *****D_vCs_vCs,

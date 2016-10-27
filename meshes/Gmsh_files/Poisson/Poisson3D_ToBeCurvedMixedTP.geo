@@ -1,6 +1,8 @@
 // Modifiable Parameters
 lc = 1; // Not used.
 
+Refine = 0;
+
 rFactor = 2;
 r = 1/rFactor;
 H = rFactor*r;
@@ -58,8 +60,11 @@ Line(1041) = {6,12};
 
 Line(1043) = {22,19};
 
-Transfinite Line {1002,1004,1006:1007,1009,1011,1013:1014,1018,1020,1023:1024,1030,1032,1034:1035,1038,1040} = 2+2 Using Progression 1;
-Transfinite Line {1016,1025,-1028,-1029,-1039,-1041,-1043} = rFactor+1 Using Progression 1;
+Transfinite Line {1009,1011,1013:1014,1016,1018,1023,1025,1028,1032,1034:1035} = 3*2^(Refine)+1 Using Progression 1;
+Transfinite Line {1029,1039,1043}                                              = 4*2^(Refine)+1 Using Progression 1;
+Transfinite Line {1041}                                                        = 5*2^(Refine)+1 Using Progression 1;
+Transfinite Line {1002,1004,1006:1007,1020,1024,1030,1038,1040}                = 6*2^(Refine)+1 Using Progression 1;
+
 
 Line Loop (4002) = {1002, 1007,-1004,-1006};
 Line Loop (4004) = {1009, 1014,-1011,-1013};
@@ -93,7 +98,7 @@ Plane Surface(4025) = {4025};
 Plane Surface(4026) = {4026};
 Plane Surface(4028) = {4028};
 
-Transfinite Surface{4002,4004,4007,4008,4011:4014,4017,4018,4020,4022,4025,4026,4028};
+//Transfinite Surface{4002,4004,4007,4008,4011:4014,4017,4018,4020,4022,4025,4026,4028};
 //Recombine Surface{4002,4004,4007,4008,4011:4014,4017,4018,4020,4022,4025,4026,4028};
 
 Surface Loop (7004) = {4002,4004,4011,4017,4022,4025};
@@ -111,10 +116,14 @@ Volume(7006) = {7006};
 
 // Physical parameters for '.msh' file
 
+/*
 Physical Surface(10011) = {4011,4012};           // Straight Dirichlet
 Physical Surface(10012) = {4007,4008,4017,4018}; // Straight Neumann
 Physical Surface(20011) = {4004,4013,4028};      // Curved Dirichlet
 Physical Surface(20012) = {4002,4014,4020};      // Curved Neumann
+*/
+
+Physical Surface(10011) = {4011,4012,4007,4008,4017,4018,4004,4013,4028,4002,4014,4020}; // Straight Dirichlet
 
 Physical Volume(9701) = {7004:7006};
 

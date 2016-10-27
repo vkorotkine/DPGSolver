@@ -52,14 +52,14 @@ void setup_KSP(Mat A, KSP ksp)
 	PC pc;
 
 	KSPSetOperators(ksp,A,A);
-//	KSPSetTolerances(ksp,1e-12,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
-	KSPSetTolerances(ksp,1e-10,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
+	KSPSetTolerances(ksp,1e-15,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
+//	KSPSetTolerances(ksp,1e-10,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
 	KSPSetComputeSingularValues(ksp,PETSC_TRUE);
 
 	KSPGetPC(ksp,&pc);
 	if (strstr(TestCase,"Poisson")) {
-		if (DB.ViscousFluxType == FLUX_IP)
-			SolverType = 'd';
+//		if (DB.ViscousFluxType == FLUX_IP)
+//			SolverType = 'd';
 
 		if (SolverType == 'i') {
 			// Iterative Solve (Using Incomplete Cholesky)
@@ -84,7 +84,7 @@ void setup_KSP(Mat A, KSP ksp)
 
 			KSPSetType(ksp,KSPGMRES);
 			KSPGMRESSetOrthogonalization(ksp,KSPGMRESModifiedGramSchmidtOrthogonalization);
-//			KSPGMRESSetRestart(ksp,60); // Default: 30
+			KSPGMRESSetRestart(ksp,60); // Default: 30
 
 			PCSetType(pc,PCILU);
 			PCFactorSetLevels(pc,1); // Cannot use MatOrdering with 0 fill

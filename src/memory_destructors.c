@@ -83,6 +83,9 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free4_d(NP,NP,1,ELEMENT->ICs);
 	array_free4_d(NP,NP,1,ELEMENT->ICc);
 
+	array_free5_d(NP,NP,1,d,ELEMENT->GradChiS_vIs);
+	array_free5_d(NP,NP,1,d,ELEMENT->GradChiS_vIc);
+
 	array_free4_d(NP,NP,1,         ELEMENT->I_vGs_vP);
 	array_free4_d(NP,NP,NVREFMAX,  ELEMENT->I_vGs_vGs);
 	array_free4_d(NP,NP,1,         ELEMENT->I_vGs_vGc);

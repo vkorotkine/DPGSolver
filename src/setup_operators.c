@@ -894,6 +894,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             ****I_vCs_vS, ****I_vCs_vIs, ****I_vCs_vIc,
 	             ****I_vCc_vS, ****I_vCc_vIs, ****I_vCc_vIc,
 	             ****Ihat_vS_vS,
+	             *****GradChiS_vIs, *****GradChiS_vIc,
 	             *****D_vGs_vCs, *****D_vGs_vIs,
 	             *****D_vGc_vCc, *****D_vGc_vIc,
 	             *****D_vCs_vCs,
@@ -974,7 +975,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             **GradChiGs_vCs, **GradChiGs_vIs,
 	             **GradChiGc_vCc, **GradChiGc_vIc,
 	             **GradChiCs_vCs, **GradChiCc_vCc,
-	             **GradChiS_vIs,  **GradChiS_vIc,
 				 **GradChiGs_fIs, **GradChiGs_fIc,
 				 **GradChiGc_fIs, **GradChiGc_fIc,
 	             *dummyPtr_d;
@@ -1046,6 +1046,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	ICs = ELEMENT->ICs;
 	ICc = ELEMENT->ICc;
+
+	GradChiS_vIs = ELEMENT->GradChiS_vIs;
+	GradChiS_vIc = ELEMENT->GradChiS_vIc;
 
 	I_vGs_vP  = ELEMENT->I_vGs_vP;
 	I_vGs_vGs = ELEMENT->I_vGs_vGs;
@@ -1123,8 +1126,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	GradChiGc_vIc = malloc(dE * sizeof *GradChiGc_vIc); // free
 	GradChiCs_vCs = malloc(dE * sizeof *GradChiCs_vCs); // free
 	GradChiCc_vCc = malloc(dE * sizeof *GradChiCc_vCc); // free
-	GradChiS_vIs  = malloc(dE * sizeof *GradChiS_vIs);  // free
-	GradChiS_vIc  = malloc(dE * sizeof *GradChiS_vIc);  // free
 
 	GradChiGs_fIs = malloc(dE * sizeof *GradChiGs_fIs); // free
 	GradChiGs_fIc = malloc(dE * sizeof *GradChiGs_fIc); // free
@@ -1535,8 +1536,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					GradChiGc_vIc[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[P],NvnGc[P],NvnGc[P],1.0,GradChiRefGc_vIc[dim],TGc); // free
 					GradChiCs_vCs[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnCs[P],NvnCs[P],NvnCs[P],1.0,GradChiRefCs_vCs[dim],TCs); // free
 					GradChiCc_vCc[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnCc[P],NvnCc[P],NvnCc[P],1.0,GradChiRefCc_vCc[dim],TCc); // free
-					GradChiS_vIs[dim]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[P],NvnS[P], NvnS[P], 1.0,GradChiRefS_vIs[dim],TS);   // free
-					GradChiS_vIc[dim]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[P],NvnS[P], NvnS[P], 1.0,GradChiRefS_vIc[dim],TS);   // free
+
+					GradChiS_vIs[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[P],NvnS[P],NvnS[P],1.0,GradChiRefS_vIs[dim],TS); // keep
+					GradChiS_vIc[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[P],NvnS[P],NvnS[P],1.0,GradChiRefS_vIc[dim],TS); // keep
 				}
 
 				// Returned Operators
@@ -1555,8 +1557,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					D_vCc_vCc[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnCc[P],NvnCc[P],NvnCc[P],1.0,GradChiCc_vCc[dim],ChiInvCc_vCc); // keep
 
 					if (EFE) {
-						Ds_Weak_VV[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIs[P],NvnIs[P],1.0,GradChiS_vIs[dim],diag_w_vIs); // keep
-						Dc_Weak_VV[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIc[P],NvnIc[P],1.0,GradChiS_vIc[dim],diag_w_vIc); // keep
+						Ds_Weak_VV[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIs[P],NvnIs[P],1.0,GradChiS_vIs[P][Pb][0][dim],diag_w_vIs); // keep
+						Dc_Weak_VV[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NvnIc[P],NvnIc[P],1.0,GradChiS_vIc[P][Pb][0][dim],diag_w_vIc); // keep
 					} else {
 						printf("Error: Unsupported EFE.\n"), EXIT_MSG;
 					}
@@ -1598,8 +1600,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					free(GradChiGc_vIc[dim]);
 					free(GradChiCs_vCs[dim]);
 					free(GradChiCc_vCc[dim]);
-					free(GradChiS_vIs[dim]);
-					free(GradChiS_vIc[dim]);
 				}
 			}
 
@@ -1844,8 +1844,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(GradChiGc_vIc);
 	free(GradChiCs_vCs);
 	free(GradChiCc_vCc);
-	free(GradChiS_vIs);
-	free(GradChiS_vIc);
 
 	free(GradChiGs_fIs);
 	free(GradChiGs_fIc);
@@ -2048,6 +2046,7 @@ static void setup_TP_operators(const unsigned int EType)
 	             ****I_vCs_vIs, ****I_vCs_vIc,
 	             ****I_vCc_vIs, ****I_vCc_vIc,
 	             ****Ihat_vS_vS,
+	             *****GradChiS_vIs, *****GradChiS_vIc,
 	             ****L2hat_vS_vS,
 	             *****D_vGs_vCs, *****D_vGs_vIs,
 	             *****D_vGc_vCc, *****D_vGc_vIc,
@@ -2124,6 +2123,9 @@ static void setup_TP_operators(const unsigned int EType)
 	ChiS_vIs   = ELEMENT->ChiS_vIs;
 	ChiS_vIc   = ELEMENT->ChiS_vIc;
 	ChiInvS_vS = ELEMENT->ChiInvS_vS;
+
+	GradChiS_vIs = ELEMENT->GradChiS_vIs;
+	GradChiS_vIc = ELEMENT->GradChiS_vIc;
 
 	I_vGs_vP  = ELEMENT->I_vGs_vP;
 	I_vGs_vGs = ELEMENT->I_vGs_vGs;
@@ -2319,6 +2321,15 @@ static void setup_TP_operators(const unsigned int EType)
 						                  ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NvnCc[Pb],ELEMENTclass[0]->D_vCc_vCc[P][Pb][0][0],
 						                  NIn,NOut,OP,dE,dim,Eclass);
 						D_vCc_vCc[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
+						get_sf_parameters(ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->ChiS_vIs[P][Pb][0],
+						                  ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->GradChiS_vIs[P][Pb][0][0],
+						                  NIn,NOut,OP,dE,dim,Eclass);
+						GradChiS_vIs[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+						get_sf_parameters(ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->ChiS_vIc[P][Pb][0],
+						                  ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->GradChiS_vIc[P][Pb][0][0],
+						                  NIn,NOut,OP,dE,dim,Eclass);
+						GradChiS_vIc[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 						if (EFE) {
 							get_sf_parameters(ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_VV[P][Pb][0],

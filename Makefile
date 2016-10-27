@@ -188,11 +188,10 @@ OUTPUT_LIST   := paraview errors results
 TESTCASE_LIST := dSphericalBump GaussianBump PeriodicVortex \
                  PolynomialBump SupersonicVortex VortexRiemann \
                  Poisson
-MESHTYPE_LIST := ToBeCurvedStructuredTRI ToBeCurvedStructuredQUAD \
-                 ToBeCurvedStructuredTET ToBeCurvedStructuredHEX \
-                 ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR \
-				 ToBeCurvedStructuredMixed ToBeCurvedStructuredMixedTP \
-				 ToBeCurvedStructuredMixedHW ToBeCurvedMixedHW
+# ToBeModified (Remove unneeded meshtypes)
+MESHTYPE_LIST := ToBeCurvedStructuredTRI ToBeCurvedStructuredQUAD ToBeCurvedStructuredTET ToBeCurvedStructuredHEX \
+                 ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR ToBeCurvedStructuredMixed ToBeCurvedMixed \
+                 ToBeCurvedStructuredMixedTP ToBeCurvedStructuredMixedHW ToBeCurvedMixedHW ToBeCurvedMixedTP StructuredTET
 
 OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))
 TESTCASE_LIST := $(subst $(space),$(comma),$(TESTCASE_LIST))

@@ -80,7 +80,7 @@ void test_integration_Poisson(int nargc, char **argv)
 	// **************************************************************************************************** //
 	// 2D (Mixed TRI/QUAD mesh)
 	TestDB.PGlobal = 3;
-	TestDB.ML      = 1;
+	TestDB.ML      = 0;
 TestDB.PGlobal = 1;
 TestDB.ML      = 0;
 
@@ -165,8 +165,8 @@ TestDB.ML      = 0;
 	// **************************************************************************************************** //
 	// Convergence Order Testing
 	// **************************************************************************************************** //
-//	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_TP");
-	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_HW");
+	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_TP");
+//	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_HW");
 
 /* Getting incorrect orders on TET mesh even with straight elements. Getting correct orders on structed Hex meshes.
  * Getting incorrect orders on unstructured Hex meshes with straight elements. All curved element trials are giving
@@ -179,8 +179,8 @@ TestDB.ML      = 0;
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin = 1;  PMax = 2;
-	MLMin = 0; MLMax = 3;
+	PMin = 1;  PMax = 3;
+	MLMin = 0; MLMax = 4;
 
 	for (P = PMin; P <= PMax; P++) {
 	for (ML = MLMin; ML <= MLMax; ML++) {
