@@ -70,8 +70,8 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 	    strstr(TestCase,"Poisson")          ||
 	    strstr(TestCase,"Test_linearization")) {
 			ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
-for (i = 0; i < NvnG*d; i++)
-	XYZ[i] = XYZ_S[i];
+//for (i = 0; i < NvnG*d; i++)
+//	XYZ[i] = XYZ_S[i];
 	} else if (strstr(TestCase,"GaussianBump") ||
 	           strstr(TestCase,"PolynomialBump")) {
 			ToBeCurved_TP(NvnG,XYZ_S,XYZ);

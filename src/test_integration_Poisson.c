@@ -31,6 +31,27 @@
  *			2) Optimal convergence orders
  *
  *	Comments:
+ *		*** IMPORTANT ***   Convergence Order Testing   *** IMPORTANT ***
+ *
+ *		It was found that optimal convergence was not possible to obtain using a series of uniformly refined TET meshes
+ *		based on the "refine by splitting" algorithm in gmsh. However, optimal orders were recovered when a series of
+ *		unstructured meshes consisting of TETs of decreasing volume was used.
+ *
+ *		Gmsh(2.14)'s "refine by splitting" algorithm splits each TET into 8 TETs, in a manner identical to the original
+ *		h refinement algorithm for TETs implemented in the code. Assuming an initially regular TET, with all edges having
+ *		length = 2.0, is refined in this manner, the result will be 4 regular TETs with edge length = 1.0 and 4 other
+ *		TETs with 5 edges having length = 1.0 and 1 edge having length = sqrt(2.0). Taking a measure of the regularity
+ *		of the mesh to be the ratio of the spheres enclosing and enclosed by the TETs, the regularity bound is violated
+ *		through this refinement process. (See Lenoir(1986) for the regularity requirement). Hence an alternative method
+ *		of generating the refined mesh sequence must be employed to achieve the optimal convergence:
+ *
+ *			1) A sequence of unstructured (non-nested) meshes with diminishing volume gave optimal orders.
+ *			2) Refinement based on splitting into 12 TETs or 4 TETs and 2 PYRs must be investigated. (ToBeModified)
+ *
+ *		The second condition above is necessary as the h-refinement algorithm will not provide optimal convergence if
+ *		both of these refinement alternatives result in similar behaviour to that discussed above.
+
+ *		*** IMPORTANT ***   Convergence Order Testing   *** IMPORTANT ***
  *
  *	Notation:
  *
@@ -53,11 +74,12 @@ void test_integration_Poisson(int nargc, char **argv)
 	/*
 	 *	Input:
 	 *
-	 *		ToBeModified
+	 *		Meshes for a curved Poisson problem.
 	 *
 	 *	Expected Output:
 	 *
-	 *		ToBeModified
+	 *		Correspondence of LHS matrices computed using complex step and exact linearization.
+	 *		Optimal convergence orders in L2 for the solution (P+1) and its gradients (P).
 	 *
 	 */
 
@@ -81,8 +103,6 @@ void test_integration_Poisson(int nargc, char **argv)
 	// 2D (Mixed TRI/QUAD mesh)
 	TestDB.PGlobal = 3;
 	TestDB.ML      = 0;
-TestDB.PGlobal = 1;
-TestDB.ML      = 0;
 
 	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed2D");
 
@@ -179,8 +199,8 @@ TestDB.ML      = 0;
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin = 1;  PMax = 3;
-	MLMin = 0; MLMax = 4;
+	PMin = 1;  PMax = 2;
+	MLMin = 0; MLMax = 3;
 
 	for (P = PMin; P <= PMax; P++) {
 	for (ML = MLMin; ML <= MLMax; ML++) {

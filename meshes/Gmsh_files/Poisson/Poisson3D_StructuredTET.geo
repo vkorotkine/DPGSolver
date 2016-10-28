@@ -1,6 +1,8 @@
 // Modifiable Parameters
 lc = 1; // Not used.
 
+Refine = 0;
+
 L = 1;
 H = 1;
 W = 1;
@@ -34,9 +36,9 @@ Line(3002) = {2,2+4};
 Line(3003) = {3,3+4};
 Line(3004) = {4,4+4};
 
-Transfinite Line{1001:1004} = 2 Using Progression 1;
-Transfinite Line{2001:2004} = 2 Using Progression 1;
-Transfinite Line{3001:3004} = 2 Using Progression 1;
+Transfinite Line{1001:1004} = 2^(Refine)+1 Using Progression 1;
+Transfinite Line{2001:2004} = 2^(Refine)+1 Using Progression 1;
+Transfinite Line{3001:3004} = 2^(Refine)+1 Using Progression 1;
 
 Line Loop (4001) = {1001,2002,-1002,-2001};
 Line Loop (4002) = {1003,2004,-1004,-2003};

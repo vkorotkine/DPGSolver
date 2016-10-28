@@ -654,6 +654,5 @@ PCc[P][1] = (d-1)*max(PGc[P]-1,u1);
 		} else { // Collocated
 			// Do nothing.
 		}
-//printf("%s %s %d %d\n",DB.NodeTypeIvc[P][1],DB.NodeTypeIfc[P][1],PIvc[P][1],PIfc[P][1]);
 	}
 }

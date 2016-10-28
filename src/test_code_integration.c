@@ -217,10 +217,10 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 
 		for (P = PMin; P <= PMax; P++) {
 			Indh = (ML-MLMin)*NP+(P-PMin);
-			if (fabs(ConvOrders[i][Indh]-(P+OrderIncrement[i])) > 0.125) {
+			if ((ConvOrders[i][Indh]-(P+OrderIncrement[i])) < -0.125) {
 				*pass = 0;
 
-				printf("i = %d, P = %d\n",i,P);
+				printf("i = %d, P = %d, ConvOrder = (% .3e, % .3e)\n",i,P,ConvOrders[i][Indh],1.0*(P+OrderIncrement[i]));
 				break;
 			}
 		}
@@ -230,12 +230,15 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 	free(OrderIncrement);
 
 	if (!(*pass)) {
-		for (i = 0; i < NVars; i++)
-			array_print_d(NML,NP,ConvOrders[i],'R');
+printf("Re-enable printing here.\n");
+//		for (i = 0; i < NVars; i++)
+//			array_print_d(NML,NP,ConvOrders[i],'R');
 	} else {
 		TestDB.Npass++;
 	}
 printf("ViscousFluxType: %d\n",DB.ViscousFluxType);
+printf("h:\n");
+array_print_d(NML,NP,h,'R');
 printf("L2Errors: \n");
 for (i = 0; i < NVars; i++)
 array_print_d(NML,NP,L2Errors[i],'R');
