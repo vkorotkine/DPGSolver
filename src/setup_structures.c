@@ -47,6 +47,9 @@ static void compute_distance_matrix(const unsigned int Nn, const unsigned int BC
 	             tmp_ui, IndDXYZ, IndComp[2];
 	double       tmp_d;
 
+	// silence
+	IndComp[0] = IndComp[1] = 0;
+
 	if (d == 1)
 		return;
 

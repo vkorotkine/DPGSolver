@@ -190,7 +190,7 @@ TESTCASE_LIST := dSphericalBump GaussianBump PeriodicVortex \
                  Poisson
 # ToBeModified (Remove unneeded meshtypes)
 MESHTYPE_LIST := ToBeCurvedStructuredTRI ToBeCurvedStructuredQUAD ToBeCurvedStructuredTET ToBeCurvedStructuredHEX \
-                 ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR ToBeCurvedStructuredMixed ToBeCurvedMixed \
+                 ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR ToBeCurvedMixed ToBeCurvedTET CurvedTET \
                  ToBeCurvedStructuredMixedTP ToBeCurvedStructuredMixedHW ToBeCurvedMixedHW ToBeCurvedMixedTP StructuredTET
 
 OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))

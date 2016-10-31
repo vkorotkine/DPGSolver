@@ -31,7 +31,8 @@
  *			2) Optimal convergence orders
  *
  *	Comments:
- *		*** IMPORTANT ***   Convergence Order Testing   *** IMPORTANT ***
+ *
+ *	*** IMPORTANT ***   Convergence Order Testing   *** IMPORTANT ***
  *
  *		It was found that optimal convergence was not possible to obtain using a series of uniformly refined TET meshes
  *		based on the "refine by splitting" algorithm in gmsh. However, optimal orders were recovered when a series of
@@ -50,22 +51,78 @@
  *
  *		The second condition above is necessary as the h-refinement algorithm will not provide optimal convergence if
  *		both of these refinement alternatives result in similar behaviour to that discussed above.
-
- *		*** IMPORTANT ***   Convergence Order Testing   *** IMPORTANT ***
+ *
+ *	*** IMPORTANT ***   Convergence Order Testing   *** IMPORTANT ***
+ *
+ *		When testing with FLUX_IP, the iterative solver seems much more likely to fail based on several tests,
+ *		regardless of the value selected for tau. The tolerance on the symmetry test might also need to be increased to
+ *		show a passing result for this flux.
  *
  *	Notation:
  *
  *	References:
  */
 
+struct S_linearization {
+	Mat A, A_cs, A_csc;
+	Vec b, b_cs, b_csc, x, x_cs, x_csc;
+};
+
+static void test_linearization(int nargc, char **argvNew, const unsigned int Nref, const unsigned int update_argv,
+                               const char *TestName, struct S_linearization *data)
+{
+	unsigned int pass;
+
+	PetscBool Symmetric;
+
+	Mat A, A_cs, A_csc;
+	Vec b, b_cs, b_csc, x, x_cs, x_csc;
+
+	A = data->A; A_cs = data->A_cs; A_csc = data->A_csc;
+	b = data->b; b_cs = data->b_cs; b_csc = data->b_csc;
+	x = data->x; x_cs = data->x_cs; x_csc = data->x_csc;
+
+	code_startup(nargc,argvNew,Nref,update_argv);
+
+	implicit_info_Poisson();
+
+	finalize_LHS(&A,&b,&x,0);
+	compute_A_cs(&A_cs,&b_cs,&x_cs,0);
+	compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
+
+//	MatView(A,PETSC_VIEWER_STDOUT_SELF);
+//	MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
+
+	MatIsSymmetric(A,1e2*EPS,&Symmetric);
+//	MatIsSymmetric(A_cs,1e5*EPS,&Symmetric);
+
+	pass = 0;
+	if (PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf")     < 1e2*EPS &&
+	    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf") < 1e2*EPS &&
+	    Symmetric)
+		pass = 1, TestDB.Npass++;
+	else
+		printf("%e %e %d\n",PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf"),
+		                    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf"),Symmetric);
+
+	printf("%s",TestName);
+	test_print(pass);
+
+	finalize_ksp(&A,&b,&x,2);
+	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
+	finalize_ksp(&A_csc,&b_csc,&x_csc,2);
+	code_cleanup();
+}
+
 void test_integration_Poisson(int nargc, char **argv)
 {
 	unsigned int pass;
-	char         **argvNew;
+	char         **argvNew, *TestName;
 
 	argvNew    = malloc(2          * sizeof *argvNew);  // free
 	argvNew[0] = malloc(STRLEN_MAX * sizeof **argvNew); // free
 	argvNew[1] = malloc(STRLEN_MAX * sizeof **argvNew); // free
+	TestName   = malloc(STRLEN_MAX * sizeof *TestName); // free
 
 	strcpy(argvNew[0],argv[0]);
 
@@ -74,7 +131,7 @@ void test_integration_Poisson(int nargc, char **argv)
 	/*
 	 *	Input:
 	 *
-	 *		Meshes for a curved Poisson problem.
+	 *		Meshes for a curved Poisson problem. (ToBeModified: Potentially just coarsest mesh then h-refinement)
 	 *
 	 *	Expected Output:
 	 *
@@ -84,12 +141,10 @@ void test_integration_Poisson(int nargc, char **argv)
 	 */
 
 	unsigned int P, ML, PMin, PMax, MLMin, MLMax;
+	struct S_linearization *data;
 
-	PetscBool Symmetric;
+	data = calloc(1 , sizeof *data); // free
 
-	Mat A = NULL, A_cs = NULL, A_csc = NULL;
-	Vec b = NULL, b_cs = NULL, b_csc = NULL,
-	    x = NULL, x_cs = NULL, x_csc = NULL;
 
 	strcpy(TestDB.TestCase,"Poisson");
 
@@ -104,103 +159,54 @@ void test_integration_Poisson(int nargc, char **argv)
 	TestDB.PGlobal = 3;
 	TestDB.ML      = 0;
 
+	//              0         10        20        30        40        50
+	strcpy(TestName,"Linearization Poisson (2D - Mixed):              ");
 	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed2D");
 
-	code_startup(nargc,argvNew,0,1);
+//	test_linearization(nargc,argvNew,0,1,TestName,data);
 
-	implicit_info_Poisson();
-
-	finalize_LHS(&A,&b,&x,0);
-	compute_A_cs(&A_cs,&b_cs,&x_cs,0);
-	compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
-
-//	MatView(A,PETSC_VIEWER_STDOUT_SELF);
-//	MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
-
-	MatIsSymmetric(A,1e5*EPS,&Symmetric);
-//	MatIsSymmetric(A_cs,1e5*EPS,&Symmetric);
-
-	pass = 0;
-	if (PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf")     < 1e2*EPS &&
-	    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf") < 1e2*EPS &&
-	    Symmetric)
-		pass = 1, TestDB.Npass++;
-	else
-		printf("%e %e %d\n",PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf"),
-		                    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf"),Symmetric);
-
-	//     0         10        20        30        40        50
-	printf("Linearization Poisson (2D - Mixed):              ");
-	test_print(pass);
-//	EXIT_MSG;
-
-	finalize_ksp(&A,&b,&x,2);
-	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
-	finalize_ksp(&A_csc,&b_csc,&x_csc,2);
-	code_cleanup();
-
-/*
 	// **************************************************************************************************** //
-	// 3D (Mixed TET/PYR mesh)
+	// 3D (TET mesh)
 	TestDB.PGlobal = 2;
 	TestDB.ML      = 0;
 
-//	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_TP");
-	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_HW");
+	//              0         10        20        30        40        50
+	strcpy(TestName,"Linearization Poisson (3D - TET):                ");
+	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
 
-	code_startup(nargc,argvNew,0,1);
+	test_linearization(nargc,argvNew,0,1,TestName,data);
 
-	implicit_info_Poisson();
-
-	finalize_LHS(&A,&b,&x,0);
-	compute_A_cs(&A_cs,&b_cs,&x_cs,0);
-	compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
-
-//	MatView(A,PETSC_VIEWER_STDOUT_SELF);
-//	MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
-
-	MatIsSymmetric(A,1e5*EPS,&Symmetric);
-//	MatIsSymmetric(A_cs,1e5*EPS,&Symmetric);
-
-	pass = 0;
-	if (PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf")     < 1e2*EPS &&
-	    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf") < 1e2*EPS &&
-	    Symmetric)
-		pass = 1, TestDB.Npass++;
-	else
-		printf("%e %e %d\n",PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf"),
-		                    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf"),Symmetric);
-
-	//     0         10        20        30        40        50
-	printf("Linearization Poisson (3D - Mixed TET/PYR):      ");
-	test_print(pass);
-//	EXIT_MSG;
-
-	finalize_ksp(&A,&b,&x,2);
-	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
-	finalize_ksp(&A_csc,&b_csc,&x_csc,2);
-	code_cleanup();
-*/
 
 	// **************************************************************************************************** //
 	// Convergence Order Testing
 	// **************************************************************************************************** //
-	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_TP");
+	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
+//	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_TP");
 //	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_HW");
 
-/* Getting incorrect orders on TET mesh even with straight elements. Getting correct orders on structed Hex meshes.
- * Getting incorrect orders on unstructured Hex meshes with straight elements. All curved element trials are giving
- * suboptimal convergence. All results above using only Dirichlet BCs.
- *	-> Potentially have a bug with TET treatment and likely the parametrization using cube_to_sphere may introduce some
- *	problems. Also try on the unstructured hex mesh without using the cube_to_sphere projection and see if optimal
- *	orders are obtained.
+/*	Getting correct orders on straight TET meshes. When the ToBeCurved function is enabled, the correct orders are lost.
+ *	This occurs even when only straight elements are used on the projected meshes, even for the P1 case.
+ *	Note that optimal orders are recovered on straight meshes (mixed BCs) using unprojected meshes with elements already
+ *	placed along the sphere boundary (project_to_sphere not used in poisson_Solver); this is expected as boundary
+ *	conditions are always exact when the projection to the exact surface is not used.
+ *	Based on the two tests above, it seems certainly to be the case that the projection from cube to sphere is causing a
+ *	violation of the regular mesh requirement in the sequence of refined meshes, but only in 3D.
+ *
+ *	To Do:
+ *		Implement the curved geometry treatment based on blending.
+ *		Write a test to check the mesh quality in all refined mesh sequences.
+ *		Convert refined mesh sequences to uniform h-refinement of initially coarse mesh.
+ *			This will work in 2D but changes to the uniform refinement of TETs will be necessary to ensure that the mesh
+ *			regularity condition is met as the refinement is performed. PYR refinement should also be investigated while
+ *			the HEX and WEDGE refinements would not pose any problems with regards to this issue.
+ *		Check literature (Mavriplis (FV), Galbraith) for mention of this issue in TET verification studies.
  */
 	TestDB.PG_add = 0;
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
 	PMin = 1;  PMax = 2;
-	MLMin = 0; MLMax = 3;
+	MLMin = 1; MLMax = 3;
 
 	for (P = PMin; P <= PMax; P++) {
 	for (ML = MLMin; ML <= MLMax; ML++) {
@@ -208,6 +214,9 @@ void test_integration_Poisson(int nargc, char **argv)
 		TestDB.ML = ML;
 
 		code_startup(nargc,argvNew,0,1);
+
+evaluate_mesh_regularity();
+EXIT_MSG;
 
 		solver_Poisson();
 		compute_errors_global();
@@ -224,8 +233,8 @@ void test_integration_Poisson(int nargc, char **argv)
 
 
 
-
-
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
+	free(TestName);
+	free(data);
 	free(TestDB.TestCase);
 }

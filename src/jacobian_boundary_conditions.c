@@ -73,6 +73,7 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 	// silence
 	rhoL_ptr = WOut;
 	rhovL_ptr = rhowL_ptr = NULL;
+	n2 = n3 = 0.0;
 
 	NnTotal = Nn*Nel;
 	Nvar    = Neq;

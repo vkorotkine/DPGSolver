@@ -48,6 +48,9 @@ double *basis_TP(const unsigned int P, const double *rst, const unsigned int Nn,
 	int          sd, sN;
 	double       *ChiRef_rst, *r, *s, *t;
 
+	// silence
+	s = t = NULL;
+
 	N = P+1;
 
 	u1 = 1;

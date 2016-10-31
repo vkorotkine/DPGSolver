@@ -11,6 +11,7 @@
 #include "mkl.h"
 
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
@@ -204,10 +205,15 @@ void setup_geometry(void)
 
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 			setup_ToBeCurved(VOLUME);
-	} else if (strstr(MeshType,"Curved")) {
-		if (!DB.MPIrank && !DB.Testing)
-			printf("Add in support for MeshType == Curved (setup_geometry)");
-		exit(1);
+} else if (0&&strstr(MeshType,"Curved")) {
+	/*	Marking VOLUMEs with curved EDGEs (but not necessarily FACETs in 3D) (generalizes down to 2D as well):
+	 *
+	 *	Loop through all FACETs. For FACETs on curved boundaries, mark vertices of these FACETs as curved.
+	 *	Loop through all VOLUMEs. Loop through vertices of each VOLUME and check if 2 or more vertices are "curved".
+	 */
+		if (!DB.MPIrank)
+			printf("Add in support for MeshType == Curved (setup_geometry)\n");
+		EXIT_MSG;
 	} else {
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 			setup_straight(VOLUME);

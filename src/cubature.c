@@ -577,7 +577,7 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 
 	// Silence compiler warnings
 	PMax = 0; Nsymms = 0; Ngroups = 0;
-	w_read = malloc(0 * sizeof *w_read); // silence
+	w_read = wOut = NULL;
 
 	if (strstr(NodeType,"AO")) {
 		if (return_w)
@@ -654,7 +654,6 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 			}
 		}
 
-		free(w_read);
 		w_read = malloc(Ngroups * sizeof *w_read); // free
 
 		for (i = 0; i < Ngroups; i++) {

@@ -609,12 +609,12 @@ void setup_parameters_L2proj(void)
 	for (P = 0; P <= PMax; P++) {
 		// Geometry
 		PGc[P]    = max(P,u1)+PG_add;
-PGc[P] = PGs;
+//PGc[P] = PGs;
 		PCs[P][0] = PGs;
 		PCs[P][1] = max(PGs-1,u1);
 		PCs[P][2] = PGs;             // ToBeModified
-PCc[P][0] = (d-1)*PGc[P];
-PCc[P][1] = (d-1)*max(PGc[P]-1,u1);
+		PCc[P][0] = (d-1)*PGc[P];
+		PCc[P][1] = (d-1)*max(PGc[P]-1,u1);
 		PCc[P][2] = PGc[P];          // ToBeModified
 		PJs[P][0] = PGs;
 		PJs[P][1] = max(PGs-1,u1);

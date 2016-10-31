@@ -70,6 +70,8 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 	    strstr(TestCase,"Poisson")          ||
 	    strstr(TestCase,"Test_linearization")) {
 			ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
+//printf("stbc: %d\n",VOLUME->indexg);
+//array_print_d(NvnG,d,XYZ,'C');
 //for (i = 0; i < NvnG*d; i++)
 //	XYZ[i] = XYZ_S[i];
 	} else if (strstr(TestCase,"GaussianBump") ||
@@ -278,7 +280,8 @@ static void ToBeCurved_TP(unsigned int Nn, double *XYZ_S, double *XYZ)
 	             F6[2], *Fv, *Fe, *Ff;
 
 	// silence
-	ZL = ZR = 0.0;
+	XYZn[0] = XYZn[1] = XYZn[2] = 0.0;
+	XL = XR = ZL = ZR = 0.0;
 	Nv = 0; Ne = 0; Nf = 0;
 
 	XZnf       = malloc (Nn*2 * sizeof *XZnf);       // free
