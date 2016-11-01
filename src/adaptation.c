@@ -267,7 +267,7 @@ static void check_levels_coarse(const unsigned int indexg, const struct S_VInfo 
 {
 	// Standard datatypes
 	unsigned int i, iMax, Nf, f, fh, vhMin, vhMax, fhMin, fhMax, Indf, Indfh, Indsib,
-	             indexg_sib, indexg_neigh, 
+	             indexg_sib, indexg_neigh,
 	             *VNeigh, *VType, *hp_levels, *hp_coarse_current, *fh_range, *vh_range, *h_siblings, *h_forbid_c;
 
 	struct S_ELEMENT *ELEMENT;
@@ -672,7 +672,7 @@ void adapt_hp(void)
 			}
 			break;
 		}
-// ToBeDeleted	
+// ToBeDeleted
 /*
 if (hp_coarse_current_err[indexg]) {
 	if (Adapt == ADAPT_P) {
@@ -784,5 +784,30 @@ void mesh_to_level(const unsigned int level)
 			if (updated)
 				mesh_update();
 		}
+	}
+}
+
+void mesh_to_order(const unsigned int order)
+{
+	unsigned int updated = 1;
+	struct S_VOLUME *VOLUME;
+
+	while (updated) {
+		updated = 0;
+
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			if (VOLUME->P != order) {
+				updated = 1;
+
+				VOLUME->Vadapt = 1;
+				if (VOLUME->P > order)
+					VOLUME->adapt_type = PCOARSE;
+				else
+					VOLUME->adapt_type = PREFINE;
+			}
+		}
+
+		if (updated)
+			mesh_update();
 	}
 }

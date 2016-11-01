@@ -23,6 +23,7 @@
 #include "array_norm.h"
 #include "solver_Poisson.h"
 #include "finalize_LHS.h"
+#include "adaptation.h"
 
 /*
  *	Purpose:
@@ -116,7 +117,7 @@ static void test_linearization(int nargc, char **argvNew, const unsigned int Nre
 
 void test_integration_Poisson(int nargc, char **argv)
 {
-	unsigned int pass;
+	unsigned int pass = 0;
 	char         **argvNew, *TestName;
 
 	argvNew    = malloc(2          * sizeof *argvNew);  // free
@@ -141,6 +142,7 @@ void test_integration_Poisson(int nargc, char **argv)
 	 */
 
 	unsigned int P, ML, PMin, PMax, MLMin, MLMax;
+	double       *mesh_quality;
 	struct S_linearization *data;
 
 	data = calloc(1 , sizeof *data); // free
@@ -163,7 +165,8 @@ void test_integration_Poisson(int nargc, char **argv)
 	strcpy(TestName,"Linearization Poisson (2D - Mixed):              ");
 	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed2D");
 
-//	test_linearization(nargc,argvNew,0,1,TestName,data);
+TestDB.PGlobal = 1;
+	test_linearization(nargc,argvNew,0,1,TestName,data);
 
 	// **************************************************************************************************** //
 	// 3D (TET mesh)
@@ -174,13 +177,14 @@ void test_integration_Poisson(int nargc, char **argv)
 	strcpy(TestName,"Linearization Poisson (3D - TET):                ");
 	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
 
-	test_linearization(nargc,argvNew,0,1,TestName,data);
+//	test_linearization(nargc,argvNew,0,1,TestName,data);
 
 
 	// **************************************************************************************************** //
 	// Convergence Order Testing
 	// **************************************************************************************************** //
-	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
+//	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
+	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed2D");
 //	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_TP");
 //	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_HW");
 
@@ -194,7 +198,6 @@ void test_integration_Poisson(int nargc, char **argv)
  *
  *	To Do:
  *		Implement the curved geometry treatment based on blending.
- *		Write a test to check the mesh quality in all refined mesh sequences.
  *		Convert refined mesh sequences to uniform h-refinement of initially coarse mesh.
  *			This will work in 2D but changes to the uniform refinement of TETs will be necessary to ensure that the mesh
  *			regularity condition is met as the refinement is performed. PYR refinement should also be investigated while
@@ -206,29 +209,41 @@ void test_integration_Poisson(int nargc, char **argv)
 
 	// Convergence orders
 	PMin = 1;  PMax = 2;
-	MLMin = 1; MLMax = 3;
+	MLMin = 0; MLMax = 2;
+
+	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
+
+	TestDB.ML = DB.ML;
+	code_startup(nargc,argvNew,0,2);
 
 	for (P = PMin; P <= PMax; P++) {
 	for (ML = MLMin; ML <= MLMax; ML++) {
 		TestDB.PGlobal = P;
 		TestDB.ML = ML;
 
-		code_startup(nargc,argvNew,0,1);
-
-evaluate_mesh_regularity();
-EXIT_MSG;
+		mesh_to_level(TestDB.ML);
+		mesh_to_order(TestDB.PGlobal);
+//		code_startup(nargc,argvNew,0,1);
+//		code_startup(nargc,argvNew,0,2);
 
 		solver_Poisson();
 		compute_errors_global();
 
-		if (P == PMax && ML == MLMax)
-			check_convergence_orders(MLMin,MLMax,PMin,PMax,&pass);
+		if (P == PMin)
+			evaluate_mesh_regularity(&mesh_quality[ML-MLMin]);
 
-		code_cleanup();
+		if (P == PMax && ML == MLMax) {
+			check_convergence_orders(MLMin,MLMax,PMin,PMax,&pass);
+			check_mesh_regularity(mesh_quality,MLMax-MLMin+1,&pass);
+		}
+
+//		code_cleanup();
 	}}
+	code_cleanup();
+	free(mesh_quality);
 	// test with all fluxes as they are implemented (ToBeModified)
 
-	printf("Convergence Orders - Poisson (2D - TRI  ):       ");
+	printf("Convergence Orders - Poisson (3D - TET  ):       ");
 	test_print(pass);
 
 

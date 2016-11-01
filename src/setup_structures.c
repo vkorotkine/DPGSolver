@@ -254,7 +254,7 @@ void setup_structures(void)
 			VOLUME->Eclass = get_Eclass(VOLUME->type);
 			VOLUME->update = 1;
 
-			if (AC || (NVC && v == VC[IndVC])) {
+			if (AC || (IndVC < NVC && v == VC[IndVC])) {
 				VOLUME->curved = 1;
 				IndVC++;
 			} else {

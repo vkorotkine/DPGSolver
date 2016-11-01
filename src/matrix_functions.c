@@ -89,7 +89,7 @@ double *inverse_d(const unsigned int N, const unsigned int NRHS, const double *A
 		printf("The diagonal element of the triangular factor of A,\n");
 		printf("U(%i,%i) is zero, so that A is singular;\n", info, info);
 		printf("the solution could not be computed.\n");
-		exit(1);
+		EXIT_MSG;
 	}
 
 	free(A);
@@ -179,7 +179,7 @@ double *mm_Alloc_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, cons
 		ldC = n_MKL;
 		cblas_dgemm(CblasRowMajor,transa,transb,m_MKL,n_MKL,k_MKL,alpha,A,ldA,B,ldB,0.0,C,ldC);
 	} else {
-		printf("Error: Invalid layout in mm_*.\n"), exit(1);
+		printf("Error: Invalid layout in mm_*.\n"), EXIT_MSG;
 	}
 
 	return C;
@@ -231,7 +231,7 @@ void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_T
 		ldC = n_MKL;
 		cblas_dgemm(CblasRowMajor,transa,transb,m_MKL,n_MKL,k_MKL,alpha,A,ldA,B,ldB,beta,C,ldC);
 	} else {
-		printf("Error: Invalid layout in mm_*.\n"), exit(1);
+		printf("Error: Invalid layout in mm_*.\n"), EXIT_MSG;
 	}
 }
 
@@ -459,7 +459,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m1k8
 			} default: {
-				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), EXIT_MSG;
 				break; // m1
 			}}
 			break;
@@ -586,7 +586,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m2k8
 			} default: {
-				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), EXIT_MSG;
 				break; // m2
 			}}
 			break;
@@ -737,7 +737,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m3k8
 			} default: {
-				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), EXIT_MSG;
 				break; // m3
 			}}
 			break;
@@ -912,7 +912,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m4k8
 			} default: {
-				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), EXIT_MSG;
 				break; // m4
 			}}
 			break;
@@ -1111,7 +1111,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m5k8
 			} default: {
-				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), EXIT_MSG;
 				break; // m5
 			}}
 			break;
@@ -1334,7 +1334,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m6k8
 			} default: {
-				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), EXIT_MSG;
 				break; // m6
 			}}
 			break;
@@ -1581,7 +1581,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m7k8
 			} default: {
-				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), EXIT_MSG;
 				break; // m7
 			}}
 			break;
@@ -1852,12 +1852,12 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m8k8
 			} default: {
-				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), exit(1);
+				printf("Error: Unsupported m = %d, k = %d, combination in mm_CTN_d (useBlas = 0).\n",m,k), EXIT_MSG;
 				break; // m8
 			}}
 			break;
 		} default: {
-			printf("Error: Unsupported m = %d, in mm_CTN_d (useBlas = 0).\n",m), exit(1);
+			printf("Error: Unsupported m = %d, in mm_CTN_d (useBlas = 0).\n",m), EXIT_MSG;
 			break;
 		}}
 		break;
@@ -1882,7 +1882,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 		}
 		break;
 	default:
-		printf("Error: Unsupported value of useBLAS (%d) in mm_CTN_d.\n",useBLAS), exit(1);
+		printf("Error: Unsupported value of useBLAS (%d) in mm_CTN_d.\n",useBLAS), EXIT_MSG;
 		break;
 	}
 }

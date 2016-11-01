@@ -1669,10 +1669,10 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					ChiRefCc_fIs = basis(PCc[P][Eclass],rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
 					ChiRefCc_fIc = basis(PCc[P][Eclass],rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
 
-					GradChiRefGs_fIs = grad_basis(PGs,   rst_fIs,NfnIs[P][IndFType],&Nbf,dE); // free
-					GradChiRefGs_fIc = grad_basis(PGs,   rst_fIc,NfnIc[P][IndFType],&Nbf,dE); // free
-					GradChiRefGc_fIs = grad_basis(PGc[P],rst_fIs,NfnIs[P][IndFType],&Nbf,dE); // free
-					GradChiRefGc_fIc = grad_basis(PGc[P],rst_fIc,NfnIc[P][IndFType],&Nbf,dE); // free
+					GradChiRefGs_fIs = grad_basis(PGs,   rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
+					GradChiRefGs_fIc = grad_basis(PGs,   rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
+					GradChiRefGc_fIs = grad_basis(PGc[P],rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
+					GradChiRefGc_fIc = grad_basis(PGc[P],rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
 
 					ChiGs_fS  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnGs[1],NvnGs[1],1.0,ChiRefGs_fS, TGs); // free
 					ChiGs_fIs = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,ChiRefGs_fIs,TGs); // free

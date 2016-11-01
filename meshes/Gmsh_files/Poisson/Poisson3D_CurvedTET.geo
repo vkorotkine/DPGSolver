@@ -1,6 +1,6 @@
 Mesh.Algorithm = 6;
 
-Refine = 3;
+Refine = 0;
 
 lc = .55/2.0^Refine;
 
@@ -22,9 +22,9 @@ Line Loop(4010) = {1005,-1002,-1006};
 Line Loop(4012) = {1004,1001,-1005};
 Line Loop(4017) = {-1002,-1003,1001};
 
-Ruled Surface(4009) = {4008};
-Ruled Surface(4011) = {4010};
-Ruled Surface(4013) = {4012};
+Plane Surface(4009) = {4008};
+Plane Surface(4011) = {4010};
+Plane Surface(4013) = {4012};
 Ruled Surface(4018) = {4017};
 
 Surface Loop(7029) = {4009,4011,4013,4018};

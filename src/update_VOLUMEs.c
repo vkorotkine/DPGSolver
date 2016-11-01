@@ -91,13 +91,15 @@ void update_VOLUME_hp(void)
 				 LevelsMax = DB.LevelsMax,
 	             Nvar      = DB.Nvar;
 
-	char         *MeshType = DB.MeshType;
+	char         *MeshType = DB.MeshType,
+	             *TestCase = DB.TestCase;
 
 	// Standard datatypes
 	unsigned int i, iMax, P, PNew, f, level, adapt_type, vh, vhMin, vhMax, VType, Nf,
 	             IndEhref, NvnGs[2], NvnGc[2], NvnS[2], NvnSP, NCols, update, maxP;
 	double       *I_vGs_vGc[2], *XYZ_vC, *XYZ_S,
-	             **Ihat_vS_vS, **I_vGs_vGs, **L2hat_vS_vS, *What, *RES, *WhatP, *WhatH, *RESP, *RESH, *dummyPtr_d;
+	             **Ihat_vS_vS, **I_vGs_vGs, **L2hat_vS_vS, *What, *RES, *WhatP, *WhatH, *RESP, *RESH, *dummyPtr_d,
+	             *uhat, *uhatP, *uhatH;
 
 	struct S_OPERATORS *OPS;
 	struct S_ELEMENT   *ELEMENT;
@@ -198,36 +200,53 @@ void update_VOLUME_hp(void)
 				free(VOLUME->C_vI);
 				setup_geom_factors(VOLUME);
 
-				// Project What and RES
+				// Project solution coefficients (and RES if applicable)
 				NvnS[0]    = OPS->NvnS;
 				NvnSP      = OPS->NvnSP;
 
 				VOLUME->NvnS = NvnSP;
 
-				What = VOLUME->What;
-				RES  = VOLUME->RES;
+				if (strstr(TestCase,"Poisson")) {
+					uhat = VOLUME->uhat;
 
-				WhatP = malloc(NvnSP*Nvar * sizeof *WhatP); // keep
-				RESP  = malloc(NvnSP*Nvar * sizeof *RESP);  // keep
+					uhatP = malloc(NvnSP*Nvar * sizeof *uhatP); // keep
 
-				if (adapt_type == PREFINE) {
-					Ihat_vS_vS = OPS->Ihat_vS_vS;
-					mm_CTN_d(NvnSP,Nvar,NvnS[0],Ihat_vS_vS[0],What,WhatP);
-					mm_CTN_d(NvnSP,Nvar,NvnS[0],Ihat_vS_vS[0],RES,RESP);
+					if (adapt_type == PREFINE) {
+						Ihat_vS_vS = OPS->Ihat_vS_vS;
+						mm_CTN_d(NvnSP,Nvar,NvnS[0],Ihat_vS_vS[0],uhat,uhatP);
+					} else {
+						L2hat_vS_vS = OPS->L2hat_vS_vS;
+						mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],uhat,uhatP);
+					}
+					free(uhat);
+					VOLUME->uhat = uhatP;
 				} else {
-					L2hat_vS_vS = OPS->L2hat_vS_vS;
-					mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],What,WhatP);
-					mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],RES,RESP);
+					What = VOLUME->What;
+					RES  = VOLUME->RES;
+
+					WhatP = malloc(NvnSP*Nvar * sizeof *WhatP); // keep
+					RESP  = malloc(NvnSP*Nvar * sizeof *RESP);  // keep
+
+					if (adapt_type == PREFINE) {
+						Ihat_vS_vS = OPS->Ihat_vS_vS;
+						mm_CTN_d(NvnSP,Nvar,NvnS[0],Ihat_vS_vS[0],What,WhatP);
+						mm_CTN_d(NvnSP,Nvar,NvnS[0],Ihat_vS_vS[0],RES,RESP);
+					} else {
+						L2hat_vS_vS = OPS->L2hat_vS_vS;
+						mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],What,WhatP);
+						mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],RES,RESP);
+					}
+
+					free(What);
+					free(RES);
+
+					VOLUME->What = WhatP;
+					VOLUME->RES  = RESP;
 				}
-
-				free(What);
-				free(RES);
-
-				VOLUME->What = WhatP;
-				VOLUME->RES  = RESP;
 				break;
 			case HREFINE:
 				VType = VOLUME->type;
+				uhat  = VOLUME->uhat;
 				What  = VOLUME->What;
 				RES   = VOLUME->RES;
 
@@ -318,20 +337,35 @@ void update_VOLUME_hp(void)
 
 // Fix Vgrp linked list (ToBeDeleted)
 
-					// Project What and RES
-					WhatH = malloc(NvnS[IndEhref]*Nvar * sizeof *WhatH); // keep
-					RESH  = malloc(NvnS[IndEhref]*Nvar * sizeof *RESH);  // keep
-
+					// Project solution coefficients (and RES if applicable)
 					Ihat_vS_vS = OPS->Ihat_vS_vS;
-					mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],What,WhatH);
-					mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],RES,RESH);
-
 					VOLUMEc->NvnS = NvnS[IndEhref];
-					VOLUMEc->What = WhatH;
-					VOLUMEc->RES  = RESH;
+					if (strstr(TestCase,"Poisson")) {
+						uhatH = malloc(NvnS[IndEhref]*Nvar * sizeof *uhatH); // keep
+
+						mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],uhat,uhatH);
+						for (i = 0; i < Nvar*NvnS[0]; i++) {
+							uhatH[i] = 0.0;
+						}
+
+						VOLUMEc->uhat = uhatH;
+					} else {
+						WhatH = malloc(NvnS[IndEhref]*Nvar * sizeof *WhatH); // keep
+						RESH  = malloc(NvnS[IndEhref]*Nvar * sizeof *RESH);  // keep
+
+						mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],What,WhatH);
+						mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],RES,RESH);
+
+						VOLUMEc->What = WhatH;
+						VOLUMEc->RES  = RESH;
+					}
 				}
-				free(VOLUME->What);
-				free(VOLUME->RES);
+				if (strstr(TestCase,"Poisson")) {
+					free(VOLUME->uhat);
+				} else {
+					free(VOLUME->What);
+					free(VOLUME->RES);
+				}
 				break;
 			case HCOARSE:
 				VOLUMEp = VOLUME->parent;
@@ -364,16 +398,21 @@ void update_VOLUME_hp(void)
 						VOLUMEp->PNew = maxP;
 						VOLUMEp->adapt_type = HCOARSE;
 
-						// Project What and RES
+						// Project solution coefficients (and RES if applicable)
 						NvnS[0] = OPS->NvnS;
 						L2hat_vS_vS = OPS->L2hat_vS_vS;
 
 						NCols = d;
 
-						What = calloc(NvnS[0]*Nvar , sizeof *What); // keep
-						RES  = calloc(NvnS[0]*Nvar , sizeof *RES);  // keep
-
 						dummyPtr_d = malloc(NvnS[0]*Nvar * sizeof *dummyPtr_d); // free
+
+						uhat = What = RES = NULL;
+						if (strstr(TestCase,"Poisson")) {
+							uhat = calloc(NvnS[0]*Nvar , sizeof *uhat); // keep
+						} else {
+							What = calloc(NvnS[0]*Nvar , sizeof *What); // keep
+							RES  = calloc(NvnS[0]*Nvar , sizeof *RES);  // keep
+						}
 
 						VOLUMEc = VOLUME;
 						for (vh = vhMin; vh <= vhMax; vh++) {
@@ -381,20 +420,31 @@ void update_VOLUME_hp(void)
 							if (vh > vhMin)
 								VOLUMEc = VOLUMEc->next;
 
-							WhatH = VOLUMEc->What;
-							RESH  = VOLUMEc->RES;
+							if (strstr(TestCase,"Poisson")) {
+								uhatH = VOLUMEc->uhat;
+								mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],uhatH,dummyPtr_d);
+								for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
+									uhat[i] += dummyPtr_d[i];
+							} else {
+								WhatH = VOLUMEc->What;
+								RESH  = VOLUMEc->RES;
 
-							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],WhatH,dummyPtr_d);
-							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
-								What[i] += dummyPtr_d[i];
-							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],RESH,dummyPtr_d);
-							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
-								RES[i] += dummyPtr_d[i];
+								mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],WhatH,dummyPtr_d);
+								for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
+									What[i] += dummyPtr_d[i];
+								mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],RESH,dummyPtr_d);
+								for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
+									RES[i] += dummyPtr_d[i];
+							}
 						}
 						free(dummyPtr_d);
 
-						VOLUMEp->What = What;
-						VOLUMEp->RES  = RES;
+						if (strstr(TestCase,"Poisson")) {
+							VOLUMEp->uhat = uhat;
+						} else {
+							VOLUMEp->What = What;
+							VOLUMEp->RES  = RES;
+						}
 					} else {
 						// Ensure that all children are marked as not to be coarsened.
 						VOLUMEc = VOLUME;
@@ -588,7 +638,8 @@ void update_VOLUME_Ops(void)
 				if (!Collocated)
 					compute_inverse_mass(VOLUME);
 			} else {
-				printf("Error: Unsupported SolverType.\n"), EXIT_MSG;
+				// Do nothing
+//				printf("Error: Unsupported SolverType.\n"), EXIT_MSG;
 			}
 		}
 	}

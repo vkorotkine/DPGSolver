@@ -10,6 +10,7 @@
 extern void         adapt_hp         (void);
 extern void         mesh_update      (void);
 extern void         mesh_to_level    (const unsigned int level);
+extern void         mesh_to_order    (const unsigned int order);
 
 extern void         get_PS_range     (unsigned int *PSMin, unsigned int *PSMax);
 extern void         get_Pb_range     (const unsigned int P, unsigned int *PbMin, unsigned int *PbMax);

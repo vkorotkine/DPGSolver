@@ -88,8 +88,8 @@ XYZ(:,2) = abcd(2)+r*reshape(sin(t)'*sin(p),(np+1)*(nt+1),1) ;
 XYZ(:,3) = abcd(3)+r*reshape(ones(size(t))'*cos(p),(np+1)*(nt+1),1);
 plot3(XYZ(:,1),XYZ(:,2),XYZ(:,3),'go');
 
-disp('12T:')
-[rIn rOut rOut/rIn]
+% disp('12T:')
+% [rIn rOut rOut/rIn]
 
 
 %% eq
@@ -155,8 +155,8 @@ XYZ(:,2) = abcd(2)+r*reshape(sin(t)'*sin(p),(np+1)*(nt+1),1) ;
 XYZ(:,3) = abcd(3)+r*reshape(ones(size(t))'*cos(p),(np+1)*(nt+1),1);
 plot3(XYZ(:,1),XYZ(:,2),XYZ(:,3),'ko');
 
-disp('Eq T:')
-[rIn rOut rOut/rIn]
+% disp('Eq T:')
+% [rIn rOut rOut/rIn]
 
 
 % error('exiting');
@@ -207,20 +207,25 @@ daspect([1 1 1])
 d = 3;
 Nf = d+1;
 
-XYZ = [  5.1143e-01  0.0000e+00  6.6716e-01 
- 3.8743e-01  0.0000e+00  5.2045e-01 
- 5.9511e-01  2.2554e-01  7.7135e-01 
- 6.1385e-01  0.0000e+00  4.4726e-01];
-% XYZ = XYZsq;
-% XYZ = [1/4*[2*[XYZsq(1,:)+XYZsq(2,:); XYZsq(1,:)+XYZsq(3,:); XYZsq(1,:)+XYZsq(4,:)]; sum(XYZsq,1)]];
-% XYZ = [1/4*[2*[XYZsq(2,:)+XYZsq(1,:); XYZsq(2,:)+XYZsq(3,:); XYZsq(2,:)+XYZsq(4,:)]; sum(XYZsq,1)]];
-% XYZ = [1/4*[2*[XYZsq(3,:)+XYZsq(1,:); XYZsq(3,:)+XYZsq(2,:); XYZsq(3,:)+XYZsq(4,:)]; sum(XYZsq,1)]];
-% XYZ = [1/4*[2*[XYZsq(4,:)+XYZsq(1,:); XYZsq(4,:)+XYZsq(2,:); XYZsq(4,:)+XYZsq(3,:)]; sum(XYZsq,1)]];
+XYZ = [ 0.00000000000000e+00  4.33012701892087e-01  4.33012701892087e-01 
+ 0.00000000000000e+00  0.00000000000000e+00  4.99999999998693e-01 
+ 4.33012701892087e-01  0.00000000000000e+00  4.33012701892087e-01 
+ 5.10838679751787e-01  5.10838679958756e-01  6.91438852196958e-01];
+
+
+
+XYZp = XYZ;
+plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'-bo');
+XYZp = XYZp([3 1 4 2],:);
+plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'-bo');
 
 
 FNodeInds = [[2 3 4]; [1 3 4]; [1 2 4]; [1 2 3]];
 
 nr = zeros(Nf,d);
+d_p = zeros(Nf,1);
+
+XYZcT = sum(XYZ,1)/4;
 
 for f = 1:Nf
    XYZF =  XYZ(FNodeInds(f,:),:);
@@ -228,23 +233,30 @@ for f = 1:Nf
    Vec1 = XYZF(1,:)-XYZF(3,:);
    Vec2 = XYZF(2,:)-XYZF(3,:);
    
-   n = cross(Vec1,Vec2);
-   nr(f,:) = n/norm(n,2)
-   
-   n = [XYZ(FNodeInds(f,:),:)]\ones(d,1);
+   n       = cross(Vec1,Vec2);
    nr(f,:) = n/norm(n,2);
+   d_p(f)  = dot(nr(f,:),XYZF(3,:));
+   
+   % Ensure that normals point in the outward direction
+   XYZc = sum(XYZF,1)/3;
+   r = norm(XYZcT-XYZc,2);
+   
+   XYZc = XYZc + nr(f,:)*1e2*eps;
+
+   if (norm(XYZcT-XYZc,2)-r < 0.0)
+%        f
+       nr(f,:) = -nr(f,:);
+       d_p(f)  = -d_p(f);
+   end
    
   
    XF = 1/3*sum(XYZ(FNodeInds(f,:),1));
    YF = 1/3*sum(XYZ(FNodeInds(f,:),2));
    ZF = 1/3*sum(XYZ(FNodeInds(f,:),3));
-   
-   quiver3(XF,YF,ZF,nr(f,1),nr(f,2),nr(f,3),0.3)
-   
+   quiver3(XF,YF,ZF,nr(f,1),nr(f,2),nr(f,3),0.02)
 end
-nr
-error('exiting')
-
+% nr
+% error('exiting');
 
 
 LHS = zeros(12,12);
@@ -256,7 +268,8 @@ LHS(10:12,:) = [zeros(d,2) zeros(d,2) zeros(d,2) XYZ(1,:)'-XYZ(3,:)' XYZ(2,:)'-X
 RHS = [-XYZ(4,:)'; -XYZ(4,:)'; -XYZ(4,:)'; -XYZ(3,:)'];
 
 % format longe
-% LHS\RHS
+tmp = LHS\RHS;
+rIn = tmp(9);
 
 
 
@@ -288,16 +301,9 @@ end
 
 
 
-
-
-
-XYZp = XYZ;
-plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'-bo');
-XYZp = XYZp([3 1 4 2],:);
-plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'-bo');
-
+% case 1
 abcd = 1/2*(XYZ(Inde(IndlenEmax,1),:)+XYZ(Inde(IndlenEmax,2),:));
-r = 0.5*norm(XYZ(Inde(IndlenEmax,1),:)-XYZ(Inde(IndlenEmax,2),:),2)
+r = 0.5*norm(XYZ(Inde(IndlenEmax,1),:)-XYZ(Inde(IndlenEmax,2),:),2);
 
 nt = 15*2;
 np = 8*2;
@@ -309,6 +315,7 @@ XYZp(:,1) = abcd(1)+r*reshape(cos(t)'*sin(p),(np+1)*(nt+1),1);
 XYZp(:,2) = abcd(2)+r*reshape(sin(t)'*sin(p),(np+1)*(nt+1),1) ;
 XYZp(:,3) = abcd(3)+r*reshape(ones(size(t))'*cos(p),(np+1)*(nt+1),1);
 % plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'ko');
+% error('exiting');
 
 done = 1;
 
@@ -322,41 +329,79 @@ for i = 1:Nf
 end
 
 if (done)
+    [0 r/rIn r rIn]
+    plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'ko');
     error('found it.');
 end
 
 
 % case 2
-for f = 1:Nf
-    XYZc = XYZ(FNodeInds(f,:),:);
-
-    abc_p = XYZc\ones(d,1);
-
-    LHS = [2*XYZc ones(d,1); abc_p' 0];
-    RHS = [sum(XYZc.^2,2); 1];
-
-    abcd = LHS\RHS;
-    r = sqrt(abcd(d+1)+sum(abcd(1:d).^2))
-end
-
 nt = 15*2;
 np = 8*2;
 t = 0:2*pi/nt:2*pi;
 p = 0:pi/np:pi;
-
 XYZp = zeros((np+1)*(nt+1),d);
-XYZp(:,1) = abcd(1)+r*reshape(cos(t)'*sin(p),(np+1)*(nt+1),1);
-XYZp(:,2) = abcd(2)+r*reshape(sin(t)'*sin(p),(np+1)*(nt+1),1) ;
-XYZp(:,3) = abcd(3)+r*reshape(ones(size(t))'*cos(p),(np+1)*(nt+1),1);
-plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'ro');
 
-error('exiting');
+abcF = zeros(Nf,d);
+rF   = zeros(Nf,1);
+for f = 1:Nf
+    XYZF = XYZ(FNodeInds(f,:),:);
+
+
+    abc_p = nr(f,:);
+
+    LHS = [2*XYZF ones(d,1); abc_p 0];
+    RHS = [sum(XYZF.^2,2); d_p(f)];
+
+    abcd = LHS\RHS;
+    r = sqrt(abcd(d+1)+sum(abcd(1:d).^2));
+    
+    abcF(f,:) = abcd(1:d)';
+    rF(f) = r;
+end
+
+[~,IndrF] = sort(rF);
+
+for f = IndrF'
+    
+    abcd(1:d) = abcF(f,:)';
+    r = rF(f);
+
+%     [f-1 r abcd(1:d)']
+%     [f-1 r]
+    
+    XYZp(:,1) = abcd(1)+r*reshape(cos(t)'*sin(p),(np+1)*(nt+1),1);
+    XYZp(:,2) = abcd(2)+r*reshape(sin(t)'*sin(p),(np+1)*(nt+1),1) ;
+    XYZp(:,3) = abcd(3)+r*reshape(ones(size(t))'*cos(p),(np+1)*(nt+1),1);
+%     plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'ro');
+    
+    done = 1;
+    for i = 1:Nf
+        check = norm(XYZ(i,:)-abcd(1:d)',2)-r;
+%         [i check > 1e2*eps]
+        if (check > 1e2*eps)
+            done = 0;
+            break;
+        end
+    end
+
+    if (done)
+        [1 r/rIn r rIn]
+        plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'ro');
+        error('found it.');
+    end
+end
+
+
+
+
+% error('exiting');
 
 
 LHS = [2*XYZ ones(d+1,1)];
 RHS = sum(XYZ.^2,2);
 abcd = LHS\RHS;
-r = sqrt(abcd(d+1)+sum(abcd(1:d).^2))
+r = sqrt(abcd(d+1)+sum(abcd(1:d).^2));
 
 nt = 15*2;
 np = 8*2;
@@ -369,6 +414,8 @@ XYZp(:,2) = abcd(2)+r*reshape(sin(t)'*sin(p),(np+1)*(nt+1),1) ;
 XYZp(:,3) = abcd(3)+r*reshape(ones(size(t))'*cos(p),(np+1)*(nt+1),1);
 plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'go');
 
+
+[3 r/rIn r rIn sqrt(3/8)*max(lenE)]
 
 
 %%

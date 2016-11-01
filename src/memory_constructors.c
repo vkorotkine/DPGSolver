@@ -12,6 +12,8 @@
 #include "S_VOLUME.h"
 #include "S_FACET.h"
 
+#include "adaptation.h"
+
 /*
  *	Purpose:
  *		Allocate memory for and initialize new structures.
@@ -31,7 +33,6 @@ struct S_ELEMENT *New_ELEMENT(void)
 {
 	// Initialize DB Parameters
 	unsigned int d    = DB.d,
-	             PMax = DB.PMax,
 	             NP   = DB.NP;
 
 	// Standard datatypes
@@ -275,9 +276,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->GfS_fIs[P]    = calloc(NP , sizeof **(ELEMENT->GfS_fIs));
 		ELEMENT->GfS_fIc[P]    = calloc(NP , sizeof **(ELEMENT->GfS_fIc));
 
-		if      (P == 0)    PbMin = P,   PbMax = P+1;
-		else if (P == PMax) PbMin = P-1, PbMax = PMax;
-		else                PbMin = P-1, PbMax = P+1;
+		get_Pb_range(P,&PbMin,&PbMax);
 		for (Pb = PbMin; Pb <= PbMax; Pb++) {
 			ELEMENT->ChiS_vS[P][Pb]    = calloc(NVREFSFMAX , sizeof ***(ELEMENT->ChiS_vS));
 			ELEMENT->ChiS_vIs[P][Pb]   = calloc(NVREFSFMAX , sizeof ***(ELEMENT->ChiS_vIs));

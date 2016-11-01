@@ -268,8 +268,8 @@ void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, con
 	if (0)
 		printf("%e %e\n",XOut[0],YOut[0]);
 
-//	if (1||curved == 1) {
-	if (curved == 1) {
+	if (1||curved == 1) {
+//	if (curved == 1) {
 		for (n = 0; n < Nn; n++) {
 			XOut[n] = XIn[n];
 			YOut[n] = YIn[n];
