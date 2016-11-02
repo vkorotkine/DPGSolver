@@ -15,6 +15,7 @@
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
 #include "S_OpCSR.h"
+#include "Test.h"
 
 #include "element_functions.h"
 #include "matrix_functions.h"
@@ -406,9 +407,13 @@ static char *set_fname(const unsigned int collect)
 		strcat(f_name,"L2errors_");
 	sprintf(string,"%dD_",DB.d);   strcat(f_name,string);
 	                               strcat(f_name,MeshType);
-	sprintf(string,"_ML%d",DB.ML); strcat(f_name,string);
-	if (DB.Adapt == ADAPT_0)
+	if (DB.Adapt == ADAPT_0) {
+		sprintf(string,"_ML%d",DB.ML); strcat(f_name,string);
 		sprintf(string,"P%d",DB.PGlobal), strcat(f_name,string);
+	} else {
+		sprintf(string,"_ML%d",TestDB.ML); strcat(f_name,string);
+		sprintf(string,"P%d",TestDB.PGlobal), strcat(f_name,string);
+	}
 	if (!collect)
 		sprintf(string,"_%d",MPIrank), strcat(f_name,string);
 	strcat(f_name,".txt");

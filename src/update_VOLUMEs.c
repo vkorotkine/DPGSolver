@@ -344,9 +344,6 @@ void update_VOLUME_hp(void)
 						uhatH = malloc(NvnS[IndEhref]*Nvar * sizeof *uhatH); // keep
 
 						mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],uhat,uhatH);
-						for (i = 0; i < Nvar*NvnS[0]; i++) {
-							uhatH[i] = 0.0;
-						}
 
 						VOLUMEc->uhat = uhatH;
 					} else {

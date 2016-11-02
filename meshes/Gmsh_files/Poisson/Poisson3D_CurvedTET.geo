@@ -1,6 +1,6 @@
 Mesh.Algorithm = 6;
 
-Refine = 0;
+Refine = 3;
 
 lc = .55/2.0^Refine;
 

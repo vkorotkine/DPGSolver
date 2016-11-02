@@ -583,9 +583,10 @@ void evaluate_mesh_regularity(double *mesh_quality)
 		r_ratio += rOut/rIn;
 		TETcount += 1;
 
-//printf("%d % .3e % .3e % .3e % .3e\n",k,rOut/rIn,rOut,rIn,sqrt(0.375)*lenE[IndsE[Ne-1]]);
+//printf("%d % .3e % .3e % .3e % .3e % .3e\n",
+//       k,rOut/rIn,rOut,rIn,sqrt(0.375)*lenE[IndsE[Ne-1]],rOut-sqrt(0.375)*lenE[IndsE[Ne-1]]);
 
-		if (rOut > sqrt(0.375)*lenE[IndsE[Ne-1]]+EPS)
+		if (rOut - sqrt(0.375)*lenE[IndsE[Ne-1]] > 1e2*EPS)
 			printf("Error: rOut larger than upper bound on sphere radius.\n"), EXIT_MSG;
 	}
 	if (TETcount)

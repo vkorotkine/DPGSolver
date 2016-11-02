@@ -1341,6 +1341,10 @@ void update_FACET_hp(void)
 
 	switch (Adapt) {
 	default: // ADAPT_HP
+//      Pass adapt type to update_FACET_hp (ToBeModified)
+		DB.Adapt = ADAPT_H; update_FACET_hp();
+		DB.Adapt = ADAPT_P; update_FACET_hp();
+		DB.Adapt = ADAPT_HP;
 		break;
 	case ADAPT_H:
 		// HREFINE

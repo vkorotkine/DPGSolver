@@ -141,7 +141,7 @@ void test_integration_Poisson(int nargc, char **argv)
 	 *
 	 */
 
-	unsigned int P, ML, PMin, PMax, MLMin, MLMax;
+	unsigned int P, ML, PMin, PMax, MLMin, MLMax, Adapt;
 	double       *mesh_quality;
 	struct S_linearization *data;
 
@@ -183,8 +183,8 @@ TestDB.PGlobal = 1;
 	// **************************************************************************************************** //
 	// Convergence Order Testing
 	// **************************************************************************************************** //
-//	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
-	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed2D");
+	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
+//	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed2D");
 //	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_TP");
 //	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_HW");
 
@@ -199,7 +199,8 @@ TestDB.PGlobal = 1;
  *	To Do:
  *		Implement the curved geometry treatment based on blending.
  *		Convert refined mesh sequences to uniform h-refinement of initially coarse mesh.
- *			This will work in 2D but changes to the uniform refinement of TETs will be necessary to ensure that the mesh
+ *			Working in 2D. => Optimal orders (identical results to gmsh's refine by splitting).
+ *			Changes to the uniform refinement of TETs will be necessary to ensure that the mesh
  *			regularity condition is met as the refinement is performed. PYR refinement should also be investigated while
  *			the HEX and WEDGE refinements would not pose any problems with regards to this issue.
  *		Check literature (Mavriplis (FV), Galbraith) for mention of this issue in TET verification studies.
@@ -213,18 +214,24 @@ TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
-	TestDB.ML = DB.ML;
-	code_startup(nargc,argvNew,0,2);
+//	Adapt = ADAPT_0;
+	Adapt = ADAPT_HP;
+	if (Adapt != ADAPT_0) {
+		TestDB.ML = DB.ML;
+		code_startup(nargc,argvNew,0,2);
+	}
 
 	for (P = PMin; P <= PMax; P++) {
 	for (ML = MLMin; ML <= MLMax; ML++) {
 		TestDB.PGlobal = P;
 		TestDB.ML = ML;
 
-		mesh_to_level(TestDB.ML);
-		mesh_to_order(TestDB.PGlobal);
-//		code_startup(nargc,argvNew,0,1);
-//		code_startup(nargc,argvNew,0,2);
+		if (Adapt != ADAPT_0) {
+			mesh_to_level(TestDB.ML);
+			mesh_to_order(TestDB.PGlobal);
+		} else {
+			code_startup(nargc,argvNew,0,1);
+		}
 
 		solver_Poisson();
 		compute_errors_global();
@@ -237,9 +244,11 @@ TestDB.PGlobal = 1;
 			check_mesh_regularity(mesh_quality,MLMax-MLMin+1,&pass);
 		}
 
-//		code_cleanup();
+		if (Adapt == ADAPT_0)
+			code_cleanup();
 	}}
-	code_cleanup();
+	if (Adapt != ADAPT_0)
+		code_cleanup();
 	free(mesh_quality);
 	// test with all fluxes as they are implemented (ToBeModified)
 

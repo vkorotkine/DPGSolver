@@ -17,6 +17,7 @@
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
 #include "S_FACET.h"
+#include "Test.h"
 
 #include "element_functions.h"
 #include "update_VOLUMEs.h"
@@ -1241,9 +1242,13 @@ void solver_Poisson(void)
 	strcpy(fNameOut,"SolFinal_");
 	sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
 	                               strcat(fNameOut,DB.MeshType);
-	sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
-	if (DB.Adapt == ADAPT_0)
-		sprintf(string,"P%d_",DB.PGlobal), strcat(fNameOut,string);
+	if (DB.Adapt == ADAPT_0) {
+		sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
+		sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
+	} else {
+		sprintf(string,"_ML%d",TestDB.ML); strcat(fNameOut,string);
+		sprintf(string,"P%d_",TestDB.PGlobal); strcat(fNameOut,string);
+	}
 	output_to_paraview(fNameOut);
 
 //	if (!DB.Testing)

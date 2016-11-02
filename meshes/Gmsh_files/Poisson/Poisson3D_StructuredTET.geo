@@ -1,7 +1,8 @@
 // Modifiable Parameters
-lc = 1; // Not used.
 
 Refine = 0;
+
+lc = 1.0/2^Refine;
 
 L = 1;
 H = 1;
@@ -36,9 +37,9 @@ Line(3002) = {2,2+4};
 Line(3003) = {3,3+4};
 Line(3004) = {4,4+4};
 
-Transfinite Line{1001:1004} = 2^(Refine)+1 Using Progression 1;
-Transfinite Line{2001:2004} = 2^(Refine)+1 Using Progression 1;
-Transfinite Line{3001:3004} = 2^(Refine)+1 Using Progression 1;
+//Transfinite Line{1001:1004} = 2^(Refine)+1 Using Progression 1;
+//Transfinite Line{2001:2004} = 2^(Refine)+1 Using Progression 1;
+//Transfinite Line{3001:3004} = 2^(Refine)+1 Using Progression 1;
 
 Line Loop (4001) = {1001,2002,-1002,-2001};
 Line Loop (4002) = {1003,2004,-1004,-2003};
@@ -54,7 +55,7 @@ Plane Surface(5002) = {5002};
 Plane Surface(6001) = {6001};
 Plane Surface(6002) = {6002};
 
-Transfinite Surface {4001:4002,5001:5002,6001:6002};
+//Transfinite Surface {4001:4002,5001:5002,6001:6002};
 //Recombine   Surface {4001:4002};
 //Recombine   Surface {5001:5002};
 //Recombine   Surface {6001:6002};
@@ -70,7 +71,8 @@ Volume(7001) = {7001};
 
 // Physical parameters for '.msh' file
 
-Physical Surface(10011) = {6001:6002,5001:5002,4001:4002};
+Physical Surface(10011) = {6001,5001,4001};
+Physical Surface(10012) = {6002,5002,4002};
 
 Physical Volume(9701) = 7001;
 
