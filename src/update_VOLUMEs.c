@@ -148,7 +148,7 @@ void update_VOLUME_hp(void)
 			}
 
 			if (adapt_type == HREFINE) {
-				if (VOLUME->type == PYR)
+				if (VOLUME->type == PYR || VOLUME->type == TET)
 					init_ops(OPS,VOLUME,1);
 				else
 					init_ops(OPS,VOLUME,0);
@@ -278,9 +278,10 @@ void update_VOLUME_hp(void)
 					VOLUMEc->PNew = VOLUME->P;
 					VOLUMEc->level = (VOLUME->level)+1;
 					switch (VType) {
-					default: // LINE, TRI, QUAD, TET, HEX, WEDGE
+					default: // LINE, TRI, QUAD, HEX, WEDGE
 						VOLUMEc->type = VType;
 						break;
+					case TET:
 					case PYR:
 						VOLUMEc->type = get_VOLUMEc_type(VType,vh);
 						break;

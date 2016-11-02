@@ -91,9 +91,10 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 |           | viscous          | TO BE DONE              |
 | Numerical |                  | DONE FOR THE TIME BEING |
 |           | internal penalty | DONE                    |
-|           | bassi-rebay 2    | TO BE DONE              |
-|           | lax-friedrichs   | DONE                    |
-|           | roe-pike         | DONE                    |
+|           | Bassi-Rebay 2    | DONE                    |
+|           | compact DG 2     | DONE                    |
+|           | Lax-Friedrichs   | DONE                    |
+|           | Roe-Pike         | DONE                    |
 
 #### Boundary
 | Function  |      |
@@ -107,8 +108,8 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 | Function            |      |
 |---------------------|------|
 | flux inviscid       | DONE |
-| flux lax-friedrichs | DONE |
-| flux roe-pike       | DONE |
+| flux Lax-Friedrichs | DONE |
+| flux Roe-Pike       | DONE |
 | boundary Riemann    | DONE |
 | boundary SlipWall   | DONE |
 

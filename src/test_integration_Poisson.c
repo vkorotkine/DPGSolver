@@ -163,7 +163,7 @@ void test_integration_Poisson(int nargc, char **argv)
 
 	//              0         10        20        30        40        50
 	strcpy(TestName,"Linearization Poisson (2D - Mixed):              ");
-	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed2D");
+	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
 
 TestDB.PGlobal = 1;
 	test_linearization(nargc,argvNew,0,1,TestName,data);
@@ -183,10 +183,10 @@ TestDB.PGlobal = 1;
 	// **************************************************************************************************** //
 	// Convergence Order Testing
 	// **************************************************************************************************** //
-//	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed2D");
+//	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
 	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
-//	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_TP");
-//	strcpy(argvNew[1],"test/Test_Poisson_linearization_mixed3D_HW");
+//	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_TP");
+//	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_HW");
 
 /*
  *	To Do:

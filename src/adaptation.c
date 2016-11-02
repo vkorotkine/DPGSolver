@@ -98,6 +98,9 @@ void get_Pb_range(const unsigned int P, unsigned int *PbMin, unsigned int *PbMax
 
 void get_vh_range(const struct S_VOLUME *VOLUME, unsigned int *vhMin, unsigned int *vhMax)
 {
+	// Initialize DB Parameters
+	unsigned int TETrefineType = DB.TETrefineType;
+
 	// Standard datatypes
 	unsigned int VType;
 
@@ -114,7 +117,14 @@ void get_vh_range(const struct S_VOLUME *VOLUME, unsigned int *vhMin, unsigned i
 	case TET:
 		// Supported href_type: 0 (Isotropic - 1st internal TET orientation)
 		*vhMin = 1;
-		*vhMax = 8;
+		if (TETrefineType == TET8)
+			*vhMax = 8;
+		else if (TETrefineType == TET12)
+			*vhMax = 12;
+		else if (TETrefineType == TET6)
+			*vhMax = 6;
+		else
+			printf("Error: Unsupported.\n"), EXIT_MSG;
 		break;
 	case HEX:
 		// Supported href_type: 0 (Isotropic)
@@ -174,7 +184,22 @@ void get_fh_range(const struct S_VOLUME *VOLUME, const unsigned int f, unsigned 
 
 unsigned int get_VOLUMEc_type(const unsigned int VType, const unsigned int vh)
 {
+	// Initialize DB Parameters
+	unsigned int TETrefineType = DB.TETrefineType;
+
 	switch (VType) {
+	case TET:
+		if (TETrefineType == TET8 || TETrefineType == TET12) {
+			return TET;
+		} else if (TETrefineType == TET6) {
+			if (vh < 5)
+				return TET;
+			else
+				return PYR;
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+		}
+		break;
 	case PYR:
 		if (vh < 5 || vh > 8)
 			return PYR;
@@ -189,15 +214,29 @@ unsigned int get_VOLUMEc_type(const unsigned int VType, const unsigned int vh)
 
 unsigned int get_IndEhref(const unsigned int VType, const unsigned int vh)
 {
+	// Initialize DB Parameters
+	unsigned int TETrefineType = DB.TETrefineType;
+
 	switch (VType) {
 	case POINT:
 	case LINE:
 	case TRI:
 	case QUAD:
-	case TET:
 	case HEX:
 	case WEDGE:
 		return 0;
+		break;
+	case TET:
+		if (TETrefineType == TET8 || TETrefineType == TET12) {
+			return 0;
+		} else if (TETrefineType == TET6) {
+			if (vh < 5)
+				return 0;
+			else
+				return 1;
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+		}
 		break;
 	case PYR:
 		if (vh < 5 || vh > 8)

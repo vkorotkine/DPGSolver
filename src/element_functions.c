@@ -8,6 +8,7 @@
 #include <math.h>
 
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 
@@ -59,7 +60,8 @@ void initialize_ELEMENTs(void)
 	 */
 
 	// Initialize DB Parameters
-	const unsigned int Adapt = DB.Adapt;
+	unsigned int Adapt         = DB.Adapt,
+	             TETrefineType = DB.TETrefineType;
 
 	// Standard datatypes
 	unsigned int type, f, Nf, IndFType;
@@ -149,7 +151,7 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Nve       = 4;
 	ELEMENT->Nf        = 4;
 	ELEMENT->NEhref    = 1;
-	ELEMENT->type_h[0] = TET;
+	ELEMENT->type_h[0] = TET; ELEMENT->type_h[1] = PYR;
 	ELEMENT->Nfve[0]   = 3; ELEMENT->Nfve[1]   = 3; ELEMENT->Nfve[2]   = 3; ELEMENT->Nfve[3]   = 3;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 2; ELEMENT->VeCGmsh[3]    = 3;
 	ELEMENT->VeFcon[0*NFVEMAX  ] = 1; ELEMENT->VeFcon[0*NFVEMAX+1] = 2; ELEMENT->VeFcon[0*NFVEMAX+2] = 3;
@@ -281,7 +283,15 @@ void initialize_ELEMENTs(void)
 				ELEMENT->NvrefSF = 0; // Not used.
 				break;
 			case TET:
-				ELEMENT->Nvref   = NREFMAXTET;
+				if (TETrefineType == TET8)
+					ELEMENT->Nvref = 8+1;
+				else if (TETrefineType == TET12)
+					ELEMENT->Nvref = NREFMAXTET;
+				else if (TETrefineType == TET6)
+					ELEMENT->Nvref = 6+1;
+				else
+					printf("Error: Unsupported.\n"), EXIT_MSG;
+
 				ELEMENT->NvrefSF = 1;
 				break;
 			case HEX:

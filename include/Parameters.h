@@ -79,8 +79,8 @@
 #define NFORDMAX        8  // QUAD
 #define NREFVVARMAX     7  // HEX
 #define NSUBFMAX        4  // QUAD/TRI (Isotropic refinement)
-#define NVISUBFMAX      13 // PYR (Isotropic refinement)
-#define NSIBMAX         10 // PYR (6 PYR + 4 TET)
+#define NVISUBFMAX      16 // TET (Isotropic refinement to 12 TETs)
+#define NSIBMAX         12 // TET (12 TET)
 
 // Cubature related numbers
 #define PIvcMaxTET 10
@@ -114,11 +114,15 @@
 // h-refinement related numbers
 #define NEHREFMAX    2 // PYR (PYR + TET)
 
+#define TET8         0
+#define TET12        1
+#define TET6         2
+
 #define NREFMAXPOINT 1
 #define NREFMAXLINE  3
 #define NREFMAXTRI   5
 #define NREFMAXQUAD  9
-#define NREFMAXTET   9
+#define NREFMAXTET   13
 #define NREFMAXHEX   27
 #define NREFMAXWEDGE 15
 #define NREFMAXPYR   11

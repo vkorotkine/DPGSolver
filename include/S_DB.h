@@ -46,6 +46,7 @@ struct S_DB {
 	unsigned int update, NTVgrp, *NVgrp;
 
 	// hp adaptation
+	unsigned int TETrefineType;
 	double DOFcap_frac, refine_frac, coarse_frac;
 
 	// Testing

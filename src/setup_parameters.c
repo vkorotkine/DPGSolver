@@ -112,8 +112,12 @@
  *		               [] : TP [0], SI [1], PYR [2]
  *		InviscidFluxType : Type of inviscid numerical flux used.
  *		                   Options: LF, ROE
+ *		ViscousFluxType  : Type of viscous numerical flux used.
+ *		                   Options: IP, BR2, CDG2
  *		ExplicitSolverType : Type of explicit timestepping scheme used.
  *		                     Options: RK3_(S)trong(S)tability(Preserving), RK4_(L)ow(S)torage
+ *		TETrefineType : Type of h-refinement to use for TET Elements.
+ *		                Options: TET8 (TET -> 8 TET), TET12 (TET -> 12 TET), TET6 (TET -> 4 TET + 2 PYR)
  *
  *	References:
  *
@@ -543,6 +547,10 @@ void setup_parameters()
 	DB.DOFcap_frac = 3.0;
 	DB.refine_frac = 0.2;
 	DB.coarse_frac = 0.2;
+
+	DB.TETrefineType = TET8;
+//	DB.TETrefineType = TET12;
+//	DB.TETrefineType = TET6;
 
 	// Assign DB Parameters
 	DB.NP    = NP;
