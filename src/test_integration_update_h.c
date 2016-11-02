@@ -43,14 +43,54 @@ struct S_Limits {
 	double       XYZ[3];
 };
 
-static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *XYZ_lim);
+static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *Lmts);
 static void check_correspondence(unsigned int *pass);
 static void check_Jacobians(unsigned int *pass);
 static void run_test(unsigned int *pass, const char *test_type);
 
-void test_integration_update_h(int nargc, char **argv)
+static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, const unsigned int update_argv,
+                          const char *EName, struct S_Limits **Lmts)
 {
 	unsigned int pass = 0;
+
+	code_startup(nargc,argvNew,Nref,update_argv);
+	if (DB.PGlobal <= 1)
+		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
+
+	run_test(&pass,"FullREFINE");
+	printf("update_h (%s FullREFINE):                    ",EName);
+	test_print(pass);
+
+	//     0         10        20        30        40        50
+	run_test(&pass,"FullCOARSE");
+	printf("         (       FullCOARSE):                    ");
+	test_print(pass);
+
+	mark_VOLUMEs(HREFINE,Lmts[0]);
+	mark_VOLUMEs(HCOARSE,Lmts[1]);
+
+	mesh_update();
+
+	mark_VOLUMEs(HREFINE,Lmts[2]);
+	mark_VOLUMEs(HCOARSE,Lmts[3]);
+
+	//     0         10        20        30        40        50
+	run_test(&pass,"Mixed");
+	printf("         (       Mixed):                         ");
+	test_print(pass);
+
+	pass = 1;
+	check_Jacobians(&pass);
+	//     0         10        20        30        40        50
+	printf("         (       Jacobians):                     ");
+	test_print(pass);
+
+	code_cleanup();
+}
+
+void test_integration_update_h(int nargc, char **argv)
+{
+//	unsigned int pass = 0;
 	char         **argvNew;
 
 	argvNew    = malloc(2          * sizeof *argvNew);  // free
@@ -70,289 +110,94 @@ void test_integration_update_h(int nargc, char **argv)
 	 *
 	 */
 
-	struct S_Limits *XYZ_lim;
+	unsigned int    i;
+	char            *EName;
+	struct S_Limits **Lmts;
 
-	XYZ_lim = malloc(sizeof *XYZ_lim); // free
+	EName   = malloc(STRLEN_MIN * sizeof *EName); // free
+	Lmts = malloc(4 * sizeof *Lmts); // free
+	for (i = 0; i < 4; i++)
+		Lmts[i] = malloc(sizeof *Lmts[i]);
 
 	// **************************************************************************************************** //
 	// TRIs
 	strcpy(argvNew[1],"test/Test_update_h_TRI");
-
-	code_startup(nargc,argvNew,2,0);
-	if (DB.PGlobal <= 1)
-		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"FullREFINE");
-	printf("update_h (TRI,   FullREFINE):                    ");
-	test_print(pass);
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"FullCOARSE");
-	printf("         (       FullCOARSE):                    ");
-	test_print(pass);
-
-	XYZ_lim->XYZ[0] = -0.75; XYZ_lim->XYZ[1] = -0.75; XYZ_lim->type = 'd'; XYZ_lim->index = 0;
-	mark_VOLUMEs(HREFINE,XYZ_lim);
-	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->type = 'd'; XYZ_lim->index = 1;
-	mark_VOLUMEs(HCOARSE,XYZ_lim);
-
-	mesh_update();
-
-	XYZ_lim->XYZ[0] = -0.50; XYZ_lim->XYZ[1] = -0.50; XYZ_lim->type = 'd'; XYZ_lim->index = 0;
-	mark_VOLUMEs(HREFINE,XYZ_lim);
-	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->type = 'o'; XYZ_lim->index = 1;
-	mark_VOLUMEs(HCOARSE,XYZ_lim);
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"Mixed");
-	printf("         (       Mixed):                         ");
-	test_print(pass);
-
-	pass = 1;
-	check_Jacobians(&pass);
-	//     0         10        20        30        40        50
-	printf("         (       Jacobians):                     ");
-	test_print(pass);
-
-	code_cleanup();
-
+	strcpy(EName,"TRI,  ");
+	Lmts[0]->XYZ[0] = -0.75; Lmts[0]->XYZ[1] = -0.75; Lmts[0]->type = 'd'; Lmts[0]->index = 0;
+	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->type = 'd'; Lmts[1]->index = 1;
+	Lmts[2]->XYZ[0] = -0.50; Lmts[2]->XYZ[1] = -0.50; Lmts[2]->type = 'd'; Lmts[2]->index = 0;
+	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
+	test_update_h(nargc,argvNew,2,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// QUADs
 	strcpy(argvNew[1],"test/Test_update_h_QUAD");
-
-	code_startup(nargc,argvNew,3,0);
-	if (DB.PGlobal <= 1)
-		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"FullREFINE");
-	printf("         (QUAD,  FullREFINE):                    ");
-	test_print(pass);
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"FullCOARSE");
-	printf("         (       FullCOARSE):                    ");
-	test_print(pass);
-
-	XYZ_lim->XYZ[0] = -0.50; XYZ_lim->XYZ[1] = -0.50; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
-	mark_VOLUMEs(HREFINE,XYZ_lim);
-	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->type = 'a'; XYZ_lim->index = 1;
-	mark_VOLUMEs(HCOARSE,XYZ_lim);
-
-	mesh_update();
-
-	XYZ_lim->XYZ[0] = -0.25; XYZ_lim->XYZ[1] = -0.25; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
-	mark_VOLUMEs(HREFINE,XYZ_lim);
-	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->type = 'o'; XYZ_lim->index = 1;
-	mark_VOLUMEs(HCOARSE,XYZ_lim);
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"Mixed");
-	printf("         (       Mixed):                         ");
-	test_print(pass);
-
-	pass = 1;
-	check_Jacobians(&pass);
-	//     0         10        20        30        40        50
-	printf("         (       Jacobians):                     ");
-	test_print(pass);
-
-	code_cleanup();
-
+	strcpy(EName,"QUAD, ");
+	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
+	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
+	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
+	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
+	test_update_h(nargc,argvNew,3,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// TETs
 	strcpy(argvNew[1],"test/Test_update_h_TET");
-
-	code_startup(nargc,argvNew,2,0);
-	if (DB.PGlobal <= 1)
-		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"FullREFINE");
-	printf("         (TET,   FullREFINE):                    ");
-	test_print(pass);
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"FullCOARSE");
-	printf("         (       FullCOARSE):                    ");
-	test_print(pass);
-
-	XYZ_lim->XYZ[0] =  1.00; XYZ_lim->XYZ[1] =  1.00; XYZ_lim->XYZ[2] =  0.00; XYZ_lim->type = 'd'; XYZ_lim->index = 1;
-	mark_VOLUMEs(HREFINE,XYZ_lim);
-	XYZ_lim->XYZ[0] = -1.00; XYZ_lim->XYZ[1] = -1.00; XYZ_lim->XYZ[2] =  1.00; XYZ_lim->type = 'd'; XYZ_lim->index = 0;
-	mark_VOLUMEs(HCOARSE,XYZ_lim);
-
-	mesh_update();
-
-	XYZ_lim->XYZ[0] =  1.00; XYZ_lim->XYZ[1] =  1.00; XYZ_lim->XYZ[2] = -0.50; XYZ_lim->type = 'd'; XYZ_lim->index = 1;
-	mark_VOLUMEs(HREFINE,XYZ_lim);
-	XYZ_lim->XYZ[0] =  1.00; XYZ_lim->XYZ[1] =  1.00; XYZ_lim->XYZ[2] = -1.00; XYZ_lim->type = 'd'; XYZ_lim->index = 0;
-	mark_VOLUMEs(HCOARSE,XYZ_lim);
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"Mixed");
-	printf("         (       Mixed):                         ");
-	test_print(pass);
-
-	pass = 1;
-	check_Jacobians(&pass);
-	//     0         10        20        30        40        50
-	printf("         (       Jacobians):                     ");
-	test_print(pass);
-
-	code_cleanup();
-
+	strcpy(EName,"TET,  ");
+	Lmts[0]->XYZ[0] =  1.00; Lmts[0]->XYZ[1] =  1.00; Lmts[0]->XYZ[2] =  0.00; Lmts[0]->type = 'd'; Lmts[0]->index = 1;
+	Lmts[1]->XYZ[0] = -1.00; Lmts[1]->XYZ[1] = -1.00; Lmts[1]->XYZ[2] =  1.00; Lmts[1]->type = 'd'; Lmts[1]->index = 0;
+	Lmts[2]->XYZ[0] =  1.00; Lmts[2]->XYZ[1] =  1.00; Lmts[2]->XYZ[2] = -0.50; Lmts[2]->type = 'd'; Lmts[2]->index = 1;
+	Lmts[3]->XYZ[0] =  1.00; Lmts[3]->XYZ[1] =  1.00; Lmts[3]->XYZ[2] = -1.00; Lmts[3]->type = 'd'; Lmts[3]->index = 0;
+	test_update_h(nargc,argvNew,2,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// HEXs
 	strcpy(argvNew[1],"test/Test_update_h_HEX");
-
-	code_startup(nargc,argvNew,3,0);
-	if (DB.PGlobal <= 1)
-		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"FullREFINE");
-	printf("         (HEX,   FullREFINE):                    ");
-	test_print(pass);
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"FullCOARSE");
-	printf("         (       FullCOARSE):                    ");
-	test_print(pass);
-
-	XYZ_lim->XYZ[0] = -0.50; XYZ_lim->XYZ[1] = -0.50; XYZ_lim->XYZ[2] = -0.50; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
-	mark_VOLUMEs(HREFINE,XYZ_lim);
-	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->XYZ[2] =  0.00; XYZ_lim->type = 'a'; XYZ_lim->index = 1;
-	mark_VOLUMEs(HCOARSE,XYZ_lim);
-
-	mesh_update();
-
-	XYZ_lim->XYZ[0] = -0.25; XYZ_lim->XYZ[1] = -0.25; XYZ_lim->XYZ[2] = -0.25; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
-	mark_VOLUMEs(HREFINE,XYZ_lim);
-	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->XYZ[2] =  0.00; XYZ_lim->type = 'o'; XYZ_lim->index = 1;
-	mark_VOLUMEs(HCOARSE,XYZ_lim);
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"Mixed");
-	printf("         (       Mixed):                         ");
-	test_print(pass);
-
-	pass = 1;
-	check_Jacobians(&pass);
-	//     0         10        20        30        40        50
-	printf("         (       Jacobians):                     ");
-	test_print(pass);
-
-	code_cleanup();
-
+	strcpy(EName,"HEX,  ");
+	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->XYZ[2] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
+	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
+	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->XYZ[2] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
+	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->XYZ[2] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
+	test_update_h(nargc,argvNew,3,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// WEDGEs
 	strcpy(argvNew[1],"test/Test_update_h_WEDGE");
-
-	code_startup(nargc,argvNew,3,0);
-	if (DB.PGlobal <= 1)
-		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"FullREFINE");
-	printf("         (WEDGE, FullREFINE):                    ");
-	test_print(pass);
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"FullCOARSE");
-	printf("         (       FullCOARSE):                    ");
-	test_print(pass);
-
-	XYZ_lim->XYZ[0] = -0.50; XYZ_lim->XYZ[1] = -0.50; XYZ_lim->XYZ[2] = -0.50; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
-	mark_VOLUMEs(HREFINE,XYZ_lim);
-	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->XYZ[2] =  0.00; XYZ_lim->type = 'a'; XYZ_lim->index = 1;
-	mark_VOLUMEs(HCOARSE,XYZ_lim);
-
-	mesh_update();
-
-	XYZ_lim->XYZ[0] = -0.25; XYZ_lim->XYZ[1] = -0.25; XYZ_lim->XYZ[2] = -0.25; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
-	mark_VOLUMEs(HREFINE,XYZ_lim);
-	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->XYZ[2] =  0.00; XYZ_lim->type = 'o'; XYZ_lim->index = 1;
-	mark_VOLUMEs(HCOARSE,XYZ_lim);
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"Mixed");
-	printf("         (       Mixed):                         ");
-	test_print(pass);
-
-	pass = 1;
-	check_Jacobians(&pass);
-	//     0         10        20        30        40        50
-	printf("         (       Jacobians):                     ");
-	test_print(pass);
-
-	code_cleanup();
-
+	strcpy(EName,"WEDGE,");
+	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->XYZ[2] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
+	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
+	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->XYZ[2] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
+	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->XYZ[2] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
+	test_update_h(nargc,argvNew,3,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// PYRs
 	strcpy(argvNew[1],"test/Test_update_h_PYR");
+	strcpy(EName,"PYR,  ");
+	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->XYZ[2] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
+	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
+	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->XYZ[2] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
+	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->XYZ[2] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
+	test_update_h(nargc,argvNew,2,0,EName,Lmts);
 
-	code_startup(nargc,argvNew,2,0);
-	if (DB.PGlobal <= 1)
-		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"FullREFINE");
-	printf("         (PYR,   FullREFINE):                    ");
-	test_print(pass);
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"FullCOARSE");
-	printf("         (       FullCOARSE):                    ");
-	test_print(pass);
-
-	XYZ_lim->XYZ[0] = -0.50; XYZ_lim->XYZ[1] = -0.50; XYZ_lim->XYZ[2] = -0.50; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
-	mark_VOLUMEs(HREFINE,XYZ_lim);
-	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->XYZ[2] =  0.00; XYZ_lim->type = 'a'; XYZ_lim->index = 1;
-	mark_VOLUMEs(HCOARSE,XYZ_lim);
-
-	mesh_update();
-
-	XYZ_lim->XYZ[0] = -0.25; XYZ_lim->XYZ[1] = -0.25; XYZ_lim->XYZ[2] = -0.25; XYZ_lim->type = 'a'; XYZ_lim->index = 0;
-	mark_VOLUMEs(HREFINE,XYZ_lim);
-	XYZ_lim->XYZ[0] =  0.00; XYZ_lim->XYZ[1] =  0.00; XYZ_lim->XYZ[2] =  0.00; XYZ_lim->type = 'o'; XYZ_lim->index = 1;
-	mark_VOLUMEs(HCOARSE,XYZ_lim);
-
-	//     0         10        20        30        40        50
-	run_test(&pass,"Mixed");
-	printf("         (       Mixed):                         ");
-	test_print(pass);
-
-	pass = 1;
-	check_Jacobians(&pass);
-	//     0         10        20        30        40        50
-	printf("         (       Jacobians):                     ");
-	test_print(pass);
-
-	code_cleanup();
-
-//output_to_paraview("ZTest_Geomadapt");
-//output_to_paraview("ZTest_Normals");
-//EXIT_MSG;
+//	output_to_paraview("ZTest_Geomadapt");
+//	output_to_paraview("ZTest_Normals");
+//	EXIT_MSG;
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
-	free(XYZ_lim);
+	free(EName);
+	for (i = 0; i < 4; i++)
+		free(Lmts[i]);
+	free(Lmts);
 }
 
-static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *XYZ_lim)
+static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *Lmts)
 {
 	// Initialize DB Parameters
 	unsigned int d = DB.d;
 
 	// Standard datatypes
 	unsigned int i, dim, Nve, IndXYZ, update;
-	double       XYZ_cent[3], *XYZ_vC, XYZ_lim_sum, XYZ_cent_sum;
+	double       XYZ_cent[3], *XYZ_vC, Lmts_sum, XYZ_cent_sum;
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME;
@@ -375,13 +220,13 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *X
 		}
 
 		// Mark VOLUME if centroid is within limits
-		switch (XYZ_lim->type) {
+		switch (Lmts->type) {
 		case 'a':
 			update = 1;
 			for (dim = 0; dim < d; dim++) {
-				switch (XYZ_lim->index) {
-				case 0: if (!(XYZ_cent[dim] < XYZ_lim->XYZ[dim])) update = 0; break;
-				case 1: if (!(XYZ_cent[dim] > XYZ_lim->XYZ[dim])) update = 0; break;
+				switch (Lmts->index) {
+				case 0: if (!(XYZ_cent[dim] < Lmts->XYZ[dim])) update = 0; break;
+				case 1: if (!(XYZ_cent[dim] > Lmts->XYZ[dim])) update = 0; break;
 				default:
 					printf("Error: Unsupported index in mark_VOLUMEs for type (a).\n"), EXIT_MSG;
 					break;
@@ -391,9 +236,9 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *X
 		case 'o':
 			update = 0;
 			for (dim = 0; dim < d; dim++) {
-				switch (XYZ_lim->index) {
-				case 0: if (XYZ_cent[dim] < XYZ_lim->XYZ[dim]) update = 1; break;
-				case 1: if (XYZ_cent[dim] > XYZ_lim->XYZ[dim]) update = 1; break;
+				switch (Lmts->index) {
+				case 0: if (XYZ_cent[dim] < Lmts->XYZ[dim]) update = 1; break;
+				case 1: if (XYZ_cent[dim] > Lmts->XYZ[dim]) update = 1; break;
 				default:
 					printf("Error: Unsupported index in mark_VOLUMEs for type (o).\n"), EXIT_MSG;
 					break;
@@ -402,15 +247,15 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *X
 			break;
 		case 'd':
 			update = 1;
-			XYZ_lim_sum  = 0.0;
+			Lmts_sum  = 0.0;
 			XYZ_cent_sum = 0.0;
 			for (dim = 0; dim < d; dim++) {
-				XYZ_lim_sum  += XYZ_lim->XYZ[dim];
+				Lmts_sum  += Lmts->XYZ[dim];
 				XYZ_cent_sum += XYZ_cent[dim];
 			}
-			switch (XYZ_lim->index) {
-			case 0: if (!(XYZ_cent_sum < XYZ_lim_sum)) update = 0; break;
-			case 1: if (!(XYZ_cent_sum > XYZ_lim_sum)) update = 0; break;
+			switch (Lmts->index) {
+			case 0: if (!(XYZ_cent_sum < Lmts_sum)) update = 0; break;
+			case 1: if (!(XYZ_cent_sum > Lmts_sum)) update = 0; break;
 			default:
 				printf("Error: Unsupported index in mark_VOLUMEs for type (d).\n"), EXIT_MSG;
 				break;

@@ -438,9 +438,11 @@ void test_integration_linearization(int nargc, char **argv)
 //	MatView(A_csc,PETSC_VIEWER_STDOUT_SELF);
 
 	pass = 0;
-	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < EPS &&
-	    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < EPS)
+	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < 1e1*EPS &&
+	    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < 1e1*EPS)
 		pass = 1, TestDB.Npass++;
+	else
+		printf("% .3e % .3e\n",PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf"),PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf"));
 
 	//     0         10        20        30        40        50
 	printf("Linearization (2D - Mixed):                      ");

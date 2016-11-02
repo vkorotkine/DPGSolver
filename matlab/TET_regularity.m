@@ -207,17 +207,22 @@ daspect([1 1 1])
 d = 3;
 Nf = d+1;
 
-XYZ = [ 0.00000000000000e+00  4.33012701892087e-01  4.33012701892087e-01 
- 0.00000000000000e+00  0.00000000000000e+00  4.99999999998693e-01 
- 4.33012701892087e-01  0.00000000000000e+00  4.33012701892087e-01 
- 5.10838679751787e-01  5.10838679958756e-01  6.91438852196958e-01];
-
-
+XYZ = [  8.7500e-01  8.7500e-01  1.0000e+00 
+ 8.7500e-01  9.3750e-01  9.3750e-01 
+ 7.5000e-01  9.3750e-01  9.3750e-01 
+ 8.1250e-01  9.3750e-01  1.0000e+00];
 
 XYZp = XYZ;
 plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'-bo');
 XYZp = XYZp([3 1 4 2],:);
 plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'-bo');
+
+% XYZp = [0 0 0; 1 0 0; 1 1 0; 0 1 0;
+%         0 0 1; 1 0 1; 1 1 1; 0 1 1];
+% plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'-rs');
+xlabel('x');
+ylabel('y');
+zlabel('z');
 
 
 FNodeInds = [[2 3 4]; [1 3 4]; [1 2 4]; [1 2 3]];
@@ -270,7 +275,21 @@ RHS = [-XYZ(4,:)'; -XYZ(4,:)'; -XYZ(4,:)'; -XYZ(3,:)'];
 % format longe
 tmp = LHS\RHS;
 rIn = tmp(9);
+abcd(1:d) = tmp(10:12)';
 
+
+nt = 15*20;
+np = 8*20;
+t = 0:2*pi/nt:2*pi;
+p = 0:pi/np:pi;
+
+r = rIn;
+
+XYZp = zeros((np+1)*(nt+1),d);
+XYZp(:,1) = abcd(1)+r*reshape(cos(t)'*sin(p),(np+1)*(nt+1),1);
+XYZp(:,2) = abcd(2)+r*reshape(sin(t)'*sin(p),(np+1)*(nt+1),1) ;
+XYZp(:,3) = abcd(3)+r*reshape(ones(size(t))'*cos(p),(np+1)*(nt+1),1);
+plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'ko');
 
 
 
@@ -314,7 +333,7 @@ XYZp = zeros((np+1)*(nt+1),d);
 XYZp(:,1) = abcd(1)+r*reshape(cos(t)'*sin(p),(np+1)*(nt+1),1);
 XYZp(:,2) = abcd(2)+r*reshape(sin(t)'*sin(p),(np+1)*(nt+1),1) ;
 XYZp(:,3) = abcd(3)+r*reshape(ones(size(t))'*cos(p),(np+1)*(nt+1),1);
-% plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'ko');
+
 % error('exiting');
 
 done = 1;

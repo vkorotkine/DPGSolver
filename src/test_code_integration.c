@@ -344,7 +344,7 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	 *
 	 */
 
-	unsigned int i, j, k, dim, f, d, e, c, Nf, Ne, Nc, iMax, jMax, *IndsE, *IndsF, Found, TETcount;
+	unsigned int i, j, k, dim, f, d, e, c, Nf, Ne, Nc, iMax, jMax, *IndsE, *IndsF, Found, TETcount, NormType;
 	int          **piv;
 	double       r_ratio, r, rIn, rOut,
 	             *XYZ, *XYZdiff, *ones, *n, *nNorm, **LHS, **RHS, *lenE, *XYZc, *abcF, *rF, *XYZcT, *d_p;
@@ -358,6 +358,8 @@ void evaluate_mesh_regularity(double *mesh_quality)
 
 	unsigned int IndF[3*4]  = { 1, 2, 3, 0, 2, 3, 0, 1, 3, 0, 1, 2 },
 	             IndE[2*6]  = { 0, 1, 0, 2, 0, 3, 1, 2, 1, 3, 2, 3 };
+
+	NormType = 0; // Options: 0 (Inf), 2 (L2)
 
 	XYZ     = malloc(Nc*d * sizeof *XYZ);     // free
 	XYZdiff = malloc(d    * sizeof *XYZdiff); // free
@@ -580,7 +582,13 @@ void evaluate_mesh_regularity(double *mesh_quality)
 			}
 		}
 
-		r_ratio += rOut/rIn;
+		if (NormType == 0) {
+			if (rOut/rIn > r_ratio) {
+				r_ratio = rOut/rIn;
+			}
+		} else if (NormType == 2) {
+			r_ratio += rOut/rIn;
+		}
 		TETcount += 1;
 
 //printf("%d % .3e % .3e % .3e % .3e % .3e\n",
@@ -589,10 +597,16 @@ void evaluate_mesh_regularity(double *mesh_quality)
 		if (rOut - sqrt(0.375)*lenE[IndsE[Ne-1]] > 1e2*EPS)
 			printf("Error: rOut larger than upper bound on sphere radius.\n"), EXIT_MSG;
 	}
-	if (TETcount)
-		*mesh_quality = r_ratio/TETcount;
-	else
+	if (TETcount) {
+		if (NormType == 0)
+			*mesh_quality = r_ratio;
+		else if (NormType == 2)
+			*mesh_quality = r_ratio/TETcount;
+		else
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+	} else {
 		*mesh_quality = 3.0; // ratio for regular TET
+	}
 
 //	printf("%d % .3e\n",DB.ML,*mesh_quality);
 
@@ -635,7 +649,7 @@ void check_mesh_regularity(const double *mesh_quality, const unsigned int NML, u
 			slope_quality[i] = mesh_quality[NML-2+i]-mesh_quality[NML-3+i];
 
 		if (slope_quality[1] > 0.0) {
-			if (slope_quality[1] > slope_quality[0])
+			if (slope_quality[1]-slope_quality[0] > 1e-3)
 				*pass = 0;
 		}
 		printf("\nMesh quality:");

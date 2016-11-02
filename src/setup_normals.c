@@ -130,9 +130,10 @@ case ADAPT_HP:
 
 		Nn = NfnI0;
 
-		// Store a single normal on straight FACETs
-		if (!curved) fnMax = 1;
-		else         fnMax = Nn;
+		// Potentially store a single normal on straight FACETs (ToBeModified)
+//		if (!curved) fnMax = 1;
+//		else         fnMax = Nn;
+		fnMax = Nn;
 
 		n_fI     = calloc(fnMax*d , sizeof *n_fI);     // keep
 		detJF_fI = calloc(fnMax   , sizeof *detJF_fI); // keep
