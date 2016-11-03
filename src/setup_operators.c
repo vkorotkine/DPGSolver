@@ -28,6 +28,8 @@
 #include "adaptation.h"
 #include "memory_destructors.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Set up operators to be used throughout the code.
@@ -822,16 +824,16 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 		                       0.5 , 0.0 , 0.0 , 0.5 ,
 		                       0.25, 0.25, 0.25, 0.25,
 		                       0.5 , 0.5 , 0.0 , 0.0 , // 10
-		                       0.0 , 0.5 , 0.5 , 0.0 ,
 		                       0.0 , 0.5 , 0.0 , 0.5 ,
+		                       0.0 , 0.5 , 0.5 , 0.0 ,
 		                       0.25, 0.25, 0.25, 0.25,
 		                       0.5 , 0.0 , 0.5 , 0.0 , // 11
 		                       0.0 , 0.5 , 0.5 , 0.0 ,
 		                       0.0 , 0.0 , 0.5 , 0.5 ,
 		                       0.25, 0.25, 0.25, 0.25,
 		                       0.5 , 0.0 , 0.0 , 0.5 , // 12
-		                       0.0 , 0.5 , 0.0 , 0.5 ,
 		                       0.0 , 0.0 , 0.5 , 0.5 ,
+		                       0.0 , 0.5 , 0.0 , 0.5 ,
 		                       0.25, 0.25, 0.25, 0.25};
 
 		for (i = 0; i < NTETnodes; i++)
@@ -857,10 +859,10 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 		                       0.0 , 0.5 , 0.0 , 0.5 ,
 		                       0.0 , 0.0 , 0.5 , 0.5 ,
 		                       0.0 , 0.0 , 0.0 , 1.0 ,
-		                       0.5 , 0.0 , 0.0 , 0.5 , // 2 PYRs
-		                       0.0 , 0.5 , 0.0 , 0.5 ,
-		                       0.5 , 0.0 , 0.5 , 0.0 ,
+		                       0.0 , 0.5 , 0.0 , 0.5 , // 2 PYRs
+		                       0.5 , 0.0 , 0.0 , 0.5 ,
 		                       0.0 , 0.5 , 0.5 , 0.0 ,
+		                       0.5 , 0.0 , 0.5 , 0.0 ,
 		                       0.5 , 0.5 , 0.0 , 0.0 ,
 		                       0.5 , 0.0 , 0.0 , 0.5 , // 6
 		                       0.0 , 0.5 , 0.0 , 0.5 ,
@@ -970,7 +972,15 @@ static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
 	/*
 	 *	Purpose:
 	 *		Returns the VOLUME ratio of the refined VOLUME as compared to the initial VOLUME.
+	 *
+	 *		Check if these are in relation to the initial ELEMENT or the reference ELEMENT of the same type as the
+	 *		refined VOLUME. (ToBeModified)
+	 *			Quite certain that the scaling values should sum to 1.0.
+	 *			This can be tested whenever mixed refinement is used TET -> TET+PYR or PYR -> PYR+TET
 	 */
+
+	// Initialize DB Parameters
+	unsigned int TETrefineType = DB.TETrefineType;
 
 	if (vref == 0)
 		return 1.0;
@@ -986,16 +996,32 @@ static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
 			printf("Error: Unsupported vref (%d) (anisotropic) for TRIs.\n",vref), EXIT_MSG;
 		break;
 	case TET:
-		if (vref < 9)
-			return 0.125;
-		else
-			printf("Error: Unsupported vref (%d) (anisotropic) for TETs.\n",vref), EXIT_MSG;
+		if (TETrefineType == TET8) {
+			if (vref < 9)
+				return 1.0/8.0;
+			else
+				printf("Error: Unsupported.\n"), EXIT_MSG;
+		} else if (TETrefineType == TET12) {
+			if (vref < 5)
+				return 1.0/8.0;
+			else if (vref < 13)
+				return 1.0/16.0;
+			else
+				printf("Error: Unsupported.\n"), EXIT_MSG;
+		} else if (TETrefineType == TET6) {
+			if (vref < 5)
+				return 1.0/8.0; // reference TET scaled by 0.5
+			else if (vref < 7)
+				return 1.0/4.0; // remainder
+			else
+				printf("Error: Unsupported.\n"), EXIT_MSG;
+		}
 		break;
 	case PYR:
 		if (vref < 5 || vref > 8)
-			return 0.125;
+			return 1.0/8.0; // reference PYR scaled by 0.5
 		else
-			return 0.125; // 1/8 of reference TET
+			return 1.0/16.0; // remainder
 		break;
 	case QUAD:
 	case HEX:
@@ -1003,6 +1029,99 @@ static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
 	default:
 		printf("Error: Unsupported EType (%d).\n",EType), EXIT_MSG;
 		break;
+	}
+
+	// silence
+	return -1e20;
+}
+
+static void setup_ELEMENT_operator_dependencies(const unsigned int EType)
+{
+	// Returned operators
+	unsigned int *NvnGs, *NvnIs, *NvnIc, *NvnS;
+	double       ****ChiInvS_vS;
+
+	// Initialize DB Parameters
+	unsigned int PGs     = DB.PGs,
+	             **PIvs  = DB.PIvs,
+	             **PIvc  = DB.PIvc;
+
+	char         *BasisType     = DB.BasisType,
+	             **NodeTypeG    = DB.NodeTypeG,
+	             ***NodeTypeIvs = DB.NodeTypeIvs,
+	             ***NodeTypeIvc = DB.NodeTypeIvc,
+	             ***NodeTypeS   = DB.NodeTypeS;
+
+	// Standard datatypes
+	unsigned int dE, P, Pb, PSMin, PSMax, PbMin, PbMax, Eclass, Nbf,
+	             dummy_ui, *dummyPtr_ui[2];
+	double       *rst_vGs, *rst_vIs, *rst_vIc, *rst_vS, *IS, *ChiRefS_vS, *ChiS_vS,
+	             *dummyPtr_d;
+
+	struct S_ELEMENT *ELEMENT;
+
+	// Function pointers
+	cubature_tdef   cubature;
+	basis_tdef      basis;
+	grad_basis_tdef grad_basis;
+
+	// silence
+	ChiS_vS = NULL;
+
+	ELEMENT = get_ELEMENT_type(EType);
+	Eclass  = get_Eclass(EType);
+
+	dE = ELEMENT->d;
+
+	select_functions(&basis,&grad_basis,&cubature,EType);
+
+	// Stored operators
+	NvnGs = ELEMENT->NvnGs;
+	NvnIs = ELEMENT->NvnIs;
+	NvnIc = ELEMENT->NvnIc;
+	NvnS  = ELEMENT->NvnS;
+
+	ChiInvS_vS = ELEMENT->ChiInvS_vS;
+
+	cubature(&rst_vGs,&dummyPtr_d,&dummyPtr_ui[0],&NvnGs[1],&dummy_ui,0,PGs,dE,NodeTypeG[Eclass]); free(dummyPtr_ui[0]); // free
+	free(rst_vGs);
+
+	get_PS_range(&PSMin,&PSMax);
+	for (P = PSMin; P <= PSMax; P++) {
+		get_Pb_range(P,&PbMin,&PbMax);
+
+		for (Pb = PbMax; Pb >= P; Pb--) {
+			cubature(&rst_vS,&dummyPtr_d,&dummyPtr_ui[0],&NvnS[Pb],&dummy_ui,0,Pb,dE,NodeTypeS[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+
+			IS         = identity_d(NvnS[Pb]);  // free
+			ChiRefS_vS = basis(Pb,rst_vS,NvnS[Pb],&Nbf,dE); // free
+			free(rst_vS);
+
+			if (strstr(BasisType,"Modal")) {
+				ChiS_vS = ChiRefS_vS;
+			} else if (strstr(BasisType,"Nodal")) {
+				ChiS_vS = IS;
+			}
+
+			if (ChiInvS_vS[Pb][Pb][0] == NULL)
+				ChiInvS_vS[Pb][Pb][0] = inverse_d(NvnS[Pb],NvnS[Pb],ChiS_vS,IS); // keep
+
+			if (Pb != P) {
+				free(IS);
+				free(ChiRefS_vS);
+			} else {
+				// Avoid negative Pb for P = 0
+				break;
+			}
+		}
+
+		for (Pb = PbMin; Pb <= PbMax; Pb++) {
+			cubature(&rst_vIs,&dummyPtr_d,&dummyPtr_ui[0],&NvnIs[Pb],&dummy_ui,0,PIvs[Pb][Eclass],dE,NodeTypeIvs[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+			cubature(&rst_vIc,&dummyPtr_d,&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,0,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+
+			free(rst_vIs);
+			free(rst_vIc);
+		}
 	}
 }
 
@@ -1061,7 +1180,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	// Standard datatypes
 	unsigned int i, iMax, dim, dE, P, f, vh, fh, Vf, IndFType, PSMin, PSMax, Pb, PbMin, PbMax, fhMax,
-	             Nve, Nf, Nbf, Eclass, NFTypes, Nvref, vref, vrefSF, NvrefSF, *Nfref, *ones_Nf, NEhref,
+	             Nve, Nve_h, Nf, Nbf, Eclass, NFTypes, Nvref, vref, vrefSF, NvrefSF, *Nfref, *ones_Nf, NEhref,
 	             Indh, NvnP, u1 = 1,
 	             B_Nve[2], *Nfve, *Nvve, *EType_h,
 	             dummy_ui, *dummyPtr_ui[2];
@@ -1442,6 +1561,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				Eclass = get_Eclass(EType_h[i]);
 				select_functions(&basis,&grad_basis,&cubature,EType_h[i]);
 
+				Nve_h = ELEMENT->Nve;
 				NvnGs = ELEMENT->NvnGs;
 
 
@@ -1456,16 +1576,16 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				free(E_rst_vC);
 				free(ChiRefInvGs_vGs);
 
-				E_rst_vC        = get_rst_vC(ELEMENT);                           // free
-				IGs             = identity_d(NvnGs[1]);                          // free
-				ChiRefGs_vGs    = basis(PGs,E_rst_vC,NvnGs[1],&Nbf,dE);          // free
-				ChiRefInvGs_vGs = inverse_d(NvnGs[1],NvnGs[1],ChiRefGs_vGs,IGs); // free
+				E_rst_vC        = get_rst_vC(ELEMENT);                     // free
+				IGs             = identity_d(Nve_h);                       // free
+				ChiRefGs_vGs    = basis(PGs,E_rst_vC,Nve_h,&Nbf,dE);       // free
+				ChiRefInvGs_vGs = inverse_d(Nve_h,Nve_h,ChiRefGs_vGs,IGs); // free
 				free(IGs);
 				free(ChiRefGs_vGs);
 
-				BCoords_V[i]->S[Pb]  = mm_Alloc_d(CBCM,CBT,CBT,NvnS[Pb], NvnGs[1],NvnGs[1],1.0,ChiRefGs_vS, ChiRefInvGs_vGs); // free
-				BCoords_V[i]->Is[Pb] = mm_Alloc_d(CBCM,CBT,CBT,NvnIs[Pb],NvnGs[1],NvnGs[1],1.0,ChiRefGs_vIs,ChiRefInvGs_vGs); // free
-				BCoords_V[i]->Ic[Pb] = mm_Alloc_d(CBCM,CBT,CBT,NvnIc[Pb],NvnGs[1],NvnGs[1],1.0,ChiRefGs_vIc,ChiRefInvGs_vGs); // free
+				BCoords_V[i]->S[Pb]  = mm_Alloc_d(CBCM,CBT,CBT,NvnS[Pb], Nve_h,Nve_h,1.0,ChiRefGs_vS, ChiRefInvGs_vGs); // free
+				BCoords_V[i]->Is[Pb] = mm_Alloc_d(CBCM,CBT,CBT,NvnIs[Pb],Nve_h,Nve_h,1.0,ChiRefGs_vIs,ChiRefInvGs_vGs); // free
+				BCoords_V[i]->Ic[Pb] = mm_Alloc_d(CBCM,CBT,CBT,NvnIc[Pb],Nve_h,Nve_h,1.0,ChiRefGs_vIc,ChiRefInvGs_vGs); // free
 
 				if (i) {
 					free(rst_vS[0]);
@@ -1486,7 +1606,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 				if (vh) {
 					Indh = get_IndEhref(EType,vh);
-					if (EType == PYR)
+					if (EType == TET || EType == PYR)
 						ELEMENT_h = get_ELEMENT_type(EType_h[Indh]);
 					else
 						ELEMENT_h = ELEMENT;
@@ -1511,9 +1631,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				ChiRefCc_vS  = basis(PCc[P][Eclass],rst_vS[vh], ELEMENT_h->NvnS[Pb], &Nbf,dE); // free
 				ChiRefCc_vIs = basis(PCc[P][Eclass],rst_vIs[vh],ELEMENT_h->NvnIs[Pb],&Nbf,dE); // free
 				ChiRefCc_vIc = basis(PCc[P][Eclass],rst_vIc[vh],ELEMENT_h->NvnIc[Pb],&Nbf,dE); // free
+				ChiRefS_vS   = basis(P,             rst_vS[vh], ELEMENT_h->NvnS[Pb], &Nbf,dE); // free
 				ChiRefS_vIs  = basis(P,             rst_vIs[vh],ELEMENT_h->NvnIs[Pb],&Nbf,dE); // free
 				ChiRefS_vIc  = basis(P,             rst_vIc[vh],ELEMENT_h->NvnIc[Pb],&Nbf,dE); // free
-				ChiRefS_vS   = basis(P,             rst_vS[vh], ELEMENT_h->NvnS[Pb], &Nbf,dE); // free
 
 				ChiGs_vGs = mm_Alloc_d(CBRM,CBNT,CBNT,Nvve[vh], NvnGs[1],NvnGs[1],1.0,ChiRefGs_vGs,TGs); // free
 				ChiGs_vS  = mm_Alloc_d(CBRM,CBNT,CBNT,ELEMENT_h->NvnS[Pb], NvnGs[1],NvnGs[1],1.0,ChiRefGs_vS, TGs); // free
@@ -1595,6 +1715,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				free(ChiRefCc_vIs);
 				free(ChiRefCc_vIc);
 				free(ChiRefS_vS);
+				free(ChiRefS_vIs);
+				free(ChiRefS_vIc);
 
 				free(ChiGs_vGs);
 				free(ChiGs_vS);
@@ -1609,9 +1731,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				free(ChiCc_vS);
 				free(ChiCc_vIs);
 				free(ChiCc_vIc);
-
-				free(ChiRefS_vIs);
-				free(ChiRefS_vIc);
 			}
 
 			plotting_element_info(&rst_vP,&dummyPtr_ui[0],&dummyPtr_ui[1],&NvnP,&dummy_ui,max(Pb,u1),EType); // free
@@ -3014,7 +3133,8 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 		BCoords_V[i]->Ic = calloc(NP , sizeof *(BCoords_V[i]->Ic)); // free
 	}
 
-	rst_vC = malloc(Nve*dE * sizeof *rst_vC); // free
+	// Nve + 1 for TETrefineType == TET6
+	rst_vC = malloc((Nve+1)*dE * sizeof *rst_vC); // free
 
 	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
@@ -3204,6 +3324,7 @@ static void setup_L2_projection_operators(const unsigned int EType)
 
 
 /*
+// ToBeDeleted
 	// Returned Operators
 	double ****L2hat_vS_vS,
 	       ****GfS_fIs, ****GfS_fIc; // Change G to L2 if these operators are kept (ToBeDeleted)
@@ -3485,7 +3606,8 @@ void setup_operators(void)
 	 */
 
 	// Initialize DB Parameters
-	unsigned int d = DB.d;
+	unsigned int d     = DB.d,
+	             Adapt = DB.Adapt;
 
 	// Standard datatypes
 	unsigned int EType;
@@ -3507,9 +3629,9 @@ void setup_operators(void)
 	if (d == 2)
 		setup_ELEMENT_FACET_ordering(EType);
 
-	// QUAD
+	// QUAD (Note: Needed for faces in TET refinement if PYRs are generated)
 	EType = QUAD;
-	if (is_ELEMENT_present(EType)) {
+	if ((is_ELEMENT_present(EType) || is_ELEMENT_present(TET)) && (Adapt == ADAPT_H || Adapt == ADAPT_HP)) {
 		if (!DB.MPIrank && !DB.Testing)
 			printf("    QUAD\n");
 		setup_ELEMENT_VeF(EType);
@@ -3551,16 +3673,8 @@ void setup_operators(void)
 		if (!DB.MPIrank && !DB.Testing)
 			printf("    TET\n");
 
-		if (is_ELEMENT_present(PYR)) {
-			setup_L2_projection_operators(EType);
-			setup_L2_projection_operators(PYR);
+		setup_ELEMENT_operator_dependencies(PYR);
 
-			memory_destructor_L2_projection(EType);
-			memory_destructor_L2_projection(PYR);
-		} else {
-			setup_L2_projection_operators(EType);
-			memory_destructor_L2_projection(EType);
-		}
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
@@ -3569,16 +3683,23 @@ void setup_operators(void)
 
 	// PYR
 	EType = PYR;
-	if (is_ELEMENT_present(EType)) {
-		if (!is_ELEMENT_present(TET))
-			printf("Error: TETs must be set up if PYRs are used.\n"), EXIT_MSG;
-
+	if (is_ELEMENT_present(EType) || is_ELEMENT_present(TET)) {
 		if (!DB.MPIrank && !DB.Testing)
 			printf("    PYR\n");
+
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
+	}
+
+	// TET and PYR elements have dependence on each other if h-refinement is used
+	if ((is_ELEMENT_present(TET) || is_ELEMENT_present(PYR)) && (Adapt == ADAPT_H || Adapt == ADAPT_HP)) {
+		setup_L2_projection_operators(TET);
+		setup_L2_projection_operators(PYR);
+
+		memory_destructor_L2_projection(TET);
+		memory_destructor_L2_projection(PYR);
 	}
 
 	// WEDGE

@@ -11,7 +11,7 @@ BEGIN PARAMETERS
 
   Form       Strong // Options: Weak, (Strong)
   NodeType   GLL-AO  // Options: GL/GLL-AO/WSH
-  BasisType  Nodal  // Options: Nodal, Modal
+  BasisType  Modal  // Options: Nodal, Modal
 
   Vectorized 0     // Options: 0, 1
   EFE        1     // Options: (0), 1

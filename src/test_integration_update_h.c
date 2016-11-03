@@ -51,41 +51,60 @@ static void run_test(unsigned int *pass, const char *test_type);
 static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, const unsigned int update_argv,
                           const char *EName, struct S_Limits **Lmts)
 {
-	unsigned int pass = 0;
+	unsigned int TETrefineType = DB.TETrefineType;
 
-	code_startup(nargc,argvNew,Nref,update_argv);
-	if (DB.PGlobal <= 1)
-		printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
+	unsigned int pass = 0, refType, NrefTypes;
 
-	run_test(&pass,"FullREFINE");
-	printf("update_h (%s FullREFINE):                    ",EName);
-	test_print(pass);
+	if (strstr(EName,"TET"))
+		NrefTypes = 3;
+	else
+		NrefTypes = 1;
 
-	//     0         10        20        30        40        50
-	run_test(&pass,"FullCOARSE");
-	printf("         (       FullCOARSE):                    ");
-	test_print(pass);
+//	code_startup(nargc,argvNew,Nref,update_argv);
 
-	mark_VOLUMEs(HREFINE,Lmts[0]);
-	mark_VOLUMEs(HCOARSE,Lmts[1]);
+	for (refType = 0; refType < NrefTypes; refType++) {
+		code_startup_mod_prmtrs(nargc,argvNew,Nref,update_argv,1);
+		if      (refType == 0) DB.TETrefineType = TET8;
+//		else if (refType == 1) DB.TETrefineType = TET12;
+		else if (refType == 1) DB.TETrefineType = TET6;
+		else if (refType == 2) DB.TETrefineType = TET6;
+		code_startup_mod_prmtrs(nargc,argvNew,Nref,update_argv,2);
+		if (DB.PGlobal <= 1)
+			printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
 
-	mesh_update();
+		run_test(&pass,"FullREFINE");
+		printf("update_h (%s%d FullREFINE):                    ",EName,refType);
+		test_print(pass);
 
-	mark_VOLUMEs(HREFINE,Lmts[2]);
-	mark_VOLUMEs(HCOARSE,Lmts[3]);
+		//     0         10        20        30        40        50
+		run_test(&pass,"FullCOARSE");
+		printf("         (       FullCOARSE):                    ");
+		test_print(pass);
 
-	//     0         10        20        30        40        50
-	run_test(&pass,"Mixed");
-	printf("         (       Mixed):                         ");
-	test_print(pass);
+		mark_VOLUMEs(HREFINE,Lmts[0]);
+		mark_VOLUMEs(HCOARSE,Lmts[1]);
 
-	pass = 1;
-	check_Jacobians(&pass);
-	//     0         10        20        30        40        50
-	printf("         (       Jacobians):                     ");
-	test_print(pass);
+		mesh_update();
 
-	code_cleanup();
+		mark_VOLUMEs(HREFINE,Lmts[2]);
+		mark_VOLUMEs(HCOARSE,Lmts[3]);
+
+		//     0         10        20        30        40        50
+		run_test(&pass,"Mixed");
+		printf("         (       Mixed):                         ");
+		test_print(pass);
+
+		pass = 1;
+		check_Jacobians(&pass);
+		//     0         10        20        30        40        50
+		printf("         (       Jacobians):                     ");
+		test_print(pass);
+
+		code_cleanup();
+	}
+	DB.TETrefineType = TETrefineType;
+
+//	code_cleanup();
 }
 
 void test_integration_update_h(int nargc, char **argv)
@@ -122,27 +141,27 @@ void test_integration_update_h(int nargc, char **argv)
 	// **************************************************************************************************** //
 	// TRIs
 	strcpy(argvNew[1],"test/Test_update_h_TRI");
-	strcpy(EName,"TRI,  ");
+	strcpy(EName,"TRI  ");
 	Lmts[0]->XYZ[0] = -0.75; Lmts[0]->XYZ[1] = -0.75; Lmts[0]->type = 'd'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->type = 'd'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.50; Lmts[2]->XYZ[1] = -0.50; Lmts[2]->type = 'd'; Lmts[2]->index = 0;
 	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
-	test_update_h(nargc,argvNew,2,0,EName,Lmts);
+//	test_update_h(nargc,argvNew,2,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// QUADs
 	strcpy(argvNew[1],"test/Test_update_h_QUAD");
-	strcpy(EName,"QUAD, ");
+	strcpy(EName,"QUAD ");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
 	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
-	test_update_h(nargc,argvNew,3,0,EName,Lmts);
+//	test_update_h(nargc,argvNew,3,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// TETs
 	strcpy(argvNew[1],"test/Test_update_h_TET");
-	strcpy(EName,"TET,  ");
+	strcpy(EName,"TET  ");
 	Lmts[0]->XYZ[0] =  1.00; Lmts[0]->XYZ[1] =  1.00; Lmts[0]->XYZ[2] =  0.00; Lmts[0]->type = 'd'; Lmts[0]->index = 1;
 	Lmts[1]->XYZ[0] = -1.00; Lmts[1]->XYZ[1] = -1.00; Lmts[1]->XYZ[2] =  1.00; Lmts[1]->type = 'd'; Lmts[1]->index = 0;
 	Lmts[2]->XYZ[0] =  1.00; Lmts[2]->XYZ[1] =  1.00; Lmts[2]->XYZ[2] = -0.50; Lmts[2]->type = 'd'; Lmts[2]->index = 1;
@@ -152,7 +171,7 @@ void test_integration_update_h(int nargc, char **argv)
 	// **************************************************************************************************** //
 	// HEXs
 	strcpy(argvNew[1],"test/Test_update_h_HEX");
-	strcpy(EName,"HEX,  ");
+	strcpy(EName,"HEX  ");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->XYZ[2] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->XYZ[2] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
@@ -162,7 +181,7 @@ void test_integration_update_h(int nargc, char **argv)
 	// **************************************************************************************************** //
 	// WEDGEs
 	strcpy(argvNew[1],"test/Test_update_h_WEDGE");
-	strcpy(EName,"WEDGE,");
+	strcpy(EName,"WEDGE");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->XYZ[2] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->XYZ[2] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
@@ -172,7 +191,7 @@ void test_integration_update_h(int nargc, char **argv)
 	// **************************************************************************************************** //
 	// PYRs
 	strcpy(argvNew[1],"test/Test_update_h_PYR");
-	strcpy(EName,"PYR,  ");
+	strcpy(EName,"PYR  ");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->XYZ[2] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->XYZ[2] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
@@ -311,12 +330,12 @@ static void check_correspondence(unsigned int *pass)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int Vf, IndFType, NfnS, *nOrdInOut, *nOrdOutIn,
+	unsigned int Vf, IndFType, NfnS, *nOrdInOut, *nOrdOutIn, vhIn, vhOut,
 	             dim, n, Indd, BC, FACET_is_internal;
 	double       *XYZ_fSIn, *XYZ_fSOut, *XYZ_fSInOut, *XYZ_fSOutIn;
 
 	struct S_OPERATORS *OPS;
-	struct S_VOLUME    *VOLUME;
+	struct S_VOLUME    *VOLUME, *VOLUMEc;
 	struct S_FACET     *FACET;
 
 	OPS = malloc(sizeof *OPS); // free
@@ -362,7 +381,16 @@ static void check_correspondence(unsigned int *pass)
 		                          array_norm_diff_d(NfnS*d,XYZ_fSInOut,XYZ_fSOut,"Inf") > 10*EPS)) {
 				*pass = 0;
 				printf("Problem in check_correspondence\n");
-printf("%d %d %d\n",FACET->indexg,FACET->IndOrdInOut,FACET->IndOrdOutIn);
+
+				vhIn = 0;
+				for (VOLUMEc = FACET->VIn->parent->child0; VOLUMEc != FACET->VIn; VOLUMEc = VOLUMEc->next)
+					vhIn++;
+
+				vhOut = 0;
+				for (VOLUMEc = FACET->VOut->parent->child0; VOLUMEc != FACET->VOut; VOLUMEc = VOLUMEc->next)
+					vhOut++;
+
+printf("%d %d %d %d %d\n",FACET->indexg,FACET->IndOrdInOut,FACET->IndOrdOutIn,vhIn,vhOut);
 printf("%d %d %d %d\n",FACET->VIn->type,FACET->VIn->indexg,FACET->VfIn,FACET->VIn->level);
 printf("%d %d %d %d\n",FACET->VOut->type,FACET->VOut->indexg,FACET->VfOut,FACET->VOut->level);
 				printf("Errors: %e %e\n\n",array_norm_diff_d(NfnS*d,XYZ_fSIn,XYZ_fSOutIn,"Inf"),
@@ -371,6 +399,7 @@ printf("%d %d %d %d\n",FACET->VOut->type,FACET->VOut->indexg,FACET->VfOut,FACET-
 				array_print_d(NfnS,d,XYZ_fSOutIn,'C');
 				array_print_d(NfnS,d,XYZ_fSOut,'C');
 				array_print_d(NfnS,d,XYZ_fSInOut,'C');
+EXIT_MSG;
 				break;
 		}
 

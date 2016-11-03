@@ -120,13 +120,13 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 		}
 		break;
 	case TET:
-		if (TETrefineType == TET8) {
+		if (TETrefineType == TET8 || TETrefineType == TET12) {
 			switch (f) {
 			default: // FACE 0
 				switch (fh) {
-				case 0: *IndVInh = 1; break;
-				case 1: *IndVInh = 2; break;
-				case 2: *IndVInh = 3; break;
+				case 0: *IndVInh = 2; break;
+				case 1: *IndVInh = 3; break;
+				case 2: *IndVInh = 1; break;
 				case 3: *IndVInh = 4; break;
 				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 				}
@@ -134,9 +134,9 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 				break;
 			case 1:
 				switch (fh) {
-				case 0: *IndVInh = 0; break;
-				case 1: *IndVInh = 2; break;
-				case 2: *IndVInh = 3; break;
+				case 0: *IndVInh = 2; break;
+				case 1: *IndVInh = 3; break;
+				case 2: *IndVInh = 0; break;
 				case 3: *IndVInh = 5; break;
 				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 				}
@@ -167,18 +167,18 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 			switch (f) {
 			default: // FACE 0
 				switch (fh) {
-				case 0: *IndVInh = 1; *Vfh = 0; break;
-				case 1: *IndVInh = 2; *Vfh = 0; break;
-				case 2: *IndVInh = 3; *Vfh = 0; break;
+				case 0: *IndVInh = 2; *Vfh = 0; break;
+				case 1: *IndVInh = 3; *Vfh = 0; break;
+				case 2: *IndVInh = 1; *Vfh = 0; break;
 				case 3: *IndVInh = 5; *Vfh = 1; break;
 				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 				}
 				break;
 			case 1:
 				switch (fh) {
-				case 0: *IndVInh = 0; *Vfh = 1; break;
-				case 1: *IndVInh = 2; *Vfh = 1; break;
-				case 2: *IndVInh = 3; *Vfh = 1; break;
+				case 0: *IndVInh = 2; *Vfh = 1; break;
+				case 1: *IndVInh = 3; *Vfh = 1; break;
+				case 2: *IndVInh = 0; *Vfh = 1; break;
 				case 3: *IndVInh = 5; *Vfh = 0; break;
 				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 				}
@@ -188,7 +188,7 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 				case 0: *IndVInh = 0; *Vfh = 2; break;
 				case 1: *IndVInh = 1; *Vfh = 2; break;
 				case 2: *IndVInh = 3; *Vfh = 2; break;
-				case 3: *IndVInh = 4; *Vfh = 2; break;
+				case 3: *IndVInh = 4; *Vfh = 3; break;
 				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 				}
 				break;
@@ -197,7 +197,7 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 				case 0: *IndVInh = 0; *Vfh = 3; break;
 				case 1: *IndVInh = 1; *Vfh = 3; break;
 				case 2: *IndVInh = 2; *Vfh = 3; break;
-				case 3: *IndVInh = 4; *Vfh = 3; break;
+				case 3: *IndVInh = 4; *Vfh = 2; break;
 				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 				}
 				break;
@@ -629,25 +629,28 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 		} else if (TETrefineType == TET12) {
 			switch (vh) {
 			case 0: IndVhOut = 8;  f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 0
-			case 1: IndVhOut = 9;  f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 1
+			case 1: IndVhOut = 9;  f = 3; IndOrdInOut = 3; IndOrdOutIn = 3; break; // fIn = 1
 			case 2: IndVhOut = 10; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 2
-			case 3: IndVhOut = 11; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 3
+			case 3: IndVhOut = 11; f = 3; IndOrdInOut = 3; IndOrdOutIn = 3; break; // fIn = 3
 			case 4:
-				if      (fIn == 1) { IndVhOut = 9;  f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; }
+				if      (fIn == 1) { IndVhOut = 9;  f = 0; IndOrdInOut = 1; IndOrdOutIn = 2; }
 				else if (fIn == 2) { IndVhOut = 10; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; }
-				else if (fIn == 3) { IndVhOut = 11; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; }
+				else if (fIn == 3) { IndVhOut = 11; f = 0; IndOrdInOut = 1; IndOrdOutIn = 2; }
+				break;
 			case 5:
 				if      (fIn == 0) { IndVhOut = 8;  f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; }
 				else if (fIn == 2) { IndVhOut = 10; f = 1; IndOrdInOut = 2; IndOrdOutIn = 1; }
-				else if (fIn == 3) { IndVhOut = 11; f = 1; IndOrdInOut = 2; IndOrdOutIn = 1; }
+				else if (fIn == 3) { IndVhOut = 11; f = 2; IndOrdInOut = 2; IndOrdOutIn = 1; }
+				break;
 			case 6:
 				if      (fIn == 0) { IndVhOut = 8;  f = 1; IndOrdInOut = 2; IndOrdOutIn = 1; }
-				else if (fIn == 1) { IndVhOut = 9;  f = 1; IndOrdInOut = 2; IndOrdOutIn = 1; }
-				else if (fIn == 3) { IndVhOut = 11; f = 2; IndOrdInOut = 5; IndOrdOutIn = 5; }
-			case 7:
-				if      (fIn == 0) { IndVhOut = 8;  f = 2; IndOrdInOut = 2; IndOrdOutIn = 1; }
 				else if (fIn == 1) { IndVhOut = 9;  f = 2; IndOrdInOut = 2; IndOrdOutIn = 1; }
-				else if (fIn == 2) { IndVhOut = 10; f = 2; IndOrdInOut = 2; IndOrdOutIn = 1; }
+				else if (fIn == 3) { IndVhOut = 11; f = 1; IndOrdInOut = 5; IndOrdOutIn = 5; }
+				break;
+			case 7:
+				if      (fIn == 0) { IndVhOut = 8;  f = 2; IndOrdInOut = 5; IndOrdOutIn = 5; }
+				else if (fIn == 1) { IndVhOut = 9;  f = 1; IndOrdInOut = 5; IndOrdOutIn = 5; }
+				else if (fIn == 2) { IndVhOut = 10; f = 2; IndOrdInOut = 5; IndOrdOutIn = 5; }
 				break;
 			default: // Should already have found all FACETs
 				printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
@@ -655,11 +658,11 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 			}
 		} else if (TETrefineType == TET6) {
 			switch (vh) {
-			case 0: IndVhOut = 4; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fIn = 0
-			case 1: IndVhOut = 4; f = 1; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fIn = 1
+			case 0: IndVhOut = 4; f = 1; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fIn = 0
+			case 1: IndVhOut = 4; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fIn = 1
 			case 2: IndVhOut = 5; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 2
 			case 3: IndVhOut = 5; f = 2; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 3
-			case 4: IndVhOut = 5; f = 4; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 4
+			case 4: IndVhOut = 5; f = 4; IndOrdInOut = 1; IndOrdOutIn = 1; break; // fIn = 4
 			default: // Should already have found all FACETs
 				printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
 				break;
@@ -832,20 +835,20 @@ static void set_FACET_Out_External(struct S_FACET *FACETc, struct S_VOLUME *VOLU
 		// Isotropic refinement only.
 		if (TETrefineType == TET8 || TETrefineType == TET12) {
 			switch (VfOut) {
-			case NFREFMAX+1:
+			case NFREFMAX+3:
 			case 2*NFREFMAX+1:
 			case 3*NFREFMAX+1:
 				IndVhOut = 0; break;
-			case 1:
+			case 3:
 			case 2*NFREFMAX+2:
 			case 3*NFREFMAX+2:
 				IndVhOut = 1; break;
-			case 2:
-			case NFREFMAX+2:
+			case 1:
+			case NFREFMAX+1:
 			case 3*NFREFMAX+3:
 				IndVhOut = 2; break;
-			case 3:
-			case NFREFMAX+3:
+			case 2:
+			case NFREFMAX+2:
 			case 2*NFREFMAX+3:
 				IndVhOut = 3; break;
 			case 4:
@@ -863,20 +866,20 @@ static void set_FACET_Out_External(struct S_FACET *FACETc, struct S_VOLUME *VOLU
 			f = VfOut/NFREFMAX;
 		} else if (TETrefineType == TET6) {
 			switch (VfOut) {
-			case NFREFMAX+1:
+			case NFREFMAX+3:
 			case 2*NFREFMAX+1:
 			case 3*NFREFMAX+1:
 				IndVhOut = 0; f = VfOut/NFREFMAX; break;
-			case 1:
+			case 3:
 			case 2*NFREFMAX+2:
 			case 3*NFREFMAX+2:
 				IndVhOut = 1; f = VfOut/NFREFMAX; break;
-			case 2:
-			case NFREFMAX+2:
+			case 1:
+			case NFREFMAX+1:
 			case 3*NFREFMAX+3:
 				IndVhOut = 2; f = VfOut/NFREFMAX; break;
-			case 3:
-			case NFREFMAX+3:
+			case 2:
+			case NFREFMAX+2:
 			case 2*NFREFMAX+3:
 				IndVhOut = 3; f = VfOut/NFREFMAX; break;
 			case 4:
@@ -884,9 +887,9 @@ static void set_FACET_Out_External(struct S_FACET *FACETc, struct S_VOLUME *VOLU
 			case NFREFMAX+4:
 				IndVhOut = 5; f = 0; break;
 			case 2*NFREFMAX+4:
-				IndVhOut = 4; f = 2; break;
-			case 3*NFREFMAX+4:
 				IndVhOut = 4; f = 3; break;
+			case 3*NFREFMAX+4:
+				IndVhOut = 4; f = 2; break;
 			default:
 				printf("Error: Unsupported VfOut = %d.\n",VfOut), EXIT_MSG;
 				break;
@@ -1234,22 +1237,18 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 				Indsf[sf] = f*NSUBFMAX;
 			if (TETrefineType == TET8 || TETrefineType == TET12) {
 				switch (f) {
-				default: IndVc[0] = 1; IndVc[1] = 2; IndVc[2] = 3; IndVc[3] = 4; break;
-				case 1:  IndVc[0] = 0; IndVc[1] = 2; IndVc[2] = 3; IndVc[3] = 5; break;
+				default: IndVc[0] = 2; IndVc[1] = 3; IndVc[2] = 1; IndVc[3] = 4; break;
+				case 1:  IndVc[0] = 2; IndVc[1] = 3; IndVc[2] = 0; IndVc[3] = 5; break;
 				case 2:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 3; IndVc[3] = 6; break;
 				case 3:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 7; break;
 				}
 			} else if (TETrefineType == TET6) {
 				switch (f) {
-				default: IndVc[0] = 1; IndVc[1] = 2; IndVc[2] = 3; IndVc[3] = 5; break;
-				case 1:  IndVc[0] = 0; IndVc[1] = 2; IndVc[2] = 3; IndVc[3] = 5; break;
-				case 2:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 3; IndVc[3] = 4; break;
-				case 3:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 4; break;
+				default: IndVc[0] = 2; IndVc[1] = 3; IndVc[2] = 0; IndVc[3] = 5; Indsf[sfMax-1] = 1*NSUBFMAX; break;
+				case 1:  IndVc[0] = 2; IndVc[1] = 3; IndVc[2] = 1; IndVc[3] = 5; Indsf[sfMax-1] = 0*NSUBFMAX; break;
+				case 2:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 3; IndVc[3] = 4; Indsf[sfMax-1] = 3*NSUBFMAX; break;
+				case 3:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 4; Indsf[sfMax-1] = 2*NSUBFMAX; break;
 				}
-				if (f == 0)
-					Indsf[sfMax-1] = 1*NSUBFMAX;
-				else if (f == 1)
-					Indsf[sfMax-1] = 0*NSUBFMAX;
 			} else {
 				printf("Error: Unsupported.\n"), EXIT_MSG;
 			}

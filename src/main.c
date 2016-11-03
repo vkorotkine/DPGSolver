@@ -313,7 +313,8 @@ int main(int nargc, char **argv)
 		test_integration_linearization(nargc,argv);
 //		PetscFinalize();
 	}
-	test_integration_Poisson(nargc,argv);
+	test_integration_update_h(nargc,argv);
+//	test_integration_Poisson(nargc,argv);
 	PetscFinalize();
 
 

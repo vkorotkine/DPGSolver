@@ -150,7 +150,7 @@ void initialize_ELEMENTs(void)
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 4;
 	ELEMENT->Nf        = 4;
-	ELEMENT->NEhref    = 1;
+	ELEMENT->NEhref    = 2;
 	ELEMENT->type_h[0] = TET; ELEMENT->type_h[1] = PYR;
 	ELEMENT->Nfve[0]   = 3; ELEMENT->Nfve[1]   = 3; ELEMENT->Nfve[2]   = 3; ELEMENT->Nfve[3]   = 3;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 2; ELEMENT->VeCGmsh[3]    = 3;

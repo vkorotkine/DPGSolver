@@ -13,11 +13,11 @@ np = 8;
 t = 0:2*pi/nt:2*pi;
 p = 0:pi/np:pi;
 
-% XYZsq = [sqrt(2) 0 0; 0 sqrt(2) 0; 0 0 sqrt(2); 0 0 0];
-XYZsq = [-1.0 -1.0/sqrt(3.0) -1.0/sqrt(6.0);
-1.0 -1.0/sqrt(3.0) -1.0/sqrt(6.0);
-0.0 0.0  -1.0/sqrt(6.0)+sqrt(2/3);
-0.0 2.0/sqrt(3.0) -1.0/sqrt(6.0)]; % same result
+XYZsq = sqrt(2)*[sqrt(2) 0 0; 0 sqrt(2) 0; 0 0 sqrt(2); 0 0 0];
+% XYZsq = [-1.0 -1.0/sqrt(3.0) -1.0/sqrt(6.0);
+% 1.0 -1.0/sqrt(3.0) -1.0/sqrt(6.0);
+% 0.0 0.0  -1.0/sqrt(6.0)+sqrt(2/3);
+% 0.0 2.0/sqrt(3.0) -1.0/sqrt(6.0)]; % same result
 
 
 
@@ -32,9 +32,10 @@ hold on;
 view([10 80 30])
 daspect([1 1 1])
 
-plot3(XYZsq(:,1),XYZsq(:,2),XYZsq(:,3),'-bo');
-XYZsq = XYZsq([3 1 4 2],:);
-plot3(XYZsq(:,1),XYZsq(:,2),XYZsq(:,3),'-bo');
+XYZp = XYZsq;
+plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'-bo');
+XYZp = XYZp([3 1 4 2],:);
+plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'-bo');
 
 XYZ = zeros((np+1)*(nt+1),d);
 XYZ(:,1) = abcd(1)+r*reshape(cos(t)'*sin(p),(np+1)*(nt+1),1);
@@ -117,9 +118,10 @@ hold on;
 view([10 80 30])
 daspect([1 1 1])
 
-plot3(XYZeq(:,1),XYZeq(:,2),XYZeq(:,3),'-bo');
-XYZeq = XYZeq([3 1 4 2],:);
-plot3(XYZeq(:,1),XYZeq(:,2),XYZeq(:,3),'-bo');
+XYZp = XYZeq;
+plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'-bo');
+XYZp = XYZp([3 1 4 2],:);
+plot3(XYZp(:,1),XYZp(:,2),XYZp(:,3),'-bo');
 
 XYZ = zeros((np+1)*(nt+1),d);
 XYZ(:,1) = r*reshape(cos(t)'*sin(p),(np+1)*(nt+1),1);
@@ -199,6 +201,23 @@ plot3(XYZ(:,1),XYZ(:,2),XYZ(:,3),'ko');
 % n = (LHS\RHS); n = n/norm(n,2);
 
 %% 3D
+
+XYZ = XYZsq
+VOL = 8/6
+
+XYZ = 1/2*[2*XYZsq(1,:);
+           XYZsq(1,:)+XYZsq(2,:);
+           XYZsq(1,:)+XYZsq(3,:);
+           XYZsq(1,:)+XYZsq(4,:)]
+VOL = 1/6
+
+XYZ = 1/2*[XYZsq(1,:)+XYZsq(3,:);
+           XYZsq(3,:)+XYZsq(4,:);
+           XYZsq(2,:)+XYZsq(4,:);
+           XYZsq(2,:)+XYZsq(3,:)]
+VOL = 1/6
+       error('exit');
+
 clf;
 hold on;
 view([10 -80 30])
@@ -243,12 +262,13 @@ for f = 1:Nf
    d_p(f)  = dot(nr(f,:),XYZF(3,:));
    
    % Ensure that normals point in the outward direction
-   XYZc = sum(XYZF,1)/3;
-   r = norm(XYZcT-XYZc,2);
-   
-   XYZc = XYZc + nr(f,:)*1e2*eps;
+%    XYZc = sum(XYZF,1)/3;
+%    r = norm(XYZcT-XYZc,2);
+%    
+%    XYZc = XYZc + nr(f,:)*1e2*eps;
 
-   if (norm(XYZcT-XYZc,2)-r < 0.0)
+   if (nr(f,:)*XYZ(f,:)'-d_p(f) > 0.0)
+%    if (norm(XYZcT-XYZc,2)-r < 0.0)
 %        f
        nr(f,:) = -nr(f,:);
        d_p(f)  = -d_p(f);
@@ -264,18 +284,20 @@ end
 % error('exiting');
 
 
-LHS = zeros(12,12);
-LHS(1:3,:) = [XYZ(2,:)'-XYZ(4,:)' XYZ(3,:)'-XYZ(4,:)' zeros(d,2) zeros(d,2) zeros(d,2) -nr(1,:)' -eye(d)];
-LHS(4:6,:) = [zeros(d,2) XYZ(1,:)'-XYZ(4,:)' XYZ(3,:)'-XYZ(4,:)' zeros(d,2) zeros(d,2) -nr(2,:)' -eye(d)];
-LHS(7:9,:) = [zeros(d,2) zeros(d,2) XYZ(1,:)'-XYZ(4,:)' XYZ(2,:)'-XYZ(4,:)' zeros(d,2) -nr(3,:)' -eye(d)];
-LHS(10:12,:) = [zeros(d,2) zeros(d,2) zeros(d,2) XYZ(1,:)'-XYZ(3,:)' XYZ(2,:)'-XYZ(3,:)' -nr(4,:)' -eye(d)];
-
-RHS = [-XYZ(4,:)'; -XYZ(4,:)'; -XYZ(4,:)'; -XYZ(3,:)'];
-
-% format longe
+% Note: For a plane a x + b y + c z = d:
+%       Distance point to plane = r = |a x0 + b y0 + c z0 - d|/norm([a b c],2)
+%       [a b c] == n (normalized, pointing towards the center):
+%       r = a x0 + b y0 + c z0 - d
+%       => Solve [nr -ones(4,1)]*[a b c r]' = d_p
+%       If coordinates not needed, use Gaussian elimination to simplify?
+%       See Wikipedia.
+% Much simpler!
+LHS = [nr ones(Nf,1)];
+RHS = d_p;
 tmp = LHS\RHS;
-rIn = tmp(9);
-abcd(1:d) = tmp(10:12)';
+abcd(1:d) = tmp(1:3)';
+rIn = tmp(4);
+
 
 
 nt = 15*20;

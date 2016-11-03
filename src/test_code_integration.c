@@ -109,6 +109,52 @@ void code_cleanup(void)
 	memory_free();
 }
 
+void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, const unsigned int update_argv,
+                             const unsigned int phase)
+{
+	int  MPIrank, MPIsize;
+
+	if (phase == 1) {
+		// Start MPI and PETSC
+		PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+		MPI_Comm_size(MPI_COMM_WORLD,&MPIsize);
+		MPI_Comm_rank(MPI_COMM_WORLD,&MPIrank);
+
+		// Test memory leaks only from Petsc and MPI using valgrind
+		//PetscFinalize(), exit(1);
+
+		DB.MPIsize = MPIsize;
+		DB.MPIrank = MPIrank;
+
+		// Initialization
+		initialization(nargc,argv);
+		if (update_argv) {
+			strcpy(DB.TestCase,TestDB.TestCase);
+			DB.PGlobal = TestDB.PGlobal;
+			if (update_argv == 1)
+				DB.ML      = TestDB.ML;
+			update_MeshFile();
+		}
+
+		setup_parameters();
+		if (update_argv)
+			setup_parameters_L2proj();
+	} else if (phase == 2) {
+		setup_mesh();
+		setup_operators();
+		setup_structures();
+		setup_geometry();
+
+		initialize_test_case(Nref);
+
+		if (update_argv == 2)
+			mesh_to_level(TestDB.ML);
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+}
+
+
 void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax, const unsigned int PMin,
                               const unsigned int PMax, unsigned int *pass)
 {
@@ -315,14 +361,18 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	 *		follows:
 	 *
 	 *		Enclosed:
-	 *			The enclosed sphere must have a point on each FACET with a vector of length r in the direction normal
-	 *			to the surface which starts at this point and ends at the sphere center. Defining this point based on
-	 *			the two independent barycentric coordinates on the FACET and noting the four equations arising from the
-	 *			four FACETs, a system of 12 equations (4 equations * 3 coordinates) with 12 unknowns (4 * 2 barycentric
-	 *			coordinates + 3 centroid coordinates + 1 radius) can be solved for the radius. Surface normal vectors
-	 *			are computed based on the equation of the plane describing each FACET.
+	 *			Define the planes of each face by a*x+b*y+c*z = d:
+	 *				1) Compute [a b c] as the normal vector to the plane and find d by substituting one coordinate.
+	 *				2) Normalize [a b c] (and d) and invert the normal if not pointing outwards:
+	 *					Given distance from point to plane = |a*x+b*y+c*z-d|/norm([a b c],2), ensure that when
+	 *					substituting the coordinate of the vertex not in the plane that the result is negative.
+	 *				3) Using the distance formula again:
+	 *					r = n1*x_c+n2*y_c+n3*z_c-d (4 eqns and 4 unknowns)
+	 *					Solve: [ones(d+1,1) nr]*[r x_c y_c z_c]' = d
 	 *
 	 *		Enclosing:
+	 *			It may be sufficient for the mesh quality measure to simply use the circumsphere radius. (ToBeModified)
+	 *
 	 *			There are three possibilities to consider for this case.
 	 *
 	 *			1) Two   corners of the TET touch the sphere.
@@ -417,35 +467,23 @@ void evaluate_mesh_regularity(double *mesh_quality)
 
 		// Evaluate radius of enclosed sphere
 
-		// 1) Normal vector computation
+		// 1) Normal vector (normalized) computation
 		for (f = 0; f < Nf; f++) {
 			// Cross-product
 			compute_plane(&XYZ[IndF[f*d+0]*d],&XYZ[IndF[f*d+1]*d],&XYZ[IndF[f*d+2]*d],RHS[0],&d_p[f]);
 
+			// Normalize
 			nNorm[f] = array_norm_d(d,RHS[0],"L2");
 			for (i = 0; i < d; i++)
 				n[f*d+i] = RHS[0][i]/nNorm[f];
 			d_p[f] /= nNorm[f];
 
 			// Ensure that normal points outwards
-			for (i = 0; i < d; i++) {
-				XYZc[i] = 0.0;
-				for (j = 0; j < d; j++)
-					XYZc[i] += XYZ[IndF[f*d+j]*d+i];
-				XYZc[i] /= 3.0;
-			}
-
+			r = -d_p[f];
 			for (i = 0; i < d; i++)
-				XYZdiff[i] = XYZc[i]-XYZcT[i];
-			r = array_norm_d(d,XYZdiff,"L2");
+				r += n[f*d+i]*XYZ[f*d+i];
 
-			for (i = 0; i < d; i++)
-				XYZc[i] += n[f*d+i]*1e2*EPS;
-
-			for (i = 0; i < d; i++)
-				XYZdiff[i] = XYZc[i]-XYZcT[i];
-
-			if (array_norm_d(d,XYZdiff,"L2")-r < 0.0) {
+			if (r > 0.0) {
 				for (i = 0; i < d; i++)
 					n[f*d+i] *= -1.0;
 				d_p[f] *= -1.0;
@@ -453,29 +491,20 @@ void evaluate_mesh_regularity(double *mesh_quality)
 		}
 
 		// 2) Assemble LHS, RHS and solve system to obtain rIn
-		for (i = 0, iMax = Nf*d*Nf*d; i < iMax; i++)
-			LHS[1][i] = 0.0;
-
-		jMax = Nf*d;
-		for (f = 0; f < Nf; f++) {
-			for (i = f*d; i < (f+1)*d; i++) {
-				for (j = f*(d-1); j < (f+1)*(d-1); j++) {
-					LHS[1][i*jMax+j] = XYZ[IndF[f*d+(j%(d-1))]*d+(i%d)]-XYZ[IndF[(f+1)*d-1]*d+(i%d)];
-				}
-				LHS[1][i*jMax+8]       = -n[f*d+(i%d)];
-				LHS[1][i*jMax+9+(i%d)] = -1.0;
-
-				if (f < Nf-1)
-					RHS[1][i] = -XYZ[3*d+(i%d)];
+		for (i = 0, iMax = d+1; i < iMax; i++) {
+			for (j = 0, jMax = d+1; j < jMax; j++) {
+				if (j == 0)
+					LHS[2][i*jMax+j] = 1.0;
 				else
-					RHS[1][i] = -XYZ[2*d+(i%d)];
+					LHS[2][i*jMax+j] = n[i*d+(j-1)];
 			}
+			RHS[2][i] = d_p[i];
 		}
 
-		if (LAPACKE_dgesv(LAPACK_ROW_MAJOR,Nf*d,1,LHS[1],Nf*d,piv[1],RHS[1],1) > 0)
+		if (LAPACKE_dgesv(LAPACK_ROW_MAJOR,d+1,1,LHS[2],d+1,piv[2],RHS[2],1) > 0)
 			printf("Error: mkl LAPACKE_dgesv failed.\n"), EXIT_MSG;
 
-		rIn = RHS[1][8];
+		rIn = RHS[2][0];
 
 
 		// Evaluate radius of enclosing sphere
