@@ -37,8 +37,8 @@ case ${KERNEL} in
 #		echo ${OS_RELEASE}
 
 		PROG_DIR="/home/philip/Desktop/research/programs"
-		TOP_DIR="/home/philip/Desktop/research/codes/DPGSolver"
-#		TOP_DIR="/media/philip/40EB-97EF/code/DPGC/"
+#		TOP_DIR="/home/philip/Desktop/research/codes/DPGSolver"
+		TOP_DIR="/media/philip/40EB-97EF/code/DPGSolver"
 		MPI_DIR="${PROG_DIR}/petsc/petsc-3.7.0/arch-linux-c-/bin/"
 		N_PROCS="1"
 

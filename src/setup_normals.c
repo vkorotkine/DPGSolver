@@ -222,7 +222,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 			OPS->I_vC_fI = ELEMENT_OPS->I_vCc_fIs[PV][PF];
 		} else {
 			// Curved FACET Integration
-			OPS->NfnI = ELEMENT_OPS->NfnIc[PV][IndClass];
+			OPS->NfnI = ELEMENT_OPS->NfnIc[PF][IndClass];
 
 			OPS->I_vC_vI = ELEMENT_OPS->I_vCc_vIc[PV][PV][0];
 			OPS->I_vC_fI = ELEMENT_OPS->I_vCc_fIc[PV][PF];

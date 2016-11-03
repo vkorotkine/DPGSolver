@@ -31,7 +31,7 @@
  *		Clean up this function: function names, variable names, comments, potentially combine the COARSE and FINE FACET
  *		list updating (ToBeDeleted)
  *		coarse_update and get_FACET_IndVIn use the same IndVInh => combine these during cleanup (ToBeDeleted)
- *		Likely included FACET renumbering as well to avoid overflow for long-time simulations. (ToBeDeleted)
+ *		Likely include FACET renumbering as well to avoid overflow for long-time simulations. (ToBeDeleted)
  *
  *	Notation:
  *
@@ -43,8 +43,11 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 {
 	/*
 	 *	Comments:
-	 *		Vfh != f for PYR refinement.
+	 *		Vfh != f for TET6 and PYR refinement.
 	 */
+
+	// Initialize DB Parameters
+	unsigned int TETrefineType = DB.TETrefineType;
 
 	// Standard datatypes
 	unsigned int f;
@@ -117,47 +120,90 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 		}
 		break;
 	case TET:
-		switch (f) {
-		default: // FACE 0
-			switch (fh) {
-			case 0: *IndVInh = 1; break;
-			case 1: *IndVInh = 2; break;
-			case 2: *IndVInh = 3; break;
-			case 3: *IndVInh = 4; break;
-			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
+		if (TETrefineType == TET8) {
+			switch (f) {
+			default: // FACE 0
+				switch (fh) {
+				case 0: *IndVInh = 1; break;
+				case 1: *IndVInh = 2; break;
+				case 2: *IndVInh = 3; break;
+				case 3: *IndVInh = 4; break;
+				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
+				}
+				*Vfh = 0;
+				break;
+			case 1:
+				switch (fh) {
+				case 0: *IndVInh = 0; break;
+				case 1: *IndVInh = 2; break;
+				case 2: *IndVInh = 3; break;
+				case 3: *IndVInh = 5; break;
+				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
+				}
+				*Vfh = 1;
+				break;
+			case 2:
+				switch (fh) {
+				case 0: *IndVInh = 0; break;
+				case 1: *IndVInh = 1; break;
+				case 2: *IndVInh = 3; break;
+				case 3: *IndVInh = 6; break;
+				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
+				}
+				*Vfh = 2;
+				break;
+			case 3:
+				switch (fh) {
+				case 0: *IndVInh = 0; break;
+				case 1: *IndVInh = 1; break;
+				case 2: *IndVInh = 2; break;
+				case 3: *IndVInh = 7; break;
+				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
+				}
+				*Vfh = 3;
+				break;
 			}
-			*Vfh = 0;
-			break;
-		case 1:
-			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 2; break;
-			case 2: *IndVInh = 3; break;
-			case 3: *IndVInh = 5; break;
-			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
+		} else if (TETrefineType == TET6) {
+			switch (f) {
+			default: // FACE 0
+				switch (fh) {
+				case 0: *IndVInh = 1; *Vfh = 0; break;
+				case 1: *IndVInh = 2; *Vfh = 0; break;
+				case 2: *IndVInh = 3; *Vfh = 0; break;
+				case 3: *IndVInh = 5; *Vfh = 1; break;
+				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
+				}
+				break;
+			case 1:
+				switch (fh) {
+				case 0: *IndVInh = 0; *Vfh = 1; break;
+				case 1: *IndVInh = 2; *Vfh = 1; break;
+				case 2: *IndVInh = 3; *Vfh = 1; break;
+				case 3: *IndVInh = 5; *Vfh = 0; break;
+				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
+				}
+				break;
+			case 2:
+				switch (fh) {
+				case 0: *IndVInh = 0; *Vfh = 2; break;
+				case 1: *IndVInh = 1; *Vfh = 2; break;
+				case 2: *IndVInh = 3; *Vfh = 2; break;
+				case 3: *IndVInh = 4; *Vfh = 2; break;
+				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
+				}
+				break;
+			case 3:
+				switch (fh) {
+				case 0: *IndVInh = 0; *Vfh = 3; break;
+				case 1: *IndVInh = 1; *Vfh = 3; break;
+				case 2: *IndVInh = 2; *Vfh = 3; break;
+				case 3: *IndVInh = 4; *Vfh = 3; break;
+				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
+				}
+				break;
 			}
-			*Vfh = 1;
-			break;
-		case 2:
-			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 1; break;
-			case 2: *IndVInh = 3; break;
-			case 3: *IndVInh = 6; break;
-			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
-			}
-			*Vfh = 2;
-			break;
-		case 3:
-			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 1; break;
-			case 2: *IndVInh = 2; break;
-			case 3: *IndVInh = 7; break;
-			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
-			}
-			*Vfh = 3;
-			break;
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
 		break;
 	case HEX:
@@ -522,6 +568,10 @@ static void get_Indsf(struct S_FACET *FACET, unsigned int *sfIn, unsigned int *s
 
 static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct S_FACET *FACETc, struct S_VOLUME *VOLUME)
 {
+	// Initialize DB Parameters
+	unsigned int TETrefineType = DB.TETrefineType;
+
+	// Standard datatypes
 	unsigned int i, VType, IndVhOut, f, IndOrdInOut, IndOrdOutIn, sfIn, sfOut;
 
 	struct S_VOLUME *VOLUMEc;
@@ -559,21 +609,63 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 		break;
 	case TET:
 		// Isotropic refinement only.
-		switch (vh) {
-		case 0: IndVhOut = 6; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fIn = 0
-		case 1: IndVhOut = 7; f = 1; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 1
-		case 2: IndVhOut = 4; f = 2; IndOrdInOut = 3; IndOrdOutIn = 3; break; // fIn = 2
-		case 3: IndVhOut = 5; f = 3; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fIn = 3
-		case 4:
-			if      (fIn == 1) { IndVhOut = 7; IndOrdInOut = 2; IndOrdOutIn = 1; } // fIn = 1
-			else if (fIn == 3) { IndVhOut = 5; IndOrdInOut = 1; IndOrdOutIn = 2; } // fIn = 3
-			f = 2;
-			break;
-		case 5: IndVhOut = 6; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 0
-		case 6: IndVhOut = 7; f = 0; IndOrdInOut = 1; IndOrdOutIn = 2; break; // fIn = 1
-		default: // Should already have found all FACETs
-			printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
-			break;
+		if (TETrefineType == TET8) {
+			switch (vh) {
+			case 0: IndVhOut = 6; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fIn = 0
+			case 1: IndVhOut = 7; f = 1; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 1
+			case 2: IndVhOut = 4; f = 2; IndOrdInOut = 3; IndOrdOutIn = 3; break; // fIn = 2
+			case 3: IndVhOut = 5; f = 3; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fIn = 3
+			case 4:
+				if      (fIn == 1) { IndVhOut = 7; IndOrdInOut = 2; IndOrdOutIn = 1; }
+				else if (fIn == 3) { IndVhOut = 5; IndOrdInOut = 1; IndOrdOutIn = 2; }
+				f = 2;
+				break;
+			case 5: IndVhOut = 6; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 0
+			case 6: IndVhOut = 7; f = 0; IndOrdInOut = 1; IndOrdOutIn = 2; break; // fIn = 1
+			default: // Should already have found all FACETs
+				printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
+				break;
+			}
+		} else if (TETrefineType == TET12) {
+			switch (vh) {
+			case 0: IndVhOut = 8;  f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 0
+			case 1: IndVhOut = 9;  f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 1
+			case 2: IndVhOut = 10; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 2
+			case 3: IndVhOut = 11; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 3
+			case 4:
+				if      (fIn == 1) { IndVhOut = 9;  f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; }
+				else if (fIn == 2) { IndVhOut = 10; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; }
+				else if (fIn == 3) { IndVhOut = 11; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; }
+			case 5:
+				if      (fIn == 0) { IndVhOut = 8;  f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; }
+				else if (fIn == 2) { IndVhOut = 10; f = 1; IndOrdInOut = 2; IndOrdOutIn = 1; }
+				else if (fIn == 3) { IndVhOut = 11; f = 1; IndOrdInOut = 2; IndOrdOutIn = 1; }
+			case 6:
+				if      (fIn == 0) { IndVhOut = 8;  f = 1; IndOrdInOut = 2; IndOrdOutIn = 1; }
+				else if (fIn == 1) { IndVhOut = 9;  f = 1; IndOrdInOut = 2; IndOrdOutIn = 1; }
+				else if (fIn == 3) { IndVhOut = 11; f = 2; IndOrdInOut = 5; IndOrdOutIn = 5; }
+			case 7:
+				if      (fIn == 0) { IndVhOut = 8;  f = 2; IndOrdInOut = 2; IndOrdOutIn = 1; }
+				else if (fIn == 1) { IndVhOut = 9;  f = 2; IndOrdInOut = 2; IndOrdOutIn = 1; }
+				else if (fIn == 2) { IndVhOut = 10; f = 2; IndOrdInOut = 2; IndOrdOutIn = 1; }
+				break;
+			default: // Should already have found all FACETs
+				printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
+				break;
+			}
+		} else if (TETrefineType == TET6) {
+			switch (vh) {
+			case 0: IndVhOut = 4; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fIn = 0
+			case 1: IndVhOut = 4; f = 1; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fIn = 1
+			case 2: IndVhOut = 5; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 2
+			case 3: IndVhOut = 5; f = 2; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 3
+			case 4: IndVhOut = 5; f = 4; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 4
+			default: // Should already have found all FACETs
+				printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
+				break;
+			}
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
 		break;
 	case HEX:
@@ -686,6 +778,10 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 
 static void set_FACET_Out_External(struct S_FACET *FACETc, struct S_VOLUME *VOLUME)
 {
+	// Initialize DB Parameters
+	unsigned int TETrefineType = DB.TETrefineType;
+
+	// standard datatypes
 	unsigned int i, VType, IndVhOut, VfOut, f, sfIn, sfOut;
 
 	struct S_VOLUME *VOLUMEc;
@@ -734,36 +830,70 @@ static void set_FACET_Out_External(struct S_FACET *FACETc, struct S_VOLUME *VOLU
 		break;
 	case TET:
 		// Isotropic refinement only.
-		switch (VfOut) {
-		case NFREFMAX+1:
-		case 2*NFREFMAX+1:
-		case 3*NFREFMAX+1:
-			IndVhOut = 0; break;
-		case 1:
-		case 2*NFREFMAX+2:
-		case 3*NFREFMAX+2:
-			IndVhOut = 1; break;
-		case 2:
-		case NFREFMAX+2:
-		case 3*NFREFMAX+3:
-			IndVhOut = 2; break;
-		case 3:
-		case NFREFMAX+3:
-		case 2*NFREFMAX+3:
-			IndVhOut = 3; break;
-		case 4:
-			IndVhOut = 4; break;
-		case NFREFMAX+4:
-			IndVhOut = 5; break;
-		case 2*NFREFMAX+4:
-			IndVhOut = 6; break;
-		case 3*NFREFMAX+4:
-			IndVhOut = 7; break;
-		default:
-			printf("Error: Unsupported VfOut = %d.\n",VfOut), EXIT_MSG;
-			break;
+		if (TETrefineType == TET8 || TETrefineType == TET12) {
+			switch (VfOut) {
+			case NFREFMAX+1:
+			case 2*NFREFMAX+1:
+			case 3*NFREFMAX+1:
+				IndVhOut = 0; break;
+			case 1:
+			case 2*NFREFMAX+2:
+			case 3*NFREFMAX+2:
+				IndVhOut = 1; break;
+			case 2:
+			case NFREFMAX+2:
+			case 3*NFREFMAX+3:
+				IndVhOut = 2; break;
+			case 3:
+			case NFREFMAX+3:
+			case 2*NFREFMAX+3:
+				IndVhOut = 3; break;
+			case 4:
+				IndVhOut = 4; break;
+			case NFREFMAX+4:
+				IndVhOut = 5; break;
+			case 2*NFREFMAX+4:
+				IndVhOut = 6; break;
+			case 3*NFREFMAX+4:
+				IndVhOut = 7; break;
+			default:
+				printf("Error: Unsupported VfOut = %d.\n",VfOut), EXIT_MSG;
+				break;
+			}
+			f = VfOut/NFREFMAX;
+		} else if (TETrefineType == TET6) {
+			switch (VfOut) {
+			case NFREFMAX+1:
+			case 2*NFREFMAX+1:
+			case 3*NFREFMAX+1:
+				IndVhOut = 0; f = VfOut/NFREFMAX; break;
+			case 1:
+			case 2*NFREFMAX+2:
+			case 3*NFREFMAX+2:
+				IndVhOut = 1; f = VfOut/NFREFMAX; break;
+			case 2:
+			case NFREFMAX+2:
+			case 3*NFREFMAX+3:
+				IndVhOut = 2; f = VfOut/NFREFMAX; break;
+			case 3:
+			case NFREFMAX+3:
+			case 2*NFREFMAX+3:
+				IndVhOut = 3; f = VfOut/NFREFMAX; break;
+			case 4:
+				IndVhOut = 5; f = 1; break;
+			case NFREFMAX+4:
+				IndVhOut = 5; f = 0; break;
+			case 2*NFREFMAX+4:
+				IndVhOut = 4; f = 2; break;
+			case 3*NFREFMAX+4:
+				IndVhOut = 4; f = 3; break;
+			default:
+				printf("Error: Unsupported VfOut = %d.\n",VfOut), EXIT_MSG;
+				break;
+			}
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
-		f = VfOut/NFREFMAX;
 		break;
 	case HEX:
 		// Isotropic refinement only.
@@ -1026,6 +1156,10 @@ static unsigned int is_VOLUME_VIn(const unsigned int indexgVOLUME, const unsigne
 
 static void coarse_update(struct S_VOLUME *VOLUME)
 {
+	// Initialize DB Parameters
+	unsigned int TETrefineType = DB.TETrefineType;
+
+	// Standard datatypes
 	unsigned int i, iMax, f, Nf, VType, vhMin, vhMax, sf, sfMax, sfMax_i, fIn, fOut,
 	             IndVc[NVISUBFMAX],Indsf[NVISUBFMAX], recombine_FACETs,
 	             dummy_ui;
@@ -1096,14 +1230,29 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 		case TET:
 			// Supported: Isotropic refinement
 			sfMax = 4;
-			switch (f) {
-			default: IndVc[0] = 1; IndVc[1] = 2; IndVc[2] = 3; IndVc[3] = 4; break;
-			case 1:  IndVc[0] = 0; IndVc[1] = 2; IndVc[2] = 3; IndVc[3] = 5; break;
-			case 2:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 3; IndVc[3] = 6; break;
-			case 3:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 7; break;
-			}
 			for (sf = 0; sf < sfMax; sf++)
 				Indsf[sf] = f*NSUBFMAX;
+			if (TETrefineType == TET8 || TETrefineType == TET12) {
+				switch (f) {
+				default: IndVc[0] = 1; IndVc[1] = 2; IndVc[2] = 3; IndVc[3] = 4; break;
+				case 1:  IndVc[0] = 0; IndVc[1] = 2; IndVc[2] = 3; IndVc[3] = 5; break;
+				case 2:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 3; IndVc[3] = 6; break;
+				case 3:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 7; break;
+				}
+			} else if (TETrefineType == TET6) {
+				switch (f) {
+				default: IndVc[0] = 1; IndVc[1] = 2; IndVc[2] = 3; IndVc[3] = 5; break;
+				case 1:  IndVc[0] = 0; IndVc[1] = 2; IndVc[2] = 3; IndVc[3] = 5; break;
+				case 2:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 3; IndVc[3] = 4; break;
+				case 3:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 4; break;
+				}
+				if (f == 0)
+					Indsf[sfMax-1] = 1*NSUBFMAX;
+				else if (f == 1)
+					Indsf[sfMax-1] = 0*NSUBFMAX;
+			} else {
+				printf("Error: Unsupported.\n"), EXIT_MSG;
+			}
 			break;
 		case HEX:
 			// Supported: Isotropic refinement
@@ -1149,7 +1298,7 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 				Indsf[sfMax-1] = 1*NSUBFMAX;
 			else if (f == 1)
 				Indsf[sfMax-1] = 0*NSUBFMAX;
-				
+
 			break;
 		default:
 			printf("Error: Unsupported VType.\n"), EXIT_MSG;
@@ -1249,13 +1398,37 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 			Indsf[i] *= NSUBFMAX;
 		break;
 	case TET:
-		sfMax_i = 8;
+		if (TETrefineType == TET8) {
+			sfMax_i = 8;
 
-		IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 3;
-		IndVc[4] = 4; IndVc[5] = 4; IndVc[6] = 5; IndVc[7] = 6;
+			IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 3;
+			IndVc[4] = 4; IndVc[5] = 4; IndVc[6] = 5; IndVc[7] = 6;
 
-		Indsf[0] = 0; Indsf[1] = 1; Indsf[2] = 2; Indsf[3] = 3;
-		Indsf[4] = 1; Indsf[5] = 3; Indsf[6] = 0; Indsf[7] = 1;
+			Indsf[0] = 0; Indsf[1] = 1; Indsf[2] = 2; Indsf[3] = 3;
+			Indsf[4] = 1; Indsf[5] = 3; Indsf[6] = 0; Indsf[7] = 1;
+		} else if (TETrefineType == TET12) {
+			sfMax_i = 16;
+
+			IndVc[0]  = 0; IndVc[1]  = 1; IndVc[2]  = 2; IndVc[3]  = 3;
+			IndVc[4]  = 4; IndVc[5]  = 4; IndVc[6]  = 4;
+			IndVc[7]  = 5; IndVc[8]  = 5; IndVc[9]  = 5;
+			IndVc[10] = 6; IndVc[11] = 6; IndVc[12] = 6;
+			IndVc[13] = 7; IndVc[14] = 7; IndVc[15] = 7;
+
+			Indsf[0]  = 0; Indsf[1]  = 1; Indsf[2]  = 2; Indsf[3]  = 3;
+			Indsf[4]  = 1; Indsf[5]  = 2; Indsf[6]  = 3;
+			Indsf[7]  = 0; Indsf[8]  = 2; Indsf[9]  = 3;
+			Indsf[10] = 0; Indsf[11] = 1; Indsf[12] = 3;
+			Indsf[13] = 0; Indsf[14] = 1; Indsf[15] = 2;
+		} else if (TETrefineType == TET6) {
+			sfMax_i = 5;
+
+			IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 3; IndVc[4] = 4;
+
+			Indsf[0] = 0; Indsf[1] = 1; Indsf[2] = 2; Indsf[3] = 3; Indsf[4] = 4;
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+		}
 		for (i = 0; i < sfMax_i; i++)
 			Indsf[i] *= NSUBFMAX;
 		break;

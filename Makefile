@@ -185,13 +185,12 @@ $(EXECDIR):
 
 
 OUTPUT_LIST   := paraview errors results
-TESTCASE_LIST := dSphericalBump GaussianBump PeriodicVortex \
-                 PolynomialBump SupersonicVortex VortexRiemann \
+TESTCASE_LIST := PeriodicVortex SupersonicVortex VortexRiemann \
                  Poisson
 # ToBeModified (Remove unneeded meshtypes)
 MESHTYPE_LIST := ToBeCurvedStructuredTRI ToBeCurvedStructuredQUAD ToBeCurvedStructuredTET ToBeCurvedStructuredHEX \
                  ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR ToBeCurvedMixed ToBeCurvedTET CurvedTET \
-                 ToBeCurvedStructuredMixedTP ToBeCurvedStructuredMixedHW ToBeCurvedMixedHW ToBeCurvedMixedTP StructuredTET
+                 StructuredTET
 
 OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))
 TESTCASE_LIST := $(subst $(space),$(comma),$(TESTCASE_LIST))
@@ -202,6 +201,7 @@ MESHTYPE_LIST := $(subst $(space),$(comma),$(MESHTYPE_LIST))
 .PHONY : directories
 directories:
 	mkdir -p cases/{$(OUTPUT_LIST)}/{$(TESTCASE_LIST)}/{$(MESHTYPE_LIST)}
+	mkdir -p meshes/{$(TESTCASE_LIST)}
 
 
 .PHONY : clean

@@ -204,8 +204,8 @@ TestDB.PGlobal = 1;
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin = 1;  PMax = 1;
-	MLMin = 0; MLMax = 3;
+	PMin = 1;  PMax = 2;
+	MLMin = 0; MLMax = 2;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
