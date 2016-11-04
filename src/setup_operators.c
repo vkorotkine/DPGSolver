@@ -834,7 +834,10 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
 
-	VeVref = malloc(Nnodes * sizeof *VeVref); // free
+//	VeVref = malloc(Nnodes * sizeof *VeVref); // free
+	VeVref = calloc(Nnodes , sizeof *VeVref); // free
+	for (i = 0; i < Nnodes; i++)
+		VeVref[i] = 123.0;
 
 	if (EType == LINE || EType == TRI) {
 		for (i = 0; i < Nvref; i++)
@@ -853,9 +856,10 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 
 	VeVrefInd = 0;
 	for (i = 0; i < Nvref; i++) {
-		jMax = Nve*Nvve[i];
 		if (i)
 			VeVrefInd += jMax;
+
+		jMax = Nve*Nvve[i];
 		VeV[i] = malloc(jMax * sizeof *VeV[i]); // keep
 		for (j = 0; j < jMax; j++)
 			VeV[i][j] = VeVref[VeVrefInd+j];

@@ -60,13 +60,11 @@ static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, co
 	else
 		NrefTypes = 1;
 
-//	code_startup(nargc,argvNew,Nref,update_argv);
-
 	for (refType = 0; refType < NrefTypes; refType++) {
 		code_startup_mod_prmtrs(nargc,argvNew,Nref,update_argv,1);
-		if      (refType == 0) DB.TETrefineType = TET8;
-//		else if (refType == 1) DB.TETrefineType = TET12;
-		else if (refType == 1) DB.TETrefineType = TET6;
+//		if      (refType == 0) DB.TETrefineType = TET8;
+		if      (refType == 0) DB.TETrefineType = TET6;
+		else if (refType == 1) DB.TETrefineType = TET12;
 		else if (refType == 2) DB.TETrefineType = TET6;
 		code_startup_mod_prmtrs(nargc,argvNew,Nref,update_argv,2);
 		if (DB.PGlobal <= 1)
@@ -103,8 +101,6 @@ static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, co
 		code_cleanup();
 	}
 	DB.TETrefineType = TETrefineType;
-
-//	code_cleanup();
 }
 
 void test_integration_update_h(int nargc, char **argv)
@@ -146,7 +142,7 @@ void test_integration_update_h(int nargc, char **argv)
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->type = 'd'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.50; Lmts[2]->XYZ[1] = -0.50; Lmts[2]->type = 'd'; Lmts[2]->index = 0;
 	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
-	test_update_h(nargc,argvNew,2,0,EName,Lmts);
+//	test_update_h(nargc,argvNew,2,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// QUADs
@@ -156,7 +152,7 @@ void test_integration_update_h(int nargc, char **argv)
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
 	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
-	test_update_h(nargc,argvNew,3,0,EName,Lmts);
+//	test_update_h(nargc,argvNew,3,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// TETs
