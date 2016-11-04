@@ -385,6 +385,16 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 static unsigned int get_FACET_VfOut(const unsigned int fh, const unsigned int IndOrd, const unsigned int neigh_f,
                                     const unsigned int FType)
 {
+	/*
+	 *	Purpose:
+	 *		Returns VfOut based on IndOrd of neighbouring parent elements.
+	 *
+	 *	Comments:
+	 *		In the current implementation, the IndOrd of the refined external facets is the same as that of the parent
+	 *		facets. If TET6 refinement algorithms with internal PYRs in arbitrary orientations are desired, this would
+	 *		no longer be true and IndOrd would also need to be returned.
+	 */
+
 	unsigned int Vfl;
 
 	// silence

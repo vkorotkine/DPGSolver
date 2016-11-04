@@ -202,6 +202,7 @@ MESHTYPE_LIST := $(subst $(space),$(comma),$(MESHTYPE_LIST))
 directories:
 	mkdir -p cases/{$(OUTPUT_LIST)}/{$(TESTCASE_LIST)}/{$(MESHTYPE_LIST)}
 	mkdir -p meshes/{$(TESTCASE_LIST)}
+	mkdir -p meshes/Test
 
 
 .PHONY : clean

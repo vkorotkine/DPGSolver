@@ -146,7 +146,7 @@ void test_integration_update_h(int nargc, char **argv)
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->type = 'd'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.50; Lmts[2]->XYZ[1] = -0.50; Lmts[2]->type = 'd'; Lmts[2]->index = 0;
 	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
-//	test_update_h(nargc,argvNew,2,0,EName,Lmts);
+	test_update_h(nargc,argvNew,2,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// QUADs
@@ -156,7 +156,7 @@ void test_integration_update_h(int nargc, char **argv)
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
 	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
-//	test_update_h(nargc,argvNew,3,0,EName,Lmts);
+	test_update_h(nargc,argvNew,3,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// TETs
@@ -167,6 +167,7 @@ void test_integration_update_h(int nargc, char **argv)
 	Lmts[2]->XYZ[0] =  1.00; Lmts[2]->XYZ[1] =  1.00; Lmts[2]->XYZ[2] = -0.50; Lmts[2]->type = 'd'; Lmts[2]->index = 1;
 	Lmts[3]->XYZ[0] =  1.00; Lmts[3]->XYZ[1] =  1.00; Lmts[3]->XYZ[2] = -1.00; Lmts[3]->type = 'd'; Lmts[3]->index = 0;
 	test_update_h(nargc,argvNew,2,0,EName,Lmts);
+EXIT_MSG;
 
 	// **************************************************************************************************** //
 	// HEXs

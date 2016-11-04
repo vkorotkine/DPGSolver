@@ -154,8 +154,8 @@ void initialize_ELEMENTs(void)
 	ELEMENT->type_h[0] = TET; ELEMENT->type_h[1] = PYR;
 	ELEMENT->Nfve[0]   = 3; ELEMENT->Nfve[1]   = 3; ELEMENT->Nfve[2]   = 3; ELEMENT->Nfve[3]   = 3;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 2; ELEMENT->VeCGmsh[3]    = 3;
-	ELEMENT->VeFcon[0*NFVEMAX  ] = 1; ELEMENT->VeFcon[0*NFVEMAX+1] = 2; ELEMENT->VeFcon[0*NFVEMAX+2] = 3;
-	ELEMENT->VeFcon[1*NFVEMAX  ] = 0; ELEMENT->VeFcon[1*NFVEMAX+1] = 2; ELEMENT->VeFcon[1*NFVEMAX+2] = 3;
+	ELEMENT->VeFcon[0*NFVEMAX  ] = 2; ELEMENT->VeFcon[0*NFVEMAX+1] = 3; ELEMENT->VeFcon[0*NFVEMAX+2] = 1;
+	ELEMENT->VeFcon[1*NFVEMAX  ] = 2; ELEMENT->VeFcon[1*NFVEMAX+1] = 3; ELEMENT->VeFcon[1*NFVEMAX+2] = 0;
 	ELEMENT->VeFcon[2*NFVEMAX  ] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1; ELEMENT->VeFcon[2*NFVEMAX+2] = 3;
 	ELEMENT->VeFcon[3*NFVEMAX  ] = 0; ELEMENT->VeFcon[3*NFVEMAX+1] = 1; ELEMENT->VeFcon[3*NFVEMAX+2] = 2;
 	ELEMENT->NrefV[0] = 6;

@@ -636,22 +636,178 @@ static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const
 	return BCoords_dEm1;
 }
 
+static void initialize_VeVref(const unsigned int EType, double *VeVref)
+{
+	// Initialize DB Parameters
+	unsigned int TETrefineType = DB.TETrefineType;
+
+	// Standard datatypes
+	unsigned int i, j, k, Nve, Nvref, *Nvve;
+
+	struct S_ELEMENT *ELEMENT;
+
+	ELEMENT = get_ELEMENT_type(EType);
+
+	Nve   = ELEMENT->Nve;
+	Nvref = ELEMENT->Nvref;
+	Nvve  = ELEMENT->Nvve;
+
+	switch (EType) {
+	case LINE: {
+		double Barycentric_coords[3][2] = {{ 1.0 , 0.0 },
+		                                   { 0.0 , 1.0 },
+		                                   { 0.5 , 0.5 }};
+		unsigned int Vh_coord_Ind[3][2] = {{ 0 , 1 },
+		                                   { 0 , 2 },
+		                                   { 2 , 1 }};
+
+		for (k = 0; k < Nvref; k++) {
+		for (i = 0; i < Nvve[k]; i++) {
+		for (j = 0; j < Nve; j++) {
+			*VeVref++ = Barycentric_coords[Vh_coord_Ind[k][i]][j];
+		}}}
+		break;
+	} case TRI: {
+		double Barycentric_coords[6][3] = {{ 1.0 , 0.0 , 0.0 },
+		                                   { 0.0 , 1.0 , 0.0 },
+		                                   { 0.0 , 0.0 , 1.0 },
+		                                   { 0.5 , 0.5 , 0.0 },
+		                                   { 0.5 , 0.0 , 0.5 },
+		                                   { 0.0 , 0.5 , 0.5 }};
+		unsigned int Vh_coord_Ind[5][3] = {{ 0 , 1 , 2 },
+		                                   { 0 , 3 , 4 },
+		                                   { 3 , 1 , 5 },
+		                                   { 4 , 5 , 2 },
+		                                   { 5 , 4 , 3 }};
+
+		for (k = 0; k < Nvref; k++) {
+		for (i = 0; i < Nvve[k]; i++) {
+		for (j = 0; j < Nve; j++) {
+			*VeVref++ = Barycentric_coords[Vh_coord_Ind[k][i]][j];
+		}}}
+		break;
+	} case TET: {
+		double Barycentric_coords[11][4] = {{ 1.0 , 0.0 , 0.0 , 0.0 },
+		                                    { 0.0 , 1.0 , 0.0 , 0.0 },
+		                                    { 0.0 , 0.0 , 1.0 , 0.0 },
+		                                    { 0.0 , 0.0 , 0.0 , 1.0 },
+		                                    { 0.5 , 0.5 , 0.0 , 0.0 },
+		                                    { 0.5 , 0.0 , 0.5 , 0.0 },
+		                                    { 0.0 , 0.5 , 0.5 , 0.0 },
+		                                    { 0.5 , 0.0 , 0.0 , 0.5 },
+		                                    { 0.0 , 0.5 , 0.0 , 0.5 },
+		                                    { 0.0 , 0.0 , 0.5 , 0.5 },
+		                                    { 0.25, 0.25, 0.25, 0.25}};
+		if (TETrefineType == TET8) {
+			unsigned int Vh_coord_Ind[9][4] = {{ 0 , 1 , 2 , 3 },
+			                                   { 0 , 4 , 5 , 7 },
+			                                   { 4 , 1 , 6 , 8 },
+			                                   { 5 , 6 , 2 , 9 },
+			                                   { 7 , 8 , 9 , 3 },
+			                                   { 4 , 9 , 8 , 6 },
+			                                   { 9 , 4 , 7 , 5 },
+			                                   { 8 , 7 , 9 , 4 },
+			                                   { 6 , 5 , 4 , 9 }};
+
+			for (k = 0; k < Nvref; k++) {
+			for (i = 0; i < Nvve[k]; i++) {
+			for (j = 0; j < Nve; j++) {
+				*VeVref++ = Barycentric_coords[Vh_coord_Ind[k][i]][j];
+			}}}
+		} else if (TETrefineType == TET12) {
+			unsigned int Vh_coord_Ind[13][4] = {{ 0 , 1 , 2 , 3 },
+			                                    { 0 , 4 , 5 , 7 },
+			                                    { 4 , 1 , 6 , 8 },
+			                                    { 5 , 6 , 2 , 9 },
+			                                    { 7 , 8 , 9 , 3 },
+			                                    { 10, 9 , 8 , 6 },
+			                                    { 9 , 10, 7 , 5 },
+			                                    { 8 , 7 , 10, 4 },
+			                                    { 6 , 5 , 4 , 10},
+			                                    { 10, 4 , 7 , 5 },
+			                                    { 4 , 10, 8 , 6 },
+			                                    { 6 , 5 , 10, 9 },
+			                                    { 8 , 7 , 9 , 10}};
+
+			for (k = 0; k < Nvref; k++) {
+			for (i = 0; i < Nvve[k]; i++) {
+			for (j = 0; j < Nve; j++) {
+				*VeVref++ = Barycentric_coords[Vh_coord_Ind[k][i]][j];
+			}}}
+		} else if (TETrefineType == TET6) {
+			unsigned int Vh_coord_Ind[7][5] = {{ 0 , 1 , 2 , 3 , -1},
+			                                   { 0 , 4 , 5 , 7 , -1},
+			                                   { 4 , 1 , 6 , 8 , -1},
+			                                   { 5 , 6 , 2 , 9 , -1},
+			                                   { 7 , 8 , 9 , 3 , -1},
+			                                   { 8 , 7 , 6 , 5 , 4 },
+			                                   { 7 , 8 , 5 , 6 , 9 }};
+
+			for (k = 0; k < Nvref; k++) {
+			for (i = 0; i < Nvve[k]; i++) {
+			for (j = 0; j < Nve; j++) {
+				*VeVref++ = Barycentric_coords[Vh_coord_Ind[k][i]][j];
+			}}}
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+		}
+		break;
+	} case PYR: {
+		double Barycentric_coords[14][5] = {{ 1.0 , 0.0 , 0.0 , 0.0 , 0.0 },
+		                                    { 0.0 , 1.0 , 0.0 , 0.0 , 0.0 },
+		                                    { 0.0 , 0.0 , 1.0 , 0.0 , 0.0 },
+		                                    { 0.0 , 0.0 , 0.0 , 1.0 , 0.0 },
+		                                    { 0.0 , 0.0 , 0.0 , 0.0 , 1.0 },
+		                                    { 0.5 , 0.5 , 0.0 , 0.0 , 0.0 },
+		                                    { 0.5 , 0.0 , 0.5 , 0.0 , 0.0 },
+		                                    { 0.25, 0.25, 0.25, 0.25, 0.0 },
+		                                    { 0.0 , 0.5 , 0.0 , 0.5 , 0.0 },
+		                                    { 0.0 , 0.0 , 0.5 , 0.5 , 0.0 },
+		                                    { 0.5 , 0.0 , 0.0 , 0.0 , 0.5 },
+		                                    { 0.0 , 0.5 , 0.0 , 0.0 , 0.5 },
+		                                    { 0.0 , 0.0 , 0.5 , 0.0 , 0.5 },
+		                                    { 0.0 , 0.0 , 0.0 , 0.5 , 0.5 }};
+		unsigned int Vh_coord_Ind[11][5] = {{ 0 , 1 , 2 , 3 , 4 },
+		                                    { 0 , 5 , 6 , 7 , 10},
+		                                    { 5 , 1 , 7 , 8 , 11},
+		                                    { 6 , 7 , 2 , 9 , 12},
+		                                    { 7 , 8 , 9 , 3 , 13},
+		                                    { 6 , 7 , 12, 10, -1},
+		                                    { 7 , 8 , 13, 11, -1},
+		                                    { 11, 10, 7 , 5 , -1},
+		                                    { 13, 12, 9 , 7 , -1},
+		                                    { 11, 10, 13, 12, 7 },
+		                                    { 10, 11, 12, 13, 4 }};
+
+		for (k = 0; k < Nvref; k++) {
+		for (i = 0; i < Nvve[k]; i++) {
+		for (j = 0; j < Nve; j++) {
+			*VeVref++ = Barycentric_coords[Vh_coord_Ind[k][i]][j];
+		}}}
+		break;
+	} default:
+		printf("Error: Unsupported EType.\n"), EXIT_MSG;
+		break;
+	}
+
+}
+
 static void setup_ELEMENT_VeV(const unsigned int EType)
 {
 	/*
 	 *	Comments:
-	 *		For VeVref_TET, note that there are 3 options for the internal TET positioning. Here only one option is
+	 *		For TET refinement, note that there are 3 options for the internal TET positioning. Here only one option is
 	 *		supported but the others can be added if, for example, it is desired to refine TETs by splitting along the
 	 *		longest physical diagonal. Similarly, if it is found that TETs are advantageous over PYRs, the top two PYRs
-	 *		in the refined PYR can be split into four TETs.
+	 *		in the refined PYR can be split into four/eight TETs.
 	 */
 
 	// Initialize DB Parameters
 	unsigned int TETrefineType = DB.TETrefineType;
 
 	// Standard datatypes
-	unsigned int i, j, jMax, VeVrefInd, Nve, *Nvve, Nvref, EcType, NTETnodes;
-	double       **VeV, *VeVref_TET;
+	unsigned int i, j, jMax, VeVrefInd, Nve, *Nvve, Nvref, EcType, Nnodes;
+	double       **VeV, *VeVref;
 
 	struct S_ELEMENT *ELEMENT;
 
@@ -662,309 +818,49 @@ static void setup_ELEMENT_VeV(const unsigned int EType)
 	VeV   = ELEMENT->VeV;
 	Nvref = ELEMENT->Nvref;
 
-	if      (TETrefineType == TET8)  NTETnodes = 144;
-	else if (TETrefineType == TET12) NTETnodes = 208;
-	else if (TETrefineType == TET6)  NTETnodes = 120;
-	else
+	if (EType == LINE) {
+		Nnodes = 12;
+	} else if (EType == TRI) {
+		Nnodes = 45;
+	} else if (EType == TET) {
+		if      (TETrefineType == TET8)  Nnodes = 144;
+		else if (TETrefineType == TET12) Nnodes = 208;
+		else if (TETrefineType == TET6)  Nnodes = 120;
+		else
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+	} else if (EType == PYR) {
+		Nnodes = 255;
+	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
-
-	VeVref_TET = malloc(NTETnodes * sizeof *VeVref_TET); // free
-
-	double VeVref_LINE[12] = { 1.0, 0.0 ,
-	                           0.0, 1.0 ,
-	                           1.0, 0.0 ,
-	                           0.5, 0.5 ,
-	                           0.5, 0.5 ,
-	                           0.0, 1.0 },
-	       VeVref_TRI[45]   = {1.0 , 0.0 , 0.0 ,
-	                           0.0 , 1.0 , 0.0 ,
-	                           0.0 , 0.0 , 1.0 ,
-	                           1.0 , 0.0 , 0.0 ,
-	                           0.5 , 0.5 , 0.0 ,
-	                           0.5 , 0.0 , 0.5 ,
-	                           0.5 , 0.5 , 0.0 ,
-	                           0.0 , 1.0 , 0.0 ,
-	                           0.0 , 0.5 , 0.5 ,
-	                           0.5 , 0.0 , 0.5 ,
-	                           0.0 , 0.5 , 0.5 ,
-	                           0.0 , 0.0 , 1.0 ,
-	                           0.0 , 0.5 , 0.5 ,
-	                           0.5 , 0.0 , 0.5 ,
-	                           0.5 , 0.5 , 0.0 },
-	       VeVref_PYR[255]  = {1.0 , 0.0 , 0.0 , 0.0 , 0.0 , // Conforming
-	                           0.0 , 1.0 , 0.0 , 0.0 , 0.0 ,
-	                           0.0 , 0.0 , 1.0 , 0.0 , 0.0 ,
-	                           0.0 , 0.0 , 0.0 , 1.0 , 0.0 ,
-	                           0.0 , 0.0 , 0.0 , 0.0 , 1.0 ,
-	                           1.0 , 0.0 , 0.0 , 0.0 , 0.0 , // First 4 PYRs
-	                           0.5 , 0.5 , 0.0 , 0.0 , 0.0 ,
-	                           0.5 , 0.0 , 0.5 , 0.0 , 0.0 ,
-	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
-	                           0.5 , 0.0 , 0.0 , 0.0 , 0.5 ,
-	                           0.5 , 0.5 , 0.0 , 0.0 , 0.0 , // 2
-	                           0.0 , 1.0 , 0.0 , 0.0 , 0.0 ,
-	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
-	                           0.0 , 0.5 , 0.0 , 0.5 , 0.0 ,
-	                           0.0 , 0.5 , 0.0 , 0.0 , 0.5 ,
-	                           0.5 , 0.0 , 0.5 , 0.0 , 0.0 , // 3
-	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
-	                           0.0 , 0.0 , 1.0 , 0.0 , 0.0 ,
-	                           0.0 , 0.0 , 0.5 , 0.5 , 0.0 ,
-	                           0.0 , 0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.25, 0.25, 0.25, 0.25, 0.0 , // 4
-	                           0.0 , 0.5 , 0.0 , 0.5 , 0.0 ,
-	                           0.0 , 0.0 , 0.5 , 0.5 , 0.0 ,
-	                           0.0 , 0.0 , 0.0 , 1.0 , 0.0 ,
-	                           0.0 , 0.0 , 0.0 , 0.5 , 0.5 ,
-	                           0.0 , 0.0 , 0.5 , 0.0 , 0.5 , // 4 TETs
-	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
-	                           0.5 , 0.0 , 0.0 , 0.0 , 0.5 ,
-	                           0.5 , 0.0 , 0.5 , 0.0 , 0.0 ,
-	                           0.25, 0.25, 0.25, 0.25, 0.0 , // 6
-	                           0.0 , 0.0 , 0.0 , 0.5 , 0.5 ,
-	                           0.0 , 0.5 , 0.0 , 0.0 , 0.5 ,
-	                           0.0 , 0.5 , 0.0 , 0.5 , 0.0 ,
-	                           0.0 , 0.5 , 0.0 , 0.0 , 0.5 , // 7
-	                           0.5 , 0.0 , 0.0 , 0.0 , 0.5 ,
-	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
-	                           0.5 , 0.5 , 0.0 , 0.0 , 0.0 ,
-	                           0.0 , 0.0 , 0.0 , 0.5 , 0.5 , // 8
-	                           0.0 , 0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.0 , 0.0 , 0.5 , 0.5 , 0.0 ,
-	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
-	                           0.0 , 0.5 , 0.0 , 0.0 , 0.5 , // Last 2 PYRs
-	                           0.5 , 0.0 , 0.0 , 0.0 , 0.5 ,
-	                           0.0 , 0.0 , 0.0 , 0.5 , 0.5 ,
-	                           0.0 , 0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.25, 0.25, 0.25, 0.25, 0.0 ,
-	                           0.5 , 0.0 , 0.0 , 0.0 , 0.5 , // 10
-	                           0.0 , 0.5 , 0.0 , 0.0 , 0.5 ,
-	                           0.0 , 0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.0 , 0.0 , 0.0 , 0.5 , 0.5 ,
-	                           0.0 , 0.0 , 0.0 , 0.0 , 1.0 };
-	if (TETrefineType == TET8) {
-		double VeVref[144]  = {1.0 , 0.0 , 0.0 , 0.0 , // Conforming TET
-		                       0.0 , 1.0 , 0.0 , 0.0 ,
-		                       0.0 , 0.0 , 1.0 , 0.0 ,
-		                       0.0 , 0.0 , 0.0 , 1.0 ,
-		                       1.0 , 0.0 , 0.0 , 0.0 , // Corner TETs
-		                       0.5 , 0.5 , 0.0 , 0.0 ,
-		                       0.5 , 0.0 , 0.5 , 0.0 ,
-		                       0.5 , 0.0 , 0.0 , 0.5 ,
-		                       0.5 , 0.5 , 0.0 , 0.0 , // 2
-		                       0.0 , 1.0 , 0.0 , 0.0 ,
-		                       0.0 , 0.5 , 0.5 , 0.0 ,
-		                       0.0 , 0.5 , 0.0 , 0.5 ,
-		                       0.5 , 0.0 , 0.5 , 0.0 , // 3
-		                       0.0 , 0.5 , 0.5 , 0.0 ,
-		                       0.0 , 0.0 , 1.0 , 0.0 ,
-		                       0.0 , 0.0 , 0.5 , 0.5 ,
-		                       0.5 , 0.0 , 0.0 , 0.5 , // 4
-		                       0.0 , 0.5 , 0.0 , 0.5 ,
-		                       0.0 , 0.0 , 0.5 , 0.5 ,
-		                       0.0 , 0.0 , 0.0 , 1.0 ,
-		                       0.5 , 0.0 , 0.5 , 0.0 , // Internal TETs
-		                       0.0 , 0.0 , 0.5 , 0.5 ,
-		                       0.0 , 0.5 , 0.0 , 0.5 ,
-		                       0.0 , 0.5 , 0.5 , 0.0 ,
-		                       0.0 , 0.0 , 0.5 , 0.5 , // 6
-		                       0.0 , 0.5 , 0.0 , 0.5 ,
-		                       0.5 , 0.0 , 0.0 , 0.5 ,
-		                       0.5 , 0.0 , 0.5 , 0.0 ,
-		                       0.0 , 0.5 , 0.0 , 0.5 , // 7
-		                       0.5 , 0.0 , 0.0 , 0.5 ,
-		                       0.5 , 0.0 , 0.5 , 0.0 ,
-		                       0.5 , 0.5 , 0.0 , 0.0 ,
-		                       0.0 , 0.5 , 0.5 , 0.0 , // 8
-		                       0.5 , 0.0 , 0.5 , 0.0 ,
-		                       0.5 , 0.5 , 0.0 , 0.0 ,
-		                       0.0 , 0.5 , 0.0 , 0.5 };
-
-		for (i = 0; i < NTETnodes; i++)
-			VeVref_TET[i] = VeVref[i];
-	} else if (TETrefineType == TET12) {
-		double VeVref[208]  = {1.0 , 0.0 , 0.0 , 0.0 , // Conforming TET
-		                       0.0 , 1.0 , 0.0 , 0.0 ,
-		                       0.0 , 0.0 , 1.0 , 0.0 ,
-		                       0.0 , 0.0 , 0.0 , 1.0 ,
-		                       1.0 , 0.0 , 0.0 , 0.0 , // Corner TETs
-		                       0.5 , 0.5 , 0.0 , 0.0 ,
-		                       0.5 , 0.0 , 0.5 , 0.0 ,
-		                       0.5 , 0.0 , 0.0 , 0.5 ,
-		                       0.5 , 0.5 , 0.0 , 0.0 , // 2
-		                       0.0 , 1.0 , 0.0 , 0.0 ,
-		                       0.0 , 0.5 , 0.5 , 0.0 ,
-		                       0.0 , 0.5 , 0.0 , 0.5 ,
-		                       0.5 , 0.0 , 0.5 , 0.0 , // 3
-		                       0.0 , 0.5 , 0.5 , 0.0 ,
-		                       0.0 , 0.0 , 1.0 , 0.0 ,
-		                       0.0 , 0.0 , 0.5 , 0.5 ,
-		                       0.5 , 0.0 , 0.0 , 0.5 , // 4
-		                       0.0 , 0.5 , 0.0 , 0.5 ,
-		                       0.0 , 0.0 , 0.5 , 0.5 ,
-		                       0.0 , 0.0 , 0.0 , 1.0 ,
-		                       0.25, 0.25, 0.25, 0.25, // Opposite face TETs
-		                       0.0 , 0.0 , 0.5 , 0.5 ,
-		                       0.0 , 0.5 , 0.0 , 0.5 ,
-		                       0.0 , 0.5 , 0.5 , 0.0 ,
-		                       0.0 , 0.0 , 0.5 , 0.5 , // 6
-		                       0.25, 0.25, 0.25, 0.25,
-		                       0.5 , 0.0 , 0.0 , 0.5 ,
-		                       0.5 , 0.0 , 0.5 , 0.0 ,
-		                       0.0 , 0.5 , 0.0 , 0.5 , // 7
-		                       0.5 , 0.0 , 0.0 , 0.5 ,
-		                       0.25, 0.25, 0.25, 0.25,
-		                       0.5 , 0.5 , 0.0 , 0.0 ,
-		                       0.0 , 0.5 , 0.5 , 0.0 , // 8
-		                       0.5 , 0.0 , 0.5 , 0.0 ,
-		                       0.5 , 0.5 , 0.0 , 0.0 ,
-		                       0.25, 0.25, 0.25, 0.25,
-		                       0.5 , 0.5 , 0.0 , 0.0 , // Internal TETs
-		                       0.5 , 0.0 , 0.5 , 0.0 ,
-		                       0.5 , 0.0 , 0.0 , 0.5 ,
-		                       0.25, 0.25, 0.25, 0.25,
-		                       0.5 , 0.5 , 0.0 , 0.0 , // 10
-		                       0.0 , 0.5 , 0.0 , 0.5 ,
-		                       0.0 , 0.5 , 0.5 , 0.0 ,
-		                       0.25, 0.25, 0.25, 0.25,
-		                       0.5 , 0.0 , 0.5 , 0.0 , // 11
-		                       0.0 , 0.5 , 0.5 , 0.0 ,
-		                       0.0 , 0.0 , 0.5 , 0.5 ,
-		                       0.25, 0.25, 0.25, 0.25,
-		                       0.5 , 0.0 , 0.0 , 0.5 , // 12
-		                       0.0 , 0.0 , 0.5 , 0.5 ,
-		                       0.0 , 0.5 , 0.0 , 0.5 ,
-		                       0.25, 0.25, 0.25, 0.25};
-
-		for (i = 0; i < NTETnodes; i++)
-			VeVref_TET[i] = VeVref[i];
-	} else if (TETrefineType == TET6) {
-		double VeVref[120]  = {1.0 , 0.0 , 0.0 , 0.0 , // Conforming TET
-		                       0.0 , 1.0 , 0.0 , 0.0 ,
-		                       0.0 , 0.0 , 1.0 , 0.0 ,
-		                       0.0 , 0.0 , 0.0 , 1.0 ,
-		                       1.0 , 0.0 , 0.0 , 0.0 , // Corner TETs
-		                       0.5 , 0.5 , 0.0 , 0.0 ,
-		                       0.5 , 0.0 , 0.5 , 0.0 ,
-		                       0.5 , 0.0 , 0.0 , 0.5 ,
-		                       0.5 , 0.5 , 0.0 , 0.0 , // 2
-		                       0.0 , 1.0 , 0.0 , 0.0 ,
-		                       0.0 , 0.5 , 0.5 , 0.0 ,
-		                       0.0 , 0.5 , 0.0 , 0.5 ,
-		                       0.5 , 0.0 , 0.5 , 0.0 , // 3
-		                       0.0 , 0.5 , 0.5 , 0.0 ,
-		                       0.0 , 0.0 , 1.0 , 0.0 ,
-		                       0.0 , 0.0 , 0.5 , 0.5 ,
-		                       0.5 , 0.0 , 0.0 , 0.5 , // 4
-		                       0.0 , 0.5 , 0.0 , 0.5 ,
-		                       0.0 , 0.0 , 0.5 , 0.5 ,
-		                       0.0 , 0.0 , 0.0 , 1.0 ,
-		                       0.0 , 0.5 , 0.0 , 0.5 , // 2 PYRs
-		                       0.5 , 0.0 , 0.0 , 0.5 ,
-		                       0.0 , 0.5 , 0.5 , 0.0 ,
-		                       0.5 , 0.0 , 0.5 , 0.0 ,
-		                       0.5 , 0.5 , 0.0 , 0.0 ,
-		                       0.5 , 0.0 , 0.0 , 0.5 , // 6
-		                       0.0 , 0.5 , 0.0 , 0.5 ,
-		                       0.5 , 0.0 , 0.5 , 0.0 ,
-		                       0.0 , 0.5 , 0.5 , 0.0 ,
-		                       0.0 , 0.0 , 0.5 , 0.5 };
-
-		for (i = 0; i < NTETnodes; i++)
-			VeVref_TET[i] = VeVref[i];
 	}
 
-	switch(EType) {
-	case LINE:
+	VeVref = malloc(Nnodes * sizeof *VeVref); // free
+
+	if (EType == LINE || EType == TRI) {
 		for (i = 0; i < Nvref; i++)
 			Nvve[i] = Nve;
-
-		VeVrefInd = 0;
-		for (i = 0; i < Nvref; i++) {
-			jMax = Nve*Nvve[i];
-			if (i)
-				VeVrefInd += jMax;
-			VeV[i] = malloc(jMax * sizeof *VeV[i]); // keep
-			for (j = 0; j < jMax; j++)
-				VeV[i][j] = VeVref_LINE[VeVrefInd+j];
-		}
-		break;
-	case TRI:
-		for (i = 0; i < Nvref; i++)
-			Nvve[i] = Nve;
-
-		VeVrefInd = 0;
-		for (i = 0; i < Nvref; i++) {
-			jMax = Nve*Nvve[i];
-			if (i)
-				VeVrefInd += jMax;
-			VeV[i] = malloc(jMax * sizeof *VeV[i]); // keep
-			for (j = 0; j < jMax; j++)
-				VeV[i][j] = VeVref_TRI[VeVrefInd+j];
-		}
-		break;
-	case TET:
-		if (TETrefineType == TET8 || TETrefineType == TET12) {
-			for (i = 0; i < Nvref; i++)
-				Nvve[i] = Nve;
-
-			VeVrefInd = 0;
-			for (i = 0; i < Nvref; i++) {
-				jMax = Nve*Nvve[i];
-				if (i)
-					VeVrefInd += jMax;
-				VeV[i] = malloc(jMax * sizeof *VeV[i]); // keep
-				for (j = 0; j < jMax; j++)
-					VeV[i][j] = VeVref_TET[VeVrefInd+j];
-			}
-		} else if (TETrefineType == TET6) {
-			for (i = 0; i < Nvref; i++) {
-				EcType = get_VOLUMEc_type(EType,i);
-				if      (EcType == TET) Nvve[i] = Nve;
-				else if (EcType == PYR) Nvve[i] = 5;
-				else
-					printf("Error: Unsupported EcType (PYR).\n"), EXIT_MSG;
-			}
-
-			VeVrefInd = 0;
-			for (i = 0; i < Nvref; i++) {
-				if (i)
-					VeVrefInd += jMax;
-				jMax = Nve*Nvve[i];
-				VeV[i] = malloc(jMax * sizeof *VeV[i]); // keep
-				for (j = 0; j < jMax; j++)
-					VeV[i][j] = VeVref_TET[VeVrefInd+j];
-			}
-		}
-		break;
-	case PYR:
-		// Original PYR, 4 PYRs, 4 TETs, 2 PYRs
+	} else {
 		for (i = 0; i < Nvref; i++) {
 			EcType = get_VOLUMEc_type(EType,i);
-			if      (EcType == PYR) Nvve[i] = Nve;
-			else if (EcType == TET) Nvve[i] = 4;
+			if      (EcType == TET)  Nvve[i] = 4;
+			else if (EcType == PYR)  Nvve[i] = 5;
 			else
-				printf("Error: Unsupported EcType (PYR).\n"), EXIT_MSG;
+				printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
-
-		VeVrefInd = 0;
-		for (i = 0; i < Nvref; i++) {
-			if (i)
-				VeVrefInd += jMax;
-			jMax = Nve*Nvve[i];
-			VeV[i] = malloc(jMax * sizeof *VeV[i]); // keep
-			for (j = 0; j < jMax; j++)
-				VeV[i][j] = VeVref_PYR[VeVrefInd+j];
-		}
-		break;
-	case QUAD:
-	case HEX:
-	case WEDGE:
-	default:
-		printf("Error: Unsupported EType.\n"), EXIT_MSG;
-		break;
 	}
-	free(VeVref_TET);
+
+	initialize_VeVref(EType,VeVref);
+
+	VeVrefInd = 0;
+	for (i = 0; i < Nvref; i++) {
+		jMax = Nve*Nvve[i];
+		if (i)
+			VeVrefInd += jMax;
+		VeV[i] = malloc(jMax * sizeof *VeV[i]); // keep
+		for (j = 0; j < jMax; j++)
+			VeV[i][j] = VeVref[VeVrefInd+j];
+	}
+	free(VeVref);
 }
 
 static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
