@@ -1456,14 +1456,16 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 			// VOLUME Operators
 			for (i = iMax = NEhref; i--; ) {
-				ELEMENT = get_ELEMENT_type(EType_h[i]);
+				ELEMENT_h = get_ELEMENT_type(EType_h[i]);
 
 				Eclass = get_Eclass(EType_h[i]);
 				select_functions(&basis,&grad_basis,&cubature,EType_h[i]);
 
-				Nve_h = ELEMENT->Nve;
-				NvnGs = ELEMENT->NvnGs;
-
+				Nve_h = ELEMENT_h->Nve;
+				NvnGs = ELEMENT_h->NvnGs;
+				NvnS  = ELEMENT_h->NvnS;
+				NvnIs = ELEMENT_h->NvnIs;
+				NvnIc = ELEMENT_h->NvnIc;
 
 				cubature(&rst_vS[0], &dummyPtr_d,&dummyPtr_ui[0],&NvnS[Pb], &dummy_ui,0,Pb,              dE,NodeTypeS[Pb][Eclass]);   free(dummyPtr_ui[0]); // free
 				cubature(&rst_vIs[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIs[Pb],&dummy_ui,0,PIvs[Pb][Eclass],dE,NodeTypeIvs[Pb][Eclass]); free(dummyPtr_ui[0]); // free
@@ -1476,7 +1478,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				free(E_rst_vC);
 				free(ChiRefInvGs_vGs);
 
-				E_rst_vC        = get_rst_vC(ELEMENT);                     // free
+				E_rst_vC        = get_rst_vC(ELEMENT_h);                   // free
 				IGs             = identity_d(Nve_h);                       // free
 				ChiRefGs_vGs    = basis(PGs,E_rst_vC,Nve_h,&Nbf,dE);       // free
 				ChiRefInvGs_vGs = inverse_d(Nve_h,Nve_h,ChiRefGs_vGs,IGs); // free
@@ -2969,15 +2971,16 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 	double       **w_vIc, ****ChiS_vIc;
 
 	// Initialize DB Parameters
-	unsigned int PGs          = DB.PGs,
-	             NP           = DB.NP;
+	unsigned int PGs    = DB.PGs,
+	             NP     = DB.NP,
+	             **PIvc = DB.PIvc;
 
 	char         *BasisType     = DB.BasisType,
 	             ***NodeTypeIvc = DB.NodeTypeIvc,
 	             ***NodeTypeS   = DB.NodeTypeS;
 
 	// Standard datatypes
-	unsigned int i, iMax, dE, P, vh, PSMin, PSMax, Pb, PbMin, PbMax, PIvc[NEC],
+	unsigned int i, iMax, dE, P, vh, PSMin, PSMax, Pb, PbMin, PbMax,
 	             Nve, Nbf, Eclass, Nvref, NEhref, Indh, *Nvve, *EType_h, dummy_ui, *dummyPtr_ui[2];
 	double       *E_rst_vC, *rst_vC, **VeV, **rst_vIc, *rst_vS,
 	             *IGs, *IS, *TS, *ChiRefS_vS, *ChiRefInvGs_vGs, *ChiRefInvS_vS,
@@ -2996,8 +2999,6 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 	// silence
 	E_rst_vC = ChiS_vS = NULL;
 
-	PIvc[C_SI]  = PIvcMaxTET;
-	PIvc[C_PYR] = PIvcMaxPYR;
 	if (!(EType == TET || EType == PYR))
 		printf("Error: Unsupported EType.\n"), EXIT_MSG;
 
@@ -3016,7 +3017,6 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 	EType_h = ELEMENT->type_h;
 
 	select_functions(&basis,&grad_basis,&cubature,EType);
-
 
 	// Stored operators
 	NvnIc    = ELEMENT->NvnIc;
@@ -3038,7 +3038,6 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 
 	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
-
 		cubature(&rst_vS,&dummyPtr_d,&dummyPtr_ui[0],&NvnS[P],&dummy_ui,0,P,dE,NodeTypeS[P][Eclass]); free(dummyPtr_ui[0]); // free
 
 		IS         = identity_d(NvnS[P]);             // free
@@ -3061,7 +3060,7 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 		for (Pb = PbMin; Pb <= PbMax; Pb++) {
 			if (w_vIc[Pb])
 				free(w_vIc[Pb]);
-			cubature(&rst_vIc[0],&w_vIc[Pb],&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,1,PIvc[Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+			cubature(&rst_vIc[0],&w_vIc[Pb],&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,1,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
 			free(rst_vIc[0]);
 
 			for (i = iMax = NEhref; i--; ) {
@@ -3072,7 +3071,7 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 
 				Nve = ELEMENT->Nve;
 
-				cubature(&rst_vIc[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,0,PIvc[Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+				cubature(&rst_vIc[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,0,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
 
 				E_rst_vC        = get_rst_vC(ELEMENT);                     // free
 				IGs             = identity_d(Nve);                         // free
@@ -3567,6 +3566,15 @@ void setup_operators(void)
 			setup_ELEMENT_FACET_ordering(EType);
 	}
 
+	// TET and PYR elements have dependence on each other if h-refinement is used
+	if (Adapt != ADAPT_0 && is_ELEMENT_present(TET)) {
+		setup_L2_projection_operators(TET);
+		setup_L2_projection_operators(PYR);
+
+		memory_destructor_L2_projection(TET);
+		memory_destructor_L2_projection(PYR);
+	}
+
 	// TET
 	EType = TET;
 	if (is_ELEMENT_present(EType)) {
@@ -3591,15 +3599,6 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
-	}
-
-	// TET and PYR elements have dependence on each other if h-refinement is used
-	if ((is_ELEMENT_present(TET) || is_ELEMENT_present(PYR)) && (Adapt == ADAPT_H || Adapt == ADAPT_HP)) {
-		setup_L2_projection_operators(TET);
-		setup_L2_projection_operators(PYR);
-
-		memory_destructor_L2_projection(TET);
-		memory_destructor_L2_projection(PYR);
 	}
 
 	// WEDGE

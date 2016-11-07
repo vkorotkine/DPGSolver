@@ -200,8 +200,8 @@ TestDB.PGlobal = 1;
  *		Check literature (Mavriplis (FV), Galbraith) for mention of this issue in TET verification studies.
  *		Investigate cube_to_sphere effects on mesh regularity; problems are only being observed in 3D.
  */
-	TestDB.PG_add = 1;
-	TestDB.IntOrder_mult = 2;
+	TestDB.PG_add = 0;
+	TestDB.IntOrder_mult = 5;
 
 	// Convergence orders
 	PMin = 1;  PMax = 2;

@@ -10,13 +10,16 @@
 
 #include "petscsys.h"
 #include "mkl.h"
- 
+
 #include "Parameters.h"
 #include "Macros.h"
 
 #include "array_norm.h"
 #include "array_sort.h"
 #include "matrix_functions.h"
+#include "bases.h"
+
+#include "array_print.h"
 
 void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *Nn, unsigned int *Ns,
                  const unsigned int return_w, const unsigned int P, const unsigned int d, const char *NodeType)
@@ -28,6 +31,7 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 	 *	Comments:
 	 *		Note that GL nodes are NOT the optimal integration nodes for d > 1. This was discussed in Hughes' FEM book
 	 *		and the pyFR code has some nodal sets available for low orders. Possibly implement this later (ToBeDeleted).
+	 *
 	 *		The order of rst, w is important for minimizing memory stride while computing the length 2 Discrete Fourier
 	 *		Transform (ToBeModified).
 	 *		Ordering convention:
@@ -45,20 +49,17 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 	 *		Ns    : (N)umber of (s)ymmetries
 	 *
 	 *	References:
-	 *		GL  : http://www.mathworks.com/matlabcentral/fileexchange/26737-legendre-laguerre-and-hermite-gauss-quadrature/
-	 *		      content/GaussLegendre.m
-	 *		GLL : http://www.mathworks.com/matlabcentral/fileexchange/4775-legende-gauss-lobatto-nodes-and-weights/content/
-	 *		      lglnodes.m
+	 *		GL/GLL: Shen(2010)-Spectral_Methods_Algorithms,_Analysis_and_Applications (Section 3.3.2)
+	 *
+	 *		http://www.ntu.edu.sg/home/lilian/book.htm
 	 */
 
 	// Standard datatypes
 	unsigned int i, j, k, iMax, jMax, kMax, dim, u1,
 	             N, rInd, row, Nrows, NsOut,
-	             *symmsOut, *Indices;
+	             *symmsOut;
 	int          sd, sN;
-	double       norm, swapd,
-	             *r, *rold, *rdiff, *wOut, *r_d, *wOut_d, *r_std, *wOut_std,
-	             *V, *a, *CM, *eigs;
+	double       *r, *wOut, *r_d, *wOut_d, *r_std, *wOut_std;
 
 	// Arbitrary initializations for variables defined in conditionals (to eliminate compiler warnings)
 	Nrows = 0;
@@ -72,115 +73,87 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 	r    = malloc(N * sizeof *r); // free
 	wOut = malloc(N * sizeof *wOut); // free
 
+		unsigned int count;
+		double       err, theta, Phi, dPhi, r_Delta;
+
 	// Note: GLL must be first as "GL" is in "GLL"
 	if (strstr(NodeType,"GLL")) {
 		if (P == 0)
 			printf("Error: Cannot use GLL nodes of order P0.\n"), exit(1);
 
-		rold  = malloc(N * sizeof *rold); // free
-		rdiff = malloc(N * sizeof *rdiff); // free
+		// Compute initial guess
+		for (i = 0; i < P; i++) {
+			theta = (4.0*(i+1)-1.0)*PI/(4.0*P+2.0);
+			r[i] = -(1.0-(P-1.0)/(8.0*pow(P,3.0))-(39.0-28.0/pow(sin(theta),2.0))/(384.0*pow(P,4.0)))*cos(theta);
+		}
+		for (i = 1; i < P; i++) {
+			if (i <= P/2)
+				r[i] = (r[i-1]+r[i])/2.0;
+			else
+				r[i] = -r[N-i-1];
+		}
 
-		// Use the Chebyshve-Guass-Lobatto nodes as the first guess
-		for (i = 0; i < N; i++)
-			r[i] = -cos(PI*(i)/P);
-// array_print_d(1,N,r,'R');
+		err = 1.0;
+		count = 0;
+		while(err > EPS) { // Use Newton's Method to converge to node positions
+			err = 0.0;
+			for (i = 1; i < P; i++) {
+				Phi  = jacobiP(r[i],0.0,0.0,P);
+				dPhi = grad_jacobiP(r[i],0.0,0.0,P);
+				r_Delta = (1.0-r[i]*r[i])*dPhi/(2.0*r[i]*dPhi-P*N*Phi);
 
-		// Legendre Vandermonde Matrix
-		V = malloc(N*N * sizeof *V); // free
-		for (i = 0, iMax = N*N; i < iMax; i++)
-			V[i] = 0.;
+				r[i] -= r_Delta;
 
-		/* Compute P_(N) using the recursion relation. Compute its first and second derivatives and update r using the
-		Newton-Raphson method */
-		for (i = 0; i < N; i++) rold[i] = 2.;
-		for (i = 0; i < N; i++) rdiff[i] = r[i]-rold[i];
-		norm = array_norm_d(N,rdiff,"Inf");
-
-		while (norm > EPS) {
-			for (i = 0; i < N; i++)
-				rold[i] = r[i];
-			for (j = 0; j < N; j++) {
-				V[0*N+j] = 1.;
-				V[1*N+j] = r[j];
+				if (fabs(r_Delta) > err)
+					err = fabs(r_Delta);
 			}
 
+			count++;
+			if (count > 100)
+				printf("Newton's method failed.\n"), EXIT_MSG;
+		}
+		r[0] = -1.0;
+		r[P] = -r[0];
+
+		// Compute weights (Ensure that normalization is removed from Phi)
 		for (i = 1; i < P; i++) {
-		for (j = 0; j < N; j++) {
-			V[(i+1)*N+j] = ((2*i+1)*r[j]*V[i*N+j] - i*V[(i-1)*N+j])/(i+1);
-		}}
-
-		for (j = 0; j < N; j++)
-			r[j] = rold[j] - (r[j]*V[P*N+j]-V[(P-1)*N+j])/(N*V[P*N+j]);
-
-		for (i = 0; i < N; i++)
-			rdiff[i] = r[i]-rold[i];
-		norm = array_norm_d(N,rdiff,"Inf");
+			Phi     = sqrt(2.0/(2.0*P+1.0))*jacobiP(r[i],0.0,0.0,P);
+			wOut[i] = 2.0/(P*N*Phi*Phi);
 		}
-
-		for (j = 0; j < N; j++)
-			wOut[j] = 2./(P*N*pow(V[P*N+j],2));
-
-		free(rold);
-		free(rdiff);
-		free(V);
-
-// array_print_d(1,N,r,'R');
-// array_print_d(1,N,wOut,'R');
+		wOut[0] = 2.0/(P*N);
+		wOut[P] = wOut[0];
 	} else if (strstr(NodeType,"GL")) {
-		// Build the companion matrix CM
-		/* CM is defined such that det(rI-CM)=P_n(r), with P_n(r) being the Legendre poynomial under consideration.
-		 * Moreover, CM is constructed in such a way so as to be symmetrical.
-		 */
-		a = malloc(P * sizeof *a); // free
-		for (i = 1; i < N; i++)
-			a[i-1] = (1.*i)/sqrt(4.*pow(i,2)-1);
-
-		CM = malloc(N*N * sizeof *CM); // free
-		for (i = 0, iMax = N*N; i < iMax; i++)
-			CM[i] = 0.;
-
+		// Compute initial guess
 		for (i = 0; i < N; i++) {
-		for (j = 0; j < N; j++) {
-			if (i == j+1) CM[i*N+j] = a[j];
-			if (j == i+1) CM[i*N+j] = a[i];
-		}}
-		free(a);
-
-		// Determine the abscissas (r) and weights (w)
-		/* Because det(rI-CM) = P_n(r), the abscissas are the roots of the characteristic polynomial, the eigenvalues of
-		 * CM. The weights can then be derived from the corresponding eigenvectors.
-		 */
-
-		eigs    = malloc(N *sizeof *eigs); // free
-		Indices = malloc(N *sizeof *Indices); // free
-		for (i = 0; i < N; i++)
-			Indices[i] = i;
-
-		if (LAPACKE_dsyev(LAPACK_ROW_MAJOR,'V','U',(MKL_INT) N,CM,(MKL_INT) N,eigs) > 0)
-			printf("Error: mkl LAPACKE_sysev failed to compute eigenvalues.\n"), exit(1);
-
-// array_print_d(1,N,eigs,'R');
-// array_print_d(N,N,CM,'R');
-
-		array_sort_d(1,N,eigs,Indices,'R','N');
-
-		for (i = 0; i < N; i++) {
-		for (j = 0; j < N; j++) {
-			swapd = CM[i*N+j];
-			CM[i*N+j]          = CM[Indices[i]*N+j];
-			CM[Indices[i]*N+j] = swapd;
-		}}
-		free(Indices);
-
-		for (j = 0; j < N; j++) {
-			r[j]    = eigs[j];
-			wOut[j] = 2*pow(CM[0*i+j],2);
+			theta = (4.0*(i+1)-1.0)*PI/(4.0*N+2.0);
+			r[i] = -(1.0-(N-1.0)/(8.0*pow(N,3.0))-(39.0-28.0/pow(sin(theta),2.0))/(384.0*pow(N,4.0)))*cos(theta);
 		}
-		free(CM);
-		free(eigs);
 
-// array_print_d(1,N,r,'R');
-// array_print_d(1,N,wOut,'R');
+		err = 1.0;
+		count = 0;
+		while(err > EPS) { // Use Newton's Method to converge to node positions
+			err = 0.0;
+			for (i = 0; i < N; i++) {
+				Phi  = jacobiP(r[i],0.0,0.0,N);
+				dPhi = grad_jacobiP(r[i],0.0,0.0,N);
+				r_Delta = Phi/dPhi;
+
+				r[i] -= r_Delta;
+
+				if (fabs(r_Delta) > err)
+					err = fabs(r_Delta);
+			}
+
+			count++;
+			if (count > 100)
+				printf("Newton's method failed.\n"), EXIT_MSG;
+		}
+
+		// Compute weights (Ensure that normalization is removed from dPhi)
+		for (i = 0; i < N; i++) {
+			dPhi    = sqrt(2.0/(2.0*N+1.0))*grad_jacobiP(r[i],0.0,0.0,N);
+			wOut[i] = 2.0/((1.0-r[i]*r[i])*dPhi*dPhi);
+		}
 	}
 
 	// Re-arrange r and w for GL/GLL nodes

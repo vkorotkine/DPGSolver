@@ -742,23 +742,23 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 		// Isotropic refinement only.
 		switch (vh) {
 		case 0:
-			if      (fIn == 1) { IndVhOut = 6; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; }
-			else if (fIn == 3) { IndVhOut = 4; f = 0; IndOrdInOut = 1; IndOrdOutIn = 2; }
+			if      (fIn == 1) { IndVhOut = 6; f = 0; IndOrdInOut = 5; IndOrdOutIn = 5; }
+			else if (fIn == 3) { IndVhOut = 4; f = 2; IndOrdInOut = 0; IndOrdOutIn = 0; }
 			break;
 		case 1:
-			if      (fIn == 0) { IndVhOut = 6; f = 1; IndOrdInOut = 4; IndOrdOutIn = 4; }
-			else if (fIn == 3) { IndVhOut = 5; f = 1; IndOrdInOut = 3; IndOrdOutIn = 3; }
+			if      (fIn == 0) { IndVhOut = 6; f = 1; IndOrdInOut = 5; IndOrdOutIn = 5; }
+			else if (fIn == 3) { IndVhOut = 5; f = 2; IndOrdInOut = 0; IndOrdOutIn = 0; }
 			break;
 		case 2:
-			if      (fIn == 1) { IndVhOut = 7; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; }
-			else if (fIn == 2) { IndVhOut = 4; f = 2; IndOrdInOut = 4; IndOrdOutIn = 4; }
+			if      (fIn == 1) { IndVhOut = 7; f = 0; IndOrdInOut = 5; IndOrdOutIn = 5; }
+			else if (fIn == 2) { IndVhOut = 4; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; }
 			break;
 		case 3:
-			if      (fIn == 0) { IndVhOut = 7; f = 1; IndOrdInOut = 4; IndOrdOutIn = 4; }
-			else if (fIn == 2) { IndVhOut = 5; f = 2; IndOrdInOut = 3; IndOrdOutIn = 3; }
+			if      (fIn == 0) { IndVhOut = 7; f = 1; IndOrdInOut = 5; IndOrdOutIn = 5; }
+			else if (fIn == 2) { IndVhOut = 5; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; }
 			break;
-		case 4: IndVhOut = 8; f = 1; IndOrdInOut = 2; IndOrdOutIn = 1; break; // fIn = 3
-		case 5: IndVhOut = 8; f = 0; IndOrdInOut = 4; IndOrdOutIn = 4; break; // fIn = 3
+		case 4: IndVhOut = 8; f = 1; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 0
+		case 5: IndVhOut = 8; f = 0; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 1
 		case 6: IndVhOut = 8; f = 2; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 3
 		case 7: IndVhOut = 8; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 2
 		case 8: IndVhOut = 9; f = 4; IndOrdInOut = 1; IndOrdOutIn = 1; break; // fIn = 4
@@ -1259,8 +1259,8 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 				switch (f) {
 				default: IndVc[0] = 2; IndVc[1] = 3; IndVc[2] = 1; IndVc[3] = 5; Indsf[sfMax-1] = 1*NSUBFMAX; break;
 				case 1:  IndVc[0] = 2; IndVc[1] = 3; IndVc[2] = 0; IndVc[3] = 5; Indsf[sfMax-1] = 0*NSUBFMAX; break;
-				case 2:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 3; IndVc[3] = 4; Indsf[sfMax-1] = 2*NSUBFMAX; break;
-				case 3:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 4; Indsf[sfMax-1] = 3*NSUBFMAX; break;
+				case 2:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 3; IndVc[3] = 4; break;
+				case 3:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 4; break;
 				}
 			} else {
 				printf("Error: Unsupported.\n"), EXIT_MSG;
@@ -1296,21 +1296,17 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 		case PYR:
 			// Supported: Isotropic refinement
 			sfMax = 4;
+
+			for (sf = 0; sf < sfMax; sf++)
+				Indsf[sf] = f*NSUBFMAX;
+
 			switch (f) {
-			default: IndVc[0] = 0; IndVc[1] = 2; IndVc[2] = 9; IndVc[3] = 4; break;
-			case 1:  IndVc[0] = 1; IndVc[1] = 3; IndVc[2] = 9; IndVc[3] = 5; break;
+			default: IndVc[0] = 0; IndVc[1] = 2; IndVc[2] = 9; IndVc[3] = 4; Indsf[sfMax-1] = 1*NSUBFMAX; break;
+			case 1:  IndVc[0] = 1; IndVc[1] = 3; IndVc[2] = 9; IndVc[3] = 5; Indsf[sfMax-1] = 0*NSUBFMAX; break;
 			case 2:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 9; IndVc[3] = 6; break;
 			case 3:  IndVc[0] = 2; IndVc[1] = 3; IndVc[2] = 9; IndVc[3] = 7; break;
 			case 4:  IndVc[0] = 0; IndVc[1] = 1; IndVc[2] = 2; IndVc[3] = 3; break;
 			}
-			for (sf = 0; sf < sfMax; sf++)
-				Indsf[sf] = f*NSUBFMAX;
-
-			if (f == 0)
-				Indsf[sfMax-1] = 1*NSUBFMAX;
-			else if (f == 1)
-				Indsf[sfMax-1] = 0*NSUBFMAX;
-
 			break;
 		default:
 			printf("Error: Unsupported VType.\n"), EXIT_MSG;
@@ -1476,7 +1472,7 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 		IndVc[10] = 6; IndVc[11] = 7; IndVc[12] = 8;
 
 		Indsf[0]  = 1; Indsf[1]  = 3; Indsf[2]  = 0; Indsf[3] = 3; Indsf[4] = 1;
-		Indsf[5]  = 2; Indsf[6]  = 0; Indsf[7]  = 2; Indsf[8] = 3; Indsf[9] = 3;
+		Indsf[5]  = 2; Indsf[6]  = 0; Indsf[7]  = 2; Indsf[8] = 0; Indsf[9] = 1;
 		Indsf[10] = 3; Indsf[11] = 2; Indsf[12] = 4;
 		for (i = 0; i < sfMax_i; i++)
 			Indsf[i] *= NSUBFMAX;

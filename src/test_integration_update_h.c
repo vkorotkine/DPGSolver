@@ -62,8 +62,7 @@ static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, co
 
 	for (refType = 0; refType < NrefTypes; refType++) {
 		code_startup_mod_prmtrs(nargc,argvNew,Nref,update_argv,1);
-//		if      (refType == 0) DB.TETrefineType = TET8;
-		if      (refType == 0) DB.TETrefineType = TET6;
+		if      (refType == 0) DB.TETrefineType = TET8;
 		else if (refType == 1) DB.TETrefineType = TET12;
 		else if (refType == 2) DB.TETrefineType = TET6;
 		code_startup_mod_prmtrs(nargc,argvNew,Nref,update_argv,2);
@@ -71,12 +70,12 @@ static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, co
 			printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
 
 		run_test(&pass,"FullREFINE");
-		printf("update_h (%s%d FullREFINE):                    ",EName,refType);
+		printf("update_h (%s%d FullREFINE):                   ",EName,refType);
 		test_print(pass);
 
 		//     0         10        20        30        40        50
 		run_test(&pass,"FullCOARSE");
-		printf("         (       FullCOARSE):                    ");
+		printf("          (       FullCOARSE):                   ");
 		test_print(pass);
 
 		mark_VOLUMEs(HREFINE,Lmts[0]);
@@ -89,13 +88,13 @@ static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, co
 
 		//     0         10        20        30        40        50
 		run_test(&pass,"Mixed");
-		printf("         (       Mixed):                         ");
+		printf("          (       Mixed):                        ");
 		test_print(pass);
 
 		pass = 1;
 		check_Jacobians(&pass);
 		//     0         10        20        30        40        50
-		printf("         (       Jacobians):                     ");
+		printf("          (       Jacobians):                    ");
 		test_print(pass);
 
 		code_cleanup();
@@ -137,38 +136,37 @@ void test_integration_update_h(int nargc, char **argv)
 	// **************************************************************************************************** //
 	// TRIs
 	strcpy(argvNew[1],"test/Test_update_h_TRI");
-	strcpy(EName,"TRI  ");
+	strcpy(EName,"TRI   ");
 	Lmts[0]->XYZ[0] = -0.75; Lmts[0]->XYZ[1] = -0.75; Lmts[0]->type = 'd'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->type = 'd'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.50; Lmts[2]->XYZ[1] = -0.50; Lmts[2]->type = 'd'; Lmts[2]->index = 0;
 	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
-//	test_update_h(nargc,argvNew,2,0,EName,Lmts);
+	test_update_h(nargc,argvNew,2,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// QUADs
 	strcpy(argvNew[1],"test/Test_update_h_QUAD");
-	strcpy(EName,"QUAD ");
+	strcpy(EName,"QUAD  ");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
 	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
-//	test_update_h(nargc,argvNew,3,0,EName,Lmts);
+	test_update_h(nargc,argvNew,3,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// TETs
 	strcpy(argvNew[1],"test/Test_update_h_TET");
-	strcpy(EName,"TET  ");
+	strcpy(EName,"TET   ");
 	Lmts[0]->XYZ[0] =  1.00; Lmts[0]->XYZ[1] =  1.00; Lmts[0]->XYZ[2] =  0.00; Lmts[0]->type = 'd'; Lmts[0]->index = 1;
 	Lmts[1]->XYZ[0] = -1.00; Lmts[1]->XYZ[1] = -1.00; Lmts[1]->XYZ[2] =  1.00; Lmts[1]->type = 'd'; Lmts[1]->index = 0;
 	Lmts[2]->XYZ[0] =  1.00; Lmts[2]->XYZ[1] =  1.00; Lmts[2]->XYZ[2] = -0.50; Lmts[2]->type = 'd'; Lmts[2]->index = 1;
 	Lmts[3]->XYZ[0] =  1.00; Lmts[3]->XYZ[1] =  1.00; Lmts[3]->XYZ[2] = -1.00; Lmts[3]->type = 'd'; Lmts[3]->index = 0;
 	test_update_h(nargc,argvNew,2,0,EName,Lmts);
-EXIT_MSG;
 
 	// **************************************************************************************************** //
 	// HEXs
 	strcpy(argvNew[1],"test/Test_update_h_HEX");
-	strcpy(EName,"HEX  ");
+	strcpy(EName,"HEX   ");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->XYZ[2] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->XYZ[2] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
@@ -178,7 +176,7 @@ EXIT_MSG;
 	// **************************************************************************************************** //
 	// WEDGEs
 	strcpy(argvNew[1],"test/Test_update_h_WEDGE");
-	strcpy(EName,"WEDGE");
+	strcpy(EName,"WEDGE ");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->XYZ[2] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->XYZ[2] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
@@ -188,7 +186,7 @@ EXIT_MSG;
 	// **************************************************************************************************** //
 	// PYRs
 	strcpy(argvNew[1],"test/Test_update_h_PYR");
-	strcpy(EName,"PYR  ");
+	strcpy(EName,"PYR   ");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->XYZ[2] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->XYZ[2] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;

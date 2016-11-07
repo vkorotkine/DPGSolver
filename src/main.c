@@ -202,6 +202,8 @@ int main(int nargc, char **argv)
 
 #include "petscsys.h"
 
+#include "Macros.h"
+
 #include "test_unit_array_find_index.h"
 #include "test_unit_array_norm.h"
 #include "test_unit_array_sort.h"
@@ -305,6 +307,10 @@ int main(int nargc, char **argv)
 		printf("\nFor the VOLUME/FACET info functions, test that all 'versions' give identical results.\n\n");
 		TestDB.Nwarnings++;
 	}
+	test_unit_cubature_TP();
+	test_unit_basis_PYR();
+exit(1);
+//EXIT_MSG;
 
 	// Integration tests
 	if (RunTest.integration) {
@@ -313,8 +319,8 @@ int main(int nargc, char **argv)
 		test_integration_linearization(nargc,argv);
 //		PetscFinalize();
 	}
-	test_integration_update_h(nargc,argv);
-//	test_integration_Poisson(nargc,argv);
+//	test_integration_update_h(nargc,argv);
+	test_integration_Poisson(nargc,argv);
 	PetscFinalize();
 
 

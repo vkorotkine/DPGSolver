@@ -174,6 +174,10 @@ static void compute_qhat_VOLUME(void)
 
 		NvnI = OPS->NvnI;
 		NvnS = OPS->NvnS;
+array_print_d(NvnS,NvnS,VOLUME->MInv,'R');
+if (VOLUME->type == PYR) {
+EXIT_MSG;
+}
 
 		ChiS_vI     = OPS->ChiS_vI;
 		GradChiS_vI = OPS->GradChiS_vI;
@@ -269,8 +273,8 @@ void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, con
 	if (0)
 		printf("%e %e\n",XOut[0],YOut[0]);
 
-//	if (1||curved == 1) {
-	if (curved == 1) {
+	if (1||curved == 1) {
+//	if (curved == 1) {
 		for (n = 0; n < Nn; n++) {
 			XOut[n] = XIn[n];
 			YOut[n] = YIn[n];

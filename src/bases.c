@@ -34,8 +34,8 @@
  *			pyfr (modal) basis : eq. 3.20
  */
 
-static double jacobiP      (const double x, const double alpha, const double beta, const int N);
-static double grad_jacobiP (const double x, const double alpha, const double beta, const int N);
+double jacobiP      (const double x, const double alpha, const double beta, const int N);
+double grad_jacobiP (const double x, const double alpha, const double beta, const int N);
 
 void rst_to_abc_SI  (const unsigned int Nn, const unsigned int d, const double *rst, double *a, double *b, double *c);
 void rst_to_abc_PYR (const unsigned int Nn, const unsigned int d, const double *rst, double *a, double *b, double *c);
@@ -587,7 +587,7 @@ double **grad_basis_PYR(const unsigned int P, const double *rst, const unsigned 
  *		Hesthaven (Nodal DG Code): https://github.com/tcew/nodal-dg
  */
 
-static double jacobiP(const double x, const double alpha, const double beta, const int N)
+double jacobiP(const double x, const double alpha, const double beta, const int N)
 {
 	int    i, iMax;
 	double aold = 0.0, anew = 0.0, bnew = 0.0, h1 = 0.0,
@@ -636,7 +636,7 @@ static double jacobiP(const double x, const double alpha, const double beta, con
 	return P;
 }
 
-static double grad_jacobiP(const double x, const double alpha, const double beta, const int N)
+double grad_jacobiP(const double x, const double alpha, const double beta, const int N)
 {
 	double dP;
 

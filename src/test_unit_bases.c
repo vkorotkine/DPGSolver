@@ -1271,7 +1271,7 @@ void test_unit_basis_PYR(void)
 
 	// GLL (HEX To PYR)
 	Prst = P+2;
-	cubature_PYR(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"GLW"); // free
+	cubature_PYR(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"GLLW"); // free
 
 	W = diag_d(w,Nn); // free
 	free(w);
@@ -1282,7 +1282,7 @@ void test_unit_basis_PYR(void)
 	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 
 	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
+	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e3)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
