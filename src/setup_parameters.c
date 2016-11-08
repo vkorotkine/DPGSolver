@@ -244,14 +244,14 @@ void setup_parameters()
 		PJc[P] = malloc(NEC * sizeof **PJc); // keep
 
 		// ToBeDeleted: These orders may not be sufficient for 3D. To be investigated.
-//		PGc[P]    = max(P,u1);
-		PGc[P]    = P+1;
-		PCs[P][0] = PGs;
-		PCs[P][1] = max(PGs-1,u1);
-		PCs[P][2] = PGs;             // ToBeModified
-		PCc[P][0] = PGc[P];
-		PCc[P][1] = max(PGc[P]-1,u1);
-		PCc[P][2] = PGc[P];          // ToBeModified
+		PGc[P]    = max(P,u1);
+//		PGc[P]    = P+1;
+		PCs[P][0] = (d-1)*PGs;
+		PCs[P][1] = (d-1)*max(PGs-1,u1);
+		PCs[P][2] = (d-1)*PGs;
+		PCc[P][0] = (d-1)*PGc[P];
+		PCc[P][1] = (d-1)*max(PGc[P]-1,u1);
+		PCc[P][2] = (d-1)*PGc[P];
 		PJs[P][0] = PGs;
 		PJs[P][1] = max(PGs-1,u1);
 		PJs[P][2] = PGs;             // ToBeModified
@@ -417,9 +417,8 @@ void setup_parameters()
 			// PYR
 			strcpy(NodeTypeIfs[P][2],"NOT_USED");
 			strcpy(NodeTypeIfc[P][2],"NOT_USED");
-			strcpy(NodeTypeIvs[P][2],"GLW");
-			strcpy(NodeTypeIvc[P][2],"GLW");
-//strcpy(NodeTypeIvc[P][2],"GLLW");
+			strcpy(NodeTypeIvs[P][2],"GJW");
+			strcpy(NodeTypeIvc[P][2],"GJW");
 
 			PIfs[P][2] = 0; // Not used
 			PIfc[P][2] = 0; // Not used
@@ -550,8 +549,8 @@ void setup_parameters()
 	DB.coarse_frac = 0.2;
 
 //	DB.TETrefineType = TET8;
-//	DB.TETrefineType = TET12;
 	DB.TETrefineType = TET6;
+//	DB.TETrefineType = TET12;
 
 	// Assign DB Parameters
 	DB.NP    = NP;
@@ -619,14 +618,12 @@ void setup_parameters_L2proj(void)
 		// Geometry
 		PGc[P]    = max(P,u1)+PG_add;
 PGc[P] = PGs;
-		PCs[P][0] = PGs;
-		PCs[P][1] = max(PGs-1,u1);
-		PCs[P][2] = PGs;             // ToBeModified
+		PCs[P][0] = (d-1)*PGs;
+		PCs[P][1] = (d-1)*max(PGs-1,u1);
+		PCs[P][2] = (d-1)*PGs;
 		PCc[P][0] = (d-1)*PGc[P];
 		PCc[P][1] = (d-1)*max(PGc[P]-1,u1);
-//		PCc[P][2] = (d-1)*PGc[P];    // ToBeModified
-PCc[P][2] = (d-1)*PGc[P]+4;    // ToBeModified
-//PCc[P][2] = PIvcMaxPYR;    // ToBeModified
+		PCc[P][2] = (d-1)*PGc[P];
 		PJs[P][0] = PGs;
 		PJs[P][1] = max(PGs-1,u1);
 		PJs[P][2] = PGs;             // ToBeModified

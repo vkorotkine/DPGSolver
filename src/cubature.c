@@ -49,7 +49,7 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 	 *		Ns    : (N)umber of (s)ymmetries
 	 *
 	 *	References:
-	 *		GL/GLL: Shen(2010)-Spectral_Methods_Algorithms,_Analysis_and_Applications (Section 3.3.2)
+	 *		GL/GLL: Shen(2011)-Spectral_Methods_Algorithms,_Analysis_and_Applications (Section 3.3.2)
 	 *
 	 *		http://www.ntu.edu.sg/home/lilian/book.htm
 	 */
@@ -812,13 +812,16 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	 *			where
 	 *				cond([ones(Nc,1) rst_c {r*s*t}_c]) = 2.0
 	 *
-	 *		All nodes were determined based off of those from the pyfr code (pyfr/quadrules/pyr) after being transfered
-	 *		to the regular PYR used in this code. (ToBeModified if other nodes are added)
+	 *		The WV and WVHToP nodes were determined from those of the pyrfr code (pyfr/quadrules/pyr) after being
+	 *		transferred to the regular PYR used in this code. The GL and GLL are standard based on the 1D definitions
+	 *		and the (G)auss (J)acobi nodes were generated using the code linked in the references using alpha = 2.0,
+	 *		beta = 0.0 (cancelling the (1-c)^2 term resulting from the transformation from PYR to HEX for integration).
 	 *			Options:
-	 *				GL     : GL nodes,                       no weights
+	 *				GL     : GL  nodes,                      no weights
 	 *				GLL    : GLL nodes,                      no weights
-	 *				GLW    : GL nodes,                       with weights
+	 *				GLW    : GL  nodes,                      with weights
 	 *				GLLW   : GLL nodes,                      with weights
+	 *				GJW    : GJ  nodes,                      with weights
 	 *				WV     : WV PYR nodes,                   with weights
 	 *					Exact integration to lower order than expected.
 	 *				WVHToP : WV HEX nodes transfered to PYR, with weights
@@ -862,6 +865,8 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	 *
 	 *		GL  : pyfr/quadrules/pyr + conversion to barycentric coordinates (ToBeModified: See python script)
 	 *		GLL : pyfr/quadrules/pyr + conversion to barycentric coordinates (ToBeModified: See python script)
+	 *		GJ  : jacobi             + conversion to barycentric coordinates (ToBeModified: See python script)
+	 *		      Shen(2011)-Spectral_Methods_Algorithms,_Analysis_and_Applications (associated code)
 	 *		WV  : pyfr/quadrules/pyr + conversion to barycentric coordinates (ToBeModified: See python script)
 	 */
 
@@ -889,7 +894,7 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	w_read = malloc(0 * sizeof *w_read); // silence
 	wOut = NULL;
 
-	if (strstr(NodeType,"GL")) {
+	if (strstr(NodeType,"GL") || strstr(NodeType,"GJ")) {
 		if (strstr(NodeType,"W") == NULL) {
 			if (return_w)
 				printf("Error: Invalid value for return_w in cubature_PYR.\n"), exit(1);

@@ -19,6 +19,7 @@
 #include "bases.h"
 #include "cubature.h"
 
+#include "select_functions.h"
 #include "element_functions.h"
 #include "matrix_functions.h"
 #include "sum_factorization.h"
@@ -288,49 +289,6 @@ struct S_BCOORDS {
 	             *NfnS, *NfnIs, *NfnIc;
 	double       **w_fIs, **w_fIc, **BCoords_S, **BCoords_Is, **BCoords_Ic;
 };
-
-typedef void (*cubature_tdef) (double **rst, double **w_vec, unsigned int **symms, unsigned int *Nn, unsigned int *Ns,
-                               const unsigned int return_w, const unsigned int P, const unsigned int d,
-                               const char *NodeType);
-typedef double *(*basis_tdef) (const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
-                               const unsigned int d);
-typedef double **(*grad_basis_tdef) (const unsigned int P, const double *rst, const unsigned int Nn,
-                                     unsigned int *NbfOut, const unsigned int d);
-
-static void select_functions(basis_tdef *basis, grad_basis_tdef *grad_basis, cubature_tdef *cubature,
-                             const unsigned int type)
-{
-	switch(type) {
-	case LINE:
-	case QUAD:
-	case HEX:
-		*basis      = basis_TP;
-		*grad_basis = grad_basis_TP;
-		*cubature   = cubature_TP;
-		break;
-	case TRI:
-		*basis      = basis_SI;
-		*grad_basis = grad_basis_SI;
-		*cubature   = cubature_TRI;
-		break;
-	case TET:
-		*basis      = basis_SI;
-		*grad_basis = grad_basis_SI;
-		*cubature   = cubature_TET;
-		break;
-	case WEDGE:
-		printf("Error: WEDGE elements use a combination of TRI and LINE basis functions/nodes.\n"), EXIT_MSG;
-		break;
-	case PYR:
-		*basis      = basis_PYR;
-		*grad_basis = grad_basis_PYR;
-		*cubature   = cubature_PYR;
-		break;
-	default:
-		printf("Error: Unsupported type = %d.\n",type), EXIT_MSG;
-		break;
-	}
-}
 
 static void setup_ELEMENT_plotting(const unsigned int EType)
 {
@@ -871,12 +829,7 @@ static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
 {
 	/*
 	 *	Purpose:
-	 *		Returns the VOLUME ratio of the refined VOLUME as compared to the initial VOLUME.
-	 *
-	 *		Check if these are in relation to the initial ELEMENT or the reference ELEMENT of the same type as the
-	 *		refined VOLUME. (ToBeModified)
-	 *			Quite certain that the scaling values should sum to 1.0.
-	 *			This can be tested whenever mixed refinement is used TET -> TET+PYR or PYR -> PYR+TET
+	 *		Returns the scaling for the L2 projection operator from fine to coarse.
 	 */
 
 	// Initialize DB Parameters
@@ -912,7 +865,7 @@ static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
 			if (vref < 5)
 				return 1.0/8.0; // reference TET scaled by 0.5
 			else if (vref < 7)
-				return 1.0/4.0; // remainder
+				return 1.0/8.0; // reference PYR scaled by 0.5
 			else
 				printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
@@ -921,7 +874,7 @@ static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
 		if (vref < 5 || vref > 8)
 			return 1.0/8.0; // reference PYR scaled by 0.5
 		else
-			return 1.0/16.0; // remainder
+			return 1.0/8.0; // reference TET scaled by 0.5
 		break;
 	case QUAD:
 	case HEX:
@@ -3096,7 +3049,7 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 				mm_CTN_d(Nvve[vh],dE,Nve,VeV[vh],E_rst_vC,rst_vC);
 				if (vh) {
 					Indh = get_IndEhref(EType,vh);
-					if (EType == PYR)
+					if (EType == TET || EType == PYR)
 						ELEMENT_h = get_ELEMENT_type(EType_h[Indh]);
 					else
 						ELEMENT_h = ELEMENT;
@@ -3157,6 +3110,9 @@ static void setup_L2_projection_operators(const unsigned int EType)
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_h;
 
+	// silence
+	ELEMENT_h = NULL;
+
 	if (Adapt == ADAPT_0)
 		return;
 
@@ -3164,8 +3120,6 @@ static void setup_L2_projection_operators(const unsigned int EType)
 
 	if (EType == TET || EType == PYR)
 		setup_L2_projection_preoperators(EType);
-
-	ELEMENT_h = ELEMENT;
 
 	// Stored operators
 	L2hat_vS_vS = ELEMENT->L2hat_vS_vS;
@@ -3197,7 +3151,7 @@ static void setup_L2_projection_operators(const unsigned int EType)
 			for (vh = 0; vh < Nvref; vh++) {
 				if (vh == 0 || P == Pb) {
 					Indh = get_IndEhref(EType,vh);
-					if (EType == PYR)
+					if (EType == TET || EType == PYR)
 						ELEMENT_h = get_ELEMENT_type(EType_h[Indh]);
 					else
 						ELEMENT_h = ELEMENT;
@@ -3530,7 +3484,7 @@ void setup_operators(void)
 
 	// QUAD (Note: Needed for faces in TET refinement if PYRs are generated)
 	EType = QUAD;
-	if ((is_ELEMENT_present(EType) || is_ELEMENT_present(TET)) && (Adapt == ADAPT_H || Adapt == ADAPT_HP)) {
+	if (is_ELEMENT_present(EType) || (is_ELEMENT_present(TET) && (Adapt == ADAPT_H || Adapt == ADAPT_HP))) {
 		if (!DB.MPIrank && !DB.Testing)
 			printf("    QUAD\n");
 		setup_ELEMENT_VeF(EType);
@@ -3565,7 +3519,7 @@ void setup_operators(void)
 		if (d == 3)
 			setup_ELEMENT_FACET_ordering(EType);
 	}
-
+/*
 	// TET and PYR elements have dependence on each other if h-refinement is used
 	if (Adapt != ADAPT_0 && is_ELEMENT_present(TET)) {
 		setup_L2_projection_operators(TET);
@@ -3574,7 +3528,7 @@ void setup_operators(void)
 		memory_destructor_L2_projection(TET);
 		memory_destructor_L2_projection(PYR);
 	}
-
+*/
 	// TET
 	EType = TET;
 	if (is_ELEMENT_present(EType)) {
@@ -3599,6 +3553,15 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
+	}
+
+	// TET and PYR elements have dependence on each other if h-refinement is used
+	if (Adapt != ADAPT_0 && is_ELEMENT_present(TET)) {
+		setup_L2_projection_operators(TET);
+		setup_L2_projection_operators(PYR);
+
+		memory_destructor_L2_projection(TET);
+		memory_destructor_L2_projection(PYR);
 	}
 
 	// WEDGE

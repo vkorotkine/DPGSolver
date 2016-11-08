@@ -995,44 +995,36 @@ static void set_FACET_Out_External(struct S_FACET *FACETc, struct S_VOLUME *VOLU
 		case 1:
 		case 2*NFREFMAX+1:
 		case 4*NFREFMAX+1:
-			IndVhOut = 0; break;
+			IndVhOut = 0; f = VfOut/NFREFMAX; break;
 		case NFREFMAX+1:
 		case 2*NFREFMAX+2:
 		case 4*NFREFMAX+2:
-			IndVhOut = 1; break;
+			IndVhOut = 1; f = VfOut/NFREFMAX; break;
 		case 2:
 		case 3*NFREFMAX+1:
 		case 4*NFREFMAX+3:
-			IndVhOut = 2; break;
+			IndVhOut = 2; f = VfOut/NFREFMAX; break;
 		case NFREFMAX+2:
 		case 3*NFREFMAX+2:
 		case 4*NFREFMAX+4:
-			IndVhOut = 3; break;
+			IndVhOut = 3; f = VfOut/NFREFMAX; break;
 		case 4:
-			IndVhOut = 4; break;
+			IndVhOut = 4; f = 1; break;
 		case NFREFMAX+4:
-			IndVhOut = 5; break;
+			IndVhOut = 5; f = 0; break;
 		case 2*NFREFMAX+4:
-			IndVhOut = 6; break;
+			IndVhOut = 6; f = VfOut/NFREFMAX; break;
 		case 3*NFREFMAX+4:
-			IndVhOut = 7; break;
+			IndVhOut = 7; f = VfOut/NFREFMAX; break;
 		case 3:
 		case NFREFMAX+3:
 		case 2*NFREFMAX+3:
 		case 3*NFREFMAX+3:
-			IndVhOut = 9; break;
+			IndVhOut = 9; f = VfOut/NFREFMAX; break;
 		default:
 			printf("Error: Unsupported VfOut = %d.\n",VfOut), EXIT_MSG;
 			break;
 		}
-
-		if (!(VfOut == 4 || VfOut == NFREFMAX+4))
-			f = VfOut/NFREFMAX;
-		else if (VfOut == 4)
-			f = 1;
-		else
-			f = 0;
-
 		break;
 	default:
 		printf("Error: Unsupported VType.\n"), EXIT_MSG;

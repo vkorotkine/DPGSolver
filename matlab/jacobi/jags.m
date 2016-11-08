@@ -10,7 +10,7 @@ function [varargout]=jags(n,alp,bet)
 
 % alp = 2.0;
 % bet = 0.0;
-% n = 3;
+% n = 1;
 
 if n<=0, disp('Input n >=1'); varargout{1}='Wrong input';  return; end
 
@@ -18,7 +18,13 @@ if n<=0, disp('Input n >=1'); varargout{1}='Wrong input';  return; end
 apb=alp+bet;
 if n==1, 
     varargout{1}=(bet-alp)/(apb+2);
-    varargout{2}=exp((apb+1)*log(2)+gammaln(alp+1)+gammaln(bet+1)-gammaln(apb+1)); 
+    varargout{2}=exp((apb+1)*log(2)+gammaln(alp+1)+gammaln(bet+1)-gammaln(apb+1))/3;
+%     
+% r = varargout{1}
+% w = varargout{2}
+%  
+% sum((1-r+r^2).*w)
+%     
     return; 
 end;
 
@@ -46,12 +52,11 @@ if nargout==1, return; end;
  [dy,y]=japoly(n,alp,bet,x);         % Compute derivative of Jacobi polynomial of degree n 
                                      % at the nodes 
  varargout{2}=gn./((1-x.^2).*dy.^2);  % Compute weights by using weight expression.
- 
+%  
 % r = varargout{1}
 % w = varargout{2}
 %  
-% sum((1+r+r.^2+3.1*r.^3).*w)
-% sum(varargout{2})
+% sum((1-r+r.^2).*w)
 
 return;
 

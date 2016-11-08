@@ -174,10 +174,6 @@ static void compute_qhat_VOLUME(void)
 
 		NvnI = OPS->NvnI;
 		NvnS = OPS->NvnS;
-array_print_d(NvnS,NvnS,VOLUME->MInv,'R');
-if (VOLUME->type == PYR) {
-EXIT_MSG;
-}
 
 		ChiS_vI     = OPS->ChiS_vI;
 		GradChiS_vI = OPS->GradChiS_vI;

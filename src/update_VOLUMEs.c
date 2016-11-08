@@ -25,6 +25,8 @@
 #include "setup_geom_factors.h"
 #include "memory_constructors.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Update VOLUME related information/operators in ELEMENTs which have undergone hp refinement.
@@ -158,7 +160,8 @@ void update_VOLUME_hp(void)
 				NvnS[1]      = OPS->NvnS;
 				I_vGs_vGc[1] = OPS->I_vGs_vGc;
 			} else if (adapt_type == HCOARSE) {
-				if (VOLUME->type == PYR && VOLUME->parent->type == PYR)
+				if ((VOLUME->type == TET && VOLUME->parent->type == TET) ||
+				    (VOLUME->type == PYR && VOLUME->parent->type == PYR))
 					init_ops(OPS,VOLUME,1);
 				else
 					init_ops(OPS,VOLUME,0);

@@ -257,8 +257,8 @@ int main(int nargc, char **argv)
 	TestDB.Npass = 0;
 	TestDB.Nwarnings = 0;
 
-	RunTest.unit        = 0;
-	RunTest.integration = 0;
+	RunTest.unit        = 1;
+	RunTest.integration = 1;
 	RunTest.speed       = 0;
 
 
@@ -307,10 +307,6 @@ int main(int nargc, char **argv)
 		printf("\nFor the VOLUME/FACET info functions, test that all 'versions' give identical results.\n\n");
 		TestDB.Nwarnings++;
 	}
-	test_unit_cubature_TP();
-	test_unit_basis_PYR();
-exit(1);
-//EXIT_MSG;
 
 	// Integration tests
 	if (RunTest.integration) {
@@ -319,8 +315,7 @@ exit(1);
 		test_integration_linearization(nargc,argv);
 //		PetscFinalize();
 	}
-//	test_integration_update_h(nargc,argv);
-	test_integration_Poisson(nargc,argv);
+//	test_integration_Poisson(nargc,argv);
 	PetscFinalize();
 
 
