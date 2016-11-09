@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
- 
+
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
@@ -20,7 +20,7 @@
 
 /*
  *	Purpose:
- *		Set up to be curved meshes.
+ *		Set up ToBeCurved meshes.
  *
  *	Comments:
  *		Requires that straight VOLUME nodes have already been stored.

@@ -257,8 +257,8 @@ int main(int nargc, char **argv)
 	TestDB.Npass = 0;
 	TestDB.Nwarnings = 0;
 
-	RunTest.unit        = 1;
-	RunTest.integration = 1;
+	RunTest.unit        = 0;
+	RunTest.integration = 0;
 	RunTest.speed       = 0;
 
 
@@ -316,7 +316,7 @@ int main(int nargc, char **argv)
 //		PetscFinalize();
 	}
 //	test_integration_L2_projections(nargc,argv);
-//	test_integration_Poisson(nargc,argv);
+	test_integration_Poisson(nargc,argv);
 	PetscFinalize();
 
 

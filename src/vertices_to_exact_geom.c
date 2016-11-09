@@ -7,11 +7,14 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
- 
+
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
 
 #include "array_norm.h"
+
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -30,12 +33,16 @@ void vertices_to_exact_geom(void)
 {
 	// Initialize DB Parameters
 	unsigned int d         = DB.d,
-	             NVe       = DB.NVe;
+	             NVe       = DB.NVe,
+				 *VeInfo   = DB.VeInfo;
 	char         *TestCase = DB.TestCase;
 	double       *VeXYZ    = DB.VeXYZ;
 
 	// Standard datatypes
-	unsigned int dM1, ve;
+	unsigned int dM1, ve, *VeUpdate, *VeSurface;
+
+	VeUpdate = &VeInfo[1*NVe];
+	VeSurface= &VeInfo[2*NVe];
 
 	dM1 = d-1;
 	if (strstr(TestCase,"GaussianBump")) {
@@ -43,8 +50,10 @@ void vertices_to_exact_geom(void)
 
 		for (ve = 0; ve < NVe; ve++) {
 			F_xy = f_gaussian_bump(VeXYZ[ve*d],VeXYZ[ve*d+1],d);
-			if (fabs(VeXYZ[ve*d+dM1]-F_xy) < NODETOL_MESH)
+			if (fabs(VeXYZ[ve*d+dM1]-F_xy) < NODETOL_MESH) {
+				VeSurface[ve] = 0;
 				VeXYZ[ve*d+dM1] = F_xy;
+			}
 		}
 	} else if (strstr(TestCase,"SupersonicVortex")) {
 		double rIn, rOut, ve_norm2, theta;
@@ -56,10 +65,12 @@ void vertices_to_exact_geom(void)
 			ve_norm2 = array_norm_d(d,&VeXYZ[ve*d],"L2");
 
 			if (fabs(ve_norm2-rIn) < NODETOL_MESH) {
+				VeSurface[ve] = 0;
 				theta = atan2(VeXYZ[ve*d+1],VeXYZ[ve*d+2]);
 				VeXYZ[ve*d]   = rIn*cos(theta);
 				VeXYZ[ve*d+1] = rIn*sin(theta);
 			} else if (fabs(ve_norm2-rOut) < NODETOL_MESH) {
+				VeSurface[ve] = 1;
 				theta = atan2(VeXYZ[ve*d+1],VeXYZ[ve*d+2]);
 				VeXYZ[ve*d]   = rIn*cos(theta);
 				VeXYZ[ve*d+1] = rOut*sin(theta);
@@ -73,6 +84,7 @@ void vertices_to_exact_geom(void)
 		for (ve = 0; ve < NVe; ve++) {
 			ve_norm2 = array_norm_d(d,&VeXYZ[ve*d],"L2");
 			if (fabs(ve_norm2-r) < NODETOL_MESH) {
+				VeSurface[ve] = 0;
 				theta = atan2(VeXYZ[ve*d+1],VeXYZ[ve*d]);
 
 				VeXYZ[ve*d]   = r*cos(theta);
@@ -85,6 +97,45 @@ void vertices_to_exact_geom(void)
 					VeXYZ[ve*d+1] *= sin(phi);
 					VeXYZ[ve*d+2]  = r*cos(phi);
 				}
+			}
+		}
+	} else if (strstr(TestCase,"Poisson")) {
+		double rIn, rOut, r, ve_norm2, t, p;
+
+		rIn  = 0.5;
+		rOut = 1.0;
+
+		for (ve = 0; ve < NVe; ve++) {
+			ve_norm2 = array_norm_d(d,&VeXYZ[ve*d],"L2");
+
+			if (!VeUpdate[ve])
+				continue;
+
+			VeUpdate[ve] = 0;
+
+			if (fabs(ve_norm2-rIn) < NODETOL_MESH) {
+				r = rIn;
+				VeSurface[ve] = 0;
+			} else if (fabs(ve_norm2-rOut) < NODETOL_MESH) {
+				r = rOut;
+				VeSurface[ve] = 1;
+			} else {
+				printf("Error: Should not enter here.\n"), EXIT_MSG;
+				// This test will likely fail when new vertices are added due to h-refinement. Reducing the tolerance
+				// should be ok here as curved vertices are already marked. (ToBeDeleted)
+			}
+
+			t = atan2(VeXYZ[ve*d+1],VeXYZ[ve*d]);
+
+			if (d == 2) {
+				VeXYZ[ve*d]   = r*cos(t);
+				VeXYZ[ve*d+1] = r*sin(t);
+			} else if (d == 3) {
+				p = acos(VeXYZ[ve*d+2]/r);
+
+				VeXYZ[ve*d]   = r*cos(t)*sin(p);
+				VeXYZ[ve*d+1] = r*sin(t)*sin(p);
+				VeXYZ[ve*d+2] = r*cos(p);
 			}
 		}
 	} else if (strstr(TestCase,"Test")) {

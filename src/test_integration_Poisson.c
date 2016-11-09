@@ -183,8 +183,8 @@ TestDB.PGlobal = 1;
 	// **************************************************************************************************** //
 	// Convergence Order Testing
 	// **************************************************************************************************** //
-//	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
-	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
+	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
+//	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
 //	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_TP");
 //	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_HW");
 
@@ -204,8 +204,8 @@ TestDB.PGlobal = 1;
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin = 1;  PMax = 2;
-	MLMin = 0; MLMax = 3;
+	PMin = 2;  PMax = 2;
+	MLMin = 0; MLMax = 0;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 

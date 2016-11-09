@@ -85,7 +85,7 @@ void memory_free(void)
 			// setup_mesh
 			free(DB.PVe), free(DB.NE), free(DB.EType), free(DB.ETags), free(DB.EToVe), free(DB.EToPrt);
 			free(DB.VToV), free(DB.VToF), free(DB.VToGF), free(DB.VToBC), free(DB.GFToVe), free(DB.VC), free(DB.GFC);
-			free(DB.VeXYZ);
+			free(DB.VeInfo); free(DB.VeXYZ);
 
 			// setup_structures
 			free(DB.NVgrp);

@@ -206,6 +206,7 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	free(VOLUME->neigh_f);
 
 	// Geometry
+	free(VOLUME->VeInd);
 	free(VOLUME->XYZ_S);
 	free(VOLUME->XYZ);
 

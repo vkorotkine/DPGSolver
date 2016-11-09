@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <limits.h>
 
 #include "mkl.h"
 
@@ -21,6 +22,7 @@
 #include "matrix_functions.h"
 #include "output_to_paraview.h"
 #include "setup_ToBeCurved.h"
+#include "setup_Curved.h"
 #include "setup_geom_factors.h"
 #include "setup_normals.h"
 #include "vertices_to_exact_geom.h"
@@ -39,7 +41,10 @@
  *		updated than to set up. (ToBeDeleted)
  *
  *	Notation:
- *		XYZ_S : High-order VOLUME (XYZ) coordinates at (S)tart (i.e. before curving)
+ *		XYZ_S  : High-order VOLUME (XYZ) coordinates at (S)tart (i.e. before curving)
+ *		VeInfo : (Info)rmation relating to (Ve)rtices by column (#):
+ *		         (0): curved
+ *		         (1): update
  *
  *	References:
 */
@@ -122,18 +127,119 @@ case ADAPT_HP:
 	free(OPS);
 }
 
+static void mark_curved_vertices()
+{
+	// Initialize DB Parameters
+	unsigned int d      = DB.d,
+	             NVe    = DB.NVe,
+	             *NE    = DB.NE,
+	             *EToVe = DB.EToVe;
+
+	// Standard datatypes
+	unsigned int dim, f, ve, Indve, Vs, *Nfve, *VeFcon, *VeInfo;
+
+	struct S_ELEMENT *ELEMENT;
+	struct S_FACET   *FACET;
+	struct S_VOLUME  *VOLUME;
+
+	Vs = 0; for (dim = 0; dim < d; dim++) Vs += NE[dim];
+
+	VeInfo = calloc(NVe*3 , sizeof *VeInfo); // keep
+	DB.VeInfo = VeInfo;
+
+	for (ve = 0; ve < NVe; ve++)
+		VeInfo[2*NVe+ve] = UINT_MAX;
+
+	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
+		if (!FACET->curved)
+			continue;
+
+		VOLUME = FACET->VIn;
+		f      = (FACET->VfIn)/NFREFMAX;
+
+		ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+		Nfve   = ELEMENT->Nfve;
+		VeFcon = ELEMENT->VeFcon;
+
+		for (ve = 0; ve < Nfve[f]; ve++) {
+			Indve = EToVe[(Vs+(VOLUME->indexg))*NVEMAX+VeFcon[f*NFVEMAX+ve]];
+			VeInfo[0*NVe+Indve] = 1;
+			VeInfo[1*NVe+Indve] = 1;
+		}
+	}
+}
+
+static void mark_curved_VOLUME(struct S_VOLUME *VOLUME)
+{
+	// Initialize DB Parameters
+	unsigned int d      = DB.d,
+	             NVe    = DB.NVe,
+	             *NE    = DB.NE,
+	             *EToVe = DB.EToVe,
+	             *VeInfo = DB.VeInfo;
+
+	// standard datatypes
+	unsigned int dim, ve, f, Nve, Vs, *VeInd, NveCurved, NfCurved, fCurved[NFMAX], *VeSurface;
+
+	struct S_ELEMENT *ELEMENT;
+
+	Vs = 0; for (dim = 0; dim < d; dim++) Vs += NE[dim];
+
+	VeSurface = &VeInfo[2*NVe];
+
+	ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+	Nve = ELEMENT->Nve;
+
+	VeInd = VOLUME->VeInd;
+	for (ve = 0; ve < Nve; ve++) {
+		VeInd[ve] = EToVe[(Vs+(VOLUME->indexg))*NVEMAX+ve];
+	}
+
+	if (!VOLUME->curved) {
+		// Count the number of "curved" vertices and faces in the VOLUME
+		for (f = 0; f < NFMAX; f++)
+			fCurved[f] = 0;
+
+		NveCurved = 0;
+		for (ve = 0; ve < Nve; ve++) {
+			if (VeInfo[VeInd[ve]]) {
+				fCurved[VeSurface[VeInd[ve]]] = 1;
+				NveCurved++;
+			}
+		}
+
+		NfCurved = 0;
+		for (f = 0; f < NFMAX; f++) {
+			if (fCurved[f])
+				NfCurved++;
+		}
+
+		if (NveCurved > NfCurved) {
+			if (d != 3)
+				printf("Error: Should not be entering.\n"), EXIT_MSG;
+
+			VOLUME->curved = 1;
+		}
+	}
+}
+
 void setup_geometry(void)
 {
 	// Initialize DB Parameters
 	char         *MeshType = DB.MeshType;
 	unsigned int ExactGeom = DB.ExactGeom,
-	             d         = DB.d;
+	             d         = DB.d,
+	             *NE       = DB.NE,
+	             *EToVe    = DB.EToVe;
+	double       *VeXYZ    = DB.VeXYZ;
 
 	unsigned int PrintTesting = 0;
 
 	// Standard datatypes
-	unsigned int dim, P, vn,
-	             NvnG, NvnGs, NvnGc, NCols;
+	unsigned int ve, dim, P, vn, Vs,
+	             NvnGs, NvnGc, NCols;
 	double       *XYZ_vC, *XYZ_S, *I_vGs_vGc;
 
 	struct S_ELEMENT   *ELEMENT;
@@ -141,16 +247,18 @@ void setup_geometry(void)
 	struct S_FACET     *FACET;
 
 	// silence
-	NvnGs = 0; NvnGc = 0;
-	XYZ_S = NULL;
-	I_vGs_vGc = NULL;
+	NvnGs = NvnGc = 0;
+	XYZ_S = I_vGs_vGc = NULL;
+
+	Vs = 0; for (dim = 0; dim < d; dim++) Vs += NE[dim];
 
 	// Modify vertex locations if exact geometry is known
+	DB.VeInfo = NULL;
 	if (ExactGeom) {
-		if(!DB.MPIrank && !DB.Testing) {
+		mark_curved_vertices();
+
+		if(!DB.MPIrank && !DB.Testing)
 			printf("    Modify vertex nodes if exact geometry is known\n");
-			printf("\n\n*** Verify the implementation. ***\n\n\n");
-		}
 		vertices_to_exact_geom();
 	}
 
@@ -166,21 +274,28 @@ void setup_geometry(void)
 		XYZ_vC = VOLUME->XYZ_vC;
 
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
+		NvnGs = ELEMENT->NvnGs[1];
+
+		// Fix XYZ_vC if modifications were made in projection to exact geometry
+		if (ExactGeom && VOLUME->curved) {
+			for (ve = 0; ve < NvnGs; ve++) {
+			for (dim = 0; dim < d; dim++) {
+				XYZ_vC[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+(VOLUME->indexg))*NVEMAX+ve]*d+dim];
+			}}
+		}
+
 		if (!VOLUME->curved) {
 			// If not curved, the P1 geometry representation suffices to fully specify the element geometry.
-			NvnG = ELEMENT->NvnGs[1];
+			VOLUME->NvnG = NvnGs;
 
-			VOLUME->NvnG = NvnG;
-
-			XYZ_S = malloc(NvnG*d * sizeof *XYZ_S); // keep
+			XYZ_S = malloc(NvnGs*d * sizeof *XYZ_S); // keep
 			VOLUME->XYZ_S = XYZ_S;
 
 			for (dim = 0; dim < d; dim++) {
-			for (vn = 0; vn < NvnG; vn++) {
-				XYZ_S[dim*NvnG+vn] = XYZ_vC[dim*NvnG+vn];
+			for (vn = 0; vn < NvnGs; vn++) {
+				XYZ_S[dim*NvnGs+vn] = XYZ_vC[dim*NvnGs+vn];
 			}}
 		} else {
-			NvnGs = ELEMENT->NvnGs[1];
 			NvnGc = ELEMENT->NvnGc[P];
 			I_vGs_vGc = ELEMENT->I_vGs_vGc[1][P][0];
 
@@ -197,6 +312,7 @@ void setup_geometry(void)
 
 	if (PrintTesting)
 		output_to_paraview("ZTest_Geom_straight"); // Output straight coordinates to paraview
+//output_to_paraview("ZTest_Geom_straight"); // Output straight coordinates to paraview
 
 	// Set up curved geometry nodes
 	if (strstr(MeshType,"ToBeCurved")) {
@@ -205,15 +321,18 @@ void setup_geometry(void)
 
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 			setup_ToBeCurved(VOLUME);
-} else if (0&&strstr(MeshType,"Curved")) {
-	/*	Marking VOLUMEs with curved EDGEs (but not necessarily FACETs in 3D) (generalizes down to 2D as well):
-	 *
-	 *	Loop through all FACETs. For FACETs on curved boundaries, mark vertices of these FACETs as curved.
-	 *	Loop through all VOLUMEs. Loop through vertices of each VOLUME and check if 2 or more vertices are "curved".
-	 */
+	} else if (strstr(MeshType,"Curved")) {
+		// Ensure that VOLUMEs are marked as curved if they only have an edge on a curved boundary
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			mark_curved_VOLUME(VOLUME);
+		}
+
+//		if (!DB.MPIrank && !DB.Testing)
 		if (!DB.MPIrank)
-			printf("Add in support for MeshType == Curved (setup_geometry)\n");
-		EXIT_MSG;
+			printf("    Set geometry of VOLUME nodes in Curved Mesh\n");
+
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+			setup_Curved(VOLUME);
 	} else {
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 			setup_straight(VOLUME);

@@ -443,6 +443,7 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->XYZ_vC = NULL; // free
 
 	// Geometry
+	VOLUME->VeInd = calloc(NVEMAX , sizeof *(VOLUME->VeInd)); // free
 	VOLUME->NvnG  = UINT_MAX;
 	VOLUME->XYZ_S = NULL; // free
 	VOLUME->XYZ   = NULL; // free
@@ -525,7 +526,7 @@ struct S_FACET *New_FACET(void)
 	FACET->IndOrdOutIn = UINT_MAX;
 
 	// Geometry
-	FACET->curved  = UINT_MAX;
+	FACET->curved  = 0;
 	FACET->typeInt = UINT_MAX;
 
 	FACET->XYZ_fI   = NULL; // free
