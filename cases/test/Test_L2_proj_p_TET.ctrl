@@ -7,7 +7,7 @@
 BEGIN PARAMETERS
   Dimension  3
   ML         0
-  MeshType   TET_p
+  MeshType   TET
 
   Form       Weak  // Options: Weak, (Strong)
   NodeType   GL-AO // Options: GL/GLL-AO/WSH

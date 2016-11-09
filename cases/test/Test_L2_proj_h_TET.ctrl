@@ -7,10 +7,10 @@
 BEGIN PARAMETERS
   Dimension  3
   ML         0
-  MeshType   TET_h
+  MeshType   TET
 
   Form       Weak  // Options: Weak, (Strong)
-  NodeType   GL-AO // Options: GL/GLL-AO/WSH
+  NodeType   GLL-AO // Options: GL/GLL-AO/WSH
   BasisType  Nodal // Options: Nodal, Modal
 
   Vectorized 0     // Options: 0, 1

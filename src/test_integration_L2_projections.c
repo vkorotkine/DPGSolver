@@ -27,25 +27,119 @@
  *		Test correctness of implementation of L2 projection operators.
  *
  *	Comments:
- *		L2 projection from TET to PYR results in large error. The error is reduced as the TET/PYR VOLUME cubature orders
- *		are	increased, but it seems that an impractically high order is required for machine precision. Tests for TET6
- *		and PYR L2 projections thus show high errors. The evidence for this being the likely cause of the error is that
- *		the difference between L2 errors before and after projection is on the order of machine precision if only a
- *		single refinement level is used for TET6 and is higher as soon as multiple levels are employed.
+ *		L2 projections between TET and PYR ELEMENTs result in significantly higher error than other projections.
+ *		Observations:
+ *			- This error is on the order of machine precision when the solution is of order P1.
+ *			- This error is reduced when the TET/PYR VOLUME cubature orders are increased. Noting that the cubature
+ *			  order is not seen in the L2 projection operator (as it is embedded within it), the L2 projection operators
+ *			  are computed using the highest available cubature orders for TET and PYR ELEMENTs, with no effect on
+ *			  performance during code execution other than in the preprocessing stage.
+ *				Include higher order accurate PYR cubature nodes for the computation of L2 projection operators and
+ *				check effect on error in this test. (ToBeDeleted)
+ *				Note that using PIvcMaxPYR-1 (==5) gives more accurate results for P3 TET and PYR tests than using
+ *				PIvcMaxPYR (==6). Reducing PIvcTET always gives less accurate results. (ToBeDeleted)
+ *			- The error is also on the order of machine precision for TET6 when only a single refinement/coarsening step
+ *			  is performed (No TET to PYR projections), while it is much higher for the PYR case. This suggests that the
+ *			  problem is with the TET to PYR L2 projection operator. INVESTIGATE (ToBeModified)
  *
  *	Notation:
  *
  *	References:
  */
 
+struct S_L2proj {
+	char         **argvNew, *EName, *CtrlName[2];
+	int          nargc;
+	unsigned int Nref, update_argv;
+};
+
 static double *get_L2err    (void);
 static void   mark_VOLUMEs  (const unsigned int adapt_type);
 
+static void test_L2_projection(struct S_L2proj *data)
+{
+	unsigned int TETrefineType = DB.TETrefineType;
+
+	char         *argvNew[2];
+	unsigned int pass = 0, refType, NrefTypes;
+	double       *L2err[2];
+
+	argvNew[0] = data->argvNew[0];
+	argvNew[1] = data->argvNew[1];
+
+	if (strstr(data->EName,"TET"))
+		NrefTypes = 3;
+	else
+		NrefTypes = 1;
+
+	for (refType = 0; refType < NrefTypes; refType++) {
+		// p-refinement
+		strcpy(argvNew[1],data->CtrlName[0]); strcat(argvNew[1],"_p_"); strcat(argvNew[1],data->CtrlName[1]);
+
+		code_startup_mod_prmtrs(data->nargc,argvNew,0,data->update_argv,1);
+		if      (refType == 0) DB.TETrefineType = TET8;
+		else if (refType == 1) DB.TETrefineType = TET12;
+		else if (refType == 2) DB.TETrefineType = TET6;
+		code_startup_mod_prmtrs(data->nargc,data->argvNew,data->Nref,data->update_argv,2);
+
+		L2err[0] = get_L2err();
+		mark_VOLUMEs(PREFINE); mesh_update();
+		mark_VOLUMEs(PCOARSE); mesh_update();
+		L2err[1] = get_L2err();
+
+		pass = 0;
+		if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 1e2*EPS)
+			pass = 1, TestDB.Npass++;
+
+		//     0         10        20        30        40        50
+		if (strstr(data->EName,"TRI"))
+			printf("L2_projections (%s%d,  ADAPT_P):              ",data->EName,refType);
+		else
+			printf("               (%s%d,  ADAPT_P):              ",data->EName,refType);
+		test_print(pass);
+		free(L2err[0]), free(L2err[1]);
+
+		code_cleanup();
+
+
+		// h-refinement
+		strcpy(argvNew[1],data->CtrlName[0]); strcat(argvNew[1],"_h_"); strcat(argvNew[1],data->CtrlName[1]);
+
+		code_startup_mod_prmtrs(data->nargc,argvNew,0,data->update_argv,1);
+		if      (refType == 0) DB.TETrefineType = TET8;
+		else if (refType == 1) DB.TETrefineType = TET12;
+		else if (refType == 2) DB.TETrefineType = TET6;
+		code_startup_mod_prmtrs(data->nargc,data->argvNew,data->Nref,data->update_argv,2);
+//		code_startup_mod_prmtrs(data->nargc,data->argvNew,0,data->update_argv,2);
+
+		L2err[0] = get_L2err();
+		mark_VOLUMEs(HREFINE); mesh_update();
+		mark_VOLUMEs(HCOARSE); mesh_update();
+		L2err[1] = get_L2err();
+
+		pass = 0;
+		if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1.4e4*EPS) {
+			pass = 1, TestDB.Npass++;
+		} else if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e-5) {
+			pass = 1, TestDB.Npass++;
+			printf("\nWarning: h L2 projection test for P%d %ss passing with norm_diff = % .3e\n\n",
+				   DB.PGlobal,data->CtrlName[1],array_norm_diff_d(1,L2err[0],L2err[1],"Inf"));
+			TestDB.Nwarnings++;
+		}
+
+		//     0         10        20        30        40        50
+		printf("               (          ADAPT_H):              ");
+		test_print(pass);
+		free(L2err[0]), free(L2err[1]);
+
+		code_cleanup();
+	}
+	DB.TETrefineType = TETrefineType;
+}
+
 void test_integration_L2_projections(int nargc, char **argv)
 {
-	unsigned int pass;
 	char         **argvNew;
-	double       *L2err[2];
 
 	argvNew    = malloc(2          * sizeof *argvNew);  // free
 	argvNew[0] = malloc(STRLEN_MAX * sizeof **argvNew); // free
@@ -64,276 +158,70 @@ void test_integration_L2_projections(int nargc, char **argv)
 	 *
 	 */
 
+	struct S_L2proj *data;
+
+	data = malloc(sizeof *data); // free
+	data->EName       = malloc(STRLEN_MIN * sizeof *(data->EName));       // free
+	data->CtrlName[0] = malloc(STRLEN_MAX * sizeof *(data->CtrlName[0])); // free
+	data->CtrlName[1] = malloc(STRLEN_MAX * sizeof *(data->CtrlName[1])); // free
+
+	strcpy(data->CtrlName[0],"test/Test_L2_proj");
+	data->argvNew     = argvNew;
+	data->nargc       = nargc;
+	data->Nref        = 2;
+	data->update_argv = 0;
+
 	// **************************************************************************************************** //
 	// TRIs
-	strcpy(argvNew[1],"test/Test_L2_proj_p_TRI");
+	strcpy(data->EName,"TRI   ");
+	strcpy(data->CtrlName[1],"TRI");
 
-	code_startup(nargc,argvNew,2,0);
-
-	L2err[0] = get_L2err();
-	mark_VOLUMEs(PREFINE); mesh_update();
-	mark_VOLUMEs(PCOARSE); mesh_update();
-	L2err[1] = get_L2err();
-
-	pass = 0;
-	if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 10*EPS)
-		pass = 1, TestDB.Npass++;
-	//     0         10        20        30        40        50
-	printf("L2_projections (TRI,   ADAPT_P):                 ");
-	test_print(pass);
-	free(L2err[0]), free(L2err[1]);
-
-	code_cleanup();
-
-
-	strcpy(argvNew[0],argv[0]);
-	strcpy(argvNew[1],"test/Test_L2_proj_h_TRI");
-
-	code_startup(nargc,argvNew,2,0);
-
-	L2err[0] = get_L2err();
-	mark_VOLUMEs(HREFINE); mesh_update();
-	mark_VOLUMEs(HCOARSE); mesh_update();
-	L2err[1] = get_L2err();
-
-	pass = 0;
-	if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e2*EPS)
-		pass = 1, TestDB.Npass++;
-	//     0         10        20        30        40        50
-	printf("               (       ADAPT_H):                 ");
-	test_print(pass);
-	free(L2err[0]), free(L2err[1]);
-
-	code_cleanup();
-
+	test_L2_projection(data);
 
 	// **************************************************************************************************** //
 	// QUADs
-	strcpy(argvNew[1],"test/Test_L2_proj_p_QUAD");
+	strcpy(data->EName,"QUAD  ");
+	strcpy(data->CtrlName[1],"QUAD");
 
-	code_startup(nargc,argvNew,2,0);
-
-	L2err[0] = get_L2err();
-	mark_VOLUMEs(PREFINE); mesh_update();
-	mark_VOLUMEs(PCOARSE); mesh_update();
-	L2err[1] = get_L2err();
-
-	pass = 0;
-	if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 10*EPS)
-		pass = 1, TestDB.Npass++;
-	//     0         10        20        30        40        50
-	printf("               (QUAD,  ADAPT_P):                 ");
-	test_print(pass);
-	free(L2err[0]), free(L2err[1]);
-
-	code_cleanup();
-
-
-	strcpy(argvNew[0],argv[0]);
-	strcpy(argvNew[1],"test/Test_L2_proj_h_QUAD");
-
-	code_startup(nargc,argvNew,3,0);
-
-	L2err[0] = get_L2err();
-	mark_VOLUMEs(HREFINE); mesh_update();
-	mark_VOLUMEs(HCOARSE); mesh_update();
-	L2err[1] = get_L2err();
-
-	pass = 0;
-	if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e2*EPS)
-		pass = 1, TestDB.Npass++;
-	//     0         10        20        30        40        50
-	printf("               (       ADAPT_H):                 ");
-	test_print(pass);
-	free(L2err[0]), free(L2err[1]);
-
-	code_cleanup();
-
+	test_L2_projection(data);
 
 	// **************************************************************************************************** //
 	// TETs
+	printf("\nInclude higher order accurate PYR cubature nodes for the computation of L2 projection operators and\n"
+ 	         "check effect on error in this test.\n\n");
+	TestDB.Nwarnings++;
 
-	strcpy(argvNew[1],"test/Test_L2_proj_p_TET");
+	strcpy(data->EName,"TET   ");
+	strcpy(data->CtrlName[1],"TET");
 
-	code_startup(nargc,argvNew,2,0);
-
-	L2err[0] = get_L2err();
-	mark_VOLUMEs(PREFINE); mesh_update();
-	mark_VOLUMEs(PCOARSE); mesh_update();
-	L2err[1] = get_L2err();
-
-	pass = 0;
-	if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 1e2*EPS)
-		pass = 1, TestDB.Npass++;
-	//     0         10        20        30        40        50
-	printf("               (TET,   ADAPT_P):                 ");
-	test_print(pass);
-	free(L2err[0]), free(L2err[1]);
-
-	code_cleanup();
-
-
-	strcpy(argvNew[0],argv[0]);
-	strcpy(argvNew[1],"test/Test_L2_proj_h_TET");
-
-	code_startup(nargc,argvNew,2,0);
-
-	L2err[0] = get_L2err();
-	mark_VOLUMEs(HREFINE); mesh_update();
-	mark_VOLUMEs(HCOARSE); mesh_update();
-	L2err[1] = get_L2err();
-
-	pass = 0;
-	if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e4*EPS) {
-		pass = 1, TestDB.Npass++;
-	} else if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e-3) {
-		pass = 1, TestDB.Npass++;
-		printf("\nWarning: L2 projection test for P%d TETs passing with norm_diff = % .3e\n\n",
-		       DB.PGlobal,array_norm_diff_d(1,L2err[0],L2err[1],"Inf"));
-		TestDB.Nwarnings++;
-	}
-
-	//     0         10        20        30        40        50
-	printf("               (       ADAPT_H):                 ");
-	test_print(pass);
-	free(L2err[0]), free(L2err[1]);
-
-	code_cleanup();
+	test_L2_projection(data);
 
 	// **************************************************************************************************** //
 	// HEXs
-	strcpy(argvNew[1],"test/Test_L2_proj_p_HEX");
+	strcpy(data->EName,"HEX   ");
+	strcpy(data->CtrlName[1],"HEX");
 
-	code_startup(nargc,argvNew,2,0);
-
-	L2err[0] = get_L2err();
-	mark_VOLUMEs(PREFINE); mesh_update();
-	mark_VOLUMEs(PCOARSE); mesh_update();
-	L2err[1] = get_L2err();
-
-	pass = 0;
-	if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 1e2*EPS)
-		pass = 1, TestDB.Npass++;
-	//     0         10        20        30        40        50
-	printf("               (HEX,   ADAPT_P):                 ");
-	test_print(pass);
-	free(L2err[0]), free(L2err[1]);
-
-	code_cleanup();
-
-
-	strcpy(argvNew[0],argv[0]);
-	strcpy(argvNew[1],"test/Test_L2_proj_h_HEX");
-
-	code_startup(nargc,argvNew,3,0);
-
-	L2err[0] = get_L2err();
-	mark_VOLUMEs(HREFINE); mesh_update();
-	mark_VOLUMEs(HCOARSE); mesh_update();
-	L2err[1] = get_L2err();
-
-	pass = 0;
-	if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e3*EPS)
-		pass = 1, TestDB.Npass++;
-	//     0         10        20        30        40        50
-	printf("               (       ADAPT_H):                 ");
-	test_print(pass);
-	free(L2err[0]), free(L2err[1]);
-
-	code_cleanup();
-
+	test_L2_projection(data);
 
 	// **************************************************************************************************** //
 	// WEDGEs
-	strcpy(argvNew[1],"test/Test_L2_proj_p_WEDGE");
+	strcpy(data->EName,"WEDGE ");
+	strcpy(data->CtrlName[1],"WEDGE");
 
-	code_startup(nargc,argvNew,2,0);
-
-	L2err[0] = get_L2err();
-	mark_VOLUMEs(PREFINE); mesh_update();
-	mark_VOLUMEs(PCOARSE); mesh_update();
-	L2err[1] = get_L2err();
-
-	pass = 0;
-	if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 1e2*EPS)
-		pass = 1, TestDB.Npass++;
-	//     0         10        20        30        40        50
-	printf("               (WEDGE, ADAPT_P):                 ");
-	test_print(pass);
-	free(L2err[0]), free(L2err[1]);
-
-	code_cleanup();
-
-
-	strcpy(argvNew[0],argv[0]);
-	strcpy(argvNew[1],"test/Test_L2_proj_h_WEDGE");
-
-	code_startup(nargc,argvNew,3,0);
-
-	L2err[0] = get_L2err();
-	mark_VOLUMEs(HREFINE); mesh_update();
-	mark_VOLUMEs(HCOARSE); mesh_update();
-	L2err[1] = get_L2err();
-
-	pass = 0;
-	if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e3*EPS)
-		pass = 1, TestDB.Npass++;
-	//     0         10        20        30        40        50
-	printf("               (       ADAPT_H):                 ");
-	test_print(pass);
-	free(L2err[0]), free(L2err[1]);
-
-	code_cleanup();
-
+	test_L2_projection(data);
 
 	// **************************************************************************************************** //
 	// PYRs
-	strcpy(argvNew[1],"test/Test_L2_proj_p_PYR");
+	strcpy(data->EName,"PYR   ");
+	strcpy(data->CtrlName[1],"PYR");
 
-	code_startup(nargc,argvNew,2,0);
-
-	L2err[0] = get_L2err();
-	mark_VOLUMEs(PREFINE); mesh_update();
-	mark_VOLUMEs(PCOARSE); mesh_update();
-	L2err[1] = get_L2err();
-
-	pass = 0;
-	if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 1e3*EPS)
-		pass = 1, TestDB.Npass++;
-	//     0         10        20        30        40        50
-	printf("               (PYR,   ADAPT_P):                 ");
-	test_print(pass);
-	free(L2err[0]), free(L2err[1]);
-
-	code_cleanup();
+	test_L2_projection(data);
 
 
-	strcpy(argvNew[0],argv[0]);
-	strcpy(argvNew[1],"test/Test_L2_proj_h_PYR");
-
-	code_startup(nargc,argvNew,2,0);
-
-	L2err[0] = get_L2err();
-	mark_VOLUMEs(HREFINE); mesh_update();
-	mark_VOLUMEs(HCOARSE); mesh_update();
-	L2err[1] = get_L2err();
-
-	pass = 0;
-	if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e3*EPS) {
-		pass = 1, TestDB.Npass++;
-	} else if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e-4) {
-		pass = 1, TestDB.Npass++;
-		printf("\nWarning: L2 projection test for P%d PYRs passing with norm_diff = % .3e\n\n",
-		       DB.PGlobal,array_norm_diff_d(1,L2err[0],L2err[1],"Inf"));
-		TestDB.Nwarnings++;
-	}
-
-	//     0         10        20        30        40        50
-	printf("               (       ADAPT_H):                 ");
-	test_print(pass);
-	free(L2err[0]), free(L2err[1]);
-
-	code_cleanup();
+	free(data->EName);
+	free(data->CtrlName[0]);
+	free(data->CtrlName[1]);
+	free(data);
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 }

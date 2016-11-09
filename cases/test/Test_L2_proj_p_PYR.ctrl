@@ -7,10 +7,10 @@
 BEGIN PARAMETERS
   Dimension  3
   ML         0
-  MeshType   PYR_p
+  MeshType   PYR
 
   Form       Weak  // Options: Weak, (Strong)
-  NodeType   GLL-AO // Options: GL/GLL-AO/WSH
+  NodeType   GL-AO // Options: GL/GLL-AO/WSH
   BasisType  Nodal // Options: Nodal, Modal
 
   Vectorized 0     // Options: 0, 1

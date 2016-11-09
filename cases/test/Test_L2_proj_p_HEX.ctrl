@@ -7,7 +7,7 @@
 BEGIN PARAMETERS
   Dimension  3
   ML         0
-  MeshType   HEX_p
+  MeshType   HEX
 
   Form       Weak  // Options: Weak, (Strong)
   NodeType   GLL-AO // Options: GL/GLL-AO/WSH

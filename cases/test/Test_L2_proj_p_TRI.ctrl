@@ -7,7 +7,7 @@
 BEGIN PARAMETERS
   Dimension  2
   ML         0
-  MeshType   TRI_p
+  MeshType   TRI
 
   Form       Weak  // Options: Weak, (Strong)
   NodeType   GL-AO // Options: GL/GLL-AO/WSH

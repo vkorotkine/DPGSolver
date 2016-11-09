@@ -70,12 +70,15 @@ static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, co
 			printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
 
 		run_test(&pass,"FullREFINE");
-		printf("update_h (%s%d FullREFINE):                   ",EName,refType);
+		if (strstr(EName,"TRI"))
+			printf("update_h (%s%d FullREFINE):                   ",EName,refType);
+		else
+			printf("         (%s%d FullREFINE):                   ",EName,refType);
 		test_print(pass);
 
 		//     0         10        20        30        40        50
 		run_test(&pass,"FullCOARSE");
-		printf("          (       FullCOARSE):                   ");
+		printf("         (        FullCOARSE):                   ");
 		test_print(pass);
 
 		mark_VOLUMEs(HREFINE,Lmts[0]);
@@ -88,13 +91,13 @@ static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, co
 
 		//     0         10        20        30        40        50
 		run_test(&pass,"Mixed");
-		printf("          (       Mixed):                        ");
+		printf("         (        Mixed):                        ");
 		test_print(pass);
 
 		pass = 1;
 		check_Jacobians(&pass);
 		//     0         10        20        30        40        50
-		printf("          (       Jacobians):                    ");
+		printf("         (        Jacobians):                    ");
 		test_print(pass);
 
 		code_cleanup();
@@ -151,7 +154,7 @@ void test_integration_update_h(int nargc, char **argv)
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
 	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
-	test_update_h(nargc,argvNew,3,0,EName,Lmts);
+	test_update_h(nargc,argvNew,2,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// TETs
@@ -171,7 +174,7 @@ void test_integration_update_h(int nargc, char **argv)
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->XYZ[2] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
 	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->XYZ[2] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
-	test_update_h(nargc,argvNew,3,0,EName,Lmts);
+	test_update_h(nargc,argvNew,2,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// WEDGEs
@@ -181,7 +184,7 @@ void test_integration_update_h(int nargc, char **argv)
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
 	Lmts[2]->XYZ[0] = -0.25; Lmts[2]->XYZ[1] = -0.25; Lmts[2]->XYZ[2] = -0.25; Lmts[2]->type = 'a'; Lmts[2]->index = 0;
 	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->XYZ[2] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
-	test_update_h(nargc,argvNew,3,0,EName,Lmts);
+	test_update_h(nargc,argvNew,2,0,EName,Lmts);
 
 	// **************************************************************************************************** //
 	// PYRs

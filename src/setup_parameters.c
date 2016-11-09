@@ -548,8 +548,8 @@ void setup_parameters()
 	DB.refine_frac = 0.2;
 	DB.coarse_frac = 0.2;
 
-//	DB.TETrefineType = TET8;
-	DB.TETrefineType = TET6;
+	DB.TETrefineType = TET8;
+//	DB.TETrefineType = TET6;
 //	DB.TETrefineType = TET12;
 
 	// Assign DB Parameters

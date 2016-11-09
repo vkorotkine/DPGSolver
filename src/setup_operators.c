@@ -2925,15 +2925,14 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 
 	// Initialize DB Parameters
 	unsigned int PGs    = DB.PGs,
-	             NP     = DB.NP,
-	             **PIvc = DB.PIvc;
+	             NP     = DB.NP;
 
 	char         *BasisType     = DB.BasisType,
 	             ***NodeTypeIvc = DB.NodeTypeIvc,
 	             ***NodeTypeS   = DB.NodeTypeS;
 
 	// Standard datatypes
-	unsigned int i, iMax, dE, P, vh, PSMin, PSMax, Pb, PbMin, PbMax,
+	unsigned int i, iMax, dE, P, vh, PSMin, PSMax, Pb, PbMin, PbMax, PIvc[NEC],
 	             Nve, Nbf, Eclass, Nvref, NEhref, Indh, *Nvve, *EType_h, dummy_ui, *dummyPtr_ui[2];
 	double       *E_rst_vC, *rst_vC, **VeV, **rst_vIc, *rst_vS,
 	             *IGs, *IS, *TS, *ChiRefS_vS, *ChiRefInvGs_vGs, *ChiRefInvS_vS,
@@ -2954,6 +2953,9 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 
 	if (!(EType == TET || EType == PYR))
 		printf("Error: Unsupported EType.\n"), EXIT_MSG;
+
+	PIvc[1] = PIvcMaxTET;
+	PIvc[2] = PIvcMaxPYR;
 
 	ELEMENT   = get_ELEMENT_type(EType);
 	ELEMENT_h = ELEMENT;
@@ -3013,7 +3015,7 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 		for (Pb = PbMin; Pb <= PbMax; Pb++) {
 			if (w_vIc[Pb])
 				free(w_vIc[Pb]);
-			cubature(&rst_vIc[0],&w_vIc[Pb],&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,1,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+			cubature(&rst_vIc[0],&w_vIc[Pb],&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,1,PIvc[Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
 			free(rst_vIc[0]);
 
 			for (i = iMax = NEhref; i--; ) {
@@ -3022,9 +3024,10 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 				Eclass = get_Eclass(EType_h[i]);
 				select_functions(&basis,&grad_basis,&cubature,EType_h[i]);
 
-				Nve = ELEMENT->Nve;
+				Nve   = ELEMENT->Nve;
+				NvnIc = ELEMENT->NvnIc;
 
-				cubature(&rst_vIc[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,0,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+				cubature(&rst_vIc[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,0,PIvc[Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
 
 				E_rst_vC        = get_rst_vC(ELEMENT);                     // free
 				IGs             = identity_d(Nve);                         // free
@@ -3116,10 +3119,7 @@ static void setup_L2_projection_operators(const unsigned int EType)
 	if (Adapt == ADAPT_0)
 		return;
 
-	ELEMENT   = get_ELEMENT_type(EType);
-
-	if (EType == TET || EType == PYR)
-		setup_L2_projection_preoperators(EType);
+	ELEMENT = get_ELEMENT_type(EType);
 
 	// Stored operators
 	L2hat_vS_vS = ELEMENT->L2hat_vS_vS;
@@ -3455,7 +3455,10 @@ void setup_operators(void)
 {
 	/*
 	 *	Comments:
-	 *		TETs are set up if PYRs are present as PYRs h-refine into TETs.
+	 *		QUADs/PYRs are set up if TETs are present and adaptation is enabled as TETs have the potential to refine
+	 *		into PYRs when using TET6 refinement.
+	 *		L2 projection operators must be set up before standard operators for TET and PYR ELEMENTs as several
+	 *		preoperators must be subsequently overwritten.
 	 */
 
 	// Initialize DB Parameters
@@ -3482,9 +3485,9 @@ void setup_operators(void)
 	if (d == 2)
 		setup_ELEMENT_FACET_ordering(EType);
 
-	// QUAD (Note: Needed for faces in TET refinement if PYRs are generated)
+	// QUAD
 	EType = QUAD;
-	if (is_ELEMENT_present(EType) || (is_ELEMENT_present(TET) && (Adapt == ADAPT_H || Adapt == ADAPT_HP))) {
+	if (is_ELEMENT_present(EType) || (Adapt != ADAPT_0 && is_ELEMENT_present(TET))) {
 		if (!DB.MPIrank && !DB.Testing)
 			printf("    QUAD\n");
 		setup_ELEMENT_VeF(EType);
@@ -3519,16 +3522,19 @@ void setup_operators(void)
 		if (d == 3)
 			setup_ELEMENT_FACET_ordering(EType);
 	}
-/*
-	// TET and PYR elements have dependence on each other if h-refinement is used
+
+	// TET/PYR
 	if (Adapt != ADAPT_0 && is_ELEMENT_present(TET)) {
+		setup_L2_projection_preoperators(TET);
+		setup_L2_projection_preoperators(PYR);
+
 		setup_L2_projection_operators(TET);
 		setup_L2_projection_operators(PYR);
 
 		memory_destructor_L2_projection(TET);
 		memory_destructor_L2_projection(PYR);
 	}
-*/
+
 	// TET
 	EType = TET;
 	if (is_ELEMENT_present(EType)) {
@@ -3545,7 +3551,7 @@ void setup_operators(void)
 
 	// PYR
 	EType = PYR;
-	if (is_ELEMENT_present(EType) || is_ELEMENT_present(TET)) {
+	if (is_ELEMENT_present(EType) || (Adapt != ADAPT_0 && is_ELEMENT_present(TET))) {
 		if (!DB.MPIrank && !DB.Testing)
 			printf("    PYR\n");
 
@@ -3553,15 +3559,6 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
-	}
-
-	// TET and PYR elements have dependence on each other if h-refinement is used
-	if (Adapt != ADAPT_0 && is_ELEMENT_present(TET)) {
-		setup_L2_projection_operators(TET);
-		setup_L2_projection_operators(PYR);
-
-		memory_destructor_L2_projection(TET);
-		memory_destructor_L2_projection(PYR);
 	}
 
 	// WEDGE
