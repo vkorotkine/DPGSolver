@@ -547,7 +547,9 @@ void update_Vgrp(void)
 			P      = VOLUME->P;
 			curved = VOLUME->curved;
 
-			IndVgrp = Eclass*NP*2 + P*2 + curved;
+			IndVgrp = Eclass*NP*2 + P*2;
+			if (curved)
+				IndVgrp += 1;
 
 			if (!NVgrp[IndVgrp])
 				DB.Vgrp[IndVgrp] = VOLUME;

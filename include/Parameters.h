@@ -67,6 +67,10 @@
 #define GMSH_YZFACE_MIN 6001
 #define GMSH_XYZVOL_MIN 7001
 
+// Geometry related parameters
+#define ARC_LENGTH        1
+#define RADIAL_PROJECTION 2
+
 // ELEMENT related numbers
 #define NVEMAX          8  // HEX
 #define NFVEMAX         4  // QUAD

@@ -123,9 +123,11 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free5_d(NP,NP,NFREFMAX*NFMAX,d,ELEMENT->GradChiS_fIs);
 	array_free5_d(NP,NP,NFREFMAX*NFMAX,d,ELEMENT->GradChiS_fIc);
 
+	array_free4_ui(NP,NP,NFREFMAX*NFMAX,ELEMENT->Fmask);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGs_fS);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGs_fIs);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGs_fIc);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGc_fGc);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGc_fS);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGc_fIs);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGc_fIc);

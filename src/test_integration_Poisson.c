@@ -165,7 +165,7 @@ void test_integration_Poisson(int nargc, char **argv)
 	strcpy(TestName,"Linearization Poisson (2D - Mixed):              ");
 	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
 
-TestDB.PGlobal = 1;
+TestDB.PGlobal = 2;
 	test_linearization(nargc,argvNew,0,1,TestName,data);
 
 	// **************************************************************************************************** //

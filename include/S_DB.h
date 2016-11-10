@@ -17,12 +17,11 @@ struct S_DB {
 	int          Restart;
 
 	// Parameters
-	char         *Parametrization,
-	             **NodeTypeG,
+	char         **NodeTypeG,
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
 	unsigned int NP, AC, ExactGeom, InviscidFluxType, ViscousFluxType, ExplicitSolverType, PR, PP, PGs,
-	             *PGc, *PF, *VFPartUnity,
+	             *PGc, *PF, *VFPartUnity, Parametrization,
 	             ***SF_BE, **PCs, **PCc, **PJs, **PJc, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
 	// Mesh

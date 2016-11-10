@@ -193,9 +193,8 @@ static void mark_curved_VOLUME(struct S_VOLUME *VOLUME)
 	Nve = ELEMENT->Nve;
 
 	VeInd = VOLUME->VeInd;
-	for (ve = 0; ve < Nve; ve++) {
+	for (ve = 0; ve < Nve; ve++)
 		VeInd[ve] = EToVe[(Vs+(VOLUME->indexg))*NVEMAX+ve];
-	}
 
 	if (!VOLUME->curved) {
 		// Count the number of "curved" vertices and faces in the VOLUME
@@ -220,8 +219,14 @@ static void mark_curved_VOLUME(struct S_VOLUME *VOLUME)
 			if (d != 3)
 				printf("Error: Should not be entering.\n"), EXIT_MSG;
 
-			VOLUME->curved = 1;
+			VOLUME->curved = 2;
 		}
+	}
+
+	// Remove vertex index information for straight VOLUMEs
+	if (!VOLUME->curved) {
+		for (ve = 0; ve < Nve; ve++)
+			VeInd[ve] = UINT_MAX;
 	}
 }
 

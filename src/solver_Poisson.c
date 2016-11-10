@@ -227,7 +227,7 @@ static void compute_qhat_VOLUME(void)
 	free(OPS);
 }
 
-void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, const unsigned int curved)
+void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, const unsigned int BCcurved)
 {
 	/*
 	 *	Purpose:
@@ -269,8 +269,8 @@ void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, con
 	if (0)
 		printf("%e %e\n",XOut[0],YOut[0]);
 
-	if (1||curved == 1) {
-//	if (curved == 1) {
+	if (1||BCcurved == 1) {
+//	if (BCcurved == 1) {
 		for (n = 0; n < Nn; n++) {
 			XOut[n] = XIn[n];
 			YOut[n] = YIn[n];
@@ -305,7 +305,7 @@ void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, con
 }
 
 void boundary_Poisson(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *uL, double *uR,
-                      double *graduL, double *graduR, const unsigned int BC, const unsigned int curved)
+                      double *graduL, double *graduR, const unsigned int BC, const unsigned int BCcurved)
 {
 	/*
 	 *	Comments:
@@ -330,7 +330,7 @@ void boundary_Poisson(const unsigned int Nn, const unsigned int Nel, double *XYZ
 	// Modify XYZ coordinates for boundary condition evaluation
 	XYZproj = malloc(Nn*d * sizeof *XYZproj); // free
 	if (d > 1)
-		project_to_sphere(Nn,XYZ,XYZproj,curved);
+		project_to_sphere(Nn,XYZ,XYZproj,BCcurved);
 	else
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 

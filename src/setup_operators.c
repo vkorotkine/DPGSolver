@@ -286,8 +286,8 @@
 
 struct S_BCOORDS {
 	unsigned int Nve,
-	             *NfnS, *NfnIs, *NfnIc;
-	double       **w_fIs, **w_fIc, **BCoords_S, **BCoords_Is, **BCoords_Ic;
+	             *NfnGc, *NfnS, *NfnIs, *NfnIc;
+	double       **w_fIs, **w_fIc, **BCoords_Gc, **BCoords_S, **BCoords_Is, **BCoords_Ic;
 };
 
 static void setup_ELEMENT_plotting(const unsigned int EType)
@@ -453,22 +453,24 @@ static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const
 
 	// Standard datatypes
 	unsigned int P, EType, Nve,
-	             *NfnS, *NfnIs, *NfnIc;
+	             *NfnGc, *NfnS, *NfnIs, *NfnIc;
 	double       **w_fIs, **w_fIc,
-	             **BCoords_S, **BCoords_Is, **BCoords_Ic, *one;
+	             **BCoords_Gc, **BCoords_S, **BCoords_Is, **BCoords_Ic, *one;
 
 	struct S_BCOORDS *BCoords_dEm1;
 	struct S_ELEMENT *ELEMENT_F;
 
-	BCoords_dEm1 = malloc(sizeof *BCoords_dEm1);      // keep (requires external free)
-	NfnS         = malloc(NP * sizeof *(NfnS));       // keep (requires external free)
-	NfnIs        = malloc(NP * sizeof *(NfnIs));      // keep (requires external free)
-	NfnIc        = malloc(NP * sizeof *(NfnIc));      // keep (requires external free)
-	w_fIs        = malloc(NP * sizeof *(w_fIs));      // keep (requires external free)
-	w_fIc        = malloc(NP * sizeof *(w_fIc));      // keep (requires external free)
-	BCoords_S    = malloc(NP * sizeof *(BCoords_S));  // keep (requires external free)
-	BCoords_Is   = malloc(NP * sizeof *(BCoords_Is)); // keep (requires external free)
-	BCoords_Ic   = malloc(NP * sizeof *(BCoords_Ic)); // keep (requires external free)
+	BCoords_dEm1 = malloc(sizeof *BCoords_dEm1);      // keep
+	NfnGc        = malloc(NP * sizeof *(NfnGc));      // keep
+	NfnS         = malloc(NP * sizeof *(NfnS));       // keep
+	NfnIs        = malloc(NP * sizeof *(NfnIs));      // keep
+	NfnIc        = malloc(NP * sizeof *(NfnIc));      // keep
+	w_fIs        = malloc(NP * sizeof *(w_fIs));      // keep
+	w_fIc        = malloc(NP * sizeof *(w_fIc));      // keep
+	BCoords_Gc   = malloc(NP * sizeof *(BCoords_Gc)); // keep
+	BCoords_S    = malloc(NP * sizeof *(BCoords_S));  // keep
+	BCoords_Is   = malloc(NP * sizeof *(BCoords_Is)); // keep
+	BCoords_Ic   = malloc(NP * sizeof *(BCoords_Ic)); // keep
 
 	one = malloc(1 * sizeof *one); // free
 	one[0] = 1.0;
@@ -480,6 +482,7 @@ static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const
 
 		Nve = 1;
 		for (P = 0; P <= PMax; P++) {
+			NfnGc[P] = 1;
 			NfnS[P]  = 1;
 			NfnIs[P] = 1;
 			NfnIc[P] = 1;
@@ -487,10 +490,12 @@ static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const
 			w_fIs[P] = mm_Alloc_d(CBCM,CBT,CBT,1,1,1,1.0,one,one); // keep
 			w_fIc[P] = mm_Alloc_d(CBCM,CBT,CBT,1,1,1,1.0,one,one); // keep
 
+			BCoords_Gc[P] = malloc(1 * sizeof **(BCoords_Gc));
 			BCoords_S[P]  = malloc(1 * sizeof **(BCoords_S));
 			BCoords_Is[P] = malloc(1 * sizeof **(BCoords_Is));
 			BCoords_Ic[P] = malloc(1 * sizeof **(BCoords_Ic));
 
+			BCoords_Gc[P][0] = 1.0;
 			BCoords_S[P][0]  = 1.0;
 			BCoords_Is[P][0] = 1.0;
 			BCoords_Ic[P][0] = 1.0;
@@ -507,7 +512,8 @@ static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const
 		}
 
 		// Initialize DB Parameters
-		unsigned int **PIfs         = DB.PIfs,
+		unsigned int *PGc           = DB.PGc,
+		             **PIfs         = DB.PIfs,
 		             **PIfc         = DB.PIfc;
 		char         **NodeTypeG    = DB.NodeTypeG,
 		             ***NodeTypeS   = DB.NodeTypeS,
@@ -518,12 +524,12 @@ static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const
 		unsigned int dE, Nbf,
 		             NfnGs, EType, Eclass,
 		             dummy_ui, *dummyPtr_ui;
-		double       *rst_vGs, *rst_fS, *rst_fIs, *rst_fIc,
+		double       *rst_vGs, *rst_fGc, *rst_fS, *rst_fIs, *rst_fIc,
 		             *dummyPtr_d[2],
 		             *IGs,
 		             *ChiRefGs_vGs,
 		             *ChiRefInvGs_vGs,
-		             *ChiRefGs_fS, *ChiRefGs_fIs, *ChiRefGs_fIc;
+		             *ChiRefGs_fGc, *ChiRefGs_fS, *ChiRefGs_fIs, *ChiRefGs_fIc;
 
 		// Function pointers
 		cubature_tdef   cubature;
@@ -556,22 +562,27 @@ static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const
 		free(ChiRefGs_vGs);
 
 		for (P = 0; P <= PMax; P++) {
-			cubature(&rst_fS,&dummyPtr_d[0],&dummyPtr_ui,&NfnS[P], &dummy_ui,0,P,              dE,NodeTypeS[P][Eclass]);   free(dummyPtr_ui); // free
-			cubature(&rst_fIs,&w_fIs[P],    &dummyPtr_ui,&NfnIs[P],&dummy_ui,1,PIfs[P][Eclass],dE,NodeTypeIfs[P][Eclass]); free(dummyPtr_ui); // free
-			cubature(&rst_fIc,&w_fIc[P],    &dummyPtr_ui,&NfnIc[P],&dummy_ui,1,PIfc[P][Eclass],dE,NodeTypeIfc[P][Eclass]); free(dummyPtr_ui); // free
+			cubature(&rst_fGc,&dummyPtr_d[0],&dummyPtr_ui,&NfnGc[P],&dummy_ui,0,PGc[P],         dE,NodeTypeG[Eclass]);      free(dummyPtr_ui); // free
+			cubature(&rst_fS, &dummyPtr_d[0],&dummyPtr_ui,&NfnS[P], &dummy_ui,0,P,              dE,NodeTypeS[P][Eclass]);   free(dummyPtr_ui); // free
+			cubature(&rst_fIs,&w_fIs[P],     &dummyPtr_ui,&NfnIs[P],&dummy_ui,1,PIfs[P][Eclass],dE,NodeTypeIfs[P][Eclass]); free(dummyPtr_ui); // free
+			cubature(&rst_fIc,&w_fIc[P],     &dummyPtr_ui,&NfnIc[P],&dummy_ui,1,PIfc[P][Eclass],dE,NodeTypeIfc[P][Eclass]); free(dummyPtr_ui); // free
 
+			ChiRefGs_fGc = basis(1,rst_fGc,NfnGc[P],&Nbf,dE); // free
 			ChiRefGs_fS  = basis(1,rst_fS, NfnS[P], &Nbf,dE); // free
 			ChiRefGs_fIs = basis(1,rst_fIs,NfnIs[P],&Nbf,dE); // free
 			ChiRefGs_fIc = basis(1,rst_fIc,NfnIc[P],&Nbf,dE); // free
 
+			BCoords_Gc[P] = mm_Alloc_d(CBCM,CBT,CBT,NfnGc[P],NfnGs,NfnGs,1.0,ChiRefGs_fGc,ChiRefInvGs_vGs); // keep
 			BCoords_S[P]  = mm_Alloc_d(CBCM,CBT,CBT,NfnS[P], NfnGs,NfnGs,1.0,ChiRefGs_fS, ChiRefInvGs_vGs); // keep
 			BCoords_Is[P] = mm_Alloc_d(CBCM,CBT,CBT,NfnIs[P],NfnGs,NfnGs,1.0,ChiRefGs_fIs,ChiRefInvGs_vGs); // keep
 			BCoords_Ic[P] = mm_Alloc_d(CBCM,CBT,CBT,NfnIc[P],NfnGs,NfnGs,1.0,ChiRefGs_fIc,ChiRefInvGs_vGs); // keep
 
+			free(rst_fGc);
 			free(rst_fS);
 			free(rst_fIs);
 			free(rst_fIc);
 
+			free(ChiRefGs_fGc);
 			free(ChiRefGs_fS);
 			free(ChiRefGs_fIs);
 			free(ChiRefGs_fIc);
@@ -582,11 +593,13 @@ static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const
 	free(one);
 
 	BCoords_dEm1->Nve   = Nve;
+	BCoords_dEm1->NfnGc = NfnGc;
 	BCoords_dEm1->NfnS  = NfnS;
 	BCoords_dEm1->NfnIs = NfnIs;
 	BCoords_dEm1->NfnIc = NfnIc;
 	BCoords_dEm1->w_fIs = w_fIs;
 	BCoords_dEm1->w_fIc = w_fIc;
+	BCoords_dEm1->BCoords_Gc = BCoords_Gc;
 	BCoords_dEm1->BCoords_S  = BCoords_S;
 	BCoords_dEm1->BCoords_Is = BCoords_Is;
 	BCoords_dEm1->BCoords_Ic = BCoords_Ic;
@@ -981,7 +994,7 @@ static void setup_ELEMENT_operator_dependencies(const unsigned int EType)
 static void setup_ELEMENT_operators(const unsigned int EType)
 {
 	// Returned operators
-	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS, **NfnS, **NfnIs, **NfnIc;
+	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS, **NfnGc, **NfnS, **NfnIs, **NfnIc;
 	double       **w_vIs, **w_vIc, ***w_fIs, ***w_fIc,
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS,
@@ -999,7 +1012,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             ****ChiS_fS, ****ChiS_fIs, ****ChiS_fIc,
 				 *****GradChiS_fIs, *****GradChiS_fIc,
 	             ****I_vGs_fS, ****I_vGs_fIs, ****I_vGs_fIc,
-	             ****I_vGc_fS, ****I_vGc_fIs, ****I_vGc_fIc,
+	             ****I_vGc_fGc, ****I_vGc_fS, ****I_vGc_fIs, ****I_vGc_fIc,
 	             ****I_vCs_fS, ****I_vCs_fIs, ****I_vCs_fIc,
 	             ****I_vCc_fS, ****I_vCc_fIs, ****I_vCc_fIc,
 				 *****D_vGs_fIs, *****D_vGs_fIc,
@@ -1039,7 +1052,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             dummy_ui, *dummyPtr_ui[2];
 	double       *E_rst_vC, *rst_vC, **VeF, **VeV,
 	             *rst_vP, *rst_vGs, *rst_vGc, *rst_vCs, *rst_vCc, **rst_vIs, **rst_vIc, **rst_vS,
-	             *rst_fS, *rst_fIs, *rst_fIc,
+	             *rst_fGc, *rst_fS, *rst_fIs, *rst_fIc,
 	             *wInv_vIs, *wInv_vIc,
 	             *diag_w_vIs, *diag_w_vIc, *diag_wInv_vIs, *diag_wInv_vIc,
 	             *diag_w_fIs, *diag_w_fIc,
@@ -1052,14 +1065,14 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             *ChiRefGs_vP, *ChiRefGs_vGs, *ChiRefGs_vGc, *ChiRefGs_vCs, *ChiRefGs_vIs, *ChiRefGs_vIc, *ChiRefGs_vS,
 	             *ChiRefGs_fS, *ChiRefGs_fIs, *ChiRefGs_fIc,
 	             *ChiRefGc_vP,                *ChiRefGc_vCc, *ChiRefGc_vIs, *ChiRefGc_vIc, *ChiRefGc_vS,
-	             *ChiRefGc_fS, *ChiRefGc_fIs, *ChiRefGc_fIc,
+	             *ChiRefGc_fGc, *ChiRefGc_fS, *ChiRefGc_fIs, *ChiRefGc_fIc,
 	             *ChiRefCs_vS, *ChiRefCs_vIs, *ChiRefCs_vIc, *ChiRefCs_fS, *ChiRefCs_fIs, *ChiRefCs_fIc,
 	             *ChiRefCc_vS, *ChiRefCc_vIs, *ChiRefCc_vIc, *ChiRefCc_fS, *ChiRefCc_fIs, *ChiRefCc_fIc,
 	             *ChiRefS_vP, *ChiRefS_vIs, *ChiRefS_vIc, *ChiRefS_fS, *ChiRefS_fIs, *ChiRefS_fIc,
 	             *ChiGs_vP, *ChiGs_vGs, *ChiGs_vGc, *ChiGs_vCs, *ChiGs_vIs, *ChiGs_vIc, *ChiGs_vS,
 	             *ChiGs_fS, *ChiGs_fIs, *ChiGs_fIc,
 	             *ChiGc_vP,             *ChiGc_vCc, *ChiGc_vIs, *ChiGc_vIc, *ChiGc_vS,
-	             *ChiGc_fS, *ChiGc_fIs, *ChiGc_fIc,
+	             *ChiGc_fGc, *ChiGc_fS, *ChiGc_fIs, *ChiGc_fIc,
 	             *ChiCs_vS, *ChiCs_vIs, *ChiCs_vIc, *ChiCs_fS, *ChiCs_fIs, *ChiCs_fIc,
 	             *ChiCc_vS, *ChiCc_vIs, *ChiCc_vIc, *ChiCc_fS, *ChiCc_fIs, *ChiCc_fIc,
 	             **GradChiRefGs_vCs, **GradChiRefGs_vIs,
@@ -1077,7 +1090,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             *dummyPtr_d;
 
 	struct BCoords {
-		double **Is, **Ic, **S;
+		double **Gc, **Is, **Ic, **S;
 	} *BCoords_F[2], **BCoords_V;
 
 	struct S_BCOORDS *BCoords_dEm1[2];
@@ -1125,6 +1138,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	NvnIs = ELEMENT->NvnIs;
 	NvnIc = ELEMENT->NvnIc;
 	NvnS  = ELEMENT->NvnS;
+	NfnGc = ELEMENT->NfnGc;
 	NfnS  = ELEMENT->NfnS;
 	NfnIs = ELEMENT->NfnIs;
 	NfnIc = ELEMENT->NfnIc;
@@ -1187,6 +1201,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	I_vGs_fS  = ELEMENT->I_vGs_fS;
 	I_vGs_fIs = ELEMENT->I_vGs_fIs;
 	I_vGs_fIc = ELEMENT->I_vGs_fIc;
+	I_vGc_fGc = ELEMENT->I_vGc_fGc;
 	I_vGc_fS  = ELEMENT->I_vGc_fS;
 	I_vGc_fIs = ELEMENT->I_vGc_fIs;
 	I_vGc_fIc = ELEMENT->I_vGc_fIc;
@@ -1268,18 +1283,21 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	for (IndFType = 0; IndFType < NFTypes; IndFType++) {
 		B_Nve[IndFType]         = BCoords_dEm1[IndFType]->Nve;
+		BCoords_F[IndFType]->Gc = BCoords_dEm1[IndFType]->BCoords_Gc;
 		BCoords_F[IndFType]->S  = BCoords_dEm1[IndFType]->BCoords_S;
 		BCoords_F[IndFType]->Is = BCoords_dEm1[IndFType]->BCoords_Is;
 		BCoords_F[IndFType]->Ic = BCoords_dEm1[IndFType]->BCoords_Ic;
 
 		// Store Nfn* in a manner consistent with Nvn*
 		for (P = 0; P <= PMax; P++) {
+			NfnGc[P][IndFType] = BCoords_dEm1[IndFType]->NfnGc[P];
 			NfnS[P][IndFType]  = BCoords_dEm1[IndFType]->NfnS[P];
 			NfnIs[P][IndFType] = BCoords_dEm1[IndFType]->NfnIs[P];
 			NfnIc[P][IndFType] = BCoords_dEm1[IndFType]->NfnIc[P];
 			w_fIs[P][IndFType] = BCoords_dEm1[IndFType]->w_fIs[P];
 			w_fIc[P][IndFType] = BCoords_dEm1[IndFType]->w_fIc[P];
 		}
+		free(BCoords_dEm1[IndFType]->NfnGc);
 		free(BCoords_dEm1[IndFType]->NfnS);
 		free(BCoords_dEm1[IndFType]->NfnIs);
 		free(BCoords_dEm1[IndFType]->NfnIc);
@@ -1711,6 +1729,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 					mm_CTN_d(Nfve[f],dE,Nve,VeF[Vf],E_rst_vC,rst_vC);
 
+					rst_fGc = mm_Alloc_d(CBCM,CBNT,CBNT,NfnGc[Pb][IndFType],dE,B_Nve[IndFType],1.0,BCoords_F[IndFType]->Gc[Pb],rst_vC); // free
 					rst_fS  = mm_Alloc_d(CBCM,CBNT,CBNT,NfnS[Pb][IndFType], dE,B_Nve[IndFType],1.0,BCoords_F[IndFType]->S[Pb], rst_vC); // free
 					rst_fIs = mm_Alloc_d(CBCM,CBNT,CBNT,NfnIs[Pb][IndFType],dE,B_Nve[IndFType],1.0,BCoords_F[IndFType]->Is[Pb],rst_vC); // free
 					rst_fIc = mm_Alloc_d(CBCM,CBNT,CBNT,NfnIc[Pb][IndFType],dE,B_Nve[IndFType],1.0,BCoords_F[IndFType]->Ic[Pb],rst_vC); // free
@@ -1758,6 +1777,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					ChiRefGs_fS  = basis(PGs           ,rst_fS, NfnS[Pb][IndFType], &Nbf,dE); // free
 					ChiRefGs_fIs = basis(PGs           ,rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
 					ChiRefGs_fIc = basis(PGs           ,rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
+					ChiRefGc_fGc = basis(PGc[P]        ,rst_fGc,NfnGc[Pb][IndFType],&Nbf,dE); // free
 					ChiRefGc_fS  = basis(PGc[P]        ,rst_fS, NfnS[Pb][IndFType], &Nbf,dE); // free
 					ChiRefGc_fIs = basis(PGc[P]        ,rst_fIs,NfnIs[Pb][IndFType],&Nbf,dE); // free
 					ChiRefGc_fIc = basis(PGc[P]        ,rst_fIc,NfnIc[Pb][IndFType],&Nbf,dE); // free
@@ -1776,6 +1796,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					ChiGs_fS  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnGs[1],NvnGs[1],1.0,ChiRefGs_fS, TGs); // free
 					ChiGs_fIs = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,ChiRefGs_fIs,TGs); // free
 					ChiGs_fIc = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,ChiRefGs_fIc,TGs); // free
+					ChiGc_fGc = mm_Alloc_d(CBRM,CBNT,CBNT,NfnGc[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,ChiRefGc_fGc,TGc); // free
 					ChiGc_fS  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnGc[P],NvnGc[P],1.0,ChiRefGc_fS, TGc); // free
 					ChiGc_fIs = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,ChiRefGc_fIs,TGc); // free
 					ChiGc_fIc = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,ChiRefGc_fIc,TGc); // free
@@ -1809,6 +1830,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 								D_vGs_fIc[1][Pb][Vf][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,GradChiGs_fIc[dim],ChiInvGs_vGs); // keep
 							}
 						}
+						I_vGc_fGc[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnGc[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,ChiGc_fGc,ChiInvGc_vGc); // keep
 						I_vGc_fS[P][Pb][Vf]  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnGc[P],NvnGc[P],1.0,ChiGc_fS, ChiInvGc_vGc); // keep
 						I_vGc_fIs[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,ChiGc_fIs,ChiInvGc_vGc); // keep
 						I_vGc_fIc[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,ChiGc_fIc,ChiInvGc_vGc); // keep
@@ -1828,6 +1850,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					free(ChiRefGs_fS);
 					free(ChiRefGs_fIs);
 					free(ChiRefGs_fIc);
+					free(ChiRefGc_fGc);
 					free(ChiRefGc_fS);
 					free(ChiRefGc_fIs);
 					free(ChiRefGc_fIc);
@@ -1841,6 +1864,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					free(ChiGs_fS);
 					free(ChiGs_fIs);
 					free(ChiGs_fIc);
+					free(ChiGc_fGc);
 					free(ChiGc_fS);
 					free(ChiGc_fIs);
 					free(ChiGc_fIc);
@@ -1863,6 +1887,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 						free(GradChiGc_fIc[dim]);
 					}
 
+					free(rst_fGc);
 					free(rst_fS);
 					free(rst_fIs);
 					free(rst_fIc);
@@ -3451,6 +3476,84 @@ static void setup_ELEMENT_FACET_ordering(const unsigned int FType)
 	}
 }
 
+static void setup_Fmask(const unsigned int EType)
+{
+	// Returned operators
+	unsigned int ****Fmask;
+
+	// Standard datatypes
+	unsigned int i, j, P, f, Vf, PSMin, PSMax, Nf, Eclass,
+	             IndFType,
+	             *NvnGc, **NfnGc;
+	double       ****I_vGc_fGc;
+
+	struct S_ELEMENT *ELEMENT;
+
+	ELEMENT = get_ELEMENT_type(EType);
+
+	Eclass = get_Eclass(EType);
+
+	Fmask     = ELEMENT->Fmask;
+
+	Nf        = ELEMENT->Nf;
+	NvnGc     = ELEMENT->NvnGc;
+	NfnGc     = ELEMENT->NfnGc;
+	I_vGc_fGc = ELEMENT->I_vGc_fGc;
+
+	get_PS_range(&PSMin,&PSMax);
+	for (P = PSMin; P <= PSMax; P++) {
+		for (f = 0; f < Nf; f++) {
+			IndFType = get_IndFType(Eclass,f);
+
+			Vf = f*NFREFMAX;
+			Fmask[P][P][Vf] = malloc(NfnGc[P][IndFType] * sizeof ****Fmask); // keep
+			for (i = 0; i < NfnGc[P][IndFType]; i++) {
+				for (j = 0; j < NvnGc[P]; j++) {
+					if (fabs(I_vGc_fGc[P][P][Vf][i*NvnGc[P]+j] - 1.0) <= EPS) {
+						Fmask[P][P][Vf][i] = j;
+						break;
+					}
+				}
+				if (j == NvnGc[P])
+					printf("Error: Did not find index for Fmask.\n"), EXIT_MSG;
+			}
+		}
+	}
+}
+
+static void setup_blending(const unsigned int EType)
+{
+	unsigned int Nve, *Nfve, *VeFcon, *NvnGc;
+	double       *BCoords_V, *BCoords_F;
+
+	struct S_ELEMENT *ELEMENT, *ELEMENT_F;
+
+	ELEMENT = get_ELEMENT_type(EType);
+
+	Nf     = ELEMENT->Nf;
+	Nve    = ELEMENT->Nve;
+	Nfve   = ELEMENT->Nfve;
+	VeFcon = ELEMENT->VeFcon;
+	NvnGc  = ELEMENT->NvnGc;
+
+	get_PS_range(&PSMin,&PSMax);
+	for (P = PSMin; P <= PSMax; P++) {
+		BCoords_V = ELEMENT->I_vGs_vGc[P][P][0];
+
+		for (f = 0; f < Nf; f++) {
+			BCoords_F = malloc(NvnGc[P]*Nfve[f] * sizeof *BCoords_F); // free
+
+			for (n = 0; n < NvnGc[P]; n++) {
+				for (ve = 0; ve < Nfve[f]; ve++) {
+					BCoords_F[n*Nfve[f]+ve] = BCoords_V[n*Nve+VeFcon[f*NFVEMAX+ve]];
+				}
+			}
+
+			free(BCoords_F);
+		}
+	}
+}
+
 void setup_operators(void)
 {
 	/*
@@ -3494,6 +3597,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
+		setup_Fmask(EType);
 		if (d == 3)
 			setup_ELEMENT_FACET_ordering(EType);
 	}
@@ -3507,6 +3611,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
+		setup_Fmask(EType);
 	}
 
 	// TRI
@@ -3519,6 +3624,7 @@ void setup_operators(void)
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
 		setup_L2_projection_operators(EType);
+		setup_Fmask(EType);
 		if (d == 3)
 			setup_ELEMENT_FACET_ordering(EType);
 	}
@@ -3547,6 +3653,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
+		setup_Fmask(EType);
 	}
 
 	// PYR
@@ -3559,6 +3666,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
+		setup_Fmask(EType);
 	}
 
 	// WEDGE
@@ -3570,6 +3678,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
+		setup_Fmask(EType);
 	}
 
 	// Free unused operators (including unused lower dimensional operators (if applicable) and sum factorized operators) (ToBeDeleted)

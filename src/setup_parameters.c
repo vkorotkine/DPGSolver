@@ -132,13 +132,12 @@ void setup_parameters()
 	             EFE        = DB.EFE,
 	             Collocated = DB.Collocated;
 
-	char         *Parametrization,
-	             **NodeTypeG,
+	char         **NodeTypeG,
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
 	unsigned int i, iMax, u1,
 	             P, NP, IntOrderfs, IntOrderfc, IntOrdervs, IntOrdervc,
-	             ***SF_BE, *VFPartUnity,
+	             ***SF_BE, *VFPartUnity, Parametrization,
 	             PGs, *PGc, **PCs, **PCc, **PJs, **PJc,
 	             *PF, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
@@ -167,7 +166,6 @@ void setup_parameters()
 
 	VFPartUnity = calloc((NEC+1) , sizeof *VFPartUnity); // keep
 
-	Parametrization = malloc(STRLEN_MAX * sizeof *NodeTypeS); // keep
 	NodeTypeG       = malloc(NEC * sizeof *NodeTypeG);        // keep
 	NodeTypeS       = malloc(NP  * sizeof *NodeTypeS);        // keep
 	NodeTypeF       = malloc(NP  * sizeof *NodeTypeF);        // keep
@@ -212,8 +210,8 @@ void setup_parameters()
 		DB.AC = 0, DB.ExactGeom = 1;
 
 	// ToBeModified (likely included in .ctrl file)
-	strcpy(Parametrization,"ArcLength");
-	//strcpy(Parametrization,"RadialProjection");
+	Parametrization = ARC_LENGTH;
+//	Parametrization = RADIAL_PROJECTION;
 
 	for (i = 0; i < NEC; i++)
 		NodeTypeG[i] = malloc(STRLEN_MIN * sizeof **NodeTypeG); // keep
@@ -617,7 +615,7 @@ void setup_parameters_L2proj(void)
 	for (P = 0; P <= PMax; P++) {
 		// Geometry
 		PGc[P]    = max(P,u1)+PG_add;
-PGc[P] = PGs;
+//PGc[P] = PGs;
 		PCs[P][0] = (d-1)*PGs;
 		PCs[P][1] = (d-1)*max(PGs-1,u1);
 		PCs[P][2] = (d-1)*PGs;

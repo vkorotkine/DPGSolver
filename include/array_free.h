@@ -26,7 +26,8 @@ extern void array_free3_ll    (unsigned int iMax, unsigned int jMax, long long  
 extern void array_free3_f     (unsigned int iMax, unsigned int jMax, float        ***A);
 extern void array_free3_d     (unsigned int iMax, unsigned int jMax, double       ***A);
 extern void array_free3_ld    (unsigned int iMax, unsigned int jMax, long double  ***A);
-extern void array_free4_d     (unsigned int iMax, unsigned int jMax, unsigned int kMax, double ****A);
+extern void array_free4_ui    (unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int ****A);
+extern void array_free4_d     (unsigned int iMax, unsigned int jMax, unsigned int kMax, double       ****A);
 extern void array_free5_d     (unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int lMax, double *****A);
 
 extern void array_free1_CSR_d (struct S_OpCSR *A);

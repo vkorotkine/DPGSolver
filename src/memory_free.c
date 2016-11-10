@@ -56,7 +56,6 @@ void memory_free(void)
 		// Preprocessing
 
 			// setup_parameters
-			free(DB.Parametrization);
 			array_free2_c(NEC,DB.NodeTypeG);
 			array_free3_c(DB.NP,NEC,DB.NodeTypeS);
 			array_free3_c(DB.NP,NEC,DB.NodeTypeF);
