@@ -41,6 +41,7 @@ struct S_ELEMENT {
 	             ****I_vCc_fS, ****I_vCc_fIs, ****I_vCc_fIc,
 				 *****D_vGs_fIs, *****D_vGs_fIc,
 				 *****D_vGc_fIs, *****D_vGc_fIc,
+				 ****I_fGs_vGc, ****I_fGc_vGc,
 	             ****Is_Weak_VV, ****Ic_Weak_VV,
 	             ****Is_Weak_FF, ****Ic_Weak_FF,
 	             *****Ds_Weak_VV, *****Dc_Weak_VV,

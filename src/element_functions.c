@@ -486,6 +486,28 @@ struct S_ELEMENT *get_ELEMENT_type(const unsigned int type)
 	printf("Error: Element type not found (type).\n"), exit(1);
 }
 
+struct S_ELEMENT *get_ELEMENT_F_type(const unsigned int type, const unsigned int f)
+{
+	unsigned int IndFType;
+
+	struct S_ELEMENT *ELEMENT_F;
+
+	IndFType = get_IndFType(get_ELEMENT_type(type)->Eclass,f);
+
+	if (type == LINE) {
+		ELEMENT_F = get_ELEMENT_type(POINT);
+	} else if (type == TRI || type == QUAD) {
+		ELEMENT_F = get_ELEMENT_type(LINE);
+	} else if (type == TET || (type == WEDGE && IndFType == 1) || (type == PYR && IndFType == 0)) {
+		ELEMENT_F = get_ELEMENT_type(TRI);
+	} else if (type == HEX || (type == WEDGE && IndFType == 0) || (type == PYR && IndFType == 1)) {
+		ELEMENT_F = get_ELEMENT_type(QUAD);
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+	return ELEMENT_F;
+}
+
 struct S_ELEMENT *get_ELEMENT_Eclass(const unsigned int type, const unsigned int IndEclass)
 {
 	struct S_ELEMENT *ELEMENT = DB.ELEMENT;
@@ -517,6 +539,7 @@ struct S_ELEMENT *get_ELEMENT_Eclass(const unsigned int type, const unsigned int
 
 struct S_ELEMENT *get_ELEMENT_FACET(const unsigned int type, const unsigned int IndEclass)
 {
+	// Quite similar to get_ELEMENT_F_type ... Likely delete one of this function (ToBeDeleted)
 	struct S_ELEMENT *ELEMENT = DB.ELEMENT;
 
 	if (type == LINE) {

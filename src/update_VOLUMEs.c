@@ -22,6 +22,9 @@
 #include "element_functions.h"
 #include "matrix_functions.h"
 #include "setup_ToBeCurved.h"
+#include "setup_Curved.h"
+#include "setup_geometry.h"
+#include "vertices_to_exact_geom.h"
 #include "setup_geom_factors.h"
 #include "memory_constructors.h"
 
@@ -97,8 +100,8 @@ void update_VOLUME_hp(void)
 	             *TestCase = DB.TestCase;
 
 	// Standard datatypes
-	unsigned int i, iMax, P, PNew, f, level, adapt_type, vh, vhMin, vhMax, VType, Nf,
-	             IndEhref, NvnGs[2], NvnGc[2], NvnS[2], NvnSP, NCols, update, maxP;
+	unsigned int i, j, ve, iMax, P, PNew, f, level, adapt_type, vh, vhMin, vhMax, VType, Nf, Nve,
+	             IndEhref, NvnGs[2], NvnGc[2], NvnS[2], NvnSP, NCols, update, maxP, *VeInfo, cVeCount;
 	double       *I_vGs_vGc[2], *XYZ_vC, *XYZ_S,
 	             **Ihat_vS_vS, **I_vGs_vGs, **L2hat_vS_vS, *What, *RES, *WhatP, *WhatH, *RESP, *RESH, *dummyPtr_d,
 	             *uhat, *uhatP, *uhatH;
@@ -196,7 +199,7 @@ void update_VOLUME_hp(void)
 					if (strstr(MeshType,"ToBeCurved"))
 						setup_ToBeCurved(VOLUME);
 					else if (strstr(MeshType,"Curved"))
-						printf("Add in support for MeshType == Curved.\n"), EXIT_MSG;
+						setup_Curved(VOLUME);
 				}
 
 				free(VOLUME->detJV_vI);
@@ -296,36 +299,68 @@ void update_VOLUME_hp(void)
 
 					VOLUMEc->Eclass = get_Eclass(VOLUMEc->type);
 
-					if (AC) {
-						VOLUMEc->curved = 1;
-					} else if (VOLUME->curved) {
-						printf("Error: Add support for h-refinement VOLUMEc->curved.\n"), EXIT_MSG;
-						// Use VToBC and knowledge of whether the new VOLUME shares the BC.
-					} else {
-						VOLUMEc->curved = 0;
-					}
-
 					// Update geometry
 					IndEhref = get_IndEhref(VType,vh);
 
-// When updating XYZ_vC, ensure that corners on curved boundaries are placed on the boundary. (ToBeDeleted)
 					VOLUMEc->XYZ_vC = malloc(NvnGs[IndEhref]*d * sizeof *XYZ_vC); // keep
-					XYZ_vC = VOLUMEc->XYZ_vC;
-
 					mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vC,VOLUMEc->XYZ_vC);
-					if (!VOLUMEc->curved) {
-						double *XYZ;
 
-						VOLUMEc->NvnG = NvnGs[IndEhref];
+					Nve    = ELEMENT->Nve;
+					VeInfo = VOLUMEc->VeInfo;
 
-						VOLUMEc->XYZ_S = malloc(NvnGs[IndEhref]*NCols * sizeof *XYZ_S); // keep
-						VOLUMEc->XYZ   = malloc(NvnGs[IndEhref]*NCols * sizeof *XYZ);   // keep
-						XYZ_S = VOLUMEc->XYZ_S;
-						XYZ   = VOLUMEc->XYZ;
-						for (unsigned int i = 0, iMax = NCols*NvnGs[IndEhref]; i < iMax; i++) {
-							XYZ_S[i] = XYZ_vC[i];
-							XYZ[i]   = XYZ_S[i];
+					if (AC) {
+						VOLUMEc->curved = 1;
+					} else if (VOLUME->curved) {
+						// Determined VeInfo for VOLUMEc
+						cVeCount = 0;
+						for (ve = 0; ve < Nve; ve++) {
+							VeInfo[ve+Nve*0] = 1;
+							VeInfo[ve+Nve*1] = 1;
+							for (j = 0; j < NvnGs[0]; j++) {
+								if (fabs(I_vGs_vGs[vh][ve*NvnGs[0]+j]-1.0) < EPS) {
+									// Already existing vertex
+									for (i = 0; i < NVEINFO; i++)
+										VeInfo[ve+Nve*i] = VOLUME->VeInfo[j+Nve*i];
+									break;
+								} else if (fabs(I_vGs_vGs[vh][ve*NvnGs[0]+j]) > EPS) {
+									if (!VOLUME->VeInfo[j+Nve*0]) { // If not curved
+										VeInfo[ve+Nve*0] = 0;
+										VeInfo[ve+Nve*1] = 0;
+										VeInfo[ve+Nve*2] = UINT_MAX;
+										break;
+									} else {
+										VeInfo[ve+Nve*2] = VOLUME->VeInfo[j+Nve*2];
+									}
+								}
+							}
+							if (VeInfo[ve])
+								cVeCount++;
 						}
+
+						if (d == DMAX && cVeCount == 2)
+							VOLUMEc->curved = 2; // Curved EDGE
+						else
+							VOLUMEc->curved = 1; // Curved FACET
+
+						// Ensure that vertices are place on the curved boundaries
+						vertices_to_exact_geom_VOLUME(VOLUMEc);
+					} else {
+						for (ve = 0; ve < Nve; ve++) {
+							VeInfo[ve+Nve*0] = 0;
+							VeInfo[ve+Nve*1] = 0;
+							VeInfo[ve+Nve*2] = UINT_MAX;
+						}
+						VOLUMEc->curved = 0;
+					}
+
+					XYZ_vC = VOLUMEc->XYZ_vC;
+					if (!VOLUMEc->curved) {
+						VOLUMEc->NvnG  = NvnGs[IndEhref];
+						VOLUMEc->XYZ_S = malloc(NvnGs[IndEhref]*NCols * sizeof *XYZ_S); // keep
+						XYZ_S = VOLUMEc->XYZ_S;
+						for (unsigned int i = 0, iMax = NCols*NvnGs[IndEhref]; i < iMax; i++)
+							XYZ_S[i] = XYZ_vC[i];
+						setup_straight(VOLUMEc);
 					} else {
 						VOLUMEc->NvnG = NvnGc[IndEhref];
 
@@ -334,8 +369,9 @@ void update_VOLUME_hp(void)
 
 						if (strstr(MeshType,"ToBeCurved"))
 							setup_ToBeCurved(VOLUMEc);
-						else if (strstr(MeshType,"Curved"))
-							printf("Add in support for MeshType == Curved.\n"), EXIT_MSG;
+						else if (strstr(MeshType,"Curved")) {
+							setup_Curved(VOLUMEc);
+						}
 					}
 					setup_geom_factors(VOLUMEc);
 

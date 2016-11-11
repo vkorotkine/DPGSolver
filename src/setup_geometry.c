@@ -45,6 +45,7 @@
  *		VeInfo : (Info)rmation relating to (Ve)rtices by column (#):
  *		         (0): curved
  *		         (1): update
+ *		         (2): curved surface index
  *
  *	References:
 */
@@ -57,7 +58,7 @@ struct S_OPERATORS {
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
                      const unsigned int IndClass);
 
-static void setup_straight(struct S_VOLUME *VOLUME)
+void setup_straight(struct S_VOLUME *VOLUME)
 {
 	// Initialize DB Parameters
 	unsigned int d = DB.d;
@@ -66,7 +67,7 @@ static void setup_straight(struct S_VOLUME *VOLUME)
 	unsigned int NvnG;
 	double       *XYZ, *XYZ_S;
 
-	NvnG = VOLUME->NvnG;
+	NvnG  = VOLUME->NvnG;
 	XYZ_S = VOLUME->XYZ_S;
 
 	XYZ = malloc(NvnG*d * sizeof *XYZ); // keep
@@ -144,7 +145,7 @@ static void mark_curved_vertices()
 
 	Vs = 0; for (dim = 0; dim < d; dim++) Vs += NE[dim];
 
-	VeInfo = calloc(NVe*3 , sizeof *VeInfo); // keep
+	VeInfo = calloc(NVe*NVEINFO , sizeof *VeInfo); // keep
 	DB.VeInfo = VeInfo;
 
 	for (ve = 0; ve < NVe; ve++)
@@ -166,6 +167,37 @@ static void mark_curved_vertices()
 			Indve = EToVe[(Vs+(VOLUME->indexg))*NVEMAX+VeFcon[f*NFVEMAX+ve]];
 			VeInfo[0*NVe+Indve] = 1;
 			VeInfo[1*NVe+Indve] = 1;
+		}
+	}
+}
+
+static void initialize_VOLUME_VeInfo(void)
+{
+	// Initialize DB Parameters
+	unsigned int d       = DB.d,
+	             NVe     = DB.NVe,
+	             *NE     = DB.NE,
+	             *VeInfo = DB.VeInfo,
+	             *EToVe  = DB.EToVe;
+
+	// Standard datatypes
+	unsigned int i, dim, ve, Indve, Vs, Nve, *VOL_VeInfo;
+
+	struct S_ELEMENT *ELEMENT;
+	struct S_VOLUME  *VOLUME;
+
+	Vs = 0; for (dim = 0; dim < d; dim++) Vs += NE[dim];
+
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		VOL_VeInfo = VOLUME->VeInfo;
+
+		ELEMENT = get_ELEMENT_type(VOLUME->type);
+		Nve = ELEMENT->Nve;
+		for (ve = 0; ve < Nve; ve++) {
+			Indve = EToVe[(Vs+(VOLUME->indexg))*NVEMAX+ve];
+
+			for (i = 0; i < NVEINFO; i++)
+				VOL_VeInfo[ve+Nve*i] = VeInfo[Indve+NVe*i];
 		}
 	}
 }
@@ -216,7 +248,7 @@ static void mark_curved_VOLUME(struct S_VOLUME *VOLUME)
 		}
 
 		if (NveCurved > NfCurved) {
-			if (d != 3)
+			if (d != DMAX)
 				printf("Error: Should not be entering.\n"), EXIT_MSG;
 
 			VOLUME->curved = 2;
@@ -265,6 +297,7 @@ void setup_geometry(void)
 		if(!DB.MPIrank && !DB.Testing)
 			printf("    Modify vertex nodes if exact geometry is known\n");
 		vertices_to_exact_geom();
+		initialize_VOLUME_VeInfo();
 	}
 
 	// Set up XYZ_S

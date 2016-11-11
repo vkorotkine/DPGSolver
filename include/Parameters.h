@@ -30,6 +30,7 @@
  *		NVISUBFMAX      : (MAX)imum (N)umber of h-adaptive (V)OLUME (I)nternal (SUB)-(F)acets (within the VOLUME).
  *		NSIBMAX         : (MAX)imum (N)umber of (SIB)lings on the same level after h-refinement.
  *		NEHREFMAX       : (MAX)imum (N)umber of (E)LEMENT types present in (H)-(REF)ined ELEMENT
+ *		NVEINFO         : (N)umber of pieces of (INFO)rmation associated with each (VE)rtex.
  *
  *	References:
  *
@@ -85,6 +86,7 @@
 #define NSUBFMAX        4  // QUAD/TRI (Isotropic refinement)
 #define NVISUBFMAX      16 // TET (Isotropic refinement to 12 TETs)
 #define NSIBMAX         12 // TET (12 TET)
+#define NVEINFO         3
 
 // Cubature related numbers
 #define PIvcMaxTET 10

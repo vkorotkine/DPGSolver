@@ -222,7 +222,7 @@
  *		I_vGs_vS     (*) | [1][P][0]       [1][rPb][0]         [1][P][*]       [1][rP][*]
  *		I_vGs_vIs    (*) |
  *		I_vGs_vIc    (*) |
- *		I_vGc_vP         | [1][P][0]       [1][P(P)][0]        [1][P][0]       [1][P(P)][0]
+ *		I_vGc_vP         | [P][P][0]       [P][P(P)][0]        [P][P][0]       [P][P(P)][0]
  *		I_vGc_vCc        |
  *		I_vGc_vS     (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rP][*]
  *		I_vGc_vIs    (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rP][*]
@@ -256,6 +256,7 @@
  *		I_vCs_fIc        |
  *		I_vCc_fIs        |
  *		I_vCc_fIc        |
+ *		I_fGc_vGc        | [P][P][0]       [P][P(P)][0]        [P][P][0]       [P][P(P)][0]
  *		                 |
  *		Is_Weak_VV   (*) | [P][P][0]       [rP][rPb][0]        [P][P][*]       [rP][rP][*]
  *		Ic_Weak_VV   (*) |
@@ -1010,13 +1011,13 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             *****D_vCs_vCs,
 	             *****D_vCc_vCc,
 	             ****ChiS_fS, ****ChiS_fIs, ****ChiS_fIc,
-				 *****GradChiS_fIs, *****GradChiS_fIc,
+	             *****GradChiS_fIs, *****GradChiS_fIc,
 	             ****I_vGs_fS, ****I_vGs_fIs, ****I_vGs_fIc,
 	             ****I_vGc_fGc, ****I_vGc_fS, ****I_vGc_fIs, ****I_vGc_fIc,
 	             ****I_vCs_fS, ****I_vCs_fIs, ****I_vCs_fIc,
 	             ****I_vCc_fS, ****I_vCc_fIs, ****I_vCc_fIc,
-				 *****D_vGs_fIs, *****D_vGs_fIc,
-				 *****D_vGc_fIs, *****D_vGc_fIc,
+	             *****D_vGs_fIs, *****D_vGs_fIc,
+	             *****D_vGc_fIs, *****D_vGc_fIc,
 	             ****Is_Weak_VV, ****Ic_Weak_VV,
 	             ****Is_Weak_FF, ****Ic_Weak_FF,
 	             *****Ds_Weak_VV, *****Dc_Weak_VV;
@@ -1079,14 +1080,14 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             **GradChiRefGc_vCc, **GradChiRefGc_vIc,
 	             **GradChiRefCs_vCs, **GradChiRefCc_vCc,
 	             **GradChiRefS_vIs,  **GradChiRefS_vIc,
-				 **GradChiRefGs_fIs, **GradChiRefGs_fIc,
-				 **GradChiRefGc_fIs, **GradChiRefGc_fIc,
-				 **GradChiRefS_fIs,  **GradChiRefS_fIc,
+	             **GradChiRefGs_fIs, **GradChiRefGs_fIc,
+	             **GradChiRefGc_fIs, **GradChiRefGc_fIc,
+	             **GradChiRefS_fIs,  **GradChiRefS_fIc,
 	             **GradChiGs_vCs, **GradChiGs_vIs,
 	             **GradChiGc_vCc, **GradChiGc_vIc,
 	             **GradChiCs_vCs, **GradChiCc_vCc,
-				 **GradChiGs_fIs, **GradChiGs_fIc,
-				 **GradChiGc_fIs, **GradChiGc_fIc,
+	             **GradChiGs_fIs, **GradChiGs_fIc,
+	             **GradChiGc_fIs, **GradChiGc_fIc,
 	             *dummyPtr_d;
 
 	struct BCoords {
@@ -1941,6 +1942,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(ChiRefInvGs_vGs);
 
 	for (IndFType = 0; IndFType < NFTypes; IndFType++) {
+		array_free2_d(PMax+1,BCoords_F[IndFType]->Gc);
 		array_free2_d(PMax+1,BCoords_F[IndFType]->S);
 		array_free2_d(PMax+1,BCoords_F[IndFType]->Is);
 		array_free2_d(PMax+1,BCoords_F[IndFType]->Ic);
@@ -3523,10 +3525,33 @@ static void setup_Fmask(const unsigned int EType)
 
 static void setup_blending(const unsigned int EType)
 {
-	unsigned int Nve, *Nfve, *VeFcon, *NvnGc;
-	double       *BCoords_V, *BCoords_F;
+	setup_Fmask(EType);
+
+	// Returned operators
+	double ****I_fGs_vGc, ****I_fGc_vGc;
+
+	// Initialize DB Parameters
+	unsigned int d    = DB.d,
+	             PGs  = DB.PGs,
+	             *PGc = DB.PGc;
+
+	char         **NodeTypeG = DB.NodeTypeG;
+
+	// Standard datatypes
+	unsigned int f, n, ve, P, Vf, PSMin, PSMax, Nf, Nve, *Nfve, *VeFcon, *NvnGc, *Nv0nGs, *Nv0nGc, EclassF, dE, Nbf,
+	             dummy_ui, *dummyPtr_ui;
+	double       *BCoords_V, *BCoords_F, sum, *rst_v0Gs, *rst_proj, *rst_v0Gc,
+	             *ChiRefGs_vGs, *ChiRefGc_vGc, *ChiRefGs_vProj, *ChiRefGc_vProj,
+	             *ChiRefInvGs_vGs, *IGs, *ChiRefInvGc_vGc, *IGc,
+	             *dummyPtr_d;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_F;
+
+	// Function pointers
+	cubature_tdef cubature;
+	basis_tdef    basis;
+
+	dE = d-1;
 
 	ELEMENT = get_ELEMENT_type(EType);
 
@@ -3536,18 +3561,80 @@ static void setup_blending(const unsigned int EType)
 	VeFcon = ELEMENT->VeFcon;
 	NvnGc  = ELEMENT->NvnGc;
 
+	I_fGs_vGc = ELEMENT->I_fGs_vGc;
+	I_fGc_vGc = ELEMENT->I_fGc_vGc;
+
 	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
-		BCoords_V = ELEMENT->I_vGs_vGc[P][P][0];
+		BCoords_V = ELEMENT->I_vGs_vGc[1][P][0];
 
 		for (f = 0; f < Nf; f++) {
+			Vf = f*NFREFMAX;
+
 			BCoords_F = malloc(NvnGc[P]*Nfve[f] * sizeof *BCoords_F); // free
 
 			for (n = 0; n < NvnGc[P]; n++) {
+				sum = 0.0;
 				for (ve = 0; ve < Nfve[f]; ve++) {
 					BCoords_F[n*Nfve[f]+ve] = BCoords_V[n*Nve+VeFcon[f*NFVEMAX+ve]];
+					sum += BCoords_F[n*Nfve[f]+ve];
+				}
+
+				// Scale BCoords_F (Note: special case for all BCoords = 0.0)
+				if (fabs(sum) < EPS) {
+					for (ve = 0; ve < Nfve[f]; ve++)
+						BCoords_F[n*Nfve[f]+ve] = 1.0/Nfve[f];
+				} else if (fabs(sum-1.0) > EPS) {
+					for (ve = 0; ve < Nfve[f]; ve++)
+						BCoords_F[n*Nfve[f]+ve] /= sum;
 				}
 			}
+
+			// Compute projection of VOLUME nodes to FACET
+			ELEMENT_F = get_ELEMENT_F_type(EType,f);
+
+			EclassF = get_Eclass(ELEMENT_F->type);
+
+			rst_v0Gs = get_rst_vC(ELEMENT_F); // free
+			rst_proj = malloc(NvnGc[P]*dE * sizeof *rst_proj); // free
+
+			mm_CTN_d(NvnGc[P],dE,Nfve[f],BCoords_F,rst_v0Gs,rst_proj);
+
+			// Compute blending operators
+			Nv0nGs = ELEMENT_F->NvnGs;
+			Nv0nGc = ELEMENT_F->NvnGc;
+
+			select_functions_cubature(&cubature,ELEMENT_F->type);
+			select_functions_basis(&basis,ELEMENT_F->type);
+
+			cubature(&rst_v0Gc,&dummyPtr_d,&dummyPtr_ui,&Nv0nGc[P],&dummy_ui,0,PGc[P],dE,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
+
+			ChiRefGs_vGs    = basis(PGs,   rst_v0Gs,Nv0nGs[1],&Nbf,dE);        // free
+			ChiRefGc_vGc    = basis(PGc[P],rst_v0Gc,Nv0nGc[P],&Nbf,dE);        // free
+			ChiRefGs_vProj  = basis(PGs,   rst_proj,NvnGc[P],&Nbf,dE);         // free
+			ChiRefGc_vProj  = basis(PGc[P],rst_proj,NvnGc[P],&Nbf,dE);         // free
+
+			IGs             = identity_d(Nv0nGs[1]);                           // free
+			IGc             = identity_d(Nv0nGc[P]);                           // free
+			ChiRefInvGs_vGs = inverse_d(Nv0nGs[1],Nv0nGs[1],ChiRefGs_vGs,IGs); // free
+			ChiRefInvGc_vGc = inverse_d(Nv0nGc[P],Nv0nGc[P],ChiRefGc_vGc,IGc); // free
+
+			I_fGs_vGc[1][P][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],Nv0nGs[1],Nv0nGs[1],1.0,ChiRefGs_vProj,ChiRefInvGs_vGs); // keep
+			I_fGc_vGc[P][P][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],Nv0nGc[P],Nv0nGc[P],1.0,ChiRefGc_vProj,ChiRefInvGc_vGc); // keep
+
+
+			free(ChiRefGc_vGc);
+			free(ChiRefGs_vProj);
+			free(ChiRefGc_vProj);
+
+			free(IGs);
+			free(IGc);
+			free(ChiRefInvGs_vGs);
+			free(ChiRefInvGc_vGc);
+
+			free(rst_v0Gs);
+			free(rst_v0Gc);
+			free(rst_proj);
 
 			free(BCoords_F);
 		}
@@ -3597,7 +3684,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
-		setup_Fmask(EType);
+		setup_blending(EType);
 		if (d == 3)
 			setup_ELEMENT_FACET_ordering(EType);
 	}
@@ -3611,7 +3698,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
-		setup_Fmask(EType);
+		setup_blending(EType);
 	}
 
 	// TRI
@@ -3624,7 +3711,7 @@ void setup_operators(void)
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
 		setup_L2_projection_operators(EType);
-		setup_Fmask(EType);
+		setup_blending(EType);
 		if (d == 3)
 			setup_ELEMENT_FACET_ordering(EType);
 	}
@@ -3653,7 +3740,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
-		setup_Fmask(EType);
+		setup_blending(EType);
 	}
 
 	// PYR
@@ -3666,7 +3753,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
-		setup_Fmask(EType);
+		setup_blending(EType);
 	}
 
 	// WEDGE
@@ -3678,7 +3765,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
-		setup_Fmask(EType);
+		setup_blending(EType);
 	}
 
 	// Free unused operators (including unused lower dimensional operators (if applicable) and sum factorized operators) (ToBeDeleted)

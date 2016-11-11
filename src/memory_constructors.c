@@ -4,6 +4,7 @@
 #include "memory_constructors.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <limits.h>
 
 #include "Parameters.h"
@@ -165,6 +166,9 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->D_vGc_fIs = calloc(NP , sizeof *(ELEMENT->D_vGc_fIs)); // free
 	ELEMENT->D_vGc_fIc = calloc(NP , sizeof *(ELEMENT->D_vGc_fIc)); // free
 
+	ELEMENT->I_fGs_vGc = calloc(NP , sizeof *(ELEMENT->I_fGs_vGc)); // free
+	ELEMENT->I_fGc_vGc = calloc(NP , sizeof *(ELEMENT->I_fGc_vGc)); // free
+
 	ELEMENT->Is_Weak_VV    = calloc(NP , sizeof *(ELEMENT->Is_Weak_VV));    // free
 	ELEMENT->Ic_Weak_VV    = calloc(NP , sizeof *(ELEMENT->Ic_Weak_VV));    // free
 	ELEMENT->Ds_Weak_VV    = calloc(NP , sizeof *(ELEMENT->Ds_Weak_VV));    // free
@@ -202,6 +206,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 	ELEMENT->D_vGs_fIs[1] = calloc(NP , sizeof **(ELEMENT->D_vGs_fIs));
 	ELEMENT->D_vGs_fIc[1] = calloc(NP , sizeof **(ELEMENT->D_vGs_fIc));
+
+	ELEMENT->I_fGs_vGc[1] = calloc(NP , sizeof **(ELEMENT->I_fGs_vGc));
 
 	for (P = 0; P < NP; P++) {
 		ELEMENT->NfnGc[P] = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnGc));
@@ -266,6 +272,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 		ELEMENT->D_vGc_fIs[P] = calloc(NP , sizeof **(ELEMENT->D_vGc_fIs));
 		ELEMENT->D_vGc_fIc[P] = calloc(NP , sizeof **(ELEMENT->D_vGc_fIc));
+
+		ELEMENT->I_fGc_vGc[P] = calloc(NP , sizeof **(ELEMENT->I_fGc_vGc));
 
 		ELEMENT->Is_Weak_VV[P]    = calloc(NP , sizeof **(ELEMENT->Is_Weak_VV));
 		ELEMENT->Ic_Weak_VV[P]    = calloc(NP , sizeof **(ELEMENT->Ic_Weak_VV));
@@ -362,6 +370,9 @@ struct S_ELEMENT *New_ELEMENT(void)
 					ELEMENT->D_vGs_fIs[1][Pb][Vf] = calloc(d , sizeof ****(ELEMENT->D_vGs_fIs));
 					ELEMENT->D_vGs_fIc[1][Pb][Vf] = calloc(d , sizeof ****(ELEMENT->D_vGs_fIc));
 				}
+
+				ELEMENT->I_fGs_vGc[1][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->I_fGs_vGc));
+				ELEMENT->I_fGc_vGc[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->I_fGc_vGc));
 			}
 
 			ELEMENT->ChiS_fS[P][Pb]     = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->ChiS_fS));
@@ -451,7 +462,8 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->XYZ_vC = NULL; // free
 
 	// Geometry
-	VOLUME->VeInd = calloc(NVEMAX , sizeof *(VOLUME->VeInd)); // free
+	VOLUME->VeInd  = calloc(NVEMAX         , sizeof *(VOLUME->VeInd));  // free
+	VOLUME->VeInfo = calloc(NVEMAX*NVEINFO , sizeof *(VOLUME->VeInfo)); // free
 	VOLUME->NvnG  = UINT_MAX;
 	VOLUME->XYZ_S = NULL; // free
 	VOLUME->XYZ   = NULL; // free

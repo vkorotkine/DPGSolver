@@ -105,6 +105,7 @@
  *		AC              : Specifies whether (a)ll elements are (c)urved or not.
  *		ExactGeom       : Move boundary nodes to exact geometry if enabled.
  *		Parametrization : Type of parametrization used in curved elements.
+ *		                  Options: ArcLength, RadialProjection (Under consideration), EqualTangent (Under consideration)
  *
  *		NodeType()[] : Node type used for each type of node () and each type of element [].
  *		               () : (S)olution, (F)lux, (F)lux in (r)eference space, (I)ntegration
@@ -211,7 +212,6 @@ void setup_parameters()
 
 	// ToBeModified (likely included in .ctrl file)
 	Parametrization = ARC_LENGTH;
-//	Parametrization = RADIAL_PROJECTION;
 
 	for (i = 0; i < NEC; i++)
 		NodeTypeG[i] = malloc(STRLEN_MIN * sizeof **NodeTypeG); // keep

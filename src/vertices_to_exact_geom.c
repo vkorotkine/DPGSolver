@@ -11,7 +11,10 @@
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
+#include "S_ELEMENT.h"
+#include "S_VOLUME.h"
 
+#include "element_functions.h"
 #include "array_norm.h"
 
 #include "array_print.h"
@@ -120,9 +123,7 @@ void vertices_to_exact_geom(void)
 				r = rOut;
 				VeSurface[ve] = 1;
 			} else {
-				printf("Error: Should not enter here.\n"), EXIT_MSG;
-				// This test will likely fail when new vertices are added due to h-refinement. Reducing the tolerance
-				// should be ok here as curved vertices are already marked. (ToBeDeleted)
+				printf("Error: Unsupported.\n"), EXIT_MSG;
 			}
 
 			t = atan2(VeXYZ[ve*d+1],VeXYZ[ve*d]);
@@ -140,6 +141,70 @@ void vertices_to_exact_geom(void)
 		}
 	} else if (strstr(TestCase,"Test")) {
 		// No vertex movement required.
+	}
+}
+
+void vertices_to_exact_geom_VOLUME(struct S_VOLUME *VOLUME)
+{
+	// Initialize DB Parameters
+	char         *TestCase = DB.TestCase;
+	unsigned int d         = DB.d;
+
+	// Standard datatypes
+	unsigned int ve, Nve, *VeUpdate, *VeSurface;
+	double       *XYZ, *X, *Y, *Z;
+
+	struct S_ELEMENT *ELEMENT;
+
+	// silence
+	Z = NULL;
+
+	ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+	Nve = ELEMENT->Nve;
+
+	VeUpdate  = &VOLUME->VeInfo[Nve*1];
+	VeSurface = &VOLUME->VeInfo[Nve*2];
+
+	XYZ = VOLUME->XYZ_vC;
+
+	X = &XYZ[0*Nve];
+	Y = &XYZ[1*Nve];
+	if (d == 3)
+		Z = &XYZ[2*Nve];
+
+	if (strstr(TestCase,"Poisson")) {
+		double rIn, rOut, r, t, p;
+
+		rIn  = 0.5;
+		rOut = 1.0;
+
+		for (ve = 0; ve < Nve; ve++) {
+			if (!VeUpdate[ve])
+				continue;
+
+			if (VeSurface[ve] == 0)
+				r = rIn;
+			else if (VeSurface[ve] == 1)
+				r = rOut;
+			else
+				printf("Error: Unsupported.\n"), EXIT_MSG;
+
+			t = atan2(Y[ve],X[ve]);
+
+			if (d == 2) {
+				X[ve] = r*cos(t);
+				Y[ve] = r*sin(t);
+			} else if (d == 3) {
+				p = acos(Z[ve]/r);
+
+				X[ve] = r*cos(t)*sin(p);
+				Y[ve] = r*sin(t)*sin(p);
+				Z[ve] = r*cos(p);
+			}
+		}
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
 }
 

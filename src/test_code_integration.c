@@ -650,6 +650,7 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	array_free2_i(3,piv);
 
 	free(IndsE);
+	free(IndsF);
 	free(lenE);
 	free(XYZc);
 	free(XYZcT);

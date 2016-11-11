@@ -70,6 +70,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free2_d(NP,ELEMENT->w_vIs);
 	array_free2_d(NP,ELEMENT->w_vIc);
 
+	array_free2_ui(NP,ELEMENT->NfnGc);
 	array_free2_ui(NP,ELEMENT->NfnS);
 	array_free2_ui(NP,ELEMENT->NfnIs);
 	array_free2_ui(NP,ELEMENT->NfnIc);
@@ -143,6 +144,9 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free5_d(NP,NP,NFREFMAX*NFMAX,d,ELEMENT->D_vGc_fIs);
 	array_free5_d(NP,NP,NFREFMAX*NFMAX,d,ELEMENT->D_vGc_fIc);
 
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_fGs_vGc);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_fGc_vGc);
+
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->Is_Weak_VV);
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->Ic_Weak_VV);
 
@@ -209,6 +213,7 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 
 	// Geometry
 	free(VOLUME->VeInd);
+	free(VOLUME->VeInfo);
 	free(VOLUME->XYZ_S);
 	free(VOLUME->XYZ);
 

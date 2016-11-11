@@ -183,11 +183,12 @@ static void compute_qhat_VOLUME(void)
 		C_vI = VOLUME->C_vI;
 		w_vI = OPS->w_vI;
 
-		diag_w_vI = diag_d(w_vI,NvnI);
+		diag_w_vI = diag_d(w_vI,NvnI); // free
 
 		D = malloc(d * sizeof *D); // free
 		for (dim1 = 0; dim1 < d; dim1++)
 			D[dim1] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS,NvnI,NvnI,1.0,GradChiS_vI[dim1],diag_w_vI);
+		free(diag_w_vI);
 
 		DxyzChiS = VOLUME->DxyzChiS;
 		for (dim1 = 0; dim1 < d; dim1++) {

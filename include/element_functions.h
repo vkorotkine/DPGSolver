@@ -10,6 +10,7 @@ extern unsigned int     get_IndFType        (const unsigned int Eclass, const un
 extern unsigned int     is_ELEMENT_present  (const unsigned int type);
 extern unsigned int     get_Eclass          (const unsigned int type);
 extern struct S_ELEMENT *get_ELEMENT_type   (const unsigned int type);
+extern struct S_ELEMENT *get_ELEMENT_F_type (const unsigned int type, const unsigned int f);
 extern struct S_ELEMENT *get_ELEMENT_Eclass (const unsigned int type, const unsigned int IndEclass);
 extern struct S_ELEMENT *get_ELEMENT_FACET  (const unsigned int type, const unsigned int IndEclass);
 

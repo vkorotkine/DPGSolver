@@ -165,7 +165,7 @@ void test_integration_Poisson(int nargc, char **argv)
 	strcpy(TestName,"Linearization Poisson (2D - Mixed):              ");
 	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
 
-TestDB.PGlobal = 2;
+TestDB.PGlobal = 4;
 	test_linearization(nargc,argvNew,0,1,TestName,data);
 
 	// **************************************************************************************************** //
@@ -204,8 +204,8 @@ TestDB.PGlobal = 2;
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin = 2;  PMax = 2;
-	MLMin = 0; MLMax = 0;
+	PMin = 3;  PMax = 3;
+	MLMin = 0; MLMax = 4;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
