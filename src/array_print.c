@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <complex.h>
 
+#include "Parameters.h"
+
 /*
  *	Purpose:
  *		Print arrays for debugging purposes.
@@ -147,16 +149,24 @@ void array_print_d(const unsigned int m, const unsigned int n, const double *A, 
 	switch (layout) {
 	case 'R':
 		for (i = 0; i < m; i++) {
-			for (j = 0; j < n; j++)
-				printf("% .4e ",A[i*n+j]);
+			for (j = 0; j < n; j++) {
+				if (A[i*n+j] > EPS)
+					printf("% .4e ",A[i*n+j]);
+				else
+					printf(" %d          ",0);
+			}
 			printf("\n");
 		}
 		printf("\n");
 		break;
 	case 'C':
 		for (i = 0; i < m; i++) {
-			for (j = 0; j < n; j++)
-				printf("% .4e ",A[i+j*m]);
+			for (j = 0; j < n; j++) {
+				if (A[i+j*m] > EPS)
+					printf("% .4e ",A[i+j*m]);
+				else
+					printf(" %d          ",0);
+			}
 			printf("\n");
 		}
 		printf("\n");

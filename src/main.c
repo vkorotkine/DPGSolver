@@ -333,7 +333,7 @@ int main(int nargc, char **argv)
 
 	unsigned int Nfail = TestDB.Ntest - TestDB.Npass;
 	if (Nfail > 0) {
-		printf("\n\n******** FAILED %d TEST(S) ********\n\n",Nfail);
+		printf("\n******** FAILED %d TEST(S) ********\n\n",Nfail);
 	} else {
 		printf("\nAll tests passed.\n\n");
 

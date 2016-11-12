@@ -162,8 +162,8 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 	// Standard datatypes
 	unsigned int dim, f, n, ve, Vf, PV, PF, NvnG, Vcurved, Nf, Nve,
 	             *VeFcon, *Nfve, FuncType, *Fmask, NfnG, *VeInfo, *VeCurved, Fcurved;
-	double       *XYZ, *XYZ_S, **VeFXYZ, *BCoords_vGc, *BCoords_fGc, *PComps_V, *PComps_F, **XYZF_CmS,
-	             BlendProd, BlendSum, *BlendV, *I_fGc_vGc, *XYZ_update, *XYZ_vC;
+	double       *XYZ, *XYZ_S, **VeFXYZ, *BCoords_vGc, *BCoords_fGc, *BCoords_fGs, *PComps_V, *PComps_F, **XYZF_CmS,
+	             *BlendV, *I_fGc_vGc, *XYZ_update, *XYZ_vC, BlendNum, BlendDen;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_F;
 	struct S_pc      *data_pc;
@@ -233,7 +233,6 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 		Nfve        = ELEMENT->Nfve;
 		Nve         = ELEMENT->Nve;
 		BCoords_vGc = ELEMENT->I_vGs_vGc[1][PV][0];
-		I_fGc_vGc   = ELEMENT->I_fGc_vGc[PV][PV][f*NFREFMAX];
 
 		for (f = 0; f < Nf; f++) {
 			Fcurved = 1;
@@ -254,8 +253,9 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 			ELEMENT_F = get_ELEMENT_F_type(VOLUME->type,f);
 			NfnG = ELEMENT_F->NvnGc[PF];
 
-			Fmask     = ELEMENT->Fmask[PV][PV][Vf];
-			I_fGc_vGc = ELEMENT->I_fGc_vGc[PV][PV][Vf];
+			Fmask       = ELEMENT->Fmask[PV][PV][Vf];
+			I_fGc_vGc   = ELEMENT->I_fGc_vGc[PV][PV][Vf];
+			BCoords_fGs = ELEMENT->I_fGs_vGc[1][PV][Vf];
 
 // Put this into a separate function later. Figure out what needs to be returned first. ToBeDeleted
 			if (Parametrization == ARC_LENGTH) {
@@ -316,43 +316,71 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 				BlendV = malloc(NvnG * sizeof *BlendV); // free
 
 				for (n = 0; n < NvnG; n++) {
-					BlendProd = 1.0;
-					BlendSum  = 0.0;
+					BlendNum = 1.0;
+					BlendDen = 1.0;
 					for (ve = 0; ve < Nfve[f]; ve++) {
-						BlendProd *= BCoords_vGc[n*Nve+VeFcon[f*NFVEMAX+ve]];
-						BlendSum  += BCoords_vGc[n*Nve+VeFcon[f*NFVEMAX+ve]];
+						BlendNum *= BCoords_vGc[n*Nve+VeFcon[f*NFVEMAX+ve]];
+						BlendDen *= BCoords_fGs[n*Nfve[f]+ve];
 					}
-					if (BlendProd < EPS)
+					if (BlendNum < EPS)
 						BlendV[n] = 0.0;
 					else
-						BlendV[n] = BlendSum;
+						BlendV[n] = BlendNum/BlendDen;
 				}
-array_print_d(NvnG,Nve,BCoords_vGc,'R');
+//array_print_d(NvnG,1,BlendV,'R');
+//EXIT_MSG;
 
-array_print_d(NvnG,1,BlendV,'R');
+//array_print_d(NvnG,Nve,BCoords_vGc,'R');
+/*
+unsigned int NBI = 15;
+double BlendSum, BlendProd;
+double *BlendInfo = calloc(NBI*NvnG , sizeof *BlendInfo);
 for (n = 0; n < NvnG; n++) {
-	double B1_2, B2_2;
+	double L1, L2, *BlendInfoPtr = &BlendInfo[n*NBI];
+	double *I_fGs_vGc = &ELEMENT->I_fGs_vGc[1][PF][Vf][n*2];
 	BlendProd = 1.0;
 	BlendSum  = 0.0;
 	for (ve = 0; ve < Nfve[f]; ve++) {
 		BlendProd *= BCoords_vGc[n*Nve+VeFcon[f*NFVEMAX+ve]];
 		BlendSum  += BCoords_vGc[n*Nve+VeFcon[f*NFVEMAX+ve]];
 	}
-	B1_2 = pow(BCoords_vGc[n*Nve+VeFcon[f*NFVEMAX+0]],2.0);
-	B2_2 = pow(BCoords_vGc[n*Nve+VeFcon[f*NFVEMAX+1]],2.0);
+	L1 = BCoords_vGc[n*Nve+VeFcon[f*NFVEMAX+0]];
+	L2 = BCoords_vGc[n*Nve+VeFcon[f*NFVEMAX+1]];
 
+	BlendInfoPtr[13] = BlendV[n];
 	if (BlendProd < EPS)
 		BlendV[n] = 0.0;
 	else {
-		BlendV[n] = 4.0*BlendProd/(1.0+2.0*BlendProd-(B1_2+B2_2));
-printf("Num/Den: %d % .3e % .3e\n",n,BlendProd,(1.0+2.0*BlendProd-(B1_2+B2_2))/4.0);
-}
-}
-array_print_d(NvnG,1,BlendV,'R');
-array_print_d(NvnG,NfnG,I_fGc_vGc,'R');
-array_print_d(NvnG,2,ELEMENT->I_fGs_vGc[1][PF][Vf],'R');
-EXIT_MSG;
+		BlendV[n] = BlendProd/((1.0+2.0*L1*L2-(L1*L1+L2*L2))/4.0);
 
+	BlendInfoPtr[0] = L1;
+	BlendInfoPtr[1] = L2;
+	BlendInfoPtr[2] = BlendSum;
+	BlendInfoPtr[3] = BlendProd;
+	BlendInfoPtr[5] = L1*L2/pow((L1+L2),2.0);
+	BlendInfoPtr[6] = (1.0+2.0*L1*L2-(L1*L1+L2*L2))/4.0;
+	BlendInfoPtr[8] = BlendProd/BlendInfoPtr[5];
+	BlendInfoPtr[9] = BlendProd/BlendInfoPtr[6];
+	BlendInfoPtr[11] = I_fGs_vGc[0]*I_fGs_vGc[1];
+	BlendInfoPtr[11] = L1/(1-L2);
+	BlendInfoPtr[14] = BlendV[n];
+
+	BlendV[n] = sqrt(L1/(1-L2)*L2/(1-L1));
+	BlendV[n] = (L1/(1-L2)+L2/(1-L1))*0.5;
+	double a, b;
+	a = L1/(1-L2);
+	b = L2/(1-L1);
+	BlendV[n] = 2.0*a*b/(a+b);
+	BlendV[n] = 2*L1*L2/(L1+L2-(L1*L1+L2*L2));
+	BlendV[n] = 4*L1*L2/(1+2*L1*L2-(L1*L1+L2*L2));
+	BlendV[n] = BlendSum;
+	BlendInfoPtr[11] = BlendV[n];
+	}
+}
+//array_print_d(NvnG,Nve,BCoords_vGc,'R');
+array_print_d(NvnG,NBI,BlendInfo,'R');
+EXIT_MSG;
+*/
 				// Blend FACET perturbation to VOLUME geometry nodes
 				XYZ_update = mm_Alloc_d(CBCM,CBT,CBNT,NvnG,d,NfnG,1.0,I_fGc_vGc,XYZF_CmS[f]); // free
 				for (n = 0; n < NvnG; n++) {
