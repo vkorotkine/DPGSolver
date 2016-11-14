@@ -2453,12 +2453,12 @@ static void setup_TP_operators(const unsigned int EType)
 						                  NIn,NOut,OP,dE,dim,Eclass);
 						D_vCc_vCc[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
-						get_sf_parameters(ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->ChiS_vIs[P][Pb][0],
-						                  ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->GradChiS_vIs[P][Pb][0][0],
+						get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->ChiS_vIs[P][Pb][0],
+						                  ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->GradChiS_vIs[P][Pb][0][0],
 						                  NIn,NOut,OP,dE,dim,Eclass);
 						GradChiS_vIs[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-						get_sf_parameters(ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->ChiS_vIc[P][Pb][0],
-						                  ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->GradChiS_vIc[P][Pb][0][0],
+						get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->ChiS_vIc[P][Pb][0],
+						                  ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],ELEMENTclass[0]->GradChiS_vIc[P][Pb][0][0],
 						                  NIn,NOut,OP,dE,dim,Eclass);
 						GradChiS_vIc[P][Pb][0][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
@@ -3055,17 +3055,17 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 			free(rst_vIc[0]);
 
 			for (i = iMax = NEhref; i--; ) {
-				ELEMENT = get_ELEMENT_type(EType_h[i]);
+				ELEMENT_h = get_ELEMENT_type(EType_h[i]);
 
 				Eclass = get_Eclass(EType_h[i]);
 				select_functions(&basis,&grad_basis,&cubature,EType_h[i]);
 
-				Nve   = ELEMENT->Nve;
-				NvnIc = ELEMENT->NvnIc;
+				Nve   = ELEMENT_h->Nve;
+				NvnIc = ELEMENT_h->NvnIc;
 
 				cubature(&rst_vIc[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,0,PIvc[Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
 
-				E_rst_vC        = get_rst_vC(ELEMENT);                     // free
+				E_rst_vC        = get_rst_vC(ELEMENT_h);                   // free
 				IGs             = identity_d(Nve);                         // free
 				ChiRefGs_vGs    = basis(PGs,E_rst_vC,Nve,&Nbf,dE);         // free
 				ChiRefInvGs_vGs = inverse_d(Nve,Nve,ChiRefGs_vGs,IGs);     // free
@@ -3487,61 +3487,13 @@ static void setup_ELEMENT_FACET_ordering(const unsigned int FType)
 	}
 }
 
-static void setup_Fmask(const unsigned int EType)
-{
-	// Returned operators
-	unsigned int ****Fmask;
-
-	// Standard datatypes
-	unsigned int i, j, P, f, Vf, PSMin, PSMax, Nf, Eclass,
-	             IndFType,
-	             *NvnGc, **NfnGc;
-	double       ****I_vGc_fGc;
-
-	struct S_ELEMENT *ELEMENT;
-
-	ELEMENT = get_ELEMENT_type(EType);
-
-	Eclass = get_Eclass(EType);
-
-	Fmask     = ELEMENT->Fmask;
-
-	Nf        = ELEMENT->Nf;
-	NvnGc     = ELEMENT->NvnGc;
-	NfnGc     = ELEMENT->NfnGc;
-	I_vGc_fGc = ELEMENT->I_vGc_fGc;
-
-	get_PS_range(&PSMin,&PSMax);
-	for (P = PSMin; P <= PSMax; P++) {
-		for (f = 0; f < Nf; f++) {
-			IndFType = get_IndFType(Eclass,f);
-
-			Vf = f*NFREFMAX;
-			Fmask[P][P][Vf] = malloc(NfnGc[P][IndFType] * sizeof ****Fmask); // keep
-			for (i = 0; i < NfnGc[P][IndFType]; i++) {
-				for (j = 0; j < NvnGc[P]; j++) {
-					if (fabs(I_vGc_fGc[P][P][Vf][i*NvnGc[P]+j] - 1.0) <= EPS) {
-						Fmask[P][P][Vf][i] = j;
-						break;
-					}
-				}
-				if (j == NvnGc[P])
-					printf("Error: Did not find index for Fmask.\n"), EXIT_MSG;
-			}
-		}
-	}
-}
-
 static void setup_blending(const unsigned int EType)
 {
-	setup_Fmask(EType);
-
 	// Returned operators
 	double ****I_fGs_vGc, ****I_fGc_vGc;
 
 	// Initialize DB Parameters
-	unsigned int d    = DB.d,
-	             PGs  = DB.PGs,
+	unsigned int PGs  = DB.PGs,
 	             *PGc = DB.PGc;
 
 	char         **NodeTypeG = DB.NodeTypeG;
@@ -3559,8 +3511,6 @@ static void setup_blending(const unsigned int EType)
 	// Function pointers
 	cubature_tdef cubature;
 	basis_tdef    basis;
-
-	dE = d-1;
 
 	ELEMENT = get_ELEMENT_type(EType);
 
@@ -3592,6 +3542,7 @@ static void setup_blending(const unsigned int EType)
 			ELEMENT_F = get_ELEMENT_F_type(EType,f);
 
 			EclassF = get_Eclass(ELEMENT_F->type);
+			dE      = ELEMENT_F->d;
 
 			rst_v0Gs = get_rst_vC(ELEMENT_F); // free
 			rst_proj = malloc(NvnGc[P]*dE * sizeof *rst_proj); // free

@@ -94,7 +94,7 @@ static void test_linearization(int nargc, char **argvNew, const unsigned int Nre
 //	MatView(A,PETSC_VIEWER_STDOUT_SELF);
 //	MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
 
-	MatIsSymmetric(A,1e2*EPS,&Symmetric);
+	MatIsSymmetric(A,1e3*EPS,&Symmetric);
 //	MatIsSymmetric(A_cs,1e5*EPS,&Symmetric);
 
 	pass = 0;
@@ -158,14 +158,14 @@ void test_integration_Poisson(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// 2D (Mixed TRI/QUAD mesh)
-	TestDB.PGlobal = 3;
+	TestDB.PGlobal = 2;
 	TestDB.ML      = 0;
 
 	//              0         10        20        30        40        50
 	strcpy(TestName,"Linearization Poisson (2D - Mixed):              ");
 	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
 
-TestDB.PGlobal = 4;
+TestDB.PGlobal = 1;
 	test_linearization(nargc,argvNew,0,1,TestName,data);
 
 	// **************************************************************************************************** //
@@ -183,8 +183,8 @@ TestDB.PGlobal = 4;
 	// **************************************************************************************************** //
 	// Convergence Order Testing
 	// **************************************************************************************************** //
-	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
-//	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
+//	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
+	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
 //	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_TP");
 //	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_HW");
 
@@ -201,11 +201,11 @@ TestDB.PGlobal = 4;
  *		Investigate cube_to_sphere effects on mesh regularity; problems are only being observed in 3D.
  */
 	TestDB.PG_add = 0;
-	TestDB.IntOrder_mult = 2;
+	TestDB.IntOrder_mult = 3;
 
 	// Convergence orders
-	PMin = 1;  PMax = 5;
-	MLMin = 0; MLMax = 4;
+	PMin = 1;  PMax = 3;
+	MLMin = 0; MLMax = 3;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 

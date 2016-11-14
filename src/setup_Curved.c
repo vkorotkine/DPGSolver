@@ -161,9 +161,10 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 
 	// Standard datatypes
 	unsigned int dim, f, n, ve, Vf, PV, PF, NvnG, Vcurved, Nf, Nve,
-	             *VeFcon, *Nfve, FuncType, *Fmask, NfnG, *VeInfo, *VeCurved, Fcurved;
-	double       *XYZ, *XYZ_S, **VeFXYZ, *BCoords_vGc, *BCoords_fGc, *BCoords_fGs, *PComps_V, *PComps_F, **XYZF_CmS,
-	             *BlendV, *I_fGc_vGc, *XYZ_update, *XYZ_vC, BlendNum, BlendDen;
+	             *VeFcon, *Nfve, FuncType, NfnG, *VeInfo, *VeCurved, Fcurved;
+	double       *XYZ, *XYZ_S, **VeFXYZ, *BCoords_vGc, *BCoords_fGc, *BCoords_fGc_dP1, *BCoords_fGs,
+	             *PComps_V, *PComps_F, **XYZF_CmS, *BlendV, *I_fGc_vGc, *I_vGc_fGc, *XYZ_update, *XYZ_vC,
+	             BlendNum, BlendDen;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_F;
 	struct S_pc      *data_pc;
@@ -253,8 +254,8 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 			ELEMENT_F = get_ELEMENT_F_type(VOLUME->type,f);
 			NfnG = ELEMENT_F->NvnGc[PF];
 
-			Fmask       = ELEMENT->Fmask[PV][PV][Vf];
 			I_fGc_vGc   = ELEMENT->I_fGc_vGc[PV][PV][Vf];
+			I_vGc_fGc   = ELEMENT->I_vGc_fGc[PV][PV][Vf];
 			BCoords_fGs = ELEMENT->I_fGs_vGc[1][PV][Vf];
 
 // Put this into a separate function later. Figure out what needs to be returned first. ToBeDeleted
@@ -268,11 +269,14 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 				}
 
 				// Find barycentric coordinates of VOLUME geometry nodes relating to this FACET
+				BCoords_fGc_dP1 = mm_Alloc_d(CBRM,CBNT,CBNT,NfnG,Nve,NvnG,1.0,I_vGc_fGc,BCoords_vGc); // free
+
 				BCoords_fGc = malloc(NfnG*Nfve[f] * sizeof *BCoords_fGc); // free
 				for (n = 0; n < NfnG; n++) {
 				for (ve = 0; ve < Nfve[f]; ve++) {
-					BCoords_fGc[n*Nfve[f]+ve] = BCoords_vGc[Fmask[n]*Nve+VeFcon[f*NFVEMAX+ve]];
+					BCoords_fGc[n*Nfve[f]+ve] = BCoords_fGc_dP1[n*Nve+VeFcon[f*NFVEMAX+ve]];
 				}}
+				free(BCoords_fGc_dP1);
 
 				// Find values of parametrization components on the FACET
 				PComps_V = malloc(Nfve[f]*2 * sizeof *PComps_V); // free
@@ -303,12 +307,7 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 				compute_XYZ(data_XYZ);
 				free(PComps_F);
 
-//array_print_d(NfnG,d,XYZF_CmS[f],'C');
-				for (n = 0; n < NfnG; n++) {
-				for (dim = 0; dim < d; dim++) {
-					XYZF_CmS[f][n+NfnG*dim] -= XYZ_S[Fmask[n]+NvnG*dim];
-				}}
-//array_print_d(NfnG,d,XYZF_CmS[f],'C');
+				mm_d(CBCM,CBT,CBNT,NfnG,d,NvnG,-1.0,1.0,I_vGc_fGc,XYZ_S,XYZF_CmS[f]);
 
 // Make into separate function. ToBeDeleted
 				// Compute blend scaling
