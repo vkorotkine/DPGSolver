@@ -17,11 +17,14 @@
  *		BC_STEP_SC      : (B)oundary(C)ondition step between (S)traight and (C)urved BCs.
  *		BC_PERIODIC_MIN : (B)oundary(C)ondition (PERIODIC) (MIN)imum.
  *		NVEMAX          : (MAX)imum (N)umber of (VE)rtices for an element.
+ *		NEVEMAX         : (MAX)imum (N)umber of (E)DGE (VE)rtices for an element.
  *		NFVEMAX         : (MAX)imum (N)umber of (F)ACET (VE)rtices for an element.
+ *		NEREFMAX        : (MAX)imum (N)umber of (E)DGE (REF)inements.
  *		NFREFMAX        : (MAX)imum (N)umber of (F)ACET (REF)inements.
  *		NVREFMAX        : (MAX)imum (N)umber of (V)OLUME (REF)inements.
  *		NVREFSFMAX      : (MAX)imum (N)umber of (V)OLUME (REF)inements if using (S)um (F)actorized operators.
- *		NFMAX           : (MAX)imum (N)umber of (F)ACET for an element.
+ *		NEMAX           : (MAX)imum (N)umber of (E)DGEs for an element.
+ *		NFMAX           : (MAX)imum (N)umber of (F)ACETs for an element.
  *		NFMIXEDMAX      : (MAX)imum (N)umber of (MIXED) (F)ACETs for an element.
  *		NESUBCMAX       : (MAX)imum (N)umber of (E)lement (SUB)(C)lasses
  *		NFORDMAX        : (MAX)imum (N)umber of (F)ACET (ORD)ering possibilities
@@ -74,10 +77,13 @@
 
 // ELEMENT related numbers
 #define NVEMAX          8  // HEX
+#define NEVEMAX         2  // LINE
 #define NFVEMAX         4  // QUAD
+#define NEREFMAX        3  // LINE
 #define NFREFMAX        9  // QUAD
 #define NVREFMAX        27 // HEX
 #define NVREFSFMAX      5  // TRI
+#define NEMAX           12 // HEX
 #define NFMAX           6  // HEX
 #define NFMIXEDMAX      2  // WEDGE/PYR (TRI + QUAD)
 #define NESUBCMAX       2  // WEDGE (TRI + LINE)
@@ -90,7 +96,7 @@
 
 // Cubature related numbers
 #define PIvcMaxTET 10
-#define PIvcMaxPYR 6
+#define PIvcMaxPYR 10 
 
 // Solver related parameters
 #define RK3_SSP 0

@@ -187,7 +187,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// TETs
-	printf("\nInclude higher order accurate PYR cubature nodes for the computation of L2 projection operators and\n"
+	printf("\nInclude higher order accurate TET/PYR cubature nodes for the computation of L2 projection operators and\n"
  	         "check effect on error in this test.\n\n");
 	TestDB.Nwarnings++;
 

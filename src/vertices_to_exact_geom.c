@@ -61,8 +61,8 @@ void vertices_to_exact_geom(void)
 	} else if (strstr(TestCase,"SupersonicVortex")) {
 		double rIn, rOut, ve_norm2, theta;
 
-		rIn  = 1.0;
-		rOut = 1.384;
+		rIn  = DB.rIn;
+		rOut = DB.rOut;
 
 		for (ve = 0; ve < NVe; ve++) {
 			ve_norm2 = array_norm_d(d,&VeXYZ[ve*d],"L2");
@@ -82,7 +82,7 @@ void vertices_to_exact_geom(void)
 	} else if (strstr(TestCase,"dSphericalBump")) {
 		double r, ve_norm2, theta, phi;
 
-		r = 0.1;
+		r = DB.rIn;
 
 		for (ve = 0; ve < NVe; ve++) {
 			ve_norm2 = array_norm_d(d,&VeXYZ[ve*d],"L2");
@@ -105,8 +105,8 @@ void vertices_to_exact_geom(void)
 	} else if (strstr(TestCase,"Poisson")) {
 		double rIn, rOut, r, ve_norm2, t, p;
 
-		rIn  = 0.5;
-		rOut = 1.0;
+		rIn  = DB.rIn;
+		rOut = DB.rOut;
 
 		for (ve = 0; ve < NVe; ve++) {
 			ve_norm2 = array_norm_d(d,&VeXYZ[ve*d],"L2");
@@ -176,8 +176,8 @@ void vertices_to_exact_geom_VOLUME(struct S_VOLUME *VOLUME)
 	if (strstr(TestCase,"Poisson")) {
 		double rIn, rOut, r, t, p;
 
-		rIn  = 0.5;
-		rOut = 1.0;
+		rIn  = DB.rIn;
+		rOut = DB.rOut;
 
 		for (ve = 0; ve < Nve; ve++) {
 			if (!VeUpdate[ve])

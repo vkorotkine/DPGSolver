@@ -78,10 +78,11 @@ static void compute_initial_solution(const unsigned int Nn, double *XYZ, double 
 static void adapt_initial(unsigned int *adapt_update);
 static void check_levels_refine(const unsigned int indexg, struct S_VInfo **VInfo_list, const unsigned int adapt_class);
 
-void initialize_test_case_parameters(char *TestCase)
+void initialize_test_case_parameters(void)
 {
 	// Initialize DB Parameters
-	unsigned int d = DB.d;
+	char         *TestCase = DB.TestCase;
+	unsigned int d         = DB.d;
 
 	DB.Nvar = d+2; // Euler and NS Equations
 	DB.Neq  = d+2;
@@ -95,9 +96,13 @@ void initialize_test_case_parameters(char *TestCase)
 		strcpy(SolverType,"Implicit");
 		SourcePresent = 1;
 
+		DB.rIn  = 0.5;
+		DB.rOut = 1.0;
+
 		DB.Nvar = 1;
 		DB.Neq  = 1;
 	} else if (strstr(TestCase,"dSphericalBump")) {
+		DB.rIn = 0.1;
 		EXIT_MSG;
 	} else if (strstr(TestCase,"GaussianBump")) {
 		EXIT_MSG;
@@ -145,7 +150,7 @@ void initialize_test_case_parameters(char *TestCase)
 		SourcePresent = 0;
 
 		DB.rIn  = 1.0;
-//		rOut = 1.384;
+		DB.rOut = 1.384;
 
 		DB.MIn = 2.25;
 
@@ -165,8 +170,6 @@ void initialize_test_case_parameters(char *TestCase)
 
 void initialize_test_case(const unsigned int adapt_update_MAX)
 {
-	initialize_test_case_parameters(DB.TestCase);
-
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
 	unsigned int d         = DB.d,

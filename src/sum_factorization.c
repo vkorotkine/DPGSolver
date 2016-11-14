@@ -20,6 +20,9 @@
  *	Comments:
  *
  *	Notation:
+ *		NIn  : (N)umber of (In)puts (i.e. number of columns of the lower dimensional operator)
+ *		NOut : (N)umber of (Out)puts (i.e. number of rows of the lower dimensional operator)
+ *		OP   : (OP)erator
  *
  *	References:
  *		ToBeModified.

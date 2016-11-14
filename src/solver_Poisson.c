@@ -242,8 +242,8 @@ void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, con
 	unsigned int n;
 	double       r, r2, t, p, rIn, rOut, norm_rIn, norm_rOut, *XIn, *YIn, *ZIn, *XOut, *YOut, *ZOut;
 
-	rIn  = 0.5;
-	rOut = 1.0;
+	rIn  = DB.rIn;
+	rOut = DB.rOut;
 
 	XIn = &XYZIn[0*Nn];
 	YIn = &XYZIn[1*Nn];

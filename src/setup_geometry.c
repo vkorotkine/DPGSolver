@@ -298,6 +298,10 @@ void setup_geometry(void)
 			printf("    Modify vertex nodes if exact geometry is known\n");
 		vertices_to_exact_geom();
 		initialize_VOLUME_VeInfo();
+
+		// Ensure that VOLUMEs are marked as curved if they only have an edge on a curved boundary
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+			mark_curved_VOLUME(VOLUME);
 	}
 
 	// Set up XYZ_S
@@ -350,7 +354,6 @@ void setup_geometry(void)
 
 	if (PrintTesting)
 		output_to_paraview("ZTest_Geom_straight"); // Output straight coordinates to paraview
-//output_to_paraview("ZTest_Geom_straight"); // Output straight coordinates to paraview
 
 	// Set up curved geometry nodes
 	if (strstr(MeshType,"ToBeCurved")) {
@@ -360,11 +363,6 @@ void setup_geometry(void)
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 			setup_ToBeCurved(VOLUME);
 	} else if (strstr(MeshType,"Curved")) {
-		// Ensure that VOLUMEs are marked as curved if they only have an edge on a curved boundary
-		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-			mark_curved_VOLUME(VOLUME);
-		}
-
 //		if (!DB.MPIrank && !DB.Testing)
 		if (!DB.MPIrank)
 			printf("    Set geometry of VOLUME nodes in Curved Mesh\n");

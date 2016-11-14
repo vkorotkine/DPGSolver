@@ -8,17 +8,18 @@
 
 struct S_ELEMENT {
 	// Mesh
-	unsigned int present, type, d, Nve, Nf, Nvref, NvrefSF, Eclass, NEhref,
-	             *Nfve, *VeCGmsh, *VeFcon, *NrefV, *type_h;
+	unsigned int present, type, d, Nve, Ne, Nf, Nvref, NvrefSF, Eclass, NEhref,
+	             Neve, *Nfve, *VeCGmsh, *VeEcon, *VeFcon, *NrefV, *type_h;
 
 	// Operators
 	unsigned int *connect_NE, *NvnP, *Nvve,
 	             *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnJs, *NvnJc, *NvnIs, *NvnIc, *NvnS,
 	             **NfnGc, **NfnS, **NfnIs, **NfnIc,
-	             *Nfref, *NfMixed,
+	             *NenGc,
+	             Neref, *Nfref, *NfMixed,
 	             **connectivity, **connect_types,
 	             ***nOrd_fS, ***nOrd_fIs, ***nOrd_fIc, ****Fmask;
-	double       **VeF, **VeV, *nr,
+	double       **VeE, **VeF, **VeV, *nr,
 	             **w_vIs, **w_vIc, ***w_fIs, ***w_fIc,
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS,
@@ -36,7 +37,7 @@ struct S_ELEMENT {
 	             ****ChiS_fS, ****ChiS_fIs, ****ChiS_fIc,
 				 *****GradChiS_fIs, *****GradChiS_fIc,
 	             ****I_vGs_fS, ****I_vGs_fIs, ****I_vGs_fIc,
-	             ****I_vGc_fGc, ****I_vGc_fS, ****I_vGc_fIs, ****I_vGc_fIc,
+	             ****I_vGc_fGc, ****I_vGc_fS, ****I_vGc_fIs, ****I_vGc_fIc, ****I_vGc_eGc,
 	             ****I_vCs_fS, ****I_vCs_fIs, ****I_vCs_fIc,
 	             ****I_vCc_fS, ****I_vCc_fIs, ****I_vCc_fIc,
 				 *****D_vGs_fIs, *****D_vGs_fIc,

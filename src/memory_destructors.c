@@ -35,6 +35,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	// Mesh
 	free(ELEMENT->Nfve);
 	free(ELEMENT->VeCGmsh);
+	free(ELEMENT->VeEcon);
 	free(ELEMENT->VeFcon);
 	free(ELEMENT->NrefV);
 
@@ -42,6 +43,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->type_h);
 	free(ELEMENT->Nfref);
 	free(ELEMENT->NfMixed);
+	array_free2_d(NEREFMAX*NEMAX,ELEMENT->VeE);
 	array_free2_d(NFREFMAX*NFMAX,ELEMENT->VeF);
 	free(ELEMENT->Nvve);
 	array_free2_d(NVREFMAX,ELEMENT->VeV);
@@ -63,6 +65,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->NvnIs);
 	free(ELEMENT->NvnIc);
 	free(ELEMENT->NvnS);
+	free(ELEMENT->NenGc);
 
 	array_free3_d(NP,NESUBCMAX,ELEMENT->w_fIs);
 	array_free3_d(NP,NESUBCMAX,ELEMENT->w_fIc);

@@ -11,7 +11,8 @@
 1. Download and extract .tar file.
 2. petsc configuration options:
   - A single build directory was made with debugging disabled.
-  - ./configure PETSC_ARCH=arch-linux-mpich-c-opt --download-mpich --with-blas-lapack-dir=/software/compilers/Intel/2015-15.0/composer_xe_2015.0.090/mkl --with-debugging=0 COPTFLAGS='-O3 -march=native -mtune=native'
+  - -march=native had to be removed when compiling on OSX.
+  - ./configure PETSC_ARCH=arch-linux-mpich-c-opt --download-mpich --with-blas-lapack-dir=/software/compilers/Intel/2015-15.0/composer_xe_2015.0.090/mkl --with-debugging=0 COPTFLAGS='-O3 -march=native -mtune=native' CXXOPTFLAGS='-O3 -march=native -mtune=native' FOPTFLAGS='-O3 -march=native -mtune=native'
 3. Follow make instructions for installation and testing.
 
 ### ParMETIS (parmetis-4.0.3)

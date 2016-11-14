@@ -151,7 +151,7 @@ printf("\nWarning: boundary_Riemann is currently not being tested for d = 1.\n\n
 	strcpy(TestCase,"SupersonicVortex");
 	DB.TestCase = TestCase;
 
-	initialize_test_case_parameters(TestCase);
+	initialize_test_case_parameters();
 
 	for (i = 0; i < NBTypes; i++)
 		BType[i] = malloc(STRLEN_MIN * sizeof *BType[i]); // free

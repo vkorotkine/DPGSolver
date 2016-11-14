@@ -92,6 +92,7 @@ void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigne
 	if (update_argv)
 		setup_parameters_L2proj();
 
+	initialize_test_case_parameters();
 	setup_mesh();
 	setup_operators();
 	setup_structures();
@@ -136,6 +137,7 @@ void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, co
 			update_MeshFile();
 		}
 
+		initialize_test_case_parameters();
 		setup_parameters();
 		if (update_argv)
 			setup_parameters_L2proj();

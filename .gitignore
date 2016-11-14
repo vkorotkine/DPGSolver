@@ -12,6 +12,7 @@ src/support_functions/*.out
 src/support_functions/*.txt
 *~
 *.swp
+*.msh
 
 meshes/Poisson/*
 meshes/PeriodicVortex/*

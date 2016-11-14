@@ -899,9 +899,15 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 			if (return_w)
 				printf("Error: Invalid value for return_w in cubature_PYR.\n"), exit(1);
 
-			PMax = 6;
+			if (strstr(NodeType,"GL"))
+				PMax = 6;
+			else if (strstr(NodeType,"GJ"))
+				PMax = 10;
 		} else {
-			PMax = 6;
+			if (strstr(NodeType,"GL"))
+				PMax = 6;
+			else if (strstr(NodeType,"GJ"))
+				PMax = 10;
 		}
 	} else if (strstr(NodeType,"WV")) {
 		if (strstr(NodeType,"HToP") == NULL)

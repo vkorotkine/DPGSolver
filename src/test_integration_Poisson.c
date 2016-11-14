@@ -166,6 +166,7 @@ void test_integration_Poisson(int nargc, char **argv)
 	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
 
 TestDB.PGlobal = 1;
+if (0)
 	test_linearization(nargc,argvNew,0,1,TestName,data);
 
 	// **************************************************************************************************** //
@@ -177,7 +178,8 @@ TestDB.PGlobal = 1;
 	strcpy(TestName,"Linearization Poisson (3D - TET):                ");
 	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
 
-//	test_linearization(nargc,argvNew,0,1,TestName,data);
+if (0)
+	test_linearization(nargc,argvNew,0,1,TestName,data);
 
 
 	// **************************************************************************************************** //
@@ -204,8 +206,9 @@ TestDB.PGlobal = 1;
 	TestDB.IntOrder_mult = 3;
 
 	// Convergence orders
-	PMin = 1;  PMax = 3;
+	PMin = 1;  PMax = 4;
 	MLMin = 0; MLMax = 3;
+TestDB.PGlobal = 2;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 

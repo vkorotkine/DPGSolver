@@ -42,11 +42,10 @@ ifeq ($(KERNEL),Darwin)
 
 # There is a problem that the -fopenmp -m64 flag is not included in CC. Compiling fine for now => fix later. (ToBeDeleted)
 
-#  PETSC_DIR := $(PROG_PATH)/petsc/petsc-3.2-p7 (ToBeDeleted)
-  PETSC_DIR := $(PROG_PATH)/petsc/petsc-3.6.3
-  PETSC_ARCH := arch-darwin-mpich-c-debug
-#  PETSC_ARCH := arch-darwin-mpich-c-opt
-#  PETSC_ARCH := arch-darwin-c-opt
+# PETSC_DIR := $(PROG_PATH)/petsc/petsc-3.6.3
+  PETSC_DIR := $(PROG_PATH)/petsc/petsc-3.7.4
+# PETSC_ARCH := arch-darwin-mpich-c-debug
+  PETSC_ARCH := arch-darwin-mpich-c-opt
 
   # METIS_DIR := $(PROG_PATH)/parmetis/parmetis-4.0.3
   METIS_DIR := $(PROG_PATH)/parmetis_mpich/parmetis-4.0.3/build/debug

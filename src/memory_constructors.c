@@ -55,6 +55,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 	ELEMENT->Nfve    = calloc(NFMAX         , sizeof *(ELEMENT->Nfve));    // free
 	ELEMENT->VeCGmsh = calloc(NVEMAX        , sizeof *(ELEMENT->VeCGmsh)); // free
+	ELEMENT->VeEcon  = calloc(NEMAX*NEVEMAX , sizeof *(ELEMENT->VeEcon));  // free
 	ELEMENT->VeFcon  = calloc(NFMAX*NFVEMAX , sizeof *(ELEMENT->VeFcon));  // free
 	ELEMENT->NrefV   = calloc(NREFVVARMAX   , sizeof *(ELEMENT->NrefV));   // free
 
@@ -65,6 +66,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->type_h  = calloc(NEHREFMAX      , sizeof *(ELEMENT->type_h));  // free
 	ELEMENT->Nfref   = calloc(NFMAX          , sizeof *(ELEMENT->Nfref));   // free
 	ELEMENT->NfMixed = calloc(NFMIXEDMAX     , sizeof *(ELEMENT->NfMixed)); // free
+	ELEMENT->VeE     = calloc(NEREFMAX*NEMAX , sizeof *(ELEMENT->VeE));     // free
 	ELEMENT->VeF     = calloc(NFREFMAX*NFMAX , sizeof *(ELEMENT->VeF));     // free
 	ELEMENT->Nvve    = calloc(NVREFMAX       , sizeof *(ELEMENT->Nvve));    // free
 	ELEMENT->VeV     = calloc(NVREFMAX       , sizeof *(ELEMENT->VeV));     // free
@@ -90,6 +92,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->NfnS  = calloc(NP , sizeof *(ELEMENT->NfnS));  // free
 	ELEMENT->NfnIs = calloc(NP , sizeof *(ELEMENT->NfnIs)); // free
 	ELEMENT->NfnIc = calloc(NP , sizeof *(ELEMENT->NfnIc)); // free
+	ELEMENT->NenGc = calloc(NP , sizeof *(ELEMENT->NenGc)); // free
 
 	ELEMENT->w_fIs = calloc(NP , sizeof *(ELEMENT->w_fIs)); // free
 	ELEMENT->w_fIc = calloc(NP , sizeof *(ELEMENT->w_fIc)); // free

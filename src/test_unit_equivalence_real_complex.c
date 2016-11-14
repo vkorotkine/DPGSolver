@@ -68,7 +68,7 @@ void test_unit_equivalence_real_complex(void)
 	strcpy(TestCase,"SupersonicVortex");
 	DB.TestCase = TestCase;
 
-	initialize_test_case_parameters(TestCase);
+	initialize_test_case_parameters();
 
 	for (d = 1; d <= 3; d++) {
 		Neq  = d+2;

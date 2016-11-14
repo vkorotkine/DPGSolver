@@ -19,6 +19,7 @@
 #include "bases.h"
 #include "cubature.h"
 
+#include "setup_operators_support.h"
 #include "select_functions.h"
 #include "element_functions.h"
 #include "matrix_functions.h"
@@ -62,7 +63,9 @@
  *		order to improve code readability.
  *		Ensure that operators for hp refinement are only stored when refinement is enabled (ToBeDeleted).
  *
- *		For the PYR element rst_vGs != E_rst_vC because of the TP structures of the TP nodes and the rotational symmetry
+ *		Change name of (C)orner to (V)ertex to avoid confusion with (C)ofactor. (ToBeDeleted)
+ *
+ *		For the PYR element rst_vGs != E_rst_vV because of the TP structures of the TP nodes and the rotational symmetry
  *		ordering of the PYR nodes in layers of 't'. This means that special consideration must be made if attempting to
  *		use the rotational symmetry of rst_vGs PYR nodes.
  *
@@ -86,42 +89,25 @@
  *
  *		N(1)n(2)(3)[4][5] : (N)umber of (1) (n)odes of (2) type on elements which are (3) of order [4] belonging to
  *		                    element class [5]
- *		                    (1): (v)olume, (f)acet
- *		                    (2): [P]lotting, [G]eometry, [C]ofactor, [I]ntegration (ToBeModified)
+ *		                    (1): (v)olume, (f)acet, (e)dge
+ *		                    (2): (P)lotting, (G)eometry, (C)ofactor, (I)ntegration, (S)olution
  *		                    (3): (s)traight, (c)urved
  *		  Example: NfnIs[1][0] == (N)umber of (f)acet (n)odes for (I)ntegration on (straight) P1 facets of Eclass 0.
  *
- *		rst_(1)(2)(3) : coordinates on the reference element (rst) of (1) nodes of (2) type
- *		                (1): (v)olume, (f)acet
- *		                (2): (C)orner
+ *		rst_(1)(2)(3) : coordinates on the reference element (rst) of (1) nodes of (2) type which are (3).
+ *		                (1): (v)olume, (f)acet, (e)dge
+ *		                (2): (P)lotting, (G)eometry, (C)ofactor, (I)ntegration, (S)olution, (V)ertex
  *		                (3): (s)traight, (c)urved (optional)
  *
  *		(Grad)Chi(Ref)(1)(2)_(3)(4)(5)[6] : (Grad)ient (optional) (Ref)erence (optional) Basis functions (Chi) of type
  *		                                    (1) which are (2) evaluated at (3) nodes of (4) type which are (5) of order [6]
  *		                                    (1/4): (P)lotting, (G)eometry, (C)ofactor, (I)ntegration, (S)olution
  *		                                    (2/5): (s)traight, (c)urved
- *		                                    (3): (v)olume, (f)acet
+ *		                                    (3): (v)olume, (f)acet, (e)dge
  *
  *		_(1)(2) subscripts for operators indicate that this is a (1) operator, operating on VOLUME nodes and
  *		transferring to (2) nodes.
- *			Options (1)(2) : VV, FV, FF
- *
- *	setup_ELEMENT_plotting:
- *		connectivity  : connectivity between nodes to form P1 sub-elements (see test_imp_plotting for visualization)
- *		connect_types : VTK element type numbering for each sub-element
- *		                Note: This is not trivial as TETs and PYRs are refined into a combination of TETs and PYRs.
- *		connect_NE    : (N)umber of sub (E)lements in connectivity array
- *
- *	setup_ELEMENT_normals:
- *		Theta_[] : Angles for conversion between reference and facet coordinates (Zwanenburg(2016): Table 14)
- *		           Options: eta, zeta
- *		nr       : (n)ormal vector components for the (r)eference element
- *
- *	get_BCoords_dEm1: get (B)ary(C)entric (Coord)inates of (d)imension (E)lement (m)inus 1
- *
- *		Note: See cubature_PYR for explanation of the method to obtain the barycentric coordinates while noting that
- *		      using the P1 reference basis provides the partition of unity, linear precision and additional arbitrary
- *		      conditions needed for the construction.
+ *			Options (1)(2) : VV, FF
  *
  *	setup_ELEMENT_operators/setup_TP_operators:
  *		w_(1)(2)(3) : Cubature (w)eights (1) nodes of (2) type which are (3)
@@ -136,7 +122,7 @@
  *		          (2): (s)traight, (c)urved
  *		I_(1)(2)(3)_(4)(5)(6) : (I)nterpolation operator from (1) nodes of type (2) which are (3) to (4) nodes of type
  *		                        (5) which are (6)
- *		                        (1/4): (v)olume, (f)acet
+ *		                        (1/4): (v)olume, (f)acet, (e)dge
  *		                        (2/5): (P)lotting, (G)eometry, (C)ofactor, (I)ntegration, (S)olution
  *		                        (3/6): (s)traight, (c)urved
  *		  Note: Interpolation operators to FACETs may have up to 4 levels of dereferencing *I_x_x[1][2][3]:
@@ -149,34 +135,25 @@
  *		  Note: values and coefficients are the same for the nodal scheme, but not for modal.
  *		D_(1)(2)(3)_(4)(5)(6) : (D)ifferentiation + interpolation operator from (1) nodes of type (2) which are (3) to
  *		                        (4) nodes of type (5) which are (6)
- *		                        (1/4): (v)olume, (f)acet
+ *		                        (1/4): (v)olume, (f)acet, (e)dge
  *		                        (2/5): (P)lotting, (G)eometry, (C)ofactor, (I)ntegration, (S)olution
  *		                        (3/6): (s)traight, (c)urved
- *		  Note: Differentiation + interpolation operators may have up to 3 levels of dereferencing *D_x_x[1][2]:
+ *		  Note: Differentiation + interpolation operators may have up to 5 levels of dereferencing *D_x_x[1][2][3][4]:
  *		        [0] : The operator is a pointer to  matrix
  *		        [1] : Order of the element from which you are interpolating with differentiation
- *		        [2] : Index of dimension of the operator
+ *		        [2] : Order of the element to which you are interpolating with differentiation
+ *		        [3] : Index of operator
+ *		        [4] : Index of dimension of the operator
  *
  *		*_sp : Standard (*) operator stored in (sp)arse format ((C)ompressed (S)parse (R)ow), only used for TP ELEMENTs.
  *
  *	setup_L2_projection_operators:
  *		L2hat_vS_vS : L2 projection operator from coefficients of the VOLUMEs on level l+1 to the VOLUME on level l.
  *
- *	setup_ELEMENT_VeV:
- *	setup_ELEMENT_VeF:
- *		VeV : (Ve)rtex to (V)OLUME operator used to project VOLUME vertex nodes to VOLUME vertex nodes for all supported
- *		      h-refinements.
- *		VeF : (Ve)rtex to (F)ACET operator used to project VOLUME vertex nodes to FACET vertex nodes for all supported
- *		      h-refinements.
  *
- *	sf_assemble_d/get_sf_parameters:
- *		NIn  : (N)umber of (In)puts (i.e. number of columns of the lower dimensional operator)
- *		NOut : (N)umber of (Out)puts (i.e. number of rows of the lower dimensional operator)
- *		OP   : (OP)erator
- *
- *	Returned operators : [range used depending on Adapt]
+ *	Returned operators : [range used depending on Adapt] (ToBeModified: Add missing operators)
  *		- For maximum array size, see memory_constructors.c.
- *		- If no range is indicated, look at range of previous operator.
+ *		- If no range is indicated, the range is given by that of the previous operator in the list.
  *
  *		- (*) indicates a special case for SF operators.
  *		- [^] is a placeholder.
@@ -202,6 +179,7 @@
  *		NvnIc            |
  *		NfnIs            | [P][0:1]        [rP][0:1]           [P][2]          [rP][0:1]
  *		NfnIc            |
+ *		NenGc            | [P]             [rP]                [P]             [rP]
  *		                 |
  *		w_vIs            | [P]             [rP]                [P]             [rP]
  *		w_vIc            |
@@ -244,7 +222,8 @@
  *		D_vCs_vCs        |
  *		D_vCc_vCc        |
  *		                 |
- *		ChiS_fIs         | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rP][^^]
+ *		ChiS_fS          | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rP][^^]
+ *		ChiS_fIs         |
  *		ChiS_fIc         |
  *		                 |
  *		I_vGs_fS         | [1][P][^]       [P][rP][^]          [1][P][^^]      [1][rP][^^]
@@ -286,623 +265,6 @@
  *
  *		ToBeDeleted: Potentially add in MATH578 report instead of Alpert(2002) for the QMF discussion.
  */
-
-struct S_BCOORDS {
-	unsigned int Nve,
-	             *NfnGc, *NfnS, *NfnIs, *NfnIc;
-	double       **w_fIs, **w_fIc, **BCoords_Gc, **BCoords_S, **BCoords_Is, **BCoords_Ic;
-};
-
-static void setup_ELEMENT_plotting(const unsigned int EType)
-{
-	// Standard datatypes
-	unsigned int P, PSMin, PSMax, NvnP, NE, u1 = 1,
-	             *connectivity, *types;
-	double       *rst_vP;
-
-	struct S_ELEMENT *ELEMENT;
-
-	ELEMENT = get_ELEMENT_type(EType);
-
-	get_PS_range(&PSMin,&PSMax);
-	for (P = PSMin; P <= PSMax; P++) {
-		plotting_element_info(&rst_vP,&connectivity,&types,&NvnP,&NE,max(P,u1),EType); // free
-		ELEMENT->connectivity[P]  = connectivity;
-		ELEMENT->connect_types[P] = types;
-		ELEMENT->connect_NE[P]    = NE;
-		ELEMENT->NvnP[P] = NvnP;
-
-		free(rst_vP);
-	}
-}
-
-static void setup_ELEMENT_normals(const unsigned int EType)
-{
-	// Initialize DB Parameters
-	unsigned int d = DB.d;
-
-	// Standard datatypes
-	unsigned int f, Nf;
-	double Theta_eta[6], Theta_zeta[6], *nr;
-
-	struct S_ELEMENT *ELEMENT;
-
-	ELEMENT = get_ELEMENT_type(EType);
-
-	Nf = ELEMENT->Nf;
-	nr = ELEMENT->nr;
-
-	if (EType == LINE) {
-		Theta_eta[0] = 0.0; Theta_zeta[0] = PI;
-		Theta_eta[1] = 0.0; Theta_zeta[1] = 0.0;
-	} else if (EType == QUAD) {
-		Theta_eta[0] = 0.0; Theta_zeta[0] = PI;
-		Theta_eta[1] = 0.0; Theta_zeta[1] = 0.0;
-		Theta_eta[2] = 0.0; Theta_zeta[2] = 1.5*PI;
-		Theta_eta[3] = 0.0; Theta_zeta[3] = 0.5*PI;
-	} else if (EType == HEX) {
-		Theta_eta[0] = 0.0;    Theta_zeta[0] = PI;
-		Theta_eta[1] = 0.0;    Theta_zeta[1] = 0.0;
-		Theta_eta[2] = 0.0;    Theta_zeta[2] = 1.5*PI;
-		Theta_eta[3] = 0.0;    Theta_zeta[3] = 0.5*PI;
-		Theta_eta[4] = 0.5*PI; Theta_zeta[4] = 0.0;
-		Theta_eta[5] = 1.5*PI; Theta_zeta[5] = PI;
-	} else if (EType == TRI) {
-		Theta_eta[0] = 0.0; Theta_zeta[0] = 1.0/6.0*PI;
-		Theta_eta[1] = 0.0; Theta_zeta[1] = 5.0/6.0*PI;
-		Theta_eta[2] = 0.0; Theta_zeta[2] = 9.0/6.0*PI;
-	} else if (EType == TET) {
-		double Theta_e = atan(2.0*sqrt(2.0));
-
-		Theta_eta[0] = Theta_e - 0.5*PI; Theta_zeta[0] = 1.0/6.0*PI;
-		Theta_eta[1] = Theta_e - 0.5*PI; Theta_zeta[1] = 5.0/6.0*PI;
-		Theta_eta[2] = Theta_e - 0.5*PI; Theta_zeta[2] = 9.0/6.0*PI;
-		Theta_eta[3] = 0.5*PI;           Theta_zeta[3] = 0.0;
-	} else if (EType == WEDGE) {
-		Theta_eta[0] = 0.0;    Theta_zeta[0] = 1.0/6.0*PI;
-		Theta_eta[1] = 0.0;    Theta_zeta[1] = 5.0/6.0*PI;
-		Theta_eta[2] = 0.0;    Theta_zeta[2] = 9.0/6.0*PI;
-		Theta_eta[3] = 0.5*PI; Theta_zeta[3] = 0.0;
-		Theta_eta[4] = 1.5*PI; Theta_zeta[4] = 0.0;
-	} else if (EType == PYR) {
-		double Theta_e = atan(sqrt(2.0));
-
-		Theta_eta[0] = Theta_e - 0.5*PI; Theta_zeta[0] = PI;
-		Theta_eta[1] = Theta_e - 0.5*PI; Theta_zeta[1] = 0.0;
-		Theta_eta[2] = Theta_e - 0.5*PI; Theta_zeta[2] = 1.5*PI;
-		Theta_eta[3] = Theta_e - 0.5*PI; Theta_zeta[3] = 0.5*PI;
-		Theta_eta[4] = 0.5*PI;           Theta_zeta[4] = 0.0;
-	} else {
-		printf("Error: Unsupported EType.\n"), EXIT_MSG;
-	}
-
-	for (f = 0; f < Nf; f++) {
-		           nr[f*d+0] =  cos(Theta_eta[f])*cos(Theta_zeta[f]);
-		if (d > 1) nr[f*d+1] =  cos(Theta_eta[f])*sin(Theta_zeta[f]);
-		if (d > 2) nr[f*d+2] = -sin(Theta_eta[f]);
-	}
-}
-
-static double *get_rst_vC(const struct S_ELEMENT *ELEMENT)
-{
-	unsigned int d, Nve, EType;
-	double *rst_vC;
-
-	d     = ELEMENT->d;
-	Nve   = ELEMENT->Nve;
-	EType = ELEMENT->type;
-
-	rst_vC = malloc(Nve*d * sizeof *rst_vC); // keep (requires external free)
-
-	switch (EType) {
-	case LINE:
-		rst_vC[0*Nve+0] = -1.0;
-		rst_vC[0*Nve+1] =  1.0;
-		break;
-	case TRI:
-		rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0/sqrt(3.0);
-		rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0/sqrt(3.0);
-		rst_vC[0*Nve+2] =  0.0; rst_vC[1*Nve+2] =  2.0/sqrt(3.0);
-		break;
-	case QUAD:
-		rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0;
-		rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0;
-		rst_vC[0*Nve+2] = -1.0; rst_vC[1*Nve+2] =  1.0;
-		rst_vC[0*Nve+3] =  1.0; rst_vC[1*Nve+3] =  1.0;
-		break;
-	case TET:
-		rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0/sqrt(3.0); rst_vC[2*Nve+0] = -1.0/sqrt(6.0);
-		rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0/sqrt(3.0); rst_vC[2*Nve+1] = -1.0/sqrt(6.0);
-		rst_vC[0*Nve+2] =  0.0; rst_vC[1*Nve+2] =  2.0/sqrt(3.0); rst_vC[2*Nve+2] = -1.0/sqrt(6.0);
-		rst_vC[0*Nve+3] =  0.0; rst_vC[1*Nve+3] =  0.0;           rst_vC[2*Nve+3] =  3.0/sqrt(6.0);
-		break;
-	case HEX:
-		rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0; rst_vC[2*Nve+0] = -1.0;
-		rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0; rst_vC[2*Nve+1] = -1.0;
-		rst_vC[0*Nve+2] = -1.0; rst_vC[1*Nve+2] =  1.0; rst_vC[2*Nve+2] = -1.0;
-		rst_vC[0*Nve+3] =  1.0; rst_vC[1*Nve+3] =  1.0; rst_vC[2*Nve+3] = -1.0;
-		rst_vC[0*Nve+4] = -1.0; rst_vC[1*Nve+4] = -1.0; rst_vC[2*Nve+4] =  1.0;
-		rst_vC[0*Nve+5] =  1.0; rst_vC[1*Nve+5] = -1.0; rst_vC[2*Nve+5] =  1.0;
-		rst_vC[0*Nve+6] = -1.0; rst_vC[1*Nve+6] =  1.0; rst_vC[2*Nve+6] =  1.0;
-		rst_vC[0*Nve+7] =  1.0; rst_vC[1*Nve+7] =  1.0; rst_vC[2*Nve+7] =  1.0;
-		break;
-	case WEDGE:
-		rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0/sqrt(3.0); rst_vC[2*Nve+0] = -1.0;
-		rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0/sqrt(3.0); rst_vC[2*Nve+1] = -1.0;
-		rst_vC[0*Nve+2] =  0.0; rst_vC[1*Nve+2] =  2.0/sqrt(3.0); rst_vC[2*Nve+2] = -1.0;
-		rst_vC[0*Nve+3] = -1.0; rst_vC[1*Nve+3] = -1.0/sqrt(3.0); rst_vC[2*Nve+3] =  1.0;
-		rst_vC[0*Nve+4] =  1.0; rst_vC[1*Nve+4] = -1.0/sqrt(3.0); rst_vC[2*Nve+4] =  1.0;
-		rst_vC[0*Nve+5] =  0.0; rst_vC[1*Nve+5] =  2.0/sqrt(3.0); rst_vC[2*Nve+5] =  1.0;
-		break;
-	case PYR:
-		rst_vC[0*Nve+0] = -1.0; rst_vC[1*Nve+0] = -1.0; rst_vC[2*Nve+0] = -1.0/5.0*sqrt(2.0);
-		rst_vC[0*Nve+1] =  1.0; rst_vC[1*Nve+1] = -1.0; rst_vC[2*Nve+1] = -1.0/5.0*sqrt(2.0);
-		rst_vC[0*Nve+2] = -1.0; rst_vC[1*Nve+2] =  1.0; rst_vC[2*Nve+2] = -1.0/5.0*sqrt(2.0);
-		rst_vC[0*Nve+3] =  1.0; rst_vC[1*Nve+3] =  1.0; rst_vC[2*Nve+3] = -1.0/5.0*sqrt(2.0);
-		rst_vC[0*Nve+4] =  0.0; rst_vC[1*Nve+4] =  0.0; rst_vC[2*Nve+4] =  4.0/5.0*sqrt(2.0);
-		break;
-	default:
-		printf("Error: Unsupported EType.\n"), EXIT_MSG;
-		break;
-	}
-	return rst_vC;
-}
-
-static struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsigned int IndFType)
-{
-	// Initialize DB Parameters
-	unsigned int NP   = DB.NP,
-	             PMax = DB.PMax;
-
-	// Standard datatypes
-	unsigned int P, EType, Nve,
-	             *NfnGc, *NfnS, *NfnIs, *NfnIc;
-	double       **w_fIs, **w_fIc,
-	             **BCoords_Gc, **BCoords_S, **BCoords_Is, **BCoords_Ic, *one;
-
-	struct S_BCOORDS *BCoords_dEm1;
-	struct S_ELEMENT *ELEMENT_F;
-
-	BCoords_dEm1 = malloc(sizeof *BCoords_dEm1);      // keep
-	NfnGc        = malloc(NP * sizeof *(NfnGc));      // keep
-	NfnS         = malloc(NP * sizeof *(NfnS));       // keep
-	NfnIs        = malloc(NP * sizeof *(NfnIs));      // keep
-	NfnIc        = malloc(NP * sizeof *(NfnIc));      // keep
-	w_fIs        = malloc(NP * sizeof *(w_fIs));      // keep
-	w_fIc        = malloc(NP * sizeof *(w_fIc));      // keep
-	BCoords_Gc   = malloc(NP * sizeof *(BCoords_Gc)); // keep
-	BCoords_S    = malloc(NP * sizeof *(BCoords_S));  // keep
-	BCoords_Is   = malloc(NP * sizeof *(BCoords_Is)); // keep
-	BCoords_Ic   = malloc(NP * sizeof *(BCoords_Ic)); // keep
-
-	one = malloc(1 * sizeof *one); // free
-	one[0] = 1.0;
-
-	EType = ELEMENT->type;
-	if (EType == LINE) {
-// fix this to be consistent with treatment of other elements if possible (ToBeDeleted)
-		ELEMENT_F = get_ELEMENT_type(POINT);
-
-		Nve = 1;
-		for (P = 0; P <= PMax; P++) {
-			NfnGc[P] = 1;
-			NfnS[P]  = 1;
-			NfnIs[P] = 1;
-			NfnIc[P] = 1;
-
-			w_fIs[P] = mm_Alloc_d(CBCM,CBT,CBT,1,1,1,1.0,one,one); // keep
-			w_fIc[P] = mm_Alloc_d(CBCM,CBT,CBT,1,1,1,1.0,one,one); // keep
-
-			BCoords_Gc[P] = malloc(1 * sizeof **(BCoords_Gc));
-			BCoords_S[P]  = malloc(1 * sizeof **(BCoords_S));
-			BCoords_Is[P] = malloc(1 * sizeof **(BCoords_Is));
-			BCoords_Ic[P] = malloc(1 * sizeof **(BCoords_Ic));
-
-			BCoords_Gc[P][0] = 1.0;
-			BCoords_S[P][0]  = 1.0;
-			BCoords_Is[P][0] = 1.0;
-			BCoords_Ic[P][0] = 1.0;
-		}
-	} else {
-		if (EType == TRI || EType == QUAD) {
-			ELEMENT_F = get_ELEMENT_type(LINE);
-		} else if (EType == TET || (EType == WEDGE && IndFType == 1) || (EType == PYR && IndFType == 0)) {
-			ELEMENT_F = get_ELEMENT_type(TRI);
-		} else if (EType == HEX || (EType == WEDGE && IndFType == 0) || (EType == PYR && IndFType == 1)) {
-			ELEMENT_F = get_ELEMENT_type(QUAD);
-		} else {
-			printf("Error: Unsupported EType/IndFType combination.\n"), EXIT_MSG;
-		}
-
-		// Initialize DB Parameters
-		unsigned int *PGc           = DB.PGc,
-		             **PIfs         = DB.PIfs,
-		             **PIfc         = DB.PIfc;
-		char         **NodeTypeG    = DB.NodeTypeG,
-		             ***NodeTypeS   = DB.NodeTypeS,
-		             ***NodeTypeIfs = DB.NodeTypeIfs,
-		             ***NodeTypeIfc = DB.NodeTypeIfc;
-
-		// Standard datatypes
-		unsigned int dE, Nbf,
-		             NfnGs, EType, Eclass,
-		             dummy_ui, *dummyPtr_ui;
-		double       *rst_vGs, *rst_fGc, *rst_fS, *rst_fIs, *rst_fIc,
-		             *dummyPtr_d[2],
-		             *IGs,
-		             *ChiRefGs_vGs,
-		             *ChiRefInvGs_vGs,
-		             *ChiRefGs_fGc, *ChiRefGs_fS, *ChiRefGs_fIs, *ChiRefGs_fIc;
-
-		// Function pointers
-		cubature_tdef   cubature;
-		basis_tdef      basis;
-		grad_basis_tdef grad_basis;
-
-		EType = ELEMENT_F->type;
-		select_functions(&basis,&grad_basis,&cubature,EType);
-
-		Eclass = get_Eclass(EType);
-
-
-		dE = ELEMENT_F->d;
-
-		Nve = ELEMENT_F->Nve;
-
-		// It is important to use the nodes corresponding to the VeF ordering
-		rst_vGs = get_rst_vC(ELEMENT_F); // free
-		cubature(&dummyPtr_d[0],&dummyPtr_d[1],&dummyPtr_ui,&NfnGs,&dummy_ui,0,1,dE,NodeTypeG[Eclass]); // free
-		free(dummyPtr_ui);
-		free(dummyPtr_d[0]);
-
-		IGs             = identity_d(NfnGs);                       // free
-		ChiRefGs_vGs    = basis(1,rst_vGs,NfnGs,&Nbf,dE);          // free
-		ChiRefInvGs_vGs = inverse_d(NfnGs,NfnGs,ChiRefGs_vGs,IGs); // free
-
-		free(rst_vGs);
-
-		free(IGs);
-		free(ChiRefGs_vGs);
-
-		for (P = 0; P <= PMax; P++) {
-			cubature(&rst_fGc,&dummyPtr_d[0],&dummyPtr_ui,&NfnGc[P],&dummy_ui,0,PGc[P],         dE,NodeTypeG[Eclass]);      free(dummyPtr_ui); // free
-			cubature(&rst_fS, &dummyPtr_d[0],&dummyPtr_ui,&NfnS[P], &dummy_ui,0,P,              dE,NodeTypeS[P][Eclass]);   free(dummyPtr_ui); // free
-			cubature(&rst_fIs,&w_fIs[P],     &dummyPtr_ui,&NfnIs[P],&dummy_ui,1,PIfs[P][Eclass],dE,NodeTypeIfs[P][Eclass]); free(dummyPtr_ui); // free
-			cubature(&rst_fIc,&w_fIc[P],     &dummyPtr_ui,&NfnIc[P],&dummy_ui,1,PIfc[P][Eclass],dE,NodeTypeIfc[P][Eclass]); free(dummyPtr_ui); // free
-
-			ChiRefGs_fGc = basis(1,rst_fGc,NfnGc[P],&Nbf,dE); // free
-			ChiRefGs_fS  = basis(1,rst_fS, NfnS[P], &Nbf,dE); // free
-			ChiRefGs_fIs = basis(1,rst_fIs,NfnIs[P],&Nbf,dE); // free
-			ChiRefGs_fIc = basis(1,rst_fIc,NfnIc[P],&Nbf,dE); // free
-
-			BCoords_Gc[P] = mm_Alloc_d(CBCM,CBT,CBT,NfnGc[P],NfnGs,NfnGs,1.0,ChiRefGs_fGc,ChiRefInvGs_vGs); // keep
-			BCoords_S[P]  = mm_Alloc_d(CBCM,CBT,CBT,NfnS[P], NfnGs,NfnGs,1.0,ChiRefGs_fS, ChiRefInvGs_vGs); // keep
-			BCoords_Is[P] = mm_Alloc_d(CBCM,CBT,CBT,NfnIs[P],NfnGs,NfnGs,1.0,ChiRefGs_fIs,ChiRefInvGs_vGs); // keep
-			BCoords_Ic[P] = mm_Alloc_d(CBCM,CBT,CBT,NfnIc[P],NfnGs,NfnGs,1.0,ChiRefGs_fIc,ChiRefInvGs_vGs); // keep
-
-			free(rst_fGc);
-			free(rst_fS);
-			free(rst_fIs);
-			free(rst_fIc);
-
-			free(ChiRefGs_fGc);
-			free(ChiRefGs_fS);
-			free(ChiRefGs_fIs);
-			free(ChiRefGs_fIc);
-		}
-		free(ChiRefInvGs_vGs);
-	}
-
-	free(one);
-
-	BCoords_dEm1->Nve   = Nve;
-	BCoords_dEm1->NfnGc = NfnGc;
-	BCoords_dEm1->NfnS  = NfnS;
-	BCoords_dEm1->NfnIs = NfnIs;
-	BCoords_dEm1->NfnIc = NfnIc;
-	BCoords_dEm1->w_fIs = w_fIs;
-	BCoords_dEm1->w_fIc = w_fIc;
-	BCoords_dEm1->BCoords_Gc = BCoords_Gc;
-	BCoords_dEm1->BCoords_S  = BCoords_S;
-	BCoords_dEm1->BCoords_Is = BCoords_Is;
-	BCoords_dEm1->BCoords_Ic = BCoords_Ic;
-
-	return BCoords_dEm1;
-}
-
-static void initialize_VeVref(const unsigned int EType, double *VeVref)
-{
-	// Initialize DB Parameters
-	unsigned int TETrefineType = DB.TETrefineType;
-
-	// Standard datatypes
-	unsigned int i, j, k, Nve, Nvref, *Nvve;
-
-	struct S_ELEMENT *ELEMENT;
-
-	ELEMENT = get_ELEMENT_type(EType);
-
-	Nve   = ELEMENT->Nve;
-	Nvref = ELEMENT->Nvref;
-	Nvve  = ELEMENT->Nvve;
-
-	switch (EType) {
-	case LINE: {
-		double Barycentric_coords[3][2] = {{ 1.0 , 0.0 },
-		                                   { 0.0 , 1.0 },
-		                                   { 0.5 , 0.5 }};
-		unsigned int Vh_coord_Ind[3][2] = {{ 0 , 1 },
-		                                   { 0 , 2 },
-		                                   { 2 , 1 }};
-
-		for (k = 0; k < Nvref; k++) {
-		for (i = 0; i < Nvve[k]; i++) {
-		for (j = 0; j < Nve; j++) {
-			*VeVref++ = Barycentric_coords[Vh_coord_Ind[k][i]][j];
-		}}}
-		break;
-	} case TRI: {
-		double Barycentric_coords[6][3] = {{ 1.0 , 0.0 , 0.0 },
-		                                   { 0.0 , 1.0 , 0.0 },
-		                                   { 0.0 , 0.0 , 1.0 },
-		                                   { 0.5 , 0.5 , 0.0 },
-		                                   { 0.5 , 0.0 , 0.5 },
-		                                   { 0.0 , 0.5 , 0.5 }};
-		unsigned int Vh_coord_Ind[5][3] = {{ 0 , 1 , 2 },
-		                                   { 0 , 3 , 4 },
-		                                   { 3 , 1 , 5 },
-		                                   { 4 , 5 , 2 },
-		                                   { 5 , 4 , 3 }};
-
-		for (k = 0; k < Nvref; k++) {
-		for (i = 0; i < Nvve[k]; i++) {
-		for (j = 0; j < Nve; j++) {
-			*VeVref++ = Barycentric_coords[Vh_coord_Ind[k][i]][j];
-		}}}
-		break;
-	} case TET: {
-		double Barycentric_coords[11][4] = {{ 1.0 , 0.0 , 0.0 , 0.0 },
-		                                    { 0.0 , 1.0 , 0.0 , 0.0 },
-		                                    { 0.0 , 0.0 , 1.0 , 0.0 },
-		                                    { 0.0 , 0.0 , 0.0 , 1.0 },
-		                                    { 0.5 , 0.5 , 0.0 , 0.0 },
-		                                    { 0.5 , 0.0 , 0.5 , 0.0 },
-		                                    { 0.0 , 0.5 , 0.5 , 0.0 },
-		                                    { 0.5 , 0.0 , 0.0 , 0.5 },
-		                                    { 0.0 , 0.5 , 0.0 , 0.5 },
-		                                    { 0.0 , 0.0 , 0.5 , 0.5 },
-		                                    { 0.25, 0.25, 0.25, 0.25}};
-		if (TETrefineType == TET8) {
-			unsigned int Vh_coord_Ind[9][4] = {{ 0 , 1 , 2 , 3 },
-			                                   { 0 , 4 , 5 , 7 },
-			                                   { 4 , 1 , 6 , 8 },
-			                                   { 5 , 6 , 2 , 9 },
-			                                   { 7 , 8 , 9 , 3 },
-			                                   { 4 , 9 , 8 , 6 },
-			                                   { 9 , 4 , 7 , 5 },
-			                                   { 8 , 7 , 9 , 4 },
-			                                   { 6 , 5 , 4 , 9 }};
-
-			for (k = 0; k < Nvref; k++) {
-			for (i = 0; i < Nvve[k]; i++) {
-			for (j = 0; j < Nve; j++) {
-				*VeVref++ = Barycentric_coords[Vh_coord_Ind[k][i]][j];
-			}}}
-		} else if (TETrefineType == TET12) {
-			unsigned int Vh_coord_Ind[13][4] = {{ 0 , 1 , 2 , 3 },
-			                                    { 0 , 4 , 5 , 7 },
-			                                    { 4 , 1 , 6 , 8 },
-			                                    { 5 , 6 , 2 , 9 },
-			                                    { 7 , 8 , 9 , 3 },
-			                                    { 10, 9 , 8 , 6 },
-			                                    { 9 , 10, 7 , 5 },
-			                                    { 8 , 7 , 10, 4 },
-			                                    { 6 , 5 , 4 , 10},
-			                                    { 10, 4 , 7 , 5 },
-			                                    { 4 , 10, 8 , 6 },
-			                                    { 6 , 5 , 10, 9 },
-			                                    { 8 , 7 , 9 , 10}};
-
-			for (k = 0; k < Nvref; k++) {
-			for (i = 0; i < Nvve[k]; i++) {
-			for (j = 0; j < Nve; j++) {
-				*VeVref++ = Barycentric_coords[Vh_coord_Ind[k][i]][j];
-			}}}
-		} else if (TETrefineType == TET6) {
-			unsigned int Vh_coord_Ind[7][5] = {{ 0 , 1 , 2 , 3 , -1},
-			                                   { 0 , 4 , 5 , 7 , -1},
-			                                   { 4 , 1 , 6 , 8 , -1},
-			                                   { 5 , 6 , 2 , 9 , -1},
-			                                   { 7 , 8 , 9 , 3 , -1},
-			                                   { 8 , 7 , 6 , 5 , 4 },
-			                                   { 7 , 8 , 5 , 6 , 9 }};
-
-			for (k = 0; k < Nvref; k++) {
-			for (i = 0; i < Nvve[k]; i++) {
-			for (j = 0; j < Nve; j++) {
-				*VeVref++ = Barycentric_coords[Vh_coord_Ind[k][i]][j];
-			}}}
-		} else {
-			printf("Error: Unsupported.\n"), EXIT_MSG;
-		}
-		break;
-	} case PYR: {
-		double Barycentric_coords[14][5] = {{ 1.0 , 0.0 , 0.0 , 0.0 , 0.0 },
-		                                    { 0.0 , 1.0 , 0.0 , 0.0 , 0.0 },
-		                                    { 0.0 , 0.0 , 1.0 , 0.0 , 0.0 },
-		                                    { 0.0 , 0.0 , 0.0 , 1.0 , 0.0 },
-		                                    { 0.0 , 0.0 , 0.0 , 0.0 , 1.0 },
-		                                    { 0.5 , 0.5 , 0.0 , 0.0 , 0.0 },
-		                                    { 0.5 , 0.0 , 0.5 , 0.0 , 0.0 },
-		                                    { 0.25, 0.25, 0.25, 0.25, 0.0 },
-		                                    { 0.0 , 0.5 , 0.0 , 0.5 , 0.0 },
-		                                    { 0.0 , 0.0 , 0.5 , 0.5 , 0.0 },
-		                                    { 0.5 , 0.0 , 0.0 , 0.0 , 0.5 },
-		                                    { 0.0 , 0.5 , 0.0 , 0.0 , 0.5 },
-		                                    { 0.0 , 0.0 , 0.5 , 0.0 , 0.5 },
-		                                    { 0.0 , 0.0 , 0.0 , 0.5 , 0.5 }};
-		unsigned int Vh_coord_Ind[11][5] = {{ 0 , 1 , 2 , 3 , 4 },
-		                                    { 0 , 5 , 6 , 7 , 10},
-		                                    { 5 , 1 , 7 , 8 , 11},
-		                                    { 6 , 7 , 2 , 9 , 12},
-		                                    { 7 , 8 , 9 , 3 , 13},
-		                                    { 6 , 7 , 12, 10, -1},
-		                                    { 7 , 8 , 13, 11, -1},
-		                                    { 11, 10, 7 , 5 , -1},
-		                                    { 13, 12, 9 , 7 , -1},
-		                                    { 11, 10, 13, 12, 7 },
-		                                    { 10, 11, 12, 13, 4 }};
-
-		for (k = 0; k < Nvref; k++) {
-		for (i = 0; i < Nvve[k]; i++) {
-		for (j = 0; j < Nve; j++) {
-			*VeVref++ = Barycentric_coords[Vh_coord_Ind[k][i]][j];
-		}}}
-		break;
-	} default:
-		printf("Error: Unsupported EType.\n"), EXIT_MSG;
-		break;
-	}
-
-}
-
-static void setup_ELEMENT_VeV(const unsigned int EType)
-{
-	/*
-	 *	Comments:
-	 *		For TET refinement, note that there are 3 options for the internal TET positioning. Here only one option is
-	 *		supported but the others can be added if, for example, it is desired to refine TETs by splitting along the
-	 *		longest physical diagonal. Similarly, if it is found that TETs are advantageous over PYRs, the top two PYRs
-	 *		in the refined PYR can be split into four/eight TETs.
-	 */
-
-	// Initialize DB Parameters
-	unsigned int TETrefineType = DB.TETrefineType;
-
-	// Standard datatypes
-	unsigned int i, j, jMax, VeVrefInd, Nve, *Nvve, Nvref, EcType, Nnodes;
-	double       **VeV, *VeVref;
-
-	struct S_ELEMENT *ELEMENT;
-
-	ELEMENT = get_ELEMENT_type(EType);
-
-	Nve   = ELEMENT->Nve;
-	Nvve  = ELEMENT->Nvve;
-	VeV   = ELEMENT->VeV;
-	Nvref = ELEMENT->Nvref;
-
-	if (EType == LINE) {
-		Nnodes = 12;
-	} else if (EType == TRI) {
-		Nnodes = 45;
-	} else if (EType == TET) {
-		if      (TETrefineType == TET8)  Nnodes = 144;
-		else if (TETrefineType == TET12) Nnodes = 208;
-		else if (TETrefineType == TET6)  Nnodes = 120;
-		else
-			printf("Error: Unsupported.\n"), EXIT_MSG;
-	} else if (EType == PYR) {
-		Nnodes = 255;
-	} else {
-		printf("Error: Unsupported.\n"), EXIT_MSG;
-	}
-
-//	VeVref = malloc(Nnodes * sizeof *VeVref); // free
-	VeVref = calloc(Nnodes , sizeof *VeVref); // free
-	for (i = 0; i < Nnodes; i++)
-		VeVref[i] = 123.0;
-
-	if (EType == LINE || EType == TRI) {
-		for (i = 0; i < Nvref; i++)
-			Nvve[i] = Nve;
-	} else {
-		for (i = 0; i < Nvref; i++) {
-			EcType = get_VOLUMEc_type(EType,i);
-			if      (EcType == TET)  Nvve[i] = 4;
-			else if (EcType == PYR)  Nvve[i] = 5;
-			else
-				printf("Error: Unsupported.\n"), EXIT_MSG;
-		}
-	}
-
-	initialize_VeVref(EType,VeVref);
-
-	VeVrefInd = 0;
-	for (i = 0; i < Nvref; i++) {
-		if (i)
-			VeVrefInd += jMax;
-
-		jMax = Nve*Nvve[i];
-		VeV[i] = malloc(jMax * sizeof *VeV[i]); // keep
-		for (j = 0; j < jMax; j++)
-			VeV[i][j] = VeVref[VeVrefInd+j];
-	}
-	free(VeVref);
-}
-
-static double get_L2_scaling(const unsigned int EType, const unsigned int vref)
-{
-	/*
-	 *	Purpose:
-	 *		Returns the scaling for the L2 projection operator from fine to coarse.
-	 */
-
-	// Initialize DB Parameters
-	unsigned int TETrefineType = DB.TETrefineType;
-
-	if (vref == 0)
-		return 1.0;
-
-	switch (EType) {
-	case LINE:
-		return 0.5;
-		break;
-	case TRI:
-		if (vref < 5)
-			return 0.25;
-		else
-			printf("Error: Unsupported vref (%d) (anisotropic) for TRIs.\n",vref), EXIT_MSG;
-		break;
-	case TET:
-		if (TETrefineType == TET8) {
-			if (vref < 9)
-				return 1.0/8.0;
-			else
-				printf("Error: Unsupported.\n"), EXIT_MSG;
-		} else if (TETrefineType == TET12) {
-			if (vref < 5)
-				return 1.0/8.0;
-			else if (vref < 13)
-				return 1.0/16.0;
-			else
-				printf("Error: Unsupported.\n"), EXIT_MSG;
-		} else if (TETrefineType == TET6) {
-			if (vref < 5)
-				return 1.0/8.0; // reference TET scaled by 0.5
-			else if (vref < 7)
-				return 1.0/8.0; // reference PYR scaled by 0.5
-			else
-				printf("Error: Unsupported.\n"), EXIT_MSG;
-		}
-		break;
-	case PYR:
-		if (vref < 5 || vref > 8)
-			return 1.0/8.0; // reference PYR scaled by 0.5
-		else
-			return 1.0/8.0; // reference TET scaled by 0.5
-		break;
-	case QUAD:
-	case HEX:
-	case WEDGE:
-	default:
-		printf("Error: Unsupported EType (%d).\n",EType), EXIT_MSG;
-		break;
-	}
-
-	// silence
-	return -1e20;
-}
 
 static void setup_ELEMENT_operator_dependencies(const unsigned int EType)
 {
@@ -997,7 +359,7 @@ static void setup_ELEMENT_operator_dependencies(const unsigned int EType)
 static void setup_ELEMENT_operators(const unsigned int EType)
 {
 	// Returned operators
-	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS, **NfnGc, **NfnS, **NfnIs, **NfnIc;
+	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS, **NfnGc, **NfnS, **NfnIs, **NfnIc, *NenGc;
 	double       **w_vIs, **w_vIc, ***w_fIs, ***w_fIc,
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS,
@@ -1015,7 +377,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             ****ChiS_fS, ****ChiS_fIs, ****ChiS_fIc,
 	             *****GradChiS_fIs, *****GradChiS_fIc,
 	             ****I_vGs_fS, ****I_vGs_fIs, ****I_vGs_fIc,
-	             ****I_vGc_fGc, ****I_vGc_fS, ****I_vGc_fIs, ****I_vGc_fIc,
+	             ****I_vGc_fGc, ****I_vGc_fS, ****I_vGc_fIs, ****I_vGc_fIc, ****I_vGc_eGc,
 	             ****I_vCs_fS, ****I_vCs_fIs, ****I_vCs_fIc,
 	             ****I_vCc_fS, ****I_vCc_fIs, ****I_vCc_fIc,
 	             *****D_vGs_fIs, *****D_vGs_fIc,
@@ -1048,14 +410,15 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             ***NodeTypeS   = DB.NodeTypeS;
 
 	// Standard datatypes
-	unsigned int i, iMax, dim, dE, P, f, vh, fh, Vf, IndFType, PSMin, PSMax, Pb, PbMin, PbMax, fhMax,
-	             Nve, Nve_h, Nf, Nbf, Eclass, NFTypes, Nvref, vref, vrefSF, NvrefSF, *Nfref, *ones_Nf, NEhref,
+	unsigned int i, iMax, dim, dE, P, e, f, vh, fh, Ve, Vf, IndFType, PSMin, PSMax, Pb, PbMin, PbMax, fhMax,
+	             Nve, Nve_h, Ne, Nf, Nbf, Eclass, NFTypes, Nvref, vref, vrefSF, NvrefSF, *Nfref, *ones_Nf, NEhref,
 	             Indh, NvnP, u1 = 1,
-	             B_Nve[2], *Nfve, *Nvve, *EType_h,
+	             BE_Nve, BF_Nve[2], Neve, *Nfve, *Nvve, *EType_h,
 	             dummy_ui, *dummyPtr_ui[2];
-	double       *E_rst_vC, *rst_vC, **VeF, **VeV,
+	double       *E_rst_vV, *rst_vV, **VeE, **VeF, **VeV,
 	             *rst_vP, *rst_vGs, *rst_vGc, *rst_vCs, *rst_vCc, **rst_vIs, **rst_vIc, **rst_vS,
 	             *rst_fGc, *rst_fS, *rst_fIs, *rst_fIc,
+	             *rst_eGc,
 	             *wInv_vIs, *wInv_vIc,
 	             *diag_w_vIs, *diag_w_vIc, *diag_wInv_vIs, *diag_wInv_vIc,
 	             *diag_w_fIs, *diag_w_fIc,
@@ -1068,14 +431,14 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             *ChiRefGs_vP, *ChiRefGs_vGs, *ChiRefGs_vGc, *ChiRefGs_vCs, *ChiRefGs_vIs, *ChiRefGs_vIc, *ChiRefGs_vS,
 	             *ChiRefGs_fS, *ChiRefGs_fIs, *ChiRefGs_fIc,
 	             *ChiRefGc_vP,                *ChiRefGc_vCc, *ChiRefGc_vIs, *ChiRefGc_vIc, *ChiRefGc_vS,
-	             *ChiRefGc_fGc, *ChiRefGc_fS, *ChiRefGc_fIs, *ChiRefGc_fIc,
+	             *ChiRefGc_fGc, *ChiRefGc_fS, *ChiRefGc_fIs, *ChiRefGc_fIc, *ChiRefGc_eGc,
 	             *ChiRefCs_vS, *ChiRefCs_vIs, *ChiRefCs_vIc, *ChiRefCs_fS, *ChiRefCs_fIs, *ChiRefCs_fIc,
 	             *ChiRefCc_vS, *ChiRefCc_vIs, *ChiRefCc_vIc, *ChiRefCc_fS, *ChiRefCc_fIs, *ChiRefCc_fIc,
 	             *ChiRefS_vP, *ChiRefS_vIs, *ChiRefS_vIc, *ChiRefS_fS, *ChiRefS_fIs, *ChiRefS_fIc,
 	             *ChiGs_vP, *ChiGs_vGs, *ChiGs_vGc, *ChiGs_vCs, *ChiGs_vIs, *ChiGs_vIc, *ChiGs_vS,
 	             *ChiGs_fS, *ChiGs_fIs, *ChiGs_fIc,
 	             *ChiGc_vP,             *ChiGc_vCc, *ChiGc_vIs, *ChiGc_vIc, *ChiGc_vS,
-	             *ChiGc_fGc, *ChiGc_fS, *ChiGc_fIs, *ChiGc_fIc,
+	             *ChiGc_fGc, *ChiGc_fS, *ChiGc_fIs, *ChiGc_fIc, *ChiGc_eGc,
 	             *ChiCs_vS, *ChiCs_vIs, *ChiCs_vIc, *ChiCs_fS, *ChiCs_fIs, *ChiCs_fIc,
 	             *ChiCc_vS, *ChiCc_vIs, *ChiCc_vIc, *ChiCc_fS, *ChiCc_fIs, *ChiCc_fIc,
 	             **GradChiRefGs_vCs, **GradChiRefGs_vIs,
@@ -1094,9 +457,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	struct BCoords {
 		double **Gc, **Is, **Ic, **S;
-	} *BCoords_F[2], **BCoords_V;
+	} *BCoords_E, *BCoords_F[2], **BCoords_V;
 
-	struct S_BCOORDS *BCoords_dEm1[2];
+	struct S_BCOORDS *BCoords_dEm2, *BCoords_dEm1[2];
 	struct S_ELEMENT *ELEMENT, *ELEMENT_h;
 
 	// Function pointers
@@ -1108,6 +471,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	ChiGs_vGs = NULL; ChiGc_vGc = NULL;
 	ChiCs_vCs = NULL; ChiCc_vCc = NULL;
 	ChiRefGs_vIs = ChiRefGs_vIc = NULL;
+	BE_Nve = 0; BCoords_E = NULL;
 
 	ELEMENT   = get_ELEMENT_type(EType);
 	ELEMENT_h = ELEMENT;
@@ -1120,9 +484,12 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	dE      = ELEMENT->d;
 	Nve     = ELEMENT->Nve;
+	Ne      = ELEMENT->Ne;
 	Nf      = ELEMENT->Nf;
 	Nfref   = ELEMENT->Nfref;
+	Neve    = ELEMENT->Neve;
 	Nfve    = ELEMENT->Nfve;
+	VeE     = ELEMENT->VeE;
 	VeF     = ELEMENT->VeF;
 	VeV     = ELEMENT->VeV;
 	Nvve    = ELEMENT->Nvve;
@@ -1145,6 +512,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	NfnS  = ELEMENT->NfnS;
 	NfnIs = ELEMENT->NfnIs;
 	NfnIc = ELEMENT->NfnIc;
+	NenGc = ELEMENT->NenGc;
 
 	w_fIs = ELEMENT->w_fIs;
 	w_fIc = ELEMENT->w_fIc;
@@ -1209,6 +577,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	I_vGc_fS  = ELEMENT->I_vGc_fS;
 	I_vGc_fIs = ELEMENT->I_vGc_fIs;
 	I_vGc_fIc = ELEMENT->I_vGc_fIc;
+	I_vGc_eGc = ELEMENT->I_vGc_eGc;
 	I_vCs_fS  = ELEMENT->I_vCs_fS;
 	I_vCs_fIs = ELEMENT->I_vCs_fIs;
 	I_vCs_fIc = ELEMENT->I_vCs_fIc;
@@ -1250,16 +619,16 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	// VOLUME Nodes (Order Independent)
 	cubature(&rst_vGs,&dummyPtr_d,&dummyPtr_ui[0],&NvnGs[1],&dummy_ui,0,PGs,dE,NodeTypeG[Eclass]); free(dummyPtr_ui[0]); // free
-	// Use E_rst_vC instead of rst_vGs (!= for PYR ELEMENTs)
+	// Use E_rst_vV instead of rst_vGs (!= for PYR ELEMENTs)
 	free(rst_vGs);
-	E_rst_vC = get_rst_vC(ELEMENT); // free
-	rst_vC = malloc((Nve+1)*dE * sizeof *rst_vC); // free (+1 for h-refined TET -> PYR) ToBeModified (remove +1)
+	E_rst_vV = get_rst_vV(ELEMENT); // free
+	rst_vV = malloc((Nve+1)*dE * sizeof *rst_vV); // free (+1 for h-refined TET -> PYR) ToBeModified (remove +1)
 
 
 	// Preliminary Operators
 	IGs = identity_d(NvnGs[1]); // free
 
-	ChiRefGs_vGs = basis(PGs,E_rst_vC,NvnGs[1],&Nbf,dE); // free
+	ChiRefGs_vGs = basis(PGs,E_rst_vV,NvnGs[1],&Nbf,dE); // free
 
 	if (strstr(BasisType,"Modal"))
 		ChiGs_vGs = ChiRefGs_vGs;
@@ -1274,6 +643,21 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(ChiRefGs_vGs);
 
 	// Get Barycentric coordinates for lower dimensional ELEMENTs
+
+	// EDGEs
+	if (dE == DMAX) {
+		BCoords_E = malloc(sizeof *BCoords_E); // free
+		BCoords_dEm2 = get_BCoords_dEm2(ELEMENT);
+
+		BE_Nve        = BCoords_dEm2->Nve;
+		BCoords_E->Gc = BCoords_dEm2->BCoords_Gc;
+		for (P = 0; P <= PMax; P++) {
+			NenGc[P] = BCoords_dEm2->NenGc[P];
+		}
+		free(BCoords_dEm2->NenGc);
+	}
+
+	// FACETs
 	NFTypes = 1;
 	BCoords_dEm1[0] = get_BCoords_dEm1(ELEMENT,0); // keep/free
 	if (EType == WEDGE || EType == PYR) {
@@ -1286,7 +670,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 
 	for (IndFType = 0; IndFType < NFTypes; IndFType++) {
-		B_Nve[IndFType]         = BCoords_dEm1[IndFType]->Nve;
+		BF_Nve[IndFType]        = BCoords_dEm1[IndFType]->Nve;
 		BCoords_F[IndFType]->Gc = BCoords_dEm1[IndFType]->BCoords_Gc;
 		BCoords_F[IndFType]->S  = BCoords_dEm1[IndFType]->BCoords_S;
 		BCoords_F[IndFType]->Is = BCoords_dEm1[IndFType]->BCoords_Is;
@@ -1449,12 +833,12 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				ChiRefGs_vIs = basis(PGs,rst_vIs[0],NvnIs[Pb],&Nbf,dE); // free
 				ChiRefGs_vIc = basis(PGs,rst_vIc[0],NvnIc[Pb],&Nbf,dE); // free
 
-				free(E_rst_vC);
+				free(E_rst_vV);
 				free(ChiRefInvGs_vGs);
 
-				E_rst_vC        = get_rst_vC(ELEMENT_h);                   // free
+				E_rst_vV        = get_rst_vV(ELEMENT_h);                   // free
 				IGs             = identity_d(Nve_h);                       // free
-				ChiRefGs_vGs    = basis(PGs,E_rst_vC,Nve_h,&Nbf,dE);       // free
+				ChiRefGs_vGs    = basis(PGs,E_rst_vV,Nve_h,&Nbf,dE);       // free
 				ChiRefInvGs_vGs = inverse_d(Nve_h,Nve_h,ChiRefGs_vGs,IGs); // free
 				free(IGs);
 				free(ChiRefGs_vGs);
@@ -1478,7 +862,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 			// Note: Nvref >= NvrefSF
 			for (vh = 0; vh < Nvref; vh++) {
 				vrefSF = vh; // Used for operators defined only for setup_TP_operators
-				mm_CTN_d(Nvve[vh],dE,Nve,VeV[vh],E_rst_vC,rst_vC);
+				mm_CTN_d(Nvve[vh],dE,Nve,VeV[vh],E_rst_vV,rst_vV);
 
 				if (vh) {
 					Indh = get_IndEhref(EType,vh);
@@ -1487,16 +871,16 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					else
 						ELEMENT_h = ELEMENT;
 
-					rst_vS[vh]  = mm_Alloc_d(CBCM,CBNT,CBNT,ELEMENT_h->NvnS[Pb], dE,Nvve[vh],1.0,BCoords_V[Indh]->S[Pb], rst_vC); // free
-					rst_vIs[vh] = mm_Alloc_d(CBCM,CBNT,CBNT,ELEMENT_h->NvnIs[Pb],dE,Nvve[vh],1.0,BCoords_V[Indh]->Is[Pb],rst_vC); // free
-					rst_vIc[vh] = mm_Alloc_d(CBCM,CBNT,CBNT,ELEMENT_h->NvnIc[Pb],dE,Nvve[vh],1.0,BCoords_V[Indh]->Ic[Pb],rst_vC); // free
+					rst_vS[vh]  = mm_Alloc_d(CBCM,CBNT,CBNT,ELEMENT_h->NvnS[Pb], dE,Nvve[vh],1.0,BCoords_V[Indh]->S[Pb], rst_vV); // free
+					rst_vIs[vh] = mm_Alloc_d(CBCM,CBNT,CBNT,ELEMENT_h->NvnIs[Pb],dE,Nvve[vh],1.0,BCoords_V[Indh]->Is[Pb],rst_vV); // free
+					rst_vIc[vh] = mm_Alloc_d(CBCM,CBNT,CBNT,ELEMENT_h->NvnIc[Pb],dE,Nvve[vh],1.0,BCoords_V[Indh]->Ic[Pb],rst_vV); // free
 
 					ChiRefGs_vIs = basis(PGs,rst_vIs[vh],ELEMENT_h->NvnIs[Pb],&Nbf,dE); // free
 					ChiRefGs_vIc = basis(PGs,rst_vIc[vh],ELEMENT_h->NvnIc[Pb],&Nbf,dE); // free
 				}
 
 // Note: Nvve[vh] == ELEMENT_h->NvnGs[1]. Replace. (ToBeDeleted)
-				ChiRefGs_vGs = basis(PGs,           rst_vC,     Nvve[vh], &Nbf,dE); // free
+				ChiRefGs_vGs = basis(PGs,           rst_vV,     Nvve[vh], &Nbf,dE); // free
 				ChiRefGs_vS  = basis(PGs,           rst_vS[vh], ELEMENT_h->NvnS[Pb], &Nbf,dE); // free
 				ChiRefGc_vIs = basis(PGc[P],        rst_vIs[vh],ELEMENT_h->NvnIs[Pb],&Nbf,dE); // free
 				ChiRefGc_vIc = basis(PGc[P],        rst_vIc[vh],ELEMENT_h->NvnIc[Pb],&Nbf,dE); // free
@@ -1730,12 +1114,12 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				for (fh = 0, fhMax = Nfref[f]; fh < fhMax; fh++) {
 					Vf = f*NFREFMAX+fh;
 
-					mm_CTN_d(Nfve[f],dE,Nve,VeF[Vf],E_rst_vC,rst_vC);
+					mm_CTN_d(Nfve[f],dE,Nve,VeF[Vf],E_rst_vV,rst_vV);
 
-					rst_fGc = mm_Alloc_d(CBCM,CBNT,CBNT,NfnGc[Pb][IndFType],dE,B_Nve[IndFType],1.0,BCoords_F[IndFType]->Gc[Pb],rst_vC); // free
-					rst_fS  = mm_Alloc_d(CBCM,CBNT,CBNT,NfnS[Pb][IndFType], dE,B_Nve[IndFType],1.0,BCoords_F[IndFType]->S[Pb], rst_vC); // free
-					rst_fIs = mm_Alloc_d(CBCM,CBNT,CBNT,NfnIs[Pb][IndFType],dE,B_Nve[IndFType],1.0,BCoords_F[IndFType]->Is[Pb],rst_vC); // free
-					rst_fIc = mm_Alloc_d(CBCM,CBNT,CBNT,NfnIc[Pb][IndFType],dE,B_Nve[IndFType],1.0,BCoords_F[IndFType]->Ic[Pb],rst_vC); // free
+					rst_fGc = mm_Alloc_d(CBCM,CBNT,CBNT,NfnGc[Pb][IndFType],dE,BF_Nve[IndFType],1.0,BCoords_F[IndFType]->Gc[Pb],rst_vV); // free
+					rst_fS  = mm_Alloc_d(CBCM,CBNT,CBNT,NfnS[Pb][IndFType], dE,BF_Nve[IndFType],1.0,BCoords_F[IndFType]->S[Pb], rst_vV); // free
+					rst_fIs = mm_Alloc_d(CBCM,CBNT,CBNT,NfnIs[Pb][IndFType],dE,BF_Nve[IndFType],1.0,BCoords_F[IndFType]->Is[Pb],rst_vV); // free
+					rst_fIc = mm_Alloc_d(CBCM,CBNT,CBNT,NfnIc[Pb][IndFType],dE,BF_Nve[IndFType],1.0,BCoords_F[IndFType]->Ic[Pb],rst_vV); // free
 
 					diag_w_fIs = diag_d(w_fIs[Pb][IndFType],NfnIs[Pb][IndFType]); // free
 					diag_w_fIc = diag_d(w_fIc[Pb][IndFType],NfnIc[Pb][IndFType]); // free
@@ -1906,6 +1290,25 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					array_free2_d(dE,GradChiRefS_fIc);
 				}
 			}
+
+			// EDGE related operators (d == 3 only)
+			for (e = 0; dE == DMAX && e < Ne; e++) {
+				Ve = e*NEREFMAX;
+
+				mm_CTN_d(Neve,dE,Nve,VeE[Ve],E_rst_vV,rst_vV);
+
+				rst_eGc = mm_Alloc_d(CBCM,CBNT,CBNT,NenGc[Pb],dE,BE_Nve,1.0,BCoords_E->Gc[Pb],rst_vV); // free
+
+				ChiRefGc_eGc = basis(PGc[P]        ,rst_eGc,NenGc[Pb],&Nbf,dE);                             // free
+				ChiGc_eGc    = mm_Alloc_d(CBRM,CBNT,CBNT,NenGc[Pb],NvnGc[P],NvnGc[P],1.0,ChiRefGc_eGc,TGc); // free
+
+				I_vGc_eGc[P][Pb][Ve] = mm_Alloc_d(CBRM,CBNT,CBNT,NenGc[Pb],NvnGc[P],NvnGc[P],1.0,ChiGc_eGc,ChiInvGc_vGc); // keep
+
+				free(rst_eGc);
+				free(ChiRefGc_eGc);
+				free(ChiGc_eGc);
+			}
+
 			for (vref = 0; vref < Nvref; vref++) {
 				free(rst_vS[vref]);
 				free(rst_vIs[vref]);
@@ -1943,6 +1346,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	free(ChiRefInvGs_vGs);
 
+	free(BCoords_E);
+
 	for (IndFType = 0; IndFType < NFTypes; IndFType++) {
 		array_free2_d(PMax+1,BCoords_F[IndFType]->Gc);
 		array_free2_d(PMax+1,BCoords_F[IndFType]->S);
@@ -1960,8 +1365,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	}
 	free(BCoords_V);
 
-	free(E_rst_vC);
-	free(rst_vC);
+	free(E_rst_vV);
+	free(rst_vV);
 
 	free(ChiInvGs_vGs);
 	free(TGs);
@@ -1979,174 +1384,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(GradChiGc_fIc);
 
 	free(ones_Nf);
-}
-
-static void setup_ELEMENT_VeF(const unsigned int EType)
-{
-	/*
-	 *	Comments:
-	 *		While VeV defines VeVref_LINE and VeVref_TRI, the redundant definitions are included here as the ELEMENTs
-	 *		are set up in order and VeV may not yet be defined.
-	 */
-
-	// Standard datatypes
-	unsigned int i, j, k, l, iMax, jMax, kMax, lMax, iStep,
-	             Nve, *Nfve, *Nfref, Nf, *VeFcon;
-	double *VeF;
-
-	struct S_ELEMENT *ELEMENT;
-
-	// silence
-	VeF = NULL;
-
-	ELEMENT = get_ELEMENT_type(EType);
-	Nve    = ELEMENT->Nve;
-	Nfve   = ELEMENT->Nfve;
-	Nf     = ELEMENT->Nf;
-	VeFcon = ELEMENT->VeFcon;
-
-	Nfref   = ELEMENT->Nfref;
-
-	unsigned int size_VeF = 0;
-	double VeVref_LINE[12]  = {1.0 , 0.0 , // 0
-	                           0.0 , 1.0 ,
-	                           1.0 , 0.0 , // 1
-	                           0.5 , 0.5 ,
-	                           0.5 , 0.5 , // 2
-	                           0.0 , 1.0 },
-	       VeVref_TRI[45]   = {1.0 , 0.0 , 0.0 , // 0
-	                           0.0 , 1.0 , 0.0 ,
-	                           0.0 , 0.0 , 1.0 ,
-	                           1.0 , 0.0 , 0.0 , // 1
-	                           0.5 , 0.5 , 0.0 ,
-	                           0.5 , 0.0 , 0.5 ,
-	                           0.5 , 0.5 , 0.0 , // 2
-	                           0.0 , 1.0 , 0.0 ,
-	                           0.0 , 0.5 , 0.5 ,
-	                           0.5 , 0.0 , 0.5 , // 3
-	                           0.0 , 0.5 , 0.5 ,
-	                           0.0 , 0.0 , 1.0 ,
-	                           0.0 , 0.5 , 0.5 , // 4
-	                           0.5 , 0.0 , 0.5 ,
-	                           0.5 , 0.5 , 0.0 },
-	       VeVref_QUAD[144] = {1.0 , 0.0 , 0.0 , 0.0 , // 0
-	                           0.0 , 1.0 , 0.0 , 0.0 ,
-	                           0.0 , 0.0 , 1.0 , 0.0 ,
-	                           0.0 , 0.0 , 0.0 , 1.0 ,
-	                           1.0 , 0.0 , 0.0 , 0.0 , // 1
-	                           0.5 , 0.5 , 0.0 , 0.0 ,
-	                           0.5 , 0.0 , 0.5 , 0.0 ,
-	                           0.25, 0.25, 0.25, 0.25,
-	                           0.5 , 0.5 , 0.0 , 0.0 , // 2
-	                           0.0 , 1.0 , 0.0 , 0.0 ,
-	                           0.25, 0.25, 0.25, 0.25,
-	                           0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.5 , 0.0 , 0.5 , 0.0 , // 3
-	                           0.25, 0.25, 0.25, 0.25,
-	                           0.0 , 0.0 , 1.0 , 0.0 ,
-	                           0.0 , 0.0 , 0.5 , 0.5 ,
-	                           0.25, 0.25, 0.25, 0.25, // 4
-	                           0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.0 , 0.0 , 0.5 , 0.5 ,
-	                           0.0 , 0.0 , 0.0 , 1.0 ,
-	                           1.0 , 0.0 , 0.0 , 0.0 , // 5
-	                           0.5 , 0.5 , 0.0 , 0.0 ,
-	                           0.0 , 0.0 , 1.0 , 0.0 ,
-	                           0.0 , 0.0 , 0.5 , 0.5 ,
-	                           0.5 , 0.5 , 0.0 , 0.0 , // 6
-	                           0.0 , 1.0 , 0.0 , 0.0 ,
-	                           0.0 , 0.0 , 0.5 , 0.5 ,
-	                           0.0 , 0.0 , 0.0 , 1.0 ,
-	                           1.0 , 0.0 , 0.0 , 0.0 , // 7
-	                           0.0 , 1.0 , 0.0 , 0.0 ,
-	                           0.5 , 0.0 , 0.5 , 0.0 ,
-	                           0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.5 , 0.0 , 0.5 , 0.0 , // 8
-	                           0.0 , 0.5 , 0.0 , 0.5 ,
-	                           0.0 , 0.0 , 1.0 , 0.0 ,
-	                           0.0 , 0.0 , 0.0 , 1.0 };
-
-	switch(EType) {
-	case LINE:
-		VeF = calloc(Nve*Nfve[0]*Nfref[0]*Nf , sizeof *VeF); // free
-
-		VeF[0] = 1.0; VeF[1] = 0.0;
-		VeF[2] = 0.0; VeF[3] = 1.0;
-
-		break;
-	case TRI:
-	case QUAD:
-		VeF = calloc(Nve*Nfve[0]*Nfref[0]*Nf , sizeof *VeF); // free
-
-		for (i = 0, iMax = Nf;               i < iMax; i++) {
-		for (j = 0, jMax = Nfve[i]*Nfref[i]; j < jMax; j++) {
-		for (k = 0, kMax = Nfve[i];          k < kMax; k++) {
-			VeF[i*(Nfref[i]*Nfve[i]*Nve)+j*Nve+VeFcon[i*NFVEMAX+k]] = VeVref_LINE[j*kMax+k];
-		}}}
-
-		break;
-	case TET:
-		VeF = calloc(Nve*Nfve[0]*Nfref[0]*Nf , sizeof *VeF); // free
-
-		for (i = 0, iMax = Nf;               i < iMax; i++) {
-		for (j = 0, jMax = Nfve[i]*Nfref[i]; j < jMax; j++) {
-		for (k = 0, kMax = Nfve[i];          k < kMax; k++) {
-			VeF[i*(Nfref[i]*Nfve[i]*Nve)+j*Nve+VeFcon[i*NFVEMAX+k]] = VeVref_TRI[j*kMax+k];
-		}}}
-
-		break;
-	case HEX:
-		VeF = calloc(Nve*Nfve[0]*Nfref[0]*Nf , sizeof *VeF); // free
-
-		for (i = 0, iMax = Nf;               i < iMax; i++) {
-		for (j = 0, jMax = Nfve[i]*Nfref[i]; j < jMax; j++) {
-		for (k = 0, kMax = Nfve[i];          k < kMax; k++) {
-			VeF[i*(Nfref[i]*Nfve[i]*Nve)+j*Nve+VeFcon[i*NFVEMAX+k]] = VeVref_QUAD[j*kMax+k];
-		}}}
-
-		break;
-	case WEDGE:
-	case PYR:
-		for (i = 0; i < Nf; i++)
-			size_VeF += Nfve[i]*Nfref[i];
-		size_VeF *= Nve;
-
-		VeF = calloc(size_VeF , sizeof *VeF); // free
-
-		for (i = 0, iMax = Nf; i < iMax; i++) {
-			for (j = iStep = 0; j < i; j++)
-				iStep += Nfref[j]*Nfve[j];
-			iStep *= Nve;
-
-			for (j = 0, jMax = Nfve[i]*Nfref[i]; j < jMax; j++) {
-			for (k = 0, kMax = Nfve[i];          k < kMax; k++) {
-				if (Nfve[i] == 3)
-					VeF[iStep+j*Nve+VeFcon[i*NFVEMAX+k]] = VeVref_TRI[j*kMax+k];
-				else if (Nfve[i] == 4)
-					VeF[iStep+j*Nve+VeFcon[i*NFVEMAX+k]] = VeVref_QUAD[j*kMax+k];
-			}
-		}}
-
-		break;
-	default:
-		// Already caught error above.
-		break;
-	}
-
-	for (i = 0, iMax = Nf;       i < iMax; i++) {
-		for (j = iStep = 0; j < i; j++)
-			iStep += Nfref[j]*Nfve[j];
-		iStep *= Nve;
-
-		for (j = 0, jMax = Nfref[i]; j < jMax; j++) {
-			ELEMENT->VeF[i*NFREFMAX+j] = malloc(Nfve[i]*Nve * sizeof **(ELEMENT->VeF)); // keep
-			for (k = 0, kMax = Nfve[i];  k < kMax; k++) {
-			for (l = 0, lMax = Nve;      l < lMax; l++) {
-				ELEMENT->VeF[i*NFREFMAX+j][k*Nve+l] = VeF[iStep+j*(Nfve[i]*Nve)+k*(Nve)+l];
-			}}
-		}
-	}
-	free(VeF);
 }
 
 static void setup_TP_operators(const unsigned int EType)
@@ -2970,7 +2207,7 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 	// Standard datatypes
 	unsigned int i, iMax, dE, P, vh, PSMin, PSMax, Pb, PbMin, PbMax, PIvc[NEC],
 	             Nve, Nbf, Eclass, Nvref, NEhref, Indh, *Nvve, *EType_h, dummy_ui, *dummyPtr_ui[2];
-	double       *E_rst_vC, *rst_vC, **VeV, **rst_vIc, *rst_vS,
+	double       *E_rst_vV, *rst_vV, **VeV, **rst_vIc, *rst_vS,
 	             *IGs, *IS, *TS, *ChiRefS_vS, *ChiRefInvGs_vGs, *ChiRefInvS_vS,
 	             *ChiRefGs_vGs, *ChiRefGs_vIc, *ChiRefS_vIc, *ChiS_vS, *dummyPtr_d;
 
@@ -2985,7 +2222,7 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 	grad_basis_tdef grad_basis;
 
 	// silence
-	E_rst_vC = ChiS_vS = NULL;
+	E_rst_vV = ChiS_vS = NULL;
 
 	if (!(EType == TET || EType == PYR))
 		printf("Error: Unsupported EType.\n"), EXIT_MSG;
@@ -3025,7 +2262,7 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 	}
 
 	// Nve + 1 for TETrefineType == TET6
-	rst_vC = malloc((Nve+1)*dE * sizeof *rst_vC); // free
+	rst_vV = malloc((Nve+1)*dE * sizeof *rst_vV); // free
 
 	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
@@ -3065,9 +2302,9 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 
 				cubature(&rst_vIc[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,0,PIvc[Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
 
-				E_rst_vC        = get_rst_vC(ELEMENT_h);                   // free
+				E_rst_vV        = get_rst_vV(ELEMENT_h);                   // free
 				IGs             = identity_d(Nve);                         // free
-				ChiRefGs_vGs    = basis(PGs,E_rst_vC,Nve,&Nbf,dE);         // free
+				ChiRefGs_vGs    = basis(PGs,E_rst_vV,Nve,&Nbf,dE);         // free
 				ChiRefInvGs_vGs = inverse_d(Nve,Nve,ChiRefGs_vGs,IGs);     // free
 				ChiRefGs_vIc    = basis(PGs,rst_vIc[0],NvnIc[Pb],&Nbf,dE); // free
 
@@ -3079,13 +2316,13 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 				free(ChiRefGs_vIc);
 
 				if (i) {
-					free(E_rst_vC);
+					free(E_rst_vV);
 					free(rst_vIc[0]);
 				}
 			}
 
 			for (vh = 0; vh < Nvref; vh++) {
-				mm_CTN_d(Nvve[vh],dE,Nve,VeV[vh],E_rst_vC,rst_vC);
+				mm_CTN_d(Nvve[vh],dE,Nve,VeV[vh],E_rst_vV,rst_vV);
 				if (vh) {
 					Indh = get_IndEhref(EType,vh);
 					if (EType == TET || EType == PYR)
@@ -3093,7 +2330,7 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 					else
 						ELEMENT_h = ELEMENT;
 
-					rst_vIc[vh] = mm_Alloc_d(CBCM,CBNT,CBNT,ELEMENT_h->NvnIc[Pb],dE,Nvve[vh],1.0,BCoords_V[Indh]->Ic[Pb],rst_vC); // free
+					rst_vIc[vh] = mm_Alloc_d(CBCM,CBNT,CBNT,ELEMENT_h->NvnIc[Pb],dE,Nvve[vh],1.0,BCoords_V[Indh]->Ic[Pb],rst_vV); // free
 				}
 
 				ChiRefS_vIc         = basis(P,rst_vIc[vh],ELEMENT_h->NvnIc[Pb],&Nbf,dE);                                  // free
@@ -3102,7 +2339,7 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 				free(ChiRefS_vIc);
 			}
 
-			free(E_rst_vC);
+			free(E_rst_vV);
 			for (vh = 0; vh < Nvref; vh++)
 				free(rst_vIc[vh]);
 
@@ -3111,7 +2348,7 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 		}
 		free(TS);
 	}
-	free(rst_vC);
+	free(rst_vV);
 	free(rst_vIc);
 	for (i = 0; i < NEhref; i++) {
 		free(BCoords_V[i]->Ic);
@@ -3394,99 +2631,6 @@ static void setup_L2_projection_operators(const unsigned int EType)
 */
 }
 
-static void setup_ELEMENT_FACET_ordering(const unsigned int FType)
-{
-	// Returned operators
-	unsigned int ***nOrd_fS, ***nOrd_fIs, ***nOrd_fIc;
-
-	// Initialize DB Parameters
-	const unsigned int d    = DB.d,
-	                   PMax = DB.PMax;
-
-	// Standard datatypes
-	unsigned int P, NOrd, IndOrd;
-
-	struct S_ELEMENT *ELEMENT;
-
-	ELEMENT = get_ELEMENT_type(FType);
-
-	if (FType != POINT) {
-		// Initialize DB Parameters
-		unsigned int **PIfs         = DB.PIfs,
-		             **PIfc         = DB.PIfc;
-		char         ***NodeTypeS   = DB.NodeTypeS,
-		             ***NodeTypeIfs = DB.NodeTypeIfs,
-		             ***NodeTypeIfc = DB.NodeTypeIfc;
-
-		// Standard datatypes
-		unsigned int dE, NfnS, NfnIs, NfnIc, NsS, NsIs, NsIc, Eclass,
-		             *symms_fS, *symms_fIs, *symms_fIc;
-		double       *rst_fS, *rst_fIs, *rst_fIc, *w;
-
-		// Function pointers
-		cubature_tdef   cubature;
-		basis_tdef      basis;
-		grad_basis_tdef grad_basis;
-
-		select_functions(&basis,&grad_basis,&cubature,FType);
-
-		// silence
-		NfnS = NfnIs = NfnIc = NsS = NsIs = NsIc = 0;
-
-		Eclass  = get_Eclass(FType);
-
-		dE = d-1;
-
-		if      (FType == LINE)  NOrd = 2;
-		else if (FType == QUAD)  NOrd = 8;
-		else if (FType == TRI)   NOrd = 6;
-		else    printf("Error: Unsupported FType.\n"), EXIT_MSG;
-
-		nOrd_fS  = ELEMENT->nOrd_fS;
-		nOrd_fIs = ELEMENT->nOrd_fIs;
-		nOrd_fIc = ELEMENT->nOrd_fIc;
-
-		for (P = 0; P <= PMax; P++) {
-			cubature(&rst_fS, &w,&symms_fS, &NfnS, &NsS, 0,P,              dE,NodeTypeS[P][Eclass]);   // free
-			cubature(&rst_fIs,&w,&symms_fIs,&NfnIs,&NsIs,0,PIfs[P][Eclass],dE,NodeTypeIfs[P][Eclass]); // free
-			cubature(&rst_fIc,&w,&symms_fIc,&NfnIc,&NsIc,0,PIfc[P][Eclass],dE,NodeTypeIfc[P][Eclass]); // free
-
-			for (IndOrd = 0; IndOrd < NOrd; IndOrd++) {
-				nOrd_fS[P][IndOrd]  = malloc(NfnS  * sizeof ***nOrd_fS);  //  keep
-				nOrd_fIs[P][IndOrd] = malloc(NfnIs * sizeof ***nOrd_fIs); //  keep
-				nOrd_fIc[P][IndOrd] = malloc(NfnIc * sizeof ***nOrd_fIc); //  keep
-
-				get_facet_ordering(d,IndOrd,FType,NfnS, NsS, symms_fS, rst_fS, nOrd_fS[P][IndOrd]);
-				get_facet_ordering(d,IndOrd,FType,NfnIs,NsIs,symms_fIs,rst_fIs,nOrd_fIs[P][IndOrd]);
-				get_facet_ordering(d,IndOrd,FType,NfnIc,NsIc,symms_fIc,rst_fIc,nOrd_fIc[P][IndOrd]);
-			}
-			free(rst_fS);
-			free(rst_fIs);
-			free(rst_fIc);
-			free(symms_fS);
-			free(symms_fIs);
-			free(symms_fIc);
-		}
-	} else {
-		NOrd = 1;
-
-		nOrd_fS  = ELEMENT->nOrd_fS;
-		nOrd_fIs = ELEMENT->nOrd_fIs;
-		nOrd_fIc = ELEMENT->nOrd_fIc;
-
-		for (P = 0; P <= PMax; P++) {
-		for (IndOrd = 0; IndOrd < NOrd; IndOrd++) {
-			nOrd_fS[P][IndOrd]  = malloc(1 * sizeof ***nOrd_fS);  //  keep
-			nOrd_fIs[P][IndOrd] = malloc(1 * sizeof ***nOrd_fIs); //  keep
-			nOrd_fIc[P][IndOrd] = malloc(1 * sizeof ***nOrd_fIc); //  keep
-
-			get_facet_ordering(d,0,0,0,0,NULL,NULL,nOrd_fS[P][IndOrd]);
-			get_facet_ordering(d,0,0,0,0,NULL,NULL,nOrd_fIs[P][IndOrd]);
-			get_facet_ordering(d,0,0,0,0,NULL,NULL,nOrd_fIc[P][IndOrd]);
-		}}
-	}
-}
-
 static void setup_blending(const unsigned int EType)
 {
 	// Returned operators
@@ -3544,7 +2688,7 @@ static void setup_blending(const unsigned int EType)
 			EclassF = get_Eclass(ELEMENT_F->type);
 			dE      = ELEMENT_F->d;
 
-			rst_v0Gs = get_rst_vC(ELEMENT_F); // free
+			rst_v0Gs = get_rst_vV(ELEMENT_F); // free
 			rst_proj = malloc(NvnGc[P]*dE * sizeof *rst_proj); // free
 
 			mm_CTN_d(NvnGc[P],dE,Nfve[f],BCoords_F,rst_v0Gs,rst_proj);
@@ -3613,9 +2757,10 @@ void setup_operators(void)
 		setup_ELEMENT_FACET_ordering(EType);
 
 	// LINE (Includes TP Class)
+	EType = LINE;
 	if (!DB.MPIrank && !DB.Testing)
 		printf("    LINE\n");
-	EType = LINE;
+
 	setup_ELEMENT_VeF(EType);
 	setup_ELEMENT_plotting(EType);
 	setup_ELEMENT_normals(EType);
@@ -3629,6 +2774,7 @@ void setup_operators(void)
 	if (is_ELEMENT_present(EType) || (Adapt != ADAPT_0 && is_ELEMENT_present(TET))) {
 		if (!DB.MPIrank && !DB.Testing)
 			printf("    QUAD\n");
+
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
@@ -3643,6 +2789,8 @@ void setup_operators(void)
 	if (is_ELEMENT_present(EType)) {
 		if (!DB.MPIrank && !DB.Testing)
 			printf("    HEX\n");
+
+		setup_ELEMENT_VeE(EType);
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
@@ -3655,6 +2803,7 @@ void setup_operators(void)
 	if (is_ELEMENT_present(EType)) {
 		if (!DB.MPIrank && !DB.Testing)
 			printf("    TRI\n");
+
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
@@ -3685,6 +2834,7 @@ void setup_operators(void)
 
 		setup_ELEMENT_operator_dependencies(PYR);
 
+		setup_ELEMENT_VeE(EType);
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
@@ -3698,6 +2848,7 @@ void setup_operators(void)
 		if (!DB.MPIrank && !DB.Testing)
 			printf("    PYR\n");
 
+		setup_ELEMENT_VeE(EType);
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
@@ -3710,6 +2861,8 @@ void setup_operators(void)
 	if (is_ELEMENT_present(EType)) {
 		if (!DB.MPIrank && !DB.Testing)
 			printf("    WEDGE\n");
+
+		setup_ELEMENT_VeE(EType);
 		setup_ELEMENT_VeF(EType);
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
