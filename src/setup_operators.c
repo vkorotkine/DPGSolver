@@ -2634,7 +2634,7 @@ static void setup_L2_projection_operators(const unsigned int EType)
 static void setup_blending(const unsigned int EType)
 {
 	// Returned operators
-	double ****I_fGs_vGc, ****I_fGc_vGc;
+	double ****I_fGs_vGc, ****I_fGc_vGc, ****I_eGs_vGc, ****I_eGc_vGc;
 
 	// Initialize DB Parameters
 	unsigned int PGs  = DB.PGs,
@@ -2643,14 +2643,14 @@ static void setup_blending(const unsigned int EType)
 	char         **NodeTypeG = DB.NodeTypeG;
 
 	// Standard datatypes
-	unsigned int f, n, ve, P, Vf, PSMin, PSMax, Nf, Nve, *Nfve, *VeFcon, *NvnGc, *Nv0nGs, *Nv0nGc, EclassF, dE, Nbf,
-	             dummy_ui, *dummyPtr_ui;
-	double       *BCoords_V, *BCoords_F, *rst_v0Gs, *rst_proj, *rst_v0Gc,
+	unsigned int f, e, n, ve, P, Vf, Ve, PSMin, PSMax, Nf, Ne, Nve, *Nfve, Neve, *VeFcon, *VeEcon,
+	             *NvnGc, *Nv0nGs, *Nv0nGc, EclassF, EclassE, dE, Nbf, dummy_ui, *dummyPtr_ui;
+	double       *BCoords_V, *BCoords_F, *BCoords_E, *rst_v0Gs, *rst_proj, *rst_v0Gc,
 	             *ChiRefGs_vGs, *ChiRefGc_vGc, *ChiRefGs_vProj, *ChiRefGc_vProj,
 	             *ChiRefInvGs_vGs, *IGs, *ChiRefInvGc_vGc, *IGc,
 	             *dummyPtr_d;
 
-	struct S_ELEMENT *ELEMENT, *ELEMENT_F;
+	struct S_ELEMENT *ELEMENT, *ELEMENT_F, *ELEMENT_E;
 
 	// Function pointers
 	cubature_tdef cubature;
@@ -2658,19 +2658,26 @@ static void setup_blending(const unsigned int EType)
 
 	ELEMENT = get_ELEMENT_type(EType);
 
+	Ne     = ELEMENT->Ne;
 	Nf     = ELEMENT->Nf;
 	Nve    = ELEMENT->Nve;
+	Neve   = ELEMENT->Neve;
 	Nfve   = ELEMENT->Nfve;
+	VeEcon = ELEMENT->VeEcon;
 	VeFcon = ELEMENT->VeFcon;
 	NvnGc  = ELEMENT->NvnGc;
 
 	I_fGs_vGc = ELEMENT->I_fGs_vGc;
 	I_fGc_vGc = ELEMENT->I_fGc_vGc;
 
+	I_eGs_vGc = ELEMENT->I_eGs_vGc;
+	I_eGc_vGc = ELEMENT->I_eGc_vGc;
+
 	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
 		BCoords_V = ELEMENT->I_vGs_vGc[1][P][0];
 
+		// FACET related operators
 		for (f = 0; f < Nf; f++) {
 			Vf = f*NFREFMAX;
 
@@ -2730,6 +2737,68 @@ static void setup_blending(const unsigned int EType)
 			free(rst_proj);
 
 			free(BCoords_F);
+		}
+
+		// EDGE related operators
+		for (e = 0; ELEMENT->d == DMAX && e < Ne; e++) {
+			Ve = e*NEREFMAX;
+
+			BCoords_E = malloc(NvnGc[P]*Neve * sizeof *BCoords_E); // free
+
+			// These BCoords_E determine rst_proj according to Szabo(1991, p. 111) in 2D  (i.e. xi = L2-L1).
+			for (n = 0; n < NvnGc[P]; n++) {
+			for (ve = 0; ve < Neve; ve++) {
+				BCoords_E[n*Neve+ve] = BCoords_V[n*Nve+VeEcon[e*NEVEMAX+ve]];
+			}}
+
+			// Compute projection of VOLUME nodes to EDGE
+			ELEMENT_E = get_ELEMENT_type(LINE);
+
+			EclassE = get_Eclass(ELEMENT_E->type);
+			dE      = ELEMENT_E->d;
+
+			rst_v0Gs = get_rst_vV(ELEMENT_E); // free
+			rst_proj = malloc(NvnGc[P]*dE * sizeof *rst_proj); // free
+
+			mm_CTN_d(NvnGc[P],dE,Neve,BCoords_E,rst_v0Gs,rst_proj);
+
+			// Compute blending operators
+			Nv0nGs = ELEMENT_E->NvnGs;
+			Nv0nGc = ELEMENT_E->NvnGc;
+
+			select_functions_cubature(&cubature,ELEMENT_E->type);
+			select_functions_basis(&basis,ELEMENT_E->type);
+
+			cubature(&rst_v0Gc,&dummyPtr_d,&dummyPtr_ui,&Nv0nGc[P],&dummy_ui,0,PGc[P],dE,NodeTypeG[EclassE]); free(dummyPtr_ui); // free
+
+			ChiRefGs_vGs    = basis(PGs,   rst_v0Gs,Nv0nGs[1],&Nbf,dE);        // free
+			ChiRefGc_vGc    = basis(PGc[P],rst_v0Gc,Nv0nGc[P],&Nbf,dE);        // free
+			ChiRefGs_vProj  = basis(PGs,   rst_proj,NvnGc[P],&Nbf,dE);         // free
+			ChiRefGc_vProj  = basis(PGc[P],rst_proj,NvnGc[P],&Nbf,dE);         // free
+
+			IGs             = identity_d(Nv0nGs[1]);                           // free
+			IGc             = identity_d(Nv0nGc[P]);                           // free
+			ChiRefInvGs_vGs = inverse_d(Nv0nGs[1],Nv0nGs[1],ChiRefGs_vGs,IGs); // free
+			ChiRefInvGc_vGc = inverse_d(Nv0nGc[P],Nv0nGc[P],ChiRefGc_vGc,IGc); // free
+
+			I_eGs_vGc[1][P][Ve] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],Nv0nGs[1],Nv0nGs[1],1.0,ChiRefGs_vProj,ChiRefInvGs_vGs); // keep
+			I_eGc_vGc[P][P][Ve] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],Nv0nGc[P],Nv0nGc[P],1.0,ChiRefGc_vProj,ChiRefInvGc_vGc); // keep
+
+
+			free(ChiRefGc_vGc);
+			free(ChiRefGs_vProj);
+			free(ChiRefGc_vProj);
+
+			free(IGs);
+			free(IGc);
+			free(ChiRefInvGs_vGs);
+			free(ChiRefInvGc_vGc);
+
+			free(rst_v0Gs);
+			free(rst_v0Gc);
+			free(rst_proj);
+
+			free(BCoords_E);
 		}
 	}
 }

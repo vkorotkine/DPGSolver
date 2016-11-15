@@ -1,6 +1,6 @@
 // Modifiable Parameters
 
-Refine = 0;
+Refine = 1;
 
 lc = 0.6/2.0^Refine;
 
@@ -12,9 +12,9 @@ rOut = 1.0;
 // Geometry Specification
 
 Point(1) = {0.0,0.0,0.0,lc};
-Point(2) = {rIn,0.0,0.0,lc};
-Point(3) = {0.0,rIn,0.0,lc};
-Point(4) = {0.0,0.0,rIn,lc};
+Point(2) = {rIn,0.0,0.0,lc/2};
+Point(3) = {0.0,rIn,0.0,lc/2};
+Point(4) = {0.0,0.0,rIn,lc/2};
 Point(5) = {rOut,0.0,0.0,lc};
 Point(6) = {0.0,rOut,0.0,lc};
 Point(7) = {0.0,0.0,rOut,lc};

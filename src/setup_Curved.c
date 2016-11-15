@@ -69,8 +69,8 @@ static void compute_pc_dsphere(struct S_pc *data) {
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int n, Nn;
-	double       r, t, p, *PComps, **VeXYZ;
+	unsigned int n, Nn, OnPole = 0, IndPole;
+	double       r, t, p, t_avg, *PComps, **VeXYZ;
 
 	if (data->VeSurface == 0)
 		r = DB.rIn;
@@ -78,10 +78,6 @@ static void compute_pc_dsphere(struct S_pc *data) {
 		r = DB.rOut;
 	else
 		printf("Error: Unsupported.\n"), EXIT_MSG;
-
-	if (d == 3) {
-		printf("Potential modifications needed so that theta is handled correctly at the poles.\n");
-	}
 
 	Nn     = data->Nn;
 	VeXYZ  = data->VeXYZ;
@@ -98,7 +94,37 @@ static void compute_pc_dsphere(struct S_pc *data) {
 		PComps[0*Nn+n] = t;
 		PComps[1*Nn+n] = p;
 	}
-//array_print_d(Nn,2,PComps,'C');
+
+	if (d == 3) {
+		// If one (and only one) of the vertices lies on a pole of the sphere, re-calculate theta for the vertex based
+		// on the theta values of the other vertices.
+		for (n = 0; n < Nn; n++) {
+			p = acos(VeXYZ[n][2]/r);
+
+			// Note: SQRT_EPS used here because cos(x) ~= 1 - 0.5*x^2 for x << 1
+			if (fabs(p-0.0) < SQRT_EPS || fabs(p-PI) < SQRT_EPS) {
+				OnPole++;
+				IndPole = n;
+			}
+		}
+
+		if (!OnPole) {
+			// Do nothing
+		} else if (OnPole == 1) {
+			t_avg = 0.0;
+			for (n = 0; n < Nn; n++) {
+				if (n == IndPole)
+					continue;
+				t      = atan2(VeXYZ[n][1],VeXYZ[n][0]);
+				t_avg += t;
+			}
+			t_avg /= (Nn-1);
+
+			PComps[0*Nn+IndPole] = t_avg;
+		} else if (OnPole == 2) {
+			printf("Error: Unsupported.\n");
+		}
+	}
 }
 
 static void compute_XYZ_dsphere(struct S_XYZ *data)
@@ -164,9 +190,9 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 	unsigned int dim, e, f, n, ve, Ve, Vf, PV, NvnG, Ne, Nf, Nve, Indve, FuncType,
 	             *VeEcon, *VeFcon, Neve, *Nfve, NenG, NfnG, *VeInfo, *VeCurved, *VeSurface, IndSurf,
 	             Ecurved, Fcurved, Vcurved;
-	double       *XYZ, *XYZ_S, **VeXYZ, *BCoords_vGc, *BCoords_fGc, *BCoords_fGc_dP1, *BCoords_fGs,
+	double       *XYZ, **VeXYZ, *BCoords_vGc, *BCoords_fGc, *BCoords_fGc_dP1, *BCoords_fGs, *BCoords_eGs,
 	             *PComps_V, *PComps_F, **XYZE_CmS, **XYZF_CmS, *BlendV,
-	             *I_vGc_eGc, *I_fGc_vGc, *I_vGc_fGc, *XYZ_update, *XYZ_vC,
+	             *I_vGc_eGc, *I_fGc_vGc, *I_vGc_fGc, *I_eGc_vGc, *XYZ_update, *XYZ_vC,
 	             BlendNum, BlendDen;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_F, *ELEMENT_E;
@@ -192,7 +218,6 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 	ELEMENT = get_ELEMENT_type(VOLUME->type);
 
 	NvnG   = VOLUME->NvnG;
-	XYZ_S  = VOLUME->XYZ_S;
 	XYZ    = VOLUME->XYZ;
 	XYZ_vC = VOLUME->XYZ_vC;
 
@@ -202,10 +227,10 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
 	select_functions_Curved(&compute_pc,&compute_XYZ,FuncType);
-/*
-printf("\n\nVOLUME %d\n",VOLUME->indexg);
-array_print_d(NvnG,d,XYZ,'C');
-*/
+
+//printf("\n\nVOLUME %d\n",VOLUME->indexg);
+//array_print_d(NvnG,d,XYZ,'C');
+
 	// Loop over curved EDGEs not on curved FACETs (3D only)
 	VeInfo = VOLUME->VeInfo;
 	if (d == 3) {
@@ -244,13 +269,15 @@ array_print_d(NvnG,d,XYZ,'C');
 
 			if (!Ecurved)
 				continue;
-printf("sc,e: %d\n",e);
+//printf("sc,e: %d %d\n",VOLUME->indexg,e);
 			Ve = e*NEREFMAX;
 
 			ELEMENT_E = get_ELEMENT_type(LINE);
 			NenG = ELEMENT_E->NvnGc[PV];
 
-			I_vGc_eGc = ELEMENT->I_vGc_eGc[PV][PV][Ve];
+			I_eGc_vGc   = ELEMENT->I_eGc_vGc[PV][PV][Ve];
+			I_vGc_eGc   = ELEMENT->I_vGc_eGc[PV][PV][Ve];
+			BCoords_eGs = ELEMENT->I_eGs_vGc[1][PV][Ve];
 
 			if (Parametrization == ARC_LENGTH) {
 				// Find coordinates of vertices on the EDGE
@@ -263,6 +290,7 @@ printf("sc,e: %d\n",e);
 
 				// Find barycentric coordinates of VOLUME geometry nodes relating to this EDGE
 				BCoords_fGc_dP1 = mm_Alloc_d(CBRM,CBNT,CBNT,NenG,Nve,NvnG,1.0,I_vGc_eGc,BCoords_vGc); // free
+//array_print_d(NenG,NvnG,I_vGc_eGc,'R');
 
 				BCoords_fGc = malloc(NenG*Neve * sizeof *BCoords_fGc); // free
 				for (n = 0; n < NenG; n++) {
@@ -283,23 +311,58 @@ printf("sc,e: %d\n",e);
 				array_free2_d(Neve,VeXYZ);
 
 				PComps_F = malloc(NenG*2 * sizeof *PComps_F); // free
-
 				mm_CTN_d(NenG,2,Neve,BCoords_fGc,PComps_V,PComps_F);
-array_print_d(NenG,2,PComps_F,'C');
-EXIT_MSG;
+
 				free(PComps_V);
 				free(BCoords_fGc);
 
-				// Compute perturbation of FACET geometry node positions
+				// Compute perturbation of EDGE geometry node positions
 				data_XYZ->Nn = NenG;
 				data_XYZ->VeSurface = VeInfo[2*Nve+VeEcon[e*NEVEMAX]];
-				data_XYZ->XYZ = XYZF_CmS[f];
+				data_XYZ->XYZ = XYZE_CmS[e];
 				data_XYZ->PComps = PComps_F;
 
 				compute_XYZ(data_XYZ);
 				free(PComps_F);
+
+				mm_d(CBCM,CBT,CBNT,NenG,d,NvnG,-1.0,1.0,I_vGc_eGc,XYZ,XYZE_CmS[e]);
+
+// Make into separate function. ToBeDeleted
+				// Compute blend scaling
+				// Szabo-Babuska(1991)
+				BlendV = malloc(NvnG * sizeof *BlendV); // free
+
+				for (n = 0; n < NvnG; n++) {
+					BlendNum = 1.0;
+					BlendDen = 1.0;
+					for (ve = 0; ve < Neve; ve++) {
+						BlendNum *= BCoords_vGc[n*Nve+VeEcon[e*NEVEMAX+ve]];
+						BlendDen *= BCoords_eGs[n*Neve+ve];
+					}
+					if (BlendNum < EPS)
+						BlendV[n] = 0.0;
+					else
+						BlendV[n] = BlendNum/BlendDen;
+//printf("%d % .3e % .3e % .3e\n",n,BlendNum,BlendDen,BlendV[n]);
+				}
+
+				// Blend FACET perturbation to VOLUME geometry nodes
+				XYZ_update = mm_Alloc_d(CBCM,CBT,CBNT,NvnG,d,NenG,1.0,I_eGc_vGc,XYZE_CmS[e]); // free
+				for (n = 0; n < NvnG; n++) {
+					if (BlendV[n] < EPS)
+						continue;
+
+					for (dim = 0; dim < d; dim++)
+						XYZ[n+NvnG*dim] += BlendV[n]*XYZ_update[n+NvnG*dim];
+				}
+				free(XYZ_update);
+				free(BlendV);
+			} else {
+				printf("Error: Unsupported.\n"), EXIT_MSG;
 			}
 		}
+//array_print_d(NvnG,d,XYZ,'C');
+//EXIT_MSG;
 		array_free2_d(Ne,XYZE_CmS);
 	}
 
@@ -399,7 +462,7 @@ EXIT_MSG;
 				compute_XYZ(data_XYZ);
 				free(PComps_F);
 
-				mm_d(CBCM,CBT,CBNT,NfnG,d,NvnG,-1.0,1.0,I_vGc_fGc,XYZ_S,XYZF_CmS[f]);
+				mm_d(CBCM,CBT,CBNT,NfnG,d,NvnG,-1.0,1.0,I_vGc_fGc,XYZ,XYZF_CmS[f]);
 //array_print_d(NfnG,d,XYZF_CmS[f],'C');
 
 // Make into separate function. ToBeDeleted
@@ -475,6 +538,7 @@ for (n = 0; n < NvnG; n++) {
 array_print_d(NvnG,NBI,BlendInfo,'R');
 EXIT_MSG;
 */
+//array_print_d(NvnG,d,XYZ_S,'C');
 				// Blend FACET perturbation to VOLUME geometry nodes
 				XYZ_update = mm_Alloc_d(CBCM,CBT,CBNT,NvnG,d,NfnG,1.0,I_fGc_vGc,XYZF_CmS[f]); // free
 				for (n = 0; n < NvnG; n++) {
@@ -493,12 +557,9 @@ EXIT_MSG;
 
 		}
 		array_free2_d(Nf,XYZF_CmS);
+//array_print_d(NvnG,d,XYZ,'C');
+//EXIT_MSG;
 	}
-/*
-array_print_d(NvnG,d,XYZ,'C');
-if (Vcurved == 1)
-	EXIT_MSG;
-*/
 
 	free(data_pc);
 	free(data_XYZ);

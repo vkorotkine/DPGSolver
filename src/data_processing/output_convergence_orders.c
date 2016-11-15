@@ -53,21 +53,22 @@ int main(void)
 	strcpy(TestCase,"Poisson");
 
 //	strcpy(MeshType,"StructuredTRI");
+	strcpy(MeshType,"CurvedTET");
 //	strcpy(MeshType,"ToBeCurvedStructuredTRI");
 //	strcpy(MeshType,"ToBeCurvedStructuredQUAD");
-	strcpy(MeshType,"ToBeCurvedStructuredTET");
+//	strcpy(MeshType,"ToBeCurvedStructuredTET");
 //	strcpy(MeshType,"ToBeCurvedStructuredHEX");
 //	strcpy(MeshType,"ToBeCurvedStructuredMixed");
 
 	d     = 3;
 //	NVars = DMAX+2+1;
 	NVars = DMAX+1;
-	MLMin = 0; MLMax = 1; NML = MLMax-MLMin+1;
+	MLMin = 0; MLMax = 3; NML = MLMax-MLMin+1;
 	PMin  = 0; PMax  = 4; NP  = PMax-PMin+1;
 
-	unsigned int CasesRun[45] = { 0, 1, 1, 0, 0,
-	                              0, 1, 1, 0, 0,
-	                              0, 1, 1, 0, 0,
+	unsigned int CasesRun[45] = { 0, 1, 1, 1, 0,
+	                              0, 1, 1, 1, 0,
+	                              0, 1, 1, 1, 0,
 	                              0, 1, 0, 0, 0,
 	                              0, 1, 1, 1, 0,
 	                              0, 1, 1, 1, 0,

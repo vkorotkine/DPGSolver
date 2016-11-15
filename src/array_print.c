@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include <complex.h>
 
 #include "Parameters.h"
@@ -150,7 +151,7 @@ void array_print_d(const unsigned int m, const unsigned int n, const double *A, 
 	case 'R':
 		for (i = 0; i < m; i++) {
 			for (j = 0; j < n; j++) {
-				if (A[i*n+j] > EPS)
+				if (isnan(A[i*n+j]) || A[i*n+j] > EPS)
 					printf("% .4e ",A[i*n+j]);
 				else
 					printf(" %d          ",0);
@@ -162,7 +163,7 @@ void array_print_d(const unsigned int m, const unsigned int n, const double *A, 
 	case 'C':
 		for (i = 0; i < m; i++) {
 			for (j = 0; j < n; j++) {
-				if (A[i+j*m] > EPS)
+				if (isnan(A[i+j*m]) || A[i+j*m] > EPS)
 					printf("% .4e ",A[i+j*m]);
 				else
 					printf(" %d          ",0);

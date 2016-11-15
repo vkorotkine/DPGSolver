@@ -12,6 +12,8 @@
  
 #include "Macros.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Compute various norms.
@@ -49,8 +51,10 @@ double array_norm_d(const unsigned int LenA, const double *A, const char *NormTy
 	double       norm = 0.0;
 
 	for (i = 0; i < LenA; i++) {
-		if (isnan(A[i]))
+		if (isnan(A[i])) {
+			array_print_d(1,LenA,A,'R');
 			printf("Error: Entry in array is 'nan'.\n"), EXIT_MSG;
+		}
 	}
 
 	if (strstr(NormType,"Inf")) {

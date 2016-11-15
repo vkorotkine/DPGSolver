@@ -174,7 +174,7 @@ void vertices_to_exact_geom_VOLUME(struct S_VOLUME *VOLUME)
 		Z = &XYZ[2*Nve];
 
 	if (strstr(TestCase,"Poisson")) {
-		double rIn, rOut, r, t, p;
+		double rIn, rOut, r, rXYZ, t, p;
 
 		rIn  = DB.rIn;
 		rOut = DB.rOut;
@@ -196,7 +196,8 @@ void vertices_to_exact_geom_VOLUME(struct S_VOLUME *VOLUME)
 				X[ve] = r*cos(t);
 				Y[ve] = r*sin(t);
 			} else if (d == 3) {
-				p = acos(Z[ve]/r);
+				rXYZ = sqrt(X[ve]*X[ve]+Y[ve]*Y[ve]+Z[ve]*Z[ve]);
+				p = acos(Z[ve]/rXYZ);
 
 				X[ve] = r*cos(t)*sin(p);
 				Y[ve] = r*sin(t)*sin(p);

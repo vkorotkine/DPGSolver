@@ -267,9 +267,6 @@ void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, con
 	norm_rIn  /= Nn;
 	norm_rOut /= Nn;
 
-	if (0)
-		printf("%e %e\n",XOut[0],YOut[0]);
-
 //	if (1||BCcurved == 1) {
 	if (BCcurved == 1) {
 		for (n = 0; n < Nn; n++) {
@@ -295,7 +292,12 @@ void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, con
 			YOut[n] = r*sin(t);
 
 			if (d == 3) {
-				p = acos(ZIn[n]/r);
+				// Note: Interpolation to FACET cubature nodes sometimes resulted in Z > r resulting in the computed p
+				//       being imaginary.
+				if (ZIn[n]-r > 0.0)
+					p = acos(1.0);
+				else
+					p = acos(ZIn[n]/r);
 
 				XOut[n] *= sin(p);
 				YOut[n] *= sin(p);

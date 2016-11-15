@@ -148,8 +148,13 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free5_d(NP,NP,NFREFMAX*NFMAX,d,ELEMENT->D_vGc_fIs);
 	array_free5_d(NP,NP,NFREFMAX*NFMAX,d,ELEMENT->D_vGc_fIc);
 
+	array_free4_d(NP,NP,NEREFMAX*NEMAX,ELEMENT->I_vGc_eGc);
+
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_fGs_vGc);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_fGc_vGc);
+
+	array_free4_d(NP,NP,NEREFMAX*NEMAX,ELEMENT->I_eGs_vGc);
+	array_free4_d(NP,NP,NEREFMAX*NEMAX,ELEMENT->I_eGc_vGc);
 
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->Is_Weak_VV);
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->Ic_Weak_VV);
