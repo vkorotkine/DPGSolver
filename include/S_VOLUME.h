@@ -10,7 +10,7 @@ struct S_VOLUME {
 	// Structures
 	unsigned int indexl, indexg, P, type, Eclass, update, curved, level,
 	             *NsubF, *neigh, *neigh_f;
-	double *XYZ_vC;
+	double *XYZ_vV;
 
 	// Geometry
 	unsigned int NvnG, *VeInd, *VeInfo;
@@ -37,7 +37,7 @@ struct S_VOLUME {
 
 	// structs
 	struct S_VOLUME *next, *grpnext, *child0, *parent;
-	struct S_FACET  **FACET;
+	struct S_FACE  **FACE;
 };
 
 #endif // DPG__S_VOLUME_h__INCLUDED

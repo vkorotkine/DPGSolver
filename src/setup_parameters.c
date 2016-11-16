@@ -18,7 +18,7 @@
  *		Set up parameters based on inputs obtained in initialization.c.
  *
  *	Comments:
- *		FACET integration nodes must be consistent between FACETs of different element types.
+ *		FACE integration nodes must be consistent between FACEs of different element types.
  *
  *		Guidelines: (ToBeModified)
  *			PF           >= P
@@ -50,16 +50,16 @@
  *			PYR Elements:
  *				ToBeModified
  *
- *		For the collocated scheme, it is advantageous to use WV nodes for TET FACET cubature nodes as they have better
- *		integration properties and there is no collocated with the FACET between the 2D and 3D WSH nodes anyways.
+ *		For the collocated scheme, it is advantageous to use WV nodes for TET FACE cubature nodes as they have better
+ *		integration properties and there is no collocated with the FACE between the 2D and 3D WSH nodes anyways.
  *		However, if WEDGEs are also present, this cannot be done as it destroys the sum factorization capabilities.
  *		Perhaps make a modification to allow for this in the future when only TETs are present. (ToBeDeleted)
  *
  *		For computational efficiency, it is beneficial to use GLL-AO nodes (i.e. VOLUME nodes which have a subset
- *		situated on ELEMENT FACETs) as this results in sparse FACET operators. Intuitively, this can be understood by
- *		noting that basis functions represent the solution to order P both in the VOLUME and on FACETs in this case.
- *		Thus, when operating on VOLUME nodes for FACET operators, as the VOLUME nodes on the FACET already fully
- *		represent the solution of order P on the FACET, the other nodes have no contribution.
+ *		situated on ELEMENT FACEs) as this results in sparse FACE operators. Intuitively, this can be understood by
+ *		noting that basis functions represent the solution to order P both in the VOLUME and on FACEs in this case.
+ *		Thus, when operating on VOLUME nodes for FACE operators, as the VOLUME nodes on the FACE already fully
+ *		represent the solution of order P on the FACE, the other nodes have no contribution.
  *		Note that for HEX ELEMENTs, results have shown that this can lead to a deterioration in accuracy. This may be
  *		acceptable however given the performance gains.
  *		Also, it is important to find a break-even with the standard BLAS call here as the sparsity is not as
@@ -84,12 +84,12 @@
  *		PF       : Order used for representation of the (F)lux.
  *
  *		PI(1)(2) : Order used for integration (cubature order).
- *		           (1) : (v)olume, (f)acet
+ *		           (1) : (v)olume, (f)ace
  *		           (2) : (s)traight, (c)urved
  *
  *		SF_BE[0][1][2] : Flag for when (S)um (F)actorization (B)reaks (E)ven.
  *		                 [0] - Polynomial order
- *		                 [1] - 0: VOLUME, 1: FACET
+ *		                 [1] - 0: VOLUME, 1: FACE
  *		                 [2] - 0: TP (QUAD/HEX), 1: WEDGE
  *		                 Note: It may be beneficial to also add the capability for the fast interpolation/differentiation
  *		                       using the Fourier transformed operators, certainly if running the code in a very high-order
@@ -100,7 +100,7 @@
  *		                       Fladrich-Stiller(2008)-Improved_Performance_for_Nodal_Spectral_Element_Operators for
  *		                       computational considerations.
  *
- *		VFPartUnity     : Flag for whether the (V)OLUME nodes form a (Part)ition of (Unity) on the ELEMENT (F)ACETs.
+ *		VFPartUnity     : Flag for whether the (V)OLUME nodes form a (Part)ition of (Unity) on the ELEMENT (F)ACEs.
  *
  *		AC              : Specifies whether (a)ll elements are (c)urved or not.
  *		ExactGeom       : Move boundary nodes to exact geometry if enabled.
@@ -111,7 +111,7 @@
  *
  *		NodeType()[] : Node type used for each type of node () and each type of element [].
  *		               () : (S)olution, (F)lux, (F)lux in (r)eference space, (I)ntegration
- *		                    (f)acet/(v)olume (s)traight/(c)urved
+ *		                    (f)ace/(v)olume (s)traight/(c)urved
  *		               [] : TP [0], SI [1], PYR [2]
  *		InviscidFluxType : Type of inviscid numerical flux used.
  *		                   Options: LF, ROE
@@ -441,7 +441,7 @@ void setup_parameters()
 			if (strstr(DB.NodeType,"GLL") && P > 0) {
 				/*
 				 * Brian's original code parameters
-				 * This is the only version of the scheme where all nodes are collocated (i.e. FACET nodes are
+				 * This is the only version of the scheme where all nodes are collocated (i.e. FACE nodes are
 				 * collocated with VOLUME nodes as well). Consequently, there is negligible additional cost for the
 				 * strong form as compared to the weak form as the discontinuous boundary flux term is already evaluated
 				 * in the VOLUME term.
@@ -510,7 +510,7 @@ void setup_parameters()
 			strcpy(NodeTypeIvc[P][2],"NOT_SUPPORTED");
 
 			// For collocated interpolation and integration nodes, a desired VOLUME integration order cannot be
-			// specified. Further, if using GLL NodeType, FACET integration order also cannot be specified.
+			// specified. Further, if using GLL NodeType, FACE integration order also cannot be specified.
 			for (i = 0; i < NEC; i++) {
 				PIfs[P][i] = P;
 				PIfc[P][i] = P;

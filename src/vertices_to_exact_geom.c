@@ -166,7 +166,7 @@ void vertices_to_exact_geom_VOLUME(struct S_VOLUME *VOLUME)
 	VeUpdate  = &VOLUME->VeInfo[Nve*1];
 	VeSurface = &VOLUME->VeInfo[Nve*2];
 
-	XYZ = VOLUME->XYZ_vC;
+	XYZ = VOLUME->XYZ_vV;
 
 	X = &XYZ[0*Nve];
 	Y = &XYZ[1*Nve];

@@ -18,19 +18,19 @@
  *		BC_PERIODIC_MIN : (B)oundary(C)ondition (PERIODIC) (MIN)imum.
  *		NVEMAX          : (MAX)imum (N)umber of (VE)rtices for an element.
  *		NEVEMAX         : (MAX)imum (N)umber of (E)DGE (VE)rtices for an element.
- *		NFVEMAX         : (MAX)imum (N)umber of (F)ACET (VE)rtices for an element.
+ *		NFVEMAX         : (MAX)imum (N)umber of (F)ACE (VE)rtices for an element.
  *		NEREFMAX        : (MAX)imum (N)umber of (E)DGE (REF)inements.
- *		NFREFMAX        : (MAX)imum (N)umber of (F)ACET (REF)inements.
+ *		NFREFMAX        : (MAX)imum (N)umber of (F)ACE (REF)inements.
  *		NVREFMAX        : (MAX)imum (N)umber of (V)OLUME (REF)inements.
  *		NVREFSFMAX      : (MAX)imum (N)umber of (V)OLUME (REF)inements if using (S)um (F)actorized operators.
  *		NEMAX           : (MAX)imum (N)umber of (E)DGEs for an element.
- *		NFMAX           : (MAX)imum (N)umber of (F)ACETs for an element.
- *		NFMIXEDMAX      : (MAX)imum (N)umber of (MIXED) (F)ACETs for an element.
+ *		NFMAX           : (MAX)imum (N)umber of (F)ACEs for an element.
+ *		NFMIXEDMAX      : (MAX)imum (N)umber of (MIXED) (F)ACEs for an element.
  *		NESUBCMAX       : (MAX)imum (N)umber of (E)lement (SUB)(C)lasses
- *		NFORDMAX        : (MAX)imum (N)umber of (F)ACET (ORD)ering possibilities
+ *		NFORDMAX        : (MAX)imum (N)umber of (F)ACE (ORD)ering possibilities
  *		NREFVVARMAX     : (MAX)imum (N)umber of h-adaptive (REF)ined (V)olume (VAR)iations
- *		NSUBFMAX        : (MAX)imum (N)umber of h-adaptive (SUB)-(F)acets (on each FACET).
- *		NVISUBFMAX      : (MAX)imum (N)umber of h-adaptive (V)OLUME (I)nternal (SUB)-(F)acets (within the VOLUME).
+ *		NSUBFMAX        : (MAX)imum (N)umber of h-adaptive (SUB)-(F)aces (on each FACE).
+ *		NVISUBFMAX      : (MAX)imum (N)umber of h-adaptive (V)OLUME (I)nternal (SUB)-(F)aces (within the VOLUME).
  *		NSIBMAX         : (MAX)imum (N)umber of (SIB)lings on the same level after h-refinement.
  *		NEHREFMAX       : (MAX)imum (N)umber of (E)LEMENT types present in (H)-(REF)ined ELEMENT
  *		NVEINFO         : (N)umber of pieces of (INFO)rmation associated with each (VE)rtex.

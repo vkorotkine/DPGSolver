@@ -1,7 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include "implicit_FACET_info.h"
+#include "implicit_FACE_info.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,7 +12,7 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 #include "S_OpCSR.h"
 
 #include "element_functions.h"
@@ -34,7 +34,7 @@
 
 /*
  *	Purpose:
- *		Evaluate the FACET contributions to the LHS term.
+ *		Evaluate the FACE contributions to the LHS term.
  *
  *	Comments:
  *		Check for relevant comments in implicit_VOLUME_info.
@@ -52,11 +52,11 @@ struct S_OPERATORS {
 	struct S_OpCSR **ChiS_fI_sp, **I_Weak_FF_sp;
 };
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
                      const unsigned int IndClass);
-static void compute_FACET_EFE    (void);
+static void compute_FACE_EFE    (void);
 
-void implicit_FACET_info(void)
+void implicit_FACE_info(void)
 {
 	// Initialize DB Parameters
 	unsigned int Vectorized = DB.Vectorized,
@@ -69,30 +69,30 @@ case ADAPT_HP:
 	case ADAPT_0:
 		switch (Vectorized) {
 		case 0:
-			compute_FACET_EFE();
+			compute_FACE_EFE();
 			break;
 		default:
-			compute_FACET_EFE();
-//			compute_FACETVec_EFE();
+			compute_FACE_EFE();
+//			compute_FACEVec_EFE();
 			break;
 		}
 		break;
 	default: // ADAPT_P, ADAPT_H, ADAPT_HP
-printf("Error: Should not be entering default in implicit_FACET_info.\n"), exit(1);
+printf("Error: Should not be entering default in implicit_FACE_info.\n"), exit(1);
 		switch (Vectorized) {
 		case 0:
-//			compute_FACET();
+//			compute_FACE();
 			break;
 		default:
-//			compute_FACET();
-//			compute_FACETVec();
+//			compute_FACE();
+//			compute_FACEVec();
 			break;
 		}
 		break;
 	}
 }
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
                      const unsigned int IndClass)
 {
 	// Initialize DB Parameters
@@ -102,22 +102,22 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	// Standard datatypes
 	unsigned int PV, PF, Vtype, Eclass, FtypeInt, IndOrdInOut, IndOrdOutIn;
 
-	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS, *ELEMENT_FACET;
+	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS, *ELEMENT_FACE;
 
 	// silence
 	ELEMENT_OPS = NULL;
 
 	PV       = VOLUME->P;
-	PF       = FACET->P;
+	PF       = FACE->P;
 	Vtype    = VOLUME->type;
 	Eclass   = VOLUME->Eclass;
 
-	FtypeInt    = FACET->typeInt;
-	IndOrdInOut = FACET->IndOrdInOut;
-	IndOrdOutIn = FACET->IndOrdOutIn;
+	FtypeInt    = FACE->typeInt;
+	IndOrdInOut = FACE->IndOrdInOut;
+	IndOrdOutIn = FACE->IndOrdOutIn;
 
 	ELEMENT       = get_ELEMENT_type(Vtype);
-	ELEMENT_FACET = get_ELEMENT_FACET(Vtype,IndClass);
+	ELEMENT_FACE = get_ELEMENT_FACE(Vtype,IndClass);
 	if ((Eclass == C_TP && SF_BE[PF][0][1]) || (Eclass == C_WEDGE && SF_BE[PF][1][1]))
 		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
 	else
@@ -126,10 +126,10 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	OPS->NvnS    = ELEMENT->NvnS[PV];
 	OPS->NvnS_SF = ELEMENT_OPS->NvnS[PV];
 
-	OPS->NfnS      = ELEMENT_FACET->NvnS[PF];
+	OPS->NfnS      = ELEMENT_FACE->NvnS[PF];
 	OPS->ChiS_fS   = ELEMENT->ChiS_fS[PV][PF];
 	if (FtypeInt == 's') {
-		// Straight FACET Integration
+		// Straight FACE Integration
 		OPS->NfnI    = ELEMENT->NfnIs[PF][IndClass];
 		OPS->NfnI_SF = ELEMENT_OPS->NfnIs[PF][0];
 		OPS->NvnI_SF = ELEMENT_OPS->NvnIs[PF];
@@ -144,21 +144,21 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 
 		OPS->GfS_fI    = ELEMENT->GfS_fIs[PF][PF];
 
-		OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIs[PF][IndOrdInOut];
+		OPS->nOrdInOut = ELEMENT_FACE->nOrd_fIs[PF][IndOrdInOut];
 		switch (Adapt) {
 		default: // ADAPT_P, ADAPT_H, ADAPT_HP
-printf("Error: Should not be entering default in implicit_FACET_info.\n"), exit(1);
-			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fS[PF][IndOrdOutIn];
+printf("Error: Should not be entering default in implicit_FACE_info.\n"), exit(1);
+			OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fS[PF][IndOrdOutIn];
 			break;
 case ADAPT_P: // ToBeModified (Also change setup_normals and output_to_paraview)
 case ADAPT_H:
 case ADAPT_HP:
 		case ADAPT_0:
-			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIs[PF][IndOrdOutIn];
+			OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fIs[PF][IndOrdOutIn];
 			break;
 		}
 	} else {
-		// Curved FACET Integration
+		// Curved FACE Integration
 		OPS->NfnI    = ELEMENT->NfnIc[PF][IndClass];
 		OPS->NfnI_SF = ELEMENT_OPS->NfnIc[PF][0];
 		OPS->NvnI_SF = ELEMENT_OPS->NvnIc[PF];
@@ -173,23 +173,23 @@ case ADAPT_HP:
 
 		OPS->GfS_fI    = ELEMENT->GfS_fIc[PF][PF];
 
-		OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIc[PF][IndOrdInOut];
+		OPS->nOrdInOut = ELEMENT_FACE->nOrd_fIc[PF][IndOrdInOut];
 		switch (Adapt) {
 		default: // ADAPT_P, ADAPT_H, ADAPT_HP
-printf("Error: Should not be entering default in implicit_FACET_info.\n"), exit(1);
-			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fS[PF][IndOrdOutIn];
+printf("Error: Should not be entering default in implicit_FACE_info.\n"), exit(1);
+			OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fS[PF][IndOrdOutIn];
 			break;
 case ADAPT_P: // ToBeModified (Also change setup_normals and output_to_paraview)
 case ADAPT_H:
 case ADAPT_HP:
 		case ADAPT_0:
-			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIc[PF][IndOrdOutIn];
+			OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fIc[PF][IndOrdOutIn];
 			break;
 		}
 	}
 }
 
-static void compute_FACET_EFE(void)
+static void compute_FACE_EFE(void)
 {
 	// Initialize DB Parameters
 	char         *Form            = DB.Form;
@@ -217,44 +217,44 @@ static void compute_FACET_EFE(void)
 
 	struct S_OPERATORS *OPSIn[2], *OPSOut[2];
 	struct S_VOLUME    *VIn, *VOut;
-	struct S_FACET     *FACET;
+	struct S_FACE     *FACE;
 
 	for (i = 0; i < 2; i++) {
 		OPSIn[i]  = malloc(sizeof *OPSIn[i]);  // free
 		OPSOut[i] = malloc(sizeof *OPSOut[i]); // free
 	}
 
-	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-		P = FACET->P;
+	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		P = FACE->P;
 
 		// Obtain operators
-		VIn    = FACET->VIn;
-		VfIn   = FACET->VfIn;
+		VIn    = FACE->VIn;
+		VfIn   = FACE->VfIn;
 		fIn    = VfIn/NfrefMax;
 		SpOpIn = Collocated && (VfIn % NFREFMAX == 0 && VIn->P == P);
 
 		EclassIn = VIn->Eclass;
 		IndFType = get_IndFType(EclassIn,fIn);
-		init_ops(OPSIn[0],VIn,FACET,0);
+		init_ops(OPSIn[0],VIn,FACE,0);
 		if (VIn->type == WEDGE || VIn->type == PYR)
-			init_ops(OPSIn[1],VIn,FACET,1);
+			init_ops(OPSIn[1],VIn,FACE,1);
 
-		VOut    = FACET->VOut;
-		VfOut   = FACET->VfOut;
+		VOut    = FACE->VOut;
+		VfOut   = FACE->VfOut;
 		fOut    = VfOut/NfrefMax;
 		SpOpOut = Collocated && (VfOut % NFREFMAX == 0 && VOut->P == P);
 
 		EclassOut = VOut->Eclass;
-		init_ops(OPSOut[0],VOut,FACET,0);
+		init_ops(OPSOut[0],VOut,FACE,0);
 		if (VOut->type == WEDGE || VOut->type == PYR)
-			init_ops(OPSOut[1],VOut,FACET,1);
+			init_ops(OPSOut[1],VOut,FACE,1);
 
-		BC = FACET->BC;
+		BC = FACE->BC;
 		Boundary = !((VIn->indexg != VOut->indexg) || (VIn->indexg == VOut->indexg && fIn != fOut));
 		// The second condition is for periodic elements which are connected to themselves
-		if (Boundary != FACET->Boundary)
+		if (Boundary != FACE->Boundary)
 			printf("Error: Incorrect Boundary flag.\n"), EXIT_MSG;
-		// ToBeDeleted: Replace with Boundary = FACET->Boundary
+		// ToBeDeleted: Replace with Boundary = FACE->Boundary
 
 		// Compute WIn_fI
 		NfnI   = OPSIn[IndFType]->NfnI;
@@ -303,14 +303,14 @@ static void compute_FACET_EFE(void)
 		}
 
 		// Compute WOut_fI (Taking BCs into account if applicable)
-		n_fI     = FACET->n_fI;
+		n_fI     = FACE->n_fI;
 
 		nOrdInOut = OPSIn[IndFType]->nOrdInOut;
 		nOrdOutIn = OPSIn[IndFType]->nOrdOutIn;
 
 		NvnSOut = OPSOut[0]->NvnS;
 		WOut_fIIn = malloc(NfnI*Nvar * sizeof *WOut_fIIn); // free
-		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACET
+		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACE
 			WOut_fI = malloc(NfnI*Nvar * sizeof *WOut_fI); // free
 			if (EclassOut == C_TP && SF_BE[P][0][1]) {
 				get_sf_parametersF(OPSOut[0]->NvnS_SF,OPSOut[0]->NvnI_SF,OPSOut[0]->ChiS_vI,
@@ -365,20 +365,20 @@ static void compute_FACET_EFE(void)
 				}
 			}
 			free(WOut_fI);
-		} else { // Boundary FACET
+		} else { // Boundary FACE
 			if (BC % BC_STEP_SC == BC_RIEMANN) {
-				boundary_Riemann(NfnI,1,FACET->XYZ_fI,WIn_fI,NULL,WOut_fIIn,n_fI,d);
+				boundary_Riemann(NfnI,1,FACE->XYZ_fI,WIn_fI,NULL,WOut_fIIn,n_fI,d);
 			} else if (BC % BC_STEP_SC == BC_SLIPWALL) {
 				boundary_SlipWall(NfnI,1,WIn_fI,WOut_fIIn,n_fI,d);
 /*
 double *UEx;
 UEx = malloc(NVAR3D*NfnI * sizeof *UEx); // free
-compute_exact_solution(NfnI,FACET->XYZ_fI,UEx,0);
+compute_exact_solution(NfnI,FACE->XYZ_fI,UEx,0);
 convert_variables(UEx,WOut_fIIn,3,d,NfnI,1,'p','c');
 free(UEx);
 */
 			} else {
-				printf("Error: Unsupported BC in implicit_FACET_info.\n"), exit(1);
+				printf("Error: Unsupported BC in implicit_FACE_info.\n"), exit(1);
 			}
 		}
 
@@ -387,7 +387,7 @@ free(UEx);
 		dnFluxNumdWIn_fI  = malloc(NfnI*Neq*Nvar * sizeof *dnFluxNumdWIn_fI);  // free
 		dnFluxNumdWOut_fI = malloc(NfnI*Neq*Nvar * sizeof *dnFluxNumdWOut_fI); // free
 
-		detJF_fI = FACET->detJF_fI;
+		detJF_fI = FACE->detJF_fI;
 
 		switch (InviscidFluxType) {
 		case FLUX_LF:
@@ -458,7 +458,7 @@ free(U_fI);
 		if (Boundary) {
 			dWOutdWIn = malloc(NfnI*Nvar*Nvar * sizeof *dWOutdWIn); // free
 			if (BC % BC_STEP_SC == BC_RIEMANN)
-				jacobian_boundary_Riemann(NfnI,1,FACET->XYZ_fI,WIn_fI,NULL,dWOutdWIn,n_fI,d,Neq);
+				jacobian_boundary_Riemann(NfnI,1,FACE->XYZ_fI,WIn_fI,NULL,dWOutdWIn,n_fI,d,Neq);
 			else if (BC % BC_STEP_SC == BC_SLIPWALL)
 				jacobian_boundary_SlipWall(NfnI,1,WIn_fI,dWOutdWIn,n_fI,d,Neq);
 			else
@@ -494,7 +494,7 @@ free(U_fI);
 			}
 		}
 
-		// Compute FACET RHS and LHS terms
+		// Compute FACE RHS and LHS terms
 		RHSIn     = calloc(NvnSIn*Neq               , sizeof *RHSIn);     // keep (requires external free)
 		RHSOut    = calloc(NvnSOut*Neq              , sizeof *RHSOut);    // keep (requires external free)
 		LHSInIn   = calloc(NvnSIn*NvnSIn*Neq*Nvar   , sizeof *LHSInIn);   // keep (requires external free)
@@ -502,17 +502,17 @@ free(U_fI);
 		LHSInOut  = calloc(NvnSOut*NvnSIn*Neq*Nvar  , sizeof *LHSInOut);  // keep (requires external free)
 		LHSOutOut = calloc(NvnSOut*NvnSOut*Neq*Nvar , sizeof *LHSOutOut); // keep (requires external free)
 
-		FACET->RHSIn     = RHSIn;
-		FACET->RHSOut    = RHSOut;
-		FACET->LHSInIn   = LHSInIn;
-		FACET->LHSOutIn  = LHSOutIn;
-		FACET->LHSInOut  = LHSInOut;
-		FACET->LHSOutOut = LHSOutOut;
+		FACE->RHSIn     = RHSIn;
+		FACE->RHSOut    = RHSOut;
+		FACE->LHSInIn   = LHSInIn;
+		FACE->LHSOutIn  = LHSOutIn;
+		FACE->LHSInOut  = LHSInOut;
+		FACE->LHSOutOut = LHSOutOut;
 
 		RowTracker = malloc(NfnI * sizeof *RowTracker); // free
 
 		if (strstr(Form,"Weak")) {
-			// Interior FACET
+			// Interior FACE
 
 			// RHS
 			if (EclassIn == C_TP && SF_BE[P][0][1]) {
@@ -579,11 +579,11 @@ free(U_fI);
 				free(IdnFdW);
 //			}
 
-			// Exterior FACET
+			// Exterior FACE
 			if (!Boundary) {
 				// RHS
 
-				// Use -ve normal for opposite FACET
+				// Use -ve normal for opposite FACE
 				for (i = 0, iMax = Neq*NfnI; i < iMax; i++)
 					nFluxNum_fI[i] *= -1.0;
 
@@ -676,7 +676,7 @@ free(U_fI);
 				free(IdnFdW);
 
 
-				// Use -ve normal for opposite FACET
+				// Use -ve normal for opposite FACE
 				for (i = 0, iMax = Neq*Nvar*NfnI; i < iMax; i++) {
 					dnFluxNumdWIn_fI[i] *= -1.0;
 					dnFluxNumdWOut_fI[i] *= -1.0;
@@ -749,7 +749,7 @@ free(U_fI);
 				free(IdnFdW);
 			}
 		} else if (strstr(Form,"Strong")) {
-			printf("Exiting: Implement the strong form in compute_FACET_EFE.\n"), exit(1);
+			printf("Exiting: Implement the strong form in compute_FACE_EFE.\n"), exit(1);
 		}
 
 		free(RowTracker);

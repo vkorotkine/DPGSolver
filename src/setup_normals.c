@@ -11,21 +11,21 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "element_functions.h"
 #include "matrix_functions.h"
 
 /*
  *	Purpose:
- *		Set up normals at integration nodes on element facets.
+ *		Set up normals at integration nodes on element faces.
  *
  *	Comments:
  *		The unit normal is stored so that the correct normal velocities are computed in the numerical flux functions.
  *
  *	Notation:
- *		n_fI     : Physical unit normal vector evaluated at the (f)acet (I)ntegration nodes.
- *		detJF_fI : Area element evaluated at the (f)acet (I)ntegration nodes.
+ *		n_fI     : Physical unit normal vector evaluated at the (f)ace (I)ntegration nodes.
+ *		detJF_fI : Area element evaluated at the (f)ace (I)ntegration nodes.
  *
  *	References:
  *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_Schemes
@@ -36,10 +36,10 @@ struct S_OPERATORS {
 	double       *I_vC_vI, **I_vC_fI, **I_vC_fS, *nr;
 };
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
                      const unsigned int IndClass);
 
-void setup_normals(struct S_FACET *FACET)
+void setup_normals(struct S_FACE *FACE)
 {
 	// Initialize DB Parameters
 	unsigned int d        = DB.d,
@@ -58,17 +58,17 @@ void setup_normals(struct S_FACET *FACET)
 
 	OPS = malloc(sizeof *OPS); // free
 
-	VIn  = FACET->VIn;
+	VIn  = FACE->VIn;
 
-	VfIn = FACET->VfIn;
-	curved = FACET->curved;
+	VfIn = FACE->VfIn;
+	curved = FACE->curved;
 
 	fIn = VfIn/NfrefMax;
 
 	Eclass = get_Eclass(VIn->type);
 	IndFType = get_IndFType(Eclass,fIn);
 
-	init_ops(OPS,VIn,FACET,IndFType);
+	init_ops(OPS,VIn,FACE,IndFType);
 
 	NvnC0 = OPS->NvnC;
 	NfnI0 = OPS->NfnI;
@@ -88,7 +88,7 @@ printf("Error: Should not be entering default in setup_normals.\n"), exit(1);
 
 		Nn = NfnS0;
 
-		// Store a single normal on straight FACETs
+		// Store a single normal on straight FACEs
 		if (!curved) fnMax = 1;
 		else         fnMax = Nn;
 
@@ -113,13 +113,13 @@ printf("Error: Should not be entering default in setup_normals.\n"), exit(1);
 				n_fS[fn*d+dim] /= nSum;
 		}
 
-		if (FACET->n_fS)
-			free(FACET->n_fS);
-		FACET->n_fS = n_fS;
+		if (FACE->n_fS)
+			free(FACE->n_fS);
+		FACE->n_fS = n_fS;
 
-		if (FACET->detJF_fS)
-			free(FACET->detJF_fS);
-		FACET->detJF_fS = detJF_fS;
+		if (FACE->detJF_fS)
+			free(FACE->detJF_fS);
+		FACE->detJF_fS = detJF_fS;
 		break;
 case ADAPT_P: // ToBeModified
 case ADAPT_H:
@@ -130,7 +130,7 @@ case ADAPT_HP:
 
 		Nn = NfnI0;
 
-		// Potentially store a single normal on straight FACETs (ToBeModified)
+		// Potentially store a single normal on straight FACEs (ToBeModified)
 //		if (!curved) fnMax = 1;
 //		else         fnMax = Nn;
 		fnMax = Nn;
@@ -156,23 +156,23 @@ case ADAPT_HP:
 				n_fI[fn*d+dim] /= nSum;
 		}
 
-		if (FACET->n_fI)
-			free(FACET->n_fI);
-		FACET->n_fI = n_fI;
+		if (FACE->n_fI)
+			free(FACE->n_fI);
+		FACE->n_fI = n_fI;
 
-		if (FACET->detJF_fI)
-			free(FACET->detJF_fI);
-		FACET->detJF_fI = detJF_fI;
+		if (FACE->detJF_fI)
+			free(FACE->detJF_fI);
+		FACE->detJF_fI = detJF_fI;
 		break;
 	}
 
-//printf("%d %d %d\n",FACET->indexg,VfIn,IndFType);
+//printf("%d %d %d\n",FACE->indexg,VfIn,IndFType);
 //array_print_d(fnMax,d,n,'R');
 
 	free(OPS);
 }
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
                      const unsigned int IndClass)
 {
 	// Standard datatypes
@@ -180,10 +180,10 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS;
 
 	PV       = VOLUME->P;
-	PF       = FACET->P;
+	PF       = FACE->P;
 	Vtype    = VOLUME->type;
 	Vcurved  = VOLUME->curved;
-	FtypeInt = FACET->typeInt;
+	FtypeInt = FACE->typeInt;
 
 	ELEMENT     = get_ELEMENT_type(Vtype);
 	ELEMENT_OPS = ELEMENT;
@@ -196,13 +196,13 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 
 		OPS->I_vC_fS = ELEMENT_OPS->I_vCs_fS[PV][PF];
 		if (FtypeInt == 's') {
-			// Straight FACET Integration
+			// Straight FACE Integration
 			OPS->NfnI = ELEMENT_OPS->NfnIs[PF][IndClass];
 
 			OPS->I_vC_vI = ELEMENT_OPS->I_vCs_vIs[PV][PV][0];
 			OPS->I_vC_fI = ELEMENT_OPS->I_vCs_fIs[PV][PF];
 		} else {
-			// Curved FACET Integration
+			// Curved FACE Integration
 			OPS->NfnI = ELEMENT_OPS->NfnIc[PF][IndClass];
 
 			OPS->I_vC_vI = ELEMENT_OPS->I_vCs_vIc[PV][PV][0];
@@ -215,13 +215,13 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 
 		OPS->I_vC_fS = ELEMENT_OPS->I_vCc_fS[PV][PF];
 		if (FtypeInt == 's') {
-			// Straight FACET Integration
+			// Straight FACE Integration
 			OPS->NfnI = ELEMENT_OPS->NfnIs[PF][IndClass];
 
 			OPS->I_vC_vI = ELEMENT_OPS->I_vCc_vIs[PV][PV][0];
 			OPS->I_vC_fI = ELEMENT_OPS->I_vCc_fIs[PV][PF];
 		} else {
-			// Curved FACET Integration
+			// Curved FACE Integration
 			OPS->NfnI = ELEMENT_OPS->NfnIc[PF][IndClass];
 
 			OPS->I_vC_vI = ELEMENT_OPS->I_vCc_vIc[PV][PV][0];

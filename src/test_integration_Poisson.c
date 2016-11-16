@@ -13,7 +13,7 @@
 #include "Macros.h"
 #include "S_DB.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 #include "Test.h"
 
 #include "test_code_integration.h"

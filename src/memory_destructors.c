@@ -9,7 +9,7 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "array_free.h"
 #include "element_functions.h"
@@ -179,7 +179,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 
 
 	free(ELEMENT->ELEMENTclass);
-	free(ELEMENT->ELEMENT_FACET);
+	free(ELEMENT->ELEMENT_FACE);
 
 	free(ELEMENT);
 }
@@ -215,7 +215,7 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	unsigned int d = DB.d;
 
 	// Structures
-	free(VOLUME->XYZ_vC);
+	free(VOLUME->XYZ_vV);
 	free(VOLUME->NsubF);
 	free(VOLUME->neigh);
 	free(VOLUME->neigh_f);
@@ -254,12 +254,12 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	array_free2_d(d,VOLUME->DxyzChiS);
 
 	// structs
-	free(VOLUME->FACET);
+	free(VOLUME->FACE);
 
 	free(VOLUME);
 }
 
-void memory_destructor_F(struct S_FACET *FACET)
+void memory_destructor_F(struct S_FACE *FACE)
 {
 	/*
 	 *	Comments:
@@ -271,39 +271,39 @@ void memory_destructor_F(struct S_FACET *FACET)
 	unsigned int d = DB.d;
 
 	// Geometry
-	free(FACET->XYZ_fI);
-	free(FACET->XYZ_fS);
-	free(FACET->n_fI);
-	free(FACET->n_fS);
-	free(FACET->detJF_fI);
-	free(FACET->detJF_fS);
-	free(FACET->detJVIn_fI);
-	free(FACET->detJVOut_fI);
+	free(FACE->XYZ_fI);
+	free(FACE->XYZ_fS);
+	free(FACE->n_fI);
+	free(FACE->n_fS);
+	free(FACE->detJF_fI);
+	free(FACE->detJF_fS);
+	free(FACE->detJVIn_fI);
+	free(FACE->detJVOut_fI);
 
 	// Solving
-	if (FACET->LHSInIn)
-		free(FACET->LHSInIn);
-	if (FACET->LHSOutIn)
-		free(FACET->LHSOutIn);
-	if (FACET->LHSInOut)
-		free(FACET->LHSInOut);
-	if (FACET->LHSOutOut)
-		free(FACET->LHSOutOut);
+	if (FACE->LHSInIn)
+		free(FACE->LHSInIn);
+	if (FACE->LHSOutIn)
+		free(FACE->LHSOutIn);
+	if (FACE->LHSInOut)
+		free(FACE->LHSInOut);
+	if (FACE->LHSOutOut)
+		free(FACE->LHSOutOut);
 
 	// Poisson
-	array_free2_d(d,FACET->qhatIn);
-	array_free2_d(d,FACET->qhatOut);
-	array_free2_d(d,FACET->qhat_uhatInIn);
-	array_free2_d(d,FACET->qhat_uhatOutIn);
-	array_free2_d(d,FACET->qhat_uhatInOut);
-	array_free2_d(d,FACET->qhat_uhatOutOut);
+	array_free2_d(d,FACE->qhatIn);
+	array_free2_d(d,FACE->qhatOut);
+	array_free2_d(d,FACE->qhat_uhatInIn);
+	array_free2_d(d,FACE->qhat_uhatOutIn);
+	array_free2_d(d,FACE->qhat_uhatInOut);
+	array_free2_d(d,FACE->qhat_uhatOutOut);
 
 	// Linearization testing
-	free(FACET->RHSIn_c);
-	free(FACET->RHSOut_c);
+	free(FACE->RHSIn_c);
+	free(FACE->RHSOut_c);
 
-	array_free2_cmplx(d,FACET->qhatIn_c);
-	array_free2_cmplx(d,FACET->qhatOut_c);
+	array_free2_cmplx(d,FACE->qhatIn_c);
+	array_free2_cmplx(d,FACE->qhatOut_c);
 
-	free(FACET);
+	free(FACE);
 }

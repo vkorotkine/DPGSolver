@@ -39,7 +39,7 @@
  *		connect_NE    : (N)umber of sub (E)lements in connectivity array
  *
  *	setup_ELEMENT_normals:
- *		Theta_[] : Angles for conversion between reference and facet coordinates (Zwanenburg(2016): Table 14)
+ *		Theta_[] : Angles for conversion between reference and face coordinates (Zwanenburg(2016): Table 14)
  *		           Options: eta, zeta
  *		nr       : (n)ormal vector components for the (r)eference element
  *
@@ -53,13 +53,13 @@
  *	setup_ELEMENT_VeF:
  *		VeV : (Ve)rtex to (V)OLUME operator used to project VOLUME vertex nodes to VOLUME vertex nodes for all supported
  *		      h-refinements.
- *		VeF : (Ve)rtex to (F)ACET operator used to project VOLUME vertex nodes to FACET vertex nodes for all supported
+ *		VeF : (Ve)rtex to (F)ACE operator used to project VOLUME vertex nodes to FACE vertex nodes for all supported
  *		      h-refinements.
  *
  *	get_L2_scaling: self-explanatory.
  *
- *	setup_ELEMENT_FACET_ordering:
- *		nOrd_f(1)(2) : (n)ode (Ord)ering of (f)acet of type (1) which is (2).
+ *	setup_ELEMENT_FACE_ordering:
+ *		nOrd_f(1)(2) : (n)ode (Ord)ering of (f)ace of type (1) which is (2).
  *			(1): (S)olution, (I)ntegration
  *			(2): (s)traight, (c)urved
  *
@@ -938,7 +938,7 @@ double get_L2_scaling(const unsigned int EType, const unsigned int vref)
 	return -1e20;
 }
 
-void setup_ELEMENT_FACET_ordering(const unsigned int FType)
+void setup_ELEMENT_FACE_ordering(const unsigned int FType)
 {
 	// Returned operators
 	unsigned int ***nOrd_fS, ***nOrd_fIs, ***nOrd_fIc;
@@ -1000,9 +1000,9 @@ void setup_ELEMENT_FACET_ordering(const unsigned int FType)
 				nOrd_fIs[P][IndOrd] = malloc(NfnIs * sizeof ***nOrd_fIs); //  keep
 				nOrd_fIc[P][IndOrd] = malloc(NfnIc * sizeof ***nOrd_fIc); //  keep
 
-				get_facet_ordering(d,IndOrd,FType,NfnS, NsS, symms_fS, rst_fS, nOrd_fS[P][IndOrd]);
-				get_facet_ordering(d,IndOrd,FType,NfnIs,NsIs,symms_fIs,rst_fIs,nOrd_fIs[P][IndOrd]);
-				get_facet_ordering(d,IndOrd,FType,NfnIc,NsIc,symms_fIc,rst_fIc,nOrd_fIc[P][IndOrd]);
+				get_face_ordering(d,IndOrd,FType,NfnS, NsS, symms_fS, rst_fS, nOrd_fS[P][IndOrd]);
+				get_face_ordering(d,IndOrd,FType,NfnIs,NsIs,symms_fIs,rst_fIs,nOrd_fIs[P][IndOrd]);
+				get_face_ordering(d,IndOrd,FType,NfnIc,NsIc,symms_fIc,rst_fIc,nOrd_fIc[P][IndOrd]);
 			}
 			free(rst_fS);
 			free(rst_fIs);
@@ -1024,9 +1024,9 @@ void setup_ELEMENT_FACET_ordering(const unsigned int FType)
 			nOrd_fIs[P][IndOrd] = malloc(1 * sizeof ***nOrd_fIs); //  keep
 			nOrd_fIc[P][IndOrd] = malloc(1 * sizeof ***nOrd_fIc); //  keep
 
-			get_facet_ordering(d,0,0,0,0,NULL,NULL,nOrd_fS[P][IndOrd]);
-			get_facet_ordering(d,0,0,0,0,NULL,NULL,nOrd_fIs[P][IndOrd]);
-			get_facet_ordering(d,0,0,0,0,NULL,NULL,nOrd_fIc[P][IndOrd]);
+			get_face_ordering(d,0,0,0,0,NULL,NULL,nOrd_fS[P][IndOrd]);
+			get_face_ordering(d,0,0,0,0,NULL,NULL,nOrd_fIs[P][IndOrd]);
+			get_face_ordering(d,0,0,0,0,NULL,NULL,nOrd_fIc[P][IndOrd]);
 		}}
 	}
 }

@@ -15,7 +15,7 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "array_norm.h"
 #include "matrix_functions.h"
@@ -133,22 +133,22 @@ void finalize_RHS_c(void)
 	double complex *VRHSIn_ptr, *VRHSOut_ptr, *FRHSIn_ptr, *FRHSOut_ptr;
 
 	struct S_VOLUME  *VOLUME, *VIn, *VOut;
-	struct S_FACET   *FACET;
+	struct S_FACE   *FACE;
 
-	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-		VIn    = FACET->VIn;
+	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		VIn    = FACE->VIn;
 		NvnSIn = VIn->NvnS;
 
-		VOut    = FACET->VOut;
+		VOut    = FACE->VOut;
 		NvnSOut = VOut->NvnS;
 
 		VRHSIn_ptr  = VIn->RHS_c;
 		VRHSOut_ptr = VOut->RHS_c;
 
-		FRHSIn_ptr  = FACET->RHSIn_c;
-		FRHSOut_ptr = FACET->RHSOut_c;
+		FRHSIn_ptr  = FACE->RHSIn_c;
+		FRHSOut_ptr = FACE->RHSOut_c;
 
-		Boundary = FACET->Boundary;
+		Boundary = FACE->Boundary;
 		for (iMax = Neq; iMax--; ) {
 			for (jMax = NvnSIn; jMax--; )
 				*VRHSIn_ptr++ += *FRHSIn_ptr++;
@@ -158,8 +158,8 @@ void finalize_RHS_c(void)
 			}
 		}
 
-		free(FACET->RHSIn_c);  FACET->RHSIn_c  = NULL;
-		free(FACET->RHSOut_c); FACET->RHSOut_c = NULL;
+		free(FACE->RHSIn_c);  FACE->RHSIn_c  = NULL;
+		free(FACE->RHSOut_c); FACE->RHSOut_c = NULL;
 	}
 
 	// Add source contribution

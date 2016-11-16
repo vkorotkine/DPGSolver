@@ -456,7 +456,7 @@ void evaluate_mesh_regularity(double *mesh_quality)
 		// Obtain vertex coordinates (Row-major)
 		for (i = 0; i < Nc; i++) {
 		for (j = 0; j < d; j++) {
-			XYZ[i*d+j] = VOLUME->XYZ_vC[j*Nc+i];
+			XYZ[i*d+j] = VOLUME->XYZ_vV[j*Nc+i];
 		}}
 
 		// XYZ coordinates of TET center

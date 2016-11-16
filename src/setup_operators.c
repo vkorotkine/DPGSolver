@@ -49,11 +49,11 @@
  *
  *			This is done so that the only operators computed are those which are used. The additional SF operators are
  *			needed to interpolate from VOLUME to VOLUME nodes in components of the TP operator assembly for higher
- *			dimensional differentiation and FACET operators.
+ *			dimensional differentiation and FACE operators.
  *			It must be noted, however, that the data structure is such that the most general case can be handled (3D
  *			mixed meshes using hp adaptivity and sum factorized operators) which results in notably excessive operator
  *			indexing in the much simpler cases (such as in 1D). The indexing convention is as follows:
- *				OP_v*_(v/f)*[1][2][3] : (OP)erator from order [1] to order [2] with (v)olume/(f)acet refinement index
+ *				OP_v*_(v/f)*[1][2][3] : (OP)erator from order [1] to order [2] with (v)olume/(f)ace refinement index
  *				                        [3] where potential (OP)erators and '*'s are defined in the notation below.
  *			If sum factorization has not yet broken-even for a certain order, the associated operators are freed here.
  *			(ToBeModified: DON'T FORGET TO DO THIS. Remove the sum factorized output_to_paraview function as well. This
@@ -62,8 +62,6 @@
  *		Standard (i.e. non sum-factorized) operators are used for all functions which are not performance critical in
  *		order to improve code readability.
  *		Ensure that operators for hp refinement are only stored when refinement is enabled (ToBeDeleted).
- *
- *		Change name of (C)orner to (V)ertex to avoid confusion with (C)ofactor. (ToBeDeleted)
  *
  *		For the PYR element rst_vGs != E_rst_vV because of the TP structures of the TP nodes and the rotational symmetry
  *		ordering of the PYR nodes in layers of 't'. This means that special consideration must be made if attempting to
@@ -89,13 +87,13 @@
  *
  *		N(1)n(2)(3)[4][5] : (N)umber of (1) (n)odes of (2) type on elements which are (3) of order [4] belonging to
  *		                    element class [5]
- *		                    (1): (v)olume, (f)acet, (e)dge
+ *		                    (1): (v)olume, (f)ace, (e)dge
  *		                    (2): (P)lotting, (G)eometry, (C)ofactor, (I)ntegration, (S)olution
  *		                    (3): (s)traight, (c)urved
- *		  Example: NfnIs[1][0] == (N)umber of (f)acet (n)odes for (I)ntegration on (straight) P1 facets of Eclass 0.
+ *		  Example: NfnIs[1][0] == (N)umber of (f)ace (n)odes for (I)ntegration on (straight) P1 faces of Eclass 0.
  *
  *		rst_(1)(2)(3) : coordinates on the reference element (rst) of (1) nodes of (2) type which are (3).
- *		                (1): (v)olume, (f)acet, (e)dge
+ *		                (1): (v)olume, (f)ace, (e)dge
  *		                (2): (P)lotting, (G)eometry, (C)ofactor, (I)ntegration, (S)olution, (V)ertex
  *		                (3): (s)traight, (c)urved (optional)
  *
@@ -103,7 +101,7 @@
  *		                                    (1) which are (2) evaluated at (3) nodes of (4) type which are (5) of order [6]
  *		                                    (1/4): (P)lotting, (G)eometry, (C)ofactor, (I)ntegration, (S)olution
  *		                                    (2/5): (s)traight, (c)urved
- *		                                    (3): (v)olume, (f)acet, (e)dge
+ *		                                    (3): (v)olume, (f)ace, (e)dge
  *
  *		_(1)(2) subscripts for operators indicate that this is a (1) operator, operating on VOLUME nodes and
  *		transferring to (2) nodes.
@@ -111,7 +109,7 @@
  *
  *	setup_ELEMENT_operators/setup_TP_operators:
  *		w_(1)(2)(3) : Cubature (w)eights (1) nodes of (2) type which are (3)
- *		             (1): (v)olume, (f)acet
+ *		             (1): (v)olume, (f)ace
  *		             (2): (I)ntegration
  *		             (3): (s)traight, (c)urved
  *		I(1)(2) : (I)dentity matrix of type (1) which is (2)
@@ -122,20 +120,20 @@
  *		          (2): (s)traight, (c)urved
  *		I_(1)(2)(3)_(4)(5)(6) : (I)nterpolation operator from (1) nodes of type (2) which are (3) to (4) nodes of type
  *		                        (5) which are (6)
- *		                        (1/4): (v)olume, (f)acet, (e)dge
+ *		                        (1/4): (v)olume, (f)ace, (e)dge
  *		                        (2/5): (P)lotting, (G)eometry, (C)ofactor, (I)ntegration, (S)olution
  *		                        (3/6): (s)traight, (c)urved
- *		  Note: Interpolation operators to FACETs may have up to 4 levels of dereferencing *I_x_x[1][2][3]:
+ *		  Note: Interpolation operators to FACEs may have up to 4 levels of dereferencing *I_x_x[1][2][3]:
  *		        [0] : The operator is a pointer to  matrix
  *		        [1] : Order of the element from which you are interpolating
  *		        [2] : Order of the element to which you are interpolating
  *		        [3] : Index of operator (e.g. there is a need for many operators interpolating to different parts of the
- *		                                 VOLUME FACETs)
+ *		                                 VOLUME FACEs)
  *		Ihat_(1)(2)(3)_(4)(5)(6) : Analogous to I (above) but where interpolation is of coefficients instead of values.
  *		  Note: values and coefficients are the same for the nodal scheme, but not for modal.
  *		D_(1)(2)(3)_(4)(5)(6) : (D)ifferentiation + interpolation operator from (1) nodes of type (2) which are (3) to
  *		                        (4) nodes of type (5) which are (6)
- *		                        (1/4): (v)olume, (f)acet, (e)dge
+ *		                        (1/4): (v)olume, (f)ace, (e)dge
  *		                        (2/5): (P)lotting, (G)eometry, (C)ofactor, (I)ntegration, (S)olution
  *		                        (3/6): (s)traight, (c)urved
  *		  Note: Differentiation + interpolation operators may have up to 5 levels of dereferencing *D_x_x[1][2][3][4]:
@@ -657,7 +655,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		free(BCoords_dEm2->NenGc);
 	}
 
-	// FACETs
+	// FACEs
 	NFTypes = 1;
 	BCoords_dEm1[0] = get_BCoords_dEm1(ELEMENT,0); // keep/free
 	if (EType == WEDGE || EType == PYR) {
@@ -1107,7 +1105,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				}
 			}
 
-			// FACET related operators
+			// FACE related operators
 			for (f = 0; f < Nf; f++) {
 				IndFType = get_IndFType(Eclass,f);
 
@@ -2547,11 +2545,11 @@ static void setup_L2_projection_operators(const unsigned int EType)
 			PM = max(P,Pb);
 			for (f = 0; f < Nf; f++) {
 				IndFType = get_IndFType(Eclass,f);
-				ELEMENT_F = get_ELEMENT_FACET(EType,IndFType);
+				ELEMENT_F = get_ELEMENT_FACE(EType,IndFType);
 
 				if (EType == LINE) {
 					NfnM = 1; // (M)ortar
-					NfnF = 1; // (F)acet
+					NfnF = 1; // (F)ace
 					NfnIs = 1;
 					NfnIc = 1;
 
@@ -2677,7 +2675,7 @@ static void setup_blending(const unsigned int EType)
 	for (P = PSMin; P <= PSMax; P++) {
 		BCoords_V = ELEMENT->I_vGs_vGc[1][P][0];
 
-		// FACET related operators
+		// FACE related operators
 		for (f = 0; f < Nf; f++) {
 			Vf = f*NFREFMAX;
 
@@ -2689,7 +2687,7 @@ static void setup_blending(const unsigned int EType)
 				BCoords_F[n*Nfve[f]+ve] = BCoords_V[n*Nve+VeFcon[f*NFVEMAX+ve]];
 			}}
 
-			// Compute projection of VOLUME nodes to FACET
+			// Compute projection of VOLUME nodes to FACE
 			ELEMENT_F = get_ELEMENT_F_type(EType,f);
 
 			EclassF = get_Eclass(ELEMENT_F->type);
@@ -2823,7 +2821,7 @@ void setup_operators(void)
 	// POINT
 	EType = POINT;
 	if (d == 1)
-		setup_ELEMENT_FACET_ordering(EType);
+		setup_ELEMENT_FACE_ordering(EType);
 
 	// LINE (Includes TP Class)
 	EType = LINE;
@@ -2836,7 +2834,7 @@ void setup_operators(void)
 	setup_ELEMENT_operators(EType);
 	setup_L2_projection_operators(EType);
 	if (d == 2)
-		setup_ELEMENT_FACET_ordering(EType);
+		setup_ELEMENT_FACE_ordering(EType);
 
 	// QUAD
 	EType = QUAD;
@@ -2850,7 +2848,7 @@ void setup_operators(void)
 		setup_TP_operators(EType);
 		setup_blending(EType);
 		if (d == 3)
-			setup_ELEMENT_FACET_ordering(EType);
+			setup_ELEMENT_FACE_ordering(EType);
 	}
 
 	// HEX
@@ -2880,7 +2878,7 @@ void setup_operators(void)
 		setup_L2_projection_operators(EType);
 		setup_blending(EType);
 		if (d == 3)
-			setup_ELEMENT_FACET_ordering(EType);
+			setup_ELEMENT_FACE_ordering(EType);
 	}
 
 	// TET/PYR

@@ -155,11 +155,12 @@ $(OBJDIR)/%.o : %.c
 $(DEPDIR)/%.d : %.c
 	@gcc -MM -MG $< > $@; # Use first prerequisite only as other prereqs are included from the existing %.d file
 	@sed -i -e 's|.*:|$(OBJDIR)/$*.o $(DEPDIR)/$*.d:|' $@
+	@rm $@-e
 	@echo Creating/updating: $@
 
 # Additional dependencies needed for modified dynamic memory allocation
-DYN_MEM_DEPS_NOPATH := S_ELEMENT.h S_VOLUME.h S_FACET.h
-DYN_MEM_DEPS        := $(INCDIR)/S_ELEMENT.h $(INCDIR)/S_VOLUME.h $(INCDIR)/S_FACET.h
+DYN_MEM_DEPS_NOPATH := S_ELEMENT.h S_VOLUME.h S_FACE.h
+DYN_MEM_DEPS        := $(INCDIR)/S_ELEMENT.h $(INCDIR)/S_VOLUME.h $(INCDIR)/S_FACE.h
 
 $(DYN_MEM_DEPS_NOPATH) : $(DYN_MEM_DEPS)
 $(DYN_MEM_DEPS) : memory_constructors.c

@@ -45,14 +45,15 @@ void initialize_ELEMENTs(void)
 	 *		Eclass   : (E)lement (class)
 	 *		d        : (d)imension
 	 *		Nve      : (N)umber of local (ve)rtices
-	 *		Nfve     : (N)umber of local (f)acet (ve)rtices
-	 *		Nf       : (N)umber of local (f)acets
+	 *		Nfve     : (N)umber of local (f)ace (ve)rtices
+	 *		Nf       : (N)umber of local (f)aces
 	 *		NEhref   : (N)umber of (E)lement types after (h)-(ref)inement
-	 *		VeCGmsh  : (Ve)rtices of the (C)orners                       (Gmsh ordering)
-	 *		VeFcon   : (Ve)rtices of the (F)acets which are (con)forming (Standard ordering)
+	 *		VeCGmsh  : (Ve)rtices of the (C)orners                      (Gmsh ordering)
+	 *		VeEcon   : (Ve)rtices of the (E)dges which are (con)forming (Standard ordering)
+	 *		VeFcon   : (Ve)rtices of the (F)aces which are (con)forming (Standard ordering)
 	 *		Nvref    : (N)umber of (v)olume h-refinements needed for standard refinement.
 	 *		NvrefSF  : (N)umber of (v)olume h-refinements needed for (S)um (F)actorized operator application.
-	 *		Nfref    : (N)umber of (f)acet h-refinements needed for standard refinement.
+	 *		Nfref    : (N)umber of (f)ace h-refinements needed for standard refinement.
 	 *
 	 *	References:
 	 *		http://gmsh.info/doc/texinfo/gmsh.html#Node-ordering
@@ -66,7 +67,7 @@ void initialize_ELEMENTs(void)
 	// Standard datatypes
 	unsigned int type, f, Nf, IndFType;
 
-	struct S_ELEMENT *ELEMENT, *ELEMENT_FACET;
+	struct S_ELEMENT *ELEMENT, *ELEMENT_FACE;
 
 	// POINT
 	ELEMENT = New_ELEMENT();
@@ -271,23 +272,23 @@ void initialize_ELEMENTs(void)
 
 	// No additional ELEMENTs
 
-	// Set pointers for ELEMENT classes and ELEMENT FACETs
+	// Set pointers for ELEMENT classes and ELEMENT FACEs
 	for (ELEMENT = DB.ELEMENT; ELEMENT; ELEMENT = ELEMENT->next) {
 		type = ELEMENT->type;
 		if (type == POINT) {
 			ELEMENT->ELEMENTclass[0]  = get_ELEMENT_Eclass(ELEMENT->type,0);
 		} else if (type == LINE || type == QUAD || type == HEX || type == TRI || type == TET) {
 			ELEMENT->ELEMENTclass[0]  = get_ELEMENT_Eclass(ELEMENT->type,0);
-			ELEMENT->ELEMENT_FACET[0] = get_ELEMENT_FACET(ELEMENT->type,0);
+			ELEMENT->ELEMENT_FACE[0] = get_ELEMENT_FACE(ELEMENT->type,0);
 		} else if (type == PYR) {
 			ELEMENT->ELEMENTclass[0]  = get_ELEMENT_Eclass(ELEMENT->type,0);
-			ELEMENT->ELEMENT_FACET[0] = get_ELEMENT_FACET(ELEMENT->type,0);
-			ELEMENT->ELEMENT_FACET[1] = get_ELEMENT_FACET(ELEMENT->type,1);
+			ELEMENT->ELEMENT_FACE[0] = get_ELEMENT_FACE(ELEMENT->type,0);
+			ELEMENT->ELEMENT_FACE[1] = get_ELEMENT_FACE(ELEMENT->type,1);
 		} else if (type == WEDGE) {
 			ELEMENT->ELEMENTclass[0]  = get_ELEMENT_Eclass(ELEMENT->type,0);
 			ELEMENT->ELEMENTclass[1]  = get_ELEMENT_Eclass(ELEMENT->type,1);
-			ELEMENT->ELEMENT_FACET[0] = get_ELEMENT_FACET(ELEMENT->type,0);
-			ELEMENT->ELEMENT_FACET[1] = get_ELEMENT_FACET(ELEMENT->type,1);
+			ELEMENT->ELEMENT_FACE[0] = get_ELEMENT_FACE(ELEMENT->type,0);
+			ELEMENT->ELEMENT_FACE[1] = get_ELEMENT_FACE(ELEMENT->type,1);
 		}
 	}
 
@@ -356,8 +357,8 @@ void initialize_ELEMENTs(void)
 		Nf = ELEMENT->Nf;
 		for (f = 0; f < Nf; f++) {
 			IndFType = get_IndFType(ELEMENT->Eclass,f);
-			ELEMENT_FACET = get_ELEMENT_FACET(ELEMENT->type,IndFType);
-			ELEMENT->Nfref[f] = ELEMENT_FACET->Nvref;
+			ELEMENT_FACE = get_ELEMENT_FACE(ELEMENT->type,IndFType);
+			ELEMENT->Nfref[f] = ELEMENT_FACE->Nvref;
 		}
 	}
 }
@@ -376,10 +377,10 @@ void finalize_ELEMENTs(void)
 	 *	Notation:
 	 *		present  : Indicator of presence of this element type
 	 *		           Options: 0, 1
-	 *		NfMax    : (Max)imum (N)umber of (f)acets on an element
-	 *		NfveMax  : (Max)imum (N)umber of (f)acet (ve)rtices on an element
+	 *		NfMax    : (Max)imum (N)umber of (f)aces on an element
+	 *		NfveMax  : (Max)imum (N)umber of (f)ace (ve)rtices on an element
 	 *		NveMax   : (Max)imum (N)umber of (ve)rtices on an element
-	 *		NfrefMax : (Max)imum (N)umber of (f)acet (ref)inements
+	 *		NfrefMax : (Max)imum (N)umber of (f)ace (ref)inements
 	 *
 	 *	References:
 	 */
@@ -575,7 +576,7 @@ struct S_ELEMENT *get_ELEMENT_Eclass(const unsigned int type, const unsigned int
 	printf("Error: Element class not found.\n"), exit(1);
 }
 
-struct S_ELEMENT *get_ELEMENT_FACET(const unsigned int type, const unsigned int IndEclass)
+struct S_ELEMENT *get_ELEMENT_FACE(const unsigned int type, const unsigned int IndEclass)
 {
 	// Quite similar to get_ELEMENT_F_type ... Likely delete one of this function (ToBeDeleted)
 	struct S_ELEMENT *ELEMENT = DB.ELEMENT;
@@ -605,7 +606,7 @@ struct S_ELEMENT *get_ELEMENT_FACET(const unsigned int type, const unsigned int 
 			ELEMENT = ELEMENT->next;
 		}
 	}
-	printf("Error: Element FACET of type %d and IndFType %d was not found.\n",type,IndEclass), exit(1);
+	printf("Error: Element FACE of type %d and IndFType %d was not found.\n",type,IndEclass), exit(1);
 }
 
 unsigned int get_IndFType(const unsigned int Eclass, const unsigned int f)

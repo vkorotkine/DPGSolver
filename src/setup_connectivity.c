@@ -20,42 +20,42 @@
  *		Build global connectivity arrays. The main algorithm is based on tiConnect3D from Hesthaven's nodal DG code.
  *
  *	Comments:
- *		FToVe is sorted such that each row holds the list of vertices for the corresponding facet in ascending order.
- *		This ordering allows for comparison between facets from different volumes such that they can be matched up in
+ *		FToVe is sorted such that each row holds the list of vertices for the corresponding face in ascending order.
+ *		This ordering allows for comparison between faces from different volumes such that they can be matched up in
  *		VToV.
  *		If this function is found to be slow after profiling, it should be parallelized. (ToBeDeleted)
  *
  *	Notation:
- *		Fs   : (F)acet (s)tart index
+ *		Fs   : (F)ace (s)tart index
  *		Vs   : (V)olume (s)tart index
  *
  *		VToVe : (V)olume to (Ve)rtex correspondence
  *		VType : (V)olume type numbering
  *
- *		NBF  : (N)umber of (B)oundary (F)acets
+ *		NBF  : (N)umber of (B)oundary (F)aces
  *
- *		IndicesGF : (G)lobal (F)acet indices
- *		IndicesBF : (B)oundary (F)acet indices
+ *		IndicesGF : (G)lobal (F)ace indices
+ *		IndicesBF : (B)oundary (F)ace indices
  *
- *		FToVe  : (F)acet to (Ve)rtices correspondence.
- *		         This potentially includes non-existent facets. In this case, all facet vertices are set equal to NVe,
+ *		FToVe  : (F)ace to (Ve)rtices correspondence.
+ *		         This potentially includes non-existent faces. In this case, all face vertices are set equal to NVe,
  *		         which is not a possible value.
- *		FNve   : (N)umber of local (ve)rtices on each (F)acet.
- *		BFToVe : (B)oundary (F)acet to (Ve)rtices correspondence.
+ *		FNve   : (N)umber of local (ve)rtices on each (F)ace.
+ *		BFToVe : (B)oundary (F)ace to (Ve)rtices correspondence.
  *		BTags  : (B)oundary Tags
  *
- *		NGF    : (N)umber of (G)lobal (F)acets
- *		         This number is modified as the connectivity/periodicity is established, and non-existent facets are
+ *		NGF    : (N)umber of (G)lobal (F)aces
+ *		         This number is modified as the connectivity/periodicity is established, and non-existent faces are
  *		         identified and eliminated.
  *		NVC    : (N)umber of (V)OLUMEs which are (C)urved
- *		NGFC   : (N)umber of (G)lobal (F)acets which are (C)urved
+ *		NGFC   : (N)umber of (G)lobal (F)aces which are (C)urved
  *		VToV   : (V)olume to (V)olume connectivity
- *		VToF   : (V)olume to local (F)acet connectivity
- *		VToGF  : (V)olume to (G)lobal (F)acet correspondence
+ *		VToF   : (V)olume to local (F)ace connectivity
+ *		VToGF  : (V)olume to (G)lobal (F)ace correspondence
  *		VToBC  : (V)olume to (B)oundary (C)ondition flags
- *		GFToVe : (G)lobal (F)acet to (Ve)rtex correspondence
+ *		GFToVe : (G)lobal (F)ace to (Ve)rtex correspondence
  *		VC     : List of (V)OLUMEs which are (C)urved
- *		GFC    : List of (G)lobal (F)acets which are (C)urved
+ *		GFC    : List of (G)lobal (F)aces which are (C)urved
  *
  *	References:
  *		Hesthaven (Nodal DG Code): https://github.com/tcew/nodal-dg
@@ -147,7 +147,7 @@ void setup_connectivity(void)
 	VToV = malloc(NGF * sizeof *VToV); // keep
 	VToF = malloc(NGF * sizeof *VToF); // keep
 
-	// Sort based on Global Facet indexing obtained above
+	// Sort based on Global Face indexing obtained above
 	for (v = count = 0; v < NV; v++) {
 	for (f = 0; f < NfMax; f++) {
 		FNve[v*NfMax+f] = FNveSwap[IndicesGF[count]];
@@ -231,7 +231,7 @@ void setup_connectivity(void)
 	free(matchIn);
 	free(matchOut);
 
-	// Setup Boundary Condition Information and find Curved VOLUMEs/FACETs
+	// Setup Boundary Condition Information and find Curved VOLUMEs/FACEs
 	NBF = NE[d-1];
 
 	VToBC = malloc(NGF * sizeof *VToBC); // keep
@@ -327,7 +327,7 @@ void setup_connectivity(void)
 	free(GFToVeOver);
 	free(NveGF);
 
-	// Store list of Volumes and Global Facets which are curved
+	// Store list of Volumes and Global Faces which are curved
 	VCOver  = malloc(NV       * sizeof *VCOver); // free
 	GFCOver = malloc(NV*NfMax * sizeof *GFCOver); // free
 	for (v = 0, vc = 0, gfc = 0; v < NV; v++) {

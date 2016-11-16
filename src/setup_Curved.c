@@ -12,7 +12,7 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "setup_geometry.h"
 #include "element_functions.h"
@@ -28,16 +28,16 @@
  *
  *	Comments:
  *		Requires that straight VOLUME nodes have already been stored.
- *		VOLUMEs with curved FACETs have curved = 1 while VOLUMEs with curved EDGEs only have curved = 2.
- *		The operations performed are redundant in 3D. As the blending of FACET to VOLUME is not affected by EDGE node
+ *		VOLUMEs with curved FACEs have curved = 1 while VOLUMEs with curved EDGEs only have curved = 2.
+ *		The operations performed are redundant in 3D. As the blending of FACE to VOLUME is not affected by EDGE node
  *		displacement, EDGE blending is performed for all curved VOLUMEs and the EDGE displacement is recomputed (but not
- *		used) for the FACET node displacement. Check if this is significant while profiling and potentially make
+ *		used) for the FACE node displacement. Check if this is significant while profiling and potentially make
  *		modifications. (ToBeModified)
  *		Potentially add support for different surface parametrizations: Chord Method, Radial Projection, Equal Tangent.
  *
  *	Notation:
  *		XYZ      : High-order VOLUME (XYZ) coordinates after curving.
- *		XYZ_CmS : (XYZ) BOUNDARY (EDGE or FACET) coordinates, (C)urved (m)inus (S)traight.
+ *		XYZ_CmS : (XYZ) BOUNDARY (EDGE or FACE) coordinates, (C)urved (m)inus (S)traight.
  *
  *	References:
  */
@@ -393,7 +393,7 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
 
 	data_blend->NvnG   = NvnG;
 	data_blend->XYZ    = XYZ;
-	data_blend->XYZ_vV = VOLUME->XYZ_vC;
+	data_blend->XYZ_vV = VOLUME->XYZ_vV;
 	data_blend->VeInfo = VeInfo;
 
 	ELEMENT = get_ELEMENT_type(VOLUME->type);

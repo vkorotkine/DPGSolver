@@ -16,7 +16,7 @@
 #include "adaptation.h"
 #include "update_VOLUMEs.h"
 #include "explicit_VOLUME_info.h"
-#include "explicit_FACET_info.h"
+#include "explicit_FACE_info.h"
 #include "finalize_RHS.h"
 #include "output_to_paraview.h"
 
@@ -98,7 +98,7 @@ void solver_explicit(void)
 			for (rk = 0; rk < 3; rk++) {
 				// Build the RHS (== -Residual)
 				printf("V");  explicit_VOLUME_info();
-				printf("F");  explicit_FACET_info();
+				printf("F");  explicit_FACE_info();
 				printf("F "); maxRHS = finalize_RHS();
 
 				// Update What
@@ -132,7 +132,7 @@ void solver_explicit(void)
 			for (rk = 0; rk < 5; rk++) {
 				// Build the RHS (== -Residual)
 				printf("V");  explicit_VOLUME_info();
-				printf("F");  explicit_FACET_info();
+				printf("F");  explicit_FACE_info();
 				printf("F "); maxRHS = finalize_RHS();
 
 				// Update What

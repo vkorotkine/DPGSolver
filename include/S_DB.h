@@ -54,7 +54,7 @@ struct S_DB {
 	// Structs
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME, **Vgrp;
-	struct S_FACET   *FACET;
+	struct S_FACE   *FACE;
 };
 extern struct S_DB DB;
 

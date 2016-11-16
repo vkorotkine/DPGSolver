@@ -12,7 +12,7 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "array_norm.h"
 #include "matrix_functions.h"
@@ -21,15 +21,15 @@
 
 /*
  *	Purpose:
- *		Finalize RHS term by summing VOLUME and FACET contributions and multiplying by the inverse mass matrix for
+ *		Finalize RHS term by summing VOLUME and FACE contributions and multiplying by the inverse mass matrix for
  *		explicit runs.
  *
  *	Comments:
  *		When the 'Collocated' option is enabled, the inverse VOLUME cubature weights are already included in the VV and
- *		FF operators used in the VOLUME and FACET info functions. Thus, only the inverse VOLUME element must be applied
+ *		FF operators used in the VOLUME and FACE info functions. Thus, only the inverse VOLUME element must be applied
  *		to RHS terms. When the option is disabled, the standard procedure of multiplication with the inverse mass matrix
  *		is carried out. The motivation for this is that a particular sum factorized operator becomes identity for the
- *		collocated scheme when this approach is adopted; see cases where diag = 2 in the VOLUME/FACET info routines.
+ *		collocated scheme when this approach is adopted; see cases where diag = 2 in the VOLUME/FACE info routines.
  *
  *		Likely delete EFE = 0 option for source computation; implemented only for comparison with Hesthaven.
  *		(ToBeDeleted)
@@ -129,25 +129,25 @@ double finalize_RHS(void)
 	             *RHS_Final;
 
 	struct S_VOLUME    *VIn, *VOut, *VOLUME;
-	struct S_FACET     *FACET;
+	struct S_FACE     *FACE;
 
 	// silence
 	NvnSIn = 0;
 
-	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-		VIn    = FACET->VIn;
+	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		VIn    = FACE->VIn;
 		NvnSIn = VIn->NvnS;
 
-		VOut    = FACET->VOut;
+		VOut    = FACE->VOut;
 		NvnSOut = VOut->NvnS;
 
 		VRHSIn_ptr  = VIn->RHS;
 		VRHSOut_ptr = VOut->RHS;
 
-		FRHSIn_ptr  = FACET->RHSIn;
-		FRHSOut_ptr = FACET->RHSOut;
+		FRHSIn_ptr  = FACE->RHSIn;
+		FRHSOut_ptr = FACE->RHSOut;
 
-		Boundary = FACET->Boundary;
+		Boundary = FACE->Boundary;
 		for (iMax = Neq; iMax--; ) {
 			for (jMax = NvnSIn; jMax--; )
 				*VRHSIn_ptr++ += *FRHSIn_ptr++;
@@ -157,8 +157,8 @@ double finalize_RHS(void)
 			}
 		}
 
-		free(FACET->RHSIn);
-		free(FACET->RHSOut);
+		free(FACE->RHSIn);
+		free(FACE->RHSOut);
 	}
 
 	// Add source contribution

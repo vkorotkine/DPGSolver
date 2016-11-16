@@ -55,7 +55,7 @@ struct S_ELEMENT {
 	               ****Is_Weak_FF_sp, ****Ic_Weak_FF_sp;
 
 	struct S_ELEMENT *next;
-	struct S_ELEMENT **ELEMENTclass, **ELEMENT_FACET;
+	struct S_ELEMENT **ELEMENTclass, **ELEMENT_FACE;
 };
 
 #endif // DPG__S_ELEMENT_h__INCLUDED

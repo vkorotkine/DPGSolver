@@ -14,7 +14,7 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "array_norm.h"
 #include "memory_constructors.h"
@@ -23,7 +23,7 @@
 
 /*
  *	Purpose:
- *		Set up VOLUME and FACET structures.
+ *		Set up VOLUME and FACE structures.
  *
  *	Comments:
  *		Will need two different setup_structures functions: One using the initial global arrays and one updating
@@ -31,10 +31,10 @@
  *
  *	Notation:
  *		XYZ_(1)(2) : Physical node locations (XYZ) of (1) nodes of (2) type
- *		             (1) : (v)olume, (f)acet
- *		             (2) : (C)orner
- *		IndOrd(In/Out)(Out/In) : (Ind)ex of (Ord)ering relating projection from (In)ner VOLUME to the FACET to the
- *		                         projection from the (Out)er VOLUME to the FACET
+ *		             (1) : (v)olume, (f)ace
+ *		             (2) : (V)ertex
+ *		IndOrd(In/Out)(Out/In) : (Ind)ex of (Ord)ering relating projection from (In)ner VOLUME to the FACE to the
+ *		                         projection from the (Out)er VOLUME to the FACE
  *
  *	References:
 */
@@ -84,7 +84,7 @@ static void get_ordering_index(const unsigned int Nn, const unsigned int d, doub
 {
 	/*
 	 *	Purpose:
-	 *		Return the ordering index corresponding to the match between two FACETs based on DXYZ.
+	 *		Return the ordering index corresponding to the match between two FACEs based on DXYZ.
 	 *
 	 *	Comments:
 	 *		In 1D, IndOrdInOut == IndOrdOutIn == 0.
@@ -128,7 +128,7 @@ static void get_ordering_index(const unsigned int Nn, const unsigned int d, doub
 				}
 			}}
 
-			if (Nn == 4) { // QUAD FACET
+			if (Nn == 4) { // QUAD FACE
 				unsigned int IndZerosP[32] = { 0, 1, 2, 3,
 				                               1, 0, 3, 2,
 				                               2, 3, 0, 1,
@@ -144,7 +144,7 @@ static void get_ordering_index(const unsigned int Nn, const unsigned int d, doub
 					if (array_norm_diff_ui(Nn,IndZerosOutIn,&IndZerosP[i*Nn],"Inf") < EPS)
 						*IndOrdOutIn = i;
 				}
-			} else if (Nn == 3) { // TRI FACET
+			} else if (Nn == 3) { // TRI FACE
 				unsigned int IndZerosP[18] = { 0, 1, 2,
 				                               1, 2, 0,
 				                               2, 0, 1,
@@ -207,11 +207,11 @@ void setup_structures(void)
 	             Nve,*Nfve, Nfn,
 				 indexg, NvnGs,
 	             uMPIrank;
-	double       *XYZ_vC, **VeF, *XYZIn_fC, *XYZOut_fC, *DXYZ;
+	double       *XYZ_vV, **VeF, *XYZIn_fC, *XYZOut_fC, *DXYZ;
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME, **Vgrp, **Vgrp_tmp, *VIn, *VOut;
-	struct S_FACET   **FACET, **FoundFACET;
+	struct S_FACE   **FACE, **FoundFACE;
 
 	// silence
 	Nf = NECgrp = IndOrdInOut = IndOrdOutIn = 0;
@@ -222,8 +222,8 @@ void setup_structures(void)
 	else if (d == 2) NECgrp = 2;
 	else if (d == 3) NECgrp = 4;
 
-	FACET      = calloc(2   , sizeof *FACET); // free
-	FoundFACET = calloc(NGF , sizeof *FoundFACET); // free
+	FACE      = calloc(2   , sizeof *FACE); // free
+	FoundFACE = calloc(NGF , sizeof *FoundFACE); // free
 
 	NTVgrp = NECgrp*NP*2;
 	NVgrp    = calloc(NTVgrp , sizeof *NVgrp);    // keep
@@ -234,7 +234,7 @@ void setup_structures(void)
 
 	VOLUME = New_VOLUME();
 	DB.VOLUME = VOLUME;
-	DB.FACET  = NULL;
+	DB.FACE  = NULL;
 
 	// Note: only initialize volumes on the current processor.
 	for (v = 0, NVlocal = 0; v < NV; v++) {
@@ -261,8 +261,8 @@ void setup_structures(void)
 				VOLUME->curved = 0;
 			}
 
-			// FACETs adjacent to VOLUMEs on the current processor.
-			// Note that GFC and VToGF cycle through the global FACET indices in order
+			// FACEs adjacent to VOLUMEs on the current processor.
+			// Note that GFC and VToGF cycle through the global FACE indices in order
 			ELEMENT = get_ELEMENT_type(VOLUME->type);
 
 			Nf = ELEMENT->Nf;
@@ -270,59 +270,59 @@ void setup_structures(void)
 			for (f = 0; f < Nf; f++) {
 				VOLUME->NsubF[f] = 1;
 				gf = VToGF[v*NfMax+f];
-				if (FoundFACET[gf] == NULL) {
-					if (DB.FACET) {
-						FACET[0]->next = New_FACET();
-						FACET[0]       = FACET[0]->next;
+				if (FoundFACE[gf] == NULL) {
+					if (DB.FACE) {
+						FACE[0]->next = New_FACE();
+						FACE[0]       = FACE[0]->next;
 					} else {
-						DB.FACET = New_FACET();
-						FACET[0] = DB.FACET;
+						DB.FACE = New_FACE();
+						FACE[0] = DB.FACE;
 					}
 
-//					FACET[0]->indexl = gflocal;
-					FACET[0]->indexg = gf;
-					FACET[0]->P      = VOLUME->P;
-					FACET[0]->level  = 0;
+//					FACE[0]->indexl = gflocal;
+					FACE[0]->indexg = gf;
+					FACE[0]->P      = VOLUME->P;
+					FACE[0]->level  = 0;
 
-					FACET[0]->VIn   = VOLUME; IndVIn = VOLUME->indexg;
-					FACET[0]->VfIn  = NfrefMax*f;
+					FACE[0]->VIn   = VOLUME; IndVIn = VOLUME->indexg;
+					FACE[0]->VfIn  = NfrefMax*f;
 
-					FACET[0]->BC    = VToBC[IndVIn*NfMax+f];
+					FACE[0]->BC    = VToBC[IndVIn*NfMax+f];
 
-					// Overwritten if a second VOLUME is found adjacent to this FACET
-					FACET[0]->VOut  = VOLUME;
-					FACET[0]->VfOut = NfrefMax*f;
+					// Overwritten if a second VOLUME is found adjacent to this FACE
+					FACE[0]->VOut  = VOLUME;
+					FACE[0]->VfOut = NfrefMax*f;
 
 					if (!VOLUME->curved) {
-						FACET[0]->typeInt = 's';
+						FACE[0]->typeInt = 's';
 					} else {
-						FACET[0]->typeInt = 'c';
+						FACE[0]->typeInt = 'c';
 						if (AC || (IndGFC < NGFC && gf == GFC[IndGFC])) {
-							FACET[0]->curved = 1;
+							FACE[0]->curved = 1;
 							IndGFC++;
 						}
 					}
 
-					FACET[0]->VOut->FACET[f*NSUBFMAX] = FACET[0];
+					FACE[0]->VOut->FACE[f*NSUBFMAX] = FACE[0];
 
-					FoundFACET[gf] = FACET[0];
+					FoundFACE[gf] = FACE[0];
 				} else {
-					FACET[1] = FoundFACET[gf];
+					FACE[1] = FoundFACE[gf];
 
-					FACET[1]->P = max(FACET[1]->P,VOLUME->P);
-					FACET[1]->VOut  = VOLUME;
-					FACET[1]->VfOut = NfrefMax*f;
-					FACET[1]->VOut->FACET[f*NSUBFMAX] = FACET[1];
+					FACE[1]->P = max(FACE[1]->P,VOLUME->P);
+					FACE[1]->VOut  = VOLUME;
+					FACE[1]->VfOut = NfrefMax*f;
+					FACE[1]->VOut->FACE[f*NSUBFMAX] = FACE[1];
 					if (VOLUME->curved) {
-						FACET[1]->typeInt = 'c';
+						FACE[1]->typeInt = 'c';
 						if (AC || (IndGFC < NGFC && gf == GFC[IndGFC])) {
-							FACET[1]->curved = 1;
+							FACE[1]->curved = 1;
 							IndGFC++;
 						}
 					}
 				}
 //				// Indexing from connectivity discussion above noting that the mesh is conforming at the start (ToBeDeleted)
-//				VOLUME->GF[f*NfrefMax] = FoundFACET[gf];
+//				VOLUME->GF[f*NfrefMax] = FoundFACE[gf];
 			}
 
 
@@ -336,18 +336,18 @@ void setup_structures(void)
 			else
 				printf("Error: Unsupported element type setup_struct (NvnGs).\n"), exit(1);
 
-			XYZ_vC = malloc(NvnGs*d * sizeof *XYZ_vC); // keep
-			VOLUME->XYZ_vC = XYZ_vC;
+			XYZ_vV = malloc(NvnGs*d * sizeof *XYZ_vV); // keep
+			VOLUME->XYZ_vV = XYZ_vV;
 
-			// XYZ_vC may be interpreted as [X Y Z] where each of X, Y, Z are column vectors (ToBeDeleted)
+			// XYZ_vV may be interpreted as [X Y Z] where each of X, Y, Z are column vectors (ToBeDeleted)
 			// Add this comment to notation section.
 			indexg = VOLUME->indexg;
 			for (ve = 0; ve < NvnGs; ve++) {
 			for (dim = 0; dim < d; dim++) {
-				XYZ_vC[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+indexg)*NVEMAX+ve]*d+dim];
+				XYZ_vV[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+indexg)*NVEMAX+ve]*d+dim];
 			}}
 //printf("%d\n",VOLUME->indexg);
-//array_print_d(NvnGs,d,XYZ_vC,'C');
+//array_print_d(NvnGs,d,XYZ_vV,'C');
 
 			// MPI
 			IndVgrp = ((VOLUME->Eclass)*NP*2)+(VOLUME->P*2)+(VOLUME->curved);
@@ -379,22 +379,22 @@ void setup_structures(void)
 		IndE++;
 	}
 	free(Vgrp_tmp);
-	free(FoundFACET);
+	free(FoundFACE);
 
 	if (!AC && IndVC > NVC)
 		printf("Error: Found too many curved VOLUMEs.\n"), exit(1);
 
-	// Flag boundary FACETs
-	for (FACET[0] = DB.FACET; FACET[0]; FACET[0] = FACET[0]->next) {
-		VIn   = FACET[0]->VIn;
-		VfIn  = FACET[0]->VfIn;
+	// Flag boundary FACEs
+	for (FACE[0] = DB.FACE; FACE[0]; FACE[0] = FACE[0]->next) {
+		VIn   = FACE[0]->VIn;
+		VfIn  = FACE[0]->VfIn;
 		fIn   = VfIn/NFREFMAX;
 
-		VOut  = FACET[0]->VOut;
-		VfOut = FACET[0]->VfOut;
+		VOut  = FACE[0]->VOut;
+		VfOut = FACE[0]->VfOut;
 		fOut  = VfOut/NFREFMAX;
 
-		FACET[0]->Boundary = !((VIn->indexg != VOut->indexg) || (VIn->indexg == VOut->indexg && fIn != fOut));
+		FACE[0]->Boundary = !((VIn->indexg != VOut->indexg) || (VIn->indexg == VOut->indexg && fIn != fOut));
 	}
 
 	// Initialize VOLUME connectivity
@@ -412,32 +412,32 @@ void setup_structures(void)
 		}
 	}
 
-	for (FACET[0] = DB.FACET; FACET[0]; FACET[0] = FACET[0]->next) {
+	for (FACE[0] = DB.FACE; FACE[0]; FACE[0] = FACE[0]->next) {
 // May potentially have a problem for PYR-HEX interface due to PYR nodes being ordered for symmetry while QUAD nodes are
 // ordered for TP extension. (ToBeDeleted)
-// Probably not as the FACET nodes would not be related to the PYR node ordering.
+// Probably not as the FACE nodes would not be related to the PYR node ordering.
 
-		// Obtain FACET type
-		VOLUME  = FACET[0]->VIn;
-		Vf      = FACET[0]->VfIn;
+		// Obtain FACE type
+		VOLUME  = FACE[0]->VIn;
+		Vf      = FACE[0]->VfIn;
 		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
 
 		if (d == 1) {
-			FACET[0]->type = POINT;
+			FACE[0]->type = POINT;
 		} else if (d == 2) {
-			FACET[0]->type = LINE;
+			FACE[0]->type = LINE;
 		} else if (d == 3) {
-			VIn  = FACET[0]->VIn;
+			VIn  = FACE[0]->VIn;
 
 			if (VIn->type == TET || (VIn->type == WEDGE && Indf > 2) || (VIn->type == PYR && Indf < 4))
-				FACET[0]->type = TRI;
+				FACE[0]->type = TRI;
 			else
-				FACET[0]->type = QUAD;
+				FACE[0]->type = QUAD;
 		}
 
 		// Obtain XYZIn_fC/XYZOut_fC
-		VOLUME  = FACET[0]->VIn;
-		Vf      = FACET[0]->VfIn;
+		VOLUME  = FACE[0]->VIn;
+		Vf      = FACE[0]->VfIn;
 		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
 
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
@@ -447,13 +447,13 @@ void setup_structures(void)
 		VeF   = ELEMENT->VeF;
 
 		NvnGs = ELEMENT->NvnGs[1];
-		XYZ_vC = VOLUME->XYZ_vC;
+		XYZ_vV = VOLUME->XYZ_vV;
 
 		XYZIn_fC = malloc(Nfve[Indf]*d * sizeof *XYZIn_fC); // free
-		mm_CTN_d(Nfve[Indf],d,Nve,VeF[Vf],XYZ_vC,XYZIn_fC);
+		mm_CTN_d(Nfve[Indf],d,Nve,VeF[Vf],XYZ_vV,XYZIn_fC);
 
-		VOLUME  = FACET[0]->VOut;
-		Vf      = FACET[0]->VfOut;
+		VOLUME  = FACE[0]->VOut;
+		Vf      = FACE[0]->VfOut;
 		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
 
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
@@ -463,24 +463,24 @@ void setup_structures(void)
 		VeF   = ELEMENT->VeF;
 
 		NvnGs = ELEMENT->NvnGs[1];
-		XYZ_vC = VOLUME->XYZ_vC;
+		XYZ_vV = VOLUME->XYZ_vV;
 
 		XYZOut_fC = malloc(Nfve[Indf]*d * sizeof *XYZOut_fC); // free
-		mm_CTN_d(Nfve[Indf],d,Nve,VeF[Vf],XYZ_vC,XYZOut_fC);
+		mm_CTN_d(Nfve[Indf],d,Nve,VeF[Vf],XYZ_vV,XYZOut_fC);
 
 		// Compute distance matrix
 		Nfn  = Nfve[Indf];
 		DXYZ = calloc(Nfn*Nfn , sizeof *DXYZ); // free
-		compute_distance_matrix(Nfn,FACET[0]->BC,d,XYZIn_fC,XYZOut_fC,DXYZ);
+		compute_distance_matrix(Nfn,FACE[0]->BC,d,XYZIn_fC,XYZOut_fC,DXYZ);
 
-		// Obtain the index of corresponding ordering between FACETs
+		// Obtain the index of corresponding ordering between FACEs
 		get_ordering_index(Nfn,d,DXYZ,&IndOrdInOut,&IndOrdOutIn);
 
-		FACET[0]->IndOrdInOut = IndOrdInOut;
-		FACET[0]->IndOrdOutIn = IndOrdOutIn;
+		FACE[0]->IndOrdInOut = IndOrdInOut;
+		FACE[0]->IndOrdOutIn = IndOrdOutIn;
 
 /*
-printf("\n\n%d\n",FACET[0]->indexg);
+printf("\n\n%d\n",FACE[0]->indexg);
 array_print_d(Nfve[Indf],d,XYZIn_fC,'C');
 array_print_d(Nfve[Indf],d,XYZOut_fC,'C');
 
@@ -494,7 +494,7 @@ printf("InOut: %d %d\n",IndOrdInOut,IndOrdOutIn);
 
 		free(DXYZ);
 	}
-	free(FACET);
+	free(FACE);
 
 /*
 for (i = 0, iMax = NTVgrp; iMax--; i++) {

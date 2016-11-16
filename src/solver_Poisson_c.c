@@ -12,7 +12,7 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "solver_Poisson.h"
 #include "element_functions.h"
@@ -65,29 +65,29 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 	}
 }
 
-static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
                       const unsigned int IndFType)
 {
 	// Standard datatypes
 	unsigned int PV, PF, Vtype, Vcurved, FtypeInt, IndOrdOutIn, IndOrdInOut;
 
-	struct S_ELEMENT *ELEMENT, *ELEMENT_FACET;
+	struct S_ELEMENT *ELEMENT, *ELEMENT_FACE;
 
 	PV      = VOLUME->P;
-	PF      = FACET->P;
+	PF      = FACE->P;
 	Vtype   = VOLUME->type;
 	Vcurved = VOLUME->curved;
 
-	FtypeInt = FACET->typeInt;
-	IndOrdOutIn = FACET->IndOrdOutIn;
-	IndOrdInOut = FACET->IndOrdInOut;
+	FtypeInt = FACE->typeInt;
+	IndOrdOutIn = FACE->IndOrdOutIn;
+	IndOrdInOut = FACE->IndOrdInOut;
 
 	ELEMENT       = get_ELEMENT_type(Vtype);
-	ELEMENT_FACET = get_ELEMENT_FACET(Vtype,IndFType);
+	ELEMENT_FACE = get_ELEMENT_FACE(Vtype,IndFType);
 
 	OPS->NvnS = ELEMENT->NvnS[PV];
 	if (FtypeInt == 's') {
-		// Straight FACET Integration
+		// Straight FACE Integration
 		OPS->NfnI = ELEMENT->NfnIs[PF][IndFType];
 
 		OPS->w_fI = ELEMENT->w_fIs[PF][IndFType];
@@ -95,8 +95,8 @@ static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, co
 		OPS->ChiS_fI     = ELEMENT->ChiS_fIs[PV][PF];
 		OPS->GradChiS_fI = ELEMENT->GradChiS_fIs[PV][PF];
 
-		OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIs[PF][IndOrdInOut];
-		OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIs[PF][IndOrdOutIn];
+		OPS->nOrdInOut = ELEMENT_FACE->nOrd_fIs[PF][IndOrdInOut];
+		OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fIs[PF][IndOrdOutIn];
 
 		if (!Vcurved) {
 			OPS->NvnC = ELEMENT->NvnCs[PV];
@@ -106,7 +106,7 @@ static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, co
 			OPS->I_vC_fI = ELEMENT->I_vCc_fIs[PV][PF];
 		}
 	} else {
-		// Curved FACET Integration
+		// Curved FACE Integration
 		OPS->NfnI = ELEMENT->NfnIc[PF][IndFType];
 
 		OPS->w_fI = ELEMENT->w_fIc[PF][IndFType];
@@ -114,8 +114,8 @@ static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, co
 		OPS->ChiS_fI     = ELEMENT->ChiS_fIc[PV][PF];
 		OPS->GradChiS_fI = ELEMENT->GradChiS_fIc[PV][PF];
 
-		OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIc[PF][IndOrdInOut];
-		OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIc[PF][IndOrdOutIn];
+		OPS->nOrdInOut = ELEMENT_FACE->nOrd_fIc[PF][IndOrdInOut];
+		OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fIc[PF][IndOrdOutIn];
 
 		if (!Vcurved) {
 			OPS->NvnC = ELEMENT->NvnCs[PV];
@@ -221,7 +221,7 @@ static void boundary_Poisson_c(const unsigned int Nn, const unsigned int Nel, do
 	free(XYZproj);
 }
 
-void compute_qhat_FACET_c(void)
+void compute_qhat_FACE_c(void)
 {
 	// Initialize DB Parameters
 	unsigned int d = DB.d;
@@ -236,7 +236,7 @@ void compute_qhat_FACET_c(void)
 
 	struct S_OPERATORS *OPSIn, *OPSOut;
 	struct S_VOLUME    *VIn, *VOut;
-	struct S_FACET     *FACET;
+	struct S_FACE     *FACE;
 
 	// silence
 	uOut_fI = NULL;
@@ -244,22 +244,22 @@ void compute_qhat_FACET_c(void)
 	OPSIn  = malloc(sizeof *OPSIn);  // free
 	OPSOut = malloc(sizeof *OPSOut); // free
 
-	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-		VIn  = FACET->VIn;
-		VfIn = FACET->VfIn;
+	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		VIn  = FACE->VIn;
+		VfIn = FACE->VfIn;
 		fIn  = VfIn/NFREFMAX;
 
 		EclassIn = VIn->Eclass;
 		IndFType = get_IndFType(EclassIn,fIn);
-		init_opsF(OPSIn,VIn,FACET,IndFType);
+		init_opsF(OPSIn,VIn,FACE,IndFType);
 
-		VOut  = FACET->VOut;
-		VfOut = FACET->VfOut;
+		VOut  = FACE->VOut;
+		VfOut = FACE->VfOut;
 
-		init_opsF(OPSOut,VOut,FACET,IndFType);
+		init_opsF(OPSOut,VOut,FACE,IndFType);
 
-		BC       = FACET->BC;
-		Boundary = FACET->Boundary;
+		BC       = FACE->BC;
+		Boundary = FACE->Boundary;
 
 		NfnI    = OPSIn->NfnI;
 		NvnSIn  = OPSIn->NvnS;
@@ -270,8 +270,8 @@ void compute_qhat_FACET_c(void)
 		nOrdOutIn = OPSIn->nOrdOutIn;
 		nOrdInOut = OPSIn->nOrdInOut;
 
-		detJF_fI = FACET->detJF_fI;
-		n_fI     = FACET->n_fI;
+		detJF_fI = FACE->detJF_fI;
+		n_fI     = FACE->n_fI;
 
 		// Compute uIn_fI
 		uIn_fI = malloc(NfnI * sizeof *uIn_fI); // free
@@ -287,7 +287,7 @@ void compute_qhat_FACET_c(void)
 			for (n = 0; n < NfnI; n++)
 				uOut_fIIn[n] = uOut_fI[nOrdOutIn[n]];
 		} else {
-			boundary_Poisson_c(NfnI,1,FACET->XYZ_fI,uIn_fI,uOut_fIIn,NULL,NULL,BC % BC_STEP_SC, BC / BC_STEP_SC);
+			boundary_Poisson_c(NfnI,1,FACE->XYZ_fI,uIn_fI,uOut_fIIn,NULL,NULL,BC % BC_STEP_SC, BC / BC_STEP_SC);
 		}
 
 		// Compute numerical trace
@@ -305,7 +305,7 @@ void compute_qhat_FACET_c(void)
 			wnJ_fI[dim*NfnI+n] = w_fI[n]*detJF_fI[n]*n_fI[n*d+dim];
 		}}
 
-		// Compute partial FACET RHS terms
+		// Compute partial FACE RHS terms
 
 		// Interior VOLUME
 		for (dim = 0; dim < d; dim++) {
@@ -315,9 +315,9 @@ void compute_qhat_FACET_c(void)
 				qhatIn[n] = wnJ_fI[dim*NfnI+n]*(uNum_fI[n]-uIn_fI[n]);
 			}
 
-			if (FACET->qhatIn_c[dim])
-				free(FACET->qhatIn_c[dim]);
-			FACET->qhatIn_c[dim] = qhatIn;
+			if (FACE->qhatIn_c[dim])
+				free(FACE->qhatIn_c[dim]);
+			FACE->qhatIn_c[dim] = qhatIn;
 		}
 		free(uIn_fI);
 
@@ -339,9 +339,9 @@ void compute_qhat_FACET_c(void)
 					qhatOut[n] = wnJ_fI[dim*NfnI+n]*(uNum_fI[n]-uOut_fI[n]);
 				}
 
-				if (FACET->qhatOut_c[dim])
-					free(FACET->qhatOut_c[dim]);
-				FACET->qhatOut_c[dim] = qhatOut;
+				if (FACE->qhatOut_c[dim])
+					free(FACE->qhatOut_c[dim]);
+				FACE->qhatOut_c[dim] = qhatOut;
 			}
 			free(uOut_fI);
 		}
@@ -387,7 +387,7 @@ void compute_uhat_VOLUME_c(void)
 	free(OPS);
 }
 
-void compute_uhat_FACET_c()
+void compute_uhat_FACE_c()
 {
 	// Initialize DB Parameters
 	unsigned int d               = DB.d,
@@ -405,28 +405,28 @@ void compute_uhat_FACET_c()
 	               *nqNum_fI, *RHSIn, *RHSOut;
 
 	struct S_OPERATORS *OPSIn, *OPSOut;
-	struct S_FACET     *FACET;
+	struct S_FACE     *FACE;
 	struct S_VOLUME    *VIn, *VOut;
 
 	OPSIn  = malloc(sizeof *OPSIn);  // free
 	OPSOut = malloc(sizeof *OPSOut); // free
 
-	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-		VIn  = FACET->VIn;
-		VfIn = FACET->VfIn;
+	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		VIn  = FACE->VIn;
+		VfIn = FACE->VfIn;
 		fIn  = VfIn/NFREFMAX;
 
 		EclassIn = VIn->Eclass;
 		IndFType = get_IndFType(EclassIn,fIn);
-		init_opsF(OPSIn,VIn,FACET,IndFType);
+		init_opsF(OPSIn,VIn,FACE,IndFType);
 
-		VOut  = FACET->VOut;
-		VfOut = FACET->VfOut;
+		VOut  = FACE->VOut;
+		VfOut = FACE->VfOut;
 
-		init_opsF(OPSOut,VOut,FACET,IndFType);
+		init_opsF(OPSOut,VOut,FACE,IndFType);
 
-		BC       = FACET->BC;
-		Boundary = FACET->Boundary;
+		BC       = FACE->BC;
+		Boundary = FACE->Boundary;
 
 		NfnI    = OPSIn->NfnI;
 		NvnSIn  = OPSIn->NvnS;
@@ -437,18 +437,18 @@ void compute_uhat_FACET_c()
 		nOrdOutIn = OPSIn->nOrdOutIn;
 		nOrdInOut = OPSIn->nOrdInOut;
 
-		n_fI = FACET->n_fI;
+		n_fI = FACE->n_fI;
 
-		detJVIn_fI = FACET->detJVIn_fI;
+		detJVIn_fI = FACE->detJVIn_fI;
 		if (!Boundary) {
 			detJVOut_fI = malloc(NfnI * sizeof *detJVOut_fI); // free
 			for (n = 0; n < NfnI; n++)
-				detJVOut_fI[n] = FACET->detJVOut_fI[nOrdOutIn[n]];
+				detJVOut_fI[n] = FACE->detJVOut_fI[nOrdOutIn[n]];
 		} else {
 			detJVOut_fI = detJVIn_fI;
 		}
 
-		detJF_fI = FACET->detJF_fI;
+		detJF_fI = FACE->detJF_fI;
 		h = malloc(NfnI * sizeof *h); // free
 		for (n = 0; n < NfnI; n++)
 			h[n] = max(detJVIn_fI[n],detJVOut_fI[n])/detJF_fI[n];
@@ -470,7 +470,7 @@ void compute_uhat_FACET_c()
 		mm_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,0.0,OPSOut->ChiS_fI[VfOut],VOut->MInv,ChiSMInv_fIOut);
 		array_rearrange_d(NfnI,NvnSOut,nOrdOutIn,'R',ChiSMInv_fIOut);
 
-		// Note: GradxyzOut is arranged according to the FACET node ordering of VIn.
+		// Note: GradxyzOut is arranged according to the FACE node ordering of VIn.
 		for (dim1 = 0; dim1 < d; dim1++) {
 			GradxyzIn[dim1]  = malloc(NfnI*NvnSIn  * sizeof **GradxyzIn);  // free
 			GradxyzOut[dim1] = malloc(NfnI*NvnSOut * sizeof **GradxyzOut); // free
@@ -501,7 +501,7 @@ void compute_uhat_FACET_c()
 			for (dim = 0; dim < d; dim++)
 				mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSOut,1.0,0.0,GradxyzOut[dim],VOut->uhat_c,&grad_uOut_fIIn[NfnI*dim]);
 		} else {
-			boundary_Poisson_c(NfnI,1,FACET->XYZ_fI,uIn_fI,uOut_fIIn,grad_uIn_fI,grad_uOut_fIIn,BC % BC_STEP_SC,BC / BC_STEP_SC);
+			boundary_Poisson_c(NfnI,1,FACE->XYZ_fI,uIn_fI,uOut_fIIn,grad_uIn_fI,grad_uOut_fIIn,BC % BC_STEP_SC,BC / BC_STEP_SC);
 		}
 
 		// Compute numerical flux
@@ -510,7 +510,7 @@ void compute_uhat_FACET_c()
 		gradu_avg = malloc(NfnI*d * sizeof *gradu_avg); // free
 		u_jump    = malloc(NfnI*d * sizeof *u_jump);    // free
 
-		jacobian_flux_coef(NfnI,1,n_fI,h,FACET->P,gradu_avg,u_jump,d,ViscousFluxType);
+		jacobian_flux_coef(NfnI,1,n_fI,h,FACE->P,gradu_avg,u_jump,d,ViscousFluxType);
 		free(h);
 
 		switch(ViscousFluxType) {
@@ -625,36 +625,36 @@ void compute_uhat_FACET_c()
 			nqNum_fI[n] *= detJF_fI[n]*w_fI[n];
 		}
 
-		// Finalize FACET RHS terms
+		// Finalize FACE RHS terms
 
 		// Add VOLUME contributions to RHS
 		RHSIn  = calloc(NvnSIn  , sizeof *RHSIn);  // keep (requires external free)
 		RHSOut = calloc(NvnSOut , sizeof *RHSOut); // keep (requires external free)
 
-		if (FACET->RHSIn_c)
-			free(FACET->RHSIn_c);
-		FACET->RHSIn_c  = RHSIn;
-		if (FACET->RHSOut_c)
-			free(FACET->RHSOut_c);
-		FACET->RHSOut_c = RHSOut;
+		if (FACE->RHSIn_c)
+			free(FACE->RHSIn_c);
+		FACE->RHSIn_c  = RHSIn;
+		if (FACE->RHSOut_c)
+			free(FACE->RHSOut_c);
+		FACE->RHSOut_c = RHSOut;
 
 		for (dim = 0; dim < d; dim++) {
 			// RHS
-			mm_dcc(CBCM,CBNT,CBNT,NvnSIn, 1,NfnI,-1.0,1.0,GradxyzIn[dim], FACET->qhatIn_c[dim], RHSIn);
+			mm_dcc(CBCM,CBNT,CBNT,NvnSIn, 1,NfnI,-1.0,1.0,GradxyzIn[dim], FACE->qhatIn_c[dim], RHSIn);
 			if (!Boundary) {
 				array_rearrange_d(NfnI,NvnSOut,nOrdInOut,'R',GradxyzOut[dim]);
-				mm_dcc(CBCM,CBNT,CBNT,NvnSOut,1,NfnI,-1.0,1.0,GradxyzOut[dim],FACET->qhatOut_c[dim],RHSOut);
+				mm_dcc(CBCM,CBNT,CBNT,NvnSOut,1,NfnI,-1.0,1.0,GradxyzOut[dim],FACE->qhatOut_c[dim],RHSOut);
 			}
 		}
 		array_free2_d(d,GradxyzIn);
 		array_free2_d(d,GradxyzOut);
 
-		// Add FACET contributions to RHS
+		// Add FACE contributions to RHS
 
-		// Interior FACET
+		// Interior FACE
 		mm_dcc(CBCM,CBNT,CBNT,NvnSIn,1,NfnI,1.0,1.0,OPSIn->ChiS_fI[VfIn],nqNum_fI,RHSIn);
 
-		// Exterior FACET
+		// Exterior FACE
 		if (!Boundary) {
 			// RHS
 

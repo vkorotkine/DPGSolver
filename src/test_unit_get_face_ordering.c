@@ -1,7 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include "test_unit_get_facet_ordering.h"
+#include "test_unit_get_face_ordering.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -16,7 +16,7 @@
 
 /*
  *	Purpose:
- *		Test correctness of implementation of get_facet_ordering.
+ *		Test correctness of implementation of get_face_ordering.
  *
  *	Comments:
  *
@@ -25,7 +25,7 @@
  *	References:
  */
 
-void test_unit_get_facet_ordering(void)
+void test_unit_get_face_ordering(void)
 {
 	unsigned int pass;
 
@@ -56,14 +56,14 @@ void test_unit_get_facet_ordering(void)
 	// case 0
 	IndOrd = 0;
 
-	get_facet_ordering(d,IndOrd,FType,Nn,0,NULL,NULL,nOrd);
+	get_face_ordering(d,IndOrd,FType,Nn,0,NULL,NULL,nOrd);
 
 	pass = 0;
 	if (array_norm_diff_ui(Nn,nOrd,nOrd10,"Inf") < EPS)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("get_facet_ordering (d = 1, case 0):              ");
+	printf("get_face_ordering (d = 1, case 0):               ");
 	test_print(pass);
 
 	free(nOrd);
@@ -105,7 +105,7 @@ void test_unit_get_facet_ordering(void)
 		for (i = 0; i < Nn; i++)
 			nOrd[i] = 0.0;
 
-		get_facet_ordering(d,IndOrd,FType,Nn,0,NULL,NULL,nOrd);
+		get_face_ordering(d,IndOrd,FType,Nn,0,NULL,NULL,nOrd);
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd2P2[IndOrd],"Inf") < EPS)
@@ -128,7 +128,7 @@ void test_unit_get_facet_ordering(void)
 		for (i = 0; i < Nn; i++)
 			nOrd[i] = 0.0;
 
-		get_facet_ordering(d,IndOrd,FType,Nn,0,NULL,NULL,nOrd);
+		get_face_ordering(d,IndOrd,FType,Nn,0,NULL,NULL,nOrd);
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd2P3[IndOrd],"Inf") < EPS)
@@ -206,7 +206,7 @@ void test_unit_get_facet_ordering(void)
 		for (i = 0; i < Nn; i++)
 			nOrd[i] = 0.0;
 
-		get_facet_ordering(d,IndOrd,FType,Nn,0,NULL,NULL,nOrd);
+		get_face_ordering(d,IndOrd,FType,Nn,0,NULL,NULL,nOrd);
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd3P2Q[IndOrd],"Inf") < EPS)
@@ -236,7 +236,7 @@ void test_unit_get_facet_ordering(void)
 		for (i = 0; i < Nn; i++)
 			nOrd[i] = 0.0;
 
-		get_facet_ordering(d,IndOrd,FType,Nn,0,NULL,NULL,nOrd);
+		get_face_ordering(d,IndOrd,FType,Nn,0,NULL,NULL,nOrd);
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd3P3Q[IndOrd],"Inf") < EPS)
@@ -308,7 +308,7 @@ void test_unit_get_facet_ordering(void)
 		for (i = 0; i < Nn; i++)
 			nOrd[i] = 0.0;
 
-		get_facet_ordering(d,IndOrd,FType,Nn,Ns,symms,rst,nOrd);
+		get_face_ordering(d,IndOrd,FType,Nn,Ns,symms,rst,nOrd);
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd3P2T[IndOrd],"Inf") < EPS)
@@ -340,7 +340,7 @@ void test_unit_get_facet_ordering(void)
 		for (i = 0; i < Nn; i++)
 			nOrd[i] = 0.0;
 
-		get_facet_ordering(d,IndOrd,FType,Nn,Ns,symms,rst,nOrd);
+		get_face_ordering(d,IndOrd,FType,Nn,Ns,symms,rst,nOrd);
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd3P3T[IndOrd],"Inf") < EPS)

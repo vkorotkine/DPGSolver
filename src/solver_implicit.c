@@ -19,7 +19,7 @@
 #include "adaptation.h"
 #include "update_VOLUMEs.h"
 #include "implicit_VOLUME_info.h"
-#include "implicit_FACET_info.h"
+#include "implicit_FACE_info.h"
 #include "finalize_LHS.h"
 #include "output_to_paraview.h"
 
@@ -139,7 +139,7 @@ void solver_implicit(void)
 		PetscInt *ix;
 
 		printf("V");  implicit_VOLUME_info();
-		printf("F");  implicit_FACET_info();
+		printf("F");  implicit_FACE_info();
 		printf("F "); maxRHS = finalize_LHS(&A,&b,&x,0);
 
 		// Solve linear system

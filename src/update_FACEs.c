@@ -1,7 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include "update_FACETs.h"
+#include "update_FACEs.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,7 +12,7 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "element_functions.h"
 #include "adaptation.h"
@@ -23,22 +23,22 @@
 
 /*
  *	Purpose:
- *		Update FACET information/operators in ELEMENTs which have undergone hp refinement.
+ *		Update FACE information/operators in ELEMENTs which have undergone hp refinement.
  *
  *	Comments:
- *		H-adaptation FACET updating is done from the coarsest to finest for HREFINE and in the opposite sense for
+ *		H-adaptation FACE updating is done from the coarsest to finest for HREFINE and in the opposite sense for
  *		HCOARSE in order to ensure that neighbouring elements are no more than 1-irregular.
- *		Clean up this function: function names, variable names, comments, potentially combine the COARSE and FINE FACET
+ *		Clean up this function: function names, variable names, comments, potentially combine the COARSE and FINE FACE
  *		list updating (ToBeDeleted)
- *		coarse_update and get_FACET_IndVIn use the same IndVInh => combine these during cleanup (ToBeDeleted)
- *		Likely include FACET renumbering as well to avoid overflow for long-time simulations. (ToBeDeleted)
+ *		coarse_update and get_FACE_IndVIn use the same IndVInh => combine these during cleanup (ToBeDeleted)
+ *		Likely include FACE renumbering as well to avoid overflow for long-time simulations. (ToBeDeleted)
  *
  *	Notation:
  *
  *	References:
  */
 
-static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const unsigned int VType,
+static void get_FACE_IndVIn(const unsigned int Vf, const unsigned int fh, const unsigned int VType,
                              unsigned int *IndVInh, unsigned int *Vfh)
 {
 	/*
@@ -382,7 +382,7 @@ static void get_FACET_IndVIn(const unsigned int Vf, const unsigned int fh, const
 	}
 }
 
-static unsigned int get_FACET_VfOut(const unsigned int fh, const unsigned int IndOrd, const unsigned int neigh_f,
+static unsigned int get_FACE_VfOut(const unsigned int fh, const unsigned int IndOrd, const unsigned int neigh_f,
                                     const unsigned int FType)
 {
 	/*
@@ -390,8 +390,8 @@ static unsigned int get_FACET_VfOut(const unsigned int fh, const unsigned int In
 	 *		Returns VfOut based on IndOrd of neighbouring parent elements.
 	 *
 	 *	Comments:
-	 *		In the current implementation, the IndOrd of the refined external facets is the same as that of the parent
-	 *		facets. If TET6 refinement algorithms with internal PYRs in arbitrary orientations are desired, this would
+	 *		In the current implementation, the IndOrd of the refined external faces is the same as that of the parent
+	 *		faces. If TET6 refinement algorithms with internal PYRs in arbitrary orientations are desired, this would
 	 *		no longer be true and IndOrd would also need to be returned.
 	 */
 
@@ -510,7 +510,7 @@ static unsigned int get_FACET_VfOut(const unsigned int fh, const unsigned int In
 	return neigh_f*NFREFMAX+Vfl;
 }
 
-static unsigned int get_FACET_type(struct S_FACET *FACET)
+static unsigned int get_FACE_type(struct S_FACE *FACE)
 {
 	// Initialize DB Parameters
 	const unsigned int d = DB.d;
@@ -518,10 +518,10 @@ static unsigned int get_FACET_type(struct S_FACET *FACET)
 	// Standard datatypesc
 	unsigned int VType, VfIn, fIn;
 
-	struct S_VOLUME *VIn = FACET->VIn;
+	struct S_VOLUME *VIn = FACE->VIn;
 
 	VType = VIn->type;
-	VfIn  = FACET->VfIn;
+	VfIn  = FACE->VfIn;
 	fIn   = VfIn/NFREFMAX;
 
 	switch (d) {
@@ -574,9 +574,9 @@ static unsigned int get_fhMax(const unsigned int VType, const unsigned int href_
 	}
 }
 
-static void get_Indsf(struct S_FACET *FACET, unsigned int *sfIn, unsigned int *sfOut);
+static void get_Indsf(struct S_FACE *FACE, unsigned int *sfIn, unsigned int *sfOut);
 
-static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct S_FACET *FACETc, struct S_VOLUME *VOLUME)
+static void set_FACE_Out(const unsigned int vh, const unsigned int fIn, struct S_FACE *FACEc, struct S_VOLUME *VOLUME)
 {
 	// Initialize DB Parameters
 	unsigned int TETrefineType = DB.TETrefineType;
@@ -599,7 +599,7 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 		IndOrdOutIn = 1; // Reversed
 		if (vh == 3)
 			printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
-			// Should already have found all FACETs
+			// Should already have found all FACEs
 		break;
 	case QUAD:
 		// Isotropic refinement only.
@@ -611,7 +611,7 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 			IndVhOut = 3; f = 2;
 		} else if (vh == 2) {
 			IndVhOut = 3; f = 0;
-		} else { // Should already have found all FACETs
+		} else { // Should already have found all FACEs
 			printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
 		}
 		IndOrdInOut = 0; // Same
@@ -635,7 +635,7 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 				else if (fIn == 3) { IndVhOut = 6; IndOrdInOut = 0; IndOrdOutIn = 0; }
 				f = 0;
 				break;
-			default: // Should already have found all FACETs
+			default: // Should already have found all FACEs
 				printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
 				break;
 			}
@@ -665,7 +665,7 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 				else if (fIn == 1) { IndVhOut = 9;  f = 2; IndOrdInOut = 0; IndOrdOutIn = 0; }
 				else if (fIn == 2) { IndVhOut = 10; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; }
 				break;
-			default: // Should already have found all FACETs
+			default: // Should already have found all FACEs
 				printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
 				break;
 			}
@@ -676,7 +676,7 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 			case 2: IndVhOut = 5; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 2
 			case 3: IndVhOut = 5; f = 2; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 3
 			case 4: IndVhOut = 5; f = 4; IndOrdInOut = 1; IndOrdOutIn = 1; break; // fIn = 4
-			default: // Should already have found all FACETs
+			default: // Should already have found all FACEs
 				printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
 				break;
 			}
@@ -707,7 +707,7 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 			break;
 		case 5: IndVhOut = 7; f = 2; break; // fIn = 3
 		case 6: IndVhOut = 7; f = 0; break; // fIn = 1
-		default: // Should already have found all FACETs
+		default: // Should already have found all FACEs
 			printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
 			break;
 		}
@@ -733,7 +733,7 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 		case 4: IndVhOut = 7; f = 0; IndOrdInOut = 1; IndOrdOutIn = 1; break; // fIn = 0
 		case 5: IndVhOut = 7; f = 1; IndOrdInOut = 1; IndOrdOutIn = 1; break; // fIn = 1
 		case 6: IndVhOut = 7; f = 2; IndOrdInOut = 1; IndOrdOutIn = 1; break; // fIn = 2
-		default: // Should already have found all FACETs
+		default: // Should already have found all FACEs
 			printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
 			break;
 		}
@@ -762,7 +762,7 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 		case 6: IndVhOut = 8; f = 2; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 3
 		case 7: IndVhOut = 8; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 2
 		case 8: IndVhOut = 9; f = 4; IndOrdInOut = 1; IndOrdOutIn = 1; break; // fIn = 4
-		default: // Should already have found all FACETs
+		default: // Should already have found all FACEs
 			printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
 			break;
 		}
@@ -776,23 +776,23 @@ static void set_FACET_Out(const unsigned int vh, const unsigned int fIn, struct 
 	for (i = 0; i < IndVhOut; i++)
 		VOLUMEc = VOLUMEc->next;
 
-	FACETc->VOut  = VOLUMEc;
-	FACETc->VfOut = f*NFREFMAX;
+	FACEc->VOut  = VOLUMEc;
+	FACEc->VfOut = f*NFREFMAX;
 
-	FACETc->IndOrdInOut = IndOrdInOut;
-	FACETc->IndOrdOutIn = IndOrdOutIn;
+	FACEc->IndOrdInOut = IndOrdInOut;
+	FACEc->IndOrdOutIn = IndOrdOutIn;
 
-	get_Indsf(FACETc,&sfIn,&sfOut);
+	get_Indsf(FACEc,&sfIn,&sfOut);
 
-	FACETc->VIn->FACET[sfIn] = FACETc;
-	FACETc->VOut->FACET[sfOut] = FACETc;
-	FACETc->type = get_FACET_type(FACETc);
+	FACEc->VIn->FACE[sfIn] = FACEc;
+	FACEc->VOut->FACE[sfOut] = FACEc;
+	FACEc->type = get_FACE_type(FACEc);
 
-	FACETc->VIn->neigh_f[FACETc->VfIn]   = (FACETc->VfOut)/NFREFMAX;
-	FACETc->VOut->neigh_f[FACETc->VfOut] = (FACETc->VfIn)/NFREFMAX;
+	FACEc->VIn->neigh_f[FACEc->VfIn]   = (FACEc->VfOut)/NFREFMAX;
+	FACEc->VOut->neigh_f[FACEc->VfOut] = (FACEc->VfIn)/NFREFMAX;
 }
 
-static void set_FACET_Out_External(struct S_FACET *FACETc, struct S_VOLUME *VOLUME)
+static void set_FACE_Out_External(struct S_FACE *FACEc, struct S_VOLUME *VOLUME)
 {
 	// Initialize DB Parameters
 	unsigned int TETrefineType = DB.TETrefineType;
@@ -803,7 +803,7 @@ static void set_FACET_Out_External(struct S_FACET *FACETc, struct S_VOLUME *VOLU
 	struct S_VOLUME *VOLUMEc;
 
 	VType = VOLUME->type;
-	VfOut = FACETc->VfOut;
+	VfOut = FACEc->VfOut;
 	switch (VType) {
 	case TRI:
 		// Isotropic refinement only.
@@ -1035,27 +1035,27 @@ static void set_FACET_Out_External(struct S_FACET *FACETc, struct S_VOLUME *VOLU
 	for (i = 0; i < IndVhOut; i++)
 		VOLUMEc = VOLUMEc->next;
 
-	FACETc->VOut  = VOLUMEc;
-	FACETc->VfOut = f*NFREFMAX;
+	FACEc->VOut  = VOLUMEc;
+	FACEc->VfOut = f*NFREFMAX;
 
-	FACETc->VIn->neigh_f[FACETc->VfIn]   = (FACETc->VfOut)/NFREFMAX;
-	FACETc->VOut->neigh_f[FACETc->VfOut] = (FACETc->VfIn)/NFREFMAX;
+	FACEc->VIn->neigh_f[FACEc->VfIn]   = (FACEc->VfOut)/NFREFMAX;
+	FACEc->VOut->neigh_f[FACEc->VfOut] = (FACEc->VfIn)/NFREFMAX;
 
-	get_Indsf(FACETc,&sfIn,&sfOut);
-	VOLUMEc->FACET[sfOut] = FACETc;
+	get_Indsf(FACEc,&sfIn,&sfOut);
+	VOLUMEc->FACE[sfOut] = FACEc;
 }
 
-static void get_Indsf(struct S_FACET *FACET, unsigned int *sfIn, unsigned int *sfOut)
+static void get_Indsf(struct S_FACE *FACE, unsigned int *sfIn, unsigned int *sfOut)
 {
 	unsigned int i, VType, Vf, f, Vfl, sf[2];
 
 	for (i = 0; i < 2; i++) {
 		if (i == 0) {
-			Vf    = FACET->VfIn;
-			VType = FACET->VIn->type;
+			Vf    = FACE->VfIn;
+			VType = FACE->VIn->type;
 		} else {
-			Vf    = FACET->VfOut;
-			VType = FACET->VOut->type;
+			Vf    = FACE->VfOut;
+			VType = FACE->VOut->type;
 		}
 		f     = Vf/NFREFMAX;
 		Vfl   = Vf%NFREFMAX;
@@ -1169,12 +1169,12 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 
 	// Standard datatypes
 	unsigned int i, iMax, f, Nf, VType, vhMin, vhMax, sf, sfMax, sfMax_i, fIn, fOut,
-	             IndVc[NVISUBFMAX],Indsf[NVISUBFMAX], recombine_FACETs,
+	             IndVc[NVISUBFMAX],Indsf[NVISUBFMAX], recombine_FACEs,
 	             dummy_ui;
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUMEc, **VOLUMEc_list, *VIn, *VOut;
-	struct S_FACET   *FACET, *FACETp;
+	struct S_FACE   *FACE, *FACEp;
 
 	ELEMENT = get_ELEMENT_type(VOLUME->type);
 	Nf = ELEMENT->Nf;
@@ -1195,7 +1195,7 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 		switch (VType) {
 		case TRI:
 			// Supported: Isotropic refinement
-			// NOTE: The computation of FACET->VfOut must be modified if anisotropic refinement is enabled.
+			// NOTE: The computation of FACE->VfOut must be modified if anisotropic refinement is enabled.
 			//       (ToBeDeleted)
 			sfMax = 2;
 			switch (f) {
@@ -1305,71 +1305,71 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 			break;
 		}
 
-		recombine_FACETs = 0;
-// Only need to check sf = 0 here as all sub FACETs should have the same level gap if coarsening was allowed.
+		recombine_FACEs = 0;
+// Only need to check sf = 0 here as all sub FACEs should have the same level gap if coarsening was allowed.
 // (ToBeDeleted).
 		for (sf = 0; sf < sfMax; sf++) {
-			FACET = VOLUMEc_list[IndVc[sf]]->FACET[Indsf[sf]];
+			FACE = VOLUMEc_list[IndVc[sf]]->FACE[Indsf[sf]];
 
-			VIn  = FACET->VIn;
-			VOut = FACET->VOut;
+			VIn  = FACE->VIn;
+			VOut = FACE->VOut;
 
 			if (VIn == VOut || VIn->level != VOut->level) {
-				recombine_FACETs = 1;
+				recombine_FACEs = 1;
 				break;
 			}
 		}
 
-		// Need to update FACET->VIn and FACET->VOut;
-		if (recombine_FACETs) {
+		// Need to update FACE->VIn and FACE->VOut;
+		if (recombine_FACEs) {
 			VOLUME->NsubF[f] = 1;
 
 			for (sf = 0; sf < sfMax; sf++) {
 				VOLUMEc = VOLUMEc_list[IndVc[sf]];
-				FACET = VOLUMEc->FACET[Indsf[sf]];
+				FACE = VOLUMEc->FACE[Indsf[sf]];
 
-				FACET->update = 1;
-				FACET->adapt_type = HCOARSE;
+				FACE->update = 1;
+				FACE->adapt_type = HCOARSE;
 			}
 
-			VOLUME->FACET[f*NSUBFMAX] = FACET->parent;
-			FACETp = FACET->parent;
-			if (is_VOLUME_VIn(VOLUME->indexg,FACETp->VIn->indexg)) {
-				fOut = (FACETp->VfOut)/NFREFMAX;
-				FACETp->VOut->NsubF[fOut] = 1;
-				FACETp->VOut->FACET[fOut*NSUBFMAX] = FACETp;
+			VOLUME->FACE[f*NSUBFMAX] = FACE->parent;
+			FACEp = FACE->parent;
+			if (is_VOLUME_VIn(VOLUME->indexg,FACEp->VIn->indexg)) {
+				fOut = (FACEp->VfOut)/NFREFMAX;
+				FACEp->VOut->NsubF[fOut] = 1;
+				FACEp->VOut->FACE[fOut*NSUBFMAX] = FACEp;
 			} else {
-				fIn = (FACETp->VfIn)/NFREFMAX;
-				FACETp->VIn->NsubF[fIn] = 1;
-				FACETp->VIn->FACET[fIn*NSUBFMAX] = FACETp;
+				fIn = (FACEp->VfIn)/NFREFMAX;
+				FACEp->VIn->NsubF[fIn] = 1;
+				FACEp->VIn->FACE[fIn*NSUBFMAX] = FACEp;
 			}
 		} else {
 			for (sf = 0; sf < sfMax; sf++) {
 				VOLUMEc = VOLUMEc_list[IndVc[sf]];
-				FACET = VOLUMEc->FACET[Indsf[sf]];
+				FACE = VOLUMEc->FACE[Indsf[sf]];
 
-				if (is_VOLUME_VIn(VOLUMEc->indexg,FACET->VIn->indexg)) {
-					FACET->VIn  = FACET->VOut;
-					FACET->VfIn = FACET->VfOut;
+				if (is_VOLUME_VIn(VOLUMEc->indexg,FACE->VIn->indexg)) {
+					FACE->VIn  = FACE->VOut;
+					FACE->VfIn = FACE->VfOut;
 
-					dummy_ui           = FACET->IndOrdInOut;
-					FACET->IndOrdInOut = FACET->IndOrdOutIn;
-					FACET->IndOrdOutIn = dummy_ui;
+					dummy_ui           = FACE->IndOrdInOut;
+					FACE->IndOrdInOut = FACE->IndOrdOutIn;
+					FACE->IndOrdOutIn = dummy_ui;
 
-					FACET->VOut  = VOLUME;
-					FACET->VfOut = f*NFREFMAX+sf+1; // CHANGE THIS TO BE GENERAL! (ToBeDeleted)
+					FACE->VOut  = VOLUME;
+					FACE->VfOut = f*NFREFMAX+sf+1; // CHANGE THIS TO BE GENERAL! (ToBeDeleted)
 
-					VOLUME->FACET[f*NSUBFMAX+sf] = FACET;
+					VOLUME->FACE[f*NSUBFMAX+sf] = FACE;
 
 					// Recompute XYZ_fS, n_fS, and detJF_fS
 // Need not be recomputed, just reordered (and potentially negated) (ToBeDeleted)
-					setup_FACET_XYZ(FACET);
-					setup_normals(FACET);
+					setup_FACE_XYZ(FACE);
+					setup_normals(FACE);
 				} else {
-					FACET->VOut  = VOLUME;
-					FACET->VfOut = f*NFREFMAX+sf+1;
+					FACE->VOut  = VOLUME;
+					FACE->VfOut = f*NFREFMAX+sf+1;
 
-					VOLUME->FACET[f*NSUBFMAX+sf] = FACET;
+					VOLUME->FACE[f*NSUBFMAX+sf] = FACE;
 				}
 			}
 			VOLUME->NsubF[f] = sfMax;
@@ -1377,7 +1377,7 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 		}
 	}
 
-	// Mark internal FACETs for updating
+	// Mark internal FACEs for updating
 	// Note: sfMax_i = ((#ELEMENTc)*(Nfc)-(Nfp)*(Nsubfp))/2; (c)hild, (p)arent
 	switch (VType) {
 	case TRI:
@@ -1476,15 +1476,15 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 
 	for (sf = 0; sf < sfMax_i; sf++) {
 		VOLUMEc = VOLUMEc_list[IndVc[sf]];
-		FACET = VOLUMEc->FACET[Indsf[sf]];
-		FACET->update = 1;
-		FACET->adapt_type = HDELETE;
+		FACE = VOLUMEc->FACE[Indsf[sf]];
+		FACE->update = 1;
+		FACE->adapt_type = HDELETE;
 	}
 
 	free(VOLUMEc_list);
 }
 
-void update_FACET_hp(void)
+void update_FACE_hp(void)
 {
 	/*
 	 *	Comments:
@@ -1506,17 +1506,17 @@ void update_FACET_hp(void)
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME, *VOLUMEc, *VOLUMEp, *VIn, *VOut;
-	struct S_FACET   *FACET, *FACETc, *FACETnext, *FACETtmp;
+	struct S_FACE   *FACE, *FACEc, *FACEnext, *FACEtmp;
 
 	// silence
 	IndVInh = Vfh = 0;
-	FACETc = NULL;
+	FACEc = NULL;
 
 	switch (Adapt) {
 	default: // ADAPT_HP
-//      Pass adapt type to update_FACET_hp (ToBeModified)
-		DB.Adapt = ADAPT_H; update_FACET_hp();
-		DB.Adapt = ADAPT_P; update_FACET_hp();
+//      Pass adapt type to update_FACE_hp (ToBeModified)
+		DB.Adapt = ADAPT_H; update_FACE_hp();
+		DB.Adapt = ADAPT_P; update_FACE_hp();
 		DB.Adapt = ADAPT_HP;
 		break;
 	case ADAPT_H:
@@ -1526,125 +1526,125 @@ void update_FACET_hp(void)
 				if (VOLUME->update && VOLUME->adapt_type == HREFINE && l == VOLUME->level) {
 					NsubF = VOLUME->NsubF;
 
-					// External FACETs
+					// External FACEs
 					ELEMENT = get_ELEMENT_type(VOLUME->type);
 					Nf = ELEMENT->Nf;
 
 					for (f = 0; f < Nf; f++) {
 						Indf = f*NSUBFMAX;
 						sfMax = NsubF[f];
-						if (sfMax == 1) { // Create new FACETs between two VOLUMEs which were previously on the same level.
-							FACET = VOLUME->FACET[Indf];
-							FACET->update = 1;
-							FACET->adapt_type = HREFINE;
+						if (sfMax == 1) { // Create new FACEs between two VOLUMEs which were previously on the same level.
+							FACE = VOLUME->FACE[Indf];
+							FACE->update = 1;
+							FACE->adapt_type = HREFINE;
 
-							VIn  = FACET->VIn;
-							VOut = FACET->VOut;
-							BC   = FACET->BC;
+							VIn  = FACE->VIn;
+							VOut = FACE->VOut;
+							BC   = FACE->BC;
 
 							internal_BC = (BC == 0 || (BC % BC_STEP_SC > 50));
 
 							fhMax = get_fhMax(VOLUME->type,VOLUME->hrefine_type);
 							for (fh = 0; fh < fhMax; fh++) {
 								if (fh) {
-									FACETc->next = New_FACET();
-									FACETc = FACETc->next;
+									FACEc->next = New_FACE();
+									FACEc = FACEc->next;
 								} else {
-									FACETc = New_FACET();
-									FACET->child0 = FACETc;
+									FACEc = New_FACE();
+									FACE->child0 = FACEc;
 								}
-								FACETc->update = 1;
-								FACETc->parent = FACET;
+								FACEc->update = 1;
+								FACEc->parent = FACE;
 
-								FACETc->indexg = NGF++;
-								FACETc->level  = (VOLUME->level)+1;
-								FACETc->BC     = BC;
+								FACEc->indexg = NGF++;
+								FACEc->level  = (VOLUME->level)+1;
+								FACEc->BC     = BC;
 
 								// Find out if VOLUME == VIn or VOut
 								// If condition can be outside of fh loop (ToBeDeleted)
 								if (is_VOLUME_VIn(VOLUME->indexg,VIn->indexg)) {
-									get_FACET_IndVIn(FACET->VfIn,fh,VIn->type,&IndVInh,&Vfh);
+									get_FACE_IndVIn(FACE->VfIn,fh,VIn->type,&IndVInh,&Vfh);
 
 									VOLUMEc = VOLUME->child0;
 									for (vh = 0; vh < IndVInh; vh++)
 										VOLUMEc = VOLUMEc->next;
 
-									FACETc->VIn  = VOLUMEc;
-									FACETc->VfIn = Vfh*NFREFMAX;
-									FACETc->type = get_FACET_type(FACETc);
+									FACEc->VIn  = VOLUMEc;
+									FACEc->VfIn = Vfh*NFREFMAX;
+									FACEc->type = get_FACE_type(FACEc);
 
 									if (internal_BC) {
-										FACETc->VOut  = VOut;
-										FACETc->VfOut = get_FACET_VfOut(fh,FACET->IndOrdOutIn,
-										                                VIn->neigh_f[f*NFREFMAX],FACETc->type);
+										FACEc->VOut  = VOut;
+										FACEc->VfOut = get_FACE_VfOut(fh,FACE->IndOrdOutIn,
+										                                VIn->neigh_f[f*NFREFMAX],FACEc->type);
 									} else {
-										FACETc->VOut  = FACETc->VIn;
-										FACETc->VfOut = FACETc->VfIn;
+										FACEc->VOut  = FACEc->VIn;
+										FACEc->VfOut = FACEc->VfIn;
 									}
 
-									FACETc->IndOrdInOut = FACET->IndOrdInOut;
-									FACETc->IndOrdOutIn = FACET->IndOrdOutIn;
+									FACEc->IndOrdInOut = FACE->IndOrdInOut;
+									FACEc->IndOrdOutIn = FACE->IndOrdOutIn;
 								} else {
-									get_FACET_IndVIn(FACET->VfOut,fh,VOut->type,&IndVInh,&Vfh);
+									get_FACE_IndVIn(FACE->VfOut,fh,VOut->type,&IndVInh,&Vfh);
 
 									VOLUMEc = VOLUME->child0;
 									for (vh = 0; vh < IndVInh; vh++)
 										VOLUMEc = VOLUMEc->next;
 
-									FACETc->VIn  = VOLUMEc;
-									FACETc->VfIn = Vfh*NFREFMAX;
-									FACETc->type = get_FACET_type(FACETc);
+									FACEc->VIn  = VOLUMEc;
+									FACEc->VfIn = Vfh*NFREFMAX;
+									FACEc->type = get_FACE_type(FACEc);
 
-									FACETc->VOut  = VIn;
-									FACETc->VfOut = get_FACET_VfOut(fh,FACET->IndOrdInOut,VOut->neigh_f[f*NFREFMAX],FACETc->type);
+									FACEc->VOut  = VIn;
+									FACEc->VfOut = get_FACE_VfOut(fh,FACE->IndOrdInOut,VOut->neigh_f[f*NFREFMAX],FACEc->type);
 
-									FACETc->IndOrdInOut = FACET->IndOrdOutIn;
-									FACETc->IndOrdOutIn = FACET->IndOrdInOut;
+									FACEc->IndOrdInOut = FACE->IndOrdOutIn;
+									FACEc->IndOrdOutIn = FACE->IndOrdInOut;
 
 								}
-								FACETc->VIn->NsubF[(FACETc->VfIn)/NFREFMAX] = 1;
+								FACEc->VIn->NsubF[(FACEc->VfIn)/NFREFMAX] = 1;
 								if (internal_BC)
-									FACETc->VOut->NsubF[(FACETc->VfOut)/NFREFMAX] = fhMax;
-								VOLUMEc->neigh_f[FACETc->VfIn] = (FACETc->VfOut)/NFREFMAX;
+									FACEc->VOut->NsubF[(FACEc->VfOut)/NFREFMAX] = fhMax;
+								VOLUMEc->neigh_f[FACEc->VfIn] = (FACEc->VfOut)/NFREFMAX;
 
-								get_Indsf(FACETc,&sfIn,&sfOut);
+								get_Indsf(FACEc,&sfIn,&sfOut);
 
-								FACETc->VIn->FACET[sfIn] = FACETc;
-								FACETc->VOut->FACET[sfOut] = FACETc;
+								FACEc->VIn->FACE[sfIn] = FACEc;
+								FACEc->VOut->FACE[sfOut] = FACEc;
 							}
-						} else { // Connect to existing FACETs
+						} else { // Connect to existing FACEs
 							// VOLUME = VOut
 							for (sf = 0; sf < sfMax; sf++) {
-								FACETc = VOLUME->FACET[Indf+sf];
+								FACEc = VOLUME->FACE[Indf+sf];
 
-								// Only connectivity needs updating in FACETc->VOut
-								set_FACET_Out_External(FACETc,VOLUME);
+								// Only connectivity needs updating in FACEc->VOut
+								set_FACE_Out_External(FACEc,VOLUME);
 							}
 						}
 					}
 
-					// Internal FACETs (Always created)
+					// Internal FACEs (Always created)
 					vh = 0;
 					for (VOLUMEc = VOLUME->child0; VOLUMEc; VOLUMEc = VOLUMEc->next) {
 						ELEMENT = get_ELEMENT_type(VOLUMEc->type);
 						Nf = ELEMENT->Nf;
 
 						for (f = 0; f < Nf; f++) {
-							if (!VOLUMEc->FACET[f*NSUBFMAX]) {
-								while (FACETc->next)
-									FACETc = FACETc->next;
-								FACETc->next = New_FACET();
-								FACETc = FACETc->next;
-								FACETc->update = 1;
-								FACETc->indexg = NGF++;
-								FACETc->level  = (VOLUME->level)+1;
-								FACETc->BC     = 0; // Internal (Note: May have a curved edge in 3D)
+							if (!VOLUMEc->FACE[f*NSUBFMAX]) {
+								while (FACEc->next)
+									FACEc = FACEc->next;
+								FACEc->next = New_FACE();
+								FACEc = FACEc->next;
+								FACEc->update = 1;
+								FACEc->indexg = NGF++;
+								FACEc->level  = (VOLUME->level)+1;
+								FACEc->BC     = 0; // Internal (Note: May have a curved edge in 3D)
 
 								VOLUMEc->NsubF[f] = 1;
 
-								FACETc->VIn = VOLUMEc;
-								FACETc->VfIn = f*NFREFMAX;
-								set_FACET_Out(vh,f,FACETc,VOLUME);
+								FACEc->VIn = VOLUMEc;
+								FACEc->VfIn = f*NFREFMAX;
+								set_FACE_Out(vh,f,FACEc,VOLUME);
 							}
 						}
 						vh++;
@@ -1654,54 +1654,54 @@ void update_FACET_hp(void)
 		}
 		DB.NGF = NGF;
 
-		// Update FACET linked list (For HREFINE)
-		// This is done inelegantly because it was required to keep the pointer to the parent FACET.
+		// Update FACE linked list (For HREFINE)
+		// This is done inelegantly because it was required to keep the pointer to the parent FACE.
 
 		// Fix list head if necessary
-		FACET = DB.FACET;
+		FACE = DB.FACE;
 
-		if (FACET->update) {
-			adapt_type = FACET->adapt_type;
+		if (FACE->update) {
+			adapt_type = FACE->adapt_type;
 			if (adapt_type == HREFINE) {
-				DB.FACET = FACET->child0;
-				for (FACETc = DB.FACET; FACETc->next; FACETc = FACETc->next)
+				DB.FACE = FACE->child0;
+				for (FACEc = DB.FACE; FACEc->next; FACEc = FACEc->next)
 					;
-				FACETc->next = FACET->next;
+				FACEc->next = FACE->next;
 			}
 		}
 
 		// Fix remainder of list
-		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-			FACETnext = FACET->next;
-			if (FACETnext && FACETnext->update) {
-				adapt_type = FACETnext->adapt_type;
+		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+			FACEnext = FACE->next;
+			if (FACEnext && FACEnext->update) {
+				adapt_type = FACEnext->adapt_type;
 				if (adapt_type == HREFINE) {
-					FACET->next = FACETnext->child0;
-					for (FACETc = FACET->next; FACETc->next; FACETc = FACETc->next)
+					FACE->next = FACEnext->child0;
+					for (FACEc = FACE->next; FACEc->next; FACEc = FACEc->next)
 						;
-					FACETc->next = FACETnext->next;
+					FACEc->next = FACEnext->next;
 				}
 			}
 		}
 
-		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-			if (FACET->update) {
-				FACET->update = 0;
-				if (FACET->parent && FACET->parent->update)
-					FACET->parent->update = 0;
-				VIn  = FACET->VIn;
-				VOut = FACET->VOut;
+		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+			if (FACE->update) {
+				FACE->update = 0;
+				if (FACE->parent && FACE->parent->update)
+					FACE->parent->update = 0;
+				VIn  = FACE->VIn;
+				VOut = FACE->VOut;
 
-				FACET->P      = max(VIn->P,VOut->P);
-				FACET->curved = max(VIn->curved,VOut->curved);
-				if (!FACET->curved)
-					FACET->typeInt = 's';
+				FACE->P      = max(VIn->P,VOut->P);
+				FACE->curved = max(VIn->curved,VOut->curved);
+				if (!FACE->curved)
+					FACE->typeInt = 's';
 				else
-					FACET->typeInt = 'c';
+					FACE->typeInt = 'c';
 
 				// Compute XYZ_fS, n_fS, and detJF_fS (ToBeModified)
-				setup_FACET_XYZ(FACET);
-				setup_normals(FACET);
+				setup_FACE_XYZ(FACE);
+				setup_normals(FACE);
 			}
 		}
 
@@ -1718,61 +1718,61 @@ void update_FACET_hp(void)
 		}}}}
 
 		// Fix list head if necessary
-		FACET = DB.FACET;
+		FACE = DB.FACE;
 
-		if (FACET->update) {
-			adapt_type = FACET->adapt_type;
+		if (FACE->update) {
+			adapt_type = FACE->adapt_type;
 			if (adapt_type == HCOARSE) {
-				// DB.FACET->parent can never be NULL.
-				DB.FACET = FACET->parent;
-				for (FACETc = FACET; FACETc->next->parent == DB.FACET; FACETc = FACETc->next)
+				// DB.FACE->parent can never be NULL.
+				DB.FACE = FACE->parent;
+				for (FACEc = FACE; FACEc->next->parent == DB.FACE; FACEc = FACEc->next)
 					;
-				while (FACETc->next && FACETc->next->adapt_type == HDELETE) {
-					FACETtmp = FACETc->next->next;
-					memory_destructor_F(FACETc->next);
-					FACETc->next = FACETtmp;
+				while (FACEc->next && FACEc->next->adapt_type == HDELETE) {
+					FACEtmp = FACEc->next->next;
+					memory_destructor_F(FACEc->next);
+					FACEc->next = FACEtmp;
 				}
-				DB.FACET->next = FACETc->next;
-				FACETc->next = NULL;
+				DB.FACE->next = FACEc->next;
+				FACEc->next = NULL;
 			} else if (adapt_type == HDELETE) {
-				printf("Error: Should not be entering HDELETE while updating FACET head.\n"), EXIT_MSG;
+				printf("Error: Should not be entering HDELETE while updating FACE head.\n"), EXIT_MSG;
 			}
 		}
 
 		// Fix remainder of list
-		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-			FACETnext = FACET->next;
-			if (FACETnext && FACETnext->update) {
-				adapt_type = FACETnext->adapt_type;
+		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+			FACEnext = FACE->next;
+			if (FACEnext && FACEnext->update) {
+				adapt_type = FACEnext->adapt_type;
 
 				if (adapt_type == HDELETE) {
-					while (FACETnext) {
-						if (FACETnext->adapt_type == HDELETE) {
-							FACETtmp = FACETnext->next;
-							memory_destructor_F(FACETnext);
-							FACETnext = FACETtmp;
+					while (FACEnext) {
+						if (FACEnext->adapt_type == HDELETE) {
+							FACEtmp = FACEnext->next;
+							memory_destructor_F(FACEnext);
+							FACEnext = FACEtmp;
 						} else {
 							break;
 						}
 					}
-					if (FACETnext)
-						adapt_type = FACETnext->adapt_type;
+					if (FACEnext)
+						adapt_type = FACEnext->adapt_type;
 				}
 
 				if (adapt_type == HCOARSE) {
-					FACET->next = FACETnext->parent;
-					for (FACETc = FACETnext; FACETc->next && FACETc->next->parent == FACET->next; FACETc = FACETc->next)
+					FACE->next = FACEnext->parent;
+					for (FACEc = FACEnext; FACEc->next && FACEc->next->parent == FACE->next; FACEc = FACEc->next)
 						;
-					while (FACETc->next && FACETc->next->adapt_type == HDELETE) {
-						FACETtmp = FACETc->next->next;
-						memory_destructor_F(FACETc->next);
-						FACETc->next = FACETtmp;
+					while (FACEc->next && FACEc->next->adapt_type == HDELETE) {
+						FACEtmp = FACEc->next->next;
+						memory_destructor_F(FACEc->next);
+						FACEc->next = FACEtmp;
 					}
 
-					FACET->next->next = FACETc->next;
-					FACETc->next = NULL;
+					FACE->next->next = FACEc->next;
+					FACEc->next = NULL;
 				} else {
-					FACET->next = FACETnext;
+					FACE->next = FACEnext;
 				}
 			}
 		}
@@ -1782,30 +1782,30 @@ void update_FACET_hp(void)
 		 *		indexg, typeInt, BC
 		 */
 
-		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-			VIn  = FACET->VIn;
-			VOut = FACET->VOut;
+		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+			VIn  = FACE->VIn;
+			VOut = FACE->VOut;
 
 			if (VIn->update || VOut->update) {
-				FACET->P = max(VIn->P,VOut->P);
+				FACE->P = max(VIn->P,VOut->P);
 
 				// Ensure that VIn is the highest order VOLUME
 				if (VIn->P < VOut->P) {
-					FACET->VIn  = VOut;
-					FACET->VOut = VIn;
+					FACE->VIn  = VOut;
+					FACE->VOut = VIn;
 
-					dummy_ui     = FACET->VfIn;
-					FACET->VfIn  = FACET->VfOut;
-					FACET->VfOut = dummy_ui;
+					dummy_ui     = FACE->VfIn;
+					FACE->VfIn  = FACE->VfOut;
+					FACE->VfOut = dummy_ui;
 
-					dummy_ui           = FACET->IndOrdInOut;
-					FACET->IndOrdInOut = FACET->IndOrdOutIn;
-					FACET->IndOrdOutIn = dummy_ui;
+					dummy_ui           = FACE->IndOrdInOut;
+					FACE->IndOrdInOut = FACE->IndOrdOutIn;
+					FACE->IndOrdOutIn = dummy_ui;
 				}
 
 				// Recompute XYZ_fS, n_fS, and detJF_fS (ToBeModified)
-				setup_FACET_XYZ(FACET);
-				setup_normals(FACET);
+				setup_FACE_XYZ(FACE);
+				setup_normals(FACE);
 			}
 		}
 		break;

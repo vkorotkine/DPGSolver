@@ -15,7 +15,7 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "test_code_integration.h"
 #include "test_support.h"
@@ -27,7 +27,7 @@
 
 /*
  *	Purpose:
- *		Test correctness of implementation of update_VOLUME_hp and update_FACET_hp for h-adaptation. Also ensures that
+ *		Test correctness of implementation of update_VOLUME_hp and update_FACE_hp for h-adaptation. Also ensures that
  *		Jacobians of refined VOLUMEs are positive.
  *
  *	Comments:
@@ -123,7 +123,7 @@ void test_integration_update_h(int nargc, char **argv)
 	 *
 	 *	Expected Output:
 	 *
-	 *		Interpolation of VOLUME geometry nodes to maximally 1-irregular FACETs from both sides should match.
+	 *		Interpolation of VOLUME geometry nodes to maximally 1-irregular FACEs from both sides should match.
 	 *
 	 */
 
@@ -214,7 +214,7 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *L
 
 	// Standard datatypes
 	unsigned int i, dim, Nve, IndXYZ, update;
-	double       XYZ_cent[3], *XYZ_vC, Lmts_sum, XYZ_cent_sum;
+	double       XYZ_cent[3], *XYZ_vV, Lmts_sum, XYZ_cent_sum;
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME;
@@ -224,7 +224,7 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *L
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 		Nve = ELEMENT->Nve;
 
-		XYZ_vC = VOLUME->XYZ_vC;
+		XYZ_vV = VOLUME->XYZ_vV;
 
 		for (i = 0; i < 3; i++)
 			XYZ_cent[i] = 0.0;
@@ -232,7 +232,7 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *L
 		for (dim = 0; dim < d; dim++) {
 			IndXYZ = dim*Nve;
 			for (i = 0; i < Nve; i++)
-				XYZ_cent[dim] += XYZ_vC[IndXYZ+i];
+				XYZ_cent[dim] += XYZ_vV[IndXYZ+i];
 			XYZ_cent[dim] /= Nve;
 		}
 
@@ -296,30 +296,30 @@ struct S_OPERATORS {
 	double       **I_vGs_fS;
 };
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
                      const unsigned int IndFType)
 {
 	unsigned int PF, VType, IndOrdInOut, IndOrdOutIn;
 
-	struct S_ELEMENT *ELEMENT, *ELEMENT_FACET;
+	struct S_ELEMENT *ELEMENT, *ELEMENT_FACE;
 
 //	PV    = VOLUME->P;
 	VType = VOLUME->type;
 
-	PF = FACET->P;
-	IndOrdInOut = FACET->IndOrdInOut;
-	IndOrdOutIn = FACET->IndOrdOutIn;
+	PF = FACE->P;
+	IndOrdInOut = FACE->IndOrdInOut;
+	IndOrdOutIn = FACE->IndOrdOutIn;
 
 	ELEMENT = get_ELEMENT_type(VType);
-	ELEMENT_FACET = get_ELEMENT_FACET(VType,IndFType);
+	ELEMENT_FACE = get_ELEMENT_FACE(VType,IndFType);
 
 	OPS->NvnGs = ELEMENT->NvnGs[1];
-	OPS->NfnS  = ELEMENT_FACET->NvnS[PF];
+	OPS->NfnS  = ELEMENT_FACE->NvnS[PF];
 
 	OPS->I_vGs_fS = ELEMENT->I_vGs_fS[1][PF];
 
-	OPS->nOrdInOut = ELEMENT_FACET->nOrd_fS[PF][IndOrdInOut];
-	OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fS[PF][IndOrdOutIn];
+	OPS->nOrdInOut = ELEMENT_FACE->nOrd_fS[PF][IndOrdInOut];
+	OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fS[PF][IndOrdOutIn];
 }
 
 static void check_correspondence(unsigned int *pass)
@@ -329,37 +329,37 @@ static void check_correspondence(unsigned int *pass)
 
 	// Standard datatypes
 	unsigned int Vf, IndFType, NfnS, *nOrdInOut, *nOrdOutIn, vhIn, vhOut,
-	             dim, n, Indd, BC, FACET_is_internal;
+	             dim, n, Indd, BC, FACE_is_internal;
 	double       *XYZ_fSIn, *XYZ_fSOut, *XYZ_fSInOut, *XYZ_fSOutIn;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME, *VOLUMEc;
-	struct S_FACET     *FACET;
+	struct S_FACE     *FACE;
 
 	OPS = malloc(sizeof *OPS); // free
 
 	*pass = 1;
-	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-		VOLUME = FACET->VIn;
-		Vf     = FACET->VfIn;
+	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		VOLUME = FACE->VIn;
+		Vf     = FACE->VfIn;
 
 		IndFType = get_IndFType(VOLUME->Eclass,Vf/NFREFMAX);
-		init_ops(OPS,VOLUME,FACET,IndFType);
+		init_ops(OPS,VOLUME,FACE,IndFType);
 
 		NfnS = OPS->NfnS;
 
 		nOrdInOut = OPS->nOrdInOut;
 		nOrdOutIn = OPS->nOrdOutIn;
 
-		XYZ_fSIn = mm_Alloc_d(CBCM,CBT,CBNT,NfnS,d,OPS->NvnGs,1.0,OPS->I_vGs_fS[Vf],VOLUME->XYZ_vC); // free
+		XYZ_fSIn = mm_Alloc_d(CBCM,CBT,CBNT,NfnS,d,OPS->NvnGs,1.0,OPS->I_vGs_fS[Vf],VOLUME->XYZ_vV); // free
 
-		VOLUME = FACET->VOut;
-		Vf     = FACET->VfOut;
+		VOLUME = FACE->VOut;
+		Vf     = FACE->VfOut;
 
 		IndFType = get_IndFType(VOLUME->Eclass,Vf/NFREFMAX);
-		init_ops(OPS,VOLUME,FACET,IndFType);
+		init_ops(OPS,VOLUME,FACE,IndFType);
 
-		XYZ_fSOut = mm_Alloc_d(CBCM,CBT,CBNT,NfnS,d,OPS->NvnGs,1.0,OPS->I_vGs_fS[Vf],VOLUME->XYZ_vC); // free
+		XYZ_fSOut = mm_Alloc_d(CBCM,CBT,CBNT,NfnS,d,OPS->NvnGs,1.0,OPS->I_vGs_fS[Vf],VOLUME->XYZ_vV); // free
 
 		XYZ_fSInOut = malloc(NfnS*d * sizeof *XYZ_fSInOut); // free
 		XYZ_fSOutIn = malloc(NfnS*d * sizeof *XYZ_fSOutIn); // free
@@ -372,25 +372,25 @@ static void check_correspondence(unsigned int *pass)
 			}
 		}
 
-		BC = FACET->BC;
-		FACET_is_internal = (BC == 0 || (BC % BC_STEP_SC > 50));
+		BC = FACE->BC;
+		FACE_is_internal = (BC == 0 || (BC % BC_STEP_SC > 50));
 
-		if (FACET_is_internal && (array_norm_diff_d(NfnS*d,XYZ_fSIn,XYZ_fSOutIn,"Inf")  > 10*EPS ||
+		if (FACE_is_internal && (array_norm_diff_d(NfnS*d,XYZ_fSIn,XYZ_fSOutIn,"Inf")  > 10*EPS ||
 		                          array_norm_diff_d(NfnS*d,XYZ_fSInOut,XYZ_fSOut,"Inf") > 10*EPS)) {
 				*pass = 0;
 				printf("Problem in check_correspondence\n");
 
 				vhIn = 0;
-				for (VOLUMEc = FACET->VIn->parent->child0; VOLUMEc != FACET->VIn; VOLUMEc = VOLUMEc->next)
+				for (VOLUMEc = FACE->VIn->parent->child0; VOLUMEc != FACE->VIn; VOLUMEc = VOLUMEc->next)
 					vhIn++;
 
 				vhOut = 0;
-				for (VOLUMEc = FACET->VOut->parent->child0; VOLUMEc != FACET->VOut; VOLUMEc = VOLUMEc->next)
+				for (VOLUMEc = FACE->VOut->parent->child0; VOLUMEc != FACE->VOut; VOLUMEc = VOLUMEc->next)
 					vhOut++;
 
-printf("%d %d %d %d %d\n",FACET->indexg,FACET->IndOrdInOut,FACET->IndOrdOutIn,vhIn,vhOut);
-printf("%d %d %d %d\n",FACET->VIn->type,FACET->VIn->indexg,FACET->VfIn,FACET->VIn->level);
-printf("%d %d %d %d\n",FACET->VOut->type,FACET->VOut->indexg,FACET->VfOut,FACET->VOut->level);
+printf("%d %d %d %d %d\n",FACE->indexg,FACE->IndOrdInOut,FACE->IndOrdOutIn,vhIn,vhOut);
+printf("%d %d %d %d\n",FACE->VIn->type,FACE->VIn->indexg,FACE->VfIn,FACE->VIn->level);
+printf("%d %d %d %d\n",FACE->VOut->type,FACE->VOut->indexg,FACE->VfOut,FACE->VOut->level);
 				printf("Errors: %e %e\n\n",array_norm_diff_d(NfnS*d,XYZ_fSIn,XYZ_fSOutIn,"Inf"),
 		                                   array_norm_diff_d(NfnS*d,XYZ_fSInOut,XYZ_fSOut,"Inf"));
 				array_print_d(NfnS,d,XYZ_fSIn,'C');

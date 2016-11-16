@@ -6,6 +6,6 @@
 
 extern struct S_ELEMENT *New_ELEMENT (void);
 extern struct S_VOLUME  *New_VOLUME  (void);
-extern struct S_FACET   *New_FACET   (void);
+extern struct S_FACE   *New_FACE   (void);
 
 #endif // DPG__memory_constructors_h__INCLUDED

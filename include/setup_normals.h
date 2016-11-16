@@ -4,9 +4,9 @@
 #ifndef DPG__setup_normals_h__INCLUDED
 #define DPG__setup_normals_h__INCLUDED
 
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 
-extern void setup_normals (struct S_FACET *FACET);
+extern void setup_normals (struct S_FACE *FACE);
 
 #endif // DPG__setup_normals_h__INCLUDED

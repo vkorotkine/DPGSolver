@@ -13,7 +13,7 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "element_functions.h"
 #include "matrix_functions.h"
@@ -333,7 +333,7 @@ static void output_normals(const char *normals_type)
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VIn;
-	struct S_FACET   *FACET;
+	struct S_FACE   *FACE;
 
 	// silence
 	XYZ_f = NULL;
@@ -385,17 +385,17 @@ static void output_normals(const char *normals_type)
 	fprintf_tn(fID,0,"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">");
 	fprintf_tn(fID,1,"<PolyData>\n");
 
-	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-		curved = FACET->curved;
+	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		curved = FACE->curved;
 
-		VIn  = FACET->VIn;
-		VfIn = FACET->VfIn;
+		VIn  = FACE->VIn;
+		VfIn = FACE->VfIn;
 
 		if (VfIn % NFREFMAX != 0)
 			printf("Error: VfIn should be h-conforming in output_to_paraview (output_normals).\n"), exit(1); 
 
 		PV = VIn->P;
-		PF = FACET->P;
+		PF = FACE->P;
 
 		ELEMENT = get_ELEMENT_type(VIn->type);
 		Eclass  = get_Eclass(ELEMENT->type);
@@ -413,14 +413,14 @@ printf("Error: Should not be entering default in output_to_paraview.\n"), exit(1
 			if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fS[1][PF][VfIn];
 			else              I_vG_f = ELEMENT->I_vGc_fS[PV][PF][VfIn];
 
-			n = FACET->n_fS;
+			n = FACE->n_fS;
 			XYZ_f = mm_Alloc_d(CBCM,CBT,CBNT,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
 			break;
 case ADAPT_P: // ToBeModified
 case ADAPT_H:
 case ADAPT_HP:
 		case ADAPT_0:
-			if (FACET->typeInt == 's') {
+			if (FACE->typeInt == 's') {
 				Nfn = ELEMENT->NfnIs[PF][IndFType];
 				if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIs[1][PF][VfIn];
 				else              I_vG_f = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
@@ -429,7 +429,7 @@ case ADAPT_HP:
 				if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIc[1][PF][VfIn];
 				else              I_vG_f = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
 			}
-			n = FACET->n_fI;
+			n = FACE->n_fI;
 			XYZ_f = mm_Alloc_d(CBCM,CBT,CBNT,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
 			break;
 		}

@@ -62,7 +62,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 |                 | Weak Form   | DONE                    |
 |                 | Strong Form | UNDER CONSIDERATION     |
 |                 | Vectorized  | DONE                    |
-| facet info      |             | DONE FOR THE TIME BEING |
+| face info       |             | DONE FOR THE TIME BEING |
 |                 | Weak Form   | DONE                    |
 |                 | Strong Form | UNDER CONSIDERATION     |
 |                 | Vectorized  | UNDER CONSIDERATION     |
@@ -77,7 +77,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 |                 | Weak Form   | DONE                    |
 |                 | Strong Form | UNDER CONSIDERATION     |
 |                 | Vectorized  | UNDER CONSIDERATION     |
-| facet info      |             | DONE FOR THE TIME BEING |
+| face info       |             | DONE FOR THE TIME BEING |
 |                 | Weak Form   | DONE                    |
 |                 | Strong Form | UNDER CONSIDERATION     |
 |                 | Vectorized  | UNDER CONSIDERATION     |

@@ -11,7 +11,7 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "adaptation.h"
 
@@ -22,7 +22,7 @@
  *	Comments:
  *		Split this function into memory_constructor for each struct type to minimize dependencies. (ToBeDeleted)
  *		Change all initializations from 0 to UINT_MAX. (ToBeDeleted)
- *		GfS_fIs/c may not be needed based on FACET_info testing. See comments at the start of explicit_FACET_Info.
+ *		GfS_fIs/c may not be needed based on FACE_info testing. See comments at the start of explicit_FACE_Info.
  *		(ToBeDeleted)
  *
  *	Notation:
@@ -448,7 +448,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 	ELEMENT->next = NULL;
 	ELEMENT->ELEMENTclass  = calloc(NESUBCMAX  , sizeof *(ELEMENT->ELEMENTclass)); // free
-	ELEMENT->ELEMENT_FACET = calloc(NFMIXEDMAX , sizeof *(ELEMENT->ELEMENTclass)); // free
+	ELEMENT->ELEMENT_FACE = calloc(NFMIXEDMAX , sizeof *(ELEMENT->ELEMENTclass)); // free
 
 	return ELEMENT;
 }
@@ -481,7 +481,7 @@ struct S_VOLUME *New_VOLUME(void)
 		VOLUME->neigh_f[i] = UINT_MAX;
 	}
 
-	VOLUME->XYZ_vC = NULL; // free
+	VOLUME->XYZ_vV = NULL; // free
 
 	// Geometry
 	VOLUME->VeInd  = calloc(NVEMAX         , sizeof *(VOLUME->VeInd));  // free
@@ -537,77 +537,77 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->grpnext = NULL;
 	VOLUME->child0  = NULL; // free (in memory_free_children)
 	VOLUME->parent  = NULL; // need not be freed
-	VOLUME->FACET   = calloc(NFMAX*NSUBFMAX , sizeof *(VOLUME->FACET)); // free
+	VOLUME->FACE   = calloc(NFMAX*NSUBFMAX , sizeof *(VOLUME->FACE)); // free
 
 	return VOLUME;
 }
 
-struct S_FACET *New_FACET(void)
+struct S_FACE *New_FACE(void)
 {
 	// Initialize DB Parameters
 	unsigned int d = DB.d;
 
-	struct S_FACET *FACET;
-	FACET = malloc(sizeof *FACET); // free
+	struct S_FACE *FACE;
+	FACE = malloc(sizeof *FACE); // free
 
 	// Structures
-	FACET->indexg = UINT_MAX;
-	FACET->P      = UINT_MAX;
-	FACET->type   = UINT_MAX;
-	FACET->BC     = UINT_MAX;
-	FACET->level  = 0;
-	FACET->update = 0;
-	FACET->adapt_type = UINT_MAX;
+	FACE->indexg = UINT_MAX;
+	FACE->P      = UINT_MAX;
+	FACE->type   = UINT_MAX;
+	FACE->BC     = UINT_MAX;
+	FACE->level  = 0;
+	FACE->update = 0;
+	FACE->adapt_type = UINT_MAX;
 
-	FACET->VIn   = NULL; // free (in memory_destructor_V)
-	FACET->VOut  = NULL; // free (in memory_destructor_V)
-	FACET->VfIn  = UINT_MAX;
-	FACET->VfOut = UINT_MAX;
+	FACE->VIn   = NULL; // free (in memory_destructor_V)
+	FACE->VOut  = NULL; // free (in memory_destructor_V)
+	FACE->VfIn  = UINT_MAX;
+	FACE->VfOut = UINT_MAX;
 
-	FACET->IndOrdInOut = UINT_MAX;
-	FACET->IndOrdOutIn = UINT_MAX;
+	FACE->IndOrdInOut = UINT_MAX;
+	FACE->IndOrdOutIn = UINT_MAX;
 
 	// Geometry
-	FACET->curved  = 0;
-	FACET->typeInt = UINT_MAX;
+	FACE->curved  = 0;
+	FACE->typeInt = UINT_MAX;
 
-	FACET->XYZ_fI   = NULL; // free
-	FACET->XYZ_fS   = NULL; // free
-	FACET->n_fI     = NULL; // free
-	FACET->n_fS     = NULL; // free
-	FACET->detJF_fI = NULL; // free
-	FACET->detJF_fS = NULL; // free
+	FACE->XYZ_fI   = NULL; // free
+	FACE->XYZ_fS   = NULL; // free
+	FACE->n_fI     = NULL; // free
+	FACE->n_fS     = NULL; // free
+	FACE->detJF_fI = NULL; // free
+	FACE->detJF_fS = NULL; // free
 
-	FACET->detJVIn_fI  = NULL; // free
-	FACET->detJVOut_fI = NULL; // free
+	FACE->detJVIn_fI  = NULL; // free
+	FACE->detJVOut_fI = NULL; // free
 
 	// Solving
-	FACET->RHSIn  = NULL; // free (in finalize_RHS)
-	FACET->RHSOut = NULL; // free (in finalize_RHS)
+	FACE->RHSIn  = NULL; // free (in finalize_RHS)
+	FACE->RHSOut = NULL; // free (in finalize_RHS)
 
-	FACET->LHSInIn   = NULL; // free (in finalize_LHS)
-	FACET->LHSOutIn  = NULL; // free (in finalize_LHS)
-	FACET->LHSInOut  = NULL; // free (in finalize_LHS)
-	FACET->LHSOutOut = NULL; // free (in finalize_LHS)
+	FACE->LHSInIn   = NULL; // free (in finalize_LHS)
+	FACE->LHSOutIn  = NULL; // free (in finalize_LHS)
+	FACE->LHSInOut  = NULL; // free (in finalize_LHS)
+	FACE->LHSOutOut = NULL; // free (in finalize_LHS)
 
 	// Poisson
-	FACET->qhatIn  = calloc(d , sizeof *(FACET->qhatIn));  // free
-	FACET->qhatOut = calloc(d , sizeof *(FACET->qhatOut)); // free
-	FACET->qhat_uhatInIn   = calloc(d , sizeof *(FACET->qhat_uhatInIn));   // free
-	FACET->qhat_uhatOutIn  = calloc(d , sizeof *(FACET->qhat_uhatOutIn));  // free
-	FACET->qhat_uhatInOut  = calloc(d , sizeof *(FACET->qhat_uhatInOut));  // free
-	FACET->qhat_uhatOutOut = calloc(d , sizeof *(FACET->qhat_uhatOutOut)); // free
+	FACE->qhatIn  = calloc(d , sizeof *(FACE->qhatIn));  // free
+	FACE->qhatOut = calloc(d , sizeof *(FACE->qhatOut)); // free
+	FACE->qhat_uhatInIn   = calloc(d , sizeof *(FACE->qhat_uhatInIn));   // free
+	FACE->qhat_uhatOutIn  = calloc(d , sizeof *(FACE->qhat_uhatOutIn));  // free
+	FACE->qhat_uhatInOut  = calloc(d , sizeof *(FACE->qhat_uhatInOut));  // free
+	FACE->qhat_uhatOutOut = calloc(d , sizeof *(FACE->qhat_uhatOutOut)); // free
 
 	// Linearization testing
-	FACET->RHSIn_c  = NULL; // free (in finalize_RHS_c)
-	FACET->RHSOut_c = NULL; // free (in finalize_RHS_c)
+	FACE->RHSIn_c  = NULL; // free (in finalize_RHS_c)
+	FACE->RHSOut_c = NULL; // free (in finalize_RHS_c)
 
-	FACET->qhatIn_c  = calloc(d , sizeof *(FACET->qhatIn_c));  // free
-	FACET->qhatOut_c = calloc(d , sizeof *(FACET->qhatOut_c)); // free
+	FACE->qhatIn_c  = calloc(d , sizeof *(FACE->qhatIn_c));  // free
+	FACE->qhatOut_c = calloc(d , sizeof *(FACE->qhatOut_c)); // free
 
-	FACET->next   = NULL;
-	FACET->child0 = NULL; // free (in memory_free_children)
-	FACET->parent = NULL; // need not be freed
+	FACE->next   = NULL;
+	FACE->child0 = NULL; // free (in memory_free_children)
+	FACE->parent = NULL; // need not be freed
 
-	return FACET;
+	return FACE;
 }

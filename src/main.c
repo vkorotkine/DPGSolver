@@ -41,8 +41,6 @@ struct S_TEST TestDB;
  *		(P)etrov-(G)alerkin method.
  *
  *	Comments:
- *		According to Wikipedia: "In three-dimensional geometry a facet of a polyhedron is any polygon whose corners are
- *		vertices of the polyhedron, and is not a face". Change all instances of FACET to FACE (ToBeDeleted).
  *
  *	Notation:
  *
@@ -221,7 +219,7 @@ int main(int nargc, char **argv)
 #include "test_unit_fluxes_inviscid.h"
 #include "test_unit_jacobian_fluxes_inviscid.h"
 #include "test_unit_jacobian_boundary.h"
-#include "test_unit_get_facet_ordering.h"
+#include "test_unit_get_face_ordering.h"
 #include "test_unit_equivalence_real_complex.h"
 
 #include "test_integration_L2_projections.h"
@@ -303,10 +301,10 @@ int main(int nargc, char **argv)
 		test_unit_fluxes_inviscid();
 		test_unit_jacobian_fluxes_inviscid();
 		test_unit_jacobian_boundary();
-		test_unit_get_facet_ordering();
+		test_unit_get_face_ordering();
 
 		test_unit_equivalence_real_complex();
-		printf("\nFor the VOLUME/FACET info functions, test that all 'versions' give identical results.\n\n");
+		printf("\nFor the VOLUME/FACE info functions, test that all 'versions' give identical results.\n\n");
 		TestDB.Nwarnings++;
 	}
 

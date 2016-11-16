@@ -12,13 +12,13 @@
 #include "Macros.h"
 #include "S_DB.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "finalize_RHS.h"
 
 /*
  *	Purpose:
- *		Finalize LHS term by summing VOLUME and FACET contributions.
+ *		Finalize LHS term by summing VOLUME and FACE contributions.
  *
  *	Comments:
  *
@@ -160,7 +160,7 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 	double       maxRHS, *LHS;
 
 	struct S_VOLUME *VOLUME, *VOLUME2;
-	struct S_FACET  *FACET;
+	struct S_FACE  *FACE;
 
 	PetscInt    *m, *n;
 	PetscScalar *vv;
@@ -183,11 +183,11 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 
 		finalize_ksp(A,b,x,1);
 
-		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-			free(FACET->LHSInIn);   FACET->LHSInIn   = NULL;
-			free(FACET->LHSOutIn);  FACET->LHSOutIn  = NULL;
-			free(FACET->LHSInOut);  FACET->LHSInOut  = NULL;
-			free(FACET->LHSOutOut); FACET->LHSOutOut = NULL;
+		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+			free(FACE->LHSInIn);   FACE->LHSInIn   = NULL;
+			free(FACE->LHSOutIn);  FACE->LHSOutIn  = NULL;
+			free(FACE->LHSInOut);  FACE->LHSInOut  = NULL;
+			free(FACE->LHSOutOut); FACE->LHSOutOut = NULL;
 		}
 
 		break;
@@ -217,17 +217,17 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 			free(m); free(n);
 		}
 		break;
-	case 2: // diagonal FACET contributions
-		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
+	case 2: // diagonal FACE contributions
+		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
 		for (side = 0; side < 2; side++) {
 			if (side == 0) {
-				VOLUME = FACET->VIn;
-				LHS = FACET->LHSInIn;
+				VOLUME = FACE->VIn;
+				LHS = FACE->LHSInIn;
 			} else {
-				if (FACET->Boundary)
+				if (FACE->Boundary)
 					continue;
-				VOLUME = FACET->VOut;
-				LHS = FACET->LHSOutOut;
+				VOLUME = FACE->VOut;
+				LHS = FACE->LHSOutOut;
 			}
 
 			IndA = VOLUME->IndA;
@@ -255,19 +255,19 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 		}}
 		break;
 	case 3: // off-diagonal contributions
-		for (FACET = DB.FACET; FACET; FACET = FACET->next) {
+		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
 		for (side = 0; side < 2; side++) {
-			if (FACET->Boundary)
+			if (FACE->Boundary)
 				continue;
 
 			if (side == 0) {
-				VOLUME  = FACET->VOut;
-				VOLUME2 = FACET->VIn;
-				LHS = FACET->LHSInOut;
+				VOLUME  = FACE->VOut;
+				VOLUME2 = FACE->VIn;
+				LHS = FACE->LHSInOut;
 			} else {
-				VOLUME  = FACET->VIn;
-				VOLUME2 = FACET->VOut;
-				LHS = FACET->LHSOutIn;
+				VOLUME  = FACE->VIn;
+				VOLUME2 = FACE->VOut;
+				LHS = FACE->LHSOutIn;
 			}
 
 			IndA  = VOLUME->IndA;
@@ -317,7 +317,7 @@ void compute_dof(void)
 	unsigned int dof, nnz_d;
 
 	struct S_VOLUME *VOLUME, *VIn, *VOut;
-	struct S_FACET  *FACET;
+	struct S_FACE  *FACE;
 
 	dof = 0;
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -330,9 +330,9 @@ void compute_dof(void)
 		VOLUME->nnz_o = 0;
 	}
 
-	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-		VIn  = FACET->VIn;
-		VOut = FACET->VOut;
+	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		VIn  = FACE->VIn;
+		VOut = FACE->VOut;
 
 		if (VIn->indexg != VOut->indexg) {
 			VIn->nnz_o  += VOut->nnz_d;

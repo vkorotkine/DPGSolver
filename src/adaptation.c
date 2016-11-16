@@ -16,7 +16,7 @@
 #include "element_functions.h"
 #include "array_sort.h"
 #include "update_VOLUMEs.h"
-#include "update_FACETs.h"
+#include "update_FACEs.h"
 #include "memory_free.h"
 
 /*
@@ -70,7 +70,7 @@ void get_Pb_range(const unsigned int P, unsigned int *PbMin, unsigned int *PbMax
 	 *		Return the range of orders used for operators which interpolate between different orders.
 	 *
 	 *	Comments:
-	 *		For Adapt == ADAPT_HP, the full range must be available such that FACET orders are acceptable if
+	 *		For Adapt == ADAPT_HP, the full range must be available such that FACE orders are acceptable if
 	 *		h-coarsening is applied to a single neighbouring VOLUME having a range of orders.
 	 */
 
@@ -753,7 +753,7 @@ if (hp_coarse_current_err[indexg]) {
 void mesh_update(void)
 {
 	update_VOLUME_hp();
-	update_FACET_hp();
+	update_FACE_hp();
 	update_VOLUME_list();
 	memory_free_children();
 //	update_Vgrp();

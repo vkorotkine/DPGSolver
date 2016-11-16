@@ -257,7 +257,7 @@ static void ToBeCurved_TP(unsigned int Nn, double *XYZ_S, double *XYZ)
 {
 	/*
 	 *	Purpose:
-	 *		Use Boolean sum projection to linearly blend the effect of curved FACETs into the domain.
+	 *		Use Boolean sum projection to linearly blend the effect of curved FACEs into the domain.
 	 *
 	 *	Comments:
 	 *		XZnf and XZnf_match are in row major orientation.
@@ -426,7 +426,7 @@ static void ToBeCurved_TP(unsigned int Nn, double *XYZ_S, double *XYZ)
 						- (s-sL)/sDenom*(tR-t)/tDenom*Fv[1*d+dim]
 						- (s-sL)/sDenom*(t-tL)/tDenom*Fv[2*d+dim]
 						- (sR-s)/sDenom*(t-tL)/tDenom*Fv[3*d+dim]
-					              // Edge (Facet in 2d) Contributions (4)
+					              // Edge (Face in 2d) Contributions (4)
 						+ (sR-s)/sDenom*Fe[0*d+dim]
 						+ (s-sL)/sDenom*Fe[1*d+dim]
 						+ (tR-t)/tDenom*Fe[2*d+dim]
@@ -470,7 +470,7 @@ static void ToBeCurved_TP(unsigned int Nn, double *XYZ_S, double *XYZ)
 						- (s-sL)/sDenom*(tR-t)/tDenom*Fv[5*d+dim]
 						- (sR-s)/sDenom*(t-tL)/tDenom*Fv[6*d+dim]
 						- (s-sL)/sDenom*(t-tL)/tDenom*Fv[7*d+dim]
-					          // Edge (Facet in 2d) Contributions (4)
+					          // Edge (Face in 2d) Contributions (4)
 						+ (tR-t)/tDenom*Fe[2*d+dim]
 						+ (t-tL)/tDenom*Fe[3*d+dim]
 						+ (sR-s)/sDenom*Fe[6*d+dim]
@@ -508,7 +508,7 @@ static void ToBeCurved_TP(unsigned int Nn, double *XYZ_S, double *XYZ)
 						- (s-sL)/sDenom*(tR-t)/tDenom*Fe[9*d+dim]
 						- (sR-s)/sDenom*(t-tL)/tDenom*Fe[10*d+dim]
 						- (s-sL)/sDenom*(t-tL)/tDenom*Fe[11*d+dim]
-					              // Facet Contributions (6)
+					              // Face Contributions (6)
 						+ (sR-s)/sDenom*Ff[0*d+dim]
 						+ (s-sL)/sDenom*Ff[1*d+dim]
 						+ (tR-t)/tDenom*Ff[2*d+dim]

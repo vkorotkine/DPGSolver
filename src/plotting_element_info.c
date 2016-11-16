@@ -141,7 +141,7 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 			NEOut += 2*i+1;
 
 		unsigned int iStart;
-		double rst_c[Nc*d], BCoords[NnOut*Nc];
+		double rst_V[Nc*d], BCoords[NnOut*Nc];
 
 		connectOut = calloc(NEOut*8 , sizeof *connectOut); // keep (requires external free)
 		typesOut   = malloc(NEOut   * sizeof *typesOut); // keep (requires external free)
@@ -160,12 +160,12 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 			row++;
 		}}
 
-		// TRI corner nodes
-		rst_c[0*d+0] = -1.0; rst_c[0*d+1] = -1.0/sqrt(3.0);
-		rst_c[1*d+0] =  1.0; rst_c[1*d+1] = -1.0/sqrt(3.0);
-		rst_c[2*d+0] =  0.0; rst_c[2*d+1] =  2.0/sqrt(3.0);
+		// TRI vertex nodes
+		rst_V[0*d+0] = -1.0; rst_V[0*d+1] = -1.0/sqrt(3.0);
+		rst_V[1*d+0] =  1.0; rst_V[1*d+1] = -1.0/sqrt(3.0);
+		rst_V[2*d+0] =  0.0; rst_V[2*d+1] =  2.0/sqrt(3.0);
 
-		rstOut = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords,rst_c);
+		rstOut = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords,rst_V);
 		// keep (requires external free)
 
 		// Convert to column-major ordering
@@ -232,7 +232,7 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 					NEOut += j;
 		}
 
-		double BCoords[NnOut*Nc], rst_c[Nc*d];
+		double BCoords[NnOut*Nc], rst_V[Nc*d];
 
 		connectOut = calloc(NEOut*8 , sizeof *connectOut); // keep (requires external free)
 		typesOut   = malloc(NEOut   * sizeof *typesOut); // keep (requires external free)
@@ -254,13 +254,13 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 			row++;
 		}}}
 
-		// TET corner nodes
-		rst_c[0*d+0] = -1.0; rst_c[0*d+1] = -1.0/sqrt(3.0); rst_c[0*d+2] = -1.0/sqrt(6);
-		rst_c[1*d+0] =  1.0; rst_c[1*d+1] = -1.0/sqrt(3.0); rst_c[1*d+2] = -1.0/sqrt(6);
-		rst_c[2*d+0] =  0.0; rst_c[2*d+1] =  2.0/sqrt(3.0); rst_c[2*d+2] = -1.0/sqrt(6);
-		rst_c[3*d+0] =  0.0; rst_c[3*d+1] =  0.0          ; rst_c[3*d+2] =  3.0/sqrt(6);
+		// TET vertex nodes
+		rst_V[0*d+0] = -1.0; rst_V[0*d+1] = -1.0/sqrt(3.0); rst_V[0*d+2] = -1.0/sqrt(6);
+		rst_V[1*d+0] =  1.0; rst_V[1*d+1] = -1.0/sqrt(3.0); rst_V[1*d+2] = -1.0/sqrt(6);
+		rst_V[2*d+0] =  0.0; rst_V[2*d+1] =  2.0/sqrt(3.0); rst_V[2*d+2] = -1.0/sqrt(6);
+		rst_V[3*d+0] =  0.0; rst_V[3*d+1] =  0.0          ; rst_V[3*d+2] =  3.0/sqrt(6);
 
-		rstOut = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords,rst_c);
+		rstOut = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords,rst_V);
 		// keep (requires external free)
 
 		// Convert to column-major ordering

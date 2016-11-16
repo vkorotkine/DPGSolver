@@ -1,12 +1,12 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#ifndef DPG__S_FACET_h__INCLUDED
-#define DPG__S_FACET_h__INCLUDED
+#ifndef DPG__S_FACE_h__INCLUDED
+#define DPG__S_FACE_h__INCLUDED
 
 #include <complex.h>
 
-struct S_FACET {
+struct S_FACE {
 	// Structures
 	unsigned int P, type, VfIn, VfOut, indexg, BC, IndOrdInOut, IndOrdOutIn, level, update, adapt_type;
 
@@ -26,7 +26,7 @@ struct S_FACET {
 
 	// structs
 	struct S_VOLUME *VIn, *VOut;
-	struct S_FACET  *next, *grpnext, *child0, *parent;
+	struct S_FACE  *next, *grpnext, *child0, *parent;
 };
 
-#endif // DPG__S_FACET_h__INCLUDED
+#endif // DPG__S_FACE_h__INCLUDED

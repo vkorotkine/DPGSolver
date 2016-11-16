@@ -25,8 +25,8 @@
  *		Try using BLAS calls for dot products and check if there is a speed-up. (ToBeDeleted)
  *		The Roe flux function is very difficult to parallelize due to the large amount of required memory.
  *		There is some additional discussion in Obward(2015) regarding incorrect dissipation of the Roe scheme at low
- *		mach numbers. The proposed method to correct this requires evaluation of a shock indicator on all FACETs
- *		adjacent to the inner VOLUME of the FACET on which the numerical flux is being computed (which seems quite
+ *		mach numbers. The proposed method to correct this requires evaluation of a shock indicator on all FACEs
+ *		adjacent to the inner VOLUME of the FACE on which the numerical flux is being computed (which seems quite
  *		expensive to do). In the same paper, there is a reference to Thornber(2008) which motivates a local normal
  *		velocity modification to correct the overly dissipative numerical flux. However, this is done only in the
  *		context of a finite volume scheme with MUSCL reconstruction. Perhaps look into whether this problem is important

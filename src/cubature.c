@@ -295,7 +295,7 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 	                                  1, 0, 2,
 	                                  2, 1, 0};
 	unsigned int symms31[2] = { 0, 0};
-	double rst_c[6] = { -1.0,            1.0,           0.0,
+	double rst_V[6] = { -1.0,            1.0,           0.0,
 	                    -1.0/sqrt(3.0), -1.0/sqrt(3.0), 2.0/sqrt(3.0)};
 	unsigned int i, iMax, j, jMax, k,
 	             IndB, IndBC, IndGroup, GroupCount, Nc,
@@ -453,7 +453,7 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 	free(BCoords);
 	free(w_read);
 
-	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_c);
+	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_V);
 	// keep (requires external free)
 	free(BCoords_complete);
 
@@ -535,7 +535,7 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 	                                      2, 3, 0, 1,
 	                                      1, 2, 3, 0};
 	unsigned int symms31[2] = { 0, 0}, NTRIsymms[3], TETperms[4];
-	double rst_c[12] = { -1.0,            1.0,            0.0,           0.0,
+	double rst_V[12] = { -1.0,            1.0,            0.0,           0.0,
 	                     -1.0/sqrt(3.0), -1.0/sqrt(3.0),  2.0/sqrt(3.0), 0.0,
 	                     -1.0/sqrt(6.0), -1.0/sqrt(6.0), -1.0/sqrt(6.0), 3.0/sqrt(6.0)},
 	       BCoords_tmp[4];
@@ -755,7 +755,7 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 	free(BCoords);
 	free(w_read);
 
-	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_c);
+	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_V);
 	// keep (requires external free)
 	free(BCoords_complete);
 
@@ -802,15 +802,15 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	 *
 	 *		Note:
 	 *
-	 *			[ones]_{Nn x 1}  = [BCoords]_{Nn x Nc} * [ones]_{Nc x 1}          => Partition of unity (1 condition)
-	 *			[rst]_{Nn x d}   = [BCoords]_{Nn x Nc} * [rst_(c)orners]_{Nc x d} => Linear precision   (d conditions)
-	 *			[r*s*t]_{Nn x 1} = [BCoords]_{Nn x Nc} * [{r*s*t}_c]_{Nc x 1}     => Arbitrary          (1 condition)
+	 *			[ones]_{Nn x 1}  = [BCoords]_{Nn x Nc} * [ones]_{Nc x 1}           => Partition of unity (1 condition)
+	 *			[rst]_{Nn x d}   = [BCoords]_{Nn x Nc} * [rst_(V)ertices]_{Nc x d} => Linear precision   (d conditions)
+	 *			[r*s*t]_{Nn x 1} = [BCoords]_{Nn x Nc} * [{r*s*t}_c]_{Nc x 1}      => Arbitrary          (1 condition)
 	 *
 	 *			Then
-	 *				[BCoords] = [ones(Nn,1) rst r*s*t]*inv([ones(Nc,1) rst_c {r*s*t}_c])
+	 *				[BCoords] = [ones(Nn,1) rst r*s*t]*inv([ones(Nc,1) rst_V {r*s*t}_c])
 	 *
 	 *			where
-	 *				cond([ones(Nc,1) rst_c {r*s*t}_c]) = 2.0
+	 *				cond([ones(Nc,1) rst_V {r*s*t}_c]) = 2.0
 	 *
 	 *		The WV and WVHToP nodes were determined from those of the pyrfr code (pyfr/quadrules/pyr) after being
 	 *		transferred to the regular PYR used in this code. The GL and GLL are standard based on the 1D definitions
@@ -876,7 +876,7 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	                                       2, 3, 0, 1,
 	                                       1, 2, 3, 0};
 	unsigned int symms41[2] = { 0, 0}, NQUADsymms = 0;
-	double rst_c[15] = { -1.0,            1.0,            1.0,           -1.0,           0.0,
+	double rst_V[15] = { -1.0,            1.0,            1.0,           -1.0,           0.0,
 	                     -1.0,           -1.0,            1.0,            1.0,           0.0,
 	                     -sqrt(2.0)/5.0, -sqrt(2.0)/5.0, -sqrt(2.0)/5.0, -sqrt(2.0)/5.0, 4.0/5.0*sqrt(2.0)},
 	       BCoords_tmp[5];
@@ -1089,7 +1089,7 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	free(BCoords);
 	free(w_read);
 
-	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_c);
+	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_V);
 	// keep (requires external free)
 	free(BCoords_complete);
 

@@ -1,7 +1,7 @@
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 
-#include "explicit_FACET_info_c.h"
+#include "explicit_FACE_info_c.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,7 +12,7 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 #include "S_OpCSR.h"
 
 #include "element_functions.h"
@@ -26,7 +26,7 @@
 
 /*
  *	Purpose:
- *		Identical to explicit_FACET_info using complex variables (for complex step verification).
+ *		Identical to explicit_FACE_info using complex variables (for complex step verification).
  *
  *	Comments:
  *
@@ -42,11 +42,11 @@ struct S_OPERATORS {
 	struct S_OpCSR **ChiS_fI_sp, **I_Weak_FF_sp;
 };
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
                      const unsigned int IndClass);
-static void compute_FACET_RHS_EFE    (void);
+static void compute_FACE_RHS_EFE    (void);
 
-void explicit_FACET_info_c(void)
+void explicit_FACE_info_c(void)
 {
 	// Initialize DB Parameters
 	unsigned int Vectorized = DB.Vectorized,
@@ -59,28 +59,28 @@ case ADAPT_HP:
 	case ADAPT_0:
 		switch (Vectorized) {
 		case 0:
-			compute_FACET_RHS_EFE();
+			compute_FACE_RHS_EFE();
 			break;
 		default:
-			compute_FACET_RHS_EFE();
+			compute_FACE_RHS_EFE();
 			break;
 		}
 		break;
 	default: // ADAPT_P, ADAPT_H, ADAPT_HP
-printf("Error: Should not be entering default in explicit_FACET_info.\n"), exit(1);
+printf("Error: Should not be entering default in explicit_FACE_info.\n"), exit(1);
 		switch (Vectorized) {
 		case 0:
-//			compute_FACET_RHS();
+//			compute_FACE_RHS();
 			break;
 		default:
-//			compute_FACET_RHS();
+//			compute_FACE_RHS();
 			break;
 		}
 		break;
 	}
 }
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
                      const unsigned int IndClass)
 {
 	// Initialize DB Parameters
@@ -89,29 +89,29 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	// Standard datatypes
 	unsigned int PV, PF, Vtype, FtypeInt, IndOrdInOut, IndOrdOutIn;
 
-	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS, *ELEMENT_FACET;
+	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS, *ELEMENT_FACE;
 
 	// silence
 
 	PV       = VOLUME->P;
-	PF       = FACET->P;
+	PF       = FACE->P;
 	Vtype    = VOLUME->type;
 
-	FtypeInt    = FACET->typeInt;
-	IndOrdInOut = FACET->IndOrdInOut;
-	IndOrdOutIn = FACET->IndOrdOutIn;
+	FtypeInt    = FACE->typeInt;
+	IndOrdInOut = FACE->IndOrdInOut;
+	IndOrdOutIn = FACE->IndOrdOutIn;
 
 	ELEMENT       = get_ELEMENT_type(Vtype);
-	ELEMENT_FACET = get_ELEMENT_FACET(Vtype,IndClass);
+	ELEMENT_FACE = get_ELEMENT_FACE(Vtype,IndClass);
 	ELEMENT_OPS   = ELEMENT;
 
 	OPS->NvnS    = ELEMENT->NvnS[PV];
 	OPS->NvnS_SF = ELEMENT_OPS->NvnS[PV];
 
-	OPS->NfnS      = ELEMENT_FACET->NvnS[PF];
+	OPS->NfnS      = ELEMENT_FACE->NvnS[PF];
 	OPS->ChiS_fS   = ELEMENT->ChiS_fS[PV][PF];
 	if (FtypeInt == 's') {
-		// Straight FACET Integration
+		// Straight FACE Integration
 		OPS->NfnI    = ELEMENT->NfnIs[PF][IndClass];
 		OPS->NfnI_SF = ELEMENT_OPS->NfnIs[PF][0];
 		OPS->NvnI_SF = ELEMENT_OPS->NvnIs[PF];
@@ -126,21 +126,21 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 
 		OPS->GfS_fI    = ELEMENT->GfS_fIs[PF][PF];
 
-		OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIs[PF][IndOrdInOut];
+		OPS->nOrdInOut = ELEMENT_FACE->nOrd_fIs[PF][IndOrdInOut];
 		switch (Adapt) {
 		default: // ADAPT_P, ADAPT_H, ADAPT_HP
-printf("Error: Should not be entering default in explicit_FACET_info.\n"), exit(1);
-			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fS[PF][IndOrdOutIn];
+printf("Error: Should not be entering default in explicit_FACE_info.\n"), exit(1);
+			OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fS[PF][IndOrdOutIn];
 			break;
 case ADAPT_P: // ToBeModified (Also change setup_normals and output_to_paraview)
 case ADAPT_H:
 case ADAPT_HP:
 		case ADAPT_0:
-			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIs[PF][IndOrdOutIn];
+			OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fIs[PF][IndOrdOutIn];
 			break;
 		}
 	} else {
-		// Curved FACET Integration
+		// Curved FACE Integration
 		OPS->NfnI    = ELEMENT->NfnIc[PF][IndClass];
 		OPS->NfnI_SF = ELEMENT_OPS->NfnIc[PF][0];
 		OPS->NvnI_SF = ELEMENT_OPS->NvnIc[PF];
@@ -155,23 +155,23 @@ case ADAPT_HP:
 
 		OPS->GfS_fI    = ELEMENT->GfS_fIc[PF][PF];
 
-		OPS->nOrdInOut = ELEMENT_FACET->nOrd_fIc[PF][IndOrdInOut];
+		OPS->nOrdInOut = ELEMENT_FACE->nOrd_fIc[PF][IndOrdInOut];
 		switch (Adapt) {
 		default: // ADAPT_P, ADAPT_H, ADAPT_HP
-printf("Error: Should not be entering default in explicit_FACET_info.\n"), exit(1);
-			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fS[PF][IndOrdOutIn];
+printf("Error: Should not be entering default in explicit_FACE_info.\n"), exit(1);
+			OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fS[PF][IndOrdOutIn];
 			break;
 case ADAPT_P: // ToBeModified (Also change setup_normals and output_to_paraview)
 case ADAPT_H:
 case ADAPT_HP:
 		case ADAPT_0:
-			OPS->nOrdOutIn = ELEMENT_FACET->nOrd_fIc[PF][IndOrdOutIn];
+			OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fIc[PF][IndOrdOutIn];
 			break;
 		}
 	}
 }
 
-static void compute_FACET_RHS_EFE(void)
+static void compute_FACE_RHS_EFE(void)
 {
 	// Initialize DB Parameters
 	char         *Form            = DB.Form;
@@ -191,34 +191,34 @@ static void compute_FACET_RHS_EFE(void)
 
 	struct S_OPERATORS *OPSIn[2], *OPSOut[2];
 	struct S_VOLUME    *VIn, *VOut;
-	struct S_FACET     *FACET;
+	struct S_FACE     *FACE;
 
 	for (i = 0; i < 2; i++) {
 		OPSIn[i]  = malloc(sizeof *OPSIn[i]);  // free
 		OPSOut[i] = malloc(sizeof *OPSOut[i]); // free
 	}
 
-	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
+	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
 		// Obtain operators
-		VIn    = FACET->VIn;
-		VfIn   = FACET->VfIn;
+		VIn    = FACE->VIn;
+		VfIn   = FACE->VfIn;
 		fIn    = VfIn/NfrefMax;
 
 		EclassIn = VIn->Eclass;
 		IndFType = get_IndFType(EclassIn,fIn);
-		init_ops(OPSIn[0],VIn,FACET,0);
+		init_ops(OPSIn[0],VIn,FACE,0);
 		if (VIn->type == WEDGE || VIn->type == PYR)
-			init_ops(OPSIn[1],VIn,FACET,1);
+			init_ops(OPSIn[1],VIn,FACE,1);
 
-		VOut    = FACET->VOut;
-		VfOut   = FACET->VfOut;
+		VOut    = FACE->VOut;
+		VfOut   = FACE->VfOut;
 		fOut    = VfOut/NfrefMax;
 
-		init_ops(OPSOut[0],VOut,FACET,0);
+		init_ops(OPSOut[0],VOut,FACE,0);
 		if (VOut->type == WEDGE || VOut->type == PYR)
-			init_ops(OPSOut[1],VOut,FACET,1);
+			init_ops(OPSOut[1],VOut,FACE,1);
 
-		BC = FACET->BC;
+		BC = FACE->BC;
 		Boundary = !((VIn->indexg != VOut->indexg) || (VIn->indexg == VOut->indexg && fIn != fOut));
 		// The second condition is for periodic elements which are connected to themselves
 
@@ -230,14 +230,14 @@ static void compute_FACET_RHS_EFE(void)
 		mm_dcc(CBCM,CBT,CBNT,NfnI,Nvar,NvnSIn,1.0,0.0,OPSIn[0]->ChiS_fI[VfIn],VIn->What_c,WIn_fI);
 
 		// Compute WOut_fI (Taking BCs into account if applicable)
-		n_fI     = FACET->n_fI;
+		n_fI     = FACE->n_fI;
 
 		nOrdInOut = OPSIn[IndFType]->nOrdInOut;
 		nOrdOutIn = OPSIn[IndFType]->nOrdOutIn;
 
 		NvnSOut = OPSOut[0]->NvnS;
 		WOut_fIIn = malloc(NfnI*Nvar * sizeof *WOut_fIIn); // free
-		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACET
+		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACE
 			WOut_fI = malloc(NfnI*Nvar * sizeof *WOut_fI); // free
 			mm_dcc(CBCM,CBT,CBNT,NfnI,Nvar,NvnSOut,1.0,0.0,OPSOut[0]->ChiS_fI[VfOut],VOut->What_c,WOut_fI);
 
@@ -253,19 +253,19 @@ static void compute_FACET_RHS_EFE(void)
 				}
 			}
 			free(WOut_fI);
-		} else { // Boundary FACET
+		} else { // Boundary FACE
 			if (BC % BC_STEP_SC == BC_RIEMANN) {
-				boundary_Riemann_c(NfnI,1,FACET->XYZ_fI,WIn_fI,NULL,WOut_fIIn,n_fI,d);
+				boundary_Riemann_c(NfnI,1,FACE->XYZ_fI,WIn_fI,NULL,WOut_fIIn,n_fI,d);
 			} else if (BC % BC_STEP_SC == BC_SLIPWALL) {
 				boundary_SlipWall_c(NfnI,1,WIn_fI,WOut_fIIn,n_fI,d);
 			} else {
-				printf("Error: Unsupported BC in explicit_FACET_info.\n"), exit(1);
+				printf("Error: Unsupported BC in explicit_FACE_info.\n"), exit(1);
 			}
 		}
 
 		// Compute numerical flux
 		nFluxNum_fI = malloc(NfnI*Neq * sizeof *nFluxNum_fI); // free
-		detJF_fI = FACET->detJF_fI;
+		detJF_fI = FACE->detJF_fI;
 
 		switch (InviscidFluxType) {
 		case FLUX_LF:
@@ -275,7 +275,7 @@ static void compute_FACET_RHS_EFE(void)
 			flux_Roe_c(NfnI,1,WIn_fI,WOut_fIIn,nFluxNum_fI,n_fI,d,Neq);
 			break;
 		default:
-			printf("Error: Unsupported InviscidFluxType used in explicit_FACET_info.\n"), exit(1);
+			printf("Error: Unsupported InviscidFluxType used in explicit_FACE_info.\n"), exit(1);
 			break;
 		}
 
@@ -286,26 +286,26 @@ static void compute_FACET_RHS_EFE(void)
 				nFluxNum_fI[iInd+j] *= detJF_fI[j];
 		}
 
-		// Compute FACET RHS terms
+		// Compute FACE RHS terms
 		RHSIn  = calloc(NvnSIn*Neq  , sizeof *RHSIn);  // keep (requires external free)
 		RHSOut = calloc(NvnSOut*Neq , sizeof *RHSOut); // keep (requires external free)
-		if (FACET->RHSIn_c)
-			free(FACET->RHSIn_c);
-		FACET->RHSIn_c  = RHSIn;
+		if (FACE->RHSIn_c)
+			free(FACE->RHSIn_c);
+		FACE->RHSIn_c  = RHSIn;
 
-		if (FACET->RHSOut_c)
-			free(FACET->RHSOut_c);
-		FACET->RHSOut_c = RHSOut;
+		if (FACE->RHSOut_c)
+			free(FACE->RHSOut_c);
+		FACE->RHSOut_c = RHSOut;
 
 		RowTracker = malloc(NfnI * sizeof *RowTracker); // free
 
 		if (strstr(Form,"Weak")) {
-			// Interior FACET
+			// Interior FACE
 			mm_dcc(CBCM,CBT,CBNT,NvnSIn,Neq,NfnI,1.0,0.0,OPSIn[0]->I_Weak_FF[VfIn],nFluxNum_fI,RHSIn);
 
-			// Exterior FACET
+			// Exterior FACE
 			if (!Boundary) {
-				// Use -ve normal for opposite FACET
+				// Use -ve normal for opposite FACE
 				for (i = 0, iMax = Neq*NfnI; i < iMax; i++)
 					nFluxNum_fI[i] *= -1.0;
 
@@ -327,7 +327,7 @@ static void compute_FACET_RHS_EFE(void)
 				mm_dcc(CBCM,CBT,CBNT,NvnSOut,Neq,NfnI,1.0,0.0,OPSOut[0]->I_Weak_FF[VfOut],nFluxNum_fI,RHSOut);
 			}
 		} else if (strstr(Form,"Strong")) {
-			printf("Exiting: Implement the strong form in compute_FACET_RHS_EFE.\n"), exit(1);
+			printf("Exiting: Implement the strong form in compute_FACE_RHS_EFE.\n"), exit(1);
 		}
 
 		free(RowTracker);

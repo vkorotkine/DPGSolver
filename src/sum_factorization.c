@@ -206,10 +206,10 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 {
 	/*
 	 *	Purpose:
-	 *		Set up (s)um (f)actorization parameters for (F)ACET operators.
+	 *		Set up (s)um (f)actorization parameters for (F)ACE operators.
 	 *
 	 *	Comments:
-	 *		While get_sf_parameters is sufficient for QUADs, HEX ELEMENTs may require three different FACET operators if
+	 *		While get_sf_parameters is sufficient for QUADs, HEX ELEMENTs may require three different FACE operators if
 	 *		h-refinement is employed.
 	 */
 
@@ -227,7 +227,7 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 	default: // 3D
 		switch (Eclass) {
 		default: // C_TP
-			// FACET term (standard treatment)
+			// FACE term (standard treatment)
 			NIn_SF[dimF]  = NIn1;
 			NOut_SF[dimF] = NOut1;
 			OP_SF[dimF]   = OP1[(f%2)*NFREFMAX];
@@ -277,7 +277,7 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 			NIn_SF[2]  = NIn1;
 			NOut_SF[2] = NOut1;
 
-			if (f < 3) { // QUAD FACETs
+			if (f < 3) { // QUAD FACEs
 				switch (fh) {
 				case 0: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[0]; break;
 				case 1: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[1]; break;
@@ -292,7 +292,7 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 					printf("Error: Unsupported fh for f < 3 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
 					break;
 				}
-			} else if (f < 5) { // TRI FACETs
+			} else if (f < 5) { // TRI FACEs
 				if (fh > 4)
 					printf("Error: Unsupported fh for f < 5 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
 
@@ -318,7 +318,7 @@ void get_sf_parametersFd(const unsigned int NIn0, const unsigned int NOut0, doub
 {
 	/*
 	 *	Purpose:
-	 *		Set up (s)um (f)actorization parameters for (F)ACET (d)erivative operators.
+	 *		Set up (s)um (f)actorization parameters for (F)ACE (d)erivative operators.
 	 *
 	 *	Comments:
 	 *		This function is nearly identical to get_sf_parametersF, except for the level of dereferencing on OP1.
@@ -336,7 +336,7 @@ void get_sf_parametersFd(const unsigned int NIn0, const unsigned int NOut0, doub
 	default: // 3D
 		switch (Eclass) {
 		default: // C_TP
-			// FACET term (standard treatment)
+			// FACE term (standard treatment)
 			NIn_SF[dimF]  = NIn1;
 			NOut_SF[dimF] = NOut1;
 			OP_SF[dimF]   = OP1[(f%2)*NFREFMAX][dimD];
@@ -386,7 +386,7 @@ void get_sf_parametersFd(const unsigned int NIn0, const unsigned int NOut0, doub
 			NIn_SF[2]  = NIn1;
 			NOut_SF[2] = NOut1;
 
-			if (f < 3) { // QUAD FACETs
+			if (f < 3) { // QUAD FACEs
 				switch (fh) {
 				case 0: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[0][dimD]; break;
 				case 1: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[1][dimD]; break;
@@ -401,7 +401,7 @@ void get_sf_parametersFd(const unsigned int NIn0, const unsigned int NOut0, doub
 					printf("Error: Unsupported fh for f < 3 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
 					break;
 				}
-			} else if (f < 5) { // TRI FACETs
+			} else if (f < 5) { // TRI FACEs
 				if (fh > 4)
 					printf("Error: Unsupported fh for f < 5 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
 
@@ -487,7 +487,7 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 	 *			2) In vectorized version of the code, when multiple elements are operated on at once, performing blas
 	 *			   calls using the CblasColMajor layout results in the output being stored in continuous memory for each
 	 *			   element. This results in greatly reduced memory stride when distributing the output back to the
-	 *			   VOLUME/FACET structures.
+	 *			   VOLUME/FACE structures.
 	 *
 	 *		After the swapping is performed, note that applying the operator in a loop over the blocks of Input is the
 	 *		same as interpretting the results as applying the operator to a matrix where each column is a block.

@@ -16,7 +16,7 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "adaptation.h"
 #include "element_functions.h"
@@ -102,7 +102,7 @@ void update_VOLUME_hp(void)
 	// Standard datatypes
 	unsigned int i, j, ve, iMax, P, PNew, f, level, adapt_type, vh, vhMin, vhMax, VType, Nf, Nve,
 	             IndEhref, NvnGs[2], NvnGc[2], NvnS[2], NvnSP, NCols, update, maxP, *VeInfo, cVeCount;
-	double       *I_vGs_vGc[2], *XYZ_vC, *XYZ_S,
+	double       *I_vGs_vGc[2], *XYZ_vV, *XYZ_S,
 	             **Ihat_vS_vS, **I_vGs_vGs, **L2hat_vS_vS, *What, *RES, *WhatP, *WhatH, *RESP, *RESH, *dummyPtr_d,
 	             *uhat, *uhatP, *uhatH;
 
@@ -187,9 +187,9 @@ void update_VOLUME_hp(void)
 
 					NCols = d;
 
-					XYZ_vC = VOLUME->XYZ_vC;
+					XYZ_vV = VOLUME->XYZ_vV;
 					XYZ_S  = malloc(NvnGc[0]*NCols * sizeof *XYZ_S); // keep
-					mm_CTN_d(NvnGc[0],NCols,NvnGs[0],I_vGs_vGc[0],XYZ_vC,XYZ_S);
+					mm_CTN_d(NvnGc[0],NCols,NvnGs[0],I_vGs_vGc[0],XYZ_vV,XYZ_S);
 
 					free(VOLUME->XYZ_S);
 					VOLUME->XYZ_S = XYZ_S;
@@ -302,8 +302,8 @@ void update_VOLUME_hp(void)
 					// Update geometry
 					IndEhref = get_IndEhref(VType,vh);
 
-					VOLUMEc->XYZ_vC = malloc(NvnGs[IndEhref]*d * sizeof *XYZ_vC); // keep
-					mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vC,VOLUMEc->XYZ_vC);
+					VOLUMEc->XYZ_vV = malloc(NvnGs[IndEhref]*d * sizeof *XYZ_vV); // keep
+					mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vV,VOLUMEc->XYZ_vV);
 
 					Nve    = ELEMENT->Nve;
 					VeInfo = VOLUMEc->VeInfo;
@@ -340,7 +340,7 @@ void update_VOLUME_hp(void)
 						if (d == DMAX && cVeCount == 2)
 							VOLUMEc->curved = 2; // Curved EDGE
 						else
-							VOLUMEc->curved = 1; // Curved FACET
+							VOLUMEc->curved = 1; // Curved FACE
 
 						// Ensure that vertices are place on the curved boundaries
 						vertices_to_exact_geom_VOLUME(VOLUMEc);
@@ -353,19 +353,19 @@ void update_VOLUME_hp(void)
 						VOLUMEc->curved = 0;
 					}
 
-					XYZ_vC = VOLUMEc->XYZ_vC;
+					XYZ_vV = VOLUMEc->XYZ_vV;
 					if (!VOLUMEc->curved) {
 						VOLUMEc->NvnG  = NvnGs[IndEhref];
 						VOLUMEc->XYZ_S = malloc(NvnGs[IndEhref]*NCols * sizeof *XYZ_S); // keep
 						XYZ_S = VOLUMEc->XYZ_S;
 						for (unsigned int i = 0, iMax = NCols*NvnGs[IndEhref]; i < iMax; i++)
-							XYZ_S[i] = XYZ_vC[i];
+							XYZ_S[i] = XYZ_vV[i];
 						setup_straight(VOLUMEc);
 					} else {
 						VOLUMEc->NvnG = NvnGc[IndEhref];
 
 						VOLUMEc->XYZ_S = malloc(NvnGc[IndEhref]*NCols * sizeof *XYZ_S); // keep
-						mm_CTN_d(NvnGc[IndEhref],NCols,NvnGs[IndEhref],I_vGs_vGc[IndEhref],XYZ_vC,VOLUMEc->XYZ_S);
+						mm_CTN_d(NvnGc[IndEhref],NCols,NvnGs[IndEhref],I_vGs_vGc[IndEhref],XYZ_vV,VOLUMEc->XYZ_S);
 
 						if (strstr(MeshType,"ToBeCurved"))
 							setup_ToBeCurved(VOLUMEc);
@@ -690,7 +690,7 @@ void update_VOLUME_finalize(void)
 	unsigned int VfIn, VfOut, fIn, fOut;
 
 	struct S_VOLUME *VOLUME, *VIn, *VOut;
-	struct S_FACET  *FACET;
+	struct S_FACE  *FACE;
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		VOLUME->indexg = NV++;
@@ -702,16 +702,16 @@ void update_VOLUME_finalize(void)
 	DB.NV = NV;
 	DB.NVglobal = NV;
 
-	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-		VIn   = FACET->VIn;
-		VfIn  = FACET->VfIn;
+	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		VIn   = FACE->VIn;
+		VfIn  = FACE->VfIn;
 		fIn   = VfIn/NFREFMAX;
 
-		VOut  = FACET->VOut;
-		VfOut = FACET->VfOut;
+		VOut  = FACE->VOut;
+		VfOut = FACE->VfOut;
 		fOut  = VfOut/NFREFMAX;
 
-		FACET->Boundary = !((VIn->indexg != VOut->indexg) || (VIn->indexg == VOut->indexg && fIn != fOut));
+		FACE->Boundary = !((VIn->indexg != VOut->indexg) || (VIn->indexg == VOut->indexg && fIn != fOut));
 
 		VIn->neigh[VfIn]   = VOut->indexg;
 		VOut->neigh[VfOut] = VIn->indexg;
