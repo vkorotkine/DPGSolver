@@ -329,7 +329,7 @@ void update_VOLUME_hp(void)
 										VeInfo[ve+Nve*2] = UINT_MAX;
 										break;
 									} else {
-										VeInfo[ve+Nve*2] = VOLUME->VeInfo[j+Nve*2];
+										VeInfo[ve+Nve*2] = VOLUME->VeInfo[j+NvnGs[0]*2];
 									}
 								}
 							}

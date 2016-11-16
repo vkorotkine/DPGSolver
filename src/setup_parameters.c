@@ -143,9 +143,9 @@ void setup_parameters()
 	             *PF, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
 	if (DB.PGlobal > PMax)
-		printf("Error: P must be less than or equal PMax.\n"), exit(1);
+		printf("Error: P must be less than or equal PMax.\n"), EXIT_MSG;
 	if (PMax == 0)
-		printf("Error: Please choose PMax > 0.\n"), exit(1);
+		printf("Error: Please choose PMax > 0.\n"), EXIT_MSG;
 
 	u1 = 1;
 

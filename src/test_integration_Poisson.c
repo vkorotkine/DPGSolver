@@ -203,12 +203,12 @@ if (0)
  *		Investigate cube_to_sphere effects on mesh regularity; problems are only being observed in 3D.
  */
 	TestDB.PG_add = 0;
-	TestDB.IntOrder_mult = 3;
+	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin = 3;  PMax = 3;
+	PMin = 1;  PMax = 2;
 	MLMin = 0; MLMax = 2;
-TestDB.PGlobal = 3;
+TestDB.PGlobal = 2;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
