@@ -72,6 +72,8 @@
 #define GMSH_XYZVOL_MIN 7001
 
 // Geometry related parameters
+#define SZABO_BABUSKA     1
+
 #define ARC_LENGTH        1
 #define RADIAL_PROJECTION 2
 

@@ -41,6 +41,8 @@ struct S_TEST TestDB;
  *		(P)etrov-(G)alerkin method.
  *
  *	Comments:
+ *		According to Wikipedia: "In three-dimensional geometry a facet of a polyhedron is any polygon whose corners are
+ *		vertices of the polyhedron, and is not a face". Change all instances of FACET to FACE (ToBeDeleted).
  *
  *	Notation:
  *

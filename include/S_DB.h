@@ -21,7 +21,7 @@ struct S_DB {
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
 	unsigned int NP, AC, ExactGeom, InviscidFluxType, ViscousFluxType, ExplicitSolverType, PR, PP, PGs,
-	             *PGc, *PF, *VFPartUnity, Parametrization,
+	             *PGc, *PF, *VFPartUnity, Blending, Parametrization,
 	             ***SF_BE, **PCs, **PCc, **PJs, **PJc, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
 	// Mesh

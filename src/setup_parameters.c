@@ -104,6 +104,8 @@
  *
  *		AC              : Specifies whether (a)ll elements are (c)urved or not.
  *		ExactGeom       : Move boundary nodes to exact geometry if enabled.
+ *		Blending        : Type of blending used in curved elements.
+ *		                  Options: Szabo-Babuska
  *		Parametrization : Type of parametrization used in curved elements.
  *		                  Options: ArcLength, RadialProjection (Under consideration), EqualTangent (Under consideration)
  *
@@ -138,7 +140,7 @@ void setup_parameters()
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
 	unsigned int i, iMax, u1,
 	             P, NP, IntOrderfs, IntOrderfc, IntOrdervs, IntOrdervc,
-	             ***SF_BE, *VFPartUnity, Parametrization,
+	             ***SF_BE, *VFPartUnity, Blending, Parametrization,
 	             PGs, *PGc, **PCs, **PCc, **PJs, **PJc,
 	             *PF, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
@@ -211,6 +213,7 @@ void setup_parameters()
 		DB.AC = 0, DB.ExactGeom = 1;
 
 	// ToBeModified (likely included in .ctrl file)
+	Blending        = SZABO_BABUSKA;
 	Parametrization = ARC_LENGTH;
 
 	for (i = 0; i < NEC; i++)
@@ -568,6 +571,7 @@ void setup_parameters()
 	DB.PIvs  = PIvs;
 	DB.PIvc  = PIvc;
 
+	DB.Blending        = Blending;
 	DB.Parametrization = Parametrization;
 	DB.NodeTypeG       = NodeTypeG;
 	DB.NodeTypeS       = NodeTypeS;
@@ -615,7 +619,6 @@ void setup_parameters_L2proj(void)
 	for (P = 0; P <= PMax; P++) {
 		// Geometry
 		PGc[P]    = max(P,u1)+PG_add;
-//PGc[P] = PGs;
 		PCs[P][0] = (d-1)*PGs;
 		PCs[P][1] = (d-1)*max(PGs-1,u1);
 		PCs[P][2] = (d-1)*PGs;

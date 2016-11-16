@@ -20,11 +20,11 @@
 #include "array_norm.h"
 #include "array_free.h"
 
-#include "array_print.h" // ToBeDeleted
+#include "array_print.h"
 
 /*
  *	Purpose:
- *		Set up to be curved meshes.
+ *		Set up "Curved" meshes.
  *
  *	Comments:
  *		Requires that straight VOLUME nodes have already been stored.
@@ -37,8 +37,7 @@
  *
  *	Notation:
  *		XYZ      : High-order VOLUME (XYZ) coordinates after curving.
- *		XYZE_CmS : (XYZ) (E)DGE  coordinates, (C)urved (m)inus (S)traight.
- *		XYZF_CmS : (XYZ) (F)ACET coordinates, (C)urved (m)inus (S)traight.
+ *		XYZ_CmS : (XYZ) BOUNDARY (EDGE or FACET) coordinates, (C)urved (m)inus (S)traight.
  *
  *	References:
  */
@@ -59,10 +58,19 @@ struct S_XYZ {
 typedef void (*compute_pc_tdef) (struct S_pc *data);
 typedef void (*compute_XYZ_tdef) (struct S_XYZ *data);
 
+struct S_Blend {
+	unsigned int b, NvnG, NbnG, Nve, *Nbve, *VeBcon, NbveMax, *VeInfo;
+	double       *XYZ, *XYZ_vV,
+	             *I_vGs_vGc, *I_bGs_vGc, *I_vGc_bGc, *I_bGc_vGc;
+
+	compute_pc_tdef  compute_pc;
+	compute_XYZ_tdef compute_XYZ;
+};
+
 static void compute_pc_dsphere(struct S_pc *data) {
 	/*
 	 *	Purpose:
-	 *		Compute (t)heta and (p)hi components associated with the input vertices.
+	 *		Compute (t)heta and (p)hi parametrization components associated with the input vertices.
 	 */
 
 	// Initialize DB Parameters
@@ -178,389 +186,325 @@ static void select_functions_Curved(compute_pc_tdef *compute_pc, compute_XYZ_tde
 	}
 }
 
-void setup_Curved(struct S_VOLUME *VOLUME)
+static double *compute_BlendV(struct S_Blend *data)
 {
+	/*
+	 *	Purpose:
+	 *		Compute the scaling to be used for each of the VOLUME geometry nodes based on the boundary perturbation due
+	 *		to the curved geometry.
+	 *
+	 *	Comments:
+	 *		SZABO_BABUSKA blending is based on a generalization of eq. (6.22) in Szabo(1991). Note that the projected
+	 *		nodes used along the curved face must be defined as in setup_blending (setup_operators).
+	 *
+	 *	References:
+	 *		Szabo(1991)-Finite_Element_Analysis
+	 */
+
 	// Initialize DB Parameters
-	char         *TestCase       = DB.TestCase;
+	unsigned int Blending = DB.Blending;
+
+	// Standard datatypes
+	unsigned int b, n, ve, NvnG, Nve, *Nbve, *VeBcon, NbveMax;
+	double       *I_vGs_vGc, *I_bGs_vGc, *BlendV, BlendNum, BlendDen;
+
+	NvnG = data->NvnG;
+	BlendV = malloc(NvnG * sizeof *BlendV); // keep
+
+	if (Blending == SZABO_BABUSKA) {
+		b       = data->b;
+		Nve     = data->Nve;
+		Nbve    = data->Nbve;
+		VeBcon  = data->VeBcon;
+		NbveMax = data->NbveMax;
+
+		I_vGs_vGc = data->I_vGs_vGc;
+		I_bGs_vGc = data->I_bGs_vGc;
+
+		for (n = 0; n < NvnG; n++) {
+			BlendNum = 1.0;
+			BlendDen = 1.0;
+			for (ve = 0; ve < Nbve[b]; ve++) {
+				BlendNum *= I_vGs_vGc[n*Nve+VeBcon[b*NbveMax+ve]];
+				BlendDen *= I_bGs_vGc[n*Nbve[b]+ve];
+			}
+			if (BlendNum < EPS)
+				BlendV[n] = 0.0;
+			else
+				BlendV[n] = BlendNum/BlendDen;
+		}
+	} else {
+		printf("Error: Unsupported.\n");
+	}
+
+	return BlendV;
+}
+
+static double *compute_XYZ_update(struct S_Blend *data)
+{
+	/*
+	 *	Purpose:
+	 *		Compute update to VOLUME XYZ geometry components based on the selected curved surface parametrization.
+	 */
+
+	// Initialize DB Parameters
 	unsigned int d               = DB.d,
-	             *PGc            = DB.PGc,
 	             Parametrization = DB.Parametrization;
 
 	// Standard datatypes
-	unsigned int dim, e, f, n, ve, Ve, Vf, PV, NvnG, Ne, Nf, Nve, Indve, FuncType,
-	             *VeEcon, *VeFcon, Neve, *Nfve, NenG, NfnG, *VeInfo, *VeCurved, *VeSurface, IndSurf,
-	             Ecurved, Fcurved, Vcurved;
-	double       *XYZ, **VeXYZ, *BCoords_vGc, *BCoords_fGc, *BCoords_fGc_dP1, *BCoords_fGs, *BCoords_eGs,
-	             *PComps_V, *PComps_F, **XYZE_CmS, **XYZF_CmS, *BlendV,
-	             *I_vGc_eGc, *I_fGc_vGc, *I_vGc_fGc, *I_eGc_vGc, *XYZ_update, *XYZ_vC,
-	             BlendNum, BlendDen;
+	unsigned int b, n, ve, dim, NvnG, NbnG, Nve, *Nbve, *VeBcon, *VeInfo, NbveMax;
+	double       **VeXYZ, *XYZ, *XYZ_vV, *PComps_V, *PComps_B, *XYZ_CmS, *XYZ_update,
+	             *I_vGs_bGc, *I_vGc_bGc, *I_vGs_vGc, *I_bGs_bGc, *I_bGc_vGc;
 
-	struct S_ELEMENT *ELEMENT, *ELEMENT_F, *ELEMENT_E;
-	struct S_pc      *data_pc;
-	struct S_XYZ     *data_XYZ;
+	struct S_pc  *data_pc;
+	struct S_XYZ *data_XYZ;
 
 	// Function pointers
 	compute_pc_tdef  compute_pc;
 	compute_XYZ_tdef compute_XYZ;
 
-	// Linear portion
-	setup_straight(VOLUME);
+	NbnG = data->NbnG;
+	XYZ_CmS = calloc(NbnG*d , sizeof *XYZ_CmS); // free
 
-	Vcurved = VOLUME->curved;
-	PV      = VOLUME->P;
+	if (Parametrization == ARC_LENGTH) {
+		NvnG    = data->NvnG;
+		b       = data->b;
+		Nve     = data->Nve;
+		Nbve    = data->Nbve;
+		VeBcon  = data->VeBcon;
+		VeInfo  = data->VeInfo;
+		NbveMax = data->NbveMax;
 
-	if (!Vcurved || PGc[PV] <= 1)
-		return;
+		XYZ       = data->XYZ;
+		XYZ_vV    = data->XYZ_vV;
+		I_vGc_bGc = data->I_vGc_bGc;
+		I_vGs_vGc = data->I_vGs_vGc;
+		I_bGc_vGc = data->I_bGc_vGc;
 
-	data_pc  = malloc(sizeof *data_pc);  // free
-	data_XYZ = malloc(sizeof *data_XYZ); // free
+		compute_pc  = data->compute_pc;
+		compute_XYZ = data->compute_XYZ;
 
-	ELEMENT = get_ELEMENT_type(VOLUME->type);
+		data_pc  = malloc(sizeof *data_pc);  // free
+		data_XYZ = malloc(sizeof *data_XYZ); // free
 
-	NvnG   = VOLUME->NvnG;
-	XYZ    = VOLUME->XYZ;
-	XYZ_vC = VOLUME->XYZ_vC;
+		// Find coordinates of vertices on the BOUNDARY
+		VeXYZ = malloc(Nbve[b] * sizeof *VeXYZ); // free
+		for (ve = 0; ve < Nbve[b]; ve++) {
+			VeXYZ[ve] = malloc(d * sizeof **VeXYZ); // free
+			for (dim = 0; dim < d; dim++)
+				VeXYZ[ve][dim] = XYZ_vV[Nve*dim+VeBcon[b*NbveMax+ve]];
+		}
+
+		// Find barycentric coordinates of VOLUME geometry nodes relating to this BOUNDARY
+		I_vGs_bGc = mm_Alloc_d(CBRM,CBNT,CBNT,NbnG,Nve,NvnG,1.0,I_vGc_bGc,I_vGs_vGc); // free
+
+		I_bGs_bGc = malloc(NbnG*Nbve[b] * sizeof *I_bGs_bGc); // free
+		for (n = 0; n < NbnG; n++) {
+		for (ve = 0; ve < Nbve[b]; ve++) {
+			I_bGs_bGc[n*Nbve[b]+ve] = I_vGs_bGc[n*Nve+VeBcon[b*NbveMax+ve]];
+		}}
+		free(I_vGs_bGc);
+
+		// Find values of parametrization components on the BOUNDARY
+		PComps_V = malloc(Nbve[b]*2 * sizeof *PComps_V); // free
+
+		data_pc->Nn        = Nbve[b];
+		data_pc->VeXYZ     = VeXYZ;
+		data_pc->PComps    = PComps_V;
+		data_pc->VeSurface = VeInfo[2*Nve+VeBcon[b*NbveMax]];
+
+		compute_pc(data_pc);
+		array_free2_d(Nbve[b],VeXYZ);
+
+		PComps_B = malloc(NbnG*2 * sizeof *PComps_B); // free
+		mm_CTN_d(NbnG,2,Nbve[b],I_bGs_bGc,PComps_V,PComps_B);
+		free(PComps_V);
+		free(I_bGs_bGc);
+
+		// Compute perturbation of BOUNDARY geometry node positions
+		data_XYZ->Nn        = NbnG;
+		data_XYZ->XYZ       = XYZ_CmS;
+		data_XYZ->PComps    = PComps_B;
+		data_XYZ->VeSurface = VeInfo[2*Nve+VeBcon[b*NbveMax]];
+
+		compute_XYZ(data_XYZ);
+		free(PComps_B);
+
+		mm_d(CBCM,CBT,CBNT,NbnG,d,NvnG,-1.0,1.0,I_vGc_bGc,XYZ,XYZ_CmS);
+
+		free(data_pc);
+		free(data_XYZ);
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+
+	XYZ_update = mm_Alloc_d(CBCM,CBT,CBNT,NvnG,d,NbnG,1.0,I_bGc_vGc,XYZ_CmS); // free
+	free(XYZ_CmS);
+
+	return XYZ_update;
+}
+
+static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
+{
+	/*
+	 *	Purpose:
+	 *		Compute difference between straight geometry and that of the parametrized curved surface and blend it into
+	 *		the VOLUME.
+	 *
+	 *	Comments:
+	 *		The (b)oundary prefix is used here in place of either (e)dge or (f)ace, depending on BType.
+	 */
+
+	// Initialize DB Parameters
+	char         *TestCase = DB.TestCase;
+	unsigned int d         = DB.d;
+
+	// Standard datatypes
+	unsigned int b, ve, dim, n, Vb, PV, Indve, IndSurf,
+	             Nve, Nb, *Nbve, *VeBcon, NbveMax, NbrefMax, NvnG, Bcurved, FuncType,
+	             *VeInfo, *VeCurved, *VeSurface;
+	double       *XYZ, *XYZ_update, *BlendV;
+
+	struct S_ELEMENT *ELEMENT, *ELEMENT_B;
+	struct S_pc      *data_pc;
+	struct S_XYZ     *data_XYZ;
+	struct S_Blend   *data_blend;
+
+	// silence
+	Nb = NbrefMax = NbveMax = 0;
+	VeBcon = Nbve = NULL;
+	ELEMENT_B = NULL;
+
+	data_pc    = malloc(sizeof *data_pc);    // free
+	data_XYZ   = malloc(sizeof *data_XYZ);   // free
+	data_blend = malloc(sizeof *data_blend); // free
 
 	if (strstr(TestCase,"Poisson")) {
 		FuncType = DSPHERE;
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
-	select_functions_Curved(&compute_pc,&compute_XYZ,FuncType);
+	select_functions_Curved(&data_blend->compute_pc,&data_blend->compute_XYZ,FuncType);
 
-//printf("\n\nVOLUME %d\n",VOLUME->indexg);
-//array_print_d(NvnG,d,XYZ,'C');
-
-	// Loop over curved EDGEs not on curved FACETs (3D only)
+	PV     = VOLUME->P;
+	NvnG   = VOLUME->NvnG;
+	XYZ    = VOLUME->XYZ;
 	VeInfo = VOLUME->VeInfo;
-	if (d == 3) {
-		Ne = ELEMENT->Ne;
 
-		XYZE_CmS = malloc(Ne * sizeof *XYZE_CmS); // free
-		for (e = 0; e < Ne; e++) {
-			ELEMENT_E = get_ELEMENT_type(LINE);
-			NenG = ELEMENT_E->NvnGc[PV];
+	data_blend->NvnG   = NvnG;
+	data_blend->XYZ    = XYZ;
+	data_blend->XYZ_vV = VOLUME->XYZ_vC;
+	data_blend->VeInfo = VeInfo;
 
-			XYZE_CmS[e] = calloc(NenG*d , sizeof **XYZE_CmS); // free
+	ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+	Nve = ELEMENT->Nve;
+
+	data_blend->Nve = Nve;
+	data_blend->I_vGs_vGc = ELEMENT->I_vGs_vGc[1][PV][0];
+
+	VeCurved  = &VeInfo[0*Nve];
+	VeSurface = &VeInfo[2*Nve];
+
+	if (BType == 'e') {
+		Nb     = ELEMENT->Ne;
+		Nbve   = malloc(Nb * sizeof *Nbve); // free
+		for (b = 0; b < Nb; b++)
+			Nbve[b] = ELEMENT->Neve;
+		VeBcon = ELEMENT->VeEcon;
+
+		NbveMax = NEVEMAX;
+		NbrefMax = NEREFMAX;
+	} else if (BType == 'f') {
+		Nb     = ELEMENT->Nf;
+		Nbve   = ELEMENT->Nfve;
+		VeBcon = ELEMENT->VeFcon;
+
+		NbveMax  = NFVEMAX;
+		NbrefMax = NFREFMAX;
+	}
+
+	data_blend->Nbve    = Nbve;
+	data_blend->NbveMax = NbveMax;
+	data_blend->VeBcon  = VeBcon;
+
+	for (b = 0; b < Nb; b++) {
+		Bcurved = 1;
+		for (ve = 0; ve < Nbve[b]; ve++) {
+			Indve = VeBcon[b*NbveMax+ve];
+			if (!ve)
+				IndSurf = VeSurface[Indve];
+
+			if (!VeCurved[Indve] || IndSurf != VeSurface[Indve]) {
+				Bcurved = 0;
+				break;
+			}
 		}
 
-		VeEcon = ELEMENT->VeEcon;
-		Ne     = ELEMENT->Ne;
-		Nve    = ELEMENT->Nve;
-		Neve   = NEVEMAX;
+		if (!Bcurved)
+			continue;
 
-		BCoords_vGc = ELEMENT->I_vGs_vGc[1][PV][0];
+		Vb = b*NbrefMax;
+		if (BType == 'e') {
+			ELEMENT_B = get_ELEMENT_type(LINE);
+			data_blend->I_vGc_bGc = ELEMENT->I_vGc_eGc[PV][PV][Vb];
+			data_blend->I_bGc_vGc = ELEMENT->I_eGc_vGc[PV][PV][Vb];
+			data_blend->I_bGs_vGc = ELEMENT->I_eGs_vGc[1][PV][Vb];
+		} else if (BType == 'f') {
+			ELEMENT_B = get_ELEMENT_F_type(ELEMENT->type,b); 
+			data_blend->I_vGc_bGc = ELEMENT->I_vGc_fGc[PV][PV][Vb];
+			data_blend->I_bGc_vGc = ELEMENT->I_fGc_vGc[PV][PV][Vb];
+			data_blend->I_bGs_vGc = ELEMENT->I_fGs_vGc[1][PV][Vb];
+		}
 
-		VeCurved  = &VeInfo[0*Nve];
-		VeSurface = &VeInfo[2*Nve];
+		data_blend->b    = b;
+		data_blend->NbnG = ELEMENT_B->NvnGc[PV];
 
-		for (e = 0; e < Ne; e++) {
-			Ecurved = 1;
-			for (ve = 0; ve < Neve; ve++) {
-				Indve = VeEcon[e*NEVEMAX+ve];
-				if (!ve)
-					IndSurf = VeSurface[Indve];
+		BlendV     = compute_BlendV(data_blend);     // free
+		XYZ_update = compute_XYZ_update(data_blend); // free
 
-				if (!VeCurved[Indve] || IndSurf != VeSurface[Indve]) {
-					Ecurved = 0;
-					break;
-				}
-			}
-
-			if (!Ecurved)
+		// Blend BOUNDARY perturbation to VOLUME geometry nodes
+		for (n = 0; n < NvnG; n++) {
+			if (BlendV[n] < EPS)
 				continue;
-//printf("sc,e: %d %d\n",VOLUME->indexg,e);
-			Ve = e*NEREFMAX;
 
-			ELEMENT_E = get_ELEMENT_type(LINE);
-			NenG = ELEMENT_E->NvnGc[PV];
-
-			I_eGc_vGc   = ELEMENT->I_eGc_vGc[PV][PV][Ve];
-			I_vGc_eGc   = ELEMENT->I_vGc_eGc[PV][PV][Ve];
-			BCoords_eGs = ELEMENT->I_eGs_vGc[1][PV][Ve];
-
-			if (Parametrization == ARC_LENGTH) {
-				// Find coordinates of vertices on the EDGE
-				VeXYZ = malloc(Neve * sizeof *VeXYZ); // free
-				for (ve = 0; ve < Neve; ve++) {
-					VeXYZ[ve] = malloc(d * sizeof **VeXYZ); // free
-					for (dim = 0; dim < d; dim++)
-						VeXYZ[ve][dim] = XYZ_vC[Nve*dim+VeEcon[e*NEVEMAX+ve]];
-				}
-
-				// Find barycentric coordinates of VOLUME geometry nodes relating to this EDGE
-				BCoords_fGc_dP1 = mm_Alloc_d(CBRM,CBNT,CBNT,NenG,Nve,NvnG,1.0,I_vGc_eGc,BCoords_vGc); // free
-//array_print_d(NenG,NvnG,I_vGc_eGc,'R');
-
-				BCoords_fGc = malloc(NenG*Neve * sizeof *BCoords_fGc); // free
-				for (n = 0; n < NenG; n++) {
-				for (ve = 0; ve < Neve; ve++) {
-					BCoords_fGc[n*Neve+ve] = BCoords_fGc_dP1[n*Nve+VeEcon[e*NEVEMAX+ve]];
-				}}
-				free(BCoords_fGc_dP1);
-
-				// Find values of parametrization components on the EDGE
-				PComps_V = malloc(Neve*2 * sizeof *PComps_V); // free
-
-				data_pc->Nn = Neve;
-				data_pc->VeSurface = VeInfo[2*Nve+VeEcon[e*NEVEMAX]];
-				data_pc->VeXYZ = VeXYZ;
-				data_pc->PComps = PComps_V;
-
-				compute_pc(data_pc);
-				array_free2_d(Neve,VeXYZ);
-
-				PComps_F = malloc(NenG*2 * sizeof *PComps_F); // free
-				mm_CTN_d(NenG,2,Neve,BCoords_fGc,PComps_V,PComps_F);
-
-				free(PComps_V);
-				free(BCoords_fGc);
-
-				// Compute perturbation of EDGE geometry node positions
-				data_XYZ->Nn = NenG;
-				data_XYZ->VeSurface = VeInfo[2*Nve+VeEcon[e*NEVEMAX]];
-				data_XYZ->XYZ = XYZE_CmS[e];
-				data_XYZ->PComps = PComps_F;
-
-				compute_XYZ(data_XYZ);
-				free(PComps_F);
-
-				mm_d(CBCM,CBT,CBNT,NenG,d,NvnG,-1.0,1.0,I_vGc_eGc,XYZ,XYZE_CmS[e]);
-
-// Make into separate function. ToBeDeleted
-				// Compute blend scaling
-				// Szabo-Babuska(1991)
-				BlendV = malloc(NvnG * sizeof *BlendV); // free
-
-				for (n = 0; n < NvnG; n++) {
-					BlendNum = 1.0;
-					BlendDen = 1.0;
-					for (ve = 0; ve < Neve; ve++) {
-						BlendNum *= BCoords_vGc[n*Nve+VeEcon[e*NEVEMAX+ve]];
-						BlendDen *= BCoords_eGs[n*Neve+ve];
-					}
-					if (BlendNum < EPS)
-						BlendV[n] = 0.0;
-					else
-						BlendV[n] = BlendNum/BlendDen;
-//printf("%d % .3e % .3e % .3e\n",n,BlendNum,BlendDen,BlendV[n]);
-				}
-
-				// Blend FACET perturbation to VOLUME geometry nodes
-				XYZ_update = mm_Alloc_d(CBCM,CBT,CBNT,NvnG,d,NenG,1.0,I_eGc_vGc,XYZE_CmS[e]); // free
-				for (n = 0; n < NvnG; n++) {
-					if (BlendV[n] < EPS)
-						continue;
-
-					for (dim = 0; dim < d; dim++)
-						XYZ[n+NvnG*dim] += BlendV[n]*XYZ_update[n+NvnG*dim];
-				}
-				free(XYZ_update);
-				free(BlendV);
-			} else {
-				printf("Error: Unsupported.\n"), EXIT_MSG;
-			}
+			for (dim = 0; dim < d; dim++)
+				XYZ[n+NvnG*dim] += BlendV[n]*XYZ_update[n+NvnG*dim];
 		}
-//array_print_d(NvnG,d,XYZ,'C');
-//EXIT_MSG;
-		array_free2_d(Ne,XYZE_CmS);
-	}
-
-	// Loop over curved FACETs
-	if (Vcurved == 1) {
-		Nf = ELEMENT->Nf;
-
-		XYZF_CmS = malloc(Nf * sizeof *XYZF_CmS); // free
-		for (f = 0; f < Nf; f++) {
-			ELEMENT_F = get_ELEMENT_F_type(VOLUME->type,f);
-			NfnG = ELEMENT_F->NvnGc[PV];
-
-			XYZF_CmS[f] = calloc(NfnG*d , sizeof **XYZF_CmS); // free
-		}
-
-		VeFcon      = ELEMENT->VeFcon;
-		Nfve        = ELEMENT->Nfve;
-		Nve         = ELEMENT->Nve;
-		BCoords_vGc = ELEMENT->I_vGs_vGc[1][PV][0];
-//array_print_ui(Nve,NVEINFO,VeInfo,'C');
-
-		VeCurved  = &VeInfo[0*Nve];
-		VeSurface = &VeInfo[2*Nve];
-
-		for (f = 0; f < Nf; f++) {
-			Fcurved = 1;
-			for (ve = 0; ve < Nfve[f]; ve++) {
-				Indve = VeFcon[f*NFVEMAX+ve];
-				if (!ve)
-					IndSurf = VeSurface[Indve];
-
-				if (!VeCurved[Indve] || IndSurf != VeSurface[Indve]) {
-					Fcurved = 0;
-					break;
-				}
-			}
-
-			if (!Fcurved)
-				continue;
-//printf("sc: %d\n",f);
-
-			Vf = f*NFREFMAX;
-
-			ELEMENT_F = get_ELEMENT_F_type(VOLUME->type,f);
-			NfnG = ELEMENT_F->NvnGc[PV];
-
-			I_fGc_vGc   = ELEMENT->I_fGc_vGc[PV][PV][Vf];
-			I_vGc_fGc   = ELEMENT->I_vGc_fGc[PV][PV][Vf];
-			BCoords_fGs = ELEMENT->I_fGs_vGc[1][PV][Vf];
-
-// Put this into a separate function later. Figure out what needs to be returned first. ToBeDeleted
-			if (Parametrization == ARC_LENGTH) {
-				// Find coordinates of vertices on the FACET
-				VeXYZ = malloc(Nfve[f] * sizeof *VeXYZ); // free
-				for (ve = 0; ve < Nfve[f]; ve++) {
-					VeXYZ[ve] = malloc(d * sizeof **VeXYZ); // free
-					for (dim = 0; dim < d; dim++)
-						VeXYZ[ve][dim] = XYZ_vC[Nve*dim+VeFcon[f*NFVEMAX+ve]];
-				}
-
-				// Find barycentric coordinates of VOLUME geometry nodes relating to this FACET
-				BCoords_fGc_dP1 = mm_Alloc_d(CBRM,CBNT,CBNT,NfnG,Nve,NvnG,1.0,I_vGc_fGc,BCoords_vGc); // free
-
-				BCoords_fGc = malloc(NfnG*Nfve[f] * sizeof *BCoords_fGc); // free
-				for (n = 0; n < NfnG; n++) {
-				for (ve = 0; ve < Nfve[f]; ve++) {
-					BCoords_fGc[n*Nfve[f]+ve] = BCoords_fGc_dP1[n*Nve+VeFcon[f*NFVEMAX+ve]];
-				}}
-				free(BCoords_fGc_dP1);
-
-				// Find values of parametrization components on the FACET
-				PComps_V = malloc(Nfve[f]*2 * sizeof *PComps_V); // free
-
-				data_pc->Nn = Nfve[f];
-				data_pc->VeSurface = VeInfo[2*Nve+VeFcon[f*NFVEMAX]];
-				data_pc->VeXYZ = VeXYZ;
-				data_pc->PComps = PComps_V;
-
-				compute_pc(data_pc);
-				array_free2_d(Nfve[f],VeXYZ);
-
-//array_print_d(NvnG,Nve,BCoords_vGc,'R');
-//array_print_d(NfnG,Nfve[f],BCoords_fGc,'R');
-
-				PComps_F = malloc(NfnG*2 * sizeof *PComps_F); // free
-				mm_CTN_d(NfnG,2,Nfve[f],BCoords_fGc,PComps_V,PComps_F);
-//array_print_d(NfnG,2,PComps_F,'C');
-				free(PComps_V);
-				free(BCoords_fGc);
-
-				// Compute perturbation of FACET geometry node positions
-				data_XYZ->Nn = NfnG;
-				data_XYZ->VeSurface = VeInfo[2*Nve+VeFcon[f*NFVEMAX]];
-				data_XYZ->XYZ = XYZF_CmS[f];
-				data_XYZ->PComps = PComps_F;
-
-				compute_XYZ(data_XYZ);
-				free(PComps_F);
-
-				mm_d(CBCM,CBT,CBNT,NfnG,d,NvnG,-1.0,1.0,I_vGc_fGc,XYZ,XYZF_CmS[f]);
-//array_print_d(NfnG,d,XYZF_CmS[f],'C');
-
-// Make into separate function. ToBeDeleted
-				// Compute blend scaling
-				// Szabo-Babuska(1991)
-				BlendV = malloc(NvnG * sizeof *BlendV); // free
-
-				for (n = 0; n < NvnG; n++) {
-					BlendNum = 1.0;
-					BlendDen = 1.0;
-					for (ve = 0; ve < Nfve[f]; ve++) {
-						BlendNum *= BCoords_vGc[n*Nve+VeFcon[f*NFVEMAX+ve]];
-						BlendDen *= BCoords_fGs[n*Nfve[f]+ve];
-					}
-					if (BlendNum < EPS)
-						BlendV[n] = 0.0;
-					else
-						BlendV[n] = BlendNum/BlendDen;
-//printf("%d % .3e % .3e\n",n,BlendNum,BlendDen);
-				}
-//array_print_d(NvnG,1,BlendV,'R');
-//array_print_d(NvnG,Nve,BCoords_vGc,'R');
-//EXIT_MSG;
-
-//array_print_d(NvnG,Nve,BCoords_vGc,'R');
-/*
-unsigned int NBI = 15;
-double BlendSum, BlendProd;
-double *BlendInfo = calloc(NBI*NvnG , sizeof *BlendInfo);
-for (n = 0; n < NvnG; n++) {
-	double L1, L2, *BlendInfoPtr = &BlendInfo[n*NBI];
-	double *I_fGs_vGc = &ELEMENT->I_fGs_vGc[1][PV][Vf][n*2];
-	BlendProd = 1.0;
-	BlendSum  = 0.0;
-	for (ve = 0; ve < Nfve[f]; ve++) {
-		BlendProd *= BCoords_vGc[n*Nve+VeFcon[f*NFVEMAX+ve]];
-		BlendSum  += BCoords_vGc[n*Nve+VeFcon[f*NFVEMAX+ve]];
-	}
-	L1 = BCoords_vGc[n*Nve+VeFcon[f*NFVEMAX+0]];
-	L2 = BCoords_vGc[n*Nve+VeFcon[f*NFVEMAX+1]];
-
-	BlendInfoPtr[13] = BlendV[n];
-	if (BlendProd < EPS)
-		BlendV[n] = 0.0;
-	else {
-		BlendV[n] = BlendProd/((1.0+2.0*L1*L2-(L1*L1+L2*L2))/4.0);
-
-	BlendInfoPtr[0] = L1;
-	BlendInfoPtr[1] = L2;
-	BlendInfoPtr[2] = BlendSum;
-	BlendInfoPtr[3] = BlendProd;
-	BlendInfoPtr[5] = L1*L2/pow((L1+L2),2.0);
-	BlendInfoPtr[6] = (1.0+2.0*L1*L2-(L1*L1+L2*L2))/4.0;
-	BlendInfoPtr[8] = BlendProd/BlendInfoPtr[5];
-	BlendInfoPtr[9] = BlendProd/BlendInfoPtr[6];
-	BlendInfoPtr[11] = I_fGs_vGc[0]*I_fGs_vGc[1];
-	BlendInfoPtr[11] = L1/(1-L2);
-	BlendInfoPtr[14] = BlendV[n];
-
-	BlendV[n] = sqrt(L1/(1-L2)*L2/(1-L1));
-	BlendV[n] = (L1/(1-L2)+L2/(1-L1))*0.5;
-	double a, b;
-	a = L1/(1-L2);
-	b = L2/(1-L1);
-	BlendV[n] = 2.0*a*b/(a+b);
-	BlendV[n] = 2*L1*L2/(L1+L2-(L1*L1+L2*L2));
-	BlendV[n] = 4*L1*L2/(1+2*L1*L2-(L1*L1+L2*L2));
-	BlendV[n] = BlendSum;
-	BlendInfoPtr[11] = BlendV[n];
-	}
-}
-//array_print_d(NvnG,Nve,BCoords_vGc,'R');
-array_print_d(NvnG,NBI,BlendInfo,'R');
-EXIT_MSG;
-*/
-//array_print_d(NvnG,d,XYZ_S,'C');
-				// Blend FACET perturbation to VOLUME geometry nodes
-				XYZ_update = mm_Alloc_d(CBCM,CBT,CBNT,NvnG,d,NfnG,1.0,I_fGc_vGc,XYZF_CmS[f]); // free
-				for (n = 0; n < NvnG; n++) {
-					if (BlendV[n] < EPS)
-						continue;
-
-					for (dim = 0; dim < d; dim++)
-						XYZ[n+NvnG*dim] += BlendV[n]*XYZ_update[n+NvnG*dim];
-				}
-				free(XYZ_update);
-				free(BlendV);
-			} else {
-				printf("Error: Unsupported.\n"), EXIT_MSG;
-			}
-
-
-		}
-		array_free2_d(Nf,XYZF_CmS);
-//array_print_d(NvnG,d,XYZ,'C');
-//EXIT_MSG;
+		free(XYZ_update);
+		free(BlendV);
 	}
 
 	free(data_pc);
 	free(data_XYZ);
+	free(data_blend);
+
+	if (BType == 'e') {
+		free(Nbve);
+	}
+}
+
+void setup_Curved(struct S_VOLUME *VOLUME)
+{
+	// Initialize DB Parameters
+	unsigned int d    = DB.d,
+	             *PGc = DB.PGc;
+
+	// Standard datatypes
+	unsigned int Vcurved;
+
+	// Linear portion
+	setup_straight(VOLUME);
+
+	Vcurved = VOLUME->curved;
+	if (!Vcurved || PGc[VOLUME->P] <= 1)
+		return;
+
+	// Treat curved EDGEs not on curved FACEs (3D only)
+	if (d == 3)
+		blend_boundary(VOLUME,'e');
+
+	// Treat curved FACEs
+	if (Vcurved == 1)
+		blend_boundary(VOLUME,'f');
 }

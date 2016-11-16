@@ -20,7 +20,7 @@
 
 /*
  *	Purpose:
- *		Set up ToBeCurved meshes.
+ *		Set up "ToBeCurved" meshes.
  *
  *	Comments:
  *		Requires that straight VOLUME nodes have already been stored.

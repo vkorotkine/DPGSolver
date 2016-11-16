@@ -267,7 +267,6 @@ void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, con
 	norm_rIn  /= Nn;
 	norm_rOut /= Nn;
 
-//	if (1||BCcurved == 1) {
 	if (BCcurved == 1) {
 		for (n = 0; n < Nn; n++) {
 			XOut[n] = XIn[n];
