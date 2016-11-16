@@ -11,20 +11,20 @@ W = rFactor*r;
 
 // Geometry Specification
 
-Point(2)  = { 0,0,-W,lc};
-Point(3)  = { L,0,-W,lc};
-Point(5)  = { 0,H,-W,lc};
-Point(6)  = { L,H,-W,lc};
-Point(8)  = { 0,0,-r,lc};
-Point(9)  = { r,0,-r,lc};
-Point(11) = { 0,r,-r,lc};
-Point(12) = { r,r,-r,lc};
-Point(15) = { r,0, 0,lc};
-Point(16) = { L,0, 0,lc};
-Point(18) = { 0,r, 0,lc};
-Point(19) = { r,r, 0,lc};
-Point(21) = { 0,H, 0,lc};
-Point(22) = { L,H, 0,lc};
+Point(2)  = {0,0,W,lc};
+Point(3)  = {L,0,W,lc};
+Point(5)  = {0,H,W,lc};
+Point(6)  = {L,H,W,lc};
+Point(8)  = {0,0,r,lc};
+Point(9)  = {r,0,r,lc};
+Point(11) = {0,r,r,lc};
+Point(12) = {r,r,r,lc};
+Point(15) = {r,0,0,lc};
+Point(16) = {L,0,0,lc};
+Point(18) = {0,r,0,lc};
+Point(19) = {r,r,0,lc};
+Point(21) = {0,H,0,lc};
+Point(22) = {L,H,0,lc};
 
 Line(1002) = {2,3};
 Line(1004) = {5,6};
@@ -58,8 +58,8 @@ Line(1041) = {6,12};
 
 Line(1043) = {22,19};
 
-Transfinite Line {1002,1004,1006:1007,1009,1011,1013:1014,1018,1020,1023:1024,1030,1032,1034:1035,1038,1040} = 2 Using Progression 1;
-Transfinite Line {1016,1025,-1028,-1029,-1039,-1041,-1043} = rFactor Using Progression 1;
+Transfinite Line {1002,1004,1006:1007,1009,1011,1013:1014,1018,1020,1023:1024,1030,1032,1034:1035,1038,1040} = 3+1 Using Progression 1;
+Transfinite Line {1016,1025,-1028,-1029,-1039,-1041,-1043} = 3+1 Using Progression 1;
 
 Line Loop (4002) = {1002, 1007,-1004,-1006};
 Line Loop (4004) = {1009, 1014,-1011,-1013};
@@ -105,21 +105,16 @@ Volume(7005) = {7005};
 Volume(7006) = {7006};
 
 Transfinite Volume{7004:7006};
-//Recombine Volume{7004:7006};
+Recombine Volume{7004:7006};
 
 
 
 // Physical parameters for '.msh' file
 
-/*
 Physical Surface(10011) = {4011,4012};           // Straight Dirichlet
 Physical Surface(10012) = {4007,4008,4017,4018}; // Straight Neumann
 Physical Surface(20011) = {4004,4013,4028};      // Curved Dirichlet
 Physical Surface(20012) = {4002,4014,4020};      // Curved Neumann
-*/
-
-Physical Surface(10011) = {4011,4012,4007,4008,4017,4018};           // Straight Dirichlet
-Physical Surface(20011) = {4004,4013,4028,4002,4014,4020};      // Curved Dirichlet
 
 Physical Volume(9701) = {7004:7006};
 

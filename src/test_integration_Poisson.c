@@ -168,8 +168,8 @@ void test_integration_Poisson(int nargc, char **argv)
 	strcpy(TestName,"Linearization Poisson (2D - Mixed):              ");
 	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
 
-TestDB.PGlobal = 1;
-if (0)
+TestDB.PGlobal = 3;
+//if (0)
 	test_linearization(nargc,argvNew,0,1,TestName,data);
 
 	// **************************************************************************************************** //
@@ -181,7 +181,7 @@ if (0)
 	strcpy(TestName,"Linearization Poisson (3D - TET):                ");
 	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
 
-if (0)
+if (0) // May need a coarser mesh here (ToBeDeleted)
 	test_linearization(nargc,argvNew,0,1,TestName,data);
 
 
@@ -189,7 +189,8 @@ if (0)
 	// Convergence Order Testing
 	// **************************************************************************************************** //
 //	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
-	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
+//	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
+	strcpy(argvNew[1],"test/Test_Poisson_3D_HEX");
 //	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_TP");
 //	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_HW");
 
@@ -204,7 +205,7 @@ if (0)
 
 	// Convergence orders
 	PMin  = 1; PMax  = 3;
-	MLMin = 0; MLMax = 1;
+	MLMin = 0; MLMax = 2;
 TestDB.PGlobal = 2;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
