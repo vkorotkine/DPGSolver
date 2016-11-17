@@ -1417,7 +1417,7 @@ static void setup_TP_operators(const unsigned int EType)
 	             *****D_vCc_vCc,
 	             ****ChiS_fS, ****ChiS_fIs, ****ChiS_fIc,
 	             ****I_vGs_fS, ****I_vGs_fIs, ****I_vGs_fIc,
-	             ****I_vGc_fGc, ****I_vGc_fS, ****I_vGc_fIs, ****I_vGc_fIc,
+	             ****I_vGc_fGc, ****I_vGc_fS, ****I_vGc_fIs, ****I_vGc_fIc, ****I_vGc_eGc,
 	             ****I_vCs_fS, ****I_vCs_fIs, ****I_vCs_fIc,
 	             ****I_vCc_fS, ****I_vCc_fIs, ****I_vCc_fIc,
 				 *****D_vGs_fIs, *****D_vGs_fIc,
@@ -1437,8 +1437,8 @@ static void setup_TP_operators(const unsigned int EType)
 	             *VFPartUnity = DB.VFPartUnity;
 
 	// Standard datatypes
-	unsigned int dim, P, vh, f, fh, Pb, PSMin, PSMax, PbMin, PbMax, fhMax, Nvref, IndClass,
-	             Eclass, dE, Nf, Vf, *Nfref, *ones_Nf,
+	unsigned int dim, P, vh, f, fh, e, Pb, PSMin, PSMax, PbMin, PbMax, fhMax, Nvref, IndClass,
+	             Eclass, dE, Nf, Ne, Vf, Ve, *Nfref, *ones_Nf,
 	             NIn[3], NOut[3];
 	double       *OP[3];
 
@@ -1456,6 +1456,7 @@ static void setup_TP_operators(const unsigned int EType)
 
 	dE    = ELEMENT->d;
 	Nf    = ELEMENT->Nf;
+	Ne    = ELEMENT->Ne;
 	Nfref = ELEMENT->Nfref;
 	Nvref = ELEMENT->Nvref;
 
@@ -1529,6 +1530,7 @@ static void setup_TP_operators(const unsigned int EType)
 	I_vGc_fS  = ELEMENT->I_vGc_fS;
 	I_vGc_fIs = ELEMENT->I_vGc_fIs;
 	I_vGc_fIc = ELEMENT->I_vGc_fIc;
+	I_vGc_eGc = ELEMENT->I_vGc_eGc;
 	I_vCs_fS  = ELEMENT->I_vCs_fS;
 	I_vCs_fIs = ELEMENT->I_vCs_fIs;
 	I_vCs_fIc = ELEMENT->I_vCs_fIc;
@@ -1836,6 +1838,17 @@ static void setup_TP_operators(const unsigned int EType)
 						}
 					}
 				}}
+
+				for (e = 0; dE == DMAX && e < Ne; e++) {
+					Ve = e*NEREFMAX;
+					if (P == Pb) {
+						get_sf_parametersE(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnGc[Pb],   ELEMENTclass[0]->IGc[P][Pb],
+						                   ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnGc[Pb][0],ELEMENTclass[0]->I_vGc_fGc[P][Pb],
+						                   NIn,NOut,OP,dE,Ve,Eclass);
+						I_vGc_eGc[P][Pb][Ve] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					}
+				}
+
 			}
 		}
 	} else if (Eclass == C_WEDGE) {
@@ -2721,6 +2734,7 @@ static void setup_blending(const unsigned int EType)
 			I_fGc_vGc[P][P][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],Nv0nGc[P],Nv0nGc[P],1.0,ChiRefGc_vProj,ChiRefInvGc_vGc); // keep
 
 
+			free(ChiRefGs_vGs);
 			free(ChiRefGc_vGc);
 			free(ChiRefGs_vProj);
 			free(ChiRefGc_vProj);
@@ -2783,6 +2797,7 @@ static void setup_blending(const unsigned int EType)
 			I_eGc_vGc[P][P][Ve] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],Nv0nGc[P],Nv0nGc[P],1.0,ChiRefGc_vProj,ChiRefInvGc_vGc); // keep
 
 
+			free(ChiRefGs_vGs);
 			free(ChiRefGc_vGc);
 			free(ChiRefGs_vProj);
 			free(ChiRefGc_vProj);

@@ -282,6 +282,7 @@ void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, con
 			r = rOut;
 		} else {
 			printf("% .3e % .3e\n",norm_rIn,norm_rOut);
+array_print_d(Nn,d,XYZIn,'C');
 			printf("Error: Found unsupported curved BC.\n"), EXIT_MSG;
 		}
 

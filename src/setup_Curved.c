@@ -371,7 +371,7 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
 	struct S_Blend   *data_blend;
 
 	// silence
-	Nb = NbrefMax = NbveMax = 0;
+	Nb = NbrefMax = NbveMax = IndSurf = 0;
 	VeBcon = Nbve = NULL;
 	ELEMENT_B = NULL;
 
@@ -451,7 +451,7 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
 			data_blend->I_bGc_vGc = ELEMENT->I_eGc_vGc[PV][PV][Vb];
 			data_blend->I_bGs_vGc = ELEMENT->I_eGs_vGc[1][PV][Vb];
 		} else if (BType == 'f') {
-			ELEMENT_B = get_ELEMENT_F_type(ELEMENT->type,b); 
+			ELEMENT_B = get_ELEMENT_F_type(ELEMENT->type,b);
 			data_blend->I_vGc_bGc = ELEMENT->I_vGc_fGc[PV][PV][Vb];
 			data_blend->I_bGc_vGc = ELEMENT->I_fGc_vGc[PV][PV][Vb];
 			data_blend->I_bGs_vGc = ELEMENT->I_fGs_vGc[1][PV][Vb];
@@ -462,6 +462,9 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
 
 		BlendV     = compute_BlendV(data_blend);     // free
 		XYZ_update = compute_XYZ_update(data_blend); // free
+printf("\n\nb: %d\n",b);
+array_print_d(NvnG,1,BlendV,'R');
+array_print_d(NvnG,d,XYZ_update,'C');
 
 		// Blend BOUNDARY perturbation to VOLUME geometry nodes
 		for (n = 0; n < NvnG; n++) {
@@ -501,8 +504,10 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 		return;
 
 	// Treat curved EDGEs not on curved FACEs (3D only)
-	if (d == 3)
+	if (d == DMAX)
 		blend_boundary(VOLUME,'e');
+EXIT_MSG;
+return;
 
 	// Treat curved FACEs
 	if (Vcurved == 1)

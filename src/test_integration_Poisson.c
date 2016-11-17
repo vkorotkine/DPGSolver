@@ -169,7 +169,7 @@ void test_integration_Poisson(int nargc, char **argv)
 	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
 
 TestDB.PGlobal = 3;
-//if (0)
+if (0)
 	test_linearization(nargc,argvNew,0,1,TestName,data);
 
 	// **************************************************************************************************** //
@@ -204,8 +204,8 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 3;
-	MLMin = 0; MLMax = 2;
+	PMin  = 2; PMax  = 2;
+	MLMin = 0; MLMax = 0;
 TestDB.PGlobal = 2;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
