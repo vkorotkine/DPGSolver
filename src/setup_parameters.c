@@ -214,7 +214,8 @@ void setup_parameters()
 
 	// ToBeModified (likely included in .ctrl file)
 	Blending        = SZABO_BABUSKA;
-	Parametrization = ARC_LENGTH;
+//	Parametrization = ARC_LENGTH;
+	Parametrization = RADIAL_PROJECTION;
 
 	for (i = 0; i < NEC; i++)
 		NodeTypeG[i] = malloc(STRLEN_MIN * sizeof **NodeTypeG); // keep

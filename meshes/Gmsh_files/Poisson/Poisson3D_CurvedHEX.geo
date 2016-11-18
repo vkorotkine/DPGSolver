@@ -83,7 +83,7 @@ Surface Loop (7003) = {4003,4006,4011,4012,4014,4015}; Volume(7003) = {7003};
 
 
 Transfinite Line {1001:1009,1011:1019} = 2*2^Refine+1 Using Progression 1;
-Transfinite Line {1022:1028}           = 3*2^Refine+1 Using Progression 1;
+Transfinite Line {1022:1028}           = 2*2^Refine+1 Using Progression 1;
 
 Transfinite Surface "*";
 Transfinite Volume "*";

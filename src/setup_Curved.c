@@ -78,7 +78,7 @@ static void compute_pc_dsphere(struct S_pc *data) {
 
 	// Standard datatypes
 	unsigned int n, Nn, OnPole = 0, IndPole;
-	double       r, t, p, t_avg, *PComps, **VeXYZ;
+	double       r, t, p, t_avg, *PComps, **VeXYZ, X, Y, Z, rXYZ;
 
 	if (data->VeSurface == 0)
 		r = DB.rIn;
@@ -92,12 +92,19 @@ static void compute_pc_dsphere(struct S_pc *data) {
 	PComps = data->PComps;
 
 	for (n = 0; n < Nn; n++) {
-		t = atan2(VeXYZ[n][1],VeXYZ[n][0]);
+		X = VeXYZ[n][0];
+		Y = VeXYZ[n][1];
 
-		if (d == 2)
+		t = atan2(Y,X);
+
+		if (d == 2) {
 			p = PI/2.0;
-		else
-			p = acos(VeXYZ[n][2]/r);
+		} else {
+			Z    = VeXYZ[n][2];
+			rXYZ = sqrt(X*X+Y*Y+Z*Z);
+
+			p = acos(Z/rXYZ);
+		}
 
 		PComps[0*Nn+n] = t;
 		PComps[1*Nn+n] = p;
@@ -253,7 +260,7 @@ static double *compute_XYZ_update(struct S_Blend *data)
 
 	// Standard datatypes
 	unsigned int b, n, ve, dim, NvnG, NbnG, Nve, *Nbve, *VeBcon, *VeInfo, NbveMax;
-	double       **VeXYZ, *XYZ, *XYZ_vV, *PComps_V, *PComps_B, *XYZ_CmS, *XYZ_update,
+	double       **VeXYZ, *XYZ, *XYZ_vV, *PComps_V, *PComps_B, *XYZ_CmS, *XYZ_update, *XYZ_S,
 	             *I_vGs_bGc, *I_vGc_bGc, *I_vGs_vGc, *I_bGs_bGc, *I_bGc_vGc;
 
 	struct S_pc  *data_pc;
@@ -266,26 +273,28 @@ static double *compute_XYZ_update(struct S_Blend *data)
 	NbnG = data->NbnG;
 	XYZ_CmS = calloc(NbnG*d , sizeof *XYZ_CmS); // free
 
+	NvnG    = data->NvnG;
+	b       = data->b;
+	Nve     = data->Nve;
+	VeInfo  = data->VeInfo;
+	VeBcon  = data->VeBcon;
+	NbveMax = data->NbveMax;
+
+	XYZ       = data->XYZ;
+	I_vGc_bGc = data->I_vGc_bGc;
+	I_bGc_vGc = data->I_bGc_vGc;
+
+	data_pc  = malloc(sizeof *data_pc);  // free
+	data_XYZ = malloc(sizeof *data_XYZ); // free
+
+	compute_pc  = data->compute_pc;
+	compute_XYZ = data->compute_XYZ;
+
 	if (Parametrization == ARC_LENGTH) {
-		NvnG    = data->NvnG;
-		b       = data->b;
-		Nve     = data->Nve;
 		Nbve    = data->Nbve;
-		VeBcon  = data->VeBcon;
-		VeInfo  = data->VeInfo;
-		NbveMax = data->NbveMax;
 
-		XYZ       = data->XYZ;
 		XYZ_vV    = data->XYZ_vV;
-		I_vGc_bGc = data->I_vGc_bGc;
 		I_vGs_vGc = data->I_vGs_vGc;
-		I_bGc_vGc = data->I_bGc_vGc;
-
-		compute_pc  = data->compute_pc;
-		compute_XYZ = data->compute_XYZ;
-
-		data_pc  = malloc(sizeof *data_pc);  // free
-		data_XYZ = malloc(sizeof *data_XYZ); // free
 
 		// Find coordinates of vertices on the BOUNDARY
 		VeXYZ = malloc(Nbve[b] * sizeof *VeXYZ); // free
@@ -331,12 +340,48 @@ static double *compute_XYZ_update(struct S_Blend *data)
 		free(PComps_B);
 
 		mm_d(CBCM,CBT,CBNT,NbnG,d,NvnG,-1.0,1.0,I_vGc_bGc,XYZ,XYZ_CmS);
+	} else if (Parametrization == RADIAL_PROJECTION) {
+		// Compute XYZ_C
+		XYZ_S = malloc(NbnG*d * sizeof *XYZ_S); // free
 
-		free(data_pc);
-		free(data_XYZ);
+		mm_d(CBCM,CBT,CBNT,NbnG,d,NvnG,1.0,0.0,I_vGc_bGc,XYZ,XYZ_S);
+
+		VeXYZ = malloc(NbnG   * sizeof *VeXYZ); // free
+		for (n = 0; n < NbnG; n++) {
+			VeXYZ[n] = malloc(d * sizeof *VeXYZ[n]); // free
+			for (dim = 0; dim < d; dim++)
+				VeXYZ[n][dim] = XYZ_S[n+NbnG*dim];
+		}
+
+		PComps_B = malloc(NbnG*2 * sizeof *PComps_B); // free
+		
+		data_pc->Nn        = NbnG;
+		data_pc->VeXYZ     = VeXYZ;
+		data_pc->PComps    = PComps_B;
+		data_pc->VeSurface = VeInfo[2*Nve+VeBcon[b*NbveMax]];
+
+		compute_pc(data_pc);
+		array_free2_d(NbnG,VeXYZ);
+
+		data_XYZ->Nn        = NbnG;
+		data_XYZ->XYZ       = XYZ_CmS;
+		data_XYZ->PComps    = PComps_B;
+		data_XYZ->VeSurface = VeInfo[2*Nve+VeBcon[b*NbveMax]];
+
+		compute_XYZ(data_XYZ);
+		free(PComps_B);
+
+		// Subtract XYZ_S;
+		for (n = 0; n < NbnG*d; n++)
+			XYZ_CmS[n] -= XYZ_S[n];
+
+		free(XYZ_S);
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
+
+	free(data_pc);
+	free(data_XYZ);
 
 	XYZ_update = mm_Alloc_d(CBCM,CBT,CBNT,NvnG,d,NbnG,1.0,I_bGc_vGc,XYZ_CmS); // free
 	free(XYZ_CmS);
@@ -462,9 +507,6 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
 
 		BlendV     = compute_BlendV(data_blend);     // free
 		XYZ_update = compute_XYZ_update(data_blend); // free
-printf("\n\nb: %d\n",b);
-array_print_d(NvnG,1,BlendV,'R');
-array_print_d(NvnG,d,XYZ_update,'C');
 
 		// Blend BOUNDARY perturbation to VOLUME geometry nodes
 		for (n = 0; n < NvnG; n++) {
@@ -506,8 +548,8 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 	// Treat curved EDGEs not on curved FACEs (3D only)
 	if (d == DMAX)
 		blend_boundary(VOLUME,'e');
-EXIT_MSG;
-return;
+//EXIT_MSG;
+//return;
 
 	// Treat curved FACEs
 	if (Vcurved == 1)
