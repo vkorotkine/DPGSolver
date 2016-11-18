@@ -213,7 +213,9 @@ void setup_parameters()
 		DB.AC = 0, DB.ExactGeom = 1;
 
 	// ToBeModified (likely included in .ctrl file)
-	Blending        = SZABO_BABUSKA;
+//	Blending        = SZABO_BABUSKA;
+	Blending        = GORDON_HALL;
+
 //	Parametrization = ARC_LENGTH;
 	Parametrization = RADIAL_PROJECTION;
 

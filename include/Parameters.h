@@ -73,6 +73,7 @@
 
 // Geometry related parameters
 #define SZABO_BABUSKA     1
+#define GORDON_HALL       2
 
 #define ARC_LENGTH        1
 #define RADIAL_PROJECTION 2

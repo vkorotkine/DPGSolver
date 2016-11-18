@@ -59,7 +59,7 @@ typedef void (*compute_pc_tdef) (struct S_pc *data);
 typedef void (*compute_XYZ_tdef) (struct S_XYZ *data);
 
 struct S_Blend {
-	unsigned int b, NvnG, NbnG, Nve, *Nbve, *VeBcon, NbveMax, *VeInfo;
+	unsigned int b, NvnG, NbnG, Nve, *Nbve, *VeBcon, NbveMax, *VeInfo, EclassV;
 	double       *XYZ, *XYZ_vV,
 	             *I_vGs_vGc, *I_bGs_vGc, *I_vGc_bGc, *I_bGc_vGc;
 
@@ -212,22 +212,24 @@ static double *compute_BlendV(struct S_Blend *data)
 	unsigned int Blending = DB.Blending;
 
 	// Standard datatypes
-	unsigned int b, n, ve, NvnG, Nve, *Nbve, *VeBcon, NbveMax;
+	unsigned int b, n, ve, NvnG, Nve, *Nbve, *VeBcon, NbveMax, EclassV;
 	double       *I_vGs_vGc, *I_bGs_vGc, *BlendV, BlendNum, BlendDen;
 
 	NvnG = data->NvnG;
 	BlendV = malloc(NvnG * sizeof *BlendV); // keep
 
-	if (Blending == SZABO_BABUSKA) {
-		b       = data->b;
-		Nve     = data->Nve;
-		Nbve    = data->Nbve;
-		VeBcon  = data->VeBcon;
-		NbveMax = data->NbveMax;
+	EclassV = data->EclassV;
 
-		I_vGs_vGc = data->I_vGs_vGc;
-		I_bGs_vGc = data->I_bGs_vGc;
+	b       = data->b;
+	Nve     = data->Nve;
+	Nbve    = data->Nbve;
+	VeBcon  = data->VeBcon;
+	NbveMax = data->NbveMax;
 
+	I_vGs_vGc = data->I_vGs_vGc;
+	I_bGs_vGc = data->I_bGs_vGc;
+
+	if (Blending == SZABO_BABUSKA || EclassV == C_SI) {
 		for (n = 0; n < NvnG; n++) {
 			BlendNum = 1.0;
 			BlendDen = 1.0;
@@ -239,6 +241,12 @@ static double *compute_BlendV(struct S_Blend *data)
 				BlendV[n] = 0.0;
 			else
 				BlendV[n] = BlendNum/BlendDen;
+		}
+	} else if (Blending == GORDON_HALL && EclassV == C_TP) {
+		for (n = 0; n < NvnG; n++) {
+			BlendV[n] = 0.0;
+			for (ve = 0; ve < Nbve[b]; ve++)
+				BlendV[n] += I_vGs_vGc[n*Nve+VeBcon[b*NbveMax+ve]];
 		}
 	} else {
 		printf("Error: Unsupported.\n");
@@ -445,7 +453,8 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
 
 	Nve = ELEMENT->Nve;
 
-	data_blend->Nve = Nve;
+	data_blend->EclassV = ELEMENT->Eclass;
+	data_blend->Nve     = Nve;
 	data_blend->I_vGs_vGc = ELEMENT->I_vGs_vGc[1][PV][0];
 
 	VeCurved  = &VeInfo[0*Nve];
@@ -548,8 +557,6 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 	// Treat curved EDGEs not on curved FACEs (3D only)
 	if (d == DMAX)
 		blend_boundary(VOLUME,'e');
-//EXIT_MSG;
-//return;
 
 	// Treat curved FACEs
 	if (Vcurved == 1)

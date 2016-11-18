@@ -2,7 +2,7 @@
 
 Refine = 0;
 
-lc = 0.6/2.0^Refine;
+lc = 0.25/2.0^Refine;
 
 rIn = 0.5;
 rOut = 1.0;
@@ -20,13 +20,13 @@ Point(6) = {1/Sqrt(2.0)*rIn,0.0,1/Sqrt(2.0)*rIn,lc};
 Point(7) = {0.0,1/Sqrt(2.0)*rIn,1/Sqrt(2.0)*rIn,lc};
 Point(8) = {1/Sqrt(3.0)*rIn,1/Sqrt(3.0)*rIn,1/Sqrt(3.0)*rIn,lc};
 
-Point(12) = {rOut,0.0,0.0,lc/2};
-Point(13) = {0.0,rOut,0.0,lc/2};
-Point(14) = {0.0,0.0,rOut,lc/2};
-Point(15) = {1/Sqrt(2.0)*rOut,1/Sqrt(2.0)*rOut,0.0,lc/2};
-Point(16) = {1/Sqrt(2.0)*rOut,0.0,1/Sqrt(2.0)*rOut,lc/2};
-Point(17) = {0.0,1/Sqrt(2.0)*rOut,1/Sqrt(2.0)*rOut,lc/2};
-Point(18) = {1/Sqrt(3.0)*rOut,1/Sqrt(3.0)*rOut,1/Sqrt(3.0)*rOut,lc/2};
+Point(12) = {rOut,0.0,0.0,lc};
+Point(13) = {0.0,rOut,0.0,lc};
+Point(14) = {0.0,0.0,rOut,lc};
+Point(15) = {1/Sqrt(2.0)*rOut,1/Sqrt(2.0)*rOut,0.0,lc};
+Point(16) = {1/Sqrt(2.0)*rOut,0.0,1/Sqrt(2.0)*rOut,lc};
+Point(17) = {0.0,1/Sqrt(2.0)*rOut,1/Sqrt(2.0)*rOut,lc};
+Point(18) = {1/Sqrt(3.0)*rOut,1/Sqrt(3.0)*rOut,1/Sqrt(3.0)*rOut,lc};
 
 
 Circle(1001) = {2,1,5};
@@ -82,14 +82,14 @@ Surface Loop (7002) = {4002,4005,4009,4010,4013,4015}; Volume(7002) = {7002};
 Surface Loop (7003) = {4003,4006,4011,4012,4014,4015}; Volume(7003) = {7003};
 
 
-Transfinite Line {1001:1009,1011:1019} = 2*2^Refine+1 Using Progression 1;
-Transfinite Line {1022:1028}           = 2*2^Refine+1 Using Progression 1;
+//Transfinite Line {1001:1009,1011:1019} = 2*2^Refine+1 Using Progression 1;
+//Transfinite Line {1022:1028}           = 2*2^Refine+1 Using Progression 1;
 
-Transfinite Surface "*";
-Transfinite Volume "*";
+//Transfinite Surface "*";
+//Transfinite Volume "*";
 
 // HEX
-Recombine Surface "*";
+//Recombine Surface "*";
 
 // WEDGE
 //Recombine Surface {4007:4015};                                         // TRI
@@ -101,7 +101,8 @@ Recombine Surface "*";
 //Recombine Surface {4004:4012};
 
 // TET
-// No Recombine
+// Comment all “Transfinite” options
+// Enable the “Optimize 3D (Netgen)” option
 
 
 

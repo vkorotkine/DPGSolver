@@ -2648,15 +2648,16 @@ static void setup_blending(const unsigned int EType)
 	double ****I_fGs_vGc, ****I_fGc_vGc, ****I_eGs_vGc, ****I_eGc_vGc;
 
 	// Initialize DB Parameters
-	unsigned int PGs  = DB.PGs,
-	             *PGc = DB.PGc;
+	unsigned int PGs      = DB.PGs,
+	             *PGc     = DB.PGc,
+	             Blending = DB.Blending;
 
 	char         **NodeTypeG = DB.NodeTypeG;
 
 	// Standard datatypes
-	unsigned int f, e, n, ve, P, Vf, Ve, PSMin, PSMax, Nf, Ne, Nve, *Nfve, Neve, *VeFcon, *VeEcon,
-	             *NvnGc, *Nv0nGs, *Nv0nGc, EclassF, EclassE, dE, Nbf, dummy_ui, *dummyPtr_ui;
-	double       *BCoords_V, *BCoords_F, *BCoords_E, *rst_v0Gs, *rst_proj, *rst_v0Gc,
+	unsigned int f, e, n, ve, P, Vf, Ve, dim, PSMin, PSMax, Nf, Ne, Nve, *Nfve, Neve, *VeFcon, *VeEcon,
+	             *NvnGc, *Nv0nGs, *Nv0nGc, EclassF, EclassE, dE, Nbf, dimF[2], dimE, dummy_ui, *dummyPtr_ui;
+	double       *BCoords_V, *BCoords_F, *BCoords_E, *rst_v0Gs, *rst_proj, *rst_v0Gc, *rst_vGs, *rst_vGsF, *rst_vGsE,
 	             *ChiRefGs_vGs, *ChiRefGc_vGc, *ChiRefGs_vProj, *ChiRefGc_vProj,
 	             *ChiRefInvGs_vGs, *IGs, *ChiRefInvGc_vGc, *IGc,
 	             *dummyPtr_d;
@@ -2668,6 +2669,8 @@ static void setup_blending(const unsigned int EType)
 	basis_tdef    basis;
 
 	ELEMENT = get_ELEMENT_type(EType);
+
+	dE = ELEMENT->d;
 
 	Ne     = ELEMENT->Ne;
 	Nf     = ELEMENT->Nf;
@@ -2692,24 +2695,43 @@ static void setup_blending(const unsigned int EType)
 		for (f = 0; f < Nf; f++) {
 			Vf = f*NFREFMAX;
 
-			BCoords_F = malloc(NvnGc[P]*Nfve[f] * sizeof *BCoords_F); // free
-
-			// These BCoords_F determine rst_proj according to Szabo(1991, p. 111) in 2D  (i.e. xi = L2-L1).
-			for (n = 0; n < NvnGc[P]; n++) {
-			for (ve = 0; ve < Nfve[f]; ve++) {
-				BCoords_F[n*Nfve[f]+ve] = BCoords_V[n*Nve+VeFcon[f*NFVEMAX+ve]];
-			}}
-
-			// Compute projection of VOLUME nodes to FACE
 			ELEMENT_F = get_ELEMENT_F_type(EType,f);
-
-			EclassF = get_Eclass(ELEMENT_F->type);
-			dE      = ELEMENT_F->d;
+			EclassF   = get_Eclass(ELEMENT_F->type);
 
 			rst_v0Gs = get_rst_vV(ELEMENT_F); // free
-			rst_proj = malloc(NvnGc[P]*dE * sizeof *rst_proj); // free
+			rst_proj = malloc(NvnGc[P]*(dE-1) * sizeof *rst_proj); // free
 
-			mm_CTN_d(NvnGc[P],dE,Nfve[f],BCoords_F,rst_v0Gs,rst_proj);
+			if (Blending == SZABO_BABUSKA || EclassF == C_SI) {
+				// These BCoords_F determine rst_proj according to Szabo(1991, p. 111) in 2D  (i.e. xi = L2-L1).
+				BCoords_F = malloc(NvnGc[P]*Nfve[f] * sizeof *BCoords_F); // free
+
+				for (n = 0; n < NvnGc[P]; n++) {
+				for (ve = 0; ve < Nfve[f]; ve++) {
+					BCoords_F[n*Nfve[f]+ve] = BCoords_V[n*Nve+VeFcon[f*NFVEMAX+ve]];
+				}}
+
+				// Compute projection of VOLUME nodes to FACE
+				mm_CTN_d(NvnGc[P],dE-1,Nfve[f],BCoords_F,rst_v0Gs,rst_proj);
+				free(BCoords_F);
+			} else if (Blending == GORDON_HALL && EclassF == C_TP) {
+				rst_vGs = get_rst_vV(ELEMENT); // free
+				rst_vGsF = malloc(Nve*(dE-1) * sizeof *rst_vGsF); // free
+
+				if      (f/2 == 0) { dimF[0] = 1; dimF[1] = 2; }
+				else if (f/2 == 1) { dimF[0] = 0; dimF[1] = 2; }
+				else if (f/2 == 2) { dimF[0] = 0; dimF[1] = 1; }
+
+				for (dim = 0; dim < dE-1; dim++) {
+					for (n = 0; n < Nve; n++)
+						rst_vGsF[n+dim*Nve] = rst_vGs[n+dimF[dim]*Nve];
+				}
+				free(rst_vGs);
+
+				mm_CTN_d(NvnGc[P],dE-1,Nve,BCoords_V,rst_vGsF,rst_proj);
+				free(rst_vGsF);
+			} else {
+				printf("Add Support.\n"), EXIT_MSG;
+			}
 
 			// Compute blending operators
 			Nv0nGs = ELEMENT_F->NvnGs;
@@ -2718,12 +2740,12 @@ static void setup_blending(const unsigned int EType)
 			select_functions_cubature(&cubature,ELEMENT_F->type);
 			select_functions_basis(&basis,ELEMENT_F->type);
 
-			cubature(&rst_v0Gc,&dummyPtr_d,&dummyPtr_ui,&Nv0nGc[P],&dummy_ui,0,PGc[P],dE,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
+			cubature(&rst_v0Gc,&dummyPtr_d,&dummyPtr_ui,&Nv0nGc[P],&dummy_ui,0,PGc[P],dE-1,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
 
-			ChiRefGs_vGs    = basis(PGs,   rst_v0Gs,Nv0nGs[1],&Nbf,dE);        // free
-			ChiRefGc_vGc    = basis(PGc[P],rst_v0Gc,Nv0nGc[P],&Nbf,dE);        // free
-			ChiRefGs_vProj  = basis(PGs,   rst_proj,NvnGc[P],&Nbf,dE);         // free
-			ChiRefGc_vProj  = basis(PGc[P],rst_proj,NvnGc[P],&Nbf,dE);         // free
+			ChiRefGs_vGs    = basis(PGs,   rst_v0Gs,Nv0nGs[1],&Nbf,dE-1);        // free
+			ChiRefGc_vGc    = basis(PGc[P],rst_v0Gc,Nv0nGc[P],&Nbf,dE-1);        // free
+			ChiRefGs_vProj  = basis(PGs,   rst_proj,NvnGc[P],&Nbf,dE-1);         // free
+			ChiRefGc_vProj  = basis(PGc[P],rst_proj,NvnGc[P],&Nbf,dE-1);         // free
 
 			IGs             = identity_d(Nv0nGs[1]);                           // free
 			IGc             = identity_d(Nv0nGc[P]);                           // free
@@ -2747,32 +2769,47 @@ static void setup_blending(const unsigned int EType)
 			free(rst_v0Gs);
 			free(rst_v0Gc);
 			free(rst_proj);
-
-			free(BCoords_F);
 		}
 
 		// EDGE related operators
-		for (e = 0; ELEMENT->d == DMAX && e < Ne; e++) {
+		for (e = 0; dE == DMAX && e < Ne; e++) {
 			Ve = e*NEREFMAX;
 
-			BCoords_E = malloc(NvnGc[P]*Neve * sizeof *BCoords_E); // free
-
-			// These BCoords_E determine rst_proj according to Szabo(1991, p. 111) in 2D  (i.e. xi = L2-L1).
-			for (n = 0; n < NvnGc[P]; n++) {
-			for (ve = 0; ve < Neve; ve++) {
-				BCoords_E[n*Neve+ve] = BCoords_V[n*Nve+VeEcon[e*NEVEMAX+ve]];
-			}}
-
-			// Compute projection of VOLUME nodes to EDGE
 			ELEMENT_E = get_ELEMENT_type(LINE);
-
-			EclassE = get_Eclass(ELEMENT_E->type);
-			dE      = ELEMENT_E->d;
+			EclassE   = get_Eclass(ELEMENT_E->type);
 
 			rst_v0Gs = get_rst_vV(ELEMENT_E); // free
-			rst_proj = malloc(NvnGc[P]*dE * sizeof *rst_proj); // free
+			rst_proj = malloc(NvnGc[P]*(dE-2) * sizeof *rst_proj); // free
 
-			mm_CTN_d(NvnGc[P],dE,Neve,BCoords_E,rst_v0Gs,rst_proj);
+			if (Blending == SZABO_BABUSKA) { // EclassE = C_TP (always)
+				// These BCoords_E determine rst_proj according to Szabo(1991, p. 111) in 2D  (i.e. xi = L2-L1).
+				BCoords_E = malloc(NvnGc[P]*Neve * sizeof *BCoords_E); // free
+
+				for (n = 0; n < NvnGc[P]; n++) {
+				for (ve = 0; ve < Neve; ve++) {
+					BCoords_E[n*Neve+ve] = BCoords_V[n*Nve+VeEcon[e*NEVEMAX+ve]];
+				}}
+
+				// Compute projection of VOLUME nodes to EDGE
+				mm_CTN_d(NvnGc[P],dE-2,Neve,BCoords_E,rst_v0Gs,rst_proj);
+				free(BCoords_E);
+			} else if (Blending == GORDON_HALL && EclassE == C_TP) {
+				rst_vGs = get_rst_vV(ELEMENT); // free
+				rst_vGsE = malloc(Nve * sizeof *rst_vGsE); // free
+
+				if      (e/4 == 0) { dimE = 0; }
+				else if (e/4 == 1) { dimE = 1; }
+				else if (e/4 == 2) { dimE = 2; }
+
+				for (n = 0; n < Nve; n++)
+					rst_vGsE[n] = rst_vGs[n+dimE*Nve];
+				free(rst_vGs);
+
+				mm_CTN_d(NvnGc[P],dE-2,Nve,BCoords_V,rst_vGsE,rst_proj);
+				free(rst_vGsE);
+			} else {
+				printf("Add Support.\n"), EXIT_MSG;
+			}
 
 			// Compute blending operators
 			Nv0nGs = ELEMENT_E->NvnGs;
@@ -2781,12 +2818,12 @@ static void setup_blending(const unsigned int EType)
 			select_functions_cubature(&cubature,ELEMENT_E->type);
 			select_functions_basis(&basis,ELEMENT_E->type);
 
-			cubature(&rst_v0Gc,&dummyPtr_d,&dummyPtr_ui,&Nv0nGc[P],&dummy_ui,0,PGc[P],dE,NodeTypeG[EclassE]); free(dummyPtr_ui); // free
+			cubature(&rst_v0Gc,&dummyPtr_d,&dummyPtr_ui,&Nv0nGc[P],&dummy_ui,0,PGc[P],dE-2,NodeTypeG[EclassE]); free(dummyPtr_ui); // free
 
-			ChiRefGs_vGs    = basis(PGs,   rst_v0Gs,Nv0nGs[1],&Nbf,dE);        // free
-			ChiRefGc_vGc    = basis(PGc[P],rst_v0Gc,Nv0nGc[P],&Nbf,dE);        // free
-			ChiRefGs_vProj  = basis(PGs,   rst_proj,NvnGc[P],&Nbf,dE);         // free
-			ChiRefGc_vProj  = basis(PGc[P],rst_proj,NvnGc[P],&Nbf,dE);         // free
+			ChiRefGs_vGs    = basis(PGs,   rst_v0Gs,Nv0nGs[1],&Nbf,dE-2);        // free
+			ChiRefGc_vGc    = basis(PGc[P],rst_v0Gc,Nv0nGc[P],&Nbf,dE-2);        // free
+			ChiRefGs_vProj  = basis(PGs,   rst_proj,NvnGc[P],&Nbf,dE-2);         // free
+			ChiRefGc_vProj  = basis(PGc[P],rst_proj,NvnGc[P],&Nbf,dE-2);         // free
 
 			IGs             = identity_d(Nv0nGs[1]);                           // free
 			IGc             = identity_d(Nv0nGc[P]);                           // free
@@ -2810,8 +2847,6 @@ static void setup_blending(const unsigned int EType)
 			free(rst_v0Gs);
 			free(rst_v0Gc);
 			free(rst_proj);
-
-			free(BCoords_E);
 		}
 	}
 }
@@ -2851,6 +2886,22 @@ void setup_operators(void)
 	if (d == 2)
 		setup_ELEMENT_FACE_ordering(EType);
 
+	// TRI
+	EType = TRI;
+	if (is_ELEMENT_present(EType)) {
+		if (!DB.MPIrank && !DB.Testing)
+			printf("    TRI\n");
+
+		setup_ELEMENT_VeF(EType);
+		setup_ELEMENT_plotting(EType);
+		setup_ELEMENT_normals(EType);
+		setup_ELEMENT_operators(EType);
+		setup_L2_projection_operators(EType);
+		setup_blending(EType);
+		if (d == 3)
+			setup_ELEMENT_FACE_ordering(EType);
+	}
+
 	// QUAD
 	EType = QUAD;
 	if (is_ELEMENT_present(EType) || (Adapt != ADAPT_0 && is_ELEMENT_present(TET))) {
@@ -2878,22 +2929,6 @@ void setup_operators(void)
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
 		setup_blending(EType);
-	}
-
-	// TRI
-	EType = TRI;
-	if (is_ELEMENT_present(EType)) {
-		if (!DB.MPIrank && !DB.Testing)
-			printf("    TRI\n");
-
-		setup_ELEMENT_VeF(EType);
-		setup_ELEMENT_plotting(EType);
-		setup_ELEMENT_normals(EType);
-		setup_ELEMENT_operators(EType);
-		setup_L2_projection_operators(EType);
-		setup_blending(EType);
-		if (d == 3)
-			setup_ELEMENT_FACE_ordering(EType);
 	}
 
 	// TET/PYR

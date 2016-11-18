@@ -804,13 +804,13 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	 *
 	 *			[ones]_{Nn x 1}  = [BCoords]_{Nn x Nc} * [ones]_{Nc x 1}           => Partition of unity (1 condition)
 	 *			[rst]_{Nn x d}   = [BCoords]_{Nn x Nc} * [rst_(V)ertices]_{Nc x d} => Linear precision   (d conditions)
-	 *			[r*s*t]_{Nn x 1} = [BCoords]_{Nn x Nc} * [{r*s*t}_c]_{Nc x 1}      => Arbitrary          (1 condition)
+	 *			[r*s*t]_{Nn x 1} = [BCoords]_{Nn x Nc} * [{r*s*t}_V]_{Nc x 1}      => Arbitrary          (1 condition)
 	 *
 	 *			Then
-	 *				[BCoords] = [ones(Nn,1) rst r*s*t]*inv([ones(Nc,1) rst_V {r*s*t}_c])
+	 *				[BCoords] = [ones(Nn,1) rst r*s*t]*inv([ones(Nc,1) rst_V {r*s*t}_V])
 	 *
 	 *			where
-	 *				cond([ones(Nc,1) rst_V {r*s*t}_c]) = 2.0
+	 *				cond([ones(Nc,1) rst_V {r*s*t}_V]) = 2.0
 	 *
 	 *		The WV and WVHToP nodes were determined from those of the pyrfr code (pyfr/quadrules/pyr) after being
 	 *		transferred to the regular PYR used in this code. The GL and GLL are standard based on the 1D definitions

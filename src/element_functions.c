@@ -180,6 +180,7 @@ void initialize_ELEMENTs(void)
 	ELEMENT->VeEcon[3*NEVEMAX  ] = 1; ELEMENT->VeEcon[3*NEVEMAX+1] = 2;
 	ELEMENT->VeEcon[4*NEVEMAX  ] = 1; ELEMENT->VeEcon[4*NEVEMAX+1] = 3;
 	ELEMENT->VeEcon[5*NEVEMAX  ] = 2; ELEMENT->VeEcon[5*NEVEMAX+1] = 3;
+// Make into a separate function for initializing ELEMENTs to make this clearner (ToBeDeleted).
 	ELEMENT->NrefV[0] = 6;
 
 	ELEMENT->next = New_ELEMENT();
@@ -246,6 +247,15 @@ void initialize_ELEMENTs(void)
 	ELEMENT->VeFcon[2*NFVEMAX  ] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1; ELEMENT->VeFcon[2*NFVEMAX+2] = 3; ELEMENT->VeFcon[2*NFVEMAX+3] = 4;
 	ELEMENT->VeFcon[3*NFVEMAX  ] = 0; ELEMENT->VeFcon[3*NFVEMAX+1] = 1; ELEMENT->VeFcon[3*NFVEMAX+2] = 2;
 	ELEMENT->VeFcon[4*NFVEMAX  ] = 3; ELEMENT->VeFcon[4*NFVEMAX+1] = 4; ELEMENT->VeFcon[4*NFVEMAX+2] = 5;
+	ELEMENT->VeEcon[0*NEVEMAX  ] = 1; ELEMENT->VeEcon[0*NEVEMAX+1] = 2;
+	ELEMENT->VeEcon[1*NEVEMAX  ] = 0; ELEMENT->VeEcon[1*NEVEMAX+1] = 2;
+	ELEMENT->VeEcon[2*NEVEMAX  ] = 0; ELEMENT->VeEcon[2*NEVEMAX+1] = 1;
+	ELEMENT->VeEcon[3*NEVEMAX  ] = 4; ELEMENT->VeEcon[3*NEVEMAX+1] = 5;
+	ELEMENT->VeEcon[4*NEVEMAX  ] = 3; ELEMENT->VeEcon[4*NEVEMAX+1] = 5;
+	ELEMENT->VeEcon[5*NEVEMAX  ] = 3; ELEMENT->VeEcon[5*NEVEMAX+1] = 4;
+	ELEMENT->VeEcon[6*NEVEMAX  ] = 0; ELEMENT->VeEcon[6*NEVEMAX+1] = 3;
+	ELEMENT->VeEcon[7*NEVEMAX  ] = 1; ELEMENT->VeEcon[7*NEVEMAX+1] = 4;
+	ELEMENT->VeEcon[8*NEVEMAX  ] = 2; ELEMENT->VeEcon[8*NEVEMAX+1] = 5;
 	ELEMENT->NrefV[0] = 8; ELEMENT->NrefV[1] = 4; ELEMENT->NrefV[2] = 2;
 
 	ELEMENT->next = New_ELEMENT();
@@ -272,14 +282,14 @@ void initialize_ELEMENTs(void)
 	ELEMENT->VeFcon[2*NFVEMAX  ] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1; ELEMENT->VeFcon[2*NFVEMAX+2] = 4;
 	ELEMENT->VeFcon[3*NFVEMAX  ] = 2; ELEMENT->VeFcon[3*NFVEMAX+1] = 3; ELEMENT->VeFcon[3*NFVEMAX+2] = 4;
 	ELEMENT->VeFcon[4*NFVEMAX  ] = 0; ELEMENT->VeFcon[4*NFVEMAX+1] = 1; ELEMENT->VeFcon[4*NFVEMAX+2] = 2; ELEMENT->VeFcon[4*NFVEMAX+3] = 3;
-	ELEMENT->VeEcon[0*NEVEMAX  ] = 2; ELEMENT->VeEcon[0*NEVEMAX+1] = 4;
-	ELEMENT->VeEcon[1*NEVEMAX  ] = 0; ELEMENT->VeEcon[1*NEVEMAX+1] = 4;
+	ELEMENT->VeEcon[0*NEVEMAX  ] = 0; ELEMENT->VeEcon[0*NEVEMAX+1] = 1;
+	ELEMENT->VeEcon[1*NEVEMAX  ] = 2; ELEMENT->VeEcon[1*NEVEMAX+1] = 3;
 	ELEMENT->VeEcon[2*NEVEMAX  ] = 0; ELEMENT->VeEcon[2*NEVEMAX+1] = 2;
-	ELEMENT->VeEcon[3*NEVEMAX  ] = 3; ELEMENT->VeEcon[3*NEVEMAX+1] = 4;
-	ELEMENT->VeEcon[4*NEVEMAX  ] = 1; ELEMENT->VeEcon[4*NEVEMAX+1] = 4;
-	ELEMENT->VeEcon[5*NEVEMAX  ] = 1; ELEMENT->VeEcon[5*NEVEMAX+1] = 3;
-	ELEMENT->VeEcon[6*NEVEMAX  ] = 0; ELEMENT->VeEcon[6*NEVEMAX+1] = 1;
-	ELEMENT->VeEcon[7*NEVEMAX  ] = 2; ELEMENT->VeEcon[7*NEVEMAX+1] = 3;
+	ELEMENT->VeEcon[3*NEVEMAX  ] = 1; ELEMENT->VeEcon[3*NEVEMAX+1] = 3;
+	ELEMENT->VeEcon[4*NEVEMAX  ] = 0; ELEMENT->VeEcon[4*NEVEMAX+1] = 4;
+	ELEMENT->VeEcon[5*NEVEMAX  ] = 1; ELEMENT->VeEcon[5*NEVEMAX+1] = 4;
+	ELEMENT->VeEcon[6*NEVEMAX  ] = 2; ELEMENT->VeEcon[6*NEVEMAX+1] = 4;
+	ELEMENT->VeEcon[7*NEVEMAX  ] = 3; ELEMENT->VeEcon[7*NEVEMAX+1] = 4;
 	ELEMENT->NrefV[0] = 10;
 
 	// No additional ELEMENTs
