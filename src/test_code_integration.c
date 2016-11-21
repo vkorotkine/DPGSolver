@@ -292,7 +292,7 @@ printf("Re-enable printing here.\n");
 	} else {
 		TestDB.Npass++;
 	}
-printf("ViscousFluxType: %d\n",DB.ViscousFluxType);
+printf("ViscousFlux, Blending, Parametrization: %d, %d, %d\n",DB.ViscousFluxType,DB.Blending,DB.Parametrization);
 printf("h:\n");
 array_print_d(NML,NP,h,'R');
 printf("L2Errors: \n");

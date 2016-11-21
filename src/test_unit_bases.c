@@ -787,10 +787,9 @@ void test_unit_basis_SI(void)
 	data->d = d;
 	data->type = TRI;
 
+	// WSH
 	for (P = 2; P <= 3; P++) {
-		data->P = P;
-
-		// WSH
+		data->P   = P;
 		data->PIv = P;
 		strcpy(data->NodeType,"WSH");
 		strcpy(data->PrntName,"WSH");
@@ -802,8 +801,11 @@ void test_unit_basis_SI(void)
 			else
 				test_basis_orthogonality(data,3);
 		}
+	}
 
-		// WV
+	// WV
+	for (P = 2; P <= 9; P++) {
+		data->P   = P;
 		data->PIv = 2*P;
 		strcpy(data->NodeType,"WV");
 		strcpy(data->PrntName,"WV ");

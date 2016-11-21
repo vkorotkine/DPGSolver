@@ -316,6 +316,11 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 			printf("Error: Invalid value for return_w in cubature_TRI.\n"), exit(1);
 
 		PMax = 15;
+	} else if (strstr(NodeType,"EQ")) {
+		if (return_w)
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+
+		PMax = 8;
 	} else if (strstr(NodeType,"WSH")) {
 		PMax = 8;
 	} else if (strstr(NodeType,"WV")) {

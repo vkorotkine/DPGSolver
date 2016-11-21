@@ -2656,8 +2656,9 @@ static void setup_blending(const unsigned int EType)
 
 	// Standard datatypes
 	unsigned int f, e, n, ve, P, Vf, Ve, dim, PSMin, PSMax, Nf, Ne, Nve, *Nfve, Neve, *VeFcon, *VeEcon,
-	             *NvnGc, *Nv0nGs, *Nv0nGc, EclassF, EclassE, dE, Nbf, dimF[2], dimE, dummy_ui, *dummyPtr_ui;
-	double       *BCoords_V, *BCoords_F, *BCoords_E, *rst_v0Gs, *rst_proj, *rst_v0Gc, *rst_vGs, *rst_vGsF, *rst_vGsE,
+	             *NvnGc, *Nv0nGs, *Nv0nGc, Eclass, EclassF, EclassE, dE, Nbf, dimF[2], dimE, dummy_ui, *dummyPtr_ui;
+	double       *BCoords_V, *BCoords_F, *BCoords_E,
+	             *rst_v0Gs, *rst_proj, *rst_v0Gc, *rst_vGs, *rst_vGsF, *rst_vGsE, rst_Num, rst_Den,
 	             *ChiRefGs_vGs, *ChiRefGc_vGc, *ChiRefGs_vProj, *ChiRefGc_vProj,
 	             *ChiRefInvGs_vGs, *IGs, *ChiRefInvGc_vGc, *IGc,
 	             *dummyPtr_d;
@@ -2671,6 +2672,7 @@ static void setup_blending(const unsigned int EType)
 	ELEMENT = get_ELEMENT_type(EType);
 
 	dE = ELEMENT->d;
+	Eclass = get_Eclass(EType);
 
 	Ne     = ELEMENT->Ne;
 	Nf     = ELEMENT->Nf;
@@ -2701,7 +2703,28 @@ static void setup_blending(const unsigned int EType)
 			rst_v0Gs = get_rst_vV(ELEMENT_F); // free
 			rst_proj = malloc(NvnGc[P]*(dE-1) * sizeof *rst_proj); // free
 
-			if (Blending == SZABO_BABUSKA || EclassF == C_SI) {
+			if (Blending == HESTHAVEN && EType == TRI) {
+				// dE == 2
+				for (dim = 0; dim < dE-1; dim++) {
+					for (n = 0; n < NvnGc[P]; n++)
+						rst_proj[n+dim*NvnGc[P]] = 2.0*BCoords_V[n*Nve+VeFcon[f*NFVEMAX+1]]-1.0;
+				}
+			} else if (Blending == NIELSON && EType == TRI) {
+				// dE == 2
+				for (dim = 0; dim < dE-1; dim++) {
+					for (n = 0; n < NvnGc[P]; n++) {
+						rst_Num = BCoords_V[n*Nve+VeFcon[f*NFVEMAX+1]]-BCoords_V[n*Nve+VeFcon[f*NFVEMAX+0]];
+
+						if (rst_Num < EPS) {
+							rst_proj[n+dim*NvnGc[P]] = 0.0;
+							continue;
+						}
+
+						rst_Den = 1.0-BCoords_V[n*Nve+f];
+						rst_proj[n+dim*NvnGc[P]] = rst_Num/rst_Den;
+					}
+				}
+			} else if (Blending == SZABO_BABUSKA || Eclass == C_SI) {
 				// These BCoords_F determine rst_proj according to Szabo(1991, p. 111) in 2D  (i.e. xi = L2-L1).
 				BCoords_F = malloc(NvnGc[P]*Nfve[f] * sizeof *BCoords_F); // free
 

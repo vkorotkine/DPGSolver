@@ -213,8 +213,10 @@ void setup_parameters()
 		DB.AC = 0, DB.ExactGeom = 1;
 
 	// ToBeModified (likely included in .ctrl file)
-//	Blending        = SZABO_BABUSKA;
-	Blending        = GORDON_HALL;
+//	Blending = GORDON_HALL;
+//	Blending = SZABO_BABUSKA;
+//	Blending = HESTHAVEN;
+	Blending = NIELSON;
 
 //	Parametrization = ARC_LENGTH;
 	Parametrization = RADIAL_PROJECTION;
@@ -224,6 +226,7 @@ void setup_parameters()
 
 	strcpy(NodeTypeG[0],"GLL");
 	strcpy(NodeTypeG[1],"AO");
+//	strcpy(NodeTypeG[1],"EQ");
 	strcpy(NodeTypeG[2],"GLL");
 
 	// Order dependent parameters
@@ -336,26 +339,17 @@ void setup_parameters()
 			}
 
 			if (strstr(DB.NodeType,"AO")) {
-				if (P == 0) {
-					strcpy(NodeTypeS[P][1],"WSH");
-				} else {
-					strcpy(NodeTypeS[P][1],"AO");
-				}
-
-				if (PF[P] == 0) {
-					strcpy(NodeTypeF[P][1],"WSH");
-				} else {
-					strcpy(NodeTypeF[P][1],"AO");
-				}
-
-				strcpy(NodeTypeFrs[P][1],"AO");
-				strcpy(NodeTypeFrc[P][1],"AO");
+				strcpy(NodeTypeS  [P][1],"AO");
+				strcpy(NodeTypeF  [P][1],"AO");
+			} else if (strstr(DB.NodeType,"EQ")) {
+				strcpy(NodeTypeS  [P][1],"EQ");
+				strcpy(NodeTypeF  [P][1],"EQ");
 			} else {
 				strcpy(NodeTypeS  [P][1],"WSH");
 				strcpy(NodeTypeF  [P][1],"WSH");
-				strcpy(NodeTypeFrs[P][1],"WSH");
-				strcpy(NodeTypeFrc[P][1],"WSH");
 			}
+			strcpy(NodeTypeFrs[P][1],"NOT_USED");
+			strcpy(NodeTypeFrc[P][1],"NOT_USED");
 
 			// Interpolation (PYR)
 			if (strstr(DB.NodeType,"GLL")) {

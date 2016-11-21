@@ -56,6 +56,22 @@
  *				  Peiro(2013)-Defining_Quality_Measures_for_Validation_and_Generation_of_High-Order_Tetrahedral_Meshes).
  *				  ToBeModified.
  *
+ *
+ *		It was found that optimal convergence orders were not obtained for TRI meshes for P > 5, even when using
+ *		straight elements with imposition of exact boundary conditions. Recall the lack of symmetry of the Weak-Weak
+ *		formulation of the Poisson equation on TRIs (see comments in solver_Poisson.c). The following have been tested:
+ *
+ *		To test this, set PGc = PGs (setup_parameters) and comment the projection to exact geometry (solver_Poisson).
+ *			1) Use of either AO or EQ nodes on TRIs gave nearly identical suboptimal convergence. Integrating using PI >
+ *			   2P did not improve the results.
+ *			2) The TRI orthogonality test has passed for P < 10 indicating that the basis is likely not the problem.
+ *			3) Optimal orders are retained on QUAD meshes (tested P < 8).
+ *
+ *		Note that Hesthaven(2008) showed optimal orders with AO nodes and their blending for Maxwell2D (Table 9.2). The
+ *		next step will thus be to check this result for another PDE and re-evaluate. (ToBeModified)
+ *		It may also be interesting to try collapsed GLL nodes. (ToBeModified)
+ *
+ *
  *	*** IMPORTANT ***   Convergence Order Testing   *** IMPORTANT ***
  *
  *		When testing with FLUX_IP, the iterative solver seems much more likely to fail based on several tests,
@@ -188,9 +204,10 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	// **************************************************************************************************** //
 	// Convergence Order Testing
 	// **************************************************************************************************** //
+	strcpy(argvNew[1],"test/Test_Poisson_2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
 //	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
-	strcpy(argvNew[1],"test/Test_Poisson_3D_HEX");
+//	strcpy(argvNew[1],"test/Test_Poisson_3D_HEX");
 //	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_TP");
 //	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_HW");
 
@@ -204,9 +221,9 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 3;
-	MLMin = 0; MLMax = 2;
-TestDB.PGlobal = 2;
+	PMin  = 2; PMax  = 6;
+	MLMin = 0; MLMax = 3;
+TestDB.PGlobal = 3;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 

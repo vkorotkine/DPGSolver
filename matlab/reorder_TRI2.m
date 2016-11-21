@@ -9,16 +9,18 @@ Nc = 3;
 Nsymms = 3;
 
 % NodeType = 'AO';
+NodeType = 'EQ';
 % NodeType = 'WS';
-NodeType = 'WV';
+% NodeType = 'WV';
 
 if     (~isempty(strfind(NodeType,'AO'))) PMax = 16;
+elseif (~isempty(strfind(NodeType,'EQ'))) PMax = 8;
 elseif (~isempty(strfind(NodeType,'WS'))) PMax = 8;
 elseif (~isempty(strfind(NodeType,'WV'))) PMax = 20;
 end
 
-% for P = 1:PMax
-for P = 6
+for P = 1:PMax
+% for P = 3
 
 
 % Read/Obtain rst
@@ -29,6 +31,25 @@ if (~isempty(strfind(NodeType,'AO')))
     
     [rst_c,~,Nn_c] = CubatureTRI(GLOBAL,1,'alpha-opt');
     [rst,w,Nn]     = CubatureTRI(GLOBAL,P,'alpha-opt');
+elseif (~isempty(strfind(NodeType,'EQ')))
+    wPresent = 0;
+    Nn = round(1/2*(P+1)*(P+2));
+     
+    [rst_c,~,Nn_c] = CubatureTRI(GLOBAL,1,'alpha-opt');
+     
+    b = zeros(Nn,3);
+
+    Indb = 0;
+    for i = 0:P
+    for j = 0:P-i
+        Indb = Indb+1;
+        b(Indb,[1 2]) = 1/P*[i j];
+    end
+    end
+    b(:,3) = 1-sum(b(:,[1 2]),2);
+    
+    rst = b*rst_c;
+    w = zeros(Nn,1);
 else
     wScale = sqrt(3)/2;
     rst_c = [[-1 -1 1]' [1 -1 -1]'];
@@ -86,12 +107,51 @@ for i = 1:Nn
     Lv(i,:) = Lv(i,I(i,:));
 end
 
-[~,I] = sortrows(1-Lv,1);
-Lv = Lv(I,:);
+[~,I] = sortrows(1-Lv,1); Lv = Lv(I,:);
 if (wPresent)
     w = w(I);
 end
 
+% Ensure that other rows are sorted as well ...
+for sortRow = 2:Nc
+    I = zeros(Nn,1);
+
+    nLast = 0;
+    nS = 1;
+    n = 2;
+    while (n <= Nn)
+        diff = norm(Lv(n-1,1:(sortRow-1))-Lv(n,1:(sortRow-1)),2);
+        if (diff < 1e2*eps && n < Nn)
+            % Do nothing
+        else
+            if (n < Nn)
+                nE = n-1;
+            elseif (diff > 1e2*eps)
+                nE = n-1;
+                nLast = 1;
+            else
+                nE = Nn;
+            end
+
+            [~,Irows] = sortrows(1-Lv(nS:nE,:),sortRow);
+            I(nS:nE) = Irows+nS-1;
+%             
+%             [sortRow n nS nE]
+
+            nS = n;
+        end
+        n = n+1;
+    end
+    
+    if (nLast)
+        I(Nn) = Nn;
+    end
+
+    Lv = Lv(I,:);
+    if (wPresent)
+        w = w(I);
+    end
+end
 
 
 
@@ -103,7 +163,7 @@ symms_ind = zeros(1,Nn);
 
 NsymmsP = 0;
 for i = 1:Nn
-    if (i == 1 || norm(Lv(i,1)-Lv(i-1,1),'inf') > 1e2*eps)
+    if (i == 1 || norm(Lv(i,1:Nc)-Lv(i-1,1:Nc),'inf') > 1e2*eps)
         NsymmsP = NsymmsP+1;
         
         if (wPresent)

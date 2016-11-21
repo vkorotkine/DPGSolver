@@ -59,7 +59,7 @@ typedef void (*compute_pc_tdef) (struct S_pc *data);
 typedef void (*compute_XYZ_tdef) (struct S_XYZ *data);
 
 struct S_Blend {
-	unsigned int b, NvnG, NbnG, Nve, *Nbve, *VeBcon, NbveMax, *VeInfo, EclassV;
+	unsigned int b, NvnG, NbnG, Nve, *Nbve, *VeBcon, NbveMax, *VeInfo, EclassV, type;
 	double       *XYZ, *XYZ_vV,
 	             *I_vGs_vGc, *I_bGs_vGc, *I_vGc_bGc, *I_bGc_vGc;
 
@@ -212,12 +212,13 @@ static double *compute_BlendV(struct S_Blend *data)
 	unsigned int Blending = DB.Blending;
 
 	// Standard datatypes
-	unsigned int b, n, ve, NvnG, Nve, *Nbve, *VeBcon, NbveMax, EclassV;
-	double       *I_vGs_vGc, *I_bGs_vGc, *BlendV, BlendNum, BlendDen;
+	unsigned int b, n, ve, NvnG, Nve, *Nbve, *VeBcon, NbveMax, EclassV, type;
+	double       *I_vGs_vGc, *I_bGs_vGc, *BlendV, BlendNum, BlendDen, Blend_yes;
 
 	NvnG = data->NvnG;
 	BlendV = malloc(NvnG * sizeof *BlendV); // keep
 
+	type    = data->type;
 	EclassV = data->EclassV;
 
 	b       = data->b;
@@ -229,7 +230,32 @@ static double *compute_BlendV(struct S_Blend *data)
 	I_vGs_vGc = data->I_vGs_vGc;
 	I_bGs_vGc = data->I_bGs_vGc;
 
-	if (Blending == SZABO_BABUSKA || EclassV == C_SI) {
+	if (Blending == HESTHAVEN && type == TRI) {
+		for (n = 0; n < NvnG; n++) {
+			BlendNum = I_vGs_vGc[n*Nve+VeBcon[b*NbveMax+0]];
+			BlendDen = 1.0-I_vGs_vGc[n*Nve+VeBcon[b*NbveMax+1]];
+			if (BlendNum < EPS)
+				BlendV[n] = 0.0;
+			else
+				BlendV[n] = BlendNum/BlendDen;
+		}
+	} else if (Blending == NIELSON && type == TRI) {
+		for (n = 0; n < NvnG; n++) {
+			// Ensure that no blending is performed for nodes on the FACEs
+			Blend_yes = 1;
+			for (ve = 0; ve < Nbve[b]; ve++) {
+				if (fabs(I_vGs_vGc[n*Nve+VeBcon[b*NbveMax+ve]]) < EPS) {
+					Blend_yes = 0;
+					break;
+				}
+			}
+
+			if (Blend_yes)
+				BlendV[n] = pow(1.0-I_vGs_vGc[n*Nve+b],2.0);
+			else
+				BlendV[n] = 0.0;
+		}
+	} else if (Blending == SZABO_BABUSKA || EclassV == C_SI) {
 		for (n = 0; n < NvnG; n++) {
 			BlendNum = 1.0;
 			BlendDen = 1.0;
@@ -251,6 +277,30 @@ static double *compute_BlendV(struct S_Blend *data)
 	} else {
 		printf("Error: Unsupported.\n");
 	}
+
+if (b == 2) {
+printf("%d\n",b);
+array_print_d(NvnG,1,BlendV,'R');
+array_print_d(NvnG,Nve,I_vGs_vGc,'R');
+array_print_d(NvnG,Nbve[b],I_bGs_vGc,'R');
+
+		for (n = 0; n < NvnG; n++) {
+			BlendNum = 1.0;
+			BlendDen = 1.0;
+			for (ve = 0; ve < Nbve[b]; ve++) {
+				BlendNum *= I_vGs_vGc[n*Nve+VeBcon[b*NbveMax+ve]];
+				BlendDen *= I_bGs_vGc[n*Nbve[b]+ve];
+			}
+			if (BlendNum < EPS)
+				BlendV[n] = 0.0;
+			else
+				BlendV[n] = BlendNum/BlendDen;
+		}
+
+
+array_print_d(NvnG,1,BlendV,'R');
+EXIT_MSG;
+}
 
 	return BlendV;
 }
@@ -402,7 +452,7 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
 	/*
 	 *	Purpose:
 	 *		Compute difference between straight geometry and that of the parametrized curved surface and blend it into
-	 *		the VOLUME.
+	 *		the VOLUME, also adding additional Vertex contributions if applicable.
 	 *
 	 *	Comments:
 	 *		The (b)oundary prefix is used here in place of either (e)dge or (f)ace, depending on BType.
@@ -410,13 +460,14 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
 
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
-	unsigned int d         = DB.d;
+	unsigned int d         = DB.d,
+	             Blending  = DB.Blending;
 
 	// Standard datatypes
-	unsigned int b, ve, dim, n, Vb, PV, Indve, IndSurf,
+	unsigned int b, ve, dim, n, Vb, PV, Indve, IndSurf, Vtype,
 	             Nve, Nb, *Nbve, *VeBcon, NbveMax, NbrefMax, NvnG, Bcurved, FuncType,
 	             *VeInfo, *VeCurved, *VeSurface;
-	double       *XYZ, *XYZ_update, *BlendV;
+	double       *XYZ, *XYZ_update, *XYZ_vV, *BlendV, *BlendVe, *I_vGs_vGc;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_B;
 	struct S_pc      *data_pc;
@@ -440,22 +491,27 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
 	select_functions_Curved(&data_blend->compute_pc,&data_blend->compute_XYZ,FuncType);
 
 	PV     = VOLUME->P;
+	Vtype  = VOLUME->type;
 	NvnG   = VOLUME->NvnG;
 	XYZ    = VOLUME->XYZ;
+	XYZ_vV = VOLUME->XYZ_vV;
 	VeInfo = VOLUME->VeInfo;
 
 	data_blend->NvnG   = NvnG;
 	data_blend->XYZ    = XYZ;
-	data_blend->XYZ_vV = VOLUME->XYZ_vV;
+	data_blend->XYZ_vV = XYZ_vV;
 	data_blend->VeInfo = VeInfo;
 
 	ELEMENT = get_ELEMENT_type(VOLUME->type);
 
-	Nve = ELEMENT->Nve;
+	data_blend->type = Vtype;
 
-	data_blend->EclassV = ELEMENT->Eclass;
-	data_blend->Nve     = Nve;
-	data_blend->I_vGs_vGc = ELEMENT->I_vGs_vGc[1][PV][0];
+	Nve       = ELEMENT->Nve;
+	I_vGs_vGc = ELEMENT->I_vGs_vGc[1][PV][0];
+
+	data_blend->EclassV   = ELEMENT->Eclass;
+	data_blend->Nve       = Nve;
+	data_blend->I_vGs_vGc = I_vGs_vGc;
 
 	VeCurved  = &VeInfo[0*Nve];
 	VeSurface = &VeInfo[2*Nve];
@@ -467,7 +523,7 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
 			Nbve[b] = ELEMENT->Neve;
 		VeBcon = ELEMENT->VeEcon;
 
-		NbveMax = NEVEMAX;
+		NbveMax  = NEVEMAX;
 		NbrefMax = NEREFMAX;
 	} else if (BType == 'f') {
 		Nb     = ELEMENT->Nf;
@@ -527,6 +583,20 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
 		}
 		free(XYZ_update);
 		free(BlendV);
+	}
+
+	// Add additional contribution from vertices if applicable
+	if (Blending == NIELSON && Vtype == TRI) {
+		BlendVe = malloc(NvnG*Nve * sizeof *BlendVe); // free
+
+		for (n = 0; n < NvnG; n++) {
+		for (ve = 0; ve < Nve; ve++) {
+			BlendVe[n*Nve+ve] = pow(I_vGs_vGc[n*Nve+ve],2.0);
+		}}
+		mm_d(CBCM,CBT,CBNT,NvnG,d,Nve,0.0,1.0,BlendVe,XYZ_vV,XYZ);
+		free(BlendVe);
+	} else {
+		// Do nothing
 	}
 
 	free(data_pc);

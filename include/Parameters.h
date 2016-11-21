@@ -72,8 +72,11 @@
 #define GMSH_XYZVOL_MIN 7001
 
 // Geometry related parameters
-#define SZABO_BABUSKA     1
-#define GORDON_HALL       2
+#define GORDON_HALL       1
+#define SZABO_BABUSKA     2
+#define HESTHAVEN         3
+#define NIELSON           4
+#define COONS             5
 
 #define ARC_LENGTH        1
 #define RADIAL_PROJECTION 2

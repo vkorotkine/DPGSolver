@@ -268,6 +268,7 @@ void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, con
 	norm_rOut /= Nn;
 
 	if (BCcurved == 1) {
+//if (1||BCcurved == 1) {
 		for (n = 0; n < Nn; n++) {
 			XOut[n] = XIn[n];
 			YOut[n] = YIn[n];
@@ -1242,17 +1243,19 @@ void solver_Poisson(void)
 	finalize_qhat();
 
 	// Output to paraview
-	strcpy(fNameOut,"SolFinal_");
-	sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
-	                               strcat(fNameOut,DB.MeshType);
-	if (DB.Adapt == ADAPT_0) {
-		sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
-		sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
-	} else {
-		sprintf(string,"_ML%d",TestDB.ML); strcat(fNameOut,string);
-		sprintf(string,"P%d_",TestDB.PGlobal); strcat(fNameOut,string);
+	if (TestDB.ML <= 1) {
+		strcpy(fNameOut,"SolFinal_");
+		sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
+		                               strcat(fNameOut,DB.MeshType);
+		if (DB.Adapt == ADAPT_0) {
+			sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
+			sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
+		} else {
+			sprintf(string,"_ML%d",TestDB.ML); strcat(fNameOut,string);
+			sprintf(string,"P%d_",TestDB.PGlobal); strcat(fNameOut,string);
+		}
+		output_to_paraview(fNameOut);
 	}
-	output_to_paraview(fNameOut);
 
 //	if (!DB.Testing)
 		printf("KSP iterations (cond, reason): %5d (% .3e, %d)\n",iteration_ksp,emax/emin,reason);
