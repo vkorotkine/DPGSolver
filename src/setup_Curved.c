@@ -213,7 +213,7 @@ static double *compute_BlendV(struct S_Blend *data)
 
 	// Standard datatypes
 	unsigned int b, n, ve, NvnG, Nve, *Nbve, *VeBcon, NbveMax, EclassV, type;
-	double       *I_vGs_vGc, *I_bGs_vGc, *BlendV, BlendNum, BlendDen, Blend_yes;
+	double       *I_vGs_vGc, *I_bGs_vGc, *BlendV, BlendNum, BlendDen;
 
 	NvnG = data->NvnG;
 	BlendV = malloc(NvnG * sizeof *BlendV); // keep
@@ -241,19 +241,7 @@ static double *compute_BlendV(struct S_Blend *data)
 		}
 	} else if (Blending == NIELSON && type == TRI) {
 		for (n = 0; n < NvnG; n++) {
-			// Ensure that no blending is performed for nodes on the FACEs
-			Blend_yes = 1;
-			for (ve = 0; ve < Nbve[b]; ve++) {
-				if (fabs(I_vGs_vGc[n*Nve+VeBcon[b*NbveMax+ve]]) < EPS) {
-					Blend_yes = 0;
-					break;
-				}
-			}
-
-			if (Blend_yes)
-				BlendV[n] = pow(1.0-I_vGs_vGc[n*Nve+b],2.0);
-			else
-				BlendV[n] = 0.0;
+			BlendV[n] = pow(1.0-I_vGs_vGc[n*Nve+b],2.0);
 		}
 	} else if (Blending == SZABO_BABUSKA || EclassV == C_SI) {
 		for (n = 0; n < NvnG; n++) {
@@ -277,7 +265,7 @@ static double *compute_BlendV(struct S_Blend *data)
 	} else {
 		printf("Error: Unsupported.\n");
 	}
-
+/*
 if (b == 2) {
 printf("%d\n",b);
 array_print_d(NvnG,1,BlendV,'R');
@@ -301,7 +289,7 @@ array_print_d(NvnG,Nbve[b],I_bGs_vGc,'R');
 array_print_d(NvnG,1,BlendV,'R');
 EXIT_MSG;
 }
-
+*/
 	return BlendV;
 }
 

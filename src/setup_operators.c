@@ -2715,7 +2715,7 @@ static void setup_blending(const unsigned int EType)
 					for (n = 0; n < NvnGc[P]; n++) {
 						rst_Num = BCoords_V[n*Nve+VeFcon[f*NFVEMAX+1]]-BCoords_V[n*Nve+VeFcon[f*NFVEMAX+0]];
 
-						if (rst_Num < EPS) {
+						if (fabs(rst_Num) < EPS) {
 							rst_proj[n+dim*NvnGc[P]] = 0.0;
 							continue;
 						}
@@ -2736,7 +2736,8 @@ static void setup_blending(const unsigned int EType)
 				// Compute projection of VOLUME nodes to FACE
 				mm_CTN_d(NvnGc[P],dE-1,Nfve[f],BCoords_F,rst_v0Gs,rst_proj);
 				free(BCoords_F);
-			} else if (Blending == GORDON_HALL && EclassF == C_TP) {
+//			} else if (Blending == GORDON_HALL && Eclass == C_TP) {
+			} else if (Eclass == C_TP) {
 				rst_vGs = get_rst_vV(ELEMENT); // free
 				rst_vGsF = malloc(Nve*(dE-1) * sizeof *rst_vGsF); // free
 

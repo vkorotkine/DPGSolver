@@ -82,6 +82,16 @@ void test_unit_math_gamma(void)
 	if (gamma_ull(A_ull) == 6   &&
 		gamma_ull(B_ull) == 5040)
 			pass = 1, TestDB.Npass++;
+//printf("% .3e %lu\n",gamma_ull(17)-gamma_d(17.0),gamma_ull(17));
+printf("%d\n",gamma_ull(17));
+printf("Overflow for gamma(14) or more!\n");
+
+/* Values for gamma
+ * 13: 479001600
+ * 14: 6227020800
+ * 15: 87178291200
+ * 16: 1307674368000
+ */
 
 	//     0         10        20        30        40        50
 	printf("math_gamma_ull:                                  ");

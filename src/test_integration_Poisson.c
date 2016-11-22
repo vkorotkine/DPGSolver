@@ -59,16 +59,26 @@
  *
  *		It was found that optimal convergence orders were not obtained for TRI meshes for P > 5, even when using
  *		straight elements with imposition of exact boundary conditions. Recall the lack of symmetry of the Weak-Weak
- *		formulation of the Poisson equation on TRIs (see comments in solver_Poisson.c). The following have been tested:
+ *		formulation of the Poisson equation on TRIs (see comments in solver_Poisson.c). Note that significant error
+ *		reduction was observed when VOLUMEs were oriented differently on the same mesh (i.e. Running with TRI_OPT
+ *		results in errors approximately one order of maginitude lower than those on the TRI mesh on ML0 for P = 8, while
+ *		there is no difference at all in computed solutions for P < 6). This would indicate that there is a difference
+ *		between physical differentiation matrices on each of the meshes for high enough P. Also note that the solution
+ *		error did not decrease on the same mesh between the P7 and P8 computations.
  *
- *		To test this, set PGc = PGs (setup_parameters) and comment the projection to exact geometry (solver_Poisson).
+ *		The following have been tested:
+ *
+ *		To test this, run with TRI/TRI_OPT meshes (instead of CurvedTRI) which uses Dirichlet BCs on the square [0,1]^2:
  *			1) Use of either AO or EQ nodes on TRIs gave nearly identical suboptimal convergence. Integrating using PI >
  *			   2P did not improve the results.
- *			2) The TRI orthogonality test has passed for P < 10 indicating that the basis is likely not the problem.
- *			3) Optimal orders are retained on QUAD meshes (tested P < 8).
+ *			2) Collocated using WSH with GL or GLL also gave suboptimal orders.
+ *			3) The TRI orthogonality test has passed for P < 10 indicating that the basis is likely not the problem.
+ *			4) Optimal orders are retained on QUAD meshes (tested P < 8).
  *
+ *		Note that Dey(1997) showed exponential convergence on TETs for P < 6 only (see Fig. 10). Coincidence?
  *		Note that Hesthaven(2008) showed optimal orders with AO nodes and their blending for Maxwell2D (Table 9.2). The
  *		next step will thus be to check this result for another PDE and re-evaluate. (ToBeModified)
+ *		Perhaps test with an alternate TRI basis based on comments above. (ToBeModified)
  *		It may also be interesting to try collapsed GLL nodes. (ToBeModified)
  *
  *
@@ -184,9 +194,9 @@ void test_integration_Poisson(int nargc, char **argv)
 	strcpy(TestName,"Linearization Poisson (2D - Mixed):              ");
 	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
 
-TestDB.PGlobal = 3;
 if (0)
 	test_linearization(nargc,argvNew,0,1,TestName,data);
+
 
 	// **************************************************************************************************** //
 	// 3D (TET mesh)
@@ -221,9 +231,9 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 2; PMax  = 6;
-	MLMin = 0; MLMax = 3;
-TestDB.PGlobal = 3;
+	PMin  = 1; PMax  = 6;
+	MLMin = 0; MLMax = 0;
+TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 

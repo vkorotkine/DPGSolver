@@ -600,6 +600,28 @@ static void output_solution(const char *sol_type)
 			q = calloc(DMAX*NvnP , sizeof *q); // free
 			for (dim = 0; dim < d; dim++)
 				mm_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,0.0,ChiS_vP,VOLUME->qhat[dim],&q[dim*NvnP]);
+
+			// Store solution error in q3 for d = 2
+			if (d == 2) {
+				unsigned int n;
+				double       *uEx, *XYZ_vS, *I_vG_vS;
+
+				if (!VOLUME->curved)
+					I_vG_vS = ELEMENT->I_vGs_vS[1][P][0];
+				else
+					I_vG_vS = ELEMENT->I_vGc_vS[P][PP][0];
+
+				XYZ_vS = mm_Alloc_d(CBCM,CBT,CBNT,NvnS,d,NvnG,1.0,I_vG_vS,VOLUME->XYZ);     // free
+
+				uEx = malloc(NvnS*1 * sizeof *uEx); // free
+				compute_exact_solution(NvnS,XYZ_vS,uEx,1);
+				for (n = 0; n < NvnP; n++)
+					q[d*NvnP+n] = u[n];
+
+				mm_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,-1.0,ChiS_vP,uEx,&q[d*NvnP]);
+
+				free(uEx);
+			}
 		} else {
 			W_vP = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->What); // free
 

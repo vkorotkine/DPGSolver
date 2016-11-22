@@ -154,6 +154,8 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 			dPhi    = sqrt(2.0/(2.0*N+1.0))*grad_jacobiP(r[i],0.0,0.0,N);
 			wOut[i] = 2.0/((1.0-r[i]*r[i])*dPhi*dPhi);
 		}
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
 
 	// Re-arrange r and w for GL/GLL nodes
@@ -328,7 +330,7 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 	}
 
 	if (P > PMax)
-		printf("Error: %s TRI nodes of order %d are not available.\n",NodeType,P), exit(1);
+		printf("Error: %s TRI nodes of order %d are not available.\n",NodeType,P), EXIT_MSG;
 
 	Nc = 3;
 

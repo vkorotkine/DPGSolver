@@ -189,7 +189,7 @@ TESTCASE_LIST := PeriodicVortex SupersonicVortex VortexRiemann \
 # ToBeModified (Remove unneeded meshtypes)
 MESHTYPE_LIST := ToBeCurvedStructuredTRI ToBeCurvedStructuredQUAD ToBeCurvedStructuredTET ToBeCurvedStructuredHEX \
                  ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR ToBeCurvedMixed ToBeCurvedTET \
-                 CurvedTRI CurvedQUAD CurvedMixed CurvedTET CurvedHEX StructuredTET
+                 TRI TRI_OPT CurvedTRI CurvedQUAD CurvedMixed CurvedTET CurvedHEX StructuredTET
 
 OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))
 TESTCASE_LIST := $(subst $(space),$(comma),$(TESTCASE_LIST))

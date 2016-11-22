@@ -8,6 +8,7 @@
 #include <math.h>
 
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
@@ -85,6 +86,11 @@ static void compute_detJV(const unsigned int Nn, double *J, double *detJV)
 			           + J[Nn*(d*0+2)+n]*(  J[Nn*(d*1+0)+n]*J[Nn*(d*2+1)+n]
 			                              - J[Nn*(d*1+1)+n]*J[Nn*(d*2+0)+n]);
 		}
+	}
+
+	for (n = 0; n < Nn; n++) {
+		if (detJV[n] < EPS)
+			printf("Error: Negative VOLUME.\n"), EXIT_MSG;
 	}
 }
 
@@ -234,8 +240,6 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 	free(J_vI);
 	free(J_vC);
 	free(OPS);
-
-//printf("Exiting setup_geom_factors.\n"), exit(1);
 
 	VOLUME->detJV_vI = detJV_vI;
 	if (VOLUME->C_vC)

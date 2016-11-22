@@ -300,7 +300,7 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 
 		// Standard datatypes
 		unsigned int dE, Nbf,
-		             NfnGs, EType, Eclass,
+		             NfnGs, EType, EclassV, EclassF,
 		             dummy_ui, *dummyPtr_ui;
 		double       *rst_vGs, *rst_fGc, *rst_fS, *rst_fIs, *rst_fIc,
 		             *dummyPtr_d[2],
@@ -317,7 +317,8 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 		EType = ELEMENT_F->type;
 		select_functions(&basis,&grad_basis,&cubature,EType);
 
-		Eclass = get_Eclass(EType);
+		EclassV = get_Eclass(ELEMENT->type);
+		EclassF = get_Eclass(EType);
 
 
 		dE = ELEMENT_F->d;
@@ -326,7 +327,7 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 
 		// It is important to use the nodes corresponding to the VeF ordering
 		rst_vGs = get_rst_vV(ELEMENT_F); // free
-		cubature(&dummyPtr_d[0],&dummyPtr_d[1],&dummyPtr_ui,&NfnGs,&dummy_ui,0,1,dE,NodeTypeG[Eclass]); // free
+		cubature(&dummyPtr_d[0],&dummyPtr_d[1],&dummyPtr_ui,&NfnGs,&dummy_ui,0,1,dE,NodeTypeG[EclassF]); // free
 		free(dummyPtr_ui);
 		free(dummyPtr_d[0]);
 
@@ -340,10 +341,10 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 		free(ChiRefGs_vGs);
 
 		for (P = 0; P <= PMax; P++) {
-			cubature(&rst_fGc,&dummyPtr_d[0],&dummyPtr_ui,&NfnGc[P],&dummy_ui,0,PGc[P],         dE,NodeTypeG[Eclass]);      free(dummyPtr_ui); // free
-			cubature(&rst_fS, &dummyPtr_d[0],&dummyPtr_ui,&NfnS[P], &dummy_ui,0,P,              dE,NodeTypeS[P][Eclass]);   free(dummyPtr_ui); // free
-			cubature(&rst_fIs,&w_fIs[P],     &dummyPtr_ui,&NfnIs[P],&dummy_ui,1,PIfs[P][Eclass],dE,NodeTypeIfs[P][Eclass]); free(dummyPtr_ui); // free
-			cubature(&rst_fIc,&w_fIc[P],     &dummyPtr_ui,&NfnIc[P],&dummy_ui,1,PIfc[P][Eclass],dE,NodeTypeIfc[P][Eclass]); free(dummyPtr_ui); // free
+			cubature(&rst_fGc,&dummyPtr_d[0],&dummyPtr_ui,&NfnGc[P],&dummy_ui,0,PGc[P],         dE,NodeTypeG[EclassF]);      free(dummyPtr_ui); // free
+			cubature(&rst_fS, &dummyPtr_d[0],&dummyPtr_ui,&NfnS[P], &dummy_ui,0,P,              dE,NodeTypeS[P][EclassF]);   free(dummyPtr_ui); // free
+			cubature(&rst_fIs,&w_fIs[P],     &dummyPtr_ui,&NfnIs[P],&dummy_ui,1,PIfs[P][EclassV],dE,NodeTypeIfs[P][EclassV]); free(dummyPtr_ui); // free
+			cubature(&rst_fIc,&w_fIc[P],     &dummyPtr_ui,&NfnIc[P],&dummy_ui,1,PIfc[P][EclassV],dE,NodeTypeIfc[P][EclassV]); free(dummyPtr_ui); // free
 
 			ChiRefGs_fGc = basis(1,rst_fGc,NfnGc[P],&Nbf,dE); // free
 			ChiRefGs_fS  = basis(1,rst_fS, NfnS[P], &Nbf,dE); // free

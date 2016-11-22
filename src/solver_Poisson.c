@@ -182,6 +182,10 @@ static void compute_qhat_VOLUME(void)
 		MInv = VOLUME->MInv;
 		C_vI = VOLUME->C_vI;
 		w_vI = OPS->w_vI;
+if (VOLUME->indexg == 0) {
+//	printf("%d\n",VOLUME->P);
+//	array_print_d(NvnI,d*d,C_vI,'C');
+}
 
 		diag_w_vI = diag_d(w_vI,NvnI); // free
 
@@ -198,6 +202,9 @@ static void compute_qhat_VOLUME(void)
 				IndC = (dim1+dim2*d)*NvnI;
 				for (i = 0; i < NvnS; i++) {
 					for (j = 0; j < NvnI; j++) {
+if (VOLUME->indexg == 0 && VOLUME->P == 7 && j == 0 && i == 0) {
+	printf("%d %d %d % .3e\n",dim1,dim2,(dim1+dim2*d),C_vI[IndC+j]);
+}
 						Dxyz[IndD+j] += D[dim2][IndD+j]*C_vI[IndC+j];
 					}
 					IndD += NvnI;
@@ -206,6 +213,9 @@ static void compute_qhat_VOLUME(void)
 			if (DxyzChiS[dim1])
 				free(DxyzChiS[dim1]);
 			DxyzChiS[dim1] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // keep
+if (VOLUME->indexg == 0) {
+	array_print_d(NvnS,NvnS,DxyzChiS[dim1],'R');
+}
 			free(Dxyz);
 		}
 		array_free2_d(d,D);
@@ -268,7 +278,6 @@ void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, con
 	norm_rOut /= Nn;
 
 	if (BCcurved == 1) {
-//if (1||BCcurved == 1) {
 		for (n = 0; n < Nn; n++) {
 			XOut[n] = XIn[n];
 			YOut[n] = YIn[n];
@@ -853,7 +862,7 @@ static void compute_uhat_FACE()
 		GradxyzOut = malloc(d * sizeof *GradxyzOut); // free
 
 		// Note: This is analogous to Hesthaven's BuildCurvedOPS2D (Chapter 9.1)
-		// See solver_Poisson_weak under 'alternate/' for alternative computation of GradxyzIn/Out
+		// Alternative computation of GradxyzIn/Out commented below (No difference for straight VOLUMEs)
 		mm_d(CBRM,CBNT,CBNT,NfnI,NvnSIn, NvnSIn, 1.0,0.0,OPSIn->ChiS_fI[VfIn],  VIn->MInv, ChiSMInv_fIIn);
 		mm_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,0.0,OPSOut->ChiS_fI[VfOut],VOut->MInv,ChiSMInv_fIOut);
 		array_rearrange_d(NfnI,NvnSOut,nOrdOutIn,'R',ChiSMInv_fIOut);
@@ -866,6 +875,51 @@ static void compute_uhat_FACE()
 			mm_d(CBRM,CBNT,CBT,NfnI,NvnSIn, NvnSIn, 1.0,0.0,ChiSMInv_fIIn, VIn->DxyzChiS[dim1], GradxyzIn[dim1]);
 			mm_d(CBRM,CBNT,CBT,NfnI,NvnSOut,NvnSOut,1.0,0.0,ChiSMInv_fIOut,VOut->DxyzChiS[dim1],GradxyzOut[dim1]);
 		}
+
+/*
+		double **GradChiS_fI, *C_fI;
+		unsigned int dim2, IndC;
+
+		C_fI = malloc(NfnI*d*d * sizeof *C_fI); // free
+		mm_CTN_d(NfnI,d*d,OPSIn->NvnC,OPSIn->I_vC_fI[VfIn],VIn->C_vC,C_fI);
+
+		GradChiS_fI = OPSIn->GradChiS_fI[VfIn];
+		for (dim1 = 0; dim1 < d; dim1++) {
+			GradxyzIn[dim1]  = calloc(NfnI*NvnSIn  , sizeof **GradxyzIn);  // free
+			for (unsigned int dim2 = 0; dim2 < d; dim2++) {
+				int IndC = (dim1+dim2*d)*NfnI;
+				for (n = 0; n < NfnI; n++) {
+					for (j = 0; j < NvnSIn; j++)
+						GradxyzIn[dim1][n*NvnSIn+j] += GradChiS_fI[dim2][n*NvnSIn+j]*C_fI[IndC+n];
+				}
+			}
+			for (n = 0; n < NfnI; n++) {
+				for (j = 0; j < NvnSIn; j++)
+					GradxyzIn[dim1][n*NvnSIn+j] /= detJVIn_fI[n];
+			}
+		}
+
+		mm_CTN_d(NfnI,d*d,OPSOut->NvnC,OPSOut->I_vC_fI[VfOut],VOut->C_vC,C_fI);
+
+		GradChiS_fI = OPSOut->GradChiS_fI[VfOut];
+		// Note: Rearrangement is embedded in the operator
+		for (dim1 = 0; dim1 < d; dim1++) {
+			GradxyzOut[dim1] = calloc(NfnI*NvnSOut , sizeof **GradxyzOut); // free
+
+			for (dim2 = 0; dim2 < d; dim2++) {
+				IndC = (dim1+dim2*d)*NfnI;
+				for (n = 0; n < NfnI; n++) {
+					for (j = 0; j < NvnSOut; j++)
+						GradxyzOut[dim1][n*NvnSOut+j] += GradChiS_fI[dim2][nOrdOutIn[n]*NvnSOut+j]*C_fI[IndC+nOrdOutIn[n]];
+				}
+			}
+			for (n = 0; n < NfnI; n++) {
+				for (j = 0; j < NvnSOut; j++)
+					GradxyzOut[dim1][n*NvnSOut+j] /= detJVOut_fI[n];
+			}
+		}
+		free(C_fI);
+*/
 
 		mm_CTN_d(NfnI,1,NvnSIn,OPSIn->ChiS_fI[VfIn],VIn->uhat,uIn_fI);
 

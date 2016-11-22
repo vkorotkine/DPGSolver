@@ -7,11 +7,11 @@
 BEGIN PARAMETERS
   Dimension  2
   ML         0
-  MeshType   CurvedTRI
+  MeshType   TRI
 
   Form       Strong // Options: Weak, (Strong)
   NodeType   GLL-AO  // Options: GL/GLL-AO/WSH/EQ
-  BasisType  Nodal  // Options: Nodal, Modal
+  BasisType  Modal  // Options: Nodal, Modal
 
   Vectorized 0     // Options: 0, 1
   EFE        1     // Options: (0), 1
@@ -19,7 +19,7 @@ BEGIN PARAMETERS
   Adapt      3     // Options: 0, 1, 2, (3)
 
   PGlobal    1
-  PMax       6
+  PMax       7
   LevelsMax  5
 
   Restart    -1    // Options: -1, 0, Iteration #
