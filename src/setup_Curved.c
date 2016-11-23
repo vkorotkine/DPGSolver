@@ -40,6 +40,10 @@
  *		XYZ_CmS : (XYZ) BOUNDARY (EDGE or FACE) coordinates, (C)urved (m)inus (S)traight.
  *
  *	References:
+ *		Szabo(1991)-Finite_Element_Analysis (eq. 6.22)
+ *		Hesthaven(2008)-Nodal_Discontinuous_Galerkin_Methods (section 9.1.1)
+ *		Nielson(1977)-The_Side-Vertex_Method_for_Interpolation_in_Triangles (eq. 2.2, 2.13)
+ *		Gordon(1973)-Transfinite_Element_Methods-_Blending-Function_Interpolation_over_Arbitrary_Curved_Element_Domains
  */
 
 #define DSPHERE  1
@@ -241,7 +245,10 @@ static double *compute_BlendV(struct S_Blend *data)
 		}
 	} else if (Blending == NIELSON && type == TRI) {
 		for (n = 0; n < NvnG; n++) {
+//			BlendV[n] = pow(1.0-I_vGs_vGc[n*Nve+b],2.0);
 			BlendV[n] = pow(1.0-I_vGs_vGc[n*Nve+b],2.0);
+//			if (BlendV[n] > 2.5108e-01 && BlendV[n] < 0.95)
+//				BlendV[n] *= pow(1.0-I_vGs_vGc[n*Nve+b],0.5);
 		}
 	} else if (Blending == SZABO_BABUSKA || EclassV == C_SI) {
 		for (n = 0; n < NvnG; n++) {
@@ -265,31 +272,16 @@ static double *compute_BlendV(struct S_Blend *data)
 	} else {
 		printf("Error: Unsupported.\n");
 	}
-/*
+
 if (b == 2) {
 printf("%d\n",b);
 array_print_d(NvnG,1,BlendV,'R');
 array_print_d(NvnG,Nve,I_vGs_vGc,'R');
 array_print_d(NvnG,Nbve[b],I_bGs_vGc,'R');
-
-		for (n = 0; n < NvnG; n++) {
-			BlendNum = 1.0;
-			BlendDen = 1.0;
-			for (ve = 0; ve < Nbve[b]; ve++) {
-				BlendNum *= I_vGs_vGc[n*Nve+VeBcon[b*NbveMax+ve]];
-				BlendDen *= I_bGs_vGc[n*Nbve[b]+ve];
-			}
-			if (BlendNum < EPS)
-				BlendV[n] = 0.0;
-			else
-				BlendV[n] = BlendNum/BlendDen;
-		}
-
-
-array_print_d(NvnG,1,BlendV,'R');
+array_print_d(NvnG,data->NbnG,data->I_bGc_vGc,'R');
 EXIT_MSG;
 }
-*/
+
 	return BlendV;
 }
 
@@ -574,7 +566,7 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
 	}
 
 	// Add additional contribution from vertices if applicable
-	if (Blending == NIELSON && Vtype == TRI) {
+	if (0&&Blending == NIELSON && Vtype == TRI) {
 		BlendVe = malloc(NvnG*Nve * sizeof *BlendVe); // free
 
 		for (n = 0; n < NvnG; n++) {

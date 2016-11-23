@@ -154,6 +154,12 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 			dPhi    = sqrt(2.0/(2.0*N+1.0))*grad_jacobiP(r[i],0.0,0.0,N);
 			wOut[i] = 2.0/((1.0-r[i]*r[i])*dPhi*dPhi);
 		}
+	} else if (strstr(NodeType,"EQ")) {
+		if (return_w)
+			printf("Error: Unsupported.\n"), exit(1);
+
+		for (i = 0; i < N; i++)
+			r[i] = 2.0*i/(N-1)-1.0;
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}

@@ -40,12 +40,23 @@ long long unsigned int factorial_ull(const unsigned int n)
 	return (long long unsigned int) a[n];
 }
 
-long long unsigned int gamma_ull(const unsigned int n)
+double factorial_d(const unsigned int n)
 {
-	if (n < 1)
-		printf("Error: Input to gamma_ull must be greater than 0.\n"), exit(1);
+	static unsigned int ntop = 0;
+	static double       a[33] = { 1.0 };
+	unsigned int i;
 
-	return factorial_ull(n-1);
+	// Note: large values overflow
+	if (n > 32)
+		printf("Large inputs (n > 32) result in overflow for factorial_d, n = %d.\n",n), exit(1);
+	// Check exact value if required (ToBeDeleted)
+
+	// As ntop and a are static variables, multiple calls do not result in recomputation.
+	while (ntop < n) {
+		i = ntop++;
+		a[ntop] = a[i]*ntop;
+	}
+	return a[n];
 }
 
 double gamma_d(const double x)
@@ -55,7 +66,7 @@ double gamma_d(const double x)
 
 	if (fabs(floor(x)-x) < EPS) {
 		// Unsigned integer case
-		return (double) gamma_ull((unsigned long long) x);
+		return factorial_d((unsigned int) (x-1.0));
 	} else {
 		static double cof[6] = { 76.18009172947146,
 		                        -86.50532032941677,

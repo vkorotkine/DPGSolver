@@ -104,8 +104,11 @@
  *
  *		AC              : Specifies whether (a)ll elements are (c)urved or not.
  *		ExactGeom       : Move boundary nodes to exact geometry if enabled.
- *		Blending        : Type of blending used in curved elements.
- *		                  Options: Szabo-Babuska
+ *		Blending        : Type of blending used in curved elements. Options:
+ *		                  GORDON_HALL
+ *		                  SZABO_BABUSKA
+ *		                  HESTHAVEN (Identical to Lenoir(1986), eq. (14), originally from Scott(1973)).
+ *		                  NIELSON
  *		Parametrization : Type of parametrization used in curved elements.
  *		                  Options: ArcLength, RadialProjection (Under consideration), EqualTangent (Under consideration)
  *
@@ -123,6 +126,8 @@
  *		                Options: TET8 (TET -> 8 TET), TET12 (TET -> 12 TET), TET6 (TET -> 4 TET + 2 PYR)
  *
  *	References:
+ *		Lenoir(1986)-Optimal_Isoparametric_Finite_Elements_and_Error_Estimates_for_Domains_Involving_Curved_Boundaries
+ *		Scott(1973)-Finite_Element_Techniques_for_Curved_Boundaries
  *
  */
 
@@ -224,10 +229,12 @@ void setup_parameters()
 	for (i = 0; i < NEC; i++)
 		NodeTypeG[i] = malloc(STRLEN_MIN * sizeof **NodeTypeG); // keep
 
-	strcpy(NodeTypeG[0],"GLL");
-	strcpy(NodeTypeG[1],"AO");
-//	strcpy(NodeTypeG[1],"EQ");
-	strcpy(NodeTypeG[2],"GLL");
+//	strcpy(NodeTypeG[0],"GLL");
+//	strcpy(NodeTypeG[1],"AO");
+//	strcpy(NodeTypeG[2],"GLL");
+	strcpy(NodeTypeG[0],"EQ");
+	strcpy(NodeTypeG[1],"EQ");
+	strcpy(NodeTypeG[2],"EQ");
 
 	// Order dependent parameters
 	for (P = 0; P <= PMax; P++) {

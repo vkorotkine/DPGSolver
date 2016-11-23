@@ -205,9 +205,9 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 6;
-	MLMin = 0; MLMax = 3;
-TestDB.PGlobal = 1;
+	PMin  = 1; PMax  = 5;
+	MLMin = 0; MLMax = 4;
+TestDB.PGlobal = 4;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
