@@ -76,22 +76,13 @@ void test_unit_math_gamma(void)
 	 *			B : 5040
 	 */
 
-	unsigned int A_ull = 4, B_ull = 8;
+	unsigned int A_ull = 4, B_ull = 8, C_ull = 16;
 
 	pass = 0;
-	if (gamma_ull(A_ull) == 6   &&
-		gamma_ull(B_ull) == 5040)
-			pass = 1, TestDB.Npass++;
-//printf("% .3e %lu\n",gamma_ull(17)-gamma_d(17.0),gamma_ull(17));
-printf("%d\n",gamma_ull(17));
-printf("Overflow for gamma(14) or more!\n");
-
-/* Values for gamma
- * 13: 479001600
- * 14: 6227020800
- * 15: 87178291200
- * 16: 1307674368000
- */
+	if (gamma_ull(A_ull) == 6    &&
+		gamma_ull(B_ull) == 5040 &&
+		gamma_ull(C_ull) == 1307674368000)
+		    pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
 	printf("math_gamma_ull:                                  ");

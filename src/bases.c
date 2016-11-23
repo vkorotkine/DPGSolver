@@ -21,6 +21,7 @@
  *
  *	Comments:
  *		The "matrix" is returned as a 1D array.
+ *		Careful of overflow in gamma function in JacobiP for alpha > 20.0 (P ~ 20) for basis_SI.
  *
  *	Notation:
  *
@@ -112,7 +113,7 @@ double *basis_SI(const unsigned int P, const double *rst, const unsigned int Nn,
 
 	rst_to_abc_SI(Nn,d,rst,a,b,c);
 
-	Nbf = factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P));
+	Nbf = (unsigned int) (factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P)));
 
 	ChiRef_rst = malloc(Nn*Nbf * sizeof *ChiRef_rst); // keep (requires external free)
 
@@ -332,7 +333,7 @@ double **grad_basis_SI(const unsigned int P, const double *rst, const unsigned i
 
 	rst_to_abc_SI(Nn,d,rst,a,b,c);
 
-	Nbf = factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P));
+	Nbf = (unsigned int) (factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P)));
 
 	GradChiRef_rst = malloc(d * sizeof *GradChiRef_rst); // keep (requires external free)
 	for (dim = 0; dim < d; dim++)

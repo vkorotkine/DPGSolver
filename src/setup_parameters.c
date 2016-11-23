@@ -214,8 +214,8 @@ void setup_parameters()
 
 	// ToBeModified (likely included in .ctrl file)
 //	Blending = GORDON_HALL;
-//	Blending = SZABO_BABUSKA;
-	Blending = HESTHAVEN;
+	Blending = SZABO_BABUSKA;
+//	Blending = HESTHAVEN;
 //	Blending = NIELSON;
 
 //	Parametrization = ARC_LENGTH;

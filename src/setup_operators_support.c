@@ -300,7 +300,7 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 
 		// Standard datatypes
 		unsigned int dE, Nbf,
-		             NfnGs, EType, EclassV, EclassF,
+		             NfnGs, EType, EclassF,
 		             dummy_ui, *dummyPtr_ui;
 		double       *rst_vGs, *rst_fGc, *rst_fS, *rst_fIs, *rst_fIc,
 		             *dummyPtr_d[2],
@@ -317,7 +317,7 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 		EType = ELEMENT_F->type;
 		select_functions(&basis,&grad_basis,&cubature,EType);
 
-		EclassV = get_Eclass(ELEMENT->type);
+		// Only use EclassF here as setting up face nodes for TRIs in 3D results in invalid LINE NodeTypes.
 		EclassF = get_Eclass(EType);
 
 
@@ -343,8 +343,8 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 		for (P = 0; P <= PMax; P++) {
 			cubature(&rst_fGc,&dummyPtr_d[0],&dummyPtr_ui,&NfnGc[P],&dummy_ui,0,PGc[P],         dE,NodeTypeG[EclassF]);      free(dummyPtr_ui); // free
 			cubature(&rst_fS, &dummyPtr_d[0],&dummyPtr_ui,&NfnS[P], &dummy_ui,0,P,              dE,NodeTypeS[P][EclassF]);   free(dummyPtr_ui); // free
-			cubature(&rst_fIs,&w_fIs[P],     &dummyPtr_ui,&NfnIs[P],&dummy_ui,1,PIfs[P][EclassV],dE,NodeTypeIfs[P][EclassV]); free(dummyPtr_ui); // free
-			cubature(&rst_fIc,&w_fIc[P],     &dummyPtr_ui,&NfnIc[P],&dummy_ui,1,PIfc[P][EclassV],dE,NodeTypeIfc[P][EclassV]); free(dummyPtr_ui); // free
+			cubature(&rst_fIs,&w_fIs[P],     &dummyPtr_ui,&NfnIs[P],&dummy_ui,1,PIfs[P][EclassF],dE,NodeTypeIfs[P][EclassF]); free(dummyPtr_ui); // free
+			cubature(&rst_fIc,&w_fIc[P],     &dummyPtr_ui,&NfnIc[P],&dummy_ui,1,PIfc[P][EclassF],dE,NodeTypeIfc[P][EclassF]); free(dummyPtr_ui); // free
 
 			ChiRefGs_fGc = basis(1,rst_fGc,NfnGc[P],&Nbf,dE); // free
 			ChiRefGs_fS  = basis(1,rst_fS, NfnS[P], &Nbf,dE); // free

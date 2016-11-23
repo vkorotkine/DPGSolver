@@ -10,8 +10,8 @@ L = 1.0;
 
 // Geometry Specification
 
-Point(1) = {0,0,0,lc/3};
-Point(2) = {L,0,0,lc/2};
+Point(1) = {0,0,0,lc};
+Point(2) = {L,0,0,lc};
 Point(3) = {0,L,0,lc};
 Point(4) = {L,L,0,lc};
 

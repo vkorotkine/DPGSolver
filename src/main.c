@@ -307,8 +307,6 @@ int main(int nargc, char **argv)
 		printf("\nFor the VOLUME/FACE info functions, test that all 'versions' give identical results.\n\n");
 		TestDB.Nwarnings++;
 	}
-		test_unit_math_gamma();
-		exit(1);
 
 	// Integration tests
 	if (RunTest.integration) {

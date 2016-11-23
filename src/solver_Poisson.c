@@ -41,12 +41,10 @@
  *		the computational cost is dominated by the global system solve making this additional cost negligible.
  *
  *		Originally, the Weak form was employed for both of the equations resulting from the transformation of the 2nd
- *		order equation to the system of 1st order equations. It was then determined that, for high enough order
- *		solutions (P > 5 for TRIs), the global system matrix failed to be symmetric (even when using straight elements).
- *		This was found to be a result of the impossibility of exactly integrating by parts the VOLUME term in the
- *		equation for qhat (even with very high cubature order (3P)). While it seems that the exact IBP should be
- *		possible in this case, the investigation was not pursued. Further, the strong form of the scheme very easily
- *		retains the symmetry required and is hence a more intuitive discretization.
+ *		order equation to the system of 1st order equations. An overflow error in basis_SI (now resolved) initially
+ *		resulted in lack of symmetry of the global system matrix when using P > 5 for TRIs. This would likely work
+ *		correctly now if implemented but the strong from of the scheme very easily retains the symmetry required and is
+ *		hence a more intuitive discretization.
  *
  *	Notation:
  *
@@ -182,10 +180,6 @@ static void compute_qhat_VOLUME(void)
 		MInv = VOLUME->MInv;
 		C_vI = VOLUME->C_vI;
 		w_vI = OPS->w_vI;
-if (VOLUME->indexg == 0) {
-//	printf("%d\n",VOLUME->P);
-//	array_print_d(NvnI,d*d,C_vI,'C');
-}
 
 		diag_w_vI = diag_d(w_vI,NvnI); // free
 
@@ -202,9 +196,6 @@ if (VOLUME->indexg == 0) {
 				IndC = (dim1+dim2*d)*NvnI;
 				for (i = 0; i < NvnS; i++) {
 					for (j = 0; j < NvnI; j++) {
-if (VOLUME->indexg == 0 && VOLUME->P == 7 && j == 0 && i == 0) {
-	printf("%d %d %d % .3e\n",dim1,dim2,(dim1+dim2*d),C_vI[IndC+j]);
-}
 						Dxyz[IndD+j] += D[dim2][IndD+j]*C_vI[IndC+j];
 					}
 					IndD += NvnI;
@@ -213,9 +204,6 @@ if (VOLUME->indexg == 0 && VOLUME->P == 7 && j == 0 && i == 0) {
 			if (DxyzChiS[dim1])
 				free(DxyzChiS[dim1]);
 			DxyzChiS[dim1] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // keep
-if (VOLUME->indexg == 0) {
-	array_print_d(NvnS,NvnS,DxyzChiS[dim1],'R');
-}
 			free(Dxyz);
 		}
 		array_free2_d(d,D);
@@ -292,7 +280,7 @@ void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, con
 			r = rOut;
 		} else {
 			printf("% .3e % .3e\n",norm_rIn,norm_rOut);
-array_print_d(Nn,d,XYZIn,'C');
+			array_print_d(Nn,d,XYZIn,'C');
 			printf("Error: Found unsupported curved BC.\n"), EXIT_MSG;
 		}
 
