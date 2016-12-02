@@ -22,6 +22,7 @@
 #include "setup_geometry.h"
 #include "initialize_test_case.h"
 #include "adaptation.h"
+#include "setup_Curved.h"
 #include "memory_free.h"
 #include "array_norm.h"
 #include "array_free.h"
@@ -309,36 +310,6 @@ array_print_d(NML,NP,ConvOrders[i],'R');
 	free(L2Errors);
 	free(ConvOrders);
 	free(h);
-}
-
-static void compute_plane(const double *XYZ1, const double *XYZ2, const double *XYZ3, double *n, double *d_p)
-{
-	/*
-	 *	Purpose:
-	 *		Compute normal vector to a plane defined by three points.
-	 *
-	 *	Comments:
-	 *		The plane is defined by: a*x+b*y+c*z = d, where the n = (a,b,c).
-	 */
-
-	unsigned int i, d;
-	double       Vec1[3], Vec2[3];
-
-	d = 3;
-
-	for (i = 0; i < d; i++) {
-		Vec1[i] = XYZ1[i]-XYZ3[i];
-		Vec2[i] = XYZ2[i]-XYZ3[i];
-	}
-
-	// compute cross product
-	n[0] =  (Vec1[1]*Vec2[2]-Vec1[2]*Vec2[1]);
-	n[1] = -(Vec1[0]*Vec2[2]-Vec1[2]*Vec2[0]);
-	n[2] =  (Vec1[0]*Vec2[1]-Vec1[1]*Vec2[0]);
-
-	*d_p = 0.0;
-	for (i = 0; i < d; i++)
-		*d_p += n[i]*XYZ3[i];
 }
 
 void evaluate_mesh_regularity(double *mesh_quality)

@@ -219,12 +219,13 @@ void setup_parameters()
 
 	// ToBeModified (likely included in .ctrl file)
 //	Blending = GORDON_HALL;
-	Blending = SZABO_BABUSKA;
+//	Blending = SZABO_BABUSKA;
 //	Blending = HESTHAVEN;
-//	Blending = NIELSON;
+	Blending = NIELSON;
 
 //	Parametrization = ARC_LENGTH;
-	Parametrization = RADIAL_PROJECTION;
+//	Parametrization = RADIAL_PROJECTION;
+	Parametrization = NORMAL;
 
 	for (i = 0; i < NEC; i++)
 		NodeTypeG[i] = malloc(STRLEN_MIN * sizeof **NodeTypeG); // keep

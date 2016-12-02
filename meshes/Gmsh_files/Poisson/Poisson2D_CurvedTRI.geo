@@ -13,8 +13,8 @@ rOut = 1.0;
 
 Point(1) = {rIn,0,0,lc};
 Point(2) = {rOut,0,0,lc};
-Point(3) = {0,rIn,0,lc};
-Point(4) = {Sqrt(0.5)*rIn,Sqrt(0.5)*rIn,0,lc};
+Point(3) = {0,rIn,0,lc/2};
+Point(4) = {Sqrt(0.5)*rIn,Sqrt(0.5)*rIn,0,lc/3};
 Point(5) = {0,rOut,0,lc};
 Point(6) = {Sqrt(0.5)*rOut,Sqrt(0.5)*rOut,0,lc};
 Point(7) = {0,0,0,lc};

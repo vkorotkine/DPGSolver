@@ -71,6 +71,85 @@ struct S_Blend {
 	compute_XYZ_tdef compute_XYZ;
 };
 
+void compute_plane(const double *XYZ1, const double *XYZ2, const double *XYZ3, double *n, double *d_p)
+{
+	/*
+	 *	Purpose:
+	 *		Compute normal vector to a plane defined by three points.
+	 *
+	 *	Comments:
+	 *		The plane is defined by: a*x+b*y+c*z = d, where the n = (a,b,c).
+	 */
+
+	unsigned int i, d;
+	double       Vec1[3], Vec2[3];
+
+	d = 3;
+
+	for (i = 0; i < d; i++) {
+		Vec1[i] = XYZ1[i]-XYZ3[i];
+		Vec2[i] = XYZ2[i]-XYZ3[i];
+	}
+
+	// compute cross product
+	n[0] =  (Vec1[1]*Vec2[2]-Vec1[2]*Vec2[1]);
+	n[1] = -(Vec1[0]*Vec2[2]-Vec1[2]*Vec2[0]);
+	n[2] =  (Vec1[0]*Vec2[1]-Vec1[1]*Vec2[0]);
+
+	*d_p = 0.0;
+	for (i = 0; i < d; i++)
+		*d_p += n[i]*XYZ3[i];
+}
+
+static void compute_normal_distance(const unsigned int Nn, const double *XYZ_S, const double *n,
+                                    const unsigned int VeSurface)
+{
+	// Initialize DB Parameters
+	char         *TestCase = DB.TestCase;
+	unsigned int d         = DB.d;
+
+	// Standard datatypes
+	unsigned int n, dim;
+	double       ABC[3], XYZ[DMAX], d[2], XYZ_C[2][DMAX], r[2];
+
+	if (strstr(TestCase,"Poisson")) {
+		if (VeSurface == 0)
+			r = DB.rIn;
+		else if (data->VeSurface == 1)
+			r = DB.rOut;
+		else
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+
+		for (n = 0; n < Nn; n++) {
+			for (dim = 0; dim < DMAX; dim++)
+				XYZ[dim] = XYZ_S[n*DMAX+dim];
+
+			ABC[0] = -r*r;
+			ABC[1] = 0.0;
+			ABC[2] = 0.0;
+			for (dim = 0; dim < DMAX; dim++) {
+				ABC[0] += n[dim]*n[dim];
+				ABC[1] += 2.0*n[dim]*XYZ[dim];
+				ABC[2] += XYZ[dim]*XYZ[dim];
+			}
+
+			// Solve quadratic equation
+			d[0] = (-B+sqrt(B*B-4.0*A*C)/(2.0*A);
+			d[1] = (-B-sqrt(B*B-4.0*A*C)/(2.0*A);
+
+			// Check which solution gives the correct radius
+
+			for (i = 0; i < 2; i++) {
+				for (dim = 0; dim < d; dim++)
+					XYZ_C[i][dim] = XYZ[dim]+n[dim]*d[i];
+				r[i] = array_norm_d(d,XYZ_C[i],"L2");
+			}
+		}
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+}
+
 static void compute_pc_dsphere(struct S_pc *data) {
 	/*
 	 *	Purpose:
@@ -245,10 +324,7 @@ static double *compute_BlendV(struct S_Blend *data)
 		}
 	} else if (Blending == NIELSON && type == TRI) {
 		for (n = 0; n < NvnG; n++) {
-//			BlendV[n] = pow(1.0-I_vGs_vGc[n*Nve+b],2.0);
 			BlendV[n] = pow(1.0-I_vGs_vGc[n*Nve+b],2.0);
-//			if (BlendV[n] > 2.5108e-01 && BlendV[n] < 0.95)
-//				BlendV[n] *= pow(1.0-I_vGs_vGc[n*Nve+b],0.5);
 		}
 	} else if (Blending == SZABO_BABUSKA || EclassV == C_SI) {
 		for (n = 0; n < NvnG; n++) {
@@ -279,7 +355,7 @@ array_print_d(NvnG,1,BlendV,'R');
 array_print_d(NvnG,Nve,I_vGs_vGc,'R');
 array_print_d(NvnG,Nbve[b],I_bGs_vGc,'R');
 array_print_d(NvnG,data->NbnG,data->I_bGc_vGc,'R');
-EXIT_MSG;
+//EXIT_MSG;
 }
 
 	return BlendV;
@@ -298,7 +374,7 @@ static double *compute_XYZ_update(struct S_Blend *data)
 
 	// Standard datatypes
 	unsigned int b, n, ve, dim, NvnG, NbnG, Nve, *Nbve, *VeBcon, *VeInfo, NbveMax;
-	double       **VeXYZ, *XYZ, *XYZ_vV, *PComps_V, *PComps_B, *XYZ_CmS, *XYZ_update, *XYZ_S,
+	double       **VeXYZ, *XYZ, *XYZ_vV, *PComps_V, *PComps_B, *XYZ_CmS, *XYZ_update, *XYZ_S, *n_S, d_S, nNorm, r,
 	             *I_vGs_bGc, *I_vGc_bGc, *I_vGs_vGc, *I_bGs_bGc, *I_bGc_vGc;
 
 	struct S_pc  *data_pc;
@@ -314,11 +390,13 @@ static double *compute_XYZ_update(struct S_Blend *data)
 	NvnG    = data->NvnG;
 	b       = data->b;
 	Nve     = data->Nve;
+	Nbve    = data->Nbve;
 	VeInfo  = data->VeInfo;
 	VeBcon  = data->VeBcon;
 	NbveMax = data->NbveMax;
 
 	XYZ       = data->XYZ;
+	XYZ_vV    = data->XYZ_vV;
 	I_vGc_bGc = data->I_vGc_bGc;
 	I_bGc_vGc = data->I_bGc_vGc;
 
@@ -329,9 +407,6 @@ static double *compute_XYZ_update(struct S_Blend *data)
 	compute_XYZ = data->compute_XYZ;
 
 	if (Parametrization == ARC_LENGTH) {
-		Nbve    = data->Nbve;
-
-		XYZ_vV    = data->XYZ_vV;
 		I_vGs_vGc = data->I_vGs_vGc;
 
 		// Find coordinates of vertices on the BOUNDARY
@@ -377,6 +452,7 @@ static double *compute_XYZ_update(struct S_Blend *data)
 		compute_XYZ(data_XYZ);
 		free(PComps_B);
 
+		// Subtract XYZ_S;
 		mm_d(CBCM,CBT,CBNT,NbnG,d,NvnG,-1.0,1.0,I_vGc_bGc,XYZ,XYZ_CmS);
 	} else if (Parametrization == RADIAL_PROJECTION) {
 		// Compute XYZ_C
@@ -384,7 +460,7 @@ static double *compute_XYZ_update(struct S_Blend *data)
 
 		mm_d(CBCM,CBT,CBNT,NbnG,d,NvnG,1.0,0.0,I_vGc_bGc,XYZ,XYZ_S);
 
-		VeXYZ = malloc(NbnG   * sizeof *VeXYZ); // free
+		VeXYZ = malloc(NbnG * sizeof *VeXYZ); // free
 		for (n = 0; n < NbnG; n++) {
 			VeXYZ[n] = malloc(d * sizeof *VeXYZ[n]); // free
 			for (dim = 0; dim < d; dim++)
@@ -408,6 +484,71 @@ static double *compute_XYZ_update(struct S_Blend *data)
 
 		compute_XYZ(data_XYZ);
 		free(PComps_B);
+if (b == 2) {
+array_print_d(NbnG,d,XYZ_S,'C');
+array_print_d(NbnG,d,XYZ_CmS,'C');
+//EXIT_MSG;
+}
+		// Subtract XYZ_S;
+		for (n = 0; n < NbnG*d; n++)
+			XYZ_CmS[n] -= XYZ_S[n];
+
+		free(XYZ_S);
+	} else if (Parametrization == NORMAL) {
+		// Compute XYZ_C
+		XYZ_S = malloc(NbnG*d * sizeof *XYZ_S); // free
+
+		mm_d(CBCM,CBT,CBNT,NbnG,d,NvnG,1.0,0.0,I_vGc_bGc,XYZ,XYZ_S);
+
+		// Find coordinates of 3 vertices used to compute the normal to the boundary
+		VeXYZ = malloc(DMAX * sizeof *VeXYZ); // free
+		if (d == 3) {
+			for (ve = 0; ve < DMAX; ve++) {
+				VeXYZ[ve] = calloc(DMAX , sizeof **VeXYZ); // free
+				for (dim = 0; dim < d; dim++)
+					VeXYZ[ve][dim] = XYZ_vV[Nve*dim+VeBcon[b*NbveMax+ve]];
+			}
+		} else if (d == 2) {
+			for (ve = 0; ve < d; ve++) {
+				VeXYZ[ve] = calloc(DMAX , sizeof **VeXYZ); // free
+				for (dim = 0; dim < d; dim++)
+					VeXYZ[ve][dim] = XYZ_vV[Nve*dim+VeBcon[b*NbveMax+ve]];
+			}
+			ve = d;
+			VeXYZ[ve] = calloc(DMAX , sizeof **VeXYZ); // free
+			for (dim = 0; dim < d; dim++)
+				VeXYZ[ve][dim] = XYZ_vV[Nve*dim+VeBcon[b*NbveMax+0]];
+			// Set z component to something non-zero
+			VeXYZ[ve][d] = 1.0;
+
+			for (dim = 0; dim < DMAX; dim++)
+				array_print_d(1,DMAX,VeXYZ[dim],'R');
+		}
+
+		n_S = malloc(DMAX * sizeof *n_S); // free
+		// Compute normal vector to the straight FACE
+		compute_plane(VeXYZ[0],VeXYZ[1],VeXYZ[2],n_S,&d_S);
+
+		// Normalize
+		nNorm = array_norm_d(d,n,"L2");
+		for (dim = 0; dim < d; dim++)
+			n[dim] = n[dim]/nNorm;
+		d_S /= nNorm;
+
+		// Ensure that normal points outwards
+		r = -d_S;
+		for (dim = 0; dim < d; dim++)
+			r += n_S[dim]*VeXYZ[0][dim];
+
+		if (r > 0.0) {
+			for (dim = 0; dim < d; dim++)
+				n_S[dim] *= -1.0;
+			d_S *= -1.0;
+		}
+
+		// Compute normal distance from straight FACE to curved geometry
+		compute_normal_distance(NbnG,XYZ_S,n_S,VeInfo[2*Nve+VeBcon[b*NbveMax]]);
+EXIT_MSG;
 
 		// Subtract XYZ_S;
 		for (n = 0; n < NbnG*d; n++)
@@ -422,6 +563,11 @@ static double *compute_XYZ_update(struct S_Blend *data)
 	free(data_XYZ);
 
 	XYZ_update = mm_Alloc_d(CBCM,CBT,CBNT,NvnG,d,NbnG,1.0,I_bGc_vGc,XYZ_CmS); // free
+#include "Test.h"
+if (b == 2 && TestDB.ML == 2) {
+	array_print_d(NvnG,d,XYZ_update,'C');
+	EXIT_MSG;
+}
 	free(XYZ_CmS);
 
 	return XYZ_update;

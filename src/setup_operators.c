@@ -2709,8 +2709,8 @@ static void setup_blending(const unsigned int EType)
 					for (n = 0; n < NvnGc[P]; n++)
 						rst_proj[n+dim*NvnGc[P]] = 2.0*BCoords_V[n*Nve+VeFcon[f*NFVEMAX+1]]-1.0;
 				}
-			} else if (1) {
-//			} else if (Blending == NIELSON && EType == TRI) {
+//			} else if (1) {
+			} else if (Blending == NIELSON && EType == TRI) {
 				// dE == 2
 				for (dim = 0; dim < dE-1; dim++) {
 					for (n = 0; n < NvnGc[P]; n++) {

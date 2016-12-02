@@ -80,6 +80,7 @@
 
 #define ARC_LENGTH        1
 #define RADIAL_PROJECTION 2
+#define NORMAL            3
 
 // ELEMENT related numbers
 #define NVEMAX          8  // HEX
