@@ -101,49 +101,66 @@ void compute_plane(const double *XYZ1, const double *XYZ2, const double *XYZ3, d
 		*d_p += n[i]*XYZ3[i];
 }
 
-static void compute_normal_distance(const unsigned int Nn, const double *XYZ_S, const double *n,
-                                    const unsigned int VeSurface)
+static void compute_normal_distance(const unsigned int Nn, const double *XYZ_S, const double *n_S,
+                                    const unsigned int VeSurface, double *XYZ_CmS)
 {
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
 	unsigned int d         = DB.d;
 
 	// Standard datatypes
-	unsigned int n, dim;
-	double       ABC[3], XYZ[DMAX], d[2], XYZ_C[2][DMAX], r[2];
+	unsigned int n, i, dim, FoundD;
+	double       r, D, ABC[3], XYZ[DMAX] = {0.0}, XYZ_C[DMAX] ={0.0};
 
 	if (strstr(TestCase,"Poisson")) {
 		if (VeSurface == 0)
 			r = DB.rIn;
-		else if (data->VeSurface == 1)
+		else if (VeSurface == 1)
 			r = DB.rOut;
 		else
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 
 		for (n = 0; n < Nn; n++) {
-			for (dim = 0; dim < DMAX; dim++)
-				XYZ[dim] = XYZ_S[n*DMAX+dim];
+			XYZ[DMAX-1] = 0.0; // For 2D.
+			for (dim = 0; dim < d; dim++)
+				XYZ[dim] = XYZ_S[n+dim*Nn];
 
-			ABC[0] = -r*r;
+			ABC[0] = 0.0;
 			ABC[1] = 0.0;
-			ABC[2] = 0.0;
+			ABC[2] = -r*r;
 			for (dim = 0; dim < DMAX; dim++) {
-				ABC[0] += n[dim]*n[dim];
-				ABC[1] += 2.0*n[dim]*XYZ[dim];
+				ABC[0] += n_S[dim]*n_S[dim];
+				ABC[1] += n_S[dim]*XYZ[dim];
 				ABC[2] += XYZ[dim]*XYZ[dim];
 			}
+			ABC[1] *= 2.0;
 
 			// Solve quadratic equation
-			d[0] = (-B+sqrt(B*B-4.0*A*C)/(2.0*A);
-			d[1] = (-B-sqrt(B*B-4.0*A*C)/(2.0*A);
 
 			// Check which solution gives the correct radius
-
+			FoundD = 0;
 			for (i = 0; i < 2; i++) {
+				if (!i)
+					D = (-ABC[1]+sqrt(ABC[1]*ABC[1]-4.0*ABC[0]*ABC[2]))/(2.0*ABC[0]);
+				else
+					D = (-ABC[1]-sqrt(ABC[1]*ABC[1]-4.0*ABC[0]*ABC[2]))/(2.0*ABC[0]);
+
+				// If on opposite side of (d+1)-sphere, go to next option
+				if (fabs(D) > r)
+					continue;
+
 				for (dim = 0; dim < d; dim++)
-					XYZ_C[i][dim] = XYZ[dim]+n[dim]*d[i];
-				r[i] = array_norm_d(d,XYZ_C[i],"L2");
+					XYZ_C[dim] = XYZ[dim]+n_S[dim]*D;
+
+				FoundD = 1;
+				break;
 			}
+
+			if (!FoundD)
+				printf("Error: Correct distance not found.\n"), EXIT_MSG;
+
+			for (dim = 0; dim < d; dim++)
+				XYZ_CmS[n+Nn*dim] = XYZ_C[dim]-XYZ[dim];
 		}
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
@@ -348,7 +365,7 @@ static double *compute_BlendV(struct S_Blend *data)
 	} else {
 		printf("Error: Unsupported.\n");
 	}
-
+/*
 if (b == 2) {
 printf("%d\n",b);
 array_print_d(NvnG,1,BlendV,'R');
@@ -357,7 +374,7 @@ array_print_d(NvnG,Nbve[b],I_bGs_vGc,'R');
 array_print_d(NvnG,data->NbnG,data->I_bGc_vGc,'R');
 //EXIT_MSG;
 }
-
+*/
 	return BlendV;
 }
 
@@ -484,20 +501,21 @@ static double *compute_XYZ_update(struct S_Blend *data)
 
 		compute_XYZ(data_XYZ);
 		free(PComps_B);
+/*
 if (b == 2) {
 array_print_d(NbnG,d,XYZ_S,'C');
 array_print_d(NbnG,d,XYZ_CmS,'C');
 //EXIT_MSG;
 }
+*/
 		// Subtract XYZ_S;
 		for (n = 0; n < NbnG*d; n++)
 			XYZ_CmS[n] -= XYZ_S[n];
 
 		free(XYZ_S);
 	} else if (Parametrization == NORMAL) {
-		// Compute XYZ_C
+		// Compute XYZ_S
 		XYZ_S = malloc(NbnG*d * sizeof *XYZ_S); // free
-
 		mm_d(CBCM,CBT,CBNT,NbnG,d,NvnG,1.0,0.0,I_vGc_bGc,XYZ,XYZ_S);
 
 		// Find coordinates of 3 vertices used to compute the normal to the boundary
@@ -520,9 +538,10 @@ array_print_d(NbnG,d,XYZ_CmS,'C');
 				VeXYZ[ve][dim] = XYZ_vV[Nve*dim+VeBcon[b*NbveMax+0]];
 			// Set z component to something non-zero
 			VeXYZ[ve][d] = 1.0;
-
-			for (dim = 0; dim < DMAX; dim++)
-				array_print_d(1,DMAX,VeXYZ[dim],'R');
+/*
+for (dim = 0; dim < DMAX; dim++)
+	array_print_d(1,DMAX,VeXYZ[dim],'R');
+*/
 		}
 
 		n_S = malloc(DMAX * sizeof *n_S); // free
@@ -530,9 +549,9 @@ array_print_d(NbnG,d,XYZ_CmS,'C');
 		compute_plane(VeXYZ[0],VeXYZ[1],VeXYZ[2],n_S,&d_S);
 
 		// Normalize
-		nNorm = array_norm_d(d,n,"L2");
+		nNorm = array_norm_d(d,n_S,"L2");
 		for (dim = 0; dim < d; dim++)
-			n[dim] = n[dim]/nNorm;
+			n_S[dim] = n_S[dim]/nNorm;
 		d_S /= nNorm;
 
 		// Ensure that normal points outwards
@@ -545,15 +564,12 @@ array_print_d(NbnG,d,XYZ_CmS,'C');
 				n_S[dim] *= -1.0;
 			d_S *= -1.0;
 		}
+		array_free2_d(DMAX,VeXYZ);
 
 		// Compute normal distance from straight FACE to curved geometry
-		compute_normal_distance(NbnG,XYZ_S,n_S,VeInfo[2*Nve+VeBcon[b*NbveMax]]);
-EXIT_MSG;
+		compute_normal_distance(NbnG,XYZ_S,n_S,VeInfo[2*Nve+VeBcon[b*NbveMax]],XYZ_CmS);
 
-		// Subtract XYZ_S;
-		for (n = 0; n < NbnG*d; n++)
-			XYZ_CmS[n] -= XYZ_S[n];
-
+		free(n_S);
 		free(XYZ_S);
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
@@ -563,11 +579,13 @@ EXIT_MSG;
 	free(data_XYZ);
 
 	XYZ_update = mm_Alloc_d(CBCM,CBT,CBNT,NvnG,d,NbnG,1.0,I_bGc_vGc,XYZ_CmS); // free
+/*
 #include "Test.h"
 if (b == 2 && TestDB.ML == 2) {
 	array_print_d(NvnG,d,XYZ_update,'C');
 	EXIT_MSG;
 }
+*/
 	free(XYZ_CmS);
 
 	return XYZ_update;
