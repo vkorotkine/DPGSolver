@@ -53,15 +53,36 @@ static void update_MeshFile(void)
 
 	strcpy(DB.MeshFile,"");
 	strcat(DB.MeshFile,DB.MeshPath);
-	strcat(DB.MeshFile,DB.TestCase);
+	strcat(DB.MeshFile,DB.Geometry);
 	strcat(DB.MeshFile,"/");
-	strcat(DB.MeshFile,DB.TestCase);
+	strcat(DB.MeshFile,DB.Geometry);
 	strcat(DB.MeshFile,strcat(d,"D_"));
 	strcat(DB.MeshFile,DB.MeshType);
 	strcat(DB.MeshFile,strcat(ML,"x.msh"));
 
 	free(d);
 	free(ML);
+}
+
+static void update_TestCase(void)
+{
+	if (strstr(DB.TestCase,"Poisson_Ringleb")) {
+		strcpy(DB.TestCase,"Poisson");
+		strcpy(DB.Geometry,"Ringleb");
+	} else if (strstr(DB.TestCase,"Poisson_dm1-Spherical_Section")) {
+		strcpy(DB.TestCase,"Poisson");
+		strcpy(DB.Geometry,"dm1-Spherical_Section");
+	} else if (strstr(DB.TestCase,"L2_proj") ||
+	           strstr(DB.TestCase,"update_h")) {
+		strcpy(DB.TestCase,"PeriodicVortex");
+		strcpy(DB.Geometry,"PeriodicVortex"); // ToBeModified: Rename this.
+	} else if (strstr(DB.TestCase,"linearization")) {
+		strcpy(DB.TestCase,"SupersonicVortex");
+		strcpy(DB.Geometry,"SupersonicVortex"); // ToBeModified: Rename this.
+	} else {
+		printf("%s\n",DB.TestCase);
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
 }
 
 void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigned int update_argv)
@@ -82,10 +103,10 @@ void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigne
 	// Initialization
 	initialization(nargc,argv);
 	if (update_argv) {
-		strcpy(DB.TestCase,TestDB.TestCase);
 		DB.PGlobal = TestDB.PGlobal;
 		if (update_argv == 1)
-			DB.ML      = TestDB.ML;
+			DB.ML = TestDB.ML;
+		update_TestCase();
 		update_MeshFile();
 	}
 
@@ -131,10 +152,10 @@ void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, co
 		// Initialization
 		initialization(nargc,argv);
 		if (update_argv) {
-			strcpy(DB.TestCase,TestDB.TestCase);
 			DB.PGlobal = TestDB.PGlobal;
 			if (update_argv == 1)
 				DB.ML      = TestDB.ML;
+			update_TestCase();
 			update_MeshFile();
 		}
 
@@ -162,7 +183,7 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
                               const unsigned int PMax, unsigned int *pass)
 {
 	// Initialize DB Parameters
-	char         *TestCase = TestDB.TestCase,
+	char         *TestCase = DB.TestCase,
 	             *MeshType = DB.MeshType;
 	unsigned int d         = DB.d;
 

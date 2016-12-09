@@ -81,7 +81,8 @@ static void check_levels_refine(const unsigned int indexg, struct S_VInfo **VInf
 void initialize_test_case_parameters(void)
 {
 	// Initialize DB Parameters
-	char         *TestCase = DB.TestCase;
+	char         *TestCase = DB.TestCase,
+	             *Geometry = DB.Geometry;
 	unsigned int d         = DB.d;
 
 	DB.Nvar = d+2; // Euler and NS Equations
@@ -96,19 +97,30 @@ void initialize_test_case_parameters(void)
 		strcpy(SolverType,"Implicit");
 		SourcePresent = 1;
 
-		DB.rIn  = 0.5;
-		DB.rOut = 1.0;
+		if (strstr(Geometry,"dm1-Spherical_Section")) {
+			DB.rIn  = 0.5;
+			DB.rOut = 1.0;
+		} else if (strstr(Geometry,"Ringleb")) {
+			DB.Q0   = 0.5;
+			DB.KMin = 0.7;
+			DB.KMax = 1.5;
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+		}
 
 		DB.Nvar = 1;
 		DB.Neq  = 1;
 	} else if (strstr(TestCase,"dSphericalBump")) {
-		DB.rIn = 0.1;
+//		DB.rIn = 0.1;
 		EXIT_MSG;
 	} else if (strstr(TestCase,"GaussianBump")) {
+
+		DB.GBa = 0.0625;
+		DB.GBb = 0.0;
+		DB.GBc = 0.2;
+
 		EXIT_MSG;
-	} else if (strstr(TestCase,"PeriodicVortex") ||
-	           strstr(TestCase,"Test_L2_proj")   ||
-	           strstr(TestCase,"Test_update_h")) {
+	} else if (strstr(TestCase,"PeriodicVortex")) {
 		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 		strcpy(SolverType,"Explicit");
 		SourcePresent = 0;
@@ -139,8 +151,7 @@ void initialize_test_case_parameters(void)
 			DB.FinalTime = DB.PeriodFraction*DB.PeriodL/DB.VInf;
 	} else if (strstr(TestCase,"PolynomialBump")) {
 		EXIT_MSG;
-	} else if (strstr(TestCase,"SupersonicVortex") ||
-	           strstr(TestCase,"Test_linearization")) {
+	} else if (strstr(TestCase,"SupersonicVortex")) {
 		// Standard datatypes
 		double pIn, cIn;
 

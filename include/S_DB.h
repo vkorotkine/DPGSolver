@@ -12,7 +12,7 @@ struct S_DB {
 	int MPIsize, MPIrank;
 
 	// Initialization
-	char         *TestCase, *MeshType, *MeshPath, *Form, *NodeType, *BasisType, *MeshFile;
+	char         *TestCase, *MeshType, *MeshPath, *Form, *NodeType, *BasisType, *MeshFile, *Geometry;
 	unsigned int d, ML, Vectorized, EFE, Collocated, Adapt, PGlobal, PMax, LevelsMax, Testing, *BumpOrder;
 	int          Restart;
 
@@ -36,7 +36,7 @@ struct S_DB {
 	char         *SolverType;
 	unsigned int Nvar, Neq, OutputInterval, DOF0, SourcePresent;
 	double       Xc, Yc, Rc, MInf, pInf, TInf, VInf, uInf, vInf, wInf, Rg, Cscale, PeriodL, PeriodFraction, FinalTime,
-	             rIn, MIn, rhoIn, VIn, rOut;
+	             rIn, MIn, rhoIn, VIn, rOut, Q0, KMin, KMax, GBa, GBb, GBc;
 
 	// Solving
 	unsigned int dof;

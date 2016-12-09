@@ -99,7 +99,7 @@
 #define NSUBFMAX        4  // QUAD/TRI (Isotropic refinement)
 #define NVISUBFMAX      16 // TET (Isotropic refinement to 12 TETs)
 #define NSIBMAX         12 // TET (12 TET)
-#define NVEINFO         3
+#define NVEINFO         4
 
 // Cubature related numbers
 #define PIvcMaxTET 10

@@ -46,6 +46,7 @@
  *		         (0): curved
  *		         (1): update
  *		         (2): curved surface index
+ *		         (3): Ringleb (f)low/(w)all flag
  *
  *	References:
 */
@@ -131,13 +132,14 @@ case ADAPT_HP:
 static void mark_curved_vertices()
 {
 	// Initialize DB Parameters
-	unsigned int d      = DB.d,
-	             NVe    = DB.NVe,
-	             *NE    = DB.NE,
-	             *EToVe = DB.EToVe;
+	char         *Geometry = DB.Geometry;
+	unsigned int d         = DB.d,
+	             NVe       = DB.NVe,
+	             *NE       = DB.NE,
+	             *EToVe    = DB.EToVe;
 
 	// Standard datatypes
-	unsigned int dim, f, ve, Indve, Vs, *Nfve, *VeFcon, *VeInfo;
+	unsigned int dim, f, ve, Indve, Vs, *Nfve, *VeFcon, *VeInfo, BC, RinglebType;
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_FACE   *FACE;
@@ -155,6 +157,16 @@ static void mark_curved_vertices()
 		if (!FACE->curved)
 			continue;
 
+		BC = FACE->BC;
+
+		RinglebType = UINT_MAX;
+		if (strstr(Geometry,"Ringleb")) {
+			if (BC % BC_STEP_SC == BC_RIEMANN || BC % BC_STEP_SC == BC_DIRICHLET)
+				RinglebType = 'f';
+			else if (BC % BC_STEP_SC == BC_SLIPWALL || BC % BC_STEP_SC == BC_NEUMANN)
+				RinglebType = 'w';
+		}
+
 		VOLUME = FACE->VIn;
 		f      = (FACE->VfIn)/NFREFMAX;
 
@@ -167,6 +179,7 @@ static void mark_curved_vertices()
 			Indve = EToVe[(Vs+(VOLUME->indexg))*NVEMAX+VeFcon[f*NFVEMAX+ve]];
 			VeInfo[0*NVe+Indve] = 1;
 			VeInfo[1*NVe+Indve] = 1;
+			VeInfo[3*NVe+Indve] = RinglebType;
 		}
 	}
 }

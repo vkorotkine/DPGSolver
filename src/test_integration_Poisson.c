@@ -130,8 +130,6 @@ void test_integration_Poisson(int nargc, char **argv)
 
 	strcpy(argvNew[0],argv[0]);
 
-	TestDB.TestCase = malloc(STRLEN_MAX * sizeof *(TestDB.TestCase)); // free
-
 	/*
 	 *	Input:
 	 *
@@ -150,8 +148,6 @@ void test_integration_Poisson(int nargc, char **argv)
 
 	data = calloc(1 , sizeof *data); // free
 
-
-	strcpy(TestDB.TestCase,"Poisson");
 
 	// **************************************************************************************************** //
 	// Linearization Testing
@@ -188,7 +184,8 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	// **************************************************************************************************** //
 	// Convergence Order Testing
 	// **************************************************************************************************** //
-	strcpy(argvNew[1],"test/Test_Poisson_2D_TRI");
+	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_TRI");
+//	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
 //	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
 //	strcpy(argvNew[1],"test/Test_Poisson_3D_HEX");
@@ -205,8 +202,8 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 6;
-	MLMin = 0; MLMax = 4;
+	PMin  = 1; PMax  = 4;
+	MLMin = 0; MLMax = 3;
 TestDB.PGlobal = 4;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
@@ -259,5 +256,4 @@ TestDB.PGlobal = 4;
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 	free(TestName);
 	free(data);
-	free(TestDB.TestCase);
 }

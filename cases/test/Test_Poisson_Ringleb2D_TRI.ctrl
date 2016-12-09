@@ -8,10 +8,11 @@ BEGIN PARAMETERS
   Dimension  2
   ML         0
   MeshType   CurvedTRI
+  Geometry   Ringleb
 
   Form       Strong // Options: Weak, (Strong)
   NodeType   GLL-AO  // Options: GL/GLL-AO/WSH/EQ
-  BasisType  Modal  // Options: Nodal, Modal
+  BasisType  Nodal  // Options: Nodal, Modal
 
   Vectorized 0     // Options: 0, 1
   EFE        1     // Options: (0), 1
@@ -19,7 +20,7 @@ BEGIN PARAMETERS
   Adapt      3     // Options: 0, 1, 2, (3)
 
   PGlobal    1
-  PMax       8
+  PMax       6
   LevelsMax  5
 
   Restart    -1    // Options: -1, 0, Iteration #

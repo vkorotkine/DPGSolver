@@ -184,8 +184,9 @@ $(EXECDIR):
 
 
 OUTPUT_LIST   := paraview errors results
-TESTCASE_LIST := PeriodicVortex SupersonicVortex VortexRiemann \
-                 Poisson
+TESTCASE_LIST := PeriodicVortex SupersonicVortex VortexRiemann Poisson Poisson_Ringleb
+# To BeModified (Remove unneeded meshcases folders which may have been created previously)
+MESHCASE_LIST := Ringleb dm1-Spherical_Section d-Cube Annular_Section
 # ToBeModified (Remove unneeded meshtypes)
 MESHTYPE_LIST := ToBeCurvedStructuredTRI ToBeCurvedStructuredQUAD ToBeCurvedStructuredTET ToBeCurvedStructuredHEX \
                  ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR ToBeCurvedMixed ToBeCurvedTET \
@@ -193,6 +194,7 @@ MESHTYPE_LIST := ToBeCurvedStructuredTRI ToBeCurvedStructuredQUAD ToBeCurvedStru
 
 OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))
 TESTCASE_LIST := $(subst $(space),$(comma),$(TESTCASE_LIST))
+MESHCASE_LIST := $(subst $(space),$(comma),$(MESHCASE_LIST))
 MESHTYPE_LIST := $(subst $(space),$(comma),$(MESHTYPE_LIST))
 
 
@@ -200,7 +202,7 @@ MESHTYPE_LIST := $(subst $(space),$(comma),$(MESHTYPE_LIST))
 .PHONY : directories
 directories:
 	mkdir -p cases/{$(OUTPUT_LIST)}/{$(TESTCASE_LIST)}/{$(MESHTYPE_LIST)}
-	mkdir -p meshes/{$(TESTCASE_LIST)}
+	mkdir -p meshes/{$(MESHCASE_LIST)}
 	mkdir -p meshes/Test
 
 

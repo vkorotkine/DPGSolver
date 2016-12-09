@@ -36,8 +36,6 @@ void test_integration_L2_projection_errors(int nargc, char **argv)
 
 	strcpy(argvNew[0],argv[0]);
 
-	TestDB.TestCase = malloc(STRLEN_MAX * sizeof *(TestDB.TestCase)); // free
-
 	DB.TestL2projection = 1;
 
 	/*
@@ -61,8 +59,6 @@ void test_integration_L2_projection_errors(int nargc, char **argv)
 	// TRIs
 	strcpy(argvNew[1],"test/Test_L2_proj_errors_TRI");
 
-	strcpy(TestDB.TestCase,"SupersonicVortex");
-
 	TestDB.PG_add = 0;
 	TestDB.IntOrder_mult = 2;
 
@@ -84,5 +80,4 @@ printf("pass: %d\n",pass);
 
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
-	free(TestDB.TestCase);
 }
