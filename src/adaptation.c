@@ -17,6 +17,7 @@
 #include "array_sort.h"
 #include "update_VOLUMEs.h"
 #include "update_FACEs.h"
+#include "setup_geometry.h"
 #include "memory_free.h"
 
 /*

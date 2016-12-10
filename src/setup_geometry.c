@@ -275,6 +275,30 @@ static void mark_curved_VOLUME(struct S_VOLUME *VOLUME)
 	}
 }
 
+static void set_VOLUME_BC_info(void)
+{
+	/*
+	 *	Purpose:
+	 *		Store appropriate (B)oundary (C)ondition information for VOLUMEs which is required for curved mesh
+	 *		generation.
+	 *
+	 *	Comments:
+	 *		BC[0] is for FACEs and BC[1] is for EDGEs.
+	 */
+
+	unsigned int Vf;
+
+	struct S_FACE *FACE;
+
+	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		if (!FACE->BC)
+			continue;
+
+		Vf = FACE->VfIn;
+		FACE->VIn->BC[0][Vf/NFREFMAX] = FACE->BC;
+	}
+}
+
 void setup_geometry(void)
 {
 	// Initialize DB Parameters
@@ -380,6 +404,7 @@ void setup_geometry(void)
 		if (!DB.MPIrank)
 			printf("    Set geometry of VOLUME nodes in Curved Mesh\n");
 
+		set_VOLUME_BC_info();
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 			setup_Curved(VOLUME);
 	} else {
@@ -392,6 +417,8 @@ void setup_geometry(void)
 	for (FACE = DB.FACE; FACE; FACE = FACE->next)
 		setup_FACE_XYZ(FACE);
 
+output_to_paraview("ZTest_Geom_curved"); // Output curved coordinates to paraview
+EXIT_MSG;
 	if (!DB.MPIrank && !DB.Testing)
 		printf("    Set up geometric factors\n");
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)

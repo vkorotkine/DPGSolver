@@ -13,7 +13,7 @@ struct S_VOLUME {
 	double *XYZ_vV;
 
 	// Geometry
-	unsigned int NvnG, *VeInd, *VeInfo;
+	unsigned int NvnG, *VeInd, *VeInfo, **BC;
 	double *XYZ_S, *XYZ, *detJV_vI, *C_vC, *C_vI, **C_vf;
 
 	// Initialization

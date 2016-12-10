@@ -86,6 +86,20 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	}
 }
 
+static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vhm1, unsigned int **BC)
+{
+	switch (VOLUME->type) {
+	case TRI:
+		if      (vhm1 == 0) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; }
+		else if (vhm1 == 1) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][2] = BC[0][2]; }
+		else if (vhm1 == 2) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][1] = BC[0][1]; }
+		break;
+	default:
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+		break;
+	}
+}
+
 void update_VOLUME_hp(void)
 {
 	// Initialize DB Parameters
@@ -344,6 +358,9 @@ void update_VOLUME_hp(void)
 
 						// Ensure that vertices are place on the curved boundaries
 						vertices_to_exact_geom_VOLUME(VOLUMEc);
+
+						// Set VOLUME BC Information
+						set_VOLUMEc_BC_Info(VOLUMEc,vh-1,VOLUME->BC);
 					} else {
 						for (ve = 0; ve < Nve; ve++) {
 							VeInfo[ve+Nve*0] = 0;

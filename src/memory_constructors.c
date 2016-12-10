@@ -486,9 +486,12 @@ struct S_VOLUME *New_VOLUME(void)
 	// Geometry
 	VOLUME->VeInd  = calloc(NVEMAX         , sizeof *(VOLUME->VeInd));  // free
 	VOLUME->VeInfo = calloc(NVEMAX*NVEINFO , sizeof *(VOLUME->VeInfo)); // free
-	VOLUME->NvnG  = UINT_MAX;
-	VOLUME->XYZ_S = NULL; // free
-	VOLUME->XYZ   = NULL; // free
+	VOLUME->BC     = calloc(2     , sizeof *(VOLUME->BC));    // free
+	VOLUME->BC[0]  = calloc(NFMAX , sizeof *(VOLUME->BC[0])); // free
+	VOLUME->BC[1]  = calloc(NEMAX , sizeof *(VOLUME->BC[1])); // free
+	VOLUME->NvnG   = UINT_MAX;
+	VOLUME->XYZ_S  = NULL; // free
+	VOLUME->XYZ    = NULL; // free
 
 	VOLUME->detJV_vI = NULL; // free
 	VOLUME->C_vC     = NULL; // free

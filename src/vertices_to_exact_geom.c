@@ -141,7 +141,7 @@ void vertices_to_exact_geom(void)
 				y = VeXYZ[ve*d+1];
 
 				q = Q0;
-				if (y < 0.0) {
+				if (y > 0.0) {
 					VeSurface[ve] = 0; // Inflow
 				} else {
 					VeSurface[ve] = 1; // Outflow
@@ -218,7 +218,6 @@ void vertices_to_exact_geom(void)
 				printf("Error: Unsupported.\n"), EXIT_MSG;
 			}
 		}
-EXIT_MSG;
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
