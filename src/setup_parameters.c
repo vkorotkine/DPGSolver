@@ -230,12 +230,12 @@ void setup_parameters()
 	for (i = 0; i < NEC; i++)
 		NodeTypeG[i] = malloc(STRLEN_MIN * sizeof **NodeTypeG); // keep
 
-//	strcpy(NodeTypeG[0],"GLL");
-//	strcpy(NodeTypeG[1],"AO");
-//	strcpy(NodeTypeG[2],"GLL");
-	strcpy(NodeTypeG[0],"EQ");
-	strcpy(NodeTypeG[1],"EQ");
-	strcpy(NodeTypeG[2],"EQ");
+	strcpy(NodeTypeG[0],"GLL");
+	strcpy(NodeTypeG[1],"AO");
+	strcpy(NodeTypeG[2],"GLL");
+//	strcpy(NodeTypeG[0],"EQ");
+//	strcpy(NodeTypeG[1],"EQ");
+//	strcpy(NodeTypeG[2],"EQ");
 
 	// Order dependent parameters
 	for (P = 0; P <= PMax; P++) {
@@ -624,6 +624,7 @@ void setup_parameters_L2proj(void)
 	for (P = 0; P <= PMax; P++) {
 		// Geometry
 		PGc[P]    = max(P,u1)+PG_add;
+//PGc[P] = min(max(P,u1),(unsigned int) 2);
 		PCs[P][0] = (d-1)*PGs;
 		PCs[P][1] = (d-1)*max(PGs-1,u1);
 		PCs[P][2] = (d-1)*PGs;

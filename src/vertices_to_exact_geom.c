@@ -15,6 +15,7 @@
 #include "S_VOLUME.h"
 
 #include "element_functions.h"
+#include "matrix_functions.h"
 #include "array_norm.h"
 
 #include "array_print.h"
@@ -32,8 +33,100 @@
 
 double f_gaussian_bump(const double x, const double y, const unsigned int d);
 
+void Ringleb_boundary(double *xStore, double *yStore, double qIn, double kIn, const char RinglebType)
+{
+	unsigned int OnCorner = 0;
+	double       a, rho, J, x, y, sign_y;
+
+	x = *xStore;
+
+	sign_y = 1.0;
+	if (*yStore < 0.0)
+		sign_y = -1.0;
+
+	if (RinglebType == 'f') {
+		const double q = qIn;
+		double       k;
+
+		a   = sqrt(1.0-0.5*GM1*q*q);
+		rho = pow(a,2.0/GM1);
+		J   = 1.0/a+1.0/(3.0*pow(a,3.0))+1.0/(5.0*pow(a,5.0))-0.5*log((1.0+a)/(1.0-a));
+
+		k = sqrt(2.0/(2.0*rho*(x+0.5*J)+1.0/(q*q)));
+		y = sign_y/(k*k*rho*q)*sqrt(k*k-q*q);
+	} else if (RinglebType == 'w') {
+		// Initialize DB Parameters
+		double Q0 = DB.Q0;
+
+		// Standard datatypes
+		unsigned int i, iMax;
+		const double k = kIn;
+		double       q, f, dadq, drhodq, dJdq, dfdq;
+
+		// Use Newton's method to find q (using equation for x-coordinate)
+		q = 0.5*(k+Q0);
+		for (i = 0, iMax = 20; i < iMax; i++) {
+			OnCorner = 0;
+
+			a   = sqrt(1.0-0.5*GM1*q*q);
+			rho = pow(a,2.0/GM1);
+			J   = 1.0/a+1.0/(3.0*pow(a,3.0))+1.0/(5.0*pow(a,5.0))-0.5*log((1.0+a)/(1.0-a));
+
+			f = 0.5/rho*(2.0/(k*k)-1.0/(q*q))-0.5*J-x;
+
+			dadq   = 0.5*pow(1.0-0.5*GM1*q*q,-0.5)*(-GM1*q);
+			drhodq = 2.0/GM1*pow(a,2.0/GM1-1.0)*dadq;
+			dJdq   = -1.0*(pow(a,-2.0)+pow(a,-4.0)+pow(a,-6.0)-1.0/(a*a-1.0))*dadq;
+			dfdq   = -pow(k*rho,-2.0)*drhodq-0.5*(-pow(rho*q*q,-2.0)*(q*q*drhodq+2*rho*q)+dJdq);
+
+			q -= f/dfdq;
+			if (q < Q0) {
+				OnCorner = 1;
+				q = Q0;
+			} else if (q > k) {
+				OnCorner = 1;
+				q = k;
+			}
+
+			if (fabs(f/dfdq) < 1e2*EPS)
+				break;
+		}
+		if (i == iMax)
+			printf("Error: Newton's method not converging (% .3e).\n",fabs(f/dfdq)), EXIT_MSG;
+
+		y = sign_y/(k*k*rho*q)*sqrt(k*k-q*q);
+
+		if (OnCorner) {
+			a   = sqrt(1.0-0.5*GM1*q*q);
+			rho = pow(a,2.0/GM1);
+			J   = 1.0/a+1.0/(3.0*pow(a,3.0))+1.0/(5.0*pow(a,5.0))-0.5*log((1.0+a)/(1.0-a));
+
+			x = 0.5/rho*(2.0/(k*k)-1.0/(q*q))-0.5*J;
+			y = sign_y/(k*k*rho*q)*sqrt(k*k-q*q);
+		}
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+
+	// Correct y-coordinate
+	*xStore = x;
+	*yStore = y;
+}
+
 void vertices_to_exact_geom(void)
 {
+	/*
+	 *	Purpose:
+	 *		Move vertices from the initial mesh file to ensure that they are on the boundary to within close to machine
+	 *		precision.
+	 *
+	 *	Comments:
+	 *		The surface parametrization used to achieve this purpose here is not so crucial as the points are already
+	 *		very close to being correctly placed on the boundary. However, using an analogous function to move newly
+	 *		created vertices to the boundary must more carefully account for a good surface parametrization so as to
+	 *		choose good vertex placement in regions of high curvature.
+	 */
+
 	// Initialize DB Parameters
 	unsigned int d         = DB.d,
 	             NVe       = DB.NVe,
@@ -121,7 +214,7 @@ void vertices_to_exact_geom(void)
 		}
 	} else if (strstr(Geometry,"Ringleb")) {
 		unsigned int *VeRingleb;
-		double       Q0, KMin, KMax, q, k, x, y, a, rho, J;
+		double       Q0, KMin, KMax, k, x, y;
 
 		Q0   = DB.Q0;
 		KMin = DB.KMin;
@@ -135,39 +228,19 @@ void vertices_to_exact_geom(void)
 
 			VeUpdate[ve] = 0;
 
-			// Find which surface this vertex is located on.
-			if (VeRingleb[ve] == 'f') {
-				x = VeXYZ[ve*d];
-				y = VeXYZ[ve*d+1];
+			// Correct y-coordinate based on which surface the vertex is located.
+			x = VeXYZ[ve*d];
+			y = VeXYZ[ve*d+1];
 
-				q = Q0;
+			if (VeRingleb[ve] == 'f') {
 				if (y > 0.0) {
 					VeSurface[ve] = 0; // Inflow
 				} else {
 					VeSurface[ve] = 1; // Outflow
 				}
 
-				a   = sqrt(1.0-0.5*GM1*q*q);
-				rho = pow(a,2.0/GM1);
-				J   = 1.0/a+1.0/(3.0*pow(a,3.0))+1.0/(5.0*pow(a,5.0))-0.5*log((1.0+a)/(1.0-a));
-
-				k = sqrt(2.0/(2.0*rho*(x+0.5*J)+1.0/(q*q)));
-
-				// Correct y-coordinate
-				y = sign(y)/(k*rho*q)*sqrt(1.0-pow(q/k,2.0));
-				VeXYZ[ve*d+1] = y;
+				Ringleb_boundary(&VeXYZ[ve*d+0],&VeXYZ[ve*d+1],Q0,0.0,'f');
 			} else if (VeRingleb[ve] == 'w') {
-				unsigned int count, countMax;
-				double       sign_y, f, dfdq, relax;
-
-				x = VeXYZ[ve*d];
-				y = VeXYZ[ve*d+1];
-
-				if (y < 0.0)
-					sign_y = -1.0;
-				else
-					sign_y =  1.0;
-
 				if (x < 0.0) {
 					k = KMax;
 					VeSurface[ve] = 2; // Inner wall
@@ -176,113 +249,13 @@ void vertices_to_exact_geom(void)
 					VeSurface[ve] = 3; // Outer wall
 				}
 
-				// Use Newton's method (with relaxation) to find q (using equation for y-coordinate)
-				q = 0.5*(Q0+k);
-
-				countMax = 50;
-				relax = 0.5;
-				for (count = 0; count < countMax; count++) {
-					a   = sqrt(1.0-0.5*GM1*q*q);
-					rho = pow(a,2.0/GM1);
-
-					f = sign_y/(k*k*rho*q)*sqrt(k*k-q*q)-y;
-					// Do not compute denominator if f == 0.0 as it may be 'inf'
-					if (fabs(f) < EPS)
-						dfdq = 1.0;
-					else
-						dfdq = sign_y*(pow((1.0-0.5*GM1*q*q),-1.0/GM1)*(2.0*pow(q,4.0)-k*k*((GAMMA+1)*q*q-2.0))/
-						               (k*k*q*q*(GM1*q*q-2.0)*sqrt(k*k-q*q)));
-					q -= relax*f/dfdq;
-
-					if (q < Q0)
-						q = Q0;
-					else if (q > k)
-						q = k;
-
-					relax = (1-fabs(f/dfdq))*1.0;
-
-					if (fabs(f/dfdq) < 1e2*EPS)
-						break;
-				}
-				if (count == countMax)
-					printf("Error: Newton's method not converging.\n"), EXIT_MSG;
-
-				a   = sqrt(1.0-0.5*GM1*q*q);
-				rho = pow(a,2.0/GM1);
-				J   = 1.0/a+1.0/(3.0*pow(a,3.0))+1.0/(5.0*pow(a,5.0))-0.5*log((1.0+a)/(1.0-a));
-
-				// Correct x-coordinate
-				x = 1.0/(2.0*rho)*(2.0/(k*k)-1.0/(q*q))-0.5*J;
-				VeXYZ[ve*d] = x;
+				Ringleb_boundary(&VeXYZ[ve*d+0],&VeXYZ[ve*d+1],0.0,k,'w');
 			} else {
 				printf("Error: Unsupported.\n"), EXIT_MSG;
 			}
 		}
-	} else {
-		printf("Error: Unsupported.\n"), EXIT_MSG;
-	}
-}
-
-void vertices_to_exact_geom_VOLUME(struct S_VOLUME *VOLUME)
-{
-	// Initialize DB Parameters
-	char         *Geometry = DB.Geometry;
-	unsigned int d         = DB.d;
-
-	// Standard datatypes
-	unsigned int ve, Nve, *VeUpdate, *VeSurface;
-	double       *XYZ, *X, *Y, *Z;
-
-	struct S_ELEMENT *ELEMENT;
-
-	// silence
-	Z = NULL;
-
-	ELEMENT = get_ELEMENT_type(VOLUME->type);
-
-	Nve = ELEMENT->Nve;
-
-	VeUpdate  = &VOLUME->VeInfo[Nve*1];
-	VeSurface = &VOLUME->VeInfo[Nve*2];
-
-	XYZ = VOLUME->XYZ_vV;
-
-	X = &XYZ[0*Nve];
-	Y = &XYZ[1*Nve];
-	if (d == 3)
-		Z = &XYZ[2*Nve];
-
-	if (strstr(Geometry,"dm1-Spherical_Section")) {
-		double rIn, rOut, r, rXYZ, t, p;
-
-		rIn  = DB.rIn;
-		rOut = DB.rOut;
-
-		for (ve = 0; ve < Nve; ve++) {
-			if (!VeUpdate[ve])
-				continue;
-
-			if (VeSurface[ve] == 0)
-				r = rIn;
-			else if (VeSurface[ve] == 1)
-				r = rOut;
-			else
-				printf("Error: Unsupported.\n"), EXIT_MSG;
-
-			t = atan2(Y[ve],X[ve]);
-
-			if (d == 2) {
-				X[ve] = r*cos(t);
-				Y[ve] = r*sin(t);
-			} else if (d == 3) {
-				rXYZ = sqrt(X[ve]*X[ve]+Y[ve]*Y[ve]+Z[ve]*Z[ve]);
-				p = acos(Z[ve]/rXYZ);
-
-				X[ve] = r*cos(t)*sin(p);
-				Y[ve] = r*sin(t)*sin(p);
-				Z[ve] = r*cos(p);
-			}
-		}
+	} else if (strstr(Geometry,"PeriodicVortex")) {
+		// Do nothing
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}

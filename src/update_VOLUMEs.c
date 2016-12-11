@@ -24,7 +24,6 @@
 #include "setup_ToBeCurved.h"
 #include "setup_Curved.h"
 #include "setup_geometry.h"
-#include "vertices_to_exact_geom.h"
 #include "setup_geom_factors.h"
 #include "memory_constructors.h"
 
@@ -45,7 +44,7 @@
  */
 
 struct S_OPERATORS {
-	unsigned int NvnGs, NvnGc, NvnS, *Nvve, NvnSP, NvnI;
+	unsigned int NvnGs, NvnGc, NvnS, *Nvve, NvnSP, NvnI, **VeMask;
 	double       *I_vGs_vGc, **I_vGs_vGs, **Ihat_vS_vS, **L2hat_vS_vS, *w_vI, *ChiS_vI;
 };
 
@@ -73,6 +72,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	OPS->Ihat_vS_vS = ELEMENT->Ihat_vS_vS[P][PNew]; // ToBeDeleted: Remove all instances of Ihat_vS_vS from the code if
 	                                                //              not used here.
 	OPS->L2hat_vS_vS = ELEMENT->L2hat_vS_vS[P][PNew];
+	OPS->VeMask      = ELEMENT->VeMask[1][2];
 	if (!curved) {
 		OPS->NvnI = ELEMENT->NvnIs[P];
 
@@ -86,13 +86,13 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	}
 }
 
-static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vhm1, unsigned int **BC)
+static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, unsigned int **BC)
 {
 	switch (VOLUME->type) {
 	case TRI:
-		if      (vhm1 == 0) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; }
-		else if (vhm1 == 1) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][2] = BC[0][2]; }
-		else if (vhm1 == 2) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][1] = BC[0][1]; }
+		if      (vh == 1) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; }
+		else if (vh == 2) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][2] = BC[0][2]; }
+		else if (vh == 3) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][1] = BC[0][1]; }
 		break;
 	default:
 		printf("Error: Unsupported.\n"), EXIT_MSG;
@@ -114,9 +114,9 @@ void update_VOLUME_hp(void)
 	             *TestCase = DB.TestCase;
 
 	// Standard datatypes
-	unsigned int i, j, ve, iMax, P, PNew, f, level, adapt_type, vh, vhMin, vhMax, VType, Nf, Nve,
-	             IndEhref, NvnGs[2], NvnGc[2], NvnS[2], NvnSP, NCols, update, maxP, *VeInfo, cVeCount;
-	double       *I_vGs_vGc[2], *XYZ_vV, *XYZ_S,
+	unsigned int i, j, ve, dim, iMax, P, PNew, f, level, adapt_type, vh, vhMin, vhMax, VType, Nf, Nve, NveP2,
+	             IndEhref, NvnGs[2], NvnGc[2], NvnS[2], NvnSP, NCols, update, maxP, *VeInfo, cVeCount, **VeMask;
+	double       *I_vGs_vGc[2], *XYZ_vV, *XYZ_vVP2, *XYZ_S,
 	             **Ihat_vS_vS, **I_vGs_vGs, **L2hat_vS_vS, *What, *RES, *WhatP, *WhatH, *RESP, *RESH, *dummyPtr_d,
 	             *uhat, *uhatP, *uhatH;
 
@@ -276,6 +276,7 @@ void update_VOLUME_hp(void)
 				NvnS[0]      = OPS->NvnS;
 				I_vGs_vGs    = OPS->I_vGs_vGs;
 				I_vGs_vGc[0] = OPS->I_vGs_vGc;
+				VeMask       = OPS->VeMask;
 
 				NCols = d;
 
@@ -317,12 +318,13 @@ void update_VOLUME_hp(void)
 					IndEhref = get_IndEhref(VType,vh);
 
 					VOLUMEc->XYZ_vV = malloc(NvnGs[IndEhref]*d * sizeof *XYZ_vV); // keep
-					mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vV,VOLUMEc->XYZ_vV);
 
+					// May not need VeInfo for new VOLUMEs if avoiding usage for treating curved geometry (ToBeDeleted)
 					Nve    = ELEMENT->Nve;
 					VeInfo = VOLUMEc->VeInfo;
 
 					if (AC) {
+						mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vV,VOLUMEc->XYZ_vV);
 						VOLUMEc->curved = 1;
 					} else if (VOLUME->curved) {
 						// Determined VeInfo for VOLUMEc
@@ -341,9 +343,13 @@ void update_VOLUME_hp(void)
 										VeInfo[ve+Nve*0] = 0;
 										VeInfo[ve+Nve*1] = 0;
 										VeInfo[ve+Nve*2] = UINT_MAX;
+										VeInfo[ve+Nve*3] = 0;
 										break;
 									} else {
 										VeInfo[ve+Nve*2] = VOLUME->VeInfo[j+NvnGs[0]*2];
+										// This is incorrect (currently not used) for vertices shared by two curved surfaces.
+//										VeInfo[ve+Nve*3] = VOLUME->VeInfo[j+NvnGs[0]*3];
+										VeInfo[ve+Nve*3] = UINT_MAX;
 									}
 								}
 							}
@@ -357,11 +363,27 @@ void update_VOLUME_hp(void)
 							VOLUMEc->curved = 1; // Curved FACE
 
 						// Ensure that vertices are place on the curved boundaries
-						vertices_to_exact_geom_VOLUME(VOLUMEc);
+						NveP2 = ELEMENT->NveP2;
+
+						if (vh == vhMin) {
+							VOLUME->XYZ_vVP2 = malloc(NveP2*d * sizeof *XYZ_vVP2); // keep
+							setup_Curved_vertices(VOLUME);
+						}
+
+						if (DB.TETrefineType == TET12)
+							printf("Error: VeMask not correct for this case.\n"), EXIT_MSG;
+
+						XYZ_vV   = VOLUMEc->XYZ_vV;
+						XYZ_vVP2 = VOLUME->XYZ_vVP2;
+						for (ve = 0; ve < Nve; ve++) {
+							for (dim = 0; dim < d; dim++)
+								XYZ_vV[ve+Nve*dim] = XYZ_vVP2[VeMask[vh][ve]+NveP2*dim];
+						}
 
 						// Set VOLUME BC Information
-						set_VOLUMEc_BC_Info(VOLUMEc,vh-1,VOLUME->BC);
+						set_VOLUMEc_BC_Info(VOLUMEc,vh,VOLUME->BC);
 					} else {
+						mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vV,VOLUMEc->XYZ_vV);
 						for (ve = 0; ve < Nve; ve++) {
 							VeInfo[ve+Nve*0] = 0;
 							VeInfo[ve+Nve*1] = 0;

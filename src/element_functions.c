@@ -45,6 +45,7 @@ void initialize_ELEMENTs(void)
 	 *		Eclass   : (E)lement (class)
 	 *		d        : (d)imension
 	 *		Nve      : (N)umber of local (ve)rtices
+	 *		NveP2    : (N)umber of local (ve)rtices after uniform h- or P2-refinement
 	 *		Nfve     : (N)umber of local (f)ace (ve)rtices
 	 *		Nf       : (N)umber of local (f)aces
 	 *		NEhref   : (N)umber of (E)lement types after (h)-(ref)inement
@@ -77,6 +78,7 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_TP;
 	ELEMENT->d         = 0;
 	ELEMENT->Nve       = 1;
+	ELEMENT->NveP2     = 1;
 	ELEMENT->Ne        = 1;
 	ELEMENT->Nf        = 1;
 	ELEMENT->NEhref    = 1;
@@ -96,6 +98,7 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_TP;
 	ELEMENT->d         = 1;
 	ELEMENT->Nve       = 2;
+	ELEMENT->NveP2     = 3;
 	ELEMENT->Ne        = 2;
 	ELEMENT->Nf        = 2;
 	ELEMENT->NEhref    = 1;
@@ -117,6 +120,7 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_SI;
 	ELEMENT->d         = 2;
 	ELEMENT->Nve       = 3;
+	ELEMENT->NveP2     = 6;
 	ELEMENT->Ne        = 3;
 	ELEMENT->Nf        = 3;
 	ELEMENT->NEhref    = 1;
@@ -139,6 +143,7 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_TP;
 	ELEMENT->d         = 2;
 	ELEMENT->Nve       = 4;
+	ELEMENT->NveP2     = 9;
 	ELEMENT->Ne        = 4;
 	ELEMENT->Nf        = 4;
 	ELEMENT->NEhref    = 1;
@@ -162,6 +167,7 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_SI;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 4;
+	ELEMENT->NveP2     = 10;
 	ELEMENT->Ne        = 6;
 	ELEMENT->Nf        = 4;
 	ELEMENT->NEhref    = 2;
@@ -192,6 +198,7 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_TP;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 8;
+	ELEMENT->NveP2     = 27;
 	ELEMENT->Ne        = 12;
 	ELEMENT->Nf        = 6;
 	ELEMENT->NEhref    = 1;
@@ -232,6 +239,7 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_WEDGE;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 6;
+	ELEMENT->NveP2     = 18;
 	ELEMENT->Ne        = 9;
 	ELEMENT->Nf        = 5;
 	ELEMENT->NEhref    = 1;
@@ -267,6 +275,7 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_PYR;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 5;
+	ELEMENT->NveP2     = 14;
 	ELEMENT->Ne        = 8;
 	ELEMENT->Nf        = 5;
 	ELEMENT->NEhref    = 2;
@@ -544,7 +553,7 @@ struct S_ELEMENT *get_ELEMENT_type(const unsigned int type)
 
 		ELEMENT = ELEMENT->next;
 	}
-	printf("Error: Element type not found (type).\n"), exit(1);
+	printf("Error: Element type not found (%d).\n",type), EXIT_MSG;
 }
 
 struct S_ELEMENT *get_ELEMENT_F_type(const unsigned int type, const unsigned int f)

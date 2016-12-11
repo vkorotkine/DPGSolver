@@ -8,6 +8,7 @@ BEGIN PARAMETERS
   Dimension  2
   ML         0
   MeshType   QUAD
+  Geometry   NONE
 
   Form       Weak  // Options: Weak, (Strong)
   NodeType   GL-AO // Options: GL/GLL-AO/WSH

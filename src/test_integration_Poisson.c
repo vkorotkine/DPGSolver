@@ -162,9 +162,9 @@ void test_integration_Poisson(int nargc, char **argv)
 
 	//              0         10        20        30        40        50
 	strcpy(TestName,"Linearization Poisson (2D - Mixed):              ");
-	strcpy(argvNew[1],"test/Test_Poisson_mixed2D");
+	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_mixed2D");
 
-if (0)
+//if (0)
 	test_linearization(nargc,argvNew,0,1,TestName,data);
 
 
@@ -203,7 +203,7 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 
 	// Convergence orders
 	PMin  = 1; PMax  = 4;
-	MLMin = 0; MLMax = 3;
+	MLMin = 0; MLMax = 4;
 TestDB.PGlobal = 4;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free

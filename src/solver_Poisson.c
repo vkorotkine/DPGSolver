@@ -29,6 +29,7 @@
 #include "finalize_LHS.h"
 #include "solver_implicit.h"
 #include "output_to_paraview.h"
+#include "setup_Curved.h"
 
 #include "array_print.h"
 
@@ -228,6 +229,7 @@ static void compute_qhat_VOLUME(void)
 
 void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, const unsigned int BCcurved)
 {
+	printf("Error: Use compute_normal_displacement instead.\n"), EXIT_MSG;
 	/*
 	 *	Purpose:
 	 *		Project coordinates to the sphere surface.
@@ -305,8 +307,8 @@ void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, con
 	}
 }
 
-void boundary_Poisson(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *uL, double *uR,
-                      double *graduL, double *graduR, const unsigned int BC, const unsigned int BCcurved)
+void boundary_Poisson(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *normals, double *uL,
+                      double *uR, double *graduL, double *graduR, const unsigned int BC, const unsigned int BCcurved)
 {
 	/*
 	 *	Comments:
@@ -329,11 +331,22 @@ void boundary_Poisson(const unsigned int Nn, const unsigned int Nel, double *XYZ
 		printf("Error: Vectorization unsupported.\n"), EXIT_MSG;
 
 	// Modify XYZ coordinates for boundary condition evaluation
-	XYZproj = malloc(Nn*d * sizeof *XYZproj); // free
-	if (d > 1)
-		project_to_sphere(Nn,XYZ,XYZproj,BCcurved);
-	else
+	XYZproj = calloc(Nn*d , sizeof *XYZproj); // free
+	if (d > 1) {
+		if (d == 2) {
+			if (BCcurved == 2)
+				compute_normal_displacement(Nn,1,XYZ,normals,XYZproj,BC);
+			for (n = 0; n < d*Nn; n++)
+				XYZproj[n] += XYZ[n];
+		} else if (d == 3) {
+			// Using normal projection in 3D will result in gaps in the projected mesh. Problem?
+			// Imagine projection of EDGE node of two adjacent TETs to the spherical boundary.
+			printf("Try with normal projection.\n"), EXIT_MSG;
+			project_to_sphere(Nn,XYZ,XYZproj,BCcurved);
+		}
+	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
 
 	if (BC == BC_DIRICHLET) {
 		compute_exact_solution(Nn*Nel,XYZproj,uR,0);
@@ -451,7 +464,7 @@ static void compute_qhat_FACE(void)
 			for (n = 0; n < NfnI; n++)
 				uOut_fIIn[n] = uOut_fI[nOrdOutIn[n]];
 		} else {
-			boundary_Poisson(NfnI,1,FACE->XYZ_fI,uIn_fI,uOut_fIIn,NULL,NULL,BC % BC_STEP_SC,BC / BC_STEP_SC);
+			boundary_Poisson(NfnI,1,FACE->XYZ_fI,n_fI,uIn_fI,uOut_fIIn,NULL,NULL,BC % BC_STEP_SC,BC / BC_STEP_SC);
 		}
 
 		// Compute numerical trace and its Jacobians
@@ -931,7 +944,8 @@ static void compute_uhat_FACE()
 			for (dim = 0; dim < d; dim++)
 				mm_CTN_d(NfnI,1,NvnSOut,GradxyzOut[dim],VOut->uhat,&grad_uOut_fIIn[NfnI*dim]);
 		} else {
-			boundary_Poisson(NfnI,1,FACE->XYZ_fI,uIn_fI,uOut_fIIn,grad_uIn_fI,grad_uOut_fIIn,BC % BC_STEP_SC,BC / BC_STEP_SC);
+			boundary_Poisson(NfnI,1,FACE->XYZ_fI,n_fI,uIn_fI,uOut_fIIn,grad_uIn_fI,grad_uOut_fIIn,
+			                 BC % BC_STEP_SC,BC / BC_STEP_SC);
 		}
 
 		// Compute numerical flux and its Jacobians

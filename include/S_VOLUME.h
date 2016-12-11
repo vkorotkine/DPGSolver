@@ -29,6 +29,7 @@ struct S_VOLUME {
 
 	// hp adaptivity
 	unsigned int refine_current, Vadapt, adapt_type, PNew, hrefine_type;
+	double       *XYZ_vVP2;
 //	double       minRES, maxRES;
 
 	// Poisson

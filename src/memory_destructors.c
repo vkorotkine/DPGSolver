@@ -83,10 +83,15 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->ChiS_vIs);
 	array_free4_d(NP,NP,NVREFMAX,  ELEMENT->ChiS_vIc);
 	array_free4_d(NP,NP,1,         ELEMENT->ChiInvS_vS);
+	array_free4_d(NP,NP,1,         ELEMENT->ChiInvGs_vGs);
 
 	array_free4_d(NP,NP,1,ELEMENT->IGc);
 	array_free4_d(NP,NP,1,ELEMENT->ICs);
 	array_free4_d(NP,NP,1,ELEMENT->ICc);
+
+	array_free4_d(NP,NP,1,ELEMENT->TGs);
+
+	array_free4_ui(NP,NP,NVREFMAX,ELEMENT->VeMask);
 
 	array_free5_d(NP,NP,1,d,ELEMENT->GradChiS_vIs);
 	array_free5_d(NP,NP,1,d,ELEMENT->GradChiS_vIc);
@@ -247,6 +252,9 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 
 	free(VOLUME->uhat_c);
 	array_free2_cmplx(d,VOLUME->qhat_c);
+
+	// hp adaptivity
+	free(VOLUME->XYZ_vVP2);
 
 	// Poisson
 	free(VOLUME->uhat);

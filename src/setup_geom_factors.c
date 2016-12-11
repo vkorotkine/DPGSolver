@@ -16,6 +16,7 @@
 
 #include "element_functions.h"
 #include "matrix_functions.h"
+#include "output_to_paraview.h"
 
 #include "array_print.h"
 
@@ -89,8 +90,13 @@ static void compute_detJV(const unsigned int Nn, double *J, double *detJV)
 	}
 
 	for (n = 0; n < Nn; n++) {
-		if (detJV[n] < EPS)
-			printf("Error: Negative VOLUME.\n"), EXIT_MSG;
+		if (detJV[n] < EPS) {
+			array_print_d(Nn,1,detJV,'R');
+			output_to_paraview("ZTest_Geom_curved");
+
+			printf("Error: Negative VOLUME.\n");
+			printf("Mesh output to paraview.\n"), EXIT_MSG;
+		}
 	}
 }
 

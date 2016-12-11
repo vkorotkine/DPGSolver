@@ -49,6 +49,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->Eclass  = UINT_MAX;
 	ELEMENT->d       = UINT_MAX;
 	ELEMENT->Nve     = UINT_MAX;
+	ELEMENT->NveP2   = UINT_MAX;
 	ELEMENT->Nf      = UINT_MAX;
 	ELEMENT->Nvref   = UINT_MAX;
 	ELEMENT->NvrefSF = UINT_MAX;
@@ -100,15 +101,20 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->w_vIs = calloc(NP , sizeof *(ELEMENT->w_vIs)); // free
 	ELEMENT->w_vIc = calloc(NP , sizeof *(ELEMENT->w_vIc)); // free
 
-	ELEMENT->ChiS_vP    = calloc(NP , sizeof *(ELEMENT->ChiS_vP));    // free
-	ELEMENT->ChiS_vS    = calloc(NP , sizeof *(ELEMENT->ChiS_vS));    // free
-	ELEMENT->ChiS_vIs   = calloc(NP , sizeof *(ELEMENT->ChiS_vIs));   // free
-	ELEMENT->ChiS_vIc   = calloc(NP , sizeof *(ELEMENT->ChiS_vIc));   // free
-	ELEMENT->ChiInvS_vS = calloc(NP , sizeof *(ELEMENT->ChiInvS_vS)); // free
+	ELEMENT->ChiS_vP      = calloc(NP , sizeof *(ELEMENT->ChiS_vP));      // free
+	ELEMENT->ChiS_vS      = calloc(NP , sizeof *(ELEMENT->ChiS_vS));      // free
+	ELEMENT->ChiS_vIs     = calloc(NP , sizeof *(ELEMENT->ChiS_vIs));     // free
+	ELEMENT->ChiS_vIc     = calloc(NP , sizeof *(ELEMENT->ChiS_vIc));     // free
+	ELEMENT->ChiInvS_vS   = calloc(NP , sizeof *(ELEMENT->ChiInvS_vS));   // free
+	ELEMENT->ChiInvGs_vGs = calloc(NP , sizeof *(ELEMENT->ChiInvGs_vGs)); // free
 
 	ELEMENT->IGc = calloc(NP , sizeof *(ELEMENT->IGc)); // free
 	ELEMENT->ICs = calloc(NP , sizeof *(ELEMENT->ICs)); // free
 	ELEMENT->ICc = calloc(NP , sizeof *(ELEMENT->ICc)); // free
+
+	ELEMENT->TGs = calloc(NP , sizeof *(ELEMENT->TGs)); // free
+
+	ELEMENT->VeMask = calloc(NP , sizeof *(ELEMENT->VeMask)); // free
 
 	ELEMENT->GradChiS_vIs = calloc(NP , sizeof *(ELEMENT->GradChiS_vIs)); // free
 	ELEMENT->GradChiS_vIc = calloc(NP , sizeof *(ELEMENT->GradChiS_vIc)); // free
@@ -197,6 +203,12 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->nOrd_fIs  = calloc(NP , sizeof *(ELEMENT->nOrd_fIs)); // free
 	ELEMENT->nOrd_fIc  = calloc(NP , sizeof *(ELEMENT->nOrd_fIc)); // free
 
+
+	ELEMENT->TGs[1] = calloc(NP , sizeof **(ELEMENT->TGs));
+
+	ELEMENT->VeMask[1] = calloc(NP , sizeof **(ELEMENT->VeMask));
+
+	ELEMENT->ChiInvGs_vGs[1] = calloc(NP , sizeof **(ELEMENT->ChiInvGs_vGs));
 
 	ELEMENT->I_vGs_vP[1]  = calloc(NP , sizeof **(ELEMENT->I_vGs_vP));
 	ELEMENT->I_vGs_vGs[1] = calloc(NP , sizeof **(ELEMENT->I_vGs_vGs));
@@ -331,11 +343,16 @@ struct S_ELEMENT *New_ELEMENT(void)
 			ELEMENT->Is_Weak_VV[P][Pb]    = calloc(NVREFSFMAX , sizeof ***(ELEMENT->Is_Weak_VV));
 			ELEMENT->Ic_Weak_VV[P][Pb]    = calloc(NVREFSFMAX , sizeof ***(ELEMENT->Ic_Weak_VV));
 			if (P == Pb) {
-				ELEMENT->ChiInvS_vS[P][Pb] = calloc(1          , sizeof ***(ELEMENT->ChiInvS_vS));
+				ELEMENT->ChiInvS_vS[P][Pb]   = calloc(1 , sizeof ***(ELEMENT->ChiInvS_vS));
+				ELEMENT->ChiInvGs_vGs[1][Pb] = calloc(1 , sizeof ***(ELEMENT->ChiInvGs_vGs));
 
 				ELEMENT->IGc[P][Pb] = calloc(1 , sizeof ***(ELEMENT->IGc));
 				ELEMENT->ICs[P][Pb] = calloc(1 , sizeof ***(ELEMENT->ICs));
 				ELEMENT->ICc[P][Pb] = calloc(1 , sizeof ***(ELEMENT->ICc));
+
+				ELEMENT->TGs[1][Pb] = calloc(1 , sizeof ***(ELEMENT->TGs));
+
+				ELEMENT->VeMask[1][Pb] = calloc(NVREFMAX , sizeof ***(ELEMENT->VeMask));
 
 				ELEMENT->I_vGs_vP[1][Pb]  = calloc(1          , sizeof ***(ELEMENT->I_vGs_vP));
 				ELEMENT->I_vGs_vGs[1][Pb] = calloc(NVREFMAX   , sizeof ***(ELEMENT->I_vGs_vGs));
@@ -527,6 +544,8 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->adapt_type     = UINT_MAX;
 	VOLUME->PNew           = UINT_MAX;
 	VOLUME->hrefine_type   = UINT_MAX;
+
+	VOLUME->XYZ_vVP2 = NULL; // free
 
 	// Poisson
 	VOLUME->uhat      = NULL; // free

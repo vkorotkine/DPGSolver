@@ -8,6 +8,7 @@ BEGIN PARAMETERS
   Dimension  2
   ML         0
   MeshType   CurvedMixed
+  Geometry   NONE
 
   Form       Strong // Options: Weak, (Strong)
   NodeType   GLL-AO  // Options: GL/GLL-AO/WSH

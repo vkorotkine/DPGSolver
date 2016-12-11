@@ -20,6 +20,7 @@
 #include "exact_solutions.h"
 #include "array_swap.h"
 #include "array_free.h"
+#include "setup_Curved.h"
 
 /*
  *	Purpose:
@@ -168,9 +169,9 @@ void compute_qhat_VOLUME_c(void)
 	free(OPS);
 }
 
-static void boundary_Poisson_c(const unsigned int Nn, const unsigned int Nel, double *XYZ, double complex *uL,
-                               double complex *uR, double complex *graduL, double complex *graduR,
-                               const unsigned int BC, const unsigned int curved)
+static void boundary_Poisson_c(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *normals,
+                               double complex *uL, double complex *uR, double complex *graduL, double complex *graduR,
+                               const unsigned int BC, const unsigned int BCcurved)
 {
 	// Initialize DB Parameters
 	unsigned int d = DB.d;
@@ -184,10 +185,21 @@ static void boundary_Poisson_c(const unsigned int Nn, const unsigned int Nel, do
 
 	// Modify XYZ coordinates for boundary condition evaluation
 	XYZproj = malloc(Nn*d * sizeof *XYZproj); // free
-	if (d > 1)
-		project_to_sphere(Nn,XYZ,XYZproj,curved);
-	else
+	if (d > 1) {
+		if (d == 2) {
+			if (BCcurved == 2)
+				compute_normal_displacement(Nn,1,XYZ,normals,XYZproj,BC);
+			for (n = 0; n < d*Nn; n++)
+				XYZproj[n] += XYZ[n];
+		} else if (d == 3) {
+			// Using normal projection in 3D will result in gaps in the projected mesh. Problem?
+			// Imagine projection of EDGE node of two adjacent TETs to the spherical boundary.
+			printf("Try with normal projection.\n"), EXIT_MSG;
+			project_to_sphere(Nn,XYZ,XYZproj,BCcurved);
+		}
+	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
 
 	if (BC == BC_DIRICHLET) {
 		uB_d = malloc(Nn * sizeof *uB_d); // free
@@ -287,7 +299,7 @@ void compute_qhat_FACE_c(void)
 			for (n = 0; n < NfnI; n++)
 				uOut_fIIn[n] = uOut_fI[nOrdOutIn[n]];
 		} else {
-			boundary_Poisson_c(NfnI,1,FACE->XYZ_fI,uIn_fI,uOut_fIIn,NULL,NULL,BC % BC_STEP_SC, BC / BC_STEP_SC);
+			boundary_Poisson_c(NfnI,1,FACE->XYZ_fI,n_fI,uIn_fI,uOut_fIIn,NULL,NULL,BC % BC_STEP_SC, BC / BC_STEP_SC);
 		}
 
 		// Compute numerical trace
@@ -501,7 +513,7 @@ void compute_uhat_FACE_c()
 			for (dim = 0; dim < d; dim++)
 				mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSOut,1.0,0.0,GradxyzOut[dim],VOut->uhat_c,&grad_uOut_fIIn[NfnI*dim]);
 		} else {
-			boundary_Poisson_c(NfnI,1,FACE->XYZ_fI,uIn_fI,uOut_fIIn,grad_uIn_fI,grad_uOut_fIIn,BC % BC_STEP_SC,BC / BC_STEP_SC);
+			boundary_Poisson_c(NfnI,1,FACE->XYZ_fI,n_fI,uIn_fI,uOut_fIIn,grad_uIn_fI,grad_uOut_fIIn,BC % BC_STEP_SC,BC / BC_STEP_SC);
 		}
 
 		// Compute numerical flux

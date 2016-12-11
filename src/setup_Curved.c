@@ -17,6 +17,7 @@
 #include "setup_geometry.h"
 #include "element_functions.h"
 #include "matrix_functions.h"
+#include "vertices_to_exact_geom.h"
 #include "array_norm.h"
 #include "array_free.h"
 
@@ -98,26 +99,66 @@ void compute_plane(const double *XYZ1, const double *XYZ2, const double *XYZ3, d
 		*d_p += n[i]*XYZ3[i];
 }
 
-static void compute_normal_displacement(const unsigned int Nn, const double *XYZ_S, const double *n_S,
-                                        const unsigned int VeSurface, double *XYZ_CmS, const unsigned int BC)
+static double get_radius(const unsigned int Nn, double *XYZ)
+{
+	// Initialize DB Parameters
+	unsigned int d    = DB.d;
+	double       rIn  = DB.rIn,
+	             rOut = DB.rOut;
+
+	// Standard datatypes
+	unsigned int n;
+	double       *x, *y, *z, norm_rIn, norm_rOut, r, r2;
+
+	x = &XYZ[0*Nn];
+	y = &XYZ[1*Nn];
+	z = &XYZ[(d-1)*Nn];
+
+	norm_rIn  = 0.0;
+	norm_rOut = 0.0;
+
+	for (n = 0; n < Nn; n++) {
+		r2 = x[n]*x[n]+y[n]*y[n];
+		if (d == 3)
+			r2 += z[n]*z[n];
+		r          = sqrt(r2);
+		norm_rIn  += sqrt((r-rIn)* (r-rIn));
+		norm_rOut += sqrt((r-rOut)*(r-rOut));
+	}
+	norm_rIn  /= Nn;
+	norm_rOut /= Nn;
+
+	if (norm_rIn < 2e-1) {
+		r = rIn;
+	} else if (norm_rOut < 2e-1) {
+		r = rOut;
+	} else {
+		printf("% .3e % .3e\n",norm_rIn,norm_rOut);
+		array_print_d(Nn,d,XYZ,'C');
+		printf("Error: Did not find the radius.\n"), EXIT_MSG;
+	}
+	return r;
+}
+
+void compute_normal_displacement(const unsigned int Nn, const unsigned int curved_normal, const double *XYZ_S,
+                                 const double *normals, double *XYZ_CmS, const unsigned int BC)
 {
 	// Initialize DB Parameters
 	char         *Geometry = DB.Geometry;
 	unsigned int d         = DB.d;
 
 	// Standard datatypes
-	unsigned int n, i, dim, FoundD;
+	unsigned int n, i, dim, FoundD, Indn;
 	double       r, D, ABC[3], XYZ[DMAX] = {0.0}, XYZ_C[DMAX] ={0.0};
 
+	Indn = 0;
 	if (strstr(Geometry,"dm1-Spherical_Section")) {
-		if (VeSurface == 0)
-			r = DB.rIn;
-		else if (VeSurface == 1)
-			r = DB.rOut;
-		else
-			printf("Error: Unsupported.\n"), EXIT_MSG;
+		r = get_radius(Nn,(double *) XYZ_S);
 
 		for (n = 0; n < Nn; n++) {
+			if (curved_normal)
+				Indn = n;
+
 			XYZ[DMAX-1] = 0.0; // For 2D.
 			for (dim = 0; dim < d; dim++)
 				XYZ[dim] = XYZ_S[n+dim*Nn];
@@ -126,8 +167,8 @@ static void compute_normal_displacement(const unsigned int Nn, const double *XYZ
 			ABC[1] = 0.0;
 			ABC[2] = -r*r;
 			for (dim = 0; dim < DMAX; dim++) {
-				ABC[0] += n_S[dim]*n_S[dim];
-				ABC[1] += n_S[dim]*XYZ[dim];
+				ABC[0] += normals[Indn*d+dim]*normals[Indn*d+dim];
+				ABC[1] += normals[Indn*d+dim]*XYZ[dim];
 				ABC[2] += XYZ[dim]*XYZ[dim];
 			}
 			ABC[1] *= 2.0;
@@ -147,7 +188,7 @@ static void compute_normal_displacement(const unsigned int Nn, const double *XYZ
 					continue;
 
 				for (dim = 0; dim < d; dim++)
-					XYZ_C[dim] = XYZ[dim]+n_S[dim]*D;
+					XYZ_C[dim] = XYZ[dim]+normals[Indn*d+dim]*D;
 
 				FoundD = 1;
 				break;
@@ -163,7 +204,7 @@ static void compute_normal_displacement(const unsigned int Nn, const double *XYZ
 		if (d != 2)
 			printf("Error: Unsupported.\n");
 
-		unsigned int i, j, iMax, jMax, RinglebType = 0;
+		unsigned int i, iMax, RinglebType = 0;
 		double       Q0, KMin, KMax, q, k, a, rho, J, x, y, xS, yS, nx, ny, sign_y, alpha, beta;
 
 		Q0   = DB.Q0;
@@ -179,19 +220,22 @@ static void compute_normal_displacement(const unsigned int Nn, const double *XYZ
 		if (XYZ_S[0+1*Nn] < 0.0)
 			sign_y = -1.0;
 
-		nx = n_S[0];
-		ny = n_S[1];
-
 		if (RinglebType == 'f') {
 			q = Q0;
 
 			for (n = 0; n < Nn; n++) {
+				if (curved_normal)
+					Indn = n;
+
+				nx = normals[Indn*d+0];
+				ny = normals[Indn*d+1];
+
 				xS = XYZ_S[n     ];
 				yS = XYZ_S[n+1*Nn];
 
 				k = 0.5*(KMin+KMax);
 				for (i = 0, iMax = 100; i < iMax; i++) {
-					// Find point on Ringleb surface for given k
+					// Find point on Ringleb surface for guessed k
 					a   = sqrt(1.0-0.5*GM1*q*q);
 					rho = pow(a,2.0/GM1);
 					J   = 1.0/a+1.0/(3.0*pow(a,3.0))+1.0/(5.0*pow(a,5.0))-0.5*log((1.0+a)/(1.0-a));
@@ -217,7 +261,7 @@ static void compute_normal_displacement(const unsigned int Nn, const double *XYZ
 				XYZ_CmS[n+Nn*1] = y-yS;
 			}
 		} else if (RinglebType == 'w') {
-			double f, dfdq, relax;
+			double xMin,  xMax, aMin, aMax, aStep, a;
 
 			if (XYZ_S[0+0*Nn] < 0.0) {
 				k = KMax;
@@ -225,65 +269,43 @@ static void compute_normal_displacement(const unsigned int Nn, const double *XYZ
 				k = KMin;
 			}
 
+			xMin = xMax = XYZ_S[0];
+			for (n = 1; n < Nn; n++) {
+				xS = XYZ_S[n];
+				if (xS < xMin) xMin = xS;
+				if (xS > xMax) xMax = xS;
+			}
+
 			for (n = 0; n < Nn; n++) {
+				if (curved_normal)
+					Indn = n;
+
+				nx = normals[Indn*d+0];
+				ny = normals[Indn*d+1];
+
 				xS = XYZ_S[n     ];
 				yS = XYZ_S[n+1*Nn];
 
-printf("\n\n\n%d % .3e % .3e\n\n",n,xS,yS);
-				q = 0.5*(k+Q0);
-				for (i = 0, iMax = 100; i < iMax; i++) {
-					// Find point on Ringleb surface for given q
-					a   = sqrt(1.0-0.5*GM1*q*q);
-					rho = pow(a,2.0/GM1);
-					J   = 1.0/a+1.0/(3.0*pow(a,3.0))+1.0/(5.0*pow(a,5.0))-0.5*log((1.0+a)/(1.0-a));
+				// Compute normal displacement using the bisection method (ToBeModified if slow)
+				aMin = (xMin-xS)/nx;
+				aMax = (xMax-xS)/nx;
 
-					x = 1.0/(2.0*rho)*(2.0/(k*k)-1.0/(q*q))-0.5*J;
-					y = sign_y/(k*rho*q)*sqrt(1.0-pow(q/k,2.0));
+				aStep = fabs(0.5*(aMax-aMin));
+				a = 0.5*(aMin+aMax);
 
-					// Find the point on the normal line which is closest to the located point on the boundary
-					alpha =  nx*(x-xS)+ny*(y-yS);
-					beta  = -ny*(x-xS)+nx*(y-yS);
-printf("i: %d % .3e % .3e % .3e % .3e\n",i,x,y,alpha,beta);
+				x = xS;
+				y = yS;
+				while (fabs(aStep) > EPS) {
+					aStep *= 0.5;
 
-					// Find new point on the surface based on y-coordinate found above and update q
-					y = yS + ny*alpha;
-printf("  % .3e\n",y);
+					x = xS+a*nx;
+					Ringleb_boundary(&x,&y,0.0,k,'w');
 
-					// Use Newton's method (with relaxation) to find q (using equation for y-coordinate)
-					relax = 0.2;
-					for (j = 0, jMax = 10; j < jMax; j++) {
-						a   = sqrt(1.0-0.5*GM1*q*q);
-						rho = pow(a,2.0/GM1);
-
-						f = sign_y/(k*k*rho*q)*sqrt(k*k-q*q)-y;
-						// Do not compute denominator if f == 0.0 as it may be 'inf'
-						if (fabs(f) < EPS)
-							dfdq = 1.0;
-						else
-							dfdq = sign_y*(pow((1.0-0.5*GM1*q*q),-1.0/GM1)*(2.0*pow(q,4.0)-k*k*((GAMMA+1)*q*q-2.0))/
-							               (k*k*q*q*(GM1*q*q-2.0)*sqrt(k*k-q*q)));
-						q -= relax*f/dfdq;
-
-						if (q < Q0)
-							q = Q0;
-						else if (q > k)
-							q = k;
-
-						relax = (1-fabs(f/dfdq))*1.0;
-printf("j:   %d % .3e % .3e % .3e % .3e\n",j,f,dfdq,q,relax);
-
-						if (fabs(f/dfdq) < 1e2*EPS)
-							break;
-					}
-					if (j == jMax)
-						printf("Error: Newton's method not converging.\n"), EXIT_MSG;
-
-					if (fabs(beta) < 1e1*EPS)
-						break;
+					if ((y-(yS+ny*a))/ny > 0.0)
+						a += aStep;
+					else
+						a -= aStep;
 				}
-				if (i == iMax)
-					printf("Error: Not converging (w) (% .3e).\n",beta), EXIT_MSG;
-
 				XYZ_CmS[n+Nn*0] = x-xS;
 				XYZ_CmS[n+Nn*1] = y-yS;
 			}
@@ -618,7 +640,7 @@ static double *compute_XYZ_update(struct S_Blend *data)
 		}
 
 		PComps_B = malloc(NbnG*2 * sizeof *PComps_B); // free
-		
+
 		data_pc->Nn        = NbnG;
 		data_pc->VeXYZ     = VeXYZ;
 		data_pc->PComps    = PComps_B;
@@ -634,13 +656,7 @@ static double *compute_XYZ_update(struct S_Blend *data)
 
 		compute_XYZ(data_XYZ);
 		free(PComps_B);
-/*
-if (b == 2) {
-array_print_d(NbnG,d,XYZ_S,'C');
-array_print_d(NbnG,d,XYZ_CmS,'C');
-//EXIT_MSG;
-}
-*/
+
 		// Subtract XYZ_S;
 		for (n = 0; n < NbnG*d; n++)
 			XYZ_CmS[n] -= XYZ_S[n];
@@ -696,7 +712,7 @@ array_print_d(NbnG,d,XYZ_CmS,'C');
 		array_free2_d(DMAX,VeXYZ);
 
 		// Compute normal distance from straight FACE to curved geometry
-		compute_normal_displacement(NbnG,XYZ_S,n_S,VeInfo[2*Nve+VeBcon[b*NbveMax]],XYZ_CmS,BC);
+		compute_normal_displacement(NbnG,0,XYZ_S,n_S,XYZ_CmS,BC);
 
 		free(n_S);
 		free(XYZ_S);
@@ -708,19 +724,13 @@ array_print_d(NbnG,d,XYZ_CmS,'C');
 	free(data_XYZ);
 
 	XYZ_update = mm_Alloc_d(CBCM,CBT,CBNT,NvnG,d,NbnG,1.0,I_bGc_vGc,XYZ_CmS); // free
-/*
-#include "Test.h"
-if (b == 2 && TestDB.ML == 2) {
-	array_print_d(NvnG,d,XYZ_update,'C');
-	EXIT_MSG;
-}
-*/
+
 	free(XYZ_CmS);
 
 	return XYZ_update;
 }
 
-static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
+static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, const unsigned int vertex_blending)
 {
 	/*
 	 *	Purpose:
@@ -733,6 +743,7 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
 
 	// Initialize DB Parameters
 	unsigned int d         = DB.d,
+	             *PGc      = DB.PGc,
 	             Blending  = DB.Blending;
 
 	// Standard datatypes
@@ -756,10 +767,25 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
 
 	select_functions_Curved(&data_blend->compute_pc,&data_blend->compute_XYZ);
 
-	PV     = VOLUME->P;
+	ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+	if (vertex_blending) {
+		if (PGc[2] == 2)
+			PV = 2;
+		else if (PGc[1] == 2)
+			PV = 1;
+		else
+			printf("Error: Add specific blending operators for vertex blending for PGc != P or P+1.\n"), EXIT_MSG;
+
+		NvnG = ELEMENT->NveP2;
+		XYZ  = VOLUME->XYZ_vVP2;
+	} else {
+		PV   = VOLUME->P;
+		NvnG = VOLUME->NvnG;
+		XYZ  = VOLUME->XYZ;
+	}
+
 	Vtype  = VOLUME->type;
-	NvnG   = VOLUME->NvnG;
-	XYZ    = VOLUME->XYZ;
 	XYZ_vV = VOLUME->XYZ_vV;
 	VeInfo = VOLUME->VeInfo;
 
@@ -767,8 +793,6 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType)
 	data_blend->XYZ    = XYZ;
 	data_blend->XYZ_vV = XYZ_vV;
 	data_blend->VeInfo = VeInfo;
-
-	ELEMENT = get_ELEMENT_type(VOLUME->type);
 
 	data_blend->type = Vtype;
 
@@ -883,9 +907,56 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 
 	// Treat curved EDGEs not on curved FACEs (3D only)
 	if (d == DMAX)
-		blend_boundary(VOLUME,'e');
+		blend_boundary(VOLUME,'e',0);
 
 	// Treat curved FACEs
 	if (Vcurved == 1)
-		blend_boundary(VOLUME,'f');
+		blend_boundary(VOLUME,'f',0);
+}
+
+void setup_Curved_vertices(struct S_VOLUME *VOLUME)
+{
+	/*
+	 *	Purpose:
+	 *		Ensure that newly created vertices are placed on the boundary, in well behaved positions.
+	 *
+	 *	Comments:
+	 *		See comments in 'vertices_to_exact_geom' for why blending is used here. For example, for the Ringleb case,
+	 *		computing the new vertex location assuming correct x-coordinate and computing the y-coordinate results in an
+	 *		extremely stretched mesh near the y = 0 axis.
+	 */
+
+	// Initialize DB Parameters
+	unsigned int d    = DB.d;
+
+	// Standard datatypes
+	unsigned int Nve, NveP2, Vcurved;
+	double       *XYZ_vV, *XYZ_vVP2, *I_vGs_vGsP2;
+
+	struct S_ELEMENT *ELEMENT;
+
+	ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+	Nve   = ELEMENT->Nve;
+	NveP2 = ELEMENT->NveP2;
+
+	I_vGs_vGsP2 = ELEMENT->I_vGs_vGs[1][2][0];
+
+
+	VOLUME->XYZ_vVP2 = malloc(NveP2*d * sizeof *(VOLUME->XYZ_vVP2)); // keep
+
+	// Compute straight geometry nodes of P2 element
+	XYZ_vV   = VOLUME->XYZ_vV;
+	XYZ_vVP2 = VOLUME->XYZ_vVP2;
+	mm_CTN_d(NveP2,d,Nve,I_vGs_vGsP2,XYZ_vV,XYZ_vVP2);
+
+	Vcurved = VOLUME->curved;
+
+	// Treat curved EDGEs not on curved FACEs (3D only)
+	if (d == DMAX)
+		blend_boundary(VOLUME,'e',1);
+
+	// Treat curved FACEs
+	if (Vcurved == 1)
+		blend_boundary(VOLUME,'f',1);
 }

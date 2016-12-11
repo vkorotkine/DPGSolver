@@ -74,10 +74,10 @@ static void update_TestCase(void)
 		strcpy(DB.Geometry,"dm1-Spherical_Section");
 	} else if (strstr(DB.TestCase,"L2_proj") ||
 	           strstr(DB.TestCase,"update_h")) {
-		strcpy(DB.TestCase,"PeriodicVortex");
+		strcpy(DB.TestCase,"PeriodicVortex_Test");
 		strcpy(DB.Geometry,"PeriodicVortex"); // ToBeModified: Rename this.
 	} else if (strstr(DB.TestCase,"linearization")) {
-		strcpy(DB.TestCase,"SupersonicVortex");
+		strcpy(DB.TestCase,"SupersonicVortex_Test");
 		strcpy(DB.Geometry,"SupersonicVortex"); // ToBeModified: Rename this.
 	} else {
 		printf("%s\n",DB.TestCase);
@@ -102,11 +102,11 @@ void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigne
 
 	// Initialization
 	initialization(nargc,argv);
+	update_TestCase();
 	if (update_argv) {
 		DB.PGlobal = TestDB.PGlobal;
 		if (update_argv == 1)
 			DB.ML = TestDB.ML;
-		update_TestCase();
 		update_MeshFile();
 	}
 
@@ -151,11 +151,11 @@ void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, co
 
 		// Initialization
 		initialization(nargc,argv);
+		update_TestCase();
 		if (update_argv) {
 			DB.PGlobal = TestDB.PGlobal;
 			if (update_argv == 1)
 				DB.ML      = TestDB.ML;
-			update_TestCase();
 			update_MeshFile();
 		}
 

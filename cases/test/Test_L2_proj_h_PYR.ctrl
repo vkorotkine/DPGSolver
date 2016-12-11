@@ -8,6 +8,7 @@ BEGIN PARAMETERS
   Dimension  3
   ML         0
   MeshType   PYR0
+  Geometry   NONE
 
   Form       Weak  // Options: Weak, (Strong)
   NodeType   GLL-AO // Options: GL/GLL-AO/WSH

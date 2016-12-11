@@ -203,9 +203,8 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	adapt_update = 1;
 	while (adapt_update) {
 		adapt_update = 0;
-		if (strstr(TestCase,"PeriodicVortex")   ||
-		    strstr(TestCase,"SupersonicVortex") ||
-		    strstr(TestCase,"Test")) {
+		if (strstr(TestCase,"PeriodicVortex") ||
+		    strstr(TestCase,"SupersonicVortex")) {
 
 			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 				init_ops(OPS,VOLUME);
@@ -282,7 +281,7 @@ static void compute_initial_solution(const unsigned int Nn, double *XYZ, double 
 	// Initialize DB Parameters
 	char *TestCase = DB.TestCase;
 
-	if (strstr(TestCase,"PeriodicVortex") || strstr(TestCase,"SupersonicVortex") || strstr(TestCase,"Test")) {
+	if (strstr(TestCase,"PeriodicVortex") || strstr(TestCase,"SupersonicVortex")) {
 		compute_exact_solution(Nn,XYZ,UEx,0);
 } else if (strstr(TestCase,"Poisson")) { // ToBeDeleted
 	compute_exact_solution(Nn,XYZ,UEx,0);

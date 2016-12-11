@@ -7,7 +7,10 @@
 #include "S_VOLUME.h"
 
 
-extern void compute_plane(const double *XYZ1, const double *XYZ2, const double *XYZ3, double *n, double *d_p);
-extern void setup_Curved (struct S_VOLUME *VOLUME);
+extern void setup_Curved                (struct S_VOLUME *VOLUME);
+extern void setup_Curved_vertices       (struct S_VOLUME *VOLUME);
+extern void compute_plane               (const double *XYZ1, const double *XYZ2, const double *XYZ3, double *n, double *d_p);
+extern void compute_normal_displacement (const unsigned int Nn, const unsigned int curved_normal, const double *XYZ_S,
+                                         const double *normals, double *XYZ_CmS, const unsigned int BC);
 
 #endif // DPG__setup_Curved_h__INCLUDED

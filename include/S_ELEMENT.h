@@ -8,7 +8,7 @@
 
 struct S_ELEMENT {
 	// Mesh
-	unsigned int present, type, d, Nve, Ne, Nf, Nvref, NvrefSF, Eclass, NEhref,
+	unsigned int present, type, d, Nve, NveP2, Ne, Nf, Nvref, NvrefSF, Eclass, NEhref,
 	             Neve, *Nfve, *VeCGmsh, *VeEcon, *VeFcon, *NrefV, *type_h;
 
 	// Operators
@@ -18,12 +18,13 @@ struct S_ELEMENT {
 	             *NenGc,
 	             Neref, *Nfref, *NfMixed,
 	             **connectivity, **connect_types,
-	             ***nOrd_fS, ***nOrd_fIs, ***nOrd_fIc, ****Fmask;
+	             ***nOrd_fS, ***nOrd_fIs, ***nOrd_fIc, ****Fmask, ****VeMask;
 	double       **VeE, **VeF, **VeV, *nr,
 	             **w_vIs, **w_vIc, ***w_fIs, ***w_fIc,
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
-	             ****ChiInvS_vS,
+	             ****ChiInvS_vS, ****ChiInvGs_vGs,
 	             ****IGc, ****ICs, ****ICc,
+	             ****TGs,
 	             ****I_vGs_vP, ****I_vGs_vGs, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vS, ****I_vGs_vIs, ****I_vGs_vIc,
 	             ****I_vGc_vP,                               ****I_vGc_vCc, ****I_vGc_vS, ****I_vGc_vIs, ****I_vGc_vIc,
 	             ****I_vCs_vS, ****I_vCs_vIs, ****I_vCs_vIc,
@@ -35,15 +36,15 @@ struct S_ELEMENT {
 	             *****D_vCs_vCs,
 	             *****D_vCc_vCc,
 	             ****ChiS_fS, ****ChiS_fIs, ****ChiS_fIc,
-				 *****GradChiS_fIs, *****GradChiS_fIc,
+	             *****GradChiS_fIs, *****GradChiS_fIc,
 	             ****I_vGs_fS, ****I_vGs_fIs, ****I_vGs_fIc,
 	             ****I_vGc_fGc, ****I_vGc_fS, ****I_vGc_fIs, ****I_vGc_fIc, ****I_vGc_eGc,
 	             ****I_vCs_fS, ****I_vCs_fIs, ****I_vCs_fIc,
 	             ****I_vCc_fS, ****I_vCc_fIs, ****I_vCc_fIc,
-				 *****D_vGs_fIs, *****D_vGs_fIc,
-				 *****D_vGc_fIs, *****D_vGc_fIc,
-				 ****I_fGs_vGc, ****I_fGc_vGc,
-				 ****I_eGs_vGc, ****I_eGc_vGc,
+	             *****D_vGs_fIs, *****D_vGs_fIc,
+	             *****D_vGc_fIs, *****D_vGc_fIc,
+	             ****I_fGs_vGc, ****I_fGc_vGc,
+	             ****I_eGs_vGc, ****I_eGc_vGc,
 	             ****Is_Weak_VV, ****Ic_Weak_VV,
 	             ****Is_Weak_FF, ****Ic_Weak_FF,
 	             *****Ds_Weak_VV, *****Dc_Weak_VV,

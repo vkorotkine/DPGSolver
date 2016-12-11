@@ -417,8 +417,6 @@ void setup_geometry(void)
 	for (FACE = DB.FACE; FACE; FACE = FACE->next)
 		setup_FACE_XYZ(FACE);
 
-output_to_paraview("ZTest_Geom_curved"); // Output curved coordinates to paraview
-EXIT_MSG;
 	if (!DB.MPIrank && !DB.Testing)
 		printf("    Set up geometric factors\n");
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
