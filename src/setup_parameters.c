@@ -104,6 +104,7 @@
  *
  *		AC              : Specifies whether (a)ll elements are (c)urved or not.
  *		ExactGeom       : Move boundary nodes to exact geometry if enabled.
+ *		Blending_HO     : Flag for whether (H)igh-(O)rder blending should be used (analogously to Lenoir, eq. (22)).
  *		Blending        : Type of blending used in curved elements. Options:
  *		                  GORDON_HALL
  *		                  SZABO_BABUSKA
@@ -145,7 +146,7 @@ void setup_parameters()
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
 	unsigned int i, iMax, u1,
 	             P, NP, IntOrderfs, IntOrderfc, IntOrdervs, IntOrdervc,
-	             ***SF_BE, *VFPartUnity, Blending, Parametrization,
+	             ***SF_BE, *VFPartUnity, Blending, Blending_HO, Parametrization,
 	             PGs, *PGc, **PCs, **PCc, **PJs, **PJc,
 	             *PF, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
@@ -218,6 +219,7 @@ void setup_parameters()
 		DB.AC = 0, DB.ExactGeom = 1;
 
 	// ToBeModified (likely included in .ctrl file)
+	Blending_HO = 1;
 //	Blending = GORDON_HALL;
 	Blending = SZABO_BABUSKA;
 //	Blending = HESTHAVEN; // Change to SCOTT
@@ -226,6 +228,9 @@ void setup_parameters()
 //	Parametrization = ARC_LENGTH;
 //	Parametrization = RADIAL_PROJECTION;
 	Parametrization = NORMAL;
+
+	if (strstr(DB.Geometry,"Ringleb") && Parametrization != NORMAL)
+		printf("Error: Unsupported.\n"), EXIT_MSG;
 
 	for (i = 0; i < NEC; i++)
 		NodeTypeG[i] = malloc(STRLEN_MIN * sizeof **NodeTypeG); // keep
@@ -576,6 +581,7 @@ void setup_parameters()
 	DB.PIvs  = PIvs;
 	DB.PIvc  = PIvc;
 
+	DB.Blending_HO     = Blending_HO;
 	DB.Blending        = Blending;
 	DB.Parametrization = Parametrization;
 	DB.NodeTypeG       = NodeTypeG;

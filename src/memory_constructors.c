@@ -406,11 +406,11 @@ struct S_ELEMENT *New_ELEMENT(void)
 				}
 
 				ELEMENT->I_fGs_vGc[1][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->I_fGs_vGc));
-				ELEMENT->I_fGc_vGc[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->I_fGc_vGc));
 
 				ELEMENT->I_eGs_vGc[1][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->I_eGs_vGc));
-				ELEMENT->I_eGc_vGc[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->I_eGc_vGc));
 			}
+			ELEMENT->I_fGc_vGc[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->I_fGc_vGc));
+			ELEMENT->I_eGc_vGc[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->I_eGc_vGc));
 
 			ELEMENT->ChiS_fS[P][Pb]     = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->ChiS_fS));
 			ELEMENT->ChiS_fIs[P][Pb]    = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->ChiS_fIs));

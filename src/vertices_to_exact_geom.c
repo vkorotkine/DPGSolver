@@ -79,10 +79,10 @@ void Ringleb_boundary(double *xStore, double *yStore, double qIn, double kIn, co
 			dfdq   = -pow(k*rho,-2.0)*drhodq-0.5*(-pow(rho*q*q,-2.0)*(q*q*drhodq+2*rho*q)+dJdq);
 
 			q -= f/dfdq;
-			if (q < Q0) {
+			if (q < Q0 || fabs(q-Q0) < EPS) {
 				OnCorner++;
 				q = Q0;
-			} else if (q > k) {
+			} else if (q > k || fabs(q-k) < EPS) {
 				OnCorner++;
 				q = k;
 			}
@@ -93,9 +93,10 @@ void Ringleb_boundary(double *xStore, double *yStore, double qIn, double kIn, co
 		if (i == iMax)
 			printf("Error: Newton's method not converging (% .3e).\n",fabs(f/dfdq)), EXIT_MSG;
 
-		y = sign_y/(k*k*rho*q)*sqrt(k*k-q*q);
-
-		if (OnCorner) {
+		if (!OnCorner) {
+			y = sign_y/(k*k*rho*q)*sqrt(k*k-q*q);
+		} else {
+			// Fix x-coordinate as well
 			a   = sqrt(1.0-0.5*GM1*q*q);
 			rho = pow(a,2.0/GM1);
 			J   = 1.0/a+1.0/(3.0*pow(a,3.0))+1.0/(5.0*pow(a,5.0))-0.5*log((1.0+a)/(1.0-a));

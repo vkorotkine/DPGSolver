@@ -166,7 +166,7 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 			ABC[0] = 0.0;
 			ABC[1] = 0.0;
 			ABC[2] = -r*r;
-			for (dim = 0; dim < DMAX; dim++) {
+			for (dim = 0; dim < d; dim++) {
 				ABC[0] += normals[Indn*d+dim]*normals[Indn*d+dim];
 				ABC[1] += normals[Indn*d+dim]*XYZ[dim];
 				ABC[2] += XYZ[dim]*XYZ[dim];
@@ -295,11 +295,13 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 
 				// If node is already on the boundary, set aStep = 0.0 to avoid the loop below
 				x = xS;
-				Ringleb_boundary(&x,&y,0.0,k,'w');
-				if (fabs(y-yS) < NODETOL_MESH)
-					aStep = 0.0;
-
 				y = yS;
+				Ringleb_boundary(&x,&y,0.0,k,'w');
+				if (fabs(y-yS) < EPS)
+					aStep = 0.0;
+				else
+					y = yS;
+
 				while (fabs(aStep) > EPS) {
 					aStep *= 0.5;
 
@@ -452,7 +454,7 @@ static void select_functions_Curved(compute_pc_tdef *compute_pc, compute_XYZ_tde
 	}
 }
 
-static double *compute_BlendV(struct S_Blend *data)
+static double *compute_BlendV(struct S_Blend *data, const unsigned int order)
 {
 	/*
 	 *	Purpose:
@@ -500,7 +502,7 @@ static double *compute_BlendV(struct S_Blend *data)
 		}
 	} else if (Blending == NIELSON && type == TRI) {
 		for (n = 0; n < NvnG; n++) {
-			BlendV[n] = pow(1.0-I_vGs_vGc[n*Nve+b],2.0);
+			BlendV[n] = pow(1.0-I_vGs_vGc[n*Nve+b],(double) order);
 		}
 	} else if (Blending == SZABO_BABUSKA || EclassV == C_SI) {
 		for (n = 0; n < NvnG; n++) {
@@ -668,9 +670,11 @@ static double *compute_XYZ_update(struct S_Blend *data)
 
 		free(XYZ_S);
 	} else if (Parametrization == NORMAL) {
+// Change comment here as this may no longer be XYZ_S (ToBeDeleted)
 		// Compute XYZ_S
 		XYZ_S = malloc(NbnG*d * sizeof *XYZ_S); // free
 		mm_d(CBCM,CBT,CBNT,NbnG,d,NvnG,1.0,0.0,I_vGc_bGc,XYZ,XYZ_S);
+//array_print_d(NbnG,d,XYZ_S,'C');
 
 		// Find coordinates of 3 vertices used to compute the normal to the boundary
 		VeXYZ = malloc(DMAX * sizeof *VeXYZ); // free
@@ -717,6 +721,7 @@ static double *compute_XYZ_update(struct S_Blend *data)
 		array_free2_d(DMAX,VeXYZ);
 
 		// Compute normal distance from straight FACE to curved geometry
+//array_print_d(NbnG,d,XYZ_S,'C');
 		compute_normal_displacement(NbnG,0,XYZ_S,n_S,XYZ_CmS,BC);
 
 		free(n_S);
@@ -747,14 +752,14 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 	 */
 
 	// Initialize DB Parameters
-	unsigned int d         = DB.d,
-	             *PGc      = DB.PGc,
-	             Blending  = DB.Blending;
+	unsigned int d           = DB.d,
+	             *PGc        = DB.PGc,
+	             Blending_HO = DB.Blending_HO;
 
 	// Standard datatypes
-	unsigned int b, ve, dim, n, Vb, PV, IndSurf, Vtype,
+	unsigned int b, dim, n, Vb, P, PV, PMin, IndSurf, Vtype,
 	             Nve, Nb, *Nbve, *VeBcon, NbveMax, NbrefMax, NvnG, BC, *VeInfo;
-	double       *XYZ, *XYZ_update, *XYZ_vV, *BlendV, *BlendVe, *I_vGs_vGc;
+	double       *XYZ, *XYZ_update, *XYZ_vV, *BlendV, *I_vGs_vGc;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_B;
 	struct S_pc      *data_pc;
@@ -830,6 +835,13 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 	data_blend->NbveMax = NbveMax;
 	data_blend->VeBcon  = VeBcon;
 
+	if (!Blending_HO)
+		PMin = PV;
+	else
+		PMin = 2;
+
+//array_print_d(NvnG,d,XYZ,'C');
+	for (P = PMin; P <= PV; P++) {
 	for (b = 0; b < Nb; b++) {
 		if (BType == 'e')
 			BC = VOLUME->BC[1][b];
@@ -842,21 +854,26 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 		Vb = b*NbrefMax;
 		if (BType == 'e') {
 			ELEMENT_B = get_ELEMENT_type(LINE);
-			data_blend->I_vGc_bGc = ELEMENT->I_vGc_eGc[PV][PV][Vb];
-			data_blend->I_bGc_vGc = ELEMENT->I_eGc_vGc[PV][PV][Vb];
+			data_blend->I_vGc_bGc = ELEMENT->I_vGc_eGc[PV][P][Vb];
+			data_blend->I_bGc_vGc = ELEMENT->I_eGc_vGc[P][PV][Vb];
 			data_blend->I_bGs_vGc = ELEMENT->I_eGs_vGc[1][PV][Vb];
 		} else if (BType == 'f') {
 			ELEMENT_B = get_ELEMENT_F_type(ELEMENT->type,b);
-			data_blend->I_vGc_bGc = ELEMENT->I_vGc_fGc[PV][PV][Vb];
-			data_blend->I_bGc_vGc = ELEMENT->I_fGc_vGc[PV][PV][Vb];
+			data_blend->I_vGc_bGc = ELEMENT->I_vGc_fGc[PV][P][Vb];
+			data_blend->I_bGc_vGc = ELEMENT->I_fGc_vGc[P][PV][Vb];
 			data_blend->I_bGs_vGc = ELEMENT->I_fGs_vGc[1][PV][Vb];
 		}
 
 		data_blend->b    = b;
-		data_blend->NbnG = ELEMENT_B->NvnGc[PV];
+		data_blend->NbnG = ELEMENT_B->NvnGc[P];
 		data_blend->BC   = BC;
 
-		BlendV     = compute_BlendV(data_blend);     // free
+		if (!Blending_HO) {
+			BlendV = compute_BlendV(data_blend,2);   // free
+		} else {
+			BlendV = compute_BlendV(data_blend,P);   // free
+		}
+//printf("SC: %d %d\n",P,b);
 		XYZ_update = compute_XYZ_update(data_blend); // free
 
 		// Blend BOUNDARY perturbation to VOLUME geometry nodes
@@ -867,23 +884,11 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 			for (dim = 0; dim < d; dim++)
 				XYZ[n+NvnG*dim] += BlendV[n]*XYZ_update[n+NvnG*dim];
 		}
+//array_print_d(NvnG,d,XYZ,'C');
 		free(XYZ_update);
 		free(BlendV);
-	}
-
-	// Add additional contribution from vertices if applicable
-	if (0&&Blending == NIELSON && Vtype == TRI) {
-		BlendVe = malloc(NvnG*Nve * sizeof *BlendVe); // free
-
-		for (n = 0; n < NvnG; n++) {
-		for (ve = 0; ve < Nve; ve++) {
-			BlendVe[n*Nve+ve] = pow(I_vGs_vGc[n*Nve+ve],2.0);
-		}}
-		mm_d(CBCM,CBT,CBNT,NvnG,d,Nve,0.0,1.0,BlendVe,XYZ_vV,XYZ);
-		free(BlendVe);
-	} else {
-		// Do nothing
-	}
+	}}
+//EXIT_MSG;
 
 	free(data_pc);
 	free(data_XYZ);

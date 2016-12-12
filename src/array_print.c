@@ -151,10 +151,11 @@ void array_print_d(const unsigned int m, const unsigned int n, const double *A, 
 	case 'R':
 		for (i = 0; i < m; i++) {
 			for (j = 0; j < n; j++) {
-				if (isnan(A[i*n+j]) || fabs(A[i*n+j]) > 1e1*EPS)
+				if (isnan(A[i*n+j]) || fabs(A[i*n+j]) > EPS)
 					printf("% .4e ",A[i*n+j]);
 				else
 					printf(" %d          ",0);
+//				printf("% .4e ",A[i*n+j]);
 			}
 			printf("\n");
 		}
@@ -163,10 +164,11 @@ void array_print_d(const unsigned int m, const unsigned int n, const double *A, 
 	case 'C':
 		for (i = 0; i < m; i++) {
 			for (j = 0; j < n; j++) {
-				if (isnan(A[i+j*m]) || fabs(A[i+j*m]) > 1e1*EPS)
+				if (isnan(A[i+j*m]) || fabs(A[i+j*m]) > EPS)
 					printf("% .4e ",A[i+j*m]);
 				else
 					printf(" %d          ",0);
+//				printf("% .4e ",A[i+j*m]);
 			}
 			printf("\n");
 		}
