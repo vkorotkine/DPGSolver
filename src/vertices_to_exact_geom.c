@@ -65,9 +65,8 @@ void Ringleb_boundary(double *xStore, double *yStore, double qIn, double kIn, co
 
 		// Use Newton's method to find q (using equation for x-coordinate)
 		q = 0.5*(k+Q0);
+		OnCorner = 0;
 		for (i = 0, iMax = 20; i < iMax; i++) {
-			OnCorner = 0;
-
 			a   = sqrt(1.0-0.5*GM1*q*q);
 			rho = pow(a,2.0/GM1);
 			J   = 1.0/a+1.0/(3.0*pow(a,3.0))+1.0/(5.0*pow(a,5.0))-0.5*log((1.0+a)/(1.0-a));
@@ -81,14 +80,14 @@ void Ringleb_boundary(double *xStore, double *yStore, double qIn, double kIn, co
 
 			q -= f/dfdq;
 			if (q < Q0) {
-				OnCorner = 1;
+				OnCorner++;
 				q = Q0;
 			} else if (q > k) {
-				OnCorner = 1;
+				OnCorner++;
 				q = k;
 			}
 
-			if (fabs(f/dfdq) < 1e2*EPS)
+			if (fabs(f/dfdq) < 1e2*EPS || OnCorner == iMax/2)
 				break;
 		}
 		if (i == iMax)
@@ -139,9 +138,6 @@ void vertices_to_exact_geom(void)
 
 	VeUpdate  = &VeInfo[1*NVe];
 	VeSurface = &VeInfo[2*NVe];
-
-// Removed case for TestCase == Test (which did nothing). Ensure that vertices are not moved when they should not be for
-// the test runs. Or just check that all tests are passing. (ToBeDeleted)
 
 	dM1 = d-1;
 	if (strstr(Geometry,"GaussianBump")) {

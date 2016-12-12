@@ -293,7 +293,12 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 				aStep = fabs(0.5*(aMax-aMin));
 				a = 0.5*(aMin+aMax);
 
+				// If node is already on the boundary, set aStep = 0.0 to avoid the loop below
 				x = xS;
+				Ringleb_boundary(&x,&y,0.0,k,'w');
+				if (fabs(y-yS) < NODETOL_MESH)
+					aStep = 0.0;
+
 				y = yS;
 				while (fabs(aStep) > EPS) {
 					aStep *= 0.5;
