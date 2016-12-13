@@ -4,7 +4,7 @@ Refine = 0;
 
 lc = 1.0/2.0^Refine;
 
-NnIn = 1e3;
+NnIn = 1e2;
 
 
 // Geometry Specification
@@ -133,7 +133,8 @@ Line Loop (4002) = {-1002,-1005,1007,1006};
 Plane Surface(4001) = {4001};
 Plane Surface(4002) = {4002};
 
-//Recombine Surface{4002};
+Recombine Surface{4001};
+Recombine Surface{4002};
 
 
 

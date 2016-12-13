@@ -184,10 +184,11 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	// **************************************************************************************************** //
 	// Convergence Order Testing
 	// **************************************************************************************************** //
-//	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_mixed");
 //	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_TRI");
-	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
+//	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
+	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_TRI");
+//	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_QUAD");
 //	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
 //	strcpy(argvNew[1],"test/Test_Poisson_3D_HEX");
 //	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_TP");
@@ -203,7 +204,7 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 6;
+	PMin  = 1; PMax  = 5;
 	MLMin = 0; MLMax = 4;
 TestDB.PGlobal = 1;
 

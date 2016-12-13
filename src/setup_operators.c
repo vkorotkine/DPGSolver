@@ -2770,8 +2770,8 @@ static void setup_blending(const unsigned int EType)
 				printf("Add Support.\n"), EXIT_MSG;
 			}
 if (P == 4 && EType == TRI && f == 2) {
-	printf("rst_proj:\n");
-	array_print_d(NvnGc[P],dE-1,rst_proj,'C');
+//	printf("rst_proj:\n");
+//	array_print_d(NvnGc[P],dE-1,rst_proj,'C');
 }
 
 			// Compute blending operators
@@ -2784,7 +2784,7 @@ if (P == 4 && EType == TRI && f == 2) {
 			for (Pb = 1; Pb <= P; Pb++) {
 // Needs modification for PGc[P] != P (ToBeDeleted)
 if (PGc[P] != P)
-	printf("Error: Add support.\n");
+	printf("Error: Add support.\n"), EXIT_MSG;
 				cubature(&rst_v0Gc,&dummyPtr_d,&dummyPtr_ui,&Nv0nGc[Pb],&dummy_ui,0,Pb,dE-1,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
 
 				ChiRefGs_vGs    = basis(PGs,rst_v0Gs,Nv0nGs[1],&Nbf,dE-1);           // free

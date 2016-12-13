@@ -7,7 +7,7 @@
 BEGIN PARAMETERS
   Dimension  2
   ML         0
-  MeshType   CurvedTRI
+  MeshType   CurvedQUAD
   Geometry   Ringleb
 
   Form       Strong // Options: Weak, (Strong)
@@ -21,7 +21,7 @@ BEGIN PARAMETERS
 
   PGlobal    1
   PMax       8
-  LevelsMax  7
+  LevelsMax  5
 
   Restart    -1    // Options: -1, 0, Iteration #
 

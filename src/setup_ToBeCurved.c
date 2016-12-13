@@ -55,6 +55,7 @@ static void ToBeCurved_sphere_to_ellipsoid(const unsigned int Nn, double *XYZ)
 	 *		y = b*sin(t)*sin(p)
 	 *		x = c*cos(p)
 	 */
+
 	// Initialize DB Parameters
 	unsigned int d    = DB.d;
 	double       rIn  = DB.rIn,
@@ -97,7 +98,6 @@ static void ToBeCurved_sphere_to_ellipsoid(const unsigned int Nn, double *XYZ)
 				p = acos(Z[n]/c);
 		}
 
-
 		X[n] = a*cos(t)*sin(p);
 		Y[n] = b*sin(t)*sin(p);
 		if (d == 3)
@@ -124,8 +124,6 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 	VOLUME->XYZ = XYZ;
 
 	if (strstr(Geometry,"dm1-Spherical_Section")) {
-//	    strstr(TestCase,"SupersonicVortex") ||
-//	    strstr(TestCase,"Test_linearization")) {
 			ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
 //printf("stbc: %d\n",VOLUME->indexg);
 //array_print_d(NvnG,d,XYZ,'C');
@@ -137,11 +135,8 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 	} else if (strstr(TestCase,"GaussianBump") ||
 	           strstr(TestCase,"PolynomialBump")) {
 			ToBeCurved_TP(NvnG,XYZ_S,XYZ);
-	} else if (strstr(TestCase,"PeriodicVortex") ||
-	           strstr(TestCase,"Test_L2_proj")   ||
-	           strstr(TestCase,"Test_update_h")) {
-		double n = 2.0, A = 0.1, L0 = 2.0, dxyz = 1.0, scale,
-		       *X0, *Y0, *Z0;
+	} else if (strstr(TestCase,"PeriodicVortex")) {
+		double n = 2.0, A = 0.1, L0 = 2.0, dxyz = 1.0, scale, *X0, *Y0, *Z0;
 
 		// silence
 		X0 = Y0 = Z0 = NULL;
@@ -254,7 +249,7 @@ static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZ_S, double *XY
 
 			free(XYZ_Sphere);
 		}
-	} else if (d == 2) {
+	} else if (d == 2) { // Exact r-theta parametrization
 		PIo4 = 0.25*PI;
 		for (n = 0; n < Nn; n++) {
 			for (dim = 0; dim < d; dim++)

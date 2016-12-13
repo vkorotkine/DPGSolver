@@ -101,14 +101,18 @@ void initialize_test_case_parameters(void)
 			DB.rIn  = 0.5;
 			DB.rOut = 1.0;
 		} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+			// These parameters must be consistent with the mesh for "ToBeCurved" meshes
 			DB.rIn  = 0.5;
 			DB.rOut = 1.0;
 
-			DB.aIn  = 1.00*DB.rIn;
-			DB.bIn  = 1.25*DB.rIn;
+			// These parameters must be consistent with the mesh for "Curved" meshes
+			DB.aIn  = 0.25;
+			DB.aOut = 0.5;
+
+			DB.bIn  = 0.75;
+			DB.bOut = 1.5;
+
 			DB.cIn  = 1.50*DB.rIn;
-			DB.aOut = 1.00*DB.rOut;
-			DB.bOut = 1.25*DB.rOut;
 			DB.cOut = 1.50*DB.rOut;
 		} else if (strstr(Geometry,"Ringleb")) {
 			DB.Q0   = 0.5;

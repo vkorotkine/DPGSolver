@@ -1299,8 +1299,8 @@ void solver_Poisson(void)
 	finalize_qhat();
 
 	// Output to paraview
+//	if (TestDB.ML <= 1 || (TestDB.PGlobal == 5 && TestDB.ML == 3)) {
 	if (TestDB.ML <= 1) {
-//	if (TestDB.ML <= 1 || (TestDB.PGlobal == 3 && TestDB.ML == 4)) {
 		strcpy(fNameOut,"SolFinal_");
 		sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
 		                               strcat(fNameOut,DB.MeshType);

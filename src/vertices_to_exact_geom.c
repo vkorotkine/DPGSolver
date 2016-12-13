@@ -16,6 +16,7 @@
 
 #include "element_functions.h"
 #include "matrix_functions.h"
+#include "setup_Curved.h"
 #include "array_norm.h"
 
 #include "array_print.h"
@@ -66,7 +67,7 @@ void Ringleb_boundary(double *xStore, double *yStore, double qIn, double kIn, co
 		// Use Newton's method to find q (using equation for x-coordinate)
 		q = 0.5*(k+Q0);
 		OnCorner = 0;
-		for (i = 0, iMax = 20; i < iMax; i++) {
+		for (i = 0, iMax = 25; i < iMax; i++) {
 			a   = sqrt(1.0-0.5*GM1*q*q);
 			rho = pow(a,2.0/GM1);
 			J   = 1.0/a+1.0/(3.0*pow(a,3.0))+1.0/(5.0*pow(a,5.0))-0.5*log((1.0+a)/(1.0-a));
@@ -87,7 +88,7 @@ void Ringleb_boundary(double *xStore, double *yStore, double qIn, double kIn, co
 				q = k;
 			}
 
-			if (fabs(f/dfdq) < 1e2*EPS || OnCorner == iMax/2)
+			if (fabs(f/dfdq) < 3.0*EPS || OnCorner == iMax/2)
 				break;
 		}
 		if (i == iMax)
@@ -209,6 +210,55 @@ void vertices_to_exact_geom(void)
 				VeXYZ[ve*d+2] = r*cos(p);
 			}
 		}
+	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+		double t, p, *abc, X, Y, Z, a, b, c, aIn, aOut;
+
+		aIn  = DB.aIn;
+		aOut = DB.aOut;
+
+		abc = malloc(DMAX * sizeof *abc); // free
+
+		for (ve = 0; ve < NVe; ve++) {
+			if (!VeUpdate[ve])
+				continue;
+
+			VeUpdate[ve] = 0;
+
+			X = VeXYZ[ve*d+0];
+			Y = VeXYZ[ve*d+1];
+			Z = VeXYZ[ve*d+(d-1)];
+
+			get_abc_ellipse(1,(double *) &VeXYZ[ve*d],abc);
+
+			a = abc[0];
+			b = abc[1];
+			c = abc[2];
+
+			if (fabs(a-aIn) < EPS) {
+				VeSurface[ve] = 0;
+			} else if (fabs(a-aOut) < EPS) {
+				VeSurface[ve] = 1;
+			} else {
+				printf("Error: Unsupported.\n"), EXIT_MSG;
+			}
+
+			t = atan2(Y/b,X/a);
+
+			if (d == 2) {
+				p = PI/2.0;
+			} else {
+				if (Z-c > 1.0)
+					p = acos(1.0);
+				else
+					p = acos(Z/c);
+			}
+
+			VeXYZ[ve*d+0] = a*cos(t)*sin(p);
+			VeXYZ[ve*d+1] = b*sin(t)*sin(p);
+			if (d == 3)
+				VeXYZ[ve*d+2] = c*cos(p);
+		}
+		free(abc);
 	} else if (strstr(Geometry,"Ringleb")) {
 		unsigned int *VeRingleb;
 		double       Q0, KMin, KMax, k, x, y;

@@ -99,7 +99,7 @@ void compute_plane(const double *XYZ1, const double *XYZ2, const double *XYZ3, d
 		*d_p += n[i]*XYZ3[i];
 }
 
-static void get_abc_ellipse(const unsigned int Nn, double *XYZ, double *abc)
+void get_abc_ellipse(const unsigned int Nn, double *XYZ, double *abc)
 {
 	// Initialize DB Parameters
 	unsigned int d    = DB.d;
@@ -144,8 +144,8 @@ static void get_abc_ellipse(const unsigned int Nn, double *XYZ, double *abc)
 		abc[1] = bOut;
 		abc[2] = cOut;
 	} else {
-		printf("% .3e % .3e\n",norm_In,norm_Out);
 		array_print_d(Nn,d,XYZ,'C');
+		printf("% .3e % .3e\n",norm_In,norm_Out);
 		printf("Error: Did not find the ellipse.\n"), EXIT_MSG;
 	}
 }
@@ -200,7 +200,7 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 
 	// Standard datatypes
 	unsigned int n, i, dim, FoundD, Indn;
-	double       r, D, ABC[3], XYZ[DMAX] = {0.0}, XYZ_C[DMAX] ={0.0};
+	double       r, D, D1, D2, ABC[3], XYZ[DMAX] = {0.0}, XYZ_C[DMAX] ={0.0};
 
 	Indn = 0;
 	if (strstr(Geometry,"dm1-Spherical_Section")) {
@@ -284,26 +284,16 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 					r = abc[dim];
 			}
 
-			FoundD = 0;
-			for (i = 0; i < 2; i++) {
-				if (!i)
-					D = (-ABC[1]+sqrt(ABC[1]*ABC[1]-4.0*ABC[0]*ABC[2]))/(2.0*ABC[0]);
-				else
-					D = (-ABC[1]-sqrt(ABC[1]*ABC[1]-4.0*ABC[0]*ABC[2]))/(2.0*ABC[0]);
+			D1 = (-ABC[1]+sqrt(ABC[1]*ABC[1]-4.0*ABC[0]*ABC[2]))/(2.0*ABC[0]);
+			D2 = (-ABC[1]-sqrt(ABC[1]*ABC[1]-4.0*ABC[0]*ABC[2]))/(2.0*ABC[0]);
 
-				// If on opposite side of ellipsoid, go to next option
-				if (fabs(D) > r)
-					continue;
+			if (fabs(D1) < fabs(D2))
+				D = D1;
+			else
+				D = D2;
 
-				for (dim = 0; dim < d; dim++)
-					XYZ_C[dim] = XYZ[dim]+normals[Indn*d+dim]*D;
-
-				FoundD = 1;
-				break;
-			}
-
-			if (!FoundD)
-				printf("Error: Correct distance not found.\n"), EXIT_MSG;
+			for (dim = 0; dim < d; dim++)
+				XYZ_C[dim] = XYZ[dim]+normals[Indn*d+dim]*D;
 
 			for (dim = 0; dim < d; dim++)
 				XYZ_CmS[n+Nn*dim] = XYZ_C[dim]-XYZ[dim];
@@ -342,13 +332,13 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 				xS = XYZ_S[n     ];
 				yS = XYZ_S[n+1*Nn];
 
-				k = 0.5*(KMin+KMax);
-				for (i = 0, iMax = 100; i < iMax; i++) {
-					// Find point on Ringleb surface for guessed k
-					a   = sqrt(1.0-0.5*GM1*q*q);
-					rho = pow(a,2.0/GM1);
-					J   = 1.0/a+1.0/(3.0*pow(a,3.0))+1.0/(5.0*pow(a,5.0))-0.5*log((1.0+a)/(1.0-a));
+				a   = sqrt(1.0-0.5*GM1*q*q);
+				rho = pow(a,2.0/GM1);
+				J   = 1.0/a+1.0/(3.0*pow(a,3.0))+1.0/(5.0*pow(a,5.0))-0.5*log((1.0+a)/(1.0-a));
 
+				k = 0.5*(KMin+KMax);
+				for (i = 0, iMax = 25; i < iMax; i++) {
+					// Find point on Ringleb surface for guessed k
 					x = 1.0/(2.0*rho)*(2.0/(k*k)-1.0/(q*q))-0.5*J;
 					y = sign_y/(k*rho*q)*sqrt(1.0-pow(q/k,2.0));
 
@@ -360,7 +350,8 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 					x = xS + nx*alpha;
 					k = sqrt(2.0/(2.0*rho*(x+0.5*J)+1.0/(q*q)));
 
-					if (fabs(beta) < 1e1*EPS)
+//printf(" % .3e % .3e % .3e % .3e % .3e % .3e % .3e % .3e\n",x,y,xS,yS,nx,ny,alpha,beta);
+					if (fabs(beta) < EPS)
 						break;
 				}
 				if (i == iMax)
@@ -560,6 +551,11 @@ static void select_functions_Curved(compute_pc_tdef *compute_pc, compute_XYZ_tde
 	if (strstr(Geometry,"dm1-Spherical_Section")) {
 		*compute_pc  = compute_pc_dsphere;
 		*compute_XYZ = compute_XYZ_dsphere;
+	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+		if (DB.Parametrization != NORMAL)
+			printf("Add support for Ellipsoid if not using NORMAL parametrization.\n"), EXIT_MSG;
+		*compute_pc  = NULL;
+		*compute_XYZ = NULL;
 	} else if (strstr(Geometry,"Ringleb")) {
 		// Write these functions if ARC LENGTH projection is desired.
 		*compute_pc  = NULL;
