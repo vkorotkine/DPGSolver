@@ -44,9 +44,7 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, con
 	Z = &XYZ[(d-1)*Nn];
 
 	// Perhaps modify TestCase for Test_L2_proj and Test_update_h to make this cleaner, also in other functions (ToBeDeleted)
-	if (strstr(TestCase,"PeriodicVortex") ||
-	    strstr(TestCase,"Test_L2_proj")   ||
-	    strstr(TestCase,"Test_update_h")) {
+	if (strstr(TestCase,"PeriodicVortex")) {
 		// Initialize DB Parameters
 		double       pInf           = DB.pInf,
 					 TInf           = DB.TInf,
@@ -86,8 +84,7 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, con
 			pEx[i]   = pInf - rhoInf*(C*C)/(2*Rc*Rc)*exp(-r2);
 			rhoEx[i] = rhoInf;
 		}
-	} else if (strstr(TestCase,"SupersonicVortex") ||
-	           strstr(TestCase,"Test_linearization")) {
+	} else if (strstr(TestCase,"SupersonicVortex")) {
 		// Initialize DB Parameters
 		double rIn   = DB.rIn,
 		       MIn   = DB.MIn,

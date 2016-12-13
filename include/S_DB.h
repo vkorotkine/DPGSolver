@@ -36,7 +36,7 @@ struct S_DB {
 	char         *SolverType;
 	unsigned int Nvar, Neq, OutputInterval, DOF0, SourcePresent;
 	double       Xc, Yc, Rc, MInf, pInf, TInf, VInf, uInf, vInf, wInf, Rg, Cscale, PeriodL, PeriodFraction, FinalTime,
-	             rIn, MIn, rhoIn, VIn, rOut, Q0, KMin, KMax, GBa, GBb, GBc;
+	             rIn, MIn, rhoIn, VIn, rOut, Q0, KMin, KMax, GBa, GBb, GBc, aIn, bIn, cIn, aOut, bOut, cOut;
 
 	// Solving
 	unsigned int dof;

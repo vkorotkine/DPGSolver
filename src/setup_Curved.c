@@ -99,6 +99,57 @@ void compute_plane(const double *XYZ1, const double *XYZ2, const double *XYZ3, d
 		*d_p += n[i]*XYZ3[i];
 }
 
+static void get_abc_ellipse(const unsigned int Nn, double *XYZ, double *abc)
+{
+	// Initialize DB Parameters
+	unsigned int d    = DB.d;
+	double       rIn  = DB.rIn,
+	             aIn  = DB.aIn,
+	             bIn  = DB.bIn,
+	             cIn  = DB.cIn,
+	             rOut = DB.rOut,
+	             aOut = DB.aOut,
+	             bOut = DB.bOut,
+	             cOut = DB.cOut;
+
+	// Standard datatypes
+	unsigned int n;
+	double       *x, *y, *z, norm_In, norm_Out;
+
+	x = &XYZ[0*Nn];
+	y = &XYZ[1*Nn];
+	z = &XYZ[(d-1)*Nn];
+
+	norm_In  = 0.0;
+	norm_Out = 0.0;
+
+	for (n = 0; n < Nn; n++) {
+		if (d == 2) {
+			norm_In  += fabs(sqrt(pow(x[n]/aIn,2.0) +pow(y[n]/bIn,2.0))-1.0);
+			norm_Out += fabs(sqrt(pow(x[n]/aOut,2.0)+pow(y[n]/bOut,2.0))-1.0);
+		} else {
+			norm_In  += fabs(sqrt(pow(x[n]/aIn,2.0) +pow(y[n]/bIn,2.0) +pow(z[n]/cIn,2.0)) -1.0);
+			norm_Out += fabs(sqrt(pow(x[n]/aOut,2.0)+pow(y[n]/bOut,2.0)+pow(z[n]/cOut,2.0))-1.0);
+		}
+	}
+	norm_In  /= Nn;
+	norm_Out /= Nn;
+
+	if (norm_In < 4e-1*(rOut-rIn)) {
+		abc[0] = aIn;
+		abc[1] = bIn;
+		abc[2] = cIn;
+	} else if (norm_Out < 4e-1*(rOut-rIn)) {
+		abc[0] = aOut;
+		abc[1] = bOut;
+		abc[2] = cOut;
+	} else {
+		printf("% .3e % .3e\n",norm_In,norm_Out);
+		array_print_d(Nn,d,XYZ,'C');
+		printf("Error: Did not find the ellipse.\n"), EXIT_MSG;
+	}
+}
+
 static double get_radius(const unsigned int Nn, double *XYZ)
 {
 	// Initialize DB Parameters
@@ -128,9 +179,9 @@ static double get_radius(const unsigned int Nn, double *XYZ)
 	norm_rIn  /= Nn;
 	norm_rOut /= Nn;
 
-	if (norm_rIn < 2e-1) {
+	if (norm_rIn < 4e-1*(rOut-rIn)) {
 		r = rIn;
-	} else if (norm_rOut < 2e-1) {
+	} else if (norm_rOut < 4e-1*(rOut-rIn)) {
 		r = rOut;
 	} else {
 		printf("% .3e % .3e\n",norm_rIn,norm_rOut);
@@ -200,6 +251,64 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 			for (dim = 0; dim < d; dim++)
 				XYZ_CmS[n+Nn*dim] = XYZ_C[dim]-XYZ[dim];
 		}
+	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+		double *abc;
+
+		abc = malloc(DMAX * sizeof *abc); // free
+		get_abc_ellipse(Nn,(double *) XYZ_S,abc);
+
+		for (n = 0; n < Nn; n++) {
+			if (curved_normal)
+				Indn = n;
+
+			XYZ[DMAX-1] = 0.0; // For 2D.
+			for (dim = 0; dim < d; dim++)
+				XYZ[dim] = XYZ_S[n+dim*Nn];
+
+			ABC[0] = 0.0;
+			ABC[1] = 0.0;
+			ABC[2] = -1.0;
+			for (dim = 0; dim < d; dim++) {
+				ABC[0] += normals[Indn*d+dim]*normals[Indn*d+dim]/(abc[dim]*abc[dim]);
+				ABC[1] += normals[Indn*d+dim]*XYZ[dim]/(abc[dim]*abc[dim]);
+				ABC[2] += XYZ[dim]*XYZ[dim]/(abc[dim]*abc[dim]);
+			}
+			ABC[1] *= 2.0;
+
+			// Solve quadratic equation
+
+			// Check which solution gives the correct radius
+			r = 0.0;
+			for (dim = 0; dim < d; dim++) {
+				if (abc[dim] > r)
+					r = abc[dim];
+			}
+
+			FoundD = 0;
+			for (i = 0; i < 2; i++) {
+				if (!i)
+					D = (-ABC[1]+sqrt(ABC[1]*ABC[1]-4.0*ABC[0]*ABC[2]))/(2.0*ABC[0]);
+				else
+					D = (-ABC[1]-sqrt(ABC[1]*ABC[1]-4.0*ABC[0]*ABC[2]))/(2.0*ABC[0]);
+
+				// If on opposite side of ellipsoid, go to next option
+				if (fabs(D) > r)
+					continue;
+
+				for (dim = 0; dim < d; dim++)
+					XYZ_C[dim] = XYZ[dim]+normals[Indn*d+dim]*D;
+
+				FoundD = 1;
+				break;
+			}
+
+			if (!FoundD)
+				printf("Error: Correct distance not found.\n"), EXIT_MSG;
+
+			for (dim = 0; dim < d; dim++)
+				XYZ_CmS[n+Nn*dim] = XYZ_C[dim]-XYZ[dim];
+		}
+		free(abc);
 	} else if (strstr(Geometry,"Ringleb")) {
 		if (d != 2)
 			printf("Error: Unsupported.\n"), EXIT_MSG;
@@ -360,7 +469,10 @@ static void compute_pc_dsphere(struct S_pc *data) {
 			Z    = VeXYZ[n][2];
 			rXYZ = sqrt(X*X+Y*Y+Z*Z);
 
-			p = acos(Z/rXYZ);
+			if (Z-rXYZ > 0.0)
+				p = acos(1.0);
+			else
+				p = acos(Z/rXYZ);
 		}
 
 		PComps[0*Nn+n] = t;
@@ -371,7 +483,10 @@ static void compute_pc_dsphere(struct S_pc *data) {
 		// If one (and only one) of the vertices lies on a pole of the sphere, re-calculate theta for the vertex based
 		// on the theta values of the other vertices.
 		for (n = 0; n < Nn; n++) {
-			p = acos(VeXYZ[n][2]/r);
+			if (VeXYZ[n][2]-r > 0.0)
+				p = acos(1.0);
+			else
+				p = acos(VeXYZ[n][2]/r);
 
 			// Note: SQRT_EPS used here because cos(x) ~= 1 - 0.5*x^2 for x << 1
 			if (fabs(p-0.0) < SQRT_EPS || fabs(p-PI) < SQRT_EPS) {

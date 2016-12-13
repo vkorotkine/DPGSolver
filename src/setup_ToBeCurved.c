@@ -47,10 +47,69 @@ static double         get_arc_length          (const double XL, const double XR,
 static double         *eval_TP_function       (const unsigned int Nn, const double *XZ, const unsigned int DOrder[2],
                                                const unsigned int Single, double **abcP);
 
+static void ToBeCurved_sphere_to_ellipsoid(const unsigned int Nn, double *XYZ)
+{
+	/*
+	 *	Comments:
+	 *		x = a*cos(t)*sin(p)
+	 *		y = b*sin(t)*sin(p)
+	 *		x = c*cos(p)
+	 */
+	// Initialize DB Parameters
+	unsigned int d    = DB.d;
+	double       rIn  = DB.rIn,
+	             aIn  = DB.aIn,
+	             bIn  = DB.bIn,
+	             cIn  = DB.cIn,
+	             rOut = DB.rOut,
+	             aOut = DB.aOut,
+	             bOut = DB.bOut,
+	             cOut = DB.cOut;
+
+	// Standard datatypes
+	unsigned int n;
+	double       *X, *Y, *Z, r2, r, t, p, ratio, a, b, c;
+
+	X = &XYZ[Nn*0];
+	Y = &XYZ[Nn*1];
+	Z = &XYZ[Nn*(d-1)];
+
+	for (n = 0; n < Nn; n++) {
+		r2 = X[n]*X[n]+Y[n]*Y[n];
+		if (d == 3)
+			r2 += Z[n]*Z[n];
+
+		r = sqrt(r2);
+		ratio = (r-rIn)/(rOut-rIn);
+
+		a = aIn+ratio*(aOut-aIn);
+		b = bIn+ratio*(bOut-bIn);
+		c = cIn+ratio*(cOut-cIn);
+
+		t = atan2(Y[n]/b,X[n]/a);
+
+		if (d == 2) {
+			p = PI/2.0;
+		} else {
+			if (Z[n]-c > 1.0)
+				p = acos(1.0);
+			else
+				p = acos(Z[n]/c);
+		}
+
+
+		X[n] = a*cos(t)*sin(p);
+		Y[n] = b*sin(t)*sin(p);
+		if (d == 3)
+			Z[n] = c*cos(p);
+	}
+}
+
 void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 {
 	// Initialize DB Parameters
-	char         *TestCase = DB.TestCase;
+	char         *TestCase = DB.TestCase,
+	             *Geometry = DB.Geometry;
 	unsigned int d         = DB.d;
 
 	// Standard datatypes
@@ -64,16 +123,17 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 	XYZ = malloc (NvnG*d * sizeof *XYZ); // keep
 	VOLUME->XYZ = XYZ;
 
-	if (strstr(TestCase,"dSphericalBump")   ||
-	    strstr(TestCase,"PorousdSphere")    ||
-	    strstr(TestCase,"SupersonicVortex") ||
-	    strstr(TestCase,"Poisson")          ||
-	    strstr(TestCase,"Test_linearization")) {
+	if (strstr(Geometry,"dm1-Spherical_Section")) {
+//	    strstr(TestCase,"SupersonicVortex") ||
+//	    strstr(TestCase,"Test_linearization")) {
 			ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
 //printf("stbc: %d\n",VOLUME->indexg);
 //array_print_d(NvnG,d,XYZ,'C');
 //for (i = 0; i < NvnG*d; i++)
 //	XYZ[i] = XYZ_S[i];
+	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+			ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
+			ToBeCurved_sphere_to_ellipsoid(NvnG,XYZ);
 	} else if (strstr(TestCase,"GaussianBump") ||
 	           strstr(TestCase,"PolynomialBump")) {
 			ToBeCurved_TP(NvnG,XYZ_S,XYZ);
@@ -114,6 +174,8 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 		} else {
 			printf("Error: PeriodicVortex TestCase not supported for dimension d = %d.\n",d), EXIT_MSG;
 		}
+	} else if (strstr(Geometry,"SupersonicVortex")) {
+		printf("Change to Annular_Section and implement this.\n"), EXIT_MSG;
 	} else {
 		printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
 	}

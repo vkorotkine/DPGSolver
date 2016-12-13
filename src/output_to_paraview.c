@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
- 
+
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
@@ -19,7 +19,8 @@
 #include "matrix_functions.h"
 #include "variable_functions.h"
 
-#include "exact_solutions.h" // ToBeDeleted
+#include "exact_solutions.h"
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -604,21 +605,12 @@ static void output_solution(const char *sol_type)
 			// Store solution error in q3 for d = 2
 			if (d == 2) {
 				unsigned int n;
-				double       *uEx, *XYZ_vS, *I_vG_vS;
+				double       *uEx;
 
-				if (!VOLUME->curved)
-					I_vG_vS = ELEMENT->I_vGs_vS[1][P][0];
-				else
-					I_vG_vS = ELEMENT->I_vGc_vS[P][PP][0];
-
-				XYZ_vS = mm_Alloc_d(CBCM,CBT,CBNT,NvnS,d,NvnG,1.0,I_vG_vS,VOLUME->XYZ);     // free
-
-				uEx = malloc(NvnS*1 * sizeof *uEx); // free
-				compute_exact_solution(NvnS,XYZ_vS,uEx,1);
+				uEx = malloc(NvnP*1 * sizeof *uEx); // free
+				compute_exact_solution(NvnP,XYZ_vP,uEx,1);
 				for (n = 0; n < NvnP; n++)
-					q[d*NvnP+n] = u[n];
-
-				mm_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,-1.0,ChiS_vP,uEx,&q[d*NvnP]);
+					q[d*NvnP+n] = u[n]-uEx[n];
 
 				free(uEx);
 			}

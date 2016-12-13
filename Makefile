@@ -186,10 +186,10 @@ $(EXECDIR):
 OUTPUT_LIST   := paraview errors results
 TESTCASE_LIST := PeriodicVortex SupersonicVortex VortexRiemann Poisson Poisson_Ringleb
 # To BeModified (Remove unneeded meshcases folders which may have been created previously)
-MESHCASE_LIST := Ringleb dm1-Spherical_Section d-Cube Annular_Section
+MESHCASE_LIST := Ringleb dm1-Spherical_Section d-Cube Ellipsoidal_Section Annular_Section
 # ToBeModified (Remove unneeded meshtypes)
 MESHTYPE_LIST := ToBeCurvedStructuredTRI ToBeCurvedStructuredQUAD ToBeCurvedStructuredTET ToBeCurvedStructuredHEX \
-                 ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR ToBeCurvedMixed ToBeCurvedTET \
+                 ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR ToBeCurvedMixed ToBeCurvedTRI ToBeCurvedTET \
                  CurvedTRI CurvedQUAD CurvedMixed CurvedTET CurvedHEX StructuredTET
 
 OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))

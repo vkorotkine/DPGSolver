@@ -8,7 +8,7 @@ BEGIN PARAMETERS
   Dimension  2
   ML         0
   MeshType   ToBeCurvedTRI
-  Geometry   dm1-Spherical_Section
+  Geometry   Ellipsoidal_Section
 
   Form       Strong // Options: Weak, (Strong)
   NodeType   GLL-AO  // Options: GL/GLL-AO/WSH/EQ

@@ -100,6 +100,16 @@ void initialize_test_case_parameters(void)
 		if (strstr(Geometry,"dm1-Spherical_Section")) {
 			DB.rIn  = 0.5;
 			DB.rOut = 1.0;
+		} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+			DB.rIn  = 0.5;
+			DB.rOut = 1.0;
+
+			DB.aIn  = 1.00*DB.rIn;
+			DB.bIn  = 1.25*DB.rIn;
+			DB.cIn  = 1.50*DB.rIn;
+			DB.aOut = 1.00*DB.rOut;
+			DB.bOut = 1.25*DB.rOut;
+			DB.cOut = 1.50*DB.rOut;
 		} else if (strstr(Geometry,"Ringleb")) {
 			DB.Q0   = 0.5;
 			DB.KMin = 0.7;
