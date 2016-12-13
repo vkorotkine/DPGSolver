@@ -202,7 +202,7 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 		}
 	} else if (strstr(Geometry,"Ringleb")) {
 		if (d != 2)
-			printf("Error: Unsupported.\n");
+			printf("Error: Unsupported.\n"), EXIT_MSG;
 
 		unsigned int i, iMax, RinglebType = 0;
 		double       Q0, KMin, KMax, q, k, a, rho, J, x, y, xS, yS, nx, ny, sign_y, alpha, beta;
@@ -317,7 +317,7 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 				XYZ_CmS[n+Nn*1] = y-yS;
 			}
 		} else {
-			printf("Error: Unsupported.\n");
+			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
@@ -394,7 +394,7 @@ static void compute_pc_dsphere(struct S_pc *data) {
 
 			PComps[0*Nn+IndPole] = t_avg;
 		} else {
-			printf("Error: Unsupported.\n");
+			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
 	}
 }
@@ -517,14 +517,15 @@ static double *compute_BlendV(struct S_Blend *data, const unsigned int order)
 			else
 				BlendV[n] = BlendNum/BlendDen;
 		}
-	} else if (Blending == GORDON_HALL && EclassV == C_TP) {
+	} else if (Blending == GORDON_HALL || EclassV == C_TP) {
 		for (n = 0; n < NvnG; n++) {
 			BlendV[n] = 0.0;
 			for (ve = 0; ve < Nbve[b]; ve++)
 				BlendV[n] += I_vGs_vGc[n*Nve+VeBcon[b*NbveMax+ve]];
 		}
 	} else {
-		printf("Error: Unsupported.\n");
+		printf("%d %d\n",Blending,EclassV);
+		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
 /*
 if (b == 2) {
@@ -674,7 +675,6 @@ static double *compute_XYZ_update(struct S_Blend *data)
 		// Compute XYZ_S
 		XYZ_S = malloc(NbnG*d * sizeof *XYZ_S); // free
 		mm_d(CBCM,CBT,CBNT,NbnG,d,NvnG,1.0,0.0,I_vGc_bGc,XYZ,XYZ_S);
-//array_print_d(NbnG,d,XYZ_S,'C');
 
 		// Find coordinates of 3 vertices used to compute the normal to the boundary
 		VeXYZ = malloc(DMAX * sizeof *VeXYZ); // free
@@ -720,8 +720,7 @@ static double *compute_XYZ_update(struct S_Blend *data)
 		}
 		array_free2_d(DMAX,VeXYZ);
 
-		// Compute normal distance from straight FACE to curved geometry
-//array_print_d(NbnG,d,XYZ_S,'C');
+		// Compute normal distance from polynomial FACE to curved geometry
 		compute_normal_displacement(NbnG,0,XYZ_S,n_S,XYZ_CmS,BC);
 
 		free(n_S);
@@ -840,7 +839,6 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 	else
 		PMin = 2;
 
-//array_print_d(NvnG,d,XYZ,'C');
 	for (P = PMin; P <= PV; P++) {
 	for (b = 0; b < Nb; b++) {
 		if (BType == 'e')
@@ -873,7 +871,6 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 		} else {
 			BlendV = compute_BlendV(data_blend,P);   // free
 		}
-//printf("SC: %d %d\n",P,b);
 		XYZ_update = compute_XYZ_update(data_blend); // free
 
 		// Blend BOUNDARY perturbation to VOLUME geometry nodes
@@ -884,11 +881,9 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 			for (dim = 0; dim < d; dim++)
 				XYZ[n+NvnG*dim] += BlendV[n]*XYZ_update[n+NvnG*dim];
 		}
-//array_print_d(NvnG,d,XYZ,'C');
 		free(XYZ_update);
 		free(BlendV);
 	}}
-//EXIT_MSG;
 
 	free(data_pc);
 	free(data_XYZ);

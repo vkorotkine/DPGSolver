@@ -94,6 +94,16 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 		else if (vh == 2) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][2] = BC[0][2]; }
 		else if (vh == 3) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][1] = BC[0][1]; }
 		break;
+	case QUAD:
+		if      (vh == 1) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][2] = BC[0][2]; }
+		else if (vh == 2) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; }
+		else if (vh == 3) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][3] = BC[0][3]; }
+		else if (vh == 4) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][3] = BC[0][3]; }
+		else if (vh == 5) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][2] = BC[0][2]; VOLUME->BC[0][3] = BC[0][3]; }
+		else if (vh == 6) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; VOLUME->BC[0][3] = BC[0][3]; }
+		else if (vh == 7) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; }
+		else if (vh == 8) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][3] = BC[0][3]; }
+		break;
 	default:
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 		break;
@@ -375,6 +385,7 @@ void update_VOLUME_hp(void)
 
 						XYZ_vV   = VOLUMEc->XYZ_vV;
 						XYZ_vVP2 = VOLUME->XYZ_vVP2;
+
 						for (ve = 0; ve < Nve; ve++) {
 							for (dim = 0; dim < d; dim++)
 								XYZ_vV[ve+Nve*dim] = XYZ_vVP2[VeMask[vh][ve]+NveP2*dim];

@@ -219,15 +219,15 @@ void setup_parameters()
 		DB.AC = 0, DB.ExactGeom = 1;
 
 	// ToBeModified (likely included in .ctrl file)
-	Blending_HO = 1;
+	Blending_HO = 0;
 //	Blending = GORDON_HALL;
-	Blending = SZABO_BABUSKA;
+//	Blending = SZABO_BABUSKA;
 //	Blending = HESTHAVEN; // Change to SCOTT
-//	Blending = NIELSON;
+	Blending = NIELSON;
 
 //	Parametrization = ARC_LENGTH;
-//	Parametrization = RADIAL_PROJECTION;
-	Parametrization = NORMAL;
+	Parametrization = RADIAL_PROJECTION;
+//	Parametrization = NORMAL;
 
 	if (strstr(DB.Geometry,"Ringleb") && Parametrization != NORMAL)
 		printf("Error: Unsupported.\n"), EXIT_MSG;

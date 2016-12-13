@@ -1405,7 +1405,8 @@ static void setup_TP_operators(const unsigned int EType)
 	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS, **NfnGc, **NfnS, **NfnIs, **NfnIc;
 	double       **w_vIs, **w_vIc, ***w_fIs, ***w_fIc,
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
-	             ****ChiInvS_vS,
+	             ****ChiInvS_vS, ****ChiInvGs_vGs,
+				 ****TGs,
 	             ****I_vGs_vP, ****I_vGs_vGs, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vS, ****I_vGs_vIs,
 	             ****I_vGc_vP,                ****I_vGc_vCc,                ****I_vGc_vS, ****I_vGc_vIc,
 	             ****I_vCs_vIs, ****I_vCs_vIc,
@@ -1485,11 +1486,12 @@ static void setup_TP_operators(const unsigned int EType)
 	w_vIs = ELEMENT->w_vIs;
 	w_vIc = ELEMENT->w_vIc;
 
-	ChiS_vP    = ELEMENT->ChiS_vP;
-	ChiS_vS    = ELEMENT->ChiS_vS;
-	ChiS_vIs   = ELEMENT->ChiS_vIs;
-	ChiS_vIc   = ELEMENT->ChiS_vIc;
-	ChiInvS_vS = ELEMENT->ChiInvS_vS;
+	ChiS_vP      = ELEMENT->ChiS_vP;
+	ChiS_vS      = ELEMENT->ChiS_vS;
+	ChiS_vIs     = ELEMENT->ChiS_vIs;
+	ChiS_vIc     = ELEMENT->ChiS_vIc;
+	ChiInvS_vS   = ELEMENT->ChiInvS_vS;
+	ChiInvGs_vGs = ELEMENT->ChiInvGs_vGs;
 
 	GradChiS_vIs = ELEMENT->GradChiS_vIs;
 	GradChiS_vIc = ELEMENT->GradChiS_vIc;
@@ -1508,6 +1510,8 @@ static void setup_TP_operators(const unsigned int EType)
 	I_vCs_vIc = ELEMENT->I_vCs_vIc;
 	I_vCc_vIs = ELEMENT->I_vCc_vIs;
 	I_vCc_vIc = ELEMENT->I_vCc_vIc;
+
+	TGs = ELEMENT->TGs;
 
 	Ihat_vS_vS  = ELEMENT->Ihat_vS_vS;
 	L2hat_vS_vS = ELEMENT->L2hat_vS_vS;
@@ -1560,6 +1564,14 @@ static void setup_TP_operators(const unsigned int EType)
 	get_PS_range(&PSMin,&PSMax);
 	if (Eclass == C_TP) {
 		NvnGs[1] = pow(ELEMENTclass[0]->NvnGs[1],dE);
+		NvnGs[2] = pow(ELEMENTclass[0]->NvnGs[2],dE);
+
+		get_sf_parametersV(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->TGs[1][1],
+		                   0,0,NULL,NIn,NOut,OP,dE,0,Eclass);
+		TGs[1][1][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+		get_sf_parametersV(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->ChiInvGs_vGs[1][1],
+		                   0,0,NULL,NIn,NOut,OP,dE,0,Eclass);
+		ChiInvGs_vGs[1][1][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 		for (P = PSMin; P <= PSMax; P++) {
 			NvnGc[P] = pow(ELEMENTclass[0]->NvnGc[P],dE);
@@ -2738,8 +2750,7 @@ static void setup_blending(const unsigned int EType)
 				// Compute projection of VOLUME nodes to FACE
 				mm_CTN_d(NvnGc[P],dE-1,Nfve[f],BCoords_F,rst_v0Gs,rst_proj);
 				free(BCoords_F);
-//			} else if (Blending == GORDON_HALL && Eclass == C_TP) {
-			} else if (Eclass == C_TP) {
+			} else if (Blending == GORDON_HALL || Eclass == C_TP) {
 				rst_vGs = get_rst_vV(ELEMENT); // free
 				rst_vGsF = malloc(Nve*(dE-1) * sizeof *rst_vGsF); // free
 
@@ -2830,7 +2841,7 @@ if (PGc[P] != P)
 				// Compute projection of VOLUME nodes to EDGE
 				mm_CTN_d(NvnGc[P],dE-2,Neve,BCoords_E,rst_v0Gs,rst_proj);
 				free(BCoords_E);
-			} else if (Blending == GORDON_HALL && EclassE == C_TP) {
+			} else if (Blending == GORDON_HALL || EclassE == C_TP) {
 				rst_vGs = get_rst_vV(ELEMENT); // free
 				rst_vGsE = malloc(Nve * sizeof *rst_vGsE); // free
 
@@ -2945,6 +2956,11 @@ static void setup_vertex_projection(const unsigned int EType)
 
 	for (vh = 0; vh < Nvref; vh++) {
 		VeMask[vh] = malloc(Nve * sizeof *VeMask[vh]); // keep
+
+		// Set Nvve[vh] for QUADs, HEXs, WEDGEs
+		if (Nvve[vh] == 0)
+			Nvve[vh] = Nve;
+
 		for (ve = 0; ve < Nvve[vh]; ve++) {
 		for (veP2 = 0; veP2 < NveP2; veP2++) {
 			if (array_norm_diff_d(Nve,&I_vGs_vGs[1][1][vh][ve*Nve],&I_vGs_vGs[1][2][0][veP2*Nve],"Inf") < EPS) {
@@ -3023,7 +3039,7 @@ void setup_operators(void)
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
 		setup_blending(EType);
-//		setup_vertex_projection(EType);
+		setup_vertex_projection(EType);
 		if (d == 3)
 			setup_ELEMENT_FACE_ordering(EType);
 	}
