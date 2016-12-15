@@ -2,7 +2,7 @@
 
 Refine = 0;
 
-lc = 1.0/2.0^Refine;
+lc = 2.0/2.0^Refine;
 
 NnIn = 1e2;
 

@@ -610,7 +610,7 @@ static void output_solution(const char *sol_type)
 				uEx = malloc(NvnP*1 * sizeof *uEx); // free
 				compute_exact_solution(NvnP,XYZ_vP,uEx,1);
 				for (n = 0; n < NvnP; n++)
-					q[d*NvnP+n] = u[n]-uEx[n];
+					q[d*NvnP+n] = fabs(u[n]-uEx[n]);
 
 				free(uEx);
 			}

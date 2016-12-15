@@ -112,6 +112,8 @@
  *		                  NIELSON
  *		Parametrization : Type of parametrization used in curved elements.
  *		                  Options: ArcLength, RadialProjection (Under consideration), EqualTangent (Under consideration)
+ *		                  See Bjontegaard(2012)-Spectral_Approximation_of_Partial_Differential_Equations_in_Highly
+ *		                                        _Distorted_Domains
  *
  *		NodeType()[] : Node type used for each type of node () and each type of element [].
  *		               () : (S)olution, (F)lux, (F)lux in (r)eference space, (I)ntegration

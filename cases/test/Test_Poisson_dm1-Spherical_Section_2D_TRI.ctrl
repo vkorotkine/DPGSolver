@@ -7,7 +7,7 @@
 BEGIN PARAMETERS
   Dimension  2
   ML         0
-  MeshType   ToBeCurvedTRI
+  MeshType   CurvedTRI
   Geometry   dm1-Spherical_Section
 
   Form       Strong // Options: Weak, (Strong)

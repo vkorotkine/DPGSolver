@@ -2669,7 +2669,7 @@ static void setup_blending(const unsigned int EType)
 	char         **NodeTypeG = DB.NodeTypeG;
 
 	// Standard datatypes
-	unsigned int f, e, n, ve, P, Pb, Vf, Ve, dim, PSMin, PSMax, Nf, Ne, Nve, *Nfve, Neve, *VeFcon, *VeEcon,
+	unsigned int f, e, n, ve, P, Pb, Vf, Ve, dim, PSMin, PSMax, PbMin, PbMax, Nf, Ne, Nve, *Nfve, Neve, *VeFcon, *VeEcon,
 	             *NvnGc, *Nv0nGs, *Nv0nGc, Eclass, EclassF, EclassE, dE, Nbf, dimF[2], dimE, dummy_ui, *dummyPtr_ui;
 	double       *BCoords_V, *BCoords_F, *BCoords_E,
 	             *rst_v0Gs, *rst_proj, *rst_v0Gc, *rst_vGs, *rst_vGsF, *rst_vGsE, rst_Num, rst_Den,
@@ -2781,16 +2781,23 @@ if (P == 4 && EType == TRI && f == 2) {
 			select_functions_cubature(&cubature,ELEMENT_F->type);
 			select_functions_basis(&basis,ELEMENT_F->type);
 
-			for (Pb = 1; Pb <= P; Pb++) {
+if (DB.Blending_HO) {
+	PbMin = 1;
+	PbMax = P;
 // Needs modification for PGc[P] != P (ToBeDeleted)
-if (PGc[P] != P)
-	printf("Error: Add support.\n"), EXIT_MSG;
-				cubature(&rst_v0Gc,&dummyPtr_d,&dummyPtr_ui,&Nv0nGc[Pb],&dummy_ui,0,Pb,dE-1,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
+if (P > 0 && PGc[P] != P)
+	printf("Error: Add support. %d %d\n",P,PGc[P]), EXIT_MSG;
+} else {
+	PbMin = P;
+	PbMax = P;
+}
+			for (Pb = PbMin; Pb <= PbMax; Pb++) {
+				cubature(&rst_v0Gc,&dummyPtr_d,&dummyPtr_ui,&Nv0nGc[Pb],&dummy_ui,0,PGc[Pb],dE-1,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
 
-				ChiRefGs_vGs    = basis(PGs,rst_v0Gs,Nv0nGs[1],&Nbf,dE-1);           // free
-				ChiRefGc_vGc    = basis(Pb, rst_v0Gc,Nv0nGc[Pb],&Nbf,dE-1);          // free
-				ChiRefGs_vProj  = basis(PGs,rst_proj,NvnGc[P],&Nbf,dE-1);            // free
-				ChiRefGc_vProj  = basis(Pb, rst_proj,NvnGc[P],&Nbf,dE-1);            // free
+				ChiRefGs_vGs    = basis(PGs,    rst_v0Gs,Nv0nGs[1],&Nbf,dE-1);           // free
+				ChiRefGc_vGc    = basis(PGc[Pb],rst_v0Gc,Nv0nGc[Pb],&Nbf,dE-1);          // free
+				ChiRefGs_vProj  = basis(PGs,    rst_proj,NvnGc[P],&Nbf,dE-1);            // free
+				ChiRefGc_vProj  = basis(PGc[Pb],rst_proj,NvnGc[P],&Nbf,dE-1);            // free
 
 				IGs             = identity_d(Nv0nGs[1]);                             // free
 				IGc             = identity_d(Nv0nGc[Pb]);                            // free
