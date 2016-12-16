@@ -347,6 +347,8 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	 *		is performed. However, on curved meshes, the movement of the vertices to the exact boundary can cause other
 	 *		ELEMENT types to become less regular with mesh refinement.
 	 *
+	 *		NOTE: IT MAY ONLY BE NECESSARY TO COMPUTE THE RATIO OF THE CIRCUMSPHERE TO THE IN-SPHERE FOR THE ESTIMATE.
+	 *		      -> INVESTIGATE (ToBeDeleted)
 	 *
 	 *		TET algorithm:
 	 *
@@ -720,6 +722,7 @@ void evaluate_mesh_regularity(double *mesh_quality)
 			else if (VOLUME->type == QUAD)
 				kMax = 4;
 
+			rIn = 0.0;
 			for (k = 0; k < kMax; k++) {
 				for (i = 0, iMax = d+1; i < iMax; i++) {
 					for (j = 0, jMax = d+1; j < jMax; j++) {

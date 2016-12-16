@@ -201,7 +201,7 @@ static void output_geom(const char *geom_type)
 					fprintf(fID,"\t\t\t\t");
 					for (dim = 0; dim < d; dim++)
 						fprintf(fID,"% .3f ",XYZ_vP[dim*NvnP+i]);
-					for (dim = d; dim < 3; dim++)
+					for (dim = d; dim < DMAX; dim++)
 						fprintf(fID,"% .3f ",0.0);
 					fprintf(fID,"\n");
 				}
@@ -649,7 +649,7 @@ static void output_solution(const char *sol_type)
 					fprintf(fID,"\t\t\t\t");
 					for (dim = 0; dim < d; dim++)
 						fprintf(fID,"% .4e ",XYZ_vP[dim*NvnP+i]);
-					for (dim = d; dim < 3; dim++)
+					for (dim = d; dim < DMAX; dim++)
 						fprintf(fID,"% .4e ",0.0);
 					fprintf(fID,"\n");
 				}

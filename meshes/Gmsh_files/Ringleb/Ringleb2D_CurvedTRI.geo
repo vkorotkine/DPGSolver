@@ -1,10 +1,10 @@
 // Modifiable Parameters
 
-Refine = 2;
+Refine = 0;
 
 lc = 1.2/2.0^Refine;
 
-NnIn = 1e3;
+NnIn = 5e1;
 
 
 // Geometry Specification

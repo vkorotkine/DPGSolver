@@ -834,6 +834,23 @@ static double *compute_XYZ_update(struct S_Blend *data)
 		// Compute normal distance from polynomial FACE to curved geometry
 		compute_normal_displacement(NbnG,0,XYZ_S,n_S,XYZ_CmS,BC);
 
+		// Set displacement of previously existing vertices to 0.0 (Needed for Ringleb)
+		double XYZdiff;
+		for (ve = 0; ve < Nve; ve++) {
+			for (n = 0; n < NbnG; n++) {
+				XYZdiff = 0.0;
+				for (dim = 0; dim < d; dim++)
+					XYZdiff += pow(XYZ_S[dim*NbnG+n]-XYZ_vV[dim*Nve+VeBcon[b*NbveMax+ve]],2.0);
+				XYZdiff = sqrt(XYZdiff);
+
+				if (XYZdiff < EPS) {
+					for (dim = 0; dim < d; dim++)
+						XYZ_CmS[dim*NbnG+n] = 0.0;
+					break;
+				}
+			}
+		}
+
 		free(n_S);
 		free(XYZ_S);
 	} else {

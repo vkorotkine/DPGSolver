@@ -356,7 +356,7 @@ void setup_geometry(void)
 		NvnGs = ELEMENT->NvnGs[1];
 
 		// Fix XYZ_vV if modifications were made in projection to exact geometry
-		if (ExactGeom && VOLUME->curved) {
+		if (ExactGeom) {
 			for (ve = 0; ve < NvnGs; ve++) {
 			for (dim = 0; dim < d; dim++) {
 				XYZ_vV[dim*NvnGs+ve] = VeXYZ[EToVe[(Vs+(VOLUME->indexg))*NVEMAX+ve]*d+dim];

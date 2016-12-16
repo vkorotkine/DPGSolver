@@ -53,8 +53,8 @@ int main(void)
 	strcpy(TestCase,"Poisson");
 
 //	strcpy(MeshType,"StructuredTRI");
-	strcpy(MeshType,"CurvedTRI");
-//	strcpy(MeshType,"CurvedQUAD");
+//	strcpy(MeshType,"CurvedTRI");
+	strcpy(MeshType,"CurvedQUAD");
 //	strcpy(MeshType,"CurvedTET");
 //	strcpy(MeshType,"ToBeCurvedStructuredTRI");
 //	strcpy(MeshType,"ToBeCurvedStructuredQUAD");
@@ -72,7 +72,7 @@ int main(void)
 	                              0, 1, 1, 1, 1, 1, 1, 1, 1,
 	                              0, 1, 1, 1, 1, 1, 1, 1, 1,
 	                              0, 1, 1, 1, 1, 1, 1, 1, 1,
-	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 1, 1, 1, 1, 1,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0};
