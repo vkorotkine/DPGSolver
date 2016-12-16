@@ -1,8 +1,8 @@
 // Modifiable Parameters
 
-Refine = 0;
+Refine = 2;
 
-lc = 0.6/2.0^Refine;
+lc = 1.2/2.0^Refine;
 
 NnIn = 1e3;
 
@@ -127,8 +127,8 @@ Spline(1005) = pListBIw2[];
 Spline(1006) = pListBOw2[];
 Line(1007)   = {5,6};
 
-Transfinite Line {1001:1006} = 4+1 Using Progression 1;
-Transfinite Line {1007}      = 4+1 Using Progression 1;
+//Transfinite Line {1001:1006} = 4+1 Using Progression 1;
+//Transfinite Line {1007}      = 4+1 Using Progression 1;
 
 Line Loop (4001) = {1001,1003,-1007,-1004};
 Line Loop (4002) = {-1002,-1005,1007,1006};
@@ -136,7 +136,7 @@ Line Loop (4002) = {-1002,-1005,1007,1006};
 Plane Surface(4001) = {4001};
 Plane Surface(4002) = {4002};
 
-Transfinite Surface {4001:4002};
+//Transfinite Surface {4001:4002};
 
 //Recombine Surface{4002};
 
@@ -156,3 +156,4 @@ Physical Surface(9402) = {4002};
 
 Color Black{ Surface{4001:4002}; }
 Geometry.Color.Points = Black;
+Coherence;

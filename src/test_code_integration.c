@@ -403,10 +403,10 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int i, j, k, f, e, c, Nf, Ne, Nve, iMax, jMax, *IndsE, *IndsF, Found, TETcount, NormType,
-	             *VeEcon, *VeFcon;
+	unsigned int i, j, k, l, f, e, c, Nf, Ne, Nve, iMax, jMax, kMax, lMax, Ecount,
+	             *IndsE, *IndsF, Found, TETcount, NormType, *VeEcon, *VeFcon;
 	int          **piv;
-	double       r_ratio, r, rIn, rOut,
+	double       r_ratio, r, rIn, rOut, rTmp, d1, d2,
 	             *XYZ, *XYZdiff, *n, *nNorm, **LHS, **RHS, *lenE, *XYZc, *abcF, *rF, *XYZcE, *d_p;
 
 	struct S_ELEMENT *ELEMENT;
@@ -434,9 +434,9 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	piv[1] = malloc(NFMAX*DMAX*1          * sizeof *piv[1]); // free
 	piv[2] = malloc((DMAX+1)*1            * sizeof *piv[2]); // free
 
-	IndsE = malloc(NEMAX  * sizeof *IndsE); // free
+	IndsE = calloc(28     , sizeof *IndsE); // free (HEX determines size = d*(7+6+5+...) = d*28
 	IndsF = malloc(NFMAX  * sizeof *IndsF); // free
-	lenE  = malloc(NEMAX  * sizeof *lenE);  // free
+	lenE  = calloc(28     , sizeof *lenE);  // free
 	XYZc  = malloc(DMAX   * sizeof *XYZc);  // free
 	XYZcE = malloc(DMAX   * sizeof *XYZcE); // free
 	d_p   = malloc(NFMAX  * sizeof *d_p);   // free
@@ -444,7 +444,7 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	abcF = malloc(NFMAX*DMAX * sizeof *abcF); // free
 	rF   = malloc(NFMAX*1    * sizeof *rF);   // free
 
-	r_ratio  = 0.0;
+	r_ratio  = 1.0*d; // Minimum value for regular TRI/TET.
 	if (d == 3) {
 		// Currently only being used for TETs.
 		TETcount = 0;
@@ -550,7 +550,7 @@ void evaluate_mesh_regularity(double *mesh_quality)
 						if (r > rOut+EPS)
 							Found = 0;
 					}
-//				printf("rOut (%d) % .3e\n",k,rOut);
+//					printf("rOut (%d) % .3e\n",k,rOut);
 					if (Found)
 						break;
 				} else if (k == 1) {
@@ -599,7 +599,7 @@ void evaluate_mesh_regularity(double *mesh_quality)
 							if (r-rOut > 1e2*EPS)
 								Found = 0;
 						}
-	//					printf("rOut (%d, %d) % .3e\n",k,f,rOut);
+//						printf("rOut (%d, %d) % .3e\n",k,f,rOut);
 						if (Found)
 							break;
 					}
@@ -618,7 +618,7 @@ void evaluate_mesh_regularity(double *mesh_quality)
 						printf("Error: mkl LAPACKE_dgesv failed.\n"), EXIT_MSG;
 
 					rOut = sqrt(RHS[2][3]+pow(array_norm_d(d,RHS[2],"L2"),2.0));
-//				printf("rOut (%d) % .3e\n",k,rOut);
+//					printf("rOut (%d) % .3e\n",k,rOut);
 				}
 			}
 
@@ -649,8 +649,12 @@ void evaluate_mesh_regularity(double *mesh_quality)
 			*mesh_quality = 3.0; // ratio for regular TET
 		}
 	} else if (d == 2) {
-		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		unsigned int IndcF[4*3]   = { 0, 1, 2,  0, 1, 3,  0, 2, 3,  1, 2, 3 },   // (Ind)ices of (c)ircle (F)aces
+		             IndcVe2[6*2] = { 0, 1,  0, 2,  1, 2,  0, 3,  1, 3,  2, 3 }, // (Ind)ices of (c)ircle (Ve)rtices
+		             IndcVe3[4*3] = { 0, 1, 2,  0, 1, 3,  0, 2, 3,  1, 2, 3 };   // (Ind)ices of (c)ircle (Ve)rtices
 
+		Ecount = 0;
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			ELEMENT = get_ELEMENT_type(VOLUME->type);
 
 			Nf  = ELEMENT->Nf;
@@ -663,7 +667,7 @@ void evaluate_mesh_regularity(double *mesh_quality)
 			// Obtain vertex coordinates (Row-major)
 			for (i = 0; i < Nve; i++) {
 			for (j = 0; j < d; j++) {
-				XYZ[i*d+j] = VOLUME->XYZ_vV[j*Nve+i];
+				XYZ[i*d+j] = VOLUME->XYZ_vV[i+Nve*j];
 			}}
 
 			// XYZ coordinates of ELEMENT center
@@ -678,9 +682,8 @@ void evaluate_mesh_regularity(double *mesh_quality)
 
 			// 1) Normal vector (normalized) computation
 			for (f = 0; f < Nf; f++) {
-				// Cross-product
-				n[f*d+0] = -(XYZ[VeFcon[f*NFVEMAX+0]*d+1]-XYZ[VeFcon[f*NFVEMAX+1]*d+1]);
-				n[f*d+1] =   XYZ[VeFcon[f*NFVEMAX+0]*d+0]-XYZ[VeFcon[f*NFVEMAX+1]*d+0];
+				n[f*d+0] =   XYZ[VeFcon[f*NFVEMAX+0]*d+1]-XYZ[VeFcon[f*NFVEMAX+1]*d+1];
+				n[f*d+1] = -(XYZ[VeFcon[f*NFVEMAX+0]*d+0]-XYZ[VeFcon[f*NFVEMAX+1]*d+0]);
 
 				nNorm[f] = array_norm_d(d,&n[f*d],"L2");
 
@@ -689,22 +692,142 @@ void evaluate_mesh_regularity(double *mesh_quality)
 					n[f*d+i] /= nNorm[f];
 
 				// Ensure that normal points outwards
-				rIn = 0.0;
+				d1 = 0.0;
 				for (i = 0; i < d; i++)
-					rIn += pow(XYZ[VeFcon[f*NFVEMAX+0]*d+i]-n[f*d+i]*1.0-XYZcE[i],2.0);
-				rIn = sqrt(rIn);
+					d1 += pow(XYZ[VeFcon[f*NFVEMAX+0]*d+i]-n[f*d+i]*nNorm[f]-XYZcE[i],2.0);
+				d1 = sqrt(d1);
 
-				rOut = 0.0;
+				d2 = 0.0;
 				for (i = 0; i < d; i++)
-					rOut += pow(XYZ[VeFcon[f*NFVEMAX+0]*d+i]+n[f*d+i]*1.0-XYZcE[i],2.0);
-				rOut = sqrt(rIn);
+					d2 += pow(XYZ[VeFcon[f*NFVEMAX+0]*d+i]+n[f*d+i]*nNorm[f]-XYZcE[i],2.0);
+				d2 = sqrt(d2);
 
-				if (rIn > rOut) {
+				if (d1 > d2) {
 					for (i = 0; i < d; i++)
 						n[f*d+i] *= -1.0;
 				}
+
+				// Compute d for the equation of the line: a*x+b*y = d
+				d_p[f] = 0.0;
+				for (i = 0; i < d; i++)
+					d_p[f] += n[f*d+i]*XYZ[VeFcon[f*NFVEMAX+0]*d+i];
 			}
+
+			// 2) Assemble LHS, RHS and solve system to obtain rIn
+			kMax = 0;
+			if (VOLUME->type == TRI)
+				kMax = 1;
+			else if (VOLUME->type == QUAD)
+				kMax = 4;
+
+			for (k = 0; k < kMax; k++) {
+				for (i = 0, iMax = d+1; i < iMax; i++) {
+					for (j = 0, jMax = d+1; j < jMax; j++) {
+						if (j == 0)
+							LHS[2][i*jMax+j] = 1.0;
+						else
+							LHS[2][i*jMax+j] = n[IndcF[k*(d+1)+i]*d+(j-1)];
+					}
+					RHS[2][i] = d_p[IndcF[k*(d+1)+i]];
+				}
+
+				if (LAPACKE_dgesv(LAPACK_ROW_MAJOR,d+1,1,LHS[2],d+1,piv[2],RHS[2],1) > 0)
+					printf("Error: mkl LAPACKE_dgesv failed.\n"), EXIT_MSG;
+
+				if (k == 0 || (RHS[2][0] < rIn))
+					rIn = RHS[2][0];
+			}
+
+			// Evaluate radius of enclosing sphere
+
+			// 1) Compute length of all possible 2 vertex circles
+			kMax = 0;
+			if (VOLUME->type == TRI)
+				kMax = 3;
+			else if (VOLUME->type == QUAD)
+				kMax = 6;
+
+			for (k = 0; k < kMax; k++) {
+				for (i = 0; i < d; i++)
+					XYZdiff[i] = XYZ[IndcVe2[k*2+0]*d+i]-XYZ[IndcVe2[k*2+1]*d+i];
+				lenE[k]  = array_norm_d(d,XYZdiff,"L2");
+				IndsE[k] = k;
+			}
+			PetscSortRealWithPermutation(kMax,lenE,(int *) IndsE);
+
+			// Circle radius for case 1.
+			rOut = 0.5*lenE[IndsE[kMax-1]];
+
+			Found = 0;
+			for (k = 0; k < d && !Found; k++) {
+				if (k == 0) {
+					// Case 1: 2 Corners touch the circle
+
+					// Compute circle center
+					for (j = 0; j < d; j++)
+						XYZc[j] = 0.5*(XYZ[IndcVe2[IndsE[Ne-1]*2+0]*d+j]+XYZ[IndcVe2[IndsE[Ne-1]*2+1]*d+j]);
+
+					// Check if all corners are enclosed by the circle
+					Found = 1;
+					for (c = 0; c < Nve; c++) {
+						for (i = 0; i < d; i++)
+							XYZdiff[i] = XYZ[c*d+i]-XYZc[i];
+						r = array_norm_d(d,XYZdiff,"L2");
+						if (r > rOut+EPS) {
+							Found = 0;
+							break;
+						}
+					}
+//					printf("rOut (%d) % .3e\n",k,rOut);
+					if (Found)
+						break;
+				} else if (k == 1) {
+					// Case 2: 3 Corners touch the circle
+					lMax = 0;
+					if (VOLUME->type == TRI)
+						lMax = 1;
+					else if (VOLUME->type == QUAD)
+						lMax = 4;
+
+					rOut = 0.0;
+					for (l = 0; l < lMax; l++) {
+						// Compute circle radius
+						for (i = 0; i < d+1; i++) {
+							for (j = 0; j < d; j++)
+								LHS[2][i*jMax+j] = 2.0*XYZ[IndcVe3[l*3+i]*d+j];
+							LHS[2][i*jMax+d] = 1.0;
+							RHS[2][i] = pow(array_norm_d(d,&XYZ[IndcVe3[l*3+i]*d],"L2"),2.0);
+						}
+
+						if (LAPACKE_dgesv(LAPACK_ROW_MAJOR,d+1,1,LHS[2],d+1,piv[2],RHS[2],1) > 0)
+							printf("Error: mkl LAPACKE_dgesv failed.\n"), EXIT_MSG;
+
+						rTmp = sqrt(RHS[2][d]+pow(array_norm_d(d,RHS[2],"L2"),2.0));
+						if (rTmp > rOut)
+							rOut = rTmp;
+					}
+//					printf("rOut (%d) % .3e\n",k,rOut);
+				}
+			}
+
+			if (rOut/rIn < 1.0)
+				printf("Error: Invalid value (% .3e, % .3e % .3e).\n",rIn,rOut,rOut/rIn), EXIT_MSG;
+
+			if (NormType == 0) {
+				if (rOut/rIn > r_ratio) {
+					r_ratio = rOut/rIn;
+				}
+			} else if (NormType == 2) {
+				r_ratio += rOut/rIn;
+			}
+			Ecount++;
 		}
+		if (NormType == 0)
+			*mesh_quality = r_ratio;
+		else if (NormType == 2)
+			*mesh_quality = r_ratio/Ecount;
+		else
+			printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
 
 //	printf("%d % .3e\n",DB.ML,*mesh_quality);

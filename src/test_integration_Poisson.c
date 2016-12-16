@@ -187,8 +187,8 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 //	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_mixed");
 //	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
-//	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_TRI");
-	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_QUAD");
+	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_TRI");
+//	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_QUAD");
 //	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
 //	strcpy(argvNew[1],"test/Test_Poisson_3D_HEX");
 //	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_TP");
@@ -210,8 +210,8 @@ TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
-//	Adapt = ADAPT_0;
-	Adapt = ADAPT_HP;
+	Adapt = ADAPT_0;
+//	Adapt = ADAPT_HP;
 	if (Adapt != ADAPT_0) {
 		TestDB.ML = DB.ML;
 		code_startup(nargc,argvNew,0,2);
