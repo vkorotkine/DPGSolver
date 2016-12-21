@@ -80,7 +80,7 @@ static void update_TestCase(void)
 		strcpy(DB.Geometry,"PeriodicVortex"); // ToBeModified: Rename this.
 	} else if (strstr(DB.TestCase,"linearization")) {
 		strcpy(DB.TestCase,"SupersonicVortex_Test");
-		strcpy(DB.Geometry,"SupersonicVortex"); // ToBeModified: Rename this.
+		strcpy(DB.Geometry,"Annular_Section");
 	} else {
 		printf("%s\n",DB.TestCase);
 		printf("Error: Unsupported.\n"), EXIT_MSG;
@@ -873,8 +873,11 @@ void check_mesh_regularity(const double *mesh_quality, const unsigned int NML, u
 		for (i = 0; i < 2; i++)
 			slope_quality[i] = mesh_quality[NML-2+i]-mesh_quality[NML-3+i];
 
+		if (slope_quality[1]-slope_quality[0] > 1e-3)
+			printf("\nWarning: Potential mesh regularity issue.\n\n"); TestDB.Nwarnings++;
+
 		if (slope_quality[1] > 0.0) {
-			if (slope_quality[1]-slope_quality[0] > 1e-3)
+			if (slope_quality[1]/slope_quality[0] > 5e0)
 				*pass = 0;
 		}
 		printf("\nMesh quality:");

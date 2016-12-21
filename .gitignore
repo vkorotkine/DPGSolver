@@ -13,6 +13,7 @@ src/support_functions/*.txt
 *~
 *.swp
 *.msh
+*.DS_Store
 
 meshes/Poisson/*
 meshes/PeriodicVortex/*

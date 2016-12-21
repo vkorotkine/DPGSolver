@@ -23,9 +23,10 @@ USE_VALGRIND="1"
 KERNEL=$(uname -s)
 case ${KERNEL} in
 *arwin*)
-	CODE_DIR="/Users/philipzwanenburg/Desktop/Research_Codes"
-	TOP_DIR="${CODE_DIR}/DPGC"
-	MPI_DIR="${CODE_DIR}/Downloaded/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/"
+	CODE_DIR="/Users/philip/Desktop/"
+	PROG_DIR="/Users/philip/Desktop/research_codes"
+	TOP_DIR="${CODE_DIR}/DPGSolver"
+	MPI_DIR="${PROG_DIR}/petsc/petsc-3.7.4/arch-osx-mpich-c-opt/bin/"
 	N_PROCS="1"
 
 	;;

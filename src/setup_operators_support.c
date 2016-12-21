@@ -847,7 +847,7 @@ void setup_ELEMENT_VeE(const unsigned int EType)
 	VeEcon = ELEMENT->VeEcon;
 
 	ELEMENT_E = get_ELEMENT_type(LINE);
-	Nnodes = (ELEMENT_E->Nvref)*pow(ELEMENT_E->Nve,2.0);
+	Nnodes = NREFMAXLINE*pow(ELEMENT_E->Nve,2.0);
 	VeVref = malloc(Nnodes * sizeof *VeVref); // free
 	initialize_VeVref(ELEMENT_E->type,VeVref);
 

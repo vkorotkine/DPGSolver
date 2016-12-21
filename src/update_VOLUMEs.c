@@ -375,10 +375,8 @@ void update_VOLUME_hp(void)
 						// Ensure that vertices are place on the curved boundaries
 						NveP2 = ELEMENT->NveP2;
 
-						if (vh == vhMin) {
-							VOLUME->XYZ_vVP2 = malloc(NveP2*d * sizeof *XYZ_vVP2); // keep
+						if (vh == vhMin)
 							setup_Curved_vertices(VOLUME);
-						}
 
 						if (DB.TETrefineType == TET12)
 							printf("Error: VeMask not correct for this case.\n"), EXIT_MSG;
@@ -766,7 +764,7 @@ void update_VOLUME_finalize(void)
 		VIn->neigh[VfIn]   = VOut->indexg;
 		VOut->neigh[VfOut] = VIn->indexg;
 
-		if (fabs((int) VIn->level - (int) VOut->level) > 1.0) {
+		if (abs((int) VIn->level - (int) VOut->level) > 1.0) {
 			printf("%d %d %d\n",VIn->indexg,VOut->indexg,VIn->parent->indexg);
 			printf("Error: Adjacent VOLUMEs are more than 1-irregular.\n"), EXIT_MSG;
 		}

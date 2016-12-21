@@ -36,16 +36,17 @@
  *		Rosca(2011)-Uniform_Spherical_Grids_via_Equal_Area_Projection_from_the_Cube_to_the_Sphere
  */
 
-static void         ToBeCurved_cube_to_sphere (unsigned int Nn, double *XYZ_S, double *XYZ);
-static double         *cube_to_sphere         (double XY[2], unsigned int OrderOut[3], int SignOut, double beta);
-static void         ToBeCurved_TP             (unsigned int Nn, double *XYZ_S, double *XYZ);
-static unsigned int   is_in_blend_region      (double XYZn[3]);
-static void           get_blend_bounds        (const double Xn, const double Zn, unsigned int *xLoc, unsigned int *zLoc,
-                                               double *xBounds, double *zBounds);
-static double         get_arc_length          (const double XL, const double XR, const double Z,
-                                               const unsigned int DOrder[2]);
-static double         *eval_TP_function       (const unsigned int Nn, const double *XZ, const unsigned int DOrder[2],
-                                               const unsigned int Single, double **abcP);
+static void         ToBeCurved_cube_to_sphere   (unsigned int Nn, double *XYZ_S, double *XYZ);
+static void         ToBeCurved_square_to_circle (unsigned int Nn, double *XYZ_S, double *XYZ);
+static double         *cube_to_sphere           (double XY[2], unsigned int OrderOut[3], int SignOut, double beta);
+static void         ToBeCurved_TP               (unsigned int Nn, double *XYZ_S, double *XYZ);
+static unsigned int   is_in_blend_region        (double XYZn[3]);
+static void           get_blend_bounds          (const double Xn, const double Zn, unsigned int *xLoc, unsigned int *zLoc,
+                                                 double *xBounds, double *zBounds);
+static double         get_arc_length            (const double XL, const double XR, const double Z,
+                                                 const unsigned int DOrder[2]);
+static double         *eval_TP_function         (const unsigned int Nn, const double *XZ, const unsigned int DOrder[2],
+                                                 const unsigned int Single, double **abcP);
 
 static void ToBeCurved_sphere_to_ellipsoid(const unsigned int Nn, double *XYZ)
 {
@@ -169,10 +170,46 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 		} else {
 			printf("Error: PeriodicVortex TestCase not supported for dimension d = %d.\n",d), EXIT_MSG;
 		}
-	} else if (strstr(Geometry,"SupersonicVortex")) {
-		printf("Change to Annular_Section and implement this.\n"), EXIT_MSG;
+	} else if (strstr(Geometry,"Annular_Section")) {
+		ToBeCurved_square_to_circle(NvnG,XYZ_S,XYZ);
 	} else {
 		printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
+	}
+}
+
+static void ToBeCurved_square_to_circle(unsigned int Nn, double *XYZ_S, double *XYZ)
+{
+	/*
+	 *	Comments:
+	 *		Uses exact r-theta parametrization to transform from square to circular domain.
+	 */
+
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
+
+	// Standard datatypes
+	unsigned int n, dim;
+	double       PIo4, XYZn[DMAX], r, t;
+
+	PIo4 = 0.25*PI;
+	for (n = 0; n < Nn; n++) {
+		for (dim = 0; dim < d; dim++)
+			XYZn[dim] = XYZ_S[Nn*dim+n];
+
+		r = array_norm_d(d,XYZn,"Inf");
+		t = atan2(XYZn[1],XYZn[0]);
+
+		if      (t >= -    PIo4 && t <      PIo4) t =          XYZn[1]/r*PIo4;
+		else if (t >=      PIo4 && t <  3.0*PIo4) t = 0.5*PI - XYZn[0]/r*PIo4;
+		else if (t >=  3.0*PIo4 && t < -3.0*PIo4) t =     PI - XYZn[1]/r*PIo4;
+		else if (t >= -3.0*PIo4 && t < -    PIo4) t = 1.5*PI + XYZn[0]/r*PIo4;
+		else
+			printf("Error\n"), EXIT_MSG;
+
+		XYZ[     n] = r*cos(t);
+		XYZ[Nn*1+n] = r*sin(t);
+		if (d == DMAX)
+			XYZ[Nn*2+n] = XYZn[2];
 	}
 }
 
@@ -192,7 +229,7 @@ static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZ_S, double *XY
 	unsigned int dim, n,
 	             OrderOut[3];
 	int          SignOut;
-	double       XYZn[3], r, t, XYn[2], XYZn_normInf, beta, *XYZ_Sphere, PIo4;
+	double       XYZn[3], XYn[2], XYZn_normInf, beta, *XYZ_Sphere;
 
 	// silence
 	for (dim = 0; dim < 3; dim++) {
@@ -250,24 +287,7 @@ static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZ_S, double *XY
 			free(XYZ_Sphere);
 		}
 	} else if (d == 2) { // Exact r-theta parametrization
-		PIo4 = 0.25*PI;
-		for (n = 0; n < Nn; n++) {
-			for (dim = 0; dim < d; dim++)
-				XYZn[dim] = XYZ_S[Nn*dim+n];
-
-			r = array_norm_d(d,XYZn,"Inf");
-			t = atan2(XYZn[1],XYZn[0]);
-
-			if      (t >= -    PIo4 && t <      PIo4) t =          XYZn[1]/r*PIo4;
-			else if (t >=      PIo4 && t <  3.0*PIo4) t = 0.5*PI - XYZn[0]/r*PIo4;
-			else if (t >=  3.0*PIo4 && t < -3.0*PIo4) t =     PI - XYZn[1]/r*PIo4;
-			else if (t >= -3.0*PIo4 && t < -    PIo4) t = 1.5*PI + XYZn[0]/r*PIo4;
-			else
-				printf("Error\n");
-
-			XYZ[     n] = r*cos(t);
-			XYZ[Nn*1+n] = r*sin(t);
-		}
+		ToBeCurved_square_to_circle(Nn,XYZ_S,XYZ);
 	} else {
 		printf("Error: Unsupported d.\n"), EXIT_MSG;
 	}
@@ -720,7 +740,7 @@ static double get_arc_length(const double XL, const double XR, const double Z, c
 
 	// silence
 	ArcLenOut = 0;
-	f_XZ = NULL;
+	f_XZ = abcP = NULL;
 
 	AnalyticalArcLen = 0;
 	if (strstr(TestCase,"PolynomialBump")) {

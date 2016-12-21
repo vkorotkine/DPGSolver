@@ -7,7 +7,7 @@
 BEGIN PARAMETERS
   Dimension  3
   ML         0
-  MeshType   Mixed3D_ToBeCurvedlinearizationHW1x
+  MeshType   Mixed3D_ToBeCurvedlinearizationHW
   Geometry   NONE
 
   Form       Weak  // Options: Weak, (Strong)
