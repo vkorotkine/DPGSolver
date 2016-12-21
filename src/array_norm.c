@@ -9,7 +9,7 @@
 #include <string.h>
 
 #include "petscmat.h"
- 
+
 #include "Macros.h"
 
 #include "array_print.h"
@@ -34,10 +34,10 @@ unsigned int array_norm_ui(const unsigned int LenA, const unsigned int *A, const
 
 	if (strstr(NormType,"Inf")) {
 		for (i = 0; i < LenA; i++)
-			if (fabs(A[i]) > norm) norm = fabs(A[i]);
+			if (A[i] > norm) norm = A[i];
 	} else if (strstr(NormType,"L1")) {
 		for (i = 0; i < LenA; i++)
-			norm += fabs(A[i]);
+			norm += A[i];
 	} else if (strstr(NormType,"L2")) {
 		printf("Error: L2 norm not supported for unsigned int (norm).\n"), exit(1);
 	}
@@ -82,13 +82,13 @@ unsigned int array_norm_diff_ui(const unsigned int LenA, const unsigned int *A, 
 
 	if (strstr(NormType,"Inf")) {
 		for (i = 0; i < LenA; i++) {
-			if (fabs(As[i]-Bs[i]) > norm_num) norm_num = fabs(As[i]-Bs[i]);
-			if (fabs(As[i])       > norm_den) norm_den = fabs(As[i]);
+			if (abs(As[i]-Bs[i]) > norm_num) norm_num = abs(As[i]-Bs[i]);
+			if (abs(As[i])       > norm_den) norm_den = abs(As[i]);
 		}
 	} else if (strstr(NormType,"L1")) {
 		for (i = 0; i < LenA; i++) {
-			norm_num += fabs(As[i]-Bs[i]);
-			norm_den += fabs(As[i]);
+			norm_num += abs(As[i]-Bs[i]);
+			norm_den += abs(As[i]);
 		}
 	} else if (strstr(NormType,"L2")) {
 		printf("Error: L2 norm not supported.\n"), EXIT_MSG;

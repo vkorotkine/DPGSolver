@@ -2,7 +2,7 @@
 
 Refine = 0;
 
-lc = 0.4/2^Refine;
+lc = 0.6/2.0^Refine;
 
 rIn = 0.5;
 rOut = 1.0;
@@ -14,21 +14,23 @@ rOut = 1.0;
 Point(1) = {rIn,0,0,lc};
 Point(2) = {rOut,0,0,lc};
 Point(3) = {0,rIn,0,lc};
-Point(4) = {rIn,rIn,0,lc};
+Point(4) = {Sqrt(0.5)*rIn,Sqrt(0.5)*rIn,0,lc};
 Point(5) = {0,rOut,0,lc};
-Point(6) = {rOut,rOut,0,lc};
+Point(6) = {Sqrt(0.5)*rOut,Sqrt(0.5)*rOut,0,lc};
+Point(7) = {0,0,0,lc};
 
 Line(1001) = {1,2};
 Line(1002) = {3,5};
-Line(1003) = {4,3};
-Line(1004) = {4,1};
-Line(1005) = {6,5};
-Line(1006) = {6,2};
+Circle(1003) = {4,7,3};
+Circle(1004) = {4,7,1};
+Circle(1005) = {6,7,5};
+Circle(1006) = {6,7,2};
 Line(1007) = {4,6};
 
 Transfinite Line {1001:1004} = 1*2^(Refine)+1 Using Progression 1;
 Transfinite Line {1005:1006} = 1*2^(Refine)+1 Using Progression 1;
 Transfinite Line {1007}      = 1*2^(Refine)+1 Using Progression 1;
+
 
 Line Loop (4001) = {1007,1005,-1002,-1003};
 Line Loop (4002) = {-1007,1004,1001,-1006};

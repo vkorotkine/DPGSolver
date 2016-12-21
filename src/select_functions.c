@@ -23,14 +23,6 @@
  *	References:
  */
 
-typedef void (*cubature_tdef) (double **rst, double **w_vec, unsigned int **symms, unsigned int *Nn, unsigned int *Ns,
-                               const unsigned int return_w, const unsigned int P, const unsigned int d,
-                               const char *NodeType);
-typedef double *(*basis_tdef) (const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
-                               const unsigned int d);
-typedef double **(*grad_basis_tdef) (const unsigned int P, const double *rst, const unsigned int Nn,
-                                     unsigned int *NbfOut, const unsigned int d);
-
 void select_functions(basis_tdef *basis, grad_basis_tdef *grad_basis, cubature_tdef *cubature, const unsigned int type)
 {
 	switch(type) {

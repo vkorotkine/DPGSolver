@@ -249,7 +249,7 @@ static unsigned int compare_boundary(const unsigned int Nn, const unsigned int N
 	for (i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
 		WBctr[i] = creal(WBc[i]);
 
-	if (array_norm_diff_d(NnTotal*Nvar,WBr,WBctr,"Inf") < EPS)
+	if (array_norm_diff_d(NnTotal*Nvar,WBr,WBctr,"Inf") < 1e1*EPS)
 		pass = 1, TestDB.Npass++;
 
 	free(WBr);
