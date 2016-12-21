@@ -303,6 +303,12 @@ void vertices_to_exact_geom(void)
 		}
 	} else if (strstr(Geometry,"PeriodicVortex")) {
 		// Do nothing
+	} else if (strstr(Geometry,"HoldenRamp")) {
+		if (!strstr(Geometry,"HoldenRampCurved")) {
+			// Do nothing
+		} else {
+			printf("Error: Add support\n."), EXIT_MSG;
+		}
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}

@@ -68,11 +68,10 @@ static void update_MeshFile(void)
 
 static void update_TestCase(void)
 {
-	if (strstr(DB.TestCase,"Poisson_Ringleb")) {
-		strcpy(DB.TestCase,"Poisson");
-	} else if (strstr(DB.TestCase,"Poisson_dm1-Spherical_Section")) {
-		strcpy(DB.TestCase,"Poisson");
-	} else if (strstr(DB.TestCase,"Poisson_Ellipsoidal_Section")) {
+	if (strstr(DB.TestCase,"Poisson_Ringleb")               ||
+	    strstr(DB.TestCase,"Poisson_dm1-Spherical_Section") ||
+	    strstr(DB.TestCase,"Poisson_Ellipsoidal_Section")   ||
+	    strstr(DB.TestCase,"Poisson_HoldenRamp")) {
 		strcpy(DB.TestCase,"Poisson");
 	} else if (strstr(DB.TestCase,"L2_proj") ||
 	           strstr(DB.TestCase,"update_h")) {

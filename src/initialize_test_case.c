@@ -118,6 +118,8 @@ void initialize_test_case_parameters(void)
 			DB.Q0   = 0.5;
 			DB.KMin = 0.7;
 			DB.KMax = 1.5;
+		} else if (strstr(Geometry,"HoldenRamp")) {
+			DB.rIn = 0.0;
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
