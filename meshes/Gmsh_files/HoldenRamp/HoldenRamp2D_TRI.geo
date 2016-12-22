@@ -10,12 +10,12 @@ h15 = 0.133974596215561353236276829247;
 
 // Geometry Specification
 
-Point(1) = {0,0,0,lc};
-Point(2) = {l,0,0,lc};
-Point(3) = {l+0.5,h15,0,lc};
-Point(4) = {0.0,h,0,lc};
-Point(5) = {l,h,0,lc};
-Point(6) = {l+0.5,h,0,lc};
+Point(1) = {-l,0,0,lc};
+Point(2) = {0,0,0,lc};
+Point(3) = {0.5,h15,0,lc};
+Point(4) = {-l,h,0,lc};
+Point(5) = {0,h,0,lc};
+Point(6) = {0.5,h,0,lc};
 
 Line(1001) = {1,2};
 Line(1002) = {2,3};

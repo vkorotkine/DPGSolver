@@ -307,7 +307,53 @@ void vertices_to_exact_geom(void)
 		if (!strstr(Geometry,"HoldenRampCurved")) {
 			// Do nothing
 		} else {
-			printf("Error: Add support\n."), EXIT_MSG;
+			// Initialize DB Parameters
+			double rIn = DB.rIn;
+
+			// Standard datatypes
+			double Xc, Yc, XcR, t, x, y;
+
+			rIn = DB.rIn;
+
+			Xc = -rIn/tan(82.5/180.0*PI);
+			Yc =  rIn;
+			XcR = Xc + rIn*cos(3.0/2.0*PI+15.0/180.0*PI);
+
+			for (ve = 0; ve < NVe; ve++) {
+				if (!VeUpdate[ve])
+					continue;
+
+				VeUpdate[ve]  = 0;
+				VeSurface[ve] = 0;
+
+				// Correct y-coordinate based on which surface the vertex is located.
+				x = VeXYZ[ve*d];
+				y = VeXYZ[ve*d+1];
+
+				// Treat straight line segments
+				if (x-Xc < EPS) {
+//					printf("ls: % .3e % .3e % .3e\n",x,Xc,VeXYZ[ve*d+1]);
+					VeXYZ[ve*d+1] = 0.0;
+					continue;
+				} else if (x-XcR > EPS) {
+//					printf("rs: % .3e % .3e % .3e\n",x,XcR,VeXYZ[ve*d+1]-tan(15.0/180.0*PI)*VeXYZ[ve*d+0]);
+					VeXYZ[ve*d+1] = tan(15.0/180.0*PI)*VeXYZ[ve*d+0];
+					continue;
+				}
+
+				t = atan2(y-Yc,x-Xc);
+				while (t < 0.0)
+					t += 2*PI;
+				if (t < 3.0/2.0*PI || t > 3.0/2.0*PI+15.0/180.0*PI)
+					printf("Error: Invalid value (t = % .3e).\n",t), EXIT_MSG;
+
+//printf("%d % .13e % .13e % .13e\n",ve,t,t-1.5*PI,t-3.0/2.0*PI+15.0/180.0*PI);
+
+				// Radial projection to the boundary
+				VeXYZ[ve*d+0] = Xc+rIn*cos(t);
+				VeXYZ[ve*d+1] = Yc+rIn*sin(t);
+				// No need to correct z component
+			}
 		}
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;

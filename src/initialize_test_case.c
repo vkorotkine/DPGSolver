@@ -119,7 +119,12 @@ void initialize_test_case_parameters(void)
 			DB.KMin = 0.7;
 			DB.KMax = 1.5;
 		} else if (strstr(Geometry,"HoldenRamp")) {
-			DB.rIn = 0.0;
+			DB.lHR = 1.0;
+//			DB.rIn = 2.54161;   // L/C ~= 1
+//			DB.rIn = 1.52613;   // L/C ~= 2
+			DB.rIn = 0.363683;  // L/C ~= 10
+//			DB.rIn = 0.0380061; // L/C ~= 100
+//			DB.rIn = 0.0038178; // L/C ~= 1000
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}

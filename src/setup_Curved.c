@@ -419,6 +419,99 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
+	} else if (strstr(Geometry,"HoldenRamp")) {
+		// Initialize DB Parameters
+		double r = DB.rIn;
+
+		// Standard datatypes
+		unsigned int OnStraight;
+		double       Xc, Yc, XcR, tan_15deg, nx, ny, x, XYZc[DMAX];
+
+		tan_15deg = tan(15.0/180.0*PI);
+
+		Xc = -r/tan(82.5/180.0*PI);
+		Yc =  r;
+		XcR = Xc + r*cos(3.0/2.0*PI+15.0/180.0*PI);
+
+		XYZc[0] = Xc;
+		XYZc[1] = Yc;
+		XYZc[2] = 0.0;
+
+		for (n = 0; n < Nn; n++) {
+			if (curved_normal)
+				Indn = n;
+
+			XYZ[DMAX-1] = 0.0; // For 2D.
+			for (dim = 0; dim < d; dim++)
+				XYZ[dim] = XYZ_S[n+dim*Nn];
+
+			// Find out which segment the point intersects with
+			OnStraight = 0;
+
+			// Straight line segment 1
+			D = -XYZ[1]/normals[Indn*d+1];
+			x =  XYZ[0]+normals[Indn*d+0]*D;
+			if (x-Xc < EPS) {
+				OnStraight++;
+				for (dim = 0; dim < d; dim++)
+					XYZ_C[dim] = XYZ[dim]+normals[Indn*d+dim]*D;
+			}
+
+			// Straight line segment 2
+			nx = normals[Indn*d+0];
+			ny = normals[Indn*d+1];
+
+			// Solve for scaling of normal
+			D = (XYZ[1]-tan_15deg*XYZ[0])/(-ny+tan_15deg*nx);
+			x =  XYZ[0]+normals[Indn*d+0]*D;
+			if (x-XcR > EPS) {
+				OnStraight++;
+				for (dim = 0; dim < d; dim++)
+					XYZ_C[dim] = XYZ[dim]+normals[Indn*d+dim]*D;
+			}
+
+			if (OnStraight == 2)
+				printf("Error: Point on both straight faces.\n"), EXIT_MSG;
+
+			// Curve line segment
+			if (!OnStraight) {
+				ABC[0] = 0.0;
+				ABC[1] = 0.0;
+				ABC[2] = -r*r;
+				for (dim = 0; dim < d; dim++) {
+					ABC[0] += normals[Indn*d+dim]*normals[Indn*d+dim];
+					ABC[1] += normals[Indn*d+dim]*(XYZ[dim]-XYZc[dim]);
+					ABC[2] += pow(XYZ[dim]-XYZc[dim],2.0);
+				}
+				ABC[1] *= 2.0;
+
+				// Solve quadratic equation
+
+				// Check which solution gives the correct radius
+				FoundD = 0;
+				for (i = 0; i < 2; i++) {
+					if (!i)
+						D = (-ABC[1]+sqrt(ABC[1]*ABC[1]-4.0*ABC[0]*ABC[2]))/(2.0*ABC[0]);
+					else
+						D = (-ABC[1]-sqrt(ABC[1]*ABC[1]-4.0*ABC[0]*ABC[2]))/(2.0*ABC[0]);
+
+					// If on opposite side of (d-1)-sphere, go to next option
+					if (fabs(D) > r)
+						continue;
+
+					FoundD = 1;
+					break;
+				}
+
+				if (!FoundD)
+					printf("Error: Correct distance not found.\n"), EXIT_MSG;
+
+				for (dim = 0; dim < d; dim++)
+					XYZ_C[dim] = XYZ[dim]+normals[Indn*d+dim]*D;
+			}
+			for (dim = 0; dim < d; dim++)
+				XYZ_CmS[n+Nn*dim] = XYZ_C[dim]-XYZ[dim];
+		}
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -551,13 +644,11 @@ static void select_functions_Curved(compute_pc_tdef *compute_pc, compute_XYZ_tde
 	if (strstr(Geometry,"dm1-Spherical_Section")) {
 		*compute_pc  = compute_pc_dsphere;
 		*compute_XYZ = compute_XYZ_dsphere;
-	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+	} else if (strstr(Geometry,"Ellipsoidal_Section") ||
+	           strstr(Geometry,"Ringleb")             ||
+			   strstr(Geometry,"HoldenRamp")) {
 		if (DB.Parametrization != NORMAL)
-			printf("Add support for Ellipsoid if not using NORMAL parametrization.\n"), EXIT_MSG;
-		*compute_pc  = NULL;
-		*compute_XYZ = NULL;
-	} else if (strstr(Geometry,"Ringleb")) {
-		// Write these functions if ARC LENGTH projection is desired.
+			printf("Add support if not using NORMAL parametrization.\n"), EXIT_MSG;
 		*compute_pc  = NULL;
 		*compute_XYZ = NULL;
 	} else {

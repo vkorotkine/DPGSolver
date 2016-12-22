@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
- 
+
 #include "Parameters.h"
 #include "Macros.h"
 #include "Test.h"
@@ -231,7 +231,8 @@ void setup_parameters()
 //	Parametrization = RADIAL_PROJECTION;
 	Parametrization = NORMAL;
 
-	if (strstr(DB.Geometry,"Ringleb") && Parametrization != NORMAL)
+	if ((strstr(DB.Geometry,"Ringleb")    && Parametrization != NORMAL) ||
+	    (strstr(DB.Geometry,"HoldenRamp") && Parametrization != NORMAL))
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 
 	for (i = 0; i < NEC; i++)

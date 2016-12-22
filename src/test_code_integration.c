@@ -117,6 +117,8 @@ void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigne
 
 	initialize_test_case_parameters();
 	setup_mesh();
+	if (strstr(DB.MeshType,"Curved"))
+		strcat(DB.Geometry,"Curved");
 	setup_operators();
 	setup_structures();
 	setup_geometry();
@@ -166,6 +168,8 @@ void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, co
 			setup_parameters_L2proj();
 	} else if (phase == 2) {
 		setup_mesh();
+		if (strstr(DB.MeshType,"Curved"))
+			strcat(DB.Geometry,"Curved");
 		setup_operators();
 		setup_structures();
 		setup_geometry();

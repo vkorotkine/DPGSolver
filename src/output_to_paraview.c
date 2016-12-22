@@ -393,7 +393,7 @@ static void output_normals(const char *normals_type)
 		VfIn = FACE->VfIn;
 
 		if (VfIn % NFREFMAX != 0)
-			printf("Error: VfIn should be h-conforming in output_to_paraview (output_normals).\n"), exit(1); 
+			printf("Error: VfIn should be h-conforming in output_to_paraview (output_normals).\n"), exit(1);
 
 		PV = VIn->P;
 		PF = FACE->P;
