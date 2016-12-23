@@ -512,6 +512,183 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 			for (dim = 0; dim < d; dim++)
 				XYZ_CmS[n+Nn*dim] = XYZ_C[dim]-XYZ[dim];
 		}
+	} else if (strstr(Geometry,"GaussianBump")) {
+		double       nx, ny, xS, yS, DStep, x, y, h, xp, yp, ypE;
+
+		unsigned int i, j, count, countMax;
+		double       Dmult, y_ratio, yE, Dup;
+
+		if (d == 3)
+			printf("Add support.\n"), EXIT_MSG;
+
+		// Obtain approximate measure of mesh size
+		// Note: Distance between straight and curved surface ~= O(h^2)
+		h = 0.0;
+		for (i = 0;   i < Nn; i++) {
+		for (j = i+1; j < Nn; j++) {
+			D = 0.0;
+			for (dim = 0; dim < d; dim++)
+				D += pow(XYZ_S[i+dim*Nn]-XYZ_S[j+dim*Nn],2.0);
+			D = sqrt(D);
+			if (D > h)
+				h = D;
+		}}
+
+		for (n = 0; n < Nn; n++) {
+			if (curved_normal)
+				Indn = n;
+
+			nx = normals[Indn*d+0];
+			ny = normals[Indn*d+1];
+
+			XYZ[DMAX-1] = 0.0; // For 2D.
+			for (dim = 0; dim < d; dim++)
+				XYZ[dim] = XYZ_S[n+dim*Nn];
+
+			// Use the Bisection Method to solve for D.
+			// Note: Newton's method is slow because of nearly zero slope in the gaussian.
+			xS = XYZ_S[n     ];
+			yS = XYZ_S[n+1*Nn];
+
+			Dmult = -1.0;
+			// Check if the normal points towards or away from the surface
+			x = xS;
+			y = yS;
+
+			if (d == 2)
+				D = yS-f_gaussian_bump(x,y,d);
+			else
+				printf("Add support\n"), EXIT_MSG;
+
+//			if ((D > 0.0 && ny < 0.0) || (D < 0.0 && ny > 0.0))
+			if (D/ny < 0.0)
+				Dmult = 1.0;
+
+			// Find Distance from node to surface
+			if (h < 1.0)
+				DStep = 1e-1*Dmult*h*h;
+			else
+				DStep = 1e-1*Dmult;
+
+			// Check if the node is on the surface
+			if (fabs(D) < EPS)
+				DStep = 0.0;
+//printf("\n\n\n");
+//printf("%d % .3e % .3e % .3e\n",n,xS,yS,h);
+//printf("% .3e % .3e\n",nx,ny);
+//printf("% .3e % .3e % .3e\n",D,DStep,Dmult);
+
+			D = 0.0;
+			if (fabs(DStep) > EPS) {
+				// Step towards the surface with step DStep until close enough to ensure that it can be reached using
+				// the bisection method below.
+				countMax = 1000;
+				for (count = 0; count < countMax; count++) {
+					Dup = D+DStep;
+
+					xp  = xS+D*nx;
+					yp  = yS+D*ny;
+					ypE = f_gaussian_bump(xp,yp,d);
+
+					x  = xS+Dup*nx;
+					y  = yS+Dup*ny;
+					yE = f_gaussian_bump(x,y,d);
+
+					y_ratio = (yp-ypE)/(y-yE);
+
+//printf("%3d % .3e % .3e % .3e % .3e\n",count,D,fabs(yp-ypE),fabs(y-yE),y_ratio);
+					if ((fabs(yp-ypE) < fabs(y-yE)) || y_ratio < 0.0)
+						break;
+
+					D = Dup;
+				}
+				if (count == countMax)
+					printf("Error: Potential problem.\n"), EXIT_MSG;
+//printf("%d % .3e\n\n",count,D);
+			}
+
+//printf("\n");
+			while (fabs(DStep) > 1e-1*EPS) {
+				Dup = D+DStep;
+
+				xp  = xS+D*nx;
+				yp  = yS+D*ny;
+				ypE = f_gaussian_bump(xp,yp,d);
+
+				x  = xS+Dup*nx;
+				y  = yS+Dup*ny;
+				yE = f_gaussian_bump(x,y,d);
+
+				y_ratio = (yp-ypE)/(y-yE);
+
+				if ((fabs(yp-ypE) > fabs(y-yE)) && y_ratio > 0.0)
+					D = Dup;
+//printf("%3d % .3e % .3e % .3e % .3e % .3e % .3e\n",count++,DStep,D,y_ratio,yS,y,yE);
+
+				DStep *= 0.5;
+			}
+
+			// Check that the surface was reached
+//printf("% .3e % .3e % .3e\n",D-Dup,yS+Dup*ny-(yS+D*ny),yS+D*ny);
+			x = xS+D*nx;
+			y = yS+D*ny;
+
+			if (d == 2) {
+				yE = f_gaussian_bump(x,y,d);
+				if (fabs(y-yE) > EPS)
+					printf("Error: Did not reach the surface (% .3e % .3e).\n",y,yE), EXIT_MSG;
+			} else {
+				printf("Add support.\n"), EXIT_MSG;
+			}
+
+
+//EXIT_MSG;
+/*
+			DMin = (xMin-xS)/nx;
+			DMax = (xMax-xS)/nx;
+
+			DStep = fabs(0.5*(DMax-DMin));
+			D = 0.5*(DMin+DMax);
+
+			// Check if already on the boundary
+			x = xS;
+			y = yS;
+			if (fabs(y-f_gaussian_bump(x,y,d)) < EPS)
+				DStep = 0.0;
+
+printf("%d %d % .3e % .3e\n",n,curved_normal,y,f_gaussian_bump(x,y,d));
+printf("% .3e % .3e\n",nx,ny);
+printf("% .3e % .3e % .3e % .3e\n",xS,yS,xMin,xMax);
+printf("% .3e % .3e % .3e % .3e\n",DMin,DMax,D,DStep);
+
+DStep *= 0.5;
+x = xS+D*nx;
+y = f_gaussian_bump(x,y,d);
+
+printf("% .3e % .3e % .3e\n",x,y,yS+ny*D);
+
+if (DStep > EPS)
+EXIT_MSG;
+
+			while (fabs(DStep) > EPS) {
+				DStep *= 0.5;
+
+				x = xS+D*nx;
+				y = f_gaussian_bump(x,y,d);
+
+//				if ((y-(yS+ny*D))/ny > 0.0)
+				if (yS+ny*D > y)
+					D += DStep;
+//				else
+//					D -= DStep;
+			}
+*/
+
+			for (dim = 0; dim < d; dim++) {
+				XYZ_C[dim] = XYZ[dim]+normals[Indn*d+dim]*D;
+				XYZ_CmS[n+Nn*dim] = XYZ_C[dim]-XYZ[dim];
+			}
+		}
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -646,7 +823,8 @@ static void select_functions_Curved(compute_pc_tdef *compute_pc, compute_XYZ_tde
 		*compute_XYZ = compute_XYZ_dsphere;
 	} else if (strstr(Geometry,"Ellipsoidal_Section") ||
 	           strstr(Geometry,"Ringleb")             ||
-			   strstr(Geometry,"HoldenRamp")) {
+			   strstr(Geometry,"HoldenRamp")          ||
+			   strstr(Geometry,"GaussianBump")) {
 		if (DB.Parametrization != NORMAL)
 			printf("Add support if not using NORMAL parametrization.\n"), EXIT_MSG;
 		*compute_pc  = NULL;

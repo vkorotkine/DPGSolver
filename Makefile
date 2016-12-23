@@ -185,7 +185,7 @@ $(EXECDIR):
 OUTPUT_LIST   := paraview errors results
 TESTCASE_LIST := Poisson SupersonicVortex
 # To BeModified (Remove unneeded meshcases folders which may have been created previously)
-MESHCASE_LIST := Ringleb dm1-Spherical_Section Ellipsoidal_Section Annular_Section HoldenRamp
+MESHCASE_LIST := Ringleb dm1-Spherical_Section Ellipsoidal_Section Annular_Section HoldenRamp GaussianBump
 # ToBeModified (Remove unneeded meshtypes)
 MESHTYPE_LIST := TRI CurvedTRI CurvedQUAD ToBeCurvedTRI
 

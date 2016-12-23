@@ -146,6 +146,12 @@ void vertices_to_exact_geom(void)
 		double F_xy;
 
 		for (ve = 0; ve < NVe; ve++) {
+			if (!VeUpdate[ve])
+				continue;
+
+			VeUpdate[ve]  = 0;
+			VeSurface[ve] = 0;
+
 			F_xy = f_gaussian_bump(VeXYZ[ve*d],VeXYZ[ve*d+1],d);
 			if (fabs(VeXYZ[ve*d+dM1]-F_xy) < NODETOL_MESH) {
 				VeSurface[ve] = 0;
@@ -366,8 +372,6 @@ double f_gaussian_bump(const double x, const double y, const unsigned int d)
 	double a, b, c;
 
 	if (d == 2) {
-		printf("Make sure that the same bump parameters are being used across all functions. Exiting.\n"), exit(1);
-
 		a = DB.GBa;
 		b = DB.GBb;
 		c = DB.GBc;
