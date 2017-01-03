@@ -326,9 +326,30 @@ array_print_d(NML,NP,h,'R');
 printf("L2Errors: \n");
 for (i = 0; i < NVars; i++)
 array_print_d(NML,NP,L2Errors[i],'R');
-printf("Conv Orders: \n");
+printf("Conv Orders (h): \n");
 for (i = 0; i < NVars; i++)
 array_print_d(NML,NP,ConvOrders[i],'R');
+
+printf("Conv (p): \n");
+
+unsigned int u1 = 1;
+double **L2ErrorsP;
+
+L2ErrorsP = malloc(NVars * sizeof *L2ErrorsP); // free
+
+for (i = 0; i < NVars; i++) {
+	L2ErrorsP[i] = calloc(NML*NP , sizeof *L2ErrorsP[i]);
+	for (ML = MLMin; ML <= MLMax; ML++) {
+	for (P = max(PMin,u1); P <= PMax; P++) {
+		Indh = (ML-MLMin)*NP+(P-PMin);
+		if (L2Errors[i][Indh] > EPS)
+			L2ErrorsP[i][Indh] = log(L2Errors[i][Indh])/((double) P);
+	}}
+	array_print_d(NML,NP,L2ErrorsP[i],'R');
+}
+array_free2_d(NVars,L2ErrorsP);
+
+
 
 	for (i = 0; i < NVars; i++) {
 		free(L2Errors[i]);

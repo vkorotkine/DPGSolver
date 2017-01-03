@@ -87,10 +87,10 @@ EndIf
 
 // Physical Parameters for '.msh' file
 
-Physical Line(10011) = {1003,1004}; // Straight Dirichlet
-Physical Line(10012) = {1005,1006}; // Straight Neumann
-Physical Line(20011) = {1001};      // Curved Dirichlet
-Physical Line(20012) = {1002};      // Curved Neumann
+Physical Line(10011) = {1003,1004,1001}; // Straight Dirichlet
+Physical Line(10012) = {1005,1006,1002}; // Straight Neumann
+//Physical Line(20011) = {1001};      // Curved Dirichlet
+//Physical Line(20012) = {1002};      // Curved Neumann
 
 Physical Surface(9401) = {4001:4002};
 

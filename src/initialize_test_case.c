@@ -128,7 +128,7 @@ void initialize_test_case_parameters(void)
 		} else if (strstr(Geometry,"GaussianBump")) {
 			DB.GBa = 0.0625;
 			DB.GBb = 0.0;
-			DB.GBc = 0.2/pow(2.0,2.0);
+			DB.GBc = 0.2/pow(2.0,1.0);
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
