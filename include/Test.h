@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #ifndef DPG__Test_h__INCLUDED
 #define DPG__Test_h__INCLUDED
@@ -13,7 +13,7 @@ struct S_TEST {
 	unsigned int PGlobal, ML;
 
 	// Parameters
-	unsigned int PG_add, IntOrder_mult;
+	unsigned int PG_add, IntOrder_add, IntOrder_mult;
 };
 extern struct S_TEST TestDB;
 

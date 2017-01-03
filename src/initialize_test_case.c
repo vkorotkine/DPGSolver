@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "initialize_test_case.h"
 
@@ -23,6 +23,9 @@
 #include "compute_errors.h"
 #include "array_print.h"
 #include "output_to_paraview.h"
+#include "update_VOLUMEs.h"
+#include "setup_geom_factors.h"
+#include "array_free.h"
 
 /*
  *	Purpose:
@@ -42,8 +45,8 @@
  */
 
 struct S_OPERATORS {
-	unsigned int NvnS;
-	double       *I_vG_vS, *ChiInvS_vS;
+	unsigned int NvnS, NvnI, NvnG, NvnC;
+	double       *w_vI, *I_vG_vI, *I_vG_vS, *ChiS_vI, *ChiInvS_vS, *I_vC_vS, **D_vG_vC, **GradChiS_vS;
 };
 
 struct S_VInfo {
@@ -65,12 +68,35 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 
 	ELEMENT_OPS = get_ELEMENT_type(type);
 
-	OPS->NvnS       = ELEMENT_OPS->NvnS[P];
-	OPS->ChiInvS_vS = ELEMENT_OPS->ChiInvS_vS[P][P][0];
+	OPS->NvnS        = ELEMENT_OPS->NvnS[P];
+	OPS->ChiInvS_vS  = ELEMENT_OPS->ChiInvS_vS[P][P][0];
+	OPS->GradChiS_vS = ELEMENT_OPS->GradChiS_vS[P][P][0];
 	if (!curved) {
+		OPS->NvnI = ELEMENT_OPS->NvnIs[P];
+		OPS->NvnG = ELEMENT_OPS->NvnGs[1];
+		OPS->NvnC = ELEMENT_OPS->NvnCs[P];
+
+		OPS->w_vI = ELEMENT_OPS->w_vIs[P];
+
+		OPS->I_vG_vI = ELEMENT_OPS->I_vGs_vIs[1][P][0];
 		OPS->I_vG_vS = ELEMENT_OPS->I_vGs_vS[1][P][0];
+		OPS->I_vC_vS = ELEMENT_OPS->I_vCs_vS[P][P][0];
+		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIs[P][P][0];
+
+		OPS->D_vG_vC = ELEMENT_OPS->D_vGs_vCs[1][P][0];
 	} else {
+		OPS->NvnI = ELEMENT_OPS->NvnIc[P];
+		OPS->NvnG = ELEMENT_OPS->NvnGc[P];
+		OPS->NvnC = ELEMENT_OPS->NvnCc[P];
+
+		OPS->w_vI = ELEMENT_OPS->w_vIc[P];
+
+		OPS->I_vG_vI = ELEMENT_OPS->I_vGc_vIc[P][P][0];
 		OPS->I_vG_vS = ELEMENT_OPS->I_vGc_vS[P][P][0];
+		OPS->I_vC_vS = ELEMENT_OPS->I_vCc_vS[P][P][0];
+		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIc[P][P][0];
+
+		OPS->D_vG_vC = ELEMENT_OPS->D_vGc_vCc[P][P][0];
 	}
 }
 
@@ -204,6 +230,85 @@ void initialize_test_case_parameters(void)
 	DB.SourcePresent = SourcePresent;
 }
 
+static void compute_polynomial_gradient(struct S_VOLUME *VOLUME)
+{
+	unsigned int d = DB.d;
+
+	unsigned int i, j, row, col, dim, dim2, IndD, IndC, NvnS, NvnG, NvnC;
+	double       *XYZ_vS, *XYZ, *J_vC, *J_vS, *C_vS, *detJV_vS, *q, **D, *Dxyz;
+
+	struct S_OPERATORS *OPS;
+
+	OPS = malloc(sizeof *OPS); // free
+
+	init_ops(OPS,VOLUME);
+
+	// Initialize Geometric Transformation Operators
+	NvnS   = OPS->NvnS;
+	XYZ_vS = malloc(NvnS*d * sizeof *XYZ_vS); // free
+
+	XYZ = VOLUME->XYZ;
+	mm_CTN_d(NvnS,d,VOLUME->NvnG,OPS->I_vG_vS,XYZ,XYZ_vS);
+
+	NvnG = OPS->NvnG;
+	NvnC = OPS->NvnC;
+	J_vC = malloc(NvnC*d*d * sizeof *J_vC); // free
+
+	for (row = 0; row < d; row++) {
+	for (col = 0; col < d; col++) {
+		mm_CTN_d(NvnC,1,NvnG,OPS->D_vG_vC[col],&XYZ[NvnG*row],&J_vC[NvnC*(d*row+col)]);
+	}}
+
+	J_vS = malloc(NvnS*d*d * sizeof *J_vS); // free
+	C_vS = malloc(NvnS*d*d * sizeof *C_vS); // free
+	mm_CTN_d(NvnS,d*d,NvnC,OPS->I_vC_vS,J_vC,J_vS);
+	mm_CTN_d(NvnS,d*d,NvnC,OPS->I_vC_vS,VOLUME->C_vC,C_vS);
+	free(J_vC);
+
+	detJV_vS = malloc(NvnS * sizeof *detJV_vS);
+	compute_detJV(NvnS,J_vS,detJV_vS);
+
+	// Compute solution gradients
+	D = malloc(d * sizeof *D); // free
+	for (dim = 0; dim < d; dim++) {
+		D[dim] = malloc(NvnS*NvnS * sizeof *D[dim]); // free
+		for (i = 0; i < NvnS*NvnS; i++)
+			D[dim][i] = OPS->GradChiS_vS[dim][i];
+	}
+
+	for (dim = 0; dim < d; dim++) {
+		Dxyz = calloc(NvnS*NvnS , sizeof *Dxyz); // free
+		for (dim2 = 0; dim2 < d; dim2++) {
+			IndD = 0;
+			IndC = (dim+dim2*d)*NvnS;
+			for (i = 0; i < NvnS; i++) {
+				for (j = 0; j < NvnS; j++) {
+					Dxyz[IndD+j] += D[dim2][IndD+j]*C_vS[IndC+j];
+				}
+				IndD += NvnS;
+			}
+		}
+		IndD = 0;
+		for (i = 0; i < NvnS; i++) {
+			for (j = 0; j < NvnS; j++)
+				Dxyz[IndD+j] /= detJV_vS[i];
+			IndD += NvnS;
+		}
+
+		q = malloc(NvnS * sizeof *q); // free
+		mm_CTN_d(NvnS,1,NvnS,Dxyz,VOLUME->uhat,q);
+		mm_CTN_d(NvnS,1,NvnS,OPS->ChiInvS_vS,q,VOLUME->qhat[dim]);
+		free(q);
+		free(Dxyz);
+	}
+	array_free2_d(d,D);
+
+	free(J_vS);
+	free(C_vS);
+
+	free(OPS);
+}
+
 void initialize_test_case(const unsigned int adapt_update_MAX)
 {
 	// Initialize DB Parameters
@@ -215,9 +320,9 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	DB.OutputInterval = 1e3;
 
 	// Standard datatypes
-	unsigned int DOF0 = 0;
-	unsigned int NvnS, adapt_update, adapt_count;
-	double       *XYZ_vS, *U, *W, *What;
+	unsigned int DOF0 = 0, PolyGradient = 0;
+	unsigned int n, dim, NvnS, NvnI, adapt_update, adapt_count;
+	double       *XYZ_vS, *XYZ_vI, *U, *W, *What, *Q, *u_inter, *w_vI, *detJV_vI;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME;
@@ -248,8 +353,8 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 
 				mm_CTN_d(NvnS,d,VOLUME->NvnG,OPS->I_vG_vS,VOLUME->XYZ,XYZ_vS);
 
-				U   = malloc(NvnS*NVAR3D * sizeof *U); // free
-				W   = malloc(NvnS*Nvar   * sizeof *W); // free
+				U = malloc(NvnS*NVAR3D * sizeof *U); // free
+				W = malloc(NvnS*Nvar   * sizeof *W); // free
 
 				compute_initial_solution(NvnS,XYZ_vS,U);
 
@@ -261,15 +366,62 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				free(W);
 			}
 		} else if (strstr(TestCase,"Poisson")) {
+			// Initializing with the L2 projection (Update other TestCases above), ToBeModified
 			adapt_count = adapt_update_MAX; // No need for updating
 
 			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 				init_ops(OPS,VOLUME);
 
-				NvnS         = OPS->NvnS;
+				NvnS = OPS->NvnS;
+				NvnI = OPS->NvnI;
+				w_vI = OPS->w_vI;
+
 				VOLUME->NvnS = NvnS;
 
+				free(VOLUME->uhat);
+				for (dim = 0; dim < d; dim++)
+					free(VOLUME->qhat[dim]);
+
 				VOLUME->uhat = calloc(NvnS*Nvar , sizeof *(VOLUME->uhat)); // keep
+				for (dim = 0; dim < d; dim++)
+					VOLUME->qhat[dim] = calloc(NvnS*Nvar , sizeof *(VOLUME->qhat[dim])); // keep
+
+				XYZ_vI = malloc(NvnI*d      * sizeof *XYZ_vI); // free
+				mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
+
+				U = malloc(NvnI*Nvar   * sizeof *U); // free
+
+				compute_exact_solution(NvnI,XYZ_vI,U,0);
+				free(XYZ_vI);
+
+				detJV_vI = VOLUME->detJV_vI;
+				for (n = 0; n < NvnI; n++)
+					U[n] *= w_vI[n]*detJV_vI[n];
+
+				u_inter = malloc(NvnS*Nvar * sizeof *u_inter); // free
+				mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnI,1.0,0.0,OPS->ChiS_vI,U,u_inter);
+				free(U);
+
+				compute_inverse_mass(VOLUME);
+				mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,VOLUME->MInv,u_inter,VOLUME->uhat);
+				if (VOLUME->MInv) {
+					free(VOLUME->MInv);
+					VOLUME->MInv = NULL;
+				}
+
+// Incorrect (Giving worse results than the computed q... Compute by projecting the exact q of order P-1 to basis of
+//            order P) ToBeDeleted
+				if (PolyGradient)
+					compute_polynomial_gradient(VOLUME);
+				else
+					printf("Error: Add support.\n"), EXIT_MSG;
+
+//				mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,U,VOLUME->uhat);
+Q = calloc(NvnI*Nvar*d , sizeof *Q); // free
+//				for (dim = 0; dim < d; dim++)
+//					mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,&Q[NvnS*Nvar*dim],VOLUME->qhat[dim]);
+
+				free(Q);
 			}
 		} else {
 			printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
@@ -308,8 +460,6 @@ static void compute_initial_solution(const unsigned int Nn, double *XYZ, double 
 
 	if (strstr(TestCase,"PeriodicVortex") || strstr(TestCase,"SupersonicVortex")) {
 		compute_exact_solution(Nn,XYZ,UEx,0);
-} else if (strstr(TestCase,"Poisson")) { // ToBeDeleted
-	compute_exact_solution(Nn,XYZ,UEx,0);
 	} else {
 		printf("Error: Unsupported TestCase: %s.\n",TestCase), EXIT_MSG;
 	}

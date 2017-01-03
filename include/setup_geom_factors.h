@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #ifndef DPG__setup_geom_factors_h__INCLUDED
 #define DPG__setup_geom_factors_h__INCLUDED
@@ -10,5 +10,6 @@
 
 extern void setup_geom_factors           (struct S_VOLUME *VOLUME);
 extern void setup_geom_factors_highorder (struct S_FACE *FACE);
+extern void compute_detJV                (const unsigned int Nn, double *J, double *detJV);
 
 #endif // DPG__setup_geom_factors_h__INCLUDED

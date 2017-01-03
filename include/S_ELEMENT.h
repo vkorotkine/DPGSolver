@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #ifndef DPG__S_ELEMENT_h__INCLUDED
 #define DPG__S_ELEMENT_h__INCLUDED
@@ -30,7 +30,7 @@ struct S_ELEMENT {
 	             ****I_vCs_vS, ****I_vCs_vIs, ****I_vCs_vIc,
 	             ****I_vCc_vS, ****I_vCc_vIs, ****I_vCc_vIc,
 	             ****Ihat_vS_vS,
-	             *****GradChiS_vIs, *****GradChiS_vIc,
+	             *****GradChiS_vS, *****GradChiS_vIs, *****GradChiS_vIc,
 	             *****D_vGs_vCs, *****D_vGs_vIs,
 	             *****D_vGc_vCc, *****D_vGc_vIc,
 	             *****D_vCs_vCs,

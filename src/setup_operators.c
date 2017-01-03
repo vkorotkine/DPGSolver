@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "setup_operators.h"
 
@@ -369,7 +369,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             ****I_vCs_vS, ****I_vCs_vIs, ****I_vCs_vIc,
 	             ****I_vCc_vS, ****I_vCc_vIs, ****I_vCc_vIc,
 	             ****Ihat_vS_vS,
-	             *****GradChiS_vIs, *****GradChiS_vIc,
+	             *****GradChiS_vS, *****GradChiS_vIs, *****GradChiS_vIc,
 	             *****D_vGs_vCs, *****D_vGs_vIs,
 	             *****D_vGc_vCc, *****D_vGc_vIc,
 	             *****D_vCs_vCs,
@@ -444,7 +444,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             **GradChiRefGs_vCs, **GradChiRefGs_vIs,
 	             **GradChiRefGc_vCc, **GradChiRefGc_vIc,
 	             **GradChiRefCs_vCs, **GradChiRefCc_vCc,
-	             **GradChiRefS_vIs,  **GradChiRefS_vIc,
+	             **GradChiRefS_vS, **GradChiRefS_vIs,  **GradChiRefS_vIc,
 	             **GradChiRefGs_fIs, **GradChiRefGs_fIc,
 	             **GradChiRefGc_fIs, **GradChiRefGc_fIc,
 	             **GradChiRefS_fIs,  **GradChiRefS_fIc,
@@ -533,6 +533,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	TGs = ELEMENT->TGs;
 
+	GradChiS_vS  = ELEMENT->GradChiS_vS;
 	GradChiS_vIs = ELEMENT->GradChiS_vIs;
 	GradChiS_vIc = ELEMENT->GradChiS_vIc;
 
@@ -1033,6 +1034,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				GradChiRefGc_vIc = grad_basis(PGc[P],        rst_vIc[0],NvnIc[P],&Nbf,dE); // free
 				GradChiRefCs_vCs = grad_basis(PCs[P][Eclass],rst_vCs,   NvnCs[P],&Nbf,dE); // free
 				GradChiRefCc_vCc = grad_basis(PCc[P][Eclass],rst_vCc,   NvnCc[P],&Nbf,dE); // free
+				GradChiRefS_vS   = grad_basis(P,             rst_vS[0] ,NvnS[P], &Nbf,dE); // free
 				GradChiRefS_vIs  = grad_basis(P,             rst_vIs[0],NvnIs[P],&Nbf,dE); // free
 				GradChiRefS_vIc  = grad_basis(P,             rst_vIc[0],NvnIc[P],&Nbf,dE); // free
 
@@ -1044,6 +1046,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					GradChiCs_vCs[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnCs[P],NvnCs[P],NvnCs[P],1.0,GradChiRefCs_vCs[dim],TCs); // free
 					GradChiCc_vCc[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnCc[P],NvnCc[P],NvnCc[P],1.0,GradChiRefCc_vCc[dim],TCc); // free
 
+					GradChiS_vS[P][Pb][0][dim]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[P], NvnS[P],NvnS[P],1.0,GradChiRefS_vS[dim],TS);  // keep
 					GradChiS_vIs[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[P],NvnS[P],NvnS[P],1.0,GradChiRefS_vIs[dim],TS); // keep
 					GradChiS_vIc[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[P],NvnS[P],NvnS[P],1.0,GradChiRefS_vIc[dim],TS); // keep
 				}
@@ -1097,6 +1100,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				array_free2_d(dE,GradChiRefGc_vIc);
 				array_free2_d(dE,GradChiRefCs_vCs);
 				array_free2_d(dE,GradChiRefCc_vCc);
+				array_free2_d(dE,GradChiRefS_vS);
 				array_free2_d(dE,GradChiRefS_vIs);
 				array_free2_d(dE,GradChiRefS_vIc);
 

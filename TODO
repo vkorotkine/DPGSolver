@@ -1,7 +1,7 @@
 If missing, add copyright info to header of every .c and .h file as below
 // Copyright 2016 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
-Ensure that the link is correct, seems that it is .../DPGSolver/blob/master/...
+Ensure that the link is correct
 
 grep through all files for 'ToBeModified' and 'ToBeDeleted' comments, making appropriate modifications when possible.
 

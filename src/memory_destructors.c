@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "memory_destructors.h"
 
@@ -93,6 +93,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 
 	array_free4_ui(NP,NP,NVREFMAX,ELEMENT->VeMask);
 
+	array_free5_d(NP,NP,1,d,ELEMENT->GradChiS_vS);
 	array_free5_d(NP,NP,1,d,ELEMENT->GradChiS_vIs);
 	array_free5_d(NP,NP,1,d,ELEMENT->GradChiS_vIc);
 

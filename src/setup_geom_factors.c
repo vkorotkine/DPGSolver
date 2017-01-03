@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "setup_geom_factors.h"
 
@@ -55,7 +55,7 @@ struct S_OPERATORS {
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
                      const unsigned int IndFType);
 
-static void compute_detJV(const unsigned int Nn, double *J, double *detJV)
+void compute_detJV(const unsigned int Nn, double *J, double *detJV)
 {
 	/*
 	 *	Comments:

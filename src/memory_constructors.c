@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "memory_constructors.h"
 
@@ -116,6 +116,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 	ELEMENT->VeMask = calloc(NP , sizeof *(ELEMENT->VeMask)); // free
 
+	ELEMENT->GradChiS_vS  = calloc(NP , sizeof *(ELEMENT->GradChiS_vS));  // free
 	ELEMENT->GradChiS_vIs = calloc(NP , sizeof *(ELEMENT->GradChiS_vIs)); // free
 	ELEMENT->GradChiS_vIc = calloc(NP , sizeof *(ELEMENT->GradChiS_vIc)); // free
 
@@ -265,6 +266,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 		ELEMENT->Ihat_vS_vS[P] = calloc(NP , sizeof **(ELEMENT->Ihat_vS_vS));
 
+		ELEMENT->GradChiS_vS[P]  = calloc(NP , sizeof **(ELEMENT->GradChiS_vS));
 		ELEMENT->GradChiS_vIs[P] = calloc(NP , sizeof **(ELEMENT->GradChiS_vIs));
 		ELEMENT->GradChiS_vIc[P] = calloc(NP , sizeof **(ELEMENT->GradChiS_vIc));
 
@@ -363,9 +365,11 @@ struct S_ELEMENT *New_ELEMENT(void)
 				ELEMENT->I_vGs_vS[1][Pb]  = calloc(NVREFSFMAX , sizeof ***(ELEMENT->I_vGs_vS));
 				ELEMENT->I_vGc_vCc[P][Pb] = calloc(1          , sizeof ***(ELEMENT->I_vGc_vCc));
 
+				ELEMENT->GradChiS_vS[P][Pb]  = calloc(1 , sizeof ***(ELEMENT->GradChiS_vS));
 				ELEMENT->GradChiS_vIs[P][Pb] = calloc(1 , sizeof ***(ELEMENT->GradChiS_vIs));
 				ELEMENT->GradChiS_vIc[P][Pb] = calloc(1 , sizeof ***(ELEMENT->GradChiS_vIc));
 
+				ELEMENT->GradChiS_vS[P][Pb][0]  = calloc(d , sizeof ****(ELEMENT->GradChiS_vS));
 				ELEMENT->GradChiS_vIs[P][Pb][0] = calloc(d , sizeof ****(ELEMENT->GradChiS_vIs));
 				ELEMENT->GradChiS_vIc[P][Pb][0] = calloc(d , sizeof ****(ELEMENT->GradChiS_vIc));
 

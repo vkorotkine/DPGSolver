@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "test_integration_Poisson.h"
 
@@ -24,6 +24,7 @@
 #include "solver_Poisson.h"
 #include "finalize_LHS.h"
 #include "adaptation.h"
+#include "initialize_test_case.h"
 
 /*
  *	Purpose:
@@ -142,7 +143,7 @@ void test_integration_Poisson(int nargc, char **argv)
 	 *
 	 */
 
-	unsigned int P, ML, PMin, PMax, MLMin, MLMax, Adapt;
+	unsigned int P, ML, PMin, PMax, MLMin, MLMax, Adapt, Compute_L2proj;
 	double       *mesh_quality;
 	struct S_linearization *data;
 
@@ -203,6 +204,7 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
  */
 
 	TestDB.PG_add = 0;
+	TestDB.IntOrder_add  = 0;
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
@@ -212,6 +214,7 @@ TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
+	Compute_L2proj = 1; // Use IntOrder_add > 0 for non-trivial P1-P2 results for L2proj
 //	Adapt = ADAPT_0;
 	Adapt = ADAPT_HP;
 	if (Adapt != ADAPT_0) {
@@ -231,7 +234,10 @@ TestDB.PGlobal = 1;
 			code_startup(nargc,argvNew,0,1);
 		}
 
-		solver_Poisson();
+		if (Compute_L2proj) // Compute errors of L2 projection of the exact solution
+			initialize_test_case(0);
+		else
+			solver_Poisson();
 		compute_errors_global();
 
 		printf("dof: %d\n",DB.dof);

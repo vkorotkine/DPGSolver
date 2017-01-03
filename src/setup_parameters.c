@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "setup_parameters.h"
 
@@ -609,6 +609,7 @@ void setup_parameters_L2proj(void)
 
 	// Initialize DB and TestDB Parameters
 	unsigned int PG_add        = TestDB.PG_add,
+	             IntOrder_add  = TestDB.IntOrder_add,
 	             IntOrder_mult = TestDB.IntOrder_mult,
 	             Collocated    = DB.Collocated;
 
@@ -649,7 +650,7 @@ void setup_parameters_L2proj(void)
 
 		if (!Collocated) {
 			// Integration
-			IntOrder = max(P*IntOrder_mult,u1);
+			IntOrder = max(P*IntOrder_mult,u1)+IntOrder_add;
 
 			// TP
 			PIfs[P][0] = floor(IntOrder/2.0);
