@@ -45,8 +45,9 @@
  */
 
 struct S_OPERATORS {
-	unsigned int NvnS, NvnI, NvnG, NvnC;
-	double       *w_vI, *I_vG_vI, *I_vG_vS, *ChiS_vI, *ChiInvS_vS, *I_vC_vS, **D_vG_vC, **GradChiS_vS;
+	unsigned int NvnS, NvnI, NvnG, NvnC, NvnSPm1;
+	double       *w_vI, *I_vG_vI, *I_vG_vS, *ChiS_vI, *ChiInvS_vS, *I_vC_vS, **D_vG_vC, **GradChiS_vS,
+	             **Ihat_vS_vS, **L2hat_vS_vS;
 };
 
 struct S_VInfo {
@@ -69,8 +70,11 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 	ELEMENT_OPS = get_ELEMENT_type(type);
 
 	OPS->NvnS        = ELEMENT_OPS->NvnS[P];
+	OPS->NvnSPm1     = ELEMENT_OPS->NvnS[P-1];
 	OPS->ChiInvS_vS  = ELEMENT_OPS->ChiInvS_vS[P][P][0];
 	OPS->GradChiS_vS = ELEMENT_OPS->GradChiS_vS[P][P][0];
+	OPS->Ihat_vS_vS  = ELEMENT_OPS->Ihat_vS_vS[P-1][P];
+	OPS->L2hat_vS_vS = ELEMENT_OPS->L2hat_vS_vS[P][P-1];
 	if (!curved) {
 		OPS->NvnI = ELEMENT_OPS->NvnIs[P];
 		OPS->NvnG = ELEMENT_OPS->NvnGs[1];
@@ -154,7 +158,7 @@ void initialize_test_case_parameters(void)
 		} else if (strstr(Geometry,"GaussianBump")) {
 			DB.GBa = 0.0625;
 			DB.GBb = 0.0;
-			DB.GBc = 0.2/pow(2.0,1.0);
+			DB.GBc = 0.2/pow(2.0,2.0);
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
@@ -230,10 +234,12 @@ void initialize_test_case_parameters(void)
 	DB.SourcePresent = SourcePresent;
 }
 
-static void compute_polynomial_gradient(struct S_VOLUME *VOLUME)
+static void compute_gradient_polynomial(struct S_VOLUME *VOLUME)
 {
+	// Initialize DB Parameters
 	unsigned int d = DB.d;
 
+	// Standard datatypes
 	unsigned int i, j, row, col, dim, dim2, IndD, IndC, NvnS, NvnG, NvnC;
 	double       *XYZ_vS, *XYZ, *J_vC, *J_vS, *C_vS, *detJV_vS, *q, **D, *Dxyz;
 
@@ -305,6 +311,71 @@ static void compute_polynomial_gradient(struct S_VOLUME *VOLUME)
 
 	free(J_vS);
 	free(C_vS);
+
+	free(OPS);
+}
+
+static void compute_gradient_L2proj(struct S_VOLUME *VOLUME)
+{
+	// Initialize DB Parameters
+	unsigned int d    = DB.d,
+	             Nvar = DB.Nvar;
+
+	// Standard datatypes
+	unsigned int n, dim, NvnS, NvnI;
+	double       *w_vI, *XYZ_vI, *q, *detJV_vI, *q_inter, *qhat_inter, *FilterP;
+
+	struct S_OPERATORS *OPS;
+
+	OPS = malloc(sizeof *OPS); // free
+
+	if (DB.Adapt == ADAPT_0)
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	else if (VOLUME->P == 0)
+		printf("Error: Increased order (i.e. use P > 0) required.\n"), EXIT_MSG;
+
+	init_ops(OPS,VOLUME);
+
+	NvnS = OPS->NvnS;
+	NvnI = OPS->NvnI;
+	w_vI = OPS->w_vI;
+
+	XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
+	mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
+
+	q = malloc(NvnI*Nvar*d * sizeof *q); // free
+
+	compute_exact_gradient(NvnI,XYZ_vI,q);
+	free(XYZ_vI);
+
+	detJV_vI = VOLUME->detJV_vI;
+	for (dim = 0; dim < d; dim++) {
+		for (n = 0; n < NvnI; n++)
+			q[NvnI*dim+n] *= w_vI[n]*detJV_vI[n];
+	}
+
+	q_inter = malloc(NvnS*Nvar*d * sizeof *q_inter); // free
+	mm_d(CBCM,CBNT,CBNT,NvnS,Nvar*d,NvnI,1.0,0.0,OPS->ChiS_vI,q,q_inter);
+	free(q);
+
+	compute_inverse_mass(VOLUME);
+
+	// Get L2 projection of order P
+	qhat_inter = malloc(NvnS*Nvar*d * sizeof *qhat_inter); // free
+	for (dim = 0; dim < d; dim++)
+		mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,VOLUME->MInv,&q_inter[NvnS*Nvar*dim],&qhat_inter[NvnS*Nvar*dim]);
+	if (VOLUME->MInv) {
+		free(VOLUME->MInv);
+		VOLUME->MInv = NULL;
+	}
+
+	// Filter order P terms to get q accurate to order P-1
+	FilterP = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,OPS->NvnSPm1,1.0,OPS->Ihat_vS_vS[0],OPS->L2hat_vS_vS[0]);
+
+	for (dim = 0; dim < d; dim++)
+		mm_CTN_d(NvnS,Nvar,NvnS,FilterP,&qhat_inter[NvnS*Nvar*dim],VOLUME->qhat[dim]);
+	free(qhat_inter);
+	free(FilterP);
 
 	free(OPS);
 }
@@ -386,10 +457,10 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				for (dim = 0; dim < d; dim++)
 					VOLUME->qhat[dim] = calloc(NvnS*Nvar , sizeof *(VOLUME->qhat[dim])); // keep
 
-				XYZ_vI = malloc(NvnI*d      * sizeof *XYZ_vI); // free
+				XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
 				mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
 
-				U = malloc(NvnI*Nvar   * sizeof *U); // free
+				U = malloc(NvnI*Nvar * sizeof *U); // free
 
 				compute_exact_solution(NvnI,XYZ_vI,U,0);
 				free(XYZ_vI);
@@ -412,9 +483,9 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 // Incorrect (Giving worse results than the computed q... Compute by projecting the exact q of order P-1 to basis of
 //            order P) ToBeDeleted
 				if (PolyGradient)
-					compute_polynomial_gradient(VOLUME);
+					compute_gradient_polynomial(VOLUME);
 				else
-					printf("Error: Add support.\n"), EXIT_MSG;
+					compute_gradient_L2proj(VOLUME);
 
 //				mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,U,VOLUME->uhat);
 Q = calloc(NvnI*Nvar*d , sizeof *Q); // free

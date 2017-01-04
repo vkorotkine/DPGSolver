@@ -330,13 +330,12 @@ printf("Conv Orders (h): \n");
 for (i = 0; i < NVars; i++)
 array_print_d(NML,NP,ConvOrders[i],'R');
 
-printf("Conv (p): \n");
-
 unsigned int u1 = 1;
 double **L2ErrorsP;
 
 L2ErrorsP = malloc(NVars * sizeof *L2ErrorsP); // free
 
+//printf("Conv (p): \n");
 for (i = 0; i < NVars; i++) {
 	L2ErrorsP[i] = calloc(NML*NP , sizeof *L2ErrorsP[i]);
 	for (ML = MLMin; ML <= MLMax; ML++) {
@@ -345,7 +344,7 @@ for (i = 0; i < NVars; i++) {
 		if (L2Errors[i][Indh] > EPS)
 			L2ErrorsP[i][Indh] = log(L2Errors[i][Indh])/((double) P);
 	}}
-	array_print_d(NML,NP,L2ErrorsP[i],'R');
+//	array_print_d(NML,NP,L2ErrorsP[i],'R');
 }
 array_free2_d(NVars,L2ErrorsP);
 

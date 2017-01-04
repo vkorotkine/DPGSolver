@@ -1,5 +1,5 @@
 If missing, add copyright info to header of every .c and .h file as below
-// Copyright 2016 Philip Zwanenburg
+// Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
 Ensure that the link is correct
 

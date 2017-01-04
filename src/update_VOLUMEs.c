@@ -67,10 +67,9 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	OPS->NvnS  = ELEMENT->NvnS[P];
 	OPS->Nvve  = ELEMENT->Nvve;
 	OPS->NvnSP = ELEMENT->NvnS[PNew];
-	OPS->I_vGs_vGs  = ELEMENT->I_vGs_vGs[1][1];
-	OPS->I_vGs_vGc  = ELEMENT->I_vGs_vGc[1][PNew][0];
-	OPS->Ihat_vS_vS = ELEMENT->Ihat_vS_vS[P][PNew]; // ToBeDeleted: Remove all instances of Ihat_vS_vS from the code if
-	                                                //              not used here.
+	OPS->I_vGs_vGs   = ELEMENT->I_vGs_vGs[1][1];
+	OPS->I_vGs_vGc   = ELEMENT->I_vGs_vGc[1][PNew][0];
+	OPS->Ihat_vS_vS  = ELEMENT->Ihat_vS_vS[P][PNew];
 	OPS->L2hat_vS_vS = ELEMENT->L2hat_vS_vS[P][PNew];
 	OPS->VeMask      = ELEMENT->VeMask[1][2];
 	if (!curved) {

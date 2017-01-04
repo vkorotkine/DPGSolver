@@ -7,7 +7,7 @@ lc = 0.5/2.0^Refine;
 // RefType Options: 0 (Std. transfinite), 1 (Std.)
 RefType = 0;
 
-BumpExp = 1;
+BumpExp = 2;
 N = 1e2;
 
 

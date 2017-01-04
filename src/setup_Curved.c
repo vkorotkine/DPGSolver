@@ -1272,7 +1272,8 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 
 		// Blend BOUNDARY perturbation to VOLUME geometry nodes
 		for (n = 0; n < NvnG; n++) {
-			if (BlendV[n] < EPS)
+			// Don't move internal VOLUME nodes when moving vertices to the exact geometry.
+			if ((BlendV[n] < EPS) || (fabs(BlendV[n]-1.0) > EPS && vertex_blending))
 				continue;
 
 			for (dim = 0; dim < d; dim++)

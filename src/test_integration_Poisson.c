@@ -25,6 +25,7 @@
 #include "finalize_LHS.h"
 #include "adaptation.h"
 #include "initialize_test_case.h"
+#include "output_to_paraview.h"
 
 /*
  *	Purpose:
@@ -33,6 +34,33 @@
  *			2) Optimal convergence orders
  *
  *	Comments:
+ *
+ *		It was very difficult to find a case where it was clear that blending of a curved boundary was leading to a loss
+ *		of optimal convergence, despite the potentially unbounded mapping derivatives with h-refinement required for the
+ *		optimal error estimate in Ciarlet(1972) (Theorem 5). As noted in Scott(1973) (p. 54), the mapping function and
+ *		all of its derivatives are bounded in terms of the boundary curvature and its derivatives, which motivated the
+ *		implementation of the GaussianBump geometry possessing high element curvature on coarse meshes. For this case,
+ *		optimal convergence is lost until the mesh has been refined "enough" (such that the element curvature is small)
+ *		at which point it is recovered. Perhaps even more significant, the L2 error of the projection of the exact
+ *		solution sometimes increased with mesh refinement on coarse meshes (run with Compute_L2proj = 1), a trend which
+ *		was not observed for the computed solution. There was no modification found which could serve to fix this issue
+ *		(such as the use of alternate blending functions or generalizations of the high-order blending used to fix the
+ *		NIELSON blending as proposed by Lenoir(1986)). The results for other geometries considered (Circle, Ellipse,
+ *		Ringleb) resulted in optimal (or very nearly optimal) convergence.
+ *
+ *		These results suggest that errors introduced because of the use of blending functions for curved boundary
+ *		representation are significant, but only for geometries with high "discrete curvature" (i.e. high curvature seen
+ *		by boundary elements). However, it is desirable to know whether such geometries are suitable for such analysis
+ *		(using high order methods) in the first place. This may perhaps be confirmed if a NURBS representation of the
+ *		boundary (and domain) results in the recovery of optimal orders but this can not be tested with the current
+ *		functionality of the code. Investigation may be pursued if an Isogeometric Analysis code becomes available. Note
+ *		that it was confirmed that the asymptotic range was reached by verifying that optimal convergence was obtained
+ *		on straight meshes of comparable mesh length. (ToBeModified)
+ *
+ *		It may also be noted that, despite converging at the same rate, the L2error of the computed solution is
+ *		significantly higher than that of the L2 projected exact solution for certain polynomial orders. Comparison with
+ *		results obtained based on the DPG solver may be interesting here. (ToBeModified)
+ *
  *
  *	*** IMPORTANT ***   Convergence Order Testing   *** IMPORTANT ***
  *
@@ -66,6 +94,9 @@
  *	Notation:
  *
  *	References:
+ *		Ciarlet(1972)-Interpolation_Theory_Over_Curved_Elements,_with_Applications_to_Finite_Element_Methods
+ *		Scott(1973)-Finite_Element_Techniques_for_Curved_Boundaries
+ *		Lenoir(1986)-Optimal_Isoparametric_Finite_Elements_and_Error_Estimates_for_Domains_Involving_Curved_Boundaries
  */
 
 struct S_linearization {
@@ -186,7 +217,7 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	// Convergence Order Testing
 	// **************************************************************************************************** //
 //	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_mixed");
-//	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_TRI");
+	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_QUAD");
@@ -203,18 +234,18 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
  *		Investigate cube_to_sphere effects on mesh regularity; problems are only being observed in 3D.
  */
 
-	TestDB.PG_add = 0;
+	TestDB.PG_add = 1;
 	TestDB.IntOrder_add  = 0;
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 8;
-	MLMin = 0; MLMax = 3;
+	PMin  = 1; PMax  = 6;
+	MLMin = 0; MLMax = 5;
 TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
-	Compute_L2proj = 1; // Use IntOrder_add > 0 for non-trivial P1-P2 results for L2proj
+	Compute_L2proj = 0; // Use IntOrder_add > 0 for non-trivial P1-P2 results for L2proj
 //	Adapt = ADAPT_0;
 	Adapt = ADAPT_HP;
 	if (Adapt != ADAPT_0) {
@@ -234,10 +265,33 @@ TestDB.PGlobal = 1;
 			code_startup(nargc,argvNew,0,1);
 		}
 
-		if (Compute_L2proj) // Compute errors of L2 projection of the exact solution
+		if (Compute_L2proj) { // Compute errors of L2 projection of the exact solution
+			char *string, *fNameOut;
+
+			fNameOut = malloc(STRLEN_MAX * sizeof *fNameOut); // free
+			string   = malloc(STRLEN_MIN * sizeof *string);   // free
+
 			initialize_test_case(0);
-		else
+			// Output to paraview
+			if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 3 && TestDB.ML == 2)) {
+				strcpy(fNameOut,"SolFinal_");
+				sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
+											   strcat(fNameOut,DB.MeshType);
+				if (DB.Adapt == ADAPT_0) {
+					sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
+					sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
+				} else {
+					sprintf(string,"_ML%d",TestDB.ML); strcat(fNameOut,string);
+					sprintf(string,"P%d_",TestDB.PGlobal); strcat(fNameOut,string);
+				}
+				output_to_paraview(fNameOut);
+			}
+
+			free(fNameOut);
+			free(string);
+		} else {
 			solver_Poisson();
+		}
 		compute_errors_global();
 
 		printf("dof: %d\n",DB.dof);
