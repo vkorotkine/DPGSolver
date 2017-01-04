@@ -115,7 +115,7 @@
  *		             (3): (s)traight, (c)urved
  *		I(1)(2) : (I)dentity matrix of type (1) which is (2)
  *		          (1): (G)eometry, (C)ofactor, (S)olution
- *		          (2): (s)traight, (c)urved
+ *		          (2): (s)traight, (c)urved, (2): order 2
  *		T(1)(2) : (T)ransformation matrix of type (1) which is (2). (Zwanenburg(2016): eq. 2.14)
  *		          (1): (G)eometry, (C)ofactor, (S)olution
  *		          (2): (s)traight, (c)urved
@@ -195,6 +195,7 @@
  *		                 |
  *		I_vGs_vP         | [1][P][0]       [1][rP][0]          [1][P][0]       [1][rP][0]
  *		I_vGs_vGs        | NOT_USED        NOT_USED            [1][1:2][**]    [1][1:2][**]
+ *		I_vGs_vG2        | NOT_USED        NOT_USED            NOT_USED        [1][2][0]
  *		I_vGs_vGc        | [1][P][0]       [1][rP][0]          [1][P][0]       [1][rP][0]
  *		I_vGs_vCs        |
  *		I_vGs_vS     (*) | [1][P][0]       [1][rPb][0]         [1][P][*]       [1][rP][*]
@@ -358,13 +359,14 @@ static void setup_ELEMENT_operator_dependencies(const unsigned int EType)
 static void setup_ELEMENT_operators(const unsigned int EType)
 {
 	// Returned operators
-	unsigned int *NvnGs, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS, **NfnGc, **NfnS, **NfnIs, **NfnIc, *NenGc;
+	unsigned int *NvnGs, *NvnG2, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS, **NfnG2, **NfnGc, **NfnS, **NfnIs,
+	             **NfnIc, *NenG2, *NenGc;
 	double       **w_vIs, **w_vIc, ***w_fIs, ***w_fIc,
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS, ****ChiInvGs_vGs,
 	             ****TGs,
 	             ****IGc, ****ICs, ****ICc,
-	             ****I_vGs_vP, ****I_vGs_vGs, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vIs, ****I_vGs_vIc, ****I_vGs_vS,
+	             ****I_vGs_vP, ****I_vGs_vGs, ****I_vGs_vG2, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vIs, ****I_vGs_vIc, ****I_vGs_vS,
 	             ****I_vGc_vP,                ****I_vGc_vCc, ****I_vGc_vIs, ****I_vGc_vIc, ****I_vGc_vS,
 	             ****I_vCs_vS, ****I_vCs_vIs, ****I_vCs_vIc,
 	             ****I_vCc_vS, ****I_vCc_vIs, ****I_vCc_vIc,
@@ -377,6 +379,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             ****ChiS_fS, ****ChiS_fIs, ****ChiS_fIc,
 	             *****GradChiS_fIs, *****GradChiS_fIc,
 	             ****I_vGs_fS, ****I_vGs_fIs, ****I_vGs_fIc,
+	             ****I_vG2_fG2, ****I_vG2_eG2,
 	             ****I_vGc_fGc, ****I_vGc_fS, ****I_vGc_fIs, ****I_vGc_fIc, ****I_vGc_eGc,
 	             ****I_vCs_fS, ****I_vCs_fIs, ****I_vCs_fIc,
 	             ****I_vCc_fS, ****I_vCc_fIs, ****I_vCc_fIc,
@@ -416,29 +419,33 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             BE_Nve, BF_Nve[2], Neve, *Nfve, *Nvve, *EType_h,
 	             dummy_ui, *dummyPtr_ui[2];
 	double       *E_rst_vV, *rst_vV, **VeE, **VeF, **VeV,
-	             *rst_vP, *rst_vGs, *rst_vGc, *rst_vCs, *rst_vCc, **rst_vIs, **rst_vIc, **rst_vS,
-	             *rst_fGc, *rst_fS, *rst_fIs, *rst_fIc,
-	             *rst_eGc,
+	             *rst_vP, *rst_vGs, *rst_vG2, *rst_vGc, *rst_vCs, *rst_vCc, **rst_vIs, **rst_vIc, **rst_vS,
+	             *rst_fG2, *rst_fGc, *rst_fS, *rst_fIs, *rst_fIc,
+	             *rst_eG2, *rst_eGc,
 	             *wInv_vIs, *wInv_vIc,
 	             *diag_w_vIs, *diag_w_vIc, *diag_wInv_vIs, *diag_wInv_vIc,
 	             *diag_w_fIs, *diag_w_fIc,
-	             *IGs, *IS,
-	             *TGc, *TCs, *TCc, *TS,
+	             *IGs, *IG2, *IS,
+	             *TG2, *TGc, *TCs, *TCc, *TS,
 	             *ChiRefGc_vGc, *ChiRefCs_vCs, *ChiRefCc_vCc, *ChiRefS_vS,
 	             *ChiGc_vGc,    *ChiCs_vCs,    *ChiCc_vCc,
-	             *ChiRefInvGs_vGs, *ChiRefInvGc_vGc, *ChiRefInvCs_vCs, *ChiRefInvCc_vCc, *ChiRefInvS_vS,
-	                               *ChiInvGc_vGc,    *ChiInvCs_vCs,    *ChiInvCc_vCc,
-	             *ChiRefGs_vP, *ChiRefGs_vGs, *ChiRefGs_vGc, *ChiRefGs_vCs, *ChiRefGs_vIs, *ChiRefGs_vIc, *ChiRefGs_vS,
+	             *ChiRefInvGs_vGs, *ChiRefInvG2_vG2, *ChiRefInvGc_vGc, *ChiRefInvCs_vCs, *ChiRefInvCc_vCc, *ChiRefInvS_vS,
+	                               *ChiInvG2_vG2,    *ChiInvGc_vGc,    *ChiInvCs_vCs,    *ChiInvCc_vCc,
+	             *ChiRefGs_vP, *ChiRefGs_vGs, *ChiRefGs_vG2, *ChiRefGs_vGc, *ChiRefGs_vCs, *ChiRefGs_vIs, *ChiRefGs_vIc, *ChiRefGs_vS,
+	             *ChiRefG2_vG2,
 	             *ChiRefGs_fS, *ChiRefGs_fIs, *ChiRefGs_fIc,
 	             *ChiRefGc_vP,                *ChiRefGc_vCc, *ChiRefGc_vIs, *ChiRefGc_vIc, *ChiRefGc_vS,
-	             *ChiRefGc_fGc, *ChiRefGc_fS, *ChiRefGc_fIs, *ChiRefGc_fIc, *ChiRefGc_eGc,
+	             *ChiRefG2_fG2,
+	             *ChiRefGc_fGc, *ChiRefGc_fS, *ChiRefGc_fIs, *ChiRefGc_fIc, *ChiRefG2_eG2, *ChiRefGc_eGc,
 	             *ChiRefCs_vS, *ChiRefCs_vIs, *ChiRefCs_vIc, *ChiRefCs_fS, *ChiRefCs_fIs, *ChiRefCs_fIc,
 	             *ChiRefCc_vS, *ChiRefCc_vIs, *ChiRefCc_vIc, *ChiRefCc_fS, *ChiRefCc_fIs, *ChiRefCc_fIc,
 	             *ChiRefS_vP, *ChiRefS_vIs, *ChiRefS_vIc, *ChiRefS_fS, *ChiRefS_fIs, *ChiRefS_fIc,
-	             *ChiGs_vP, *ChiGs_vGs, *ChiGs_vGc, *ChiGs_vCs, *ChiGs_vIs, *ChiGs_vIc, *ChiGs_vS,
+	             *ChiGs_vP, *ChiGs_vGs, *ChiGs_vG2, *ChiGs_vGc, *ChiGs_vCs, *ChiGs_vIs, *ChiGs_vIc, *ChiGs_vS,
+	             *ChiG2_vG2,
 	             *ChiGs_fS, *ChiGs_fIs, *ChiGs_fIc,
 	             *ChiGc_vP,             *ChiGc_vCc, *ChiGc_vIs, *ChiGc_vIc, *ChiGc_vS,
-	             *ChiGc_fGc, *ChiGc_fS, *ChiGc_fIs, *ChiGc_fIc, *ChiGc_eGc,
+	             *ChiG2_fG2,
+	             *ChiGc_fGc, *ChiGc_fS, *ChiGc_fIs, *ChiGc_fIc, *ChiG2_eG2, *ChiGc_eGc,
 	             *ChiCs_vS, *ChiCs_vIs, *ChiCs_vIc, *ChiCs_fS, *ChiCs_fIs, *ChiCs_fIc,
 	             *ChiCc_vS, *ChiCc_vIs, *ChiCc_vIc, *ChiCc_fS, *ChiCc_fIs, *ChiCc_fIc,
 	             **GradChiRefGs_vCs, **GradChiRefGs_vIs,
@@ -456,7 +463,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             *dummyPtr_d;
 
 	struct BCoords {
-		double **Gc, **Is, **Ic, **S;
+		double **G2, **Gc, **Is, **Ic, **S;
 	} *BCoords_E, *BCoords_F[2], **BCoords_V;
 
 	struct S_BCOORDS *BCoords_dEm2, *BCoords_dEm1[2];
@@ -468,7 +475,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	grad_basis_tdef grad_basis;
 
 	// silence
-	ChiGs_vGs = NULL; ChiGc_vGc = NULL;
+	ChiGs_vGs = ChiG2_vG2 = ChiGc_vGc = NULL;
 	ChiCs_vCs = NULL; ChiCc_vCc = NULL;
 	ChiRefGs_vIs = ChiRefGs_vIc = NULL;
 	BE_Nve = 0; BCoords_E = NULL;
@@ -502,16 +509,19 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	// Stored operators
 	NvnGs = ELEMENT->NvnGs;
+	NvnG2 = ELEMENT->NvnG2;
 	NvnGc = ELEMENT->NvnGc;
 	NvnCs = ELEMENT->NvnCs;
 	NvnCc = ELEMENT->NvnCc;
 	NvnIs = ELEMENT->NvnIs;
 	NvnIc = ELEMENT->NvnIc;
 	NvnS  = ELEMENT->NvnS;
+	NfnG2 = ELEMENT->NfnG2;
 	NfnGc = ELEMENT->NfnGc;
 	NfnS  = ELEMENT->NfnS;
 	NfnIs = ELEMENT->NfnIs;
 	NfnIc = ELEMENT->NfnIc;
+	NenG2 = ELEMENT->NenG2;
 	NenGc = ELEMENT->NenGc;
 
 	w_fIs = ELEMENT->w_fIs;
@@ -539,6 +549,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	I_vGs_vP  = ELEMENT->I_vGs_vP;
 	I_vGs_vGs = ELEMENT->I_vGs_vGs;
+	I_vGs_vG2 = ELEMENT->I_vGs_vG2;
 	I_vGs_vGc = ELEMENT->I_vGs_vGc;
 	I_vGs_vCs = ELEMENT->I_vGs_vCs;
 	I_vGs_vIs = ELEMENT->I_vGs_vIs;
@@ -577,11 +588,13 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	I_vGs_fS  = ELEMENT->I_vGs_fS;
 	I_vGs_fIs = ELEMENT->I_vGs_fIs;
 	I_vGs_fIc = ELEMENT->I_vGs_fIc;
+	I_vG2_fG2 = ELEMENT->I_vG2_fG2;
 	I_vGc_fGc = ELEMENT->I_vGc_fGc;
 	I_vGc_fS  = ELEMENT->I_vGc_fS;
 	I_vGc_fIs = ELEMENT->I_vGc_fIs;
 	I_vGc_fIc = ELEMENT->I_vGc_fIc;
 	I_vGc_eGc = ELEMENT->I_vGc_eGc;
+	I_vG2_eG2 = ELEMENT->I_vG2_eG2;
 	I_vCs_fS  = ELEMENT->I_vCs_fS;
 	I_vCs_fIs = ELEMENT->I_vCs_fIs;
 	I_vCs_fIc = ELEMENT->I_vCs_fIc;
@@ -646,6 +659,37 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(IGs);
 	free(ChiRefGs_vGs);
 
+
+	// Vertex blending operators
+	P = 2;
+	cubature(&rst_vG2,&dummyPtr_d,&dummyPtr_ui[0],&NvnG2[P],&dummy_ui,0,P,dE,NodeTypeG[Eclass]); free(dummyPtr_ui[0]); // free
+
+	ChiRefGs_vG2 = basis(PGs,rst_vG2,NvnG2[P],&Nbf,dE); // free
+	ChiGs_vG2    = mm_Alloc_d(CBRM,CBNT,CBNT,NvnG2[P],NvnGs[1],NvnGs[1],1.0,ChiRefGs_vG2,TGs[1][1][0]); // free
+
+	I_vGs_vG2[1][P][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnG2[P],NvnGs[1],NvnGs[1],1.0,ChiGs_vG2,ChiInvGs_vGs[1][1][0]); // keep
+
+
+	IG2 = identity_d(NvnG2[P]); // free
+
+	ChiRefG2_vG2 = basis(P,rst_vG2,NvnG2[P],&Nbf,dE); // free
+
+	if (strstr(BasisType,"Modal"))
+		ChiG2_vG2 = ChiRefG2_vG2;
+	else if (strstr(BasisType,"Nodal"))
+		ChiG2_vG2 = IG2;
+
+	ChiRefInvG2_vG2 = inverse_d(NvnG2[P],NvnG2[P],ChiRefG2_vG2,IG2); // free
+	ChiInvG2_vG2    = inverse_d(NvnG2[P],NvnG2[P],ChiG2_vG2,IG2);    // free
+	TG2             = mm_Alloc_d(CBRM,CBNT,CBNT,NvnG2[P],NvnG2[P],NvnG2[P],1.0,ChiRefInvG2_vG2,ChiG2_vG2); // free
+
+	free(rst_vG2);
+	free(ChiRefGs_vG2);
+	free(ChiGs_vG2);
+	free(IG2);
+	free(ChiRefG2_vG2);
+
+
 	// Get Barycentric coordinates for lower dimensional ELEMENTs
 
 	// EDGEs
@@ -654,10 +698,13 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		BCoords_dEm2 = get_BCoords_dEm2(ELEMENT);
 
 		BE_Nve        = BCoords_dEm2->Nve;
+		BCoords_E->G2 = BCoords_dEm2->BCoords_G2;
 		BCoords_E->Gc = BCoords_dEm2->BCoords_Gc;
 		for (P = 0; P <= PMax; P++) {
+			NenG2[P] = BCoords_dEm2->NenG2[P];
 			NenGc[P] = BCoords_dEm2->NenGc[P];
 		}
+		free(BCoords_dEm2->NenG2);
 		free(BCoords_dEm2->NenGc);
 	}
 
@@ -675,6 +722,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	for (IndFType = 0; IndFType < NFTypes; IndFType++) {
 		BF_Nve[IndFType]        = BCoords_dEm1[IndFType]->Nve;
+		BCoords_F[IndFType]->G2 = BCoords_dEm1[IndFType]->BCoords_G2;
 		BCoords_F[IndFType]->Gc = BCoords_dEm1[IndFType]->BCoords_Gc;
 		BCoords_F[IndFType]->S  = BCoords_dEm1[IndFType]->BCoords_S;
 		BCoords_F[IndFType]->Is = BCoords_dEm1[IndFType]->BCoords_Is;
@@ -682,6 +730,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 		// Store Nfn* in a manner consistent with Nvn*
 		for (P = 0; P <= PMax; P++) {
+			NfnG2[P][IndFType] = BCoords_dEm1[IndFType]->NfnG2[P];
 			NfnGc[P][IndFType] = BCoords_dEm1[IndFType]->NfnGc[P];
 			NfnS[P][IndFType]  = BCoords_dEm1[IndFType]->NfnS[P];
 			NfnIs[P][IndFType] = BCoords_dEm1[IndFType]->NfnIs[P];
@@ -689,6 +738,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 			w_fIs[P][IndFType] = BCoords_dEm1[IndFType]->w_fIs[P];
 			w_fIc[P][IndFType] = BCoords_dEm1[IndFType]->w_fIc[P];
 		}
+		free(BCoords_dEm1[IndFType]->NfnG2);
 		free(BCoords_dEm1[IndFType]->NfnGc);
 		free(BCoords_dEm1[IndFType]->NfnS);
 		free(BCoords_dEm1[IndFType]->NfnIs);
@@ -1014,7 +1064,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 			free(ChiRefS_vP);
 			free(ChiGc_vP);
 
-			// Operators (1/P -> P only)
+			// Operators (1/P -> 2/P only)
 			if (P == Pb) {
 				ChiRefGs_vP  = basis(PGs,           rst_vP,    NvnP,    &Nbf,dE); // free
 				ChiRefGs_vGc = basis(PGs,           rst_vGc,   NvnGc[P],&Nbf,dE); // free
@@ -1223,6 +1273,18 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 								D_vGs_fIs[1][Pb][Vf][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,GradChiGs_fIs[dim],ChiInvGs_vGs[1][1][0]); // keep
 								D_vGs_fIc[1][Pb][Vf][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,GradChiGs_fIc[dim],ChiInvGs_vGs[1][1][0]); // keep
 							}
+
+							// Vertex blending operators
+							if (P == 2) {
+								rst_fG2      = mm_Alloc_d(CBCM,CBNT,CBNT,NfnG2[Pb][IndFType],dE,BF_Nve[IndFType],1.0,BCoords_F[IndFType]->G2[Pb],rst_vV); // free
+								ChiRefG2_fG2 = basis(P,rst_fG2,NfnG2[Pb][IndFType],&Nbf,dE); // free
+								ChiG2_fG2    = mm_Alloc_d(CBRM,CBNT,CBNT,NfnG2[Pb][IndFType],NvnG2[P],NvnG2[P],1.0,ChiRefG2_fG2,TG2); // free
+								I_vG2_fG2[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnG2[Pb][IndFType],NvnG2[P],NvnG2[P],1.0,ChiG2_fG2,ChiInvG2_vG2); // keep
+
+								free(rst_fG2);
+								free(ChiRefG2_fG2);
+								free(ChiG2_fG2);
+							}
 						}
 						I_vGc_fGc[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnGc[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,ChiGc_fGc,ChiInvGc_vGc); // keep
 						I_vGc_fS[P][Pb][Vf]  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnGc[P],NvnGc[P],1.0,ChiGc_fS, ChiInvGc_vGc); // keep
@@ -1310,6 +1372,19 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				ChiGc_eGc    = mm_Alloc_d(CBRM,CBNT,CBNT,NenGc[Pb],NvnGc[P],NvnGc[P],1.0,ChiRefGc_eGc,TGc); // free
 
 				I_vGc_eGc[P][Pb][Ve] = mm_Alloc_d(CBRM,CBNT,CBNT,NenGc[Pb],NvnGc[P],NvnGc[P],1.0,ChiGc_eGc,ChiInvGc_vGc); // keep
+
+				if (P == Pb && P == 2) {
+					rst_eG2 = mm_Alloc_d(CBCM,CBNT,CBNT,NenG2[Pb],dE,BE_Nve,1.0,BCoords_E->G2[Pb],rst_vV); // free
+
+					ChiRefG2_eG2 = basis(P             ,rst_eG2,NenG2[Pb],&Nbf,dE);                             // free
+					ChiG2_eG2    = mm_Alloc_d(CBRM,CBNT,CBNT,NenG2[Pb],NvnG2[P],NvnG2[P],1.0,ChiRefG2_eG2,TG2); // free
+
+					I_vG2_eG2[P][Pb][Ve] = mm_Alloc_d(CBRM,CBNT,CBNT,NenG2[Pb],NvnG2[P],NvnG2[P],1.0,ChiG2_eG2,ChiInvG2_vG2); // keep
+
+					free(rst_eG2);
+					free(ChiRefG2_eG2);
+					free(ChiG2_eG2);
+				}
 
 				free(rst_eGc);
 				free(ChiRefGc_eGc);
@@ -2663,7 +2738,8 @@ static void setup_L2_projection_operators(const unsigned int EType)
 static void setup_blending(const unsigned int EType)
 {
 	// Returned operators
-	double ****I_fGs_vGc, ****I_fGc_vGc, ****I_eGs_vGc, ****I_eGc_vGc;
+	double ****I_fGs_vG2, ****I_fG2_vG2, ****I_eGs_vG2, ****I_eG2_vG2,
+	       ****I_fGs_vGc, ****I_fGc_vGc, ****I_eGs_vGc, ****I_eGc_vGc;
 
 	// Initialize DB Parameters
 	unsigned int PGs      = DB.PGs,
@@ -2674,11 +2750,12 @@ static void setup_blending(const unsigned int EType)
 
 	// Standard datatypes
 	unsigned int f, e, n, ve, P, Pb, Vf, Ve, dim, PSMin, PSMax, PbMin, PbMax, Nf, Ne, Nve, *Nfve, Neve, *VeFcon, *VeEcon,
-	             *NvnGc, *Nv0nGs, *Nv0nGc, Eclass, EclassF, EclassE, dE, Nbf, dimF[2], dimE, dummy_ui, *dummyPtr_ui;
-	double       *BCoords_V, *BCoords_F, *BCoords_E,
-	             *rst_v0Gs, *rst_proj, *rst_v0Gc, *rst_vGs, *rst_vGsF, *rst_vGsE, rst_Num, rst_Den,
-	             *ChiRefGs_vGs, *ChiRefGc_vGc, *ChiRefGs_vProj, *ChiRefGc_vProj,
-	             *ChiRefInvGs_vGs, *IGs, *ChiRefInvGc_vGc, *IGc,
+	             *NvnGc, *Nv0nGs, *Nv0nGc, *NvnG2, *Nv0nG2,
+	             Eclass, EclassF, EclassE, dE, Nbf, dimF[2], dimE, dummy_ui, *dummyPtr_ui, u1 = 1;
+	double       *BCoords_V, *BCoords_V2, *BCoords_F, *BCoords_E,
+	             *rst_v0Gs, *rst_proj, *rst_proj2, *rst_v0G2, *rst_v0Gc, *rst_vGs, *rst_vGsF, *rst_vGsE, rst_Num, rst_Den,
+	             *ChiRefGs_vGs, *ChiRefGc_vGc, *ChiRefGs_vProj, *ChiRefGc_vProj, *ChiRefG2_vG2, *ChiRefGs_vProj2, *ChiRefG2_vProj2,
+	             *ChiRefInvGs_vGs, *IGs, *ChiRefInvGc_vGc, *IGc, *IG2, *ChiRefInvG2_vG2,
 	             *dummyPtr_d;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_F, *ELEMENT_E;
@@ -2699,17 +2776,23 @@ static void setup_blending(const unsigned int EType)
 	Nfve   = ELEMENT->Nfve;
 	VeEcon = ELEMENT->VeEcon;
 	VeFcon = ELEMENT->VeFcon;
+	NvnG2  = ELEMENT->NvnG2;
 	NvnGc  = ELEMENT->NvnGc;
 
+	I_fGs_vG2 = ELEMENT->I_fGs_vG2;
+	I_fG2_vG2 = ELEMENT->I_fG2_vG2;
 	I_fGs_vGc = ELEMENT->I_fGs_vGc;
 	I_fGc_vGc = ELEMENT->I_fGc_vGc;
 
+	I_eGs_vG2 = ELEMENT->I_eGs_vG2;
+	I_eG2_vG2 = ELEMENT->I_eG2_vG2;
 	I_eGs_vGc = ELEMENT->I_eGs_vGc;
 	I_eGc_vGc = ELEMENT->I_eGc_vGc;
 
 	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
-		BCoords_V = ELEMENT->I_vGs_vGc[1][P][0];
+		BCoords_V  = ELEMENT->I_vGs_vGc[1][P][0];
+		BCoords_V2 = ELEMENT->I_vGs_vG2[1][2][0];
 
 		// FACE related operators
 		for (f = 0; f < Nf; f++) {
@@ -2718,14 +2801,17 @@ static void setup_blending(const unsigned int EType)
 			ELEMENT_F = get_ELEMENT_F_type(EType,f);
 			EclassF   = get_Eclass(ELEMENT_F->type);
 
-			rst_v0Gs = get_rst_vV(ELEMENT_F); // free
-			rst_proj = malloc(NvnGc[P]*(dE-1) * sizeof *rst_proj); // free
+			rst_v0Gs  = get_rst_vV(ELEMENT_F); // free
+			rst_proj  = malloc(NvnGc[P]*(dE-1) * sizeof *rst_proj);  // free
+			rst_proj2 = malloc(NvnG2[2]*(dE-1) * sizeof *rst_proj2); // free
 
 			if (Blending == HESTHAVEN && EType == TRI) {
 				// dE == 2
 				for (dim = 0; dim < dE-1; dim++) {
 					for (n = 0; n < NvnGc[P]; n++)
 						rst_proj[n+dim*NvnGc[P]] = 2.0*BCoords_V[n*Nve+VeFcon[f*NFVEMAX+1]]-1.0;
+					for (n = 0; n < NvnG2[2]; n++)
+						rst_proj2[n+dim*NvnG2[2]] = 2.0*BCoords_V2[n*Nve+VeFcon[f*NFVEMAX+1]]-1.0;
 				}
 			} else if (Blending == NIELSON && EType == TRI) {
 				// dE == 2
@@ -2741,6 +2827,17 @@ static void setup_blending(const unsigned int EType)
 						rst_Den = 1.0-BCoords_V[n*Nve+f];
 						rst_proj[n+dim*NvnGc[P]] = rst_Num/rst_Den;
 					}
+					for (n = 0; n < NvnG2[2]; n++) {
+						rst_Num = BCoords_V2[n*Nve+VeFcon[f*NFVEMAX+1]]-BCoords_V2[n*Nve+VeFcon[f*NFVEMAX+0]];
+
+						if (fabs(rst_Num) < EPS) {
+							rst_proj2[n+dim*NvnG2[2]] = 0.0;
+							continue;
+						}
+
+						rst_Den = 1.0-BCoords_V2[n*Nve+f];
+						rst_proj2[n+dim*NvnG2[2]] = rst_Num/rst_Den;
+					}
 				}
 			} else if (Blending == SZABO_BABUSKA || Eclass == C_SI) {
 				// These BCoords_F determine rst_proj according to Szabo(1991, p. 111) in 2D  (i.e. xi = L2-L1).
@@ -2753,6 +2850,17 @@ static void setup_blending(const unsigned int EType)
 
 				// Compute projection of VOLUME nodes to FACE
 				mm_CTN_d(NvnGc[P],dE-1,Nfve[f],BCoords_F,rst_v0Gs,rst_proj);
+				free(BCoords_F);
+
+				BCoords_F = malloc(NvnG2[2]*Nfve[f] * sizeof *BCoords_F); // free
+
+				for (n = 0; n < NvnG2[2]; n++) {
+				for (ve = 0; ve < Nfve[f]; ve++) {
+					BCoords_F[n*Nfve[f]+ve] = BCoords_V2[n*Nve+VeFcon[f*NFVEMAX+ve]];
+				}}
+
+				// Compute projection of VOLUME nodes to FACE
+				mm_CTN_d(NvnG2[2],dE-1,Nfve[f],BCoords_F,rst_v0Gs,rst_proj2);
 				free(BCoords_F);
 			} else if (Blending == GORDON_HALL || Eclass == C_TP) {
 				rst_vGs = get_rst_vV(ELEMENT); // free
@@ -2769,6 +2877,7 @@ static void setup_blending(const unsigned int EType)
 				free(rst_vGs);
 
 				mm_CTN_d(NvnGc[P],dE-1,Nve,BCoords_V,rst_vGsF,rst_proj);
+				mm_CTN_d(NvnG2[2],dE-1,Nve,BCoords_V2,rst_vGsF,rst_proj2);
 				free(rst_vGsF);
 			} else {
 				printf("Add Support.\n"), EXIT_MSG;
@@ -2780,36 +2889,48 @@ if (P == 4 && EType == TRI && f == 2) {
 
 			// Compute blending operators
 			Nv0nGs = ELEMENT_F->NvnGs;
+			Nv0nG2 = ELEMENT_F->NvnG2;
 			Nv0nGc = ELEMENT_F->NvnGc;
 
 			select_functions_cubature(&cubature,ELEMENT_F->type);
 			select_functions_basis(&basis,ELEMENT_F->type);
 
-if (DB.Blending_HO) {
-	PbMin = 1;
-	PbMax = P;
-// Needs modification for PGc[P] != P (ToBeDeleted)
-if (P > 0 && PGc[P] != P)
-	printf("Error: Add support. %d %d\n",P,PGc[P]), EXIT_MSG;
-} else {
-	PbMin = P;
-	PbMax = P;
-}
-			for (Pb = PbMin; Pb <= PbMax; Pb++) {
-				cubature(&rst_v0Gc,&dummyPtr_d,&dummyPtr_ui,&Nv0nGc[Pb],&dummy_ui,0,PGc[Pb],dE-1,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
+			if (DB.Blending_HO) {
+				PbMin = 1;
+				PbMax = P;
+				// Needs modification for PGc[P] != P (ToBeDeleted)
+				if (P > 0 && PGc[P] != P)
+					printf("Error: Add support. %d %d\n",P,PGc[P]), EXIT_MSG;
+			} else {
+				PbMin = P;
+				PbMax = P;
+			}
 
-				ChiRefGs_vGs    = basis(PGs,    rst_v0Gs,Nv0nGs[1],&Nbf,dE-1);           // free
-				ChiRefGc_vGc    = basis(PGc[Pb],rst_v0Gc,Nv0nGc[Pb],&Nbf,dE-1);          // free
-				ChiRefGs_vProj  = basis(PGs,    rst_proj,NvnGc[P],&Nbf,dE-1);            // free
-				ChiRefGc_vProj  = basis(PGc[Pb],rst_proj,NvnGc[P],&Nbf,dE-1);            // free
+			for (Pb = PbMin; Pb <= PbMax; Pb++) {
+				cubature(&rst_v0G2,&dummyPtr_d,&dummyPtr_ui,&Nv0nG2[2], &dummy_ui,0,max(Pb,u1),dE-1,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
+				cubature(&rst_v0Gc,&dummyPtr_d,&dummyPtr_ui,&Nv0nGc[Pb],&dummy_ui,0,PGc[Pb],   dE-1,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
+
+				ChiRefGs_vGs    = basis(PGs,    rst_v0Gs, Nv0nGs[1],&Nbf,dE-1);           // free
+				ChiRefG2_vG2    = basis(P      ,rst_v0G2, Nv0nG2[2],&Nbf,dE-1);           // free
+				ChiRefGc_vGc    = basis(PGc[Pb],rst_v0Gc, Nv0nGc[Pb],&Nbf,dE-1);          // free
+				ChiRefGs_vProj  = basis(PGs,    rst_proj, NvnGc[P],&Nbf,dE-1);            // free
+				ChiRefGs_vProj2 = basis(PGs,    rst_proj2,NvnG2[2],&Nbf,dE-1);            // free
+				ChiRefGc_vProj  = basis(PGc[Pb],rst_proj, NvnGc[P],&Nbf,dE-1);            // free
+				ChiRefG2_vProj2 = basis(P,      rst_proj2,NvnG2[2],&Nbf,dE-1);            // free
 
 				IGs             = identity_d(Nv0nGs[1]);                             // free
+				IG2             = identity_d(Nv0nG2[2]);                             // free
 				IGc             = identity_d(Nv0nGc[Pb]);                            // free
 				ChiRefInvGs_vGs = inverse_d(Nv0nGs[1], Nv0nGs[1], ChiRefGs_vGs,IGs); // free
+				ChiRefInvG2_vG2 = inverse_d(Nv0nG2[2], Nv0nG2[2], ChiRefG2_vG2,IG2); // free
 				ChiRefInvGc_vGc = inverse_d(Nv0nGc[Pb],Nv0nGc[Pb],ChiRefGc_vGc,IGc); // free
 
 				if (Pb == P) {
-					I_fGs_vGc[1][P][Vf]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],Nv0nGs[1],Nv0nGs[1],1.0,ChiRefGs_vProj,ChiRefInvGs_vGs); // keep
+					I_fGs_vGc[1][P][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],Nv0nGs[1],Nv0nGs[1],1.0,ChiRefGs_vProj,ChiRefInvGs_vGs); // keep
+					if (P == 2) {
+						I_fGs_vG2[1][P][Vf]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnG2[P],Nv0nGs[1],Nv0nGs[1],1.0,ChiRefGs_vProj2,ChiRefInvGs_vGs); // keep
+						I_fG2_vG2[Pb][P][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnG2[P],Nv0nG2[Pb],Nv0nG2[Pb],1.0,ChiRefG2_vProj2,ChiRefInvG2_vG2); // keep
+					}
 				}
 				I_fGc_vGc[Pb][P][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],Nv0nGc[Pb],Nv0nGc[Pb],1.0,ChiRefGc_vProj,ChiRefInvGc_vGc); // keep
 
@@ -2819,10 +2940,13 @@ if (P > 0 && PGc[P] != P)
 				free(ChiRefGc_vGc);
 				free(ChiRefGs_vProj);
 				free(ChiRefGc_vProj);
+				free(ChiRefG2_vProj2);
 
 				free(IGs);
+				free(IG2);
 				free(IGc);
 				free(ChiRefInvGs_vGs);
+				free(ChiRefInvG2_vG2);
 				free(ChiRefInvGc_vGc);
 			}
 

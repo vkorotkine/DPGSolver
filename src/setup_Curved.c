@@ -1149,7 +1149,6 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 
 	// Initialize DB Parameters
 	unsigned int d           = DB.d,
-	             *PGc        = DB.PGc,
 	             Blending_HO = DB.Blending_HO;
 
 	// Standard datatypes
@@ -1176,12 +1175,8 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 	ELEMENT = get_ELEMENT_type(VOLUME->type);
 
 	if (vertex_blending) {
-		if (PGc[2] == 2)
-			PV = 2;
-		else if (PGc[1] == 2)
-			PV = 1;
-		else
-			printf("Error: Add specific blending operators for vertex blending for PGc != P or P+1.\n"), EXIT_MSG;
+		PV = 2;
+		printf("Error: Add support.\n"), EXIT_MSG;
 
 		NvnG = ELEMENT->NveP2;
 		XYZ  = VOLUME->XYZ_vVP2;
@@ -1203,7 +1198,10 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 	data_blend->type = Vtype;
 
 	Nve       = ELEMENT->Nve;
-	I_vGs_vGc = ELEMENT->I_vGs_vGc[1][PV][0];
+	if (vertex_blending)
+		I_vGs_vGc = ELEMENT->I_vGs_vG2[1][PV][0];
+	else
+		I_vGs_vGc = ELEMENT->I_vGs_vGc[1][PV][0];
 
 	data_blend->EclassV   = ELEMENT->Eclass;
 	data_blend->Nve       = Nve;
@@ -1236,7 +1234,7 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 	else
 		PMin = 2;
 
-	for (P = PMin; P <= PV; P++) {
+	for (P = PMin; P <= PV; P++) { // Note: For vertex_blending = 1, PMin == PV == 2
 	for (b = 0; b < Nb; b++) {
 		if (BType == 'e')
 			BC = VOLUME->BC[1][b];
@@ -1249,14 +1247,26 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 		Vb = b*NbrefMax;
 		if (BType == 'e') {
 			ELEMENT_B = get_ELEMENT_type(LINE);
-			data_blend->I_vGc_bGc = ELEMENT->I_vGc_eGc[PV][P][Vb];
-			data_blend->I_bGc_vGc = ELEMENT->I_eGc_vGc[P][PV][Vb];
-			data_blend->I_bGs_vGc = ELEMENT->I_eGs_vGc[1][PV][Vb];
+			if (vertex_blending) {
+				data_blend->I_vGc_bGc = ELEMENT->I_vG2_eG2[PV][P][Vb];
+				data_blend->I_bGc_vGc = ELEMENT->I_eG2_vG2[P][PV][Vb];
+				data_blend->I_bGs_vGc = ELEMENT->I_eGs_vG2[1][PV][Vb];
+			} else {
+				data_blend->I_vGc_bGc = ELEMENT->I_vGc_eGc[PV][P][Vb];
+				data_blend->I_bGc_vGc = ELEMENT->I_eGc_vGc[P][PV][Vb];
+				data_blend->I_bGs_vGc = ELEMENT->I_eGs_vGc[1][PV][Vb];
+			}
 		} else if (BType == 'f') {
 			ELEMENT_B = get_ELEMENT_F_type(ELEMENT->type,b);
-			data_blend->I_vGc_bGc = ELEMENT->I_vGc_fGc[PV][P][Vb];
-			data_blend->I_bGc_vGc = ELEMENT->I_fGc_vGc[P][PV][Vb];
-			data_blend->I_bGs_vGc = ELEMENT->I_fGs_vGc[1][PV][Vb];
+			if (vertex_blending) {
+				data_blend->I_vGc_bGc = ELEMENT->I_vG2_fG2[PV][P][Vb];
+				data_blend->I_bGc_vGc = ELEMENT->I_fG2_vG2[P][PV][Vb];
+				data_blend->I_bGs_vGc = ELEMENT->I_fGs_vG2[1][PV][Vb];
+			} else {
+				data_blend->I_vGc_bGc = ELEMENT->I_vGc_fGc[PV][P][Vb];
+				data_blend->I_bGc_vGc = ELEMENT->I_fGc_vGc[P][PV][Vb];
+				data_blend->I_bGs_vGc = ELEMENT->I_fGs_vGc[1][PV][Vb];
+			}
 		}
 
 		data_blend->b    = b;

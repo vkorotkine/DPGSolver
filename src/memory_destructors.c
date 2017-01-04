@@ -59,12 +59,14 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 
 	// Operators
 	free(ELEMENT->NvnGs);
+	free(ELEMENT->NvnG2);
 	free(ELEMENT->NvnGc);
 	free(ELEMENT->NvnCs);
 	free(ELEMENT->NvnCc);
 	free(ELEMENT->NvnIs);
 	free(ELEMENT->NvnIc);
 	free(ELEMENT->NvnS);
+	free(ELEMENT->NenG2);
 	free(ELEMENT->NenGc);
 
 	array_free3_d(NP,NESUBCMAX,ELEMENT->w_fIs);
@@ -73,6 +75,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free2_d(NP,ELEMENT->w_vIs);
 	array_free2_d(NP,ELEMENT->w_vIc);
 
+	array_free2_ui(NP,ELEMENT->NfnG2);
 	array_free2_ui(NP,ELEMENT->NfnGc);
 	array_free2_ui(NP,ELEMENT->NfnS);
 	array_free2_ui(NP,ELEMENT->NfnIs);
@@ -99,6 +102,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 
 	array_free4_d(NP,NP,1,         ELEMENT->I_vGs_vP);
 	array_free4_d(NP,NP,NVREFMAX,  ELEMENT->I_vGs_vGs);
+	array_free4_d(NP,NP,NVREFMAX,  ELEMENT->I_vGs_vG2);
 	array_free4_d(NP,NP,1,         ELEMENT->I_vGs_vGc);
 	array_free4_d(NP,NP,1,         ELEMENT->I_vGs_vCs);
 	array_free4_d(NP,NP,NVREFSFMAX,ELEMENT->I_vGs_vIs);
@@ -139,6 +143,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGs_fIs);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGs_fIc);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGc_fGc);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vG2_fG2);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGc_fS);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGc_fIs);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_vGc_fIc);
@@ -155,10 +160,15 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free5_d(NP,NP,NFREFMAX*NFMAX,d,ELEMENT->D_vGc_fIc);
 
 	array_free4_d(NP,NP,NEREFMAX*NEMAX,ELEMENT->I_vGc_eGc);
+	array_free4_d(NP,NP,NEREFMAX*NEMAX,ELEMENT->I_vG2_eG2);
 
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_fGs_vG2);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_fG2_vG2);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_fGs_vGc);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->I_fGc_vGc);
 
+	array_free4_d(NP,NP,NEREFMAX*NEMAX,ELEMENT->I_eGs_vG2);
+	array_free4_d(NP,NP,NEREFMAX*NEMAX,ELEMENT->I_eG2_vG2);
 	array_free4_d(NP,NP,NEREFMAX*NEMAX,ELEMENT->I_eGs_vGc);
 	array_free4_d(NP,NP,NEREFMAX*NEMAX,ELEMENT->I_eGc_vGc);
 

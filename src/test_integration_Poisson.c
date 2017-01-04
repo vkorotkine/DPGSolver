@@ -234,13 +234,13 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
  *		Investigate cube_to_sphere effects on mesh regularity; problems are only being observed in 3D.
  */
 
-	TestDB.PG_add = 1;
+	TestDB.PG_add = 0;
 	TestDB.IntOrder_add  = 0;
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 6;
-	MLMin = 0; MLMax = 5;
+	PMin  = 1; PMax  = 3;
+	MLMin = 0; MLMax = 3;
 TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free

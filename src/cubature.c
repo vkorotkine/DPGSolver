@@ -79,7 +79,7 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 	// Note: GLL must be first as "GL" is in "GLL"
 	if (strstr(NodeType,"GLL")) {
 		if (P == 0)
-			printf("Error: Cannot use GLL nodes of order P0.\n"), exit(1);
+			printf("Error: Cannot use GLL nodes of order P0.\n"), EXIT_MSG;
 
 		// Compute initial guess
 		for (i = 0; i < P; i++) {

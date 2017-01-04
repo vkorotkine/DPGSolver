@@ -8,8 +8,8 @@
 
 struct S_BCOORDS {
 	unsigned int Nve,
-	             *NfnGc, *NfnS, *NfnIs, *NfnIc, *NenGc;
-	double       **w_fIs, **w_fIc, **BCoords_Gc, **BCoords_S, **BCoords_Is, **BCoords_Ic;
+	             *NfnG2, *NfnGc, *NfnS, *NfnIs, *NfnIc, *NenG2, *NenGc;
+	double       **w_fIs, **w_fIc, **BCoords_G2, **BCoords_Gc, **BCoords_S, **BCoords_Is, **BCoords_Ic;
 };
 
 
