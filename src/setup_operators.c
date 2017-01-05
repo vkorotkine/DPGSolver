@@ -2751,7 +2751,7 @@ static void setup_blending(const unsigned int EType)
 	// Standard datatypes
 	unsigned int f, e, n, ve, P, Pb, Vf, Ve, dim, PSMin, PSMax, PbMin, PbMax, Nf, Ne, Nve, *Nfve, Neve, *VeFcon, *VeEcon,
 	             *NvnGc, *Nv0nGs, *Nv0nGc, *NvnG2, *Nv0nG2,
-	             Eclass, EclassF, EclassE, dE, Nbf, dimF[2], dimE, dummy_ui, *dummyPtr_ui, u1 = 1;
+	             Eclass, EclassF, EclassE, dE, Nbf, dimF[2], dimE, dummy_ui, *dummyPtr_ui;
 	double       *BCoords_V, *BCoords_V2, *BCoords_F, *BCoords_E,
 	             *rst_v0Gs, *rst_proj, *rst_proj2, *rst_v0G2, *rst_v0Gc, *rst_vGs, *rst_vGsF, *rst_vGsE, rst_Num, rst_Den,
 	             *ChiRefGs_vGs, *ChiRefGc_vGc, *ChiRefGs_vProj, *ChiRefGc_vProj, *ChiRefG2_vG2, *ChiRefGs_vProj2, *ChiRefG2_vProj2,
@@ -2907,29 +2907,41 @@ if (P == 4 && EType == TRI && f == 2) {
 			}
 
 			for (Pb = PbMin; Pb <= PbMax; Pb++) {
-				cubature(&rst_v0G2,&dummyPtr_d,&dummyPtr_ui,&Nv0nG2[2], &dummy_ui,0,max(Pb,u1),dE-1,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
 				cubature(&rst_v0Gc,&dummyPtr_d,&dummyPtr_ui,&Nv0nGc[Pb],&dummy_ui,0,PGc[Pb],   dE-1,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
 
 				ChiRefGs_vGs    = basis(PGs,    rst_v0Gs, Nv0nGs[1],&Nbf,dE-1);           // free
-				ChiRefG2_vG2    = basis(P      ,rst_v0G2, Nv0nG2[2],&Nbf,dE-1);           // free
 				ChiRefGc_vGc    = basis(PGc[Pb],rst_v0Gc, Nv0nGc[Pb],&Nbf,dE-1);          // free
 				ChiRefGs_vProj  = basis(PGs,    rst_proj, NvnGc[P],&Nbf,dE-1);            // free
-				ChiRefGs_vProj2 = basis(PGs,    rst_proj2,NvnG2[2],&Nbf,dE-1);            // free
 				ChiRefGc_vProj  = basis(PGc[Pb],rst_proj, NvnGc[P],&Nbf,dE-1);            // free
-				ChiRefG2_vProj2 = basis(P,      rst_proj2,NvnG2[2],&Nbf,dE-1);            // free
 
 				IGs             = identity_d(Nv0nGs[1]);                             // free
-				IG2             = identity_d(Nv0nG2[2]);                             // free
 				IGc             = identity_d(Nv0nGc[Pb]);                            // free
 				ChiRefInvGs_vGs = inverse_d(Nv0nGs[1], Nv0nGs[1], ChiRefGs_vGs,IGs); // free
-				ChiRefInvG2_vG2 = inverse_d(Nv0nG2[2], Nv0nG2[2], ChiRefG2_vG2,IG2); // free
 				ChiRefInvGc_vGc = inverse_d(Nv0nGc[Pb],Nv0nGc[Pb],ChiRefGc_vGc,IGc); // free
 
 				if (Pb == P) {
 					I_fGs_vGc[1][P][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],Nv0nGs[1],Nv0nGs[1],1.0,ChiRefGs_vProj,ChiRefInvGs_vGs); // keep
 					if (P == 2) {
+						cubature(&rst_v0G2,&dummyPtr_d,&dummyPtr_ui,&Nv0nG2[P],&dummy_ui,0,P,dE-1,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
+
+						ChiRefGs_vProj2 = basis(PGs,rst_proj2,NvnG2[P], &Nbf,dE-1); // free
+						ChiRefG2_vG2    = basis(P,  rst_v0G2, Nv0nG2[P],&Nbf,dE-1); // free
+						ChiRefG2_vProj2 = basis(P,  rst_proj2,NvnG2[P], &Nbf,dE-1); // free
+
+						IG2             = identity_d(Nv0nG2[P]);                           // free
+						ChiRefInvG2_vG2 = inverse_d(Nv0nG2[P],Nv0nG2[P],ChiRefG2_vG2,IG2); // free
+
 						I_fGs_vG2[1][P][Vf]  = mm_Alloc_d(CBRM,CBNT,CBNT,NvnG2[P],Nv0nGs[1],Nv0nGs[1],1.0,ChiRefGs_vProj2,ChiRefInvGs_vGs); // keep
-						I_fG2_vG2[Pb][P][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnG2[P],Nv0nG2[Pb],Nv0nG2[Pb],1.0,ChiRefG2_vProj2,ChiRefInvG2_vG2); // keep
+						I_fG2_vG2[Pb][P][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnG2[P],Nv0nG2[P],Nv0nG2[P],1.0,ChiRefG2_vProj2,ChiRefInvG2_vG2); // keep
+
+						free(rst_v0G2);
+
+						free(ChiRefGs_vProj2);
+						free(ChiRefG2_vG2);
+						free(ChiRefG2_vProj2);
+
+						free(IG2);
+						free(ChiRefInvG2_vG2);
 					}
 				}
 				I_fGc_vGc[Pb][P][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],Nv0nGc[Pb],Nv0nGc[Pb],1.0,ChiRefGc_vProj,ChiRefInvGc_vGc); // keep
@@ -2940,13 +2952,10 @@ if (P == 4 && EType == TRI && f == 2) {
 				free(ChiRefGc_vGc);
 				free(ChiRefGs_vProj);
 				free(ChiRefGc_vProj);
-				free(ChiRefG2_vProj2);
 
 				free(IGs);
-				free(IG2);
 				free(IGc);
 				free(ChiRefInvGs_vGs);
-				free(ChiRefInvG2_vG2);
 				free(ChiRefInvGc_vGc);
 			}
 

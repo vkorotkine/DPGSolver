@@ -55,7 +55,9 @@
  *		boundary (and domain) results in the recovery of optimal orders but this can not be tested with the current
  *		functionality of the code. Investigation may be pursued if an Isogeometric Analysis code becomes available. Note
  *		that it was confirmed that the asymptotic range was reached by verifying that optimal convergence was obtained
- *		on straight meshes of comparable mesh length. (ToBeModified)
+ *		on straight meshes of comparable mesh length. Note that using higher order geometry representation improved, but
+ *		did not result in complete recovery of, optimal orders (Compared PG = P with PG = P+5 for P = 1 to 6).
+ *		(ToBeModified)
  *
  *		It may also be noted that, despite converging at the same rate, the L2error of the computed solution is
  *		significantly higher than that of the L2 projected exact solution for certain polynomial orders. Comparison with
@@ -239,13 +241,13 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 3;
-	MLMin = 0; MLMax = 3;
+	PMin  = 1; PMax  = 6;
+	MLMin = 0; MLMax = 5;
 TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
-	Compute_L2proj = 0; // Use IntOrder_add > 0 for non-trivial P1-P2 results for L2proj
+	Compute_L2proj = 1; // Use IntOrder_add > 0 for non-trivial P1-P2 results for L2proj
 //	Adapt = ADAPT_0;
 	Adapt = ADAPT_HP;
 	if (Adapt != ADAPT_0) {

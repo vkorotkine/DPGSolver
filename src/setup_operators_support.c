@@ -229,7 +229,7 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 	             PMax = DB.PMax;
 
 	// Standard datatypes
-	unsigned int P, EType, Nve, u1 = 1,
+	unsigned int P, EType, Nve,
 	             *NfnG2, *NfnGc, *NfnS, *NfnIs, *NfnIc;
 	double       **w_fIs, **w_fIc,
 	             **BCoords_G2, **BCoords_Gc, **BCoords_S, **BCoords_Is, **BCoords_Ic, *one;
@@ -238,7 +238,7 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 	struct S_ELEMENT *ELEMENT_F;
 
 	BCoords_dEm1 = malloc(sizeof *BCoords_dEm1);      // keep
-	NfnG2        = malloc(NP * sizeof *(NfnG2));      // keep
+	NfnG2        = calloc(NP , sizeof *(NfnG2));      // keep
 	NfnGc        = malloc(NP * sizeof *(NfnGc));      // keep
 	NfnS         = malloc(NP * sizeof *(NfnS));       // keep
 	NfnIs        = malloc(NP * sizeof *(NfnIs));      // keep
@@ -346,32 +346,35 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 		free(ChiRefGs_vGs);
 
 		for (P = 0; P <= PMax; P++) {
-			cubature(&rst_fG2,&dummyPtr_d[0],&dummyPtr_ui,&NfnG2[2],&dummy_ui,0,max(P,u1),       dE,NodeTypeG[EclassF]);      free(dummyPtr_ui); // free
 			cubature(&rst_fGc,&dummyPtr_d[0],&dummyPtr_ui,&NfnGc[P],&dummy_ui,0,PGc[P],          dE,NodeTypeG[EclassF]);      free(dummyPtr_ui); // free
 			cubature(&rst_fS, &dummyPtr_d[0],&dummyPtr_ui,&NfnS[P], &dummy_ui,0,P,               dE,NodeTypeS[P][EclassF]);   free(dummyPtr_ui); // free
 			cubature(&rst_fIs,&w_fIs[P],     &dummyPtr_ui,&NfnIs[P],&dummy_ui,1,PIfs[P][EclassF],dE,NodeTypeIfs[P][EclassF]); free(dummyPtr_ui); // free
 			cubature(&rst_fIc,&w_fIc[P],     &dummyPtr_ui,&NfnIc[P],&dummy_ui,1,PIfc[P][EclassF],dE,NodeTypeIfc[P][EclassF]); free(dummyPtr_ui); // free
 
-			ChiRefGs_fG2 = basis(1,rst_fG2,NfnG2[2],&Nbf,dE); // free
 			ChiRefGs_fGc = basis(1,rst_fGc,NfnGc[P],&Nbf,dE); // free
 			ChiRefGs_fS  = basis(1,rst_fS, NfnS[P], &Nbf,dE); // free
 			ChiRefGs_fIs = basis(1,rst_fIs,NfnIs[P],&Nbf,dE); // free
 			ChiRefGs_fIc = basis(1,rst_fIc,NfnIc[P],&Nbf,dE); // free
 
-			if (P == 2)
+			if (P == 2) {
+				cubature(&rst_fG2,&dummyPtr_d[0],&dummyPtr_ui,&NfnG2[P],&dummy_ui,0,P,dE,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
+				ChiRefGs_fG2 = basis(1,rst_fG2,NfnG2[P],&Nbf,dE); // free
 				BCoords_G2[P] = mm_Alloc_d(CBCM,CBT,CBT,NfnG2[P],NfnGs,NfnGs,1.0,ChiRefGs_fG2,ChiRefInvGs_vGs); // keep
+
+				free(rst_fG2);
+				free(ChiRefGs_fG2);
+			}
+
 			BCoords_Gc[P] = mm_Alloc_d(CBCM,CBT,CBT,NfnGc[P],NfnGs,NfnGs,1.0,ChiRefGs_fGc,ChiRefInvGs_vGs); // keep
 			BCoords_S[P]  = mm_Alloc_d(CBCM,CBT,CBT,NfnS[P], NfnGs,NfnGs,1.0,ChiRefGs_fS, ChiRefInvGs_vGs); // keep
 			BCoords_Is[P] = mm_Alloc_d(CBCM,CBT,CBT,NfnIs[P],NfnGs,NfnGs,1.0,ChiRefGs_fIs,ChiRefInvGs_vGs); // keep
 			BCoords_Ic[P] = mm_Alloc_d(CBCM,CBT,CBT,NfnIc[P],NfnGs,NfnGs,1.0,ChiRefGs_fIc,ChiRefInvGs_vGs); // keep
 
-			free(rst_fG2);
 			free(rst_fGc);
 			free(rst_fS);
 			free(rst_fIs);
 			free(rst_fIc);
 
-			free(ChiRefGs_fG2);
 			free(ChiRefGs_fGc);
 			free(ChiRefGs_fS);
 			free(ChiRefGs_fIs);
@@ -408,7 +411,7 @@ struct S_BCOORDS *get_BCoords_dEm2(const struct S_ELEMENT *ELEMENT)
 	             *PGc        = DB.PGc;
 
 	// Standard datatypes
-	unsigned int dE, Nbf, P, NenGs, Nve, EType, Eclass, *NenG2, *NenGc, dummy_ui, *dummyPtr_ui, u1 = 1;
+	unsigned int dE, Nbf, P, NenGs, Nve, EType, Eclass, *NenG2, *NenGc, dummy_ui, *dummyPtr_ui;
 	double       **BCoords_G2, **BCoords_Gc, *rst_vGs, *rst_eG2, *rst_eGc,
 	             *IGs, *ChiRefGs_vGs, *ChiRefInvGs_vGs, *ChiRefGs_eG2, *ChiRefGs_eGc, *dummyPtr_d[2];
 
@@ -424,7 +427,7 @@ struct S_BCOORDS *get_BCoords_dEm2(const struct S_ELEMENT *ELEMENT)
 		return NULL;
 
 	BCoords_dEm2 = malloc(     sizeof *BCoords_dEm2); // keep
-	NenG2        = malloc(NP * sizeof *NenG2);        // keep
+	NenG2        = calloc(NP , sizeof *NenG2);        // keep
 	NenGc        = malloc(NP * sizeof *NenGc);        // keep
 	BCoords_G2   = malloc(NP * sizeof *BCoords_G2);   // keep
 	BCoords_Gc   = malloc(NP * sizeof *BCoords_Gc);   // keep
@@ -456,19 +459,21 @@ struct S_BCOORDS *get_BCoords_dEm2(const struct S_ELEMENT *ELEMENT)
 	free(ChiRefGs_vGs);
 
 	for (P = 0; P <= PMax; P++) {
-		cubature(&rst_eG2,&dummyPtr_d[0],&dummyPtr_ui,&NenG2[2],&dummy_ui,0,max(P,u1),dE,NodeTypeG[Eclass]); free(dummyPtr_ui); // free
 		cubature(&rst_eGc,&dummyPtr_d[0],&dummyPtr_ui,&NenGc[P],&dummy_ui,0,PGc[P],   dE,NodeTypeG[Eclass]); free(dummyPtr_ui); // free
 
-		ChiRefGs_eG2 = basis(1,rst_eG2,NenG2[2],&Nbf,dE); // free
 		ChiRefGs_eGc = basis(1,rst_eGc,NenGc[P],&Nbf,dE); // free
 
-		if (P == 2)
+		if (P == 2) {
+			cubature(&rst_eG2,&dummyPtr_d[0],&dummyPtr_ui,&NenG2[P],&dummy_ui,0,P,dE,NodeTypeG[Eclass]); free(dummyPtr_ui); // free
+			ChiRefGs_eG2 = basis(1,rst_eG2,NenG2[P],&Nbf,dE); // free
 			BCoords_G2[P] = mm_Alloc_d(CBCM,CBT,CBT,NenG2[P],NenGs,NenGs,1.0,ChiRefGs_eG2,ChiRefInvGs_vGs); // keep
+
+			free(rst_eG2);
+			free(ChiRefGs_eG2);
+		}
 		BCoords_Gc[P] = mm_Alloc_d(CBCM,CBT,CBT,NenGc[P],NenGs,NenGs,1.0,ChiRefGs_eGc,ChiRefInvGs_vGs); // keep
 
-		free(rst_eG2);
 		free(rst_eGc);
-		free(ChiRefGs_eG2);
 		free(ChiRefGs_eGc);
 	}
 	free(ChiRefInvGs_vGs);

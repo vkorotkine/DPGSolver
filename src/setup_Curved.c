@@ -907,16 +907,7 @@ static double *compute_BlendV(struct S_Blend *data, const unsigned int order)
 		printf("%d %d\n",Blending,EclassV);
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
-/*
-if (b == 2) {
-printf("%d\n",b);
-array_print_d(NvnG,1,BlendV,'R');
-array_print_d(NvnG,Nve,I_vGs_vGc,'R');
-array_print_d(NvnG,Nbve[b],I_bGs_vGc,'R');
-array_print_d(NvnG,data->NbnG,data->I_bGc_vGc,'R');
-//EXIT_MSG;
-}
-*/
+
 	return BlendV;
 }
 
@@ -1176,7 +1167,7 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 
 	if (vertex_blending) {
 		PV = 2;
-		printf("Error: Add support.\n"), EXIT_MSG;
+//		printf("Error: Add support.\n"), EXIT_MSG;
 
 		NvnG = ELEMENT->NveP2;
 		XYZ  = VOLUME->XYZ_vVP2;
@@ -1202,7 +1193,19 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 		I_vGs_vGc = ELEMENT->I_vGs_vG2[1][PV][0];
 	else
 		I_vGs_vGc = ELEMENT->I_vGs_vGc[1][PV][0];
+/*
+unsigned int Pt;
+if (DB.PGc[2] == 2)
+	Pt = 2;
+else if (DB.PGc[1] == 2)
+	Pt = 1;
 
+if (vertex_blending) {
+array_print_d(NvnG,Nve,ELEMENT->I_vGs_vG2[1][PV][0],'R');
+array_print_d(NvnG,Nve,ELEMENT->I_vGs_vGc[1][Pt][0],'R');
+printf("% .3e\n",array_norm_diff_d(NvnG*Nve,ELEMENT->I_vGs_vG2[1][PV][0],ELEMENT->I_vGs_vGc[1][Pt][0],"Inf"));
+}
+*/
 	data_blend->EclassV   = ELEMENT->Eclass;
 	data_blend->Nve       = Nve;
 	data_blend->I_vGs_vGc = I_vGs_vGc;
@@ -1262,6 +1265,16 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 				data_blend->I_vGc_bGc = ELEMENT->I_vG2_fG2[PV][P][Vb];
 				data_blend->I_bGc_vGc = ELEMENT->I_fG2_vG2[P][PV][Vb];
 				data_blend->I_bGs_vGc = ELEMENT->I_fGs_vG2[1][PV][Vb];
+/*
+unsigned int NbnG = ELEMENT_B->NvnG2[P];
+//printf("%d %d %d %d\n",P,ELEMENT_B->type,NbnG,NvnG);
+//array_print_d(NbnG,NvnG,ELEMENT->I_vG2_fG2[PV][P][Vb],'R');
+//array_print_d(NbnG,NvnG,ELEMENT->I_vGc_fGc[Pt][Pt][Vb],'R');
+printf("% .3e\n",array_norm_diff_d(NbnG*NvnG,ELEMENT->I_vG2_fG2[PV][P][Vb],ELEMENT->I_vGc_fGc[Pt][Pt][Vb],"Inf"));
+printf("% .3e\n",array_norm_diff_d(NvnG*NbnG,ELEMENT->I_fG2_vG2[P][PV][Vb],ELEMENT->I_fGc_vGc[Pt][Pt][Vb],"Inf"));
+printf("% .3e\n",array_norm_diff_d(NvnG*Nbve[b],ELEMENT->I_fGs_vG2[1][PV][Vb],ELEMENT->I_fGs_vGc[1][Pt][Vb],"Inf"));
+EXIT_MSG;
+*/
 			} else {
 				data_blend->I_vGc_bGc = ELEMENT->I_vGc_fGc[PV][P][Vb];
 				data_blend->I_bGc_vGc = ELEMENT->I_fGc_vGc[P][PV][Vb];
@@ -1269,8 +1282,12 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 			}
 		}
 
+		if (vertex_blending)
+			data_blend->NbnG = ELEMENT_B->NvnG2[P];
+		else
+			data_blend->NbnG = ELEMENT_B->NvnGc[P];
+
 		data_blend->b    = b;
-		data_blend->NbnG = ELEMENT_B->NvnGc[P];
 		data_blend->BC   = BC;
 
 		if (!Blending_HO) {
