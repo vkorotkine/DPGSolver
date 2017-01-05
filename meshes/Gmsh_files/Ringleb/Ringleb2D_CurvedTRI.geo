@@ -127,8 +127,8 @@ Spline(1005) = pListBIw2[];
 Spline(1006) = pListBOw2[];
 Line(1007)   = {5,6};
 
-//Transfinite Line {1001:1006} = 4+1 Using Progression 1;
-//Transfinite Line {1007}      = 4+1 Using Progression 1;
+Transfinite Line {1001:1006} = 1+1 Using Progression 1;
+Transfinite Line {1007}      = 1+1 Using Progression 1;
 
 Line Loop (4001) = {1001,1003,-1007,-1004};
 Line Loop (4002) = {-1002,-1005,1007,1006};

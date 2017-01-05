@@ -23,7 +23,7 @@ struct S_ELEMENT {
 	             **w_vIs, **w_vIc, ***w_fIs, ***w_fIc,
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS, ****ChiInvGs_vGs,
-	             ****IGc, ****ICs, ****ICc,
+	             ****IG2, ****IGc, ****ICs, ****ICc,
 	             ****TGs,
 	             ****I_vGs_vP, ****I_vGs_vGs, ****I_vGs_vG2, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vS, ****I_vGs_vIs, ****I_vGs_vIc,
 	             ****I_vGc_vP,                               ****I_vGc_vCc, ****I_vGc_vS, ****I_vGc_vIs, ****I_vGc_vIc,
