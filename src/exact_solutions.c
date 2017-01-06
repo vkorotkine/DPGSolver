@@ -23,7 +23,7 @@
  *	References:
  */
 
-#define POISSON_SCALE 1.0
+#define POISSON_SCALE 0.5
 
 void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, const unsigned int solved)
 {
