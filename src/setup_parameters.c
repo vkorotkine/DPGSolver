@@ -227,9 +227,10 @@ void setup_parameters()
 //	Blending = HESTHAVEN; // Change to SCOTT
 //	Blending = NIELSON;
 
+	Parametrization = NORMAL;
 //	Parametrization = ARC_LENGTH;
 //	Parametrization = RADIAL_PROJECTION;
-	Parametrization = NORMAL;
+//	Parametrization = ORDER_H;
 
 	if ((strstr(DB.Geometry,"Ringleb")    && Parametrization != NORMAL) ||
 	    (strstr(DB.Geometry,"HoldenRamp") && Parametrization != NORMAL))
@@ -634,6 +635,7 @@ void setup_parameters_L2proj(void)
 	for (P = 0; P <= PMax; P++) {
 		// Geometry
 		PGc[P]    = max(P,u1)+PG_add;
+//PGc[P] = 1;
 //PGc[P] = min(max(P,u1),(unsigned int) 4);
 		PCs[P][0] = (d-1)*PGs;
 		PCs[P][1] = (d-1)*max(PGs-1,u1);

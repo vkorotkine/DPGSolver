@@ -53,8 +53,9 @@ int main(void)
 	strcpy(TestCase,"Poisson");
 
 //	strcpy(MeshType,"StructuredTRI");
-//	strcpy(MeshType,"CurvedTRI");
-	strcpy(MeshType,"CurvedQUAD");
+//	strcpy(MeshType,"TRI");
+	strcpy(MeshType,"CurvedTRI");
+//	strcpy(MeshType,"CurvedQUAD");
 //	strcpy(MeshType,"CurvedTET");
 //	strcpy(MeshType,"ToBeCurvedStructuredTRI");
 //	strcpy(MeshType,"ToBeCurvedStructuredQUAD");
@@ -68,11 +69,11 @@ int main(void)
 	MLMin = 0; MLMax = 4; NML = MLMax-MLMin+1;
 	PMin  = 0; PMax  = 8; NP  = PMax-PMin+1;
 
-	unsigned int CasesRun[72] = { 0, 1, 1, 1, 1, 1, 1, 1, 1,
-	                              0, 1, 1, 1, 1, 1, 1, 1, 1,
-	                              0, 1, 1, 1, 1, 1, 1, 1, 1,
-	                              0, 1, 1, 1, 1, 1, 1, 1, 1,
-	                              0, 1, 1, 1, 1, 1, 1, 1, 1,
+	unsigned int CasesRun[72] = { 0, 1, 1, 1, 1, 1, 1, 0, 0,
+	                              0, 1, 1, 1, 1, 1, 1, 0, 0,
+	                              0, 1, 1, 1, 1, 1, 1, 0, 0,
+	                              0, 1, 1, 1, 1, 1, 1, 0, 0,
+	                              0, 1, 1, 1, 1, 1, 1, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -162,7 +163,7 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
                            char *TestCase, char *MeshType)
 {
 	char         **Vars_c, caption[STRLEN_MAX];
-	unsigned int i, j, ML, P, NP, NVarsOut, Indp, Indh, IndVars[6], P_Print;
+	unsigned int i, j, ML, P, NP, NVarsOut, Indp, Indh, IndVars[6], P_Print, uOnly;
 
 	FILE *fID;
 
@@ -192,6 +193,9 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 		}
 	} else if (strstr(TestCase,"Poisson")) {
 		NVarsOut = NVars+d-3;
+
+		uOnly = 0;
+
 		Vars_c = malloc(NVarsOut * sizeof *Vars_c); // free
 		for (i = 0; i < NVarsOut; i++)
 			Vars_c[i] = malloc(STRLEN_MIN * sizeof *Vars_c[i]); // free
@@ -227,7 +231,7 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 	fprintf(fID,"\t\\hline\n");
 	fprintf(fID,"\t & & ");
 	for (i = 0; i < 2; i++) {
-		if      (i == 0) fprintf(fID," $L_2$ Error ");
+		if      (i == 0) fprintf(fID," $L^2$ Error ");
 		else if (i == 1) fprintf(fID," Conv. Order ");
 		for (j = 0; j < NVarsOut; j++) {
 			if (!(i == 1 && j == NVarsOut-1))
@@ -236,12 +240,15 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 	}
 	fprintf(fID,"\\\\\n");
 	fprintf(fID,"\t\\hline\n");
-	fprintf(fID,"\tP. Order & Mesh Size ");
+	fprintf(fID,"\tOrder ($k$) & Mesh Size ($h$) ");
 	for (i = 0; i < 2; i++) {
 	for (j = 0; j < NVarsOut; j++) {
 		fprintf(fID,"& %s ",Vars_c[j]);
 	}}
 	fprintf(fID,"\\\\\n");
+
+	if (uOnly) // Only output errors/orders for u (Poisson)
+		NVarsOut = 1;
 
 	NP = PMax-PMin+1;
 	for (P = PMin; P <= PMax; P++) {
@@ -252,19 +259,19 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 			if (CasesRun[Indh]) {
 				if (P_Print) {
 					P_Print = 0;
-					fprintf(fID,"P%1d\t& % .3e",P,h[Indh]);
+					fprintf(fID,"%1d\t& % .2e",P,h[Indh]);
 					for (i = 0; i < 2; i++) {
 					for (j = 0; j < NVarsOut; j++) {
-						if      (i == 0) fprintf(fID," & % .3e",L2Errors[IndVars[j]][Indh]);
+						if      (i == 0) fprintf(fID," & % .2e",L2Errors[IndVars[j]][Indh]);
 						else if (i == 1) fprintf(fID," & -");
 					}}
 					fprintf(fID," \\\\\n");
 				} else {
-					fprintf(fID,"\t& % .3e",h[Indh]);
+					fprintf(fID,"\t& % .2e",h[Indh]);
 					for (i = 0; i < 2; i++) {
 					for (j = 0; j < NVarsOut; j++) {
-						if      (i == 0) fprintf(fID," & % .3e",L2Errors[IndVars[j]][Indh]);
-						else if (i == 1) fprintf(fID," & % .3e",ConvOrders[IndVars[j]][Indh]);
+						if      (i == 0) fprintf(fID," & % .2e",L2Errors[IndVars[j]][Indh]);
+						else if (i == 1) fprintf(fID," & % .2f",ConvOrders[IndVars[j]][Indh]);
 					}}
 					fprintf(fID," \\\\\n");
 				}

@@ -948,6 +948,7 @@ static double *compute_XYZ_update(struct S_Blend *data)
 
 	XYZ       = data->XYZ;
 	XYZ_vV    = data->XYZ_vV;
+	I_vGs_vGc = data->I_vGs_vGc;
 	I_vGc_bGc = data->I_vGc_bGc;
 	I_bGc_vGc = data->I_bGc_vGc;
 
@@ -958,8 +959,6 @@ static double *compute_XYZ_update(struct S_Blend *data)
 	compute_XYZ = data->compute_XYZ;
 
 	if (Parametrization == ARC_LENGTH) {
-		I_vGs_vGc = data->I_vGs_vGc;
-
 		// Find coordinates of vertices on the BOUNDARY
 		VeXYZ = malloc(Nbve[b] * sizeof *VeXYZ); // free
 		for (ve = 0; ve < Nbve[b]; ve++) {
@@ -1041,7 +1040,7 @@ static double *compute_XYZ_update(struct S_Blend *data)
 			XYZ_CmS[n] -= XYZ_S[n];
 
 		free(XYZ_S);
-	} else if (Parametrization == NORMAL) {
+	} else if (Parametrization == NORMAL || Parametrization == ORDER_H) {
 // Change comment here as this may no longer be XYZ_S (ToBeDeleted)
 		// Compute XYZ_S
 		XYZ_S = malloc(NbnG*d * sizeof *XYZ_S); // free
@@ -1089,10 +1088,78 @@ static double *compute_XYZ_update(struct S_Blend *data)
 				n_S[dim] *= -1.0;
 			d_S *= -1.0;
 		}
-		array_free2_d(DMAX,VeXYZ);
 
 		// Compute normal distance from polynomial FACE to curved geometry
-		compute_normal_displacement(NbnG,0,XYZ_S,n_S,XYZ_CmS,BC);
+		if (Parametrization == NORMAL) {
+			compute_normal_displacement(NbnG,0,XYZ_S,n_S,XYZ_CmS,BC);
+		} else if (Parametrization == ORDER_H) {
+			// Compute XYZ_CmS using XYZ_S + perturbation
+			unsigned int Blending = DB.Blending;
+
+			double h, r, *XYZ_Sp, *VeXYZb;
+
+			// Compute h (surface length)
+			h = 0.0;
+			if (d == 2) {
+				for (dim = 0; dim < d; dim++)
+					h += pow(VeXYZ[0][dim]-VeXYZ[1][dim],2.0);
+				h = sqrt(h);
+			} else {
+				printf("Error: Unsupported.\n"), EXIT_MSG;
+			}
+
+			// Compute perturbed XYZ_S nodes
+
+			// Find barycentric coordinates relating straight and curved BOUNDARY geometry nodes
+			I_vGs_bGc = mm_Alloc_d(CBRM,CBNT,CBNT,NbnG,Nve,NvnG,1.0,I_vGc_bGc,I_vGs_vGc); // free
+
+			I_bGs_bGc = malloc(NbnG*Nbve[b] * sizeof *I_bGs_bGc); // free
+			for (n = 0; n < NbnG; n++) {
+			for (ve = 0; ve < Nbve[b]; ve++) {
+				I_bGs_bGc[n*Nbve[b]+ve] = I_vGs_bGc[n*Nve+VeBcon[b*NbveMax+ve]];
+			}}
+			free(I_vGs_bGc);
+
+			// Perturb the coordinates of I_bGs_bGc
+			if (Blending != SZABO_BABUSKA || d != 2)
+				printf("Error: Unsupported.\n"), EXIT_MSG;
+
+			for (n = 0; n < NbnG; n++) {
+				r = I_bGs_bGc[n*Nbve[b]+1]-I_bGs_bGc[n*Nbve[b]+0];
+				if (fabs(fabs(r)-1.0) > EPS) {
+					// A.5 refers to equation A.5 in Zwanenburg(2017)-ToBeModified
+//					r *= (1+0.125*(1-r*r)*pow(h,2.0)); // ~Radial (Truncated after 1st term, A.5 (i = 2, C_1 = 1/8))
+//					r *= (1-(1-r*r)*pow(h,2.0));       // OK      (A.5 (i = 2, C_1 = -1))
+					r *= (1-(1-r*r)*pow(h,1.0));       // NOT OK  (A.5 (i = 1))
+
+					I_bGs_bGc[n*Nbve[b]+0] = 0.5*(1.0-r);
+					I_bGs_bGc[n*Nbve[b]+1] = 0.5*(1.0+r);
+				}
+			}
+
+			// Compute perturbed BOUNDARY nodes (XYZ_Sp)
+			VeXYZb = malloc(Nbve[b]*d * sizeof *VeXYZb); // free
+			for (ve = 0; ve < Nbve[b]; ve++) {
+			for (dim = 0; dim < d; dim++) {
+				VeXYZb[dim*Nbve[b]+ve] = VeXYZ[ve][dim];
+			}}
+
+			XYZ_Sp = malloc(NbnG*d * sizeof *XYZ_Sp); // free
+
+			mm_d(CBCM,CBT,CBNT,NbnG,d,Nbve[b],1.0,0.0,I_bGs_bGc,VeXYZb,XYZ_Sp);
+			free(I_bGs_bGc);
+			free(VeXYZb);
+
+			// Compute XYZ_CmS using XYZ_Sp
+			compute_normal_displacement(NbnG,0,XYZ_Sp,n_S,XYZ_CmS,BC);
+
+			// Correct XYZ_CmS so that straight contribution is from XYZ_S
+			for (n = 0; n < NbnG*d; n++)
+				XYZ_CmS[n] += XYZ_Sp[n]-XYZ_S[n];
+
+			free(XYZ_Sp);
+		}
+		array_free2_d(DMAX,VeXYZ);
 
 		// Set displacement of previously existing vertices to 0.0 (Needed for Ringleb)
 		double XYZdiff;
@@ -1298,6 +1365,11 @@ EXIT_MSG;
 		XYZ_update = compute_XYZ_update(data_blend); // free
 
 		// Blend BOUNDARY perturbation to VOLUME geometry nodes
+/*
+if (PV == 3 && VOLUME->indexg == 0) {
+	array_print_d(NvnG,d,XYZ,'C');
+}
+*/
 		for (n = 0; n < NvnG; n++) {
 			// Don't move internal VOLUME nodes when moving vertices to the exact geometry.
 			if ((BlendV[n] < EPS) || (fabs(BlendV[n]-1.0) > EPS && vertex_blending))
@@ -1306,6 +1378,12 @@ EXIT_MSG;
 			for (dim = 0; dim < d; dim++)
 				XYZ[n+NvnG*dim] += BlendV[n]*XYZ_update[n+NvnG*dim];
 		}
+/*
+if (PV == 3 && VOLUME->indexg == 0) {
+	array_print_d(NvnG,d,XYZ,'C');
+	EXIT_MSG;
+}
+*/
 		free(XYZ_update);
 		free(BlendV);
 	}}

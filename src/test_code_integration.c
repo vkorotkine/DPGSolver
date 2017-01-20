@@ -371,8 +371,10 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	 *		is performed. However, on curved meshes, the movement of the vertices to the exact boundary can cause other
 	 *		ELEMENT types to become less regular with mesh refinement.
 	 *
-	 *		NOTE: IT MAY ONLY BE NECESSARY TO COMPUTE THE RATIO OF THE CIRCUMSPHERE TO THE IN-SPHERE FOR THE ESTIMATE.
-	 *		      -> INVESTIGATE (ToBeDeleted)
+	 *		NOTE: IT IS ONLY BE NECESSARY TO COMPUTE THE RATIO OF THE CIRCUMSPHERE TO THE IN-SPHERE FOR THE ESTIMATE.
+	 *		THIS IS CONCLUDED BASED ON DISCUSSIONS IN CIARLET(1972)-General_Lagrange_and_Hermite... eq. (2.11) and
+	 *		(2.12).
+	 *		      -> DELETE CHECKS FOR OTHER TYPES (ToBeModified)
 	 *
 	 *		TET algorithm:
 	 *
