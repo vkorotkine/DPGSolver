@@ -31,16 +31,16 @@ case ${KERNEL} in
 
 	;;
 *inux*)
-	OS_RELEASE=$(uname -r)
-	case ${OS_RELEASE} in
-	*4.4.0-38-generic*)
+	NODENAME=$(uname -n)
+	case ${NODENAME} in
+	*philip-Aspire-XC-605*)
 #		echo Linux
 #		echo ${OS_RELEASE}
 
 		PROG_DIR="/home/philip/Desktop/research/programs"
-#		TOP_DIR="/home/philip/Desktop/research/codes/DPGSolver"
-		TOP_DIR="/media/philip/40EB-97EF/code/DPGSolver"
-		MPI_DIR="${PROG_DIR}/petsc/petsc-3.7.0/arch-linux-c-/bin/"
+		TOP_DIR="/home/philip/Desktop/research/codes/DPGSolver"
+#		MPI_DIR="${PROG_DIR}/petsc/petsc-3.7.0/arch-linux-c-/bin/"
+		MPI_DIR=
 		N_PROCS="1"
 
 		;;

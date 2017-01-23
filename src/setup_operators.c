@@ -1482,8 +1482,8 @@ static void setup_TP_operators(const unsigned int EType)
 	 */
 
 	// Returned operators
-	unsigned int *NvnGs, *NvnG2, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS, **NfnG2, **NfnGc, **NfnS, **NfnIs,
-	             **NfnIc, *NenG2, *NenGc;
+	unsigned int *NvnGs, *NvnG2, *NvnGc, *NvnCs, *NvnCc, *NvnIs, *NvnIc, *NvnS, **NfnGc, **NfnS, **NfnIs,
+	             **NfnIc;
 	double       **w_vIs, **w_vIc, ***w_fIs, ***w_fIc,
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS, ****ChiInvGs_vGs,
@@ -1558,13 +1558,10 @@ static void setup_TP_operators(const unsigned int EType)
 	NvnIs = ELEMENT->NvnIs;
 	NvnIc = ELEMENT->NvnIc;
 	NvnS  = ELEMENT->NvnS;
-	NfnG2 = ELEMENT->NfnG2;
 	NfnGc = ELEMENT->NfnGc;
 	NfnS  = ELEMENT->NfnS;
 	NfnIs = ELEMENT->NfnIs;
 	NfnIc = ELEMENT->NfnIc;
-	NenG2 = ELEMENT->NenG2;
-	NenGc = ELEMENT->NenGc;
 
 	w_fIs = ELEMENT->w_fIs;
 	w_fIc = ELEMENT->w_fIc;
@@ -2765,7 +2762,7 @@ static void setup_L2_projection_operators(const unsigned int EType)
 static void setup_blending(const unsigned int EType)
 {
 	// Returned operators
-	double ****I_fGs_vG2, ****I_fG2_vG2, ****I_eGs_vG2, ****I_eG2_vG2,
+	double ****I_fGs_vG2, ****I_fG2_vG2,
 	       ****I_fGs_vGc, ****I_fGc_vGc, ****I_eGs_vGc, ****I_eGc_vGc;
 
 	// Initialize DB Parameters
@@ -2811,8 +2808,6 @@ static void setup_blending(const unsigned int EType)
 	I_fGs_vGc = ELEMENT->I_fGs_vGc;
 	I_fGc_vGc = ELEMENT->I_fGc_vGc;
 
-	I_eGs_vG2 = ELEMENT->I_eGs_vG2;
-	I_eG2_vG2 = ELEMENT->I_eG2_vG2;
 	I_eGs_vGc = ELEMENT->I_eGs_vGc;
 	I_eGc_vGc = ELEMENT->I_eGc_vGc;
 
