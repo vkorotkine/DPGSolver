@@ -1128,9 +1128,9 @@ static double *compute_XYZ_update(struct S_Blend *data)
 				r = I_bGs_bGc[n*Nbve[b]+1]-I_bGs_bGc[n*Nbve[b]+0];
 				if (fabs(fabs(r)-1.0) > EPS) {
 					// A.5 refers to equation A.5 in Zwanenburg(2017)-ToBeModified
-//					r *= (1+0.125*(1-r*r)*pow(h,2.0)); // ~Radial (Truncated after 1st term, A.5 (i = 2, C_1 = 1/8))
+					r *= (1+0.125*(1-r*r)*pow(h,2.0)); // ~Radial (Truncated after 1st term, A.5 (i = 2, C_1 = 1/8))
 //					r *= (1-(1-r*r)*pow(h,2.0));       // OK      (A.5 (i = 2, C_1 = -1))
-					r *= (1-(1-r*r)*pow(h,1.0));       // NOT OK  (A.5 (i = 1))
+//					r *= (1-(1-r*r)*pow(h,1.0));       // NOT OK  (A.5 (i = 1))
 
 					I_bGs_bGc[n*Nbve[b]+0] = 0.5*(1.0-r);
 					I_bGs_bGc[n*Nbve[b]+1] = 0.5*(1.0+r);

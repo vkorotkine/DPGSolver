@@ -136,11 +136,11 @@ void initialize_test_case_parameters(void)
 			DB.rOut = 1.0;
 
 			// These parameters must be consistent with the mesh for "Curved" meshes
-			DB.aIn  = 0.25;
-			DB.aOut = 0.5;
+//			DB.aIn  = 0.25; DB.bIn  = 0.75; // POISSON_SCALE = 1.0
+//			DB.aOut = 0.75; DB.bOut = 2.00;
 
-			DB.bIn  = 0.75;
-			DB.bOut = 1.5;
+			DB.aIn  = 0.25; DB.bIn  = 0.375; // POISSON_SCALE = 1.0
+			DB.aOut = 1.50; DB.bOut = 2.00;
 
 			DB.cIn  = 1.50*DB.rIn;
 			DB.cOut = 1.50*DB.rOut;

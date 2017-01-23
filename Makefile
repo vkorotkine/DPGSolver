@@ -148,7 +148,7 @@ SHELL := /bin/bash
 $(EXECUTABLE) : $(OBJECTS)
 	@echo
 	@echo Creating/updating: $@
-	$(CC) -o $@ $(OPTS) $^ $(INCS) $(LIBS)
+	@$(CC) -o $@ $(OPTS) $^ $(INCS) $(LIBS)
 	@echo
 
 # Include dependencies (Must be placed after default goal)

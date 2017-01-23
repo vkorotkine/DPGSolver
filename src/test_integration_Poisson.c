@@ -219,8 +219,9 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	// Convergence Order Testing
 	// **************************************************************************************************** //
 //	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_mixed");
-	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_TRI");
+//	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
+	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_QUAD");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_QUAD");
 //	strcpy(argvNew[1],"test/Test_Poisson_HoldenRamp2D_TRI");
@@ -270,17 +271,17 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
  */
 
 	TestDB.PG_add = 0;
-	TestDB.IntOrder_add  = 1;
+	TestDB.IntOrder_add  = 2;
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
 	PMin  = 1; PMax  = 6;
-	MLMin = 0; MLMax = 4;
+	MLMin = 0; MLMax = 5;
 TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
-	Compute_L2proj = 0; // Use IntOrder_add > 0 for non-trivial P1-P2 results for L2proj
+	Compute_L2proj = 1; // Use IntOrder_add > 0 for non-trivial P1-P2 results for L2proj
 //	Adapt = ADAPT_0;
 	Adapt = ADAPT_HP;
 	if (Adapt != ADAPT_0) {
