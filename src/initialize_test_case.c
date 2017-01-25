@@ -136,11 +136,11 @@ void initialize_test_case_parameters(void)
 			DB.rOut = 1.0;
 
 			// These parameters must be consistent with the mesh for "Curved" meshes
-//			DB.aIn  = 0.25; DB.bIn  = 0.75; // POISSON_SCALE = 1.0
-//			DB.aOut = 0.75; DB.bOut = 2.00;
+			DB.aIn  = 0.50; DB.bIn  = 0.50; DB.aOut = 1.00;
 
-			DB.aIn  = 0.25; DB.bIn  = 0.375; // POISSON_SCALE = 1.0
-			DB.aOut = 1.50; DB.bOut = 2.00;
+//			DB.bOut = 1.00; // POISSON_SCALE = 0.5
+//			DB.bOut = 2.00; // POISSON_SCALE = 0.25
+			DB.bOut = 3.00; // POISSON_SCALE = 0.125
 
 			DB.cIn  = 1.50*DB.rIn;
 			DB.cOut = 1.50*DB.rOut;
@@ -158,7 +158,7 @@ void initialize_test_case_parameters(void)
 		} else if (strstr(Geometry,"GaussianBump")) {
 			DB.GBa = 0.0625;
 			DB.GBb = 0.0;
-			DB.GBc = 0.2/pow(2.0,2.0);
+			DB.GBc = 0.2/pow(2.0,1.0);
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}

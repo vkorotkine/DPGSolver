@@ -35,7 +35,7 @@ class output_class:
 			self.type     = 'Poisson_H0'
 			self.format   = 'table'
 		elif (name == 'Optimal h'):
-			self.NEntries = 4
+			self.NEntries = 5
 			self.type     = 'Poisson_H0'
 			self.format   = 'table'
 		else:
@@ -92,20 +92,16 @@ def initialize_input(output):
 
 		output.varNames = ['SB$_{\\text{N}}$','Nielson$_{\\text{N}}$','Nielson$_{\\text{R}}$']
 	elif (output.name == 'Optimal h'):
-		name_root1 = 'L2errs+Convergence_' + output.Geometry + '3_'   + output.MeshType
-		name_root2 = 'L2errs+Convergence_' + output.Geometry + '1.5_' + output.MeshType
-		if ('TRI' in output.MeshType):
-			data_i[0].case = name_root1 + '_L2_SB'
-			data_i[1].case = name_root1 + '_SB_Normal'
-			data_i[2].case = name_root2 + '_L2_SB'
-			data_i[3].case = name_root2 + '_SB_Normal'
-		elif ('QUAD' in output.MeshType):
-			data_i[0].case = name_root1 + '_L2_GH'
-			data_i[1].case = name_root1 + '_GH_Normal'
-			data_i[2].case = name_root2 + '_L2_GH'
-			data_i[3].case = name_root2 + '_GH_Normal'
+		name_root = ['L2errs+Convergence_' + output.Geometry + output.Ratio + '_' + output.MeshType, \
+		             'L2errs+Convergence_' + output.Geometry + output.Ratio + '_' + 'CurvedQUAD']
 
-		output.varNames = ['$L^2$ (GH)$_{3}$','GH$_{\\text{N},3}$','$L^2$ (GH)$_{1.5}$','GH$_{\\text{N},1.5}$']
+		data_i[0].case = name_root[0] + '_L2_m=1-ns'
+		data_i[1].case = name_root[0] + '_L2_m=1-s'
+		data_i[2].case = name_root[0] + '_L2_m=k-s'
+		data_i[3].case = name_root[0] + '_Normal_SB_m=k-s'
+		data_i[4].case = name_root[1] + '_Normal_GH_m=k-s'
+
+		output.varNames = ['$L^2_{m=1,\\text{ns}}$','$L^2_{m=1}$','$L^2_{m=k}$','SB$_{N,m=k}$','GH$_{N,m=k}$']
 	else:
 		print("Error: Unsupported (initialize_input)."); sys.exit()
 
@@ -414,15 +410,15 @@ if __name__ == '__main__':
 #	output.Geometry = 'dm1-Spherical_Section'
 	output.Geometry = 'Ellipsoidal_Section'
 
-#	output.MeshType = 'CurvedTRI'
-	output.MeshType = 'CurvedQUAD'
+	output.MeshType = 'CurvedTRI'
+#	output.MeshType = 'CurvedQUAD'
 
 #	output.name = 'std'
 #	output.name = 'Optimal Surface'
 #	output.name = 'Optimal Blending'
 #	output.name = 'Suboptimal Surface'
 #	output.name = 'Suboptimal Blending'
-	output.name = 'Optimal h'
+	output.name = 'Optimal h'; output.Ratio = '1'
 
 	output.init_name(output.name)
 

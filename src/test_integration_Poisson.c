@@ -220,7 +220,7 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	// **************************************************************************************************** //
 //	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_mixed");
 //	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_TRI");
-//	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
+	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
 	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_QUAD");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_QUAD");
@@ -271,17 +271,17 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
  */
 
 	TestDB.PG_add = 0;
-	TestDB.IntOrder_add  = 2;
+	TestDB.IntOrder_add  = 1;
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 6;
+	PMin  = 1; PMax  = 5;
 	MLMin = 0; MLMax = 5;
 TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
-	Compute_L2proj = 1; // Use IntOrder_add > 0 for non-trivial P1-P2 results for L2proj
+	Compute_L2proj = 0; // Use IntOrder_add > 0 for non-trivial P1-P2 results for L2proj
 //	Adapt = ADAPT_0;
 	Adapt = ADAPT_HP;
 	if (Adapt != ADAPT_0) {
@@ -309,7 +309,7 @@ TestDB.PGlobal = 1;
 
 			initialize_test_case(0);
 			// Output to paraview
-			if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 3 && TestDB.ML == 2)) {
+			if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 5 && TestDB.ML <= 4)) {
 				strcpy(fNameOut,"SolFinal_");
 				sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
 											   strcat(fNameOut,DB.MeshType);

@@ -813,6 +813,99 @@ static void compute_XYZ_dsphere(struct S_XYZ *data)
 	}
 }
 
+static void compute_pc_ellipsoid(struct S_pc *data) {
+	/*
+	 *	Purpose:
+	 *		Compute (t)heta and (p)hi parametrization components associated with the input vertices.
+	 */
+
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
+
+	// Standard datatypes
+	unsigned int n, Nn;
+	double       a, b, t, p, *PComps, **VeXYZ, X, Y;
+
+	if (d == 3)
+		printf("Add support.\n"), EXIT_MSG;
+
+	if (data->VeSurface == 0) {
+		a = DB.aIn;
+		b = DB.bIn;
+	} else if (data->VeSurface == 1) {
+		a = DB.aOut;
+		b = DB.bOut;
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+
+	Nn     = data->Nn;
+	VeXYZ  = data->VeXYZ;
+	PComps = data->PComps;
+
+	for (n = 0; n < Nn; n++) {
+		X = VeXYZ[n][0];
+		Y = VeXYZ[n][1];
+
+		t = atan2(Y*a,X*b);
+
+		if (d == 2) {
+			p = PI/2.0;
+		} else {
+			printf("Add support.\n"), EXIT_MSG;
+		}
+
+		PComps[0*Nn+n] = t;
+		PComps[1*Nn+n] = p;
+	}
+}
+
+static void compute_XYZ_ellipsoid(struct S_XYZ *data)
+{
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
+
+	// Standard datatypes
+	unsigned int n, Nn;
+	double       *theta, *phi, *XYZ, *X, *Y, *Z, t, p, a, b, c;
+
+	if (d == 3)
+		printf("Add support.\n"), EXIT_MSG;
+
+	if (data->VeSurface == 0) {
+		a = DB.aIn;
+		b = DB.bIn;
+		c = DB.cIn;
+	} else if (data->VeSurface == 1) {
+		a = DB.aOut;
+		b = DB.bOut;
+		c = DB.cOut;
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+
+	Nn  = data->Nn;
+	XYZ = data->XYZ;
+
+	theta = &data->PComps[0*Nn];
+	phi   = &data->PComps[1*Nn];
+
+	X = &XYZ[Nn*0];
+	Y = &XYZ[Nn*1];
+	if (d == 3)
+		Z = &XYZ[Nn*2];
+
+	for (n = 0; n < Nn; n++) {
+		t = theta[n];
+		p = phi[n];
+
+		X[n] = a*cos(t)*sin(p);
+		Y[n] = b*sin(t)*sin(p);
+		if (d == 3)
+			Z[n] = c*cos(p);
+	}
+}
+
 static void select_functions_Curved(compute_pc_tdef *compute_pc, compute_XYZ_tdef *compute_XYZ)
 {
 	// Initialize DB Parameters
@@ -821,9 +914,14 @@ static void select_functions_Curved(compute_pc_tdef *compute_pc, compute_XYZ_tde
 	if (strstr(Geometry,"dm1-Spherical_Section")) {
 		*compute_pc  = compute_pc_dsphere;
 		*compute_XYZ = compute_XYZ_dsphere;
-	} else if (strstr(Geometry,"Ellipsoidal_Section") ||
-	           strstr(Geometry,"Ringleb")             ||
-			   strstr(Geometry,"HoldenRamp")          ||
+	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+		*compute_pc  = compute_pc_ellipsoid;
+		*compute_XYZ = compute_XYZ_ellipsoid;
+		if (DB.Parametrization != NORMAL &&
+		    DB.Parametrization != RADIAL_PROJECTION)
+				printf("Error: Unsupported parametrization.\n"), EXIT_MSG;
+	} else if (strstr(Geometry,"Ringleb")    ||
+			   strstr(Geometry,"HoldenRamp") ||
 			   strstr(Geometry,"GaussianBump")) {
 		if (DB.Parametrization != NORMAL)
 			printf("Add support if not using NORMAL parametrization.\n"), EXIT_MSG;

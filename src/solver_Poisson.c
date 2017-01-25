@@ -1299,7 +1299,7 @@ void solver_Poisson(void)
 	finalize_qhat();
 
 	// Output to paraview
-	if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 4 && TestDB.ML == 3)) {
+	if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 6 && TestDB.ML <= 4)) {
 //	if (TestDB.ML <= 1) {
 		strcpy(fNameOut,"SolFinal_");
 		sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);

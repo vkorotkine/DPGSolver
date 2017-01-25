@@ -76,6 +76,8 @@ static void ToBeCurved_sphere_to_ellipsoid(const unsigned int Nn, double *XYZ)
 	Y = &XYZ[Nn*1];
 	Z = &XYZ[Nn*(d-1)];
 
+	printf("Make modifications so that this works with high aspect ratio ellipsoids.\n"), EXIT_MSG;
+
 	for (n = 0; n < Nn; n++) {
 		r2 = X[n]*X[n]+Y[n]*Y[n];
 		if (d == 3)

@@ -90,7 +90,7 @@ void compute_detJV(const unsigned int Nn, double *J, double *detJV)
 	}
 
 	for (n = 0; n < Nn; n++) {
-		if (detJV[n] < EPS) {
+		if (0&&detJV[n] < EPS) {
 			array_print_d(Nn,1,detJV,'R');
 			output_to_paraview("ZTest_Geom_curved");
 

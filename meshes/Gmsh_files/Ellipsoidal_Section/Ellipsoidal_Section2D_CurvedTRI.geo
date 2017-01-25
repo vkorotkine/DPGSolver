@@ -5,12 +5,15 @@ Refine = 0;
 lc = 3/2.0^Refine;
 
 
-aIn  = 0.25;
-aOut = 1.5;
+aIn  = 0.5;
+aOut = 1.0;
 
-bIn  = 0.375;
-bOut = 2.0;
+bIn  = 0.5;
+bOut = 4.0;
 
+t = Pi/4.0;
+
+r_e = Sqrt(1.0/((Cos(t)/aOut)^2.0+(Sin(t)/bOut)^2.0));
 
 
 // Geometry Specification
@@ -18,9 +21,8 @@ bOut = 2.0;
 Point(1) = {aIn,0,0,lc};
 Point(2) = {aOut,0,0,lc};
 Point(3) = {0,bIn,0,lc};
-//Point(4) = {aIn*Cos(Pi/4.0),bIn*Sin(Pi/4.0),0,lc};
 Point(5) = {0,bOut,0,lc};
-Point(6) = {aOut*Cos(Pi/5.0),bOut*Sin(Pi/5.0),0,lc};
+Point(6) = {r_e*Cos(t),r_e*Sin(t),0,lc};
 Point(7) = {0,0,0,lc};
 
 Line(1001)    = {1,2};
