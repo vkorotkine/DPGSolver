@@ -56,6 +56,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	free(ELEMENT->connect_NE);
 	array_free2_ui(NP,ELEMENT->connectivity);
 	array_free2_ui(NP,ELEMENT->connect_types);
+	array_free2_ui(NP,ELEMENT->connectivityE);
 
 	// Operators
 	free(ELEMENT->NvnGs);
@@ -233,6 +234,7 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 
 	// Structures
 	free(VOLUME->XYZ_vV);
+	free(VOLUME->XYZ_vVc);
 	free(VOLUME->NsubF);
 	free(VOLUME->neigh);
 	free(VOLUME->neigh_f);

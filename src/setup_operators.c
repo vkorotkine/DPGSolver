@@ -418,7 +418,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             Nve, Nve_h, Ne, Nf, Nbf, Eclass, NFTypes, Nvref, vref, vrefSF, NvrefSF, *Nfref, *ones_Nf, NEhref,
 	             Indh, NvnP, u1 = 1,
 	             BE_Nve, BF_Nve[2], Neve, *Nfve, *Nvve, *EType_h,
-	             dummy_ui, *dummyPtr_ui[2];
+	             dummy_ui, *dummyPtr_ui[3];
 	double       *E_rst_vV, *rst_vV, **VeE, **VeF, **VeV,
 	             *rst_vP, *rst_vGs, *rst_vG2, *rst_vGc, *rst_vCs, *rst_vCc, **rst_vIs, **rst_vIc, **rst_vS,
 	             *rst_fG2, *rst_fGc, *rst_fS, *rst_fIs, *rst_fIc,
@@ -1048,9 +1048,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				free(ChiCc_vIc);
 			}
 
-			plotting_element_info(&rst_vP,&dummyPtr_ui[0],&dummyPtr_ui[1],&NvnP,&dummy_ui,max(Pb,u1),EType); // free
-			free(dummyPtr_ui[0]);
-			free(dummyPtr_ui[1]);
+			plotting_element_info(&rst_vP,&dummyPtr_ui[0],&dummyPtr_ui[1],&dummyPtr_ui[2],&NvnP,&dummy_ui,max(Pb,u1),EType); // free
+			free(dummyPtr_ui[0]); free(dummyPtr_ui[1]); free(dummyPtr_ui[2]);
 
 			ChiRefGc_vP  = basis(PGc[P],        rst_vP,    NvnP,    &Nbf,dE); // free
 			ChiRefS_vP   = basis(P,             rst_vP,    NvnP,    &Nbf,dE); // free
@@ -1297,11 +1296,11 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 						I_vCc_fS[P][Pb][Vf]  = mm_Alloc_d(CBRM,CBNT,CBNT,NfnS[Pb][IndFType], NvnCc[P],NvnCc[P],1.0,ChiCc_fS, ChiInvCc_vCc); // keep
 						I_vCc_fIs[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnCc[P],NvnCc[P],1.0,ChiCc_fIs,ChiInvCc_vCc); // keep
 						I_vCc_fIc[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnCc[P],NvnCc[P],1.0,ChiCc_fIc,ChiInvCc_vCc); // keep
+					}
 
-						for (dim = 0; dim < dE; dim++) {
-							D_vGc_fIs[P][Pb][Vf][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,GradChiGc_fIs[dim],ChiInvGc_vGc); // keep
-							D_vGc_fIc[P][Pb][Vf][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,GradChiGc_fIc[dim],ChiInvGc_vGc); // keep
-						}
+					for (dim = 0; dim < dE; dim++) {
+						D_vGc_fIs[P][Pb][Vf][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,GradChiGc_fIs[dim],ChiInvGc_vGc); // keep
+						D_vGc_fIc[P][Pb][Vf][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,GradChiGc_fIc[dim],ChiInvGc_vGc); // keep
 					}
 
 					free(ChiRefGs_fS);
@@ -1935,17 +1934,17 @@ static void setup_TP_operators(const unsigned int EType)
 						                   ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->I_vCc_fIc[P][Pb],
 						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCc_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					}
 
-						for (dim = 0; dim < dE; dim++) {
-							get_sf_parametersFd(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->I_vGc_vIs[P][Pb],
-							                    ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->D_vGc_fIs[P][Pb],
-							                    NIn,NOut,OP,dE,Vf,Eclass,dim,0);
-							D_vGc_fIs[P][Pb][Vf][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-							get_sf_parametersFd(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->I_vGc_vIc[P][Pb],
-							                    ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->D_vGc_fIc[P][Pb],
-							                    NIn,NOut,OP,dE,Vf,Eclass,dim,0);
-							D_vGc_fIc[P][Pb][Vf][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-						}
+					for (dim = 0; dim < dE; dim++) {
+						get_sf_parametersFd(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->I_vGc_vIs[P][Pb],
+						                    ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->D_vGc_fIs[P][Pb],
+						                    NIn,NOut,OP,dE,Vf,Eclass,dim,0);
+						D_vGc_fIs[P][Pb][Vf][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+						get_sf_parametersFd(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->I_vGc_vIc[P][Pb],
+						                    ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->D_vGc_fIc[P][Pb],
+						                    NIn,NOut,OP,dE,Vf,Eclass,dim,0);
+						D_vGc_fIc[P][Pb][Vf][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					}
 				}}
 

@@ -11,10 +11,13 @@
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
+#include "S_ELEMENT.h"
 #include "S_VOLUME.h"
 
 #include "array_norm.h"
 #include "cubature.h"
+#include "element_functions.h"
+#include "matrix_functions.h"
 
 #include "array_print.h" // ToBeDeleted
 
@@ -76,7 +79,7 @@ static void ToBeCurved_sphere_to_ellipsoid(const unsigned int Nn, double *XYZ)
 	Y = &XYZ[Nn*1];
 	Z = &XYZ[Nn*(d-1)];
 
-	printf("Make modifications so that this works with high aspect ratio ellipsoids.\n"), EXIT_MSG;
+//	printf("Make modifications so that this works with high aspect ratio ellipsoids.\n"), EXIT_MSG;
 
 	for (n = 0; n < Nn; n++) {
 		r2 = X[n]*X[n]+Y[n]*Y[n];
@@ -91,6 +94,7 @@ static void ToBeCurved_sphere_to_ellipsoid(const unsigned int Nn, double *XYZ)
 		c = cIn+ratio*(cOut-cIn);
 
 		t = atan2(Y[n]/b,X[n]/a);
+//		t = atan2(Y[n],X[n]);
 
 		if (d == 2) {
 			p = PI/2.0;
@@ -108,6 +112,121 @@ static void ToBeCurved_sphere_to_ellipsoid(const unsigned int Nn, double *XYZ)
 	}
 }
 
+static void correct_ToBeCurved(struct S_VOLUME *VOLUME)
+{
+	/*
+	 *	Purpose:
+	 *		Correct position of internal VOLUME geometry nodes using blending.
+	 *
+	 *	Comments:
+	 *		This only needs to loop over element faces (even in 3D) as all curved surface nodes are given by the
+	 *		ToBeCurved projection.
+	 *		Only SB blending is supported for SI elements here as a result of all blending functions being equivalent.
+	 */
+
+	if (DB.Blending_HO)
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
+
+	// Standard datatypes
+	unsigned int n, dim, ve, P, PV, f, Vf, NvnG, NfnG, Eclass, Nf, Nve, BC, *Nfve, *VeFcon, internalCurved;
+	double       *XYZ, *XYZ_S, *XYZ_C, *XYZ_CmS, *XYZ_update, *I_vGs_vGc, *I_vGc_fGc, *I_fGc_vGc, *I_fGs_vGc,
+	             BlendNum, BlendDen, *BlendV;
+
+	struct S_ELEMENT *ELEMENT, *ELEMENT_F;
+
+	internalCurved = 1;
+
+	PV     = VOLUME->P;
+	NvnG   = VOLUME->NvnG;
+	XYZ_C  = VOLUME->XYZ;
+	Eclass = VOLUME->Eclass;
+
+	if (Eclass == C_SI && DB.Blending != SZABO_BABUSKA)
+		printf("Error: Please select SB blending.\n"), EXIT_MSG;
+
+	ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+	Nf     = ELEMENT->Nf;
+	Nve    = ELEMENT->Nve;
+	Nfve   = ELEMENT->Nfve;
+	VeFcon = ELEMENT->VeFcon;
+
+	I_vGs_vGc = ELEMENT->I_vGs_vGc[1][PV][0];
+
+	// Initialize XYZ using projected vertices
+	XYZ = malloc(NvnG*d * sizeof *XYZ); // VOLUME->XYZ freed then XYZ assigned
+	mm_d(CBCM,CBT,CBNT,NvnG,d,Nve,1.0,0.0,ELEMENT->I_vGs_vGc[1][PV][0],VOLUME->XYZ_vVc,XYZ);
+
+	P = PV;
+	for (f = 0; f < Nf; f++) {
+		if (!internalCurved) {
+			BC = VOLUME->BC[0][f];
+			if (BC / BC_STEP_SC != 2)
+				continue;
+		}
+
+		Vf = f*NFREFMAX;
+
+		ELEMENT_F = get_ELEMENT_F_type(ELEMENT->type,f);
+
+		NfnG      = ELEMENT_F->NvnGc[P];
+		I_vGc_fGc = ELEMENT->I_vGc_fGc[PV][P][Vf];
+		I_fGc_vGc = ELEMENT->I_fGc_vGc[P][PV][Vf];
+
+		// Compute XYZ_update
+		XYZ_CmS = malloc(NfnG*d * sizeof *XYZ_S); // free
+		mm_d(CBCM,CBT,CBNT,NfnG,d,NvnG, 1.0,0.0,I_vGc_fGc,XYZ_C,XYZ_CmS);
+		mm_d(CBCM,CBT,CBNT,NfnG,d,NvnG,-1.0,1.0,I_vGc_fGc,XYZ,  XYZ_CmS);
+
+		XYZ_update = mm_Alloc_d(CBCM,CBT,CBNT,NvnG,d,NfnG,1.0,I_fGc_vGc,XYZ_CmS); // free
+		free(XYZ_CmS);
+
+		// Compute blending function
+		I_fGs_vGc = ELEMENT->I_fGs_vGc[1][PV][Vf];
+
+		BlendV = malloc(NvnG * sizeof *BlendV); // free
+		if (Eclass == C_SI) { // SB Blending
+			for (n = 0; n < NvnG; n++) {
+				BlendNum = 1.0;
+				BlendDen = 1.0;
+				for (ve = 0; ve < Nfve[f]; ve++) {
+					BlendNum *= I_vGs_vGc[n*Nve+VeFcon[f*NFVEMAX+ve]];
+					BlendDen *= I_fGs_vGc[n*Nfve[f]+ve];
+				}
+				if (BlendNum < EPS)
+					BlendV[n] = 0.0;
+				else
+					BlendV[n] = BlendNum/BlendDen;
+			}
+		} else if (Eclass == C_TP) { // GH Blending
+			for (n = 0; n < NvnG; n++) {
+				BlendV[n] = 0.0;
+				for (ve = 0; ve < Nfve[f]; ve++)
+					BlendV[n] += I_vGs_vGc[n*Nve+VeFcon[f*NFVEMAX+ve]];
+			}
+		} else {
+			printf("Add support.\n"), EXIT_MSG;
+		}
+
+		// Blend surface geometry perturbation to the VOLUME
+		for (n = 0; n < NvnG; n++) {
+			if (BlendV[n] < EPS)
+				continue;
+
+			for (dim = 0; dim < d; dim++)
+				XYZ[n+NvnG*dim] += BlendV[n]*XYZ_update[n+NvnG*dim];
+		}
+		free(XYZ_update);
+		free(BlendV);
+	}
+
+	free(VOLUME->XYZ);
+	VOLUME->XYZ = XYZ;
+}
+
 void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 {
 	// Initialize DB Parameters
@@ -116,66 +235,83 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 	unsigned int d         = DB.d;
 
 	// Standard datatypes
-	unsigned int i, dim,
-	             NvnG;
+	unsigned int i, nG, dim, NvnG, correctTBC;
 	double *XYZ, *XYZ_S;
 
-	NvnG = VOLUME->NvnG;
-	XYZ_S = VOLUME->XYZ_S;
+	struct S_ELEMENT *ELEMENT;
 
-	XYZ = malloc (NvnG*d * sizeof *XYZ); // keep
-	VOLUME->XYZ = XYZ;
+	correctTBC = 1;
+	for (nG = 0; nG < 2; nG++) {
+		if (nG == 0) {
+			NvnG = VOLUME->NvnG;
+			XYZ_S = VOLUME->XYZ_S;
 
-	if (strstr(Geometry,"dm1-Spherical_Section")) {
-			ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
+			XYZ = malloc (NvnG*d * sizeof *XYZ); // keep
+			VOLUME->XYZ = XYZ;
+		} else if (nG == 1) {
+			ELEMENT = get_ELEMENT_type(VOLUME->type);
+			NvnG = ELEMENT->Nve;
+			XYZ_S = VOLUME->XYZ_vV;
+
+			XYZ = malloc (NvnG*d * sizeof *XYZ); // keep
+			VOLUME->XYZ_vVc = XYZ;
+		}
+
+		if (strstr(Geometry,"dm1-Spherical_Section")) {
+				ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
 //printf("stbc: %d\n",VOLUME->indexg);
 //array_print_d(NvnG,d,XYZ,'C');
 //for (i = 0; i < NvnG*d; i++)
 //	XYZ[i] = XYZ_S[i];
-	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
-			ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
-			ToBeCurved_sphere_to_ellipsoid(NvnG,XYZ);
-	} else if (strstr(TestCase,"GaussianBump") ||
-	           strstr(TestCase,"PolynomialBump")) {
-			ToBeCurved_TP(NvnG,XYZ_S,XYZ);
-	} else if (strstr(TestCase,"PeriodicVortex")) {
-		double n = 2.0, A = 0.1, L0 = 2.0, dxyz = 1.0, scale, *X0, *Y0, *Z0;
+		} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+				ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
+				ToBeCurved_sphere_to_ellipsoid(NvnG,XYZ);
+		} else if (strstr(TestCase,"GaussianBump") ||
+				   strstr(TestCase,"PolynomialBump")) {
+				ToBeCurved_TP(NvnG,XYZ_S,XYZ);
+		} else if (strstr(TestCase,"PeriodicVortex")) {
+			double n = 2.0, A = 0.1, L0 = 2.0, dxyz = 1.0, scale, *X0, *Y0, *Z0;
 
-		// silence
-		X0 = Y0 = Z0 = NULL;
+			// silence
+			X0 = Y0 = Z0 = NULL;
 
-		scale = 2.0;
-		DB.PeriodL = scale*2.0;
+			scale = 2.0;
+			DB.PeriodL = scale*2.0;
 
-		// d > 1 for this case
-		for (dim = 0; dim < d; dim++) {
-			X0 = &XYZ_S[0*NvnG];
-			Y0 = &XYZ_S[1*NvnG];
-			if (dim == 2)
-				Z0 = &XYZ_S[2*NvnG];
-		}
-
-		if (d == 2) {
-			for (i = 0; i < NvnG; i++) {
-				XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i]));
-				XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i]));
+			// d > 1 for this case
+			for (dim = 0; dim < d; dim++) {
+				X0 = &XYZ_S[0*NvnG];
+				Y0 = &XYZ_S[1*NvnG];
+				if (dim == 2)
+					Z0 = &XYZ_S[2*NvnG];
 			}
-		} else if (d == 3) {
-			for (i = 0; i < NvnG; i++) {
-//				XYZ[       i] = scale*X0[i];// + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*Z0[i]);
-//				XYZ[1*NvnG+i] = scale*Y0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Z0[i]);
-//				XYZ[2*NvnG+i] = scale*Z0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]);
-				XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
-				XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
-				XYZ[2*NvnG+i] = scale*(Z0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]));
+
+			if (d == 2) {
+				for (i = 0; i < NvnG; i++) {
+					XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i]));
+					XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i]));
+				}
+			} else if (d == 3) {
+				for (i = 0; i < NvnG; i++) {
+//					XYZ[       i] = scale*X0[i];// + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*Z0[i]);
+//					XYZ[1*NvnG+i] = scale*Y0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Z0[i]);
+//					XYZ[2*NvnG+i] = scale*Z0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]);
+					XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
+					XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
+					XYZ[2*NvnG+i] = scale*(Z0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]));
+				}
+			} else {
+				printf("Error: PeriodicVortex TestCase not supported for dimension d = %d.\n",d), EXIT_MSG;
 			}
+		} else if (strstr(Geometry,"Annular_Section")) {
+			ToBeCurved_square_to_circle(NvnG,XYZ_S,XYZ);
 		} else {
-			printf("Error: PeriodicVortex TestCase not supported for dimension d = %d.\n",d), EXIT_MSG;
+			printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
 		}
-	} else if (strstr(Geometry,"Annular_Section")) {
-		ToBeCurved_square_to_circle(NvnG,XYZ_S,XYZ);
-	} else {
-		printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
+
+		// Correct internal VOLUME geometry coordinates using blending
+		if (nG == 1 && correctTBC)
+			correct_ToBeCurved(VOLUME);
 	}
 }
 

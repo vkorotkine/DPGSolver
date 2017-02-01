@@ -7,7 +7,7 @@
 BEGIN PARAMETERS
   Dimension  2
   ML         0
-  MeshType   CurvedQUAD
+  MeshType   ToBeCurvedQUAD
   Geometry   Ellipsoidal_Section
 
   Form       Strong // Options: Weak, (Strong)
@@ -20,8 +20,8 @@ BEGIN PARAMETERS
   Adapt      3     // Options: 0, 1, 2, (3)
 
   PGlobal    1
-  PMax       6
-  LevelsMax  5
+  PMax       5
+  LevelsMax  7
 
   Restart    -1    // Options: -1, 0, Iteration #
 

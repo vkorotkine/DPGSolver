@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
- 
+
 #include "mkl.h"
 
 #include "Parameters.h"
@@ -29,22 +29,43 @@
  *		VTK User's Guide, File Formats for VTK Version 4.2 (Figure 2. Linear cell types found in VTK)
  */
 
-void plotting_element_info(double **rst, unsigned int **connect, unsigned int **types, unsigned int *Nn,
-                           unsigned int *NE, const unsigned int P, const unsigned int typeIn)
+static unsigned int get_Ne_type(const unsigned int type)
 {
-	unsigned int i, j, k, l, m, iMax, jMax, kMax, lMax, row,
-	             d, Nc, NnOut, NEOut,
-	             layer, lBs, lTs, sum,
-	             *connectOut, *typesOut;
-	double di, dj, dk,
-	       *rstOut;
+	switch (type) {
+		case LINE:  return 0; break;
+		case TRI:   return 3; break;
+		case QUAD:  return 4; break;
+		case TET:   return 6; break;
+		case HEX:   return 12; break;
+		case WEDGE: return 9; break;
+		case PYR:   return 8; break;
+		default:
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+			break;
+	}
+}
+
+void plotting_element_info(double **rst, unsigned int **connect, unsigned int **types, unsigned int **connectE,
+                           unsigned int *Nn, unsigned int *NE, const unsigned int P, const unsigned int typeIn)
+{
+	unsigned int i, j, k, l, m, iMax, jMax, kMax, lMax, row, j0, jS, jC, count, N,
+	             d, Nc, NnOut, NEOut, Ne,
+	             layer, lBs, lTs, sum, u1 = 1,
+	             *connectOut, *typesOut, *connectEOut;
+	double di, dj, dk, *rstOut;
 
 	if (P == 0)
-		printf("Error: Input P must be greater than 0 for plotting nodes.\n"), exit(1);
+		printf("Error: Input P must be greater than 0 for plotting nodes.\n"), EXIT_MSG;
+
+	Ne = get_Ne_type(typeIn);
+
+	if (typeIn == LINE)
+		connectEOut = NULL;
+	else
+		connectEOut = calloc(Ne*(P+1) , sizeof *connectEOut); // keep
 
 	if (typeIn == LINE || typeIn == QUAD || typeIn == HEX) {
 		unsigned int dim,
-		             N, u1,
 		             Indr, Indc,
 		             N2,
 		             nLINE[2], nQUAD[4], nHEX[8];
@@ -70,8 +91,8 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		r      = malloc(N       * sizeof *r);      // free
 		rstOut = malloc(NnOut*d * sizeof *rstOut); // keep (requires external free)
 
-		connectOut = calloc(NEOut*8 , sizeof *connectOut); // keep (requires external free)
-		typesOut   = malloc(NEOut   * sizeof *typesOut);   // keep (requires external free)
+		connectOut  = calloc(NEOut*8 , sizeof *connectOut); // keep (requires external free)
+		typesOut    = malloc(NEOut   * sizeof *typesOut);   // keep (requires external free)
 
 		if (P == 0) {
 			r[0] = 0;
@@ -122,16 +143,45 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		} else if (typeIn == QUAD) {
 			for (i = 0; i < NEOut; i++)
 				typesOut[i] = 9;
+			for (i = 0; i < Ne; i++) {
+				switch (i) {
+					case 0: j0 = 0;   jS = N; break;
+					case 1: j0 = P;   jS = N; break;
+					case 2: j0 = 0;   jS = 1; break;
+					case 3: j0 = P*N; jS = 1; break;
+				}
+				for (j = j0, count = 0; count < N; j += jS, count++)
+					connectEOut[i*N+count] = j;
+			}
 		} else if (typeIn == HEX) {
 			for (i = 0; i < NEOut; i++)
 				typesOut[i] = 12;
+			for (i = 0; i < Ne; i++) {
+				switch (i) {
+					case 0:  j0 = 0;         jS = 1;   break;
+					case 1:  j0 = P*N;       jS = 1;   break;
+					case 2:  j0 = P*N*N;     jS = 1;   break;
+					case 3:  j0 = (N*N-1)*N; jS = 1;   break;
+					case 4:  j0 = 0;         jS = N;   break;
+					case 5:  j0 = P;         jS = N;   break;
+					case 6:  j0 = P*N*N;     jS = N;   break;
+					case 7:  j0 = P*N*N+P;   jS = N;   break;
+					case 8:  j0 = 0;         jS = N*N; break;
+					case 9:  j0 = P;         jS = N*N; break;
+					case 10: j0 = P*N;       jS = N*N; break;
+					case 11: j0 = P*N+P;     jS = N*N; break;
+				}
+				for (j = j0, count = 0; count < N; j += jS, count++)
+					connectEOut[i*N+count] = j;
+			}
 		}
 
-		*rst     = rstOut;
-		*connect = connectOut;
-		*types   = typesOut;
-		*Nn      = NnOut;
-		*NE      = NEOut;
+		*rst      = rstOut;
+		*connect  = connectOut;
+		*types    = typesOut;
+		*connectE = connectEOut;
+		*Nn       = NnOut;
+		*NE       = NEOut;
 	} else if (typeIn == TRI) {
 		d = 2;
 		Nc = 3;
@@ -208,11 +258,27 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		for (i = 0; i < NEOut; i++)
 			typesOut[i] = 5;
 
-		*rst     = rstOut;
-		*connect = connectOut;
-		*types   = typesOut;
-		*Nn      = NnOut;
-		*NE      = NEOut;
+		N = P+1;
+		for (i = 0; i < Ne; i++) {
+			switch (i) {
+				case 0:  j0 = P; jS = P; break;
+				case 1:  j0 = 0; jS = N; break;
+				case 2:  j0 = 0; jS = 1; break;
+			}
+			for (j = j0, count = 0; count < N; j += jS, count++) {
+				connectEOut[i*N+count] = j;
+
+				if (j != j0 && jS > 1)
+					jS--;
+			}
+		}
+
+		*rst      = rstOut;
+		*connect  = connectOut;
+		*types    = typesOut;
+		*connectE = connectEOut;
+		*Nn       = NnOut;
+		*NE       = NEOut;
 	} else if (typeIn == TET) {
 		d = 3;
 		Nc = 4;
@@ -355,7 +421,6 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 
 				row++;
 			}}
-//array_print_ui(NEOut,8,connectOut,'R');
 		}
 
 		row = 0;
@@ -388,13 +453,33 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 			}
 		}
 
-//array_print_ui(1,NEOut,typesOut,'R');
+		N = P+1;
+		for (i = 0; i < Ne; i++) {
+			switch (i) {
+				case 0:  j0 = 0;             jS = 1;             jC = 1; break;
+				case 1:  j0 = 0;             jS = N;             jC = 1; break;
+				case 2:  j0 = 0;             jS = N*(N+1)/2.0;   jC = N; break;
+				case 3:  j0 = P;             jS = P;             jC = 1; break;
+				case 4:  j0 = P;             jS = N*(N+1)/2.0-1; jC = N; break;
+				case 5:  j0 = N*(N+1)/2.0-1; jS = P*N/2.0;       jC = P; break;
+			}
+			for (j = j0, count = 0; count < N; j += jS, count++) {
+				connectEOut[i*N+count] = j;
 
-		*rst     = rstOut;
-		*connect = connectOut;
-		*types   = typesOut;
-		*Nn      = NnOut;
-		*NE      = NEOut;
+				if (j != j0 && jS > 1) {
+					jS -= jC;
+					if (jC > 1)
+						jC--;
+				}
+			}
+		}
+
+		*rst      = rstOut;
+		*connect  = connectOut;
+		*types    = typesOut;
+		*connectE = connectEOut;
+		*Nn       = NnOut;
+		*NE       = NEOut;
 	} else if (typeIn == WEDGE) {
 		d = 3;
 
@@ -405,11 +490,12 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 
 		double *rst_TRI, *rst_LINE;
 		unsigned int Nn_TRI, Nn_LINE, NE_TRI, NE_LINE,
-		             *connect_TRI, *connect_LINE, *dummy_types;
+		             *connect_TRI, *connect_LINE, *dummy_types, *dummy_connectE;
 
-		plotting_element_info(&rst_TRI,&connect_TRI,&dummy_types,&Nn_TRI,&NE_TRI,P,TRI); // free
-		free(dummy_types);
-		plotting_element_info(&rst_LINE,&connect_LINE,&dummy_types,&Nn_LINE,&NE_LINE,P,LINE); // free
+		plotting_element_info(&rst_TRI,&connect_TRI,&dummy_types,&dummy_connectE,&Nn_TRI,&NE_TRI,P,TRI); // free
+		free(dummy_types); free(dummy_connectE);
+		plotting_element_info(&rst_LINE,&connect_LINE,&dummy_types,&dummy_connectE,&Nn_LINE,&NE_LINE,P,LINE); // free
+		free(dummy_types); free(dummy_connectE);
 
 		NnOut = Nn_TRI*Nn_LINE;
 
@@ -442,18 +528,42 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		for (i = 0; i < NEOut; i++)
 			typesOut[i] = 13;
 
+		N = P+1;
+		for (i = 0; i < Ne; i++) {
+			switch (i) {
+				case 0:  j0 = P;               jS = P;  jC = 1; break;
+				case 1:  j0 = 0;               jS = N;  jC = 1; break;
+				case 2:  j0 = 0;               jS = 1;  jC = 1; break;
+				case 3:  j0 = N*(N+1)/2.0*P+P; jS = P;  jC = 1; break;
+				case 4:  j0 = N*(N+1)/2.0*P;   jS = N;  jC = 1; break;
+				case 5:  j0 = N*(N+1)/2.0*P;   jS = 1;  jC = 1; break;
+				case 6:  j0 = 0;               jS = N*(N+1)/2.0; jC = 0; break;
+				case 7:  j0 = 1;               jS = N*(N+1)/2.0; jC = 0; break;
+				case 8:  j0 = 2;               jS = N*(N+1)/2.0; jC = 0; break;
+			}
+			for (j = j0, count = 0; count < N; j += jS, count++) {
+				connectEOut[i*N+count] = j;
+
+				if (j != j0 && jS > 1) {
+					jS -= jC;
+					if (jC > 1)
+						jC--;
+				}
+			}
+		}
+
 		free(rst_TRI);
 		free(connect_TRI);
 
 		free(rst_LINE);
 		free(connect_LINE);
-		free(dummy_types);
 
-		*rst     = rstOut;
-		*connect = connectOut;
-		*types   = typesOut;
-		*Nn      = NnOut;
-		*NE      = NEOut;
+		*rst      = rstOut;
+		*connect  = connectOut;
+		*types    = typesOut;
+		*connectE = connectEOut;
+		*Nn       = NnOut;
+		*NE       = NEOut;
 	} else if (typeIn == PYR) {
 		d = 3;
 		Nc = 5;
@@ -471,7 +581,7 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 
 		double *rst_QUAD;
 		unsigned int Nn_QUAD, NE_QUAD,
-		             *connect_QUAD, *dummy_types;
+		             *connect_QUAD, *dummy_types, *dummy_connectE;
 
 		rstOut     = malloc(NnOut*d * sizeof *rstOut);     // keep (requires external free)
 		connectOut = calloc(NEOut*8 , sizeof *connectOut); // keep (requires external free)
@@ -480,7 +590,8 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 		row = 0;
 		for (i = P; i ; i--) {
 			di = i;
-			plotting_element_info(&rst_QUAD,&connect_QUAD,&dummy_types,&Nn_QUAD,&NE_QUAD,i,QUAD); // free
+			plotting_element_info(&rst_QUAD,&connect_QUAD,&dummy_types,&dummy_connectE,&Nn_QUAD,&NE_QUAD,i,QUAD); // free
+			free(dummy_types); free(dummy_connectE);
 
 			for (j = 0; j < Nn_QUAD; j++) {
 				for (k = 0; k < 2; k++)
@@ -492,7 +603,6 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 
 			free(rst_QUAD);
 			free(connect_QUAD);
-			free(dummy_types);
 		}
 		for (k = 0; k < 2; k++)
 			rstOut[k*NnOut+row] = 0.0;
@@ -572,11 +682,35 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 			}
 		}
 
-		*rst     = rstOut;
-		*connect = connectOut;
-		*types   = typesOut;
-		*Nn      = NnOut;
-		*NE      = NEOut;
+		N = P+1;
+		for (i = 0; i < Ne; i++) {
+			switch (i) {
+				case 0:  j0 = 0;     jS = 1;     jC = 0; break;
+				case 1:  j0 = P*N;   jS = 1;     jC = 0; break;
+				case 2:  j0 = 0;     jS = N;     jC = 0; break;
+				case 3:  j0 = P;     jS = N;     jC = 0; break;
+				case 4:  j0 = 0;     jS = N*N;   jC = 2*N-1; break;
+				case 5:  j0 = P;     jS = N*N-1; jC = 2*N-1; break;
+				case 6:  j0 = P*N;   jS = P*P+1; jC = 2*P-1; break;
+				case 7:  j0 = N*N-1; jS = P*P;   jC = 2*P-1; break;
+			}
+			for (j = j0, count = 0; count < N; j += jS, count++) {
+				connectEOut[i*N+count] = j;
+
+				if (j != j0 && jS > 1) {
+					jS -= jC;
+					if (jC > 1)
+						jC -= 2;
+				}
+			}
+		}
+
+		*rst      = rstOut;
+		*connect  = connectOut;
+		*types    = typesOut;
+		*connectE = connectEOut;
+		*Nn       = NnOut;
+		*NE       = NEOut;
 	}
 
 //array_print_d(NnOut,d,*rst,'C');

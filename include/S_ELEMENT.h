@@ -17,7 +17,7 @@ struct S_ELEMENT {
 	             **NfnG2, **NfnGc, **NfnS, **NfnIs, **NfnIc,
 	             *NenG2, *NenGc,
 	             Neref, *Nfref, *NfMixed,
-	             **connectivity, **connect_types,
+	             **connectivity, **connect_types, **connectivityE,
 	             ***nOrd_fS, ***nOrd_fIs, ***nOrd_fIc, ****Fmask, ****VeMask;
 	double       **VeE, **VeF, **VeV, *nr,
 	             **w_vIs, **w_vIc, ***w_fIs, ***w_fIc,

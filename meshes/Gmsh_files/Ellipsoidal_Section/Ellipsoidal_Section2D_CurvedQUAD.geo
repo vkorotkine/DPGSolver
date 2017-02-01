@@ -9,7 +9,7 @@ aIn  = 0.5;
 aOut = 1.0;
 
 bIn  = 0.5;
-bOut = 1.0;
+bOut = 3.0;
 
 t = Pi/4.0;
 

@@ -982,7 +982,7 @@ static double *compute_BlendV(struct S_Blend *data, const unsigned int order)
 		for (n = 0; n < NvnG; n++) {
 			BlendV[n] = pow(1.0-I_vGs_vGc[n*Nve+b],(double) order);
 		}
-	} else if (Blending == SZABO_BABUSKA || EclassV == C_SI) {
+	} else if (EclassV == C_SI) { // Blending == SZABO_BABUSKA
 		for (n = 0; n < NvnG; n++) {
 			BlendNum = 1.0;
 			BlendDen = 1.0;
@@ -995,7 +995,7 @@ static double *compute_BlendV(struct S_Blend *data, const unsigned int order)
 			else
 				BlendV[n] = BlendNum/BlendDen;
 		}
-	} else if (Blending == GORDON_HALL || EclassV == C_TP) {
+	} else if (EclassV == C_TP) { // Blending == GORDON_HALL
 		for (n = 0; n < NvnG; n++) {
 			BlendV[n] = 0.0;
 			for (ve = 0; ve < Nbve[b]; ve++)
@@ -1332,7 +1332,6 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 
 	if (vertex_blending) {
 		PV = 2;
-//		printf("Error: Add support.\n"), EXIT_MSG;
 
 		NvnG = ELEMENT->NveP2;
 		XYZ  = VOLUME->XYZ_vVP2;
@@ -1358,19 +1357,7 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 		I_vGs_vGc = ELEMENT->I_vGs_vG2[1][PV][0];
 	else
 		I_vGs_vGc = ELEMENT->I_vGs_vGc[1][PV][0];
-/*
-unsigned int Pt;
-if (DB.PGc[2] == 2)
-	Pt = 2;
-else if (DB.PGc[1] == 2)
-	Pt = 1;
 
-if (vertex_blending) {
-array_print_d(NvnG,Nve,ELEMENT->I_vGs_vG2[1][PV][0],'R');
-array_print_d(NvnG,Nve,ELEMENT->I_vGs_vGc[1][Pt][0],'R');
-printf("% .3e\n",array_norm_diff_d(NvnG*Nve,ELEMENT->I_vGs_vG2[1][PV][0],ELEMENT->I_vGs_vGc[1][Pt][0],"Inf"));
-}
-*/
 	data_blend->EclassV   = ELEMENT->Eclass;
 	data_blend->Nve       = Nve;
 	data_blend->I_vGs_vGc = I_vGs_vGc;
@@ -1430,16 +1417,6 @@ printf("% .3e\n",array_norm_diff_d(NvnG*Nve,ELEMENT->I_vGs_vG2[1][PV][0],ELEMENT
 				data_blend->I_vGc_bGc = ELEMENT->I_vG2_fG2[PV][P][Vb];
 				data_blend->I_bGc_vGc = ELEMENT->I_fG2_vG2[P][PV][Vb];
 				data_blend->I_bGs_vGc = ELEMENT->I_fGs_vG2[1][PV][Vb];
-/*
-unsigned int NbnG = ELEMENT_B->NvnG2[P];
-//printf("%d %d %d %d\n",P,ELEMENT_B->type,NbnG,NvnG);
-//array_print_d(NbnG,NvnG,ELEMENT->I_vG2_fG2[PV][P][Vb],'R');
-//array_print_d(NbnG,NvnG,ELEMENT->I_vGc_fGc[Pt][Pt][Vb],'R');
-printf("% .3e\n",array_norm_diff_d(NbnG*NvnG,ELEMENT->I_vG2_fG2[PV][P][Vb],ELEMENT->I_vGc_fGc[Pt][Pt][Vb],"Inf"));
-printf("% .3e\n",array_norm_diff_d(NvnG*NbnG,ELEMENT->I_fG2_vG2[P][PV][Vb],ELEMENT->I_fGc_vGc[Pt][Pt][Vb],"Inf"));
-printf("% .3e\n",array_norm_diff_d(NvnG*Nbve[b],ELEMENT->I_fGs_vG2[1][PV][Vb],ELEMENT->I_fGs_vGc[1][Pt][Vb],"Inf"));
-EXIT_MSG;
-*/
 			} else {
 				data_blend->I_vGc_bGc = ELEMENT->I_vGc_fGc[PV][P][Vb];
 				data_blend->I_bGc_vGc = ELEMENT->I_fGc_vGc[P][PV][Vb];
@@ -1463,11 +1440,6 @@ EXIT_MSG;
 		XYZ_update = compute_XYZ_update(data_blend); // free
 
 		// Blend BOUNDARY perturbation to VOLUME geometry nodes
-/*
-if (PV == 3 && VOLUME->indexg == 0) {
-	array_print_d(NvnG,d,XYZ,'C');
-}
-*/
 		for (n = 0; n < NvnG; n++) {
 			// Don't move internal VOLUME nodes when moving vertices to the exact geometry.
 			if ((BlendV[n] < EPS) || (fabs(BlendV[n]-1.0) > EPS && vertex_blending))
@@ -1476,12 +1448,7 @@ if (PV == 3 && VOLUME->indexg == 0) {
 			for (dim = 0; dim < d; dim++)
 				XYZ[n+NvnG*dim] += BlendV[n]*XYZ_update[n+NvnG*dim];
 		}
-/*
-if (PV == 3 && VOLUME->indexg == 0) {
-	array_print_d(NvnG,d,XYZ,'C');
-	EXIT_MSG;
-}
-*/
+
 		free(XYZ_update);
 		free(BlendV);
 	}}

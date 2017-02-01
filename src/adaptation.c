@@ -851,3 +851,24 @@ void mesh_to_order(const unsigned int order)
 			mesh_update();
 	}
 }
+
+void mesh_h_adapt(const unsigned int Nadapt, const char h_adapt_type)
+{
+	unsigned int n;
+	struct S_VOLUME *VOLUME;
+
+	for (n = 0; n < Nadapt; n++) {
+		if (h_adapt_type == 'c') {
+			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+				VOLUME->Vadapt = 1;
+				VOLUME->adapt_type = HCOARSE;
+			}
+		} else if (h_adapt_type == 'r') {
+			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+				VOLUME->Vadapt = 1;
+				VOLUME->adapt_type = HREFINE;
+			}
+		}
+		mesh_update();
+	}
+}

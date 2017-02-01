@@ -152,6 +152,26 @@ static void test_linearization(int nargc, char **argvNew, const unsigned int Nre
 	code_cleanup();
 }
 
+static char *get_fNameOut(char *output_type)
+{
+	char string[STRLEN_MIN], *fNameOut;
+
+	fNameOut = malloc(STRLEN_MAX * sizeof *fNameOut);
+
+	strcpy(fNameOut,output_type);
+	sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
+								   strcat(fNameOut,DB.MeshType);
+	if (DB.Adapt == ADAPT_0) {
+		sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
+		sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
+	} else {
+		sprintf(string,"_ML%d",TestDB.ML); strcat(fNameOut,string);
+		sprintf(string,"P%d_",TestDB.PGlobal); strcat(fNameOut,string);
+	}
+
+	return fNameOut;
+}
+
 void test_integration_Poisson(int nargc, char **argv)
 {
 	unsigned int pass = 0;
@@ -176,7 +196,7 @@ void test_integration_Poisson(int nargc, char **argv)
 	 *
 	 */
 
-	unsigned int P, ML, PMin, PMax, MLMin, MLMax, Adapt, Compute_L2proj;
+	unsigned int P, ML, PMin, PMax, MLMin, MLMax, Adapt, Compute_L2proj, AdaptiveRefine;
 	double       *mesh_quality;
 	struct S_linearization *data;
 
@@ -220,7 +240,7 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	// **************************************************************************************************** //
 //	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_mixed");
 //	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_TRI");
-	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
+//	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
 	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_QUAD");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_QUAD");
@@ -271,7 +291,7 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
  */
 
 	TestDB.PG_add = 0;
-	TestDB.IntOrder_add  = 1;
+	TestDB.IntOrder_add  = 2;
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
@@ -281,7 +301,8 @@ TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
-	Compute_L2proj = 0; // Use IntOrder_add > 0 for non-trivial P1-P2 results for L2proj
+	Compute_L2proj = 1; // Use IntOrder_add > 0 for non-trivial P1-P2 results for L2proj
+	AdaptiveRefine = 1;
 //	Adapt = ADAPT_0;
 	Adapt = ADAPT_HP;
 	if (Adapt != ADAPT_0) {
@@ -289,13 +310,48 @@ TestDB.PGlobal = 1;
 		code_startup(nargc,argvNew,0,2);
 	}
 
+	struct S_VOLUME *VOLUME;
+
 	for (P = PMin; P <= PMax; P++) {
 	for (ML = MLMin; ML <= MLMax; ML++) {
 		TestDB.PGlobal = P;
 		TestDB.ML = ML;
 
 		if (Adapt != ADAPT_0) {
-			mesh_to_level(TestDB.ML);
+			if (ML == MLMin) {
+				mesh_to_level(TestDB.ML);
+				if (AdaptiveRefine) {
+					unsigned int Ind00, Ind01, Ind10, Ind11;
+					Ind00 = 100; Ind01 = 100; Ind10 = 100; Ind11 = 100;
+					if (strstr(DB.MeshType,"ToBeCurvedTRI")) {
+//						Ind00 = 1; Ind10 = 3; Ind11 = 3;
+						Ind00 = 0; Ind01 = 1; Ind10 = 1;
+					} else if (strstr(DB.MeshType,"CurvedTRI")) {
+						Ind00 = 3; Ind10 = 4; Ind11 = 4;
+					} else if (strstr(DB.MeshType,"ToBeCurvedQUAD")) {
+						Ind00 = 0; Ind10 = 3; Ind11 = 3;
+					} else if (strstr(DB.MeshType,"CurvedQUAD")) {
+						Ind00 = 1; Ind10 = 1;
+					}
+
+					for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+						if (VOLUME->indexg == Ind00 || VOLUME->indexg == Ind01) {
+							VOLUME->Vadapt = 1;
+							VOLUME->adapt_type = HREFINE;
+						}
+					}
+					mesh_update();
+					for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+						if (VOLUME->indexg == Ind10 || VOLUME->indexg == Ind11) {
+							VOLUME->Vadapt = 1;
+							VOLUME->adapt_type = HREFINE;
+						}
+					}
+					mesh_update();
+				}
+			} else {
+				mesh_h_adapt(1,'r');
+			}
 			mesh_to_order(TestDB.PGlobal);
 		} else {
 			code_startup(nargc,argvNew,0,1);
@@ -310,17 +366,14 @@ TestDB.PGlobal = 1;
 			initialize_test_case(0);
 			// Output to paraview
 			if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 5 && TestDB.ML <= 4)) {
-				strcpy(fNameOut,"SolFinal_");
-				sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
-											   strcat(fNameOut,DB.MeshType);
-				if (DB.Adapt == ADAPT_0) {
-					sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
-					sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
-				} else {
-					sprintf(string,"_ML%d",TestDB.ML); strcat(fNameOut,string);
-					sprintf(string,"P%d_",TestDB.PGlobal); strcat(fNameOut,string);
-				}
+//			if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 2 && TestDB.ML <= 4)) {
+				fNameOut = get_fNameOut("SolFinal_");
 				output_to_paraview(fNameOut);
+
+				if (TestDB.PGlobal == 5 && TestDB.ML <= 2) {
+					free(fNameOut); fNameOut = get_fNameOut("MeshEdges_");
+					output_to_paraview(fNameOut);
+				}
 			}
 
 			free(fNameOut);

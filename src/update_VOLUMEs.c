@@ -335,6 +335,9 @@ void update_VOLUME_hp(void)
 					if (AC) {
 						mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vV,VOLUMEc->XYZ_vV);
 						VOLUMEc->curved = 1;
+
+						// Set VOLUME BC Information
+						set_VOLUMEc_BC_Info(VOLUMEc,vh,VOLUME->BC);
 					} else if (VOLUME->curved) {
 						// Determined VeInfo for VOLUMEc
 						cVeCount = 0;

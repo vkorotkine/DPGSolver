@@ -78,6 +78,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 	// Plotting
 	ELEMENT->connectivity  = calloc(NP , sizeof *(ELEMENT->connectivity));  // free
 	ELEMENT->connect_types = calloc(NP , sizeof *(ELEMENT->connect_types)); // free
+	ELEMENT->connectivityE = calloc(NP , sizeof *(ELEMENT->connectivityE)); // free
 	ELEMENT->NvnP          = calloc(NP , sizeof *(ELEMENT->NvnP));          // free
 	ELEMENT->connect_NE    = calloc(NP , sizeof *(ELEMENT->connect_NE));    // free
 
@@ -531,7 +532,8 @@ struct S_VOLUME *New_VOLUME(void)
 		VOLUME->neigh_f[i] = UINT_MAX;
 	}
 
-	VOLUME->XYZ_vV = NULL; // free
+	VOLUME->XYZ_vV  = NULL; // free
+	VOLUME->XYZ_vVc = NULL; // free
 
 	// Geometry
 	VOLUME->VeInd  = calloc(NVEMAX         , sizeof *(VOLUME->VeInd));  // free

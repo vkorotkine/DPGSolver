@@ -71,7 +71,7 @@ void setup_ELEMENT_plotting(const unsigned int EType)
 {
 	// Standard datatypes
 	unsigned int P, PSMin, PSMax, NvnP, NE, u1 = 1,
-	             *connectivity, *types;
+	             *connectivity, *types, *connectivityE;
 	double       *rst_vP;
 
 	struct S_ELEMENT *ELEMENT;
@@ -80,9 +80,10 @@ void setup_ELEMENT_plotting(const unsigned int EType)
 
 	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
-		plotting_element_info(&rst_vP,&connectivity,&types,&NvnP,&NE,max(P,u1),EType); // free
+		plotting_element_info(&rst_vP,&connectivity,&types,&connectivityE,&NvnP,&NE,max(P,u1),EType); // free
 		ELEMENT->connectivity[P]  = connectivity;
 		ELEMENT->connect_types[P] = types;
+		ELEMENT->connectivityE[P] = connectivityE;
 		ELEMENT->connect_NE[P]    = NE;
 		ELEMENT->NvnP[P] = NvnP;
 

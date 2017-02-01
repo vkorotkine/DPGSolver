@@ -10,7 +10,7 @@ struct S_VOLUME {
 	// Structures
 	unsigned int indexl, indexg, P, type, Eclass, update, curved, level,
 	             *NsubF, *neigh, *neigh_f;
-	double *XYZ_vV;
+	double *XYZ_vV, *XYZ_vVc;
 
 	// Geometry
 	unsigned int NvnG, *VeInd, *VeInfo, **BC;

@@ -96,10 +96,10 @@ def initialize_input(output):
 		             'L2errs+Convergence_' + output.Geometry + output.Ratio + '_' + 'CurvedQUAD']
 
 		data_i[0].case = name_root[0] + '_L2_m=1-ns'
-		data_i[1].case = name_root[0] + '_L2_m=1-s'
-		data_i[2].case = name_root[0] + '_L2_m=k-s'
-		data_i[3].case = name_root[0] + '_Normal_SB_m=k-s'
-		data_i[4].case = name_root[1] + '_Normal_GH_m=k-s'
+		data_i[1].case = name_root[0] + '_L2_m=1'
+		data_i[2].case = name_root[0] + '_L2_m=k'
+		data_i[3].case = name_root[0] + '_Normal_SB_m=k'
+		data_i[4].case = name_root[1] + '_Normal_GH_m=k'
 
 		output.varNames = ['$L^2_{m=1,\\text{ns}}$','$L^2_{m=1}$','$L^2_{m=k}$','SB$_{N,m=k}$','GH$_{N,m=k}$']
 	else:
@@ -418,7 +418,7 @@ if __name__ == '__main__':
 #	output.name = 'Optimal Blending'
 #	output.name = 'Suboptimal Surface'
 #	output.name = 'Suboptimal Blending'
-	output.name = 'Optimal h'; output.Ratio = '1'
+	output.name = 'Optimal h'; output.Ratio = '3'
 
 	output.init_name(output.name)
 

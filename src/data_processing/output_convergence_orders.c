@@ -58,8 +58,8 @@ int main(void)
 
 //	strcpy(MeshType,"StructuredTRI");
 //	strcpy(MeshType,"TRI");
-//	strcpy(MeshType,"CurvedTRI");
-	strcpy(MeshType,"CurvedQUAD");
+	strcpy(MeshType,"CurvedTRI");
+//	strcpy(MeshType,"CurvedQUAD");
 //	strcpy(MeshType,"CurvedTET");
 //	strcpy(MeshType,"ToBeCurvedStructuredTRI");
 //	strcpy(MeshType,"ToBeCurvedStructuredQUAD");

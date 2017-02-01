@@ -480,19 +480,18 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 					VOLUME->MInv = NULL;
 				}
 
-// Incorrect (Giving worse results than the computed q... Compute by projecting the exact q of order P-1 to basis of
-//            order P) ToBeDeleted
-				if (PolyGradient)
+				if (PolyGradient) {
 					compute_gradient_polynomial(VOLUME);
-				else
-					compute_gradient_L2proj(VOLUME);
-
-//				mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,U,VOLUME->uhat);
-Q = calloc(NvnI*Nvar*d , sizeof *Q); // free
-//				for (dim = 0; dim < d; dim++)
-//					mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,&Q[NvnS*Nvar*dim],VOLUME->qhat[dim]);
-
-				free(Q);
+				} else {
+					if (Adapt != ADAPT_0) {
+						compute_gradient_L2proj(VOLUME);
+					} else {
+						Q = calloc(NvnI*Nvar*d , sizeof *Q); // free
+						for (dim = 0; dim < d; dim++)
+							mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,&Q[NvnS*Nvar*dim],VOLUME->qhat[dim]);
+						free(Q);
+					}
+				}
 			}
 		} else {
 			printf("Error: Unsupported TestCase.\n"), EXIT_MSG;

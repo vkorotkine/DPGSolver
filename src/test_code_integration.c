@@ -428,14 +428,15 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	 */
 
 	// Initialize DB Parameters
-	unsigned int d = DB.d;
+	char         *MeshType = DB.MeshType;
+	unsigned int d         = DB.d;
 
 	// Standard datatypes
 	unsigned int i, j, k, l, f, e, c, Nf, Ne, Nve, iMax, jMax, kMax, lMax, Ecount,
 	             *IndsE, *IndsF, Found, TETcount, NormType, *VeEcon, *VeFcon;
 	int          **piv;
 	double       r_ratio, r, rIn, rOut, rTmp, d1, d2,
-	             *XYZ, *XYZdiff, *n, *nNorm, **LHS, **RHS, *lenE, *XYZc, *abcF, *rF, *XYZcE, *d_p;
+	             *XYZ, *XYZdiff, *n, *nNorm, **LHS, **RHS, *lenE, *XYZc, *abcF, *rF, *XYZcE, *d_p, *XYZ_vV;
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VOLUME;
@@ -490,9 +491,14 @@ void evaluate_mesh_regularity(double *mesh_quality)
 			VeFcon = ELEMENT->VeFcon;
 
 			// Obtain vertex coordinates (Row-major)
+			if (strstr(MeshType,"ToBeCurved"))
+				XYZ_vV = VOLUME->XYZ_vVc;
+			else
+				XYZ_vV = VOLUME->XYZ_vV;
+
 			for (i = 0; i < Nve; i++) {
 			for (j = 0; j < d; j++) {
-				XYZ[i*d+j] = VOLUME->XYZ_vV[j*Nve+i];
+				XYZ[i*d+j] = XYZ_vV[j*Nve+i];
 			}}
 
 			// XYZ coordinates of TET center
@@ -693,9 +699,14 @@ void evaluate_mesh_regularity(double *mesh_quality)
 			VeFcon = ELEMENT->VeFcon;
 
 			// Obtain vertex coordinates (Row-major)
+			if (strstr(MeshType,"ToBeCurved"))
+				XYZ_vV = VOLUME->XYZ_vVc;
+			else
+				XYZ_vV = VOLUME->XYZ_vV;
+
 			for (i = 0; i < Nve; i++) {
 			for (j = 0; j < d; j++) {
-				XYZ[i*d+j] = VOLUME->XYZ_vV[i+Nve*j];
+				XYZ[i*d+j] = XYZ_vV[i+Nve*j];
 			}}
 
 			// XYZ coordinates of ELEMENT center
