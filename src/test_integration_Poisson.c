@@ -240,8 +240,8 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	// **************************************************************************************************** //
 //	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_mixed");
 //	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_TRI");
-//	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
-	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_QUAD");
+	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
+//	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_QUAD");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_QUAD");
 //	strcpy(argvNew[1],"test/Test_Poisson_HoldenRamp2D_TRI");
@@ -296,7 +296,7 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 
 	// Convergence orders
 	PMin  = 1; PMax  = 5;
-	MLMin = 0; MLMax = 5;
+	MLMin = 0; MLMax = 3;
 TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
@@ -324,7 +324,6 @@ TestDB.PGlobal = 1;
 					unsigned int Ind00, Ind01, Ind10, Ind11;
 					Ind00 = 100; Ind01 = 100; Ind10 = 100; Ind11 = 100;
 					if (strstr(DB.MeshType,"ToBeCurvedTRI")) {
-//						Ind00 = 1; Ind10 = 3; Ind11 = 3;
 						Ind00 = 0; Ind01 = 1; Ind10 = 1;
 					} else if (strstr(DB.MeshType,"CurvedTRI")) {
 						Ind00 = 3; Ind10 = 4; Ind11 = 4;

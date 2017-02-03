@@ -93,8 +93,8 @@ static void ToBeCurved_sphere_to_ellipsoid(const unsigned int Nn, double *XYZ)
 		b = bIn+ratio*(bOut-bIn);
 		c = cIn+ratio*(cOut-cIn);
 
-		t = atan2(Y[n]/b,X[n]/a);
-//		t = atan2(Y[n],X[n]);
+//		t = atan2(Y[n]/b,X[n]/a); // Decreased mesh regularity for this option causes loss of optimal orders.
+		t = atan2(Y[n],X[n]);
 
 		if (d == 2) {
 			p = PI/2.0;
@@ -137,7 +137,7 @@ static void correct_ToBeCurved(struct S_VOLUME *VOLUME)
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_F;
 
-	internalCurved = 1;
+	internalCurved = 0;
 
 	PV     = VOLUME->P;
 	NvnG   = VOLUME->NvnG;
@@ -235,12 +235,13 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 	unsigned int d         = DB.d;
 
 	// Standard datatypes
+	unsigned int returnStraight = 0; // return the straight mesh
 	unsigned int i, nG, dim, NvnG, correctTBC;
 	double *XYZ, *XYZ_S;
 
 	struct S_ELEMENT *ELEMENT;
 
-	correctTBC = 1;
+	correctTBC = 1; // Correct internal nodes with blending
 	for (nG = 0; nG < 2; nG++) {
 		if (nG == 0) {
 			NvnG = VOLUME->NvnG;
@@ -257,61 +258,62 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 			VOLUME->XYZ_vVc = XYZ;
 		}
 
-		if (strstr(Geometry,"dm1-Spherical_Section")) {
-				ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
-//printf("stbc: %d\n",VOLUME->indexg);
-//array_print_d(NvnG,d,XYZ,'C');
-//for (i = 0; i < NvnG*d; i++)
-//	XYZ[i] = XYZ_S[i];
-		} else if (strstr(Geometry,"Ellipsoidal_Section")) {
-				ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
-				ToBeCurved_sphere_to_ellipsoid(NvnG,XYZ);
-		} else if (strstr(TestCase,"GaussianBump") ||
-				   strstr(TestCase,"PolynomialBump")) {
-				ToBeCurved_TP(NvnG,XYZ_S,XYZ);
-		} else if (strstr(TestCase,"PeriodicVortex")) {
-			double n = 2.0, A = 0.1, L0 = 2.0, dxyz = 1.0, scale, *X0, *Y0, *Z0;
-
-			// silence
-			X0 = Y0 = Z0 = NULL;
-
-			scale = 2.0;
-			DB.PeriodL = scale*2.0;
-
-			// d > 1 for this case
-			for (dim = 0; dim < d; dim++) {
-				X0 = &XYZ_S[0*NvnG];
-				Y0 = &XYZ_S[1*NvnG];
-				if (dim == 2)
-					Z0 = &XYZ_S[2*NvnG];
-			}
-
-			if (d == 2) {
-				for (i = 0; i < NvnG; i++) {
-					XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i]));
-					XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i]));
-				}
-			} else if (d == 3) {
-				for (i = 0; i < NvnG; i++) {
-//					XYZ[       i] = scale*X0[i];// + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*Z0[i]);
-//					XYZ[1*NvnG+i] = scale*Y0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Z0[i]);
-//					XYZ[2*NvnG+i] = scale*Z0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]);
-					XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
-					XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
-					XYZ[2*NvnG+i] = scale*(Z0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]));
-				}
-			} else {
-				printf("Error: PeriodicVortex TestCase not supported for dimension d = %d.\n",d), EXIT_MSG;
-			}
-		} else if (strstr(Geometry,"Annular_Section")) {
-			ToBeCurved_square_to_circle(NvnG,XYZ_S,XYZ);
+		if (returnStraight) {
+			for (i = 0; i < NvnG*d; i++)
+				XYZ[i] = XYZ_S[i];
 		} else {
-			printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
-		}
+			if (strstr(Geometry,"dm1-Spherical_Section")) {
+					ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
+			} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+					ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
+					ToBeCurved_sphere_to_ellipsoid(NvnG,XYZ);
+			} else if (strstr(TestCase,"GaussianBump") ||
+					   strstr(TestCase,"PolynomialBump")) {
+					ToBeCurved_TP(NvnG,XYZ_S,XYZ);
+			} else if (strstr(TestCase,"PeriodicVortex")) {
+				double n = 2.0, A = 0.1, L0 = 2.0, dxyz = 1.0, scale, *X0, *Y0, *Z0;
 
-		// Correct internal VOLUME geometry coordinates using blending
-		if (nG == 1 && correctTBC)
-			correct_ToBeCurved(VOLUME);
+				// silence
+				X0 = Y0 = Z0 = NULL;
+
+				scale = 2.0;
+				DB.PeriodL = scale*2.0;
+
+				// d > 1 for this case
+				for (dim = 0; dim < d; dim++) {
+					X0 = &XYZ_S[0*NvnG];
+					Y0 = &XYZ_S[1*NvnG];
+					if (dim == 2)
+						Z0 = &XYZ_S[2*NvnG];
+				}
+
+				if (d == 2) {
+					for (i = 0; i < NvnG; i++) {
+						XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i]));
+						XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i]));
+					}
+				} else if (d == 3) {
+					for (i = 0; i < NvnG; i++) {
+//						XYZ[       i] = scale*X0[i];// + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*Z0[i]);
+//						XYZ[1*NvnG+i] = scale*Y0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Z0[i]);
+//						XYZ[2*NvnG+i] = scale*Z0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]);
+						XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
+						XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
+						XYZ[2*NvnG+i] = scale*(Z0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]));
+					}
+				} else {
+					printf("Error: PeriodicVortex TestCase not supported for dimension d = %d.\n",d), EXIT_MSG;
+				}
+			} else if (strstr(Geometry,"Annular_Section")) {
+				ToBeCurved_square_to_circle(NvnG,XYZ_S,XYZ);
+			} else {
+				printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
+			}
+
+			// Correct internal VOLUME geometry coordinates using blending
+			if (nG == 1 && correctTBC)
+				correct_ToBeCurved(VOLUME);
+		}
 	}
 }
 

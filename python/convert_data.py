@@ -38,6 +38,14 @@ class output_class:
 			self.NEntries = 5
 			self.type     = 'Poisson_H0'
 			self.format   = 'table'
+		elif (name == 'Projected Conforming'):
+			self.NEntries = 4
+			self.type     = 'Poisson_H0'
+			self.format   = 'table'
+		elif (name == 'Projected NonConforming'):
+			self.NEntries = 5
+			self.type     = 'Poisson_H0'
+			self.format   = 'table'
 		else:
 			print("Error: Unsupported (output_class)."); sys.exit()
 
@@ -102,6 +110,33 @@ def initialize_input(output):
 		data_i[4].case = name_root[1] + '_Normal_GH_m=k'
 
 		output.varNames = ['$L^2_{m=1,\\text{ns}}$','$L^2_{m=1}$','$L^2_{m=k}$','SB$_{N,m=k}$','GH$_{N,m=k}$']
+	elif (output.name == 'Projected Conforming'):
+		name_root = ['L2errs+Convergence_' + output.Geometry + '3_ProjectedCurvedTRI', \
+		             'L2errs+Convergence_' + output.Geometry + '3_ProjectedFullyCurvedTRI']
+
+		name_end  = ['_L2_m=k', '_Normal_SB_m=k']
+
+		data_i[0].case = name_root[0] + name_end[0]
+		data_i[1].case = name_root[0] + name_end[1]
+		data_i[2].case = name_root[1] + name_end[0]
+		data_i[3].case = name_root[1] + name_end[1]
+
+		output.varNames = ['$L^2_{m=k,\\text{ps}}$','SB$_{N,m=k,ps}$','$L^2_{m=k,\\text{pc}}$','SB$_{N,m=k,pc}$']
+	elif (output.name == 'Projected NonConforming'):
+		name_root = ['L2errs+Convergence_' + output.Geometry + '3_NonConforming_CurvedTRI', \
+		             'L2errs+Convergence_' + output.Geometry + '3_NonConforming_ProjectedCurvedTRI', \
+		             'L2errs+Convergence_' + output.Geometry + '3_NonConforming_ProjectedFullyCurvedTRI']
+
+		name_end  = ['_L2_m=k', '_Normal_SB_m=k']
+
+		data_i[0].case = name_root[0] + name_end[1]
+		data_i[1].case = name_root[1] + name_end[0]
+		data_i[2].case = name_root[1] + name_end[1]
+		data_i[3].case = name_root[2] + name_end[0]
+		data_i[4].case = name_root[2] + name_end[1]
+
+		output.varNames = ['SB$_{N,m=k}$','$L^2_{m=k,\\text{ps}}$','SB$_{N,m=k,ps}$','$L^2_{m=k,\\text{pc}}$', \
+		                   'SB$_{N,m=k,pc}$']
 	else:
 		print("Error: Unsupported (initialize_input)."); sys.exit()
 
@@ -221,7 +256,8 @@ def write_std_tables(f,data_i,output):
 		L2Errors   = data.L2Errors
 		ConvOrders = data.ConvOrders
 
-		f_write(f,0,'\\begin{table}[!htbp]')
+		f_write(f,0,'\\begin{table}[!h]')
+#		f_write(f,0,'\\begin{table}[!htbp]') # Include additional table placement options
 		f_write(f,0,'\\begin{center}')
 		string = '\\caption{Errors and Convergence Orders - ' + output.MeshType + ' Meshes {\\color{red} '
 		string += output.name + '}}'
@@ -418,7 +454,9 @@ if __name__ == '__main__':
 #	output.name = 'Optimal Blending'
 #	output.name = 'Suboptimal Surface'
 #	output.name = 'Suboptimal Blending'
-	output.name = 'Optimal h'; output.Ratio = '3'
+#	output.name = 'Optimal h'; output.Ratio = '1'
+	output.name = 'Projected Conforming'
+#	output.name = 'Projected NonConforming'
 
 	output.init_name(output.name)
 
