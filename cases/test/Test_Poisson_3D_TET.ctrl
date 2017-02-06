@@ -8,6 +8,7 @@ BEGIN PARAMETERS
   Dimension  3
   ML         0
   MeshType   CurvedTET
+  Geometry   dm1-Spherical_Section
 
   Form       Strong // Options: Weak, (Strong)
   NodeType   GLL-AO  // Options: GL/GLL-AO/WSH

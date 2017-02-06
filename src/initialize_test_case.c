@@ -70,11 +70,11 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 	ELEMENT_OPS = get_ELEMENT_type(type);
 
 	OPS->NvnS        = ELEMENT_OPS->NvnS[P];
-	OPS->NvnSPm1     = ELEMENT_OPS->NvnS[P-1];
+//	OPS->NvnSPm1     = ELEMENT_OPS->NvnS[P-1];
 	OPS->ChiInvS_vS  = ELEMENT_OPS->ChiInvS_vS[P][P][0];
 	OPS->GradChiS_vS = ELEMENT_OPS->GradChiS_vS[P][P][0];
-	OPS->Ihat_vS_vS  = ELEMENT_OPS->Ihat_vS_vS[P-1][P];
-	OPS->L2hat_vS_vS = ELEMENT_OPS->L2hat_vS_vS[P][P-1];
+//	OPS->Ihat_vS_vS  = ELEMENT_OPS->Ihat_vS_vS[P-1][P];
+//	OPS->L2hat_vS_vS = ELEMENT_OPS->L2hat_vS_vS[P][P-1];
 	if (!curved) {
 		OPS->NvnI = ELEMENT_OPS->NvnIs[P];
 		OPS->NvnG = ELEMENT_OPS->NvnGs[1];
@@ -322,10 +322,11 @@ static void compute_gradient_L2proj(struct S_VOLUME *VOLUME)
 	             Nvar = DB.Nvar;
 
 	// Standard datatypes
-	unsigned int n, dim, NvnS, NvnI;
+	unsigned int n, dim, NvnS, NvnI, P;
 	double       *w_vI, *XYZ_vI, *q, *detJV_vI, *q_inter, *qhat_inter, *FilterP;
 
 	struct S_OPERATORS *OPS;
+	struct S_ELEMENT   *ELEMENT;
 
 	OPS = malloc(sizeof *OPS); // free
 
@@ -364,12 +365,21 @@ static void compute_gradient_L2proj(struct S_VOLUME *VOLUME)
 	qhat_inter = malloc(NvnS*Nvar*d * sizeof *qhat_inter); // free
 	for (dim = 0; dim < d; dim++)
 		mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,VOLUME->MInv,&q_inter[NvnS*Nvar*dim],&qhat_inter[NvnS*Nvar*dim]);
+	free(q_inter);
+
 	if (VOLUME->MInv) {
 		free(VOLUME->MInv);
 		VOLUME->MInv = NULL;
 	}
 
 	// Filter order P terms to get q accurate to order P-1
+	ELEMENT = get_ELEMENT_type(VOLUME->type);
+	P = VOLUME->P;
+
+	OPS->NvnSPm1     = ELEMENT->NvnS[P-1];
+	OPS->Ihat_vS_vS  = ELEMENT->Ihat_vS_vS[P-1][P];
+	OPS->L2hat_vS_vS = ELEMENT->L2hat_vS_vS[P][P-1];
+
 	FilterP = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,OPS->NvnSPm1,1.0,OPS->Ihat_vS_vS[0],OPS->L2hat_vS_vS[0]);
 
 	for (dim = 0; dim < d; dim++)
@@ -475,6 +485,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 
 				compute_inverse_mass(VOLUME);
 				mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,VOLUME->MInv,u_inter,VOLUME->uhat);
+				free(u_inter);
 				if (VOLUME->MInv) {
 					free(VOLUME->MInv);
 					VOLUME->MInv = NULL;

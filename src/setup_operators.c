@@ -337,10 +337,9 @@ static void setup_ELEMENT_operator_dependencies(const unsigned int EType)
 			if (ChiInvS_vS[Pb][Pb][0] == NULL)
 				ChiInvS_vS[Pb][Pb][0] = inverse_d(NvnS[Pb],NvnS[Pb],ChiS_vS,IS); // keep
 
-			if (Pb != P) {
-				free(IS);
-				free(ChiRefS_vS);
-			} else {
+			free(IS);
+			free(ChiRefS_vS);
+			if (Pb == P) {
 				// Avoid negative Pb for P = 0
 				break;
 			}
@@ -487,8 +486,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	// No need to consider the second Eclass as WEDGE basis functions will be built through a combination of lower
 	// dimensional operators.
 	Eclass = get_Eclass(EType);
-//	if (EType != TET && EType != PYR)
-		setup_ELEMENT_VeV(EType);
+	setup_ELEMENT_VeV(EType);
 
 	dE      = ELEMENT->d;
 	Nve     = ELEMENT->Nve;
@@ -660,6 +658,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	free(IGs);
 	free(ChiRefGs_vGs);
+	free(ChiRefInvGs_vGs);
 
 
 	// Vertex blending operators
@@ -689,6 +688,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(ChiRefGs_vG2);
 	free(ChiGs_vG2);
 	free(ChiRefG2_vG2);
+	free(ChiRefInvG2_vG2);
 
 
 	// Get Barycentric coordinates for lower dimensional ELEMENTs
@@ -889,7 +889,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				ChiRefGs_vIc = basis(PGs,rst_vIc[0],NvnIc[Pb],&Nbf,dE); // free
 
 				free(E_rst_vV);
-				free(ChiRefInvGs_vGs);
 
 				E_rst_vV        = get_rst_vV(ELEMENT_h);                   // free
 				IGs             = identity_d(Nve_h);                       // free
@@ -901,6 +900,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				BCoords_V[i]->S[Pb]  = mm_Alloc_d(CBCM,CBT,CBT,NvnS[Pb], Nve_h,Nve_h,1.0,ChiRefGs_vS, ChiRefInvGs_vGs); // free
 				BCoords_V[i]->Is[Pb] = mm_Alloc_d(CBCM,CBT,CBT,NvnIs[Pb],Nve_h,Nve_h,1.0,ChiRefGs_vIs,ChiRefInvGs_vGs); // free
 				BCoords_V[i]->Ic[Pb] = mm_Alloc_d(CBCM,CBT,CBT,NvnIc[Pb],Nve_h,Nve_h,1.0,ChiRefGs_vIc,ChiRefInvGs_vGs); // free
+
+				free(ChiRefInvGs_vGs);
 
 				if (i) {
 					free(rst_vS[0]);
@@ -1426,11 +1427,19 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(rst_vIs);
 	free(rst_vIc);
 
-	free(ChiRefInvGs_vGs);
+	free(ChiInvG2_vG2);
 
-	free(BCoords_E);
+	free(TG2);
+
+	if (dE == DMAX) {
+		array_free2_d(PMax+1,BCoords_E->G2);
+		array_free2_d(PMax+1,BCoords_E->Gc);
+		free(BCoords_E);
+		free(BCoords_dEm2);
+	}
 
 	for (IndFType = 0; IndFType < NFTypes; IndFType++) {
+		array_free2_d(PMax+1,BCoords_F[IndFType]->G2);
 		array_free2_d(PMax+1,BCoords_F[IndFType]->Gc);
 		array_free2_d(PMax+1,BCoords_F[IndFType]->S);
 		array_free2_d(PMax+1,BCoords_F[IndFType]->Is);
@@ -2826,7 +2835,7 @@ static void setup_blending(const unsigned int EType)
 			rst_proj  = malloc(NvnGc[P]*(dE-1) * sizeof *rst_proj);  // free
 			rst_proj2 = malloc(NvnG2[2]*(dE-1) * sizeof *rst_proj2); // free
 
-			if (Blending == HESTHAVEN && EType == TRI) {
+			if (Blending == SCOTT && EType == TRI) {
 				// dE == 2
 				for (dim = 0; dim < dE-1; dim++) {
 					for (n = 0; n < NvnGc[P]; n++)
@@ -2883,7 +2892,7 @@ static void setup_blending(const unsigned int EType)
 				// Compute projection of VOLUME nodes to FACE
 				mm_CTN_d(NvnG2[2],dE-1,Nfve[f],BCoords_F,rst_v0Gs,rst_proj2);
 				free(BCoords_F);
-			} else if (Blending == GORDON_HALL || Eclass == C_TP) {
+			} else if (Eclass == C_TP) { // GORDON_HALL blending
 				rst_vGs = get_rst_vV(ELEMENT); // free
 				rst_vGsF = malloc(Nve*(dE-1) * sizeof *rst_vGsF); // free
 
@@ -2901,6 +2910,7 @@ static void setup_blending(const unsigned int EType)
 				mm_CTN_d(NvnG2[2],dE-1,Nve,BCoords_V2,rst_vGsF,rst_proj2);
 				free(rst_vGsF);
 			} else {
+				// Allow correct_ToBeCurved in setup_ToBeCurved for WEDGE and PYR elements. (ToBeDeleted)
 				printf("Add Support.\n"), EXIT_MSG;
 			}
 if (P == 4 && EType == TRI && f == 2) {
@@ -2982,6 +2992,7 @@ if (P == 4 && EType == TRI && f == 2) {
 
 			free(rst_v0Gs);
 			free(rst_proj);
+			free(rst_proj2);
 		}
 
 		// EDGE related operators
@@ -3120,11 +3131,11 @@ static void setup_vertex_projection(const unsigned int EType)
 	free(ChiGs_vGs);
 
 	for (vh = 0; vh < Nvref; vh++) {
-		VeMask[vh] = malloc(Nve * sizeof *VeMask[vh]); // keep
-
 		// Set Nvve[vh] for QUADs, HEXs, WEDGEs
 		if (Nvve[vh] == 0)
 			Nvve[vh] = Nve;
+
+		VeMask[vh] = malloc(Nvve[vh] * sizeof *VeMask[vh]); // keep
 
 		for (ve = 0; ve < Nvve[vh]; ve++) {
 		for (veP2 = 0; veP2 < NveP2; veP2++) {
@@ -3264,7 +3275,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_ELEMENT_operators(EType);
-		setup_blending(EType);
+//		setup_blending(EType);
 		setup_vertex_projection(EType);
 	}
 
@@ -3279,7 +3290,7 @@ void setup_operators(void)
 		setup_ELEMENT_plotting(EType);
 		setup_ELEMENT_normals(EType);
 		setup_TP_operators(EType);
-		setup_blending(EType);
+//		setup_blending(EType);
 //		setup_vertex_projection(EType);
 	}
 

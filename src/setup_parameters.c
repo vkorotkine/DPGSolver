@@ -108,7 +108,7 @@
  *		Blending        : Type of blending used in curved elements. Options:
  *		                  GORDON_HALL
  *		                  SZABO_BABUSKA
- *		                  HESTHAVEN (Identical to Lenoir(1986), eq. (14), originally from Scott(1973)).
+ *		                  SCOTT
  *		                  NIELSON
  *		Parametrization : Type of parametrization used in curved elements.
  *		                  Options: ArcLength, RadialProjection (Under consideration), EqualTangent (Under consideration)
@@ -224,7 +224,7 @@ void setup_parameters()
 	Blending_HO = 0;
 //	Blending = GORDON_HALL;
 	Blending = SZABO_BABUSKA;
-//	Blending = HESTHAVEN; // Change to SCOTT
+//	Blending = SCOTT;
 //	Blending = NIELSON;
 
 	Parametrization = NORMAL;

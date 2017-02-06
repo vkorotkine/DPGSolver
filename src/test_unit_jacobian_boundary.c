@@ -193,4 +193,6 @@ printf("\nWarning: boundary_Riemann is currently not being tested for d = 1.\n\n
 
 	for (i = 0; i < NBTypes; i++)
 		free(BType[i]);
+
+	free(DB.SolverType); // From initialize_test_case_parameters
 }

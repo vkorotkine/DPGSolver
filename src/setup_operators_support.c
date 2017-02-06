@@ -246,7 +246,7 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 	NfnIc        = malloc(NP * sizeof *(NfnIc));      // keep
 	w_fIs        = malloc(NP * sizeof *(w_fIs));      // keep
 	w_fIc        = malloc(NP * sizeof *(w_fIc));      // keep
-	BCoords_G2   = malloc(NP * sizeof *(BCoords_G2)); // keep
+	BCoords_G2   = calloc(NP , sizeof *(BCoords_G2)); // keep
 	BCoords_Gc   = malloc(NP * sizeof *(BCoords_Gc)); // keep
 	BCoords_S    = malloc(NP * sizeof *(BCoords_S));  // keep
 	BCoords_Is   = malloc(NP * sizeof *(BCoords_Is)); // keep
@@ -430,7 +430,7 @@ struct S_BCOORDS *get_BCoords_dEm2(const struct S_ELEMENT *ELEMENT)
 	BCoords_dEm2 = malloc(     sizeof *BCoords_dEm2); // keep
 	NenG2        = calloc(NP , sizeof *NenG2);        // keep
 	NenGc        = malloc(NP * sizeof *NenGc);        // keep
-	BCoords_G2   = malloc(NP * sizeof *BCoords_G2);   // keep
+	BCoords_G2   = calloc(NP , sizeof *BCoords_G2);   // keep
 	BCoords_Gc   = malloc(NP * sizeof *BCoords_Gc);   // keep
 
 	ELEMENT_E = get_ELEMENT_type(LINE);
@@ -733,6 +733,8 @@ void setup_ELEMENT_VeV(const unsigned int EType)
 			VeVrefInd += jMax;
 
 		jMax = Nve*Nvve[i];
+		if (VeV[i])
+			free(VeV[i]);
 		VeV[i] = malloc(jMax * sizeof *VeV[i]); // keep
 		for (j = 0; j < jMax; j++)
 			VeV[i][j] = VeVref[VeVrefInd+j];

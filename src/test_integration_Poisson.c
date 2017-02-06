@@ -38,26 +38,23 @@
  *		It was very difficult to find a case where it was clear that blending of a curved boundary was leading to a loss
  *		of optimal convergence, despite the potentially unbounded mapping derivatives with h-refinement required for the
  *		optimal error estimate in Ciarlet(1972) (Theorem 5). As noted in Scott(1973) (p. 54), the mapping function and
- *		all of its derivatives are bounded in terms of the boundary curvature and its derivatives, which motivated the
- *		implementation of the GaussianBump geometry possessing high element curvature on coarse meshes. For this case,
+ *		all of its derivatives are bounded IN TERMS OF THE BOUNDARY CURVATUVE AND ITS DERIVATIVES, which motivated the
+ *		implementation of cases with geometry possessing high element curvatuve on coarse meshes. For these cases,
  *		optimal convergence is lost until the mesh has been refined "enough" (such that the element curvature is small)
  *		at which point it is recovered. Perhaps even more significant, the L2 error of the projection of the exact
  *		solution sometimes increased with mesh refinement on coarse meshes (run with Compute_L2proj = 1), a trend which
  *		was not observed for the computed solution. There was no modification found which could serve to fix this issue
  *		(such as the use of alternate blending functions or generalizations of the high-order blending used to fix the
- *		NIELSON blending as proposed by Lenoir(1986)). The results for other geometries considered (Circle, Ellipse,
- *		Ringleb) resulted in optimal (or very nearly optimal) convergence.
+ *		NIELSON blending as proposed by Lenoir(1986)). The mathematical and numerical support for this observation can
+ *		be found in Zwanenburg(2017).
  *
- *		These results suggest that errors introduced because of the use of blending functions for curved boundary
- *		representation are significant, but only for geometries with high "discrete curvature" (i.e. high curvature seen
- *		by boundary elements). However, it is desirable to know whether such geometries are suitable for such analysis
- *		(using high order methods) in the first place. This may perhaps be confirmed if a NURBS representation of the
- *		boundary (and domain) results in the recovery of optimal orders but this can not be tested with the current
- *		functionality of the code. Investigation may be pursued if an Isogeometric Analysis code becomes available. Note
- *		that it was confirmed that the asymptotic range was reached by verifying that optimal convergence was obtained
- *		on straight meshes of comparable mesh length. Note that using higher order geometry representation improved, but
- *		did not result in complete recovery of, optimal orders (Compared PG = P with PG = P+5 for P = 1 to 6).
- *		(ToBeModified)
+ *		As a results of the conclusions of the study performed in Zwanenburg(2017) (and based on my current
+ *		understanding), it seems that any of the optimal blending functions should give analogous results (SCOTT,
+ *		SZABO_BABUSKA, LENOIR) and that the NORMAL surface parametrization is best (certainly in the 2D case). For the
+ *		extension to 3D blending, the approach to be taken would be to extend the SB blending to PYR elements (using a
+ *		combination of GH and SB for the LINE and TRI parts of the WEDGE element). The surface parametrization for the
+ *		non-edge geometry nodes could be use the NORMAL parametrization. An investigation into the optimal EDGE
+ *		parametrization is still required.
  *
  *		It may also be noted that, despite converging at the same rate, the L2error of the computed solution is
  *		significantly higher than that of the L2 projected exact solution for certain polynomial orders. Comparison with
@@ -99,6 +96,8 @@
  *		Ciarlet(1972)-Interpolation_Theory_Over_Curved_Elements,_with_Applications_to_Finite_Element_Methods
  *		Scott(1973)-Finite_Element_Techniques_for_Curved_Boundaries
  *		Lenoir(1986)-Optimal_Isoparametric_Finite_Elements_and_Error_Estimates_for_Domains_Involving_Curved_Boundaries
+ *		Zwanenburg(2017)-A_Necessary_High-Order_Meshing_Constraint_when_using_Polynomial_Blended_Geometry_Elements_for_
+ *		                 Curved_Boundary_Representation
  */
 
 struct S_linearization {
@@ -218,7 +217,7 @@ void test_integration_Poisson(int nargc, char **argv)
 	strcpy(TestName,"Linearization Poisson (2D - Mixed):              ");
 	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_mixed");
 
-if (0)
+//if (0)
 	test_linearization(nargc,argvNew,0,1,TestName,data);
 
 
@@ -231,7 +230,7 @@ if (0)
 	strcpy(TestName,"Linearization Poisson (3D - TET):                ");
 	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
 
-if (0) // May need a coarser mesh here (ToBeDeleted)
+if (0) // The 3D testing needs to be updated (ToBeDeleted)
 	test_linearization(nargc,argvNew,0,1,TestName,data);
 
 
@@ -239,8 +238,8 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 	// Convergence Order Testing
 	// **************************************************************************************************** //
 //	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_mixed");
-//	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_TRI");
-	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
+	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_TRI");
+//	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_QUAD");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_QUAD");
@@ -252,57 +251,19 @@ if (0) // May need a coarser mesh here (ToBeDeleted)
 //	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_TP");
 //	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_HW");
 
-/*
- *	Additional Goals/Considerations:
- *		Have all outputs for the paper automatically generated by the code.
- *
- *	Plan for Paper:
- *
- *	  2D:
- *		1) Show that geometry pollutes L2 error when discrete mesh length is greater than maximum geometry curvature
- *		   bound:
- *			- Numerical (Uniform + Anisotropic mesh refinement); also include L2 projection of exact solution for
- *			  verification. Gaussian Bump/Ellipse with increasing curvature + Airfoil case ideally.
- *			- Analytical (based on exact satisfaction of Ciarlet's conditions for circular geometry (for arbitrary
- *			  (symmetric? INVESTIGATE) node sets)); i.e. h (edge length) should fit within the circle of maximum
- *			  curvature before asymptotic geometry convergence is possible.
- *		2) Perhaps check geometry convergence to exact boundary with refinement (in L2).
- *
- *	  3D: (Under consideration)
- *		*** DO NOT PUT TOO MUCH EFFORT INTO THIS AS IGA IS LIKELY A BETTER FRAMEWORK IN WHICH TO DEVELOP 3D CURVED
- *		    GEOMETRY TREATMENT ***
- *		3) Extend results for 2D using ONLY the Spherical and Ellipsoidal geometry (such that the bijective (and
- *		   unambiguous) radial projection can be used for surface parametrization. Note that blending is not needed for P
- *		   <= 3 for TET ELEMENTs.
- *		4) Potentially extend blending functions to 3D based on preservation of maximal algebraic precision.
- *
- *		Details:
- *			2D:
- *				In all cases:
- *					1) Show optimal convergence on straight meshes to establish that the assymptotic range as been
- *					   reached.
- *					2) Compare L2 projection of exact solution with computed solution and show loss of optimal orders
- *					   due to geometry error.
- *
- *				1) Circular section case.
- *				2) Ellipse section case.
- *				3) Gaussian bump case.
- *
- */
-
 	TestDB.PG_add = 0;
-	TestDB.IntOrder_add  = 2;
+	TestDB.IntOrder_add  = 2; // > 1 for non-zero error for L2 projection on TP elements
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 5;
+	PMin  = 1; PMax  = 4;
 	MLMin = 0; MLMax = 3;
 TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
-	Compute_L2proj = 1; // Use IntOrder_add > 0 for non-trivial P1-P2 results for L2proj
-	AdaptiveRefine = 1;
+	Compute_L2proj = 0; // Use IntOrder_add > 0 for non-trivial P1-P2 results for L2proj
+	AdaptiveRefine = 0;
 //	Adapt = ADAPT_0;
 	Adapt = ADAPT_HP;
 	if (Adapt != ADAPT_0) {
@@ -365,7 +326,6 @@ TestDB.PGlobal = 1;
 			initialize_test_case(0);
 			// Output to paraview
 			if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 5 && TestDB.ML <= 4)) {
-//			if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 2 && TestDB.ML <= 4)) {
 				fNameOut = get_fNameOut("SolFinal_");
 				output_to_paraview(fNameOut);
 
@@ -398,9 +358,8 @@ TestDB.PGlobal = 1;
 	if (Adapt != ADAPT_0)
 		code_cleanup();
 	free(mesh_quality);
-	// test with all fluxes as they are implemented (ToBeModified)
 
-	printf("Convergence Orders - Poisson (3D - TET  ):       ");
+	printf("Convergence Orders - Poisson (3D - TRI  ):       ");
 	test_print(pass);
 
 

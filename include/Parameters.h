@@ -74,9 +74,8 @@
 // Geometry related parameters
 #define GORDON_HALL       1
 #define SZABO_BABUSKA     2
-#define HESTHAVEN         3
+#define SCOTT             3
 #define NIELSON           4
-#define COONS             5
 
 #define ARC_LENGTH        1
 #define RADIAL_PROJECTION 2

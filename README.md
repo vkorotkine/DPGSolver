@@ -51,7 +51,6 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 | dSphericalBump   | TO BE DONE |
 | GaussianBump     | TO BE DONE |
 | PeriodicVortex   | DONE       |
-| PolynomialBump   | TO BE DONE |
 | SupersonicVortex | DONE       |
 
 #### Explicit

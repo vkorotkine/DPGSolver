@@ -59,7 +59,7 @@ case ${KERNEL} in
 esac
 
 if [ "$USE_VALGRIND" = "1" ]; then
-  VALGRIND_OPTS="valgrind --track-origins=yes --leak-check=yes"
+  VALGRIND_OPTS="valgrind --track-origins=yes --leak-check=yes --show-possibly-lost=no"
   #VALGRIND_OPTS="valgrind --track-origins=yes --leak-check=yes --leak-check=full --show-reachable=yes"
 else
   VALGRIND_OPTS=""

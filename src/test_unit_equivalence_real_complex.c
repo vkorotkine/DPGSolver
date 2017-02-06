@@ -116,6 +116,7 @@ void test_unit_equivalence_real_complex(void)
 	}
 
 	free(DB.TestCase);
+	free(DB.SolverType);
 }
 
 static unsigned int compare_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const unsigned int d,

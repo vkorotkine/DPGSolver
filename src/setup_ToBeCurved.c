@@ -311,7 +311,7 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 			}
 
 			// Correct internal VOLUME geometry coordinates using blending
-			if (nG == 1 && correctTBC)
+			if (nG == 1 && correctTBC && VOLUME->Eclass != C_WEDGE && VOLUME->Eclass != C_PYR)
 				correct_ToBeCurved(VOLUME);
 		}
 	}

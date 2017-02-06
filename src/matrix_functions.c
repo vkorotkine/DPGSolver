@@ -93,6 +93,7 @@ double *inverse_d(const unsigned int N, const unsigned int NRHS, const double *A
 	}
 
 	free(A);
+//	mkl_free_buffers(); // Potentially only works with 2017 version of IntelMKL (ToBeModified)
 	return x;
 }
 

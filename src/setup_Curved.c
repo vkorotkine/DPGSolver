@@ -969,7 +969,7 @@ static double *compute_BlendV(struct S_Blend *data, const unsigned int order)
 	I_vGs_vGc = data->I_vGs_vGc;
 	I_bGs_vGc = data->I_bGs_vGc;
 
-	if (Blending == HESTHAVEN && type == TRI) {
+	if (Blending == SCOTT && type == TRI) {
 		for (n = 0; n < NvnG; n++) {
 			BlendNum = I_vGs_vGc[n*Nve+VeBcon[b*NbveMax+0]];
 			BlendDen = 1.0-I_vGs_vGc[n*Nve+VeBcon[b*NbveMax+1]];
@@ -1515,7 +1515,8 @@ void setup_Curved_vertices(struct S_VOLUME *VOLUME)
 
 	I_vGs_vGsP2 = ELEMENT->I_vGs_vGs[1][2][0];
 
-
+	if (VOLUME->XYZ_vVP2)
+		free(VOLUME->XYZ_vVP2);
 	VOLUME->XYZ_vVP2 = malloc(NveP2*d * sizeof *(VOLUME->XYZ_vVP2)); // keep
 
 	// Compute straight geometry nodes of P2 element
