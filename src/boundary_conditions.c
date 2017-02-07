@@ -95,8 +95,7 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 	}
 
 	// Outer VOLUME
-	if (strstr(TestCase,"SupersonicVortex") ||
-	    strstr(TestCase,"Test_linearization")) {
+	if (strstr(TestCase,"SupersonicVortex")) {
 		// Use the exact solution for the Outer VOLUME
 		for (i = 0; i < NnTotal; i++) {
 			r = sqrt(X[i]*X[i]+Y[i]*Y[i]);
@@ -113,6 +112,18 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 			Indn = i*DMAX;
 //			VnR[i] = n[Indn  ]*uR[i]+n[Indn+1]*vR[i]+n[Indn+2]*wR[i];
 			VnR[i] = n[Indn  ]*uR[i]+n[Indn+1]*vR[i]; // wR == 0
+		}
+	} else if (strstr(TestCase,"InviscidChannel")) {
+		// Use exact uniform channel solution for outer VOLUME
+		for (i = 0; i < NnTotal; i++) {
+			rhoR[i] = DB.rhoInf;
+			pR[i]   = DB.pInf;
+			uR[i]   = DB.MInf*DB.cInf;
+			vR[i]   = 0.0;
+			wR[i]   = 0.0;
+
+			Indn = i*DMAX;
+			VnR[i] = n[Indn]*uR[i]; // vR == wR == 0
 		}
 	} else {
 		printf("TestCase: %s\n",TestCase);

@@ -32,7 +32,8 @@
  *	References:
 */
 
-double f_gaussian_bump(const double x, const double y, const unsigned int d);
+double f_gaussian_bump (const double x, const double y, const unsigned int d);
+double f_naca_symmetric(const double x, const double y, const unsigned int d);
 
 void Ringleb_boundary(double *xStore, double *yStore, double qIn, double kIn, const char RinglebType)
 {
@@ -361,6 +362,22 @@ void vertices_to_exact_geom(void)
 				// No need to correct z component
 			}
 		}
+	} else if (strstr(Geometry,"NacaSymmetric")) {
+		double F_xy;
+
+		for (ve = 0; ve < NVe; ve++) {
+			if (!VeUpdate[ve])
+				continue;
+
+			VeUpdate[ve]  = 0;
+			VeSurface[ve] = 0;
+
+			F_xy = f_naca_symmetric(VeXYZ[ve*d],VeXYZ[ve*d+1],d);
+			if (fabs(VeXYZ[ve*d+dM1]-F_xy) < NODETOL_MESH) {
+				VeSurface[ve] = 0;
+				VeXYZ[ve*d+dM1] = F_xy;
+			}
+		}
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -384,4 +401,32 @@ double f_gaussian_bump(const double x, const double y, const unsigned int d)
 	} else {
 		printf("Error: Invalid dimension used in f_gaussian_bump.\n"), exit(1);
 	}
+}
+
+double f_naca_symmetric(const double x, const double y, const unsigned int d)
+{
+	unsigned int i;
+	double c, t, a[5], Output;
+
+	c = DB.NSc;
+	t = DB.NSt;
+
+	a[0] = DB.NS0;
+	a[1] = DB.NS1;
+	a[2] = DB.NS2;
+	a[3] = DB.NS3;
+	a[4] = DB.NS4;
+
+	Output = a[0]*sqrt(x/c);
+	for (i = 1; i < 5; i++)
+		Output += a[i]*pow(x/c,(double) i);
+	Output *= 5.0*c*t;
+
+	if (fabs(x) < EPS)
+		Output = 0.0;
+
+	return Output;
+
+	if (0) // silence
+		printf("%d %f\n",d,y);
 }

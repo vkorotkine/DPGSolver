@@ -74,6 +74,8 @@ static void update_TestCase(void)
 	    strstr(DB.TestCase,"Poisson_HoldenRamp")            ||
 	    strstr(DB.TestCase,"Poisson_GaussianBump")) {
 		strcpy(DB.TestCase,"Poisson");
+	} else if (strstr(DB.TestCase,"Euler")) {
+		strcpy(DB.TestCase,"InviscidChannel");
 	} else if (strstr(DB.TestCase,"L2_proj") ||
 	           strstr(DB.TestCase,"update_h")) {
 		strcpy(DB.TestCase,"PeriodicVortex_Test");
@@ -208,6 +210,8 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 		NVars = DMAX+1;
 	} else if (strstr(TestCase,"SupersonicVortex")) {
 		NVars = DMAX+2+1;
+	} else if (strstr(TestCase,"InviscidChannel")) {
+		NVars = 1;
 	} else {
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
 	}
@@ -226,7 +230,8 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 				VarsToCheck[i]    = 0;
 			}
 		}
-	} else if (strstr(TestCase,"SupersonicVortex")) {
+	} else if (strstr(TestCase,"SupersonicVortex") ||
+	           strstr(TestCase,"InviscidChannel")) {
 		for (i = 0; i < NVars; i++) {
 			OrderIncrement[i] = 1;
 			if (i <= d || i > DMAX) {

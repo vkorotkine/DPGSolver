@@ -104,7 +104,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 	}
 }
 
-static void compute_initial_solution(const unsigned int Nn, double *XYZ, double *UEx);
+void compute_solution(const unsigned int Nn, double *XYZ, double *UEx, const unsigned int solved);
 static void adapt_initial(unsigned int *adapt_update);
 static void check_levels_refine(const unsigned int indexg, struct S_VInfo **VInfo_list, const unsigned int adapt_class);
 
@@ -165,16 +165,38 @@ void initialize_test_case_parameters(void)
 
 		DB.Nvar = 1;
 		DB.Neq  = 1;
-	} else if (strstr(TestCase,"dSphericalBump")) {
-//		DB.rIn = 0.1;
-		EXIT_MSG;
-	} else if (strstr(TestCase,"GaussianBump")) {
+	} else if (strstr(TestCase,"InviscidChannel")) {
+		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
+		strcpy(SolverType,"Implicit");
+		SourcePresent = 0;
 
-		DB.GBa = 0.0625;
-		DB.GBb = 0.0;
-		DB.GBc = 0.2;
+		// Equivalent to choosing total pressure/temperature and back pressure
+		DB.MInf   = 0.5;
+		DB.rhoInf = 1.0;
+		DB.pInf   = 1.0;
+		DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
 
-		EXIT_MSG;
+		if (strstr(Geometry,"GaussianBump")) {
+			unsigned int BumpFactor = 3;
+
+			DB.GBb = 0.0;
+//			DB.GBa = 0.0625;
+//			DB.GBc = 0.2/pow(2.0,BumpFactor);
+			DB.GBa = 0.0625/pow(2.0,BumpFactor);
+			DB.GBc = sqrt(1.5*DB.GBa);
+		} else if (strstr(Geometry,"NacaSymmetric")) {
+			double r = 0.25;
+
+			DB.NSc = 1.0;
+			DB.NSt = DB.NSc*sqrt(r)/1.1019;
+			DB.NS0 =  0.2969;
+			DB.NS1 = -0.1260;
+			DB.NS2 = -0.3516;
+			DB.NS3 =  0.2843;
+			DB.NS4 = -0.1036;
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+		}
 	} else if (strstr(TestCase,"PeriodicVortex")) {
 		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 		strcpy(SolverType,"Explicit");
@@ -415,7 +437,8 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	while (adapt_update) {
 		adapt_update = 0;
 		if (strstr(TestCase,"PeriodicVortex") ||
-		    strstr(TestCase,"SupersonicVortex")) {
+		    strstr(TestCase,"SupersonicVortex") ||
+			strstr(TestCase,"InviscidChannel")) {
 
 			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 				init_ops(OPS,VOLUME);
@@ -437,7 +460,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				U = malloc(NvnS*NVAR3D * sizeof *U); // free
 				W = malloc(NvnS*Nvar   * sizeof *W); // free
 
-				compute_initial_solution(NvnS,XYZ_vS,U);
+				compute_solution(NvnS,XYZ_vS,U,0);
 
 				convert_variables(U,W,3,d,NvnS,1,'p','c');
 				mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,W,What);
@@ -534,13 +557,45 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 //	output_to_paraview("ZTest_Sol_Init");
 }
 
-static void compute_initial_solution(const unsigned int Nn, double *XYZ, double *UEx)
+static void compute_uniform_solution(const unsigned int Nn, double *U)
+{
+	// Initialize DB Parameters
+	char *TestCase = DB.TestCase;
+
+	// Standard datatypes
+	unsigned int n;
+
+	if (strstr(TestCase,"InviscidChannel")) {
+		double rhoInf, pInf, MInf, cInf, uInf;
+
+		rhoInf = DB.rhoInf;
+		pInf   = DB.pInf;
+		MInf   = DB.MInf;
+		cInf   = DB.cInf;
+
+		uInf = MInf*cInf;
+
+		for (n = 0; n < Nn; n++) {
+			U[0*Nn+n] = rhoInf;
+			U[1*Nn+n] = uInf;
+			U[2*Nn+n] = 0.0;
+			U[3*Nn+n] = 0.0;
+			U[4*Nn+n] = pInf;
+		}
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+}
+
+void compute_solution(const unsigned int Nn, double *XYZ, double *UEx, const unsigned int solved)
 {
 	// Initialize DB Parameters
 	char *TestCase = DB.TestCase;
 
 	if (strstr(TestCase,"PeriodicVortex") || strstr(TestCase,"SupersonicVortex")) {
-		compute_exact_solution(Nn,XYZ,UEx,0);
+		compute_exact_solution(Nn,XYZ,UEx,solved);
+	} else if (strstr(TestCase,"InviscidChannel")) {
+		compute_uniform_solution(Nn,UEx);
 	} else {
 		printf("Error: Unsupported TestCase: %s.\n",TestCase), EXIT_MSG;
 	}

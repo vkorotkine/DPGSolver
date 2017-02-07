@@ -8,17 +8,20 @@ lc = 0.5/2.0^Refine;
 RefType = 0;
 
 BumpExp = 0;
+BumpScale = 3;
 N = 1e2;
 
 
 
 // Geometry Specification
-a = 0.0625;
-b = 0.0;
-c = 0.2/2^BumpExp;
+l = 1.5;
+h = 0.8;
 
-l = 0.5;
-h = 4.0*a;
+a = 0.0625/2^BumpScale;
+b = 0.0;
+//c = 0.2/2^BumpExp;
+c = Sqrt(a*l);
+
 
 
 xL = -l; x = xL; yL = a*Exp(-(x-b)^2/(2*c^2));
@@ -87,10 +90,9 @@ EndIf
 
 // Physical Parameters for '.msh' file
 
-Physical Line(10011) = {1003,1004}; // Straight Dirichlet
-Physical Line(10012) = {1005,1006}; // Straight Neumann
-Physical Line(20011) = {1001};      // Curved Dirichlet
-Physical Line(20012) = {1002};      // Curved Neumann
+Physical Line(10001) = {1005,1006}; // Straight Dirichlet
+Physical Line(10002) = {1003,1004}; // Straight Neumann
+Physical Line(20002) = {1001,1002}; // Curved Neumann
 
 Physical Surface(9401) = {4001:4002};
 

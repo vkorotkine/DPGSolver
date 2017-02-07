@@ -151,7 +151,7 @@ static void test_linearization(int nargc, char **argvNew, const unsigned int Nre
 	code_cleanup();
 }
 
-static char *get_fNameOut(char *output_type)
+char *get_fNameOut(char *output_type)
 {
 	char string[STRLEN_MIN], *fNameOut;
 
@@ -186,7 +186,7 @@ void test_integration_Poisson(int nargc, char **argv)
 	/*
 	 *	Input:
 	 *
-	 *		Meshes for a curved Poisson problem. (ToBeModified: Potentially just coarsest mesh then h-refinement)
+	 *		Meshes for a curved Poisson problem.
 	 *
 	 *	Expected Output:
 	 *

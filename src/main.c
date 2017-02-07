@@ -227,6 +227,7 @@ int main(int nargc, char **argv)
 #include "test_integration_linearization.h"
 #include "test_integration_L2_projection_errors.h"
 #include "test_integration_Poisson.h"
+#include "test_integration_Euler.h"
 
 #include "test_speed_array_swap.h"
 #include "test_speed_mm_CTN.h"
@@ -257,8 +258,8 @@ int main(int nargc, char **argv)
 	TestDB.Npass = 0;
 	TestDB.Nwarnings = 0;
 
-	RunTest.unit        = 1;
-	RunTest.integration = 1;
+	RunTest.unit        = 0;
+	RunTest.integration = 0;
 	RunTest.speed       = 0;
 
 
@@ -315,7 +316,8 @@ int main(int nargc, char **argv)
 		test_integration_linearization(nargc,argv);
 //		PetscFinalize();
 	}
-	test_integration_Poisson(nargc,argv);
+//	test_integration_Poisson(nargc,argv);
+	test_integration_Euler(nargc,argv);
 	PetscFinalize();
 
 

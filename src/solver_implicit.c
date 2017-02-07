@@ -15,6 +15,7 @@
 #include "Macros.h"
 #include "S_DB.h"
 #include "S_VOLUME.h"
+#include "Test.h"
 
 #include "adaptation.h"
 #include "update_VOLUMEs.h"
@@ -109,7 +110,7 @@ void solver_implicit(void)
 	unsigned int PrintTesting = 1;
 
 	// Standard datatypes
-	char         *dummyPtr_c[2];
+	char         *dummyPtr_c[2], *string, *fNameOut;
 	unsigned int i, iMax, iteration, IndA, NvnS;
 	int          iteration_ksp;
 	double       maxRHS0, maxRHS, *What, *dWhat;
@@ -118,6 +119,9 @@ void solver_implicit(void)
 
 	for (i = 0; i < 2; i++)
 		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free
+
+	fNameOut = malloc(STRLEN_MAX * sizeof *fNameOut); // free
+	string   = malloc(STRLEN_MIN * sizeof *string);   // free
 
 	update_VOLUME_finalize();
 
@@ -177,7 +181,7 @@ void solver_implicit(void)
 		finalize_ksp(&A,&b,&x,2);
 
 		// Output to paraview
-		if (PrintTesting && (iteration % OutputInterval == 0 || iteration < 5)) {
+		if (PrintTesting && (iteration % OutputInterval == 0 || iteration < 3)) {
 			sprintf(dummyPtr_c[1],"%d",iteration);
 			strcpy(dummyPtr_c[0],"SolStart");
 			strcat(dummyPtr_c[0],dummyPtr_c[1]);
@@ -198,12 +202,30 @@ void solver_implicit(void)
 		}
 
 		// hp adaptation
-		if (Adapt)
+		if (0&&Adapt)
 			adapt_hp();
 
 		iteration++;
 	}
 
+	// Output to paraview
+	if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 4 && TestDB.ML <= 4)) {
+		strcpy(fNameOut,"SolFinal_");
+		sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
+		                               strcat(fNameOut,DB.MeshType);
+		if (DB.Adapt == ADAPT_0) {
+			sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
+			sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
+		} else {
+			sprintf(string,"_ML%d",TestDB.ML); strcat(fNameOut,string);
+			sprintf(string,"P%d_",TestDB.PGlobal); strcat(fNameOut,string);
+		}
+		output_to_paraview(fNameOut);
+	}
+
 	for (i = 0; i < 2; i++)
 		free(dummyPtr_c[i]);
+
+	free(fNameOut);
+	free(string);
 }

@@ -57,8 +57,9 @@ struct S_XYZ {
 	double       *XYZ, *PComps;
 };
 
-typedef void (*compute_pc_tdef) (struct S_pc *data);
-typedef void (*compute_XYZ_tdef) (struct S_XYZ *data);
+typedef void   (*compute_pc_tdef)  (struct S_pc *data);
+typedef void   (*compute_XYZ_tdef) (struct S_XYZ *data);
+typedef double (*surface_tdef)     (const double x, const double y, const unsigned int d);
 
 struct S_Blend {
 	unsigned int b, NvnG, NbnG, Nve, *Nbve, *VeBcon, NbveMax, *VeInfo, EclassV, type, BC;
@@ -189,6 +190,20 @@ static double get_radius(const unsigned int Nn, double *XYZ)
 		printf("Error: Did not find the radius.\n"), EXIT_MSG;
 	}
 	return r;
+}
+
+static void select_functions_surface(surface_tdef *f_surface)
+{
+	// Initialize DB Parameters
+	char *Geometry = DB.Geometry;
+
+	if (strstr(Geometry,"GaussianBump")) {
+		*f_surface = f_gaussian_bump;
+	} else if (strstr(Geometry,"NacaSymmetric")) {
+		*f_surface = f_naca_symmetric;
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
 }
 
 void compute_normal_displacement(const unsigned int Nn, const unsigned int curved_normal, const double *XYZ_S,
@@ -512,11 +527,16 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 			for (dim = 0; dim < d; dim++)
 				XYZ_CmS[n+Nn*dim] = XYZ_C[dim]-XYZ[dim];
 		}
-	} else if (strstr(Geometry,"GaussianBump")) {
+	} else if (strstr(Geometry,"GaussianBump") ||
+	           strstr(Geometry,"NacaSymmetric")) {
 		double       nx, ny, xS, yS, DStep, x, y, h, xp, yp, ypE;
 
 		unsigned int i, j, count, countMax;
 		double       Dmult, y_ratio, yE, Dup;
+
+		surface_tdef f_surface;
+
+		select_functions_surface(&f_surface);
 
 		if (d == 3)
 			printf("Add support.\n"), EXIT_MSG;
@@ -556,27 +576,22 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 			y = yS;
 
 			if (d == 2)
-				D = yS-f_gaussian_bump(x,y,d);
+				D = yS-f_surface(x,y,d);
 			else
 				printf("Add support\n"), EXIT_MSG;
 
-//			if ((D > 0.0 && ny < 0.0) || (D < 0.0 && ny > 0.0))
 			if (D/ny < 0.0)
 				Dmult = 1.0;
 
 			// Find Distance from node to surface
 			if (h < 1.0)
-				DStep = 1e-1*Dmult*h*h;
+				DStep = 5e-2*Dmult*h*h;
 			else
 				DStep = 1e-1*Dmult;
 
 			// Check if the node is on the surface
 			if (fabs(D) < EPS)
 				DStep = 0.0;
-//printf("\n\n\n");
-//printf("%d % .3e % .3e % .3e\n",n,xS,yS,h);
-//printf("% .3e % .3e\n",nx,ny);
-//printf("% .3e % .3e % .3e\n",D,DStep,Dmult);
 
 			D = 0.0;
 			if (fabs(DStep) > EPS) {
@@ -588,15 +603,14 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 
 					xp  = xS+D*nx;
 					yp  = yS+D*ny;
-					ypE = f_gaussian_bump(xp,yp,d);
+					ypE = f_surface(xp,yp,d);
 
 					x  = xS+Dup*nx;
 					y  = yS+Dup*ny;
-					yE = f_gaussian_bump(x,y,d);
+					yE = f_surface(x,y,d);
 
 					y_ratio = (yp-ypE)/(y-yE);
 
-//printf("%3d % .3e % .3e % .3e % .3e\n",count,D,fabs(yp-ypE),fabs(y-yE),y_ratio);
 					if ((fabs(yp-ypE) < fabs(y-yE)) || y_ratio < 0.0)
 						break;
 
@@ -604,85 +618,38 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 				}
 				if (count == countMax)
 					printf("Error: Potential problem.\n"), EXIT_MSG;
-//printf("%d % .3e\n\n",count,D);
 			}
 
-//printf("\n");
 			while (fabs(DStep) > 1e-1*EPS) {
 				Dup = D+DStep;
 
 				xp  = xS+D*nx;
 				yp  = yS+D*ny;
-				ypE = f_gaussian_bump(xp,yp,d);
+				ypE = f_surface(xp,yp,d);
 
 				x  = xS+Dup*nx;
 				y  = yS+Dup*ny;
-				yE = f_gaussian_bump(x,y,d);
+				yE = f_surface(x,y,d);
 
 				y_ratio = (yp-ypE)/(y-yE);
 
 				if ((fabs(yp-ypE) > fabs(y-yE)) && y_ratio > 0.0)
 					D = Dup;
-//printf("%3d % .3e % .3e % .3e % .3e % .3e % .3e\n",count++,DStep,D,y_ratio,yS,y,yE);
 
 				DStep *= 0.5;
 			}
 
 			// Check that the surface was reached
-//printf("% .3e % .3e % .3e\n",D-Dup,yS+Dup*ny-(yS+D*ny),yS+D*ny);
 			x = xS+D*nx;
 			y = yS+D*ny;
 
 			if (d == 2) {
-				yE = f_gaussian_bump(x,y,d);
-				if (fabs(y-yE) > EPS)
-					printf("Error: Did not reach the surface (% .3e % .3e).\n",y,yE), EXIT_MSG;
+				yE = f_surface(x,y,d);
+				if (fabs(y-yE) > 1e1*EPS)
+					printf("Error: Did not reach the surface (% .3e % .3e % .3e % .3e).\n",x,y,yE,y-yE), EXIT_MSG;
 			} else {
 				printf("Add support.\n"), EXIT_MSG;
 			}
-
-
-//EXIT_MSG;
-/*
-			DMin = (xMin-xS)/nx;
-			DMax = (xMax-xS)/nx;
-
-			DStep = fabs(0.5*(DMax-DMin));
-			D = 0.5*(DMin+DMax);
-
-			// Check if already on the boundary
-			x = xS;
-			y = yS;
-			if (fabs(y-f_gaussian_bump(x,y,d)) < EPS)
-				DStep = 0.0;
-
-printf("%d %d % .3e % .3e\n",n,curved_normal,y,f_gaussian_bump(x,y,d));
-printf("% .3e % .3e\n",nx,ny);
-printf("% .3e % .3e % .3e % .3e\n",xS,yS,xMin,xMax);
-printf("% .3e % .3e % .3e % .3e\n",DMin,DMax,D,DStep);
-
-DStep *= 0.5;
-x = xS+D*nx;
-y = f_gaussian_bump(x,y,d);
-
-printf("% .3e % .3e % .3e\n",x,y,yS+ny*D);
-
-if (DStep > EPS)
-EXIT_MSG;
-
-			while (fabs(DStep) > EPS) {
-				DStep *= 0.5;
-
-				x = xS+D*nx;
-				y = f_gaussian_bump(x,y,d);
-
-//				if ((y-(yS+ny*D))/ny > 0.0)
-				if (yS+ny*D > y)
-					D += DStep;
-//				else
-//					D -= DStep;
-			}
-*/
 
 			for (dim = 0; dim < d; dim++) {
 				XYZ_C[dim] = XYZ[dim]+normals[Indn*d+dim]*D;
@@ -920,9 +887,10 @@ static void select_functions_Curved(compute_pc_tdef *compute_pc, compute_XYZ_tde
 		if (DB.Parametrization != NORMAL &&
 		    DB.Parametrization != RADIAL_PROJECTION)
 				printf("Error: Unsupported parametrization.\n"), EXIT_MSG;
-	} else if (strstr(Geometry,"Ringleb")    ||
-			   strstr(Geometry,"HoldenRamp") ||
-			   strstr(Geometry,"GaussianBump")) {
+	} else if (strstr(Geometry,"Ringleb")      ||
+			   strstr(Geometry,"HoldenRamp")   ||
+			   strstr(Geometry,"GaussianBump") ||
+			   strstr(Geometry,"NacaSymmetric")) {
 		if (DB.Parametrization != NORMAL)
 			printf("Add support if not using NORMAL parametrization.\n"), EXIT_MSG;
 		*compute_pc  = NULL;
