@@ -545,3 +545,165 @@ void jacobian_boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, d
 		}
 	}
 }
+
+void jacobian_boundary_BackPressure (const unsigned int Nn, const unsigned int Nel, double *WL, double *dWdW, double *nL,
+                                     const unsigned int d, const unsigned int Neq)
+{
+	/*
+	 *	Jacobian Matrices [var * eq]
+	 *
+	 *	Inlet
+	 *		Unsupported.
+	 *
+	 *	Supersonic Outlet
+	 *	dWBdWL = [  1  0  0  0  0
+	 *	            0  1  0  0  0
+	 *	            0  0  1  0  0
+	 *	            0  0  0  1  0
+	 *	            0  0  0  0  1 ]
+	 *
+	 *	Subsonic Outlet
+	 *		See below.
+	 */
+
+	// Standard datatypes
+	unsigned int n, NnTotal, eq, var, Nvar;
+	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *WL_ptr[Neq], *dWdW_ptr[Neq*Neq];
+
+	NnTotal = Nn*Nel;
+	Nvar    = Neq;
+
+	for (eq  = 0; eq  < Neq;  eq++)  {
+		WL_ptr[eq] = &WL[eq*NnTotal];
+		for (var = 0; var < Nvar; var++) {
+			dWdW_ptr[eq*Nvar+var] = &dWdW[(eq*Nvar+var)*NnTotal];
+		}
+	}
+
+	double zeros[NnTotal];
+
+	for (n = 0; n < NnTotal; n++)
+		zeros[n] = 0.0;
+
+	rhoL_ptr  = WL_ptr[0];
+	rhouL_ptr = WL_ptr[1];
+	EL_ptr    = WL_ptr[d+1];
+
+	n_ptr = nL;
+
+	if (d == 3) {
+		rhovL_ptr = WL_ptr[2];
+		rhowL_ptr = WL_ptr[3];
+	} else if (d == 2) {
+		rhovL_ptr = WL_ptr[2];
+		rhowL_ptr = zeros;
+	} else if (d == 1) {
+		rhovL_ptr = zeros;
+		rhowL_ptr = zeros;
+	}
+
+	for (n = 0; n < NnTotal; n++) {
+		unsigned int InddWdW = 0;
+		double rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, cL, c2L, VnL, n1, n2, n3;
+
+		// silence
+		n2 = n3 = 0.0;
+
+		// Inner VOLUME
+		rhoL     = *rhoL_ptr++;
+		rhoL_inv = 1.0/rhoL;
+
+		uL   = (*rhouL_ptr++)*rhoL_inv;
+		vL   = (*rhovL_ptr++)*rhoL_inv;
+		wL   = (*rhowL_ptr++)*rhoL_inv;
+		EL   = *EL_ptr++;
+
+		V2L = uL*uL+vL*vL+wL*wL;
+		VL  = sqrt(V2L);
+
+		pL  = GM1*(EL-0.5*rhoL*V2L);
+
+		n1 = *n_ptr++;
+		if      (d == 3) { n2 = *n_ptr++; n3 = *n_ptr++; }
+		else if (d == 2) { n2 = *n_ptr++; n3 = 0.0;      }
+		else if (d == 1) { n2 = 0.0;      n3 = 0.0;      }
+
+		VnL = uL*n1+vL*n2+wL*n3;
+
+		c2L = GAMMA*pL/rhoL;
+		cL  = sqrt(c2L);
+
+printf("%d % .3e % .3e % .3e % .3e % .3e % .3e \n",n,n1,n2,uL*rhoL,vL*rhoL,VL,cL);
+		if (VnL < 0.0) // Inlet
+//			printf("Error: Invalid.\n"), EXIT_MSG;
+			printf("Error: Invalid (jbc).\n"), exit(1);
+
+		if (fabs(VL) >= cL) { // Supersonic
+printf("Sup\n");
+			for (var = 0; var < Nvar; var++) {
+			for (eq = 0; eq < Neq; eq++) {
+				if (var != eq)
+					*dWdW_ptr[InddWdW++] = 0.0;
+				else
+					*dWdW_ptr[InddWdW++] = 1.0;
+			}}
+		} else {
+			double pInf, rho, u, v, w, V2, drhoLdW[Nvar], duLdW[Nvar], dvLdW[Nvar], dwLdW[Nvar], dpLdW[Nvar];
+
+			if (d == 3) {
+				drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0; drhoLdW[4] = 0.0;
+				dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = -wL; dpLdW[4]   = 1.0;
+
+				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;      duLdW[4] = 0.0;
+				dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;      dvLdW[4] = 0.0;
+				dwLdW[0] = -wL*rhoL_inv; dwLdW[1] = 0.0;      dwLdW[2] = 0.0;      dwLdW[3] = rhoL_inv; dwLdW[4] = 0.0;
+			} else if (d == 2) {
+				drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0;
+				dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = 1.0;
+
+				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;
+				dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;
+			} else if (d == 1) {
+				drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0;
+				dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = 1.0;
+
+				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;
+			}
+			for (var = 0; var < Nvar; var++)
+				dpLdW[var] *= GM1;
+
+			pInf = DB.pInf;
+			rho  = GAMMA*pInf/c2L;
+			u    = uL;
+			v    = vL;
+			w    = wL;
+			V2   = V2L;
+
+			for (var = 0; var < Nvar; var++) {
+				double drhodW, dudW, dvdW, dwdW, dc2LdW;
+
+				dc2LdW = GAMMA/(rhoL*rhoL)*(dpLdW[var]*rhoL-pL*drhoLdW[var]);
+				drhodW = -GAMMA*pInf/(c2L*c2L)*dc2LdW;
+
+				// Note: Using VL for the boundary
+				dudW   = duLdW[var];
+				dvdW   = dvLdW[var];
+				dwdW   = dwLdW[var];
+
+printf("var: %d % .3e % .3e\n",var,drhodW,pInf);
+				*dWdW_ptr[InddWdW++] = drhodW;
+
+				for (eq = 0+1; eq < Neq-1; eq++) {
+					if (eq == var)
+						*dWdW_ptr[InddWdW++] = 1.0;
+					else
+						*dWdW_ptr[InddWdW++] = 0.0;
+				}
+				*dWdW_ptr[InddWdW++] = 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW+w*dwdW));
+			}
+		}
+
+		for (unsigned int i = 0, iMax = Neq*Nvar; i < iMax; i++)
+			dWdW_ptr[i]++;
+	}
+}

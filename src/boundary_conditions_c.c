@@ -244,3 +244,104 @@ void boundary_SlipWall_c(const unsigned int Nn, const unsigned int Nel, double c
 		}
 	}
 }
+
+void boundary_BackPressure_c(const unsigned int Nn, const unsigned int Nel, double complex *WL, double complex *WB,
+                             double *nL, const unsigned int d, const unsigned int Neq)
+{
+	// Standard datatypes
+	unsigned int   n, NnTotal, eq, var, Nvar, IndW;
+	double complex *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr,
+	               rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, pInf, rhoB, cL, c2L, VnL,
+	               *WL_ptr[Neq], *WB_ptr[Neq];
+	double         n1, n2, n3, *n_ptr;
+
+	NnTotal = Nn*Nel;
+	Nvar    = Neq;
+
+	for (eq = 0; eq < Neq; eq++) {
+		WL_ptr[eq] = &WL[eq*NnTotal];
+		WB_ptr[eq] = &WB[eq*NnTotal];
+	}
+
+	double complex zeros[NnTotal];
+
+	for (n = 0; n < NnTotal; n++)
+		zeros[n] = 0.0;
+
+	rhoL_ptr  = WL_ptr[0];
+	rhouL_ptr = WL_ptr[1];
+	EL_ptr    = WL_ptr[d+1];
+
+	n_ptr = nL;
+
+	if (d == 3) {
+		rhovL_ptr = WL_ptr[2];
+		rhowL_ptr = WL_ptr[3];
+	} else if (d == 2) {
+		rhovL_ptr = WL_ptr[2];
+		rhowL_ptr = zeros;
+	} else if (d == 1) {
+		rhovL_ptr = zeros;
+		rhowL_ptr = zeros;
+	}
+
+	for (n = 0; n < NnTotal; n++) {
+		IndW = 0;
+
+		// Inner VOLUME
+		rhoL     = *rhoL_ptr++;
+		rhoL_inv = 1.0/rhoL;
+
+		uL   = (*rhouL_ptr++)*rhoL_inv;
+		vL   = (*rhovL_ptr++)*rhoL_inv;
+		wL   = (*rhowL_ptr++)*rhoL_inv;
+		EL   = *EL_ptr++;
+
+		V2L = uL*uL+vL*vL+wL*wL;
+		VL  = sqrt(V2L);
+
+		pL  = GM1*(EL-0.5*rhoL*V2L);
+
+		n1 = *n_ptr++;
+		if      (d == 3) { n2 = *n_ptr++; n3 = *n_ptr++; }
+		else if (d == 2) { n2 = *n_ptr++; n3 = 0.0;      }
+		else if (d == 1) { n2 = 0.0;      n3 = 0.0;      }
+
+		VnL = uL*n1+vL*n2+wL*n3;
+
+		c2L = GAMMA*pL/rhoL;
+		cL  = sqrt(c2L);
+
+		if (creal(VnL) < 0.0) // Inlet
+			printf("Error: Invalid.\n"), EXIT_MSG;
+
+		if (cabs(VL) >= cabs(cL)) { // Supersonic
+			TestDB.EnteredBackPressure[0]++;
+			for (var = 0; var < Nvar; var++) {
+				*WB_ptr[IndW] = *WL_ptr[IndW];
+				IndW++;
+			}
+		} else {
+			TestDB.EnteredBackPressure[1]++;
+			pInf = DB.pInf;
+
+			rhoB = GAMMA*pInf/c2L;
+
+			*WB_ptr[IndW++] = rhoB;
+			*WB_ptr[IndW++] = uL;
+			if (d == 3) {
+				*WB_ptr[IndW++] = vL;
+				*WB_ptr[IndW++] = wL;
+			} else if (d == 2) {
+				*WB_ptr[IndW++] = vL;
+			}
+			// Note: Using VL for the boundary
+			*WB_ptr[IndW++] = pInf/GM1+0.5*rhoB*V2L;
+		}
+
+		for (var = 0; var < Nvar; var++) {
+			WL_ptr[var]++;
+			WB_ptr[var]++;
+		}
+	}
+}

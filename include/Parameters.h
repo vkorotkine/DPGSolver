@@ -103,17 +103,19 @@
 
 // Cubature related numbers
 #define PIvcMaxTET 10
-#define PIvcMaxPYR 10 
+#define PIvcMaxPYR 10
 
 // Solver related parameters
 #define RK3_SSP 0
 #define RK4_LS  1
 
 // Boundary conditions
-#define BC_RIEMANN   1
-#define BC_SLIPWALL  2
-#define BC_DIRICHLET 11
-#define BC_NEUMANN   12
+#define BC_RIEMANN      1
+#define BC_SLIPWALL     2
+#define BC_BACKPRESSURE 3
+
+#define BC_DIRICHLET    11
+#define BC_NEUMANN      12
 
 // Allowed adaptation options
 #define ADAPT_0  0

@@ -62,7 +62,7 @@ void test_integration_Euler(int nargc, char **argv)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 3; PMax  = 3;
+	PMin  = 1; PMax  = 4;
 	MLMin = 0; MLMax = 3;
 TestDB.PGlobal = 1;
 
@@ -91,7 +91,7 @@ TestDB.PGlobal = 1;
 					if (strstr(DB.MeshType,"ToBeCurvedTRI")) {
 						Ind00 = 0; Ind01 = 1; Ind10 = 1;
 					} else if (strstr(DB.MeshType,"CurvedTRI")) {
-						Ind00 = 3; Ind10 = 4; Ind11 = 4;
+						Ind00 = 5; Ind01 = 6; Ind10 = 9;// Ind11 = 6;
 					} else if (strstr(DB.MeshType,"ToBeCurvedQUAD")) {
 						Ind00 = 0; Ind10 = 3; Ind11 = 3;
 					} else if (strstr(DB.MeshType,"CurvedQUAD")) {

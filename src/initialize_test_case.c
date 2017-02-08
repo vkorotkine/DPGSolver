@@ -171,7 +171,7 @@ void initialize_test_case_parameters(void)
 		SourcePresent = 0;
 
 		// Equivalent to choosing total pressure/temperature and back pressure
-		DB.MInf   = 0.5;
+		DB.MInf   = 0.2;
 		DB.rhoInf = 1.0;
 		DB.pInf   = 1.0;
 		DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
@@ -194,6 +194,9 @@ void initialize_test_case_parameters(void)
 			DB.NS2 = -0.3516;
 			DB.NS3 =  0.2843;
 			DB.NS4 = -0.1036;
+		} else if (strstr(Geometry,"EllipsoidalBump")) {
+			DB.aIn = 0.5;
+			DB.bIn = DB.aIn/1.0;
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}

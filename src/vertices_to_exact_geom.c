@@ -32,8 +32,25 @@
  *	References:
 */
 
-double f_gaussian_bump (const double x, const double y, const unsigned int d);
-double f_naca_symmetric(const double x, const double y, const unsigned int d);
+double f_gaussian_bump   (const double x, const double y, const unsigned int d);
+double f_naca_symmetric  (const double x, const double y, const unsigned int d);
+double f_ellipsoidal_bump(const double x, const double y, const unsigned int d);
+
+void select_functions_surface(surface_tdef *f_surface)
+{
+	// Initialize DB Parameters
+	char *Geometry = DB.Geometry;
+
+	if (strstr(Geometry,"GaussianBump")) {
+		*f_surface = f_gaussian_bump;
+	} else if (strstr(Geometry,"NacaSymmetric")) {
+		*f_surface = f_naca_symmetric;
+	} else if (strstr(Geometry,"EllipsoidalBump")) {
+		*f_surface = f_ellipsoidal_bump;
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+}
 
 void Ringleb_boundary(double *xStore, double *yStore, double qIn, double kIn, const char RinglebType)
 {
@@ -143,8 +160,14 @@ void vertices_to_exact_geom(void)
 	VeSurface = &VeInfo[2*NVe];
 
 	dM1 = d-1;
-	if (strstr(Geometry,"GaussianBump")) {
+	if (strstr(Geometry,"GaussianBump")  ||
+	    strstr(Geometry,"NacaSymmetric") ||
+	    strstr(Geometry,"EllipsoidalBump")) {
 		double F_xy;
+
+		surface_tdef f_surface;
+
+		select_functions_surface(&f_surface);
 
 		for (ve = 0; ve < NVe; ve++) {
 			if (!VeUpdate[ve])
@@ -153,7 +176,7 @@ void vertices_to_exact_geom(void)
 			VeUpdate[ve]  = 0;
 			VeSurface[ve] = 0;
 
-			F_xy = f_gaussian_bump(VeXYZ[ve*d],VeXYZ[ve*d+1],d);
+			F_xy = f_surface(VeXYZ[ve*d],VeXYZ[ve*d+1],d);
 			if (fabs(VeXYZ[ve*d+dM1]-F_xy) < NODETOL_MESH) {
 				VeSurface[ve] = 0;
 				VeXYZ[ve*d+dM1] = F_xy;
@@ -362,22 +385,6 @@ void vertices_to_exact_geom(void)
 				// No need to correct z component
 			}
 		}
-	} else if (strstr(Geometry,"NacaSymmetric")) {
-		double F_xy;
-
-		for (ve = 0; ve < NVe; ve++) {
-			if (!VeUpdate[ve])
-				continue;
-
-			VeUpdate[ve]  = 0;
-			VeSurface[ve] = 0;
-
-			F_xy = f_naca_symmetric(VeXYZ[ve*d],VeXYZ[ve*d+1],d);
-			if (fabs(VeXYZ[ve*d+dM1]-F_xy) < NODETOL_MESH) {
-				VeSurface[ve] = 0;
-				VeXYZ[ve*d+dM1] = F_xy;
-			}
-		}
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -422,11 +429,33 @@ double f_naca_symmetric(const double x, const double y, const unsigned int d)
 		Output += a[i]*pow(x/c,(double) i);
 	Output *= 5.0*c*t;
 
-	if (fabs(x) < EPS)
+	if (x < EPS || x > 1.0-EPS)
 		Output = 0.0;
 
 	return Output;
 
 	if (0) // silence
 		printf("%d %f\n",d,y);
+}
+
+double f_ellipsoidal_bump(const double x, const double y, const unsigned int d)
+{
+	// ToBeModified: Note that this function is replicated in EvalTPFunction
+	double a, b, c;
+
+	if (d == 2) {
+		a = DB.aIn;
+		b = DB.bIn;
+
+		if (fabs(x) > a-EPS)
+			return 0.0;
+		else
+			return b*sqrt(1.0-pow(x/a,2.0));
+	} else if (d == 3) {
+		c = DB.cIn;
+		printf("Add support.\n"), EXIT_MSG;
+		printf("%e %e\n",y,c); // silence
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
 }

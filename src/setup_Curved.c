@@ -59,7 +59,6 @@ struct S_XYZ {
 
 typedef void   (*compute_pc_tdef)  (struct S_pc *data);
 typedef void   (*compute_XYZ_tdef) (struct S_XYZ *data);
-typedef double (*surface_tdef)     (const double x, const double y, const unsigned int d);
 
 struct S_Blend {
 	unsigned int b, NvnG, NbnG, Nve, *Nbve, *VeBcon, NbveMax, *VeInfo, EclassV, type, BC;
@@ -190,20 +189,6 @@ static double get_radius(const unsigned int Nn, double *XYZ)
 		printf("Error: Did not find the radius.\n"), EXIT_MSG;
 	}
 	return r;
-}
-
-static void select_functions_surface(surface_tdef *f_surface)
-{
-	// Initialize DB Parameters
-	char *Geometry = DB.Geometry;
-
-	if (strstr(Geometry,"GaussianBump")) {
-		*f_surface = f_gaussian_bump;
-	} else if (strstr(Geometry,"NacaSymmetric")) {
-		*f_surface = f_naca_symmetric;
-	} else {
-		printf("Error: Unsupported.\n"), EXIT_MSG;
-	}
 }
 
 void compute_normal_displacement(const unsigned int Nn, const unsigned int curved_normal, const double *XYZ_S,
@@ -527,8 +512,9 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 			for (dim = 0; dim < d; dim++)
 				XYZ_CmS[n+Nn*dim] = XYZ_C[dim]-XYZ[dim];
 		}
-	} else if (strstr(Geometry,"GaussianBump") ||
-	           strstr(Geometry,"NacaSymmetric")) {
+	} else if (strstr(Geometry,"GaussianBump")  ||
+	           strstr(Geometry,"NacaSymmetric") ||
+	           strstr(Geometry,"EllipsoidalBump")) {
 		double       nx, ny, xS, yS, DStep, x, y, h, xp, yp, ypE;
 
 		unsigned int i, j, count, countMax;
@@ -597,7 +583,7 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 			if (fabs(DStep) > EPS) {
 				// Step towards the surface with step DStep until close enough to ensure that it can be reached using
 				// the bisection method below.
-				countMax = 1000;
+				countMax = 100;
 				for (count = 0; count < countMax; count++) {
 					Dup = D+DStep;
 
@@ -617,7 +603,7 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 					D = Dup;
 				}
 				if (count == countMax)
-					printf("Error: Potential problem.\n"), EXIT_MSG;
+					printf("Error: Potential problem (% .3e % .3e).\n",yp-ypE,y-yE), EXIT_MSG;
 			}
 
 			while (fabs(DStep) > 1e-1*EPS) {
@@ -646,7 +632,8 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 			if (d == 2) {
 				yE = f_surface(x,y,d);
 				if (fabs(y-yE) > 1e1*EPS)
-					printf("Error: Did not reach the surface (% .3e % .3e % .3e % .3e).\n",x,y,yE,y-yE), EXIT_MSG;
+					printf("Error: Did not reach the surface (% .3e % .3e % .3e % .3e % .3e).\n",
+					       D,x,y,yE,y-yE), EXIT_MSG;
 			} else {
 				printf("Add support.\n"), EXIT_MSG;
 			}
@@ -887,10 +874,11 @@ static void select_functions_Curved(compute_pc_tdef *compute_pc, compute_XYZ_tde
 		if (DB.Parametrization != NORMAL &&
 		    DB.Parametrization != RADIAL_PROJECTION)
 				printf("Error: Unsupported parametrization.\n"), EXIT_MSG;
-	} else if (strstr(Geometry,"Ringleb")      ||
-			   strstr(Geometry,"HoldenRamp")   ||
-			   strstr(Geometry,"GaussianBump") ||
-			   strstr(Geometry,"NacaSymmetric")) {
+	} else if (strstr(Geometry,"Ringleb")       ||
+			   strstr(Geometry,"HoldenRamp")    ||
+			   strstr(Geometry,"GaussianBump")  ||
+			   strstr(Geometry,"NacaSymmetric") ||
+			   strstr(Geometry,"EllipsoidalBump")) {
 		if (DB.Parametrization != NORMAL)
 			printf("Add support if not using NORMAL parametrization.\n"), EXIT_MSG;
 		*compute_pc  = NULL;

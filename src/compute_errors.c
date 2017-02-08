@@ -105,6 +105,7 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 	w_vI    = OPS->w_vI;
 	ChiS_vI = OPS->ChiS_vI;
 
+//printf("%d %d\n",VOLUME->indexg,VOLUME->curved);
 	detJV_vI = VOLUME->detJV_vI;
 
 	wdetJV_vI = malloc(NvnI * sizeof *wdetJV_vI); // free
@@ -279,11 +280,12 @@ void compute_errors_global(void)
 	 */
 
 	// Initialize DB Parameters
-	char *TestCase = DB.TestCase;
+	char *TestCase = DB.TestCase,
+	     *Geometry = DB.Geometry;
 	int  MPIrank   = DB.MPIrank;
 
 	// Standard datatypes
-	unsigned int i, DOF, DOF_l, NvarError;
+	unsigned int i, DOF, DOF_l, NvarError, CurvedOnly;
 	double       Vol, Vol_l, *L2Error2, *L2Error2_l;
 
 	struct S_VOLUME *VOLUME;
@@ -291,20 +293,26 @@ void compute_errors_global(void)
 	// silence
 	DOF = 0; Vol = 0.0;
 
-	if (strstr(TestCase,"Poisson"))
+	CurvedOnly = 0;
+	if (strstr(TestCase,"Poisson")) {
 		NvarError = DMAX+1;
-	else if (strstr(TestCase,"PeriodicVortex") ||
-	         strstr(TestCase,"SupersonicVortex"))
+	} else if (strstr(TestCase,"PeriodicVortex") ||
+	         strstr(TestCase,"SupersonicVortex")) {
 		NvarError = NVAR3D+1;
-	else if (strstr(TestCase,"InviscidChannel"))
+	} else if (strstr(TestCase,"InviscidChannel")) {
+		if (strstr(Geometry,"NacaSymmetric"))
+			CurvedOnly = 1; // Avoid trailing edge singularity when computing entropy error.
 		NvarError = 1;
-	else
+	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
 
 	L2Error2   = calloc(NvarError , sizeof *L2Error2);   // free
 	L2Error2_l = malloc(NvarError * sizeof *L2Error2_l); // free
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		if (CurvedOnly && !VOLUME->curved)
+			continue;
 		compute_errors(VOLUME,L2Error2_l,&Vol_l,&DOF_l,1);
 
 		Vol += Vol_l;
