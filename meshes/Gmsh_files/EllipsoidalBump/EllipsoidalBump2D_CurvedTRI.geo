@@ -1,6 +1,7 @@
 // Modifiable Parameters
 
 Refine = 0;
+BoundaryOut = 0; // Options: 0 (Riemann), 1 (BackPressure)
 
 lc = 0.5/2.0^Refine;
 
@@ -9,8 +10,8 @@ lc = 0.5/2.0^Refine;
 a = 0.5;
 b = a/1;
 
-lL = 2.0;
-lR = 2.0;
+lL = 1.5;
+lR = 1.5;
 h  = 3*a;
 lO = Tan(Pi/4)*h;
 
@@ -42,7 +43,7 @@ Line(1012)    = {3,8};
 Line(1013)    = {4,9};
 
 Transfinite Line {1001:1008} = 1*2^(Refine)+1 Using Progression 1;
-Transfinite Line {1009:1013} = 1*2^(Refine+1)+1 Using Progression 1;
+Transfinite Line {1009:1013} = 1*2^(Refine)+1 Using Progression 1;
 
 Line Loop (4001) = {1001,1010,-1005,-1009};
 Line Loop (4002) = {1002,1011,-1006,-1010};
@@ -63,9 +64,16 @@ Transfinite Surface{4002,4004};
 
 // Physical Parameters for '.msh' file
 
-Physical Line(10001) = {1009,1013};           // Straight Riemann
+
+If (BoundaryOut == 0)
+	Physical Line(10001) = {1009,1013};           // Straight Riemann
+ElseIf (BoundaryOut == 1)
+	Physical Line(10001) = {1009};                // Straight Riemann
+	Physical Line(10003) = {1013};                // Straight PT
+EndIf
+
 Physical Line(10002) = {1001,1004,1005:1008}; // Straight SlipWall
-Physical Line(20002) = {1002,1003};           // Curved SlipWall
+Physical Line(20002) = {1002,1003};           // Curved   SlipWall
 
 Physical Surface(9401) = {4001:4004};
 

@@ -245,8 +245,8 @@ void boundary_SlipWall_c(const unsigned int Nn, const unsigned int Nel, double c
 	}
 }
 
-void boundary_BackPressure_c(const unsigned int Nn, const unsigned int Nel, double complex *WL, double complex *WB,
-                             double *nL, const unsigned int d, const unsigned int Neq)
+void boundary_BackPressure_c(const unsigned int Nn, const unsigned int Nel, double complex *WL, double complex *WB, double *nL,
+                             const unsigned int d, const unsigned int Neq)
 {
 	// Standard datatypes
 	unsigned int   n, NnTotal, eq, var, Nvar, IndW;
@@ -313,27 +313,27 @@ void boundary_BackPressure_c(const unsigned int Nn, const unsigned int Nel, doub
 		cL  = sqrt(c2L);
 
 		if (creal(VnL) < 0.0) // Inlet
-			printf("Error: Invalid.\n"), EXIT_MSG;
+			printf("Warning: Velocity Inflow in boundary_BackPressure_c.\n");
 
 		if (cabs(VL) >= cabs(cL)) { // Supersonic
-			TestDB.EnteredBackPressure[0]++;
+			TestDB.EnteredPT[0]++;
 			for (var = 0; var < Nvar; var++) {
 				*WB_ptr[IndW] = *WL_ptr[IndW];
 				IndW++;
 			}
 		} else {
-			TestDB.EnteredBackPressure[1]++;
+			TestDB.EnteredPT[1]++;
 			pInf = DB.pInf;
 
 			rhoB = GAMMA*pInf/c2L;
 
 			*WB_ptr[IndW++] = rhoB;
-			*WB_ptr[IndW++] = uL;
+			*WB_ptr[IndW++] = uL*rhoB;
 			if (d == 3) {
-				*WB_ptr[IndW++] = vL;
-				*WB_ptr[IndW++] = wL;
+				*WB_ptr[IndW++] = vL*rhoB;
+				*WB_ptr[IndW++] = wL*rhoB;
 			} else if (d == 2) {
-				*WB_ptr[IndW++] = vL;
+				*WB_ptr[IndW++] = vL*rhoB;
 			}
 			// Note: Using VL for the boundary
 			*WB_ptr[IndW++] = pInf/GM1+0.5*rhoB*V2L;

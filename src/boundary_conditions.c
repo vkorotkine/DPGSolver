@@ -25,6 +25,7 @@
  *	Notation:
  *
  *	References:
+ *		Carlson(2011)-Inflow/Outflow_Boundary_Conditions_with_Application_to_FUN3D (NASA/TM–2011-217181)
  */
 
 void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL, double *WOut, double *WB,
@@ -33,6 +34,9 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 	/*
 	 *	Comments:
 	 *		WOut is not used for all test cases.
+	 *
+	 *	References:
+	 *		Carlson(2011): 2.2 (Note typo in eq. (14))
 	 */
 
 	// Initialize DB Parameters
@@ -251,6 +255,19 @@ void boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, double *WL
 void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, double *WL, double *WB, double *nL,
                            const unsigned int d, const unsigned int Neq)
 {
+	/*
+	 *	Purpose:
+	 *		Impose back Pressure (outflow) and total (P)ressure/(T)emperature (inflow) boundary condition.
+	 *
+	 *	Comments:
+	 *		Add subsonic inflow boundary from Carlson(2011) (2.7) using total Pressure and Temperature if needed. This
+	 *		should not be placed in this function however as it is assumed that it is known that this BC is only used
+	 *		for outflow.
+	 *
+	 *	References:
+	 *		Carlson(2011): 2.4
+	 */
+
 	// Standard datatypes
 	unsigned int n, NnTotal, eq, var, Nvar, IndW;
 	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr,
@@ -315,7 +332,7 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, double
 		cL  = sqrt(c2L);
 
 		if (VnL < 0.0) // Inlet
-			printf("Error: Invalid.\n"), EXIT_MSG;
+			printf("\nWarning: Velocity Inflow in boundary_BackPressure.\n");
 
 		if (fabs(VL) >= cL) { // Supersonic
 			for (var = 0; var < Nvar; var++) {
@@ -328,12 +345,12 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, double
 			rhoB = GAMMA*pInf/c2L;
 
 			*WB_ptr[IndW++] = rhoB;
-			*WB_ptr[IndW++] = uL;
+			*WB_ptr[IndW++] = uL*rhoB;
 			if (d == 3) {
-				*WB_ptr[IndW++] = vL;
-				*WB_ptr[IndW++] = wL;
+				*WB_ptr[IndW++] = vL*rhoB;
+				*WB_ptr[IndW++] = wL*rhoB;
 			} else if (d == 2) {
-				*WB_ptr[IndW++] = vL;
+				*WB_ptr[IndW++] = vL*rhoB;
 			}
 			// Note: Using VL for the boundary
 			*WB_ptr[IndW++] = pInf/GM1+0.5*rhoB*V2L;

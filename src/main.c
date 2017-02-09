@@ -308,8 +308,6 @@ int main(int nargc, char **argv)
 		printf("\nFor the VOLUME/FACE info functions, test that all 'versions' give identical results.\n\n");
 		TestDB.Nwarnings++;
 	}
-	test_unit_jacobian_boundary();
-printf("Exiting main.\n"), exit(1);
 
 	// Integration tests
 	if (RunTest.integration) {

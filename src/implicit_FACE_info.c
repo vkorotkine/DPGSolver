@@ -377,8 +377,10 @@ compute_exact_solution(NfnI,FACE->XYZ_fI,UEx,0);
 convert_variables(UEx,WOut_fIIn,3,d,NfnI,1,'p','c');
 free(UEx);
 */
+			} else if (BC % BC_STEP_SC == BC_BACKPRESSURE) {
+				boundary_BackPressure(NfnI,1,WIn_fI,WOut_fIIn,n_fI,d,Neq);
 			} else {
-				printf("Error: Unsupported BC in implicit_FACE_info.\n"), exit(1);
+				printf("Error: Unsupported.\n"), EXIT_MSG;
 			}
 		}
 
@@ -461,6 +463,8 @@ free(U_fI);
 				jacobian_boundary_Riemann(NfnI,1,FACE->XYZ_fI,WIn_fI,NULL,dWOutdWIn,n_fI,d,Neq);
 			else if (BC % BC_STEP_SC == BC_SLIPWALL)
 				jacobian_boundary_SlipWall(NfnI,1,WIn_fI,dWOutdWIn,n_fI,d,Neq);
+			else if (BC % BC_STEP_SC == BC_BACKPRESSURE)
+				jacobian_boundary_BackPressure(NfnI,1,WIn_fI,dWOutdWIn,n_fI,d,Neq);
 			else
 				printf("Error: Unsupported BC.\n"), EXIT_MSG;
 

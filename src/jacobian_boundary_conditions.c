@@ -546,8 +546,8 @@ void jacobian_boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, d
 	}
 }
 
-void jacobian_boundary_BackPressure (const unsigned int Nn, const unsigned int Nel, double *WL, double *dWdW, double *nL,
-                                     const unsigned int d, const unsigned int Neq)
+void jacobian_boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, double *WL, double *dWdW, double *nL,
+                                    const unsigned int d, const unsigned int Neq)
 {
 	/*
 	 *	Jacobian Matrices [var * eq]
@@ -633,13 +633,10 @@ void jacobian_boundary_BackPressure (const unsigned int Nn, const unsigned int N
 		c2L = GAMMA*pL/rhoL;
 		cL  = sqrt(c2L);
 
-printf("%d % .3e % .3e % .3e % .3e % .3e % .3e \n",n,n1,n2,uL*rhoL,vL*rhoL,VL,cL);
 		if (VnL < 0.0) // Inlet
-//			printf("Error: Invalid.\n"), EXIT_MSG;
-			printf("Error: Invalid (jbc).\n"), exit(1);
+			printf("\nWarning: Velocity Inflow in jacobian_boundary_BackPressure.\n");
 
 		if (fabs(VL) >= cL) { // Supersonic
-printf("Sup\n");
 			for (var = 0; var < Nvar; var++) {
 			for (eq = 0; eq < Neq; eq++) {
 				if (var != eq)
@@ -690,14 +687,14 @@ printf("Sup\n");
 				dvdW   = dvLdW[var];
 				dwdW   = dwLdW[var];
 
-printf("var: %d % .3e % .3e\n",var,drhodW,pInf);
 				*dWdW_ptr[InddWdW++] = drhodW;
 
-				for (eq = 0+1; eq < Neq-1; eq++) {
-					if (eq == var)
-						*dWdW_ptr[InddWdW++] = 1.0;
-					else
-						*dWdW_ptr[InddWdW++] = 0.0;
+				*dWdW_ptr[InddWdW++] = drhodW*u + rho*dudW;
+				if (d == 3) {
+					*dWdW_ptr[InddWdW++] = drhodW*v + rho*dvdW;
+					*dWdW_ptr[InddWdW++] = drhodW*w + rho*dwdW;
+				} else if (d == 2) {
+					*dWdW_ptr[InddWdW++] = drhodW*v + rho*dvdW;
 				}
 				*dWdW_ptr[InddWdW++] = 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW+w*dwdW));
 			}

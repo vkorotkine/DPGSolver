@@ -229,8 +229,6 @@ void initialize_test_case_parameters(void)
 			DB.FinalTime = 0.3;
 		else
 			DB.FinalTime = DB.PeriodFraction*DB.PeriodL/DB.VInf;
-	} else if (strstr(TestCase,"PolynomialBump")) {
-		EXIT_MSG;
 	} else if (strstr(TestCase,"SupersonicVortex")) {
 		// Standard datatypes
 		double pIn, cIn;
@@ -250,11 +248,13 @@ void initialize_test_case_parameters(void)
 
 		cIn = sqrt(GAMMA*pIn/DB.rhoIn);
 		DB.VIn = cIn*DB.MIn/DB.rIn;
-
-		DB.FinalTime  = 1e10;
 	} else {
 		printf("Error: Unsupported TestCase: %s.\n",TestCase), EXIT_MSG;
 	}
+
+	if (strstr(SolverType,"Implicit"))
+		DB.FinalTime  = 1e10;
+
 	DB.SolverType    = SolverType;
 	DB.SourcePresent = SourcePresent;
 }

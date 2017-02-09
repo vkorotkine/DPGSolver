@@ -14,6 +14,7 @@
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
+#include "S_ELEMENT.h"
 #include "S_VOLUME.h"
 #include "Test.h"
 
@@ -23,6 +24,11 @@
 #include "implicit_FACE_info.h"
 #include "finalize_LHS.h"
 #include "output_to_paraview.h"
+#include "element_functions.h"
+#include "matrix_functions.h"
+#include "variable_functions.h"
+
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -100,6 +106,108 @@ void setup_KSP(Mat A, KSP ksp)
 	PCSetUp(pc);
 }
 
+static void compute_underRelax(struct S_VOLUME *VOLUME, const double *dWhat, double *alpha)
+{
+	/*
+	 *	Purpose:
+	 *		Compute underRelaxation scaling based on maintaining physically realistic density and pressure and limiting
+	 *		their change by a certain percentage.
+	 *
+	 *	Comments:
+	 *		As this only checks values at certain nodes within the element, this may still result in unphysical updates.
+	 *		In case of this occurence, perhaps try to use a basis with a convex hull property so that the max and min in
+	 *		the element can be known.
+	 */
+
+	double       maxChange = 0.1;
+
+	// Initialize DB Parameters
+	unsigned int d    = DB.d,
+	             Nvar = DB.Nvar;
+
+	// Standard datatypes
+	unsigned int P, NvnS;
+	double       *What, *ChiS_vS, *W0, *dW, *U0, *U, *dU;
+
+	struct S_ELEMENT *ELEMENT;
+
+	P    = VOLUME->P;
+	NvnS = VOLUME->NvnS;
+	What = VOLUME->What;
+
+	ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+	ChiS_vS = ELEMENT->ChiS_vS[P][P][0];
+
+	W0 = malloc(NvnS*Nvar * sizeof *W0); // free
+	dW = malloc(NvnS*Nvar * sizeof *dW); // free
+
+	U0 = malloc(NvnS*Nvar * sizeof *U0); // free
+	U  = malloc(NvnS*Nvar * sizeof *U);  // free
+	dU = malloc(NvnS*Nvar * sizeof *dU); // free
+
+	mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,ChiS_vS, What,W0);
+	mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,ChiS_vS,dWhat,dW);
+
+	convert_variables(W0,U0,d,d,NvnS,1,'c','p');
+	convert_variables(dW,dU,d,d,NvnS,1,'c','p');
+
+	double *rho0, *drho, *p0, *dp, alphaO;
+
+	rho0 = &U0[0]; p0 = &U0[(Nvar-1)*NvnS];
+	drho = &dU[0]; dp = &dU[(Nvar-1)*NvnS];
+
+	unsigned int flag[2] = {1,1};
+	alphaO = 2.0*(*alpha);
+//	alphaO = 1.0;
+	while (flag[0] || flag[1]) {
+		unsigned int n;
+
+		alphaO /= 2.0;
+
+		// rho
+		flag[0] = 0;
+
+		for (n = 0; n < NvnS; n++) {
+			double rho = rho0[n]+alphaO*drho[n];
+			if (rho <= 0.0 || rho/rho0[n] > (1+maxChange) || rho/rho0[n] < (1-maxChange)) {
+//				printf("%d % .3e % .3e % .3e % .3e\n",n,alphaO,rho,rho0[n],drho[n]);
+				flag[0] = 1;
+				break;
+			}
+		}
+
+		// p
+		flag[1] = 0;
+
+		for (n = 0; n < NvnS; n++) {
+			if (flag[0])
+				break;
+
+			double p = p0[n]+alphaO*dp[n];
+//printf("Out: %d %d % .3e % .3e % .3e\n",n,flag[0],p,p0[n],dp[n]);
+			if (p <= 0.0 || p/p0[n] > (1+maxChange) || p/p0[n] < (1-maxChange)) {
+				flag[1] = 1;
+				break;
+			}
+		}
+
+		if (alphaO < EPS) {
+			printf("%d %d\n",flag[0],flag[1]);
+			printf("Potential problem: Under Relaxation driven to 0.\n"), EXIT_MSG;
+		}
+
+	}
+
+	*alpha = alphaO;
+
+	free(W0);
+	free(dW);
+	free(U0);
+	free(U);
+	free(dU);
+}
+
 void solver_implicit(void)
 {
 	// Initialize DB Parameters
@@ -125,7 +233,7 @@ void solver_implicit(void)
 
 	update_VOLUME_finalize();
 
-//	output_to_paraview("ZTest_Sol_Init");
+	output_to_paraview("ZTest_Sol_Init");
 
 	iteration = 0;
 	maxRHS = 1.0; maxRHS0 = 1.0;
@@ -172,8 +280,14 @@ void solver_implicit(void)
 			VecGetValues(x,iMax,ix,dWhat);
 			free(ix);
 
+			double alpha = 1.0;
+			compute_underRelax(VOLUME,dWhat,&alpha);
+
+//printf("% .3e\n",alpha);
+//alpha = 1.0;
+
 			for (i = 0; i < iMax; i++)
-				(*What++) += dWhat[i];
+				(*What++) += alpha*dWhat[i];
 			free(dWhat);
 		}
 
@@ -202,6 +316,7 @@ void solver_implicit(void)
 		}
 
 		// hp adaptation
+//		if (Adapt)
 		if (0&&Adapt)
 			adapt_hp();
 

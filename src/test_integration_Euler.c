@@ -14,6 +14,7 @@
 #include "test_support.h"
 #include "adaptation.h"
 #include "output_to_paraview.h"
+#include "solver_explicit.h"
 #include "solver_implicit.h"
 #include "compute_errors.h"
 #include "array_free.h"
@@ -62,7 +63,7 @@ void test_integration_Euler(int nargc, char **argv)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 4;
+	PMin  = 1; PMax  = 2;
 	MLMin = 0; MLMax = 3;
 TestDB.PGlobal = 1;
 
@@ -76,8 +77,8 @@ TestDB.PGlobal = 1;
 		code_startup(nargc,argvNew,0,2);
 	}
 
-	for (P = PMin; P <= PMax; P++) {
 	for (ML = MLMin; ML <= MLMax; ML++) {
+	for (P = PMin; P <= PMax; P++) {
 		TestDB.PGlobal = P;
 		TestDB.ML = ML;
 
@@ -127,6 +128,7 @@ TestDB.PGlobal = 1;
 			output_to_paraview(fNameOut);
 			free(fNameOut);
 		}
+		solver_explicit();
 		solver_implicit();
 
 		compute_errors_global();
