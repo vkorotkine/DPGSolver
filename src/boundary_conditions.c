@@ -274,6 +274,10 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, double
 	             rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, pInf, rhoB, cL, c2L, VnL, n1, n2, n3,
 	             *WL_ptr[Neq], *WB_ptr[Neq];
 
+	// silence
+	n2 = n3 = 0;
+	rhovL_ptr = rhowL_ptr = NULL;
+
 	NnTotal = Nn*Nel;
 	Nvar    = Neq;
 

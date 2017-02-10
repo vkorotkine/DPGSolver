@@ -478,7 +478,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	ChiGs_vGs = ChiG2_vG2 = ChiGc_vGc = NULL;
 	ChiCs_vCs = NULL; ChiCc_vCc = NULL;
 	ChiRefGs_vIs = ChiRefGs_vIc = NULL;
-	BE_Nve = 0; BCoords_E = NULL;
+	BE_Nve = 0; BCoords_E = NULL; BCoords_dEm2 = NULL;
 
 	ELEMENT   = get_ELEMENT_type(EType);
 	ELEMENT_h = ELEMENT;

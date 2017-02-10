@@ -149,6 +149,8 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 					case 1: j0 = P;   jS = N; break;
 					case 2: j0 = 0;   jS = 1; break;
 					case 3: j0 = P*N; jS = 1; break;
+					default:
+						printf("Error: Unsupported.\n"), EXIT_MSG; break;
 				}
 				for (j = j0, count = 0; count < N; j += jS, count++)
 					connectEOut[i*N+count] = j;
@@ -170,6 +172,8 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 					case 9:  j0 = P;         jS = N*N; break;
 					case 10: j0 = P*N;       jS = N*N; break;
 					case 11: j0 = P*N+P;     jS = N*N; break;
+					default:
+						printf("Error: Unsupported.\n"), EXIT_MSG; break;
 				}
 				for (j = j0, count = 0; count < N; j += jS, count++)
 					connectEOut[i*N+count] = j;
@@ -264,6 +268,8 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 				case 0:  j0 = P; jS = P; break;
 				case 1:  j0 = 0; jS = N; break;
 				case 2:  j0 = 0; jS = 1; break;
+				default:
+					printf("Error: Unsupported.\n"), EXIT_MSG; break;
 			}
 			for (j = j0, count = 0; count < N; j += jS, count++) {
 				connectEOut[i*N+count] = j;
@@ -462,6 +468,8 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 				case 3:  j0 = P;             jS = P;             jC = 1; break;
 				case 4:  j0 = P;             jS = N*(N+1)/2.0-1; jC = N; break;
 				case 5:  j0 = N*(N+1)/2.0-1; jS = P*N/2.0;       jC = P; break;
+				default:
+					printf("Error: Unsupported.\n"), EXIT_MSG; break;
 			}
 			for (j = j0, count = 0; count < N; j += jS, count++) {
 				connectEOut[i*N+count] = j;
@@ -540,6 +548,8 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 				case 6:  j0 = 0;               jS = N*(N+1)/2.0; jC = 0; break;
 				case 7:  j0 = 1;               jS = N*(N+1)/2.0; jC = 0; break;
 				case 8:  j0 = 2;               jS = N*(N+1)/2.0; jC = 0; break;
+				default:
+					printf("Error: Unsupported.\n"), EXIT_MSG; break;
 			}
 			for (j = j0, count = 0; count < N; j += jS, count++) {
 				connectEOut[i*N+count] = j;
@@ -693,6 +703,8 @@ void plotting_element_info(double **rst, unsigned int **connect, unsigned int **
 				case 5:  j0 = P;     jS = N*N-1; jC = 2*N-1; break;
 				case 6:  j0 = P*N;   jS = P*P+1; jC = 2*P-1; break;
 				case 7:  j0 = N*N-1; jS = P*P;   jC = 2*P-1; break;
+				default:
+					printf("Error: Unsupported.\n"), EXIT_MSG; break;
 			}
 			for (j = j0, count = 0; count < N; j += jS, count++) {
 				connectEOut[i*N+count] = j;

@@ -570,6 +570,9 @@ void jacobian_boundary_BackPressure(const unsigned int Nn, const unsigned int Ne
 	unsigned int n, NnTotal, eq, var, Nvar;
 	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *WL_ptr[Neq], *dWdW_ptr[Neq*Neq];
 
+	// silence
+	rhovL_ptr = rhowL_ptr = NULL;
+
 	NnTotal = Nn*Nel;
 	Nvar    = Neq;
 
