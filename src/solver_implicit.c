@@ -119,7 +119,7 @@ static void compute_underRelax(struct S_VOLUME *VOLUME, const double *dWhat, dou
 	 *		the element can be known.
 	 */
 
-	double       maxChange = 0.1;
+	double       maxChange = 0.8;
 
 	// Initialize DB Parameters
 	unsigned int d    = DB.d,
@@ -284,7 +284,7 @@ void solver_implicit(void)
 			compute_underRelax(VOLUME,dWhat,&alpha);
 
 //printf("% .3e\n",alpha);
-//alpha = 1.0;
+alpha = 1.0;
 
 			for (i = 0; i < iMax; i++)
 				(*What++) += alpha*dWhat[i];
@@ -324,7 +324,8 @@ void solver_implicit(void)
 	}
 
 	// Output to paraview
-	if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 4 && TestDB.ML <= 4)) {
+//	if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 4 && TestDB.ML <= 4)) {
+	if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal <= 4 && TestDB.ML <= 4)) {
 		strcpy(fNameOut,"SolFinal_");
 		sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
 		                               strcat(fNameOut,DB.MeshType);

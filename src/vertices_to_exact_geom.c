@@ -32,9 +32,10 @@
  *	References:
 */
 
-double f_gaussian_bump   (const double x, const double y, const unsigned int d);
-double f_naca_symmetric  (const double x, const double y, const unsigned int d);
-double f_ellipsoidal_bump(const double x, const double y, const unsigned int d);
+double f_gaussian_bump      (const double x, const double y, const unsigned int d);
+double f_naca_symmetric     (const double x, const double y, const unsigned int d);
+double f_ellipsoidal_bump   (const double x, const double y, const unsigned int d);
+double f_joukowski_symmetric(const double x, const double y, const unsigned int d);
 
 void select_functions_surface(surface_tdef *f_surface)
 {
@@ -47,6 +48,8 @@ void select_functions_surface(surface_tdef *f_surface)
 		*f_surface = f_naca_symmetric;
 	} else if (strstr(Geometry,"EllipsoidalBump")) {
 		*f_surface = f_ellipsoidal_bump;
+	} else if (strstr(Geometry,"JoukowskiSymmetric")) {
+		*f_surface = f_joukowski_symmetric;
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -162,6 +165,7 @@ void vertices_to_exact_geom(void)
 	dM1 = d-1;
 	if (strstr(Geometry,"GaussianBump")  ||
 	    strstr(Geometry,"NacaSymmetric") ||
+	    strstr(Geometry,"JoukowskiSymmetric") ||
 	    strstr(Geometry,"EllipsoidalBump")) {
 		double F_xy;
 
@@ -440,7 +444,6 @@ double f_naca_symmetric(const double x, const double y, const unsigned int d)
 
 double f_ellipsoidal_bump(const double x, const double y, const unsigned int d)
 {
-	// ToBeModified: Note that this function is replicated in EvalTPFunction
 	double a, b, c;
 
 	if (d == 2) {
@@ -455,6 +458,112 @@ double f_ellipsoidal_bump(const double x, const double y, const unsigned int d)
 		c = DB.cIn;
 		printf("Add support.\n"), EXIT_MSG;
 		printf("%e %e\n",y,c); // silence
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+}
+
+double f_joukowski_symmetric(const double x, const double y, const unsigned int d)
+{
+	// Initialize DB Parameters
+	double a  = DB.JSa,
+	       l  = DB.JSl,
+	       xL = DB.JSxL;
+
+	// Standard datatypes
+	double t, p, l2, l3;
+
+	l2 = pow(l,2.0);
+	l3 = pow(l,3.0);
+
+	// Find parametrization coordinates ((t)heta, (p)hi)
+	if (d == 2) {
+		unsigned int count, countMax;
+		double       cost, cost2, f, dfdt;
+
+		if (x < xL+EPS || x > 2*a-EPS) {
+//			printf("Return0 (% .3e % .3e)\n",x,xL);
+			return 0.0;
+		}
+
+		// Use Newton's method to find t corresponding to the input x
+		t = 0.5*PI;
+		countMax = 100;
+		for (count = 0; count < countMax; count++) {
+			cost  = cos(t);
+			cost2 = pow(cost,2.0);
+			f    = -2.0*a*(l3+(l3+2.0*l2+l)*cost2+l2-(2.0*l3+3.0*l2+2.0*l+1.0)*cost+l)/
+			       (2.0*l2-2.0*(l2+l)*cost+2.0*l+1.0)-x;
+			dfdt = 4.0*(l3+(l3+2.0*l2+l)*cost2+l2-(2.0*l3+3.0*l2+2.0*l+1.0)*cost+l)*(l2+l)*sin(t)/
+			       pow(2.0*l2-2.0*(l2+l)*cost+2.0*l+1.0,2.0)
+			     + 2.0*(2.0*(l3+2.0*l2+l)*cost*sin(t)-(2.0*l3+3.0*l2+2.0*l+1.0)*sin(t))/
+			       (2.0*l2-2.0*(l2+l)*cost+2.0*l+1.0);
+
+			if (fabs(dfdt) > EPS)
+				t -= f/dfdt;
+			else
+				t = PI;
+
+			if (t < 0.0)
+				t = 0.0;
+			else if (t > PI)
+				t = PI;
+
+			if (fabs(f) < 1e1*EPS)
+				break;
+		}
+
+		if (count == countMax) {
+			// Attempt to find the point using the bisection method
+			unsigned int Found;
+			double       dt, sign_t, t2, f2;
+
+			if (t < 0.5*PI) {
+				dt = t;
+				sign_t = -1.0;
+			} else {
+				dt = PI-t;
+				sign_t = 1.0;
+			}
+
+			Found = 0;
+			t2 = t;
+			for (count = 0; count < 50; count++) {
+				cost  = cos(t2+sign_t*dt);
+				cost2 = pow(cost,2.0);
+
+				f2 = -2.0*a*(l3+(l3+2.0*l2+l)*cost2+l2-(2.0*l3+3.0*l2+2.0*l+1.0)*cost+l)/
+			        (2.0*l2-2.0*(l2+l)*cost+2.0*l+1.0)-x;
+
+				if (sign(f) == sign(f2))
+					t2 += sign_t*dt;
+
+				if (fabs(f2) < 1e1*EPS) {
+					Found = 1;
+					break;
+				}
+
+				dt /= 2;
+			}
+
+			if (Found) {
+				t = t2;
+			} else {
+				// If still not found
+				printf("% .3e % .3e % .3e\n",t,t2,sign_t);
+				printf("Error: Newton's Method not converging (% .3e % .3e % .3e % .3e % .3e)\n",x,t,t-PI,f,dfdt),
+			    EXIT_MSG;
+			}
+		}
+
+		if (t < SQRT_EPS || t > PI-SQRT_EPS)
+			return 0.0;
+		else
+			return 2.0*a*(l3+2.0*l2-(l3+2.0*l2+l)*cos(t)+l)*sin(t)/(2.0*l2-2.0*(l2+l)*cos(t)+2.0*l+1.0);
+	} else if (d == 3) {
+		printf("Add support.\n"), EXIT_MSG;
+		p = 0.0;
+		printf("%f %f\n",y,p);
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}

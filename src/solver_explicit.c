@@ -76,8 +76,10 @@ void solver_explicit(void)
 		else if (Adapt == ADAPT_H)
 			dt = pow(0.5,(DB.ML+DB.LevelsMax)+DB.PGlobal+1);
 		else if (Adapt == ADAPT_HP)
-			dt = 1e4*pow(0.5,max(DB.ML,DB.LevelsMax)+DB.PMax+1);
+//			dt = 1e4*pow(0.5,max(DB.ML,DB.LevelsMax)+DB.PMax+1);
+			dt = 2e0*pow(0.5,DB.ML+DB.PGlobal);
 	}
+	printf("%d %d\n",DB.ML,DB.PGlobal);
 
 	// Compute Mass matrix for uncollocated schemes
 	update_VOLUME_Ops();

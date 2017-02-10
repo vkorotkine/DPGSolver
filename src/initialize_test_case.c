@@ -171,7 +171,7 @@ void initialize_test_case_parameters(void)
 		SourcePresent = 0;
 
 		// Equivalent to choosing total pressure/temperature and back pressure
-		DB.MInf   = 0.2;
+		DB.MInf   = 0.3;
 		DB.rhoInf = 1.0;
 		DB.pInf   = 1.0;
 		DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
@@ -197,6 +197,21 @@ void initialize_test_case_parameters(void)
 		} else if (strstr(Geometry,"EllipsoidalBump")) {
 			DB.aIn = 0.5;
 			DB.bIn = DB.aIn/1.0;
+		} else if (strstr(Geometry,"JoukowskiSymmetric")) {
+			double a, l, t;
+			a = 1.0;
+			l = a/2.25;
+			t = PI;
+
+			double l2, l3, cost2;
+			l2    = pow(l,2.0);
+			l3    = pow(l,3.0);
+			cost2 = pow(cos(t),2.0);
+
+			DB.JSxL = -2.0*a*(l3+(l3+2.0*l2+l)*cost2+l2-(2.0*l3+3.0*l2+2.0*l+1.0)*cos(t)+l)/
+			          (2.0*l2-2.0*(l2+l)*cos(t)+2.0*l+1.0);
+			DB.JSa = a;
+			DB.JSl = l;
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}

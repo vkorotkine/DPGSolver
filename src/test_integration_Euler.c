@@ -63,13 +63,13 @@ void test_integration_Euler(int nargc, char **argv)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 2;
+	PMin  = 1; PMax  = 4;
 	MLMin = 0; MLMax = 3;
 TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
-	AdaptiveRefine = 0;
+	AdaptiveRefine = 1;
 //	Adapt = ADAPT_0;
 	Adapt = ADAPT_HP;
 	if (Adapt != ADAPT_0) {
@@ -77,10 +77,13 @@ TestDB.PGlobal = 1;
 		code_startup(nargc,argvNew,0,2);
 	}
 
-	for (ML = MLMin; ML <= MLMax; ML++) {
 	for (P = PMin; P <= PMax; P++) {
+	for (ML = MLMin; ML <= MLMax; ML++) {
 		TestDB.PGlobal = P;
 		TestDB.ML = ML;
+
+//		DB.PGlobal = P;
+//		DB.ML = ML;
 
 		if (Adapt != ADAPT_0) {
 			if (ML == MLMin) {
@@ -92,7 +95,9 @@ TestDB.PGlobal = 1;
 					if (strstr(DB.MeshType,"ToBeCurvedTRI")) {
 						Ind00 = 0; Ind01 = 1; Ind10 = 1;
 					} else if (strstr(DB.MeshType,"CurvedTRI")) {
-						Ind00 = 5; Ind01 = 6; Ind10 = 9;// Ind11 = 6;
+//						Ind00 = 5; Ind01 = 6; Ind10 = 9;// Ind11 = 6; // Refine trailing edge
+//						Ind00 = 2; Ind01 = 1; Ind10 = 5;// Ind11 = 6; // Refine leading edge
+						Ind00 = 2; Ind01 = 0; Ind10 = 5;// Ind11 = 6; // Refine leading edge (alternate)
 					} else if (strstr(DB.MeshType,"ToBeCurvedQUAD")) {
 						Ind00 = 0; Ind10 = 3; Ind11 = 3;
 					} else if (strstr(DB.MeshType,"CurvedQUAD")) {
@@ -128,12 +133,15 @@ TestDB.PGlobal = 1;
 			output_to_paraview(fNameOut);
 			free(fNameOut);
 		}
-		solver_explicit();
+//		if (ML == MLMin || P == PMin)
+//		if (ML == MLMin)
+		if (0)
+			solver_explicit();
 		solver_implicit();
 
 		compute_errors_global();
 
-		printf("dof: %d\n",DB.dof);
+		printf("ML, P, dof: %d %d %d\n",ML,P,DB.dof);
 
 		if (P == PMin)
 			evaluate_mesh_regularity(&mesh_quality[ML-MLMin]);

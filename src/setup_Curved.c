@@ -514,6 +514,7 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 		}
 	} else if (strstr(Geometry,"GaussianBump")  ||
 	           strstr(Geometry,"NacaSymmetric") ||
+	           strstr(Geometry,"JoukowskiSymmetric") ||
 	           strstr(Geometry,"EllipsoidalBump")) {
 		double       nx, ny, xS, yS, DStep, x, y, h, xp, yp, ypE;
 
@@ -631,9 +632,12 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 
 			if (d == 2) {
 				yE = f_surface(x,y,d);
-				if (fabs(y-yE) > 1e1*EPS)
+//				if (fabs(y-yE) > 1e2*EPS) {
+				if (fabs(y-yE) > 2e1*SQRT_EPS) {
+					printf("% .3e % .3e\n",xS,yS);
 					printf("Error: Did not reach the surface (% .3e % .3e % .3e % .3e % .3e).\n",
 					       D,x,y,yE,y-yE), EXIT_MSG;
+				}
 			} else {
 				printf("Add support.\n"), EXIT_MSG;
 			}
@@ -878,6 +882,7 @@ static void select_functions_Curved(compute_pc_tdef *compute_pc, compute_XYZ_tde
 			   strstr(Geometry,"HoldenRamp")    ||
 			   strstr(Geometry,"GaussianBump")  ||
 			   strstr(Geometry,"NacaSymmetric") ||
+			   strstr(Geometry,"JoukowskiSymmetric") ||
 			   strstr(Geometry,"EllipsoidalBump")) {
 		if (DB.Parametrization != NORMAL)
 			printf("Add support if not using NORMAL parametrization.\n"), EXIT_MSG;
