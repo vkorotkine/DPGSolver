@@ -6,7 +6,9 @@
 #include <string.h>
 
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
+#include "S_ELEMENT.h"
 #include "S_VOLUME.h"
 #include "Test.h"
 
@@ -19,6 +21,9 @@
 #include "compute_errors.h"
 #include "array_free.h"
 #include "test_integration_Poisson.h"
+#include "element_functions.h"
+#include "array_norm.h"
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -31,6 +36,106 @@
  *	References:
  *
  */
+
+static void h_adapt(void)
+{
+	/*
+	 * Purpose:
+	 *		Perform local mesh refinement around specified XYZref coordinate locations.
+	 */
+
+	// Initialize DB Parameters
+	char         *Geometry = DB.Geometry;
+	unsigned int d         = DB.d;
+
+	// Standard datatypes
+	unsigned int NrefMax = 2, MLMax = 5;
+
+	unsigned int Nref, NML[NrefMax];
+	double       *XYZref;
+
+	XYZref = malloc(NrefMax*DMAX * sizeof *XYZref); // free
+
+	if (TestDB.ML > 0)
+		printf("Error: Only enter for ML == 0.\n"), EXIT_MSG;
+
+	if (strstr(Geometry,"JoukowskiSymmetric")) {
+		double a  = DB.JSa,
+		       xL = DB.JSxL;
+
+		Nref = 2;
+
+		NML[0] = 0;
+		NML[1] = 4;
+
+		XYZref[0+0*DMAX] = xL;  XYZref[1+0*DMAX] = 0.0; XYZref[2+0*DMAX] = 0.0;
+		XYZref[0+1*DMAX] = 2*a; XYZref[1+1*DMAX] = 0.0; XYZref[2+1*DMAX] = 0.0;
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+
+	// Store indices of VOLUMEs to be updated and the adaptation type (HREFINE here) in hp_update
+	unsigned int ML;
+	for (ML = 0; ML < MLMax; ML++) {
+		unsigned int NVglobal = DB.NVglobal;
+
+		struct S_VOLUME *VOLUME;
+
+		unsigned int *hp_update;
+		hp_update = calloc(NVglobal , sizeof *hp_update); // free
+
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			unsigned int n, ve, dim, Nve, indexg;
+			double       *XYZ_vV;
+
+			struct S_ELEMENT *ELEMENT;
+
+			ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+			Nve = ELEMENT->Nve;
+
+			indexg = VOLUME->indexg;
+
+			// Store XYZ_vV as a row vector
+			XYZ_vV = malloc(Nve*d * sizeof *XYZ_vV); // free
+			for (ve = 0; ve < Nve; ve++) {
+			for (dim = 0; dim < d; dim++) {
+				XYZ_vV[ve*d+dim] = VOLUME->XYZ_vV[ve+dim*Nve];
+			}}
+
+			for (n = 0; n < Nref; n++) {
+				if (VOLUME->level < NML[n]) {
+					// Check if one of the XYZ_vV matches any of the specified XYZref
+					for (ve = 0; ve < Nve; ve++) {
+						if (array_norm_diff_d(d,&XYZref[n*DMAX],&XYZ_vV[ve*d],"Inf") < EPS) {
+							hp_update[indexg] = HREFINE;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		// Add additional indices to the list of hp_update to ensure that the resulting mesh will not be more than
+		// 1-irregular.
+		ensure_1irregular(hp_update);
+
+		// Mark VOLUMEs for refinement and perform the mesh update
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			if (hp_update[VOLUME->indexg] == 0) {
+				// Do nothing
+			} else if (hp_update[VOLUME->indexg] == HREFINE) {
+				VOLUME->Vadapt = 1;
+				VOLUME->adapt_type = HREFINE;
+			} else {
+				printf("Error: Unsupported.\n"), EXIT_MSG;
+			}
+		}
+		free(hp_update);
+		mesh_update();
+	}
+	free(XYZref);
+}
 
 void test_integration_Euler(int nargc, char **argv)
 {
@@ -82,43 +187,11 @@ TestDB.PGlobal = 1;
 		TestDB.PGlobal = P;
 		TestDB.ML = ML;
 
-//		DB.PGlobal = P;
-//		DB.ML = ML;
-
 		if (Adapt != ADAPT_0) {
 			if (ML == MLMin) {
 				mesh_to_level(TestDB.ML);
-				if (AdaptiveRefine) {
-					struct S_VOLUME *VOLUME;
-					unsigned int Ind00, Ind01, Ind10, Ind11;
-					Ind00 = 100; Ind01 = 100; Ind10 = 100; Ind11 = 100;
-					if (strstr(DB.MeshType,"ToBeCurvedTRI")) {
-						Ind00 = 0; Ind01 = 1; Ind10 = 1;
-					} else if (strstr(DB.MeshType,"CurvedTRI")) {
-//						Ind00 = 5; Ind01 = 6; Ind10 = 9;// Ind11 = 6; // Refine trailing edge
-//						Ind00 = 2; Ind01 = 1; Ind10 = 5;// Ind11 = 6; // Refine leading edge
-						Ind00 = 2; Ind01 = 0; Ind10 = 5;// Ind11 = 6; // Refine leading edge (alternate)
-					} else if (strstr(DB.MeshType,"ToBeCurvedQUAD")) {
-						Ind00 = 0; Ind10 = 3; Ind11 = 3;
-					} else if (strstr(DB.MeshType,"CurvedQUAD")) {
-						Ind00 = 1; Ind10 = 1;
-					}
-
-					for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-						if (VOLUME->indexg == Ind00 || VOLUME->indexg == Ind01) {
-							VOLUME->Vadapt = 1;
-							VOLUME->adapt_type = HREFINE;
-						}
-					}
-					mesh_update();
-					for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-						if (VOLUME->indexg == Ind10 || VOLUME->indexg == Ind11) {
-							VOLUME->Vadapt = 1;
-							VOLUME->adapt_type = HREFINE;
-						}
-					}
-					mesh_update();
-				}
+				if (AdaptiveRefine)
+					h_adapt();
 			} else {
 				mesh_h_adapt(1,'r');
 			}
@@ -133,10 +206,6 @@ TestDB.PGlobal = 1;
 			output_to_paraview(fNameOut);
 			free(fNameOut);
 		}
-//		if (ML == MLMin || P == PMin)
-//		if (ML == MLMin)
-		if (0)
-			solver_explicit();
 		solver_implicit();
 
 		compute_errors_global();

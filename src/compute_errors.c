@@ -300,8 +300,7 @@ void compute_errors_global(void)
 	         strstr(TestCase,"SupersonicVortex")) {
 		NvarError = NVAR3D+1;
 	} else if (strstr(TestCase,"InviscidChannel")) {
-		if (strstr(Geometry,"NacaSymmetric") ||
-		    strstr(Geometry,"JoukowskiSymmetric"))
+		if (strstr(Geometry,"NacaSymmetric"))
 			CurvedOnly = 1; // Avoid trailing edge singularity when computing entropy error.
 		NvarError = 1;
 	} else {

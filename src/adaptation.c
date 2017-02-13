@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdbool.h>
 
 #include "Parameters.h"
 #include "Macros.h"
@@ -19,6 +20,8 @@
 #include "update_FACEs.h"
 #include "setup_geometry.h"
 #include "memory_free.h"
+
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -36,7 +39,7 @@
 
 struct S_VInfo {
 	unsigned int *neigh, *type, *vh_range, *fh_range, *href_type, *p_levels, *h_levels, *h_siblings, *h_forbid_c,
-	             *hp_refine, *hp_coarse, *hp_coarse_l;
+	             *hp_refine, *hp_coarse, *hp_coarse_l, *hp_update;
 } *VInfo;
 
 void get_PS_range(unsigned int *PSMin, unsigned int *PSMax)
@@ -871,4 +874,256 @@ void mesh_h_adapt(const unsigned int Nadapt, const char h_adapt_type)
 		}
 		mesh_update();
 	}
+}
+
+static bool check_conflict(const unsigned int indexg, const unsigned int AdaptType, const struct S_VInfo *VInfo)
+{
+	/*
+	 *	Comments:
+	 *		The conditions used to establish irregularity are necessary to allow h and p adaptation in neighbouring
+	 *		elements while maintaining the 1-irregularity of the mesh. For example, taking the left element to have
+	 *		[P,ML] = [3,2] and the right element [4,2], then a PREFINE in the left and HREFINE in the right element
+	 *		would be acceptable but would have returned a conflict had the irregularity condition simply been set to
+	 *		hp_levels[indexg]-hp_levels[indexg_neigh] != 0 because of the different AdaptType.
+	 */
+
+	unsigned int *hp_levels, *hp_update;
+
+	hp_update = VInfo->hp_update;
+	if (AdaptType == HREFINE || AdaptType == HCOARSE)
+		hp_levels = VInfo->h_levels;
+	else if (AdaptType == PREFINE || AdaptType == PCOARSE)
+		hp_levels = VInfo->p_levels;
+	else
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+
+	unsigned int f, Nf, Indf, indexg_neigh;
+
+	struct S_ELEMENT *ELEMENT;
+
+	ELEMENT = get_ELEMENT_type(VInfo->type[indexg]);
+	Nf = ELEMENT->Nf;
+
+	Indf = indexg*NFREFMAX*NFMAX;
+	if (AdaptType == HREFINE || AdaptType == PREFINE || AdaptType == PCOARSE) {
+		unsigned int fh, fhMin, fhMax, Indfh, *fh_range;
+		fh_range = VInfo->fh_range;
+		for (f = 0; f < Nf; f++) {
+			Indfh = Indf + f*NFREFMAX;
+			fhMin = fh_range[(indexg*NFMAX+f)*2  ];
+			fhMax = fh_range[(indexg*NFMAX+f)*2+1];
+			for (fh = fhMin; fh <= fhMax; fh++) {
+				indexg_neigh = VInfo->neigh[Indfh+fh];
+
+				bool irregular;
+				if (AdaptType == HREFINE || AdaptType == PREFINE)
+					irregular = ((int) hp_levels[indexg] - (int) hp_levels[indexg_neigh]) > 0;
+				else
+					irregular = ((int) hp_levels[indexg] - (int) hp_levels[indexg_neigh]) < 0;
+
+				if (irregular) {
+					if (!hp_update[indexg_neigh]) {
+						if (check_conflict(indexg_neigh,AdaptType,VInfo))
+							return 1;
+					} else {
+						// Problem if neighbour is flagged to be updated with a different type of adaptation.
+						if (hp_update[indexg_neigh] != AdaptType)
+							return 1;
+					}
+				}
+			}
+		}
+	} else {
+		printf("Add support for HCOARSE.\n"), EXIT_MSG;
+	}
+	return 0;
+}
+
+static void update_levels(const unsigned int indexg, const unsigned AdaptType, const struct S_VInfo *VInfo)
+{
+	/*
+	 *	Comments:
+	 *		Remove redundant code when working (ToBeDeleted).
+	 */
+
+	bool         conflict;
+	unsigned int *hp_update, *hp_levels;
+
+	if (AdaptType == HREFINE)
+		conflict = 0;
+	else
+		// This call is redundant after the first for the element under consideration. (ToBeModified)
+		conflict = check_conflict(indexg,AdaptType,VInfo);
+
+	hp_update = VInfo->hp_update;
+	if (conflict) {
+		hp_update[indexg] = 0;
+		return;
+	}
+
+	hp_update[indexg] = AdaptType;
+	if (AdaptType == HREFINE || AdaptType == HCOARSE)
+		hp_levels = VInfo->h_levels;
+	else if (AdaptType == PREFINE || AdaptType == PCOARSE)
+		hp_levels = VInfo->p_levels;
+	else
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+
+	unsigned int f, Nf, Indf, indexg_neigh;
+
+	struct S_ELEMENT *ELEMENT;
+
+	ELEMENT = get_ELEMENT_type(VInfo->type[indexg]);
+	Nf = ELEMENT->Nf;
+
+	Indf = indexg*NFREFMAX*NFMAX;
+	if (AdaptType == HREFINE || AdaptType == PREFINE || AdaptType == PCOARSE) {
+		unsigned int fh, fhMin, fhMax, Indfh, *fh_range;
+		fh_range = VInfo->fh_range;
+		for (f = 0; f < Nf; f++) {
+			Indfh = Indf + f*NFREFMAX;
+			fhMin = fh_range[(indexg*NFMAX+f)*2  ];
+			fhMax = fh_range[(indexg*NFMAX+f)*2+1];
+			for (fh = fhMin; fh <= fhMax; fh++) {
+				indexg_neigh = VInfo->neigh[Indfh+fh];
+
+				bool irregular;
+				if (AdaptType == HREFINE || AdaptType == PREFINE)
+					irregular = ((int) hp_levels[indexg] - (int) hp_levels[indexg_neigh]) > 0;
+				else
+					irregular = ((int) hp_levels[indexg] - (int) hp_levels[indexg_neigh]) < 0;
+
+				if (!hp_update[indexg_neigh] && irregular)
+					update_levels(indexg_neigh,AdaptType,VInfo);
+			}
+		}
+	} else {
+		printf("Add support for HCOARSE.\n"), EXIT_MSG;
+	}
+}
+
+void ensure_1irregular(unsigned int *hp_update)
+{
+	/*
+	 *	Purpose:
+	 *		Update hp_update to ensure that the mesh resulting from the refinement/coarsening as specified in hp_update
+	 *		is not more than 1-irregular in h and p.
+	 *
+	 *	Comments:
+	 *		Marking VOLUMEs for h and p adaptation is performed sequentially to ensure that only one option is provided
+	 *		for each VOLUME. The order of precedence is: HREFINE, PREFINE, HCOARSE, PCOARSE.
+	 *		To enable parallel treatment (MPI) reliance on local structures (VOLUME, FACE) is avoided.
+	 *		Must be updated for MPI support.
+	 */
+
+	// Initialize DB Parameters
+	unsigned int NV       = DB.NV,
+	             NVglobal = DB.NVglobal,
+	             Adapt    = DB.Adapt;
+
+	// Standard datatypes
+	unsigned int v, NFREFMAX_Total;
+
+	struct S_VOLUME  *VOLUME, **VOLUME_Vec;
+
+	NFREFMAX_Total = NFMAX*NFREFMAX;
+
+	VOLUME_Vec = malloc(NV * sizeof *VOLUME_Vec); // free
+
+	for (VOLUME = DB.VOLUME, v = 0; VOLUME; VOLUME = VOLUME->next, v++) {
+		VOLUME_Vec[v] = VOLUME;
+	}
+
+	VInfo = malloc(sizeof *VInfo); // free
+	VInfo->hp_update = hp_update;
+
+	VInfo->neigh       = malloc(NVglobal*NFMAX*NFREFMAX * sizeof *(VInfo->neigh));       // free
+	VInfo->type        = calloc(NVglobal                , sizeof *(VInfo->type));        // free
+	VInfo->fh_range    = malloc(NVglobal*NFMAX*2        * sizeof *(VInfo->fh_range));    // free
+	VInfo->p_levels    = malloc(NVglobal                * sizeof *(VInfo->p_levels));    // free
+	VInfo->h_levels    = malloc(NVglobal                * sizeof *(VInfo->h_levels));    // free
+
+	unsigned int *VNeigh, *VType_global, *fh_range, *p_levels, *h_levels;
+
+	VNeigh                  = VInfo->neigh;
+	VType_global            = VInfo->type;
+	fh_range                = VInfo->fh_range;
+	p_levels                = VInfo->p_levels;
+	h_levels                = VInfo->h_levels;
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		unsigned int indexg, f, Nf;
+
+		struct S_ELEMENT *ELEMENT;
+
+		indexg = VOLUME->indexg;
+		ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+		Nf = ELEMENT->Nf;
+		for (f = 0; f < Nf; f++) {
+			unsigned int Indf, fh, fhMin, fhMax, Vf;
+
+			Indf = (indexg*NFMAX+f)*2;
+
+			get_fh_range(VOLUME,f,&fhMin,&fhMax);
+			fh_range[Indf  ] = fhMin;
+			fh_range[Indf+1] = fhMax;
+			for (fh = fhMin; fh <= fhMax; fh++) {
+				Vf = f*NFREFMAX+fh;
+				VNeigh[indexg*NFREFMAX_Total+Vf] = VOLUME->neigh[Vf];
+			}
+		}
+
+		VType_global[indexg] = VOLUME->type;
+		p_levels[indexg]     = VOLUME->P;
+		h_levels[indexg]     = VOLUME->level;
+	}
+
+	// Needs modification for MPI (ToBeDeleted)
+	for (v = 0; v < NVglobal; v++) {
+		if (VType_global[v] == 0)
+			printf("Error: Add support.\n"), EXIT_MSG; // Not all VOLUMEs are on this processor.
+	}
+
+	// HREFINE
+	if (Adapt == ADAPT_H || Adapt == ADAPT_HP) {
+		for (v = 0; v < NV; v++) {
+			VOLUME = VOLUME_Vec[v];
+			if (hp_update[v] == HREFINE)
+				update_levels(VOLUME->indexg,HREFINE,VInfo);
+		}
+	}
+
+	// PREFINE
+	if (Adapt == ADAPT_P || Adapt == ADAPT_HP) {
+		for (v = 0; v < NV; v++) {
+			VOLUME = VOLUME_Vec[v];
+			if (hp_update[v] == PREFINE)
+				update_levels(VOLUME->indexg,PREFINE,VInfo);
+		}
+	}
+
+	// HCOARSE
+	if (Adapt == ADAPT_H || Adapt == ADAPT_HP) {
+		for (v = 0; v < NV; v++) {
+			VOLUME = VOLUME_Vec[v];
+			if (hp_update[v] == HCOARSE)
+				update_levels(VOLUME->indexg,HCOARSE,VInfo);
+		}
+	}
+
+	// PCOARSE
+	if (Adapt == ADAPT_P || Adapt == ADAPT_HP) {
+		for (v = 0; v < NV; v++) {
+			VOLUME = VOLUME_Vec[v];
+			if (hp_update[v] == PCOARSE)
+				update_levels(VOLUME->indexg,PCOARSE,VInfo);
+		}
+	}
+
+	free(VNeigh);
+	free(VType_global);
+	free(fh_range);
+	free(p_levels);
+	free(h_levels);
+	free(VInfo);
 }

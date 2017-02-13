@@ -3,13 +3,14 @@
 Refine = 0;
 
 MeshType = 0; // Options: 0 (Transfinite), 1 (Refined TE)
+MoreRegular = 0;
 
 lc = 5/2.0^Refine;
 
 
 // Geometry Specification
 a = 1.0;
-l = a/2.25;
+l = a/1.00;
 
 
 
@@ -39,7 +40,11 @@ Point(3) = {lL,0,0,lc};
 
 Point(4) = {-lL,h,0,lc};
 Point(5) = {-lU,h,0,lc};
-Point(6) = {lU,h,0,lc};
+If (MoreRegular)
+	Point(6) = {lU-2*a,h,0,lc};
+Else
+	Point(6) = {lU,h,0,lc};
+EndIf
 Point(7) = {lL,h,0,lc};
 
 Point(8) = {xM,yM,0,lc};

@@ -77,7 +77,7 @@ void solver_explicit(void)
 			dt = pow(0.5,(DB.ML+DB.LevelsMax)+DB.PGlobal+1);
 		else if (Adapt == ADAPT_HP)
 //			dt = 1e4*pow(0.5,max(DB.ML,DB.LevelsMax)+DB.PMax+1);
-			dt = 2e0*pow(0.5,DB.ML+DB.PGlobal);
+			dt = 1e1*pow(0.5,DB.ML+DB.PGlobal);
 	}
 	printf("%d %d\n",DB.ML,DB.PGlobal);
 
@@ -170,7 +170,8 @@ void solver_explicit(void)
 		printf("Complete: % 7.2f%%, tstep: %8d, maxRHS (no MInv): % .3e\n",100*time/FinalTime,tstep,maxRHS);
 
 		// Additional exit conditions
-		if ((maxRHS0/maxRHS > 1e3 || maxRHS < 8e-14) && tstep > 2) {
+//		if ((maxRHS0/maxRHS > 1e3 || maxRHS < 8e-14) && tstep > 2) {
+		if ((maxRHS0/maxRHS > 1e10 || maxRHS < 8e-14) && tstep > 2) {
 			printf("Exiting: maxRHS dropped by 10 orders or is below 8e-14.\n");
 			break;
 		}

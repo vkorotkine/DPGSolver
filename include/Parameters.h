@@ -124,12 +124,12 @@
 #define ADAPT_HP 3
 
 // Adaptation flags
-#define PREFINE  0
-#define PCOARSE  1
-#define HREFINE  2
+#define HREFINE  1
+#define PREFINE  2
 #define HCOARSE  3
-#define HPREFINE 4
-#define HPCOARSE 5
+#define PCOARSE  4
+#define HPREFINE 5
+#define HPCOARSE 6
 #define HDELETE  10
 
 // h-refinement related numbers
