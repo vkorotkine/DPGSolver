@@ -171,7 +171,7 @@ void initialize_test_case_parameters(void)
 		SourcePresent = 0;
 
 		// Equivalent to choosing total pressure/temperature and back pressure
-		DB.MInf   = 0.2;
+		DB.MInf   = 0.20;
 		DB.rhoInf = 1.0;
 		DB.pInf   = 1.0;
 		DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);

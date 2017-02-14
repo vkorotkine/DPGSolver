@@ -54,7 +54,8 @@ int main(void)
 
 //	strcpy(TestCase,"PeriodicVortex");
 //	strcpy(TestCase,"SupersonicVortex");
-	strcpy(TestCase,"Poisson");
+//	strcpy(TestCase,"Poisson");
+	strcpy(TestCase,"InviscidChannel");
 
 //	strcpy(MeshType,"StructuredTRI");
 //	strcpy(MeshType,"TRI");
@@ -71,15 +72,15 @@ int main(void)
 	d     = 2;
 //	NVars = DMAX+2+1;
 	NVars = DMAX+1;
-	MLMax = 5; NML = MLMax+1;
+	MLMax = 4; NML = MLMax+1;
 	PMax  = 8; NP  = PMax+1;
 
-	unsigned int CasesRun[72] = { 0, 1, 1, 1, 1, 1, 0, 0, 0,
-	                              0, 1, 1, 1, 1, 1, 0, 0, 0,
-	                              0, 1, 1, 1, 1, 1, 0, 0, 0,
-	                              0, 1, 1, 1, 1, 1, 0, 0, 0,
-	                              0, 1, 1, 1, 1, 1, 0, 0, 0,
-	                              0, 1, 1, 1, 1, 1, 0, 0, 0,
+	unsigned int CasesRun[72] = { 0, 1, 1, 1, 0, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -201,6 +202,15 @@ static void data_to_txt(const unsigned int d, const unsigned int NVars, const un
 			else
 				IndVars[i] = i+1;
 		}
+	} else if (strstr(TestCase,"InviscidChannel")) {
+		NVarsOut = 1;
+		Vars_c = malloc(NVarsOut * sizeof *Vars_c); // free
+		for (i = 0; i < NVarsOut; i++)
+			Vars_c[i] = malloc(STRLEN_MIN * sizeof *Vars_c[i]); // free
+
+		strcpy(Vars_c[0],"$s$");
+
+		IndVars[0] = 0;
 	} else if (strstr(TestCase,"Poisson")) {
 		NVarsOut = NVars+d-3;
 

@@ -168,8 +168,8 @@ void test_integration_Euler(int nargc, char **argv)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 4;
-	MLMin = 0; MLMax = 3;
+	PMin  = 1; PMax  = 3;
+	MLMin = 0; MLMax = 4;
 TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
@@ -201,7 +201,7 @@ TestDB.PGlobal = 1;
 		}
 
 		// Output mesh edges to paraview
-		if (TestDB.PGlobal == 4 && TestDB.ML <= 2) {
+		if (TestDB.PGlobal == 3 && TestDB.ML <= 2) {
 			char *fNameOut = get_fNameOut("MeshEdges_");
 			output_to_paraview(fNameOut);
 			free(fNameOut);

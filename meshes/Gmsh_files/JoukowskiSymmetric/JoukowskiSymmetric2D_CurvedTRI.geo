@@ -10,7 +10,7 @@ lc = 5/2.0^Refine;
 
 // Geometry Specification
 a = 1.0;
-l = a/1.00;
+l = a/1.0;
 
 
 
