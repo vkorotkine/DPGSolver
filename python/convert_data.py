@@ -46,6 +46,10 @@ class output_class:
 			self.NEntries = 5
 			self.type     = 'Poisson_H0'
 			self.format   = 'table'
+		elif (name == 'Optimal Euler'):
+			self.NEntries = 4
+			self.type     = 'Euler_s'
+			self.format   = 'table'
 		else:
 			print("Error: Unsupported (output_class)."); sys.exit()
 
@@ -137,6 +141,18 @@ def initialize_input(output):
 
 		output.varNames = ['SB$_{N,m=k}$','$L^2_{m=k,\\text{ps}}$','SB$_{N,m=k,ps}$','$L^2_{m=k,\\text{pc}}$', \
 		                   'SB$_{N,m=k,pc}$']
+	elif (output.name == 'Optimal Euler'):
+		name_root = ['L2errs+Convergence_' + output.Geometry + '2.25_' + output.MeshType, \
+		             'L2errs+Convergence_' + output.Geometry + '1.00_' + output.MeshType]
+
+		name_end  = ['original_Normal_SB_m=k','_Normal_SB_m=k'];
+
+		data_i[0].case = name_root[0] + name_end[0]
+		data_i[1].case = name_root[0] + name_end[1]
+		data_i[2].case = name_root[1] + name_end[0]
+		data_i[3].case = name_root[1] + name_end[1]
+
+		output.varNames = ['SB$_{N,m=k,(2.25)}$','SB$_{N,m=k,(2.25r)}$','SB$_{N,m=k,(1.00)}$','SB$_{N,m=k,(1.00r)}$']
 	else:
 		print("Error: Unsupported (initialize_input)."); sys.exit()
 
@@ -256,7 +272,7 @@ def write_std_tables(f,data_i,output):
 		L2Errors   = data.L2Errors
 		ConvOrders = data.ConvOrders
 
-		f_write(f,0,'\\begin{table}[!h]')
+		f_write(f,0,'\\begin{table}[!ht]')
 #		f_write(f,0,'\\begin{table}[!htbp]') # Include additional table placement options
 		f_write(f,0,'\\begin{center}')
 		string = '\\caption{Errors and Convergence Orders - ' + output.MeshType + ' Meshes {\\color{red} '
@@ -377,7 +393,7 @@ def output_data(output,data_i):
 
 	if ('std' in output.type):
 		write_std_tables(f,data_i,output)
-	elif ('Poisson_H0' in output.type):
+	elif ('Poisson_H0' in output.type or 'Euler_s' in output.type):
 		# Assemble data to print
 		NOut  = len(data_i)
 		MLMax = data_i[0].MLMax
@@ -444,7 +460,8 @@ if __name__ == '__main__':
 	output = output_class()
 
 #	output.Geometry = 'dm1-Spherical_Section'
-	output.Geometry = 'Ellipsoidal_Section'
+#	output.Geometry = 'Ellipsoidal_Section'
+	output.Geometry = 'InviscidChannel_Joukowski'
 
 	output.MeshType = 'CurvedTRI'
 #	output.MeshType = 'CurvedQUAD'
@@ -455,8 +472,9 @@ if __name__ == '__main__':
 #	output.name = 'Suboptimal Surface'
 #	output.name = 'Suboptimal Blending'
 #	output.name = 'Optimal h'; output.Ratio = '1'
-	output.name = 'Projected Conforming'
+#	output.name = 'Projected Conforming'
 #	output.name = 'Projected NonConforming'
+	output.name = 'Optimal Euler';
 
 	output.init_name(output.name)
 

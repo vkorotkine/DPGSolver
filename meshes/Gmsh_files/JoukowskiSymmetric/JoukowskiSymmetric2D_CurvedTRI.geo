@@ -3,14 +3,14 @@
 Refine = 0;
 
 MeshType = 0; // Options: 0 (Transfinite), 1 (Refined TE)
-MoreRegular = 0;
+MoreRegular = 1;
 
 lc = 5/2.0^Refine;
 
 
 // Geometry Specification
 a = 1.0;
-l = a/1.0;
+l = a/2.25;
 
 
 

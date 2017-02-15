@@ -66,7 +66,7 @@ static void h_adapt(void)
 		Nref = 2;
 
 		NML[0] = 0;
-		NML[1] = 4;
+		NML[1] = 3;
 
 		XYZref[0+0*DMAX] = xL;  XYZref[1+0*DMAX] = 0.0; XYZref[2+0*DMAX] = 0.0;
 		XYZref[0+1*DMAX] = 2*a; XYZref[1+1*DMAX] = 0.0; XYZref[2+1*DMAX] = 0.0;
@@ -169,7 +169,7 @@ void test_integration_Euler(int nargc, char **argv)
 
 	// Convergence orders
 	PMin  = 1; PMax  = 3;
-	MLMin = 0; MLMax = 4;
+	MLMin = 0; MLMax = 2;
 TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free

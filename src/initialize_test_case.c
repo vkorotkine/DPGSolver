@@ -200,7 +200,8 @@ void initialize_test_case_parameters(void)
 		} else if (strstr(Geometry,"JoukowskiSymmetric")) {
 			double a, l, t;
 			a = 1.0;
-			l = a/1.00;
+//			l = a/1.00; // MInf = 0.20
+			l = a/2.25; // MInf = 0.25
 			t = PI;
 
 			double l2, l3, cost2;
