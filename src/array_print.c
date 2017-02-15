@@ -1,11 +1,14 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "array_print.h"
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include <complex.h>
+
+#include "Parameters.h"
 
 /*
  *	Purpose:
@@ -147,16 +150,26 @@ void array_print_d(const unsigned int m, const unsigned int n, const double *A, 
 	switch (layout) {
 	case 'R':
 		for (i = 0; i < m; i++) {
-			for (j = 0; j < n; j++)
-				printf("% .4e ",A[i*n+j]);
+			for (j = 0; j < n; j++) {
+				if (isnan(A[i*n+j]) || fabs(A[i*n+j]) > EPS)
+					printf("% .4e ",A[i*n+j]);
+				else
+					printf(" %d          ",0);
+//				printf("% .4e ",A[i*n+j]);
+			}
 			printf("\n");
 		}
 		printf("\n");
 		break;
 	case 'C':
 		for (i = 0; i < m; i++) {
-			for (j = 0; j < n; j++)
-				printf("% .4e ",A[i+j*m]);
+			for (j = 0; j < n; j++) {
+				if (isnan(A[i+j*m]) || fabs(A[i+j*m]) > EPS)
+					printf("% .4e ",A[i+j*m]);
+				else
+					printf(" %d          ",0);
+//				printf("% .4e ",A[i+j*m]);
+			}
 			printf("\n");
 		}
 		printf("\n");

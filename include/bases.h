@@ -1,8 +1,11 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #ifndef DPG__bases_h__INCLUDED
 #define DPG__bases_h__INCLUDED
+
+extern double jacobiP          (const double x, const double alpha, const double beta, const int N);
+extern double grad_jacobiP     (const double x, const double alpha, const double beta, const int N);
 
 extern double *basis_TP        (const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut, const unsigned int d);
 extern double *basis_SI        (const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut, const unsigned int d);

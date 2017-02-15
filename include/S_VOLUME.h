@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #ifndef DPG__S_VOLUME_h__INCLUDED
 #define DPG__S_VOLUME_h__INCLUDED
@@ -10,10 +10,10 @@ struct S_VOLUME {
 	// Structures
 	unsigned int indexl, indexg, P, type, Eclass, update, curved, level,
 	             *NsubF, *neigh, *neigh_f;
-	double *XYZ_vC;
+	double *XYZ_vV, *XYZ_vVc;
 
 	// Geometry
-	unsigned int NvnG;
+	unsigned int NvnG, *VeInd, *VeInfo, **BC;
 	double *XYZ_S, *XYZ, *detJV_vI, *C_vC, *C_vI, **C_vf;
 
 	// Initialization
@@ -29,6 +29,7 @@ struct S_VOLUME {
 
 	// hp adaptivity
 	unsigned int refine_current, Vadapt, adapt_type, PNew, hrefine_type;
+	double       *XYZ_vVP2;
 //	double       minRES, maxRES;
 
 	// Poisson
@@ -37,7 +38,7 @@ struct S_VOLUME {
 
 	// structs
 	struct S_VOLUME *next, *grpnext, *child0, *parent;
-	struct S_FACET  **FACET;
+	struct S_FACE  **FACE;
 };
 
 #endif // DPG__S_VOLUME_h__INCLUDED

@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "element_functions.h"
 
@@ -45,14 +45,16 @@ void initialize_ELEMENTs(void)
 	 *		Eclass   : (E)lement (class)
 	 *		d        : (d)imension
 	 *		Nve      : (N)umber of local (ve)rtices
-	 *		Nfve     : (N)umber of local (f)acet (ve)rtices
-	 *		Nf       : (N)umber of local (f)acets
+	 *		NveP2    : (N)umber of local (ve)rtices after uniform h- or P2-refinement
+	 *		Nfve     : (N)umber of local (f)ace (ve)rtices
+	 *		Nf       : (N)umber of local (f)aces
 	 *		NEhref   : (N)umber of (E)lement types after (h)-(ref)inement
-	 *		VeCGmsh  : (Ve)rtices of the (C)orners                       (Gmsh ordering)
-	 *		VeFcon   : (Ve)rtices of the (F)acets which are (con)forming (Standard ordering)
+	 *		VeCGmsh  : (Ve)rtices of the (C)orners                      (Gmsh ordering)
+	 *		VeEcon   : (Ve)rtices of the (E)dges which are (con)forming (Standard ordering)
+	 *		VeFcon   : (Ve)rtices of the (F)aces which are (con)forming (Standard ordering)
 	 *		Nvref    : (N)umber of (v)olume h-refinements needed for standard refinement.
 	 *		NvrefSF  : (N)umber of (v)olume h-refinements needed for (S)um (F)actorized operator application.
-	 *		Nfref    : (N)umber of (f)acet h-refinements needed for standard refinement.
+	 *		Nfref    : (N)umber of (f)ace h-refinements needed for standard refinement.
 	 *
 	 *	References:
 	 *		http://gmsh.info/doc/texinfo/gmsh.html#Node-ordering
@@ -66,7 +68,7 @@ void initialize_ELEMENTs(void)
 	// Standard datatypes
 	unsigned int type, f, Nf, IndFType;
 
-	struct S_ELEMENT *ELEMENT, *ELEMENT_FACET;
+	struct S_ELEMENT *ELEMENT, *ELEMENT_FACE;
 
 	// POINT
 	ELEMENT = New_ELEMENT();
@@ -76,9 +78,13 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_TP;
 	ELEMENT->d         = 0;
 	ELEMENT->Nve       = 1;
+	ELEMENT->NveP2     = 1;
+	ELEMENT->Ne        = 1;
 	ELEMENT->Nf        = 1;
 	ELEMENT->NEhref    = 1;
 	ELEMENT->type_h[0] = POINT;
+	ELEMENT->Neve      = 1;
+	ELEMENT->Neref     = NEREFMAX;
 	ELEMENT->Nfve[0]   = 1;
 	ELEMENT->VeCGmsh[0]    = 0;
 	ELEMENT->VeFcon[0*NFVEMAX  ] = 0;
@@ -92,9 +98,13 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_TP;
 	ELEMENT->d         = 1;
 	ELEMENT->Nve       = 2;
+	ELEMENT->NveP2     = 3;
+	ELEMENT->Ne        = 2;
 	ELEMENT->Nf        = 2;
 	ELEMENT->NEhref    = 1;
 	ELEMENT->type_h[0] = LINE;
+	ELEMENT->Neve      = 1;
+	ELEMENT->Neref     = NEREFMAX;
 	ELEMENT->Nfve[0]   = 1; ELEMENT->Nfve[1]   = 1;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1] =    1;
 	ELEMENT->VeFcon[0*NFVEMAX  ] = 0;
@@ -110,9 +120,13 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_SI;
 	ELEMENT->d         = 2;
 	ELEMENT->Nve       = 3;
+	ELEMENT->NveP2     = 6;
+	ELEMENT->Ne        = 3;
 	ELEMENT->Nf        = 3;
 	ELEMENT->NEhref    = 1;
 	ELEMENT->type_h[0] = TRI;
+	ELEMENT->Neve      = 2;
+	ELEMENT->Neref     = NEREFMAX;
 	ELEMENT->Nfve[0]   = 2; ELEMENT->Nfve[1]   = 2; ELEMENT->Nfve[2]   = 2;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2] =    2;
 	ELEMENT->VeFcon[0*NFVEMAX  ] = 1; ELEMENT->VeFcon[0*NFVEMAX+1] = 2;
@@ -129,9 +143,13 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_TP;
 	ELEMENT->d         = 2;
 	ELEMENT->Nve       = 4;
+	ELEMENT->NveP2     = 9;
+	ELEMENT->Ne        = 4;
 	ELEMENT->Nf        = 4;
 	ELEMENT->NEhref    = 1;
 	ELEMENT->type_h[0] = QUAD;
+	ELEMENT->Neve      = 2;
+	ELEMENT->Neref     = NEREFMAX;
 	ELEMENT->Nfve[0]   = 2; ELEMENT->Nfve[1]   = 2; ELEMENT->Nfve[2]   = 2; ELEMENT->Nfve[3]   = 2;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1] =    1; ELEMENT->VeCGmsh[2] =    3; ELEMENT->VeCGmsh[3] =    2;
 	ELEMENT->VeFcon[0*NFVEMAX  ] = 0; ELEMENT->VeFcon[0*NFVEMAX+1] = 2;
@@ -149,15 +167,26 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_SI;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 4;
+	ELEMENT->NveP2     = 10;
+	ELEMENT->Ne        = 6;
 	ELEMENT->Nf        = 4;
-	ELEMENT->NEhref    = 1;
+	ELEMENT->NEhref    = 2;
 	ELEMENT->type_h[0] = TET; ELEMENT->type_h[1] = PYR;
+	ELEMENT->Neve      = 2;
+	ELEMENT->Neref     = NEREFMAX;
 	ELEMENT->Nfve[0]   = 3; ELEMENT->Nfve[1]   = 3; ELEMENT->Nfve[2]   = 3; ELEMENT->Nfve[3]   = 3;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 2; ELEMENT->VeCGmsh[3]    = 3;
-	ELEMENT->VeFcon[0*NFVEMAX  ] = 1; ELEMENT->VeFcon[0*NFVEMAX+1] = 2; ELEMENT->VeFcon[0*NFVEMAX+2] = 3;
-	ELEMENT->VeFcon[1*NFVEMAX  ] = 0; ELEMENT->VeFcon[1*NFVEMAX+1] = 2; ELEMENT->VeFcon[1*NFVEMAX+2] = 3;
+	ELEMENT->VeFcon[0*NFVEMAX  ] = 2; ELEMENT->VeFcon[0*NFVEMAX+1] = 3; ELEMENT->VeFcon[0*NFVEMAX+2] = 1;
+	ELEMENT->VeFcon[1*NFVEMAX  ] = 2; ELEMENT->VeFcon[1*NFVEMAX+1] = 3; ELEMENT->VeFcon[1*NFVEMAX+2] = 0;
 	ELEMENT->VeFcon[2*NFVEMAX  ] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1; ELEMENT->VeFcon[2*NFVEMAX+2] = 3;
 	ELEMENT->VeFcon[3*NFVEMAX  ] = 0; ELEMENT->VeFcon[3*NFVEMAX+1] = 1; ELEMENT->VeFcon[3*NFVEMAX+2] = 2;
+	ELEMENT->VeEcon[0*NEVEMAX  ] = 0; ELEMENT->VeEcon[0*NEVEMAX+1] = 1;
+	ELEMENT->VeEcon[1*NEVEMAX  ] = 0; ELEMENT->VeEcon[1*NEVEMAX+1] = 2;
+	ELEMENT->VeEcon[2*NEVEMAX  ] = 0; ELEMENT->VeEcon[2*NEVEMAX+1] = 3;
+	ELEMENT->VeEcon[3*NEVEMAX  ] = 1; ELEMENT->VeEcon[3*NEVEMAX+1] = 2;
+	ELEMENT->VeEcon[4*NEVEMAX  ] = 1; ELEMENT->VeEcon[4*NEVEMAX+1] = 3;
+	ELEMENT->VeEcon[5*NEVEMAX  ] = 2; ELEMENT->VeEcon[5*NEVEMAX+1] = 3;
+// Make into a separate function for initializing ELEMENTs to make this clearner (ToBeDeleted).
 	ELEMENT->NrefV[0] = 6;
 
 	ELEMENT->next = New_ELEMENT();
@@ -169,9 +198,13 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_TP;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 8;
+	ELEMENT->NveP2     = 27;
+	ELEMENT->Ne        = 12;
 	ELEMENT->Nf        = 6;
 	ELEMENT->NEhref    = 1;
 	ELEMENT->type_h[0] = HEX;
+	ELEMENT->Neve      = 2;
+	ELEMENT->Neref     = NEREFMAX;
 	ELEMENT->Nfve[0]   = 4; ELEMENT->Nfve[1]   = 4; ELEMENT->Nfve[2]   = 4;
 	ELEMENT->Nfve[3]   = 4; ELEMENT->Nfve[4]   = 4; ELEMENT->Nfve[5]   = 4;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 3; ELEMENT->VeCGmsh[3]    = 2;
@@ -182,6 +215,18 @@ void initialize_ELEMENTs(void)
 	ELEMENT->VeFcon[3*NFVEMAX  ] = 2; ELEMENT->VeFcon[3*NFVEMAX+1] = 3; ELEMENT->VeFcon[3*NFVEMAX+2] = 6; ELEMENT->VeFcon[3*NFVEMAX+3] = 7;
 	ELEMENT->VeFcon[4*NFVEMAX  ] = 0; ELEMENT->VeFcon[4*NFVEMAX+1] = 1; ELEMENT->VeFcon[4*NFVEMAX+2] = 2; ELEMENT->VeFcon[4*NFVEMAX+3] = 3;
 	ELEMENT->VeFcon[5*NFVEMAX  ] = 4; ELEMENT->VeFcon[5*NFVEMAX+1] = 5; ELEMENT->VeFcon[5*NFVEMAX+2] = 6; ELEMENT->VeFcon[5*NFVEMAX+3] = 7;
+	ELEMENT->VeEcon[0 *NEVEMAX  ] = 0; ELEMENT->VeEcon[0 *NEVEMAX+1] = 1;
+	ELEMENT->VeEcon[1 *NEVEMAX  ] = 2; ELEMENT->VeEcon[1 *NEVEMAX+1] = 3;
+	ELEMENT->VeEcon[2 *NEVEMAX  ] = 4; ELEMENT->VeEcon[2 *NEVEMAX+1] = 5;
+	ELEMENT->VeEcon[3 *NEVEMAX  ] = 6; ELEMENT->VeEcon[3 *NEVEMAX+1] = 7;
+	ELEMENT->VeEcon[4 *NEVEMAX  ] = 0; ELEMENT->VeEcon[4 *NEVEMAX+1] = 2;
+	ELEMENT->VeEcon[5 *NEVEMAX  ] = 1; ELEMENT->VeEcon[5 *NEVEMAX+1] = 3;
+	ELEMENT->VeEcon[6 *NEVEMAX  ] = 4; ELEMENT->VeEcon[6 *NEVEMAX+1] = 6;
+	ELEMENT->VeEcon[7 *NEVEMAX  ] = 5; ELEMENT->VeEcon[7 *NEVEMAX+1] = 7;
+	ELEMENT->VeEcon[8 *NEVEMAX  ] = 0; ELEMENT->VeEcon[8 *NEVEMAX+1] = 4;
+	ELEMENT->VeEcon[9 *NEVEMAX  ] = 1; ELEMENT->VeEcon[9 *NEVEMAX+1] = 5;
+	ELEMENT->VeEcon[10*NEVEMAX  ] = 2; ELEMENT->VeEcon[10*NEVEMAX+1] = 6;
+	ELEMENT->VeEcon[11*NEVEMAX  ] = 3; ELEMENT->VeEcon[11*NEVEMAX+1] = 7;
 	ELEMENT->NrefV[0] = 8; ELEMENT->NrefV[1] = 4; ELEMENT->NrefV[2] = 4; ELEMENT->NrefV[3] = 4;
 	ELEMENT->NrefV[4] = 2; ELEMENT->NrefV[5] = 2; ELEMENT->NrefV[6] = 2;
 
@@ -194,9 +239,13 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_WEDGE;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 6;
+	ELEMENT->NveP2     = 18;
+	ELEMENT->Ne        = 9;
 	ELEMENT->Nf        = 5;
 	ELEMENT->NEhref    = 1;
 	ELEMENT->type_h[0] = WEDGE;
+	ELEMENT->Neve      = 2;
+	ELEMENT->Neref     = NEREFMAX;
 	ELEMENT->Nfve[0]   = 4; ELEMENT->Nfve[1]   = 4; ELEMENT->Nfve[2]   = 4;
 	ELEMENT->Nfve[3]   = 3; ELEMENT->Nfve[4]   = 3;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 2;
@@ -206,6 +255,15 @@ void initialize_ELEMENTs(void)
 	ELEMENT->VeFcon[2*NFVEMAX  ] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1; ELEMENT->VeFcon[2*NFVEMAX+2] = 3; ELEMENT->VeFcon[2*NFVEMAX+3] = 4;
 	ELEMENT->VeFcon[3*NFVEMAX  ] = 0; ELEMENT->VeFcon[3*NFVEMAX+1] = 1; ELEMENT->VeFcon[3*NFVEMAX+2] = 2;
 	ELEMENT->VeFcon[4*NFVEMAX  ] = 3; ELEMENT->VeFcon[4*NFVEMAX+1] = 4; ELEMENT->VeFcon[4*NFVEMAX+2] = 5;
+	ELEMENT->VeEcon[0*NEVEMAX  ] = 1; ELEMENT->VeEcon[0*NEVEMAX+1] = 2;
+	ELEMENT->VeEcon[1*NEVEMAX  ] = 0; ELEMENT->VeEcon[1*NEVEMAX+1] = 2;
+	ELEMENT->VeEcon[2*NEVEMAX  ] = 0; ELEMENT->VeEcon[2*NEVEMAX+1] = 1;
+	ELEMENT->VeEcon[3*NEVEMAX  ] = 4; ELEMENT->VeEcon[3*NEVEMAX+1] = 5;
+	ELEMENT->VeEcon[4*NEVEMAX  ] = 3; ELEMENT->VeEcon[4*NEVEMAX+1] = 5;
+	ELEMENT->VeEcon[5*NEVEMAX  ] = 3; ELEMENT->VeEcon[5*NEVEMAX+1] = 4;
+	ELEMENT->VeEcon[6*NEVEMAX  ] = 0; ELEMENT->VeEcon[6*NEVEMAX+1] = 3;
+	ELEMENT->VeEcon[7*NEVEMAX  ] = 1; ELEMENT->VeEcon[7*NEVEMAX+1] = 4;
+	ELEMENT->VeEcon[8*NEVEMAX  ] = 2; ELEMENT->VeEcon[8*NEVEMAX+1] = 5;
 	ELEMENT->NrefV[0] = 8; ELEMENT->NrefV[1] = 4; ELEMENT->NrefV[2] = 2;
 
 	ELEMENT->next = New_ELEMENT();
@@ -217,9 +275,13 @@ void initialize_ELEMENTs(void)
 	ELEMENT->Eclass    = C_PYR;
 	ELEMENT->d         = 3;
 	ELEMENT->Nve       = 5;
+	ELEMENT->NveP2     = 14;
+	ELEMENT->Ne        = 8;
 	ELEMENT->Nf        = 5;
 	ELEMENT->NEhref    = 2;
 	ELEMENT->type_h[0] = PYR; ELEMENT->type_h[1] = TET;
+	ELEMENT->Neve      = 2;
+	ELEMENT->Neref     = NEREFMAX;
 	ELEMENT->Nfve[0]   = 3; ELEMENT->Nfve[1]   = 3; ELEMENT->Nfve[2]   = 3; ELEMENT->Nfve[3]   = 3;
 	ELEMENT->Nfve[4]   = 4;
 	ELEMENT->VeCGmsh[0]    = 0; ELEMENT->VeCGmsh[1]    = 1; ELEMENT->VeCGmsh[2]    = 3; ELEMENT->VeCGmsh[3]   = 2;
@@ -229,27 +291,35 @@ void initialize_ELEMENTs(void)
 	ELEMENT->VeFcon[2*NFVEMAX  ] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1; ELEMENT->VeFcon[2*NFVEMAX+2] = 4;
 	ELEMENT->VeFcon[3*NFVEMAX  ] = 2; ELEMENT->VeFcon[3*NFVEMAX+1] = 3; ELEMENT->VeFcon[3*NFVEMAX+2] = 4;
 	ELEMENT->VeFcon[4*NFVEMAX  ] = 0; ELEMENT->VeFcon[4*NFVEMAX+1] = 1; ELEMENT->VeFcon[4*NFVEMAX+2] = 2; ELEMENT->VeFcon[4*NFVEMAX+3] = 3;
+	ELEMENT->VeEcon[0*NEVEMAX  ] = 0; ELEMENT->VeEcon[0*NEVEMAX+1] = 1;
+	ELEMENT->VeEcon[1*NEVEMAX  ] = 2; ELEMENT->VeEcon[1*NEVEMAX+1] = 3;
+	ELEMENT->VeEcon[2*NEVEMAX  ] = 0; ELEMENT->VeEcon[2*NEVEMAX+1] = 2;
+	ELEMENT->VeEcon[3*NEVEMAX  ] = 1; ELEMENT->VeEcon[3*NEVEMAX+1] = 3;
+	ELEMENT->VeEcon[4*NEVEMAX  ] = 0; ELEMENT->VeEcon[4*NEVEMAX+1] = 4;
+	ELEMENT->VeEcon[5*NEVEMAX  ] = 1; ELEMENT->VeEcon[5*NEVEMAX+1] = 4;
+	ELEMENT->VeEcon[6*NEVEMAX  ] = 2; ELEMENT->VeEcon[6*NEVEMAX+1] = 4;
+	ELEMENT->VeEcon[7*NEVEMAX  ] = 3; ELEMENT->VeEcon[7*NEVEMAX+1] = 4;
 	ELEMENT->NrefV[0] = 10;
 
 	// No additional ELEMENTs
 
-	// Set pointers for ELEMENT classes and ELEMENT FACETs
+	// Set pointers for ELEMENT classes and ELEMENT FACEs
 	for (ELEMENT = DB.ELEMENT; ELEMENT; ELEMENT = ELEMENT->next) {
 		type = ELEMENT->type;
 		if (type == POINT) {
 			ELEMENT->ELEMENTclass[0]  = get_ELEMENT_Eclass(ELEMENT->type,0);
 		} else if (type == LINE || type == QUAD || type == HEX || type == TRI || type == TET) {
 			ELEMENT->ELEMENTclass[0]  = get_ELEMENT_Eclass(ELEMENT->type,0);
-			ELEMENT->ELEMENT_FACET[0] = get_ELEMENT_FACET(ELEMENT->type,0);
+			ELEMENT->ELEMENT_FACE[0] = get_ELEMENT_FACE(ELEMENT->type,0);
 		} else if (type == PYR) {
 			ELEMENT->ELEMENTclass[0]  = get_ELEMENT_Eclass(ELEMENT->type,0);
-			ELEMENT->ELEMENT_FACET[0] = get_ELEMENT_FACET(ELEMENT->type,0);
-			ELEMENT->ELEMENT_FACET[1] = get_ELEMENT_FACET(ELEMENT->type,1);
+			ELEMENT->ELEMENT_FACE[0] = get_ELEMENT_FACE(ELEMENT->type,0);
+			ELEMENT->ELEMENT_FACE[1] = get_ELEMENT_FACE(ELEMENT->type,1);
 		} else if (type == WEDGE) {
 			ELEMENT->ELEMENTclass[0]  = get_ELEMENT_Eclass(ELEMENT->type,0);
 			ELEMENT->ELEMENTclass[1]  = get_ELEMENT_Eclass(ELEMENT->type,1);
-			ELEMENT->ELEMENT_FACET[0] = get_ELEMENT_FACET(ELEMENT->type,0);
-			ELEMENT->ELEMENT_FACET[1] = get_ELEMENT_FACET(ELEMENT->type,1);
+			ELEMENT->ELEMENT_FACE[0] = get_ELEMENT_FACE(ELEMENT->type,0);
+			ELEMENT->ELEMENT_FACE[1] = get_ELEMENT_FACE(ELEMENT->type,1);
 		}
 	}
 
@@ -318,8 +388,8 @@ void initialize_ELEMENTs(void)
 		Nf = ELEMENT->Nf;
 		for (f = 0; f < Nf; f++) {
 			IndFType = get_IndFType(ELEMENT->Eclass,f);
-			ELEMENT_FACET = get_ELEMENT_FACET(ELEMENT->type,IndFType);
-			ELEMENT->Nfref[f] = ELEMENT_FACET->Nvref;
+			ELEMENT_FACE = get_ELEMENT_FACE(ELEMENT->type,IndFType);
+			ELEMENT->Nfref[f] = ELEMENT_FACE->Nvref;
 		}
 	}
 }
@@ -338,10 +408,10 @@ void finalize_ELEMENTs(void)
 	 *	Notation:
 	 *		present  : Indicator of presence of this element type
 	 *		           Options: 0, 1
-	 *		NfMax    : (Max)imum (N)umber of (f)acets on an element
-	 *		NfveMax  : (Max)imum (N)umber of (f)acet (ve)rtices on an element
+	 *		NfMax    : (Max)imum (N)umber of (f)aces on an element
+	 *		NfveMax  : (Max)imum (N)umber of (f)ace (ve)rtices on an element
 	 *		NveMax   : (Max)imum (N)umber of (ve)rtices on an element
-	 *		NfrefMax : (Max)imum (N)umber of (f)acet (ref)inements
+	 *		NfrefMax : (Max)imum (N)umber of (f)ace (ref)inements
 	 *
 	 *	References:
 	 */
@@ -483,7 +553,29 @@ struct S_ELEMENT *get_ELEMENT_type(const unsigned int type)
 
 		ELEMENT = ELEMENT->next;
 	}
-	printf("Error: Element type not found (type).\n"), exit(1);
+	printf("Error: Element type not found (%d).\n",type), EXIT_MSG;
+}
+
+struct S_ELEMENT *get_ELEMENT_F_type(const unsigned int type, const unsigned int f)
+{
+	unsigned int IndFType;
+
+	struct S_ELEMENT *ELEMENT_F;
+
+	IndFType = get_IndFType(get_ELEMENT_type(type)->Eclass,f);
+
+	if (type == LINE) {
+		ELEMENT_F = get_ELEMENT_type(POINT);
+	} else if (type == TRI || type == QUAD) {
+		ELEMENT_F = get_ELEMENT_type(LINE);
+	} else if (type == TET || (type == WEDGE && IndFType == 1) || (type == PYR && IndFType == 0)) {
+		ELEMENT_F = get_ELEMENT_type(TRI);
+	} else if (type == HEX || (type == WEDGE && IndFType == 0) || (type == PYR && IndFType == 1)) {
+		ELEMENT_F = get_ELEMENT_type(QUAD);
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+	return ELEMENT_F;
 }
 
 struct S_ELEMENT *get_ELEMENT_Eclass(const unsigned int type, const unsigned int IndEclass)
@@ -515,8 +607,9 @@ struct S_ELEMENT *get_ELEMENT_Eclass(const unsigned int type, const unsigned int
 	printf("Error: Element class not found.\n"), exit(1);
 }
 
-struct S_ELEMENT *get_ELEMENT_FACET(const unsigned int type, const unsigned int IndEclass)
+struct S_ELEMENT *get_ELEMENT_FACE(const unsigned int type, const unsigned int IndEclass)
 {
+	// Quite similar to get_ELEMENT_F_type ... Likely delete one of this function (ToBeDeleted)
 	struct S_ELEMENT *ELEMENT = DB.ELEMENT;
 
 	if (type == LINE) {
@@ -544,7 +637,7 @@ struct S_ELEMENT *get_ELEMENT_FACET(const unsigned int type, const unsigned int 
 			ELEMENT = ELEMENT->next;
 		}
 	}
-	printf("Error: Element FACET of type %d and IndFType %d was not found.\n",type,IndEclass), exit(1);
+	printf("Error: Element FACE of type %d and IndFType %d was not found.\n",type,IndEclass), exit(1);
 }
 
 unsigned int get_IndFType(const unsigned int Eclass, const unsigned int f)

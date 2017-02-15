@@ -1,0 +1,33 @@
+/*------------------------------------------------------------*/
+/*                                                            */
+/*          CONTROL FILE FOR UNSTRUCTURED DPG SOLVER          */
+/*                                                            */
+/*------------------------------------------------------------*/
+
+BEGIN PARAMETERS
+  Dimension  2
+  ML         0
+  MeshType   CurvedTRI
+  Geometry   JoukowskiSymmetric
+
+  Form       Weak   // Options: Weak, (Strong)
+  NodeType   GLL-AO // Options: GL/GLL-AO/WSH/EQ
+  BasisType  Nodal  // Options: Nodal, Modal
+
+  Vectorized 0     // Options: 0, 1
+  EFE        1     // Options: (0), 1
+  Collocated 0     // Options: 0, 1
+  Adapt      3     // Options: 0, 1, 2, (3)
+
+  PGlobal    1
+  PMax       4
+  LevelsMax  10
+
+  Restart    -1    // Options: -1, 0, Iteration #
+
+  Testing    1     // Options: 0, 1
+END PARAMETERS
+
+BEGIN MESH
+MeshPath ../meshes/
+END MESH

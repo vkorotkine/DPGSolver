@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,6 +25,10 @@
 #define EPS        1.0e-15
 #define DMAX       3
 
+static void data_to_txt(const unsigned int d, const unsigned int NVars, const unsigned int MLMin,
+                        const unsigned int MLMax, const unsigned int PMin, const unsigned int PMax,
+                        const unsigned int *CasesRun, const double *h, double **L2Errors, double **ConvOrders,
+                        char *TestCase, char *MeshType);
 static void table_to_latex(const unsigned int d, const unsigned int NVars, const unsigned int MLMin,
                            const unsigned int MLMax, const unsigned int PMin, const unsigned int PMax,
                            const unsigned int *CasesRun, const double *h, double **L2Errors, double **ConvOrders,
@@ -50,30 +54,38 @@ int main(void)
 
 //	strcpy(TestCase,"PeriodicVortex");
 //	strcpy(TestCase,"SupersonicVortex");
-	strcpy(TestCase,"Poisson");
+//	strcpy(TestCase,"Poisson");
+	strcpy(TestCase,"InviscidChannel");
 
 //	strcpy(MeshType,"StructuredTRI");
+//	strcpy(MeshType,"TRI");
+	strcpy(MeshType,"CurvedTRI");
+//	strcpy(MeshType,"CurvedQUAD");
+//	strcpy(MeshType,"ToBeCurvedTRI");
+//	strcpy(MeshType,"CurvedTET");
 //	strcpy(MeshType,"ToBeCurvedStructuredTRI");
 //	strcpy(MeshType,"ToBeCurvedStructuredQUAD");
-	strcpy(MeshType,"ToBeCurvedStructuredTET");
+//	strcpy(MeshType,"ToBeCurvedStructuredTET");
 //	strcpy(MeshType,"ToBeCurvedStructuredHEX");
 //	strcpy(MeshType,"ToBeCurvedStructuredMixed");
 
-	d     = 3;
+	d     = 2;
 //	NVars = DMAX+2+1;
 	NVars = DMAX+1;
-	MLMin = 0; MLMax = 4; NML = MLMax-MLMin+1;
-	PMin  = 0; PMax  = 4; NP  = PMax-PMin+1;
+	MLMax = 4; NML = MLMax+1;
+	PMax  = 8; NP  = PMax+1;
 
-	unsigned int CasesRun[45] = { 0, 1, 1, 0, 0,
-	                              0, 1, 1, 0, 0,
-	                              0, 1, 1, 0, 0,
-	                              0, 0, 0, 0, 0,
-	                              0, 0, 0, 0, 0,
-	                              0, 1, 1, 1, 0,
-	                              0, 1, 1, 1, 0,
-	                              0, 0, 0, 0, 0,
-	                              0, 0, 0, 0, 0};
+	unsigned int CasesRun[72] = { 0, 1, 1, 1, 0, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
+	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
+	                              0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+	MLMin = 0;
+	PMin  = 0;
 
 	if (Testing) {
 		for (ML = 0; ML <= MLMax; ML++) {
@@ -138,7 +150,8 @@ int main(void)
 	}}
 
 	// Output to file
-	table_to_latex(d,NVars,MLMin,MLMax,PMin,PMax,CasesRun,h,L2Errors,ConvOrders,TestCase,MeshType);
+//	table_to_latex(d,NVars,MLMin,MLMax,PMin,PMax,CasesRun,h,L2Errors,ConvOrders,TestCase,MeshType);
+	data_to_txt(d,NVars,MLMin,MLMax,PMin,PMax,CasesRun,h,L2Errors,ConvOrders,TestCase,MeshType);
 
 	free(TestCase);
 	free(MeshType);
@@ -150,8 +163,140 @@ int main(void)
 	free(L2Errors);
 	free(ConvOrders);
 	free(h);
+}
 
-	return 0;
+static void data_to_txt(const unsigned int d, const unsigned int NVars, const unsigned int MLMin,
+                        const unsigned int MLMax, const unsigned int PMin, const unsigned int PMax,
+                        const unsigned int *CasesRun, const double *h, double **L2Errors, double **ConvOrders,
+                        char *TestCase, char *MeshType)
+{
+	char         **Vars_c, *data_name;
+	unsigned int i, j, k, n, NML, NP, NVarsOut, Indp, Indh, IndVars[6];
+	double       **data_print;
+
+	FILE *fID;
+
+	data_name = malloc(STRLEN_MAX * sizeof *data_name); // free
+
+	if (strstr(TestCase,"PeriodicVortex") != NULL ||
+		strstr(TestCase,"SupersonicVortex") != NULL) {
+		if      (d == 2) Indp = 3;
+		else if (d == 3) Indp = 4;
+
+		NVarsOut = NVars+d-3;
+		Vars_c = malloc(NVarsOut * sizeof *Vars_c); // free
+		for (i = 0; i < NVarsOut; i++)
+			Vars_c[i] = malloc(STRLEN_MIN * sizeof *Vars_c[i]); // free
+
+		strcpy(Vars_c[0],"$\\rho$");
+		strcpy(Vars_c[1],"$u$    ");
+		strcpy(Vars_c[2],"$v$    ");
+		strcpy(Vars_c[Indp],"$p$    ");
+		strcpy(Vars_c[Indp+1],"$s$    ");
+		if (d == 3)
+			strcpy(Vars_c[3],"$w$    ");
+
+		for (i = 0; i < NVarsOut; i++) {
+			if (d == 3 || i < Indp)
+				IndVars[i] = i;
+			else
+				IndVars[i] = i+1;
+		}
+	} else if (strstr(TestCase,"InviscidChannel")) {
+		NVarsOut = 1;
+		Vars_c = malloc(NVarsOut * sizeof *Vars_c); // free
+		for (i = 0; i < NVarsOut; i++)
+			Vars_c[i] = malloc(STRLEN_MIN * sizeof *Vars_c[i]); // free
+
+		strcpy(Vars_c[0],"$s$");
+
+		IndVars[0] = 0;
+	} else if (strstr(TestCase,"Poisson")) {
+		NVarsOut = NVars+d-3;
+
+		Vars_c = malloc(NVarsOut * sizeof *Vars_c); // free
+		for (i = 0; i < NVarsOut; i++)
+			Vars_c[i] = malloc(STRLEN_MIN * sizeof *Vars_c[i]); // free
+
+		strcpy(Vars_c[0],"$u$    ");
+		strcpy(Vars_c[1],"$q_1$  ");
+		strcpy(Vars_c[2],"$q_2$  ");
+		if (d == 3)
+			strcpy(Vars_c[3],"$q_3$  ");
+
+		for (i = 0; i < NVarsOut; i++)
+			IndVars[i] = i;
+	}
+
+	NML = MLMax+1;
+	NP  = PMax+1;
+
+	if ((fID = fopen("L2errs+Convergence.txt","w")) == NULL)
+		printf("Error: File in table_to_latex did not open.\n"), exit(1);
+
+	fprintf(fID,"NVars %2d\n",NVarsOut);
+	fprintf(fID,"MLMax %2d\n",MLMax);
+	fprintf(fID,"PMax  %2d\n\n",PMax);
+
+	fprintf(fID,"Cases Run\n");
+	for (i = 0; i < NML; i++) {
+		for (j = 0; j < NP;  j++)
+			fprintf(fID,"%d ",CasesRun[i*NP+j]);
+		fprintf(fID,"\n");
+	}
+	fprintf(fID,"\n");
+
+	fprintf(fID,"Mesh Size\n");
+	for (i = 0; i < NML; i++) {
+		for (j = 0; j < NP;  j++) {
+			Indh = i*NP+j;
+			if(!CasesRun[Indh])
+				continue;
+
+			fprintf(fID,"%.3e  ",h[Indh]);
+		}
+		fprintf(fID,"\n");
+	}
+	fprintf(fID,"\n");
+	for (n = 0; n < 2; n++) {
+		if (n == 0) {
+			strcpy(data_name,"L2Errors");
+			data_print = L2Errors;
+		} else if (n == 1) {
+			strcpy(data_name,"Convergence Orders");
+			data_print = ConvOrders;
+		} else {
+			printf("Error: Unsupported (n).\n"), exit(1);
+		}
+
+		fprintf(fID,"\n");
+		fprintf(fID,"%s\n\n",data_name);
+		for (k = 0; k < NVarsOut; k++) {
+			fprintf(fID,"%s\n",Vars_c[k]);
+			for (i = 0; i < NML; i++) {
+				for (j = 0; j < NP;  j++) {
+					Indh = i*NP+j;
+					if (!CasesRun[Indh])
+						continue;
+
+					if (!(n == 1 && i == 0))
+						fprintf(fID,"%.3e  ",data_print[IndVars[k]][Indh]);
+					else
+						fprintf(fID,"%1d          ",(int) data_print[IndVars[k]][Indh]);
+				}
+				fprintf(fID,"\n");
+			}
+			fprintf(fID,"\n");
+		}
+	}
+
+	fclose(fID);
+
+	free(data_name);
+
+	for (i = 0; i < NVarsOut; i++)
+		free(Vars_c[i]);
+	free(Vars_c);
 }
 
 static void table_to_latex(const unsigned int d, const unsigned int NVars, const unsigned int MLMin,
@@ -160,7 +305,7 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
                            char *TestCase, char *MeshType)
 {
 	char         **Vars_c, caption[STRLEN_MAX];
-	unsigned int i, j, ML, P, NP, NVarsOut, Indp, Indh, IndVars[6], P_Print;
+	unsigned int i, j, ML, P, NP, NVarsOut, Indp, Indh, IndVars[6], P_Print, uOnly;
 
 	FILE *fID;
 
@@ -190,6 +335,9 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 		}
 	} else if (strstr(TestCase,"Poisson")) {
 		NVarsOut = NVars+d-3;
+
+		uOnly = 0;
+
 		Vars_c = malloc(NVarsOut * sizeof *Vars_c); // free
 		for (i = 0; i < NVarsOut; i++)
 			Vars_c[i] = malloc(STRLEN_MIN * sizeof *Vars_c[i]); // free
@@ -225,7 +373,7 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 	fprintf(fID,"\t\\hline\n");
 	fprintf(fID,"\t & & ");
 	for (i = 0; i < 2; i++) {
-		if      (i == 0) fprintf(fID," $L_2$ Error ");
+		if      (i == 0) fprintf(fID," $L^2$ Error ");
 		else if (i == 1) fprintf(fID," Conv. Order ");
 		for (j = 0; j < NVarsOut; j++) {
 			if (!(i == 1 && j == NVarsOut-1))
@@ -234,12 +382,15 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 	}
 	fprintf(fID,"\\\\\n");
 	fprintf(fID,"\t\\hline\n");
-	fprintf(fID,"\tP. Order & Mesh Size ");
+	fprintf(fID,"\tOrder ($k$) & Mesh Size ($h$) ");
 	for (i = 0; i < 2; i++) {
 	for (j = 0; j < NVarsOut; j++) {
 		fprintf(fID,"& %s ",Vars_c[j]);
 	}}
 	fprintf(fID,"\\\\\n");
+
+	if (uOnly) // Only output errors/orders for u (Poisson)
+		NVarsOut = 1;
 
 	NP = PMax-PMin+1;
 	for (P = PMin; P <= PMax; P++) {
@@ -250,19 +401,19 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
 			if (CasesRun[Indh]) {
 				if (P_Print) {
 					P_Print = 0;
-					fprintf(fID,"P%1d\t& % .3e",P,h[Indh]);
+					fprintf(fID,"%1d\t& % .2e",P,h[Indh]);
 					for (i = 0; i < 2; i++) {
 					for (j = 0; j < NVarsOut; j++) {
-						if      (i == 0) fprintf(fID," & % .3e",L2Errors[IndVars[j]][Indh]);
+						if      (i == 0) fprintf(fID," & % .2e",L2Errors[IndVars[j]][Indh]);
 						else if (i == 1) fprintf(fID," & -");
 					}}
 					fprintf(fID," \\\\\n");
 				} else {
-					fprintf(fID,"\t& % .3e",h[Indh]);
+					fprintf(fID,"\t& % .2e",h[Indh]);
 					for (i = 0; i < 2; i++) {
 					for (j = 0; j < NVarsOut; j++) {
-						if      (i == 0) fprintf(fID," & % .3e",L2Errors[IndVars[j]][Indh]);
-						else if (i == 1) fprintf(fID," & % .3e",ConvOrders[IndVars[j]][Indh]);
+						if      (i == 0) fprintf(fID," & % .2e",L2Errors[IndVars[j]][Indh]);
+						else if (i == 1) fprintf(fID," & % .2f",ConvOrders[IndVars[j]][Indh]);
 					}}
 					fprintf(fID," \\\\\n");
 				}

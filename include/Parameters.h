@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #ifndef DPG__Parameters_h__INCLUDED
 #define DPG__Parameters_h__INCLUDED
@@ -17,19 +17,23 @@
  *		BC_STEP_SC      : (B)oundary(C)ondition step between (S)traight and (C)urved BCs.
  *		BC_PERIODIC_MIN : (B)oundary(C)ondition (PERIODIC) (MIN)imum.
  *		NVEMAX          : (MAX)imum (N)umber of (VE)rtices for an element.
- *		NFVEMAX         : (MAX)imum (N)umber of (F)ACET (VE)rtices for an element.
- *		NFREFMAX        : (MAX)imum (N)umber of (F)ACET (REF)inements.
+ *		NEVEMAX         : (MAX)imum (N)umber of (E)DGE (VE)rtices for an element.
+ *		NFVEMAX         : (MAX)imum (N)umber of (F)ACE (VE)rtices for an element.
+ *		NEREFMAX        : (MAX)imum (N)umber of (E)DGE (REF)inements.
+ *		NFREFMAX        : (MAX)imum (N)umber of (F)ACE (REF)inements.
  *		NVREFMAX        : (MAX)imum (N)umber of (V)OLUME (REF)inements.
  *		NVREFSFMAX      : (MAX)imum (N)umber of (V)OLUME (REF)inements if using (S)um (F)actorized operators.
- *		NFMAX           : (MAX)imum (N)umber of (F)ACET for an element.
- *		NFMIXEDMAX      : (MAX)imum (N)umber of (MIXED) (F)ACETs for an element.
+ *		NEMAX           : (MAX)imum (N)umber of (E)DGEs for an element.
+ *		NFMAX           : (MAX)imum (N)umber of (F)ACEs for an element.
+ *		NFMIXEDMAX      : (MAX)imum (N)umber of (MIXED) (F)ACEs for an element.
  *		NESUBCMAX       : (MAX)imum (N)umber of (E)lement (SUB)(C)lasses
- *		NFORDMAX        : (MAX)imum (N)umber of (F)ACET (ORD)ering possibilities
+ *		NFORDMAX        : (MAX)imum (N)umber of (F)ACE (ORD)ering possibilities
  *		NREFVVARMAX     : (MAX)imum (N)umber of h-adaptive (REF)ined (V)olume (VAR)iations
- *		NSUBFMAX        : (MAX)imum (N)umber of h-adaptive (SUB)-(F)acets (on each FACET).
- *		NVISUBFMAX      : (MAX)imum (N)umber of h-adaptive (V)OLUME (I)nternal (SUB)-(F)acets (within the VOLUME).
+ *		NSUBFMAX        : (MAX)imum (N)umber of h-adaptive (SUB)-(F)aces (on each FACE).
+ *		NVISUBFMAX      : (MAX)imum (N)umber of h-adaptive (V)OLUME (I)nternal (SUB)-(F)aces (within the VOLUME).
  *		NSIBMAX         : (MAX)imum (N)umber of (SIB)lings on the same level after h-refinement.
  *		NEHREFMAX       : (MAX)imum (N)umber of (E)LEMENT types present in (H)-(REF)ined ELEMENT
+ *		NVEINFO         : (N)umber of pieces of (INFO)rmation associated with each (VE)rtex.
  *
  *	References:
  *
@@ -67,12 +71,26 @@
 #define GMSH_YZFACE_MIN 6001
 #define GMSH_XYZVOL_MIN 7001
 
+// Geometry related parameters
+#define GORDON_HALL       1
+#define SZABO_BABUSKA     2
+#define SCOTT             3
+#define NIELSON           4
+
+#define ARC_LENGTH        1
+#define RADIAL_PROJECTION 2
+#define NORMAL            3
+#define ORDER_H           4
+
 // ELEMENT related numbers
 #define NVEMAX          8  // HEX
+#define NEVEMAX         2  // LINE
 #define NFVEMAX         4  // QUAD
+#define NEREFMAX        3  // LINE
 #define NFREFMAX        9  // QUAD
 #define NVREFMAX        27 // HEX
 #define NVREFSFMAX      5  // TRI
+#define NEMAX           12 // HEX
 #define NFMAX           6  // HEX
 #define NFMIXEDMAX      2  // WEDGE/PYR (TRI + QUAD)
 #define NESUBCMAX       2  // WEDGE (TRI + LINE)
@@ -81,20 +99,23 @@
 #define NSUBFMAX        4  // QUAD/TRI (Isotropic refinement)
 #define NVISUBFMAX      16 // TET (Isotropic refinement to 12 TETs)
 #define NSIBMAX         12 // TET (12 TET)
+#define NVEINFO         4
 
 // Cubature related numbers
 #define PIvcMaxTET 10
-#define PIvcMaxPYR 6
+#define PIvcMaxPYR 10
 
 // Solver related parameters
 #define RK3_SSP 0
 #define RK4_LS  1
 
 // Boundary conditions
-#define BC_RIEMANN   1
-#define BC_SLIPWALL  2
-#define BC_DIRICHLET 11
-#define BC_NEUMANN   12
+#define BC_RIEMANN      1
+#define BC_SLIPWALL     2
+#define BC_BACKPRESSURE 3
+
+#define BC_DIRICHLET    11
+#define BC_NEUMANN      12
 
 // Allowed adaptation options
 #define ADAPT_0  0
@@ -103,12 +124,12 @@
 #define ADAPT_HP 3
 
 // Adaptation flags
-#define PREFINE  0
-#define PCOARSE  1
-#define HREFINE  2
+#define HREFINE  1
+#define PREFINE  2
 #define HCOARSE  3
-#define HPREFINE 4
-#define HPCOARSE 5
+#define PCOARSE  4
+#define HPREFINE 5
+#define HPCOARSE 6
 #define HDELETE  10
 
 // h-refinement related numbers
@@ -162,6 +183,7 @@
 #define NODETOL_MESH 1.0e-5
 
 #define EPS        1.0e-15
+#define SQRT_EPS   3.162277660168379e-08
 #define REFINE_TOL 1.0e-10 // Decrease for additional refinement
 #define COARSE_TOL 1.0e-4 // Increase for additional coarsening
 

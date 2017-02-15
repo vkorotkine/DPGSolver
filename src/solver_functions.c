@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "solver_functions.h"
 
@@ -25,17 +25,17 @@
  *	References:
  */
 
-void get_facet_ordering(const unsigned int d, const unsigned int IndOrd, const unsigned int FType,
+void get_face_ordering(const unsigned int d, const unsigned int IndOrd, const unsigned int FType,
                         const unsigned int Nn, const unsigned int Ns, const unsigned int *symms, const double *rst,
                         unsigned int *nOrd)
 {
 	/*
 	 *	Purpose:
-	 *		Return ordering of opposite FACET such that surface nodes match.
+	 *		Return ordering of opposite FACE such that surface nodes match.
 	 *
 	 *	Comments:
 	 *		FType is only used in 3D.
-	 *		symms is only used for 3D TRI FACETs.
+	 *		symms is only used for 3D TRI FACEs.
 	 */
 
 	unsigned int i, j, iMax, jMax, iInd;
@@ -196,7 +196,7 @@ void get_facet_ordering(const unsigned int d, const unsigned int IndOrd, const u
 
 					for (i = 0; i < Nn; i++) {
 						if (Foundn[i] == 0)
-							printf("Error: Did not find all nodes in get_facet_ordering (TRI).\n"), exit(1);
+							printf("Error: Did not find all nodes in get_face_ordering (TRI).\n"), exit(1);
 					}
 
 					for (i = 0; i < Nn; i++)
@@ -233,7 +233,7 @@ void get_facet_ordering(const unsigned int d, const unsigned int IndOrd, const u
 				// Setting the 1-symmetry orbit (if present) is redundant as the node position remains unchanged.
 			}
 		} else {
-			printf("Error: Unsupported FType in 3D in get_facet_ordering.\n"), exit(1);
+			printf("Error: Unsupported FType in 3D in get_face_ordering.\n"), exit(1);
 		}
 		break;
 	}

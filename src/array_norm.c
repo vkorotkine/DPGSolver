@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "array_norm.h"
 
@@ -9,8 +9,10 @@
 #include <string.h>
 
 #include "petscmat.h"
- 
+
 #include "Macros.h"
+
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -32,10 +34,10 @@ unsigned int array_norm_ui(const unsigned int LenA, const unsigned int *A, const
 
 	if (strstr(NormType,"Inf")) {
 		for (i = 0; i < LenA; i++)
-			if (fabs(A[i]) > norm) norm = fabs(A[i]);
+			if (A[i] > norm) norm = A[i];
 	} else if (strstr(NormType,"L1")) {
 		for (i = 0; i < LenA; i++)
-			norm += fabs(A[i]);
+			norm += A[i];
 	} else if (strstr(NormType,"L2")) {
 		printf("Error: L2 norm not supported for unsigned int (norm).\n"), exit(1);
 	}
@@ -49,8 +51,10 @@ double array_norm_d(const unsigned int LenA, const double *A, const char *NormTy
 	double       norm = 0.0;
 
 	for (i = 0; i < LenA; i++) {
-		if (isnan(A[i]))
+		if (isnan(A[i])) {
+			array_print_d(1,LenA,A,'R');
 			printf("Error: Entry in array is 'nan'.\n"), EXIT_MSG;
+		}
 	}
 
 	if (strstr(NormType,"Inf")) {
@@ -78,13 +82,13 @@ unsigned int array_norm_diff_ui(const unsigned int LenA, const unsigned int *A, 
 
 	if (strstr(NormType,"Inf")) {
 		for (i = 0; i < LenA; i++) {
-			if (fabs(As[i]-Bs[i]) > norm_num) norm_num = fabs(As[i]-Bs[i]);
-			if (fabs(As[i])       > norm_den) norm_den = fabs(As[i]);
+			if (abs(As[i]-Bs[i]) > norm_num) norm_num = abs(As[i]-Bs[i]);
+			if (abs(As[i])       > norm_den) norm_den = abs(As[i]);
 		}
 	} else if (strstr(NormType,"L1")) {
 		for (i = 0; i < LenA; i++) {
-			norm_num += fabs(As[i]-Bs[i]);
-			norm_den += fabs(As[i]);
+			norm_num += abs(As[i]-Bs[i]);
+			norm_den += abs(As[i]);
 		}
 	} else if (strstr(NormType,"L2")) {
 		printf("Error: L2 norm not supported.\n"), EXIT_MSG;

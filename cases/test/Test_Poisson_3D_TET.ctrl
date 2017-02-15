@@ -7,7 +7,8 @@
 BEGIN PARAMETERS
   Dimension  3
   ML         0
-  MeshType   ToBeCurvedStructuredTET
+  MeshType   CurvedTET
+  Geometry   dm1-Spherical_Section
 
   Form       Strong // Options: Weak, (Strong)
   NodeType   GLL-AO  // Options: GL/GLL-AO/WSH
@@ -18,8 +19,8 @@ BEGIN PARAMETERS
   Collocated 0     // Options: 0, 1
   Adapt      3     // Options: 0, 1, 2, (3)
 
-  PGlobal    1
-  PMax       2
+  PGlobal    2
+  PMax       3
   LevelsMax  4
 
   Restart    -1    // Options: -1, 0, Iteration #

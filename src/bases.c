@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "bases.h"
 
@@ -8,7 +8,7 @@
 #include <math.h>
 
 #include "mkl.h"
- 
+
 #include "Parameters.h"
 #include "Macros.h"
 
@@ -21,6 +21,7 @@
  *
  *	Comments:
  *		The "matrix" is returned as a 1D array.
+ *		Careful of overflow in gamma function in JacobiP for alpha > 20.0 (P ~ 20) for basis_SI.
  *
  *	Notation:
  *
@@ -34,8 +35,8 @@
  *			pyfr (modal) basis : eq. 3.20
  */
 
-static double jacobiP      (const double x, const double alpha, const double beta, const int N);
-static double grad_jacobiP (const double x, const double alpha, const double beta, const int N);
+double jacobiP      (const double x, const double alpha, const double beta, const int N);
+double grad_jacobiP (const double x, const double alpha, const double beta, const int N);
 
 void rst_to_abc_SI  (const unsigned int Nn, const unsigned int d, const double *rst, double *a, double *b, double *c);
 void rst_to_abc_PYR (const unsigned int Nn, const unsigned int d, const double *rst, double *a, double *b, double *c);
@@ -112,7 +113,7 @@ double *basis_SI(const unsigned int P, const double *rst, const unsigned int Nn,
 
 	rst_to_abc_SI(Nn,d,rst,a,b,c);
 
-	Nbf = factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P));
+	Nbf = (unsigned int) (factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P)));
 
 	ChiRef_rst = malloc(Nn*Nbf * sizeof *ChiRef_rst); // keep (requires external free)
 
@@ -332,7 +333,7 @@ double **grad_basis_SI(const unsigned int P, const double *rst, const unsigned i
 
 	rst_to_abc_SI(Nn,d,rst,a,b,c);
 
-	Nbf = factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P));
+	Nbf = (unsigned int) (factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P)));
 
 	GradChiRef_rst = malloc(d * sizeof *GradChiRef_rst); // keep (requires external free)
 	for (dim = 0; dim < d; dim++)
@@ -587,7 +588,7 @@ double **grad_basis_PYR(const unsigned int P, const double *rst, const unsigned 
  *		Hesthaven (Nodal DG Code): https://github.com/tcew/nodal-dg
  */
 
-static double jacobiP(const double x, const double alpha, const double beta, const int N)
+double jacobiP(const double x, const double alpha, const double beta, const int N)
 {
 	int    i, iMax;
 	double aold = 0.0, anew = 0.0, bnew = 0.0, h1 = 0.0,
@@ -636,7 +637,7 @@ static double jacobiP(const double x, const double alpha, const double beta, con
 	return P;
 }
 
-static double grad_jacobiP(const double x, const double alpha, const double beta, const int N)
+double grad_jacobiP(const double x, const double alpha, const double beta, const int N)
 {
 	double dP;
 
@@ -687,12 +688,12 @@ void rst_to_abc_SI(const unsigned int Nn, const unsigned int d, const double *rs
 		s_n = s[n];
 		t_n = t[n];
 
-		if (fabs(2*sqrt(3.0)*s_n+sqrt(6.0)*t_n-3.0) > 100*EPS)
+		if (fabs(2*sqrt(3.0)*s_n+sqrt(6.0)*t_n-3.0) > 1e2*EPS)
 			a[n] = 6.0*r_n/(3.0-2.0*sqrt(3.0)*s_n-sqrt(6.0)*t_n);
 		else // On top line of the regular TET / At the top of the regular TRI
 			a[n] = 0.0;
 
-		if (fabs(sqrt(6.0)*t_n-3.0) > 100*EPS)
+		if (fabs(sqrt(6.0)*t_n-3.0) > 1e2*EPS)
 			b[n] = 1.0/3.0*(8.0*sqrt(3.0)*s_n/(3.0-sqrt(6.0)*t_n)-1.0);
 		else // At the top of the regular TET
 			b[n] = 0.0;

@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "test_unit_jacobian_boundary.h"
 
@@ -61,6 +61,8 @@ static void compute_dWdW_cs(const unsigned int Neq, const unsigned int Nn, const
 			boundary_SlipWall_c(Nn,Nel,Wp,WB,nL,d);
 		else if (strstr(BType,"Riemann"))
 			boundary_Riemann_c(Nn,Nel,XYZ,Wp,NULL,WB,nL,d);
+		else if (strstr(BType,"PT"))
+			boundary_BackPressure_c(Nn,Nel,Wp,WB,nL,d,Neq);
 		else
 			printf("Error: Unsupported BType.\n"), EXIT_MSG;
 
@@ -83,7 +85,7 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 {
 	unsigned int pass = 0;
 
-	unsigned int NnTotal, Nvar, i, CheckedAllRiemann;
+	unsigned int NnTotal, Nvar, i, CheckedAll;
 	double       *dWdW, *dWdW_cs;
 
 	NnTotal = Nn*Nel;
@@ -96,33 +98,89 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 		jacobian_boundary_SlipWall(Nn,Nel,W,dWdW,nL,d,Neq);
 	else if (strstr(BType,"Riemann"))
 		jacobian_boundary_Riemann(Nn,Nel,XYZ,W,NULL,dWdW,nL,d,Neq);
+	else if (strstr(BType,"PT"))
+		jacobian_boundary_BackPressure(Nn,Nel,W,dWdW,nL,d,Neq);
 	else
 		printf("Error: Unsupported BType.\n"), EXIT_MSG;
 
 	compute_dWdW_cs(Neq,Nn,Nel,d,W,dWdW_cs,nL,XYZ,BType);
 
-	if (strstr(BType,"Riemann") == NULL) {
-		if (array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
-	} else {
-		CheckedAllRiemann = 1;
+	if (strstr(BType,"Riemann")) {
+		CheckedAll = 1;
 		for (i = 0; i < 4; i++) {
 			if (!TestDB.EnteredRiemann[i]) {
-				CheckedAllRiemann = 0;
+				CheckedAll = 0;
 				break;
 			}
 		}
 //		array_print_ui(1,4,TestDB.EnteredRiemann,'R');
-		if (CheckedAllRiemann && array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS)
+		if (CheckedAll && array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS)
+			pass = 1, TestDB.Npass++;
+	} else if (strstr(BType,"PT")) {
+		CheckedAll = 1;
+		for (i = 0; i < 2; i++) {
+			if (!TestDB.EnteredPT[i]) {
+				CheckedAll = 0;
+				break;
+			}
+		}
+//		array_print_ui(1,2,TestDB.EnteredPT,'R');
+		if (CheckedAll && array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS)
+			pass = 1, TestDB.Npass++;
+		else {
+			printf("%d % .3e\n",CheckedAll,array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf"));
+			array_print_d(Neq*Nvar,NnTotal,dWdW,'R');
+			array_print_d(Neq*Nvar,NnTotal,dWdW_cs,'R');
+		}
+	} else {
+		if (array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < EPS)
 			pass = 1, TestDB.Npass++;
 	}
-
-
 
 	free(dWdW);
 	free(dWdW_cs);
 
 	return pass;
+}
+
+static void update_values(const unsigned int Nn, const unsigned int Nel, double *W, double *nL, const unsigned int d)
+{
+	unsigned int n, NnTotal, dim, var;
+
+	NnTotal = Nn*Nel;
+
+	if (NnTotal != 6)
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+
+	if (d == 3) {
+		unsigned int FinalIndices[6] = {0,2,2,3,0,6};
+		for (n = 0; n < NnTotal; n++) {
+			if (FinalIndices[n] != n) {
+				for (dim = 0; dim < d; dim++)
+					nL[n*d+dim] *= -1.0;
+				if (FinalIndices[n] == n+1) {
+					for (var = 1; var < d+1; var++)
+						W[n+var*NnTotal] *= 0.5;
+				}
+			}
+		}
+	} else if (d == 2) {
+		unsigned int FinalIndices[6] = {0,2,0,4,0,6};
+//		unsigned int FinalIndices[6] = {0,0,0,0,0,0};
+		for (n = 0; n < NnTotal; n++) {
+			if (FinalIndices[n] != n) {
+				for (dim = 0; dim < d; dim++)
+					nL[n*d+dim] *= -1.0;
+				if (FinalIndices[n] == n+1) {
+					for (var = 1; var < d+1; var++)
+						W[n+var*NnTotal] *= 0.5;
+				}
+			}
+		}
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+
 }
 
 void test_unit_jacobian_boundary(void)
@@ -138,35 +196,43 @@ void test_unit_jacobian_boundary(void)
 	 *
 	 */
 
-printf("\nWarning: boundary_Riemann is currently not being tested for d = 1.\n\n"); TestDB.Nwarnings++;
-// This requires a case where a d = 1 Riemann BC is supported.
+	unsigned int NBTypes = 3;
 
-	unsigned int NBTypes = 2;
-
-	char         *BType[NBTypes], *TestCase;
+	char         *BType[NBTypes];
 	unsigned int i, j, Nn, Nel, d, Neq, dMin[NBTypes], dMax[NBTypes];
 	double       *W, *nL, *XYZ;
 
-	TestCase = malloc(STRLEN_MAX * sizeof *TestCase); // free
-	strcpy(TestCase,"SupersonicVortex");
-	DB.TestCase = TestCase;
-
-	initialize_test_case_parameters(TestCase);
+	DB.TestCase = malloc(STRLEN_MAX * sizeof *(DB.TestCase)); // free
+	DB.Geometry = malloc(STRLEN_MAX * sizeof *(DB.Geometry)); // free
 
 	for (i = 0; i < NBTypes; i++)
 		BType[i] = malloc(STRLEN_MIN * sizeof *BType[i]); // free
 
 	strcpy(BType[0],"SlipWall");
 	strcpy(BType[1],"Riemann ");
+	strcpy(BType[2],"PT      ");
 
 	dMin[0] = 1; dMax[0] = 3;
 	dMin[1] = 2; dMax[1] = 3;
+	dMin[2] = 2; dMax[2] = 3;
 
 	for (i = 0; i < NBTypes; i++) {
+		if (strstr(BType[i],"SlipWall") ||
+		    strstr(BType[i],"Riemann")) {
+				strcpy(DB.TestCase,"SupersonicVortex");
+				initialize_test_case_parameters();
+		} else if (strstr(BType[i],"PT")) {
+			strcpy(DB.TestCase,"InviscidChannel");
+			strcpy(DB.Geometry,"EllipsoidalBump");
+			initialize_test_case_parameters();
+		}
 	for (d = dMin[i]; d <= dMax[i]; d++) {
 		if (strstr(BType[i],"Riemann")) {
 			for (j = 0; j < 4; j++)
 				TestDB.EnteredRiemann[j] = 0;
+		} else if (strstr(BType[i],"PT")) {
+			for (j = 0; j < 2; j++)
+				TestDB.EnteredPT[j] = 0;
 		}
 
 		Neq = d+2;
@@ -174,6 +240,8 @@ printf("\nWarning: boundary_Riemann is currently not being tested for d = 1.\n\n
 		W    = initialize_W(&Nn,&Nel,d); // free
 		nL   = initialize_n(Nn,Nel,d);   // free
 		XYZ  = initialize_XYZ(Nn,Nel,d); // free
+		if (strstr(BType[i],"PT"))
+			update_values(Nn,Nel,W,nL,d);
 		pass = compare_jacobian_boundary(Nn,Nel,d,Neq,W,nL,XYZ,BType[i]);
 
 		if (d == dMin[i]) {
@@ -190,7 +258,10 @@ printf("\nWarning: boundary_Riemann is currently not being tested for d = 1.\n\n
 	}}
 
 	free(DB.TestCase);
+	free(DB.Geometry);
 
 	for (i = 0; i < NBTypes; i++)
 		free(BType[i]);
+
+	free(DB.SolverType); // From initialize_test_case_parameters
 }

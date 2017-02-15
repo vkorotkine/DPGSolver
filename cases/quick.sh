@@ -23,23 +23,24 @@ USE_VALGRIND="0"
 KERNEL=$(uname -s)
 case ${KERNEL} in
 *arwin*)
-	CODE_DIR="/Users/philipzwanenburg/Desktop/Research_Codes"
-	TOP_DIR="${CODE_DIR}/DPGC"
-	MPI_DIR="${CODE_DIR}/Downloaded/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/"
+	CODE_DIR="/Users/philip/Desktop/"
+	PROG_DIR="/Users/philip/Desktop/research_codes"
+	TOP_DIR="${CODE_DIR}/DPGSolver"
+	MPI_DIR="${PROG_DIR}/petsc/petsc-3.7.4/arch-osx-mpich-c-opt/bin/"
 	N_PROCS="1"
 
 	;;
 *inux*)
-	OS_RELEASE=$(uname -r)
-	case ${OS_RELEASE} in
-	*4.4.0-38-generic*)
+	NODENAME=$(uname -n)
+	case ${NODENAME} in
+	*philip-Aspire-XC-605*)
 #		echo Linux
 #		echo ${OS_RELEASE}
 
 		PROG_DIR="/home/philip/Desktop/research/programs"
 		TOP_DIR="/home/philip/Desktop/research/codes/DPGSolver"
-#		TOP_DIR="/media/philip/40EB-97EF/code/DPGC/"
-		MPI_DIR="${PROG_DIR}/petsc/petsc-3.7.0/arch-linux-c-/bin/"
+#		MPI_DIR="${PROG_DIR}/petsc/petsc-3.7.0/arch-linux-c-/bin/"
+		MPI_DIR=
 		N_PROCS="1"
 
 		;;

@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "main.h"
 
@@ -17,7 +17,7 @@ struct S_TEST TestDB;
 #include <time.h>
 #include <mpi.h> // ToBeModified: Likely not use system headers for mpi/petsc
 #include <petscksp.h>
- 
+
 #include "Parameters.h"
 #include "Macros.h"
 
@@ -202,6 +202,8 @@ int main(int nargc, char **argv)
 
 #include "petscsys.h"
 
+#include "Macros.h"
+
 #include "test_unit_array_find_index.h"
 #include "test_unit_array_norm.h"
 #include "test_unit_array_sort.h"
@@ -217,7 +219,7 @@ int main(int nargc, char **argv)
 #include "test_unit_fluxes_inviscid.h"
 #include "test_unit_jacobian_fluxes_inviscid.h"
 #include "test_unit_jacobian_boundary.h"
-#include "test_unit_get_facet_ordering.h"
+#include "test_unit_get_face_ordering.h"
 #include "test_unit_equivalence_real_complex.h"
 
 #include "test_integration_L2_projections.h"
@@ -225,6 +227,7 @@ int main(int nargc, char **argv)
 #include "test_integration_linearization.h"
 #include "test_integration_L2_projection_errors.h"
 #include "test_integration_Poisson.h"
+#include "test_integration_Euler.h"
 
 #include "test_speed_array_swap.h"
 #include "test_speed_mm_CTN.h"
@@ -299,10 +302,10 @@ int main(int nargc, char **argv)
 		test_unit_fluxes_inviscid();
 		test_unit_jacobian_fluxes_inviscid();
 		test_unit_jacobian_boundary();
-		test_unit_get_facet_ordering();
+		test_unit_get_face_ordering();
 
 		test_unit_equivalence_real_complex();
-		printf("\nFor the VOLUME/FACET info functions, test that all 'versions' give identical results.\n\n");
+		printf("\nFor the VOLUME/FACE info functions, test that all 'versions' give identical results.\n\n");
 		TestDB.Nwarnings++;
 	}
 
@@ -313,7 +316,8 @@ int main(int nargc, char **argv)
 		test_integration_linearization(nargc,argv);
 //		PetscFinalize();
 	}
-	test_integration_Poisson(nargc,argv);
+//	test_integration_Poisson(nargc,argv);
+	test_integration_Euler(nargc,argv);
 	PetscFinalize();
 
 
@@ -330,7 +334,7 @@ int main(int nargc, char **argv)
 
 	unsigned int Nfail = TestDB.Ntest - TestDB.Npass;
 	if (Nfail > 0) {
-		printf("\n\n******** FAILED %d TEST(S) ********\n\n",Nfail);
+		printf("\n******** FAILED %d TEST(S) ********\n\n",Nfail);
 	} else {
 		printf("\nAll tests passed.\n\n");
 

@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "sum_factorization.h"
 
@@ -9,6 +9,7 @@
 #include "mkl.h"
 
 #include "Parameters.h"
+#include "Macros.h"
 
 #include "array_swap.h"
 #include "matrix_functions.h"
@@ -20,6 +21,9 @@
  *	Comments:
  *
  *	Notation:
+ *		NIn  : (N)umber of (In)puts (i.e. number of columns of the lower dimensional operator)
+ *		NOut : (N)umber of (Out)puts (i.e. number of rows of the lower dimensional operator)
+ *		OP   : (OP)erator
  *
  *	References:
  *		ToBeModified.
@@ -203,10 +207,10 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 {
 	/*
 	 *	Purpose:
-	 *		Set up (s)um (f)actorization parameters for (F)ACET operators.
+	 *		Set up (s)um (f)actorization parameters for (F)ACE operators.
 	 *
 	 *	Comments:
-	 *		While get_sf_parameters is sufficient for QUADs, HEX ELEMENTs may require three different FACET operators if
+	 *		While get_sf_parameters is sufficient for QUADs, HEX ELEMENTs may require three different FACE operators if
 	 *		h-refinement is employed.
 	 */
 
@@ -224,7 +228,7 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 	default: // 3D
 		switch (Eclass) {
 		default: // C_TP
-			// FACET term (standard treatment)
+			// FACE term (standard treatment)
 			NIn_SF[dimF]  = NIn1;
 			NOut_SF[dimF] = NOut1;
 			OP_SF[dimF]   = OP1[(f%2)*NFREFMAX];
@@ -274,7 +278,7 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 			NIn_SF[2]  = NIn1;
 			NOut_SF[2] = NOut1;
 
-			if (f < 3) { // QUAD FACETs
+			if (f < 3) { // QUAD FACEs
 				switch (fh) {
 				case 0: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[0]; break;
 				case 1: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[1]; break;
@@ -289,7 +293,7 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 					printf("Error: Unsupported fh for f < 3 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
 					break;
 				}
-			} else if (f < 5) { // TRI FACETs
+			} else if (f < 5) { // TRI FACEs
 				if (fh > 4)
 					printf("Error: Unsupported fh for f < 5 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
 
@@ -315,7 +319,7 @@ void get_sf_parametersFd(const unsigned int NIn0, const unsigned int NOut0, doub
 {
 	/*
 	 *	Purpose:
-	 *		Set up (s)um (f)actorization parameters for (F)ACET (d)erivative operators.
+	 *		Set up (s)um (f)actorization parameters for (F)ACE (d)erivative operators.
 	 *
 	 *	Comments:
 	 *		This function is nearly identical to get_sf_parametersF, except for the level of dereferencing on OP1.
@@ -333,7 +337,7 @@ void get_sf_parametersFd(const unsigned int NIn0, const unsigned int NOut0, doub
 	default: // 3D
 		switch (Eclass) {
 		default: // C_TP
-			// FACET term (standard treatment)
+			// FACE term (standard treatment)
 			NIn_SF[dimF]  = NIn1;
 			NOut_SF[dimF] = NOut1;
 			OP_SF[dimF]   = OP1[(f%2)*NFREFMAX][dimD];
@@ -383,7 +387,7 @@ void get_sf_parametersFd(const unsigned int NIn0, const unsigned int NOut0, doub
 			NIn_SF[2]  = NIn1;
 			NOut_SF[2] = NOut1;
 
-			if (f < 3) { // QUAD FACETs
+			if (f < 3) { // QUAD FACEs
 				switch (fh) {
 				case 0: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[0][dimD]; break;
 				case 1: OP_SF[0] = OP0[f*NFREFMAX+1]; OP_SF[2] = OP1[1][dimD]; break;
@@ -398,7 +402,7 @@ void get_sf_parametersFd(const unsigned int NIn0, const unsigned int NOut0, doub
 					printf("Error: Unsupported fh for f < 3 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
 					break;
 				}
-			} else if (f < 5) { // TRI FACETs
+			} else if (f < 5) { // TRI FACEs
 				if (fh > 4)
 					printf("Error: Unsupported fh for f < 5 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
 
@@ -412,6 +416,74 @@ void get_sf_parametersFd(const unsigned int NIn0, const unsigned int NOut0, doub
 		break;
 	case 2:
 		get_sf_parameters(NIn0,NOut0,OP0[fh],NIn1,NOut1,OP1[(f%2)*NFREFMAX][dimD],NIn_SF,NOut_SF,OP_SF,d,dimF,C_TP);
+		break;
+	}
+}
+
+void get_sf_parametersE(const unsigned int NIn0, const unsigned int NOut0, double **OP0,
+                        const unsigned int NIn1, const unsigned int NOut1, double **OP1,
+                        unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+                        const unsigned int d, const unsigned int Ve, const unsigned int Eclass)
+{
+	/*
+	 *	Purpose:
+	 *		Set up (s)um (f)actorization parameters for (E)DGE operators.
+	 *
+	 *	Comments:
+	 *		Note the use of NFREFMAX (and not NEREFMAX) as the FACE operators is being passed from the lower dimensional
+	 *		ELEMENT.
+	 */
+
+	unsigned int e, eh, dimV, dimF1, dimF2;
+
+	if (d != DMAX)
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+
+	// silence
+	dimF1 = dimF2 = -1;
+
+	e  = Ve / NEREFMAX;
+	eh = Ve % NEREFMAX;
+
+	if (eh != 0)
+		printf("Add support.\n"), EXIT_MSG;
+
+	switch (Eclass) {
+	default: // C_TP
+		dimV = e/4;
+
+		// VOLUME term
+		NIn_SF[dimV]  = NIn0;
+		NOut_SF[dimV] = NOut0;
+		OP_SF[dimV]   = OP0[0];
+
+		// FACE terms
+		if (dimV == 0) {
+			dimF1 = 1;
+			dimF2 = 2;
+		} else if (dimV == 1) {
+			dimF1 = 0;
+			dimF2 = 2;
+		} else if (dimV == 2) {
+			dimF1 = 0;
+			dimF2 = 1;
+		}
+
+		NIn_SF[dimF1]  = NIn1;
+		NOut_SF[dimF1] = NOut1;
+		NIn_SF[dimF2]  = NIn1;
+		NOut_SF[dimF2] = NOut1;
+
+		// FACE terms OP_SF
+		switch (eh) {
+		case 0: OP_SF[dimF1] = OP1[(e%2)*NFREFMAX]; OP_SF[dimF2] = OP1[((e/2)%2)*NFREFMAX]; break; // Conforming
+		default:
+			printf("Add support.\n"), EXIT_MSG;
+			break;
+		}
+		break;
+	case C_WEDGE:
+		printf("Add support.\n"), EXIT_MSG;
 		break;
 	}
 }
@@ -484,7 +556,7 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 	 *			2) In vectorized version of the code, when multiple elements are operated on at once, performing blas
 	 *			   calls using the CblasColMajor layout results in the output being stored in continuous memory for each
 	 *			   element. This results in greatly reduced memory stride when distributing the output back to the
-	 *			   VOLUME/FACET structures.
+	 *			   VOLUME/FACE structures.
 	 *
 	 *		After the swapping is performed, note that applying the operator in a loop over the blocks of Input is the
 	 *		same as interpretting the results as applying the operator to a matrix where each column is a block.
@@ -638,12 +710,33 @@ double *sf_assemble_d(const unsigned int NIn[3], const unsigned int NOut[3], con
 	             Indd, IndG, IndGrow;
 	double *OP_ST;
 
-	unsigned int NNZ_BOP[3] = {NIn[0]*NOut[0], NIn[1]*NOut[1], NIn[2]*NOut[2]};
-	MKL_INT      BRows[3] = {NIn[1]*NIn[2], NOut[0]*NIn[2], NOut[0]*NOut[1]},
-	             dims_OP_ST[2] = {NOut[0]*NOut[1]*NOut[2], NIn[0]*NIn[1]*NIn[2]},
-	             dims_DOPr[2]  = {NOut[0]*NIn[1]*NIn[2],   NIn[0]*NIn[1]*NIn[2]},
-	             dims_DOPs[2]  = {NOut[0]*NOut[1]*NIn[2],  NOut[0]*NIn[1]*NIn[2]},
-	             dims_DOPt[2]  = {NOut[0]*NOut[1]*NOut[2], NOut[0]*NOut[1]*NIn[2]};
+	unsigned int *NNZ_BOP;
+	MKL_INT      *BRows, *dims_OP_ST, *dims_DOPr, *dims_DOPs, *dims_DOPt;
+
+	NNZ_BOP    = malloc(3 * sizeof *NNZ_BOP);    // free
+	BRows      = malloc(3 * sizeof *BRows);      // free
+	dims_OP_ST = malloc(2 * sizeof *dims_OP_ST); // free
+	dims_DOPr  = malloc(2 * sizeof *dims_DOPr);  // free
+	dims_DOPs  = malloc(2 * sizeof *dims_DOPs);  // free
+	dims_DOPt  = malloc(2 * sizeof *dims_DOPt);  // free
+
+	NNZ_BOP[0] = NIn[0]*NOut[0];
+	NNZ_BOP[1] = NIn[1]*NOut[1];
+	NNZ_BOP[2] = NIn[2]*NOut[2];
+
+	BRows[0] = NIn[1]*NIn[2];
+	BRows[1] = NOut[0]*NIn[2];
+	BRows[2] = NOut[0]*NOut[1];
+
+	dims_OP_ST[0] = NOut[0]*NOut[1]*NOut[2];
+	dims_OP_ST[1] = NIn[0]*NIn[1]*NIn[2];
+	dims_DOPr[0]  = NOut[0]*NIn[1]*NIn[2];
+	dims_DOPr[1]  = NIn[0]*NIn[1]*NIn[2];
+	dims_DOPs[0]  = NOut[0]*NOut[1]*NIn[2];
+	dims_DOPs[1]  = NOut[0]*NIn[1]*NIn[2];
+	dims_DOPt[0]  = NOut[0]*NOut[1]*NOut[2];
+	dims_DOPt[1]  = NOut[0]*NOut[1]*NIn[2];
+
 	MKL_INT      *OPr_rowIndex, *OPs_rowIndex, *OPt_rowIndex, *OPr_cols, *OPs_cols, *OPt_cols;
 	double       *OPr_vals, *OPs_vals, *OPt_vals, *OPr_ST, *OPInter_ST, alpha, beta, one_d[1] = {1.0};
 
@@ -764,6 +857,13 @@ array_print_d(1,BRows[0]*NNZ_BOP[0],OPr_vals,'R');
 		mkl_dcsrmm(&transa,&dims_DOPt[0],&dims_DOPr[1],&dims_DOPt[1],&alpha,matdescra,OPt_vals,OPt_cols,
 		           OPt_rowIndex,&OPt_rowIndex[1],OPInter_ST,&dims_DOPr[1],&beta,OP_ST,&dims_DOPr[1]);
 	}
+
+	free(NNZ_BOP);
+	free(BRows);
+	free(dims_OP_ST);
+	free(dims_DOPr);
+	free(dims_DOPs);
+	free(dims_DOPt);
 
 	free(OPr_rowIndex);
 	free(OPs_rowIndex);

@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "test_integration_linearization.h"
 
@@ -14,7 +14,7 @@
 #include "Macros.h"
 #include "S_DB.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 #include "Test.h"
 
 #include "test_code_integration.h"
@@ -25,8 +25,8 @@
 #include "solver_Poisson_c.h"
 #include "explicit_VOLUME_info_c.h"
 #include "implicit_VOLUME_info.h"
-#include "explicit_FACET_info_c.h"
-#include "implicit_FACET_info.h"
+#include "explicit_FACE_info_c.h"
+#include "implicit_FACE_info.h"
 #include "finalize_RHS_c.h"
 #include "finalize_LHS.h"
 
@@ -39,8 +39,8 @@
  *		listed below may be checked separately (See the commented code in 'test_integration_linearization'):
  *			0) complete check (default)
  *			1) diagonal VOLUME contributions
- *			2) diagonal FACET contributions
- *			3) off-diagonal FACET contributions
+ *			2) diagonal FACE contributions
+ *			3) off-diagonal FACE contributions
  *		Further, the complete linearization can be checked either through the assembly of the individual contributions
  *		or more simply by using the assembled RHS directly.
  *
@@ -70,7 +70,7 @@ void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 	double complex *RHS_c;
 
 	struct S_VOLUME *VOLUME, *VOLUME2;
-	struct S_FACET  *FACET;
+	struct S_FACE  *FACE;
 
 	PetscInt    *m, *n;
 	PetscScalar *vv;
@@ -108,18 +108,18 @@ void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 				VOLUME->uhat_c[i] += h*I;
 
 				compute_qhat_VOLUME_c();
-				compute_qhat_FACET_c();
+				compute_qhat_FACE_c();
 				switch (assemble_type) {
 				default: // 0
 					compute_uhat_VOLUME_c();
-					compute_uhat_FACET_c();
+					compute_uhat_FACE_c();
 					break;
 				case 1:
 					compute_uhat_VOLUME_c();
 					break;
 				case 2:
 				case 3:
-					compute_uhat_FACET_c();
+					compute_uhat_FACE_c();
 					break;
 				}
 			} else {
@@ -128,14 +128,14 @@ void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 				switch (assemble_type) {
 				default: // 0
 					explicit_VOLUME_info_c();
-					explicit_FACET_info_c();
+					explicit_FACE_info_c();
 					break;
 				case 1:
 					explicit_VOLUME_info_c();
 					break;
 				case 2:
 				case 3:
-					explicit_FACET_info_c();
+					explicit_FACE_info_c();
 					break;
 				}
 			}
@@ -166,17 +166,17 @@ void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 			}
 
 			if (assemble_type == 2 || assemble_type == 3) {
-				for (FACET = DB.FACET; FACET; FACET = FACET->next) {
+				for (FACE = DB.FACE; FACE; FACE = FACE->next) {
 				for (side = 0; side < 2; side++) {
 					if (assemble_type == 2) {
 						if (side == 0) {
-							VOLUME2 = FACET->VIn;
-							RHS_c = FACET->RHSIn_c;
+							VOLUME2 = FACE->VIn;
+							RHS_c = FACE->RHSIn_c;
 						} else {
-							if (FACET->Boundary)
+							if (FACE->Boundary)
 								continue;
-							VOLUME2 = FACET->VOut;
-							RHS_c = FACET->RHSOut_c;
+							VOLUME2 = FACE->VOut;
+							RHS_c = FACE->RHSOut_c;
 						}
 						if (VOLUME->indexg != VOLUME2->indexg)
 							continue;
@@ -198,19 +198,19 @@ void compute_A_cs(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 						MatSetValues(*A,nnz_d,m,1,n,vv,ADD_VALUES);
 						free(m); free(n); free(vv);
 					} else if (assemble_type == 3) {
-						if (FACET->Boundary)
+						if (FACE->Boundary)
 							continue;
 
 						if (side == 0) {
-							if (VOLUME->indexg != FACET->VIn->indexg)
+							if (VOLUME->indexg != FACE->VIn->indexg)
 								continue;
-							VOLUME2 = FACET->VOut;
-							RHS_c = FACET->RHSOut_c;
+							VOLUME2 = FACE->VOut;
+							RHS_c = FACE->RHSOut_c;
 						} else {
-							if (VOLUME->indexg != FACET->VOut->indexg)
+							if (VOLUME->indexg != FACE->VOut->indexg)
 								continue;
-							VOLUME2 = FACET->VIn;
-							RHS_c = FACET->RHSIn_c;
+							VOLUME2 = FACE->VIn;
+							RHS_c = FACE->RHSIn_c;
 						}
 
 						IndA[1] = VOLUME2->IndA;
@@ -251,7 +251,7 @@ static void flag_nonzero_LHS(unsigned int *A)
 	unsigned int i, j, iMax, jMax, side, NvnS[2], IndA[2], m, Indn;
 
 	struct S_VOLUME *VOLUME, *VOLUME2;
-	struct S_FACET  *FACET;
+	struct S_FACE  *FACE;
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		IndA[0] = VOLUME->IndA;
@@ -275,19 +275,19 @@ static void flag_nonzero_LHS(unsigned int *A)
 			}
 
 			// Off-diagonal entries
-			for (FACET = DB.FACET; FACET; FACET = FACET->next) {
+			for (FACE = DB.FACE; FACE; FACE = FACE->next) {
 			for (side = 0; side < 2; side++) {
-				if (FACET->Boundary)
+				if (FACE->Boundary)
 					continue;
 
 				if (side == 0) {
-					if (VOLUME->indexg != FACET->VIn->indexg)
+					if (VOLUME->indexg != FACE->VIn->indexg)
 						continue;
-					VOLUME2 = FACET->VOut;
+					VOLUME2 = FACE->VOut;
 				} else {
-					if (VOLUME->indexg != FACET->VOut->indexg)
+					if (VOLUME->indexg != FACE->VOut->indexg)
 						continue;
-					VOLUME2 = FACET->VIn;
+					VOLUME2 = FACE->VIn;
 				}
 
 				IndA[1] = VOLUME2->IndA;
@@ -337,14 +337,14 @@ void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 				VOLUME->uhat_c[i] += h*I;
 
 				compute_qhat_VOLUME_c();
-				compute_qhat_FACET_c();
+				compute_qhat_FACE_c();
 				compute_uhat_VOLUME_c();
-				compute_uhat_FACET_c();
+				compute_uhat_FACE_c();
 			} else {
 				VOLUME->What_c[i] += h*I;
 
 				explicit_VOLUME_info_c();
-				explicit_FACET_info_c();
+				explicit_FACE_info_c();
 			}
 			finalize_RHS_c();
 
@@ -416,7 +416,7 @@ void test_integration_linearization(int nargc, char **argv)
 	code_startup(nargc,argvNew,2,0);
 
 	implicit_VOLUME_info();
-	implicit_FACET_info();
+	implicit_FACE_info();
 //	finalize_LHS(&A,&b,&x,1);
 //	finalize_LHS(&A,&b,&x,2);
 //	finalize_LHS(&A,&b,&x,3);
@@ -460,7 +460,7 @@ void test_integration_linearization(int nargc, char **argv)
 	code_startup(nargc,argvNew,2,0);
 
 	implicit_VOLUME_info();
-	implicit_FACET_info();
+	implicit_FACE_info();
 
 	finalize_LHS(&A,&b,&x,0);
 	compute_A_cs(&A_cs,&b_cs,&x_cs,0);
@@ -488,7 +488,7 @@ void test_integration_linearization(int nargc, char **argv)
 	code_startup(nargc,argvNew,2,0);
 
 	implicit_VOLUME_info();
-	implicit_FACET_info();
+	implicit_FACE_info();
 
 	finalize_LHS(&A,&b,&x,0);
 	compute_A_cs(&A_cs,&b_cs,&x_cs,0);

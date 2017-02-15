@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "matrix_functions.h"
 
@@ -93,6 +93,7 @@ double *inverse_d(const unsigned int N, const unsigned int NRHS, const double *A
 	}
 
 	free(A);
+//	mkl_free_buffers(); // Potentially only works with 2017 version of IntelMKL (ToBeModified)
 	return x;
 }
 
@@ -152,6 +153,9 @@ double *mm_Alloc_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, cons
 	 *		transa/transb: CblasNoTrans, CblasTrans, CblasConjTrans
 	 */
 
+	if (m == 0 || n == 0 || k == 0)
+		printf("Error: %d %d %d\n",m,n,k), EXIT_MSG;
+
 	double *C;
 	MKL_INT m_MKL, n_MKL, k_MKL, ldA, ldB, ldC;
 
@@ -206,6 +210,9 @@ void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_T
 	 *		transa/transb: CblasNoTrans, CblasTrans, CblasConjTrans
 	 */
 
+	if (m == 0 || n == 0 || k == 0)
+		printf("Error: %d %d %d\n",m,n,k), EXIT_MSG;
+
 	MKL_INT m_MKL, n_MKL, k_MKL, ldA, ldB, ldC;
 
 	m_MKL = (MKL_INT) m;
@@ -255,6 +262,9 @@ void mm_dcc(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS
 	 *	Options: (ToBeModified - update as usage is made)
 	 *		transa/transb: CblasNoTrans, CblasTrans, CblasConjTrans
 	 */
+
+	if (m == 0 || n == 0 || k == 0)
+		printf("Error: %d %d %d\n",m,n,k), EXIT_MSG;
 
 	unsigned int  i, iMax;
 	MKL_INT       m_MKL, n_MKL, k_MKL, ldA, ldB, ldC;
@@ -349,6 +359,9 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 	 *	References:
 	 *
 	 */
+
+	if (m == 0 || n == 0 || k == 0)
+		printf("Error: %d %d %d\n",m,n,k), EXIT_MSG;
 
 	unsigned int useBLAS;
 

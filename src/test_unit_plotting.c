@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "test_unit_plotting.h"
 
@@ -15,6 +15,8 @@
 #include "test_support.h"
 #include "array_norm.h"
 #include "plotting_element_info.h"
+
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -56,7 +58,7 @@ void test_unit_plotting(void)
 	 */
 
 	unsigned int i, j, k, iMax, jMax, kMax, row, dim, Indr, d, P, Nn, NE;
-	unsigned int *connect, *types;
+	unsigned int *connect, *types, *connectE;
 	double *rst;
 
 	// TP (d = 1, P = 3)
@@ -81,13 +83,13 @@ void test_unit_plotting(void)
 //		rst13_TP[i] = -1.0 + (2.0*i)/P;
 //	rst13_TP[0] = -2.0;
 
-	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,LINE); // free
+	plotting_element_info(&rst,&connect,&types,&connectE,&Nn,&NE,P,LINE); // free
 
 	pass = 0;
 	if (array_norm_diff_d(Nn13_TP*d,rst13_TP,rst,"Inf")          < EPS &&
-		array_norm_diff_ui(NE13_TP*8,connect13_TP,connect,"Inf") < EPS &&
-		array_norm_diff_ui(NE13_TP,types13_TP,types,"Inf")       < EPS &&
-		Nn == Nn13_TP && NE == NE13_TP)
+	    array_norm_diff_ui(NE13_TP*8,connect13_TP,connect,"Inf") < EPS &&
+	    array_norm_diff_ui(NE13_TP,types13_TP,types,"Inf")       < EPS &&
+	    Nn == Nn13_TP && NE == NE13_TP)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -97,6 +99,7 @@ void test_unit_plotting(void)
 	free(rst);
 	free(connect);
 	free(types);
+	free(connectE);
 
 
 	/*
@@ -134,10 +137,11 @@ void test_unit_plotting(void)
 	d = 2;
 	P = 3;
 
-	unsigned int NE23_TP, Nn23_TP;
+	unsigned int NE23_TP, Nn23_TP, Ne23_TP;
 
 	Nn23_TP = pow(P+1,d);
 	NE23_TP = pow(P,d);
+	Ne23_TP = 4;
 
 	unsigned int connect23_TP[72] = {  0,  1,  5,  4,  0,  0,  0,  0,
 	                                   1,  2,  6,  5,  0,  0,  0,  0,
@@ -148,6 +152,10 @@ void test_unit_plotting(void)
 	                                   8,  9, 13, 12,  0,  0,  0,  0,
 	                                   9, 10, 14, 13,  0,  0,  0,  0,
 	                                  10, 11, 15, 14,  0,  0,  0,  0},
+	             connectE23_TP[16] = {  0,  4,  8, 12,
+	                                    3,  7, 11, 15,
+	                                    0,  1,  2,  3,
+	                                   12, 13, 14, 15},
 	             types23_TP[9];
 	double rst23_TP[Nn23_TP*d];
 
@@ -165,13 +173,14 @@ void test_unit_plotting(void)
 		row++;
 	}}
 
-	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,QUAD); // free
+	plotting_element_info(&rst,&connect,&types,&connectE,&Nn,&NE,P,QUAD); // free
 
 	pass = 0;
-	if (array_norm_diff_d(Nn23_TP*d,rst23_TP,rst,"Inf")          < EPS &&
-		array_norm_diff_ui(NE23_TP*8,connect23_TP,connect,"Inf") < EPS &&
-		array_norm_diff_ui(NE23_TP,types23_TP,types,"Inf")       < EPS &&
-		Nn == Nn23_TP && NE == NE23_TP)
+	if (array_norm_diff_d(Nn23_TP*d,rst23_TP,rst,"Inf")                < EPS &&
+	    array_norm_diff_ui(NE23_TP*8,connect23_TP,connect,"Inf")       < EPS &&
+	    array_norm_diff_ui(NE23_TP,types23_TP,types,"Inf")             < EPS &&
+	    array_norm_diff_ui(Ne23_TP*(P+1),connectE23_TP,connectE,"Inf") < EPS &&
+	    Nn == Nn23_TP && NE == NE23_TP)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -181,6 +190,7 @@ void test_unit_plotting(void)
 	free(rst);
 	free(connect);
 	free(types);
+	free(connectE);
 
 	/*
 	 *		Expected Output (d = 3):
@@ -203,10 +213,11 @@ void test_unit_plotting(void)
 	d = 3;
 	P = 3;
 
-	unsigned int NE33_TP, Nn33_TP;
+	unsigned int NE33_TP, Nn33_TP, Ne33_TP;
 
 	Nn33_TP = pow(P+1,d);
 	NE33_TP = pow(P,d);
+	Ne33_TP = 12;
 
 	unsigned int connect33_TP[216] = {  0,  1,  5,  4, 16, 17, 21, 20,
 	                                    1,  2,  6,  5, 17, 18, 22, 21,
@@ -235,6 +246,18 @@ void test_unit_plotting(void)
 	                                   40, 41, 45, 44, 56, 57, 61, 60,
 	                                   41, 42, 46, 45, 57, 58, 62, 61,
 	                                   42, 43, 47, 46, 58, 59, 63, 62},
+	             connectE33_TP[48] = {  0,  1,  2,  3,
+	                                   12, 13, 14, 15,
+	                                   48, 49, 50, 51,
+	                                   60, 61, 62, 63,
+	                                    0,  4,  8, 12,
+	                                    3,  7, 11, 15,
+	                                   48, 52, 56, 60,
+	                                   51, 55, 59, 63,
+	                                    0, 16, 32, 48,
+	                                    3, 19, 35, 51,
+	                                   12, 28, 44, 60,
+	                                   15, 31, 47, 63},
 	             types33_TP[27];
 	double rst33_TP[Nn33_TP*d];
 
@@ -254,13 +277,14 @@ void test_unit_plotting(void)
 		row++;
 	}}}
 
-	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,HEX); // free
+	plotting_element_info(&rst,&connect,&types,&connectE,&Nn,&NE,P,HEX); // free
 
 	pass = 0;
-	if (array_norm_diff_d(Nn33_TP*d,rst33_TP,rst,"Inf")          < EPS &&
-		array_norm_diff_ui(NE33_TP*8,connect33_TP,connect,"Inf") < EPS &&
-		array_norm_diff_ui(NE33_TP,types33_TP,types,"Inf")       < EPS &&
-		Nn == Nn33_TP && NE == NE33_TP)
+	if (array_norm_diff_d(Nn33_TP*d,rst33_TP,rst,"Inf")                < EPS &&
+	    array_norm_diff_ui(NE33_TP*8,connect33_TP,connect,"Inf")       < EPS &&
+	    array_norm_diff_ui(NE33_TP,types33_TP,types,"Inf")             < EPS &&
+	    array_norm_diff_ui(Ne33_TP*(P+1),connectE33_TP,connectE,"Inf") < EPS &&
+	    Nn == Nn33_TP && NE == NE33_TP)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -270,6 +294,7 @@ void test_unit_plotting(void)
 	free(rst);
 	free(connect);
 	free(types);
+	free(connectE);
 
 	/*	Simplex
 	 *
@@ -311,12 +336,13 @@ void test_unit_plotting(void)
 	d = 2;
 	P = 3;
 
-	unsigned int NE23_SI, Nn23_SI;
+	unsigned int NE23_SI, Nn23_SI, Ne23_SI;
 
 	Nn23_SI = 1.0/2.0*(P+1)*(P+2);
 	NE23_SI = 0;
 	for (i = 0; i < P; i++)
 		NE23_SI += 2*i+1;
+	Ne23_SI = 3;
 
 	unsigned int connect23_SI[72] = {  0,  1,  4,  0,  0,  0,  0,  0,
 	                                   1,  2,  5,  0,  0,  0,  0,  0,
@@ -327,6 +353,9 @@ void test_unit_plotting(void)
 	                                   1,  4,  5,  0,  0,  0,  0,  0,
 	                                   2,  5,  6,  0,  0,  0,  0,  0,
 	                                   5,  7,  8,  0,  0,  0,  0,  0},
+	             connectE23_SI[12] = { 3,  6,  8,  9,
+	                                   0,  4,  7,  9,
+	                                   0,  1,  2,  3},
 	             types23_SI[9];
 	double rst23_SI[20] = { -1.0    , -1.0/sqrt(3.0),
 	                        -1.0/3.0, -1.0/sqrt(3.0),
@@ -345,13 +374,14 @@ void test_unit_plotting(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn23_SI,d,1.0,rst23_SI,d,Nn23_SI);
 
-	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,TRI); // free
+	plotting_element_info(&rst,&connect,&types,&connectE,&Nn,&NE,P,TRI); // free
 
 	pass = 0;
-	if (array_norm_diff_d(Nn23_SI*d,rst23_SI,rst,"Inf")          < EPS &&
-		array_norm_diff_ui(NE23_SI*8,connect23_SI,connect,"Inf") < EPS &&
-		array_norm_diff_ui(NE23_SI,types23_SI,types,"Inf")       < EPS &&
-		Nn == Nn23_SI && NE == NE23_SI)
+	if (array_norm_diff_d(Nn23_SI*d,rst23_SI,rst,"Inf")                < EPS &&
+	    array_norm_diff_ui(NE23_SI*8,connect23_SI,connect,"Inf")       < EPS &&
+	    array_norm_diff_ui(NE23_SI,types23_SI,types,"Inf")             < EPS &&
+	    array_norm_diff_ui(Ne23_SI*(P+1),connectE23_SI,connectE,"Inf") < EPS &&
+	    Nn == Nn23_SI && NE == NE23_SI)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -361,6 +391,7 @@ void test_unit_plotting(void)
 	free(rst);
 	free(connect);
 	free(types);
+	free(connectE);
 
 
 	/*
@@ -393,10 +424,11 @@ void test_unit_plotting(void)
 	d = 3;
 	P = 3;
 
-	unsigned int NE33_SI, Nn33_SI;
+	unsigned int NE33_SI, Nn33_SI, Ne33_SI;
 
 	Nn33_SI = 1.0/6.0*(P+1)*(P+2)*(P+3);
 	NE33_SI = 19;
+	Ne33_SI = 6;
 
 	unsigned int connect33_SI[152] = {  0,  1,  4, 10,  0,  0,  0,  0,
 	                                    1,  2,  5, 11,  0,  0,  0,  0,
@@ -417,6 +449,12 @@ void test_unit_plotting(void)
 	                                   13, 14, 17, 16, 11,  0,  0,  0,
 	                                   13, 14, 17, 16, 18,  0,  0,  0,
 	                                   16, 17, 18, 19,  0,  0,  0,  0},
+	             connectE33_SI[24] = {  0,  1,  2,  3,
+	                                    0,  4,  7,  9,
+	                                    0, 10, 16, 19,
+	                                    3,  6,  8,  9,
+	                                    3, 12, 17, 19,
+	                                    9, 15, 18, 19},
 	             types33_SI[NE33_SI];
 	double rst33_SI[60] = { -1.0    , -1.0/sqrt(3.0)      , -1.0/sqrt(6.0)      ,
 	                        -1.0/3.0, -1.0/sqrt(3.0)      , -1.0/sqrt(6.0)      ,
@@ -450,13 +488,14 @@ void test_unit_plotting(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn33_SI,d,1.0,rst33_SI,d,Nn33_SI);
 
-	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,TET); // free
+	plotting_element_info(&rst,&connect,&types,&connectE,&Nn,&NE,P,TET); // free
 
 	pass = 0;
-	if (array_norm_diff_d(Nn33_SI*d,rst33_SI,rst,"Inf")          < EPS &&
-		array_norm_diff_ui(NE33_SI*8,connect33_SI,connect,"Inf") < EPS &&
-		array_norm_diff_ui(NE33_SI,types33_SI,types,"Inf")       < EPS &&
-		Nn == Nn33_SI && NE == NE33_SI)
+	if (array_norm_diff_d(Nn33_SI*d,rst33_SI,rst,"Inf")                < EPS &&
+	    array_norm_diff_ui(NE33_SI*8,connect33_SI,connect,"Inf")       < EPS &&
+	    array_norm_diff_ui(NE33_SI,types33_SI,types,"Inf")             < EPS &&
+	    array_norm_diff_ui(Ne33_SI*(P+1),connectE33_SI,connectE,"Inf") < EPS &&
+	    Nn == Nn33_SI && NE == NE33_SI)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -466,6 +505,7 @@ void test_unit_plotting(void)
 	free(rst);
 	free(connect);
 	free(types);
+	free(connectE);
 
 	/*		Wedge
 	 *
@@ -501,10 +541,11 @@ void test_unit_plotting(void)
 	d = 3;
 	P = 3;
 
-	unsigned int NE3_WEDGE, Nn3_WEDGE;
+	unsigned int NE3_WEDGE, Nn3_WEDGE, Ne3_WEDGE;
 
 	Nn3_WEDGE = (P+1)*1.0/2.0*(P+1)*(P+2);
 	NE3_WEDGE = 27;
+	Ne3_WEDGE = 9;
 
 	unsigned int connect3_WEDGE[216] = {  0,  1,  4, 10, 11, 14,  0,  0,
 	                                      1,  2,  5, 11, 12, 15,  0,  0,
@@ -533,6 +574,15 @@ void test_unit_plotting(void)
 	                                     21, 24, 25, 31, 34, 35,  0,  0,
 	                                     22, 25, 26, 32, 35, 36,  0,  0,
 	                                     25, 27, 28, 35, 37, 38,  0,  0},
+	             connectE3_WEDGE[36] = {  3,  6,  8,  9,
+	                                      0,  4,  7,  9,
+	                                      0,  1,  2,  3,
+	                                     33, 36, 38, 39,
+	                                     30, 34, 37, 39,
+	                                     30, 31, 32, 33,
+	                                      0, 10, 20, 30,
+	                                      1, 11, 21, 31,
+	                                      2, 12, 22, 32},
 	             types3_WEDGE[NE3_WEDGE];
 	double rst3_WEDGE[120] = { -1.0    , -1.0/sqrt(3.0)      , -1.0    ,
 	                           -1.0/3.0, -1.0/sqrt(3.0)      , -1.0    ,
@@ -581,13 +631,14 @@ void test_unit_plotting(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn3_WEDGE,d,1.0,rst3_WEDGE,d,Nn3_WEDGE);
 
-	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,WEDGE); // free
+	plotting_element_info(&rst,&connect,&types,&connectE,&Nn,&NE,P,WEDGE); // free
 
 	pass = 0;
-	if (array_norm_diff_d(Nn3_WEDGE*d,rst3_WEDGE,rst,"Inf")          < EPS &&
-		array_norm_diff_ui(NE3_WEDGE*8,connect3_WEDGE,connect,"Inf") < EPS &&
-		array_norm_diff_ui(NE3_WEDGE,types3_WEDGE,types,"Inf")       < EPS &&
-		Nn == Nn3_WEDGE && NE == NE3_WEDGE)
+	if (array_norm_diff_d(Nn3_WEDGE*d,rst3_WEDGE,rst,"Inf")                < EPS &&
+	    array_norm_diff_ui(NE3_WEDGE*8,connect3_WEDGE,connect,"Inf")       < EPS &&
+	    array_norm_diff_ui(NE3_WEDGE,types3_WEDGE,types,"Inf")             < EPS &&
+	    array_norm_diff_ui(Ne3_WEDGE*(P+1),connectE3_WEDGE,connectE,"Inf") < EPS &&
+	    Nn == Nn3_WEDGE && NE == NE3_WEDGE)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -597,6 +648,7 @@ void test_unit_plotting(void)
 	free(rst);
 	free(connect);
 	free(types);
+	free(connectE);
 
 	/*		Pyramid
 	 *
@@ -633,10 +685,11 @@ void test_unit_plotting(void)
 	d = 3;
 	P = 3;
 
-	unsigned int NE3_PYR, Nn3_PYR;
+	unsigned int NE3_PYR, Nn3_PYR, Ne3_PYR;
 
 	Nn3_PYR = 16+9+4+1;
 	NE3_PYR = 35;
+	Ne3_PYR = 8;
 
 	unsigned int connect3_PYR[280] = {  0,  1,  5,  4, 16,  0,  0,  0,
 	                                    1,  2,  6,  5, 17,  0,  0,  0,
@@ -673,6 +726,14 @@ void test_unit_plotting(void)
 	                                   20, 21, 26, 28,  0,  0,  0,  0,
 	                                   25, 26, 28, 27, 20,  0,  0,  0,
 	                                   25, 26, 28, 27, 29,  0,  0,  0},
+	             connectE3_PYR[32] = {  0,  1,  2,  3,
+	                                   12, 13, 14, 15,
+	                                    0,  4,  8, 12,
+	                                    3,  7, 11, 15,
+	                                    0, 16, 25, 29,
+	                                    3, 18, 26, 29,
+	                                   12, 22, 27, 29,
+	                                   15, 24, 28, 29},
 	             types3_PYR[NE3_PYR];
 	double rst3_PYR[90] = { -1.0    , -1.0    , -1.0/5.0 *sqrt(2.0),
 	                        -1.0/3.0, -1.0    , -1.0/5.0 *sqrt(2.0),
@@ -717,13 +778,14 @@ void test_unit_plotting(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn3_PYR,d,1.0,rst3_PYR,d,Nn3_PYR);
 
-	plotting_element_info(&rst,&connect,&types,&Nn,&NE,P,PYR); // free
+	plotting_element_info(&rst,&connect,&types,&connectE,&Nn,&NE,P,PYR); // free
 
 	pass = 0;
-	if (array_norm_diff_d(Nn3_PYR*d,rst3_PYR,rst,"Inf")          < EPS &&
-		array_norm_diff_ui(NE3_PYR*8,connect3_PYR,connect,"Inf") < EPS &&
-		array_norm_diff_ui(NE3_PYR,types3_PYR,types,"Inf")       < EPS &&
-		Nn == Nn3_PYR && NE == NE3_PYR)
+	if (array_norm_diff_d(Nn3_PYR*d,rst3_PYR,rst,"Inf")                < EPS &&
+	    array_norm_diff_ui(NE3_PYR*8,connect3_PYR,connect,"Inf")       < EPS &&
+	    array_norm_diff_ui(NE3_PYR,types3_PYR,types,"Inf")             < EPS &&
+	    array_norm_diff_ui(Ne3_PYR*(P+1),connectE3_PYR,connectE,"Inf") < EPS &&
+	    Nn == Nn3_PYR && NE == NE3_PYR)
 			pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -733,4 +795,5 @@ void test_unit_plotting(void)
 	free(rst);
 	free(connect);
 	free(types);
+	free(connectE);
 }

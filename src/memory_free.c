@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "memory_free.h"
 
@@ -11,7 +11,7 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "array_free.h"
 #include "memory_destructors.h"
@@ -46,6 +46,7 @@ void memory_free(void)
 		// Initialization
 		free(DB.TestCase);
 		free(DB.MeshType);
+		free(DB.Geometry);
 		free(DB.MeshPath);
 		free(DB.BumpOrder);
 		free(DB.Form);
@@ -56,7 +57,6 @@ void memory_free(void)
 		// Preprocessing
 
 			// setup_parameters
-			free(DB.Parametrization);
 			array_free2_c(NEC,DB.NodeTypeG);
 			array_free3_c(DB.NP,NEC,DB.NodeTypeS);
 			array_free3_c(DB.NP,NEC,DB.NodeTypeF);
@@ -85,7 +85,7 @@ void memory_free(void)
 			// setup_mesh
 			free(DB.PVe), free(DB.NE), free(DB.EType), free(DB.ETags), free(DB.EToVe), free(DB.EToPrt);
 			free(DB.VToV), free(DB.VToF), free(DB.VToGF), free(DB.VToBC), free(DB.GFToVe), free(DB.VC), free(DB.GFC);
-			free(DB.VeXYZ);
+			free(DB.VeInfo); free(DB.VeXYZ);
 
 			// setup_structures
 			free(DB.NVgrp);
@@ -117,12 +117,12 @@ void memory_free(void)
 		VOLUME = VOLUMEnext;
 	}
 
-	// FACETs
-	struct S_FACET *FACET, *FACETnext;
-	for (FACET = DB.FACET; FACET; ) {
-		FACETnext = FACET->next;
-		memory_destructor_F(FACET);
-		FACET = FACETnext;
+	// FACEs
+	struct S_FACE *FACE, *FACEnext;
+	for (FACE = DB.FACE; FACE; ) {
+		FACEnext = FACE->next;
+		memory_destructor_F(FACE);
+		FACE = FACEnext;
 	}
 }
 
@@ -130,7 +130,7 @@ void memory_free_children(void)
 {
 	/*
 	 *	Purpose:
-	 *		Free memory of non-leaf VOLUME and FACET children.
+	 *		Free memory of non-leaf VOLUME and FACE children.
 	 */
 
 	// VOLUMEs
@@ -145,15 +145,15 @@ void memory_free_children(void)
 		VOLUME->child0 = NULL;
 	}
 
-	// FACETs
-	struct S_FACET *FACET, *FACETc, *FACETcnext;
-	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-		FACETc = FACET->child0;
-		while (FACETc) {
-			FACETcnext = FACETc->next;
-			memory_destructor_F(FACETc);
-			FACETc = FACETcnext;
+	// FACEs
+	struct S_FACE *FACE, *FACEc, *FACEcnext;
+	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		FACEc = FACE->child0;
+		while (FACEc) {
+			FACEcnext = FACEc->next;
+			memory_destructor_F(FACEc);
+			FACEc = FACEcnext;
 		}
-		FACET->child0 = NULL;
+		FACE->child0 = NULL;
 	}
 }

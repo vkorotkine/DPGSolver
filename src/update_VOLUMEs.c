@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "update_VOLUMEs.h"
 
@@ -16,14 +16,18 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "adaptation.h"
 #include "element_functions.h"
 #include "matrix_functions.h"
 #include "setup_ToBeCurved.h"
+#include "setup_Curved.h"
+#include "setup_geometry.h"
 #include "setup_geom_factors.h"
 #include "memory_constructors.h"
+
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -40,7 +44,7 @@
  */
 
 struct S_OPERATORS {
-	unsigned int NvnGs, NvnGc, NvnS, *Nvve, NvnSP, NvnI;
+	unsigned int NvnGs, NvnGc, NvnS, *Nvve, NvnSP, NvnI, **VeMask;
 	double       *I_vGs_vGc, **I_vGs_vGs, **Ihat_vS_vS, **L2hat_vS_vS, *w_vI, *ChiS_vI;
 };
 
@@ -63,11 +67,11 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	OPS->NvnS  = ELEMENT->NvnS[P];
 	OPS->Nvve  = ELEMENT->Nvve;
 	OPS->NvnSP = ELEMENT->NvnS[PNew];
-	OPS->I_vGs_vGs  = ELEMENT->I_vGs_vGs[1][1];
-	OPS->I_vGs_vGc  = ELEMENT->I_vGs_vGc[1][PNew][0];
-	OPS->Ihat_vS_vS = ELEMENT->Ihat_vS_vS[P][PNew]; // ToBeDeleted: Remove all instances of Ihat_vS_vS from the code if
-	                                                //              not used here.
+	OPS->I_vGs_vGs   = ELEMENT->I_vGs_vGs[1][1];
+	OPS->I_vGs_vGc   = ELEMENT->I_vGs_vGc[1][PNew][0];
+	OPS->Ihat_vS_vS  = ELEMENT->Ihat_vS_vS[P][PNew];
 	OPS->L2hat_vS_vS = ELEMENT->L2hat_vS_vS[P][PNew];
+	OPS->VeMask      = ELEMENT->VeMask[1][2];
 	if (!curved) {
 		OPS->NvnI = ELEMENT->NvnIs[P];
 
@@ -78,6 +82,30 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 
 		OPS->w_vI    = ELEMENT->w_vIc[P];
 		OPS->ChiS_vI = ELEMENT->ChiS_vIc[P][P][0];
+	}
+}
+
+static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, unsigned int **BC)
+{
+	switch (VOLUME->type) {
+	case TRI:
+		if      (vh == 1) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; }
+		else if (vh == 2) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][2] = BC[0][2]; }
+		else if (vh == 3) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][1] = BC[0][1]; }
+		break;
+	case QUAD:
+		if      (vh == 1) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][2] = BC[0][2]; }
+		else if (vh == 2) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; }
+		else if (vh == 3) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][3] = BC[0][3]; }
+		else if (vh == 4) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][3] = BC[0][3]; }
+		else if (vh == 5) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][2] = BC[0][2]; VOLUME->BC[0][3] = BC[0][3]; }
+		else if (vh == 6) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; VOLUME->BC[0][3] = BC[0][3]; }
+		else if (vh == 7) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; }
+		else if (vh == 8) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][3] = BC[0][3]; }
+		break;
+	default:
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+		break;
 	}
 }
 
@@ -95,9 +123,9 @@ void update_VOLUME_hp(void)
 	             *TestCase = DB.TestCase;
 
 	// Standard datatypes
-	unsigned int i, iMax, P, PNew, f, level, adapt_type, vh, vhMin, vhMax, VType, Nf,
-	             IndEhref, NvnGs[2], NvnGc[2], NvnS[2], NvnSP, NCols, update, maxP;
-	double       *I_vGs_vGc[2], *XYZ_vC, *XYZ_S,
+	unsigned int i, j, ve, dim, iMax, P, PNew, f, level, adapt_type, vh, vhMin, vhMax, VType, Nf, Nve, NveP2,
+	             IndEhref, NvnGs[2], NvnGc[2], NvnS[2], NvnSP, NCols, update, maxP, *VeInfo, cVeCount, **VeMask;
+	double       *I_vGs_vGc[2], *XYZ_vV, *XYZ_vVP2, *XYZ_S,
 	             **Ihat_vS_vS, **I_vGs_vGs, **L2hat_vS_vS, *What, *RES, *WhatP, *WhatH, *RESP, *RESH, *dummyPtr_d,
 	             *uhat, *uhatP, *uhatH;
 
@@ -158,7 +186,8 @@ void update_VOLUME_hp(void)
 				NvnS[1]      = OPS->NvnS;
 				I_vGs_vGc[1] = OPS->I_vGs_vGc;
 			} else if (adapt_type == HCOARSE) {
-				if (VOLUME->type == PYR && VOLUME->parent->type == PYR)
+				if ((VOLUME->type == TET && VOLUME->parent->type == TET) ||
+				    (VOLUME->type == PYR && VOLUME->parent->type == PYR))
 					init_ops(OPS,VOLUME,1);
 				else
 					init_ops(OPS,VOLUME,0);
@@ -181,9 +210,9 @@ void update_VOLUME_hp(void)
 
 					NCols = d;
 
-					XYZ_vC = VOLUME->XYZ_vC;
+					XYZ_vV = VOLUME->XYZ_vV;
 					XYZ_S  = malloc(NvnGc[0]*NCols * sizeof *XYZ_S); // keep
-					mm_CTN_d(NvnGc[0],NCols,NvnGs[0],I_vGs_vGc[0],XYZ_vC,XYZ_S);
+					mm_CTN_d(NvnGc[0],NCols,NvnGs[0],I_vGs_vGc[0],XYZ_vV,XYZ_S);
 
 					free(VOLUME->XYZ_S);
 					VOLUME->XYZ_S = XYZ_S;
@@ -193,7 +222,7 @@ void update_VOLUME_hp(void)
 					if (strstr(MeshType,"ToBeCurved"))
 						setup_ToBeCurved(VOLUME);
 					else if (strstr(MeshType,"Curved"))
-						printf("Add in support for MeshType == Curved.\n"), EXIT_MSG;
+						setup_Curved(VOLUME);
 				}
 
 				free(VOLUME->detJV_vI);
@@ -256,6 +285,7 @@ void update_VOLUME_hp(void)
 				NvnS[0]      = OPS->NvnS;
 				I_vGs_vGs    = OPS->I_vGs_vGs;
 				I_vGs_vGc[0] = OPS->I_vGs_vGc;
+				VeMask       = OPS->VeMask;
 
 				NCols = d;
 
@@ -293,46 +323,105 @@ void update_VOLUME_hp(void)
 
 					VOLUMEc->Eclass = get_Eclass(VOLUMEc->type);
 
-					if (AC) {
-						VOLUMEc->curved = 1;
-					} else if (VOLUME->curved) {
-						printf("Error: Add support for h-refinement VOLUMEc->curved.\n"), EXIT_MSG;
-						// Use VToBC and knowledge of whether the new VOLUME shares the BC.
-					} else {
-						VOLUMEc->curved = 0;
-					}
-
 					// Update geometry
 					IndEhref = get_IndEhref(VType,vh);
 
-// When updating XYZ_vC, ensure that corners on curved boundaries are placed on the boundary. (ToBeDeleted)
-					VOLUMEc->XYZ_vC = malloc(NvnGs[IndEhref]*d * sizeof *XYZ_vC); // keep
-					XYZ_vC = VOLUMEc->XYZ_vC;
+					VOLUMEc->XYZ_vV = malloc(NvnGs[IndEhref]*d * sizeof *XYZ_vV); // keep
 
-					mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vC,VOLUMEc->XYZ_vC);
-					if (!VOLUMEc->curved) {
-						double *XYZ;
+					// May not need VeInfo for new VOLUMEs if avoiding usage for treating curved geometry (ToBeDeleted)
+					Nve    = ELEMENT->Nve;
+					VeInfo = VOLUMEc->VeInfo;
 
-						VOLUMEc->NvnG = NvnGs[IndEhref];
+					if (AC) {
+						mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vV,VOLUMEc->XYZ_vV);
+						VOLUMEc->curved = 1;
 
-						VOLUMEc->XYZ_S = malloc(NvnGs[IndEhref]*NCols * sizeof *XYZ_S); // keep
-						VOLUMEc->XYZ   = malloc(NvnGs[IndEhref]*NCols * sizeof *XYZ);   // keep
-						XYZ_S = VOLUMEc->XYZ_S;
-						XYZ   = VOLUMEc->XYZ;
-						for (unsigned int i = 0, iMax = NCols*NvnGs[IndEhref]; i < iMax; i++) {
-							XYZ_S[i] = XYZ_vC[i];
-							XYZ[i]   = XYZ_S[i];
+						// Set VOLUME BC Information
+						set_VOLUMEc_BC_Info(VOLUMEc,vh,VOLUME->BC);
+					} else if (VOLUME->curved) {
+						// Determined VeInfo for VOLUMEc
+						cVeCount = 0;
+						for (ve = 0; ve < Nve; ve++) {
+							VeInfo[ve+Nve*0] = 1;
+							VeInfo[ve+Nve*1] = 1;
+							for (j = 0; j < NvnGs[0]; j++) {
+								if (fabs(I_vGs_vGs[vh][ve*NvnGs[0]+j]-1.0) < EPS) {
+									// Already existing vertex
+									for (i = 0; i < NVEINFO; i++)
+										VeInfo[ve+Nve*i] = VOLUME->VeInfo[j+Nve*i];
+									break;
+								} else if (fabs(I_vGs_vGs[vh][ve*NvnGs[0]+j]) > EPS) {
+									if (!VOLUME->VeInfo[j+Nve*0]) { // If not curved
+										VeInfo[ve+Nve*0] = 0;
+										VeInfo[ve+Nve*1] = 0;
+										VeInfo[ve+Nve*2] = UINT_MAX;
+										VeInfo[ve+Nve*3] = 0;
+										break;
+									} else {
+										VeInfo[ve+Nve*2] = VOLUME->VeInfo[j+NvnGs[0]*2];
+										// This is incorrect (currently not used) for vertices shared by two curved surfaces.
+//										VeInfo[ve+Nve*3] = VOLUME->VeInfo[j+NvnGs[0]*3];
+										VeInfo[ve+Nve*3] = UINT_MAX;
+									}
+								}
+							}
+							if (VeInfo[ve])
+								cVeCount++;
 						}
+
+						if (d == DMAX && cVeCount == 2)
+							VOLUMEc->curved = 2; // Curved EDGE
+						else
+							VOLUMEc->curved = 1; // Curved FACE
+
+						// Ensure that vertices are place on the curved boundaries
+						NveP2 = ELEMENT->NveP2;
+
+						if (vh == vhMin)
+							setup_Curved_vertices(VOLUME);
+
+						if (DB.TETrefineType == TET12)
+							printf("Error: VeMask not correct for this case.\n"), EXIT_MSG;
+
+						XYZ_vV   = VOLUMEc->XYZ_vV;
+						XYZ_vVP2 = VOLUME->XYZ_vVP2;
+
+						for (ve = 0; ve < Nve; ve++) {
+							for (dim = 0; dim < d; dim++)
+								XYZ_vV[ve+Nve*dim] = XYZ_vVP2[VeMask[vh][ve]+NveP2*dim];
+						}
+
+						// Set VOLUME BC Information
+						set_VOLUMEc_BC_Info(VOLUMEc,vh,VOLUME->BC);
+					} else {
+						mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vV,VOLUMEc->XYZ_vV);
+						for (ve = 0; ve < Nve; ve++) {
+							VeInfo[ve+Nve*0] = 0;
+							VeInfo[ve+Nve*1] = 0;
+							VeInfo[ve+Nve*2] = UINT_MAX;
+						}
+						VOLUMEc->curved = 0;
+					}
+
+					XYZ_vV = VOLUMEc->XYZ_vV;
+					if (!VOLUMEc->curved) {
+						VOLUMEc->NvnG  = NvnGs[IndEhref];
+						VOLUMEc->XYZ_S = malloc(NvnGs[IndEhref]*NCols * sizeof *XYZ_S); // keep
+						XYZ_S = VOLUMEc->XYZ_S;
+						for (unsigned int i = 0, iMax = NCols*NvnGs[IndEhref]; i < iMax; i++)
+							XYZ_S[i] = XYZ_vV[i];
+						setup_straight(VOLUMEc);
 					} else {
 						VOLUMEc->NvnG = NvnGc[IndEhref];
 
 						VOLUMEc->XYZ_S = malloc(NvnGc[IndEhref]*NCols * sizeof *XYZ_S); // keep
-						mm_CTN_d(NvnGc[IndEhref],NCols,NvnGs[IndEhref],I_vGs_vGc[IndEhref],XYZ_vC,VOLUMEc->XYZ_S);
+						mm_CTN_d(NvnGc[IndEhref],NCols,NvnGs[IndEhref],I_vGs_vGc[IndEhref],XYZ_vV,VOLUMEc->XYZ_S);
 
 						if (strstr(MeshType,"ToBeCurved"))
 							setup_ToBeCurved(VOLUMEc);
-						else if (strstr(MeshType,"Curved"))
-							printf("Add in support for MeshType == Curved.\n"), EXIT_MSG;
+						else if (strstr(MeshType,"Curved")) {
+							setup_Curved(VOLUMEc);
+						}
 					}
 					setup_geom_factors(VOLUMEc);
 
@@ -544,7 +633,9 @@ void update_Vgrp(void)
 			P      = VOLUME->P;
 			curved = VOLUME->curved;
 
-			IndVgrp = Eclass*NP*2 + P*2 + curved;
+			IndVgrp = Eclass*NP*2 + P*2;
+			if (curved)
+				IndVgrp += 1;
 
 			if (!NVgrp[IndVgrp])
 				DB.Vgrp[IndVgrp] = VOLUME;
@@ -649,7 +740,7 @@ void update_VOLUME_finalize(void)
 	unsigned int VfIn, VfOut, fIn, fOut;
 
 	struct S_VOLUME *VOLUME, *VIn, *VOut;
-	struct S_FACET  *FACET;
+	struct S_FACE  *FACE;
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		VOLUME->indexg = NV++;
@@ -661,21 +752,21 @@ void update_VOLUME_finalize(void)
 	DB.NV = NV;
 	DB.NVglobal = NV;
 
-	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-		VIn   = FACET->VIn;
-		VfIn  = FACET->VfIn;
+	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		VIn   = FACE->VIn;
+		VfIn  = FACE->VfIn;
 		fIn   = VfIn/NFREFMAX;
 
-		VOut  = FACET->VOut;
-		VfOut = FACET->VfOut;
+		VOut  = FACE->VOut;
+		VfOut = FACE->VfOut;
 		fOut  = VfOut/NFREFMAX;
 
-		FACET->Boundary = !((VIn->indexg != VOut->indexg) || (VIn->indexg == VOut->indexg && fIn != fOut));
+		FACE->Boundary = !((VIn->indexg != VOut->indexg) || (VIn->indexg == VOut->indexg && fIn != fOut));
 
 		VIn->neigh[VfIn]   = VOut->indexg;
 		VOut->neigh[VfOut] = VIn->indexg;
 
-		if (fabs((int) VIn->level - (int) VOut->level) > 1.0) {
+		if (abs((int) VIn->level - (int) VOut->level) > 1.0) {
 			printf("%d %d %d\n",VIn->indexg,VOut->indexg,VIn->parent->indexg);
 			printf("Error: Adjacent VOLUMEs are more than 1-irregular.\n"), EXIT_MSG;
 		}

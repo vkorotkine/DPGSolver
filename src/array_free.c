@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "array_free.h"
 
@@ -226,6 +226,26 @@ void array_free3_ld(unsigned int iMax, unsigned int jMax, long double ***A)
 			for (j = 0; j < jMax; j++)
 				if (A[i][j])
 					free(A[i][j]);
+			free(A[i]);
+		}
+	}
+	free(A);
+}
+
+void array_free4_ui(unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int ****A)
+{
+	unsigned int i, j, k;
+
+	for (i = 0; i < iMax; i++) {
+		if (A[i]) {
+			for (j = 0; j < jMax; j++) {
+				if (A[i][j]) {
+					for (k = 0; k < kMax; k++)
+						if (A[i][j][k])
+							free(A[i][j][k]);
+					free(A[i][j]);
+				}
+			}
 			free(A[i]);
 		}
 	}

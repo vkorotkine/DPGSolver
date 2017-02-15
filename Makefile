@@ -34,30 +34,27 @@ LOCAL_INC := -I./include
 
 # OSX
 ifeq ($(KERNEL),Darwin)
-  PROG_PATH := /Users/philipzwanenburg/Desktop/Research_Codes/Downloaded
+#  PROG_PATH := /Users/philipzwanenburg/Desktop/Research_Codes/Downloaded
+  PROG_PATH := /Users/philip/Desktop/research_codes
 
-  CC := $(PROG_PATH)/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/mpicc -fopenmp -m64
-#  CC := $(PROG_PATH)/petsc/petsc-3.6.3/arch-darwin-mpich-c-opt/bin/mpicc -fopenmp -m64
+#  CC := $(PROG_PATH)/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/mpicc -fopenmp -m64
 #  CC := mpicc -fopenmp -m64
 
 # There is a problem that the -fopenmp -m64 flag is not included in CC. Compiling fine for now => fix later. (ToBeDeleted)
 
-#  PETSC_DIR := $(PROG_PATH)/petsc/petsc-3.2-p7 (ToBeDeleted)
-  PETSC_DIR := $(PROG_PATH)/petsc/petsc-3.6.3
-  PETSC_ARCH := arch-darwin-mpich-c-debug
-#  PETSC_ARCH := arch-darwin-mpich-c-opt
-#  PETSC_ARCH := arch-darwin-c-opt
+  PETSC_DIR := $(PROG_PATH)/petsc/petsc-3.7.4
+  PETSC_ARCH := arch-osx-mpich-c-opt
+  CC := $(PETSC_DIR)/$(PETSC_ARCH)/bin/mpicc -fopenmp -m64
 
   # METIS_DIR := $(PROG_PATH)/parmetis/parmetis-4.0.3
-  METIS_DIR := $(PROG_PATH)/parmetis_mpich/parmetis-4.0.3/build/debug
-#  METIS_DIR := $(PROG_PATH)/parmetis_mpich/parmetis-4.0.3/build/opt
+  METIS_DIR := $(PROG_PATH)/parmetis/parmetis-4.0.3/build/opt
 
   METIS_INC      := -I$(METIS_DIR)/metis/include
   METIS_LDINC    := -L$(METIS_DIR)/libmetis -lmetis
   PARMETIS_INC   := -I$(METIS_DIR)/include
   PARMETIS_LDINC := -L$(METIS_DIR)/libparmetis -lparmetis
 
-  MKL_DIR := $(PROG_PATH)/intel/mkl
+  MKL_DIR := $(PROG_PATH)/intel_MKL/mkl
   MKL_INC   := -I$(MKL_DIR)/include
   # MKL statically linked on OSX as the -Wl,--no-as-needed option is not supported by the OSX linker
   MKL_LDINC := $(MKL_DIR)/lib/libmkl_intel_lp64.a $(MKL_DIR)/lib/libmkl_core.a $(MKL_DIR)/lib/libmkl_sequential.a -lpthread
@@ -65,16 +62,19 @@ endif
 
 # LINUX
 ifeq ($(KERNEL),Linux)
-  OS_RELEASE := $(shell uname -r)
-  ifeq ($(OS_RELEASE),4.4.0-38-generic) #Home
+  NODENAME := $(shell uname -n)
+  ifeq ($(NODENAME),philip-Aspire-XC-605) #Home
     PROG_PATH := /home/philip/Desktop/research/programs
 
-    CC   := $(PROG_PATH)/petsc/petsc-3.7.0/arch-linux-c-/bin/mpicc -fopenmp -m64
+#    CC   := $(PROG_PATH)/petsc/petsc-3.7.0/arch-linux-c-/bin/mpicc -fopenmp -m64
+    CC := mpicc -fopenmp -m64
 
-    PETSC_DIR := $(PROG_PATH)/petsc/petsc-3.7.0
-    PETSC_ARCH := arch-linux-c-
+#    PETSC_DIR := $(PROG_PATH)/petsc/petsc-3.7.0
+#    PETSC_ARCH := arch-linux-c-
+    PETSC_DIR := /home/philip/petsc/petsc-3.7.5
+    PETSC_ARCH := linux-c-debug
 
-    METIS_DIR := $(PROG_PATH)/parmetis/parmetis-4.0.3/build/opt
+    METIS_DIR      := $(PROG_PATH)/parmetis/parmetis-4.0.3/build/opt
     METIS_INC      := -I$(METIS_DIR)/metis/include
     METIS_LDINC    := -L$(METIS_DIR)/libmetis -lmetis
     PARMETIS_INC   := -I$(METIS_DIR)/include
@@ -82,7 +82,10 @@ ifeq ($(KERNEL),Linux)
 
     MKL_DIR := $(PROG_PATH)/intel/mkl
     MKL_INC := -I$(MKL_DIR)/include
-    MKL_LDINC := -Wl,--no-as-needed -L$(MKL_DIR)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lgomp
+#    MKL_LDINC := -Wl,--no-as-needed -L$(MKL_DIR)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lgomp
+    # Needed when petsc is not linked with MKL during installation
+	MKL_LIBDIR := $(MKL_DIR)/lib/intel64
+    MKL_LDINC := $(MKL_LIBDIR)/libmkl_intel_lp64.so $(MKL_LIBDIR)/libmkl_core.so $(MKL_LIBDIR)/libmkl_sequential.so -lpthread
   else #Guillimin
     PROG_PATH := /home/pzwan/programs
 
@@ -108,8 +111,10 @@ include $(PETSC_DIR)/lib/petsc/conf/variables
 PETSC_INC := $(PETSC_CC_INCLUDES)
 
 # Note: Parmetis must be linked before metis
-LIBS := $(STD_LIB) $(PETSC_LIB) $(PARMETIS_LDINC) $(METIS_LDINC) $(MKL_LDINC)
-INCS := $(LOCAL_INC) $(PETSC_INC) $(PARMETIS_INC) $(METIS_INC) $(MKL_INC)
+#LIBS := $(STD_LIB) $(PETSC_LIB) $(PARMETIS_LDINC) $(METIS_LDINC) $(MKL_LDINC)
+#INCS := $(LOCAL_INC) $(PETSC_INC) $(PARMETIS_INC) $(METIS_INC) $(MKL_INC)
+LIBS := $(STD_LIB) $(MKL_LDINC) $(PETSC_LIB) $(PARMETIS_LDINC) $(METIS_LDINC)
+INCS := $(LOCAL_INC) $(MKL_INC) $(PETSC_INC) $(PARMETIS_INC) $(METIS_INC)
 
 EXECUTABLE := DPGSolver.exe
 
@@ -144,6 +149,7 @@ $(EXECUTABLE) : $(OBJECTS)
 	@echo
 	@echo Creating/updating: $@
 	@$(CC) -o $@ $(OPTS) $^ $(INCS) $(LIBS)
+	@echo
 
 # Include dependencies (Must be placed after default goal)
 include $(DEPENDS)
@@ -159,8 +165,8 @@ $(DEPDIR)/%.d : %.c
 	@echo Creating/updating: $@
 
 # Additional dependencies needed for modified dynamic memory allocation
-DYN_MEM_DEPS_NOPATH := S_ELEMENT.h S_VOLUME.h S_FACET.h
-DYN_MEM_DEPS        := $(INCDIR)/S_ELEMENT.h $(INCDIR)/S_VOLUME.h $(INCDIR)/S_FACET.h
+DYN_MEM_DEPS_NOPATH := S_ELEMENT.h S_VOLUME.h S_FACE.h
+DYN_MEM_DEPS        := $(INCDIR)/S_ELEMENT.h $(INCDIR)/S_VOLUME.h $(INCDIR)/S_FACE.h
 
 $(DYN_MEM_DEPS_NOPATH) : $(DYN_MEM_DEPS)
 $(DYN_MEM_DEPS) : memory_constructors.c
@@ -185,16 +191,16 @@ $(EXECDIR):
 
 
 OUTPUT_LIST   := paraview errors results
-TESTCASE_LIST := dSphericalBump GaussianBump PeriodicVortex \
-                 PolynomialBump SupersonicVortex VortexRiemann \
-                 Poisson
+TESTCASE_LIST := Poisson SupersonicVortex InviscidChannel
+# To BeModified (Remove unneeded meshcases folders which may have been created previously)
+MESHCASE_LIST := Ringleb dm1-Spherical_Section Ellipsoidal_Section Annular_Section HoldenRamp GaussianBump NacaSymmetric \
+                 EllipsoidalBump JoukowskiSymmetric
 # ToBeModified (Remove unneeded meshtypes)
-MESHTYPE_LIST := ToBeCurvedStructuredTRI ToBeCurvedStructuredQUAD ToBeCurvedStructuredTET ToBeCurvedStructuredHEX \
-                 ToBeCurvedStructuredWEDGE ToBeCurvedStructuredPYR ToBeCurvedMixed ToBeCurvedTET CurvedTET \
-                 ToBeCurvedStructuredMixedTP ToBeCurvedStructuredMixedHW ToBeCurvedMixedHW ToBeCurvedMixedTP StructuredTET
+MESHTYPE_LIST := TRI CurvedTRI CurvedQUAD ToBeCurvedTRI ToBeCurvedQUAD Mixed CurvedMixed
 
 OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))
 TESTCASE_LIST := $(subst $(space),$(comma),$(TESTCASE_LIST))
+MESHCASE_LIST := $(subst $(space),$(comma),$(MESHCASE_LIST))
 MESHTYPE_LIST := $(subst $(space),$(comma),$(MESHTYPE_LIST))
 
 
@@ -202,6 +208,9 @@ MESHTYPE_LIST := $(subst $(space),$(comma),$(MESHTYPE_LIST))
 .PHONY : directories
 directories:
 	mkdir -p cases/{$(OUTPUT_LIST)}/{$(TESTCASE_LIST)}/{$(MESHTYPE_LIST)}
+	mkdir -p meshes/{$(MESHCASE_LIST)}
+	mkdir -p meshes/Test
+	@echo
 
 
 .PHONY : clean

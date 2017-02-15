@@ -2,7 +2,7 @@
 
 ### Code Description
 - Uses only open source libraries/supporting programs.
-- Methods: Discontinuous Petrov Galerkin (DPG) with the option for standard Discontinuous Galerkin (DG).
+- Methods: Discontinuous Petrov Galerkin (DPG) (TO BE DONE) with the option for standard Discontinuous Galerkin (DG).
 - Supported elements: TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
 - Supported refinements: isotropic h (size) or p (order).
 
@@ -48,11 +48,9 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 #### Initialization
 | Test case        |            |
 |------------------|------------|
-| dSphericalBump   | TO BE DONE |
-| GaussianBump     | TO BE DONE |
 | PeriodicVortex   | DONE       |
-| PolynomialBump   | TO BE DONE |
 | SupersonicVortex | DONE       |
+| InviscidChannel  | DONE       |
 
 #### Explicit
 | Function        |             |                         |
@@ -62,7 +60,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 |                 | Weak Form   | DONE                    |
 |                 | Strong Form | UNDER CONSIDERATION     |
 |                 | Vectorized  | DONE                    |
-| facet info      |             | DONE FOR THE TIME BEING |
+| face info       |             | DONE FOR THE TIME BEING |
 |                 | Weak Form   | DONE                    |
 |                 | Strong Form | UNDER CONSIDERATION     |
 |                 | Vectorized  | UNDER CONSIDERATION     |
@@ -77,7 +75,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 |                 | Weak Form   | DONE                    |
 |                 | Strong Form | UNDER CONSIDERATION     |
 |                 | Vectorized  | UNDER CONSIDERATION     |
-| facet info      |             | DONE FOR THE TIME BEING |
+| face info       |             | DONE FOR THE TIME BEING |
 |                 | Weak Form   | DONE                    |
 |                 | Strong Form | UNDER CONSIDERATION     |
 |                 | Vectorized  | UNDER CONSIDERATION     |
@@ -97,21 +95,23 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 |           | Roe-Pike         | DONE                    |
 
 #### Boundary
-| Function  |      |
-|-----------|------|
-| Dirichlet | DONE |
-| Neumann   | DONE |
-| Riemann   | DONE |
-| SlipWall  | DONE |
+| Function     |      |
+|--------------|------|
+| Dirichlet    | DONE |
+| Neumann      | DONE |
+| Riemann      | DONE |
+| SlipWall     | DONE |
+| BackPressure | DONE |
 
 #### Jacobians
-| Function            |      |
-|---------------------|------|
-| flux inviscid       | DONE |
-| flux Lax-Friedrichs | DONE |
-| flux Roe-Pike       | DONE |
-| boundary Riemann    | DONE |
-| boundary SlipWall   | DONE |
+| Function              |      |
+|-----------------------|------|
+| flux inviscid         | DONE |
+| flux Lax-Friedrichs   | DONE |
+| flux Roe-Pike         | DONE |
+| boundary Riemann      | DONE |
+| boundary SlipWall     | DONE |
+| boundary BackPressure | DONE |
 
 
 ### Postprocessing : ACTIVE (As cases are added)
@@ -120,7 +120,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 ### License
 The MIT License (MIT)
 
-Copyright (c) 2016 Philip Zwanenburg
+Copyright (c) 2017 Philip Zwanenburg
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation the

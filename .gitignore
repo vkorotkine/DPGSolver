@@ -12,6 +12,8 @@ src/support_functions/*.out
 src/support_functions/*.txt
 *~
 *.swp
+*.msh
+*.DS_Store
 
 meshes/Poisson/*
 meshes/PeriodicVortex/*
@@ -34,3 +36,4 @@ cases/paraview/*.pvtp
 cases/results/*
 test/*.o
 test/*.exe
+python/*.txt

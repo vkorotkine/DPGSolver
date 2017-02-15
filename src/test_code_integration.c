@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "test_code_integration.h"
 
@@ -12,6 +12,7 @@
 #include "Macros.h"
 #include "Test.h"
 #include "S_DB.h"
+#include "S_ELEMENT.h"
 #include "S_VOLUME.h"
 
 #include "initialization.h"
@@ -22,6 +23,8 @@
 #include "setup_geometry.h"
 #include "initialize_test_case.h"
 #include "adaptation.h"
+#include "setup_Curved.h"
+#include "element_functions.h"
 #include "memory_free.h"
 #include "array_norm.h"
 #include "array_free.h"
@@ -52,15 +55,38 @@ static void update_MeshFile(void)
 
 	strcpy(DB.MeshFile,"");
 	strcat(DB.MeshFile,DB.MeshPath);
-	strcat(DB.MeshFile,DB.TestCase);
+	strcat(DB.MeshFile,DB.Geometry);
 	strcat(DB.MeshFile,"/");
-	strcat(DB.MeshFile,DB.TestCase);
+	strcat(DB.MeshFile,DB.Geometry);
 	strcat(DB.MeshFile,strcat(d,"D_"));
 	strcat(DB.MeshFile,DB.MeshType);
 	strcat(DB.MeshFile,strcat(ML,"x.msh"));
 
 	free(d);
 	free(ML);
+}
+
+static void update_TestCase(void)
+{
+	if (strstr(DB.TestCase,"Poisson_Ringleb")               ||
+	    strstr(DB.TestCase,"Poisson_dm1-Spherical_Section") ||
+	    strstr(DB.TestCase,"Poisson_Ellipsoidal_Section")   ||
+	    strstr(DB.TestCase,"Poisson_HoldenRamp")            ||
+	    strstr(DB.TestCase,"Poisson_GaussianBump")) {
+		strcpy(DB.TestCase,"Poisson");
+	} else if (strstr(DB.TestCase,"Euler")) {
+		strcpy(DB.TestCase,"InviscidChannel");
+	} else if (strstr(DB.TestCase,"L2_proj") ||
+	           strstr(DB.TestCase,"update_h")) {
+		strcpy(DB.TestCase,"PeriodicVortex_Test");
+		strcpy(DB.Geometry,"PeriodicVortex"); // ToBeModified: Rename this.
+	} else if (strstr(DB.TestCase,"linearization")) {
+		strcpy(DB.TestCase,"SupersonicVortex_Test");
+		strcpy(DB.Geometry,"Annular_Section");
+	} else {
+		printf("%s\n",DB.TestCase);
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
 }
 
 void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigned int update_argv)
@@ -80,11 +106,11 @@ void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigne
 
 	// Initialization
 	initialization(nargc,argv);
+	update_TestCase();
 	if (update_argv) {
-		strcpy(DB.TestCase,TestDB.TestCase);
 		DB.PGlobal = TestDB.PGlobal;
 		if (update_argv == 1)
-			DB.ML      = TestDB.ML;
+			DB.ML = TestDB.ML;
 		update_MeshFile();
 	}
 
@@ -92,7 +118,10 @@ void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigne
 	if (update_argv)
 		setup_parameters_L2proj();
 
+	initialize_test_case_parameters();
 	setup_mesh();
+	if (strstr(DB.MeshType,"Curved"))
+		strcat(DB.Geometry,"Curved");
 	setup_operators();
 	setup_structures();
 	setup_geometry();
@@ -109,11 +138,60 @@ void code_cleanup(void)
 	memory_free();
 }
 
+void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, const unsigned int update_argv,
+                             const unsigned int phase)
+{
+	int  MPIrank, MPIsize;
+
+	if (phase == 1) {
+		// Start MPI and PETSC
+		PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+		MPI_Comm_size(MPI_COMM_WORLD,&MPIsize);
+		MPI_Comm_rank(MPI_COMM_WORLD,&MPIrank);
+
+		// Test memory leaks only from Petsc and MPI using valgrind
+		//PetscFinalize(), exit(1);
+
+		DB.MPIsize = MPIsize;
+		DB.MPIrank = MPIrank;
+
+		// Initialization
+		initialization(nargc,argv);
+		update_TestCase();
+		if (update_argv) {
+			DB.PGlobal = TestDB.PGlobal;
+			if (update_argv == 1)
+				DB.ML      = TestDB.ML;
+			update_MeshFile();
+		}
+
+		initialize_test_case_parameters();
+		setup_parameters();
+		if (update_argv)
+			setup_parameters_L2proj();
+	} else if (phase == 2) {
+		setup_mesh();
+		if (strstr(DB.MeshType,"Curved"))
+			strcat(DB.Geometry,"Curved");
+		setup_operators();
+		setup_structures();
+		setup_geometry();
+
+		initialize_test_case(Nref);
+
+		if (update_argv == 2)
+			mesh_to_level(TestDB.ML);
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+}
+
+
 void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax, const unsigned int PMin,
                               const unsigned int PMax, unsigned int *pass)
 {
 	// Initialize DB Parameters
-	char         *TestCase = TestDB.TestCase,
+	char         *TestCase = DB.TestCase,
 	             *MeshType = DB.MeshType;
 	unsigned int d         = DB.d;
 
@@ -132,6 +210,8 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 		NVars = DMAX+1;
 	} else if (strstr(TestCase,"SupersonicVortex")) {
 		NVars = DMAX+2+1;
+	} else if (strstr(TestCase,"InviscidChannel")) {
+		NVars = 1;
 	} else {
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
 	}
@@ -150,7 +230,8 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 				VarsToCheck[i]    = 0;
 			}
 		}
-	} else if (strstr(TestCase,"SupersonicVortex")) {
+	} else if (strstr(TestCase,"SupersonicVortex") ||
+	           strstr(TestCase,"InviscidChannel")) {
 		for (i = 0; i < NVars; i++) {
 			OrderIncrement[i] = 1;
 			if (i <= d || i > DMAX) {
@@ -244,15 +325,35 @@ printf("Re-enable printing here.\n");
 	} else {
 		TestDB.Npass++;
 	}
-printf("ViscousFluxType: %d\n",DB.ViscousFluxType);
+printf("ViscousFlux, Blending, Parametrization: %d, %d, %d\n",DB.ViscousFluxType,DB.Blending,DB.Parametrization);
 printf("h:\n");
 array_print_d(NML,NP,h,'R');
 printf("L2Errors: \n");
 for (i = 0; i < NVars; i++)
 array_print_d(NML,NP,L2Errors[i],'R');
-printf("Conv Orders: \n");
+printf("Conv Orders (h): \n");
 for (i = 0; i < NVars; i++)
 array_print_d(NML,NP,ConvOrders[i],'R');
+
+unsigned int u1 = 1;
+double **L2ErrorsP;
+
+L2ErrorsP = malloc(NVars * sizeof *L2ErrorsP); // free
+
+//printf("Conv (p): \n");
+for (i = 0; i < NVars; i++) {
+	L2ErrorsP[i] = calloc(NML*NP , sizeof *L2ErrorsP[i]);
+	for (ML = MLMin; ML <= MLMax; ML++) {
+	for (P = max(PMin,u1); P <= PMax; P++) {
+		Indh = (ML-MLMin)*NP+(P-PMin);
+		if (L2Errors[i][Indh] > EPS)
+			L2ErrorsP[i][Indh] = log(L2Errors[i][Indh])/((double) P);
+	}}
+//	array_print_d(NML,NP,L2ErrorsP[i],'R');
+}
+array_free2_d(NVars,L2ErrorsP);
+
+
 
 	for (i = 0; i < NVars; i++) {
 		free(L2Errors[i]);
@@ -263,36 +364,6 @@ array_print_d(NML,NP,ConvOrders[i],'R');
 	free(h);
 }
 
-static void compute_plane(const double *XYZ1, const double *XYZ2, const double *XYZ3, double *n, double *d_p)
-{
-	/*
-	 *	Purpose:
-	 *		Compute normal vector to a plane defined by three points.
-	 *
-	 *	Comments:
-	 *		The plane is defined by: a*x+b*y+c*z = d, where the n = (a,b,c).
-	 */
-
-	unsigned int i, d;
-	double       Vec1[3], Vec2[3];
-
-	d = 3;
-
-	for (i = 0; i < d; i++) {
-		Vec1[i] = XYZ1[i]-XYZ3[i];
-		Vec2[i] = XYZ2[i]-XYZ3[i];
-	}
-
-	// compute cross product
-	n[0] =  (Vec1[1]*Vec2[2]-Vec1[2]*Vec2[1]);
-	n[1] = -(Vec1[0]*Vec2[2]-Vec1[2]*Vec2[0]);
-	n[2] =  (Vec1[0]*Vec2[1]-Vec1[1]*Vec2[0]);
-
-	*d_p = 0.0;
-	for (i = 0; i < d; i++)
-		*d_p += n[i]*XYZ3[i];
-}
-
 void evaluate_mesh_regularity(double *mesh_quality)
 {
 	/*
@@ -300,12 +371,21 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	 *		Compute the ratio of enclosing to enclosed spheres by each TET ELEMENT and return the maximum.
 	 *
 	 *	Comments:
-	 *		The mesh regularity check is only necessary for TET refinement as all other ELEMENTs refine into pieces
-	 *		having the same shape but with all edge lengths scaled by 1/2 when isotropic h-refinement is performed.
+	 *		For straight meshes, the mesh regularity check is only necessary for TET refinement as all other ELEMENTs
+	 *		refine into pieces having the same shape but with all edge lengths scaled by 1/2 when isotropic h-refinement
+	 *		is performed. However, on curved meshes, the movement of the vertices to the exact boundary can cause other
+	 *		ELEMENT types to become less regular with mesh refinement.
+	 *
+	 *		NOTE: IT IS ONLY BE NECESSARY TO COMPUTE THE RATIO OF THE CIRCUMSPHERE TO THE IN-SPHERE FOR THE ESTIMATE.
+	 *		THIS IS CONCLUDED BASED ON DISCUSSIONS IN CIARLET(1972)-General_Lagrange_and_Hermite... eq. (2.11) and
+	 *		(2.12).
+	 *		      -> DELETE CHECKS FOR OTHER TYPES (ToBeModified)
+	 *
+	 *		TET algorithm:
 	 *
 	 *		While testing this function, several meshes generated by gmsh returned elements having extremely small
 	 *		internal radius (nearly coplanar TET vertices). These elements, being of the worst quality, resulted in a
-	 *		growing ratio of the internal to external radii with with the mesh refinement despite obtaining optimal
+	 *		growing ratio of the internal to external radii with the mesh refinement despite obtaining optimal
 	 *		convergence orders (L2 norm). As the L2 norm is global, it was thus decided to take the average of ratios
 	 *		from each element. Correct results were then obtained (Suboptimal using refine by split, optimal using
 	 *		non-nested unstructured meshes).
@@ -315,14 +395,18 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	 *		follows:
 	 *
 	 *		Enclosed:
-	 *			The enclosed sphere must have a point on each FACET with a vector of length r in the direction normal
-	 *			to the surface which starts at this point and ends at the sphere center. Defining this point based on
-	 *			the two independent barycentric coordinates on the FACET and noting the four equations arising from the
-	 *			four FACETs, a system of 12 equations (4 equations * 3 coordinates) with 12 unknowns (4 * 2 barycentric
-	 *			coordinates + 3 centroid coordinates + 1 radius) can be solved for the radius. Surface normal vectors
-	 *			are computed based on the equation of the plane describing each FACET.
+	 *			Define the planes of each face by a*x+b*y+c*z = d:
+	 *				1) Compute [a b c] as the normal vector to the plane and find d by substituting one coordinate.
+	 *				2) Normalize [a b c] (and d) and invert the normal if not pointing outwards:
+	 *					Given distance from point to plane = |a*x+b*y+c*z-d|/norm([a b c],2), ensure that when
+	 *					substituting the coordinate of the vertex not in the plane that the result is negative.
+	 *				3) Using the distance formula again:
+	 *					r = n1*x_c+n2*y_c+n3*z_c-d (4 eqns and 4 unknowns)
+	 *					Solve: [ones(d+1,1) nr]*[r x_c y_c z_c]' = d
 	 *
 	 *		Enclosing:
+	 *			It may be sufficient for the mesh quality measure to simply use the circumsphere radius. (ToBeModified)
+	 *
 	 *			There are three possibilities to consider for this case.
 	 *
 	 *			1) Two   corners of the TET touch the sphere.
@@ -342,277 +426,459 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	 *				As soon as a condition is met, the appropriate sphere has been found, if neither of the above
 	 *				two conditions are met, the circumsphere provides the correct radius.
 	 *
+	 *		2D algorithm (TRI/QUADs):
+	 *
+	 *			Similar to TET but using enclosing and enclosed circles.
+	 *
 	 */
 
-	unsigned int i, j, k, dim, f, d, e, c, Nf, Ne, Nc, iMax, jMax, *IndsE, *IndsF, Found, TETcount, NormType;
+	// Initialize DB Parameters
+	char         *MeshType = DB.MeshType;
+	unsigned int d         = DB.d;
+
+	// Standard datatypes
+	unsigned int i, j, k, l, f, e, c, Nf, Ne, Nve, iMax, jMax, kMax, lMax, Ecount,
+	             *IndsE, *IndsF, Found, TETcount, NormType, *VeEcon, *VeFcon;
 	int          **piv;
-	double       r_ratio, r, rIn, rOut,
-	             *XYZ, *XYZdiff, *ones, *n, *nNorm, **LHS, **RHS, *lenE, *XYZc, *abcF, *rF, *XYZcT, *d_p;
+	double       r_ratio, r, rIn, rOut, rTmp, d1, d2,
+	             *XYZ, *XYZdiff, *n, *nNorm, **LHS, **RHS, *lenE, *XYZc, *abcF, *rF, *XYZcE, *d_p, *XYZ_vV;
 
-	struct S_VOLUME *VOLUME;
-
-	d  = 3;
-	Nf = 4;
-	Ne = 6;
-	Nc = 4;
-
-	unsigned int IndF[3*4]  = { 1, 2, 3, 0, 2, 3, 0, 1, 3, 0, 1, 2 },
-	             IndE[2*6]  = { 0, 1, 0, 2, 0, 3, 1, 2, 1, 3, 2, 3 };
+	struct S_ELEMENT *ELEMENT;
+	struct S_VOLUME  *VOLUME;
 
 	NormType = 0; // Options: 0 (Inf), 2 (L2)
 
-	XYZ     = malloc(Nc*d * sizeof *XYZ);     // free
-	XYZdiff = malloc(d    * sizeof *XYZdiff); // free
+	XYZ     = malloc(NVEMAX*d * sizeof *XYZ);     // free
+	XYZdiff = malloc(d        * sizeof *XYZdiff); // free
 
-	ones = malloc(d * sizeof *ones); // free
-	for (dim = 0; dim < d; dim++)
-		ones[dim] = 1.0;
-
-	n     = malloc(Nf*d * sizeof *n);     // free
-	nNorm = malloc(Nf   * sizeof *nNorm); // free
+	n     = malloc(NFMAX*d * sizeof *n);     // free
+	nNorm = malloc(NFMAX   * sizeof *nNorm); // free
 
 	LHS = malloc(3 * sizeof *LHS); // free
 	RHS = malloc(3 * sizeof *RHS); // free
 	piv = malloc(3 * sizeof *piv); // free
 
-	LHS[0] = malloc(d*d         * sizeof *LHS[0]); // free
-	LHS[1] = malloc(Nf*d*Nf*d   * sizeof *LHS[1]); // free
-	LHS[2] = malloc((d+1)*(d+1) * sizeof *LHS[2]); // free
-	RHS[0] = malloc(d*1         * sizeof *RHS[0]); // free
-	RHS[1] = malloc(Nf*d*1      * sizeof *RHS[1]); // free
-	RHS[2] = malloc((d+1)*1     * sizeof *RHS[2]); // free
-	piv[0] = malloc(d*1         * sizeof *piv[0]); // free
-	piv[1] = malloc(Nf*d*1      * sizeof *piv[1]); // free
-	piv[2] = malloc((d+1)*1     * sizeof *piv[2]); // free
+	LHS[0] = malloc(DMAX*DMAX             * sizeof *LHS[0]); // free
+	LHS[1] = malloc(NFMAX*DMAX*NFMAX*DMAX * sizeof *LHS[1]); // free
+	LHS[2] = malloc((DMAX+1)*(DMAX+1)     * sizeof *LHS[2]); // free
+	RHS[0] = malloc(DMAX*1                * sizeof *RHS[0]); // free
+	RHS[1] = malloc(NFMAX*DMAX*1          * sizeof *RHS[1]); // free
+	RHS[2] = malloc((DMAX+1)*1            * sizeof *RHS[2]); // free
+	piv[0] = malloc(DMAX*1                * sizeof *piv[0]); // free
+	piv[1] = malloc(NFMAX*DMAX*1          * sizeof *piv[1]); // free
+	piv[2] = malloc((DMAX+1)*1            * sizeof *piv[2]); // free
 
-	IndsE = malloc(Ne  * sizeof *IndsE); // free
-	IndsF = malloc(Nf  * sizeof *IndsF); // free
-	lenE  = malloc(Ne  * sizeof *lenE);  // free
-	XYZc  = malloc(d   * sizeof *XYZc);  // free
-	XYZcT = malloc(d   * sizeof *XYZcT); // free
-	d_p   = malloc(Nf  * sizeof *d_p);   // free
+	IndsE = calloc(28     , sizeof *IndsE); // free (HEX determines size = d*(7+6+5+...) = d*28
+	IndsF = malloc(NFMAX  * sizeof *IndsF); // free
+	lenE  = calloc(28     , sizeof *lenE);  // free
+	XYZc  = malloc(DMAX   * sizeof *XYZc);  // free
+	XYZcE = malloc(DMAX   * sizeof *XYZcE); // free
+	d_p   = malloc(NFMAX  * sizeof *d_p);   // free
 
-	abcF = malloc(Nf*d * sizeof *abcF); // free
-	rF   = malloc(Nf*1 * sizeof *rF);   // free
+	abcF = malloc(NFMAX*DMAX * sizeof *abcF); // free
+	rF   = malloc(NFMAX*1    * sizeof *rF);   // free
 
-	r_ratio  = 0.0;
-	TETcount = 0;
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		if (VOLUME->type != TET)
-			continue;
+	r_ratio  = 1.0*d; // Minimum value for regular TRI/TET.
+	if (d == 3) {
+		// Currently only being used for TETs.
+		TETcount = 0;
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			if (VOLUME->type != TET)
+				continue;
 
-		// Obtain vertex coordinates (Row-major)
-		for (i = 0; i < Nc; i++) {
-		for (j = 0; j < d; j++) {
-			XYZ[i*d+j] = VOLUME->XYZ_vC[j*Nc+i];
-		}}
+			ELEMENT = get_ELEMENT_type(VOLUME->type);
 
-		// XYZ coordinates of TET center
-		for (j = 0; j < d; j++) {
-			XYZcT[j] = 0.0;
-			for (i = 0; i < Nc; i++)
-				XYZcT[j] += XYZ[i*d+j];
-			XYZcT[j] /= 1.0*Nc;
-		}
+			Nf  = ELEMENT->Nf;
+			Ne  = ELEMENT->Ne;
+			Nve = ELEMENT->Nve;
 
-		// Evaluate radius of enclosed sphere
+			VeEcon = ELEMENT->VeEcon;
+			VeFcon = ELEMENT->VeFcon;
 
-		// 1) Normal vector computation
-		for (f = 0; f < Nf; f++) {
-			// Cross-product
-			compute_plane(&XYZ[IndF[f*d+0]*d],&XYZ[IndF[f*d+1]*d],&XYZ[IndF[f*d+2]*d],RHS[0],&d_p[f]);
+			// Obtain vertex coordinates (Row-major)
+			if (strstr(MeshType,"ToBeCurved"))
+				XYZ_vV = VOLUME->XYZ_vVc;
+			else
+				XYZ_vV = VOLUME->XYZ_vV;
 
-			nNorm[f] = array_norm_d(d,RHS[0],"L2");
-			for (i = 0; i < d; i++)
-				n[f*d+i] = RHS[0][i]/nNorm[f];
-			d_p[f] /= nNorm[f];
+			for (i = 0; i < Nve; i++) {
+			for (j = 0; j < d; j++) {
+				XYZ[i*d+j] = XYZ_vV[j*Nve+i];
+			}}
 
-			// Ensure that normal points outwards
-			for (i = 0; i < d; i++) {
-				XYZc[i] = 0.0;
-				for (j = 0; j < d; j++)
-					XYZc[i] += XYZ[IndF[f*d+j]*d+i];
-				XYZc[i] /= 3.0;
+			// XYZ coordinates of TET center
+			for (j = 0; j < d; j++) {
+				XYZcE[j] = 0.0;
+				for (i = 0; i < Nve; i++)
+					XYZcE[j] += XYZ[i*d+j];
+				XYZcE[j] /= 1.0*Nve;
 			}
 
-			for (i = 0; i < d; i++)
-				XYZdiff[i] = XYZc[i]-XYZcT[i];
-			r = array_norm_d(d,XYZdiff,"L2");
+			// Evaluate radius of enclosed sphere
 
-			for (i = 0; i < d; i++)
-				XYZc[i] += n[f*d+i]*1e2*EPS;
+			// 1) Normal vector (normalized) computation
+			for (f = 0; f < Nf; f++) {
+				// Cross-product
+				compute_plane(&XYZ[VeFcon[f*NFVEMAX+0]*d],&XYZ[VeFcon[f*NFVEMAX+1]*d],&XYZ[VeFcon[f*NFVEMAX+2]*d],
+				              RHS[0],&d_p[f]);
 
-			for (i = 0; i < d; i++)
-				XYZdiff[i] = XYZc[i]-XYZcT[i];
-
-			if (array_norm_d(d,XYZdiff,"L2")-r < 0.0) {
+				// Normalize
+				nNorm[f] = array_norm_d(d,RHS[0],"L2");
 				for (i = 0; i < d; i++)
-					n[f*d+i] *= -1.0;
-				d_p[f] *= -1.0;
-			}
-		}
+					n[f*d+i] = RHS[0][i]/nNorm[f];
+				d_p[f] /= nNorm[f];
 
-		// 2) Assemble LHS, RHS and solve system to obtain rIn
-		for (i = 0, iMax = Nf*d*Nf*d; i < iMax; i++)
-			LHS[1][i] = 0.0;
+				// Ensure that normal points outwards
+				r = -d_p[f];
+				for (i = 0; i < d; i++)
+					r += n[f*d+i]*XYZ[f*d+i];
 
-		jMax = Nf*d;
-		for (f = 0; f < Nf; f++) {
-			for (i = f*d; i < (f+1)*d; i++) {
-				for (j = f*(d-1); j < (f+1)*(d-1); j++) {
-					LHS[1][i*jMax+j] = XYZ[IndF[f*d+(j%(d-1))]*d+(i%d)]-XYZ[IndF[(f+1)*d-1]*d+(i%d)];
-				}
-				LHS[1][i*jMax+8]       = -n[f*d+(i%d)];
-				LHS[1][i*jMax+9+(i%d)] = -1.0;
-
-				if (f < Nf-1)
-					RHS[1][i] = -XYZ[3*d+(i%d)];
-				else
-					RHS[1][i] = -XYZ[2*d+(i%d)];
-			}
-		}
-
-		if (LAPACKE_dgesv(LAPACK_ROW_MAJOR,Nf*d,1,LHS[1],Nf*d,piv[1],RHS[1],1) > 0)
-			printf("Error: mkl LAPACKE_dgesv failed.\n"), EXIT_MSG;
-
-		rIn = RHS[1][8];
-
-
-		// Evaluate radius of enclosing sphere
-
-		// 1) Compute length of all edges
-		for (e = 0; e < Ne; e++) {
-			for (i = 0; i < d; i++)
-				XYZdiff[i] = XYZ[IndE[e*2+0]*d+i]-XYZ[IndE[e*2+1]*d+i];
-			lenE[e]  = array_norm_d(d,XYZdiff,"L2");
-			IndsE[e] = e;
-		}
-		PetscSortRealWithPermutation(Ne,lenE,(int *) IndsE);
-
-		// Sphere radius for case 1.
-		rOut = 0.5*lenE[IndsE[Ne-1]];
-
-		Found = 0;
-		for (k = 0; k < d && !Found; k++) {
-			if (k == 0) {
-				// Case 1: 2 Corners touch the sphere
-
-				// Compute sphere center
-				for (j = 0; j < d; j++)
-					XYZc[j] = 0.5*(XYZ[IndE[IndsE[Ne-1]*2+0]*d+j]+XYZ[IndE[IndsE[Ne-1]*2+1]*d+j]);
-
-				// Check if all corners are enclosed by the sphere
-				Found = 1;
-				for (c = 0; c < Nc; c++) {
+				if (r > 0.0) {
 					for (i = 0; i < d; i++)
-						XYZdiff[i] = XYZ[c*d+i]-XYZc[i];
-					r = array_norm_d(d,XYZdiff,"L2");
-					if (r > rOut+EPS)
-						Found = 0;
+						n[f*d+i] *= -1.0;
+					d_p[f] *= -1.0;
 				}
-//				printf("rOut (%d) % .3e\n",k,rOut);
-				if (Found)
-					break;
-			} else if (k == 1) {
-				// Case 2: 3 Corners touch the sphere
+			}
 
-				// Find the spheres generated by each face and check in order of ascending radius
-				jMax = d+1;
-				for (f = 0; f < Nf; f++) {
-					// Equation of the plane for each face already determined above (coefs == n*nNorm, d == d_p)
+			// 2) Assemble LHS, RHS and solve system to obtain rIn
+			for (i = 0, iMax = d+1; i < iMax; i++) {
+				for (j = 0, jMax = d+1; j < jMax; j++) {
+					if (j == 0)
+						LHS[2][i*jMax+j] = 1.0;
+					else
+						LHS[2][i*jMax+j] = n[i*d+(j-1)];
+				}
+				RHS[2][i] = d_p[i];
+			}
 
-					// Solve for sphere center and radius
-					for (i = 0; i < d; i++) {
-						for (j = 0; j < d; j++)
-							LHS[2][i*jMax+j] = 2.0*XYZ[IndF[f*d+i]*d+j];
-						LHS[2][i*jMax+d] = 1.0;
-						RHS[2][i] = pow(array_norm_d(d,&XYZ[IndF[f*d+i]*d],"L2"),2.0);
-					}
-					i = d;
+			if (LAPACKE_dgesv(LAPACK_ROW_MAJOR,d+1,1,LHS[2],d+1,piv[2],RHS[2],1) > 0)
+				printf("Error: mkl LAPACKE_dgesv failed.\n"), EXIT_MSG;
+
+			rIn = RHS[2][0];
+
+
+			// Evaluate radius of enclosing sphere
+
+			// 1) Compute length of all edges
+			for (e = 0; e < Ne; e++) {
+				for (i = 0; i < d; i++)
+					XYZdiff[i] = XYZ[VeEcon[e*NEVEMAX+0]*d+i]-XYZ[VeEcon[e*NEVEMAX+1]*d+i];
+				lenE[e]  = array_norm_d(d,XYZdiff,"L2");
+				IndsE[e] = e;
+			}
+			PetscSortRealWithPermutation(Ne,lenE,(int *) IndsE);
+
+			// Sphere radius for case 1.
+			rOut = 0.5*lenE[IndsE[Ne-1]];
+
+			Found = 0;
+			for (k = 0; k < d && !Found; k++) {
+				if (k == 0) {
+					// Case 1: 2 Corners touch the sphere
+
+					// Compute sphere center
 					for (j = 0; j < d; j++)
-						LHS[2][i*jMax+j] = n[f*d+j];
-					LHS[2][i*jMax+d] = 0.0;
-					RHS[2][i] = d_p[f];
+						XYZc[j] = 0.5*(XYZ[VeEcon[IndsE[Ne-1]*NEVEMAX+0]*d+j]+XYZ[VeEcon[IndsE[Ne-1]*NEVEMAX+1]*d+j]);
+
+					// Check if all corners are enclosed by the sphere
+					Found = 1;
+					for (c = 0; c < Nve; c++) {
+						for (i = 0; i < d; i++)
+							XYZdiff[i] = XYZ[c*d+i]-XYZc[i];
+						r = array_norm_d(d,XYZdiff,"L2");
+						if (r > rOut+EPS)
+							Found = 0;
+					}
+//					printf("rOut (%d) % .3e\n",k,rOut);
+					if (Found)
+						break;
+				} else if (k == 1) {
+					// Case 2: 3 Corners touch the sphere
+
+					// Find the spheres generated by each face and check in order of ascending radius
+					jMax = d+1;
+					for (f = 0; f < Nf; f++) {
+						// Equation of the plane for each face already determined above (coefs == n*nNorm, d == d_p)
+
+						// Solve for sphere center and radius
+						for (i = 0; i < d; i++) {
+							for (j = 0; j < d; j++)
+								LHS[2][i*jMax+j] = 2.0*XYZ[VeFcon[f*NFVEMAX+i]*d+j];
+							LHS[2][i*jMax+d] = 1.0;
+							RHS[2][i] = pow(array_norm_d(d,&XYZ[VeFcon[f*NFVEMAX+i]*d],"L2"),2.0);
+						}
+						i = d;
+						for (j = 0; j < d; j++)
+							LHS[2][i*jMax+j] = n[f*d+j];
+						LHS[2][i*jMax+d] = 0.0;
+						RHS[2][i] = d_p[f];
+
+						if (LAPACKE_dgesv(LAPACK_ROW_MAJOR,d+1,1,LHS[2],d+1,piv[2],RHS[2],1) > 0)
+							printf("Error: mkl LAPACKE_dgesv failed.\n"), EXIT_MSG;
+
+						for (i = 0; i < d; i++)
+							abcF[f*d+i] = RHS[2][i];
+						rF[f] = sqrt(RHS[2][3]+pow(array_norm_d(d,RHS[2],"L2"),2.0));
+
+						IndsF[f] = f;
+					}
+					PetscSortRealWithPermutation(Nf,rF,(int *) IndsF);
+
+					for (f = 0; f < Nf; f++) {
+						for (i = 0; i < d; i++)
+							XYZc[i] = abcF[IndsF[f]*d+i];
+						rOut = rF[IndsF[f]];
+
+						// Check if all corners are enclosed by the sphere
+						Found = 1;
+						for (c = 0; c < Nve; c++) {
+							for (i = 0; i < d; i++)
+								XYZdiff[i] = XYZ[c*d+i]-XYZc[i];
+							r = array_norm_d(d,XYZdiff,"L2");
+							if (r-rOut > 1e2*EPS)
+								Found = 0;
+						}
+//						printf("rOut (%d, %d) % .3e\n",k,f,rOut);
+						if (Found)
+							break;
+					}
+				} else if (k == 2) {
+					// Case 3: 4 Corners touch the sphere
+
+					// Compute sphere radius
+					for (i = 0; i < d+1; i++) {
+						for (j = 0; j < d; j++)
+							LHS[2][i*jMax+j] = 2.0*XYZ[i*d+j];
+						LHS[2][i*jMax+d] = 1.0;
+						RHS[2][i] = pow(array_norm_d(d,&XYZ[i*d],"L2"),2.0);
+					}
 
 					if (LAPACKE_dgesv(LAPACK_ROW_MAJOR,d+1,1,LHS[2],d+1,piv[2],RHS[2],1) > 0)
 						printf("Error: mkl LAPACKE_dgesv failed.\n"), EXIT_MSG;
 
-					for (i = 0; i < d; i++)
-						abcF[f*d+i] = RHS[2][i];
-					rF[f] = sqrt(RHS[2][3]+pow(array_norm_d(d,RHS[2],"L2"),2.0));
-
-					IndsF[f] = f;
+					rOut = sqrt(RHS[2][3]+pow(array_norm_d(d,RHS[2],"L2"),2.0));
+//					printf("rOut (%d) % .3e\n",k,rOut);
 				}
-				PetscSortRealWithPermutation(Nf,rF,(int *) IndsF);
+			}
 
-				for (f = 0; f < Nf; f++) {
+			if (NormType == 0) {
+				if (rOut/rIn > r_ratio) {
+					r_ratio = rOut/rIn;
+				}
+			} else if (NormType == 2) {
+				r_ratio += rOut/rIn;
+			}
+			TETcount += 1;
+
+//printf("%d % .3e % .3e % .3e % .3e % .3e\n",
+//       k,rOut/rIn,rOut,rIn,sqrt(0.375)*lenE[IndsE[Ne-1]],rOut-sqrt(0.375)*lenE[IndsE[Ne-1]]);
+
+			if (rOut - sqrt(0.375)*lenE[IndsE[Ne-1]] > 1e2*EPS)
+				printf("Error: rOut larger than upper bound on sphere radius.\n"), EXIT_MSG;
+		}
+		if (TETcount) {
+			if (NormType == 0)
+				*mesh_quality = r_ratio;
+			else if (NormType == 2)
+				*mesh_quality = r_ratio/TETcount;
+			else
+				printf("Error: Unsupported.\n"), EXIT_MSG;
+		} else {
+			printf("Update mesh regularity check for element types other than TET.\n");
+			*mesh_quality = 3.0; // ratio for regular TET
+		}
+	} else if (d == 2) {
+		unsigned int IndcF[4*3]   = { 0, 1, 2,  0, 1, 3,  0, 2, 3,  1, 2, 3 },   // (Ind)ices of (c)ircle (F)aces
+		             IndcVe2[6*2] = { 0, 1,  0, 2,  1, 2,  0, 3,  1, 3,  2, 3 }, // (Ind)ices of (c)ircle (Ve)rtices
+		             IndcVe3[4*3] = { 0, 1, 2,  0, 1, 3,  0, 2, 3,  1, 2, 3 };   // (Ind)ices of (c)ircle (Ve)rtices
+
+		Ecount = 0;
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+			Nf  = ELEMENT->Nf;
+			Ne  = ELEMENT->Ne;
+			Nve = ELEMENT->Nve;
+
+			VeEcon = ELEMENT->VeEcon;
+			VeFcon = ELEMENT->VeFcon;
+
+			// Obtain vertex coordinates (Row-major)
+			if (strstr(MeshType,"ToBeCurved"))
+				XYZ_vV = VOLUME->XYZ_vVc;
+			else
+				XYZ_vV = VOLUME->XYZ_vV;
+
+			for (i = 0; i < Nve; i++) {
+			for (j = 0; j < d; j++) {
+				XYZ[i*d+j] = XYZ_vV[i+Nve*j];
+			}}
+
+			// XYZ coordinates of ELEMENT center
+			for (j = 0; j < d; j++) {
+				XYZcE[j] = 0.0;
+				for (i = 0; i < Nve; i++)
+					XYZcE[j] += XYZ[i*d+j];
+				XYZcE[j] /= 1.0*Nve;
+			}
+
+			// Evaluate radius of enclosed circle
+
+			// 1) Normal vector (normalized) computation
+			for (f = 0; f < Nf; f++) {
+				n[f*d+0] =   XYZ[VeFcon[f*NFVEMAX+0]*d+1]-XYZ[VeFcon[f*NFVEMAX+1]*d+1];
+				n[f*d+1] = -(XYZ[VeFcon[f*NFVEMAX+0]*d+0]-XYZ[VeFcon[f*NFVEMAX+1]*d+0]);
+
+				nNorm[f] = array_norm_d(d,&n[f*d],"L2");
+
+				// Normalize
+				for (i = 0; i < d; i++)
+					n[f*d+i] /= nNorm[f];
+
+				// Ensure that normal points outwards
+				d1 = 0.0;
+				for (i = 0; i < d; i++)
+					d1 += pow(XYZ[VeFcon[f*NFVEMAX+0]*d+i]-n[f*d+i]*nNorm[f]-XYZcE[i],2.0);
+				d1 = sqrt(d1);
+
+				d2 = 0.0;
+				for (i = 0; i < d; i++)
+					d2 += pow(XYZ[VeFcon[f*NFVEMAX+0]*d+i]+n[f*d+i]*nNorm[f]-XYZcE[i],2.0);
+				d2 = sqrt(d2);
+
+				if (d1 > d2) {
 					for (i = 0; i < d; i++)
-						XYZc[i] = abcF[IndsF[f]*d+i];
-					rOut = rF[IndsF[f]];
+						n[f*d+i] *= -1.0;
+				}
 
-					// Check if all corners are enclosed by the sphere
-					Found = 1;
-					for (c = 0; c < Nc; c++) {
-						for (i = 0; i < d; i++)
-							XYZdiff[i] = XYZ[c*d+i]-XYZc[i];
-						r = array_norm_d(d,XYZdiff,"L2");
-						if (r-rOut > 1e2*EPS)
-							Found = 0;
+				// Compute d for the equation of the line: a*x+b*y = d
+				d_p[f] = 0.0;
+				for (i = 0; i < d; i++)
+					d_p[f] += n[f*d+i]*XYZ[VeFcon[f*NFVEMAX+0]*d+i];
+			}
+
+			// 2) Assemble LHS, RHS and solve system to obtain rIn
+			kMax = 0;
+			if (VOLUME->type == TRI)
+				kMax = 1;
+			else if (VOLUME->type == QUAD)
+				kMax = 4;
+
+			rIn = 0.0;
+			for (k = 0; k < kMax; k++) {
+				for (i = 0, iMax = d+1; i < iMax; i++) {
+					for (j = 0, jMax = d+1; j < jMax; j++) {
+						if (j == 0)
+							LHS[2][i*jMax+j] = 1.0;
+						else
+							LHS[2][i*jMax+j] = n[IndcF[k*(d+1)+i]*d+(j-1)];
 					}
-//					printf("rOut (%d, %d) % .3e\n",k,f,rOut);
-					if (Found)
-						break;
-				}
-			} else if (k == 2) {
-				// Case 3: 4 Corners touch the sphere
-
-				// Compute sphere radius
-				for (i = 0; i < d+1; i++) {
-					for (j = 0; j < d; j++)
-						LHS[2][i*jMax+j] = 2.0*XYZ[i*d+j];
-					LHS[2][i*jMax+d] = 1.0;
-					RHS[2][i] = pow(array_norm_d(d,&XYZ[i*d],"L2"),2.0);
+					RHS[2][i] = d_p[IndcF[k*(d+1)+i]];
 				}
 
 				if (LAPACKE_dgesv(LAPACK_ROW_MAJOR,d+1,1,LHS[2],d+1,piv[2],RHS[2],1) > 0)
 					printf("Error: mkl LAPACKE_dgesv failed.\n"), EXIT_MSG;
 
-				rOut = sqrt(RHS[2][3]+pow(array_norm_d(d,RHS[2],"L2"),2.0));
-//				printf("rOut (%d) % .3e\n",k,rOut);
+				if (k == 0 || (RHS[2][0] < rIn))
+					rIn = RHS[2][0];
 			}
-		}
 
-		if (NormType == 0) {
-			if (rOut/rIn > r_ratio) {
-				r_ratio = rOut/rIn;
+			// Evaluate radius of enclosing sphere
+
+			// 1) Compute length of all possible 2 vertex circles
+			kMax = 0;
+			if (VOLUME->type == TRI)
+				kMax = 3;
+			else if (VOLUME->type == QUAD)
+				kMax = 6;
+
+			for (k = 0; k < kMax; k++) {
+				for (i = 0; i < d; i++)
+					XYZdiff[i] = XYZ[IndcVe2[k*2+0]*d+i]-XYZ[IndcVe2[k*2+1]*d+i];
+				lenE[k]  = array_norm_d(d,XYZdiff,"L2");
+				IndsE[k] = k;
 			}
-		} else if (NormType == 2) {
-			r_ratio += rOut/rIn;
+			PetscSortRealWithPermutation(kMax,lenE,(int *) IndsE);
+
+			// Circle radius for case 1.
+			rOut = 0.5*lenE[IndsE[kMax-1]];
+
+			Found = 0;
+			for (k = 0; k < d && !Found; k++) {
+				if (k == 0) {
+					// Case 1: 2 Corners touch the circle
+
+					// Compute circle center
+					for (j = 0; j < d; j++)
+						XYZc[j] = 0.5*(XYZ[IndcVe2[IndsE[Ne-1]*2+0]*d+j]+XYZ[IndcVe2[IndsE[Ne-1]*2+1]*d+j]);
+
+					// Check if all corners are enclosed by the circle
+					Found = 1;
+					for (c = 0; c < Nve; c++) {
+						for (i = 0; i < d; i++)
+							XYZdiff[i] = XYZ[c*d+i]-XYZc[i];
+						r = array_norm_d(d,XYZdiff,"L2");
+						if (r > rOut+EPS) {
+							Found = 0;
+							break;
+						}
+					}
+//					printf("rOut (%d) % .3e\n",k,rOut);
+					if (Found)
+						break;
+				} else if (k == 1) {
+					// Case 2: 3 Corners touch the circle
+					lMax = 0;
+					if (VOLUME->type == TRI)
+						lMax = 1;
+					else if (VOLUME->type == QUAD)
+						lMax = 4;
+
+					rOut = 0.0;
+					for (l = 0; l < lMax; l++) {
+						// Compute circle radius
+						for (i = 0; i < d+1; i++) {
+							for (j = 0; j < d; j++)
+								LHS[2][i*jMax+j] = 2.0*XYZ[IndcVe3[l*3+i]*d+j];
+							LHS[2][i*jMax+d] = 1.0;
+							RHS[2][i] = pow(array_norm_d(d,&XYZ[IndcVe3[l*3+i]*d],"L2"),2.0);
+						}
+
+						if (LAPACKE_dgesv(LAPACK_ROW_MAJOR,d+1,1,LHS[2],d+1,piv[2],RHS[2],1) > 0)
+							printf("Error: mkl LAPACKE_dgesv failed.\n"), EXIT_MSG;
+
+						rTmp = sqrt(RHS[2][d]+pow(array_norm_d(d,RHS[2],"L2"),2.0));
+						if (rTmp > rOut)
+							rOut = rTmp;
+					}
+//					printf("rOut (%d) % .3e\n",k,rOut);
+				}
+			}
+
+			if (rOut/rIn < 1.0)
+				printf("Error: Invalid value (% .3e, % .3e % .3e).\n",rIn,rOut,rOut/rIn), EXIT_MSG;
+
+			if (NormType == 0) {
+				if (rOut/rIn > r_ratio) {
+					r_ratio = rOut/rIn;
+				}
+			} else if (NormType == 2) {
+				r_ratio += rOut/rIn;
+			}
+			Ecount++;
 		}
-		TETcount += 1;
-
-//printf("%d % .3e % .3e % .3e % .3e % .3e\n",
-//       k,rOut/rIn,rOut,rIn,sqrt(0.375)*lenE[IndsE[Ne-1]],rOut-sqrt(0.375)*lenE[IndsE[Ne-1]]);
-
-		if (rOut - sqrt(0.375)*lenE[IndsE[Ne-1]] > 1e2*EPS)
-			printf("Error: rOut larger than upper bound on sphere radius.\n"), EXIT_MSG;
-	}
-	if (TETcount) {
 		if (NormType == 0)
 			*mesh_quality = r_ratio;
 		else if (NormType == 2)
-			*mesh_quality = r_ratio/TETcount;
+			*mesh_quality = r_ratio/Ecount;
 		else
 			printf("Error: Unsupported.\n"), EXIT_MSG;
-	} else {
-		*mesh_quality = 3.0; // ratio for regular TET
 	}
 
 //	printf("%d % .3e\n",DB.ML,*mesh_quality);
 
 	free(XYZ);
 	free(XYZdiff);
-	free(ones);
 	free(n);
 	free(nNorm);
 
@@ -621,9 +887,10 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	array_free2_i(3,piv);
 
 	free(IndsE);
+	free(IndsF);
 	free(lenE);
 	free(XYZc);
-	free(XYZcT);
+	free(XYZcE);
 	free(d_p);
 
 	free(abcF);
@@ -648,8 +915,11 @@ void check_mesh_regularity(const double *mesh_quality, const unsigned int NML, u
 		for (i = 0; i < 2; i++)
 			slope_quality[i] = mesh_quality[NML-2+i]-mesh_quality[NML-3+i];
 
+		if (slope_quality[1]-slope_quality[0] > 1e-3)
+			printf("\nWarning: Potential mesh regularity issue.\n\n"); TestDB.Nwarnings++;
+
 		if (slope_quality[1] > 0.0) {
-			if (slope_quality[1]-slope_quality[0] > 1e-3)
+			if (slope_quality[1]/slope_quality[0] > 5e0)
 				*pass = 0;
 		}
 		printf("\nMesh quality:");

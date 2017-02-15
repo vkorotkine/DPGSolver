@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "setup_ToBeCurved.h"
 
@@ -7,20 +7,23 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
- 
+
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
+#include "S_ELEMENT.h"
 #include "S_VOLUME.h"
 
 #include "array_norm.h"
 #include "cubature.h"
+#include "element_functions.h"
+#include "matrix_functions.h"
 
 #include "array_print.h" // ToBeDeleted
 
 /*
  *	Purpose:
- *		Set up to be curved meshes.
+ *		Set up "ToBeCurved" meshes.
  *
  *	Comments:
  *		Requires that straight VOLUME nodes have already been stored.
@@ -36,86 +39,317 @@
  *		Rosca(2011)-Uniform_Spherical_Grids_via_Equal_Area_Projection_from_the_Cube_to_the_Sphere
  */
 
-static void         ToBeCurved_cube_to_sphere (unsigned int Nn, double *XYZ_S, double *XYZ);
-static double         *cube_to_sphere         (double XY[2], unsigned int OrderOut[3], int SignOut, double beta);
-static void         ToBeCurved_TP             (unsigned int Nn, double *XYZ_S, double *XYZ);
-static unsigned int   is_in_blend_region      (double XYZn[3]);
-static void           get_blend_bounds        (const double Xn, const double Zn, unsigned int *xLoc, unsigned int *zLoc,
-                                               double *xBounds, double *zBounds);
-static double         get_arc_length          (const double XL, const double XR, const double Z,
-                                               const unsigned int DOrder[2]);
-static double         *eval_TP_function       (const unsigned int Nn, const double *XZ, const unsigned int DOrder[2],
-                                               const unsigned int Single, double **abcP);
+static void         ToBeCurved_cube_to_sphere   (unsigned int Nn, double *XYZ_S, double *XYZ);
+static void         ToBeCurved_square_to_circle (unsigned int Nn, double *XYZ_S, double *XYZ);
+static double         *cube_to_sphere           (double XY[2], unsigned int OrderOut[3], int SignOut, double beta);
+static void         ToBeCurved_TP               (unsigned int Nn, double *XYZ_S, double *XYZ);
+static unsigned int   is_in_blend_region        (double XYZn[3]);
+static void           get_blend_bounds          (const double Xn, const double Zn, unsigned int *xLoc, unsigned int *zLoc,
+                                                 double *xBounds, double *zBounds);
+static double         get_arc_length            (const double XL, const double XR, const double Z,
+                                                 const unsigned int DOrder[2]);
+static double         *eval_TP_function         (const unsigned int Nn, const double *XZ, const unsigned int DOrder[2],
+                                                 const unsigned int Single, double **abcP);
+
+static void ToBeCurved_sphere_to_ellipsoid(const unsigned int Nn, double *XYZ)
+{
+	/*
+	 *	Comments:
+	 *		x = a*cos(t)*sin(p)
+	 *		y = b*sin(t)*sin(p)
+	 *		x = c*cos(p)
+	 */
+
+	// Initialize DB Parameters
+	unsigned int d    = DB.d;
+	double       rIn  = DB.rIn,
+	             aIn  = DB.aIn,
+	             bIn  = DB.bIn,
+	             cIn  = DB.cIn,
+	             rOut = DB.rOut,
+	             aOut = DB.aOut,
+	             bOut = DB.bOut,
+	             cOut = DB.cOut;
+
+	// Standard datatypes
+	unsigned int n;
+	double       *X, *Y, *Z, r2, r, t, p, ratio, a, b, c;
+
+	X = &XYZ[Nn*0];
+	Y = &XYZ[Nn*1];
+	Z = &XYZ[Nn*(d-1)];
+
+//	printf("Make modifications so that this works with high aspect ratio ellipsoids.\n"), EXIT_MSG;
+
+	for (n = 0; n < Nn; n++) {
+		r2 = X[n]*X[n]+Y[n]*Y[n];
+		if (d == 3)
+			r2 += Z[n]*Z[n];
+
+		r = sqrt(r2);
+		ratio = (r-rIn)/(rOut-rIn);
+
+		a = aIn+ratio*(aOut-aIn);
+		b = bIn+ratio*(bOut-bIn);
+		c = cIn+ratio*(cOut-cIn);
+
+//		t = atan2(Y[n]/b,X[n]/a); // Decreased mesh regularity for this option causes loss of optimal orders.
+		t = atan2(Y[n],X[n]);
+
+		if (d == 2) {
+			p = PI/2.0;
+		} else {
+			if (Z[n]-c > 1.0)
+				p = acos(1.0);
+			else
+				p = acos(Z[n]/c);
+		}
+
+		X[n] = a*cos(t)*sin(p);
+		Y[n] = b*sin(t)*sin(p);
+		if (d == 3)
+			Z[n] = c*cos(p);
+	}
+}
+
+static void correct_ToBeCurved(struct S_VOLUME *VOLUME)
+{
+	/*
+	 *	Purpose:
+	 *		Correct position of internal VOLUME geometry nodes using blending.
+	 *
+	 *	Comments:
+	 *		This only needs to loop over element faces (even in 3D) as all curved surface nodes are given by the
+	 *		ToBeCurved projection.
+	 *		Only SB blending is supported for SI elements here as a result of all blending functions being equivalent.
+	 */
+
+	if (DB.Blending_HO)
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
+
+	// Standard datatypes
+	unsigned int n, dim, ve, P, PV, f, Vf, NvnG, NfnG, Eclass, Nf, Nve, BC, *Nfve, *VeFcon, internalCurved;
+	double       *XYZ, *XYZ_S, *XYZ_C, *XYZ_CmS, *XYZ_update, *I_vGs_vGc, *I_vGc_fGc, *I_fGc_vGc, *I_fGs_vGc,
+	             BlendNum, BlendDen, *BlendV;
+
+	struct S_ELEMENT *ELEMENT, *ELEMENT_F;
+
+	internalCurved = 0;
+
+	PV     = VOLUME->P;
+	NvnG   = VOLUME->NvnG;
+	XYZ_C  = VOLUME->XYZ;
+	Eclass = VOLUME->Eclass;
+
+	if (Eclass == C_SI && DB.Blending != SZABO_BABUSKA)
+		printf("Error: Please select SB blending.\n"), EXIT_MSG;
+
+	ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+	Nf     = ELEMENT->Nf;
+	Nve    = ELEMENT->Nve;
+	Nfve   = ELEMENT->Nfve;
+	VeFcon = ELEMENT->VeFcon;
+
+	I_vGs_vGc = ELEMENT->I_vGs_vGc[1][PV][0];
+
+	// Initialize XYZ using projected vertices
+	XYZ = malloc(NvnG*d * sizeof *XYZ); // VOLUME->XYZ freed then XYZ assigned
+	mm_d(CBCM,CBT,CBNT,NvnG,d,Nve,1.0,0.0,ELEMENT->I_vGs_vGc[1][PV][0],VOLUME->XYZ_vVc,XYZ);
+
+	P = PV;
+	for (f = 0; f < Nf; f++) {
+		if (!internalCurved) {
+			BC = VOLUME->BC[0][f];
+			if (BC / BC_STEP_SC != 2)
+				continue;
+		}
+
+		Vf = f*NFREFMAX;
+
+		ELEMENT_F = get_ELEMENT_F_type(ELEMENT->type,f);
+
+		NfnG      = ELEMENT_F->NvnGc[P];
+		I_vGc_fGc = ELEMENT->I_vGc_fGc[PV][P][Vf];
+		I_fGc_vGc = ELEMENT->I_fGc_vGc[P][PV][Vf];
+
+		// Compute XYZ_update
+		XYZ_CmS = malloc(NfnG*d * sizeof *XYZ_S); // free
+		mm_d(CBCM,CBT,CBNT,NfnG,d,NvnG, 1.0,0.0,I_vGc_fGc,XYZ_C,XYZ_CmS);
+		mm_d(CBCM,CBT,CBNT,NfnG,d,NvnG,-1.0,1.0,I_vGc_fGc,XYZ,  XYZ_CmS);
+
+		XYZ_update = mm_Alloc_d(CBCM,CBT,CBNT,NvnG,d,NfnG,1.0,I_fGc_vGc,XYZ_CmS); // free
+		free(XYZ_CmS);
+
+		// Compute blending function
+		I_fGs_vGc = ELEMENT->I_fGs_vGc[1][PV][Vf];
+
+		BlendV = malloc(NvnG * sizeof *BlendV); // free
+		if (Eclass == C_SI) { // SB Blending
+			for (n = 0; n < NvnG; n++) {
+				BlendNum = 1.0;
+				BlendDen = 1.0;
+				for (ve = 0; ve < Nfve[f]; ve++) {
+					BlendNum *= I_vGs_vGc[n*Nve+VeFcon[f*NFVEMAX+ve]];
+					BlendDen *= I_fGs_vGc[n*Nfve[f]+ve];
+				}
+				if (BlendNum < EPS)
+					BlendV[n] = 0.0;
+				else
+					BlendV[n] = BlendNum/BlendDen;
+			}
+		} else if (Eclass == C_TP) { // GH Blending
+			for (n = 0; n < NvnG; n++) {
+				BlendV[n] = 0.0;
+				for (ve = 0; ve < Nfve[f]; ve++)
+					BlendV[n] += I_vGs_vGc[n*Nve+VeFcon[f*NFVEMAX+ve]];
+			}
+		} else {
+			printf("Add support.\n"), EXIT_MSG;
+		}
+
+		// Blend surface geometry perturbation to the VOLUME
+		for (n = 0; n < NvnG; n++) {
+			if (BlendV[n] < EPS)
+				continue;
+
+			for (dim = 0; dim < d; dim++)
+				XYZ[n+NvnG*dim] += BlendV[n]*XYZ_update[n+NvnG*dim];
+		}
+		free(XYZ_update);
+		free(BlendV);
+	}
+
+	free(VOLUME->XYZ);
+	VOLUME->XYZ = XYZ;
+}
 
 void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 {
 	// Initialize DB Parameters
-	char         *TestCase = DB.TestCase;
+	char         *TestCase = DB.TestCase,
+	             *Geometry = DB.Geometry;
 	unsigned int d         = DB.d;
 
 	// Standard datatypes
-	unsigned int i, dim,
-	             NvnG;
+	unsigned int returnStraight = 0; // return the straight mesh
+	unsigned int i, nG, dim, NvnG, correctTBC;
 	double *XYZ, *XYZ_S;
 
-	NvnG = VOLUME->NvnG;
-	XYZ_S = VOLUME->XYZ_S;
+	struct S_ELEMENT *ELEMENT;
 
-	XYZ = malloc (NvnG*d * sizeof *XYZ); // keep
-	VOLUME->XYZ = XYZ;
+	correctTBC = 1; // Correct internal nodes with blending
+	for (nG = 0; nG < 2; nG++) {
+		if (nG == 0) {
+			NvnG = VOLUME->NvnG;
+			XYZ_S = VOLUME->XYZ_S;
 
-	if (strstr(TestCase,"dSphericalBump")   ||
-	    strstr(TestCase,"PorousdSphere")    ||
-	    strstr(TestCase,"SupersonicVortex") ||
-	    strstr(TestCase,"Poisson")          ||
-	    strstr(TestCase,"Test_linearization")) {
-			ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
-//printf("stbc: %d\n",VOLUME->indexg);
-//array_print_d(NvnG,d,XYZ,'C');
-//for (i = 0; i < NvnG*d; i++)
-//	XYZ[i] = XYZ_S[i];
-	} else if (strstr(TestCase,"GaussianBump") ||
-	           strstr(TestCase,"PolynomialBump")) {
-			ToBeCurved_TP(NvnG,XYZ_S,XYZ);
-	} else if (strstr(TestCase,"PeriodicVortex") ||
-	           strstr(TestCase,"Test_L2_proj")   ||
-	           strstr(TestCase,"Test_update_h")) {
-		double n = 2.0, A = 0.1, L0 = 2.0, dxyz = 1.0, scale,
-		       *X0, *Y0, *Z0;
+			XYZ = malloc (NvnG*d * sizeof *XYZ); // keep
+			VOLUME->XYZ = XYZ;
+		} else if (nG == 1) {
+			ELEMENT = get_ELEMENT_type(VOLUME->type);
+			NvnG = ELEMENT->Nve;
+			XYZ_S = VOLUME->XYZ_vV;
 
-		// silence
-		X0 = Y0 = Z0 = NULL;
-
-		scale = 2.0;
-		DB.PeriodL = scale*2.0;
-
-		// d > 1 for this case
-		for (dim = 0; dim < d; dim++) {
-			X0 = &XYZ_S[0*NvnG];
-			Y0 = &XYZ_S[1*NvnG];
-			if (dim == 2)
-				Z0 = &XYZ_S[2*NvnG];
+			XYZ = malloc (NvnG*d * sizeof *XYZ); // keep
+			VOLUME->XYZ_vVc = XYZ;
 		}
 
-		if (d == 2) {
-			for (i = 0; i < NvnG; i++) {
-				XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i]));
-				XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i]));
-			}
-		} else if (d == 3) {
-			for (i = 0; i < NvnG; i++) {
-//				XYZ[       i] = scale*X0[i];// + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*Z0[i]);
-//				XYZ[1*NvnG+i] = scale*Y0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Z0[i]);
-//				XYZ[2*NvnG+i] = scale*Z0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]);
-				XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
-				XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
-				XYZ[2*NvnG+i] = scale*(Z0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]));
-			}
+		if (returnStraight) {
+			for (i = 0; i < NvnG*d; i++)
+				XYZ[i] = XYZ_S[i];
 		} else {
-			printf("Error: PeriodicVortex TestCase not supported for dimension d = %d.\n",d), EXIT_MSG;
+			if (strstr(Geometry,"dm1-Spherical_Section")) {
+					ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
+			} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+					ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
+					ToBeCurved_sphere_to_ellipsoid(NvnG,XYZ);
+			} else if (strstr(TestCase,"GaussianBump") ||
+					   strstr(TestCase,"PolynomialBump")) {
+					ToBeCurved_TP(NvnG,XYZ_S,XYZ);
+			} else if (strstr(TestCase,"PeriodicVortex")) {
+				double n = 2.0, A = 0.1, L0 = 2.0, dxyz = 1.0, scale, *X0, *Y0, *Z0;
+
+				// silence
+				X0 = Y0 = Z0 = NULL;
+
+				scale = 2.0;
+				DB.PeriodL = scale*2.0;
+
+				// d > 1 for this case
+				for (dim = 0; dim < d; dim++) {
+					X0 = &XYZ_S[0*NvnG];
+					Y0 = &XYZ_S[1*NvnG];
+					if (dim == 2)
+						Z0 = &XYZ_S[2*NvnG];
+				}
+
+				if (d == 2) {
+					for (i = 0; i < NvnG; i++) {
+						XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i]));
+						XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i]));
+					}
+				} else if (d == 3) {
+					for (i = 0; i < NvnG; i++) {
+//						XYZ[       i] = scale*X0[i];// + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*Z0[i]);
+//						XYZ[1*NvnG+i] = scale*Y0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Z0[i]);
+//						XYZ[2*NvnG+i] = scale*Z0[i];// + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]);
+						XYZ[       i] = scale*(X0[i] + A*dxyz*sin(n*PI/L0*Y0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
+						XYZ[1*NvnG+i] = scale*(Y0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*(Z0[i]+0.5)));
+						XYZ[2*NvnG+i] = scale*(Z0[i] + A*dxyz*sin(n*PI/L0*X0[i])*sin(n*PI/L0*Y0[i]));
+					}
+				} else {
+					printf("Error: PeriodicVortex TestCase not supported for dimension d = %d.\n",d), EXIT_MSG;
+				}
+			} else if (strstr(Geometry,"Annular_Section")) {
+				ToBeCurved_square_to_circle(NvnG,XYZ_S,XYZ);
+			} else {
+				printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
+			}
+
+			// Correct internal VOLUME geometry coordinates using blending
+			if (nG == 1 && correctTBC && VOLUME->Eclass != C_WEDGE && VOLUME->Eclass != C_PYR)
+				correct_ToBeCurved(VOLUME);
 		}
-	} else {
-		printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
+	}
+}
+
+static void ToBeCurved_square_to_circle(unsigned int Nn, double *XYZ_S, double *XYZ)
+{
+	/*
+	 *	Comments:
+	 *		Uses exact r-theta parametrization to transform from square to circular domain.
+	 */
+
+	// Initialize DB Parameters
+	unsigned int d = DB.d;
+
+	// Standard datatypes
+	unsigned int n, dim;
+	double       PIo4, XYZn[DMAX], r, t;
+
+	PIo4 = 0.25*PI;
+	for (n = 0; n < Nn; n++) {
+		for (dim = 0; dim < d; dim++)
+			XYZn[dim] = XYZ_S[Nn*dim+n];
+
+		r = array_norm_d(d,XYZn,"Inf");
+		t = atan2(XYZn[1],XYZn[0]);
+
+		if      (t >= -    PIo4 && t <      PIo4) t =          XYZn[1]/r*PIo4;
+		else if (t >=      PIo4 && t <  3.0*PIo4) t = 0.5*PI - XYZn[0]/r*PIo4;
+		else if (t >=  3.0*PIo4 && t < -3.0*PIo4) t =     PI - XYZn[1]/r*PIo4;
+		else if (t >= -3.0*PIo4 && t < -    PIo4) t = 1.5*PI + XYZn[0]/r*PIo4;
+		else
+			printf("Error\n"), EXIT_MSG;
+
+		XYZ[     n] = r*cos(t);
+		XYZ[Nn*1+n] = r*sin(t);
+		if (d == DMAX)
+			XYZ[Nn*2+n] = XYZn[2];
 	}
 }
 
@@ -135,7 +369,7 @@ static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZ_S, double *XY
 	unsigned int dim, n,
 	             OrderOut[3];
 	int          SignOut;
-	double       XYZn[3], r, t, XYn[2], XYZn_normInf, beta, *XYZ_Sphere, PIo4;
+	double       XYZn[3], XYn[2], XYZn_normInf, beta, *XYZ_Sphere;
 
 	// silence
 	for (dim = 0; dim < 3; dim++) {
@@ -144,8 +378,8 @@ static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZ_S, double *XY
 		OrderOut[dim] = 0;
 	}
 
-//	if (d == 3) {
-	if (1||d == 3) {
+	if (d == 3) {
+//	if (1||d == 3) {
 		for (n = 0; n < Nn; n++) {
 			for (dim = 0; dim < d; dim++)
 				XYZn[dim] = XYZ_S[Nn*dim+n];
@@ -192,25 +426,8 @@ static void ToBeCurved_cube_to_sphere(unsigned int Nn, double *XYZ_S, double *XY
 
 			free(XYZ_Sphere);
 		}
-	} else if (d == 2) {
-		PIo4 = 0.25*PI;
-		for (n = 0; n < Nn; n++) {
-			for (dim = 0; dim < d; dim++)
-				XYZn[dim] = XYZ_S[Nn*dim+n];
-
-			r = array_norm_d(d,XYZn,"Inf");
-			t = atan2(XYZn[1],XYZn[0]);
-
-			if      (t >= -    PIo4 && t <      PIo4) t =          XYZn[1]/r*PIo4;
-			else if (t >=      PIo4 && t <  3.0*PIo4) t = 0.5*PI - XYZn[0]/r*PIo4;
-			else if (t >=  3.0*PIo4 && t < -3.0*PIo4) t =     PI - XYZn[1]/r*PIo4;
-			else if (t >= -3.0*PIo4 && t < -    PIo4) t = 1.5*PI + XYZn[0]/r*PIo4;
-			else
-				printf("Error\n");
-
-			XYZ[     n] = r*cos(t);
-			XYZ[Nn*1+n] = r*sin(t);
-		}
+	} else if (d == 2) { // Exact r-theta parametrization
+		ToBeCurved_square_to_circle(Nn,XYZ_S,XYZ);
 	} else {
 		printf("Error: Unsupported d.\n"), EXIT_MSG;
 	}
@@ -257,7 +474,7 @@ static void ToBeCurved_TP(unsigned int Nn, double *XYZ_S, double *XYZ)
 {
 	/*
 	 *	Purpose:
-	 *		Use Boolean sum projection to linearly blend the effect of curved FACETs into the domain.
+	 *		Use Boolean sum projection to linearly blend the effect of curved FACEs into the domain.
 	 *
 	 *	Comments:
 	 *		XZnf and XZnf_match are in row major orientation.
@@ -426,7 +643,7 @@ static void ToBeCurved_TP(unsigned int Nn, double *XYZ_S, double *XYZ)
 						- (s-sL)/sDenom*(tR-t)/tDenom*Fv[1*d+dim]
 						- (s-sL)/sDenom*(t-tL)/tDenom*Fv[2*d+dim]
 						- (sR-s)/sDenom*(t-tL)/tDenom*Fv[3*d+dim]
-					              // Edge (Facet in 2d) Contributions (4)
+					              // Edge (Face in 2d) Contributions (4)
 						+ (sR-s)/sDenom*Fe[0*d+dim]
 						+ (s-sL)/sDenom*Fe[1*d+dim]
 						+ (tR-t)/tDenom*Fe[2*d+dim]
@@ -470,7 +687,7 @@ static void ToBeCurved_TP(unsigned int Nn, double *XYZ_S, double *XYZ)
 						- (s-sL)/sDenom*(tR-t)/tDenom*Fv[5*d+dim]
 						- (sR-s)/sDenom*(t-tL)/tDenom*Fv[6*d+dim]
 						- (s-sL)/sDenom*(t-tL)/tDenom*Fv[7*d+dim]
-					          // Edge (Facet in 2d) Contributions (4)
+					          // Edge (Face in 2d) Contributions (4)
 						+ (tR-t)/tDenom*Fe[2*d+dim]
 						+ (t-tL)/tDenom*Fe[3*d+dim]
 						+ (sR-s)/sDenom*Fe[6*d+dim]
@@ -508,7 +725,7 @@ static void ToBeCurved_TP(unsigned int Nn, double *XYZ_S, double *XYZ)
 						- (s-sL)/sDenom*(tR-t)/tDenom*Fe[9*d+dim]
 						- (sR-s)/sDenom*(t-tL)/tDenom*Fe[10*d+dim]
 						- (s-sL)/sDenom*(t-tL)/tDenom*Fe[11*d+dim]
-					              // Facet Contributions (6)
+					              // Face Contributions (6)
 						+ (sR-s)/sDenom*Ff[0*d+dim]
 						+ (s-sL)/sDenom*Ff[1*d+dim]
 						+ (tR-t)/tDenom*Ff[2*d+dim]
@@ -663,7 +880,7 @@ static double get_arc_length(const double XL, const double XR, const double Z, c
 
 	// silence
 	ArcLenOut = 0;
-	f_XZ = NULL;
+	f_XZ = abcP = NULL;
 
 	AnalyticalArcLen = 0;
 	if (strstr(TestCase,"PolynomialBump")) {

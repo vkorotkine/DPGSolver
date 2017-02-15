@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "compute_errors.h"
 
@@ -22,6 +22,7 @@
 #include "variable_functions.h"
 #include "exact_solutions.h"
 #include "update_VOLUMEs.h"
+#include "initialize_test_case.h"
 
 #include "array_print.h"
 
@@ -104,6 +105,7 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 	w_vI    = OPS->w_vI;
 	ChiS_vI = OPS->ChiS_vI;
 
+//printf("%d %d\n",VOLUME->indexg,VOLUME->curved);
 	detJV_vI = VOLUME->detJV_vI;
 
 	wdetJV_vI = malloc(NvnI * sizeof *wdetJV_vI); // free
@@ -147,13 +149,14 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		free(q);
 		free(uEx);
 		free(qEx);
-	} else {
+	} else if (strstr(TestCase,"PeriodicVortex") ||
+	           strstr(TestCase,"SupersonicVortex")) {
 		for (i = 0, iMax = NVAR3D+1; i < iMax; i++)
 			L2Error2[i] = 0.0;
 
 		UEx = malloc(NvnI*NVAR3D * sizeof *UEx); // free
 
-		compute_exact_solution(NvnI,XYZ_vI,UEx,solved);
+		compute_solution(NvnI,XYZ_vI,UEx,solved);
 
 		W = malloc(NvnI*Nvar   * sizeof *W); // free
 		U = malloc(NvnI*NVAR3D * sizeof *U); // free
@@ -220,6 +223,38 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		free(s);
 		free(UEx);
 		free(sEx);
+	} else if (strstr(TestCase,"InviscidChannel")) {
+		L2Error2[0] = 0.0;
+
+		W = malloc(NvnI*Nvar   * sizeof *W); // free
+		U = malloc(NvnI*NVAR3D * sizeof *U); // free
+
+		What = VOLUME->What;
+		mm_CTN_d(NvnI,Nvar,NvnS,ChiS_vI,What,W);
+
+		convert_variables(W,U,d,3,NvnI,1,'c','p');
+
+		rho   = &U[NvnI*0];
+		p     = &U[NvnI*(NVAR3D-1)];
+
+		sEx = malloc(NvnI * sizeof *sEx); // free
+		s   = malloc(NvnI * sizeof *s);   // free
+		for (i = 0; i < NvnI; i++) {
+			sEx[i] = DB.pInf/pow(DB.rhoInf,GAMMA);
+			s[i]   = p[i]/pow(rho[i],GAMMA);
+		}
+
+		for (j = 0; j < NvnI; j++) {
+			err = (s[j]-sEx[j])/sEx[j];
+			L2Error2[0] += err*err*wdetJV_vI[j];
+		}
+
+		free(W);
+		free(U);
+		free(sEx);
+		free(s);
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
 
 	*DOF = NvnS;
@@ -245,11 +280,12 @@ void compute_errors_global(void)
 	 */
 
 	// Initialize DB Parameters
-	char *TestCase = DB.TestCase;
+	char *TestCase = DB.TestCase,
+	     *Geometry = DB.Geometry;
 	int  MPIrank   = DB.MPIrank;
 
 	// Standard datatypes
-	unsigned int i, DOF, DOF_l, NvarError;
+	unsigned int i, DOF, DOF_l, NvarError, CurvedOnly;
 	double       Vol, Vol_l, *L2Error2, *L2Error2_l;
 
 	struct S_VOLUME *VOLUME;
@@ -257,15 +293,26 @@ void compute_errors_global(void)
 	// silence
 	DOF = 0; Vol = 0.0;
 
-	if (strstr(TestCase,"Poisson"))
+	CurvedOnly = 0;
+	if (strstr(TestCase,"Poisson")) {
 		NvarError = DMAX+1;
-	else
+	} else if (strstr(TestCase,"PeriodicVortex") ||
+	         strstr(TestCase,"SupersonicVortex")) {
 		NvarError = NVAR3D+1;
+	} else if (strstr(TestCase,"InviscidChannel")) {
+		if (strstr(Geometry,"NacaSymmetric"))
+			CurvedOnly = 1; // Avoid trailing edge singularity when computing entropy error.
+		NvarError = 1;
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
 
 	L2Error2   = calloc(NvarError , sizeof *L2Error2);   // free
 	L2Error2_l = malloc(NvarError * sizeof *L2Error2_l); // free
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		if (CurvedOnly && !VOLUME->curved)
+			continue;
 		compute_errors(VOLUME,L2Error2_l,&Vol_l,&DOF_l,1);
 
 		Vol += Vol_l;
@@ -307,8 +354,11 @@ static void output_errors(const double *L2Error2, const unsigned int NvarError, 
 
 	if (strstr(TestCase,"Poisson")) {
 		fprintf(fID,"DOF         Vol         L2u2        L2q1_2      L2q2_2      L2q3_2\n");
-	} else {
+	} else if (strstr(TestCase,"PeriodicVortex") ||
+	           strstr(TestCase,"SupersonicVortex")) {
 		fprintf(fID,"DOF         Vol         L2rho2      L2u2        L2v2        L2w2        L2p2        L2s2\n");
+	} else if (strstr(TestCase,"InviscidChannel")) {
+		fprintf(fID,"DOF         Vol         L2s2\n");
 	}
 	fprintf(fID,"%-10d  %.4e  ",DOF,Vol);
 	for (i = 0; i < NvarError; i++)
@@ -370,8 +420,11 @@ static void collect_errors(const unsigned int NvarError)
 
 	if (strstr(TestCase,"Poisson")) {
 		fprintf(fID,"DOF         L2u         L2q1        L2q2        L2q3\n");
-	} else {
+	} else if (strstr(TestCase,"PeriodicVortex") ||
+	           strstr(TestCase,"SupersonicVortex")) {
 		fprintf(fID,"DOF         L2rho       L2u         L2v         L2w         L2p         L2s\n");
+	} else if (strstr(TestCase,"InviscidChannel")) {
+		fprintf(fID,"DOF         L2s\n");
 	}
 	fprintf(fID,"%-10d  ",DOF);
 	for (i = 0; i < NvarError; i++)

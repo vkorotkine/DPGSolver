@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #ifndef DPG__adaptation_h__INCLUDED
 #define DPG__adaptation_h__INCLUDED
@@ -7,10 +7,12 @@
 #include "S_VOLUME.h"
 
 
-extern void         adapt_hp         (void);
-extern void         mesh_update      (void);
-extern void         mesh_to_level    (const unsigned int level);
-extern void         mesh_to_order    (const unsigned int order);
+extern void         adapt_hp          (void);
+extern void         mesh_update       (void);
+extern void         mesh_to_level     (const unsigned int level);
+extern void         mesh_to_order     (const unsigned int order);
+extern void         mesh_h_adapt      (const unsigned int Nadapt, const char h_adapt_type);
+extern void         ensure_1irregular (unsigned int *hp_update);
 
 extern void         get_PS_range     (unsigned int *PSMin, unsigned int *PSMax);
 extern void         get_Pb_range     (const unsigned int P, unsigned int *PbMin, unsigned int *PbMax);

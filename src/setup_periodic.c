@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "setup_periodic.h"
 
@@ -22,26 +22,26 @@
  *
  *	Comments:
  *		The function achieves the result using the following steps:
- *			1) Find the number of periodic facets in each direction and store their associated number of vertices so
+ *			1) Find the number of periodic faces in each direction and store their associated number of vertices so
  *			   that TRIs and QUADs are not matched up.
  *			2) The potential connections for each node are then computed and stored.
- *			3) Looping over the master facets in each direction, master vertices are compared to slave vertices on each
- *			   possible slave periodic facet using the potential connections array. If a match is found, the slave facet
- *			   is no longer considered for subsequent master facets. Once the loop has terminated, a check is performed
- *			   to ensure that the number of matches found is equal to the number of master periodic facets in the mesh
+ *			3) Looping over the master faces in each direction, master vertices are compared to slave vertices on each
+ *			   possible slave periodic face using the potential connections array. If a match is found, the slave face
+ *			   is no longer considered for subsequent master faces. Once the loop has terminated, a check is performed
+ *			   to ensure that the number of matches found is equal to the number of master periodic faces in the mesh
  *			   file.
  *			4) Once all periodic connections have been established, VToV, VToF, VToGF, GFToVe, and GFC are modified to
  *			   reflect the changes.
  *
  *	Notation:
- *		NPF[dim]  : (N)umber of (P)eriodic (F)acets of each (dim)ension
- *		PFNVe[]   : (P)eriodic (F)acet (N)umber of (Ve)rtices
- *		PFToGF[]  : (P)eriodic (F)acet To (G)lobal (F)acet correspondence
- *		PFVFInd[] : (P)eriodic (F)acet (V)olume and (F)acet (Ind)ices in VTo() Arrays
- *		PFToVe[]  : (P)eriodic (F)acet To (Ve)rtex correspondence
- *		ve[]      : (ve)rtices of the periodic facet under consideration
+ *		NPF[dim]  : (N)umber of (P)eriodic (F)aces of each (dim)ension
+ *		PFNVe[]   : (P)eriodic (F)ace (N)umber of (Ve)rtices
+ *		PFToGF[]  : (P)eriodic (F)ace To (G)lobal (F)ace correspondence
+ *		PFVFInd[] : (P)eriodic (F)ace (V)olume and (F)ace (Ind)ices in VTo() Arrays
+ *		PFToVe[]  : (P)eriodic (F)ace To (Ve)rtex correspondence
+ *		ve[]      : (ve)rtices of the periodic face under consideration
  *		v[]       : (v)olume
- *		f[]       : (f)acet
+ *		f[]       : (f)ace
  *		            [] : (M)aster, (S)lave
  *
  *	References:
@@ -105,7 +105,7 @@ void setup_periodic()
 		}
 	}
 	if (IndPFM != IndPFS)
-		printf("Error: Master and Slave periodic facet mismatch\n"), exit(1);
+		printf("Error: Master and Slave periodic face mismatch\n"), exit(1);
 
 	NPFTotal = IndPFM;
 
@@ -216,14 +216,14 @@ void setup_periodic()
 //array_print_ui(NPVeUnique,3,PConn,'R');
 //array_print_ui(1,NPVeUnique,PVeUnique,'R');
 
-	// Find Corresponding Periodic Facets
+	// Find Corresponding Periodic Faces
 	for (dim = 0, BlockStart = 0, IndPFM = 0; dim < d; dim++) {
 		if (dim != 0)
 			BlockStart += NPF[dim-1]*NfveMax;
 
 		PFSFound = calloc(NPF[dim] , sizeof *PFSFound); // free
 		for (PFM = 0; PFM < NPF[dim]; PFM++) {
-			// For each periodic master facet, find the corresponding slave facet
+			// For each periodic master face, find the corresponding slave face
 			NpveM = PFNveM[IndPFM];
 			veM = malloc(NpveM * sizeof *veM); // free
 			for (IndveM = 0; IndveM < NpveM; IndveM++)
@@ -247,7 +247,7 @@ void setup_periodic()
 					matchS[i] = NVe;
 				}
 
-				// ToBeDeleted: Need to make sure that this never links the wrong facets (THINK)
+				// ToBeDeleted: Need to make sure that this never links the wrong faces (THINK)
 				for (IndveM = 0; IndveM < NpveM; IndveM++) {
 				for (IndveS = 0; IndveS < NpveM; IndveS++) {
 					if (PFSFound[PFS] == 0 && matchM[IndveM] == NVe && matchS[IndveS] == NVe) {
@@ -271,10 +271,10 @@ void setup_periodic()
 				free(matchM);
 				free(matchS);
 
-				// Found the matching periodic facet
+				// Found the matching periodic face
 				if (match) {
 					PFSFound[PFS] = 1;
-					// Replace slave facet information in VToV and VToGF with master facet information
+					// Replace slave face information in VToV and VToGF with master face information
 					vM = PFVFIndM[IndPFM*2];
 					fM = PFVFIndM[IndPFM*2+1];
 					vS = PFVFIndS[IndPFS*2];

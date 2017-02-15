@@ -118,14 +118,14 @@ Volume(7006) = {7006};
 
 // Physical parameters for '.msh' file
 
-/*
+
 Physical Surface(10011) = {4011,4012};           // Straight Dirichlet
 Physical Surface(10012) = {4007,4008,4017,4018}; // Straight Neumann
 Physical Surface(20011) = {4004,4013,4028};      // Curved Dirichlet
 Physical Surface(20012) = {4002,4014,4020};      // Curved Neumann
-*/
 
-Physical Surface(10011) = {4011,4012,4007,4008,4017,4018,4004,4013,4028,4002,4014,4020}; // Straight Dirichlet
+
+//Physical Surface(10011) = {4011,4012,4007,4008,4017,4018,4004,4013,4028,4002,4014,4020}; // Straight Dirichlet
 
 Physical Volume(9701) = {7004:7006};
 

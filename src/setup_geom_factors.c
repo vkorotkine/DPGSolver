@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "setup_geom_factors.h"
 
@@ -8,13 +8,15 @@
 #include <math.h>
 
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "element_functions.h"
 #include "matrix_functions.h"
+#include "output_to_paraview.h"
 
 #include "array_print.h"
 
@@ -30,7 +32,7 @@
  *
  *		Investigation into the importance of proper treatment of the metric terms is still required. For this reason,
  *		the cofactor matrix terms are first projected to the basis of order PC and then projected to the VOLUME and
- *		FACET integration nodes. After the code is working, modify this by trying different combinations, such as
+ *		FACE integration nodes. After the code is working, modify this by trying different combinations, such as
  *		directly computing C_vI, C_fI and make conclusions. (ToBeDeleted)
  *		detJ is computed directly at the VOLUME integration nodes. Thus, likely don't need PJs/PJc in setup_parameters
  *		=> Delete later (ToBeDeleted).
@@ -50,10 +52,10 @@ struct S_OPERATORS {
 	             **D_vG_vC, **D_vG_vI, **D_vC_vC, ***D_vG_fI;
 };
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
                      const unsigned int IndFType);
 
-static void compute_detJV(const unsigned int Nn, double *J, double *detJV)
+void compute_detJV(const unsigned int Nn, double *J, double *detJV)
 {
 	/*
 	 *	Comments:
@@ -84,6 +86,16 @@ static void compute_detJV(const unsigned int Nn, double *J, double *detJV)
 			                              - J[Nn*(d*1+2)+n]*J[Nn*(d*2+0)+n])
 			           + J[Nn*(d*0+2)+n]*(  J[Nn*(d*1+0)+n]*J[Nn*(d*2+1)+n]
 			                              - J[Nn*(d*1+1)+n]*J[Nn*(d*2+0)+n]);
+		}
+	}
+
+	for (n = 0; n < Nn; n++) {
+		if (0&&detJV[n] < EPS) {
+			array_print_d(Nn,1,detJV,'R');
+			output_to_paraview("ZTest_Geom_curved");
+
+			printf("Error: Negative VOLUME.\n");
+			printf("Mesh output to paraview.\n"), EXIT_MSG;
 		}
 	}
 }
@@ -235,8 +247,6 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 	free(J_vC);
 	free(OPS);
 
-//printf("Exiting setup_geom_factors.\n"), exit(1);
-
 	VOLUME->detJV_vI = detJV_vI;
 	if (VOLUME->C_vC)
 		free(VOLUME->C_vC);
@@ -245,14 +255,14 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 
 }
 
-void setup_geom_factors_highorder(struct S_FACET *FACET)
+void setup_geom_factors_highorder(struct S_FACE *FACE)
 {
 	/*
 	 *	Purpose:
 	 *		Compute detJV_fI from each VOLUME.
 	 *
 	 *	Comments:
-	 *		detJV_fI is only used for computing gradients at FACET nodes and thus not required for systems of 1st order
+	 *		detJV_fI is only used for computing gradients at FACE nodes and thus not required for systems of 1st order
 	 *		equations (such as when solving only the Euler equations).
 	 */
 
@@ -271,14 +281,14 @@ void setup_geom_factors_highorder(struct S_FACET *FACET)
 	OPS = malloc(sizeof *OPS); // free
 
 	// Obtain operators
-	VOLUME = FACET->VIn;
-	Vf     = FACET->VfIn;
+	VOLUME = FACE->VIn;
+	Vf     = FACE->VfIn;
 	f      = Vf/NFREFMAX;
 
 	Eclass = get_Eclass(VOLUME->type);
 	IndFType = get_IndFType(Eclass,f);
 
-	init_ops(OPS,VOLUME,FACET,IndFType);
+	init_ops(OPS,VOLUME,FACE,IndFType);
 
 	NvnG = OPS->NvnG;
 	NfnI = OPS->NfnI;
@@ -291,17 +301,17 @@ void setup_geom_factors_highorder(struct S_FACET *FACET)
 		mm_CTN_d(NfnI,1,NvnG,OPS->D_vG_fI[Vf][col],&XYZ[NvnG*row],&J_fI[NfnI*(d*row+col)]);
 	}}
 
-	if (FACET->detJVIn_fI)
-		free(FACET->detJVIn_fI);
-	FACET->detJVIn_fI = malloc(NfnI * sizeof *detJV_fI); // keep
-	compute_detJV(NfnI,J_fI,FACET->detJVIn_fI);
+	if (FACE->detJVIn_fI)
+		free(FACE->detJVIn_fI);
+	FACE->detJVIn_fI = malloc(NfnI * sizeof *detJV_fI); // keep
+	compute_detJV(NfnI,J_fI,FACE->detJVIn_fI);
 
-	if (!FACET->Boundary) {
-		VOLUME = FACET->VOut;
-		Vf     = FACET->VfOut;
+	if (!FACE->Boundary) {
+		VOLUME = FACE->VOut;
+		Vf     = FACE->VfOut;
 		f      = Vf/NFREFMAX;
 
-		init_ops(OPS,VOLUME,FACET,IndFType);
+		init_ops(OPS,VOLUME,FACE,IndFType);
 
 		NvnG = OPS->NvnG;
 
@@ -312,17 +322,17 @@ void setup_geom_factors_highorder(struct S_FACET *FACET)
 			mm_CTN_d(NfnI,1,NvnG,OPS->D_vG_fI[Vf][col],&XYZ[NvnG*row],&J_fI[NfnI*(d*row+col)]);
 		}}
 
-		if (FACET->detJVOut_fI)
-			free(FACET->detJVOut_fI);
-		FACET->detJVOut_fI = malloc(NfnI * sizeof *detJV_fI); // keep
-		compute_detJV(NfnI,J_fI,FACET->detJVOut_fI);
+		if (FACE->detJVOut_fI)
+			free(FACE->detJVOut_fI);
+		FACE->detJVOut_fI = malloc(NfnI * sizeof *detJV_fI); // keep
+		compute_detJV(NfnI,J_fI,FACE->detJVOut_fI);
 	}
 	free(J_fI);
 
 	free(OPS);
 }
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACET *FACET,
+static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
                      const unsigned int IndFType)
 {
 	// Standard datatypes
@@ -358,22 +368,22 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		OPS->D_vC_vC = ELEMENT->D_vCc_vCc[P][P][0];
 	}
 
-	if (FACET) {
+	if (FACE) {
 		unsigned int PF, PV, FtypeInt;
 
 		PV = P;
-		PF = FACET->P;
+		PF = FACE->P;
 
-		FtypeInt = FACET->typeInt;
+		FtypeInt = FACE->typeInt;
 
 		if (!curved) {
 			// Straight VOLUME
 			if (FtypeInt == 's') {
-				// Straight FACET Integration
+				// Straight FACE Integration
 				OPS->NfnI    = ELEMENT->NfnIs[PF][IndFType];
 				OPS->D_vG_fI = ELEMENT->D_vGs_fIs[1][PF];
 			} else {
-				// Curved FACET Integration
+				// Curved FACE Integration
 				OPS->NfnI    = ELEMENT->NfnIc[PF][IndFType];
 				OPS->D_vG_fI = ELEMENT->D_vGs_fIc[1][PF];
 			}

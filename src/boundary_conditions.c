@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "boundary_conditions.h"
 
@@ -25,6 +25,7 @@
  *	Notation:
  *
  *	References:
+ *		Carlson(2011)-Inflow/Outflow_Boundary_Conditions_with_Application_to_FUN3D (NASA/TM–2011-217181)
  */
 
 void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL, double *WOut, double *WB,
@@ -33,6 +34,9 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 	/*
 	 *	Comments:
 	 *		WOut is not used for all test cases.
+	 *
+	 *	References:
+	 *		Carlson(2011): 2.2 (Note typo in eq. (14))
 	 */
 
 	// Initialize DB Parameters
@@ -95,8 +99,7 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 	}
 
 	// Outer VOLUME
-	if (strstr(TestCase,"SupersonicVortex") ||
-	    strstr(TestCase,"Test_linearization")) {
+	if (strstr(TestCase,"SupersonicVortex")) {
 		// Use the exact solution for the Outer VOLUME
 		for (i = 0; i < NnTotal; i++) {
 			r = sqrt(X[i]*X[i]+Y[i]*Y[i]);
@@ -113,6 +116,18 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 			Indn = i*DMAX;
 //			VnR[i] = n[Indn  ]*uR[i]+n[Indn+1]*vR[i]+n[Indn+2]*wR[i];
 			VnR[i] = n[Indn  ]*uR[i]+n[Indn+1]*vR[i]; // wR == 0
+		}
+	} else if (strstr(TestCase,"InviscidChannel")) {
+		// Use exact uniform channel solution for outer VOLUME
+		for (i = 0; i < NnTotal; i++) {
+			rhoR[i] = DB.rhoInf;
+			pR[i]   = DB.pInf;
+			uR[i]   = DB.MInf*DB.cInf;
+			vR[i]   = 0.0;
+			wR[i]   = 0.0;
+
+			Indn = i*DMAX;
+			VnR[i] = n[Indn]*uR[i]; // vR == wR == 0
 		}
 	} else {
 		printf("TestCase: %s\n",TestCase);
@@ -233,6 +248,121 @@ void boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, double *WL
 			rhoVL = nL[i*d  ]*rhouL[i];
 
 			rhouB[i] = rhouL[i]-2.0*rhoVL*nL[i*d  ];
+		}
+	}
+}
+
+void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, double *WL, double *WB, double *nL,
+                           const unsigned int d, const unsigned int Neq)
+{
+	/*
+	 *	Purpose:
+	 *		Impose back Pressure (outflow) and total (P)ressure/(T)emperature (inflow) boundary condition.
+	 *
+	 *	Comments:
+	 *		Add subsonic inflow boundary from Carlson(2011) (2.7) using total Pressure and Temperature if needed. This
+	 *		should not be placed in this function however as it is assumed that it is known that this BC is only used
+	 *		for outflow.
+	 *
+	 *	References:
+	 *		Carlson(2011): 2.4
+	 */
+
+	// Standard datatypes
+	unsigned int n, NnTotal, eq, var, Nvar, IndW;
+	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr,
+	             rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, pInf, rhoB, cL, c2L, VnL, n1, n2, n3,
+	             *WL_ptr[Neq], *WB_ptr[Neq];
+
+	// silence
+	n2 = n3 = 0;
+	rhovL_ptr = rhowL_ptr = NULL;
+
+	NnTotal = Nn*Nel;
+	Nvar    = Neq;
+
+	for (eq = 0; eq < Neq; eq++) {
+		WL_ptr[eq] = &WL[eq*NnTotal];
+		WB_ptr[eq] = &WB[eq*NnTotal];
+	}
+
+	double zeros[NnTotal];
+
+	for (n = 0; n < NnTotal; n++)
+		zeros[n] = 0.0;
+
+	rhoL_ptr  = WL_ptr[0];
+	rhouL_ptr = WL_ptr[1];
+	EL_ptr    = WL_ptr[d+1];
+
+	n_ptr = nL;
+
+	if (d == 3) {
+		rhovL_ptr = WL_ptr[2];
+		rhowL_ptr = WL_ptr[3];
+	} else if (d == 2) {
+		rhovL_ptr = WL_ptr[2];
+		rhowL_ptr = zeros;
+	} else if (d == 1) {
+		rhovL_ptr = zeros;
+		rhowL_ptr = zeros;
+	}
+
+	for (n = 0; n < NnTotal; n++) {
+		IndW = 0;
+
+		// Inner VOLUME
+		rhoL     = *rhoL_ptr++;
+		rhoL_inv = 1.0/rhoL;
+
+		uL   = (*rhouL_ptr++)*rhoL_inv;
+		vL   = (*rhovL_ptr++)*rhoL_inv;
+		wL   = (*rhowL_ptr++)*rhoL_inv;
+		EL   = *EL_ptr++;
+
+		V2L = uL*uL+vL*vL+wL*wL;
+		VL  = sqrt(V2L);
+
+		pL  = GM1*(EL-0.5*rhoL*V2L);
+
+		n1 = *n_ptr++;
+		if      (d == 3) { n2 = *n_ptr++; n3 = *n_ptr++; }
+		else if (d == 2) { n2 = *n_ptr++; n3 = 0.0;      }
+		else if (d == 1) { n2 = 0.0;      n3 = 0.0;      }
+
+		VnL = uL*n1+vL*n2+wL*n3;
+
+		c2L = GAMMA*pL/rhoL;
+		cL  = sqrt(c2L);
+
+		if (VnL < 0.0) // Inlet
+			printf("\nWarning: Velocity Inflow in boundary_BackPressure.\n");
+
+		if (fabs(VL) >= cL) { // Supersonic
+			for (var = 0; var < Nvar; var++) {
+				*WB_ptr[IndW] = *WL_ptr[IndW];
+				IndW++;
+			}
+		} else {
+			pInf = DB.pInf;
+
+			rhoB = GAMMA*pInf/c2L;
+
+			*WB_ptr[IndW++] = rhoB;
+			*WB_ptr[IndW++] = uL*rhoB;
+			if (d == 3) {
+				*WB_ptr[IndW++] = vL*rhoB;
+				*WB_ptr[IndW++] = wL*rhoB;
+			} else if (d == 2) {
+				*WB_ptr[IndW++] = vL*rhoB;
+			}
+			// Note: Using VL for the boundary
+			*WB_ptr[IndW++] = pInf/GM1+0.5*rhoB*V2L;
+		}
+
+		for (var = 0; var < Nvar; var++) {
+			WL_ptr[var]++;
+			WB_ptr[var]++;
 		}
 	}
 }

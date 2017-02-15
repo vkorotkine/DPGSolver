@@ -8,6 +8,7 @@ BEGIN PARAMETERS
   Dimension  2
   ML         0
   MeshType   ToBeCurvedStructuredTRI
+  Geometry   NONE
 
   Form       Weak  // Options: Weak, (Strong)
   NodeType   GL-AO // Options: GL/GLL-AO/WSH

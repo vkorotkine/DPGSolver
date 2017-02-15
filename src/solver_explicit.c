@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "solver_explicit.h"
 
@@ -16,7 +16,7 @@
 #include "adaptation.h"
 #include "update_VOLUMEs.h"
 #include "explicit_VOLUME_info.h"
-#include "explicit_FACET_info.h"
+#include "explicit_FACE_info.h"
 #include "finalize_RHS.h"
 #include "output_to_paraview.h"
 
@@ -76,8 +76,10 @@ void solver_explicit(void)
 		else if (Adapt == ADAPT_H)
 			dt = pow(0.5,(DB.ML+DB.LevelsMax)+DB.PGlobal+1);
 		else if (Adapt == ADAPT_HP)
-			dt = pow(0.5,max(DB.ML,DB.LevelsMax)+DB.PMax+1);
+//			dt = 1e4*pow(0.5,max(DB.ML,DB.LevelsMax)+DB.PMax+1);
+			dt = 1e1*pow(0.5,DB.ML+DB.PGlobal);
 	}
+	printf("%d %d\n",DB.ML,DB.PGlobal);
 
 	// Compute Mass matrix for uncollocated schemes
 	update_VOLUME_Ops();
@@ -98,7 +100,7 @@ void solver_explicit(void)
 			for (rk = 0; rk < 3; rk++) {
 				// Build the RHS (== -Residual)
 				printf("V");  explicit_VOLUME_info();
-				printf("F");  explicit_FACET_info();
+				printf("F");  explicit_FACE_info();
 				printf("F "); maxRHS = finalize_RHS();
 
 				// Update What
@@ -132,7 +134,7 @@ void solver_explicit(void)
 			for (rk = 0; rk < 5; rk++) {
 				// Build the RHS (== -Residual)
 				printf("V");  explicit_VOLUME_info();
-				printf("F");  explicit_FACET_info();
+				printf("F");  explicit_FACE_info();
 				printf("F "); maxRHS = finalize_RHS();
 
 				// Update What
@@ -168,13 +170,15 @@ void solver_explicit(void)
 		printf("Complete: % 7.2f%%, tstep: %8d, maxRHS (no MInv): % .3e\n",100*time/FinalTime,tstep,maxRHS);
 
 		// Additional exit conditions
+//		if ((maxRHS0/maxRHS > 1e3 || maxRHS < 8e-14) && tstep > 2) {
 		if ((maxRHS0/maxRHS > 1e10 || maxRHS < 8e-14) && tstep > 2) {
 			printf("Exiting: maxRHS dropped by 10 orders or is below 8e-14.\n");
 			break;
 		}
 
 		// hp adaptation
-		if (Adapt)
+//		if (Adapt)
+		if (0&&Adapt)
 			adapt_hp();
 
 		tstep++;

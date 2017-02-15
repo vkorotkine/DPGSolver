@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "exact_solutions.h"
 
@@ -23,6 +23,8 @@
  *	References:
  */
 
+#define POISSON_SCALE 0.125
+
 void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, const unsigned int solved)
 {
 	// Initialize DB Parameters
@@ -44,9 +46,7 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, con
 	Z = &XYZ[(d-1)*Nn];
 
 	// Perhaps modify TestCase for Test_L2_proj and Test_update_h to make this cleaner, also in other functions (ToBeDeleted)
-	if (strstr(TestCase,"PeriodicVortex") ||
-	    strstr(TestCase,"Test_L2_proj")   ||
-	    strstr(TestCase,"Test_update_h")) {
+	if (strstr(TestCase,"PeriodicVortex")) {
 		// Initialize DB Parameters
 		double       pInf           = DB.pInf,
 					 TInf           = DB.TInf,
@@ -86,8 +86,7 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, con
 			pEx[i]   = pInf - rhoInf*(C*C)/(2*Rc*Rc)*exp(-r2);
 			rhoEx[i] = rhoInf;
 		}
-	} else if (strstr(TestCase,"SupersonicVortex") ||
-	           strstr(TestCase,"Test_linearization")) {
+	} else if (strstr(TestCase,"SupersonicVortex")) {
 		// Initialize DB Parameters
 		double rIn   = DB.rIn,
 		       MIn   = DB.MIn,
@@ -112,7 +111,9 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, con
 	} else if (strstr(TestCase,"Poisson")) {
 		for (i = 0; i < Nn; i++) {
 			if (d == 2)
-				UEx[i] = sin(PI*X[i])*sin(PI*Y[i]);
+//				UEx[i] = sin(PI*X[i])*sin(PI*Y[i]);
+				UEx[i] = cos(POISSON_SCALE*PI*X[i])*cos(POISSON_SCALE*PI*Y[i]);
+//				UEx[i] = X[i]*Y[i]*sin(PI*X[i])*sin(PI*Y[i]);
 			else if (d == 3)
 				UEx[i] = sin(PI*X[i])*sin(PI*Y[i])*sin(PI*Z[i]);
 		}
@@ -138,8 +139,12 @@ void compute_exact_gradient(const unsigned int Nn, double *XYZ, double *QEx)
 	if (strstr(TestCase,"Poisson")) {
 		for (i = 0; i < Nn; i++) {
 			if (d == 2) {
-				QEx[Nn*0+i] = PI*cos(PI*X[i])*sin(PI*Y[i]);
-				QEx[Nn*1+i] = PI*sin(PI*X[i])*cos(PI*Y[i]);
+//				QEx[Nn*0+i] = PI*cos(PI*X[i])*sin(PI*Y[i]);
+//				QEx[Nn*1+i] = PI*sin(PI*X[i])*cos(PI*Y[i]);
+				QEx[Nn*0+i] = -POISSON_SCALE*PI*sin(POISSON_SCALE*PI*X[i])*cos(POISSON_SCALE*PI*Y[i]);
+				QEx[Nn*1+i] = -POISSON_SCALE*PI*cos(POISSON_SCALE*PI*X[i])*sin(POISSON_SCALE*PI*Y[i]);
+//				QEx[Nn*0+i] = Y[i]*sin(PI*Y[i])*(sin(PI*X[i])+X[i]*PI*cos(PI*X[i]));
+//				QEx[Nn*1+i] = X[i]*sin(PI*X[i])*(sin(PI*Y[i])+Y[i]*PI*cos(PI*Y[i]));
 			} else if (d == 3) {
 				QEx[Nn*0+i] = PI*cos(PI*X[i])*sin(PI*Y[i])*sin(PI*Z[i]);
 				QEx[Nn*1+i] = PI*sin(PI*X[i])*cos(PI*Y[i])*sin(PI*Z[i]);
@@ -175,7 +180,10 @@ void compute_source(const unsigned int Nn, double *XYZ, double *source)
 		for (eq = 0; eq < Neq; eq++) {
 			for (n = 0; n < Nn; n++) {
 				if (d == 2)
-					source[eq*Nn+n] = -2.0*PI*PI*sin(PI*X[n])*sin(PI*Y[n]);
+//					source[eq*Nn+n] = -2.0*PI*PI*sin(PI*X[n])*sin(PI*Y[n]);
+					source[eq*Nn+n] = -2.0*pow(POISSON_SCALE*PI,2.0)*cos(POISSON_SCALE*PI*X[n])*cos(POISSON_SCALE*PI*Y[n]);
+//					source[eq*Nn+n] = PI*(Y[n]*sin(PI*Y[n])*(2*cos(PI*X[n])-PI*X[n]*sin(PI*X[n]))
+//					                     +X[n]*sin(PI*X[n])*(2*cos(PI*Y[n])-PI*Y[n]*sin(PI*Y[n])));
 				else if (d == 3)
 					source[eq*Nn+n] = -3.0*PI*PI*sin(PI*X[n])*sin(PI*Y[n])*sin(PI*Z[n]);
 			}

@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "test_unit_equivalence_real_complex.h"
 
@@ -68,7 +68,7 @@ void test_unit_equivalence_real_complex(void)
 	strcpy(TestCase,"SupersonicVortex");
 	DB.TestCase = TestCase;
 
-	initialize_test_case_parameters(TestCase);
+	initialize_test_case_parameters();
 
 	for (d = 1; d <= 3; d++) {
 		Neq  = d+2;
@@ -116,6 +116,7 @@ void test_unit_equivalence_real_complex(void)
 	}
 
 	free(DB.TestCase);
+	free(DB.SolverType);
 }
 
 static unsigned int compare_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const unsigned int d,
@@ -249,7 +250,7 @@ static unsigned int compare_boundary(const unsigned int Nn, const unsigned int N
 	for (i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
 		WBctr[i] = creal(WBc[i]);
 
-	if (array_norm_diff_d(NnTotal*Nvar,WBr,WBctr,"Inf") < EPS)
+	if (array_norm_diff_d(NnTotal*Nvar,WBr,WBctr,"Inf") < 1e1*EPS)
 		pass = 1, TestDB.Npass++;
 
 	free(WBr);

@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "setup_parameters.h"
 
@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
- 
+
 #include "Parameters.h"
 #include "Macros.h"
 #include "Test.h"
@@ -18,7 +18,7 @@
  *		Set up parameters based on inputs obtained in initialization.c.
  *
  *	Comments:
- *		FACET integration nodes must be consistent between FACETs of different element types.
+ *		FACE integration nodes must be consistent between FACEs of different element types.
  *
  *		Guidelines: (ToBeModified)
  *			PF           >= P
@@ -50,16 +50,16 @@
  *			PYR Elements:
  *				ToBeModified
  *
- *		For the collocated scheme, it is advantageous to use WV nodes for TET FACET cubature nodes as they have better
- *		integration properties and there is no collocated with the FACET between the 2D and 3D WSH nodes anyways.
+ *		For the collocated scheme, it is advantageous to use WV nodes for TET FACE cubature nodes as they have better
+ *		integration properties and there is no collocated with the FACE between the 2D and 3D WSH nodes anyways.
  *		However, if WEDGEs are also present, this cannot be done as it destroys the sum factorization capabilities.
  *		Perhaps make a modification to allow for this in the future when only TETs are present. (ToBeDeleted)
  *
  *		For computational efficiency, it is beneficial to use GLL-AO nodes (i.e. VOLUME nodes which have a subset
- *		situated on ELEMENT FACETs) as this results in sparse FACET operators. Intuitively, this can be understood by
- *		noting that basis functions represent the solution to order P both in the VOLUME and on FACETs in this case.
- *		Thus, when operating on VOLUME nodes for FACET operators, as the VOLUME nodes on the FACET already fully
- *		represent the solution of order P on the FACET, the other nodes have no contribution.
+ *		situated on ELEMENT FACEs) as this results in sparse FACE operators. Intuitively, this can be understood by
+ *		noting that basis functions represent the solution to order P both in the VOLUME and on FACEs in this case.
+ *		Thus, when operating on VOLUME nodes for FACE operators, as the VOLUME nodes on the FACE already fully
+ *		represent the solution of order P on the FACE, the other nodes have no contribution.
  *		Note that for HEX ELEMENTs, results have shown that this can lead to a deterioration in accuracy. This may be
  *		acceptable however given the performance gains.
  *		Also, it is important to find a break-even with the standard BLAS call here as the sparsity is not as
@@ -84,12 +84,12 @@
  *		PF       : Order used for representation of the (F)lux.
  *
  *		PI(1)(2) : Order used for integration (cubature order).
- *		           (1) : (v)olume, (f)acet
+ *		           (1) : (v)olume, (f)ace
  *		           (2) : (s)traight, (c)urved
  *
  *		SF_BE[0][1][2] : Flag for when (S)um (F)actorization (B)reaks (E)ven.
  *		                 [0] - Polynomial order
- *		                 [1] - 0: VOLUME, 1: FACET
+ *		                 [1] - 0: VOLUME, 1: FACE
  *		                 [2] - 0: TP (QUAD/HEX), 1: WEDGE
  *		                 Note: It may be beneficial to also add the capability for the fast interpolation/differentiation
  *		                       using the Fourier transformed operators, certainly if running the code in a very high-order
@@ -100,15 +100,24 @@
  *		                       Fladrich-Stiller(2008)-Improved_Performance_for_Nodal_Spectral_Element_Operators for
  *		                       computational considerations.
  *
- *		VFPartUnity     : Flag for whether the (V)OLUME nodes form a (Part)ition of (Unity) on the ELEMENT (F)ACETs.
+ *		VFPartUnity     : Flag for whether the (V)OLUME nodes form a (Part)ition of (Unity) on the ELEMENT (F)ACEs.
  *
  *		AC              : Specifies whether (a)ll elements are (c)urved or not.
  *		ExactGeom       : Move boundary nodes to exact geometry if enabled.
+ *		Blending_HO     : Flag for whether (H)igh-(O)rder blending should be used (analogously to Lenoir, eq. (22)).
+ *		Blending        : Type of blending used in curved elements. Options:
+ *		                  GORDON_HALL
+ *		                  SZABO_BABUSKA
+ *		                  SCOTT
+ *		                  NIELSON
  *		Parametrization : Type of parametrization used in curved elements.
+ *		                  Options: ArcLength, RadialProjection (Under consideration), EqualTangent (Under consideration)
+ *		                  See Bjontegaard(2012)-Spectral_Approximation_of_Partial_Differential_Equations_in_Highly
+ *		                                        _Distorted_Domains
  *
  *		NodeType()[] : Node type used for each type of node () and each type of element [].
  *		               () : (S)olution, (F)lux, (F)lux in (r)eference space, (I)ntegration
- *		                    (f)acet/(v)olume (s)traight/(c)urved
+ *		                    (f)ace/(v)olume (s)traight/(c)urved
  *		               [] : TP [0], SI [1], PYR [2]
  *		InviscidFluxType : Type of inviscid numerical flux used.
  *		                   Options: LF, ROE
@@ -120,6 +129,8 @@
  *		                Options: TET8 (TET -> 8 TET), TET12 (TET -> 12 TET), TET6 (TET -> 4 TET + 2 PYR)
  *
  *	References:
+ *		Lenoir(1986)-Optimal_Isoparametric_Finite_Elements_and_Error_Estimates_for_Domains_Involving_Curved_Boundaries
+ *		Scott(1973)-Finite_Element_Techniques_for_Curved_Boundaries
  *
  */
 
@@ -132,20 +143,19 @@ void setup_parameters()
 	             EFE        = DB.EFE,
 	             Collocated = DB.Collocated;
 
-	char         *Parametrization,
-	             **NodeTypeG,
+	char         **NodeTypeG,
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;
 	unsigned int i, iMax, u1,
 	             P, NP, IntOrderfs, IntOrderfc, IntOrdervs, IntOrdervc,
-	             ***SF_BE, *VFPartUnity,
+	             ***SF_BE, *VFPartUnity, Blending, Blending_HO, Parametrization,
 	             PGs, *PGc, **PCs, **PCc, **PJs, **PJc,
 	             *PF, **PFrs, **PFrc, **PIfs, **PIfc, **PIvs, **PIvc;
 
 	if (DB.PGlobal > PMax)
-		printf("Error: P must be less than or equal PMax.\n"), exit(1);
+		printf("Error: P must be less than or equal PMax.\n"), EXIT_MSG;
 	if (PMax == 0)
-		printf("Error: Please choose PMax > 0.\n"), exit(1);
+		printf("Error: Please choose PMax > 0.\n"), EXIT_MSG;
 
 	u1 = 1;
 
@@ -167,7 +177,6 @@ void setup_parameters()
 
 	VFPartUnity = calloc((NEC+1) , sizeof *VFPartUnity); // keep
 
-	Parametrization = malloc(STRLEN_MAX * sizeof *NodeTypeS); // keep
 	NodeTypeG       = malloc(NEC * sizeof *NodeTypeG);        // keep
 	NodeTypeS       = malloc(NP  * sizeof *NodeTypeS);        // keep
 	NodeTypeF       = malloc(NP  * sizeof *NodeTypeF);        // keep
@@ -212,8 +221,20 @@ void setup_parameters()
 		DB.AC = 0, DB.ExactGeom = 1;
 
 	// ToBeModified (likely included in .ctrl file)
-	strcpy(Parametrization,"ArcLength");
-	//strcpy(Parametrization,"RadialProjection");
+	Blending_HO = 0;
+//	Blending = GORDON_HALL;
+	Blending = SZABO_BABUSKA;
+//	Blending = SCOTT;
+//	Blending = NIELSON;
+
+	Parametrization = NORMAL;
+//	Parametrization = ARC_LENGTH;
+//	Parametrization = RADIAL_PROJECTION;
+//	Parametrization = ORDER_H;
+
+	if ((strstr(DB.Geometry,"Ringleb")    && Parametrization != NORMAL) ||
+	    (strstr(DB.Geometry,"HoldenRamp") && Parametrization != NORMAL))
+		printf("Error: Unsupported.\n"), EXIT_MSG;
 
 	for (i = 0; i < NEC; i++)
 		NodeTypeG[i] = malloc(STRLEN_MIN * sizeof **NodeTypeG); // keep
@@ -221,6 +242,9 @@ void setup_parameters()
 	strcpy(NodeTypeG[0],"GLL");
 	strcpy(NodeTypeG[1],"AO");
 	strcpy(NodeTypeG[2],"GLL");
+//	strcpy(NodeTypeG[0],"EQ");
+//	strcpy(NodeTypeG[1],"EQ");
+//	strcpy(NodeTypeG[2],"EQ");
 
 	// Order dependent parameters
 	for (P = 0; P <= PMax; P++) {
@@ -244,14 +268,14 @@ void setup_parameters()
 		PJc[P] = malloc(NEC * sizeof **PJc); // keep
 
 		// ToBeDeleted: These orders may not be sufficient for 3D. To be investigated.
-//		PGc[P]    = max(P,u1);
-		PGc[P]    = P+1;
-		PCs[P][0] = PGs;
-		PCs[P][1] = max(PGs-1,u1);
-		PCs[P][2] = PGs;             // ToBeModified
-		PCc[P][0] = PGc[P];
-		PCc[P][1] = max(PGc[P]-1,u1);
-		PCc[P][2] = PGc[P];          // ToBeModified
+		PGc[P]    = max(P,u1);
+//		PGc[P]    = P+1;
+		PCs[P][0] = (d-1)*PGs;
+		PCs[P][1] = (d-1)*max(PGs-1,u1);
+		PCs[P][2] = (d-1)*PGs;
+		PCc[P][0] = (d-1)*PGc[P];
+		PCc[P][1] = (d-1)*max(PGc[P]-1,u1);
+		PCc[P][2] = (d-1)*PGc[P];
 		PJs[P][0] = PGs;
 		PJs[P][1] = max(PGs-1,u1);
 		PJs[P][2] = PGs;             // ToBeModified
@@ -332,26 +356,17 @@ void setup_parameters()
 			}
 
 			if (strstr(DB.NodeType,"AO")) {
-				if (P == 0) {
-					strcpy(NodeTypeS[P][1],"WSH");
-				} else {
-					strcpy(NodeTypeS[P][1],"AO");
-				}
-
-				if (PF[P] == 0) {
-					strcpy(NodeTypeF[P][1],"WSH");
-				} else {
-					strcpy(NodeTypeF[P][1],"AO");
-				}
-
-				strcpy(NodeTypeFrs[P][1],"AO");
-				strcpy(NodeTypeFrc[P][1],"AO");
+				strcpy(NodeTypeS  [P][1],"AO");
+				strcpy(NodeTypeF  [P][1],"AO");
+			} else if (strstr(DB.NodeType,"EQ")) {
+				strcpy(NodeTypeS  [P][1],"EQ");
+				strcpy(NodeTypeF  [P][1],"EQ");
 			} else {
 				strcpy(NodeTypeS  [P][1],"WSH");
 				strcpy(NodeTypeF  [P][1],"WSH");
-				strcpy(NodeTypeFrs[P][1],"WSH");
-				strcpy(NodeTypeFrc[P][1],"WSH");
 			}
+			strcpy(NodeTypeFrs[P][1],"NOT_USED");
+			strcpy(NodeTypeFrc[P][1],"NOT_USED");
 
 			// Interpolation (PYR)
 			if (strstr(DB.NodeType,"GLL")) {
@@ -417,8 +432,8 @@ void setup_parameters()
 			// PYR
 			strcpy(NodeTypeIfs[P][2],"NOT_USED");
 			strcpy(NodeTypeIfc[P][2],"NOT_USED");
-			strcpy(NodeTypeIvs[P][2],"GLW");
-			strcpy(NodeTypeIvc[P][2],"GLW");
+			strcpy(NodeTypeIvs[P][2],"GJW");
+			strcpy(NodeTypeIvc[P][2],"GJW");
 
 			PIfs[P][2] = 0; // Not used
 			PIfc[P][2] = 0; // Not used
@@ -440,7 +455,7 @@ void setup_parameters()
 			if (strstr(DB.NodeType,"GLL") && P > 0) {
 				/*
 				 * Brian's original code parameters
-				 * This is the only version of the scheme where all nodes are collocated (i.e. FACET nodes are
+				 * This is the only version of the scheme where all nodes are collocated (i.e. FACE nodes are
 				 * collocated with VOLUME nodes as well). Consequently, there is negligible additional cost for the
 				 * strong form as compared to the weak form as the discontinuous boundary flux term is already evaluated
 				 * in the VOLUME term.
@@ -509,7 +524,7 @@ void setup_parameters()
 			strcpy(NodeTypeIvc[P][2],"NOT_SUPPORTED");
 
 			// For collocated interpolation and integration nodes, a desired VOLUME integration order cannot be
-			// specified. Further, if using GLL NodeType, FACET integration order also cannot be specified.
+			// specified. Further, if using GLL NodeType, FACE integration order also cannot be specified.
 			for (i = 0; i < NEC; i++) {
 				PIfs[P][i] = P;
 				PIfc[P][i] = P;
@@ -549,8 +564,8 @@ void setup_parameters()
 	DB.coarse_frac = 0.2;
 
 	DB.TETrefineType = TET8;
-//	DB.TETrefineType = TET12;
 //	DB.TETrefineType = TET6;
+//	DB.TETrefineType = TET12;
 
 	// Assign DB Parameters
 	DB.NP    = NP;
@@ -570,6 +585,8 @@ void setup_parameters()
 	DB.PIvs  = PIvs;
 	DB.PIvc  = PIvc;
 
+	DB.Blending_HO     = Blending_HO;
+	DB.Blending        = Blending;
 	DB.Parametrization = Parametrization;
 	DB.NodeTypeG       = NodeTypeG;
 	DB.NodeTypeS       = NodeTypeS;
@@ -593,6 +610,7 @@ void setup_parameters_L2proj(void)
 
 	// Initialize DB and TestDB Parameters
 	unsigned int PG_add        = TestDB.PG_add,
+	             IntOrder_add  = TestDB.IntOrder_add,
 	             IntOrder_mult = TestDB.IntOrder_mult,
 	             Collocated    = DB.Collocated;
 
@@ -617,13 +635,13 @@ void setup_parameters_L2proj(void)
 	for (P = 0; P <= PMax; P++) {
 		// Geometry
 		PGc[P]    = max(P,u1)+PG_add;
-PGc[P] = PGs;
-		PCs[P][0] = PGs;
-		PCs[P][1] = max(PGs-1,u1);
-		PCs[P][2] = PGs;             // ToBeModified
+//PGc[P] = 1;
+		PCs[P][0] = (d-1)*PGs;
+		PCs[P][1] = (d-1)*max(PGs-1,u1);
+		PCs[P][2] = (d-1)*PGs;
 		PCc[P][0] = (d-1)*PGc[P];
 		PCc[P][1] = (d-1)*max(PGc[P]-1,u1);
-		PCc[P][2] = PGc[P];          // ToBeModified
+		PCc[P][2] = (d-1)*PGc[P];
 		PJs[P][0] = PGs;
 		PJs[P][1] = max(PGs-1,u1);
 		PJs[P][2] = PGs;             // ToBeModified
@@ -633,7 +651,7 @@ PGc[P] = PGs;
 
 		if (!Collocated) {
 			// Integration
-			IntOrder = max(P*IntOrder_mult,u1);
+			IntOrder = max(P*IntOrder_mult,u1)+IntOrder_add;
 
 			// TP
 			PIfs[P][0] = floor(IntOrder/2.0);

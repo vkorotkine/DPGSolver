@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "output_to_paraview.h"
 
@@ -7,19 +7,20 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
- 
+
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_FACET.h"
+#include "S_FACE.h"
 
 #include "element_functions.h"
 #include "matrix_functions.h"
 #include "variable_functions.h"
 
-#include "exact_solutions.h" // ToBeDeleted
+#include "exact_solutions.h"
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -200,7 +201,7 @@ static void output_geom(const char *geom_type)
 					fprintf(fID,"\t\t\t\t");
 					for (dim = 0; dim < d; dim++)
 						fprintf(fID,"% .3f ",XYZ_vP[dim*NvnP+i]);
-					for (dim = d; dim < 3; dim++)
+					for (dim = d; dim < DMAX; dim++)
 						fprintf(fID,"% .3f ",0.0);
 					fprintf(fID,"\n");
 				}
@@ -333,7 +334,7 @@ static void output_normals(const char *normals_type)
 
 	struct S_ELEMENT *ELEMENT;
 	struct S_VOLUME  *VIn;
-	struct S_FACET   *FACET;
+	struct S_FACE   *FACE;
 
 	// silence
 	XYZ_f = NULL;
@@ -385,17 +386,17 @@ static void output_normals(const char *normals_type)
 	fprintf_tn(fID,0,"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">");
 	fprintf_tn(fID,1,"<PolyData>\n");
 
-	for (FACET = DB.FACET; FACET; FACET = FACET->next) {
-		curved = FACET->curved;
+	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		curved = FACE->curved;
 
-		VIn  = FACET->VIn;
-		VfIn = FACET->VfIn;
+		VIn  = FACE->VIn;
+		VfIn = FACE->VfIn;
 
 		if (VfIn % NFREFMAX != 0)
-			printf("Error: VfIn should be h-conforming in output_to_paraview (output_normals).\n"), exit(1); 
+			printf("Error: VfIn should be h-conforming in output_to_paraview (output_normals).\n"), exit(1);
 
 		PV = VIn->P;
-		PF = FACET->P;
+		PF = FACE->P;
 
 		ELEMENT = get_ELEMENT_type(VIn->type);
 		Eclass  = get_Eclass(ELEMENT->type);
@@ -413,14 +414,14 @@ printf("Error: Should not be entering default in output_to_paraview.\n"), exit(1
 			if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fS[1][PF][VfIn];
 			else              I_vG_f = ELEMENT->I_vGc_fS[PV][PF][VfIn];
 
-			n = FACET->n_fS;
+			n = FACE->n_fS;
 			XYZ_f = mm_Alloc_d(CBCM,CBT,CBNT,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
 			break;
 case ADAPT_P: // ToBeModified
 case ADAPT_H:
 case ADAPT_HP:
 		case ADAPT_0:
-			if (FACET->typeInt == 's') {
+			if (FACE->typeInt == 's') {
 				Nfn = ELEMENT->NfnIs[PF][IndFType];
 				if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIs[1][PF][VfIn];
 				else              I_vG_f = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
@@ -429,7 +430,7 @@ case ADAPT_HP:
 				if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIc[1][PF][VfIn];
 				else              I_vG_f = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
 			}
-			n = FACET->n_fI;
+			n = FACE->n_fI;
 			XYZ_f = mm_Alloc_d(CBCM,CBT,CBNT,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
 			break;
 		}
@@ -600,6 +601,19 @@ static void output_solution(const char *sol_type)
 			q = calloc(DMAX*NvnP , sizeof *q); // free
 			for (dim = 0; dim < d; dim++)
 				mm_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,0.0,ChiS_vP,VOLUME->qhat[dim],&q[dim*NvnP]);
+
+			// Store solution error in q3 for d = 2
+			if (d == 2) {
+				unsigned int n;
+				double       *uEx;
+
+				uEx = malloc(NvnP*1 * sizeof *uEx); // free
+				compute_exact_solution(NvnP,XYZ_vP,uEx,1);
+				for (n = 0; n < NvnP; n++)
+					q[d*NvnP+n] = fabs(u[n]-uEx[n]);
+
+				free(uEx);
+			}
 		} else {
 			W_vP = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->What); // free
 
@@ -635,7 +649,7 @@ static void output_solution(const char *sol_type)
 					fprintf(fID,"\t\t\t\t");
 					for (dim = 0; dim < d; dim++)
 						fprintf(fID,"% .4e ",XYZ_vP[dim*NvnP+i]);
-					for (dim = d; dim < 3; dim++)
+					for (dim = d; dim < DMAX; dim++)
 						fprintf(fID,"% .4e ",0.0);
 					fprintf(fID,"\n");
 				}
@@ -785,6 +799,162 @@ static void output_solution(const char *sol_type)
 	fclose(fID);
 }
 
+static void output_mesh_edges(const char *mesh_type)
+{
+	// Initialize DB Parameters
+	char         *TestCase = DB.TestCase,
+	             *MeshType = DB.MeshType;
+	unsigned int d         = DB.d;
+	int          MPIrank   = DB.MPIrank,
+	             MPIsize   = DB.MPIsize;
+
+	// standard datatypes
+	char         MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_name_source[STRLEN_MAX],
+	             f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
+	unsigned int i, iMax, j, jMax, dim, sum, P, PP, Ne, NvnP, NvnG, NenP, *connectivityE;
+	double       *I_vG_vP, *XYZ_vP;
+	FILE         *fID;
+
+	struct S_ELEMENT *ELEMENT;
+	struct S_VOLUME *VOLUME;
+
+	sprintf(MPIrank_c,"%d",MPIrank);
+	strcpy(f_name,TestCase); strcat(f_name,"/");
+	strcat(f_name,MeshType); strcat(f_name,"/");
+	strcat(f_name,mesh_type);
+	strcpy(f_name_source,mesh_type);
+
+	if (!DB.MPIrank) {
+		strcpy(f_parallel,"paraview/");
+		strcat(f_parallel,f_name);
+		strcat(f_parallel,".pvtu");
+
+		if ((fID = fopen(f_parallel,"w")) == NULL)
+			printf("Error: File: %s, did not open.\n",f_parallel), EXIT_MSG;
+
+		fprintf_tn(fID,0,"<?xml version=\"1.0\"?>");
+		fprintf_tn(fID,0,"<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">");
+		fprintf_tn(fID,1,"<PUnstructuredGrid GhostLevel=\"0\">\n");
+
+		fprintf_tn(fID,2,"<PPoints>");
+		fprintf_tn(fID,3,"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"ascii\"/>");
+		fprintf_tn(fID,2,"</PPoints>\n");
+
+		fprintf_tn(fID,2,"<PCells>");
+		fprintf_tn(fID,3,"<PDataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\"/>");
+		fprintf_tn(fID,3,"<PDataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\"/>");
+		fprintf_tn(fID,3,"<PDataArray type=\"UInt8\" Name=\"types\" format=\"ascii\"/>");
+		fprintf_tn(fID,2,"</PCells>\n");
+
+		for (i = 0, iMax = (unsigned int) MPIsize; i < iMax; i++)
+			fprintf(fID,"\t\t<Piece Source=\"%s%d.vtu\"/>\n",f_name_source,i);
+
+		fprintf_tn(fID,1,"</PUnstructuredGrid>");
+		fprintf_tn(fID,0,"</VTKFile>");
+
+		fclose(fID);
+	}
+
+	strcpy(f_serial,"paraview/");
+	strcat(f_serial,f_name);
+	strcat(f_serial,MPIrank_c);
+	strcat(f_serial,".vtu");
+
+	if ((fID = fopen(f_serial,"w")) == NULL)
+		printf("Error: File f_serial did not open.\n"), exit(1);
+
+	fprintf_tn(fID,0,"<?xml version=\"1.0\"?>");
+	fprintf_tn(fID,0,"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">");
+	fprintf_tn(fID,1,"<UnstructuredGrid>\n");
+
+	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+		P = VOLUME->P;
+
+		// Visualize with higher order to see curved geometry if applicable (P+1 is the maximum currently supported)
+		if (!VOLUME->curved || DB.Adapt == ADAPT_0 || DB.Adapt == ADAPT_H)
+			PP = P;
+		else
+			PP = P;
+//			PP = min(PMax,P+1);
+
+		connectivityE = ELEMENT->connectivityE[PP];
+
+		Ne   = ELEMENT->Ne;
+		NenP = PP+1;
+		NvnP = ELEMENT->NvnP[PP];
+		NvnG = VOLUME->NvnG;
+
+		if (!VOLUME->curved)
+			I_vG_vP = ELEMENT->I_vGs_vP[1][P][0];
+		else
+			I_vG_vP = ELEMENT->I_vGc_vP[P][PP][0];
+
+		XYZ_vP = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,d,NvnG,1.0,I_vG_vP,VOLUME->XYZ);     // free
+
+		fprintf(fID,"\t\t<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n",NvnP,Ne);
+
+			fprintf_tn(fID,3,"<Points>");
+				fprintf(fID,"\t\t\t\t<DataArray type=\"Float32\" NumberOfComponents=\"%d\" format=\"ascii\">\n",3);
+				for (i = 0; i < NvnP; i++) {
+					fprintf(fID,"\t\t\t\t");
+					for (dim = 0; dim < d; dim++)
+						fprintf(fID,"% .4e ",XYZ_vP[dim*NvnP+i]);
+					for (dim = d; dim < DMAX; dim++)
+						fprintf(fID,"% .4e ",0.0);
+					fprintf(fID,"\n");
+				}
+				fprintf_tn(fID,4,"</DataArray>");
+			fprintf_tn(fID,3,"</Points>");
+
+			fprintf_tn(fID,3,"<Cells>");
+
+				fprintf_tn(fID,4,"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">");
+				for (i = 0; i < Ne; i++) {
+					fprintf(fID,"\t\t\t\t");
+					for (j = 0, jMax = NenP; j < jMax; j++)
+						fprintf(fID,"%6d ",connectivityE[i*NenP+j]);
+					fprintf(fID,"\n");
+				}
+				fprintf_tn(fID,4,"</DataArray>");
+
+				fprintf_tn(fID,4,"<DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">");
+				fprintf(fID,"\t\t\t\t");
+				for (i = 0, sum = 0; i < Ne; i++) {
+					sum += NenP;
+					fprintf(fID,"%6d ",sum);
+					if ((i+1) % NenP == 0 && i != Ne-1)
+						fprintf(fID,"\n\t\t\t\t");
+					else if (i == Ne-1)
+						fprintf(fID,"\n");
+				}
+				fprintf_tn(fID,4,"</DataArray>");
+
+				fprintf_tn(fID,4,"<DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">");
+				fprintf(fID,"\t\t\t\t");
+				for (i = 0; i < Ne; i++) {
+					fprintf(fID,"%6d ",4); // This is the type for VTK_POLY_LINE
+					if ((i+1) % NenP == 0 && i != Ne-1)
+						fprintf(fID,"\n\t\t\t\t");
+					else if (i == Ne-1)
+						fprintf(fID,"\n");
+				}
+				fprintf_tn(fID,4,"</DataArray>");
+
+			fprintf_tn(fID,3,"</Cells>");
+
+		fprintf_tn(fID,2,"</Piece>\n");
+
+		free(XYZ_vP);
+	}
+
+	fprintf_tn(fID,1,"</UnstructuredGrid>");
+	fprintf(fID,"</VTKFile>");
+
+	fclose(fID);
+}
+
 
 void output_to_paraview(const char *OutputType)
 {
@@ -794,6 +964,8 @@ void output_to_paraview(const char *OutputType)
 		output_normals(OutputType);
 	else if (strstr(OutputType,"Sol"))
 		output_solution(OutputType);
+	else if (strstr(OutputType,"MeshEdges"))
+		output_mesh_edges(OutputType);
 	else
 		printf("Error: Unsupported OutputType in output_to_paraview.\n"), exit(1);
 

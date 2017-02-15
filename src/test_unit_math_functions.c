@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "test_unit_math_functions.h"
 
@@ -63,28 +63,31 @@ void test_unit_math_gamma(void)
 	unsigned int pass;
 
 	/*
-	 *	gamma_ull:
+	 *	gamma_d:
 	 *
 	 *		Input:
 	 *
 	 *			A = 4
 	 *			B = 8
+	 *			C = 16
 	 *
 	 *		Expected Output:
 	 *
 	 *			A : 6
 	 *			B : 5040
+	 *			C : 1307674368000
 	 */
 
-	unsigned int A_ull = 4, B_ull = 8;
+	unsigned int A_ull = 4, B_ull = 8, C_ull = 16;
 
 	pass = 0;
-	if (gamma_ull(A_ull) == 6   &&
-		gamma_ull(B_ull) == 5040)
-			pass = 1, TestDB.Npass++;
+	if (gamma_d(A_ull) == 6.0    &&
+		gamma_d(B_ull) == 5040.0 &&
+		gamma_d(C_ull) == 1307674368000.0)
+		    pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
-	printf("math_gamma_ull:                                  ");
+	printf("math_gamma_d:                                    ");
 	test_print(pass);
 
 	/*

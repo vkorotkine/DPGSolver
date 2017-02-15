@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "test_unit_bases.h"
 
@@ -10,10 +10,12 @@
 #include "mkl.h"
 
 #include "Parameters.h"
+#include "Macros.h"
 #include "Test.h"
 
 #include "test_support.h"
 #include "test_code_bases.h"
+#include "select_functions.h"
 #include "bases.h"
 #include "cubature.h"
 #include "math_functions.h"
@@ -33,6 +35,67 @@
  *
  *	References:
  */
+
+struct S_orthogonality {
+	unsigned int d, P, PIv, type;
+	char         NodeType[STRLEN_MIN], PrntName[STRLEN_MAX];
+};
+
+static void test_basis_orthogonality(struct S_orthogonality *data, const unsigned int no_last_entry)
+{
+	// Standard datatypes
+	unsigned int pass = 0;
+
+	char         *NodeType, *PrntName;
+	unsigned int d, P, Nn, Ns, Nbf, *symms;
+	double       *rst, *w, *ChiRef_rst, *WChiRef_rst, *M, *I;
+
+	// Function pointers
+	cubature_tdef cubature;
+	basis_tdef    basis;
+
+	select_functions_cubature(&cubature,data->type);
+	select_functions_basis(&basis,data->type);
+
+	d        = data->d;
+	P        = data->P;
+	NodeType = data->NodeType;
+	PrntName = data->PrntName;
+
+	cubature(&rst,&w,&symms,&Nn,&Ns,1,data->PIv,d,NodeType); // free
+
+	ChiRef_rst = basis(P,rst,Nn,&Nbf,d); // free
+
+	WChiRef_rst = malloc(Nn*Nbf * sizeof *WChiRef_rst); // free
+	mm_diag_d(Nn,Nbf,w,ChiRef_rst,WChiRef_rst,1.0,'L','R');
+
+	M = mm_Alloc_d(CBRM,CBT,CBNT,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
+	I = identity_d(Nbf); // free
+
+	if (no_last_entry < 2) {
+		if (array_norm_diff_d(pow(Nbf,2)-no_last_entry,M,I,"Inf") < EPS*1e3)
+			pass = 1, TestDB.Npass++;
+
+		//     0         10        20        30        40        50
+		printf("          orthogonality - %s (d%d, P%d):          ",PrntName,d,P);
+		test_print(pass);
+	} else if (no_last_entry < 4) {
+		if (no_last_entry == 3) {
+			array_print_d(Nbf,Nbf,M,'R');
+			array_print_d(Nbf,Nbf,I,'R');
+		}
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+
+	free(rst);
+	free(w);
+	free(symms);
+	free(ChiRef_rst);
+	free(WChiRef_rst);
+	free(M);
+	free(I);
+}
 
 static double *basis_TP13(const double *rst, const unsigned int Nn)
 {
@@ -276,142 +339,58 @@ void test_unit_basis_TP(void)
 	 *			M = ChiRef_rst'*W*ChiRef_rst = I with error in highest order entries (GLL)
 	 */
 
-	double *ChiRef_rst, *W, *WChiRef_rst, *M, *I;
+	struct S_orthogonality *data;
+
+	data = malloc(sizeof *data); // free
 
 	// dE = 1
 	dE = 1;
-
-	P = 4;
-	Nbf = pow(P+1,dE);
-	I = identity_d(Nbf); // free
+	P  = 4;
+	data->d = dE;
+	data->P = P;
+	data->type = LINE;
 
 	// GL
-
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GL"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_TP(P,rst,Nn,&Nbf,dE); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst); // free
-	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("         orthogonality - GL (d1):                ");
-	test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
+	data->PIv = P;
+	strcpy(data->NodeType,"GL");
+	strcpy(data->PrntName,"GL ");
+	test_basis_orthogonality(data,0);
 
 	// GLL
+	data->PIv = P;
+	strcpy(data->NodeType,"GLL");
+	strcpy(data->PrntName,"GLL");
+	test_basis_orthogonality(data,1);
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GLL"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_TP(P,rst,Nn,&Nbf,dE); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst); // free
-	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2)-1,M,I,"Inf") < EPS*10)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("         orthogonality - GLL (d1):               ");
-	test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
-	free(I);
 
 	// dE = 2
 	dE = 2;
-
-	P = 4;
-	Nbf = pow(P+1,dE);
-	I = identity_d(Nbf); // free
+	P  = 4;
+	data->d = dE;
+	data->P = P;
+	data->type = QUAD;
 
 	// GL
+	data->PIv = P;
+	strcpy(data->NodeType,"GL");
+	strcpy(data->PrntName,"GL ");
+	test_basis_orthogonality(data,0);
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GL"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_TP(P,rst,Nn,&Nbf,dE); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst); // free
-	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("         orthogonality - GL (d2):                ");
-	test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
-	free(I);
 
 	// dE = 3
 	dE = 3;
-
-	P = 4;
-	Nbf = pow(P+1,dE);
-	I = identity_d(Nbf); // free
+	P  = 4;
+	data->d = dE;
+	data->P = P;
+	data->type = HEX;
 
 	// GL
+	data->PIv = P;
+	strcpy(data->NodeType,"GL");
+	strcpy(data->PrntName,"GL ");
+	test_basis_orthogonality(data,0);
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GL"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_TP(P,rst,Nn,&Nbf,dE); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst); // free
-	M = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*10)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("         orthogonality - GL (d3):                ");
-	test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
-	free(I);
+	free(data);
 }
 
 /*
@@ -788,262 +767,80 @@ void test_unit_basis_SI(void)
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I
 	 *
 	 *			d = 2, P = 3, rst_WSH (P = 3), rst_WV (P = 6):
-	 *				M = ChiRef_rst'*W*ChiRef_rst = I with errro in highest order entries (WSH)
+	 *				M = ChiRef_rst'*W*ChiRef_rst = I with error in highest order entries (WSH)
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I (WV)
 	 *
 	 *			d = 3, P = 1, rst_WSH (P = 1), rst_WV (P = 2):
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I
 	 *
 	 *			d = 2, P = 2, rst_WSH (P = 2), rst_WV (P = 4):
-	 *				M = ChiRef_rst'*W*ChiRef_rst = I with errro in highest order entries (WSH)
+	 *				M = ChiRef_rst'*W*ChiRef_rst = I with error in highest order entries (WSH)
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I (WV)
 	 */
 
-	double *ChiRef_rst, *W, *WChiRef_rst, *M, *I;
+	struct S_orthogonality *data;
+
+	data = malloc(sizeof *data); // free
 
 	// d = 2
 	d = 2;
-
-	// P = 2
-	P = 2;
-	Nbf = 6;
-	I = identity_d(Nbf); // free
+	data->d = d;
+	data->type = TRI;
 
 	// WSH
-	Prst = P;
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WSH"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
-	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e3)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("         orthogonality - WSH (d2, P2):           ");
-		test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
-	// WV
-	Prst = 2*P;
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WV"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
-	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("                         WV (d2, P4):            ");
-		test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
-	free(I);
-
-	// P = 3
-	P = 3;
-	Nbf = 10;
-	I = identity_d(Nbf); // free
-
-	// WSH
-	Prst = P;
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WSH"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
-	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	if (printMI) {
-		array_print_d(Nbf,Nbf,M,'R');
-		array_print_d(Nbf,Nbf,I,'R');
+	for (P = 2; P <= 3; P++) {
+		data->P   = P;
+		data->PIv = P;
+		strcpy(data->NodeType,"WSH");
+		strcpy(data->PrntName,"WSH");
+		if (P == 2) {
+			test_basis_orthogonality(data,0);
+		} else if (P == 3) {
+			if (!printMI)
+				test_basis_orthogonality(data,2);
+			else
+				test_basis_orthogonality(data,3);
+		}
 	}
 
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
 	// WV
-	Prst = 2*P;
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WV"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
-	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("                         WV (d2, P6):            ");
-		test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
-	free(I);
+	for (P = 2; P <= 9; P++) {
+		data->P   = P;
+		data->PIv = 2*P;
+		strcpy(data->NodeType,"WV");
+		strcpy(data->PrntName,"WV ");
+		test_basis_orthogonality(data,0);
+	}
 
 	// d = 3
 	d = 3;
+	data->d = d;
+	data->type = TET;
 
-	// P = 1
-	P = 1;
-	Nbf = 4;
-	I = identity_d(Nbf); // free
+	for (P = 1; P <= 2; P++) {
+		data->P = P;
 
-	// WSH
-	Prst = P;
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WSH"); // free
+		// WSH
+		data->PIv = P;
+		strcpy(data->NodeType,"WSH");
+		strcpy(data->PrntName,"WSH");
+		if (P == 1) {
+			test_basis_orthogonality(data,0);
+		} else if (P == 2) {
+			if (!printMI)
+				test_basis_orthogonality(data,2);
+			else
+				test_basis_orthogonality(data,3);
+		}
 
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
-	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e3)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("         orthogonality - WSH (d3, P1):           ");
-		test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
-	// WV
-	Prst = 2*P;
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WV"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
-	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("                         WV (d3, P1):            ");
-		test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
-	free(I);
-
-	// P = 2
-	P = 2;
-	Nbf = 10;
-	I = identity_d(Nbf); // free
-
-	// WSH
-	Prst = P;
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WSH"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
-	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	if (printMI) {
-		array_print_d(Nbf,Nbf,M,'R');
-		array_print_d(Nbf,Nbf,I,'R');
+		// WV
+		data->PIv = 2*P;
+		strcpy(data->NodeType,"WV");
+		strcpy(data->PrntName,"WV ");
+		test_basis_orthogonality(data,0);
 	}
 
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
-	// WV
-	Prst = 2*P;
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"WV"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_SI(P,rst,Nn,&Nbf,d); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
-	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("                         WV (d3, P2):            ");
-		test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
-	free(I);
+	free(data);
 }
 
 /*
@@ -1233,68 +1030,33 @@ void test_unit_basis_PYR(void)
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I
 	 */
 
-	double *ChiRef_rst, *W, *WChiRef_rst, *M, *I;
+	struct S_orthogonality *data;
+
+	data = malloc(sizeof *data); // free
 
 	d = 3;
-
-	// P = 3
 	P = 3;
-	Nbf = 30;
-	I = identity_d(Nbf); // free
+	data->d = d;
+	data->P = P;
+	data->type = PYR;
 
 	// GL (HEX To PYR)
-	Prst = P+1;
-	cubature_PYR(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"GLW"); // free
-
-	W = diag_d(w,Nn); // free
-	free(w);
-
-	ChiRef_rst = basis_PYR(P,rst,Nn,&Nbf,d); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
-	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e3)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("          orthogonality - GL  (P3):              ");
-	test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
+	data->PIv = P+1;
+	strcpy(data->NodeType,"GLW");
+	strcpy(data->PrntName,"GL ");
+	test_basis_orthogonality(data,0);
 
 	// GLL (HEX To PYR)
-	Prst = P+2;
-	cubature_PYR(&rst,&w,&symms,&Nn,&Ns,1,Prst,d,"GLW"); // free
+	data->PIv = P+2;
+	strcpy(data->NodeType,"GLLW");
+	strcpy(data->PrntName,"GLL");
+	test_basis_orthogonality(data,0);
 
-	W = diag_d(w,Nn); // free
-	free(w);
+	// GJ (HEX To PYR)
+	data->PIv = P;
+	strcpy(data->NodeType,"GJW");
+	strcpy(data->PrntName,"GJ ");
+	test_basis_orthogonality(data,0);
 
-	ChiRef_rst = basis_PYR(P,rst,Nn,&Nbf,d); // free
-
-	WChiRef_rst = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,Nbf,Nn,1.0,W,ChiRef_rst);          // free
-	M           = mm_Alloc_d(CblasRowMajor,CblasTrans,CblasNoTrans,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
-
-	pass = 0;
-	if (array_norm_diff_d(pow(Nbf,2),M,I,"Inf") < EPS*1e2)
-		pass = 1, TestDB.Npass++;
-
-	//     0         10        20        30        40        50
-	printf("                          GLL (P3):              ");
-	test_print(pass);
-
-	free(rst);
-	free(symms);
-	free(W);
-	free(ChiRef_rst);
-	free(WChiRef_rst);
-	free(M);
-
-	free(I);
+	free(data);
 }

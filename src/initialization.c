@@ -1,5 +1,5 @@
-// Copyright 2016 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// Copyright 2017 Philip Zwanenburg
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "initialization.h"
 
@@ -8,6 +8,7 @@
 #include <string.h>
  
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
 
 /*
@@ -84,12 +85,13 @@ void initialization(int nargc, char **argv)
 	//DB.t_par      = 0; // ToBeModified (Likely initialize all times needed here)
 
 	char         *TestCase, *MeshType, *Form, *NodeType, *BasisType, *MeshFile, *ControlFile, *StringRead, *dummys,
-	             *MeshPath, *d, *ML;
+	             *MeshPath, *Geometry, *d, *ML;
 	unsigned int *BumpOrder;
 	FILE         *fID;
 
 	// Check for presence of '.ctrl' file name input
-	TestCase  = malloc(STRLEN_MAX * sizeof *TestCase); // keep
+	TestCase = malloc(STRLEN_MAX * sizeof *TestCase); // keep
+	Geometry = malloc(STRLEN_MAX * sizeof *Geometry); // keep
 
 	if (nargc >= 2)
 		strcpy(TestCase,argv[1]);
@@ -125,6 +127,7 @@ void initialization(int nargc, char **argv)
 		if (strstr(StringRead,"Dimension"))  sscanf(StringRead,"%s %d",dummys,&DB.d);
 		if (strstr(StringRead,"ML"))         sscanf(StringRead,"%s %d",dummys,&DB.ML);
 		if (strstr(StringRead,"MeshType"))   sscanf(StringRead,"%s %s",dummys,MeshType);
+		if (strstr(StringRead,"Geometry"))   sscanf(StringRead,"%s %s",dummys,Geometry);
 		if (strstr(StringRead,"BumpOrder"))  sscanf(StringRead,"%s %d %d",dummys,&BumpOrder[0],&BumpOrder[1]);
 		if (strstr(StringRead,"Form"))       sscanf(StringRead,"%s %s",dummys,Form);
 		if (strstr(StringRead,"NodeType"))   sscanf(StringRead,"%s %s",dummys,NodeType);
@@ -166,6 +169,10 @@ void initialization(int nargc, char **argv)
 	}
 	fclose(fID);
 
+	// ToBeDeleted (After old test cases are updated)
+	if (Geometry[0] == '\0')
+		printf("Error: Add Geometry to CtrlFile.\n"), EXIT_MSG;
+
 	free(StringRead);
 	free(dummys);
 	free(d);
@@ -174,6 +181,7 @@ void initialization(int nargc, char **argv)
 	// Assign DB Parameters
 	DB.TestCase  = TestCase;
 	DB.MeshType  = MeshType;
+	DB.Geometry  = Geometry;
 	DB.MeshPath  = MeshPath;
 	DB.Form      = Form;
 	DB.NodeType  = NodeType;

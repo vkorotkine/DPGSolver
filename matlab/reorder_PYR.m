@@ -4,7 +4,7 @@ format long
 
 % ToBeDeleted: Convert this to python!
 % Note: Only need basisTET of order 1 for barycentric coordinates
-plot_on = 1;
+plot_on = 0;
 
 folder_name = 'Testing/Reordering/pyr/';
 folder_nameU = [folder_name 'updated/'];
@@ -16,14 +16,16 @@ Nsymms = 3;
 symms = [1 4 8];
 
 % NodeType = 'GLL';
-NodeType = 'GL';
+% NodeType = 'GL';
 % NodeType = 'WV';
 % NodeType = 'GLLW';
 % NodeType = 'GLW';
+NodeType = 'GJW';
 % NodeType = 'WVHToP';
 
 if     (~isempty(strfind(NodeType,'GLLW'))); PMax = 10;
 elseif (~isempty(strfind(NodeType,'GLW')));  PMax = 10;
+elseif (~isempty(strfind(NodeType,'GJW')));  PMax = 6;
 elseif (~isempty(strfind(NodeType,'WVHToP'))); PMax = 11;
 elseif (~isempty(strfind(NodeType,'WV')));   PMax = 10;
 elseif (~isempty(strfind(NodeType,'GLL')));  PMax = 6;
@@ -40,12 +42,12 @@ rst_c   = [[-1  1  1 -1 0]' ...
 wPresent = 1;
 wScale = 1/sqrt(2);
 
-% for P = 1:PMax
-for P = 1
+for P = 1:PMax
+% for P = 2
 
 % Read rst
 
-if (~isempty(strfind(NodeType,'GL')))
+if (~isempty(strfind(NodeType,'GL')) || ~isempty(strfind(NodeType,'GJ')))
     if (isempty(strfind(NodeType,'W')))
         wPresent = 0;
         Nn = round(1/6*(P+1)*(P+2)*(2*P+3));
@@ -141,7 +143,7 @@ end
 rst = Lv*rst_cEq;
 
 if (plot_on)
-    subplot(2,1,1); hold on; grid on;
+    subplot(1,2,1); hold on; grid on;
     daspect([1 1 1]);
     
     x = rst_cEq(:,1); y = rst_cEq(:,2); z = rst_cEq(:,3);
@@ -273,7 +275,7 @@ if (plot_on)
 end
 
 if (plot_on)
-    subplot(2,1,2); hold on; grid on;
+    subplot(1,2,2); hold on; grid on;
     daspect([1 1 1])
     x = rst(:,1); y = rst(:,2); z = rst(:,3);
     scatter3(x,y,z,'filled','g');
