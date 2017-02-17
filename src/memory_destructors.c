@@ -254,6 +254,7 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	// Initialization
 	free(VOLUME->What);
 	free(VOLUME->RES);
+	array_free2_d(d,VOLUME->Qhat);
 
 	// Solving
 	free(VOLUME->RHS);

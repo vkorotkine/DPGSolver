@@ -4,6 +4,8 @@
 #ifndef DPG__S_DB_h__INCLUDED
 #define DPG__S_DB_h__INCLUDED
 
+#include <stdbool.h>
+
 struct S_DB {
 	// Time
 	double time_total;
@@ -33,6 +35,7 @@ struct S_DB {
 	unsigned int NECgrp;
 
 	// Initialization
+	bool         Viscous;
 	char         *SolverType;
 	unsigned int Nvar, Neq, OutputInterval, DOF0, SourcePresent;
 	double       Xc, Yc, Rc, MInf, rhoInf, pInf, TInf, cInf, VInf, uInf, vInf, wInf, Rg, Cscale,

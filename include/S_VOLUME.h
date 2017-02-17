@@ -18,7 +18,7 @@ struct S_VOLUME {
 
 	// Initialization
 	unsigned int NvnS;
-	double *What, *RES;
+	double *What, **Qhat, *RES;
 
 	// Solving
 	unsigned int   IndA, nnz_d, nnz_o;

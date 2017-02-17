@@ -554,6 +554,7 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->NvnS = UINT_MAX;
 	VOLUME->What = NULL; // free
 	VOLUME->RES  = NULL; // free
+	VOLUME->Qhat = calloc(d , sizeof *(VOLUME->Qhat)); // free
 
 	// Solving
 	VOLUME->IndA  = UINT_MAX;

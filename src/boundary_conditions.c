@@ -198,6 +198,12 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 void boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, double *WL, double *WB, double *nL,
                        const unsigned int d)
 {
+	/*
+	 *	Comments:
+	 *		Specifying equality of the total energy is equivalent to specifying equality of pressure because the
+	 *		magnitude of the velocity is constant.
+	 */
+
 	// Standard datatypes
 	unsigned int i, NnTotal, IndE;
 	double *rhoL, *rhouL, *rhovL, *rhowL, *EL, *rhoB, *rhouB, *rhovB, *rhowB, *EB, rhoVL;

@@ -19,6 +19,7 @@
 #include "explicit_FACE_info.h"
 #include "finalize_RHS.h"
 #include "output_to_paraview.h"
+#include "explicit_GradW.h"
 
 /*
  *	Purpose:
@@ -33,12 +34,13 @@
  *
  *	References:
  *		Carpenter(1994)-Fourth-Order_2N-Storage_Runge-Kutta_Schemes
- *		Gottlieb(2001)-Strong_Stability-Preserving_High-Order_Time_Discretization_Methods
+ *		Gottlieb(2001)-Strong_Stability-Preserving_High-Order_Time_Discretization_Methods (eq. (4.2))
  */
 
 void solver_explicit(void)
 {
 	// Initialize DB Parameters
+	bool         Viscous            = DB.Viscous;
 	unsigned int OutputInterval     = DB.OutputInterval,
 	             Neq                = DB.Neq,
 	             ExplicitSolverType = DB.ExplicitSolverType,
@@ -98,6 +100,10 @@ void solver_explicit(void)
 			// RES is used to store the initial solution at the beginning of the time step.
 
 			for (rk = 0; rk < 3; rk++) {
+				// Compute weak gradients (for viscous terms)
+				if (Viscous)
+					explicit_GradW();
+
 				// Build the RHS (== -Residual)
 				printf("V");  explicit_VOLUME_info();
 				printf("F");  explicit_FACE_info();
