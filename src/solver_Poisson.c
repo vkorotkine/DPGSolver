@@ -518,7 +518,7 @@ static void compute_qhat_FACE(void)
 			for (n = 0; n < NfnI; n++)
 				mult_diag[n] = wnJ_fI[dim*NfnI+n]*(duNumduIn_fI[n]-1.0);
 
-			mm_diag_d(NfnI,NvnSIn,mult_diag,OPSIn->ChiS_fI[VfIn],FACE->qhat_uhatInIn[dim],1.0,'L','R');
+			mm_diag_d(NfnI,NvnSIn,mult_diag,OPSIn->ChiS_fI[VfIn],FACE->qhat_uhatInIn[dim],1.0,0.0,'L','R');
 			free(mult_diag);
 		}
 		free(uIn_fI);
@@ -543,7 +543,7 @@ static void compute_qhat_FACE(void)
 				for (n = 0; n < NfnI; n++)
 					mult_diag[n] = wnJ_fI[dim*NfnI+n]*(duNumduOut_fI[n]);
 
-				mm_diag_d(NfnI,NvnSOut,mult_diag,ChiS_fIOutIn,FACE->qhat_uhatOutIn[dim],1.0,'L','R');
+				mm_diag_d(NfnI,NvnSOut,mult_diag,ChiS_fIOutIn,FACE->qhat_uhatOutIn[dim],1.0,0.0,'L','R');
 				free(mult_diag);
 			}
 			free(ChiS_fIOutIn);
@@ -584,7 +584,7 @@ static void compute_qhat_FACE(void)
 				for (n = 0; n < NfnI; n++)
 					mult_diag[n] = wnJ_fI[dim*NfnI+n]*(duNumduIn_fI[n]);
 
-				mm_diag_d(NfnI,NvnSIn,mult_diag,ChiS_fIInOut,FACE->qhat_uhatInOut[dim],1.0,'L','R');
+				mm_diag_d(NfnI,NvnSIn,mult_diag,ChiS_fIInOut,FACE->qhat_uhatInOut[dim],1.0,0.0,'L','R');
 				free(mult_diag);
 
 				// LHSOutOut (partial)
@@ -596,7 +596,7 @@ static void compute_qhat_FACE(void)
 				for (n = 0; n < NfnI; n++)
 					mult_diag[n] = wnJ_fI[dim*NfnI+n]*(duNumduOut_fI[n]-1.0);
 
-				mm_diag_d(NfnI,NvnSOut,mult_diag,OPSOut->ChiS_fI[VfOut],FACE->qhat_uhatOutOut[dim],1.0,'L','R');
+				mm_diag_d(NfnI,NvnSOut,mult_diag,OPSOut->ChiS_fI[VfOut],FACE->qhat_uhatOutOut[dim],1.0,0.0,'L','R');
 				free(mult_diag);
 			}
 			free(ChiS_fIInOut);

@@ -3,14 +3,19 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
+#include "Macros.h"
 #include "Parameters.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
+#include "S_FACE.h"
 
 #include "element_functions.h"
 #include "matrix_functions.h"
+#include "sum_factorization.h"
+#include "array_free.h"
 
 /*
  *	Purpose:
@@ -22,7 +27,6 @@
  *	Notation:
  *
  *	References:
- *		Toro(2009)-Riemann_ Solvers_and_Numerical_Methods_for_Fluid_Dynamics
  */
 
 static void explicit_GradW_VOLUME   (void);
@@ -38,8 +42,22 @@ void explicit_GradW(void)
 
 
 struct S_OPERATORS {
+	// VOLUME
 	unsigned int NvnS, NvnI;
-	double       *ChiS_vI, **D_Weak;
+	double       **ChiS_vI, **D_Weak;
+
+	// FACE
+	unsigned int NfnI, NvnS_SF, NvnI_SF, NfnI_SF, *nOrdLR, *nOrdRL;
+	double       *w_fI, **ChiS_fI, **I_Weak_FF;
+
+	struct S_OpCSR **ChiS_fI_sp;
+};
+
+struct S_FDATA {
+	unsigned int P, Vf, f, SpOp, Eclass, IndFType;
+
+	struct S_OPERATORS **OPS;
+	struct S_VOLUME    *VOLUME;
 };
 
 struct S_Dxyz {
@@ -64,13 +82,64 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 	if (!curved) {
 		OPS->NvnI = ELEMENT->NvnIs[P];
 
-		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P][0];
+		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P];
 		OPS->D_Weak  = ELEMENT->Ds_Weak_VV[P][P][0];
 	} else {
 		OPS->NvnI = ELEMENT->NvnIc[P];
 
-		OPS->ChiS_vI = ELEMENT->ChiS_vIc[P][P][0];
+		OPS->ChiS_vI = ELEMENT->ChiS_vIc[P][P];
 		OPS->D_Weak  = ELEMENT->Dc_Weak_VV[P][P][0];
+	}
+}
+
+static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
+                      const unsigned int IndFType)
+{
+	// Initialize DB Parameters
+	unsigned int ***SF_BE = DB.SF_BE;
+
+	// Standard datatypes
+	unsigned int PV, PF, Vtype, Vcurved, Eclass, FtypeInt, IndOrdOutIn, IndOrdInOut;
+
+	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS, *ELEMENT_FACE;
+
+	// silence
+	ELEMENT_OPS = NULL;
+
+	PV      = VOLUME->P;
+	PF      = FACE->P;
+	Vtype   = VOLUME->type;
+	Vcurved = VOLUME->curved;
+	Eclass  = VOLUME->Eclass;
+
+	FtypeInt = FACE->typeInt;
+	IndOrdOutIn = FACE->IndOrdOutIn;
+	IndOrdInOut = FACE->IndOrdInOut;
+
+	ELEMENT       = get_ELEMENT_type(Vtype);
+	ELEMENT_FACE = get_ELEMENT_FACE(Vtype,IndFType);
+	if ((Eclass == C_TP && SF_BE[PF][0][1]) || (Eclass == C_WEDGE && SF_BE[PF][1][1]))
+		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndFType];
+	else
+		ELEMENT_OPS = ELEMENT;
+
+	OPS->NvnS = ELEMENT->NvnS[PV];
+	if (FtypeInt == 's') {
+		// Straight FACE Integration
+		OPS->NfnI = ELEMENT->NfnIs[PF][IndFType];
+
+		OPS->I_Weak_FF = ELEMENT_OPS->Is_Weak_FF[PV][PF];
+
+		OPS->nOrdLR = ELEMENT_FACE->nOrd_fIs[PF][IndOrdInOut];
+		OPS->nOrdRL = ELEMENT_FACE->nOrd_fIs[PF][IndOrdOutIn];
+	} else {
+		// Curved FACE Integration
+		OPS->NfnI = ELEMENT->NfnIc[PF][IndFType];
+
+		OPS->I_Weak_FF = ELEMENT_OPS->Ic_Weak_FF[PV][PF];
+
+		OPS->nOrdLR = ELEMENT_FACE->nOrd_fIc[PF][IndOrdInOut];
+		OPS->nOrdRL = ELEMENT_FACE->nOrd_fIc[PF][IndOrdOutIn];
 	}
 }
 
@@ -89,7 +158,7 @@ static double *compute_Dxyz(struct S_Dxyz *DxyzInfo, unsigned int d)
 	 *		                 Schemes (eq. B.2)
 	 */
 
-	unsigned int Nbf, Nn, dim1, IndD, IndC;
+	unsigned int Nbf, Nn, dim1, IndC;
 	double       **D, *C, *Dxyz;
 
 	Nbf  = DxyzInfo->Nbf;
@@ -101,13 +170,8 @@ static double *compute_Dxyz(struct S_Dxyz *DxyzInfo, unsigned int d)
 
 	Dxyz = calloc(Nbf*Nn, sizeof *Dxyz); // keep
 	for (size_t dim2 = 0; dim2 < d; dim2++) {
-		IndD = 0;
 		IndC = (dim1+dim2*d)*Nn;
-		for (size_t i = 0; i < Nbf; i++) {
-			for (size_t j = 0; j < Nn; j++)
-				Dxyz[IndD+j] += D[dim2][IndD+j]*C[IndC+j];
-			IndD += Nn;
-		}
+		mm_diag_d(Nbf,Nn,&C[IndC],D[dim2],Dxyz,1.0,1.0,'R','R');
 	}
 
 	return Dxyz;
@@ -132,14 +196,12 @@ static void explicit_GradW_VOLUME(void)
 
 	// Standard datatypes
 	struct S_OPERATORS *OPS;
-	struct S_VOLUME    *VOLUME;
-
-	struct S_Dxyz *DxyzInfo;
+	struct S_Dxyz      *DxyzInfo;
 
 	OPS      = malloc(sizeof *OPS);      // free
 	DxyzInfo = malloc(sizeof *DxyzInfo); // free
 
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		unsigned int NvnS, NvnI;
 		double       *ChiS_vI, **DxyzChiS;
 
@@ -153,7 +215,7 @@ static void explicit_GradW_VOLUME(void)
 		DxyzInfo->D   = OPS->D_Weak;
 		DxyzInfo->C   = VOLUME->C_vI;
 
-		ChiS_vI = OPS->ChiS_vI;
+		ChiS_vI = OPS->ChiS_vI[0];
 
 		DxyzChiS = VOLUME->DxyzChiS;
 		for (size_t dim1 = 0; dim1 < d; dim1++) {
@@ -179,6 +241,105 @@ static void explicit_GradW_VOLUME(void)
 	free(DxyzInfo);
 }
 
+static void compute_W_fI(struct S_FDATA *FDATA, double *W_fI)
+{
+	// Initialize DB Parameters
+	unsigned int d            = DB.d,
+	             Nvar         = DB.Nvar,
+	             *VFPartUnity = DB.VFPartUnity,
+	             ***SF_BE     = DB.SF_BE;
+
+	// Standard datatypes
+	unsigned int P, dim, Eclass, Vf, f, SpOp, IndFType, NfnI, NvnS,
+	             NIn[DMAX], NOut[DMAX], Diag[DMAX], NOut0, NOut1;
+	double       *OP[DMAX], **OPF0, **OPF1;
+
+	struct S_OPERATORS **OPS;
+	struct S_VOLUME    *VOLUME;
+
+	OPS    = FDATA->OPS;
+	VOLUME = FDATA->VOLUME;
+
+	P        = FDATA->P;
+	Eclass   = FDATA->Eclass;
+	Vf       = FDATA->Vf;
+	f        = FDATA->f;
+	SpOp     = FDATA->SpOp;
+	IndFType = FDATA->IndFType;
+
+	NfnI = OPS[IndFType]->NfnI;
+	NvnS = OPS[IndFType]->NvnS;
+
+	if (Eclass == C_TP && SF_BE[P][0][1]) {
+		get_sf_parametersF(OPS[0]->NvnS_SF,OPS[0]->NvnI_SF,OPS[0]->ChiS_vI,
+		                   OPS[0]->NvnS_SF,OPS[0]->NfnI_SF,OPS[0]->ChiS_fI,NIn,NOut,OP,d,Vf,C_TP);
+
+		if (SpOp) {
+			for (dim = 0; dim < d; dim++)
+				Diag[dim] = 2;
+			Diag[f/2] = 0;
+		} else {
+			for (dim = 0; dim < d; dim++)
+				Diag[dim] = 0;
+		}
+
+		sf_apply_d(VOLUME->What,W_fI,NIn,NOut,Nvar,OP,Diag,d);
+	} else if (Eclass == C_WEDGE && SF_BE[P][1][1]) {
+		if (f < 3) { OPF0  = OPS[0]->ChiS_fI, OPF1  = OPS[1]->ChiS_vI;
+		             NOut0 = OPS[0]->NfnI_SF, NOut1 = OPS[1]->NvnI_SF;
+		} else {     OPF0  = OPS[0]->ChiS_vI, OPF1  = OPS[1]->ChiS_fI;
+		             NOut0 = OPS[0]->NvnI_SF, NOut1 = OPS[1]->NfnI_SF; }
+		get_sf_parametersF(OPS[0]->NvnS_SF,NOut0,OPF0,OPS[1]->NvnS_SF,NOut1,OPF1,NIn,NOut,OP,d,Vf,C_WEDGE);
+
+		if (SpOp) {
+			for (dim = 0; dim < d; dim++)
+				Diag[dim] = 2;
+			if (f < 3)
+				Diag[0] = 0;
+			else
+				Diag[2] = 0;
+		} else {
+			for (dim = 0; dim < d; dim++)
+				Diag[dim] = 0;
+			Diag[1] = 2;
+		}
+
+		sf_apply_d(VOLUME->What,W_fI,NIn,NOut,Nvar,OP,Diag,d);
+	} else if ((SpOp && (Eclass == C_TP || Eclass == C_WEDGE)) || (VFPartUnity[Eclass])) {
+		mm_CTN_CSR_d(NfnI,Nvar,NvnS,OPS[0]->ChiS_fI_sp[Vf],VOLUME->What,W_fI);
+	} else {
+		mm_CTN_d(NfnI,Nvar,NvnS,OPS[0]->ChiS_fI[Vf],VOLUME->What,W_fI);
+	}
+}
+
+static void init_FDATA(struct S_FDATA *FDATA, const struct S_FACE *FACE, const unsigned int side)
+{
+	// Initialize DB Parameters
+	unsigned int Collocated = DB.Collocated;
+
+
+	FDATA->P = FACE->P;
+
+	if (side == 'L') {
+		FDATA->VOLUME = FACE->VIn;
+		FDATA->Vf     = FACE->VfIn;
+	} else if (side == 'R') {
+		FDATA->VOLUME = FACE->VOut;
+		FDATA->Vf     = FACE->VfOut;
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+	FDATA->f    = (FDATA->Vf)/NFREFMAX;
+	FDATA->SpOp = Collocated && ((FDATA->Vf) % NFREFMAX == 0 && FDATA->VOLUME->P == FDATA->P);
+
+	FDATA->Eclass = FDATA->VOLUME->Eclass;
+	FDATA->IndFType = get_IndFType(FDATA->Eclass,FDATA->f);
+
+	init_opsF(FDATA->OPS[0],FDATA->VOLUME,FACE,0);
+	if (FDATA->VOLUME->type == WEDGE || FDATA->VOLUME->type == PYR)
+		init_opsF(FDATA->OPS[1],FDATA->VOLUME,FACE,1);
+}
+
 static void explicit_GradW_FACE(void)
 {
 	/*
@@ -186,11 +347,79 @@ static void explicit_GradW_FACE(void)
 	 *		Compute intermediate FACE contribution to Qhat.
 	 *
 	 *	Comments:
+	 *		I have used L/R in place of In/Out.
 	 *		This is an intermediate contribution because the multiplication by MInv is not included.
 	 *		It is currently hard-coded that GradW is of the same order as the solution and that a central numerical flux
 	 *		is used.
 	 *		Note, if Collocation is enable, that I_Weak includes the inverse cubature weights.
 	 */
+
+	// Initialize DB Parameters
+	unsigned int d    = DB.d,
+	             Nvar = DB.Nvar;
+
+	// Standard datatypes
+	struct S_OPERATORS *OPSL[2], *OPSR[2];
+	struct S_FDATA     *FDATA[2];
+
+	for (size_t i = 0; i < 2; i++) {
+		OPSL[i]  = malloc(sizeof *OPSL[i]);  // free
+		OPSR[i]  = malloc(sizeof *OPSR[i]);  // free
+		FDATA[i] = malloc(sizeof *FDATA[i]); // free
+	}
+
+	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+		bool         SpOpL, SpOpR;
+		unsigned int P, VfL, VfR, fL, fR, IndS, NfnI;
+		double       *W_fIL, **nWnum_fI, *I_FF;
+
+		struct S_VOLUME *VL, *VR;
+
+		FDATA[0]->OPS = OPSL;
+		FDATA[1]->OPS = OPSR;
+
+		init_FDATA(FDATA[0],FACE,'L');
+		init_FDATA(FDATA[1],FACE,'R');
+
+		// Compute W_fIL
+		IndS = 0;
+		NfnI = FDATA[IndS]->OPS[0]->NfnI;
+
+		W_fIL = malloc(NfnI*Nvar * sizeof *W_fIL); // tbd
+		compute_W_fI(FDATA[0],W_fIL);
+
+		nWnum_fI = malloc(d * sizeof *nWnum_fI); // free
+		for (size_t dim = 0; dim < d; dim++)
+			nWnum_fI[dim] = malloc(NfnI*Nvar * sizeof *nWnum_fI[dim]); // free
+
+
+		// Interior VOLUME
+		I_FF = OPSL[0]->I_Weak_FF[VfL];
+		for (size_t dim = 0; dim < d; dim++) {
+			mm_diag_d(NfnI,Nvar,&nJ_fI[dim*NfnI],Wnum,nWnum_fI[dim],1.0,0.0,'L','C');
+
+			// Note that there is a minus sign included in the definition of I_Weak_FF.
+			FACE->QhatL[dim] = mm_Alloc_d(CBCM,CBT,CBNT,NvnSL,Nvar,NfnI,-1.0,I_FF,nWnum_fI[dim]);
+		}
+
+		// Exterior VOLUME
+		if (!Boundary) {
+			I_FF = OPSR[0]->I_Weak_FF[VfR];
+			for (size_t dim = 0; dim < d; dim++) {
+				array_rearrange_d(NfnI,Nvar,nOrdInOut,'C',nWnum_fI[dim]);
+
+				// minus sign from using negative normal for the opposite VOLUME cancels with minus sign in I_Weak_FF.
+				FACE->QhatL[dim] = mm_Alloc_d(CBCM,CBT,CBNT,NvnSR,Nvar,NfnI,1.0,I_FF,nWnum_fI[dim]);
+			}
+		}
+		array_free2_d(d,nWnum_fI);
+	}
+
+	for (size_t i = 0; i < 2; i++) {
+		free(OPSL[i]);
+		free(OPSR[i]);
+		free(FDATA[i]);
+	}
 }
 
 static void explicit_GradW_finalize(void)

@@ -98,20 +98,23 @@ double *inverse_d(const unsigned int N, const unsigned int NRHS, const double *A
 }
 
 void mm_diag_d(const unsigned int NRows, const unsigned int NCols, double *a, double *A, double *Output,
-               const double alpha, const char side, const char layout)
+               const double alpha, const double beta, const char side, const char layout)
 {
-	unsigned int i, j;
+	unsigned int i, j, iMax;
+
+	for (i = 0, iMax = NRows*NCols; i < iMax; i++)
+		Output[i] = beta*Output[i];
 
 	if (layout == 'R') {
 		if (side == 'L') {
 			for (i = 0; i < NRows; i++) {
 			for (j = 0; j < NCols; j++) {
-				Output[i*NCols+j] = alpha*a[i]*A[i*NCols+j];
+				Output[i*NCols+j] += alpha*a[i]*A[i*NCols+j];
 			}}
 		} else if (side == 'R') {
 			for (i = 0; i < NRows; i++) {
 			for (j = 0; j < NCols; j++) {
-				Output[i*NCols+j] = alpha*a[j]*A[i*NCols+j];
+				Output[i*NCols+j] += alpha*a[j]*A[i*NCols+j];
 			}}
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_MSG;
@@ -120,12 +123,12 @@ void mm_diag_d(const unsigned int NRows, const unsigned int NCols, double *a, do
 		if (side == 'L') {
 			for (j = 0; j < NCols; j++) {
 			for (i = 0; i < NRows; i++) {
-				Output[i+j*NRows] = alpha*a[j]*A[i+j*NRows];
+				Output[i+j*NRows] += alpha*a[i]*A[i+j*NRows];
 			}}
 		} else if (side == 'R') {
 			for (j = 0; j < NCols; j++) {
 			for (i = 0; i < NRows; i++) {
-				Output[i+j*NRows] = alpha*a[i]*A[i+j*NRows];
+				Output[i+j*NRows] += alpha*a[j]*A[i+j*NRows];
 			}}
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_MSG;

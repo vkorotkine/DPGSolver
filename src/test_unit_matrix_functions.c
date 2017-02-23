@@ -16,6 +16,7 @@
 #include "array_norm.h"
 #include "matrix_functions.h"
 #include "array_free.h"
+#include "array_print.h"
 
 #undef I // No complex variables used here
 
@@ -30,7 +31,7 @@
  *	References:
  */
 
-void test_unit_matrix_diag(void)
+static void test_unit_matrix_diag(void)
 {
 	unsigned int pass;
 
@@ -58,7 +59,7 @@ void test_unit_matrix_diag(void)
 	X = diag_d(x,N); // free
 
 	pass = 0;
-	if (array_norm_diff_d(16,X,X4,"Inf") < EPS)
+	if (array_norm_diff_d(N*N,X,X4,"Inf") < EPS)
 		pass = 1, TestDB.Npass++;
 
 	//     0         10        20        30        40        50
@@ -68,7 +69,7 @@ void test_unit_matrix_diag(void)
 	free(X);
 }
 
-void test_unit_matrix_identity(void)
+static void test_unit_matrix_identity(void)
 {
 	unsigned int pass;
 
@@ -104,7 +105,7 @@ void test_unit_matrix_identity(void)
 	free(I);
 }
 
-void test_unit_matrix_inverse(void)
+static void test_unit_matrix_inverse(void)
 {
 	unsigned int pass;
 
@@ -150,7 +151,7 @@ void test_unit_matrix_inverse(void)
 	free(Aroundtrip_c);
 }
 
-void test_unit_matrix_mm(void)
+static void test_unit_matrix_mm(void)
 {
 	unsigned int pass;
 
@@ -523,37 +524,96 @@ void test_unit_matrix_mm(void)
 	free(C_CTN_c);
 }
 
-void test_unit_convert_to_CSR(void)
+static void test_unit_matrix_mm_diag(void)
 {
-	/*
-	 *	Purpose:
-	 *		Test correctness of implementation of convert_to_CSR.
-	 *
-	 *	Comments:
-	 *
-	 *	Notation:
-	 *
-	 *	References:
-	 */
-
 	unsigned int pass;
 
 	/*
-	 *	diag_d:
+	 *	diag_d (permutations):
 	 *
 	 *		Input:
 	 *
-	 *			N = 4
-	 *			x = [1.0 2.0 3.0 4.0]
+	 *			A = [0.05 0.69 0.03 0.77
+	 *			     0.10 0.32 0.44 0.80
+	 *			     0.82 0.95 0.38 0.19]
 	 *
 	 *		Expected Output:
 	 *
-	 *			X = [1.0 0.0 0.0 0.0
-	 *			     0.0 2.0 0.0 0.0
-	 *			     0.0 0.0 3.0 0.0
-	 *			     0.0 0.0 0.0 4.0]
+	 *			Same output when compared to mm_d.
 	 */
 
+	unsigned int NRows = 3, NCols = 4;
+	double *DR, *DC, *Odiag, *Omm,
+	       A[12]  = { 0.05, 0.69, 0.03, 0.77, 0.10, 0.32, 0.44, 0.80, 0.82, 0.95, 0.38, 0.19 },
+	       dR[3]  = { 0.49, 0.45, 0.65 },
+		   dC[4]  = { 0.49, 0.45, 0.65, 0.71 };
+
+	DR = diag_d(dR,NRows); // free
+	DC = diag_d(dC,NCols); // free
+
+	Odiag = malloc(NRows*NCols * sizeof *Odiag); // free
+	Omm   = malloc(NRows*NCols * sizeof *Omm);   // free
+
+	// (L)eft, (R)ow Major
+	mm_diag_d(NRows,NCols,dR,A,Odiag,2.0,0.0,'L','R');
+	mm_diag_d(NRows,NCols,dR,A,Odiag,2.0,1.0,'L','R');
+
+	mm_d(CBRM,CBNT,CBNT,NRows,NCols,NRows,2.0,0.0,DR,A,Omm);
+	mm_d(CBRM,CBNT,CBNT,NRows,NCols,NRows,2.0,1.0,DR,A,Omm);
+
+	pass = 0;
+	if (array_norm_diff_d(NRows*NCols,Odiag,Omm,"Inf") < EPS)
+		pass = 1, TestDB.Npass++;
+
+	//     0         10        20        30        40        50
+	printf("matrix_mm_diag_d ('L','R'):                      ");
+	test_print(pass);
+
+	// (R)ight, (R)ow Major
+	mm_diag_d(NRows,NCols,dC,A,Odiag,0.5,2.0,'R','R');
+	mm_d(CBRM,CBNT,CBNT,NRows,NCols,NCols,0.5,2.0,A,DC,Omm);
+
+	pass = 0;
+	if (array_norm_diff_d(NRows*NCols,Odiag,Omm,"Inf") < EPS)
+		pass = 1, TestDB.Npass++;
+
+	//     0         10        20        30        40        50
+	printf("                 ('R','R'):                      ");
+	test_print(pass);
+
+	// (L)eft, (C)ol Major
+	mm_diag_d(NRows,NCols,dR,A,Odiag,2.0,1.5,'L','C');
+	mm_d(CBCM,CBNT,CBNT,NRows,NCols,NRows,2.0,1.5,DR,A,Omm);
+
+	pass = 0;
+	if (array_norm_diff_d(NRows*NCols,Odiag,Omm,"Inf") < EPS)
+		pass = 1, TestDB.Npass++;
+
+	//     0         10        20        30        40        50
+	printf("                 ('L','C'):                      ");
+	test_print(pass);
+
+	// (R)ight, (C)ol Major
+	mm_diag_d(NRows,NCols,dC,A,Odiag,0.5,0.2,'R','C');
+	mm_d(CBCM,CBNT,CBNT,NRows,NCols,NCols,0.5,0.2,A,DC,Omm);
+
+	pass = 0;
+	if (array_norm_diff_d(NRows*NCols,Odiag,Omm,"Inf") < EPS)
+		pass = 1, TestDB.Npass++;
+
+	//     0         10        20        30        40        50
+	printf("                 ('R','C'):                      ");
+	test_print(pass);
+
+	free(DR);
+	free(DC);
+	free(Odiag);
+	free(Omm);
+}
+
+static void test_unit_convert_to_CSR(void)
+{
+	unsigned int pass;
 	unsigned int NRows = 5, NCols = 5,
 	             rowIndex55[6] = {0, 3, 5, 8, 11, 13},
 	             columns55[13] = {0, 1, 3, 0, 1, 2, 3, 4, 0, 2, 3, 1, 4};
@@ -579,4 +639,14 @@ void test_unit_convert_to_CSR(void)
 	test_print(pass);
 
 	array_free1_CSR_d(A_sp);
+}
+
+void test_unit_matrix_functions(void)
+{
+	test_unit_matrix_diag();
+	test_unit_matrix_identity();
+	test_unit_matrix_inverse();
+	test_unit_matrix_mm();
+	test_unit_matrix_mm_diag();
+	test_unit_convert_to_CSR();
 }

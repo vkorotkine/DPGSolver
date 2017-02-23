@@ -67,7 +67,7 @@ static void test_basis_orthogonality(struct S_orthogonality *data, const unsigne
 	ChiRef_rst = basis(P,rst,Nn,&Nbf,d); // free
 
 	WChiRef_rst = malloc(Nn*Nbf * sizeof *WChiRef_rst); // free
-	mm_diag_d(Nn,Nbf,w,ChiRef_rst,WChiRef_rst,1.0,'L','R');
+	mm_diag_d(Nn,Nbf,w,ChiRef_rst,WChiRef_rst,1.0,0.0,'L','R');
 
 	M = mm_Alloc_d(CBRM,CBT,CBNT,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
 	I = identity_d(Nbf); // free
