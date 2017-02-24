@@ -75,7 +75,10 @@ static void update_TestCase(void)
 	    strstr(DB.TestCase,"Poisson_GaussianBump")) {
 		strcpy(DB.TestCase,"Poisson");
 	} else if (strstr(DB.TestCase,"Euler")) {
-		strcpy(DB.TestCase,"InviscidChannel");
+		if (strstr(DB.Geometry,"Ellipsoidal_Section"))
+			strcpy(DB.TestCase,"SupersonicNozzle");
+		else
+			strcpy(DB.TestCase,"InviscidChannel");
 	} else if (strstr(DB.TestCase,"L2_proj") ||
 	           strstr(DB.TestCase,"update_h")) {
 		strcpy(DB.TestCase,"PeriodicVortex_Test");

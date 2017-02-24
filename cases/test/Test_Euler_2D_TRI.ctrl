@@ -7,8 +7,8 @@
 BEGIN PARAMETERS
   Dimension  2
   ML         0
-  MeshType   CurvedTRI
-  Geometry   JoukowskiSymmetric
+  MeshType   ToBeCurvedTRI
+  Geometry   Ellipsoidal_Section
 
   Form       Weak   // Options: Weak, (Strong)
   NodeType   GLL-AO // Options: GL/GLL-AO/WSH/EQ
@@ -21,7 +21,7 @@ BEGIN PARAMETERS
 
   PGlobal    1
   PMax       4
-  LevelsMax  10
+  LevelsMax  5
 
   Restart    -1    // Options: -1, 0, Iteration #
 

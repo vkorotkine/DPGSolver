@@ -129,6 +129,48 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 			Indn = i*DMAX;
 			VnR[i] = n[Indn]*uR[i]; // vR == wR == 0
 		}
+	} else if (strstr(TestCase,"SupersonicNozzle")) {
+// Use the exact solution for inflow and the internal solution for outflow
+		if (fabs(Y[0]) < EPS) { // Supersonic Inflow
+/*
+			for (i = 0; i < NnTotal; i++) {
+				rhoR[i] = DB.rhoInf;
+				pR[i]   = DB.pInf;
+				uR[i]   = 0.0;
+				vR[i]   = DB.MInf*DB.cInf;
+				wR[i]   = 0.0;
+
+				Indn   = i*DMAX;
+				VnR[i] = n[Indn+1]*vR[i]; // uR == wR == 0
+			}
+*/
+			for (i = 0; i < NnTotal; i++) {
+				r = sqrt(X[i]*X[i]+Y[i]*Y[i]);
+				t = atan2(Y[i],X[i]);
+
+				rhoR[i] = rhoIn*pow(1.0+0.5*GM1*MIn*MIn*(1.0-pow(rIn/r,2.0)),1.0/GM1);
+				pR[i]   = pow(rhoR[i],GAMMA)/GAMMA;
+
+				Vt = VIn/r;
+				uR[i] = -sin(t)*Vt;
+				vR[i] =  cos(t)*Vt;
+				wR[i] =  0.0;
+
+				Indn = i*DMAX;
+				VnR[i] = n[Indn  ]*uR[i]+n[Indn+1]*vR[i]; // wR == 0
+			}
+		} else if (fabs(X[0]) < EPS) { // Supersonic Outflow
+			for (i = 0; i < NnTotal; i++) {
+				rhoR[i] = rhoL[i];
+				pR[i]   = pL[i];
+				uR[i]   = uL[i];
+				vR[i]   = vL[i];
+				wR[i]   = wL[i];
+				VnR[i]  = VnL[i];
+			}
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+		}
 	} else {
 		printf("TestCase: %s\n",TestCase);
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;

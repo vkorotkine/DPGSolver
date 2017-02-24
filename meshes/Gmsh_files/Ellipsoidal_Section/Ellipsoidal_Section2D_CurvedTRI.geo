@@ -4,6 +4,8 @@ Refine = 0;
 
 lc = 0.6/2.0^Refine;
 
+EqIndex = 1; // Options: 0 (Poisson), 1 (Euler)
+
 rIn  = 0.5;
 rOut = 1.0;
 
@@ -11,7 +13,7 @@ aIn  = 0.5;
 aOut = 1.0;
 
 bIn  = 0.5;
-bOut = 3.0;
+bOut = 1.0;
 
 t   = Pi/4.0;
 r   = rIn;
@@ -55,10 +57,15 @@ Transfinite Surface{4002};
 
 // Physical Parameters for '.msh' file
 
-Physical Line(10011) = {1002}; // Straight Dirichlet
-Physical Line(10012) = {1001}; // Straight Neumann
-Physical Line(20011) = {1004:1005}; // Curved Dirichlet
-Physical Line(20012) = {1006:1007}; // Curved Neumann
+If (EqIndex == 0) // Poisson
+	Physical Line(10011) = {1002}; // Straight Dirichlet
+	Physical Line(10012) = {1001}; // Straight Neumann
+	Physical Line(20011) = {1004:1005}; // Curved Dirichlet
+	Physical Line(20012) = {1006:1007}; // Curved Neumann
+ElseIf (EqIndex == 1) // Euler
+	Physical Line(10001) = {1001,1002}; // Straight Riemann Invariant
+	Physical Line(20002) = {1004:1007}; // Curved SlipWall
+EndIf
 
 Physical Surface(9401) = {4001};
 Physical Surface(9402) = {4002};

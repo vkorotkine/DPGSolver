@@ -137,7 +137,7 @@ static void correct_ToBeCurved(struct S_VOLUME *VOLUME)
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_F;
 
-	internalCurved = 0;
+	internalCurved = 1;
 
 	PV     = VOLUME->P;
 	NvnG   = VOLUME->NvnG;

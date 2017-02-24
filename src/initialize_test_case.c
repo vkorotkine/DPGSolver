@@ -216,6 +216,36 @@ void initialize_test_case_parameters(void)
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
+	} else if (strstr(TestCase,"SupersonicNozzle")) {
+		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
+		strcpy(SolverType,"Implicit");
+		SourcePresent = 0;
+
+		if (strstr(Geometry,"Ellipsoidal_Section")) {
+			// These parameters must be consistent with the mesh for "ToBeCurved" meshes
+//			DB.rIn  = 1.0;
+//			DB.rOut = 1.384;
+			DB.rIn  = 0.50;
+			DB.rOut = 2.00;
+
+			// These parameters must be consistent with the mesh for "Curved" meshes
+//			DB.aIn  = 1.00;  DB.bIn  = 1.00;
+//			DB.aOut = 1.384; DB.bOut = 1.384;
+			DB.aIn  = 0.50; DB.bIn  = 0.50;
+			DB.aOut = 1.00; DB.bOut = 1.00;
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+		}
+
+		double pIn, cIn;
+
+		DB.MIn = 6.00;
+
+		DB.rhoIn = 1.0;
+
+		pIn = pow(DB.rhoIn,GAMMA)/GAMMA;
+		cIn = sqrt(GAMMA*pIn/DB.rhoIn);
+		DB.VIn = cIn*DB.MIn*DB.rIn;
 	} else if (strstr(TestCase,"PeriodicVortex")) {
 		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 		strcpy(SolverType,"Explicit");
@@ -263,7 +293,7 @@ void initialize_test_case_parameters(void)
 		pIn   = pow(DB.rhoIn,GAMMA)/GAMMA;
 
 		cIn = sqrt(GAMMA*pIn/DB.rhoIn);
-		DB.VIn = cIn*DB.MIn/DB.rIn;
+		DB.VIn = cIn*DB.MIn*DB.rIn;
 	} else {
 		printf("Error: Unsupported TestCase: %s.\n",TestCase), EXIT_MSG;
 	}
@@ -439,7 +469,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	             Nvar      = DB.Nvar,
 	             Adapt     = DB.Adapt;
 
-	DB.OutputInterval = 1e3;
+	DB.OutputInterval = 2e2;
 
 	// Standard datatypes
 	unsigned int DOF0 = 0, PolyGradient = 0;
@@ -455,8 +485,9 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	adapt_update = 1;
 	while (adapt_update) {
 		adapt_update = 0;
-		if (strstr(TestCase,"PeriodicVortex") ||
+		if (strstr(TestCase,"PeriodicVortex")   ||
 		    strstr(TestCase,"SupersonicVortex") ||
+		    strstr(TestCase,"SupersonicNozzle") ||
 			strstr(TestCase,"InviscidChannel")) {
 
 			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -576,31 +607,71 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 //	output_to_paraview("ZTest_Sol_Init");
 }
 
-static void compute_uniform_solution(const unsigned int Nn, double *U)
+static void compute_uniform_solution(const unsigned int Nn, const double *XYZ, double *U)
 {
 	// Initialize DB Parameters
-	char *TestCase = DB.TestCase;
+	char         *TestCase = DB.TestCase;
+	unsigned int d         = DB.d;
 
 	// Standard datatypes
 	unsigned int n;
+	double       rhoInf, pInf, MInf, cInf, VInf;
 
+	rhoInf = DB.rhoInf;
+	pInf   = DB.pInf;
+	MInf   = DB.MInf;
+	cInf   = DB.cInf;
+
+	VInf = MInf*cInf;
 	if (strstr(TestCase,"InviscidChannel")) {
-		double rhoInf, pInf, MInf, cInf, uInf;
-
-		rhoInf = DB.rhoInf;
-		pInf   = DB.pInf;
-		MInf   = DB.MInf;
-		cInf   = DB.cInf;
-
-		uInf = MInf*cInf;
-
 		for (n = 0; n < Nn; n++) {
 			U[0*Nn+n] = rhoInf;
-			U[1*Nn+n] = uInf;
+			U[1*Nn+n] = VInf;
 			U[2*Nn+n] = 0.0;
 			U[3*Nn+n] = 0.0;
 			U[4*Nn+n] = pInf;
 		}
+	} else if (strstr(TestCase,"SupersonicNozzle")) {
+		// Initialize DB Parameters
+		double rIn   = DB.rIn,
+		       MIn   = DB.MIn,
+		       rhoIn = DB.rhoIn,
+		       VIn   = DB.VIn;
+
+		// Standard datatypes
+		double       r, t, Vt;
+		const double *X, *Y;
+
+		X = &XYZ[0*Nn];
+		Y = &XYZ[1*Nn];
+		if (d == 3)
+			printf("Add support.\n"), EXIT_MSG;
+
+		for (n = 0; n < Nn; n++) {
+			r = sqrt(X[n]*X[n]+Y[n]*Y[n]);
+			t = atan2(Y[n],X[n]);
+
+			U[0*Nn+n] = rhoIn*pow(1.0+0.5*GM1*MIn*MIn*(1.0-pow(rIn/r,2.0)),1.0/GM1);
+			U[4*Nn+n] = pow(U[0*Nn+n],GAMMA)/GAMMA;
+
+			Vt = VIn/r;
+			U[1*Nn+n] = -sin(t)*Vt;
+			U[2*Nn+n] =  cos(t)*Vt;
+			U[3*Nn+n] =  0.0;
+		}
+// Define the initial solution such that the velocity vector points in approximately the correct direction.
+/*
+		for (n = 0; n < Nn; n++) {
+			double t;
+
+			t = atan2(Y[n],X[n]);
+			U[0*Nn+n] = rhoInf;
+			U[1*Nn+n] = -sin(t)*VInf;
+			U[2*Nn+n] =  cos(t)*VInf;
+			U[3*Nn+n] = 0.0;
+			U[4*Nn+n] = pInf;
+		}
+*/
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -613,8 +684,9 @@ void compute_solution(const unsigned int Nn, double *XYZ, double *UEx, const uns
 
 	if (strstr(TestCase,"PeriodicVortex") || strstr(TestCase,"SupersonicVortex")) {
 		compute_exact_solution(Nn,XYZ,UEx,solved);
-	} else if (strstr(TestCase,"InviscidChannel")) {
-		compute_uniform_solution(Nn,UEx);
+	} else if (strstr(TestCase,"InviscidChannel") ||
+	           strstr(TestCase,"SupersonicNozzle")) {
+		compute_uniform_solution(Nn,XYZ,UEx);
 	} else {
 		printf("Error: Unsupported TestCase: %s.\n",TestCase), EXIT_MSG;
 	}

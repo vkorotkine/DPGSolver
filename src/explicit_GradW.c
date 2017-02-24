@@ -16,6 +16,7 @@
 #include "matrix_functions.h"
 #include "sum_factorization.h"
 #include "array_free.h"
+#include "array_swap.h"
 
 /*
  *	Purpose:
@@ -268,7 +269,7 @@ static void compute_W_fI(struct S_FDATA *FDATA, double *W_fI)
 	IndFType = FDATA->IndFType;
 
 	NfnI = OPS[IndFType]->NfnI;
-	NvnS = OPS[IndFType]->NvnS;
+	NvnS = OPS[0]->NvnS;
 
 	if (Eclass == C_TP && SF_BE[P][0][1]) {
 		get_sf_parametersF(OPS[0]->NvnS_SF,OPS[0]->NvnI_SF,OPS[0]->ChiS_vI,
@@ -369,9 +370,8 @@ static void explicit_GradW_FACE(void)
 	}
 
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
-		bool         SpOpL, SpOpR;
-		unsigned int P, VfL, VfR, fL, fR, IndS, NfnI;
-		double       *W_fIL, **nWnum_fI, *I_FF;
+		unsigned int Vf, IndS, NfnI, NvnS, IndFType, *nOrdLR;
+		double       *W_fIL, **nWnum_fI, *I_FF, *nJ_fI, *Wnum_fI;
 
 		struct S_VOLUME *VL, *VR;
 
@@ -380,6 +380,9 @@ static void explicit_GradW_FACE(void)
 
 		init_FDATA(FDATA[0],FACE,'L');
 		init_FDATA(FDATA[1],FACE,'R');
+
+		VL = FDATA[0]->VOLUME;
+		VR = FDATA[1]->VOLUME;
 
 		// Compute W_fIL
 		IndS = 0;
@@ -392,24 +395,34 @@ static void explicit_GradW_FACE(void)
 		for (size_t dim = 0; dim < d; dim++)
 			nWnum_fI[dim] = malloc(NfnI*Nvar * sizeof *nWnum_fI[dim]); // free
 
+		nJ_fI   = malloc(NfnI*d    * sizeof *nJ_fI);   // tbd
+		Wnum_fI = malloc(NfnI*Nvar * sizeof *Wnum_fI); // tbd
+
 
 		// Interior VOLUME
-		I_FF = OPSL[0]->I_Weak_FF[VfL];
+		Vf   = FDATA[0]->Vf;
+		NvnS = OPSL[0]->NvnS;
+		I_FF = OPSL[0]->I_Weak_FF[Vf];
 		for (size_t dim = 0; dim < d; dim++) {
-			mm_diag_d(NfnI,Nvar,&nJ_fI[dim*NfnI],Wnum,nWnum_fI[dim],1.0,0.0,'L','C');
+			mm_diag_d(NfnI,Nvar,&nJ_fI[dim*NfnI],Wnum_fI,nWnum_fI[dim],1.0,0.0,'L','C');
 
 			// Note that there is a minus sign included in the definition of I_Weak_FF.
-			FACE->QhatL[dim] = mm_Alloc_d(CBCM,CBT,CBNT,NvnSL,Nvar,NfnI,-1.0,I_FF,nWnum_fI[dim]);
+			mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NfnI,-1.0,1.0,I_FF,nWnum_fI[dim],VL->Qhat[dim]);
 		}
 
 		// Exterior VOLUME
-		if (!Boundary) {
-			I_FF = OPSR[0]->I_Weak_FF[VfR];
+		if (!(FACE->Boundary)) {
+			Vf   = FDATA[1]->Vf;
+			NvnS = OPSR[0]->NvnS;
+			I_FF = OPSR[0]->I_Weak_FF[Vf];
+
+			IndFType = FDATA[0]->IndFType;
+			nOrdLR = FDATA[0]->OPS[IndFType]->nOrdLR;
 			for (size_t dim = 0; dim < d; dim++) {
-				array_rearrange_d(NfnI,Nvar,nOrdInOut,'C',nWnum_fI[dim]);
+				array_rearrange_d(NfnI,Nvar,nOrdLR,'C',nWnum_fI[dim]);
 
 				// minus sign from using negative normal for the opposite VOLUME cancels with minus sign in I_Weak_FF.
-				FACE->QhatL[dim] = mm_Alloc_d(CBCM,CBT,CBNT,NvnSR,Nvar,NfnI,1.0,I_FF,nWnum_fI[dim]);
+				mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NfnI,1.0,1.0,I_FF,nWnum_fI[dim],VR->Qhat[dim]);
 			}
 		}
 		array_free2_d(d,nWnum_fI);

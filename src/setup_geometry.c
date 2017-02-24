@@ -309,7 +309,7 @@ void setup_geometry(void)
 	             *EToVe    = DB.EToVe;
 	double       *VeXYZ    = DB.VeXYZ;
 
-	unsigned int PrintTesting = 0;
+	unsigned int PrintTesting = 1;
 
 	// Standard datatypes
 	unsigned int ve, dim, P, vn, Vs,
