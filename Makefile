@@ -191,7 +191,7 @@ $(EXECDIR):
 
 
 OUTPUT_LIST   := paraview errors results
-TESTCASE_LIST := Poisson SupersonicVortex InviscidChannel SupersonicNozzle
+TESTCASE_LIST := Poisson SupersonicVortex InviscidChannel SubsonicNozzle
 # To BeModified (Remove unneeded meshcases folders which may have been created previously)
 MESHCASE_LIST := Ringleb dm1-Spherical_Section Ellipsoidal_Section Annular_Section HoldenRamp GaussianBump NacaSymmetric \
                  EllipsoidalBump JoukowskiSymmetric

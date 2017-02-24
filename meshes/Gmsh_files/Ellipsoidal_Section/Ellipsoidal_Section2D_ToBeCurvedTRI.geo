@@ -12,7 +12,7 @@ If (EqIndex == 0)
 	rOut = 1.0;
 ElseIf (EqIndex == 1)
 	rIn  = 0.5;
-	rOut = 2.0;
+	rOut = 1.0;
 EndIf
 
 // Geometry Specification
@@ -68,7 +68,8 @@ If (EqIndex == 0) // Poisson
 	Physical Line(20011) = {1003:1004}; // Curved Dirichlet
 	Physical Line(20012) = {1005:1006}; // Curved Neumann
 ElseIf (EqIndex == 1) // Euler
-	Physical Line(10001) = {1001,1002}; // Straight Riemann Invariant
+	Physical Line(10001) = {1001}; // Straight Riemann Invariant
+	Physical Line(10003) = {1002}; // Straight Back Pressure
 	Physical Line(20002) = {1003:1006}; // Curved SlipWall
 EndIf
 

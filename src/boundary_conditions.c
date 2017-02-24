@@ -129,10 +129,8 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 			Indn = i*DMAX;
 			VnR[i] = n[Indn]*uR[i]; // vR == wR == 0
 		}
-	} else if (strstr(TestCase,"SupersonicNozzle")) {
-// Use the exact solution for inflow and the internal solution for outflow
-		if (fabs(Y[0]) < EPS) { // Supersonic Inflow
-/*
+	} else if (strstr(TestCase,"SubsonicNozzle")) {
+		if (fabs(Y[0]) < EPS) { // Inflow
 			for (i = 0; i < NnTotal; i++) {
 				rhoR[i] = DB.rhoInf;
 				pR[i]   = DB.pInf;
@@ -143,31 +141,8 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 				Indn   = i*DMAX;
 				VnR[i] = n[Indn+1]*vR[i]; // uR == wR == 0
 			}
-*/
-			for (i = 0; i < NnTotal; i++) {
-				r = sqrt(X[i]*X[i]+Y[i]*Y[i]);
-				t = atan2(Y[i],X[i]);
-
-				rhoR[i] = rhoIn*pow(1.0+0.5*GM1*MIn*MIn*(1.0-pow(rIn/r,2.0)),1.0/GM1);
-				pR[i]   = pow(rhoR[i],GAMMA)/GAMMA;
-
-				Vt = VIn/r;
-				uR[i] = -sin(t)*Vt;
-				vR[i] =  cos(t)*Vt;
-				wR[i] =  0.0;
-
-				Indn = i*DMAX;
-				VnR[i] = n[Indn  ]*uR[i]+n[Indn+1]*vR[i]; // wR == 0
-			}
-		} else if (fabs(X[0]) < EPS) { // Supersonic Outflow
-			for (i = 0; i < NnTotal; i++) {
-				rhoR[i] = rhoL[i];
-				pR[i]   = pL[i];
-				uR[i]   = uL[i];
-				vR[i]   = vL[i];
-				wR[i]   = wL[i];
-				VnR[i]  = VnL[i];
-			}
+		} else if (fabs(X[0]) < EPS) { // Outflow
+			printf("Error: Use BackPressure BC here as the outlet state is not known.\n"), EXIT_MSG;
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
@@ -319,7 +294,7 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, double
 	// Standard datatypes
 	unsigned int n, NnTotal, eq, var, Nvar, IndW;
 	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr,
-	             rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, pInf, rhoB, cL, c2L, VnL, n1, n2, n3,
+	             rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, pBack, rhoB, cL, c2L, VnL, n1, n2, n3,
 	             *WL_ptr[Neq], *WB_ptr[Neq];
 
 	// silence
@@ -392,9 +367,9 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, double
 				IndW++;
 			}
 		} else {
-			pInf = DB.pInf;
+			pBack = DB.pBack;
 
-			rhoB = GAMMA*pInf/c2L;
+			rhoB = GAMMA*pBack/c2L;
 
 			*WB_ptr[IndW++] = rhoB;
 			*WB_ptr[IndW++] = uL*rhoB;
@@ -405,7 +380,7 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, double
 				*WB_ptr[IndW++] = vL*rhoB;
 			}
 			// Note: Using VL for the boundary
-			*WB_ptr[IndW++] = pInf/GM1+0.5*rhoB*V2L;
+			*WB_ptr[IndW++] = pBack/GM1+0.5*rhoB*V2L;
 		}
 
 		for (var = 0; var < Nvar; var++) {

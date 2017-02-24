@@ -76,7 +76,7 @@ static void update_TestCase(void)
 		strcpy(DB.TestCase,"Poisson");
 	} else if (strstr(DB.TestCase,"Euler")) {
 		if (strstr(DB.Geometry,"Ellipsoidal_Section"))
-			strcpy(DB.TestCase,"SupersonicNozzle");
+			strcpy(DB.TestCase,"SubsonicNozzle");
 		else
 			strcpy(DB.TestCase,"InviscidChannel");
 	} else if (strstr(DB.TestCase,"L2_proj") ||

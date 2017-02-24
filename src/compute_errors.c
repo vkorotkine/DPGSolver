@@ -224,7 +224,7 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		free(UEx);
 		free(sEx);
 	} else if (strstr(TestCase,"InviscidChannel") ||
-	           strstr(TestCase,"SupersonicNozzle")) {
+	           strstr(TestCase,"SubsonicNozzle")) {
 		L2Error2[0] = 0.0;
 
 		W = malloc(NvnI*Nvar   * sizeof *W); // free
@@ -301,7 +301,7 @@ void compute_errors_global(void)
 	           strstr(TestCase,"SupersonicVortex")) {
 		NvarError = NVAR3D+1;
 	} else if (strstr(TestCase,"InviscidChannel") ||
-	           strstr(TestCase,"SupersonicNozzle")) {
+	           strstr(TestCase,"SubsonicNozzle")) {
 		if (strstr(Geometry,"NacaSymmetric"))
 			CurvedOnly = 1; // Avoid trailing edge singularity when computing entropy error.
 		NvarError = 1;

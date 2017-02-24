@@ -156,36 +156,16 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 			vR   = 0.0;
 			wR   = 0.0;
 			VnR  = n1*uR; // vR == wR == 0
-		} else if (strstr(TestCase,"SupersonicNozzle")) {
-// Use the exact solution for inflow and the internal solution for outflow
-			if (fabs(Y) < EPS) { // Supersonic Inflow
-/*
+		} else if (strstr(TestCase,"SubsonicNozzle")) {
+			if (fabs(Y) < EPS) { // Inflow
 				rhoR = DB.rhoInf;
 				pR   = DB.pInf;
 				uR   = 0.0;
 				vR   = DB.MInf*DB.cInf;
 				wR   = 0.0;
 				VnR  = n2*vR; // uR == wR == 0
-*/
-				r = sqrt(X*X+Y*Y);
-				t = atan2(Y,X);
-
-				rhoR = rhoIn*pow(1.0+0.5*GM1*MIn*MIn*(1.0-pow(rIn/r,2.0)),1.0/GM1);
-				pR   = pow(rhoR,GAMMA)/GAMMA;
-
-				Vt = VIn/r;
-				uR = -sin(t)*Vt;
-				vR =  cos(t)*Vt;
-				wR = 0.0;
-
-				VnR = n1*uR+n2*vR; // wR == 0
-			} else if (fabs(X) < EPS) { // Supersonic Outflow
-				rhoR = rhoL;
-				pR   = pL;
-				uR   = uL;
-				vR   = vL;
-				wR   = wL;
-				VnR  = VnL;
+			} else if (fabs(X) < EPS) { // Outflow
+				printf("Error: Use BackPressure BC here as the outlet state is not known.\n"), EXIT_MSG;
 			} else {
 				printf("Error: Unsupported.\n"), EXIT_MSG;
 			}
@@ -222,7 +202,6 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 				}}
 			}
 		} else { // Subsonic
-printf("Error: Subsonic\n"), EXIT_MSG;
 			double dcLdW, rho, u, v, w, V2, ut, vt, wt, un, vn, wn, cnst1, drhodW, dudW, dvdW, dwdW, dpdW,
 			       drhoLdW[Nvar], duLdW[Nvar], dvLdW[Nvar], dwLdW[Nvar], dpLdW[Nvar],
 			       dVnLdW[Nvar], dRLdW[Nvar], dcdW[Nvar];
