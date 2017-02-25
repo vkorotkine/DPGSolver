@@ -100,7 +100,7 @@ static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, co
 	unsigned int ***SF_BE = DB.SF_BE;
 
 	// Standard datatypes
-	unsigned int PV, PF, Vtype, Vcurved, Eclass, FtypeInt, IndOrdOutIn, IndOrdInOut;
+	unsigned int PV, PF, Vtype, Eclass, FtypeInt, IndOrdOutIn, IndOrdInOut;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS, *ELEMENT_FACE;
 
@@ -110,7 +110,6 @@ static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, co
 	PV      = VOLUME->P;
 	PF      = FACE->P;
 	Vtype   = VOLUME->type;
-	Vcurved = VOLUME->curved;
 	Eclass  = VOLUME->Eclass;
 
 	FtypeInt = FACE->typeInt;

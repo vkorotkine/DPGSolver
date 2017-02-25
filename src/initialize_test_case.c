@@ -237,12 +237,13 @@ void initialize_test_case_parameters(void)
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
 
-		DB.rhoInf = 2.0;
-		DB.pInf   = 1.02;
-		DB.MInf   = 0.2;
+		DB.rhoInf = 1.0;
+		DB.pInf   = 1.02*1e0;
+//		DB.MInf   = 1.01;
+		DB.MInf   = 0.0;
 		DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
 
-		DB.pBack  = 1.0;
+		DB.pBack  = 0.9*DB.pInf;
 	} else if (strstr(TestCase,"PeriodicVortex")) {
 		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 		strcpy(SolverType,"Explicit");
@@ -643,8 +644,10 @@ static void compute_uniform_solution(const unsigned int Nn, const double *XYZ, d
 
 			t = atan2(Y[n],X[n]);
 			U[0*Nn+n] = DB.rhoInf;
-			U[1*Nn+n] = -sin(t)*(DB.MInf*DB.cInf);
-			U[2*Nn+n] =  cos(t)*(DB.MInf*DB.cInf);
+//			U[1*Nn+n] = -sin(t)*(DB.MInf*DB.cInf);
+//			U[2*Nn+n] =  cos(t)*(DB.MInf*DB.cInf);
+			U[1*Nn+n] = 0.0*t;
+			U[2*Nn+n] = 0.0;
 			U[3*Nn+n] = 0.0;
 			U[4*Nn+n] = DB.pInf;
 		}

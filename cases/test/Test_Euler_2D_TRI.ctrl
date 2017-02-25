@@ -7,7 +7,7 @@
 BEGIN PARAMETERS
   Dimension  2
   ML         0
-  MeshType   ToBeCurvedTRI
+  MeshType   ToBeCurvedQUAD
   Geometry   Ellipsoidal_Section
 
   Form       Weak   // Options: Weak, (Strong)
@@ -20,7 +20,7 @@ BEGIN PARAMETERS
   Adapt      3     // Options: 0, 1, 2, (3)
 
   PGlobal    1
-  PMax       4
+  PMax       6
   LevelsMax  5
 
   Restart    -1    // Options: -1, 0, Iteration #

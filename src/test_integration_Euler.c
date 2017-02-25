@@ -168,8 +168,8 @@ void test_integration_Euler(int nargc, char **argv)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 4; PMax  = 4;
-	MLMin = 0; MLMax = 1;
+	PMin  = 6; PMax  = 6;
+	MLMin = 0; MLMax = 0;
 TestDB.PGlobal = PMin;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
@@ -206,8 +206,8 @@ TestDB.PGlobal = PMin;
 			output_to_paraview(fNameOut);
 			free(fNameOut);
 		}
-//		if (ML == MLMin && P == PMin)
-//			solver_explicit();
+		if (ML == MLMin && P == PMin)
+			solver_explicit();
 		solver_implicit();
 
 		compute_errors_global();

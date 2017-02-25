@@ -362,6 +362,7 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, double
 			printf("\nWarning: Velocity Inflow in boundary_BackPressure.\n");
 
 		if (fabs(VL) >= cL) { // Supersonic
+//		if (1 || fabs(VL) >= cL) { // Supersonic
 			for (var = 0; var < Nvar; var++) {
 				*WB_ptr[IndW] = *WL_ptr[IndW];
 				IndW++;

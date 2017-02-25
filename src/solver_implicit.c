@@ -284,7 +284,7 @@ void solver_implicit(void)
 			compute_underRelax(VOLUME,dWhat,&alpha);
 
 //printf("% .3e\n",alpha);
-alpha = 1.0;
+//alpha = 1.0;
 
 			for (i = 0; i < iMax; i++)
 				(*What++) += alpha*dWhat[i];

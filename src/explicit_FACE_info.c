@@ -400,9 +400,10 @@ static void compute_FACE_RHS_EFE(void)
 				boundary_Riemann(NfnI,1,FACE->XYZ_fI,WIn_fI,NULL,WOut_fIIn,n_fI,d);
 			} else if (BC % BC_STEP_SC == BC_SLIPWALL) {
 				boundary_SlipWall(NfnI,1,WIn_fI,WOut_fIIn,n_fI,d);
-//			} else if (BC % BC_STEP_SC == BC_BACKPRESSURE) {
+			} else if (BC % BC_STEP_SC == BC_BACKPRESSURE) {
+				boundary_BackPressure(NfnI,1,WIn_fI,WOut_fIIn,n_fI,d,Nvar);
 			} else {
-				printf("Error: Unsupported BC in explicit_FACE_info.\n"), exit(1);
+				printf("Error: Unsupported.\n"), EXIT_MSG;
 			}
 		}
 

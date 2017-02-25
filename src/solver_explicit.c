@@ -79,7 +79,8 @@ void solver_explicit(void)
 			dt = pow(0.5,(DB.ML+DB.LevelsMax)+DB.PGlobal+1);
 		else if (Adapt == ADAPT_HP)
 //			dt = 1e4*pow(0.5,max(DB.ML,DB.LevelsMax)+DB.PMax+1);
-			dt = 1e-1*pow(0.5,DB.ML+DB.PGlobal);
+			dt = 1e+1*pow(0.5,DB.ML+DB.PGlobal);
+			OutputInterval = 2e3;
 	}
 	printf("%d %d\n",DB.ML,DB.PGlobal);
 
