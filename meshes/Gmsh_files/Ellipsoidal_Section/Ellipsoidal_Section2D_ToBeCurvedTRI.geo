@@ -68,7 +68,7 @@ If (EqIndex == 0) // Poisson
 	Physical Line(20011) = {1003:1004}; // Curved Dirichlet
 	Physical Line(20012) = {1005:1006}; // Curved Neumann
 ElseIf (EqIndex == 1) // Euler
-	Physical Line(10001) = {1001}; // Straight Riemann Invariant
+	Physical Line(10004) = {1001}; // Straight Total Temperature/Pressure
 	Physical Line(10003) = {1002}; // Straight Back Pressure
 	Physical Line(20002) = {1003:1006}; // Curved SlipWall
 EndIf

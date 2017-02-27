@@ -292,6 +292,22 @@ void initialize_test_case_parameters(void)
 
 		cIn = sqrt(GAMMA*pIn/DB.rhoIn);
 		DB.VIn = cIn*DB.MIn*DB.rIn;
+	} else if (strstr(TestCase,"PrandtlMeyer")) {
+		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
+		strcpy(SolverType,"Implicit");
+		SourcePresent = 0;
+
+		double l = 1.0, cIn;
+
+		DB.aIn = 2.0*l;
+		DB.bIn = l;
+
+		DB.MIn   = 1.41421356237;
+		DB.rhoIn = 1.0;
+		DB.pIn   = 1.0;
+
+		cIn = sqrt(GAMMA*DB.pIn/DB.rhoIn);
+		DB.VIn = cIn*DB.MIn;
 	} else {
 		printf("Error: Unsupported TestCase: %s.\n",TestCase), EXIT_MSG;
 	}
@@ -486,6 +502,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 		if (strstr(TestCase,"PeriodicVortex")   ||
 		    strstr(TestCase,"SupersonicVortex") ||
 		    strstr(TestCase,"SubsonicNozzle") ||
+		    strstr(TestCase,"PrandtlMeyer") ||
 			strstr(TestCase,"InviscidChannel")) {
 
 			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -651,6 +668,36 @@ static void compute_uniform_solution(const unsigned int Nn, const double *XYZ, d
 			U[3*Nn+n] = 0.0;
 			U[4*Nn+n] = DB.pInf;
 		}
+	} else if (strstr(TestCase,"PrandtlMeyer")) {
+		// Standard datatypes
+		const double *X, *Y;
+
+		X = &XYZ[0*Nn];
+		Y = &XYZ[1*Nn];
+		if (d == 3)
+			printf("Add support.\n"), EXIT_MSG;
+
+		// Define the initial solution such that the velocity vector points in approximately the correct direction.
+		for (n = 0; n < Nn; n++) {
+			double t;
+
+			t = atan2(Y[n],X[n]);
+			U[0*Nn+n] = DB.rhoIn;
+			U[4*Nn+n] = DB.pIn;
+			if (X[n] < EPS) {
+				U[1*Nn+n] = DB.VIn;
+				U[2*Nn+n] = 0.0;
+			} else if (Y[n] < EPS) {
+				U[1*Nn+n] = 0.0;
+				U[2*Nn+n] = -DB.VIn;
+			} else {
+				U[1*Nn+n] =  sin(t)*DB.VIn;
+				U[2*Nn+n] = -cos(t)*DB.VIn;
+			}
+//			U[1*Nn+n] = 0.0;
+//			U[2*Nn+n] = 0.0;
+			U[3*Nn+n] = 0.0*t;
+		}
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -664,6 +711,7 @@ void compute_solution(const unsigned int Nn, double *XYZ, double *UEx, const uns
 	if (strstr(TestCase,"PeriodicVortex") || strstr(TestCase,"SupersonicVortex")) {
 		compute_exact_solution(Nn,XYZ,UEx,solved);
 	} else if (strstr(TestCase,"InviscidChannel") ||
+	           strstr(TestCase,"PrandtlMeyer") ||
 	           strstr(TestCase,"SubsonicNozzle")) {
 		compute_uniform_solution(Nn,XYZ,UEx);
 	} else {

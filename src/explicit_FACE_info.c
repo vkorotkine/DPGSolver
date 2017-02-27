@@ -102,7 +102,7 @@ case ADAPT_HP:
 		}
 		break;
 	default: // ADAPT_P, ADAPT_H, ADAPT_HP
-printf("Error: Should not be entering default in explicit_FACE_info.\n"), exit(1);
+printf("Error: Should not be entering default in explicit_FACE_info.\n"), EXIT_MSG;
 		switch (Vectorized) {
 		case 0:
 			compute_FACE_RHS();
@@ -176,7 +176,7 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		OPS->nOrdInOut = ELEMENT_FACE->nOrd_fIs[PF][IndOrdInOut];
 		switch (Adapt) {
 		default: // ADAPT_P, ADAPT_H, ADAPT_HP
-printf("Error: Should not be entering default in explicit_FACE_info.\n"), exit(1);
+printf("Error: Should not be entering default in explicit_FACE_info.\n"), EXIT_MSG;
 			OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fS[PF][IndOrdOutIn];
 			break;
 case ADAPT_P: // ToBeModified (Also change setup_normals and output_to_paraview)
@@ -205,7 +205,7 @@ case ADAPT_HP:
 		OPS->nOrdInOut = ELEMENT_FACE->nOrd_fIc[PF][IndOrdInOut];
 		switch (Adapt) {
 		default: // ADAPT_P, ADAPT_H, ADAPT_HP
-printf("Error: Should not be entering default in explicit_FACE_info.\n"), exit(1);
+printf("Error: Should not be entering default in explicit_FACE_info.\n"), EXIT_MSG;
 			OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fS[PF][IndOrdOutIn];
 			break;
 case ADAPT_P: // ToBeModified (Also change setup_normals and output_to_paraview)
@@ -402,6 +402,12 @@ static void compute_FACE_RHS_EFE(void)
 				boundary_SlipWall(NfnI,1,WIn_fI,WOut_fIIn,n_fI,d);
 			} else if (BC % BC_STEP_SC == BC_BACKPRESSURE) {
 				boundary_BackPressure(NfnI,1,WIn_fI,WOut_fIIn,n_fI,d,Nvar);
+			} else if (BC % BC_STEP_SC == BC_TOTAL_TP) {
+				boundary_Total_TP(NfnI,1,FACE->XYZ_fI,WIn_fI,WOut_fIIn,n_fI,d,Nvar);
+			} else if (BC % BC_STEP_SC == BC_SUPERSONIC_IN) {
+				boundary_SupersonicInflow(NfnI,1,FACE->XYZ_fI,WIn_fI,WOut_fIIn,n_fI,d,Nvar);
+			} else if (BC % BC_STEP_SC == BC_SUPERSONIC_OUT) {
+				boundary_SupersonicOutflow(NfnI,1,FACE->XYZ_fI,WIn_fI,WOut_fIIn,n_fI,d,Nvar);
 			} else {
 				printf("Error: Unsupported.\n"), EXIT_MSG;
 			}
@@ -428,7 +434,7 @@ array_print_d(NfnI,Nvar,WOut_fIIn,'C');
 			flux_Roe(NfnI,1,WIn_fI,WOut_fIIn,nFluxNum_fI,n_fI,d,Neq);
 			break;
 		default:
-			printf("Error: Unsupported InviscidFluxType used in explicit_FACE_info.\n"), exit(1);
+			printf("Error: Unsupported InviscidFluxType used in explicit_FACE_info.\n"), EXIT_MSG;
 			break;
 		}
 
@@ -581,7 +587,7 @@ if (FACE->indexg == 240) {
 				}
 			}
 		} else if (strstr(Form,"Strong")) {
-			printf("Exiting: Implement the strong form in compute_FACE_RHS_EFE.\n"), exit(1);
+			printf("Exiting: Implement the strong form in compute_FACE_RHS_EFE.\n"), EXIT_MSG;
 		}
 
 /*
@@ -723,7 +729,7 @@ static void compute_FACE_RHS(void)
 			} else if (BC % BC_STEP_SC == BC_SLIPWALL) {
 				boundary_SlipWall(NfnS,1,WIn_fS,WOut_fSIn,n_fS,d);
 			} else {
-				printf("Error: Unsupported BC in explicit_FACE_info.\n"), exit(1);
+				printf("Error: Unsupported BC in explicit_FACE_info.\n"), EXIT_MSG;
 			}
 		}
 /*
@@ -745,7 +751,7 @@ printf("%d\n",FACE->indexg);
 			flux_Roe(NfnS,1,WIn_fS,WOut_fSIn,nFluxNum_fS,n_fS,d,Neq);
 			break;
 		default:
-			printf("Error: Unsupported InviscidFluxType used in explicit_FACE_info.\n"), exit(1);
+			printf("Error: Unsupported InviscidFluxType used in explicit_FACE_info.\n"), EXIT_MSG;
 			break;
 		}
 		free(WIn_fS);
@@ -873,7 +879,7 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 				}
 			}
 		} else if (strstr(Form,"Strong")) {
-			printf("Exiting: Implement the strong form in compute_FACE_RHS_EFE.\n"), exit(1);
+			printf("Exiting: Implement the strong form in compute_FACE_RHS_EFE.\n"), EXIT_MSG;
 		}
 		free(RowTracker);
 		free(nFluxNum_fI);

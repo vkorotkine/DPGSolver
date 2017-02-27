@@ -110,9 +110,12 @@
 #define RK4_LS  1
 
 // Boundary conditions
-#define BC_RIEMANN      1
-#define BC_SLIPWALL     2
-#define BC_BACKPRESSURE 3
+#define BC_RIEMANN        1
+#define BC_SLIPWALL       2
+#define BC_BACKPRESSURE   3
+#define BC_TOTAL_TP       4
+#define BC_SUPERSONIC_IN  5
+#define BC_SUPERSONIC_OUT 6
 
 #define BC_DIRICHLET    11
 #define BC_NEUMANN      12

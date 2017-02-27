@@ -77,6 +77,8 @@ static void update_TestCase(void)
 	} else if (strstr(DB.TestCase,"Euler")) {
 		if (strstr(DB.Geometry,"Ellipsoidal_Section"))
 			strcpy(DB.TestCase,"SubsonicNozzle");
+		else if (strstr(DB.Geometry,"ExpansionCorner"))
+			strcpy(DB.TestCase,"PrandtlMeyer");
 		else
 			strcpy(DB.TestCase,"InviscidChannel");
 	} else if (strstr(DB.TestCase,"L2_proj") ||

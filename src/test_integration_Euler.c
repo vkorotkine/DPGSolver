@@ -168,7 +168,7 @@ void test_integration_Euler(int nargc, char **argv)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 6; PMax  = 6;
+	PMin  = 2; PMax  = 2;
 	MLMin = 0; MLMax = 0;
 TestDB.PGlobal = PMin;
 
@@ -189,7 +189,7 @@ TestDB.PGlobal = PMin;
 
 		if (Adapt != ADAPT_0) {
 			if (ML == MLMin) {
-				mesh_to_level(TestDB.ML);
+				mesh_to_level(TestDB.ML+2);
 				if (AdaptiveRefine)
 					h_adapt();
 			} else {

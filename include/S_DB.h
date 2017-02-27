@@ -40,7 +40,7 @@ struct S_DB {
 	unsigned int Nvar, Neq, OutputInterval, DOF0, SourcePresent;
 	double       Xc, Yc, Rc, MInf, rhoInf, pInf, TInf, cInf, VInf, uInf, vInf, wInf, Rg, Cscale, pBack,
 	             PeriodL, PeriodFraction, FinalTime,
-	             rIn, MIn, rhoIn, VIn, rOut, Q0, KMin, KMax, GBa, GBb, GBc, aIn, bIn, cIn, aOut, bOut, cOut, lHR,
+	             rIn, MIn, rhoIn, pIn, VIn, rOut, Q0, KMin, KMax, GBa, GBb, GBc, aIn, bIn, cIn, aOut, bOut, cOut, lHR,
 	             NSc, NSt, NS0, NS1, NS2, NS3, NS4, JSa, JSl, JSxL;
 
 	// Solving

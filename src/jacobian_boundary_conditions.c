@@ -13,6 +13,7 @@
 #include "S_DB.h"
 
 #include "variable_functions.h"
+#include "boundary_conditions.h"
 
 #include "array_print.h"
 
@@ -56,19 +57,12 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 	 *
 	 */
 
-	// Initialize DB Parameters
-	char         *TestCase = DB.TestCase;
-	double       rIn       = DB.rIn,
-	             MIn       = DB.MIn,
-	             rhoIn     = DB.rhoIn,
-	             VIn       = DB.VIn;
-
 	// Standard datatypes
 	unsigned int i, iMax, n, eq, var, NnTotal, Nvar, InddWdW;
 	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *X_ptr, *Y_ptr,
 	             rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL, rhoR, uR, vR, wR, pR,
 	             cL, RL, VnL, cR, RR, VnR, c, Vn,
-	             X, Y, r, t, Vt, n1, n2, n3, *dWdW_ptr[Neq*Neq];
+	             X, Y, n1, n2, n3, *dWdW_ptr[Neq*Neq];
 
 	// silence
 	rhoL_ptr = WOut;
@@ -135,44 +129,8 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 		Y = *Y_ptr++;
 
 		// Outer VOLUME
-		if (strstr(TestCase,"SupersonicVortex")) {
-			// Use the exact solution for the Outer VOLUME
-			r = sqrt(X*X+Y*Y);
-			t = atan2(Y,X);
-
-			rhoR = rhoIn*pow(1.0+0.5*GM1*MIn*MIn*(1.0-pow(rIn/r,2.0)),1.0/GM1);
-			pR   = pow(rhoR,GAMMA)/GAMMA;
-
-			Vt = -VIn/r;
-			uR = -sin(t)*Vt;
-			vR =  cos(t)*Vt;
-			wR = 0.0;
-
-			VnR = n1*uR+n2*vR; // wR == 0
-		} else if (strstr(TestCase,"InviscidChannel")) {
-			rhoR = DB.rhoInf;
-			pR   = DB.pInf;
-			uR   = DB.MInf*DB.cInf;
-			vR   = 0.0;
-			wR   = 0.0;
-			VnR  = n1*uR; // vR == wR == 0
-		} else if (strstr(TestCase,"SubsonicNozzle")) {
-			if (fabs(Y) < EPS) { // Inflow
-				rhoR = DB.rhoInf;
-				pR   = DB.pInf;
-				uR   = 0.0;
-				vR   = DB.MInf*DB.cInf;
-				wR   = 0.0;
-				VnR  = n2*vR; // uR == wR == 0
-			} else if (fabs(X) < EPS) { // Outflow
-				printf("Error: Use BackPressure BC here as the outlet state is not known.\n"), EXIT_MSG;
-			} else {
-				printf("Error: Unsupported.\n"), EXIT_MSG;
-			}
-		} else {
-			printf("TestCase: %s\n",TestCase);
-			printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
-		}
+		get_boundary_values(X,Y,&rhoR,&uR,&vR,&wR,&pR);
+		VnR = n1*uR+n2*vR+n3*wR;
 
 		cL = sqrt(GAMMA*pL/rhoL);
 		cR = sqrt(GAMMA*pR/rhoR);

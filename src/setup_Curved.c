@@ -102,6 +102,7 @@ void compute_plane(const double *XYZ1, const double *XYZ2, const double *XYZ3, d
 void get_abc_ellipse(const unsigned int Nn, double *XYZ, double *abc)
 {
 	// Initialize DB Parameters
+	char         *TestCase = DB.TestCase;
 	unsigned int d    = DB.d;
 	double       rIn  = DB.rIn,
 	             aIn  = DB.aIn,
@@ -115,6 +116,13 @@ void get_abc_ellipse(const unsigned int Nn, double *XYZ, double *abc)
 	// Standard datatypes
 	unsigned int n;
 	double       *x, *y, *z, norm_In, norm_Out;
+
+	if (strstr(TestCase,"PrandtlMeyer")) {
+		abc[0] = aIn;
+		abc[1] = bIn;
+		abc[2] = cIn;
+		return;
+	}
 
 	x = &XYZ[0*Nn];
 	y = &XYZ[1*Nn];
@@ -515,6 +523,7 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 	} else if (strstr(Geometry,"GaussianBump")  ||
 	           strstr(Geometry,"NacaSymmetric") ||
 	           strstr(Geometry,"JoukowskiSymmetric") ||
+	           strstr(Geometry,"ExpansionCorner") ||
 	           strstr(Geometry,"EllipsoidalBump")) {
 		double       nx, ny, xS, yS, DStep, x, y, h, xp, yp, ypE;
 
@@ -883,6 +892,7 @@ static void select_functions_Curved(compute_pc_tdef *compute_pc, compute_XYZ_tde
 			   strstr(Geometry,"GaussianBump")  ||
 			   strstr(Geometry,"NacaSymmetric") ||
 			   strstr(Geometry,"JoukowskiSymmetric") ||
+			   strstr(Geometry,"ExpansionCorner") ||
 			   strstr(Geometry,"EllipsoidalBump")) {
 		if (DB.Parametrization != NORMAL)
 			printf("Add support if not using NORMAL parametrization.\n"), EXIT_MSG;
