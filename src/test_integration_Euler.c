@@ -70,6 +70,14 @@ static void h_adapt(void)
 
 		XYZref[0+0*DMAX] = xL;  XYZref[1+0*DMAX] = 0.0; XYZref[2+0*DMAX] = 0.0;
 		XYZref[0+1*DMAX] = 2*a; XYZref[1+1*DMAX] = 0.0; XYZref[2+1*DMAX] = 0.0;
+	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+		double aIn = DB.aIn;
+
+		Nref = 1;
+
+		NML[0] = 2;
+
+		XYZref[0+0*DMAX] = aIn;  XYZref[1+0*DMAX] = 0.0; XYZref[2+0*DMAX] = 0.0;
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -174,7 +182,7 @@ TestDB.PGlobal = PMin;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
-	AdaptiveRefine = 0;
+	AdaptiveRefine = 1;
 //	Adapt = ADAPT_0;
 	Adapt = ADAPT_HP;
 	if (Adapt != ADAPT_0) {
@@ -189,7 +197,7 @@ TestDB.PGlobal = PMin;
 
 		if (Adapt != ADAPT_0) {
 			if (ML == MLMin) {
-				mesh_to_level(TestDB.ML+2);
+//				mesh_to_level(TestDB.ML+0);
 				if (AdaptiveRefine)
 					h_adapt();
 			} else {

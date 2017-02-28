@@ -6,7 +6,7 @@
 
 struct S_TEST {
 	// Counters
-	unsigned int Ntest, Npass, Nwarnings, EnteredRiemann[4], EnteredLF[2], EnteredRoe[4], EnteredPT[2];
+	unsigned int Ntest, Npass, Nwarnings, EnteredRiemann[4], EnteredLF[2], EnteredRoe[4], EnteredBackPressure[2];
 
 	// Initialization
 	char         *TestCase;

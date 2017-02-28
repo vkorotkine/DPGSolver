@@ -176,6 +176,12 @@ void initialize_test_case_parameters(void)
 		DB.pInf   = 1.0;
 		DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
 
+		// Initialized for Testing
+		DB.p_Total = 1.0;
+		DB.T_Total = 1.0;
+		DB.Rg      = 1.0;
+		DB.pBack   = 0.99*DB.p_Total;
+
 		if (strstr(Geometry,"GaussianBump")) {
 			unsigned int BumpFactor = 3;
 
@@ -232,7 +238,7 @@ void initialize_test_case_parameters(void)
 //			DB.aIn  = 1.00;  DB.bIn  = 1.00;
 //			DB.aOut = 1.384; DB.bOut = 1.384;
 			DB.aIn  = 0.50; DB.bIn  = 0.50;
-			DB.aOut = 1.00; DB.bOut = 2.00;
+			DB.aOut = 1.00; DB.bOut = 3.00;
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
@@ -243,7 +249,30 @@ void initialize_test_case_parameters(void)
 		DB.MInf   = 0.0;
 		DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
 
-		DB.pBack  = 0.9*DB.pInf;
+		/*
+		 *	Notes:
+		 *		Obtained convergence!
+		 *		Parameters:
+		 *			aIn = 0.5, bIn = 0.5, aOut = 1.0, bOut = 2.0
+		 *			p_Total = T_Total = Rg = 1.0
+		 *			p_Back  = 0.99*p_Total
+		 *
+		 *			Initialized to zero velocity, p = pInf, rho = rhoInf
+		 *			SolverExplicit (P6, ML1, dt = 2e+2*pow(0.5,DB.ML+DB.PGlobal)): 150,000 time steps
+		 *				Monotonic convergence starting around 80,000 time steps
+		 */
+
+		DB.p_Total = 1.0;
+		DB.T_Total = 1.0;
+		DB.Rg      = 1.0;
+		DB.pBack   = 0.99*DB.p_Total;
+
+//		double TInf = pow(DB.T_Total*(DB.pBack/DB.p_Total),GM1/GAMMA);
+		DB.rhoInf = DB.p_Total/(DB.Rg*DB.T_Total);
+		DB.pInf   = DB.p_Total;
+
+		DB.MInf   = 0.0*sqrt(2.0/GM1*(pow((DB.pBack/DB.p_Total),-GM1/GAMMA)-1.0));
+		DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
 	} else if (strstr(TestCase,"PeriodicVortex")) {
 		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 		strcpy(SolverType,"Explicit");
@@ -661,12 +690,15 @@ static void compute_uniform_solution(const unsigned int Nn, const double *XYZ, d
 
 			t = atan2(Y[n],X[n]);
 			U[0*Nn+n] = DB.rhoInf;
-//			U[1*Nn+n] = -sin(t)*(DB.MInf*DB.cInf);
-//			U[2*Nn+n] =  cos(t)*(DB.MInf*DB.cInf);
+			U[1*Nn+n] = -sin(t)*(DB.MInf*DB.cInf);
+			U[2*Nn+n] =  cos(t)*(DB.MInf*DB.cInf);
 			U[1*Nn+n] = 0.0*t;
 			U[2*Nn+n] = 0.0;
 			U[3*Nn+n] = 0.0;
 			U[4*Nn+n] = DB.pInf;
+
+//			U[0*Nn+n] = DB.p_Total/(DB.Rg*DB.T_Total);
+//			U[4*Nn+n] = DB.p_Total;
 		}
 	} else if (strstr(TestCase,"PrandtlMeyer")) {
 		// Standard datatypes

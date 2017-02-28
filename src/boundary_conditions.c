@@ -393,13 +393,58 @@ void boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, double *XY
 	 *	Purpose:
 	 *		Impose total (P)ressure/(T)emperature (inflow) boundary condition.
 	 *
+	 *	Comments:
+	 *		eq. (38) in Carlson(2011) implies that the velocity should be normal to the boundary.
+	 *
 	 *	References:
 	 *		Carlson(2011): 2.7
 	 *		Toro(2009): (3.9), (8.58)
 	 */
 
-	for (n = 0; n < NnTotal; n++) {
-		double rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL;
+	// Initialize DB Parameters
+	double Rg      = DB.Rg,
+	       p_Total = DB.p_Total,
+	       T_Total = DB.T_Total;
+
+	// Standard datatypes
+	unsigned int NnTotal;
+	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *WL_ptr[Nvar], *WB_ptr[Nvar];
+
+	// silence
+	rhowL_ptr = NULL;
+	WB[0] = XYZ[0];
+
+	NnTotal = Nn*Nel;
+
+	for (size_t var = 0; var < Nvar; var++) {
+		WL_ptr[var] = &WL[var*NnTotal];
+		WB_ptr[var] = &WB[var*NnTotal];
+	}
+
+	double zeros[NnTotal];
+
+	for (size_t n = 0; n < NnTotal; n++)
+		zeros[n] = 0.0;
+
+	rhoL_ptr  = WL_ptr[0];
+	rhouL_ptr = WL_ptr[1];
+	rhovL_ptr = WL_ptr[2];
+	EL_ptr    = WL_ptr[d+1];
+
+	if (d == 3) {
+		rhowL_ptr = WL_ptr[3];
+	} else if (d == 2) {
+		rhowL_ptr = zeros;
+	}
+
+	n_ptr = nL;
+
+	for (size_t n = 0; n < NnTotal; n++) {
+		unsigned int IndW = 0;
+		double       rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL, cL, HL, n1, n2, n3, VnL, RL;
+
+		// silence
+		n3 = 0.0;
 
 		rhoL = *rhoL_ptr++;
 		rhoL_inv = 1.0/rhoL;
@@ -416,6 +461,60 @@ void boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, double *XY
 
 		HL = (EL+pL)*rhoL_inv;
 
+		n1 = *n_ptr++;
+		n2 = *n_ptr++;
+		if (d == 3)
+			n3 = *n_ptr++;
+
+		VnL = uL*n1+vL*n2+wL*n3;
+
+		RL = VnL + 2.0/GM1*cL;
+
+		// Solve for c
+		double aQ, bQ, cQ, term1, term2, cM, cP, c, Vn, M, T, p, rho, u, v, w, E;
+
+		aQ =  1.0 + 2.0/GM1;
+		bQ = -2.0*RL;
+		cQ =  0.5*GM1*(RL*RL - 2.0*HL);
+
+		term1 = -bQ/(2.0*aQ);
+		term2 = sqrt(bQ*bQ-4.0*aQ*cQ)/(2.0*aQ);
+
+		cM = term1-term2;
+		cP = term1+term2;
+
+		// c = max(cM,cP)
+		if (cM > cP)
+			c = cM;
+		else
+			c = cP;
+
+		Vn = RL - 2.0/GM1*c;
+
+		if (Vn > EPS)
+			printf("\nWarning: Velocity Outflow in boundary_Total_TP.\n");
+
+		M = Vn/c;
+
+		T = T_Total/(1+0.5*GM1*M*M);
+		p = p_Total*pow(T/T_Total,GAMMA/GM1);
+
+		rho = p/(Rg*T);
+		u   = Vn*n1;
+		v   = Vn*n2;
+		w   = Vn*n3;
+
+		E   = p/GM1+0.5*rho*(u*u+v*v+w*w);
+
+		*WB_ptr[IndW++] = rho;
+		*WB_ptr[IndW++] = rho*u;
+		*WB_ptr[IndW++] = rho*v;
+		if (d == 3)
+			*WB_ptr[IndW++] = rho*w;
+		*WB_ptr[IndW++] = E;
+
+		for (size_t var = 0; var < Nvar; var++)
+			WB_ptr[var]++;
 	}
 }
 

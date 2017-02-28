@@ -413,15 +413,6 @@ static void compute_FACE_RHS_EFE(void)
 			}
 		}
 
-/*
-printf("%d\n",FACE->indexg);
-array_print_d(NfnI,Nvar,WIn_fI,'C');
-array_print_d(NfnI,Nvar,WOut_fIIn,'C');
-//if (FACE->indexg == 2)
-//	exit(1);
-//exit(1);
-*/
-
 		// Compute numerical flux
 		nFluxNum_fI = malloc(NfnI*Neq * sizeof *nFluxNum_fI); // free
 		detJF_fI = FACE->detJF_fI;
@@ -438,33 +429,13 @@ array_print_d(NfnI,Nvar,WOut_fIIn,'C');
 			break;
 		}
 
-/*
-if (FACE->indexg == 2) {
-printf("%d %d %d %d %d\n",FACE->indexg,IndFType,VIn->indexg,VOut->indexg,VfIn);
-array_print_d(NfnI,Neq,WIn_fI,'C');
-array_print_d(NfnI,Neq,WOut_fIIn,'C');
-array_print_d(NfnI,d,n_fI,'R');
-array_print_d(NfnI,1,detJF_fI,'C');
-array_print_d(NfnI,Neq,nFluxNum_fI,'C');
-}
-*/
-
 		// Multiply n dot FNum by the area element
 		for (i = 0; i < Neq; i++) {
 			iInd = i*NfnI;
 			for (j = 0; j < NfnI; j++)
 				nFluxNum_fI[iInd+j] *= detJF_fI[j];
 		}
-//printf("%d %d %d % .3e\n",FACE->indexg,VIn->type,VOut->type,
-//array_norm_diff_d(NfnI*Neq,WIn_fI,WOut_fIIn,"Inf"));
-/*
-if (FACE->indexg == 240) {
-printf("%d %d\n",FACE->indexg,IndFType);
-//array_print_d(NfnI,Neq,WIn_fI,'C');
-//array_print_d(NfnI,Neq,WOut_fIIn,'C');
-array_print_d(NfnI,Neq,nFluxNum_fI,'C');
-}
-*/
+
 		// Compute FACE RHS terms
 		RHSIn  = calloc(NvnSIn*Neq  , sizeof *RHSIn);  // keep (requires external free)
 		RHSOut = calloc(NvnSOut*Neq , sizeof *RHSOut); // keep (requires external free)
@@ -540,11 +511,6 @@ array_print_d(NfnI,Neq,nFluxNum_fI,'C');
 					}
 				}
 
-if (FACE->indexg == 240) {
-//array_print_d(NfnI,Neq,nFluxNum_fI,'C');
-//exit(1);
-}
-
 				if (EclassOut == C_TP && SF_BE[P][0][1]) {
 					get_sf_parametersF(OPSOut[0]->NvnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_VV,
 					                   OPSOut[0]->NfnI_SF,OPSOut[0]->NvnS_SF,OPSOut[0]->I_Weak_FF,NIn,NOut,OP,d,VfOut,C_TP);
@@ -590,28 +556,11 @@ if (FACE->indexg == 240) {
 			printf("Exiting: Implement the strong form in compute_FACE_RHS_EFE.\n"), EXIT_MSG;
 		}
 
-/*
-//if (FACE->indexg == 2) {
-printf("%d %d %d %d %d %d %d\n",FACE->indexg,IndFType,VIn->indexg,VOut->indexg,VfIn,BC,Boundary);
-array_print_d(NvnSIn,Neq,RHSIn,'C');
-array_print_d(NvnSOut,Neq,RHSOut,'C');
-//array_print_d(NfnI,d,n_fI,'R');
-//array_print_d(NfnI,d,FACE->XYZ_fI,'C');
-//array_print_d(NfnI,Neq,WIn_fI,'C');
-//array_print_d(NfnI,Neq,WOut_fIIn,'C');
-//array_print_d(NfnI,Neq,nFluxNum_fI,'R');
-//exit(1);
-//}
-*/
-//printf("%d %d %d\n",FACE->indexg,VfIn%NFREFMAX,VfOut%NFREFMAX);
-
 		free(RowTracker);
 		free(WIn_fI);
 		free(WOut_fIIn);
 		free(nFluxNum_fI);
 	}
-//exit(1);
-//printf("\n\n\n\n\n");
 
 	for (i = 0; i < 2; i++) {
 		free(OPSIn[i]);
