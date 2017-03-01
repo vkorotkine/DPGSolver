@@ -84,7 +84,7 @@ ifeq ($(KERNEL),Linux)
     MKL_INC := -I$(MKL_DIR)/include
 #    MKL_LDINC := -Wl,--no-as-needed -L$(MKL_DIR)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lgomp
     # Needed when petsc is not linked with MKL during installation
-	MKL_LIBDIR := $(MKL_DIR)/lib/intel64
+    MKL_LIBDIR := $(MKL_DIR)/lib/intel64
     MKL_LDINC := $(MKL_LIBDIR)/libmkl_intel_lp64.so $(MKL_LIBDIR)/libmkl_core.so $(MKL_LIBDIR)/libmkl_sequential.so -lpthread
   else #Guillimin
     PROG_PATH := /home/pzwan/programs

@@ -27,6 +27,65 @@
  *	References:
  */
 
+static void get_boundary_values_c(const double X, const double Y, double complex *rho, double complex *u,
+                                  double complex *v, double complex *w, double complex *p)
+{
+	// Initialize DB Parameters
+	char   *TestCase = DB.TestCase;
+
+
+	if (strstr(TestCase,"SupersonicVortex")) {
+		// Use the exact solution for the Outer VOLUME
+		double rIn   = DB.rIn,
+	           MIn   = DB.MIn,
+	           rhoIn = DB.rhoIn,
+	           VIn   = DB.VIn;
+
+		double         r, t;
+		double complex Vt;
+
+		r = sqrt(X*X+Y*Y);
+		t = atan2(Y,X);
+
+		*rho = rhoIn*pow(1.0+0.5*GM1*MIn*MIn*(1.0-pow(rIn/r,2.0)),1.0/GM1);
+		*p   = cpow(*rho,GAMMA)/GAMMA;
+
+		Vt = -VIn/r;
+		*u = -sin(t)*Vt;
+		*v =  cos(t)*Vt;
+		*w =  0.0;
+	} else if (strstr(TestCase,"InviscidChannel")) {
+		// Use exact uniform channel solution for outer VOLUME
+		*rho = DB.rhoInf;
+		*p   = DB.pInf;
+		*u   = DB.MInf*DB.cInf;
+		*v   = 0.0;
+		*w   = 0.0;
+	} else if (strstr(TestCase,"SubsonicNozzle")) {
+		if (fabs(Y) < EPS) { // Inflow
+			*rho = DB.rhoInf;
+			*p   = DB.pInf;
+			*u   = 0.0;
+			*v   = DB.MInf*DB.cInf;
+			*w   = 0.0;
+		} else if (fabs(X) < EPS) { // Outflow
+			printf("Error: Use BackPressure BC here as the outlet state is not known.\n"), EXIT_MSG;
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+		}
+	} else if (strstr(TestCase,"PrandtlMeyer")) {
+		// Use supersonic inflow solution
+		*rho = DB.rhoIn;
+		*p   = DB.pIn;
+		*u   = DB.VIn;
+		*v   = 0.0;
+		*w   = 0.0;
+	} else {
+		printf("TestCase: %s\n",TestCase);
+		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
+	}
+}
+
 void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, double *XYZ, double complex *WL,
                         double complex *WOut, double complex *WB, double *nL, const unsigned int d)
 {
@@ -302,7 +361,7 @@ void boundary_BackPressure_c(const unsigned int Nn, const unsigned int Nel, doub
 		EL   = *EL_ptr++;
 
 		V2L = uL*uL+vL*vL+wL*wL;
-		VL  = sqrt(V2L);
+		VL  = csqrt(V2L);
 
 		pL  = GM1*(EL-0.5*rhoL*V2L);
 
@@ -314,7 +373,7 @@ void boundary_BackPressure_c(const unsigned int Nn, const unsigned int Nel, doub
 		VnL = uL*n1+vL*n2+wL*n3;
 
 		c2L = GAMMA*pL/rhoL;
-		cL  = sqrt(c2L);
+		cL  = csqrt(c2L);
 
 		if (creal(VnL) < 0.0) // Inlet
 			printf("Warning: Velocity Inflow in boundary_BackPressure_c.\n");
@@ -425,7 +484,7 @@ void boundary_Total_TP_c(const unsigned int Nn, const unsigned int Nel, double *
 		V2L = uL*uL+vL*vL+wL*wL;
 
 		pL  = GM1*(EL-0.5*rhoL*V2L);
-		cL  = sqrt(GAMMA*pL/rhoL);
+		cL  = csqrt(GAMMA*pL/rhoL);
 
 		HL = (EL+pL)*rhoL_inv;
 
@@ -446,7 +505,7 @@ void boundary_Total_TP_c(const unsigned int Nn, const unsigned int Nel, double *
 		cQ =  0.5*GM1*(RL*RL - 2.0*HL);
 
 		term1 = -bQ/(2.0*aQ);
-		term2 = sqrt(bQ*bQ-4.0*aQ*cQ)/(2.0*aQ);
+		term2 = csqrt(bQ*bQ-4.0*aQ*cQ)/(2.0*aQ);
 
 		cM = term1-term2;
 		cP = term1+term2;
@@ -459,13 +518,10 @@ void boundary_Total_TP_c(const unsigned int Nn, const unsigned int Nel, double *
 
 		Vn = RL - 2.0/GM1*c;
 
-		if (creal(Vn) > EPS)
-			printf("\nWarning: Velocity Outflow in boundary_Total_TP.\n");
-
 		M = Vn/c;
 
 		T = T_Total/(1+0.5*GM1*M*M);
-		p = p_Total*pow(T/T_Total,GAMMA/GM1);
+		p = p_Total*cpow(T/T_Total,GAMMA/GM1);
 
 		rho = p/(Rg*T);
 		u   = Vn*n1;
@@ -484,4 +540,66 @@ void boundary_Total_TP_c(const unsigned int Nn, const unsigned int Nel, double *
 		for (size_t var = 0; var < Nvar; var++)
 			WB_ptr[var]++;
 	}
+}
+
+void boundary_SupersonicInflow_c(const unsigned int Nn, const unsigned int Nel, double *XYZ, double complex *WL,
+                                 double complex *WB, double *nL, const unsigned int d, const unsigned int Nvar)
+{
+	unsigned int   NnTotal;
+	double         *X_ptr, *Y_ptr;
+	double complex *WB_ptr[Nvar];
+
+	// silence
+	WB[0] = WL[0];
+	WB[0] = nL[0];
+
+	NnTotal = Nn*Nel;
+
+	X_ptr = &XYZ[NnTotal*0];
+	Y_ptr = &XYZ[NnTotal*1];
+
+	for (size_t var = 0; var < Nvar; var++)
+		WB_ptr[var] = &WB[(var)*NnTotal];
+
+	for (size_t n = 0; n < NnTotal; n++) {
+		unsigned int   IndW = 0;
+		double         X, Y;
+		double complex rhoR, uR, vR, wR, pR, V2R, ER;
+
+		X = *X_ptr++;
+		Y = *Y_ptr++;
+
+		get_boundary_values_c(X,Y,&rhoR,&uR,&vR,&wR,&pR);
+
+		V2R = uR*uR+vR*vR+wR*wR;
+		ER = pR/GM1+0.5*rhoR*V2R;
+
+		*WB_ptr[IndW++] = rhoR;
+		*WB_ptr[IndW++] = rhoR*uR;
+		*WB_ptr[IndW++] = rhoR*vR;
+
+		if (d == 3)
+			*WB_ptr[IndW++] = rhoR*wR;
+
+		*WB_ptr[IndW++] = ER;
+
+		for (size_t var = 0; var < Nvar; var++)
+			WB_ptr[var]++;
+	}
+}
+
+void boundary_SupersonicOutflow_c(const unsigned int Nn, const unsigned int Nel, double *XYZ, double complex *WL,
+                                  double complex *WB, double *nL, const unsigned int d, const unsigned int Nvar)
+{
+	unsigned int NnTotal;
+
+	// silence
+	WB[0] = XYZ[0];
+	WB[0] = nL[0];
+	NnTotal = d;
+
+	NnTotal = Nn*Nel;
+
+	for (size_t i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
+		WB[i] = WL[i];
 }

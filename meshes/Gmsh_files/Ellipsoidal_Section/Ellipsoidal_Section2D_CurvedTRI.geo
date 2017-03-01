@@ -38,7 +38,8 @@ Ellipse(1005) = {5,7,3,3};
 Ellipse(1006) = {6,7,4,2};
 Ellipse(1007) = {6,7,4,4};
 
-Transfinite Line {1001:1007} = 1*2^(Refine)+1 Using Progression 1;
+Transfinite Line {1001:1003} = 1*2^(Refine+1)+1 Using Progression 1;
+Transfinite Line {1004:1007} = 1*2^(Refine)+1 Using Progression 1;
 
 Line Loop (4001) = {1001,-1006,-1003,1004};
 Line Loop (4002) = {-1005,1003,1007,-1002};
@@ -71,44 +72,61 @@ If (EqIndex == 0) // Poisson
 
 ElseIf (EqIndex == 1) // Euler
 
-	l = 2*rIn;
+	Extended = 0;
 
-	Point(8)  = {aIn,-l,0,lc};
-	Point(9)  = {aOut,-l,0,lc};
-	Point(10) = {-l,bIn,0,lc};
-	Point(11) = {-l,bOut,0,lc};
+	If (Extended)
+		l = 2*rIn;
 
-	Line(1008) = {8,9};
-	Line(1009) = {1,8};
-	Line(1010) = {2,9};
-	Line(1011) = {10,11};
-	Line(1012) = {3,10};
-	Line(1013) = {4,11};
+		Point(8)  = {aIn,-l,0,lc};
+		Point(9)  = {aOut,-l,0,lc};
+		Point(10) = {-l,bIn,0,lc};
+		Point(11) = {-l,bOut,0,lc};
 
-	Transfinite Line {1008:1013} = 1*2^(Refine)+1 Using Progression 1;
+		Line(1008) = {8,9};
+		Line(1009) = {1,8};
+		Line(1010) = {2,9};
+		Line(1011) = {10,11};
+		Line(1012) = {3,10};
+		Line(1013) = {4,11};
 
-	Line Loop (4003) = {1008,-1010,-1001,1009};
-	Line Loop (4004) = {-1012,1002,1013,-1011};
+		Transfinite Line {1008,1011} = 1*2^(Refine+1)+1 Using Progression 1;
+		Transfinite Line {1009:1010,1012:1013} = 1*2^(Refine)+1 Using Progression 1;
 
-	Plane Surface(4003) = {4003};
-	Plane Surface(4004) = {4004};
+		Line Loop (4003) = {1008,-1010,-1001,1009};
+		Line Loop (4004) = {-1012,1002,1013,-1011};
 
-	Transfinite Surface{4003:4004};
+		Plane Surface(4003) = {4003};
+		Plane Surface(4004) = {4004};
+
+		Transfinite Surface{4003}  Right;
+		Transfinite Surface{4004};
 
 
-	// Physical Parameters for '.msh' file
+		// Physical Parameters for '.msh' file
 
-	Physical Line(10004) = {1011};                // Straight Total Temperature/Pressure
-	Physical Line(10003) = {1008};                // Straight Back Pressure
-	Physical Line(10002) = {1009:1010,1012:1013}; // Straight SlipWall
-	Physical Line(20002) = {1004:1007};           // Curved   SlipWall
+		Physical Line(10004) = {1011};                // Straight Total Temperature/Pressure
+		Physical Line(10003) = {1008};                // Straight Back Pressure
+		Physical Line(10002) = {1009:1010,1012:1013}; // Straight SlipWall
+		Physical Line(20002) = {1004:1007};           // Curved   SlipWall
 
-	Physical Surface(9403) = {4003};
-	Physical Surface(9404) = {4004};
+		Physical Surface(9403) = {4003};
+		Physical Surface(9404) = {4004};
 
-	// Visualization in gmsh
+		// Visualization in gmsh
 
-	Color Black{ Surface{4001:4004}; }
-	Geometry.Color.Points = Black;
+		Color Black{ Surface{4001:4004}; }
+		Geometry.Color.Points = Black;
+	Else
+		// Physical Parameters for '.msh' file
 
+		Physical Line(10004) = {1002};                // Straight Total Temperature/Pressure
+		Physical Line(10003) = {1001};                // Straight Back Pressure
+		Physical Line(20002) = {1004:1007};           // Curved   SlipWall
+
+		// Visualization in gmsh
+
+		Color Black{ Surface{4001:4002}; }
+		Geometry.Color.Points = Black;	
+
+	EndIf
 EndIf

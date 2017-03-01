@@ -63,6 +63,12 @@ static void compute_dWdW_cs(const unsigned int Neq, const unsigned int Nn, const
 			boundary_Riemann_c(Nn,Nel,XYZ,Wp,NULL,WB,nL,d);
 		else if (strstr(BType,"BackPressure"))
 			boundary_BackPressure_c(Nn,Nel,Wp,WB,nL,d,Neq);
+		else if (strstr(BType,"Total_TP"))
+			boundary_Total_TP_c(Nn,Nel,XYZ,Wp,WB,nL,d,Nvar);
+		else if (strstr(BType,"SupersonicIn"))
+			boundary_SupersonicInflow_c(Nn,Nel,XYZ,Wp,WB,nL,d,Nvar);
+		else if (strstr(BType,"SupersonicOut"))
+			boundary_SupersonicOutflow_c(Nn,Nel,XYZ,Wp,WB,nL,d,Nvar);
 		else
 			printf("Error: Unsupported BType.\n"), EXIT_BASIC;
 
@@ -101,7 +107,11 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 	else if (strstr(BType,"BackPressure"))
 		jacobian_boundary_BackPressure(Nn,Nel,W,dWdW,nL,d,Neq);
 	else if (strstr(BType,"Total_TP"))
-		jacobian_boundary_Total_TP(Nn,Nel,W,dWdW,nL,d,Neq);
+		jacobian_boundary_Total_TP(Nn,Nel,XYZ,W,dWdW,nL,d,Neq);
+	else if (strstr(BType,"SupersonicIn"))
+		jacobian_boundary_SupersonicInflow(Nn,Nel,XYZ,W,dWdW,nL,d,Neq);
+	else if (strstr(BType,"SupersonicOut"))
+		jacobian_boundary_SupersonicOutflow(Nn,Nel,XYZ,W,dWdW,nL,d,Neq);
 	else
 		printf("Error: Unsupported BType.\n"), EXIT_BASIC;
 
@@ -135,8 +145,13 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 			array_print_d(Neq*Nvar,NnTotal,dWdW_cs,'R');
 		}
 	} else {
-		if (array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < EPS)
+		if (array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS) {
 			pass = 1, TestDB.Npass++;
+		} else {
+			array_print_d(NnTotal*Nvar,Neq,dWdW,'C');
+			array_print_d(NnTotal*Nvar,Neq,dWdW_cs,'C');
+		    printf("% .3e\n",array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf"));
+		}
 	}
 
 	free(dWdW);
@@ -168,7 +183,6 @@ static void update_values(const unsigned int Nn, const unsigned int Nel, double 
 		}
 	} else if (d == 2) {
 		unsigned int FinalIndices[6] = {0,2,0,4,0,6};
-//		unsigned int FinalIndices[6] = {0,0,0,0,0,0};
 		for (n = 0; n < NnTotal; n++) {
 			if (FinalIndices[n] != n) {
 				for (dim = 0; dim < d; dim++)

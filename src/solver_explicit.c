@@ -7,9 +7,11 @@
 #include <stdio.h>
 #include <math.h> // ToBeModified
 #include <string.h>
+#include <unistd.h>
 
 #include "Parameters.h"
 #include "Macros.h"
+#include "Test.h"
 #include "S_DB.h"
 #include "S_VOLUME.h"
 
@@ -58,7 +60,7 @@ void solver_explicit(void)
 	char         *dummyPtr_c[2];
 	unsigned int i, iMax, tstep, rk,
 	             NvnS;
-	double       time, dt, maxRHS0, maxRHS, *RES, *RHS, *What;
+	double       time, dt, maxRHS0, maxRHS, *RES, *RHS, *What, exit_tol;
 
 	struct S_VOLUME *VOLUME;
 
@@ -67,6 +69,8 @@ void solver_explicit(void)
 
 	for (i = 0; i < 2; i++)
 		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free
+
+	exit_tol = 10*EPS;
 
 // Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).  (ToBeDeleted)
 	if (!Adapt) {
@@ -77,11 +81,51 @@ void solver_explicit(void)
 			dt = pow(0.5,DB.ML+DB.PMax+1);
 		else if (Adapt == ADAPT_H)
 			dt = pow(0.5,(DB.ML+DB.LevelsMax)+DB.PGlobal+1);
-		else if (Adapt == ADAPT_HP)
-			dt = 5e+0*pow(0.5,DB.ML+DB.PGlobal);
-			OutputInterval = 1e4;
+		else if (Adapt == ADAPT_HP) {
+			if (TestDB.Active) {
+				unsigned int ML = TestDB.ML,
+							 P  = TestDB.PGlobal;
+
+				exit_tol = 4e-8;
+				if (P == 1) {
+					if      (ML == 0) dt = 1.0e+0;
+					else if (ML == 1) dt = 2.0e+0;
+					else
+						printf("Add support (%d).\n",ML), EXIT_MSG;
+				} else if (P == 2) {
+					if      (ML == 0) dt = 1.0e+0;
+					else if (ML == 1) dt = 2.0e+0;
+					else if (ML == 2) dt = 1.0e+0;
+					else if (ML == 3) dt = 0.5e+0;
+					else
+						printf("Add support (%d).\n",ML), EXIT_MSG;
+					exit_tol = EPS;
+				} else if (P == 3) {
+					if      (ML == 0) dt = 1.0e+0;
+					else if (ML == 1) dt = 2.0e+0;
+					else if (ML == 2) dt = 1.0e+0;
+					else if (ML == 3) { dt = 0.5e+0; exit_tol = EPS; }
+					else
+						printf("Add support (%d).\n",ML), EXIT_MSG;
+				} else if (P == 4) {
+					if      (ML == 0) dt = 1.0e+0;
+					else if (ML == 1) dt = 2.0e+0;
+					else
+						printf("Add support (%d).\n",ML), EXIT_MSG;
+				} else if (P == 5) {
+					if      (ML == 0) dt = 1.0e+0;
+					else if (ML == 1) dt = 2.0e+0;
+					else
+						printf("Add support (%d).\n",ML), EXIT_MSG;
+				} else {
+					printf("Add support.\n"), EXIT_MSG;
+				}
+				OutputInterval = 1e4;
+			} else { // Standard
+				dt = 5e+0*pow(0.5,DB.ML+DB.PGlobal); //P2
+			}
+		}
 	}
-	printf("%d %d\n",DB.ML,DB.PGlobal);
 
 	// Compute Mass matrix for uncollocated schemes
 	update_VOLUME_Ops();
@@ -179,7 +223,7 @@ void solver_explicit(void)
 
 		// Additional exit conditions
 //		if ((maxRHS0/maxRHS > 1e3 || maxRHS < 8e-14) && tstep > 2) {
-		if ((maxRHS0/maxRHS > 1e10 || maxRHS < 8e-14) && tstep > 2) {
+		if ((maxRHS0/maxRHS > 1e4 || maxRHS < exit_tol) && tstep > 2) {
 			printf("Exiting: maxRHS dropped by 10 orders or is below 8e-14.\n");
 			break;
 		}

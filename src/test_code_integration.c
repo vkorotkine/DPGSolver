@@ -215,7 +215,8 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 		NVars = DMAX+1;
 	} else if (strstr(TestCase,"SupersonicVortex")) {
 		NVars = DMAX+2+1;
-	} else if (strstr(TestCase,"InviscidChannel")) {
+	} else if (strstr(TestCase,"InviscidChannel") ||
+	           strstr(TestCase,"SubsonicNozzle")) {
 		NVars = 1;
 	} else {
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
@@ -236,7 +237,8 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 			}
 		}
 	} else if (strstr(TestCase,"SupersonicVortex") ||
-	           strstr(TestCase,"InviscidChannel")) {
+	           strstr(TestCase,"InviscidChannel")  ||
+	           strstr(TestCase,"SubsonicNozzle")) {
 		for (i = 0; i < NVars; i++) {
 			OrderIncrement[i] = 1;
 			if (i <= d || i > DMAX) {
@@ -275,7 +277,7 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 		strcat(f_name,".txt");
 
 		if ((fID = fopen(f_name,"r")) == NULL)
-			printf("Error: File: %s, did not open.\n",f_name), exit(1);
+			printf("Error: File: %s, did not open.\n",f_name), EXIT_MSG;
 
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {

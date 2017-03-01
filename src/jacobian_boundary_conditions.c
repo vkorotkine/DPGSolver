@@ -604,8 +604,8 @@ void jacobian_boundary_BackPressure(const unsigned int Nn, const unsigned int Ne
 		c2L = GAMMA*pL/rhoL;
 		cL  = sqrt(c2L);
 
-		if (VnL < 0.0) // Inlet
-			printf("\nWarning: Velocity Inflow in jacobian_boundary_BackPressure.\n");
+//		if (VnL < 0.0) // Inlet
+//			printf("\nWarning: Velocity Inflow in jacobian_boundary_BackPressure.\n");
 
 		if (fabs(VL) >= cL) { // Supersonic
 			for (var = 0; var < Nvar; var++) {
@@ -668,7 +668,7 @@ void jacobian_boundary_BackPressure(const unsigned int Nn, const unsigned int Ne
 			}
 		}
 
-		for (unsigned int i = 0, iMax = Neq*Nvar; i < iMax; i++)
+		for (size_t i = 0, iMax = Neq*Nvar; i < iMax; i++)
 			dWdW_ptr[i]++;
 	}
 }
@@ -701,7 +701,7 @@ void jacobian_boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, d
 
 	double zeros[NnTotal];
 
-	for (n = 0; n < NnTotal; n++)
+	for (size_t n = 0; n < NnTotal; n++)
 		zeros[n] = 0.0;
 
 	rhoL_ptr  = WL_ptr[0];
@@ -719,7 +719,7 @@ void jacobian_boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, d
 
 	for (size_t n = 0; n < NnTotal; n++) {
 		unsigned int InddWdW = 0;
-		double       rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, cL, HL, VnL, n1, n2, n3;
+		double       rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL, cL, HL, VnL, RL, n1, n2, n3;
 
 		// silence
 		n3 = 0.0;
@@ -749,11 +749,8 @@ void jacobian_boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, d
 
 		RL = VnL + 2.0/GM1*cL;
 
-		if (VnL < EPS) // Inlet
-			printf("\nWarning: Velocity Inflow in jacobian_boundary_BackPressure.\n");
-
 		// Solve for c
-		double aQ, bQ, cQ, term1, term2, cM, cP, cMult, c, Vn, M, T, p, rho, u, v, w, E;
+		double aQ, bQ, cQ, term1, term2, cM, cP, cMult, c, Vn, M, T, p, rho, u, v, w;
 
 		// silence
 		cMult = 0.0;
@@ -779,8 +776,8 @@ void jacobian_boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, d
 
 		Vn = RL - 2.0/GM1*c;
 
-		if (Vn > EPS)
-			printf("\nWarning: Velocity Outflow in boundary_Total_TP.\n");
+//		if (Vn > EPS)
+//			printf("\nWarning: Velocity Outflow in jacobian_boundary_Total_TP.\n");
 
 		M = Vn/c;
 
@@ -793,11 +790,12 @@ void jacobian_boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, d
 		w   = Vn*n3;
 
 
-		double drhoLdW[Nvar], duLdW[Nvar], dvLdW[Nvar], dwLdW[Nvar], dpLdW[Nvar];
+		double drhoLdW[Nvar], duLdW[Nvar], dvLdW[Nvar], dwLdW[Nvar], dELdW[Nvar], dpLdW[Nvar];
 
 		if (d == 3) {
 			drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0; drhoLdW[4] = 0.0;
 			dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = -wL; dpLdW[4]   = 1.0;
+			dELdW[0]   = 0.0;     dELdW[1]   = 0.0; dELdW[2]   = 0.0; dELdW[3]   = 0.0; dELdW[4]   = 1.0;
 
 			duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;      duLdW[4] = 0.0;
 			dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;      dvLdW[4] = 0.0;
@@ -805,25 +803,29 @@ void jacobian_boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, d
 		} else if (d == 2) {
 			drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0;
 			dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = 1.0;
+			dELdW[0]   = 0.0;     dELdW[1]   = 0.0; dELdW[2]   = 0.0; dELdW[3]   = 1.0;
 
 			duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;
 			dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;
 		}
-		for (var = 0; var < Nvar; var++)
+		for (size_t var = 0; var < Nvar; var++)
 			dpLdW[var] *= GM1;
 
 		for (size_t var = 0; var < Nvar; var++) {
-			double drhodW, dudW, dvdW, dwdW, dc2LdW;
+			double dcLdW, dHLdW, dVnLdW, dRLdW,
+			       dbQdW, dcQdW, dterm1dW, dterm2dW,
+			       dcdW, dVndW, dMdW, dTdW, dpdW,
+			       drhodW, dudW, dvdW, dwdW, dEdW;
 
-
+			dcLdW  = 0.5/cL*GAMMA*(dpLdW[var]*rhoL-pL*drhoLdW[var])*(rhoL_inv*rhoL_inv);
+			dHLdW  = ((dELdW[var]+dpLdW[var])*rhoL-(EL+pL)*drhoLdW[var])*(rhoL_inv*rhoL_inv);
 			dVnLdW = duLdW[var]*n1+dvLdW[var]*n2+dwLdW[var]*n3;
-			dcLdW  = 0.5/cL*GAMMA*(dpLdW[var]/rhoL-pL/(rhoL*rhoL)*drhoLdW[var]);
 
 			dRLdW = dVnLdW + 2.0/GM1*dcLdW;
 
 //			daQdW =  0.0;
 			dbQdW = -2.0*dRLdW;
-			dcQdW =  0.5*GM1*(2*RL*dRLdW - 2.0*dHLdW);
+			dcQdW =  0.5*GM1*(2.0*RL*dRLdW - 2.0*dHLdW);
 
 			dterm1dW = -dbQdW/(2.0*aQ);
 			dterm2dW = 0.5/sqrt(bQ*bQ-4.0*aQ*cQ)*(2.0*bQ*dbQdW-4.0*aQ*dcQdW)/(2.0*aQ);
@@ -837,10 +839,10 @@ void jacobian_boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, d
 			dpdW = p_Total*GAMMA/GM1*pow(T/T_Total,GAMMA/GM1-1.0)*dTdW/T_Total;
 
 			drhodW = dpdW/(Rg*T)-p/(Rg*T*T)*dTdW;
-
-			dudW   = dVndW[var]*n1;
-			dvdW   = dVndW[var]*n2;
-			dwdW   = dVndW[var]*n3;
+			dudW   = dVndW*n1;
+			dvdW   = dVndW*n2;
+			dwdW   = dVndW*n3;
+			dEdW   = dpdW/GM1+0.5*(drhodW*(u*u+v*v+w*w)+rho*2.0*(u*dudW+v*dvdW+w*dwdW));
 
 			*dWdW_ptr[InddWdW++] = drhodW;
 
@@ -851,7 +853,76 @@ void jacobian_boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, d
 			*dWdW_ptr[InddWdW++] = dEdW;
 		}
 
-		for (unsigned int i = 0, iMax = Neq*Nvar; i < iMax; i++)
+		for (size_t i = 0, iMax = Neq*Nvar; i < iMax; i++)
+			dWdW_ptr[i]++;
+	}
+}
+
+void jacobian_boundary_SupersonicInflow(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL,
+                                         double *dWdW, double *nL, const unsigned int d, const unsigned int Neq)
+{
+	// Standard datatypes
+	unsigned int NnTotal, Nvar;
+	double       *dWdW_ptr[Neq*Neq];
+
+	// silence
+	dWdW[0] = XYZ[0];
+	dWdW[0] = WL[0];
+	dWdW[0] = nL[0];
+	Nvar    = d;
+
+	NnTotal = Nn*Nel;
+	Nvar    = Neq;
+
+	for (size_t eq  = 0; eq  < Neq;  eq++)  {
+	for (size_t var = 0; var < Nvar; var++) {
+		dWdW_ptr[eq*Nvar+var] = &dWdW[(eq*Nvar+var)*NnTotal];
+	}}
+
+	for (size_t n = 0; n < NnTotal; n++) {
+		unsigned int InddWdW = 0;
+		for (size_t var = 0; var < Nvar; var++) {
+		for (size_t eq = 0; eq < Neq; eq++) {
+			*dWdW_ptr[InddWdW++] = 0.0;
+		}}
+
+		for (size_t i = 0, iMax = Neq*Nvar; i < iMax; i++)
+			dWdW_ptr[i]++;
+	}
+}
+
+void jacobian_boundary_SupersonicOutflow(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL,
+                                         double *dWdW, double *nL, const unsigned int d, const unsigned int Neq)
+{
+	// Standard datatypes
+	unsigned int NnTotal, Nvar;
+	double       *dWdW_ptr[Neq*Neq];
+
+	// silence
+	dWdW[0] = XYZ[0];
+	dWdW[0] = WL[0];
+	dWdW[0] = nL[0];
+	Nvar    = d;
+
+	NnTotal = Nn*Nel;
+	Nvar    = Neq;
+
+	for (size_t eq  = 0; eq  < Neq;  eq++)  {
+	for (size_t var = 0; var < Nvar; var++) {
+		dWdW_ptr[eq*Nvar+var] = &dWdW[(eq*Nvar+var)*NnTotal];
+	}}
+
+	for (size_t n = 0; n < NnTotal; n++) {
+		unsigned int InddWdW = 0;
+		for (size_t var = 0; var < Nvar; var++) {
+		for (size_t eq = 0; eq < Neq; eq++) {
+			if (var != eq)
+				*dWdW_ptr[InddWdW++] = 0.0;
+			else
+				*dWdW_ptr[InddWdW++] = 1.0;
+		}}
+
+		for (size_t i = 0, iMax = Neq*Nvar; i < iMax; i++)
 			dWdW_ptr[i]++;
 	}
 }

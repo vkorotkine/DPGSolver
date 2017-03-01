@@ -4,11 +4,14 @@
 #ifndef DPG__Test_h__INCLUDED
 #define DPG__Test_h__INCLUDED
 
+#include <stdbool.h>
+
 struct S_TEST {
 	// Counters
 	unsigned int Ntest, Npass, Nwarnings, EnteredRiemann[4], EnteredLF[2], EnteredRoe[4], EnteredBackPressure[2];
 
 	// Initialization
+	bool         Active;
 	char         *TestCase;
 	unsigned int PGlobal, ML;
 

@@ -49,9 +49,9 @@ static void h_adapt(void)
 	unsigned int d         = DB.d;
 
 	// Standard datatypes
-	unsigned int NrefMax = 2, MLMax = 5;
+	unsigned int NrefMax = 3, MLMax = 5;
 
-	unsigned int Nref, NML[NrefMax];
+	unsigned int Nref, NML[NrefMax], CurvedOnly[NrefMax];
 	double       *XYZref;
 
 	XYZref = malloc(NrefMax*DMAX * sizeof *XYZref); // free
@@ -71,13 +71,17 @@ static void h_adapt(void)
 		XYZref[0+0*DMAX] = xL;  XYZref[1+0*DMAX] = 0.0; XYZref[2+0*DMAX] = 0.0;
 		XYZref[0+1*DMAX] = 2*a; XYZref[1+1*DMAX] = 0.0; XYZref[2+1*DMAX] = 0.0;
 	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
-		double aIn = DB.aIn;
+		Nref = 3;
 
-		Nref = 1;
+		unsigned int i = 0;
+		NML[i] = 2; CurvedOnly[i] = 0; i++;
+		NML[i] = 2; CurvedOnly[i] = 0; i++;
+		NML[i] = 2; CurvedOnly[i] = 0; i++;
 
-		NML[0] = 2;
-
-		XYZref[0+0*DMAX] = aIn;  XYZref[1+0*DMAX] = 0.0; XYZref[2+0*DMAX] = 0.0;
+		i = 0;
+		XYZref[0+i*DMAX] = DB.aIn;  XYZref[1+i*DMAX] = 0.0;     XYZref[2+i*DMAX] = 0.0; i++;
+		XYZref[0+i*DMAX] = 0.0;     XYZref[1+i*DMAX] = DB.bOut; XYZref[2+i*DMAX] = 0.0; i++;
+		XYZref[0+i*DMAX] = 0.0;     XYZref[1+i*DMAX] = DB.bIn;  XYZref[2+i*DMAX] = 0.0; i++;
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -113,6 +117,9 @@ static void h_adapt(void)
 
 			for (n = 0; n < Nref; n++) {
 				if (VOLUME->level < NML[n]) {
+					if (CurvedOnly[n] && !VOLUME->curved)
+						continue;
+
 					// Check if one of the XYZ_vV matches any of the specified XYZref
 					for (ve = 0; ve < Nve; ve++) {
 						if (array_norm_diff_d(d,&XYZref[n*DMAX],&XYZ_vV[ve*d],"Inf") < EPS) {
@@ -176,13 +183,13 @@ void test_integration_Euler(int nargc, char **argv)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 2; PMax  = 2;
-	MLMin = 0; MLMax = 0;
+	PMin  = 1; PMax  = 3;
+	MLMin = 0; MLMax = 2;
 TestDB.PGlobal = PMin;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
-	AdaptiveRefine = 1;
+	AdaptiveRefine = 0;
 //	Adapt = ADAPT_0;
 	Adapt = ADAPT_HP;
 	if (Adapt != ADAPT_0) {
@@ -197,13 +204,13 @@ TestDB.PGlobal = PMin;
 
 		if (Adapt != ADAPT_0) {
 			if (ML == MLMin) {
-//				mesh_to_level(TestDB.ML+0);
+				mesh_to_level(ML);
 				if (AdaptiveRefine)
 					h_adapt();
 			} else {
 				mesh_h_adapt(1,'r');
 			}
-			mesh_to_order(TestDB.PGlobal);
+			mesh_to_order(P);
 		} else {
 			code_startup(nargc,argvNew,0,1);
 		}
@@ -214,9 +221,11 @@ TestDB.PGlobal = PMin;
 			output_to_paraview(fNameOut);
 			free(fNameOut);
 		}
-		if (ML == MLMin && P == PMin)
+//		if (ML <= MLMin+1 || P == 1)
+		if (ML <= MLMin+1 || P > 1)
 			solver_explicit();
-		solver_implicit();
+		if (!(ML == MLMax && P == 3) && P != 1)
+			solver_implicit();
 
 		compute_errors_global();
 
