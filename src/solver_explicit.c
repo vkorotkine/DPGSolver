@@ -99,7 +99,7 @@ void solver_explicit(void)
 					else if (ML == 3) dt = 0.5e+0;
 					else
 						printf("Add support (%d).\n",ML), EXIT_MSG;
-					exit_tol = EPS;
+//					exit_tol = EPS;
 				} else if (P == 3) {
 					if      (ML == 0) dt = 1.0e+0;
 					else if (ML == 1) dt = 2.0e+0;
@@ -110,11 +110,13 @@ void solver_explicit(void)
 				} else if (P == 4) {
 					if      (ML == 0) dt = 1.0e+0;
 					else if (ML == 1) dt = 2.0e+0;
+					else if (ML == 2) dt = 1.0e+0;
 					else
 						printf("Add support (%d).\n",ML), EXIT_MSG;
 				} else if (P == 5) {
 					if      (ML == 0) dt = 1.0e+0;
 					else if (ML == 1) dt = 2.0e+0;
+					else if (ML == 2) dt = 1.0e+0;
 					else
 						printf("Add support (%d).\n",ML), EXIT_MSG;
 				} else {

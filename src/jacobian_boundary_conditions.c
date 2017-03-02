@@ -539,7 +539,7 @@ void jacobian_boundary_BackPressure(const unsigned int Nn, const unsigned int Ne
 	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *WL_ptr[Neq], *dWdW_ptr[Neq*Neq];
 
 	// silence
-	rhovL_ptr = rhowL_ptr = NULL;
+	rhovL_ptr = rhowL_ptr = n_ptr = NULL;
 
 	NnTotal = Nn*Nel;
 	Nvar    = Neq;
@@ -575,10 +575,7 @@ void jacobian_boundary_BackPressure(const unsigned int Nn, const unsigned int Ne
 
 	for (n = 0; n < NnTotal; n++) {
 		unsigned int InddWdW = 0;
-		double rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, cL, c2L, VnL, n1, n2, n3;
-
-		// silence
-		n2 = n3 = 0.0;
+		double rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, cL, c2L;
 
 		// Inner VOLUME
 		rhoL     = *rhoL_ptr++;
@@ -594,18 +591,25 @@ void jacobian_boundary_BackPressure(const unsigned int Nn, const unsigned int Ne
 
 		pL  = GM1*(EL-0.5*rhoL*V2L);
 
+
+		c2L = GAMMA*pL/rhoL;
+		cL  = sqrt(c2L);
+
+/*
+		double n1, n2, n3, VnL;
+
+		// silence
+		n2 = n3 = 0.0;
+
 		n1 = *n_ptr++;
 		if      (d == 3) { n2 = *n_ptr++; n3 = *n_ptr++; }
 		else if (d == 2) { n2 = *n_ptr++; n3 = 0.0;      }
 		else if (d == 1) { n2 = 0.0;      n3 = 0.0;      }
 
 		VnL = uL*n1+vL*n2+wL*n3;
-
-		c2L = GAMMA*pL/rhoL;
-		cL  = sqrt(c2L);
-
-//		if (VnL < 0.0) // Inlet
-//			printf("\nWarning: Velocity Inflow in jacobian_boundary_BackPressure.\n");
+		if (VnL < 0.0) // Inlet
+			printf("\nWarning: Velocity Inflow in jacobian_boundary_BackPressure.\n");
+*/
 
 		if (fabs(VL) >= cL) { // Supersonic
 			for (var = 0; var < Nvar; var++) {

@@ -74,9 +74,9 @@ static void h_adapt(void)
 		Nref = 3;
 
 		unsigned int i = 0;
-		NML[i] = 2; CurvedOnly[i] = 0; i++;
-		NML[i] = 2; CurvedOnly[i] = 0; i++;
-		NML[i] = 2; CurvedOnly[i] = 0; i++;
+		NML[i] = 0; CurvedOnly[i] = 0; i++;
+		NML[i] = 2; CurvedOnly[i] = 1; i++;
+		NML[i] = 0; CurvedOnly[i] = 0; i++;
 
 		i = 0;
 		XYZref[0+i*DMAX] = DB.aIn;  XYZref[1+i*DMAX] = 0.0;     XYZref[2+i*DMAX] = 0.0; i++;
@@ -183,7 +183,7 @@ void test_integration_Euler(int nargc, char **argv)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 3;
+	PMin  = 1; PMax  = 5;
 	MLMin = 0; MLMax = 2;
 TestDB.PGlobal = PMin;
 
@@ -224,7 +224,7 @@ TestDB.PGlobal = PMin;
 //		if (ML <= MLMin+1 || P == 1)
 		if (ML <= MLMin+1 || P > 1)
 			solver_explicit();
-		if (!(ML == MLMax && P == 3) && P != 1)
+//		if (!(ML == MLMax && P == 3) && P != 1)
 			solver_implicit();
 
 		compute_errors_global();
