@@ -60,7 +60,7 @@ void solver_explicit(void)
 	char         *dummyPtr_c[2];
 	unsigned int i, iMax, tstep, rk,
 	             NvnS;
-	double       time, dt, maxRHS0, maxRHS, *RES, *RHS, *What, exit_tol;
+	double       time, dt, maxRHS0, maxRHS, *RES, *RHS, *What, exit_tol, exit_ratio;
 
 	struct S_VOLUME *VOLUME;
 
@@ -70,7 +70,8 @@ void solver_explicit(void)
 	for (i = 0; i < 2; i++)
 		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free
 
-	exit_tol = 10*EPS;
+	exit_tol   = 10*EPS;
+	exit_ratio = 1e4;
 
 // Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).  (ToBeDeleted)
 	if (!Adapt) {
@@ -83,46 +84,40 @@ void solver_explicit(void)
 			dt = pow(0.5,(DB.ML+DB.LevelsMax)+DB.PGlobal+1);
 		else if (Adapt == ADAPT_HP) {
 			if (TestDB.Active) {
+				char         MType[20];
 				unsigned int ML = TestDB.ML,
 							 P  = TestDB.PGlobal;
 
+				strcpy(MType,"supersonic");
+//				strcpy(MType,"subsonic");
+
 				exit_tol = 4e-8;
-				if (P == 1) {
+				if (strstr(MType,"subsonic")) {
+					// RK3_SSP, Conforming TRI
 					if      (ML == 0) dt = 1.0e+0;
 					else if (ML == 1) dt = 2.0e+0;
+					else if (ML == 2) dt = 4.0e+0;
+					else if (ML == 3) dt = 8.0e+0;
 					else
 						printf("Add support (%d).\n",ML), EXIT_MSG;
+				} else if (strstr(MType,"supersonic")) {
+					if      (ML == 0) dt = 1.0e-3;
+					else
+						printf("Add support (%d).\n",ML), EXIT_MSG;
+				}
+
+				if        (P == 1) {
 				} else if (P == 2) {
-					if      (ML == 0) dt = 1.0e+0;
-					else if (ML == 1) dt = 2.0e+0;
-					else if (ML == 2) dt = 1.0e+0;
-					else if (ML == 3) dt = 0.5e+0;
-					else
-						printf("Add support (%d).\n",ML), EXIT_MSG;
-//					exit_tol = EPS;
 				} else if (P == 3) {
-					if      (ML == 0) dt = 1.0e+0;
-					else if (ML == 1) dt = 2.0e+0;
-					else if (ML == 2) dt = 1.0e+0;
-					else if (ML == 3) { dt = 0.5e+0; exit_tol = EPS; }
-					else
-						printf("Add support (%d).\n",ML), EXIT_MSG;
 				} else if (P == 4) {
-					if      (ML == 0) dt = 1.0e+0;
-					else if (ML == 1) dt = 2.0e+0;
-					else if (ML == 2) dt = 1.0e+0;
-					else
-						printf("Add support (%d).\n",ML), EXIT_MSG;
 				} else if (P == 5) {
-					if      (ML == 0) dt = 1.0e+0;
-					else if (ML == 1) dt = 2.0e+0;
-					else if (ML == 2) dt = 1.0e+0;
-					else
-						printf("Add support (%d).\n",ML), EXIT_MSG;
+				} else if (P == 6) {
+				} else if (P == 7) {
+				} else if (P == 8) {
 				} else {
 					printf("Add support.\n"), EXIT_MSG;
 				}
-				OutputInterval = 1e4;
+				OutputInterval = 2e3;
 			} else { // Standard
 				dt = 5e+0*pow(0.5,DB.ML+DB.PGlobal); //P2
 			}
@@ -206,6 +201,23 @@ void solver_explicit(void)
 					}
 				}
 			}
+			break;
+		case EULER:
+			// Build the RHS (== -Residual)
+			printf("V");  explicit_VOLUME_info();
+			printf("F");  explicit_FACE_info();
+			printf("F "); maxRHS = finalize_RHS();
+
+			// Update What
+			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+				NvnS = VOLUME->NvnS;
+
+				RHS  = VOLUME->RHS;
+				What = VOLUME->What;
+
+				for (iMax = Neq*NvnS; iMax--; )
+					*What++ += dt*(*RHS++);
+			}
 		}
 		time += dt;
 
@@ -225,7 +237,7 @@ void solver_explicit(void)
 
 		// Additional exit conditions
 //		if ((maxRHS0/maxRHS > 1e3 || maxRHS < 8e-14) && tstep > 2) {
-		if ((maxRHS0/maxRHS > 1e4 || maxRHS < exit_tol) && tstep > 2) {
+		if ((maxRHS0/maxRHS > exit_ratio || maxRHS < exit_tol) && tstep > 2) {
 			printf("Exiting: maxRHS dropped by 10 orders or is below 8e-14.\n");
 			break;
 		}

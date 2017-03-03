@@ -75,7 +75,7 @@ static void h_adapt(void)
 
 		unsigned int i = 0;
 		NML[i] = 0; CurvedOnly[i] = 0; i++;
-		NML[i] = 2; CurvedOnly[i] = 1; i++;
+		NML[i] = 0; CurvedOnly[i] = 1; i++;
 		NML[i] = 0; CurvedOnly[i] = 0; i++;
 
 		i = 0;
@@ -183,8 +183,8 @@ void test_integration_Euler(int nargc, char **argv)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 5;
-	MLMin = 0; MLMax = 2;
+	PMin  = 8; PMax  = 8;
+	MLMin = 0; MLMax = 0;
 TestDB.PGlobal = PMin;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
@@ -204,7 +204,7 @@ TestDB.PGlobal = PMin;
 
 		if (Adapt != ADAPT_0) {
 			if (ML == MLMin) {
-				mesh_to_level(ML);
+				mesh_to_level(ML+0);
 				if (AdaptiveRefine)
 					h_adapt();
 			} else {
@@ -222,10 +222,9 @@ TestDB.PGlobal = PMin;
 			free(fNameOut);
 		}
 //		if (ML <= MLMin+1 || P == 1)
-		if (ML <= MLMin+1 || P > 1)
+		if (ML <= MLMin+1 || P > 0)
 			solver_explicit();
-//		if (!(ML == MLMax && P == 3) && P != 1)
-			solver_implicit();
+		solver_implicit();
 
 		compute_errors_global();
 
@@ -235,6 +234,7 @@ TestDB.PGlobal = PMin;
 			evaluate_mesh_regularity(&mesh_quality[ML-MLMin]);
 
 		if (P == PMax && ML == MLMax) {
+			PMin = 1;
 			check_convergence_orders(MLMin,MLMax,PMin,PMax,&pass);
 			check_mesh_regularity(mesh_quality,MLMax-MLMin+1,&pass);
 		}

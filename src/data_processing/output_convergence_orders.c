@@ -55,7 +55,8 @@ int main(void)
 //	strcpy(TestCase,"PeriodicVortex");
 //	strcpy(TestCase,"SupersonicVortex");
 //	strcpy(TestCase,"Poisson");
-	strcpy(TestCase,"InviscidChannel");
+//	strcpy(TestCase,"InviscidChannel");
+	strcpy(TestCase,"SubsonicNozzle");
 
 //	strcpy(MeshType,"StructuredTRI");
 //	strcpy(MeshType,"TRI");
@@ -72,13 +73,13 @@ int main(void)
 	d     = 2;
 //	NVars = DMAX+2+1;
 	NVars = DMAX+1;
-	MLMax = 4; NML = MLMax+1;
+	MLMax = 3; NML = MLMax+1;
 	PMax  = 8; NP  = PMax+1;
 
-	unsigned int CasesRun[72] = { 0, 1, 1, 1, 0, 0, 0, 0, 0,
-	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
-	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
-	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
+	unsigned int CasesRun[72] = { 0, 1, 1, 1, 1, 1, 1, 0, 0,
+	                              0, 1, 1, 1, 1, 1, 1, 0, 0,
+	                              0, 1, 1, 1, 1, 1, 1, 0, 0,
+	                              0, 1, 1, 1, 1, 1, 1, 0, 0,
 	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
 	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -202,7 +203,8 @@ static void data_to_txt(const unsigned int d, const unsigned int NVars, const un
 			else
 				IndVars[i] = i+1;
 		}
-	} else if (strstr(TestCase,"InviscidChannel")) {
+	} else if (strstr(TestCase,"InviscidChannel") ||
+	           strstr(TestCase,"SubsonicNozzle")) {
 		NVarsOut = 1;
 		Vars_c = malloc(NVarsOut * sizeof *Vars_c); // free
 		for (i = 0; i < NVarsOut; i++)

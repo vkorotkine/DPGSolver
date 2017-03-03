@@ -244,35 +244,24 @@ void initialize_test_case_parameters(void)
 		}
 
 		DB.rhoInf = 1.0;
-		DB.pInf   = 1.02*1e0;
-//		DB.MInf   = 1.01;
-		DB.MInf   = 0.0;
+		DB.pInf   = 1.0*1e-0;
+		DB.MInf   = 1.01;
 		DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
 
-		/*
-		 *	Notes:
-		 *		Obtained convergence!
-		 *		Parameters:
-		 *			aIn = 0.5, bIn = 0.5, aOut = 1.0, bOut = 2.0
-		 *			p_Total = T_Total = Rg = 1.0
-		 *			p_Back  = 0.99*p_Total
-		 *
-		 *			Initialized to zero velocity, p = pInf, rho = rhoInf
-		 *			SolverExplicit (P6, ML1, dt = 2e+2*pow(0.5,DB.ML+DB.PGlobal)): 150,000 time steps
-		 *				Monotonic convergence starting around 80,000 time steps
-		 */
-
+/*
+		// Use for subsonic case
+		DB.MInf    = 0.0;
 		DB.p_Total = 1.0;
 		DB.T_Total = 1.0;
 		DB.Rg      = 1.0;
 		DB.pBack   = 0.99*DB.p_Total;
 
-//		double TInf = pow(DB.T_Total*(DB.pBack/DB.p_Total),GM1/GAMMA);
 		DB.rhoInf = DB.p_Total/(DB.Rg*DB.T_Total);
 		DB.pInf   = DB.p_Total;
 
 		DB.MInf   = 0.0*sqrt(2.0/GM1*(pow((DB.pBack/DB.p_Total),-GM1/GAMMA)-1.0));
 		DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
+*/
 	} else if (strstr(TestCase,"PeriodicVortex")) {
 		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 		strcpy(SolverType,"Explicit");
@@ -676,29 +665,157 @@ static void compute_uniform_solution(const unsigned int Nn, const double *XYZ, d
 			U[4*Nn+n] = pInf;
 		}
 	} else if (strstr(TestCase,"SubsonicNozzle")) {
-		// Standard datatypes
+		char MType[20];
+//		strcpy(MType,"subsonic");
+		strcpy(MType,"supersonic");
+
+		if (d == 3)
+			printf("Add support.\n"), EXIT_MSG;
+
+		if (strstr(MType,"subsonic")) {
+		for (n = 0; n < Nn; n++) {
+			U[0*Nn+n] = DB.rhoInf;
+			U[1*Nn+n] = 0.0;
+			U[2*Nn+n] = 0.0;
+			U[3*Nn+n] = 0.0;
+			U[4*Nn+n] = DB.pInf;
+		}
+		} else if (strstr(MType,"supersonic")) {
+		// Define the initial solution such that the velocity vector points in approximately the correct direction.
 		const double *X, *Y;
 
 		X = &XYZ[0*Nn];
 		Y = &XYZ[1*Nn];
-		if (d == 3)
-			printf("Add support.\n"), EXIT_MSG;
 
-		// Define the initial solution such that the velocity vector points in approximately the correct direction.
+		double aIn  = DB.aIn,
+		       aOut = DB.aOut,
+		       bIn  = DB.bIn,
+		       bOut = DB.bOut;
+printf("\n");
 		for (n = 0; n < Nn; n++) {
-			double t;
+			// Find the equation of the ellipse on which the point lies
+			// Note: Points on polynomial curved edges may lie outside of the analytical domain and will not be found by
+			//       the algorithm below even for very high tolerances.
+			double da, db, a, b, a_sign;
+
+			db = bOut-bIn;
+
+			da = 0.5*(aOut-aIn);
+			a_sign = 1.0;
+			a = aIn;
+
+			unsigned int count, countMax = 60;
+//printf("\n\n");
+			for (count = 0; count < countMax; count++) {
+				double y;
+				a += a_sign*da;
+				b = bIn+db*(a-aIn)/(aOut-aIn);
+
+				da *= 0.5;
+
+				if (X[n] > a) {
+//printf("%2d % .3e % .3e % .3e % .3e\n",count,X[n],Y[n],a,X[n]-a);
+					a_sign = 1.0;
+					if (da > EPS)
+						continue;
+
+					if (fabs(X[n]-a) < 1e1*EPS)
+						break;
+//printf("daX\n");
+				}
+
+				y = b*sqrt(1.0-pow(X[n]/a,2.0));
+//printf("cxy: %2d % .3e % .3e % .3e % .3e % .3e % .3e % .3e\n",count,X[n],Y[n],da,a,b,y,y-Y[n]);
+
+				if (fabs(y-Y[n]) < 1e-5)
+					break;
+
+				if (da < EPS) {
+					if (!(fabs(a-aIn) < 1e1*EPS || fabs(a-aOut) < 1e1*EPS))
+						count = countMax;
+					break;
+				}
+
+				if (Y[n] < y)
+					a_sign = -1.0;
+				else
+					a_sign = 1.0;
+			}
+
+			if (count == countMax)
+				printf("Error: Did not find ellipse (% .3e % .3e % .3e % .3e % .3e).\n",X[n],Y[n],da,a,b), EXIT_MSG;
+
+			// Find the tangent to the ellipse in the direction of the flow
+			double dydx, t1, t2, tNorm;
+
+//			if (X[n] > a)
+			if (Y[n] < EPS)
+				dydx = -1e16;
+			else
+				dydx = 0.5*b/sqrt(1.0-pow(X[n]/a,2.0))*(-2.0*X[n]/(a*a));
+
+			t1 = -1.0;
+			t2 = -dydx;
+
+			tNorm = sqrt(t1*t1+t2*t2);
+			t1 /= tNorm;
+			t2 /= tNorm;
+
+			// Find the local Mach Number based on the area ratio relation
+			double t, A, AIn, Achoke;
 
 			t = atan2(Y[n],X[n]);
-			U[0*Nn+n] = DB.rhoInf;
-			U[1*Nn+n] = -sin(t)*(DB.MInf*DB.cInf);
-			U[2*Nn+n] =  cos(t)*(DB.MInf*DB.cInf);
-			U[1*Nn+n] = 0.0*t;
-			U[2*Nn+n] = 0.0;
-			U[3*Nn+n] = 0.0;
-			U[4*Nn+n] = DB.pInf;
 
-//			U[0*Nn+n] = DB.p_Total/(DB.Rg*DB.T_Total);
-//			U[4*Nn+n] = DB.p_Total;
+			A   = sqrt(pow((aOut-aIn)*cos(t),2.0)+pow((bOut-bIn)*sin(t),2.0));
+			AIn = aOut-aIn;
+
+			double MIn = DB.MInf;
+
+			Achoke = AIn/(1.0/MIn*pow(2.0/(GAMMA+1)*(1+0.5*GM1*MIn*MIn),(GAMMA+1)/(2*GM1)));
+
+			// Iterate to find M (Newton's method)
+			double f, dfdM, M;
+
+			M = MIn;
+			for (count = 0; count < countMax; count++) {
+				double update;
+				f    = 1.0/M*pow(2.0/(GAMMA+1)*(1+0.5*GM1*M*M),(GAMMA+1)/(2*GM1)) - A/Achoke;
+				dfdM = 2.0*(M*M-1.0)/((GAMMA-1)*pow(M,4.0)+2.0*M*M)*
+				       pow(((GAMMA-1)*M*M+2.0)/(GAMMA+1),0.5*GAMMA/(GAMMA-1)+0.5/(GAMMA-1));
+
+				update = -f/dfdM;
+				if (fabs(update) < 1e1*EPS)
+					break;
+
+				M += update;
+			}
+
+			if (count == countMax)
+				printf("Error: Newton's method not converging (% .3e % .3e % .3e % .3e).\n",f,dfdM,M,A/Achoke), EXIT_MSG;
+
+//if (A/AIn > 1.0+EPS) {
+//	printf("% .3e % .3e\n",A/AIn,M);
+//	EXIT_MSG;
+//}
+
+			// Initialize the flow using Isentropic relations based on local Mach number
+			double rhoIn = DB.rhoInf,
+			       pIn   = DB.pInf;
+
+			double rho, p, c, V;
+
+			rho = rhoIn*pow((1+0.5*GM1*M*M)/(1+0.5*GM1*MIn*MIn),-1.0/GM1);
+			p   = pIn*pow(rho/rhoIn,GAMMA);
+			c   = sqrt(GAMMA*p/rho);
+			V   = M*c;
+
+			U[0*Nn+n] = rho;
+			U[1*Nn+n] = V*t1;
+			U[2*Nn+n] = V*t2;
+			U[3*Nn+n] = 0.0;
+			U[4*Nn+n] = p;
+printf("%2d % .3e % .3e % .3e % .3e % .3e\n",n,rho,V,t1,t2,p);
+		}
 		}
 	} else if (strstr(TestCase,"PrandtlMeyer")) {
 		// Standard datatypes

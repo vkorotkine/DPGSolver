@@ -38,7 +38,7 @@ Ellipse(1005) = {5,7,3,3};
 Ellipse(1006) = {6,7,4,2};
 Ellipse(1007) = {6,7,4,4};
 
-Transfinite Line {1001:1003} = 1*2^(Refine+1)+1 Using Progression 1;
+Transfinite Line {1001:1003} = 1*2^(Refine)+1 Using Progression 1;
 Transfinite Line {1004:1007} = 1*2^(Refine)+1 Using Progression 1;
 
 Line Loop (4001) = {1001,-1006,-1003,1004};
@@ -89,7 +89,7 @@ ElseIf (EqIndex == 1) // Euler
 		Line(1012) = {3,10};
 		Line(1013) = {4,11};
 
-		Transfinite Line {1008,1011} = 1*2^(Refine+1)+1 Using Progression 1;
+		Transfinite Line {1008,1011} = 1*2^(Refine)+1 Using Progression 1;
 		Transfinite Line {1009:1010,1012:1013} = 1*2^(Refine)+1 Using Progression 1;
 
 		Line Loop (4003) = {1008,-1010,-1001,1009};
@@ -119,8 +119,8 @@ ElseIf (EqIndex == 1) // Euler
 	Else
 		// Physical Parameters for '.msh' file
 
-		Physical Line(10004) = {1002};                // Straight Total Temperature/Pressure
-		Physical Line(10003) = {1001};                // Straight Back Pressure
+		Physical Line(10006) = {1002};                // Straight Supersonic Outflow
+		Physical Line(10005) = {1001};                // Straight Supersonic Inflow
 		Physical Line(20002) = {1004:1007};           // Curved   SlipWall
 
 		// Visualization in gmsh

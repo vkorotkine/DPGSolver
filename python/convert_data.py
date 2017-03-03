@@ -466,7 +466,7 @@ if __name__ == '__main__':
 	output.MeshType = 'CurvedTRI'
 #	output.MeshType = 'CurvedQUAD'
 
-#	output.name = 'std'
+	output.name = 'std'
 #	output.name = 'Optimal Surface'
 #	output.name = 'Optimal Blending'
 #	output.name = 'Suboptimal Surface'
@@ -474,7 +474,7 @@ if __name__ == '__main__':
 #	output.name = 'Optimal h'; output.Ratio = '1'
 #	output.name = 'Projected Conforming'
 #	output.name = 'Projected NonConforming'
-	output.name = 'Optimal Euler';
+#	output.name = 'Optimal Euler';
 
 	output.init_name(output.name)
 

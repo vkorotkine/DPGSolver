@@ -553,8 +553,9 @@ void setup_parameters()
 //	DB.ViscousFluxType  = FLUX_BR2;
 	DB.ViscousFluxType  = FLUX_CDG2;
 
- 	DB.ExplicitSolverType = RK3_SSP;
+// 	DB.ExplicitSolverType = RK3_SSP;
 // 	DB.ExplicitSolverType = RK4_LS;
+ 	DB.ExplicitSolverType = EULER;
 
 	// hp adaptation
 //	DB.DOFcap_frac = 10.0;

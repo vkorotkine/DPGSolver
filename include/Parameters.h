@@ -108,6 +108,7 @@
 // Solver related parameters
 #define RK3_SSP 0
 #define RK4_LS  1
+#define EULER   2
 
 // Boundary conditions
 #define BC_RIEMANN        1

@@ -394,7 +394,8 @@ void boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, double *XY
 	 *		Impose total (P)ressure/(T)emperature (inflow) boundary condition.
 	 *
 	 *	Comments:
-	 *		eq. (38) in Carlson(2011) implies that the velocity should be normal to the boundary.
+	 *		eq. (38/47) in Carlson(2011) implies that the velocity should be normal to the boundary. As the direction of
+	 *		the flow velocity cannot be known, this implies that this boundary condition is not physically correct...
 	 *
 	 *	References:
 	 *		Carlson(2011): 2.7
@@ -491,8 +492,8 @@ void boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, double *XY
 
 		Vn = RL - 2.0/GM1*c;
 
-		if (Vn > EPS)
-			printf("\nWarning: Velocity Outflow in boundary_Total_TP.\n");
+//		if (Vn > EPS)
+//			printf("\nWarning: Velocity Outflow in boundary_Total_TP.\n");
 
 		M = Vn/c;
 

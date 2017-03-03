@@ -635,6 +635,8 @@ static void output_solution(const char *sol_type)
 			for (i = 0; i < NvnP; i++) {
 				V2 = u[i]*u[i] + v[i]*v[i] + w[i]*w[i];
 				c2 = GAMMA*p[i]/rho[i];
+				if (c2 < 0.0)
+					c2 = EPS;
 
 				s[i]    = p[i]/pow(rho[i],GAMMA);
 				Mach[i] = sqrt(V2/c2);
