@@ -13,11 +13,12 @@
 #include "Macros.h"
 
 #include "math_functions.h"
+#include "array_print.h"
 
 /*
  *	Purpose:
- *		Return the "matrix" ChiRef_rst representing the orthonormal basis functions evaluated at the provided quadrature
- *		nodes for polynomial order P.
+ *		Return the "matrix" ChiRef_rst representing the orthonormal or Bezier basis functions evaluated at the provided
+ *		quadrature nodes for polynomial order P.
  *
  *	Comments:
  *		The "matrix" is returned as a 1D array.
@@ -86,8 +87,6 @@ double *basis_TP(const unsigned int P, const double *rst, const unsigned int Nn,
 
 	// Transpose ChiRef_rst
 	mkl_dimatcopy('R','T',Nbf,Nn,1.,ChiRef_rst,Nn,Nbf);
-
-// array_print_d(Nn,Nbf,ChiRef_rst,'R');
 
 	free(r);
 	if (d > 1) free(s);
@@ -744,4 +743,102 @@ void rst_to_abc_PYR(const unsigned int Nn, const unsigned int d, const double *r
 	free(r);
 	free(s);
 	free(t);
+}
+
+double *basis_TP_Bezier(const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
+                        const unsigned int d)
+{
+	/*
+	 *	Comments:
+	 *		The recursive definition of the basis functions is used in the computation below.
+	 *		The polynomials are defined on the 1D reference element where r \in [-1,1].
+	 *
+	 *	References:
+	 *		Prautzsch(2002)-Bezier_and_B-Spline_Techniques (Ch. 2.1)
+	 */
+
+	unsigned int u1, N, Nbf;
+	int          sd, sN;
+	double       *ChiBez_rst;
+	const double *r_ptr, *s_ptr, *t_ptr;
+
+	N = P+1;
+
+	u1 = 1;
+	sd = d;
+	sN = N;
+
+	r_ptr = &rst[0*Nn];
+	if (d > 1)
+		s_ptr = &rst[1*Nn];
+	if (d > 2)
+		t_ptr = &rst[2*Nn];
+
+	Nbf = pow(N,d);
+
+	ChiBez_rst = calloc(Nn*Nbf , sizeof *ChiBez_rst); // keep
+
+	// r-direction
+	for (size_t i = 0, iMax = N; i < iMax; i++) {
+	for (size_t Indbf = i; Indbf+1 ; Indbf--) {
+		for (size_t n = 0; n < Nn; n++) {
+			double r = r_ptr[n];
+
+			if (i == 0) {
+				ChiBez_rst[Indbf*Nn+n] = 1.0;
+			} else {
+				double b0, b1;
+				b0 = (1.0-r)/2.0;
+				b1 = (1.0+r)/2.0;
+
+				if (Indbf != i)
+					ChiBez_rst[Indbf*Nn+n] *= b0;
+				if (Indbf != 0)
+					ChiBez_rst[Indbf*Nn+n] += b1*ChiBez_rst[(Indbf-1)*Nn+n];
+			}
+		}
+	}}
+
+	// s-direction (j = 0 gives multiplication by 1.0)
+	for (size_t j = 1, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
+	for (size_t Indbf = j; Indbf+1 ; Indbf--) {
+	for (size_t i = 0, iMax = N; i < iMax; i++) {
+		for (size_t n = 0; n < Nn; n++) {
+			double s = s_ptr[n];
+
+			double b0, b1;
+			b0 = (1.0-s)/2.0;
+			b1 = (1.0+s)/2.0;
+
+			if (Indbf != j)
+				ChiBez_rst[(Indbf*N+i)*Nn+n] *= b0;
+			if (Indbf != 0)
+				ChiBez_rst[(Indbf*N+i)*Nn+n] += b1*ChiBez_rst[((Indbf-1)*N+i)*Nn+n];
+		}
+	}}}
+
+	// t-direction (k = 0 gives multiplication by 1.0)
+	for (size_t k = 1, kMax = (size_t) min(max((sd-2)*sN,1),sN); k < kMax; k++) {
+	for (size_t Indbf = k; Indbf+1 ; Indbf--) {
+	for (size_t j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
+	for (size_t i = 0, iMax = N; i < iMax; i++) {
+		for (size_t n = 0; n < Nn; n++) {
+			double t = t_ptr[n];
+
+			double b0, b1;
+			b0 = (1.0-t)/2.0;
+			b1 = (1.0+t)/2.0;
+			if (Indbf != k)
+				ChiBez_rst[(Indbf*N*N+j*N+i)*Nn+n] *= b0;
+			if (Indbf != 0)
+				ChiBez_rst[(Indbf*N*N+j*N+i)*Nn+n] += b1*ChiBez_rst[((Indbf-1)*N*N+j*N+i)*Nn+n];
+		}
+	}}}}
+
+
+	// Transpose ChiBez_rst
+	mkl_dimatcopy('R','T',Nbf,Nn,1.,ChiBez_rst,Nn,Nbf);
+
+	*NbfOut = Nbf;
+	return ChiBez_rst;
 }

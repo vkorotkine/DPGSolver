@@ -551,8 +551,8 @@ static void test_unit_matrix_mm_diag(void)
 	DR = diag_d(dR,NRows); // free
 	DC = diag_d(dC,NCols); // free
 
-	Odiag = malloc(NRows*NCols * sizeof *Odiag); // free
-	Omm   = malloc(NRows*NCols * sizeof *Omm);   // free
+	Odiag = calloc(NRows*NCols , sizeof *Odiag); // free
+	Omm   = calloc(NRows*NCols , sizeof *Omm);   // free
 
 	// (L)eft, (R)ow Major
 	mm_diag_d(NRows,NCols,dR,A,Odiag,2.0,0.0,'L','R');

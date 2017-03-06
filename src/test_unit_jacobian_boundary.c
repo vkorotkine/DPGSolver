@@ -137,6 +137,8 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 			}
 		}
 //		array_print_ui(1,2,TestDB.EnteredBackPressure,'R');
+			array_print_d(Neq*Nvar,NnTotal,dWdW,'R');
+			array_print_d(Neq*Nvar,NnTotal,dWdW_cs,'R');
 		if (CheckedAll && array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS)
 			pass = 1, TestDB.Npass++;
 		else {

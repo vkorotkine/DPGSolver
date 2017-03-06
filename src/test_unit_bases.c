@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdbool.h>
 
 #include "mkl.h"
 
@@ -41,6 +42,16 @@ struct S_orthogonality {
 	char         NodeType[STRLEN_MIN], PrntName[STRLEN_MAX];
 };
 
+
+static void test_unit_basis_TP_modal(void);
+static void test_unit_basis_TP_Bezier(void);
+
+void test_unit_basis_TP(void)
+{
+	test_unit_basis_TP_modal();
+	test_unit_basis_TP_Bezier();
+}
+
 static void test_basis_orthogonality(struct S_orthogonality *data, const unsigned int no_last_entry)
 {
 	// Standard datatypes
@@ -66,7 +77,7 @@ static void test_basis_orthogonality(struct S_orthogonality *data, const unsigne
 
 	ChiRef_rst = basis(P,rst,Nn,&Nbf,d); // free
 
-	WChiRef_rst = malloc(Nn*Nbf * sizeof *WChiRef_rst); // free
+	WChiRef_rst = calloc(Nn*Nbf , sizeof *WChiRef_rst); // free
 	mm_diag_d(Nn,Nbf,w,ChiRef_rst,WChiRef_rst,1.0,0.0,'L','R');
 
 	M = mm_Alloc_d(CBRM,CBT,CBNT,Nbf,Nbf,Nn,1.0,ChiRef_rst,WChiRef_rst); // free
@@ -204,7 +215,7 @@ static double *basis_TP31(const double *rst, const unsigned int Nn)
 	return ChiRef_rst;
 }
 
-void test_unit_basis_TP(void)
+static void test_unit_basis_TP_modal(void)
 {
 	unsigned int pass;
 
@@ -1059,4 +1070,269 @@ void test_unit_basis_PYR(void)
 	test_basis_orthogonality(data,0);
 
 	free(data);
+}
+
+static double *basis_TP13_Bezier(const double *rst, const unsigned int Nn)
+{
+	unsigned int n, N, Nbf;
+	double       *ChiBez_rst;
+	const double *r_ptr;
+
+	N   = 3+1;
+	Nbf = pow(N,1);
+
+	r_ptr = &rst[0*Nn];
+
+	ChiBez_rst = malloc(Nn*Nbf * sizeof *ChiBez_rst); // keep (requires external free)
+
+	for (n = 0; n < Nn; n++) {
+		double r, b0, b1;
+
+		r  = r_ptr[n];
+		b0 = (1.0-r)/2.0;
+		b1 = (1.0+r)/2.0;
+
+		ChiBez_rst[n*Nbf+0] = pow(b0,3.0)*pow(b1,0.0);
+		ChiBez_rst[n*Nbf+1] = 3.0*pow(b0,2.0)*pow(b1,1.0);
+		ChiBez_rst[n*Nbf+2] = 3.0*pow(b0,1.0)*pow(b1,2.0);
+		ChiBez_rst[n*Nbf+3] = pow(b0,0.0)*pow(b1,3.0);
+	}
+
+	return ChiBez_rst;
+}
+
+static double *basis_TP22_Bezier(const double *rst, const unsigned int Nn)
+{
+	unsigned int n, N, Nbf;
+	double       *ChiBez_rst;
+	const double *r_ptr, *s_ptr;
+
+	N   = 2+1;
+	Nbf = pow(N,2);
+
+	r_ptr = &rst[0*Nn];
+	s_ptr = &rst[1*Nn];
+
+	ChiBez_rst = malloc(Nn*Nbf * sizeof *ChiBez_rst); // keep (requires external free)
+
+	for (n = 0; n < Nn; n++) {
+		double r, s, b0r, b1r, b0s, b1s;
+
+		r   = r_ptr[n];
+		b0r = (1.0-r)/2.0;
+		b1r = (1.0+r)/2.0;
+
+		s   = s_ptr[n];
+		b0s = (1.0-s)/2.0;
+		b1s = (1.0+s)/2.0;
+
+		ChiBez_rst[n*Nbf+0] = pow(b0r,2.0)*pow(b1r,0.0)     * pow(b0s,2.0)*pow(b1s,0.0)    ;
+		ChiBez_rst[n*Nbf+1] = 2.0*pow(b0r,1.0)*pow(b1r,1.0) * pow(b0s,2.0)*pow(b1s,0.0)    ;
+		ChiBez_rst[n*Nbf+2] = pow(b0r,0.0)*pow(b1r,2.0)     * pow(b0s,2.0)*pow(b1s,0.0)    ;
+		ChiBez_rst[n*Nbf+3] = pow(b0r,2.0)*pow(b1r,0.0)     * 2.0*pow(b0s,1.0)*pow(b1s,1.0);
+		ChiBez_rst[n*Nbf+4] = 2.0*pow(b0r,1.0)*pow(b1r,1.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0);
+		ChiBez_rst[n*Nbf+5] = pow(b0r,0.0)*pow(b1r,2.0)     * 2.0*pow(b0s,1.0)*pow(b1s,1.0);
+		ChiBez_rst[n*Nbf+6] = pow(b0r,2.0)*pow(b1r,0.0)     * pow(b0s,0.0)*pow(b1s,2.0)    ;
+		ChiBez_rst[n*Nbf+7] = 2.0*pow(b0r,1.0)*pow(b1r,1.0) * pow(b0s,0.0)*pow(b1s,2.0)    ;
+		ChiBez_rst[n*Nbf+8] = pow(b0r,0.0)*pow(b1r,2.0)     * pow(b0s,0.0)*pow(b1s,2.0)    ;
+	}
+
+	return ChiBez_rst;
+}
+
+static double *basis_TP32_Bezier(const double *rst, const unsigned int Nn)
+{
+	unsigned int n, N, Nbf;
+	double       *ChiBez_rst;
+	const double *r_ptr, *s_ptr, *t_ptr;
+
+	N   = 2+1;
+	Nbf = pow(N,3);
+
+	r_ptr = &rst[0*Nn];
+	s_ptr = &rst[1*Nn];
+	t_ptr = &rst[2*Nn];
+
+	ChiBez_rst = malloc(Nn*Nbf * sizeof *ChiBez_rst); // keep (requires external free)
+
+	for (n = 0; n < Nn; n++) {
+		double r, s, t, b0r, b1r, b0s, b1s, b0t, b1t;
+
+		r   = r_ptr[n];
+		b0r = (1.0-r)/2.0;
+		b1r = (1.0+r)/2.0;
+
+		s   = s_ptr[n];
+		b0s = (1.0-s)/2.0;
+		b1s = (1.0+s)/2.0;
+
+		t   = t_ptr[n];
+		b0t = (1.0-t)/2.0;
+		b1t = (1.0+t)/2.0;
+
+		ChiBez_rst[n*Nbf+0 ] =     pow(b0r,2.0)*pow(b1r,0.0) *     pow(b0s,2.0)*pow(b1s,0.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+		ChiBez_rst[n*Nbf+1 ] = 2.0*pow(b0r,1.0)*pow(b1r,1.0) *     pow(b0s,2.0)*pow(b1s,0.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+		ChiBez_rst[n*Nbf+2 ] =     pow(b0r,0.0)*pow(b1r,2.0) *     pow(b0s,2.0)*pow(b1s,0.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+		ChiBez_rst[n*Nbf+3 ] =     pow(b0r,2.0)*pow(b1r,0.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+		ChiBez_rst[n*Nbf+4 ] = 2.0*pow(b0r,1.0)*pow(b1r,1.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+		ChiBez_rst[n*Nbf+5 ] =     pow(b0r,0.0)*pow(b1r,2.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+		ChiBez_rst[n*Nbf+6 ] =     pow(b0r,2.0)*pow(b1r,0.0) *     pow(b0s,0.0)*pow(b1s,2.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+		ChiBez_rst[n*Nbf+7 ] = 2.0*pow(b0r,1.0)*pow(b1r,1.0) *     pow(b0s,0.0)*pow(b1s,2.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+		ChiBez_rst[n*Nbf+8 ] =     pow(b0r,0.0)*pow(b1r,2.0) *     pow(b0s,0.0)*pow(b1s,2.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+		ChiBez_rst[n*Nbf+9 ] =     pow(b0r,2.0)*pow(b1r,0.0) *     pow(b0s,2.0)*pow(b1s,0.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+		ChiBez_rst[n*Nbf+10] = 2.0*pow(b0r,1.0)*pow(b1r,1.0) *     pow(b0s,2.0)*pow(b1s,0.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+		ChiBez_rst[n*Nbf+11] =     pow(b0r,0.0)*pow(b1r,2.0) *     pow(b0s,2.0)*pow(b1s,0.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+		ChiBez_rst[n*Nbf+12] =     pow(b0r,2.0)*pow(b1r,0.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+		ChiBez_rst[n*Nbf+13] = 2.0*pow(b0r,1.0)*pow(b1r,1.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+		ChiBez_rst[n*Nbf+14] =     pow(b0r,0.0)*pow(b1r,2.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+		ChiBez_rst[n*Nbf+15] =     pow(b0r,2.0)*pow(b1r,0.0) *     pow(b0s,0.0)*pow(b1s,2.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+		ChiBez_rst[n*Nbf+16] = 2.0*pow(b0r,1.0)*pow(b1r,1.0) *     pow(b0s,0.0)*pow(b1s,2.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+		ChiBez_rst[n*Nbf+17] =     pow(b0r,0.0)*pow(b1r,2.0) *     pow(b0s,0.0)*pow(b1s,2.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+		ChiBez_rst[n*Nbf+18] =     pow(b0r,2.0)*pow(b1r,0.0) *     pow(b0s,2.0)*pow(b1s,0.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+		ChiBez_rst[n*Nbf+19] = 2.0*pow(b0r,1.0)*pow(b1r,1.0) *     pow(b0s,2.0)*pow(b1s,0.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+		ChiBez_rst[n*Nbf+20] =     pow(b0r,0.0)*pow(b1r,2.0) *     pow(b0s,2.0)*pow(b1s,0.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+		ChiBez_rst[n*Nbf+21] =     pow(b0r,2.0)*pow(b1r,0.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+		ChiBez_rst[n*Nbf+22] = 2.0*pow(b0r,1.0)*pow(b1r,1.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+		ChiBez_rst[n*Nbf+23] =     pow(b0r,0.0)*pow(b1r,2.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+		ChiBez_rst[n*Nbf+24] =     pow(b0r,2.0)*pow(b1r,0.0) *     pow(b0s,0.0)*pow(b1s,2.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+		ChiBez_rst[n*Nbf+25] = 2.0*pow(b0r,1.0)*pow(b1r,1.0) *     pow(b0s,0.0)*pow(b1s,2.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+		ChiBez_rst[n*Nbf+26] =     pow(b0r,0.0)*pow(b1r,2.0) *     pow(b0s,0.0)*pow(b1s,2.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+	}
+
+	return ChiBez_rst;
+}
+
+typedef double *(*basis_test_tdef) (const double *rst, const unsigned int Nn);
+
+/*
+ *	Purpose:
+ *		Test correctness of implementation of basis_TP_Bezier.
+ *
+ *	Comments:
+ *
+ *	Notation:
+ *
+ *	References:
+ */
+
+static void test_unit_basis_TP_Bezier(void)
+{
+	unsigned int pass;
+
+	/*
+	 *	basis_TP_Bezier
+	 *
+	 *		Input:
+	 *
+	 *			P, rst, Nn, dE.
+	 *
+	 *		Expected output:
+	 *
+	 *			ChiBez_rst = @(r)     [ See basis_TP13_Bezier ]
+	 *			ChiBez_rst = @(r,s)   [ See basis_TP22_Bezier ]
+	 *			ChiBez_rst = @(r,s,t) [ See basis_TP31_Bezier ]
+	 */
+
+	for (unsigned int dE = 1; dE <= DMAX; dE++) {
+		unsigned int P, Prst, Nn, Ns, Nbf, *symms;
+		double       *rst, *w, *ChiBez_code, *ChiBez_test;
+
+		basis_test_tdef basis_test;
+
+		Prst = 4;
+		if (dE == 1) {
+			P = 3;
+			basis_test = basis_TP13_Bezier;
+		} else if (dE == 2) {
+			P = 2;
+			basis_test = basis_TP22_Bezier;
+		} else if (dE == 3) {
+			P = 2;
+			basis_test = basis_TP32_Bezier;
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_BASIC;
+		}
+		cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GLL"); // free
+		ChiBez_code = basis_TP_Bezier(P,rst,Nn,&Nbf,dE);
+		ChiBez_test = basis_test(rst,Nn);
+
+		pass = 0;
+		if (array_norm_diff_d(Nn*pow(P+1,dE),ChiBez_code,ChiBez_test,"Inf") < EPS*10)
+			pass = 1, TestDB.Npass++;
+
+		if (dE == 1) {
+			//     0         10        20        30        40        50
+			printf("basis_TP_Bezier (d%d, P%d):                        ",dE,P);
+		} else {
+			printf("                (d%d, P%d):                        ",dE,P);
+		}
+		test_print(pass);
+
+		free(rst);
+		free(symms);
+		free(ChiBez_test);
+		free(ChiBez_code);
+	}
+
+	/*
+	 *	basis_TP_Bezier partition of unity/positivity:
+	 *
+	 *		Input:
+	 *
+	 *			rst
+	 *
+	 *		Expected Output:
+	 *
+	 *			Basis functions at each node sum to one.
+	 *			Basis functions evaluated at each node have values greater than or equal to zero.
+	 */
+
+	for (unsigned int dE = 1; dE <= DMAX; dE++) {
+		unsigned int P, Prst, Nn, Ns, Nbf, *symms;
+		double       *rst, *w, *ChiBez;
+
+		Prst = 4;
+		P    = 3;
+
+		cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GLL"); // free
+		ChiBez = basis_TP_Bezier(P,rst,Nn,&Nbf,dE);
+
+		double *RowSum, *ones;
+		RowSum = calloc(Nn , sizeof *RowSum);
+		ones   = calloc(Nn , sizeof *RowSum);
+		for (size_t i = 0; i < Nn; i++) {
+			ones[i] = 1.0;
+			for (size_t j = 0; j < Nbf; j++) {
+				RowSum[i] += ChiBez[j+i*Nbf];
+			}
+		}
+
+		bool   Positive = 1;
+		double minVal   = 1e15;
+		for (size_t i = 0, iMax = Nn*Nbf; i < iMax; i++) {
+			if (ChiBez[i] < minVal)
+				minVal = ChiBez[i];
+		}
+
+		if (minVal < 0.0)
+			Positive = 0;
+
+		pass = 0;
+		if (array_norm_diff_d(Nn,RowSum,ones,"Inf") < EPS*10 && Positive)
+			pass = 1, TestDB.Npass++;
+
+		if (dE == 1) {
+			//     0         10        20        30        40        50
+			printf("basis_TP_Bezier partition of unity (d%d, P%d):     ",dE,P);
+		} else {
+			printf("                                   (d%d, P%d):     ",dE,P);
+		}
+		test_print(pass);
+
+		free(rst);
+		free(symms);
+		free(ChiBez);
+		free(RowSum);
+		free(ones);
+	}
 }
