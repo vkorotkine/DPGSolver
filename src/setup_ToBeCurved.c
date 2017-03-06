@@ -131,13 +131,13 @@ static void correct_ToBeCurved(struct S_VOLUME *VOLUME)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int n, dim, ve, P, PV, f, Vf, NvnG, NfnG, Eclass, Nf, Nve, BC, *Nfve, *VeFcon, internalCurved;
+	unsigned int n, dim, ve, P, PV, f, Vf, NvnG, NfnG, Eclass, Nf, Nve, BC, *Nfve, *VeFcon, InternalCurved;
 	double       *XYZ, *XYZ_S, *XYZ_C, *XYZ_CmS, *XYZ_update, *I_vGs_vGc, *I_vGc_fGc, *I_fGc_vGc, *I_fGs_vGc,
 	             BlendNum, BlendDen, *BlendV;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_F;
 
-	internalCurved = 1;
+	InternalCurved = 1;
 
 	PV     = VOLUME->P;
 	NvnG   = VOLUME->NvnG;
@@ -162,7 +162,7 @@ static void correct_ToBeCurved(struct S_VOLUME *VOLUME)
 
 	P = PV;
 	for (f = 0; f < Nf; f++) {
-		if (!internalCurved) {
+		if (!InternalCurved) {
 			BC = VOLUME->BC[0][f];
 			if (BC / BC_STEP_SC != 2)
 				continue;

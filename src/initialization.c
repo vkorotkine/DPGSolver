@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
- 
+
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
@@ -153,7 +153,7 @@ void initialization(int nargc, char **argv)
 				strcat(MeshFile,MeshPath);
 
 				if (strstr(TestCase,"Test") == NULL) {
-					strcat(MeshFile,TestCase);
+					strcat(MeshFile,Geometry);
 					strcat(MeshFile,"/");
 					strcat(MeshFile,TestCase);
 					strcat(MeshFile,strcat(d,"D_"));
