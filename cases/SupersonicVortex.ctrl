@@ -8,6 +8,7 @@ BEGIN PARAMETERS
   Dimension  2
   ML         1
   MeshType   ToBeCurvedStructuredTRI
+  Geometry   Annular_Section/SupersonicVortex
 
   Form       Weak  // Options: Weak, Strong
   NodeType   GL-AO // Options: GL/GLL-AO/WS/SH
@@ -19,7 +20,7 @@ BEGIN PARAMETERS
   Adaptive   0     // Options: 0 (Likely add h, p, hp options later)
 
   PGlobal    2
-  PMax       4
+  PMax       2
   LevelsMax  5
 
   Restart    -1    // Options: -1, 0, Iteration #

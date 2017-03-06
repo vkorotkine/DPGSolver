@@ -21,7 +21,7 @@ CSTD := -std=c99
 # Options
 OPTS := -O3
 OPTS += -g -Wall -Wextra -Werror
-OPTS += -DTEST
+#OPTS += -DTEST
 
 
 # Standard libraries (Math)
@@ -193,10 +193,18 @@ $(EXECDIR):
 OUTPUT_LIST   := paraview errors results
 TESTCASE_LIST := Poisson SupersonicVortex InviscidChannel
 # To BeModified (Remove unneeded meshcases folders which may have been created previously)
-MESHCASE_LIST := Ringleb dm1-Spherical_Section Ellipsoidal_Section Annular_Section HoldenRamp GaussianBump NacaSymmetric \
-                 EllipsoidalBump JoukowskiSymmetric
+MESHCASE_LIST := Ringleb \
+                 dm1-Spherical_Section \
+                 Ellipsoidal_Section \
+                 Annular_Section \
+                 Annular_Section/SupersonicVortex \
+                 HoldenRamp \
+                 GaussianBump \
+                 NacaSymmetric \
+                 EllipsoidalBump \
+                 JoukowskiSymmetric
 # ToBeModified (Remove unneeded meshtypes)
-MESHTYPE_LIST := TRI CurvedTRI CurvedQUAD ToBeCurvedTRI ToBeCurvedQUAD Mixed CurvedMixed
+MESHTYPE_LIST := TRI CurvedTRI CurvedQUAD ToBeCurvedTRI ToBeCurvedQUAD Mixed CurvedMixed ToBeCurvedStructuredTRI
 
 OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))
 TESTCASE_LIST := $(subst $(space),$(comma),$(TESTCASE_LIST))

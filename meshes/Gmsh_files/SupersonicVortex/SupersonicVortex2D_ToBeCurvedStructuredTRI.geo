@@ -1,7 +1,8 @@
 // Modifiable Parameters
 lc = 1; // Not used.
 
-Refine = 0;
+Refine = 1;
+AR     = 2.5;
 
 rIn = 1;
 rOut = 1.384;
@@ -25,21 +26,19 @@ Line(1005) = {6,5};
 Line(1006) = {6,2};
 Line(1007) = {4,6};
 
-// aspect ratio ~ 1.0
-//Transfinite Line {1003:1006}      = 5*2^(Refine)+1 Using Progression 1;
-//Transfinite Line {1001,1002,1007} = 2*2^(Refine)+1 Using Progression 1;
-
-// aspect ratio ~ 2.5
-//Transfinite Line {1003:1006}      = 2^(Refine)+1 Using Progression 1;
-//Transfinite Line {1001,1002,1007} = 2^(Refine)+1 Using Progression 1;
-
-// aspect ratio ~ 5.0
-//Transfinite Line {1003:1006}      = 2*2^(Refine)+1 Using Progression 1;
-//Transfinite Line {1001,1002,1007} = 5*2^(Refine)+1 Using Progression 1;
-
-// aspect ratio ~ 20.0
-Transfinite Line {1003:1006}      = 1*2^(Refine)+1 Using Progression 1;
-Transfinite Line {1001,1002,1007} = 10*2^(Refine)+1 Using Progression 1;
+If (AR == 1.0)
+	Transfinite Line {1003:1006}      = 5*2^(Refine)+1 Using Progression 1;
+	Transfinite Line {1001,1002,1007} = 2*2^(Refine)+1 Using Progression 1;
+ElseIf (AR == 2.5)
+	Transfinite Line {1003:1006}      = 2^(Refine)+1 Using Progression 1;
+	Transfinite Line {1001,1002,1007} = 2^(Refine)+1 Using Progression 1;
+ElseIf (AR == 5.0)
+	Transfinite Line {1003:1006}      = 2*2^(Refine)+1 Using Progression 1;
+	Transfinite Line {1001,1002,1007} = 5*2^(Refine)+1 Using Progression 1;
+ElseIf (AR == 20.0)
+	Transfinite Line {1003:1006}      = 1*2^(Refine)+1 Using Progression 1;
+	Transfinite Line {1001,1002,1007} = 10*2^(Refine)+1 Using Progression 1;
+EndIf
 
 
 Line Loop (4001) = {1007,1005,-1002,-1003};

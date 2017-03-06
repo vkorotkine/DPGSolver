@@ -122,6 +122,7 @@ int main(int nargc, char **argv)
 
 	if (!DB.MPIrank)
 		printf("  Initializing\n");
+	initialize_test_case_parameters();
 	initialize_test_case(DB.LevelsMax+1);
 
 	// Output initial solution to paraview
@@ -316,8 +317,8 @@ int main(int nargc, char **argv)
 		test_integration_linearization(nargc,argv);
 //		PetscFinalize();
 	}
-//	test_integration_Poisson(nargc,argv);
-	test_integration_Euler(nargc,argv);
+	test_integration_Poisson(nargc,argv);
+//	test_integration_Euler(nargc,argv);
 	PetscFinalize();
 
 
