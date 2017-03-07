@@ -635,11 +635,14 @@ void jacobian_boundary_BackPressure(const unsigned int Nn, const unsigned int Ne
 
 				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;
 				dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;
+				dwLdW[0] = 0.0;          dwLdW[1] = 0.0;      dwLdW[2] = 0.0;      dwLdW[3] = 0.0;
 			} else if (d == 1) {
 				drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0;
 				dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = 1.0;
 
 				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;
+				dvLdW[0] = 0.0;          dvLdW[1] = 0.0;      dvLdW[2] = 0.0;      dvLdW[3] = 0.0;
+				dwLdW[0] = 0.0;          dwLdW[1] = 0.0;      dwLdW[2] = 0.0;      dwLdW[3] = 0.0;
 			}
 			for (var = 0; var < Nvar; var++)
 				dpLdW[var] *= GM1;
@@ -811,6 +814,7 @@ void jacobian_boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, d
 
 			duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;
 			dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;
+			dwLdW[0] = 0.0;          dwLdW[1] = 0.0;      dwLdW[2] = 0.0;      dwLdW[3] = 0.0;
 		}
 		for (size_t var = 0; var < Nvar; var++)
 			dpLdW[var] *= GM1;

@@ -137,8 +137,6 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 			}
 		}
 //		array_print_ui(1,2,TestDB.EnteredBackPressure,'R');
-			array_print_d(Neq*Nvar,NnTotal,dWdW,'R');
-			array_print_d(Neq*Nvar,NnTotal,dWdW_cs,'R');
 		if (CheckedAll && array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS)
 			pass = 1, TestDB.Npass++;
 		else {
@@ -276,6 +274,7 @@ void test_unit_jacobian_boundary(void)
 			free(nL);
 			free(XYZ);
 		}
+		free(DB.SolverType); // Initialized in "initialize_test_case_parameters"
 	}
 
 	free(DB.TestCase);
@@ -283,6 +282,4 @@ void test_unit_jacobian_boundary(void)
 
 	for (i = 0; i < NBTypes; i++)
 		free(BType[i]);
-
-	free(DB.SolverType); // From initialize_test_case_parameters
 }

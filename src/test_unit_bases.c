@@ -21,6 +21,8 @@
 #include "cubature.h"
 #include "math_functions.h"
 #include "matrix_functions.h"
+#include "element_functions.h"
+#include "memory_free.h"
 #include "array_norm.h"
 #include "array_print.h"
 
@@ -44,12 +46,30 @@ struct S_orthogonality {
 
 
 static void test_unit_basis_TP_modal(void);
+static void test_unit_basis_SI_modal(void);
+static void test_unit_basis_PYR_modal(void);
+
 static void test_unit_basis_TP_Bezier(void);
+static void test_unit_basis_SI_Bezier(void);
 
 void test_unit_basis_TP(void)
 {
 	test_unit_basis_TP_modal();
 	test_unit_basis_TP_Bezier();
+}
+
+void test_unit_basis_SI(void)
+{
+	test_unit_basis_SI_modal();
+
+	initialize_ELEMENTs();
+	test_unit_basis_SI_Bezier();
+	memory_free_ELEMENTs();
+}
+
+void test_unit_basis_PYR(void)
+{
+	test_unit_basis_PYR_modal();
 }
 
 static void test_basis_orthogonality(struct S_orthogonality *data, const unsigned int no_last_entry)
@@ -649,7 +669,7 @@ static double *basis_TET2(const double *rst, const unsigned int Nn)
 	return ChiRef_rst;
 }
 
-void test_unit_basis_SI(void)
+static void test_unit_basis_SI_modal(void)
 {
 	printf("\nWarning: Ensure that discrepancy between M and I for WSH nodes is as expected\n\n");
 	TestDB.Nwarnings++;
@@ -984,7 +1004,7 @@ static double *basis_PYR2(const double *rst, const unsigned int Nn)
 	return ChiRef_rst;
 }
 
-void test_unit_basis_PYR(void)
+static void test_unit_basis_PYR_modal(void)
 {
 	unsigned int pass;
 
@@ -1230,7 +1250,7 @@ static void test_unit_basis_TP_Bezier(void)
 	 *
 	 *			ChiBez_rst = @(r)     [ See basis_TP13_Bezier ]
 	 *			ChiBez_rst = @(r,s)   [ See basis_TP22_Bezier ]
-	 *			ChiBez_rst = @(r,s,t) [ See basis_TP31_Bezier ]
+	 *			ChiBez_rst = @(r,s,t) [ See basis_TP32_Bezier ]
 	 */
 
 	for (unsigned int dE = 1; dE <= DMAX; dE++) {
@@ -1324,6 +1344,244 @@ static void test_unit_basis_TP_Bezier(void)
 		if (dE == 1) {
 			//     0         10        20        30        40        50
 			printf("basis_TP_Bezier partition of unity (d%d, P%d):     ",dE,P);
+		} else {
+			printf("                                   (d%d, P%d):     ",dE,P);
+		}
+		test_print(pass);
+
+		free(rst);
+		free(symms);
+		free(ChiBez);
+		free(RowSum);
+		free(ones);
+	}
+}
+
+static double *basis_SI2_Bezier(const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
+                                const unsigned int d)
+{
+	unsigned int n, Nbf;
+	double       *ChiBez_rst, *BCoords;
+	const double *r_ptr, *s_ptr;
+
+	Nbf = (unsigned int) (factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P)));
+	*NbfOut = Nbf;
+
+	r_ptr = &rst[0*Nn];
+	s_ptr = &rst[1*Nn];
+
+	ChiBez_rst = malloc(Nn*Nbf * sizeof *ChiBez_rst); // keep
+
+	BCoords = malloc(Nn*(d+1) * sizeof *BCoords); // free
+
+	rst_to_barycentric_SI(Nn,d,rst,BCoords);
+	for (n = 0; n < Nn; n++) {
+		double b0, b1, b2;
+
+		b0 = BCoords[0*Nn+n];
+		b1 = BCoords[1*Nn+n];
+		b2 = BCoords[2*Nn+n];
+
+		if (P == 0) {
+			ChiBez_rst[n*Nbf+0] = pow(b0,0.0)*pow(b1,0.0)*pow(b2,0.0);
+		} else if (P == 1) {
+			ChiBez_rst[n*Nbf+0] = pow(b0,1.0)*pow(b1,0.0)*pow(b2,0.0);
+			ChiBez_rst[n*Nbf+1] = pow(b0,0.0)*pow(b1,1.0)*pow(b2,0.0);
+			ChiBez_rst[n*Nbf+2] = pow(b0,0.0)*pow(b1,0.0)*pow(b2,1.0);
+		} else if (P == 2) {
+			ChiBez_rst[n*Nbf+0] =     pow(b0,2.0)*pow(b1,0.0)*pow(b2,0.0);
+			ChiBez_rst[n*Nbf+1] =     pow(b0,0.0)*pow(b1,2.0)*pow(b2,0.0);
+			ChiBez_rst[n*Nbf+2] =     pow(b0,0.0)*pow(b1,0.0)*pow(b2,2.0);
+			ChiBez_rst[n*Nbf+3] = 2.0*pow(b0,1.0)*pow(b1,1.0)*pow(b2,0.0);
+			ChiBez_rst[n*Nbf+4] = 2.0*pow(b0,0.0)*pow(b1,1.0)*pow(b2,1.0);
+			ChiBez_rst[n*Nbf+5] = 2.0*pow(b0,1.0)*pow(b1,0.0)*pow(b2,1.0);
+		} else if (P == 3) {
+			ChiBez_rst[n*Nbf+0] =     pow(b0,3.0)*pow(b1,0.0)*pow(b2,0.0);
+			ChiBez_rst[n*Nbf+1] =     pow(b0,0.0)*pow(b1,3.0)*pow(b2,0.0);
+			ChiBez_rst[n*Nbf+2] =     pow(b0,0.0)*pow(b1,0.0)*pow(b2,3.0);
+			ChiBez_rst[n*Nbf+3] = 3.0*pow(b0,2.0)*pow(b1,1.0)*pow(b2,0.0);
+			ChiBez_rst[n*Nbf+4] = 3.0*pow(b0,0.0)*pow(b1,2.0)*pow(b2,1.0);
+			ChiBez_rst[n*Nbf+5] = 3.0*pow(b0,1.0)*pow(b1,0.0)*pow(b2,2.0);
+			ChiBez_rst[n*Nbf+6] = 3.0*pow(b0,2.0)*pow(b1,0.0)*pow(b2,1.0);
+			ChiBez_rst[n*Nbf+7] = 3.0*pow(b0,1.0)*pow(b1,2.0)*pow(b2,0.0);
+			ChiBez_rst[n*Nbf+8] = 3.0*pow(b0,0.0)*pow(b1,1.0)*pow(b2,2.0);
+			ChiBez_rst[n*Nbf+9] = 6.0*pow(b0,1.0)*pow(b1,1.0)*pow(b2,1.0);
+		} else if (P == 4) {
+			ChiBez_rst[n*Nbf+0 ] =      pow(b0,4.0)*pow(b1,0.0)*pow(b2,0.0);
+			ChiBez_rst[n*Nbf+1 ] =      pow(b0,0.0)*pow(b1,4.0)*pow(b2,0.0);
+			ChiBez_rst[n*Nbf+2 ] =      pow(b0,0.0)*pow(b1,0.0)*pow(b2,4.0);
+			ChiBez_rst[n*Nbf+3 ] = 4.0* pow(b0,3.0)*pow(b1,1.0)*pow(b2,0.0);
+			ChiBez_rst[n*Nbf+4 ] = 4.0* pow(b0,0.0)*pow(b1,3.0)*pow(b2,1.0);
+			ChiBez_rst[n*Nbf+5 ] = 4.0* pow(b0,1.0)*pow(b1,0.0)*pow(b2,3.0);
+			ChiBez_rst[n*Nbf+6 ] = 4.0* pow(b0,3.0)*pow(b1,0.0)*pow(b2,1.0);
+			ChiBez_rst[n*Nbf+7 ] = 4.0* pow(b0,1.0)*pow(b1,3.0)*pow(b2,0.0);
+			ChiBez_rst[n*Nbf+8 ] = 4.0* pow(b0,0.0)*pow(b1,1.0)*pow(b2,3.0);
+			ChiBez_rst[n*Nbf+9 ] = 6.0* pow(b0,2.0)*pow(b1,2.0)*pow(b2,0.0);
+			ChiBez_rst[n*Nbf+10] = 6.0* pow(b0,0.0)*pow(b1,2.0)*pow(b2,2.0);
+			ChiBez_rst[n*Nbf+11] = 6.0* pow(b0,2.0)*pow(b1,0.0)*pow(b2,2.0);
+			ChiBez_rst[n*Nbf+12] = 12.0*pow(b0,2.0)*pow(b1,1.0)*pow(b2,1.0);
+			ChiBez_rst[n*Nbf+13] = 12.0*pow(b0,1.0)*pow(b1,2.0)*pow(b2,1.0);
+			ChiBez_rst[n*Nbf+14] = 12.0*pow(b0,1.0)*pow(b1,1.0)*pow(b2,2.0);
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_BASIC;
+		}
+	}
+
+	free(BCoords);
+
+	return ChiBez_rst;
+}
+
+static double *basis_SI3_Bezier(const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
+                                const unsigned int d)
+{
+	if (0)
+		printf("%d % .3e %d %d %d\n",P,rst[0],Nn,*NbfOut,d);
+	return NULL;
+}
+
+
+
+/*
+ *	Purpose:
+ *		Test correctness of implementation of basis_SI_Bezier.
+ *
+ *	Comments:
+ *
+ *	Notation:
+ *
+ *	References:
+ */
+
+static void test_unit_basis_SI_Bezier(void)
+{
+	unsigned int pass;
+
+	/*
+	 *	basis_SI_Bezier
+	 *
+	 *		Input:
+	 *
+	 *			P, rst, Nn, dE.
+	 *
+	 *		Expected output:
+	 *
+	 *			ChiBez_rst = @(r,s)   [ See basis_SI2_Bezier ]
+	 *			ChiBez_rst = @(r,s,t) [ See basis_SI3_Bezier ]
+	 */
+
+//	for (unsigned int dE = 2; dE <= DMAX; dE++) {
+	for (unsigned int dE = 2; dE <= 2; dE++) {
+		unsigned int PMin, PMax, Prst, Nn, Ns, Nbf, *symms;
+		double       *rst, *w, *ChiBez_code, *ChiBez_test;
+
+		cubature_tdef cubature;
+		basis_tdef    basis_test;
+
+		if (dE == 2) {
+			PMin = 0; PMax = 4;
+			basis_test = basis_SI2_Bezier;
+			select_functions_cubature(&cubature,TRI);
+		} else if (dE == 3) {
+			PMin = 2; PMax = 4;
+			basis_test = basis_SI3_Bezier;
+			select_functions_cubature(&cubature,TET);
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_BASIC;
+		}
+
+		Prst = 4;
+		cubature(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"WV"); // free
+
+		for (unsigned int P = PMin; P <= PMax; P++) {
+			ChiBez_code = basis_SI_Bezier(P,rst,Nn,&Nbf,dE);
+			ChiBez_test = basis_test(P,rst,Nn,&Nbf,dE);
+
+			pass = 0;
+			if (array_norm_diff_d(Nn*Nbf,ChiBez_code,ChiBez_test,"Inf") < EPS*10)
+				pass = 1, TestDB.Npass++;
+
+			if (dE == 2 && P == PMin) {
+				//     0         10        20        30        40        50
+				printf("basis_SI_Bezier (d%d, P%d):                        ",dE,P);
+			} else {
+				printf("                (d%d, P%d):                        ",dE,P);
+			}
+			test_print(pass);
+array_print_d(Nn,Nbf,ChiBez_code,'R');
+array_print_d(Nn,Nbf,ChiBez_test,'R');
+if (P == PMin)
+	EXIT_BASIC;
+
+			free(ChiBez_test);
+			free(ChiBez_code);
+		}
+
+		free(rst);
+		free(symms);
+	}
+
+	/*
+	 *	basis_SI_Bezier partition of unity/positivity:
+	 *
+	 *		Input:
+	 *
+	 *			rst
+	 *
+	 *		Expected Output:
+	 *
+	 *			Basis functions at each node sum to one.
+	 *			Basis functions evaluated at each node have values greater than or equal to zero.
+	 */
+
+//	for (unsigned int dE = 2; dE <= DMAX; dE++) {
+	for (unsigned int dE = 2; dE <= 1; dE++) {
+		unsigned int P, Prst, Nn, Ns, Nbf, *symms;
+		double       *rst, *w, *ChiBez;
+
+		cubature_tdef cubature;
+
+		Prst = 4;
+		P    = 3;
+
+		if (dE == 2) {
+			select_functions_cubature(&cubature,TRI);
+		} else if (dE == 3) {
+			select_functions_cubature(&cubature,TET);
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_BASIC;
+		}
+
+		cubature(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"AO"); // free
+		ChiBez = basis_SI_Bezier(P,rst,Nn,&Nbf,dE);
+
+		double *RowSum, *ones;
+		RowSum = calloc(Nn , sizeof *RowSum);
+		ones   = calloc(Nn , sizeof *RowSum);
+		for (size_t i = 0; i < Nn; i++) {
+			ones[i] = 1.0;
+			for (size_t j = 0; j < Nbf; j++) {
+				RowSum[i] += ChiBez[j+i*Nbf];
+			}
+		}
+
+		bool   Positive = 1;
+		double minVal   = 1e15;
+		for (size_t i = 0, iMax = Nn*Nbf; i < iMax; i++) {
+			if (ChiBez[i] < minVal)
+				minVal = ChiBez[i];
+		}
+
+		if (minVal < 0.0)
+			Positive = 0;
+
+		pass = 0;
+		if (array_norm_diff_d(Nn,RowSum,ones,"Inf") < EPS*10 && Positive)
+			pass = 1, TestDB.Npass++;
+
+		if (dE == 2) {
+			//     0         10        20        30        40        50
+			printf("basis_SI_Bezier partition of unity (d%d, P%d):     ",dE,P);
 		} else {
 			printf("                                   (d%d, P%d):     ",dE,P);
 		}

@@ -5,7 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
- 
+
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
@@ -27,6 +27,17 @@
  *
  *	References:
  */
+
+void memory_free_ELEMENTs(void)
+{
+	struct S_ELEMENT *ELEMENT, *ELEMENTnext;
+
+	for (ELEMENT = DB.ELEMENT; ELEMENT; ) {
+		ELEMENTnext = ELEMENT->next;
+		memory_destructor_E(ELEMENT);
+		ELEMENT = ELEMENTnext;
+	}
+}
 
 void memory_free(void)
 {
@@ -97,13 +108,7 @@ void memory_free(void)
 			free(DB.SolverType);
 
 	// ELEMENTs
-	struct S_ELEMENT *ELEMENT, *ELEMENTnext;
-
-	for (ELEMENT = DB.ELEMENT; ELEMENT; ) {
-		ELEMENTnext = ELEMENT->next;
-		memory_destructor_E(ELEMENT);
-		ELEMENT = ELEMENTnext;
-	}
+	memory_free_ELEMENTs();
 
 	// VOLUMEs
 	struct S_VOLUME *VOLUME, *VOLUMEnext;

@@ -6,14 +6,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <limits.h>
 
 #include "mkl.h"
 
 #include "Parameters.h"
 #include "Macros.h"
+#include "S_ELEMENT.h"
 
 #include "math_functions.h"
 #include "array_print.h"
+#include "matrix_functions.h"
+#include "element_functions.h"
+#include "setup_operators_support.h"
 
 /*
  *	Purpose:
@@ -41,6 +46,7 @@ double grad_jacobiP (const double x, const double alpha, const double beta, cons
 
 void rst_to_abc_SI  (const unsigned int Nn, const unsigned int d, const double *rst, double *a, double *b, double *c);
 void rst_to_abc_PYR (const unsigned int Nn, const unsigned int d, const double *rst, double *a, double *b, double *c);
+void rst_to_barycentric_SI (const unsigned int Nn, const unsigned int d, const double *rst, double *BCoords);
 
 double *basis_TP(const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
                  const unsigned int d)
@@ -757,28 +763,16 @@ double *basis_TP_Bezier(const unsigned int P, const double *rst, const unsigned 
 	 *		Prautzsch(2002)-Bezier_and_B-Spline_Techniques (Ch. 2.1)
 	 */
 
-	unsigned int u1, N, Nbf;
-	int          sd, sN;
+	unsigned int N, Nbf;
 	double       *ChiBez_rst;
-	const double *r_ptr, *s_ptr, *t_ptr;
 
-	N = P+1;
-
-	u1 = 1;
-	sd = d;
-	sN = N;
-
-	r_ptr = &rst[0*Nn];
-	if (d > 1)
-		s_ptr = &rst[1*Nn];
-	if (d > 2)
-		t_ptr = &rst[2*Nn];
-
+	N   = P+1;
 	Nbf = pow(N,d);
 
 	ChiBez_rst = calloc(Nn*Nbf , sizeof *ChiBez_rst); // keep
 
 	// r-direction
+	const double *r_ptr = &rst[0*Nn];
 	for (size_t i = 0, iMax = N; i < iMax; i++) {
 	for (size_t Indbf = i; Indbf+1 ; Indbf--) {
 		for (size_t n = 0; n < Nn; n++) {
@@ -799,46 +793,256 @@ double *basis_TP_Bezier(const unsigned int P, const double *rst, const unsigned 
 		}
 	}}
 
-	// s-direction (j = 0 gives multiplication by 1.0)
-	for (size_t j = 1, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
-	for (size_t Indbf = j; Indbf+1 ; Indbf--) {
-	for (size_t i = 0, iMax = N; i < iMax; i++) {
-		for (size_t n = 0; n < Nn; n++) {
-			double s = s_ptr[n];
+	// s-direction
+	unsigned int u1 = 1;
+	if (d > 1) {
+		const double *s_ptr = &rst[1*Nn];
+		// j = 0 gives multiplication by 1.0
+		for (size_t j = 1, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
+		for (size_t Indbf = j; Indbf+1 ; Indbf--) {
+		for (size_t i = 0, iMax = N; i < iMax; i++) {
+			for (size_t n = 0; n < Nn; n++) {
+				double s = s_ptr[n];
 
-			double b0, b1;
-			b0 = (1.0-s)/2.0;
-			b1 = (1.0+s)/2.0;
+				double b0, b1;
+				b0 = (1.0-s)/2.0;
+				b1 = (1.0+s)/2.0;
 
-			if (Indbf != j)
-				ChiBez_rst[(Indbf*N+i)*Nn+n] *= b0;
-			if (Indbf != 0)
-				ChiBez_rst[(Indbf*N+i)*Nn+n] += b1*ChiBez_rst[((Indbf-1)*N+i)*Nn+n];
-		}
-	}}}
+				if (Indbf != j)
+					ChiBez_rst[(Indbf*N+i)*Nn+n] *= b0;
+				if (Indbf != 0)
+					ChiBez_rst[(Indbf*N+i)*Nn+n] += b1*ChiBez_rst[((Indbf-1)*N+i)*Nn+n];
+			}
+		}}}
+	}
 
-	// t-direction (k = 0 gives multiplication by 1.0)
-	for (size_t k = 1, kMax = (size_t) min(max((sd-2)*sN,1),sN); k < kMax; k++) {
-	for (size_t Indbf = k; Indbf+1 ; Indbf--) {
-	for (size_t j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
-	for (size_t i = 0, iMax = N; i < iMax; i++) {
-		for (size_t n = 0; n < Nn; n++) {
-			double t = t_ptr[n];
+	// t-direction
+	if (d > 2) {
+		int          sd = d, sN = N;
+		const double *t_ptr = &rst[2*Nn];
+		// k = 0 gives multiplication by 1.0
+		for (size_t k = 1, kMax = (size_t) min(max((sd-2)*sN,1),sN); k < kMax; k++) {
+		for (size_t Indbf = k; Indbf+1 ; Indbf--) {
+		for (size_t j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
+		for (size_t i = 0, iMax = N; i < iMax; i++) {
+			for (size_t n = 0; n < Nn; n++) {
+				double t = t_ptr[n];
 
-			double b0, b1;
-			b0 = (1.0-t)/2.0;
-			b1 = (1.0+t)/2.0;
-			if (Indbf != k)
-				ChiBez_rst[(Indbf*N*N+j*N+i)*Nn+n] *= b0;
-			if (Indbf != 0)
-				ChiBez_rst[(Indbf*N*N+j*N+i)*Nn+n] += b1*ChiBez_rst[((Indbf-1)*N*N+j*N+i)*Nn+n];
-		}
-	}}}}
-
+				double b0, b1;
+				b0 = (1.0-t)/2.0;
+				b1 = (1.0+t)/2.0;
+				if (Indbf != k)
+					ChiBez_rst[(Indbf*N*N+j*N+i)*Nn+n] *= b0;
+				if (Indbf != 0)
+					ChiBez_rst[(Indbf*N*N+j*N+i)*Nn+n] += b1*ChiBez_rst[((Indbf-1)*N*N+j*N+i)*Nn+n];
+			}
+		}}}}
+	}
 
 	// Transpose ChiBez_rst
 	mkl_dimatcopy('R','T',Nbf,Nn,1.,ChiBez_rst,Nn,Nbf);
 
 	*NbfOut = Nbf;
 	return ChiBez_rst;
+}
+
+static unsigned int get_Index_ijk_pm1(const unsigned int *ijk_Indices, const unsigned int *basis_exp,
+                                      const unsigned int reduced_ind, const unsigned int d, const unsigned int Nbf_p,
+                                      const unsigned int Nbf)
+{
+	unsigned int reduced_exp[d+1], IndCol;
+
+	for (size_t i = 0; i < d+1; i++) {
+		if (i != reduced_ind)
+			reduced_exp[i] = basis_exp[i];
+		else
+			reduced_exp[i] = basis_exp[i]-1;
+	}
+
+	IndCol = 0;
+	for (size_t n = 0; n < Nbf_p; n++) {
+		for ( ; IndCol <= d && ijk_Indices[IndCol*Nbf+n] == reduced_exp[IndCol]; IndCol++)
+			;
+		if (IndCol > d)
+			return ijk_Indices[IndCol*Nbf+n];
+	}
+	printf("Error: Did not find index.\n"), EXIT_MSG;
+	return UINT_MAX;
+}
+
+double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
+                        const unsigned int d)
+{
+	/*
+	 *	Comments:
+	 *		The recursive definition of the basis functions is used in the computation below.
+	 *		The ordering of the basis is such that the symmetries of the simplex are maintained and no extra memory is
+	 *		needed for the recursive definition of the basis.
+	 *
+	 *	References:
+	 *		Prautzsch(2002)-Bezier_and_B-Spline_Techniques (Ch. 10.1)
+	 */
+
+	if (d < 2 || d > 3)
+		printf("Error: basis_SI_Bezier only supports d = [2,3].\n"), EXIT_MSG;
+
+	unsigned int Nbf, *ijk_Indices;
+	double       *ChiBez_rst, *BCoords;
+
+	Nbf = (unsigned int) (factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P)));
+
+	// Convert from rst to barycentric coordinates
+	BCoords = malloc(Nn*(d+1) * sizeof *BCoords); // free
+	rst_to_barycentric_SI(Nn,d,rst,BCoords);
+
+	ijk_Indices = calloc(Nbf*(d+1) , sizeof *ijk_Indices); // free
+
+	ChiBez_rst = calloc(Nn*Nbf , sizeof *ChiBez_rst); // keep
+
+	// p = 0 basis
+	for (size_t n = 0; n < Nn; n++)
+		ChiBez_rst[n] = 1.0;
+
+	// ijk_Indices == zeros(Nbf,d+1) for p = 0.
+
+	if (d == 2) {
+		unsigned int permutationsTRI[18] = { 2, 1, 0, 1, 0, 2, 0, 2, 1, 1, 2, 0, 2, 0, 1, 0, 1, 2};
+
+		for (size_t p = 1; p <= P; p++) {
+			unsigned int Nbf_p, Indbf;
+
+			Nbf_p = (unsigned int) (factorial_ull(d+p)/(factorial_ull(d)*factorial_ull(p)));
+			Indbf = Nbf_p - 1;
+			for (size_t IndMax = 1; IndMax <= p; IndMax++) {
+				unsigned int ijk_sum, Nunique, Nperms, u0 = 0;
+				int          ijk[d+1];
+
+				ijk_sum = 0;
+				ijk[0]  = IndMax;                       ijk_sum += ijk[0];
+				ijk[1]  = max(min(IndMax,p-ijk_sum),u0); ijk_sum += ijk[1];
+				ijk[2]  = max(min(IndMax,p-ijk_sum),u0); ijk_sum += ijk[2];
+
+				if (ijk_sum < p)
+					continue; // Invalid for the basis of order p
+
+				// Check that ijk sum is correct
+				if (ijk_sum != p)
+					printf("Error: Problem.\n"), EXIT_MSG;
+
+				// Ensure that all ijk indices are greater than 0
+				for (size_t i = 0; i < d+1; i++) {
+					if (ijk[i] < 0)
+						printf("Error: Problem.\n"), EXIT_MSG;
+				}
+
+				// Find number of permutations available for current ijk exponents (note descending values)
+				Nunique = 1;
+				Nperms  = 1;
+				for (size_t i = 1; i < d+1; i++) {
+					if (ijk[i] != ijk[i-1]) {
+						Nunique++;
+						Nperms += Nunique;
+					}
+				}
+
+				for (size_t perm = 0; perm < Nperms; perm++) {
+					unsigned int basis_exp[d+1];
+					for (size_t i = 0; i < d+1; i++)
+						basis_exp[i] = ijk[permutationsTRI[perm*(d+1)+i]];
+
+					unsigned int Entered = 0;
+					for (size_t i = d; i+1; i--) { // Note: Must use the highest Indpm1 first
+						if (basis_exp[i] == 0)
+							continue;
+
+						// Find indices of lower order basis functions used to construct the current basis function.
+						unsigned int Indpm1;
+
+						Indpm1 = get_Index_ijk_pm1(ijk_Indices,basis_exp,i,d,Nbf_p,Nbf);
+
+						if (!Entered) {
+							for (size_t n = 0; n < Nn; n++)
+								ChiBez_rst[Indbf*Nn+n] =  BCoords[i*Nn+n]*ChiBez_rst[Indpm1*Nn+n];
+						} else {
+							for (size_t n = 0; n < Nn; n++)
+								ChiBez_rst[Indbf*Nn+n] += BCoords[i*Nn+n]*ChiBez_rst[Indpm1*Nn+n];
+						}
+						Entered = 1;
+
+						for (size_t j = 0; j <= d; j++)
+							ijk_Indices[j*Nbf+Indbf] = basis_exp[j];
+						ijk_Indices[Nbf*(d+1)+Indbf] = Indbf;
+// Sort ijk_Indices
+
+					}
+				}
+			}
+		}
+	} else if (d == 3) {
+		printf("Add support.\n"), EXIT_MSG;
+	}
+
+	free(BCoords);
+	free(ijk_Indices);
+
+	// Transpose ChiBez_rst
+	mkl_dimatcopy('R','T',Nbf,Nn,1.,ChiBez_rst,Nn,Nbf);
+
+	*NbfOut = Nbf;
+	return ChiBez_rst;
+}
+
+/*
+ *	Purpose:
+ *		Convert from rst to barycentric coordinates.
+ *
+ *	Comments:
+ *		See comments in 'cubature_PYR' for the algorithm to determine BCoords.
+ *
+ *	Notation:
+ *
+ *	References:
+ */
+
+void rst_to_barycentric_SI(const unsigned int Nn, const unsigned int d, const double *rst, double *BCoords)
+{
+	if (d < 2 || d > 3)
+		printf("Error: Conversion from rst to barycentric SI coordinates only supported for d = [2,3].\n"), EXIT_MSG;
+
+	unsigned int Nve;
+	double       *rst_vV, *A_Nve, *A_Nn, *A_Nve_Inv, *I_Nve;
+
+	struct S_ELEMENT *ELEMENT = NULL;
+
+	if (d == 2)
+		ELEMENT = get_ELEMENT_type(TRI);
+	else if (d == 3)
+		ELEMENT = get_ELEMENT_type(TET);
+
+	Nve = ELEMENT->Nve;
+
+	rst_vV = get_rst_vV(ELEMENT); // free
+
+	A_Nve = malloc(Nve*(d+1) * sizeof *A_Nve); // free
+	A_Nn  = malloc(Nn*(d+1)  * sizeof *A_Nve); // free
+
+	for (size_t n = 0; n < Nve; n++)
+		A_Nve[n] = 1.0;
+	for (size_t n = 0, nMax = Nve*d; n < nMax; n++)
+		A_Nve[Nve+n] = rst_vV[n];
+	free(rst_vV);
+
+	I_Nve     = identity_d(Nve);                // free
+	A_Nve_Inv = inverse_d(Nve,Nve,A_Nve,I_Nve); // free
+	free(A_Nve);
+
+	for (size_t n = 0; n < Nn; n++)
+		A_Nn[n] = 1.0;
+	for (size_t n = 0, nMax = Nn*d; n < nMax; n++)
+		A_Nn[Nn+n] = rst[n];
+
+	mm_d(CBCM,CBNT,CBNT,Nn,Nve,Nve,1.0,0.0,A_Nn,A_Nve_Inv,BCoords);
+
+	free(A_Nve_Inv);
+	free(A_Nn);
 }

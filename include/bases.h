@@ -17,5 +17,7 @@ extern void   rst_to_abc_SI    (const unsigned int Nn, const unsigned int d, con
 extern void   rst_to_abc_PYR   (const unsigned int Nn, const unsigned int d, const double *rst, double *a, double *b, double *c);
 
 extern double *basis_TP_Bezier (const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut, const unsigned int d);
+extern double *basis_SI_Bezier (const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut, const unsigned int d);
+extern void   rst_to_barycentric_SI (const unsigned int Nn, const unsigned int d, const double *rst, double *BCoords);
 
 #endif // DPG__bases_h__INCLUDED
