@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <limits.h>
+#include <stdbool.h>
 
 #include "mkl.h"
 
@@ -15,10 +16,12 @@
 #include "S_ELEMENT.h"
 
 #include "math_functions.h"
-#include "array_print.h"
 #include "matrix_functions.h"
 #include "element_functions.h"
 #include "setup_operators_support.h"
+#include "array_sort.h"
+#include "array_norm.h"
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -846,10 +849,139 @@ double *basis_TP_Bezier(const unsigned int P, const double *rst, const unsigned 
 	return ChiBez_rst;
 }
 
-static unsigned int get_Index_ijk_pm1(const unsigned int *ijk_Indices, const unsigned int *basis_exp,
-                                      const unsigned int reduced_ind, const unsigned int d, const unsigned int Nbf_p,
-                                      const unsigned int Nbf)
+void get_BCoord_Exponents(const unsigned int P, const unsigned int d, unsigned int *NExp, unsigned int **NpermsOut,
+                          unsigned int **ExponentsOut)
 {
+	/*
+	 *	Comments:
+	 *		The exponents are ordered such that Exp[0] >= Exp[1] >= ... >= Exp[d+1].
+	 *
+	 *		This function works by searching sequentially through all valid exponent sets.
+	 *			p :     : Value of Exp[0] if a valid combination is found.
+	 *			diffMax : maximum allowable difference between individual values of trial Exp[0:d] and p*ones[0:d].
+	 *			diff    : diff == p*ones[0:d]-Exp[0:d]
+	 *			delta   : current maximum difference between individual values of trial Exp[0:d] and p*ones[0:d].
+	 */
+
+	unsigned int Nbf, *Nperms, *Exponents, *Exp_current;
+
+	Nbf = (unsigned int) (factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P)));
+
+	Nperms      = malloc(Nbf       * sizeof *Nperms);      // keep
+	Exponents   = malloc(Nbf*(d+1) * sizeof *Exponents);   // keep
+	Exp_current = malloc((d+1)     * sizeof *Exp_current); // free
+
+	size_t Ind = 0;
+	for (size_t p = 0; p <= P;  p++) {
+	for (unsigned int diffMax = 0; diffMax <= p; diffMax++) {
+		// Set trial exponents to maximum in each entry and diff to 0
+		unsigned int diff[d+1], delta;
+		for (size_t i = 0; i < d; i++) {
+			Exp_current[i] = p;
+			diff[i]        = 0;
+		}
+		Exp_current[d] = p-diffMax;
+		diff[d]        = diffMax;
+
+		delta = p;
+
+		// Reduce trailing exponents until the correct exponent sum is obtained
+		bool Found = 0;
+		while(!Found) {
+			unsigned int sum;
+			sum = array_norm_ui(d+1,Exp_current,"L1");
+
+if (P == 4) {
+printf("p,delta,diffMax: %zu %d %d %d %d %d\n",p,delta,diffMax,diff[0],diff[1],diff[2]);
+array_print_ui(1,d+1,Exp_current,'R');
+}
+			if (sum == P) { // Found a valid combination
+				Found = 1;
+printf("*** FOUND ***\n\n");
+
+				unsigned int *Exp_ptr;
+				Exp_ptr = &Exponents[Ind*(d+1)];
+				for (size_t i = 0; i < d+1; i++)
+					Exp_ptr[i] = Exp_current[i];
+
+				// Set Nperms based on number of unique entries
+				unsigned int Nunique = 1, Indunique;
+
+				for (size_t i = 1; i < d+1; i++) {
+					if (Exp_ptr[i] != Exp_ptr[i-1]) {
+						Indunique = i;
+						Nunique++;
+					}
+				}
+
+				if (d == 2) {
+					if      (Nunique == 1) Nperms[Ind] = 1;
+					else if (Nunique == 2) Nperms[Ind] = 3;
+					else if (Nunique == 3) Nperms[Ind] = 6;
+					else
+						printf("Error: Unsupported.\n"), EXIT_MSG;
+				} else if (d == 3) {
+					if        (Nunique == 1) { Nperms[Ind] = 1;
+					} else if (Nunique == 2) {
+						// Note the two configurations in this case
+						if      (Indunique == 1 || Indunique == 3) Nperms[Ind] = 4;
+						else if (Indunique == 2)                   Nperms[Ind] = 6;
+						else
+							printf("Error: Unsupported (%d).\n",Indunique), EXIT_MSG;
+					} else if (Nunique == 3) { Nperms[Ind] = 12;
+					} else if (Nunique == 4) { Nperms[Ind] = 24;
+					} else { printf("Error: Unsupported.\n"), EXIT_MSG; }
+				}
+
+				Ind++;
+				break;
+			} else if (diff[1] == diffMax || sum < P) {
+				break;
+			} else {
+				// Find the largest index where diff is furthest from the maximum
+				if (p-diff[1] < delta)
+					delta--;
+
+				if (!delta)
+					break;
+
+				size_t i;
+				for (i = d-1; i; i--) {
+					if (p-diff[i] == delta) {
+						diff[i]++;
+						break;
+					}
+					if (i == 1)
+						printf("Error: Should not have made it here.\n"), EXIT_BASIC;
+				}
+				Exp_current[i]--;
+			}
+		}
+	}}
+
+	// Check that sum of Nperms == Nbf (Simplex)
+	unsigned int sum = 0;
+	for (size_t n = 0; n < Ind; n++)
+		sum += Nperms[n];
+
+	if (sum != Nbf)
+		printf("Error: Did not find the correct number of permutations (%d %d).\n",Nbf,sum), EXIT_BASIC;
+//		printf("Error: Did not find the correct number of permutations (%d %d).\n",Nbf,sum), EXIT_MSG;
+
+	*NExp         = Ind;
+	*NpermsOut    = Nperms;
+	*ExponentsOut = Exponents;
+	free(Exp_current);
+}
+
+static unsigned int get_Index_ijk_pm1(const unsigned int *ijk_Indices, const unsigned int *basis_exp,
+                                      const unsigned int reduced_ind, const unsigned int d, const unsigned int Nbf_p)
+{
+	/*
+	 *	Comments:
+	 *		It is assumed that ijk_Indices is sorted (using array_sort) to find the column index efficiently.
+	 */
+
 	unsigned int reduced_exp[d+1], IndCol;
 
 	for (size_t i = 0; i < d+1; i++) {
@@ -861,11 +993,14 @@ static unsigned int get_Index_ijk_pm1(const unsigned int *ijk_Indices, const uns
 
 	IndCol = 0;
 	for (size_t n = 0; n < Nbf_p; n++) {
-		for ( ; IndCol <= d && ijk_Indices[IndCol*Nbf+n] == reduced_exp[IndCol]; IndCol++)
+		for ( ; IndCol <= d && ijk_Indices[n*(d+2)+IndCol] == reduced_exp[IndCol]; IndCol++)
 			;
 		if (IndCol > d)
-			return ijk_Indices[IndCol*Nbf+n];
+			return ijk_Indices[n*(d+2)+IndCol];
 	}
+//array_print_ui(1,d+1,reduced_exp,'R');
+//array_print_ui(Nbf_p,d+2,ijk_Indices,'R');
+//	printf("Error: Did not find index.\n"), EXIT_BASIC;
 	printf("Error: Did not find index.\n"), EXIT_MSG;
 	return UINT_MAX;
 }
@@ -886,7 +1021,7 @@ double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned 
 	if (d < 2 || d > 3)
 		printf("Error: basis_SI_Bezier only supports d = [2,3].\n"), EXIT_MSG;
 
-	unsigned int Nbf, *ijk_Indices;
+	unsigned int Nbf, *ijk_Indices[2];
 	double       *ChiBez_rst, *BCoords;
 
 	Nbf = (unsigned int) (factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P)));
@@ -895,7 +1030,8 @@ double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned 
 	BCoords = malloc(Nn*(d+1) * sizeof *BCoords); // free
 	rst_to_barycentric_SI(Nn,d,rst,BCoords);
 
-	ijk_Indices = calloc(Nbf*(d+1) , sizeof *ijk_Indices); // free
+	ijk_Indices[0] = calloc(Nbf*(d+2) , sizeof *ijk_Indices[0]); // free
+	ijk_Indices[1] = calloc(Nbf*(d+2) , sizeof *ijk_Indices[1]); // free
 
 	ChiBez_rst = calloc(Nn*Nbf , sizeof *ChiBez_rst); // keep
 
@@ -906,9 +1042,10 @@ double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned 
 	// ijk_Indices == zeros(Nbf,d+1) for p = 0.
 
 	if (d == 2) {
-		unsigned int permutationsTRI[18] = { 2, 1, 0, 1, 0, 2, 0, 2, 1, 1, 2, 0, 2, 0, 1, 0, 1, 2};
+		unsigned int permutationsTRI[18]  = { 0, 1, 2, 2, 0, 1, 1, 2, 0, 0, 2, 1, 1, 0, 2, 2, 1, 0};
 
 		for (size_t p = 1; p <= P; p++) {
+printf("********************* p = %zu ***********************\n\n\n",p);
 			unsigned int Nbf_p, Indbf;
 
 			Nbf_p = (unsigned int) (factorial_ull(d+p)/(factorial_ull(d)*factorial_ull(p)));
@@ -917,8 +1054,9 @@ double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned 
 				unsigned int ijk_sum, Nunique, Nperms, u0 = 0;
 				int          ijk[d+1];
 
+// Use get_BCoord_Exponents here (ToBeDeleted)
 				ijk_sum = 0;
-				ijk[0]  = IndMax;                       ijk_sum += ijk[0];
+				ijk[0]  = IndMax;                        ijk_sum += ijk[0];
 				ijk[1]  = max(min(IndMax,p-ijk_sum),u0); ijk_sum += ijk[1];
 				ijk[2]  = max(min(IndMax,p-ijk_sum),u0); ijk_sum += ijk[2];
 
@@ -945,45 +1083,78 @@ double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned 
 					}
 				}
 
-				for (size_t perm = 0; perm < Nperms; perm++) {
+array_print_i(1,d+1,ijk,'R');
+printf("Nperms: %d\n",Nperms);
+//array_print_ui(Nperms,d+1,permutationsTRI,'R');
+				for (size_t perm = Nperms; perm ; perm--) {
 					unsigned int basis_exp[d+1];
 					for (size_t i = 0; i < d+1; i++)
-						basis_exp[i] = ijk[permutationsTRI[perm*(d+1)+i]];
+						basis_exp[i] = ijk[permutationsTRI[(perm-1)*(d+1)+i]];
+printf("%zu\n",perm);
+array_print_ui(1,d+1,basis_exp,'R');
+
+					// Find the indices of the lower order bases to be used and sort them such that the highest index is
+					// used first. This is required as memory may be overwritten.
+					unsigned int IndBCoord[d+1], Indpm1[d+1];
+					for (size_t i = 0; i <= d; i++) {
+						IndBCoord[i] = i;
+						if (basis_exp[i] == 0) {
+							Indpm1[i] = 0;
+							continue;
+						}
+						Indpm1[i] = get_Index_ijk_pm1(ijk_Indices[1],basis_exp,i,d,Nbf_p);
+					}
+					array_sort_ui(1,d+1,Indpm1,IndBCoord,'R','N');
 
 					unsigned int Entered = 0;
-					for (size_t i = d; i+1; i--) { // Note: Must use the highest Indpm1 first
-						if (basis_exp[i] == 0)
+					for (size_t i = d; i+1; i--) { // Note: Use the highest Indpm1 first
+						if (basis_exp[IndBCoord[i]] == 0)
 							continue;
 
 						// Find indices of lower order basis functions used to construct the current basis function.
-						unsigned int Indpm1;
+//printf("iIndpm1: %d %d %d %d\n",IndBCoord[i],Indpm1[i],Indbf,Entered);
 
-						Indpm1 = get_Index_ijk_pm1(ijk_Indices,basis_exp,i,d,Nbf_p,Nbf);
+						if (Entered && Indpm1[i] >= Indbf)
+							printf("Error: Using modified values.\n"), EXIT_MSG;
+//							printf("Error: Using modified values.\n"), EXIT_BASIC;
 
 						if (!Entered) {
 							for (size_t n = 0; n < Nn; n++)
-								ChiBez_rst[Indbf*Nn+n] =  BCoords[i*Nn+n]*ChiBez_rst[Indpm1*Nn+n];
+								ChiBez_rst[Indbf*Nn+n] =  BCoords[IndBCoord[i]*Nn+n]*ChiBez_rst[Indpm1[i]*Nn+n];
 						} else {
 							for (size_t n = 0; n < Nn; n++)
-								ChiBez_rst[Indbf*Nn+n] += BCoords[i*Nn+n]*ChiBez_rst[Indpm1*Nn+n];
+								ChiBez_rst[Indbf*Nn+n] += BCoords[IndBCoord[i]*Nn+n]*ChiBez_rst[Indpm1[i]*Nn+n];
 						}
 						Entered = 1;
 
 						for (size_t j = 0; j <= d; j++)
-							ijk_Indices[j*Nbf+Indbf] = basis_exp[j];
-						ijk_Indices[Nbf*(d+1)+Indbf] = Indbf;
-// Sort ijk_Indices
+							ijk_Indices[0][Indbf*(d+2)+j] = basis_exp[j];
+						ijk_Indices[0][Indbf*(d+2)+(d+1)] = Indbf;
 
 					}
+					Indbf--;
 				}
 			}
+			// Sort ijk_Indices
+			unsigned int Ind_ui[Nbf_p];
+			for (size_t i = 0; i < Nbf_p; i++)
+				Ind_ui[Nbf_p] = i;
+			for (size_t i = 0, iMax = (d+2)*Nbf_p; i < iMax; i++)
+				ijk_Indices[1][i] = ijk_Indices[0][i];
+
+//printf("ijk_Indices (pre-sorting):\n");
+//array_print_ui(Nbf_p,d+2,ijk_Indices[1],'R');
+			array_sort_ui(Nbf_p,d+2,ijk_Indices[1],Ind_ui,'R','T');
+//printf("%zu %d\nijk_Indices:\n",p,P);
+//array_print_ui(Nbf_p,d+2,ijk_Indices[1],'R');
 		}
 	} else if (d == 3) {
 		printf("Add support.\n"), EXIT_MSG;
 	}
 
 	free(BCoords);
-	free(ijk_Indices);
+	free(ijk_Indices[0]);
+	free(ijk_Indices[1]);
 
 	// Transpose ChiBez_rst
 	mkl_dimatcopy('R','T',Nbf,Nn,1.,ChiBez_rst,Nn,Nbf);
