@@ -211,7 +211,7 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 	free(wOut_std);
 
 
-	r_d    = malloc(pow(N,d)*d * sizeof *r_d);    // keep (requires external free)
+	r_d    = malloc(pow(N,d)*d * sizeof *r_d);    // keep
 	wOut_d = malloc(pow(N,d)   * sizeof *wOut_d); // free/keep (Conditional return_w)
 
 	row = 0; Nrows = pow(N,d);
@@ -234,7 +234,7 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 
 	// Compute symmetries
 	NsOut = (unsigned int) ceil(N/2.0);
-	symmsOut = malloc(NsOut * sizeof *symmsOut); // keep (requires external free)
+	symmsOut = malloc(NsOut * sizeof *symmsOut); // keep
 	if (N % 2 == 1) {
 		for (i = 0; i < NsOut-1; i++)
 			symmsOut[i] = 2;
@@ -466,8 +466,7 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 	free(BCoords);
 	free(w_read);
 
-	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_V);
-	// keep (requires external free)
+	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_V); // keep
 	free(BCoords_complete);
 
 //array_print_d(NnOut,d,rstOut,'C');
@@ -476,7 +475,7 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 	for (i = 0; i < 2; i++)
 		NsOut += symms31[i];
 
-	symmsOut = malloc(NsOut * sizeof *symmsOut); // keep (requires external free)
+	symmsOut = malloc(NsOut * sizeof *symmsOut); // keep
 	k = 0;
 	for (i = 0; i < 2; i++) {
 	for (j = 0; jMax = symms31[i], j < jMax; j++) {
@@ -768,8 +767,7 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 	free(BCoords);
 	free(w_read);
 
-	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_V);
-	// keep (requires external free)
+	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_V); // keep
 	free(BCoords_complete);
 
 //array_print_d(NnOut,d,rstOut,'C');
@@ -778,7 +776,7 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 	for (i = 0; i < 2; i++)
 		NsOut += symms31[i];
 
-	symmsOut = malloc(NsOut * sizeof *symmsOut); // keep (requires external free)
+	symmsOut = malloc(NsOut * sizeof *symmsOut); // keep
 	k = 0;
 	for (i = 0; i < 2; i++) {
 	for (j = 0; jMax = symms31[i], j < jMax; j++) {
@@ -1102,8 +1100,7 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	free(BCoords);
 	free(w_read);
 
-	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_V);
-	// keep (requires external free)
+	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_V); // keep
 	free(BCoords_complete);
 
 //array_print_d(NnOut,d,rstOut,'C');
@@ -1112,7 +1109,7 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	for (i = 0; i < 2; i++)
 		NsOut += symms41[i];
 
-	symmsOut = malloc(NsOut * sizeof *symmsOut); // keep (requires external free)
+	symmsOut = malloc(NsOut * sizeof *symmsOut); // keep
 	k = 0;
 	for (i = 0; i < 2; i++) {
 	for (j = 0; jMax = symms41[i], j < jMax; j++) {

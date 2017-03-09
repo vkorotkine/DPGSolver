@@ -1410,10 +1410,27 @@ static void get_BCoord_Exponents_test(const unsigned int P, const unsigned int d
 			Exp[Ind*(d+1)+0] = 3; Exp[Ind*(d+1)+1] = 0; Exp[Ind*(d+1)+2] = 0; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 4;
 		} else if (P == 4) {
 			Exp[Ind*(d+1)+0] = 1; Exp[Ind*(d+1)+1] = 1; Exp[Ind*(d+1)+2] = 1; Exp[Ind*(d+1)+3] = 1; Nperms[Ind++] = 1;
-			Exp[Ind*(d+1)+0] = 2; Exp[Ind*(d+1)+1] = 2; Exp[Ind*(d+1)+2] = 0; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 6;
 			Exp[Ind*(d+1)+0] = 2; Exp[Ind*(d+1)+1] = 1; Exp[Ind*(d+1)+2] = 1; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 12;
+			Exp[Ind*(d+1)+0] = 2; Exp[Ind*(d+1)+1] = 2; Exp[Ind*(d+1)+2] = 0; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 6;
 			Exp[Ind*(d+1)+0] = 3; Exp[Ind*(d+1)+1] = 1; Exp[Ind*(d+1)+2] = 0; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 12;
 			Exp[Ind*(d+1)+0] = 4; Exp[Ind*(d+1)+1] = 0; Exp[Ind*(d+1)+2] = 0; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 4;
+		} else if (P == 5) {
+			Exp[Ind*(d+1)+0] = 2; Exp[Ind*(d+1)+1] = 1; Exp[Ind*(d+1)+2] = 1; Exp[Ind*(d+1)+3] = 1; Nperms[Ind++] = 4;
+			Exp[Ind*(d+1)+0] = 2; Exp[Ind*(d+1)+1] = 2; Exp[Ind*(d+1)+2] = 1; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 12;
+			Exp[Ind*(d+1)+0] = 3; Exp[Ind*(d+1)+1] = 1; Exp[Ind*(d+1)+2] = 1; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 12;
+			Exp[Ind*(d+1)+0] = 3; Exp[Ind*(d+1)+1] = 2; Exp[Ind*(d+1)+2] = 0; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 12;
+			Exp[Ind*(d+1)+0] = 4; Exp[Ind*(d+1)+1] = 1; Exp[Ind*(d+1)+2] = 0; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 12;
+			Exp[Ind*(d+1)+0] = 5; Exp[Ind*(d+1)+1] = 0; Exp[Ind*(d+1)+2] = 0; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 4;
+		} else if (P == 6) {
+			Exp[Ind*(d+1)+0] = 2; Exp[Ind*(d+1)+1] = 2; Exp[Ind*(d+1)+2] = 1; Exp[Ind*(d+1)+3] = 1; Nperms[Ind++] = 6;
+			Exp[Ind*(d+1)+0] = 2; Exp[Ind*(d+1)+1] = 2; Exp[Ind*(d+1)+2] = 2; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 4;
+			Exp[Ind*(d+1)+0] = 3; Exp[Ind*(d+1)+1] = 1; Exp[Ind*(d+1)+2] = 1; Exp[Ind*(d+1)+3] = 1; Nperms[Ind++] = 4;
+			Exp[Ind*(d+1)+0] = 3; Exp[Ind*(d+1)+1] = 2; Exp[Ind*(d+1)+2] = 1; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 24;
+			Exp[Ind*(d+1)+0] = 3; Exp[Ind*(d+1)+1] = 3; Exp[Ind*(d+1)+2] = 0; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 6;
+			Exp[Ind*(d+1)+0] = 4; Exp[Ind*(d+1)+1] = 1; Exp[Ind*(d+1)+2] = 1; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 12;
+			Exp[Ind*(d+1)+0] = 4; Exp[Ind*(d+1)+1] = 2; Exp[Ind*(d+1)+2] = 0; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 12;
+			Exp[Ind*(d+1)+0] = 5; Exp[Ind*(d+1)+1] = 1; Exp[Ind*(d+1)+2] = 0; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 12;
+			Exp[Ind*(d+1)+0] = 6; Exp[Ind*(d+1)+1] = 0; Exp[Ind*(d+1)+2] = 0; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 4;
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_BASIC;
 		}
@@ -1431,13 +1448,9 @@ static double *basis_SI2_Bezier(const unsigned int P, const double *rst, const u
 {
 	unsigned int n, Nbf;
 	double       *ChiBez_rst, *BCoords;
-	const double *r_ptr, *s_ptr;
 
 	Nbf = (unsigned int) (factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P)));
 	*NbfOut = Nbf;
-
-	r_ptr = &rst[0*Nn];
-	s_ptr = &rst[1*Nn];
 
 	ChiBez_rst = malloc(Nn*Nbf * sizeof *ChiBez_rst); // keep
 
@@ -1464,7 +1477,7 @@ static double *basis_SI2_Bezier(const unsigned int P, const double *rst, const u
 			ChiBez_rst[n*Nbf+3] = 2.0*pow(b0,1.0)*pow(b1,1.0)*pow(b2,0.0);
 			ChiBez_rst[n*Nbf+4] = 2.0*pow(b0,0.0)*pow(b1,1.0)*pow(b2,1.0);
 			ChiBez_rst[n*Nbf+5] = 2.0*pow(b0,1.0)*pow(b1,0.0)*pow(b2,1.0);
-		} else if (P == 3) {
+		} else if (0&&P == 3) {
 			ChiBez_rst[n*Nbf+0] =     pow(b0,3.0)*pow(b1,0.0)*pow(b2,0.0);
 			ChiBez_rst[n*Nbf+1] =     pow(b0,0.0)*pow(b1,3.0)*pow(b2,0.0);
 			ChiBez_rst[n*Nbf+2] =     pow(b0,0.0)*pow(b1,0.0)*pow(b2,3.0);
@@ -1491,6 +1504,49 @@ static double *basis_SI2_Bezier(const unsigned int P, const double *rst, const u
 			ChiBez_rst[n*Nbf+12] = 12.0*pow(b0,2.0)*pow(b1,1.0)*pow(b2,1.0);
 			ChiBez_rst[n*Nbf+13] = 12.0*pow(b0,1.0)*pow(b1,2.0)*pow(b2,1.0);
 			ChiBez_rst[n*Nbf+14] = 12.0*pow(b0,1.0)*pow(b1,1.0)*pow(b2,2.0);
+		} else if (P < 9) {
+			unsigned int permutationsTRI[18]  = { 0, 1, 2, 2, 0, 1, 1, 2, 0, 0, 2, 1, 1, 0, 2, 2, 1, 0};
+			unsigned int NExp, *Nperms, *Exponents;
+
+			get_BCoord_Exponents(P,d,&NExp,&Nperms,&Exponents); // free
+
+			size_t IndB = Nbf-1;
+			for (size_t e = 0; e < NExp; e++) {
+				unsigned int *Exp_ptr = &Exponents[e*(d+1)];
+
+				for (size_t perm = Nperms[e]; perm ; perm--) {
+					unsigned int basis_exp[d+1], *perm_ptr;
+
+					// Get exponents of each barycentric coordinate for the current basis function
+					perm_ptr = &permutationsTRI[(perm-1)*(d+1)];
+					for (size_t i = 0; i < d+1; i++)
+						basis_exp[i] = Exp_ptr[perm_ptr[i]];
+
+					// Compute scaling
+					double Num, Den, Scaling;
+
+					Num = factorial_d(P);
+					Den = 1.0;
+					for (size_t i = 0; i < d+1; i++) 
+						Den *= factorial_d(basis_exp[i]);
+
+					Scaling = Num/Den;
+
+					// Compute basis function
+					for (size_t n = 0; n < Nn; n++)
+						ChiBez_rst[n*Nbf+IndB] = Scaling;
+
+					for (size_t i = 0; i < d+1; i++) {
+						double *b = &BCoords[i*Nn];
+						for (size_t n = 0; n < Nn; n++)
+							ChiBez_rst[n*Nbf+IndB] *= pow(b[n],basis_exp[i]);
+					}
+					IndB--;
+				}
+			}
+
+			free(Nperms);
+			free(Exponents);
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_BASIC;
 		}
@@ -1542,44 +1598,38 @@ static void test_unit_basis_SI_Bezier(void)
 		if (dE == 2) {
 			PMin = 0; PMax = 5; // First 6-symmetry occurs for P = 3
 		} else if (dE == 3) {
-			PMin = 0; PMax = 8; // ToBeModified
+			PMin = 0; PMax = 6; // First 24-symmetry occurs for P = 6
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_BASIC;
 		}
 
+		pass = 1;
 		for (unsigned int P = PMin; P <= PMax; P++) {
 			unsigned int NExp, *Nperms, *Nperms_test, *BCoord_Exponents, *BCoord_Exponents_test;
 
 			get_BCoord_Exponents_test(P,dE,&NExp,&Nperms_test,&BCoord_Exponents_test); // free
 			get_BCoord_Exponents(P,dE,&NExp,&Nperms,&BCoord_Exponents);                // free
 
-			pass = 0;
-			if (array_norm_diff_ui(NExp,Nperms,Nperms_test,"Inf") == 0 &&
-			    array_norm_diff_ui(NExp*(dE+1),BCoord_Exponents,BCoord_Exponents_test,"Inf") == 0)
-					pass = 1, TestDB.Npass++;
-			else {
-array_print_ui(NExp,1,Nperms,'R');
-array_print_ui(NExp,1,Nperms_test,'R');
-array_print_ui(NExp,dE+1,BCoord_Exponents,'R');
-array_print_ui(NExp,dE+1,BCoord_Exponents_test,'R');
-EXIT_BASIC;
-			}
-
-			if (dE == 2 && P == PMin) {
-				//     0         10        20        30        40        50
-				printf("BCoord_Exp_Bezier (d%d, P%d):                      ",dE,P);
-			} else {
-				printf("                  (d%d, P%d):                      ",dE,P);
-			}
-			test_print(pass);
+			if (!(array_norm_diff_ui(NExp,Nperms,Nperms_test,"Inf") == 0 &&
+			      array_norm_diff_ui(NExp*(dE+1),BCoord_Exponents,BCoord_Exponents_test,"Inf") == 0))
+					pass = 0;
 
 			free(Nperms);
 			free(Nperms_test);
 			free(BCoord_Exponents);
 			free(BCoord_Exponents_test);
 		}
+		if (pass)
+			TestDB.Npass++;
+
+		if (dE == 2) {
+			//     0         10        20        30        40        50
+			printf("BCoord_Exp_Bezier (d%d, P = [%d,%d]):               ",dE,PMin,PMax);
+		} else if (dE == 3) {
+			printf("                  (d%d, P = [%d,%d]):               ",dE,PMin,PMax);
+		}
+		test_print(pass);
 	}
-	EXIT_BASIC;
 
 	/*
 	 *	basis_SI_Bezier
@@ -1604,7 +1654,7 @@ EXIT_BASIC;
 		basis_tdef    basis_test;
 
 		if (dE == 2) {
-			PMin = 0; PMax = 4;
+			PMin = 0; PMax = 8;
 			basis_test = basis_SI2_Bezier;
 			select_functions_cubature(&cubature,TRI);
 		} else if (dE == 3) {
@@ -1618,34 +1668,36 @@ EXIT_BASIC;
 		Prst = 4;
 		cubature(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"WV"); // free
 
+		pass = 1;
 		for (unsigned int P = PMin; P <= PMax; P++) {
 			ChiBez_code = basis_SI_Bezier(P,rst,Nn,&Nbf,dE);
 			ChiBez_test = basis_test(P,rst,Nn,&Nbf,dE);
 
-			pass = 0;
-			if (array_norm_diff_d(Nn*Nbf,ChiBez_code,ChiBez_test,"Inf") < EPS*10)
-				pass = 1, TestDB.Npass++;
-
-			if (dE == 2 && P == PMin) {
-				//     0         10        20        30        40        50
-				printf("basis_SI_Bezier (d%d, P%d):                        ",dE,P);
-			} else {
-				printf("                (d%d, P%d):                        ",dE,P);
-			}
-			test_print(pass);
-if (P == 4) {
-	array_print_d(Nn,Nbf,ChiBez_code,'R');
-	array_print_d(Nn,Nbf,ChiBez_test,'R');
-	EXIT_BASIC;
+			if (!(array_norm_diff_d(Nn*Nbf,ChiBez_code,ChiBez_test,"Inf") < EPS*10))
+				pass = 0;
+if (P == 3) {
+//	array_print_d(Nn,Nbf,ChiBez_code,'R');
+//	array_print_d(Nn,Nbf,ChiBez_test,'R');
+//	EXIT_BASIC;
 }
-
 			free(ChiBez_test);
 			free(ChiBez_code);
 		}
+		if (pass)
+			TestDB.Npass++;
+
+		if (dE == 2) {
+			//     0         10        20        30        40        50
+			printf("basis_SI_Bezier (d%d, P = [%d,%d]):                 ",dE,PMin,PMax);
+		} else {
+			printf("                (d%d, P = [%d,%d]):                 ",dE,PMin,PMax);
+		}
+		test_print(pass);
 
 		free(rst);
 		free(symms);
 	}
+//	EXIT_BASIC;
 
 	/*
 	 *	basis_SI_Bezier partition of unity/positivity:
@@ -1661,62 +1713,69 @@ if (P == 4) {
 	 */
 
 //	for (unsigned int dE = 2; dE <= DMAX; dE++) {
-	for (unsigned int dE = 2; dE <= 1; dE++) {
-		unsigned int P, Prst, Nn, Ns, Nbf, *symms;
+	for (unsigned int dE = 2; dE <= 2; dE++) {
+		unsigned int PMin, PMax, Prst, Nn, Ns, Nbf, *symms;
 		double       *rst, *w, *ChiBez;
 
 		cubature_tdef cubature;
 
 		Prst = 4;
-		P    = 3;
 
 		if (dE == 2) {
+			PMin = 0; PMax = 8;
 			select_functions_cubature(&cubature,TRI);
 		} else if (dE == 3) {
+			PMin = 0; PMax = 8;
 			select_functions_cubature(&cubature,TET);
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_BASIC;
 		}
 
 		cubature(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"AO"); // free
-		ChiBez = basis_SI_Bezier(P,rst,Nn,&Nbf,dE);
 
-		double *RowSum, *ones;
-		RowSum = calloc(Nn , sizeof *RowSum);
-		ones   = calloc(Nn , sizeof *RowSum);
-		for (size_t i = 0; i < Nn; i++) {
-			ones[i] = 1.0;
-			for (size_t j = 0; j < Nbf; j++) {
-				RowSum[i] += ChiBez[j+i*Nbf];
+		pass = 1;
+		for (size_t P = PMin; P <= PMax; P++) {
+			ChiBez = basis_SI_Bezier(P,rst,Nn,&Nbf,dE); // free
+
+			double *RowSum, *ones;
+			RowSum = calloc(Nn , sizeof *RowSum); // free
+			ones   = calloc(Nn , sizeof *RowSum); // free
+			for (size_t i = 0; i < Nn; i++) {
+				ones[i] = 1.0;
+				for (size_t j = 0; j < Nbf; j++) {
+					RowSum[i] += ChiBez[j+i*Nbf];
+				}
 			}
+
+			bool   Positive = 1;
+			double minVal   = 1e15;
+			for (size_t i = 0, iMax = Nn*Nbf; i < iMax; i++) {
+				if (ChiBez[i] < minVal)
+					minVal = ChiBez[i];
+			}
+
+			if (minVal < 0.0)
+				Positive = 0;
+
+			if (!(array_norm_diff_d(Nn,RowSum,ones,"Inf") < EPS*10 && Positive))
+				pass = 0;
+
+			free(ChiBez);
+			free(RowSum);
+			free(ones);
 		}
-
-		bool   Positive = 1;
-		double minVal   = 1e15;
-		for (size_t i = 0, iMax = Nn*Nbf; i < iMax; i++) {
-			if (ChiBez[i] < minVal)
-				minVal = ChiBez[i];
-		}
-
-		if (minVal < 0.0)
-			Positive = 0;
-
-		pass = 0;
-		if (array_norm_diff_d(Nn,RowSum,ones,"Inf") < EPS*10 && Positive)
-			pass = 1, TestDB.Npass++;
+		if (pass)
+			TestDB.Npass++;
 
 		if (dE == 2) {
 			//     0         10        20        30        40        50
-			printf("basis_SI_Bezier partition of unity (d%d, P%d):     ",dE,P);
+			printf("basis_SI_Bezier part. of unity (d%d, P = [%d,%d]):  ",dE,PMin,PMax);
 		} else {
-			printf("                                   (d%d, P%d):     ",dE,P);
+			printf("                               (d%d, P = [%d,%d]):  ",dE,PMin,PMax);
 		}
 		test_print(pass);
 
 		free(rst);
 		free(symms);
-		free(ChiBez);
-		free(RowSum);
-		free(ones);
 	}
 }

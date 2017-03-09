@@ -849,18 +849,51 @@ double *basis_TP_Bezier(const unsigned int P, const double *rst, const unsigned 
 	return ChiBez_rst;
 }
 
+static void set_Exp_entry(unsigned int *Nperms, unsigned int *Exp_ptr, const unsigned int *ExponentFound,
+                          const unsigned int d)
+{
+	for (size_t i = 0; i < d+1; i++)
+		Exp_ptr[i] = ExponentFound[i];
+
+	// Set Nperms based on number of unique entries
+	unsigned int Nunique = 1, Indunique;
+
+	for (size_t i = 1; i < d+1; i++) {
+		if (Exp_ptr[i] != Exp_ptr[i-1]) {
+			Indunique = i;
+			Nunique++;
+		}
+	}
+
+	if (d == 2) {
+		if      (Nunique == 1) *Nperms = 1;
+		else if (Nunique == 2) *Nperms = 3;
+		else if (Nunique == 3) *Nperms = 6;
+		else
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+	} else if (d == 3) {
+		if        (Nunique == 1) { *Nperms = 1;
+		} else if (Nunique == 2) {
+			// Note the two configurations in this case
+			if      (Indunique == 1 || Indunique == 3) *Nperms = 4;
+			else if (Indunique == 2)                   *Nperms = 6;
+			else
+				printf("Error: Unsupported (%d).\n",Indunique), EXIT_MSG;
+		} else if (Nunique == 3) { *Nperms = 12;
+		} else if (Nunique == 4) { *Nperms = 24;
+		} else { printf("Error: Unsupported.\n"), EXIT_MSG; }
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+}
+
 void get_BCoord_Exponents(const unsigned int P, const unsigned int d, unsigned int *NExp, unsigned int **NpermsOut,
                           unsigned int **ExponentsOut)
 {
 	/*
 	 *	Comments:
 	 *		The exponents are ordered such that Exp[0] >= Exp[1] >= ... >= Exp[d+1].
-	 *
-	 *		This function works by searching sequentially through all valid exponent sets.
-	 *			p :     : Value of Exp[0] if a valid combination is found.
-	 *			diffMax : maximum allowable difference between individual values of trial Exp[0:d] and p*ones[0:d].
-	 *			diff    : diff == p*ones[0:d]-Exp[0:d]
-	 *			delta   : current maximum difference between individual values of trial Exp[0:d] and p*ones[0:d].
+	 *		If it is found to be slow, a recursive implementation of this function may be possible.
 	 */
 
 	unsigned int Nbf, *Nperms, *Exponents, *Exp_current;
@@ -871,93 +904,61 @@ void get_BCoord_Exponents(const unsigned int P, const unsigned int d, unsigned i
 	Exponents   = malloc(Nbf*(d+1) * sizeof *Exponents);   // keep
 	Exp_current = malloc((d+1)     * sizeof *Exp_current); // free
 
-	size_t Ind = 0;
-	for (size_t p = 0; p <= P;  p++) {
-	for (unsigned int diffMax = 0; diffMax <= p; diffMax++) {
-		// Set trial exponents to maximum in each entry and diff to 0
-		unsigned int diff[d+1], delta;
-		for (size_t i = 0; i < d; i++) {
-			Exp_current[i] = p;
-			diff[i]        = 0;
-		}
-		Exp_current[d] = p-diffMax;
-		diff[d]        = diffMax;
 
-		delta = p;
-
-		// Reduce trailing exponents until the correct exponent sum is obtained
-		bool Found = 0;
-		while(!Found) {
-			unsigned int sum;
-			sum = array_norm_ui(d+1,Exp_current,"L1");
-
-if (P == 4) {
-printf("p,delta,diffMax: %zu %d %d %d %d %d\n",p,delta,diffMax,diff[0],diff[1],diff[2]);
-array_print_ui(1,d+1,Exp_current,'R');
-}
-			if (sum == P) { // Found a valid combination
-				Found = 1;
-printf("*** FOUND ***\n\n");
-
-				unsigned int *Exp_ptr;
-				Exp_ptr = &Exponents[Ind*(d+1)];
-				for (size_t i = 0; i < d+1; i++)
-					Exp_ptr[i] = Exp_current[i];
-
-				// Set Nperms based on number of unique entries
-				unsigned int Nunique = 1, Indunique;
-
-				for (size_t i = 1; i < d+1; i++) {
-					if (Exp_ptr[i] != Exp_ptr[i-1]) {
-						Indunique = i;
-						Nunique++;
-					}
-				}
-
-				if (d == 2) {
-					if      (Nunique == 1) Nperms[Ind] = 1;
-					else if (Nunique == 2) Nperms[Ind] = 3;
-					else if (Nunique == 3) Nperms[Ind] = 6;
-					else
-						printf("Error: Unsupported.\n"), EXIT_MSG;
-				} else if (d == 3) {
-					if        (Nunique == 1) { Nperms[Ind] = 1;
-					} else if (Nunique == 2) {
-						// Note the two configurations in this case
-						if      (Indunique == 1 || Indunique == 3) Nperms[Ind] = 4;
-						else if (Indunique == 2)                   Nperms[Ind] = 6;
-						else
-							printf("Error: Unsupported (%d).\n",Indunique), EXIT_MSG;
-					} else if (Nunique == 3) { Nperms[Ind] = 12;
-					} else if (Nunique == 4) { Nperms[Ind] = 24;
-					} else { printf("Error: Unsupported.\n"), EXIT_MSG; }
-				}
-
-				Ind++;
-				break;
-			} else if (diff[1] == diffMax || sum < P) {
-				break;
-			} else {
-				// Find the largest index where diff is furthest from the maximum
-				if (p-diff[1] < delta)
-					delta--;
-
-				if (!delta)
+	unsigned int ExponentFound[d+1], Ind = 0;
+	if (d == 2) {
+		for (size_t i = 0, iMax = P; i <= iMax; i++) {
+			unsigned int sum_i = i;
+			for (size_t j = 0, jMax = (d > 0)*i; j <= jMax; j++) {
+				unsigned int sum_j = sum_i + j;
+				if (sum_j > P)
 					break;
 
-				size_t i;
-				for (i = d-1; i; i--) {
-					if (p-diff[i] == delta) {
-						diff[i]++;
-						break;
-					}
-					if (i == 1)
-						printf("Error: Should not have made it here.\n"), EXIT_BASIC;
-				}
-				Exp_current[i]--;
+				size_t k = P-sum_j;
+				if (k > j)
+					continue;
+//				printf("%zu %zu %zu\n",i,j,k);
+
+				// Found a valid combination
+				ExponentFound[0] = i;
+				ExponentFound[1] = j;
+				ExponentFound[2] = k;
+				set_Exp_entry(&Nperms[Ind],&Exponents[Ind*(d+1)],ExponentFound,d);
+
+				Ind++;
 			}
 		}
-	}}
+	} else if (d == 3) {
+		for (size_t i = 0, iMax = P; i <= iMax; i++) {
+			unsigned int sum_i = i;
+			for (size_t j = 0, jMax = (d > 0)*i; j <= jMax; j++) {
+				unsigned int sum_j = sum_i + j;
+				if (sum_j > P)
+					break;
+				for (size_t k = 0, kMax = (d > 1)*j; k <= kMax; k++) {
+					unsigned int sum_k = sum_j + k;
+					if (sum_k > P)
+						break;
+
+					size_t l = P-sum_k;
+					if (l > k)
+						continue;
+//					printf("%zu %zu %zu %zu\n",i,j,k,l);
+
+					// Found a valid combination
+					ExponentFound[0] = i;
+					ExponentFound[1] = j;
+					ExponentFound[2] = k;
+					ExponentFound[3] = l;
+					set_Exp_entry(&Nperms[Ind],&Exponents[Ind*(d+1)],ExponentFound,d);
+
+					Ind++;
+				}
+			}
+		}
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
 
 	// Check that sum of Nperms == Nbf (Simplex)
 	unsigned int sum = 0;
@@ -965,8 +966,7 @@ printf("*** FOUND ***\n\n");
 		sum += Nperms[n];
 
 	if (sum != Nbf)
-		printf("Error: Did not find the correct number of permutations (%d %d).\n",Nbf,sum), EXIT_BASIC;
-//		printf("Error: Did not find the correct number of permutations (%d %d).\n",Nbf,sum), EXIT_MSG;
+		printf("Error: Did not find the correct number of permutations (%d %d).\n",Nbf,sum), EXIT_MSG;
 
 	*NExp         = Ind;
 	*NpermsOut    = Nperms;
@@ -1045,56 +1045,30 @@ double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned 
 		unsigned int permutationsTRI[18]  = { 0, 1, 2, 2, 0, 1, 1, 2, 0, 0, 2, 1, 1, 0, 2, 2, 1, 0};
 
 		for (size_t p = 1; p <= P; p++) {
-printf("********************* p = %zu ***********************\n\n\n",p);
+//printf("********************* p = %zu ***********************\n\n\n",p);
 			unsigned int Nbf_p, Indbf;
 
 			Nbf_p = (unsigned int) (factorial_ull(d+p)/(factorial_ull(d)*factorial_ull(p)));
 			Indbf = Nbf_p - 1;
-			for (size_t IndMax = 1; IndMax <= p; IndMax++) {
-				unsigned int ijk_sum, Nunique, Nperms, u0 = 0;
-				int          ijk[d+1];
 
-// Use get_BCoord_Exponents here (ToBeDeleted)
-				ijk_sum = 0;
-				ijk[0]  = IndMax;                        ijk_sum += ijk[0];
-				ijk[1]  = max(min(IndMax,p-ijk_sum),u0); ijk_sum += ijk[1];
-				ijk[2]  = max(min(IndMax,p-ijk_sum),u0); ijk_sum += ijk[2];
+			unsigned int NExp, *Nperms, *Exponents;
+			get_BCoord_Exponents(p,d,&NExp,&Nperms,&Exponents);
 
-				if (ijk_sum < p)
-					continue; // Invalid for the basis of order p
-
-				// Check that ijk sum is correct
-				if (ijk_sum != p)
-					printf("Error: Problem.\n"), EXIT_MSG;
-
-				// Ensure that all ijk indices are greater than 0
-				for (size_t i = 0; i < d+1; i++) {
-					if (ijk[i] < 0)
-						printf("Error: Problem.\n"), EXIT_MSG;
-				}
+			for (size_t e = 0; e < NExp; e++) {
+				unsigned int *Exp_ptr = &Exponents[e*(d+1)];
 
 				// Find number of permutations available for current ijk exponents (note descending values)
-				Nunique = 1;
-				Nperms  = 1;
-				for (size_t i = 1; i < d+1; i++) {
-					if (ijk[i] != ijk[i-1]) {
-						Nunique++;
-						Nperms += Nunique;
-					}
-				}
+				for (size_t perm = Nperms[e]; perm ; perm--) {
+					unsigned int basis_exp[d+1], *perm_ptr;
 
-array_print_i(1,d+1,ijk,'R');
-printf("Nperms: %d\n",Nperms);
-//array_print_ui(Nperms,d+1,permutationsTRI,'R');
-				for (size_t perm = Nperms; perm ; perm--) {
-					unsigned int basis_exp[d+1];
+					perm_ptr = &permutationsTRI[(perm-1)*(d+1)];
 					for (size_t i = 0; i < d+1; i++)
-						basis_exp[i] = ijk[permutationsTRI[(perm-1)*(d+1)+i]];
-printf("%zu\n",perm);
-array_print_ui(1,d+1,basis_exp,'R');
+						basis_exp[i] = Exp_ptr[perm_ptr[i]];
+//printf("%zu\n",perm);
+//array_print_ui(1,d+1,basis_exp,'R');
 
 					// Find the indices of the lower order bases to be used and sort them such that the highest index is
-					// used first. This is required as memory may be overwritten.
+					// used first. This is required as memory is overwritten in the recursive basis computation.
 					unsigned int IndBCoord[d+1], Indpm1[d+1];
 					for (size_t i = 0; i <= d; i++) {
 						IndBCoord[i] = i;
@@ -1102,6 +1076,7 @@ array_print_ui(1,d+1,basis_exp,'R');
 							Indpm1[i] = 0;
 							continue;
 						}
+// ToBeDeleted: Change name of ijk_Indices (to Exp_Indices?)
 						Indpm1[i] = get_Index_ijk_pm1(ijk_Indices[1],basis_exp,i,d,Nbf_p);
 					}
 					array_sort_ui(1,d+1,Indpm1,IndBCoord,'R','N');
@@ -1115,8 +1090,8 @@ array_print_ui(1,d+1,basis_exp,'R');
 //printf("iIndpm1: %d %d %d %d\n",IndBCoord[i],Indpm1[i],Indbf,Entered);
 
 						if (Entered && Indpm1[i] >= Indbf)
-							printf("Error: Using modified values.\n"), EXIT_MSG;
-//							printf("Error: Using modified values.\n"), EXIT_BASIC;
+//							printf("Error: Using modified values.\n"), EXIT_MSG;
+							printf("Error: Using modified values.\n"), EXIT_BASIC;
 
 						if (!Entered) {
 							for (size_t n = 0; n < Nn; n++)
