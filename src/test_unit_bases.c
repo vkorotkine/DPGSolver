@@ -67,11 +67,14 @@ void test_unit_basis_SI(void)
 	initialize_ELEMENTs();
 	test_unit_basis_SI_Bezier();
 	memory_free_ELEMENTs();
+
+	printf("\nWarning: Simplex Bezier basis for d = 3 is not being tested.\n\n"); TestDB.Nwarnings++;
 }
 
 void test_unit_basis_PYR(void)
 {
 	test_unit_basis_PYR_modal();
+	printf("\nWarning: Pyramidal Bezier basis is not being tested.\n\n"); TestDB.Nwarnings++;
 }
 
 static void test_basis_orthogonality(struct S_orthogonality *data, const unsigned int no_last_entry)
@@ -1527,7 +1530,7 @@ static double *basis_SI2_Bezier(const unsigned int P, const double *rst, const u
 
 					Num = factorial_d(P);
 					Den = 1.0;
-					for (size_t i = 0; i < d+1; i++) 
+					for (size_t i = 0; i < d+1; i++)
 						Den *= factorial_d(basis_exp[i]);
 
 					Scaling = Num/Den;
@@ -1645,7 +1648,6 @@ static void test_unit_basis_SI_Bezier(void)
 	 */
 
 //	for (unsigned int dE = 2; dE <= DMAX; dE++) {
-// CHANGE THIS TO USE get_BCoord_Exponents to compute ChiBez_test and then check for P = 0:8 for 2D and 3D.
 	for (unsigned int dE = 2; dE <= 2; dE++) {
 		unsigned int PMin, PMax, Prst, Nn, Ns, Nbf, *symms;
 		double       *rst, *w, *ChiBez_code, *ChiBez_test;
@@ -1675,11 +1677,7 @@ static void test_unit_basis_SI_Bezier(void)
 
 			if (!(array_norm_diff_d(Nn*Nbf,ChiBez_code,ChiBez_test,"Inf") < EPS*10))
 				pass = 0;
-if (P == 3) {
-//	array_print_d(Nn,Nbf,ChiBez_code,'R');
-//	array_print_d(Nn,Nbf,ChiBez_test,'R');
-//	EXIT_BASIC;
-}
+
 			free(ChiBez_test);
 			free(ChiBez_code);
 		}
@@ -1697,7 +1695,6 @@ if (P == 3) {
 		free(rst);
 		free(symms);
 	}
-//	EXIT_BASIC;
 
 	/*
 	 *	basis_SI_Bezier partition of unity/positivity:

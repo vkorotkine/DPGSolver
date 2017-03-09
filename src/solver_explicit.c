@@ -13,6 +13,7 @@
 #include "Macros.h"
 #include "Test.h"
 #include "S_DB.h"
+#include "S_ELEMENT.h"
 #include "S_VOLUME.h"
 
 #include "adaptation.h"
@@ -22,6 +23,7 @@
 #include "finalize_RHS.h"
 #include "output_to_paraview.h"
 #include "explicit_GradW.h"
+#include "element_functions.h"
 
 /*
  *	Purpose:
@@ -38,6 +40,53 @@
  *		Carpenter(1994)-Fourth-Order_2N-Storage_Runge-Kutta_Schemes
  *		Gottlieb(2001)-Strong_Stability-Preserving_High-Order_Time_Discretization_Methods (eq. (4.2))
  */
+
+static void enforce_positivity(struct S_VOLUME *VOLUME)
+{
+	/*
+	 *	Purpose:
+	 *		Enforce positivity of density and pressure by limitting the high-order solution.
+	 *
+	 *	Comments:
+	 *		See Wang(2012) section 3.1 for details of the procedure.
+	 *		The positivity is ensured to hold throughout the entire element by performing the check in the Bezier basis.
+	 *
+	 *	References:
+	 *		Wang-Shu(2012)-Robust_High_Order_Discontinuous_Galerkin_Schemes_for_Two-Dimensional_Gaseous_Detonations
+	 */
+
+	struct S_ELEMENT *ELEMENT = get_ELEMENT_type(VOLUME->type);
+
+	unsigned int P, NvnS;
+	double       Volume, *TS;
+
+	P = VOLUME->P;
+
+	Volume = ELEMENT->Volume;
+	NvnS   = ELEMENT->NvnS[P];
+	TS     = ELEMENT->TS[P][P][0];
+	TS_vB  = ELEMENT->TS[P][P][0];
+
+	double *What;
+
+	// Find average density
+	double rhoAvg, *rho_hat;
+
+	rho_hat = &What[0*NvnS];
+
+	rhoAvg = 0.0;
+	for (size_t i = 0; i < NvnS; i++)
+		rhoAvg += TS[i]*rho_hat[i];
+
+	// Compensate for orthonormal basis scaling
+	rhoAvg *= Volume*Volume;
+
+	// Find the density in the Bezier basis
+	rho_hatB = malloc(NvnS * sizeof *rho_hatB); // free
+	mm_CTN_d(NvnS,1,NvnS,TS_vB,rho_hat,rho_hatB);
+
+	free(rho_hatB);
+}
 
 void solver_explicit(void)
 {
@@ -165,6 +214,7 @@ void solver_explicit(void)
 							*RES++   = *What;
 							*What++ += dt*(*RHS++);
 						}
+						enforce_positivity(VOLUME);
 					} else if (rk == 1) {
 						for (iMax = Neq*NvnS; iMax--; ) {
 							*What = 0.25*(3.0*(*RES++) + *What + dt*(*RHS++));

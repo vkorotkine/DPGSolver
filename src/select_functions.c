@@ -130,3 +130,29 @@ void select_functions_cubature(cubature_tdef *cubature, const unsigned int type)
 		break;
 	}
 }
+
+void select_functions_basis_Bezier(basis_tdef *basis, const unsigned int type)
+{
+	switch(type) {
+	case LINE:
+	case QUAD:
+	case HEX:
+		*basis = basis_TP_Bezier;
+		break;
+	case TRI:
+	case TET:
+		*basis = basis_SI_Bezier;
+		if (type == TET)
+			printf("Error: TET Bezier basis not yet supported.\n"), EXIT_MSG;
+		break;
+	case WEDGE:
+		printf("Error: WEDGE elements use a combination of TRI and LINE basis functions/nodes.\n"), EXIT_MSG;
+		break;
+	case PYR:
+		printf("Error: PYR Bezier basis not yet supported.\n"), EXIT_MSG;
+		break;
+	default:
+		printf("Error: Unsupported type = %d.\n",type), EXIT_MSG;
+		break;
+	}
+}

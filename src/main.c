@@ -260,8 +260,8 @@ int main(int nargc, char **argv)
 	TestDB.Npass = 0;
 	TestDB.Nwarnings = 0;
 
-	RunTest.unit        = 1;
-	RunTest.integration = 1;
+	RunTest.unit        = 0;
+	RunTest.integration = 0;
 	RunTest.speed       = 0;
 
 
@@ -305,9 +305,6 @@ int main(int nargc, char **argv)
 		printf("\nFor the VOLUME/FACE info functions, test that all 'versions' give identical results.\n\n");
 		TestDB.Nwarnings++;
 	}
-//	test_unit_basis_TP();
-//	test_unit_basis_SI();
-//EXIT_BASIC;
 
 	// Integration tests
 	if (RunTest.integration) {
@@ -316,8 +313,8 @@ int main(int nargc, char **argv)
 		test_integration_linearization(nargc,argv);
 //		PetscFinalize();
 	}
-	test_integration_Poisson(nargc,argv);
-//	test_integration_Euler(nargc,argv);
+//	test_integration_Poisson(nargc,argv);
+	test_integration_Euler(nargc,argv);
 	PetscFinalize();
 
 

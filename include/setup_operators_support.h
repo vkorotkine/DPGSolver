@@ -22,6 +22,7 @@ extern void             setup_ELEMENT_VeV            (const unsigned int EType);
 extern void             setup_ELEMENT_VeF            (const unsigned int EType);
 extern void             setup_ELEMENT_VeE            (const unsigned int EType);
 extern double           get_L2_scaling               (const unsigned int EType, const unsigned int vref);
-extern void             setup_ELEMENT_FACE_ordering (const unsigned int FType);
+extern void             setup_ELEMENT_FACE_ordering  (const unsigned int FType);
+extern void             compute_ELEMENT_Volume       (const unsigned int EType);
 
 #endif // DPG__setup_operators_support_h__INCLUDED

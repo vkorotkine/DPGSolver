@@ -1063,3 +1063,23 @@ void setup_ELEMENT_FACE_ordering(const unsigned int FType)
 		}}
 	}
 }
+
+void compute_ELEMENT_Volume(const unsigned int EType)
+{
+	unsigned int P, PMax, *NvnIs;
+	double       *w_vIs;
+
+	struct S_ELEMENT *ELEMENT;
+
+	get_PS_range(&P,&PMax);
+	ELEMENT = get_ELEMENT_type(EType);
+
+	NvnIs = ELEMENT->NvnIs;
+	w_vIs = ELEMENT->w_vIs[P];
+
+	double Volume = 0.0;
+	for (size_t n = 0; n < NvnIs[P]; n++)
+		Volume += w_vIs[n];
+
+	ELEMENT->Volume = Volume;
+}

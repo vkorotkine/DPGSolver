@@ -974,12 +974,12 @@ void get_BCoord_Exponents(const unsigned int P, const unsigned int d, unsigned i
 	free(Exp_current);
 }
 
-static unsigned int get_Index_ijk_pm1(const unsigned int *ijk_Indices, const unsigned int *basis_exp,
+static unsigned int get_Index_Exp_pm1(const unsigned int *Exp_Indices, const unsigned int *basis_exp,
                                       const unsigned int reduced_ind, const unsigned int d, const unsigned int Nbf_p)
 {
 	/*
 	 *	Comments:
-	 *		It is assumed that ijk_Indices is sorted (using array_sort) to find the column index efficiently.
+	 *		It is assumed that Exp_Indices is sorted (using array_sort) to find the column index efficiently.
 	 */
 
 	unsigned int reduced_exp[d+1], IndCol;
@@ -993,14 +993,11 @@ static unsigned int get_Index_ijk_pm1(const unsigned int *ijk_Indices, const uns
 
 	IndCol = 0;
 	for (size_t n = 0; n < Nbf_p; n++) {
-		for ( ; IndCol <= d && ijk_Indices[n*(d+2)+IndCol] == reduced_exp[IndCol]; IndCol++)
+		for ( ; IndCol <= d && Exp_Indices[n*(d+2)+IndCol] == reduced_exp[IndCol]; IndCol++)
 			;
 		if (IndCol > d)
-			return ijk_Indices[n*(d+2)+IndCol];
+			return Exp_Indices[n*(d+2)+IndCol];
 	}
-//array_print_ui(1,d+1,reduced_exp,'R');
-//array_print_ui(Nbf_p,d+2,ijk_Indices,'R');
-//	printf("Error: Did not find index.\n"), EXIT_BASIC;
 	printf("Error: Did not find index.\n"), EXIT_MSG;
 	return UINT_MAX;
 }
@@ -1014,14 +1011,19 @@ double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned 
 	 *		The ordering of the basis is such that the symmetries of the simplex are maintained and no extra memory is
 	 *		needed for the recursive definition of the basis.
 	 *
+	 *		See Chan(2016) for a generalized definition of Bernstein-Bezier basis functions for the simplex (and
+	 *		pyramid) which may also exploit sum factorization ideas.
+	 *		Likely change the 2D basis definition here to the tensor-product form (section 2, Chan(2016)). ToBeDeleted
+	 *
 	 *	References:
 	 *		Prautzsch(2002)-Bezier_and_B-Spline_Techniques (Ch. 10.1)
+	 *		Chan(2016)-A_Short_Note_on_a_Bernstein-Bezier_Basis_for_the_Pyramid
 	 */
 
 	if (d < 2 || d > 3)
 		printf("Error: basis_SI_Bezier only supports d = [2,3].\n"), EXIT_MSG;
 
-	unsigned int Nbf, *ijk_Indices[2];
+	unsigned int Nbf, *Exp_Indices[2];
 	double       *ChiBez_rst, *BCoords;
 
 	Nbf = (unsigned int) (factorial_ull(d+P)/(factorial_ull(d)*factorial_ull(P)));
@@ -1030,8 +1032,8 @@ double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned 
 	BCoords = malloc(Nn*(d+1) * sizeof *BCoords); // free
 	rst_to_barycentric_SI(Nn,d,rst,BCoords);
 
-	ijk_Indices[0] = calloc(Nbf*(d+2) , sizeof *ijk_Indices[0]); // free
-	ijk_Indices[1] = calloc(Nbf*(d+2) , sizeof *ijk_Indices[1]); // free
+	Exp_Indices[0] = calloc(Nbf*(d+2) , sizeof *Exp_Indices[0]); // free
+	Exp_Indices[1] = calloc(Nbf*(d+2) , sizeof *Exp_Indices[1]); // free
 
 	ChiBez_rst = calloc(Nn*Nbf , sizeof *ChiBez_rst); // keep
 
@@ -1039,13 +1041,12 @@ double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned 
 	for (size_t n = 0; n < Nn; n++)
 		ChiBez_rst[n] = 1.0;
 
-	// ijk_Indices == zeros(Nbf,d+1) for p = 0.
+	// Exp_Indices == zeros(Nbf,d+1) for p = 0.
 
 	if (d == 2) {
 		unsigned int permutationsTRI[18]  = { 0, 1, 2, 2, 0, 1, 1, 2, 0, 0, 2, 1, 1, 0, 2, 2, 1, 0};
 
 		for (size_t p = 1; p <= P; p++) {
-//printf("********************* p = %zu ***********************\n\n\n",p);
 			unsigned int Nbf_p, Indbf;
 
 			Nbf_p = (unsigned int) (factorial_ull(d+p)/(factorial_ull(d)*factorial_ull(p)));
@@ -1057,15 +1058,13 @@ double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned 
 			for (size_t e = 0; e < NExp; e++) {
 				unsigned int *Exp_ptr = &Exponents[e*(d+1)];
 
-				// Find number of permutations available for current ijk exponents (note descending values)
+				// Find number of permutations available for current Exp exponents (note descending values)
 				for (size_t perm = Nperms[e]; perm ; perm--) {
 					unsigned int basis_exp[d+1], *perm_ptr;
 
 					perm_ptr = &permutationsTRI[(perm-1)*(d+1)];
 					for (size_t i = 0; i < d+1; i++)
 						basis_exp[i] = Exp_ptr[perm_ptr[i]];
-//printf("%zu\n",perm);
-//array_print_ui(1,d+1,basis_exp,'R');
 
 					// Find the indices of the lower order bases to be used and sort them such that the highest index is
 					// used first. This is required as memory is overwritten in the recursive basis computation.
@@ -1076,8 +1075,7 @@ double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned 
 							Indpm1[i] = 0;
 							continue;
 						}
-// ToBeDeleted: Change name of ijk_Indices (to Exp_Indices?)
-						Indpm1[i] = get_Index_ijk_pm1(ijk_Indices[1],basis_exp,i,d,Nbf_p);
+						Indpm1[i] = get_Index_Exp_pm1(Exp_Indices[1],basis_exp,i,d,Nbf_p);
 					}
 					array_sort_ui(1,d+1,Indpm1,IndBCoord,'R','N');
 
@@ -1087,11 +1085,9 @@ double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned 
 							continue;
 
 						// Find indices of lower order basis functions used to construct the current basis function.
-//printf("iIndpm1: %d %d %d %d\n",IndBCoord[i],Indpm1[i],Indbf,Entered);
 
 						if (Entered && Indpm1[i] >= Indbf)
-//							printf("Error: Using modified values.\n"), EXIT_MSG;
-							printf("Error: Using modified values.\n"), EXIT_BASIC;
+							printf("Error: Using modified values.\n"), EXIT_MSG;
 
 						if (!Entered) {
 							for (size_t n = 0; n < Nn; n++)
@@ -1103,33 +1099,29 @@ double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned 
 						Entered = 1;
 
 						for (size_t j = 0; j <= d; j++)
-							ijk_Indices[0][Indbf*(d+2)+j] = basis_exp[j];
-						ijk_Indices[0][Indbf*(d+2)+(d+1)] = Indbf;
+							Exp_Indices[0][Indbf*(d+2)+j] = basis_exp[j];
+						Exp_Indices[0][Indbf*(d+2)+(d+1)] = Indbf;
 
 					}
 					Indbf--;
 				}
 			}
-			// Sort ijk_Indices
+			// Sort Exp_Indices
 			unsigned int Ind_ui[Nbf_p];
 			for (size_t i = 0; i < Nbf_p; i++)
 				Ind_ui[Nbf_p] = i;
 			for (size_t i = 0, iMax = (d+2)*Nbf_p; i < iMax; i++)
-				ijk_Indices[1][i] = ijk_Indices[0][i];
+				Exp_Indices[1][i] = Exp_Indices[0][i];
 
-//printf("ijk_Indices (pre-sorting):\n");
-//array_print_ui(Nbf_p,d+2,ijk_Indices[1],'R');
-			array_sort_ui(Nbf_p,d+2,ijk_Indices[1],Ind_ui,'R','T');
-//printf("%zu %d\nijk_Indices:\n",p,P);
-//array_print_ui(Nbf_p,d+2,ijk_Indices[1],'R');
+			array_sort_ui(Nbf_p,d+2,Exp_Indices[1],Ind_ui,'R','T');
 		}
 	} else if (d == 3) {
 		printf("Add support.\n"), EXIT_MSG;
 	}
 
 	free(BCoords);
-	free(ijk_Indices[0]);
-	free(ijk_Indices[1]);
+	free(Exp_Indices[0]);
+	free(Exp_Indices[1]);
 
 	// Transpose ChiBez_rst
 	mkl_dimatcopy('R','T',Nbf,Nn,1.,ChiBez_rst,Nn,Nbf);
