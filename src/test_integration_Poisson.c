@@ -19,6 +19,7 @@
 #include "test_code_integration.h"
 #include "test_support.h"
 #include "test_integration_linearization.h"
+#include "test_integration_Euler.h"
 #include "compute_errors.h"
 #include "array_norm.h"
 #include "solver_Poisson.h"
@@ -238,8 +239,8 @@ if (0) // The 3D testing needs to be updated (ToBeDeleted)
 	// Convergence Order Testing
 	// **************************************************************************************************** //
 //	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_mixed");
-	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_TRI");
-//	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
+//	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_TRI");
+	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_QUAD");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_TRI");
 //	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_QUAD");
@@ -256,22 +257,20 @@ if (0) // The 3D testing needs to be updated (ToBeDeleted)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 1; PMax  = 4;
-	MLMin = 0; MLMax = 3;
+	PMin  = 1; PMax  = 6;
+	MLMin = 0; MLMax = 2;
 TestDB.PGlobal = 1;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
 	Compute_L2proj = 0; // Use IntOrder_add > 0 for non-trivial P1-P2 results for L2proj
-	AdaptiveRefine = 0;
+	AdaptiveRefine = 1;
 //	Adapt = ADAPT_0;
 	Adapt = ADAPT_HP;
 	if (Adapt != ADAPT_0) {
 		TestDB.ML = DB.ML;
 		code_startup(nargc,argvNew,0,2);
 	}
-
-	struct S_VOLUME *VOLUME;
 
 	for (P = PMin; P <= PMax; P++) {
 	for (ML = MLMin; ML <= MLMax; ML++) {
@@ -280,35 +279,9 @@ TestDB.PGlobal = 1;
 
 		if (Adapt != ADAPT_0) {
 			if (ML == MLMin) {
-				mesh_to_level(TestDB.ML);
-				if (AdaptiveRefine) {
-					unsigned int Ind00, Ind01, Ind10, Ind11;
-					Ind00 = 100; Ind01 = 100; Ind10 = 100; Ind11 = 100;
-					if (strstr(DB.MeshType,"ToBeCurvedTRI")) {
-						Ind00 = 0; Ind01 = 1; Ind10 = 1;
-					} else if (strstr(DB.MeshType,"CurvedTRI")) {
-						Ind00 = 3; Ind10 = 4; Ind11 = 4;
-					} else if (strstr(DB.MeshType,"ToBeCurvedQUAD")) {
-						Ind00 = 0; Ind10 = 3; Ind11 = 3;
-					} else if (strstr(DB.MeshType,"CurvedQUAD")) {
-						Ind00 = 1; Ind10 = 1;
-					}
-
-					for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-						if (VOLUME->indexg == Ind00 || VOLUME->indexg == Ind01) {
-							VOLUME->Vadapt = 1;
-							VOLUME->adapt_type = HREFINE;
-						}
-					}
-					mesh_update();
-					for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-						if (VOLUME->indexg == Ind10 || VOLUME->indexg == Ind11) {
-							VOLUME->Vadapt = 1;
-							VOLUME->adapt_type = HREFINE;
-						}
-					}
-					mesh_update();
-				}
+				mesh_to_level(ML);
+				if (AdaptiveRefine)
+					h_adapt_test();
 			} else {
 				mesh_h_adapt(1,'r');
 			}
@@ -359,7 +332,7 @@ TestDB.PGlobal = 1;
 		code_cleanup();
 	free(mesh_quality);
 
-	printf("Convergence Orders - Poisson (3D - TRI  ):       ");
+	printf("Convergence Orders - Poisson (2D - TRI  ):       ");
 	test_print(pass);
 
 

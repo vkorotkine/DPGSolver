@@ -151,19 +151,10 @@ void initialization(int nargc, char **argv)
 				strcpy(MeshFile,"");
 
 				strcat(MeshFile,MeshPath);
-
-				if (strstr(TestCase,"Test") == NULL) {
-					strcat(MeshFile,Geometry);
-					strcat(MeshFile,"/");
-					strcat(MeshFile,TestCase);
-					strcat(MeshFile,strcat(d,"D_"));
-					strcat(MeshFile,MeshType);
-					strcat(MeshFile,strcat(ML,"x.msh"));
-				} else {
-					strcat(MeshFile,"Test/");
-					strcat(MeshFile,MeshType);
-					strcat(MeshFile,".msh");
-				}
+				strcat(MeshFile,Geometry);
+				strcat(MeshFile,strcat(d,"D_"));
+				strcat(MeshFile,MeshType);
+				strcat(MeshFile,strcat(ML,"x.msh"));
 			}
 		}
 	}

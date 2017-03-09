@@ -37,7 +37,7 @@
  *
  */
 
-static void h_adapt(void)
+void h_adapt_test(void)
 {
 	/*
 	 * Purpose:
@@ -75,7 +75,7 @@ static void h_adapt(void)
 
 		unsigned int i = 0;
 		NML[i] = 0; CurvedOnly[i] = 0; i++;
-		NML[i] = 0; CurvedOnly[i] = 1; i++;
+		NML[i] = 2; CurvedOnly[i] = 1; i++;
 		NML[i] = 0; CurvedOnly[i] = 0; i++;
 
 		i = 0;
@@ -206,7 +206,7 @@ TestDB.PGlobal = PMin;
 			if (ML == MLMin) {
 				mesh_to_level(ML+0);
 				if (AdaptiveRefine)
-					h_adapt();
+					h_adapt_test();
 			} else {
 				mesh_h_adapt(1,'r');
 			}

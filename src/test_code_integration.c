@@ -42,30 +42,6 @@
  *	References:
  */
 
-static void update_MeshFile(void)
-{
-	// Standard datatypes
-	char *d, *ML;
-
-	d  = malloc(STRLEN_MIN * sizeof *d);  // free
-	ML = malloc(STRLEN_MIN * sizeof *ML); // free
-
-	sprintf(d,"%d",DB.d);
-	sprintf(ML,"%d",DB.ML);
-
-	strcpy(DB.MeshFile,"");
-	strcat(DB.MeshFile,DB.MeshPath);
-	strcat(DB.MeshFile,DB.Geometry);
-	strcat(DB.MeshFile,"/");
-	strcat(DB.MeshFile,DB.Geometry);
-	strcat(DB.MeshFile,strcat(d,"D_"));
-	strcat(DB.MeshFile,DB.MeshType);
-	strcat(DB.MeshFile,strcat(ML,"x.msh"));
-
-	free(d);
-	free(ML);
-}
-
 static void update_TestCase(void)
 {
 	if (strstr(DB.TestCase,"Poisson_Ringleb")               ||
@@ -116,7 +92,6 @@ void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigne
 		DB.PGlobal = TestDB.PGlobal;
 		if (update_argv == 1)
 			DB.ML = TestDB.ML;
-		update_MeshFile();
 	}
 
 	setup_parameters();
@@ -167,7 +142,6 @@ void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, co
 			DB.PGlobal = TestDB.PGlobal;
 			if (update_argv == 1)
 				DB.ML      = TestDB.ML;
-			update_MeshFile();
 		}
 
 		initialize_test_case_parameters();

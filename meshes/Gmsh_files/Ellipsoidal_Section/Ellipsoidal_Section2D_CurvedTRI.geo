@@ -4,7 +4,7 @@ Refine = 0;
 
 lc = 0.6/2.0^Refine;
 
-EqIndex = 1; // Options: 0 (Poisson), 1 (Euler)
+EqIndex = 0; // Options: 0 (Poisson), 1 (Euler)
 
 rIn  = 0.5;
 rOut = 1.0;
@@ -56,6 +56,76 @@ Transfinite Surface{4002};
 Physical Surface(9401) = {4001};
 Physical Surface(9402) = {4002};
 
+
+Extended = 1;
+
+If (Extended)
+	l = 2*rIn;
+
+	Point(8)  = {aIn,-l,0,lc};
+	Point(9)  = {aOut,-l,0,lc};
+	Point(10) = {-l,bIn,0,lc};
+	Point(11) = {-l,bOut,0,lc};
+
+	Line(1008) = {8,9};
+	Line(1009) = {1,8};
+	Line(1010) = {2,9};
+	Line(1011) = {10,11};
+	Line(1012) = {3,10};
+	Line(1013) = {4,11};
+
+	Transfinite Line {1008,1011} = 1*2^(Refine)+1 Using Progression 1;
+	Transfinite Line {1009:1010,1012:1013} = 1*2^(Refine)+1 Using Progression 1;
+
+	Line Loop (4003) = {1008,-1010,-1001,1009};
+	Line Loop (4004) = {-1012,1002,1013,-1011};
+
+	Plane Surface(4003) = {4003};
+	Plane Surface(4004) = {4004};
+
+	Transfinite Surface{4003}  Right;
+	Transfinite Surface{4004};
+
+	Physical Surface(9403) = {4003};
+	Physical Surface(9404) = {4004};
+
+	// Physical Parameters for '.msh' file
+	If (EqIndex == 0) // Poisson
+		Physical Line(10011) = {1011,1008};           // Straight Dirichlet
+		Physical Line(10012) = {1009:1010,1012:1013}; // Straight Neumann
+		Physical Line(20012) = {1004:1007};           // Curved   Neumann
+	ElseIf (EqIndex == 1) // Euler
+		Physical Line(10004) = {1011};                // Straight Total Temperature/Pressure
+		Physical Line(10003) = {1008};                // Straight Back Pressure
+		Physical Line(10002) = {1009:1010,1012:1013}; // Straight SlipWall
+		Physical Line(20002) = {1004:1007};           // Curved   SlipWall
+	EndIf
+
+
+	// Visualization in gmsh
+
+	Color Black{ Surface{4001:4004}; }
+	Geometry.Color.Points = Black;
+Else
+	// Physical Parameters for '.msh' file
+	If (EqIndex == 0) // Poisson
+		Physical Line(10011) = {1002}; // Straight Dirichlet
+		Physical Line(10012) = {1001}; // Straight Neumann
+		Physical Line(20011) = {1004:1005}; // Curved Dirichlet
+		Physical Line(20012) = {1006:1007}; // Curved Neumann
+	ElseIf (EqIndex == 1) // Euler
+		Physical Line(10006) = {1002};                // Straight Supersonic Outflow
+		Physical Line(10005) = {1001};                // Straight Supersonic Inflow
+		Physical Line(20002) = {1004:1007};           // Curved   SlipWall
+	EndIf
+
+	// Visualization in gmsh
+
+	Color Black{ Surface{4001:4002}; }
+	Geometry.Color.Points = Black;
+EndIf
+
+/*
 If (EqIndex == 0) // Poisson
 	// Physical Parameters for '.msh' file
 
@@ -72,7 +142,7 @@ If (EqIndex == 0) // Poisson
 
 ElseIf (EqIndex == 1) // Euler
 
-	Extended = 0;
+	
 
 	If (Extended)
 		l = 2*rIn;
@@ -130,3 +200,4 @@ ElseIf (EqIndex == 1) // Euler
 
 	EndIf
 EndIf
+*/

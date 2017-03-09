@@ -8,7 +8,7 @@ BEGIN PARAMETERS
   Dimension  3
   ML         0
   MeshType   TET
-  Geometry   NONE
+  Geometry   n-Cube
 
   Form       Weak  // Options: Weak, (Strong)
   NodeType   GLL-AO // Options: GL/GLL-AO/WSH
@@ -29,5 +29,5 @@ BEGIN PARAMETERS
 END PARAMETERS
 
 BEGIN MESH
-MeshPath ../meshes/
+MeshPath ../meshes/Test/
 END MESH

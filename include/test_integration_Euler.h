@@ -5,5 +5,6 @@
 #define DPG__test_integration_Euler_h__INCLUDED
 
 extern void test_integration_Euler (int nargc, char **argv);
+extern void h_adapt_test           (void);
 
 #endif // DPG__test_integration_Euler_h__INCLUDED

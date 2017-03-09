@@ -7,8 +7,8 @@
 BEGIN PARAMETERS
   Dimension  2
   ML         0
-  MeshType   Mixed2D_ToBeCurvedlinearization
-  Geometry   NONE
+  MeshType   Mixed_ToBeCurvedlinearization
+  Geometry   Annular_Section
 
   Form       Weak  // Options: Weak, (Strong)
   NodeType   GLL-AO // Options: GL/GLL-AO/WSH
@@ -29,5 +29,5 @@ BEGIN PARAMETERS
 END PARAMETERS
 
 BEGIN MESH
-MeshPath ../meshes/
+MeshPath ../meshes/Test/
 END MESH

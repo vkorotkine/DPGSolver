@@ -260,8 +260,8 @@ int main(int nargc, char **argv)
 	TestDB.Npass = 0;
 	TestDB.Nwarnings = 0;
 
-	RunTest.unit        = 0;
-	RunTest.integration = 0;
+	RunTest.unit        = 1;
+	RunTest.integration = 1;
 	RunTest.speed       = 0;
 
 
@@ -306,8 +306,8 @@ int main(int nargc, char **argv)
 		TestDB.Nwarnings++;
 	}
 //	test_unit_basis_TP();
-	test_unit_basis_SI();
-EXIT_BASIC;
+//	test_unit_basis_SI();
+//EXIT_BASIC;
 
 	// Integration tests
 	if (RunTest.integration) {
@@ -316,8 +316,8 @@ EXIT_BASIC;
 		test_integration_linearization(nargc,argv);
 //		PetscFinalize();
 	}
-//	test_integration_Poisson(nargc,argv);
-	test_integration_Euler(nargc,argv);
+	test_integration_Poisson(nargc,argv);
+//	test_integration_Euler(nargc,argv);
 	PetscFinalize();
 
 
