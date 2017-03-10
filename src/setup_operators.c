@@ -364,8 +364,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             **NfnIc, *NenG2, *NenGc;
 	double       **w_vIs, **w_vIc, ***w_fIs, ***w_fIc,
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
-	             ****ChiInvS_vS, ****ChiInvGs_vGs,
-	             ****TGs, ****TS, ****TS_vB,
+	             ****ChiInvS_vS, ****ChiInvGs_vGs, ****ChiBezInvS_vS,
+	             ****TGs, ****TS, ****TS_vB, ****TInvS_vB,
 	             ****IG2, ****IGc, ****ICs, ****ICc,
 	             ****I_vGs_vP, ****I_vGs_vGs, ****I_vGs_vG2, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vIs, ****I_vGs_vIc,
 	             ****I_vGs_vS,
@@ -432,7 +432,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             *ChiRefGc_vGc, *ChiRefCs_vCs, *ChiRefCc_vCc, *ChiRefS_vS, *ChiBezS_vS,
 	             *ChiGc_vGc,    *ChiCs_vCs,    *ChiCc_vCc,
 	             *ChiRefInvGs_vGs, *ChiRefInvG2_vG2, *ChiRefInvGc_vGc, *ChiRefInvCs_vCs, *ChiRefInvCc_vCc, *ChiRefInvS_vS,
-	             *ChiBezInvS_vS,
 	                               *ChiInvG2_vG2,    *ChiInvGc_vGc,    *ChiInvCs_vCs,    *ChiInvCc_vCc,
 	             *ChiRefGs_vP, *ChiRefGs_vGs, *ChiRefGs_vG2, *ChiRefGs_vGc, *ChiRefGs_vCs, *ChiRefGs_vIs, *ChiRefGs_vIc, *ChiRefGs_vS,
 	             *ChiRefG2_vG2,
@@ -540,6 +539,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	ChiInvS_vS   = ELEMENT->ChiInvS_vS;
 	ChiInvGs_vGs = ELEMENT->ChiInvGs_vGs;
 
+	ChiBezInvS_vS = ELEMENT->ChiBezInvS_vS;
+
 	IG2 = ELEMENT->IG2;
 	IGc = ELEMENT->IGc;
 	ICs = ELEMENT->ICs;
@@ -548,6 +549,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	TGs   = ELEMENT->TGs;
 	TS    = ELEMENT->TS;
 	TS_vB = ELEMENT->TS_vB;
+
+	TInvS_vB = ELEMENT->TInvS_vB;
 
 	GradChiS_vS  = ELEMENT->GradChiS_vS;
 	GradChiS_vIs = ELEMENT->GradChiS_vIs;
@@ -836,12 +839,13 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 		if (EType != TET && EType != PYR) {
 			cubature(&rst_vS[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnS[P],&dummy_ui,0,P,dE,NodeTypeS[P][Eclass]); free(dummyPtr_ui[0]); // free
-			ChiBezS_vS     = basis_Bezier(P,rst_vS[0],NvnS[P],&Nbf,dE); // free
-			ChiBezInvS_vS  = inverse_d(NvnS[P],NvnS[P],ChiBezS_vS,IS);  // free
-			TS_vB[P][P][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[P],NvnS[P],NvnS[P],1.0,ChiBezInvS_vS,ChiS_vS[P][P][0]); // keep
+			ChiBezS_vS             = basis_Bezier(P,rst_vS[0],NvnS[P],&Nbf,dE); // free
+			ChiBezInvS_vS[P][P][0] = inverse_d(NvnS[P],NvnS[P],ChiBezS_vS,IS);  // keep
+			TS_vB[P][P][0]         = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[P],NvnS[P],NvnS[P],1.0,ChiBezInvS_vS[P][P][0],ChiS_vS[P][P][0]); // keep
+
+			TInvS_vB[P][P][0] = inverse_d(NvnS[P],NvnS[P],TS_vB[P][P][0],IS); // keep
 
 			free(rst_vS[0]);
-			free(ChiBezInvS_vS);
 		}
 
 		free(IS);
@@ -1508,8 +1512,8 @@ static void setup_TP_operators(const unsigned int EType)
 	             **NfnIc;
 	double       **w_vIs, **w_vIc, ***w_fIs, ***w_fIc,
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
-	             ****ChiInvS_vS, ****ChiInvGs_vGs,
-				 ****TGs, ****TS, ****TS_vB,
+	             ****ChiInvS_vS, ****ChiInvGs_vGs, ****ChiBezInvS_vS,
+				 ****TGs, ****TS, ****TS_vB, ****TInvS_vB,
 	             ****I_vGs_vP, ****I_vGs_vGs, ****I_vGs_vG2, ****I_vGs_vGc, ****I_vGs_vCs, ****I_vGs_vS, ****I_vGs_vIs,
 	             ****I_vGc_vP,                               ****I_vGc_vCc,                ****I_vGc_vS, ****I_vGc_vIc,
 	             ****I_vCs_vIs, ****I_vCs_vIc,
@@ -1598,6 +1602,8 @@ static void setup_TP_operators(const unsigned int EType)
 	ChiInvS_vS   = ELEMENT->ChiInvS_vS;
 	ChiInvGs_vGs = ELEMENT->ChiInvGs_vGs;
 
+	ChiBezInvS_vS = ELEMENT->ChiBezInvS_vS;
+
 	GradChiS_vIs = ELEMENT->GradChiS_vIs;
 	GradChiS_vIc = ELEMENT->GradChiS_vIc;
 
@@ -1620,6 +1626,8 @@ static void setup_TP_operators(const unsigned int EType)
 	TGs   = ELEMENT->TGs;
 	TS    = ELEMENT->TS;
 	TS_vB = ELEMENT->TS_vB;
+
+	TInvS_vB = ELEMENT->TInvS_vB;
 
 	Ihat_vS_vS  = ELEMENT->Ihat_vS_vS;
 	L2hat_vS_vS = ELEMENT->L2hat_vS_vS;
@@ -1755,6 +1763,11 @@ static void setup_TP_operators(const unsigned int EType)
 					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->ChiInvS_vS[P][Pb][0],
 					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 					ChiInvS_vS[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
+					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->ChiBezInvS_vS[P][Pb][0],
+					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
+					ChiBezInvS_vS[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
 					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],ELEMENTclass[0]->ChiS_vIs[P][Pb][0],
 					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 					ChiS_vIs[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
@@ -1798,6 +1811,10 @@ static void setup_TP_operators(const unsigned int EType)
 					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->TS_vB[P][Pb][0],
 					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 					TS_vB[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+
+					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->TInvS_vB[P][Pb][0],
+					                  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
+					TInvS_vB[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 					for (dim = 0; dim < dE; dim++) {
 						get_sf_parameters(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnCs[Pb],ELEMENTclass[0]->I_vGs_vCs[1][Pb][0],

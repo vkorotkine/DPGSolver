@@ -183,7 +183,7 @@ void test_integration_Euler(int nargc, char **argv)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 8; PMax  = 8;
+	PMin  = 2; PMax  = 2;
 	MLMin = 0; MLMax = 0;
 TestDB.PGlobal = PMin;
 

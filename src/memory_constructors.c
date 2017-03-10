@@ -112,6 +112,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->ChiInvS_vS   = calloc(NP , sizeof *(ELEMENT->ChiInvS_vS));   // free
 	ELEMENT->ChiInvGs_vGs = calloc(NP , sizeof *(ELEMENT->ChiInvGs_vGs)); // free
 
+	ELEMENT->ChiBezInvS_vS = calloc(NP , sizeof *(ELEMENT->ChiBezInvS_vS)); // free
+
 	ELEMENT->IG2 = calloc(NP , sizeof *(ELEMENT->IG2)); // free
 	ELEMENT->IGc = calloc(NP , sizeof *(ELEMENT->IGc)); // free
 	ELEMENT->ICs = calloc(NP , sizeof *(ELEMENT->ICs)); // free
@@ -120,6 +122,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->TGs   = calloc(NP , sizeof *(ELEMENT->TGs));   // free
 	ELEMENT->TS    = calloc(NP , sizeof *(ELEMENT->TS));    // free
 	ELEMENT->TS_vB = calloc(NP , sizeof *(ELEMENT->TS_vB)); // free
+
+	ELEMENT->TInvS_vB = calloc(NP , sizeof *(ELEMENT->TInvS_vB)); // free
 
 	ELEMENT->VeMask = calloc(NP , sizeof *(ELEMENT->VeMask)); // free
 
@@ -266,6 +270,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->ChiS_vIc[P]   = calloc(NP , sizeof **(ELEMENT->ChiS_vIc));
 		ELEMENT->ChiInvS_vS[P] = calloc(NP , sizeof **(ELEMENT->ChiInvS_vS));
 
+		ELEMENT->ChiBezInvS_vS[P] = calloc(NP , sizeof **(ELEMENT->ChiBezInvS_vS));
+
 		ELEMENT->IG2[P] = calloc(NP , sizeof **(ELEMENT->IG2));
 		ELEMENT->IGc[P] = calloc(NP , sizeof **(ELEMENT->IGc));
 		ELEMENT->ICs[P] = calloc(NP , sizeof **(ELEMENT->ICs));
@@ -273,6 +279,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 
 		ELEMENT->TS[P]    = calloc(NP , sizeof **(ELEMENT->TS));
 		ELEMENT->TS_vB[P] = calloc(NP , sizeof **(ELEMENT->TS_vB));
+
+		ELEMENT->TInvS_vB[P] = calloc(NP , sizeof **(ELEMENT->TInvS_vB));
 
 		ELEMENT->I_vGc_vP[P]  = calloc(NP , sizeof **(ELEMENT->I_vGc_vP));
 		ELEMENT->I_vGc_vCc[P] = calloc(NP , sizeof **(ELEMENT->I_vGc_vCc));
@@ -374,6 +382,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 				ELEMENT->ChiInvS_vS[P][Pb]   = calloc(1 , sizeof ***(ELEMENT->ChiInvS_vS));
 				ELEMENT->ChiInvGs_vGs[1][Pb] = calloc(1 , sizeof ***(ELEMENT->ChiInvGs_vGs));
 
+				ELEMENT->ChiBezInvS_vS[P][Pb] = calloc(1 , sizeof ***(ELEMENT->ChiBezInvS_vS));
+
 				ELEMENT->IG2[P][Pb] = calloc(1 , sizeof ***(ELEMENT->IG2));
 				ELEMENT->IGc[P][Pb] = calloc(1 , sizeof ***(ELEMENT->IGc));
 				ELEMENT->ICs[P][Pb] = calloc(1 , sizeof ***(ELEMENT->ICs));
@@ -382,6 +392,8 @@ struct S_ELEMENT *New_ELEMENT(void)
 				ELEMENT->TGs[1][Pb]   = calloc(1 , sizeof ***(ELEMENT->TGs));
 				ELEMENT->TS[P][Pb]    = calloc(1 , sizeof ***(ELEMENT->TS));
 				ELEMENT->TS_vB[P][Pb] = calloc(1 , sizeof ***(ELEMENT->TS_vB));
+
+				ELEMENT->TInvS_vB[P][Pb] = calloc(1 , sizeof ***(ELEMENT->TInvS_vB));
 
 				ELEMENT->VeMask[1][Pb] = calloc(NVREFMAX , sizeof ***(ELEMENT->VeMask));
 

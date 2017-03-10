@@ -9,6 +9,7 @@
 #include <complex.h>
 
 #include "Parameters.h"
+#include "Macros.h"
 
 /*
  *	Purpose:

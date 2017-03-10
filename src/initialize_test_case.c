@@ -691,7 +691,7 @@ static void compute_uniform_solution(const unsigned int Nn, const double *XYZ, d
 		       aOut = DB.aOut,
 		       bIn  = DB.bIn,
 		       bOut = DB.bOut;
-printf("\n");
+//printf("\n");
 		for (n = 0; n < Nn; n++) {
 			// Find the equation of the ellipse on which the point lies
 			// Note: Points on polynomial curved edges may lie outside of the analytical domain and will not be found by
@@ -814,7 +814,7 @@ printf("\n");
 			U[2*Nn+n] = V*t2;
 			U[3*Nn+n] = 0.0;
 			U[4*Nn+n] = p;
-printf("%2d % .3e % .3e % .3e % .3e % .3e\n",n,rho,V,t1,t2,p);
+//printf("%2d % .3e % .3e % .3e % .3e % .3e\n",n,rho,V,t1,t2,p);
 		}
 		}
 	} else if (strstr(TestCase,"PrandtlMeyer")) {

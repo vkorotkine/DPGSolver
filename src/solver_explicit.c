@@ -24,6 +24,9 @@
 #include "output_to_paraview.h"
 #include "explicit_GradW.h"
 #include "element_functions.h"
+#include "matrix_functions.h"
+#include "variable_functions.h"
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -41,7 +44,7 @@
  *		Gottlieb(2001)-Strong_Stability-Preserving_High-Order_Time_Discretization_Methods (eq. (4.2))
  */
 
-static void enforce_positivity(struct S_VOLUME *VOLUME)
+static void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 {
 	/*
 	 *	Purpose:
@@ -55,37 +58,148 @@ static void enforce_positivity(struct S_VOLUME *VOLUME)
 	 *		Wang-Shu(2012)-Robust_High_Order_Discontinuous_Galerkin_Schemes_for_Two-Dimensional_Gaseous_Detonations
 	 */
 
+	unsigned int d    = DB.d,
+	             Nvar = DB.Nvar;
+
 	struct S_ELEMENT *ELEMENT = get_ELEMENT_type(VOLUME->type);
 
 	unsigned int P, NvnS;
-	double       Volume, *TS;
+	double       Volume, *TS, *TS_vB, *TInvS_vB;
 
 	P = VOLUME->P;
 
-	Volume = ELEMENT->Volume;
-	NvnS   = ELEMENT->NvnS[P];
-	TS     = ELEMENT->TS[P][P][0];
-	TS_vB  = ELEMENT->TS[P][P][0];
+	Volume   = ELEMENT->Volume;
+	NvnS     = ELEMENT->NvnS[P];
+	TS       = ELEMENT->TS[P][P][0];
+	TS_vB    = ELEMENT->TS_vB[P][P][0];
+	TInvS_vB = ELEMENT->TInvS_vB[P][P][0];
 
-	double *What;
+	// *** Density *** ///
 
 	// Find average density
-	double rhoAvg, *rho_hat;
+	double rhoAvg, *What, *rho_hat;
 
-	rho_hat = &What[0*NvnS];
+	What    = VOLUME->What;
+	rho_hat = &What[0];
 
-	rhoAvg = 0.0;
-	for (size_t i = 0; i < NvnS; i++)
-		rhoAvg += TS[i]*rho_hat[i];
+	// Note compensation for orthonormal basis scaling
+	mm_d(CBCM,CBT,CBNT,1,1,NvnS,sqrt(Volume),0.0,&TS[0],rho_hat,&rhoAvg);
 
-	// Compensate for orthonormal basis scaling
-	rhoAvg *= Volume*Volume;
+//printf("\n\n\n\n\n\nrhoAvg: % .3e\nWhat:\n",rhoAvg);
+//array_print_d(NvnS,Nvar,What,'C');
 
-	// Find the density in the Bezier basis
+	if (rhoAvg < EPS_PHYS)
+		printf("Error: Average density approaching 0.\n"), EXIT_MSG;
+
+	// Convert to the Bezier basis
+	double *rho_hatB;
+
 	rho_hatB = malloc(NvnS * sizeof *rho_hatB); // free
 	mm_CTN_d(NvnS,1,NvnS,TS_vB,rho_hat,rho_hatB);
 
+	// Find minimum value
+	double rhoMin = 1.0/EPS;
+	for (size_t n = 0; n < NvnS; n++) {
+		if (rho_hatB[n] < rhoMin)
+			rhoMin = rho_hatB[n];
+	}
+
+//printf("rhoMin: % .3e\nrho_hatB\n",rhoMin);
+//array_print_d(NvnS,1,rho_hatB,'C');
+
+	// Correct rho if necessary
+	if (rhoMin < EPS_PHYS) {
+		double t = min(1.0,(rhoAvg-EPS_PHYS)/(rhoAvg-rhoMin));
+		for (size_t n = 0; n < NvnS; n++) {
+			rho_hatB[n] *= t;
+			rho_hatB[n] += (1.0-t)*rhoAvg;
+		}
+
+		// Correct rho in What
+		mm_CTN_d(NvnS,1,NvnS,TInvS_vB,rho_hatB,rho_hat);
+	}
 	free(rho_hatB);
+
+	// *** Pressure *** ///
+	double *WhatB, *p_hatB;
+
+	WhatB = malloc(NvnS*Nvar * sizeof *WhatB); // free
+	mm_CTN_d(NvnS,Nvar,NvnS,TS_vB,What,WhatB);
+
+	p_hatB = malloc(NvnS * sizeof *p_hatB); // free
+	compute_pressure(WhatB,p_hatB,d,NvnS,1,'c');
+
+/*
+	double *W_vS, *p_vS;
+
+	W_vS = malloc(NvnS*Nvar * sizeof *W_vS); // free
+	mm_CTN_d(NvnS,Nvar,NvnS,1.0,ELEMENT->ChiS_vS[P][P][0],What,W_vS);
+
+	p_vS = malloc(NvnS * sizeof *p_vS); // free
+	compute_pressure(W_vS,p_vS,d,NvnS,1,'c');
+
+	// Convert to the Bezier basis
+	double *p_hatB;
+
+	p_hatB = malloc(NvnS * sizeof *p_hatB); // free
+	mm_CTN_d(NvnS,1,NvnS,1.0,ELEMENT->ChiBezInvS_vS[P][P][0],p_vS,p_hatB);
+*/
+
+	// Correct W if necessary
+	double pMin = 1.0/EPS;
+	for (size_t n = 0; n < NvnS; n++) {
+		if (p_hatB[n] < pMin)
+			pMin = p_hatB[n];
+	}
+//	free(p_hatB); // Uncomment this: ToBeDeleted
+
+	if (pMin < 0.0) {
+printf("\n\n\n\n\nVOLUME: %d\nWhatB:\n",VOLUME->indexg);
+array_print_d(NvnS,Nvar,WhatB,'C');
+printf("pMin: % .4e\np_hatB:\n",pMin);
+array_print_d(NvnS,1,p_hatB,'C');
+		// Compute average pressure
+		double *WAvg, pAvg;
+
+		WAvg = malloc(Nvar * sizeof *WAvg); // free
+
+		// Note compensation for orthonormal basis scaling
+		mm_d(CBCM,CBT,CBNT,1,Nvar,NvnS,sqrt(Volume),0.0,&TS[0],What,WAvg);
+
+		compute_pressure(WAvg,&pAvg,d,1,1,'c');
+printf("pAvg: % .4e\nWAvg:\n",pAvg);
+array_print_d(1,Nvar,WAvg,'C');
+		free(WAvg);
+
+		if (pAvg < 0.0)
+			printf("Error: Negative average pressure.\n"), EXIT_MSG;
+
+		//     t = min(1.0,(pAvg-0.0)/(pAvg-pMin));
+		double t = pAvg/(pAvg-pMin);
+
+		for (size_t var = 0; var < Nvar; var++) {
+		for (size_t n = 0; n < NvnS; n++) {
+			WhatB[var*NvnS+n] *= t;
+			WhatB[var*NvnS+n] += (1.0-t)*WAvg[var];
+		}}
+
+printf("% .3e\nWhatB (updated)\n",t);
+array_print_d(NvnS,Nvar,WhatB,'C');
+
+p_hatB = malloc(NvnS * sizeof *p_hatB); // free
+compute_pressure(WhatB,p_hatB,d,NvnS,1,'c');
+array_print_d(NvnS,1,p_hatB,'C');
+
+		// Correct What
+		mm_CTN_d(NvnS,Nvar,NvnS,TInvS_vB,WhatB,What);
+printf("What (corrected):\n");
+array_print_d(NvnS,Nvar,What,'C');
+if (t < 0.5)
+EXIT_MSG;
+if (pAvg > 2)
+EXIT_MSG;
+	}
+	free(WhatB);
 }
 
 void solver_explicit(void)
@@ -102,9 +216,12 @@ void solver_explicit(void)
 	double       FinalTime = DB.FinalTime;
 
 	// Standard datatypes
-	static double rk4a[5] = { 0.0,              -0.417890474499852, -1.192151694642677, -1.697784692471528, -1.514183444257156 },
-	              rk4b[5] = { 0.149659021999229, 0.379210312999627,  0.822955029386982,  0.699450455949122,  0.153057247968152 };
-//	              rk4c[5] = { 0.0,               0.149659021999229,  0.370400957364205,  0.622255763134443,  0.958282130674690 };
+	static double rk4a[5] = { 0.0,              -0.417890474499852, -1.192151694642677, -1.697784692471528,
+	                         -1.514183444257156 },
+	              rk4b[5] = { 0.149659021999229, 0.379210312999627,  0.822955029386982,  0.699450455949122,
+	                          0.153057247968152 };
+//	              rk4c[5] = { 0.0,               0.149659021999229,  0.370400957364205,  0.622255763134443,
+//                            0.958282130674690 };
 
 	char         *dummyPtr_c[2];
 	unsigned int i, iMax, tstep, rk,
@@ -214,7 +331,6 @@ void solver_explicit(void)
 							*RES++   = *What;
 							*What++ += dt*(*RHS++);
 						}
-						enforce_positivity(VOLUME);
 					} else if (rk == 1) {
 						for (iMax = Neq*NvnS; iMax--; ) {
 							*What = 0.25*(3.0*(*RES++) + *What + dt*(*RHS++));
@@ -226,6 +342,7 @@ void solver_explicit(void)
 							What++;
 						}
 					}
+					enforce_positivity_highorder(VOLUME);
 				}
 			}
 			break;
@@ -249,6 +366,7 @@ void solver_explicit(void)
 						*RES    += dt*(*RHS++);
 						*What++ += rk4b[rk]*(*RES++);
 					}
+					enforce_positivity_highorder(VOLUME);
 				}
 			}
 			break;
@@ -267,6 +385,7 @@ void solver_explicit(void)
 
 				for (iMax = Neq*NvnS; iMax--; )
 					*What++ += dt*(*RHS++);
+				enforce_positivity_highorder(VOLUME);
 			}
 		}
 		time += dt;

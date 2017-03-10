@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #include "Parameters.h"
+#include "Macros.h"
 
 /*
  *	Purpose:
@@ -143,4 +144,42 @@ void convert_variables(double *VarIn, double *VarOut, const unsigned int dIn, co
 		printf("Error: Unsupported TypeIn in convert_variables.\n"), exit(1);
 		break;
 	}
+}
+
+void compute_pressure(double *VarIn, double *p, const unsigned int d, const unsigned int Nn, const unsigned int Nel,
+                      const char TypeIn)
+{
+	if (d < 2)
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+
+	unsigned int NnTotal = Nn*Nel;
+
+	switch(TypeIn) {
+	case 'p': {
+		printf("Error: No need to compute pressure for the pressure primitive variables.\n"), EXIT_MSG;
+		break;
+	} case 'c': {
+		double *rho, *rhou, *rhov, *E;
+		rho  = &VarIn[NnTotal*0];
+		rhou = &VarIn[NnTotal*1];
+		rhov = &VarIn[NnTotal*2];
+		E    = &VarIn[NnTotal*(d+1)];
+
+		if (d == 2) {
+			for (size_t n = 0; n < NnTotal; n++) {
+				double rhoV2 = rhou[n]*rhou[n] + rhov[n]*rhov[n];
+				p[n] = GM1*(E[n]-0.5*rhoV2/rho[n]);
+			}
+		} else if (d == 3) {
+			double *rhow = &VarIn[NnTotal*3];
+			for (size_t n = 0; n < NnTotal; n++) {
+				double rhoV2 = rhou[n]*rhou[n] + rhov[n]*rhov[n] + rhow[n]*rhow[n];
+				p[n] = GM1*(E[n]-0.5*rhoV2/rho[n]);
+			}
+		}
+		break;
+	} default: {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+		break;
+	}}
 }
