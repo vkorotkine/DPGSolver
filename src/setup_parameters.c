@@ -619,7 +619,7 @@ void setup_parameters_L2proj(void)
 	             PMax = DB.PMax;
 
 	// Standard datatypes
-	unsigned int u1 = 1, P, PGs, *PGc, **PCs, **PCc, **PJs, **PJc, **PIfs, **PIfc, **PIvs, **PIvc, IntOrder;
+	unsigned int u1 = 1, u2 = 2, P, PGs, *PGc, **PCs, **PCc, **PJs, **PJc, **PIfs, **PIfc, **PIvs, **PIvc, IntOrder;
 
 	PGs = DB.PGs;
 	PGc = DB.PGc;
@@ -635,7 +635,8 @@ void setup_parameters_L2proj(void)
 
 	for (P = 0; P <= PMax; P++) {
 		// Geometry
-		PGc[P]    = max(P,u1)+PG_add;
+		PGc[P]    = max(P+PG_add,u1);
+		PGc[P]    = max(P+PG_add,u2);
 //PGc[P] = 1;
 		PCs[P][0] = (d-1)*PGs;
 		PCs[P][1] = (d-1)*max(PGs-1,u1);

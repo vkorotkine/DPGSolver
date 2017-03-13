@@ -1053,7 +1053,7 @@ double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned 
 			Indbf = Nbf_p - 1;
 
 			unsigned int NExp, *Nperms, *Exponents;
-			get_BCoord_Exponents(p,d,&NExp,&Nperms,&Exponents);
+			get_BCoord_Exponents(p,d,&NExp,&Nperms,&Exponents); // free
 
 			for (size_t e = 0; e < NExp; e++) {
 				unsigned int *Exp_ptr = &Exponents[e*(d+1)];
@@ -1106,6 +1106,9 @@ double *basis_SI_Bezier(const unsigned int P, const double *rst, const unsigned 
 					Indbf--;
 				}
 			}
+			free(Nperms);
+			free(Exponents);
+
 			// Sort Exp_Indices
 			unsigned int Ind_ui[Nbf_p];
 			for (size_t i = 0; i < Nbf_p; i++)
@@ -1172,6 +1175,7 @@ void rst_to_barycentric_SI(const unsigned int Nn, const unsigned int d, const do
 
 	I_Nve     = identity_d(Nve);                // free
 	A_Nve_Inv = inverse_d(Nve,Nve,A_Nve,I_Nve); // free
+	free(I_Nve);
 	free(A_Nve);
 
 	for (size_t n = 0; n < Nn; n++)

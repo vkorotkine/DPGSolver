@@ -338,9 +338,9 @@ static void compute_FACE_RHS_EFE(void)
 		nOrdOutIn = OPSIn[IndFType]->nOrdOutIn;
 
 		NvnSOut = OPSOut[0]->NvnS;
-		WOut_fI = malloc(NfnI*Nvar * sizeof *WOut_fI); // free
 		WOut_fIIn = malloc(NfnI*Nvar * sizeof *WOut_fIIn); // free
 		if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACE
+			WOut_fI = malloc(NfnI*Nvar * sizeof *WOut_fI); // free
 			if (EclassOut == C_TP && SF_BE[P][0][1]) {
 				get_sf_parametersF(OPSOut[0]->NvnS_SF,OPSOut[0]->NvnI_SF,OPSOut[0]->ChiS_vI,
 				                   OPSOut[0]->NvnS_SF,OPSOut[0]->NfnI_SF,OPSOut[0]->ChiS_fI,NIn,NOut,OP,d,VfOut,C_TP);

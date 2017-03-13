@@ -49,7 +49,7 @@ void h_adapt_test(void)
 	unsigned int d         = DB.d;
 
 	// Standard datatypes
-	unsigned int NrefMax = 4, MLMax = 5;
+	unsigned int NrefMax = 5, MLMax = 5;
 
 	unsigned int Nref, NML[NrefMax], CurvedOnly[NrefMax];
 	double       *XYZref;
@@ -71,19 +71,21 @@ void h_adapt_test(void)
 		XYZref[0+0*DMAX] = xL;  XYZref[1+0*DMAX] = 0.0; XYZref[2+0*DMAX] = 0.0;
 		XYZref[0+1*DMAX] = 2*a; XYZref[1+1*DMAX] = 0.0; XYZref[2+1*DMAX] = 0.0;
 	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
-		Nref = 4;
+		Nref = 5;
 
 		unsigned int i = 0;
+		NML[i] = 2; CurvedOnly[i] = 0; i++;
 		NML[i] = 1; CurvedOnly[i] = 0; i++;
-		NML[i] = 1; CurvedOnly[i] = 0; i++;
+		NML[i] = 2; CurvedOnly[i] = 0; i++;
 		NML[i] = 1; CurvedOnly[i] = 0; i++;
 		NML[i] = 1; CurvedOnly[i] = 0; i++;
 
 		i = 0;
-		XYZref[0+i*DMAX] =  DB.aIn;  XYZref[1+i*DMAX] = 0.0; XYZref[2+i*DMAX] = 0.0; i++;
-		XYZref[0+i*DMAX] =  DB.aOut; XYZref[1+i*DMAX] = 0.0; XYZref[2+i*DMAX] = 0.0; i++;
-		XYZref[0+i*DMAX] = -DB.aIn;  XYZref[1+i*DMAX] = 0.0; XYZref[2+i*DMAX] = 0.0; i++;
-		XYZref[0+i*DMAX] = -DB.aOut; XYZref[1+i*DMAX] = 0.0; XYZref[2+i*DMAX] = 0.0; i++;
+		XYZref[0+i*DMAX] =  DB.aIn;  XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
+		XYZref[0+i*DMAX] =  DB.aOut; XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
+		XYZref[0+i*DMAX] = -DB.aIn;  XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
+		XYZref[0+i*DMAX] = -DB.aOut; XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
+		XYZref[0+i*DMAX] =  0.0;     XYZref[1+i*DMAX] = DB.bIn; XYZref[2+i*DMAX] = 0.0; i++;
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -182,7 +184,7 @@ void test_integration_Euler(int nargc, char **argv)
 
 	TestDB.PG_add = 1;
 	TestDB.IntOrder_add  = 0; // > 1 for non-zero error for L2 projection on TP elements
-	TestDB.IntOrder_mult = 3;
+	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
 	PMin  = 6; PMax  = 6;
@@ -206,7 +208,7 @@ TestDB.PGlobal = PMin;
 
 		if (Adapt != ADAPT_0) {
 			if (ML == MLMin) {
-				mesh_to_level(ML+0);
+				mesh_to_level(ML+2);
 				if (AdaptiveRefine)
 					h_adapt_test();
 			} else {
@@ -226,7 +228,8 @@ TestDB.PGlobal = PMin;
 //		if (ML <= MLMin+1 || P == 1)
 		if (ML <= MLMin+1 || P > 0)
 			solver_explicit();
-		solver_implicit();
+		if (!(ML == 0 && P == 1))
+			solver_implicit();
 
 		compute_errors_global();
 

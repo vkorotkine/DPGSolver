@@ -8,6 +8,7 @@
 #include <math.h> // ToBeModified
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "Parameters.h"
 #include "Macros.h"
@@ -44,9 +45,43 @@
  *		Gottlieb(2001)-Strong_Stability-Preserving_High-Order_Time_Discretization_Methods (eq. (4.2))
  */
 
+static void correct_What_Bezier(double *WhatB, const double t, const unsigned int NvnS, const double *WAvg,
+                                const char type)
+{
+	unsigned int d    = DB.d,
+	             Nvar = DB.Nvar;
+
+	if (type == 'd') { // (d)ensity
+		double *UhatB = malloc(NvnS*Nvar * sizeof *UhatB); // free
+
+		convert_variables(WhatB,UhatB,d,d,NvnS,1,'c','p');
+
+		for (size_t n = 0; n < NvnS; n++) {
+			UhatB[n] *= t;
+			UhatB[n] += (1.0-t)*WAvg[0];
+		}
+
+		convert_variables(UhatB,WhatB,d,d,NvnS,1,'p','c');
+		free(UhatB);
+	} else if (type == 'p') { // (p)ressure
+		for (size_t var = 0; var < Nvar; var++) {
+		for (size_t n = 0; n < NvnS; n++) {
+			WhatB[var*NvnS+n] *= t;
+			WhatB[var*NvnS+n] += (1.0-t)*WAvg[var];
+		}}
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+}
+
 static void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 {
 //	return;
+	bool PrintOn = 0;
+
+	if (PrintOn)
+		printf("\n\n\n *********** indexg: %d ***********\n\n\n\n",VOLUME->indexg);
+
 	/*
 	 *	Purpose:
 	 *		Enforce positivity of density and pressure by limitting the high-order solution.
@@ -54,6 +89,9 @@ static void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 	 *	Comments:
 	 *		See Wang(2012) section 3.1 for details of the procedure.
 	 *		The positivity is ensured to hold throughout the entire element by performing the check in the Bezier basis.
+	 *		The compensation for the orthonormal basis scaling is defined such that TS[0] multiplied by an array of
+	 *		the same constant value should return that value.
+	 *		The function currently assumes that the conservative variables are being used.
 	 *
 	 *	References:
 	 *		Wang-Shu(2012)-Robust_High_Order_Discontinuous_Galerkin_Schemes_for_Two-Dimensional_Gaseous_Detonations
@@ -84,7 +122,7 @@ static void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 	rho_hat = &What[0];
 
 	// Note compensation for orthonormal basis scaling
-	mm_d(CBCM,CBT,CBNT,1,1,NvnS,sqrt(Volume),0.0,&TS[0],rho_hat,&rhoAvg);
+	mm_d(CBCM,CBT,CBNT,1,1,NvnS,1.0/sqrt(Volume),0.0,&TS[0],rho_hat,&rhoAvg);
 
 //printf("\n\n\n\n\n\nrhoAvg: % .3e\nWhat:\n",rhoAvg);
 //array_print_d(NvnS,Nvar,What,'C');
@@ -93,10 +131,12 @@ static void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 		printf("Error: Average density approaching 0.\n"), EXIT_MSG;
 
 	// Convert to the Bezier basis
-	double *rho_hatB;
+	double *WhatB, *rho_hatB;
 
-	rho_hatB = malloc(NvnS * sizeof *rho_hatB); // free
-	mm_CTN_d(NvnS,1,NvnS,TS_vB,rho_hat,rho_hatB);
+	WhatB = malloc(NvnS*Nvar * sizeof *WhatB); // free
+	mm_CTN_d(NvnS,Nvar,NvnS,TS_vB,What,WhatB);
+
+	rho_hatB = &WhatB[0];
 
 	// Find minimum value
 	double rhoMin = 1.0/EPS;
@@ -108,28 +148,25 @@ static void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 //printf("rhoMin: % .3e\nrho_hatB\n",rhoMin);
 //array_print_d(NvnS,1,rho_hatB,'C');
 
-	// Correct rho if necessary
+	// Correct rho if necessary (Note: momentum terms are corrected as well)
 	if (rhoMin < EPS_PHYS) {
-printf("% .3e\n",rhoAvg);
+if (PrintOn) {
+printf("Volume/rhoAvg: % .3e % .3e\n\n",Volume,rhoAvg);
+array_print_d(NvnS,NvnS,TS,'R');
 array_print_d(NvnS,1,rho_hatB,'C');
 array_print_d(NvnS,Nvar,What,'C');
+}
 		double t = min(1.0,(rhoAvg-EPS_PHYS)/(rhoAvg-rhoMin));
-		for (size_t n = 0; n < NvnS; n++) {
-			rho_hatB[n] *= t;
-			rho_hatB[n] += (1.0-t)*rhoAvg;
-		}
+		correct_What_Bezier(WhatB,t,NvnS,&rhoAvg,'d');
 
-		// Correct rho in What
-		mm_CTN_d(NvnS,1,NvnS,TInvS_vB,rho_hatB,rho_hat);
+		mm_CTN_d(NvnS,Nvar-1,NvnS,TInvS_vB,WhatB,What);
+if (PrintOn) {
 array_print_d(NvnS,Nvar,What,'C');
+}
 	}
-	free(rho_hatB);
 
 	// *** Pressure *** ///
-	double *WhatB, *p_hatB;
-
-	WhatB = malloc(NvnS*Nvar * sizeof *WhatB); // free
-	mm_CTN_d(NvnS,Nvar,NvnS,TS_vB,What,WhatB);
+	double *p_hatB;
 
 	p_hatB = malloc(NvnS * sizeof *p_hatB); // free
 	compute_pressure(WhatB,p_hatB,d,NvnS,1,'c');
@@ -159,23 +196,28 @@ array_print_d(NvnS,Nvar,What,'C');
 //	free(p_hatB); // Uncomment this: ToBeDeleted
 
 	if (pMin < 0.0) {
+if (PrintOn) {
 array_print_d(NvnS,NvnS,TS_vB,'R');
 printf("\n\n\n\n\nVOLUME: %d\nWhat/WhatB:\n",VOLUME->indexg);
 array_print_d(NvnS,Nvar,What,'C');
 array_print_d(NvnS,Nvar,WhatB,'C');
 printf("pMin: % .4e\np_hatB:\n",pMin);
 array_print_d(NvnS,1,p_hatB,'C');
+}
 		// Compute average pressure
 		double *WAvg, pAvg;
 
 		WAvg = malloc(Nvar * sizeof *WAvg); // free
 
 		// Note compensation for orthonormal basis scaling
-		mm_d(CBCM,CBT,CBNT,1,Nvar,NvnS,sqrt(Volume),0.0,&TS[0],What,WAvg);
+		mm_d(CBCM,CBT,CBNT,1,Nvar,NvnS,1.0/sqrt(Volume),0.0,&TS[0],What,WAvg);
+//		mm_CTN_d(1,Nvar,NvnS,&TS[0],What,WAvg);
 
 		compute_pressure(WAvg,&pAvg,d,1,1,'c');
+if (PrintOn) {
 printf("pAvg: % .4e\nWAvg:\n",pAvg);
 array_print_d(1,Nvar,WAvg,'C');
+}
 		free(WAvg);
 
 		if (pAvg < 0.0)
@@ -183,30 +225,23 @@ array_print_d(1,Nvar,WAvg,'C');
 
 		//     t = min(1.0,(pAvg-0.0)/(pAvg-pMin));
 		double t = pAvg/(pAvg-pMin);
-
-		for (size_t var = 0; var < Nvar; var++) {
-		for (size_t n = 0; n < NvnS; n++) {
-			WhatB[var*NvnS+n] *= t;
-			WhatB[var*NvnS+n] += (1.0-t)*WAvg[var];
-		}}
-
-printf("% .3e\nWhatB (updated)\n",t);
-array_print_d(NvnS,Nvar,WhatB,'C');
-
-p_hatB = malloc(NvnS * sizeof *p_hatB); // free
-compute_pressure(WhatB,p_hatB,d,NvnS,1,'c');
-array_print_d(NvnS,1,p_hatB,'C');
+		correct_What_Bezier(WhatB,t,NvnS,WAvg,'p');
 
 		// Correct What
 		mm_CTN_d(NvnS,Nvar,NvnS,TInvS_vB,WhatB,What);
+if (PrintOn) {
+printf("% .3e\nWhatB (updated)\n",t);
+array_print_d(NvnS,Nvar,WhatB,'C');
 printf("What (corrected):\n");
 array_print_d(NvnS,Nvar,What,'C');
-if (t < 0.5)
-EXIT_MSG;
-if (pAvg > 2)
-EXIT_MSG;
+}
+//if (t < 0.4)
+//EXIT_MSG;
+//if (pAvg > 2)
+//EXIT_MSG;
 	}
 	free(WhatB);
+	free(p_hatB);
 }
 
 void solver_explicit(void)
@@ -244,7 +279,7 @@ void solver_explicit(void)
 		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free
 
 	exit_tol   = 10*EPS;
-	exit_ratio = 1e4;
+	exit_ratio = 2e4;
 
 // Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).  (ToBeDeleted)
 	if (!Adapt) {
@@ -257,39 +292,28 @@ void solver_explicit(void)
 			dt = pow(0.5,(DB.ML+DB.LevelsMax)+DB.PGlobal+1);
 		else if (Adapt == ADAPT_HP) {
 			if (TestDB.Active) {
-				char         MType[20];
+				char *MeshFile = DB.MeshFile;
 				unsigned int ML = TestDB.ML,
 							 P  = TestDB.PGlobal;
 
-//				strcpy(MType,"supersonic");
-				strcpy(MType,"subsonic");
-
-				exit_tol = 4e-8;
-				if (strstr(MType,"subsonic")) {
+				exit_tol = 2e-7;
+				if (strstr(MeshFile,"Subsonic")) {
 					// RK3_SSP, Conforming TRI
 					if      (ML == 0) dt = 5.0e-1;
-					else if (ML == 1) dt = 2.0e+0;
-					else if (ML == 2) dt = 4.0e+0;
-					else if (ML == 3) dt = 8.0e+0;
+					else if (ML == 1) dt = 1.0e+0;
+					else if (ML == 2) dt = 2.0e+0;
+					else if (ML == 3) dt = 4.0e+0;
 					else
 						printf("Add support (%d).\n",ML), EXIT_MSG;
-				} else if (strstr(MType,"supersonic")) {
-					if      (ML == 0) dt = 1.0e-3;
+				} else if (strstr(MeshFile,"Supersonic")) {
+					exit_tol   = 3e-15;
+					exit_ratio = 2e15;
+					if      (ML == 0) dt = 1.0e-2;
+					else if (ML == 1) dt = 1.0e-1;
 					else
-						printf("Add support (%d).\n",ML), EXIT_MSG;
+						printf("Add support (%d %d).\n",ML,P), EXIT_MSG;
 				}
 
-				if        (P == 1) {
-				} else if (P == 2) {
-				} else if (P == 3) {
-				} else if (P == 4) {
-				} else if (P == 5) {
-				} else if (P == 6) {
-				} else if (P == 7) {
-				} else if (P == 8) {
-				} else {
-					printf("Add support.\n"), EXIT_MSG;
-				}
 				OutputInterval = 1e4;
 			} else { // Standard
 				dt = 5e+0*pow(0.5,DB.ML+DB.PGlobal); //P2
@@ -311,10 +335,14 @@ void solver_explicit(void)
 		if (time+dt > FinalTime)
 			dt = FinalTime-time;
 
+		if (tstep == 0) {
+			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+				enforce_positivity_highorder(VOLUME);
+		}
+
 		switch (ExplicitSolverType) {
 		default : // RK3_SSP
 			// RES is used to store the initial solution at the beginning of the time step.
-
 			for (rk = 0; rk < 3; rk++) {
 				// Compute weak gradients (for viscous terms)
 				if (Viscous)
@@ -413,9 +441,14 @@ void solver_explicit(void)
 
 		// Additional exit conditions
 //		if ((maxRHS0/maxRHS > 1e3 || maxRHS < 8e-14) && tstep > 2) {
-		if ((maxRHS0/maxRHS > exit_ratio || maxRHS < exit_tol) && tstep > 2) {
-			printf("Exiting: maxRHS dropped by 10 orders or is below 8e-14.\n");
-			break;
+		if (tstep > 2) {
+			if (maxRHS0/maxRHS > exit_ratio) {
+				printf("Exiting: maxRHS dropped by % .2e orders.\n",log10(exit_ratio));
+				break;
+			} else if (maxRHS < exit_tol) {
+				printf("Exiting: maxRHS is below % .3e.\n",exit_tol);
+				break;
+			}
 		}
 
 		// hp adaptation

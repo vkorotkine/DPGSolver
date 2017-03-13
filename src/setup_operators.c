@@ -846,6 +846,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 			TInvS_vB[P][P][0] = inverse_d(NvnS[P],NvnS[P],TS_vB[P][P][0],IS); // keep
 
 			free(rst_vS[0]);
+			free(ChiBezS_vS);
 		}
 
 		free(IS);
@@ -1315,8 +1316,10 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 					}
 
 					for (dim = 0; dim < dE; dim++) {
-						D_vGs_fIs[1][Pb][Vf][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,GradChiGs_fIs[dim],ChiInvGs_vGs[1][1][0]); // keep
-						D_vGs_fIc[1][Pb][Vf][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,GradChiGs_fIc[dim],ChiInvGs_vGs[1][1][0]); // keep
+						if (P == Pb) {
+							D_vGs_fIs[1][Pb][Vf][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,GradChiGs_fIs[dim],ChiInvGs_vGs[1][1][0]); // keep
+							D_vGs_fIc[1][Pb][Vf][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnGs[1],NvnGs[1],1.0,GradChiGs_fIc[dim],ChiInvGs_vGs[1][1][0]); // keep
+						}
 						D_vGc_fIs[P][Pb][Vf][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIs[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,GradChiGc_fIs[dim],ChiInvGc_vGc); // keep
 						D_vGc_fIc[P][Pb][Vf][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnGc[P],NvnGc[P],1.0,GradChiGc_fIc[dim],ChiInvGc_vGc); // keep
 					}

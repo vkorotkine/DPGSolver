@@ -5,7 +5,7 @@ Refine = 0;
 lc = 0.6/2.0^Refine;
 
 EqIndex  = 1; // Options: 0 (Poisson), 1 (Euler)
-Extended = 1;
+Extended = 0;
 
 
 rIn  = 0.5;
@@ -40,7 +40,9 @@ Ellipse(1005) = {5,7,3,3};
 Ellipse(1006) = {6,7,4,2};
 Ellipse(1007) = {6,7,4,4};
 
-Transfinite Line {1001:1003} = 1*2^(Refine)+1 Using Progression 1;
+AddRadial = 1;
+
+Transfinite Line {1001:1003} = 1*2^(Refine+AddRadial)+1 Using Progression 1;
 Transfinite Line {1004:1007} = 1*2^(Refine)+1 Using Progression 1;
 
 Line Loop (4001) = {1001,-1006,-1003,1004};
@@ -89,7 +91,7 @@ If (Extended)
 	Line(1018) = {10,14};
 	Line(1019) = {11,15};
 
-	Transfinite Line {1008,1011,1012,1017} = 1*2^(Refine)+1 Using Progression 1;
+	Transfinite Line {1008,1011,1012,1017} = 1*2^(Refine+AddRadial)+1 Using Progression 1;
 	Transfinite Line {1013:1016}           = 1*2^(Refine)+1 Using Progression 1;
 	Transfinite Line {1009,1010,1018,1019} = 1*2^(Refine)+1 Using Progression 1;
 
