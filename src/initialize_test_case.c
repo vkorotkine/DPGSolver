@@ -243,13 +243,16 @@ void initialize_test_case_parameters(void)
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}
 
+		char MType[20];
+		strcpy(MType,"subsonic");
+//		strcpy(MType,"supersonic");
+
+		if (strstr(MType,"supersonic")) {
 		DB.rhoInf = 1.0;
 		DB.pInf   = 1.0*1e-0;
 		DB.MInf   = 1.01;
 		DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
-
-/*
-		// Use for subsonic case
+		} else { // Use for subsonic case
 		DB.MInf    = 0.0;
 		DB.p_Total = 1.0;
 		DB.T_Total = 1.0;
@@ -261,7 +264,7 @@ void initialize_test_case_parameters(void)
 
 		DB.MInf   = 0.0*sqrt(2.0/GM1*(pow((DB.pBack/DB.p_Total),-GM1/GAMMA)-1.0));
 		DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
-*/
+		}
 	} else if (strstr(TestCase,"PeriodicVortex")) {
 		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
 		strcpy(SolverType,"Explicit");
@@ -666,8 +669,8 @@ static void compute_uniform_solution(const unsigned int Nn, const double *XYZ, d
 		}
 	} else if (strstr(TestCase,"SubsonicNozzle")) {
 		char MType[20];
-//		strcpy(MType,"subsonic");
-		strcpy(MType,"supersonic");
+		strcpy(MType,"subsonic");
+//		strcpy(MType,"supersonic");
 
 		if (d == 3)
 			printf("Add support.\n"), EXIT_MSG;

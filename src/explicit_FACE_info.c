@@ -409,7 +409,7 @@ static void compute_FACE_RHS_EFE(void)
 			} else if (BC % BC_STEP_SC == BC_SUPERSONIC_OUT) {
 				boundary_SupersonicOutflow(NfnI,1,FACE->XYZ_fI,WIn_fI,WOut_fIIn,n_fI,d,Nvar);
 			} else {
-				printf("Error: Unsupported.\n"), EXIT_MSG;
+				printf("Error: Unsupported (%d).\n",BC), EXIT_MSG;
 			}
 		}
 

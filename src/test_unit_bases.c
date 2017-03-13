@@ -1396,6 +1396,14 @@ static void get_BCoord_Exponents_test(const unsigned int P, const unsigned int d
 			Exp[Ind*(d+1)+0] = 3; Exp[Ind*(d+1)+1] = 2; Exp[Ind*(d+1)+2] = 0; Nperms[Ind++] = 6;
 			Exp[Ind*(d+1)+0] = 4; Exp[Ind*(d+1)+1] = 1; Exp[Ind*(d+1)+2] = 0; Nperms[Ind++] = 6;
 			Exp[Ind*(d+1)+0] = 5; Exp[Ind*(d+1)+1] = 0; Exp[Ind*(d+1)+2] = 0; Nperms[Ind++] = 3;
+		} else if (P == 6) {
+			Exp[Ind*(d+1)+0] = 2; Exp[Ind*(d+1)+1] = 2; Exp[Ind*(d+1)+2] = 2; Nperms[Ind++] = 1;
+			Exp[Ind*(d+1)+0] = 3; Exp[Ind*(d+1)+1] = 2; Exp[Ind*(d+1)+2] = 1; Nperms[Ind++] = 6;
+			Exp[Ind*(d+1)+0] = 3; Exp[Ind*(d+1)+1] = 3; Exp[Ind*(d+1)+2] = 0; Nperms[Ind++] = 3;
+			Exp[Ind*(d+1)+0] = 4; Exp[Ind*(d+1)+1] = 1; Exp[Ind*(d+1)+2] = 1; Nperms[Ind++] = 3;
+			Exp[Ind*(d+1)+0] = 4; Exp[Ind*(d+1)+1] = 2; Exp[Ind*(d+1)+2] = 0; Nperms[Ind++] = 6;
+			Exp[Ind*(d+1)+0] = 5; Exp[Ind*(d+1)+1] = 1; Exp[Ind*(d+1)+2] = 0; Nperms[Ind++] = 6;
+			Exp[Ind*(d+1)+0] = 6; Exp[Ind*(d+1)+1] = 0; Exp[Ind*(d+1)+2] = 0; Nperms[Ind++] = 3;
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_BASIC;
 		}
@@ -1599,7 +1607,7 @@ static void test_unit_basis_SI_Bezier(void)
 		unsigned int PMin, PMax;
 
 		if (dE == 2) {
-			PMin = 0; PMax = 5; // First 6-symmetry occurs for P = 3
+			PMin = 0; PMax = 6; // First 6-symmetry occurs for P = 3
 		} else if (dE == 3) {
 			PMin = 0; PMax = 6; // First 24-symmetry occurs for P = 6
 		} else {
@@ -1614,8 +1622,16 @@ static void test_unit_basis_SI_Bezier(void)
 			get_BCoord_Exponents(P,dE,&NExp,&Nperms,&BCoord_Exponents);                // free
 
 			if (!(array_norm_diff_ui(NExp,Nperms,Nperms_test,"Inf") == 0 &&
-			      array_norm_diff_ui(NExp*(dE+1),BCoord_Exponents,BCoord_Exponents_test,"Inf") == 0))
+			      array_norm_diff_ui(NExp*(dE+1),BCoord_Exponents,BCoord_Exponents_test,"Inf") == 0)) {
 					pass = 0;
+
+				printf("%d %d\n",dE,P);
+				array_print_ui(1,NExp,Nperms,'R');
+				array_print_ui(1,NExp,Nperms_test,'R');
+
+				array_print_ui(NExp,dE+1,BCoord_Exponents,'R');
+				array_print_ui(NExp,dE+1,BCoord_Exponents_test,'R');
+			}
 
 			free(Nperms);
 			free(Nperms_test);

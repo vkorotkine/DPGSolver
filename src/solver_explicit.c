@@ -46,6 +46,7 @@
 
 static void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 {
+//	return;
 	/*
 	 *	Purpose:
 	 *		Enforce positivity of density and pressure by limitting the high-order solution.
@@ -109,6 +110,9 @@ static void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 
 	// Correct rho if necessary
 	if (rhoMin < EPS_PHYS) {
+printf("% .3e\n",rhoAvg);
+array_print_d(NvnS,1,rho_hatB,'C');
+array_print_d(NvnS,Nvar,What,'C');
 		double t = min(1.0,(rhoAvg-EPS_PHYS)/(rhoAvg-rhoMin));
 		for (size_t n = 0; n < NvnS; n++) {
 			rho_hatB[n] *= t;
@@ -117,6 +121,7 @@ static void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 
 		// Correct rho in What
 		mm_CTN_d(NvnS,1,NvnS,TInvS_vB,rho_hatB,rho_hat);
+array_print_d(NvnS,Nvar,What,'C');
 	}
 	free(rho_hatB);
 
@@ -154,7 +159,9 @@ static void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 //	free(p_hatB); // Uncomment this: ToBeDeleted
 
 	if (pMin < 0.0) {
-printf("\n\n\n\n\nVOLUME: %d\nWhatB:\n",VOLUME->indexg);
+array_print_d(NvnS,NvnS,TS_vB,'R');
+printf("\n\n\n\n\nVOLUME: %d\nWhat/WhatB:\n",VOLUME->indexg);
+array_print_d(NvnS,Nvar,What,'C');
 array_print_d(NvnS,Nvar,WhatB,'C');
 printf("pMin: % .4e\np_hatB:\n",pMin);
 array_print_d(NvnS,1,p_hatB,'C');
@@ -254,13 +261,13 @@ void solver_explicit(void)
 				unsigned int ML = TestDB.ML,
 							 P  = TestDB.PGlobal;
 
-				strcpy(MType,"supersonic");
-//				strcpy(MType,"subsonic");
+//				strcpy(MType,"supersonic");
+				strcpy(MType,"subsonic");
 
 				exit_tol = 4e-8;
 				if (strstr(MType,"subsonic")) {
 					// RK3_SSP, Conforming TRI
-					if      (ML == 0) dt = 1.0e+0;
+					if      (ML == 0) dt = 5.0e-1;
 					else if (ML == 1) dt = 2.0e+0;
 					else if (ML == 2) dt = 4.0e+0;
 					else if (ML == 3) dt = 8.0e+0;
@@ -283,7 +290,7 @@ void solver_explicit(void)
 				} else {
 					printf("Add support.\n"), EXIT_MSG;
 				}
-				OutputInterval = 2e3;
+				OutputInterval = 1e4;
 			} else { // Standard
 				dt = 5e+0*pow(0.5,DB.ML+DB.PGlobal); //P2
 			}
