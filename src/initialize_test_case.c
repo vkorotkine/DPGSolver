@@ -171,7 +171,7 @@ void initialize_test_case_parameters(void)
 		SourcePresent = 0;
 
 		// Equivalent to choosing total pressure/temperature and back pressure
-		DB.MInf   = 0.20;
+		DB.MInf   = 0.10;
 		DB.rhoInf = 1.0;
 		DB.pInf   = 1.0;
 		DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
@@ -202,7 +202,11 @@ void initialize_test_case_parameters(void)
 			DB.NS4 = -0.1036;
 		} else if (strstr(Geometry,"EllipsoidalBump")) {
 			DB.aIn = 0.5;
-			DB.bIn = DB.aIn/1.0;
+			if (strstr(DB.MeshFile,"3")) {
+				DB.bIn = DB.aIn/3.0;
+			} else {
+				printf("Error: Unsupported.\n"), EXIT_MSG;
+			}
 		} else if (strstr(Geometry,"JoukowskiSymmetric")) {
 			double a, l, t;
 			a = 1.0;
@@ -239,6 +243,22 @@ void initialize_test_case_parameters(void)
 //			DB.aOut = 1.384; DB.bOut = 1.384;
 			DB.aIn  = 0.50; DB.bIn  = 0.50;
 			DB.aOut = 1.00; DB.bOut = 3.00;
+		} else if (strstr(Geometry,"EllipsoidalBump")) {
+			DB.aIn = 0.5;
+			if (strstr(DB.MeshFile,"3")) {
+				DB.bIn = DB.aIn/3.0;
+			} else {
+				printf("Error: Unsupported.\n"), EXIT_MSG;
+			}
+		} else if (strstr(Geometry,"GaussianBump")) {
+			DB.GBa = 0.0625;
+			DB.GBb = 0.0;
+
+			if      (strstr(DB.MeshFile,"/0/"))   DB.GBc = 0.2/pow(2.0,0.0);
+			else if (strstr(DB.MeshFile,"/0-5/")) DB.GBc = 0.2/pow(2.0,0.5);
+			else if (strstr(DB.MeshFile,"/1/"))   DB.GBc = 0.2/pow(2.0,1.0);
+			else
+				printf("Error: Unsupported.\n"), EXIT_MSG;
 		} else {
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 		}

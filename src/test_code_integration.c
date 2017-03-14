@@ -51,7 +51,9 @@ static void update_TestCase(void)
 	    strstr(DB.TestCase,"Poisson_GaussianBump")) {
 		strcpy(DB.TestCase,"Poisson");
 	} else if (strstr(DB.TestCase,"Euler")) {
-		if (strstr(DB.Geometry,"Ellipsoidal_Section"))
+		if (strstr(DB.Geometry,"Ellipsoidal_Section") ||
+		    strstr(DB.Geometry,"GaussianBump") ||
+		    strstr(DB.Geometry,"EllipsoidalBump"))
 			strcpy(DB.TestCase,"SubsonicNozzle");
 		else if (strstr(DB.Geometry,"ExpansionCorner"))
 			strcpy(DB.TestCase,"PrandtlMeyer");

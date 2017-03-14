@@ -27,6 +27,7 @@
 #include "element_functions.h"
 #include "matrix_functions.h"
 #include "variable_functions.h"
+#include "solver_explicit.h"
 
 #include "array_print.h"
 
@@ -289,6 +290,8 @@ void solver_implicit(void)
 			for (i = 0; i < iMax; i++)
 				(*What++) += alpha*dWhat[i];
 			free(dWhat);
+
+			enforce_positivity_highorder(VOLUME);
 		}
 
 		KSPDestroy(&ksp);

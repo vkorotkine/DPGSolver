@@ -5,9 +5,9 @@ Refine = 0;
 lc = 0.5/2.0^Refine;
 
 // RefType Options: 0 (Std. transfinite), 1 (Std.)
-RefType = 0;
+RefType = 1;
 
-BumpExp = 0;
+BumpExp = 0.5;
 BumpScale = 0;
 N = 1e2;
 
@@ -16,19 +16,20 @@ N = 1e2;
 // Geometry Specification
 
 a = 0.0625;
-b = 0.0;
-c = 0.2/2^BumpExp;
+c0 = 0.2;
+c = c0/2^BumpExp;
 
 EPS = 1e-15;
 l = Sqrt(-2.0*c^2*Log(EPS/a));
+l = Sqrt(-2.0*c0^2*Log(EPS/a));
 
 h = 3*a;
 
 
 
-xL = -l; x = xL; yL = a*Exp(-(x-b)^2/(2*c^2));
-xR =  l; x = xR; yR = a*Exp(-(x-b)^2/(2*c^2));
-xM =  0; x = xM; yM = a*Exp(-(x-b)^2/(2*c^2));
+xL = -l; x = xL; yL = a*Exp(-x^2/(2*c^2));
+xR =  l; x = xR; yR = a*Exp(-x^2/(2*c^2));
+xM =  0; x = xM; yM = a*Exp(-x^2/(2*c^2));
 
 
 Point(1) = {xL,yL,0,lc};
@@ -41,7 +42,7 @@ Point(6) = {xM,h,0,lc};
 pListBL[0] = 1;
 For i In {1:N-1}
 	x = -l + i/N*l;
-	y = a*Exp(-(x-b)^2/(2*c^2));
+	y = a*Exp(-x^2/(2*c^2));
 	
 	pListBL[i] = newp;
 	Point(pListBL[i]) = {x,y,0,lc};
@@ -51,7 +52,7 @@ pListBL[N] = 5;
 pListBR[0] = 5;
 For i In {1:N-1}
 	x = 0 + i/N*l;
-	y = a*Exp(-(x-b)^2/(2*c^2));
+	y = a*Exp(-x^2/(2*c^2));
 	
 	pListBR[i] = newp;
 	Point(pListBR[i]) = {x,y,0,lc};
@@ -71,7 +72,7 @@ If (RefType == 0)
 	Transfinite Line {1001:1004} = 1*2^(Refine)+1 Using Progression 1;
 	Transfinite Line {1005:1007} = 1*2^(Refine)+1 Using Progression 1;
 ElseIf (RefType == 1)
-	Transfinite Line {1001:1004} = 4*2^(Refine)   Using Progression 1;
+	Transfinite Line {1001:1004} = 3*2^(Refine)   Using Progression 1;
 	Transfinite Line {1005:1007} = 1*2^(Refine)+1 Using Progression 1;
 EndIf
 
@@ -86,15 +87,16 @@ If (RefType == 0 || RefType == 1)
 	Transfinite Surface{4002} Right;
 EndIf
 
-//Recombine Surface{4001};
+Recombine Surface{4001,4002};
 
 
 
 // Physical Parameters for '.msh' file
 
-Physical Line(10001) = {1005,1006}; // Straight Dirichlet
-Physical Line(10002) = {1003,1004}; // Straight Neumann
-Physical Line(20002) = {1001,1002}; // Curved Neumann
+Physical Line(10004) = {1005};      // Straight Total pressure/temperature
+Physical Line(10003) = {1006};      // Straight Back pressure
+Physical Line(10002) = {1003,1004}; // Straight Slipwall
+Physical Line(20002) = {1001,1002}; // Curved   Slipwall
 
 Physical Surface(9401) = {4001:4002};
 

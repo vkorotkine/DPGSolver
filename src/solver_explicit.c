@@ -74,7 +74,7 @@ static void correct_What_Bezier(double *WhatB, const double t, const unsigned in
 	}
 }
 
-static void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
+void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 {
 //	return;
 	bool PrintOn = 0;
@@ -296,13 +296,27 @@ void solver_explicit(void)
 				unsigned int ML = TestDB.ML,
 							 P  = TestDB.PGlobal;
 
-				exit_tol = 2e-7;
+				exit_tol = 4e-7;
 				if (strstr(MeshFile,"Subsonic")) {
 					// RK3_SSP, Conforming TRI
-					if      (ML == 0) dt = 5.0e-1;
-					else if (ML == 1) dt = 1.0e+0;
-					else if (ML == 2) dt = 2.0e+0;
-					else if (ML == 3) dt = 4.0e+0;
+					double scaling = 0.0;
+
+					if (P <= 6)
+						scaling = 2.5;
+					else if (P == 7 || P == 8)
+						return;
+					else if (P <= 8)
+						scaling = 1.25;
+					else
+						scaling = 0.0;
+
+					if (ML > 0)
+						return;
+
+					if      (ML == 0) dt = scaling*5.0e-1;
+					else if (ML == 1) dt = scaling*1.0e+0;
+					else if (ML == 2) dt = scaling*2.0e+0;
+					else if (ML == 3) dt = scaling*4.0e+0;
 					else
 						printf("Add support (%d).\n",ML), EXIT_MSG;
 				} else if (strstr(MeshFile,"Supersonic")) {

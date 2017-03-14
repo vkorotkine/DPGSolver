@@ -86,6 +86,16 @@ void h_adapt_test(void)
 		XYZref[0+i*DMAX] = -DB.aIn;  XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
 		XYZref[0+i*DMAX] = -DB.aOut; XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
 		XYZref[0+i*DMAX] =  0.0;     XYZref[1+i*DMAX] = DB.bIn; XYZref[2+i*DMAX] = 0.0; i++;
+	} else if (strstr(Geometry,"EllipsoidalBump")) {
+		Nref = 2;
+
+		unsigned int i = 0;
+		NML[i] = 2; CurvedOnly[i] = 1; i++;
+		NML[i] = 2; CurvedOnly[i] = 1; i++;
+
+		i = 0;
+		XYZref[0+i*DMAX] =  DB.aIn; XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
+		XYZref[0+i*DMAX] = -DB.aIn; XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -187,8 +197,8 @@ void test_integration_Euler(int nargc, char **argv)
 	TestDB.IntOrder_mult = 2;
 
 	// Convergence orders
-	PMin  = 6; PMax  = 6;
-	MLMin = 0; MLMax = 0;
+	PMin  = 6; PMax  = 8;
+	MLMin = 0; MLMax = 2;
 TestDB.PGlobal = PMin;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
@@ -208,7 +218,7 @@ TestDB.PGlobal = PMin;
 
 		if (Adapt != ADAPT_0) {
 			if (ML == MLMin) {
-				mesh_to_level(ML+2);
+				mesh_to_level(ML);
 				if (AdaptiveRefine)
 					h_adapt_test();
 			} else {
@@ -225,11 +235,12 @@ TestDB.PGlobal = PMin;
 			output_to_paraview(fNameOut);
 			free(fNameOut);
 		}
+//PMin = 1;
+//check_convergence_orders(MLMin,MLMax,PMin,PMax,&pass);
+//EXIT_BASIC;
 //		if (ML <= MLMin+1 || P == 1)
-		if (ML <= MLMin+1 || P > 0)
-			solver_explicit();
-		if (!(ML == 0 && P == 1))
-			solver_implicit();
+		solver_explicit();
+		solver_implicit();
 
 		compute_errors_global();
 
@@ -239,7 +250,8 @@ TestDB.PGlobal = PMin;
 			evaluate_mesh_regularity(&mesh_quality[ML-MLMin]);
 
 		if (P == PMax && ML == MLMax) {
-			PMin = 1;
+//			PMin = 1;
+			PMin = 6;
 			check_convergence_orders(MLMin,MLMax,PMin,PMax,&pass);
 			check_mesh_regularity(mesh_quality,MLMax-MLMin+1,&pass);
 		}

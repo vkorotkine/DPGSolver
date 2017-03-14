@@ -58,7 +58,7 @@ Plane Surface(4004) = {4004};
 
 Transfinite Surface{4001,4003} Right;
 Transfinite Surface{4002,4004};
-//Recombine Surface{4001:4004};
+Recombine Surface{4001:4004};
 
 
 
