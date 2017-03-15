@@ -139,6 +139,7 @@ void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, co
 
 		// Initialization
 		initialization(nargc,argv);
+printf("csmp: %s\n",DB.TestCase);
 		update_TestCase();
 		if (update_argv) {
 			DB.PGlobal = TestDB.PGlobal;

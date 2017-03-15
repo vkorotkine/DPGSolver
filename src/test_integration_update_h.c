@@ -138,7 +138,7 @@ void test_integration_update_h(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// TRIs
-	strcpy(argvNew[1],"test/Test_update_h_TRI");
+	strcpy(argvNew[1],"test/update_h/Test_update_h_TRI");
 	strcpy(EName,"TRI   ");
 	Lmts[0]->XYZ[0] = -0.75; Lmts[0]->XYZ[1] = -0.75; Lmts[0]->type = 'd'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->type = 'd'; Lmts[1]->index = 1;
@@ -146,9 +146,11 @@ void test_integration_update_h(int nargc, char **argv)
 	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
 	test_update_h(nargc,argvNew,2,0,EName,Lmts);
 
+	printf("Change the .geo file such that periodic BCs are used.\n"), EXIT_BASIC;
+
 	// **************************************************************************************************** //
 	// QUADs
-	strcpy(argvNew[1],"test/Test_update_h_QUAD");
+	strcpy(argvNew[1],"test/update_h/Test_update_h_QUAD");
 	strcpy(EName,"QUAD  ");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
@@ -158,7 +160,7 @@ void test_integration_update_h(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// TETs
-	strcpy(argvNew[1],"test/Test_update_h_TET");
+	strcpy(argvNew[1],"test/update_h/Test_update_h_TET");
 	strcpy(EName,"TET   ");
 	Lmts[0]->XYZ[0] =  1.00; Lmts[0]->XYZ[1] =  1.00; Lmts[0]->XYZ[2] =  0.00; Lmts[0]->type = 'd'; Lmts[0]->index = 1;
 	Lmts[1]->XYZ[0] = -1.00; Lmts[1]->XYZ[1] = -1.00; Lmts[1]->XYZ[2] =  1.00; Lmts[1]->type = 'd'; Lmts[1]->index = 0;
@@ -168,7 +170,7 @@ void test_integration_update_h(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// HEXs
-	strcpy(argvNew[1],"test/Test_update_h_HEX");
+	strcpy(argvNew[1],"test/update_h/Test_update_h_HEX");
 	strcpy(EName,"HEX   ");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->XYZ[2] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
@@ -178,7 +180,7 @@ void test_integration_update_h(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// WEDGEs
-	strcpy(argvNew[1],"test/Test_update_h_WEDGE");
+	strcpy(argvNew[1],"test/update_h/Test_update_h_WEDGE");
 	strcpy(EName,"WEDGE ");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->XYZ[2] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
@@ -188,7 +190,7 @@ void test_integration_update_h(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// PYRs
-	strcpy(argvNew[1],"test/Test_update_h_PYR");
+	strcpy(argvNew[1],"test/update_h/Test_update_h_PYR");
 	strcpy(EName,"PYR   ");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->XYZ[2] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;

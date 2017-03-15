@@ -3,10 +3,12 @@
 Before running the code, be sure to execute:
 $ make directories
 
-Generate meshes using .geo files and place in appropriate folders created using make directories.
+Generate meshes using '.geo' files and place in appropriate folders created using make directories.
 
 To run the code, cd to $(ROOT)/cases and execute using the script (.sh) files:
-- quick.sh: Standard
+- quick.sh:    Standard
 - memcheck.sh: With valgrind enabled
+
+Parameters to be used for the run are specified in the '.ctrl' files.
 
 Unit/Integration testing can be performed by uncommenting DTEST in the Makefile

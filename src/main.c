@@ -261,7 +261,7 @@ int main(int nargc, char **argv)
 	TestDB.Nwarnings = 0;
 
 	RunTest.unit        = 0;
-	RunTest.integration = 0;
+	RunTest.integration = 1;
 	RunTest.speed       = 0;
 
 
@@ -314,7 +314,8 @@ int main(int nargc, char **argv)
 //		PetscFinalize();
 	}
 //	test_integration_Poisson(nargc,argv);
-	test_integration_Euler(nargc,argv);
+//EXIT_BASIC;
+//	test_integration_Euler(nargc,argv);
 	PetscFinalize();
 
 

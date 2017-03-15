@@ -14,7 +14,8 @@ struct S_DB {
 	int MPIsize, MPIrank;
 
 	// Initialization
-	char         *TestCase, *MeshType, *MeshPath, *Form, *NodeType, *BasisType, *MeshFile, *Geometry;
+	char         *TestCase, *MeshType, *MeshPath, *Form, *NodeType, *BasisType, *MeshFile, *Geometry, *GeomSpecifier,
+	             *PDE, *PDESpecifier;
 	unsigned int d, ML, Vectorized, EFE, Collocated, Adapt, PGlobal, PMax, LevelsMax, Testing, *BumpOrder;
 	int          Restart;
 

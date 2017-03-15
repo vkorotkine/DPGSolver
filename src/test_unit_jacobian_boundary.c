@@ -217,8 +217,12 @@ void test_unit_jacobian_boundary(void)
 	unsigned int i, j, Nn, Nel, d, Neq, dMin[NBTypes], dMax[NBTypes];
 	double       *W, *nL, *XYZ;
 
-	DB.TestCase = malloc(STRLEN_MAX * sizeof *(DB.TestCase)); // free
-	DB.Geometry = malloc(STRLEN_MAX * sizeof *(DB.Geometry)); // free
+	DB.TestCase      = calloc(STRLEN_MAX , sizeof *(DB.TestCase));      // free
+	DB.PDE           = calloc(STRLEN_MAX , sizeof *(DB.PDE));           // free
+	DB.PDESpecifier  = calloc(STRLEN_MAX , sizeof *(DB.PDESpecifier));  // free
+	DB.Geometry      = calloc(STRLEN_MAX , sizeof *(DB.Geometry));      // free
+	DB.GeomSpecifier = calloc(STRLEN_MAX , sizeof *(DB.GeomSpecifier)); // free
+	DB.MeshFile      = calloc(STRLEN_MAX , sizeof *(DB.MeshFile));      // free
 
 	for (i = 0; i < NBTypes; i++)
 		BType[i] = malloc(STRLEN_MIN * sizeof *BType[i]); // free
@@ -230,20 +234,30 @@ void test_unit_jacobian_boundary(void)
 	strcpy(BType[4],"SupersonicIn ");
 	strcpy(BType[5],"SupersonicOut");
 
+	strcpy(DB.PDE,"Euler");
+
 	for (i = 0; i < NBTypes; i++) {
 		dMin[i] = 2; dMax[i] = 3;
-		if (strstr(BType[i],"SlipWall") ||
-		    strstr(BType[i],"Riemann")) {
-				strcpy(DB.TestCase,"SupersonicVortex");
-				initialize_test_case_parameters();
-		} else if (strstr(BType[i],"BackPressure") ||
-		           strstr(BType[i],"Total_TP")     ||
-		           strstr(BType[i],"SupersonicIn") ||
-		           strstr(BType[i],"SupersonicOut")) {
+		if (strstr(BType[i],"SlipWall") || strstr(BType[i],"Riemann")) {
+			strcpy(DB.TestCase,"SupersonicVortex");
+			strcpy(DB.PDESpecifier,"Internal");
+			strcpy(DB.Geometry,"dm1SphericalSection");
+		initialize_test_case_parameters();
+		} else if (strstr(BType[i],"BackPressure") || strstr(BType[i],"Total_TP")) {
 			strcpy(DB.TestCase,"InviscidChannel");
-			strcpy(DB.Geometry,"EllipsoidalBump");
-			initialize_test_case_parameters();
+			strcpy(DB.PDESpecifier,"InternalSubsonic");
+			strcpy(DB.Geometry,"EllipsoidalSection");
+			strcpy(DB.GeomSpecifier,"Annular/3/");
+		initialize_test_case_parameters();
+		} else if (strstr(BType[i],"SupersonicIn") || strstr(BType[i],"SupersonicOut")) {
+			strcpy(DB.TestCase,"InviscidChannel");
+			strcpy(DB.PDESpecifier,"InternalSupersonic");
+			strcpy(DB.Geometry,"EllipsoidalSection");
+			strcpy(DB.GeomSpecifier,"Annular/3/");
+		initialize_test_case_parameters();
 		}
+//		initialize_test_case_parameters();
+
 		for (d = dMin[i]; d <= dMax[i]; d++) {
 			if (strstr(BType[i],"Riemann")) {
 				for (j = 0; j < 4; j++)
@@ -278,7 +292,11 @@ void test_unit_jacobian_boundary(void)
 	}
 
 	free(DB.TestCase);
+	free(DB.PDE);
+	free(DB.PDESpecifier);
 	free(DB.Geometry);
+	free(DB.GeomSpecifier);
+	free(DB.MeshFile);
 
 	for (i = 0; i < NBTypes; i++)
 		free(BType[i]);

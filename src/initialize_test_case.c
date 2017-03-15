@@ -8,6 +8,7 @@
 #include <math.h>
 #include <string.h>
 #include <limits.h>
+#include <stdbool.h>
 
 #include "Parameters.h"
 #include "Macros.h"
@@ -110,253 +111,274 @@ static void check_levels_refine(const unsigned int indexg, struct S_VInfo **VInf
 
 void initialize_test_case_parameters(void)
 {
-	// Initialize DB Parameters
-	char         *TestCase = DB.TestCase,
-	             *Geometry = DB.Geometry;
-	unsigned int d         = DB.d;
+	char         *TestCase      = DB.TestCase,
+	             *PDE           = DB.PDE,
+	             *PDESpecifier  = DB.PDESpecifier,
+	             *Geometry      = DB.Geometry,
+	             *GeomSpecifier = DB.GeomSpecifier;
+	unsigned int d              = DB.d;
 
-	DB.Nvar = d+2; // Euler and NS Equations
-	DB.Neq  = d+2;
+	// Initialize Geometry related parameters which are used for all TestCase types
+	bool InitializedGeometry = 1;
+	if (strstr(Geometry,"GaussianBump")) {
+		DB.GBa = 0.0625;
+		DB.GBb = 0.0;
 
-	// Standard datatypes
-	char         *SolverType;
-	unsigned int SourcePresent;
-
-	if (strstr(TestCase,"Poisson")) {
-		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
-		strcpy(SolverType,"Implicit");
-		SourcePresent = 1;
-
-		if (strstr(Geometry,"dm1-Spherical_Section")) {
-			DB.rIn  = 0.5;
-			DB.rOut = 1.0;
-		} else if (strstr(Geometry,"Ellipsoidal_Section")) {
-			// These parameters must be consistent with the mesh for "ToBeCurved" meshes
-			DB.rIn  = 0.5;
-			DB.rOut = 1.0;
-
-			// These parameters must be consistent with the mesh for "Curved" meshes
-			DB.aIn  = 0.50; DB.bIn  = 0.50; DB.aOut = 1.00;
-
-//			DB.bOut = 1.00; // POISSON_SCALE = 0.5
-//			DB.bOut = 2.00; // POISSON_SCALE = 0.25
-			DB.bOut = 3.00; // POISSON_SCALE = 0.125
-
-			DB.cIn  = 1.50*DB.rIn;
-			DB.cOut = 1.50*DB.rOut;
-		} else if (strstr(Geometry,"Ringleb")) {
-			DB.Q0   = 0.5;
-			DB.KMin = 0.7;
-			DB.KMax = 1.5;
-		} else if (strstr(Geometry,"HoldenRamp")) {
-			DB.lHR = 1.0;
-//			DB.rIn = 2.54161;   // L/C ~= 1
-//			DB.rIn = 1.52613;   // L/C ~= 2
-			DB.rIn = 0.363683;  // L/C ~= 10
-//			DB.rIn = 0.0380061; // L/C ~= 100
-//			DB.rIn = 0.0038178; // L/C ~= 1000
-		} else if (strstr(Geometry,"GaussianBump")) {
-			DB.GBa = 0.0625;
-			DB.GBb = 0.0;
-			DB.GBc = 0.2/pow(2.0,1.0);
-		} else {
-			printf("Error: Unsupported.\n"), EXIT_MSG;
-		}
-
-		DB.Nvar = 1;
-		DB.Neq  = 1;
-	} else if (strstr(TestCase,"InviscidChannel")) {
-		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
-		strcpy(SolverType,"Implicit");
-		SourcePresent = 0;
-
-		// Equivalent to choosing total pressure/temperature and back pressure
-		DB.MInf   = 0.10;
-		DB.rhoInf = 1.0;
-		DB.pInf   = 1.0;
-		DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
-
-		// Initialized for Testing
-		DB.p_Total = 1.0;
-		DB.T_Total = 1.0;
-		DB.Rg      = 1.0;
-		DB.pBack   = 0.99*DB.p_Total;
-
-		if (strstr(Geometry,"GaussianBump")) {
-			unsigned int BumpFactor = 3;
-
-			DB.GBb = 0.0;
-//			DB.GBa = 0.0625;
-//			DB.GBc = 0.2/pow(2.0,BumpFactor);
-			DB.GBa = 0.0625/pow(2.0,BumpFactor);
-			DB.GBc = sqrt(1.5*DB.GBa);
-		} else if (strstr(Geometry,"NacaSymmetric")) {
-			double r = 0.25;
-
-			DB.NSc = 1.0;
-			DB.NSt = DB.NSc*sqrt(r)/1.1019;
-			DB.NS0 =  0.2969;
-			DB.NS1 = -0.1260;
-			DB.NS2 = -0.3516;
-			DB.NS3 =  0.2843;
-			DB.NS4 = -0.1036;
-		} else if (strstr(Geometry,"EllipsoidalBump")) {
-			DB.aIn = 0.5;
-			if (strstr(DB.MeshFile,"3")) {
-				DB.bIn = DB.aIn/3.0;
-			} else {
-				printf("Error: Unsupported.\n"), EXIT_MSG;
-			}
-		} else if (strstr(Geometry,"JoukowskiSymmetric")) {
-			double a, l, t;
-			a = 1.0;
-//			l = a/1.00; // MInf = 0.20
-			l = a/2.25; // MInf = 0.25
-			t = PI;
-
-			double l2, l3, cost2;
-			l2    = pow(l,2.0);
-			l3    = pow(l,3.0);
-			cost2 = pow(cos(t),2.0);
-
-			DB.JSxL = -2.0*a*(l3+(l3+2.0*l2+l)*cost2+l2-(2.0*l3+3.0*l2+2.0*l+1.0)*cos(t)+l)/
-			          (2.0*l2-2.0*(l2+l)*cos(t)+2.0*l+1.0);
-			DB.JSa = a;
-			DB.JSl = l;
-		} else {
-			printf("Error: Unsupported.\n"), EXIT_MSG;
-		}
-	} else if (strstr(TestCase,"SubsonicNozzle")) {
-		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
-		strcpy(SolverType,"Implicit");
-		SourcePresent = 0;
-
-		if (strstr(Geometry,"Ellipsoidal_Section")) {
-			// These parameters must be consistent with the mesh for "ToBeCurved" meshes
-//			DB.rIn  = 1.0;
-//			DB.rOut = 1.384;
-			DB.rIn  = 0.50;
-			DB.rOut = 1.00;
-
-			// These parameters must be consistent with the mesh for "Curved" meshes
-//			DB.aIn  = 1.00;  DB.bIn  = 1.00;
-//			DB.aOut = 1.384; DB.bOut = 1.384;
-			DB.aIn  = 0.50; DB.bIn  = 0.50;
-			DB.aOut = 1.00; DB.bOut = 3.00;
-		} else if (strstr(Geometry,"EllipsoidalBump")) {
-			DB.aIn = 0.5;
-			if (strstr(DB.MeshFile,"3")) {
-				DB.bIn = DB.aIn/3.0;
-			} else {
-				printf("Error: Unsupported.\n"), EXIT_MSG;
-			}
-		} else if (strstr(Geometry,"GaussianBump")) {
-			DB.GBa = 0.0625;
-			DB.GBb = 0.0;
-
-			if      (strstr(DB.MeshFile,"/0/"))   DB.GBc = 0.2/pow(2.0,0.0);
-			else if (strstr(DB.MeshFile,"/0-5/")) DB.GBc = 0.2/pow(2.0,0.5);
-			else if (strstr(DB.MeshFile,"/1/"))   DB.GBc = 0.2/pow(2.0,1.0);
-			else
-				printf("Error: Unsupported.\n"), EXIT_MSG;
-		} else {
-			printf("Error: Unsupported.\n"), EXIT_MSG;
-		}
-
-		char *MeshFile = DB.MeshFile;
-		if (strstr(MeshFile,"Supersonic")) {
-			DB.rhoInf = 1.0;
-			DB.pInf   = 1.0;
-			DB.MInf   = 1.10;
-			DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
-		} else if (strstr(MeshFile,"Subsonic")) {
-			DB.MInf    = 0.0;
-			DB.p_Total = 1.0;
-			DB.T_Total = 1.0;
-			DB.Rg      = 1.0;
-			DB.pBack   = 0.99*DB.p_Total;
-
-			DB.rhoInf = DB.p_Total/(DB.Rg*DB.T_Total);
-			DB.pInf   = DB.p_Total;
-
-			DB.MInf   = 0.0*sqrt(2.0/GM1*(pow((DB.pBack/DB.p_Total),-GM1/GAMMA)-1.0));
-			DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
-		} else {
-			printf("Error: Unsupported.\n"), EXIT_MSG;
-		}
-	} else if (strstr(TestCase,"PeriodicVortex")) {
-		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
-		strcpy(SolverType,"Explicit");
-		SourcePresent = 0;
-
-//		DB.Xc = -DB.PeriodL*0.05;
-		DB.Xc =  0.0;
-		DB.Yc =  0.0;
-		DB.Rc =  0.2;
-//		DB.PeriodFraction = 0.5;
-		DB.PeriodFraction = 1.0;
-
-		DB.MInf = 0.5;
-//		DB.MInf = 0.0;
-		DB.pInf = 1.0;
-		DB.TInf = 1.0;
-		DB.Rg   = 1.0;
-
-		DB.Cscale = 0.1;
-
-		DB.uInf   = DB.MInf*sqrt(GAMMA*DB.Rg*DB.TInf);
-		DB.vInf   = 0.1*EPS;
-		DB.wInf   = 0.1*EPS;
-		DB.VInf   = sqrt(DB.uInf*DB.uInf+DB.vInf*DB.vInf+DB.wInf*DB.wInf);
-
-		if (fabs(DB.VInf) < 10*EPS)
-			DB.FinalTime = 0.3;
+		double BExp = 0.0;
+		if      (strstr(GeomSpecifier,"/0/"))   BExp = 0.0;
+		else if (strstr(GeomSpecifier,"/0-5/")) BExp = 0.5;
+		else if (strstr(GeomSpecifier,"/1/"))   BExp = 1.0;
 		else
-			DB.FinalTime = DB.PeriodFraction*DB.PeriodL/DB.VInf;
-	} else if (strstr(TestCase,"SupersonicVortex")) {
-		// Standard datatypes
-		double pIn, cIn;
+			EXIT_UNSUPPORTED;
 
-		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
-//		strcpy(SolverType,"Explicit");
-		strcpy(SolverType,"Implicit");
-		SourcePresent = 0;
+		DB.GBc = 0.2/pow(2.0,BExp);
+	} else if (strstr(Geometry,"Ringleb")) {
+		DB.Q0   = 0.5;
+		DB.KMin = 0.7;
+		DB.KMax = 1.5;
+	} else if (strstr(Geometry,"NacaSymmetric")) {
+		double r = 0.25;
 
-		DB.rIn  = 1.0;
-		DB.rOut = 1.384;
+		DB.NSc = 1.0;
+		DB.NSt = DB.NSc*sqrt(r)/1.1019;
+		DB.NS0 =  0.2969;
+		DB.NS1 = -0.1260;
+		DB.NS2 = -0.3516;
+		DB.NS3 =  0.2843;
+		DB.NS4 = -0.1036;
+	} else if (strstr(Geometry,"JoukowskiSymmetric")) {
+		double a, l, t;
+		a = 1.0;
 
-		DB.MIn = 2.25;
+		double ratio = 0.0;
+		if      (strstr(GeomSpecifier,"/1/"))    ratio = 1.0;
+		else if (strstr(GeomSpecifier,"/2-25/")) ratio = 2.25;
+		else
+			EXIT_UNSUPPORTED;
 
-		DB.rhoIn = 1.0;
-		pIn   = pow(DB.rhoIn,GAMMA)/GAMMA;
+//			l = a/1.00; // MInf = 0.20
+//			l = a/2.25; // MInf = 0.25
+		l = a/ratio;
+		t = PI;
 
-		cIn = sqrt(GAMMA*pIn/DB.rhoIn);
-		DB.VIn = cIn*DB.MIn*DB.rIn;
-	} else if (strstr(TestCase,"PrandtlMeyer")) {
-		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
-		strcpy(SolverType,"Implicit");
-		SourcePresent = 0;
+		double l2, l3, cost2;
+		l2    = pow(l,2.0);
+		l3    = pow(l,3.0);
+		cost2 = pow(cos(t),2.0);
 
-		double l = 1.0, cIn;
+		DB.JSxL = -2.0*a*(l3+(l3+2.0*l2+l)*cost2+l2-(2.0*l3+3.0*l2+2.0*l+1.0)*cos(t)+l)/
+		          (2.0*l2-2.0*(l2+l)*cos(t)+2.0*l+1.0);
+		DB.JSa = a;
+		DB.JSl = l;
+	} else if (strstr(Geometry,"HoldenRamp")) {
+		// Current not used.
+		printf("Warning: Ensure correct implementation before using.\n"), EXIT_MSG;
 
-		DB.aIn = 2.0*l;
-		DB.bIn = l;
+		DB.lHR = 1.0;
 
-		DB.MIn   = 1.41421356237;
-		DB.rhoIn = 1.0;
-		DB.pIn   = 1.0;
-
-		cIn = sqrt(GAMMA*DB.pIn/DB.rhoIn);
-		DB.VIn = cIn*DB.MIn;
+		printf("Error: Update this to depend on GeomSpecifier.\n"), EXIT_MSG;
+//		DB.rIn = 2.54161;   // L/C ~= 1
+//		DB.rIn = 1.52613;   // L/C ~= 2
+		DB.rIn = 0.363683;  // L/C ~= 10
+//		DB.rIn = 0.0380061; // L/C ~= 100
+//		DB.rIn = 0.0038178; // L/C ~= 1000
 	} else {
-		printf("Error: Unsupported TestCase: %s.\n",TestCase), EXIT_MSG;
+		InitializedGeometry = 0;
 	}
 
-	if (strstr(SolverType,"Implicit"))
-		DB.FinalTime  = 1e10;
+	DB.SolverType = malloc(STRLEN_MIN * sizeof *(DB.SolverType)); // keep
+	if (strstr(PDE,"Poisson")) {
+		DB.Nvar = 1;
+		DB.Neq  = 1;
 
-	DB.SolverType    = SolverType;
-	DB.SourcePresent = SourcePresent;
+		DB.SourcePresent = 1;
+		strcpy(DB.SolverType,"Implicit");
+
+		if (!InitializedGeometry) {
+			if (strstr(Geometry,"dm1SphericalSection")) {
+				DB.rIn  = 0.5;
+				DB.rOut = 1.0;
+			} else if (strstr(Geometry,"EllipsoidalSection")) {
+				// These parameters must be consistent with the mesh for "ToBeCurved" meshes
+				DB.rIn  = 0.5;
+				DB.rOut = 1.0;
+
+				DB.aIn  = 0.50; DB.bIn  = 0.50; DB.aOut = 1.00;
+
+				if      (strstr(GeomSpecifier,"/1/")) DB.bOut = 1.0; // POISSON_SCALE = 0.5
+				else if (strstr(GeomSpecifier,"/2/")) DB.bOut = 2.0; // POISSON_SCALE = 0.25
+				else if (strstr(GeomSpecifier,"/3/")) DB.bOut = 3.0; // POISSON_SCALE = 0.125
+				else
+					EXIT_UNSUPPORTED;
+				printf("Error: Make POISSON_SCALE a stored variable in DB.\n"), EXIT_MSG;
+
+				DB.cIn  = 1.50*DB.rIn;
+				DB.cOut = 1.50*DB.rOut;
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		}
+	} else if (strstr(PDE,"Euler")) {
+		DB.Nvar = d+2;
+		DB.Neq  = d+2;
+
+		DB.SourcePresent = 0;
+
+		if (strstr(PDESpecifier,"Periodic")) {
+			if (strstr(TestCase,"Vortex")) {
+				strcpy(DB.SolverType,"Explicit");
+
+				DB.Xc =  0.0;
+				DB.Yc =  0.0;
+				DB.Rc =  0.2;
+
+				// Based on Rc (ToBeDeleted)
+				printf("Error: Ensure that vortex strength decays to machine precision at the boundary.\n"), EXIT_MSG;
+
+				DB.pInf = 1.0;
+				DB.TInf = 1.0;
+				DB.Rg   = 1.0;
+
+				DB.Cscale = 0.1;
+
+				if (strstr(TestCase,"Stationary")) {
+					DB.MInf = 0.0;
+				} else {
+					DB.MInf = 0.5;
+				}
+
+				DB.uInf   = DB.MInf*sqrt(GAMMA*DB.Rg*DB.TInf);
+				DB.vInf   = 1e-1*EPS;
+				DB.wInf   = 1e-1*EPS;
+				DB.VInf   = sqrt(DB.uInf*DB.uInf+DB.vInf*DB.vInf+DB.wInf*DB.wInf);
+
+				if (strstr(TestCase,"Stationary")) {
+					// Use FinalTime related to moving vortex case.
+					DB.PeriodFraction = 0.0;
+					DB.FinalTime      = 0.0;
+					printf("Use FinalTime from moving case.\n"), EXIT_MSG;
+				} else {
+					DB.PeriodFraction = 1.0;
+					DB.FinalTime      = DB.PeriodFraction*DB.PeriodL/DB.VInf;
+				}
+
+				printf("Error: Set timestep here and store in DB.\n"), EXIT_MSG;
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else if (strstr(PDESpecifier,"Internal")) {
+			if (!InitializedGeometry) {
+				if (strstr(Geometry,"dm1SphericalSection")) {
+					DB.rIn  = 1.0;
+					DB.rOut = 1.384;
+				} else if (strstr(Geometry,"EllipsoidalSection")) {
+					if (strstr(GeomSpecifier,"Annular")) {
+						// These parameters must be consistent with the mesh for "ToBeCurved" meshes
+						DB.rIn  = 0.50;
+						DB.rOut = 1.00;
+
+						// These parameters must be consistent with the mesh for "Curved" meshes
+						DB.aIn  = 0.50; DB.bIn  = 0.50; DB.aOut = 1.00;
+
+						if      (strstr(GeomSpecifier,"/1/")) DB.bOut = 1.0;
+						else if (strstr(GeomSpecifier,"/2/")) DB.bOut = 2.0;
+						else if (strstr(GeomSpecifier,"/3/")) DB.bOut = 3.0;
+						else
+							EXIT_UNSUPPORTED;
+					} else {
+						DB.aIn = 0.5;
+						double ratio = 0.0;
+						if (strstr(GeomSpecifier,"/3/")) ratio = 3.0;
+						else
+							EXIT_UNSUPPORTED;
+
+						DB.bIn = DB.aIn/ratio;
+						DB.cIn = DB.aIn;
+					}
+				} else {
+					EXIT_UNSUPPORTED;
+				}
+			}
+
+			strcpy(DB.SolverType,"Implicit");
+			if (strstr(TestCase,"SupersonicVortex")) {
+				DB.MIn   = 2.25;
+				DB.rhoIn = 1.0;
+
+				double pIn, cIn;
+				pIn = pow(DB.rhoIn,GAMMA)/GAMMA;
+				cIn = sqrt(GAMMA*pIn/DB.rhoIn);
+
+				DB.VIn = cIn*DB.MIn*DB.rIn;
+
+//				printf("Add documentation.\n"), EXIT_BASIC;
+			} else if (strstr(TestCase,"InviscidChannel")) {
+				if (strstr(PDESpecifier,"Supersonic")) {
+					DB.rhoInf = 1.0;
+					DB.pInf   = 1.0;
+					DB.MInf   = 1.01;
+					DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
+				} else if (strstr(PDESpecifier,"Subsonic")) {
+					DB.MInf    = 0.0;
+					DB.p_Total = 1.0;
+					DB.T_Total = 1.0;
+					DB.Rg      = 1.0;
+					DB.pBack   = 0.99*DB.p_Total;
+
+					DB.rhoInf = DB.p_Total/(DB.Rg*DB.T_Total);
+					DB.pInf   = DB.p_Total;
+
+					DB.MInf   = 0.0*sqrt(2.0/GM1*(pow((DB.pBack/DB.p_Total),-GM1/GAMMA)-1.0));
+					DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
+				} else {
+					EXIT_UNSUPPORTED;
+				}
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else if (strstr(PDESpecifier,"External")) {
+			if (strstr(TestCase,"PrandtlMeyer")) {
+				strcpy(DB.SolverType,"Implicit");
+
+				double l = 1.0, cIn;
+
+				DB.aIn = 2.0*l;
+				DB.bIn = l;
+
+				// Compute at a reasonable angle (15 degrees) and then a 90 degree angle in preparation for ellipse.
+				// ToBeDeleted
+				printf("Error: Add dependence on GeomSpecifier.\n"), EXIT_MSG;
+				DB.MIn   = 1.41421356237;
+				DB.rhoIn = 1.0;
+				DB.pIn   = 1.0;
+
+				cIn = sqrt(GAMMA*DB.pIn/DB.rhoIn);
+				DB.VIn = cIn*DB.MIn;
+
+				// See: http://www.potto.org/fluidMech/2Dgd2.php
+//				printf("Add documentation.\n"), EXIT_BASIC;
+			} else {
+				DB.MInf   = 0.10;
+				DB.rhoInf = 1.0;
+				DB.pInf   = 1.0;
+				DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
+// ToBeDeleted
+//// Initialized for Testing
+//DB.p_Total = 1.0;
+//DB.T_Total = 1.0;
+//DB.Rg      = 1.0;
+//DB.pBack   = 0.99*DB.p_Total;
+				EXIT_UNSUPPORTED;
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else if (strstr(PDE,"NavierStokes")) {
+		printf("Add support.\n"), EXIT_MSG;
+	}
+
+	if (strstr(DB.SolverType,"Implicit"))
+		DB.FinalTime = 1e10;
 }
 
 static void compute_gradient_polynomial(struct S_VOLUME *VOLUME)
@@ -687,12 +709,11 @@ static void compute_uniform_solution(const unsigned int Nn, const double *XYZ, d
 			U[4*Nn+n] = pInf;
 		}
 	} else if (strstr(TestCase,"SubsonicNozzle")) {
-		char *MeshFile = DB.MeshFile;
 
 		if (d == 3)
 			printf("Add support.\n"), EXIT_MSG;
 
-		if (strstr(MeshFile,"Subsonic")) {
+		if (strstr(DB.PDESpecifier,"Subsonic")) {
 			for (n = 0; n < Nn; n++) {
 				U[0*Nn+n] = DB.rhoInf;
 				U[1*Nn+n] = 0.0;
@@ -700,7 +721,7 @@ static void compute_uniform_solution(const unsigned int Nn, const double *XYZ, d
 				U[3*Nn+n] = 0.0;
 				U[4*Nn+n] = DB.pInf;
 			}
-		} else if (strstr(MeshFile,"Supersonic")) {
+		} else if (strstr(DB.PDESpecifier,"Supersonic")) {
 			// Define the initial solution such that the velocity vector points in approximately the correct direction.
 			const double *X, *Y;
 

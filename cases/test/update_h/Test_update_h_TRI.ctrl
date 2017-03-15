@@ -1,27 +1,27 @@
 PDEName       Euler
-PDESpecifier  Subsonic
+PDESpecifier  Periodic
 
-Geometry      GaussianBump
-GeomSpecifier 0-5
+Geometry      dCube
+GeomSpecifier Test
 
 Dimension     2
 
 MeshPath      ../meshes/
-MeshType      CurvedQUAD
+MeshType      TRI
 MeshLevel     0
 
 Form       Weak   // Options: Weak, (Strong)
-NodeType   GL-WSH // Options: GL/GLL-AO/WSH/EQ
+NodeType   GL-AO // Options: GL/GLL-AO/WSH/EQ
 BasisType  Nodal  // Options: Nodal, Modal
 
 Vectorized 0     // Options: 0, 1
 EFE        1     // Options: (0), 1
 Collocated 0     // Options: 0, 1
-Adapt      3     // Options: 0, 1, 2, (3)
+Adapt      2     // Options: 0, 1, 2, (3)
 
 PGlobal    2
-PMax       8
-LevelsMax  6
+PMax       3
+LevelsMax  5
 
 Restart    -1    // Options: -1, 0, Iteration #
 

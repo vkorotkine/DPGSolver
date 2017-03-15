@@ -60,13 +60,18 @@ void test_unit_equivalence_real_complex(void)
 	printf("\nWarning: Ensure that tests for real/complex equivalence for all relevant functions are implemented.\n\n");
 	TestDB.Nwarnings++;
 
-	char         *TestCase;
 	unsigned int Nn, Nel, d, Neq;
 	double       *W, *nL, *XYZ;
 
-	TestCase = malloc(STRLEN_MAX * sizeof *TestCase); // free
-	strcpy(TestCase,"SupersonicVortex");
-	DB.TestCase = TestCase;
+	DB.TestCase     = calloc(STRLEN_MAX , sizeof *(DB.TestCase));     // free
+	DB.PDE          = calloc(STRLEN_MAX , sizeof *(DB.PDE));          // free
+	DB.PDESpecifier = calloc(STRLEN_MAX , sizeof *(DB.PDESpecifier)); // free
+	DB.Geometry     = calloc(STRLEN_MAX , sizeof *(DB.Geometry));     // free
+
+	strcpy(DB.TestCase,"SupersonicVortex");
+	strcpy(DB.PDE,"Euler");
+	strcpy(DB.PDESpecifier,"Internal");
+	strcpy(DB.Geometry,"dm1SphericalSection");
 
 	initialize_test_case_parameters();
 
@@ -116,6 +121,9 @@ void test_unit_equivalence_real_complex(void)
 	}
 
 	free(DB.TestCase);
+	free(DB.PDE);
+	free(DB.PDESpecifier);
+	free(DB.Geometry);
 	free(DB.SolverType);
 }
 
