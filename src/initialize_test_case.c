@@ -183,7 +183,8 @@ void initialize_test_case_parameters(void)
 //		DB.rIn = 0.0380061; // L/C ~= 100
 //		DB.rIn = 0.0038178; // L/C ~= 1000
 	} else {
-		InitializedGeometry = 0;
+		if (strstr(DB.MeshType,"Curved"))
+			InitializedGeometry = 0;
 	}
 
 	DB.SolverType = malloc(STRLEN_MIN * sizeof *(DB.SolverType)); // keep
@@ -598,8 +599,6 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 			}
 		} else if (strstr(TestCase,"Poisson")) {
 			// Initializing with the L2 projection (Update other TestCases above), ToBeModified
-			adapt_count = adapt_update_MAX; // No need for updating
-
 			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 				init_ops(OPS,VOLUME);
 
@@ -999,12 +998,14 @@ static void adapt_initial(unsigned int *adapt_update)
 	}
 
 	// Mark VOLUMEs for refinement (No limits on refinement)
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		indexg = VOLUME->indexg;
+	if (!strstr(DB.PDE,"Poisson")) {
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			indexg = VOLUME->indexg;
 
-		VInfo = VInfo_list[indexg];
-		if (VInfo->L2s > REFINE_TOL)
-			check_levels_refine(indexg,VInfo_list,VInfo->adapt_class);
+			VInfo = VInfo_list[indexg];
+			if (VInfo->L2s > REFINE_TOL)
+				check_levels_refine(indexg,VInfo_list,VInfo->adapt_class);
+		}
 	}
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -1016,6 +1017,8 @@ static void adapt_initial(unsigned int *adapt_update)
 			if (Adapt == ADAPT_P)
 				VOLUME->adapt_type = PREFINE;
 			else if (Adapt == ADAPT_H)
+				VOLUME->adapt_type = HREFINE;
+			else if (Adapt == ADAPT_HP) // Default to h-refinement for the time being. (ToBeModified)
 				VOLUME->adapt_type = HREFINE;
 			else
 				printf("Error: Unsupported Adapt = %d.\n",Adapt), EXIT_MSG;

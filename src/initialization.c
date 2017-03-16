@@ -120,6 +120,9 @@ void initialization(int nargc, char **argv)
 	DB.MeshPath      = calloc(STRLEN_MAX , sizeof *(DB.MeshPath));      // keep
 	DB.MeshType      = calloc(STRLEN_MIN , sizeof *(DB.MeshType));      // keep
 
+	char *MeshCurving;
+	MeshCurving      = calloc(STRLEN_MIN , sizeof *(MeshCurving));      // free
+
 	DB.Form      = calloc(STRLEN_MIN , sizeof *(DB.Form));      // keep
 	DB.NodeType  = calloc(STRLEN_MIN , sizeof *(DB.NodeType));  // keep
 	DB.BasisType = calloc(STRLEN_MIN , sizeof *(DB.BasisType)); // keep
@@ -152,6 +155,7 @@ void initialization(int nargc, char **argv)
 
 		if (strstr(StringRead,"MeshPath"))      sscanf(StringRead,"%s %s",dummys,DB.MeshPath);
 		if (strstr(StringRead,"MeshType"))      sscanf(StringRead,"%s %s",dummys,DB.MeshType);
+		if (strstr(StringRead,"MeshCurving"))   sscanf(StringRead,"%s %s",dummys,MeshCurving);
 		if (strstr(StringRead,"MeshLevel"))     sscanf(StringRead,"%s %d",dummys,&DB.ML);
 
 		if (strstr(StringRead,"Form"))       sscanf(StringRead,"%s %s",dummys,DB.Form);
@@ -178,6 +182,12 @@ void initialization(int nargc, char **argv)
 	free(dummys);
 	fclose(fID);
 
+	if (!strstr(MeshCurving,"Straight")) {
+		strcat(MeshCurving,DB.MeshType);
+		strcpy(DB.MeshType,MeshCurving);
+	}
+	free(MeshCurving);
+
 	// Set up MeshFile
 	DB.MeshFile = calloc(STRLEN_MAX , sizeof *(DB.MeshFile)); // keep
 
@@ -201,8 +211,6 @@ void initialization(int nargc, char **argv)
 	strcat(DB.MeshFile,strcat(d,"D_"));
 	strcat(DB.MeshFile,DB.MeshType);
 	strcat(DB.MeshFile,strcat(ML,"x.msh"));
-printf("Initialization.\n");
-printf("i: %s\n%s\n%s\n%s\n%s\n\n",DB.Geometry,DB.PDE,DB.PDESpecifier,DB.GeomSpecifier,DB.MeshFile);
 
 	free(d);
 	free(ML);

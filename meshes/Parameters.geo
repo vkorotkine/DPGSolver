@@ -10,6 +10,32 @@
 lc = 1.0;
 
 
+// Element types (Gmsh convention)
+POINT = 15;
+LINE  = 1;
+TRI   = 2;
+QUAD  = 3;
+TET   = 4;
+HEX   = 5;
+WEDGE = 6;
+PYR   = 7;
+
+
+// PDE Names
+POISSON = 0;
+EULER   = 1;
+
+
+// PDE Specifiers
+PERIODIC = 0;
+
+
+// MeshCurving Specifiers
+STRAIGHT   = 0;
+CURVED     = 1;
+TOBECURVED = 2;
+
+
 // Boundary conditions
 BC_STEP_SC      = 10000;
 BC_PERIODIC_MIN = 50;
@@ -38,14 +64,3 @@ BC_SUPERSONIC_OUT = 6;
 
 BC_DIRICHLET    = 11;
 BC_NEUMANN      = 12;
-
-
-// Element types (Gmsh convention)
-POINT = 15;
-LINE  = 1;
-TRI   = 2;
-QUAD  = 3;
-TET   = 4;
-HEX   = 5;
-WEDGE = 6;
-PYR   = 7;

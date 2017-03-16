@@ -44,12 +44,24 @@
 
 static void update_TestCase(void)
 {
+	/*
+	 *	Comments:
+	 *		Appending '_Test' for certain integration test cases is necessary to allow for the mesh refinement in
+	 *		adapt_initial to proceed for all VOLUMEs.
+	 */
+
 	if (strstr(DB.TestCase,"Poisson_Ringleb")               ||
 	    strstr(DB.TestCase,"Poisson_dm1-Spherical_Section") ||
 	    strstr(DB.TestCase,"Poisson_Ellipsoidal_Section")   ||
 	    strstr(DB.TestCase,"Poisson_HoldenRamp")            ||
 	    strstr(DB.TestCase,"Poisson_GaussianBump")) {
 		strcpy(DB.TestCase,"Poisson");
+	} else if (strstr(DB.TestCase,"update_h") ||
+	           strstr(DB.TestCase,"L2_proj")) {
+		strcpy(DB.TestCase,"Poisson_Test");
+	} else if (strstr(DB.TestCase,"linearization")) {
+		strcpy(DB.TestCase,"SupersonicVortex_Test");
+//		strcpy(DB.Geometry,"Annular_Section");
 	} else if (strstr(DB.TestCase,"Euler")) {
 		if (strstr(DB.Geometry,"Ellipsoidal_Section") ||
 		    strstr(DB.Geometry,"GaussianBump") ||
@@ -59,13 +71,6 @@ static void update_TestCase(void)
 			strcpy(DB.TestCase,"PrandtlMeyer");
 		else
 			strcpy(DB.TestCase,"InviscidChannel");
-	} else if (strstr(DB.TestCase,"L2_proj") ||
-	           strstr(DB.TestCase,"update_h")) {
-		strcpy(DB.TestCase,"PeriodicVortex_Test");
-		strcpy(DB.Geometry,"PeriodicVortex"); // ToBeModified: Rename this.
-	} else if (strstr(DB.TestCase,"linearization")) {
-		strcpy(DB.TestCase,"SupersonicVortex_Test");
-		strcpy(DB.Geometry,"Annular_Section");
 	} else {
 		printf("%s\n",DB.TestCase);
 		printf("Error: Unsupported.\n"), EXIT_MSG;
@@ -139,7 +144,6 @@ void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, co
 
 		// Initialization
 		initialization(nargc,argv);
-printf("csmp: %s\n",DB.TestCase);
 		update_TestCase();
 		if (update_argv) {
 			DB.PGlobal = TestDB.PGlobal;

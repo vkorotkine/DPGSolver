@@ -24,6 +24,7 @@
 #include "adaptation.h"
 #include "element_functions.h"
 #include "matrix_functions.h"
+#include "output_to_paraview.h"
 
 /*
  *	Purpose:
@@ -145,8 +146,6 @@ void test_integration_update_h(int nargc, char **argv)
 	Lmts[2]->XYZ[0] = -0.50; Lmts[2]->XYZ[1] = -0.50; Lmts[2]->type = 'd'; Lmts[2]->index = 0;
 	Lmts[3]->XYZ[0] =  0.00; Lmts[3]->XYZ[1] =  0.00; Lmts[3]->type = 'o'; Lmts[3]->index = 1;
 	test_update_h(nargc,argvNew,2,0,EName,Lmts);
-
-	printf("Change the .geo file such that periodic BCs are used.\n"), EXIT_BASIC;
 
 	// **************************************************************************************************** //
 	// QUADs
@@ -375,7 +374,8 @@ static void check_correspondence(unsigned int *pass)
 		}
 
 		BC = FACE->BC;
-		FACE_is_internal = (BC == 0 || (BC % BC_STEP_SC > 50));
+//		FACE_is_internal = (BC == 0 || (BC % BC_STEP_SC > 50));
+		FACE_is_internal = (BC == 0); // Not including periodic faces
 
 		if (FACE_is_internal && (array_norm_diff_d(NfnS*d,XYZ_fSIn,XYZ_fSOutIn,"Inf")  > 10*EPS ||
 		                          array_norm_diff_d(NfnS*d,XYZ_fSInOut,XYZ_fSOut,"Inf") > 10*EPS)) {
@@ -387,19 +387,19 @@ static void check_correspondence(unsigned int *pass)
 					vhIn++;
 
 				vhOut = 0;
-				for (VOLUMEc = FACE->VOut->parent->child0; VOLUMEc != FACE->VOut; VOLUMEc = VOLUMEc->next)
+				for (VOLUMEc = FACE->VOut->parent->child0; VOLUMEc != FACE->VOut ; VOLUMEc = VOLUMEc->next)
 					vhOut++;
 
-printf("%d %d %d %d %d\n",FACE->indexg,FACE->IndOrdInOut,FACE->IndOrdOutIn,vhIn,vhOut);
-printf("%d %d %d %d\n",FACE->VIn->type,FACE->VIn->indexg,FACE->VfIn,FACE->VIn->level);
-printf("%d %d %d %d\n",FACE->VOut->type,FACE->VOut->indexg,FACE->VfOut,FACE->VOut->level);
+				printf("%d %d %d %d %d\n",FACE->indexg,FACE->IndOrdInOut,FACE->IndOrdOutIn,vhIn,vhOut);
+				printf("%d %d %d %d\n",FACE->VIn->type,FACE->VIn->indexg,FACE->VfIn,FACE->VIn->level);
+				printf("%d %d %d %d\n",FACE->VOut->type,FACE->VOut->indexg,FACE->VfOut,FACE->VOut->level);
 				printf("Errors: %e %e\n\n",array_norm_diff_d(NfnS*d,XYZ_fSIn,XYZ_fSOutIn,"Inf"),
 		                                   array_norm_diff_d(NfnS*d,XYZ_fSInOut,XYZ_fSOut,"Inf"));
 				array_print_d(NfnS,d,XYZ_fSIn,'C');
 				array_print_d(NfnS,d,XYZ_fSOutIn,'C');
 				array_print_d(NfnS,d,XYZ_fSOut,'C');
 				array_print_d(NfnS,d,XYZ_fSInOut,'C');
-EXIT_MSG;
+				EXIT_MSG;
 				break;
 		}
 
