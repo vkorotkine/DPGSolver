@@ -23,6 +23,8 @@
 #define EXIT_MSG         ({ printf("\n\nFILE: %s, FUNCTION: %s (LINE: %d)\n\n\n",__FILE__,__func__,__LINE__); int *EXIT_VAR = NULL; free(EXIT_VAR); printf("Error: %d\n",EXIT_VAR[1]); exit(1); })
 #define EXIT_BASIC       ({ printf("\n\nFILE: %s, FUNCTION: %s (LINE: %d)\n\n\n",__FILE__,__func__,__LINE__); exit(1); })
 #define EXIT_UNSUPPORTED ({printf("Error: Unsupported.\n"), EXIT_MSG; })
+#define PRINT_FILELINE   ({ printf("\n\nFILE: %s, FUNCTION: %s (LINE: %d)\n\n\n",__FILE__,__func__,__LINE__); })
+#define EXIT_UNSUPPORTED ({printf("Error: Unsupported.\n"), EXIT_MSG; })
 
 
 #endif // DPG__Macros_h__INCLUDED

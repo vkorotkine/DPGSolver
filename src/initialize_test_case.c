@@ -230,10 +230,10 @@ void initialize_test_case_parameters(void)
 
 				DB.Xc =  0.0;
 				DB.Yc =  0.0;
-				DB.Rc =  0.2;
+				DB.Rc =  0.1;
 
 				// Based on Rc (ToBeDeleted)
-				printf("Error: Ensure that vortex strength decays to machine precision at the boundary.\n"), EXIT_MSG;
+				printf("Warning: Ensure that vortex strength decays to machine precision at the boundary.\n"), PRINT_FILELINE;
 
 				DB.pInf = 1.0;
 				DB.TInf = 1.0;
@@ -262,7 +262,7 @@ void initialize_test_case_parameters(void)
 					DB.FinalTime      = DB.PeriodFraction*DB.PeriodL/DB.VInf;
 				}
 
-				printf("Error: Set timestep here and store in DB.\n"), EXIT_MSG;
+				printf("Warning: Set timestep here and store in DB.\n"), PRINT_FILELINE;
 			} else {
 				EXIT_UNSUPPORTED;
 			}
