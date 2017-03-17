@@ -15,7 +15,7 @@
 # $ make clean_test
 # $ make clean_exec
 
-# C standard and compiler
+# C standard
 CSTD := -std=c99
 
 # Options
@@ -221,20 +221,48 @@ directories:
 #	mkdir -p meshes/Test
 	@echo
 
+.PHONY : meshes
 
-.PHONY : clean
+# Python compiler
+PYTHONC := python3
+
+MAIN_CONFIGURATIONS := Euler
+TEST_CONFIGURATIONS := update_h linearization L2_proj Poisson Euler
+
+MAIN_CONFIGURATIONS := $(addprefix main/,$(MAIN_CONFIGURATIONS))
+TEST_CONFIGURATIONS := $(addprefix test/,$(TEST_CONFIGURATIONS))
+
+CTRLDIR := cases/control_files
+
+CONFIGURATIONS := $(addprefix $(CTRLDIR)/,$(MAIN_CONFIGURATIONS) $(TEST_CONFIGURATIONS))
+CONTROL_FILES := $(shell find $(CTRLDIR) -name '*.ctrl')
+
+
+meshes:
+	@clear
+	@clear
+	@echo 
+	@echo Creating MeshVariables file based on existing .ctrl files.
+	@$(PYTHONC) python/update_MeshVariables.py $(CONFIGURATIONS)
+	@echo 
+#	$(MAKE) -C meshes test
+
+$(CTRLDIR)/MeshVariables : $(CONTROL_FILES)
+
+
+
+
+# Cleaning
+.PHONY : clean clean_test clean_code clean_exec
 clean:
 	rm $(EXECUTABLE) $(OBJECTS) $(DEPENDS)
 
-.PHONY : clean_test
 clean_test:
 	rm $(OBJDIR)/test* $(DEPDIR)/test*
 
-.PHONY : clean_code
 clean_code:
 	find $(OBJDIR)/ -type f -not -name 'test*' -delete
 	find $(DEPDIR)/ -type f -not -name 'test*' -delete
 
-.PHONY : clean_exec
 clean_exec:
 	rm $(OBJDIR)/main.o $(DEPDIR)/main.d

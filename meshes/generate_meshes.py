@@ -1,4 +1,14 @@
+'''
+	*** IMPORTANT ***   *** IMPORTANT ***   *** IMPORTANT ***   
+
+	This script must be run using the Makefile such that the .pyc file is updated whenever this .py file is modified.
+	Otherwise, changes made here will not affect how meshes are generated.
+
+	*** IMPORTANT ***   *** IMPORTANT ***   *** IMPORTANT ***   
+'''
+
 import sys
+import traceback
 import subprocess
 import shlex
 import os
@@ -15,7 +25,8 @@ Comments:
 ### Special Functions ###
 def EXIT_TRACEBACK():
 	print('\nError: Unsupported')
-	traceback.print_tb()
+	traceback.print_stack()
+	sys.exit()
 
 
 ### Classes ###
@@ -96,9 +107,9 @@ class MeshType_class:
 		self.OutputName += self.name + self.MeshLevel + 'x.msh'
 
 
-		print('\nfName, OutputName:')
-		print(fName)
-		print(self.OutputDir,self.OutputName)
+#		print('\nfName, OutputName:')
+#		print(fName)
+#		print(self.OutputDir,self.OutputName)
 #		EXIT_TRACEBACK()
 
 class Paths_class:
@@ -149,7 +160,7 @@ def create_meshes(TestCase,Paths):
 		subprocess.call(shlex.split('mkdir -p ' + MeshType.OutputDir))
 		subprocess.call(shlex.split(Paths.gmsh + gmsh_args))
 
-		if (i == 2):
+		if (i == 1):
 			print("Exiting\n\n")
 			EXIT_TRACEBACK()
 
@@ -190,17 +201,19 @@ def get_gmsh_number(gmsh_args,name,Paths):
 
 
 if __name__ == '__main__':
+	""" Generate meshes based on the CaseList read from command line arguments. """
+
 	user = 'PZwan'
 
-	print('Generating Meshes for user '+user+'.\n')
 
 	Paths = Paths_class()
 	Paths.set_paths(user)
 
-	NCases   = 2
-	CaseList = ['update_h','tmp']
+	CaseList = sys.argv[1:]
 
-	for i in range(0,NCases):
+	print('Generating Meshes for user '+user+str(CaseList)+'.\n')
+
+	for i in range(0,len(CaseList)):
 		TestCase = TestCase_class(CaseList[i])
 
 		TestCase.set_paths(Paths)
@@ -210,8 +223,3 @@ if __name__ == '__main__':
 		print(TestCase.name,TestCase.NMeshTypes)
 		for i in range(TestCase.NMeshTypes):
 			print(TestCase.MeshTypes[i].name,TestCase.MeshTypes[i].dim)
-
-	# Loop over all meshes for the current case
-	# Create appropriate directory
-	# Create mesh, rename and move to directory
-

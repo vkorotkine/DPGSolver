@@ -1,6 +1,6 @@
 Include "../Parameters.geo";
 
-
+//Printf(D)
 // Geometry Specification
 L = 1;
 H = 1;

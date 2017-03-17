@@ -465,6 +465,14 @@ static void compute_gradient_polynomial(struct S_VOLUME *VOLUME)
 
 static void compute_gradient_L2proj(struct S_VOLUME *VOLUME)
 {
+	/*
+	 *	Comments:
+	 *		Requires use of P (or HP) adaptation as this function performs a projection between different orders.
+	 */
+
+	if (!(DB.Adapt == ADAPT_P || DB.Adapt == ADAPT_HP))
+		EXIT_UNSUPPORTED;
+
 	// Initialize DB Parameters
 	unsigned int d    = DB.d,
 	             Nvar = DB.Nvar;
@@ -643,7 +651,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				if (PolyGradient) {
 					compute_gradient_polynomial(VOLUME);
 				} else {
-					if (Adapt != ADAPT_0) {
+					if (Adapt == ADAPT_P || Adapt == ADAPT_HP) {
 						compute_gradient_L2proj(VOLUME);
 					} else {
 						Q = calloc(NvnI*Nvar*d , sizeof *Q); // free

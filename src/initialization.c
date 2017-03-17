@@ -131,7 +131,15 @@ void initialization(int nargc, char **argv)
 
 	// Open control file
 	char *ControlFile = malloc(STRLEN_MAX * sizeof *ControlFile); // free
-	strcpy(ControlFile,DB.TestCase);
+	strcpy(ControlFile,"control_files/");
+	if (strstr(DB.TestCase,"Euler"))
+		strcat(ControlFile,"main/Euler/");
+	else if (strstr(DB.TestCase,"Test"))
+		; // Do nothing
+	else
+		EXIT_UNSUPPORTED;
+
+	strcat(ControlFile,DB.TestCase);
 	strcat(ControlFile,".ctrl");
 
 	FILE *fID;

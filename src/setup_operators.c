@@ -507,7 +507,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	EType_h = ELEMENT->type_h;
 
 	select_functions(&basis,&grad_basis,&cubature,EType);
-	select_functions_basis_Bezier(&basis_Bezier,EType);
+	if (EType != TET && EType != PYR) {
+		select_functions_basis_Bezier(&basis_Bezier,EType);
+	}
 
 	// Stored operators
 	NvnGs = ELEMENT->NvnGs;

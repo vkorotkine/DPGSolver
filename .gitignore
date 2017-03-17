@@ -40,3 +40,4 @@ cases/results/*
 test/*.o
 test/*.exe
 python/*.txt
+*/__pycache__/*
