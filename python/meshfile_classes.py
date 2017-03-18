@@ -19,7 +19,7 @@ class Paths_class:
 			else:
 				# Ubuntu (home)
 				self.gmsh = '/home/philip/Desktop/research/programs/gmsh/gmsh-2.12.0-Linux/bin/gmsh'
-				EXIT_TRACEBACK()
+				self.DPG_ROOT = '/home/philip/Desktop/research/codes/DPGSolver/'
 			self.meshes = self.DPG_ROOT+'meshes/'
 		else:
 			print('Add an option for yourself as a user.')
@@ -28,7 +28,7 @@ class Paths_class:
 		self.cases         = self.DPG_ROOT+'cases/'
 		self.control_files = self.cases+'control_files/'
 
-class CtrlFile_class:
+class TestCase_class:
 	""" Class storing relevant data for a control file group."""
 
 	def __init__(self,name):
@@ -37,15 +37,34 @@ class CtrlFile_class:
 
 		self.MeshTypes  = []
 		self.Path = ''
-		self.GeoDeps = ''
 
-	def add_MeshTypes(self,Paths):
+		self.GeoDeps     = ''
+		self.MeshOutputs = ''
+
+	def add_MeshTypes(self,Paths,MeshName):
 		NStd = 6
 		MeshTypes   = ['TRI','QUAD','TET','HEX','WEDGE','PYR']
 
 		if (self.name.find('update_h') != -1):
 			self.VarName = 'UPDATE_H'
-			iRange = range(0,NStd)
+			MeshTypes = ['TRI','QUAD','TET','HEX','WEDGE','PYR'];
+			if   (MeshName.find('all')    != -1):
+				iRange = range(0,NStd)
+			else:
+				iRange = range(0,1)
+				Found = 0
+				for i in range(0,NStd):
+					if (MeshName.find(MeshTypes[i]) != -1):
+						print(MeshTypes)
+						print(MeshTypes[i])
+						MeshTypes = [MeshTypes[i]]
+						print(MeshTypes)
+						Found = 1
+						break;
+
+				if (Found == 0):
+					print("Did not find the MeshType.\n")
+					EXIT_TRACEBACK()
 		else:
 			return # ToBeDeleted
 			EXIT_TRACEBACK()
@@ -59,13 +78,23 @@ class CtrlFile_class:
 
 	def set_paths(self,Paths):
 		if (self.name.find('update_h') != -1):
-			self.Path = Paths.DPG_ROOT+self.name+'/Test_update_h_'
+			self.name = 'update_h'
+			print("name:\n",self.name)
+			self.Path = Paths.control_files+'test/'+self.name+'/Test_update_h_'
 
 	def get_geo_dependencies(self):
 		MeshTypes = self.MeshTypes
 		for i in range(0,len(MeshTypes)):
 			if (self.GeoDeps.find(MeshTypes[i].InputName) == -1):
-				self.GeoDeps += MeshTypes[i].InputName + ' '
+				# ToBeDeleted: Remove the if condition below after control files are updated
+				if (MeshTypes[i].InputName.find('n-Cube') == -1):
+					self.GeoDeps += MeshTypes[i].InputName + ' '
+
+	def get_mesh_outputs(self):
+		MeshTypes = self.MeshTypes
+		for i in range(0,len(MeshTypes)):
+			if (self.MeshOutputs.find(MeshTypes[i].InputName) == -1):
+				self.MeshOutputs += MeshTypes[i].OutputName_from_meshesROOT + ' '
 
 
 class MeshType_class:
@@ -83,9 +112,13 @@ class MeshType_class:
 		self.InputName  = ''
 		self.OutputDir  = ''
 		self.OutputName = ''
+		self.OutputName_from_meshesROOT = ''
 
-	def set_parameters(self,CtrlFile,Paths):
-		fName = CtrlFile.Path+self.name+'.ctrl'
+	def set_parameters(self,TestCase,Paths):
+		fName = TestCase.Path+self.name+'.ctrl'
+
+		print(TestCase.Path)
+		print(self.name)
 
 		with open(fName) as f:
 			for line in f:
@@ -107,12 +140,15 @@ class MeshType_class:
 		self.InputName  = self.Geometry + '/' + self.Geometry + self.dim + 'D.geo'
 		self.OutputDir  = self.Geometry + '/' + self.PDEName + '/' \
 		                + self.PDESpecifier + '/' + self.GeomSpecifier + '/'
-		self.OutputDir  = Paths.meshes + self.OutputDir
 		self.OutputName = self.OutputDir + self.Geometry + self.dim + 'D_'
+		self.OutputDir  = Paths.meshes + self.OutputDir
 		
 		if (self.MeshCurving.find('Straight') != 0):
 			self.OutputName += self.MeshCurving
 		self.OutputName += self.name + self.MeshLevel + 'x.msh'
+
+		self.OutputName_from_meshesROOT = self.OutputName
+		self.OutputName = Paths.meshes + self.OutputName
 
 #		print('\nfName, OutputName:')
 #		print(fName)

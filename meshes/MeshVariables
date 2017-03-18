@@ -1,0 +1,5 @@
+# Variables and dependencies needed for DPG_ROOT/meshes/Makefile
+
+UPDATE_H := dCube/Poisson/Dirichlet/Test/dCube2D_TRI0x.msh dCube/Poisson/Dirichlet/Test/dCube2D_QUAD0x.msh dCube/Poisson/Dirichlet/Test/dCube3D_TET0x.msh dCube/Poisson/Dirichlet/Test/dCube3D_HEX0x.msh dCube/Poisson/Dirichlet/Test/dCube3D_WEDGE0x.msh n-Cube////n-Cube3D_PYRx.msh 
+
+$(UPDATE_H) : dCube/dCube2D.geo dCube/dCube3D.geo 

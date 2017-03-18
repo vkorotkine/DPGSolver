@@ -226,8 +226,10 @@ directories:
 # Python compiler
 PYTHONC := python3
 
-MAIN_CONFIGURATIONS := Euler
-TEST_CONFIGURATIONS := update_h linearization L2_proj Poisson Euler
+#MAIN_CONFIGURATIONS := Euler
+#TEST_CONFIGURATIONS := update_h linearization L2_proj Poisson Euler
+MAIN_CONFIGURATIONS := 
+TEST_CONFIGURATIONS := update_h
 
 MAIN_CONFIGURATIONS := $(addprefix main/,$(MAIN_CONFIGURATIONS))
 TEST_CONFIGURATIONS := $(addprefix test/,$(TEST_CONFIGURATIONS))
@@ -245,7 +247,8 @@ meshes:
 	@echo Creating MeshVariables file based on existing .ctrl files.
 	@$(PYTHONC) python/update_MeshVariables.py $(CONFIGURATIONS)
 	@echo 
-#	$(MAKE) -C meshes test
+	$(MAKE) -C meshes meshes_all
+#	$(MAKE) -C meshes meshes_update_h
 
 $(CTRLDIR)/MeshVariables : $(CONTROL_FILES)
 
