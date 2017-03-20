@@ -29,6 +29,8 @@ meshes_all:
 	$(MAKE) meshes_L2_proj_p
 	$(MAKE) meshes_L2_proj_h
 	$(MAKE) meshes_linearization
+	$(MAKE) meshes_Poisson_test
+	$(MAKE) meshes_Euler_test
 
 .PHONY : meshes_update_h
 meshes_update_h : $(UPDATE_H)
@@ -49,3 +51,13 @@ $(L2_PROJ_H) :
 meshes_linearization : $(LINEARIZATION)
 $(LINEARIZATION) :
 	cd $(PYTHONDIR) && $(PYTHONC) $(SOURCE) linearization $@
+
+.PHONY : meshes_Poisson_test
+meshes_Poisson_test : $(POISSON_TEST)
+$(POISSON_TEST) :
+	cd $(PYTHONDIR) && $(PYTHONC) $(SOURCE) Poisson_test $@
+
+.PHONY : meshes_Euler_test
+meshes_Euler_test : $(EULER_TEST)
+$(EULER_TEST) :
+	cd $(PYTHONDIR) && $(PYTHONC) $(SOURCE) Euler_test $@

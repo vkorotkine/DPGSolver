@@ -211,7 +211,7 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 	double       r, D, D1, D2, ABC[3], XYZ[DMAX] = {0.0}, XYZ_C[DMAX] ={0.0};
 
 	Indn = 0;
-	if (strstr(Geometry,"dm1-Spherical_Section")) {
+	if (strstr(Geometry,"n-Ball")) {
 		r = get_radius(Nn,(double *) XYZ_S);
 
 		for (n = 0; n < Nn; n++) {
@@ -259,7 +259,7 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 			for (dim = 0; dim < d; dim++)
 				XYZ_CmS[n+Nn*dim] = XYZ_C[dim]-XYZ[dim];
 		}
-	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+	} else if (strstr(Geometry,"n-Ellipsoid")) {
 		double *abc;
 
 		abc = malloc(DMAX * sizeof *abc); // free
@@ -878,10 +878,10 @@ static void select_functions_Curved(compute_pc_tdef *compute_pc, compute_XYZ_tde
 	// Initialize DB Parameters
 	char *Geometry = DB.Geometry;
 
-	if (strstr(Geometry,"dm1-Spherical_Section")) {
+	if (strstr(Geometry,"n-Ball")) {
 		*compute_pc  = compute_pc_dsphere;
 		*compute_XYZ = compute_XYZ_dsphere;
-	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+	} else if (strstr(Geometry,"n-Ellipsoid")) {
 		*compute_pc  = compute_pc_ellipsoid;
 		*compute_XYZ = compute_XYZ_ellipsoid;
 		if (DB.Parametrization != NORMAL &&

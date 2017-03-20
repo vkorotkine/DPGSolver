@@ -22,6 +22,7 @@ either OSX or Ubuntu). Required:
 - ParMETIS
 - Gmsh
 - Paraview
+- Python3
 
 Follow the instructions in [SETUP](SETUP.md) regarding additional requirements for running the code:
 - Mesh generation

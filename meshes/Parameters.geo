@@ -35,10 +35,19 @@ EULER   = 1;
 PERIODIC = 0;
 
 
+// GeomSpecifiers
+EXTENSION_DISABLED = 0;
+EXTENSION_ENABLED  = 1;
+
+GEOM_AR_1 = 1;
+GEOM_AR_2 = 2;
+GEOM_AR_3 = 3;
+
 // MeshCurving Specifiers
 STRAIGHT   = 0;
 CURVED     = 1;
 TOBECURVED = 2;
+
 
 
 // Boundary conditions

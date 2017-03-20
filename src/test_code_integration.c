@@ -4,6 +4,7 @@
 #include "test_code_integration.h"
 
 #include <string.h>
+#include <stdbool.h>
 
 #include "petscsys.h"
 #include "mkl.h"
@@ -51,8 +52,8 @@ static void update_TestCase(void)
 	 */
 
 	if (strstr(DB.TestCase,"Poisson_Ringleb")               ||
-	    strstr(DB.TestCase,"Poisson_dm1-Spherical_Section") ||
-	    strstr(DB.TestCase,"Poisson_Ellipsoidal_Section")   ||
+	    strstr(DB.TestCase,"Poisson_n-Ball") ||
+	    strstr(DB.TestCase,"Poisson_n-Ellipsoid")   ||
 	    strstr(DB.TestCase,"Poisson_HoldenRamp")            ||
 	    strstr(DB.TestCase,"Poisson_GaussianBump")) {
 		strcpy(DB.TestCase,"Poisson");
@@ -62,7 +63,6 @@ static void update_TestCase(void)
 		strcpy(DB.TestCase,"Euler_PeriodicVortex_Test");
 	} else if (strstr(DB.TestCase,"linearization")) {
 		strcpy(DB.TestCase,"SupersonicVortex_Test");
-//		strcpy(DB.Geometry,"Annular_Section");
 	} else if (strstr(DB.TestCase,"Euler")) {
 		if (strstr(DB.Geometry,"Ellipsoidal_Section") ||
 		    strstr(DB.Geometry,"GaussianBump") ||
@@ -175,7 +175,7 @@ void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, co
 
 
 void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax, const unsigned int PMin,
-                              const unsigned int PMax, unsigned int *pass)
+                              const unsigned int PMax, unsigned int *pass, const bool PrintEnabled)
 {
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase,
@@ -314,35 +314,36 @@ printf("Re-enable printing here.\n");
 	} else {
 		TestDB.Npass++;
 	}
-printf("ViscousFlux, Blending, Parametrization: %d, %d, %d\n",DB.ViscousFluxType,DB.Blending,DB.Parametrization);
-printf("h:\n");
-array_print_d(NML,NP,h,'R');
-printf("L2Errors: \n");
-for (i = 0; i < NVars; i++)
-array_print_d(NML,NP,L2Errors[i],'R');
-printf("Conv Orders (h): \n");
-for (i = 0; i < NVars; i++)
-array_print_d(NML,NP,ConvOrders[i],'R');
 
-unsigned int u1 = 1;
-double **L2ErrorsP;
+	if (PrintEnabled) {
+		printf("ViscousFlux, Blending, Parametrization: %d, %d, %d\n",DB.ViscousFluxType,DB.Blending,DB.Parametrization);
+		printf("h:\n");
+		array_print_d(NML,NP,h,'R');
+		printf("L2Errors: \n");
+		for (i = 0; i < NVars; i++)
+		array_print_d(NML,NP,L2Errors[i],'R');
+		printf("Conv Orders (h): \n");
+		for (i = 0; i < NVars; i++)
+		array_print_d(NML,NP,ConvOrders[i],'R');
 
-L2ErrorsP = malloc(NVars * sizeof *L2ErrorsP); // free
+		unsigned int u1 = 1;
+		double **L2ErrorsP;
 
-//printf("Conv (p): \n");
-for (i = 0; i < NVars; i++) {
-	L2ErrorsP[i] = calloc(NML*NP , sizeof *L2ErrorsP[i]);
-	for (ML = MLMin; ML <= MLMax; ML++) {
-	for (P = max(PMin,u1); P <= PMax; P++) {
-		Indh = (ML-MLMin)*NP+(P-PMin);
-		if (L2Errors[i][Indh] > EPS)
-			L2ErrorsP[i][Indh] = log(L2Errors[i][Indh])/((double) P);
-	}}
-//	array_print_d(NML,NP,L2ErrorsP[i],'R');
-}
-array_free2_d(NVars,L2ErrorsP);
+		L2ErrorsP = malloc(NVars * sizeof *L2ErrorsP); // free
 
-
+		//printf("Conv (p): \n");
+		for (i = 0; i < NVars; i++) {
+			L2ErrorsP[i] = calloc(NML*NP , sizeof *L2ErrorsP[i]);
+			for (ML = MLMin; ML <= MLMax; ML++) {
+			for (P = max(PMin,u1); P <= PMax; P++) {
+				Indh = (ML-MLMin)*NP+(P-PMin);
+				if (L2Errors[i][Indh] > EPS)
+					L2ErrorsP[i][Indh] = log(L2Errors[i][Indh])/((double) P);
+			}}
+		//	array_print_d(NML,NP,L2ErrorsP[i],'R');
+		}
+		array_free2_d(NVars,L2ErrorsP);
+	}
 
 	for (i = 0; i < NVars; i++) {
 		free(L2Errors[i]);
@@ -886,7 +887,8 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	free(rF);
 }
 
-void check_mesh_regularity(const double *mesh_quality, const unsigned int NML, unsigned int *pass)
+void check_mesh_regularity(const double *mesh_quality, const unsigned int NML, unsigned int *pass,
+                           const bool PrintEnabled)
 {
 	/*
 	 *	Purpose:
@@ -911,7 +913,10 @@ void check_mesh_regularity(const double *mesh_quality, const unsigned int NML, u
 			if (slope_quality[1]/slope_quality[0] > 5e0)
 				*pass = 0;
 		}
-		printf("\nMesh quality:");
-		array_print_d(1,NML,mesh_quality,'R');
+
+		if (PrintEnabled) {
+			printf("\nMesh quality:");
+			array_print_d(1,NML,mesh_quality,'R');
+		}
 	}
 }

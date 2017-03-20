@@ -37,6 +37,12 @@
  *
  */
 
+struct S_convorder {
+	bool         PrintEnabled, AdaptiveRefine, TestTRI;
+	unsigned int PMin, PMax, MLMin, MLMax, Adapt, PG_add, IntOrder_add, IntOrder_mult;
+	char         **argvNew, *PrintName;
+};
+
 void h_adapt_test(void)
 {
 	/*
@@ -70,7 +76,7 @@ void h_adapt_test(void)
 
 		XYZref[0+0*DMAX] = xL;  XYZref[1+0*DMAX] = 0.0; XYZref[2+0*DMAX] = 0.0;
 		XYZref[0+1*DMAX] = 2*a; XYZref[1+1*DMAX] = 0.0; XYZref[2+1*DMAX] = 0.0;
-	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+	} else if (strstr(Geometry,"n-Ellipsoid")) {
 		Nref = 5;
 
 		unsigned int i = 0;
@@ -166,53 +172,65 @@ void h_adapt_test(void)
 	free(XYZref);
 }
 
-void test_integration_Euler(int nargc, char **argv)
+static void set_test_convorder_data(struct S_convorder *data, const char *TestName)
+{
+	// default values
+	data->PrintEnabled   = 1;
+	data->AdaptiveRefine = 1;
+	data->Adapt = ADAPT_HP;
+
+	data->PMin  = 1;
+	data->PMax  = 3;
+	data->MLMin = 0;
+	data->MLMax = 2;
+
+	data->PG_add        = 0;
+	data->IntOrder_add  = 0;
+	data->IntOrder_mult = 2;
+
+
+	if (strstr(TestName,"n-Cylinder_HollowSection")) {
+		if (strstr(TestName,"MIXED2D")) {
+			strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_CurvedMIXED2D");
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
+
+static void test_convorder(int nargc, char **argvNew, const char *TestName, struct S_convorder *data)
 {
 	unsigned int pass = 0;
-	char         **argvNew;
 
-	argvNew    = malloc(2          * sizeof *argvNew);  // free
-	argvNew[0] = malloc(STRLEN_MAX * sizeof **argvNew); // free
-	argvNew[1] = malloc(STRLEN_MAX * sizeof **argvNew); // free
-
-	strcpy(argvNew[0],argv[0]);
-
-	/*
-	 *	Input:
-	 *		Meshes for a curved Poisson problem.
-	 *
-	 *	Expected Output:
-	 *		Optimal convergence orders in L2 for the solution (P+1).
-	 *
-	 */
-
-	unsigned int P, ML, PMin, PMax, MLMin, MLMax, Adapt, AdaptiveRefine;
+	bool         PrintEnabled, AdaptiveRefine;
+	unsigned int Adapt, PMin, PMax, MLMin, MLMax;
 	double       *mesh_quality;
 
-	strcpy(argvNew[1],"test/Test_Euler_2D_TRI");
+	set_test_convorder_data(data,TestName);
 
+	PrintEnabled   = data->PrintEnabled;
+	AdaptiveRefine = data->AdaptiveRefine;
+	Adapt          = data->Adapt;
 
-	TestDB.PG_add = 1;
-	TestDB.IntOrder_add  = 0; // > 1 for non-zero error for L2 projection on TP elements
-	TestDB.IntOrder_mult = 2;
+	PMin  = data->PMin;  PMax  = data->PMax;
+	MLMin = data->MLMin; MLMax = data->MLMax;
 
-	// Convergence orders
-	PMin  = 6; PMax  = 8;
-	MLMin = 0; MLMax = 2;
-TestDB.PGlobal = PMin;
+	TestDB.PGlobal       = 1;
+	TestDB.PG_add        = data->PG_add;
+	TestDB.IntOrder_add  = data->IntOrder_add;
+	TestDB.IntOrder_mult = data->IntOrder_mult;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
-	AdaptiveRefine = 0;
-//	Adapt = ADAPT_0;
-	Adapt = ADAPT_HP;
 	if (Adapt != ADAPT_0) {
 		TestDB.ML = DB.ML;
 		code_startup(nargc,argvNew,0,2);
 	}
 
-	for (P = PMin; P <= PMax; P++) {
-	for (ML = MLMin; ML <= MLMax; ML++) {
+	for (size_t P = PMin; P <= PMax; P++) {
+	for (size_t ML = MLMin; ML <= MLMax; ML++) {
 		TestDB.PGlobal = P;
 		TestDB.ML = ML;
 
@@ -235,25 +253,21 @@ TestDB.PGlobal = PMin;
 			output_to_paraview(fNameOut);
 			free(fNameOut);
 		}
-//PMin = 1;
-//check_convergence_orders(MLMin,MLMax,PMin,PMax,&pass);
-//EXIT_BASIC;
-//		if (ML <= MLMin+1 || P == 1)
+
 		solver_explicit();
 		solver_implicit();
 
 		compute_errors_global();
 
-		printf("ML, P, dof: %d %d %d\n",ML,P,DB.dof);
+		if (PrintEnabled)
+			printf("ML, P, dof: %zu %zu %d\n",ML,P,DB.dof);
 
 		if (P == PMin)
 			evaluate_mesh_regularity(&mesh_quality[ML-MLMin]);
 
 		if (P == PMax && ML == MLMax) {
-//			PMin = 1;
-			PMin = 6;
-			check_convergence_orders(MLMin,MLMax,PMin,PMax,&pass);
-			check_mesh_regularity(mesh_quality,MLMax-MLMin+1,&pass);
+			check_convergence_orders(MLMin,MLMax,PMin,PMax,&pass,PrintEnabled);
+			check_mesh_regularity(mesh_quality,MLMax-MLMin+1,&pass,PrintEnabled);
 		}
 
 		if (Adapt == ADAPT_0)
@@ -263,8 +277,42 @@ TestDB.PGlobal = PMin;
 		code_cleanup();
 	free(mesh_quality);
 
-	printf("Convergence Orders - Poisson (3D - TRI  ):       ");
-	test_print(pass);
+	set_PrintName_ConvOrders(data->PrintName,&data->TestTRI);
+	test_print2(pass,data->PrintName);
+}
+
+void test_integration_Euler(int nargc, char **argv)
+{
+	char **argvNew, *PrintName;
+
+	argvNew    = malloc(2          * sizeof *argvNew);  // free
+	argvNew[0] = malloc(STRLEN_MAX * sizeof **argvNew); // free
+	argvNew[1] = malloc(STRLEN_MAX * sizeof **argvNew); // free
+	PrintName  = malloc(STRLEN_MAX * sizeof *PrintName); // free
+
+	strcpy(argvNew[0],argv[0]);
+
+	/*
+	 *	Input:
+	 *		Meshes for Euler cases.
+	 *
+	 *	Expected Output:
+	 *		Optimal convergence orders in L2 for the solution (P+1).
+	 *
+	 */
+
+	struct S_convorder *data_c;
+
+	data_c = calloc(1 , sizeof *data_c); // free
+	data_c->argvNew   = argvNew;
+	data_c->PrintName = PrintName;
+
+//	strcpy(argvNew[1],"test/Test_Euler_2D_TRI");
+	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_MIXED2D",data_c);
+
+
 
 	array_free2_c(2,argvNew);
+	free(PrintName);
+	free(data_c);
 }

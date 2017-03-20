@@ -1,7 +1,7 @@
 PDEName       Euler
 PDESpecifier  Internal
 
-Geometry      n-Cylinder n-Cylinder/n-Cylinder3D.geo
+Geometry      n-Cylinder_HollowSection n-Cylinder_HollowSection/n-Cylinder_HollowSection3D.geo
 GeomSpecifier SupersonicVortex/Test
 
 Dimension     3

@@ -401,8 +401,7 @@ void setup_geometry(void)
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 			setup_ToBeCurved(VOLUME);
 	} else if (strstr(MeshType,"Curved")) {
-//		if (!DB.MPIrank && !DB.Testing)
-		if (!DB.MPIrank)
+		if (!DB.MPIrank && !DB.Testing)
 			printf("    Set geometry of VOLUME nodes in Curved Mesh\n");
 
 		set_VOLUME_BC_info();

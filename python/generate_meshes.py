@@ -1,6 +1,7 @@
 import sys
 import subprocess
 import shlex
+import re
 
 '''
 Purpose:
@@ -35,7 +36,8 @@ def create_meshes(TestCase,Paths):
 
 def add_gmsh_setnumber(gmsh_args,MeshType,Paths):
 	""" Set numbers for gmsh command line arguments based on values in Parameters.geo. """
-	# Need to treat case where one of these parameters is missing in the control file? ToBeDelted
+
+	# Parameters which should always be present (using get_gmsh_number)
 
 	# MeshType
 	gmsh_args += ' -setnumber MeshType '
@@ -51,6 +53,25 @@ def add_gmsh_setnumber(gmsh_args,MeshType,Paths):
 
 	# MeshLevel
 	gmsh_args += ' -setnumber MeshLevel ' + MeshType.MeshLevel
+
+
+	# Other parameters
+
+	# Extended domain
+	gmsh_args += ' -setnumber Extended '
+	if (MeshType.GeomSpecifier.find('Extended') == -1):
+		gmsh_args += get_gmsh_number(gmsh_args,"Extension_Disabled",Paths)
+	else:
+		gmsh_args += get_gmsh_number(gmsh_args,"Extension_Enabled",Paths)
+
+	gmsh_args += ' -setnumber Geom_AR '
+	if (MeshType.GeomSpecifier.find('AR') != -1):
+		print("MTG:",MeshType.GeomSpecifier)
+		AR_Num = re.search('\/AR_(.+?)\/',MeshType.GeomSpecifier)
+		print(AR_Num.group(1))
+		gmsh_args += get_gmsh_number(gmsh_args,"Geom_AR_"+AR_Num.group(1),Paths)
+	else:
+		gmsh_args += get_gmsh_number(gmsh_args,"Geom_AR_1",Paths)
 
 	return gmsh_args
 

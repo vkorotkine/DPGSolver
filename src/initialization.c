@@ -132,7 +132,7 @@ void initialization(int nargc, char **argv)
 	// Open control file
 	char *ControlFile = malloc(STRLEN_MAX * sizeof *ControlFile); // free
 	strcpy(ControlFile,"control_files/");
-	if (strstr(DB.TestCase,"Euler"))
+	if (strstr(DB.TestCase,"Euler") && !strstr(DB.TestCase,"Test"))
 		strcat(ControlFile,"main/Euler/");
 	else if (strstr(DB.TestCase,"Test"))
 		; // Do nothing
@@ -211,10 +211,14 @@ void initialization(int nargc, char **argv)
 	strcat(DB.MeshFile,DB.MeshPath);
 	strcat(DB.MeshFile,DB.Geometry); strcat(DB.MeshFile,"/");
 	strcat(DB.MeshFile,DB.PDE);      strcat(DB.MeshFile,"/");
-	if (DB.PDESpecifier)
-		strcat(DB.MeshFile,DB.PDESpecifier);  strcat(DB.MeshFile,"/");
-	if (DB.GeomSpecifier)
-		strcat(DB.MeshFile,DB.GeomSpecifier); strcat(DB.MeshFile,"/");
+	if (!strstr(DB.PDESpecifier,"NONE")) {
+		strcat(DB.MeshFile,DB.PDESpecifier);
+		strcat(DB.MeshFile,"/");
+	}
+	if (!strstr(DB.GeomSpecifier,"NONE")) {
+		strcat(DB.MeshFile,DB.GeomSpecifier);
+		strcat(DB.MeshFile,"/");
+	}
 	strcat(DB.MeshFile,DB.Geometry);
 	strcat(DB.MeshFile,strcat(d,"D_"));
 	strcat(DB.MeshFile,DB.MeshType);

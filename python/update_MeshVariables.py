@@ -41,6 +41,7 @@ if __name__ == '__main__':
 
 	SubDirectories = sys.argv[1:]
 
+#	print("SD:",SubDirectories)
 	TestCases = []
 
 	for i in range(0,len(SubDirectories)):

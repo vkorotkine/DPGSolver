@@ -194,34 +194,26 @@ $(EXECDIR):
 
 
 OUTPUT_LIST   := paraview errors results
-TESTCASE_LIST := Poisson SupersonicVortex InviscidChannel SubsonicNozzle PrandtlMeyer
-# To BeModified (Remove unneeded meshcases folders which may have been created previously)
-MESHCASE_LIST := Ringleb \
-                 dm1-Spherical_Section \
-                 Ellipsoidal_Section \
-                 Annular_Section \
-                 Annular_Section/SupersonicVortex \
-                 HoldenRamp \
-                 GaussianBump \
-                 NacaSymmetric \
-                 EllipsoidalBump \
-                 JoukowskiSymmetric
-# ToBeModified (Remove unneeded meshtypes)
-MESHTYPE_LIST := TRI CurvedTRI CurvedQUAD ToBeCurvedTRI ToBeCurvedQUAD Mixed CurvedMixed ToBeCurvedStructuredTRI
+#TESTCASE_LIST := Poisson SupersonicVortex InviscidChannel SubsonicNozzle PrandtlMeyer
+TESTCASE_LIST := Poisson Euler_PeriodicVortex
+MESHTYPE_LIST := TRI CurvedTRI ToBeCurvedTRI \
+                 QUAD CurvedQUAD ToBeCurvedQUAD \
+                 TET CurvedTET \
+                 HEX CurvedHEX \
+                 WEDGE CurvedWEDGE \
+                 PYR CurvedPYR
 
 OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))
 TESTCASE_LIST := $(subst $(space),$(comma),$(TESTCASE_LIST))
-MESHCASE_LIST := $(subst $(space),$(comma),$(MESHCASE_LIST))
 MESHTYPE_LIST := $(subst $(space),$(comma),$(MESHTYPE_LIST))
 
 
 ### Additional Rules ###
 .PHONY : directories
 directories:
-	mkdir -p cases/{$(OUTPUT_LIST)}
-#	mkdir -p cases/{$(OUTPUT_LIST)}/{$(TESTCASE_LIST)}/{$(MESHTYPE_LIST)}
-#	mkdir -p meshes/{$(MESHCASE_LIST)}
-#	mkdir -p meshes/Test
+	@echo
+	@echo Creating directories if not present
+	mkdir -p cases/{$(OUTPUT_LIST)}/{$(TESTCASE_LIST)}/{$(MESHTYPE_LIST)}
 	@echo
 
 
@@ -229,9 +221,8 @@ directories:
 PYTHONC := python3
 
 #MAIN_CONFIGURATIONS := Euler
-#TEST_CONFIGURATIONS := update_h linearization L2_proj Poisson Euler
 MAIN_CONFIGURATIONS := $(nullstring)
-TEST_CONFIGURATIONS := update_h L2_proj_p L2_proj_h linearization
+TEST_CONFIGURATIONS := update_h L2_proj_p L2_proj_h linearization Poisson Euler
 
 MAIN_CONFIGURATIONS := $(addprefix main/,$(MAIN_CONFIGURATIONS))
 TEST_CONFIGURATIONS := $(addprefix test/,$(TEST_CONFIGURATIONS))

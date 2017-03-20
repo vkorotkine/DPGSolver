@@ -28,6 +28,26 @@ class Paths_class:
 		self.cases         = self.DPG_ROOT+'cases/'
 		self.control_files = self.cases+'control_files/'
 
+
+def find_MeshType(N,MeshTypes,MeshTypesPrefix,MeshName):
+	Found = 0
+	for i in range(0,N):
+		if (MeshName.find(MeshTypes[i]) != -1):
+			Found = 1
+			MeshType = [MeshTypes[i]]
+			if (len(MeshTypesPrefix) == 1):
+				MeshTypesPrefix = [MeshTypesPrefix[0]]
+			else:
+				MeshTypesPrefix = [MeshTypesPrefix[i]]
+
+			break;
+
+	if (Found == 0):
+		print("Did not find the MeshType.\n")
+		EXIT_TRACEBACK()
+
+	return [MeshType, MeshTypesPrefix]
+
 class TestCase_class:
 	""" Class storing relevant data for a control file group."""
 
@@ -52,46 +72,59 @@ class TestCase_class:
 				self.VarName = 'L2_PROJ_H'
 
 			NTotal = 6
-			MeshTypes = ['TRI','QUAD','TET','HEX','WEDGE','PYR']
+			MeshTypesPrefix = ['' for i in range(NTotal)]
+			MeshTypes       = ['TRI','QUAD','TET','HEX','WEDGE','PYR']
 			if   (MeshName.find('all')    != -1):
 				iRange = range(0,NTotal)
 			else:
 				iRange = range(0,1)
-				Found = 0
-				for i in range(0,NTotal):
-					if (MeshName.find(MeshTypes[i]) != -1):
-						MeshTypes = [MeshTypes[i]]
-						Found = 1
-						break;
-
-				if (Found == 0):
-					print("Did not find the MeshType.\n")
-					EXIT_TRACEBACK()
+				[MeshTypes,MeshTypesPrefix] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName)
 		elif (self.name.find('linearization') != -1):
 			self.VarName = 'LINEARIZATION'
 
 			NTotal = 3
-			MeshTypes = ['MIXED2D','MIXED3D_TP','MIXED3D_HW']
+			MeshTypesPrefix = ['' for i in range(NTotal)]
+			MeshTypes       = ['MIXED2D','MIXED3D_TP','MIXED3D_HW']
 			if   (MeshName.find('all')    != -1):
 				iRange = range(0,NTotal)
 			else:
 				iRange = range(0,1)
-				Found = 0
-				for i in range(0,NTotal):
-					if (MeshName.find(MeshTypes[i]) != -1):
-						MeshTypes = [MeshTypes[i]]
-						Found = 1
-						break;
+				[MeshTypes,MeshTypesPrefix] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName)
+		elif (self.name.find('Poisson') != -1):
+			if (self.name.lower().find('test') != -1):
+				self.VarName = 'POISSON_TEST'
 
-				if (Found == 0):
-					print("Did not find the MeshType.\n")
-					EXIT_TRACEBACK()
+				NTotal = 3
+				MeshTypesPrefix = ['n-Ball_HollowSection_Curved','n-Ellipsoid_HollowSection_Curved', \
+				                   'n-Ellipsoid_HollowSection_Curved']
+				MeshTypes       = ['MIXED2D','TRI','QUAD']
+				if   (MeshName.find('all')    != -1):
+					iRange = range(0,NTotal)
+				else:
+					iRange = range(0,1)
+					[MeshTypes,MeshTypesPrefix] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName)
+			else:
+				EXIT_TRACEBACK()
+		elif (self.name.find('Euler') != -1):
+			if (self.name.lower().find('test') != -1):
+				self.VarName = 'EULER_TEST'
+
+				NTotal = 1
+				MeshTypesPrefix = ['SupersonicVortex_Curved']
+				MeshTypes       = ['MIXED2D']
+				if   (MeshName.find('all')    != -1):
+					iRange = range(0,NTotal)
+				else:
+					iRange = range(0,1)
+					[MeshTypes,MeshTypesPrefix] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName)
+			else:
+				print("name122: ",self.name)
+				EXIT_TRACEBACK()
 		else:
-			return # ToBeDeleted
 			EXIT_TRACEBACK()
 
 		for i in iRange:
-			TypeCurrent = MeshType_class(MeshTypes[i])
+			TypeCurrent = MeshType_class(MeshTypes[i],MeshTypesPrefix[i])
 
 			TypeCurrent.set_parameters(self,Paths)
 
@@ -99,17 +132,33 @@ class TestCase_class:
 
 	def set_paths(self,Paths):
 		if (self.name.find('update_h') != -1):
-			self.name = 'update_h'
-			self.Path = Paths.control_files+'test/'+self.name+'/Test_update_h_'
+			self.name = 'Test_update_h_'
+			self.Path = Paths.control_files+'test/update_h/'
 		elif (self.name.find('L2_proj_p') != -1):
-			self.name = 'L2_proj_p'
-			self.Path = Paths.control_files+'test/'+self.name+'/Test_L2_proj_p_'
+			self.name = 'Test_L2_proj_p_'
+			self.Path = Paths.control_files+'test/L2_proj_p/'
 		elif (self.name.find('L2_proj_h') != -1):
-			self.name = 'L2_proj_h'
-			self.Path = Paths.control_files+'test/'+self.name+'/Test_L2_proj_h_'
+			self.name = 'Test_L2_proj_h_'
+			self.Path = Paths.control_files+'test/L2_proj_h/'
 		elif (self.name.find('linearization') != -1):
-			self.name = 'linearization'
-			self.Path = Paths.control_files+'test/'+self.name+'/Test_linearization_'
+			self.name = 'Test_linearization_'
+			self.Path = Paths.control_files+'test/linearization/'
+		elif (self.name.find('Poisson') != -1):
+			if (self.name.find('test') != -1):
+				self.name = 'Test_Poisson_'
+				self.Path = Paths.control_files+'test/Poisson/'
+			else:
+				self.name = 'Poisson'
+				print("name:",self.name)
+				EXIT_TRACEBACK()
+		elif (self.name.find('Euler') != -1):
+			if (self.name.find('test') != -1):
+#				print("name142:",self.name)
+				self.name = 'Test_Euler_'
+				self.Path = Paths.control_files+'test/Euler/'
+			else:
+				print("name:",self.name)
+				EXIT_TRACEBACK()
 		else:
 			print("name:",self.name)
 			EXIT_TRACEBACK()
@@ -132,8 +181,9 @@ class TestCase_class:
 
 
 class MeshType_class:
-	def __init__(self,name):
-		self.name = name
+	def __init__(self,name,prefix):
+		self.name   = name
+		self.prefix = prefix
 
 		self.PDEName       = ''
 		self.PDESpecifier  = ''
@@ -149,7 +199,12 @@ class MeshType_class:
 		self.OutputName_from_meshesROOT = ''
 
 	def set_parameters(self,TestCase,Paths):
-		fName = TestCase.Path+self.name+'.ctrl'
+		fName = TestCase.Path+TestCase.name+self.prefix+self.name+'.ctrl'
+#		print("TestCase.P: ",TestCase.Path)
+#		print("TestCase.n: ",TestCase.name)
+#		print("self.name: ",self.name)
+#		print("self.pref: ",self.prefix)
+#		print("\n\nfName",fName,"\n\n")
 
 		with open(fName) as f:
 			for line in f:
@@ -169,8 +224,11 @@ class MeshType_class:
 				if ('MeshLevel' in line):
 					self.MeshLevel = line.split()[1]
 
-		self.OutputDir  = self.Geometry + '/' + self.PDEName + '/' \
-		                + self.PDESpecifier + '/' + self.GeomSpecifier + '/'
+		self.OutputDir  = self.Geometry + '/' + self.PDEName + '/'
+		if (self.PDESpecifier.find("NONE") == -1):
+			self.OutputDir += self.PDESpecifier + '/'
+		if (self.GeomSpecifier.find("NONE") == -1):
+			self.OutputDir += self.GeomSpecifier + '/'
 		self.OutputName = self.OutputDir + self.Geometry + self.dim + 'D_'
 		self.OutputDir  = Paths.meshes + self.OutputDir
 		
@@ -180,3 +238,5 @@ class MeshType_class:
 
 		self.OutputName_from_meshesROOT = self.OutputName
 		self.OutputName = Paths.meshes + self.OutputName
+
+#		print("sOfm:",self.OutputName_from_meshesROOT)

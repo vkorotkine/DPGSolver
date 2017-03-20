@@ -4,7 +4,9 @@
 #ifndef DPG__solver_Poisson_h__INCLUDED
 #define DPG__solver_Poisson_h__INCLUDED
 
-extern void solver_Poisson        (void);
+#include <stdbool.h>
+
+extern void solver_Poisson        (bool PrintEnabled);
 extern void implicit_info_Poisson (void);
 extern void project_to_sphere     (const unsigned int Nn, double *XYZIn, double *XYZOut, const unsigned int BCcurved);
 extern void boundary_Poisson      (const unsigned int Nn, const unsigned int Nel, double *XYZ, double *normals,

@@ -196,22 +196,30 @@ void initialize_test_case_parameters(void)
 		strcpy(DB.SolverType,"Implicit");
 
 		if (!InitializedGeometry) {
-			if (strstr(Geometry,"dm1SphericalSection")) {
+			if (strstr(Geometry,"n-Ball_HollowSection")) {
 				DB.rIn  = 0.5;
 				DB.rOut = 1.0;
-			} else if (strstr(Geometry,"EllipsoidalSection")) {
+			} else if (strstr(Geometry,"n-Ellipsoid")) {
 				// These parameters must be consistent with the mesh for "ToBeCurved" meshes
 				DB.rIn  = 0.5;
 				DB.rOut = 1.0;
 
-				DB.aIn  = 0.50; DB.bIn  = 0.50; DB.aOut = 1.00;
+				DB.aIn  = 0.50;
+				DB.bIn  = 0.50;
+				DB.aOut = 1.00;
 
-				if      (strstr(GeomSpecifier,"/1/")) DB.bOut = 1.0; // POISSON_SCALE = 0.5
-				else if (strstr(GeomSpecifier,"/2/")) DB.bOut = 2.0; // POISSON_SCALE = 0.25
-				else if (strstr(GeomSpecifier,"/3/")) DB.bOut = 3.0; // POISSON_SCALE = 0.125
-				else
+				if      (strstr(GeomSpecifier,"AR_1")) {
+					DB.bOut = 1.0;
+					DB.Poisson_scale = 0.5;
+				} else if (strstr(GeomSpecifier,"AR_2")) {
+					DB.bOut = 2.0;
+					DB.Poisson_scale = 0.25;
+				} else if (strstr(GeomSpecifier,"AR_3")) {
+					DB.bOut = 3.0;
+					DB.Poisson_scale = 0.125;
+				} else {
 					EXIT_UNSUPPORTED;
-				printf("Error: Make POISSON_SCALE a stored variable in DB.\n"), EXIT_MSG;
+				}
 
 				DB.cIn  = 1.50*DB.rIn;
 				DB.cOut = 1.50*DB.rOut;
@@ -262,8 +270,6 @@ void initialize_test_case_parameters(void)
 					DB.PeriodFraction = 1.0;
 					DB.FinalTime      = DB.PeriodFraction*DB.PeriodL/DB.VInf;
 				}
-
-				printf("Warning: Set timestep here and store in DB.\n"), PRINT_FILELINE;
 			} else {
 				printf("%s\n",TestCase);
 				EXIT_UNSUPPORTED;

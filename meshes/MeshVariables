@@ -6,7 +6,11 @@ L2_PROJ_P := n-Cube/Euler/Periodic/Test/n-Cube2D_TRI0x.msh n-Cube/Euler/Periodic
 
 L2_PROJ_H := 
 
-LINEARIZATION := n-Cylinder/Euler/Internal/SupersonicVortex/Test/n-Cylinder2D_ToBeCurvedMIXED2D0x.msh n-Cylinder/Euler/Internal/SupersonicVortex/Test/n-Cylinder3D_ToBeCurvedMIXED3D_TP0x.msh n-Cylinder/Euler/Internal/SupersonicVortex/Test/n-Cylinder3D_ToBeCurvedMIXED3D_HW0x.msh 
+LINEARIZATION := n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection2D_ToBeCurvedMIXED2D0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection3D_ToBeCurvedMIXED3D_TP0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection3D_ToBeCurvedMIXED3D_HW0x.msh 
+
+POISSON_TEST := n-Ball_HollowSection/Poisson/n-Ball_HollowSection2D_CurvedMIXED2D0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedTRI0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedQUAD0x.msh 
+
+EULER_TEST := n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection2D_CurvedMIXED2D0x.msh 
 
 
 
@@ -16,5 +20,9 @@ $(L2_PROJ_P) : n-Cube/n-Cube2D.geo n-Cube/n-Cube3D.geo
 
 $(L2_PROJ_H) : n-Cube/n-Cube2D.geo n-Cube/n-Cube3D.geo 
 
-$(LINEARIZATION) : n-Cylinder/n-Cylinder2D.geo n-Cylinder/n-Cylinder3D.geo 
+$(LINEARIZATION) : n-Cylinder_HollowSection/n-Cylinder_HollowSection2D.geo n-Cylinder_HollowSection/n-Cylinder_HollowSection3D.geo 
+
+$(POISSON_TEST) : n-Ball_HollowSection/n-Ball_HollowSection2D.geo n-Ellipsoid_HollowSection/n-Ellipsoid_HollowSection2D.geo 
+
+$(EULER_TEST) : n-Cylinder_HollowSection/n-Cylinder_HollowSection2D.geo 
 

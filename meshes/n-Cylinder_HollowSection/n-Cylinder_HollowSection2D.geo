@@ -60,9 +60,6 @@ ElseIf (MeshType == QUAD)
 	Recombine Surface{4001,4002};
 EndIf
 
-Transfinite Surface{4001} Left;
-Transfinite Surface{4002} Right;
-
 
 
 // Physical parameters for '.msh' file

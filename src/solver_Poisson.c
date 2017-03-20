@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "petscvec.h"
 #include "petscmat.h"
@@ -1227,7 +1228,7 @@ void implicit_info_Poisson(void)
 	compute_uhat_FACE();
 }
 
-void solver_Poisson(void)
+void solver_Poisson(bool PrintEnabled)
 {
 	// Initialize DB Parameters
 	unsigned int Nvar = DB.Nvar;
@@ -1314,6 +1315,7 @@ void solver_Poisson(void)
 	}
 
 //	if (!DB.Testing)
+	if (PrintEnabled)
 		printf("KSP iterations (cond, reason): %5d (% .3e, %d)\n",iteration_ksp,emax/emin,reason);
 
 	// Note: maxRHS is meaningless as it is based on the initial (zero) solution.

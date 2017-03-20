@@ -4,6 +4,7 @@
 #ifndef DPG__test_support_h__INCLUDED
 #define DPG__test_support_h__INCLUDED
 
-extern void test_print (const unsigned int pass);
+extern void test_print  (const unsigned int pass);
+extern void test_print2 (const unsigned int pass, const char *string);
 
 #endif // DPG__test_support_h__INCLUDED

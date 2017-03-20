@@ -210,7 +210,7 @@ void vertices_to_exact_geom(void)
 				VeXYZ[ve*d+1] = rOut*sin(t);
 			}
 		}
-	} else if (strstr(Geometry,"dm1-Spherical_Section")) {
+	} else if (strstr(Geometry,"n-Ball")) {
 		double rIn, rOut, r, ve_norm2, t, p;
 
 		rIn  = DB.rIn;
@@ -247,7 +247,7 @@ void vertices_to_exact_geom(void)
 				VeXYZ[ve*d+2] = r*cos(p);
 			}
 		}
-	} else if (strstr(Geometry,"Ellipsoidal_Section") ||
+	} else if (strstr(Geometry,"n-Ellipsoid") ||
 	           strstr(Geometry,"ExpansionCorner")) {
 		double t, p, *abc, X, Y, Z, a, b, c, aIn, aOut;
 

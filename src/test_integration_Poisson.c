@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "petscmat.h"
 
@@ -27,6 +28,7 @@
 #include "adaptation.h"
 #include "initialize_test_case.h"
 #include "output_to_paraview.h"
+#include "array_free.h"
 
 /*
  *	Purpose:
@@ -106,6 +108,32 @@ struct S_linearization {
 	Vec b, b_cs, b_csc, x, x_cs, x_csc;
 };
 
+struct S_convorder {
+	bool         PrintEnabled, Compute_L2proj, AdaptiveRefine, TestTRI;
+	unsigned int PMin, PMax, MLMin, MLMax, Adapt, PG_add, IntOrder_add, IntOrder_mult;
+	char         **argvNew, *PrintName;
+};
+
+char *get_fNameOut(char *output_type)
+{
+	char string[STRLEN_MIN], *fNameOut;
+
+	fNameOut = malloc(STRLEN_MAX * sizeof *fNameOut);
+
+	strcpy(fNameOut,output_type);
+	sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
+								   strcat(fNameOut,DB.MeshType);
+	if (DB.Adapt == ADAPT_0) {
+		sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
+		sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
+	} else {
+		sprintf(string,"_ML%d",TestDB.ML); strcat(fNameOut,string);
+		sprintf(string,"P%d_",TestDB.PGlobal); strcat(fNameOut,string);
+	}
+
+	return fNameOut;
+}
+
 static void test_linearization(int nargc, char **argvNew, const unsigned int Nref, const unsigned int update_argv,
                                const char *TestName, struct S_linearization *data)
 {
@@ -152,128 +180,93 @@ static void test_linearization(int nargc, char **argvNew, const unsigned int Nre
 	code_cleanup();
 }
 
-char *get_fNameOut(char *output_type)
+static void set_test_convorder_data(struct S_convorder *data, const char *TestName)
 {
-	char string[STRLEN_MIN], *fNameOut;
-
-	fNameOut = malloc(STRLEN_MAX * sizeof *fNameOut);
-
-	strcpy(fNameOut,output_type);
-	sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
-								   strcat(fNameOut,DB.MeshType);
-	if (DB.Adapt == ADAPT_0) {
-		sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
-		sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
-	} else {
-		sprintf(string,"_ML%d",TestDB.ML); strcat(fNameOut,string);
-		sprintf(string,"P%d_",TestDB.PGlobal); strcat(fNameOut,string);
-	}
-
-	return fNameOut;
-}
-
-void test_integration_Poisson(int nargc, char **argv)
-{
-	unsigned int pass = 0;
-	char         **argvNew, *TestName;
-
-	argvNew    = malloc(2          * sizeof *argvNew);  // free
-	argvNew[0] = malloc(STRLEN_MAX * sizeof **argvNew); // free
-	argvNew[1] = malloc(STRLEN_MAX * sizeof **argvNew); // free
-	TestName   = malloc(STRLEN_MAX * sizeof *TestName); // free
-
-	strcpy(argvNew[0],argv[0]);
-
 	/*
-	 *	Input:
-	 *
-	 *		Meshes for a curved Poisson problem.
-	 *
-	 *	Expected Output:
-	 *
-	 *		Correspondence of LHS matrices computed using complex step and exact linearization.
-	 *		Optimal convergence orders in L2 for the solution (P+1) and its gradients (P).
-	 *
+	 *	Comments:
+	 *		As nodes having integration strength of order 2*P form a basis for the polynomial space of order P for TP
+	 *		elements and SI elements (P <= 2), non-trivial L2 projection error requires:
+	 *			TP         : InOrder_add > 1
+	 *			SI (P <= 2): InOrder_add > 0
 	 */
 
-	unsigned int P, ML, PMin, PMax, MLMin, MLMax, Adapt, Compute_L2proj, AdaptiveRefine;
+	// default values
+	data->PrintEnabled   = 0;
+	data->Compute_L2proj = 0;
+	data->AdaptiveRefine = 0;
+	data->Adapt = ADAPT_HP;
+
+	data->PMin  = 1;
+	data->PMax  = 3;
+	data->MLMin = 0;
+	data->MLMax = 4;
+
+	data->PG_add        = 0;
+	data->IntOrder_add  = 2;
+	data->IntOrder_mult = 2;
+
+
+	if (strstr(TestName,"n-Ellipsoid_HollowSection")) {
+		if (strstr(TestName,"TRI")) {
+			strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ellipsoid_HollowSection_CurvedTRI");
+		} else if (strstr(TestName,"QUAD")) {
+			strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ellipsoid_HollowSection_CurvedQUAD");
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
+
+void set_PrintName_ConvOrders(char *PrintName, bool *TestTRI)
+{
+	if (!(*TestTRI)) {
+		*TestTRI = 1;
+		strcpy(PrintName,"Convergence Orders (");
+	} else {
+		strcpy(PrintName,"                   (");
+	}
+
+	strcat(PrintName,DB.PDE);          strcat(PrintName,", ");
+	if (!strstr(DB.PDESpecifier,"NONE")) {
+		strcat(PrintName,DB.PDESpecifier); strcat(PrintName,", ");
+	}
+	strcat(PrintName,DB.MeshType);     strcat(PrintName,") : ");
+}
+
+static void test_convorder(int nargc, char **argvNew, const char *TestName, struct S_convorder *data)
+{
+	unsigned int pass = 0;
+
+	bool         PrintEnabled, Compute_L2proj, AdaptiveRefine;
+	unsigned int Adapt, PMin, PMax, MLMin, MLMax;
 	double       *mesh_quality;
-	struct S_linearization *data;
 
-	data = calloc(1 , sizeof *data); // free
+	set_test_convorder_data(data,TestName);
 
+	PrintEnabled   = data->PrintEnabled;
+	Compute_L2proj = data->Compute_L2proj;
+	AdaptiveRefine = data->AdaptiveRefine;
+	Adapt          = data->Adapt;
 
-	// **************************************************************************************************** //
-	// Linearization Testing
-	// **************************************************************************************************** //
-	TestDB.PG_add = 0;
-	TestDB.IntOrder_mult = 2;
+	PMin  = data->PMin;  PMax  = data->PMax;
+	MLMin = data->MLMin; MLMax = data->MLMax;
 
-	// **************************************************************************************************** //
-	// 2D (Mixed TRI/QUAD mesh)
-	TestDB.PGlobal = 2;
-	TestDB.ML      = 0;
-
-	//              0         10        20        30        40        50
-	strcpy(TestName,"Linearization Poisson (2D - Mixed):              ");
-	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_mixed");
-
-//if (0)
-	test_linearization(nargc,argvNew,0,1,TestName,data);
-
-
-	// **************************************************************************************************** //
-	// 3D (TET mesh)
-	TestDB.PGlobal = 2;
-	TestDB.ML      = 0;
-
-	//              0         10        20        30        40        50
-	strcpy(TestName,"Linearization Poisson (3D - TET):                ");
-	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
-
-if (0) // The 3D testing needs to be updated (ToBeDeleted)
-	test_linearization(nargc,argvNew,0,1,TestName,data);
-
-
-	// **************************************************************************************************** //
-	// Convergence Order Testing
-	// **************************************************************************************************** //
-//	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_mixed");
-//	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_TRI");
-	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
-//	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_QUAD");
-//	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_TRI");
-//	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_QUAD");
-//	strcpy(argvNew[1],"test/Test_Poisson_HoldenRamp2D_TRI");
-//	strcpy(argvNew[1],"test/Test_Poisson_GaussianBump2D_TRI");
-//	strcpy(argvNew[1],"test/Test_Poisson_GaussianBump2D_mixed");
-//	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
-//	strcpy(argvNew[1],"test/Test_Poisson_3D_HEX");
-//	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_TP");
-//	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_HW");
-
-	TestDB.PG_add = 0;
-	TestDB.IntOrder_add  = 2; // > 1 for non-zero error for L2 projection on TP elements
-	TestDB.IntOrder_mult = 2;
-
-	// Convergence orders
-	PMin  = 1; PMax  = 6;
-	MLMin = 0; MLMax = 2;
-TestDB.PGlobal = 1;
+	TestDB.PGlobal       = 1;
+	TestDB.PG_add        = data->PG_add;
+	TestDB.IntOrder_add  = data->IntOrder_add;
+	TestDB.IntOrder_mult = data->IntOrder_mult;
 
 	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
-	Compute_L2proj = 0; // Use IntOrder_add > 0 for non-trivial P1-P2 results for L2proj
-	AdaptiveRefine = 1;
-//	Adapt = ADAPT_0;
-	Adapt = ADAPT_HP;
 	if (Adapt != ADAPT_0) {
 		TestDB.ML = DB.ML;
 		code_startup(nargc,argvNew,0,2);
 	}
 
-	for (P = PMin; P <= PMax; P++) {
-	for (ML = MLMin; ML <= MLMax; ML++) {
+	for (size_t P = PMin; P <= PMax; P++) {
+	for (size_t ML = MLMin; ML <= MLMax; ML++) {
 		TestDB.PGlobal = P;
 		TestDB.ML = ML;
 
@@ -311,18 +304,19 @@ TestDB.PGlobal = 1;
 			free(fNameOut);
 			free(string);
 		} else {
-			solver_Poisson();
+			solver_Poisson(PrintEnabled);
 		}
 		compute_errors_global();
 
-		printf("dof: %d\n",DB.dof);
+		if (PrintEnabled)
+			printf("dof: %d\n",DB.dof);
 
 		if (P == PMin)
 			evaluate_mesh_regularity(&mesh_quality[ML-MLMin]);
 
 		if (P == PMax && ML == MLMax) {
-			check_convergence_orders(MLMin,MLMax,PMin,PMax,&pass);
-			check_mesh_regularity(mesh_quality,MLMax-MLMin+1,&pass);
+			check_convergence_orders(MLMin,MLMax,PMin,PMax,&pass,PrintEnabled);
+			check_mesh_regularity(mesh_quality,MLMax-MLMin+1,&pass,PrintEnabled);
 		}
 
 		if (Adapt == ADAPT_0)
@@ -332,12 +326,101 @@ TestDB.PGlobal = 1;
 		code_cleanup();
 	free(mesh_quality);
 
-	printf("Convergence Orders - Poisson (2D - TRI  ):       ");
-	test_print(pass);
+	set_PrintName_ConvOrders(data->PrintName,&data->TestTRI);
+	test_print2(pass,data->PrintName);
+}
+
+void test_integration_Poisson(int nargc, char **argv)
+{
+	char **argvNew, *TestName, *PrintName;
+
+	argvNew    = malloc(2          * sizeof *argvNew);  // free
+	argvNew[0] = malloc(STRLEN_MAX * sizeof **argvNew); // free
+	argvNew[1] = malloc(STRLEN_MAX * sizeof **argvNew); // free
+	TestName   = malloc(STRLEN_MAX * sizeof *TestName); // free
+	PrintName  = malloc(STRLEN_MAX * sizeof *PrintName); // free
+
+	strcpy(argvNew[0],argv[0]);
+
+	/*
+	 *	Input:
+	 *
+	 *		Meshes for a curved Poisson problem.
+	 *
+	 *	Expected Output:
+	 *
+	 *		Correspondence of LHS matrices computed using complex step and exact linearization.
+	 *		Optimal convergence orders in L2 for the solution (P+1) and its gradients (P).
+	 *
+	 */
+
+	struct S_linearization *data_l;
+	struct S_convorder     *data_c;
+
+	data_l = calloc(1 , sizeof *data_l); // free
+	data_c = calloc(1 , sizeof *data_c); // free
+
+	data_c->argvNew   = argvNew;
+	data_c->PrintName = PrintName;
 
 
+	// **************************************************************************************************** //
+	// Linearization Testing
+	// **************************************************************************************************** //
+	TestDB.PG_add = 0;
+	TestDB.IntOrder_mult = 2;
 
-	free(argvNew[0]); free(argvNew[1]); free(argvNew);
+	// **************************************************************************************************** //
+	// 2D (Mixed TRI/QUAD mesh)
+	TestDB.PGlobal = 2;
+	TestDB.ML      = 0;
+
+	//              0         10        20        30        40        50
+	strcpy(TestName,"Linearization Poisson (2D - Mixed):              ");
+	strcpy(argvNew[1],"test/Poisson/Test_Poisson_n-Ball_HollowSection_CurvedMIXED2D");
+
+//if (0)
+	test_linearization(nargc,argvNew,2,1,TestName,data_l);
+
+
+	// **************************************************************************************************** //
+	// 3D (TET mesh)
+	TestDB.PGlobal = 2;
+	TestDB.ML      = 0;
+
+	//              0         10        20        30        40        50
+	strcpy(TestName,"Linearization Poisson (3D - TET):                ");
+	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
+
+if (0) // The 3D testing needs to be updated (ToBeDeleted)
+	test_linearization(nargc,argvNew,0,1,TestName,data_l);
+
+
+	// **************************************************************************************************** //
+	// Convergence Order Testing
+	// **************************************************************************************************** //
+//	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_mixed");
+//	strcpy(argvNew[1],"test/Test_Poisson_dm1-Spherical_Section_2D_TRI");
+//	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_TRI");
+//	strcpy(argvNew[1],"test/Test_Poisson_Ellipsoidal_Section_2D_QUAD");
+//	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_TRI");
+//	strcpy(argvNew[1],"test/Test_Poisson_Ringleb2D_QUAD");
+//	strcpy(argvNew[1],"test/Test_Poisson_HoldenRamp2D_TRI");
+//	strcpy(argvNew[1],"test/Test_Poisson_GaussianBump2D_TRI");
+//	strcpy(argvNew[1],"test/Test_Poisson_GaussianBump2D_mixed");
+//	strcpy(argvNew[1],"test/Test_Poisson_3D_TET");
+//	strcpy(argvNew[1],"test/Test_Poisson_3D_HEX");
+//	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_TP");
+//	strcpy(argvNew[1],"test/Test_Poisson_mixed3D_HW");
+
+	// Add in test cases from above if they are used in Euler/NS verification cases (ToBeModified)
+	test_convorder(nargc,argvNew,"n-Ellipsoid_HollowSection_TRI",data_c);
+	test_convorder(nargc,argvNew,"n-Ellipsoid_HollowSection_QUAD",data_c);
+
+
+	array_free2_c(2,argvNew);
 	free(TestName);
-	free(data);
+	free(PrintName);
+	free(data_l);
+	free(data_c);
 }
