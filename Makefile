@@ -1,4 +1,4 @@
-# Makefile
+# Makefile for most code functionality
 
 # References
 #   GNU Make manual
@@ -8,12 +8,13 @@
 # - .RECIPEPREFIX == \t (TAB)
 
 # Additional make targets:
-# $ make directories
+# directories
+# meshes
 #
-# $ make clean
-# $ make clean_code
-# $ make clean_test
-# $ make clean_exec
+# clean
+# clean_code
+# clean_test
+# clean_exec
 
 # C standard
 CSTD := -std=c99
@@ -123,6 +124,8 @@ INCDIR  := include
 OBJDIR  := obj
 DEPDIR  := depend
 EXECDIR := bin
+CTRLDIR := cases/control_files
+MESHDIR := meshes
 
 nullstring :=
 space := $(nullstring) # Single space
@@ -221,36 +224,37 @@ directories:
 #	mkdir -p meshes/Test
 	@echo
 
-.PHONY : meshes
 
 # Python compiler
 PYTHONC := python3
 
 #MAIN_CONFIGURATIONS := Euler
 #TEST_CONFIGURATIONS := update_h linearization L2_proj Poisson Euler
-MAIN_CONFIGURATIONS := 
-TEST_CONFIGURATIONS := update_h
+MAIN_CONFIGURATIONS := $(nullstring)
+TEST_CONFIGURATIONS := update_h L2_proj_p L2_proj_h linearization
 
 MAIN_CONFIGURATIONS := $(addprefix main/,$(MAIN_CONFIGURATIONS))
 TEST_CONFIGURATIONS := $(addprefix test/,$(TEST_CONFIGURATIONS))
 
-CTRLDIR := cases/control_files
-
 CONFIGURATIONS := $(addprefix $(CTRLDIR)/,$(MAIN_CONFIGURATIONS) $(TEST_CONFIGURATIONS))
-CONTROL_FILES := $(shell find $(CTRLDIR) -name '*.ctrl')
+CONTROL_FILES  := $(shell find $(CTRLDIR) -name '*.ctrl')
+MESHVARIABLES  := $(MESHDIR)/MeshVariables
 
 
+.PHONY : meshes
 meshes:
-	@clear
-	@clear
-	@echo 
+	@touch $(CTRLDIR)/main/dSphericalBump.ctrl
+	$(MAKE) mesh_vars_and_deps
+	$(MAKE) -C meshes meshes_all
+
+
+.PHONY : mesh_vars_and_deps
+mesh_vars_and_deps : $(MESHVARIABLES)
+$(MESHVARIABLES) : $(CONTROL_FILES)
+	@echo
 	@echo Creating MeshVariables file based on existing .ctrl files.
 	@$(PYTHONC) python/update_MeshVariables.py $(CONFIGURATIONS)
-	@echo 
-	$(MAKE) -C meshes meshes_all
-#	$(MAKE) -C meshes meshes_update_h
-
-$(CTRLDIR)/MeshVariables : $(CONTROL_FILES)
+	@echo
 
 
 

@@ -1,33 +1,29 @@
-/*------------------------------------------------------------*/
-/*                                                            */
-/*          CONTROL FILE FOR UNSTRUCTURED DPG SOLVER          */
-/*                                                            */
-/*------------------------------------------------------------*/
+PDEName       Poisson
+PDESpecifier  Dirichlet
 
-BEGIN PARAMETERS
-  Dimension  3
-  ML         1
-  MeshType   PYR
-  Geometry   n-Cube
+Geometry      n-Cube n-Cube/n-Cube3D_PYR1.geo
+GeomSpecifier Test
 
-  Form       Weak  // Options: Weak, (Strong)
-  NodeType   GLL-AO // Options: GL/GLL-AO/WSH
-  BasisType  Nodal // Options: Nodal, Modal
+Dimension     3
 
-  Vectorized 0     // Options: 0, 1
-  EFE        1     // Options: (0), 1
-  Collocated 0     // Options: 0, 1
-  Adapt      2     // Options: 0, 1, 2, (3)
+MeshPath      ../meshes/
+MeshType      PYR
+MeshCurving   Straight
+MeshLevel     0
 
-  PGlobal    2
-  PMax       3
-  LevelsMax  5
+Form       Weak   // Options: Weak, (Strong)
+NodeType   GLL-AO // Options: GL/GLL-AO/WSH/EQ
+BasisType  Nodal  // Options: Nodal, Modal
 
-  Restart    -1    // Options: -1, 0, Iteration #
+Vectorized 0     // Options: 0, 1
+EFE        1     // Options: (0), 1
+Collocated 0     // Options: 0, 1
+Adapt      2     // Options: 0, 1, 2, 3
 
-  Testing    1     // Options: 0, 1
-END PARAMETERS
+PGlobal    2
+PMax       3
+LevelsMax  5
 
-BEGIN MESH
-MeshPath ../meshes/Test/
-END MESH
+Restart    -1    // Options: -1, 0, Iteration #
+
+Testing    1     // Options: 0, 1

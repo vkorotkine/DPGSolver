@@ -1,6 +1,6 @@
 Include "../Parameters.geo";
 
-//Printf(D)
+
 // Geometry Specification
 L = 1;
 H = 1;
@@ -15,8 +15,8 @@ Line(1002) = {3,4};
 Line(2001) = {1,3};
 Line(2002) = {2,4};
 
-Transfinite Line{1001:1002} = 2 Using Progression 1;
-Transfinite Line{2001:2002} = 2 Using Progression 1;
+Transfinite Line{1001:1002} = 2^(MeshLevel)+1 Using Progression 1;
+Transfinite Line{2001:2002} = 2^(MeshLevel)+1 Using Progression 1;
 
 Line Loop (4001) = {1001,2002,-1002,-2001};
 

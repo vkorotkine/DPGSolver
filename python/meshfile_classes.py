@@ -42,23 +42,44 @@ class TestCase_class:
 		self.MeshOutputs = ''
 
 	def add_MeshTypes(self,Paths,MeshName):
-		NStd = 6
-		MeshTypes   = ['TRI','QUAD','TET','HEX','WEDGE','PYR']
+		if (self.name.find('update_h') != -1 or
+		    self.name.find('L2_proj')  != -1):
+			if (self.name.find('update_h') != -1):
+				self.VarName = 'UPDATE_H'
+			elif (self.name.find('L2_proj_p') != -1):
+				self.VarName = 'L2_PROJ_P'
+			elif (self.name.find('L2_proj_h') != -1):
+				self.VarName = 'L2_PROJ_H'
 
-		if (self.name.find('update_h') != -1):
-			self.VarName = 'UPDATE_H'
-			MeshTypes = ['TRI','QUAD','TET','HEX','WEDGE','PYR'];
+			NTotal = 6
+			MeshTypes = ['TRI','QUAD','TET','HEX','WEDGE','PYR']
 			if   (MeshName.find('all')    != -1):
-				iRange = range(0,NStd)
+				iRange = range(0,NTotal)
 			else:
 				iRange = range(0,1)
 				Found = 0
-				for i in range(0,NStd):
+				for i in range(0,NTotal):
 					if (MeshName.find(MeshTypes[i]) != -1):
-						print(MeshTypes)
-						print(MeshTypes[i])
 						MeshTypes = [MeshTypes[i]]
-						print(MeshTypes)
+						Found = 1
+						break;
+
+				if (Found == 0):
+					print("Did not find the MeshType.\n")
+					EXIT_TRACEBACK()
+		elif (self.name.find('linearization') != -1):
+			self.VarName = 'LINEARIZATION'
+
+			NTotal = 3
+			MeshTypes = ['MIXED2D','MIXED3D_TP','MIXED3D_HW']
+			if   (MeshName.find('all')    != -1):
+				iRange = range(0,NTotal)
+			else:
+				iRange = range(0,1)
+				Found = 0
+				for i in range(0,NTotal):
+					if (MeshName.find(MeshTypes[i]) != -1):
+						MeshTypes = [MeshTypes[i]]
 						Found = 1
 						break;
 
@@ -79,20 +100,33 @@ class TestCase_class:
 	def set_paths(self,Paths):
 		if (self.name.find('update_h') != -1):
 			self.name = 'update_h'
-			print("name:\n",self.name)
 			self.Path = Paths.control_files+'test/'+self.name+'/Test_update_h_'
+		elif (self.name.find('L2_proj_p') != -1):
+			self.name = 'L2_proj_p'
+			self.Path = Paths.control_files+'test/'+self.name+'/Test_L2_proj_p_'
+		elif (self.name.find('L2_proj_h') != -1):
+			self.name = 'L2_proj_h'
+			self.Path = Paths.control_files+'test/'+self.name+'/Test_L2_proj_h_'
+		elif (self.name.find('linearization') != -1):
+			self.name = 'linearization'
+			self.Path = Paths.control_files+'test/'+self.name+'/Test_linearization_'
+		else:
+			print("name:",self.name)
+			EXIT_TRACEBACK()
 
 	def get_geo_dependencies(self):
 		MeshTypes = self.MeshTypes
 		for i in range(0,len(MeshTypes)):
 			if (self.GeoDeps.find(MeshTypes[i].InputName) == -1):
-				# ToBeDeleted: Remove the if condition below after control files are updated
-				if (MeshTypes[i].InputName.find('n-Cube') == -1):
-					self.GeoDeps += MeshTypes[i].InputName + ' '
+				self.GeoDeps += MeshTypes[i].InputName + ' '
 
 	def get_mesh_outputs(self):
 		MeshTypes = self.MeshTypes
 		for i in range(0,len(MeshTypes)):
+
+#			print("mc107")
+#			print(MeshTypes[i].InputName)
+
 			if (self.MeshOutputs.find(MeshTypes[i].InputName) == -1):
 				self.MeshOutputs += MeshTypes[i].OutputName_from_meshesROOT + ' '
 
@@ -117,9 +151,6 @@ class MeshType_class:
 	def set_parameters(self,TestCase,Paths):
 		fName = TestCase.Path+self.name+'.ctrl'
 
-		print(TestCase.Path)
-		print(self.name)
-
 		with open(fName) as f:
 			for line in f:
 				if ('PDEName' in line):
@@ -128,6 +159,7 @@ class MeshType_class:
 					self.PDESpecifier = line.split()[1]
 				if ('Geometry' in line):
 					self.Geometry = line.split()[1]
+					self.InputName = line.split()[2]
 				if ('GeomSpecifier' in line):
 					self.GeomSpecifier = line.split()[1]
 				if ('MeshCurving' in line):
@@ -137,7 +169,6 @@ class MeshType_class:
 				if ('MeshLevel' in line):
 					self.MeshLevel = line.split()[1]
 
-		self.InputName  = self.Geometry + '/' + self.Geometry + self.dim + 'D.geo'
 		self.OutputDir  = self.Geometry + '/' + self.PDEName + '/' \
 		                + self.PDESpecifier + '/' + self.GeomSpecifier + '/'
 		self.OutputName = self.OutputDir + self.Geometry + self.dim + 'D_'
@@ -149,8 +180,3 @@ class MeshType_class:
 
 		self.OutputName_from_meshesROOT = self.OutputName
 		self.OutputName = Paths.meshes + self.OutputName
-
-#		print('\nfName, OutputName:')
-#		print(fName)
-#		print(self.OutputDir,self.OutputName)
-#		EXIT_TRACEBACK()

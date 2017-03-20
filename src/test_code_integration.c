@@ -56,9 +56,10 @@ static void update_TestCase(void)
 	    strstr(DB.TestCase,"Poisson_HoldenRamp")            ||
 	    strstr(DB.TestCase,"Poisson_GaussianBump")) {
 		strcpy(DB.TestCase,"Poisson");
-	} else if (strstr(DB.TestCase,"update_h") ||
-	           strstr(DB.TestCase,"L2_proj")) {
+	} else if (strstr(DB.TestCase,"update_h")) {
 		strcpy(DB.TestCase,"Poisson_Test");
+	} else if (strstr(DB.TestCase,"L2_proj")) {
+		strcpy(DB.TestCase,"Euler_PeriodicVortex_Test");
 	} else if (strstr(DB.TestCase,"linearization")) {
 		strcpy(DB.TestCase,"SupersonicVortex_Test");
 //		strcpy(DB.Geometry,"Annular_Section");

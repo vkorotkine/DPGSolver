@@ -22,26 +22,16 @@ from support_functions import EXIT_TRACEBACK
 
 def create_meshes(TestCase,Paths):
 	for i in range(0,len(TestCase.MeshTypes)):
-#	for i in range(0,1):
 		MeshType = TestCase.MeshTypes[i]
-
-		print(Paths.meshes)
 
 		gmsh_args = ' ' + Paths.meshes + MeshType.InputName
 		gmsh_args += ' -' + MeshType.dim
 		gmsh_args = add_gmsh_setnumber(gmsh_args,MeshType,Paths)
 		gmsh_args += ' -o ' + MeshType.OutputName
 	
-#		print(MeshType.OutputDir,'\n')
-#		print(gmsh_args,'\n')
-#		print(Paths.gmsh+gmsh_args,'\n')
-#		EXIT_TRACEBACK()
 		subprocess.call(shlex.split('mkdir -p ' + MeshType.OutputDir))
 		subprocess.call(shlex.split(Paths.gmsh + gmsh_args))
 
-		if (i == 1):
-			print("Exiting\n\n")
-			EXIT_TRACEBACK()
 
 def add_gmsh_setnumber(gmsh_args,MeshType,Paths):
 	""" Set numbers for gmsh command line arguments based on values in Parameters.geo. """
@@ -63,6 +53,7 @@ def add_gmsh_setnumber(gmsh_args,MeshType,Paths):
 	gmsh_args += ' -setnumber MeshLevel ' + MeshType.MeshLevel
 
 	return gmsh_args
+
 
 def get_gmsh_number(gmsh_args,name,Paths):
 	fName = Paths.meshes + 'Parameters.geo'
@@ -95,16 +86,9 @@ if __name__ == '__main__':
 		EXIT_TRACEBACK()
 
 	print('Generating '+MeshName+' for user '+user+'.\n')
-	print(sys.argv)
 
 	TestCase = TestCase_class(CaseName)
 
 	TestCase.set_paths(Paths)
 	TestCase.add_MeshTypes(Paths,MeshName)
 	create_meshes(TestCase,Paths)
-
-#	print(TestCase.name,TestCase.NMeshTypes)
-#	for i in range(TestCase.NMeshTypes):
-#		print(TestCase.MeshTypes[i].name,TestCase.MeshTypes[i].dim)
-
-

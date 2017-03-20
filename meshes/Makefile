@@ -8,8 +8,10 @@ include MeshVariables
 #
 # Simply running make does not properly execute the default rule (i.e. 'make meshes_all' must be used instead of 'make')
 #
-# meshes_all      : generate all meshes
-# meshes_update_h : generates meshes for the update_h integration tests 
+# meshes_all           : generate all meshes
+# meshes_update_h      : generates meshes for the update_h      integration tests 
+# meshes_L2_proj_*     : generates meshes for the L2 projection integration tests 
+# meshes_linearization : generates meshes for the linearization integration tests 
 
 
 PYTHONC   := python3
@@ -18,20 +20,32 @@ PYTHONDIR := ../python/
 SOURCE := generate_meshes.py
 
 
-
-
-.PHONY : meshes_all
-.PHONY : meshes_update_h
-
 SHELL := /bin/bash
 
 # Default goal
+.PHONY : meshes_all
 meshes_all:
 	$(MAKE) meshes_update_h
+	$(MAKE) meshes_L2_proj_p
+	$(MAKE) meshes_L2_proj_h
+	$(MAKE) meshes_linearization
 
+.PHONY : meshes_update_h
 meshes_update_h : $(UPDATE_H)
-
-
-
 $(UPDATE_H) :
 	cd $(PYTHONDIR) && $(PYTHONC) $(SOURCE) update_h $@
+
+.PHONY : meshes_L2_proj_p
+meshes_L2_proj_p : $(L2_PROJ_P)
+$(L2_PROJ_P) :
+	cd $(PYTHONDIR) && $(PYTHONC) $(SOURCE) L2_proj_p $@
+
+.PHONY : meshes_L2_proj_h
+meshes_L2_proj_h : $(L2_PROJ_H)
+$(L2_PROJ_H) :
+	cd $(PYTHONDIR) && $(PYTHONC) $(SOURCE) L2_proj_h $@
+
+.PHONY : meshes_linearization
+meshes_linearization : $(LINEARIZATION)
+$(LINEARIZATION) :
+	cd $(PYTHONDIR) && $(PYTHONC) $(SOURCE) linearization $@

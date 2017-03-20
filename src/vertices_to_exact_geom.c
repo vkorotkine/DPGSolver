@@ -339,7 +339,7 @@ void vertices_to_exact_geom(void)
 				printf("Error: Unsupported.\n"), EXIT_MSG;
 			}
 		}
-	} else if (strstr(Geometry,"dCube")) {
+	} else if (strstr(Geometry,"n-Cube")) {
 		// Do nothing
 	} else if (strstr(Geometry,"HoldenRamp")) {
 		if (!strstr(Geometry,"HoldenRampCurved")) {

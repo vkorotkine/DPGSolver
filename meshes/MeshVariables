@@ -1,5 +1,20 @@
 # Variables and dependencies needed for DPG_ROOT/meshes/Makefile
 
-UPDATE_H := dCube/Poisson/Dirichlet/Test/dCube2D_TRI0x.msh dCube/Poisson/Dirichlet/Test/dCube2D_QUAD0x.msh dCube/Poisson/Dirichlet/Test/dCube3D_TET0x.msh dCube/Poisson/Dirichlet/Test/dCube3D_HEX0x.msh dCube/Poisson/Dirichlet/Test/dCube3D_WEDGE0x.msh n-Cube////n-Cube3D_PYRx.msh 
+UPDATE_H := n-Cube/Poisson/Dirichlet/Test/n-Cube2D_TRI0x.msh n-Cube/Poisson/Dirichlet/Test/n-Cube2D_QUAD0x.msh n-Cube/Poisson/Dirichlet/Test/n-Cube3D_TET0x.msh n-Cube/Poisson/Dirichlet/Test/n-Cube3D_HEX0x.msh n-Cube/Poisson/Dirichlet/Test/n-Cube3D_WEDGE0x.msh n-Cube/Poisson/Dirichlet/Test/n-Cube3D_PYR0x.msh 
 
-$(UPDATE_H) : dCube/dCube2D.geo dCube/dCube3D.geo 
+L2_PROJ_P := n-Cube/Euler/Periodic/Test/n-Cube2D_TRI0x.msh n-Cube/Euler/Periodic/Test/n-Cube2D_QUAD0x.msh n-Cube/Euler/Periodic/Test/n-Cube3D_TET0x.msh n-Cube/Euler/Periodic/Test/n-Cube3D_HEX0x.msh n-Cube/Euler/Periodic/Test/n-Cube3D_WEDGE0x.msh n-Cube/Euler/Periodic/Test/n-Cube3D_PYR0x.msh 
+
+L2_PROJ_H := 
+
+LINEARIZATION := n-Cylinder/Euler/Internal/SupersonicVortex/Test/n-Cylinder2D_ToBeCurvedMIXED2D0x.msh n-Cylinder/Euler/Internal/SupersonicVortex/Test/n-Cylinder3D_ToBeCurvedMIXED3D_TP0x.msh n-Cylinder/Euler/Internal/SupersonicVortex/Test/n-Cylinder3D_ToBeCurvedMIXED3D_HW0x.msh 
+
+
+
+$(UPDATE_H) : n-Cube/n-Cube2D.geo n-Cube/n-Cube3D.geo n-Cube/n-Cube3D_PYR1.geo 
+
+$(L2_PROJ_P) : n-Cube/n-Cube2D.geo n-Cube/n-Cube3D.geo 
+
+$(L2_PROJ_H) : n-Cube/n-Cube2D.geo n-Cube/n-Cube3D.geo 
+
+$(LINEARIZATION) : n-Cylinder/n-Cylinder2D.geo n-Cylinder/n-Cylinder3D.geo 
+

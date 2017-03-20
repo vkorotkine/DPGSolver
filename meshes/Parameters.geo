@@ -20,6 +20,11 @@ HEX   = 5;
 WEDGE = 6;
 PYR   = 7;
 
+MIXED2D    = 20;
+MIXED3D    = 21;
+MIXED3D_TP = 22;
+MIXED3D_HW = 23;
+
 
 // PDE Names
 POISSON = 0;

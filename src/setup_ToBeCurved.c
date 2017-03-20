@@ -304,7 +304,7 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 				} else {
 					printf("Error: PeriodicVortex TestCase not supported for dimension d = %d.\n",d), EXIT_MSG;
 				}
-			} else if (strstr(Geometry,"Annular_Section")) {
+			} else if (strstr(Geometry,"n-Cylinder")) {
 				ToBeCurved_square_to_circle(NvnG,XYZ_S,XYZ);
 			} else {
 				printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;

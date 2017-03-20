@@ -265,11 +265,12 @@ void initialize_test_case_parameters(void)
 
 				printf("Warning: Set timestep here and store in DB.\n"), PRINT_FILELINE;
 			} else {
+				printf("%s\n",TestCase);
 				EXIT_UNSUPPORTED;
 			}
 		} else if (strstr(PDESpecifier,"Internal")) {
 			if (!InitializedGeometry) {
-				if (strstr(Geometry,"dm1SphericalSection")) {
+				if (strstr(Geometry,"n-Cylinder")) {
 					DB.rIn  = 1.0;
 					DB.rOut = 1.384;
 				} else if (strstr(Geometry,"EllipsoidalSection")) {

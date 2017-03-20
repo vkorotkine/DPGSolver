@@ -74,7 +74,8 @@ static void test_L2_projection(struct S_L2proj *data)
 
 	for (refType = 0; refType < NrefTypes; refType++) {
 		// p-refinement
-		strcpy(argvNew[1],data->CtrlName[0]); strcat(argvNew[1],"_p_"); strcat(argvNew[1],data->CtrlName[1]);
+		strcpy(argvNew[1],data->CtrlName[0]);
+		strcat(argvNew[1],"_p/Test_L2_proj_p_"); strcat(argvNew[1],data->CtrlName[1]);
 
 		code_startup_mod_prmtrs(data->nargc,argvNew,0,data->update_argv,1);
 		if      (refType == 0) DB.TETrefineType = TET8;
@@ -103,14 +104,14 @@ static void test_L2_projection(struct S_L2proj *data)
 
 
 		// h-refinement
-		strcpy(argvNew[1],data->CtrlName[0]); strcat(argvNew[1],"_h_"); strcat(argvNew[1],data->CtrlName[1]);
+		strcpy(argvNew[1],data->CtrlName[0]);
+		strcat(argvNew[1],"_h/Test_L2_proj_h_"); strcat(argvNew[1],data->CtrlName[1]);
 
 		code_startup_mod_prmtrs(data->nargc,argvNew,0,data->update_argv,1);
 		if      (refType == 0) DB.TETrefineType = TET8;
 		else if (refType == 1) DB.TETrefineType = TET12;
 		else if (refType == 2) DB.TETrefineType = TET6;
 		code_startup_mod_prmtrs(data->nargc,data->argvNew,data->Nref,data->update_argv,2);
-//		code_startup_mod_prmtrs(data->nargc,data->argvNew,0,data->update_argv,2);
 
 		L2err[0] = get_L2err();
 		mark_VOLUMEs(HREFINE); mesh_update();
@@ -165,7 +166,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	data->CtrlName[0] = malloc(STRLEN_MAX * sizeof *(data->CtrlName[0])); // free
 	data->CtrlName[1] = malloc(STRLEN_MAX * sizeof *(data->CtrlName[1])); // free
 
-	strcpy(data->CtrlName[0],"test/Test_L2_proj");
+	strcpy(data->CtrlName[0],"test/L2_proj");
 	data->argvNew     = argvNew;
 	data->nargc       = nargc;
 	data->Nref        = 2;
