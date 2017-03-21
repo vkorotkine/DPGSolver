@@ -29,12 +29,17 @@ class Paths_class:
 		self.control_files = self.cases+'control_files/'
 
 
-def find_MeshType(N,MeshTypes,MeshTypesPrefix,MeshName):
+def find_MeshType(N,MeshTypes,MeshTypesPrefix,MeshName,MeshCurving):
 	Found = 0
 	for i in range(0,N):
-		if (MeshName.find(MeshTypes[i]) != -1):
+		if (MeshName.find(MeshCurving[i]+MeshTypes[i]) != -1):
+			# Eliminate occurence of finding Curved in ToBeCurved ...
+			if (MeshName.find('ToBeCurved') != -1 and MeshCurving[i].find('ToBeCurved') == -1):
+				continue
+
 			Found = 1
-			MeshType = [MeshTypes[i]]
+			MeshType    = [MeshTypes[i]]
+			MeshCurving = [MeshCurving[i]]
 			if (len(MeshTypesPrefix) == 1):
 				MeshTypesPrefix = [MeshTypesPrefix[0]]
 			else:
@@ -44,9 +49,10 @@ def find_MeshType(N,MeshTypes,MeshTypesPrefix,MeshName):
 
 	if (Found == 0):
 		print("Did not find the MeshType.\n")
+		print(MeshName,"\n",MeshCurving,"\n",MeshTypes,"\n")
 		EXIT_TRACEBACK()
 
-	return [MeshType, MeshTypesPrefix]
+	return [MeshType, MeshTypesPrefix, MeshCurving]
 
 class TestCase_class:
 	""" Class storing relevant data for a control file group."""
@@ -73,50 +79,53 @@ class TestCase_class:
 
 			NTotal = 6
 			MeshTypesPrefix = ['' for i in range(NTotal)]
+			MeshCurving     = ['' for i in range(NTotal)]
 			MeshTypes       = ['TRI','QUAD','TET','HEX','WEDGE','PYR']
 			if   (MeshName.find('all')    != -1):
 				iRange = range(0,NTotal)
 			else:
 				iRange = range(0,1)
-				[MeshTypes,MeshTypesPrefix] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName)
+				[MeshTypes,MeshTypesPrefix,MeshCurving] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName,MeshCurving)
 		elif (self.name.find('linearization') != -1):
 			self.VarName = 'LINEARIZATION'
 
 			NTotal = 3
 			MeshTypesPrefix = ['' for i in range(NTotal)]
+			MeshCurving     = ['ToBeCurved' for i in range(NTotal)]
 			MeshTypes       = ['MIXED2D','MIXED3D_TP','MIXED3D_HW']
 			if   (MeshName.find('all')    != -1):
 				iRange = range(0,NTotal)
 			else:
 				iRange = range(0,1)
-				[MeshTypes,MeshTypesPrefix] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName)
+				[MeshTypes,MeshTypesPrefix,MeshCurving] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName,MeshCurving)
 		elif (self.name.find('Poisson') != -1):
 			if (self.name.lower().find('test') != -1):
 				self.VarName = 'POISSON_TEST'
 
-				NTotal = 3
-				MeshTypesPrefix = ['n-Ball_HollowSection_Curved','n-Ellipsoid_HollowSection_Curved', \
-				                   'n-Ellipsoid_HollowSection_Curved']
+				MeshTypesPrefix = ['n-Ball_HollowSection_','n-Ellipsoid_HollowSection_','n-Ellipsoid_HollowSection_']
+				MeshCurving     = ['Curved','Curved','Curved']
 				MeshTypes       = ['MIXED2D','TRI','QUAD']
+				NTotal = len(MeshTypes)
 				if   (MeshName.find('all')    != -1):
 					iRange = range(0,NTotal)
 				else:
 					iRange = range(0,1)
-					[MeshTypes,MeshTypesPrefix] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName)
+					[MeshTypes,MeshTypesPrefix,MeshCurving] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName,MeshCurving)
 			else:
 				EXIT_TRACEBACK()
 		elif (self.name.find('Euler') != -1):
 			if (self.name.lower().find('test') != -1):
 				self.VarName = 'EULER_TEST'
 
-				NTotal = 1
-				MeshTypesPrefix = ['SupersonicVortex_Curved']
-				MeshTypes       = ['MIXED2D']
+				MeshTypesPrefix = ['SupersonicVortex_' for i in range(0,5)]
+				MeshCurving     = ['Curved','ToBeCurved','ToBeCurved','ToBeCurved','ToBeCurved']
+				MeshTypes       = ['MIXED2D','MIXED2D','MIXED3D_TP','TET','HEX']
+				NTotal = len(MeshTypes)
 				if   (MeshName.find('all')    != -1):
 					iRange = range(0,NTotal)
 				else:
 					iRange = range(0,1)
-					[MeshTypes,MeshTypesPrefix] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName)
+					[MeshTypes,MeshTypesPrefix,MeshCurving] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName,MeshCurving)
 			else:
 				print("name122: ",self.name)
 				EXIT_TRACEBACK()
@@ -124,7 +133,7 @@ class TestCase_class:
 			EXIT_TRACEBACK()
 
 		for i in iRange:
-			TypeCurrent = MeshType_class(MeshTypes[i],MeshTypesPrefix[i])
+			TypeCurrent = MeshType_class(MeshTypes[i],MeshTypesPrefix[i]+MeshCurving[i])
 
 			TypeCurrent.set_parameters(self,Paths)
 

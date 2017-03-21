@@ -3311,7 +3311,7 @@ void setup_operators(void)
 
 	// PYR
 	EType = PYR;
-	if (is_ELEMENT_present(EType) || (Adapt != ADAPT_0 && is_ELEMENT_present(TET))) {
+	if (is_ELEMENT_present(EType) || (Adapt != ADAPT_0 && is_ELEMENT_present(TET) && DB.TETrefineType == TET6)) {
 		if (!DB.MPIrank && !DB.Testing)
 			printf("    PYR\n");
 

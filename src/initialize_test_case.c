@@ -195,6 +195,9 @@ void initialize_test_case_parameters(void)
 		DB.SourcePresent = 1;
 		strcpy(DB.SolverType,"Implicit");
 
+		// Default
+		DB.Poisson_scale = 0.5;
+
 		if (!InitializedGeometry) {
 			if (strstr(Geometry,"n-Ball_HollowSection")) {
 				DB.rIn  = 0.5;

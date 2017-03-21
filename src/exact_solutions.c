@@ -108,6 +108,10 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, con
 		}
 	} else if (strstr(TestCase,"Poisson")) {
 		double Poisson_scale = DB.Poisson_scale;
+
+		if (fabs(Poisson_scale) < EPS)
+			printf("Error: Make sure to set Poisson_scale.\n"), EXIT_MSG;
+
 		for (i = 0; i < Nn; i++) {
 			if (d == 2)
 //				UEx[i] = sin(PI*X[i])*sin(PI*Y[i]);

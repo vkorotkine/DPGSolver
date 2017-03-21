@@ -73,7 +73,15 @@ Plane Surface(4009) = {4009};
 Plane Surface(4010) = {4010};
 Plane Surface(4011) = {4011};
 
-If (MeshType == MIXED3D_TP)
+If (MeshType == TET)
+	// Do nothing
+ElseIf (MeshType == HEX)
+	Transfinite Surface{4001:4011};
+	Recombine Surface{4001:4011};
+ElseIf (MeshType == WEDGE)
+	Transfinite Surface{4001:4011};
+	Recombine Surface{4001:4007};
+ElseIf (MeshType == MIXED3D_TP)
 	Recombine Surface{4001:4011};
 ElseIf (MeshType == MIXED3D_HW)
 	Transfinite Surface{4001:4011};
@@ -88,7 +96,15 @@ Surface Loop (7002) = {4002,4003,4005,4007,4009,4011};
 Volume(7001) = {7001};
 Volume(7002) = {7002};
 
-If (MeshType == MIXED3D_TP)
+If (MeshType == TET)
+    // Do nothing
+ElseIf (MeshType == HEX)
+	Transfinite Volume{7001:7002};
+//	Recombine Volume{7001,7002};
+ElseIf (MeshType == WEDGE)
+	Transfinite Volume{7001:7002};
+	Recombine Volume{7001,7002};
+ElseIf (MeshType == MIXED3D_TP)
 	Recombine Volume{7001};
 ElseIf (MeshType == MIXED3D_HW)
 	Transfinite Volume{7001:7002};

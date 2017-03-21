@@ -29,6 +29,8 @@ def create_meshes(TestCase,Paths):
 		gmsh_args += ' -' + MeshType.dim
 		gmsh_args = add_gmsh_setnumber(gmsh_args,MeshType,Paths)
 		gmsh_args += ' -o ' + MeshType.OutputName
+
+		print("MON:",MeshType.OutputName)
 	
 		subprocess.call(shlex.split('mkdir -p ' + MeshType.OutputDir))
 		subprocess.call(shlex.split(Paths.gmsh + gmsh_args))
@@ -66,9 +68,7 @@ def add_gmsh_setnumber(gmsh_args,MeshType,Paths):
 
 	gmsh_args += ' -setnumber Geom_AR '
 	if (MeshType.GeomSpecifier.find('AR') != -1):
-		print("MTG:",MeshType.GeomSpecifier)
 		AR_Num = re.search('\/AR_(.+?)\/',MeshType.GeomSpecifier)
-		print(AR_Num.group(1))
 		gmsh_args += get_gmsh_number(gmsh_args,"Geom_AR_"+AR_Num.group(1),Paths)
 	else:
 		gmsh_args += get_gmsh_number(gmsh_args,"Geom_AR_1",Paths)

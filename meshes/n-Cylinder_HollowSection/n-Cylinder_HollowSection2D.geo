@@ -40,9 +40,8 @@ EndIf
 
 
 // Include something for aspect ratio: 1.0, 2.5, 5.0, 20.0
-// AR ~ 2.5 here
-Transfinite Line {1003:1006}      = 2^(MeshLevel)+2 Using Progression 1;
-Transfinite Line {1001,1002,1007} = 2^(MeshLevel)+2 Using Progression 1;
+Transfinite Line {1003:1006}      = 2*2^(MeshLevel)+1 Using Progression 1;
+Transfinite Line {1001,1002,1007} = 2*2^(MeshLevel)+1 Using Progression 1;
 
 
 Line Loop (4001) = {1007,1005,-1002,-1003};

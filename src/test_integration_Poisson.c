@@ -319,14 +319,17 @@ static void test_convorder(int nargc, char **argvNew, const char *TestName, stru
 			check_mesh_regularity(mesh_quality,MLMax-MLMin+1,&pass,PrintEnabled);
 		}
 
-		if (Adapt == ADAPT_0)
+		if (Adapt == ADAPT_0) {
+			set_PrintName_ConvOrders(data->PrintName,&data->TestTRI);
 			code_cleanup();
+		}
 	}}
-	if (Adapt != ADAPT_0)
+	if (Adapt != ADAPT_0) {
+		set_PrintName_ConvOrders(data->PrintName,&data->TestTRI);
 		code_cleanup();
+	}
 	free(mesh_quality);
 
-	set_PrintName_ConvOrders(data->PrintName,&data->TestTRI);
 	test_print2(pass,data->PrintName);
 }
 

@@ -411,7 +411,7 @@ void test_integration_linearization(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// 2D (Mixed TRI/QUAD mesh)
-	strcpy(argvNew[1],"test/linearization/Test_linearization_MIXED2D");
+	strcpy(argvNew[1],"test/linearization/Test_linearization_ToBeCurvedMIXED2D");
 
 	code_startup(nargc,argvNew,2,0);
 
@@ -455,7 +455,7 @@ void test_integration_linearization(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// 3D (Mixed TET/PYR mesh)
-	strcpy(argvNew[1],"test/linearization/Test_linearization_MIXED3D_TP");
+	strcpy(argvNew[1],"test/linearization/Test_linearization_ToBeCurvedMIXED3D_TP");
 
 	code_startup(nargc,argvNew,2,0);
 
@@ -483,7 +483,7 @@ void test_integration_linearization(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// 3D (Mixed HEX/WEDGE mesh)
-	strcpy(argvNew[1],"test/linearization/Test_linearization_MIXED3D_HW");
+	strcpy(argvNew[1],"test/linearization/Test_linearization_ToBeCurvedMIXED3D_HW");
 
 	code_startup(nargc,argvNew,2,0);
 

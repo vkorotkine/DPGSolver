@@ -87,6 +87,14 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 
 static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, unsigned int **BC)
 {
+	/*
+	 *	Purpose:
+	 *		Transfer BC information from parent to child VOLUME.
+	 *
+	 *	Comments:
+	 *		For 3D elements need to update both FACE and EDGE BC information.
+	 */
+
 	switch (VOLUME->type) {
 	case TRI:
 		if      (vh == 1) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; }
@@ -102,6 +110,10 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 		else if (vh == 6) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; VOLUME->BC[0][3] = BC[0][3]; }
 		else if (vh == 7) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; }
 		else if (vh == 8) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][3] = BC[0][3]; }
+		break;
+	case HEX:
+// MOVE THIS TO setup_operators (ToBeDeleted)
+		printf("Implementing.\n"), EXIT_MSG;
 		break;
 	default:
 		printf("Error: Unsupported.\n"), EXIT_MSG;

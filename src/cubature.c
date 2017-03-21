@@ -928,7 +928,7 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	}
 
 	if (P > PMax)
-		printf("Error: %s PYR nodes of order %d are not available.\n",NodeType,P), exit(1);
+		printf("Error: %s PYR nodes of order %d are not available.\n",NodeType,P), EXIT_MSG;
 
 	Nc = 5;
 

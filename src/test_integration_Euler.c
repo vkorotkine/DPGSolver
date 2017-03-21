@@ -38,7 +38,7 @@
  */
 
 struct S_convorder {
-	bool         PrintEnabled, AdaptiveRefine, TestTRI;
+	bool         PrintEnabled, SolveExplicit, AdaptiveRefine, TestTRI;
 	unsigned int PMin, PMax, MLMin, MLMax, Adapt, PG_add, IntOrder_add, IntOrder_mult;
 	char         **argvNew, *PrintName;
 };
@@ -65,7 +65,9 @@ void h_adapt_test(void)
 	if (TestDB.ML > 0)
 		printf("Error: Only enter for ML == 0.\n"), EXIT_MSG;
 
-	if (strstr(Geometry,"JoukowskiSymmetric")) {
+	if (strstr(Geometry,"n-Cylinder")) {
+		Nref = 0;
+	} else if (strstr(Geometry,"JoukowskiSymmetric")) {
 		double a  = DB.JSa,
 		       xL = DB.JSxL;
 
@@ -176,21 +178,42 @@ static void set_test_convorder_data(struct S_convorder *data, const char *TestNa
 {
 	// default values
 	data->PrintEnabled   = 1;
+	data->SolveExplicit  = 1;
 	data->AdaptiveRefine = 1;
 	data->Adapt = ADAPT_HP;
 
 	data->PMin  = 1;
 	data->PMax  = 3;
 	data->MLMin = 0;
-	data->MLMax = 2;
+	data->MLMax = 3;
 
-	data->PG_add        = 0;
+	data->PG_add        = 1;
 	data->IntOrder_add  = 0;
 	data->IntOrder_mult = 2;
 
 
 	if (strstr(TestName,"n-Cylinder_HollowSection")) {
-		if (strstr(TestName,"MIXED2D")) {
+		data->SolveExplicit = 0;
+		if (strstr(TestName,"ToBeCurved")) {
+			if (strstr(TestName,"MIXED2D")) {
+				strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
+			} else if (strstr(TestName,"TET")) {
+				data->MLMax = 2;
+				strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedTET");
+			} else if (strstr(TestName,"HEX")) {
+				data->MLMax = 2;
+				strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedHEX");
+			} else if (strstr(TestName,"MIXED_TP")) {
+				data->MLMax = 2;
+				data->PMax  = 2;
+				strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED3D_TP");
+			} else if (strstr(TestName,"MIXED_HW")) {
+				data->MLMax = 2;
+				strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED3D_HW");
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else if (strstr(TestName,"CurvedMIXED2D")) {
 			strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_CurvedMIXED2D");
 		} else {
 			EXIT_UNSUPPORTED;
@@ -204,13 +227,14 @@ static void test_convorder(int nargc, char **argvNew, const char *TestName, stru
 {
 	unsigned int pass = 0;
 
-	bool         PrintEnabled, AdaptiveRefine;
+	bool         PrintEnabled, SolveExplicit, AdaptiveRefine;
 	unsigned int Adapt, PMin, PMax, MLMin, MLMax;
 	double       *mesh_quality;
 
 	set_test_convorder_data(data,TestName);
 
 	PrintEnabled   = data->PrintEnabled;
+	SolveExplicit  = data->SolveExplicit;
 	AdaptiveRefine = data->AdaptiveRefine;
 	Adapt          = data->Adapt;
 
@@ -254,7 +278,8 @@ static void test_convorder(int nargc, char **argvNew, const char *TestName, stru
 			free(fNameOut);
 		}
 
-		solver_explicit();
+		if (SolveExplicit)
+			solver_explicit();
 		solver_implicit();
 
 		compute_errors_global();
@@ -308,7 +333,11 @@ void test_integration_Euler(int nargc, char **argv)
 	data_c->PrintName = PrintName;
 
 //	strcpy(argvNew[1],"test/Test_Euler_2D_TRI");
-	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_MIXED2D",data_c);
+//	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_CurvedMIXED2D",data_c);
+//	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedMIXED2D",data_c);
+
+//	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedTET",data_c);
+	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedHEX",data_c);
 
 
 

@@ -62,9 +62,14 @@ static void update_TestCase(void)
 	} else if (strstr(DB.TestCase,"L2_proj")) {
 		strcpy(DB.TestCase,"Euler_PeriodicVortex_Test");
 	} else if (strstr(DB.TestCase,"linearization")) {
-		strcpy(DB.TestCase,"SupersonicVortex_Test");
+		strcpy(DB.TestCase,"Euler_SupersonicVortex_Test");
 	} else if (strstr(DB.TestCase,"Euler")) {
-		if (strstr(DB.Geometry,"Ellipsoidal_Section") ||
+		if (strstr(DB.TestCase,"SupersonicVortex")) {
+			strcpy(DB.TestCase,"Euler_SupersonicVortex");
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+/*		if (strstr(DB.Geometry,"Ellipsoidal_Section") ||
 		    strstr(DB.Geometry,"GaussianBump") ||
 		    strstr(DB.Geometry,"EllipsoidalBump"))
 			strcpy(DB.TestCase,"SubsonicNozzle");
@@ -72,6 +77,7 @@ static void update_TestCase(void)
 			strcpy(DB.TestCase,"PrandtlMeyer");
 		else
 			strcpy(DB.TestCase,"InviscidChannel");
+*/
 	} else {
 		printf("%s\n",DB.TestCase);
 		printf("Error: Unsupported.\n"), EXIT_MSG;

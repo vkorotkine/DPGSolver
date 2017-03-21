@@ -76,7 +76,8 @@ static void correct_What_Bezier(double *WhatB, const double t, const unsigned in
 
 void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 {
-//	return;
+	if (VOLUME->type == TET || VOLUME->type == WEDGE || VOLUME->type == PYR)
+		return; // Bezier basis not yet implemented. (ToBeModified)
 	bool PrintOn = 0;
 
 	if (PrintOn)

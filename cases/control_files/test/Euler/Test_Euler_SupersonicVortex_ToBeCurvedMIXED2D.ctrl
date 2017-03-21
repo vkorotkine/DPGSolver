@@ -1,14 +1,14 @@
 PDEName       Euler
-PDESpecifier  Internal/SupersonicVortex
+PDESpecifier  Internal/SupersonicVortex/Test
 
 Geometry      n-Cylinder_HollowSection n-Cylinder_HollowSection/n-Cylinder_HollowSection2D.geo
-GeomSpecifier Test
+GeomSpecifier NONE
 
 Dimension     2
 
 MeshPath      ../meshes/
 MeshType      MIXED2D
-MeshCurving   Curved
+MeshCurving   ToBeCurved
 MeshLevel     0
 
 Form       Weak   // Options: Weak, (Strong)

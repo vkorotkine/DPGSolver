@@ -15,6 +15,7 @@
 # clean_code
 # clean_test
 # clean_exec
+# clean_empty (removes empty directories)
 
 # C standard
 CSTD := -std=c99
@@ -195,13 +196,14 @@ $(EXECDIR):
 
 OUTPUT_LIST   := paraview errors results
 #TESTCASE_LIST := Poisson SupersonicVortex InviscidChannel SubsonicNozzle PrandtlMeyer
-TESTCASE_LIST := Poisson Euler_PeriodicVortex
+TESTCASE_LIST := Poisson Euler_PeriodicVortex Euler_SupersonicVortex
 MESHTYPE_LIST := TRI CurvedTRI ToBeCurvedTRI \
                  QUAD CurvedQUAD ToBeCurvedQUAD \
-                 TET CurvedTET \
-                 HEX CurvedHEX \
-                 WEDGE CurvedWEDGE \
-                 PYR CurvedPYR
+                 TET ToBeCurvedTET \
+                 HEX ToBeCurvedHEX \
+                 WEDGE ToBeCurvedWEDGE \
+                 PYR ToBeCurvedPYR \
+				 MIXED2D CurvedMIXED2D ToBeCurvedMIXED2D \
 
 OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))
 TESTCASE_LIST := $(subst $(space),$(comma),$(TESTCASE_LIST))
@@ -234,9 +236,11 @@ MESHVARIABLES  := $(MESHDIR)/MeshVariables
 
 .PHONY : meshes
 meshes:
-	@touch $(CTRLDIR)/main/dSphericalBump.ctrl
+#	@touch $(CTRLDIR)/main/dSphericalBump.ctrl
+	@echo
 	$(MAKE) mesh_vars_and_deps
 	$(MAKE) -C meshes meshes_all
+	@echo
 
 
 .PHONY : mesh_vars_and_deps
@@ -244,14 +248,15 @@ mesh_vars_and_deps : $(MESHVARIABLES)
 $(MESHVARIABLES) : $(CONTROL_FILES)
 	@echo
 	@echo Creating MeshVariables file based on existing .ctrl files.
-	@$(PYTHONC) python/update_MeshVariables.py $(CONFIGURATIONS)
+	@$(PYTHONC) python/MeshVariables_update.py $(CONFIGURATIONS)
+	@$(PYTHONC) python/MeshVariables_remove_duplicates.py
 	@echo
 
 
 
 
 # Cleaning
-.PHONY : clean clean_test clean_code clean_exec
+.PHONY : clean clean_test clean_code clean_exec clean_empty
 clean:
 	rm $(EXECUTABLE) $(OBJECTS) $(DEPENDS)
 
@@ -264,3 +269,6 @@ clean_code:
 
 clean_exec:
 	rm $(OBJDIR)/main.o $(DEPDIR)/main.d
+
+clean_empty:
+	find . -type d -empty -delete

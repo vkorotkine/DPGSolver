@@ -18,18 +18,15 @@ def write_MeshVariables(TestCases,Paths):
 
 	for i in range(0,len(TestCases)):
 		TestCase = TestCases[i]
-		f_write(f,0,0,TestCase.VarName+' := ')
-		if (TestCase.name.find('L2_proj_h') != -1):
-			print("Not including "+TestCase.VarName+" mesh files as they are duplicates of those for L2_PROJ_P.")
-			f_write(f,0,2,"")
-		else:
-			f_write(f,0,2,TestCase.MeshOutputs)
+		f_write(f,0,2,TestCase.VarName+' := '+TestCase.MeshOutputs)
 
 	f_write(f,0,2,'')
 
 	for i in range(0,len(TestCases)):
 		TestCase = TestCases[i]
 		f_write(f,0,2,'$('+TestCase.VarName+') : '+TestCase.GeoDeps)
+
+	f.close()
 
 
 if __name__ == '__main__':
