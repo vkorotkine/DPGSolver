@@ -89,36 +89,102 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 {
 	/*
 	 *	Purpose:
-	 *		Transfer BC information from parent to child VOLUME.
+	 *		Transfer BC information from parent to child VOLUME for FACEs (and EDGEs).
 	 *
 	 *	Comments:
 	 *		For 3D elements need to update both FACE and EDGE BC information.
+	 *
+	 *	References:
+	 *		See documentation/H_refinement_Info.ods for visual clarification (especially for EDGEs).
 	 */
+
+	unsigned int NF = 0, NE = 0, IndF[NFMAX], IndE[NEMAX], IndBC[NEMAX], F = 0, E = 1;
 
 	switch (VOLUME->type) {
 	case TRI:
-		if      (vh == 1) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; }
-		else if (vh == 2) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][2] = BC[0][2]; }
-		else if (vh == 3) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][1] = BC[0][1]; }
+		// FACE only
+		if      (vh == 1) { NF = 2; IndF[0] = 1; IndF[1] = 2; }
+		else if (vh == 2) { NF = 2; IndF[0] = 0; IndF[1] = 2; }
+		else if (vh == 3) { NF = 2; IndF[0] = 0; IndF[1] = 1; }
 		break;
 	case QUAD:
-		if      (vh == 1) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][2] = BC[0][2]; }
-		else if (vh == 2) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; }
-		else if (vh == 3) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][3] = BC[0][3]; }
-		else if (vh == 4) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][3] = BC[0][3]; }
-		else if (vh == 5) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][2] = BC[0][2]; VOLUME->BC[0][3] = BC[0][3]; }
-		else if (vh == 6) { VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; VOLUME->BC[0][3] = BC[0][3]; }
-		else if (vh == 7) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][2] = BC[0][2]; }
-		else if (vh == 8) { VOLUME->BC[0][0] = BC[0][0]; VOLUME->BC[0][1] = BC[0][1]; VOLUME->BC[0][3] = BC[0][3]; }
+		// FACE only
+		if      (vh == 1) { NF = 2; IndF[0] = 0; IndF[1] = 2; }
+		else if (vh == 2) { NF = 2; IndF[0] = 1; IndF[1] = 2; }
+		else if (vh == 3) { NF = 2; IndF[0] = 0; IndF[1] = 3; }
+		else if (vh == 4) { NF = 2; IndF[0] = 1; IndF[1] = 3; }
+		else if (vh == 5) { NF = 3; IndF[0] = 0; IndF[1] = 2; IndF[2] = 3; }
+		else if (vh == 6) { NF = 3; IndF[0] = 1; IndF[1] = 2; IndF[2] = 3; }
+		else if (vh == 7) { NF = 3; IndF[0] = 0; IndF[1] = 1; IndF[2] = 2; }
+		else if (vh == 8) { NF = 3; IndF[0] = 0; IndF[1] = 1; IndF[2] = 3; }
+		break;
+	case TET:
+		if (DB.TETrefineType == TET8) {
+			// FACE
+			if      (vh == 1) { NF = 3; IndF[0] = 1; IndF[1] = 2; IndF[2] = 3; }
+			else if (vh == 2) { NF = 3; IndF[0] = 0; IndF[1] = 2; IndF[2] = 3; }
+			else if (vh == 3) { NF = 3; IndF[0] = 0; IndF[1] = 1; IndF[2] = 3; }
+			else if (vh == 4) { NF = 3; IndF[0] = 0; IndF[1] = 1; IndF[2] = 2; }
+			else if (vh == 5) { NF = 1; IndF[0] = 0; }
+			else if (vh == 6) { NF = 1; IndF[0] = 1; }
+			else if (vh == 7) { NF = 1; IndF[0] = 2; }
+			else if (vh == 8) { NF = 1; IndF[0] = 3; }
+			else              { printf("Error: Unsupported.\n"), EXIT_MSG; }
+
+			// EDGE
+			if (vh == 1) {
+				NE = 6;
+				IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 3; IndE[4]  = 2; IndE[5]  = 1;
+				IndBC[0] = E; IndBC[1] = E; IndBC[2] = E; IndBC[3] = F; IndBC[4] = F; IndBC[5] = F;
+			} else if (vh == 2) {
+				NE = 6;
+				IndE[0]  = 0; IndE[1]  = 3; IndE[2]  = 2; IndE[3]  = 3; IndE[4]  = 4; IndE[5]  = 0;
+				IndBC[0] = E; IndBC[1] = F; IndBC[2] = F; IndBC[3] = E; IndBC[4] = E; IndBC[5] = F;
+			} else if (vh == 3) {
+				NE = 6;
+				IndE[0]  = 3; IndE[1]  = 1; IndE[2]  = 1; IndE[3]  = 3; IndE[4]  = 0; IndE[5]  = 5;
+				IndBC[0] = F; IndBC[1] = E; IndBC[2] = F; IndBC[3] = E; IndBC[4] = F; IndBC[5] = E;
+			} else if (vh == 4) {
+				NE = 6;
+				IndE[0]  = 2; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 0; IndE[4]  = 4; IndE[5]  = 5;
+				IndBC[0] = F; IndBC[1] = F; IndBC[2] = E; IndBC[3] = F; IndBC[4] = E; IndBC[5] = E;
+			} else if (vh == 5) {
+				NE = 3;
+				IndE[0]  = 0; IndE[1]  = 0; IndE[2]  = 0;
+				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F;
+			} else if (vh == 6) {
+				NE = 3;
+				IndE[0]  = 1; IndE[1]  = 1; IndE[2]  = 1;
+				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F;
+			} else if (vh == 7) {
+				NE = 3;
+				IndE[0]  = 2; IndE[1]  = 2; IndE[2]  = 2;
+				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F;
+			} else if (vh == 8) {
+				NE = 3;
+				IndE[0]  = 3; IndE[1]  = 3; IndE[2]  = 3;
+				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F;
+			} else {
+				printf("Error: Unsupported.\n"), EXIT_MSG;
+			}
+		} else {
+			printf("Add support.\n"), EXIT_MSG;
+		}
 		break;
 	case HEX:
-// MOVE THIS TO setup_operators (ToBeDeleted)
 		printf("Implementing.\n"), EXIT_MSG;
 		break;
 	default:
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 		break;
 	}
+
+	for (size_t f = 0; f < NF; f++)
+		VOLUME->BC[0][IndF[f]] = BC[0][IndF[f]];
+
+	// Note: NE = 0 for d = 2
+	for (size_t e = 0; e < NE; e++)
+		VOLUME->BC[1][IndE[e]] = BC[IndBC[e]][IndE[e]];
 }
 
 void update_VOLUME_hp(void)

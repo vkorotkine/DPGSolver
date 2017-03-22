@@ -334,10 +334,10 @@ void test_integration_Euler(int nargc, char **argv)
 
 //	strcpy(argvNew[1],"test/Test_Euler_2D_TRI");
 //	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_CurvedMIXED2D",data_c);
-//	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedMIXED2D",data_c);
+	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedMIXED2D",data_c);
 
 //	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedTET",data_c);
-	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedHEX",data_c);
+//	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedHEX",data_c);
 
 
 
