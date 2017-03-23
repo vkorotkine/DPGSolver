@@ -75,12 +75,21 @@ class Refinement_class:
 		# Loop through the list searching for duplicates
 		# If no duplicate is found, place a blank entry in EToE and EToF. If found, place correct index for first
 		# occurence.
-		FToVe_list = []
+		Found = np.zeros((self.NV,ELEMENT.Nf),dtype=np.int)
+
 		for vh in range(0,self.NV):
 			for f in range(0,ELEMENT.Nf):
-				FToVe_list.append(FToVe[vh,:,f])
-				print("vhf",vh,f)
-				print(FToVe[vh,:,f])
+				for vh2 in range(0,self.NV):
+					for f2 in range(0,ELEMENT.Nf):
+						if (not ([vh,f] == [vh2,f2]) and not Found[vh][f] and  \
+						    (np.sort(FToVe[vh,:,f]) == np.sort(FToVe[vh2,:,f2])).all()):
+							EToE[vh,f] = vh2
+							EToF[vh,f] = f2
+
+							Found[vh,f]   = 1
+							Found[vh2,f2] = 1
+		np_array_print(EToE)
+		np_array_print(EToF)
 
 		EXIT_TRACEBACK()
 		
