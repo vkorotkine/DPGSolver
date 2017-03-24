@@ -16,112 +16,131 @@ import sys
 import numpy as np
 import collections
 
-UINTMAX = 9999
-
 ### Classes ###
 class Refinement_class:
 	"""Class holding information relating to refinement options of each element type."""
 
-	def __init__(self,name,ELEMENT):
-		self.name    = name
-		self.ELEMENT = ELEMENT
+	def __init__(self,name):
+		self.name = name
 
 		Nv = 0
-		# VToVe stored as a list of lists such that VOLUMEs with differing number of vertices can be used
 		if (name.find('TRI') != -1):
 			if (name == 'TRI4'):
 				Nv = 4
-				VToVe = [[0,3,4],[3,1,5],[4,5,2],[5,4,3]]
+				VToVe  = [[0,3,4],[3,1,5],[4,5,2],[5,4,3]]
+				VTypes = ['TRI' for i in range(Nv)]
 		elif (name.find('QUAD') != -1):
 			if (name == 'QUAD4'):
 				Nv = 4
 				VToVe = [[0,4,5,6],[4,1,6,7],[5,6,2,8],[6,7,8,3]]
+				VTypes = ['QUAD' for i in range(Nv)]
 			elif (name == 'QUAD2r'):
 				Nv = 2
 				VToVe = [[0,4,2,8],[4,1,8,3]]
+				VTypes = ['QUAD' for i in range(Nv)]
 			elif (name == 'QUAD2s'):
 				Nv = 2
 				VToVe = [[0,1,5,7],[5,7,2,3]]
+				VTypes = ['QUAD' for i in range(Nv)]
 		elif (name.find('TET') != -1):
 			if (name == 'TET8'):
 				Nv = 8
 				VToVe = [[0,4,5,7],[4,1,6,8],[5,6,2,9],[7,8,9,3],[4,9,8,6],[9,4,7,5],[8,7,9,4],[6,5,4,9]]
+				VTypes = ['TET' for i in range(Nv)]
 			elif (name == 'TET12'):
 				Nv = 12
 				VToVe = [[0,4,5,7],[4,1,6,8],[5,6,2,9],[7,8,9,3],[10,9,8,6],[9,10,7,5],\
 				         [8,7,10,4],[6,5,4,10],[10,4,7,5],[4,10,8,6],[6,5,10,9],[8,7,9,10]]
+				VTypes = ['TET' for i in range(Nv)]
 			elif (name == 'TET6'):
 				Nv = 6
 				VToVe = [[0,4,5,7],[4,1,6,8],[5,6,2,9],[7,8,9,3],[8,7,6,5,4],[7,8,5,6,9]]
+				VTypes = ['TET' for i in range(4)]
+				for i in range(2): VTypes.append('PYR')
+		elif (name.find('PYR') != -1):
+			if (name == 'PYR10'):
+				Nv = 10
+				VToVe = [[0,5,6,7,10],[5,1,7,8,11],[6,7,2,9,12],[7,8,9,3,13],\
+				         [6,7,12,10],[7,8,13,11],[11,10,7,5],[13,12,9,7],[11,10,13,12,7],[10,11,12,13,4]]
+				VTypes = ['PYR' for i in range(4)]
+				for i in range(4): VTypes.append('TET')
+				for i in range(2): VTypes.append('PYR')
 		else:
+			print(name)
 			EXIT_TRACEBACK()
 
 		if (Nv == 0):
 			print("Did not find a refinement type for the given input.\n")
 			EXIT_TRACEBACK()
 
-		self.Nv = Nv
-		self.VToVe = VToVe
+		self.Nv     = Nv
+		self.VToVe  = VToVe
+		self.VTypes = VTypes
 
-		self.compute_FToVe()
-		self.compute_EToE_EToF()
-		self.compute_InOut()
 
-	def compute_FToVe(self):
-		ELEMENT = self.ELEMENT
+	def compute_info(self,ELEMENTs):
+		self.compute_FToVe(ELEMENTs)
+		self.compute_EToE_EToF(ELEMENTs)
+		self.compute_InOut(ELEMENTs)
 
-		print(ELEMENT.FToVe)
-		list_print(ELEMENT.FToVe,"f",3)
-
-		# Potentially not using the correct parameters here (ve and f)
-		FToVe = [[[] for ve in range(0,ELEMENT.Nfve[f])] for f in range(ELEMENT.Nf)]
-		FToVe[0][0].append(1)
-		FToVe[0][0].append(2)
-		FToVe[0][1].append(3)
-#		FToVe[0].append[1]
-
-		print(FToVe)
-		print(FToVe[0][0][0])
-		list_print(FToVe,"f",3)
-
-		EXIT_TRACEBACK()
+	def compute_FToVe(self,ELEMENTs):
+		FToVe = []
 		for v in range(0,self.Nv):
+			FToVe.append([])
+			ELEMENT = get_ELEMENT_type(self.VTypes[v],ELEMENTs)
 			for f in range(0,ELEMENT.Nf):
+				FToVe[v].append([])
 				for ve in range(0,ELEMENT.Nfve[f]):
-					print(v,ve,f)
-					FToVe[v][ve][f].append(self.VToVe[v][ELEMENT.FToVe[0][ve][f]])
-					print(FToVe)
-					FToVe[v][ve][f] = self.VToVe[v][ELEMENT.FToVe[0][ve][f]]
-#					FToVe[v,ve,f] = self.VToVe[v][ELEMENT.FToVe[0,ve,f]]
+					FToVe[v][f].append(self.VToVe[v][ELEMENT.FToVe[f][0][ve]])
 
 		self.FToVe = FToVe
 
-	def compute_EToE_EToF(self):
-		ELEMENT = self.ELEMENT
-
+	def compute_EToE_EToF(self,ELEMENTs):
 		FToVe = self.FToVe
 
-		EToE = np.full((self.Nv,ELEMENT.Nf),UINTMAX,dtype=np.int)
-		EToF = np.full((self.Nv,ELEMENT.Nf),UINTMAX,dtype=np.int)
+		EToE = []
+		EToF = []
 
-		Found = np.zeros((self.Nv,ELEMENT.Nf),dtype=np.int)
+		Found = []
+		for v in range(0,self.Nv):
+			Found.append([])
+			ELEMENT = get_ELEMENT_type(self.VTypes[v],ELEMENTs)
+			for f in range(0,ELEMENT.Nf):
+				Found[v].append(0)
 
 		for v in range(0,self.Nv):
+			EToE.append([])
+			EToF.append([])
+			ELEMENT = get_ELEMENT_type(self.VTypes[v],ELEMENTs)
 			for f in range(0,ELEMENT.Nf):
+				EToE[v].append('x')
+				EToF[v].append('x')
 				for v2 in range(0,self.Nv):
-					for f2 in range(0,ELEMENT.Nf):
+					ELEMENT2 = get_ELEMENT_type(self.VTypes[v2],ELEMENTs)
+					for f2 in range(0,ELEMENT2.Nf):
 						if (not ([v,f] == [v2,f2]) and not Found[v][f] and  \
-						    (np.sort(FToVe[v,:,f]) == np.sort(FToVe[v2,:,f2])).all()):
-							EToE[v,f] = v2
-							EToF[v,f] = f2
+						    sorted(FToVe[v][f]) == sorted(FToVe[v2][f2])):
+							EToE[v][f] = v2
+							EToF[v][f] = f2
 
-							Found[v,f]   = 1
-							Found[v2,f2] = 1
+							Found[v][f]   = 1
+							Found[v2][f2] = 1
+
+		for v in range(0,self.Nv):
+			ELEMENT = get_ELEMENT_type(self.VTypes[v],ELEMENTs)
+			for f in range(0,ELEMENT.Nf):
+				if (EToE[v][f] != 'x' and EToE[v][f] != 'xx'):
+					v2 = EToE[v][f]
+					f2 = EToF[v][f]
+
+					EToE[v2][f2] = 'xx'
+					EToF[v2][f2] = 'xx' 
+
 
 		self.EToE = EToE
 		self.EToF = EToF
 
-	def compute_InOut(self):
+	def compute_InOut(self,ELEMENTs):
 		def get_IndOrd_Indices(Nve,vals):
 			"""Return IndOrd indices for RL and LR. The convention used here corresponds to the cases in d = 2, 3
 			   expected outputs of DPG_ROOT/src/test_unit_get_face_ordering.c (P = 1). The notation may be different
@@ -163,25 +182,25 @@ class Refinement_class:
 
 			data = collections.namedtuple('data','RL LR')
 			if (Nve == 2): # LINE (d == 2)
-				if   ((vals == [0,1]).all()): IndOrdInfo = data(RL = 0, LR = 0)
-				elif ((vals == [1,0]).all()): IndOrdInfo = data(RL = 1, LR = 1)
+				if   (vals == [0,1]): IndOrdInfo = data(RL = 0, LR = 0)
+				elif (vals == [1,0]): IndOrdInfo = data(RL = 1, LR = 1)
 				else                        : EXIT_TRACEBACK()
 			elif (Nve == 3): # TRI (d == 3)
-				if   ((vals == [0,1,2]).all()): IndOrdInfo = data(RL = 0, LR = 0)
-				elif ((vals == [1,2,0]).all()): IndOrdInfo = data(RL = 1, LR = 2)
-				elif ((vals == [2,0,1]).all()): IndOrdInfo = data(RL = 2, LR = 1)
-				elif ((vals == [0,2,1]).all()): IndOrdInfo = data(RL = 3, LR = 3)
-				elif ((vals == [2,1,0]).all()): IndOrdInfo = data(RL = 4, LR = 4)
-				elif ((vals == [1,0,2]).all()): IndOrdInfo = data(RL = 5, LR = 5)
+				if   (vals == [0,1,2]): IndOrdInfo = data(RL = 0, LR = 0)
+				elif (vals == [1,2,0]): IndOrdInfo = data(RL = 1, LR = 2)
+				elif (vals == [2,0,1]): IndOrdInfo = data(RL = 2, LR = 1)
+				elif (vals == [0,2,1]): IndOrdInfo = data(RL = 3, LR = 3)
+				elif (vals == [2,1,0]): IndOrdInfo = data(RL = 4, LR = 4)
+				elif (vals == [1,0,2]): IndOrdInfo = data(RL = 5, LR = 5)
 			elif (Nve == 4): # QUAD (d == 3)
-				if   ((vals == [0,1,2,3]).all()): IndOrdInfo = data(RL = 0, LR = 0)
-				elif ((vals == [1,0,3,2]).all()): IndOrdInfo = data(RL = 1, LR = 1)
-				elif ((vals == [2,3,0,1]).all()): IndOrdInfo = data(RL = 2, LR = 2)
-				elif ((vals == [3,2,1,0]).all()): IndOrdInfo = data(RL = 3, LR = 3)
-				elif ((vals == [0,2,1,3]).all()): IndOrdInfo = data(RL = 4, LR = 4)
-				elif ((vals == [2,0,3,1]).all()): IndOrdInfo = data(RL = 5, LR = 6)
-				elif ((vals == [1,3,0,2]).all()): IndOrdInfo = data(RL = 6, LR = 5)
-				elif ((vals == [3,1,2,0]).all()): IndOrdInfo = data(RL = 7, LR = 7)
+				if   (vals == [0,1,2,3]): IndOrdInfo = data(RL = 0, LR = 0)
+				elif (vals == [1,0,3,2]): IndOrdInfo = data(RL = 1, LR = 1)
+				elif (vals == [2,3,0,1]): IndOrdInfo = data(RL = 2, LR = 2)
+				elif (vals == [3,2,1,0]): IndOrdInfo = data(RL = 3, LR = 3)
+				elif (vals == [0,2,1,3]): IndOrdInfo = data(RL = 4, LR = 4)
+				elif (vals == [2,0,3,1]): IndOrdInfo = data(RL = 5, LR = 6)
+				elif (vals == [1,3,0,2]): IndOrdInfo = data(RL = 6, LR = 5)
+				elif (vals == [3,1,2,0]): IndOrdInfo = data(RL = 7, LR = 7)
 			else:
 				EXIT_TRACEBACK()
 
@@ -189,45 +208,60 @@ class Refinement_class:
 
 		PrintEnabled = 0
 
-		ELEMENT = self.ELEMENT
-
 		FToVe = self.FToVe
 		EToE  = self.EToE
 		EToF  = self.EToF
 
-		FToVeOut = np.full((self.Nv,max(ELEMENT.Nfve),ELEMENT.Nf),UINTMAX,dtype=np.int)
-		FToVeRef = np.full((self.Nv,max(ELEMENT.Nfve),ELEMENT.Nf),UINTMAX,dtype=np.int)
-
-		IndOrdRL = np.full((self.Nv,ELEMENT.Nf),UINTMAX,dtype=np.int)
-		IndOrdLR = np.full((self.Nv,ELEMENT.Nf),UINTMAX,dtype=np.int)
+		FToVeOut = []
+		FToVeRef = []
+		IndOrdRL = []
+		IndOrdLR = []
 		for v in range(0,self.Nv):
+			FToVeOut.append([])
+			FToVeRef.append([])
+			IndOrdRL.append([])
+			IndOrdLR.append([])
+
+			ELEMENT = get_ELEMENT_type(self.VTypes[v],ELEMENTs)
 			for f in range(0,ELEMENT.Nf):
-				if (EToE[v][f] != UINTMAX):
+				FToVeOut[v].append([])
+				FToVeRef[v].append([])
+				IndOrdRL[v].append('x')
+				IndOrdLR[v].append('x')
+				if (EToE[v][f] == 'x'):
+					FToVeOut[v][f].append('x')
+					FToVeRef[v][f].append('x')
+				elif (EToE[v][f] == 'xx'):
+					FToVeOut[v][f].append('xx')
+					FToVeRef[v][f].append('xx')
+					IndOrdRL[v][f] = 'xx'
+					IndOrdLR[v][f] = 'xx'
+				else:
 					# Store FToVeOut for printing below if desired
-					v2 = EToE[v,f]
-					f2 = EToF[v,f]
-					FToVeOut[v,:,f] = FToVe[v2,:,f2]
+					v2 = EToE[v][f]
+					f2 = EToF[v][f]
+					FToVeOut[v][f].append(FToVe[v2][f2])
 
 					# Find indices relating to IndOrd
-					len_IndOrd = len(FToVe[v,:,f])
+					len_IndOrd = len(FToVe[v][f])
 
-					val_IndOrd = np.zeros((len_IndOrd),dtype=np.int)
+					val_IndOrd = []
 					for i in range(len_IndOrd):
 						for j in range(len_IndOrd):
-							if (FToVe[v,i,f] == FToVe[v2,j,f2]):
-								val_IndOrd[i] = j
+							if (FToVe[v][f][i] == FToVe[v2][f2][j]):
+								val_IndOrd.append(j)
 
 					# Store FToVeRef for printing below if desired
-					FToVeRef[v,:,f] = val_IndOrd
+					FToVeRef[v][f].append(val_IndOrd)
 
 					IndOrdReturn = get_IndOrd_Indices(len_IndOrd,val_IndOrd)
 
-					IndOrdRL[v,f] = IndOrdReturn.RL
-					IndOrdLR[v,f] = IndOrdReturn.LR
+					IndOrdRL[v][f] = IndOrdReturn.RL
+					IndOrdLR[v][f] = IndOrdReturn.LR
 
 		if (PrintEnabled):
-			np_array_print(FToVeOut,"f")
-			np_array_print(FToVeRef,"f")
+			list_print(FToVeOut,"v",3)
+			list_print(FToVeRef,"v",3)
 
 		self.IndOrdRL = IndOrdRL
 		self.IndOrdLR = IndOrdLR
@@ -258,33 +292,25 @@ class ELEMENT_class:
 			RefTypes = ['TET8','TET12','TET6']
 		elif (EType == 'PYR'):
 			Nf        = 5
-			print([3 for i in range(0,Nf-1)])
-#			print([3 for i in range(0,Nf-1)],[4 for i in range(Nf-1,Nf)])
 			Nfve      = [3 for i in range(0,Nf-1)]
-#			Nfve.append([4 for i in range(Nf-1,Nf)])
+			for i in range(1): Nfve.append(4)
 
 			VToVe    = [[0,1,2,3,4]]
 			RefTypes = ['PYR10']
 		else:
 			EXIT_TRACEBACK()
 
-		self.Nf        = Nf
-		self.Nfve      = Nfve
-
-		self.VToVe     = VToVe
+		self.Nf    = Nf
+		self.Nfve  = Nfve
+		self.VToVe = VToVe
 
 		self.set_FToVe()
-
-		self.RefTypes = []
-		for i in range(len(RefTypes)):
-			RefTypeCurrent = Refinement_class(RefTypes[i],self)
-			self.RefTypes.append(RefTypeCurrent)
+		self.initialize_RefTypes(RefTypes)
 
 	def set_FToVe(self):
 		Nf    = self.Nf
 		Nfve  = self.Nfve
 
-		# FToVe stored as a list of lists such that FACEs with differing number of vertices can be used
 		if (self.EType == 'TRI'):
 			FToVe = [[[1,2]],[[0,2]],[[0,1]]]
 		elif(self.EType == 'QUAD'):
@@ -297,6 +323,16 @@ class ELEMENT_class:
 			EXIT_BACKTRACE()
 
 		self.FToVe = FToVe
+
+	def initialize_RefTypes(self,RefTypes):
+		self.RefTypes = []
+		for i in range(len(RefTypes)):
+			RefTypeCurrent = Refinement_class(RefTypes[i])
+			self.RefTypes.append(RefTypeCurrent)
+
+	def set_RefTypes(self,ELEMENTs):
+		for i in range(len(self.RefTypes)):
+			self.RefTypes[i].compute_info(ELEMENTs)
 
 
 
@@ -327,7 +363,7 @@ def np_array_print(np_array,name):
 		EXIT_TRACEBACK()
 
 def list_print(list_array,name,dim):
-
+	"""
 	if (dim == 2):
 		for item in list_array:
 			print('\t'.join(map(str,item)))
@@ -338,49 +374,73 @@ def list_print(list_array,name,dim):
 		for i in range(len(list_array)):
 			print(name,":",i)
 			list_print(list_array[i],"",2)
+	"""
+	if (dim == 2):
+		for item in list_array:
+			print('\t'.join(map(str,item)))
+		print("\n")
+	elif (dim == 3):
+		for i in range(len(list_array)):
+			print(name,":",i)
+			list_print(list_array[i],"",2)
+	else:
+		EXIT_TRACEBACK()
+
+def get_ELEMENT_type(EType,ELEMENTs):
+	for ELEMENT in ELEMENTs:
+		if (ELEMENT.EType == EType):
+			return ELEMENT
+
+	print("Did not find the ELEMENT of type:",EType) 
+	EXIT_TRACEBACK()
 
 
 if __name__ == '__main__':
 	"""Generate h refinement related information for each of the supported ELEMENT types in the code."""
 
-	EType = 'TRI'
-#	EType = 'QUAD'
-#	EType = 'TET'
-
-	ELEMENT = ELEMENT_class(EType)
-
+	# Initialize all ELEMENT types (necessary as some refinements depend on several ELEMENTs)
 	ELEMENTs = []
+	EType = 'TRI';   ELEMENTs.append(ELEMENT_class(EType))
+	EType = 'QUAD';  ELEMENTs.append(ELEMENT_class(EType))
+	EType = 'TET';   ELEMENTs.append(ELEMENT_class(EType))
+	EType = 'PYR';   ELEMENTs.append(ELEMENT_class(EType))
 
-	EType = 'TRI';   ELEMENTs.append([EType,ELEMENT_class(EType)])
-#	EType = 'QUAD';  ELEMENTs.append([EType,ELEMENT_class(EType)])
-#	EType = 'TET';   ELEMENTs.append([EType,ELEMENT_class(EType)])
-#	EType = 'PYR';   ELEMENTs.append([EType,ELEMENT_class(EType)])
+#	EType = 'TRI'
+#	EType = 'QUAD'
+	EType = 'TET'
 
 	PrintAll = 1
-	PrintInd = 1
-	for i in range(len(ELEMENT.RefTypes)):
-		if (not PrintAll and i != PrintInd):
+	PrintInd = 0
+	for ELEMENT in ELEMENTs:
+		if (ELEMENT.EType != EType):
 			continue
+		ELEMENT.set_RefTypes(ELEMENTs)
 
-		RefType = ELEMENT.RefTypes[i]
-		print("\n\nh refinement information for RefType:",RefType.name,"\n\n")
+		for i in range(len(ELEMENT.RefTypes)):
+			if (not PrintAll and i != PrintInd):
+				continue
 
-		print("VToVe:")
-#		list_print(ELEMENT.VToVe)
-		list_print(RefType.VToVe)
+			RefType = ELEMENT.RefTypes[i]
+			print("\n\nh refinement information for RefType:",RefType.name,"\n\n")
 
-		print("FToVe:")
-#		list_print(ELEMENT.FToVe,"f")
-		list_print(RefType.FToVe,"f")
+			print("VToVe:")
+#			list_print(ELEMENT.VToVe,"",2)
+			list_print(RefType.VToVe,"",2)
 
-		print("EToE:")
-		np_array_print(RefType.EToE,"")
+			print("FToVe:")
+#			list_print(ELEMENT.FToVe,"v",3)
+			list_print(RefType.FToVe,"v",3)
 
-		print("EToF:")
-		np_array_print(RefType.EToF,"")
+			print("EToE:")
+			list_print(RefType.EToE,"",2)
 
-		print("IndOrdRL :")
-		np_array_print(RefType.IndOrdRL,"")
+			print("EToF:")
+			list_print(RefType.EToF,"",2)
 
-		print("IndOrdLR :")
-		np_array_print(RefType.IndOrdLR,"")
+			print("IndOrdRL :")
+			list_print(RefType.IndOrdRL,"",2)
+
+			print("IndOrdLR :")
+			list_print(RefType.IndOrdLR,"",2)
+
+			print("\n\n\n***Update the Notation.***\n\n\n")
