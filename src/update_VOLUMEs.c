@@ -98,71 +98,90 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 	 *		See documentation/H_refinement_Info.ods for visual clarification (especially for EDGEs).
 	 */
 
-	unsigned int NF = 0, NE = 0, IndF[NFMAX], IndE[NEMAX], IndBC[NEMAX], F = 0, E = 1;
+	unsigned int NF = 0, NE = 0, IndF[NFMAX], IndFP[NFMAX], IndE[NEMAX], IndEP[NEMAX], IndBC[NEMAX], F = 0, E = 1;
 
 	switch (VOLUME->type) {
 	case TRI:
 		// FACE only
-		if      (vh == 1) { NF = 2; IndF[0] = 1; IndF[1] = 2; }
-		else if (vh == 2) { NF = 2; IndF[0] = 0; IndF[1] = 2; }
-		else if (vh == 3) { NF = 2; IndF[0] = 0; IndF[1] = 1; }
+		if      (vh == 1) { NF = 2; IndFP[0] = 1; IndFP[1] = 2; }
+		else if (vh == 2) { NF = 2; IndFP[0] = 0; IndFP[1] = 2; }
+		else if (vh == 3) { NF = 2; IndFP[0] = 0; IndFP[1] = 1; }
+
+		for (size_t f = 0; f < Nf; f++)
+			IndF[f] = IndFP[f];
+
 		break;
 	case QUAD:
 		// FACE only
-		if      (vh == 1) { NF = 2; IndF[0] = 0; IndF[1] = 2; }
-		else if (vh == 2) { NF = 2; IndF[0] = 1; IndF[1] = 2; }
-		else if (vh == 3) { NF = 2; IndF[0] = 0; IndF[1] = 3; }
-		else if (vh == 4) { NF = 2; IndF[0] = 1; IndF[1] = 3; }
-		else if (vh == 5) { NF = 3; IndF[0] = 0; IndF[1] = 2; IndF[2] = 3; }
-		else if (vh == 6) { NF = 3; IndF[0] = 1; IndF[1] = 2; IndF[2] = 3; }
-		else if (vh == 7) { NF = 3; IndF[0] = 0; IndF[1] = 1; IndF[2] = 2; }
-		else if (vh == 8) { NF = 3; IndF[0] = 0; IndF[1] = 1; IndF[2] = 3; }
+		if      (vh == 1) { NF = 2; IndFP[0] = 0; IndFP[1] = 2; }
+		else if (vh == 2) { NF = 2; IndFP[0] = 1; IndFP[1] = 2; }
+		else if (vh == 3) { NF = 2; IndFP[0] = 0; IndFP[1] = 3; }
+		else if (vh == 4) { NF = 2; IndFP[0] = 1; IndFP[1] = 3; }
+		else if (vh == 5) { NF = 3; IndFP[0] = 0; IndFP[1] = 2; IndFP[2] = 3; }
+		else if (vh == 6) { NF = 3; IndFP[0] = 1; IndFP[1] = 2; IndFP[2] = 3; }
+		else if (vh == 7) { NF = 3; IndFP[0] = 0; IndFP[1] = 1; IndFP[2] = 2; }
+		else if (vh == 8) { NF = 3; IndFP[0] = 0; IndFP[1] = 1; IndFP[2] = 3; }
+
+		for (size_t f = 0; f < Nf; f++)
+			IndF[f] = IndFP[f];
+
 		break;
 	case TET:
 		if (DB.TETrefineType == TET8) {
 			// FACE
-			if      (vh == 1) { NF = 3; IndF[0] = 1; IndF[1] = 2; IndF[2] = 3; }
-			else if (vh == 2) { NF = 3; IndF[0] = 0; IndF[1] = 2; IndF[2] = 3; }
-			else if (vh == 3) { NF = 3; IndF[0] = 0; IndF[1] = 1; IndF[2] = 3; }
-			else if (vh == 4) { NF = 3; IndF[0] = 0; IndF[1] = 1; IndF[2] = 2; }
-			else if (vh == 5) { NF = 1; IndF[0] = 0; }
-			else if (vh == 6) { NF = 1; IndF[0] = 1; }
-			else if (vh == 7) { NF = 1; IndF[0] = 2; }
-			else if (vh == 8) { NF = 1; IndF[0] = 3; }
+			if      (vh == 1) { NF = 3; IndFP[0] = 1; IndFP[1] = 2; IndFP[2] = 3; }
+			else if (vh == 2) { NF = 3; IndFP[0] = 0; IndFP[1] = 2; IndFP[2] = 3; }
+			else if (vh == 3) { NF = 3; IndFP[0] = 0; IndFP[1] = 1; IndFP[2] = 3; }
+			else if (vh == 4) { NF = 3; IndFP[0] = 0; IndFP[1] = 1; IndFP[2] = 2; }
+			else if (vh == 5) { NF = 1; IndFP[0] = 0; }
+			else if (vh == 6) { NF = 1; IndFP[0] = 1; }
+			else if (vh == 7) { NF = 1; IndFP[0] = 2; }
+			else if (vh == 8) { NF = 1; IndFP[0] = 3; }
 			else              { printf("Error: Unsupported.\n"), EXIT_MSG; }
+
+			for (size_t f = 0; f < Nf; f++)
+				IndF[f] = IndFP[f];
 
 			// EDGE
 			if (vh == 1) {
 				NE = 6;
-				IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 3; IndE[4]  = 2; IndE[5]  = 1;
-				IndBC[0] = E; IndBC[1] = E; IndBC[2] = E; IndBC[3] = F; IndBC[4] = F; IndBC[5] = F;
+				IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 3; IndE[4]  = 4; IndE[5]  = 5;
+				IndEP[0] = 3; IndEP[1] = 1; IndEP[2] = 2; IndEP[3] = 3; IndEP[4] = 2; IndEP[5] = 1;
+				IndBC[0] = F; IndBC[1] = E; IndBC[2] = E; IndBC[3] = E; IndBC[4] = F; IndBC[5] = F;
 			} else if (vh == 2) {
 				NE = 6;
-				IndE[0]  = 0; IndE[1]  = 3; IndE[2]  = 2; IndE[3]  = 3; IndE[4]  = 4; IndE[5]  = 0;
-				IndBC[0] = E; IndBC[1] = F; IndBC[2] = F; IndBC[3] = E; IndBC[4] = E; IndBC[5] = F;
+				IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 3; IndE[4]  = 4; IndE[5]  = 5;
+				IndEP[0] = 0; IndEP[1] = 3; IndEP[2] = 2; IndEP[3] = 2; IndEP[4] = 4; IndEP[5] = 0;
+				IndBC[0] = E; IndBC[1] = F; IndBC[2] = E; IndBC[3] = F; IndBC[4] = E; IndBC[5] = F;
 			} else if (vh == 3) {
 				NE = 6;
-				IndE[0]  = 3; IndE[1]  = 1; IndE[2]  = 1; IndE[3]  = 3; IndE[4]  = 0; IndE[5]  = 5;
-				IndBC[0] = F; IndBC[1] = E; IndBC[2] = F; IndBC[3] = E; IndBC[4] = F; IndBC[5] = E;
+				IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 3; IndE[4]  = 4; IndE[5]  = 5;
+				IndEP[0] = 0; IndEP[1] = 1; IndEP[2] = 3; IndEP[3] = 1; IndEP[4] = 0; IndEP[5] = 5;
+				IndBC[0] = E; IndBC[1] = E; IndBC[2] = F; IndBC[3] = F; IndBC[4] = F; IndBC[5] = E;
 			} else if (vh == 4) {
 				NE = 6;
-				IndE[0]  = 2; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 0; IndE[4]  = 4; IndE[5]  = 5;
-				IndBC[0] = F; IndBC[1] = F; IndBC[2] = E; IndBC[3] = F; IndBC[4] = E; IndBC[5] = E;
+				IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 3; IndE[4]  = 4; IndE[5]  = 5;
+				IndEP[0] = 0; IndEP[1] = 1; IndEP[2] = 2; IndEP[3] = 3; IndEP[4] = 4; IndEP[5] = 5;
+				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F; IndBC[3] = E; IndBC[4] = E; IndBC[5] = E;
 			} else if (vh == 5) {
-				NE = 3;
-				IndE[0]  = 0; IndE[1]  = 0; IndE[2]  = 0;
+				NE = 5;
+				IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 3; IndE[3]  = 4; IndE[4]  = 5;
+				IndEP[0] = 0; IndEP[1] = 2; IndEP[2] = 3; IndEP[3] = 0; IndEP[4] = 0;
 				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F;
 			} else if (vh == 6) {
-				NE = 3;
-				IndE[0]  = 1; IndE[1]  = 1; IndE[2]  = 1;
+				NE = 5;
+				IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 3; IndE[3]  = 4; IndE[4]  = 5;
+				IndEP[0] = 2; IndEP[1] = 1; IndEP[2] = 1; IndEP[3] = 3; IndEP[4] = 1;
 				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F;
 			} else if (vh == 7) {
-				NE = 3;
-				IndE[0]  = 2; IndE[1]  = 2; IndE[2]  = 2;
+				NE = 5;
+				IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 3; IndE[4]  = 4;
+				IndEP[0] = 1; IndEP[1] = 0; IndEP[2] = 2; IndEP[3] = 2; IndEP[4] = 2;
 				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F;
 			} else if (vh == 8) {
-				NE = 3;
-				IndE[0]  = 3; IndE[1]  = 3; IndE[2]  = 3;
+				NE = 5;
+				IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 3; IndE[4]  = 4;
+				IndEP[0] = 3; IndEP[1] = 3; IndEP[2] = 3; IndEP[3] = 0; IndEP[4] = 1;
 				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F;
 			} else {
 				printf("Error: Unsupported.\n"), EXIT_MSG;
@@ -172,19 +191,70 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 		}
 		break;
 	case HEX:
-		printf("Implementing.\n"), EXIT_MSG;
+		// FACE
+		if      (vh == 1) { NF = 3; IndFP[0] = 0; IndFP[1] = 2; IndFP[2] = 4; }
+		else if (vh == 2) { NF = 3; IndFP[0] = 1; IndFP[1] = 2; IndFP[2] = 4; }
+		else if (vh == 3) { NF = 3; IndFP[0] = 0; IndFP[1] = 3; IndFP[2] = 4; }
+		else if (vh == 4) { NF = 3; IndFP[0] = 1; IndFP[1] = 3; IndFP[2] = 4; }
+		else if (vh == 5) { NF = 3; IndFP[0] = 0; IndFP[1] = 2; IndFP[2] = 5; }
+		else if (vh == 6) { NF = 3; IndFP[0] = 1; IndFP[1] = 2; IndFP[2] = 5; }
+		else if (vh == 7) { NF = 3; IndFP[0] = 0; IndFP[1] = 3; IndFP[2] = 5; }
+		else if (vh == 8) { NF = 3; IndFP[0] = 1; IndFP[1] = 3; IndFP[2] = 5; }
+		else              { printf("Error: Unsupported.\n"), EXIT_MSG; }
+
+		for (size_t f = 0; f < Nf; f++)
+			IndF[f] = IndFP[f];
+
+		// EDGE
+		NE = 9;
+		if (vh == 1) {
+			IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 4; IndE[4]  = 5; IndE[5]  = 6; IndE[6]  = 8; IndE[7]  = 9; IndE[8]  = 10;
+			IndEP[0] = 0; IndEP[1] = 4; IndEP[2] = 2; IndEP[3] = 4; IndEP[4] = 4; IndEP[5] = 0; IndEP[6] = 8; IndEP[7] = 2; IndEP[8] = 0;
+			IndBC[0] = E; IndBC[1] = F; IndBC[2] = F; IndBC[3] = E; IndBC[4] = F; IndBC[5] = F; IndBC[6] = E; IndBC[7] = F; IndBC[8] = F;
+		} else if (vh == 2) {
+			IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 4; IndE[4]  = 5; IndE[5]  = 7; IndE[6]  = 8; IndE[7]  = 9; IndE[8]  = 11;
+			IndEP[0] = 0; IndEP[1] = 4; IndEP[2] = 2; IndEP[3] = 4; IndEP[4] = 5; IndEP[5] = 1; IndEP[6] = 2; IndEP[7] = 9; IndEP[8] = 1;
+			IndBC[0] = E; IndBC[1] = F; IndBC[2] = F; IndBC[3] = F; IndBC[4] = E; IndBC[5] = F; IndBC[6] = F; IndBC[7] = E; IndBC[8] = F;
+		} else if (vh == 3) {
+			IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 3; IndE[3]  = 4; IndE[4]  = 5; IndE[5]  = 6; IndE[6]  = 8; IndE[7]  = 10; IndE[8]  = 11;
+			IndEP[0] = 4; IndEP[1] = 1; IndEP[2] = 3; IndEP[3] = 4; IndEP[4] = 4; IndEP[5] = 0; IndEP[6] = 0; IndEP[7] = 10; IndEP[8] = 3;
+			IndBC[0] = F; IndBC[1] = E; IndBC[2] = F; IndBC[3] = E; IndBC[4] = F; IndBC[5] = F; IndBC[6] = F; IndBC[7] = E; IndBC[8] = F;
+		} else if (vh == 4) {
+			IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 3; IndE[3]  = 4; IndE[4]  = 5; IndE[5]  = 7; IndE[6]  = 9; IndE[7]  = 10; IndE[8]  = 11;
+			IndEP[0] = 4; IndEP[1] = 1; IndEP[2] = 3; IndEP[3] = 4; IndEP[4] = 5; IndEP[5] = 1; IndEP[6] = 1; IndEP[7] = 3; IndEP[8] = 11;
+			IndBC[0] = F; IndBC[1] = E; IndBC[2] = F; IndBC[3] = F; IndBC[4] = E; IndBC[5] = F; IndBC[6] = F; IndBC[7] = F; IndBC[8] = E;
+		} else if (vh == 5) {
+			IndE[0]  = 0; IndE[1]  = 2; IndE[2]  = 3; IndE[3]  = 4; IndE[4]  = 6; IndE[5]  = 7; IndE[6]  = 8; IndE[7]  = 9; IndE[8]  = 10;
+			IndEP[0] = 2; IndEP[1] = 2; IndEP[2] = 5; IndEP[3] = 0; IndEP[4] = 6; IndEP[5] = 5; IndEP[6] = 8; IndEP[7] = 2; IndEP[8] = 0;
+			IndBC[0] = F; IndBC[1] = E; IndBC[2] = F; IndBC[3] = F; IndBC[4] = E; IndBC[5] = F; IndBC[6] = E; IndBC[7] = F; IndBC[8] = F;
+		} else if (vh == 6) {
+			IndE[0]  = 0; IndE[1]  = 2; IndE[2]  = 3; IndE[3]  = 5; IndE[4]  = 6; IndE[5]  = 7; IndE[6]  = 8; IndE[7]  = 9; IndE[8]  = 11;
+			IndEP[0] = 2; IndEP[1] = 2; IndEP[2] = 5; IndEP[3] = 1; IndEP[4] = 5; IndEP[5] = 7; IndEP[6] = 2; IndEP[7] = 9; IndEP[8] = 1;
+			IndBC[0] = F; IndBC[1] = E; IndBC[2] = F; IndBC[3] = F; IndBC[4] = F; IndBC[5] = E; IndBC[6] = F; IndBC[7] = E; IndBC[8] = F;
+		} else if (vh == 7) {
+			IndE[0]  = 1; IndE[1]  = 2; IndE[2]  = 3; IndE[3]  = 4; IndE[4]  = 6; IndE[5]  = 7; IndE[6]  = 8; IndE[7]  = 10; IndE[8]  = 11;
+			IndEP[0] = 3; IndEP[1] = 5; IndEP[2] = 3; IndEP[3] = 0; IndEP[4] = 6; IndEP[5] = 5; IndEP[6] = 0; IndEP[7] = 10; IndEP[8] = 3;
+			IndBC[0] = F; IndBC[1] = F; IndBC[2] = E; IndBC[3] = F; IndBC[4] = E; IndBC[5] = F; IndBC[6] = F; IndBC[7] = E; IndBC[8] = F;
+		} else if (vh == 8) {
+			IndE[0]  = 1; IndE[1]  = 2; IndE[2]  = 3; IndE[3]  = 5; IndE[4]  = 6; IndE[5]  = 7; IndE[6]  = 9; IndE[7]  = 10; IndE[8]  = 11;
+			IndEP[0] = 3; IndEP[1] = 5; IndEP[2] = 3; IndEP[3] = 1; IndEP[4] = 5; IndEP[5] = 7; IndEP[6] = 1; IndEP[7] = 3; IndEP[8] = 11;
+			IndBC[0] = F; IndBC[1] = F; IndBC[2] = E; IndBC[3] = F; IndBC[4] = F; IndBC[5] = E; IndBC[6] = F; IndBC[7] = F; IndBC[8] = E;
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+		}
 		break;
 	default:
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 		break;
 	}
 
+	// This is assuming that indices of external FACEs of reference refined elements are the same as those of the parent
 	for (size_t f = 0; f < NF; f++)
-		VOLUME->BC[0][IndF[f]] = BC[0][IndF[f]];
+		VOLUME->BC[0][IndF[f]] = BC[0][IndFP[f]];
 
 	// Note: NE = 0 for d = 2
 	for (size_t e = 0; e < NE; e++)
-		VOLUME->BC[1][IndE[e]] = BC[IndBC[e]][IndE[e]];
+		VOLUME->BC[1][IndE[e]] = BC[IndBC[e]][IndEP[e]];
 }
 
 void update_VOLUME_hp(void)
