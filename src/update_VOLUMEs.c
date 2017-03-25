@@ -95,7 +95,7 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 	 *		For 3D elements need to update both FACE and EDGE BC information.
 	 *
 	 *	References:
-	 *		See documentation/H_refinement_Info.ods for visual clarification (especially for EDGEs).
+	 *		Generate arrays here with python/documentation/h_refinement_info.py.
 	 */
 
 	unsigned int NF = 0, NE = 0, IndF[NFMAX], IndFP[NFMAX], IndE[NEMAX], IndEP[NEMAX], IndBC[NEMAX], F = 0, E = 1;
@@ -107,7 +107,7 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 		else if (vh == 2) { NF = 2; IndFP[0] = 0; IndFP[1] = 2; }
 		else if (vh == 3) { NF = 2; IndFP[0] = 0; IndFP[1] = 1; }
 
-		for (size_t f = 0; f < Nf; f++)
+		for (size_t f = 0; f < NF; f++)
 			IndF[f] = IndFP[f];
 
 		break;
@@ -122,7 +122,7 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 		else if (vh == 7) { NF = 3; IndFP[0] = 0; IndFP[1] = 1; IndFP[2] = 2; }
 		else if (vh == 8) { NF = 3; IndFP[0] = 0; IndFP[1] = 1; IndFP[2] = 3; }
 
-		for (size_t f = 0; f < Nf; f++)
+		for (size_t f = 0; f < NF; f++)
 			IndF[f] = IndFP[f];
 
 		break;
@@ -139,7 +139,7 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 			else if (vh == 8) { NF = 1; IndFP[0] = 3; }
 			else              { printf("Error: Unsupported.\n"), EXIT_MSG; }
 
-			for (size_t f = 0; f < Nf; f++)
+			for (size_t f = 0; f < NF; f++)
 				IndF[f] = IndFP[f];
 
 			// EDGE
@@ -167,22 +167,22 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 				NE = 5;
 				IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 3; IndE[3]  = 4; IndE[4]  = 5;
 				IndEP[0] = 0; IndEP[1] = 2; IndEP[2] = 3; IndEP[3] = 0; IndEP[4] = 0;
-				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F;
+				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F; IndBC[3] = F; IndBC[4] = F;
 			} else if (vh == 6) {
 				NE = 5;
 				IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 3; IndE[3]  = 4; IndE[4]  = 5;
 				IndEP[0] = 2; IndEP[1] = 1; IndEP[2] = 1; IndEP[3] = 3; IndEP[4] = 1;
-				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F;
+				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F; IndBC[3] = F; IndBC[4] = F;
 			} else if (vh == 7) {
 				NE = 5;
 				IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 3; IndE[4]  = 4;
 				IndEP[0] = 1; IndEP[1] = 0; IndEP[2] = 2; IndEP[3] = 2; IndEP[4] = 2;
-				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F;
+				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F; IndBC[3] = F; IndBC[4] = F;
 			} else if (vh == 8) {
 				NE = 5;
 				IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 3; IndE[4]  = 4;
 				IndEP[0] = 3; IndEP[1] = 3; IndEP[2] = 3; IndEP[3] = 0; IndEP[4] = 1;
-				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F;
+				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F; IndBC[3] = F; IndBC[4] = F;
 			} else {
 				printf("Error: Unsupported.\n"), EXIT_MSG;
 			}
@@ -202,7 +202,7 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 		else if (vh == 8) { NF = 3; IndFP[0] = 1; IndFP[1] = 3; IndFP[2] = 5; }
 		else              { printf("Error: Unsupported.\n"), EXIT_MSG; }
 
-		for (size_t f = 0; f < Nf; f++)
+		for (size_t f = 0; f < NF; f++)
 			IndF[f] = IndFP[f];
 
 		// EDGE

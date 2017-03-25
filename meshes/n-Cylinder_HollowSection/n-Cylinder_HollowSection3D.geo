@@ -1,5 +1,5 @@
 Include "../Parameters.geo";
-
+MeshLevel = 0; MeshType = WEDGE; PDEName = EULER;
 
 // Geometry Specification
 rIn  = 1.000;
@@ -57,8 +57,10 @@ Line Loop (4006) = {1005,1019,-1012,-1020};
 Line Loop (4007) = {1006,1016,-1013,-1020};
 
 Line Loop (4008) = {1007,1005,-1002,-1003};
+//Line Loop (4008) = {1003,1002,-1005,-1007};
 Line Loop (4009) = {-1007,1004,1001,-1006};
 Line Loop (4010) = {1014,1012,-1009,-1010};
+//Line Loop (4010) = {1010,1009,-1012,-1014};
 Line Loop (4011) = {-1014,1011,1008,-1013};
 
 Plane Surface(4001) = {4001};
@@ -79,7 +81,8 @@ ElseIf (MeshType == HEX)
 	Transfinite Surface{4001:4011};
 	Recombine Surface{4001:4011};
 ElseIf (MeshType == WEDGE)
-	Transfinite Surface{4001:4011};
+	Transfinite Surface{4001:4007,4009,4011};
+	Transfinite Surface{4008,4010} Right;
 	Recombine Surface{4001:4007};
 ElseIf (MeshType == MIXED3D_TP)
 	Recombine Surface{4001:4011};

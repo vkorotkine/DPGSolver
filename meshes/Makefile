@@ -12,6 +12,8 @@ include MeshVariables
 # meshes_update_h      : generates meshes for the update_h      integration tests 
 # meshes_L2_proj_*     : generates meshes for the L2 projection integration tests 
 # meshes_linearization : generates meshes for the linearization integration tests 
+# meshes_Poisson_test  : generates meshes for the Poisson       integration tests 
+# meshes_Euler_test    : generates meshes for the Euler         integration tests 
 
 
 PYTHONC   := python3

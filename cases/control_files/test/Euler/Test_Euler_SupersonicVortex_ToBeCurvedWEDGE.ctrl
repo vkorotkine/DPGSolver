@@ -7,7 +7,7 @@ GeomSpecifier NONE
 Dimension     3
 
 MeshPath      ../meshes/
-MeshType      HEX
+MeshType      WEDGE
 MeshCurving   ToBeCurved
 MeshLevel     0
 

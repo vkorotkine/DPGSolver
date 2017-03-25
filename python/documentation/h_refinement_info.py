@@ -133,6 +133,7 @@ class Refinement_class:
 
 		ELEMENT = get_ELEMENT_type(self.name,ELEMENTs)
 		if (ELEMENT.d <= 2):
+			self.EToVe = EToVe
 			return
 
 		for v in range(0,self.Nv):
@@ -645,13 +646,14 @@ def list_print_BC(list_array,names,dim):
 		print("\n")
 	elif (dim == 3):
 		for i in range(len(list_array)):
-			print(names[0],":",i)
+			if (names[0] == "vh"):
+				print(names[0],":",i+1)
+			else:
+				EXIT_TRACEBACK()
 			list_print_BC(list_array[i],names,2)
 	else:
 		EXIT_TRACEBACK()
 
-#	IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 4; IndE[4]  = 5; IndE[5]  = 6; IndE[6]  = 8; IndE[7]  = 9;
-#	IndE[8]  = 10;
 
 if __name__ == '__main__':
 	"""Generate h refinement related information for each of the supported ELEMENT types in the code."""
@@ -664,13 +666,13 @@ if __name__ == '__main__':
 	EType = 'HEX';   ELEMENTs.append(ELEMENT_class(EType))
 	EType = 'PYR';   ELEMENTs.append(ELEMENT_class(EType))
 
-#	EType = 'TRI'
+	EType = 'TRI'
 #	EType = 'QUAD'
 #	EType = 'TET'
-	EType = 'HEX'
+#	EType = 'HEX'
 #	EType = 'PYR'
 
-	PrintAll = 1
+	PrintAll = 0
 	PrintInd = 0
 	for ELEMENT in ELEMENTs:
 		if (ELEMENT.EType != EType):
@@ -707,9 +709,9 @@ if __name__ == '__main__':
 
 			print("FToP :")
 #			list_print(RefType.FToP,"v",3)
-			list_print_BC(RefType.FToP,["v","FToP"],3)
+			list_print_BC(RefType.FToP,["vh","FToP"],3)
 
 			if (ELEMENT.d == 3):
 				print("EToP :")
 #				list_print(RefType.EToP,"v",3)
-				list_print_BC(RefType.EToP,["v","EToP"],3)
+				list_print_BC(RefType.EToP,["vh","EToP"],3)

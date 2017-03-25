@@ -182,7 +182,7 @@ static double get_radius(const unsigned int Nn, double *XYZ)
 		if (d == 3 && strstr(Geometry,"n-Ball"))
 			r2 += z[n]*z[n];
 		else if (d == 3 && strstr(Geometry,"n-Cylinder"))
-			; // Do nothing
+			{ ; } // Do nothing
 
 		r = sqrt(r2);
 		if (fabs(r-rIn) < dist_rIn)
@@ -223,7 +223,7 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 	if (strstr(Geometry,"n-Ball") || strstr(Geometry,"n-Cylinder")) {
 		r = get_radius(Nn,(double *) XYZ_S);
 
-		double dCheck;
+		double dCheck = 0;
 		if (strstr(Geometry,"n-Ball"))
 			dCheck = d;
 		else if (strstr(Geometry,"n-Cylinder"))

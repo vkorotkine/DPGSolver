@@ -90,11 +90,15 @@ void compute_detJV(const unsigned int Nn, double *J, double *detJV)
 	}
 
 	for (n = 0; n < Nn; n++) {
-		if (0&&detJV[n] < EPS) {
+		if (detJV[n] < EPS) {
 			array_print_d(Nn,1,detJV,'R');
 			output_to_paraview("ZTest_Geom_curved");
 
-			printf("Error: Negative VOLUME.\n");
+			// If this is triggering as a result of curved elements, consider exiting only if the average of all
+			// Jacobian determinates is negative as this will still trigger from inverted .msh file elements but may
+			// allow slightly bad quality curved element meshes to go through.
+			printf("Error: Negative VOLUME.\n\n");
+			printf("Potential inverted element in .msh file from Transfinite.\n");
 			printf("Mesh output to paraview.\n"), EXIT_MSG;
 		}
 	}

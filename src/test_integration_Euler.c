@@ -202,7 +202,12 @@ static void set_test_convorder_data(struct S_convorder *data, const char *TestNa
 				strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedTET");
 			} else if (strstr(TestName,"HEX")) {
 				data->MLMax = 2;
+				data->PMax  = 2;
 				strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedHEX");
+			} else if (strstr(TestName,"WEDGE")) {
+				data->MLMax = 2;
+				data->PMax  = 2;
+				strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedWEDGE");
 			} else if (strstr(TestName,"MIXED_TP")) {
 				data->MLMax = 2;
 				data->PMax  = 2;
@@ -334,10 +339,11 @@ void test_integration_Euler(int nargc, char **argv)
 
 //	strcpy(argvNew[1],"test/Test_Euler_2D_TRI");
 //	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_CurvedMIXED2D",data_c);
-	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedMIXED2D",data_c);
+//	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedMIXED2D",data_c);
 
 //	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedTET",data_c);
-//	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedHEX",data_c);
+//	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedHEX",data_c); // Working
+	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedWEDGE",data_c);
 
 
 

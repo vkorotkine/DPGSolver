@@ -117,10 +117,10 @@ class TestCase_class:
 			if (self.name.lower().find('test') != -1):
 				self.VarName = 'EULER_TEST'
 
-				MeshTypesPrefix = ['SupersonicVortex_' for i in range(0,5)]
-				MeshCurving     = ['Curved','ToBeCurved','ToBeCurved','ToBeCurved','ToBeCurved']
-				MeshTypes       = ['MIXED2D','MIXED2D','MIXED3D_TP','TET','HEX']
+				MeshCurving     = ['Curved','ToBeCurved','ToBeCurved','ToBeCurved','ToBeCurved','ToBeCurved']
+				MeshTypes       = ['MIXED2D','MIXED2D','MIXED3D_TP','TET','HEX','WEDGE']
 				NTotal = len(MeshTypes)
+				MeshTypesPrefix = ['SupersonicVortex_' for i in range(0,NTotal)]
 				if   (MeshName.find('all')    != -1):
 					iRange = range(0,NTotal)
 				else:
@@ -162,7 +162,6 @@ class TestCase_class:
 				EXIT_TRACEBACK()
 		elif (self.name.find('Euler') != -1):
 			if (self.name.find('test') != -1):
-#				print("name142:",self.name)
 				self.name = 'Test_Euler_'
 				self.Path = Paths.control_files+'test/Euler/'
 			else:
@@ -181,10 +180,6 @@ class TestCase_class:
 	def get_mesh_outputs(self):
 		MeshTypes = self.MeshTypes
 		for i in range(0,len(MeshTypes)):
-
-#			print("mc107")
-#			print(MeshTypes[i].InputName)
-
 			if (self.MeshOutputs.find(MeshTypes[i].InputName) == -1):
 				self.MeshOutputs += MeshTypes[i].OutputName_from_meshesROOT + ' '
 
@@ -209,11 +204,6 @@ class MeshType_class:
 
 	def set_parameters(self,TestCase,Paths):
 		fName = TestCase.Path+TestCase.name+self.prefix+self.name+'.ctrl'
-#		print("TestCase.P: ",TestCase.Path)
-#		print("TestCase.n: ",TestCase.name)
-#		print("self.name: ",self.name)
-#		print("self.pref: ",self.prefix)
-#		print("\n\nfName",fName,"\n\n")
 
 		with open(fName) as f:
 			for line in f:
@@ -247,5 +237,3 @@ class MeshType_class:
 
 		self.OutputName_from_meshesROOT = self.OutputName
 		self.OutputName = Paths.meshes + self.OutputName
-
-#		print("sOfm:",self.OutputName_from_meshesROOT)
