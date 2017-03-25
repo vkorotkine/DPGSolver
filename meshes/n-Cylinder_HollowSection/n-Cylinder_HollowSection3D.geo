@@ -1,5 +1,5 @@
 Include "../Parameters.geo";
-MeshLevel = 0; MeshType = WEDGE; PDEName = EULER;
+//MeshLevel = 0; MeshType = WEDGE; PDEName = EULER;
 
 // Geometry Specification
 rIn  = 1.000;

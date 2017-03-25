@@ -147,7 +147,7 @@ int main(int nargc, char **argv)
 		if (strstr(DB.SolverType,"Explicit")) {
 			solver_explicit();
 		} else if (strstr(DB.SolverType,"Implicit")) {
-			solver_implicit();
+			solver_implicit(1);
 		} else {
 			printf("Error: Unsupported SolverType in dpg_solver.\n"), EXIT_MSG;
 		}
@@ -264,6 +264,7 @@ int main(int nargc, char **argv)
 	RunTest.integration = 0;
 	RunTest.speed       = 0;
 
+	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
 
 	printf("\n\nRunning Tests:\n\n\n");
 	ts = clock();
@@ -312,11 +313,10 @@ int main(int nargc, char **argv)
 		test_integration_L2_projections(nargc,argv);
 		test_integration_linearization(nargc,argv);
 		test_integration_Poisson(nargc,argv);
-//		PetscFinalize();
+		test_integration_Euler(nargc,argv);
 	}
-	test_integration_Euler(nargc,argv);
-	PetscFinalize();
 
+	PetscFinalize();
 
 	te = clock();
 

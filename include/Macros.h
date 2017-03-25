@@ -9,6 +9,12 @@
  *		Define macros.
  *
  *	Comments:
+ *		The invalid memory access in EXIT_UNSUPPORTED/_MSG allow for a stacktrace to be obtained when running the code
+ *		using memcheck in valgrind.
+ *
+ *		EXIT_UNSUPPORTED/EXIT_MSG do not print the "FILE/FUNCTION/LINE" if called before PetscInitilize is called; this
+ *		was the original motivation behind the usage of EXIT_BASIC. Now that PetscInitialize is called in main for DTEST
+ *		enabled as well, EXIT_BASIC need not be used.
  *
  *	Notation:
  *

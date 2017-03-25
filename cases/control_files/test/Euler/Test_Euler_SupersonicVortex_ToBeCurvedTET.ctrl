@@ -9,7 +9,7 @@ Dimension     3
 MeshPath      ../meshes/
 MeshType      TET
 MeshCurving   ToBeCurved
-MeshLevel     0
+MeshLevel     2
 
 Form       Weak   // Options: Weak, (Strong)
 NodeType   GLL-AO // Options: GL/GLL-AO/WSH/EQ

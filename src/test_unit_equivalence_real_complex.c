@@ -71,7 +71,7 @@ void test_unit_equivalence_real_complex(void)
 	strcpy(DB.TestCase,"SupersonicVortex");
 	strcpy(DB.PDE,"Euler");
 	strcpy(DB.PDESpecifier,"Internal");
-	strcpy(DB.Geometry,"dm1SphericalSection");
+	strcpy(DB.Geometry,"n-Cylinder_HollowSection");
 
 	initialize_test_case_parameters();
 

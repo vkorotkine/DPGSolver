@@ -151,6 +151,7 @@ void h_adapt_test(void)
 					}
 				}
 			}
+			free(XYZ_vV);
 		}
 
 		// Add additional indices to the list of hp_update to ensure that the resulting mesh will not be more than
@@ -196,9 +197,14 @@ static void set_test_convorder_data(struct S_convorder *data, const char *TestNa
 		data->SolveExplicit = 0;
 		if (strstr(TestName,"ToBeCurved")) {
 			if (strstr(TestName,"MIXED2D")) {
+				data->PrintEnabled = 0;
 				strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
 			} else if (strstr(TestName,"TET")) {
-				data->MLMax = 2;
+				// Starting with a coarser initial mesh than ML=2 lead to blow-up in solver_implicit. This is
+				// potentially a result of poor element quality using the h-refinement of the initial mesh. Can try
+				// using a refined mesh sequence from gmsh or with SolverExplicit = 1 for initial convergence.
+				data->MLMax = 1;
+				data->PMax  = 2;
 				strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedTET");
 			} else if (strstr(TestName,"HEX")) {
 				data->MLMax = 2;
@@ -219,6 +225,7 @@ static void set_test_convorder_data(struct S_convorder *data, const char *TestNa
 				EXIT_UNSUPPORTED;
 			}
 		} else if (strstr(TestName,"CurvedMIXED2D")) {
+			data->PrintEnabled = 0;
 			strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_CurvedMIXED2D");
 		} else {
 			EXIT_UNSUPPORTED;
@@ -285,7 +292,7 @@ static void test_convorder(int nargc, char **argvNew, const char *TestName, stru
 
 		if (SolveExplicit)
 			solver_explicit();
-		solver_implicit();
+		solver_implicit(PrintEnabled);
 
 		compute_errors_global();
 
@@ -303,11 +310,12 @@ static void test_convorder(int nargc, char **argvNew, const char *TestName, stru
 		if (Adapt == ADAPT_0)
 			code_cleanup();
 	}}
+	set_PrintName_ConvOrders(data->PrintName,&data->TestTRI);
+
 	if (Adapt != ADAPT_0)
 		code_cleanup();
 	free(mesh_quality);
 
-	set_PrintName_ConvOrders(data->PrintName,&data->TestTRI);
 	test_print2(pass,data->PrintName);
 }
 
@@ -337,13 +345,19 @@ void test_integration_Euler(int nargc, char **argv)
 	data_c->argvNew   = argvNew;
 	data_c->PrintName = PrintName;
 
-//	strcpy(argvNew[1],"test/Test_Euler_2D_TRI");
-//	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_CurvedMIXED2D",data_c);
-//	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedMIXED2D",data_c);
+	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_CurvedMIXED2D",data_c);
+	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedMIXED2D",data_c);
 
-//	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedTET",data_c);
-//	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedHEX",data_c); // Working
-	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedWEDGE",data_c);
+bool test_3D = 0;
+if (test_3D) {
+	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedTET",data_c);
+	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedHEX",data_c); // Optimal
+//	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedWEDGE",data_c); // Need to implement operators
+} else {
+	printf("\nWarning: 3D SupersonicVortex testing is currently disabled.\n\n"); TestDB.Nwarnings++;
+}
+
+	printf("\n\n***Add integration tests for PeriodicVortex case (Stationary and moving).***\n\n"); TestDB.Nwarnings++;
 
 
 

@@ -646,8 +646,13 @@ void gmsh_reader(void)
 	// Set part size according to number of elements initially placed on this proc
 	part = malloc((elmdist[MPIrank+1]-elmdist[MPIrank]) * sizeof *part); // free
 
-	ParMETIS_V3_PartMeshKway(
- 		elmdist,eptr,eind,elmwgt,wgtflag,numflag,ncon,ncommonnodes,nparts,tpwgts,ubvec,options,edgecut,part,&comm);
+	// Valgrind showing memory leak in ParMETIS_V3_PartMeshKway on ubuntu (MPICH 3.2, Parmetis 4.0.3) ToBeDeleted
+	int ParMETIS_Return = ParMETIS_V3_PartMeshKway(elmdist,eptr,eind,elmwgt,wgtflag,numflag,ncon,ncommonnodes,nparts,
+	                                               tpwgts,ubvec,options,edgecut,part,&comm);
+	if (ParMETIS_Return != METIS_OK) {
+		printf("Parmetis error: %d.\n",ParMETIS_Return);
+		EXIT_UNSUPPORTED;
+	}
 
 	// Distribute partition information to all elements.
 
@@ -698,8 +703,6 @@ void gmsh_reader(void)
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
-
-	// Initialize imex type as explicit for all elements (ToBeModified)
 
 	// Assign DB Parameters
 	DB.NVe     = NVe;

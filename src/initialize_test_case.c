@@ -307,6 +307,7 @@ void initialize_test_case_parameters(void)
 						DB.cIn = DB.aIn;
 					}
 				} else {
+					printf("%s\n",Geometry);
 					EXIT_UNSUPPORTED;
 				}
 			}

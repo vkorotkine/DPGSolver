@@ -1120,6 +1120,7 @@ void ensure_1irregular(unsigned int *hp_update)
 		}
 	}
 
+	free(VOLUME_Vec);
 	free(VNeigh);
 	free(VType_global);
 	free(fh_range);

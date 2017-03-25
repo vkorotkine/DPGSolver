@@ -73,8 +73,9 @@ ifeq ($(KERNEL),Linux)
 
 #    PETSC_DIR := $(PROG_PATH)/petsc/petsc-3.7.0
 #    PETSC_ARCH := arch-linux-c-
+#    PETSC_ARCH := linux-c-debug
     PETSC_DIR := /home/philip/petsc/petsc-3.7.5
-    PETSC_ARCH := linux-c-debug
+    PETSC_ARCH := arch-linux-c-opt
 
     METIS_DIR      := $(PROG_PATH)/parmetis/parmetis-4.0.3/build/opt
     METIS_INC      := -I$(METIS_DIR)/metis/include

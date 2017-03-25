@@ -195,10 +195,13 @@ static void compute_underRelax(struct S_VOLUME *VOLUME, const double *dWhat, dou
 
 		if (alphaO < EPS) {
 			printf("%d %d\n",flag[0],flag[1]);
-			printf("Potential problem: Under Relaxation driven to 0.\n"), EXIT_MSG;
+			printf("Potential problem: Under Relaxation driven to 0.\n");//, EXIT_MSG;
+			break;
 		}
 
 	}
+	if (alphaO < EPS)
+		alphaO = 1e5*EPS;
 
 	*alpha = alphaO;
 
@@ -209,7 +212,7 @@ static void compute_underRelax(struct S_VOLUME *VOLUME, const double *dWhat, dou
 	free(dU);
 }
 
-void solver_implicit(void)
+void solver_implicit(bool PrintEnabled)
 {
 	// Initialize DB Parameters
 	unsigned int OutputInterval = DB.OutputInterval,
@@ -251,16 +254,16 @@ void solver_implicit(void)
 
 		PetscInt *ix;
 
-		printf("V");  implicit_VOLUME_info();
-		printf("F");  implicit_FACE_info();
-		printf("F "); maxRHS = finalize_LHS(&A,&b,&x,0);
+		if (PrintEnabled) { printf("V");  } implicit_VOLUME_info();
+		if (PrintEnabled) { printf("F");  } implicit_FACE_info();
+		if (PrintEnabled) { printf("F "); } maxRHS = finalize_LHS(&A,&b,&x,0);
 
 		// Solve linear system
-		printf("S");
+		if (PrintEnabled) { printf("S"); }
 		KSPCreate(MPI_COMM_WORLD,&ksp);
 		setup_KSP(A,ksp);
 
-		printf("S ");
+		if (PrintEnabled) { printf("S "); }
 		KSPSolve(ksp,b,x);
 		KSPGetConvergedReason(ksp,&reason);
 		KSPGetIterationNumber(ksp,&iteration_ksp);
@@ -282,6 +285,7 @@ void solver_implicit(void)
 			free(ix);
 
 			double alpha = 1.0;
+if (iteration < 3)
 			compute_underRelax(VOLUME,dWhat,&alpha);
 
 //printf("% .3e\n",alpha);
@@ -309,12 +313,14 @@ void solver_implicit(void)
 		if (!iteration)
 			maxRHS0 = maxRHS;
 
-		printf("Iteration: %5d, KSP iterations (reason): %5d (%d), maxRHS (no MInv): % .3e\n",
-		       iteration,iteration_ksp,reason,maxRHS);
+		if (PrintEnabled) {
+			printf("Iteration: %5d, KSP iterations (reason): %5d (%d), maxRHS (no MInv): % .3e\n",
+			       iteration,iteration_ksp,reason,maxRHS);
+		}
 
 		// Additional exit conditions
 		if (maxRHS < 10*EPS && iteration) {
-			printf("Exiting: maxRHS is below 10*EPS.\n");
+			if (PrintEnabled) { printf("Exiting: maxRHS is below 10*EPS.\n"); }
 			break;
 		}
 
