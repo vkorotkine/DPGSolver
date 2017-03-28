@@ -8,12 +8,13 @@ include MeshVariables
 #
 # Simply running make does not properly execute the default rule (i.e. 'make meshes_all' must be used instead of 'make')
 #
-# meshes_all           : generate all meshes
-# meshes_update_h      : generates meshes for the update_h      integration tests 
-# meshes_L2_proj_*     : generates meshes for the L2 projection integration tests 
-# meshes_linearization : generates meshes for the linearization integration tests 
-# meshes_Poisson_test  : generates meshes for the Poisson       integration tests 
-# meshes_Euler_test    : generates meshes for the Euler         integration tests 
+# meshes_all               : generate all meshes
+# meshes_update_h          : generates meshes for the update_h      integration tests 
+# meshes_L2_proj_*         : generates meshes for the L2 projection integration tests 
+# meshes_linearization     : generates meshes for the linearization integration tests 
+# meshes_Poisson_test      : generates meshes for the Poisson       integration tests 
+# meshes_Euler_test        : generates meshes for the Euler         integration tests 
+# meshes_NavierStokes_test : generates meshes for the NavierStokes  integration tests 
 
 
 PYTHONC   := python3
@@ -33,6 +34,7 @@ meshes_all:
 	$(MAKE) meshes_linearization
 	$(MAKE) meshes_Poisson_test
 	$(MAKE) meshes_Euler_test
+	$(MAKE) meshes_NavierStokes_test
 
 .PHONY : meshes_update_h
 meshes_update_h : $(UPDATE_H)
@@ -63,3 +65,8 @@ $(POISSON_TEST) :
 meshes_Euler_test : $(EULER_TEST)
 $(EULER_TEST) :
 	cd $(PYTHONDIR) && $(PYTHONC) $(SOURCE) Euler_test $@
+
+.PHONY : meshes_NavierStokes_test
+meshes_NavierStokes_test : $(NAVIERSTOKES_TEST)
+$(NAVIERSTOKES_TEST) :
+	cd $(PYTHONDIR) && $(PYTHONC) $(SOURCE) NavierStokes_test $@

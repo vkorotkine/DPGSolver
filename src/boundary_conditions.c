@@ -578,3 +578,101 @@ void boundary_SupersonicOutflow(const unsigned int Nn, const unsigned int Nel, d
 	for (size_t i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
 		WB[i] = WL[i];
 }
+
+void boundary_NoSlip_Dirichlet(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *WL,
+                               double *WB, const double *nL, const unsigned int d, const unsigned int Nvar)
+{
+	/*
+	 *	Comments:
+	 *		Following remark 11 in Nordstrom(2005), only four conditions are imposed for the Dirichlet boundary (No slip
+	 *		with prescribed velocity).
+	 *		This imposes the velocity and temperature on the boundary face by converting to the entropy variables,
+	 *		setting the last d+1 values using the boundary conditions, then converting back to the conservative
+	 *		variables.
+	 *		Parsani(2014) discuss the correct method to impose the temperature boundary condition for the scheme to be
+	 *		entropy stable (See Theorem 3.2 and eq. (56)).
+	 *		The entropy variables of Barth(1998_Thesis, p. 16) are used.
+	 *
+	 *	References:
+	 *		Nordstrom(2005)-Well-Posed_Boundary_Conditions_for_the_Navier-Stokes_Equations
+	 *		Parsani(2014)-Entropy_Stable_Wall_Boundary_Conditions_for_the_Compressible_Navier-Stokes_Equations
+	 *		Barth(1998_Thesis)-Simplified_Numerical_Methods_for_Gasdynamic_Systems_on_Triangulated_Domains
+	 */
+
+	// Compute boundary velocity
+	if (strstr(TestCase,"TaylorCouette")) {
+		double omega = DB.omega,
+		       rIn   = DB.rIn;
+
+		double Vt;
+
+		Vt = omega*rIn;
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
+
+void boundary_NoSlip_Adiabatic(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *WL,
+                               double *WB, const double *nL, const unsigned int d, const unsigned int Nvar)
+{
+	/*
+	 *	Comments:
+	 *		This currently only imposes zero velocity on the solution. The additional boundary condition on the
+	 *		temperature gradient must still be imposed. Parsani(2014) discuss the correct method to impose this last
+	 *		boundary condition for the scheme to be entropy stable (See Theorem 3.2 and eq. (55)).
+	 *
+	 *	References:
+	 *		Parsani(2014)-Entropy_Stable_Wall_Boundary_Conditions_for_the_Compressible_Navier-Stokes_Equations
+	 */
+
+	unsigned int NnTotal = Nn*Nel;
+	double       *WL_ptr[Nvar], *WB_ptr[Nvar], *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr;
+
+	for (size_t var = 0; var < Nvar; var++) {
+		WL_ptr[var] = &WL[var*NnTotal];
+		WB_ptr[var] = &WB[var*NnTotal];
+	}
+
+	double zeros[NnTotal];
+	for (size_t n = 0; n < NnTotal; n++)
+		zeros[n] = 0.0;
+
+	rhoL_ptr  = WL_ptr[0];
+	rhouL_ptr = WL_ptr[1];
+	rhovL_ptr = WL_ptr[2];
+	EL_ptr    = WL_ptr[d+1];
+
+	if (d == 3) {
+		rhowL_ptr = WL_ptr[3];
+	} else if (d == 2) {
+		rhowL_ptr = zeros;
+	}
+
+	for (size_t n = 0; n < NnTotal; n++) {
+		unsigned int IndW = 0;
+		double rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL;
+
+		rhoL = *rhoL_ptr++;
+		rhoL_inv = 1.0/rhoL;
+
+		uL   = (*rhouL_ptr++)*rhoL_inv;
+		vL   = (*rhovL_ptr++)*rhoL_inv;
+		wL   = (*rhowL_ptr++)*rhoL_inv;
+		EL   = *EL_ptr++;
+
+		V2L = uL*uL+vL*vL+wL*wL;
+		pL  = GM1*(EL-0.5*rhoL*V2L);
+
+		*WB_ptr[IndW++] = rhoL;
+		*WB_ptr[IndW++] = 0.0;
+		*WB_ptr[IndW++] = 0.0;
+
+		if (d == 3)
+			*WB_ptr[IndW++] = 0.0;
+
+		*WB_ptr[IndW++] = pL/GM1;
+
+		for (size_t var = 0; var < Nvar; var++)
+			WB_ptr[var]++;
+	}
+}

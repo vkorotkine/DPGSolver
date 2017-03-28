@@ -187,6 +187,9 @@ static void explicit_GradW_VOLUME(void)
 	 *		This is an intermediate contribution because the multiplication by MInv is not included.
 	 *		It is currently hard-coded that GradW is of the same order as the solution.
 	 *		Note, if Collocation is enable, that D_Weak includes the inverse cubature weights.
+	 *
+	 *	References:
+	 *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_Schemes
 	 */
 
 	// Initialize DB Parameters
@@ -218,22 +221,23 @@ static void explicit_GradW_VOLUME(void)
 		ChiS_vI = OPS->ChiS_vI[0];
 
 		DxyzChiS = VOLUME->DxyzChiS;
-		for (size_t dim1 = 0; dim1 < d; dim1++) {
+		for (size_t dim = 0; dim < d; dim++) {
 			double *Dxyz;
 
-			DxyzInfo->dim = dim1;
+			DxyzInfo->dim = dim;
 			Dxyz = compute_Dxyz(DxyzInfo,d); // free/keep
 
-			if (Collocated) {
-				DxyzChiS[dim1] = Dxyz;
+			// Note: The detJ_vI term cancels with the gradient operator (Zwanenburg(2016), eq. (B.2))
+			if (Collocated) { // ChiS_vI == I
+				DxyzChiS[dim] = Dxyz;
 			} else {
-				DxyzChiS[dim1] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // keep
+				DxyzChiS[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // keep
 				free(Dxyz);
 			}
 // Might not need to store DxyzChiS for explicit (ToBeDeleted)
 
-			// Compute intermediate Qhat
-			VOLUME->Qhat[dim1] = mm_Alloc_d(CBCM,CBT,CBNT,NvnS,Neq,NvnS,1.0,DxyzChiS[dim1],VOLUME->What); // keep
+			// Compute intermediate (see comments) Qhat
+			VOLUME->Qhat[dim] = mm_Alloc_d(CBCM,CBT,CBNT,NvnS,Neq,NvnS,1.0,DxyzChiS[dim],VOLUME->What); // keep
 		}
 	}
 
@@ -340,6 +344,36 @@ static void init_FDATA(struct S_FDATA *FDATA, const struct S_FACE *FACE, const u
 		init_opsF(FDATA->OPS[1],FDATA->VOLUME,FACE,1);
 }
 
+static void boundary_NavierStokes(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *nL,
+                                  const double *WL, double *WR, const unsigned int d, const unsigned int Nvar,
+                                  const unsigned int BC)
+{
+	/*
+	 *	Comments:
+	 *		Following remark 11 in Nordstrom(2005), only four conditions are imposed for the Dirichlet boundary (No slip
+	 *		with prescribed velocity).
+	 *
+	 *	References:
+	 *		Nordstrom(2005)-Well-Posed_Boundary_Conditions_for_the_Navier-Stokes_Equations
+	 */
+
+	if (BC % BC_STEP_SC == BC_DIRICHLET) {
+		printf("Use boundary_NoSlip_Dirichlet.\n"), EXIT_UNSUPPORTED;
+/*
+		unsigned int Nvar = DB.Nvar;
+
+		double *UR = malloc(Nn*NVAR3D * sizeof *UR); // free
+		compute_exact_solution(Nn,XYZ,UR,0);
+		convert_variables(UR,WR,3,d,Nn,Nel,'p','c');
+		free(UR);
+*/
+	} else if (BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC) {
+		boundary_NoSlip_Adiabatic(Nn,Nel,XYZ,WL,WR,nL,d,Nvar);
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
+
 static void explicit_GradW_FACE(void)
 {
 	/*
@@ -347,7 +381,7 @@ static void explicit_GradW_FACE(void)
 	 *		Compute intermediate FACE contribution to Qhat.
 	 *
 	 *	Comments:
-	 *		I have used L/R in place of In/Out.
+	 *		L/R is used in place of In/Out (the previous convention).
 	 *		This is an intermediate contribution because the multiplication by MInv is not included.
 	 *		It is currently hard-coded that GradW is of the same order as the solution and that a central numerical flux
 	 *		is used.
@@ -369,6 +403,7 @@ static void explicit_GradW_FACE(void)
 	}
 
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+		// Load required FACE operators (Left and Right FACEs)
 		unsigned int Vf, IndS, NfnI, NvnS, IndFType, *nOrdLR;
 		double       *W_fIL, **nWnum_fI, *I_FF, *nJ_fI, *Wnum_fI;
 
@@ -387,16 +422,38 @@ static void explicit_GradW_FACE(void)
 		IndS = 0;
 		NfnI = FDATA[IndS]->OPS[0]->NfnI;
 
-		W_fIL = malloc(NfnI*Nvar * sizeof *W_fIL); // tbd
-		compute_W_fI(FDATA[0],W_fIL);
+		// Assemble n_fI * detJF_fI [NfnI x d]
+		double *n_fI, *detJF_fI;
+		n_fI     = FACE->n_fI;
+		detJF_fI = FACE->detJF_fI;
+
+		nJ_fI = malloc(NfnI*d * sizeof *nJ_fI); // tbd
+		for (dim = 0; dim < d; dim++) {
+		for (n = 0; n < NfnI; n++) {
+			nJ_fI[dim*NfnI+n] = n_fI[n*d+dim]*detJF_fI[n];
+		}}
+
+		// Compute numerical solution (Wnum_fI == 0.5*(WL_fI+WR_fI))
+
+		// Compute WL_fI
+		WL_fI = malloc(NfnI*Nvar * sizeof *WL_fI); // tbd
+		compute_W_fI(FDATA[0],WL_fI);
+
+		// Compute WR_fIIn (Taking BCs into account if applicable)
+		WR_fIL = malloc(NfnI*Nvar * sizeof *WR_fIL); // tbd
+		if (Boundary) {
+			boundary_NavierStokes(NfnI,1,FACE->XYZ_fI,n_fI,WL_fI,WR_fIL,d,BC);
+		} else {
+			// Reorder the operator (as opposed to the solution) for consistency with the implicit scheme.
+			// solver_Poisson (line 529)
+		}
+
 
 		nWnum_fI = malloc(d * sizeof *nWnum_fI); // free
 		for (size_t dim = 0; dim < d; dim++)
 			nWnum_fI[dim] = malloc(NfnI*Nvar * sizeof *nWnum_fI[dim]); // free
 
-		nJ_fI   = malloc(NfnI*d    * sizeof *nJ_fI);   // tbd
 		Wnum_fI = malloc(NfnI*Nvar * sizeof *Wnum_fI); // tbd
-
 
 		// Interior VOLUME
 		Vf   = FDATA[0]->Vf;

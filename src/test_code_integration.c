@@ -78,6 +78,12 @@ static void update_TestCase(void)
 		else
 			strcpy(DB.TestCase,"InviscidChannel");
 */
+	} else if (strstr(DB.TestCase,"NavierStokes")) {
+		if (strstr(DB.TestCase,"TaylorCouette")) {
+			strcpy(DB.TestCase,"NavierStokes_TaylorCouette");
+		} else {
+			EXIT_UNSUPPORTED;
+		}
 	} else {
 		printf("%s\n",DB.TestCase);
 		printf("Error: Unsupported.\n"), EXIT_MSG;

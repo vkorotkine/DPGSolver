@@ -106,6 +106,36 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, con
 			vEx[i] =  cos(t)*Vt;
 			wEx[i] =  0.0;
 		}
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		// Note: This exact solution is valid only before the Taylor-Couette instability develops and is only accurate
+		//       for velocity and temperature (except for r = rIn where all components are exact).
+		double rIn   = DB.rIn,
+		       rOut  = DB.rOut,
+		       omega = DB.omega,
+		       TIn   = DB.TIn,
+		       pIn   = DB.pIn,
+		       mu    = DB.mu,
+		       kappa = DB.kappa,
+		       Rg    = DB.Rg;
+
+		double C = omega/(1.0/(rIn*rIn)-1.0/(rOut*rOut));
+
+		for (size_t n = 0; n < Nn; n++) {
+			double r, t, Vt, T;
+			r = sqrt(X[n]*X[n]+Y[n]*Y[n]);
+			t = atan2(Y[n],X[n]);
+
+			Vt = C*(1/r-r/(rOut*rOut));
+			T  = TIn - 2.0*C*C/(rOut*rOut)*mu/kappa*log(r/rIn) - C*C*mu/kappa*(1.0/(r*r)-1.0/(rIn*rIn));
+
+			// Illingworth(1950), p.8 notes that the pressure is nearly uniform => set pEx ~= pIn and compute rhoEx
+			// using the ideal gas law.
+			pEx[n]   = pIn;
+			rhoEx[n] = pEx[n]/(Rg*T);
+			uEx[n]   = -sin(t)*Vt;
+			vEx[n]   =  cos(t)*Vt;
+			wEx[n]   = 0.0;
+		}
 	} else if (strstr(TestCase,"Poisson")) {
 		double Poisson_scale = DB.Poisson_scale;
 

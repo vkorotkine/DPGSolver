@@ -339,12 +339,13 @@ static void ToBeCurved_square_to_circle(unsigned int Nn, double *XYZ_S, double *
 		r = array_norm_d(d,XYZn,"Inf");
 		t = atan2(XYZn[1],XYZn[0]);
 
-		if      (t >= -    PIo4 && t <      PIo4) t =          XYZn[1]/r*PIo4;
-		else if (t >=      PIo4 && t <  3.0*PIo4) t = 0.5*PI - XYZn[0]/r*PIo4;
-		else if (t >=  3.0*PIo4 && t < -3.0*PIo4) t =     PI - XYZn[1]/r*PIo4;
-		else if (t >= -3.0*PIo4 && t < -    PIo4) t = 1.5*PI + XYZn[0]/r*PIo4;
+		if      (t >= -1.0*PIo4 && t <  1.0*PIo4) t =          XYZn[1]/r*PIo4;
+		else if (t >=  1.0*PIo4 && t <  3.0*PIo4) t = 0.5*PI - XYZn[0]/r*PIo4;
+		else if ((t >=  3.0*PIo4 && t <  4.0*PIo4)|| (t >= -4.0*PIo4 && t < -3.0*PIo4))
+		                                          t =     PI - XYZn[1]/r*PIo4;
+		else if (t >= -3.0*PIo4 && t < -1.0*PIo4) t = 1.5*PI + XYZn[0]/r*PIo4;
 		else
-			printf("Error\n"), EXIT_MSG;
+			printf("Error: % .3e % .3e % .3e\n",XYZn[0],XYZn[1],t), EXIT_MSG;
 
 		XYZ[     n] = r*cos(t);
 		XYZ[Nn*1+n] = r*sin(t);

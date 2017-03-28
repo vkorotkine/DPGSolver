@@ -127,7 +127,23 @@ class TestCase_class:
 					iRange = range(0,1)
 					[MeshTypes,MeshTypesPrefix,MeshCurving] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName,MeshCurving)
 			else:
-				print("name122: ",self.name)
+				print(self.name)
+				EXIT_TRACEBACK()
+		elif (self.name.find('NavierStokes') != -1):
+			if (self.name.lower().find('test') != -1):
+				self.VarName = 'NAVIERSTOKES_TEST'
+
+				MeshCurving     = ['ToBeCurved']
+				MeshTypes       = ['TRI']
+				NTotal = len(MeshTypes)
+				MeshTypesPrefix = ['TaylorCouette_' for i in range(0,NTotal)]
+				if   (MeshName.find('all')    != -1):
+					iRange = range(0,NTotal)
+				else:
+					iRange = range(0,1)
+					[MeshTypes,MeshTypesPrefix,MeshCurving] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName,MeshCurving)
+			else:
+				print(self.name)
 				EXIT_TRACEBACK()
 		else:
 			EXIT_TRACEBACK()
@@ -164,6 +180,13 @@ class TestCase_class:
 			if (self.name.find('test') != -1):
 				self.name = 'Test_Euler_'
 				self.Path = Paths.control_files+'test/Euler/'
+			else:
+				print("name:",self.name)
+				EXIT_TRACEBACK()
+		elif (self.name.find('NavierStokes') != -1):
+			if (self.name.find('test') != -1):
+				self.name = 'Test_NavierStokes_'
+				self.Path = Paths.control_files+'test/NavierStokes/'
 			else:
 				print("name:",self.name)
 				EXIT_TRACEBACK()

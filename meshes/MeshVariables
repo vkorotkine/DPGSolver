@@ -12,6 +12,8 @@ POISSON_TEST := n-Ball_HollowSection/Poisson/n-Ball_HollowSection2D_CurvedMIXED2
 
 EULER_TEST := n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection2D_CurvedMIXED2D0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection3D_ToBeCurvedTET2x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection3D_ToBeCurvedHEX0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection3D_ToBeCurvedWEDGE0x.msh
 
+NAVIERSTOKES_TEST := n-Cylinder_Hollow/NavierStokes/Internal/TaylorCouette/Test/n-Cylinder_Hollow2D_ToBeCurvedTRI0x.msh
+
 
 
 $(UPDATE_H) : n-Cube/n-Cube2D.geo n-Cube/n-Cube3D.geo n-Cube/n-Cube3D_PYR1.geo 
@@ -25,5 +27,7 @@ $(LINEARIZATION) : n-Cylinder_HollowSection/n-Cylinder_HollowSection2D.geo n-Cyl
 $(POISSON_TEST) : n-Ball_HollowSection/n-Ball_HollowSection2D.geo n-Ellipsoid_HollowSection/n-Ellipsoid_HollowSection2D.geo 
 
 $(EULER_TEST) : n-Cylinder_HollowSection/n-Cylinder_HollowSection2D.geo n-Cylinder_HollowSection/n-Cylinder_HollowSection3D.geo 
+
+$(NAVIERSTOKES_TEST) : n-Cylinder_Hollow/n-Cylinder_Hollow2D.geo 
 
 

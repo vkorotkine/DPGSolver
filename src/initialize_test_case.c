@@ -386,7 +386,42 @@ void initialize_test_case_parameters(void)
 			EXIT_UNSUPPORTED;
 		}
 	} else if (strstr(PDE,"NavierStokes")) {
-		printf("Add support.\n"), EXIT_MSG;
+		DB.Nvar = d+2;
+		DB.Neq  = d+2;
+
+		DB.Viscous = 1;
+		DB.Pr      = 0.72;
+		DB.Rg      = 1.0;
+
+		DB.SourcePresent = 0;
+		if (strstr(PDESpecifier,"Internal")) {
+			if (!InitializedGeometry) {
+				if (strstr(Geometry,"n-Cylinder")) {
+					DB.rIn  = 0.5;
+					DB.rOut = 1.0;
+				} else {
+					printf("%s\n",Geometry); EXIT_UNSUPPORTED;
+				}
+			}
+
+			strcpy(DB.SolverType,"Explicit"); DB.FinalTime = 1e10;
+//			strcpy(DB.SolverType,"Implicit");
+			if (strstr(TestCase,"TaylorCouette")) {
+				DB.omega = 1.0;
+				DB.TIn   = 1.0;
+				DB.pIn   = 1.0;
+				DB.rhoIn = DB.pIn/(DB.Rg*DB.TIn);
+				DB.mu    = 1e-3;
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+		DB.Cp    = GAMMA/GM1*DB.Rg;
+		DB.kappa = DB.mu*DB.Cp/DB.Pr;
+	} else {
+		EXIT_UNSUPPORTED;
 	}
 
 	if (strstr(DB.SolverType,"Implicit"))
@@ -581,12 +616,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	adapt_update = 1;
 	while (adapt_update) {
 		adapt_update = 0;
-		if (strstr(TestCase,"PeriodicVortex")   ||
-		    strstr(TestCase,"SupersonicVortex") ||
-		    strstr(TestCase,"SubsonicNozzle") ||
-		    strstr(TestCase,"PrandtlMeyer") ||
-			strstr(TestCase,"InviscidChannel")) {
-
+		if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 				init_ops(OPS,VOLUME);
 
@@ -600,7 +630,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				VOLUME->RES  = calloc(NvnS*Nvar , sizeof *(VOLUME->RES));  // keep
 				What = VOLUME->What;
 
-				XYZ_vS = malloc(NvnS*d    * sizeof *XYZ_vS); // free
+				XYZ_vS = malloc(NvnS*d * sizeof *XYZ_vS); // free
 
 				mm_CTN_d(NvnS,d,VOLUME->NvnG,OPS->I_vG_vS,VOLUME->XYZ,XYZ_vS);
 
@@ -673,7 +703,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				}
 			}
 		} else {
-			printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
+			printf("Error: Unsupported TestCase (%s).\n",TestCase), EXIT_MSG;
 		}
 
 		if (adapt_count < adapt_update_MAX) {
@@ -918,7 +948,9 @@ void compute_solution(const unsigned int Nn, double *XYZ, double *UEx, const uns
 	// Initialize DB Parameters
 	char *TestCase = DB.TestCase;
 
-	if (strstr(TestCase,"PeriodicVortex") || strstr(TestCase,"SupersonicVortex")) {
+	if (strstr(TestCase,"PeriodicVortex") ||
+	    strstr(TestCase,"SupersonicVortex") ||
+		strstr(TestCase,"TaylorCouette")) {
 		compute_exact_solution(Nn,XYZ,UEx,solved);
 	} else if (strstr(TestCase,"InviscidChannel") ||
 	           strstr(TestCase,"PrandtlMeyer") ||

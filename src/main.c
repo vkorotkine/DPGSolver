@@ -229,6 +229,7 @@ int main(int nargc, char **argv)
 #include "test_integration_L2_projection_errors.h"
 #include "test_integration_Poisson.h"
 #include "test_integration_Euler.h"
+#include "test_integration_NavierStokes.h"
 
 #include "test_speed_array_swap.h"
 #include "test_speed_mm_CTN.h"
@@ -315,6 +316,7 @@ int main(int nargc, char **argv)
 		test_integration_Poisson(nargc,argv);
 		test_integration_Euler(nargc,argv);
 	}
+	test_integration_NavierStokes(nargc,argv);
 
 	PetscFinalize();
 

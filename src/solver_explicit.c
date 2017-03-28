@@ -245,6 +245,29 @@ array_print_d(NvnS,Nvar,What,'C');
 	free(p_hatB);
 }
 
+struct S_timestepping {
+	double dt, exit_tol, exit_ratio;
+};
+
+static void select_timestepping_parameters(struct S_timestepping *data)
+{
+	char *PDE      = DB.PDE,
+	     *TestCase = DB.TestCase;
+
+	if (strstr(PDE,"NavierStokes")) {
+		if (strstr(TestCase,"TaylorCouette")) {
+			printf("Using default value for timestepping parameters.\n");
+			data->dt         = 1e-3;
+			data->exit_tol   = EPS;
+			data->exit_ratio = 1.0/EPS;
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
+
 void solver_explicit(void)
 {
 	// Initialize DB Parameters
@@ -271,7 +294,9 @@ void solver_explicit(void)
 	             NvnS;
 	double       time, dt, maxRHS0, maxRHS, *RES, *RHS, *What, exit_tol, exit_ratio;
 
-	struct S_VOLUME *VOLUME;
+	struct S_timestepping *data_time;
+
+	data_time = malloc(sizeof *data_time); // free
 
 	// silence
 	dt = maxRHS0 = 0.0;
@@ -283,6 +308,7 @@ void solver_explicit(void)
 	exit_ratio = 2e4;
 
 // Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).  (ToBeDeleted)
+/*
 	if (!Adapt) {
 		dt = pow(0.5,DB.ML+DB.PGlobal+1);
 		dt *= 1e-1;
@@ -335,6 +361,14 @@ void solver_explicit(void)
 			}
 		}
 	}
+	dt = 1e-3;
+	exit_tol   = EPS;
+	exit_ratio = 1e15;
+*/
+	select_timestepping_parameters(data_time);
+	dt         = data_time->dt;
+	exit_tol   = data_time->exit_tol;
+	exit_ratio = data_time->exit_ratio;
 
 	// Compute Mass matrix for uncollocated schemes
 	update_VOLUME_Ops();
@@ -351,7 +385,7 @@ void solver_explicit(void)
 			dt = FinalTime-time;
 
 		if (tstep == 0) {
-			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+			for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 				enforce_positivity_highorder(VOLUME);
 		}
 
@@ -369,7 +403,7 @@ void solver_explicit(void)
 				printf("F "); maxRHS = finalize_RHS();
 
 				// Update What
-				for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+				for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 					NvnS = VOLUME->NvnS;
 
 					RES  = VOLUME->RES;
@@ -404,7 +438,7 @@ void solver_explicit(void)
 				printf("F "); maxRHS = finalize_RHS();
 
 				// Update What
-				for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+				for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 					NvnS = VOLUME->NvnS;
 
 					RES  = VOLUME->RES;
@@ -427,7 +461,7 @@ void solver_explicit(void)
 			printf("F "); maxRHS = finalize_RHS();
 
 			// Update What
-			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 				NvnS = VOLUME->NvnS;
 
 				RHS  = VOLUME->RHS;
@@ -476,4 +510,5 @@ void solver_explicit(void)
 
 	for (i = 0; i < 2; i++)
 		free(dummyPtr_c[i]);
+	free(data_time);
 }

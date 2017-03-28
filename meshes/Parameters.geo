@@ -27,8 +27,9 @@ MIXED3D_HW = 23;
 
 
 // PDE Names
-POISSON = 0;
-EULER   = 1;
+POISSON      = 0;
+EULER        = 1;
+NAVIERSTOKES = 2;
 
 
 // PDE Specifiers
@@ -75,6 +76,9 @@ BC_BACKPRESSURE   = 3;
 BC_TOTAL_TP       = 4;
 BC_SUPERSONIC_IN  = 5;
 BC_SUPERSONIC_OUT = 6;
+
+BC_NOSLIP_T         = 7;
+BC_NOSLIP_ADIABATIC = 8;
 
 BC_DIRICHLET    = 11;
 BC_NEUMANN      = 12;

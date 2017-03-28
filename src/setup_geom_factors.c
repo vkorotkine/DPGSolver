@@ -101,8 +101,8 @@ void compute_detJV(const unsigned int Nn, double *J, double *detJV)
 		// Jacobian determinates is negative as this will still trigger from inverted .msh file elements but may
 		// allow slightly bad quality curved element meshes to go through.
 		printf("Error: Negative VOLUME.\n\n");
-		printf("Potential inverted element in .msh file from Transfinite.\n");
-		printf("Mesh output to paraview.\n"), EXIT_MSG;
+		printf("Potential inverted element in .msh file from enabling Transfinite in gmsh.\n");
+		printf("Mesh output to paraview (look for negative normals).\n"), EXIT_MSG;
 	}
 }
 
