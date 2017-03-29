@@ -314,9 +314,9 @@ int main(int nargc, char **argv)
 		test_integration_L2_projections(nargc,argv);
 		test_integration_linearization(nargc,argv);
 		test_integration_Poisson(nargc,argv);
-		test_integration_Euler(nargc,argv);
 	}
-	test_integration_NavierStokes(nargc,argv);
+	test_integration_Euler(nargc,argv);
+//	test_integration_NavierStokes(nargc,argv);
 
 	PetscFinalize();
 

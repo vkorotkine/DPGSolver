@@ -590,25 +590,108 @@ void boundary_NoSlip_Dirichlet(const unsigned int Nn, const unsigned int Nel, co
 	 *		setting the last d+1 values using the boundary conditions, then converting back to the conservative
 	 *		variables.
 	 *		Parsani(2014) discuss the correct method to impose the temperature boundary condition for the scheme to be
-	 *		entropy stable (See Theorem 3.2 and eq. (56)).
+	 *		entropy stable (See Theorem 3.2 and eq. (56)). Investigate (ToBeModified).
 	 *		The entropy variables of Barth(1998_Thesis, p. 16) are used.
+	 *		See Hugues(1986) eq. (48)-(53) for conversion between entropy and conservative variables. Note the
+	 *		additional GM1 factor and that rho*i == P/GM1.
 	 *
 	 *	References:
 	 *		Nordstrom(2005)-Well-Posed_Boundary_Conditions_for_the_Navier-Stokes_Equations
 	 *		Parsani(2014)-Entropy_Stable_Wall_Boundary_Conditions_for_the_Compressible_Navier-Stokes_Equations
 	 *		Barth(1998_Thesis)-Simplified_Numerical_Methods_for_Gasdynamic_Systems_on_Triangulated_Domains
+	 *		Hughes(1986)_A_New_Finite_Element_Formulation_for_Computational_Fluid_Dynamics_I
 	 */
 
-	// Compute boundary velocity
-	if (strstr(TestCase,"TaylorCouette")) {
-		double omega = DB.omega,
-		       rIn   = DB.rIn;
+	// silence
+	if (0) printf("%f\n",nL[0]);
 
-		double Vt;
+	unsigned int NnTotal = Nn*Nel;
+	const double *WL_ptr[Nvar], *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *X_ptr, *Y_ptr;
+	double       *WB_ptr[Nvar];
 
-		Vt = omega*rIn;
-	} else {
-		EXIT_UNSUPPORTED;
+	X_ptr = &XYZ[NnTotal*0];
+	Y_ptr = &XYZ[NnTotal*1];
+
+	for (size_t var = 0; var < Nvar; var++) {
+		WL_ptr[var] = &WL[var*NnTotal];
+		WB_ptr[var] = &WB[var*NnTotal];
+	}
+
+	double zeros[NnTotal];
+	for (size_t n = 0; n < NnTotal; n++)
+		zeros[n] = 0.0;
+
+	rhoL_ptr  = WL_ptr[0];
+	rhouL_ptr = WL_ptr[1];
+	rhovL_ptr = WL_ptr[2];
+	EL_ptr    = WL_ptr[d+1];
+
+	if (d == 3) {
+		rhowL_ptr = WL_ptr[3];
+	} else if (d == 2) {
+		rhowL_ptr = zeros;
+	}
+
+	for (size_t n = 0; n < NnTotal; n++) {
+		unsigned int IndW = 0;
+		double rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL;
+
+		rhoL = *rhoL_ptr++;
+		rhoL_inv = 1.0/rhoL;
+
+		uL   = (*rhouL_ptr++)*rhoL_inv;
+		vL   = (*rhovL_ptr++)*rhoL_inv;
+		wL   = (*rhowL_ptr++)*rhoL_inv;
+		EL   = *EL_ptr++;
+
+		V2L = uL*uL+vL*vL+wL*wL;
+		pL  = GM1*(EL-0.5*rhoL*V2L);
+
+		double uB = 0.0, vB = 0.0, wB = 0.0, TB = 0.0;
+		if (strstr(DB.TestCase,"TaylorCouette")) {
+			double X, Y;
+			X = X_ptr[n];
+			Y = Y_ptr[n];
+
+			double t  = atan2(Y,X);
+			double Vt = DB.omega*DB.rIn;
+			uB = -sin(t)*Vt;
+			vB =  cos(t)*Vt;
+			wB =  0.0;
+			TB =  DB.TIn;
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+
+		// Compute boundary entropy variables
+		double sL, rho_over_p, V[NVAR3D];
+		sL = log(pL/pow(rhoL,GAMMA));
+		rho_over_p = 1.0/(DB.Rg*TB); // Using the ideal gas law
+
+		unsigned int IndV = 0;
+		V[IndV++] =  (GAMMA+1.0-sL)/GM1-EL/pL;
+		V[IndV++] =  rho_over_p*uB;
+		V[IndV++] =  rho_over_p*vB;
+		V[IndV++] =  rho_over_p*wB;
+		V[IndV++] = -rho_over_p;
+
+		// Convert to conservative variables
+		double V2, sB, pB;
+
+		V2 = V[1]*V[1]+V[2]*V[2]+V[3]*V[3]; // V2 == (rho/p)^2*(u^2+v^2+w^2)
+
+		sB = GAMMA+GM1*(-V[0]+0.5*V2/V[4]);
+		pB = GM1*(pow(GM1/pow(-GM1*V[4],GAMMA),1.0/GM1)*exp(-sB/GM1));
+
+		*WB_ptr[IndW++] = -pB*V[4];
+		*WB_ptr[IndW++] =  pB*V[1];
+		*WB_ptr[IndW++] =  pB*V[2];
+		if (d == 3)
+			*WB_ptr[IndW++] = pB*V[3];
+		*WB_ptr[IndW++] = pB*(1.0/GM1-0.5*V2/V[4]);
+
+		for (size_t var = 0; var < Nvar; var++)
+			WB_ptr[var]++;
 	}
 }
 
@@ -617,16 +700,21 @@ void boundary_NoSlip_Adiabatic(const unsigned int Nn, const unsigned int Nel, co
 {
 	/*
 	 *	Comments:
-	 *		This currently only imposes zero velocity on the solution. The additional boundary condition on the
-	 *		temperature gradient must still be imposed. Parsani(2014) discuss the correct method to impose this last
-	 *		boundary condition for the scheme to be entropy stable (See Theorem 3.2 and eq. (55)).
+	 *		This currently only imposes zero velocity on the solution.
+	 *		The additional boundary condition on the temperature gradient must still be imposed. Parsani(2014) discuss
+	 *		the correct method to impose this last boundary condition for the scheme to be entropy stable (See Theorem
+	 *		3.2 and eq. (55)). Investigate (ToBeModified).
 	 *
 	 *	References:
 	 *		Parsani(2014)-Entropy_Stable_Wall_Boundary_Conditions_for_the_Compressible_Navier-Stokes_Equations
 	 */
 
+	// silence
+	if (0) printf("%f %f\n",XYZ[0],nL[0]);
+
 	unsigned int NnTotal = Nn*Nel;
-	double       *WL_ptr[Nvar], *WB_ptr[Nvar], *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr;
+	const double *WL_ptr[Nvar], *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr;
+	double       *WB_ptr[Nvar];
 
 	for (size_t var = 0; var < Nvar; var++) {
 		WL_ptr[var] = &WL[var*NnTotal];

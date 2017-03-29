@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "Parameters.h"
+#include "Macros.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
@@ -26,8 +27,6 @@
  *		Evaluate the VOLUME contributions to the RHS term.
  *
  *	Comments:
- *		Much of the explicit_VOLUME_info and implicit_VOLUME_info functions are identical, consider combining them
- *		(ToBeDeleted).
  *		Certain multiplications can be avoided when computing either Fr from F or when computing RHS terms based on the
  *		sparsity of the flux Jacobian. Test performance improvement if these terms are neglected (ToBeModified).
  *		Vectorization does not improve performance based on preliminary testing. This is likely a result of the large
@@ -35,22 +34,32 @@
  *		the code, this flexibility is not required and comparison may yield favourable results for the vectorized code.
  *		However, the ultimate goal of the code is only to run in the adaptive setting, thus this may not be worth
  *		pursuing. (ToBeModified)
+ *		EFE stands for (E)xact (F)lux (E)valuation, meaning that the flux is not represented as a polynomial and then
+ *		interpolated to the cubature nodes. EFE is the analogue of the (C)hain(R)ule approach for the strong form of the
+ *		scheme. See Zwanenburg(2016) for additional discussion.
  *
  *	Notation:
  *
  *	References:
+ *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_Schemes
  */
 
-struct S_OPERATORS {
-	unsigned int NvnI, NvnS, NvnS_SF, NvnI_SF;
-	double       *ChiS_vI, **D_Weak, *I_Weak;
-
-	struct S_OpCSR **D_Weak_sp;
-};
-
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass);
-static void compute_VOLUME_RHS_EFE(void);
+void init_ops_VOLUME(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass);
+static void compute_Inviscid_VOLUME_RHS_EFE(void);
+static void compute_Viscous_VOLUME_RHS_EFE(void);
 static void compute_VOLUMEVec_RHS_EFE(void);
+
+void init_VDATA(struct S_VDATA *VDATA, struct S_VOLUME *VOLUME)
+{
+	VDATA->VOLUME = VOLUME;
+
+	VDATA->P      = VOLUME->P;
+	VDATA->Eclass = VOLUME->Eclass;
+	init_ops_VOLUME(VDATA->OPS[0],VOLUME,0);
+	if (VOLUME->type == WEDGE)
+		init_ops_VOLUME(VDATA->OPS[1],VOLUME,1);
+}
+
 
 void explicit_VOLUME_info(void)
 {
@@ -61,7 +70,8 @@ void explicit_VOLUME_info(void)
 	if (EFE) {
 		switch (Vectorized) {
 		case 0:
-			compute_VOLUME_RHS_EFE();
+			compute_Inviscid_VOLUME_RHS_EFE();
+			compute_Viscous_VOLUME_RHS_EFE();
 			break;
 		default:
 			compute_VOLUMEVec_RHS_EFE();
@@ -72,17 +82,17 @@ void explicit_VOLUME_info(void)
 	}
 }
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass)
+void init_ops_VOLUME(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass)
 {
 	// Initialize DB Parameters
 	unsigned int ***SF_BE = DB.SF_BE;
 
 	// Standard datatypes
 	unsigned int P, type, curved, Eclass;
-	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS;
+	struct S_ELEMENT *ELEMENT, *ELEMENT_SF;
 
 	// silence
-	ELEMENT_OPS = NULL;
+	ELEMENT_SF = NULL;
 
 	P      = VOLUME->P;
 	type   = VOLUME->type;
@@ -91,34 +101,89 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 
 	ELEMENT = get_ELEMENT_type(type);
 	if ((Eclass == C_TP && SF_BE[P][0][0]) || (Eclass == C_WEDGE && SF_BE[P][1][0]))
-		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
+		ELEMENT_SF = ELEMENT->ELEMENTclass[IndClass];
 	else
-		ELEMENT_OPS = ELEMENT;
+		ELEMENT_SF = ELEMENT;
 
 	OPS->NvnS    = ELEMENT->NvnS[P];
-	OPS->NvnS_SF = ELEMENT_OPS->NvnS[P];
+	OPS->NvnS_SF = ELEMENT_SF->NvnS[P];
 	if (!curved) {
 		OPS->NvnI    = ELEMENT->NvnIs[P];
-		OPS->NvnI_SF = ELEMENT_OPS->NvnIs[P];
+		OPS->NvnI_SF = ELEMENT_SF->NvnIs[P];
 
-		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIs[P][P][0];
-		OPS->D_Weak  = ELEMENT_OPS->Ds_Weak_VV[P][P][0];
-		OPS->I_Weak  = ELEMENT_OPS->Is_Weak_VV[P][P][0];
+		OPS->ChiS_vI    = ELEMENT->ChiS_vIs[P][P][0];
+		OPS->ChiS_vI_SF = ELEMENT_SF->ChiS_vIs[P][P][0];
+
+		OPS->D_Weak  = ELEMENT_SF->Ds_Weak_VV[P][P][0];
+		OPS->I_Weak  = ELEMENT_SF->Is_Weak_VV[P][P][0];
 
 		OPS->D_Weak_sp = ELEMENT->Ds_Weak_VV_sp[P][P][0];
 	} else {
 		OPS->NvnI    = ELEMENT->NvnIc[P];
-		OPS->NvnI_SF = ELEMENT_OPS->NvnIc[P];
+		OPS->NvnI_SF = ELEMENT_SF->NvnIc[P];
 
-		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIc[P][P][0];
-		OPS->D_Weak  = ELEMENT_OPS->Dc_Weak_VV[P][P][0];
-		OPS->I_Weak  = ELEMENT_OPS->Ic_Weak_VV[P][P][0];
+		OPS->ChiS_vI = ELEMENT_SF->ChiS_vIc[P][P][0];
+		OPS->D_Weak  = ELEMENT_SF->Dc_Weak_VV[P][P][0];
+		OPS->I_Weak  = ELEMENT_SF->Ic_Weak_VV[P][P][0];
 
 		OPS->D_Weak_sp = ELEMENT->Dc_Weak_VV_sp[P][P][0];
 	}
 }
 
-static void compute_VOLUME_RHS_EFE(void)
+void compute_W_vI(struct S_VDATA *VDATA, double *W_vI)
+{
+	/*
+	 *	Purpose:
+	 *		Interpolate VOLUME What coefficients to VOLUME cubature nodes.
+	 *
+	 *	Comments:
+	 *		Various options are available for computing W_vI:
+	 *			1) Using sum factorized operators for TP and WEDGE elements;
+	 *			2) Using the standard operator but exploiting sparsity;
+	 *			3) Using the standard approach.
+	 */
+
+	unsigned int Collocated = DB.Collocated;
+
+	struct S_VOLUME *VOLUME = VDATA->VOLUME;
+
+	if (Collocated) {
+		EXIT_UNSUPPORTED; // Set W_vI = VOLUME->What in calling function.
+	} else {
+		unsigned int d        = DB.d,
+		             Nvar     = DB.Nvar,
+		             ***SF_BE = DB.SF_BE;
+
+		unsigned int P      = VDATA->P,
+		             Eclass = VDATA->Eclass;
+
+		struct S_OPERATORS **OPS = VDATA->OPS;
+
+		unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX];
+		double       *OP[DMAX];
+		if (Eclass == C_TP && SF_BE[P][0][0]) {
+			get_sf_parameters(OPS[0]->NvnS_SF,OPS[0]->NvnI_SF,OPS[0]->ChiS_vI_SF,0,0,NULL,NIn,NOut,OP,d,3,Eclass);
+
+			for (size_t dim = 0; dim < d; dim++)
+				Diag[dim] = 0;
+
+			sf_apply_d(VOLUME->What,W_vI,NIn,NOut,Nvar,OP,Diag,d);
+		} else if (Eclass == C_WEDGE && SF_BE[P][1][0]) {
+			get_sf_parameters(OPS[0]->NvnS_SF,OPS[0]->NvnI_SF,OPS[0]->ChiS_vI_SF,
+			                  OPS[1]->NvnS_SF,OPS[1]->NvnI_SF,OPS[1]->ChiS_vI_SF,NIn,NOut,OP,d,3,Eclass);
+
+			for (size_t dim = 0; dim < d; dim++)
+				Diag[dim] = 0;
+			Diag[1] = 2; // TRI operator (dim = 0) takes care of dim = 1 as well.
+
+			sf_apply_d(VOLUME->What,W_vI,NIn,NOut,Nvar,OP,Diag,d);
+		} else {
+			mm_CTN_d(OPS[0]->NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->What,W_vI);
+		}
+	}
+}
+
+static void compute_Inviscid_VOLUME_RHS_EFE(void)
 {
 	// Initialize DB Parameters
 	char         *Form = DB.Form;
@@ -139,6 +204,8 @@ static void compute_VOLUME_RHS_EFE(void)
 	struct S_OPERATORS *OPS[2];
 	struct S_VOLUME    *VOLUME;
 
+	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
+
 	// silence
 	NvnI_SF[1] = 0;
 	NvnS_SF[1] = 0;
@@ -148,12 +215,13 @@ static void compute_VOLUME_RHS_EFE(void)
 
 	if (strstr(Form,"Weak")) {
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			init_VDATA(VDATA,VOLUME);
 			P = VOLUME->P;
-//printf("VOLUME: %d\n",VOLUME->indexg);
+
 			// Obtain operators
-			init_ops(OPS[0],VOLUME,0);
+			init_ops_VOLUME(OPS[0],VOLUME,0);
 			if (VOLUME->type == WEDGE)
-				init_ops(OPS[1],VOLUME,1);
+				init_ops_VOLUME(OPS[1],VOLUME,1);
 
 			Eclass = VOLUME->Eclass;
 
@@ -163,47 +231,12 @@ static void compute_VOLUME_RHS_EFE(void)
 				W_vI = VOLUME->What;
 			} else {
 				W_vI = malloc(NvnI*Nvar * sizeof *W_vI); // free
-
-				if (Eclass == C_TP && SF_BE[P][0][0]) {
-					for (i = 0; i < 1; i++) {
-						NvnS_SF[i] = OPS[i]->NvnS_SF;
-						NvnI_SF[i] = OPS[i]->NvnI_SF;
-					}
-					get_sf_parameters(NvnS_SF[0],NvnI_SF[0],OPS[0]->ChiS_vI,0,0,NULL,NIn,NOut,OP,d,3,Eclass);
-
-					for (dim2 = 0; dim2 < d; dim2++)
-						Diag[dim2] = 0;
-
-					sf_apply_d(VOLUME->What,W_vI,NIn,NOut,Nvar,OP,Diag,d);
-				} else if (Eclass == C_WEDGE && SF_BE[P][1][0]) {
-					for (i = 0; i < 2; i++) {
-						NvnS_SF[i] = OPS[i]->NvnS_SF;
-						NvnI_SF[i] = OPS[i]->NvnI_SF;
-					}
-					get_sf_parameters(NvnS_SF[0],NvnI_SF[0],OPS[0]->ChiS_vI,
-					                  NvnS_SF[1],NvnI_SF[1],OPS[1]->ChiS_vI,NIn,NOut,OP,d,3,Eclass);
-
-					for (dim2 = 0; dim2 < d; dim2++)
-						Diag[dim2] = 0;
-					Diag[1] = 2;
-
-					sf_apply_d(VOLUME->What,W_vI,NIn,NOut,Nvar,OP,Diag,d);
-				} else {
-					mm_CTN_d(NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->What,W_vI);
-				}
+				compute_W_vI(VDATA,W_vI);
 			}
-/*
-if (VOLUME->indexg == 0) {
-printf("eVi: %d\n",VOLUME->indexg);
-//array_print_d(OPS[0]->NvnS,Neq,VOLUME->What,'C');
-array_print_d(NvnI,Neq,W_vI,'C');
-}
-*/
+
 			// Compute Flux in reference space
 			F_vI = malloc(NvnI*d*Neq * sizeof *F_vI); // free
 			flux_inviscid(NvnI,1,W_vI,F_vI,d,Neq);
-
-//array_print_d(NvnI,Neq*d,F_vI,'C');
 
 			if (!Collocated)
 				free(W_vI);
@@ -329,13 +362,32 @@ for (eq = 0; eq < Neq; eq++) {
 //exit(1);
 		}
 	} else if (strstr(Form,"Strong")) {
-		printf("Exiting: Implement the strong form in compute_VOLUME_RHS_EFE.\n"), exit(1);
+		EXIT_UNSUPPORTED;
 	}
 //exit(1);
 
 	for (i = 0; i < 2; i++)
 		free(OPS[i]);
 }
+
+static void compute_Viscous_VOLUME_RHS_EFE(void)
+{
+	/*
+	 *	Purpose:
+	 *		Add contributions from the viscous term to the RHS.
+	 */
+
+	if (!DB.Viscous)
+		return;
+
+	if (!strstr(DB.Form,"Weak"))
+		EXIT_UNSUPPORTED;
+
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+	}
+	EXIT_UNSUPPORTED;
+}
+
 
 static void compute_VOLUMEVec_RHS_EFE(void)
 {
@@ -383,9 +435,9 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 			NV = NVgrp[IndVgrp];
 
 			// Obtain operators
-			init_ops(OPS[0],VOLUME,0);
+			init_ops_VOLUME(OPS[0],VOLUME,0);
 			if (VOLUME->type == WEDGE)
-				init_ops(OPS[1],VOLUME,1);
+				init_ops_VOLUME(OPS[1],VOLUME,1);
 
 			// Obtain Vectorized W_vI
 			NvnI = OPS[0]->NvnI;

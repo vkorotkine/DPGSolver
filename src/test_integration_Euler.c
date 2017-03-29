@@ -225,7 +225,10 @@ static void set_test_convorder_data(struct S_convorder *data, const char *TestNa
 				EXIT_UNSUPPORTED;
 			}
 		} else if (strstr(TestName,"CurvedMIXED2D")) {
-			data->PrintEnabled = 0;
+//			data->PrintEnabled = 0;
+			printf("Modified Parameters.\n");
+			data->PMax = 2;
+			data->MLMax = 2;
 			strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_CurvedMIXED2D");
 		} else {
 			EXIT_UNSUPPORTED;
@@ -346,7 +349,7 @@ void test_integration_Euler(int nargc, char **argv)
 	data_c->PrintName = PrintName;
 
 	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_CurvedMIXED2D",data_c);
-	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedMIXED2D",data_c);
+//	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedMIXED2D",data_c);
 
 bool test_3D = 0;
 if (test_3D) {

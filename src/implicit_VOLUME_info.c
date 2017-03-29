@@ -20,6 +20,7 @@
 #include "fluxes_inviscid.h"
 #include "jacobian_fluxes_inviscid.h"
 #include "array_print.h"
+#include "explicit_VOLUME_info.h"
 
 #undef I // No complex variables used here
 
@@ -38,15 +39,15 @@
  *
  *	References:
  */
-
+/*
 struct S_OPERATORS {
 	unsigned int NvnI, NvnS, NvnS_SF, NvnI_SF;
 	double       *ChiS_vI, **D_Weak, *I_Weak;
 
 	struct S_OpCSR **D_Weak_sp;
 };
+*/
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass);
 static void compute_VOLUME_LHS_EFE(void);
 
 void implicit_VOLUME_info(void)
@@ -66,52 +67,6 @@ void implicit_VOLUME_info(void)
 		}
 	} else {
 		;
-	}
-}
-
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass)
-{
-	// Initialize DB Parameters
-	unsigned int ***SF_BE = DB.SF_BE;
-
-	// Standard datatypes
-	unsigned int P, type, curved, Eclass;
-	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS;
-
-	// silence
-	ELEMENT_OPS = NULL;
-
-	P      = VOLUME->P;
-	type   = VOLUME->type;
-	curved = VOLUME->curved;
-	Eclass = VOLUME->Eclass;
-
-	ELEMENT = get_ELEMENT_type(type);
-	if ((Eclass == C_TP && SF_BE[P][0][0]) || (Eclass == C_WEDGE && SF_BE[P][1][0]))
-		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
-	else
-		ELEMENT_OPS = ELEMENT;
-
-	OPS->NvnS    = ELEMENT->NvnS[P];
-	OPS->NvnS_SF = ELEMENT_OPS->NvnS[P];
-	if (!curved) {
-		OPS->NvnI    = ELEMENT->NvnIs[P];
-		OPS->NvnI_SF = ELEMENT_OPS->NvnIs[P];
-
-		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIs[P][P][0];
-		OPS->D_Weak  = ELEMENT_OPS->Ds_Weak_VV[P][P][0];
-		OPS->I_Weak  = ELEMENT_OPS->Is_Weak_VV[P][P][0];
-
-		OPS->D_Weak_sp = ELEMENT->Ds_Weak_VV_sp[P][P][0];
-	} else {
-		OPS->NvnI    = ELEMENT->NvnIc[P];
-		OPS->NvnI_SF = ELEMENT_OPS->NvnIc[P];
-
-		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIc[P][P][0];
-		OPS->D_Weak  = ELEMENT_OPS->Dc_Weak_VV[P][P][0];
-		OPS->I_Weak  = ELEMENT_OPS->Ic_Weak_VV[P][P][0];
-
-		OPS->D_Weak_sp = ELEMENT->Dc_Weak_VV_sp[P][P][0];
 	}
 }
 
@@ -137,6 +92,8 @@ static void compute_VOLUME_LHS_EFE(void)
 	struct S_OPERATORS *OPS[2];
 	struct S_VOLUME    *VOLUME;
 
+	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
+
 	// silence
 	NvnI_SF[1] = 0;
 	NvnS_SF[1] = 0;
@@ -146,12 +103,14 @@ static void compute_VOLUME_LHS_EFE(void)
 
 	if (strstr(Form,"Weak")) {
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			VDATA->OPS = OPS;
+			init_VDATA(VDATA,VOLUME);
 			P = VOLUME->P;
 
 			// Obtain operators
-			init_ops(OPS[0],VOLUME,0);
+			init_ops_VOLUME(OPS[0],VOLUME,0);
 			if (VOLUME->type == WEDGE)
-				init_ops(OPS[1],VOLUME,1);
+				init_ops_VOLUME(OPS[1],VOLUME,1);
 
 			Eclass = VOLUME->Eclass;
 
@@ -161,34 +120,7 @@ static void compute_VOLUME_LHS_EFE(void)
 				W_vI = VOLUME->What;
 			} else {
 				W_vI = malloc(NvnI*Nvar * sizeof *W_vI); // free
-
-				if (Eclass == C_TP && SF_BE[P][0][0]) {
-					for (i = 0; i < 1; i++) {
-						NvnS_SF[i] = OPS[i]->NvnS_SF;
-						NvnI_SF[i] = OPS[i]->NvnI_SF;
-					}
-					get_sf_parameters(NvnS_SF[0],NvnI_SF[0],OPS[0]->ChiS_vI,0,0,NULL,NIn,NOut,OP,d,3,Eclass);
-
-					for (dim2 = 0; dim2 < d; dim2++)
-						Diag[dim2] = 0;
-
-					sf_apply_d(VOLUME->What,W_vI,NIn,NOut,Nvar,OP,Diag,d);
-				} else if (Eclass == C_WEDGE && SF_BE[P][1][0]) {
-					for (i = 0; i < 2; i++) {
-						NvnS_SF[i] = OPS[i]->NvnS_SF;
-						NvnI_SF[i] = OPS[i]->NvnI_SF;
-					}
-					get_sf_parameters(NvnS_SF[0],NvnI_SF[0],OPS[0]->ChiS_vI,
-					                  NvnS_SF[1],NvnI_SF[1],OPS[1]->ChiS_vI,NIn,NOut,OP,d,3,Eclass);
-
-					for (dim2 = 0; dim2 < d; dim2++)
-						Diag[dim2] = 0;
-					Diag[1] = 2;
-
-					sf_apply_d(VOLUME->What,W_vI,NIn,NOut,Nvar,OP,Diag,d);
-				} else {
-					mm_CTN_d(NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->What,W_vI);
-				}
+				compute_W_vI(VDATA,W_vI);
 			}
 
 			// Compute Flux in reference space and its Jacobian
@@ -203,6 +135,7 @@ static void compute_VOLUME_LHS_EFE(void)
 
 			C_vI = VOLUME->C_vI;
 
+// Turn into external function to avoid code duplication (ToBeDeleted)
 			Fr_vI = calloc(NvnI*d*Neq , sizeof *Fr_vI); // free
 			for (eq = 0; eq < Neq; eq++) {
 			for (dim1 = 0; dim1 < d; dim1++) {

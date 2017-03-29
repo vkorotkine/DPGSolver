@@ -1,7 +1,7 @@
 # Discontinuous Petrov Galerkin Solver
 
 ### Code Description
-- Uses only open source libraries/supporting programs.
+- Uses only free to use/open source libraries/supporting programs.
 - Methods: Discontinuous Petrov Galerkin (DPG) (TO BE DONE) with the option for standard Discontinuous Galerkin (DG).
 - Supported elements: TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
 - Supported refinements: isotropic h (size) or p (order).

@@ -799,6 +799,14 @@ void update_Vgrp(void)
 
 void compute_inverse_mass(struct S_VOLUME *VOLUME)
 {
+	/*
+	 *	Purpose:
+	 *		Compute the inverse of the mass matrix.
+	 *
+	 *	Comments:
+	 *		The invserse is computed as it does not change unless the VOLUME undergoes hp adaptation and is thus
+	 *		generally reused multiple times before being recomputed (if it is recomputed at all).
+	 */
 	// Standard datatypes
 	unsigned int iMax, jMax,
 	             NvnS, NvnI;

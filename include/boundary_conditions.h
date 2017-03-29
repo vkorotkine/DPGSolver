@@ -17,5 +17,9 @@ extern void boundary_SupersonicInflow  (const unsigned int Nn, const unsigned in
                                         double *nL, const unsigned int d, const unsigned int Nvar);
 extern void boundary_SupersonicOutflow (const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL, double *WB, 
                                         double *nL, const unsigned int d, const unsigned int Nvar);
+extern void boundary_NoSlip_Dirichlet (const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *WL,        
+                                       double *WB, const double *nL, const unsigned int d, const unsigned int Nvar);
+extern void boundary_NoSlip_Adiabatic (const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *WL,        
+                                       double *WB, const double *nL, const unsigned int d, const unsigned int Nvar);
 
 #endif // DPG__boundary_conditions_h__INCLUDED

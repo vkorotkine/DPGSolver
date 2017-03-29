@@ -17,6 +17,8 @@
 #include "sum_factorization.h"
 #include "array_free.h"
 #include "array_swap.h"
+#include "boundary_conditions.h"
+#include "update_VOLUMEs.h"
 
 /*
  *	Purpose:
@@ -49,7 +51,8 @@ struct S_OPERATORS {
 
 	// FACE
 	unsigned int NfnI, NvnS_SF, NvnI_SF, NfnI_SF, *nOrdLR, *nOrdRL;
-	double       *w_fI, **ChiS_fI, **I_Weak_FF;
+	double       **ChiS_fI, **ChiS_fI_SF, **ChiS_vI_SF,
+	             **I_Weak_FF;
 
 	struct S_OpCSR **ChiS_fI_sp;
 };
@@ -100,12 +103,12 @@ static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, co
 	unsigned int ***SF_BE = DB.SF_BE;
 
 	// Standard datatypes
-	unsigned int PV, PF, Vtype, Eclass, FtypeInt, IndOrdOutIn, IndOrdInOut;
+	unsigned int PV, PF, Vtype, Eclass, FtypeInt, IndOrdRL, IndOrdLR;
 
-	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS, *ELEMENT_FACE;
+	struct S_ELEMENT *ELEMENT, *ELEMENT_FACE, *ELEMENT_SF;
 
 	// silence
-	ELEMENT_OPS = NULL;
+	ELEMENT_SF = NULL;
 
 	PV      = VOLUME->P;
 	PF      = FACE->P;
@@ -113,33 +116,48 @@ static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, co
 	Eclass  = VOLUME->Eclass;
 
 	FtypeInt = FACE->typeInt;
-	IndOrdOutIn = FACE->IndOrdOutIn;
-	IndOrdInOut = FACE->IndOrdInOut;
+	IndOrdRL = FACE->IndOrdOutIn;
+	IndOrdLR = FACE->IndOrdInOut;
 
-	ELEMENT       = get_ELEMENT_type(Vtype);
+	ELEMENT      = get_ELEMENT_type(Vtype);
 	ELEMENT_FACE = get_ELEMENT_FACE(Vtype,IndFType);
 	if ((Eclass == C_TP && SF_BE[PF][0][1]) || (Eclass == C_WEDGE && SF_BE[PF][1][1]))
-		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndFType];
+		ELEMENT_SF = ELEMENT->ELEMENTclass[IndFType];
 	else
-		ELEMENT_OPS = ELEMENT;
+		ELEMENT_SF = ELEMENT;
 
-	OPS->NvnS = ELEMENT->NvnS[PV];
+	OPS->NvnS    = ELEMENT->NvnS[PV];
+	OPS->NvnS_SF = ELEMENT_SF->NvnS[PV];
 	if (FtypeInt == 's') {
 		// Straight FACE Integration
-		OPS->NfnI = ELEMENT->NfnIs[PF][IndFType];
+		OPS->NfnI    = ELEMENT->NfnIs[PF][IndFType];
+		OPS->NfnI_SF = ELEMENT_SF->NfnIs[PF][0];
+		OPS->NvnI_SF = ELEMENT_SF->NvnIs[PF];
 
-		OPS->I_Weak_FF = ELEMENT_OPS->Is_Weak_FF[PV][PF];
+		OPS->nOrdLR = ELEMENT_FACE->nOrd_fIs[PF][IndOrdLR];
+		OPS->nOrdRL = ELEMENT_FACE->nOrd_fIs[PF][IndOrdRL];
 
-		OPS->nOrdLR = ELEMENT_FACE->nOrd_fIs[PF][IndOrdInOut];
-		OPS->nOrdRL = ELEMENT_FACE->nOrd_fIs[PF][IndOrdOutIn];
+		OPS->ChiS_fI    = ELEMENT->ChiS_fIs[PV][PF];
+		OPS->ChiS_fI_sp = ELEMENT->ChiS_fIs_sp[PV][PF];
+		OPS->ChiS_fI_SF = ELEMENT_SF->ChiS_fIs[PV][PF];
+		OPS->ChiS_vI_SF = ELEMENT_SF->ChiS_vIs[PV][PF];
+
+		OPS->I_Weak_FF = ELEMENT_SF->Is_Weak_FF[PV][PF];
 	} else {
 		// Curved FACE Integration
-		OPS->NfnI = ELEMENT->NfnIc[PF][IndFType];
+		OPS->NfnI    = ELEMENT->NfnIc[PF][IndFType];
+		OPS->NfnI_SF = ELEMENT_SF->NfnIc[PF][0];
+		OPS->NvnI_SF = ELEMENT_SF->NvnIc[PF];
 
-		OPS->I_Weak_FF = ELEMENT_OPS->Ic_Weak_FF[PV][PF];
+		OPS->nOrdLR = ELEMENT_FACE->nOrd_fIc[PF][IndOrdLR];
+		OPS->nOrdRL = ELEMENT_FACE->nOrd_fIc[PF][IndOrdRL];
 
-		OPS->nOrdLR = ELEMENT_FACE->nOrd_fIc[PF][IndOrdInOut];
-		OPS->nOrdRL = ELEMENT_FACE->nOrd_fIc[PF][IndOrdOutIn];
+		OPS->ChiS_fI    = ELEMENT->ChiS_fIc[PV][PF];
+		OPS->ChiS_fI_sp = ELEMENT->ChiS_fIc_sp[PV][PF];
+		OPS->ChiS_fI_SF = ELEMENT_SF->ChiS_fIc[PV][PF];
+		OPS->ChiS_vI_SF = ELEMENT_SF->ChiS_vIc[PV][PF];
+
+		OPS->I_Weak_FF = ELEMENT_SF->Ic_Weak_FF[PV][PF];
 	}
 }
 
@@ -236,7 +254,7 @@ static void explicit_GradW_VOLUME(void)
 			}
 // Might not need to store DxyzChiS for explicit (ToBeDeleted)
 
-			// Compute intermediate (see comments) Qhat
+			// Compute intermediate (see comments) Qhat contribution
 			VOLUME->Qhat[dim] = mm_Alloc_d(CBCM,CBT,CBNT,NvnS,Neq,NvnS,1.0,DxyzChiS[dim],VOLUME->What); // keep
 		}
 	}
@@ -245,8 +263,19 @@ static void explicit_GradW_VOLUME(void)
 	free(DxyzInfo);
 }
 
-static void compute_W_fI(struct S_FDATA *FDATA, double *W_fI)
+static void compute_W_fI(const struct S_FDATA *FDATA, double *W_fI)
 {
+	/*
+	 *	Purpose:
+	 *		Interpolate VOLUME What coefficients to FACE cubature nodes.
+	 *
+	 *	Comments:
+	 *		Various options are available for computing W_fI:
+	 *			1) Using sum factorized operators for TP and WEDGE elements;
+	 *			2) Using the standard operator but exploiting sparsity;
+	 *			3) Using the standard approach.
+	 */
+
 	// Initialize DB Parameters
 	unsigned int d            = DB.d,
 	             Nvar         = DB.Nvar,
@@ -275,8 +304,8 @@ static void compute_W_fI(struct S_FDATA *FDATA, double *W_fI)
 	NvnS = OPS[0]->NvnS;
 
 	if (Eclass == C_TP && SF_BE[P][0][1]) {
-		get_sf_parametersF(OPS[0]->NvnS_SF,OPS[0]->NvnI_SF,OPS[0]->ChiS_vI,
-		                   OPS[0]->NvnS_SF,OPS[0]->NfnI_SF,OPS[0]->ChiS_fI,NIn,NOut,OP,d,Vf,C_TP);
+		get_sf_parametersF(OPS[0]->NvnS_SF,OPS[0]->NvnI_SF,OPS[0]->ChiS_vI_SF,
+		                   OPS[0]->NvnS_SF,OPS[0]->NfnI_SF,OPS[0]->ChiS_fI_SF,NIn,NOut,OP,d,Vf,C_TP);
 
 		if (SpOp) {
 			for (dim = 0; dim < d; dim++)
@@ -289,10 +318,10 @@ static void compute_W_fI(struct S_FDATA *FDATA, double *W_fI)
 
 		sf_apply_d(VOLUME->What,W_fI,NIn,NOut,Nvar,OP,Diag,d);
 	} else if (Eclass == C_WEDGE && SF_BE[P][1][1]) {
-		if (f < 3) { OPF0  = OPS[0]->ChiS_fI, OPF1  = OPS[1]->ChiS_vI;
-		             NOut0 = OPS[0]->NfnI_SF, NOut1 = OPS[1]->NvnI_SF;
-		} else {     OPF0  = OPS[0]->ChiS_vI, OPF1  = OPS[1]->ChiS_fI;
-		             NOut0 = OPS[0]->NvnI_SF, NOut1 = OPS[1]->NfnI_SF; }
+		if (f < 3) { OPF0  = OPS[0]->ChiS_fI_SF, OPF1  = OPS[1]->ChiS_vI_SF;
+		             NOut0 = OPS[0]->NfnI_SF,    NOut1 = OPS[1]->NvnI_SF;
+		} else {     OPF0  = OPS[0]->ChiS_vI_SF, OPF1  = OPS[1]->ChiS_fI_SF;
+		             NOut0 = OPS[0]->NvnI_SF,    NOut1 = OPS[1]->NfnI_SF; }
 		get_sf_parametersF(OPS[0]->NvnS_SF,NOut0,OPF0,OPS[1]->NvnS_SF,NOut1,OPF1,NIn,NOut,OP,d,Vf,C_WEDGE);
 
 		if (SpOp) {
@@ -321,7 +350,6 @@ static void init_FDATA(struct S_FDATA *FDATA, const struct S_FACE *FACE, const u
 	// Initialize DB Parameters
 	unsigned int Collocated = DB.Collocated;
 
-
 	FDATA->P = FACE->P;
 
 	if (side == 'L') {
@@ -341,34 +369,18 @@ static void init_FDATA(struct S_FDATA *FDATA, const struct S_FACE *FACE, const u
 
 	init_opsF(FDATA->OPS[0],FDATA->VOLUME,FACE,0);
 	if (FDATA->VOLUME->type == WEDGE || FDATA->VOLUME->type == PYR)
+		// Needed for sum factorized operators and alternate FACE operators (TRIs/QUADs)
 		init_opsF(FDATA->OPS[1],FDATA->VOLUME,FACE,1);
 }
 
 static void boundary_NavierStokes(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *nL,
-                                  const double *WL, double *WR, const unsigned int d, const unsigned int Nvar,
+                                  const double *WL, double *WB, const unsigned int d, const unsigned int Nvar,
                                   const unsigned int BC)
 {
-	/*
-	 *	Comments:
-	 *		Following remark 11 in Nordstrom(2005), only four conditions are imposed for the Dirichlet boundary (No slip
-	 *		with prescribed velocity).
-	 *
-	 *	References:
-	 *		Nordstrom(2005)-Well-Posed_Boundary_Conditions_for_the_Navier-Stokes_Equations
-	 */
-
 	if (BC % BC_STEP_SC == BC_DIRICHLET) {
-		printf("Use boundary_NoSlip_Dirichlet.\n"), EXIT_UNSUPPORTED;
-/*
-		unsigned int Nvar = DB.Nvar;
-
-		double *UR = malloc(Nn*NVAR3D * sizeof *UR); // free
-		compute_exact_solution(Nn,XYZ,UR,0);
-		convert_variables(UR,WR,3,d,Nn,Nel,'p','c');
-		free(UR);
-*/
+		boundary_NoSlip_Dirichlet(Nn,Nel,XYZ,WL,WB,nL,d,Nvar);
 	} else if (BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC) {
-		boundary_NoSlip_Adiabatic(Nn,Nel,XYZ,WL,WR,nL,d,Nvar);
+		boundary_NoSlip_Adiabatic(Nn,Nel,XYZ,WL,WB,nL,d,Nvar);
 	} else {
 		EXIT_UNSUPPORTED;
 	}
@@ -394,92 +406,107 @@ static void explicit_GradW_FACE(void)
 
 	// Standard datatypes
 	struct S_OPERATORS *OPSL[2], *OPSR[2];
-	struct S_FDATA     *FDATA[2];
+	struct S_FDATA     *FDATAL, *FDATAR;
 
 	for (size_t i = 0; i < 2; i++) {
 		OPSL[i]  = malloc(sizeof *OPSL[i]);  // free
 		OPSR[i]  = malloc(sizeof *OPSR[i]);  // free
-		FDATA[i] = malloc(sizeof *FDATA[i]); // free
 	}
+	FDATAL = malloc(sizeof *FDATAL); // free
+	FDATAR = malloc(sizeof *FDATAR); // free
 
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
 		// Load required FACE operators (Left and Right FACEs)
-		unsigned int Vf, IndS, NfnI, NvnS, IndFType, *nOrdLR;
-		double       *W_fIL, **nWnum_fI, *I_FF, *nJ_fI, *Wnum_fI;
-
 		struct S_VOLUME *VL, *VR;
 
-		FDATA[0]->OPS = OPSL;
-		FDATA[1]->OPS = OPSR;
+		FDATAL->OPS = OPSL;
+		FDATAR->OPS = OPSR;
 
-		init_FDATA(FDATA[0],FACE,'L');
-		init_FDATA(FDATA[1],FACE,'R');
+		init_FDATA(FDATAL,FACE,'L');
+		init_FDATA(FDATAR,FACE,'R');
 
-		VL = FDATA[0]->VOLUME;
-		VR = FDATA[1]->VOLUME;
+		VL = FDATAL->VOLUME;
+		VR = FDATAR->VOLUME;
 
-		// Compute W_fIL
-		IndS = 0;
-		NfnI = FDATA[IndS]->OPS[0]->NfnI;
+		unsigned int NfnI, NvnSL, NvnSR, VfL, VfR;
+		NfnI  = OPSL[0]->NfnI;
+		NvnSL = OPSL[0]->NvnS;
+		NvnSR = OPSR[0]->NvnS;
 
-		// Assemble n_fI * detJF_fI [NfnI x d]
-		double *n_fI, *detJF_fI;
-		n_fI     = FACE->n_fI;
-		detJF_fI = FACE->detJF_fI;
+		VfL   = FDATAL->Vf;
+		VfR   = FDATAR->Vf;
 
-		nJ_fI = malloc(NfnI*d * sizeof *nJ_fI); // tbd
-		for (dim = 0; dim < d; dim++) {
-		for (n = 0; n < NfnI; n++) {
-			nJ_fI[dim*NfnI+n] = n_fI[n*d+dim]*detJF_fI[n];
-		}}
+		unsigned int Boundary = FACE->Boundary;
+		unsigned int BC       = FACE->BC;
 
-		// Compute numerical solution (Wnum_fI == 0.5*(WL_fI+WR_fI))
+		// Compute WL_fIL
+		double *WL_fIL = malloc(NfnI*Nvar * sizeof *WL_fIL); // free
+		compute_W_fI(FDATAL,WL_fIL);
 
-		// Compute WL_fI
-		WL_fI = malloc(NfnI*Nvar * sizeof *WL_fI); // tbd
-		compute_W_fI(FDATA[0],WL_fI);
+		// Compute WR_fIL (Taking BCs into account if applicable)
+		double *ChiSR_fIL = NULL;
+		double *n_fI = FACE->n_fI;
 
-		// Compute WR_fIIn (Taking BCs into account if applicable)
-		WR_fIL = malloc(NfnI*Nvar * sizeof *WR_fIL); // tbd
-		if (Boundary) {
-			boundary_NavierStokes(NfnI,1,FACE->XYZ_fI,n_fI,WL_fI,WR_fIL,d,BC);
+		double *WR_fIL = malloc(NfnI*Nvar * sizeof *WR_fIL); // free
+		if (!Boundary) {
+			unsigned int *nOrdRL = OPSL[FDATAL->IndFType]->nOrdRL;
+
+			// Use reordered operator (as opposed to solution) for ease of linearization.
+			ChiSR_fIL = malloc(NfnI*NvnSR * sizeof *ChiSR_fIL); // free
+
+			double *ChiS_fI = OPSR[0]->ChiS_fI[VfR];
+			for (size_t i = 0; i < NfnI; i++) {
+			for (size_t j = 0; j < NvnSR; j++) {
+				ChiSR_fIL[i*NvnSR+j] = ChiS_fI[nOrdRL[i]*NvnSR+j];
+			}}
+
+			// Could be performed with sum factorization using a reordering of the sum factorized FACE operator.
+			mm_CTN_d(NfnI,Nvar,NvnSR,ChiSR_fIL,VR->What,WR_fIL);
 		} else {
-			// Reorder the operator (as opposed to the solution) for consistency with the implicit scheme.
-			// solver_Poisson (line 529)
+			boundary_NavierStokes(NfnI,1,FACE->XYZ_fI,n_fI,WL_fIL,WR_fIL,d,Nvar,BC);
 		}
 
-
-		nWnum_fI = malloc(d * sizeof *nWnum_fI); // free
+		// Compute normal numerical solution (nWnum_fI == n_fI[dim] (dot) 0.5*(WL_fI+WR_fI))
+		double **nWnum_fI = malloc(d * sizeof *nWnum_fI); // free
 		for (size_t dim = 0; dim < d; dim++)
 			nWnum_fI[dim] = malloc(NfnI*Nvar * sizeof *nWnum_fI[dim]); // free
 
-		Wnum_fI = malloc(NfnI*Nvar * sizeof *Wnum_fI); // tbd
+		for (size_t dim = 0; dim < d; dim++) {
+		for (size_t var = 0; var < Nvar; var++) {
+		for (size_t n = 0; n < NfnI; n++) {
+			nWnum_fI[dim][var*NfnI+n] = n_fI[dim*NfnI+n]*0.5*(WL_fIL[var*NfnI+n]+WR_fIL[var*NfnI+n]);
+		}}}
+		free(WL_fIL);
+		free(WR_fIL);
+
+		// Add in FACE Jacobian determinant term
+		double *detJF_fI = FACE->detJF_fI;
+
+		double **JnWnum_fI = nWnum_fI;
+		for (size_t dim = 0; dim < d; dim++) {
+		for (size_t var = 0; var < Nvar; var++) {
+		for (size_t n = 0; n < NfnI; n++) {
+			JnWnum_fI[dim][n+var*NfnI] *= detJF_fI[n];
+		}}}
+
+		// Compute intermediate Qhat contributions
 
 		// Interior VOLUME
-		Vf   = FDATA[0]->Vf;
-		NvnS = OPSL[0]->NvnS;
-		I_FF = OPSL[0]->I_Weak_FF[Vf];
 		for (size_t dim = 0; dim < d; dim++) {
-			mm_diag_d(NfnI,Nvar,&nJ_fI[dim*NfnI],Wnum_fI,nWnum_fI[dim],1.0,0.0,'L','C');
-
 			// Note that there is a minus sign included in the definition of I_Weak_FF.
-			mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NfnI,-1.0,1.0,I_FF,nWnum_fI[dim],VL->Qhat[dim]);
+			mm_d(CBCM,CBT,CBNT,NvnSL,Nvar,NfnI,-1.0,1.0,OPSL[0]->I_Weak_FF[VfL],JnWnum_fI[dim],VL->Qhat[dim]);
 		}
 
 		// Exterior VOLUME
-		if (!(FACE->Boundary)) {
-			Vf   = FDATA[1]->Vf;
-			NvnS = OPSR[0]->NvnS;
-			I_FF = OPSR[0]->I_Weak_FF[Vf];
-
-			IndFType = FDATA[0]->IndFType;
-			nOrdLR = FDATA[0]->OPS[IndFType]->nOrdLR;
+		if (!Boundary) {
+			unsigned int *nOrdLR = OPSL[FDATAL->IndFType]->nOrdLR;
 			for (size_t dim = 0; dim < d; dim++) {
-				array_rearrange_d(NfnI,Nvar,nOrdLR,'C',nWnum_fI[dim]);
+				array_rearrange_d(NfnI,Nvar,nOrdLR,'C',JnWnum_fI[dim]);
 
 				// minus sign from using negative normal for the opposite VOLUME cancels with minus sign in I_Weak_FF.
-				mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NfnI,1.0,1.0,I_FF,nWnum_fI[dim],VR->Qhat[dim]);
+				mm_d(CBCM,CBT,CBNT,NvnSR,Nvar,NfnI,1.0,1.0,OPSR[0]->I_Weak_FF[VfR],nWnum_fI[dim],VR->Qhat[dim]);
 			}
+			free(ChiSR_fIL);
 		}
 		array_free2_d(d,nWnum_fI);
 	}
@@ -487,10 +514,53 @@ static void explicit_GradW_FACE(void)
 	for (size_t i = 0; i < 2; i++) {
 		free(OPSL[i]);
 		free(OPSR[i]);
-		free(FDATA[i]);
 	}
+	free(FDATAL);
+	free(FDATAR);
 }
 
 static void explicit_GradW_finalize(void)
 {
+	/*
+	 *	Purpose:
+	 *		Add in inverse mass matrix contribution to VOLUME->Qhat.
+	 *
+	 *	Comments:
+	 *		The FACE contribution were included direcly in VL/VR->Qhat.
+	 *		If Collocation is enable, only the inverse Jacobian determinant is missing.
+	 *
+	 */
+
+	unsigned int d          = DB.d,
+	             Nvar       = DB.Nvar,
+	             Collocated = DB.Collocated;
+
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		unsigned int NvnS = VOLUME->NvnS;
+		double       *Qhat;
+
+		if (Collocated) {
+			double *detJV_vI = VOLUME->detJV_vI;
+
+			for (size_t dim = 0; dim < d; dim++) {
+				Qhat = VOLUME->Qhat[dim];
+				for (size_t var = 0; var < Nvar; var++) {
+				for (size_t n = 0; n < NvnS; n++) {
+					Qhat[var*NvnS+n] /= detJV_vI[n];
+				}}
+			}
+		} else {
+
+			if (VOLUME->MInv == NULL)
+				compute_inverse_mass(VOLUME);
+
+			for (size_t dim = 0; dim < d; dim++) {
+				Qhat = malloc(NvnS*Nvar * sizeof *Qhat); // keep (free previously stored Qhat)
+
+				mm_CTN_d(NvnS,Nvar,NvnS,VOLUME->MInv,VOLUME->Qhat[dim],Qhat);
+				free(VOLUME->Qhat[dim]);
+				VOLUME->Qhat[dim] = Qhat;
+			}
+		}
+	}
 }

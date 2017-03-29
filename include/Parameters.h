@@ -118,6 +118,9 @@
 #define BC_SUPERSONIC_IN  5
 #define BC_SUPERSONIC_OUT 6
 
+#define BC_NOSLIP_T         7
+#define BC_NOSLIP_ADIABATIC 8
+
 #define BC_DIRICHLET    11
 #define BC_NEUMANN      12
 

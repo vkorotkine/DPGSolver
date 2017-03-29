@@ -659,7 +659,11 @@ free(U_fI);
 					mm_CTN_d(NvnSOut,Neq,NfnI,OPSOut[0]->I_Weak_FF[VfOut],nFluxNum_fI,RHSOut);
 				}
 
-				// LHS
+				// LHS (Currently not using sum factorization)
+				if (SF_BE[P][0][1] || SF_BE[P][1][1])
+					// Add support for sum factorization below if desired or ensure that correct operators are being
+					// used as set in init_ops.
+					EXIT_UNSUPPORTED;
 
 				// OutIn (Effect of Out on In)
 				IdnFdW       = malloc(NvnSIn*NfnI  * sizeof *IdnFdW);       // free
