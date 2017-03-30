@@ -8,7 +8,7 @@ grep through all files for 'ToBeModified' and 'ToBeDeleted' comments, making app
 change tab spaces to 8 and increase max lines to check alignment of the code under different options in .vimrc
 
 put src code into logical subfolders
-have .msh files generated automatically
+check that all includes in the headers are also present in the associated .c files (for correct dependency generation)
 
 
 formatting left to be fixed:

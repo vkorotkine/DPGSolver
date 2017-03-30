@@ -10,12 +10,10 @@
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
-#include "S_ELEMENT.h"
 #include "S_VOLUME.h"
-#include "S_OpCSR.h"
 
-#include "element_functions.h"
-#include "sum_factorization.h"
+#include "solver_functions.h"
+#include "sum_factorization.h" // ToBeDeleted
 #include "matrix_functions.h"
 #include "fluxes_inviscid.h"
 #include "array_print.h"
@@ -34,6 +32,8 @@
  *		the code, this flexibility is not required and comparison may yield favourable results for the vectorized code.
  *		However, the ultimate goal of the code is only to run in the adaptive setting, thus this may not be worth
  *		pursuing. (ToBeModified)
+ *		Check if there is a performance improvement from dynamically allocating memory required in the VOLUME loop
+ *		outside of the loop (based on the maximum dimension necessary (hp adaptation enabled)). ToBeDeleted
  *		EFE stands for (E)xact (F)lux (E)valuation, meaning that the flux is not represented as a polynomial and then
  *		interpolated to the cubature nodes. EFE is the analogue of the (C)hain(R)ule approach for the strong form of the
  *		scheme. See Zwanenburg(2016) for additional discussion.
@@ -44,22 +44,9 @@
  *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_Schemes
  */
 
-void init_ops_VOLUME(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass);
 static void compute_Inviscid_VOLUME_RHS_EFE(void);
 static void compute_Viscous_VOLUME_RHS_EFE(void);
 static void compute_VOLUMEVec_RHS_EFE(void);
-
-void init_VDATA(struct S_VDATA *VDATA, struct S_VOLUME *VOLUME)
-{
-	VDATA->VOLUME = VOLUME;
-
-	VDATA->P      = VOLUME->P;
-	VDATA->Eclass = VOLUME->Eclass;
-	init_ops_VOLUME(VDATA->OPS[0],VOLUME,0);
-	if (VOLUME->type == WEDGE)
-		init_ops_VOLUME(VDATA->OPS[1],VOLUME,1);
-}
-
 
 void explicit_VOLUME_info(void)
 {
@@ -82,107 +69,6 @@ void explicit_VOLUME_info(void)
 	}
 }
 
-void init_ops_VOLUME(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass)
-{
-	// Initialize DB Parameters
-	unsigned int ***SF_BE = DB.SF_BE;
-
-	// Standard datatypes
-	unsigned int P, type, curved, Eclass;
-	struct S_ELEMENT *ELEMENT, *ELEMENT_SF;
-
-	// silence
-	ELEMENT_SF = NULL;
-
-	P      = VOLUME->P;
-	type   = VOLUME->type;
-	curved = VOLUME->curved;
-	Eclass = VOLUME->Eclass;
-
-	ELEMENT = get_ELEMENT_type(type);
-	if ((Eclass == C_TP && SF_BE[P][0][0]) || (Eclass == C_WEDGE && SF_BE[P][1][0]))
-		ELEMENT_SF = ELEMENT->ELEMENTclass[IndClass];
-	else
-		ELEMENT_SF = ELEMENT;
-
-	OPS->NvnS    = ELEMENT->NvnS[P];
-	OPS->NvnS_SF = ELEMENT_SF->NvnS[P];
-	if (!curved) {
-		OPS->NvnI    = ELEMENT->NvnIs[P];
-		OPS->NvnI_SF = ELEMENT_SF->NvnIs[P];
-
-		OPS->ChiS_vI    = ELEMENT->ChiS_vIs[P][P][0];
-		OPS->ChiS_vI_SF = ELEMENT_SF->ChiS_vIs[P][P][0];
-
-		OPS->D_Weak  = ELEMENT_SF->Ds_Weak_VV[P][P][0];
-		OPS->I_Weak  = ELEMENT_SF->Is_Weak_VV[P][P][0];
-
-		OPS->D_Weak_sp = ELEMENT->Ds_Weak_VV_sp[P][P][0];
-	} else {
-		OPS->NvnI    = ELEMENT->NvnIc[P];
-		OPS->NvnI_SF = ELEMENT_SF->NvnIc[P];
-
-		OPS->ChiS_vI = ELEMENT_SF->ChiS_vIc[P][P][0];
-		OPS->D_Weak  = ELEMENT_SF->Dc_Weak_VV[P][P][0];
-		OPS->I_Weak  = ELEMENT_SF->Ic_Weak_VV[P][P][0];
-
-		OPS->D_Weak_sp = ELEMENT->Dc_Weak_VV_sp[P][P][0];
-	}
-}
-
-void compute_W_vI(struct S_VDATA *VDATA, double *W_vI)
-{
-	/*
-	 *	Purpose:
-	 *		Interpolate VOLUME What coefficients to VOLUME cubature nodes.
-	 *
-	 *	Comments:
-	 *		Various options are available for computing W_vI:
-	 *			1) Using sum factorized operators for TP and WEDGE elements;
-	 *			2) Using the standard operator but exploiting sparsity;
-	 *			3) Using the standard approach.
-	 */
-
-	unsigned int Collocated = DB.Collocated;
-
-	struct S_VOLUME *VOLUME = VDATA->VOLUME;
-
-	if (Collocated) {
-		EXIT_UNSUPPORTED; // Set W_vI = VOLUME->What in calling function.
-	} else {
-		unsigned int d        = DB.d,
-		             Nvar     = DB.Nvar,
-		             ***SF_BE = DB.SF_BE;
-
-		unsigned int P      = VDATA->P,
-		             Eclass = VDATA->Eclass;
-
-		struct S_OPERATORS **OPS = VDATA->OPS;
-
-		unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX];
-		double       *OP[DMAX];
-		if (Eclass == C_TP && SF_BE[P][0][0]) {
-			get_sf_parameters(OPS[0]->NvnS_SF,OPS[0]->NvnI_SF,OPS[0]->ChiS_vI_SF,0,0,NULL,NIn,NOut,OP,d,3,Eclass);
-
-			for (size_t dim = 0; dim < d; dim++)
-				Diag[dim] = 0;
-
-			sf_apply_d(VOLUME->What,W_vI,NIn,NOut,Nvar,OP,Diag,d);
-		} else if (Eclass == C_WEDGE && SF_BE[P][1][0]) {
-			get_sf_parameters(OPS[0]->NvnS_SF,OPS[0]->NvnI_SF,OPS[0]->ChiS_vI_SF,
-			                  OPS[1]->NvnS_SF,OPS[1]->NvnI_SF,OPS[1]->ChiS_vI_SF,NIn,NOut,OP,d,3,Eclass);
-
-			for (size_t dim = 0; dim < d; dim++)
-				Diag[dim] = 0;
-			Diag[1] = 2; // TRI operator (dim = 0) takes care of dim = 1 as well.
-
-			sf_apply_d(VOLUME->What,W_vI,NIn,NOut,Nvar,OP,Diag,d);
-		} else {
-			mm_CTN_d(OPS[0]->NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->What,W_vI);
-		}
-	}
-}
-
 static void compute_Inviscid_VOLUME_RHS_EFE(void)
 {
 	// Initialize DB Parameters
@@ -201,10 +87,11 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 
 	struct S_OpCSR **D_sp;
 
-	struct S_OPERATORS *OPS[2];
-	struct S_VOLUME    *VOLUME;
+	struct S_OPERATORS_V *OPS[2];
+	struct S_VOLUME      *VOLUME;
 
 	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
+	VDATA->OPS = OPS;
 
 	// silence
 	NvnI_SF[1] = 0;
@@ -412,8 +299,8 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 
 	struct S_OpCSR **D_sp;
 
-	struct S_OPERATORS *OPS[2];
-	struct S_VOLUME    *VOLUME;
+	struct S_OPERATORS_V *OPS[2];
+	struct S_VOLUME      *VOLUME;
 
 	for (i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free

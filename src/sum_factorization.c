@@ -536,7 +536,7 @@ void sf_swap_d(double *Input, const unsigned int NRows, const unsigned int NCols
 	}}}
 }
 
-void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const unsigned int NOut[3],
+void sf_apply_d(const double *Input, double *Output, const unsigned int NIn[3], const unsigned int NOut[3],
                 const unsigned int NCols, double *OP[3], const unsigned int Diag[3], const unsigned int d)
 {
 	/*

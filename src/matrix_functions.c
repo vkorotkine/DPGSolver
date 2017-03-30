@@ -316,7 +316,7 @@ void mm_dcc(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS
 	free(A_c);
 }
 
-void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, double *C)
+void mm_CTN_d(const int m, const int n, const int k, double *A, const double *B, double *C)
 {
 	/*
 	 *	Purpose:
@@ -379,7 +379,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 		case 1: {
 			switch(k) {
 			case 1: {
-				register double *a0  = A   ,
+				register const double *a0  = A   ,
 				                *b0  = B   ;
 
 				*C     = (*a0 )*(*b0 );
@@ -391,7 +391,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m1k1
 			} case 2: {
-				register double *a0  = A   , *a1  = A+1 ,
+				register const double *a0  = A   , *a1  = A+1 ,
 				                *b0  = B   , *b1  = B+1 ;
 
 				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 );
@@ -403,7 +403,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m1k2
 			} case 3: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 ;
 
 				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 );
@@ -415,7 +415,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m1k3
 			} case 4: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 ;
 
 				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 );
@@ -427,7 +427,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m1k4
 			} case 5: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 ;
 
 				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 );
@@ -439,7 +439,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m1k5
 			} case 6: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 ;
 
 				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 );
@@ -451,7 +451,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m1k6
 			} case 7: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 ;
 
 				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 );
@@ -463,7 +463,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m1k7
 			} case 8: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 , *b7  = B+7 ;
 
 				*C     = (*a0 )*(*b0 ) + (*a1 )*(*b1 ) + (*a2 )*(*b2 ) + (*a3 )*(*b3 ) + (*a4 )*(*b4 ) + (*a5 )*(*b5 ) + (*a6 )*(*b6 ) + (*a7 )*(*b7 );
@@ -482,7 +482,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 		} case 2: {
 			switch(k) {
 			case 1: {
-				register double *a0  = A   ,
+				register const double *a0  = A   ,
 				                *a1  = A+1 ,
 				                *b0  = B   ;
 
@@ -497,7 +497,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m2k1
 			} case 2: {
-				register double *a0  = A   , *a1  = A+1 ,
+				register const double *a0  = A   , *a1  = A+1 ,
 				                *a2  = A+2 , *a3  = A+3 ,
 				                *b0  = B   , *b1  = B+1 ;
 
@@ -512,7 +512,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m2k2
 			} case 3: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
 				                *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 ;
 
@@ -527,7 +527,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m2k3
 			} case 4: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
 				                *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 ;
 
@@ -542,7 +542,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m2k4
 			} case 5: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
 				                *a5  = A+5 , *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 ,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 ;
 
@@ -557,7 +557,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m2k5
 			} case 6: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 ;
 
@@ -572,7 +572,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m2k6
 			} case 7: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
 				                *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 ;
 
@@ -587,7 +587,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m2k7
 			} case 8: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
 				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 , *b7  = B+7 ;
 
@@ -609,7 +609,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 		} case 3: {
 			switch(k) {
 			case 1: {
-				register double *a0  = A   ,
+				register const double *a0  = A   ,
 				                *a1  = A+1 ,
 				                *a2  = A+2 ,
 				                *b0  = B   ;
@@ -627,7 +627,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m3k1
 			} case 2: {
-				register double *a0  = A   , *a1  = A+1 ,
+				register const double *a0  = A   , *a1  = A+1 ,
 				                *a2  = A+2 , *a3  = A+3 ,
 				                *a4  = A+4 , *a5  = A+5 ,
 				                *b0  = B   , *b1  = B+1 ;
@@ -645,7 +645,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m3k2
 			} case 3: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
 				                *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 ,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 ;
@@ -663,7 +663,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m3k3
 			} case 4: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
 				                *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
 				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 ;
@@ -681,7 +681,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m3k4
 			} case 5: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
 				                *a5  = A+5 , *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 ,
 				                *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 ;
@@ -699,7 +699,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m3k5
 			} case 6: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
 				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 ;
@@ -717,7 +717,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m3k6
 			} case 7: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
 				                *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13,
 				                *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 ;
@@ -735,7 +735,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m3k7
 			} case 8: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
 				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
 				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
 				                *b0  = B   , *b1  = B+1 , *b2  = B+2 , *b3  = B+3 , *b4  = B+4 , *b5  = B+5 , *b6  = B+6 , *b7  = B+7 ;
@@ -760,7 +760,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 		} case 4: {
 			switch(k) {
 			case 1: {
-				register double *a0  = A   ,
+				register const double *a0  = A   ,
 				                *a1  = A+1 ,
 				                *a2  = A+2 ,
 				                *a3  = A+3 ,
@@ -781,7 +781,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m4k1
 			} case 2: {
-				register double *a0  = A   , *a1  = A+1 ,
+				register const double *a0  = A   , *a1  = A+1 ,
 				                *a2  = A+2 , *a3  = A+3 ,
 				                *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 ,
@@ -802,7 +802,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m4k2
 			} case 3: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
 				                *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 ,
 				                *a9  = A+9 , *a10 = A+10, *a11 = A+11,
@@ -823,7 +823,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m4k3
 			} case 4: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
 				                *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
 				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
 				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
@@ -844,7 +844,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m4k4
 			} case 5: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
 				                *a5  = A+5 , *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 ,
 				                *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14,
 				                *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19,
@@ -865,7 +865,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m4k5
 			} case 6: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
 				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17,
 				                *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
@@ -886,7 +886,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m4k6
 			} case 7: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
 				                *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13,
 				                *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20,
 				                *a21 = A+21, *a22 = A+22, *a23 = A+23, *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27,
@@ -907,7 +907,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m4k7
 			} case 8: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
 				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
 				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
 				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29, *a30 = A+30, *a31 = A+31,
@@ -935,7 +935,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 		} case 5: {
 			switch(k) {
 			case 1: {
-				register double *a0  = A   ,
+				register const double *a0  = A   ,
 				                *a1  = A+1 ,
 				                *a2  = A+2 ,
 				                *a3  = A+3 ,
@@ -959,7 +959,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m5k1
 			} case 2: {
-				register double *a0  = A   , *a1  = A+1 ,
+				register const double *a0  = A   , *a1  = A+1 ,
 				                *a2  = A+2 , *a3  = A+3 ,
 				                *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 ,
@@ -983,7 +983,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m5k2
 			} case 3: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
 				                *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 ,
 				                *a9  = A+9 , *a10 = A+10, *a11 = A+11,
@@ -1007,7 +1007,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m5k3
 			} case 4: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
 				                *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
 				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
 				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
@@ -1031,7 +1031,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m5k4
 			} case 5: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
 				                *a5  = A+5 , *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 ,
 				                *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14,
 				                *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19,
@@ -1055,7 +1055,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m5k5
 			} case 6: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
 				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17,
 				                *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
@@ -1079,7 +1079,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m5k6
 			} case 7: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
 				                *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13,
 				                *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20,
 				                *a21 = A+21, *a22 = A+22, *a23 = A+23, *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27,
@@ -1103,7 +1103,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m5k7
 			} case 8: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
 				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
 				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
 				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29, *a30 = A+30, *a31 = A+31,
@@ -1134,7 +1134,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 		} case 6: {
 			switch(k) {
 			case 1: {
-				register double *a0  = A   ,
+				register const double *a0  = A   ,
 				                *a1  = A+1 ,
 				                *a2  = A+2 ,
 				                *a3  = A+3 ,
@@ -1161,7 +1161,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m6k1
 			} case 2: {
-				register double *a0  = A   , *a1  = A+1 ,
+				register const double *a0  = A   , *a1  = A+1 ,
 				                *a2  = A+2 , *a3  = A+3 ,
 				                *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 ,
@@ -1188,7 +1188,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m6k2
 			} case 3: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
 				                *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 ,
 				                *a9  = A+9 , *a10 = A+10, *a11 = A+11,
@@ -1215,7 +1215,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m6k3
 			} case 4: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
 				                *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
 				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
 				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
@@ -1242,7 +1242,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m6k4
 			} case 5: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
 				                *a5  = A+5 , *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 ,
 				                *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14,
 				                *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19,
@@ -1269,7 +1269,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m6k5
 			} case 6: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
 				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17,
 				                *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
@@ -1296,7 +1296,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m6k6
 			} case 7: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
 				                *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13,
 				                *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20,
 				                *a21 = A+21, *a22 = A+22, *a23 = A+23, *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27,
@@ -1323,7 +1323,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m6k7
 			} case 8: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
 				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
 				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
 				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29, *a30 = A+30, *a31 = A+31,
@@ -1357,7 +1357,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 		} case 7: {
 			switch(k) {
 			case 1: {
-				register double *a0  = A   ,
+				register const double *a0  = A   ,
 				                *a1  = A+1 ,
 				                *a2  = A+2 ,
 				                *a3  = A+3 ,
@@ -1387,7 +1387,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m7k1
 			} case 2: {
-				register double *a0  = A   , *a1  = A+1 ,
+				register const double *a0  = A   , *a1  = A+1 ,
 				                *a2  = A+2 , *a3  = A+3 ,
 				                *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 ,
@@ -1417,7 +1417,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m7k2
 			} case 3: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
 				                *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 ,
 				                *a9  = A+9 , *a10 = A+10, *a11 = A+11,
@@ -1447,7 +1447,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m7k3
 			} case 4: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
 				                *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
 				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
 				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
@@ -1477,7 +1477,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m7k4
 			} case 5: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
 				                *a5  = A+5 , *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 ,
 				                *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14,
 				                *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19,
@@ -1507,7 +1507,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m7k5
 			} case 6: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
 				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17,
 				                *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
@@ -1537,7 +1537,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m7k6
 			} case 7: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
 				                *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13,
 				                *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20,
 				                *a21 = A+21, *a22 = A+22, *a23 = A+23, *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27,
@@ -1567,7 +1567,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m7k7
 			} case 8: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
 				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
 				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
 				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29, *a30 = A+30, *a31 = A+31,
@@ -1604,7 +1604,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 		} case 8: {
 			switch(k) {
 			case 1: {
-				register double *a0  = A   ,
+				register const double *a0  = A   ,
 				                *a1  = A+1 ,
 				                *a2  = A+2 ,
 				                *a3  = A+3 ,
@@ -1637,7 +1637,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m8k1
 			} case 2: {
-				register double *a0  = A   , *a1  = A+1 ,
+				register const double *a0  = A   , *a1  = A+1 ,
 				                *a2  = A+2 , *a3  = A+3 ,
 				                *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 ,
@@ -1670,7 +1670,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m8k2
 			} case 3: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 ,
 				                *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 ,
 				                *a9  = A+9 , *a10 = A+10, *a11 = A+11,
@@ -1703,7 +1703,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m8k3
 			} case 4: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 ,
 				                *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
 				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
 				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
@@ -1736,7 +1736,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m8k4
 			} case 5: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 ,
 				                *a5  = A+5 , *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 ,
 				                *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14,
 				                *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19,
@@ -1769,7 +1769,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m8k5
 			} case 6: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 ,
 				                *a6  = A+6 , *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11,
 				                *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17,
 				                *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
@@ -1802,7 +1802,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m8k6
 			} case 7: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 ,
 				                *a7  = A+7 , *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13,
 				                *a14 = A+14, *a15 = A+15, *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20,
 				                *a21 = A+21, *a22 = A+22, *a23 = A+23, *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27,
@@ -1835,7 +1835,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 				}
 				break; // m8k7
 			} case 8: {
-				register double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
+				register const double *a0  = A   , *a1  = A+1 , *a2  = A+2 , *a3  = A+3 , *a4  = A+4 , *a5  = A+5 , *a6  = A+6 , *a7  = A+7 ,
 				                *a8  = A+8 , *a9  = A+9 , *a10 = A+10, *a11 = A+11, *a12 = A+12, *a13 = A+13, *a14 = A+14, *a15 = A+15,
 				                *a16 = A+16, *a17 = A+17, *a18 = A+18, *a19 = A+19, *a20 = A+20, *a21 = A+21, *a22 = A+22, *a23 = A+23,
 				                *a24 = A+24, *a25 = A+25, *a26 = A+26, *a27 = A+27, *a28 = A+28, *a29 = A+29, *a30 = A+30, *a31 = A+31,
@@ -1903,7 +1903,7 @@ void mm_CTN_d(const int m, const int n, const int k, double *A, double *B, doubl
 	}
 }
 
-void mm_CTN_CSR_d(const int m, const int n, const int k, const struct S_OpCSR *A, double *B, double *C)
+void mm_CTN_CSR_d(const int m, const int n, const int k, const struct S_OpCSR *A, const double *B, double *C)
 {
 	/*
 	 *	Purpose:
@@ -1925,11 +1925,11 @@ void mm_CTN_CSR_d(const int m, const int n, const int k, const struct S_OpCSR *A
 
 	// Standard datatypes
 	register unsigned int *rowIndex, *columns;
-	register double       *values;
+	register const double       *values;
 
 	register double *C_ptr = C;
 	for (register unsigned int l = 0, lMax = n; l < lMax; l++) {
-		register double *B_ptr = &B[l*k];
+		register const double *B_ptr = &B[l*k];
 		rowIndex = A->rowIndex;
 		columns  = A->columns;
 		values   = A->values;

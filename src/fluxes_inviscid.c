@@ -17,7 +17,6 @@
  *		Compute inviscid fluxes from input W in conservative form.
  *
  *	Comments:
- *		The memory allocations in flux_inviscid can be removed as in jacobian_flux_inviscid (ToBeDeleted).
  *		It is assumed that inputs: W, n and outputs: F, nFluxNum are vectorized (i.e. the memory ordering is by equation
  *		and not by element).
  *		Numerical flux functions were intentionally written with if statements for each dimension in order to avoid
@@ -41,7 +40,7 @@
  *		simple entropy fix), improved Roe flux with several fixes (Li(2016)) and DPG before making conclusions.
  *		(ToBeModified).
  *		2) It was also noted that a lot of discussion regarding the superiority of Flux Vector Splitting methods over
- *		the Roe scheme was found. See Kitamura(2016), Kitamura(2013) (fig. 3) and contained references for AUSM, SLAU, 
+ *		the Roe scheme was found. See Kitamura(2016), Kitamura(2013) (fig. 3) and contained references for AUSM, SLAU,
  *		LDFSS2001, and Roe scheme comparisons. If flux vector splitting is found to be acceptable, it is likely cheaper
  *		to compute than the Roe flux. => Compare with Flux Difference Splitting schemes and DPG above and make
  *		conclusions then. (ToBeModified).
@@ -67,6 +66,12 @@
 void flux_inviscid(const unsigned int Nn, const unsigned int Nel, double *W, double *F, const unsigned int d,
                    const unsigned int Neq)
 {
+	/*
+	 *	Comments:
+	 *		The storage ordering of the fluxes (Node, then dimension, then equation) is chosen such that memory stride
+	 *		is minimized when converting from physical to reference space.
+	 */
+
 	// Standard datatypes
 	unsigned int i, n, eq, dim, iMax, NnTotal, IndF;
 	double       *rho_ptr, *rhou_ptr, *rhov_ptr, *rhow_ptr, *E_ptr,

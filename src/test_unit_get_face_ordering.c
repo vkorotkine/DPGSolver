@@ -11,7 +11,7 @@
 
 #include "test_support.h"
 #include "array_norm.h"
-#include "solver_functions.h"
+#include "setup_operators_support.h"
 #include "cubature.h"
 
 /*
