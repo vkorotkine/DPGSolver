@@ -453,6 +453,8 @@ void test_integration_linearization(int nargc, char **argv)
 	finalize_ksp(&A_csc,&b_csc,&x_csc,2);
 	code_cleanup();
 
+bool test_3D = 0;
+if (test_3D) {
 	// **************************************************************************************************** //
 	// 3D (Mixed TET/PYR mesh)
 	strcpy(argvNew[1],"test/linearization/Test_linearization_ToBeCurvedMIXED3D_TP");
@@ -507,6 +509,9 @@ void test_integration_linearization(int nargc, char **argv)
 	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
 	finalize_ksp(&A_csc,&b_csc,&x_csc,2);
 	code_cleanup();
+} else {
+	printf("\n*** Warning: 3D linearization testing is currently disabled. ***\n\n"); TestDB.Nwarnings++;
+}
 
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 }

@@ -30,8 +30,9 @@ extern void   sf_operate_d       (const unsigned int NOut, const unsigned int NC
 extern void   sf_swap_d          (double *Input, const unsigned int NRows, const unsigned int NCols,
                                   const unsigned int iBound, const unsigned int jBound, const unsigned int kBound,
                                   const unsigned int iStep, const unsigned int jStep, const unsigned int kStep);
-extern void   sf_apply_d         (const double *Input, double *Output, const unsigned int NIn[3], const unsigned int NOut[3],
-                                  const unsigned int NCols, double *OP[3], const unsigned int Diag[3], const unsigned int d);
+extern void   sf_apply_d         (const double *Input, double *Output, const unsigned int NIn[3],
+                                  const unsigned int NOut[3], const unsigned int NCols, double *OP[3],
+                                  const unsigned int Diag[3], const unsigned int d);
 extern double *sf_assemble_d     (const unsigned int NIn[3], const unsigned int NOut[3], const unsigned int d, double *BOP[3]);
 
 #endif // DPG__sum_factorization_h__INCLUDED

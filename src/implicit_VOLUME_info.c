@@ -13,24 +13,15 @@
 #include "S_VOLUME.h"
 
 #include "solver_functions.h"
-#include "sum_factorization.h" // ToBeDeleted
-#include "matrix_functions.h"
 #include "fluxes_inviscid.h"
 #include "jacobian_fluxes_inviscid.h"
 #include "array_print.h"
 
-#undef I // No complex variables used here
-
 /*
  *	Purpose:
- *		Evaluate the VOLUME contributions to the LHS term.
+ *		Evaluate the VOLUME contributions to the RHS and LHS terms.
  *
  *	Comments:
- *		Certain multiplications can be avoided when computing either Fr from F or when computing LHS terms based on the
- *		sparsity of the flux Jacobian. Test performance improvement if these terms are neglected (ToBeModified).
- *		As the LHS terms for each (eq,var) combination are stored as row-major arrays, mm_d is used to compute these
- *		terms for the uncollocated scheme. Potentially investigate whether a custom mm implementation would be faster
- *		than the BLAS call (ToBeModified).
  *
  *	Notation:
  *
@@ -117,7 +108,7 @@ static void compute_VOLUME_LHS_EFE(void)
 			// RHS
 			if (VOLUME->RHS)
 				free(VOLUME->RHS);
-			double *RHS = calloc(NvnS*Neq , sizeof *RHS); // keep (requires external free)
+			double *RHS = calloc(NvnS*Neq , sizeof *RHS); // keep
 			VOLUME->RHS = RHS;
 
 			finalize_VOLUME_Inviscid_Weak(Neq,Fr_vI,RHS,"RHS",VDATA);
@@ -126,7 +117,7 @@ static void compute_VOLUME_LHS_EFE(void)
 			// LHS
 			if (VOLUME->LHS)
 				free(VOLUME->LHS);
-			double *LHS = calloc(NvnS*NvnS*Neq*Nvar , sizeof *LHS); // keep (requires external free)
+			double *LHS = calloc(NvnS*NvnS*Neq*Nvar , sizeof *LHS); // keep
 			VOLUME->LHS = LHS;
 
 			finalize_VOLUME_Inviscid_Weak(NvnS*Neq*Nvar,dFrdW_vI,LHS,"LHS",VDATA);

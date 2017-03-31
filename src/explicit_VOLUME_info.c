@@ -25,15 +25,12 @@
  *		Evaluate the VOLUME contributions to the RHS term.
  *
  *	Comments:
- *		Certain multiplications can be avoided when computing either Fr from F or when computing RHS terms based on the
- *		sparsity of the flux Jacobian. Test performance improvement if these terms are neglected (ToBeModified).
  *		Vectorization does not improve performance based on preliminary testing. This is likely a result of the large
  *		memory allocation/deallocation overhead which is required for the adaptive code. For non-adaptive versions of
  *		the code, this flexibility is not required and comparison may yield favourable results for the vectorized code.
  *		However, the ultimate goal of the code is only to run in the adaptive setting, thus this may not be worth
  *		pursuing. (ToBeModified)
- *		Check if there is a performance improvement from dynamically allocating memory required in the VOLUME loop
- *		outside of the loop (based on the maximum dimension necessary (hp adaptation enabled)). ToBeDeleted
+ *
  *		EFE stands for (E)xact (F)lux (E)valuation, meaning that the flux is not represented as a polynomial and then
  *		interpolated to the cubature nodes. EFE is the analogue of the (C)hain(R)ule approach for the strong form of the
  *		scheme. See Zwanenburg(2016) for additional discussion.
@@ -76,16 +73,7 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 	unsigned int d          = DB.d,
 	             Collocated = DB.Collocated,
 				 Nvar       = DB.Nvar,
-				 Neq        = DB.Neq,
-	             ***SF_BE   = DB.SF_BE;
-
-	// Standard datatypes
-	unsigned int i, eq, dim1, dim2, P,
-	             IndFr, IndF, IndC, IndRHS, Eclass,
-	             NvnI, NvnS, NvnI_SF[2], NvnS_SF[2], NIn[3], NOut[3], Diag[3];
-	double       *W_vI, *F_vI, *Fr_vI, *C_vI, *RHS, *DFr, **D, *I, *OP[3], *OP0, *OP1;
-
-	struct S_OpCSR **D_sp;
+				 Neq        = DB.Neq;
 
 	struct S_OPERATORS_V *OPS[2];
 	struct S_VOLUME      *VOLUME;
@@ -93,27 +81,17 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
 	VDATA->OPS = OPS;
 
-	// silence
-	NvnI_SF[1] = 0;
-	NvnS_SF[1] = 0;
-
-	for (i = 0; i < 2; i++)
+	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
 
 	if (strstr(Form,"Weak")) {
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			init_VDATA(VDATA,VOLUME);
-			P = VOLUME->P;
-
-			// Obtain operators
-			init_ops_VOLUME(OPS[0],VOLUME,0);
-			if (VOLUME->type == WEDGE)
-				init_ops_VOLUME(OPS[1],VOLUME,1);
-
-			Eclass = VOLUME->Eclass;
 
 			// Obtain W_vI
-			NvnI = OPS[0]->NvnI;
+			double *W_vI;
+
+			unsigned int NvnI = VDATA->OPS[0]->NvnI;
 			if (Collocated) {
 				W_vI = VOLUME->What;
 			} else {
@@ -122,138 +100,36 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 			}
 
 			// Compute Flux in reference space
-			F_vI = malloc(NvnI*d*Neq * sizeof *F_vI); // free
+			double *F_vI = malloc(NvnI*d*Neq * sizeof *F_vI);    // free
+
 			flux_inviscid(NvnI,1,W_vI,F_vI,d,Neq);
 
 			if (!Collocated)
 				free(W_vI);
 
-			C_vI = VOLUME->C_vI;
-
-			Fr_vI = calloc(NvnI*d*Neq , sizeof *Fr_vI); // free
-			for (eq = 0; eq < Neq; eq++) {
-			for (dim1 = 0; dim1 < d; dim1++) {
-			for (dim2 = 0; dim2 < d; dim2++) {
-				IndFr = (eq*d+dim1)*NvnI;
-				IndF  = (eq*d+dim2)*NvnI;
-				IndC  = (dim1*d+dim2)*NvnI;
-				for (i = 0; i < NvnI; i++)
-					Fr_vI[IndFr+i] += F_vI[IndF+i]*C_vI[IndC+i];
-			}}}
+			// Convert to reference space
+			double *Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
+			convert_between_rp(NvnI,Neq,VOLUME->C_vI,F_vI,Fr_vI,"FluxToRef");
 			free(F_vI);
 
-//array_print_d(NvnI,d*d,C_vI,'C');
-//array_print_d(NvnI,Neq*d,Fr_vI,'C');
+			// Compute RHS term
+			unsigned int NvnS = VDATA->OPS[0]->NvnS;
 
-for (eq = 0; eq < Neq; eq++) {
-//array_print_d(NvnI,d,&Fr_vI[NvnI*d*eq],'C');
-}
-
-			// Compute RHS terms
-			NvnS = OPS[0]->NvnS;
-
+			// RHS
 			if (VOLUME->RHS)
 				free(VOLUME->RHS);
-			RHS = calloc(NvnS*Neq , sizeof *RHS); // keep (requires external free)
+			double *RHS = calloc(NvnS*Neq , sizeof *RHS); // keep
 			VOLUME->RHS = RHS;
 
-			DFr = malloc(NvnS * sizeof *DFr); // free
-			if (Eclass == C_TP && SF_BE[P][0][0]) {
-				for (i = 0; i < 1; i++) {
-					NvnS_SF[i] = OPS[i]->NvnS_SF;
-					NvnI_SF[i] = OPS[i]->NvnI_SF;
-				}
-
-				I = OPS[0]->I_Weak;
-				D = OPS[0]->D_Weak;
-
-				for (dim1 = 0; dim1 < d; dim1++) {
-					get_sf_parameters(NvnI_SF[0],NvnS_SF[0],I,NvnI_SF[0],NvnS_SF[0],D[0],NIn,NOut,OP,d,dim1,Eclass);
-
-					if (Collocated) {
-						for (dim2 = 0; dim2 < d; dim2++)
-							Diag[dim2] = 2;
-						Diag[dim1] = 0;
-					} else {
-						for (dim2 = 0; dim2 < d; dim2++)
-							Diag[dim2] = 0;
-					}
-
-					for (eq = 0; eq < Neq; eq++) {
-						sf_apply_d(&Fr_vI[(eq*d+dim1)*NvnI],DFr,NIn,NOut,1,OP,Diag,d);
-
-						IndRHS = eq*NvnS;
-						for (i = 0; i < NvnS; i++)
-							RHS[IndRHS+i] += DFr[i];
-					}
-				}
-			} else if (Eclass == C_WEDGE && SF_BE[P][1][0]) {
-				for (i = 0; i < 2; i++) {
-					NvnS_SF[i] = OPS[i]->NvnS_SF;
-					NvnI_SF[i] = OPS[i]->NvnI_SF;
-				}
-
-				for (dim1 = 0; dim1 < d; dim1++) {
-					if (dim1 < 2) OP0 = OPS[0]->D_Weak[dim1], OP1 = OPS[1]->I_Weak;
-					else          OP0 = OPS[0]->I_Weak,       OP1 = OPS[1]->D_Weak[0];
-					get_sf_parameters(NvnI_SF[0],NvnS_SF[0],OP0,NvnI_SF[1],NvnS_SF[1],OP1,NIn,NOut,OP,d,3,Eclass);
-
-					if (Collocated) {
-						for (dim2 = 0; dim2 < d; dim2++)
-							Diag[dim2] = 2;
-						if (dim1 < 2)
-							Diag[0] = 0;
-						else
-							Diag[dim1] = 0;
-					} else {
-						for (dim2 = 0; dim2 < d; dim2++)
-							Diag[dim2] = 0;
-						Diag[1] = 2;
-					}
-
-					for (eq = 0; eq < Neq; eq++) {
-						sf_apply_d(&Fr_vI[(eq*d+dim1)*NvnI],DFr,NIn,NOut,1,OP,Diag,d);
-
-						IndRHS = eq*NvnS;
-						for (i = 0; i < NvnS; i++)
-							RHS[IndRHS+i] += DFr[i];
-					}
-				}
-			} else if (Collocated && (Eclass == C_TP || Eclass == C_WEDGE)) {
-				D_sp = OPS[0]->D_Weak_sp;
-
-				for (eq = 0; eq < Neq; eq++) {
-				for (dim1 = 0; dim1 < d; dim1++) {
-					mm_CTN_CSR_d(NvnS,1,NvnI,D_sp[dim1],&Fr_vI[(eq*d+dim1)*NvnI],DFr);
-
-					IndRHS = eq*NvnS;
-					for (i = 0; i < NvnS; i++)
-						RHS[IndRHS+i] += DFr[i];
-				}}
-			} else {
-				D = OPS[0]->D_Weak;
-
-				for (eq = 0; eq < Neq; eq++) {
-				for (dim1 = 0; dim1 < d; dim1++) {
-					mm_CTN_d(NvnS,1,NvnI,D[dim1],&Fr_vI[(eq*d+dim1)*NvnI],DFr);
-
-					IndRHS = eq*NvnS;
-					for (i = 0; i < NvnS; i++)
-						RHS[IndRHS+i] += DFr[i];
-				}}
-			}
-			free(DFr);
+			finalize_VOLUME_Inviscid_Weak(Neq,Fr_vI,RHS,"RHS",VDATA);
 			free(Fr_vI);
-//printf("%d %d %d\n",NvnS,NvnI,SF_BE[P][0][0]);
-//array_print_d(NvnS,Nvar,RHS,'C');
-//exit(1);
 		}
 	} else if (strstr(Form,"Strong")) {
 		EXIT_UNSUPPORTED;
 	}
-//exit(1);
 
-	for (i = 0; i < 2; i++)
+	free(VDATA);
+	for (size_t i = 0; i < 2; i++)
 		free(OPS[i]);
 }
 
@@ -295,7 +171,8 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 	             NvnS_SF[2], NvnI_SF[2], NIn[3], NOut[3], Diag[3];
 	double       *What_vS, *W_vI, **What_vS_ptr, *What, *WhatVec, *F_vI, *Fr_vI,
 	             **C_vI_ptr, *C_vIl, *C_vI, *C_vIVec,
-	             **RHS_ptr, *RHSl, *RHS, *RHSVec, *DFr, **D, *I, *OP[3], *OP0, *OP1;
+	             **RHS_ptr, *RHSl, *RHS, *RHSVec, *DFr, *OP[3];
+	double **D, *I, *OP0, *OP1;
 
 	struct S_OpCSR **D_sp;
 

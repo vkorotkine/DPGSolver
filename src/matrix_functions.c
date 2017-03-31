@@ -246,7 +246,7 @@ void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_T
 }
 
 void mm_dcc(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m,
-            const int n, const int k, const double alpha, const double beta, double *A, void *B, void *C)
+            const int n, const int k, const double alpha, const double beta, const double *A, const void *B, void *C)
 {
 	/*
 	 *	Purpose:
@@ -271,7 +271,8 @@ void mm_dcc(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS
 
 	unsigned int  i, iMax;
 	MKL_INT       m_MKL, n_MKL, k_MKL, ldA, ldB, ldC;
-	MKL_Complex16 alpha_c, beta_c, *A_c, *B_c, *C_c;
+	MKL_Complex16 alpha_c, beta_c, *A_c, *C_c;
+	const MKL_Complex16 *B_c;
 
 	m_MKL = (MKL_INT) m;
 	n_MKL = (MKL_INT) n;
@@ -316,7 +317,7 @@ void mm_dcc(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS
 	free(A_c);
 }
 
-void mm_CTN_d(const int m, const int n, const int k, double *A, const double *B, double *C)
+void mm_CTN_d(const int m, const int n, const int k, const double *A, const double *B, double *C)
 {
 	/*
 	 *	Purpose:

@@ -215,6 +215,29 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 				}
 			}
 			free(m); free(n);
+		/*
+			// finalize_LHS modified in the case of d BLAS3 calls being used in finalize_VOLUME_Weak("LHS")
+			m = malloc(1         * sizeof *m); // free
+			n = malloc(NvnS*Nvar * sizeof *n); // free
+
+			Indn = IndA;
+			for (size_t j = 0; j < NvnS*Nvar; j++)
+				n[j] = Indn+j;
+
+			for (eq = 0; eq < Neq; eq++) {
+				Indm = IndA + eq*NvnS;
+
+				for (i = 0; i < NvnS; i++) {
+					m[0] = Indm+i;
+
+					vv = &(VOLUME->LHS[(Nvar*NvnS)*(eq+Neq*i)]);
+
+					MatSetValues(*A,1,m,NvnS*Nvar,n,vv,ADD_VALUES);
+				}
+			}
+			free(m);
+			free(n);
+		*/
 		}
 		break;
 	case 2: // diagonal FACE contributions

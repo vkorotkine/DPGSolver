@@ -27,15 +27,21 @@
 
 /*
  *	Purpose:
- *		Test optimal convergence of the Euler solver implementation.
+ *		Test various aspects of the Euler solver implementation:
+ *			1) Equivalence between real and complex versions of functions
+ *			2) Optimal convergence orders
  *
  *	Comments:
+ *		Complex versions of functions are used for complex step verification of the linearization.
  *
  *	Notation:
  *
  *	References:
- *
  */
+
+struct S_equivalence_rc {
+	char **argvNew, *PrintName;
+};
 
 struct S_convorder {
 	bool         PrintEnabled, SolveExplicit, AdaptiveRefine, TestTRI;
@@ -173,6 +179,73 @@ void h_adapt_test(void)
 		mesh_update();
 	}
 	free(XYZref);
+}
+
+static void set_test_equivalence_rc_data(struct S_equivalence_rc *data, const char *TestName)
+{
+	// default values
+	data->P     = 3;
+	data->ML    = 2;
+	data->Adapt = ADAPT_HP;
+
+	data->PG_add        = 1;
+	data->IntOrder_add  = 0;
+	data->IntOrder_mult = 2;
+}
+
+static void test_equivalence_rc(int nargc, char **argvNew, const char *TestName, struct S_equivalence_rc *data)
+{
+	unsigned int Nvar = DB.Nvar;
+
+	unsigned int Adapt;
+
+	set_test_equivalence_rc_data(data,TestName);
+
+	Adapt = data->Adapt;
+
+	TestDB.PGlobal = data->P;
+	TestDB.ML      = data->ML;
+	TestDB.PG_add        = data->PG_add;
+	TestDB.IntOrder_add  = data->IntOrder_add;
+	TestDB.IntOrder_mult = data->IntOrder_mult;
+
+	code_startup(nargc,argvNew,0,2);
+	mesh_to_level(ML);
+	mesh_to_order(P);
+
+	// Copy What to What_c
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		unsigned int NvnS = VOLUME->NvnS;
+
+		if (VOLUME->What_c)
+			free(VOLUME->What_c);
+		VOLUME->What_c = malloc(NvnS*Nvar * sizeof *(VOLUME->What_c));
+
+		for (size_t i = 0, iMax = NvnS*Nvar; i < iMax; i++)
+			VOLUME->What_c[i] = VOLUME->What[i];
+		}
+	}
+
+	// Compute RHS terms using the real and complex functions
+	explicit_VOLUME_info();
+	explicit_VOLUME_info_c();
+
+	// Check for equivalence
+	unsigned int pass = 0;
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		unsigned int NvnS = VOLUME->NvnS;
+
+		array_print_d(NvnS,Nvar,VOLUME->RHS,'C');
+		array_print_cmplx(NvnS,Nvar,VOLUME->RHS_c,'C');
+		EXIT_UNSUPPORTED;
+	}
+
+//	set_PrintName_ConvOrders(data->PrintName,&data->TestTRI);
+	code_cleanup();
+
+	test_print2(pass,data->PrintName);
+
+	// Ensure that the RHS terms are not equal to 0.0 as well
 }
 
 static void set_test_convorder_data(struct S_convorder *data, const char *TestName)
@@ -338,10 +411,28 @@ void test_integration_Euler(int nargc, char **argv)
 	 *		Meshes for Euler cases.
 	 *
 	 *	Expected Output:
+	 *
+	 *		Correspondence between RHS terms computed using real and complex functions.
 	 *		Optimal convergence orders in L2 for the solution (P+1).
 	 *
 	 */
 
+	// **************************************************************************************************** //
+	// Real/Complex Equivalence
+	// **************************************************************************************************** //
+	struct S_equivalence_rc *data_rc;
+
+	data_rc = calloc(1 , sizeof *data_rc); // free
+	data_rc->argvNew   = argvNew;
+	data_rc->PrintName = PrintName;
+
+	test_equivalence_rc(nargc,argvNew,"n-Cylinder_HollowSection_CurvedMIXED2D",data_rc);
+
+	free(data_rc);
+
+	// **************************************************************************************************** //
+	// Convergence Order
+	// **************************************************************************************************** //
 	struct S_convorder *data_c;
 
 	data_c = calloc(1 , sizeof *data_c); // free

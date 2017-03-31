@@ -38,6 +38,10 @@
  *		Set up operators to be used throughout the code.
  *
  *	Comments:
+ *
+ *		In future versions of the code, it would be beneficial to cast operators const after initial computation here
+ *		such that they not be modified inadvertently in other functions.
+ *
  *		Different operators are set up depending on which higher-dimensional element dependencies are present as well as
  *		whether adaptivity is desired:
  *			LINE  : Standard operators + additional SF operators if QUADs are present (standard assembly)

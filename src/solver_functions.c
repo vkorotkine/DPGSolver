@@ -19,6 +19,7 @@
 #include "element_functions.h"
 #include "matrix_functions.h"
 #include "sum_factorization.h"
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -165,6 +166,9 @@ void convert_between_rp(const unsigned int Nn, const unsigned int Nrc, const dou
 	 *				differentiation operators in the solver can be applied blockwise. Note that this is not the same
 	 *				ordering as that used for the flux in physical space.
 	 *
+	 *		Certain multiplications can be avoided when computing dFrdW from dFdW based on the sparsity of the flux
+	 *		Jacobian, usage of this knowledge is currently not incorporated.
+	 *
 	 *	Notation:
 	 *		Nn  : (N)umber of (n)odes
 	 *		Nrc : (N)umber of (r)ows/(c)olumns
@@ -212,20 +216,28 @@ void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, 
 	 *		calls.
 	 *
 	 *		For implicit runs, the total runtime is currently dominated by the linear system solve, and this function
-	 *		was thus not optimized. If d BLAS3 calls are to be used or if it is desired to compute the LHS terms using
-	 *		the sum factorized operators, it is required to multiply dFrdW_vI into the ChiS_vI term (as opposed to the
-	 *		derivative terms). However, this results in d times the total number of flops for the computation as the new
-	 *		ChiS_vI terms are then different for each dimension. Note that in the case of a collocated scheme, ChiS_vI
-	 *		== I results in the possibility of directly computing LHS terms without any matrix-matrix products.
+	 *		was thus not optimized. If fewer BLAS3 calls are to be used or if it is desired to compute the LHS terms
+	 *		using the sum factorized operators, it is required to multiply dFrdW_vI into the ChiS_vI term (as opposed to
+	 *		the derivative terms). However, this results in d times the total number of flops for the computation as the
+	 *		new ChiS_vI terms are then different for each dimension. Note that computing the LHS in this manner changes
+	 *		the storage format of LHS terms from Neq*Nvar blocks of size NvnS*NvnS to a single block of size
+	 *		NvnS*(NvnS*Neq*Nvar) which is differently ordered in memory due to it being stored in row-major ordering.
+	 *		This then requires an alternate version of the finalize_LHS function for the VOLUME term (Note that this
+	 *		would not be a problem if the LHS was stored in column-major ordering).
+	 *
+	 *		In the case of a collocated scheme, ChiS_vI == I results in the possibility of directly computing LHS terms
+	 *		without any matrix-matrix products.
 	 *
 	 *		Various options are available for performing the computation:
 	 *			1) Using sum factorized operators for TP and WEDGE elements;
 	 *			2) Using the standard operator but exploiting sparsity;
 	 *			3) Using the standard approach.
 	 *
+	 *		Certain multiplications can be avoided when computing LHS terms based on the sparsity of the flux Jacobian,
+	 *		usage of this knowledge is currently not incorporated.
+	 *
 	 *		If it is only desired to gain an understanding of what this contribution is, it is suffient to look only at
 	 *		the standard approach (i.e. the last condition in the if/else chain).
-	 *
 	 */
 
 	unsigned int d          = DB.d,
@@ -310,33 +322,54 @@ void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, 
 		unsigned int Neq  = DB.Neq,
 		             Nvar = DB.Nvar;
 
+		const double *Ar_vI_ptr[d];
+		for (size_t dim = 0; dim < d; dim++)
+			Ar_vI_ptr[dim] = &Ar_vI[Nvar*Neq*NvnI*dim];
+
 		if (Collocated) {
-			double **D = OPS[0]->D_Weak;
+			if (Eclass == C_TP || Eclass == C_WEDGE) {
+				struct S_OpCSR **D = OPS[0]->D_Weak_sp;
 
-			const double *Ar_vI_ptr[d];
-			for (size_t dim = 0; dim < d; dim++)
-				Ar_vI_ptr[dim] = &Ar_vI[Nvar*Neq*NvnI*dim];
+				memset(RLHS,0.0,NvnS*Nrc * sizeof *RLHS);
+				for (size_t eq = 0; eq < Neq; eq++) {
+				for (size_t var = 0; var < Nvar; var++) {
+					unsigned int IndAr  = (eq*Nvar+var)*NvnI,
+								 IndLHS = (eq*Nvar+var)*NvnS*NvnS;
 
-			memset(RLHS,0.0,NvnS*Nrc * sizeof *RLHS);
-			for (size_t eq = 0; eq < Neq; eq++) {
-			for (size_t var = 0; var < Nvar; var++) {
-				unsigned int IndAr  = (eq*Nvar+var)*NvnI,
-				             IndLHS = (eq*Nvar+var)*NvnS*NvnS;
+					for (size_t dim = 0; dim < d; dim++) {
+						unsigned int *rowIndex = D[dim]->rowIndex,
+						             *columns  = D[dim]->columns;
+						double       *values   = D[dim]->values;
 
-				for (size_t dim = 0; dim < d; dim++) {
-					for (size_t i = 0; i < NvnS; i++) {
-						unsigned int IndD = i*NvnI;
-						for (size_t j = 0; j < NvnI; j++)
-							RLHS[IndLHS+IndD+j] += D[dim][IndD+j]*Ar_vI_ptr[dim][IndAr+j];
+						for (size_t i = 0; i < NvnS; i++) {
+							unsigned int IndD = i*NvnI;
+							for (size_t Indj = *rowIndex, IndjMax = *(++rowIndex); Indj < IndjMax; Indj++) {
+								RLHS[IndLHS+IndD+(*columns)] += (*values++)*Ar_vI_ptr[dim][IndAr+(*columns)];
+								columns++;
+							}
+						}
 					}
-				}
-			}}
+				}}
+			} else {
+				double **D = OPS[0]->D_Weak;
+
+				memset(RLHS,0.0,NvnS*Nrc * sizeof *RLHS);
+				for (size_t eq = 0; eq < Neq; eq++) {
+				for (size_t var = 0; var < Nvar; var++) {
+					unsigned int IndAr  = (eq*Nvar+var)*NvnI,
+								 IndLHS = (eq*Nvar+var)*NvnS*NvnS;
+
+					for (size_t dim = 0; dim < d; dim++) {
+						for (size_t i = 0; i < NvnS; i++) {
+							unsigned int IndD = i*NvnI;
+							for (size_t j = 0; j < NvnI; j++)
+								RLHS[IndLHS+IndD+j] += D[dim][IndD+j]*Ar_vI_ptr[dim][IndAr+j];
+						}
+					}
+				}}
+			}
 		} else {
 			double **D = OPS[0]->D_Weak;
-
-			const double *Ar_vI_ptr[d];
-			for (size_t dim = 0; dim < d; dim++)
-				Ar_vI_ptr[dim] = &Ar_vI[Nvar*Neq*NvnI*dim];
 
 			double *DAr_vI = malloc(NvnS*NvnI * sizeof *DAr_vI); // free
 			for (size_t eq = 0; eq < Neq; eq++) {
@@ -353,14 +386,33 @@ void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, 
 				}
 
 				unsigned int IndLHS = (eq*Nvar+var)*NvnS*NvnS;
-				if (Collocated) {
-					for (size_t i = 0, iMax = NvnS*NvnS; i < iMax; i++)
-						RLHS[IndLHS+i] = DAr_vI[i];
-				} else {
-					mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,0.0,DAr_vI,OPS[0]->ChiS_vI,&RLHS[IndLHS]);
-				}
+				mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,0.0,DAr_vI,OPS[0]->ChiS_vI,&RLHS[IndLHS]);
 			}}
 			free(DAr_vI);
+
+		/*
+			// d BLAS3 calls with increased total flops
+			// Ensure that finalize_LHS for VOLUME terms is modified if this is used.
+			double *ChiS_vI = OPS[0]->ChiS_vI;
+			double *ArChiS_vI = calloc(NvnS*NvnI*Neq*Nvar , sizeof *ArChiS_vI); // free
+			memset(RLHS,0.0,NvnS*Nrc * sizeof *RLHS);
+			for (size_t dim = 0; dim < d; dim++) {
+				double *ArChiS_vI_ptr = ArChiS_vI;
+				for (size_t i = 0; i < NvnI; i++) {
+					for (size_t eq = 0; eq < Neq; eq++) {
+					for (size_t var = 0; var < Nvar; var++) {
+						double *ChiS_vI_ptr = &ChiS_vI[i*NvnS];
+						const double *Ar_vI_ptr2 = &Ar_vI_ptr[dim][(eq*Nvar+var)*NvnI+i];
+						for (size_t j = 0; j < NvnS; j++)
+							*ArChiS_vI_ptr++ = (*ChiS_vI_ptr++)*(*Ar_vI_ptr2);
+					}}
+				}
+
+				mm_d(CBRM,CBNT,CBNT,NvnS,NvnS*Neq*Nvar,NvnI,1.0,1.0,D[dim],ArChiS_vI,RLHS);
+			}
+
+			free(ArChiS_vI);
+		*/
 		}
 	} else {
 		EXIT_UNSUPPORTED;
