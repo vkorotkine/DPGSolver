@@ -160,7 +160,7 @@ void test_convorder(int nargc, char **argvNew, const char *TestName, struct S_co
 		if (Adapt == ADAPT_0)
 			code_cleanup();
 	}}
-	set_PrintName_ConvOrders(data->PrintName,&data->TestTRI);
+	set_PrintName("conv_orders",data->PrintName,&data->TestTRI);
 
 	if (Adapt != ADAPT_0)
 		code_cleanup();

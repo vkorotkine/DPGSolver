@@ -103,14 +103,12 @@ void test_unit_cubature_TP(void)
 
 	pass = 0;
 	if (array_norm_diff_d(N13,rst13_GL,rst,"Inf")       < EPS &&
-		array_norm_diff_d(N13,w13_GL,w,"Inf")           < EPS &&
-		array_norm_diff_ui(Ns13,symms13_GL,symms,"Inf") < EPS &&
-		Nn == N13 && Ns == Ns13)
-			pass = 1, TestDB.Npass++;
+	    array_norm_diff_d(N13,w13_GL,w,"Inf")           < EPS &&
+	    array_norm_diff_ui(Ns13,symms13_GL,symms,"Inf") < EPS &&
+	    Nn == N13 && Ns == Ns13)
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("cubature_TP (d1, P3, GL):                        ");
-	test_print(pass);
+	test_print2(pass,"cubature_TP (d1, P3, GL):");
 
 	free(rst), free(w), free(symms);
 
@@ -119,14 +117,12 @@ void test_unit_cubature_TP(void)
 
 	pass = 0;
 	if (array_norm_diff_d(N13,rst13_GLL,rst,"Inf")       < EPS &&
-		array_norm_diff_d(N13,w13_GLL,w,"Inf")           < EPS &&
-		array_norm_diff_ui(Ns13,symms13_GLL,symms,"Inf") < EPS &&
-		Nn == N13 && Ns == Ns13)
-			pass = 1, TestDB.Npass++;
+	    array_norm_diff_d(N13,w13_GLL,w,"Inf")           < EPS &&
+	    array_norm_diff_ui(Ns13,symms13_GLL,symms,"Inf") < EPS &&
+	    Nn == N13 && Ns == Ns13)
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (d1, P3, GLL):                       ");
-	test_print(pass);
+	test_print2(pass,"            (d1, P3, GLL):");
 
 	free(rst), free(w), free(symms);
 
@@ -175,14 +171,12 @@ void test_unit_cubature_TP(void)
 
 	pass = 0;
 	if (array_norm_diff_d(N14,rst14_GL,rst,"Inf")       < EPS &&
-		array_norm_diff_d(N14,w14_GL,w,"Inf")           < EPS &&
-		array_norm_diff_ui(Ns14,symms14_GL,symms,"Inf") < EPS &&
-		Nn == N14 && Ns == Ns14)
-			pass = 1, TestDB.Npass++;
+	    array_norm_diff_d(N14,w14_GL,w,"Inf")           < EPS &&
+	    array_norm_diff_ui(Ns14,symms14_GL,symms,"Inf") < EPS &&
+	    Nn == N14 && Ns == Ns14)
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (d1, P4, GL):                        ");
-	test_print(pass);
+	test_print2(pass,"            (d1, P4, GL):");
 
 	free(rst), free(w), free(symms);
 
@@ -191,14 +185,12 @@ void test_unit_cubature_TP(void)
 
 	pass = 0;
 	if (array_norm_diff_d(N14,rst14_GLL,rst,"Inf")       < EPS &&
-		array_norm_diff_d(N14,w14_GLL,w,"Inf")           < EPS &&
-		array_norm_diff_ui(Ns14,symms14_GLL,symms,"Inf") < EPS &&
-		Nn == N14 && Ns == Ns14)
-			pass = 1, TestDB.Npass++;
+	    array_norm_diff_d(N14,w14_GLL,w,"Inf")           < EPS &&
+	    array_norm_diff_ui(Ns14,symms14_GLL,symms,"Inf") < EPS &&
+	    Nn == N14 && Ns == Ns14)
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (d1, P4, GLL):                       ");
-	test_print(pass);
+	test_print2(pass,"            (d1, P4, GLL):");
 
 	free(rst), free(w), free(symms);
 
@@ -245,13 +237,11 @@ void test_unit_cubature_TP(void)
 
 	pass = 0;
 	if (array_norm_diff_d(N23,rst23_GL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N23,w23_GL,w,"Inf")     < EPS &&
-		Nn == N23)
-			pass = 1, TestDB.Npass++;
+	    array_norm_diff_d(N23,w23_GL,w,"Inf")     < EPS &&
+	    Nn == N23)
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (d2, P3, GL):                        ");
-	test_print(pass);
+	test_print2(pass,"            (d2, P3, GL):");
 
 	free(rst), free(w), free(symms);
 
@@ -260,13 +250,11 @@ void test_unit_cubature_TP(void)
 
 	pass = 0;
 	if (array_norm_diff_d(N23,rst23_GLL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N23,w23_GLL,w,"Inf")     < EPS &&
-		Nn == N23)
-			pass = 1, TestDB.Npass++;
+	    array_norm_diff_d(N23,w23_GLL,w,"Inf")     < EPS &&
+	    Nn == N23)
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (d2, P3, GLL):                       ");
-	test_print(pass);
+	test_print2(pass,"            (d2, P3, GLL):");
 
 	free(rst), free(w), free(symms);
 
@@ -316,13 +304,11 @@ void test_unit_cubature_TP(void)
 
 	pass = 0;
 	if (array_norm_diff_d(N33,rst33_GL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N33,w33_GL,w,"Inf")     < EPS &&
-		Nn == N33)
-			pass = 1, TestDB.Npass++;
+	    array_norm_diff_d(N33,w33_GL,w,"Inf")     < EPS &&
+	    Nn == N33)
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (d3, P3, GL):                        ");
-	test_print(pass);
+	test_print2(pass,"            (d3, P3, GL):");
 
 	free(rst), free(w), free(symms);
 
@@ -331,13 +317,11 @@ void test_unit_cubature_TP(void)
 
 	pass = 0;
 	if (array_norm_diff_d(N33,rst33_GLL,rst,"Inf") < EPS &&
-		array_norm_diff_d(N33,w33_GLL,w,"Inf")     < EPS &&
-		Nn == N33)
-			pass = 1, TestDB.Npass++;
+	    array_norm_diff_d(N33,w33_GLL,w,"Inf")     < EPS &&
+	    Nn == N33)
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (d3, P3, GLL):                       ");
-	test_print(pass);
+	test_print2(pass,"            (d3, P3, GLL):");
 
 	free(rst), free(w), free(symms);
 }
@@ -419,11 +403,9 @@ void test_unit_cubature_SI(void)
 	if (array_norm_diff_d(Nn23_AO*d,rst23_AO,rst,"Inf")    < EPS &&
 	    array_norm_diff_ui(Ns23_AO,symms23_AO,symms,"Inf") < EPS &&
 	    Nn23_AO == Nn && Ns23_AO == Ns)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("cubature_SI (d2, P3, AO):                        ");
-	test_print(pass);
+	test_print2(pass,"cubature_SI (d2, P3, AO):");
 
 	free(rst);
 	free(symms);
@@ -464,11 +446,9 @@ void test_unit_cubature_SI(void)
 	    array_norm_diff_d(Nn23_WSH,w23_WSH,w,"Inf")          < EPS &&
 	    array_norm_diff_ui(Ns23_WSH,symms23_WSH,symms,"Inf") < EPS &&
 	    Nn23_WSH == Nn && Ns23_WSH == Ns)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (d2, P3, WSH):                       ");
-	test_print(pass);
+	test_print2(pass,"            (d2, P3, WSH):");
 
 	free(rst), free(w);
 	free(symms);
@@ -515,11 +495,9 @@ void test_unit_cubature_SI(void)
 	    array_norm_diff_d(Nn26_WV,w26_WV,w,"Inf")          < EPS &&
 	    array_norm_diff_ui(Ns26_WV,symms26_WV,symms,"Inf") < EPS &&
 	    Nn26_WV == Nn && Ns26_WV == Ns)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (d2, P6, WV):                        ");
-	test_print(pass);
+	test_print2(pass,"            (d2, P6, WV):");
 
 	free(rst), free(w);
 	free(symms);
@@ -581,11 +559,9 @@ void test_unit_cubature_SI(void)
 	if (array_norm_diff_d(Nn33_AO*d,rst33_AO,rst,"Inf")    < EPS &&
 	    array_norm_diff_ui(Ns33_AO,symms33_AO,symms,"Inf") < EPS &&
 	    Nn33_AO == Nn && Ns33_AO == Ns)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (d3, P2, AO):                        ");
-	test_print(pass);
+	test_print2(pass,"            (d3, P2, AO):");
 
 	free(rst);
 	free(symms);
@@ -626,11 +602,9 @@ void test_unit_cubature_SI(void)
 	    array_norm_diff_d(Nn33_WSH,w33_WSH,w,"Inf")          < EPS &&
 	    array_norm_diff_ui(Ns33_WSH,symms33_WSH,symms,"Inf") < EPS &&
 	    Nn33_WSH == Nn && Ns33_WSH == Ns)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (d3, P2, WSH):                       ");
-	test_print(pass);
+	test_print2(pass,"            (d3, P2, WSH):");
 
 	free(rst), free(w);
 	free(symms);
@@ -681,11 +655,9 @@ void test_unit_cubature_SI(void)
 	    array_norm_diff_d(Nn34_WV,w34_WV,w,"Inf")          < EPS    &&
 	    array_norm_diff_ui(Ns34_WV,symms34_WV,symms,"Inf") < EPS    &&
 	    Nn34_WV == Nn && Ns34_WV == Ns)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (d3, P4, WV):                        ");
-	test_print(pass);
+	test_print2(pass,"            (d3, P4, WV):");
 
 	free(rst), free(w);
 	free(symms);
@@ -770,11 +742,9 @@ void test_unit_cubature_PYR(void)
 	if (array_norm_diff_d(Nn2_GL*d,rst2_GL,rst,"Inf")    < EPS &&
 	    array_norm_diff_ui(Ns2_GL,symms2_GL,symms,"Inf") < EPS &&
 	    Nn2_GL == Nn && Ns2_GL == Ns)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("cubature_PYR (P2, GL) :                          ");
-	test_print(pass);
+	test_print2(pass,"cubature_PYR (P2, GL) :");
 
 	free(rst);
 	free(symms);
@@ -823,11 +793,9 @@ void test_unit_cubature_PYR(void)
 	if (array_norm_diff_d(Nn3_GLL*d,rst3_GLL,rst,"Inf")    < EPS &&
 	    array_norm_diff_ui(Ns3_GLL,symms3_GLL,symms,"Inf") < EPS &&
 	    Nn3_GLL == Nn && Ns3_GLL == Ns)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("             (P3, GLL):                          ");
-	test_print(pass);
+	test_print2(pass,"             (P3, GLL):");
 
 	free(rst);
 	free(symms);
@@ -868,11 +836,9 @@ void test_unit_cubature_PYR(void)
 	    array_norm_diff_d(Nn4_WV,w4_WV,w,"Inf")          < EPS    &&
 	    array_norm_diff_ui(Ns4_WV,symms4_WV,symms,"Inf") < EPS    &&
 	    Nn4_WV == Nn && Ns4_WV == Ns)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("             (P4, WV) :                          ");
-	test_print(pass);
+	test_print2(pass,"             (P4, WV) :");
 
 	free(rst);
 	free(w);

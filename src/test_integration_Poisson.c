@@ -166,13 +166,12 @@ static void test_linearization(int nargc, char **argvNew, const unsigned int Nre
 	if (PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf")     < 1e2*EPS &&
 	    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf") < 1e2*EPS &&
 	    Symmetric)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 	else
 		printf("%e %e %d\n",PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A,"Inf"),
 		                    PetscMatAIJ_norm_diff_d(DB.dof,A_cs,A_csc,"Inf"),Symmetric);
 
-	printf("%s",TestName);
-	test_print(pass);
+	test_print2(pass,TestName);
 
 	finalize_ksp(&A,&b,&x,2);
 	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
@@ -217,22 +216,6 @@ static void set_test_convorder_data(struct S_convorder *data, const char *TestNa
 	} else {
 		EXIT_UNSUPPORTED;
 	}
-}
-
-void set_PrintName_ConvOrders(char *PrintName, bool *TestTRI)
-{
-	if (!(*TestTRI)) {
-		*TestTRI = 1;
-		strcpy(PrintName,"Convergence Orders (");
-	} else {
-		strcpy(PrintName,"                   (");
-	}
-
-	strcat(PrintName,DB.PDE);          strcat(PrintName,", ");
-	if (!strstr(DB.PDESpecifier,"NONE")) {
-		strcat(PrintName,DB.PDESpecifier); strcat(PrintName,", ");
-	}
-	strcat(PrintName,DB.MeshType);     strcat(PrintName,") : ");
 }
 
 static void test_convorder(int nargc, char **argvNew, const char *TestName, struct S_convorder *data)
@@ -320,12 +303,12 @@ static void test_convorder(int nargc, char **argvNew, const char *TestName, stru
 		}
 
 		if (Adapt == ADAPT_0) {
-			set_PrintName_ConvOrders(data->PrintName,&data->TestTRI);
+			set_PrintName("conv_orders",data->PrintName,&data->TestTRI);
 			code_cleanup();
 		}
 	}}
 	if (Adapt != ADAPT_0) {
-		set_PrintName_ConvOrders(data->PrintName,&data->TestTRI);
+		set_PrintName("conv_orders",data->PrintName,&data->TestTRI);
 		code_cleanup();
 	}
 	free(mesh_quality);

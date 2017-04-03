@@ -110,18 +110,21 @@ static void test_basis_orthogonality(struct S_orthogonality *data, const unsigne
 
 	if (no_last_entry < 2) {
 		if (array_norm_diff_d(pow(Nbf,2)-no_last_entry,M,I,"Inf") < EPS*1e3)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-		//     0         10        20        30        40        50
-		printf("          orthogonality - %s (d%d, P%d):          ",PrntName,d,P);
-		test_print(pass);
+		char *PrintName = malloc(STRLEN_MAX * sizeof *PrintName); // free
+
+		sprintf(PrintName,"          orthogonality - %s (d%d, P%d):",PrntName,d,P);
+		test_print2(pass,PrintName);
+
+		free(PrintName);
 	} else if (no_last_entry < 4) {
 		if (no_last_entry == 3) {
 			array_print_d(Nbf,Nbf,M,'R');
 			array_print_d(Nbf,Nbf,I,'R');
 		}
 	} else {
-		printf("Error: Unsupported.\n"), EXIT_MSG;
+		EXIT_UNSUPPORTED;
 	}
 
 	free(rst);
@@ -275,11 +278,9 @@ static void test_unit_basis_TP_modal(void)
 
 	pass = 0;
 	if (array_norm_diff_d(Nn*(P+1),ChiRef13_code,ChiRef13_test,"Inf") < EPS*10)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("basis_TP (d1, P3):                               ");
-	test_print(pass);
+	test_print2(pass,"basis_TP (d1, P3):");
 
 	free(rst);
 	free(symms);
@@ -313,11 +314,9 @@ static void test_unit_basis_TP_modal(void)
 
 	pass = 0;
 	if (array_norm_diff_d(Nn*pow(P+1,dE),ChiRef22_code,ChiRef22_test,"Inf") < EPS*10)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("         (d2, P2):                               ");
-	test_print(pass);
+	test_print2(pass,"         (d2, P2):");
 
 	free(rst);
 	free(symms);
@@ -351,11 +350,9 @@ static void test_unit_basis_TP_modal(void)
 
 	pass = 0;
 	if (array_norm_diff_d(Nn*pow(P+1,dE),ChiRef31_code,ChiRef31_test,"Inf") < EPS*10)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("         (d3, P1):                               ");
-	test_print(pass);
+	test_print2(pass,"         (d3, P1):");
 
 	free(rst);
 	free(symms);
@@ -716,12 +713,10 @@ static void test_unit_basis_SI_modal(void)
 
 	pass = 0;
 	if (array_norm_diff_d(Nn*Nbf,ChiRef22_code,ChiRef22_test,"Inf") < EPS*10)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
 
-	//     0         10        20        30        40        50
-	printf("basis_SI (d2, P2):                               ");
-	test_print(pass);
+	test_print2(pass,"basis_SI (d2, P2):");
 
 	free(rst);
 	free(symms);
@@ -740,12 +735,9 @@ static void test_unit_basis_SI_modal(void)
 
 	pass = 0;
 	if (array_norm_diff_d(Nn*Nbf,ChiRef23_code,ChiRef23_test,"Inf") < EPS*100)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-
-	//     0         10        20        30        40        50
-	printf("         (d2, P3):                               ");
-	test_print(pass);
+	test_print2(pass,"         (d2, P3):");
 
 	free(rst);
 	free(symms);
@@ -779,12 +771,10 @@ static void test_unit_basis_SI_modal(void)
 
 	pass = 0;
 	if (array_norm_diff_d(Nn*Nbf,ChiRef32_code,ChiRef32_test,"Inf") < EPS*10)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
 
-	//     0         10        20        30        40        50
-	printf("         (d3, P2):                               ");
-	test_print(pass);
+	test_print2(pass,"         (d3, P2):");
 
 	free(rst);
 	free(symms);
@@ -1043,11 +1033,9 @@ static void test_unit_basis_PYR_modal(void)
 
 	pass = 0;
 	if (array_norm_diff_d(Nn*Nbf,ChiRef32_code,ChiRef32_test,"Inf") < EPS*10)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("basis_PYR (P2):                                  ");
-	test_print(pass);
+	test_print2(pass,"basis_PYR (P2):");
 
 	free(rst);
 	free(symms);
@@ -1244,6 +1232,8 @@ static void test_unit_basis_TP_Bezier(void)
 {
 	unsigned int pass;
 
+	char *PrintName = malloc(STRLEN_MAX * sizeof *PrintName); // free
+
 	/*
 	 *	basis_TP_Bezier
 	 *
@@ -1275,7 +1265,7 @@ static void test_unit_basis_TP_Bezier(void)
 			P = 2;
 			basis_test = basis_TP32_Bezier;
 		} else {
-			printf("Error: Unsupported.\n"), EXIT_BASIC;
+			EXIT_UNSUPPORTED;
 		}
 		cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GLL"); // free
 		ChiBez_code = basis_TP_Bezier(P,rst,Nn,&Nbf,dE);
@@ -1283,15 +1273,14 @@ static void test_unit_basis_TP_Bezier(void)
 
 		pass = 0;
 		if (array_norm_diff_d(Nn*pow(P+1,dE),ChiBez_code,ChiBez_test,"Inf") < EPS*10)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-		if (dE == 1) {
-			//     0         10        20        30        40        50
-			printf("basis_TP_Bezier (d%d, P%d):                        ",dE,P);
-		} else {
-			printf("                (d%d, P%d):                        ",dE,P);
-		}
-		test_print(pass);
+		if (dE == 1)
+			sprintf(PrintName,"basis_TP_Bezier (d%d, P%d):",dE,P);
+		else
+			sprintf(PrintName,"                (d%d, P%d):",dE,P);
+
+		test_print2(pass,PrintName);
 
 		free(rst);
 		free(symms);
@@ -1344,15 +1333,14 @@ static void test_unit_basis_TP_Bezier(void)
 
 		pass = 0;
 		if (array_norm_diff_d(Nn,RowSum,ones,"Inf") < EPS*10 && Positive)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
 		if (dE == 1) {
-			//     0         10        20        30        40        50
-			printf("basis_TP_Bezier partition of unity (d%d, P%d):     ",dE,P);
+			sprintf(PrintName,"basis_TP_Bezier partition of unity (d%d, P%d):",dE,P);
 		} else {
-			printf("                                   (d%d, P%d):     ",dE,P);
+			sprintf(PrintName,"                                   (d%d, P%d):",dE,P);
 		}
-		test_print(pass);
+		test_print2(pass,PrintName);
 
 		free(rst);
 		free(symms);
@@ -1360,6 +1348,8 @@ static void test_unit_basis_TP_Bezier(void)
 		free(RowSum);
 		free(ones);
 	}
+
+	free(PrintName);
 }
 
 static void get_BCoord_Exponents_test(const unsigned int P, const unsigned int d, unsigned int *NExp,
@@ -1405,7 +1395,7 @@ static void get_BCoord_Exponents_test(const unsigned int P, const unsigned int d
 			Exp[Ind*(d+1)+0] = 5; Exp[Ind*(d+1)+1] = 1; Exp[Ind*(d+1)+2] = 0; Nperms[Ind++] = 6;
 			Exp[Ind*(d+1)+0] = 6; Exp[Ind*(d+1)+1] = 0; Exp[Ind*(d+1)+2] = 0; Nperms[Ind++] = 3;
 		} else {
-			printf("Error: Unsupported.\n"), EXIT_BASIC;
+			EXIT_UNSUPPORTED;
 		}
 	} else if (d == 3) {
 		if (P == 0) {
@@ -1443,10 +1433,10 @@ static void get_BCoord_Exponents_test(const unsigned int P, const unsigned int d
 			Exp[Ind*(d+1)+0] = 5; Exp[Ind*(d+1)+1] = 1; Exp[Ind*(d+1)+2] = 0; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 12;
 			Exp[Ind*(d+1)+0] = 6; Exp[Ind*(d+1)+1] = 0; Exp[Ind*(d+1)+2] = 0; Exp[Ind*(d+1)+3] = 0; Nperms[Ind++] = 4;
 		} else {
-			printf("Error: Unsupported.\n"), EXIT_BASIC;
+			EXIT_UNSUPPORTED;
 		}
 	} else {
-		printf("Error: Unsupported.\n"), EXIT_BASIC;
+		EXIT_UNSUPPORTED;
 	}
 
 	*NExp         = Ind;
@@ -1559,7 +1549,7 @@ static double *basis_SI2_Bezier(const unsigned int P, const double *rst, const u
 			free(Nperms);
 			free(Exponents);
 		} else {
-			printf("Error: Unsupported.\n"), EXIT_BASIC;
+			EXIT_UNSUPPORTED;
 		}
 	}
 
@@ -1593,6 +1583,7 @@ static void test_unit_basis_SI_Bezier(void)
 {
 	unsigned int pass;
 
+	char *PrintName = malloc(STRLEN_MAX * sizeof *PrintName); // free
 	/*
 	 *	barycentric_exponents_Bezier
 	 *
@@ -1611,7 +1602,7 @@ static void test_unit_basis_SI_Bezier(void)
 		} else if (dE == 3) {
 			PMin = 0; PMax = 6; // First 24-symmetry occurs for P = 6
 		} else {
-			printf("Error: Unsupported.\n"), EXIT_BASIC;
+			EXIT_UNSUPPORTED;
 		}
 
 		pass = 1;
@@ -1638,16 +1629,12 @@ static void test_unit_basis_SI_Bezier(void)
 			free(BCoord_Exponents);
 			free(BCoord_Exponents_test);
 		}
-		if (pass)
-			TestDB.Npass++;
 
-		if (dE == 2) {
-			//     0         10        20        30        40        50
-			printf("BCoord_Exp_Bezier (d%d, P = [%d,%d]):               ",dE,PMin,PMax);
-		} else if (dE == 3) {
-			printf("                  (d%d, P = [%d,%d]):               ",dE,PMin,PMax);
-		}
-		test_print(pass);
+		if (dE == 2)
+			sprintf(PrintName,"BCoord_Exp_Bezier (d%d, P = [%d,%d]):",dE,PMin,PMax);
+		else if (dE == 3)
+			sprintf(PrintName,"                  (d%d, P = [%d,%d]):",dE,PMin,PMax);
+		test_print2(pass,PrintName);
 	}
 
 	/*
@@ -1680,7 +1667,7 @@ static void test_unit_basis_SI_Bezier(void)
 			basis_test = basis_SI3_Bezier;
 			select_functions_cubature(&cubature,TET);
 		} else {
-			printf("Error: Unsupported.\n"), EXIT_BASIC;
+			EXIT_UNSUPPORTED;
 		}
 
 		Prst = 4;
@@ -1697,16 +1684,13 @@ static void test_unit_basis_SI_Bezier(void)
 			free(ChiBez_test);
 			free(ChiBez_code);
 		}
-		if (pass)
-			TestDB.Npass++;
 
 		if (dE == 2) {
-			//     0         10        20        30        40        50
-			printf("basis_SI_Bezier (d%d, P = [%d,%d]):                 ",dE,PMin,PMax);
+			sprintf(PrintName,"basis_SI_Bezier (d%d, P = [%d,%d]):",dE,PMin,PMax);
 		} else {
-			printf("                (d%d, P = [%d,%d]):                 ",dE,PMin,PMax);
+			sprintf(PrintName,"                (d%d, P = [%d,%d]):",dE,PMin,PMax);
 		}
-		test_print(pass);
+		test_print2(pass,PrintName);
 
 		free(rst);
 		free(symms);
@@ -1741,7 +1725,7 @@ static void test_unit_basis_SI_Bezier(void)
 			PMin = 0; PMax = 8;
 			select_functions_cubature(&cubature,TET);
 		} else {
-			printf("Error: Unsupported.\n"), EXIT_BASIC;
+			EXIT_UNSUPPORTED;
 		}
 
 		cubature(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"AO"); // free
@@ -1777,18 +1761,17 @@ static void test_unit_basis_SI_Bezier(void)
 			free(RowSum);
 			free(ones);
 		}
-		if (pass)
-			TestDB.Npass++;
 
 		if (dE == 2) {
-			//     0         10        20        30        40        50
-			printf("basis_SI_Bezier part. of unity (d%d, P = [%d,%d]):  ",dE,PMin,PMax);
+			sprintf(PrintName,"basis_SI_Bezier part. of unity (d%d, P = [%d,%d]):",dE,PMin,PMax);
 		} else {
-			printf("                               (d%d, P = [%d,%d]):  ",dE,PMin,PMax);
+			sprintf(PrintName,"                               (d%d, P = [%d,%d]):",dE,PMin,PMax);
 		}
-		test_print(pass);
+		test_print2(pass,PrintName);
 
 		free(rst);
 		free(symms);
 	}
+
+	free(PrintName);
 }

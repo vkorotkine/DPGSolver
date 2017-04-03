@@ -64,11 +64,9 @@ void test_unit_fluxes_inviscid(void)
 
 	pass = 0;
 	if (array_norm_diff_d(Nn*Neq*d*Nel,F,F1,"Inf") < 10*EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("flux_inviscid (d = 1):                           ");
-	test_print(pass);
+	test_print2(pass,"flux_inviscid (d = 1):");
 
 	free(F);
 
@@ -106,11 +104,9 @@ void test_unit_fluxes_inviscid(void)
 
 	pass = 0;
 	if (array_norm_diff_d(Nn*Neq*d*Nel,F,F2,"Inf") < 10*EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("              (d = 2):                           ");
-	test_print(pass);
+	test_print2(pass,"              (d = 2):");
 
 	free(F);
 
@@ -164,11 +160,9 @@ void test_unit_fluxes_inviscid(void)
 
 	pass = 0;
 	if (array_norm_diff_d(Nn*Neq*d*Nel,F,F3,"Inf") < 10*EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("              (d = 3):                           ");
-	test_print(pass);
+	test_print2(pass,"              (d = 3):");
 
 	free(F);
 }

@@ -56,6 +56,8 @@ static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, co
 
 	unsigned int pass = 0, refType, NrefTypes;
 
+	char *PrintName = malloc(STRLEN_MAX * sizeof *PrintName); // free
+
 	if (strstr(EName,"TET"))
 		NrefTypes = 3;
 	else
@@ -72,15 +74,13 @@ static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, co
 
 		run_test(&pass,"FullREFINE");
 		if (strstr(EName,"TRI"))
-			printf("update_h (%s%d FullREFINE):                   ",EName,refType);
+			sprintf(PrintName,"update_h (%s%d FullREFINE):",EName,refType);
 		else
-			printf("         (%s%d FullREFINE):                   ",EName,refType);
-		test_print(pass);
+			sprintf(PrintName,"         (%s%d FullREFINE):",EName,refType);
+		test_print2(pass,PrintName);
 
-		//     0         10        20        30        40        50
 		run_test(&pass,"FullCOARSE");
-		printf("         (        FullCOARSE):                   ");
-		test_print(pass);
+		test_print2(pass,"         (        FullCOARSE):");
 
 		mark_VOLUMEs(HREFINE,Lmts[0]);
 		mark_VOLUMEs(HCOARSE,Lmts[1]);
@@ -90,20 +90,18 @@ static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, co
 		mark_VOLUMEs(HREFINE,Lmts[2]);
 		mark_VOLUMEs(HCOARSE,Lmts[3]);
 
-		//     0         10        20        30        40        50
 		run_test(&pass,"Mixed");
-		printf("         (        Mixed):                        ");
-		test_print(pass);
+		test_print2(pass,"         (        Mixed):");
 
 		pass = 1;
 		check_Jacobians(&pass);
-		//     0         10        20        30        40        50
-		printf("         (        Jacobians):                    ");
-		test_print(pass);
+		test_print2(pass,"         (        Jacobians):");
 
 		code_cleanup();
 	}
 	DB.TETrefineType = TETrefineType;
+
+	free(PrintName);
 }
 
 void test_integration_update_h(int nargc, char **argv)
@@ -246,7 +244,7 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *L
 				case 0: if (!(XYZ_cent[dim] < Lmts->XYZ[dim])) update = 0; break;
 				case 1: if (!(XYZ_cent[dim] > Lmts->XYZ[dim])) update = 0; break;
 				default:
-					printf("Error: Unsupported index in mark_VOLUMEs for type (a).\n"), EXIT_MSG;
+					EXIT_UNSUPPORTED;
 					break;
 				}
 			}
@@ -258,7 +256,7 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *L
 				case 0: if (XYZ_cent[dim] < Lmts->XYZ[dim]) update = 1; break;
 				case 1: if (XYZ_cent[dim] > Lmts->XYZ[dim]) update = 1; break;
 				default:
-					printf("Error: Unsupported index in mark_VOLUMEs for type (o).\n"), EXIT_MSG;
+					EXIT_UNSUPPORTED;
 					break;
 				}
 			}
@@ -275,12 +273,12 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *L
 			case 0: if (!(XYZ_cent_sum < Lmts_sum)) update = 0; break;
 			case 1: if (!(XYZ_cent_sum > Lmts_sum)) update = 0; break;
 			default:
-				printf("Error: Unsupported index in mark_VOLUMEs for type (d).\n"), EXIT_MSG;
+				EXIT_UNSUPPORTED;
 				break;
 			}
 			break;
 		default:
-			printf("Error: Unsupported type in mark_VOLUMEs.\n"), EXIT_MSG;
+			EXIT_UNSUPPORTED;
 			break;
 		}
 
@@ -409,9 +407,6 @@ static void check_correspondence(unsigned int *pass)
 		free(XYZ_fSOutIn);
 	}
 	free(OPS);
-
-	if (*pass)
-		TestDB.Npass++;
 }
 
 static void check_Jacobians(unsigned int *pass)
@@ -440,9 +435,6 @@ static void check_Jacobians(unsigned int *pass)
 			}
 		}
 	}
-
-	if (*pass)
-		TestDB.Npass++;
 }
 
 static void run_test(unsigned int *pass, const char *test_type)

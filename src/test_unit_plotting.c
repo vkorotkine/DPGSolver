@@ -90,11 +90,9 @@ void test_unit_plotting(void)
 	    array_norm_diff_ui(NE13_TP*8,connect13_TP,connect,"Inf") < EPS &&
 	    array_norm_diff_ui(NE13_TP,types13_TP,types,"Inf")       < EPS &&
 	    Nn == Nn13_TP && NE == NE13_TP)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("plotting_element_info (d1, P3, TP   ):           ");
-	test_print(pass);
+	test_print2(pass,"plotting_element_info (d1, P3, TP   ):");
 
 	free(rst);
 	free(connect);
@@ -181,11 +179,9 @@ void test_unit_plotting(void)
 	    array_norm_diff_ui(NE23_TP,types23_TP,types,"Inf")             < EPS &&
 	    array_norm_diff_ui(Ne23_TP*(P+1),connectE23_TP,connectE,"Inf") < EPS &&
 	    Nn == Nn23_TP && NE == NE23_TP)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                      (d2, P3, TP   ):           ");
-	test_print(pass);
+	test_print2(pass,"                      (d2, P3, TP   ):");
 
 	free(rst);
 	free(connect);
@@ -285,11 +281,9 @@ void test_unit_plotting(void)
 	    array_norm_diff_ui(NE33_TP,types33_TP,types,"Inf")             < EPS &&
 	    array_norm_diff_ui(Ne33_TP*(P+1),connectE33_TP,connectE,"Inf") < EPS &&
 	    Nn == Nn33_TP && NE == NE33_TP)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                      (d3, P3, TP   ):           ");
-	test_print(pass);
+	test_print2(pass,"                      (d3, P3, TP   ):");
 
 	free(rst);
 	free(connect);
@@ -382,11 +376,9 @@ void test_unit_plotting(void)
 	    array_norm_diff_ui(NE23_SI,types23_SI,types,"Inf")             < EPS &&
 	    array_norm_diff_ui(Ne23_SI*(P+1),connectE23_SI,connectE,"Inf") < EPS &&
 	    Nn == Nn23_SI && NE == NE23_SI)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                      (d2, P3, SI   ):           ");
-	test_print(pass);
+	test_print2(pass,"                      (d2, P3, SI   ):");
 
 	free(rst);
 	free(connect);
@@ -496,11 +488,9 @@ void test_unit_plotting(void)
 	    array_norm_diff_ui(NE33_SI,types33_SI,types,"Inf")             < EPS &&
 	    array_norm_diff_ui(Ne33_SI*(P+1),connectE33_SI,connectE,"Inf") < EPS &&
 	    Nn == Nn33_SI && NE == NE33_SI)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                      (d3, P3, SI   ):           ");
-	test_print(pass);
+	test_print2(pass,"                      (d3, P3, SI   ):");
 
 	free(rst);
 	free(connect);
@@ -639,11 +629,9 @@ void test_unit_plotting(void)
 	    array_norm_diff_ui(NE3_WEDGE,types3_WEDGE,types,"Inf")             < EPS &&
 	    array_norm_diff_ui(Ne3_WEDGE*(P+1),connectE3_WEDGE,connectE,"Inf") < EPS &&
 	    Nn == Nn3_WEDGE && NE == NE3_WEDGE)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                      (    P3, WEDGE):           ");
-	test_print(pass);
+	test_print2(pass,"                      (    P3, WEDGE):");
 
 	free(rst);
 	free(connect);
@@ -786,11 +774,9 @@ void test_unit_plotting(void)
 	    array_norm_diff_ui(NE3_PYR,types3_PYR,types,"Inf")             < EPS &&
 	    array_norm_diff_ui(Ne3_PYR*(P+1),connectE3_PYR,connectE,"Inf") < EPS &&
 	    Nn == Nn3_PYR && NE == NE3_PYR)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                      (    P3, PYR  ):           ");
-	test_print(pass);
+	test_print2(pass,"                      (    P3, PYR  ):");
 
 	free(rst);
 	free(connect);

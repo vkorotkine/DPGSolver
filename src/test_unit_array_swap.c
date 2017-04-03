@@ -74,11 +74,9 @@ void test_unit_array_swap(void)
 	pass = 0;
 	if (array_norm_diff_ui(9,A_ui,A_ui11,"Inf") < EPS &&
 	    array_norm_diff_ui(9,B_ui,B_ui11,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("array_swap_ui (1,1):                             ");
-	test_print(pass);
+	test_print2(pass,"array_swap_ui (1,1):");
 
 	// NIn = 9, step = 1
 	for (i = 0; i < 9; i++) {
@@ -91,11 +89,9 @@ void test_unit_array_swap(void)
 	pass = 0;
 	if (array_norm_diff_ui(9,A_ui,A_ui91,"Inf") < EPS &&
 	    array_norm_diff_ui(9,B_ui,B_ui91,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("              (9,1):                             ");
-	test_print(pass);
+	test_print2(pass,"              (9,1):");
 
 	// NIn = 9, step = 3
 	for (i = 0; i < 9; i++) {
@@ -108,11 +104,9 @@ void test_unit_array_swap(void)
 	pass = 0;
 	if (array_norm_diff_ui(9,A_ui,A_ui33,"Inf") < EPS &&
 	    array_norm_diff_ui(9,B_ui,B_ui33,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("              (3,3):                             ");
-	test_print(pass);
+	test_print2(pass,"              (3,3):");
 
 	/*
 	 *	array_swap_d:
@@ -146,11 +140,9 @@ void test_unit_array_swap(void)
 	pass = 0;
 	if (array_norm_diff_d(9,A_d,A_d11,"Inf") < EPS &&
 	    array_norm_diff_d(9,B_d,B_d11,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("array_swap_d (1,1):                              ");
-	test_print(pass);
+	test_print2(pass,"array_swap_d (1,1):");
 
 	// NIn = 9, step = 1
 	for (i = 0; i < 9; i++) {
@@ -163,11 +155,9 @@ void test_unit_array_swap(void)
 	pass = 0;
 	if (array_norm_diff_d(9,A_d,A_d91,"Inf") < EPS &&
 	    array_norm_diff_d(9,B_d,B_d91,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("             (9,1):                              ");
-	test_print(pass);
+	test_print2(pass,"             (9,1):");
 
 	// NIn = 9, step = 3
 	for (i = 0; i < 9; i++) {
@@ -180,9 +170,7 @@ void test_unit_array_swap(void)
 	pass = 0;
 	if (array_norm_diff_d(9,A_d,A_d33,"Inf") < EPS &&
 	    array_norm_diff_d(9,B_d,B_d33,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("             (3,3):                              ");
-	test_print(pass);
+	test_print2(pass,"             (3,3):");
 }

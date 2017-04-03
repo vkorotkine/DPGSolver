@@ -9,7 +9,3 @@ change tab spaces to 8 and increase max lines to check alignment of the code und
 
 put src code into logical subfolders
 check that all includes in the headers are also present in the associated .c files (for correct dependency generation)
-
-
-formatting left to be fixed:
-many of the test routines have improper tabbing when checking the pass condition.

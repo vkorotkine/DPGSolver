@@ -84,7 +84,7 @@ static unsigned int compare_jacobian_flux_inviscid(const unsigned int Nn, const 
 	compute_dFdW_cs(Neq,Nn,Nel,d,W,dFdW_cs);
 
 	if (array_norm_diff_d(NnTotal*d*Nvar*Neq,dFdW,dFdW_cs,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
 	free(dFdW);
 	free(dFdW_cs);
@@ -123,7 +123,7 @@ static void compute_dnFdW_cs(const unsigned int Nn, const unsigned int Nel, cons
 		else if (strstr(nFType,"Roe"))
 			flux_Roe_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
 		else
-			printf("Error: Unsupported nFType.\n"), EXIT_MSG;
+			EXIT_UNSUPPORTED;
 
 		for (eq = 0; eq < Neq; eq++) {
 			IndnF    = eq*NnTotal;
@@ -143,7 +143,7 @@ static void compute_dnFdW_cs(const unsigned int Nn, const unsigned int Nel, cons
 		else if (strstr(nFType,"Roe"))
 			flux_Roe_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
 		else
-			printf("Error: Unsupported nFType.\n"), EXIT_MSG;
+			EXIT_UNSUPPORTED;
 
 		for (eq = 0; eq < Neq; eq++) {
 			IndnF    = eq*NnTotal;
@@ -167,7 +167,7 @@ static unsigned int compare_jacobian_flux_Num(const unsigned int Nn, const unsig
 	double       *W_ptr, *WL, *WR, *dnFdWL, *dnFdWR, *dnFdWL_cs, *dnFdWR_cs;
 
 	if (Nel != 2)
-		printf("Error: Unsupported Nel.\n"), EXIT_MSG;
+		EXIT_UNSUPPORTED;
 
 	Nvar = Neq;
 
@@ -194,7 +194,7 @@ static unsigned int compare_jacobian_flux_Num(const unsigned int Nn, const unsig
 		jacobian_flux_Roe(Nn,1,WL,WR,dnFdWL,nL,d,Neq,'L');
 		jacobian_flux_Roe(Nn,1,WL,WR,dnFdWR,nL,d,Neq,'R');
 	} else {
-		printf("Error: Unsupported nFType.\n"), EXIT_MSG;
+		EXIT_UNSUPPORTED;
 	}
 	compute_dnFdW_cs(Nn,1,d,Neq,WL,WR,dnFdWL_cs,dnFdWR_cs,nL,nFType);
 
@@ -209,7 +209,7 @@ static unsigned int compare_jacobian_flux_Num(const unsigned int Nn, const unsig
 		if (CheckedAllLF &&
 		    array_norm_diff_d(Nn*Nvar*Neq,dnFdWL,dnFdWL_cs,"Inf") < EPS &&
 		    array_norm_diff_d(Nn*Nvar*Neq,dnFdWR,dnFdWR_cs,"Inf") < EPS)
-				pass = 1, TestDB.Npass++;
+				pass = 1;
 	} else if (strstr(nFType,"Roe")) {
 		CheckedAllRoe = 1;
 		for (i = 0; i < 4; i++) {
@@ -221,11 +221,11 @@ static unsigned int compare_jacobian_flux_Num(const unsigned int Nn, const unsig
 		if (CheckedAllRoe &&
 		    array_norm_diff_d(Nn*Nvar*Neq,dnFdWL,dnFdWL_cs,"Inf") < EPS &&
 		    array_norm_diff_d(Nn*Nvar*Neq,dnFdWR,dnFdWR_cs,"Inf") < EPS)
-				pass = 1, TestDB.Npass++;
+				pass = 1;
 	} else {
 		if (array_norm_diff_d(Nn*Nvar*Neq,dnFdWL,dnFdWL_cs,"Inf") < EPS &&
 		    array_norm_diff_d(Nn*Nvar*Neq,dnFdWR,dnFdWR_cs,"Inf") < EPS)
-				pass = 1, TestDB.Npass++;
+				pass = 1;
 	}
 
 	free(WL);
@@ -241,6 +241,8 @@ static unsigned int compare_jacobian_flux_Num(const unsigned int Nn, const unsig
 void test_unit_jacobian_fluxes_inviscid(void)
 {
 	unsigned int pass;
+
+	char *PrintName = malloc(STRLEN_MAX * sizeof *PrintName); // free
 
 	/*
 	 *	Input:
@@ -262,23 +264,27 @@ void test_unit_jacobian_fluxes_inviscid(void)
 
 		// flux_inviscid
 		pass = compare_jacobian_flux_inviscid(Nn,Nel,d,Neq,W);
-		if (d == 1) printf("jacobian_flux_inviscid (d = %d):                  ",d);
-		else        printf("         flux_inviscid (d = %d):                  ",d);
-		test_print(pass);
+		if (d == 1)
+			sprintf(PrintName,"jacobian_flux_inviscid (d = %d):",d);
+		else
+			sprintf(PrintName,"         flux_inviscid (d = %d):",d);
+		test_print2(pass,PrintName);
 
 
 		// flux_LF
 		pass = compare_jacobian_flux_Num(Nn,Nel,d,Neq,W,nL,"LF");
-		printf("         flux_LF              :                  ");
-		test_print(pass);
+		sprintf(PrintName,"         flux_LF              :");
+		test_print2(pass,PrintName);
 
 
 		// flux_Roe
 		pass = compare_jacobian_flux_Num(Nn,Nel,d,Neq,W,nL,"Roe");
-		printf("         flux_Roe             :                  ");
-		test_print(pass);
+		sprintf(PrintName,"         flux_Roe             :");
+		test_print2(pass,PrintName);
 
 		free(W);
 		free(nL);
 	}
+
+	free(PrintName);
 }

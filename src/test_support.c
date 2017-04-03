@@ -7,27 +7,6 @@
 
 #include "Test.h"
 
-void test_print(const unsigned int pass)
-{
-	/*
-	 *	Purpose:
-	 *		Print pass/failure message for testing functions.
-	 *
-	 *	Comments:
-	 *
-	 *	Notation:
-	 *
-	 *	References:
-	 */
-
-	TestDB.Ntest++;
-
-	if (pass)
-		printf("Pass\n");
-	else
-		printf("Fail --- Fail --- Fail\n");
-}
-
 void test_print2(const unsigned int pass, const char *string)
 {
 	/*
@@ -43,9 +22,11 @@ void test_print2(const unsigned int pass, const char *string)
 
 	TestDB.Ntest++;
 
-	printf("%-60s",string);
-	if (pass)
+	printf("%-80s",string);
+	if (pass) {
+		TestDB.Npass++;
 		printf("Pass\n");
-	else
+	} else {
 		printf("Fail --- Fail --- Fail\n");
+	}
 }

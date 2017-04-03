@@ -48,6 +48,8 @@ void test_unit_equivalence_real_complex(void)
 {
 	unsigned int pass;
 
+	char *PrintName = malloc(STRLEN_MAX * sizeof *PrintName); // free
+
 	/*
 	 *	Input:
 	 *		Real functions input.
@@ -67,11 +69,13 @@ void test_unit_equivalence_real_complex(void)
 	DB.PDE          = calloc(STRLEN_MAX , sizeof *(DB.PDE));          // free
 	DB.PDESpecifier = calloc(STRLEN_MAX , sizeof *(DB.PDESpecifier)); // free
 	DB.Geometry     = calloc(STRLEN_MAX , sizeof *(DB.Geometry));     // free
+	DB.MeshType     = calloc(STRLEN_MAX , sizeof *(DB.MeshType));     // free
 
 	strcpy(DB.TestCase,"SupersonicVortex");
 	strcpy(DB.PDE,"Euler");
 	strcpy(DB.PDESpecifier,"Internal");
 	strcpy(DB.Geometry,"n-Cylinder_HollowSection");
+	strcpy(DB.MeshType,"Curved");
 
 	initialize_test_case_parameters();
 
@@ -84,36 +88,38 @@ void test_unit_equivalence_real_complex(void)
 
 		// flux_inviscid
 		pass = compare_flux_inviscid(Nn,Nel,d,Neq,W);
-		if (d == 1) printf("equivalence_flux_inviscid     (d = %d):           ",d);
-		else        printf("            flux_inviscid     (d = %d):           ",d);
-		test_print(pass);
+		if (d == 1)
+			sprintf(PrintName,"equivalence_flux_inviscid     (d = %d):",d);
+		else
+			sprintf(PrintName,"            flux_inviscid     (d = %d):",d);
+		test_print2(pass,PrintName);
 
 		// flux_LF
 		pass = compare_flux_Num(Nn,Nel,d,Neq,W,nL,"LF");
-		printf("            flux_LF                  :           ");
-		test_print(pass);
+		sprintf(PrintName,"            flux_LF                  :");
+		test_print2(pass,PrintName);
 
 		// flux_Roe
 		pass = compare_flux_Num(Nn,Nel,d,Neq,W,nL,"Roe");
-		printf("            flux_Roe                 :           ");
-		test_print(pass);
+		sprintf(PrintName,"            flux_Roe                 :");
+		test_print2(pass,PrintName);
 
 		// boundary_SlipWall
 		pass = compare_boundary(Nn,Nel,d,Neq,W,nL,XYZ,"SlipWall");
-		printf("            boundary_SlipWall        :           ");
-		test_print(pass);
+		sprintf(PrintName,"            boundary_SlipWall        :");
+		test_print2(pass,PrintName);
 
 		// boundary_Riemann
 		if (d != 1) {
 			pass = compare_boundary(Nn,Nel,d,Neq,W,nL,XYZ,"Riemann");
-			printf("            boundary_Riemann         :           ");
-			test_print(pass);
+			sprintf(PrintName,"            boundary_Riemann         :");
+			test_print2(pass,PrintName);
 		}
 
 		// convert_variables
 		pass = compare_variables(Nn,Nel,d,Neq,W);
-		printf("            convert_variables        :           ");
-		test_print(pass);
+		sprintf(PrintName,"            convert_variables        :");
+		test_print2(pass,PrintName);
 
 		free(W);
 		free(nL);
@@ -124,7 +130,10 @@ void test_unit_equivalence_real_complex(void)
 	free(DB.PDE);
 	free(DB.PDESpecifier);
 	free(DB.Geometry);
+	free(DB.MeshType);
 	free(DB.SolverType);
+
+	free(PrintName);
 }
 
 static unsigned int compare_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const unsigned int d,
@@ -154,7 +163,7 @@ static unsigned int compare_flux_inviscid(const unsigned int Nn, const unsigned 
 		Fctr[i] = creal(Fc[i]);
 
 	if (array_norm_diff_d(NnTotal*d*Neq,Fr,Fctr,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
 	free(Wc);
 	free(Fr);
@@ -214,7 +223,7 @@ static unsigned int compare_flux_Num(const unsigned int Nn, const unsigned int N
 		nFctr[i] = creal(nFc[i]);
 
 	if (array_norm_diff_d(Nn*Neq,nFr,nFctr,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
 	free(WLr);
 	free(WRr);
@@ -259,7 +268,7 @@ static unsigned int compare_boundary(const unsigned int Nn, const unsigned int N
 		WBctr[i] = creal(WBc[i]);
 
 	if (array_norm_diff_d(NnTotal*Nvar,WBr,WBctr,"Inf") < 1e1*EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
 	free(WBr);
 	free(WLc);
@@ -303,7 +312,7 @@ static unsigned int compare_variables(const unsigned int Nn, const unsigned int 
 
 	if (array_norm_diff_d(NnTotal*Nvar,Wr,Wctr,"Inf") < EPS &&
 	    array_norm_diff_d(NnTotal*Nvar,Ur,Uctr,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
 	free(Ur);
 	free(Wc);

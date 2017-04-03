@@ -134,7 +134,6 @@ void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigne
 
 void code_cleanup(void)
 {
-	mesh_to_level(0);
 	memory_free();
 }
 
@@ -185,6 +184,33 @@ void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, co
 	}
 }
 
+void code_startup_mod_ctrl(int nargc, char **argv, const unsigned int Nref, const unsigned int update_argv,
+                           const unsigned int phase)
+{
+	if (phase == 1) {
+		// Start MPI and PETSC
+		PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+		MPI_Comm_size(MPI_COMM_WORLD,&DB.MPIsize);
+		MPI_Comm_rank(MPI_COMM_WORLD,&DB.MPIrank);
+
+		// Initialization
+		initialization(nargc,argv);
+	} else if (phase == 2) {
+		initialize_test_case_parameters();
+		setup_parameters();
+		if (update_argv)
+			setup_parameters_L2proj();
+	} else if (phase == 3) {
+		setup_mesh();
+		setup_operators();
+		setup_structures();
+		setup_geometry();
+
+		initialize_test_case(Nref);
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
 
 void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax, const unsigned int PMin,
                               const unsigned int PMax, unsigned int *pass, const bool PrintEnabled)
@@ -323,8 +349,6 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 printf("Re-enable printing here.\n");
 //		for (i = 0; i < NVars; i++)
 //			array_print_d(NML,NP,ConvOrders[i],'R');
-	} else {
-		TestDB.Npass++;
 	}
 
 	if (PrintEnabled) {
@@ -918,8 +942,10 @@ void check_mesh_regularity(const double *mesh_quality, const unsigned int NML, u
 		for (i = 0; i < 2; i++)
 			slope_quality[i] = mesh_quality[NML-2+i]-mesh_quality[NML-3+i];
 
-		if (slope_quality[1]-slope_quality[0] > 1e-3)
-			printf("\nWarning: Potential mesh regularity issue.\n\n"); TestDB.Nwarnings++;
+		if (slope_quality[1]-slope_quality[0] > 1e-3) {
+			printf("\nWarning: Potential mesh regularity issue.\n\n");
+			TestDB.Nwarnings++;
+		}
 
 		if (slope_quality[1] > 0.0) {
 			if (slope_quality[1]/slope_quality[0] > 5e0)
@@ -931,4 +957,32 @@ void check_mesh_regularity(const double *mesh_quality, const unsigned int NML, u
 			array_print_d(1,NML,mesh_quality,'R');
 		}
 	}
+}
+
+void set_PrintName(char *name_type, char *PrintName, bool *TestTRI)
+{
+	if (!(*TestTRI)) {
+		*TestTRI = 1;
+		if (strstr(name_type,"conv_orders")) {
+			strcpy(PrintName,"Convergence Orders (");
+		} else if (strstr(name_type,"equiv_rc")) {
+			strcpy(PrintName,"Equivalence Real/Complex (");
+		} else if (strstr(name_type,"equiv_alg")) {
+			strcpy(PrintName,"Equivalence Algorithms (");
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else {
+		if (strstr(name_type,"conv_orders")) {
+			strcpy(PrintName,"                   (");
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	}
+
+	strcat(PrintName,DB.PDE);          strcat(PrintName,", ");
+	if (!strstr(DB.PDESpecifier,"NONE")) {
+		strcat(PrintName,DB.PDESpecifier); strcat(PrintName,", ");
+	}
+	strcat(PrintName,DB.MeshType);     strcat(PrintName,") : ");
 }

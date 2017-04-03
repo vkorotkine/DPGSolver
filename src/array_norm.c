@@ -133,6 +133,19 @@ double array_norm_diff_d(const unsigned int LenA, const double *A, const double 
 		return norm_num;
 }
 
+double array_norm_diff_dc(const unsigned int LenA, const double *A, const double complex *B, const char *NormType)
+{
+	double *Br = malloc(LenA * sizeof *Br); // free
+
+	for (size_t i = 0; i < LenA; i++)
+		Br[i] = creal(B[i]);
+
+	double norm_diff = array_norm_diff_d(LenA,A,Br,NormType);
+	free(Br);
+
+	return norm_diff;
+}
+
 double PetscMatAIJ_norm_diff_d(const unsigned int NRows, Mat A, Mat B, const char *NormType)
 {
 	unsigned int i;

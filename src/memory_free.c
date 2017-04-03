@@ -42,6 +42,9 @@ void memory_free_ELEMENTs(void)
 void memory_free(void)
 {
 	// Project to ML0 if h-adaptation is enabled.
+	if (DB.Adapt == ADAPT_HP)
+		DB.Adapt = ADAPT_H;
+
 	switch (DB.Adapt) {
 	default: // ADAPT_H, ADAPT_HP
 		mesh_to_level(0);
@@ -56,13 +59,20 @@ void memory_free(void)
 
 		// Initialization
 		free(DB.TestCase);
-		free(DB.MeshType);
+
+		free(DB.PDE);
+		free(DB.PDESpecifier);
 		free(DB.Geometry);
+		free(DB.GeomSpecifier);
+
 		free(DB.MeshPath);
-		free(DB.BumpOrder);
+		free(DB.MeshType);
+
 		free(DB.Form);
 		free(DB.NodeType);
 		free(DB.BasisType);
+		free(DB.BumpOrder);
+
 		free(DB.MeshFile);
 
 		// Preprocessing

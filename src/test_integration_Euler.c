@@ -16,6 +16,8 @@
 #include "test_support.h"
 #include "adaptation.h"
 #include "output_to_paraview.h"
+#include "explicit_VOLUME_info.h"
+#include "explicit_VOLUME_info_c.h"
 #include "solver_explicit.h"
 #include "solver_implicit.h"
 #include "compute_errors.h"
@@ -23,6 +25,7 @@
 #include "test_integration_Poisson.h"
 #include "element_functions.h"
 #include "array_norm.h"
+#include "array_free.h"
 #include "array_print.h"
 
 /*
@@ -39,8 +42,10 @@
  *	References:
  */
 
-struct S_equivalence_rc {
-	char **argvNew, *PrintName;
+struct S_equivalence {
+	bool         TestTRI;
+	char         **argvNew, *PrintName;
+	unsigned int P, ML, Adapt, PG_add, IntOrder_add, IntOrder_mult;
 };
 
 struct S_convorder {
@@ -181,25 +186,29 @@ void h_adapt_test(void)
 	free(XYZref);
 }
 
-static void set_test_equivalence_rc_data(struct S_equivalence_rc *data, const char *TestName)
+static void set_test_equivalence_data(struct S_equivalence *data, const char *TestName)
 {
 	// default values
 	data->P     = 3;
-	data->ML    = 2;
+	data->ML    = 1;
 	data->Adapt = ADAPT_HP;
 
 	data->PG_add        = 1;
 	data->IntOrder_add  = 0;
 	data->IntOrder_mult = 2;
+
+	if (strstr(TestName,"n-Cylinder_HollowSection")) {
+		strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_CurvedMIXED2D");
+	} else {
+		EXIT_UNSUPPORTED;
+	}
 }
 
-static void test_equivalence_rc(int nargc, char **argvNew, const char *TestName, struct S_equivalence_rc *data)
+static void test_equivalence_rc(int nargc, char **argvNew, const char *TestName, struct S_equivalence *data)
 {
-	unsigned int Nvar = DB.Nvar;
-
 	unsigned int Adapt;
 
-	set_test_equivalence_rc_data(data,TestName);
+	set_test_equivalence_data(data,TestName);
 
 	Adapt = data->Adapt;
 
@@ -210,8 +219,10 @@ static void test_equivalence_rc(int nargc, char **argvNew, const char *TestName,
 	TestDB.IntOrder_mult = data->IntOrder_mult;
 
 	code_startup(nargc,argvNew,0,2);
-	mesh_to_level(ML);
-	mesh_to_order(P);
+	mesh_to_level(TestDB.ML);
+	mesh_to_order(TestDB.PGlobal);
+
+	unsigned int Nvar = DB.Nvar;
 
 	// Copy What to What_c
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -223,7 +234,6 @@ static void test_equivalence_rc(int nargc, char **argvNew, const char *TestName,
 
 		for (size_t i = 0, iMax = NvnS*Nvar; i < iMax; i++)
 			VOLUME->What_c[i] = VOLUME->What[i];
-		}
 	}
 
 	// Compute RHS terms using the real and complex functions
@@ -231,21 +241,153 @@ static void test_equivalence_rc(int nargc, char **argvNew, const char *TestName,
 	explicit_VOLUME_info_c();
 
 	// Check for equivalence
-	unsigned int pass = 0;
+	unsigned int pass = 1;
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		unsigned int NvnS = VOLUME->NvnS;
 
-		array_print_d(NvnS,Nvar,VOLUME->RHS,'C');
-		array_print_cmplx(NvnS,Nvar,VOLUME->RHS_c,'C');
-		EXIT_UNSUPPORTED;
+		if (array_norm_diff_dc(NvnS*Nvar,VOLUME->RHS,VOLUME->RHS_c,"Inf") > EPS ||
+		    array_norm_d(NvnS*Nvar,VOLUME->RHS,"Inf") < EPS) {
+			array_print_d(NvnS,Nvar,VOLUME->RHS,'C');
+			array_print_cmplx(NvnS,Nvar,VOLUME->RHS_c,'C');
+			pass = 0;
+			break;
+		}
 	}
 
-//	set_PrintName_ConvOrders(data->PrintName,&data->TestTRI);
+	set_PrintName("equiv_rc",data->PrintName,&data->TestTRI);
 	code_cleanup();
 
 	test_print2(pass,data->PrintName);
+}
 
-	// Ensure that the RHS terms are not equal to 0.0 as well
+static void test_equivalence_alg(int nargc, char **argvNew, const char *TestName, struct S_equivalence *data)
+{
+	unsigned int Adapt, P;
+
+	set_test_equivalence_data(data,TestName);
+
+	Adapt = data->Adapt;
+	P     = data->P;
+
+	TestDB.PGlobal = data->P;
+	TestDB.ML      = data->ML;
+	TestDB.PG_add        = data->PG_add;
+	TestDB.IntOrder_add  = data->IntOrder_add;
+	TestDB.IntOrder_mult = data->IntOrder_mult;
+
+	unsigned int NAlgs = 3;
+
+	unsigned int *RHS_size, NV = 0;
+	double       **RHS[NAlgs];
+
+	for (size_t alg = 0; alg < NAlgs; alg++) {
+		code_startup_mod_ctrl(nargc,argvNew,0,1,1);
+
+		// Set necessary parameters for the sparse algorithm
+		strcpy(DB.BasisType,"Nodal");
+		strcpy(DB.NodeType,"GLL-AO");
+		DB.Collocated = 1;
+
+		code_startup_mod_ctrl(nargc,argvNew,0,1,2);
+		unsigned int ***SF_BE     = DB.SF_BE,
+		             *VFPartUnity = DB.VFPartUnity;
+		if (alg == 0) { // Standard
+			for (size_t P = 0; P <= DB.PMax; P++) {
+			for (size_t i = 0; i < 2; i++) {
+			for (size_t j = 0; j < 2; j++) {
+				SF_BE[P][i][j] = 0;
+			}}}
+
+			for (size_t i = 0; i < NEC+1; i++)
+				VFPartUnity[i] = 0;
+
+			DB.AllowSparseVOL = 0;
+		} else if (alg == 1) { // Sparse
+			for (size_t P = 0; P <= DB.PMax; P++) {
+			for (size_t i = 0; i < 2; i++) {
+			for (size_t j = 0; j < 2; j++) {
+				SF_BE[P][i][j] = 0;
+			}}}
+		} else if (alg == 2) { // Sum factorized
+			for (size_t P = 0; P <= DB.PMax; P++) {
+			for (size_t i = 0; i < 2; i++) {
+			for (size_t j = 0; j < 2; j++) {
+				SF_BE[P][i][j] = 1;
+			}}}
+
+			for (size_t i = 0; i < NEC+1; i++)
+				VFPartUnity[i] = 0;
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+		code_startup_mod_ctrl(nargc,argvNew,0,1,3);
+		mesh_to_level(TestDB.ML);
+		mesh_to_order(TestDB.PGlobal);
+
+		// Compute RHS
+		explicit_VOLUME_info();
+
+		// Copy VOLUME->RHS to RHS[alg]
+		unsigned int Nvar = DB.Nvar;
+		if (alg == 0)
+			RHS_size = calloc(DB.NV , sizeof *RHS_size); // free
+		RHS[alg] = calloc(DB.NV , sizeof *RHS[alg]); // free
+
+		size_t IndV = 0;
+		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next, IndV++) {
+			unsigned int NvnS = VOLUME->NvnS;
+
+			if (alg == 0)
+				RHS_size[IndV] = NvnS*Nvar;
+			double *RHS_current = malloc(NvnS*Nvar * sizeof *RHS_current); // free
+			for (size_t i = 0; i < NvnS*Nvar; i++)
+				RHS_current[i] = VOLUME->RHS[i];
+
+			RHS[alg][IndV] = RHS_current;
+		}
+
+		if (IndV != DB.NV)
+			printf("Error: Wrong number of VOLUMEs found.\n"), EXIT_UNSUPPORTED;
+
+		if (alg == 0) {
+			NV = DB.NV;
+			set_PrintName("equiv_alg",data->PrintName,&data->TestTRI);
+		}
+		code_cleanup();
+	}
+
+	// Check for equivalence
+	unsigned int pass = 1;
+
+	// Check that different algorithms were called (when applicable) by ensuring that some RHS terms are slightly
+	// different.
+	for (size_t alg = 1; alg < NAlgs; alg++) {
+		double RHS_diff = 0.0;
+		for (size_t IndV = 0; IndV < NV; IndV++)
+			RHS_diff += array_norm_diff_d(RHS_size[IndV],RHS[0][IndV],RHS[alg][IndV],"Inf");
+
+		if (RHS_diff == 0.0) {
+			printf("\nWarning: Potentially comparing the same functions.\n\n");
+			TestDB.Nwarnings++;
+		}
+	}
+
+	for (size_t IndV = 0; IndV < NV; IndV++) {
+		double RHS_diff = 0.0;
+		for (size_t alg = 1; alg < NAlgs; alg++)
+			RHS_diff = array_norm_diff_d(RHS_size[IndV],RHS[0][IndV],RHS[alg][IndV],"Inf");
+
+		if (RHS_diff > EPS || array_norm_d(RHS_size[IndV],RHS[0][IndV],"Inf") < EPS) {
+			printf("%3zu % .3e % .3e\n",IndV,RHS_diff,array_norm_d(RHS_size[IndV],RHS[0][IndV],"Inf"));
+			pass = 0;
+			break;
+		}
+	}
+	free(RHS_size);
+	for (size_t alg = 0; alg < NAlgs; alg++)
+		array_free2_d(NV,RHS[alg]);
+
+	test_print2(pass,data->PrintName);
 }
 
 static void set_test_convorder_data(struct S_convorder *data, const char *TestName)
@@ -386,7 +528,7 @@ static void test_convorder(int nargc, char **argvNew, const char *TestName, stru
 		if (Adapt == ADAPT_0)
 			code_cleanup();
 	}}
-	set_PrintName_ConvOrders(data->PrintName,&data->TestTRI);
+	set_PrintName("conv_orders",data->PrintName,&data->TestTRI);
 
 	if (Adapt != ADAPT_0)
 		code_cleanup();
@@ -413,6 +555,7 @@ void test_integration_Euler(int nargc, char **argv)
 	 *	Expected Output:
 	 *
 	 *		Correspondence between RHS terms computed using real and complex functions.
+	 *		Correspondence between RHS terms computed using various algotithm options: Standard, sparse, sum factorized.
 	 *		Optimal convergence orders in L2 for the solution (P+1).
 	 *
 	 */
@@ -420,7 +563,7 @@ void test_integration_Euler(int nargc, char **argv)
 	// **************************************************************************************************** //
 	// Real/Complex Equivalence
 	// **************************************************************************************************** //
-	struct S_equivalence_rc *data_rc;
+	struct S_equivalence *data_rc;
 
 	data_rc = calloc(1 , sizeof *data_rc); // free
 	data_rc->argvNew   = argvNew;
@@ -429,6 +572,23 @@ void test_integration_Euler(int nargc, char **argv)
 	test_equivalence_rc(nargc,argvNew,"n-Cylinder_HollowSection_CurvedMIXED2D",data_rc);
 
 	free(data_rc);
+
+	// **************************************************************************************************** //
+	// Algorithm equivalence
+	// **************************************************************************************************** //
+	struct S_equivalence *data_alg;
+
+	data_alg = calloc(1 , sizeof *data_alg); // free
+	data_alg->argvNew   = argvNew;
+	data_alg->PrintName = PrintName;
+
+	test_equivalence_alg(nargc,argvNew,"n-Cylinder_HollowSection_CurvedMIXED2D",data_alg);
+
+	printf("\nWarning: Equivalence of WEDGE sum factorized computation is currently not being checked.\n\n");
+	TestDB.Nwarnings++;
+	// Using a mixed HEX-WEDGE mesh would check everything here (ToBeModified)
+
+	free(data_alg);
 
 	// **************************************************************************************************** //
 	// Convergence Order
@@ -451,7 +611,8 @@ if (test_3D) {
 	printf("\nWarning: 3D SupersonicVortex testing is currently disabled.\n\n"); TestDB.Nwarnings++;
 }
 
-	printf("\n\n***Add integration tests for PeriodicVortex case (Stationary and moving).***\n\n"); TestDB.Nwarnings++;
+	printf("\n\nWarning: ***Add integration tests for PeriodicVortex case (Stationary and moving).***\n\n");
+	TestDB.Nwarnings++;
 
 
 

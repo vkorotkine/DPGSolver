@@ -70,7 +70,7 @@ static void compute_dWdW_cs(const unsigned int Neq, const unsigned int Nn, const
 		else if (strstr(BType,"SupersonicOut"))
 			boundary_SupersonicOutflow_c(Nn,Nel,XYZ,Wp,WB,nL,d,Nvar);
 		else
-			printf("Error: Unsupported BType.\n"), EXIT_BASIC;
+			EXIT_UNSUPPORTED;
 
 		for (var2 = 0; var2 < Nvar; var2++) {
 			IndWB = NnTotal*var2;
@@ -113,7 +113,7 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 	else if (strstr(BType,"SupersonicOut"))
 		jacobian_boundary_SupersonicOutflow(Nn,Nel,XYZ,W,dWdW,nL,d,Neq);
 	else
-		printf("Error: Unsupported BType.\n"), EXIT_BASIC;
+		EXIT_UNSUPPORTED;
 
 	compute_dWdW_cs(Neq,Nn,Nel,d,W,dWdW_cs,nL,XYZ,BType);
 
@@ -127,7 +127,7 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 		}
 //		array_print_ui(1,4,TestDB.EnteredRiemann,'R');
 		if (CheckedAll && array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 	} else if (strstr(BType,"BackPressure")) {
 		CheckedAll = 1;
 		for (i = 0; i < 2; i++) {
@@ -138,7 +138,7 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 		}
 //		array_print_ui(1,2,TestDB.EnteredBackPressure,'R');
 		if (CheckedAll && array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 		else {
 			printf("%d % .3e\n",CheckedAll,array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf"));
 			array_print_d(Neq*Nvar,NnTotal,dWdW,'R');
@@ -146,7 +146,7 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 		}
 	} else {
 		if (array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS) {
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 		} else {
 			array_print_d(NnTotal*Nvar,Neq,dWdW,'C');
 			array_print_d(NnTotal*Nvar,Neq,dWdW_cs,'C');
@@ -167,7 +167,7 @@ static void update_values(const unsigned int Nn, const unsigned int Nel, double 
 	NnTotal = Nn*Nel;
 
 	if (NnTotal != 6)
-		printf("Error: Unsupported.\n"), EXIT_BASIC;
+		EXIT_UNSUPPORTED;
 
 	if (d == 3) {
 		unsigned int FinalIndices[6] = {0,2,2,3,0,6};
@@ -194,13 +194,15 @@ static void update_values(const unsigned int Nn, const unsigned int Nel, double 
 			}
 		}
 	} else {
-		printf("Error: Unsupported.\n"), EXIT_BASIC;
+		EXIT_UNSUPPORTED;
 	}
 }
 
 void test_unit_jacobian_boundary(void)
 {
 	unsigned int pass;
+
+	char *PrintName = malloc(STRLEN_MAX * sizeof *PrintName); // free
 
 	/*
 	 *	Input:
@@ -275,13 +277,11 @@ void test_unit_jacobian_boundary(void)
 				update_values(Nn,Nel,W,nL,d);
 			pass = compare_jacobian_boundary(Nn,Nel,d,Neq,W,nL,XYZ,BType[i]);
 
-			if (d == dMin[i]) {
-				//     0         10        20        30        40        50
-				printf("jacobian_boundary_%s (d = %d):         ",BType[i],d);
-			} else {
-				printf("                                (d = %d):         ",d);
-			}
-			test_print(pass);
+			if (d == dMin[i])
+				sprintf(PrintName,"jacobian_boundary_%s (d = %d):",BType[i],d);
+			else
+				sprintf(PrintName,"                                (d = %d):",d);
+			test_print2(pass,PrintName);
 
 			free(W);
 			free(nL);
@@ -300,4 +300,6 @@ void test_unit_jacobian_boundary(void)
 
 	for (i = 0; i < NBTypes; i++)
 		free(BType[i]);
+
+	free(PrintName);
 }

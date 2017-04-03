@@ -315,7 +315,7 @@ int main(int nargc, char **argv)
 		test_integration_linearization(nargc,argv);
 		test_integration_Poisson(nargc,argv);
 	}
-	test_integration_linearization(nargc,argv);
+//	test_integration_linearization(nargc,argv);
 	test_integration_Euler(nargc,argv);
 //	test_integration_NavierStokes(nargc,argv);
 
@@ -332,8 +332,8 @@ int main(int nargc, char **argv)
 
 	printf("\n\nRan %d test(s) in %.4f seconds.\n",TestDB.Ntest,(te-ts)/(float)CLOCKS_PER_SEC);
 
-	unsigned int Nfail = TestDB.Ntest - TestDB.Npass;
-	if (Nfail > 0) {
+	int Nfail = TestDB.Ntest - TestDB.Npass;
+	if (Nfail != 0) {
 		printf("\n******** FAILED %d TEST(S) ********\n\n",Nfail);
 	} else {
 		printf("\nAll tests passed.\n\n");

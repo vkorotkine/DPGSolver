@@ -54,17 +54,15 @@ static void test_unit_matrix_diag(void)
 	unsigned int N = 4;
 	double *X,
 	       x[4] = { 1.0, 2.0, 3.0, 4.0 },
-	       X4[16] = {1.0, 0.0, 0.0 , 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 4.0};
+	       X4[16] = {1.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 4.0};
 
 	X = diag_d(x,N); // free
 
 	pass = 0;
 	if (array_norm_diff_d(N*N,X,X4,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("matrix_diag_d:                                   ");
-	test_print(pass);
+	test_print2(pass,"matrix_diag_d:");
 
 	free(X);
 }
@@ -96,11 +94,9 @@ static void test_unit_matrix_identity(void)
 
 	pass = 0;
 	if (array_norm_diff_d(16,I,I4,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("matrix_identity_d:                               ");
-	test_print(pass);
+	test_print2(pass,"matrix_identity_d:");
 
 	free(I);
 }
@@ -139,12 +135,10 @@ static void test_unit_matrix_inverse(void)
 
 	pass = 0;
 	if (array_norm_diff_d(9,AInv,AInv_c,"Inf")    < EPS &&
-		array_norm_diff_d(9,A,Aroundtrip_c,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+	    array_norm_diff_d(9,A,Aroundtrip_c,"Inf") < EPS)
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("matrix_inverse_d:                                ");
-	test_print(pass);
+	test_print2(pass,"matrix_inverse_d:");
 
 	free(I3);
 	free(AInv_c);
@@ -204,10 +198,10 @@ static void test_unit_matrix_mm(void)
 
 	double A[12]  = { 0.05, 0.69, 0.03, 0.77, 0.10, 0.32, 0.44, 0.8, 0.82, 0.95, 0.38, 0.19 },
 	       B[8]   = { 0.49, 0.75, 0.45, 0.28, 0.65, 0.68, 0.71, 0.66 },
-		   C[6]   = { 0.9012, 0.7593, 1.0470, 0.9918, 1.2112, 1.2648 },
-		   AT[12] = { 0.05, 0.10, 0.82, 0.69, 0.32, 0.95, 0.03, 0.44, 0.38, 0.77, 0.80, 0.19 },
-		   BT[8]  = { 0.49, 0.45, 0.65, 0.71, 0.75, 0.28, 0.68, 0.66 },
-		   CT[6]  = { 0.9012, 1.0470, 1.2112, 0.7593, 0.9918, 1.2648 };
+	       C[6]   = { 0.9012, 0.7593, 1.0470, 0.9918, 1.2112, 1.2648 },
+	       AT[12] = { 0.05, 0.10, 0.82, 0.69, 0.32, 0.95, 0.03, 0.44, 0.38, 0.77, 0.80, 0.19 },
+	       BT[8]  = { 0.49, 0.45, 0.65, 0.71, 0.75, 0.28, 0.68, 0.66 },
+	       CT[6]  = { 0.9012, 1.0470, 1.2112, 0.7593, 0.9918, 1.2648 };
 	double *C_c, *CT_c;
 
 	C_c  = malloc(6 * sizeof *C_c);  // free
@@ -220,11 +214,9 @@ static void test_unit_matrix_mm(void)
 
 	pass = 0;
 	if (array_norm_diff_d(6,C,C_c,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("matrix_mm_d (RowMajor, NoTrans, NoTrans):        ");
-	test_print(pass);
+	test_print2(pass,"matrix_mm_d (RowMajor, NoTrans, NoTrans):");
 
 
 	// Trans, NoTrans
@@ -232,11 +224,9 @@ static void test_unit_matrix_mm(void)
 
 	pass = 0;
 	if (array_norm_diff_d(6,C,C_c,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (RowMajor,   Trans, NoTrans):        ");
-	test_print(pass);
+	test_print2(pass,"            (RowMajor,   Trans, NoTrans):");
 
 
 	// NoTrans, Trans
@@ -244,11 +234,9 @@ static void test_unit_matrix_mm(void)
 
 	pass = 0;
 	if (array_norm_diff_d(6,C,C_c,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (RowMajor, NoTrans,   Trans):        ");
-	test_print(pass);
+	test_print2(pass,"            (RowMajor, NoTrans,   Trans):");
 
 
 	// Trans, Trans
@@ -256,11 +244,9 @@ static void test_unit_matrix_mm(void)
 
 	pass = 0;
 	if (array_norm_diff_d(6,C,C_c,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (RowMajor,   Trans,   Trans):        ");
-	test_print(pass);
+	test_print2(pass,"            (RowMajor,   Trans,   Trans):");
 
 
 
@@ -271,11 +257,9 @@ static void test_unit_matrix_mm(void)
 
 	pass = 0;
 	if (array_norm_diff_d(6,CT,CT_c,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (ColMajor, NoTrans, NoTrans):        ");
-	test_print(pass);
+	test_print2(pass,"            (ColMajor, NoTrans, NoTrans):");
 
 
 	// Trans, NoTrans
@@ -283,11 +267,9 @@ static void test_unit_matrix_mm(void)
 
 	pass = 0;
 	if (array_norm_diff_d(6,CT,CT_c,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (ColMajor,   Trans, NoTrans):        ");
-	test_print(pass);
+	test_print2(pass,"            (ColMajor,   Trans, NoTrans):");
 
 
 	// NoTrans, Trans
@@ -295,11 +277,9 @@ static void test_unit_matrix_mm(void)
 
 	pass = 0;
 	if (array_norm_diff_d(6,CT,CT_c,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (ColMajor, NoTrans,   Trans):        ");
-	test_print(pass);
+	test_print2(pass,"            (ColMajor, NoTrans,   Trans):");
 
 
 	// Trans, Trans
@@ -307,11 +287,9 @@ static void test_unit_matrix_mm(void)
 
 	pass = 0;
 	if (array_norm_diff_d(6,CT,CT_c,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("            (ColMajor,   Trans,   Trans):        ");
-	test_print(pass);
+	test_print2(pass,"            (ColMajor,   Trans,   Trans):");
 
 	free(C_c);
 	free(CT_c);
@@ -336,11 +314,9 @@ static void test_unit_matrix_mm(void)
 	    array_norm_diff_d(6,C,C_cTN,"Inf") < EPS &&
 	    array_norm_diff_d(6,C,C_cNT,"Inf") < EPS &&
 	    array_norm_diff_d(6,C,C_cTT,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("matrix_mm_Alloc_d (RowMajor):                    ");
-	test_print(pass);
+	test_print2(pass,"matrix_mm_Alloc_d (RowMajor):");
 
 	// Col-Major
 	CT_cNN = mm_Alloc_d(CblasColMajor,CblasNoTrans,CblasNoTrans,3,2,4,1.0,AT,BT); // free
@@ -353,12 +329,9 @@ static void test_unit_matrix_mm(void)
 	    array_norm_diff_d(6,CT,CT_cTN,"Inf") < EPS &&
 	    array_norm_diff_d(6,CT,CT_cNT,"Inf") < EPS &&
 	    array_norm_diff_d(6,CT,CT_cTT,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                  (ColMajor):                    ");
-	test_print(pass);
-
+	test_print2(pass,"                  (ColMajor):");
 
 
 	free(C_cNN);
@@ -419,11 +392,9 @@ static void test_unit_matrix_mm(void)
 
 	pass = 0;
 	if (array_norm_diff_d(m*n,C_CTN,C_CTN_c,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("matrix_mm_CTN_d (mv, NoBLAS):                    ");
-	test_print(pass);
+	test_print2(pass,"matrix_mm_CTN_d (mv, NoBLAS):");
 
 	free(A_CTN);
 	free(B_CTN);
@@ -450,11 +421,9 @@ static void test_unit_matrix_mm(void)
 
 	pass = 0;
 	if (array_norm_diff_d(m*n,C_CTN,C_CTN_c,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                (mv,   BLAS):                    ");
-	test_print(pass);
+	test_print2(pass,"                (mv,   BLAS):");
 
 	free(A_CTN);
 	free(B_CTN);
@@ -481,11 +450,9 @@ static void test_unit_matrix_mm(void)
 
 	pass = 0;
 	if (array_norm_diff_d(m*n,C_CTN,C_CTN_c,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                (mm, NoBLAS):                    ");
-	test_print(pass);
+	test_print2(pass,"                (mm, NoBLAS):");
 
 	free(A_CTN);
 	free(B_CTN);
@@ -512,11 +479,9 @@ static void test_unit_matrix_mm(void)
 
 	pass = 0;
 	if (array_norm_diff_d(m*n,C_CTN,C_CTN_c,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                (mm,   BLAS):                    ");
-	test_print(pass);
+	test_print2(pass,"                (mm,   BLAS):");
 
 	free(A_CTN);
 	free(B_CTN);
@@ -546,7 +511,7 @@ static void test_unit_matrix_mm_diag(void)
 	double *DR, *DC, *Odiag, *Omm,
 	       A[12]  = { 0.05, 0.69, 0.03, 0.77, 0.10, 0.32, 0.44, 0.80, 0.82, 0.95, 0.38, 0.19 },
 	       dR[3]  = { 0.49, 0.45, 0.65 },
-		   dC[4]  = { 0.49, 0.45, 0.65, 0.71 };
+	       dC[4]  = { 0.49, 0.45, 0.65, 0.71 };
 
 	DR = diag_d(dR,NRows); // free
 	DC = diag_d(dC,NCols); // free
@@ -563,11 +528,9 @@ static void test_unit_matrix_mm_diag(void)
 
 	pass = 0;
 	if (array_norm_diff_d(NRows*NCols,Odiag,Omm,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("matrix_mm_diag_d ('L','R'):                      ");
-	test_print(pass);
+	test_print2(pass,"matrix_mm_diag_d ('L','R'):");
 
 	// (R)ight, (R)ow Major
 	mm_diag_d(NRows,NCols,dC,A,Odiag,0.5,2.0,'R','R');
@@ -575,11 +538,9 @@ static void test_unit_matrix_mm_diag(void)
 
 	pass = 0;
 	if (array_norm_diff_d(NRows*NCols,Odiag,Omm,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                 ('R','R'):                      ");
-	test_print(pass);
+	test_print2(pass,"                 ('R','R'):");
 
 	// (L)eft, (C)ol Major
 	mm_diag_d(NRows,NCols,dR,A,Odiag,2.0,1.5,'L','C');
@@ -587,11 +548,9 @@ static void test_unit_matrix_mm_diag(void)
 
 	pass = 0;
 	if (array_norm_diff_d(NRows*NCols,Odiag,Omm,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                 ('L','C'):                      ");
-	test_print(pass);
+	test_print2(pass,"                 ('L','C'):");
 
 	// (R)ight, (C)ol Major
 	mm_diag_d(NRows,NCols,dC,A,Odiag,0.5,0.2,'R','C');
@@ -599,11 +558,9 @@ static void test_unit_matrix_mm_diag(void)
 
 	pass = 0;
 	if (array_norm_diff_d(NRows*NCols,Odiag,Omm,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                 ('R','C'):                      ");
-	test_print(pass);
+	test_print2(pass,"                 ('R','C'):");
 
 	free(DR);
 	free(DC);
@@ -632,11 +589,9 @@ static void test_unit_convert_to_CSR(void)
 	if (array_norm_diff_ui(6,A_sp->rowIndex,rowIndex55,"Inf") < EPS &&
 	    array_norm_diff_ui(13,A_sp->columns,columns55,"Inf")  < EPS &&
 	    array_norm_diff_d(13,A_sp->values,values55,"Inf")     < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("convert_to_CSR_d:                                ");
-	test_print(pass);
+	test_print2(pass,"convert_to_CSR_d:");
 
 	array_free1_CSR_d(A_sp);
 }

@@ -440,13 +440,11 @@ void test_integration_linearization(int nargc, char **argv)
 	pass = 0;
 	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < 1e1*EPS &&
 	    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < 1e1*EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 	else
 		printf("% .3e % .3e\n",PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf"),PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf"));
 
-	//     0         10        20        30        40        50
-	printf("Linearization (2D - Mixed):                      ");
-	test_print(pass);
+	test_print2(pass,"Linearization (2D - Mixed):");
 
 	finalize_ksp(&A,&b,&x,2);
 	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
@@ -471,11 +469,9 @@ if (test_3D) {
 	pass = 0;
 	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < EPS &&
 	    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("Linearization (3D - Mixed TET/PYR):              ");
-	test_print(pass);
+	test_print2(pass,"              (3D - Mixed TET/PYR):");
 
 	finalize_ksp(&A,&b,&x,2);
 	finalize_ksp(&A_cs,&b_cs,&x_cs,2);
@@ -499,11 +495,9 @@ if (test_3D) {
 	pass = 0;
 	if (PetscMatAIJ_norm_diff_d(DB.dof,A,A_cs,"Inf")  < EPS &&
 	    PetscMatAIJ_norm_diff_d(DB.dof,A,A_csc,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("Linearization (3D - Mixed HEX/WEDGE):            ");
-	test_print(pass);
+	test_print2(pass,"              (3D - Mixed HEX/WEDGE):");
 
 	finalize_ksp(&A,&b,&x,2);
 	finalize_ksp(&A_cs,&b_cs,&x_cs,2);

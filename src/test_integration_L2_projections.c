@@ -58,6 +58,8 @@ static void   mark_VOLUMEs  (const unsigned int adapt_type);
 
 static void test_L2_projection(struct S_L2proj *data)
 {
+	char *PrintName = malloc(STRLEN_MAX * sizeof *PrintName); // free
+
 	unsigned int TETrefineType = DB.TETrefineType;
 
 	char         *argvNew[2];
@@ -90,14 +92,14 @@ static void test_L2_projection(struct S_L2proj *data)
 
 		pass = 0;
 		if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 1e2*EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
 		//     0         10        20        30        40        50
 		if (strstr(data->EName,"TRI"))
-			printf("L2_projections (%s%d,  ADAPT_P):              ",data->EName,refType);
+			sprintf(PrintName,"L2_projections (%s%d,  ADAPT_P):",data->EName,refType);
 		else
-			printf("               (%s%d,  ADAPT_P):              ",data->EName,refType);
-		test_print(pass);
+			sprintf(PrintName,"               (%s%d,  ADAPT_P):",data->EName,refType);
+		test_print2(pass,PrintName);
 		free(L2err[0]), free(L2err[1]);
 
 		code_cleanup();
@@ -120,22 +122,22 @@ static void test_L2_projection(struct S_L2proj *data)
 
 		pass = 0;
 		if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1.4e4*EPS) {
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 		} else if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e-5) {
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 			printf("\nWarning: h L2 projection test for P%d %ss passing with norm_diff = % .3e\n\n",
 				   DB.PGlobal,data->CtrlName[1],array_norm_diff_d(1,L2err[0],L2err[1],"Inf"));
 			TestDB.Nwarnings++;
 		}
 
-		//     0         10        20        30        40        50
-		printf("               (          ADAPT_H):              ");
-		test_print(pass);
+		test_print2(pass,"               (          ADAPT_H):");
 		free(L2err[0]), free(L2err[1]);
 
 		code_cleanup();
 	}
 	DB.TETrefineType = TETrefineType;
+
+	free(PrintName);
 }
 
 void test_integration_L2_projections(int nargc, char **argv)

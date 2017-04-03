@@ -306,7 +306,7 @@ void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, 
 					RLHS[i] += DAr[i];
 			}
 			free(DAr);
-		} else if (Collocated && (Eclass == C_TP || Eclass == C_WEDGE)) {
+		} else if (Collocated && (Eclass == C_TP || Eclass == C_WEDGE) && DB.AllowSparseVOL) {
 			double *DAr = malloc(NvnS*Nrc * sizeof *DAr); // free
 			for (size_t dim = 0; dim < d; dim++) {
 				mm_CTN_CSR_d(NvnS,Nrc,NvnI,OPS[0]->D_Weak_sp[dim],&Ar_vI[NvnI*Nrc*dim],DAr);

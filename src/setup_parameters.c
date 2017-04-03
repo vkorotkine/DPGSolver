@@ -101,6 +101,9 @@
  *		                       computational considerations.
  *
  *		VFPartUnity     : Flag for whether the (V)OLUME nodes form a (Part)ition of (Unity) on the ELEMENT (F)ACEs.
+ *		                  If enabled, certain FACE operators are sparse.
+ *		AllowSparseVOL  : Flag for whether (Sparse) (VOL)UME operators may be used.
+ *		                  If enabled, certain VOLUME operations are performed using sparse operators.
  *
  *		AC              : Specifies whether (a)ll elements are (c)urved or not.
  *		ExactGeom       : Move boundary nodes to exact geometry if enabled.
@@ -544,6 +547,7 @@ void setup_parameters()
 					VFPartUnity[i] = 1;
 		}
 	}
+	DB.AllowSparseVOL = 1;
 
 	// Solver
 //	DB.InviscidFluxType = FLUX_LF;
