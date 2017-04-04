@@ -20,7 +20,7 @@ struct S_DB {
 	int          Restart;
 
 	// Parameters
-	bool         AllowSparseVOL;
+	bool         AllowSparseVOL, AllowSparseFACE;
 	char         **NodeTypeG,
 	             ***NodeTypeS,   ***NodeTypeF,   ***NodeTypeFrs, ***NodeTypeFrc,
 	             ***NodeTypeIfs, ***NodeTypeIfc, ***NodeTypeIvs, ***NodeTypeIvc;

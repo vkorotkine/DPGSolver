@@ -63,7 +63,7 @@
  *		Li(2016)-Cures_for_the_Expansion_Shock_and_the_Shock_Instability_of_the_Roe_Scheme
  */
 
-void flux_inviscid(const unsigned int Nn, const unsigned int Nel, double *W, double *F, const unsigned int d,
+void flux_inviscid(const unsigned int Nn, const unsigned int Nel, const double *W, double *F, const unsigned int d,
                    const unsigned int Neq)
 {
 	/*
@@ -74,8 +74,8 @@ void flux_inviscid(const unsigned int Nn, const unsigned int Nel, double *W, dou
 
 	// Standard datatypes
 	unsigned int i, n, eq, dim, iMax, NnTotal, IndF;
-	double       *rho_ptr, *rhou_ptr, *rhov_ptr, *rhow_ptr, *E_ptr,
-	             rho, rhou, rhov, rhow, E, u, v, w, p, *F_ptr[DMAX*Neq];
+	const double *rho_ptr, *rhou_ptr, *rhov_ptr, *rhow_ptr, *E_ptr;
+	double       rho, rhou, rhov, rhow, E, u, v, w, p, *F_ptr[DMAX*Neq];
 
 	NnTotal = Nn*Nel;
 
@@ -203,14 +203,15 @@ void flux_inviscid(const unsigned int Nn, const unsigned int Nel, double *W, dou
 	}
 }
 
-void flux_LF(const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
+void flux_LF(const unsigned int Nn, const unsigned int Nel, const double *WL, const double *WR, double *nFluxNum,
              double *nL, const unsigned int d, const unsigned int Neq)
 {
 	// Standard datatypes
 	unsigned int i, iMax, jMax, NnTotal;
-	double       *rhoL, *uL, *vL, *wL, *pL, *UL, *rhoR, *uR, *vR, *wR, *pR, *UR, *FL, *FR, *maxV,
-	             *maxV_ptr, *WL_ptr, *WR_ptr, *nx_ptr, *ny_ptr, *nz_ptr, *nFluxNum_ptr,
+	double       *UL, *UR, *FL, *FR, *maxV,
+	             *maxV_ptr, *nx_ptr, *ny_ptr, *nz_ptr, *nFluxNum_ptr,
 	             *FxL_ptr, *FyL_ptr, *FzL_ptr, *FxR_ptr, *FyR_ptr, *FzR_ptr;
+	const double *rhoL, *uL, *vL, *wL, *pL, *rhoR, *uR, *vR, *wR, *pR, *WL_ptr, *WR_ptr;
 
 	NnTotal = Nn*Nel;
 
@@ -373,7 +374,7 @@ void flux_LF(const unsigned int Nn, const unsigned int Nel, double *WL, double *
 	free(maxV);
 }
 
-void flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
+void flux_Roe(const unsigned int Nn, const unsigned int Nel, const double *WL, const double *WR, double *nFluxNum,
               double *nL, const unsigned int d, const unsigned int Neq)
 {
 	/*
@@ -386,11 +387,11 @@ void flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL, double 
 	unsigned int iMax, NnTotal;
 	double       eps, r, rP1, rho, u, v, w, H, Vn, V2, c, l1, l234, l5,
 	             VnL, rhoVnL, VnR, rhoVnR, pLR, drho, drhou, drhov, drhow, dE, dp, dVn, lc1, lc2, disInter1, disInter2,
-	             *W1L, *W2L, *W3L, *W4L, *W5L, *W1R, *W2R, *W3R, *W4R, *W5R,
 	             rhoL, uL, vL, wL, pL, EL, rhoR, uR, vR, wR, pR, ER,
 	             *nx, *ny, *nz,
 	             *nFluxNum_ptr1, *nFluxNum_ptr2, *nFluxNum_ptr3, *nFluxNum_ptr4, *nFluxNum_ptr5,
 	             dis1, dis2, dis3, dis4, dis5, nF1, nF2, nF3, nF4, nF5;
+	const double *W1L, *W2L, *W3L, *W4L, *W5L, *W1R, *W2R, *W3R, *W4R, *W5R;
 
 	eps = 1e-4;
 

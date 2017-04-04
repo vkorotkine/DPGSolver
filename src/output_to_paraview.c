@@ -321,7 +321,6 @@ static void output_normals(const char *normals_type)
 	// Initialize DB Parameters
 //	char         *TestCase = DB.TestCase;
 	unsigned int d         = DB.d,
-	             Adapt     = DB.Adapt,
 	             NfrefMax  = DB.NfrefMax;
 	int          MPIrank   = DB.MPIrank,
 	             MPIsize   = DB.MPIsize;
@@ -407,33 +406,17 @@ static void output_normals(const char *normals_type)
 
 		Input = VIn->XYZ;
 
-		switch (Adapt) {
-		default: // ADAPT_P, ADAPT_H, ADAPT_HP
-printf("Error: Should not be entering default in output_to_paraview.\n"), exit(1);
-			Nfn = ELEMENT->NfnS[PF][IndFType];
-			if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fS[1][PF][VfIn];
-			else              I_vG_f = ELEMENT->I_vGc_fS[PV][PF][VfIn];
-
-			n = FACE->n_fS;
-			XYZ_f = mm_Alloc_d(CBCM,CBT,CBNT,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
-			break;
-case ADAPT_P: // ToBeModified
-case ADAPT_H:
-case ADAPT_HP:
-		case ADAPT_0:
-			if (FACE->typeInt == 's') {
-				Nfn = ELEMENT->NfnIs[PF][IndFType];
-				if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIs[1][PF][VfIn];
-				else              I_vG_f = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
-			} else {
-				Nfn = ELEMENT->NfnIc[PF][IndFType];
-				if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIc[1][PF][VfIn];
-				else              I_vG_f = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
-			}
-			n = FACE->n_fI;
-			XYZ_f = mm_Alloc_d(CBCM,CBT,CBNT,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
-			break;
+		if (FACE->typeInt == 's') {
+			Nfn = ELEMENT->NfnIs[PF][IndFType];
+			if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIs[1][PF][VfIn];
+			else              I_vG_f = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
+		} else {
+			Nfn = ELEMENT->NfnIc[PF][IndFType];
+			if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIc[1][PF][VfIn];
+			else              I_vG_f = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
 		}
+		n = FACE->n_fI;
+		XYZ_f = mm_Alloc_d(CBCM,CBT,CBNT,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
 
 		fprintf(fID,"\t\t<Piece NumberOfPoints=\"%d\" NumberOfVerts=\"%d\" NumberOfLines=\"%d\" NumberOfStrips=\"%d\" "
 		            "NumberOfPolys=\"%d\">\n",Nfn,0,0,0,0);

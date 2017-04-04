@@ -18,6 +18,8 @@
 #include "output_to_paraview.h"
 #include "explicit_VOLUME_info.h"
 #include "explicit_VOLUME_info_c.h"
+#include "explicit_FACE_info.h"
+#include "explicit_FACE_info_c.h"
 #include "solver_explicit.h"
 #include "solver_implicit.h"
 #include "compute_errors.h"
@@ -238,7 +240,10 @@ static void test_equivalence_rc(int nargc, char **argvNew, const char *TestName,
 
 	// Compute RHS terms using the real and complex functions
 	explicit_VOLUME_info();
+	explicit_FACE_info();
+
 	explicit_VOLUME_info_c();
+	explicit_FACE_info_c();
 
 	// Check for equivalence
 	unsigned int pass = 1;
@@ -301,7 +306,8 @@ static void test_equivalence_alg(int nargc, char **argvNew, const char *TestName
 			for (size_t i = 0; i < NEC+1; i++)
 				VFPartUnity[i] = 0;
 
-			DB.AllowSparseVOL = 0;
+			DB.AllowSparseVOL  = 0;
+			DB.AllowSparseFACE = 0;
 		} else if (alg == 1) { // Sparse
 			for (size_t P = 0; P <= DB.PMax; P++) {
 			for (size_t i = 0; i < 2; i++) {
@@ -326,6 +332,7 @@ static void test_equivalence_alg(int nargc, char **argvNew, const char *TestName
 
 		// Compute RHS
 		explicit_VOLUME_info();
+		explicit_FACE_info();
 
 		// Copy VOLUME->RHS to RHS[alg]
 		unsigned int Nvar = DB.Nvar;

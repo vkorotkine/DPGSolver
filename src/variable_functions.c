@@ -22,7 +22,7 @@
  *	References:
  */
 
-void convert_variables(double *VarIn, double *VarOut, const unsigned int dIn, const unsigned int dOut,
+void convert_variables(const double *VarIn, double *VarOut, const unsigned int dIn, const unsigned int dOut,
                        const unsigned int Nn, const unsigned int Nel, const char TypeIn, const char TypeOut)
 {
 	/*
@@ -40,11 +40,7 @@ void convert_variables(double *VarIn, double *VarOut, const unsigned int dIn, co
 
 	// Standard datatypes
 	unsigned int n, NnTotal, varInMax = dIn + 1, varOutMax = dOut+1;
-	double       *rho, *u, *v, *w, *p, *rhou, *rhov, *rhow, *E, *U, *W;
-
-	// silence
-	u = NULL; v = NULL; w = NULL;
-	rhov = NULL; rhow = NULL;
+	double       *U, *W;
 
 	NnTotal = Nn*Nel;
 
@@ -54,7 +50,9 @@ void convert_variables(double *VarIn, double *VarOut, const unsigned int dIn, co
 		zeros[n] = 0.0;
 
 	switch(TypeIn) {
-	case 'p':
+	case 'p': {
+		const double *rho, *u, *v, *w, *p;
+
 		rho = &VarIn[NnTotal*0];
 		u   = &VarIn[NnTotal*1];
 		p   = &VarIn[NnTotal*varInMax];
@@ -97,7 +95,9 @@ void convert_variables(double *VarIn, double *VarOut, const unsigned int dIn, co
 			break;
 		}
 		break;
-	case 'c':
+	} case 'c': {
+		const double *rho, *rhou, *rhov, *rhow, *E;
+
 		rho  = &VarIn[NnTotal*0];
 		rhou = &VarIn[NnTotal*1];
 		E    = &VarIn[NnTotal*varInMax];
@@ -140,10 +140,10 @@ void convert_variables(double *VarIn, double *VarOut, const unsigned int dIn, co
 			break;
 		}
 		break;
-	default:
+	} default: {
 		printf("Error: Unsupported TypeIn in convert_variables.\n"), exit(1);
 		break;
-	}
+	}}
 }
 
 void compute_pressure(double *VarIn, double *p, const unsigned int d, const unsigned int Nn, const unsigned int Nel,

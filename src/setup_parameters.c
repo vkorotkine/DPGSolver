@@ -547,7 +547,8 @@ void setup_parameters()
 					VFPartUnity[i] = 1;
 		}
 	}
-	DB.AllowSparseVOL = 1;
+	DB.AllowSparseVOL  = 1;
+	DB.AllowSparseFACE = 1;
 
 	// Solver
 //	DB.InviscidFluxType = FLUX_LF;

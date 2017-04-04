@@ -24,7 +24,7 @@
  *		   Note: There is a typo in the 3D Jacobian matrix (eq. 3.79), compare with eq. 3.70.
  */
 
-void jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, double *W, double *dFdW,
+void jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const double *W, double *dFdW,
                             const unsigned int d, const unsigned int Neq)
 {
 	/*
@@ -397,7 +397,7 @@ void jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, doubl
 	}
 }
 
-void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *dnFdW,
+void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const double *WL, const double *WR, double *dnFdW,
                       double *nL, const unsigned int d, const unsigned int Neq, const char side)
 {
 	// Standard datatypes
@@ -923,7 +923,7 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, double *WL,
 	}
 }
 
-void jacobian_flux_Roe(const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *dnFdW,
+void jacobian_flux_Roe(const unsigned int Nn, const unsigned int Nel, const double *WL, const double *WR, double *dnFdW,
                        double *nL, const unsigned int d, const unsigned int Neq, const char side)
 {
 	// Standard datatypes

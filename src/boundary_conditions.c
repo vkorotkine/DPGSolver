@@ -85,8 +85,8 @@ void get_boundary_values(const double X, const double Y, double *rho, double *u,
 	}
 }
 
-void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL, double *WOut, double *WB,
-                      double *nL, const unsigned int d)
+void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ, const double *WL, double *WOut,
+                      double *WB, double *nL, const unsigned int d)
 {
 	/*
 	 *	Comments:
@@ -212,7 +212,7 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 	free(n);
 }
 
-void boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, double *WL, double *WB, double *nL,
+void boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, const double *WL, double *WB, double *nL,
                        const unsigned int d)
 {
 	/*
@@ -223,7 +223,8 @@ void boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, double *WL
 
 	// Standard datatypes
 	unsigned int i, NnTotal, IndE;
-	double *rhoL, *rhouL, *rhovL, *rhowL, *EL, *rhoB, *rhouB, *rhovB, *rhowB, *EB, rhoVL;
+	double       *rhoB, *rhouB, *rhovB, *rhowB, *EB, rhoVL;
+	const double *rhoL, *rhouL, *rhovL, *rhowL, *EL;
 
 	NnTotal = Nn*Nel;
 	IndE = d+1;
@@ -275,7 +276,7 @@ void boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, double *WL
 	}
 }
 
-void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, double *WL, double *WB, double *nL,
+void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, const double *WL, double *WB, double *nL,
                            const unsigned int d, const unsigned int Neq)
 {
 	/*
@@ -288,9 +289,10 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, double
 
 	// Standard datatypes
 	unsigned int n, NnTotal, eq, var, Nvar, IndW;
-	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr,
-	             rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, pBack, rhoB, cL, c2L, VnL, n1, n2, n3,
-	             *WL_ptr[Neq], *WB_ptr[Neq];
+	double       *n_ptr, rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, pBack, rhoB, cL, c2L, VnL, n1, n2, n3,
+	             *WB_ptr[Neq];
+	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Neq];
+
 
 	// silence
 	n2 = n3 = 0;
@@ -386,7 +388,7 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, double
 	}
 }
 
-void boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL, double *WB,
+void boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, double *XYZ, const double *WL, double *WB,
                        double *nL, const unsigned int d, const unsigned int Nvar)
 {
 	/*
@@ -409,7 +411,8 @@ void boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, double *XY
 
 	// Standard datatypes
 	unsigned int NnTotal;
-	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *WL_ptr[Nvar], *WB_ptr[Nvar];
+	double       *n_ptr, *WB_ptr[Nvar];
+	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Nvar];
 
 	// silence
 	rhowL_ptr = NULL;
@@ -519,7 +522,7 @@ void boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, double *XY
 	}
 }
 
-void boundary_SupersonicInflow(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL, double *WB,
+void boundary_SupersonicInflow(const unsigned int Nn, const unsigned int Nel, double *XYZ, const double *WL, double *WB,
                                double *nL, const unsigned int d, const unsigned int Nvar)
 {
 	unsigned int NnTotal;
@@ -563,7 +566,7 @@ void boundary_SupersonicInflow(const unsigned int Nn, const unsigned int Nel, do
 	}
 }
 
-void boundary_SupersonicOutflow(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL, double *WB,
+void boundary_SupersonicOutflow(const unsigned int Nn, const unsigned int Nel, double *XYZ, const double *WL, double *WB,
                                 double *nL, const unsigned int d, const unsigned int Nvar)
 {
 	unsigned int NnTotal;
