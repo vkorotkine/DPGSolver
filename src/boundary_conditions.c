@@ -85,8 +85,8 @@ void get_boundary_values(const double X, const double Y, double *rho, double *u,
 	}
 }
 
-void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ, const double *WL, double *WOut,
-                      double *WB, double *nL, const unsigned int d)
+void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *WL, double *WOut,
+                      double *WB, const double *nL, const unsigned int d)
 {
 	/*
 	 *	Comments:
@@ -100,7 +100,8 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 	unsigned int i, j, Indn, NnTotal;
 	double       *rhoL, *uL, *vL, *wL, *pL, cL, *VnL, sL, *rhoR, *uR, *vR, *wR, *pR, cR, *VnR, sR, *UL, *UR,
 	             *rhoB, *uB, *vB, *wB, *pB, *UB,
-	             *X, *Y, *n, RL, RR, Vn, c, ut, vt, wt;
+	             *n, RL, RR, Vn, c, ut, vt, wt;
+	const double *X, *Y;
 
 	// silence
 	UL = WOut;
@@ -212,7 +213,7 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ
 	free(n);
 }
 
-void boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, const double *WL, double *WB, double *nL,
+void boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, const double *WL, double *WB, const double *nL,
                        const unsigned int d)
 {
 	/*
@@ -276,8 +277,8 @@ void boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, const doub
 	}
 }
 
-void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, const double *WL, double *WB, double *nL,
-                           const unsigned int d, const unsigned int Neq)
+void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, const double *WL, double *WB,
+                           const double *nL, const unsigned int d, const unsigned int Nvar)
 {
 	/*
 	 *	Purpose:
@@ -288,10 +289,9 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, const 
 	 */
 
 	// Standard datatypes
-	unsigned int n, NnTotal, eq, var, Nvar, IndW;
-	double       *n_ptr, rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, pBack, rhoB, cL, c2L, VnL, n1, n2, n3,
-	             *WB_ptr[Neq];
-	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Neq];
+	unsigned int n, NnTotal, var, Neq, IndW;
+	double       rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, pBack, rhoB, cL, c2L, VnL, n1, n2, n3, *WB_ptr[Nvar];
+	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Nvar], *n_ptr;
 
 
 	// silence
@@ -299,11 +299,11 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, const 
 	rhovL_ptr = rhowL_ptr = NULL;
 
 	NnTotal = Nn*Nel;
-	Nvar    = Neq;
+	Neq     = Nvar;
 
-	for (eq = 0; eq < Neq; eq++) {
-		WL_ptr[eq] = &WL[eq*NnTotal];
-		WB_ptr[eq] = &WB[eq*NnTotal];
+	for (var = 0; var < Nvar; var++) {
+		WL_ptr[var] = &WL[var*NnTotal];
+		WB_ptr[var] = &WB[var*NnTotal];
 	}
 
 	double zeros[NnTotal];
@@ -388,8 +388,8 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, const 
 	}
 }
 
-void boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, double *XYZ, const double *WL, double *WB,
-                       double *nL, const unsigned int d, const unsigned int Nvar)
+void boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *WL, double *WB,
+                       const double *nL, const unsigned int d, const unsigned int Nvar)
 {
 	/*
 	 *	Purpose:
@@ -411,8 +411,8 @@ void boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, double *XY
 
 	// Standard datatypes
 	unsigned int NnTotal;
-	double       *n_ptr, *WB_ptr[Nvar];
-	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Nvar];
+	double       *WB_ptr[Nvar];
+	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Nvar], *n_ptr;
 
 	// silence
 	rhowL_ptr = NULL;
@@ -522,11 +522,12 @@ void boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, double *XY
 	}
 }
 
-void boundary_SupersonicInflow(const unsigned int Nn, const unsigned int Nel, double *XYZ, const double *WL, double *WB,
-                               double *nL, const unsigned int d, const unsigned int Nvar)
+void boundary_SupersonicInflow(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *WL,
+                               double *WB, const double *nL, const unsigned int d, const unsigned int Nvar)
 {
 	unsigned int NnTotal;
-	double       *X_ptr, *Y_ptr, *WB_ptr[Nvar];
+	double       *WB_ptr[Nvar];
+	const double *X_ptr, *Y_ptr;
 
 	// silence
 	WB[0] = WL[0];
@@ -566,8 +567,8 @@ void boundary_SupersonicInflow(const unsigned int Nn, const unsigned int Nel, do
 	}
 }
 
-void boundary_SupersonicOutflow(const unsigned int Nn, const unsigned int Nel, double *XYZ, const double *WL, double *WB,
-                                double *nL, const unsigned int d, const unsigned int Nvar)
+void boundary_SupersonicOutflow(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *WL,
+                                double *WB, const double *nL, const unsigned int d, const unsigned int Nvar)
 {
 	unsigned int NnTotal;
 

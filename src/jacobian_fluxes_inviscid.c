@@ -52,8 +52,8 @@ void jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const
 
 	// Standard datatypes
 	unsigned int i, n, eq, var, dim, iMax, Nvar, NnTotal, InddFdW;
-	double *rho_ptr, *rhou_ptr, *rhov_ptr, *rhow_ptr, *E_ptr,
-	       rho, u, v, w, u2, uv, uw, v2, vw, w2, V2, E, p, H, alpha, beta, *dFdW_ptr[DMAX*Neq*Neq];
+	double       rho, u, v, w, u2, uv, uw, v2, vw, w2, V2, E, p, H, alpha, beta, *dFdW_ptr[DMAX*Neq*Neq];
+	const double *rho_ptr, *rhou_ptr, *rhov_ptr, *rhow_ptr, *E_ptr;
 
 	Nvar    = Neq;
 	NnTotal = Nn*Nel;
@@ -398,17 +398,16 @@ void jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const
 }
 
 void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const double *WL, const double *WR, double *dnFdW,
-                      double *nL, const unsigned int d, const unsigned int Neq, const char side)
+                      const double *nL, const unsigned int d, const unsigned int Neq, const char side)
 {
 	// Standard datatypes
 	char         sideMaxV;
 	unsigned int i, n, eq, var, iMax, Nvar, NnTotal, InddnFdW;
-	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr,
-	             *rhoR_ptr, *rhouR_ptr, *rhovR_ptr, *rhowR_ptr, *ER_ptr,
-	             rhoL, rhouL, rhovL, rhowL, EL, rhoL_inv, uL, vL, wL, V2L, VL, pL, cL,
+	double       rhoL, rhouL, rhovL, rhowL, EL, rhoL_inv, uL, vL, wL, V2L, VL, pL, cL,
 	             rhoR, rhouR, rhovR, rhowR, ER, rhoR_inv, uR, vR, wR, V2R, VR, pR, cR,
-	             maxlL, maxlR, maxV,
-	             n1, n2, n3, *n_ptr, *dnFdW_ptr[Neq*Neq];
+	             maxlL, maxlR, maxV, n1, n2, n3, *dnFdW_ptr[Neq*Neq];
+	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr,
+	             *rhoR_ptr, *rhouR_ptr, *rhovR_ptr, *rhowR_ptr, *ER_ptr, *n_ptr;
 
 	Nvar    = Neq;
 	NnTotal = Nn*Nel;
@@ -924,15 +923,13 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 }
 
 void jacobian_flux_Roe(const unsigned int Nn, const unsigned int Nel, const double *WL, const double *WR, double *dnFdW,
-                       double *nL, const unsigned int d, const unsigned int Neq, const char side)
+                       const double *nL, const unsigned int d, const unsigned int Neq, const char side)
 {
 	// Standard datatypes
 	unsigned int i, n, eq, var, iMax, Nvar, NnTotal, InddnFdW, case_l1, case_l5;
-	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr,
-	             *rhoR_ptr, *rhouR_ptr, *rhovR_ptr, *rhowR_ptr, *ER_ptr,
-	             rhoL, rhouL, rhovL, rhowL, EL, rhoL_inv, rhoLr_inv, uL, vL, wL, V2L, VnL, pL, HL,
+	double       rhoL, rhouL, rhovL, rhowL, EL, rhoL_inv, rhoLr_inv, uL, vL, wL, V2L, VnL, pL, HL,
 	             rhoR, rhouR, rhovR, rhowR, ER, rhoR_inv, rhoRr_inv, uR, vR, wR, V2R, VnR, pR, HR,
-	             n1, n2, n3, *n_ptr, *dnFdW_ptr[Neq*Neq],
+	             n1, n2, n3, *dnFdW_ptr[Neq*Neq],
 	             r, rP1, rho, u, v, w, H, Vn, V2, c2, c, Den, mult, drho, drhou, drhov, drhow, dE, dp, dVn,
 	             sign_l1, sign_l234, sign_l5, l1, l234, l5, l1L, l5R, lc1, lc2, disInter1, disInter2;
 	double       duLdW[Neq], dvLdW[Neq], dwLdW[Neq], drhoLdW[Neq], dVnLdW[Neq], dEdW[Neq], dpdW[Neq],
@@ -942,6 +939,8 @@ void jacobian_flux_Roe(const unsigned int Nn, const unsigned int Nel, const doub
 	             dl1dW, dl234dW, dl5dW, dlc1dW, dlc2dW, ddisInter1dW, ddisInter2dW,
 	             dnF1dW[Neq], dnF2dW[Neq], dnF3dW[Neq], dnF4dW[Neq], dnF5dW[Neq],
 	             ddis1dW[Neq], ddis2dW[Neq], ddis3dW[Neq], ddis4dW[Neq], ddis5dW[Neq];
+	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr,
+	             *rhoR_ptr, *rhouR_ptr, *rhovR_ptr, *rhowR_ptr, *ER_ptr, *n_ptr;
 
 
 	Nvar    = Neq;

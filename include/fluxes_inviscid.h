@@ -7,8 +7,8 @@
 extern void flux_inviscid (const unsigned int Nn, const unsigned int Nel, const double *W, double *F,
                            const unsigned int d, const unsigned int Neq);
 extern void flux_LF       (const unsigned int Nn, const unsigned int Nel, const double *WL, const double *WR,
-                           double *nFluxNum, double *nL, const unsigned int d, const unsigned int Neq);
+                           double *nFluxNum, const double *nL, const unsigned int d, const unsigned int Neq);
 extern void flux_Roe      (const unsigned int Nn, const unsigned int Nel, const double *WL, const double *WR,
-                           double *nFluxNum, double *nL, const unsigned int d, const unsigned int Neq);
+                           double *nFluxNum, const double *nL, const unsigned int d, const unsigned int Neq);
 
 #endif // DPG__fluxes_inviscid_h__INCLUDED

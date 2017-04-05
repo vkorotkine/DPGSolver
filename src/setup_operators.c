@@ -26,7 +26,6 @@
 #include "sum_factorization.h"
 #include "array_free.h"
 #include "plotting_element_info.h"
-#include "solver_functions.h"
 #include "adaptation.h"
 #include "memory_destructors.h"
 #include "array_norm.h"

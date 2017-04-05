@@ -5,6 +5,7 @@
 #define DPG__solver_functions_h__INCLUDED
 
 #include "S_VOLUME.h"
+#include "S_FACE.h"
 #include "S_OpCSR.h"
 
 
@@ -39,9 +40,15 @@ extern void finalize_VOLUME_Inviscid_Weak (const unsigned int Nrc, const double 
 struct S_OPERATORS_F {
 	// ToBeModified
 	unsigned int NvnS, NfnI, NfnS, NvnS_SF, NfnI_SF, NvnI_SF, *nOrdInOut, *nOrdOutIn;
-	double       **ChiS_fI, **ChiS_vI, **I_Weak_FF, **I_Weak_VV, **ChiS_fS, **GfS_fI;
+	double       **ChiS_fI, **ChiS_vI, **I_Weak_FF, **I_Weak_VV, **ChiS_fS;
 
 	struct S_OpCSR **ChiS_fI_sp, **I_Weak_FF_sp;
+};
+
+struct S_NumericalFlux {
+	const double *WL_fIL, *WR_fIL;
+
+	double *nFluxNum_fI, *dnFluxNumdWL_fI, *dnFluxNumdWR_fI;
 };
 
 struct S_FDATA {
@@ -50,12 +57,8 @@ struct S_FDATA {
 	struct S_OPERATORS_F **OPS;
 	struct S_VOLUME      *VOLUME;
 	struct S_FACE        *FACE;
-};
 
-struct S_NumericalFlux {
-	const double *WL_fIL, *WR_fIL;
-
-	double *nFluxNum_fIL, *dnFluxNumdWL_fIL, *dnFluxNumdWR_fIL;
+	struct S_NumericalFlux *NFluxData;
 };
 
 extern void init_ops_FACE      (struct S_OPERATORS_F *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
@@ -63,7 +66,9 @@ extern void init_ops_FACE      (struct S_OPERATORS_F *OPS, const struct S_VOLUME
 extern void init_FDATA         (struct S_FDATA *FDATA, struct S_FACE *FACE, const char side);
 extern void compute_W_fI       (const struct S_FDATA *FDATA, double *W_fI);
 extern void compute_WR_fIL     (const struct S_FDATA *FDATA, const double *WL_fIL, double *WR_fIL);
-extern void compute_numerical_flux (const struct S_FDATA *FDATA, struct S_NumericalFlux *NFluxData,
-                                    const char imex_type);
+extern void compute_numerical_flux      (const struct S_FDATA *FDATA, const char imex_type);
+extern void add_Jacobian_scaling_FACE   (const struct S_FDATA *FDATA, const char imex_type);
+extern void swap_FACE_orientation       (const struct S_FDATA *FDATA, const char imex_type);
+extern void finalize_FACE_Inviscid_Weak (struct S_FDATA *FDATA, const char side, const char imex_type);
 
 #endif // DPG__solver_functions_h__INCLUDED

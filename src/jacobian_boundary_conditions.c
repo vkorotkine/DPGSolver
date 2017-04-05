@@ -32,8 +32,9 @@
  *	References:
  */
 
-void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL, double *WOut,
-                               double *dWdW, double *nL, const unsigned int d, const unsigned int Neq)
+void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *WL,
+                               double *WOut, double *dWdW, const double *nL, const unsigned int d,
+                               const unsigned int Neq)
 {
 	/*
 	 *	Jacobian Matrices [var * eq]
@@ -59,10 +60,10 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 
 	// Standard datatypes
 	unsigned int i, iMax, n, eq, var, NnTotal, Nvar, InddWdW;
-	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *X_ptr, *Y_ptr,
-	             rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL, rhoR, uR, vR, wR, pR,
+	double       rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL, rhoR, uR, vR, wR, pR,
 	             cL, RL, VnL, cR, RR, VnR, c, Vn,
 	             X, Y, n1, n2, n3, *dWdW_ptr[Neq*Neq];
+	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *X_ptr, *Y_ptr;
 
 	// silence
 	rhoL_ptr = WOut;
@@ -381,8 +382,8 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, do
 	}
 }
 
-void jacobian_boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, double *WL, double *dWdW, double *nL,
-                                const unsigned int d, const unsigned int Neq)
+void jacobian_boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, const double *WL, double *dWdW,
+                                const double *nL, const unsigned int d, const unsigned int Neq)
 {
 	/*
 	 *	Jacobian Matrix [var * eq]
@@ -396,10 +397,12 @@ void jacobian_boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, d
 
 	// Standard datatypes
 	unsigned int i, iMax, n, eq, var, NnTotal, Nvar, InddWdW;
-	double       n1, n2, n3, *dWdW_ptr[Neq*Neq], *n_ptr;
+	double       n1, n2, n3, *dWdW_ptr[Neq*Neq];
+	const double *n_ptr;
 
 	// silence
-	dWdW_ptr[0] = WL;
+	if (0)
+		printf("%f",WL[0]);
 
 	NnTotal = Nn*Nel;
 	Nvar    = Neq;
@@ -517,8 +520,8 @@ void jacobian_boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, d
 	}
 }
 
-void jacobian_boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, double *WL, double *dWdW, double *nL,
-                                    const unsigned int d, const unsigned int Neq)
+void jacobian_boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, const double *WL, double *dWdW,
+                                    const double *nL, const unsigned int d, const unsigned int Neq)
 {
 	/*
 	 *	Jacobian Matrices [var * eq]
@@ -536,7 +539,8 @@ void jacobian_boundary_BackPressure(const unsigned int Nn, const unsigned int Ne
 
 	// Standard datatypes
 	unsigned int n, NnTotal, eq, var, Nvar;
-	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *WL_ptr[Neq], *dWdW_ptr[Neq*Neq];
+	double       *dWdW_ptr[Neq*Neq];
+	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *WL_ptr[Neq];
 
 	// silence
 	rhovL_ptr = rhowL_ptr = n_ptr = NULL;
@@ -680,8 +684,8 @@ void jacobian_boundary_BackPressure(const unsigned int Nn, const unsigned int Ne
 	}
 }
 
-void jacobian_boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL, double *dWdW,
-                                double *nL, const unsigned int d, const unsigned int Neq)
+void jacobian_boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *WL,
+                                double *dWdW, const double *nL, const unsigned int d, const unsigned int Neq)
 {
 	// Initialize DB Parameters
 	double Rg      = DB.Rg,
@@ -690,7 +694,8 @@ void jacobian_boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, d
 
 	// Standard datatypes
 	unsigned int NnTotal, Nvar;
-	double       *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *WL_ptr[Neq], *dWdW_ptr[Neq*Neq];
+	double       *dWdW_ptr[Neq*Neq];
+	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *WL_ptr[Neq];
 
 	// silence
 	rhowL_ptr = NULL;
@@ -866,8 +871,9 @@ void jacobian_boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, d
 	}
 }
 
-void jacobian_boundary_SupersonicInflow(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL,
-                                         double *dWdW, double *nL, const unsigned int d, const unsigned int Neq)
+void jacobian_boundary_SupersonicInflow(const unsigned int Nn, const unsigned int Nel, const double *XYZ,
+                                        const double *WL, double *dWdW, const double *nL, const unsigned int d,
+                                        const unsigned int Neq)
 {
 	// Standard datatypes
 	unsigned int NnTotal, Nvar;
@@ -899,8 +905,9 @@ void jacobian_boundary_SupersonicInflow(const unsigned int Nn, const unsigned in
 	}
 }
 
-void jacobian_boundary_SupersonicOutflow(const unsigned int Nn, const unsigned int Nel, double *XYZ, double *WL,
-                                         double *dWdW, double *nL, const unsigned int d, const unsigned int Neq)
+void jacobian_boundary_SupersonicOutflow(const unsigned int Nn, const unsigned int Nel, const double *XYZ,
+                                         const double *WL, double *dWdW, const double *nL, const unsigned int d,
+                                         const unsigned int Neq)
 {
 	// Standard datatypes
 	unsigned int NnTotal, Nvar;

@@ -23,7 +23,7 @@
  *	References:
  */
 
-void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, const unsigned int solved)
+void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UEx, const unsigned int solved)
 {
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
@@ -31,7 +31,8 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, con
 
 	// Standard datatypes
 	unsigned int i;
-	double       *X, *Y, *Z, *rhoEx, *uEx, *vEx, *wEx, *pEx;
+	double       *rhoEx, *uEx, *vEx, *wEx, *pEx;
+	const double *X, *Y, *Z;
 
 	rhoEx = &UEx[Nn*0];
 	uEx   = &UEx[Nn*1];
@@ -155,7 +156,7 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, con
 	}
 }
 
-void compute_exact_gradient(const unsigned int Nn, double *XYZ, double *QEx)
+void compute_exact_gradient(const unsigned int Nn, const double *XYZ, double *QEx)
 {
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
@@ -163,7 +164,7 @@ void compute_exact_gradient(const unsigned int Nn, double *XYZ, double *QEx)
 
 	// Standard datatypes
 	unsigned int i;
-	double       *X, *Y, *Z;
+	const double *X, *Y, *Z;
 
 	X = &XYZ[0*Nn];
 	Y = &XYZ[1*Nn];
@@ -190,7 +191,7 @@ void compute_exact_gradient(const unsigned int Nn, double *XYZ, double *QEx)
 	}
 }
 
-void compute_source(const unsigned int Nn, double *XYZ, double *source)
+void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 {
 	/*
 	 *	Purpose:
@@ -204,7 +205,7 @@ void compute_source(const unsigned int Nn, double *XYZ, double *source)
 
 	// Standard datatypes
 	unsigned int n, eq;
-	double       *X, *Y, *Z;
+	const double *X, *Y, *Z;
 
 	if (strstr(TestCase,"Poisson")) {
 		double Poisson_scale = DB.Poisson_scale;

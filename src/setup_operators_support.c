@@ -19,7 +19,6 @@
 #include "plotting_element_info.h"
 #include "bases.h"
 #include "cubature.h"
-#include "solver_functions.h"
 
 #include "array_print.h"
 
