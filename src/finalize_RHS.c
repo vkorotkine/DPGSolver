@@ -157,8 +157,8 @@ double finalize_RHS(void)
 			}
 		}
 
-		free(FACE->RHSIn);
-		free(FACE->RHSOut);
+		free(FACE->RHSIn);  FACE->RHSIn  = NULL;
+		free(FACE->RHSOut); FACE->RHSOut = NULL;
 	}
 
 	// Add source contribution

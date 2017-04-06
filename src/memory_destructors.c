@@ -310,6 +310,11 @@ void memory_destructor_F(struct S_FACE *FACE)
 	free(FACE->detJVOut_fI);
 
 	// Solving
+	if (FACE->RHSIn)
+		free(FACE->RHSIn);
+	if (FACE->RHSOut)
+		free(FACE->RHSOut);
+
 	if (FACE->LHSInIn)
 		free(FACE->LHSInIn);
 	if (FACE->LHSOutIn)

@@ -13,7 +13,7 @@
 #include "S_FACE.h"
 
 #include "solver_functions.h"
-#include "array_swap.h"
+
 
 /*
  *	Purpose:
@@ -54,10 +54,9 @@ void explicit_FACE_info(void)
 
 static void compute_FACE_RHS_EFE(void)
 {
-	// Initialize DB Parameters
-	char         *Form            = DB.Form;
-	unsigned int Nvar             = DB.Nvar,
-	             Neq              = DB.Neq;
+	const char         *Form = DB.Form;
+	const unsigned int Nvar  = DB.Nvar,
+	                   Neq   = DB.Neq;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 	struct S_FACE     *FACE;
@@ -85,41 +84,45 @@ static void compute_FACE_RHS_EFE(void)
 			unsigned int IndFType = FDATAL->IndFType;
 			unsigned int NfnI     = OPSL[IndFType]->NfnI;
 
-			double *WIn_fI = malloc(NfnI*Nvar * sizeof *WIn_fI); // free
-			compute_W_fI(FDATAL,WIn_fI);
+			double *WL_fI = malloc(NfnI*Nvar * sizeof *WL_fI); // free
+			compute_W_fI(FDATAL,WL_fI);
 
-			double *WOut_fIIn = malloc(NfnI*Nvar * sizeof *WOut_fIIn); // free
-			compute_WR_fIL(FDATAR,WIn_fI,WOut_fIIn);
+			double *WR_fIL = malloc(NfnI*Nvar * sizeof *WR_fIL); // free
+			compute_WR_fIL(FDATAR,WL_fI,WR_fIL);
 
 
 			// Compute numerical flux as seen from the left VOLUME
 			double *nFluxNum_fI = malloc(NfnI*Neq * sizeof *nFluxNum_fI); // free
 
-			NFluxData->WL_fIL      = WIn_fI;
-			NFluxData->WR_fIL      = WOut_fIIn;
+			NFluxData->WL_fIL      = WL_fI;
+			NFluxData->WR_fIL      = WR_fIL;
 			NFluxData->nFluxNum_fI = nFluxNum_fI;
 
 			compute_numerical_flux(FDATAL,'E');
 			add_Jacobian_scaling_FACE(FDATAL,'E');
 
-			free(WIn_fI);
-			free(WOut_fIIn);
+			free(WL_fI);
+			free(WR_fIL);
 
 
 			// Compute FACE RHS terms
 			unsigned int NvnSL = OPSL[0]->NvnS,
-						 NvnSR = OPSR[0]->NvnS;
+			             NvnSR = OPSR[0]->NvnS;
 
 			double *RHSL = calloc(NvnSL*Neq , sizeof *RHSL), // keep
-				   *RHSR = calloc(NvnSR*Neq , sizeof *RHSR); // keep
+			       *RHSR = calloc(NvnSR*Neq , sizeof *RHSR); // keep
+			if (FACE->RHSIn)
+				free(FACE->RHSIn);
 			FACE->RHSIn  = RHSL;
+
+			if (FACE->RHSOut)
+				free(FACE->RHSOut);
 			FACE->RHSOut = RHSR;
 
-			finalize_FACE_Inviscid_Weak(FDATAL,'L','E');
-			if (!FACE->Boundary) {
-				swap_FACE_orientation(FDATAR,'E');
-				finalize_FACE_Inviscid_Weak(FDATAR,'R','E');
-			}
+			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,'L','E');
+			if (!FACE->Boundary)
+				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,'R','E');
+
 			free(nFluxNum_fI);
 		}
 	} else if (strstr(Form,"Strong")) {

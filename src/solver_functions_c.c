@@ -15,6 +15,7 @@
 #include "S_FACE.h"
 #include "S_OpCSR.h"
 
+#include "solver_functions.h"
 #include "matrix_functions.h"
 #include "sum_factorization.h"
 #include "array_print.h"

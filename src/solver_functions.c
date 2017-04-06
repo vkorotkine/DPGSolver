@@ -451,66 +451,69 @@ void init_ops_FACE(struct S_OPERATORS_F *OPS, const struct S_VOLUME *VOLUME, con
 	unsigned int ***SF_BE = DB.SF_BE;
 
 	// Standard datatypes
-	unsigned int PV, PF, Vtype, Eclass, FtypeInt, IndOrdInOut, IndOrdOutIn;
+	unsigned int PV, PF, Vtype, Eclass, FtypeInt, IndOrdLR, IndOrdRL;
 
-	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS, *ELEMENT_FACE;
+	struct S_ELEMENT *ELEMENT, *ELEMENT_SF, *ELEMENT_FACE;
 
 	// silence
-	ELEMENT_OPS = NULL;
+	ELEMENT_SF = NULL;
 
 	PV       = VOLUME->P;
 	PF       = FACE->P;
 	Vtype    = VOLUME->type;
 	Eclass   = VOLUME->Eclass;
 
-	FtypeInt    = FACE->typeInt;
-	IndOrdInOut = FACE->IndOrdInOut;
-	IndOrdOutIn = FACE->IndOrdOutIn;
+	FtypeInt = FACE->typeInt;
+	IndOrdLR = FACE->IndOrdInOut;
+	IndOrdRL = FACE->IndOrdOutIn;
 
 	ELEMENT      = get_ELEMENT_type(Vtype);
 	ELEMENT_FACE = get_ELEMENT_FACE(Vtype,IndClass);
 	if ((Eclass == C_TP && SF_BE[PF][0][1]) || (Eclass == C_WEDGE && SF_BE[PF][1][1]))
-		ELEMENT_OPS = ELEMENT->ELEMENTclass[IndClass];
+		ELEMENT_SF = ELEMENT->ELEMENTclass[IndClass];
 	else
-		ELEMENT_OPS = ELEMENT;
+		ELEMENT_SF = ELEMENT;
 
 	OPS->NvnS    = ELEMENT->NvnS[PV];
-	OPS->NvnS_SF = ELEMENT_OPS->NvnS[PV];
-
-	OPS->NfnS      = ELEMENT_FACE->NvnS[PF];
-	OPS->ChiS_fS   = ELEMENT->ChiS_fS[PV][PF];
+	OPS->NvnS_SF = ELEMENT_SF->NvnS[PV];
 	if (FtypeInt == 's') {
 		// Straight FACE Integration
 		OPS->NfnI    = ELEMENT->NfnIs[PF][IndClass];
-		OPS->NfnI_SF = ELEMENT_OPS->NfnIs[PF][0];
-		OPS->NvnI_SF = ELEMENT_OPS->NvnIs[PF];
+		OPS->NfnI_SF = ELEMENT_SF->NfnIs[PF][0];
+		OPS->NvnI_SF = ELEMENT_SF->NvnIs[PF];
 
-		OPS->ChiS_fI   = ELEMENT_OPS->ChiS_fIs[PV][PF];
-		OPS->ChiS_vI   = ELEMENT_OPS->ChiS_vIs[PV][PF];
-		OPS->I_Weak_FF = ELEMENT_OPS->Is_Weak_FF[PV][PF];
-		OPS->I_Weak_VV = ELEMENT_OPS->Is_Weak_VV[PV][PF];
+		OPS->ChiS_fI   = ELEMENT->ChiS_fIs[PV][PF];
+		OPS->I_Weak_FF = ELEMENT->Is_Weak_FF[PV][PF];
+
+		OPS->ChiS_fI_SF   = ELEMENT_SF->ChiS_fIs[PV][PF];
+		OPS->ChiS_vI_SF   = ELEMENT_SF->ChiS_vIs[PV][PF];
+		OPS->I_Weak_FF_SF = ELEMENT_SF->Is_Weak_FF[PV][PF];
+		OPS->I_Weak_VV_SF = ELEMENT_SF->Is_Weak_VV[PV][PF];
 
 		OPS->ChiS_fI_sp   = ELEMENT->ChiS_fIs_sp[PV][PF];
 		OPS->I_Weak_FF_sp = ELEMENT->Is_Weak_FF_sp[PV][PF];
 
-		OPS->nOrdInOut = ELEMENT_FACE->nOrd_fIs[PF][IndOrdInOut];
-		OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fIs[PF][IndOrdOutIn];
+		OPS->nOrdLR = ELEMENT_FACE->nOrd_fIs[PF][IndOrdLR];
+		OPS->nOrdRL = ELEMENT_FACE->nOrd_fIs[PF][IndOrdRL];
 	} else {
 		// Curved FACE Integration
 		OPS->NfnI    = ELEMENT->NfnIc[PF][IndClass];
-		OPS->NfnI_SF = ELEMENT_OPS->NfnIc[PF][0];
-		OPS->NvnI_SF = ELEMENT_OPS->NvnIc[PF];
+		OPS->NfnI_SF = ELEMENT_SF->NfnIc[PF][0];
+		OPS->NvnI_SF = ELEMENT_SF->NvnIc[PF];
 
-		OPS->ChiS_fI   = ELEMENT_OPS->ChiS_fIc[PV][PF];
-		OPS->ChiS_vI   = ELEMENT_OPS->ChiS_vIc[PV][PF];
-		OPS->I_Weak_FF = ELEMENT_OPS->Ic_Weak_FF[PV][PF];
-		OPS->I_Weak_VV = ELEMENT_OPS->Ic_Weak_VV[PV][PF];
+		OPS->ChiS_fI   = ELEMENT->ChiS_fIc[PV][PF];
+		OPS->I_Weak_FF = ELEMENT->Ic_Weak_FF[PV][PF];
+
+		OPS->ChiS_fI_SF   = ELEMENT_SF->ChiS_fIc[PV][PF];
+		OPS->ChiS_vI_SF   = ELEMENT_SF->ChiS_vIc[PV][PF];
+		OPS->I_Weak_FF_SF = ELEMENT_SF->Ic_Weak_FF[PV][PF];
+		OPS->I_Weak_VV_SF = ELEMENT_SF->Ic_Weak_VV[PV][PF];
 
 		OPS->ChiS_fI_sp   = ELEMENT->ChiS_fIc_sp[PV][PF];
 		OPS->I_Weak_FF_sp = ELEMENT->Ic_Weak_FF_sp[PV][PF];
 
-		OPS->nOrdInOut = ELEMENT_FACE->nOrd_fIc[PF][IndOrdInOut];
-		OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fIc[PF][IndOrdOutIn];
+		OPS->nOrdLR = ELEMENT_FACE->nOrd_fIc[PF][IndOrdLR];
+		OPS->nOrdRL = ELEMENT_FACE->nOrd_fIc[PF][IndOrdRL];
 	}
 }
 
@@ -577,8 +580,8 @@ void compute_W_fI(const struct S_FDATA *FDATA, double *W_fI)
 	double       *OP[DMAX], **OP0, **OP1;
 
 	if (Eclass == C_TP && SF_BE[P][0][1]) {
-		get_sf_parametersF(OPS[0]->NvnS_SF,OPS[0]->NvnI_SF,OPS[0]->ChiS_vI,
-		                   OPS[0]->NvnS_SF,OPS[0]->NfnI_SF,OPS[0]->ChiS_fI,NIn,NOut,OP,d,Vf,C_TP);
+		get_sf_parametersF(OPS[0]->NvnS_SF,OPS[0]->NvnI_SF,OPS[0]->ChiS_vI_SF,
+		                   OPS[0]->NvnS_SF,OPS[0]->NfnI_SF,OPS[0]->ChiS_fI_SF,NIn,NOut,OP,d,Vf,C_TP);
 
 		if (SpOp) {
 			for (size_t dim = 0; dim < d; dim++)
@@ -591,10 +594,10 @@ void compute_W_fI(const struct S_FDATA *FDATA, double *W_fI)
 
 		sf_apply_d(VOLUME->What,W_fI,NIn,NOut,Nvar,OP,Diag,d);
 	} else if (Eclass == C_WEDGE && SF_BE[P][1][1]) {
-		if (f < 3) { OP0   = OPS[0]->ChiS_fI, OP1   = OPS[1]->ChiS_vI;
-		             NOut0 = OPS[0]->NfnI_SF, NOut1 = OPS[1]->NvnI_SF;
-		} else {     OP0   = OPS[0]->ChiS_vI, OP1   = OPS[1]->ChiS_fI;
-		             NOut0 = OPS[0]->NvnI_SF, NOut1 = OPS[1]->NfnI_SF; }
+		if (f < 3) { OP0   = OPS[0]->ChiS_fI_SF, OP1   = OPS[1]->ChiS_vI_SF;
+		             NOut0 = OPS[0]->NfnI_SF,    NOut1 = OPS[1]->NvnI_SF;
+		} else {     OP0   = OPS[0]->ChiS_vI_SF, OP1   = OPS[1]->ChiS_fI_SF;
+		             NOut0 = OPS[0]->NvnI_SF,    NOut1 = OPS[1]->NfnI_SF; }
 		get_sf_parametersF(OPS[0]->NvnS_SF,NOut0,OP0,OPS[1]->NvnS_SF,NOut1,OP1,NIn,NOut,OP,d,Vf,C_WEDGE);
 
 		if (SpOp) {
@@ -646,7 +649,7 @@ void compute_WR_fIL(const struct S_FDATA *FDATA, const double *WL_fIL, double *W
 
 	const unsigned int BC      = FACE->BC,
 	                   NfnI    = OPS[IndFType]->NfnI,
-	                   *nOrdRL = OPS[IndFType]->nOrdOutIn;
+	                   *nOrdRL = OPS[IndFType]->nOrdRL;
 
 	const double       *XYZ_fIL = FACE->XYZ_fI,
 	                   *n_fIL   = FACE->n_fI;
@@ -822,7 +825,71 @@ void add_Jacobian_scaling_FACE(const struct S_FDATA *FDATA, const char imex_type
 	}
 }
 
-void finalize_FACE_Inviscid_Weak(struct S_FDATA *FDATA, const char side, const char imex_type)
+static void swap_FACE_orientation(const struct S_FDATA *FDATA, const char imex_type)
+{
+	/*
+	 *	Purpose:
+	 *		Change orientation of FACE operators to correspond to that of the right VOLUME.
+	 *
+	 *	Comments:
+	 *		Note that the arrays are negated to account for the normal being negative when seen by the opposite VOLUME.
+	 */
+
+	const unsigned int Neq  = DB.Neq,
+	                   Nvar = DB.Nvar;
+
+	struct S_OPERATORS_F **OPS = FDATA->OPS;
+
+	const unsigned int IndFType = FDATA->IndFType;
+	const unsigned int NfnI     = OPS[IndFType]->NfnI,
+	                   *nOrdLR  = OPS[IndFType]->nOrdLR;
+
+	double *nFluxNum_fI     = FDATA->NFluxData->nFluxNum_fI,
+	       *dnFluxNumdWL_fI = FDATA->NFluxData->dnFluxNumdWL_fI,
+	       *dnFluxNumdWR_fI = FDATA->NFluxData->dnFluxNumdWR_fI;
+
+	if (imex_type == 'E') {
+		for (size_t i = 0, iMax = Neq*NfnI; i < iMax; i++)
+			nFluxNum_fI[i] *= -1.0;
+
+		array_rearrange_d(NfnI,Neq,nOrdLR,'C',nFluxNum_fI);
+	} else if (imex_type == 'I') {
+		for (size_t i = 0, iMax = Neq*Nvar*NfnI; i < iMax; i++) {
+			dnFluxNumdWL_fI[i] *= -1.0;
+			dnFluxNumdWR_fI[i] *= -1.0;
+		}
+
+		array_rearrange_d(NfnI,Neq*Nvar,nOrdLR,'C',dnFluxNumdWL_fI);
+		array_rearrange_d(NfnI,Neq*Nvar,nOrdLR,'C',dnFluxNumdWR_fI);
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
+
+static void compute_LHS_FACE_Inviscid_Weak(const unsigned int NRows, const unsigned int NCols, const unsigned int Nn,
+                                           const double *I_FF, const double *dnFluxNumdW_fI, const double *ChiS_fI,
+                                           double *IdnFdW, double *LHS)
+{
+	const unsigned int Neq  = DB.Neq,
+	                   Nvar = DB.Neq;
+
+	for (size_t eq = 0; eq < Neq; eq++) {
+	for (size_t var = 0; var < Nvar; var++) {
+		size_t Indeqvar = eq*Nvar+var;
+
+		size_t InddnFdWL = Indeqvar*Nn;
+		for (size_t i = 0; i < NRows; i++) {
+			size_t IndI = i*Nn;
+			for (size_t j = 0; j < Nn; j++)
+				IdnFdW[IndI+j] = I_FF[IndI+j]*dnFluxNumdW_fI[InddnFdWL+j];
+		}
+
+		size_t IndLHS = Indeqvar*NRows*NCols;
+		mm_d(CBRM,CBNT,CBNT,NRows,NCols,Nn,1.0,0.0,IdnFdW,ChiS_fI,&LHS[IndLHS]);
+	}}
+}
+
+void finalize_FACE_Inviscid_Weak(struct S_FDATA *FDATAL, struct S_FDATA *FDATAR, const char side, const char imex_type)
 {
 	/*
 	 *	Purpose:
@@ -838,45 +905,47 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA *FDATA, const char side, const c
 	 *		the standard approach (i.e. the last condition in the if/else chain).
 	 */
 
-	unsigned int const d            = DB.d,
-	                   Neq          = DB.Neq,
-	                   Nvar         = DB.Nvar,
-	                   *VFPartUnity = DB.VFPartUnity;
-
-	const unsigned int *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
-
-	struct S_OPERATORS_F **OPS = FDATA->OPS;
-	struct S_FACE        *FACE = FDATA->FACE;
-
-	const unsigned int P      = FDATA->P,
-	                   Eclass = FDATA->Eclass,
-	                   Vf     = FDATA->Vf,
-	                   f      = FDATA->f,
-	                   SpOp   = FDATA->SpOp;
-
-	const unsigned int IndFType = FDATA->IndFType;
-	const unsigned int NfnI = OPS[IndFType]->NfnI;
-
-	const double *nFluxNum_fI     = FDATA->NFluxData->nFluxNum_fI,
-	             *dnFluxNumdWL_fI = FDATA->NFluxData->dnFluxNumdWL_fI;
-//	             *dnFluxNumdWR_fIL = FDATA->NFluxData->dnFluxNumdWR_fIL;
-
-	unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX], NIn0, NIn1;
-	double       *OP[DMAX], **OP0, **OP1;
-
 	if (imex_type == 'E') {
-		// RHS
-		double *RHS = NULL;
-		if (side == 'L')
-			RHS = FACE->RHSIn;
-		else if (side == 'R')
-			RHS = FACE->RHSOut;
-		else
+		const struct S_FDATA *FDATA = NULL;
+		double               *RHS   = NULL;
+
+		if (side == 'L') {
+			FDATA = FDATAL;
+			RHS   = FDATA->FACE->RHSIn;
+		} else if (side == 'R') {
+			FDATA = FDATAR;
+			RHS   = FDATA->FACE->RHSOut;
+
+			swap_FACE_orientation(FDATAR,'E');
+		} else {
 			EXIT_UNSUPPORTED;
+		}
+
+		unsigned int const d            = DB.d,
+		                   Neq          = DB.Neq,
+		                   *VFPartUnity = DB.VFPartUnity;
+
+		const unsigned int *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
+
+		struct S_OPERATORS_F **OPS = FDATA->OPS;
+
+		const unsigned int P      = FDATA->P,
+						   Eclass = FDATA->Eclass,
+						   Vf     = FDATA->Vf,
+						   f      = FDATA->f,
+						   SpOp   = FDATA->SpOp;
+
+		const unsigned int IndFType = FDATA->IndFType;
+		const unsigned int NfnI = OPS[IndFType]->NfnI;
+
+		const double *nFluxNum_fI = FDATA->NFluxData->nFluxNum_fI;
+
+		unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX], NIn0, NIn1;
+		double       *OP[DMAX], **OP0, **OP1;
 
 		if (Eclass == C_TP && SF_BE[P][0][1]) {
-			get_sf_parametersF(OPS[0]->NvnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_VV,
-			                   OPS[0]->NfnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_FF,NIn,NOut,OP,d,Vf,C_TP);
+			get_sf_parametersF(OPS[0]->NvnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_VV_SF,
+			                   OPS[0]->NfnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_FF_SF,NIn,NOut,OP,d,Vf,C_TP);
 
 			if (SpOp) {
 				for (size_t dim = 0; dim < d; dim++)
@@ -889,10 +958,10 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA *FDATA, const char side, const c
 
 			sf_apply_d(nFluxNum_fI,RHS,NIn,NOut,Neq,OP,Diag,d);
 		} else if (Eclass == C_WEDGE && SF_BE[P][1][1]) {
-			if (f < 3) { OP0  = OPS[0]->I_Weak_FF, OP1  = OPS[1]->I_Weak_VV;
-			             NIn0 = OPS[0]->NfnI_SF,   NIn1 = OPS[1]->NvnI_SF;
-			} else {     OP0  = OPS[0]->I_Weak_VV, OP1  = OPS[1]->I_Weak_FF;
-			             NIn0 = OPS[0]->NvnI_SF,   NIn1 = OPS[1]->NfnI_SF; }
+			if (f < 3) { OP0  = OPS[0]->I_Weak_FF_SF, OP1  = OPS[1]->I_Weak_VV_SF;
+			             NIn0 = OPS[0]->NfnI_SF,      NIn1 = OPS[1]->NvnI_SF;
+			} else {     OP0  = OPS[0]->I_Weak_VV_SF, OP1  = OPS[1]->I_Weak_FF_SF;
+			             NIn0 = OPS[0]->NvnI_SF,      NIn1 = OPS[1]->NfnI_SF; }
 			get_sf_parametersF(NIn0,OPS[0]->NvnS_SF,OP0,NIn1,OPS[1]->NvnS_SF,OP1,NIn,NOut,OP,d,Vf,C_WEDGE);
 
 			if (SpOp) {
@@ -914,71 +983,87 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA *FDATA, const char side, const c
 		} else  {
 			mm_CTN_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FF[Vf],nFluxNum_fI,RHS);
 		}
-	} else if (side == 'L' && imex_type == 'I') {
-		// LHSLL and RHSL (ToBeModified)
-		double *LHS = FACE->LHSInIn;
-		unsigned int NvnSL = OPS[0]->NvnS;
-
-		double *I_FF = OPS[0]->I_Weak_FF[Vf];
-		double *IdnFdW = malloc(NvnSL*NfnI * sizeof *IdnFdW); // free
-		for (size_t eq = 0; eq < Neq; eq++) {
-		for (size_t var = 0; var < Nvar; var++) {
-			size_t Indeqvar = eq*Nvar+var;
-
-			size_t InddnFdWL = Indeqvar*NfnI;
-			for (size_t i = 0; i < NvnSL; i++) {
-				size_t IndI = i*NfnI;
-				for (size_t j = 0; j < NfnI; j++)
-					IdnFdW[IndI+j] = I_FF[IndI+j]*dnFluxNumdWL_fI[InddnFdWL+j];
-			}
-
-			size_t IndLHS = Indeqvar*NvnSL*NvnSL;
-			mm_d(CBRM,CBNT,CBNT,NvnSL,NvnSL,NfnI,1.0,0.0,IdnFdW,OPS[0]->ChiS_fI[Vf],&LHS[IndLHS]);
-		}}
-
-		free(IdnFdW);
-	} else {
-		EXIT_UNSUPPORTED;
-	}
-}
-
-void swap_FACE_orientation(const struct S_FDATA *FDATA, const char imex_type)
-{
-	/*
-	 *	Purpose:
-	 *		Change orientation of FACE operators to correspond to that of the right VOLUME.
-	 *
-	 *	Comments:
-	 *		Note that the result is negated to account for the normal being negative when seen by the opposite VOLUME.
-	 */
-	const unsigned int Neq  = DB.Neq,
-	                   Nvar = DB.Nvar;
-
-	struct S_OPERATORS_F **OPS = FDATA->OPS;
-
-	const unsigned int IndFType = FDATA->IndFType;
-	const unsigned int NfnI     = OPS[IndFType]->NfnI,
-	                   *nOrdLR  = OPS[IndFType]->nOrdInOut;
-
-	double *nFluxNum_fI     = FDATA->NFluxData->nFluxNum_fI,
-	       *dnFluxNumdWL_fI = FDATA->NFluxData->dnFluxNumdWL_fI,
-	       *dnFluxNumdWR_fI = FDATA->NFluxData->dnFluxNumdWR_fI;
-
-	if (imex_type == 'E') {
-		for (size_t i = 0, iMax = Neq*NfnI; i < iMax; i++)
-			nFluxNum_fI[i] *= -1.0;
-
-		array_rearrange_d(NfnI,Neq,nOrdLR,'C',nFluxNum_fI);
 	} else if (imex_type == 'I') {
-		swap_FACE_orientation(FDATA,'E');
+		struct S_OPERATORS_F **OPSL = FDATAL->OPS,
+		                     **OPSR = FDATAR->OPS;
+		struct S_FACE        *FACE  = FDATAL->FACE;
 
-		for (size_t i = 0, iMax = Neq*Nvar*NfnI; i < iMax; i++) {
-			dnFluxNumdWL_fI[i] *= -1.0;
-			dnFluxNumdWR_fI[i] *= -1.0;
+		const unsigned int VfL = FDATAL->Vf,
+		                   VfR = FDATAR->Vf;
+
+		const unsigned int IndFType = FDATAL->IndFType;
+		const unsigned int NfnI     = OPSL[IndFType]->NfnI;
+
+		double       *IdnFdW;
+		const double *I_FF;
+
+		if (side == 'L') {
+			const double *dnFluxNumdWL_fI = FDATAL->NFluxData->dnFluxNumdWL_fI;
+			unsigned int NvnSL = OPSL[0]->NvnS;
+
+			// LHSLL (Effect of (L)eft VOLUME on (L)eft VOLUME)
+			I_FF   = OPSL[0]->I_Weak_FF[VfL];
+			IdnFdW = malloc(NvnSL*NfnI * sizeof *IdnFdW); // free
+
+			double *ChiSL_fIL = OPSL[0]->ChiS_fI[VfL];
+			compute_LHS_FACE_Inviscid_Weak(NvnSL,NvnSL,NfnI,I_FF,dnFluxNumdWL_fI,ChiSL_fIL,IdnFdW,FACE->LHSInIn);
+
+			free(IdnFdW);
+		} else if (side == 'R') {
+			double *dnFluxNumdWL_fI = FDATAL->NFluxData->dnFluxNumdWL_fI,
+			       *dnFluxNumdWR_fI = FDATAL->NFluxData->dnFluxNumdWR_fI;
+			const double       *ChiS_fI;
+			const unsigned int NvnSL = OPSL[0]->NvnS,
+			                   NvnSR = OPSR[0]->NvnS;
+			const unsigned int IndFType = FDATAL->IndFType;
+			const unsigned int *nOrdLR  = OPSL[IndFType]->nOrdLR,
+			                   *nOrdRL  = OPSL[IndFType]->nOrdRL;
+
+			I_FF   = OPSL[0]->I_Weak_FF[VfL];
+			IdnFdW = malloc(NvnSL*NfnI * sizeof *IdnFdW); // free
+
+			// LHSRL (Effect of (R)ight VOLUME on (L)eft VOLUME
+			double *ChiSR_fIL = malloc(NvnSR*NfnI * sizeof *ChiSR_fIL); // free
+
+			ChiS_fI = OPSR[0]->ChiS_fI[VfR];
+			for (size_t i = 0; i < NfnI; i++) {
+			for (size_t j = 0; j < NvnSR; j++) {
+				ChiSR_fIL[i*NvnSR+j] = ChiS_fI[nOrdRL[i]*NvnSR+j];
+			}}
+
+			compute_LHS_FACE_Inviscid_Weak(NvnSL,NvnSR,NfnI,I_FF,dnFluxNumdWR_fI,ChiSR_fIL,IdnFdW,FACE->LHSOutIn);
+
+			free(ChiSR_fIL);
+			free(IdnFdW);
+
+			// Swap orientation of numerical flux Jacobian terms
+			swap_FACE_orientation(FDATAR,'I');
+
+			I_FF   = OPSR[0]->I_Weak_FF[VfR];
+			IdnFdW = malloc(NvnSR*NfnI * sizeof *IdnFdW); // free
+
+			// LHSLR (Effect of (L)eft VOLUME on (R)ight VOLUME
+			double *ChiSL_fIR = malloc(NvnSL*NfnI * sizeof *ChiSL_fIR); // free
+
+			ChiS_fI = OPSL[0]->ChiS_fI[VfL];
+			for (size_t i = 0; i < NfnI; i++) {
+			for (size_t j = 0; j < NvnSL; j++) {
+				ChiSL_fIR[i*NvnSL+j] = ChiS_fI[nOrdLR[i]*NvnSL+j];
+			}}
+
+			compute_LHS_FACE_Inviscid_Weak(NvnSR,NvnSL,NfnI,I_FF,dnFluxNumdWL_fI,ChiSL_fIR,IdnFdW,FACE->LHSInOut);
+
+			free(ChiSL_fIR);
+
+			// LHSRR (Effect of (R)ight VOLUME on (R)ight VOLUME
+			const double *ChiSR_fIR = OPSR[0]->ChiS_fI[VfR];
+
+			compute_LHS_FACE_Inviscid_Weak(NvnSR,NvnSR,NfnI,I_FF,dnFluxNumdWR_fI,ChiSR_fIR,IdnFdW,FACE->LHSOutOut);
+
+			free(IdnFdW);
+		} else {
+			EXIT_UNSUPPORTED;
 		}
-
-		array_rearrange_d(NfnI,Neq*Nvar,nOrdLR,'C',dnFluxNumdWL_fI);
-		array_rearrange_d(NfnI,Neq*Nvar,nOrdLR,'C',dnFluxNumdWR_fI);
 	} else {
 		EXIT_UNSUPPORTED;
 	}

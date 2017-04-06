@@ -12,10 +12,16 @@
 // VOLUME structs and functions
 
 struct S_OPERATORS_V {
-	unsigned int NvnI, NvnS, NvnS_SF, NvnI_SF;
-	double       *ChiS_vI, **D_Weak, *I_Weak, *ChiS_vI_SF, **D_Weak_SF, *I_Weak_SF;
+	// Standard
+	unsigned int NvnI, NvnS;
+	double       *ChiS_vI, **D_Weak, *I_Weak;
 
+	// Sparse
 	struct S_OpCSR **D_Weak_sp;
+
+	// (S)um (F)actorized
+	unsigned int NvnS_SF, NvnI_SF;
+	double       *ChiS_vI_SF, **D_Weak_SF, *I_Weak_SF;
 };
 
 struct S_VDATA {
@@ -38,11 +44,16 @@ extern void finalize_VOLUME_Inviscid_Weak (const unsigned int Nrc, const double 
 // FACE structs and functions
 
 struct S_OPERATORS_F {
-	// ToBeModified
-	unsigned int NvnS, NfnI, NfnS, NvnS_SF, NfnI_SF, NvnI_SF, *nOrdInOut, *nOrdOutIn;
-	double       **ChiS_fI, **ChiS_vI, **I_Weak_FF, **I_Weak_VV, **ChiS_fS;
+	// Standard
+	unsigned int NvnS, NfnI, *nOrdLR, *nOrdRL;
+	double       **ChiS_fI, **I_Weak_FF;
 
+	// Sparse
 	struct S_OpCSR **ChiS_fI_sp, **I_Weak_FF_sp;
+
+	// (S)um (F)actorized
+	unsigned int NvnS_SF, NfnI_SF, NvnI_SF;
+	double       **ChiS_fI_SF, **ChiS_vI_SF, **I_Weak_FF_SF, **I_Weak_VV_SF;
 };
 
 struct S_NumericalFlux {
@@ -61,14 +72,15 @@ struct S_FDATA {
 	struct S_NumericalFlux *NFluxData;
 };
 
-extern void init_ops_FACE      (struct S_OPERATORS_F *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
-                                const unsigned int IndClass);
-extern void init_FDATA         (struct S_FDATA *FDATA, struct S_FACE *FACE, const char side);
-extern void compute_W_fI       (const struct S_FDATA *FDATA, double *W_fI);
-extern void compute_WR_fIL     (const struct S_FDATA *FDATA, const double *WL_fIL, double *WR_fIL);
-extern void compute_numerical_flux      (const struct S_FDATA *FDATA, const char imex_type);
-extern void add_Jacobian_scaling_FACE   (const struct S_FDATA *FDATA, const char imex_type);
-extern void swap_FACE_orientation       (const struct S_FDATA *FDATA, const char imex_type);
-extern void finalize_FACE_Inviscid_Weak (struct S_FDATA *FDATA, const char side, const char imex_type);
+extern void init_ops_FACE             (struct S_OPERATORS_F *OPS, const struct S_VOLUME *VOLUME,
+                                       const struct S_FACE *FACE, const unsigned int IndClass);
+extern void init_FDATA                (struct S_FDATA *FDATA, struct S_FACE *FACE, const char side);
+extern void compute_W_fI              (const struct S_FDATA *FDATA, double *W_fI);
+extern void compute_WR_fIL            (const struct S_FDATA *FDATA, const double *WL_fIL, double *WR_fIL);
+extern void compute_numerical_flux    (const struct S_FDATA *FDATA, const char imex_type);
+extern void add_Jacobian_scaling_FACE (const struct S_FDATA *FDATA, const char imex_type);
+
+extern void finalize_FACE_Inviscid_Weak (struct S_FDATA *FDATAL, struct S_FDATA *FDATAR, const char side,
+                                         const char imex_type);
 
 #endif // DPG__solver_functions_h__INCLUDED
