@@ -79,23 +79,21 @@ static void compute_VOLUME_RHS_EFE(void)
 			init_VDATA(VDATA,VOLUME);
 
 			// Obtain W_vI
-			double complex *W_vI;
-
 			unsigned int NvnI = VDATA->OPS[0]->NvnI;
 			if (Collocated) {
-				W_vI = VOLUME->What_c;
+				VDATA->W_vI_c = VOLUME->What_c;
 			} else {
-				W_vI = malloc(NvnI*Nvar * sizeof *W_vI); // free
-				compute_W_vI_c(VDATA,W_vI);
+				VDATA->W_vI_c = malloc(NvnI*Nvar * sizeof *(VDATA->W_vI_c)); // free
+				coef_to_values_vI_c(VDATA,'W');
 			}
 
 			// Compute Flux in reference space
 			double complex *F_vI = malloc(NvnI*d*Neq * sizeof *F_vI); // free
 
-			flux_inviscid_c(NvnI,1,W_vI,F_vI,d,Neq);
+			flux_inviscid_c(NvnI,1,VDATA->W_vI_c,F_vI,d,Neq);
 
 			if (!Collocated)
-				free(W_vI);
+				free(VDATA->W_vI_c);
 
 			// Convert to reference space
 			double complex *Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
@@ -110,7 +108,7 @@ static void compute_VOLUME_RHS_EFE(void)
 			double complex *RHS = calloc(NvnS*Neq , sizeof *RHS); // keep
 			VOLUME->RHS_c = RHS;
 
-			finalize_VOLUME_Inviscid_Weak_c(Neq,Fr_vI,RHS,"RHS",VDATA);
+			finalize_VOLUME_Inviscid_Weak_c(Neq,Fr_vI,RHS,'E',VDATA);
 			free(Fr_vI);
 		}
 	} else if (strstr(Form,"Strong")) {

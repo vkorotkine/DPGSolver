@@ -61,23 +61,23 @@ static void compute_FACE_EFE(void)
 			init_FDATA(FDATAL,FACE,'L');
 			init_FDATA(FDATAR,FACE,'R');
 
-			// Compute WL_fI and WR_fIL
+			// Compute WL_fIL and WR_fIL (i.e. as seen from the (L)eft VOLUME)
 			unsigned int IndFType = FDATAL->IndFType;
 			unsigned int NfnI     = OPSL[IndFType]->NfnI;
 
-			double *WL_fI = malloc(NfnI*Nvar * sizeof *WL_fI); // free
-			compute_W_fI(FDATAL,WL_fI);
+			FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
+			FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
 
-			double *WR_fIL = malloc(NfnI*Nvar * sizeof *WR_fIL); // free
-			compute_WR_fIL(FDATAR,WL_fI,WR_fIL);
+			coef_to_values_fI(FDATAL,'W');
+			compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
 
 			// Compute numerical flux and its Jacobian as seen from the left VOLUME
 			double *nFluxNum_fI     = malloc(NfnI*Neq      * sizeof *nFluxNum_fI),     // free
 			       *dnFluxNumdWL_fI = malloc(NfnI*Neq*Nvar * sizeof *dnFluxNumdWL_fI), // free
 			       *dnFluxNumdWR_fI = malloc(NfnI*Neq*Nvar * sizeof *dnFluxNumdWR_fI); // free
 
-			NFluxData->WL_fIL          = WL_fI;
-			NFluxData->WR_fIL          = WR_fIL;
+			NFluxData->WL_fIL          = FDATAL->W_fIL;
+			NFluxData->WR_fIL          = FDATAR->W_fIL;
 			NFluxData->nFluxNum_fI     = nFluxNum_fI;
 			NFluxData->dnFluxNumdWL_fI = dnFluxNumdWL_fI;
 			NFluxData->dnFluxNumdWR_fI = dnFluxNumdWR_fI;
@@ -85,8 +85,8 @@ static void compute_FACE_EFE(void)
 			compute_numerical_flux(FDATAL,'I');
 			add_Jacobian_scaling_FACE(FDATAL,'I');
 
-			free(WL_fI);
-			free(WR_fIL);
+			free(FDATAL->W_fIL);
+			free(FDATAR->W_fIL);
 
 
 			// Compute FACE RHS and LHS terms

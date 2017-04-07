@@ -8,13 +8,11 @@
 #include "Macros.h"
 #include "Parameters.h"
 #include "S_DB.h"
-#include "S_ELEMENT.h"
 #include "S_VOLUME.h"
 #include "S_FACE.h"
 
-#include "element_functions.h"
+#include "solver_functions.h"
 #include "matrix_functions.h"
-#include "sum_factorization.h"
 #include "array_free.h"
 #include "array_swap.h"
 #include "boundary_conditions.h"
@@ -43,123 +41,10 @@ void explicit_GradW(void)
 	explicit_GradW_finalize();
 }
 
-
-struct S_OPERATORS {
-	// VOLUME
-	unsigned int NvnS, NvnI;
-	double       **ChiS_vI, **D_Weak;
-
-	// FACE
-	unsigned int NfnI, NvnS_SF, NvnI_SF, NfnI_SF, *nOrdLR, *nOrdRL;
-	double       **ChiS_fI, **ChiS_fI_SF, **ChiS_vI_SF,
-	             **I_Weak_FF;
-
-	struct S_OpCSR **ChiS_fI_sp;
-};
-
-struct S_FDATA {
-	unsigned int P, Vf, f, SpOp, Eclass, IndFType;
-
-	struct S_OPERATORS **OPS;
-	struct S_VOLUME    *VOLUME;
-};
-
 struct S_Dxyz {
 	unsigned int dim, Nbf, Nn;
 	double       **D, *C;
 };
-
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
-{
-	// Standard datatypes
-	unsigned int P, type, curved;
-
-	struct S_ELEMENT *ELEMENT;
-
-	P      = VOLUME->P;
-	type   = VOLUME->type;
-	curved = VOLUME->curved;
-
-	ELEMENT = get_ELEMENT_type(type);
-
-	OPS->NvnS = ELEMENT->NvnS[P];
-	if (!curved) {
-		OPS->NvnI = ELEMENT->NvnIs[P];
-
-		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P];
-		OPS->D_Weak  = ELEMENT->Ds_Weak_VV[P][P][0];
-	} else {
-		OPS->NvnI = ELEMENT->NvnIc[P];
-
-		OPS->ChiS_vI = ELEMENT->ChiS_vIc[P][P];
-		OPS->D_Weak  = ELEMENT->Dc_Weak_VV[P][P][0];
-	}
-}
-
-static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
-                      const unsigned int IndFType)
-{
-	// Initialize DB Parameters
-	unsigned int ***SF_BE = DB.SF_BE;
-
-	// Standard datatypes
-	unsigned int PV, PF, Vtype, Eclass, FtypeInt, IndOrdRL, IndOrdLR;
-
-	struct S_ELEMENT *ELEMENT, *ELEMENT_FACE, *ELEMENT_SF;
-
-	// silence
-	ELEMENT_SF = NULL;
-
-	PV      = VOLUME->P;
-	PF      = FACE->P;
-	Vtype   = VOLUME->type;
-	Eclass  = VOLUME->Eclass;
-
-	FtypeInt = FACE->typeInt;
-	IndOrdRL = FACE->IndOrdOutIn;
-	IndOrdLR = FACE->IndOrdInOut;
-
-	ELEMENT      = get_ELEMENT_type(Vtype);
-	ELEMENT_FACE = get_ELEMENT_FACE(Vtype,IndFType);
-	if ((Eclass == C_TP && SF_BE[PF][0][1]) || (Eclass == C_WEDGE && SF_BE[PF][1][1]))
-		ELEMENT_SF = ELEMENT->ELEMENTclass[IndFType];
-	else
-		ELEMENT_SF = ELEMENT;
-
-	OPS->NvnS    = ELEMENT->NvnS[PV];
-	OPS->NvnS_SF = ELEMENT_SF->NvnS[PV];
-	if (FtypeInt == 's') {
-		// Straight FACE Integration
-		OPS->NfnI    = ELEMENT->NfnIs[PF][IndFType];
-		OPS->NfnI_SF = ELEMENT_SF->NfnIs[PF][0];
-		OPS->NvnI_SF = ELEMENT_SF->NvnIs[PF];
-
-		OPS->nOrdLR = ELEMENT_FACE->nOrd_fIs[PF][IndOrdLR];
-		OPS->nOrdRL = ELEMENT_FACE->nOrd_fIs[PF][IndOrdRL];
-
-		OPS->ChiS_fI    = ELEMENT->ChiS_fIs[PV][PF];
-		OPS->ChiS_fI_sp = ELEMENT->ChiS_fIs_sp[PV][PF];
-		OPS->ChiS_fI_SF = ELEMENT_SF->ChiS_fIs[PV][PF];
-		OPS->ChiS_vI_SF = ELEMENT_SF->ChiS_vIs[PV][PF];
-
-		OPS->I_Weak_FF = ELEMENT_SF->Is_Weak_FF[PV][PF];
-	} else {
-		// Curved FACE Integration
-		OPS->NfnI    = ELEMENT->NfnIc[PF][IndFType];
-		OPS->NfnI_SF = ELEMENT_SF->NfnIc[PF][0];
-		OPS->NvnI_SF = ELEMENT_SF->NvnIc[PF];
-
-		OPS->nOrdLR = ELEMENT_FACE->nOrd_fIc[PF][IndOrdLR];
-		OPS->nOrdRL = ELEMENT_FACE->nOrd_fIc[PF][IndOrdRL];
-
-		OPS->ChiS_fI    = ELEMENT->ChiS_fIc[PV][PF];
-		OPS->ChiS_fI_sp = ELEMENT->ChiS_fIc_sp[PV][PF];
-		OPS->ChiS_fI_SF = ELEMENT_SF->ChiS_fIc[PV][PF];
-		OPS->ChiS_vI_SF = ELEMENT_SF->ChiS_vIc[PV][PF];
-
-		OPS->I_Weak_FF = ELEMENT_SF->Ic_Weak_FF[PV][PF];
-	}
-}
 
 
 static double *compute_Dxyz(struct S_Dxyz *DxyzInfo, unsigned int d)
@@ -216,8 +101,8 @@ static void explicit_GradW_VOLUME(void)
 	             Collocated = DB.Collocated;
 
 	// Standard datatypes
-	struct S_OPERATORS *OPS;
-	struct S_Dxyz      *DxyzInfo;
+	struct S_OPERATORS_V *OPS;
+	struct S_Dxyz        *DxyzInfo;
 
 	OPS      = malloc(sizeof *OPS);      // free
 	DxyzInfo = malloc(sizeof *DxyzInfo); // free
@@ -226,7 +111,10 @@ static void explicit_GradW_VOLUME(void)
 		unsigned int NvnS, NvnI;
 		double       *ChiS_vI, **DxyzChiS;
 
-		init_ops(OPS,VOLUME);
+		init_ops_VOLUME(OPS,VOLUME,0);
+//		init_ops_VOLUME(OPS[0],VOLUME,0);
+//		if (VOLUME->type == WEDGE)
+//			init_ops_VOLUME(OPS[1],VOLUME,1);
 
 		NvnS = OPS->NvnS;
 		NvnI = OPS->NvnI;
@@ -236,7 +124,7 @@ static void explicit_GradW_VOLUME(void)
 		DxyzInfo->D   = OPS->D_Weak;
 		DxyzInfo->C   = VOLUME->C_vI;
 
-		ChiS_vI = OPS->ChiS_vI[0];
+		ChiS_vI = OPS->ChiS_vI;
 
 		DxyzChiS = VOLUME->DxyzChiS;
 		for (size_t dim = 0; dim < d; dim++) {
@@ -261,116 +149,6 @@ static void explicit_GradW_VOLUME(void)
 
 	free(OPS);
 	free(DxyzInfo);
-}
-
-static void compute_W_fI(const struct S_FDATA *FDATA, double *W_fI)
-{
-	/*
-	 *	Purpose:
-	 *		Interpolate VOLUME What coefficients to FACE cubature nodes.
-	 *
-	 *	Comments:
-	 *		Various options are available for computing W_fI:
-	 *			1) Using sum factorized operators for TP and WEDGE elements;
-	 *			2) Using the standard operator but exploiting sparsity;
-	 *			3) Using the standard approach.
-	 */
-
-	// Initialize DB Parameters
-	unsigned int d            = DB.d,
-	             Nvar         = DB.Nvar,
-	             *VFPartUnity = DB.VFPartUnity,
-	             ***SF_BE     = DB.SF_BE;
-
-	// Standard datatypes
-	unsigned int P, dim, Eclass, Vf, f, SpOp, IndFType, NfnI, NvnS,
-	             NIn[DMAX], NOut[DMAX], Diag[DMAX], NOut0, NOut1;
-	double       *OP[DMAX], **OPF0, **OPF1;
-
-	struct S_OPERATORS **OPS;
-	struct S_VOLUME    *VOLUME;
-
-	OPS    = FDATA->OPS;
-	VOLUME = FDATA->VOLUME;
-
-	P        = FDATA->P;
-	Eclass   = FDATA->Eclass;
-	Vf       = FDATA->Vf;
-	f        = FDATA->f;
-	SpOp     = FDATA->SpOp;
-	IndFType = FDATA->IndFType;
-
-	NfnI = OPS[IndFType]->NfnI;
-	NvnS = OPS[0]->NvnS;
-
-	if (Eclass == C_TP && SF_BE[P][0][1]) {
-		get_sf_parametersF(OPS[0]->NvnS_SF,OPS[0]->NvnI_SF,OPS[0]->ChiS_vI_SF,
-		                   OPS[0]->NvnS_SF,OPS[0]->NfnI_SF,OPS[0]->ChiS_fI_SF,NIn,NOut,OP,d,Vf,C_TP);
-
-		if (SpOp) {
-			for (dim = 0; dim < d; dim++)
-				Diag[dim] = 2;
-			Diag[f/2] = 0;
-		} else {
-			for (dim = 0; dim < d; dim++)
-				Diag[dim] = 0;
-		}
-
-		sf_apply_d(VOLUME->What,W_fI,NIn,NOut,Nvar,OP,Diag,d);
-	} else if (Eclass == C_WEDGE && SF_BE[P][1][1]) {
-		if (f < 3) { OPF0  = OPS[0]->ChiS_fI_SF, OPF1  = OPS[1]->ChiS_vI_SF;
-		             NOut0 = OPS[0]->NfnI_SF,    NOut1 = OPS[1]->NvnI_SF;
-		} else {     OPF0  = OPS[0]->ChiS_vI_SF, OPF1  = OPS[1]->ChiS_fI_SF;
-		             NOut0 = OPS[0]->NvnI_SF,    NOut1 = OPS[1]->NfnI_SF; }
-		get_sf_parametersF(OPS[0]->NvnS_SF,NOut0,OPF0,OPS[1]->NvnS_SF,NOut1,OPF1,NIn,NOut,OP,d,Vf,C_WEDGE);
-
-		if (SpOp) {
-			for (dim = 0; dim < d; dim++)
-				Diag[dim] = 2;
-			if (f < 3)
-				Diag[0] = 0;
-			else
-				Diag[2] = 0;
-		} else {
-			for (dim = 0; dim < d; dim++)
-				Diag[dim] = 0;
-			Diag[1] = 2;
-		}
-
-		sf_apply_d(VOLUME->What,W_fI,NIn,NOut,Nvar,OP,Diag,d);
-	} else if ((SpOp && (Eclass == C_TP || Eclass == C_WEDGE)) || (VFPartUnity[Eclass])) {
-		mm_CTN_CSR_d(NfnI,Nvar,NvnS,OPS[0]->ChiS_fI_sp[Vf],VOLUME->What,W_fI);
-	} else {
-		mm_CTN_d(NfnI,Nvar,NvnS,OPS[0]->ChiS_fI[Vf],VOLUME->What,W_fI);
-	}
-}
-
-static void init_FDATA(struct S_FDATA *FDATA, const struct S_FACE *FACE, const unsigned int side)
-{
-	// Initialize DB Parameters
-	unsigned int Collocated = DB.Collocated;
-
-	FDATA->P = FACE->P;
-
-	if (side == 'L') {
-		FDATA->VOLUME = FACE->VIn;
-		FDATA->Vf     = FACE->VfIn;
-	} else if (side == 'R') {
-		FDATA->VOLUME = FACE->VOut;
-		FDATA->Vf     = FACE->VfOut;
-	} else {
-		printf("Error: Unsupported.\n"), EXIT_MSG;
-	}
-	FDATA->f    = (FDATA->Vf)/NFREFMAX;
-	FDATA->SpOp = Collocated && ((FDATA->Vf) % NFREFMAX == 0 && FDATA->VOLUME->P == FDATA->P);
-
-	FDATA->Eclass = FDATA->VOLUME->Eclass;
-	FDATA->IndFType = get_IndFType(FDATA->Eclass,FDATA->f);
-
-	init_opsF(FDATA->OPS[0],FDATA->VOLUME,FACE,0);
-	if (FDATA->VOLUME->type == WEDGE || FDATA->VOLUME->type == PYR)
-		// Needed for sum factorized operators and alternate FACE operators (TRIs/QUADs)
-		init_opsF(FDATA->OPS[1],FDATA->VOLUME,FACE,1);
 }
 
 static void boundary_NavierStokes(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *nL,
@@ -405,22 +183,21 @@ static void explicit_GradW_FACE(void)
 	             Nvar = DB.Nvar;
 
 	// Standard datatypes
-	struct S_OPERATORS *OPSL[2], *OPSR[2];
-	struct S_FDATA     *FDATAL, *FDATAR;
+	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
+	struct S_FDATA       *FDATAL, *FDATAR;
+	FDATAL = malloc(sizeof *FDATAL); // free
+	FDATAR = malloc(sizeof *FDATAR); // free
+	FDATAL->OPS = OPSL;
+	FDATAR->OPS = OPSR;
 
 	for (size_t i = 0; i < 2; i++) {
 		OPSL[i]  = malloc(sizeof *OPSL[i]);  // free
 		OPSR[i]  = malloc(sizeof *OPSR[i]);  // free
 	}
-	FDATAL = malloc(sizeof *FDATAL); // free
-	FDATAR = malloc(sizeof *FDATAR); // free
 
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
 		// Load required FACE operators (Left and Right FACEs)
 		struct S_VOLUME *VL, *VR;
-
-		FDATAL->OPS = OPSL;
-		FDATAR->OPS = OPSR;
 
 		init_FDATA(FDATAL,FACE,'L');
 		init_FDATA(FDATAR,FACE,'R');
@@ -441,7 +218,8 @@ static void explicit_GradW_FACE(void)
 
 		// Compute WL_fIL
 		double *WL_fIL = malloc(NfnI*Nvar * sizeof *WL_fIL); // free
-		compute_W_fI(FDATAL,WL_fIL);
+		FDATAL->W_fIL = WL_fIL;
+		coef_to_values_fI(FDATAL,'W');
 
 		// Compute WR_fIL (Taking BCs into account if applicable)
 		double *ChiSR_fIL = NULL;

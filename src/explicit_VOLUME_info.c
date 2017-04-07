@@ -13,9 +13,11 @@
 #include "S_VOLUME.h"
 
 #include "solver_functions.h"
-#include "sum_factorization.h" // ToBeDeleted
+#include "sum_factorization.h"
 #include "matrix_functions.h"
 #include "fluxes_inviscid.h"
+#include "fluxes_viscous.h"
+#include "array_free.h"
 #include "array_print.h"
 
 #undef I // No complex variables used here
@@ -41,9 +43,9 @@
  *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_Schemes
  */
 
-static void compute_Inviscid_VOLUME_RHS_EFE(void);
-static void compute_Viscous_VOLUME_RHS_EFE(void);
-static void compute_VOLUMEVec_RHS_EFE(void);
+static void compute_Inviscid_VOLUME_RHS_EFE (void);
+static void compute_Viscous_VOLUME_RHS_EFE  (void);
+static void compute_VOLUMEVec_RHS_EFE       (void);
 
 void explicit_VOLUME_info(void)
 {
@@ -69,14 +71,11 @@ void explicit_VOLUME_info(void)
 static void compute_Inviscid_VOLUME_RHS_EFE(void)
 {
 	// Initialize DB Parameters
-	char         *Form = DB.Form;
-	unsigned int d          = DB.d,
-	             Collocated = DB.Collocated,
-				 Nvar       = DB.Nvar,
-				 Neq        = DB.Neq;
+	unsigned int d    = DB.d,
+				 Nvar = DB.Nvar,
+				 Neq  = DB.Neq;
 
 	struct S_OPERATORS_V *OPS[2];
-	struct S_VOLUME      *VOLUME;
 
 	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
 	VDATA->OPS = OPS;
@@ -84,28 +83,26 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
 
-	if (strstr(Form,"Weak")) {
-		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+	if (strstr(DB.Form,"Weak")) {
+		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			init_VDATA(VDATA,VOLUME);
 
 			// Obtain W_vI
-			double *W_vI;
-
 			unsigned int NvnI = VDATA->OPS[0]->NvnI;
-			if (Collocated) {
-				W_vI = VOLUME->What;
+			if (DB.Collocated) {
+				VDATA->W_vI = VOLUME->What;
 			} else {
-				W_vI = malloc(NvnI*Nvar * sizeof *W_vI); // free
-				compute_W_vI(VDATA,W_vI);
+				VDATA->W_vI = malloc(NvnI*Nvar * sizeof *(VDATA->W_vI)); // free
+				coef_to_values_vI(VDATA,'W');
 			}
 
 			// Compute Flux in reference space
-			double *F_vI = malloc(NvnI*d*Neq * sizeof *F_vI);    // free
+			double *F_vI = malloc(NvnI*d*Neq * sizeof *F_vI); // free
 
-			flux_inviscid(NvnI,1,W_vI,F_vI,d,Neq);
+			flux_inviscid(NvnI,1,VDATA->W_vI,F_vI,d,Neq);
 
-			if (!Collocated)
-				free(W_vI);
+			if (!DB.Collocated)
+				free(VDATA->W_vI);
 
 			// Convert to reference space
 			double *Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
@@ -121,10 +118,10 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 			double *RHS = calloc(NvnS*Neq , sizeof *RHS); // keep
 			VOLUME->RHS = RHS;
 
-			finalize_VOLUME_Inviscid_Weak(Neq,Fr_vI,RHS,"RHS",VDATA);
+			finalize_VOLUME_Inviscid_Weak(Neq,Fr_vI,RHS,'E',VDATA);
 			free(Fr_vI);
 		}
-	} else if (strstr(Form,"Strong")) {
+	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;
 	}
 
@@ -138,17 +135,73 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 	/*
 	 *	Purpose:
 	 *		Add contributions from the viscous term to the RHS.
+	 *
+	 *	Comments:
+	 *		The viscous VOLUME contributions have a nearly identical form to those of the inviscid contributions.
+	 *		Consider combining the two functions in the future. (ToBeModified)
 	 */
 
 	if (!DB.Viscous)
 		return;
 
-	if (!strstr(DB.Form,"Weak"))
-		EXIT_UNSUPPORTED;
+	unsigned int d    = DB.d,
+				 Neq  = DB.Neq,
+				 Nvar = DB.Nvar;
 
-	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+	struct S_OPERATORS_V *OPS[2];
+
+	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
+	VDATA->OPS = OPS;
+
+	for (size_t i = 0; i < 2; i++)
+		OPS[i] = malloc(sizeof *OPS[i]); // free
+
+	if (strstr(DB.Form,"Weak")) {
+		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			init_VDATA(VDATA,VOLUME);
+
+			// Obtain W_vI and Q_vI
+			unsigned int NvnI = VDATA->OPS[0]->NvnI;
+			if (DB.Collocated) {
+				VDATA->W_vI = VOLUME->What;
+				VDATA->Q_vI = VOLUME->Qhat;
+			} else {
+				VDATA->W_vI = malloc(NvnI*Nvar * sizeof *(VDATA->W_vI)); // free
+				VDATA->Q_vI = malloc(d         * sizeof *(VDATA->Q_vI)); // free
+				for (size_t dim = 0; dim < d; dim++)
+					VDATA->Q_vI[dim] = malloc(NvnI*Nvar * sizeof *(VDATA->Q_vI[dim])); // free
+
+				coef_to_values_vI(VDATA,'W');
+				coef_to_values_vI(VDATA,'Q');
+			}
+
+			// Compute Flux in reference space
+			double *F_vI = malloc(NvnI*d*Neq * sizeof *F_vI);
+
+			flux_viscous(NvnI,1,VDATA->W_vI,(const double *const *const) VDATA->Q_vI,F_vI);
+
+			if (!DB.Collocated) {
+				free(VDATA->W_vI);
+				array_free2_d(d,VDATA->Q_vI);
+			}
+
+			// Convert to reference space
+			double *Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
+			convert_between_rp(NvnI,Neq,VOLUME->C_vI,F_vI,Fr_vI,"FluxToRef");
+			free(F_vI);
+
+			// Compute RHS term
+			finalize_VOLUME_Viscous_Weak(Neq,Fr_vI,VOLUME->RHS,'E',VDATA);
+			free(Fr_vI);
+		}
+	} else if (strstr(DB.Form,"Strong")) {
+		EXIT_UNSUPPORTED;
 	}
-	EXIT_UNSUPPORTED;
+
+	free(VDATA);
+	for (size_t i = 0; i < 2; i++)
+		free(OPS[i]);
+	EXIT_BASIC;
 }
 
 

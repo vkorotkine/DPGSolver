@@ -19,8 +19,8 @@
  *	Comments:
  *		It is assumed that inputs: W, n and outputs: F, nFluxNum are vectorized (i.e. the memory ordering is by equation
  *		and not by element).
- *		Numerical flux functions were intentionally written with if statements for each dimension in order to avoid
- *		redundant calculations if d < 3.
+ *		Flux functions were intentionally written with if statements for each dimension in order to avoid redundant
+ *		calculations if d < 3.
  *		Try using BLAS calls for dot products and check if there is a speed-up. (ToBeDeleted)
  *		The Roe flux function is very difficult to parallelize due to the large amount of required memory.
  *		There is some additional discussion in Obward(2015) regarding incorrect dissipation of the Roe scheme at low

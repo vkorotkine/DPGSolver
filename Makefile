@@ -18,7 +18,7 @@
 # clean_empty (removes empty directories)
 
 # C standard
-CSTD := -std=c99
+CSTD := -std=c11
 
 # Options
 OPTS := -O3

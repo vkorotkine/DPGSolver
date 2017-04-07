@@ -37,7 +37,7 @@ struct S_DB {
 	unsigned int NECgrp;
 
 	// Initialization
-	bool         Viscous;
+	bool         Viscous, Const_mu;
 	char         *SolverType;
 	unsigned int Nvar, Neq, OutputInterval, DOF0, SourcePresent;
 	double       Xc, Yc, Rc, MInf, rhoInf, pInf, TInf, cInf, VInf, uInf, vInf, wInf, Rg, Cscale, pBack, p_Total, T_Total,

@@ -393,6 +393,8 @@ void initialize_test_case_parameters(void)
 		DB.Pr      = 0.72;
 		DB.Rg      = 1.0;
 
+		DB.Const_mu = 0; // Default
+
 		DB.SourcePresent = 0;
 		if (strstr(PDESpecifier,"Internal")) {
 			if (!InitializedGeometry) {
@@ -412,6 +414,8 @@ void initialize_test_case_parameters(void)
 				DB.pIn   = 1.0;
 				DB.rhoIn = DB.pIn/(DB.Rg*DB.TIn);
 				DB.mu    = 1e-3;
+
+				DB.Const_mu = 1;
 			} else {
 				EXIT_UNSUPPORTED;
 			}

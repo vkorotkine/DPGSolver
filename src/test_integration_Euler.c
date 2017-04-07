@@ -622,6 +622,7 @@ if (test_3D) {
 	TestDB.Nwarnings++;
 
 
+	printf("\n\nWarning: *** Need to update explicit_FACE_info_c!!! ***\n\n"); TestDB.Nwarnings++;
 
 	array_free2_c(2,argvNew);
 	free(PrintName);

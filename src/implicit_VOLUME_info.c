@@ -28,7 +28,7 @@
  *	References:
  */
 
-static void compute_VOLUME_LHS_EFE(void);
+static void compute_VOLUME_EFE(void);
 
 void implicit_VOLUME_info(void)
 {
@@ -39,7 +39,7 @@ void implicit_VOLUME_info(void)
 	if (EFE) {
 		switch (Vectorized) {
 		case 0:
-			compute_VOLUME_LHS_EFE();
+			compute_VOLUME_EFE();
 			break;
 		default:
 			printf("Error: Unsupported Vectorized (%d).\n",Vectorized), EXIT_MSG;
@@ -50,7 +50,7 @@ void implicit_VOLUME_info(void)
 	}
 }
 
-static void compute_VOLUME_LHS_EFE(void)
+static void compute_VOLUME_EFE(void)
 {
 	// Initialize DB Parameters
 	char         *Form = DB.Form;
@@ -73,25 +73,23 @@ static void compute_VOLUME_LHS_EFE(void)
 			init_VDATA(VDATA,VOLUME);
 
 			// Obtain W_vI
-			double *W_vI;
-
 			unsigned int NvnI = VDATA->OPS[0]->NvnI;
 			if (Collocated) {
-				W_vI = VOLUME->What;
+				VDATA->W_vI = VOLUME->What;
 			} else {
-				W_vI = malloc(NvnI*Nvar * sizeof *W_vI); // free
-				compute_W_vI(VDATA,W_vI);
+				VDATA->W_vI = malloc(NvnI*Nvar * sizeof *(VDATA->W_vI)); // free
+				coef_to_values_vI(VDATA,'W');
 			}
 
 			// Compute Flux and its Jacobian in reference space
 			double *F_vI    = malloc(NvnI*d*Neq      * sizeof *F_vI);    // free
 			double *dFdW_vI = malloc(NvnI*d*Nvar*Neq * sizeof *dFdW_vI); // free
 
-			flux_inviscid(NvnI,1,W_vI,F_vI,d,Neq);
-			jacobian_flux_inviscid(NvnI,1,W_vI,dFdW_vI,d,Neq);
+			flux_inviscid(NvnI,1,VDATA->W_vI,F_vI,d,Neq);
+			jacobian_flux_inviscid(NvnI,1,VDATA->W_vI,dFdW_vI,d,Neq);
 
 			if (!Collocated)
-				free(W_vI);
+				free(VDATA->W_vI);
 
 			// Convert to reference space
 			double *Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
@@ -111,7 +109,7 @@ static void compute_VOLUME_LHS_EFE(void)
 			double *RHS = calloc(NvnS*Neq , sizeof *RHS); // keep
 			VOLUME->RHS = RHS;
 
-			finalize_VOLUME_Inviscid_Weak(Neq,Fr_vI,RHS,"RHS",VDATA);
+			finalize_VOLUME_Inviscid_Weak(Neq,Fr_vI,RHS,'E',VDATA);
 			free(Fr_vI);
 
 			// LHS
@@ -120,7 +118,7 @@ static void compute_VOLUME_LHS_EFE(void)
 			double *LHS = calloc(NvnS*NvnS*Neq*Nvar , sizeof *LHS); // keep
 			VOLUME->LHS = LHS;
 
-			finalize_VOLUME_Inviscid_Weak(NvnS*Neq*Nvar,dFrdW_vI,LHS,"LHS",VDATA);
+			finalize_VOLUME_Inviscid_Weak(NvnS*Neq*Nvar,dFrdW_vI,LHS,'I',VDATA);
 			free(dFrdW_vI);
 		}
 	} else if (strstr(Form,"Strong")) {

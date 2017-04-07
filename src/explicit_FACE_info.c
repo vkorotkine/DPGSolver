@@ -13,6 +13,7 @@
 #include "S_FACE.h"
 
 #include "solver_functions.h"
+#include "array_free.h"
 
 
 /*
@@ -26,8 +27,9 @@
  *		and is used directly to form RHSL/RHSR terms to be added to the appropriate VOLUME. This is in contrast to the
  *		traditional mortar element method (based on my current understanding), which first uses an L2 projection of the
  *		normal numerical flux of all non-conforming FACEs to standard VOLUME FACEs and then computes RHSL/RHSR exactly
- *		as if the mesh were conforming. As no L2 projection is required for the current approach, compute_FACE_RHS_EFE
- *		can in fact be called even for the case of non-conforming discretizations allowing for:
+ *		as if the mesh were conforming. As no L2 projection is required for the current approach,
+ *		compute_Inviscid_FACE_RHS_EFE can in fact be called even for the case of non-conforming discretizations allowing
+ *		for:
  *			1) Reduced cost because the interpolation from FACE solution to FACE cubature nodes is not required;
  *			2) Reduced aliasing because the normal numerical flux can be computed at the cubature nodes.
  *
@@ -45,18 +47,19 @@
  *		Kopriva(1996)-A_Conservative_Staggered-Grid_Chebyshev_Multidomain_Method_for_Compressible_Flows_II._A_Semi-Structured_Method
  */
 
-static void compute_FACE_RHS_EFE    (void);
+static void compute_Inviscid_FACE_RHS_EFE (void);
+static void compute_Viscous_FACE_RHS_EFE  (void);
 
 void explicit_FACE_info(void)
 {
-	compute_FACE_RHS_EFE();
+	compute_Inviscid_FACE_RHS_EFE();
+	compute_Viscous_FACE_RHS_EFE();
 }
 
-static void compute_FACE_RHS_EFE(void)
+static void compute_Inviscid_FACE_RHS_EFE(void)
 {
-	const char         *Form = DB.Form;
-	const unsigned int Nvar  = DB.Nvar,
-	                   Neq   = DB.Neq;
+	const unsigned int Nvar = DB.Nvar,
+	                   Neq  = DB.Neq;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 	struct S_FACE     *FACE;
@@ -75,34 +78,34 @@ static void compute_FACE_RHS_EFE(void)
 		OPSR[i] = malloc(sizeof *OPSR[i]); // free
 	}
 
-	if (strstr(Form,"Weak")) {
+	if (strstr(DB.Form,"Weak")) {
 		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
 			init_FDATA(FDATAL,FACE,'L');
 			init_FDATA(FDATAR,FACE,'R');
 
-			// Compute WL_fI and WR_fIL
+			// Compute WL_fIL and WR_fIL (i.e. as seen from the (L)eft VOLUME)
 			unsigned int IndFType = FDATAL->IndFType;
 			unsigned int NfnI     = OPSL[IndFType]->NfnI;
 
-			double *WL_fI = malloc(NfnI*Nvar * sizeof *WL_fI); // free
-			compute_W_fI(FDATAL,WL_fI);
+			FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
+			FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
 
-			double *WR_fIL = malloc(NfnI*Nvar * sizeof *WR_fIL); // free
-			compute_WR_fIL(FDATAR,WL_fI,WR_fIL);
+			coef_to_values_fI(FDATAL,'W');
+			compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
 
 
 			// Compute numerical flux as seen from the left VOLUME
 			double *nFluxNum_fI = malloc(NfnI*Neq * sizeof *nFluxNum_fI); // free
 
-			NFluxData->WL_fIL      = WL_fI;
-			NFluxData->WR_fIL      = WR_fIL;
+			NFluxData->WL_fIL      = FDATAL->W_fIL;
+			NFluxData->WR_fIL      = FDATAR->W_fIL;
 			NFluxData->nFluxNum_fI = nFluxNum_fI;
 
 			compute_numerical_flux(FDATAL,'E');
 			add_Jacobian_scaling_FACE(FDATAL,'E');
 
-			free(WL_fI);
-			free(WR_fIL);
+			free(FDATAL->W_fIL);
+			free(FDATAR->W_fIL);
 
 
 			// Compute FACE RHS terms
@@ -125,7 +128,91 @@ static void compute_FACE_RHS_EFE(void)
 
 			free(nFluxNum_fI);
 		}
-	} else if (strstr(Form,"Strong")) {
+	} else if (strstr(DB.Form,"Strong")) {
+		EXIT_UNSUPPORTED;
+	}
+
+	for (size_t i = 0; i < 2; i++) {
+		free(OPSL[i]);
+		free(OPSR[i]);
+	}
+	free(NFluxData);
+	free(FDATAL);
+	free(FDATAR);
+}
+
+static void compute_Viscous_FACE_RHS_EFE(void)
+{
+	/*
+	 *	Comments:
+	 *		It is currently hard-coded that the viscous flux has no dependence on the weak gradient. This is done so
+	 *		that element coupling is restricted to VOLUMEs and their immediate neighbours, maintaining the previous data
+	 *		structure when the linearization is computed.
+	 */
+
+	if (!DB.Viscous)
+		return;
+
+	const unsigned int d    = DB.d,
+	                   Nvar = DB.Nvar;
+
+	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
+	struct S_FACE     *FACE;
+
+	struct S_FDATA *FDATAL = malloc(sizeof *FDATAL), // free
+	               *FDATAR = malloc(sizeof *FDATAR); // free
+	FDATAL->OPS = OPSL;
+	FDATAR->OPS = OPSR;
+
+	struct S_NumericalFlux *NFluxData = malloc(sizeof *NFluxData); // free
+	FDATAL->NFluxData = NFluxData;
+	FDATAR->NFluxData = NFluxData;
+
+	for (size_t i = 0; i < 2; i++) {
+		OPSL[i] = malloc(sizeof *OPSL[i]); // free
+		OPSR[i] = malloc(sizeof *OPSR[i]); // free
+	}
+
+	if (strstr(DB.Form,"Weak")) {
+		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+			init_FDATA(FDATAL,FACE,'L');
+			init_FDATA(FDATAR,FACE,'R');
+
+			// Compute WL_fIL and WR_fIL and their gradients (as seen from the (L)eft VOLUME)
+			unsigned int IndFType = FDATAL->IndFType;
+			unsigned int NfnI     = OPSL[IndFType]->NfnI;
+
+			FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
+			FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
+
+			coef_to_values_fI(FDATAL,'W');
+			compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
+
+			double **GradWL_fIL = malloc(d * sizeof *GradWL_fIL), // free
+			       **GradWR_fIL = malloc(d * sizeof *GradWR_fIL); // free
+
+			for (size_t dim = 0; dim < d; dim++) {
+				GradWL_fIL[dim] = malloc(NfnI*Nvar * sizeof *GradWL_fIL[dim]); // free
+				GradWR_fIL[dim] = malloc(NfnI*Nvar * sizeof *GradWR_fIL[dim]); // free
+			}
+
+			FDATAL->GradW_fIL = GradWL_fIL;
+			FDATAR->GradW_fIL = GradWR_fIL;
+
+			coef_to_values_fI(FDATAL,'Q');
+			compute_GradWR_fIL(FDATAR,(const double *const *const) GradWL_fIL,GradWR_fIL);
+
+
+			// Compute numerical flux as seen from the left VOLUME
+
+			// Compute FACE RHS terms
+
+			free(FDATAL->W_fIL);
+			free(FDATAR->W_fIL);
+			array_free2_d(d,GradWL_fIL);
+			array_free2_d(d,GradWR_fIL);
+		}
+	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;
 	}
 

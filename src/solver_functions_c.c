@@ -31,23 +31,31 @@
  *	References:
  */
 
-void compute_W_vI_c(struct S_VDATA *VDATA, double complex *W_vI)
+void coef_to_values_vI_c(struct S_VDATA *VDATA, const char coef_type)
 {
 	/*
 	 *	Purpose:
-	 *		Identical to compute_W_vI using complex variables (for complex step verification).
+	 *		Identical to coef_to_values_vI using complex variables (for complex step verification).
 	 */
 
-	struct S_VOLUME *VOLUME = VDATA->VOLUME;
-
 	if (DB.Collocated) {
-		EXIT_UNSUPPORTED; // Set W_vI = VOLUME->What in calling function.
+		EXIT_UNSUPPORTED; // Set A_vI = VOLUME->Ahat in calling function.
 	} else {
-		unsigned int Nvar = DB.Nvar;
+		if (!(coef_type == 'W' || coef_type == 'Q'))
+			EXIT_UNSUPPORTED;
 
-		struct S_OPERATORS_V **OPS = VDATA->OPS;
+		unsigned int d    = DB.d,
+		             Nvar = DB.Nvar;
 
-		mm_dcc(CBCM,CBT,CBNT,OPS[0]->NvnI,Nvar,OPS[0]->NvnS,1.0,0.0,OPS[0]->ChiS_vI,VOLUME->What_c,W_vI);
+		struct S_OPERATORS_V **OPS   = VDATA->OPS;
+		struct S_VOLUME      *VOLUME = VDATA->VOLUME;
+
+		if (coef_type == 'W') {
+			mm_dcc(CBCM,CBT,CBNT,OPS[0]->NvnI,Nvar,OPS[0]->NvnS,1.0,0.0,OPS[0]->ChiS_vI,VOLUME->What_c,VDATA->W_vI_c);
+		} else if (coef_type == 'Q') {
+			for (size_t dim = 0; dim < d; dim++)
+				mm_dcc(CBCM,CBT,CBNT,OPS[0]->NvnI,Nvar,OPS[0]->NvnS,1.0,0.0,OPS[0]->ChiS_vI,VOLUME->Qhat_c[dim],VDATA->Q_vI_c[dim]);
+		}
 	}
 }
 
@@ -81,7 +89,7 @@ void convert_between_rp_c(const unsigned int Nn, const unsigned int Nrc, const d
 }
 
 void finalize_VOLUME_Inviscid_Weak_c(const unsigned int Nrc, const double complex *Ar_vI, double complex *RLHS,
-                                     const char *term_type, struct S_VDATA *VDATA)
+                                     const char imex_type, struct S_VDATA *VDATA)
 {
 	/*
 	 *	Purpose:
@@ -98,7 +106,7 @@ void finalize_VOLUME_Inviscid_Weak_c(const unsigned int Nrc, const double comple
 	unsigned int NvnS = OPS[0]->NvnS,
 	             NvnI = OPS[0]->NvnI;
 
-	if (strstr(term_type,"RHS")) {
+	if (imex_type == 'E') {
 		memset(RLHS,0.0,NvnS*Nrc * sizeof *RLHS);
 		for (size_t dim = 0; dim < d; dim++)
 			mm_dcc(CBCM,CBT,CBNT,NvnS,Nrc,NvnI,1.0,1.0,OPS[0]->D_Weak[dim],&Ar_vI[NvnI*Nrc*dim],RLHS);

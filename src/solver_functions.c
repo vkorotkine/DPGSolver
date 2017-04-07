@@ -111,26 +111,29 @@ void init_VDATA(struct S_VDATA *VDATA, struct S_VOLUME *VOLUME)
 		init_ops_VOLUME(VDATA->OPS[1],VOLUME,1);
 }
 
-void compute_W_vI(struct S_VDATA *VDATA, double *W_vI)
+void coef_to_values_vI(struct S_VDATA *VDATA, const char coef_type)
 {
 	/*
 	 *	Purpose:
-	 *		Interpolate VOLUME What coefficients to VOLUME cubature nodes.
+	 *		Interpolate VOLUME coefficients (of type 'coef_type') to VOLUME cubature nodes.
 	 *
 	 *	Comments:
-	 *		Various options are available for computing W_vI:
+	 *		Various options are available for the computation:
 	 *			1) Using sum factorized operators for TP and WEDGE elements;
 	 *			2) Using the standard operator but exploiting sparsity;
 	 *			3) Using the standard approach.
+	 *
+	 *	Notation:
+	 *		To avoid confusion with (C)ofactor terms, (v)olume cubature nodes are denoted with the subscript (v)olume
+	 *		(I)ntegration.
 	 */
 
-	unsigned int Collocated = DB.Collocated;
-
-	struct S_VOLUME *VOLUME = VDATA->VOLUME;
-
-	if (Collocated) {
-		EXIT_UNSUPPORTED; // Set W_vI = VOLUME->What in calling function.
+	if (DB.Collocated) {
+		EXIT_UNSUPPORTED; // Set A_vI = VOLUME->Ahat in calling function.
 	} else {
+		if (!(coef_type == 'W' || coef_type == 'Q'))
+			EXIT_UNSUPPORTED;
+
 		unsigned int d        = DB.d,
 		             Nvar     = DB.Nvar,
 		             ***SF_BE = DB.SF_BE;
@@ -138,7 +141,8 @@ void compute_W_vI(struct S_VDATA *VDATA, double *W_vI)
 		unsigned int P      = VDATA->P,
 		             Eclass = VDATA->Eclass;
 
-		struct S_OPERATORS_V **OPS = VDATA->OPS;
+		struct S_OPERATORS_V **OPS   = VDATA->OPS;
+		struct S_VOLUME      *VOLUME = VDATA->VOLUME;
 
 		unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX];
 		double       *OP[DMAX];
@@ -148,7 +152,12 @@ void compute_W_vI(struct S_VDATA *VDATA, double *W_vI)
 			for (size_t dim = 0; dim < d; dim++)
 				Diag[dim] = 0;
 
-			sf_apply_d(VOLUME->What,W_vI,NIn,NOut,Nvar,OP,Diag,d);
+			if (coef_type == 'W') {
+				sf_apply_d(VOLUME->What,VDATA->W_vI,NIn,NOut,Nvar,OP,Diag,d);
+			} else if (coef_type == 'Q') {
+				for (size_t dim = 0; dim < d; dim++)
+					sf_apply_d(VOLUME->Qhat[dim],VDATA->Q_vI[dim],NIn,NOut,Nvar,OP,Diag,d);
+			}
 		} else if (Eclass == C_WEDGE && SF_BE[P][1][0]) {
 			get_sf_parameters(OPS[0]->NvnS_SF,OPS[0]->NvnI_SF,OPS[0]->ChiS_vI_SF,
 			                  OPS[1]->NvnS_SF,OPS[1]->NvnI_SF,OPS[1]->ChiS_vI_SF,NIn,NOut,OP,d,3,Eclass);
@@ -157,9 +166,19 @@ void compute_W_vI(struct S_VDATA *VDATA, double *W_vI)
 				Diag[dim] = 0;
 			Diag[1] = 2; // TRI operator (dim = 0) takes care of dim = 1 as well.
 
-			sf_apply_d(VOLUME->What,W_vI,NIn,NOut,Nvar,OP,Diag,d);
+			if (coef_type == 'W') {
+				sf_apply_d(VOLUME->What,VDATA->W_vI,NIn,NOut,Nvar,OP,Diag,d);
+			} else if (coef_type == 'Q') {
+				for (size_t dim = 0; dim < d; dim++)
+					sf_apply_d(VOLUME->Qhat[dim],VDATA->Q_vI[dim],NIn,NOut,Nvar,OP,Diag,d);
+			}
 		} else {
-			mm_CTN_d(OPS[0]->NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->What,W_vI);
+			if (coef_type == 'W') {
+				mm_CTN_d(OPS[0]->NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->What,VDATA->W_vI);
+			} else if (coef_type == 'Q') {
+				for (size_t dim = 0; dim < d; dim++)
+					mm_CTN_d(OPS[0]->NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->Qhat[dim],VDATA->Q_vI[dim]);
+			}
 		}
 	}
 }
@@ -216,7 +235,7 @@ void convert_between_rp(const unsigned int Nn, const unsigned int Nrc, const dou
 	}
 }
 
-void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, double *RLHS, const char *term_type,
+void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, double *RLHS, const char imex_type,
                                    struct S_VDATA *VDATA)
 {
 	/*
@@ -266,7 +285,7 @@ void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, 
 	unsigned int NvnS = OPS[0]->NvnS,
 	             NvnI = OPS[0]->NvnI;
 
-	if (strstr(term_type,"RHS")) {
+	if (imex_type == 'E') {
 		memset(RLHS,0.0,NvnS*Nrc * sizeof *RLHS);
 		if (Eclass == C_TP && SF_BE[P][0][0]) {
 			unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX];
@@ -332,7 +351,7 @@ void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, 
 			for (size_t dim = 0; dim < d; dim++)
 				mm_d(CBCM,CBT,CBNT,NvnS,Nrc,NvnI,1.0,1.0,OPS[0]->D_Weak[dim],&Ar_vI[NvnI*Nrc*dim],RLHS);
 		}
-	} else if (strstr(term_type,"LHS")) {
+	} else if (imex_type == 'I') {
 		unsigned int Neq  = DB.Neq,
 		             Nvar = DB.Nvar;
 
@@ -433,6 +452,34 @@ void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, 
 	}
 }
 
+void finalize_VOLUME_Viscous_Weak(const unsigned int Nrc, double *Ar_vI, double *RLHS, const char imex_type,
+                                  struct S_VDATA *VDATA)
+{
+	/*
+	 *	Purpose:
+	 *		Compute the viscous contribution to the the RHS/LHS terms for the weak formulation by applying the D_Weak
+	 *		operator to the input array.
+	 *
+	 *	Comments:
+	 *		The required operation is identical to that of finalize_VOLUME_Inviscid_Weak after the viscous flux is
+	 *		negated.
+	 */
+
+	const unsigned int d = DB.d;
+
+	struct S_OPERATORS_V **OPS = VDATA->OPS;
+
+	const unsigned int NvnI = OPS[0]->NvnI;
+
+	if (imex_type == 'E' || imex_type == 'I') {
+		for (size_t i = 0, iMax = NvnI*Nrc*d; i < iMax; i++)
+			Ar_vI[i] *= -1.0;
+
+		finalize_VOLUME_Inviscid_Weak(Nrc,Ar_vI,RLHS,imex_type,VDATA);
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
 
 // **************************************************************************************************** //
 // FACE functions
@@ -548,18 +595,27 @@ void init_FDATA(struct S_FDATA *FDATA, struct S_FACE *FACE, const char side)
 		init_ops_FACE(FDATA->OPS[1],FDATA->VOLUME,FACE,1);
 }
 
-void compute_W_fI(const struct S_FDATA *FDATA, double *W_fI)
+void coef_to_values_fI(const struct S_FDATA *FDATA, const char coef_type)
 {
 	/*
 	 *	Purpose:
-	 *		Interpolate VOLUME What coefficients to FACE cubature nodes.
+	 *		Interpolate VOLUME coefficients (of type 'coef_type') to FACE cubature nodes.
 	 *
 	 *	Comments:
-	 *		Various options are available for computing W_fI:
+	 *		Various options are available for the computation:
 	 *			1) Using sum factorized operators for TP and WEDGE elements;
 	 *			2) Using the standard operator but exploiting sparsity;
 	 *			3) Using the standard approach.
+	 *
+	 *	Notation:
+	 *		The allowed options for coef_type are 'W' (conserved variables), 'Q' ( == GradW here)
+	 *
+	 *		To avoid confusion with (C)ofactor terms, (f)ace cubature nodes are denoted with the subscript (f)ace
+	 *		(I)ntegration.
 	 */
+
+	if (!(coef_type == 'W' || coef_type == 'Q'))
+		EXIT_UNSUPPORTED;
 
 	unsigned int const d            = DB.d,
 	                   Nvar         = DB.Nvar,
@@ -592,7 +648,12 @@ void compute_W_fI(const struct S_FDATA *FDATA, double *W_fI)
 				Diag[dim] = 0;
 		}
 
-		sf_apply_d(VOLUME->What,W_fI,NIn,NOut,Nvar,OP,Diag,d);
+		if (coef_type == 'W') {
+			sf_apply_d(VOLUME->What,FDATA->W_fIL,NIn,NOut,Nvar,OP,Diag,d);
+		} else if (coef_type == 'Q') {
+			for (size_t dim = 0; dim < d; dim++)
+				sf_apply_d(VOLUME->QhatV[dim],FDATA->GradW_fIL[dim],NIn,NOut,Nvar,OP,Diag,d);
+		}
 	} else if (Eclass == C_WEDGE && SF_BE[P][1][1]) {
 		if (f < 3) { OP0   = OPS[0]->ChiS_fI_SF, OP1   = OPS[1]->ChiS_vI_SF;
 		             NOut0 = OPS[0]->NfnI_SF,    NOut1 = OPS[1]->NvnI_SF;
@@ -613,11 +674,26 @@ void compute_W_fI(const struct S_FDATA *FDATA, double *W_fI)
 			Diag[1] = 2;
 		}
 
-		sf_apply_d(VOLUME->What,W_fI,NIn,NOut,Nvar,OP,Diag,d);
+		if (coef_type == 'W') {
+			sf_apply_d(VOLUME->What,FDATA->W_fIL,NIn,NOut,Nvar,OP,Diag,d);
+		} else if (coef_type == 'Q') {
+			for (size_t dim = 0; dim < d; dim++)
+				sf_apply_d(VOLUME->QhatV[dim],FDATA->GradW_fIL[dim],NIn,NOut,Nvar,OP,Diag,d);
+		}
 	} else if (((SpOp && (Eclass == C_TP || Eclass == C_WEDGE)) || (VFPartUnity[Eclass])) && DB.AllowSparseFACE) {
-		mm_CTN_CSR_d(OPS[0]->NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI_sp[Vf],VOLUME->What,W_fI);
+		if (coef_type == 'W') {
+			mm_CTN_CSR_d(OPS[0]->NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI_sp[Vf],VOLUME->What,FDATA->W_fIL);
+		} else if (coef_type == 'Q') {
+			for (size_t dim = 0; dim < d; dim++)
+				mm_CTN_CSR_d(OPS[0]->NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI_sp[Vf],VOLUME->QhatV[dim],FDATA->GradW_fIL[dim]);
+		}
 	} else {
-		mm_CTN_d(OPS[0]->NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI[Vf],VOLUME->What,W_fI);
+		if (coef_type == 'W') {
+			mm_CTN_d(OPS[0]->NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI[Vf],VOLUME->What,FDATA->W_fIL);
+		} else if (coef_type == 'Q') {
+			for (size_t dim = 0; dim < d; dim++)
+				mm_CTN_d(OPS[0]->NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI[Vf],VOLUME->QhatV[dim],FDATA->GradW_fIL[dim]);
+		}
 	}
 }
 
@@ -655,7 +731,7 @@ void compute_WR_fIL(const struct S_FDATA *FDATA, const double *WL_fIL, double *W
 	                   *n_fIL   = FACE->n_fI;
 
 	if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACE
-		compute_W_fI(FDATA,WR_fIL);
+		coef_to_values_fI(FDATA,'W');
 		array_rearrange_d(NfnI,Nvar,nOrdRL,'C',WR_fIL);
 	} else { // Boundary FACE
 		if (BC % BC_STEP_SC == BC_RIEMANN) {
@@ -684,6 +760,64 @@ void compute_WR_fIL(const struct S_FDATA *FDATA, const double *WL_fIL, double *W
 			EXIT_UNSUPPORTED;
 		}
 	}
+}
+
+void compute_GradWR_fIL(const struct S_FDATA *FDATA, const double *const *const GradWL_fIL,
+                        double *const *const GradWR_fIL)
+{
+	/*
+	 *	Purpose:
+	 *		Compute GradW of the (R)ight VOLUME at the FACE cubature nodes corresponding to the (L)eft VOLUME.
+	 *
+	 *	Comments:
+	 *		For internal and periodic BCs this is done by interpolating QhatV from the right VOLUME to the FACE cubature
+	 *		nodes and then rearranging the result such that the ordering corresponds to that seen from the left VOLUME
+	 *		(recall that nOrdLR gives the (n)ode (Ord)ering from (L)eft to (R)ight).
+	 *		For other boundary conditions, the solution is computed directly with the correct ordering using the
+	 *		appropriate boundary condition functions.
+	 */
+
+	const unsigned int d    = DB.d,
+	                   Nvar = DB.Nvar;
+
+	struct S_OPERATORS_F **OPS = FDATA->OPS;
+	struct S_FACE        *FACE = FDATA->FACE;
+
+	const unsigned int IndFType = FDATA->IndFType;
+
+	const unsigned int BC      = FACE->BC,
+	                   NfnI    = OPS[IndFType]->NfnI,
+	                   *nOrdRL = OPS[IndFType]->nOrdRL;
+
+	const double       *XYZ_fIL = FACE->XYZ_fI,
+	                   *n_fIL   = FACE->n_fI;
+
+	if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACE
+		coef_to_values_fI(FDATA,'Q');
+		for (size_t dim = 0; dim < d; dim++)
+			array_rearrange_d(NfnI,Nvar,nOrdRL,'C',GradWR_fIL[dim]);
+	} else { // Boundary FACE
+if (0)
+	printf("%p %p %p\n",XYZ_fIL,n_fIL,GradWL_fIL);
+		EXIT_UNSUPPORTED;
+		// implement the boundary conditions for GradW
+	}
+}
+
+void compute_GradW_fI(const struct S_FDATA *FDATA, double *const *const GradW_fI)
+{
+	/*
+	 *	Purpose:
+	 *		Interpolate VOLUME QhatV coefficients to FACE cubature nodes.
+	 *
+	 *	Comments:
+	 *		The majority of this contribution is computed as the VOLUME contribution to VOLUME Qhat when computing the
+	 *		weak solution gradients. All that remains is to interpolate to the FACE cubature nodes.
+	 */
+
+if (0)
+	printf("%p %p\n",FDATA,GradW_fI);
+	 //asdf
 }
 
 void compute_numerical_flux(const struct S_FDATA *FDATA, const char imex_type)
