@@ -97,8 +97,8 @@ double *inverse_d(const unsigned int N, const unsigned int NRHS, const double *A
 	return x;
 }
 
-void mm_diag_d(const unsigned int NRows, const unsigned int NCols, double *a, double *A, double *Output,
-               const double alpha, const double beta, const char side, const char layout)
+void mm_diag_d(const unsigned int NRows, const unsigned int NCols, double const *const a, double const *const A,
+               double *const Output, const double alpha, const double beta, const char side, const char layout)
 {
 	unsigned int i, j, iMax;
 

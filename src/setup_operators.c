@@ -1511,6 +1511,11 @@ static void setup_TP_operators(const unsigned int EType)
 	 *		allows for a reduction in the computational complexity of computing these operators and is very intuitive
 	 *		once the concept is understood.
 	 *
+	 *		The casts to "const *const ..." are required because the pointers have more than one level of dereferencing.
+	 *		It would be beneficial to cast the stored matrices of setup_ELEMENT_operators to their appropriate fully
+	 *		const types in the future, making the casts here redundant. This was not done immediately as it would likely
+	 *		result in errors throughout the entire code, requiring changes to many functions.
+	 *
 	 *	References:
 	 *		Thesis (ToBeModified)
 	 */
@@ -1559,7 +1564,7 @@ static void setup_TP_operators(const unsigned int EType)
 	unsigned int dim, P, vh, f, fh, e, Pb, PSMin, PSMax, PbMin, PbMax, fhMax, Nvref, IndClass,
 	             Eclass, dE, Nf, Ne, Vf, Ve, *Nfref, *ones_Nf,
 	             NIn[3], NOut[3];
-	double       *OP[3];
+	double const      * OP[3];
 
 	struct S_ELEMENT *ELEMENT, *ELEMENTclass[2];
 
@@ -1693,10 +1698,10 @@ static void setup_TP_operators(const unsigned int EType)
 		NvnGs[2] = pow(ELEMENTclass[0]->NvnGs[2],dE);
 		NvnG2[2] = pow(ELEMENTclass[0]->NvnG2[2],dE);
 
-		get_sf_parametersV(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->TGs[1][1],
+		get_sf_parametersV(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnGs[1],(double const *const *const) ELEMENTclass[0]->TGs[1][1],
 		                   0,0,NULL,NIn,NOut,OP,dE,0,Eclass);
 		TGs[1][1][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-		get_sf_parametersV(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->ChiInvGs_vGs[1][1],
+		get_sf_parametersV(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnGs[1],(double const *const *const) ELEMENTclass[0]->ChiInvGs_vGs[1][1],
 		                   0,0,NULL,NIn,NOut,OP,dE,0,Eclass);
 		ChiInvGs_vGs[1][1][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 		get_sf_parameters(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnG2[2],ELEMENTclass[0]->I_vGs_vG2[1][2][0],
@@ -1736,14 +1741,14 @@ static void setup_TP_operators(const unsigned int EType)
 
 				for (vh = 0; vh < Nvref; vh++) {
 					if (vh == 0 || P == Pb) {
-						get_sf_parametersV(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->Ihat_vS_vS[P][Pb],
+						get_sf_parametersV(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],(double const *const *const) ELEMENTclass[0]->Ihat_vS_vS[P][Pb],
 						                   0,0,NULL,NIn,NOut,OP,dE,vh,Eclass);
 						Ihat_vS_vS[P][Pb][vh] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-						get_sf_parametersV(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->L2hat_vS_vS[P][Pb],
+						get_sf_parametersV(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],(double const *const *const) ELEMENTclass[0]->L2hat_vS_vS[P][Pb],
 						                   0,0,NULL,NIn,NOut,OP,dE,vh,Eclass);
 						L2hat_vS_vS[P][Pb][vh] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (P == PGlobal && Pb == PGlobal) {
-							get_sf_parametersV(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->I_vGs_vGs[1][1],
+							get_sf_parametersV(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnGs[1],(double const *const *const) ELEMENTclass[0]->I_vGs_vGs[1][1],
 							                   0,0,NULL,NIn,NOut,OP,dE,vh,Eclass);
 							I_vGs_vGs[1][1][vh] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						}
@@ -1883,16 +1888,16 @@ static void setup_TP_operators(const unsigned int EType)
 				for (f = 0; f < Nf; f++) {
 				for (fh = 0, fhMax = Nfref[f]; fh < fhMax; fh++) {
 					Vf = f*NFREFMAX+fh;
-					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],   ELEMENTclass[0]->ChiS_vS[P][Pb],
-					                   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NfnS[Pb][0],ELEMENTclass[0]->ChiS_fS[P][Pb],
+					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],   (double const *const *const) ELEMENTclass[0]->ChiS_vS[P][Pb],
+					                   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NfnS[Pb][0],(double const *const *const) ELEMENTclass[0]->ChiS_fS[P][Pb],
 					                   NIn,NOut,OP,dE,Vf,Eclass);
 					ChiS_fS[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->ChiS_vIs[P][Pb],
-					                   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->ChiS_fIs[P][Pb],
+					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIs[Pb],   (double const *const *const) ELEMENTclass[0]->ChiS_vIs[P][Pb],
+					                   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NfnIs[Pb][0],(double const *const *const) ELEMENTclass[0]->ChiS_fIs[P][Pb],
 					                   NIn,NOut,OP,dE,Vf,Eclass);
 					ChiS_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->ChiS_vIc[P][Pb],
-					                   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->ChiS_fIc[P][Pb],
+					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnIc[Pb],   (double const *const *const) ELEMENTclass[0]->ChiS_vIc[P][Pb],
+					                   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NfnIc[Pb][0],(double const *const *const) ELEMENTclass[0]->ChiS_fIc[P][Pb],
 					                   NIn,NOut,OP,dE,Vf,Eclass);
 					ChiS_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
@@ -1903,18 +1908,18 @@ static void setup_TP_operators(const unsigned int EType)
 
 					if (P == Pb) {
 						// Outside of fh == 0 if condition as operator is used for testing h-adaptation connectivity.
-						get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnS[Pb],   ELEMENTclass[0]->I_vGs_vS[1][Pb],
-						                   ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NfnS[Pb][0],ELEMENTclass[0]->I_vGs_fS[1][Pb],
+						get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnS[Pb],   (double const *const *const) ELEMENTclass[0]->I_vGs_vS[1][Pb],
+						                   ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NfnS[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vGs_fS[1][Pb],
 						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGs_fS[1][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					}
 
-					get_sf_parametersF(ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_VV[P][Pb],
-					                   ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Is_Weak_FF[P][Pb],
+					get_sf_parametersF(ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->NvnS[P],(double const *const *const) ELEMENTclass[0]->Is_Weak_VV[P][Pb],
+					                   ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->NvnS[P],(double const *const *const) ELEMENTclass[0]->Is_Weak_FF[P][Pb],
 					                   NIn,NOut,OP,dE,Vf,Eclass);
 					Is_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-					get_sf_parametersF(ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_VV[P][Pb],
-					                   ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->Ic_Weak_FF[P][Pb],
+					get_sf_parametersF(ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->NvnS[P],(double const *const *const) ELEMENTclass[0]->Ic_Weak_VV[P][Pb],
+					                   ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->NvnS[P],(double const *const *const) ELEMENTclass[0]->Ic_Weak_FF[P][Pb],
 					                   NIn,NOut,OP,dE,Vf,Eclass);
 					Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
@@ -1925,80 +1930,80 @@ static void setup_TP_operators(const unsigned int EType)
 
 					if (fh == 0) {
 						if (P == Pb) {
-							get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->I_vGs_vIs[1][Pb],
-							                   ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->I_vGs_fIs[1][Pb],
+							get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnIs[Pb],   (double const *const *const) ELEMENTclass[0]->I_vGs_vIs[1][Pb],
+							                   ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NfnIs[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vGs_fIs[1][Pb],
 							                   NIn,NOut,OP,dE,Vf,Eclass);
 							I_vGs_fIs[1][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-							get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->I_vGs_vIc[1][Pb],
-							                   ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->I_vGs_fIc[1][Pb],
+							get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnIc[Pb],   (double const *const *const) ELEMENTclass[0]->I_vGs_vIc[1][Pb],
+							                   ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NfnIc[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vGs_fIc[1][Pb],
 							                   NIn,NOut,OP,dE,Vf,Eclass);
 							I_vGs_fIc[1][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-							get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnGc[Pb],   ELEMENTclass[0]->IGc[P][Pb],
-							                   ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnGc[Pb][0],ELEMENTclass[0]->I_vGc_fGc[P][Pb],
+							get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnGc[Pb],   (double const *const *const) ELEMENTclass[0]->IGc[P][Pb],
+							                   ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnGc[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vGc_fGc[P][Pb],
 							                   NIn,NOut,OP,dE,Vf,Eclass);
 							I_vGc_fGc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 							if (P == 2) {
-								get_sf_parametersF(ELEMENTclass[0]->NvnG2[P],ELEMENTclass[0]->NvnG2[Pb],   ELEMENTclass[0]->IG2[P][Pb],
-								                   ELEMENTclass[0]->NvnG2[P],ELEMENTclass[0]->NfnG2[Pb][0],ELEMENTclass[0]->I_vG2_fG2[P][Pb],
+								get_sf_parametersF(ELEMENTclass[0]->NvnG2[P],ELEMENTclass[0]->NvnG2[Pb],   (double const *const *const) ELEMENTclass[0]->IG2[P][Pb],
+								                   ELEMENTclass[0]->NvnG2[P],ELEMENTclass[0]->NfnG2[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vG2_fG2[P][Pb],
 								                   NIn,NOut,OP,dE,Vf,Eclass);
 								I_vG2_fG2[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 							}
 						}
-						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnS[Pb],   ELEMENTclass[0]->I_vGc_vS[P][Pb],
-						                   ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnS[Pb][0],ELEMENTclass[0]->I_vGc_fS[P][Pb],
+						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnS[Pb],   (double const *const *const) ELEMENTclass[0]->I_vGc_vS[P][Pb],
+						                   ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnS[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vGc_fS[P][Pb],
 						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGc_fS[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->I_vGc_vIs[P][Pb],
-						                   ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->I_vGc_fIs[P][Pb],
+						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIs[Pb],   (double const *const *const) ELEMENTclass[0]->I_vGc_vIs[P][Pb],
+						                   ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIs[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vGc_fIs[P][Pb],
 						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGc_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->I_vGc_vIc[P][Pb],
-						                   ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->I_vGc_fIc[P][Pb],
+						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIc[Pb],   (double const *const *const) ELEMENTclass[0]->I_vGc_vIc[P][Pb],
+						                   ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIc[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vGc_fIc[P][Pb],
 						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGc_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NvnS[Pb],   ELEMENTclass[0]->I_vCs_vS[P][Pb],
-						                   ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NfnS[Pb][0],ELEMENTclass[0]->I_vCs_fS[P][Pb],
+						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NvnS[Pb],   (double const *const *const) ELEMENTclass[0]->I_vCs_vS[P][Pb],
+						                   ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NfnS[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vCs_fS[P][Pb],
 						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCs_fS[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->I_vCs_vIs[P][Pb],
-						                   ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->I_vCs_fIs[P][Pb],
+						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NvnIs[Pb],   (double const *const *const) ELEMENTclass[0]->I_vCs_vIs[P][Pb],
+						                   ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NfnIs[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vCs_fIs[P][Pb],
 						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCs_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->I_vCs_vIc[P][Pb],
-						                   ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->I_vCs_fIc[P][Pb],
+						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NvnIc[Pb],   (double const *const *const) ELEMENTclass[0]->I_vCs_vIc[P][Pb],
+						                   ELEMENTclass[0]->NvnCs[P],ELEMENTclass[0]->NfnIc[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vCs_fIc[P][Pb],
 						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCs_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NvnS[Pb],   ELEMENTclass[0]->I_vCc_vS[P][Pb],
-						                   ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NfnS[Pb][0],ELEMENTclass[0]->I_vCc_fS[P][Pb],
+						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NvnS[Pb],   (double const *const *const) ELEMENTclass[0]->I_vCc_vS[P][Pb],
+						                   ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NfnS[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vCc_fS[P][Pb],
 						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCc_fS[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->I_vCc_vIs[P][Pb],
-						                   ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->I_vCc_fIs[P][Pb],
+						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NvnIs[Pb],   (double const *const *const) ELEMENTclass[0]->I_vCc_vIs[P][Pb],
+						                   ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NfnIs[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vCc_fIs[P][Pb],
 						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCc_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->I_vCc_vIc[P][Pb],
-						                   ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->I_vCc_fIc[P][Pb],
+						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NvnIc[Pb],   (double const *const *const) ELEMENTclass[0]->I_vCc_vIc[P][Pb],
+						                   ELEMENTclass[0]->NvnCc[P],ELEMENTclass[0]->NfnIc[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vCc_fIc[P][Pb],
 						                   NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCc_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					}
 
 					for (dim = 0; dim < dE; dim++) {
 						if (P == Pb) {
-							get_sf_parametersFd(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->I_vGs_vIs[1][Pb],
-						                        ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->D_vGs_fIs[1][Pb],
+							get_sf_parametersFd(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnIs[Pb],   (double const *const *const) ELEMENTclass[0]->I_vGs_vIs[1][Pb],
+						                        ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NfnIs[Pb][0],(double const *const *const *const) ELEMENTclass[0]->D_vGs_fIs[1][Pb],
 						                        NIn,NOut,OP,dE,Vf,Eclass,dim,0);
 							D_vGs_fIs[1][Pb][Vf][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-							get_sf_parametersFd(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->I_vGs_vIc[1][Pb],
-						                        ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->D_vGs_fIc[1][Pb],
+							get_sf_parametersFd(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnIc[Pb],   (double const *const *const) ELEMENTclass[0]->I_vGs_vIc[1][Pb],
+						                        ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NfnIc[Pb][0],(double const *const *const *const) ELEMENTclass[0]->D_vGs_fIc[1][Pb],
 						                        NIn,NOut,OP,dE,Vf,Eclass,dim,0);
 							D_vGs_fIc[1][Pb][Vf][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						}
-						get_sf_parametersFd(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->I_vGc_vIs[P][Pb],
-						                    ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->D_vGc_fIs[P][Pb],
+						get_sf_parametersFd(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIs[Pb],   (double const *const *const) ELEMENTclass[0]->I_vGc_vIs[P][Pb],
+						                    ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIs[Pb][0],(double const *const *const *const) ELEMENTclass[0]->D_vGc_fIs[P][Pb],
 						                    NIn,NOut,OP,dE,Vf,Eclass,dim,0);
 						D_vGc_fIs[P][Pb][Vf][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-						get_sf_parametersFd(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->I_vGc_vIc[P][Pb],
-						                    ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->D_vGc_fIc[P][Pb],
+						get_sf_parametersFd(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnIc[Pb],   (double const *const *const) ELEMENTclass[0]->I_vGc_vIc[P][Pb],
+						                    ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnIc[Pb][0],(double const *const *const *const) ELEMENTclass[0]->D_vGc_fIc[P][Pb],
 						                    NIn,NOut,OP,dE,Vf,Eclass,dim,0);
 						D_vGc_fIc[P][Pb][Vf][dim] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					}
@@ -2007,14 +2012,14 @@ static void setup_TP_operators(const unsigned int EType)
 				for (e = 0; dE == DMAX && e < Ne; e++) {
 					Ve = e*NEREFMAX;
 					if (P == Pb) {
-						get_sf_parametersE(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnGc[Pb],   ELEMENTclass[0]->IGc[P][Pb],
-						                   ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnGc[Pb][0],ELEMENTclass[0]->I_vGc_fGc[P][Pb],
+						get_sf_parametersE(ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NvnGc[Pb],   (double const *const *const) ELEMENTclass[0]->IGc[P][Pb],
+						                   ELEMENTclass[0]->NvnGc[P],ELEMENTclass[0]->NfnGc[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vGc_fGc[P][Pb],
 						                   NIn,NOut,OP,dE,Ve,Eclass);
 						I_vGc_eGc[P][Pb][Ve] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 						if (P == 2) {
-							get_sf_parametersE(ELEMENTclass[0]->NvnG2[P],ELEMENTclass[0]->NvnG2[Pb],   ELEMENTclass[0]->IG2[P][Pb],
-							                   ELEMENTclass[0]->NvnG2[P],ELEMENTclass[0]->NfnG2[Pb][0],ELEMENTclass[0]->I_vG2_fG2[P][Pb],
+							get_sf_parametersE(ELEMENTclass[0]->NvnG2[P],ELEMENTclass[0]->NvnG2[Pb],   (double const *const *const) ELEMENTclass[0]->IG2[P][Pb],
+							                   ELEMENTclass[0]->NvnG2[P],ELEMENTclass[0]->NfnG2[Pb][0],(double const *const *const) ELEMENTclass[0]->I_vG2_fG2[P][Pb],
 							                   NIn,NOut,OP,dE,Ve,Eclass);
 							I_vG2_eG2[P][Pb][Ve] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						}
@@ -2058,17 +2063,17 @@ static void setup_TP_operators(const unsigned int EType)
 
 				for (vh = 0; vh < Nvref; vh++) {
 					if (vh == 0 || P == Pb) {
-						get_sf_parametersV(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->Ihat_vS_vS[P][Pb],
-						                   ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnS[Pb],ELEMENTclass[1]->Ihat_vS_vS[P][Pb],
+						get_sf_parametersV(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],(double const *const *const) ELEMENTclass[0]->Ihat_vS_vS[P][Pb],
+						                   ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnS[Pb],(double const *const *const) ELEMENTclass[1]->Ihat_vS_vS[P][Pb],
 						                   NIn,NOut,OP,dE,vh,Eclass);
 						Ihat_vS_vS[P][Pb][vh] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-						get_sf_parametersV(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->L2hat_vS_vS[P][Pb],
-						                   ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnS[Pb],ELEMENTclass[1]->L2hat_vS_vS[P][Pb],
+						get_sf_parametersV(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],(double const *const *const) ELEMENTclass[0]->L2hat_vS_vS[P][Pb],
+						                   ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnS[Pb],(double const *const *const) ELEMENTclass[1]->L2hat_vS_vS[P][Pb],
 						                   NIn,NOut,OP,dE,vh,Eclass);
 						L2hat_vS_vS[P][Pb][vh] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (P == PGlobal && Pb == PGlobal) {
-							get_sf_parametersV(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->I_vGs_vGs[1][1],
-							                   ELEMENTclass[1]->NvnGs[1],ELEMENTclass[1]->NvnGs[1],ELEMENTclass[1]->I_vGs_vGs[1][1],
+							get_sf_parametersV(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnGs[1],(double const *const *const) ELEMENTclass[0]->I_vGs_vGs[1][1],
+							                   ELEMENTclass[1]->NvnGs[1],ELEMENTclass[1]->NvnGs[1],(double const *const *const) ELEMENTclass[1]->I_vGs_vGs[1][1],
 							                   NIn,NOut,OP,dE,vh,Eclass);
 							I_vGs_vGs[1][1][vh] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						}
@@ -2222,22 +2227,22 @@ static void setup_TP_operators(const unsigned int EType)
 					             NOut0 = ELEMENTclass[0]->NfnS[Pb][0],    NOut1 = ELEMENTclass[1]->NvnS[Pb];
 					} else {     OPF0  = ELEMENTclass[0]->ChiS_vS[P][Pb], OPF1  = ELEMENTclass[1]->ChiS_fS[P][Pb];
 					             NOut0 = ELEMENTclass[0]->NvnS[Pb],       NOut1 = ELEMENTclass[1]->NfnS[Pb][0]; }
-					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],NOut0,OPF0,
-					                   ELEMENTclass[1]->NvnS[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],NOut0,(double const *const *const) OPF0,
+					                   ELEMENTclass[1]->NvnS[P],NOut1,(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 					ChiS_fS[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					if (f < 3) { OPF0  = ELEMENTclass[0]->ChiS_fIs[P][Pb], OPF1  = ELEMENTclass[1]->ChiS_vIs[P][Pb];
 					             NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],    NOut1 = ELEMENTclass[1]->NvnIs[Pb];
 					} else {     OPF0  = ELEMENTclass[0]->ChiS_vIs[P][Pb], OPF1  = ELEMENTclass[1]->ChiS_fIs[P][Pb];
 					             NOut0 = ELEMENTclass[0]->NvnIs[Pb],       NOut1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
-					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],NOut0,OPF0,
-					                   ELEMENTclass[1]->NvnS[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],NOut0,(double const *const *const) OPF0,
+					                   ELEMENTclass[1]->NvnS[P],NOut1,(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 					ChiS_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					if (f < 3) { OPF0  = ELEMENTclass[0]->ChiS_fIc[P][Pb], OPF1  = ELEMENTclass[1]->ChiS_vIc[P][Pb];
 					             NOut0 = ELEMENTclass[0]->NfnIc[Pb][0],    NOut1 = ELEMENTclass[1]->NvnIc[Pb];
 					} else {     OPF0  = ELEMENTclass[0]->ChiS_vIc[P][Pb], OPF1  = ELEMENTclass[1]->ChiS_fIc[P][Pb];
 					             NOut0 = ELEMENTclass[0]->NvnIc[Pb],       NOut1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
-					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],NOut0,OPF0,
-					                  ELEMENTclass[1]->NvnS[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+					get_sf_parametersF(ELEMENTclass[0]->NvnS[P],NOut0,(double const *const *const) OPF0,
+					                   ELEMENTclass[1]->NvnS[P],NOut1,(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 					ChiS_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 					if (Collocated || VFPartUnity[Eclass]) {
@@ -2254,8 +2259,8 @@ static void setup_TP_operators(const unsigned int EType)
 						             NOut0 = ELEMENTclass[0]->NfnS[Pb][0],     NOut1 = ELEMENTclass[1]->NvnS[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vGs_vS[1][Pb], OPF1  = ELEMENTclass[1]->I_vGs_fS[1][Pb];
 						             NOut0 = ELEMENTclass[0]->NvnS[Pb],        NOut1 = ELEMENTclass[1]->NfnS[Pb][0]; }
-						get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],NOut0,OPF0,
-						                   ELEMENTclass[1]->NvnGs[1],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],NOut0,(double const *const *const) OPF0,
+						                   ELEMENTclass[1]->NvnGs[1],NOut1,(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGs_fS[1][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					}
 
@@ -2263,15 +2268,15 @@ static void setup_TP_operators(const unsigned int EType)
 					             NIn0 = ELEMENTclass[0]->NfnIs[Pb][0],      NIn1 = ELEMENTclass[1]->NvnIs[Pb];
 					} else {     OPF0 = ELEMENTclass[0]->Is_Weak_VV[P][Pb], OPF1 = ELEMENTclass[1]->Is_Weak_FF[P][Pb];
 					             NIn0 = ELEMENTclass[0]->NvnIs[Pb],         NIn1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
-					get_sf_parametersF(NIn0,ELEMENTclass[0]->NvnS[P],OPF0,
-					                   NIn1,ELEMENTclass[1]->NvnS[P],OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+					get_sf_parametersF(NIn0,ELEMENTclass[0]->NvnS[P],(double const *const *const) OPF0,
+					                   NIn1,ELEMENTclass[1]->NvnS[P],(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 					Is_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					if (f < 3) { OPF0 = ELEMENTclass[0]->Ic_Weak_FF[P][Pb], OPF1 = ELEMENTclass[1]->Ic_Weak_VV[P][Pb];
 					             NIn0 = ELEMENTclass[0]->NfnIc[Pb][0],      NIn1 = ELEMENTclass[1]->NvnIc[Pb];
 					} else {     OPF0 = ELEMENTclass[0]->Ic_Weak_VV[P][Pb], OPF1 = ELEMENTclass[1]->Ic_Weak_FF[P][Pb];
 					             NIn0 = ELEMENTclass[0]->NvnIc[Pb],         NIn1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
-					get_sf_parametersF(NIn0,ELEMENTclass[0]->NvnS[P],OPF0,
-					                   NIn1,ELEMENTclass[1]->NvnS[P],OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+					get_sf_parametersF(NIn0,ELEMENTclass[0]->NvnS[P],(double const *const *const) OPF0,
+					                   NIn1,ELEMENTclass[1]->NvnS[P],(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 					Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 					if (Collocated || VFPartUnity[Eclass]) {
@@ -2288,80 +2293,80 @@ static void setup_TP_operators(const unsigned int EType)
 							             NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIs[Pb];
 							} else {     OPF0  = ELEMENTclass[0]->I_vGs_vIs[1][Pb], OPF1  = ELEMENTclass[1]->I_vGs_fIs[1][Pb];
 							             NOut0 = ELEMENTclass[0]->NvnIs[Pb],        NOut1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
-							get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],NOut0,OPF0,
-							                   ELEMENTclass[1]->NvnGs[1],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+							get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],NOut0,(double const *const *const) OPF0,
+							                   ELEMENTclass[1]->NvnGs[1],NOut1,(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 							I_vGs_fIs[1][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 							if (f < 3) { OPF0  = ELEMENTclass[0]->I_vGs_fIc[1][Pb], OPF1  = ELEMENTclass[1]->I_vGs_vIc[1][Pb];
 							             NOut0 = ELEMENTclass[0]->NfnIc[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIc[Pb];
 							} else {     OPF0  = ELEMENTclass[0]->I_vGs_vIc[1][Pb], OPF1  = ELEMENTclass[1]->I_vGs_fIc[1][Pb];
 							             NOut0 = ELEMENTclass[0]->NvnIc[Pb],        NOut1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
-							get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],NOut0,OPF0,
-							                   ELEMENTclass[1]->NvnGs[1],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+							get_sf_parametersF(ELEMENTclass[0]->NvnGs[1],NOut0,(double const *const *const) OPF0,
+							                   ELEMENTclass[1]->NvnGs[1],NOut1,(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 							I_vGs_fIc[1][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						}
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vGc_fS[P][Pb], OPF1  = ELEMENTclass[1]->I_vGc_vS[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NfnS[Pb][0],     NOut1 = ELEMENTclass[1]->NvnS[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vGc_vS[P][Pb], OPF1  = ELEMENTclass[1]->I_vGc_fS[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NvnS[Pb],        NOut1 = ELEMENTclass[1]->NfnS[Pb][0]; }
-						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],NOut0,OPF0,
-						                   ELEMENTclass[1]->NvnGc[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],NOut0,(double const *const *const) OPF0,
+						                   ELEMENTclass[1]->NvnGc[P],NOut1,(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGc_fS[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vGc_fIs[P][Pb], OPF1  = ELEMENTclass[1]->I_vGc_vIs[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIs[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vGc_vIs[P][Pb], OPF1  = ELEMENTclass[1]->I_vGc_fIs[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NvnIs[Pb],        NOut1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
-						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],NOut0,OPF0,
-						                   ELEMENTclass[1]->NvnGc[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],NOut0,(double const *const *const) OPF0,
+						                   ELEMENTclass[1]->NvnGc[P],NOut1,(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGc_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vGc_fIc[P][Pb], OPF1  = ELEMENTclass[1]->I_vGc_vIc[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NfnIc[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIc[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vGc_vIc[P][Pb], OPF1  = ELEMENTclass[1]->I_vGc_fIc[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NvnIc[Pb],        NOut1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
-						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],NOut0,OPF0,
-						                   ELEMENTclass[1]->NvnGc[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						get_sf_parametersF(ELEMENTclass[0]->NvnGc[P],NOut0,(double const *const *const) OPF0,
+						                   ELEMENTclass[1]->NvnGc[P],NOut1,(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vGc_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vCs_fS[P][Pb], OPF1  = ELEMENTclass[1]->I_vCs_vS[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NfnS[Pb][0],     NOut1 = ELEMENTclass[1]->NvnS[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vCs_vS[P][Pb], OPF1  = ELEMENTclass[1]->I_vCs_fS[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NvnS[Pb],        NOut1 = ELEMENTclass[1]->NfnS[Pb][0]; }
-						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],NOut0,OPF0,
-						                   ELEMENTclass[1]->NvnCs[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],NOut0,(double const *const *const) OPF0,
+						                   ELEMENTclass[1]->NvnCs[P],NOut1,(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCs_fS[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vCs_fIs[P][Pb], OPF1  = ELEMENTclass[1]->I_vCs_vIs[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIs[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vCs_vIs[P][Pb], OPF1  = ELEMENTclass[1]->I_vCs_fIs[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NvnIs[Pb],        NOut1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
-						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],NOut0,OPF0,
-						                   ELEMENTclass[1]->NvnCs[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],NOut0,(double const *const *const) OPF0,
+						                   ELEMENTclass[1]->NvnCs[P],NOut1,(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCs_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vCs_fIc[P][Pb], OPF1  = ELEMENTclass[1]->I_vCs_vIc[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NfnIc[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIc[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vCs_vIc[P][Pb], OPF1  = ELEMENTclass[1]->I_vCs_fIc[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NvnIc[Pb],        NOut1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
-						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],NOut0,OPF0,
-						                   ELEMENTclass[1]->NvnCs[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						get_sf_parametersF(ELEMENTclass[0]->NvnCs[P],NOut0,(double const *const *const) OPF0,
+						                   ELEMENTclass[1]->NvnCs[P],NOut1,(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCs_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vCc_fS[P][Pb], OPF1  = ELEMENTclass[1]->I_vCc_vS[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NfnS[Pb][0],     NOut1 = ELEMENTclass[1]->NvnS[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vCc_vS[P][Pb], OPF1  = ELEMENTclass[1]->I_vCc_fS[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NvnS[Pb],        NOut1 = ELEMENTclass[1]->NfnS[Pb][0]; }
-						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],NOut0,OPF0,
-						                   ELEMENTclass[1]->NvnCc[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],NOut0,(double const *const *const) OPF0,
+						                   ELEMENTclass[1]->NvnCc[P],NOut1,(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCc_fS[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vCc_fIs[P][Pb], OPF1  = ELEMENTclass[1]->I_vCc_vIs[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NfnIs[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIs[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vCc_vIs[P][Pb], OPF1  = ELEMENTclass[1]->I_vCc_fIs[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NvnIs[Pb],        NOut1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
-						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],NOut0,OPF0,
-						                   ELEMENTclass[1]->NvnCc[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],NOut0,(double const *const *const) OPF0,
+						                   ELEMENTclass[1]->NvnCc[P],NOut1,(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCc_fIs[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 						if (f < 3) { OPF0  = ELEMENTclass[0]->I_vCc_fIc[P][Pb], OPF1  = ELEMENTclass[1]->I_vCc_vIc[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NfnIc[Pb][0],     NOut1 = ELEMENTclass[1]->NvnIc[Pb];
 						} else {     OPF0  = ELEMENTclass[0]->I_vCc_vIc[P][Pb], OPF1  = ELEMENTclass[1]->I_vCc_fIc[P][Pb];
 						             NOut0 = ELEMENTclass[0]->NvnIc[Pb],        NOut1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
-						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],NOut0,OPF0,
-						                   ELEMENTclass[1]->NvnCc[P],NOut1,OPF1,NIn,NOut,OP,dE,Vf,Eclass);
+						get_sf_parametersF(ELEMENTclass[0]->NvnCc[P],NOut0,(double const *const *const) OPF0,
+						                   ELEMENTclass[1]->NvnCc[P],NOut1,(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
 						I_vCc_fIc[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					}
 				}}

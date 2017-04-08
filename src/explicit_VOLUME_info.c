@@ -224,10 +224,10 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 	             NvnS_SF[2], NvnI_SF[2], NIn[3], NOut[3], Diag[3];
 	double       *What_vS, *W_vI, **What_vS_ptr, *What, *WhatVec, *F_vI, *Fr_vI,
 	             **C_vI_ptr, *C_vIl, *C_vI, *C_vIVec,
-	             **RHS_ptr, *RHSl, *RHS, *RHSVec, *DFr, *OP[3];
-	double **D, *I, *OP0, *OP1;
+	             **RHS_ptr, *RHSl, *RHS, *RHSVec, *DFr;
+	double const *OP0, *OP1, *OP[3];
 
-	struct S_OpCSR **D_sp;
+	struct S_OpCSR const *const *D_sp;
 
 	struct S_OPERATORS_V *OPS[2];
 	struct S_VOLUME      *VOLUME;
@@ -359,8 +359,8 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 					NvnI_SF[i] = OPS[i]->NvnI_SF;
 				}
 
-				I = OPS[0]->I_Weak;
-				D = OPS[0]->D_Weak;
+				double const *const        I = OPS[0]->I_Weak;
+				double const *const *const D = OPS[0]->D_Weak;
 
 				for (dim1 = 0; dim1 < d; dim1++) {
 					get_sf_parameters(NvnI_SF[0],NvnS_SF[0],I,NvnI_SF[0],NvnS_SF[0],D[0],NIn,NOut,OP,d,dim1,Eclass);
@@ -426,7 +426,7 @@ static void compute_VOLUMEVec_RHS_EFE(void)
 				}}
 			} else {
 				DFr = malloc(NvnS*NV * sizeof *DFr); // free
-				D = OPS[0]->D_Weak;
+				double const *const *const D = OPS[0]->D_Weak;
 
 				for (eq = 0; eq < Neq; eq++) {
 				for (dim1 = 0; dim1 < d; dim1++) {

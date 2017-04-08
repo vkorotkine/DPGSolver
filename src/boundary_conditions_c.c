@@ -27,8 +27,8 @@
  *	References:
  */
 
-static void get_boundary_values_c(const double X, const double Y, double complex *rho, double complex *u,
-                                  double complex *v, double complex *w, double complex *p)
+static void get_boundary_values_c(const double X, const double Y, double complex *const rho, double complex *const u,
+                                  double complex *const v, double complex *const w, double complex *const p)
 {
 	// Initialize DB Parameters
 	char   *TestCase = DB.TestCase;
@@ -86,8 +86,9 @@ static void get_boundary_values_c(const double X, const double Y, double complex
 	}
 }
 
-void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, double *XYZ, double complex *WL,
-                        double complex *WOut, double complex *WB, double *nL, const unsigned int d)
+void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
+                        const double complex *const WL, double complex *const WOut, double complex *const WB,
+                        const double *const nL, const unsigned int d)
 {
 	/*
 	 *	Comments:
@@ -103,10 +104,11 @@ void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, double *X
 
 	// Standard datatypes
 	unsigned int   i, j, Indn, NnTotal;
-	double         *X, *Y, *n, r, t;
+	double         *n, r, t;
 	double complex *rhoL, *uL, *vL, *wL, *pL, cL, *VnL, sL, *rhoR, *uR, *vR, *wR, *pR, cR, *VnR, sR, *UL, *UR,
 	               *rhoB, *uB, *vB, *wB, *pB, *UB,
 	               Vt, RL, RR, Vn, c, ut, vt, wt;
+	const double   *X, *Y;
 
 	// silence
 	UL = WOut;
@@ -247,12 +249,13 @@ void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, double *X
 	free(n);
 }
 
-void boundary_SlipWall_c(const unsigned int Nn, const unsigned int Nel, double complex *WL, double complex *WB,
-                         double *nL, const unsigned int d)
+void boundary_SlipWall_c(const unsigned int Nn, const unsigned int Nel, const double complex *const WL,
+                         double complex *const WB, const double *const nL, const unsigned int d)
 {
 	// Standard datatypes
-	unsigned int   i, NnTotal, IndE;
-	double complex *rhoL, *rhouL, *rhovL, *rhowL, *EL, *rhoB, *rhouB, *rhovB, *rhowB, *EB, rhoVL;
+	unsigned int         i, NnTotal, IndE;
+	double complex       *rhoB, *rhouB, *rhovB, *rhowB, *EB, rhoVL;
+	const double complex *rhoL, *rhouL, *rhovL, *rhowL, *EL;
 
 	NnTotal = Nn*Nel;
 	IndE = d+1;
@@ -304,15 +307,16 @@ void boundary_SlipWall_c(const unsigned int Nn, const unsigned int Nel, double c
 	}
 }
 
-void boundary_BackPressure_c(const unsigned int Nn, const unsigned int Nel, double complex *WL, double complex *WB, double *nL,
-                             const unsigned int d, const unsigned int Neq)
+void boundary_BackPressure_c(const unsigned int Nn, const unsigned int Nel, const double complex *const WL,
+                             double complex *const WB, const double *const nL, const unsigned int d,
+                             const unsigned int Neq)
 {
 	// Standard datatypes
 	unsigned int   n, NnTotal, eq, var, Nvar, IndW;
-	double complex *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr,
-	               rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, rhoB, cL, c2L, VnL,
-	               *WL_ptr[Neq], *WB_ptr[Neq];
-	double         n1, n2, n3, *n_ptr;
+	double complex rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, rhoB, cL, c2L, VnL, *WB_ptr[Neq];
+	double         n1, n2, n3;
+	const double complex *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Neq];
+	const double         *n_ptr;
 
 	// silence
 	n2 = n3 = 0;
@@ -412,8 +416,9 @@ void boundary_BackPressure_c(const unsigned int Nn, const unsigned int Nel, doub
 	}
 }
 
-void boundary_Total_TP_c(const unsigned int Nn, const unsigned int Nel, double *XYZ, double complex *WL,
-                         double complex *WB, double *nL, const unsigned int d, const unsigned int Nvar)
+void boundary_Total_TP_c(const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
+                         const double complex *const WL, double complex *const WB, const double *const nL,
+                         const unsigned int d, const unsigned int Nvar)
 {
 	/*
 	 *	Purpose:
@@ -434,8 +439,9 @@ void boundary_Total_TP_c(const unsigned int Nn, const unsigned int Nel, double *
 
 	// Standard datatypes
 	unsigned int   NnTotal;
-	double complex *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Nvar], *WB_ptr[Nvar];
-	double         *n_ptr;
+	const double complex *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Nvar];
+	double complex *WB_ptr[Nvar];
+	const double   *n_ptr;
 
 	// silence
 	rhowL_ptr = NULL;
@@ -542,11 +548,12 @@ void boundary_Total_TP_c(const unsigned int Nn, const unsigned int Nel, double *
 	}
 }
 
-void boundary_SupersonicInflow_c(const unsigned int Nn, const unsigned int Nel, double *XYZ, double complex *WL,
-                                 double complex *WB, double *nL, const unsigned int d, const unsigned int Nvar)
+void boundary_SupersonicInflow_c(const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
+                                 const double complex *const WL, double complex *const WB, const double *const nL,
+                                 const unsigned int d, const unsigned int Nvar)
 {
 	unsigned int   NnTotal;
-	double         *X_ptr, *Y_ptr;
+	const double   *X_ptr, *Y_ptr;
 	double complex *WB_ptr[Nvar];
 
 	// silence
@@ -588,8 +595,9 @@ void boundary_SupersonicInflow_c(const unsigned int Nn, const unsigned int Nel, 
 	}
 }
 
-void boundary_SupersonicOutflow_c(const unsigned int Nn, const unsigned int Nel, double *XYZ, double complex *WL,
-                                  double complex *WB, double *nL, const unsigned int d, const unsigned int Nvar)
+void boundary_SupersonicOutflow_c(const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
+                                  const double complex *const WL, double complex *const WB, const double *const nL,
+                                  const unsigned int d, const unsigned int Nvar)
 {
 	unsigned int NnTotal;
 

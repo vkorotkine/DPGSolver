@@ -95,11 +95,9 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 
 
 			// Compute numerical flux as seen from the left VOLUME
-			double *nFluxNum_fI = malloc(NfnI*Neq * sizeof *nFluxNum_fI); // free
-
 			NFluxData->WL_fIL      = FDATAL->W_fIL;
 			NFluxData->WR_fIL      = FDATAR->W_fIL;
-			NFluxData->nFluxNum_fI = nFluxNum_fI;
+			NFluxData->nFluxNum_fI = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxNum_fI)); // free
 
 			compute_numerical_flux(FDATAL,'E');
 			add_Jacobian_scaling_FACE(FDATAL,'E');
@@ -112,21 +110,19 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 			unsigned int NvnSL = OPSL[0]->NvnS,
 			             NvnSR = OPSR[0]->NvnS;
 
-			double *RHSL = calloc(NvnSL*Neq , sizeof *RHSL), // keep
-			       *RHSR = calloc(NvnSR*Neq , sizeof *RHSR); // keep
 			if (FACE->RHSIn)
 				free(FACE->RHSIn);
-			FACE->RHSIn  = RHSL;
+			FACE->RHSIn  = calloc(NvnSL*Neq , sizeof *(FACE->RHSIn)); // keep
 
 			if (FACE->RHSOut)
 				free(FACE->RHSOut);
-			FACE->RHSOut = RHSR;
+			FACE->RHSOut = calloc(NvnSR*Neq , sizeof *(FACE->RHSOut)); // keep
 
 			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,'L','E');
 			if (!FACE->Boundary)
 				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,'R','E');
 
-			free(nFluxNum_fI);
+			free(NFluxData->nFluxNum_fI);
 		}
 	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;

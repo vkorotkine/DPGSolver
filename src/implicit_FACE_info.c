@@ -72,15 +72,11 @@ static void compute_FACE_EFE(void)
 			compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
 
 			// Compute numerical flux and its Jacobian as seen from the left VOLUME
-			double *nFluxNum_fI     = malloc(NfnI*Neq      * sizeof *nFluxNum_fI),     // free
-			       *dnFluxNumdWL_fI = malloc(NfnI*Neq*Nvar * sizeof *dnFluxNumdWL_fI), // free
-			       *dnFluxNumdWR_fI = malloc(NfnI*Neq*Nvar * sizeof *dnFluxNumdWR_fI); // free
-
 			NFluxData->WL_fIL          = FDATAL->W_fIL;
 			NFluxData->WR_fIL          = FDATAR->W_fIL;
-			NFluxData->nFluxNum_fI     = nFluxNum_fI;
-			NFluxData->dnFluxNumdWL_fI = dnFluxNumdWL_fI;
-			NFluxData->dnFluxNumdWR_fI = dnFluxNumdWR_fI;
+			NFluxData->nFluxNum_fI     = malloc(NfnI*Neq      * sizeof *(NFluxData->nFluxNum_fI));     // free
+			NFluxData->dnFluxNumdWL_fI = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxNumdWL_fI)); // free
+			NFluxData->dnFluxNumdWR_fI = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxNumdWR_fI)); // free
 
 			compute_numerical_flux(FDATAL,'I');
 			add_Jacobian_scaling_FACE(FDATAL,'I');
@@ -93,24 +89,18 @@ static void compute_FACE_EFE(void)
 			unsigned int NvnSL = OPSL[0]->NvnS,
 			             NvnSR = OPSR[0]->NvnS;
 
-			double *RHSL = calloc(NvnSL*Neq , sizeof *RHSL), // keep
-			       *RHSR = calloc(NvnSR*Neq , sizeof *RHSR); // keep
 			if (FACE->RHSIn)
 				free(FACE->RHSIn);
-			FACE->RHSIn  = RHSL;
+			FACE->RHSIn  = calloc(NvnSL*Neq , sizeof *(FACE->RHSIn)); // keep
 
 			if (FACE->RHSOut)
 				free(FACE->RHSOut);
-			FACE->RHSOut = RHSR;
+			FACE->RHSOut = calloc(NvnSR*Neq , sizeof *(FACE->RHSOut)); // keep
 
-			double *LHSLL = calloc(NvnSL*NvnSL*Neq*Nvar , sizeof *LHSLL), // keep
-			       *LHSRL = calloc(NvnSL*NvnSR*Neq*Nvar , sizeof *LHSRL), // keep
-			       *LHSLR = calloc(NvnSR*NvnSL*Neq*Nvar , sizeof *LHSLR), // keep
-			       *LHSRR = calloc(NvnSR*NvnSR*Neq*Nvar , sizeof *LHSRR); // keep
-			FACE->LHSInIn   = LHSLL;
-			FACE->LHSOutIn  = LHSRL;
-			FACE->LHSInOut  = LHSLR;
-			FACE->LHSOutOut = LHSRR;
+			FACE->LHSInIn   = calloc(NvnSL*NvnSL*Neq*Nvar , sizeof *(FACE->LHSInIn));   // keep
+			FACE->LHSOutIn  = calloc(NvnSL*NvnSR*Neq*Nvar , sizeof *(FACE->LHSOutIn));  // keep
+			FACE->LHSInOut  = calloc(NvnSR*NvnSL*Neq*Nvar , sizeof *(FACE->LHSInOut));  // keep
+			FACE->LHSOutOut = calloc(NvnSR*NvnSR*Neq*Nvar , sizeof *(FACE->LHSOutOut)); // keep
 
 			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,'L','E');
 			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,'L','I');
@@ -122,9 +112,9 @@ static void compute_FACE_EFE(void)
 				// RHS
 				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,'R','E');
 			}
-			free(nFluxNum_fI);
-			free(dnFluxNumdWL_fI);
-			free(dnFluxNumdWR_fI);
+			free(NFluxData->nFluxNum_fI);
+			free(NFluxData->dnFluxNumdWL_fI);
+			free(NFluxData->dnFluxNumdWR_fI);
 		}
 	} else if (strstr(Form,"Strong")) {
 		EXIT_UNSUPPORTED;

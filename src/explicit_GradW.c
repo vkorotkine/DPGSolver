@@ -43,7 +43,7 @@ void explicit_GradW(void)
 
 struct S_Dxyz {
 	unsigned int dim, Nbf, Nn;
-	double       **D, *C;
+	double const *const *D, *C;
 };
 
 
@@ -62,14 +62,14 @@ static double *compute_Dxyz(struct S_Dxyz *DxyzInfo, unsigned int d)
 	 */
 
 	unsigned int Nbf, Nn, dim1, IndC;
-	double       **D, *C, *Dxyz;
+	double       *Dxyz;
 
 	Nbf  = DxyzInfo->Nbf;
 	Nn   = DxyzInfo->Nn;
 	dim1 = DxyzInfo->dim;
 
-	D    = DxyzInfo->D;
-	C    = DxyzInfo->C;
+	double const *const *const D = DxyzInfo->D;
+	double const *const        C = DxyzInfo->C;
 
 	Dxyz = calloc(Nbf*Nn, sizeof *Dxyz); // keep
 	for (size_t dim2 = 0; dim2 < d; dim2++) {
@@ -109,7 +109,7 @@ static void explicit_GradW_VOLUME(void)
 
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		unsigned int NvnS, NvnI;
-		double       *ChiS_vI, **DxyzChiS;
+		double       **DxyzChiS;
 
 		init_ops_VOLUME(OPS,VOLUME,0);
 //		init_ops_VOLUME(OPS[0],VOLUME,0);
@@ -121,10 +121,10 @@ static void explicit_GradW_VOLUME(void)
 
 		DxyzInfo->Nbf = OPS->NvnS;
 		DxyzInfo->Nn  = OPS->NvnI;
-		DxyzInfo->D   = OPS->D_Weak;
+		DxyzInfo->D   = (double const *const *const) OPS->D_Weak;
 		DxyzInfo->C   = VOLUME->C_vI;
 
-		ChiS_vI = OPS->ChiS_vI;
+		double const *const ChiS_vI = OPS->ChiS_vI;
 
 		DxyzChiS = VOLUME->DxyzChiS;
 		for (size_t dim = 0; dim < d; dim++) {
@@ -197,13 +197,11 @@ static void explicit_GradW_FACE(void)
 
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
 		// Load required FACE operators (Left and Right FACEs)
-		struct S_VOLUME *VL, *VR;
-
 		init_FDATA(FDATAL,FACE,'L');
 		init_FDATA(FDATAR,FACE,'R');
 
-		VL = FDATAL->VOLUME;
-		VR = FDATAR->VOLUME;
+		struct S_VOLUME const *const VL = FDATAL->VOLUME,
+		                      *const VR = FDATAR->VOLUME;
 
 		unsigned int NfnI, NvnSL, NvnSR, VfL, VfR;
 		NfnI  = OPSL[0]->NfnI;
@@ -227,12 +225,12 @@ static void explicit_GradW_FACE(void)
 
 		double *WR_fIL = malloc(NfnI*Nvar * sizeof *WR_fIL); // free
 		if (!Boundary) {
-			unsigned int *nOrdRL = OPSL[FDATAL->IndFType]->nOrdRL;
+			unsigned int const *nOrdRL = OPSL[FDATAL->IndFType]->nOrdRL;
 
 			// Use reordered operator (as opposed to solution) for ease of linearization.
 			ChiSR_fIL = malloc(NfnI*NvnSR * sizeof *ChiSR_fIL); // free
 
-			double *ChiS_fI = OPSR[0]->ChiS_fI[VfR];
+			double const *ChiS_fI = OPSR[0]->ChiS_fI[VfR];
 			for (size_t i = 0; i < NfnI; i++) {
 			for (size_t j = 0; j < NvnSR; j++) {
 				ChiSR_fIL[i*NvnSR+j] = ChiS_fI[nOrdRL[i]*NvnSR+j];
@@ -277,7 +275,7 @@ static void explicit_GradW_FACE(void)
 
 		// Exterior VOLUME
 		if (!Boundary) {
-			unsigned int *nOrdLR = OPSL[FDATAL->IndFType]->nOrdLR;
+			unsigned int const *nOrdLR = OPSL[FDATAL->IndFType]->nOrdLR;
 			for (size_t dim = 0; dim < d; dim++) {
 				array_rearrange_d(NfnI,Nvar,nOrdLR,'C',JnWnum_fI[dim]);
 

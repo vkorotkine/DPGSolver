@@ -63,8 +63,8 @@
  *		Li(2016)-Cures_for_the_Expansion_Shock_and_the_Shock_Instability_of_the_Roe_Scheme
  */
 
-void flux_inviscid(const unsigned int Nn, const unsigned int Nel, const double *W, double *F, const unsigned int d,
-                   const unsigned int Neq)
+void flux_inviscid(const unsigned int Nn, const unsigned int Nel, const double *const W, double *const F,
+                   const unsigned int d, const unsigned int Neq)
 {
 	/*
 	 *	Comments:
@@ -203,8 +203,8 @@ void flux_inviscid(const unsigned int Nn, const unsigned int Nel, const double *
 	}
 }
 
-void flux_LF(const unsigned int Nn, const unsigned int Nel, const double *WL, const double *WR, double *nFluxNum,
-             const double *nL, const unsigned int d, const unsigned int Neq)
+void flux_LF(const unsigned int Nn, const unsigned int Nel, const double *const WL, const double *const WR,
+             double *const nFluxNum, const double *const nL, const unsigned int d, const unsigned int Neq)
 {
 	// Standard datatypes
 	unsigned int i, iMax, jMax, NnTotal;
@@ -373,8 +373,8 @@ void flux_LF(const unsigned int Nn, const unsigned int Nel, const double *WL, co
 	free(maxV);
 }
 
-void flux_Roe(const unsigned int Nn, const unsigned int Nel, const double *WL, const double *WR, double *nFluxNum,
-              const double *nL, const unsigned int d, const unsigned int Neq)
+void flux_Roe(const unsigned int Nn, const unsigned int Nel, const double *const WL, const double *const WR,
+              double *const nFluxNum, const double *const nL, const unsigned int d, const unsigned int Neq)
 {
 	/*
 	 *	Comments:

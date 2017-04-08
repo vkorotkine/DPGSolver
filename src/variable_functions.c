@@ -22,7 +22,7 @@
  *	References:
  */
 
-void convert_variables(const double *VarIn, double *VarOut, const unsigned int dIn, const unsigned int dOut,
+void convert_variables(const double *const VarIn, double *const VarOut, const unsigned int dIn, const unsigned int dOut,
                        const unsigned int Nn, const unsigned int Nel, const char TypeIn, const char TypeOut)
 {
 	/*
@@ -136,12 +136,12 @@ void convert_variables(const double *VarIn, double *VarOut, const unsigned int d
 			}
 			break;
 		default:
-			printf("Error: Unsupported TypeIn/Out combination in convert_variables.\n"), exit(1);
+			EXIT_UNSUPPORTED;
 			break;
 		}
 		break;
 	} default: {
-		printf("Error: Unsupported TypeIn in convert_variables.\n"), exit(1);
+		EXIT_UNSUPPORTED;
 		break;
 	}}
 }

@@ -46,10 +46,10 @@
 // VOLUME functions
 // **************************************************************************************************** //
 
-void init_ops_VOLUME(struct S_OPERATORS_V *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass)
+void init_ops_VOLUME(struct S_OPERATORS_V *const OPS, struct S_VOLUME const *const VOLUME, unsigned int const IndClass)
 {
 	// Initialize DB Parameters
-	unsigned int ***SF_BE = DB.SF_BE;
+	const unsigned int *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
 
 	// Standard datatypes
 	unsigned int P, type, curved, Eclass;
@@ -76,31 +76,31 @@ void init_ops_VOLUME(struct S_OPERATORS_V *OPS, const struct S_VOLUME *VOLUME, c
 		OPS->NvnI_SF = ELEMENT_SF->NvnIs[P];
 
 		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P][0];
-		OPS->D_Weak  = ELEMENT->Ds_Weak_VV[P][P][0];
+		OPS->D_Weak  = (double const *const *const) ELEMENT->Ds_Weak_VV[P][P][0];
 		OPS->I_Weak  = ELEMENT->Is_Weak_VV[P][P][0];
 
 		OPS->ChiS_vI_SF = ELEMENT_SF->ChiS_vIs[P][P][0];
-		OPS->D_Weak_SF  = ELEMENT_SF->Ds_Weak_VV[P][P][0];
+		OPS->D_Weak_SF  = (double const *const *const) ELEMENT_SF->Ds_Weak_VV[P][P][0];
 		OPS->I_Weak_SF  = ELEMENT_SF->Is_Weak_VV[P][P][0];
 
-		OPS->D_Weak_sp = ELEMENT->Ds_Weak_VV_sp[P][P][0];
+		OPS->D_Weak_sp = (struct S_OpCSR const *const *const) ELEMENT->Ds_Weak_VV_sp[P][P][0];
 	} else {
 		OPS->NvnI    = ELEMENT->NvnIc[P];
 		OPS->NvnI_SF = ELEMENT_SF->NvnIc[P];
 
-		OPS->ChiS_vI    = ELEMENT->ChiS_vIc[P][P][0];
-		OPS->D_Weak  = ELEMENT->Dc_Weak_VV[P][P][0];
+		OPS->ChiS_vI = ELEMENT->ChiS_vIc[P][P][0];
+		OPS->D_Weak  = (double const *const *const) ELEMENT->Dc_Weak_VV[P][P][0];
 		OPS->I_Weak  = ELEMENT->Ic_Weak_VV[P][P][0];
 
 		OPS->ChiS_vI_SF = ELEMENT_SF->ChiS_vIc[P][P][0];
-		OPS->D_Weak_SF  = ELEMENT_SF->Dc_Weak_VV[P][P][0];
+		OPS->D_Weak_SF  = (double const *const *const) ELEMENT_SF->Dc_Weak_VV[P][P][0];
 		OPS->I_Weak_SF  = ELEMENT_SF->Ic_Weak_VV[P][P][0];
 
-		OPS->D_Weak_sp = ELEMENT->Dc_Weak_VV_sp[P][P][0];
+		OPS->D_Weak_sp = (struct S_OpCSR const *const *const) ELEMENT->Dc_Weak_VV_sp[P][P][0];
 	}
 }
 
-void init_VDATA(struct S_VDATA *VDATA, struct S_VOLUME *VOLUME)
+void init_VDATA(struct S_VDATA *const VDATA, struct S_VOLUME const *const VOLUME)
 {
 	VDATA->VOLUME = VOLUME;
 
@@ -111,7 +111,7 @@ void init_VDATA(struct S_VDATA *VDATA, struct S_VOLUME *VOLUME)
 		init_ops_VOLUME(VDATA->OPS[1],VOLUME,1);
 }
 
-void coef_to_values_vI(struct S_VDATA *VDATA, const char coef_type)
+void coef_to_values_vI(struct S_VDATA const *const VDATA, char const coef_type)
 {
 	/*
 	 *	Purpose:
@@ -134,18 +134,18 @@ void coef_to_values_vI(struct S_VDATA *VDATA, const char coef_type)
 		if (!(coef_type == 'W' || coef_type == 'Q'))
 			EXIT_UNSUPPORTED;
 
-		unsigned int d        = DB.d,
-		             Nvar     = DB.Nvar,
-		             ***SF_BE = DB.SF_BE;
+		unsigned int const d        = DB.d,
+		                   Nvar     = DB.Nvar,
+		                   P        = VDATA->P,
+		                   Eclass   = VDATA->Eclass,
+	                       *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
 
-		unsigned int P      = VDATA->P,
-		             Eclass = VDATA->Eclass;
-
-		struct S_OPERATORS_V **OPS   = VDATA->OPS;
-		struct S_VOLUME      *VOLUME = VDATA->VOLUME;
+		struct S_OPERATORS_V const *const *const OPS    = (struct S_OPERATORS_V const *const *const) VDATA->OPS;
+		struct S_VOLUME      const *const        VOLUME = VDATA->VOLUME;
 
 		unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX];
-		double       *OP[DMAX];
+		double const *OP[DMAX];
+
 		if (Eclass == C_TP && SF_BE[P][0][0]) {
 			get_sf_parameters(OPS[0]->NvnS_SF,OPS[0]->NvnI_SF,OPS[0]->ChiS_vI_SF,0,0,NULL,NIn,NOut,OP,d,3,Eclass);
 
@@ -183,8 +183,8 @@ void coef_to_values_vI(struct S_VDATA *VDATA, const char coef_type)
 	}
 }
 
-void convert_between_rp(const unsigned int Nn, const unsigned int Nrc, const double *C, double *Ap, double *Ar,
-                        const char *conv_type)
+void convert_between_rp(unsigned int const Nn, unsigned int const Nrc, double const *const C, double *const Ap,
+                        double *const Ar, char const *const conv_type)
 {
 	/*
 	 *	Purpose:
@@ -214,18 +214,16 @@ void convert_between_rp(const unsigned int Nn, const unsigned int Nrc, const dou
 	 *	References:
 	 */
 
-	unsigned int d = DB.d;
+	unsigned int const d = DB.d;
 
 	if (strstr(conv_type,"FluxToRef")) {
 		memset(Ar,0.0,Nn*Nrc*d * sizeof *Ar);
-		unsigned int IndAr, IndAp, IndC;
-
 		for (size_t col = 0; col < Nrc; col++) {
 		for (size_t dim1 = 0; dim1 < d; dim1++) {
-			IndAr = (Nrc*dim1+col)*Nn;
+			size_t const IndAr = (Nrc*dim1+col)*Nn;
 			for (size_t dim2 = 0; dim2 < d; dim2++) {
-				IndAp = (col*d+dim2)*Nn;
-				IndC  = (dim1*d+dim2)*Nn;
+				size_t const IndAp = (col*d+dim2)*Nn,
+				             IndC  = (dim1*d+dim2)*Nn;
 				for (size_t n = 0; n < Nn; n++)
 					Ar[IndAr+n] += Ap[IndAp+n]*C[IndC+n];
 			}
@@ -235,8 +233,8 @@ void convert_between_rp(const unsigned int Nn, const unsigned int Nrc, const dou
 	}
 }
 
-void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, double *RLHS, const char imex_type,
-                                   struct S_VDATA *VDATA)
+void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const Ar_vI, double *const RLHS,
+                                   char const imex_type, struct S_VDATA const *const VDATA)
 {
 	/*
 	 *	Purpose:
@@ -273,25 +271,23 @@ void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, 
 	 *		the standard approach (i.e. the last condition in the if/else chain).
 	 */
 
-	unsigned int d          = DB.d,
-	             Collocated = DB.Collocated,
-	             ***SF_BE   = DB.SF_BE;
+	struct S_OPERATORS_V const *const *const OPS = (struct S_OPERATORS_V const *const *const) VDATA->OPS;
 
-	struct S_OPERATORS_V **OPS = VDATA->OPS;
-
-	unsigned int P      = VDATA->P,
-	             Eclass = VDATA->Eclass;
-
-	unsigned int NvnS = OPS[0]->NvnS,
-	             NvnI = OPS[0]->NvnI;
+	unsigned int const d          = DB.d,
+	                   Collocated = DB.Collocated,
+	                   P          = VDATA->P,
+	                   Eclass     = VDATA->Eclass,
+	                   NvnS       = OPS[0]->NvnS,
+	                   NvnI       = OPS[0]->NvnI,
+	                   *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
 
 	if (imex_type == 'E') {
 		memset(RLHS,0.0,NvnS*Nrc * sizeof *RLHS);
 		if (Eclass == C_TP && SF_BE[P][0][0]) {
 			unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX];
-			double       *OP[DMAX];
+			double const *OP[DMAX];
 
-			double *DAr = malloc(NvnS*Nrc * sizeof *DAr); // free
+			double *const DAr = malloc(NvnS*Nrc * sizeof *DAr); // free
 			for (size_t dim1 = 0; dim1 < d; dim1++) {
 				get_sf_parameters(OPS[0]->NvnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_SF,
 								  OPS[0]->NvnI_SF,OPS[0]->NvnS_SF,OPS[0]->D_Weak_SF[0],NIn,NOut,OP,d,dim1,Eclass);
@@ -312,9 +308,9 @@ void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, 
 			free(DAr);
 		} else if (Eclass == C_WEDGE && SF_BE[P][1][0]) {
 			unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX];
-			double       *OP[DMAX], *OP0, *OP1;
+			double const *OP[DMAX], *OP0, *OP1;
 
-			double *DAr = malloc(NvnS*Nrc * sizeof *DAr); // free
+			double *const DAr = malloc(NvnS*Nrc * sizeof *DAr); // free
 			for (size_t dim1 = 0; dim1 < d; dim1++) {
 				if (dim1 < 2) OP0 = OPS[0]->D_Weak_SF[dim1], OP1 = OPS[1]->I_Weak_SF;
 				else          OP0 = OPS[0]->I_Weak_SF,       OP1 = OPS[1]->D_Weak_SF[0];
@@ -340,7 +336,7 @@ void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, 
 			}
 			free(DAr);
 		} else if (Collocated && (Eclass == C_TP || Eclass == C_WEDGE) && DB.AllowSparseVOL) {
-			double *DAr = malloc(NvnS*Nrc * sizeof *DAr); // free
+			double *const DAr = malloc(NvnS*Nrc * sizeof *DAr); // free
 			for (size_t dim = 0; dim < d; dim++) {
 				mm_CTN_CSR_d(NvnS,Nrc,NvnI,OPS[0]->D_Weak_sp[dim],&Ar_vI[NvnI*Nrc*dim],DAr);
 				for (size_t i = 0, iMax = NvnS*Nrc; i < iMax; i++)
@@ -352,30 +348,30 @@ void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, 
 				mm_d(CBCM,CBT,CBNT,NvnS,Nrc,NvnI,1.0,1.0,OPS[0]->D_Weak[dim],&Ar_vI[NvnI*Nrc*dim],RLHS);
 		}
 	} else if (imex_type == 'I') {
-		unsigned int Neq  = DB.Neq,
-		             Nvar = DB.Nvar;
+		unsigned int const Neq  = DB.Neq,
+		                   Nvar = DB.Nvar;
 
-		const double *Ar_vI_ptr[d];
+		double const *Ar_vI_ptr[d];
 		for (size_t dim = 0; dim < d; dim++)
 			Ar_vI_ptr[dim] = &Ar_vI[Nvar*Neq*NvnI*dim];
 
 		if (Collocated) {
 			if (Eclass == C_TP || Eclass == C_WEDGE) {
-				struct S_OpCSR **D = OPS[0]->D_Weak_sp;
+				struct S_OpCSR const *const *const D = OPS[0]->D_Weak_sp;
 
 				memset(RLHS,0.0,NvnS*Nrc * sizeof *RLHS);
 				for (size_t eq = 0; eq < Neq; eq++) {
 				for (size_t var = 0; var < Nvar; var++) {
-					unsigned int IndAr  = (eq*Nvar+var)*NvnI,
+					size_t const IndAr  = (eq*Nvar+var)*NvnI,
 								 IndLHS = (eq*Nvar+var)*NvnS*NvnS;
 
 					for (size_t dim = 0; dim < d; dim++) {
-						unsigned int *rowIndex = D[dim]->rowIndex,
-						             *columns  = D[dim]->columns;
-						double       *values   = D[dim]->values;
+						unsigned int const *rowIndex = D[dim]->rowIndex,
+						                   *columns  = D[dim]->columns;
+						double       const *values   = D[dim]->values;
 
 						for (size_t i = 0; i < NvnS; i++) {
-							unsigned int IndD = i*NvnI;
+							size_t const IndD = i*NvnI;
 							for (size_t Indj = *rowIndex, IndjMax = *(++rowIndex); Indj < IndjMax; Indj++) {
 								RLHS[IndLHS+IndD+(*columns)] += (*values++)*Ar_vI_ptr[dim][IndAr+(*columns)];
 								columns++;
@@ -384,17 +380,17 @@ void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, 
 					}
 				}}
 			} else {
-				double **D = OPS[0]->D_Weak;
+				double const *const *const D = OPS[0]->D_Weak;
 
 				memset(RLHS,0.0,NvnS*Nrc * sizeof *RLHS);
 				for (size_t eq = 0; eq < Neq; eq++) {
 				for (size_t var = 0; var < Nvar; var++) {
-					unsigned int IndAr  = (eq*Nvar+var)*NvnI,
+					size_t const IndAr  = (eq*Nvar+var)*NvnI,
 								 IndLHS = (eq*Nvar+var)*NvnS*NvnS;
 
 					for (size_t dim = 0; dim < d; dim++) {
 						for (size_t i = 0; i < NvnS; i++) {
-							unsigned int IndD = i*NvnI;
+							size_t const IndD = i*NvnI;
 							for (size_t j = 0; j < NvnI; j++)
 								RLHS[IndLHS+IndD+j] += D[dim][IndD+j]*Ar_vI_ptr[dim][IndAr+j];
 						}
@@ -402,23 +398,23 @@ void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, 
 				}}
 			}
 		} else {
-			double **D = OPS[0]->D_Weak;
+			double const *const *const D = OPS[0]->D_Weak;
 
-			double *DAr_vI = malloc(NvnS*NvnI * sizeof *DAr_vI); // free
+			double *const DAr_vI = malloc(NvnS*NvnI * sizeof *DAr_vI); // free
 			for (size_t eq = 0; eq < Neq; eq++) {
 			for (size_t var = 0; var < Nvar; var++) {
-				unsigned int IndAr = (eq*Nvar+var)*NvnI;
+				size_t const IndAr = (eq*Nvar+var)*NvnI;
 
 				memset(DAr_vI,0.0,NvnS*NvnI * sizeof *DAr_vI);
 				for (size_t dim = 0; dim < d; dim++) {
 					for (size_t i = 0; i < NvnS; i++) {
-						unsigned int IndD = i*NvnI;
+						size_t const IndD = i*NvnI;
 						for (size_t j = 0; j < NvnI; j++)
 							DAr_vI[IndD+j] += D[dim][IndD+j]*Ar_vI_ptr[dim][IndAr+j];
 					}
 				}
 
-				unsigned int IndLHS = (eq*Nvar+var)*NvnS*NvnS;
+				size_t const IndLHS = (eq*Nvar+var)*NvnS*NvnS;
 				mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,0.0,DAr_vI,OPS[0]->ChiS_vI,&RLHS[IndLHS]);
 			}}
 			free(DAr_vI);
@@ -452,8 +448,8 @@ void finalize_VOLUME_Inviscid_Weak(const unsigned int Nrc, const double *Ar_vI, 
 	}
 }
 
-void finalize_VOLUME_Viscous_Weak(const unsigned int Nrc, double *Ar_vI, double *RLHS, const char imex_type,
-                                  struct S_VDATA *VDATA)
+void finalize_VOLUME_Viscous_Weak(unsigned int const Nrc, double *const Ar_vI, double *const RLHS, char const imex_type,
+                                  struct S_VDATA const *const VDATA)
 {
 	/*
 	 *	Purpose:
@@ -465,11 +461,10 @@ void finalize_VOLUME_Viscous_Weak(const unsigned int Nrc, double *Ar_vI, double 
 	 *		negated.
 	 */
 
-	const unsigned int d = DB.d;
+	struct S_OPERATORS_V const *const *const OPS = (struct S_OPERATORS_V const *const *const) VDATA->OPS;
 
-	struct S_OPERATORS_V **OPS = VDATA->OPS;
-
-	const unsigned int NvnI = OPS[0]->NvnI;
+	unsigned int const d    = DB.d,
+	                   NvnI = OPS[0]->NvnI;
 
 	if (imex_type == 'E' || imex_type == 'I') {
 		for (size_t i = 0, iMax = NvnI*Nrc*d; i < iMax; i++)
@@ -485,8 +480,8 @@ void finalize_VOLUME_Viscous_Weak(const unsigned int Nrc, double *Ar_vI, double 
 // FACE functions
 // **************************************************************************************************** //
 
-void init_ops_FACE(struct S_OPERATORS_F *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
-                   const unsigned int IndClass)
+void init_ops_FACE(struct S_OPERATORS_F *const OPS, struct S_VOLUME const *const VOLUME, struct S_FACE const *const FACE,
+                   unsigned int const IndClass)
 {
 	/*
 	 *	Comments:
@@ -495,7 +490,7 @@ void init_ops_FACE(struct S_OPERATORS_F *OPS, const struct S_VOLUME *VOLUME, con
 	 */
 
 	// Initialize DB Parameters
-	unsigned int ***SF_BE = DB.SF_BE;
+	unsigned int const *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
 
 	// Standard datatypes
 	unsigned int PV, PF, Vtype, Eclass, FtypeInt, IndOrdLR, IndOrdRL;
@@ -529,16 +524,16 @@ void init_ops_FACE(struct S_OPERATORS_F *OPS, const struct S_VOLUME *VOLUME, con
 		OPS->NfnI_SF = ELEMENT_SF->NfnIs[PF][0];
 		OPS->NvnI_SF = ELEMENT_SF->NvnIs[PF];
 
-		OPS->ChiS_fI   = ELEMENT->ChiS_fIs[PV][PF];
-		OPS->I_Weak_FF = ELEMENT->Is_Weak_FF[PV][PF];
+		OPS->ChiS_fI   = (double const *const *const) ELEMENT->ChiS_fIs[PV][PF];
+		OPS->I_Weak_FF = (double const *const *const) ELEMENT->Is_Weak_FF[PV][PF];
 
-		OPS->ChiS_fI_SF   = ELEMENT_SF->ChiS_fIs[PV][PF];
-		OPS->ChiS_vI_SF   = ELEMENT_SF->ChiS_vIs[PV][PF];
-		OPS->I_Weak_FF_SF = ELEMENT_SF->Is_Weak_FF[PV][PF];
-		OPS->I_Weak_VV_SF = ELEMENT_SF->Is_Weak_VV[PV][PF];
+		OPS->ChiS_fI_SF   = (double const *const *const) ELEMENT_SF->ChiS_fIs[PV][PF];
+		OPS->ChiS_vI_SF   = (double const *const *const) ELEMENT_SF->ChiS_vIs[PV][PF];
+		OPS->I_Weak_FF_SF = (double const *const *const) ELEMENT_SF->Is_Weak_FF[PV][PF];
+		OPS->I_Weak_VV_SF = (double const *const *const) ELEMENT_SF->Is_Weak_VV[PV][PF];
 
-		OPS->ChiS_fI_sp   = ELEMENT->ChiS_fIs_sp[PV][PF];
-		OPS->I_Weak_FF_sp = ELEMENT->Is_Weak_FF_sp[PV][PF];
+		OPS->ChiS_fI_sp   = (struct S_OpCSR const *const *const) ELEMENT->ChiS_fIs_sp[PV][PF];
+		OPS->I_Weak_FF_sp = (struct S_OpCSR const *const *const) ELEMENT->Is_Weak_FF_sp[PV][PF];
 
 		OPS->nOrdLR = ELEMENT_FACE->nOrd_fIs[PF][IndOrdLR];
 		OPS->nOrdRL = ELEMENT_FACE->nOrd_fIs[PF][IndOrdRL];
@@ -548,23 +543,23 @@ void init_ops_FACE(struct S_OPERATORS_F *OPS, const struct S_VOLUME *VOLUME, con
 		OPS->NfnI_SF = ELEMENT_SF->NfnIc[PF][0];
 		OPS->NvnI_SF = ELEMENT_SF->NvnIc[PF];
 
-		OPS->ChiS_fI   = ELEMENT->ChiS_fIc[PV][PF];
-		OPS->I_Weak_FF = ELEMENT->Ic_Weak_FF[PV][PF];
+		OPS->ChiS_fI   = (double const *const *const) ELEMENT->ChiS_fIc[PV][PF];
+		OPS->I_Weak_FF = (double const *const *const) ELEMENT->Ic_Weak_FF[PV][PF];
 
-		OPS->ChiS_fI_SF   = ELEMENT_SF->ChiS_fIc[PV][PF];
-		OPS->ChiS_vI_SF   = ELEMENT_SF->ChiS_vIc[PV][PF];
-		OPS->I_Weak_FF_SF = ELEMENT_SF->Ic_Weak_FF[PV][PF];
-		OPS->I_Weak_VV_SF = ELEMENT_SF->Ic_Weak_VV[PV][PF];
+		OPS->ChiS_fI_SF   = (double const *const *const) ELEMENT_SF->ChiS_fIc[PV][PF];
+		OPS->ChiS_vI_SF   = (double const *const *const) ELEMENT_SF->ChiS_vIc[PV][PF];
+		OPS->I_Weak_FF_SF = (double const *const *const) ELEMENT_SF->Ic_Weak_FF[PV][PF];
+		OPS->I_Weak_VV_SF = (double const *const *const) ELEMENT_SF->Ic_Weak_VV[PV][PF];
 
-		OPS->ChiS_fI_sp   = ELEMENT->ChiS_fIc_sp[PV][PF];
-		OPS->I_Weak_FF_sp = ELEMENT->Ic_Weak_FF_sp[PV][PF];
+		OPS->ChiS_fI_sp   = (struct S_OpCSR const *const *const) ELEMENT->ChiS_fIc_sp[PV][PF];
+		OPS->I_Weak_FF_sp = (struct S_OpCSR const *const *const) ELEMENT->Ic_Weak_FF_sp[PV][PF];
 
 		OPS->nOrdLR = ELEMENT_FACE->nOrd_fIc[PF][IndOrdLR];
 		OPS->nOrdRL = ELEMENT_FACE->nOrd_fIc[PF][IndOrdRL];
 	}
 }
 
-void init_FDATA(struct S_FDATA *FDATA, struct S_FACE *FACE, const char side)
+void init_FDATA(struct S_FDATA *FDATA, struct S_FACE *FACE, char const side)
 {
 	// Initialize DB Parameters
 	unsigned int Collocated = DB.Collocated;
@@ -595,7 +590,7 @@ void init_FDATA(struct S_FDATA *FDATA, struct S_FACE *FACE, const char side)
 		init_ops_FACE(FDATA->OPS[1],FDATA->VOLUME,FACE,1);
 }
 
-void coef_to_values_fI(const struct S_FDATA *FDATA, const char coef_type)
+void coef_to_values_fI(const struct S_FDATA *FDATA, char const coef_type)
 {
 	/*
 	 *	Purpose:
@@ -617,14 +612,14 @@ void coef_to_values_fI(const struct S_FDATA *FDATA, const char coef_type)
 	if (!(coef_type == 'W' || coef_type == 'Q'))
 		EXIT_UNSUPPORTED;
 
-	unsigned int const d            = DB.d,
+	const unsigned int d            = DB.d,
 	                   Nvar         = DB.Nvar,
 	                   *VFPartUnity = DB.VFPartUnity;
 
 	const unsigned int *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
 
 	struct S_OPERATORS_F **OPS   = FDATA->OPS;
-	struct S_VOLUME      *VOLUME = FDATA->VOLUME;
+	struct S_VOLUME      const *const VOLUME = FDATA->VOLUME;
 
 	const unsigned int P      = FDATA->P,
 	                   Eclass = FDATA->Eclass,
@@ -633,7 +628,7 @@ void coef_to_values_fI(const struct S_FDATA *FDATA, const char coef_type)
 	                   SpOp   = FDATA->SpOp;
 
 	unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX], NOut0, NOut1;
-	double       *OP[DMAX], **OP0, **OP1;
+	double const *OP[DMAX], *const *OP0, *const *OP1;
 
 	if (Eclass == C_TP && SF_BE[P][0][1]) {
 		get_sf_parametersF(OPS[0]->NvnS_SF,OPS[0]->NvnI_SF,OPS[0]->ChiS_vI_SF,
@@ -719,7 +714,7 @@ void compute_WR_fIL(const struct S_FDATA *FDATA, const double *WL_fIL, double *W
 	                   Nvar = DB.Nvar;
 
 	struct S_OPERATORS_F **OPS = FDATA->OPS;
-	struct S_FACE        *FACE = FDATA->FACE;
+	struct S_FACE        const *const FACE = FDATA->FACE;
 
 	const unsigned int IndFType = FDATA->IndFType;
 
@@ -781,7 +776,7 @@ void compute_GradWR_fIL(const struct S_FDATA *FDATA, const double *const *const 
 	                   Nvar = DB.Nvar;
 
 	struct S_OPERATORS_F **OPS = FDATA->OPS;
-	struct S_FACE        *FACE = FDATA->FACE;
+	struct S_FACE        const *const FACE = FDATA->FACE;
 
 	const unsigned int IndFType = FDATA->IndFType;
 
@@ -820,7 +815,7 @@ if (0)
 	 //asdf
 }
 
-void compute_numerical_flux(const struct S_FDATA *FDATA, const char imex_type)
+void compute_numerical_flux(struct S_FDATA const *const FDATA, char const imex_type)
 {
 	/*
 	 *	Purpose:
@@ -835,26 +830,25 @@ void compute_numerical_flux(const struct S_FDATA *FDATA, const char imex_type)
 	 *		            explicit computation.
 	 */
 
-	const unsigned int d    = DB.d,
-	                   Nvar = DB.Nvar,
-	                   Neq  = DB.Neq;
+	if (!(imex_type == 'E' || imex_type == 'I'))
+		EXIT_UNSUPPORTED;
 
-	const double *WL_fIL = FDATA->NFluxData->WL_fIL,
-	             *WR_fIL = FDATA->NFluxData->WR_fIL;
+	struct S_OPERATORS_F const *const *const OPS  = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
+	struct S_FACE        const *const        FACE = FDATA->FACE;
 
-	double       *nFluxNum_fIL     = FDATA->NFluxData->nFluxNum_fI,
-	             *dnFluxNumdWL_fIL = FDATA->NFluxData->dnFluxNumdWL_fI,
-	             *dnFluxNumdWR_fIL = FDATA->NFluxData->dnFluxNumdWR_fI;
-
-	struct S_OPERATORS_F **OPS = FDATA->OPS;
-	struct S_FACE        *FACE = FDATA->FACE;
-
-	const unsigned int IndFType = FDATA->IndFType;
-
-	const unsigned int Boundary = FACE->Boundary,
+	unsigned int const d        = DB.d,
+	                   Nvar     = DB.Nvar,
+	                   Neq      = DB.Neq,
+	                   IndFType = FDATA->IndFType,
+	                   Boundary = FACE->Boundary,
 	                   NfnI     = OPS[IndFType]->NfnI;
 
-	const double       *n_fIL = FACE->n_fI;
+	double const *const n_fIL            = FACE->n_fI,
+	             *const WL_fIL           = FDATA->NFluxData->WL_fIL,
+	             *const WR_fIL           = FDATA->NFluxData->WR_fIL;
+	double       *const nFluxNum_fIL     = FDATA->NFluxData->nFluxNum_fI,
+	             *const dnFluxNumdWL_fIL = FDATA->NFluxData->dnFluxNumdWL_fI,
+	             *const dnFluxNumdWR_fIL = FDATA->NFluxData->dnFluxNumdWR_fI;
 
 	switch (DB.InviscidFluxType) {
 	case FLUX_LF:
@@ -878,10 +872,10 @@ void compute_numerical_flux(const struct S_FDATA *FDATA, const char imex_type)
 
 	// Include the BC information in dnFluxNumWL_fIL if on a boundary
 	if (imex_type == 'I' && Boundary) {
-		const unsigned int BC       = FACE->BC;
-		const double       *XYZ_fIL = FACE->XYZ_fI;
+		unsigned int const BC = FACE->BC;
 
-		double *dWRdWL_fIL = malloc(NfnI*Nvar*Nvar * sizeof *dWRdWL_fIL); // free
+		double const *const XYZ_fIL    = FACE->XYZ_fI;
+		double       *const dWRdWL_fIL = malloc(NfnI*Nvar*Nvar * sizeof *dWRdWL_fIL); // free
 		if (BC % BC_STEP_SC == BC_RIEMANN)
 			jacobian_boundary_Riemann(NfnI,1,XYZ_fIL,WL_fIL,NULL,dWRdWL_fIL,n_fIL,d,Neq);
 		else if (BC % BC_STEP_SC == BC_SLIPWALL)
@@ -913,7 +907,7 @@ void compute_numerical_flux(const struct S_FDATA *FDATA, const char imex_type)
 	}
 }
 
-void add_Jacobian_scaling_FACE(const struct S_FDATA *FDATA, const char imex_type)
+void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const imex_type)
 {
 	/*
 	 *	Purpose:
@@ -927,20 +921,21 @@ void add_Jacobian_scaling_FACE(const struct S_FDATA *FDATA, const char imex_type
 	 *		            explicit computation.
 	 */
 
-	const unsigned int Neq  = DB.Neq,
-	                   Nvar = DB.Nvar;
+	if (!(imex_type == 'E' || imex_type == 'I'))
+		EXIT_UNSUPPORTED;
 
-	struct S_OPERATORS_F **OPS = FDATA->OPS;
-	struct S_FACE        *FACE = FDATA->FACE;
+	struct S_OPERATORS_F const *const *const OPS  = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
+	struct S_FACE        const *const        FACE = FDATA->FACE;
 
-	const double *detJF_fIL = FACE->detJF_fI;
+	unsigned int const Neq      = DB.Neq,
+	                   Nvar     = DB.Nvar,
+	                   IndFType = FDATA->IndFType,
+	                   NfnI = OPS[IndFType]->NfnI;
 
-	double *nFluxNum_fIL     = FDATA->NFluxData->nFluxNum_fI,
-	       *dnFluxNumdWL_fIL = FDATA->NFluxData->dnFluxNumdWL_fI,
-	       *dnFluxNumdWR_fIL = FDATA->NFluxData->dnFluxNumdWR_fI;
-
-	const unsigned int IndFType = FDATA->IndFType;
-	const unsigned int NfnI = OPS[IndFType]->NfnI;
+	double const *const detJF_fIL = FACE->detJF_fI;
+	double       *const nFluxNum_fIL     = FDATA->NFluxData->nFluxNum_fI,
+	             *const dnFluxNumdWL_fIL = FDATA->NFluxData->dnFluxNumdWL_fI,
+	             *const dnFluxNumdWR_fIL = FDATA->NFluxData->dnFluxNumdWR_fI;
 
 	for (size_t eq = 0; eq < Neq; eq++) {
 		size_t IndnF = eq*NfnI;
@@ -959,7 +954,7 @@ void add_Jacobian_scaling_FACE(const struct S_FDATA *FDATA, const char imex_type
 	}
 }
 
-static void swap_FACE_orientation(const struct S_FDATA *FDATA, const char imex_type)
+static void swap_FACE_orientation(struct S_FDATA const *const FDATA, char const imex_type)
 {
 	/*
 	 *	Purpose:
@@ -969,18 +964,18 @@ static void swap_FACE_orientation(const struct S_FDATA *FDATA, const char imex_t
 	 *		Note that the arrays are negated to account for the normal being negative when seen by the opposite VOLUME.
 	 */
 
-	const unsigned int Neq  = DB.Neq,
+	unsigned int const Neq  = DB.Neq,
 	                   Nvar = DB.Nvar;
 
-	struct S_OPERATORS_F **OPS = FDATA->OPS;
+	struct S_OPERATORS_F const *const *const OPS  = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
 
-	const unsigned int IndFType = FDATA->IndFType;
-	const unsigned int NfnI     = OPS[IndFType]->NfnI,
-	                   *nOrdLR  = OPS[IndFType]->nOrdLR;
+	unsigned int const IndFType       = FDATA->IndFType,
+	                   NfnI           = OPS[IndFType]->NfnI,
+	                   *const nOrdLR  = OPS[IndFType]->nOrdLR;
 
-	double *nFluxNum_fI     = FDATA->NFluxData->nFluxNum_fI,
-	       *dnFluxNumdWL_fI = FDATA->NFluxData->dnFluxNumdWL_fI,
-	       *dnFluxNumdWR_fI = FDATA->NFluxData->dnFluxNumdWR_fI;
+	double *const nFluxNum_fI     = FDATA->NFluxData->nFluxNum_fI,
+	       *const dnFluxNumdWL_fI = FDATA->NFluxData->dnFluxNumdWL_fI,
+	       *const dnFluxNumdWR_fI = FDATA->NFluxData->dnFluxNumdWR_fI;
 
 	if (imex_type == 'E') {
 		for (size_t i = 0, iMax = Neq*NfnI; i < iMax; i++)
@@ -1000,11 +995,11 @@ static void swap_FACE_orientation(const struct S_FDATA *FDATA, const char imex_t
 	}
 }
 
-static void compute_LHS_FACE_Inviscid_Weak(const unsigned int NRows, const unsigned int NCols, const unsigned int Nn,
-                                           const double *I_FF, const double *dnFluxNumdW_fI, const double *ChiS_fI,
-                                           double *IdnFdW, double *LHS)
+static void compute_LHS_FACE_Inviscid_Weak(unsigned int const NRows, unsigned int const NCols, unsigned int const Nn,
+                                           double const *const I_FF, double const *const dnFluxNumdW_fI,
+                                           double const *const ChiS_fI, double *const IdnFdW, double *const LHS)
 {
-	const unsigned int Neq  = DB.Neq,
+	unsigned int const Neq  = DB.Neq,
 	                   Nvar = DB.Neq;
 
 	for (size_t eq = 0; eq < Neq; eq++) {
@@ -1023,7 +1018,8 @@ static void compute_LHS_FACE_Inviscid_Weak(const unsigned int NRows, const unsig
 	}}
 }
 
-void finalize_FACE_Inviscid_Weak(struct S_FDATA *FDATAL, struct S_FDATA *FDATAR, const char side, const char imex_type)
+void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
+                                 char const side, char const imex_type)
 {
 	/*
 	 *	Purpose:
@@ -1040,7 +1036,7 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA *FDATAL, struct S_FDATA *FDATAR,
 	 */
 
 	if (imex_type == 'E') {
-		const struct S_FDATA *FDATA = NULL;
+		struct S_FDATA const *FDATA = NULL;
 		double               *RHS   = NULL;
 
 		if (side == 'L') {
@@ -1059,23 +1055,22 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA *FDATAL, struct S_FDATA *FDATAR,
 		                   Neq          = DB.Neq,
 		                   *VFPartUnity = DB.VFPartUnity;
 
-		const unsigned int *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
+		unsigned int const *const *const *const SF_BE = (unsigned int const *const *const *const) DB.SF_BE;
 
-		struct S_OPERATORS_F **OPS = FDATA->OPS;
+		struct S_OPERATORS_F const *const *const OPS  = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
 
-		const unsigned int P      = FDATA->P,
+		unsigned int const P      = FDATA->P,
 						   Eclass = FDATA->Eclass,
 						   Vf     = FDATA->Vf,
 						   f      = FDATA->f,
-						   SpOp   = FDATA->SpOp;
+						   SpOp   = FDATA->SpOp,
+		                   IndFType = FDATA->IndFType,
+		                   NfnI = OPS[IndFType]->NfnI;
 
-		const unsigned int IndFType = FDATA->IndFType;
-		const unsigned int NfnI = OPS[IndFType]->NfnI;
-
-		const double *nFluxNum_fI = FDATA->NFluxData->nFluxNum_fI;
+		double const *nFluxNum_fI = FDATA->NFluxData->nFluxNum_fI;
 
 		unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX], NIn0, NIn1;
-		double       *OP[DMAX], **OP0, **OP1;
+		double const *OP[DMAX], *const *OP0, *const *OP1;
 
 		if (Eclass == C_TP && SF_BE[P][0][1]) {
 			get_sf_parametersF(OPS[0]->NvnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_VV_SF,
@@ -1118,46 +1113,47 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA *FDATAL, struct S_FDATA *FDATAR,
 			mm_CTN_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FF[Vf],nFluxNum_fI,RHS);
 		}
 	} else if (imex_type == 'I') {
-		struct S_OPERATORS_F **OPSL = FDATAL->OPS,
-		                     **OPSR = FDATAR->OPS;
-		struct S_FACE        *FACE  = FDATAL->FACE;
+		struct S_OPERATORS_F const *const *const OPSL  = (struct S_OPERATORS_F const *const *const) FDATAL->OPS,
+		                           *const *const OPSR  = (struct S_OPERATORS_F const *const *const) FDATAR->OPS;
+		struct S_FACE        const *const        FACE = FDATAL->FACE;
 
-		const unsigned int VfL = FDATAL->Vf,
-		                   VfR = FDATAR->Vf;
-
-		const unsigned int IndFType = FDATAL->IndFType;
-		const unsigned int NfnI     = OPSL[IndFType]->NfnI;
+		unsigned int const VfL = FDATAL->Vf,
+		                   VfR = FDATAR->Vf,
+		                   IndFType = FDATAL->IndFType,
+		                   NfnI     = OPSL[IndFType]->NfnI;
 
 		double       *IdnFdW;
-		const double *I_FF;
+		double const *I_FF;
 
 		if (side == 'L') {
-			const double *dnFluxNumdWL_fI = FDATAL->NFluxData->dnFluxNumdWL_fI;
-			unsigned int NvnSL = OPSL[0]->NvnS;
+			unsigned int const NvnSL = OPSL[0]->NvnS;
+
+			double const *const dnFluxNumdWL_fI = FDATAL->NFluxData->dnFluxNumdWL_fI;
 
 			// LHSLL (Effect of (L)eft VOLUME on (L)eft VOLUME)
 			I_FF   = OPSL[0]->I_Weak_FF[VfL];
 			IdnFdW = malloc(NvnSL*NfnI * sizeof *IdnFdW); // free
 
-			double *ChiSL_fIL = OPSL[0]->ChiS_fI[VfL];
+			double const *const ChiSL_fIL = OPSL[0]->ChiS_fI[VfL];
 			compute_LHS_FACE_Inviscid_Weak(NvnSL,NvnSL,NfnI,I_FF,dnFluxNumdWL_fI,ChiSL_fIL,IdnFdW,FACE->LHSInIn);
 
 			free(IdnFdW);
 		} else if (side == 'R') {
-			double *dnFluxNumdWL_fI = FDATAL->NFluxData->dnFluxNumdWL_fI,
-			       *dnFluxNumdWR_fI = FDATAL->NFluxData->dnFluxNumdWR_fI;
-			const double       *ChiS_fI;
-			const unsigned int NvnSL = OPSL[0]->NvnS,
-			                   NvnSR = OPSR[0]->NvnS;
-			const unsigned int IndFType = FDATAL->IndFType;
-			const unsigned int *nOrdLR  = OPSL[IndFType]->nOrdLR,
+			double const *      ChiS_fI;
+			double       *const dnFluxNumdWL_fI = FDATAL->NFluxData->dnFluxNumdWL_fI,
+			             *const dnFluxNumdWR_fI = FDATAL->NFluxData->dnFluxNumdWR_fI;
+
+			unsigned int const NvnSL = OPSL[0]->NvnS,
+			                   NvnSR = OPSR[0]->NvnS,
+			                   IndFType = FDATAL->IndFType,
+			                   *nOrdLR  = OPSL[IndFType]->nOrdLR,
 			                   *nOrdRL  = OPSL[IndFType]->nOrdRL;
 
 			I_FF   = OPSL[0]->I_Weak_FF[VfL];
 			IdnFdW = malloc(NvnSL*NfnI * sizeof *IdnFdW); // free
 
 			// LHSRL (Effect of (R)ight VOLUME on (L)eft VOLUME
-			double *ChiSR_fIL = malloc(NvnSR*NfnI * sizeof *ChiSR_fIL); // free
+			double *const ChiSR_fIL = malloc(NvnSR*NfnI * sizeof *ChiSR_fIL); // free
 
 			ChiS_fI = OPSR[0]->ChiS_fI[VfR];
 			for (size_t i = 0; i < NfnI; i++) {
@@ -1177,7 +1173,7 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA *FDATAL, struct S_FDATA *FDATAR,
 			IdnFdW = malloc(NvnSR*NfnI * sizeof *IdnFdW); // free
 
 			// LHSLR (Effect of (L)eft VOLUME on (R)ight VOLUME
-			double *ChiSL_fIR = malloc(NvnSL*NfnI * sizeof *ChiSL_fIR); // free
+			double *const ChiSL_fIR = malloc(NvnSL*NfnI * sizeof *ChiSL_fIR); // free
 
 			ChiS_fI = OPSL[0]->ChiS_fI[VfL];
 			for (size_t i = 0; i < NfnI; i++) {
@@ -1190,7 +1186,7 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA *FDATAL, struct S_FDATA *FDATAR,
 			free(ChiSL_fIR);
 
 			// LHSRR (Effect of (R)ight VOLUME on (R)ight VOLUME
-			const double *ChiSR_fIR = OPSR[0]->ChiS_fI[VfR];
+			double const *const ChiSR_fIR = OPSR[0]->ChiS_fI[VfR];
 
 			compute_LHS_FACE_Inviscid_Weak(NvnSR,NvnSR,NfnI,I_FF,dnFluxNumdWR_fI,ChiSR_fIR,IdnFdW,FACE->LHSOutOut);
 

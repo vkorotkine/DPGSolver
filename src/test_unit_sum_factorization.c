@@ -121,7 +121,7 @@ void test_unit_sum_factorization(void)
 
 
 	// r component
-	sf_apply_d(Input,Output1_c,NIn,NOut,NCols,OP,Diag,1);
+	sf_apply_d(Input,Output1_c,NIn,NOut,NCols,(double const *const *const) OP,Diag,1);
 
 	pass = 0;
 	if (array_norm_diff_d(NOut_Total[0]*d,Output1_c,Output1,"Inf") < EPS)
@@ -130,7 +130,7 @@ void test_unit_sum_factorization(void)
 	test_print2(pass,"sum_factorization (d = 1):");
 
 	// r, s components
-	sf_apply_d(Input,Output2_c,NIn,NOut,NCols,OP,Diag,2);
+	sf_apply_d(Input,Output2_c,NIn,NOut,NCols,(double const *const *const) OP,Diag,2);
 
 	pass = 0;
 	if (array_norm_diff_d(NOut_Total[1]*d,Output2_c,Output2,"Inf") < EPS)
@@ -139,7 +139,7 @@ void test_unit_sum_factorization(void)
 	test_print2(pass,"                  (d = 2):");
 
 	// r, s, t components
-	sf_apply_d(Input,Output3_c,NIn,NOut,NCols,OP,Diag,3);
+	sf_apply_d(Input,Output3_c,NIn,NOut,NCols,(double const *const *const) OP,Diag,3);
 
 	pass = 0;
 	if (array_norm_diff_d(NOut_Total[2]*d,Output3_c,Output3,"Inf") < EPS)

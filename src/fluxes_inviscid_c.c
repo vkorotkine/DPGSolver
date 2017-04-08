@@ -27,13 +27,13 @@
  *	References:
  */
 
-void flux_inviscid_c(const unsigned int Nn, const unsigned int Nel, double complex *W, double complex *F,
-                     const unsigned int d, const unsigned int Neq)
+void flux_inviscid_c(const unsigned int Nn, const unsigned int Nel, const double complex *const W,
+                     double complex *const F, const unsigned int d, const unsigned int Neq)
 {
 	// Standard datatypes
 	unsigned int   i, n, eq, dim, iMax, NnTotal, IndF;
-	double complex *rho_ptr, *rhou_ptr, *rhov_ptr, *rhow_ptr, *E_ptr,
-	               rho, rhou, rhov, rhow, E, u, v, w, p, *F_ptr[DMAX*Neq];
+	double complex rho, rhou, rhov, rhow, E, u, v, w, p, *F_ptr[DMAX*Neq];
+	const double complex *rho_ptr, *rhou_ptr, *rhov_ptr, *rhow_ptr, *E_ptr;
 
 	NnTotal = Nn*Nel;
 
@@ -161,15 +161,17 @@ void flux_inviscid_c(const unsigned int Nn, const unsigned int Nel, double compl
 	}
 }
 
-void flux_LF_c(const unsigned int Nn, const unsigned int Nel, double complex *WL, double complex *WR,
-               double complex *nFluxNum, double *nL, const unsigned int d, const unsigned int Neq)
+void flux_LF_c(const unsigned int Nn, const unsigned int Nel, const double complex *const WL,
+               const double complex *const WR, double complex *const nFluxNum, const double *const nL,
+               const unsigned int d, const unsigned int Neq)
 {
 	// Standard datatypes
 	unsigned int   i, iMax, jMax, NnTotal;
-	double         *nx_ptr, *ny_ptr, *nz_ptr;
 	double complex *rhoL, *uL, *vL, *wL, *pL, *UL, *rhoR, *uR, *vR, *wR, *pR, *UR, *FL, *FR, *maxV,
-	               *maxV_ptr, *WL_ptr, *WR_ptr, *nFluxNum_ptr,
+	               *maxV_ptr, *nFluxNum_ptr,
 	               *FxL_ptr, *FyL_ptr, *FzL_ptr, *FxR_ptr, *FyR_ptr, *FzR_ptr;
+	const double   *nx_ptr, *ny_ptr, *nz_ptr;
+	const double complex *WL_ptr, *WR_ptr;
 
 	NnTotal = Nn*Nel;
 
@@ -351,18 +353,20 @@ void flux_LF_c(const unsigned int Nn, const unsigned int Nel, double complex *WL
 	free(maxV);
 }
 
-void flux_Roe_c(const unsigned int Nn, const unsigned int Nel, double complex *WL, double complex *WR,
-                double complex *nFluxNum, double *nL, const unsigned int d, const unsigned int Neq)
+void flux_Roe_c(const unsigned int Nn, const unsigned int Nel, const double complex *const WL,
+                const double complex *const WR, double complex *const nFluxNum, const double *const nL,
+                const unsigned int d, const unsigned int Neq)
 {
 	// Standard datatypes
 	unsigned int   iMax, NnTotal;
-	double         *nx, *ny, *nz, sign_l1, sign_l234, sign_l5;
+	double         sign_l1, sign_l234, sign_l5;
 	double complex r, rP1, rho, u, v, w, H, Vn, V2, c, l1, l234, l5, l1L, l5R,
 	               VnL, rhoVnL, VnR, rhoVnR, pLR, drho, drhou, drhov, drhow, dE, dp, dVn, lc1, lc2, disInter1, disInter2,
-	               *W1L, *W2L, *W3L, *W4L, *W5L, *W1R, *W2R, *W3R, *W4R, *W5R,
 	               rhoL, uL, vL, wL, pL, EL, rhoR, uR, vR, wR, pR, ER,
 	               *nFluxNum_ptr1, *nFluxNum_ptr2, *nFluxNum_ptr3, *nFluxNum_ptr4, *nFluxNum_ptr5,
 	               dis1, dis2, dis3, dis4, dis5, nF1, nF2, nF3, nF4, nF5;
+	const double   *nx, *ny, *nz;
+	const double complex *W1L, *W2L, *W3L, *W4L, *W5L, *W1R, *W2R, *W3R, *W4R, *W5R;
 
 	// silence
 	iMax = Neq;

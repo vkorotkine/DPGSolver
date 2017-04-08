@@ -25,7 +25,7 @@ struct S_VOLUME {
 	double         *RHS, *LHS, *wdetJV_vI, *MInv;
 
 	// Linearization testing
-	double complex *RHS_c, *What_c, **Qhat_c, *uhat_c, **qhat_c;
+	double complex *RHS_c, *What_c, **Qhat_c, **QhatV_c, *uhat_c, **qhat_c;
 
 	// hp adaptivity
 	unsigned int refine_current, Vadapt, adapt_type, PNew, hrefine_type;
