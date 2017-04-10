@@ -58,18 +58,18 @@ void explicit_FACE_info(void)
 
 static void compute_Inviscid_FACE_RHS_EFE(void)
 {
-	const unsigned int Nvar = DB.Nvar,
+	unsigned int const Nvar = DB.Nvar,
 	                   Neq  = DB.Neq;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 	struct S_FACE     *FACE;
 
-	struct S_FDATA *FDATAL = malloc(sizeof *FDATAL), // free
-	               *FDATAR = malloc(sizeof *FDATAR); // free
-	FDATAL->OPS = OPSL;
-	FDATAR->OPS = OPSR;
+	struct S_FDATA *const FDATAL = malloc(sizeof *FDATAL), // free
+	               *const FDATAR = malloc(sizeof *FDATAR); // free
+	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
+	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
-	struct S_NumericalFlux *NFluxData = malloc(sizeof *NFluxData); // free
+	struct S_NumericalFlux *const NFluxData = malloc(sizeof *NFluxData); // free
 	FDATAL->NFluxData = NFluxData;
 	FDATAR->NFluxData = NFluxData;
 
@@ -84,8 +84,8 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 			init_FDATA(FDATAR,FACE,'R');
 
 			// Compute WL_fIL and WR_fIL (i.e. as seen from the (L)eft VOLUME)
-			unsigned int IndFType = FDATAL->IndFType;
-			unsigned int NfnI     = OPSL[IndFType]->NfnI;
+			unsigned int const IndFType = FDATAL->IndFType,
+			                   NfnI     = OPSL[IndFType]->NfnI;
 
 			FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
 			FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
@@ -107,8 +107,8 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 
 
 			// Compute FACE RHS terms
-			unsigned int NvnSL = OPSL[0]->NvnS,
-			             NvnSR = OPSR[0]->NvnS;
+			unsigned int const NvnSL = OPSL[0]->NvnS,
+			                   NvnSR = OPSR[0]->NvnS;
 
 			if (FACE->RHSIn)
 				free(FACE->RHSIn);
@@ -149,18 +149,18 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 	if (!DB.Viscous)
 		return;
 
-	const unsigned int d    = DB.d,
+	unsigned int const d    = DB.d,
 	                   Nvar = DB.Nvar;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 	struct S_FACE     *FACE;
 
-	struct S_FDATA *FDATAL = malloc(sizeof *FDATAL), // free
-	               *FDATAR = malloc(sizeof *FDATAR); // free
-	FDATAL->OPS = OPSL;
-	FDATAR->OPS = OPSR;
+	struct S_FDATA *const FDATAL = malloc(sizeof *FDATAL), // free
+	               *const FDATAR = malloc(sizeof *FDATAR); // free
+	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
+	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
-	struct S_NumericalFlux *NFluxData = malloc(sizeof *NFluxData); // free
+	struct S_NumericalFlux *const NFluxData = malloc(sizeof *NFluxData); // free
 	FDATAL->NFluxData = NFluxData;
 	FDATAR->NFluxData = NFluxData;
 
@@ -175,17 +175,14 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 			init_FDATA(FDATAR,FACE,'R');
 
 			// Compute WL_fIL and WR_fIL and their gradients (as seen from the (L)eft VOLUME)
-			unsigned int IndFType = FDATAL->IndFType;
-			unsigned int NfnI     = OPSL[IndFType]->NfnI;
+			unsigned int const IndFType = FDATAL->IndFType,
+			                   NfnI     = OPSL[IndFType]->NfnI;
 
 			FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
 			FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
 
-			coef_to_values_fI(FDATAL,'W');
-			compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
-
-			double **GradWL_fIL = malloc(d * sizeof *GradWL_fIL), // free
-			       **GradWR_fIL = malloc(d * sizeof *GradWR_fIL); // free
+			double **const GradWL_fIL = malloc(d * sizeof *GradWL_fIL), // free
+			       **const GradWR_fIL = malloc(d * sizeof *GradWR_fIL); // free
 
 			for (size_t dim = 0; dim < d; dim++) {
 				GradWL_fIL[dim] = malloc(NfnI*Nvar * sizeof *GradWL_fIL[dim]); // free
@@ -195,11 +192,17 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 			FDATAL->GradW_fIL = GradWL_fIL;
 			FDATAR->GradW_fIL = GradWR_fIL;
 
+			coef_to_values_fI(FDATAL,'W');
 			coef_to_values_fI(FDATAL,'Q');
-			compute_GradWR_fIL(FDATAR,(const double *const *const) GradWL_fIL,GradWR_fIL);
-
+			compute_WR_GradWR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,(const double *const *const) GradWL_fIL,GradWR_fIL);
 
 			// Compute numerical flux as seen from the left VOLUME
+			NFluxData->WL_fIL          = FDATAL->W_fIL;
+			NFluxData->WR_fIL          = FDATAR->W_fIL;
+			NFluxData->nFluxViscNum_fI = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxViscNum_fI)); // free
+
+			compute_numerical_flux_viscous(FDATAL,'E');
+//			add_Jacobian_scaling_FACE(FDATAL,'E');
 
 			// Compute FACE RHS terms
 
@@ -207,6 +210,8 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 			free(FDATAR->W_fIL);
 			array_free2_d(d,GradWL_fIL);
 			array_free2_d(d,GradWR_fIL);
+
+			free(NFluxData->nFluxViscNum_fI);
 		}
 	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;

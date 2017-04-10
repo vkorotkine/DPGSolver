@@ -49,12 +49,8 @@ static void compute_VOLUMEVec_RHS_EFE       (void);
 
 void explicit_VOLUME_info(void)
 {
-	// Initialize DB Parameters
-	unsigned int EFE        = DB.EFE,
-	             Vectorized = DB.Vectorized;
-
-	if (EFE) {
-		switch (Vectorized) {
+	if (DB.EFE) {
+		switch (DB.Vectorized) {
 		case 0:
 			compute_Inviscid_VOLUME_RHS_EFE();
 			compute_Viscous_VOLUME_RHS_EFE();
@@ -71,14 +67,14 @@ void explicit_VOLUME_info(void)
 static void compute_Inviscid_VOLUME_RHS_EFE(void)
 {
 	// Initialize DB Parameters
-	unsigned int d    = DB.d,
-				 Nvar = DB.Nvar,
-				 Neq  = DB.Neq;
+	unsigned int const d    = DB.d,
+	                   Nvar = DB.Nvar,
+	                   Neq  = DB.Neq;
 
 	struct S_OPERATORS_V *OPS[2];
 
 	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
-	VDATA->OPS = OPS;
+	VDATA->OPS = (struct S_OPERATORS_V const *const *) OPS;
 
 	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
@@ -88,7 +84,7 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 			init_VDATA(VDATA,VOLUME);
 
 			// Obtain W_vI
-			unsigned int NvnI = VDATA->OPS[0]->NvnI;
+			unsigned int const NvnI = VDATA->OPS[0]->NvnI;
 			if (DB.Collocated) {
 				VDATA->W_vI = VOLUME->What;
 			} else {
@@ -97,7 +93,7 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 			}
 
 			// Compute Flux in reference space
-			double *F_vI = malloc(NvnI*d*Neq * sizeof *F_vI); // free
+			double *const F_vI = malloc(NvnI*d*Neq * sizeof *F_vI); // free
 
 			flux_inviscid(NvnI,1,VDATA->W_vI,F_vI,d,Neq);
 
@@ -105,17 +101,17 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 				free(VDATA->W_vI);
 
 			// Convert to reference space
-			double *Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
+			double *const Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
 			convert_between_rp(NvnI,Neq,VOLUME->C_vI,F_vI,Fr_vI,"FluxToRef");
 			free(F_vI);
 
 			// Compute RHS term
-			unsigned int NvnS = VDATA->OPS[0]->NvnS;
+			unsigned int const NvnS = VDATA->OPS[0]->NvnS;
 
 			// RHS
 			if (VOLUME->RHS)
 				free(VOLUME->RHS);
-			double *RHS = calloc(NvnS*Neq , sizeof *RHS); // keep
+			double *const RHS = calloc(NvnS*Neq , sizeof *RHS); // keep
 			VOLUME->RHS = RHS;
 
 			finalize_VOLUME_Inviscid_Weak(Neq,Fr_vI,RHS,'E',VDATA);
@@ -144,14 +140,14 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 	if (!DB.Viscous)
 		return;
 
-	unsigned int d    = DB.d,
-				 Neq  = DB.Neq,
-				 Nvar = DB.Nvar;
+	unsigned int const d    = DB.d,
+	                   Nvar = DB.Nvar,
+	                   Neq  = DB.Neq;
 
 	struct S_OPERATORS_V *OPS[2];
 
 	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
-	VDATA->OPS = OPS;
+	VDATA->OPS = (struct S_OPERATORS_V const *const *) OPS;
 
 	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
@@ -161,7 +157,7 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 			init_VDATA(VDATA,VOLUME);
 
 			// Obtain W_vI and Q_vI
-			unsigned int NvnI = VDATA->OPS[0]->NvnI;
+			unsigned int const NvnI = VDATA->OPS[0]->NvnI;
 			if (DB.Collocated) {
 				VDATA->W_vI = VOLUME->What;
 				VDATA->Q_vI = VOLUME->Qhat;
@@ -176,7 +172,7 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 			}
 
 			// Compute Flux in reference space
-			double *F_vI = malloc(NvnI*d*Neq * sizeof *F_vI);
+			double *const F_vI = malloc(NvnI*d*Neq * sizeof *F_vI);
 
 			flux_viscous(NvnI,1,VDATA->W_vI,(const double *const *const) VDATA->Q_vI,F_vI);
 
@@ -186,7 +182,7 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 			}
 
 			// Convert to reference space
-			double *Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
+			double *const Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
 			convert_between_rp(NvnI,Neq,VOLUME->C_vI,F_vI,Fr_vI,"FluxToRef");
 			free(F_vI);
 

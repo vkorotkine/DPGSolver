@@ -45,18 +45,21 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 	                   Neq = DB.Neq;
 	const double       Pr  = DB.Pr;
 
+	if (!(d == 2 || d == 3))
+		EXIT_UNSUPPORTED;
 
 	const unsigned int NnTotal = Nn*Nel;
 
 	const double *rho_ptr  = &W[NnTotal*0],
 	             *rhou_ptr = &W[NnTotal*1],
-	             *E_ptr    = &W[NnTotal*(d+1)];
-
-	const double *drho_ptr[DMAX], *drhou_ptr[DMAX], *dE_ptr[DMAX];
+	             *rhov_ptr = &W[NnTotal*2],
+	             *E_ptr    = &W[NnTotal*(d+1)],
+	             *drho_ptr[DMAX], *drhou_ptr[DMAX], *drhov_ptr[DMAX], *dE_ptr[DMAX];
 
 	for (size_t dim = 0; dim < d; dim++) {
 		drho_ptr[dim]  = &Q[dim][NnTotal*0];
 		drhou_ptr[dim] = &Q[dim][NnTotal*1];
+		drhov_ptr[dim] = &Q[dim][NnTotal*2];
 		dE_ptr[dim]    = &Q[dim][NnTotal*(d+1)];
 	}
 
@@ -68,15 +71,10 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 	}}
 
 	if (d == 3) {
-		const double *rhov_ptr = &W[NnTotal*2],
-		             *rhow_ptr = &W[NnTotal*3];
-
-		const double *drhov_ptr[DMAX], *drhow_ptr[DMAX];
-
-		for (size_t dim = 0; dim < d; dim++) {
-			drhov_ptr[dim] = &Q[dim][NnTotal*2];
+		const double *rhow_ptr = &W[NnTotal*d],
+		             *drhow_ptr[DMAX];
+		for (size_t dim = 0; dim < d; dim++)
 			drhow_ptr[dim] = &Q[dim][NnTotal*3];
-		}
 
 		for (size_t n = 0; n < NnTotal; n++) {
 			const double rho      = *rho_ptr++;
@@ -159,13 +157,6 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 				F_ptr[i]++;
 		}
 	} else if (d == 2) {
-		const double *rhov_ptr = &W[NnTotal*2];
-
-		const double *drhov_ptr[DMAX];
-
-		for (size_t dim = 0; dim < d; dim++)
-			drhov_ptr[dim] = &Q[dim][NnTotal*2];
-
 		for (size_t n = 0; n < NnTotal; n++) {
 			const double rho      = *rho_ptr++;
 			const double rho_inv  = 1.0/rho;

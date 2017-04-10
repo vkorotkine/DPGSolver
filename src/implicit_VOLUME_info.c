@@ -63,7 +63,7 @@ static void compute_VOLUME_EFE(void)
 	struct S_VDATA       *VDATA;
 
 	VDATA = malloc(sizeof *VDATA); // free
-	VDATA->OPS = OPS;
+	VDATA->OPS = (struct S_OPERATORS_V const *const *) OPS;
 
 	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free

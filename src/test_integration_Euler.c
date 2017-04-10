@@ -621,9 +621,6 @@ if (test_3D) {
 	printf("\n\nWarning: ***Add integration tests for PeriodicVortex case (Stationary and moving).***\n\n");
 	TestDB.Nwarnings++;
 
-	printf("\n\n*** Warning: Continue fixing 'const' in solver_functions!!!.***\n\n");
-	TestDB.Nwarnings++;
-
 	array_free2_c(2,argvNew);
 	free(PrintName);
 	free(data_c);

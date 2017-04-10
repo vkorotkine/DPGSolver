@@ -4,6 +4,17 @@
 #ifndef DPG__boundary_conditions_h__INCLUDED
 #define DPG__boundary_conditions_h__INCLUDED
 
+struct S_BC {
+	unsigned int d, Nn, Nel;
+
+	double const *XYZ,
+	             *nL,
+	             *WL,
+	             *const *GradWL;
+	double       *WB,
+	             *const *GradWB;
+};
+
 extern void get_boundary_values        (const double X, const double Y, double *const rho, double *const u,
                                         double *const v, double *const w, double *const p);
 extern void boundary_Riemann           (const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
@@ -23,11 +34,7 @@ extern void boundary_SupersonicInflow  (const unsigned int Nn, const unsigned in
 extern void boundary_SupersonicOutflow (const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
                                         const double *const WL, double *const WB, const double *const nL,
                                         const unsigned int d, const unsigned int Nvar);
-extern void boundary_NoSlip_Dirichlet  (const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
-                                        const double *const WL, double *const WB, const double *const nL,
-                                        const unsigned int d, const unsigned int Nvar);
-extern void boundary_NoSlip_Adiabatic  (const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
-                                        const double *const WL, double *const WB, const double *const nL,
-                                        const unsigned int d, const unsigned int Nvar);
+extern void boundary_NoSlip_Dirichlet  (struct S_BC *const BCdata);
+extern void boundary_NoSlip_Adiabatic  (struct S_BC *const BCdata);
 
 #endif // DPG__boundary_conditions_h__INCLUDED

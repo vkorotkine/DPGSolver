@@ -586,9 +586,7 @@ void boundary_SupersonicOutflow(const unsigned int Nn, const unsigned int Nel, c
 		WB[i] = WL[i];
 }
 
-// ToBeModified (Use a struct!)
-void boundary_NoSlip_Dirichlet(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *WL,
-                               double *WB, const double *nL, const unsigned int d, const unsigned int Nvar)
+void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 {
 	/*
 	 *	Comments:
@@ -610,11 +608,22 @@ void boundary_NoSlip_Dirichlet(const unsigned int Nn, const unsigned int Nel, co
 	 *		Hughes(1986)_A_New_Finite_Element_Formulation_for_Computational_Fluid_Dynamics_I
 	 */
 
-	// silence
-	if (0) printf("%f\n",nL[0]);
+	unsigned int const d    = BCdata->d,
+	                   Nvar = d+2,
+	                   Nn   = BCdata->Nn,
+	                   Nel  = BCdata->Nel;
 
-	unsigned int NnTotal = Nn*Nel;
-	const double *WL_ptr[Nvar], *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *X_ptr, *Y_ptr;
+	double const *const        XYZ    = BCdata->XYZ,
+	             *const        WL     = BCdata->WL,
+	             *const *const GradWL = BCdata->GradWL;
+
+	double       *const        WB     = BCdata->WB,
+	             *const *const GradWB = BCdata->GradWB;
+
+
+	unsigned int const NnTotal = Nn*Nel;
+
+	double const *WL_ptr[Nvar], *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *X_ptr, *Y_ptr;
 	double       *WB_ptr[Nvar];
 
 	X_ptr = &XYZ[NnTotal*0];
@@ -638,31 +647,28 @@ void boundary_NoSlip_Dirichlet(const unsigned int Nn, const unsigned int Nel, co
 		rhowL_ptr = WL_ptr[3];
 	} else if (d == 2) {
 		rhowL_ptr = zeros;
+	} else {
+		EXIT_UNSUPPORTED;
 	}
 
 	for (size_t n = 0; n < NnTotal; n++) {
-		unsigned int IndW = 0;
-		double rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL;
+		double const rhoL     = *rhoL_ptr++,
+		             rhoL_inv = 1.0/rhoL,
 
-		rhoL = *rhoL_ptr++;
-		rhoL_inv = 1.0/rhoL;
+		             uL   = (*rhouL_ptr++)*rhoL_inv,
+		             vL   = (*rhovL_ptr++)*rhoL_inv,
+		             wL   = (*rhowL_ptr++)*rhoL_inv,
+		             EL   = *EL_ptr++,
 
-		uL   = (*rhouL_ptr++)*rhoL_inv;
-		vL   = (*rhovL_ptr++)*rhoL_inv;
-		wL   = (*rhowL_ptr++)*rhoL_inv;
-		EL   = *EL_ptr++;
-
-		V2L = uL*uL+vL*vL+wL*wL;
-		pL  = GM1*(EL-0.5*rhoL*V2L);
+		             V2L = uL*uL+vL*vL+wL*wL,
+		             pL  = GM1*(EL-0.5*rhoL*V2L);
 
 		double uB = 0.0, vB = 0.0, wB = 0.0, TB = 0.0;
 		if (strstr(DB.TestCase,"TaylorCouette")) {
-			double X, Y;
-			X = X_ptr[n];
-			Y = Y_ptr[n];
-
-			double t  = atan2(Y,X);
-			double Vt = DB.omega*DB.rIn;
+			double const X  = X_ptr[n],
+			             Y  = Y_ptr[n],
+			             t  = atan2(Y,X),
+			             Vt = DB.omega*DB.rIn;
 			uB = -sin(t)*Vt;
 			vB =  cos(t)*Vt;
 			wB =  0.0;
@@ -672,10 +678,10 @@ void boundary_NoSlip_Dirichlet(const unsigned int Nn, const unsigned int Nel, co
 		}
 
 		// Compute boundary entropy variables
-		double sL, rho_over_p, V[NVAR3D];
-		sL = log(pL/pow(rhoL,GAMMA));
-		rho_over_p = 1.0/(DB.Rg*TB); // Using the ideal gas law
+		double const sL = log(pL/pow(rhoL,GAMMA)),
+		             rho_over_p = 1.0/(DB.Rg*TB); // Using the ideal gas law
 
+		double V[NVAR3D];
 		unsigned int IndV = 0;
 		V[IndV++] =  (GAMMA+1.0-sL)/GM1-EL/pL;
 		V[IndV++] =  rho_over_p*uB;
@@ -684,13 +690,11 @@ void boundary_NoSlip_Dirichlet(const unsigned int Nn, const unsigned int Nel, co
 		V[IndV++] = -rho_over_p;
 
 		// Convert to conservative variables
-		double V2, sB, pB;
+		double const V2 = V[1]*V[1]+V[2]*V[2]+V[3]*V[3], // V2 == (rho/p)^2*(u^2+v^2+w^2)
+		             sB = GAMMA+GM1*(-V[0]+0.5*V2/V[4]),
+		             pB = GM1*(pow(GM1/pow(-GM1*V[4],GAMMA),1.0/GM1)*exp(-sB/GM1));
 
-		V2 = V[1]*V[1]+V[2]*V[2]+V[3]*V[3]; // V2 == (rho/p)^2*(u^2+v^2+w^2)
-
-		sB = GAMMA+GM1*(-V[0]+0.5*V2/V[4]);
-		pB = GM1*(pow(GM1/pow(-GM1*V[4],GAMMA),1.0/GM1)*exp(-sB/GM1));
-
+		unsigned int IndW = 0;
 		*WB_ptr[IndW++] = -pB*V[4];
 		*WB_ptr[IndW++] =  pB*V[1];
 		*WB_ptr[IndW++] =  pB*V[2];
@@ -701,28 +705,44 @@ void boundary_NoSlip_Dirichlet(const unsigned int Nn, const unsigned int Nel, co
 		for (size_t var = 0; var < Nvar; var++)
 			WB_ptr[var]++;
 	}
+
+	// Set QB == QL (if necessary)
+	if (GradWL == NULL)
+		return;
+
+	for (size_t dim = 0; dim < d; dim++) {
+		for (size_t n = 0; n < NnTotal; n++) {
+			GradWB[dim][n] = GradWL[dim][n];
+		}
+	}
 }
 
-// ToBeModified (Use a struct!)
-void boundary_NoSlip_Adiabatic(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *WL,
-                               double *WB, const double *nL, const unsigned int d, const unsigned int Nvar)
+void boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 {
 	/*
 	 *	Comments:
-	 *		This currently only imposes zero velocity on the solution.
-	 *		The additional boundary condition on the temperature gradient must still be imposed. Parsani(2014) discuss
-	 *		the correct method to impose this last boundary condition for the scheme to be entropy stable (See Theorem
-	 *		3.2 and eq. (55)). Investigate (ToBeModified).
+	 *		This imposes three velocity BCs on the solution and the final boundary condition on the solution gradient.
+	 *		Parsani(2014) discusses the correct method to impose this last boundary condition for the scheme to be
+	 *		entropy stable (See Theorem 3.2 and eq. (55)). Investigate (ToBeModified).
 	 *
 	 *	References:
 	 *		Parsani(2014)-Entropy_Stable_Wall_Boundary_Conditions_for_the_Compressible_Navier-Stokes_Equations
 	 */
 
-	// silence
-	if (0) printf("%f %f\n",XYZ[0],nL[0]);
+	unsigned int const d    = BCdata->d,
+	                   Nvar = d+2,
+	                   Nn   = BCdata->Nn,
+	                   Nel  = BCdata->Nel;
 
-	unsigned int NnTotal = Nn*Nel;
-	const double *WL_ptr[Nvar], *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr;
+	double const *const        WL     = BCdata->WL,
+	             *const *const GradWL = BCdata->GradWL;
+
+	double       *const        WB     = BCdata->WB,
+	             *const *const GradWB = BCdata->GradWB;
+
+	unsigned int const NnTotal = Nn*Nel;
+
+	double const *WL_ptr[Nvar], *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr;
 	double       *WB_ptr[Nvar];
 
 	for (size_t var = 0; var < Nvar; var++) {
@@ -743,33 +763,56 @@ void boundary_NoSlip_Adiabatic(const unsigned int Nn, const unsigned int Nel, co
 		rhowL_ptr = WL_ptr[3];
 	} else if (d == 2) {
 		rhowL_ptr = zeros;
+	} else {
+		EXIT_UNSUPPORTED;
 	}
 
 	for (size_t n = 0; n < NnTotal; n++) {
+		double const rhoL     = *rhoL_ptr++,
+		             rhoL_inv = 1.0/rhoL,
+
+		             uL   = (*rhouL_ptr++)*rhoL_inv,
+		             vL   = (*rhovL_ptr++)*rhoL_inv,
+		             wL   = (*rhowL_ptr++)*rhoL_inv,
+		             EL   = *EL_ptr++,
+
+		             V2L = uL*uL+vL*vL+wL*wL,
+		             pL  = GM1*(EL-0.5*rhoL*V2L);
+
+		double uB = 0.0, vB = 0.0, wB = 0.0;
+		if (strstr(DB.TestCase,"TaylorCouette")) {
+			; // Do nothing.
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+
 		unsigned int IndW = 0;
-		double rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL;
-
-		rhoL = *rhoL_ptr++;
-		rhoL_inv = 1.0/rhoL;
-
-		uL   = (*rhouL_ptr++)*rhoL_inv;
-		vL   = (*rhovL_ptr++)*rhoL_inv;
-		wL   = (*rhowL_ptr++)*rhoL_inv;
-		EL   = *EL_ptr++;
-
-		V2L = uL*uL+vL*vL+wL*wL;
-		pL  = GM1*(EL-0.5*rhoL*V2L);
-
 		*WB_ptr[IndW++] = rhoL;
-		*WB_ptr[IndW++] = 0.0;
-		*WB_ptr[IndW++] = 0.0;
+		*WB_ptr[IndW++] = uB;
+		*WB_ptr[IndW++] = vB;
 
 		if (d == 3)
-			*WB_ptr[IndW++] = 0.0;
+			*WB_ptr[IndW++] = wB;
 
 		*WB_ptr[IndW++] = pL/GM1;
 
 		for (size_t var = 0; var < Nvar; var++)
 			WB_ptr[var]++;
+	}
+
+	if (GradWL == NULL)
+		return;
+
+	if (strstr(DB.TestCase,"TaylorCouette")) {
+		// Set QB == QL but set the Energy equation component of the numerical flux to 0. Alternatively, set QB here
+		// such that the computed numerical flux is zero (More expensive and more difficult, but more general).
+		// (ToBeModified)
+		for (size_t dim = 0; dim < d; dim++) {
+			for (size_t n = 0; n < NnTotal; n++) {
+				GradWB[dim][n] = GradWL[dim][n];
+			}
+		}
+	} else {
+		EXIT_UNSUPPORTED;
 	}
 }

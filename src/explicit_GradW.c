@@ -151,6 +151,7 @@ static void explicit_GradW_VOLUME(void)
 	free(DxyzInfo);
 }
 
+/*
 static void boundary_NavierStokes(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *nL,
                                   const double *WL, double *WB, const unsigned int d, const unsigned int Nvar,
                                   const unsigned int BC)
@@ -163,6 +164,7 @@ static void boundary_NavierStokes(const unsigned int Nn, const unsigned int Nel,
 		EXIT_UNSUPPORTED;
 	}
 }
+*/
 
 static void explicit_GradW_FACE(void)
 {
@@ -187,8 +189,8 @@ static void explicit_GradW_FACE(void)
 	struct S_FDATA       *FDATAL, *FDATAR;
 	FDATAL = malloc(sizeof *FDATAL); // free
 	FDATAR = malloc(sizeof *FDATAR); // free
-	FDATAL->OPS = OPSL;
-	FDATAR->OPS = OPSR;
+	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
+	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
 	for (size_t i = 0; i < 2; i++) {
 		OPSL[i]  = malloc(sizeof *OPSL[i]);  // free
@@ -212,7 +214,6 @@ static void explicit_GradW_FACE(void)
 		VfR   = FDATAR->Vf;
 
 		unsigned int Boundary = FACE->Boundary;
-		unsigned int BC       = FACE->BC;
 
 		// Compute WL_fIL
 		double *WL_fIL = malloc(NfnI*Nvar * sizeof *WL_fIL); // free
@@ -224,23 +225,7 @@ static void explicit_GradW_FACE(void)
 		double *n_fI = FACE->n_fI;
 
 		double *WR_fIL = malloc(NfnI*Nvar * sizeof *WR_fIL); // free
-		if (!Boundary) {
-			unsigned int const *nOrdRL = OPSL[FDATAL->IndFType]->nOrdRL;
-
-			// Use reordered operator (as opposed to solution) for ease of linearization.
-			ChiSR_fIL = malloc(NfnI*NvnSR * sizeof *ChiSR_fIL); // free
-
-			double const *ChiS_fI = OPSR[0]->ChiS_fI[VfR];
-			for (size_t i = 0; i < NfnI; i++) {
-			for (size_t j = 0; j < NvnSR; j++) {
-				ChiSR_fIL[i*NvnSR+j] = ChiS_fI[nOrdRL[i]*NvnSR+j];
-			}}
-
-			// Could be performed with sum factorization using a reordering of the sum factorized FACE operator.
-			mm_CTN_d(NfnI,Nvar,NvnSR,ChiSR_fIL,VR->What,WR_fIL);
-		} else {
-			boundary_NavierStokes(NfnI,1,FACE->XYZ_fI,n_fI,WL_fIL,WR_fIL,d,Nvar,BC);
-		}
+		compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
 
 		// Compute normal numerical solution (nWnum_fI == n_fI[dim] (dot) 0.5*(WL_fI+WR_fI))
 		double **nWnum_fI = malloc(d * sizeof *nWnum_fI); // free

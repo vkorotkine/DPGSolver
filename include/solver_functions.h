@@ -30,8 +30,8 @@ struct S_VDATA {
 	unsigned int P, Eclass;
 	double       *W_vI, **Q_vI;
 
-	struct S_OPERATORS_V **OPS;
-	struct S_VOLUME      const* VOLUME;
+	struct S_OPERATORS_V const *const *OPS;
+	struct S_VOLUME      const *VOLUME;
 
 	// Only used for verification of equivalence between real and complex functions.
 	double complex *W_vI_c, **Q_vI_c;
@@ -57,7 +57,7 @@ struct S_OPERATORS_F {
 	unsigned int       NvnS, NfnI;
 	unsigned int const *nOrdLR, *nOrdRL;
 
-	double const *const *ChiS_fI, *const *I_Weak_FF;
+	double const *w_fI, *const *ChiS_fI, *const *I_Weak_FF;
 
 	// Sparse
 	struct S_OpCSR const *const *ChiS_fI_sp, *const *I_Weak_FF_sp;
@@ -69,7 +69,8 @@ struct S_OPERATORS_F {
 
 struct S_NumericalFlux {
 	double const *WL_fIL, *WR_fIL;
-	double       *nFluxNum_fI, *dnFluxNumdWL_fI, *dnFluxNumdWR_fI;
+	double       *nFluxNum_fI,     *dnFluxNumdWL_fI,     *dnFluxNumdWR_fI,
+	             *nFluxViscNum_fI, *dnFluxViscNumdWL_fI, *dnFluxViscNumdWR_fI;
 
 	// Only used for verification of equivalence between real and complex functions.
 	double complex const *WL_fIL_c, *WR_fIL_c;
@@ -80,7 +81,7 @@ struct S_FDATA {
 	unsigned int P, Vf, f, SpOp, Eclass, IndFType;
 	double       *W_fIL, **GradW_fIL;
 
-	struct S_OPERATORS_F **OPS;
+	struct S_OPERATORS_F const *const *OPS;
 	struct S_VOLUME      const *VOLUME;
 	struct S_FACE        const *FACE;
 
@@ -91,13 +92,13 @@ struct S_FDATA {
 };
 
 extern void init_ops_FACE             (struct S_OPERATORS_F *const OPS, struct S_VOLUME const *const VOLUME,
-                                       struct S_FACE const *const FACE, unsigned int const IndClass);
-//extern void init_ops_FACE             (struct S_OPERATORS_F *OPS, const struct S_VOLUME *VOLUME,
- //                                      const struct S_FACE *FACE, const unsigned int IndClass);
-extern void init_FDATA                (struct S_FDATA *FDATA, struct S_FACE *FACE, char const side);
-extern void coef_to_values_fI         (const struct S_FDATA *FDATA, char const coef_type);
-extern void compute_WR_fIL            (const struct S_FDATA *FDATA, const double *WL_fIL, double *WR_fIL);
-extern void compute_GradWR_fIL        (const struct S_FDATA *FDATA, const double *const *const GradWL_fIL,
+                                       struct S_FACE const *const FACE, unsigned int const IndFType);
+extern void init_FDATA                (struct S_FDATA *const FDATA, struct S_FACE const *const FACE, char const side);
+extern void coef_to_values_fI         (struct S_FDATA const *const FDATA, char const coef_type);
+extern void compute_WR_fIL            (struct S_FDATA const *const FDATA, double const *const WL_fIL,
+                                       double *const WR_fIL);
+extern void compute_WR_GradWR_fIL     (struct S_FDATA const *const FDATA, double const *const WL_fIL,
+                                       double *const WR_fIL, double const *const *const GradWL_fIL,
                                        double *const *const GradWR_fIL);
 extern void compute_numerical_flux    (struct S_FDATA const *const FDATA, char const imex_type);
 extern void add_Jacobian_scaling_FACE (struct S_FDATA const *const FDATA, char const imex_type);

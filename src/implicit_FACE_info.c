@@ -44,8 +44,8 @@ static void compute_FACE_EFE(void)
 
 	struct S_FDATA *FDATAL = malloc(sizeof *FDATAL), // free
 	               *FDATAR = malloc(sizeof *FDATAR); // free
-	FDATAL->OPS = OPSL;
-	FDATAR->OPS = OPSR;
+	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
+	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
 	struct S_NumericalFlux *NFluxData = malloc(sizeof *NFluxData); // free
 	FDATAL->NFluxData = NFluxData;
