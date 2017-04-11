@@ -12,6 +12,7 @@
 #include "S_DB.h"
 #include "S_FACE.h"
 
+#include "solver_functions.h"
 #include "solver_functions_c.h"
 
 /*
@@ -42,10 +43,10 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 
 	struct S_FDATA *FDATAL = malloc(sizeof *FDATAL), // free
 	               *FDATAR = malloc(sizeof *FDATAR); // free
-	FDATAL->OPS = OPSL;
-	FDATAR->OPS = OPSR;
+	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
+	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
-	struct S_NumericalFlux *NFluxData = malloc(sizeof *NFluxData); // free
+	struct S_NumericalFlux *const NFluxData = malloc(sizeof *NFluxData); // free
 	FDATAL->NFluxData = NFluxData;
 	FDATAR->NFluxData = NFluxData;
 

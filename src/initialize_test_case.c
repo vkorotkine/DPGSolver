@@ -259,10 +259,11 @@ void initialize_test_case_parameters(void)
 					DB.MInf = 0.5;
 				}
 
-				DB.uInf   = DB.MInf*sqrt(GAMMA*DB.Rg*DB.TInf);
-				DB.vInf   = 1e-1*EPS;
-				DB.wInf   = 1e-1*EPS;
-				DB.VInf   = sqrt(DB.uInf*DB.uInf+DB.vInf*DB.vInf+DB.wInf*DB.wInf);
+				DB.uInf    = DB.MInf*sqrt(GAMMA*DB.Rg*DB.TInf);
+				DB.vInf    = 1e-1*EPS;
+				DB.wInf    = 1e-1*EPS;
+				DB.VInf    = sqrt(DB.uInf*DB.uInf+DB.vInf*DB.vInf+DB.wInf*DB.wInf);
+				DB.PeriodL = 2.0;
 
 				if (strstr(TestCase,"Stationary")) {
 					// Use FinalTime related to moving vortex case.
@@ -270,7 +271,8 @@ void initialize_test_case_parameters(void)
 					DB.FinalTime      = 0.0;
 					printf("Use FinalTime from moving case.\n"), EXIT_MSG;
 				} else {
-					DB.PeriodFraction = 1.0;
+//					DB.PeriodFraction = 1.0;
+					DB.PeriodFraction = 0.1;
 					DB.FinalTime      = DB.PeriodFraction*DB.PeriodL/DB.VInf;
 				}
 			} else {
@@ -604,7 +606,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	             Nvar      = DB.Nvar,
 	             Adapt     = DB.Adapt;
 
-	DB.OutputInterval = 2e2;
+	DB.OutputInterval = 4e3;
 
 	// Standard datatypes
 	unsigned int DOF0 = 0, PolyGradient = 0;
@@ -645,6 +647,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 
 				convert_variables(U,W,3,d,NvnS,1,'p','c');
 				mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,W,What);
+//printf("itc V: %d\n",VOLUME->indexg);
 
 				free(XYZ_vS);
 				free(U);

@@ -333,7 +333,6 @@ if (iteration < 3)
 	}
 
 	// Output to paraview
-//	if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 4 && TestDB.ML <= 4)) {
 	if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal+TestDB.ML) <= 8) {
 		strcpy(fNameOut,"SolFinal_");
 		sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);

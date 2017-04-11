@@ -12,6 +12,8 @@
 #include "Macros.h"
 #include "S_DB.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Provide functions related to exact solutions.

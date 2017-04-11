@@ -14,9 +14,10 @@
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
 
-#include "element_functions.h"
 #include "solver_functions.h"
 #include "solver_functions_c.h"
+
+#include "element_functions.h"
 #include "matrix_functions.h"
 #include "fluxes_inviscid_c.h"
 #include "array_print.h"

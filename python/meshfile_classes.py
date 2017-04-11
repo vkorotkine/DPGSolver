@@ -117,10 +117,11 @@ class TestCase_class:
 			if (self.name.lower().find('test') != -1):
 				self.VarName = 'EULER_TEST'
 
-				MeshCurving     = ['Curved','ToBeCurved','ToBeCurved','ToBeCurved','ToBeCurved','ToBeCurved']
-				MeshTypes       = ['MIXED2D','MIXED2D','MIXED3D_TP','TET','HEX','WEDGE']
+				MeshCurving     = ['Curved','ToBeCurved','ToBeCurved','ToBeCurved','ToBeCurved','ToBeCurved','']
+				MeshTypes       = ['MIXED2D','MIXED2D','MIXED3D_TP','TET','HEX','WEDGE','QUAD']
 				NTotal = len(MeshTypes)
-				MeshTypesPrefix = ['SupersonicVortex_' for i in range(0,NTotal)]
+				MeshTypesPrefix = ['SupersonicVortex_' for i in range(0,6)]
+				MeshTypesPrefix.append('PeriodicVortex_')
 				if   (MeshName.find('all')    != -1):
 					iRange = range(0,NTotal)
 				else:

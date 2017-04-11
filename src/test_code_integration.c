@@ -66,6 +66,8 @@ static void update_TestCase(void)
 	} else if (strstr(DB.TestCase,"Euler")) {
 		if (strstr(DB.TestCase,"SupersonicVortex")) {
 			strcpy(DB.TestCase,"Euler_SupersonicVortex");
+		} else if (strstr(DB.TestCase,"PeriodicVortex")) {
+			strcpy(DB.TestCase,"Euler_PeriodicVortex");
 		} else {
 			EXIT_UNSUPPORTED;
 		}
@@ -233,7 +235,8 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 
 	if (strstr(TestCase,"Poisson")) {
 		NVars = DMAX+1;
-	} else if (strstr(TestCase,"SupersonicVortex")) {
+	} else if (strstr(TestCase,"SupersonicVortex") ||
+	           strstr(TestCase,"PeriodicVortex")) {
 		NVars = DMAX+2+1;
 	} else if (strstr(TestCase,"InviscidChannel") ||
 	           strstr(TestCase,"SubsonicNozzle")) {
@@ -257,6 +260,7 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 			}
 		}
 	} else if (strstr(TestCase,"SupersonicVortex") ||
+	           strstr(TestCase,"PeriodicVortex")  ||
 	           strstr(TestCase,"InviscidChannel")  ||
 	           strstr(TestCase,"SubsonicNozzle")) {
 		for (i = 0; i < NVars; i++) {
@@ -267,6 +271,8 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 				VarsToCheck[i] = 0;
 			}
 		}
+	} else {
+		EXIT_UNSUPPORTED;
 	}
 
 

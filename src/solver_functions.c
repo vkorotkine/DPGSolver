@@ -930,10 +930,10 @@ void compute_numerical_flux(struct S_FDATA const *const FDATA, char const imex_t
 		free(dWRdWL_fIL);
 	}
 }
-
+/*
 void compute_numerical_flux_viscous(struct S_FDATA const *const FDATA, char const imex_type)
 {
-	/*
+	//
 	 *	Purpose:
 	 *		Compute the numerical viscous flux (and its Jacobians wrt to WL and WR if applicable) evaluated at the FACE
 	 *		cubature nodes as seen from the left VOLUME.
@@ -959,7 +959,7 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATA, char cons
 	 *
 	 *	References:
 	 *		Brdar(2012)-Compact_and_Stable_Discontinuous_Galerkin_Methods_for_Convection-Diffusion_Problems
-	 */
+	 //
 
 	if (!(imex_type == 'E' || imex_type == 'I'))
 		EXIT_UNSUPPORTED;
@@ -1091,6 +1091,7 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATA, char cons
 		free(dWRdWL_fIL);
 	}
 }
+*/
 
 void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const imex_type)
 {

@@ -200,6 +200,7 @@ int main(int nargc, char **argv)
 
 #include <stdio.h>
 #include <time.h>
+#include <stdbool.h>
 
 #include "petscsys.h"
 
@@ -315,6 +316,8 @@ int main(int nargc, char **argv)
 		test_integration_linearization(nargc,argv);
 		test_integration_Poisson(nargc,argv);
 	}
+bool PeriodicVortexOnly = 1;
+if (!PeriodicVortexOnly)
 	test_integration_linearization(nargc,argv);
 	test_integration_Euler(nargc,argv);
 //	test_integration_NavierStokes(nargc,argv);

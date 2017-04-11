@@ -263,6 +263,15 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 		} else {
 			EXIT_UNSUPPORTED;
 		}
+	} else if (strstr(PDE,"Euler")) {
+		if (strstr(TestCase,"PeriodicVortex")) {
+			printf("Using default value for timestepping parameters.\n");
+			data->dt         = 1e-3; // Selected for stability of P3 ML5 (where ML0 has 4 QUADs)
+			data->exit_tol   = EPS;
+			data->exit_ratio = 1.0/EPS;
+		} else {
+			EXIT_UNSUPPORTED;
+		}
 	} else {
 		EXIT_UNSUPPORTED;
 	}
@@ -506,6 +515,27 @@ void solver_explicit(void)
 			adapt_hp();
 
 		tstep++;
+	}
+
+	// Output to paraview
+	if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal+TestDB.ML) <= 8) {
+		char *fNameOut = malloc(STRLEN_MAX * sizeof *fNameOut), // free
+		     *string   = malloc(STRLEN_MAX * sizeof *string);   // free
+
+		strcpy(fNameOut,"SolFinal_");
+		sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
+		                               strcat(fNameOut,DB.MeshType);
+		if (DB.Adapt == ADAPT_0) {
+			sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
+			sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
+		} else {
+			sprintf(string,"_ML%d",TestDB.ML); strcat(fNameOut,string);
+			sprintf(string,"P%d_",TestDB.PGlobal); strcat(fNameOut,string);
+		}
+		output_to_paraview(fNameOut);
+
+		free(fNameOut);
+		free(string);
 	}
 
 	for (i = 0; i < 2; i++)

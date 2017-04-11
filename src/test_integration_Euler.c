@@ -14,6 +14,7 @@
 
 #include "test_code_integration.h"
 #include "test_support.h"
+
 #include "adaptation.h"
 #include "output_to_paraview.h"
 #include "explicit_VOLUME_info.h"
@@ -23,9 +24,11 @@
 #include "solver_explicit.h"
 #include "solver_implicit.h"
 #include "compute_errors.h"
-#include "array_free.h"
 #include "test_integration_Poisson.h"
 #include "element_functions.h"
+#include "initialize_test_case.h"
+
+#include "array_free.h"
 #include "array_norm.h"
 #include "array_free.h"
 #include "array_print.h"
@@ -51,7 +54,7 @@ struct S_equivalence {
 };
 
 struct S_convorder {
-	bool         PrintEnabled, SolveExplicit, AdaptiveRefine, TestTRI;
+	bool         PrintEnabled, SolveExplicit, SolveImplicit, AdaptiveRefine, TestTRI;
 	unsigned int PMin, PMax, MLMin, MLMax, Adapt, PG_add, IntOrder_add, IntOrder_mult;
 	char         **argvNew, *PrintName;
 };
@@ -78,7 +81,7 @@ void h_adapt_test(void)
 	if (TestDB.ML > 0)
 		printf("Error: Only enter for ML == 0.\n"), EXIT_MSG;
 
-	if (strstr(Geometry,"n-Cylinder")) {
+	if (strstr(Geometry,"n-Cylinder") || strstr(Geometry,"n-Cube")) {
 		Nref = 0;
 	} else if (strstr(Geometry,"JoukowskiSymmetric")) {
 		double a  = DB.JSa,
@@ -402,6 +405,7 @@ static void set_test_convorder_data(struct S_convorder *data, const char *TestNa
 	// default values
 	data->PrintEnabled   = 1;
 	data->SolveExplicit  = 1;
+	data->SolveImplicit  = 1;
 	data->AdaptiveRefine = 1;
 	data->Adapt = ADAPT_HP;
 
@@ -455,6 +459,20 @@ static void set_test_convorder_data(struct S_convorder *data, const char *TestNa
 		} else {
 			EXIT_UNSUPPORTED;
 		}
+	} else if (strstr(TestName,"n-Cube")) {
+		data->SolveImplicit = 0;
+		if (strstr(TestName,"Curved")) {
+			EXIT_UNSUPPORTED;
+		} else {
+			if (strstr(TestName,"QUAD")) {
+				data->PMin = 1;
+				data->PMax = 3;
+				data->MLMax = 5;
+				strcpy(data->argvNew[1],"test/Euler/Test_Euler_PeriodicVortex_QUAD");
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		}
 	} else {
 		EXIT_UNSUPPORTED;
 	}
@@ -464,7 +482,7 @@ static void test_convorder(int nargc, char **argvNew, const char *TestName, stru
 {
 	unsigned int pass = 0;
 
-	bool         PrintEnabled, SolveExplicit, AdaptiveRefine;
+	bool         PrintEnabled, SolveExplicit, SolveImplicit, AdaptiveRefine;
 	unsigned int Adapt, PMin, PMax, MLMin, MLMax;
 	double       *mesh_quality;
 
@@ -472,6 +490,7 @@ static void test_convorder(int nargc, char **argvNew, const char *TestName, stru
 
 	PrintEnabled   = data->PrintEnabled;
 	SolveExplicit  = data->SolveExplicit;
+	SolveImplicit  = data->SolveImplicit;
 	AdaptiveRefine = data->AdaptiveRefine;
 	Adapt          = data->Adapt;
 
@@ -504,6 +523,10 @@ static void test_convorder(int nargc, char **argvNew, const char *TestName, stru
 				mesh_h_adapt(1,'r');
 			}
 			mesh_to_order(P);
+
+			if (!SolveImplicit)
+				initialize_test_case(0);
+
 		} else {
 			code_startup(nargc,argvNew,0,1);
 		}
@@ -517,7 +540,9 @@ static void test_convorder(int nargc, char **argvNew, const char *TestName, stru
 
 		if (SolveExplicit)
 			solver_explicit();
-		solver_implicit(PrintEnabled);
+
+		if (SolveImplicit)
+			solver_implicit(PrintEnabled);
 
 		compute_errors_global();
 
@@ -546,6 +571,7 @@ static void test_convorder(int nargc, char **argvNew, const char *TestName, stru
 
 void test_integration_Euler(int nargc, char **argv)
 {
+	bool PeriodicVortexOnly = 1;
 	char **argvNew, *PrintName;
 
 	argvNew    = malloc(2          * sizeof *argvNew);  // free
@@ -576,6 +602,7 @@ void test_integration_Euler(int nargc, char **argv)
 	data_rc->argvNew   = argvNew;
 	data_rc->PrintName = PrintName;
 
+if (!PeriodicVortexOnly)
 	test_equivalence_rc(nargc,argvNew,"n-Cylinder_HollowSection_CurvedMIXED2D",data_rc);
 
 	free(data_rc);
@@ -589,6 +616,7 @@ void test_integration_Euler(int nargc, char **argv)
 	data_alg->argvNew   = argvNew;
 	data_alg->PrintName = PrintName;
 
+if (!PeriodicVortexOnly)
 	test_equivalence_alg(nargc,argvNew,"n-Cylinder_HollowSection_CurvedMIXED2D",data_alg);
 
 	printf("\nWarning: Equivalence of WEDGE sum factorized computation is currently not being checked.\n\n");
@@ -606,6 +634,7 @@ void test_integration_Euler(int nargc, char **argv)
 	data_c->argvNew   = argvNew;
 	data_c->PrintName = PrintName;
 
+if (!PeriodicVortexOnly)
 	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_CurvedMIXED2D",data_c);
 //	test_convorder(nargc,argvNew,"n-Cylinder_HollowSection_ToBeCurvedMIXED2D",data_c);
 
@@ -618,7 +647,9 @@ if (test_3D) {
 	printf("\nWarning: 3D SupersonicVortex testing is currently disabled.\n\n"); TestDB.Nwarnings++;
 }
 
-	printf("\n\nWarning: ***Add integration tests for PeriodicVortex case (Stationary and moving).***\n\n");
+	test_convorder(nargc,argvNew,"n-Cube_QUAD",data_c);
+
+	printf("\n\nWarning: ***Add all integration tests for PeriodicVortex case (Stationary and moving).***\n\n");
 	TestDB.Nwarnings++;
 
 	array_free2_c(2,argvNew);
