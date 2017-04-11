@@ -319,8 +319,8 @@ int main(int nargc, char **argv)
 bool PeriodicVortexOnly = 1;
 if (!PeriodicVortexOnly)
 	test_integration_linearization(nargc,argv);
-	test_integration_Euler(nargc,argv);
-//	test_integration_NavierStokes(nargc,argv);
+//	test_integration_Euler(nargc,argv);
+	test_integration_NavierStokes(nargc,argv);
 
 	PetscFinalize();
 

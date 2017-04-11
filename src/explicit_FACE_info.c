@@ -62,7 +62,6 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 	                   Neq  = DB.Neq;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
-	struct S_FACE     *FACE;
 
 	struct S_FDATA *const FDATAL = malloc(sizeof *FDATAL), // free
 	               *const FDATAR = malloc(sizeof *FDATAR); // free
@@ -79,7 +78,7 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 	}
 
 	if (strstr(DB.Form,"Weak")) {
-		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
 			init_FDATA(FDATAL,FACE,'L');
 			init_FDATA(FDATAR,FACE,'R');
 
@@ -100,7 +99,7 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 			NFluxData->nFluxNum_fI = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxNum_fI)); // free
 
 			compute_numerical_flux(FDATAL,'E');
-			add_Jacobian_scaling_FACE(FDATAL,'E');
+			add_Jacobian_scaling_FACE(FDATAL,'E','W');
 
 			free(FDATAL->W_fIL);
 			free(FDATAR->W_fIL);
@@ -202,7 +201,7 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 			NFluxData->WR_fIL          = FDATAR->W_fIL;
 			NFluxData->nFluxViscNum_fI = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxViscNum_fI)); // free
 
-//			compute_numerical_flux_viscous(FDATAL,'E');
+			compute_numerical_flux_viscous(FDATAL,FDATAR,'E');
 //			add_Jacobian_scaling_FACE(FDATAL,'E');
 
 			// Compute FACE RHS terms

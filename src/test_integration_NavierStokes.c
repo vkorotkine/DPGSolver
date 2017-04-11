@@ -39,7 +39,7 @@
  */
 
 struct S_convorder {
-	bool         PrintEnabled, SolveExplicit, AdaptiveRefine, TestTRI;
+	bool         PrintEnabled, SolveExplicit, SolveImplicit, AdaptiveRefine, TestTRI;
 	unsigned int PMin, PMax, MLMin, MLMax, Adapt, PG_add, IntOrder_add, IntOrder_mult;
 	char         **argvNew, *PrintName;
 };
@@ -50,6 +50,7 @@ static void set_test_convorder_data(struct S_convorder *data, const char *TestNa
 	// default values
 	data->PrintEnabled   = 1;
 	data->SolveExplicit  = 1;
+	data->SolveImplicit  = 1;
 	data->AdaptiveRefine = 1;
 	data->Adapt = ADAPT_HP;
 
@@ -64,7 +65,7 @@ static void set_test_convorder_data(struct S_convorder *data, const char *TestNa
 
 
 	if (strstr(TestName,"n-Cylinder_Hollow")) {
-//		data->SolveExplicit = 0;
+		data->SolveImplicit = 0;
 		if (strstr(TestName,"ToBeCurved")) {
 			if (strstr(TestName,"TRI")) {
 				data->PrintEnabled = 1;
@@ -89,7 +90,7 @@ void test_convorder(int nargc, char **argvNew, const char *TestName, struct S_co
 
 	unsigned int pass = 0;
 
-	bool         PrintEnabled, SolveExplicit, AdaptiveRefine;
+	bool         PrintEnabled, SolveExplicit, SolveImplicit, AdaptiveRefine;
 	unsigned int Adapt, PMin, PMax, MLMin, MLMax;
 	double       *mesh_quality;
 
@@ -97,6 +98,7 @@ void test_convorder(int nargc, char **argvNew, const char *TestName, struct S_co
 
 	PrintEnabled   = data->PrintEnabled;
 	SolveExplicit  = data->SolveExplicit;
+	SolveImplicit  = data->SolveImplicit;
 	AdaptiveRefine = data->AdaptiveRefine;
 	Adapt          = data->Adapt;
 
@@ -142,7 +144,9 @@ void test_convorder(int nargc, char **argvNew, const char *TestName, struct S_co
 
 		if (SolveExplicit)
 			solver_explicit();
-		solver_implicit(PrintEnabled);
+
+		if (SolveImplicit)
+			solver_implicit(PrintEnabled);
 
 		compute_errors_global();
 

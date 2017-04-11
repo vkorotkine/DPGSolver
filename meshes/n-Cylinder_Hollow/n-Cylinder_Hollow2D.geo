@@ -93,8 +93,8 @@ EndIf
 BC_Curved   = 2*BC_STEP_SC;
 
 If (PDEName == NAVIERSTOKES)
-	// Use: BC_EXACT and BC_NOSLIP_ADIABATIC
-	Physical Line (BC_Curved+BC_DIRICHLET)        = {1001:1004};
+	// Use: BC_NOSLIP_T ((T)emperature) and BC_NOSLIP_ADIABATIC
+	Physical Line (BC_Curved+BC_NOSLIP_T)         = {1001:1004};
 	Physical Line (BC_Curved+BC_NOSLIP_ADIABATIC) = {1005:1008};
 EndIf
 

@@ -16,7 +16,7 @@ struct S_FACE {
 
 	// Solving
 	unsigned int Boundary;
-	double       *RHSIn, *RHSOut, *LHSInIn, *LHSOutIn, *LHSInOut, *LHSOutOut;
+	double       *RHSIn, *RHSOut, *LHSInIn, *LHSOutIn, *LHSInOut, *LHSOutOut, **Qhat_WhatRL, **Qhat_WhatLR;
 
 	// Poisson
 	double **qhatIn, **qhatOut, **qhat_uhatInIn, **qhat_uhatOutIn, **qhat_uhatInOut, **qhat_uhatOutOut;

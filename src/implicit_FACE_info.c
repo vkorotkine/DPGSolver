@@ -79,7 +79,7 @@ static void compute_FACE_EFE(void)
 			NFluxData->dnFluxNumdWR_fI = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxNumdWR_fI)); // free
 
 			compute_numerical_flux(FDATAL,'I');
-			add_Jacobian_scaling_FACE(FDATAL,'I');
+			add_Jacobian_scaling_FACE(FDATAL,'I','W');
 
 			free(FDATAL->W_fIL);
 			free(FDATAR->W_fIL);

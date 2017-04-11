@@ -70,6 +70,7 @@ struct S_OPERATORS_F {
 struct S_NumericalFlux {
 	double const *WL_fIL, *WR_fIL;
 	double       *nFluxNum_fI,     *dnFluxNumdWL_fI,     *dnFluxNumdWR_fI,
+	             **nSolNum_fI,     **dnSolNumdWL_fI,     **dnSolNumdWR_fI,
 	             *nFluxViscNum_fI, *dnFluxViscNumdWL_fI, *dnFluxViscNumdWR_fI;
 
 	// Only used for verification of equivalence between real and complex functions.
@@ -100,10 +101,16 @@ extern void compute_WR_fIL            (struct S_FDATA const *const FDATA, double
 extern void compute_WR_GradWR_fIL     (struct S_FDATA const *const FDATA, double const *const WL_fIL,
                                        double *const WR_fIL, double const *const *const GradWL_fIL,
                                        double *const *const GradWR_fIL);
-extern void compute_numerical_flux    (struct S_FDATA const *const FDATA, char const imex_type);
-extern void add_Jacobian_scaling_FACE (struct S_FDATA const *const FDATA, char const imex_type);
+
+extern void compute_numerical_flux         (struct S_FDATA const *const FDATA, char const imex_type);
+extern void compute_numerical_solution     (struct S_FDATA const *const FDATA, char const imex_type);
+extern void compute_numerical_flux_viscous (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
+                                            char const imex_type);
+extern void add_Jacobian_scaling_FACE (struct S_FDATA const *const FDATA, char const imex_type, char const coef_type);
 
 extern void finalize_FACE_Inviscid_Weak (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
+                                         char const side, char const imex_type);
+extern void finalize_QhatF_Weak         (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
                                          char const side, char const imex_type);
 
 #endif // DPG__solver_functions_h__INCLUDED

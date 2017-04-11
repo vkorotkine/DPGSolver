@@ -197,7 +197,6 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 	free(VDATA);
 	for (size_t i = 0; i < 2; i++)
 		free(OPS[i]);
-	EXIT_BASIC;
 }
 
 

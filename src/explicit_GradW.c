@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "Macros.h"
 #include "Parameters.h"
@@ -88,6 +89,8 @@ static void explicit_GradW_VOLUME(void)
 	 *
 	 *	Comments:
 	 *		This is an intermediate contribution because the multiplication by MInv is not included.
+	 *		The contribution from this function is stored in QhatV as the local contribution is required for the
+	 *		numerical flux in the second equation of the mixed form.
 	 *		It is currently hard-coded that GradW is of the same order as the solution.
 	 *		Note, if Collocation is enable, that D_Weak includes the inverse cubature weights.
 	 *
@@ -96,75 +99,64 @@ static void explicit_GradW_VOLUME(void)
 	 */
 
 	// Initialize DB Parameters
-	unsigned int d          = DB.d,
-	             Neq        = DB.Neq,
-	             Collocated = DB.Collocated;
+	unsigned int d    = DB.d,
+	             Nvar = d+2;
 
 	// Standard datatypes
-	struct S_OPERATORS_V *OPS;
-	struct S_Dxyz        *DxyzInfo;
+	struct S_OPERATORS_V *OPS[2];
 
-	OPS      = malloc(sizeof *OPS);      // free
-	DxyzInfo = malloc(sizeof *DxyzInfo); // free
+	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
+	VDATA->OPS = (struct S_OPERATORS_V const *const *) OPS;
 
-	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		unsigned int NvnS, NvnI;
-		double       **DxyzChiS;
+	for (size_t i = 0; i < 2; i++)
+		OPS[i] = malloc(sizeof *OPS[i]); // free
 
-		init_ops_VOLUME(OPS,VOLUME,0);
-//		init_ops_VOLUME(OPS[0],VOLUME,0);
-//		if (VOLUME->type == WEDGE)
-//			init_ops_VOLUME(OPS[1],VOLUME,1);
+	struct S_Dxyz *const DxyzInfo = malloc(sizeof *DxyzInfo); // free
 
-		NvnS = OPS->NvnS;
-		NvnI = OPS->NvnI;
+	if (strstr(DB.Form,"Weak")) {
+		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			init_VDATA(VDATA,VOLUME);
 
-		DxyzInfo->Nbf = OPS->NvnS;
-		DxyzInfo->Nn  = OPS->NvnI;
-		DxyzInfo->D   = (double const *const *const) OPS->D_Weak;
-		DxyzInfo->C   = VOLUME->C_vI;
+			unsigned int const NvnS = VDATA->OPS[0]->NvnS,
+			                   NvnI = VDATA->OPS[0]->NvnI;
 
-		double const *const ChiS_vI = OPS->ChiS_vI;
+			DxyzInfo->Nbf = VDATA->OPS[0]->NvnS;
+			DxyzInfo->Nn  = VDATA->OPS[0]->NvnI;
+			DxyzInfo->D   = (double const *const *const) VDATA->OPS[0]->D_Weak;
+			DxyzInfo->C   = VOLUME->C_vI;
 
-		DxyzChiS = VOLUME->DxyzChiS;
-		for (size_t dim = 0; dim < d; dim++) {
-			double *Dxyz;
+			double const *const        ChiS_vI  = VDATA->OPS[0]->ChiS_vI;
+			double       *      *const DxyzChiS = VOLUME->DxyzChiS;
+			for (size_t dim = 0; dim < d; dim++) {
+				DxyzInfo->dim = dim;
+				double *const Dxyz = compute_Dxyz(DxyzInfo,d); // free
 
-			DxyzInfo->dim = dim;
-			Dxyz = compute_Dxyz(DxyzInfo,d); // free/keep
+				// Note: The detJ_vI term cancels with the gradient operator (Zwanenburg(2016), eq. (B.2))
+				if (DB.Collocated) { // ChiS_vI == I
+					DxyzChiS[dim] = Dxyz;
+				} else {
+					DxyzChiS[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // free
+					free(Dxyz);
+				}
 
-			// Note: The detJ_vI term cancels with the gradient operator (Zwanenburg(2016), eq. (B.2))
-			if (Collocated) { // ChiS_vI == I
-				DxyzChiS[dim] = Dxyz;
-			} else {
-				DxyzChiS[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // keep
-				free(Dxyz);
+				// Compute intermediate (see comments) Qhat contribution
+				VOLUME->Qhat[dim]  = calloc(NvnS*Nvar , sizeof *(VOLUME->Qhat[dim]));  // keep (used below)
+				VOLUME->QhatV[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV[dim])); // keep
+				mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,DxyzChiS[dim],VOLUME->What,VOLUME->QhatV[dim]);
+
+				// Need to store DxyzChiS for implicit runs. (ToBeDeleted)
+				free(DxyzChiS[dim]);
 			}
-// Might not need to store DxyzChiS for explicit (ToBeDeleted)
-
-			// Compute intermediate (see comments) Qhat contribution
-			VOLUME->Qhat[dim] = mm_Alloc_d(CBCM,CBT,CBNT,NvnS,Neq,NvnS,1.0,DxyzChiS[dim],VOLUME->What); // keep
 		}
-	}
-
-	free(OPS);
-	free(DxyzInfo);
-}
-
-/*
-static void boundary_NavierStokes(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *nL,
-                                  const double *WL, double *WB, const unsigned int d, const unsigned int Nvar,
-                                  const unsigned int BC)
-{
-	if (BC % BC_STEP_SC == BC_DIRICHLET) {
-		boundary_NoSlip_Dirichlet(Nn,Nel,XYZ,WL,WB,nL,d,Nvar);
-	} else if (BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC) {
-		boundary_NoSlip_Adiabatic(Nn,Nel,XYZ,WL,WB,nL,d,Nvar);
-	} else {
+	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;
 	}
+
+	free(VDATA);
+	for (size_t i = 0; i < 2; i++)
+		free(OPS[i]);
+	free(DxyzInfo);
 }
-*/
 
 static void explicit_GradW_FACE(void)
 {
@@ -173,7 +165,7 @@ static void explicit_GradW_FACE(void)
 	 *		Compute intermediate FACE contribution to Qhat.
 	 *
 	 *	Comments:
-	 *		L/R is used in place of In/Out (the previous convention).
+	 *		L/R is used in place of In/Out (the previous convention). (ToBeDeleted)
 	 *		This is an intermediate contribution because the multiplication by MInv is not included.
 	 *		It is currently hard-coded that GradW is of the same order as the solution and that a central numerical flux
 	 *		is used.
@@ -182,100 +174,71 @@ static void explicit_GradW_FACE(void)
 
 	// Initialize DB Parameters
 	unsigned int d    = DB.d,
-	             Nvar = DB.Nvar;
+	             Nvar = d+2,
+	             Neq  = d+2;
 
 	// Standard datatypes
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
-	struct S_FDATA       *FDATAL, *FDATAR;
-	FDATAL = malloc(sizeof *FDATAL); // free
-	FDATAR = malloc(sizeof *FDATAR); // free
+	struct S_FDATA       *FDATAL = malloc(sizeof *FDATAL), // free
+	                     *FDATAR = malloc(sizeof *FDATAR); // free
 	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
 	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
+
+	struct S_NumericalFlux *const NFluxData = malloc(sizeof *NFluxData); // free
+	FDATAL->NFluxData = NFluxData;
+	FDATAR->NFluxData = NFluxData;
 
 	for (size_t i = 0; i < 2; i++) {
 		OPSL[i]  = malloc(sizeof *OPSL[i]);  // free
 		OPSR[i]  = malloc(sizeof *OPSR[i]);  // free
 	}
 
-	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
-		// Load required FACE operators (Left and Right FACEs)
-		init_FDATA(FDATAL,FACE,'L');
-		init_FDATA(FDATAR,FACE,'R');
+	if (strstr(DB.Form,"Weak")) {
+		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+			init_FDATA(FDATAL,FACE,'L');
+			init_FDATA(FDATAR,FACE,'R');
 
-		struct S_VOLUME const *const VL = FDATAL->VOLUME,
-		                      *const VR = FDATAR->VOLUME;
+			// Compute WL_fIL and WR_fIL (i.e. as seen from the (L)eft VOLUME)
+			unsigned int const IndFType = FDATAL->IndFType,
+			                   NfnI     = OPSL[IndFType]->NfnI;
 
-		unsigned int NfnI, NvnSL, NvnSR, VfL, VfR;
-		NfnI  = OPSL[0]->NfnI;
-		NvnSL = OPSL[0]->NvnS;
-		NvnSR = OPSR[0]->NvnS;
+			FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
+			FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
 
-		VfL   = FDATAL->Vf;
-		VfR   = FDATAR->Vf;
+			coef_to_values_fI(FDATAL,'W');
+			compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
 
-		unsigned int Boundary = FACE->Boundary;
+			// Compute numerical flux as seen from the left VOLUME
+			NFluxData->WL_fIL     = FDATAL->W_fIL;
+			NFluxData->WR_fIL     = FDATAR->W_fIL;
+			NFluxData->nSolNum_fI = malloc(d * sizeof *(NFluxData->nSolNum_fI)); // free
+			for (size_t dim = 0; dim < d; dim++)
+				NFluxData->nSolNum_fI[dim] = malloc(NfnI*Neq * sizeof *(NFluxData->nSolNum_fI[dim])); // free
 
-		// Compute WL_fIL
-		double *WL_fIL = malloc(NfnI*Nvar * sizeof *WL_fIL); // free
-		FDATAL->W_fIL = WL_fIL;
-		coef_to_values_fI(FDATAL,'W');
+			compute_numerical_solution(FDATAL,'E');
+			add_Jacobian_scaling_FACE(FDATAL,'E','Q');
 
-		// Compute WR_fIL (Taking BCs into account if applicable)
-		double *ChiSR_fIL = NULL;
-		double *n_fI = FACE->n_fI;
+			free(FDATAL->W_fIL);
+			free(FDATAR->W_fIL);
 
-		double *WR_fIL = malloc(NfnI*Nvar * sizeof *WR_fIL); // free
-		compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
+			// Memory allocated for VL/VR->Qhat was performed in explicit_GradW_VOLUME.
+			// For the implicit version of the implementation, memory must be allocated for the off-diagonal linearized
+			// terms (ToBeDeleted). The diagonal terms can be stored directly in the VOLUME memory.
+			finalize_QhatF_Weak(FDATAL,FDATAR,'L','E');
+			if (!FACE->Boundary)
+				finalize_QhatF_Weak(FDATAL,FDATAR,'R','E');
 
-		// Compute normal numerical solution (nWnum_fI == n_fI[dim] (dot) 0.5*(WL_fI+WR_fI))
-		double **nWnum_fI = malloc(d * sizeof *nWnum_fI); // free
-		for (size_t dim = 0; dim < d; dim++)
-			nWnum_fI[dim] = malloc(NfnI*Nvar * sizeof *nWnum_fI[dim]); // free
-
-		for (size_t dim = 0; dim < d; dim++) {
-		for (size_t var = 0; var < Nvar; var++) {
-		for (size_t n = 0; n < NfnI; n++) {
-			nWnum_fI[dim][var*NfnI+n] = n_fI[dim*NfnI+n]*0.5*(WL_fIL[var*NfnI+n]+WR_fIL[var*NfnI+n]);
-		}}}
-		free(WL_fIL);
-		free(WR_fIL);
-
-		// Add in FACE Jacobian determinant term
-		double *detJF_fI = FACE->detJF_fI;
-
-		double **JnWnum_fI = nWnum_fI;
-		for (size_t dim = 0; dim < d; dim++) {
-		for (size_t var = 0; var < Nvar; var++) {
-		for (size_t n = 0; n < NfnI; n++) {
-			JnWnum_fI[dim][n+var*NfnI] *= detJF_fI[n];
-		}}}
-
-		// Compute intermediate Qhat contributions
-
-		// Interior VOLUME
-		for (size_t dim = 0; dim < d; dim++) {
-			// Note that there is a minus sign included in the definition of I_Weak_FF.
-			mm_d(CBCM,CBT,CBNT,NvnSL,Nvar,NfnI,-1.0,1.0,OPSL[0]->I_Weak_FF[VfL],JnWnum_fI[dim],VL->Qhat[dim]);
+			array_free2_d(d,NFluxData->nSolNum_fI);
 		}
-
-		// Exterior VOLUME
-		if (!Boundary) {
-			unsigned int const *nOrdLR = OPSL[FDATAL->IndFType]->nOrdLR;
-			for (size_t dim = 0; dim < d; dim++) {
-				array_rearrange_d(NfnI,Nvar,nOrdLR,'C',JnWnum_fI[dim]);
-
-				// minus sign from using negative normal for the opposite VOLUME cancels with minus sign in I_Weak_FF.
-				mm_d(CBCM,CBT,CBNT,NvnSR,Nvar,NfnI,1.0,1.0,OPSR[0]->I_Weak_FF[VfR],nWnum_fI[dim],VR->Qhat[dim]);
-			}
-			free(ChiSR_fIL);
-		}
-		array_free2_d(d,nWnum_fI);
+	} else if (strstr(DB.Form,"Strong")) {
+		EXIT_UNSUPPORTED;
 	}
 
 	for (size_t i = 0; i < 2; i++) {
 		free(OPSL[i]);
 		free(OPSR[i]);
 	}
+	free(NFluxData);
 	free(FDATAL);
 	free(FDATAR);
 }
@@ -284,44 +247,56 @@ static void explicit_GradW_finalize(void)
 {
 	/*
 	 *	Purpose:
-	 *		Add in inverse mass matrix contribution to VOLUME->Qhat.
+	 *		Add in inverse mass matrix contribution to VOLUME->Qhat, VOLUME->QhatV.
 	 *
 	 *	Comments:
-	 *		The FACE contribution were included direcly in VL/VR->Qhat.
+	 *		The FACE contribution were included direcly in VL/VR->Qhat while the VOLUME contributions were stored in
+	 *		QhatV. The two are now summed in VL/VR->Qhat and QhatV is retained for use in the numerical flux for the
+	 *		second equation of the mixed formulation.
 	 *		If Collocation is enable, only the inverse Jacobian determinant is missing.
-	 *
 	 */
 
-	unsigned int d          = DB.d,
-	             Nvar       = DB.Nvar,
-	             Collocated = DB.Collocated;
+	unsigned int const d    = DB.d,
+	                   Nvar = d+2;
 
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		unsigned int NvnS = VOLUME->NvnS;
-		double       *Qhat;
+		unsigned int const NvnS = VOLUME->NvnS;
 
-		if (Collocated) {
-			double *detJV_vI = VOLUME->detJV_vI;
+		if (DB.Collocated) {
+			double const *const detJV_vI = VOLUME->detJV_vI;
 
+			double       *const *const QhatV = VOLUME->QhatV,
+			             *const *const Qhat  = VOLUME->Qhat;
 			for (size_t dim = 0; dim < d; dim++) {
-				Qhat = VOLUME->Qhat[dim];
 				for (size_t var = 0; var < Nvar; var++) {
 				for (size_t n = 0; n < NvnS; n++) {
-					Qhat[var*NvnS+n] /= detJV_vI[n];
+					QhatV[dim][var*NvnS+n] /= detJV_vI[n];
+					Qhat[dim][var*NvnS+n]  /= detJV_vI[n];
+					Qhat[dim][var*NvnS+n]  += QhatV[dim][var*NvnS+n];
 				}}
 			}
 		} else {
+			double **const QhatV = VOLUME->QhatV,
+			       **const Qhat  = VOLUME->Qhat;
 
 			if (VOLUME->MInv == NULL)
 				compute_inverse_mass(VOLUME);
 
+			double *Qhat_tmp = malloc(NvnS*Nvar * sizeof *Qhat_tmp); // free
 			for (size_t dim = 0; dim < d; dim++) {
-				Qhat = malloc(NvnS*Nvar * sizeof *Qhat); // keep (free previously stored Qhat)
+				mm_CTN_d(NvnS,Nvar,NvnS,VOLUME->MInv,QhatV[dim],Qhat_tmp);
+				for (size_t var = 0; var < Nvar; var++) {
+				for (size_t n = 0; n < NvnS; n++) {
+					QhatV[dim][var*NvnS+n] = Qhat_tmp[var*NvnS+n];
+				}}
 
-				mm_CTN_d(NvnS,Nvar,NvnS,VOLUME->MInv,VOLUME->Qhat[dim],Qhat);
-				free(VOLUME->Qhat[dim]);
-				VOLUME->Qhat[dim] = Qhat;
+				mm_CTN_d(NvnS,Nvar,NvnS,VOLUME->MInv,Qhat[dim],Qhat_tmp);
+				for (size_t var = 0; var < Nvar; var++) {
+				for (size_t n = 0; n < NvnS; n++) {
+					Qhat[dim][var*NvnS+n] = Qhat_tmp[var*NvnS+n] + QhatV[dim][var*NvnS+n];
+				}}
 			}
+			free(Qhat_tmp);
 		}
 	}
 }

@@ -573,7 +573,11 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->NvnS = UINT_MAX;
 	VOLUME->What = NULL; // free
 	VOLUME->RES  = NULL; // free
-	VOLUME->Qhat = calloc(d , sizeof *(VOLUME->Qhat)); // free
+	VOLUME->QhatV = calloc(d , sizeof *(VOLUME->QhatV)); // free
+	VOLUME->Qhat  = calloc(d , sizeof *(VOLUME->Qhat));  // free
+
+	VOLUME->QhatV_What = calloc(d , sizeof *(VOLUME->QhatV_What)); // free
+	VOLUME->Qhat_What  = calloc(d , sizeof *(VOLUME->Qhat_What));  // free
 
 	// Solving
 	VOLUME->IndA  = UINT_MAX;
@@ -666,6 +670,9 @@ struct S_FACE *New_FACE(void)
 	FACE->LHSOutIn  = NULL; // free (in finalize_LHS)
 	FACE->LHSInOut  = NULL; // free (in finalize_LHS)
 	FACE->LHSOutOut = NULL; // free (in finalize_LHS)
+
+	FACE->Qhat_WhatRL = calloc(d , sizeof *(FACE->Qhat_WhatRL)); // free
+	FACE->Qhat_WhatLR = calloc(d , sizeof *(FACE->Qhat_WhatLR)); // free
 
 	// Poisson
 	FACE->qhatIn  = calloc(d , sizeof *(FACE->qhatIn));  // free

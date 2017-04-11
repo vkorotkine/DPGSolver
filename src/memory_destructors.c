@@ -259,7 +259,10 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	// Initialization
 	free(VOLUME->What);
 	free(VOLUME->RES);
+	array_free2_d(d,VOLUME->QhatV);
 	array_free2_d(d,VOLUME->Qhat);
+	array_free2_d(d,VOLUME->QhatV_What);
+	array_free2_d(d,VOLUME->Qhat_What);
 
 	// Solving
 	free(VOLUME->RHS);
@@ -323,6 +326,9 @@ void memory_destructor_F(struct S_FACE *FACE)
 		free(FACE->LHSInOut);
 	if (FACE->LHSOutOut)
 		free(FACE->LHSOutOut);
+
+	array_free2_d(d,FACE->Qhat_WhatRL);
+	array_free2_d(d,FACE->Qhat_WhatLR);
 
 	// Poisson
 	array_free2_d(d,FACE->qhatIn);
