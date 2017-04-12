@@ -268,6 +268,7 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	free(VOLUME->RHS);
 	free(VOLUME->LHS);
 	free(VOLUME->MInv);
+	free(VOLUME->MInv_diag);
 
 	// Linearization testing
 	free(VOLUME->What_c);

@@ -585,7 +585,9 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->nnz_o = UINT_MAX;
 	VOLUME->RHS   = NULL; // free
 	VOLUME->LHS   = NULL; // free
-	VOLUME->MInv  = NULL; // free
+
+	VOLUME->MInv      = NULL; // free
+	VOLUME->MInv_diag = NULL; // free
 
 	// Linearization testing
 	VOLUME->What_c = NULL; // free

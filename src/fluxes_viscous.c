@@ -77,9 +77,9 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 			drhow_ptr[dim] = &Q[dim][NnTotal*3];
 
 		for (size_t n = 0; n < NnTotal; n++) {
-			const double rho      = *rho_ptr++;
-			const double rho_inv  = 1.0/rho;
-			const double rho_inv2 = rho_inv*rho_inv;
+			const double rho      = *rho_ptr++,
+			             rho_inv  = 1.0/rho,
+			             rho_inv2 = rho_inv*rho_inv;
 
 			const double u = (*rhou_ptr++)*rho_inv,
 			             v = (*rhov_ptr++)*rho_inv,
@@ -158,21 +158,21 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 		}
 	} else if (d == 2) {
 		for (size_t n = 0; n < NnTotal; n++) {
-			const double rho      = *rho_ptr++;
-			const double rho_inv  = 1.0/rho;
-			const double rho_inv2 = rho_inv*rho_inv;
+			const double rho      = *rho_ptr++,
+			             rho_inv  = 1.0/rho,
+			             rho_inv2 = rho_inv*rho_inv;
 
 			const double u = (*rhou_ptr++)*rho_inv,
 			             v = (*rhov_ptr++)*rho_inv,
 			             E = *E_ptr++;
 
-			const double drho[DMAX]  = { *drho_ptr[0]++,  *drho_ptr[1]++,  },
-			             drhou[DMAX] = { *drhou_ptr[0]++, *drhou_ptr[1]++, },
-			             drhov[DMAX] = { *drhov_ptr[0]++, *drhov_ptr[1]++, },
-			             dE[DMAX]    = { *dE_ptr[0]++,    *dE_ptr[1]++,    };
+			const double drho[DMAX]  = { *drho_ptr[0]++,  *drho_ptr[1]++,  0.0, },
+			             drhou[DMAX] = { *drhou_ptr[0]++, *drhou_ptr[1]++, 0.0, },
+			             drhov[DMAX] = { *drhov_ptr[0]++, *drhov_ptr[1]++, 0.0, },
+			             dE[DMAX]    = { *dE_ptr[0]++,    *dE_ptr[1]++,    0.0, };
 
-			const double du[DMAX] = { rho_inv*(drhou[0]-drho[0]*u), rho_inv*(drhou[1]-drho[1]*u), },
-			             dv[DMAX] = { rho_inv*(drhov[0]-drho[0]*v), rho_inv*(drhov[1]-drho[1]*v), };
+			const double du[DMAX] = { rho_inv*(drhou[0]-drho[0]*u), rho_inv*(drhou[1]-drho[1]*u), 0.0, },
+			             dv[DMAX] = { rho_inv*(drhov[0]-drho[0]*v), rho_inv*(drhov[1]-drho[1]*v), 0.0, };
 
 			const double divV = du[0]+dv[1];
 
@@ -209,8 +209,8 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 			IndF += 1;
 
 			// eq 4
-			*F_ptr[IndF++] = u*tau[0][0]+v*tau[0][1]+ mu*GAMMA/Pr*dTs[0];
-			*F_ptr[IndF++] = u*tau[1][0]+v*tau[1][1]+ mu*GAMMA/Pr*dTs[1];
+			*F_ptr[IndF++] = u*tau[0][0]+v*tau[0][1] + mu*GAMMA/Pr*dTs[0];
+			*F_ptr[IndF++] = u*tau[1][0]+v*tau[1][1] + mu*GAMMA/Pr*dTs[1];
 
 			for (size_t i = 0, iMax = Neq*DMAX; i < iMax; i++)
 				F_ptr[i]++;

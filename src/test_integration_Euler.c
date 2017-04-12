@@ -647,6 +647,7 @@ if (test_3D) {
 	printf("\nWarning: 3D SupersonicVortex testing is currently disabled.\n\n"); TestDB.Nwarnings++;
 }
 
+if (PeriodicVortexOnly)
 	test_convorder(nargc,argvNew,"n-Cube_QUAD",data_c);
 
 	printf("\n\nWarning: ***Add all integration tests for PeriodicVortex case (Stationary and moving).***\n\n");

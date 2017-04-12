@@ -139,12 +139,17 @@ static void explicit_GradW_VOLUME(void)
 					free(Dxyz);
 				}
 
-				// Compute intermediate (see comments) Qhat contribution
+				// Compute intermediate Qhat contribution
+				if (VOLUME->Qhat[dim])
+					free(VOLUME->Qhat[dim]);
 				VOLUME->Qhat[dim]  = calloc(NvnS*Nvar , sizeof *(VOLUME->Qhat[dim]));  // keep (used below)
-				VOLUME->QhatV[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV[dim])); // keep
-				mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,DxyzChiS[dim],VOLUME->What,VOLUME->QhatV[dim]);
 
-				// Need to store DxyzChiS for implicit runs. (ToBeDeleted)
+				if (VOLUME->QhatV[dim])
+					free(VOLUME->QhatV[dim]);
+				VOLUME->QhatV[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV[dim])); // keep
+				mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,-1.0,0.0,DxyzChiS[dim],VOLUME->What,VOLUME->QhatV[dim]);
+
+				// Need to store DxyzChiS for implicit runs. (Don't forget -ve sign) (ToBeDeleted)
 				free(DxyzChiS[dim]);
 			}
 		}
@@ -221,7 +226,7 @@ static void explicit_GradW_FACE(void)
 			free(FDATAL->W_fIL);
 			free(FDATAR->W_fIL);
 
-			// Memory allocated for VL/VR->Qhat was performed in explicit_GradW_VOLUME.
+			// Memory allocation for VL/VR->Qhat was done in explicit_GradW_VOLUME.
 			// For the implicit version of the implementation, memory must be allocated for the off-diagonal linearized
 			// terms (ToBeDeleted). The diagonal terms can be stored directly in the VOLUME memory.
 			finalize_QhatF_Weak(FDATAL,FDATAR,'L','E');
@@ -278,9 +283,6 @@ static void explicit_GradW_finalize(void)
 		} else {
 			double **const QhatV = VOLUME->QhatV,
 			       **const Qhat  = VOLUME->Qhat;
-
-			if (VOLUME->MInv == NULL)
-				compute_inverse_mass(VOLUME);
 
 			double *Qhat_tmp = malloc(NvnS*Nvar * sizeof *Qhat_tmp); // free
 			for (size_t dim = 0; dim < d; dim++) {

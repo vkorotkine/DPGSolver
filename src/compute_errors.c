@@ -241,6 +241,7 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		sEx = malloc(NvnI * sizeof *sEx); // free
 		s   = malloc(NvnI * sizeof *s);   // free
 		for (i = 0; i < NvnI; i++) {
+			// Should s = log(P/rho^GAMMA)? ToBeModified
 			sEx[i] = DB.pInf/pow(DB.rhoInf,GAMMA);
 			s[i]   = p[i]/pow(rho[i],GAMMA);
 		}

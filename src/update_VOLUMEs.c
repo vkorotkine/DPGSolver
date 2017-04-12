@@ -837,29 +837,38 @@ void compute_inverse_mass(struct S_VOLUME *VOLUME)
 	for (iMax = NvnI; iMax--; )
 		*wdetJV_vI_ptr++ = (*w_vI_ptr++)*(*detJV_vI_ptr++);
 
-	wdetJVChiS_vI = malloc(NvnI*NvnS * sizeof *wdetJVChiS_vI); // free
+	if (DB.Collocated) {
+		double *const MInv_diag = malloc(NvnS * sizeof *MInv_diag); // keep
+		for (size_t i = 0; i < NvnS; i++)
+			MInv_diag[i] = 1.0/wdetJV_vI[i];
 
-	ChiS_vI_ptr       = ChiS_vI;
-	wdetJVChiS_vI_ptr = wdetJVChiS_vI;
-	for (iMax = NvnI*NvnS; iMax--; )
-		*wdetJVChiS_vI_ptr++ = *ChiS_vI_ptr++;
+		VOLUME->MInv_diag = MInv_diag;
+		MInv = diag_d(MInv_diag,NvnS);
+	} else {
+		wdetJVChiS_vI = malloc(NvnI*NvnS * sizeof *wdetJVChiS_vI); // free
 
-	wdetJV_vI_ptr     = wdetJV_vI;
-	wdetJVChiS_vI_ptr = wdetJVChiS_vI;
-	for (iMax = NvnI; iMax--; ) {
-		for (jMax = NvnS; jMax--; )
-			*wdetJVChiS_vI_ptr++ *= *wdetJV_vI_ptr;
-		wdetJV_vI_ptr++;
+		ChiS_vI_ptr       = ChiS_vI;
+		wdetJVChiS_vI_ptr = wdetJVChiS_vI;
+		for (iMax = NvnI*NvnS; iMax--; )
+			*wdetJVChiS_vI_ptr++ = *ChiS_vI_ptr++;
+
+		wdetJV_vI_ptr     = wdetJV_vI;
+		wdetJVChiS_vI_ptr = wdetJVChiS_vI;
+		for (iMax = NvnI; iMax--; ) {
+			for (jMax = NvnS; jMax--; )
+				*wdetJVChiS_vI_ptr++ *= *wdetJV_vI_ptr;
+			wdetJV_vI_ptr++;
+		}
+
+		M    = mm_Alloc_d(CBRM,CBT,CBNT,NvnS,NvnS,NvnI,1.0,ChiS_vI,wdetJVChiS_vI); // free
+		IS   = identity_d(NvnS);                                                   // free
+		MInv = inverse_d(NvnS,NvnS,M,IS);                                          // keep
+
+		free(wdetJVChiS_vI);
+		free(M);
+		free(IS);
+		free(wdetJV_vI);
 	}
-
-	M    = mm_Alloc_d(CBRM,CBT,CBNT,NvnS,NvnS,NvnI,1.0,ChiS_vI,wdetJVChiS_vI); // free
-	IS   = identity_d(NvnS);                                                   // free
-	MInv = inverse_d(NvnS,NvnS,M,IS);                                          // keep
-
-	free(wdetJVChiS_vI);
-	free(M);
-	free(IS);
-	free(wdetJV_vI);
 
 	free(VOLUME->MInv);
 	VOLUME->MInv = MInv;

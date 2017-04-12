@@ -598,7 +598,7 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 	 *		Parsani(2014) discuss the correct method to impose the temperature boundary condition for the scheme to be
 	 *		entropy stable (See Theorem 3.2 and eq. (56)). Investigate (ToBeModified).
 	 *		The entropy variables of Barth(1998_Thesis, p. 16) are used.
-	 *		See Hugues(1986) eq. (48)-(53) for conversion between entropy and conservative variables. Note the
+	 *		See Hughes(1986) eq. (48)-(53) for conversion between entropy and conservative variables. Note the
 	 *		additional GM1 factor and that rho*i == P/GM1.
 	 *
 	 *	References:
@@ -623,12 +623,11 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 
 	unsigned int const NnTotal = Nn*Nel;
 
-	double const *WL_ptr[Nvar], *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *X_ptr, *Y_ptr;
+	double const *X_ptr = &XYZ[NnTotal*0],
+	             *Y_ptr = &XYZ[NnTotal*1];
+
+	double const *WL_ptr[Nvar];
 	double       *WB_ptr[Nvar];
-
-	X_ptr = &XYZ[NnTotal*0];
-	Y_ptr = &XYZ[NnTotal*1];
-
 	for (size_t var = 0; var < Nvar; var++) {
 		WL_ptr[var] = &WL[var*NnTotal];
 		WB_ptr[var] = &WB[var*NnTotal];
@@ -638,10 +637,11 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 	for (size_t n = 0; n < NnTotal; n++)
 		zeros[n] = 0.0;
 
-	rhoL_ptr  = WL_ptr[0];
-	rhouL_ptr = WL_ptr[1];
-	rhovL_ptr = WL_ptr[2];
-	EL_ptr    = WL_ptr[d+1];
+	double const *rhoL_ptr  = WL_ptr[0],
+	             *rhouL_ptr = WL_ptr[1],
+	             *rhovL_ptr = WL_ptr[2],
+	             *rhowL_ptr            ,
+	             *EL_ptr    = WL_ptr[d+1];
 
 	if (d == 3) {
 		rhowL_ptr = WL_ptr[3];
@@ -702,6 +702,17 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 			*WB_ptr[IndW++] = pB*V[3];
 		*WB_ptr[IndW++] = pB*(1.0/GM1-0.5*V2/V[4]);
 
+/*
+		IndW = 0;
+		double const rho = DB.rhoIn, p = DB.pIn;
+		*WB_ptr[IndW++] = rho;
+		*WB_ptr[IndW++] = rho*uB;
+		*WB_ptr[IndW++] = rho*vB;
+		if (d == 3)
+			*WB_ptr[IndW++] = rho*wB;
+		*WB_ptr[IndW++] = p/GM1+0.5*rho*(uB*uB+vB*vB+wB*wB);
+*/
+
 		for (size_t var = 0; var < Nvar; var++)
 			WB_ptr[var]++;
 	}
@@ -711,7 +722,7 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 		return;
 
 	for (size_t dim = 0; dim < d; dim++) {
-		for (size_t n = 0; n < NnTotal; n++) {
+		for (size_t n = 0; n < NnTotal*Nvar; n++) {
 			GradWB[dim][n] = GradWL[dim][n];
 		}
 	}
@@ -742,7 +753,7 @@ void boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 
 	unsigned int const NnTotal = Nn*Nel;
 
-	double const *WL_ptr[Nvar], *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr;
+	double const *WL_ptr[Nvar];
 	double       *WB_ptr[Nvar];
 
 	for (size_t var = 0; var < Nvar; var++) {
@@ -754,10 +765,11 @@ void boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 	for (size_t n = 0; n < NnTotal; n++)
 		zeros[n] = 0.0;
 
-	rhoL_ptr  = WL_ptr[0];
-	rhouL_ptr = WL_ptr[1];
-	rhovL_ptr = WL_ptr[2];
-	EL_ptr    = WL_ptr[d+1];
+	double const *rhoL_ptr  = WL_ptr[0],
+	             *rhouL_ptr = WL_ptr[1],
+	             *rhovL_ptr = WL_ptr[2],
+	             *rhowL_ptr            ,
+	             *EL_ptr    = WL_ptr[d+1];
 
 	if (d == 3) {
 		rhowL_ptr = WL_ptr[3];
@@ -788,13 +800,11 @@ void boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 
 		unsigned int IndW = 0;
 		*WB_ptr[IndW++] = rhoL;
-		*WB_ptr[IndW++] = uB;
-		*WB_ptr[IndW++] = vB;
-
+		*WB_ptr[IndW++] = rhoL*uB;
+		*WB_ptr[IndW++] = rhoL*vB;
 		if (d == 3)
-			*WB_ptr[IndW++] = wB;
-
-		*WB_ptr[IndW++] = pL/GM1;
+			*WB_ptr[IndW++] = rhoL*wB;
+		*WB_ptr[IndW++] = pL/GM1+0.5*rhoL*(uB*uB+vB*vB+wB*wB);
 
 		for (size_t var = 0; var < Nvar; var++)
 			WB_ptr[var]++;
@@ -808,7 +818,7 @@ void boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 		// such that the computed numerical flux is zero (More expensive and more difficult, but more general).
 		// (ToBeModified)
 		for (size_t dim = 0; dim < d; dim++) {
-			for (size_t n = 0; n < NnTotal; n++) {
+			for (size_t n = 0; n < NnTotal*Nvar; n++) {
 				GradWB[dim][n] = GradWL[dim][n];
 			}
 		}

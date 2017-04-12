@@ -257,7 +257,7 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 	if (strstr(PDE,"NavierStokes")) {
 		if (strstr(TestCase,"TaylorCouette")) {
 			printf("Using default value for timestepping parameters.\n");
-			data->dt         = 1e-3;
+			data->dt         = 1e-4;
 			data->exit_tol   = EPS;
 			data->exit_ratio = 1.0/EPS;
 		} else {

@@ -102,15 +102,12 @@ static void compute_FACE_EFE(void)
 			FACE->LHSInOut  = calloc(NvnSR*NvnSL*Neq*Nvar , sizeof *(FACE->LHSInOut));  // keep
 			FACE->LHSOutOut = calloc(NvnSR*NvnSR*Neq*Nvar , sizeof *(FACE->LHSOutOut)); // keep
 
-			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,'L','E');
-			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,'L','I');
+			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,    NULL,                      'L','E','W');
+			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->dnFluxNumdWL_fI,NFluxData->dnFluxNumdWR_fI,'L','I','W');
 
 			if (!FACE->Boundary) {
-				// LHS
-				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,'R','I');
-
-				// RHS
-				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,'R','E');
+				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,    NULL,                      'R','E','W');
+				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->dnFluxNumdWL_fI,NFluxData->dnFluxNumdWR_fI,'R','I','W');
 			}
 			free(NFluxData->nFluxNum_fI);
 			free(NFluxData->dnFluxNumdWL_fI);

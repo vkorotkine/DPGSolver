@@ -109,8 +109,12 @@ extern void compute_numerical_flux_viscous (struct S_FDATA const *const FDATAL, 
 extern void add_Jacobian_scaling_FACE (struct S_FDATA const *const FDATA, char const imex_type, char const coef_type);
 
 extern void finalize_FACE_Inviscid_Weak (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
-                                         char const side, char const imex_type);
+                                         double const *const nANumL_fI, double const *const nANumR_fI, char const side,
+                                         char const imex_type, char const coef_type);
 extern void finalize_QhatF_Weak         (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
                                          char const side, char const imex_type);
+extern void finalize_FACE_Viscous_Weak  (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
+                                         double *const nANumL_fI, double *const nANumR_fI, char const side,
+                                         char const imex_type, char const coef_type);
 
 #endif // DPG__solver_functions_h__INCLUDED

@@ -117,9 +117,9 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 				free(FACE->RHSOut);
 			FACE->RHSOut = calloc(NvnSR*Neq , sizeof *(FACE->RHSOut)); // keep
 
-			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,'L','E');
+			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,NULL,'L','E','W');
 			if (!FACE->Boundary)
-				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,'R','E');
+				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,NULL,'R','E','W');
 
 			free(NFluxData->nFluxNum_fI);
 		}
@@ -193,8 +193,11 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 			FDATAR->GradW_fIL = GradWR_fIL;
 
 			coef_to_values_fI(FDATAL,'W');
+			coef_to_values_fI(FDATAR,'W');
 			coef_to_values_fI(FDATAL,'Q');
+			coef_to_values_fI(FDATAR,'Q');
 			compute_WR_GradWR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,(const double *const *const) GradWL_fIL,GradWR_fIL);
+
 
 			// Compute numerical flux as seen from the left VOLUME
 			NFluxData->WL_fIL          = FDATAL->W_fIL;
@@ -202,14 +205,18 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 			NFluxData->nFluxViscNum_fI = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxViscNum_fI)); // free
 
 			compute_numerical_flux_viscous(FDATAL,FDATAR,'E');
-//			add_Jacobian_scaling_FACE(FDATAL,'E');
-
-			// Compute FACE RHS terms
+			add_Jacobian_scaling_FACE(FDATAL,'E','V');
 
 			free(FDATAL->W_fIL);
 			free(FDATAR->W_fIL);
 			array_free2_d(d,GradWL_fIL);
 			array_free2_d(d,GradWR_fIL);
+
+
+			// Compute FACE RHS terms
+			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'L','E','V');
+			if (!FACE->Boundary)
+				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'R','E','V');
 
 			free(NFluxData->nFluxViscNum_fI);
 		}

@@ -20,14 +20,16 @@
 #include "matrix_functions.h"
 #include "sum_factorization.h"
 
-#include "array_swap.h"
 #include "exact_solutions.h"
 #include "variable_functions.h"
 #include "boundary_conditions.h"
 #include "jacobian_boundary_conditions.h"
 #include "fluxes_inviscid.h"
+#include "fluxes_viscous.h"
 #include "jacobian_fluxes_inviscid.h"
 
+#include "array_swap.h"
+#include "array_free.h"
 #include "array_print.h"
 
 /*
@@ -135,7 +137,7 @@ void coef_to_values_vI(struct S_VDATA const *const VDATA, char const coef_type)
 			EXIT_UNSUPPORTED;
 
 		unsigned int const d        = DB.d,
-		                   Nvar     = DB.Nvar,
+		                   Nvar     = d+2,
 		                   P        = VDATA->P,
 		                   Eclass   = VDATA->Eclass,
 	                       *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
@@ -282,7 +284,6 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 	                   *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
 
 	if (imex_type == 'E') {
-		memset(RLHS,0.0,NvnS*Nrc * sizeof *RLHS);
 		if (Eclass == C_TP && SF_BE[P][0][0]) {
 			unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX];
 			double const *OP[DMAX];
@@ -358,8 +359,6 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 		if (Collocated) {
 			if (Eclass == C_TP || Eclass == C_WEDGE) {
 				struct S_OpCSR const *const *const D = OPS[0]->D_Weak_sp;
-
-				memset(RLHS,0.0,NvnS*Nrc * sizeof *RLHS);
 				for (size_t eq = 0; eq < Neq; eq++) {
 				for (size_t var = 0; var < Nvar; var++) {
 					size_t const IndAr  = (eq*Nvar+var)*NvnI,
@@ -381,8 +380,6 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 				}}
 			} else {
 				double const *const *const D = OPS[0]->D_Weak;
-
-				memset(RLHS,0.0,NvnS*Nrc * sizeof *RLHS);
 				for (size_t eq = 0; eq < Neq; eq++) {
 				for (size_t var = 0; var < Nvar; var++) {
 					size_t const IndAr  = (eq*Nvar+var)*NvnI,
@@ -415,7 +412,7 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 				}
 
 				size_t const IndLHS = (eq*Nvar+var)*NvnS*NvnS;
-				mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,0.0,DAr_vI,OPS[0]->ChiS_vI,&RLHS[IndLHS]);
+				mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,1.0,DAr_vI,OPS[0]->ChiS_vI,&RLHS[IndLHS]);
 			}}
 			free(DAr_vI);
 
@@ -464,16 +461,20 @@ void finalize_VOLUME_Viscous_Weak(unsigned int const Nrc, double *const Ar_vI, d
 	struct S_OPERATORS_V const *const *const OPS = (struct S_OPERATORS_V const *const *const) VDATA->OPS;
 
 	unsigned int const d    = DB.d,
+	                   Neq  = d+2,
+	                   Nvar = d+2,
 	                   NvnI = OPS[0]->NvnI;
 
-	if (imex_type == 'E' || imex_type == 'I') {
-		for (size_t i = 0, iMax = NvnI*Nrc*d; i < iMax; i++)
+	if (imex_type == 'E') {
+		for (size_t i = 0, iMax = NvnI*Neq*d; i < iMax; i++)
 			Ar_vI[i] *= -1.0;
-
-		finalize_VOLUME_Inviscid_Weak(Nrc,Ar_vI,RLHS,imex_type,VDATA);
+	} else if (imex_type == 'I') {
+		for (size_t i = 0, iMax = NvnI*d*Nvar*Neq; i < iMax; i++)
+			Ar_vI[i] *= -1.0;
 	} else {
 		EXIT_UNSUPPORTED;
 	}
+	finalize_VOLUME_Inviscid_Weak(Nrc,Ar_vI,RLHS,imex_type,VDATA);
 }
 
 // **************************************************************************************************** //
@@ -966,26 +967,36 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 	for (size_t dim = 0; dim < d; dim++) {
 	for (size_t var = 0; var < Nvar; var++) {
 	for (size_t n = 0; n < NfnI; n++) {
-		nSolNum_fIL[dim][var*NfnI+n] = n_fIL[dim*NfnI+n]*0.5*(WL_fIL[var*NfnI+n]+WR_fIL[var*NfnI+n]);
+		nSolNum_fIL[dim][var*NfnI+n] = n_fIL[n*d+dim]*0.5*(WL_fIL[var*NfnI+n]+WR_fIL[var*NfnI+n]);
 	}}}
 }
 
 static void compute_I_jump(unsigned int const NfnI, unsigned int const NvnS, unsigned int const *const nOrdRL,
-                           double const *const ChiS_fI, double const *const MInv, double *const I_jump)
+                           double const *const ChiS_fI, double *const I_jump, double const alpha, double const beta,
+                           struct S_VOLUME const *const VOLUME, char const side)
 {
-	double *const I_inter = malloc(NvnSL*NfnI * sizeof *I_inter); // free
+	/*
+	 *	Purpose:
+	 *		Compute the CDG2 and BR2 L2 projection/interpolation operator for the jump term.
+	 *
+	 *	References:
+	 *		ToBeModified.
+	 */
+
+	double *const I_inter = malloc(NfnI*NvnS * sizeof *I_inter); // free
 	if (DB.Collocated) {
 		// MInv is diagonal
+		double const *const MInv_diag = VOLUME->MInv_diag;
 		for (size_t i = 0; i < NfnI; i++) {
 			for (size_t j = 0; j < NvnS; j++)
-				I_inter[i*NvnS+j] = ChiS_fI[i*NvnS+j]*MInv[j*NvnS+j];
+				I_inter[i*NvnS+j] = ChiS_fI[i*NvnS+j]*MInv_diag[j];
 		}
 	} else {
-		mm_d(CBRM,CBNT,CBNT,NfnI,NvnS,NvnS,1.0,0.0,ChiS_fI,MInv,I_inter);
+		mm_d(CBRM,CBNT,CBNT,NfnI,NvnS,NvnS,1.0,0.0,ChiS_fI,VOLUME->MInv,I_inter);
 	}
 
-	if (size == 'L') {
-		mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnS,2.0,0.0,I_inter,ChiS_fI,I_jump);
+	if (side == 'L') {
+		mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnS,alpha,beta,I_inter,ChiS_fI,I_jump);
 	} else if (side == 'R') {
 		double *const ChiSR_fIL = malloc(NfnI*NvnS * sizeof *ChiSR_fIL); // free
 		for (size_t i = 0; i < NfnI; i++) {
@@ -994,9 +1005,11 @@ static void compute_I_jump(unsigned int const NfnI, unsigned int const NvnS, uns
 		}}
 
 		array_rearrange_d(NfnI,NvnS,nOrdRL,'R',I_inter);
-		mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnS,2.0,0.0,I_inter,ChiSR_fIL,I_jump);
+		mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnS,alpha,beta,I_inter,ChiSR_fIL,I_jump);
 
 		free(ChiSR_fIL);
+	} else {
+		EXIT_UNSUPPORTED;
 	}
 
 	free(I_inter);
@@ -1049,10 +1062,12 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 
 	double const *const n_fIL                = FACE->n_fI,
 	             *const WL_fIL               = FDATAL->NFluxData->WL_fIL,
-	             *const WR_fIL               = FDATAL->NFluxData->WR_fIL;
-	double       *const nFluxViscNum_fIL     = FDATAL->NFluxData->nFluxNum_fI,
-	             *const dnFluxViscNumdWL_fIL = FDATAL->NFluxData->dnFluxNumdWL_fI,
-	             *const dnFluxViscNumdWR_fIL = FDATAL->NFluxData->dnFluxNumdWR_fI;
+	             *const WR_fIL               = FDATAL->NFluxData->WR_fIL,
+	             *const *const GradWL_fIL    = (double const *const *const) FDATAL->GradW_fIL,
+	             *const *const GradWR_fIL    = (double const *const *const) FDATAR->GradW_fIL;
+	double       *const nFluxViscNum_fIL     = FDATAL->NFluxData->nFluxViscNum_fI,
+	             *const dnFluxViscNumdWL_fIL = FDATAL->NFluxData->dnFluxViscNumdWL_fI,
+	             *const dnFluxViscNumdWR_fIL = FDATAL->NFluxData->dnFluxViscNumdWR_fI;
 
 	// Compute common solution and weak solution gradient
 
@@ -1062,11 +1077,11 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 		W_fIL[i] = 0.5*(WL_fIL[i]+WR_fIL[i]);
 
 	// Brdar(2012): eq. (4.3, 2.5) partial contribution
-	double const *const w_fI     = OPSL->w_fI,
+	double const *const w_fI     = OPSL[0]->w_fI,
 	             *const detJF_fI = FACE->detJF_fI;
 
 	// Consider removing WL_fIL-WR_fIL term so that this can be used for the linearization as well. (ToBeModified)
-	double *const Wjp_fIL = malloc(NfnI*Nvar*d * sizeof *Wjump_fIL); // free
+	double *const Wjp_fIL = malloc(NfnI*Nvar*d * sizeof *Wjp_fIL); // free
 	for (size_t dim = 0; dim < d; dim++) {
 		double *const Wjp_ptr = &Wjp_fIL[NfnI*Nvar*dim];
 		for (size_t j = 0; j < Nvar; j++) {
@@ -1075,44 +1090,27 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 		}
 	}
 
-	if (DB.ViscousFluxType == CDG2) {
-		double const chi = 0.5*(DB.NfMax);
+	// Update jump term with L2 projection/interpolation operator.
+	double chi = 0.0;
 
-		// Assemble matrix scaling term from appropriate side.
-		double *const I_jump = malloc(NfnI*NfnI * sizeof *I_jump); // free
+	// Consider storing I_jump. Needs to be recomputed only when either adjacent VOLUME is updated. (ToBeDeleted)
+	double *const I_jump = malloc(NfnI*NfnI * sizeof *I_jump); // free
+	if (DB.ViscousFluxType == FLUX_CDG2) {
+		chi = 0.5*(DB.NfMax);
 
-		// Consider storing I_jump. Needs to be recomputed whenever either adjacent VOLUME is updated. (ToBeDeleted)
 		if (Boundary) {
-			unsigned int const Vf   = FDATAL->Vf,
-			                   NvnS = OPSL[0]->NvnS;
-
-			double const *const ChiS_fI = OPSL[0]->ChiS_fI[Vf],
-			       const *const MInv    = FDATAL->VOLUME->MInv;
-			double       *const I_inter = malloc(NvnS*NfnI * sizeof *I_inter); // free
-
-			if (DB.Collocated) {
-				// MInv is diagonal
-				for (size_t i = 0; i < NfnI; i++) {
-					for (size_t j = 0; j < NvnS; j++)
-						I_inter[i*NvnS+j] = ChiS_fI[i*NvnS+j]*MInv[j*NvnS+j];
-				}
-			} else {
-				mm_d(CBRM,CBNT,CBNT,NfnI,NvnS,NvnS,1.0,0.0,ChiS_fI,MInv,I_inter);
-			}
-
-			mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnS,2.0,0.0,I_inter,ChiSL_fIL,I_jump);
-			free(I_inter);
+			compute_I_jump(NfnI,OPSL[0]->NvnS,NULL,OPSL[0]->ChiS_fI[FDATAL->Vf],I_jump,2.0*chi,0.0,FDATAL->VOLUME,'L');
 		} else {
 			// Evaluate from which side scaling should be computed based on area switch (Brdar(2012), eq. (4.5))
 			struct S_VOLUME const *const VL = FDATAL->VOLUME,
-			                      *const VR = FDATAL->VOLUME;
+			                      *const VR = FDATAR->VOLUME;
 
 			unsigned int const NvnSL         = OPSL[0]->NvnS,
-			                   NvnSR         = OPSR[0]->NvnS;
+			                   NvnSR         = OPSR[0]->NvnS,
 			                   *const nOrdRL = OPSL[IndFType]->nOrdRL;
 
 			double const *const detJVL_vIL = VL->detJV_vI,
-			                    detJVR_vIR = VR->detJV_vI;
+			             *const detJVR_vIR = VR->detJV_vI;
 
 			// Potentially scale by volume of reference element (necessary for mixed meshes?) (ToBeDeleted)
 			double VolL = 0.0;
@@ -1121,121 +1119,81 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 
 			double VolR = 0.0;
 			for (size_t n = 0; n < NvnSR; n++)
-				VolR = max(VolL,detJVR_vIR[n]);
+				VolR = max(VolR,detJVR_vIR[n]);
 
-			if (VolL <= VolR) {
-				compute_I_jump(NfnI,NvnSL,NULL,OPSL[0]->ChiS_fI[FDATAL->Vf],VL->MInv,I_jump);
-/*
-				double const *const ChiS_fI = OPSL[0]->ChiS_fI[Vf],
-				       const *const MInv    = VL->MInv;
-				double       *const I_inter = malloc(NvnSL*NfnI * sizeof *I_inter); // free
-
-				if (DB.Collocated) {
-					// MInv is diagonal
-					for (size_t i = 0; i < NfnI; i++) {
-						for (size_t j = 0; j < NvnSL; j++)
-							I_inter[i*NvnSL+j] = ChiS_fI[i*NvnSL+j]*MInv[j*NvnSL+j];
-					}
-				} else {
-					mm_d(CBRM,CBNT,CBNT,NfnI,NvnS,NvnS,1.0,0.0,ChiS_fI,MInv,I_inter);
-				}
-
-				mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnS,2.0,0.0,I_inter,ChiSL_fIL,I_jump);
-				free(I_inter);
-*/
-			} else {
-				compute_I_jump(NfnI,NvnSR,nOrdRL,OPSR[0]->ChiS_fI[FDATAR->Vf],VR->MInv,I_jump);
-/*
-				unsigned int const Vf = FDATAR->Vf;
-
-				double const *const ChiS_fI = OPSR[0]->ChiS_fI[Vf],
-				       const *const MInv    = VR->MInv;
-				double       *const I_inter = malloc(NvnSR*NfnI * sizeof *I_inter); // free
-
-				if (DB.Collocated) {
-					// MInv is diagonal
-					for (size_t i = 0; i < NfnI; i++) {
-						for (size_t j = 0; j < NvnS; j++)
-							I_inter[i*NvnS+j] = ChiS_fI[i*NvnS+j]*MInv[j*NvnS+j];
-					}
-				} else {
-					mm_d(CBRM,CBNT,CBNT,NfnI,NvnS,NvnS,1.0,0.0,ChiS_fI,MInv,I_inter);
-				}
-
-				mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnS,2.0,0.0,I_inter,ChiSL_fIL,I_jump);
-				free(I_inter);
-*/
-			}
+			if (VolL <= VolR)
+				compute_I_jump(NfnI,NvnSL,NULL,OPSL[0]->ChiS_fI[FDATAL->Vf],I_jump,2.0*chi,0.0,VL,'L');
+			else
+				compute_I_jump(NfnI,NvnSR,nOrdRL,OPSR[0]->ChiS_fI[FDATAR->Vf],I_jump,2.0*chi,0.0,VR,'R');
 		}
+	} else if (DB.ViscousFluxType == FLUX_BR2) {
+		chi = 1.0*(DB.NfMax);
 
-
-		free(I_jump);
-	} else if (DB.ViscousFluxType == BR2) {
-		double const chi = 1.0*(DB.NfMax);
+		if (Boundary) {
+			compute_I_jump(NfnI,OPSL[0]->NvnS,NULL,OPSL[0]->ChiS_fI[FDATAL->Vf],I_jump,2.0*chi,0.0,FDATAL->VOLUME,'L');
+		} else {
+			unsigned int const *const nOrdRL = OPSL[IndFType]->nOrdRL;
+			compute_I_jump(NfnI,OPSL[0]->NvnS,NULL,  OPSL[0]->ChiS_fI[FDATAL->Vf],I_jump,1.0*chi,0.0,FDATAL->VOLUME,'L');
+			compute_I_jump(NfnI,OPSR[0]->NvnS,nOrdRL,OPSR[0]->ChiS_fI[FDATAR->Vf],I_jump,1.0*chi,1.0,FDATAR->VOLUME,'R');
+		}
 	} else {
 		EXIT_UNSUPPORTED;
 	}
 
+	double *const Wj_fIL = malloc(NfnI*Nvar*d * sizeof *Wj_fIL); // free
+	mm_CTN_d(NfnI,Nvar*d,NfnI,I_jump,Wjp_fIL,Wj_fIL);
 
-	free(WB_fIL);
+	free(Wjp_fIL);
+	free(I_jump);
 
+	// Finalize Q_fIL
+	double **const Q_fIL = malloc(d * sizeof *Q_fIL); // free
+	for (size_t dim = 0; dim < d; dim++) {
+		Q_fIL[dim] = malloc(NfnI*Nvar * sizeof *Q_fIL[dim]); // free
+		double *const Wj_ptr = &Wj_fIL[NfnI*Nvar*dim];
+		for (size_t var = 0; var < Nvar; var++) {
+		for (size_t n = 0; n < NfnI; n++) {
+			Q_fIL[dim][n+var*NfnI] = 0.5*(GradWL_fIL[dim][n+var*NfnI]+GradWR_fIL[dim][n+var*NfnI])+Wj_ptr[n+var*NfnI];
+		}}
+	}
+	free(Wj_fIL);
 
-	switch (DB.InviscidFluxType) {
-	case FLUX_LF:
-		flux_LF(NfnI,1,WL_fIL,WR_fIL,nFluxNum_fIL,n_fIL,d,Neq);
-		if (imex_type == 'I') {
-			jacobian_flux_LF(NfnI,1,WL_fIL,WR_fIL,dnFluxNumdWL_fIL,n_fIL,d,Neq,'L');
-			jacobian_flux_LF(NfnI,1,WL_fIL,WR_fIL,dnFluxNumdWR_fIL,n_fIL,d,Neq,'R');
-		}
-		break;
-	case FLUX_ROE:
-		flux_Roe(NfnI,1,WL_fIL,WR_fIL,nFluxNum_fIL,n_fIL,d,Neq);
-		if (imex_type == 'I') {
-			jacobian_flux_Roe(NfnI,1,WL_fIL,WR_fIL,dnFluxNumdWL_fIL,n_fIL,d,Neq,'L');
-			jacobian_flux_Roe(NfnI,1,WL_fIL,WR_fIL,dnFluxNumdWR_fIL,n_fIL,d,Neq,'R');
-		}
-		break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
+	// Compute numerical flux
+	double *const FluxViscNum_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscNum_fIL); // free
+	flux_viscous(NfnI,1,W_fIL,(const double *const *const) Q_fIL,FluxViscNum_fIL);
+
+	free(W_fIL);
+	array_free2_d(d,Q_fIL);
+
+	// Take dot product with normal vector
+	for (size_t i = 0; i < NfnI*Neq; i++)
+		nFluxViscNum_fIL[i] = 0.0;
+
+	for (size_t eq = 0; eq < Neq; eq++) {
+		double const *const FluxViscNum_ptr = &FluxViscNum_fIL[NfnI*d*eq];
+		for (size_t dim = 0; dim < d; dim++) {
+		for (size_t n = 0; n < NfnI; n++) {
+			nFluxViscNum_fIL[n+NfnI*eq] += n_fIL[n*d+dim]*FluxViscNum_ptr[NfnI*dim+n];
+		}}
+	}
+	free(FluxViscNum_fIL);
+
+	// Modify nFluxVisNum_fIL to account for boundary conditions (if necessary)
+	unsigned int const BC = FACE->BC;
+
+	if (BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC) {
+		// Set last component of nFluxViscNum to zero
+		size_t const eq = Neq-1;
+		for (size_t n = 0; n < NfnI; n++)
+			nFluxViscNum_fIL[n+NfnI*eq] = 0.0;
 	}
 
-	// Include the BC information in dnFluxNumWL_fIL if on a boundary
+	// Compute Jacobians for imex_type == 'I' (ToBeDeleted)
+
+	// Include the BC information in dnFluxViscNumdWL_fIL if on a boundary
 	if (imex_type == 'I' && Boundary) {
 		EXIT_UNSUPPORTED;
-
-		unsigned int const BC = FACE->BC;
-
-		double const *const XYZ_fIL    = FACE->XYZ_fI;
-		double       *const dWRdWL_fIL = malloc(NfnI*Nvar*Nvar * sizeof *dWRdWL_fIL); // free
-		if (BC % BC_STEP_SC == BC_RIEMANN)
-			jacobian_boundary_Riemann(NfnI,1,XYZ_fIL,WL_fIL,NULL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_SLIPWALL)
-			jacobian_boundary_SlipWall(NfnI,1,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_BACKPRESSURE)
-			jacobian_boundary_BackPressure(NfnI,1,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_TOTAL_TP)
-			jacobian_boundary_Total_TP(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_SUPERSONIC_IN)
-			jacobian_boundary_SupersonicInflow(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_SUPERSONIC_OUT)
-			jacobian_boundary_SupersonicOutflow(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-		else
-			EXIT_UNSUPPORTED;
-
-		for (size_t eq = 0; eq < Neq; eq++) {
-		for (size_t var = 0; var < Nvar; var++) {
-			size_t const InddnFdWL = (eq*Nvar+var)*NfnI;
-
-			for (size_t i = 0; i < Nvar; i++) {
-				size_t const InddnFdWR = (eq*Neq+i)*NfnI,
-				             InddWRdWL = (var*Nvar+i)*NfnI;
-				for (size_t n = 0; n < NfnI; n++)
-					dnFluxNumdWL_fIL[InddnFdWL+n] += dnFluxNumdWR_fIL[InddnFdWR+n]*dWRdWL_fIL[InddWRdWL+n];
-			}
-		}}
-
-		free(dWRdWL_fIL);
+		printf("%p %p\n",dnFluxViscNumdWL_fIL,dnFluxViscNumdWR_fIL);
 	}
 }
 
@@ -1251,6 +1209,11 @@ void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const ime
 	 *	Notation:
 	 *		imex_type : (im)plicit (ex)plicit (type) indicates whether this function is being called for an implicit or
 	 *		            explicit computation.
+	 *		coef_type : (coef)icient (type) to be updated.
+	 *		            Options:
+	 *		            	'W' : Flux for inviscid contribution
+	 *		            	'Q' : Flux for viscous  contribution to the 1st equation of the mixed form
+	 *		            	'V' : Flux for viscous  contribution to the 2nd equation of the mixed form
 	 */
 
 	if (!(imex_type == 'E' || imex_type == 'I'))
@@ -1267,10 +1230,17 @@ void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const ime
 
 	double const *const detJF_fIL = FACE->detJF_fI;
 
-	if (coef_type == 'W') {
-		double       *const nFluxNum_fIL     = FDATA->NFluxData->nFluxNum_fI,
-		             *const dnFluxNumdWL_fIL = FDATA->NFluxData->dnFluxNumdWL_fI,
-		             *const dnFluxNumdWR_fIL = FDATA->NFluxData->dnFluxNumdWR_fI;
+	if (coef_type == 'W' || coef_type == 'V') {
+		double *nFluxNum_fIL, *dnFluxNumdWL_fIL, *dnFluxNumdWR_fIL;
+		if (coef_type == 'W') {
+			nFluxNum_fIL     = (double *const) FDATA->NFluxData->nFluxNum_fI,
+			dnFluxNumdWL_fIL = (double *const) FDATA->NFluxData->dnFluxNumdWL_fI,
+			dnFluxNumdWR_fIL = (double *const) FDATA->NFluxData->dnFluxNumdWR_fI;
+		} else if (coef_type == 'V') {
+			nFluxNum_fIL     = (double *const) FDATA->NFluxData->nFluxViscNum_fI,
+			dnFluxNumdWL_fIL = (double *const) FDATA->NFluxData->dnFluxViscNumdWL_fI,
+			dnFluxNumdWR_fIL = (double *const) FDATA->NFluxData->dnFluxViscNumdWR_fI;
+		}
 
 		for (size_t eq = 0; eq < Neq; eq++) {
 			size_t const IndnF = eq*NfnI;
@@ -1322,6 +1292,15 @@ static void swap_FACE_orientation(struct S_FDATA const *const FDATA, char const 
 	 *
 	 *	Comments:
 	 *		Note that the arrays are negated to account for the normal being negative when seen by the opposite VOLUME.
+
+	 *	Notation:
+	 *		imex_type : (im)plicit (ex)plicit (type) indicates whether this function is being called for an implicit or
+	 *		            explicit computation.
+	 *		coef_type : (coef)icient (type) to be updated.
+	 *		            Options:
+	 *		            	'W' : Flux for inviscid contribution
+	 *		            	'Q' : Flux for viscous  contribution to the 1st equation of the mixed form
+	 *		            	'V' : Flux for viscous  contribution to the 2nd equation of the mixed form
 	 */
 
 	if (!(imex_type == 'E' || imex_type == 'I'))
@@ -1336,10 +1315,17 @@ static void swap_FACE_orientation(struct S_FDATA const *const FDATA, char const 
 	                   NfnI           = OPS[IndFType]->NfnI,
 	                   *const nOrdLR  = OPS[IndFType]->nOrdLR;
 
-	if (coef_type == 'W') {
-		double *const nFluxNum_fI     = FDATA->NFluxData->nFluxNum_fI,
-		       *const dnFluxNumdWL_fI = FDATA->NFluxData->dnFluxNumdWL_fI,
-		       *const dnFluxNumdWR_fI = FDATA->NFluxData->dnFluxNumdWR_fI;
+	if (coef_type == 'W' || coef_type == 'V') {
+		double *nFluxNum_fI, *dnFluxNumdWL_fI, *dnFluxNumdWR_fI;
+		if (coef_type == 'W') {
+			nFluxNum_fI     = (double *const) FDATA->NFluxData->nFluxNum_fI,
+			dnFluxNumdWL_fI = (double *const) FDATA->NFluxData->dnFluxNumdWL_fI,
+			dnFluxNumdWR_fI = (double *const) FDATA->NFluxData->dnFluxNumdWR_fI;
+		} else if (coef_type == 'V') {
+			nFluxNum_fI     = (double *const) FDATA->NFluxData->nFluxViscNum_fI,
+			dnFluxNumdWL_fI = (double *const) FDATA->NFluxData->dnFluxViscNumdWL_fI,
+			dnFluxNumdWR_fI = (double *const) FDATA->NFluxData->dnFluxViscNumdWR_fI;
+		}
 
 		if (imex_type == 'E') {
 			for (size_t i = 0, iMax = Neq*NfnI; i < iMax; i++)
@@ -1401,12 +1387,13 @@ static void compute_LHS_FACE_Inviscid_Weak(unsigned int const NRows, unsigned in
 		}
 
 		size_t const IndLHS = Indeqvar*NRows*NCols;
-		mm_d(CBRM,CBNT,CBNT,NRows,NCols,Nn,1.0,0.0,IdnFdW,ChiS_fI,&LHS[IndLHS]);
+		mm_d(CBRM,CBNT,CBNT,NRows,NCols,Nn,1.0,1.0,IdnFdW,ChiS_fI,&LHS[IndLHS]);
 	}}
 }
 
 void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
-                                 char const side, char const imex_type)
+                                 double const *const nANumL_fI, double const *const nANumR_fI, char const side,
+                                 char const imex_type, char const coef_type)
 {
 	/*
 	 *	Purpose:
@@ -1418,8 +1405,22 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 	 *			2) Using the standard operator but exploiting sparsity;
 	 *			3) Using the standard approach.
 	 *
+	 *		The inefficiency of allocating memory for the computed values and them simply copying to RHS/LHS could be
+	 *		avoided if functionality is provided to allow for non-zero beta for sf_apply_?, mm_CTN_CSR_? and mm_CTN_?.
+	 *		The added cost is likely negligible compared to the actual operations however. (ToBeModified)
+	 *
+	 *		This function is called to compute both the inviscid and viscous contributions to the RHS/LHS of the
+	 *		equations which is why the general (A) is used instead of a specific name for a given normal flux
+	 *		contribution (see Notation). For the viscous contribution, the numerical flux is simply negated. When this
+	 *		function is called for explicit runs, nANumR_fI is not used.
+	 *
 	 *		If it is only desired to gain an understanding of what this contribution is, it is suffient to look only at
 	 *		the standard approach (i.e. the last condition in the if/else chain).
+	 *
+	 *	Notation:
+	 *		n[1]Num[2]_fI : (n)ormal [1] (== A) (Num)erical [2] evaluated at (f)ace (I)ntegration nodes
+	 *			[1] : Flux, dFluxdW[2]
+	 *			[2] : (L)eft, (R)ight
 	 */
 
 	if (imex_type == 'E') {
@@ -1433,7 +1434,7 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 			FDATA = FDATAR;
 			RHS   = FDATA->FACE->RHSOut;
 
-			swap_FACE_orientation(FDATAR,'E','W');
+			swap_FACE_orientation(FDATAR,imex_type,coef_type);
 		} else {
 			EXIT_UNSUPPORTED;
 		}
@@ -1441,22 +1442,23 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 		struct S_OPERATORS_F const *const *const OPS  = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
 
 		unsigned int const d            = DB.d,
-		                   Neq          = DB.Neq,
+		                   Neq          = d+2,
+		                   Nvar         = d+2,
 		                   P            = FDATA->P,
-						   Eclass       = FDATA->Eclass,
-						   Vf           = FDATA->Vf,
-						   f            = FDATA->f,
-						   SpOp         = FDATA->SpOp,
+		                   Eclass       = FDATA->Eclass,
+		                   Vf           = FDATA->Vf,
+		                   f            = FDATA->f,
+		                   SpOp         = FDATA->SpOp,
 		                   IndFType     = FDATA->IndFType,
 		                   NfnI         = OPS[IndFType]->NfnI,
+		                   NvnS         = OPS[0]->NvnS,
 		                   *const VFPartUnity         = DB.VFPartUnity,
 		                   *const *const *const SF_BE = (unsigned int const *const *const *const) DB.SF_BE;
-
-		double const *nFluxNum_fI = FDATA->NFluxData->nFluxNum_fI;
 
 		unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX], NIn0, NIn1;
 		double const *OP[DMAX], *const *OP0, *const *OP1;
 
+		double *const InFNum = malloc(NvnS*Nvar * sizeof *InFNum); // free
 		if (Eclass == C_TP && SF_BE[P][0][1]) {
 			get_sf_parametersF(OPS[0]->NvnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_VV_SF,
 			                   OPS[0]->NfnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_FF_SF,NIn,NOut,OP,d,Vf,C_TP);
@@ -1470,7 +1472,7 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 					Diag[dim] = 0;
 			}
 
-			sf_apply_d(nFluxNum_fI,RHS,NIn,NOut,Neq,OP,Diag,d);
+			sf_apply_d(nANumL_fI,InFNum,NIn,NOut,Neq,OP,Diag,d);
 		} else if (Eclass == C_WEDGE && SF_BE[P][1][1]) {
 			if (f < 3) { OP0  = OPS[0]->I_Weak_FF_SF, OP1  = OPS[1]->I_Weak_VV_SF;
 			             NIn0 = OPS[0]->NfnI_SF,      NIn1 = OPS[1]->NvnI_SF;
@@ -1491,12 +1493,16 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 				Diag[1] = 2;
 			}
 
-			sf_apply_d(nFluxNum_fI,RHS,NIn,NOut,Neq,OP,Diag,d);
+			sf_apply_d(nANumL_fI,InFNum,NIn,NOut,Neq,OP,Diag,d);
 		} else if ((SpOp && (Eclass == C_TP || Eclass == C_WEDGE)) || (VFPartUnity[Eclass])) {
-			mm_CTN_CSR_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FF_sp[Vf],nFluxNum_fI,RHS);
+			mm_CTN_CSR_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FF_sp[Vf],nANumL_fI,InFNum);
 		} else  {
-			mm_CTN_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FF[Vf],nFluxNum_fI,RHS);
+			mm_CTN_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FF[Vf],nANumL_fI,InFNum);
 		}
+
+		for (size_t i = 0, iMax = NvnS*Nvar; i < iMax; i++)
+			RHS[i] += InFNum[i];
+		free(InFNum);
 	} else if (imex_type == 'I') {
 		struct S_OPERATORS_F const *const *const OPSL  = (struct S_OPERATORS_F const *const *const) FDATAL->OPS,
 		                           *const *const OPSR  = (struct S_OPERATORS_F const *const *const) FDATAR->OPS;
@@ -1513,20 +1519,16 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 		if (side == 'L') {
 			unsigned int const NvnSL = OPSL[0]->NvnS;
 
-			double const *const dnFluxNumdWL_fI = FDATAL->NFluxData->dnFluxNumdWL_fI;
-
 			// LHSLL (Effect of (L)eft VOLUME on (L)eft VOLUME)
 			I_FF   = OPSL[0]->I_Weak_FF[VfL];
 			IdnFdW = malloc(NvnSL*NfnI * sizeof *IdnFdW); // free
 
 			double const *const ChiSL_fIL = OPSL[0]->ChiS_fI[VfL];
-			compute_LHS_FACE_Inviscid_Weak(NvnSL,NvnSL,NfnI,I_FF,dnFluxNumdWL_fI,ChiSL_fIL,IdnFdW,FACE->LHSInIn);
+			compute_LHS_FACE_Inviscid_Weak(NvnSL,NvnSL,NfnI,I_FF,nANumL_fI,ChiSL_fIL,IdnFdW,FACE->LHSInIn);
 
 			free(IdnFdW);
 		} else if (side == 'R') {
-			double const *      ChiS_fI;
-			double       *const dnFluxNumdWL_fI = FDATAL->NFluxData->dnFluxNumdWL_fI,
-			             *const dnFluxNumdWR_fI = FDATAL->NFluxData->dnFluxNumdWR_fI;
+			double const * ChiS_fI;
 
 			unsigned int const NvnSL         = OPSL[0]->NvnS,
 			                   NvnSR         = OPSR[0]->NvnS,
@@ -1546,13 +1548,13 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 				ChiSR_fIL[i*NvnSR+j] = ChiS_fI[nOrdRL[i]*NvnSR+j];
 			}}
 
-			compute_LHS_FACE_Inviscid_Weak(NvnSL,NvnSR,NfnI,I_FF,dnFluxNumdWR_fI,ChiSR_fIL,IdnFdW,FACE->LHSOutIn);
+			compute_LHS_FACE_Inviscid_Weak(NvnSL,NvnSR,NfnI,I_FF,nANumR_fI,ChiSR_fIL,IdnFdW,FACE->LHSOutIn);
 
 			free(ChiSR_fIL);
 			free(IdnFdW);
 
 			// Swap orientation of numerical flux Jacobian terms
-			swap_FACE_orientation(FDATAR,'I','W');
+			swap_FACE_orientation(FDATAR,imex_type,coef_type);
 
 			I_FF   = OPSR[0]->I_Weak_FF[VfR];
 			IdnFdW = malloc(NvnSR*NfnI * sizeof *IdnFdW); // free
@@ -1566,14 +1568,14 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 				ChiSL_fIR[i*NvnSL+j] = ChiS_fI[nOrdLR[i]*NvnSL+j];
 			}}
 
-			compute_LHS_FACE_Inviscid_Weak(NvnSR,NvnSL,NfnI,I_FF,dnFluxNumdWL_fI,ChiSL_fIR,IdnFdW,FACE->LHSInOut);
+			compute_LHS_FACE_Inviscid_Weak(NvnSR,NvnSL,NfnI,I_FF,nANumL_fI,ChiSL_fIR,IdnFdW,FACE->LHSInOut);
 
 			free(ChiSL_fIR);
 
 			// LHSRR (Effect of (R)ight VOLUME on (R)ight VOLUME
 			double const *const ChiSR_fIR = OPSR[0]->ChiS_fI[VfR];
 
-			compute_LHS_FACE_Inviscid_Weak(NvnSR,NvnSR,NfnI,I_FF,dnFluxNumdWR_fI,ChiSR_fIR,IdnFdW,FACE->LHSOutOut);
+			compute_LHS_FACE_Inviscid_Weak(NvnSR,NvnSR,NfnI,I_FF,nANumR_fI,ChiSR_fIR,IdnFdW,FACE->LHSOutOut);
 
 			free(IdnFdW);
 		} else {
@@ -1639,8 +1641,8 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 		struct S_OPERATORS_F const *const *const OPS  = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
 
 		unsigned int const d        = DB.d,
-		                   Neq      = DB.Neq,
-						   Vf       = FDATA->Vf,
+		                   Neq      = d+2,
+		                   Vf       = FDATA->Vf,
 		                   IndFType = FDATA->IndFType,
 		                   NfnI     = OPS[IndFType]->NfnI;
 
@@ -1734,4 +1736,36 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 	} else {
 		EXIT_UNSUPPORTED;
 	}
+}
+
+void finalize_FACE_Viscous_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
+                                double *const nANumL_fI, double *const nANumR_fI, char const side, char const imex_type,
+                                char const coef_type)
+{
+	/*
+	 *	Purpose:
+	 *		Finalize the viscous RHS/LHS term contributions from FACEs.
+	 *
+	 *	Comments:
+	 *		The required operation is identical to that of finalize_FACE_Inviscid_Weak after the viscous flux
+	 *		contributions are negated.
+	 */
+
+	unsigned int const d    = DB.d,
+	                   Neq  = d+2,
+	                   Nvar = d+2,
+	                   NfnI = FDATAL->OPS[0]->NfnI;
+
+	if (imex_type == 'E') {
+		for (size_t i = 0, iMax = NfnI*Nvar; i < iMax; i++)
+			nANumL_fI[i] *= -1.0;
+	} else if (imex_type == 'I') {
+		for (size_t i = 0, iMax = NfnI*Nvar*Neq; i < iMax; i++) {
+			nANumL_fI[i] *= -1.0;
+			nANumR_fI[i] *= -1.0;
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+	finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,nANumL_fI,nANumR_fI,side,imex_type,coef_type);
 }

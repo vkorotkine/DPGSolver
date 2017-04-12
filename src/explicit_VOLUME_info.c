@@ -68,8 +68,8 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 {
 	// Initialize DB Parameters
 	unsigned int const d    = DB.d,
-	                   Nvar = DB.Nvar,
-	                   Neq  = DB.Neq;
+	                   Nvar = d+2,
+	                   Neq  = d+2;
 
 	struct S_OPERATORS_V *OPS[2];
 
@@ -141,8 +141,8 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 		return;
 
 	unsigned int const d    = DB.d,
-	                   Nvar = DB.Nvar,
-	                   Neq  = DB.Neq;
+	                   Nvar = d+2,
+	                   Neq  = d+2;
 
 	struct S_OPERATORS_V *OPS[2];
 

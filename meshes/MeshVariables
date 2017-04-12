@@ -10,9 +10,9 @@ LINEARIZATION := n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n
 
 POISSON_TEST := n-Ball_HollowSection/Poisson/n-Ball_HollowSection2D_CurvedMIXED2D0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedTRI0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedQUAD0x.msh
 
-EULER_TEST := n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection2D_CurvedMIXED2D0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection3D_ToBeCurvedTET2x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection3D_ToBeCurvedHEX0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection3D_ToBeCurvedWEDGE0x.msh n-Cube/Euler/Periodic/PeriodicVortex/Test/n-Cube2D_QUAD0x.msh
+EULER_TEST := n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection2D_CurvedMIXED2D0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection3D_ToBeCurvedTET2x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection3D_ToBeCurvedHEX0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/Test/n-Cylinder_HollowSection3D_ToBeCurvedWEDGE0x.msh n-Cube/Euler/Periodic/PeriodicVortex/Test/n-Cube2D_QUAD1x.msh
 
-NAVIERSTOKES_TEST := n-Cylinder_Hollow/NavierStokes/Internal/TaylorCouette/Test/n-Cylinder_Hollow2D_ToBeCurvedTRI0x.msh
+NAVIERSTOKES_TEST := n-Cylinder_Hollow/NavierStokes/Internal/TaylorCouette/Test/n-Cylinder_Hollow2D_ToBeCurvedTRI1x.msh
 
 
 
