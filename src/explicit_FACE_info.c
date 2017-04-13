@@ -193,9 +193,7 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 			FDATAR->GradW_fIL = GradWR_fIL;
 
 			coef_to_values_fI(FDATAL,'W');
-			coef_to_values_fI(FDATAR,'W');
 			coef_to_values_fI(FDATAL,'Q');
-			coef_to_values_fI(FDATAR,'Q');
 			compute_WR_GradWR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,(const double *const *const) GradWL_fIL,GradWR_fIL);
 
 

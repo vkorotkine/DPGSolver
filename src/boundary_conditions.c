@@ -661,7 +661,8 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 		             EL   = *EL_ptr++,
 
 		             V2L = uL*uL+vL*vL+wL*wL,
-		             pL  = GM1*(EL-0.5*rhoL*V2L);
+		             pL  = GM1*(EL-0.5*rhoL*V2L),
+					 TL  = pL/(rhoL*DB.Rg);
 
 		double uB = 0.0, vB = 0.0, wB = 0.0, TB = 0.0;
 		if (strstr(DB.TestCase,"TaylorCouette")) {
@@ -669,10 +670,17 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 			             Y  = Y_ptr[n],
 			             t  = atan2(Y,X),
 			             Vt = DB.omega*DB.rIn;
+if (0) {
 			uB = -sin(t)*Vt;
 			vB =  cos(t)*Vt;
 			wB =  0.0;
 			TB =  DB.TIn;
+} else {
+			uB = -uL + 2.0*(-sin(t)*Vt);
+			vB = -vL + 2.0*( cos(t)*Vt);
+			wB = -wL + 2.0*( 0.0);
+			TB = -TL + 2.0*( DB.TIn);
+}
 		} else {
 			EXIT_UNSUPPORTED;
 		}
@@ -793,7 +801,10 @@ void boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 
 		double uB = 0.0, vB = 0.0, wB = 0.0;
 		if (strstr(DB.TestCase,"TaylorCouette")) {
-			; // Do nothing.
+			uB = -uL;
+			vB = -vL;
+			wB = -wL;
+//			; // Do nothing.
 		} else {
 			EXIT_UNSUPPORTED;
 		}

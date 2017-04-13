@@ -184,8 +184,14 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 				EXIT_UNSUPPORTED;
 			}
 
-			const double tau[DMAX][DMAX] = { { mu*2.0*(du[0]-divV/3.0), mu*(dv[0]+du[1]),        },
-			                                 { mu*(du[1]+dv[0]),        mu*2.0*(dv[1]-divV/3.0), }, };
+//			const double tau[DMAX][DMAX] = { { mu*2.0*(du[0]-divV/3.0), mu*(dv[0]+du[1]),        },
+//			                                 { mu*(du[1]+dv[0]),        mu*2.0*(dv[1]-divV/3.0), }, };
+
+			double tau[d][d];
+			tau[0][0] = mu*2.0*(du[0]-divV/3.0);
+			tau[0][1] = mu*(dv[0]+du[1]);
+			tau[1][0] = tau[0][1];
+			tau[1][1] = mu*2.0*(dv[1]-divV/3.0);
 
 			const double dEoRho[DMAX] = { rho_inv2*(dE[0]*rho-E*drho[0]), rho_inv2*(dE[1]*rho-E*drho[1]), },
 			             dV2[DMAX]    = { 2.0*(u*du[0]+v*dv[0]),          2.0*(u*du[1]+v*dv[1]), };

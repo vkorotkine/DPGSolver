@@ -673,6 +673,9 @@ struct S_FACE *New_FACE(void)
 	FACE->LHSInOut  = NULL; // free (in finalize_LHS)
 	FACE->LHSOutOut = NULL; // free (in finalize_LHS)
 
+	FACE->QhatL = calloc(d , sizeof *(FACE->QhatL)); // free
+	FACE->QhatR = calloc(d , sizeof *(FACE->QhatR)); // free
+
 	FACE->Qhat_WhatRL = calloc(d , sizeof *(FACE->Qhat_WhatRL)); // free
 	FACE->Qhat_WhatLR = calloc(d , sizeof *(FACE->Qhat_WhatLR)); // free
 

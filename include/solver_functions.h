@@ -80,7 +80,7 @@ struct S_NumericalFlux {
 
 struct S_FDATA {
 	unsigned int P, Vf, f, SpOp, Eclass, IndFType;
-	double       *W_fIL, **GradW_fIL;
+	double       *W_fIL, **GradW_fIL, **QhatV, **QhatF;
 
 	struct S_OPERATORS_F const *const *OPS;
 	struct S_VOLUME      const *VOLUME;
@@ -103,7 +103,7 @@ extern void compute_WR_GradWR_fIL     (struct S_FDATA const *const FDATA, double
                                        double *const *const GradWR_fIL);
 
 extern void compute_numerical_flux         (struct S_FDATA const *const FDATA, char const imex_type);
-extern void compute_numerical_solution     (struct S_FDATA const *const FDATA, char const imex_type);
+extern void compute_numerical_solution     (struct S_FDATA const *const FDATA, char const imex_type, char const form);
 extern void compute_numerical_flux_viscous (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
                                             char const imex_type);
 extern void add_Jacobian_scaling_FACE (struct S_FDATA const *const FDATA, char const imex_type, char const coef_type);

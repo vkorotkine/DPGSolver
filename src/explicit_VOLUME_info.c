@@ -101,7 +101,7 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 				free(VDATA->W_vI);
 
 			// Convert to reference space
-			double *const Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
+			double *const Fr_vI = malloc(NvnI*Neq*d * sizeof *Fr_vI); // free
 			convert_between_rp(NvnI,Neq,VOLUME->C_vI,F_vI,Fr_vI,"FluxToRef");
 			free(F_vI);
 
@@ -182,7 +182,7 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 			}
 
 			// Convert to reference space
-			double *const Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
+			double *const Fr_vI = malloc(NvnI*Neq*d * sizeof *Fr_vI); // free
 			convert_between_rp(NvnI,Neq,VOLUME->C_vI,F_vI,Fr_vI,"FluxToRef");
 			free(F_vI);
 

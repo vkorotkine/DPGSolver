@@ -328,6 +328,9 @@ void memory_destructor_F(struct S_FACE *FACE)
 	if (FACE->LHSOutOut)
 		free(FACE->LHSOutOut);
 
+	array_free2_d(d,FACE->QhatL);
+	array_free2_d(d,FACE->QhatR);
+
 	array_free2_d(d,FACE->Qhat_WhatRL);
 	array_free2_d(d,FACE->Qhat_WhatLR);
 
