@@ -211,11 +211,7 @@ static void set_test_equivalence_data(struct S_equivalence *data, const char *Te
 
 static void test_equivalence_rc(int nargc, char **argvNew, const char *TestName, struct S_equivalence *data)
 {
-	unsigned int Adapt;
-
 	set_test_equivalence_data(data,TestName);
-
-	Adapt = data->Adapt;
 
 	TestDB.PGlobal = data->P;
 	TestDB.ML      = data->ML;
@@ -270,12 +266,7 @@ static void test_equivalence_rc(int nargc, char **argvNew, const char *TestName,
 
 static void test_equivalence_alg(int nargc, char **argvNew, const char *TestName, struct S_equivalence *data)
 {
-	unsigned int Adapt, P;
-
 	set_test_equivalence_data(data,TestName);
-
-	Adapt = data->Adapt;
-	P     = data->P;
 
 	TestDB.PGlobal = data->P;
 	TestDB.ML      = data->ML;

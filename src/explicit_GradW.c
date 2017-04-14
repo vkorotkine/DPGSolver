@@ -198,7 +198,7 @@ static void explicit_GradW_VOLUME(void)
 				for (size_t i = 0; i < NvnS*Nvar; i++)
 					VOLUME->Qhat[dim][i] = VOLUME->QhatV[dim][i];
 
-				// Need to store DxyzChiS for implicit runs. (Don't forget -ve sign) (ToBeDeleted)
+				// Need to store DxyzChiS for implicit runs. (ToBeDeleted)
 				free(DxyzChiS[dim]);
 			}
 		}
@@ -397,12 +397,15 @@ static void explicit_GradW_finalize(void)
 			for (size_t i = 0; i < NvnSL*Nvar; i++)
 				VL->Qhat[dim][i] += FACE->QhatL[dim][i];
 
-			for (size_t i = 0; i < NvnSR*Nvar; i++)
-				VR->Qhat[dim][i] += FACE->QhatR[dim][i];
+			if (!FACE->Boundary) {
+				for (size_t i = 0; i < NvnSR*Nvar; i++)
+					VR->Qhat[dim][i] += FACE->QhatR[dim][i];
+			}
 		}
 
 		finalize_Qhat(VL,NvnSL,FACE->QhatL);
-		finalize_Qhat(VR,NvnSR,FACE->QhatR);
+		if (!FACE->Boundary)
+			finalize_Qhat(VR,NvnSR,FACE->QhatR);
 	}
 
 	// Multiply VOLUME Qhat terms by MInv

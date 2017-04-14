@@ -46,9 +46,9 @@ void setup_normals(struct S_FACE *FACE)
 	             NfrefMax = DB.NfrefMax;
 
 	// Standard datatypes
-	unsigned int fn, fnMax, curved, dim, dim1, dim2,
+	unsigned int fn, fnMax, dim, dim1, dim2,
 	             VfIn, Eclass, IndFType, fIn,
-	             NvnC0, NfnI0, NfnS0, Nn;
+	             NvnC0, NfnI0, Nn;
 	double       nSum, nSum2, *C_fI, *C_vC, *nrIn, *n_fI, *detJF_fI;
 
 	struct S_OPERATORS *OPS;
@@ -59,7 +59,6 @@ void setup_normals(struct S_FACE *FACE)
 	VIn  = FACE->VIn;
 
 	VfIn = FACE->VfIn;
-	curved = FACE->curved;
 
 	fIn = VfIn/NfrefMax;
 
@@ -70,7 +69,6 @@ void setup_normals(struct S_FACE *FACE)
 
 	NvnC0 = OPS->NvnC;
 	NfnI0 = OPS->NfnI;
-	NfnS0 = OPS->NfnS;
 
 	C_vC = VIn->C_vC;
 

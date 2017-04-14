@@ -53,6 +53,9 @@ void convert_variables(const double *const VarIn, double *const VarOut, const un
 	case 'p': {
 		const double *rho, *u, *v, *w, *p;
 
+		// silence
+		v = w = NULL;
+
 		rho = &VarIn[NnTotal*0];
 		u   = &VarIn[NnTotal*1];
 		p   = &VarIn[NnTotal*varInMax];
@@ -97,6 +100,9 @@ void convert_variables(const double *const VarIn, double *const VarOut, const un
 		break;
 	} case 'c': {
 		const double *rho, *rhou, *rhov, *rhow, *E;
+
+		// silence
+		rhov = rhow = NULL;
 
 		rho  = &VarIn[NnTotal*0];
 		rhou = &VarIn[NnTotal*1];

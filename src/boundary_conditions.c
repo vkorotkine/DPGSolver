@@ -290,7 +290,7 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, const 
 	 */
 
 	// Standard datatypes
-	unsigned int n, NnTotal, var, Neq, IndW;
+	unsigned int n, NnTotal, var, IndW;
 	double       rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, pBack, rhoB, cL, c2L, VnL, n1, n2, n3, *WB_ptr[Nvar];
 	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Nvar], *n_ptr;
 
@@ -300,7 +300,6 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, const 
 	rhovL_ptr = rhowL_ptr = NULL;
 
 	NnTotal = Nn*Nel;
-	Neq     = Nvar;
 
 	for (var = 0; var < Nvar; var++) {
 		WL_ptr[var] = &WL[var*NnTotal];
@@ -710,7 +709,7 @@ if (0) {
 			*WB_ptr[IndW++] = pB*V[3];
 		*WB_ptr[IndW++] = pB*(1.0/GM1-0.5*V2/V[4]);
 
-/*
+
 		IndW = 0;
 		double const rho = DB.rhoIn, p = DB.pIn;
 		*WB_ptr[IndW++] = rho;
@@ -719,7 +718,7 @@ if (0) {
 		if (d == 3)
 			*WB_ptr[IndW++] = rho*wB;
 		*WB_ptr[IndW++] = p/GM1+0.5*rho*(uB*uB+vB*vB+wB*wB);
-*/
+
 
 		for (size_t var = 0; var < Nvar; var++)
 			WB_ptr[var]++;
@@ -804,7 +803,7 @@ void boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 			uB = -uL;
 			vB = -vL;
 			wB = -wL;
-//			; // Do nothing.
+			; // Do nothing.
 		} else {
 			EXIT_UNSUPPORTED;
 		}

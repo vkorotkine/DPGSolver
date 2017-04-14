@@ -720,7 +720,7 @@ void compute_WR_fIL(struct S_FDATA const *const FDATA, double const *const WL_fI
 	struct S_FACE        const *const        FACE = FDATA->FACE;
 
 	unsigned int const d        = DB.d,
-	                   Nvar     = DB.Nvar,
+	                   Nvar     = d+2,
 	                   IndFType = FDATA->IndFType,
 	                   BC       = FACE->BC,
 	                   NfnI     = OPS[IndFType]->NfnI,
@@ -977,6 +977,7 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 	}
 }
 
+// ToBeDeleted (I jump is not necessary)
 static void compute_I_jump(unsigned int const NfnI, unsigned int const NvnS, unsigned int const *const nOrdRL,
                            double const *const ChiS_fI, double *const I_jump, double const alpha, double const beta,
                            struct S_VOLUME const *const VOLUME, char const side)
@@ -1032,21 +1033,17 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	 *	Comments:
 	 *		If on a boundary FACE, the boundary Jacobian contributions are included in dnFluxViscNumdWL_fIL.
 	 *		The numerical flux for this case is computed by:
-	 *			1) Finding the common state of the solution and weak solution gradients on the boundary;
-	 *			2) Evaluating the viscous flux using the common states.
+	 *			1) Finding the partially corrected weak gradients on the FACE cubature nodes;
+	 *			2) Evaluating the viscous flux contributions using the appropriate states;
+	 *			3) Constructing the numerical flux from a combination of the individual contributions.
 	 *
-	 *		Both the CDG2 or BR2 flux are supported, however it is recommended to use the CDG2 flux as it requires
-	 *		roughly half the cost of BR2 and leads to a sparser global system matrix. The common states are determined
-	 *		following the comments of Brdar(2012) section 4.1 (i.e. setting eta = 0 and taking chi according to Theorem
-	 *		2 part b resulting in the common gradients being defined according to eq. (4.3). The area switch (eq. (4.5))
-	 *		is used such that only one of the two VOLUME contributions must be accounted for in the CDG2 flux. The
-	 *		common state for the solution is simply the average of the interpolant from the left and right VOLUMEs as
-	 *		specified in Table 1.
+	 *		The CDG2 and BR2 fluxes are determined according to Brdar(2012, eq. (4.3)) following the comments of section
+	 *		4.1 (i.e. setting eta = 0 and taking chi according to Theorem 2 part b. The area switch (eq. (4.5)) is used
+	 *		such that only one of the two VOLUME contributions must be accounted for in the CDG2 flux.
 	 *
 	 *	Notation:
 	 *		imex_type : (im)plicit (ex)plicit (type) indicates whether this function is being called for an implicit or
 	 *		            explicit computation.
-	 *		Wjp       : Solution (W) (j)ump (p)artial
 	 *
 	 *	References:
 	 *		Brdar(2012)-Compact_and_Stable_Discontinuous_Galerkin_Methods_for_Convection-Diffusion_Problems
@@ -1064,7 +1061,10 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	                   Neq      = d+2,
 	                   IndFType = FDATAL->IndFType,
 	                   Boundary = FACE->Boundary,
-	                   NfnI     = OPSL[IndFType]->NfnI;
+	                   NfnI     = OPSL[IndFType]->NfnI,
+	                   NvnSL    = OPSL[0]->NvnS,
+	                   NvnSR    = OPSR[0]->NvnS,
+	                   *const nOrdRL = OPSL[FDATAL->IndFType]->nOrdRL;
 
 	double const *const n_fIL                = FACE->n_fI,
 	             *const WL_fIL               = FDATAL->NFluxData->WL_fIL,
@@ -1075,31 +1075,21 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	             *const dnFluxViscNumdWL_fIL = FDATAL->NFluxData->dnFluxViscNumdWL_fI,
 	             *const dnFluxViscNumdWR_fIL = FDATAL->NFluxData->dnFluxViscNumdWR_fI;
 
-	// Compute common solution and weak solution gradient
 
-	// Brdar(2012): Table 1, uhat
-	double *const W_fIL = malloc(NfnI*Nvar * sizeof *W_fIL); // free
-	for (size_t i = 0; i < NfnI*Nvar; i++)
-		W_fIL[i] = 0.5*(WL_fIL[i]+WR_fIL[i]);
-
-	// Update jump term with L2 projection/interpolation operator.
-	double chi = 0.0;
-
-	// Consider storing I_jump. Needs to be recomputed only when either adjacent VOLUME is updated. (ToBeDeleted)
-	double *const I_jump = malloc(NfnI*NfnI * sizeof *I_jump); // free
+	double *const FluxViscNum_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscNum_fIL); // free
 	if (DB.ViscousFluxType == FLUX_CDG2) {
-		chi = 0.5*(DB.NfMax);
+		EXIT_UNSUPPORTED; // Needs to be updated
+		// Note: Some QhatF terms are not used for this flux evaluation but must currently still be computed to obtain
+		//       the fully corrected Qhat. Where do the cost savings arise for CDG2? ToBeModified.
+		double *const I_jump = malloc(NfnI*NfnI * sizeof *I_jump); // free
+		double const chi = 0.5*(DB.NfMax);
 
 		if (Boundary) {
-			compute_I_jump(NfnI,OPSL[0]->NvnS,NULL,OPSL[0]->ChiS_fI[FDATAL->Vf],I_jump,2.0*chi,0.0,FDATAL->VOLUME,'L');
+			compute_I_jump(NfnI,NvnSL,NULL,OPSL[0]->ChiS_fI[FDATAL->Vf],I_jump,2.0*chi,0.0,FDATAL->VOLUME,'L');
 		} else {
 			// Evaluate from which side scaling should be computed based on area switch (Brdar(2012), eq. (4.5))
 			struct S_VOLUME const *const VL = FDATAL->VOLUME,
 			                      *const VR = FDATAR->VOLUME;
-
-			unsigned int const NvnSL         = OPSL[0]->NvnS,
-			                   NvnSR         = OPSR[0]->NvnS,
-			                   *const nOrdRL = OPSL[FDATAL->IndFType]->nOrdRL;
 
 			double const *const detJVL_vIL = VL->detJV_vI,
 			             *const detJVR_vIR = VR->detJV_vI;
@@ -1118,50 +1108,65 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 			else
 				compute_I_jump(NfnI,NvnSR,nOrdRL,OPSR[0]->ChiS_fI[FDATAR->Vf],I_jump,2.0*chi,0.0,VR,'R');
 		}
+		free(I_jump);
 	} else if (DB.ViscousFluxType == FLUX_BR2) {
-		chi = 1.0*(DB.NfMax);
+		double const chi = 1.0*(DB.NfMax);
+
+		// Compute contributions to numerical flux from each side
+		double **Q_fIL = malloc(d * sizeof *Q_fIL); // free
+		for (size_t dim = 0; dim < d; dim++)
+			Q_fIL[dim] = malloc(NfnI*Nvar * sizeof *Q_fIL[dim]); // free
 
 		if (Boundary) {
 			// See Bassi(2000, p.82) for correct computation of viscous flux on bondaries. (ToBeDeleted)
-			compute_I_jump(NfnI,OPSL[0]->NvnS,NULL,OPSL[0]->ChiS_fI[FDATAL->Vf],I_jump,2.0*chi,0.0,FDATAL->VOLUME,'L');
-		} else {
-			// Compute contributions to numerical flux from each side
-			double **Qhat_fIL = malloc(d * sizeof *Qhat_fIL); // free
-			for (size_t dim = 0; dim < d; dim++)
-				Qhat_fIL[dim] = malloc(OPSL[0]->NvnS*Nvar * sizeof *Qhat_fIL[dim]); // free
+			for (size_t dim = 0; dim < d; dim++) {
+				mm_d(CBCM,CBT,CBNT,NfnI,Nvar,NvnSL,chi,0.0,OPSL[0]->ChiS_fI[FDATAL->Vf],FACE->QhatL[dim],Q_fIL[dim]);
+				for (size_t i = 0; i < NfnI*Nvar; i++)
+					Q_fIL[dim][i] += GradWL_fIL[dim][i];
+			}
 
-//			unsigned int const *const nOrdRL = OPSL[IndFType]->nOrdRL;
-//			compute_I_jump(NfnI,OPSL[0]->NvnS,NULL,  OPSL[0]->ChiS_fI[FDATAL->Vf],I_jump,1.0*chi,0.0,FDATAL->VOLUME,'L');
-//			compute_I_jump(NfnI,OPSR[0]->NvnS,nOrdRL,OPSR[0]->ChiS_fI[FDATAR->Vf],I_jump,1.0*chi,1.0,FDATAR->VOLUME,'R');
+			double *const W_fIL = malloc(NfnI*Nvar * sizeof *W_fIL);
+			for (size_t i = 0; i < NfnI*Nvar; i++)
+				W_fIL[i] = 0.5*(WL_fIL[i]+WR_fIL[i]);
+
+//			flux_viscous(NfnI,1,WL_fIL,(const double *const *const) Q_fIL,FluxViscNum_fIL);
+			flux_viscous(NfnI,1,W_fIL,(const double *const *const) Q_fIL,FluxViscNum_fIL);
+			free(W_fIL);
+		} else {
+			// Left side
+			for (size_t dim = 0; dim < d; dim++) {
+				mm_d(CBCM,CBT,CBNT,NfnI,Nvar,NvnSL,chi,0.0,OPSL[0]->ChiS_fI[FDATAL->Vf],FACE->QhatL[dim],Q_fIL[dim]);
+				for (size_t i = 0; i < NfnI*Nvar; i++)
+					Q_fIL[dim][i] += GradWL_fIL[dim][i];
+			}
+
+			double *const FluxViscL_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscL_fIL); // free
+			flux_viscous(NfnI,1,WL_fIL,(const double *const *const) Q_fIL,FluxViscL_fIL);
+
+			// Right side
+			for (size_t dim = 0; dim < d; dim++) {
+				mm_d(CBCM,CBT,CBNT,NfnI,Nvar,NvnSR,chi,0.0,OPSR[0]->ChiS_fI[FDATAR->Vf],FACE->QhatR[dim],Q_fIL[dim]);
+
+				array_rearrange_d(NfnI,Nvar,nOrdRL,'C',Q_fIL[dim]);
+				for (size_t i = 0; i < NfnI*Nvar; i++)
+					Q_fIL[dim][i] += GradWR_fIL[dim][i];
+			}
+
+			double *const FluxViscR_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscR_fIL); // free
+			flux_viscous(NfnI,1,WR_fIL,(const double *const *const) Q_fIL,FluxViscR_fIL);
+
+			// Compute numerical flux
+			for (size_t i = 0; i < NfnI*d*Neq; i++)
+				FluxViscNum_fIL[i] = 0.5*(FluxViscL_fIL[i]+FluxViscR_fIL[i]);
+
+			free(FluxViscL_fIL);
+			free(FluxViscR_fIL);
 		}
+		array_free2_d(d,Q_fIL);
 	} else {
 		EXIT_UNSUPPORTED;
 	}
 
-	double *const Wj_fIL = malloc(NfnI*Nvar*d * sizeof *Wj_fIL); // free
-	mm_CTN_d(NfnI,Nvar*d,NfnI,I_jump,Wjp_fIL,Wj_fIL);
-
-	free(Wjp_fIL);
-	free(I_jump);
-
-	// Finalize Q_fIL
-	double **const Q_fIL = malloc(d * sizeof *Q_fIL); // free
-	for (size_t dim = 0; dim < d; dim++) {
-		Q_fIL[dim] = malloc(NfnI*Nvar * sizeof *Q_fIL[dim]); // free
-		double *const Wj_ptr = &Wj_fIL[NfnI*Nvar*dim];
-		for (size_t var = 0; var < Nvar; var++) {
-		for (size_t n = 0; n < NfnI; n++) {
-			Q_fIL[dim][n+var*NfnI] = 0.5*(GradWL_fIL[dim][n+var*NfnI]+GradWR_fIL[dim][n+var*NfnI])+Wj_ptr[n+var*NfnI];
-		}}
-	}
-	free(Wj_fIL);
-
-	// Compute numerical flux
-	double *const FluxViscNum_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscNum_fIL); // free
-	flux_viscous(NfnI,1,W_fIL,(const double *const *const) Q_fIL,FluxViscNum_fIL);
-
-	free(W_fIL);
-	array_free2_d(d,Q_fIL);
 
 	// Take dot product with normal vector
 	for (size_t i = 0; i < NfnI*Neq; i++)
@@ -1346,8 +1351,11 @@ static void swap_FACE_orientation(struct S_FDATA const *const FDATA, char const 
 
 		if (imex_type == 'E') {
 			for (size_t dim = 0; dim < d; dim++) {
-				for (size_t i = 0, iMax = Neq*NfnI; i < iMax; i++)
-					nSolNum_fI[dim][i] *= -1.0;
+printf("clean this up to support both strong and weak forms.\n"), EXIT_UNSUPPORTED;
+// negative normal but also subtract uR instead of uL in strong form (This should be present for weak form of 1st mixed
+// for equation. ToBeModified
+//				for (size_t i = 0, iMax = Neq*NfnI; i < iMax; i++)
+//					nSolNum_fI[dim][i] *= -1.0;
 
 				array_rearrange_d(NfnI,Neq,nOrdLR,'C',nSolNum_fI[dim]);
 			}
@@ -1759,8 +1767,12 @@ void finalize_FACE_Viscous_Weak(struct S_FDATA const *const FDATAL, struct S_FDA
 	                   NfnI = FDATAL->OPS[0]->NfnI;
 
 	if (imex_type == 'E') {
+if (side == 'L') { // Eureka! ToBeModified
+	// To avoid having to negate contributions for the viscous flux, simply return the negative in flux_viscous.
+	// ToBeDeleted
 		for (size_t i = 0, iMax = NfnI*Nvar; i < iMax; i++)
 			nANumL_fI[i] *= -1.0;
+}
 	} else if (imex_type == 'I') {
 		for (size_t i = 0, iMax = NfnI*Nvar*Neq; i < iMax; i++) {
 			nANumL_fI[i] *= -1.0;

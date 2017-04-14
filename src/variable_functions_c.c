@@ -40,6 +40,9 @@ void convert_variables_c(const double complex *const VarIn, double complex *cons
 	case 'p': {
 		const double complex *rho, *u, *v, *w, *p;
 
+		// silence
+		v = w = NULL;
+
 		rho = &VarIn[NnTotal*0];
 		u   = &VarIn[NnTotal*1];
 		p   = &VarIn[NnTotal*varInMax];
@@ -84,6 +87,9 @@ void convert_variables_c(const double complex *const VarIn, double complex *cons
 		break;
 	} case 'c': {
 		const double complex *rho, *rhou, *rhov, *rhow, *E;
+
+		// silence
+		rhov = rhow = NULL;
 
 		rho  = &VarIn[NnTotal*0];
 		rhou = &VarIn[NnTotal*1];
