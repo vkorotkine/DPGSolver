@@ -145,7 +145,7 @@ int main(int nargc, char **argv)
 		solver_Poisson(1);
 	} else {
 		if (strstr(DB.SolverType,"Explicit")) {
-			solver_explicit();
+			solver_explicit(1);
 		} else if (strstr(DB.SolverType,"Implicit")) {
 			solver_implicit(1);
 		} else {

@@ -212,7 +212,7 @@ static void compute_underRelax(struct S_VOLUME *VOLUME, const double *dWhat, dou
 	free(dU);
 }
 
-void solver_implicit(bool PrintEnabled)
+void solver_implicit(bool const PrintEnabled)
 {
 	// Initialize DB Parameters
 	unsigned int OutputInterval = DB.OutputInterval,

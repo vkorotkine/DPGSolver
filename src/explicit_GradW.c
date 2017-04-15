@@ -19,17 +19,30 @@
 #include "boundary_conditions.h"
 #include "update_VOLUMEs.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Compute weak gradients required for the computation of viscous fluxes.
  *
  *	Comments:
- *		The weak form of the equation is used (i.e. integrated by parts once).
+ *		Selection of FORM_MF1 == 'S' is much more consistent with the theoretical formulation of the stabilized mixed
+ *		form as presented in Brezzi(2000) (and in general); the stabilization is a penalization on the solution jumps
+ *		across the elements. This also gives a much more natural symmetry to the diffusive operator when compared with
+ *		using the weak form for the first equation.
+ *		Furthermore, the partially corrected gradient contributions required for the numerical viscous flux can be
+ *		directly computed from the summation of the VOLUME and FACE terms to Qhat when using the strong form here. As
+ *		expected, when the cubature order is sufficient, the fully corrected Qhat is identical for the strong and weak
+ *		forms.
  *
  *	Notation:
+ *		FORM_MF1 : (FORM) used for (M)ixed (F)ormulation equation (1). Can be either ('W')eak or ('S')trong.
  *
  *	References:
+ *		Brezzi(2000)-Discontinuous_Galerkin_Approximations_for_Elliptic_Problems
  */
+
+#define FORM_MF1 'S' // Should not use 'W' without modifications to viscous flux computation (See comments above).
 
 static void explicit_GradW_VOLUME   (void);
 static void explicit_GradW_FACE     (void);
@@ -37,6 +50,9 @@ static void explicit_GradW_finalize (void);
 
 void explicit_GradW(void)
 {
+	if (!DB.Viscous)
+		return;
+
 	explicit_GradW_VOLUME();
 	explicit_GradW_FACE();
 	explicit_GradW_finalize();
@@ -113,94 +129,55 @@ static void explicit_GradW_VOLUME(void)
 
 	struct S_Dxyz *const DxyzInfo = malloc(sizeof *DxyzInfo); // free
 
-	if (0) { // Weak form for 1st equation in the mixed form
-		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-			init_VDATA(VDATA,VOLUME);
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		init_VDATA(VDATA,VOLUME);
 
-			unsigned int const NvnS = VDATA->OPS[0]->NvnS,
-			                   NvnI = VDATA->OPS[0]->NvnI;
+		unsigned int const NvnS = VDATA->OPS[0]->NvnS,
+		                   NvnI = VDATA->OPS[0]->NvnI;
 
-			DxyzInfo->Nbf = VDATA->OPS[0]->NvnS;
-			DxyzInfo->Nn  = VDATA->OPS[0]->NvnI;
-			DxyzInfo->D   = (double const *const *const) VDATA->OPS[0]->D_Weak;
-			DxyzInfo->C   = VOLUME->C_vI;
+		DxyzInfo->Nbf = VDATA->OPS[0]->NvnS;
+		DxyzInfo->Nn  = VDATA->OPS[0]->NvnI;
+		DxyzInfo->D   = (double const *const *const) VDATA->OPS[0]->D_Weak;
+		DxyzInfo->C   = VOLUME->C_vI;
 
-			double const *const        ChiS_vI  = VDATA->OPS[0]->ChiS_vI;
-			double       *      *const DxyzChiS = VOLUME->DxyzChiS;
-			for (size_t dim = 0; dim < d; dim++) {
-				DxyzInfo->dim = dim;
-				double *const Dxyz = compute_Dxyz(DxyzInfo,d); // free
+		double const *const        ChiS_vI  = VDATA->OPS[0]->ChiS_vI;
+		double       *      *const DxyzChiS = VOLUME->DxyzChiS;
+		for (size_t dim = 0; dim < d; dim++) {
+			DxyzInfo->dim = dim;
+			double *const Dxyz = compute_Dxyz(DxyzInfo,d); // free
 
-				// Note: The detJ_vI term cancels with the gradient operator (Zwanenburg(2016), eq. (B.2))
-				if (DB.Collocated) { // ChiS_vI == I
-					DxyzChiS[dim] = Dxyz;
-				} else {
-					DxyzChiS[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // free
-					free(Dxyz);
-				}
-
-				// Compute intermediate Qhat contribution
-				if (VOLUME->QhatV[dim])
-					free(VOLUME->QhatV[dim]);
-				VOLUME->QhatV[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV[dim])); // keep
-				mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,-1.0,0.0,DxyzChiS[dim],VOLUME->What,VOLUME->QhatV[dim]);
-
-				if (VOLUME->Qhat[dim])
-					free(VOLUME->Qhat[dim]);
-				VOLUME->Qhat[dim]  = malloc(NvnS*Nvar * sizeof *(VOLUME->Qhat[dim]));  // keep (used below)
-
-				for (size_t i = 0; i < NvnS*Nvar; i++)
-					VOLUME->Qhat[dim][i] = VOLUME->QhatV[dim][i];
-
-
-				// Need to store DxyzChiS for implicit runs. (Don't forget -ve sign) (ToBeDeleted)
-				free(DxyzChiS[dim]);
+			// Note: The detJ_vI term cancels with the gradient operator (Zwanenburg(2016), eq. (B.2))
+			if (DB.Collocated) { // ChiS_vI == I
+				DxyzChiS[dim] = Dxyz;
+			} else {
+				DxyzChiS[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // free
+				free(Dxyz);
 			}
-		}
-	} else { // Strong form
-		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-			init_VDATA(VDATA,VOLUME);
 
-			unsigned int const NvnS = VDATA->OPS[0]->NvnS,
-			                   NvnI = VDATA->OPS[0]->NvnI;
+			// Compute intermediate Qhat contribution
+			if (VOLUME->QhatV[dim])
+				free(VOLUME->QhatV[dim]);
+			VOLUME->QhatV[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV[dim])); // keep
 
-			DxyzInfo->Nbf = VDATA->OPS[0]->NvnS;
-			DxyzInfo->Nn  = VDATA->OPS[0]->NvnI;
-			DxyzInfo->D   = (double const *const *const) VDATA->OPS[0]->D_Weak;
-			DxyzInfo->C   = VOLUME->C_vI;
-
-			double const *const        ChiS_vI  = VDATA->OPS[0]->ChiS_vI;
-			double       *      *const DxyzChiS = VOLUME->DxyzChiS;
-			for (size_t dim = 0; dim < d; dim++) {
-				DxyzInfo->dim = dim;
-				double *const Dxyz = compute_Dxyz(DxyzInfo,d); // free
-
-				// Note: The detJ_vI term cancels with the gradient operator (Zwanenburg(2016), eq. (B.2))
-				if (DB.Collocated) { // ChiS_vI == I
-					DxyzChiS[dim] = Dxyz;
-				} else {
-					DxyzChiS[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // free
-					free(Dxyz);
-				}
-
-				// Compute intermediate Qhat contribution
-				if (VOLUME->QhatV[dim])
-					free(VOLUME->QhatV[dim]);
-				VOLUME->QhatV[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV[dim])); // keep
+			if (FORM_MF1 == 'W') {
+				mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,-1.0,0.0,DxyzChiS[dim],VOLUME->What,VOLUME->QhatV[dim]);
+			} else if (FORM_MF1 == 'S') {
 				// Note: Using CBCM with CBNT for DxyzChiS (stored in row-major ordering) gives DxyzChiS' in the
 				//       operation below.
 				mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,DxyzChiS[dim],VOLUME->What,VOLUME->QhatV[dim]);
-
-				if (VOLUME->Qhat[dim])
-					free(VOLUME->Qhat[dim]);
-				VOLUME->Qhat[dim]  = malloc(NvnS*Nvar * sizeof *(VOLUME->Qhat[dim]));  // keep (used below)
-
-				for (size_t i = 0; i < NvnS*Nvar; i++)
-					VOLUME->Qhat[dim][i] = VOLUME->QhatV[dim][i];
-
-				// Need to store DxyzChiS for implicit runs. (ToBeDeleted)
-				free(DxyzChiS[dim]);
+			} else {
+				EXIT_UNSUPPORTED;
 			}
+
+			if (VOLUME->Qhat[dim])
+				free(VOLUME->Qhat[dim]);
+			VOLUME->Qhat[dim]  = malloc(NvnS*Nvar * sizeof *(VOLUME->Qhat[dim]));  // keep (used below)
+
+			for (size_t i = 0; i < NvnS*Nvar; i++)
+				VOLUME->Qhat[dim][i] = VOLUME->QhatV[dim][i];
+
+			// Need to store DxyzChiS for implicit runs. (Don't forget -ve sign) (ToBeDeleted)
+			free(DxyzChiS[dim]); DxyzChiS[dim] = NULL;
 		}
 	}
 
@@ -245,89 +222,54 @@ static void explicit_GradW_FACE(void)
 		OPSR[i]  = malloc(sizeof *OPSR[i]);  // free
 	}
 
-	if (0) { // Weak form for 1st equation in the mixed form
-		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
-			init_FDATA(FDATAL,FACE,'L');
-			init_FDATA(FDATAR,FACE,'R');
+	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+		init_FDATA(FDATAL,FACE,'L');
+		init_FDATA(FDATAR,FACE,'R');
 
-			// Compute WL_fIL and WR_fIL (i.e. as seen from the (L)eft VOLUME)
-			unsigned int const IndFType = FDATAL->IndFType,
-			                   NfnI     = OPSL[IndFType]->NfnI;
+		// Compute WL_fIL and WR_fIL (i.e. as seen from the (L)eft VOLUME)
+		unsigned int const IndFType = FDATAL->IndFType,
+		                   NfnI     = OPSL[IndFType]->NfnI;
 
-			FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
-			FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
+		FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
+		FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
 
-			coef_to_values_fI(FDATAL,'W');
-			compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
+		coef_to_values_fI(FDATAL,'W');
+		compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
 
-			// Compute numerical flux as seen from the left VOLUME
-			NFluxData->WL_fIL     = FDATAL->W_fIL;
-			NFluxData->WR_fIL     = FDATAR->W_fIL;
-			NFluxData->nSolNum_fI = malloc(d * sizeof *(NFluxData->nSolNum_fI)); // free
-			for (size_t dim = 0; dim < d; dim++)
-				NFluxData->nSolNum_fI[dim] = malloc(NfnI*Neq * sizeof *(NFluxData->nSolNum_fI[dim])); // free
+		// Compute numerical flux as seen from the left VOLUME
+		NFluxData->WL_fIL     = FDATAL->W_fIL;
+		NFluxData->WR_fIL     = FDATAR->W_fIL;
+		NFluxData->nSolNum_fI = malloc(d * sizeof *(NFluxData->nSolNum_fI)); // free
+		for (size_t dim = 0; dim < d; dim++)
+			NFluxData->nSolNum_fI[dim] = malloc(NfnI*Neq * sizeof *(NFluxData->nSolNum_fI[dim])); // free
 
-			compute_numerical_solution(FDATAL,'E','W');
-			add_Jacobian_scaling_FACE(FDATAL,'E','Q');
+		compute_numerical_solution(FDATAL,'E','W');
+		add_Jacobian_scaling_FACE(FDATAL,'E','Q');
+		if (FORM_MF1 == 'S')
+			correct_numerical_solution_strong(FDATAL,'E','L',FORM_MF1);
 
-			free(FDATAL->W_fIL);
-			free(FDATAR->W_fIL);
-
-			// Add in memory allocation here. (ToBeDeleted)
-			EXIT_UNSUPPORTED;
-
-			finalize_QhatF_Weak(FDATAL,FDATAR,'L','E');
-			if (!FACE->Boundary)
-				finalize_QhatF_Weak(FDATAL,FDATAR,'R','E');
-
-			array_free2_d(d,NFluxData->nSolNum_fI);
+		for (size_t dim = 0; dim < d; dim++) {
+			if (FACE->QhatL[dim])
+				free(FACE->QhatL[dim]);
+			FACE->QhatL[dim] = malloc(OPSL[0]->NvnS*Nvar * sizeof *(FACE->QhatL[dim])); // keep
 		}
-	} else { // Strong form
-		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
-			init_FDATA(FDATAL,FACE,'L');
-			init_FDATA(FDATAR,FACE,'R');
+		finalize_QhatF_Weak(FDATAL,FDATAR,'L','E');
 
-			// Compute WL_fIL and WR_fIL (i.e. as seen from the (L)eft VOLUME)
-			unsigned int const IndFType = FDATAL->IndFType,
-			                   NfnI     = OPSL[IndFType]->NfnI;
-
-			FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
-			FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
-
-			coef_to_values_fI(FDATAL,'W');
-			compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
-
-			// Compute numerical flux as seen from the left VOLUME
-			NFluxData->WL_fIL     = FDATAL->W_fIL;
-			NFluxData->WR_fIL     = FDATAR->W_fIL;
-			NFluxData->nSolNum_fI = malloc(d * sizeof *(NFluxData->nSolNum_fI)); // free
-			for (size_t dim = 0; dim < d; dim++)
-				NFluxData->nSolNum_fI[dim] = malloc(NfnI*Neq * sizeof *(NFluxData->nSolNum_fI[dim])); // free
-
-			compute_numerical_solution(FDATAL,'E','S');
-			add_Jacobian_scaling_FACE(FDATAL,'E','Q');
-
-			free(FDATAL->W_fIL);
-			free(FDATAR->W_fIL);
+		if (!FACE->Boundary) {
+			if (FORM_MF1 == 'S')
+				correct_numerical_solution_strong(FDATAR,'E','R',FORM_MF1);
 
 			for (size_t dim = 0; dim < d; dim++) {
-				if (FACE->QhatL[dim])
-					free(FACE->QhatL[dim]);
-				FACE->QhatL[dim] = malloc(OPSL[0]->NvnS*Nvar * sizeof *(FACE->QhatL[dim])); // keep
+				if (FACE->QhatR[dim])
+					free(FACE->QhatR[dim]);
+				FACE->QhatR[dim] = malloc(OPSR[0]->NvnS*Nvar * sizeof *(FACE->QhatR[dim])); // keep
 			}
-			finalize_QhatF_Weak(FDATAL,FDATAR,'L','E');
-
-			if (!FACE->Boundary) {
-				for (size_t dim = 0; dim < d; dim++) {
-					if (FACE->QhatR[dim])
-						free(FACE->QhatR[dim]);
-					FACE->QhatR[dim] = malloc(OPSR[0]->NvnS*Nvar * sizeof *(FACE->QhatR[dim])); // keep
-				}
-				finalize_QhatF_Weak(FDATAL,FDATAR,'R','E');
-			}
-
-			array_free2_d(d,NFluxData->nSolNum_fI);
+			finalize_QhatF_Weak(FDATAL,FDATAR,'R','E');
 		}
+
+		free(FDATAL->W_fIL);
+		free(FDATAR->W_fIL);
+		array_free2_d(d,NFluxData->nSolNum_fI);
 	}
 
 	for (size_t i = 0; i < 2; i++) {

@@ -8,7 +8,7 @@
 #include "petscksp.h"
 
 
-extern void solver_implicit (bool PrintEnabled);
+extern void solver_implicit (bool const PrintEnabled);
 extern void setup_KSP       (Mat A, KSP ksp);
 
 #endif // DPG__solver_implicit_h__INCLUDED

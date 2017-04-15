@@ -5,7 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h> // ToBeModified
+#include <math.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
@@ -29,31 +29,14 @@
 #include "variable_functions.h"
 #include "array_print.h"
 
-/*
- *	Purpose:
- *		Perform explicit time-stepping using:
- *			1) a 3rd order (S)trong (S)tability (P)reserving (R)unge-(K)utta scheme.
- *			2) a low storage 4th order RK scheme.
- *
- *	Comments:
- *		rk4c is only needed if there is a time-dependent term in the residual (e.g. a time-dependent source term).
- *
- *	Notation:
- *
- *	References:
- *		Carpenter(1994)-Fourth-Order_2N-Storage_Runge-Kutta_Schemes
- *		Gottlieb(2001)-Strong_Stability-Preserving_High-Order_Time_Discretization_Methods (eq. (4.2))
- */
-
-static void correct_What_Bezier(double *WhatB, const double t, const unsigned int NvnS, const double *WAvg,
-                                const char type)
+static void correct_What_Bezier(double *const WhatB, double const t, unsigned int const NvnS, double const *const WAvg,
+                                char const type)
 {
-	unsigned int d    = DB.d,
-	             Nvar = DB.Nvar;
+	unsigned int const d    = DB.d,
+	                   Nvar = d+2;
 
 	if (type == 'd') { // (d)ensity
-		double *UhatB = malloc(NvnS*Nvar * sizeof *UhatB); // free
-
+		double *const UhatB = malloc(NvnS*Nvar * sizeof *UhatB); // free
 		convert_variables(WhatB,UhatB,d,d,NvnS,1,'c','p');
 
 		for (size_t n = 0; n < NvnS; n++) {
@@ -70,7 +53,7 @@ static void correct_What_Bezier(double *WhatB, const double t, const unsigned in
 			WhatB[var*NvnS+n] += (1.0-t)*WAvg[var];
 		}}
 	} else {
-		printf("Error: Unsupported.\n"), EXIT_MSG;
+		EXIT_UNSUPPORTED;
 	}
 }
 
@@ -78,10 +61,6 @@ void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 {
 	if (VOLUME->type == TET || VOLUME->type == WEDGE || VOLUME->type == PYR)
 		return; // Bezier basis not yet implemented. (ToBeModified)
-	bool PrintOn = 0;
-
-	if (PrintOn)
-		printf("\n\n\n *********** indexg: %d ***********\n\n\n\n",VOLUME->indexg);
 
 	/*
 	 *	Purpose:
@@ -90,54 +69,43 @@ void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 	 *	Comments:
 	 *		See Wang(2012) section 3.1 for details of the procedure.
 	 *		The positivity is ensured to hold throughout the entire element by performing the check in the Bezier basis.
-	 *		The compensation for the orthonormal basis scaling is defined such that TS[0] multiplied by an array of
-	 *		the same constant value should return that value.
+	 *		The compensation for the orthonormal basis scaling is defined such that TS[0] multiplied by an array equal
+	 *		to the same constant value should return that value.
 	 *		The function currently assumes that the conservative variables are being used.
 	 *
 	 *	References:
 	 *		Wang-Shu(2012)-Robust_High_Order_Discontinuous_Galerkin_Schemes_for_Two-Dimensional_Gaseous_Detonations
 	 */
 
-	unsigned int d    = DB.d,
-	             Nvar = DB.Nvar;
+	struct S_ELEMENT const *const ELEMENT = get_ELEMENT_type(VOLUME->type);
 
-	struct S_ELEMENT *ELEMENT = get_ELEMENT_type(VOLUME->type);
-
-	unsigned int P, NvnS;
-	double       Volume, *TS, *TS_vB, *TInvS_vB;
-
-	P = VOLUME->P;
-
-	Volume   = ELEMENT->Volume;
-	NvnS     = ELEMENT->NvnS[P];
-	TS       = ELEMENT->TS[P][P][0];
-	TS_vB    = ELEMENT->TS_vB[P][P][0];
-	TInvS_vB = ELEMENT->TInvS_vB[P][P][0];
+	unsigned int const d    = DB.d,
+	                   Nvar = d+2,
+	                   P    = VOLUME->P,
+	                   NvnS = ELEMENT->NvnS[P];
+	double const Volume         = ELEMENT->Volume,
+	            *const TS       = ELEMENT->TS[P][P][0],
+	            *const TS_vB    = ELEMENT->TS_vB[P][P][0],
+	            *const TInvS_vB = ELEMENT->TInvS_vB[P][P][0];
 
 	// *** Density *** ///
 
 	// Find average density
-	double rhoAvg, *What, *rho_hat;
-
-	What    = VOLUME->What;
-	rho_hat = &What[0];
+	double        rhoAvg,
+	       *const What    = VOLUME->What,
+	       *const rho_hat = &What[0];
 
 	// Note compensation for orthonormal basis scaling
 	mm_d(CBCM,CBT,CBNT,1,1,NvnS,1.0/sqrt(Volume),0.0,&TS[0],rho_hat,&rhoAvg);
-
-//printf("\n\n\n\n\n\nrhoAvg: % .3e\nWhat:\n",rhoAvg);
-//array_print_d(NvnS,Nvar,What,'C');
 
 	if (rhoAvg < EPS_PHYS)
 		printf("Error: Average density approaching 0.\n"), EXIT_MSG;
 
 	// Convert to the Bezier basis
-	double *WhatB, *rho_hatB;
-
-	WhatB = malloc(NvnS*Nvar * sizeof *WhatB); // free
+	double *const WhatB    = malloc(NvnS*Nvar * sizeof *WhatB); // free
 	mm_CTN_d(NvnS,Nvar,NvnS,TS_vB,What,WhatB);
 
-	rho_hatB = &WhatB[0];
+	double const *const rho_hatB = &WhatB[0];
 
 	// Find minimum value
 	double rhoMin = 1.0/EPS;
@@ -146,47 +114,18 @@ void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 			rhoMin = rho_hatB[n];
 	}
 
-//printf("rhoMin: % .3e\nrho_hatB\n",rhoMin);
-//array_print_d(NvnS,1,rho_hatB,'C');
-
-	// Correct rho if necessary (Note: momentum terms are corrected as well)
+	// Correct rho (and related terms) if necessary
 	if (rhoMin < EPS_PHYS) {
-if (PrintOn) {
-printf("Volume/rhoAvg: % .3e % .3e\n\n",Volume,rhoAvg);
-array_print_d(NvnS,NvnS,TS,'R');
-array_print_d(NvnS,1,rho_hatB,'C');
-array_print_d(NvnS,Nvar,What,'C');
-}
-		double t = min(1.0,(rhoAvg-EPS_PHYS)/(rhoAvg-rhoMin));
+		double const t = min(1.0,(rhoAvg-EPS_PHYS)/(rhoAvg-rhoMin));
 		correct_What_Bezier(WhatB,t,NvnS,&rhoAvg,'d');
 
-		mm_CTN_d(NvnS,Nvar-1,NvnS,TInvS_vB,WhatB,What);
-if (PrintOn) {
-array_print_d(NvnS,Nvar,What,'C');
-}
+		mm_CTN_d(NvnS,Nvar,NvnS,TInvS_vB,WhatB,What);
+//		mm_CTN_d(NvnS,Nvar-1,NvnS,TInvS_vB,WhatB,What);
 	}
 
 	// *** Pressure *** ///
-	double *p_hatB;
-
-	p_hatB = malloc(NvnS * sizeof *p_hatB); // free
+	double *const p_hatB = malloc(NvnS * sizeof *p_hatB); // free
 	compute_pressure(WhatB,p_hatB,d,NvnS,1,'c');
-
-/*
-	double *W_vS, *p_vS;
-
-	W_vS = malloc(NvnS*Nvar * sizeof *W_vS); // free
-	mm_CTN_d(NvnS,Nvar,NvnS,1.0,ELEMENT->ChiS_vS[P][P][0],What,W_vS);
-
-	p_vS = malloc(NvnS * sizeof *p_vS); // free
-	compute_pressure(W_vS,p_vS,d,NvnS,1,'c');
-
-	// Convert to the Bezier basis
-	double *p_hatB;
-
-	p_hatB = malloc(NvnS * sizeof *p_hatB); // free
-	mm_CTN_d(NvnS,1,NvnS,1.0,ELEMENT->ChiBezInvS_vS[P][P][0],p_vS,p_hatB);
-*/
 
 	// Correct W if necessary
 	double pMin = 1.0/EPS;
@@ -194,55 +133,29 @@ array_print_d(NvnS,Nvar,What,'C');
 		if (p_hatB[n] < pMin)
 			pMin = p_hatB[n];
 	}
-//	free(p_hatB); // Uncomment this: ToBeDeleted
+	free(p_hatB);
 
 	if (pMin < 0.0) {
-if (PrintOn) {
-array_print_d(NvnS,NvnS,TS_vB,'R');
-printf("\n\n\n\n\nVOLUME: %d\nWhat/WhatB:\n",VOLUME->indexg);
-array_print_d(NvnS,Nvar,What,'C');
-array_print_d(NvnS,Nvar,WhatB,'C');
-printf("pMin: % .4e\np_hatB:\n",pMin);
-array_print_d(NvnS,1,p_hatB,'C');
-}
 		// Compute average pressure
-		double *WAvg, pAvg;
-
-		WAvg = malloc(Nvar * sizeof *WAvg); // free
+		double *const WAvg = malloc(Nvar * sizeof *WAvg); // free
 
 		// Note compensation for orthonormal basis scaling
 		mm_d(CBCM,CBT,CBNT,1,Nvar,NvnS,1.0/sqrt(Volume),0.0,&TS[0],What,WAvg);
-//		mm_CTN_d(1,Nvar,NvnS,&TS[0],What,WAvg);
 
+		double pAvg;
 		compute_pressure(WAvg,&pAvg,d,1,1,'c');
-if (PrintOn) {
-printf("pAvg: % .4e\nWAvg:\n",pAvg);
-array_print_d(1,Nvar,WAvg,'C');
-}
 		free(WAvg);
 
 		if (pAvg < 0.0)
 			printf("Error: Negative average pressure.\n"), EXIT_MSG;
 
-		//     t = min(1.0,(pAvg-0.0)/(pAvg-pMin));
-		double t = pAvg/(pAvg-pMin);
+		double const t = pAvg/(pAvg-pMin);
 		correct_What_Bezier(WhatB,t,NvnS,WAvg,'p');
 
 		// Correct What
 		mm_CTN_d(NvnS,Nvar,NvnS,TInvS_vB,WhatB,What);
-if (PrintOn) {
-printf("% .3e\nWhatB (updated)\n",t);
-array_print_d(NvnS,Nvar,WhatB,'C');
-printf("What (corrected):\n");
-array_print_d(NvnS,Nvar,What,'C');
-}
-//if (t < 0.4)
-//EXIT_MSG;
-//if (pAvg > 2)
-//EXIT_MSG;
 	}
 	free(WhatB);
-	free(p_hatB);
 }
 
 struct S_timestepping {
@@ -251,72 +164,9 @@ struct S_timestepping {
 
 static void select_timestepping_parameters(struct S_timestepping *data)
 {
-	char *PDE      = DB.PDE,
-	     *TestCase = DB.TestCase;
-
-	if (strstr(PDE,"NavierStokes")) {
-		if (strstr(TestCase,"TaylorCouette")) {
-			printf("Using default value for timestepping parameters.\n");
-			data->dt         = 1e-2;
-			data->exit_tol   = EPS;
-			data->exit_ratio = 1.0/EPS;
-		} else {
-			EXIT_UNSUPPORTED;
-		}
-	} else if (strstr(PDE,"Euler")) {
-		if (strstr(TestCase,"PeriodicVortex")) {
-			printf("Using default value for timestepping parameters.\n");
-			data->dt         = 1e-3; // Selected for stability of P3 ML5 (where ML0 has 4 QUADs)
-			data->exit_tol   = EPS;
-			data->exit_ratio = 1.0/EPS;
-		} else {
-			EXIT_UNSUPPORTED;
-		}
-	} else {
-		EXIT_UNSUPPORTED;
-	}
-}
-
-void solver_explicit(void)
-{
-	// Initialize DB Parameters
-	bool         Viscous            = DB.Viscous;
-	unsigned int OutputInterval     = DB.OutputInterval,
-	             Neq                = DB.Neq,
-	             ExplicitSolverType = DB.ExplicitSolverType,
-	             Adapt              = DB.Adapt;
-
-	unsigned int PrintTesting = 1;
-
-	double       FinalTime = DB.FinalTime;
-
-	// Standard datatypes
-	static double rk4a[5] = { 0.0,              -0.417890474499852, -1.192151694642677, -1.697784692471528,
-	                         -1.514183444257156 },
-	              rk4b[5] = { 0.149659021999229, 0.379210312999627,  0.822955029386982,  0.699450455949122,
-	                          0.153057247968152 };
-//	              rk4c[5] = { 0.0,               0.149659021999229,  0.370400957364205,  0.622255763134443,
-//                            0.958282130674690 };
-
-	char         *dummyPtr_c[2];
-	unsigned int i, iMax, tstep, rk,
-	             NvnS;
-	double       time, dt, maxRHS0, maxRHS, *RES, *RHS, *What, exit_tol, exit_ratio;
-
-	struct S_timestepping *data_time;
-
-	data_time = malloc(sizeof *data_time); // free
-
-	// silence
-	dt = maxRHS0 = 0.0;
-
-	for (i = 0; i < 2; i++)
-		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free
-
-	exit_tol   = 10*EPS;
-	exit_ratio = 2e4;
-
-// Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).  (ToBeDeleted)
+	// Need to improve how dt is selected! Likely based on characteristic speeds (see nodalDG code for one possibility).
+	// (ToBeDeleted)
+	// The parameters set below were used for the Euler ellipsoidal section case. ToBeDeleted.
 /*
 	if (!Adapt) {
 		dt = pow(0.5,DB.ML+DB.PGlobal+1);
@@ -370,22 +220,207 @@ void solver_explicit(void)
 			}
 		}
 	}
-	dt = 1e-3;
-	exit_tol   = EPS;
-	exit_ratio = 1e15;
 */
+	char const *const PDE      = DB.PDE,
+	           *const TestCase = DB.TestCase;
+
+	if (strstr(PDE,"NavierStokes")) {
+		if (strstr(TestCase,"TaylorCouette")) {
+			if (TestDB.Active) {
+				unsigned int const ML = TestDB.ML;
+
+				if (ML == 0) {
+					data->dt = 5e-3;
+				} else if (ML == 1) {
+					data->dt = 5e-3*pow(0.5,1.0);
+				} else if (ML == 2) {
+					data->dt = 5e-3*pow(0.5,2.0); // Selected for stability of P2 (where ML0 has 16 TRIs)
+				} else {
+					printf("Using default value for timestepping parameters.\n");
+					data->dt = 5e-3;
+				}
+			}
+			data->exit_tol   = 1e-9;
+			data->exit_tol   = EPS;
+			data->exit_ratio = 1.0/EPS;
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else if (strstr(PDE,"Euler")) {
+		if (strstr(TestCase,"PeriodicVortex")) {
+			printf("Using default value for timestepping parameters.\n");
+			data->dt         = 1e-3; // Selected for stability of P3 ML5 (where ML0 has 4 QUADs)
+			data->exit_tol   = EPS;
+			data->exit_ratio = 1.0/EPS;
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
+
+static void update_RHS(double *maxRHS, bool const PrintEnabled)
+{
+	/*
+	 *	Purpose:
+	 *		Update the RHS terms for each VOLUME.
+	 *
+	 *	Comments:
+	 *		RHS as used here is defined as all terms of the discretization which are not associated with the unsteady
+	 *		term (i.e. d/dt What == RHS. With this notation, RHS thus corresponds to the negative of the steady
+	 *		residual.
+	 *		explicit_GradW returns immediately if DB.Viscous = 0 (i.e. for Euler cases).
+	 */
+
+	// Compute weak gradients (for viscous terms)
+	explicit_GradW();
+
+	// Build the RHS (== -Residual)
+	if (PrintEnabled) { printf("V");  } explicit_VOLUME_info();
+	if (PrintEnabled) { printf("F");  } explicit_FACE_info();
+	if (PrintEnabled) { printf("F "); } *maxRHS = finalize_RHS();
+
+}
+
+static void perform_timestepping(double const dt, double *maxRHS, bool const PrintEnabled)
+{
+	/*
+	 *	Purpose:
+	 *		Perform the timestepping for the current time step using the selected scheme.
+	 *
+	 *	Comments:
+	 *		The currently supported options are:
+	 *			1) (R)unge-(K)utta (3)rd order (S)trong (S)tability (P)reserving
+	 *			2) (R)unge-(K)utta (4)th order (L)ow (S)torage
+	 *				rk4c is only needed if there is a time-dependent term in the residual (e.g. a time-dependent source
+	 *				term).
+	 *			3) Forward (EULER) - 1st order
+	 *
+	 *	References:
+	 *		Gottlieb(2001)-Strong_Stability-Preserving_High-Order_Time_Discretization_Methods (eq. (4.2))
+	 *		Carpenter(1994)-Fourth-Order_2N-Storage_Runge-Kutta_Schemes
+	 */
+
+	unsigned int const d    = DB.d,
+	                   Nvar = d+2;
+
+	switch (DB.ExplicitSolverType) {
+	case RK3_SSP: {
+		// RES is used to store the initial solution at the beginning of the time step.
+		for (size_t rk = 0; rk < 3; rk++) {
+			update_RHS(maxRHS,PrintEnabled);
+
+			// Update What
+			for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+				unsigned int const NvnS = VOLUME->NvnS;
+
+				double *RES       = VOLUME->RES,
+					   *What      = VOLUME->What;
+				double const *RHS = VOLUME->RHS;
+
+				if (rk == 0) {
+					for (size_t iMax = Nvar*NvnS; iMax--; ) {
+						*RES++   = *What;
+						*What++ += dt*(*RHS++);
+					}
+				} else if (rk == 1) {
+					for (size_t iMax = Nvar*NvnS; iMax--; ) {
+						*What = 0.25*(3.0*(*RES++) + *What + dt*(*RHS++));
+						What++;
+					}
+				} else if (rk == 2) {
+					for (size_t iMax = Nvar*NvnS; iMax--; ) {
+						*What = (1.0/3.0)*(*RES++ + 2.0*(*What) + 2.0*dt*(*RHS++));
+						What++;
+					}
+				}
+				enforce_positivity_highorder(VOLUME);
+			}
+		}
+		break;
+	} case RK4_LS: {
+		static double const rk4a[5] = { 0.0,              -0.417890474499852, -1.192151694642677, -1.697784692471528,
+		                               -1.514183444257156 },
+		                    rk4b[5] = { 0.149659021999229, 0.379210312999627,  0.822955029386982,  0.699450455949122,
+		                                0.153057247968152 },
+		                    rk4c[5] = { 0.0,               0.149659021999229,  0.370400957364205,  0.622255763134443,
+		                                0.958282130674690 };
+
+		// silence
+		if (0)
+			printf("%f\n",rk4c[0]);
+
+		for (size_t rk = 0; rk < 5; rk++) {
+			update_RHS(maxRHS,PrintEnabled);
+
+			// Update What
+			for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+				unsigned int const NvnS = VOLUME->NvnS;
+
+				double *RES       = VOLUME->RES,
+					   *What      = VOLUME->What;
+				double const *RHS = VOLUME->RHS;
+
+				for (size_t iMax = Nvar*NvnS; iMax--; ) {
+					*RES    *= rk4a[rk];
+					*RES    += dt*(*RHS++);
+					*What++ += rk4b[rk]*(*RES++);
+				}
+				enforce_positivity_highorder(VOLUME);
+			}
+		}
+		break;
+	} case EULER: {
+		update_RHS(maxRHS,PrintEnabled);
+
+		// Update What
+		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			unsigned int const NvnS = VOLUME->NvnS;
+
+			double *What      = VOLUME->What;
+			double const *RHS = VOLUME->RHS;
+
+			for (size_t iMax = Nvar*NvnS; iMax--; )
+				*What++ += dt*(*RHS++);
+			enforce_positivity_highorder(VOLUME);
+		}
+		break;
+	} default: {
+		EXIT_UNSUPPORTED;
+		break;
+	}}
+}
+
+void solver_explicit(bool const PrintEnabled)
+{
+	struct S_timestepping *const data_time = malloc(sizeof *data_time); // free
 	select_timestepping_parameters(data_time);
-	dt         = data_time->dt;
-	exit_tol   = data_time->exit_tol;
-	exit_ratio = data_time->exit_ratio;
+	double const exit_tol   = data_time->exit_tol,
+	             exit_ratio = data_time->exit_ratio;
+	double       dt         = data_time->dt,
+	             time       = 0.0;
 
 	// Compute Mass matrix for uncollocated schemes
 	update_VOLUME_Ops();
 	update_VOLUME_finalize();
 
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+		enforce_positivity_highorder(VOLUME);
+
 	output_to_paraview("ZTest_Sol_Init");
 
-	tstep = 0; time = 0.0;
+	char *dummyPtr_c[2];
+	for (size_t i = 0; i < 2; i++)
+		dummyPtr_c[i] = malloc(STRLEN_MIN * sizeof *dummyPtr_c[i]); // free
+
+	unsigned int const OutputInterval = DB.OutputInterval,
+				       Adapt          = DB.Adapt,
+				       PrintTesting   = 1;
+	double const FinalTime = DB.FinalTime;
+
+	unsigned int tstep   = 0;
+	double       maxRHS0 = 0.0;
 	while (time < FinalTime) {
 		if (Adapt && tstep)
 			mesh_update();
@@ -393,94 +428,8 @@ void solver_explicit(void)
 		if (time+dt > FinalTime)
 			dt = FinalTime-time;
 
-		if (tstep == 0) {
-			for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
-				enforce_positivity_highorder(VOLUME);
-		}
-
-		switch (ExplicitSolverType) {
-		default : // RK3_SSP
-			// RES is used to store the initial solution at the beginning of the time step.
-			for (rk = 0; rk < 3; rk++) {
-				// Compute weak gradients (for viscous terms)
-				if (Viscous)
-					explicit_GradW();
-
-				// Build the RHS (== -Residual)
-				printf("V");  explicit_VOLUME_info();
-				printf("F");  explicit_FACE_info();
-				printf("F "); maxRHS = finalize_RHS();
-
-				// Update What
-				for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-					NvnS = VOLUME->NvnS;
-
-					RES  = VOLUME->RES;
-					RHS  = VOLUME->RHS;
-					What = VOLUME->What;
-
-					if (rk == 0) {
-						for (iMax = Neq*NvnS; iMax--; ) {
-							*RES++   = *What;
-							*What++ += dt*(*RHS++);
-						}
-					} else if (rk == 1) {
-						for (iMax = Neq*NvnS; iMax--; ) {
-							*What = 0.25*(3.0*(*RES++) + *What + dt*(*RHS++));
-							What++;
-						}
-					} else if (rk == 2) {
-						for (iMax = Neq*NvnS; iMax--; ) {
-							*What = (1.0/3.0)*(*RES++ + 2.0*(*What) + 2.0*dt*(*RHS++));
-							What++;
-						}
-					}
-					enforce_positivity_highorder(VOLUME);
-				}
-			}
-			break;
-		case RK4_LS:
-			for (rk = 0; rk < 5; rk++) {
-				// Build the RHS (== -Residual)
-				printf("V");  explicit_VOLUME_info();
-				printf("F");  explicit_FACE_info();
-				printf("F "); maxRHS = finalize_RHS();
-
-				// Update What
-				for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-					NvnS = VOLUME->NvnS;
-
-					RES  = VOLUME->RES;
-					RHS  = VOLUME->RHS;
-					What = VOLUME->What;
-
-					for (iMax = Neq*NvnS; iMax--; ) {
-						*RES    *= rk4a[rk];
-						*RES    += dt*(*RHS++);
-						*What++ += rk4b[rk]*(*RES++);
-					}
-					enforce_positivity_highorder(VOLUME);
-				}
-			}
-			break;
-		case EULER:
-			// Build the RHS (== -Residual)
-			printf("V");  explicit_VOLUME_info();
-			printf("F");  explicit_FACE_info();
-			printf("F "); maxRHS = finalize_RHS();
-
-			// Update What
-			for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-				NvnS = VOLUME->NvnS;
-
-				RHS  = VOLUME->RHS;
-				What = VOLUME->What;
-
-				for (iMax = Neq*NvnS; iMax--; )
-					*What++ += dt*(*RHS++);
-				enforce_positivity_highorder(VOLUME);
-			}
-		}
+		double maxRHS;
+		perform_timestepping(dt,&maxRHS,PrintEnabled);
 		time += dt;
 
 		// Output to paraview
@@ -495,10 +444,10 @@ void solver_explicit(void)
 		if (!tstep)
 			maxRHS0 = maxRHS;
 
-		printf("Complete: % 7.2f%%, tstep: %8d, maxRHS (no MInv): % .3e\n",100*time/FinalTime,tstep,maxRHS);
+		if (PrintEnabled)
+			printf("Complete: % 7.2f%%, tstep: %8d, maxRHS (no MInv): % .3e\n",100*time/FinalTime,tstep,maxRHS);
 
 		// Additional exit conditions
-//		if ((maxRHS0/maxRHS > 1e3 || maxRHS < 8e-14) && tstep > 2) {
 		if (tstep > 2) {
 			if (maxRHS0/maxRHS > exit_ratio) {
 				printf("Exiting: maxRHS dropped by % .2e orders.\n",log10(exit_ratio));
@@ -516,6 +465,9 @@ void solver_explicit(void)
 
 		tstep++;
 	}
+	for (size_t i = 0; i < 2; i++)
+		free(dummyPtr_c[i]);
+	free(data_time);
 
 	// Output to paraview
 	if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal+TestDB.ML) <= 8) {
@@ -537,8 +489,4 @@ void solver_explicit(void)
 		free(fNameOut);
 		free(string);
 	}
-
-	for (i = 0; i < 2; i++)
-		free(dummyPtr_c[i]);
-	free(data_time);
 }

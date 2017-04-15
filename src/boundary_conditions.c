@@ -593,7 +593,7 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 	 *		with prescribed velocity).
 	 *		This imposes the velocity and temperature on the boundary face by converting to the entropy variables,
 	 *		setting the last d+1 values using the boundary conditions, then converting back to the conservative
-	 *		variables.
+	 *		variables. (ToBeModified)
 	 *		Parsani(2014) discuss the correct method to impose the temperature boundary condition for the scheme to be
 	 *		entropy stable (See Theorem 3.2 and eq. (56)). Investigate (ToBeModified).
 	 *		The entropy variables of Barth(1998_Thesis, p. 16) are used.
@@ -660,8 +660,7 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 		             EL   = *EL_ptr++,
 
 		             V2L = uL*uL+vL*vL+wL*wL,
-		             pL  = GM1*(EL-0.5*rhoL*V2L),
-					 TL  = pL/(rhoL*DB.Rg);
+		             pL  = GM1*(EL-0.5*rhoL*V2L);
 
 		double uB = 0.0, vB = 0.0, wB = 0.0, TB = 0.0;
 		if (strstr(DB.TestCase,"TaylorCouette")) {
@@ -669,27 +668,21 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 			             Y  = Y_ptr[n],
 			             t  = atan2(Y,X),
 			             Vt = DB.omega*DB.rIn;
-if (0) {
 			uB = -sin(t)*Vt;
 			vB =  cos(t)*Vt;
 			wB =  0.0;
 			TB =  DB.TIn;
-} else {
-			uB = -uL + 2.0*(-sin(t)*Vt);
-			vB = -vL + 2.0*( cos(t)*Vt);
-			wB = -wL + 2.0*( 0.0);
-			TB = -TL + 2.0*( DB.TIn);
-}
 		} else {
 			EXIT_UNSUPPORTED;
 		}
 
+if (0) {
 		// Compute boundary entropy variables
 		double const sL = log(pL/pow(rhoL,GAMMA)),
 		             rho_over_p = 1.0/(DB.Rg*TB); // Using the ideal gas law
 
 		double V[NVAR3D];
-		unsigned int IndV = 0;
+		size_t IndV = 0;
 		V[IndV++] =  (GAMMA+1.0-sL)/GM1-EL/pL;
 		V[IndV++] =  rho_over_p*uB;
 		V[IndV++] =  rho_over_p*vB;
@@ -701,24 +694,28 @@ if (0) {
 		             sB = GAMMA+GM1*(-V[0]+0.5*V2/V[4]),
 		             pB = GM1*(pow(GM1/pow(-GM1*V[4],GAMMA),1.0/GM1)*exp(-sB/GM1));
 
-		unsigned int IndW = 0;
+		// Not working (ToBeModified)
+		size_t IndW = 0;
 		*WB_ptr[IndW++] = -pB*V[4];
 		*WB_ptr[IndW++] =  pB*V[1];
 		*WB_ptr[IndW++] =  pB*V[2];
 		if (d == 3)
 			*WB_ptr[IndW++] = pB*V[3];
 		*WB_ptr[IndW++] = pB*(1.0/GM1-0.5*V2/V[4]);
-
-
-		IndW = 0;
-		double const rho = DB.rhoIn, p = DB.pIn;
-		*WB_ptr[IndW++] = rho;
-		*WB_ptr[IndW++] = rho*uB;
-		*WB_ptr[IndW++] = rho*vB;
+} else {
+		// Not imposing ALL boundary conditions led to blow-up (either negative pressure or density). Imposing all
+		// boundary conditions (as below) seems inconsistent with the conclusions of Nordstrom(2005). Investigate.
+		// ToBeModified
+		size_t IndW = 0;
+		double const rhoB = DB.rhoIn,
+		             pB   = DB.pIn;
+		*WB_ptr[IndW++] = -rhoL    + 2.0*rhoB;
+		*WB_ptr[IndW++] = -rhoL*uL + 2.0*rhoB*uB;
+		*WB_ptr[IndW++] = -rhoL*vL + 2.0*rhoB*vB;
 		if (d == 3)
-			*WB_ptr[IndW++] = rho*wB;
-		*WB_ptr[IndW++] = p/GM1+0.5*rho*(uB*uB+vB*vB+wB*wB);
-
+			*WB_ptr[IndW++] = -rhoL*wL + 2.0*rhoB*wB;
+		*WB_ptr[IndW++] = -EL + 2.0*(pB/GM1+0.5*rhoB*(uB*uB+vB*vB+wB*wB));
+}
 
 		for (size_t var = 0; var < Nvar; var++)
 			WB_ptr[var]++;

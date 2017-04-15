@@ -408,7 +408,7 @@ void initialize_test_case_parameters(void)
 				}
 			}
 
-			strcpy(DB.SolverType,"Explicit"); DB.FinalTime = 1e10;
+			strcpy(DB.SolverType,"Explicit"); DB.FinalTime = 1e10; DB.ExplicitSolverType = EULER;
 //			strcpy(DB.SolverType,"Implicit");
 			if (strstr(TestCase,"TaylorCouette")) {
 				DB.omega = 1.0;
@@ -606,7 +606,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	             Nvar      = DB.Nvar,
 	             Adapt     = DB.Adapt;
 
-	DB.OutputInterval = 4e3;
+	DB.OutputInterval = 5e4;
 
 	// Standard datatypes
 	unsigned int DOF0 = 0, PolyGradient = 0;

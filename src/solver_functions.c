@@ -935,8 +935,6 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 	 *
 	 *	Comments:
 	 *		It is currently hard-coded that a central numerical solution is used.
-	 *		In the case of the strong form being used for the 1st equation of the mixed form, the contribution of the
-	 *		solution is included in the numerical solution term (nSolNum).
 	 *
 	 *	Notation:
 	 *		imex_type : (im)plicit (ex)plicit (type) indicates whether this function is being called for an implicit or
@@ -971,6 +969,61 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 		for (size_t var = 0; var < Nvar; var++) {
 		for (size_t n = 0; n < NfnI; n++) {
 			nSolNum_fIL[dim][var*NfnI+n] = n_fIL[n*d+dim]*0.5*(-WL_fIL[var*NfnI+n]+WR_fIL[var*NfnI+n]);
+		}}}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
+
+void correct_numerical_solution_strong(struct S_FDATA const *const FDATA, char const imex_type, char const side,
+                                       char const Form_MF1)
+{
+	/*
+	 *	Purpose:
+	 *		Add internal contribution to nSolNum_fIL when the strong form is used for the first equation of the mixed
+	 *		form.
+	 *
+	 *	Comments:
+	 *		Scale by Jacobian term here as well as this was added to nSolNum_fIL for the Left VOLUME contribution.
+	 *
+	 *	Notation:
+	 *		imex_type : (im)plicit (ex)plicit (type) indicates whether this function is being called for an implicit or
+	 *		            explicit computation.
+	 */
+
+	if (Form_MF1 != 'S')
+		EXIT_UNSUPPORTED;
+
+	if (!(imex_type == 'E'))
+		EXIT_UNSUPPORTED;
+
+	struct S_OPERATORS_F const *const *const OPS  = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
+	struct S_FACE        const *const        FACE = FDATA->FACE;
+
+	unsigned int const d        = DB.d,
+	                   Nvar     = d+2,
+	                   IndFType = FDATA->IndFType,
+	                   NfnI     = OPS[IndFType]->NfnI;
+
+	double const *const n_fIL  = FACE->n_fI,
+	             *const WL_fIL = FDATA->NFluxData->WL_fIL,
+	             *const WR_fIL = FDATA->NFluxData->WR_fIL;
+
+	double const *const detJF_fIL = FACE->detJF_fI;
+
+	double       *const *const nSolNum_fIL = FDATA->NFluxData->nSolNum_fI;
+
+	if (side == 'L') {
+		for (size_t dim = 0; dim < d; dim++) {
+		for (size_t var = 0; var < Nvar; var++) {
+		for (size_t n = 0; n < NfnI; n++) {
+			nSolNum_fIL[dim][var*NfnI+n] -= n_fIL[n*d+dim]*detJF_fIL[n]*WL_fIL[var*NfnI+n];
+		}}}
+	} else if (side == 'R') {
+		for (size_t dim = 0; dim < d; dim++) {
+		for (size_t var = 0; var < Nvar; var++) {
+		for (size_t n = 0; n < NfnI; n++) {
+			nSolNum_fIL[dim][var*NfnI+n] += n_fIL[n*d+dim]*detJF_fIL[n]*(WL_fIL[var*NfnI+n]-WR_fIL[var*NfnI+n]);
 		}}}
 	} else {
 		EXIT_UNSUPPORTED;
@@ -1039,7 +1092,17 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	 *
 	 *		The CDG2 and BR2 fluxes are determined according to Brdar(2012, eq. (4.3)) following the comments of section
 	 *		4.1 (i.e. setting eta = 0 and taking chi according to Theorem 2 part b. The area switch (eq. (4.5)) is used
-	 *		such that only one of the two VOLUME contributions must be accounted for in the CDG2 flux.
+	 *		such that only one of the two VOLUME contributions must be accounted for in the CDG2 flux. If it is not
+	 *		clear from Brdar(2012), the formulation for the BR2 flux used here is that of eq. (10) in Bassi(2010) with
+	 *		stabilization parameter selected according to the guidelines of Brdar(2012). This is the analogue of the
+	 *		original form of the BR2 flux (eq. (21) in Bassi(2000)) when the scaling is added.
+	 *
+	 *		It is currently unclear to me where the cost savings arise when using CDG2 flux as compared to the BR2 flux
+	 *		as all terms must be computed for the full contribution to Qhat used in the VOLUME term. Savings were stated
+	 *		as being as high as 10% in Brdar(2012). (ToBeModified)
+	 *
+	 *		Fidkowski(2016, p. 81) takes chi >= 2*Nf for BR2. There is also discussion of boundary condition
+	 *		implementation. ToBeModified.
 	 *
 	 *	Notation:
 	 *		imex_type : (im)plicit (ex)plicit (type) indicates whether this function is being called for an implicit or
@@ -1047,6 +1110,10 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	 *
 	 *	References:
 	 *		Brdar(2012)-Compact_and_Stable_Discontinuous_Galerkin_Methods_for_Convection-Diffusion_Problems
+	 *		Fidkowski(2016)-A_Hybridized_Discontinuous_Galerkin_Method_on_Mapped_Deforming_Domains
+	 *		Bassi(2000)-A_High_Order_Discontinuous_Galerking_Method_for_Compressible_Turbulent_Flows
+	 *		Bassi(2010)-Very_High-Order_Accurate_Discontinuous_Galerkin_Computation_of_Transonic_Turbulent_Flows_on_
+	 *		            Aeronautical_Configurations
 	 */
 
 	if (!(imex_type == 'E' || imex_type == 'I'))
@@ -1118,7 +1185,6 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 			Q_fIL[dim] = malloc(NfnI*Nvar * sizeof *Q_fIL[dim]); // free
 
 		if (Boundary) {
-			// See Bassi(2000, p.82) for correct computation of viscous flux on bondaries. (ToBeDeleted)
 			for (size_t dim = 0; dim < d; dim++) {
 				mm_d(CBCM,CBT,CBNT,NfnI,Nvar,NvnSL,chi,0.0,OPSL[0]->ChiS_fI[FDATAL->Vf],FACE->QhatL[dim],Q_fIL[dim]);
 				for (size_t i = 0; i < NfnI*Nvar; i++)
@@ -1129,7 +1195,6 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 			for (size_t i = 0; i < NfnI*Nvar; i++)
 				W_fIL[i] = 0.5*(WL_fIL[i]+WR_fIL[i]);
 
-//			flux_viscous(NfnI,1,WL_fIL,(const double *const *const) Q_fIL,FluxViscNum_fIL);
 			flux_viscous(NfnI,1,W_fIL,(const double *const *const) Q_fIL,FluxViscNum_fIL);
 			free(W_fIL);
 		} else {
@@ -1351,11 +1416,8 @@ static void swap_FACE_orientation(struct S_FDATA const *const FDATA, char const 
 
 		if (imex_type == 'E') {
 			for (size_t dim = 0; dim < d; dim++) {
-printf("clean this up to support both strong and weak forms.\n"), EXIT_UNSUPPORTED;
-// negative normal but also subtract uR instead of uL in strong form (This should be present for weak form of 1st mixed
-// for equation. ToBeModified
-//				for (size_t i = 0, iMax = Neq*NfnI; i < iMax; i++)
-//					nSolNum_fI[dim][i] *= -1.0;
+				for (size_t i = 0, iMax = Neq*NfnI; i < iMax; i++)
+					nSolNum_fI[dim][i] *= -1.0;
 
 				array_rearrange_d(NfnI,Neq,nOrdLR,'C',nSolNum_fI[dim]);
 			}
@@ -1644,6 +1706,7 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 			FDATA = FDATAR;
 			QhatF = (double *const *const) FACE->QhatR;
 			swap_FACE_orientation(FDATAR,'E','Q');
+
 		} else {
 			EXIT_UNSUPPORTED;
 		}

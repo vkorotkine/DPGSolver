@@ -102,10 +102,12 @@ extern void compute_WR_GradWR_fIL     (struct S_FDATA const *const FDATA, double
                                        double *const WR_fIL, double const *const *const GradWL_fIL,
                                        double *const *const GradWR_fIL);
 
-extern void compute_numerical_flux         (struct S_FDATA const *const FDATA, char const imex_type);
-extern void compute_numerical_solution     (struct S_FDATA const *const FDATA, char const imex_type, char const form);
-extern void compute_numerical_flux_viscous (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
-                                            char const imex_type);
+extern void compute_numerical_flux            (struct S_FDATA const *const FDATA, char const imex_type);
+extern void compute_numerical_solution        (struct S_FDATA const *const FDATA, char const imex_type, char const form);
+extern void correct_numerical_solution_strong (struct S_FDATA const *const FDATA, char const imex_type, char const side,
+                                               char const Form_MF1);
+extern void compute_numerical_flux_viscous    (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
+                                               char const imex_type);
 extern void add_Jacobian_scaling_FACE (struct S_FDATA const *const FDATA, char const imex_type, char const coef_type);
 
 extern void finalize_FACE_Inviscid_Weak (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,

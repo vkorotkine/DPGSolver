@@ -53,6 +53,7 @@
 #define NEC             3
 #define DMAX            3
 #define NVAR3D          5
+#define NVAR2D          4
 
 #define BC_STEP_SC      10000
 #define BC_PERIODIC_MIN 50

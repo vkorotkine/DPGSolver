@@ -255,8 +255,55 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		free(U);
 		free(sEx);
 		free(s);
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		for (i = 0, iMax = 3; i < iMax; i++)
+			L2Error2[i] = 0.0;
+
+		UEx = malloc(NvnI*NVAR3D * sizeof *UEx); // free
+		compute_solution(NvnI,XYZ_vI,UEx,solved);
+
+		W = malloc(NvnI*Nvar   * sizeof *W); // free
+		U = malloc(NvnI*NVAR2D * sizeof *U); // free
+
+		mm_CTN_d(NvnI,Nvar,NvnS,ChiS_vI,VOLUME->What,W);
+
+		convert_variables(W,U,d,2,NvnI,1,'c','p');
+
+		rhoEx = &UEx[NvnI*0];
+		pEx   = &UEx[NvnI*(NVAR3D-1)];
+		rho   = &U[NvnI*0];
+		p     = &U[NvnI*(NVAR2D-1)];
+
+		double *const TEx = malloc(NvnI * sizeof *TEx), // free
+		       *const T   = malloc(NvnI * sizeof *T);   // free
+
+		double const Rg = DB.Rg;
+		for (j = 0; j < NvnI; j++) {
+			TEx[j] = pEx[j]/(rhoEx[j]*Rg);
+			T[j]   = p[j]/(rho[j]*Rg);
+		}
+
+		for (i = 0; i < 3; i++) {
+			IndU = (i+1)*NvnI;
+			if (i < 2) { // u, v
+				for (j = 0; j < NvnI; j++) {
+					err = U[IndU+j]-UEx[IndU+j]; // u, v (Not normalized as variables may be negative)
+					L2Error2[i] += err*err*wdetJV_vI[j];
+				}
+			} else if (i == 2) { // T
+				for (j = 0; j < NvnI; j++) {
+					err = (T[j]-TEx[j])/TEx[j];
+					L2Error2[i] += err*err*wdetJV_vI[j];
+				}
+			}
+		}
+		free(W);
+		free(U);
+		free(UEx);
+		free(TEx);
+		free(T);
 	} else {
-		printf("Error: Unsupported.\n"), EXIT_MSG;
+		EXIT_UNSUPPORTED;
 	}
 
 	*DOF = NvnS;
@@ -306,6 +353,8 @@ void compute_errors_global(void)
 		if (strstr(Geometry,"NacaSymmetric"))
 			CurvedOnly = 1; // Avoid trailing edge singularity when computing entropy error.
 		NvarError = 1;
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		NvarError = 3; // u, v, T
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -363,6 +412,8 @@ static void output_errors(const double *L2Error2, const unsigned int NvarError, 
 	} else if (strstr(TestCase,"InviscidChannel") ||
 	           strstr(TestCase,"SubsonicNozzle")) {
 		fprintf(fID,"DOF         Vol         L2s2\n");
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		fprintf(fID,"DOF         Vol         L2u2        L2v2        L2T2\n");
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -432,6 +483,8 @@ static void collect_errors(const unsigned int NvarError)
 	} else if (strstr(TestCase,"InviscidChannel") ||
 	           strstr(TestCase,"SubsonicNozzle")) {
 		fprintf(fID,"DOF         L2s\n");
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		fprintf(fID,"DOF         L2u         L2v         L2T\n");
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}

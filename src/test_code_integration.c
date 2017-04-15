@@ -241,6 +241,8 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 	} else if (strstr(TestCase,"InviscidChannel") ||
 	           strstr(TestCase,"SubsonicNozzle")) {
 		NVars = 1;
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		NVars = 3;
 	} else {
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
 	}
@@ -270,6 +272,11 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 			} else {
 				VarsToCheck[i] = 0;
 			}
+		}
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		for (i = 0; i < NVars; i++) {
+			OrderIncrement[i] = 1;
+			VarsToCheck[i] = 1;
 		}
 	} else {
 		EXIT_UNSUPPORTED;

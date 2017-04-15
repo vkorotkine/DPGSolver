@@ -146,7 +146,7 @@ void test_convorder(int nargc, char **argvNew, const char *TestName, struct S_co
 		}
 
 		if (SolveExplicit)
-			solver_explicit();
+			solver_explicit(PrintEnabled);
 
 		if (SolveImplicit)
 			solver_implicit(PrintEnabled);
@@ -202,9 +202,10 @@ void test_integration_NavierStokes(int nargc, char **argv)
 	data_c->argvNew   = argvNew;
 	data_c->PrintName = PrintName;
 
+	// Note: The case is converging fastest with non-collocated GL-WSH Nodal (ToBeDeleted)
 	test_convorder(nargc,argvNew,"n-Cylinder_Hollow_ToBeCurvedTRI",data_c);
-	test_convorder(nargc,argvNew,"n-Cylinder_Hollow_ToBeCurvedQUAD",data_c);
-	test_convorder(nargc,argvNew,"n-Cylinder_Hollow_ToBeCurvedMIXED2D",data_c);
+//	test_convorder(nargc,argvNew,"n-Cylinder_Hollow_ToBeCurvedQUAD",data_c);
+//	test_convorder(nargc,argvNew,"n-Cylinder_Hollow_ToBeCurvedMIXED2D",data_c);
 
 	// Add tests for:
 	// 1) Analytical Solution for simple shearing motion between parallel flat plates (Illingworth(1950), problem 3)

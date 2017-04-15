@@ -530,7 +530,7 @@ static void test_convorder(int nargc, char **argvNew, const char *TestName, stru
 		}
 
 		if (SolveExplicit)
-			solver_explicit();
+			solver_explicit(PrintEnabled);
 
 		if (SolveImplicit)
 			solver_implicit(PrintEnabled);
