@@ -106,7 +106,6 @@ static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, co
 
 void test_integration_update_h(int nargc, char **argv)
 {
-//	unsigned int pass = 0;
 	char         **argvNew;
 
 	argvNew    = malloc(2          * sizeof *argvNew);  // free

@@ -638,6 +638,7 @@ struct S_FACE *New_FACE(void)
 	FACE->P      = UINT_MAX;
 	FACE->type   = UINT_MAX;
 	FACE->BC     = UINT_MAX;
+	FACE->Boundary = UINT_MAX;
 	FACE->level  = 0;
 	FACE->update = 0;
 	FACE->adapt_type = UINT_MAX;

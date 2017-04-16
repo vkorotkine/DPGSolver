@@ -454,26 +454,10 @@ void finalize_VOLUME_Viscous_Weak(unsigned int const Nrc, double *const Ar_vI, d
 	 *		operator to the input array.
 	 *
 	 *	Comments:
-	 *		The required operation is identical to that of finalize_VOLUME_Inviscid_Weak after the viscous flux is
-	 *		negated.
+	 *		The required operation is identical to that of finalize_VOLUME_Inviscid_Weak as the viscous flux has already
+	 *		been negated.
 	 */
 
-	struct S_OPERATORS_V const *const *const OPS = (struct S_OPERATORS_V const *const *const) VDATA->OPS;
-
-	unsigned int const d    = DB.d,
-	                   Neq  = d+2,
-	                   Nvar = d+2,
-	                   NvnI = OPS[0]->NvnI;
-
-	if (imex_type == 'E') {
-		for (size_t i = 0, iMax = NvnI*Neq*d; i < iMax; i++)
-			Ar_vI[i] *= -1.0;
-	} else if (imex_type == 'I') {
-		for (size_t i = 0, iMax = NvnI*Nvar*Neq*d; i < iMax; i++)
-			Ar_vI[i] *= -1.0;
-	} else {
-		EXIT_UNSUPPORTED;
-	}
 	finalize_VOLUME_Inviscid_Weak(Nrc,Ar_vI,RLHS,imex_type,VDATA);
 }
 
@@ -1030,51 +1014,6 @@ void correct_numerical_solution_strong(struct S_FDATA const *const FDATA, char c
 	}
 }
 
-// ToBeDeleted (I jump is not necessary)
-static void compute_I_jump(unsigned int const NfnI, unsigned int const NvnS, unsigned int const *const nOrdRL,
-                           double const *const ChiS_fI, double *const I_jump, double const alpha, double const beta,
-                           struct S_VOLUME const *const VOLUME, char const side)
-{
-	/*
-	 *	Purpose:
-	 *		Compute the CDG2 and BR2 L2 projection/interpolation operator for the jump term.
-	 *
-	 *	References:
-	 *		ToBeModified.
-	 */
-
-	double *const I_inter = malloc(NfnI*NvnS * sizeof *I_inter); // free
-	if (DB.Collocated) {
-		// MInv is diagonal
-		double const *const MInv_diag = VOLUME->MInv_diag;
-		for (size_t i = 0; i < NfnI; i++) {
-			for (size_t j = 0; j < NvnS; j++)
-				I_inter[i*NvnS+j] = ChiS_fI[i*NvnS+j]*MInv_diag[j];
-		}
-	} else {
-		mm_d(CBRM,CBNT,CBNT,NfnI,NvnS,NvnS,1.0,0.0,ChiS_fI,VOLUME->MInv,I_inter);
-	}
-
-	if (side == 'L') {
-		mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnS,alpha,beta,I_inter,ChiS_fI,I_jump);
-	} else if (side == 'R') {
-		double *const ChiSR_fIL = malloc(NfnI*NvnS * sizeof *ChiSR_fIL); // free
-		for (size_t i = 0; i < NfnI; i++) {
-		for (size_t j = 0; j < NvnS; j++) {
-			ChiSR_fIL[i*NvnS+j] = ChiS_fI[nOrdRL[i]*NvnS+j];
-		}}
-
-		array_rearrange_d(NfnI,NvnS,nOrdRL,'R',I_inter);
-		mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnS,alpha,beta,I_inter,ChiSR_fIL,I_jump);
-
-		free(ChiSR_fIL);
-	} else {
-		EXIT_UNSUPPORTED;
-	}
-
-	free(I_inter);
-}
-
 void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
                                     char const imex_type)
 {
@@ -1101,12 +1040,20 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	 *		as all terms must be computed for the full contribution to Qhat used in the VOLUME term. Savings were stated
 	 *		as being as high as 10% in Brdar(2012). (ToBeModified)
 	 *
+	 *		It is also currently unclear how the linear/linearized formulation in Brdar(2012) translates to the
+	 *		nonlinear viscous flux. A parameter called 'EvalType' is thus provided to switch between slight variants of
+	 *		the numerical flux evaluation.
+	 *
 	 *		Fidkowski(2016, p. 81) takes chi >= 2*Nf for BR2. There is also discussion of boundary condition
 	 *		implementation. ToBeModified.
 	 *
 	 *	Notation:
 	 *		imex_type : (im)plicit (ex)plicit (type) indicates whether this function is being called for an implicit or
 	 *		            explicit computation.
+	 *		EvalType  : Numerical flux (Eval)uation (Type).
+	 *		            Options:
+	 *		            	1 : BR2  style evaluation (Bassi(2010), eq. (10))
+	 *		            	2 : CDG2 style evaluation (Brdar(2012), eq. (4.3))
 	 *
 	 *	References:
 	 *		Brdar(2012)-Compact_and_Stable_Discontinuous_Galerkin_Methods_for_Convection-Diffusion_Problems
@@ -1115,6 +1062,8 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	 *		Bassi(2010)-Very_High-Order_Accurate_Discontinuous_Galerkin_Computation_of_Transonic_Turbulent_Flows_on_
 	 *		            Aeronautical_Configurations
 	 */
+
+	unsigned int const EvalType = 1;
 
 	if (!(imex_type == 'E' || imex_type == 'I'))
 		EXIT_UNSUPPORTED;
@@ -1143,16 +1092,27 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	             *const dnFluxViscNumdWR_fIL = FDATAL->NFluxData->dnFluxViscNumdWR_fI;
 
 
+	double **Q_fIL = malloc(d * sizeof *Q_fIL); // free
+	for (size_t dim = 0; dim < d; dim++)
+		Q_fIL[dim] = malloc(NfnI*Nvar * sizeof *Q_fIL[dim]); // free
+
 	double *const FluxViscNum_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscNum_fIL); // free
 	if (DB.ViscousFluxType == FLUX_CDG2) {
-		EXIT_UNSUPPORTED; // Needs to be updated
-		// Note: Some QhatF terms are not used for this flux evaluation but must currently still be computed to obtain
-		//       the fully corrected Qhat. Where do the cost savings arise for CDG2? ToBeModified.
-		double *const I_jump = malloc(NfnI*NfnI * sizeof *I_jump); // free
 		double const chi = 0.5*(DB.NfMax);
 
 		if (Boundary) {
-			compute_I_jump(NfnI,NvnSL,NULL,OPSL[0]->ChiS_fI[FDATAL->Vf],I_jump,2.0*chi,0.0,FDATAL->VOLUME,'L');
+			for (size_t dim = 0; dim < d; dim++) {
+				mm_d(CBCM,CBT,CBNT,NfnI,Nvar,NvnSL,2.0*chi,0.0,OPSL[0]->ChiS_fI[FDATAL->Vf],FACE->QhatL[dim],Q_fIL[dim]);
+				for (size_t i = 0; i < NfnI*Nvar; i++)
+					Q_fIL[dim][i] += GradWL_fIL[dim][i];
+			}
+
+			double *const W_fIL = malloc(NfnI*Nvar * sizeof *W_fIL);
+			for (size_t i = 0; i < NfnI*Nvar; i++)
+				W_fIL[i] = 0.5*(WL_fIL[i]+WR_fIL[i]);
+
+			flux_viscous(NfnI,1,W_fIL,(const double *const *const) Q_fIL,FluxViscNum_fIL);
+			free(W_fIL);
 		} else {
 			// Evaluate from which side scaling should be computed based on area switch (Brdar(2012), eq. (4.5))
 			struct S_VOLUME const *const VL = FDATAL->VOLUME,
@@ -1170,19 +1130,65 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 			for (size_t n = 0; n < NvnSR; n++)
 				VolR = max(VolR,detJVR_vIR[n]);
 
-			if (VolL <= VolR)
-				compute_I_jump(NfnI,NvnSL,NULL,OPSL[0]->ChiS_fI[FDATAL->Vf],I_jump,2.0*chi,0.0,VL,'L');
-			else
-				compute_I_jump(NfnI,NvnSR,nOrdRL,OPSR[0]->ChiS_fI[FDATAR->Vf],I_jump,2.0*chi,0.0,VR,'R');
+			if (EvalType == 1) {
+				// Left side
+				for (size_t dim = 0; dim < d; dim++) {
+					memset(Q_fIL[dim],0.0,NfnI*Nvar * sizeof *Q_fIL[dim]);
+					if (VolL <= VolR)
+						mm_d(CBCM,CBT,CBNT,NfnI,Nvar,NvnSL,2.0*chi,0.0, OPSL[0]->ChiS_fI[FDATAL->Vf],FACE->QhatL[dim],Q_fIL[dim]);
+					for (size_t i = 0; i < NfnI*Nvar; i++)
+						Q_fIL[dim][i] += GradWL_fIL[dim][i];
+				}
+
+				double *const FluxViscL_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscL_fIL); // free
+				flux_viscous(NfnI,1,WL_fIL,(const double *const *const) Q_fIL,FluxViscL_fIL);
+
+				// Right side
+				for (size_t dim = 0; dim < d; dim++) {
+					memset(Q_fIL[dim],0.0,NfnI*Nvar * sizeof *Q_fIL[dim]);
+					if (!(VolL <= VolR)) {
+						mm_d(CBCM,CBT,CBNT,NfnI,Nvar,NvnSR,2.0*chi,0.0, OPSR[0]->ChiS_fI[FDATAR->Vf],FACE->QhatR[dim],Q_fIL[dim]);
+						array_rearrange_d(NfnI,Nvar,nOrdRL,'C',Q_fIL[dim]);
+					}
+					for (size_t i = 0; i < NfnI*Nvar; i++)
+						Q_fIL[dim][i] += GradWR_fIL[dim][i];
+				}
+
+				double *const FluxViscR_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscR_fIL); // free
+				flux_viscous(NfnI,1,WR_fIL,(const double *const *const) Q_fIL,FluxViscR_fIL);
+
+				// Compute numerical flux
+				for (size_t i = 0; i < NfnI*d*Neq; i++)
+					FluxViscNum_fIL[i] = 0.5*(FluxViscL_fIL[i]+FluxViscR_fIL[i]);
+
+				free(FluxViscL_fIL);
+				free(FluxViscR_fIL);
+			} else if (EvalType == 2) {
+				for (size_t dim = 0; dim < d; dim++) {
+					if (VolL <= VolR) {
+						mm_d(CBCM,CBT,CBNT,NfnI,Nvar,NvnSL,2.0*chi,0.0, OPSL[0]->ChiS_fI[FDATAL->Vf],FACE->QhatL[dim],Q_fIL[dim]);
+					} else {
+						mm_d(CBCM,CBT,CBNT,NfnI,Nvar,NvnSR,2.0*chi,0.0, OPSR[0]->ChiS_fI[FDATAR->Vf],FACE->QhatR[dim],Q_fIL[dim]);
+						array_rearrange_d(NfnI,Nvar,nOrdRL,'C',Q_fIL[dim]);
+					}
+					for (size_t i = 0; i < NfnI*Nvar; i++) {
+						Q_fIL[dim][i] += GradWL_fIL[dim][i];
+						Q_fIL[dim][i] += GradWR_fIL[dim][i];
+					}
+				}
+
+				double *const W_fIL = malloc(NfnI*Nvar * sizeof *W_fIL);
+				for (size_t i = 0; i < NfnI*Nvar; i++)
+					W_fIL[i] = 0.5*(WL_fIL[i]+WR_fIL[i]);
+
+				flux_viscous(NfnI,1,W_fIL,(const double *const *const) Q_fIL,FluxViscNum_fIL);
+				free(W_fIL);
+			} else {
+				EXIT_UNSUPPORTED;
+			}
 		}
-		free(I_jump);
 	} else if (DB.ViscousFluxType == FLUX_BR2) {
 		double const chi = 1.0*(DB.NfMax);
-
-		// Compute contributions to numerical flux from each side
-		double **Q_fIL = malloc(d * sizeof *Q_fIL); // free
-		for (size_t dim = 0; dim < d; dim++)
-			Q_fIL[dim] = malloc(NfnI*Nvar * sizeof *Q_fIL[dim]); // free
 
 		if (Boundary) {
 			for (size_t dim = 0; dim < d; dim++) {
@@ -1198,39 +1204,61 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 			flux_viscous(NfnI,1,W_fIL,(const double *const *const) Q_fIL,FluxViscNum_fIL);
 			free(W_fIL);
 		} else {
-			// Left side
-			for (size_t dim = 0; dim < d; dim++) {
-				mm_d(CBCM,CBT,CBNT,NfnI,Nvar,NvnSL,chi,0.0,OPSL[0]->ChiS_fI[FDATAL->Vf],FACE->QhatL[dim],Q_fIL[dim]);
+			if (EvalType == 1) {
+				// Left side
+				for (size_t dim = 0; dim < d; dim++) {
+					mm_d(CBCM,CBT,CBNT,NfnI,Nvar,NvnSL,chi,0.0,OPSL[0]->ChiS_fI[FDATAL->Vf],FACE->QhatL[dim],Q_fIL[dim]);
+					for (size_t i = 0; i < NfnI*Nvar; i++)
+						Q_fIL[dim][i] += GradWL_fIL[dim][i];
+				}
+
+				double *const FluxViscL_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscL_fIL); // free
+				flux_viscous(NfnI,1,WL_fIL,(const double *const *const) Q_fIL,FluxViscL_fIL);
+
+				// Right side
+				for (size_t dim = 0; dim < d; dim++) {
+					mm_d(CBCM,CBT,CBNT,NfnI,Nvar,NvnSR,chi,0.0,OPSR[0]->ChiS_fI[FDATAR->Vf],FACE->QhatR[dim],Q_fIL[dim]);
+
+					array_rearrange_d(NfnI,Nvar,nOrdRL,'C',Q_fIL[dim]);
+					for (size_t i = 0; i < NfnI*Nvar; i++)
+						Q_fIL[dim][i] += GradWR_fIL[dim][i];
+				}
+
+				double *const FluxViscR_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscR_fIL); // free
+				flux_viscous(NfnI,1,WR_fIL,(const double *const *const) Q_fIL,FluxViscR_fIL);
+
+				// Compute numerical flux
+				for (size_t i = 0; i < NfnI*d*Neq; i++)
+					FluxViscNum_fIL[i] = 0.5*(FluxViscL_fIL[i]+FluxViscR_fIL[i]);
+
+				free(FluxViscL_fIL);
+				free(FluxViscR_fIL);
+			} else if (EvalType == 2) {
+				for (size_t dim = 0; dim < d; dim++) {
+					mm_d(CBCM,CBT,CBNT,NfnI,Nvar,NvnSR,chi,0.0,OPSR[0]->ChiS_fI[FDATAR->Vf],FACE->QhatR[dim],Q_fIL[dim]);
+					array_rearrange_d(NfnI,Nvar,nOrdRL,'C',Q_fIL[dim]);
+
+					mm_d(CBCM,CBT,CBNT,NfnI,Nvar,NvnSL,chi,1.0,OPSL[0]->ChiS_fI[FDATAL->Vf],FACE->QhatL[dim],Q_fIL[dim]);
+					for (size_t i = 0; i < NfnI*Nvar; i++) {
+						Q_fIL[dim][i] += GradWL_fIL[dim][i];
+						Q_fIL[dim][i] += GradWR_fIL[dim][i];
+					}
+				}
+
+				double *const W_fIL = malloc(NfnI*Nvar * sizeof *W_fIL);
 				for (size_t i = 0; i < NfnI*Nvar; i++)
-					Q_fIL[dim][i] += GradWL_fIL[dim][i];
+					W_fIL[i] = 0.5*(WL_fIL[i]+WR_fIL[i]);
+
+				flux_viscous(NfnI,1,W_fIL,(const double *const *const) Q_fIL,FluxViscNum_fIL);
+				free(W_fIL);
+			} else {
+				EXIT_UNSUPPORTED;
 			}
-
-			double *const FluxViscL_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscL_fIL); // free
-			flux_viscous(NfnI,1,WL_fIL,(const double *const *const) Q_fIL,FluxViscL_fIL);
-
-			// Right side
-			for (size_t dim = 0; dim < d; dim++) {
-				mm_d(CBCM,CBT,CBNT,NfnI,Nvar,NvnSR,chi,0.0,OPSR[0]->ChiS_fI[FDATAR->Vf],FACE->QhatR[dim],Q_fIL[dim]);
-
-				array_rearrange_d(NfnI,Nvar,nOrdRL,'C',Q_fIL[dim]);
-				for (size_t i = 0; i < NfnI*Nvar; i++)
-					Q_fIL[dim][i] += GradWR_fIL[dim][i];
-			}
-
-			double *const FluxViscR_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscR_fIL); // free
-			flux_viscous(NfnI,1,WR_fIL,(const double *const *const) Q_fIL,FluxViscR_fIL);
-
-			// Compute numerical flux
-			for (size_t i = 0; i < NfnI*d*Neq; i++)
-				FluxViscNum_fIL[i] = 0.5*(FluxViscL_fIL[i]+FluxViscR_fIL[i]);
-
-			free(FluxViscL_fIL);
-			free(FluxViscR_fIL);
 		}
-		array_free2_d(d,Q_fIL);
 	} else {
 		EXIT_UNSUPPORTED;
 	}
+	array_free2_d(d,Q_fIL);
 
 
 	// Take dot product with normal vector
@@ -1688,9 +1716,6 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 	 *	Comments:
 	 *		Except for the "-ve" sign, the need to compute d terms instead of 1, and the storage of the use of different
 	 *		arrays to be operated on and stored in, this function is identical to finalize_FACE_Inviscid_Weak.
-	 *
-	 *		Sum factorization and sparse operators can be used here if functionality to add to existing array entries is
-	 *		implemented.
 	 */
 
 	struct S_FACE const *const FACE = FDATAL->FACE;
@@ -1711,19 +1736,90 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 			EXIT_UNSUPPORTED;
 		}
 
+
 		struct S_OPERATORS_F const *const *const OPS  = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
 
-		unsigned int const d        = DB.d,
-		                   Neq      = d+2,
-		                   Vf       = FDATA->Vf,
-		                   IndFType = FDATA->IndFType,
-		                   NfnI     = OPS[IndFType]->NfnI;
+		unsigned int const d            = DB.d,
+		                   Neq          = d+2,
+		                   Nvar         = d+2,
+		                   P            = FDATA->P,
+		                   Eclass       = FDATA->Eclass,
+		                   Vf           = FDATA->Vf,
+		                   f            = FDATA->f,
+		                   SpOp         = FDATA->SpOp,
+		                   IndFType     = FDATA->IndFType,
+		                   NfnI         = OPS[IndFType]->NfnI,
+		                   NvnS         = OPS[0]->NvnS,
+		                   *const VFPartUnity         = DB.VFPartUnity,
+		                   *const *const *const SF_BE = (unsigned int const *const *const *const) DB.SF_BE;
 
 		double const *const *const nSolNum_fI = (double const *const *const) FDATA->NFluxData->nSolNum_fI;
 
-		// Note that there is a minus sign included in the definition of I_Weak_FF.
-		for (size_t dim = 0; dim < d; dim++)
-			mm_d(CBCM,CBT,CBNT,OPS[0]->NvnS,Neq,NfnI,-1.0,0.0,OPS[0]->I_Weak_FF[Vf],nSolNum_fI[dim],QhatF[dim]);
+		unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX], NIn0, NIn1;
+		double const *OP[DMAX], *const *OP0, *const *OP1;
+
+		double *const InSNum = malloc(NvnS*Nvar * sizeof *InSNum); // free
+		if (Eclass == C_TP && SF_BE[P][0][1]) {
+			get_sf_parametersF(OPS[0]->NvnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_VV_SF,
+			                   OPS[0]->NfnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_FF_SF,NIn,NOut,OP,d,Vf,C_TP);
+
+			if (SpOp) {
+				for (size_t dim = 0; dim < d; dim++)
+					Diag[dim] = 2;
+				Diag[f/2] = 0;
+			} else {
+				for (size_t dim = 0; dim < d; dim++)
+					Diag[dim] = 0;
+			}
+
+			for (size_t dim = 0; dim < d; dim++) {
+				// Note that there is a minus sign included in the definition of I_Weak_FF.
+				sf_apply_d(nSolNum_fI[dim],InSNum,NIn,NOut,Neq,OP,Diag,d);
+				for (size_t i = 0, iMax = NvnS*Nvar; i < iMax; i++)
+					QhatF[dim][i] = -InSNum[i];
+			}
+		} else if (Eclass == C_WEDGE && SF_BE[P][1][1]) {
+			if (f < 3) { OP0  = OPS[0]->I_Weak_FF_SF, OP1  = OPS[1]->I_Weak_VV_SF;
+			             NIn0 = OPS[0]->NfnI_SF,      NIn1 = OPS[1]->NvnI_SF;
+			} else {     OP0  = OPS[0]->I_Weak_VV_SF, OP1  = OPS[1]->I_Weak_FF_SF;
+			             NIn0 = OPS[0]->NvnI_SF,      NIn1 = OPS[1]->NfnI_SF; }
+			get_sf_parametersF(NIn0,OPS[0]->NvnS_SF,OP0,NIn1,OPS[1]->NvnS_SF,OP1,NIn,NOut,OP,d,Vf,C_WEDGE);
+
+			if (SpOp) {
+				for (size_t dim = 0; dim < d; dim++)
+					Diag[dim] = 2;
+				if (f < 3)
+					Diag[0] = 0;
+				else
+					Diag[2] = 0;
+			} else {
+				for (size_t dim = 0; dim < d; dim++)
+					Diag[dim] = 0;
+				Diag[1] = 2;
+			}
+
+			for (size_t dim = 0; dim < d; dim++) {
+				// Note that there is a minus sign included in the definition of I_Weak_FF.
+				sf_apply_d(nSolNum_fI[dim],InSNum,NIn,NOut,Neq,OP,Diag,d);
+				for (size_t i = 0, iMax = NvnS*Nvar; i < iMax; i++)
+					QhatF[dim][i] = -InSNum[i];
+			}
+		} else if ((SpOp && (Eclass == C_TP || Eclass == C_WEDGE)) || (VFPartUnity[Eclass])) {
+			for (size_t dim = 0; dim < d; dim++) {
+				// Note that there is a minus sign included in the definition of I_Weak_FF.
+				mm_CTN_CSR_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FF_sp[Vf],nSolNum_fI[dim],InSNum);
+				for (size_t i = 0, iMax = NvnS*Nvar; i < iMax; i++)
+					QhatF[dim][i] = -InSNum[i];
+			}
+		} else  {
+			for (size_t dim = 0; dim < d; dim++) {
+				// Note that there is a minus sign included in the definition of I_Weak_FF.
+				mm_CTN_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FF[Vf],nSolNum_fI[dim],InSNum);
+				for (size_t i = 0, iMax = NvnS*Nvar; i < iMax; i++)
+					QhatF[dim][i] = -InSNum[i];
+			}
+		}
+		free(InSNum);
 	} else if (imex_type == 'I') {
 		EXIT_UNSUPPORTED; // Needs to be updated.
 		struct S_OPERATORS_F const *const *const OPSL  = (struct S_OPERATORS_F const *const *const) FDATAL->OPS,
@@ -1820,29 +1916,9 @@ void finalize_FACE_Viscous_Weak(struct S_FDATA const *const FDATAL, struct S_FDA
 	 *		Finalize the viscous RHS/LHS term contributions from FACEs.
 	 *
 	 *	Comments:
-	 *		The required operation is identical to that of finalize_FACE_Inviscid_Weak after the viscous flux
-	 *		contributions are negated.
+	 *		The required operation is identical to that of finalize_FACE_Inviscid_Weak as the viscous flux has already
+	 *		been negated.
 	 */
 
-	unsigned int const d    = DB.d,
-	                   Neq  = d+2,
-	                   Nvar = d+2,
-	                   NfnI = FDATAL->OPS[0]->NfnI;
-
-	if (imex_type == 'E') {
-if (side == 'L') { // Eureka! ToBeModified
-	// To avoid having to negate contributions for the viscous flux, simply return the negative in flux_viscous.
-	// ToBeDeleted
-		for (size_t i = 0, iMax = NfnI*Nvar; i < iMax; i++)
-			nANumL_fI[i] *= -1.0;
-}
-	} else if (imex_type == 'I') {
-		for (size_t i = 0, iMax = NfnI*Nvar*Neq; i < iMax; i++) {
-			nANumL_fI[i] *= -1.0;
-			nANumR_fI[i] *= -1.0;
-		}
-	} else {
-		EXIT_UNSUPPORTED;
-	}
 	finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,nANumL_fI,nANumR_fI,side,imex_type,coef_type);
 }

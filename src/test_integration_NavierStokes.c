@@ -25,6 +25,8 @@
 #include "array_norm.h"
 #include "array_print.h"
 #include "test_integration_Euler.h"
+#include "update_VOLUMEs.h"
+#include "update_FACEs.h"
 
 /*
  *	Purpose:

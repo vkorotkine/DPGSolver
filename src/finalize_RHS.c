@@ -156,9 +156,6 @@ double finalize_RHS(void)
 					*VRHSOut_ptr++ += *FRHSOut_ptr++;
 			}
 		}
-
-		free(FACE->RHSIn);  FACE->RHSIn  = NULL;
-		free(FACE->RHSOut); FACE->RHSOut = NULL;
 	}
 
 	// Add source contribution

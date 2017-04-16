@@ -240,8 +240,9 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 					data->dt = 5e-3;
 				}
 			}
-			data->exit_tol   = 1e-9;
-			data->exit_tol   = EPS;
+			data->exit_tol   = 3e-6;
+//			data->exit_tol   = 5e-4;
+//			data->exit_tol   = EPS;
 			data->exit_ratio = 1.0/EPS;
 		} else {
 			EXIT_UNSUPPORTED;
@@ -378,8 +379,8 @@ static void perform_timestepping(double const dt, double *maxRHS, bool const Pri
 		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			unsigned int const NvnS = VOLUME->NvnS;
 
-			double *What      = VOLUME->What;
-			double const *RHS = VOLUME->RHS;
+			double       *What = VOLUME->What;
+			double const *RHS  = VOLUME->RHS;
 
 			for (size_t iMax = Nvar*NvnS; iMax--; )
 				*What++ += dt*(*RHS++);

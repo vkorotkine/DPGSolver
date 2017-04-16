@@ -314,19 +314,13 @@ void memory_destructor_F(struct S_FACE *FACE)
 	free(FACE->detJVOut_fI);
 
 	// Solving
-	if (FACE->RHSIn)
-		free(FACE->RHSIn);
-	if (FACE->RHSOut)
-		free(FACE->RHSOut);
+	free(FACE->RHSIn);
+	free(FACE->RHSOut);
 
-	if (FACE->LHSInIn)
-		free(FACE->LHSInIn);
-	if (FACE->LHSOutIn)
-		free(FACE->LHSOutIn);
-	if (FACE->LHSInOut)
-		free(FACE->LHSInOut);
-	if (FACE->LHSOutOut)
-		free(FACE->LHSOutOut);
+	free(FACE->LHSInIn);
+	free(FACE->LHSOutIn);
+	free(FACE->LHSInOut);
+	free(FACE->LHSOutOut);
 
 	array_free2_d(d,FACE->QhatL);
 	array_free2_d(d,FACE->QhatR);

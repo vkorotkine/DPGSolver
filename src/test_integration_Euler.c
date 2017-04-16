@@ -27,6 +27,8 @@
 #include "test_integration_Poisson.h"
 #include "element_functions.h"
 #include "initialize_test_case.h"
+#include "update_VOLUMEs.h"
+#include "update_FACEs.h"
 
 #include "array_free.h"
 #include "array_norm.h"
@@ -378,7 +380,7 @@ static void test_equivalence_alg(int nargc, char **argvNew, const char *TestName
 		for (size_t alg = 1; alg < NAlgs; alg++)
 			RHS_diff = array_norm_diff_d(RHS_size[IndV],RHS[0][IndV],RHS[alg][IndV],"Inf");
 
-		if (RHS_diff > EPS || array_norm_d(RHS_size[IndV],RHS[0][IndV],"Inf") < EPS) {
+		if (RHS_diff > 1e1*EPS || array_norm_d(RHS_size[IndV],RHS[0][IndV],"Inf") < EPS) {
 			printf("%3zu % .3e % .3e\n",IndV,RHS_diff,array_norm_d(RHS_size[IndV],RHS[0][IndV],"Inf"));
 			pass = 0;
 			break;
@@ -562,7 +564,7 @@ static void test_convorder(int nargc, char **argvNew, const char *TestName, stru
 
 void test_integration_Euler(int nargc, char **argv)
 {
-	bool PeriodicVortexOnly = 1;
+	bool PeriodicVortexOnly = 0;
 	char **argvNew, *PrintName;
 
 	argvNew    = malloc(2          * sizeof *argvNew);  // free

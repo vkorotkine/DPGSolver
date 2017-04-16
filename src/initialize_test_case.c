@@ -25,6 +25,7 @@
 #include "array_print.h"
 #include "output_to_paraview.h"
 #include "update_VOLUMEs.h"
+#include "update_FACEs.h"
 #include "setup_geom_factors.h"
 #include "array_free.h"
 
@@ -647,7 +648,6 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 
 				convert_variables(U,W,3,d,NvnS,1,'p','c');
 				mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,W,What);
-//printf("itc V: %d\n",VOLUME->indexg);
 
 				free(XYZ_vS);
 				free(U);
@@ -735,6 +735,8 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 		VOLUME->update = 1;
 
+	update_memory_VOLUMEs();
+	update_memory_FACEs();
 	// Output initial solution to paraview
 //	output_to_paraview("ZTest_Sol_Init");
 }
@@ -1002,8 +1004,6 @@ static void adapt_initial(unsigned int *adapt_update)
 
 	VInfo_list = malloc(NVglobal * sizeof *VInfo_list); // free
 
-	L2Error2 = malloc((NVAR3D+1) * sizeof *L2Error2); // free
-
 	// Initialize VInfo structs
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		indexg = VOLUME->indexg;
@@ -1033,18 +1033,21 @@ static void adapt_initial(unsigned int *adapt_update)
 	}
 
 	// Compute L2 Errors
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		compute_errors(VOLUME,L2Error2,&dummy_d,&dummy_ui,0);
+	L2Error2 = malloc((NVAR3D+1) * sizeof *L2Error2); // free
+	if (strstr(DB.TestCase,"Euler")) {
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			compute_errors(VOLUME,L2Error2,&dummy_d,&dummy_ui,0);
 
-		VInfo = VInfo_list[VOLUME->indexg];
-		VInfo->L2s = sqrt(L2Error2[NVAR3D]);
+			VInfo = VInfo_list[VOLUME->indexg];
+			VInfo->L2s = sqrt(L2Error2[NVAR3D]);
 
-		switch (Adapt) {
-		default: // ADAPT_HP
-			// h vs p indicator goes here (ToBeDeleted).
-			break;
-		case ADAPT_P: VInfo->adapt_class = ADAPT_P; break;
-		case ADAPT_H: VInfo->adapt_class = ADAPT_H; break;
+			switch (Adapt) {
+			default: // ADAPT_HP
+				// h vs p indicator goes here (ToBeDeleted).
+				break;
+			case ADAPT_P: VInfo->adapt_class = ADAPT_P; break;
+			case ADAPT_H: VInfo->adapt_class = ADAPT_H; break;
+			}
 		}
 	}
 
@@ -1056,7 +1059,7 @@ static void adapt_initial(unsigned int *adapt_update)
 	}
 
 	// Mark VOLUMEs for refinement (No limits on refinement)
-	if (!strstr(DB.PDE,"Poisson")) {
+	if (strstr(DB.TestCase,"Euler")) {
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			indexg = VOLUME->indexg;
 

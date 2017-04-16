@@ -29,6 +29,9 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 {
 	/*
 	 *	Comments:
+	 *		The negated viscous flux is returned such that the same operators can be used as for the inviscid
+	 *		contribution.
+	 *
 	 *		The storage ordering of the fluxes (Node, then dimension, then equation) is chosen such that memory stride
 	 *		is minimized when converting from physical to reference space.
 	 *
@@ -112,9 +115,16 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 				EXIT_UNSUPPORTED;
 			}
 
-			const double tau[DMAX][DMAX] = { { mu*2.0*(du[0]-divV/3.0), mu*(dv[0]+du[1]),        mu*(dw[0]+du[2]), },
-			                                 { mu*(du[1]+dv[0]),        mu*2.0*(dv[1]-divV/3.0), mu*(dw[1]+dv[2]), },
-			                                 { mu*(du[2]+dw[0]),        mu*(dv[2]+dw[1]),        mu*2.0*(dw[2]-divV/3.0), }, };
+			double tau[d][d];
+			tau[0][0] = mu*2.0*(du[0]-divV/3.0);
+			tau[0][1] = mu*(dv[0]+du[1]);
+			tau[0][2] = mu*(dw[0]+du[2]);
+			tau[1][0] = tau[0][1];
+			tau[1][1] = mu*2.0*(dv[1]-divV/3.0);
+			tau[1][2] = mu*(dw[1]+dv[2]);
+			tau[2][0] = tau[0][2];
+			tau[2][1] = tau[1][2];
+			tau[2][2] = mu*2.0*(dw[2]-divV/3.0);
 
 			const double dEoRho[DMAX] = { rho_inv2*(dE[0]*rho-E*drho[0]),
 			                              rho_inv2*(dE[1]*rho-E*drho[1]),
@@ -123,9 +133,8 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 			                              2.0*(u*du[1]+v*dv[1]+w*dw[1]),
 			                              2.0*(u*du[2]+v*dv[2]+w*dw[2]), };
 
-			const double dTs[DMAX] = { dEoRho[0]-0.5*dV2[0], // (T)emperature (s)caled
-			                           dEoRho[1]-0.5*dV2[1],
-			                           dEoRho[2]-0.5*dV2[2], };
+			 // (T)emperature (s)caled
+			const double dTs[DMAX] = { dEoRho[0]-0.5*dV2[0], dEoRho[1]-0.5*dV2[1], dEoRho[2]-0.5*dV2[2], };
 
 			size_t IndF = 0;
 			// eq 1
@@ -134,24 +143,24 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 			*F_ptr[IndF++] = 0.0;
 
 			// eq 2
-			*F_ptr[IndF++] = tau[0][0];
-			*F_ptr[IndF++] = tau[0][1];
-			*F_ptr[IndF++] = tau[0][2];
+			*F_ptr[IndF++] = -(tau[0][0]);
+			*F_ptr[IndF++] = -(tau[0][1]);
+			*F_ptr[IndF++] = -(tau[0][2]);
 
 			// eq 3
-			*F_ptr[IndF++] = tau[1][0];
-			*F_ptr[IndF++] = tau[1][1];
-			*F_ptr[IndF++] = tau[1][2];
+			*F_ptr[IndF++] = -(tau[1][0]);
+			*F_ptr[IndF++] = -(tau[1][1]);
+			*F_ptr[IndF++] = -(tau[1][2]);
 
 			// eq 4
-			*F_ptr[IndF++] = tau[2][0];
-			*F_ptr[IndF++] = tau[2][1];
-			*F_ptr[IndF++] = tau[2][2];
+			*F_ptr[IndF++] = -(tau[2][0]);
+			*F_ptr[IndF++] = -(tau[2][1]);
+			*F_ptr[IndF++] = -(tau[2][2]);
 
 			// eq 5
-			*F_ptr[IndF++] = u*tau[0][0]+v*tau[0][1]+w*tau[0][2] + mu*GAMMA/Pr*dTs[0];
-			*F_ptr[IndF++] = u*tau[1][0]+v*tau[1][1]+w*tau[1][2] + mu*GAMMA/Pr*dTs[1];
-			*F_ptr[IndF++] = u*tau[2][0]+v*tau[2][1]+w*tau[2][2] + mu*GAMMA/Pr*dTs[2];
+			*F_ptr[IndF++] = -(u*tau[0][0]+v*tau[0][1]+w*tau[0][2] + mu*GAMMA/Pr*dTs[0]);
+			*F_ptr[IndF++] = -(u*tau[1][0]+v*tau[1][1]+w*tau[1][2] + mu*GAMMA/Pr*dTs[1]);
+			*F_ptr[IndF++] = -(u*tau[2][0]+v*tau[2][1]+w*tau[2][2] + mu*GAMMA/Pr*dTs[2]);
 
 			for (size_t i = 0, iMax = Neq*DMAX; i < iMax; i++)
 				F_ptr[i]++;
@@ -184,9 +193,6 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 				EXIT_UNSUPPORTED;
 			}
 
-//			const double tau[DMAX][DMAX] = { { mu*2.0*(du[0]-divV/3.0), mu*(dv[0]+du[1]),        },
-//			                                 { mu*(du[1]+dv[0]),        mu*2.0*(dv[1]-divV/3.0), }, };
-
 			double tau[d][d];
 			tau[0][0] = mu*2.0*(du[0]-divV/3.0);
 			tau[0][1] = mu*(dv[0]+du[1]);
@@ -205,18 +211,18 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 			IndF += 1;
 
 			// eq 2
-			*F_ptr[IndF++] = tau[0][0];
-			*F_ptr[IndF++] = tau[0][1];
+			*F_ptr[IndF++] = -(tau[0][0]);
+			*F_ptr[IndF++] = -(tau[0][1]);
 			IndF += 1;
 
 			// eq 3
-			*F_ptr[IndF++] = tau[1][0];
-			*F_ptr[IndF++] = tau[1][1];
+			*F_ptr[IndF++] = -(tau[1][0]);
+			*F_ptr[IndF++] = -(tau[1][1]);
 			IndF += 1;
 
 			// eq 4
-			*F_ptr[IndF++] = u*tau[0][0]+v*tau[0][1] + mu*GAMMA/Pr*dTs[0];
-			*F_ptr[IndF++] = u*tau[1][0]+v*tau[1][1] + mu*GAMMA/Pr*dTs[1];
+			*F_ptr[IndF++] = -(u*tau[0][0]+v*tau[0][1] + mu*GAMMA/Pr*dTs[0]);
+			*F_ptr[IndF++] = -(u*tau[1][0]+v*tau[1][1] + mu*GAMMA/Pr*dTs[1]);
 
 			for (size_t i = 0, iMax = Neq*DMAX; i < iMax; i++)
 				F_ptr[i]++;

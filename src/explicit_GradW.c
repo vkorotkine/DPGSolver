@@ -155,10 +155,6 @@ static void explicit_GradW_VOLUME(void)
 			}
 
 			// Compute intermediate Qhat contribution
-			if (VOLUME->QhatV[dim])
-				free(VOLUME->QhatV[dim]);
-			VOLUME->QhatV[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV[dim])); // keep
-
 			if (FORM_MF1 == 'W') {
 				mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,-1.0,0.0,DxyzChiS[dim],VOLUME->What,VOLUME->QhatV[dim]);
 			} else if (FORM_MF1 == 'S') {
@@ -168,10 +164,6 @@ static void explicit_GradW_VOLUME(void)
 			} else {
 				EXIT_UNSUPPORTED;
 			}
-
-			if (VOLUME->Qhat[dim])
-				free(VOLUME->Qhat[dim]);
-			VOLUME->Qhat[dim]  = malloc(NvnS*Nvar * sizeof *(VOLUME->Qhat[dim]));  // keep (used below)
 
 			for (size_t i = 0; i < NvnS*Nvar; i++)
 				VOLUME->Qhat[dim][i] = VOLUME->QhatV[dim][i];
@@ -248,22 +240,12 @@ static void explicit_GradW_FACE(void)
 		if (FORM_MF1 == 'S')
 			correct_numerical_solution_strong(FDATAL,'E','L',FORM_MF1);
 
-		for (size_t dim = 0; dim < d; dim++) {
-			if (FACE->QhatL[dim])
-				free(FACE->QhatL[dim]);
-			FACE->QhatL[dim] = malloc(OPSL[0]->NvnS*Nvar * sizeof *(FACE->QhatL[dim])); // keep
-		}
 		finalize_QhatF_Weak(FDATAL,FDATAR,'L','E');
 
 		if (!FACE->Boundary) {
 			if (FORM_MF1 == 'S')
 				correct_numerical_solution_strong(FDATAR,'E','R',FORM_MF1);
 
-			for (size_t dim = 0; dim < d; dim++) {
-				if (FACE->QhatR[dim])
-					free(FACE->QhatR[dim]);
-				FACE->QhatR[dim] = malloc(OPSR[0]->NvnS*Nvar * sizeof *(FACE->QhatR[dim])); // keep
-			}
 			finalize_QhatF_Weak(FDATAL,FDATAR,'R','E');
 		}
 

@@ -104,21 +104,13 @@ static void compute_VOLUME_EFE(void)
 			unsigned int NvnS = VDATA->OPS[0]->NvnS;
 
 			// RHS
-			if (VOLUME->RHS)
-				free(VOLUME->RHS);
-			double *RHS = calloc(NvnS*Neq , sizeof *RHS); // keep
-			VOLUME->RHS = RHS;
-
-			finalize_VOLUME_Inviscid_Weak(Neq,Fr_vI,RHS,'E',VDATA);
+			memset(VOLUME->RHS,0.0,NvnS*Neq * sizeof *(VOLUME->RHS));
+			finalize_VOLUME_Inviscid_Weak(Neq,Fr_vI,VOLUME->RHS,'E',VDATA);
 			free(Fr_vI);
 
 			// LHS
-			if (VOLUME->LHS)
-				free(VOLUME->LHS);
-			double *LHS = calloc(NvnS*NvnS*Neq*Nvar , sizeof *LHS); // keep
-			VOLUME->LHS = LHS;
-
-			finalize_VOLUME_Inviscid_Weak(NvnS*Neq*Nvar,dFrdW_vI,LHS,'I',VDATA);
+			memset(VOLUME->LHS,0.0,NvnS*NvnS*Neq*Nvar * sizeof *(VOLUME->LHS));
+			finalize_VOLUME_Inviscid_Weak(NvnS*Neq*Nvar,dFrdW_vI,VOLUME->LHS,'I',VDATA);
 			free(dFrdW_vI);
 		}
 	} else if (strstr(Form,"Strong")) {

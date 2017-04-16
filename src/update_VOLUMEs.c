@@ -257,6 +257,128 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 		VOLUME->BC[1][IndE[e]] = BC[IndBC[e]][IndEP[e]];
 }
 
+static void update_memory_VOLUME(struct S_VOLUME *const VOLUME)
+{
+	/*
+	 *	Purpose:
+	 *		Update amount of memory allocated to RHS/LHS arrays (used for non-vectorized functions).
+	 */
+
+	if (DB.Vectorized)
+		EXIT_UNSUPPORTED;
+
+	char const *const TestCase = DB.TestCase;
+
+	unsigned int const d    = DB.d,
+	                   Nvar = DB.Nvar,
+	                   Neq  = DB.Neq,
+	                   NvnS = VOLUME->NvnS;
+
+	if (NvnS == 0)
+		EXIT_UNSUPPORTED;
+
+	// RHS/LHS
+	if (VOLUME->RHS != NULL)
+		free(VOLUME->RHS);
+	VOLUME->RHS = malloc(NvnS*Nvar * sizeof *(VOLUME->RHS)); // keep
+
+	if (strstr(DB.SolverType,"Implicit")) {
+		if (VOLUME->LHS != NULL)
+			free(VOLUME->LHS);
+		VOLUME->LHS = malloc(NvnS*NvnS*Nvar*Neq * sizeof *(VOLUME->LHS)); // keep
+	}
+
+	// Other solver related arrays
+	if (strstr(TestCase,"Poisson")) {
+		for (size_t dim = 0; dim < d; dim++) {
+			if (VOLUME->qhat[dim] != NULL)
+				free(VOLUME->qhat[dim]);
+			VOLUME->qhat[dim]  = malloc(NvnS*Nvar * sizeof *(VOLUME->qhat[dim])); // keep
+
+			if (VOLUME->qhat_uhat[dim] != NULL)
+				free(VOLUME->qhat_uhat[dim]);
+			VOLUME->qhat_uhat[dim]  = malloc(NvnS*NvnS*Nvar*Neq * sizeof *(VOLUME->qhat_uhat[dim])); // keep
+		}
+	} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
+		if (strstr(TestCase,"NavierStokes")) {
+			for (size_t dim = 0; dim < d; dim++) {
+				if (VOLUME->QhatV[dim] != NULL)
+					free(VOLUME->QhatV[dim]);
+				VOLUME->QhatV[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV[dim])); // keep
+
+				if (VOLUME->Qhat[dim] != NULL)
+					free(VOLUME->Qhat[dim]);
+				VOLUME->Qhat[dim]  = malloc(NvnS*Nvar * sizeof *(VOLUME->Qhat[dim])); // keep
+			}
+			if (strstr(DB.SolverType,"Implicit")) {
+				EXIT_UNSUPPORTED;
+			}
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
+
+void update_memory_VOLUMEs(void)
+{
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+		update_memory_VOLUME(VOLUME);
+}
+
+static void free_memory_solver_VOLUME(struct S_VOLUME *const VOLUME)
+{
+	/*
+	 *	Purpose:
+	 *		Free memory associated with VOLUME solver arrays when a VOLUME is h-refined.
+	 *
+	 *	Comments:
+	 *		This includes memory used to store the solution as well as memory used for RHS/LHS terms.
+	 *		Memory addresses associated must be set to NULL after being freed such that it is not attempted to free them
+	 *		again in update_memory_VOLUME in the case of the mesh being coarsened.
+	 */
+
+	if (!(VOLUME->adapt_type == HREFINE))
+		EXIT_UNSUPPORTED;
+
+	char const *const TestCase = DB.TestCase;
+
+	unsigned int const d = DB.d;
+
+	free(VOLUME->RHS);
+	VOLUME->RHS = NULL;
+	if (strstr(DB.SolverType,"Implicit")) {
+		free(VOLUME->LHS);
+		VOLUME->LHS = NULL;
+	}
+
+	if (strstr(TestCase,"Poisson")) {
+		free(VOLUME->uhat);
+		for (size_t dim = 0; dim < d; dim++) {
+			free(VOLUME->qhat[dim]);
+			VOLUME->qhat[dim] = NULL;
+			free(VOLUME->qhat_uhat[dim]);
+			VOLUME->qhat_uhat[dim] = NULL;
+		}
+	} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
+		free(VOLUME->What);
+		free(VOLUME->RES);
+
+		if (strstr(TestCase,"NavierStokes")) {
+			for (size_t dim = 0; dim < d; dim++) {
+				free(VOLUME->QhatV[dim]);
+				VOLUME->QhatV[dim] = NULL;
+				free(VOLUME->Qhat[dim]);
+				VOLUME->Qhat[dim] = NULL;
+			}
+			if (strstr(DB.SolverType,"Implicit")) {
+				EXIT_UNSUPPORTED;
+			}
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
+
 void update_VOLUME_hp(void)
 {
 	// Initialize DB Parameters
@@ -277,7 +399,7 @@ void update_VOLUME_hp(void)
 	             **Ihat_vS_vS, **I_vGs_vGs, **L2hat_vS_vS, *What, *RES, *WhatP, *WhatH, *RESP, *RESH, *dummyPtr_d,
 	             *uhat, *uhatP, *uhatH;
 
-	struct S_OPERATORS *OPS;
+	struct S_OPERATORS *OPS, *OPSp;
 	struct S_ELEMENT   *ELEMENT;
 	struct S_VOLUME    *VOLUME, *VOLUMEc, *VOLUMEp;
 
@@ -285,424 +407,512 @@ void update_VOLUME_hp(void)
 	I_vGs_vGs = NULL;
 	VOLUMEc   = NULL;
 
-	OPS = malloc(sizeof *OPS); // free
+	OPS  = malloc(sizeof *OPS);  // free
+	OPSp = malloc(sizeof *OPSp); // free
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		if (VOLUME->Vadapt) {
-			P     = VOLUME->P;
-			level = VOLUME->level;
-			adapt_type = VOLUME->adapt_type;
+		if (!VOLUME->Vadapt)
+			continue;
 
-			switch(adapt_type) {
-			case PREFINE:
-				if (P < PMax)
-					PNew = P+1;
-				else
-					printf("Error: Should not be entering PREFINE for P = %d.\n",P), EXIT_MSG;
-				VOLUME->PNew = PNew;
-				break;
-			case PCOARSE:
-				if (P >= 1)
-					PNew = P-1;
-				else
-					printf("Error: Should not be entering PCOARSE for P = %d.\n",P), EXIT_MSG;
-				VOLUME->PNew = PNew;
-				break;
-			case HREFINE:
-				if (level == LevelsMax)
-					printf("Error: Should not be entering HREFINE for level = %d.\n",level), EXIT_MSG;
-				VOLUME->PNew = P;
-				break;
-			case HCOARSE:
-				if (level == 0)
-					printf("Error: Should not be entering HCOARSE for level = %d.\n",level), EXIT_MSG;
-				VOLUME->PNew = P;
-				break;
-			default:
-				printf("Error: Unsupported adapt_type = %d.\n",adapt_type), EXIT_MSG;
-				break;
-			}
+		P     = VOLUME->P;
+		level = VOLUME->level;
+		adapt_type = VOLUME->adapt_type;
 
-			if (adapt_type == HREFINE) {
-				if (VOLUME->type == PYR || VOLUME->type == TET)
-					init_ops(OPS,VOLUME,1);
-				else
-					init_ops(OPS,VOLUME,0);
+		switch(adapt_type) {
+		case PREFINE:
+			if (P < PMax)
+				PNew = P+1;
+			else
+				EXIT_UNSUPPORTED;
+			VOLUME->PNew = PNew;
+			break;
+		case PCOARSE:
+			if (P >= 1)
+				PNew = P-1;
+			else
+				EXIT_UNSUPPORTED;
+			VOLUME->PNew = PNew;
+			break;
+		case HREFINE:
+			if (level == LevelsMax)
+				EXIT_UNSUPPORTED;
+			VOLUME->PNew = P;
+			break;
+		case HCOARSE:
+			if (level == 0)
+				EXIT_UNSUPPORTED;
+			VOLUME->PNew = P;
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
 
-				NvnGs[1]     = OPS->NvnGs;
-				NvnGc[1]     = OPS->NvnGc;
-				NvnS[1]      = OPS->NvnS;
-				I_vGs_vGc[1] = OPS->I_vGs_vGc;
-			} else if (adapt_type == HCOARSE) {
-				if ((VOLUME->type == TET && VOLUME->parent->type == TET) ||
-				    (VOLUME->type == PYR && VOLUME->parent->type == PYR))
-					init_ops(OPS,VOLUME,1);
-				else
-					init_ops(OPS,VOLUME,0);
+		if (adapt_type == HREFINE) {
+			if (VOLUME->type == PYR || VOLUME->type == TET)
+				init_ops(OPS,VOLUME,1);
+			else
+				init_ops(OPS,VOLUME,0);
 
-				NvnS[1]      = OPS->NvnS;
-			}
+			NvnGs[1]     = OPS->NvnGs;
+			NvnGc[1]     = OPS->NvnGc;
+			NvnS[1]      = OPS->NvnS;
+			I_vGs_vGc[1] = OPS->I_vGs_vGc;
+		} else if (adapt_type == HCOARSE) {
+			if ((VOLUME->type == TET && VOLUME->parent->type == TET) ||
+				(VOLUME->type == PYR && VOLUME->parent->type == PYR))
+				init_ops(OPS,VOLUME,1);
+			else
+				init_ops(OPS,VOLUME,0);
 
-			init_ops(OPS,VOLUME,0);
+				NvnS[1] = OPS->NvnS;
+		}
 
-			VOLUME->update = 1;
-			switch (adapt_type) {
-			default: // PREFINE or PCOARSE
-				VOLUME->P = PNew;
+		init_ops(OPS,VOLUME,0);
 
-				// Update geometry
-				if (VOLUME->curved) {
-					NvnGs[0]     = OPS->NvnGs;
-					NvnGc[0]     = OPS->NvnGc;
-					I_vGs_vGc[0] = OPS->I_vGs_vGc;
+		VOLUME->update = 1;
+		switch (adapt_type) {
+		default: // PREFINE or PCOARSE
+			VOLUME->P = PNew;
 
-					NCols = d;
-
-					XYZ_vV = VOLUME->XYZ_vV;
-					XYZ_S  = malloc(NvnGc[0]*NCols * sizeof *XYZ_S); // keep
-					mm_CTN_d(NvnGc[0],NCols,NvnGs[0],I_vGs_vGc[0],XYZ_vV,XYZ_S);
-
-					free(VOLUME->XYZ_S);
-					VOLUME->XYZ_S = XYZ_S;
-					VOLUME->NvnG  = NvnGc[0];
-
-					free(VOLUME->XYZ);
-					if (strstr(MeshType,"ToBeCurved"))
-						setup_ToBeCurved(VOLUME);
-					else if (strstr(MeshType,"Curved"))
-						setup_Curved(VOLUME);
-				}
-
-				free(VOLUME->detJV_vI);
-				free(VOLUME->C_vI);
-				setup_geom_factors(VOLUME);
-
-				// Project solution coefficients (and RES if applicable)
-				NvnS[0]    = OPS->NvnS;
-				NvnSP      = OPS->NvnSP;
-
-				VOLUME->NvnS = NvnSP;
-
-				if (strstr(TestCase,"Poisson")) {
-					uhat = VOLUME->uhat;
-
-					uhatP = malloc(NvnSP*Nvar * sizeof *uhatP); // keep
-
-					if (adapt_type == PREFINE) {
-						Ihat_vS_vS = OPS->Ihat_vS_vS;
-						mm_CTN_d(NvnSP,Nvar,NvnS[0],Ihat_vS_vS[0],uhat,uhatP);
-					} else {
-						L2hat_vS_vS = OPS->L2hat_vS_vS;
-						mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],uhat,uhatP);
-					}
-					free(uhat);
-					VOLUME->uhat = uhatP;
-				} else {
-					What = VOLUME->What;
-					RES  = VOLUME->RES;
-
-					WhatP = malloc(NvnSP*Nvar * sizeof *WhatP); // keep
-					RESP  = malloc(NvnSP*Nvar * sizeof *RESP);  // keep
-
-					if (adapt_type == PREFINE) {
-						Ihat_vS_vS = OPS->Ihat_vS_vS;
-						mm_CTN_d(NvnSP,Nvar,NvnS[0],Ihat_vS_vS[0],What,WhatP);
-						mm_CTN_d(NvnSP,Nvar,NvnS[0],Ihat_vS_vS[0],RES,RESP);
-					} else {
-						L2hat_vS_vS = OPS->L2hat_vS_vS;
-						mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],What,WhatP);
-						mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],RES,RESP);
-					}
-
-					free(What);
-					free(RES);
-
-					VOLUME->What = WhatP;
-					VOLUME->RES  = RESP;
-				}
-				break;
-			case HREFINE:
-				VType = VOLUME->type;
-				uhat  = VOLUME->uhat;
-				What  = VOLUME->What;
-				RES   = VOLUME->RES;
-
-
+			// Update geometry
+			if (VOLUME->curved) {
 				NvnGs[0]     = OPS->NvnGs;
 				NvnGc[0]     = OPS->NvnGc;
-				NvnS[0]      = OPS->NvnS;
-				I_vGs_vGs    = OPS->I_vGs_vGs;
 				I_vGs_vGc[0] = OPS->I_vGs_vGc;
-				VeMask       = OPS->VeMask;
 
 				NCols = d;
 
-				VOLUME->hrefine_type = 0;
+				XYZ_vV = VOLUME->XYZ_vV;
+				XYZ_S  = malloc(NvnGc[0]*NCols * sizeof *XYZ_S); // keep
+				mm_CTN_d(NvnGc[0],NCols,NvnGs[0],I_vGs_vGc[0],XYZ_vV,XYZ_S);
 
-				get_vh_range(VOLUME,&vhMin,&vhMax);
-				for (vh = vhMin; vh <= vhMax; vh++) {
-					if (vh == vhMin) {
-						VOLUMEc = New_VOLUME();
-						VOLUME->child0 = VOLUMEc;
-					} else {
-						VOLUMEc->next = New_VOLUME();
-						VOLUMEc = VOLUMEc->next;
-					}
-					VOLUMEc->update = 1;
-					VOLUMEc->parent = VOLUME;
-					VOLUMEc->indexg = NV++;
+				free(VOLUME->XYZ_S);
+				VOLUME->XYZ_S = XYZ_S;
+				VOLUME->NvnG  = NvnGc[0];
 
-					VOLUMEc->P    = VOLUME->P;
-					VOLUMEc->PNew = VOLUME->P;
-					VOLUMEc->level = (VOLUME->level)+1;
-					switch (VType) {
-					default: // LINE, TRI, QUAD, HEX, WEDGE
-						VOLUMEc->type = VType;
+				free(VOLUME->XYZ);
+				if (strstr(MeshType,"ToBeCurved")) {
+					free(VOLUME->XYZ_vVc);
+					setup_ToBeCurved(VOLUME);
+				} else if (strstr(MeshType,"Curved")) {
+					setup_Curved(VOLUME);
+				}
+			}
+
+			free(VOLUME->detJV_vI);
+			free(VOLUME->C_vI);
+			setup_geom_factors(VOLUME);
+
+			// Project solution coefficients (and RES if applicable)
+			NvnS[0]    = OPS->NvnS;
+			NvnSP      = OPS->NvnSP;
+
+			VOLUME->NvnS = NvnSP;
+
+			if (strstr(TestCase,"Poisson")) {
+				uhat = VOLUME->uhat;
+
+				uhatP = malloc(NvnSP*Nvar * sizeof *uhatP); // keep
+
+				if (adapt_type == PREFINE) {
+					Ihat_vS_vS = OPS->Ihat_vS_vS;
+					mm_CTN_d(NvnSP,Nvar,NvnS[0],Ihat_vS_vS[0],uhat,uhatP);
+				} else {
+					L2hat_vS_vS = OPS->L2hat_vS_vS;
+					mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],uhat,uhatP);
+				}
+				free(uhat);
+				VOLUME->uhat = uhatP;
+			} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
+				WhatP = malloc(NvnSP*Nvar * sizeof *WhatP); // keep
+				if (adapt_type == PREFINE) {
+					Ihat_vS_vS = OPS->Ihat_vS_vS;
+					mm_CTN_d(NvnSP,Nvar,NvnS[0],Ihat_vS_vS[0],VOLUME->What,WhatP);
+				} else {
+					L2hat_vS_vS = OPS->L2hat_vS_vS;
+					mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],VOLUME->What,WhatP);
+				}
+				free(VOLUME->What);
+				VOLUME->What = WhatP;
+
+				if (strstr(DB.SolverType,"Explicit")) {
+					switch (DB.ExplicitSolverType) {
+					case EULER:
+						free(VOLUME->RES);
+						VOLUME->RES = NULL;
 						break;
-					case TET:
-					case PYR:
-						VOLUMEc->type = get_VOLUMEc_type(VType,vh);
+					case RK3_SSP:
+						free(VOLUME->RES);
+						VOLUME->RES = malloc(NvnSP*Nvar * sizeof *(VOLUME->RES)); // keep
+						break;
+					case RK4_LS:
+						RESP = malloc(NvnSP*Nvar * sizeof *RESP); // keep
+						if (adapt_type == PREFINE)
+							mm_CTN_d(NvnSP,Nvar,NvnS[0],OPS->Ihat_vS_vS[0],VOLUME->RES,RESP);
+						else
+							mm_CTN_d(NvnSP,Nvar,NvnS[0],OPS->L2hat_vS_vS[0],VOLUME->RES,RESP);
+
+						free(VOLUME->RES);
+						VOLUME->RES = RESP;
+						break;
+					default:
+						EXIT_UNSUPPORTED;
 						break;
 					}
-					ELEMENT = get_ELEMENT_type(VOLUMEc->type);
-					Nf = ELEMENT->Nf;
-					for (f = 0; f < Nf; f++)
-						VOLUMEc->NsubF[f] = 1;
+				}
+			} else {
+				EXIT_UNSUPPORTED;
+			}
 
-					VOLUMEc->Eclass = get_Eclass(VOLUMEc->type);
+			// Update memory required by the non-vectorized solver
+			update_memory_VOLUME(VOLUME);
+			break;
+		case HREFINE:
+			VType = VOLUME->type;
+			uhat  = VOLUME->uhat;
+			What  = VOLUME->What;
+			RES   = VOLUME->RES;
 
-					// Update geometry
-					IndEhref = get_IndEhref(VType,vh);
 
-					VOLUMEc->XYZ_vV = malloc(NvnGs[IndEhref]*d * sizeof *XYZ_vV); // keep
+			NvnGs[0]     = OPS->NvnGs;
+			NvnGc[0]     = OPS->NvnGc;
+			NvnS[0]      = OPS->NvnS;
+			I_vGs_vGs    = OPS->I_vGs_vGs;
+			I_vGs_vGc[0] = OPS->I_vGs_vGc;
+			VeMask       = OPS->VeMask;
 
-					// May not need VeInfo for new VOLUMEs if avoiding usage for treating curved geometry (ToBeDeleted)
-					Nve    = ELEMENT->Nve;
-					VeInfo = VOLUMEc->VeInfo;
+			NCols = d;
 
-					if (AC) {
-						mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vV,VOLUMEc->XYZ_vV);
-						VOLUMEc->curved = 1;
+			VOLUME->hrefine_type = 0;
 
-						// Set VOLUME BC Information
-						set_VOLUMEc_BC_Info(VOLUMEc,vh,VOLUME->BC);
-					} else if (VOLUME->curved) {
-						// Determined VeInfo for VOLUMEc
-						cVeCount = 0;
-						for (ve = 0; ve < Nve; ve++) {
-							VeInfo[ve+Nve*0] = 1;
-							VeInfo[ve+Nve*1] = 1;
-							for (j = 0; j < NvnGs[0]; j++) {
-								if (fabs(I_vGs_vGs[vh][ve*NvnGs[0]+j]-1.0) < EPS) {
-									// Already existing vertex
-									for (i = 0; i < NVEINFO; i++)
-										VeInfo[ve+Nve*i] = VOLUME->VeInfo[j+Nve*i];
+			get_vh_range(VOLUME,&vhMin,&vhMax);
+			for (vh = vhMin; vh <= vhMax; vh++) {
+				if (vh == vhMin) {
+					VOLUMEc = New_VOLUME();
+					VOLUME->child0 = VOLUMEc;
+				} else {
+					VOLUMEc->next = New_VOLUME();
+					VOLUMEc = VOLUMEc->next;
+				}
+				VOLUMEc->update = 1;
+				VOLUMEc->parent = VOLUME;
+				VOLUMEc->indexg = NV++;
+
+				VOLUMEc->P    = VOLUME->P;
+				VOLUMEc->PNew = VOLUME->P;
+				VOLUMEc->level = (VOLUME->level)+1;
+				switch (VType) {
+				default: // LINE, TRI, QUAD, HEX, WEDGE
+					VOLUMEc->type = VType;
+					break;
+				case TET:
+				case PYR:
+					VOLUMEc->type = get_VOLUMEc_type(VType,vh);
+					break;
+				}
+				ELEMENT = get_ELEMENT_type(VOLUMEc->type);
+				Nf = ELEMENT->Nf;
+				for (f = 0; f < Nf; f++)
+					VOLUMEc->NsubF[f] = 1;
+
+				VOLUMEc->Eclass = get_Eclass(VOLUMEc->type);
+
+				// Update geometry
+				IndEhref = get_IndEhref(VType,vh);
+
+				VOLUMEc->XYZ_vV = malloc(NvnGs[IndEhref]*d * sizeof *XYZ_vV); // keep
+
+				// May not need VeInfo for new VOLUMEs if avoiding usage for treating curved geometry (ToBeDeleted)
+				Nve    = ELEMENT->Nve;
+				VeInfo = VOLUMEc->VeInfo;
+
+				if (AC) {
+					mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vV,VOLUMEc->XYZ_vV);
+					VOLUMEc->curved = 1;
+
+					// Set VOLUME BC Information
+					set_VOLUMEc_BC_Info(VOLUMEc,vh,VOLUME->BC);
+				} else if (VOLUME->curved) {
+					// Determined VeInfo for VOLUMEc
+					cVeCount = 0;
+					for (ve = 0; ve < Nve; ve++) {
+						VeInfo[ve+Nve*0] = 1;
+						VeInfo[ve+Nve*1] = 1;
+						for (j = 0; j < NvnGs[0]; j++) {
+							if (fabs(I_vGs_vGs[vh][ve*NvnGs[0]+j]-1.0) < EPS) {
+								// Already existing vertex
+								for (i = 0; i < NVEINFO; i++)
+									VeInfo[ve+Nve*i] = VOLUME->VeInfo[j+Nve*i];
+								break;
+							} else if (fabs(I_vGs_vGs[vh][ve*NvnGs[0]+j]) > EPS) {
+								if (!VOLUME->VeInfo[j+Nve*0]) { // If not curved
+									VeInfo[ve+Nve*0] = 0;
+									VeInfo[ve+Nve*1] = 0;
+									VeInfo[ve+Nve*2] = UINT_MAX;
+									VeInfo[ve+Nve*3] = 0;
 									break;
-								} else if (fabs(I_vGs_vGs[vh][ve*NvnGs[0]+j]) > EPS) {
-									if (!VOLUME->VeInfo[j+Nve*0]) { // If not curved
-										VeInfo[ve+Nve*0] = 0;
-										VeInfo[ve+Nve*1] = 0;
-										VeInfo[ve+Nve*2] = UINT_MAX;
-										VeInfo[ve+Nve*3] = 0;
-										break;
-									} else {
-										VeInfo[ve+Nve*2] = VOLUME->VeInfo[j+NvnGs[0]*2];
-										// This is incorrect (currently not used) for vertices shared by two curved surfaces.
-//										VeInfo[ve+Nve*3] = VOLUME->VeInfo[j+NvnGs[0]*3];
-										VeInfo[ve+Nve*3] = UINT_MAX;
-									}
+								} else {
+									VeInfo[ve+Nve*2] = VOLUME->VeInfo[j+NvnGs[0]*2];
+									// This is incorrect (currently not used) for vertices shared by two curved surfaces.
+//									VeInfo[ve+Nve*3] = VOLUME->VeInfo[j+NvnGs[0]*3];
+									VeInfo[ve+Nve*3] = UINT_MAX;
 								}
 							}
-							if (VeInfo[ve])
-								cVeCount++;
 						}
-
-						if (d == DMAX && cVeCount == 2)
-							VOLUMEc->curved = 2; // Curved EDGE
-						else
-							VOLUMEc->curved = 1; // Curved FACE
-
-						// Ensure that vertices are place on the curved boundaries
-						NveP2 = ELEMENT->NveP2;
-
-						if (vh == vhMin)
-							setup_Curved_vertices(VOLUME);
-
-						if (DB.TETrefineType == TET12)
-							printf("Error: VeMask not correct for this case.\n"), EXIT_MSG;
-
-						XYZ_vV   = VOLUMEc->XYZ_vV;
-						XYZ_vVP2 = VOLUME->XYZ_vVP2;
-
-						for (ve = 0; ve < Nve; ve++) {
-							for (dim = 0; dim < d; dim++)
-								XYZ_vV[ve+Nve*dim] = XYZ_vVP2[VeMask[vh][ve]+NveP2*dim];
-						}
-
-						// Set VOLUME BC Information
-						set_VOLUMEc_BC_Info(VOLUMEc,vh,VOLUME->BC);
-					} else {
-						mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vV,VOLUMEc->XYZ_vV);
-						for (ve = 0; ve < Nve; ve++) {
-							VeInfo[ve+Nve*0] = 0;
-							VeInfo[ve+Nve*1] = 0;
-							VeInfo[ve+Nve*2] = UINT_MAX;
-						}
-						VOLUMEc->curved = 0;
+						if (VeInfo[ve])
+							cVeCount++;
 					}
 
-					XYZ_vV = VOLUMEc->XYZ_vV;
-					if (!VOLUMEc->curved) {
-						VOLUMEc->NvnG  = NvnGs[IndEhref];
-						VOLUMEc->XYZ_S = malloc(NvnGs[IndEhref]*NCols * sizeof *XYZ_S); // keep
-						XYZ_S = VOLUMEc->XYZ_S;
-						for (unsigned int i = 0, iMax = NCols*NvnGs[IndEhref]; i < iMax; i++)
-							XYZ_S[i] = XYZ_vV[i];
-						setup_straight(VOLUMEc);
-					} else {
-						VOLUMEc->NvnG = NvnGc[IndEhref];
+					if (d == DMAX && cVeCount == 2)
+						VOLUMEc->curved = 2; // Curved EDGE
+					else
+						VOLUMEc->curved = 1; // Curved FACE
 
-						VOLUMEc->XYZ_S = malloc(NvnGc[IndEhref]*NCols * sizeof *XYZ_S); // keep
-						mm_CTN_d(NvnGc[IndEhref],NCols,NvnGs[IndEhref],I_vGs_vGc[IndEhref],XYZ_vV,VOLUMEc->XYZ_S);
+					// Ensure that vertices are place on the curved boundaries
+					NveP2 = ELEMENT->NveP2;
 
-						if (strstr(MeshType,"ToBeCurved"))
-							setup_ToBeCurved(VOLUMEc);
-						else if (strstr(MeshType,"Curved")) {
-							setup_Curved(VOLUMEc);
-						}
+					if (vh == vhMin)
+						setup_Curved_vertices(VOLUME);
+
+					if (DB.TETrefineType == TET12)
+						printf("Error: VeMask not correct for this case.\n"), EXIT_MSG;
+
+					XYZ_vV   = VOLUMEc->XYZ_vV;
+					XYZ_vVP2 = VOLUME->XYZ_vVP2;
+
+					for (ve = 0; ve < Nve; ve++) {
+						for (dim = 0; dim < d; dim++)
+							XYZ_vV[ve+Nve*dim] = XYZ_vVP2[VeMask[vh][ve]+NveP2*dim];
 					}
-					setup_geom_factors(VOLUMEc);
 
-// Fix Vgrp linked list (ToBeDeleted)
-
-					// Project solution coefficients (and RES if applicable)
-					Ihat_vS_vS = OPS->Ihat_vS_vS;
-					VOLUMEc->NvnS = NvnS[IndEhref];
-					if (strstr(TestCase,"Poisson")) {
-						uhatH = malloc(NvnS[IndEhref]*Nvar * sizeof *uhatH); // keep
-
-						mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],uhat,uhatH);
-
-						VOLUMEc->uhat = uhatH;
-					} else {
-						WhatH = malloc(NvnS[IndEhref]*Nvar * sizeof *WhatH); // keep
-						RESH  = malloc(NvnS[IndEhref]*Nvar * sizeof *RESH);  // keep
-
-						mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],What,WhatH);
-						mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],RES,RESH);
-
-						VOLUMEc->What = WhatH;
-						VOLUMEc->RES  = RESH;
-					}
-				}
-				if (strstr(TestCase,"Poisson")) {
-					free(VOLUME->uhat);
+					// Set VOLUME BC Information
+					set_VOLUMEc_BC_Info(VOLUMEc,vh,VOLUME->BC);
 				} else {
-					free(VOLUME->What);
-					free(VOLUME->RES);
+					mm_CTN_d(NvnGs[IndEhref],NCols,NvnGs[0],I_vGs_vGs[vh],VOLUME->XYZ_vV,VOLUMEc->XYZ_vV);
+					for (ve = 0; ve < Nve; ve++) {
+						VeInfo[ve+Nve*0] = 0;
+						VeInfo[ve+Nve*1] = 0;
+						VeInfo[ve+Nve*2] = UINT_MAX;
+					}
+					VOLUMEc->curved = 0;
 				}
-				break;
-			case HCOARSE:
-				VOLUMEp = VOLUME->parent;
 
-				if (VOLUME == VOLUMEp->child0) {
-					level = VOLUME->level;
+				XYZ_vV = VOLUMEc->XYZ_vV;
+				if (!VOLUMEc->curved) {
+					VOLUMEc->NvnG  = NvnGs[IndEhref];
+					VOLUMEc->XYZ_S = malloc(NvnGs[IndEhref]*NCols * sizeof *XYZ_S); // keep
+					XYZ_S = VOLUMEc->XYZ_S;
+					for (unsigned int i = 0, iMax = NCols*NvnGs[IndEhref]; i < iMax; i++)
+						XYZ_S[i] = XYZ_vV[i];
+					setup_straight(VOLUMEc);
+				} else {
+					VOLUMEc->NvnG = NvnGc[IndEhref];
 
-					update = 1;
-					maxP = VOLUME->P;
+					VOLUMEc->XYZ_S = malloc(NvnGc[IndEhref]*NCols * sizeof *XYZ_S); // keep
+					mm_CTN_d(NvnGc[IndEhref],NCols,NvnGs[IndEhref],I_vGs_vGc[IndEhref],XYZ_vV,VOLUMEc->XYZ_S);
 
-					get_vh_range(VOLUMEp,&vhMin,&vhMax);
-					VOLUMEc = VOLUME;
-					for (vh = vhMin+1; vh <= vhMax; vh++) {
-						VOLUMEc = VOLUMEc->next;
-						maxP = max(maxP,VOLUMEc->P);
+					if (strstr(MeshType,"ToBeCurved"))
+						setup_ToBeCurved(VOLUMEc);
+					else if (strstr(MeshType,"Curved")) {
+						setup_Curved(VOLUMEc);
+					}
+				}
+				setup_geom_factors(VOLUMEc);
 
-						if (VOLUMEc->level != level || !VOLUMEc->Vadapt || VOLUMEc->adapt_type != HCOARSE) {
-							update = 0;
+				// Project solution coefficients (and RES if applicable)
+				Ihat_vS_vS = OPS->Ihat_vS_vS;
+				VOLUMEc->NvnS = NvnS[IndEhref];
+				if (strstr(TestCase,"Poisson")) {
+					uhatH = malloc(NvnS[IndEhref]*Nvar * sizeof *uhatH); // keep
+
+					mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],uhat,uhatH);
+
+					VOLUMEc->uhat = uhatH;
+				} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
+					WhatH = malloc(NvnS[IndEhref]*Nvar * sizeof *WhatH); // keep
+					mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],VOLUME->What,WhatH);
+					VOLUMEc->What = WhatH;
+
+
+					if (strstr(DB.SolverType,"Explicit")) {
+						switch (DB.ExplicitSolverType) {
+						case EULER:
+							free(VOLUME->RES);
+							VOLUME->RES = NULL;
+							break;
+						case RK3_SSP:
+							free(VOLUMEc->RES);
+							VOLUMEc->RES = malloc(NvnS[IndEhref]*Nvar * sizeof *(VOLUMEc->RES));  // keep
+							break;
+						case RK4_LS:
+							RESH  = malloc(NvnS[IndEhref]*Nvar * sizeof *RESH);  // keep
+							mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],VOLUME->RES,RESH);
+							free(VOLUMEc->RES);
+							VOLUMEc->RES = RESH;
+							break;
+						default:
+							EXIT_UNSUPPORTED;
 							break;
 						}
 					}
-					VOLUMEp->update = update;
+				} else {
+					EXIT_UNSUPPORTED;
+				}
 
-					if (update) {
-						// Most of the information of VOLUMEp has been stored.
-						VOLUMEp->update = 1;
-						VOLUMEp->indexg = NV++;
+				update_memory_VOLUME(VOLUMEc);
+			}
 
-						VOLUMEp->P    = maxP;
-						VOLUMEp->PNew = maxP;
-						VOLUMEp->adapt_type = HCOARSE;
+			free_memory_solver_VOLUME(VOLUME);
+			break;
+		case HCOARSE:
+			VOLUMEp = VOLUME->parent;
 
-						// Project solution coefficients (and RES if applicable)
-						NvnS[0] = OPS->NvnS;
-						L2hat_vS_vS = OPS->L2hat_vS_vS;
+			if (VOLUME == VOLUMEp->child0) {
+				level = VOLUME->level;
+
+				update = 1;
+				maxP = VOLUME->P;
+
+				get_vh_range(VOLUMEp,&vhMin,&vhMax);
+				VOLUMEc = VOLUME;
+				for (vh = vhMin+1; vh <= vhMax; vh++) {
+					VOLUMEc = VOLUMEc->next;
+					maxP = max(maxP,VOLUMEc->P);
+
+					if (VOLUMEc->level != level || !VOLUMEc->Vadapt || VOLUMEc->adapt_type != HCOARSE) {
+						update = 0;
+						break;
+					}
+				}
+				VOLUMEp->update = update;
+
+				if (update) {
+					// Most of the information of VOLUMEp has been stored.
+					VOLUMEp->update = 1;
+					VOLUMEp->indexg = NV++;
+
+					// If the parent VOLUME is curved and its order will be changed, its geometry must be updated.
+					if (VOLUMEp->P != maxP && VOLUMEp->curved) {
+						init_ops(OPSp,VOLUMEp,0);
 
 						NCols = d;
 
-						dummyPtr_d = malloc(NvnS[0]*Nvar * sizeof *dummyPtr_d); // free
+						XYZ_vV = VOLUMEp->XYZ_vV;
+						XYZ_S  = malloc(OPSp->NvnGc*NCols * sizeof *XYZ_S); // keep
+						mm_CTN_d(OPSp->NvnGc,NCols,OPSp->NvnGs,OPSp->I_vGs_vGc,XYZ_vV,XYZ_S);
 
-						uhat = What = RES = NULL;
-						if (strstr(TestCase,"Poisson")) {
-							uhat = calloc(NvnS[0]*Nvar , sizeof *uhat); // keep
+						free(VOLUMEp->XYZ_S);
+						VOLUMEp->XYZ_S = XYZ_S;
+						VOLUMEp->NvnG  = OPSp->NvnGc;
+
+						free(VOLUMEp->XYZ);
+						if (strstr(MeshType,"ToBeCurved")) {
+							free(VOLUMEp->XYZ_vVc);
+							setup_ToBeCurved(VOLUMEp);
+						} else if (strstr(MeshType,"Curved")) {
+							setup_Curved(VOLUMEp);
 						} else {
-							What = calloc(NvnS[0]*Nvar , sizeof *What); // keep
-							RES  = calloc(NvnS[0]*Nvar , sizeof *RES);  // keep
+							EXIT_UNSUPPORTED;
 						}
 
-						VOLUMEc = VOLUME;
-						for (vh = vhMin; vh <= vhMax; vh++) {
-							IndEhref = get_IndEhref(VOLUMEp->type,vh);
-							if (vh > vhMin)
-								VOLUMEc = VOLUMEc->next;
+						free(VOLUMEp->detJV_vI);
+						free(VOLUMEp->C_vI);
+						setup_geom_factors(VOLUMEp);
+					}
 
-							if (strstr(TestCase,"Poisson")) {
-								uhatH = VOLUMEc->uhat;
-								mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],uhatH,dummyPtr_d);
-								for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
-									uhat[i] += dummyPtr_d[i];
-							} else {
-								WhatH = VOLUMEc->What;
-								RESH  = VOLUMEc->RES;
+					VOLUMEp->P    = maxP;
+					VOLUMEp->PNew = maxP;
+					VOLUMEp->adapt_type = HCOARSE;
 
-								mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],WhatH,dummyPtr_d);
-								for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
-									What[i] += dummyPtr_d[i];
-								mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],RESH,dummyPtr_d);
-								for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
-									RES[i] += dummyPtr_d[i];
-							}
-						}
-						free(dummyPtr_d);
+					// Project solution coefficients (and RES if applicable)
+					NvnS[0] = OPS->NvnS;
+					L2hat_vS_vS = OPS->L2hat_vS_vS;
 
-						if (strstr(TestCase,"Poisson")) {
-							VOLUMEp->uhat = uhat;
-						} else {
-							VOLUMEp->What = What;
-							VOLUMEp->RES  = RES;
-						}
+					NCols = d;
+
+					dummyPtr_d = malloc(NvnS[0]*Nvar * sizeof *dummyPtr_d); // free
+
+					uhat = What = RES = NULL;
+					if (strstr(TestCase,"Poisson")) {
+						uhat = calloc(NvnS[0]*Nvar , sizeof *uhat); // keep
+					} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
+						What = calloc(NvnS[0]*Nvar , sizeof *What); // keep
+						RES  = calloc(NvnS[0]*Nvar , sizeof *RES);  // keep
 					} else {
-						// Ensure that all children are marked as not to be coarsened.
-						VOLUMEc = VOLUME;
-						for (vh = vhMin; vh <= vhMax; vh++) {
-							if (VOLUMEc->adapt_type == HCOARSE) {
-								VOLUMEc->Vadapt = 0;
-								VOLUMEc->update = 0;
-							}
+						EXIT_UNSUPPORTED;
+					}
+
+					VOLUMEc = VOLUME;
+					for (vh = vhMin; vh <= vhMax; vh++) {
+						IndEhref = get_IndEhref(VOLUMEp->type,vh);
+						if (vh > vhMin)
 							VOLUMEc = VOLUMEc->next;
+
+						if (strstr(TestCase,"Poisson")) {
+							uhatH = VOLUMEc->uhat;
+							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],uhatH,dummyPtr_d);
+							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
+								uhat[i] += dummyPtr_d[i];
+						} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
+							WhatH = VOLUMEc->What;
+							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],WhatH,dummyPtr_d);
+							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
+								What[i] += dummyPtr_d[i];
+
+							if (strstr(DB.SolverType,"Explicit")) {
+								switch (DB.ExplicitSolverType) {
+								case EULER:
+									free(RES); RES = NULL;
+									break;
+								case RK3_SSP:
+									; // Do nothing
+									break;
+								case RK4_LS:
+									mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],VOLUMEc->RES,dummyPtr_d);
+									for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
+										RES[i] += dummyPtr_d[i];
+									break;
+								}
+							}
+						} else {
+							EXIT_UNSUPPORTED;
 						}
 					}
+					free(dummyPtr_d);
+
+					if (strstr(TestCase,"Poisson")) {
+						VOLUMEp->uhat = uhat;
+					} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
+						VOLUMEp->What = What;
+						VOLUMEp->RES  = RES;
+					} else {
+						EXIT_UNSUPPORTED;
+					}
+					update_memory_VOLUME(VOLUMEp);
 				} else {
-					VOLUMEc = VOLUMEp->child0;
-					if (!(VOLUMEc->adapt_type == HCOARSE && VOLUMEc->Vadapt)) {
-						VOLUME->Vadapt = 0;
-						VOLUME->update = 0;
+					// Ensure that all children are marked as not to be coarsened.
+					VOLUMEc = VOLUME;
+					for (vh = vhMin; vh <= vhMax; vh++) {
+						if (VOLUMEc->adapt_type == HCOARSE) {
+							VOLUMEc->Vadapt = 0;
+							VOLUMEc->update = 0;
+						}
+						VOLUMEc = VOLUMEc->next;
 					}
 				}
-				break;
+			} else {
+				VOLUMEc = VOLUMEp->child0;
+				if (!(VOLUMEc->adapt_type == HCOARSE && VOLUMEc->Vadapt)) {
+					VOLUME->Vadapt = 0;
+					VOLUME->update = 0;
+				}
 			}
+			break;
 		}
 	}
 	free(OPS);
+	free(OPSp);
 }
 
 void update_VOLUME_list(void)

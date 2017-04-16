@@ -29,6 +29,8 @@
 #include "initialize_test_case.h"
 #include "output_to_paraview.h"
 #include "array_free.h"
+#include "update_VOLUMEs.h"
+#include "update_FACEs.h"
 
 /*
  *	Purpose:

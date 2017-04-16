@@ -1155,6 +1155,8 @@ static void get_Indsf(struct S_FACE *FACE, unsigned int *sfIn, unsigned int *sfO
 	*sfOut = sf[1];
 }
 
+static void update_memory_FACE(struct S_FACE *const FACE);
+
 static unsigned int is_VOLUME_VIn(const unsigned int indexgVOLUME, const unsigned int indexgVIn)
 {
 	if (indexgVOLUME == indexgVIn)
@@ -1343,6 +1345,7 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 				FACEp->VIn->NsubF[fIn] = 1;
 				FACEp->VIn->FACE[fIn*NSUBFMAX] = FACEp;
 			}
+//			update_memory_FACE(FACEp);
 		} else {
 			for (sf = 0; sf < sfMax; sf++) {
 				VOLUMEc = VOLUMEc_list[IndVc[sf]];
@@ -1484,6 +1487,195 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 	free(VOLUMEc_list);
 }
 
+static void update_memory_FACE(struct S_FACE *const FACE)
+{
+	/*
+	 *	Purpose:
+	 *		Update amount of memory allocated to RHS/LHS arrays (used for non-vectorized functions).
+	 */
+
+	if (DB.Vectorized)
+		EXIT_UNSUPPORTED;
+
+	char const *const TestCase = DB.TestCase;
+
+	unsigned int const d    = DB.d,
+	                   Nvar = DB.Nvar,
+	                   Neq  = DB.Neq;
+
+	// Left VOLUME
+	unsigned int const NvnSL = FACE->VIn->NvnS;
+	if (NvnSL == 0)
+		EXIT_UNSUPPORTED;
+
+	// RHS/LHS
+	if (FACE->RHSIn != NULL)
+		free(FACE->RHSIn);
+	FACE->RHSIn = malloc(NvnSL*Nvar * sizeof *(FACE->RHSIn)); // keep
+
+	if (strstr(DB.SolverType,"Implicit")) {
+		if (FACE->LHSInIn != NULL)
+			free(FACE->LHSInIn);
+		FACE->LHSInIn = malloc(NvnSL*NvnSL*Nvar*Neq * sizeof *(FACE->LHSInIn)); // keep
+	}
+
+	if (!(FACE->Boundary)) {
+		unsigned int const NvnSR = FACE->VOut->NvnS;
+		if (FACE->RHSOut != NULL)
+			free(FACE->RHSOut);
+		FACE->RHSOut = malloc(NvnSR*Nvar * sizeof *(FACE->RHSOut)); // keep
+
+		if (strstr(DB.SolverType,"Implicit")) {
+			if (FACE->LHSInOut != NULL)
+				free(FACE->LHSInOut);
+			FACE->LHSInOut = malloc(NvnSR*NvnSL*Nvar*Neq * sizeof *(FACE->LHSInOut)); // keep
+			if (FACE->LHSOutIn != NULL)
+				free(FACE->LHSOutIn);
+			FACE->LHSOutIn = malloc(NvnSL*NvnSR*Nvar*Neq * sizeof *(FACE->LHSOutIn)); // keep
+			if (FACE->LHSOutOut != NULL)
+				free(FACE->LHSOutOut);
+			FACE->LHSOutOut = malloc(NvnSR*NvnSR*Nvar*Neq * sizeof *(FACE->LHSOutOut)); // keep
+		}
+	}
+
+	// Other solver related arrays
+	if (strstr(TestCase,"Poisson")) {
+		for (size_t dim = 0; dim < d; dim++) {
+			if (FACE->qhatIn[dim] != NULL)
+				free(FACE->qhatIn[dim]);
+			FACE->qhatIn[dim] = malloc(NvnSL*Nvar * sizeof *(FACE->qhatIn[dim])); // keep
+
+			if (FACE->qhat_uhatInIn[dim] != NULL)
+				free(FACE->qhat_uhatInIn[dim]);
+			FACE->qhat_uhatInIn[dim] = malloc(NvnSL*NvnSL*Nvar*Neq * sizeof *(FACE->qhat_uhatInIn[dim])); // keep
+
+			if (!FACE->Boundary) {
+				unsigned int const NvnSR = FACE->VOut->NvnS;
+				if (FACE->qhatOut[dim] != NULL)
+					free(FACE->qhatOut[dim]);
+				FACE->qhatOut[dim] = malloc(NvnSR*Nvar * sizeof *(FACE->qhatOut[dim])); // keep
+
+				if (FACE->qhat_uhatInOut[dim] != NULL)
+					free(FACE->qhat_uhatInOut[dim]);
+				FACE->qhat_uhatInOut[dim] = malloc(NvnSR*NvnSL*Nvar*Neq * sizeof *(FACE->qhat_uhatInOut[dim])); // keep
+				if (FACE->qhat_uhatOutIn[dim] != NULL)
+					free(FACE->qhat_uhatOutIn[dim]);
+				FACE->qhat_uhatOutIn[dim] = malloc(NvnSL*NvnSR*Nvar*Neq * sizeof *(FACE->qhat_uhatOutIn[dim])); // keep
+				if (FACE->qhat_uhatOutOut[dim] != NULL)
+					free(FACE->qhat_uhatOutOut[dim]);
+				FACE->qhat_uhatOutOut[dim] = malloc(NvnSR*NvnSR*Nvar*Neq * sizeof *(FACE->qhat_uhatOutOut[dim])); // keep
+			}
+		}
+	} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
+		if (strstr(TestCase,"NavierStokes")) {
+			for (size_t dim = 0; dim < d; dim++) {
+				if (FACE->QhatL[dim] != NULL)
+					free(FACE->QhatL[dim]);
+				FACE->QhatL[dim] = malloc(NvnSL*Nvar * sizeof *(FACE->QhatL[dim])); // keep
+
+				if (!FACE->Boundary) {
+					if (FACE->QhatR[dim] != NULL)
+						free(FACE->QhatR[dim]);
+					FACE->QhatR[dim] = malloc(NvnSL*Nvar * sizeof *(FACE->QhatR[dim])); // keep
+				}
+			}
+			if (strstr(DB.SolverType,"Implicit")) {
+				EXIT_UNSUPPORTED;
+			}
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
+
+void update_memory_FACEs(void)
+{
+	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next)
+		update_memory_FACE(FACE);
+}
+
+static void free_memory_solver_FACE(struct S_FACE *const FACE)
+{
+	/*
+	 *	Purpose:
+	 *		Free memory associated with FACE solver arrays when a FACE is h-refined.
+	 *
+	 *	Comments:
+	 *		This includes memory used to store the solution as well as memory used for RHS/LHS terms.
+	 *		Memory addresses associated must be set to NULL after being freed such that it is not attempted to free them
+	 *		again in update_memory_FACE in the case of the mesh being coarsened.
+	 */
+
+	if (!(FACE->adapt_type == HREFINE))
+		EXIT_UNSUPPORTED;
+
+	char const *const TestCase = DB.TestCase;
+
+	unsigned int const d = DB.d;
+
+	// RHS/LHS
+	free(FACE->RHSIn);
+	FACE->RHSIn = NULL;
+
+	if (strstr(DB.SolverType,"Implicit")) {
+		free(FACE->LHSInIn);
+		FACE->LHSInIn = NULL;
+	}
+
+	if (!FACE->Boundary) {
+		free(FACE->RHSOut);
+		FACE->RHSOut = NULL;
+
+		if (strstr(DB.SolverType,"Implicit")) {
+			free(FACE->LHSInOut);
+			FACE->LHSInOut = NULL;
+			free(FACE->LHSOutIn);
+			FACE->LHSOutIn = NULL;
+			free(FACE->LHSOutOut);
+			FACE->LHSOutOut = NULL;
+		}
+	}
+
+	if (strstr(TestCase,"Poisson")) {
+		for (size_t dim = 0; dim < d; dim++) {
+			free(FACE->qhatIn[dim]);
+			FACE->qhatIn[dim] = NULL;
+
+			free(FACE->qhat_uhatInIn[dim]);
+			FACE->qhat_uhatInIn[dim] = NULL;
+
+			if (!FACE->Boundary) {
+				free(FACE->qhatOut[dim]);
+				FACE->qhatOut[dim] = NULL;
+
+				free(FACE->qhat_uhatInOut[dim]);
+				FACE->qhat_uhatInOut[dim] = NULL;
+				free(FACE->qhat_uhatOutIn[dim]);
+				FACE->qhat_uhatOutIn[dim] = NULL;
+				free(FACE->qhat_uhatOutOut[dim]);
+				FACE->qhat_uhatOutOut[dim] = NULL;
+			}
+		}
+	} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
+		if (strstr(TestCase,"NavierStokes")) {
+			for (size_t dim = 0; dim < d; dim++) {
+				free(FACE->QhatL[dim]);
+				FACE->QhatL[dim] = NULL;
+
+				if (!FACE->Boundary) {
+					free(FACE->QhatR[dim]);
+					FACE->QhatR[dim] = NULL;
+				}
+			}
+			if (strstr(DB.SolverType,"Implicit")) {
+				EXIT_UNSUPPORTED;
+			}
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
+
 void update_FACE_hp(void)
 {
 	/*
@@ -1558,7 +1750,12 @@ void update_FACE_hp(void)
 
 								FACEc->indexg = NGF++;
 								FACEc->level  = (VOLUME->level)+1;
-								FACEc->BC     = BC;
+								FACEc->BC       = BC;
+								FACEc->Boundary = FACE->Boundary;
+
+								// Ensuring that FACEc->Boundary is not being set to UINT_MAX
+								if (FACE->Boundary != 0 && FACE->Boundary != 1)
+									EXIT_UNSUPPORTED;
 
 								// Find out if VOLUME == VIn or VOut
 								// If condition can be outside of fh loop (ToBeDeleted)
@@ -1611,7 +1808,9 @@ void update_FACE_hp(void)
 
 								FACEc->VIn->FACE[sfIn] = FACEc;
 								FACEc->VOut->FACE[sfOut] = FACEc;
+//								update_memory_FACE(FACEc);
 							}
+							free_memory_solver_FACE(FACE);
 						} else { // Connect to existing FACEs
 							// VOLUME = VOut
 							for (sf = 0; sf < sfMax; sf++) {
@@ -1639,12 +1838,14 @@ void update_FACE_hp(void)
 								FACEc->indexg = NGF++;
 								FACEc->level  = (VOLUME->level)+1;
 								FACEc->BC     = 0; // Internal (Note: May have a curved edge in 3D)
+								FACEc->Boundary = 0;
 
 								VOLUMEc->NsubF[f] = 1;
 
 								FACEc->VIn = VOLUMEc;
 								FACEc->VfIn = f*NFREFMAX;
 								set_FACE_Out(vh,f,FACEc,VOLUME);
+//								update_memory_FACE(FACEc);
 							}
 						}
 						vh++;
@@ -1776,6 +1977,11 @@ void update_FACE_hp(void)
 				}
 			}
 		}
+
+		// Slightly inefficient but did not put the effort to find why the individual calls commented above did not set
+		// sufficient memory. ToBeModified.
+		update_memory_FACEs();
+
 		break;
 	case ADAPT_P:
 		/*	No modifications required for:

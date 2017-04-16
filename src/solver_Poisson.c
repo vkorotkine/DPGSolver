@@ -160,7 +160,7 @@ static void compute_qhat_VOLUME(void)
 
 	// Standard datatypes
 	unsigned int i, j, dim1, dim2, IndD, IndC, NvnI, NvnS;
-	double       *w_vI, *diag_w_vI, *ChiS_vI, **GradChiS_vI, *MInv, **D, *C_vI, *Dxyz, **DxyzChiS, *Sxyz;
+	double       *w_vI, *diag_w_vI, *ChiS_vI, **GradChiS_vI, *MInv, **D, *C_vI, *Dxyz, **DxyzChiS;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME;
@@ -212,17 +212,8 @@ static void compute_qhat_VOLUME(void)
 
 		// Compute RHS and LHS terms
 		for (dim1 = 0; dim1 < d; dim1++) {
-			Sxyz = mm_Alloc_d(CBRM,CBNT,CBT,NvnS,NvnS,NvnS,1.0,MInv,DxyzChiS[dim1]); // keep
-
-			// RHS
-			if (VOLUME->qhat[dim1])
-				free(VOLUME->qhat[dim1]);
-			VOLUME->qhat[dim1] = mm_Alloc_d(CBCM,CBT,CBNT,NvnS,1,NvnS,1.0,Sxyz,VOLUME->uhat); // keep
-
-			// LHS
-			if (VOLUME->qhat_uhat[dim1])
-				free(VOLUME->qhat_uhat[dim1]);
-			VOLUME->qhat_uhat[dim1] = Sxyz;
+			mm_d(CBRM,CBNT,CBT,NvnS,NvnS,NvnS,1.0,0.0,MInv,DxyzChiS[dim1],VOLUME->qhat_uhat[dim1]);
+			mm_CTN_d(NvnS,1,NvnS,VOLUME->qhat_uhat[dim1],VOLUME->uhat,VOLUME->qhat[dim1]);
 		}
 	}
 	free(OPS);
@@ -503,17 +494,12 @@ static void compute_qhat_FACE(void)
 		// Interior VOLUME
 		for (dim = 0; dim < d; dim++) {
 			// RHSIn (partial)
-			if (FACE->qhatIn[dim])
-				free(FACE->qhatIn[dim]);
-			FACE->qhatIn[dim] = malloc(NfnI * sizeof *(FACE->qhatIn[dim])); // keep
 			for (n = 0; n < NfnI; n++) {
 				FACE->qhatIn[dim][n] = wnJ_fI[dim*NfnI+n]*(uNum_fI[n]-uIn_fI[n]);
 			}
 
 			// LHSInIn (partial)
-			if (FACE->qhat_uhatInIn[dim])
-				free(FACE->qhat_uhatInIn[dim]);
-			FACE->qhat_uhatInIn[dim] = calloc(NfnI*NvnSIn , sizeof *(FACE->qhat_uhatInIn[dim])); // keep
+			memset(FACE->qhat_uhatInIn[dim],0.0,NfnI*NvnSIn * sizeof *(FACE->qhat_uhatInIn[dim]));
 
 			mult_diag = malloc(NfnI * sizeof *mult_diag); // free
 			for (n = 0; n < NfnI; n++)
@@ -536,9 +522,7 @@ static void compute_qhat_FACE(void)
 
 			for (dim = 0; dim < d; dim++) {
 				// LHSOutIn (partial)
-				if (FACE->qhat_uhatOutIn[dim])
-					free(FACE->qhat_uhatOutIn[dim]);
-				FACE->qhat_uhatOutIn[dim] = calloc(NfnI*NvnSOut , sizeof *(FACE->qhat_uhatOutIn[dim])); // keep
+				memset(FACE->qhat_uhatOutIn[dim],0.0,NfnI*NvnSOut * sizeof *(FACE->qhat_uhatOutIn[dim]));
 
 				mult_diag = malloc(NfnI * sizeof *mult_diag); // free
 				for (n = 0; n < NfnI; n++)
@@ -568,18 +552,13 @@ static void compute_qhat_FACE(void)
 			}}
 
 			for (dim = 0; dim < d; dim++) {
-				if (FACE->qhatOut[dim])
-					free(FACE->qhatOut[dim]);
-				FACE->qhatOut[dim] = malloc(NfnI * sizeof *(FACE->qhatOut[dim])); // keep
 				// RHSOut (partial)
 				for (n = 0; n < NfnI; n++) {
 					FACE->qhatOut[dim][n] = wnJ_fI[dim*NfnI+n]*(uNum_fI[n]-uOut_fI[n]);
 				}
 
 				// LHSInOut (partial)
-				if (FACE->qhat_uhatInOut[dim])
-					free(FACE->qhat_uhatInOut[dim]);
-				FACE->qhat_uhatInOut[dim] = calloc(NfnI*NvnSIn , sizeof *(FACE->qhat_uhatInOut[dim])); // keep
+				memset(FACE->qhat_uhatInOut[dim],0.0,NfnI*NvnSIn * sizeof *(FACE->qhat_uhatInOut[dim]));
 
 				mult_diag = malloc(NfnI * sizeof *mult_diag); // free
 				for (n = 0; n < NfnI; n++)
@@ -589,9 +568,7 @@ static void compute_qhat_FACE(void)
 				free(mult_diag);
 
 				// LHSOutOut (partial)
-				if (FACE->qhat_uhatOutOut[dim])
-					free(FACE->qhat_uhatOutOut[dim]);
-				FACE->qhat_uhatOutOut[dim] = calloc(NfnI*NvnSOut , sizeof *(FACE->qhat_uhatOutOut[dim])); // keep
+				memset(FACE->qhat_uhatOutOut[dim],0.0,NfnI*NvnSOut * sizeof *(FACE->qhat_uhatOutOut[dim]));
 
 				mult_diag = malloc(NfnI * sizeof *mult_diag); // free
 				for (n = 0; n < NfnI; n++)
@@ -676,11 +653,6 @@ static void finalize_qhat(void)
 			free(MInvChiS_fI);
 			free(Fqhat);
 		}
-
-		for (dim = 0; dim < d; dim++) {
-			free(FACE->qhatIn[dim]);  FACE->qhatIn[dim]  = NULL;
-			free(FACE->qhatOut[dim]); FACE->qhatOut[dim] = NULL;
-		}
 	}
 	free(OPSIn);
 	free(OPSOut);
@@ -689,11 +661,13 @@ static void finalize_qhat(void)
 static void compute_uhat_VOLUME(void)
 {
 	// Initialize DB Parameters
-	unsigned int d = DB.d;
+	unsigned int d    = DB.d,
+	             Neq  = 1,
+	             Nvar = 1;
 
 	// Standard datatypes
 	unsigned int dim1, NvnS;
-	double       **DxyzChiS, *RHS, *LHS;
+	double       **DxyzChiS;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME;
@@ -709,22 +683,14 @@ static void compute_uhat_VOLUME(void)
 		DxyzChiS = VOLUME->DxyzChiS;
 
 		// RHS
-		if (VOLUME->RHS)
-			free(VOLUME->RHS);
-		RHS = calloc(NvnS , sizeof *RHS); // keep
-		VOLUME->RHS = RHS;
-
+		memset(VOLUME->RHS,0.0,NvnS*Neq * sizeof *(VOLUME->RHS));
 		for (dim1 = 0; dim1 < d; dim1++)
-			mm_d(CBCM,CBT,CBNT,NvnS,1,NvnS,-1.0,1.0,DxyzChiS[dim1],VOLUME->qhat[dim1],RHS);
+			mm_d(CBCM,CBT,CBNT,NvnS,1,NvnS,-1.0,1.0,DxyzChiS[dim1],VOLUME->qhat[dim1],VOLUME->RHS);
 
 		// LHS
-		if (VOLUME->LHS)
-			free(VOLUME->LHS);
-		LHS = calloc(NvnS*NvnS , sizeof *LHS); // keep
-		VOLUME->LHS = LHS;
-
+		memset(VOLUME->LHS,0.0,NvnS*NvnS*Neq*Nvar * sizeof *(VOLUME->LHS));
 		for (dim1 = 0; dim1 < d; dim1++)
-			mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,-1.0,1.0,DxyzChiS[dim1],VOLUME->qhat_uhat[dim1],LHS);
+			mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,-1.0,1.0,DxyzChiS[dim1],VOLUME->qhat_uhat[dim1],VOLUME->LHS);
 	}
 	free(OPS);
 }
@@ -742,7 +708,7 @@ void jacobian_flux_coef(const unsigned int Nn, const unsigned int Nel, const dou
 	 *
 	 *		tau:
 	 *			Shahbazi(2005)-An_Explicit_Expression_for_the_Penalty_Parameter_of_the_Interior_Penalty_Method
-	 *			Hesthave(2008)-Nodal_Discontinuous_Galerkin_Methods (section 7.2)
+	 *			Hesthaven(2008)-Nodal_Discontinuous_Galerkin_Methods (section 7.2)
 	 *			Brdar(2012): Theorem 2 (b)
 	 */
 
@@ -1137,21 +1103,23 @@ static void compute_uhat_FACE()
 		// Finalize FACE RHS and LHS terms
 
 		// Add VOLUME contributions to RHS and LHS
-		RHSIn  = calloc(NvnSIn  , sizeof *RHSIn);  // keep (requires external free)
-		RHSOut = calloc(NvnSOut , sizeof *RHSOut); // keep (requires external free)
+		RHSIn   = FACE->RHSIn;
+		LHSInIn = FACE->LHSInIn;
 
-		FACE->RHSIn  = RHSIn;
-		FACE->RHSOut = RHSOut;
+		memset(FACE->RHSIn,0.0,NvnSIn * sizeof *FACE->RHSIn);
+		memset(FACE->LHSInIn,0.0,NvnSIn*NvnSIn * sizeof *FACE->LHSInIn);
 
-		LHSInIn   = calloc(NvnSIn*NvnSIn   , sizeof *LHSInIn);   // keep
-		LHSOutIn  = calloc(NvnSIn*NvnSOut  , sizeof *LHSOutIn);  // keep
-		LHSInOut  = calloc(NvnSOut*NvnSIn  , sizeof *LHSInOut);  // keep
-		LHSOutOut = calloc(NvnSOut*NvnSOut , sizeof *LHSOutOut); // keep
+		if (!Boundary) {
+			RHSOut    = FACE->RHSOut;
+			LHSOutIn  = FACE->LHSOutIn;
+			LHSInOut  = FACE->LHSInOut;
+			LHSOutOut = FACE->LHSOutOut;
 
-		FACE->LHSInIn   = LHSInIn;
-		FACE->LHSOutIn  = LHSOutIn;
-		FACE->LHSInOut  = LHSInOut;
-		FACE->LHSOutOut = LHSOutOut;
+			memset(FACE->RHSOut,0.0,NvnSOut * sizeof *FACE->RHSOut);
+			memset(FACE->LHSOutIn,0.0,NvnSIn*NvnSOut * sizeof *FACE->LHSOutIn);
+			memset(FACE->LHSInOut,0.0,NvnSOut*NvnSIn * sizeof *FACE->LHSInOut);
+			memset(FACE->LHSOutOut,0.0,NvnSOut*NvnSOut * sizeof *FACE->LHSOutOut);
+		}
 
 		for (dim = 0; dim < d; dim++) {
 			mm_d(CBCM,CBNT,CBNT,NvnSIn, 1,NfnI,-1.0,1.0,GradxyzIn[dim], FACE->qhatIn[dim], RHSIn);

@@ -20,8 +20,6 @@
 #include "array_free.h"
 #include "array_print.h"
 
-#undef I // No complex variables used here
-
 /*
  *	Purpose:
  *		Evaluate the VOLUME contributions to the RHS term.
@@ -60,7 +58,7 @@ void explicit_VOLUME_info(void)
 			break;
 		}
 	} else {
-		;
+		EXIT_UNSUPPORTED;
 	}
 }
 
@@ -109,12 +107,8 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 			unsigned int const NvnS = VDATA->OPS[0]->NvnS;
 
 			// RHS
-			if (VOLUME->RHS)
-				free(VOLUME->RHS);
-			double *const RHS = calloc(NvnS*Neq , sizeof *RHS); // keep
-			VOLUME->RHS = RHS;
-
-			finalize_VOLUME_Inviscid_Weak(Neq,Fr_vI,RHS,'E',VDATA);
+			memset(VOLUME->RHS,0.0,NvnS*Neq * sizeof *(VOLUME->RHS));
+			finalize_VOLUME_Inviscid_Weak(Neq,Fr_vI,VOLUME->RHS,'E',VDATA);
 			free(Fr_vI);
 		}
 	} else if (strstr(DB.Form,"Strong")) {
@@ -171,7 +165,7 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 				coef_to_values_vI(VDATA,'Q');
 			}
 
-			// Compute Flux in reference space
+			// Compute negated Flux in reference space
 			double *const F_vI = malloc(NvnI*d*Neq * sizeof *F_vI);
 
 			flux_viscous(NvnI,1,VDATA->W_vI,(const double *const *const) VDATA->Q_vI,F_vI);
@@ -200,8 +194,11 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 }
 
 
+#undef I // No complex variables used here
 static void compute_VOLUMEVec_RHS_EFE(void)
 {
+	// POTENTIALLY INEFFICIENT DUE TO LACK OF CODING EXPERIENCE WHEN THIS FUNCTION WAS WRITTEN. REVISIT. ToBeDeleted
+
 	// Initialize DB Parameters
 	char         *Form = DB.Form;
 	unsigned int d          = DB.d,

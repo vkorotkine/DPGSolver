@@ -89,24 +89,19 @@ static void compute_FACE_EFE(void)
 			unsigned int NvnSL = OPSL[0]->NvnS,
 			             NvnSR = OPSR[0]->NvnS;
 
-			if (FACE->RHSIn)
-				free(FACE->RHSIn);
-			FACE->RHSIn  = calloc(NvnSL*Neq , sizeof *(FACE->RHSIn)); // keep
-
-			if (FACE->RHSOut)
-				free(FACE->RHSOut);
-			FACE->RHSOut = calloc(NvnSR*Neq , sizeof *(FACE->RHSOut)); // keep
-
-			FACE->LHSInIn   = calloc(NvnSL*NvnSL*Neq*Nvar , sizeof *(FACE->LHSInIn));   // keep
-			FACE->LHSOutIn  = calloc(NvnSL*NvnSR*Neq*Nvar , sizeof *(FACE->LHSOutIn));  // keep
-			FACE->LHSInOut  = calloc(NvnSR*NvnSL*Neq*Nvar , sizeof *(FACE->LHSInOut));  // keep
-			FACE->LHSOutOut = calloc(NvnSR*NvnSR*Neq*Nvar , sizeof *(FACE->LHSOutOut)); // keep
-
+			memset(FACE->RHSIn,0.0,NvnSL*Neq * sizeof *(FACE->RHSIn));
 			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,    NULL,                      'L','E','W');
+
+			memset(FACE->LHSInIn,0.0,NvnSL*NvnSL*Neq*Nvar * sizeof *(FACE->LHSInIn));
 			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->dnFluxNumdWL_fI,NFluxData->dnFluxNumdWR_fI,'L','I','W');
 
 			if (!FACE->Boundary) {
+				memset(FACE->RHSOut,0.0,NvnSR*Neq * sizeof *(FACE->RHSOut));
 				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,    NULL,                      'R','E','W');
+
+				memset(FACE->LHSOutIn,0.0,NvnSL*NvnSR*Neq*Nvar * sizeof *(FACE->LHSOutIn));
+				memset(FACE->LHSInOut,0.0,NvnSR*NvnSL*Neq*Nvar * sizeof *(FACE->LHSInOut));
+				memset(FACE->LHSOutOut,0.0,NvnSR*NvnSR*Neq*Nvar * sizeof *(FACE->LHSOutOut));
 				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->dnFluxNumdWL_fI,NFluxData->dnFluxNumdWR_fI,'R','I','W');
 			}
 			free(NFluxData->nFluxNum_fI);

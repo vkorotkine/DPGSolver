@@ -182,14 +182,6 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 		assemble_RHS(b,x);
 
 		finalize_ksp(A,b,x,1);
-
-		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
-			free(FACE->LHSInIn);   FACE->LHSInIn   = NULL;
-			free(FACE->LHSOutIn);  FACE->LHSOutIn  = NULL;
-			free(FACE->LHSInOut);  FACE->LHSInOut  = NULL;
-			free(FACE->LHSOutOut); FACE->LHSOutOut = NULL;
-		}
-
 		break;
 	case 1: // diagonal VOLUME contributions
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {

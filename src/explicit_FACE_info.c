@@ -109,17 +109,13 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 			unsigned int const NvnSL = OPSL[0]->NvnS,
 			                   NvnSR = OPSR[0]->NvnS;
 
-			if (FACE->RHSIn)
-				free(FACE->RHSIn);
-			FACE->RHSIn  = calloc(NvnSL*Neq , sizeof *(FACE->RHSIn)); // keep
-
-			if (FACE->RHSOut)
-				free(FACE->RHSOut);
-			FACE->RHSOut = calloc(NvnSR*Neq , sizeof *(FACE->RHSOut)); // keep
-
+			memset(FACE->RHSIn,0.0,NvnSL*Neq * sizeof *(FACE->RHSIn));
 			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,NULL,'L','E','W');
-			if (!FACE->Boundary)
+
+			if (!FACE->Boundary) {
+				memset(FACE->RHSOut,0.0,NvnSR*Neq * sizeof *(FACE->RHSOut));
 				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,NULL,'R','E','W');
+			}
 
 			free(NFluxData->nFluxNum_fI);
 		}
@@ -219,6 +215,7 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 			free(NFluxData->nFluxViscNum_fI);
 		}
 	} else if (strstr(DB.Form,"Strong")) {
+		// Note that the viscous flux is negated.
 		EXIT_UNSUPPORTED;
 	}
 
