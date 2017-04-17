@@ -99,7 +99,7 @@
  *
  */
 
-void initialization(int nargc, char **argv)
+void initialization(int const nargc, char const *const *const argv)
 {
 	// Set DB Parameters
 	//DB.t_par      = 0; // ToBeModified (Likely initialize all times needed here)

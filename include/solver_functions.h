@@ -13,6 +13,14 @@
 
 // VOLUME structs and functions
 
+struct S_Dxyz {
+	unsigned int dim, Nbf, Nn;
+	double const *const *D, *C;
+};
+
+extern double *compute_Dxyz(struct S_Dxyz *DxyzInfo, unsigned int d);
+
+
 struct S_OPERATORS_V {
 	// Standard
 	unsigned int NvnI, NvnS;

@@ -325,6 +325,7 @@ void compute_dof(void)
 	 *		Persson(2008)-Newton-GMRES_Preconditioning_for_Discontinuous_Galerkin_Discretizations_of_the_Navier-Stokes_
 	 *		              Equations
 	 */
+
 	// Initialize DB Parameters
 	unsigned int Nvar = DB.Nvar;
 

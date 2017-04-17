@@ -191,7 +191,8 @@ static double get_radius(const unsigned int Nn, double *XYZ)
 			dist_rOut = fabs(r-rOut);
 	}
 
-	double dist_tol = EPS;
+//	double dist_tol = EPS;
+	double dist_tol = 1e-3;
 	if (dist_rIn < dist_tol && dist_rOut < dist_tol) {
 		array_print_d(Nn,d,XYZ,'C');
 		printf("Error: Found two radii.\n"), EXIT_MSG;

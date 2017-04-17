@@ -410,7 +410,7 @@ void initialize_test_case_parameters(void)
 			}
 
 			strcpy(DB.SolverType,"Explicit"); DB.FinalTime = 1e10; DB.ExplicitSolverType = EULER;
-//			strcpy(DB.SolverType,"Implicit");
+			strcpy(DB.SolverType,"Implicit");
 			if (strstr(TestCase,"TaylorCouette")) {
 				DB.omega = 1.0;
 				DB.TIn   = 1.0;
@@ -538,15 +538,21 @@ static void compute_gradient_L2proj(struct S_VOLUME *VOLUME)
 	struct S_ELEMENT   *ELEMENT;
 
 	OPS = malloc(sizeof *OPS); // free
-
-	if (DB.Adapt == ADAPT_0)
-		printf("Error: Unsupported.\n"), EXIT_MSG;
-	else if (VOLUME->P == 0)
-		printf("Error: Increased order (i.e. use P > 0) required.\n"), EXIT_MSG;
-
 	init_ops(OPS,VOLUME);
 
 	NvnS = OPS->NvnS;
+
+	if (DB.Adapt == ADAPT_0)
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	else if (VOLUME->P == 0) {
+		for (dim = 0; dim < d; dim++) {
+			for (size_t i = 0; i < NvnS*Nvar; i++)
+				VOLUME->qhat[dim][i] = 0.0;
+		}
+		free(OPS);
+		return;
+	}
+
 	NvnI = OPS->NvnI;
 	w_vI = OPS->w_vI;
 

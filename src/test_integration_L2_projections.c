@@ -79,11 +79,11 @@ static void test_L2_projection(struct S_L2proj *data)
 		strcpy(argvNew[1],data->CtrlName[0]);
 		strcat(argvNew[1],"_p/Test_L2_proj_p_"); strcat(argvNew[1],data->CtrlName[1]);
 
-		code_startup_mod_prmtrs(data->nargc,argvNew,0,data->update_argv,1);
+		code_startup_mod_prmtrs(data->nargc,(char const *const *const) data->argvNew,0,data->update_argv,1);
 		if      (refType == 0) DB.TETrefineType = TET8;
 		else if (refType == 1) DB.TETrefineType = TET12;
 		else if (refType == 2) DB.TETrefineType = TET6;
-		code_startup_mod_prmtrs(data->nargc,data->argvNew,data->Nref,data->update_argv,2);
+		code_startup_mod_prmtrs(data->nargc,(char const *const *const) data->argvNew,data->Nref,data->update_argv,2);
 
 		L2err[0] = get_L2err();
 		mark_VOLUMEs(PREFINE); mesh_update();
@@ -109,11 +109,11 @@ static void test_L2_projection(struct S_L2proj *data)
 		strcpy(argvNew[1],data->CtrlName[0]);
 		strcat(argvNew[1],"_h/Test_L2_proj_h_"); strcat(argvNew[1],data->CtrlName[1]);
 
-		code_startup_mod_prmtrs(data->nargc,argvNew,0,data->update_argv,1);
+		code_startup_mod_prmtrs(data->nargc,(char const *const *const) data->argvNew,0,data->update_argv,1);
 		if      (refType == 0) DB.TETrefineType = TET8;
 		else if (refType == 1) DB.TETrefineType = TET12;
 		else if (refType == 2) DB.TETrefineType = TET6;
-		code_startup_mod_prmtrs(data->nargc,data->argvNew,data->Nref,data->update_argv,2);
+		code_startup_mod_prmtrs(data->nargc,(char const *const *const) data->argvNew,data->Nref,data->update_argv,2);
 
 		L2err[0] = get_L2err();
 		mark_VOLUMEs(HREFINE); mesh_update();

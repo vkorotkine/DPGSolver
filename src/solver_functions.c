@@ -48,6 +48,43 @@
 // VOLUME functions
 // **************************************************************************************************** //
 
+double *compute_Dxyz(struct S_Dxyz *DxyzInfo, unsigned int d)
+{
+	/*
+	 *	Purpose:
+	 *		Compute physical derivative operator matrices using the chain rule.
+	 *
+	 *	Comments:
+	 *		Note the ordering of C specified in the comments of setup_geom_factors.
+	 *
+	 *		Including the cofactor terms in the differentiation operators as opposed to the fluxes results in a slightly
+	 *		more clear linearization but a significant cost increase in assembly as the number of entries which must be
+	 *		multiplied scales with the number of basis functions. If the cofactor terms are included in the flux, they
+	 *		will always multiply only d flux terms. Furthermore, inclusion in the flux terms would allow for
+	 *		vectorization of this function. A possible drawback is the required enforcement of the geometric
+	 *		conservation if the strong form of the scheme is used. INVESTIGATE. (ToBeModified)
+	 *
+	 *	References:
+	 *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_
+	 *		                 Schemes (eq. B.2)
+	 */
+
+	unsigned int const Nbf  = DxyzInfo->Nbf,
+	                   Nn   = DxyzInfo->Nn,
+	                   dim1 = DxyzInfo->dim;
+
+	double const *const *const D = DxyzInfo->D,
+	             *const        C = DxyzInfo->C;
+
+	double *const Dxyz = calloc(Nbf*Nn, sizeof *Dxyz); // keep
+	for (size_t dim2 = 0; dim2 < d; dim2++) {
+		size_t const IndC = (dim1+dim2*d)*Nn;
+		mm_diag_d(Nbf,Nn,&C[IndC],D[dim2],Dxyz,1.0,1.0,'R','R');
+	}
+
+	return Dxyz;
+}
+
 void init_ops_VOLUME(struct S_OPERATORS_V *const OPS, struct S_VOLUME const *const VOLUME, unsigned int const IndClass)
 {
 	// Initialize DB Parameters
@@ -614,6 +651,8 @@ void coef_to_values_fI(struct S_FDATA const *const FDATA, char const coef_type)
 	                   Vf           = FDATA->Vf,
 	                   f            = FDATA->f,
 	                   SpOp         = FDATA->SpOp,
+			           IndFType     = FDATA->IndFType,
+			           NfnI         = OPS[IndFType]->NfnI,
 	                   *const VFPartUnity         = DB.VFPartUnity,
 	                   *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
 
@@ -667,17 +706,21 @@ void coef_to_values_fI(struct S_FDATA const *const FDATA, char const coef_type)
 		}
 	} else if (((SpOp && (Eclass == C_TP || Eclass == C_WEDGE)) || (VFPartUnity[Eclass])) && DB.AllowSparseFACE) {
 		if (coef_type == 'W') {
-			mm_CTN_CSR_d(OPS[0]->NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI_sp[Vf],VOLUME->What,FDATA->W_fIL);
+//			mm_CTN_CSR_d(OPS[0]->NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI_sp[Vf],VOLUME->What,FDATA->W_fIL);
+			mm_CTN_CSR_d(NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI_sp[Vf],VOLUME->What,FDATA->W_fIL);
 		} else if (coef_type == 'Q') {
 			for (size_t dim = 0; dim < d; dim++)
-				mm_CTN_CSR_d(OPS[0]->NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI_sp[Vf],VOLUME->QhatV[dim],FDATA->GradW_fIL[dim]);
+//				mm_CTN_CSR_d(OPS[0]->NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI_sp[Vf],VOLUME->QhatV[dim],FDATA->GradW_fIL[dim]);
+				mm_CTN_CSR_d(NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI_sp[Vf],VOLUME->QhatV[dim],FDATA->GradW_fIL[dim]);
 		}
 	} else {
 		if (coef_type == 'W') {
-			mm_CTN_d(OPS[0]->NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI[Vf],VOLUME->What,FDATA->W_fIL);
+//			mm_CTN_d(OPS[0]->NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI[Vf],VOLUME->What,FDATA->W_fIL);
+			mm_CTN_d(NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI[Vf],VOLUME->What,FDATA->W_fIL);
 		} else if (coef_type == 'Q') {
 			for (size_t dim = 0; dim < d; dim++)
-				mm_CTN_d(OPS[0]->NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI[Vf],VOLUME->QhatV[dim],FDATA->GradW_fIL[dim]);
+//				mm_CTN_d(OPS[0]->NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI[Vf],VOLUME->QhatV[dim],FDATA->GradW_fIL[dim]);
+				mm_CTN_d(NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI[Vf],VOLUME->QhatV[dim],FDATA->GradW_fIL[dim]);
 		}
 	}
 }
@@ -925,7 +968,11 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 	 *		            explicit computation.
 	 */
 
-	if (!(imex_type == 'E'))
+	// ToBeDeleted
+	if (form != 'W')
+		EXIT_UNSUPPORTED;
+
+	if (!(imex_type == 'E' || imex_type == 'I'))
 		EXIT_UNSUPPORTED;
 
 	struct S_OPERATORS_F const *const *const OPS  = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
@@ -933,14 +980,18 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 
 	unsigned int const d        = DB.d,
 	                   Nvar     = d+2,
+	                   Neq      = d+2,
 	                   IndFType = FDATA->IndFType,
+	                   Boundary = FACE->Boundary,
 	                   NfnI     = OPS[IndFType]->NfnI;
 
 	double const *const n_fIL  = FACE->n_fI,
 	             *const WL_fIL = FDATA->NFluxData->WL_fIL,
 	             *const WR_fIL = FDATA->NFluxData->WR_fIL;
 
-	double       *const *const nSolNum_fIL = FDATA->NFluxData->nSolNum_fI;
+	double       *const *const nSolNum_fIL     = FDATA->NFluxData->nSolNum_fI,
+	             *const *const dnSolNumdWL_fIL = FDATA->NFluxData->dnSolNumdWL_fI,
+	             *const *const dnSolNumdWR_fIL = FDATA->NFluxData->dnSolNumdWR_fI;
 
 	if (form == 'W') {
 		for (size_t dim = 0; dim < d; dim++) {
@@ -948,14 +999,86 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 		for (size_t n = 0; n < NfnI; n++) {
 			nSolNum_fIL[dim][var*NfnI+n] = n_fIL[n*d+dim]*0.5*(WL_fIL[var*NfnI+n]+WR_fIL[var*NfnI+n]);
 		}}}
+		if (imex_type == 'I') {
+			for (size_t dim = 0; dim < d; dim++) {
+			for (size_t eq = 0; eq < Neq; eq++) {
+			for (size_t var = 0; var < Nvar; var++) {
+				double alpha;
+				if (eq == var)
+					alpha = 1.0;
+				else
+					alpha = 0.0;
+
+				size_t const Indeqvar = (eq*Nvar+var)*NfnI;
+				for (size_t n = 0; n < NfnI; n++) {
+					dnSolNumdWL_fIL[dim][Indeqvar+n] = n_fIL[n*d+dim]*0.5*(alpha);
+					dnSolNumdWR_fIL[dim][Indeqvar+n] = n_fIL[n*d+dim]*0.5*(alpha);
+				}
+			}}}
+		}
 	} else if (form == 'S') {
 		for (size_t dim = 0; dim < d; dim++) {
 		for (size_t var = 0; var < Nvar; var++) {
 		for (size_t n = 0; n < NfnI; n++) {
 			nSolNum_fIL[dim][var*NfnI+n] = n_fIL[n*d+dim]*0.5*(-WL_fIL[var*NfnI+n]+WR_fIL[var*NfnI+n]);
 		}}}
+		if (imex_type == 'I') {
+			for (size_t dim = 0; dim < d; dim++) {
+			for (size_t eq = 0; eq < Neq; eq++) {
+			for (size_t var = 0; var < Nvar; var++) {
+				double alpha;
+				if (eq == var)
+					alpha = 1.0;
+				else
+					alpha = 0.0;
+
+				size_t const Indeqvar = (eq*Nvar+var)*NfnI;
+				for (size_t n = 0; n < NfnI; n++) {
+					dnSolNumdWL_fIL[dim][Indeqvar+n] = n_fIL[n*d+dim]*0.5*(-alpha);
+					dnSolNumdWR_fIL[dim][Indeqvar+n] = n_fIL[n*d+dim]*0.5*( alpha);
+				}
+			}}}
+		}
 	} else {
 		EXIT_UNSUPPORTED;
+	}
+
+	// Include the BC information in dnSolNumWL_fIL if on a boundary
+	if (imex_type == 'I' && Boundary) {
+		unsigned int const BC = FACE->BC;
+
+		double const *const XYZ_fIL    = FACE->XYZ_fI;
+		double       *const dWRdWL_fIL = malloc(NfnI*Nvar*Nvar * sizeof *dWRdWL_fIL); // free
+		if (BC % BC_STEP_SC == BC_RIEMANN)
+			jacobian_boundary_Riemann(NfnI,1,XYZ_fIL,WL_fIL,NULL,dWRdWL_fIL,n_fIL,d,Neq);
+		else if (BC % BC_STEP_SC == BC_SLIPWALL)
+			jacobian_boundary_SlipWall(NfnI,1,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
+		else if (BC % BC_STEP_SC == BC_BACKPRESSURE)
+			jacobian_boundary_BackPressure(NfnI,1,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
+		else if (BC % BC_STEP_SC == BC_TOTAL_TP)
+			jacobian_boundary_Total_TP(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
+		else if (BC % BC_STEP_SC == BC_SUPERSONIC_IN)
+			jacobian_boundary_SupersonicInflow(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
+		else if (BC % BC_STEP_SC == BC_SUPERSONIC_OUT)
+			jacobian_boundary_SupersonicOutflow(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
+		else
+			EXIT_UNSUPPORTED;
+		// Implement similarly to boundary in compute_WR_fIL (ToBeDeleted)
+
+		for (size_t dim = 0; dim < d; dim++) {
+		for (size_t eq = 0; eq < Neq; eq++) {
+		for (size_t var = 0; var < Nvar; var++) {
+			size_t const InddnSdWL = (eq*Nvar+var)*NfnI;
+
+			for (size_t i = 0; i < Nvar; i++) {
+				size_t const InddnSdWR = (eq*Neq+i)*NfnI,
+				             InddWRdWL = (var*Nvar+i)*NfnI;
+				for (size_t n = 0; n < NfnI; n++)
+					dnSolNumdWL_fIL[dim][InddnSdWL+n] += dnSolNumdWR_fIL[dim][InddnSdWR+n]*dWRdWL_fIL[InddWRdWL+n];
+			}
+		}}}
+
+		free(dWRdWL_fIL);
 	}
 }
 
@@ -978,7 +1101,7 @@ void correct_numerical_solution_strong(struct S_FDATA const *const FDATA, char c
 	if (Form_MF1 != 'S')
 		EXIT_UNSUPPORTED;
 
-	if (!(imex_type == 'E'))
+	if (!(imex_type == 'E' || imex_type == 'I'))
 		EXIT_UNSUPPORTED;
 
 	struct S_OPERATORS_F const *const *const OPS  = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
@@ -986,6 +1109,7 @@ void correct_numerical_solution_strong(struct S_FDATA const *const FDATA, char c
 
 	unsigned int const d        = DB.d,
 	                   Nvar     = d+2,
+	                   Neq      = d+2,
 	                   IndFType = FDATA->IndFType,
 	                   NfnI     = OPS[IndFType]->NfnI;
 
@@ -995,7 +1119,9 @@ void correct_numerical_solution_strong(struct S_FDATA const *const FDATA, char c
 
 	double const *const detJF_fIL = FACE->detJF_fI;
 
-	double       *const *const nSolNum_fIL = FDATA->NFluxData->nSolNum_fI;
+	double       *const *const nSolNum_fIL     = FDATA->NFluxData->nSolNum_fI,
+	             *const *const dnSolNumdWL_fIL = FDATA->NFluxData->dnSolNumdWL_fI,
+	             *const *const dnSolNumdWR_fIL = FDATA->NFluxData->dnSolNumdWR_fI;
 
 	if (side == 'L') {
 		for (size_t dim = 0; dim < d; dim++) {
@@ -1003,12 +1129,42 @@ void correct_numerical_solution_strong(struct S_FDATA const *const FDATA, char c
 		for (size_t n = 0; n < NfnI; n++) {
 			nSolNum_fIL[dim][var*NfnI+n] -= n_fIL[n*d+dim]*detJF_fIL[n]*WL_fIL[var*NfnI+n];
 		}}}
+
+		if (imex_type == 'I') {
+			// Only need to correct dnSolNumdWL_fIL
+			for (size_t dim = 0; dim < d; dim++) {
+			for (size_t eq = 0; eq < Neq; eq++) {
+			for (size_t var = 0; var < Nvar; var++) {
+				if (eq != var)
+					continue;
+
+				size_t const Indeqvar = (eq*Nvar+var)*NfnI;
+				for (size_t n = 0; n < NfnI; n++) {
+					dnSolNumdWL_fIL[dim][Indeqvar+n] -= n_fIL[n*d+dim]*detJF_fIL[n];
+				}
+			}}}
+		}
 	} else if (side == 'R') {
 		for (size_t dim = 0; dim < d; dim++) {
 		for (size_t var = 0; var < Nvar; var++) {
 		for (size_t n = 0; n < NfnI; n++) {
 			nSolNum_fIL[dim][var*NfnI+n] += n_fIL[n*d+dim]*detJF_fIL[n]*(WL_fIL[var*NfnI+n]-WR_fIL[var*NfnI+n]);
 		}}}
+
+		if (imex_type == 'I') {
+			for (size_t dim = 0; dim < d; dim++) {
+			for (size_t eq = 0; eq < Neq; eq++) {
+			for (size_t var = 0; var < Nvar; var++) {
+				if (eq != var)
+					continue;
+
+				size_t const Indeqvar = (eq*Nvar+var)*NfnI;
+				for (size_t n = 0; n < NfnI; n++) {
+					dnSolNumdWL_fIL[dim][Indeqvar+n] += n_fIL[n*d+dim]*detJF_fIL[n];
+					dnSolNumdWR_fIL[dim][Indeqvar+n] -= n_fIL[n*d+dim]*detJF_fIL[n];
+				}
+			}}}
+		}
 	} else {
 		EXIT_UNSUPPORTED;
 	}
@@ -1635,7 +1791,7 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 			I_FF   = OPSL[0]->I_Weak_FF[VfL];
 			IdnFdW = malloc(NvnSL*NfnI * sizeof *IdnFdW); // free
 
-			// LHSRL (Effect of (R)ight VOLUME on (L)eft VOLUME
+			// LHSRL (Effect of (R)ight VOLUME on (L)eft VOLUME)
 			double *const ChiSR_fIL = malloc(NvnSR*NfnI * sizeof *ChiSR_fIL); // free
 
 			ChiS_fI = OPSR[0]->ChiS_fI[VfR];
@@ -1655,7 +1811,7 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 			I_FF   = OPSR[0]->I_Weak_FF[VfR];
 			IdnFdW = malloc(NvnSR*NfnI * sizeof *IdnFdW); // free
 
-			// LHSLR (Effect of (L)eft VOLUME on (R)ight VOLUME
+			// LHSLR (Effect of (L)eft VOLUME on (R)ight VOLUME)
 			double *const ChiSL_fIR = malloc(NvnSL*NfnI * sizeof *ChiSL_fIR); // free
 
 			ChiS_fI = OPSL[0]->ChiS_fI[VfL];
@@ -1668,7 +1824,7 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 
 			free(ChiSL_fIR);
 
-			// LHSRR (Effect of (R)ight VOLUME on (R)ight VOLUME
+			// LHSRR (Effect of (R)ight VOLUME on (R)ight VOLUME)
 			double const *const ChiSR_fIR = OPSR[0]->ChiS_fI[VfR];
 
 			compute_LHS_FACE_Inviscid_Weak(NvnSR,NvnSR,NfnI,I_FF,nANumR_fI,ChiSR_fIR,IdnFdW,FACE->LHSOutOut);
@@ -1821,9 +1977,8 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 		}
 		free(InSNum);
 	} else if (imex_type == 'I') {
-		EXIT_UNSUPPORTED; // Needs to be updated.
-		struct S_OPERATORS_F const *const *const OPSL  = (struct S_OPERATORS_F const *const *const) FDATAL->OPS,
-		                           *const *const OPSR  = (struct S_OPERATORS_F const *const *const) FDATAR->OPS;
+		struct S_OPERATORS_F const *const *const OPSL = (struct S_OPERATORS_F const *const *const) FDATAL->OPS,
+		                           *const *const OPSR = (struct S_OPERATORS_F const *const *const) FDATAR->OPS;
 
 		unsigned int const VfL = FDATAL->Vf,
 		                   VfR = FDATAR->Vf,
@@ -1838,12 +1993,12 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 
 			double const *const *const dnSolNumdWL_fI = (double const *const *const) FDATAL->NFluxData->dnSolNumdWL_fI;
 
-			// VL->Qhat_What (Effect of (L)eft VOLUME on (L)eft VOLUME)
+			// Qhat_WhatLL (Effect of (L)eft VOLUME on (L)eft VOLUME)
 			I_FF   = OPSL[0]->I_Weak_FF[VfL];
 			IdnFdW = malloc(NvnSL*NfnI * sizeof *IdnFdW); // free
 
 			double const *const ChiSL_fIL = OPSL[0]->ChiS_fI[VfL];
-			compute_LHS_QhatF_Weak(NvnSL,NvnSL,NfnI,I_FF,dnSolNumdWL_fI,ChiSL_fIL,IdnFdW,FDATAL->VOLUME->Qhat_What);
+			compute_LHS_QhatF_Weak(NvnSL,NvnSL,NfnI,I_FF,dnSolNumdWL_fI,ChiSL_fIL,IdnFdW,FACE->Qhat_WhatLL);
 
 			free(IdnFdW);
 		} else if (side == 'R') {
@@ -1876,11 +2031,14 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 
 			// Swap orientation of numerical flux Jacobian terms
 			swap_FACE_orientation(FDATAR,'I','Q');
+//			if (FORM_MF1 == 'S')
+//				correct_numerical_solution_strong(FDATAR,'I','R',FORM_MF1);
+EXIT_UNSUPPORTED;
 
 			I_FF   = OPSR[0]->I_Weak_FF[VfR];
 			IdnFdW = malloc(NvnSR*NfnI * sizeof *IdnFdW); // free
 
-			// LHSLR (Effect of (L)eft VOLUME on (R)ight VOLUME
+			// Qhat_WhatLR (Effect of (L)eft VOLUME on (R)ight VOLUME)
 			double *const ChiSL_fIR = malloc(NvnSL*NfnI * sizeof *ChiSL_fIR); // free
 
 			ChiS_fI = OPSL[0]->ChiS_fI[VfL];
@@ -1893,7 +2051,7 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 
 			free(ChiSL_fIR);
 
-			// LHSRR (Effect of (R)ight VOLUME on (R)ight VOLUME
+			// Qhat_WhatRR (Effect of (R)ight VOLUME on (R)ight VOLUME)
 			double const *const ChiSR_fIR = OPSR[0]->ChiS_fI[VfR];
 
 			compute_LHS_QhatF_Weak(NvnSR,NvnSR,NfnI,I_FF,dnSolNumdWR_fI,ChiSR_fIR,IdnFdW,FDATAR->VOLUME->Qhat_What);

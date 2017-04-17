@@ -325,8 +325,10 @@ void memory_destructor_F(struct S_FACE *FACE)
 	array_free2_d(d,FACE->QhatL);
 	array_free2_d(d,FACE->QhatR);
 
+	array_free2_d(d,FACE->Qhat_WhatLL);
 	array_free2_d(d,FACE->Qhat_WhatRL);
 	array_free2_d(d,FACE->Qhat_WhatLR);
+	array_free2_d(d,FACE->Qhat_WhatRR);
 
 	// Poisson
 	array_free2_d(d,FACE->qhatIn);

@@ -1580,7 +1580,23 @@ static void update_memory_FACE(struct S_FACE *const FACE)
 				}
 			}
 			if (strstr(DB.SolverType,"Implicit")) {
-				EXIT_UNSUPPORTED;
+				for (size_t dim = 0; dim < d; dim++) {
+					if (FACE->Qhat_WhatLL[dim] != NULL)
+						free(FACE->Qhat_WhatLL[dim]);
+					FACE->Qhat_WhatLL[dim] = malloc(NvnSL*NvnSL*Nvar*Neq * sizeof *(FACE->Qhat_WhatLL[dim])); // keep
+
+					if (!FACE->Boundary) {
+						if (FACE->Qhat_WhatRL[dim] != NULL)
+							free(FACE->Qhat_WhatRL[dim]);
+						FACE->Qhat_WhatRL[dim] = malloc(NvnSL*NvnSR*Nvar*Neq * sizeof *(FACE->Qhat_WhatRL[dim])); // keep
+						if (FACE->Qhat_WhatLR[dim] != NULL)
+							free(FACE->Qhat_WhatLR[dim]);
+						FACE->Qhat_WhatLR[dim] = malloc(NvnSR*NvnSL*Nvar*Neq * sizeof *(FACE->Qhat_WhatLR[dim])); // keep
+						if (FACE->Qhat_WhatRR[dim] != NULL)
+							free(FACE->Qhat_WhatRR[dim]);
+						FACE->Qhat_WhatRR[dim] = malloc(NvnSR*NvnSR*Nvar*Neq * sizeof *(FACE->Qhat_WhatRR[dim])); // keep
+					}
+				}
 			}
 		}
 	} else {
@@ -1590,6 +1606,12 @@ static void update_memory_FACE(struct S_FACE *const FACE)
 
 void update_memory_FACEs(void)
 {
+//	printf("umF\n");
+//	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+//		printf("%d %d\n",VOLUME->indexg,VOLUME->NvnS);
+//	struct S_FACE *FACE = DB.FACE;
+//	printf("%d %p %p %d %d\n",FACE->indexg,FACE->VIn,DB.VOLUME,FACE->VIn->indexg,FACE->VIn->NvnS);
+//
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next)
 		update_memory_FACE(FACE);
 }
@@ -1668,7 +1690,19 @@ static void free_memory_solver_FACE(struct S_FACE *const FACE)
 				}
 			}
 			if (strstr(DB.SolverType,"Implicit")) {
-				EXIT_UNSUPPORTED;
+				for (size_t dim = 0; dim < d; dim++) {
+					free(FACE->Qhat_WhatLL[dim]);
+					FACE->Qhat_WhatLL[dim] = NULL;
+
+					if (!FACE->Boundary) {
+						free(FACE->Qhat_WhatRL[dim]);
+						FACE->Qhat_WhatRL[dim] = NULL;
+						free(FACE->Qhat_WhatLR[dim]);
+						FACE->Qhat_WhatLR[dim] = NULL;
+						free(FACE->Qhat_WhatRR[dim]);
+						FACE->Qhat_WhatRR[dim] = NULL;
+					}
+				}
 			}
 		}
 	} else {

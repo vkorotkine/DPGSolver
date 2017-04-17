@@ -226,7 +226,6 @@ int main(int nargc, char **argv)
 
 #include "test_integration_L2_projections.h"
 #include "test_integration_update_h.h"
-#include "test_integration_linearization.h"
 #include "test_integration_L2_projection_errors.h"
 #include "test_integration_Poisson.h"
 #include "test_integration_Euler.h"
@@ -313,13 +312,10 @@ int main(int nargc, char **argv)
 	if (RunTest.integration) {
 		test_integration_update_h(nargc,argv);
 		test_integration_L2_projections(nargc,argv);
-		test_integration_linearization(nargc,argv);
 		test_integration_Poisson(nargc,argv);
 	}
-bool PeriodicVortexOnly = 1;
-if (!PeriodicVortexOnly)
-	test_integration_linearization(nargc,argv);
-	test_integration_Euler(nargc,argv);
+//	test_integration_Poisson(nargc,argv);
+//	test_integration_Euler(nargc,argv);
 	test_integration_NavierStokes(nargc,argv);
 
 	PetscFinalize();

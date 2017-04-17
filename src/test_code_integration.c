@@ -3,6 +3,8 @@
 
 #include "test_code_integration.h"
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 
@@ -92,12 +94,13 @@ static void update_TestCase(void)
 	}
 }
 
-void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigned int update_argv)
+void code_startup(int const nargc, char const *const *const argv, unsigned int const Nref,
+                  unsigned int const update_argv)
 {
 	int  MPIrank, MPIsize;
 
 	// Start MPI and PETSC
-	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+	PetscInitialize((int *) &nargc,(char ***) &argv,PETSC_NULL,PETSC_NULL);
 	MPI_Comm_size(MPI_COMM_WORLD,&MPIsize);
 	MPI_Comm_rank(MPI_COMM_WORLD,&MPIrank);
 
@@ -139,14 +142,14 @@ void code_cleanup(void)
 	memory_free();
 }
 
-void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, const unsigned int update_argv,
-                             const unsigned int phase)
+void code_startup_mod_prmtrs(int const nargc, char const *const *const argv, unsigned int const Nref,
+                             unsigned int const update_argv, unsigned int const phase)
 {
 	int  MPIrank, MPIsize;
 
 	if (phase == 1) {
 		// Start MPI and PETSC
-		PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+		PetscInitialize((int *) &nargc,(char ***) &argv,PETSC_NULL,PETSC_NULL);
 		MPI_Comm_size(MPI_COMM_WORLD,&MPIsize);
 		MPI_Comm_rank(MPI_COMM_WORLD,&MPIrank);
 
@@ -186,12 +189,12 @@ void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, co
 	}
 }
 
-void code_startup_mod_ctrl(int nargc, char **argv, const unsigned int Nref, const unsigned int update_argv,
-                           const unsigned int phase)
+void code_startup_mod_ctrl(int const nargc, char const *const *const argv, unsigned int const Nref,
+                           unsigned int const update_argv, unsigned int const phase)
 {
 	if (phase == 1) {
 		// Start MPI and PETSC
-		PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+		PetscInitialize((int *) &nargc,(char ***) &argv,PETSC_NULL,PETSC_NULL);
 		MPI_Comm_size(MPI_COMM_WORLD,&DB.MPIsize);
 		MPI_Comm_rank(MPI_COMM_WORLD,&DB.MPIrank);
 
@@ -982,12 +985,16 @@ void set_PrintName(char *name_type, char *PrintName, bool *TestTRI)
 			strcpy(PrintName,"Equivalence Real/Complex (");
 		} else if (strstr(name_type,"equiv_alg")) {
 			strcpy(PrintName,"Equivalence Algorithms (");
+		} else if (strstr(name_type,"linearization")) {
+			strcpy(PrintName,"Linearization (");
 		} else {
 			EXIT_UNSUPPORTED;
 		}
 	} else {
 		if (strstr(name_type,"conv_orders")) {
 			strcpy(PrintName,"                   (");
+		} else if (strstr(name_type,"linearization")) {
+			strcpy(PrintName,"              (");
 		} else {
 			EXIT_UNSUPPORTED;
 		}

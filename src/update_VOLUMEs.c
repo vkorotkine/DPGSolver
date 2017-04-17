@@ -311,7 +311,15 @@ static void update_memory_VOLUME(struct S_VOLUME *const VOLUME)
 				VOLUME->Qhat[dim]  = malloc(NvnS*Nvar * sizeof *(VOLUME->Qhat[dim])); // keep
 			}
 			if (strstr(DB.SolverType,"Implicit")) {
-				EXIT_UNSUPPORTED;
+				for (size_t dim = 0; dim < d; dim++) {
+					if (VOLUME->QhatV_What[dim] != NULL)
+						free(VOLUME->QhatV_What[dim]);
+					VOLUME->QhatV_What[dim] = malloc(NvnS*NvnS*Nvar*Neq * sizeof *(VOLUME->QhatV_What[dim])); // keep
+
+					if (VOLUME->Qhat_What[dim] != NULL)
+						free(VOLUME->Qhat_What[dim]);
+					VOLUME->Qhat_What[dim] = malloc(NvnS*NvnS*Nvar*Neq * sizeof *(VOLUME->Qhat_What[dim])); // keep
+				}
 			}
 		}
 	} else {
@@ -371,7 +379,12 @@ static void free_memory_solver_VOLUME(struct S_VOLUME *const VOLUME)
 				VOLUME->Qhat[dim] = NULL;
 			}
 			if (strstr(DB.SolverType,"Implicit")) {
-				EXIT_UNSUPPORTED;
+				for (size_t dim = 0; dim < d; dim++) {
+					free(VOLUME->QhatV_What[dim]);
+					VOLUME->QhatV_What[dim] = NULL;
+					free(VOLUME->Qhat_What[dim]);
+					VOLUME->Qhat_What[dim] = NULL;
+				}
 			}
 		}
 	} else {
@@ -1102,8 +1115,9 @@ void update_VOLUME_Ops(void)
 				if (!Collocated)
 					compute_inverse_mass(VOLUME);
 			} else {
-				// Do nothing
-//				printf("Error: Unsupported SolverType.\n"), EXIT_MSG;
+				// Inverse mass matrix needed for viscous numerical flux.
+				if (DB.Viscous)
+					compute_inverse_mass(VOLUME);
 			}
 		}
 	}

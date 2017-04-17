@@ -70,7 +70,7 @@ void test_integration_L2_projection_errors(int nargc, char **argv)
 		TestDB.PGlobal = P;
 		TestDB.ML = ML;
 
-		code_startup(nargc,argvNew,0,1);
+		code_startup(nargc,(char const *const *const) argvNew,0,1);
 		compute_errors_global();
 		code_cleanup();
 	}}

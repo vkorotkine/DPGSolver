@@ -5,6 +5,7 @@
 #define DPG__Test_h__INCLUDED
 
 #include <stdbool.h>
+#include <limits.h>
 
 struct S_TEST {
 	// Counters

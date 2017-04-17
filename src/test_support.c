@@ -7,7 +7,7 @@
 
 #include "Test.h"
 
-void test_print2(const unsigned int pass, const char *string)
+void test_print2(unsigned int const pass, char const *const string)
 {
 	/*
 	 *	Purpose:
@@ -29,4 +29,13 @@ void test_print2(const unsigned int pass, const char *string)
 	} else {
 		printf("Fail --- Fail --- Fail\n");
 	}
+}
+
+void test_print_warning(char const *const string)
+{
+	TestDB.Nwarnings++;
+
+	printf("\n\n********************************************************************************************\n");
+	printf("Warning: %s.\n",string);
+	printf("********************************************************************************************\n\n\n");
 }

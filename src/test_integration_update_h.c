@@ -64,11 +64,11 @@ static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, co
 		NrefTypes = 1;
 
 	for (refType = 0; refType < NrefTypes; refType++) {
-		code_startup_mod_prmtrs(nargc,argvNew,Nref,update_argv,1);
+		code_startup_mod_prmtrs(nargc,(char const *const *const) argvNew,Nref,update_argv,1);
 		if      (refType == 0) DB.TETrefineType = TET8;
 		else if (refType == 1) DB.TETrefineType = TET12;
 		else if (refType == 2) DB.TETrefineType = TET6;
-		code_startup_mod_prmtrs(nargc,argvNew,Nref,update_argv,2);
+		code_startup_mod_prmtrs(nargc,(char const *const *const) argvNew,Nref,update_argv,2);
 		if (DB.PGlobal <= 1)
 			printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
 

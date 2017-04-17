@@ -235,6 +235,7 @@ void solver_implicit(bool const PrintEnabled)
 	fNameOut = malloc(STRLEN_MAX * sizeof *fNameOut); // free
 	string   = malloc(STRLEN_MIN * sizeof *string);   // free
 
+	update_VOLUME_Ops();
 	update_VOLUME_finalize();
 
 	output_to_paraview("ZTest_Sol_Init");

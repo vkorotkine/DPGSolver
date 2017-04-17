@@ -677,8 +677,10 @@ struct S_FACE *New_FACE(void)
 	FACE->QhatL = calloc(d , sizeof *(FACE->QhatL)); // free
 	FACE->QhatR = calloc(d , sizeof *(FACE->QhatR)); // free
 
+	FACE->Qhat_WhatLL = calloc(d , sizeof *(FACE->Qhat_WhatLL)); // free
 	FACE->Qhat_WhatRL = calloc(d , sizeof *(FACE->Qhat_WhatRL)); // free
 	FACE->Qhat_WhatLR = calloc(d , sizeof *(FACE->Qhat_WhatLR)); // free
+	FACE->Qhat_WhatRR = calloc(d , sizeof *(FACE->Qhat_WhatRR)); // free
 
 	// Poisson
 	FACE->qhatIn  = calloc(d , sizeof *(FACE->qhatIn));  // free

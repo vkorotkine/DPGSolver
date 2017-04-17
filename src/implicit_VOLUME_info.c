@@ -32,7 +32,6 @@ static void compute_VOLUME_EFE(void);
 
 void implicit_VOLUME_info(void)
 {
-	// Initialize DB Parameters
 	unsigned int EFE        = DB.EFE,
 	             Vectorized = DB.Vectorized;
 
@@ -52,7 +51,6 @@ void implicit_VOLUME_info(void)
 
 static void compute_VOLUME_EFE(void)
 {
-	// Initialize DB Parameters
 	char         *Form = DB.Form;
 	unsigned int d          = DB.d,
 	             Collocated = DB.Collocated,

@@ -1,7 +1,7 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#include "explicit_GradW.h"
+#include "implicit_GradW.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -18,19 +18,14 @@
 #include "matrix_functions.h"
 #include "array_free.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
- *		Compute weak gradients required for the computation of viscous fluxes.
+ *		Compute weak gradient contributions required for the computation of viscous fluxes for implicit runs.
  *
  *	Comments:
- *		Selection of FORM_MF1 == 'S' is much more consistent with the theoretical formulation of the stabilized mixed
- *		form as presented in Brezzi(2000) (and in general); the stabilization is a penalization on the solution jumps
- *		across the elements. This also gives a much more natural symmetry to the diffusive operator when compared with
- *		using the weak form for the first equation.
- *		Furthermore, the partially corrected gradient contributions required for the numerical viscous flux can be
- *		directly computed from the summation of the VOLUME and FACE terms to Qhat when using the strong form here. As
- *		expected, when the cubature order is sufficient, the fully corrected Qhat is identical for the strong and weak
- *		forms.
+ *		See comments of explicit_GradW.c.
  *
  *	Notation:
  *		FORM_MF1 : (FORM) used for (M)ixed (F)ormulation equation (1). Can be either ('W')eak or ('S')trong.
@@ -40,39 +35,25 @@
 
 #define FORM_MF1 'S' // Should not use 'W' without modifications to viscous flux computation (See comments above).
 
-static void explicit_GradW_VOLUME   (void);
-static void explicit_GradW_FACE     (void);
-static void explicit_GradW_finalize (void);
+static void implicit_GradW_VOLUME   (void);
+static void implicit_GradW_FACE     (void);
+static void implicit_GradW_finalize (void);
 
-void explicit_GradW(void)
+void implicit_GradW(void)
 {
 	if (!DB.Viscous)
 		return;
 
-	explicit_GradW_VOLUME();
-	explicit_GradW_FACE();
-	explicit_GradW_finalize();
+	implicit_GradW_VOLUME();
+	implicit_GradW_FACE();
+	implicit_GradW_finalize();
 }
 
-static void explicit_GradW_VOLUME(void)
+static void implicit_GradW_VOLUME(void)
 {
-	/*
-	 *	Purpose:
-	 *		Compute intermediate VOLUME contribution to Qhat.
-	 *
-	 *	Comments:
-	 *		This is an intermediate contribution because the multiplication by MInv is not included.
-	 *		The contribution from this function is duplicated in QhatV as the local contribution is required for the
-	 *		numerical flux in the second equation of the mixed form.
-	 *		It is currently hard-coded that GradW is of the same order as the solution.
-	 *		Note, if Collocation is enable, that D_Weak includes the inverse cubature weights.
-	 *
-	 *	References:
-	 *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_Schemes
-	 */
-
 	unsigned int const d    = DB.d,
-	                   Nvar = d+2;
+	                   Nvar = d+2,
+	                   Neq  = d+2;
 
 	struct S_OPERATORS_V *OPS[2];
 
@@ -95,36 +76,38 @@ static void explicit_GradW_VOLUME(void)
 		DxyzInfo->D   = (double const *const *const) VDATA->OPS[0]->D_Weak;
 		DxyzInfo->C   = VOLUME->C_vI;
 
-		double const *const        ChiS_vI  = VDATA->OPS[0]->ChiS_vI;
-		double       *      *const DxyzChiS = VOLUME->DxyzChiS;
+		double const *const ChiS_vI  = VDATA->OPS[0]->ChiS_vI;
+
+		double **const QhatV_What = VOLUME->QhatV_What;
 		for (size_t dim = 0; dim < d; dim++) {
 			DxyzInfo->dim = dim;
 			double *const Dxyz = compute_Dxyz(DxyzInfo,d); // free
 
 			// Note: The detJ_vI term cancels with the gradient operator (Zwanenburg(2016), eq. (B.2))
 			if (DB.Collocated) { // ChiS_vI == I
-				DxyzChiS[dim] = Dxyz;
+				for (size_t i = 0; i < NvnS*NvnS; i++)
+					QhatV_What[dim][i] = Dxyz[i];
 			} else {
-				DxyzChiS[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // free
-				free(Dxyz);
+				mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,0.0,Dxyz,ChiS_vI,QhatV_What[dim]);
 			}
+			free(Dxyz);
 
 			// Compute intermediate Qhat contribution
 			if (FORM_MF1 == 'W') {
-				mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,-1.0,0.0,DxyzChiS[dim],VOLUME->What,VOLUME->QhatV[dim]);
+				for (size_t i = 0; i < NvnS*NvnS; i++)
+					QhatV_What[dim][i] *= -1.0;
 			} else if (FORM_MF1 == 'S') {
-				// Note: Using CBCM with CBNT for DxyzChiS (stored in row-major ordering) gives DxyzChiS' in the
-				//       operation below.
-				mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,DxyzChiS[dim],VOLUME->What,VOLUME->QhatV[dim]);
+				mkl_dimatcopy('R','T',NvnS,NvnS,1.0,QhatV_What[dim],NvnS,NvnS);
 			} else {
 				EXIT_UNSUPPORTED;
 			}
+			mm_CTN_d(NvnS,Nvar,NvnS,QhatV_What[dim],VOLUME->What,VOLUME->QhatV[dim]);
+
+			for (size_t i = 0; i < NvnS*NvnS*Nvar*Neq; i++)
+				VOLUME->Qhat_What[dim][i] = VOLUME->QhatV_What[dim][i];
 
 			for (size_t i = 0; i < NvnS*Nvar; i++)
 				VOLUME->Qhat[dim][i] = VOLUME->QhatV[dim][i];
-
-			// Need to store DxyzChiS for implicit runs. (Don't forget -ve sign) (ToBeDeleted)
-			free(DxyzChiS[dim]); DxyzChiS[dim] = NULL;
 		}
 	}
 
@@ -134,21 +117,8 @@ static void explicit_GradW_VOLUME(void)
 	free(DxyzInfo);
 }
 
-static void explicit_GradW_FACE(void)
+static void implicit_GradW_FACE(void)
 {
-	/*
-	 *	Purpose:
-	 *		Compute intermediate FACE contribution to Qhat.
-	 *
-	 *	Comments:
-	 *		L/R is used in place of In/Out (the previous convention). (ToBeDeleted)
-	 *		This is an intermediate contribution because the multiplication by MInv is not included.
-	 *		It is currently hard-coded that GradW is of the same order as the solution and that a central numerical flux
-	 *		is used.
-	 *		Note, if Collocation is enable, that I_Weak includes the inverse cubature weights.
-	 */
-
-	// Initialize DB Parameters
 	unsigned int const d    = DB.d,
 	                   Nvar = d+2,
 	                   Neq  = d+2;
@@ -184,29 +154,37 @@ static void explicit_GradW_FACE(void)
 		compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
 
 		// Compute numerical flux as seen from the left VOLUME
-		NFluxData->WL_fIL     = FDATAL->W_fIL;
-		NFluxData->WR_fIL     = FDATAR->W_fIL;
-		NFluxData->nSolNum_fI = malloc(d * sizeof *(NFluxData->nSolNum_fI)); // free
-		for (size_t dim = 0; dim < d; dim++)
-			NFluxData->nSolNum_fI[dim] = malloc(NfnI*Neq * sizeof *(NFluxData->nSolNum_fI[dim])); // free
+		NFluxData->WL_fIL         = FDATAL->W_fIL;
+		NFluxData->WR_fIL         = FDATAR->W_fIL;
+		NFluxData->nSolNum_fI     = malloc(d * sizeof *(NFluxData->nSolNum_fI));     // free
+		NFluxData->dnSolNumdWL_fI = malloc(d * sizeof *(NFluxData->dnSolNumdWL_fI)); // free
+		NFluxData->dnSolNumdWR_fI = malloc(d * sizeof *(NFluxData->dnSolNumdWR_fI)); // free
+		for (size_t dim = 0; dim < d; dim++) {
+			NFluxData->nSolNum_fI[dim]     = malloc(NfnI*Neq      * sizeof *(NFluxData->nSolNum_fI[dim]));     // free
+			NFluxData->dnSolNumdWL_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnSolNumdWL_fI[dim])); // free
+			NFluxData->dnSolNumdWR_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnSolNumdWR_fI[dim])); // free
+		}
 
-		compute_numerical_solution(FDATAL,'E','W');
-		add_Jacobian_scaling_FACE(FDATAL,'E','Q');
+// Remove option for 'W' or 'S' below, just compute centered flux (ToBeDeleted)
+		compute_numerical_solution(FDATAL,'I','W');
+		add_Jacobian_scaling_FACE(FDATAL,'I','Q');
 		if (FORM_MF1 == 'S')
-			correct_numerical_solution_strong(FDATAL,'E','L',FORM_MF1);
+			correct_numerical_solution_strong(FDATAL,'I','L',FORM_MF1);
 
-		finalize_QhatF_Weak(FDATAL,FDATAR,'L','E');
+		finalize_QhatF_Weak(FDATAL,FDATAR,'L','I');
 
 		if (!FACE->Boundary) {
-			if (FORM_MF1 == 'S')
-				correct_numerical_solution_strong(FDATAR,'E','R',FORM_MF1);
+//			if (FORM_MF1 == 'S')
+//				correct_numerical_solution_strong(FDATAR,'I','R',FORM_MF1);
 
-			finalize_QhatF_Weak(FDATAL,FDATAR,'R','E');
+			finalize_QhatF_Weak(FDATAL,FDATAR,'R','I');
 		}
 
 		free(FDATAL->W_fIL);
 		free(FDATAR->W_fIL);
 		array_free2_d(d,NFluxData->nSolNum_fI);
+		array_free2_d(d,NFluxData->dnSolNumdWL_fI);
+		array_free2_d(d,NFluxData->dnSolNumdWR_fI);
 	}
 
 	for (size_t i = 0; i < 2; i++) {
@@ -244,23 +222,8 @@ static void finalize_Qhat(struct S_VOLUME const *const VOLUME, unsigned int cons
 	}
 }
 
-static void explicit_GradW_finalize(void)
+static void implicit_GradW_finalize(void)
 {
-	/*
-	 *	Purpose:
-	 *		Add in inverse mass matrix contribution to VOLUME->Qhat, VOLUME->QhatV.
-	 *
-	 *	Comments:
-	 *		All contributions continue to be stored individually as they must be used as such for the computation of the
-	 *		viscous numerical flux. The FACE Qhat contributions are added to the VOLUME Qhat contribution to store the
-	 *		entire weak gradient in VOLUME->Qhat (used for VOLUME terms).
-	 *
-	 *		The FACE contribution were included direcly in VL/VR->Qhat while the VOLUME contributions were stored in
-	 *		QhatV. The two are now summed in VL/VR->Qhat and QhatV is retained for use in the numerical flux for the
-	 *		second equation of the mixed formulation.
-	 *		If Collocation is enable, only the inverse Jacobian determinant is missing.
-	 */
-
 	unsigned int const d    = DB.d,
 	                   Nvar = d+2;
 

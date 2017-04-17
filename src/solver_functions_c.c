@@ -117,15 +117,17 @@ void coef_to_values_fI_c(struct S_FDATA const *const FDATA, char const coef_type
 	struct S_OPERATORS_F const *const *const OPS    = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
 	struct S_VOLUME      const *const        VOLUME = FDATA->VOLUME;
 
-	unsigned int const d    = DB.d,
-	                   Nvar = DB.Nvar,
-	                   Vf   = FDATA->Vf;
+	unsigned int const d        = DB.d,
+	                   Nvar     = DB.Nvar,
+	                   Vf       = FDATA->Vf,
+			           IndFType = FDATA->IndFType,
+			           NfnI     = OPS[IndFType]->NfnI;
 
 	if (coef_type == 'W') {
-		mm_dcc(CBCM,CBT,CBNT,OPS[0]->NfnI,Nvar,OPS[0]->NvnS,1.0,0.0,OPS[0]->ChiS_fI[Vf],VOLUME->What_c,FDATA->W_fIL_c);
+		mm_dcc(CBCM,CBT,CBNT,NfnI,Nvar,OPS[0]->NvnS,1.0,0.0,OPS[0]->ChiS_fI[Vf],VOLUME->What_c,FDATA->W_fIL_c);
 	} else if (coef_type == 'Q') {
 		for (size_t dim = 0; dim < d; dim++)
-			mm_dcc(CBCM,CBT,CBNT,OPS[0]->NfnI,Nvar,OPS[0]->NvnS,1.0,0.0,OPS[0]->ChiS_fI[Vf],VOLUME->QhatV_c[dim],FDATA->GradW_fIL_c[dim]);
+			mm_dcc(CBCM,CBT,CBNT,NfnI,Nvar,OPS[0]->NvnS,1.0,0.0,OPS[0]->ChiS_fI[Vf],VOLUME->QhatV_c[dim],FDATA->GradW_fIL_c[dim]);
 	}
 }
 
