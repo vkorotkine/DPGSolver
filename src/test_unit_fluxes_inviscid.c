@@ -29,6 +29,8 @@ void test_unit_fluxes_inviscid(void)
 {
 	unsigned int pass;
 
+	test_print_warning("fluxes inviscid testing should be called a regression test");
+
 	/*
 	 *	Input:
 	 *

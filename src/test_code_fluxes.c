@@ -1,16 +1,18 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#include "test_code_fluxes_inviscid.h"
+#include "test_code_fluxes.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "Macros.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
- *		Provide functions for testing fluxes_inviscid related functions.
+ *		Provide functions for testing flux related functions.
  *
  *	Comments:
  *
@@ -64,11 +66,68 @@ double *initialize_W(unsigned int *Nn, unsigned int *Nel, const unsigned int d)
 
 			break;
 		} default: {
-			printf("Error: Unsupported dimension (%d).\n",d), EXIT_MSG;
+			EXIT_UNSUPPORTED;
 			break;
 		}
 	}
 	return W;
+}
+
+double **initialize_Q(unsigned int const Nn, unsigned int const Nel, unsigned int const d)
+{
+	// Numbers used here are random.
+
+	unsigned int const NnTotal = Nn*Nel,
+	                   Nvar    = d+2;
+
+	double **Q = malloc(d * sizeof *Q); // keep
+	for (size_t dim = 0; dim < d; dim++)
+		Q[dim] = malloc(NnTotal*Nvar * sizeof *Q[dim]); // keep
+
+	switch (d) {
+		case 2: {
+			double Q2[2][24] = {{ -0.0855,  -0.9289,   0.2373,  -0.5211,   0.6791,  -0.0377,
+			                      -0.2625,   0.7303,   0.4588,  -0.2316,   0.3955,  -0.8852,
+			                      -0.8010,  -0.4886,  -0.9631,   0.4889,  -0.3674,  -0.9133,
+			                      -0.0292,  -0.5785,  -0.5468,  -0.6241,  -0.9880,   0.7962, },
+			                    { -0.4018,   0.1839,  -0.9027,  -0.3377,   0.7803,   0.0965,
+			                       0.0760,   0.2400,   0.9448,  -0.9001,   0.3897,   0.1320,
+			                      -0.2399,  -0.4173,  -0.4909,  -0.3692,   0.2417,  -0.9421,
+			                       0.1233,  -0.0497,   0.4893,  -0.1112,  -0.4039,   0.9561, }, };
+
+			for (size_t dim = 0; dim < d; dim++) {
+				for (size_t i = 0; i < NnTotal*Nvar; i++)
+					Q[dim][i] = Q2[dim][i];
+			}
+			break;
+		} case 3: {
+			double Q3[3][30] = {{ -0.0911,  -0.6444,  -0.2089,  -0.4501,  -0.6620,   0.6135,
+			                       0.5762,   0.6476,   0.7093,  -0.4587,   0.4162,  -0.5822,
+			                       0.6834,  -0.6790,  -0.2362,   0.6619,  -0.8419,   0.5407,
+			                      -0.5466,  -0.6358,   0.1194,  -0.7703,   0.8329,  -0.8699,
+			                       0.4257,  -0.9452,  -0.6073,  -0.3502,  -0.2564,  -0.2648, },
+			                    {  0.7184,  -0.6110,   0.1537,  -0.8754,   0.2407,  -0.0680,
+			                       0.9686,   0.7788,  -0.2810,  -0.5181,   0.6761,   0.2548,
+			                       0.5313,   0.4235,  -0.4401,  -0.9436,   0.2891,   0.2240,
+			                      -0.3251,   0.0908,  -0.5271,   0.6377,  -0.6718,  -0.6678,
+			                       0.1056,  -0.2665,  -0.4574,  -0.9577,  -0.6951,   0.8444, },
+			                    { -0.4899,   0.4711,   0.5216,  -0.1499,   0.8003,   0.1332,
+			                      -0.1679,  -0.0596,   0.0967,  -0.6596,   0.4538,  -0.1734,
+			                      -0.9787,   0.6820,   0.8181,   0.5186,   0.4324,  -0.3909,
+			                       0.7127,  -0.0424,  -0.8175,   0.9730,   0.8253,   0.8314,
+			                      -0.5005,   0.0714,   0.7224,  -0.6490,   0.0835,  -0.8034, },};
+
+			for (size_t dim = 0; dim < d; dim++) {
+				for (size_t i = 0; i < NnTotal*Nvar; i++)
+					Q[dim][i] = Q3[dim][i];
+			}
+			break;
+		} default: {
+			EXIT_UNSUPPORTED;
+			break;
+		}
+	}
+	return Q;
 }
 
 double *initialize_n(const unsigned int Nn, const unsigned int Nel, const unsigned int d)

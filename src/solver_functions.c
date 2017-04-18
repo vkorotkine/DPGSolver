@@ -953,7 +953,7 @@ void compute_numerical_flux(struct S_FDATA const *const FDATA, char const imex_t
 	}
 }
 
-void compute_numerical_solution(struct S_FDATA const *const FDATA, char const imex_type, char const form)
+void compute_numerical_solution(struct S_FDATA const *const FDATA, char const imex_type)
 {
 	/*
 	 *	Purpose:
@@ -967,10 +967,6 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 	 *		imex_type : (im)plicit (ex)plicit (type) indicates whether this function is being called for an implicit or
 	 *		            explicit computation.
 	 */
-
-	// ToBeDeleted
-	if (form != 'W')
-		EXIT_UNSUPPORTED;
 
 	if (!(imex_type == 'E' || imex_type == 'I'))
 		EXIT_UNSUPPORTED;
@@ -993,54 +989,28 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 	             *const *const dnSolNumdWL_fIL = FDATA->NFluxData->dnSolNumdWL_fI,
 	             *const *const dnSolNumdWR_fIL = FDATA->NFluxData->dnSolNumdWR_fI;
 
-	if (form == 'W') {
-		for (size_t dim = 0; dim < d; dim++) {
-		for (size_t var = 0; var < Nvar; var++) {
-		for (size_t n = 0; n < NfnI; n++) {
-			nSolNum_fIL[dim][var*NfnI+n] = n_fIL[n*d+dim]*0.5*(WL_fIL[var*NfnI+n]+WR_fIL[var*NfnI+n]);
-		}}}
-		if (imex_type == 'I') {
-			for (size_t dim = 0; dim < d; dim++) {
-			for (size_t eq = 0; eq < Neq; eq++) {
-			for (size_t var = 0; var < Nvar; var++) {
-				double alpha;
-				if (eq == var)
-					alpha = 1.0;
-				else
-					alpha = 0.0;
+	for (size_t dim = 0; dim < d; dim++) {
+	for (size_t var = 0; var < Nvar; var++) {
+	for (size_t n = 0; n < NfnI; n++) {
+		nSolNum_fIL[dim][var*NfnI+n] = n_fIL[n*d+dim]*0.5*(WL_fIL[var*NfnI+n]+WR_fIL[var*NfnI+n]);
+	}}}
 
-				size_t const Indeqvar = (eq*Nvar+var)*NfnI;
-				for (size_t n = 0; n < NfnI; n++) {
-					dnSolNumdWL_fIL[dim][Indeqvar+n] = n_fIL[n*d+dim]*0.5*(alpha);
-					dnSolNumdWR_fIL[dim][Indeqvar+n] = n_fIL[n*d+dim]*0.5*(alpha);
-				}
-			}}}
-		}
-	} else if (form == 'S') {
+	if (imex_type == 'I') {
 		for (size_t dim = 0; dim < d; dim++) {
+		for (size_t eq = 0; eq < Neq; eq++) {
 		for (size_t var = 0; var < Nvar; var++) {
-		for (size_t n = 0; n < NfnI; n++) {
-			nSolNum_fIL[dim][var*NfnI+n] = n_fIL[n*d+dim]*0.5*(-WL_fIL[var*NfnI+n]+WR_fIL[var*NfnI+n]);
-		}}}
-		if (imex_type == 'I') {
-			for (size_t dim = 0; dim < d; dim++) {
-			for (size_t eq = 0; eq < Neq; eq++) {
-			for (size_t var = 0; var < Nvar; var++) {
-				double alpha;
-				if (eq == var)
-					alpha = 1.0;
-				else
-					alpha = 0.0;
+			size_t const Indeqvar = (eq*Nvar+var)*NfnI;
 
-				size_t const Indeqvar = (eq*Nvar+var)*NfnI;
-				for (size_t n = 0; n < NfnI; n++) {
-					dnSolNumdWL_fIL[dim][Indeqvar+n] = n_fIL[n*d+dim]*0.5*(-alpha);
-					dnSolNumdWR_fIL[dim][Indeqvar+n] = n_fIL[n*d+dim]*0.5*( alpha);
-				}
-			}}}
-		}
-	} else {
-		EXIT_UNSUPPORTED;
+			if (eq != var) {
+				memset(&dnSolNumdWL_fIL[dim][Indeqvar],0.0,NfnI * sizeof dnSolNumdWL_fIL[dim][Indeqvar]);
+				continue;
+			}
+
+			for (size_t n = 0; n < NfnI; n++) {
+				dnSolNumdWL_fIL[dim][Indeqvar+n] = n_fIL[n*d+dim]*0.5;
+				dnSolNumdWR_fIL[dim][Indeqvar+n] = n_fIL[n*d+dim]*0.5;
+			}
+		}}}
 	}
 
 	// Include the BC information in dnSolNumWL_fIL if on a boundary
@@ -1863,7 +1833,7 @@ static void compute_LHS_QhatF_Weak(unsigned int const NRows, unsigned int const 
 }
 
 void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR, char const side,
-                         char const imex_type)
+                         char const imex_type, char const FORM_MF1)
 {
 	/*
 	 *	Purpose:
@@ -1872,11 +1842,16 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 	 *	Comments:
 	 *		Except for the "-ve" sign, the need to compute d terms instead of 1, and the storage of the use of different
 	 *		arrays to be operated on and stored in, this function is identical to finalize_FACE_Inviscid_Weak.
+	 *
+	 *		When FORM_MF1 == 'S', the local contribution is added to the numerical flux before evaluating QhatF.
 	 */
 
 	struct S_FACE const *const FACE = FDATAL->FACE;
 
 	if (imex_type == 'E') {
+		if (FORM_MF1 == 'S')
+			correct_numerical_solution_strong(FDATAL,'E',side,FORM_MF1);
+
 		struct S_FDATA const *FDATA = NULL;
 
 		double *const *QhatF;
@@ -1989,6 +1964,9 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 		double const *I_FF;
 
 		if (side == 'L') {
+			if (FORM_MF1 == 'S')
+				correct_numerical_solution_strong(FDATAL,'I',side,FORM_MF1);
+
 			unsigned int const NvnSL = OPSL[0]->NvnS;
 
 			double const *const *const dnSolNumdWL_fI = (double const *const *const) FDATAL->NFluxData->dnSolNumdWL_fI;
@@ -2030,10 +2008,9 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 			free(IdnFdW);
 
 			// Swap orientation of numerical flux Jacobian terms
+			if (FORM_MF1 == 'S')
+				correct_numerical_solution_strong(FDATAR,'I','R',FORM_MF1);
 			swap_FACE_orientation(FDATAR,'I','Q');
-//			if (FORM_MF1 == 'S')
-//				correct_numerical_solution_strong(FDATAR,'I','R',FORM_MF1);
-EXIT_UNSUPPORTED;
 
 			I_FF   = OPSR[0]->I_Weak_FF[VfR];
 			IdnFdW = malloc(NvnSR*NfnI * sizeof *IdnFdW); // free
@@ -2054,7 +2031,7 @@ EXIT_UNSUPPORTED;
 			// Qhat_WhatRR (Effect of (R)ight VOLUME on (R)ight VOLUME)
 			double const *const ChiSR_fIR = OPSR[0]->ChiS_fI[VfR];
 
-			compute_LHS_QhatF_Weak(NvnSR,NvnSR,NfnI,I_FF,dnSolNumdWR_fI,ChiSR_fIR,IdnFdW,FDATAR->VOLUME->Qhat_What);
+			compute_LHS_QhatF_Weak(NvnSR,NvnSR,NfnI,I_FF,dnSolNumdWR_fI,ChiSR_fIR,IdnFdW,FACE->Qhat_WhatRR);
 
 			free(IdnFdW);
 		} else {

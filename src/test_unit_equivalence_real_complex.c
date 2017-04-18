@@ -12,7 +12,7 @@
 #include "S_DB.h"
 #include "Test.h"
 
-#include "test_code_fluxes_inviscid.h"
+#include "test_code_fluxes.h"
 #include "test_support.h"
 #include "array_norm.h"
 #include "initialize_test_case.h"

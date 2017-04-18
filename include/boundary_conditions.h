@@ -4,15 +4,27 @@
 #ifndef DPG__boundary_conditions_h__INCLUDED
 #define DPG__boundary_conditions_h__INCLUDED
 
+#include <complex.h>
+
 struct S_BC {
 	unsigned int d, Nn, Nel;
 
-	double const *XYZ,
-	             *nL,
-	             *WL,
+	double const *XYZ, *nL;
+
+	double const *WL,
 	             *const *GradWL;
 	double       *WB,
 	             *const *GradWB;
+
+	// Used for complex step verification
+	double complex const *WL_c,
+	                     *const *GradWL_c;
+	double complex       *WB_c,
+	                     *const *GradWB_c;
+
+	// Used for linearization
+	double *dWBdWL,
+	       *dGradWBdWL;
 };
 
 extern void get_boundary_values        (const double X, const double Y, double *const rho, double *const u,

@@ -111,7 +111,7 @@ extern void compute_WR_GradWR_fIL     (struct S_FDATA const *const FDATA, double
                                        double *const *const GradWR_fIL);
 
 extern void compute_numerical_flux            (struct S_FDATA const *const FDATA, char const imex_type);
-extern void compute_numerical_solution        (struct S_FDATA const *const FDATA, char const imex_type, char const form);
+extern void compute_numerical_solution        (struct S_FDATA const *const FDATA, char const imex_type);
 extern void correct_numerical_solution_strong (struct S_FDATA const *const FDATA, char const imex_type, char const side,
                                                char const Form_MF1);
 extern void compute_numerical_flux_viscous    (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
@@ -122,7 +122,7 @@ extern void finalize_FACE_Inviscid_Weak (struct S_FDATA const *const FDATAL, str
                                          double const *const nANumL_fI, double const *const nANumR_fI, char const side,
                                          char const imex_type, char const coef_type);
 extern void finalize_QhatF_Weak         (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
-                                         char const side, char const imex_type);
+                                         char const side, char const imex_type, char const FORM_MF1);
 extern void finalize_FACE_Viscous_Weak  (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
                                          double *const nANumL_fI, double *const nANumR_fI, char const side,
                                          char const imex_type, char const coef_type);

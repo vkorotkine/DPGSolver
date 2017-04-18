@@ -219,7 +219,7 @@ int main(int nargc, char **argv)
 #include "test_unit_sum_factorization.h"
 #include "test_unit_plotting.h"
 #include "test_unit_fluxes_inviscid.h"
-#include "test_unit_jacobian_fluxes_inviscid.h"
+#include "test_unit_jacobian_fluxes.h"
 #include "test_unit_jacobian_boundary.h"
 #include "test_unit_get_face_ordering.h"
 #include "test_unit_equivalence_real_complex.h"
@@ -242,10 +242,13 @@ int main(int nargc, char **argv)
  *
  *	Comments:
  *		Get some kind of code coverage figure as well (ToBeDeleted)
+ *		Linearizations are tested using the complex step method (Squire(1998), Martins(2003)).
  *
  *	Notation:
  *
  *	References:
+ *		Squire(1998)-Using_Complex_Variables_to_Estimate_Derivatives_of_Real_Functions
+ *		Martins(2003)-The_Complex-Step_Derivative_Approximation
  */
 
 int main(int nargc, char **argv)
@@ -299,7 +302,7 @@ int main(int nargc, char **argv)
 		test_unit_plotting();
 
 		test_unit_fluxes_inviscid();
-		test_unit_jacobian_fluxes_inviscid();
+		test_unit_jacobian_fluxes();
 		test_unit_jacobian_boundary();
 		test_unit_get_face_ordering();
 
@@ -307,6 +310,8 @@ int main(int nargc, char **argv)
 		printf("\nFor the VOLUME/FACE info functions, test that all 'versions' give identical results.\n\n");
 		TestDB.Nwarnings++;
 	}
+		test_unit_jacobian_fluxes();
+EXIT_BASIC;
 
 	// Integration tests
 	if (RunTest.integration) {

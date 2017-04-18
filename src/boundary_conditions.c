@@ -607,20 +607,18 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 	 *		Hughes(1986)_A_New_Finite_Element_Formulation_for_Computational_Fluid_Dynamics_I
 	 */
 
-	unsigned int const d    = BCdata->d,
-	                   Nvar = d+2,
-	                   Nn   = BCdata->Nn,
-	                   Nel  = BCdata->Nel;
+	unsigned int const d       = BCdata->d,
+	                   Nvar    = d+2,
+	                   Nn      = BCdata->Nn,
+	                   Nel     = BCdata->Nel,
+	                   NnTotal = Nn*Nel;
 
-	double const *const        XYZ    = BCdata->XYZ,
-	             *const        WL     = BCdata->WL,
+	double const *const XYZ = BCdata->XYZ;
+
+	double const *const        WL     = BCdata->WL,
 	             *const *const GradWL = BCdata->GradWL;
-
 	double       *const        WB     = BCdata->WB,
 	             *const *const GradWB = BCdata->GradWB;
-
-
-	unsigned int const NnTotal = Nn*Nel;
 
 	double const *X_ptr = &XYZ[NnTotal*0],
 	             *Y_ptr = &XYZ[NnTotal*1];
@@ -795,23 +793,22 @@ void boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 		             V2L = uL*uL+vL*vL+wL*wL,
 		             pL  = GM1*(EL-0.5*rhoL*V2L);
 
-		double uB = 0.0, vB = 0.0, wB = 0.0;
+		double u = 0.0, v = 0.0, w = 0.0;
 		if (strstr(DB.TestCase,"TaylorCouette")) {
-			uB = -uL;
-			vB = -vL;
-			wB = -wL;
-			; // Do nothing.
+			u = -uL;
+			v = -vL;
+			w = -wL;
 		} else {
 			EXIT_UNSUPPORTED;
 		}
 
-		unsigned int IndW = 0;
+		size_t IndW = 0;
 		*WB_ptr[IndW++] = rhoL;
-		*WB_ptr[IndW++] = rhoL*uB;
-		*WB_ptr[IndW++] = rhoL*vB;
+		*WB_ptr[IndW++] = rhoL*u;
+		*WB_ptr[IndW++] = rhoL*v;
 		if (d == 3)
-			*WB_ptr[IndW++] = rhoL*wB;
-		*WB_ptr[IndW++] = pL/GM1+0.5*rhoL*(uB*uB+vB*vB+wB*wB);
+			*WB_ptr[IndW++] = rhoL*w;
+		*WB_ptr[IndW++] = pL/GM1+0.5*rhoL*(u*u+v*v+w*w);
 
 		for (size_t var = 0; var < Nvar; var++)
 			WB_ptr[var]++;

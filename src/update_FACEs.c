@@ -1586,6 +1586,7 @@ static void update_memory_FACE(struct S_FACE *const FACE)
 					FACE->Qhat_WhatLL[dim] = malloc(NvnSL*NvnSL*Nvar*Neq * sizeof *(FACE->Qhat_WhatLL[dim])); // keep
 
 					if (!FACE->Boundary) {
+						unsigned int const NvnSR = FACE->VOut->NvnS;
 						if (FACE->Qhat_WhatRL[dim] != NULL)
 							free(FACE->Qhat_WhatRL[dim]);
 						FACE->Qhat_WhatRL[dim] = malloc(NvnSL*NvnSR*Nvar*Neq * sizeof *(FACE->Qhat_WhatRL[dim])); // keep

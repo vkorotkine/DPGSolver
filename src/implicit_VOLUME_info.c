@@ -83,6 +83,7 @@ static void compute_VOLUME_EFE(void)
 			double *F_vI    = malloc(NvnI*d*Neq      * sizeof *F_vI);    // free
 			double *dFdW_vI = malloc(NvnI*d*Nvar*Neq * sizeof *dFdW_vI); // free
 
+// Consider combining flux_inviscid and jacobian_flux_inviscid (ToBeDeleted)
 			flux_inviscid(NvnI,1,VDATA->W_vI,F_vI,d,Neq);
 			jacobian_flux_inviscid(NvnI,1,VDATA->W_vI,dFdW_vI,d,Neq);
 

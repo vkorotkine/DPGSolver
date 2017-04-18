@@ -241,7 +241,7 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 				}
 			}
 			data->exit_tol   = 3e-6;
-//			data->exit_tol   = 5e-4;
+			data->exit_tol   = 5e-4;
 //			data->exit_tol   = EPS;
 			data->exit_ratio = 1.0/EPS;
 		} else {

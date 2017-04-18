@@ -941,3 +941,155 @@ void jacobian_boundary_SupersonicOutflow(const unsigned int Nn, const unsigned i
 			dWdW_ptr[i]++;
 	}
 }
+
+void jacobian_boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
+{
+
+	unsigned int const d       = BCdata->d,
+	                   Nvar    = d+2,
+	                   Neq     = d+2,
+	                   Nn      = BCdata->Nn,
+	                   Nel     = BCdata->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double *const dWBdWL = BCdata->dWBdWL,
+	       *      dWBdWL_ptr[Neq*Nvar];
+
+	for (size_t eq  = 0; eq  < Neq;  eq++)  {
+	for (size_t var = 0; var < Nvar; var++) {
+		dWBdWL_ptr[eq*Nvar+var] = &dWBdWL[(eq*Nvar+var)*NnTotal];
+	}}
+
+	for (size_t n = 0; n < NnTotal; n++) {
+		size_t InddWdW = 0;
+		for (size_t var = 0; var < Nvar; var++) {
+			if (0) {
+				EXIT_BASIC; // Update this if the entropy variable formulation is used. See boundary_NoSlip_Dirichlet.
+			} else {
+				// When all boundary conditions are imposed.
+				for (size_t eq = 0; eq < Neq; eq++) {
+					if (var != eq)
+						*dWBdWL_ptr[InddWdW++] = 0.0;
+					else
+						*dWBdWL_ptr[InddWdW++] = -1.0;
+				}
+			}
+		}
+
+		for (size_t i = 0, iMax = Neq*Nvar; i < iMax; i++)
+			dWBdWL_ptr[i]++;
+	}
+}
+
+void jacobian_boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
+{
+
+	unsigned int const d       = BCdata->d,
+	                   Nvar    = d+2,
+	                   Neq     = d+2,
+	                   Nn      = BCdata->Nn,
+	                   Nel     = BCdata->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double const *const WL = BCdata->WL;
+	double       *const WB = BCdata->WB;
+
+	double *const dWBdWL = BCdata->dWBdWL,
+	       *      dWBdWL_ptr[Neq*Nvar];
+
+	double const *WL_ptr[Nvar];
+	double       *WB_ptr[Nvar];
+
+	for (size_t var = 0; var < Nvar; var++) {
+		WL_ptr[var] = &WL[var*NnTotal];
+		WB_ptr[var] = &WB[var*NnTotal];
+	}
+
+	double zeros[NnTotal];
+	for (size_t n = 0; n < NnTotal; n++)
+		zeros[n] = 0.0;
+
+	double const *rhoL_ptr  = WL_ptr[0],
+	             *rhouL_ptr = WL_ptr[1],
+	             *rhovL_ptr = WL_ptr[2],
+	             *rhowL_ptr            ;
+
+	if (d == 3) {
+		rhowL_ptr = WL_ptr[3];
+	} else if (d == 2) {
+		rhowL_ptr = zeros;
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+
+	for (size_t eq  = 0; eq  < Neq;  eq++)  {
+	for (size_t var = 0; var < Nvar; var++) {
+		dWBdWL_ptr[eq*Nvar+var] = &dWBdWL[(eq*Nvar+var)*NnTotal];
+	}}
+
+	for (size_t n = 0; n < NnTotal; n++) {
+		double const rhoL     = *rhoL_ptr++,
+		             rhoL_inv = 1.0/rhoL,
+
+		             uL   = (*rhouL_ptr++)*rhoL_inv,
+		             vL   = (*rhovL_ptr++)*rhoL_inv,
+		             wL   = (*rhowL_ptr++)*rhoL_inv,
+
+		             V2L = uL*uL+vL*vL+wL*wL;
+
+		double drhoLdW[Nvar], duLdW[Nvar], dvLdW[Nvar], dwLdW[Nvar], dELdW[Nvar], dpLdW[Nvar];
+		if (d == 3) {
+			drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0; drhoLdW[4] = 0.0;
+			dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = -wL; dpLdW[4]   = 1.0;
+			dELdW[0]   = 0.0;     dELdW[1]   = 0.0; dELdW[2]   = 0.0; dELdW[3]   = 0.0; dELdW[4]   = 1.0;
+
+			duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;      duLdW[4] = 0.0;
+			dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;      dvLdW[4] = 0.0;
+			dwLdW[0] = -wL*rhoL_inv; dwLdW[1] = 0.0;      dwLdW[2] = 0.0;      dwLdW[3] = rhoL_inv; dwLdW[4] = 0.0;
+		} else if (d == 2) {
+			drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0;
+			dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = 1.0;
+			dELdW[0]   = 0.0;     dELdW[1]   = 0.0; dELdW[2]   = 0.0; dELdW[3]   = 1.0;
+
+			duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;
+			dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;
+			dwLdW[0] = 0.0;          dwLdW[1] = 0.0;      dwLdW[2] = 0.0;      dwLdW[3] = 0.0;
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+		for (size_t var = 0; var < Nvar; var++)
+			dpLdW[var] *= GM1;
+
+		double u = 0.0, v = 0.0, w = 0.0, dudW[Nvar], dvdW[Nvar], dwdW[Nvar];
+		if (strstr(DB.TestCase,"TaylorCouette")) {
+			u = -uL;
+			v = -vL;
+			w = -wL;
+
+			for (size_t i = 0; i < Nvar; i++) {
+				dudW[i] = -duLdW[i];
+				dvdW[i] = -dvLdW[i];
+				dwdW[i] = -dwLdW[i];
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+
+		double const V2 = u*u+v*v+w*w;
+
+		size_t InddWdW = 0;
+		for (size_t var = 0; var < Nvar; var++) {
+			double const dV2dW = 2.0*(u*dudW[var]+v*dvdW[var]+w*dwdW[var]);
+
+			*dWBdWL_ptr[InddWdW++] = drhoLdW[var];
+			*dWBdWL_ptr[InddWdW++] = drhoLdW[var]*u+rhoL*dudW[var];
+			*dWBdWL_ptr[InddWdW++] = drhoLdW[var]*v+rhoL*dvdW[var];
+			if (d == 3)
+				*dWBdWL_ptr[InddWdW++] = drhoLdW[var]*w+rhoL*dwdW[var];
+			*dWBdWL_ptr[InddWdW++] = dpLdW[var]/GM1+0.5*(drhoLdW[var]*V2+rhoL*dV2dW);
+		}
+
+		for (size_t i = 0, iMax = Neq*Nvar; i < iMax; i++)
+			dWBdWL_ptr[i]++;
+	}
+}

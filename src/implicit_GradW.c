@@ -165,20 +165,12 @@ static void implicit_GradW_FACE(void)
 			NFluxData->dnSolNumdWR_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnSolNumdWR_fI[dim])); // free
 		}
 
-// Remove option for 'W' or 'S' below, just compute centered flux (ToBeDeleted)
-		compute_numerical_solution(FDATAL,'I','W');
+		compute_numerical_solution(FDATAL,'I');
 		add_Jacobian_scaling_FACE(FDATAL,'I','Q');
-		if (FORM_MF1 == 'S')
-			correct_numerical_solution_strong(FDATAL,'I','L',FORM_MF1);
 
-		finalize_QhatF_Weak(FDATAL,FDATAR,'L','I');
-
-		if (!FACE->Boundary) {
-//			if (FORM_MF1 == 'S')
-//				correct_numerical_solution_strong(FDATAR,'I','R',FORM_MF1);
-
-			finalize_QhatF_Weak(FDATAL,FDATAR,'R','I');
-		}
+		finalize_QhatF_Weak(FDATAL,FDATAR,'L','I',FORM_MF1);
+		if (!FACE->Boundary)
+			finalize_QhatF_Weak(FDATAL,FDATAR,'R','I',FORM_MF1);
 
 		free(FDATAL->W_fIL);
 		free(FDATAR->W_fIL);

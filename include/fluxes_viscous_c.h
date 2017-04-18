@@ -4,7 +4,9 @@
 #ifndef DPG__fluxes_viscous_h__INCLUDED
 #define DPG__fluxes_viscous_h__INCLUDED
 
-extern void flux_viscous (unsigned int const Nn, unsigned int const Nel, double const *const W,
-                          double const *const *const Q, double *const F);
+#include <complex.h>
+
+extern void flux_viscous_c (unsigned int const Nn, unsigned int const Nel, double complex const *const W,
+                            double complex const *const *const Q, double complex *const F);
 
 #endif // DPG__fluxes_viscous_h__INCLUDED

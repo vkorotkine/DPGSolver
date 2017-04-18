@@ -12,15 +12,16 @@
 #include "S_DB.h"
 #include "Test.h"
 
-#include "test_code_fluxes_inviscid.h"
+#include "test_code_fluxes.h"
 #include "test_support.h"
-#include "array_norm.h"
+#include "boundary_conditions.h"
 #include "jacobian_boundary_conditions.h"
 #include "boundary_conditions_c.h"
 #include "initialize_test_case.h"
+#include "array_norm.h"
+#include "array_free.h"
 
 #include "array_print.h"
-#include "boundary_conditions.h" // ToBeDeleted
 
 /*
  *	Purpose:
@@ -53,9 +54,25 @@ static void compute_dWdW_cs(const unsigned int Neq, const unsigned int Nn, const
 		Wp[i] = W[i];
 
 	for (var = 0; var < Nvar; var++) {
+//	for (var = 0; var < 1; var++) {
 		IndW = NnTotal*var;
 		for (n = 0; n < NnTotal; n++)
 			Wp[IndW+n] += h*I;
+
+		struct S_BC *const BCdata = malloc(sizeof *BCdata); // free
+
+		BCdata->d = d;
+		BCdata->Nn = Nn;
+		BCdata->Nel = Nel;
+
+		BCdata->XYZ  = XYZ;
+		BCdata->nL   = nL;
+
+		BCdata->WL_c = Wp;
+		BCdata->GradWL_c = NULL;
+
+		BCdata->WB_c = WB;
+		BCdata->GradWB_c = NULL;
 
 		if (strstr(BType,"SlipWall"))
 			boundary_SlipWall_c(Nn,Nel,Wp,WB,nL,d);
@@ -69,8 +86,13 @@ static void compute_dWdW_cs(const unsigned int Neq, const unsigned int Nn, const
 			boundary_SupersonicInflow_c(Nn,Nel,XYZ,Wp,WB,nL,d,Nvar);
 		else if (strstr(BType,"SupersonicOut"))
 			boundary_SupersonicOutflow_c(Nn,Nel,XYZ,Wp,WB,nL,d,Nvar);
+		else if (strstr(BType,"NoSlip_Dirichlet"))
+			boundary_NoSlip_Dirichlet_c(BCdata);
+		else if (strstr(BType,"NoSlip_Adiabatic"))
+			boundary_NoSlip_Adiabatic_c(BCdata);
 		else
 			EXIT_UNSUPPORTED;
+		free(BCdata);
 
 		for (var2 = 0; var2 < Nvar; var2++) {
 			IndWB = NnTotal*var2;
@@ -86,7 +108,7 @@ static void compute_dWdW_cs(const unsigned int Neq, const unsigned int Nn, const
 }
 
 static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsigned int Nel, const unsigned int d,
-                                              const unsigned int Neq, double *W, double *nL, double *XYZ,
+                                              const unsigned int Neq, double *W, double **Q, double *nL, double *XYZ,
                                               const char *BType)
 {
 	unsigned int pass = 0;
@@ -100,6 +122,21 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 	dWdW    = malloc(NnTotal*Nvar*Neq * sizeof *dWdW);    // free
 	dWdW_cs = malloc(NnTotal*Nvar*Neq * sizeof *dWdW_cs); // free
 
+	struct S_BC *const BCdata = malloc(sizeof *BCdata); // free
+
+	BCdata->d = d;
+	BCdata->Nn = Nn;
+	BCdata->Nel = Nel;
+
+	BCdata->XYZ    = XYZ;
+	BCdata->nL     = nL;
+	BCdata->WL     = W;
+	BCdata->GradWL = (double const *const *const) Q;
+	BCdata->GradWL = NULL;
+
+	BCdata->dWBdWL     = dWdW;
+	BCdata->dGradWBdWL = NULL;
+
 	if (strstr(BType,"SlipWall"))
 		jacobian_boundary_SlipWall(Nn,Nel,W,dWdW,nL,d,Neq);
 	else if (strstr(BType,"Riemann"))
@@ -112,10 +149,16 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 		jacobian_boundary_SupersonicInflow(Nn,Nel,XYZ,W,dWdW,nL,d,Neq);
 	else if (strstr(BType,"SupersonicOut"))
 		jacobian_boundary_SupersonicOutflow(Nn,Nel,XYZ,W,dWdW,nL,d,Neq);
+	else if (strstr(BType,"NoSlip_Dirichlet"))
+		jacobian_boundary_NoSlip_Dirichlet(BCdata);
+	else if (strstr(BType,"NoSlip_Adiabatic"))
+		jacobian_boundary_NoSlip_Adiabatic(BCdata);
 	else
 		EXIT_UNSUPPORTED;
 
 	compute_dWdW_cs(Neq,Nn,Nel,d,W,dWdW_cs,nL,XYZ,BType);
+
+	free(BCdata);
 
 	if (strstr(BType,"Riemann")) {
 		CheckedAll = 1;
@@ -213,11 +256,11 @@ void test_unit_jacobian_boundary(void)
 	 *
 	 */
 
-	unsigned int NBTypes = 6;
+	unsigned int NBTypes = 8;
 
 	char         *BType[NBTypes];
 	unsigned int i, j, Nn, Nel, d, Neq, dMin[NBTypes], dMax[NBTypes];
-	double       *W, *nL, *XYZ;
+	double       *W, **Q, *nL, *XYZ;
 
 	DB.TestCase      = calloc(STRLEN_MAX , sizeof *(DB.TestCase));      // free
 	DB.PDE           = calloc(STRLEN_MAX , sizeof *(DB.PDE));           // free
@@ -230,17 +273,24 @@ void test_unit_jacobian_boundary(void)
 	for (i = 0; i < NBTypes; i++)
 		BType[i] = malloc(STRLEN_MIN * sizeof *BType[i]); // free
 
-	strcpy(BType[0],"SlipWall     ");
-	strcpy(BType[1],"Riemann      ");
-	strcpy(BType[2],"BackPressure ");
-	strcpy(BType[3],"Total_TP     ");
-	strcpy(BType[4],"SupersonicIn ");
-	strcpy(BType[5],"SupersonicOut");
+	strcpy(BType[0],"SlipWall        ");
+	strcpy(BType[1],"Riemann         ");
+	strcpy(BType[2],"BackPressure    ");
+	strcpy(BType[3],"Total_TP        ");
+	strcpy(BType[4],"SupersonicIn    ");
+	strcpy(BType[5],"SupersonicOut   ");
+	strcpy(BType[6],"NoSlip_Dirichlet");
+	strcpy(BType[7],"NoSlip_Adiabatic");
 
 	strcpy(DB.PDE,"Euler");
 	strcpy(DB.MeshType,"ToBeCurved"); // Meshes are not used for this test (and thus need not exist)
 
 	for (i = 0; i < NBTypes; i++) {
+		if (i <= 5)
+			strcpy(DB.PDE,"Euler");
+		else
+			strcpy(DB.PDE,"NavierStokes");
+
 		dMin[i] = 2; dMax[i] = 3;
 		if (strstr(BType[i],"SlipWall") || strstr(BType[i],"Riemann")) {
 			strcpy(DB.TestCase,"SupersonicVortex");
@@ -256,6 +306,9 @@ void test_unit_jacobian_boundary(void)
 			strcpy(DB.PDESpecifier,"InternalSupersonic");
 			strcpy(DB.Geometry,"EllipsoidalSection");
 			strcpy(DB.GeomSpecifier,"Annular/3/");
+		} else if (strstr(BType[i],"NoSlip")) {
+			strcpy(DB.TestCase,"TaylorCouette");
+			strcpy(DB.Geometry,"n-Cylinder_Hollow");
 		}
 		initialize_test_case_parameters();
 
@@ -271,19 +324,21 @@ void test_unit_jacobian_boundary(void)
 			Neq = d+2;
 
 			W    = initialize_W(&Nn,&Nel,d); // free
+			Q    = initialize_Q(Nn,Nel,d);   // free
 			nL   = initialize_n(Nn,Nel,d);   // free
 			XYZ  = initialize_XYZ(Nn,Nel,d); // free
 			if (strstr(BType[i],"BackPressure"))
 				update_values(Nn,Nel,W,nL,d);
-			pass = compare_jacobian_boundary(Nn,Nel,d,Neq,W,nL,XYZ,BType[i]);
+			pass = compare_jacobian_boundary(Nn,Nel,d,Neq,W,Q,nL,XYZ,BType[i]);
 
 			if (d == dMin[i])
 				sprintf(PrintName,"jacobian_boundary_%s (d = %d):",BType[i],d);
 			else
-				sprintf(PrintName,"                                (d = %d):",d);
+				sprintf(PrintName,"                                   (d = %d):",d);
 			test_print2(pass,PrintName);
 
 			free(W);
+			array_free2_d(d,Q);
 			free(nL);
 			free(XYZ);
 		}

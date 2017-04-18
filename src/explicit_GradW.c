@@ -190,19 +190,12 @@ static void explicit_GradW_FACE(void)
 		for (size_t dim = 0; dim < d; dim++)
 			NFluxData->nSolNum_fI[dim] = malloc(NfnI*Neq * sizeof *(NFluxData->nSolNum_fI[dim])); // free
 
-		compute_numerical_solution(FDATAL,'E','W');
+		compute_numerical_solution(FDATAL,'E');
 		add_Jacobian_scaling_FACE(FDATAL,'E','Q');
-		if (FORM_MF1 == 'S')
-			correct_numerical_solution_strong(FDATAL,'E','L',FORM_MF1);
 
-		finalize_QhatF_Weak(FDATAL,FDATAR,'L','E');
-
-		if (!FACE->Boundary) {
-			if (FORM_MF1 == 'S')
-				correct_numerical_solution_strong(FDATAR,'E','R',FORM_MF1);
-
-			finalize_QhatF_Weak(FDATAL,FDATAR,'R','E');
-		}
+		finalize_QhatF_Weak(FDATAL,FDATAR,'L','E',FORM_MF1);
+		if (!FACE->Boundary)
+			finalize_QhatF_Weak(FDATAL,FDATAR,'R','E',FORM_MF1);
 
 		free(FDATAL->W_fIL);
 		free(FDATAR->W_fIL);

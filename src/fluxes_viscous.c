@@ -24,7 +24,7 @@
  *	References:
  */
 
-void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *const W, const double *const *const Q,
+void flux_viscous(unsigned int const Nn, unsigned int const Nel, double const *const W, double const *const *const Q,
                   double *const F)
 {
 	/*
@@ -45,10 +45,13 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 	 */
 
 	const unsigned int d   = DB.d,
-	                   Neq = DB.Neq;
+	                   Neq = d+2;
 	const double       Pr  = DB.Pr;
 
 	if (!(d == 2 || d == 3))
+		EXIT_UNSUPPORTED;
+
+	if (DB.Pr == 0.0 || DB.mu == 0.0)
 		EXIT_UNSUPPORTED;
 
 	const unsigned int NnTotal = Nn*Nel;
@@ -67,7 +70,6 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 	}
 
 	double *F_ptr[DMAX*Neq];
-
 	for (size_t eq = 0; eq < Neq; eq++) {
 	for (size_t dim = 0; dim < d; dim++) {
 		F_ptr[eq*DMAX+dim] = &F[(eq*d+dim)*NnTotal];
@@ -112,6 +114,7 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 				mu = DB.mu;
 			} else {
 				// Sutherland's formula
+				// Be sure to test both mu configurations.
 				EXIT_UNSUPPORTED;
 			}
 
@@ -138,29 +141,24 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 
 			size_t IndF = 0;
 			// eq 1
-			*F_ptr[IndF++] = 0.0;
-			*F_ptr[IndF++] = 0.0;
-			*F_ptr[IndF++] = 0.0;
+			for (size_t dim = 0; dim < d; dim++)
+				*F_ptr[IndF++] = 0.0;
 
 			// eq 2
-			*F_ptr[IndF++] = -(tau[0][0]);
-			*F_ptr[IndF++] = -(tau[0][1]);
-			*F_ptr[IndF++] = -(tau[0][2]);
+			for (size_t dim = 0; dim < d; dim++)
+				*F_ptr[IndF++] = -(tau[0][dim]);
 
 			// eq 3
-			*F_ptr[IndF++] = -(tau[1][0]);
-			*F_ptr[IndF++] = -(tau[1][1]);
-			*F_ptr[IndF++] = -(tau[1][2]);
+			for (size_t dim = 0; dim < d; dim++)
+				*F_ptr[IndF++] = -(tau[1][dim]);
 
 			// eq 4
-			*F_ptr[IndF++] = -(tau[2][0]);
-			*F_ptr[IndF++] = -(tau[2][1]);
-			*F_ptr[IndF++] = -(tau[2][2]);
+			for (size_t dim = 0; dim < d; dim++)
+				*F_ptr[IndF++] = -(tau[2][dim]);
 
 			// eq 5
-			*F_ptr[IndF++] = -(u*tau[0][0]+v*tau[0][1]+w*tau[0][2] + mu*GAMMA/Pr*dTs[0]);
-			*F_ptr[IndF++] = -(u*tau[1][0]+v*tau[1][1]+w*tau[1][2] + mu*GAMMA/Pr*dTs[1]);
-			*F_ptr[IndF++] = -(u*tau[2][0]+v*tau[2][1]+w*tau[2][2] + mu*GAMMA/Pr*dTs[2]);
+			for (size_t dim = 0; dim < d; dim++)
+				*F_ptr[IndF++] = -(u*tau[dim][0]+v*tau[dim][1]+w*tau[dim][2] + mu*GAMMA/Pr*dTs[dim]);
 
 			for (size_t i = 0, iMax = Neq*DMAX; i < iMax; i++)
 				F_ptr[i]++;
@@ -190,6 +188,7 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 				mu = DB.mu;
 			} else {
 				// Sutherland's formula
+				// Be sure to test both mu configurations.
 				EXIT_UNSUPPORTED;
 			}
 
@@ -206,23 +205,23 @@ void flux_viscous(const unsigned int Nn, const unsigned int Nel, const double *c
 
 			size_t IndF = 0;
 			// eq 1
-			*F_ptr[IndF++] = 0.0;
-			*F_ptr[IndF++] = 0.0;
+			for (size_t dim = 0; dim < d; dim++)
+				*F_ptr[IndF++] = 0.0;
 			IndF += 1;
 
 			// eq 2
-			*F_ptr[IndF++] = -(tau[0][0]);
-			*F_ptr[IndF++] = -(tau[0][1]);
+			for (size_t dim = 0; dim < d; dim++)
+				*F_ptr[IndF++] = -(tau[0][dim]);
 			IndF += 1;
 
 			// eq 3
-			*F_ptr[IndF++] = -(tau[1][0]);
-			*F_ptr[IndF++] = -(tau[1][1]);
+			for (size_t dim = 0; dim < d; dim++)
+				*F_ptr[IndF++] = -(tau[1][dim]);
 			IndF += 1;
 
 			// eq 4
-			*F_ptr[IndF++] = -(u*tau[0][0]+v*tau[0][1] + mu*GAMMA/Pr*dTs[0]);
-			*F_ptr[IndF++] = -(u*tau[1][0]+v*tau[1][1] + mu*GAMMA/Pr*dTs[1]);
+			for (size_t dim = 0; dim < d; dim++)
+				*F_ptr[IndF++] = -(u*tau[dim][0]+v*tau[dim][1] + mu*GAMMA/Pr*dTs[dim]);
 
 			for (size_t i = 0, iMax = Neq*DMAX; i < iMax; i++)
 				F_ptr[i]++;
