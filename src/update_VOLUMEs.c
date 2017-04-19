@@ -316,9 +316,9 @@ static void update_memory_VOLUME(struct S_VOLUME *const VOLUME)
 						free(VOLUME->QhatV_What[dim]);
 					VOLUME->QhatV_What[dim] = malloc(NvnS*NvnS*Nvar*Neq * sizeof *(VOLUME->QhatV_What[dim])); // keep
 
-					if (VOLUME->Qhat_What[dim] != NULL)
-						free(VOLUME->Qhat_What[dim]);
-					VOLUME->Qhat_What[dim] = malloc(NvnS*NvnS*Nvar*Neq * sizeof *(VOLUME->Qhat_What[dim])); // keep
+//					if (VOLUME->Qhat_What[dim] != NULL)
+//						free(VOLUME->Qhat_What[dim]);
+//					VOLUME->Qhat_What[dim] = malloc(NvnS*NvnS*Nvar*Neq * sizeof *(VOLUME->Qhat_What[dim])); // keep
 				}
 			}
 		}

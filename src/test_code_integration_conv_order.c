@@ -165,8 +165,8 @@ data->SolveImplicit = 0;
 			if (strstr(TestName,"ToBeCurved")) {
 				if (strstr(TestName,"TRI")) {
 					data->PrintEnabled = 1;
-data->PMin  = 2;
-data->PMax  = 2;
+data->PMin  = 1;
+data->PMax  = 1;
 data->MLMax = 0;
 					strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedTRI");
 				} else {

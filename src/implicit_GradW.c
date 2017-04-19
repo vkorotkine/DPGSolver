@@ -103,8 +103,21 @@ static void implicit_GradW_VOLUME(void)
 			}
 			mm_CTN_d(NvnS,Nvar,NvnS,QhatV_What[dim],VOLUME->What,VOLUME->QhatV[dim]);
 
-			for (size_t i = 0; i < NvnS*NvnS*Nvar*Neq; i++)
-				VOLUME->Qhat_What[dim][i] = VOLUME->QhatV_What[dim][i];
+//			for (size_t i = 0; i < NvnS*NvnS; i++)
+//				VOLUME->Qhat_What[dim][i] = VOLUME->QhatV_What[dim][i];
+
+			// Potentially redundant storage. See comments in compute_numerical_solution(). (ToBeModified)
+			for (size_t eq = 0; eq < Neq; eq++) {
+			for (size_t var = 0; var < Nvar; var++) {
+				if (eq == 0 && var == 0)
+					continue;
+
+				size_t const Indeqvar = (eq*Nvar+var)*NvnS*NvnS;
+				for (size_t i = 0; i < NvnS*NvnS; i++) {
+					VOLUME->QhatV_What[dim][Indeqvar+i] = VOLUME->QhatV_What[dim][i];
+//					VOLUME->Qhat_What[dim][Indeqvar+i]  = VOLUME->QhatV_What[dim][i];
+				}
+			}}
 
 			for (size_t i = 0; i < NvnS*Nvar; i++)
 				VOLUME->Qhat[dim][i] = VOLUME->QhatV[dim][i];
@@ -214,8 +227,51 @@ static void finalize_Qhat(struct S_VOLUME const *const VOLUME, unsigned int cons
 	}
 }
 
+static void finalize_Qhat_What(struct S_VOLUME const *const VOLUME, unsigned int const NRows, unsigned int const NCols,
+                               double *const *const Qhat_What)
+{
+	unsigned int const d    = DB.d,
+	                   Neq  = d+2,
+	                   Nvar = d+2;
+
+
+	if (DB.Collocated) {
+		double const *const detJV_vI = VOLUME->detJV_vI;
+		for (size_t dim = 0; dim < d; dim++) {
+			for (size_t eq = 0; eq < Neq; eq++) {
+			for (size_t var = 0; var < Nvar; var++) {
+				size_t const Indeqvar = (eq*Nvar+var)*NRows*NCols;
+				for (size_t i = 0; i < NRows; i++) {
+				for (size_t j = 0; j < NCols; j++) {
+					Qhat_What[dim][Indeqvar+i*NCols+j] /= detJV_vI[i];
+				}}
+			}}
+		}
+	} else {
+		double *Qhat_tmp = malloc(NRows*NCols * sizeof *Qhat_tmp); // free
+		for (size_t dim = 0; dim < d; dim++) {
+			for (size_t eq = 0; eq < Neq; eq++) {
+			for (size_t var = 0; var < Nvar; var++) {
+				size_t const Indeqvar = (eq*Nvar+var)*NRows*NCols;
+				mm_d(CBRM,CBNT,CBNT,NRows,NCols,NRows,1.0,0.0,VOLUME->MInv,&Qhat_What[dim][Indeqvar],Qhat_tmp);
+				for (size_t i = 0; i < NRows; i++) {
+				for (size_t j = 0; j < NCols; j++) {
+					Qhat_What[dim][Indeqvar+i*NCols+j] = Qhat_tmp[i*NCols+j];
+				}}
+			}}
+		}
+		free(Qhat_tmp);
+	}
+}
+
 static void implicit_GradW_finalize(void)
 {
+	/*
+	 *	Comments:
+	 *		The contributions to Qhat_What from VOLUMEs and FACEs are not summed as they are treated in the FACE info
+	 *		function.
+	 */
+
 	unsigned int const d    = DB.d,
 	                   Nvar = d+2;
 
@@ -238,8 +294,13 @@ static void implicit_GradW_finalize(void)
 		}
 
 		finalize_Qhat(VL,NvnSL,FACE->QhatL);
-		if (!FACE->Boundary)
+		finalize_Qhat_What(VL,NvnSL,NvnSL,FACE->Qhat_WhatLL);
+		if (!FACE->Boundary) {
 			finalize_Qhat(VR,NvnSR,FACE->QhatR);
+			finalize_Qhat_What(VL,NvnSL,NvnSR,FACE->Qhat_WhatRL);
+			finalize_Qhat_What(VR,NvnSR,NvnSL,FACE->Qhat_WhatLR);
+			finalize_Qhat_What(VR,NvnSR,NvnSR,FACE->Qhat_WhatRR);
+		}
 	}
 
 	// Multiply VOLUME Qhat terms by MInv
@@ -248,5 +309,8 @@ static void implicit_GradW_finalize(void)
 
 		finalize_Qhat(VOLUME,NvnS,VOLUME->Qhat);
 		finalize_Qhat(VOLUME,NvnS,VOLUME->QhatV);
+
+//		finalize_Qhat(VOLUME,NvnS,NvnS,VOLUME->Qhat_What);
+		finalize_Qhat_What(VOLUME,NvnS,NvnS,VOLUME->QhatV_What);
 	}
 }

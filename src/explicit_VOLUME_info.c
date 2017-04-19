@@ -14,7 +14,7 @@
 
 #include "solver_functions.h"
 #include "sum_factorization.h"
-#include "matrix_functions.h"
+#include "matrix_functions.h" // ToBeDeleted
 #include "fluxes_inviscid.h"
 #include "fluxes_viscous.h"
 #include "array_free.h"
@@ -106,7 +106,6 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 			// Compute RHS term
 			unsigned int const NvnS = VDATA->OPS[0]->NvnS;
 
-			// RHS
 			memset(VOLUME->RHS,0.0,NvnS*Neq * sizeof *(VOLUME->RHS));
 			finalize_VOLUME_Inviscid_Weak(Neq,Fr_vI,VOLUME->RHS,'E',VDATA);
 			free(Fr_vI);

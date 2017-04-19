@@ -190,7 +190,7 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 
 			coef_to_values_fI(FDATAL,'W');
 			coef_to_values_fI(FDATAL,'Q');
-			compute_WR_GradWR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,(const double *const *const) GradWL_fIL,GradWR_fIL);
+			compute_WR_GradWR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,(double const *const *const) GradWL_fIL,GradWR_fIL);
 
 
 			// Compute numerical flux as seen from the left VOLUME

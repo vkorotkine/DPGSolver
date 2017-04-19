@@ -1574,9 +1574,10 @@ static void update_memory_FACE(struct S_FACE *const FACE)
 				FACE->QhatL[dim] = malloc(NvnSL*Nvar * sizeof *(FACE->QhatL[dim])); // keep
 
 				if (!FACE->Boundary) {
+					unsigned int const NvnSR = FACE->VOut->NvnS;
 					if (FACE->QhatR[dim] != NULL)
 						free(FACE->QhatR[dim]);
-					FACE->QhatR[dim] = malloc(NvnSL*Nvar * sizeof *(FACE->QhatR[dim])); // keep
+					FACE->QhatR[dim] = malloc(NvnSR*Nvar * sizeof *(FACE->QhatR[dim])); // keep
 				}
 			}
 			if (strstr(DB.SolverType,"Implicit")) {

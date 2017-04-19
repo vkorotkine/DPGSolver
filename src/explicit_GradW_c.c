@@ -1,7 +1,7 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#include "explicit_GradW.h"
+#include "explicit_GradW_c.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -15,62 +15,39 @@
 #include "S_FACE.h"
 
 #include "solver_functions.h"
+#include "solver_functions_c.h"
 #include "matrix_functions.h"
 #include "array_free.h"
 
 /*
  *	Purpose:
- *		Compute weak gradients required for the computation of viscous fluxes.
+ *		Identical to explicit_GradW using complex variables (for complex step verification).
  *
  *	Comments:
- *		Selection of FORM_MF1 == 'S' is much more consistent with the theoretical formulation of the stabilized mixed
- *		form as presented in Brezzi(2000) (and in general); the stabilization is a penalization on the solution jumps
- *		across the elements. This also gives a much more natural symmetry to the diffusive operator when compared with
- *		using the weak form for the first equation.
- *		Furthermore, the partially corrected gradient contributions required for the numerical viscous flux can be
- *		directly computed from the summation of the VOLUME and FACE terms to Qhat when using the strong form here. As
- *		expected, when the cubature order is sufficient, the fully corrected Qhat is identical for the strong and weak
- *		forms.
  *
  *	Notation:
- *		FORM_MF1 : (FORM) used for (M)ixed (F)ormulation equation (1). Can be either ('W')eak or ('S')trong.
  *
  *	References:
  */
 
-#define FORM_MF1 'S' // Should not use 'W' without modifications to viscous flux computation (See comments above).
+#define FORM_MF1 'S' // Should not use 'W' without modifications to viscous flux computation.
 
-static void explicit_GradW_VOLUME   (void);
-static void explicit_GradW_FACE     (void);
-static void explicit_GradW_finalize (void);
+static void explicit_GradW_VOLUME_c   (void);
+static void explicit_GradW_FACE_c     (void);
+static void explicit_GradW_finalize_c (void);
 
-void explicit_GradW(void)
+void explicit_GradW_c(void)
 {
 	if (!DB.Viscous)
 		return;
 
-	explicit_GradW_VOLUME();
-	explicit_GradW_FACE();
-	explicit_GradW_finalize();
+	explicit_GradW_VOLUME_c();
+	explicit_GradW_FACE_c();
+	explicit_GradW_finalize_c();
 }
 
-static void explicit_GradW_VOLUME(void)
+static void explicit_GradW_VOLUME_c(void)
 {
-	/*
-	 *	Purpose:
-	 *		Compute intermediate VOLUME contribution to Qhat.
-	 *
-	 *	Comments:
-	 *		This is an intermediate contribution because the multiplication by MInv is not included.
-	 *		The contribution from this function is duplicated in QhatV as the local contribution is required for the
-	 *		numerical flux in the second equation of the mixed form.
-	 *		It is currently hard-coded that GradW is of the same order as the solution.
-	 *		Note, if Collocation is enable, that D_Weak includes the inverse cubature weights.
-	 *
-	 *	References:
-	 *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_Schemes
-	 */
-
 	unsigned int const d    = DB.d,
 	                   Nvar = d+2;
 
@@ -110,18 +87,26 @@ static void explicit_GradW_VOLUME(void)
 			}
 
 			// Compute intermediate Qhat contribution
+			if (VOLUME->QhatV_c[dim] != NULL)
+				free(VOLUME->QhatV_c[dim]);
+			VOLUME->QhatV_c[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV_c[dim])); // keep
+
 			if (FORM_MF1 == 'W') {
-				mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,-1.0,0.0,DxyzChiS[dim],VOLUME->What,VOLUME->QhatV[dim]);
+				mm_dcc(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,-1.0,0.0,DxyzChiS[dim],VOLUME->What_c,VOLUME->QhatV_c[dim]);
 			} else if (FORM_MF1 == 'S') {
 				// Note: Using CBCM with CBNT for DxyzChiS (stored in row-major ordering) gives DxyzChiS' in the
 				//       operation below.
-				mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,DxyzChiS[dim],VOLUME->What,VOLUME->QhatV[dim]);
+				mm_dcc(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,DxyzChiS[dim],VOLUME->What_c,VOLUME->QhatV_c[dim]);
 			} else {
 				EXIT_UNSUPPORTED;
 			}
 
+			if (VOLUME->Qhat_c[dim] != NULL)
+				free(VOLUME->Qhat_c[dim]);
+			VOLUME->Qhat_c[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->Qhat_c[dim])); // keep
+
 			for (size_t i = 0; i < NvnS*Nvar; i++)
-				VOLUME->Qhat[dim][i] = VOLUME->QhatV[dim][i];
+				VOLUME->Qhat_c[dim][i] = VOLUME->QhatV_c[dim][i];
 
 			free(DxyzChiS[dim]); DxyzChiS[dim] = NULL;
 		}
@@ -133,7 +118,7 @@ static void explicit_GradW_VOLUME(void)
 	free(DxyzInfo);
 }
 
-static void explicit_GradW_FACE(void)
+static void explicit_GradW_FACE_c(void)
 {
 	/*
 	 *	Purpose:
@@ -176,29 +161,41 @@ static void explicit_GradW_FACE(void)
 		unsigned int const IndFType = FDATAL->IndFType,
 		                   NfnI     = OPSL[IndFType]->NfnI;
 
-		FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
-		FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
+		FDATAL->W_fIL_c = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL_c)), // free
+		FDATAR->W_fIL_c = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL_c)); // free
 
-		coef_to_values_fI(FDATAL,'W');
-		compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
+		coef_to_values_fI_c(FDATAL,'W');
+		compute_WR_fIL_c(FDATAR,FDATAL->W_fIL_c,FDATAR->W_fIL_c);
 
 		// Compute numerical flux as seen from the left VOLUME
-		NFluxData->WL_fIL     = FDATAL->W_fIL;
-		NFluxData->WR_fIL     = FDATAR->W_fIL;
-		NFluxData->nSolNum_fI = malloc(d * sizeof *(NFluxData->nSolNum_fI)); // free
+		NFluxData->WL_fIL_c     = FDATAL->W_fIL_c;
+		NFluxData->WR_fIL_c     = FDATAR->W_fIL_c;
+		NFluxData->nSolNum_fI_c = malloc(d * sizeof *(NFluxData->nSolNum_fI_c)); // free
 		for (size_t dim = 0; dim < d; dim++)
-			NFluxData->nSolNum_fI[dim] = malloc(NfnI*Neq * sizeof *(NFluxData->nSolNum_fI[dim])); // free
+			NFluxData->nSolNum_fI_c[dim] = malloc(NfnI*Neq * sizeof *(NFluxData->nSolNum_fI_c[dim])); // free
 
-		compute_numerical_solution(FDATAL,'E');
-		add_Jacobian_scaling_FACE(FDATAL,'E','Q');
+		compute_numerical_solution_c(FDATAL,'E');
+		add_Jacobian_scaling_FACE_c(FDATAL,'E','Q');
 
-		finalize_QhatF_Weak(FDATAL,FDATAR,'L','E',FORM_MF1);
+		for (size_t dim = 0; dim < d; dim++) {
+			if (FACE->QhatL_c[dim] != NULL)
+				free(FACE->QhatL_c[dim]);
+			FACE->QhatL_c[dim] = malloc(OPSL[0]->NvnS*Nvar * sizeof *(FACE->QhatL_c[dim])); // keep
+
+			if (!FACE->Boundary) {
+				if (FACE->QhatR_c[dim] != NULL)
+					free(FACE->QhatR_c[dim]);
+				FACE->QhatR_c[dim] = malloc(OPSR[0]->NvnS*Nvar * sizeof *(FACE->QhatR_c[dim])); // keep
+			}
+		}
+
+		finalize_QhatF_Weak_c(FDATAL,FDATAR,'L','E',FORM_MF1);
 		if (!FACE->Boundary)
-			finalize_QhatF_Weak(FDATAL,FDATAR,'R','E',FORM_MF1);
+			finalize_QhatF_Weak_c(FDATAL,FDATAR,'R','E',FORM_MF1);
 
-		free(FDATAL->W_fIL);
-		free(FDATAR->W_fIL);
-		array_free2_d(d,NFluxData->nSolNum_fI);
+		free(FDATAL->W_fIL_c);
+		free(FDATAR->W_fIL_c);
+		array_free2_cmplx(d,NFluxData->nSolNum_fI_c);
 	}
 
 	for (size_t i = 0; i < 2; i++) {
@@ -210,7 +207,8 @@ static void explicit_GradW_FACE(void)
 	free(FDATAR);
 }
 
-static void finalize_Qhat(struct S_VOLUME const *const VOLUME, unsigned int const NvnS, double *const *const Qhat)
+static void finalize_Qhat(struct S_VOLUME const *const VOLUME, unsigned int const NvnS,
+                          double complex *const *const Qhat)
 {
 	unsigned int const d    = DB.d,
 	                   Nvar = d+2;
@@ -224,9 +222,9 @@ static void finalize_Qhat(struct S_VOLUME const *const VOLUME, unsigned int cons
 			}}
 		}
 	} else {
-		double *const Qhat_tmp = malloc(NvnS*Nvar * sizeof *Qhat_tmp); // free
+		double complex *const Qhat_tmp = malloc(NvnS*Nvar * sizeof *Qhat_tmp); // free
 		for (size_t dim = 0; dim < d; dim++) {
-			mm_CTN_d(NvnS,Nvar,NvnS,VOLUME->MInv,Qhat[dim],Qhat_tmp);
+			mm_dcc(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,VOLUME->MInv,Qhat[dim],Qhat_tmp);
 			for (size_t var = 0; var < Nvar; var++) {
 			for (size_t n = 0; n < NvnS; n++) {
 				Qhat[dim][var*NvnS+n] = Qhat_tmp[var*NvnS+n];
@@ -236,23 +234,8 @@ static void finalize_Qhat(struct S_VOLUME const *const VOLUME, unsigned int cons
 	}
 }
 
-static void explicit_GradW_finalize(void)
+static void explicit_GradW_finalize_c(void)
 {
-	/*
-	 *	Purpose:
-	 *		Add in inverse mass matrix contribution to VOLUME->Qhat, VOLUME->QhatV.
-	 *
-	 *	Comments:
-	 *		All contributions continue to be stored individually as they must be used as such for the computation of the
-	 *		viscous numerical flux. The FACE Qhat contributions are added to the VOLUME Qhat contribution to store the
-	 *		entire weak gradient in VOLUME->Qhat (used for VOLUME terms).
-	 *
-	 *		The FACE contribution were included direcly in VL/VR->Qhat while the VOLUME contributions were stored in
-	 *		QhatV. The two are now summed in VL/VR->Qhat and QhatV is retained for use in the numerical flux for the
-	 *		second equation of the mixed formulation.
-	 *		If Collocation is enable, only the inverse Jacobian determinant is missing.
-	 */
-
 	unsigned int const d    = DB.d,
 	                   Nvar = d+2;
 
@@ -266,24 +249,24 @@ static void explicit_GradW_finalize(void)
 
 		for (size_t dim = 0; dim < d; dim++) {
 			for (size_t i = 0; i < NvnSL*Nvar; i++)
-				VL->Qhat[dim][i] += FACE->QhatL[dim][i];
+				VL->Qhat_c[dim][i] += FACE->QhatL_c[dim][i];
 
 			if (!FACE->Boundary) {
 				for (size_t i = 0; i < NvnSR*Nvar; i++)
-					VR->Qhat[dim][i] += FACE->QhatR[dim][i];
+					VR->Qhat_c[dim][i] += FACE->QhatR_c[dim][i];
 			}
 		}
 
-		finalize_Qhat(VL,NvnSL,FACE->QhatL);
+		finalize_Qhat(VL,NvnSL,FACE->QhatL_c);
 		if (!FACE->Boundary)
-			finalize_Qhat(VR,NvnSR,FACE->QhatR);
+			finalize_Qhat(VR,NvnSR,FACE->QhatR_c);
 	}
 
 	// Multiply VOLUME Qhat terms by MInv
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		unsigned int const NvnS = VOLUME->NvnS;
 
-		finalize_Qhat(VOLUME,NvnS,VOLUME->Qhat);
-		finalize_Qhat(VOLUME,NvnS,VOLUME->QhatV);
+		finalize_Qhat(VOLUME,NvnS,VOLUME->Qhat_c);
+		finalize_Qhat(VOLUME,NvnS,VOLUME->QhatV_c);
 	}
 }

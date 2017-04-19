@@ -81,9 +81,9 @@ struct S_NumericalFlux {
 	             **nSolNum_fI,     **dnSolNumdWL_fI,     **dnSolNumdWR_fI,
 	             *nFluxViscNum_fI, *dnFluxViscNumdWL_fI, *dnFluxViscNumdWR_fI;
 
-	// Only used for verification of equivalence between real and complex functions.
+	// Only used for verification.
 	double complex const *WL_fIL_c, *WR_fIL_c;
-	double complex       *nFluxNum_fI_c;
+	double complex       *nFluxNum_fI_c, **nSolNum_fI_c, *nFluxViscNum_fI_c;
 };
 
 struct S_FDATA {
@@ -96,7 +96,7 @@ struct S_FDATA {
 
 	struct S_NumericalFlux const *NFluxData;
 
-	// Only used for verification of equivalence between real and complex functions.
+	// Only used for verification.
 	double complex *W_fIL_c, **GradW_fIL_c;
 };
 
@@ -110,12 +110,10 @@ extern void compute_WR_GradWR_fIL     (struct S_FDATA const *const FDATA, double
                                        double *const WR_fIL, double const *const *const GradWL_fIL,
                                        double *const *const GradWR_fIL);
 
-extern void compute_numerical_flux            (struct S_FDATA const *const FDATA, char const imex_type);
-extern void compute_numerical_solution        (struct S_FDATA const *const FDATA, char const imex_type);
-extern void correct_numerical_solution_strong (struct S_FDATA const *const FDATA, char const imex_type, char const side,
-                                               char const Form_MF1);
-extern void compute_numerical_flux_viscous    (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
-                                               char const imex_type);
+extern void compute_numerical_flux         (struct S_FDATA const *const FDATA, char const imex_type);
+extern void compute_numerical_solution     (struct S_FDATA const *const FDATA, char const imex_type);
+extern void compute_numerical_flux_viscous (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
+                                            char const imex_type);
 extern void add_Jacobian_scaling_FACE (struct S_FDATA const *const FDATA, char const imex_type, char const coef_type);
 
 extern void finalize_FACE_Inviscid_Weak (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,

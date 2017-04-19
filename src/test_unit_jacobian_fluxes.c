@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <complex.h>
+#include <stdbool.h>
 
 #include "Parameters.h"
 #include "Macros.h"
@@ -215,8 +216,19 @@ static unsigned int compare_jacobian_flux_viscous(unsigned int const Nn, unsigne
 		for (size_t dim = 0; dim < d; dim++)
 			diff += array_norm_diff_d(NnTotal*d*Nvar*Neq,dFdQ[dim],dFdQ_cs[dim],"Inf");
 
-		if (diff < EPS)
+		if (diff < EPS) {
 			pass = 1;
+		} else {
+			bool PrintEnabled = 0;
+			if (PrintEnabled) {
+				printf("% .3e\n",diff);
+				for (size_t dim = 0; dim < d; dim++) {
+					printf("dFdQ, dim: %zu\n",dim);
+					array_print_d(NnTotal*d*Nvar,Neq,dFdQ[dim],'C');
+					array_print_d(NnTotal*d*Nvar,Neq,dFdQ_cs[dim],'C');
+				}
+			}
+		}
 
 		array_free2_d(d,dFdQ);
 		array_free2_d(d,dFdQ_cs);
@@ -428,7 +440,6 @@ void test_unit_jacobian_fluxes(void)
 		pass = compare_jacobian_flux_viscous(Nn,Nel,d,W,Q,'Q');
 		sprintf(PrintName,"                      (Q)     :");
 		test_print2(pass,PrintName);
-EXIT_BASIC;
 
 		free(W);
 		free(nL);

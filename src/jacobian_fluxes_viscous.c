@@ -11,6 +11,8 @@
 #include "Macros.h"
 #include "S_DB.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Compute viscous flux jacobians from inputs W, Q in conservative form.
@@ -251,26 +253,87 @@ void jacobian_flux_viscous(unsigned int const Nn, unsigned int const Nel, double
 			if (dFdQ != NULL) {
 
 			for (size_t dim1 = 0; dim1 < d; dim1++) {
+				const double ddrhodQ[NVAR3D]  = { 1.0, 0.0, 0.0, 0.0, 0.0 },
+				             ddrhoudQ[NVAR3D] = { 0.0, 1.0, 0.0, 0.0, 0.0 },
+				             ddrhovdQ[NVAR3D] = { 0.0, 0.0, 1.0, 0.0, 0.0 },
+				             ddrhowdQ[NVAR3D] = { 0.0, 0.0, 0.0, 1.0, 0.0 },
+				             ddEdQ[NVAR3D]    = { 0.0, 0.0, 0.0, 0.0, 1.0 };
 
-// Ensure that derivatives are taken with respect to Q of dim1.
+				double ddudQ[DMAX][NVAR3D] = {{0.0}},
+				       ddvdQ[DMAX][NVAR3D] = {{0.0}},
+				       ddwdQ[DMAX][NVAR3D] = {{0.0}};
+				for (size_t var = 0; var < Nvar; var++) {
+					ddudQ[dim1][var] = rho_inv*(ddrhoudQ[var]-ddrhodQ[var]*u);
+					ddvdQ[dim1][var] = rho_inv*(ddrhovdQ[var]-ddrhodQ[var]*v);
+					ddwdQ[dim1][var] = rho_inv*(ddrhowdQ[var]-ddrhodQ[var]*w);
+				}
+
+				double ddivVdQ[Nvar];
+				for (size_t var = 0; var < Nvar; var++)
+					ddivVdQ[var] = ddudQ[0][var]+ddvdQ[1][var]+ddwdQ[2][var];
+
 				double dtaudQ[d][d][Nvar];
 				for (size_t var = 0; var < Nvar; var++) {
-					dtaudQ[0][0][var] = mu*2.0*(ddudW[0][var]-ddivVdW[var]/3.0);
+					dtaudQ[0][0][var] = mu*2.0*(ddudQ[0][var]-ddivVdQ[var]/3.0);
+					dtaudQ[0][1][var] = mu*(ddvdQ[0][var]+ddudQ[1][var]);
+					dtaudQ[0][2][var] = mu*(ddwdQ[0][var]+ddudQ[2][var]);
+					dtaudQ[1][0][var] = dtaudQ[0][1][var];
+					dtaudQ[1][1][var] = mu*2.0*(ddvdQ[1][var]-ddivVdQ[var]/3.0);
+					dtaudQ[1][2][var] = mu*(ddwdQ[1][var]+ddvdQ[2][var]);
+					dtaudQ[2][0][var] = dtaudQ[0][2][var];
+					dtaudQ[2][1][var] = dtaudQ[1][2][var];
+					dtaudQ[2][2][var] = mu*2.0*(ddwdQ[2][var]-ddivVdQ[var]/3.0);
+				}
+
+				if (!DB.Const_mu) {
+					EXIT_UNSUPPORTED; // Ensure that mu does not depend on solution gradients for this to be OK.
+				}
+
+				double ddTsdQ[DMAX][NVAR3D] = {{0.0}};
+				for (size_t var = 0; var < Nvar; var++) {
+					double const ddEoRhodQ = rho_inv2*(ddEdQ[var]*rho-E*ddrhodQ[var]),
+					             ddV2dQ    = 2.0*(u*ddudQ[dim1][var]+v*ddvdQ[dim1][var]+w*ddwdQ[dim1][var]);
+					ddTsdQ[dim1][var] = ddEoRhodQ - 0.5*ddV2dQ;
 				}
 
 				size_t InddFdQ = 0;
 				// *** eq 1 ***
 				for (size_t var = 0; var < Nvar; var++) {
 				for (size_t dim = 0; dim < d; dim++) {
-					*dFdQ_ptr[dim1][InddFdW++] = 0.0;
+					*dFdQ_ptr[dim1][InddFdQ++] = 0.0;
 				}}
 
 				// *** eq 2 ***
 				for (size_t var = 0; var < Nvar; var++) {
 				for (size_t dim = 0; dim < d; dim++) {
-					*dFdQ_ptr[dim1][InddFdW++] = -(dtaudQ[0][dim][var]);
+					*dFdQ_ptr[dim1][InddFdQ++] = -(dtaudQ[0][dim][var]);
 				}}
 
+				// *** eq 3 ***
+				for (size_t var = 0; var < Nvar; var++) {
+				for (size_t dim = 0; dim < d; dim++) {
+					*dFdQ_ptr[dim1][InddFdQ++] = -(dtaudQ[1][dim][var]);
+				}}
+
+				// *** eq 4 ***
+				for (size_t var = 0; var < Nvar; var++) {
+				for (size_t dim = 0; dim < d; dim++) {
+					*dFdQ_ptr[dim1][InddFdQ++] = -(dtaudQ[2][dim][var]);
+				}}
+
+				// *** eq 5 ***
+				for (size_t var = 0; var < Nvar; var++) {
+				for (size_t dim = 0; dim < d; dim++) {
+					*dFdQ_ptr[dim1][InddFdQ++] = -( u*dtaudQ[dim][0][var]+v*dtaudQ[dim][1][var]+w*dtaudQ[dim][2][var]
+					                               +mu*GAMMA/Pr*ddTsdQ[dim][var] );
+				}}
+
+				if (!DB.Const_mu) {
+					EXIT_UNSUPPORTED; // Ensure that mu does not depend on solution gradients for this to be OK.
+				}
+
+				for (size_t i = 0, iMax = Neq*Nvar*DMAX; i < iMax; i++)
+					dFdQ_ptr[dim1][i]++;
 			}
 
 			}
@@ -371,25 +434,22 @@ void jacobian_flux_viscous(unsigned int const Nn, unsigned int const Nel, double
 			size_t InddFdW = 0;
 			// *** eq 1 ***
 			for (size_t var = 0; var < Nvar; var++) {
-				for (size_t dim = 0; dim < d; dim++) {
+				for (size_t dim = 0; dim < d; dim++)
 					*dFdW_ptr[InddFdW++] = 0.0;
-				}
 				InddFdW += 1;
 			}
 
 			// *** eq 2 ***
 			for (size_t var = 0; var < Nvar; var++) {
-				for (size_t dim = 0; dim < d; dim++) {
+				for (size_t dim = 0; dim < d; dim++)
 					*dFdW_ptr[InddFdW++] = -(dtaudW[0][dim][var]);
-				}
 				InddFdW += 1;
 			}
 
 			// *** eq 3 ***
 			for (size_t var = 0; var < Nvar; var++) {
-				for (size_t dim = 0; dim < d; dim++) {
+				for (size_t dim = 0; dim < d; dim++)
 					*dFdW_ptr[InddFdW++] = -(dtaudW[1][dim][var]);
-				}
 				InddFdW += 1;
 			}
 
@@ -406,9 +466,8 @@ void jacobian_flux_viscous(unsigned int const Nn, unsigned int const Nel, double
 			if (!DB.Const_mu) {
 				InddFdW -= DMAX*Nvar;
 				for (size_t var = 0; var < Nvar; var++) {
-					for (size_t dim = 0; dim < d; dim++) {
+					for (size_t dim = 0; dim < d; dim++)
 						*dFdW_ptr[InddFdW++] -= dmudW[var]*GAMMA/Pr*dTs[dim];
-					}
 					InddFdW += 1;
 				}
 			}
@@ -421,8 +480,80 @@ void jacobian_flux_viscous(unsigned int const Nn, unsigned int const Nel, double
 			// ***************************************** dFdQ ***************************************** //
 			if (dFdQ != NULL) {
 
-			if (0)
-				printf("%p\n",dFdQ);
+			for (size_t dim1 = 0; dim1 < d; dim1++) {
+				const double ddrhodQ[NVAR3D]  = { 1.0, 0.0, 0.0, 0.0, 0.0 },
+				             ddrhoudQ[NVAR3D] = { 0.0, 1.0, 0.0, 0.0, 0.0 },
+				             ddrhovdQ[NVAR3D] = { 0.0, 0.0, 1.0, 0.0, 0.0 },
+				             ddEdQ[NVAR3D]    = { 0.0, 0.0, 0.0, 1.0, 0.0 };
+
+				double ddudQ[DMAX][NVAR3D] = {{0.0}},
+				       ddvdQ[DMAX][NVAR3D] = {{0.0}};
+				for (size_t var = 0; var < Nvar; var++) {
+					ddudQ[dim1][var] = rho_inv*(ddrhoudQ[var]-ddrhodQ[var]*u);
+					ddvdQ[dim1][var] = rho_inv*(ddrhovdQ[var]-ddrhodQ[var]*v);
+				}
+
+				double ddivVdQ[Nvar];
+				for (size_t var = 0; var < Nvar; var++)
+					ddivVdQ[var] = ddudQ[0][var]+ddvdQ[1][var];
+
+				double dtaudQ[d][d][Nvar];
+				for (size_t var = 0; var < Nvar; var++) {
+					dtaudQ[0][0][var] = mu*2.0*(ddudQ[0][var]-ddivVdQ[var]/3.0);
+					dtaudQ[0][1][var] = mu*(ddvdQ[0][var]+ddudQ[1][var]);
+					dtaudQ[1][0][var] = dtaudQ[0][1][var];
+					dtaudQ[1][1][var] = mu*2.0*(ddvdQ[1][var]-ddivVdQ[var]/3.0);
+				}
+
+				if (!DB.Const_mu) {
+					EXIT_UNSUPPORTED; // Ensure that mu does not depend on solution gradients for this to be OK.
+				}
+
+				double ddTsdQ[DMAX][NVAR3D] = {{0.0}};
+				for (size_t var = 0; var < Nvar; var++) {
+					double const ddEoRhodQ = rho_inv2*(ddEdQ[var]*rho-E*ddrhodQ[var]),
+					             ddV2dQ    = 2.0*(u*ddudQ[dim1][var]+v*ddvdQ[dim1][var]);
+					ddTsdQ[dim1][var] = ddEoRhodQ - 0.5*ddV2dQ;
+				}
+
+				size_t InddFdQ = 0;
+				// *** eq 1 ***
+				for (size_t var = 0; var < Nvar; var++) {
+					for (size_t dim = 0; dim < d; dim++)
+						*dFdQ_ptr[dim1][InddFdQ++] = 0.0;
+					InddFdQ += 1;
+				}
+
+				// *** eq 2 ***
+				for (size_t var = 0; var < Nvar; var++) {
+					for (size_t dim = 0; dim < d; dim++)
+						*dFdQ_ptr[dim1][InddFdQ++] = -(dtaudQ[0][dim][var]);
+					InddFdQ += 1;
+				}
+
+				// *** eq 3 ***
+				for (size_t var = 0; var < Nvar; var++) {
+					for (size_t dim = 0; dim < d; dim++)
+						*dFdQ_ptr[dim1][InddFdQ++] = -(dtaudQ[1][dim][var]);
+					InddFdQ += 1;
+				}
+
+				// *** eq 4 ***
+				for (size_t var = 0; var < Nvar; var++) {
+					for (size_t dim = 0; dim < d; dim++) {
+						*dFdQ_ptr[dim1][InddFdQ++] = -( u*dtaudQ[dim][0][var]+v*dtaudQ[dim][1][var]
+						                               +mu*GAMMA/Pr*ddTsdQ[dim][var] );
+					}
+					InddFdQ += 1;
+				}
+
+				if (!DB.Const_mu) {
+					EXIT_UNSUPPORTED; // Ensure that mu does not depend on solution gradients for this to be OK.
+				}
+
+				for (size_t i = 0, iMax = Neq*Nvar*DMAX; i < iMax; i++)
+					dFdQ_ptr[dim1][i]++;
+			}
 
 			}
 		}

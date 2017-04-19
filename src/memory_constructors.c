@@ -596,6 +596,9 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->uhat_c = NULL; // free
 	VOLUME->qhat_c = calloc(d , sizeof *(VOLUME->qhat_c)); // free
 
+	VOLUME->QhatV_c = calloc(d , sizeof *(VOLUME->QhatV_c)); // free
+	VOLUME->Qhat_c  = calloc(d , sizeof *(VOLUME->Qhat_c));  // free
+
 	// hp adaptivity
 //	VOLUME->minRES = 0.0;
 //	VOLUME->maxRES = 0.0;
@@ -696,6 +699,9 @@ struct S_FACE *New_FACE(void)
 
 	FACE->qhatIn_c  = calloc(d , sizeof *(FACE->qhatIn_c));  // free
 	FACE->qhatOut_c = calloc(d , sizeof *(FACE->qhatOut_c)); // free
+
+	FACE->QhatL_c = calloc(d , sizeof *(FACE->QhatL_c)); // free
+	FACE->QhatR_c = calloc(d , sizeof *(FACE->QhatR_c)); // free
 
 	FACE->next   = NULL;
 	FACE->child0 = NULL; // free (in memory_free_children)

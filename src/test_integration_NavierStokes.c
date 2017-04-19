@@ -66,6 +66,7 @@ void test_integration_NavierStokes(int nargc, char **argv)
 	// **************************************************************************************************** //
 	if (RunTests_equivalence_real_complex) {
 		test_print_warning("Equivalence real vs complex not yet implemented for Navier-Stokes");
+		// Make sure that all supported viscous fluxes are tested (BR2/CDG2)
 	}
 
 	// **************************************************************************************************** //
@@ -83,7 +84,7 @@ struct S_convorder *const data_c = calloc(1 , sizeof *data_c); // free
 data_c->nargc     = nargc;
 data_c->argvNew   = argvNew;
 data_c->PrintName = PrintName;
-//if (0)
+if (0)
 test_conv_order(data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedTRI");
 free(data_c);
 		struct S_linearization *const data_l = calloc(1 , sizeof *data_l); // free
@@ -93,6 +94,7 @@ free(data_c);
 		data_l->PrintName = PrintName;
 
 		test_linearization(data_l,"NavierStokes_TRI");
+EXIT_BASIC;
 
 		free(data_l);
 	}

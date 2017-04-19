@@ -14,14 +14,17 @@
 
 #include "test_code_fluxes.h"
 #include "test_support.h"
-#include "array_norm.h"
 #include "initialize_test_case.h"
 #include "fluxes_inviscid.h"
 #include "fluxes_inviscid_c.h"
+#include "fluxes_viscous.h"
+#include "fluxes_viscous_c.h"
 #include "boundary_conditions.h"
 #include "boundary_conditions_c.h"
 #include "variable_functions.h"
 #include "variable_functions_c.h"
+#include "array_norm.h"
+#include "array_free.h"
 
 /*
  *	Purpose:
@@ -36,6 +39,8 @@
 
 static unsigned int compare_flux_inviscid (const unsigned int Nn, const unsigned int Nel, const unsigned int d,
                                            const unsigned int Neq, double *Wr);
+static unsigned int compare_flux_viscous  (unsigned int const Nn, unsigned int const Nel, unsigned int const d,
+                                           double const *const Wr, double const *const *const Qr);
 static unsigned int compare_flux_Num      (const unsigned int Nn, const unsigned int Nel, const unsigned int d,
                                            const unsigned int Neq, double *Wr, double *nL, const char *nFType);
 static unsigned int compare_boundary      (const unsigned int Nn, const unsigned int Nel, const unsigned int d,
@@ -79,16 +84,18 @@ void test_unit_equivalence_real_complex(void)
 
 	initialize_test_case_parameters();
 
-	for (d = 1; d <= 3; d++) {
+	unsigned int const dMin = 2, dMax = 3;
+	for (d = dMin; d <= dMax; d++) {
 		Neq  = d+2;
 
 		W   = initialize_W(&Nn,&Nel,d); // free
+		double **Q = initialize_Q(Nn,Nel,d); // free
 		nL  = initialize_n(Nn,Nel,d);   // free
 		XYZ = initialize_XYZ(Nn,Nel,d); // free
 
 		// flux_inviscid
 		pass = compare_flux_inviscid(Nn,Nel,d,Neq,W);
-		if (d == 1)
+		if (d == dMin)
 			sprintf(PrintName,"equivalence_flux_inviscid     (d = %d):",d);
 		else
 			sprintf(PrintName,"            flux_inviscid     (d = %d):",d);
@@ -104,6 +111,11 @@ void test_unit_equivalence_real_complex(void)
 		sprintf(PrintName,"            flux_Roe                 :");
 		test_print2(pass,PrintName);
 
+		// flux_viscous
+		pass = compare_flux_viscous(Nn,Nel,d,W,(double const *const *const) Q);
+		sprintf(PrintName,"            flux_viscous             :");
+		test_print2(pass,PrintName);
+
 		// boundary_SlipWall
 		pass = compare_boundary(Nn,Nel,d,Neq,W,nL,XYZ,"SlipWall");
 		sprintf(PrintName,"            boundary_SlipWall        :");
@@ -116,12 +128,15 @@ void test_unit_equivalence_real_complex(void)
 			test_print2(pass,PrintName);
 		}
 
+		test_print_warning("Missing many comparisons for boundary conditions");
+
 		// convert_variables
 		pass = compare_variables(Nn,Nel,d,Neq,W);
 		sprintf(PrintName,"            convert_variables        :");
 		test_print2(pass,PrintName);
 
 		free(W);
+		array_free2_d(d,Q);
 		free(nL);
 		free(XYZ);
 	}
@@ -169,6 +184,53 @@ static unsigned int compare_flux_inviscid(const unsigned int Nn, const unsigned 
 	free(Fr);
 	free(Fc);
 	free(Fctr);
+
+	return pass;
+}
+
+static unsigned int compare_flux_viscous(unsigned int const Nn, unsigned int const Nel, unsigned int const d,
+                                         double const *const Wr, double const *const *const Qr)
+{
+	DB.d        = d;
+	DB.Pr       = 0.72;
+	DB.mu       = 1e-3;
+	DB.Const_mu = 1;
+
+	unsigned int pass = 0;
+
+	unsigned int const Neq     = d+2,
+	                   Nvar    = d+2,
+	                   NnTotal = Nn*Nel;
+
+	double complex *const Wc = malloc(NnTotal*Nvar * sizeof *Wc); // free
+	for (size_t i = 0; i < NnTotal*Nvar; i++)
+		Wc[i] = Wr[i];
+
+	double complex **const Qc = malloc(d * sizeof *Qc); // free
+	for (size_t dim = 0; dim < d; dim++) {
+		Qc[dim] = malloc(NnTotal*Nvar * sizeof *Qc[dim]); // free
+		for (size_t i = 0; i < NnTotal*Nvar; i++)
+			Qc[dim][i] = Qr[dim][i];
+	}
+
+	double         *const Fr   = malloc(NnTotal*d*Neq * sizeof *Fr),   // free
+	               *const Fctr = malloc(NnTotal*d*Neq * sizeof *Fctr); // free
+	double complex *const Fc   = malloc(NnTotal*d*Neq * sizeof *Fc);   // free
+
+	flux_viscous(Nn,Nel,Wr,Qr,Fr);
+	flux_viscous_c(Nn,Nel,Wc,(double complex const *const *const) Qc,Fc);
+
+	for (size_t i = 0; i < NnTotal*d*Neq; i++)
+		Fctr[i] = creal(Fc[i]);
+
+	if (array_norm_diff_d(NnTotal*d*Neq,Fr,Fctr,"Inf") < EPS)
+		pass = 1;
+
+	free(Wc);
+	array_free2_cmplx(d,Qc);
+	free(Fr);
+	free(Fctr);
+	free(Fc);
 
 	return pass;
 }

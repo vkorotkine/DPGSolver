@@ -27,6 +27,7 @@
 #include "implicit_VOLUME_info.h"
 #include "explicit_FACE_info_c.h"
 #include "implicit_FACE_info.h"
+#include "explicit_GradW_c.h"
 #include "implicit_GradW.h"
 #include "finalize_RHS_c.h"
 #include "array_norm.h"
@@ -141,10 +142,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 	if (strstr(TestName,"Poisson")) {
 		implicit_info_Poisson();
 	} else if (strstr(TestName,"Euler") || strstr(TestName,"NavierStokes")) {
-		if (strstr(TestName,"NavierStokes")) {
-//			update_VOLUME_finalize();
-			implicit_GradW();
-		}
+		implicit_GradW(); // Only run if DB.Viscous = 1
 		implicit_VOLUME_info();
 		implicit_FACE_info();
 	} else {
@@ -153,13 +151,13 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 
 	if (!CheckFullLinearization) {
 		finalize_LHS(&A,&b,&x,1);
-		finalize_LHS(&A,&b,&x,2);
-		finalize_LHS(&A,&b,&x,3);
+//		finalize_LHS(&A,&b,&x,2);
+//		finalize_LHS(&A,&b,&x,3);
 		finalize_Mat(&A,1);
 
 		compute_A_cs(&A_cs,&b_cs,&x_cs,1);
-		compute_A_cs(&A_cs,&b_cs,&x_cs,2);
-		compute_A_cs(&A_cs,&b_cs,&x_cs,3);
+//		compute_A_cs(&A_cs,&b_cs,&x_cs,2);
+//		compute_A_cs(&A_cs,&b_cs,&x_cs,3);
 		finalize_Mat(&A_cs,1);
 	} else {
 		finalize_LHS(&A,&b,&x,0);
@@ -225,11 +223,8 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 
 			VOLUME->uhat_c = calloc(NvnS[0]*Nvar , sizeof *(VOLUME->uhat_c));
 		} else if (strstr(DB.TestCase,"Euler") || strstr(DB.TestCase,"NavierStokes")) {
-				if (strstr(DB.TestCase,"NavierStokes"))
-					EXIT_UNSUPPORTED;
 			if (VOLUME->What_c)
 				free(VOLUME->What_c);
-
 			VOLUME->What_c = malloc(NvnS[0]*Nvar * sizeof *(VOLUME->What_c));
 
 			for (size_t i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
@@ -263,10 +258,9 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 					break;
 				}
 			} else if (strstr(DB.TestCase,"Euler") || strstr(DB.TestCase,"NavierStokes")) {
-				if (strstr(DB.TestCase,"NavierStokes"))
-					EXIT_UNSUPPORTED;
 				VOLUME->What_c[i] += h*I;
 
+				explicit_GradW_c();
 				switch (assemble_type) {
 				default: // 0
 					explicit_VOLUME_info_c();
@@ -382,8 +376,6 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 			if (strstr(DB.TestCase,"Poisson")) {
 				VOLUME->uhat_c[i] -= h*I;
 			} else if (strstr(DB.TestCase,"Euler") || strstr(DB.TestCase,"NavierStokes")) {
-				if (strstr(DB.TestCase,"NavierStokes"))
-					EXIT_UNSUPPORTED;
 				VOLUME->What_c[i] -= h*I;
 			} else {
 				EXIT_UNSUPPORTED;
@@ -474,10 +466,9 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 				compute_uhat_VOLUME_c();
 				compute_uhat_FACE_c();
 			} else if (strstr(DB.TestCase,"Euler") || strstr(DB.TestCase,"NavierStokes")) {
-				if (strstr(DB.TestCase,"NavierStokes"))
-					EXIT_UNSUPPORTED;
 				VOLUME->What_c[i] += h*I;
 
+				explicit_GradW_c();
 				explicit_VOLUME_info_c();
 				explicit_FACE_info_c();
 			} else {
@@ -511,8 +502,6 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 			if (strstr(DB.TestCase,"Poisson")) {
 				VOLUME->uhat_c[i] -= h*I;
 			} else if (strstr(DB.TestCase,"Euler") || strstr(DB.TestCase,"NavierStokes")) {
-				if (strstr(DB.TestCase,"NavierStokes"))
-					EXIT_UNSUPPORTED;
 				VOLUME->What_c[i] -= h*I;
 			} else {
 				EXIT_UNSUPPORTED;

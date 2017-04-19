@@ -230,7 +230,8 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 				unsigned int const ML = TestDB.ML;
 
 				if (ML == 0) {
-					data->dt = 5e-3;
+					data->dt = 1e-0; // P1 (16 TRIs on ML0)
+					data->dt = 5e-1; // P2
 				} else if (ML == 1) {
 					data->dt = 5e-3*pow(0.5,1.0);
 				} else if (ML == 2) {
@@ -240,8 +241,7 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 					data->dt = 5e-3;
 				}
 			}
-			data->exit_tol   = 3e-6;
-			data->exit_tol   = 5e-4;
+			data->exit_tol   = 1e-9;
 //			data->exit_tol   = EPS;
 			data->exit_ratio = 1.0/EPS;
 		} else {

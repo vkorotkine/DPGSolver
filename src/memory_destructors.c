@@ -277,6 +277,9 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	free(VOLUME->uhat_c);
 	array_free2_cmplx(d,VOLUME->qhat_c);
 
+	array_free2_cmplx(d,VOLUME->QhatV_c);
+	array_free2_cmplx(d,VOLUME->Qhat_c);
+
 	// hp adaptivity
 	free(VOLUME->XYZ_vVP2);
 
@@ -344,6 +347,9 @@ void memory_destructor_F(struct S_FACE *FACE)
 
 	array_free2_cmplx(d,FACE->qhatIn_c);
 	array_free2_cmplx(d,FACE->qhatOut_c);
+
+	array_free2_cmplx(d,FACE->QhatL_c);
+	array_free2_cmplx(d,FACE->QhatR_c);
 
 	free(FACE);
 }
