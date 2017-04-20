@@ -585,6 +585,7 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->nnz_o = UINT_MAX;
 	VOLUME->RHS   = NULL; // free
 	VOLUME->LHS   = NULL; // free
+	VOLUME->LHSQ  = calloc(d , sizeof *(VOLUME->LHSQ)); // free
 
 	VOLUME->MInv      = NULL; // free
 	VOLUME->MInv_diag = NULL; // free

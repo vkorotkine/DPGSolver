@@ -4,6 +4,7 @@
 #ifndef DPG__solver_functions_h__INCLUDED
 #define DPG__solver_functions_h__INCLUDED
 
+#include <stdbool.h>
 #include <complex.h>
 
 #include "S_VOLUME.h"
@@ -52,10 +53,13 @@ extern void coef_to_values_vI  (struct S_VDATA const *const VDATA, char const co
 extern void convert_between_rp (unsigned int const Nn, unsigned int const Nrc, double const *const C, double *const Ap,
                                 double *const Ar, char const *const conv_type);
 
-extern void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const Ar_vI, double *const RLHS,
-                                   char const imex_type, struct S_VDATA const *const VDATA);
-extern void finalize_VOLUME_Viscous_Weak(unsigned int const Nrc, double *const Ar_vI, double *const RLHS,
-                                  char const imex_type, struct S_VDATA const *const VDATA);
+extern void finalize_VOLUME_Inviscid_Weak (unsigned int const Nrc, double const *const Ar_vI, double *const RLHS,
+                                           char const imex_type, struct S_VDATA const *const VDATA);
+extern void finalize_VOLUME_Viscous_Weak  (unsigned int const Nrc, double *const Ar_vI, double *const RLHS,
+                                           char const imex_type, struct S_VDATA const *const VDATA);
+extern void initialize_VOLUME_LHSQ_Weak   (unsigned int const Nrc, double const *const *const dFrdQ_vI,
+                                           double *const *const LHSQ, struct S_VDATA const *const VDATA);
+extern void finalize_VOLUME_LHSQV_Weak    (struct S_VOLUME *const VOLUME);
 
 
 // FACE structs and functions
@@ -88,7 +92,7 @@ struct S_NumericalFlux {
 
 struct S_FDATA {
 	unsigned int P, Vf, f, SpOp, Eclass, IndFType;
-	double       *W_fIL, **GradW_fIL, **QhatV, **QhatF;
+	double       *W_fIL, **GradW_fIL, **QhatF;
 
 	struct S_OPERATORS_F const *const *OPS;
 	struct S_VOLUME      const *VOLUME;
@@ -103,12 +107,13 @@ struct S_FDATA {
 extern void init_ops_FACE             (struct S_OPERATORS_F *const OPS, struct S_VOLUME const *const VOLUME,
                                        struct S_FACE const *const FACE, unsigned int const IndFType);
 extern void init_FDATA                (struct S_FDATA *const FDATA, struct S_FACE const *const FACE, char const side);
-extern void coef_to_values_fI         (struct S_FDATA const *const FDATA, char const coef_type);
+extern void coef_to_values_fI         (struct S_FDATA const *const FDATA, char const coef_type,
+                                       bool const CorrectedGradW);
 extern void compute_WR_fIL            (struct S_FDATA const *const FDATA, double const *const WL_fIL,
                                        double *const WR_fIL);
 extern void compute_WR_GradWR_fIL     (struct S_FDATA const *const FDATA, double const *const WL_fIL,
                                        double *const WR_fIL, double const *const *const GradWL_fIL,
-                                       double *const *const GradWR_fIL);
+                                       double *const *const GradWR_fIL, bool const CorrectedGradW);
 
 extern void compute_numerical_flux         (struct S_FDATA const *const FDATA, char const imex_type);
 extern void compute_numerical_solution     (struct S_FDATA const *const FDATA, char const imex_type);
@@ -124,5 +129,6 @@ extern void finalize_QhatF_Weak         (struct S_FDATA const *const FDATAL, str
 extern void finalize_FACE_Viscous_Weak  (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
                                          double *const nANumL_fI, double *const nANumR_fI, char const side,
                                          char const imex_type, char const coef_type);
+extern void finalize_VOLUME_LHSQF_Weak  (struct S_FACE *const FACE);
 
 #endif // DPG__solver_functions_h__INCLUDED

@@ -1582,21 +1582,24 @@ static void update_memory_FACE(struct S_FACE *const FACE)
 			}
 			if (strstr(DB.SolverType,"Implicit")) {
 				for (size_t dim = 0; dim < d; dim++) {
-					if (FACE->Qhat_WhatLL[dim] != NULL)
-						free(FACE->Qhat_WhatLL[dim]);
-					FACE->Qhat_WhatLL[dim] = malloc(NvnSL*NvnSL*Nvar*Neq * sizeof *(FACE->Qhat_WhatLL[dim])); // keep
-
-					if (!FACE->Boundary) {
+					if (FACE->Boundary) {
+						if (FACE->Qhat_WhatLL[dim] != NULL)
+							free(FACE->Qhat_WhatLL[dim]);
+						FACE->Qhat_WhatLL[dim] = malloc(NvnSL*NvnSL*Nvar*Neq * sizeof *(FACE->Qhat_WhatLL[dim])); // keep
+					} else {
 						unsigned int const NvnSR = FACE->VOut->NvnS;
+						if (FACE->Qhat_WhatLL[dim] != NULL)
+							free(FACE->Qhat_WhatLL[dim]);
+						FACE->Qhat_WhatLL[dim] = malloc(NvnSL*NvnSL * sizeof *(FACE->Qhat_WhatLL[dim])); // keep
 						if (FACE->Qhat_WhatRL[dim] != NULL)
 							free(FACE->Qhat_WhatRL[dim]);
-						FACE->Qhat_WhatRL[dim] = malloc(NvnSL*NvnSR*Nvar*Neq * sizeof *(FACE->Qhat_WhatRL[dim])); // keep
+						FACE->Qhat_WhatRL[dim] = malloc(NvnSL*NvnSR * sizeof *(FACE->Qhat_WhatRL[dim])); // keep
 						if (FACE->Qhat_WhatLR[dim] != NULL)
 							free(FACE->Qhat_WhatLR[dim]);
-						FACE->Qhat_WhatLR[dim] = malloc(NvnSR*NvnSL*Nvar*Neq * sizeof *(FACE->Qhat_WhatLR[dim])); // keep
+						FACE->Qhat_WhatLR[dim] = malloc(NvnSR*NvnSL * sizeof *(FACE->Qhat_WhatLR[dim])); // keep
 						if (FACE->Qhat_WhatRR[dim] != NULL)
 							free(FACE->Qhat_WhatRR[dim]);
-						FACE->Qhat_WhatRR[dim] = malloc(NvnSR*NvnSR*Nvar*Neq * sizeof *(FACE->Qhat_WhatRR[dim])); // keep
+						FACE->Qhat_WhatRR[dim] = malloc(NvnSR*NvnSR * sizeof *(FACE->Qhat_WhatRR[dim])); // keep
 					}
 				}
 			}

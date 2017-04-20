@@ -25,6 +25,11 @@
  *		Evaluate the VOLUME contributions to the RHS and LHS terms.
  *
  *	Comments:
+ *		For the Navier-Stokes solver, the VOLUME term flux has a dependence on the solution (W) and gradient (Q). As,
+ *		the gradient has a dependence on the solution in adjacent VOLUMEs, this VOLUME term must receive contribution
+ *		from both the VOLUME and the FACEs when performing the linearization. The 'compute_Viscous_VOLUME_VOLUME_EFE'
+ *		function provides the VOLUME contribution to this part of the linearization and the associated function in
+ *		implicit_FACE_info adds the remaining part.
  *
  *	Notation:
  *
@@ -33,14 +38,12 @@
 
 static void compute_Inviscid_VOLUME_EFE(void);
 static void compute_Viscous_VOLUME_EFE(void);
+static void compute_Viscous_VOLUME_VOLUME_EFE(void);
 
 void implicit_VOLUME_info(void)
 {
-	unsigned int EFE        = DB.EFE,
-	             Vectorized = DB.Vectorized;
-
-	if (EFE) {
-		switch (Vectorized) {
+	if (DB.EFE) {
+		switch (DB.Vectorized) {
 		case 0:
 			compute_Inviscid_VOLUME_EFE();
 			compute_Viscous_VOLUME_EFE();
@@ -52,6 +55,11 @@ void implicit_VOLUME_info(void)
 	} else {
 		;
 	}
+}
+
+void implicit_VOLUME_Q_info(void)
+{
+	compute_Viscous_VOLUME_VOLUME_EFE();
 }
 
 static void compute_Inviscid_VOLUME_EFE(void)
@@ -126,6 +134,9 @@ static void compute_Inviscid_VOLUME_EFE(void)
 
 static void compute_Viscous_VOLUME_EFE(void)
 {
+	if (!DB.Viscous)
+		return;
+
 	unsigned int d    = DB.d,
 				 Nvar = d+2,
 				 Neq  = d+2;
@@ -195,15 +206,17 @@ static void compute_Viscous_VOLUME_EFE(void)
 
 			// RHS
 			memset(VOLUME->RHS,0.0,NvnS*Neq * sizeof *(VOLUME->RHS));
-			finalize_VOLUME_Inviscid_Weak(Neq,Fr_vI,VOLUME->RHS,'E',VDATA);
+			finalize_VOLUME_Viscous_Weak(Neq,Fr_vI,VOLUME->RHS,'E',VDATA);
 			free(Fr_vI);
 
 			// LHS
-// Add contribution of dFrdQ_vI below.
-EXIT_UNSUPPORTED;
 			memset(VOLUME->LHS,0.0,NvnS*NvnS*Neq*Nvar * sizeof *(VOLUME->LHS));
-			finalize_VOLUME_Inviscid_Weak(NvnS*Neq*Nvar,dFrdW_vI,VOLUME->LHS,'I',VDATA);
+			finalize_VOLUME_Viscous_Weak(NvnS*Neq*Nvar,dFrdW_vI,VOLUME->LHS,'I',VDATA);
 			free(dFrdW_vI);
+
+			for (size_t dim = 0; dim < d; dim++)
+				memset(VOLUME->LHSQ[dim],0.0,NvnS*NvnS*Neq*Nvar * sizeof *(VOLUME->LHSQ));
+			initialize_VOLUME_LHSQ_Weak(NvnS*Neq*Nvar,(double const *const *const) dFrdQ_vI,VOLUME->LHSQ,VDATA);
 			array_free2_d(d,dFrdQ_vI);
 		}
 	} else if (strstr(DB.Form,"Strong")) {
@@ -213,4 +226,24 @@ EXIT_UNSUPPORTED;
 	free(VDATA);
 	for (size_t i = 0; i < 2; i++)
 		free(OPS[i]);
+}
+
+static void compute_Viscous_VOLUME_VOLUME_EFE(void)
+{
+	/*
+	 *	Comments:
+	 *		It is assumed that VOLUME->LHSQ has been computed and that VOLUME->LHS has been initialized.
+	 */
+
+	if (!DB.Viscous)
+		return;
+
+	if (strstr(DB.Form,"Weak")) {
+		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+			finalize_VOLUME_LHSQV_Weak(VOLUME);
+	} else if (strstr(DB.Form,"Strong")) {
+		EXIT_UNSUPPORTED;
+	} else {
+		EXIT_UNSUPPORTED;
+	}
 }

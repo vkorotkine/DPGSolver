@@ -8,6 +8,7 @@
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
+#include "S_VOLUME.h"
 #include "Test.h"
 
 #include "test_code_integration.h"

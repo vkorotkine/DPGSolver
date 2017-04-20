@@ -286,6 +286,14 @@ static void update_memory_VOLUME(struct S_VOLUME *const VOLUME)
 		if (VOLUME->LHS != NULL)
 			free(VOLUME->LHS);
 		VOLUME->LHS = malloc(NvnS*NvnS*Nvar*Neq * sizeof *(VOLUME->LHS)); // keep
+
+		if (DB.Viscous) {
+			for (size_t dim = 0; dim < d; dim++) {
+				if (VOLUME->LHSQ[dim] != NULL)
+					free(VOLUME->LHSQ[dim]);
+				VOLUME->LHSQ[dim] = malloc(NvnS*NvnS*Nvar*Neq * sizeof *(VOLUME->LHSQ[dim])); // keep
+			}
+		}
 	}
 
 	// Other solver related arrays
@@ -314,7 +322,7 @@ static void update_memory_VOLUME(struct S_VOLUME *const VOLUME)
 				for (size_t dim = 0; dim < d; dim++) {
 					if (VOLUME->QhatV_What[dim] != NULL)
 						free(VOLUME->QhatV_What[dim]);
-					VOLUME->QhatV_What[dim] = malloc(NvnS*NvnS*Nvar*Neq * sizeof *(VOLUME->QhatV_What[dim])); // keep
+					VOLUME->QhatV_What[dim] = malloc(NvnS*NvnS * sizeof *(VOLUME->QhatV_What[dim])); // keep
 
 //					if (VOLUME->Qhat_What[dim] != NULL)
 //						free(VOLUME->Qhat_What[dim]);
@@ -357,6 +365,13 @@ static void free_memory_solver_VOLUME(struct S_VOLUME *const VOLUME)
 	if (strstr(DB.SolverType,"Implicit")) {
 		free(VOLUME->LHS);
 		VOLUME->LHS = NULL;
+
+		if (DB.Viscous) {
+			for (size_t dim = 0; dim < d; dim++) {
+				free(VOLUME->LHSQ[dim]);
+				VOLUME->LHSQ[dim] = NULL;
+			}
+		}
 	}
 
 	if (strstr(TestCase,"Poisson")) {

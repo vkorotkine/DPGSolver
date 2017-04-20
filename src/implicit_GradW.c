@@ -52,8 +52,7 @@ void implicit_GradW(void)
 static void implicit_GradW_VOLUME(void)
 {
 	unsigned int const d    = DB.d,
-	                   Nvar = d+2,
-	                   Neq  = d+2;
+	                   Nvar = d+2;
 
 	struct S_OPERATORS_V *OPS[2];
 
@@ -106,19 +105,6 @@ static void implicit_GradW_VOLUME(void)
 //			for (size_t i = 0; i < NvnS*NvnS; i++)
 //				VOLUME->Qhat_What[dim][i] = VOLUME->QhatV_What[dim][i];
 
-			// Potentially redundant storage. See comments in compute_numerical_solution(). (ToBeModified)
-			for (size_t eq = 0; eq < Neq; eq++) {
-			for (size_t var = 0; var < Nvar; var++) {
-				if (eq == 0 && var == 0)
-					continue;
-
-				size_t const Indeqvar = (eq*Nvar+var)*NvnS*NvnS;
-				for (size_t i = 0; i < NvnS*NvnS; i++) {
-					VOLUME->QhatV_What[dim][Indeqvar+i] = VOLUME->QhatV_What[dim][i];
-//					VOLUME->Qhat_What[dim][Indeqvar+i]  = VOLUME->QhatV_What[dim][i];
-				}
-			}}
-
 			for (size_t i = 0; i < NvnS*Nvar; i++)
 				VOLUME->Qhat[dim][i] = VOLUME->QhatV[dim][i];
 		}
@@ -132,6 +118,11 @@ static void implicit_GradW_VOLUME(void)
 
 static void implicit_GradW_FACE(void)
 {
+	/*
+	 *	Comments:
+	 *		dnSolNumdW(L/R) may only have dependence on all solution variables through the boundary condition.
+	 */
+
 	unsigned int const d    = DB.d,
 	                   Nvar = d+2,
 	                   Neq  = d+2;
@@ -163,7 +154,7 @@ static void implicit_GradW_FACE(void)
 		FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
 		FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
 
-		coef_to_values_fI(FDATAL,'W');
+		coef_to_values_fI(FDATAL,'W',0);
 		compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
 
 		// Compute numerical flux as seen from the left VOLUME
@@ -174,8 +165,13 @@ static void implicit_GradW_FACE(void)
 		NFluxData->dnSolNumdWR_fI = malloc(d * sizeof *(NFluxData->dnSolNumdWR_fI)); // free
 		for (size_t dim = 0; dim < d; dim++) {
 			NFluxData->nSolNum_fI[dim]     = malloc(NfnI*Neq      * sizeof *(NFluxData->nSolNum_fI[dim]));     // free
-			NFluxData->dnSolNumdWL_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnSolNumdWL_fI[dim])); // free
-			NFluxData->dnSolNumdWR_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnSolNumdWR_fI[dim])); // free
+			if (FACE->Boundary) {
+				NFluxData->dnSolNumdWL_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnSolNumdWL_fI[dim])); // free
+				NFluxData->dnSolNumdWR_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnSolNumdWR_fI[dim])); // free
+			} else {
+				NFluxData->dnSolNumdWL_fI[dim] = malloc(NfnI * sizeof *(NFluxData->dnSolNumdWL_fI[dim])); // free
+				NFluxData->dnSolNumdWR_fI[dim] = malloc(NfnI * sizeof *(NFluxData->dnSolNumdWR_fI[dim])); // free
+			}
 		}
 
 		compute_numerical_solution(FDATAL,'I');
@@ -228,19 +224,33 @@ static void finalize_Qhat(struct S_VOLUME const *const VOLUME, unsigned int cons
 }
 
 static void finalize_Qhat_What(struct S_VOLUME const *const VOLUME, unsigned int const NRows, unsigned int const NCols,
-                               double *const *const Qhat_What)
+                               bool const variable_eqvar, double *const *const Qhat_What)
 {
-	unsigned int const d    = DB.d,
-	                   Neq  = d+2,
-	                   Nvar = d+2;
+	/*
+	 *	Comments:
+	 *		The variable_eqvar flag is provided as QhatV_What is constant for all equations and variables. The same is
+	 *		true for Qhat_What for FACEs which are not on the boundary. In the case of boundary FACEs, while the
+	 *		contribution may vary depending on the boundary condition employed.
+	 */
 
+	unsigned int const d = DB.d;
+
+	unsigned int eqMax, varMax;
+
+	if (variable_eqvar) {
+		eqMax  = d+2;
+		varMax = d+2;
+	} else {
+		eqMax  = 1;
+		varMax = 1;
+	}
 
 	if (DB.Collocated) {
 		double const *const detJV_vI = VOLUME->detJV_vI;
 		for (size_t dim = 0; dim < d; dim++) {
-			for (size_t eq = 0; eq < Neq; eq++) {
-			for (size_t var = 0; var < Nvar; var++) {
-				size_t const Indeqvar = (eq*Nvar+var)*NRows*NCols;
+			for (size_t eq = 0; eq < eqMax; eq++) {
+			for (size_t var = 0; var < varMax; var++) {
+				size_t const Indeqvar = (eq*varMax+var)*NRows*NCols;
 				for (size_t i = 0; i < NRows; i++) {
 				for (size_t j = 0; j < NCols; j++) {
 					Qhat_What[dim][Indeqvar+i*NCols+j] /= detJV_vI[i];
@@ -250,9 +260,9 @@ static void finalize_Qhat_What(struct S_VOLUME const *const VOLUME, unsigned int
 	} else {
 		double *Qhat_tmp = malloc(NRows*NCols * sizeof *Qhat_tmp); // free
 		for (size_t dim = 0; dim < d; dim++) {
-			for (size_t eq = 0; eq < Neq; eq++) {
-			for (size_t var = 0; var < Nvar; var++) {
-				size_t const Indeqvar = (eq*Nvar+var)*NRows*NCols;
+			for (size_t eq = 0; eq < eqMax; eq++) {
+			for (size_t var = 0; var < varMax; var++) {
+				size_t const Indeqvar = (eq*varMax+var)*NRows*NCols;
 				mm_d(CBRM,CBNT,CBNT,NRows,NCols,NRows,1.0,0.0,VOLUME->MInv,&Qhat_What[dim][Indeqvar],Qhat_tmp);
 				for (size_t i = 0; i < NRows; i++) {
 				for (size_t j = 0; j < NCols; j++) {
@@ -294,12 +304,14 @@ static void implicit_GradW_finalize(void)
 		}
 
 		finalize_Qhat(VL,NvnSL,FACE->QhatL);
-		finalize_Qhat_What(VL,NvnSL,NvnSL,FACE->Qhat_WhatLL);
-		if (!FACE->Boundary) {
+		if (FACE->Boundary) {
+			finalize_Qhat_What(VL,NvnSL,NvnSL,1,FACE->Qhat_WhatLL);
+		} else {
 			finalize_Qhat(VR,NvnSR,FACE->QhatR);
-			finalize_Qhat_What(VL,NvnSL,NvnSR,FACE->Qhat_WhatRL);
-			finalize_Qhat_What(VR,NvnSR,NvnSL,FACE->Qhat_WhatLR);
-			finalize_Qhat_What(VR,NvnSR,NvnSR,FACE->Qhat_WhatRR);
+			finalize_Qhat_What(VL,NvnSL,NvnSL,0,FACE->Qhat_WhatLL);
+			finalize_Qhat_What(VL,NvnSL,NvnSR,0,FACE->Qhat_WhatRL);
+			finalize_Qhat_What(VR,NvnSR,NvnSL,0,FACE->Qhat_WhatLR);
+			finalize_Qhat_What(VR,NvnSR,NvnSR,0,FACE->Qhat_WhatRR);
 		}
 	}
 
@@ -311,6 +323,6 @@ static void implicit_GradW_finalize(void)
 		finalize_Qhat(VOLUME,NvnS,VOLUME->QhatV);
 
 //		finalize_Qhat(VOLUME,NvnS,NvnS,VOLUME->Qhat_What);
-		finalize_Qhat_What(VOLUME,NvnS,NvnS,VOLUME->QhatV_What);
+		finalize_Qhat_What(VOLUME,NvnS,NvnS,0,VOLUME->QhatV_What);
 	}
 }

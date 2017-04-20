@@ -103,8 +103,13 @@ void mm_diag_d(const unsigned int NRows, const unsigned int NCols, double const 
 	unsigned int i, j, iMax;
 
 	if (beta != 1.0) {
-		for (i = 0, iMax = NRows*NCols; i < iMax; i++)
-			Output[i] = beta*Output[i];
+		if (beta == 0) {
+			for (i = 0, iMax = NRows*NCols; i < iMax; i++)
+				Output[i] = 0.0;
+		} else {
+			for (i = 0, iMax = NRows*NCols; i < iMax; i++)
+				Output[i] = beta*Output[i];
+		}
 	}
 
 	if (layout == 'R') {

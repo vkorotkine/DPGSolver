@@ -22,7 +22,7 @@ struct S_VOLUME {
 
 	// Solving
 	unsigned int   IndA, nnz_d, nnz_o;
-	double         *RHS, *LHS, *wdetJV_vI, *MInv, *MInv_diag;
+	double         *RHS, *LHS, **LHSQ, *wdetJV_vI, *MInv, *MInv_diag;
 
 	// Linearization testing
 	double complex *RHS_c, *What_c, **Qhat_c, **QhatV_c, *uhat_c, **qhat_c;
