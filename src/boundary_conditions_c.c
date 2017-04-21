@@ -682,7 +682,7 @@ void boundary_NoSlip_Dirichlet_c(struct S_BC *const BCdata)
 		}
 
 if (0) {
-		printf("%f\n",creal(pL)); // Update if used (Entropy variables) (ToBeModified)
+		printf("%f %f\n",creal(pL),TB); // Update if used (Entropy variables) (ToBeModified)
 } else {
 		size_t IndW = 0;
 		double const rhoB = DB.rhoIn,

@@ -15,6 +15,7 @@ struct S_FACE {
 	double       *XYZ_fI, *XYZ_fS, *n_fI, *n_fS, *detJF_fI, *detJF_fS, *detJVIn_fI, *detJVOut_fI;
 
 	// Solving
+	char         CDG2_side;
 	unsigned int Boundary;
 	double       *RHSIn, *RHSOut, *LHSInIn, *LHSOutIn, *LHSInOut, *LHSOutOut,
 	             **QhatL, **QhatR, **Qhat_WhatLL, **Qhat_WhatRL, **Qhat_WhatLR, **Qhat_WhatRR;

@@ -154,7 +154,7 @@ static void implicit_GradW_FACE(void)
 		FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
 		FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
 
-		coef_to_values_fI(FDATAL,'W',0);
+		coef_to_values_fI(FDATAL,'W','I');
 		compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
 
 		// Compute numerical flux as seen from the left VOLUME

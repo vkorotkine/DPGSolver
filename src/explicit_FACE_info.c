@@ -90,7 +90,7 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 			FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
 			FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
 
-			coef_to_values_fI(FDATAL,'W',0);
+			coef_to_values_fI(FDATAL,'W','E');
 			compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
 
 
@@ -135,19 +135,8 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 
 static void compute_Viscous_FACE_RHS_EFE(void)
 {
-	/*
-	 *	Comments:
-	 *		It is currently hard-coded that the viscous flux has no dependence on the weak gradient. This is done so
-	 *		that element coupling is restricted to VOLUMEs and their immediate neighbours, maintaining the previous data
-	 *		structure when the linearization is computed.
-	 *
-	 *		See comments in implicit_FACE_info/compute_Viscous_FACE_EFE for description of CorrectedGradW.
-	 */
-
 	if (!DB.Viscous)
 		return;
-
-	bool const CorrectedGradW = 1;
 
 	unsigned int const d    = DB.d,
 	                   Nvar = DB.Nvar,
@@ -193,10 +182,9 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 			FDATAL->GradW_fIL = GradWL_fIL;
 			FDATAR->GradW_fIL = GradWR_fIL;
 
-			coef_to_values_fI(FDATAL,'W',0);
-			coef_to_values_fI(FDATAL,'Q',CorrectedGradW);
-			compute_WR_GradWR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,(double const *const *const) GradWL_fIL,GradWR_fIL,
-			                      CorrectedGradW);
+			coef_to_values_fI(FDATAL,'W','E');
+			coef_to_values_fI(FDATAL,'Q','E');
+			compute_WR_GradWR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,(double const *const *const) GradWL_fIL,GradWR_fIL,'E');
 
 
 			// Compute numerical flux as seen from the left VOLUME

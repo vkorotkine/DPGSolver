@@ -694,12 +694,23 @@ if (0) {
 
 		// Not working (ToBeModified)
 		size_t IndW = 0;
+if (0) {
 		*WB_ptr[IndW++] = -pB*V[4];
 		*WB_ptr[IndW++] =  pB*V[1];
 		*WB_ptr[IndW++] =  pB*V[2];
 		if (d == 3)
 			*WB_ptr[IndW++] = pB*V[3];
 		*WB_ptr[IndW++] = pB*(1.0/GM1-0.5*V2/V[4]);
+} else {
+printf("% .3e % .3e\n",pB,V[4]);
+//EXIT_BASIC;
+		*WB_ptr[IndW++] = -rhoL    + 2.0*(-pB*V[4]);
+		*WB_ptr[IndW++] = -rhoL*uL + 2.0*( pB*V[1]);
+		*WB_ptr[IndW++] = -rhoL*vL + 2.0*( pB*V[2]);
+		if (d == 3)
+			*WB_ptr[IndW++] = -rhoL*wL + 2.0*( pB*V[3]);
+		*WB_ptr[IndW++] = -EL + 2.0*(pB*(1.0/GM1-0.5*V2/V[4]));
+}
 } else {
 		// Not imposing ALL boundary conditions led to blow-up (either negative pressure or density). Imposing all
 		// boundary conditions (as below) seems inconsistent with the conclusions of Nordstrom(2005). Investigate.
@@ -817,16 +828,10 @@ void boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 	if (GradWL == NULL)
 		return;
 
-	if (strstr(DB.TestCase,"TaylorCouette")) {
-		// Set QB == QL but set the Energy equation component of the numerical flux to 0. Alternatively, set QB here
-		// such that the computed numerical flux is zero (More expensive and more difficult, but more general).
-		// (ToBeModified)
-		for (size_t dim = 0; dim < d; dim++) {
-			for (size_t n = 0; n < NnTotal*Nvar; n++) {
-				GradWB[dim][n] = GradWL[dim][n];
-			}
-		}
-	} else {
-		EXIT_UNSUPPORTED;
+	// Set QB == QL but set the Energy equation component of the numerical flux to 0. Alternatively, set QB here such
+	// that the computed numerical flux is zero (More expensive and more difficult, but more general). (ToBeModified)
+	for (size_t dim = 0; dim < d; dim++) {
+		for (size_t n = 0; n < NnTotal*Nvar; n++)
+			GradWB[dim][n] = GradWL[dim][n];
 	}
 }

@@ -91,8 +91,9 @@ struct S_NumericalFlux {
 };
 
 struct S_FDATA {
+	char         side;
 	unsigned int P, Vf, f, SpOp, Eclass, IndFType;
-	double       *W_fIL, **GradW_fIL, **QhatF;
+	double       *W_fIL, **GradW_fIL, **QhatF, **Q_WhatLL, **Q_WhatRL, **Q_WhatLR, **Q_WhatRR;
 
 	struct S_OPERATORS_F const *const *OPS;
 	struct S_VOLUME      const *VOLUME;
@@ -107,13 +108,12 @@ struct S_FDATA {
 extern void init_ops_FACE             (struct S_OPERATORS_F *const OPS, struct S_VOLUME const *const VOLUME,
                                        struct S_FACE const *const FACE, unsigned int const IndFType);
 extern void init_FDATA                (struct S_FDATA *const FDATA, struct S_FACE const *const FACE, char const side);
-extern void coef_to_values_fI         (struct S_FDATA const *const FDATA, char const coef_type,
-                                       bool const CorrectedGradW);
+extern void coef_to_values_fI         (struct S_FDATA *const FDATA, char const coef_type, char const imex_type);
 extern void compute_WR_fIL            (struct S_FDATA const *const FDATA, double const *const WL_fIL,
                                        double *const WR_fIL);
 extern void compute_WR_GradWR_fIL     (struct S_FDATA const *const FDATA, double const *const WL_fIL,
                                        double *const WR_fIL, double const *const *const GradWL_fIL,
-                                       double *const *const GradWR_fIL, bool const CorrectedGradW);
+                                       double *const *const GradWR_fIL, char const imex_type);
 
 extern void compute_numerical_flux         (struct S_FDATA const *const FDATA, char const imex_type);
 extern void compute_numerical_solution     (struct S_FDATA const *const FDATA, char const imex_type);

@@ -77,7 +77,7 @@ static void compute_Inviscid_FACE_EFE(void)
 			FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
 			FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
 
-			coef_to_values_fI(FDATAL,'W',0);
+			coef_to_values_fI(FDATAL,'W','I');
 			compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
 
 
@@ -134,25 +134,8 @@ static void compute_Inviscid_FACE_EFE(void)
 
 static void compute_Viscous_FACE_EFE(void)
 {
-	/*
-	 *	Comments:
-	 *		It is currently uncertain whether the local or partially corrected weak gradient should be used to compute
-	 *		the boundary conditions here. Using the local contribution QhatV gave good results during initial testing
-	 *		but adding the partial correction is perhaps more consistent with how the viscous numerical fluxes are
-	 *		evaluated. Currently only the use of the local weak gradient is supported. Investigate (ToBeModified).
-	 *
-	 *		Bassi(2005) appears to use the corrected gradient for the boundary condition evaluation as well (See eq.
-	 *		(77) and expanded terms).
-	 *
-	 *	References:
-	 *		Bassi(2005)-Discontinuous_Galerkin_Solution_of_the_Reynolds-Averaged_Navier-Stokes_and_k-w_Turbulence_Model_
-	 *		            Equations
-	 */
-
 	if (!DB.Viscous)
 		return;
-
-	bool const CorrectedGradW = 1;
 
 	unsigned int const d    = DB.d,
 	                   Nvar = d+2,
@@ -198,10 +181,9 @@ static void compute_Viscous_FACE_EFE(void)
 			FDATAL->GradW_fIL = GradWL_fIL;
 			FDATAR->GradW_fIL = GradWR_fIL;
 
-			coef_to_values_fI(FDATAL,'W',0);
-			coef_to_values_fI(FDATAL,'Q',CorrectedGradW);
-			compute_WR_GradWR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,(double const *const *const) GradWL_fIL,GradWR_fIL,
-			                      CorrectedGradW);
+			coef_to_values_fI(FDATAL,'W','I');
+			coef_to_values_fI(FDATAL,'Q','I');
+			compute_WR_GradWR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,(double const *const *const) GradWL_fIL,GradWR_fIL,'I');
 
 
 			// Compute numerical flux and its Jacobian as seen from the left VOLUME

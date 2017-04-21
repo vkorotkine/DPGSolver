@@ -43,7 +43,7 @@ static void compute_dFdW_cs(unsigned int const Nn, unsigned int const Nel, unsig
 	                   Nvar    = d+2,
 	                   NnTotal = Nn*Nel;
 
-	double complex **Q_c;
+	double complex **Q_c = NULL;
 	if (Q != NULL) {
 		Q_c = malloc(d * sizeof *Q_c); // free
 		for (size_t dim = 0; dim < d; dim++) {

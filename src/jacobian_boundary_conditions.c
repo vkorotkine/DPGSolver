@@ -992,17 +992,14 @@ void jacobian_boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 	                   NnTotal = Nn*Nel;
 
 	double const *const WL = BCdata->WL;
-	double       *const WB = BCdata->WB;
 
 	double *const dWBdWL = BCdata->dWBdWL,
 	       *      dWBdWL_ptr[Neq*Nvar];
 
 	double const *WL_ptr[Nvar];
-	double       *WB_ptr[Nvar];
 
 	for (size_t var = 0; var < Nvar; var++) {
 		WL_ptr[var] = &WL[var*NnTotal];
-		WB_ptr[var] = &WB[var*NnTotal];
 	}
 
 	double zeros[NnTotal];
@@ -1037,11 +1034,10 @@ void jacobian_boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 
 		             V2L = uL*uL+vL*vL+wL*wL;
 
-		double drhoLdW[Nvar], duLdW[Nvar], dvLdW[Nvar], dwLdW[Nvar], dELdW[Nvar], dpLdW[Nvar];
+		double drhoLdW[Nvar], duLdW[Nvar], dvLdW[Nvar], dwLdW[Nvar], dpLdW[Nvar];
 		if (d == 3) {
 			drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0; drhoLdW[4] = 0.0;
 			dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = -wL; dpLdW[4]   = 1.0;
-			dELdW[0]   = 0.0;     dELdW[1]   = 0.0; dELdW[2]   = 0.0; dELdW[3]   = 0.0; dELdW[4]   = 1.0;
 
 			duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;      duLdW[4] = 0.0;
 			dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;      dvLdW[4] = 0.0;
@@ -1049,7 +1045,6 @@ void jacobian_boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 		} else if (d == 2) {
 			drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0;
 			dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = 1.0;
-			dELdW[0]   = 0.0;     dELdW[1]   = 0.0; dELdW[2]   = 0.0; dELdW[3]   = 1.0;
 
 			duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;
 			dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;
