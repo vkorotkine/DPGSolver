@@ -33,6 +33,8 @@
 #include "array_free.h"
 #include "array_print.h"
 
+#include "array_norm.h" // ToBeDeleted
+
 /*
  *	Purpose:
  *		Provide solver related functions.
@@ -537,9 +539,9 @@ void finalize_VOLUME_LHSQV_Weak(struct S_VOLUME *const VOLUME)
 		if (eq != var)
 			continue;
 
-		size_t const Indeqvar = (eq*Nvar+var)*NvnS*NvnS;
+		size_t const Indev = (eq*Nvar+var)*NvnS*NvnS;
 		for (size_t dim = 0; dim < d; dim++) {
-			mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,1.0,1.0,VOLUME->LHSQ[dim],VOLUME->QhatV_What[dim],&VOLUME->LHS[Indeqvar]);
+			mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,1.0,1.0,&VOLUME->LHSQ[dim][Indev],VOLUME->QhatV_What[dim],&VOLUME->LHS[Indev]);
 		}
 	}}
 }
@@ -996,17 +998,17 @@ void compute_WR_fIL(struct S_FDATA const *const FDATA, double const *const WL_fI
 	struct S_OPERATORS_F const *const *const OPS  = FDATA->OPS;
 	struct S_FACE        const *const        FACE = FDATA->FACE;
 
-	unsigned int const d        = DB.d,
-	                   Nvar     = d+2,
-	                   IndFType = FDATA->IndFType,
-	                   BC       = FACE->BC,
-	                   NfnI     = OPS[IndFType]->NfnI,
+	unsigned int const d             = DB.d,
+	                   Nvar          = d+2,
+	                   IndFType      = FDATA->IndFType,
+	                   BC            = FACE->BC,
+	                   NfnI          = OPS[IndFType]->NfnI,
 	                   *const nOrdRL = OPS[IndFType]->nOrdRL;
 
 	double const *const XYZ_fIL = FACE->XYZ_fI,
 	             *const n_fIL   = FACE->n_fI;
 
-	if (BC == 0 || (BC % BC_STEP_SC > 50)) { // Internal/Periodic FACE
+	if (!FACE->Boundary) { // Internal/Periodic FACE
 		coef_to_values_fI((struct S_FDATA *const) FDATA,'W','E');
 		array_rearrange_d(NfnI,Nvar,nOrdRL,'C',WR_fIL);
 	} else { // Boundary FACE
@@ -1419,6 +1421,9 @@ static void correct_numerical_solution_strong(struct S_FDATA const *const FDATA,
 			}}}
 		}
 	} else if (side == 'R') {
+		if (FACE->Boundary)
+			EXIT_UNSUPPORTED;
+
 		for (size_t dim = 0; dim < d; dim++) {
 		for (size_t var = 0; var < Nvar; var++) {
 		for (size_t n = 0; n < NfnI; n++) {
@@ -1426,21 +1431,12 @@ static void correct_numerical_solution_strong(struct S_FDATA const *const FDATA,
 		}}}
 
 		if (imex_type == 'I') {
-			unsigned int eqMax, varMax;
-			if (FACE->Boundary) {
-				eqMax  = d+2;
-				varMax = d+2;
-			} else {
-				eqMax  = 1;
-				varMax = 1;
-			}
+			unsigned int const eqMax  = 1,
+			                   varMax = 1;
 
 			for (size_t dim = 0; dim < d; dim++) {
 			for (size_t eq = 0; eq < eqMax; eq++) {
 			for (size_t var = 0; var < varMax; var++) {
-				if (eq != var)
-					continue;
-
 				size_t const Indeqvar = (eq*Nvar+var)*NfnI;
 				for (size_t n = 0; n < NfnI; n++) {
 					dnSolNumdWL_fIL[dim][Indeqvar+n] += n_fIL[n*d+dim]*detJF_fIL[n];
@@ -1733,6 +1729,7 @@ void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const ime
 	 *		orientation as seen from the left VOLUME).
 	 *
 	 *	Comments:
+	 *		Potentially don't need to add scaling to d*d*R if on boundary. CHANGE BELOW (ToBeDeleted)
 	 *
 	 *	Notation:
 	 *		imex_type : (im)plicit (ex)plicit (type) indicates whether this function is being called for an implicit or
@@ -1742,6 +1739,7 @@ void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const ime
 	 *		            	'W' : Flux for inviscid contribution
 	 *		            	'Q' : Flux for viscous  contribution to the 1st equation of the mixed form
 	 *		            	'V' : Flux for viscous  contribution to the 2nd equation of the mixed form
+	 *		            	'P' : Flux Jacobians for viscous contribution to 2nd equation of the mixed form from Q
 	 */
 
 	if (!(imex_type == 'E' || imex_type == 'I'))
@@ -1819,6 +1817,36 @@ void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const ime
 				}}
 			}
 		}
+	} else if (coef_type == 'P') {
+		double *const *const dnFluxViscNumdQL_fIL = FDATA->NFluxData->dnFluxViscNumdQL_fI,
+		       *const *const dnFluxViscNumdQR_fIL = FDATA->NFluxData->dnFluxViscNumdQR_fI;
+
+		if (imex_type == 'E') {
+			EXIT_UNSUPPORTED;
+		} else if (imex_type == 'I') {
+			if (FACE->Boundary) {
+				for (size_t dim = 0; dim < d; dim++) {
+					for (size_t eq = 0; eq < Neq; eq++) {
+					for (size_t var = 0; var < Nvar; var++) {
+						size_t const InddnFdQ = (eq*Nvar+var)*NfnI;
+						for (size_t n = 0; n < NfnI; n++) {
+							dnFluxViscNumdQL_fIL[dim][InddnFdQ+n] *= detJF_fIL[n];
+						}
+					}}
+				}
+			} else {
+				for (size_t dim = 0; dim < d; dim++) {
+					for (size_t eq = 0; eq < Neq; eq++) {
+					for (size_t var = 0; var < Nvar; var++) {
+						size_t const InddnFdQ = (eq*Nvar+var)*NfnI;
+						for (size_t n = 0; n < NfnI; n++) {
+							dnFluxViscNumdQL_fIL[dim][InddnFdQ+n] *= detJF_fIL[n];
+							dnFluxViscNumdQR_fIL[dim][InddnFdQ+n] *= detJF_fIL[n];
+						}
+					}}
+				}
+			}
+		}
 	} else {
 		EXIT_UNSUPPORTED;
 	}
@@ -1832,7 +1860,7 @@ static void swap_FACE_orientation(struct S_FDATA const *const FDATA, char const 
 	 *
 	 *	Comments:
 	 *		Note that the arrays are negated to account for the normal being negative when seen by the opposite VOLUME.
-
+	 *
 	 *	Notation:
 	 *		imex_type : (im)plicit (ex)plicit (type) indicates whether this function is being called for an implicit or
 	 *		            explicit computation.
@@ -1947,13 +1975,8 @@ static void compute_LHS_FACE_Inviscid_Weak(unsigned int const NRows, unsigned in
 
 	for (size_t eq = 0; eq < Neq; eq++) {
 	for (size_t var = 0; var < Nvar; var++) {
-		size_t const Indeqvar = eq*Nvar+var,
-		             InddnFdWL = Indeqvar*Nn;
-		for (size_t i = 0; i < NRows; i++) {
-			size_t const IndI = i*Nn;
-			for (size_t j = 0; j < Nn; j++)
-				IdnFdW[IndI+j] = I_FF[IndI+j]*dnFluxNumdW_fI[InddnFdWL+j];
-		}
+		size_t const Indeqvar = eq*Nvar+var;
+		mm_diag_d(NRows,Nn,&dnFluxNumdW_fI[Indeqvar*Nn],I_FF,IdnFdW,1.0,0.0,'R','R');
 
 		size_t const IndLHS = Indeqvar*NRows*NCols;
 		mm_d(CBRM,CBNT,CBNT,NRows,NCols,Nn,1.0,1.0,IdnFdW,ChiS_fI,&LHS[IndLHS]);
@@ -2178,6 +2201,7 @@ static void compute_LHS_QhatF_Weak(unsigned int const NRows, unsigned int const 
 		mm_diag_d(NRows,Nn,&dnSolNumdW_fI[dim][Indeqvar*Nn],I_FF,IdnFdW,1.0,0.0,'R','R');
 
 		size_t const IndQ_W = Indeqvar*NRows*NCols;
+		// Note that there is a minus sign included in the definition of I_Weak_FF.
 		mm_d(CBRM,CBNT,CBNT,NRows,NCols,Nn,-1.0,0.0,IdnFdW,ChiS_fI,&Qhat_What[dim][IndQ_W]);
 	}}}
 }
@@ -2333,6 +2357,9 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 
 			free(IdnFdW);
 		} else if (side == 'R') {
+			if (FACE->Boundary)
+				EXIT_UNSUPPORTED;
+
 			double const *      ChiS_fI;
 			double const *const *const dnSolNumdWL_fI = (double const *const *const) FDATAL->NFluxData->dnSolNumdWL_fI;
 			double const *const *const dnSolNumdWR_fI = (double const *const *const) FDATAL->NFluxData->dnSolNumdWR_fI;
@@ -2448,7 +2475,7 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 	 *
 	 *	Comments:
 	 *		Again, very similar to other finalize_* functions where the linearization with respect to Q is used and the
-	 *		right operator is given by Q_What (as opposed to ChiS_fI.
+	 *		right operator is given by Q_What (as opposed to ChiS_fI).
 	 */
 
 	struct S_FACE const *const FACE = FDATAL->FACE;
@@ -2457,9 +2484,9 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 	                           *const *const OPSR = (struct S_OPERATORS_F const *const *const) FDATAR->OPS;
 	struct S_NumericalFlux const *const NFluxData = (struct S_NumericalFlux const *const) FDATAL->NFluxData;
 
-	unsigned int const d   = DB.d,
-	                   VfL = FDATAL->Vf,
-	                   VfR = FDATAR->Vf,
+	unsigned int const d        = DB.d,
+	                   VfL      = FDATAL->Vf,
+	                   VfR      = FDATAR->Vf,
 	                   Boundary = FACE->Boundary,
 	                   IndFType = FDATAL->IndFType,
 	                   NfnI     = OPSL[IndFType]->NfnI;
@@ -2541,24 +2568,27 @@ void finalize_VOLUME_LHSQF_Weak(struct S_FACE *const FACE)
 		if (FACE->Boundary) {
 			size_t const IndLHS = Indeqvar*NvnSL*NvnSL;
 			for (size_t dim = 0; dim < d; dim++) {
-				mm_d(CBRM,CBNT,CBNT,NvnSL,NvnSL,NvnSL,1.0,1.0,VL->LHSQ[dim],&FACE->Qhat_WhatLL[dim][IndLHS],&VL->LHS[IndLHS]);
+				mm_d(CBRM,CBNT,CBNT,NvnSL,NvnSL,NvnSL,1.0,1.0,&VL->LHSQ[dim][IndLHS],&FACE->Qhat_WhatLL[dim][IndLHS],&VL->LHS[IndLHS]);
 			}
 		} else {
 			if (eq != var)
 				continue;
 
 			unsigned int const NvnSR = VR->NvnS;
-			size_t IndLHS;
+			size_t IndLHS, IndLHSQ;
 			for (size_t dim = 0; dim < d; dim++) {
 				IndLHS = Indeqvar*NvnSL*NvnSL;
-				mm_d(CBRM,CBNT,CBNT,NvnSL,NvnSL,NvnSL,1.0,1.0,VL->LHSQ[dim],FACE->Qhat_WhatLL[dim],&VL->LHS[IndLHS]);
+				mm_d(CBRM,CBNT,CBNT,NvnSL,NvnSL,NvnSL,1.0,1.0,&VL->LHSQ[dim][IndLHS],FACE->Qhat_WhatLL[dim],&VL->LHS[IndLHS]);
 
 				IndLHS = Indeqvar*NvnSL*NvnSR;
-				mm_d(CBRM,CBNT,CBNT,NvnSL,NvnSR,NvnSL,1.0,1.0,VL->LHSQ[dim],FACE->Qhat_WhatRL[dim],&FACE->LHSOutIn[IndLHS]);
-				mm_d(CBRM,CBNT,CBNT,NvnSR,NvnSL,NvnSR,1.0,1.0,VR->LHSQ[dim],FACE->Qhat_WhatLR[dim],&FACE->LHSInOut[IndLHS]);
+				IndLHSQ = Indeqvar*NvnSL*NvnSL;
+				mm_d(CBRM,CBNT,CBNT,NvnSL,NvnSR,NvnSL,1.0,1.0,&VL->LHSQ[dim][IndLHSQ],FACE->Qhat_WhatRL[dim],&FACE->LHSOutIn[IndLHS]);
+
+				IndLHSQ = Indeqvar*NvnSR*NvnSR;
+				mm_d(CBRM,CBNT,CBNT,NvnSR,NvnSL,NvnSR,1.0,1.0,&VR->LHSQ[dim][IndLHSQ],FACE->Qhat_WhatLR[dim],&FACE->LHSInOut[IndLHS]);
 
 				IndLHS = Indeqvar*NvnSR*NvnSR;
-				mm_d(CBRM,CBNT,CBNT,NvnSR,NvnSR,NvnSR,1.0,1.0,VR->LHSQ[dim],FACE->Qhat_WhatRR[dim],&VR->LHS[IndLHS]);
+				mm_d(CBRM,CBNT,CBNT,NvnSR,NvnSR,NvnSR,1.0,1.0,&VR->LHSQ[dim][IndLHS],FACE->Qhat_WhatRR[dim],&VR->LHS[IndLHS]);
 			}
 		}
 	}}

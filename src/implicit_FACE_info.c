@@ -205,6 +205,7 @@ static void compute_Viscous_FACE_EFE(void)
 
 			compute_numerical_flux_viscous(FDATAL,FDATAR,'I');
 			add_Jacobian_scaling_FACE(FDATAL,'I','V');
+			add_Jacobian_scaling_FACE(FDATAL,'I','P');
 
 			free(FDATAL->W_fIL);
 			free(FDATAR->W_fIL);
