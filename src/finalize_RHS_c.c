@@ -158,6 +158,7 @@ void finalize_RHS_c(void)
 			}
 		}
 
+		// ToBeDeleted (2 lines below)
 		free(FACE->RHSIn_c);  FACE->RHSIn_c  = NULL;
 		free(FACE->RHSOut_c); FACE->RHSOut_c = NULL;
 	}

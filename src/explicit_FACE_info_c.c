@@ -38,14 +38,14 @@ void explicit_FACE_info_c(void)
 
 static void compute_Inviscid_FACE_RHS_EFE(void)
 {
-	unsigned int Nvar = DB.Nvar,
-	             Neq  = DB.Neq;
+	unsigned int const d    = DB.d,
+	                   Neq  = d+2,
+	                   Nvar = d+2;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
-	struct S_FACE     *FACE;
 
-	struct S_FDATA *FDATAL = malloc(sizeof *FDATAL), // free
-	               *FDATAR = malloc(sizeof *FDATAR); // free
+	struct S_FDATA *const FDATAL = malloc(sizeof *FDATAL), // free
+	               *const FDATAR = malloc(sizeof *FDATAR); // free
 	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
 	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
@@ -59,7 +59,7 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 	}
 
 	if (strstr(DB.Form,"Weak")) {
-		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
 			init_FDATA(FDATAL,FACE,'L');
 			init_FDATA(FDATAR,FACE,'R');
 
@@ -70,7 +70,7 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 			FDATAL->W_fIL_c = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL_c)), // free
 			FDATAR->W_fIL_c = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL_c)); // free
 
-			coef_to_values_fI_c(FDATAL,'W');
+			coef_to_values_fI_c(FDATAL,'W','E');
 			compute_WR_fIL_c(FDATAR,FDATAL->W_fIL_c,FDATAR->W_fIL_c);
 
 
@@ -93,8 +93,8 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 			if (FACE->RHSIn_c != NULL)
 				free(FACE->RHSIn_c);
 			FACE->RHSIn_c = calloc(NvnSL*Neq , sizeof *(FACE->RHSIn_c)); // keep
-
 			finalize_FACE_Inviscid_Weak_c(FDATAL,FDATAR,NFluxData->nFluxNum_fI_c,'L','E','W');
+
 			if (!FACE->Boundary) {
 				if (FACE->RHSOut_c != NULL)
 					free(FACE->RHSOut_c);
@@ -120,6 +120,8 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 
 static void compute_Viscous_FACE_RHS_EFE(void)
 {
+	// Potentially change name of GradW(L/R) to Qp(L/R) (ToBeDeleted)
+
 	if (!DB.Viscous)
 		return;
 
@@ -167,10 +169,10 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 			FDATAL->GradW_fIL_c = GradWL_fIL_c;
 			FDATAR->GradW_fIL_c = GradWR_fIL_c;
 
-			coef_to_values_fI_c(FDATAL,'W');
-			coef_to_values_fI_c(FDATAL,'Q');
+			coef_to_values_fI_c(FDATAL,'W','E');
+			coef_to_values_fI_c(FDATAL,'Q','E');
 			compute_WR_GradWR_fIL_c(FDATAR,FDATAL->W_fIL_c,FDATAR->W_fIL_c,
-			                        (double complex const *const *const) GradWL_fIL_c,GradWR_fIL_c);
+			                        (double complex const *const *const) GradWL_fIL_c,GradWR_fIL_c,'E');
 
 
 			// Compute numerical flux as seen from the left VOLUME

@@ -9,11 +9,10 @@
 #include "petscmat.h"
 
 struct S_linearization {
-	bool         update_argv, CheckSymmetric, PrintEnabled, TestTRI, CheckFullLinearization;
+	bool         update_argv, CheckSymmetric, PrintEnabled, TestTRI, CheckFullLinearization, CheckWeakGradients;
 	char         **argvNew, *PrintName;
 	unsigned int Nref, PGlobal, ML, PG_add, IntOrder_mult;
 	int          nargc;
-
 
 	Mat A, A_cs, A_csc;
 	Vec b, b_cs, b_csc, x, x_cs, x_csc;

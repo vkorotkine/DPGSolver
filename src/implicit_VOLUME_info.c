@@ -59,6 +59,7 @@ void implicit_VOLUME_info(void)
 
 void implicit_VOLUME_Q_info(void)
 {
+if (0) // This is included in compute_Viscous_VOLUME_EFE
 	compute_Viscous_VOLUME_VOLUME_EFE();
 }
 
@@ -177,8 +178,8 @@ static void compute_Viscous_VOLUME_EFE(void)
 				dFdQ_vI[dim] = malloc(NvnI*d*Nvar*Neq * sizeof *dFdQ_vI[dim]); // free
 
 // Consider combining flux_viscous and jacobian_flux_viscous (ToBeDeleted)
-			flux_viscous(NvnI,1,VDATA->W_vI,(const double *const *const) VDATA->Q_vI,F_vI);
-			jacobian_flux_viscous(NvnI,1,VDATA->W_vI,(const double *const *const) VDATA->Q_vI,dFdW_vI,dFdQ_vI);
+			flux_viscous(NvnI,1,VDATA->W_vI,(double const *const *const) VDATA->Q_vI,F_vI);
+			jacobian_flux_viscous(NvnI,1,VDATA->W_vI,(double const *const *const) VDATA->Q_vI,dFdW_vI,dFdQ_vI);
 
 			if (!DB.Collocated) {
 				free(VDATA->W_vI);
@@ -196,7 +197,7 @@ static void compute_Viscous_VOLUME_EFE(void)
 
 			double **const dFrdQ_vI = malloc(d * sizeof *dFrdQ_vI); // free
 			for (size_t dim = 0; dim < d; dim++) {
-				dFrdQ_vI[dim] = malloc(NvnI*d*Nvar*Neq * sizeof *dFrdW_vI); // free
+				dFrdQ_vI[dim] = malloc(NvnI*d*Nvar*Neq * sizeof *dFrdQ_vI[dim]); // free
 				convert_between_rp(NvnI,Nvar*Neq,VOLUME->C_vI,dFdQ_vI[dim],dFrdQ_vI[dim],"FluxToRef");
 			}
 			array_free2_d(d,dFdQ_vI);
@@ -205,18 +206,17 @@ static void compute_Viscous_VOLUME_EFE(void)
 			unsigned int NvnS = VDATA->OPS[0]->NvnS;
 
 			// RHS
-			memset(VOLUME->RHS,0.0,NvnS*Neq * sizeof *(VOLUME->RHS));
 			finalize_VOLUME_Viscous_Weak(Neq,Fr_vI,VOLUME->RHS,'E',VDATA);
 			free(Fr_vI);
 
 			// LHS
-			memset(VOLUME->LHS,0.0,NvnS*NvnS*Neq*Nvar * sizeof *(VOLUME->LHS));
 			finalize_VOLUME_Viscous_Weak(NvnS*Neq*Nvar,dFrdW_vI,VOLUME->LHS,'I',VDATA);
 			free(dFrdW_vI);
 
 			for (size_t dim = 0; dim < d; dim++)
-				memset(VOLUME->LHSQ[dim],0.0,NvnS*NvnS*Neq*Nvar * sizeof *(VOLUME->LHSQ));
+				memset(VOLUME->LHSQ[dim],0.0,NvnS*NvnS*Neq*Nvar * sizeof *(VOLUME->LHSQ[dim]));
 			initialize_VOLUME_LHSQ_Weak(NvnS*Neq*Nvar,(double const *const *const) dFrdQ_vI,VOLUME->LHSQ,VDATA);
+			finalize_VOLUME_LHSQV_Weak(VOLUME);
 			array_free2_d(d,dFrdQ_vI);
 		}
 	} else if (strstr(DB.Form,"Strong")) {

@@ -177,9 +177,12 @@ static void implicit_GradW_FACE(void)
 		compute_numerical_solution(FDATAL,'I');
 		add_Jacobian_scaling_FACE(FDATAL,'I','Q');
 
+		finalize_QhatF_Weak(FDATAL,FDATAR,'L','E',FORM_MF1);
 		finalize_QhatF_Weak(FDATAL,FDATAR,'L','I',FORM_MF1);
-		if (!FACE->Boundary)
+		if (!FACE->Boundary) {
+			finalize_QhatF_Weak(FDATAL,FDATAR,'R','E',FORM_MF1);
 			finalize_QhatF_Weak(FDATAL,FDATAR,'R','I',FORM_MF1);
+		}
 
 		free(FDATAL->W_fIL);
 		free(FDATAR->W_fIL);
@@ -322,7 +325,7 @@ static void implicit_GradW_finalize(void)
 		finalize_Qhat(VOLUME,NvnS,VOLUME->Qhat);
 		finalize_Qhat(VOLUME,NvnS,VOLUME->QhatV);
 
-//		finalize_Qhat(VOLUME,NvnS,NvnS,VOLUME->Qhat_What);
+//		finalize_Qhat_What(VOLUME,NvnS,NvnS,VOLUME->Qhat_What);
 		finalize_Qhat_What(VOLUME,NvnS,NvnS,0,VOLUME->QhatV_What);
 	}
 }

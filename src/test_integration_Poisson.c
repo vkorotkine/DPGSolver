@@ -131,7 +131,7 @@ void test_integration_Poisson(int nargc, char **argv)
 
 		free(data_l);
 	} else {
-		test_print_warning("Poisson linearization tests not being run");
+		test_print_warning("Euler linearization testing currently disabled");
 	}
 
 	// **************************************************************************************************** //
@@ -149,7 +149,7 @@ void test_integration_Poisson(int nargc, char **argv)
 
 		free(data_c);
 	} else {
-		test_print_warning("Poisson convergence order tests not being run");
+		test_print_warning("Poisson convergence order testing currently disabled");
 	}
 
 	array_free2_c(2,argvNew);

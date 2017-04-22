@@ -39,6 +39,7 @@ void implicit_FACE_info(void)
 
 void implicit_FACE_Q_info(void)
 {
+if (0) // Included in compute_Viscous_FACE_EFE
 	compute_Viscous_VOLUME_FACE_EFE();
 }
 
@@ -134,6 +135,8 @@ static void compute_Inviscid_FACE_EFE(void)
 
 static void compute_Viscous_FACE_EFE(void)
 {
+	// Potentially change name of GradW(L/R) to Qp(L/R) (ToBeDeleted)
+
 	if (!DB.Viscous)
 		return;
 
@@ -192,6 +195,13 @@ static void compute_Viscous_FACE_EFE(void)
 			NFluxData->nFluxViscNum_fI     = malloc(NfnI*Neq      * sizeof *(NFluxData->nFluxViscNum_fI));     // free
 			NFluxData->dnFluxViscNumdWL_fI = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdWL_fI)); // free
 			NFluxData->dnFluxViscNumdWR_fI = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdWR_fI)); // free
+			NFluxData->dnFluxViscNumdQL_fI = malloc(d             * sizeof *(NFluxData->dnFluxViscNumdQL_fI)); // free
+			NFluxData->dnFluxViscNumdQR_fI = malloc(d             * sizeof *(NFluxData->dnFluxViscNumdQR_fI)); // free
+
+			for (size_t dim = 0; dim < d; dim++) {
+				NFluxData->dnFluxViscNumdQL_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdQL_fI[dim])); // free
+				NFluxData->dnFluxViscNumdQR_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdQR_fI[dim])); // free
+			}
 
 			compute_numerical_flux_viscous(FDATAL,FDATAR,'I');
 			add_Jacobian_scaling_FACE(FDATAL,'I','V');
@@ -205,14 +215,20 @@ static void compute_Viscous_FACE_EFE(void)
 			// Compute FACE RHS and LHS terms
 			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'L','E','V');
 			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->dnFluxViscNumdWL_fI,NFluxData->dnFluxViscNumdWR_fI,'L','I','V');
+			finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'L');
 
 			if (!FACE->Boundary) {
 				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'R','E','V');
 				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->dnFluxViscNumdWL_fI,NFluxData->dnFluxViscNumdWR_fI,'R','I','V');
+				finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'R');
 			}
 			free(NFluxData->nFluxViscNum_fI);
 			free(NFluxData->dnFluxViscNumdWL_fI);
 			free(NFluxData->dnFluxViscNumdWR_fI);
+			array_free2_d(d,NFluxData->dnFluxViscNumdQL_fI);
+			array_free2_d(d,NFluxData->dnFluxViscNumdQR_fI);
+
+			finalize_VOLUME_LHSQF_Weak(FACE);
 		}
 	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;

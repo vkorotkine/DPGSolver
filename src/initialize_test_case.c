@@ -235,6 +235,7 @@ void initialize_test_case_parameters(void)
 		DB.Nvar = d+2;
 		DB.Neq  = d+2;
 
+		DB.Viscous = 0;
 		DB.SourcePresent = 0;
 
 		if (strstr(PDESpecifier,"Periodic")) {

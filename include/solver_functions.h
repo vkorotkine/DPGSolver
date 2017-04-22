@@ -83,7 +83,8 @@ struct S_NumericalFlux {
 	double const *WL_fIL, *WR_fIL;
 	double       *nFluxNum_fI,     *dnFluxNumdWL_fI,     *dnFluxNumdWR_fI,
 	             **nSolNum_fI,     **dnSolNumdWL_fI,     **dnSolNumdWR_fI,
-	             *nFluxViscNum_fI, *dnFluxViscNumdWL_fI, *dnFluxViscNumdWR_fI;
+	             *nFluxViscNum_fI, *dnFluxViscNumdWL_fI, *dnFluxViscNumdWR_fI,
+	             **dnFluxViscNumdQL_fI, **dnFluxViscNumdQR_fI;
 
 	// Only used for verification.
 	double complex const *WL_fIL_c, *WR_fIL_c;
@@ -102,7 +103,7 @@ struct S_FDATA {
 	struct S_NumericalFlux const *NFluxData;
 
 	// Only used for verification.
-	double complex *W_fIL_c, **GradW_fIL_c;
+	double complex *W_fIL_c, **GradW_fIL_c, **QhatF_c;
 };
 
 extern void init_ops_FACE             (struct S_OPERATORS_F *const OPS, struct S_VOLUME const *const VOLUME,
@@ -129,6 +130,8 @@ extern void finalize_QhatF_Weak         (struct S_FDATA const *const FDATAL, str
 extern void finalize_FACE_Viscous_Weak  (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
                                          double *const nANumL_fI, double *const nANumR_fI, char const side,
                                          char const imex_type, char const coef_type);
+extern void finalize_implicit_FACE_Q_Weak (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
+                                           char const side);
 extern void finalize_VOLUME_LHSQF_Weak  (struct S_FACE *const FACE);
 
 #endif // DPG__solver_functions_h__INCLUDED

@@ -986,7 +986,10 @@ void set_PrintName(char *name_type, char *PrintName, bool *TestTRI)
 		} else if (strstr(name_type,"equiv_alg")) {
 			strcpy(PrintName,"Equivalence Algorithms (");
 		} else if (strstr(name_type,"linearization")) {
-			strcpy(PrintName,"Linearization (");
+			if (strstr(name_type,"weak gradient"))
+				strcpy(PrintName,"Linearization (weak grad.) (");
+			else
+				strcpy(PrintName,"Linearization (");
 		} else {
 			EXIT_UNSUPPORTED;
 		}
@@ -994,7 +997,10 @@ void set_PrintName(char *name_type, char *PrintName, bool *TestTRI)
 		if (strstr(name_type,"conv_orders")) {
 			strcpy(PrintName,"                   (");
 		} else if (strstr(name_type,"linearization")) {
-			strcpy(PrintName,"              (");
+			if (strstr(name_type,"weak gradient"))
+				strcpy(PrintName,"                           (");
+			else
+				strcpy(PrintName,"              (");
 		} else {
 			EXIT_UNSUPPORTED;
 		}

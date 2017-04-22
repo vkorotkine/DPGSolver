@@ -13,6 +13,7 @@
 #include "Test.h"
 
 #include "test_code_integration.h"
+#include "test_code_integration_equivalence_real_complex.h"
 #include "test_code_integration_linearization.h"
 #include "test_code_integration_conv_order.h"
 #include "test_support.h"
@@ -34,8 +35,10 @@
 /*
  *	Purpose:
  *		Test various aspects of the Navier-Stokes solver implementation:
- *			1) Linearization
- *			2) Optimal convergence orders
+ *			- Equivalence between real and complex versions of functions;
+ *			- Equivalence between running using different algorithms (with different flop counts);
+ *			- Linearization;
+ *			- Optimal convergence orders.
  *
  *	Comments:
  *
@@ -46,7 +49,7 @@
 
 void test_integration_NavierStokes(int nargc, char **argv)
 {
-	bool const RunTests_equivalence_real_complex = 1,
+	bool const RunTests_equivalence_real_complex = 0,
 	           RunTests_equivalence_algorithms   = 1,
 	           RunTests_linearization            = 1,
 	           RunTests_conv_order               = 1;
@@ -65,8 +68,16 @@ void test_integration_NavierStokes(int nargc, char **argv)
 	// Real/Complex Equivalence
 	// **************************************************************************************************** //
 	if (RunTests_equivalence_real_complex) {
-		test_print_warning("Equivalence real vs complex not yet implemented for Navier-Stokes");
-		// Make sure that all supported viscous fluxes are tested (BR2/CDG2)
+		struct S_equivalence_rc *const data_rc = calloc(1 , sizeof *data_rc); // free
+		data_rc->nargc     = nargc;
+		data_rc->argvNew   = argvNew;
+		data_rc->PrintName = PrintName;
+
+		test_equivalence_real_complex(data_rc,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedTRI");
+
+		free(data_rc);
+	} else {
+		test_print_warning("Navier-Stokes equivalence real/complex testing currently disabled");
 	}
 
 	// **************************************************************************************************** //
@@ -84,7 +95,7 @@ struct S_convorder *const data_c = calloc(1 , sizeof *data_c); // free
 data_c->nargc     = nargc;
 data_c->argvNew   = argvNew;
 data_c->PrintName = PrintName;
-//if (0)
+if (0)
 test_conv_order(data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedTRI");
 free(data_c);
 		struct S_linearization *const data_l = calloc(1 , sizeof *data_l); // free

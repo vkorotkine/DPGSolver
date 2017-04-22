@@ -54,7 +54,6 @@ static void compute_dWdW_cs(const unsigned int Neq, const unsigned int Nn, const
 		Wp[i] = W[i];
 
 	for (var = 0; var < Nvar; var++) {
-//	for (var = 0; var < 1; var++) {
 		IndW = NnTotal*var;
 		for (n = 0; n < NnTotal; n++)
 			Wp[IndW+n] += h*I;
@@ -162,7 +161,7 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 
 	if (strstr(BType,"Riemann")) {
 		CheckedAll = 1;
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < TEST_N_RIEMANN; i++) {
 			if (!TestDB.EnteredRiemann[i]) {
 				CheckedAll = 0;
 				break;
@@ -173,7 +172,7 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 			pass = 1;
 	} else if (strstr(BType,"BackPressure")) {
 		CheckedAll = 1;
-		for (i = 0; i < 2; i++) {
+		for (i = 0; i < TEST_N_BACKPRESSURE; i++) {
 			if (!TestDB.EnteredBackPressure[i]) {
 				CheckedAll = 0;
 				break;
@@ -314,10 +313,10 @@ void test_unit_jacobian_boundary(void)
 
 		for (d = dMin[i]; d <= dMax[i]; d++) {
 			if (strstr(BType[i],"Riemann")) {
-				for (j = 0; j < 4; j++)
+				for (j = 0; j < TEST_N_RIEMANN; j++)
 					TestDB.EnteredRiemann[j] = 0;
 			} else if (strstr(BType[i],"BackPressure")) {
-				for (j = 0; j < 2; j++)
+				for (j = 0; j < TEST_N_BACKPRESSURE; j++)
 					TestDB.EnteredBackPressure[j] = 0;
 			}
 

@@ -347,7 +347,7 @@ static unsigned int compare_jacobian_flux_Num(const unsigned int Nn, const unsig
 
 	if (strstr(nFType,"LF")) {
 		CheckedAllLF = 1;
-		for (i = 0; i < 2; i++) {
+		for (i = 0; i < TEST_N_LF; i++) {
 			if (!TestDB.EnteredLF[i]) {
 				CheckedAllLF = 0;
 				break;
@@ -359,7 +359,7 @@ static unsigned int compare_jacobian_flux_Num(const unsigned int Nn, const unsig
 				pass = 1;
 	} else if (strstr(nFType,"Roe")) {
 		CheckedAllRoe = 1;
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < TEST_N_ROE; i++) {
 			if (!TestDB.EnteredRoe[i]) {
 				CheckedAllRoe = 0;
 				break;
@@ -420,12 +420,16 @@ void test_unit_jacobian_fluxes(void)
 
 
 		// flux_LF
+		for (size_t i = 0; i < TEST_N_LF; i++)
+			TestDB.EnteredLF[i] = 0;
 		pass = compare_jacobian_flux_Num(Nn,Nel,d,Neq,W,nL,"LF");
 		sprintf(PrintName,"         flux_LF              :");
 		test_print2(pass,PrintName);
 
 
 		// flux_Roe
+		for (size_t i = 0; i < TEST_N_ROE; i++)
+			TestDB.EnteredRoe[i] = 0;
 		pass = compare_jacobian_flux_Num(Nn,Nel,d,Neq,W,nL,"Roe");
 		sprintf(PrintName,"         flux_Roe             :");
 		test_print2(pass,PrintName);

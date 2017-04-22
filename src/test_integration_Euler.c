@@ -12,6 +12,7 @@
 #include "Test.h"
 
 #include "test_code_integration.h"
+#include "test_code_integration_equivalence_real_complex.h"
 #include "test_code_integration_linearization.h"
 #include "test_code_integration_conv_order.h"
 #include "test_support.h"
@@ -63,67 +64,6 @@ static void set_test_equivalence_data(struct S_equivalence *data, const char *Te
 	} else {
 		EXIT_UNSUPPORTED;
 	}
-}
-
-static void test_equivalence_rc(int const nargc, char const *const *const argvNew, char const *const TestName,
-                                struct S_equivalence *const data)
-{
-	/*
-	 *	Expected Output:
-	 *		Correspondence between RHS terms computed using real and complex functions.
-	 */
-
-	set_test_equivalence_data(data,TestName);
-
-	TestDB.PGlobal = data->P;
-	TestDB.ML      = data->ML;
-	TestDB.PG_add        = data->PG_add;
-	TestDB.IntOrder_add  = data->IntOrder_add;
-	TestDB.IntOrder_mult = data->IntOrder_mult;
-
-	code_startup(nargc,argvNew,0,2);
-	mesh_to_level(TestDB.ML);
-	mesh_to_order(TestDB.PGlobal);
-
-	unsigned int Nvar = DB.Nvar;
-
-	// Copy What to What_c
-	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		unsigned int NvnS = VOLUME->NvnS;
-
-		if (VOLUME->What_c)
-			free(VOLUME->What_c);
-		VOLUME->What_c = malloc(NvnS*Nvar * sizeof *(VOLUME->What_c));
-
-		for (size_t i = 0, iMax = NvnS*Nvar; i < iMax; i++)
-			VOLUME->What_c[i] = VOLUME->What[i];
-	}
-
-	// Compute RHS terms using the real and complex functions
-	explicit_VOLUME_info();
-	explicit_FACE_info();
-
-	explicit_VOLUME_info_c();
-	explicit_FACE_info_c();
-
-	// Check for equivalence
-	unsigned int pass = 1;
-	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		unsigned int NvnS = VOLUME->NvnS;
-
-		if (array_norm_diff_dc(NvnS*Nvar,VOLUME->RHS,VOLUME->RHS_c,"Inf") > EPS ||
-		    array_norm_d(NvnS*Nvar,VOLUME->RHS,"Inf") < EPS) {
-			array_print_d(NvnS,Nvar,VOLUME->RHS,'C');
-			array_print_cmplx(NvnS,Nvar,VOLUME->RHS_c,'C');
-			pass = 0;
-			break;
-		}
-	}
-
-	set_PrintName("equiv_rc",data->PrintName,&data->TestTRI);
-	code_cleanup();
-
-	test_print2(pass,data->PrintName);
 }
 
 static void test_equivalence_alg(int const nargc, char const *const *const argvNew, char const *const TestName,
@@ -289,13 +229,16 @@ void test_integration_Euler(int nargc, char **argv)
 	// Real/Complex Equivalence
 	// **************************************************************************************************** //
 	if (RunTests_equivalence_real_complex) {
-		struct S_equivalence *const data_rc = calloc(1 , sizeof *data_rc); // free
+		struct S_equivalence_rc *const data_rc = calloc(1 , sizeof *data_rc); // free
+		data_rc->nargc     = nargc;
 		data_rc->argvNew   = argvNew;
 		data_rc->PrintName = PrintName;
 
-		test_equivalence_rc(nargc,(char const *const *const) argvNew,"n-Cylinder_HollowSection_CurvedMIXED2D",data_rc);
+		test_equivalence_real_complex(data_rc,"Euler_n-Cylinder_HollowSection_CurvedMIXED2D");
 
 		free(data_rc);
+	} else {
+		test_print_warning("Euler equivalence real/complex testing currently disabled");
 	}
 
 	// **************************************************************************************************** //
@@ -313,6 +256,8 @@ void test_integration_Euler(int nargc, char **argv)
 		test_print_warning("Equivalence of WEDGE sum factorized computation is currently not being checked");
 
 		free(data_alg);
+	} else {
+		test_print_warning("Euler equivalence algorithms testing currently disabled");
 	}
 
 	// **************************************************************************************************** //
@@ -335,6 +280,8 @@ if (test_3D) {
 }
 
 		free(data_l);
+	} else {
+		test_print_warning("Euler linearization testing currently disabled");
 	}
 
 	// **************************************************************************************************** //
@@ -367,6 +314,8 @@ if (PeriodicVortexOnly)
 		test_print_warning("Add all integration tests for PeriodicVortex case (Stationary and moving)");
 
 		free(data_c);
+	} else {
+		test_print_warning("Euler convergence order testing currently disabled");
 	}
 
 	array_free2_c(2,argvNew);

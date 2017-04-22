@@ -64,9 +64,8 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 
 	// Standard datatypes
 	struct S_OPERATORS_V *OPS[2];
-	struct S_VDATA       *VDATA;
 
-	VDATA = malloc(sizeof *VDATA); // free
+	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
 	VDATA->OPS = (struct S_OPERATORS_V const *const *) OPS;
 
 	for (size_t i = 0; i < 2; i++)
@@ -86,7 +85,7 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 			}
 
 			// Compute Flux in reference space
-			double complex *F_vI = malloc(NvnI*d*Neq * sizeof *F_vI); // free
+			double complex *const F_vI = malloc(NvnI*d*Neq * sizeof *F_vI); // free
 
 			flux_inviscid_c(NvnI,1,VDATA->W_vI_c,F_vI,d,Neq);
 
@@ -94,7 +93,7 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 				free(VDATA->W_vI_c);
 
 			// Convert to reference space
-			double complex *Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
+			double complex *const Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
 			convert_between_rp_c(NvnI,Neq,VOLUME->C_vI,F_vI,Fr_vI,"FluxToRef");
 			free(F_vI);
 
@@ -156,7 +155,7 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 			// Compute negated Flux in reference space
 			double complex *const F_vI = malloc(NvnI*d*Neq * sizeof *F_vI);
 
-			flux_viscous_c(NvnI,1,VDATA->W_vI_c,(const double complex *const *const) VDATA->Q_vI_c,F_vI);
+			flux_viscous_c(NvnI,1,VDATA->W_vI_c,(double complex const *const *const) VDATA->Q_vI_c,F_vI);
 
 			if (!DB.Collocated) {
 				free(VDATA->W_vI_c);

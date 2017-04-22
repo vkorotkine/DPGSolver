@@ -167,7 +167,7 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 			// Compute negated Flux in reference space
 			double *const F_vI = malloc(NvnI*d*Neq * sizeof *F_vI);
 
-			flux_viscous(NvnI,1,VDATA->W_vI,(const double *const *const) VDATA->Q_vI,F_vI);
+			flux_viscous(NvnI,1,VDATA->W_vI,(double const *const *const) VDATA->Q_vI,F_vI);
 
 			if (!DB.Collocated) {
 				free(VDATA->W_vI);

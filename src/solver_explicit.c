@@ -275,7 +275,7 @@ static void update_RHS(double *maxRHS, bool const PrintEnabled)
 	 */
 
 	// Compute weak gradients (for viscous terms)
-	explicit_GradW();
+	if (PrintEnabled && DB.Viscous) { printf("G"); } explicit_GradW();
 
 	// Build the RHS (== -Residual)
 	if (PrintEnabled) { printf("V");  } explicit_VOLUME_info();

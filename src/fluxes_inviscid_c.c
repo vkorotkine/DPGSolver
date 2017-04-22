@@ -165,6 +165,8 @@ void flux_LF_c(const unsigned int Nn, const unsigned int Nel, const double compl
                const double complex *const WR, double complex *const nFluxNum, const double *const nL,
                const unsigned int d, const unsigned int Neq)
 {
+	TestDB.EnteredInviscidFlux[0]++;
+
 	// Standard datatypes
 	unsigned int   i, iMax, jMax, NnTotal;
 	double complex *rhoL, *uL, *vL, *wL, *pL, *UL, *rhoR, *uR, *vR, *wR, *pR, *UR, *FL, *FR, *maxV,
@@ -357,6 +359,8 @@ void flux_Roe_c(const unsigned int Nn, const unsigned int Nel, const double comp
                 const double complex *const WR, double complex *const nFluxNum, const double *const nL,
                 const unsigned int d, const unsigned int Neq)
 {
+	TestDB.EnteredInviscidFlux[1]++;
+
 	// Standard datatypes
 	unsigned int   iMax, NnTotal;
 	double         sign_l1, sign_l234, sign_l5;

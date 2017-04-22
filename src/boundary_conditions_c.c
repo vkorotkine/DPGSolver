@@ -787,16 +787,11 @@ void boundary_NoSlip_Adiabatic_c(struct S_BC *const BCdata)
 	if (GradWL == NULL)
 		return;
 
-	if (strstr(DB.TestCase,"TaylorCouette")) {
-		// Set QB == QL but set the Energy equation component of the numerical flux to 0. Alternatively, set QB here
-		// such that the computed numerical flux is zero (More expensive and more difficult, but more general).
-		// (ToBeModified)
-		for (size_t dim = 0; dim < d; dim++) {
-			for (size_t n = 0; n < NnTotal*Nvar; n++) {
-				GradWB[dim][n] = GradWL[dim][n];
-			}
+	// Set QB == QL but set the Energy equation component of the numerical flux to 0. Alternatively, set QB here such
+	// that the computed numerical flux is zero (More expensive and more difficult, but more general). (ToBeModified)
+	for (size_t dim = 0; dim < d; dim++) {
+		for (size_t n = 0; n < NnTotal*Nvar; n++) {
+			GradWB[dim][n] = GradWL[dim][n];
 		}
-	} else {
-		EXIT_UNSUPPORTED;
 	}
 }

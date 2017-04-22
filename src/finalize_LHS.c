@@ -15,6 +15,7 @@
 #include "S_FACE.h"
 
 #include "finalize_RHS.h"
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -36,24 +37,16 @@ void initialize_KSP(Mat *A, Vec *b, Vec *x)
 	 *		Potentially need to add CHKERRQ for MatCreate. (ToBeDeleted)
 	 */
 
-	// Initialize DB Parameters
-	unsigned int dof = DB.dof;
-
-	// Standard datatypes
-	unsigned int i, nnz_d, Indi;
-
-	struct S_VOLUME *VOLUME;
+	unsigned int const dof = DB.dof;
 
 	MPI_Comm comm = MPI_COMM_WORLD;
-	PetscInt *nnz;
+	PetscInt *nnz = malloc(dof * sizeof *nnz); // free
 
-	nnz = malloc(dof * sizeof *nnz); // free
+	size_t Indi = 0;
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		unsigned int const nnz_d = VOLUME->nnz_d;
 
-	Indi = 0;
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		nnz_d = VOLUME->nnz_d;
-
-		for (i = 0; i < nnz_d; i++)
+		for (size_t i = 0; i < nnz_d; i++)
 			nnz[Indi+i] = nnz_d + VOLUME->nnz_o;
 
 		Indi += nnz_d;
@@ -95,7 +88,7 @@ void finalize_Mat(Mat *A, const unsigned int finalize_type)
 			A = NULL;
 			break;
 		default:
-			printf("Error: Unsupported finalize_type.\n"), EXIT_MSG;
+			EXIT_UNSUPPORTED;
 			break;
 	}
 }
@@ -326,29 +319,22 @@ void compute_dof(void)
 	 *		              Equations
 	 */
 
-	// Initialize DB Parameters
 	unsigned int Nvar = DB.Nvar;
 
-	// Standard datatypes
-	unsigned int dof, nnz_d;
-
-	struct S_VOLUME *VOLUME, *VIn, *VOut;
-	struct S_FACE  *FACE;
-
-	dof = 0;
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+	unsigned int dof = 0;
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		VOLUME->IndA = dof;
 
-		nnz_d = Nvar*(VOLUME->NvnS);
+		unsigned int nnz_d = Nvar*(VOLUME->NvnS);
 		dof += nnz_d;
 
 		VOLUME->nnz_d = nnz_d;
 		VOLUME->nnz_o = 0;
 	}
 
-	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
-		VIn  = FACE->VIn;
-		VOut = FACE->VOut;
+	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+		struct S_VOLUME *VIn  = FACE->VIn,
+		                *VOut = FACE->VOut;
 
 		if (VIn->indexg != VOut->indexg) {
 			VIn->nnz_o  += VOut->nnz_d;

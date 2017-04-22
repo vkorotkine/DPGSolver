@@ -120,18 +120,6 @@ static void explicit_GradW_VOLUME_c(void)
 
 static void explicit_GradW_FACE_c(void)
 {
-	/*
-	 *	Purpose:
-	 *		Compute intermediate FACE contribution to Qhat.
-	 *
-	 *	Comments:
-	 *		L/R is used in place of In/Out (the previous convention). (ToBeDeleted)
-	 *		This is an intermediate contribution because the multiplication by MInv is not included.
-	 *		It is currently hard-coded that GradW is of the same order as the solution and that a central numerical flux
-	 *		is used.
-	 *		Note, if Collocation is enable, that I_Weak includes the inverse cubature weights.
-	 */
-
 	// Initialize DB Parameters
 	unsigned int const d    = DB.d,
 	                   Nvar = d+2,
@@ -164,7 +152,7 @@ static void explicit_GradW_FACE_c(void)
 		FDATAL->W_fIL_c = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL_c)), // free
 		FDATAR->W_fIL_c = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL_c)); // free
 
-		coef_to_values_fI_c(FDATAL,'W');
+		coef_to_values_fI_c(FDATAL,'W','E');
 		compute_WR_fIL_c(FDATAR,FDATAL->W_fIL_c,FDATAR->W_fIL_c);
 
 		// Compute numerical flux as seen from the left VOLUME
@@ -207,7 +195,7 @@ static void explicit_GradW_FACE_c(void)
 	free(FDATAR);
 }
 
-static void finalize_Qhat(struct S_VOLUME const *const VOLUME, unsigned int const NvnS,
+static void finalize_Qhat_c(struct S_VOLUME const *const VOLUME, unsigned int const NvnS,
                           double complex *const *const Qhat)
 {
 	unsigned int const d    = DB.d,
@@ -257,16 +245,16 @@ static void explicit_GradW_finalize_c(void)
 			}
 		}
 
-		finalize_Qhat(VL,NvnSL,FACE->QhatL_c);
+		finalize_Qhat_c(VL,NvnSL,FACE->QhatL_c);
 		if (!FACE->Boundary)
-			finalize_Qhat(VR,NvnSR,FACE->QhatR_c);
+			finalize_Qhat_c(VR,NvnSR,FACE->QhatR_c);
 	}
 
 	// Multiply VOLUME Qhat terms by MInv
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		unsigned int const NvnS = VOLUME->NvnS;
 
-		finalize_Qhat(VOLUME,NvnS,VOLUME->Qhat_c);
-		finalize_Qhat(VOLUME,NvnS,VOLUME->QhatV_c);
+		finalize_Qhat_c(VOLUME,NvnS,VOLUME->Qhat_c);
+		finalize_Qhat_c(VOLUME,NvnS,VOLUME->QhatV_c);
 	}
 }

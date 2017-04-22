@@ -135,6 +135,8 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 
 static void compute_Viscous_FACE_RHS_EFE(void)
 {
+	// Potentially change name of GradW(L/R) to Qp(L/R) (ToBeDeleted)
+
 	if (!DB.Viscous)
 		return;
 
