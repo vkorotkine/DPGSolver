@@ -180,7 +180,8 @@ static unsigned int compare_jacobian_flux_viscous(unsigned int const Nn, unsigne
 {
 	DB.d        = d;
 	DB.Pr       = 0.72;
-	DB.mu       = 1e-3;
+//	DB.mu       = 1e-3;
+	DB.mu       = 1e-0;
 	DB.Const_mu = 1;
 
 	unsigned int pass = 0;
@@ -216,7 +217,7 @@ static unsigned int compare_jacobian_flux_viscous(unsigned int const Nn, unsigne
 		for (size_t dim = 0; dim < d; dim++)
 			diff += array_norm_diff_d(NnTotal*d*Nvar*Neq,dFdQ[dim],dFdQ_cs[dim],"Inf");
 
-		if (diff < EPS) {
+		if (diff < 1e1*EPS) {
 			pass = 1;
 		} else {
 			bool PrintEnabled = 0;

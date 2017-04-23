@@ -536,14 +536,15 @@ void finalize_VOLUME_LHSQV_Weak(struct S_VOLUME *const VOLUME)
 
 	for (size_t eq = 0; eq < Neq; eq++) {
 	for (size_t var = 0; var < Nvar; var++) {
-		if (eq != var)
+	for (size_t varQ = 0; varQ < Nvar; varQ++) {
+		// dQhat/dWhat is block diagonal for this term
+		if (var != varQ)
 			continue;
 
 		size_t const Indev = (eq*Nvar+var)*NvnS*NvnS;
-		for (size_t dim = 0; dim < d; dim++) {
+		for (size_t dim = 0; dim < d; dim++)
 			mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,1.0,1.0,&VOLUME->LHSQ[dim][Indev],VOLUME->QhatV_What[dim],&VOLUME->LHS[Indev]);
-		}
-	}}
+	}}}
 }
 
 // **************************************************************************************************** //
@@ -1912,11 +1913,9 @@ static void swap_FACE_orientation(struct S_FDATA const *const FDATA, char const 
 			array_rearrange_d(NfnI,Neq*Nvar,nOrdLR,'C',dnFluxNumdWR_fI);
 		}
 	} else if (coef_type == 'Q') {
-		double *const *const nSolNum_fI     = FDATA->NFluxData->nSolNum_fI,
-		       *const *const dnSolNumdWL_fI = FDATA->NFluxData->dnSolNumdWL_fI,
-		       *const *const dnSolNumdWR_fI = FDATA->NFluxData->dnSolNumdWR_fI;
-
 		if (imex_type == 'E') {
+			double *const *const nSolNum_fI = FDATA->NFluxData->nSolNum_fI;
+
 			for (size_t dim = 0; dim < d; dim++) {
 				for (size_t i = 0, iMax = Neq*NfnI; i < iMax; i++)
 					nSolNum_fI[dim][i] *= -1.0;
@@ -1924,6 +1923,9 @@ static void swap_FACE_orientation(struct S_FDATA const *const FDATA, char const 
 				array_rearrange_d(NfnI,Neq,nOrdLR,'C',nSolNum_fI[dim]);
 			}
 		} else if (imex_type == 'I') {
+			double *const *const dnSolNumdWL_fI = FDATA->NFluxData->dnSolNumdWL_fI,
+			       *const *const dnSolNumdWR_fI = FDATA->NFluxData->dnSolNumdWR_fI;
+
 			unsigned int eqMax, varMax;
 			if (FACE->Boundary) {
 				eqMax  = d+2;
@@ -2389,7 +2391,7 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 
 			// Swap orientation of numerical flux Jacobian terms
 			if (FORM_MF1 == 'S')
-				correct_numerical_solution_strong(FDATAR,'I','R',FORM_MF1);
+				correct_numerical_solution_strong(FDATAR,'I',side,FORM_MF1);
 			swap_FACE_orientation(FDATAR,'I','Q');
 
 			I_FF   = OPSR[0]->I_Weak_FF[VfR];
@@ -2562,20 +2564,23 @@ void finalize_VOLUME_LHSQF_Weak(struct S_FACE *const FACE)
 
 	for (size_t eq = 0; eq < Neq; eq++) {
 	for (size_t var = 0; var < Nvar; var++) {
-		size_t const Indeqvar = (eq*Nvar+var);
-
+	for (size_t varQ = 0; varQ < Nvar; varQ++) {
 		unsigned int const NvnSL = VL->NvnS;
 		if (FACE->Boundary) {
-			size_t const IndLHS = Indeqvar*NvnSL*NvnSL;
-			for (size_t dim = 0; dim < d; dim++) {
-				mm_d(CBRM,CBNT,CBNT,NvnSL,NvnSL,NvnSL,1.0,1.0,&VL->LHSQ[dim][IndLHS],&FACE->Qhat_WhatLL[dim][IndLHS],&VL->LHS[IndLHS]);
-			}
+			size_t const IndLHSQ = (eq*Nvar+varQ)*NvnSL*NvnSL,
+			             IndQ_W  = (varQ*Nvar+var)*NvnSL*NvnSL,
+			             IndLHS  = (eq*Nvar+var)*NvnSL*NvnSL;
+			for (size_t dim = 0; dim < d; dim++)
+				mm_d(CBRM,CBNT,CBNT,NvnSL,NvnSL,NvnSL,1.0,1.0,&VL->LHSQ[dim][IndLHSQ],&FACE->Qhat_WhatLL[dim][IndQ_W],&VL->LHS[IndLHS]);
 		} else {
-			if (eq != var)
+			// dQhat/dWhat is block diagonal for this term
+			if (var != varQ)
 				continue;
 
-			unsigned int const NvnSR = VR->NvnS;
+			size_t const Indeqvar = (eq*Nvar+var);
 			size_t IndLHS, IndLHSQ;
+
+			unsigned int const NvnSR = VR->NvnS;
 			for (size_t dim = 0; dim < d; dim++) {
 				IndLHS = Indeqvar*NvnSL*NvnSL;
 				mm_d(CBRM,CBNT,CBNT,NvnSL,NvnSL,NvnSL,1.0,1.0,&VL->LHSQ[dim][IndLHS],FACE->Qhat_WhatLL[dim],&VL->LHS[IndLHS]);
@@ -2591,5 +2596,5 @@ void finalize_VOLUME_LHSQF_Weak(struct S_FACE *const FACE)
 				mm_d(CBRM,CBNT,CBNT,NvnSR,NvnSR,NvnSR,1.0,1.0,&VR->LHSQ[dim][IndLHS],FACE->Qhat_WhatRR[dim],&VR->LHS[IndLHS]);
 			}
 		}
-	}}
+	}}}
 }

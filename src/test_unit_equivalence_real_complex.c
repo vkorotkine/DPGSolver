@@ -193,7 +193,7 @@ static unsigned int compare_flux_viscous(unsigned int const Nn, unsigned int con
 {
 	DB.d        = d;
 	DB.Pr       = 0.72;
-	DB.mu       = 1e-3;
+	DB.mu       = 1e-0;
 	DB.Const_mu = 1;
 
 	unsigned int pass = 0;

@@ -156,15 +156,41 @@ double PetscMatAIJ_norm_diff_d(const unsigned int NRows, Mat A, Mat B, const cha
 	const PetscScalar *vals[2];
 
 	norm = 0.0;
+unsigned int PrintOn = 1; // ToBeDeleted
+if (PrintOn) {
+printf("\n\nPrinting");
+PRINT_FILELINE;
+}
 	if (strstr(NormType,"Inf")) {
 		for (i = 0; i < NRows; i++) {
 
 			MatGetRow(A,i,&ncols[0],&cols[0],&vals[0]);
 			MatGetRow(B,i,&ncols[1],&cols[1],&vals[1]);
 
-			if (ncols[0] != ncols[1])
-				printf("Error: Different number of non-zero columns in A (%d) and B (%d).\n",ncols[0],ncols[1]), EXIT_MSG;
+			if (ncols[0] != ncols[1]) {
+				printf("Error: Different number of non-zero columns in A (%d) and B (%d) on line %d.\n",
+				       ncols[0],ncols[1],i);
+				EXIT_UNSUPPORTED;
+			}
 
+unsigned int Inde = 15; // diff = 0 for Inde = 0, 4 for the current mesh.
+if (PrintOn && (i >= Inde*12 && i < (Inde+1)*12)) {
+printf("%d\n",i);
+for (int j = 0; j < ncols[0]; j++) {
+	double const diff = vals[0][j]-vals[1][j];
+	if (fabs(diff) < 2e-15)
+		printf(" %d          ",0);
+	else
+		printf("% .4e ",diff);
+}
+printf("\n");
+if (1) {
+printf("\n\n");
+array_print_d(1,ncols[0],vals[0],'R');
+array_print_d(1,ncols[1],vals[1],'R');
+printf("\n");
+}
+}
 			norm_row = array_norm_diff_d(ncols[0],vals[0],vals[1],"Inf");
 			if (norm_row > norm)
 				norm = norm_row;

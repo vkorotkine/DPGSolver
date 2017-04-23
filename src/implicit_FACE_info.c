@@ -163,6 +163,9 @@ static void compute_Viscous_FACE_EFE(void)
 
 	if (strstr(DB.Form,"Weak")) {
 		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+			// FACE contribution to V(L/R)->LHS
+			finalize_VOLUME_LHSQF_Weak(FACE);
+
 			init_FDATA(FDATAL,FACE,'L');
 			init_FDATA(FDATAR,FACE,'R');
 
@@ -228,8 +231,6 @@ static void compute_Viscous_FACE_EFE(void)
 			free(NFluxData->dnFluxViscNumdWR_fI);
 			array_free2_d(d,NFluxData->dnFluxViscNumdQL_fI);
 			array_free2_d(d,NFluxData->dnFluxViscNumdQR_fI);
-
-			finalize_VOLUME_LHSQF_Weak(FACE);
 		}
 	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;
@@ -247,6 +248,7 @@ static void compute_Viscous_FACE_EFE(void)
 
 static void compute_Viscous_VOLUME_FACE_EFE(void)
 {
+	EXIT_UNSUPPORTED;
 	/*
 	 *	Comments:
 	 *		It is assumed that VOLUME->LHSQ has been computed and that VL->LHS, VR->LHS and FACE->LHS(RL/LR) have been

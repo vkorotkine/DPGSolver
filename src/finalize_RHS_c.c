@@ -135,6 +135,7 @@ void finalize_RHS_c(void)
 	struct S_VOLUME  *VOLUME, *VIn, *VOut;
 	struct S_FACE   *FACE;
 
+if (0) {
 	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
 		VIn    = FACE->VIn;
 		NvnSIn = VIn->NvnS;
@@ -162,6 +163,9 @@ void finalize_RHS_c(void)
 		free(FACE->RHSIn_c);  FACE->RHSIn_c  = NULL;
 		free(FACE->RHSOut_c); FACE->RHSOut_c = NULL;
 	}
+} else {
+	printf("Commented finalize_RHS_c.\n"); PRINT_FILELINE;
+}
 
 	// Add source contribution
 	if (SourcePresent) {

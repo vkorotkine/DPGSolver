@@ -97,7 +97,7 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 	} else if (strstr(TestName,"NavierStokes")) {
 		data->CheckWeakGradients = 1;
 data->PGlobal = 1;
-data->CheckFullLinearization = 0;
+//data->CheckFullLinearization = 0;
 		if (strstr(TestName,"TRI")) {
 			strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedTRI");
 		} else {
@@ -111,10 +111,15 @@ data->CheckFullLinearization = 0;
 
 static void check_passing(struct S_linearization const *const data, unsigned int *pass)
 {
-	if (PetscMatAIJ_norm_diff_d(DB.dof,data->A_cs,data->A,"Inf") > 1e1*EPS)
+	double const diff1 = PetscMatAIJ_norm_diff_d(DB.dof,data->A_cs,data->A,"Inf");
+	if (diff1 > 1e1*EPS)
 		*pass = 0;
 
-	if (data->CheckFullLinearization && PetscMatAIJ_norm_diff_d(DB.dof,data->A_cs,data->A_csc,"Inf") > 1e1*EPS)
+	double diff2 = 0.0;
+	if (data->CheckFullLinearization)
+		diff2 = PetscMatAIJ_norm_diff_d(DB.dof,data->A_cs,data->A_csc,"Inf");
+
+	if (diff2 > 1e1*EPS)
 		*pass = 0;
 
 	if (data->CheckSymmetric) {
@@ -128,9 +133,9 @@ static void check_passing(struct S_linearization const *const data, unsigned int
 	}
 
 	if (!(*pass)) {
-		printf("%e\n",PetscMatAIJ_norm_diff_d(DB.dof,data->A_cs,data->A,"Inf"));
+		printf("%e\n",diff1);
 		if (data->CheckFullLinearization)
-			printf("%e\n",PetscMatAIJ_norm_diff_d(DB.dof,data->A_cs,data->A_csc,"Inf"));
+			printf("%e\n",diff2);
 	}
 }
 
@@ -188,6 +193,9 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 DB.mu = 1e0; // ToBeDeleted (Increase contribution of viscous terms)
 	for (size_t nTest = 0; nTest < 2; nTest++) {
 		if (nTest == 0) { // Check weak gradients
+			if (!CheckWeakGradients)
+				continue;
+
 			unsigned int const d = DB.d;
 
 			Mat A[DMAX] = { NULL }, A_cs[DMAX] = { NULL }, A_csc[DMAX] = { NULL };
@@ -195,9 +203,6 @@ DB.mu = 1e0; // ToBeDeleted (Increase contribution of viscous terms)
 			    x[DMAX] = { NULL }, x_cs[DMAX] = { NULL }, x_csc[DMAX] = { NULL };
 
 			set_PrintName("linearization (weak gradient)",data->PrintName,&data->TestTRI);
-			if (!CheckWeakGradients)
-				continue;
-
 			if (strstr(TestName,"NavierStokes")) {
 				implicit_GradW();
 			} else {
@@ -246,6 +251,9 @@ DB.mu = 1e0; // ToBeDeleted (Increase contribution of viscous terms)
 			if (strstr(TestName,"Poisson")) {
 				implicit_info_Poisson();
 			} else if (strstr(TestName,"Euler") || strstr(TestName,"NavierStokes")) {
+				// Comment implicit_FACE_info here and used Q_vI = ChiS_vI*VOLUME->QhatV to only check VOLUME-VOLUME
+				// contribution to the VOLUME term.
+
 				implicit_GradW(); // Only executed if DB.Viscous = 1
 				implicit_VOLUME_info();
 				implicit_FACE_info();
@@ -289,6 +297,63 @@ DB.mu = 1e0; // ToBeDeleted (Increase contribution of viscous terms)
 	code_cleanup();
 }
 
+static void flag_nonzero_LHS(unsigned int *A)
+{
+	unsigned int const Nvar = DB.Nvar,
+	                   dof  = DB.dof;
+	unsigned int       NvnS[2], IndA[2];
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		IndA[0] = VOLUME->IndA;
+		NvnS[0] = VOLUME->NvnS;
+		for (size_t i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++) {
+
+			// Diagonal entries
+			for (struct S_VOLUME *VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
+				if (VOLUME->indexg != VOLUME2->indexg)
+					continue;
+
+				IndA[1] = VOLUME2->IndA;
+				NvnS[1] = VOLUME2->NvnS;
+
+				size_t const Indn = (IndA[0]+i)*dof;
+				for (size_t j = 0, jMax = NvnS[1]*Nvar; j < jMax; j++) {
+					size_t const m = IndA[1]+j;
+					A[Indn+m] = 1;
+				}
+
+			}
+
+			// Off-diagonal entries
+			for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+			for (size_t side = 0; side < 2; side++) {
+				struct S_VOLUME *VOLUME2;
+
+				if (FACE->Boundary)
+					continue;
+
+				if (side == 0) {
+					if (VOLUME->indexg != FACE->VIn->indexg)
+						continue;
+					VOLUME2 = FACE->VOut;
+				} else {
+					if (VOLUME->indexg != FACE->VOut->indexg)
+						continue;
+					VOLUME2 = FACE->VIn;
+				}
+
+				IndA[1] = VOLUME2->IndA;
+				NvnS[1] = VOLUME2->NvnS;
+
+				size_t const Indn = (IndA[0]+i)*dof;
+				for (size_t j = 0, jMax = NvnS[1]*Nvar; j < jMax; j++) {
+					size_t const m = IndA[1]+j;
+					A[Indn+m] = 1;
+				}
+			}}
+		}
+	}
+}
+
 static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int const assemble_type)
 {
 	if (*A == NULL)
@@ -296,8 +361,12 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 
 	if (assemble_type == 0) {
 		compute_A_cs(A,b,x,1);
+if (0) {
 		compute_A_cs(A,b,x,2);
 		compute_A_cs(A,b,x,3);
+} else {
+	printf("Commented in compute_A_cs.\n"); PRINT_FILELINE;
+}
 
 		finalize_Mat(A,1);
 		return;
@@ -360,11 +429,37 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 			}
 
 			if (assemble_type == 1) {
+				unsigned int const dof = DB.dof;
+
+				bool CheckOffDiagonal = 0;
+				unsigned int *A_nz  = NULL;
+				if (1) {
+//				if (strstr(DB.TestCase,"Poisson") || strstr(DB.TestCase,"Euler")) {
+					// Note: If modified to be more similar to the Navier-Stokes solver, the Poisson solver would
+					//       also likely need to used the treatment for the Navier-Stokes below (i.e. there would be
+					//       off-diagonal terms in the global linear system matrix when only running considering the
+					//       VOLUME terms (due to the use of the fully corrected gradient). As it is currently
+					//       implemented, these contributions appear to be included in FACE->LHS(LL/RR), meaning that
+					//       this is not necessary.
+					; // Do nothing
+				} else if (strstr(DB.TestCase,"NavierStokes")) {
+					CheckOffDiagonal = 1;
+					A_nz = calloc(dof*dof , sizeof *A_nz); // free
+					flag_nonzero_LHS(A_nz);
+				} else {
+					EXIT_UNSUPPORTED;
+				}
+
 				for (struct S_VOLUME *VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
-					if (VOLUME->indexg != VOLUME2->indexg)
-						continue;
+					if (!CheckOffDiagonal) {
+						if (VOLUME->indexg != VOLUME2->indexg)
+							continue;
+					}
 
 					IndA[1] = VOLUME2->IndA;
+					if (CheckOffDiagonal && !A_nz[(IndA[0]+i)*dof+IndA[1]])
+						continue;
+
 					NvnS[1] = VOLUME2->NvnS;
 					unsigned int const nnz_d = VOLUME2->nnz_d;
 
@@ -382,9 +477,10 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 					MatSetValues(*A,nnz_d,m,1,n,vv,ADD_VALUES);
 					free(m); free(n); free(vv);
 				}
-			}
 
-			if (assemble_type == 2 || assemble_type == 3) {
+				if (CheckOffDiagonal)
+					free(A_nz);
+			} else if (assemble_type == 2 || assemble_type == 3) {
 				for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
 				for (size_t side = 0; side < 2; side++) {
 					double complex const *RHS_c;
@@ -414,7 +510,8 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 						for (size_t j = 0, jMax = NvnS[0]*Nvar; j < jMax; j++) {
 							m[j]  = IndA[0]+j;
 							n[j]  = IndA[0]+i;
-							vv[j] = cimag(RHS_c[j])/h;
+//							vv[j] = cimag(RHS_c[j])/h;
+vv[j] = 0.0*cimag(RHS_c[j])/h;
 						}
 
 						MatSetValues(*A,nnz_d,m,1,n,vv,ADD_VALUES);
@@ -444,7 +541,8 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 						for (size_t j = 0, jMax = NvnS[1]*Nvar; j < jMax; j++) {
 							m[j]  = IndA[1]+j;
 							n[j]  = IndA[0]+i;
-							vv[j] = cimag(RHS_c[j])/h;
+//							vv[j] = cimag(RHS_c[j])/h;
+vv[j] = 0.0*cimag(RHS_c[j])/h;
 						}
 
 						MatSetValues(*A,nnz_d,m,1,n,vv,ADD_VALUES);
@@ -463,65 +561,14 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 	}
 }
 
-static void flag_nonzero_LHS(unsigned int *A)
-{
-	unsigned int const Nvar = DB.Nvar,
-	                   dof  = DB.dof;
-	unsigned int       NvnS[2], IndA[2];
-	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		IndA[0] = VOLUME->IndA;
-		NvnS[0] = VOLUME->NvnS;
-		for (size_t i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++) {
-
-			// Diagonal entries
-			for (struct S_VOLUME *VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
-				if (VOLUME->indexg != VOLUME2->indexg)
-					continue;
-
-				IndA[1] = VOLUME2->IndA;
-				NvnS[1] = VOLUME2->NvnS;
-
-				size_t const Indn = (IndA[0]+i)*dof;
-				for (size_t j = 0, jMax = NvnS[1]*Nvar; j < jMax; j++) {
-					size_t const m = IndA[1]+j;
-					A[Indn+m] = 1;
-				}
-
-			}
-
-			// Off-diagonal entries
-			for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
-			for (size_t side = 0; side < 2; side++) {
-				struct S_VOLUME *VOLUME2;
-
-				if (FACE->Boundary)
-					continue;
-
-				if (side == 0) {
-					if (VOLUME->indexg != FACE->VIn->indexg)
-						continue;
-					VOLUME2 = FACE->VOut;
-				} else {
-					if (VOLUME->indexg != FACE->VOut->indexg)
-						continue;
-					VOLUME2 = FACE->VIn;
-				}
-
-				IndA[1] = VOLUME2->IndA;
-				NvnS[1] = VOLUME2->NvnS;
-
-				size_t const Indn = (IndA[0]+i)*dof;
-				for (size_t j = 0, jMax = NvnS[1]*Nvar; j < jMax; j++) {
-					size_t const m = IndA[1]+j;
-					A[Indn+m] = 1;
-				}
-			}}
-		}
-	}
-}
-
 static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 {
+	bool const CheckOffDiag = 0;
+
+	if (!CheckOffDiag) {
+		printf("Not checking off diagonal in compute_A_cs_complete.\n"); PRINT_FILELINE;
+	}
+
 	unsigned int const dof = DB.dof;
 
 	unsigned int *A_nz = calloc(dof*dof , sizeof *A_nz); // free
@@ -558,6 +605,9 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 			for (struct S_VOLUME *VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
 				IndA[1] = VOLUME2->IndA;
 				if (!A_nz[(IndA[0]+i)*dof+IndA[1]])
+					continue;
+
+				if (!CheckOffDiag && (VOLUME != VOLUME2))
 					continue;
 
 				NvnS[1] = VOLUME2->NvnS;
@@ -641,7 +691,7 @@ static void finalize_LHS_Qhat(Mat *const A, Vec *const b, Vec *const x, unsigned
 
 					PetscScalar const *vv;
 					if (eq == var)
-						vv = &(VOLUME->QhatV_What[dim][0]);
+						vv = VOLUME->QhatV_What[dim];
 					else
 						vv = zeros;
 

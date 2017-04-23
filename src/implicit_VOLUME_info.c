@@ -230,6 +230,7 @@ static void compute_Viscous_VOLUME_EFE(void)
 
 static void compute_Viscous_VOLUME_VOLUME_EFE(void)
 {
+	EXIT_UNSUPPORTED;
 	/*
 	 *	Comments:
 	 *		It is assumed that VOLUME->LHSQ has been computed and that VOLUME->LHS has been initialized.
