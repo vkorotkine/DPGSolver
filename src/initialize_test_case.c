@@ -614,7 +614,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	             Nvar      = DB.Nvar,
 	             Adapt     = DB.Adapt;
 
-	DB.OutputInterval = 5e4;
+	DB.OutputInterval = 2e4;
 
 	// Standard datatypes
 	unsigned int DOF0 = 0, PolyGradient = 0;

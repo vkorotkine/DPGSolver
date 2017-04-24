@@ -227,22 +227,47 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 	if (strstr(PDE,"NavierStokes")) {
 		if (strstr(TestCase,"TaylorCouette")) {
 			if (TestDB.Active) {
-				unsigned int const ML = TestDB.ML;
+				unsigned int const ML = TestDB.ML,
+				                   P  = TestDB.PGlobal;
 
+				if (P == 1) {
+					if      (ML <= 1) { data->dt = 1e-0; }
+					else if (ML <= 2) { data->dt = 2e-0; }
+					else if (ML <= 3) { data->dt = 4e-0; }
+					else              { EXIT_UNSUPPORTED; }
+				} else if (P <= 3) {
+					if      (ML <= 0) { data->dt = 5e-1; }
+					else if (ML <= 1) { data->dt = 1e-0; }
+					else if (ML <= 2) { data->dt = 2e-0; }
+					else if (ML <= 3) { data->dt = 4e-0; }
+					else              { EXIT_UNSUPPORTED; }
+				} else if (P == 3) {
+					if      (ML <= 0) { data->dt = 5e-1; }
+					else if (ML <= 1) { data->dt = 1e-0; }
+					else if (ML <= 2) { data->dt = 2e-0; }
+					else              { EXIT_UNSUPPORTED; }
+				} else {
+					EXIT_UNSUPPORTED;
+				}
+
+/*
 				if (ML == 0) {
 					data->dt = 1e-0; // P1 (16 TRIs on ML0)
-					data->dt = 5e-1; // P2
+					data->dt = 5e-1; // P3
 				} else if (ML == 1) {
-					data->dt = 5e-3*pow(0.5,1.0);
+					data->dt = 5e-1*pow(0.5,1.0);
 				} else if (ML == 2) {
-					data->dt = 5e-3*pow(0.5,2.0); // Selected for stability of P2 (where ML0 has 16 TRIs)
+					data->dt = 5e-1*pow(0.5,2.0);
+				} else if (ML == 3) {
+					data->dt = 5e-1*pow(0.5,3.0);
 				} else {
 					printf("Using default value for timestepping parameters.\n");
 					data->dt = 5e-3;
 				}
+*/
 			}
-			data->exit_tol   = 1e-9;
-//			data->exit_tol   = EPS;
+			data->exit_tol   = 1e-6;
+			data->exit_tol   = 1e1*EPS;
 			data->exit_ratio = 1.0/EPS;
 		} else {
 			EXIT_UNSUPPORTED;
