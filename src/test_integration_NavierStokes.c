@@ -49,7 +49,7 @@
 
 void test_integration_NavierStokes(int nargc, char **argv)
 {
-	bool const RunTests_equivalence_real_complex = 0,
+	bool const RunTests_equivalence_real_complex = 1,
 	           RunTests_equivalence_algorithms   = 1,
 	           RunTests_linearization            = 1,
 	           RunTests_conv_order               = 1;

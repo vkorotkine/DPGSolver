@@ -17,6 +17,7 @@ src/support_functions/*.txt
 *octave-workspace
 *.db
 *.db.json
+*.dSYM
 
 meshes/Poisson/*
 meshes/PeriodicVortex/*

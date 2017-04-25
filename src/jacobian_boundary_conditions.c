@@ -1034,10 +1034,11 @@ void jacobian_boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 
 		             V2L = uL*uL+vL*vL+wL*wL;
 
-		double drhoLdW[Nvar], duLdW[Nvar], dvLdW[Nvar], dwLdW[Nvar], dpLdW[Nvar];
+		double drhoLdW[Nvar], duLdW[Nvar], dvLdW[Nvar], dwLdW[Nvar], dELdW[Nvar], dpLdW[Nvar];
 		if (d == 3) {
 			drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0; drhoLdW[4] = 0.0;
 			dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = -wL; dpLdW[4]   = 1.0;
+			dELdW[0]   = 0.0;     dELdW[1]   = 0.0; dELdW[2]   = 0.0; dELdW[3]   = 0.0; dELdW[4]   = 1.0;
 
 			duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;      duLdW[4] = 0.0;
 			dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;      dvLdW[4] = 0.0;
@@ -1045,6 +1046,7 @@ void jacobian_boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 		} else if (d == 2) {
 			drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0;
 			dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = 1.0;
+			dELdW[0]   = 0.0;     dELdW[1]   = 0.0; dELdW[2]   = 0.0; dELdW[3]   = 1.0;
 
 			duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;
 			dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;
@@ -1076,12 +1078,23 @@ void jacobian_boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 		for (size_t var = 0; var < Nvar; var++) {
 			double const dV2dW = 2.0*(u*dudW[var]+v*dvdW[var]+w*dwdW[var]);
 
+if (0) {
 			*dWBdWL_ptr[InddWdW++] = drhoLdW[var];
 			*dWBdWL_ptr[InddWdW++] = drhoLdW[var]*u+rhoL*dudW[var];
 			*dWBdWL_ptr[InddWdW++] = drhoLdW[var]*v+rhoL*dvdW[var];
 			if (d == 3)
 				*dWBdWL_ptr[InddWdW++] = drhoLdW[var]*w+rhoL*dwdW[var];
 			*dWBdWL_ptr[InddWdW++] = dpLdW[var]/GM1+0.5*(drhoLdW[var]*V2+rhoL*dV2dW);
+} else {
+u = 0.0; v = 0.0; w = 0.0;
+			*dWBdWL_ptr[InddWdW++] = -drhoLdW[var] + 2.0*drhoLdW[var];
+			// Fix this for general u, v, w if retained (ToBeDeleted)
+			*dWBdWL_ptr[InddWdW++] = -(drhoLdW[var]*uL+rhoL*duLdW[var]) + 0.0;
+			*dWBdWL_ptr[InddWdW++] = -(drhoLdW[var]*vL+rhoL*dvLdW[var]) + 0.0;
+			if (d == 3)
+				*dWBdWL_ptr[InddWdW++] = -(drhoLdW[var]*wL+rhoL*dwLdW[var]) + 0.0;
+			*dWBdWL_ptr[InddWdW++] = -dELdW[var] + 2.0*dELdW[var];
+}
 		}
 
 		for (size_t i = 0, iMax = Neq*Nvar; i < iMax; i++)

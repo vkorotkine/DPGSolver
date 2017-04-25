@@ -814,12 +814,22 @@ void boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 		}
 
 		size_t IndW = 0;
+if (0) {
 		*WB_ptr[IndW++] = rhoL;
 		*WB_ptr[IndW++] = rhoL*u;
 		*WB_ptr[IndW++] = rhoL*v;
 		if (d == 3)
 			*WB_ptr[IndW++] = rhoL*w;
 		*WB_ptr[IndW++] = pL/GM1+0.5*rhoL*(u*u+v*v+w*w);
+} else {
+u = 0.0; v = 0.0; w = 0.0;
+		*WB_ptr[IndW++] = -rhoL    + 2.0*rhoL;
+		*WB_ptr[IndW++] = -rhoL*uL + 2.0*rhoL*u;
+		*WB_ptr[IndW++] = -rhoL*vL + 2.0*rhoL*v;
+		if (d == 3)
+			*WB_ptr[IndW++] = -rhoL*wL + 2.0*rhoL*w;
+		*WB_ptr[IndW++] = -EL + 2.0*EL;
+}
 
 		for (size_t var = 0; var < Nvar; var++)
 			WB_ptr[var]++;

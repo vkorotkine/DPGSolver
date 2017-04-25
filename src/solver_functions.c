@@ -1718,6 +1718,9 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 			}
 		}}
 		free(dWBdWL_fIL);
+printf("Boundary dnFVdWL should be zero (%d).\n",BC);
+array_print_d(NfnI,Neq*Nvar,dnFluxViscNumdWL_fIL,'C');
+array_print_d(NfnI,Neq*Nvar,dWBdWL_fIL,'C');
 	}
 }
 
@@ -2524,10 +2527,13 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 		I_FF   = OPSL[0]->I_Weak_FF[VfL];
 		IdnFdQ = malloc(NvnSL*NfnI * sizeof *IdnFdQ); // free
 
+		// Add cross term from dependence of QR on WL
+		Q_What = (double const *const *const) FDATAR->Q_WhatLR;
+		compute_LHS_FACE_Q_Weak(NvnSL,NvnSL,NfnI,I_FF,dnFluxViscNumdQR_fI,Q_What,IdnFdQ,FACE->LHSInIn,Boundary);
+
 		// Q_WhatRL (Effect of (R)ight VOLUME on (L)eft VOLUME)
 		Q_What = (double const *const *const) FDATAL->Q_WhatRL;
 		compute_LHS_FACE_Q_Weak(NvnSL,NvnSR,NfnI,I_FF,dnFluxViscNumdQR_fI,Q_What,IdnFdQ,FACE->LHSOutIn,Boundary);
-		array_free2_d(d,(double **) Q_What);
 		free(IdnFdQ);
 
 		// Swap orientation of numerical flux Jacobian terms
@@ -2541,11 +2547,17 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 		compute_LHS_FACE_Q_Weak(NvnSR,NvnSL,NfnI,I_FF,dnFluxViscNumdQL_fI,Q_What,IdnFdQ,FACE->LHSInOut,Boundary);
 		array_free2_d(d,(double **) Q_What);
 
+		// Add cross term from dependence of QL on WR
+		Q_What = (double const *const *const) FDATAL->Q_WhatRL;
+		compute_LHS_FACE_Q_Weak(NvnSR,NvnSR,NfnI,I_FF,dnFluxViscNumdQL_fI,Q_What,IdnFdQ,FACE->LHSOutOut,Boundary);
+
 		// Q_WhatRR (Effect of (R)ight VOLUME on (R)ight VOLUME)
 		Q_What = (double const *const *const) FDATAR->Q_WhatRR;
 		compute_LHS_FACE_Q_Weak(NvnSR,NvnSR,NfnI,I_FF,dnFluxViscNumdQR_fI,Q_What,IdnFdQ,FACE->LHSOutOut,Boundary);
 		array_free2_d(d,(double **) Q_What);
 		free(IdnFdQ);
+
+		array_free2_d(d,(double **) FDATAL->Q_WhatRL);
 	} else {
 		EXIT_UNSUPPORTED;
 	}
