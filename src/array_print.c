@@ -56,7 +56,7 @@ void array_print_i(const unsigned int m, const unsigned int n, const int *A, con
 	case 'R':
 		for (i = 0; i < m; i++) {
 			for (j = 0; j < n; j++)
-				printf("% 12d ",A[i*n+j]);
+				printf("% 11d ",A[i*n+j]);
 			printf("\n");
 		}
 		printf("\n");
@@ -64,7 +64,7 @@ void array_print_i(const unsigned int m, const unsigned int n, const int *A, con
 	case 'C':
 		for (i = 0; i < m; i++) {
 			for (j = 0; j < n; j++)
-				printf("% 12d ",A[i+j*m]);
+				printf("% 11d ",A[i+j*m]);
 			printf("\n");
 		}
 		printf("\n");

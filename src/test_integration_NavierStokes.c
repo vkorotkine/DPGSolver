@@ -95,7 +95,7 @@ struct S_convorder *const data_c = calloc(1 , sizeof *data_c); // free
 data_c->nargc     = nargc;
 data_c->argvNew   = argvNew;
 data_c->PrintName = PrintName;
-if (1) {
+if (0) {
 test_conv_order(data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedTRI");
 EXIT_BASIC;
 }

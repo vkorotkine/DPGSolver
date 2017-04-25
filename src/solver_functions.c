@@ -535,8 +535,8 @@ void finalize_VOLUME_LHSQV_Weak(struct S_VOLUME *const VOLUME)
 	                   NvnS = VOLUME->NvnS;
 
 	for (size_t eq = 0; eq < Neq; eq++) {
-	for (size_t var = 0; var < Nvar; var++) {
 	for (size_t varQ = 0; varQ < Nvar; varQ++) {
+	for (size_t var = 0; var < Nvar; var++) {
 		// dQhat/dWhat is block diagonal for this term
 		if (var != varQ)
 			continue;
@@ -742,7 +742,6 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 
 	unsigned int const d            = DB.d,
 	                   Nvar         = d+2,
-	                   Neq          = d+2,
 	                   P            = FDATA->P,
 	                   Eclass       = FDATA->Eclass,
 	                   Vf           = FDATA->Vf,
@@ -837,12 +836,12 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 
 				double **Q_What = malloc(d * sizeof *Q_What); // keep
 				for (size_t dim = 0; dim < d; dim++) {
-					Q_What[dim] = malloc(NfnI*NvnSL*Neq*Nvar * sizeof *Q_What[dim]); // keep
+					Q_What[dim] = malloc(NfnI*NvnSL*Nvar*Nvar * sizeof *Q_What[dim]); // keep
 
-					for (size_t eq = 0; eq < Neq; eq++) {
+					for (size_t varQ = 0; varQ < Nvar; varQ++) {
 					for (size_t var = 0; var < Nvar; var++) {
-						size_t const Indev = eq*Nvar+var;
-						if (eq == var) {
+						size_t const Indvv = varQ*Nvar+var;
+						if (varQ == var) {
 							for (size_t i = 0; i < NvnSL*NvnSL; i++)
 								Qhat_What[i] = VL->QhatV_What[dim][i];
 						} else {
@@ -851,9 +850,9 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 
 						if (chi != 0.0) {
 							for (size_t i = 0; i < NvnSL*NvnSL; i++)
-								Qhat_What[i] += chi*(FACE->Qhat_WhatLL[dim][Indev*NvnSL*NvnSL+i]);
+								Qhat_What[i] += chi*(FACE->Qhat_WhatLL[dim][Indvv*NvnSL*NvnSL+i]);
 						}
-						mm_d(CBRM,CBNT,CBNT,NfnI,NvnSL,NvnSL,1.0,0.0,OPS[0]->ChiS_fI[Vf],Qhat_What,&Q_What[dim][Indev*NfnI*NvnSL]);
+						mm_d(CBRM,CBNT,CBNT,NfnI,NvnSL,NvnSL,1.0,0.0,OPS[0]->ChiS_fI[Vf],Qhat_What,&Q_What[dim][Indvv*NfnI*NvnSL]);
 					}}
 				}
 				free(Qhat_What);
@@ -1392,13 +1391,13 @@ static void correct_numerical_solution_strong(struct S_FDATA const *const FDATA,
 	             *const *const dnSolNumdWR_fIL = FDATA->NFluxData->dnSolNumdWR_fI;
 
 	if (side == 'L') {
-		for (size_t dim = 0; dim < d; dim++) {
-		for (size_t var = 0; var < Nvar; var++) {
-		for (size_t n = 0; n < NfnI; n++) {
-			nSolNum_fIL[dim][var*NfnI+n] -= n_fIL[n*d+dim]*detJF_fIL[n]*WL_fIL[var*NfnI+n];
-		}}}
-
-		if (imex_type == 'I') {
+		if (imex_type == 'E') {
+			for (size_t dim = 0; dim < d; dim++) {
+			for (size_t var = 0; var < Nvar; var++) {
+			for (size_t n = 0; n < NfnI; n++) {
+				nSolNum_fIL[dim][var*NfnI+n] -= n_fIL[n*d+dim]*detJF_fIL[n]*WL_fIL[var*NfnI+n];
+			}}}
+		} else if (imex_type == 'I') {
 			unsigned int eqMax, varMax;
 			if (FACE->Boundary) {
 				eqMax  = d+2;
@@ -1425,13 +1424,13 @@ static void correct_numerical_solution_strong(struct S_FDATA const *const FDATA,
 		if (FACE->Boundary)
 			EXIT_UNSUPPORTED;
 
-		for (size_t dim = 0; dim < d; dim++) {
-		for (size_t var = 0; var < Nvar; var++) {
-		for (size_t n = 0; n < NfnI; n++) {
-			nSolNum_fIL[dim][var*NfnI+n] += n_fIL[n*d+dim]*detJF_fIL[n]*(WL_fIL[var*NfnI+n]-WR_fIL[var*NfnI+n]);
-		}}}
-
-		if (imex_type == 'I') {
+		if (imex_type == 'E') {
+			for (size_t dim = 0; dim < d; dim++) {
+			for (size_t var = 0; var < Nvar; var++) {
+			for (size_t n = 0; n < NfnI; n++) {
+				nSolNum_fIL[dim][var*NfnI+n] += n_fIL[n*d+dim]*detJF_fIL[n]*(WL_fIL[var*NfnI+n]-WR_fIL[var*NfnI+n]);
+			}}}
+		} else if (imex_type == 'I') {
 			unsigned int const eqMax  = 1,
 			                   varMax = 1;
 
@@ -1828,8 +1827,8 @@ void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const ime
 			if (FACE->Boundary) {
 				for (size_t dim = 0; dim < d; dim++) {
 					for (size_t eq = 0; eq < Neq; eq++) {
-					for (size_t var = 0; var < Nvar; var++) {
-						size_t const InddnFdQ = (eq*Nvar+var)*NfnI;
+					for (size_t varQ = 0; varQ < Nvar; varQ++) {
+						size_t const InddnFdQ = (eq*Nvar+varQ)*NfnI;
 						for (size_t n = 0; n < NfnI; n++) {
 							dnFluxViscNumdQL_fIL[dim][InddnFdQ+n] *= detJF_fIL[n];
 						}
@@ -1838,8 +1837,8 @@ void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const ime
 			} else {
 				for (size_t dim = 0; dim < d; dim++) {
 					for (size_t eq = 0; eq < Neq; eq++) {
-					for (size_t var = 0; var < Nvar; var++) {
-						size_t const InddnFdQ = (eq*Nvar+var)*NfnI;
+					for (size_t varQ = 0; varQ < Nvar; varQ++) {
+						size_t const InddnFdQ = (eq*Nvar+varQ)*NfnI;
 						for (size_t n = 0; n < NfnI; n++) {
 							dnFluxViscNumdQL_fIL[dim][InddnFdQ+n] *= detJF_fIL[n];
 							dnFluxViscNumdQR_fIL[dim][InddnFdQ+n] *= detJF_fIL[n];
@@ -2448,22 +2447,24 @@ static void compute_LHS_FACE_Q_Weak(unsigned int const NRows, unsigned int const
 	                   Nvar = d+2;
 
 	for (size_t eq = 0; eq < Neq; eq++) {
-	for (size_t var = 0; var < Nvar; var++) {
-		if (!Boundary && (eq != var))
-			continue;
-
+	for (size_t varQ = 0; varQ < Nvar; varQ++) {
 		for (size_t dim = 0; dim < d; dim++) {
-			size_t const Indeqvar = eq*Nvar+var;
-			mm_diag_d(NRows,Nn,&dnFluxViscNumdQ_fI[dim][Indeqvar*Nn],I_FF,IdnFdQ,1.0,0.0,'R','R');
+			size_t const InddFdQ = (eq*Nvar+varQ)*Nn;
+			mm_diag_d(NRows,Nn,&dnFluxViscNumdQ_fI[dim][InddFdQ],I_FF,IdnFdQ,1.0,0.0,'R','R');
 
-			size_t const IndLHS = Indeqvar*NRows*NCols;
-			size_t       IndQ_What;
-			if (Boundary)
-				IndQ_What = Indeqvar*Nn*NCols;
-			else
-				IndQ_What = 0;
+			for (size_t var = 0; var < Nvar; var++) {
+				if (!Boundary && (var != varQ))
+					continue; // dQ/dWhat is block diagonal when not on a boundary.
 
-			mm_d(CBRM,CBNT,CBNT,NRows,NCols,Nn,1.0,1.0,IdnFdQ,&Q_What[dim][IndQ_What],&LHS[IndLHS]);
+				size_t IndQ_What = 0;
+				if (Boundary)
+					IndQ_What = (varQ*Nvar+var)*Nn*NCols;
+				else
+					IndQ_What = 0;
+
+				size_t const IndLHS = (eq*Nvar+var)*NRows*NCols;
+				mm_d(CBRM,CBNT,CBNT,NRows,NCols,Nn,1.0,1.0,IdnFdQ,&Q_What[dim][IndQ_What],&LHS[IndLHS]);
+			}
 		}
 	}}
 }
@@ -2563,8 +2564,8 @@ void finalize_VOLUME_LHSQF_Weak(struct S_FACE *const FACE)
 	                *const VR = FACE->VOut;
 
 	for (size_t eq = 0; eq < Neq; eq++) {
-	for (size_t var = 0; var < Nvar; var++) {
 	for (size_t varQ = 0; varQ < Nvar; varQ++) {
+	for (size_t var = 0; var < Nvar; var++) {
 		unsigned int const NvnSL = VL->NvnS;
 		if (FACE->Boundary) {
 			size_t const IndLHSQ = (eq*Nvar+varQ)*NvnSL*NvnSL,

@@ -555,8 +555,8 @@ void setup_parameters()
 	DB.InviscidFluxType = FLUX_ROE;
 
 //	DB.ViscousFluxType  = FLUX_IP;
-//	DB.ViscousFluxType  = FLUX_BR2;
-	DB.ViscousFluxType  = FLUX_CDG2;
+	DB.ViscousFluxType  = FLUX_BR2;
+//	DB.ViscousFluxType  = FLUX_CDG2;
 
  	DB.ExplicitSolverType = RK3_SSP;
 // 	DB.ExplicitSolverType = RK4_LS;

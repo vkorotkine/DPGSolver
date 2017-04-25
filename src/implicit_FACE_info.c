@@ -163,7 +163,7 @@ static void compute_Viscous_FACE_EFE(void)
 
 	if (strstr(DB.Form,"Weak")) {
 		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
-			// FACE contribution to V(L/R)->LHS
+			// FACE contribution to V(L/R)->LHS and related off-diagonal contributions from the VOLUME term
 			finalize_VOLUME_LHSQF_Weak(FACE);
 
 			init_FDATA(FDATAL,FACE,'L');

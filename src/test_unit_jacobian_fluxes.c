@@ -112,14 +112,9 @@ static void compute_dFdQ_cs(unsigned int const Nn, unsigned int const Nel, unsig
 		for (size_t var = 0; var < Nvar; var++) {
 			double const h = EPS*EPS;
 
-			for (size_t eq = 0; eq < Neq; eq++) {
-				if (eq != var)
-					continue;
-
-				size_t const IndQ = NnTotal*eq;
-				for (size_t n = 0; n < NnTotal; n++)
-						Qp[dim1][IndQ+n] += h*I;
-			}
+			size_t const IndQ = NnTotal*var;
+			for (size_t n = 0; n < NnTotal; n++)
+				Qp[dim1][IndQ+n] += h*I;
 
 			flux_viscous_c(Nn,Nel,W_c,(double complex const *const *const) Qp,F);
 
@@ -131,14 +126,8 @@ static void compute_dFdQ_cs(unsigned int const Nn, unsigned int const Nel, unsig
 					dFdQ_cs[dim1][InddFdQ+n] = cimag(F[IndF+n])/h;
 			}}
 
-			for (size_t eq = 0; eq < Neq; eq++) {
-				if (eq != var)
-					continue;
-
-				size_t const IndQ = NnTotal*eq;
-				for (size_t n = 0; n < NnTotal; n++)
-						Qp[dim1][IndQ+n] -= h*I;
-			}
+			for (size_t n = 0; n < NnTotal; n++)
+				Qp[dim1][IndQ+n] -= h*I;
 		}
 	}
 

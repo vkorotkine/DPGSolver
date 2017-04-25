@@ -43,6 +43,16 @@
  *
  *		For second order equations, the verification of the linearization of the weak gradients is also performed.
  *
+ *		For second order equations, the VOLUME->RHS_c contributes off-diagonal terms to the global system matrix due to
+ *		the use of the fully corrected gradient. A flag is provided to avoid the computation of these terms when
+ *		checking only the diagonal VOLUME/FACE contributions to the global system using compute_A_cs with assembly_type
+ *		equal to 1 or 2. The current implementation for the Poisson equation avoids this problem by separating the
+ *		contributions of the local and correction contributions to the VOLUME gradient and this issue is thus not
+ *		present in that case.
+ *
+ *		A similar formulation for the Navier-Stokes equations may be possible due to the linearity of the viscous flux
+ *		with respect to the solution gradients. INVESTIGATE. (ToBeModified)
+ *
  *	Notation:
  *
  *	References:
@@ -60,6 +70,8 @@ static void compute_A_Qhat_cs_complete (Mat *const A, Vec *const b, Vec *const x
 static void set_test_linearization_data(struct S_linearization *const data, char const *const TestName)
 {
 	// default values
+	TestDB.CheckOffDiagonal = 0;
+
 	data->PrintEnabled           = 0;
 	data->CheckFullLinearization = 1;
 	data->CheckWeakGradients     = 0;
@@ -96,8 +108,8 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 		}
 	} else if (strstr(TestName,"NavierStokes")) {
 		data->CheckWeakGradients = 1;
-data->PGlobal = 1;
-//data->CheckFullLinearization = 0;
+data->PGlobal = 0;
+data->CheckFullLinearization = 0;
 		if (strstr(TestName,"TRI")) {
 			strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedTRI");
 		} else {
@@ -111,15 +123,15 @@ data->PGlobal = 1;
 
 static void check_passing(struct S_linearization const *const data, unsigned int *pass)
 {
-	double const diff1 = PetscMatAIJ_norm_diff_d(DB.dof,data->A_cs,data->A,"Inf");
-	if (diff1 > 1e1*EPS)
+	double diff_cs = 0.0;
+	if (data->CheckFullLinearization)
+		diff_cs = PetscMatAIJ_norm_diff_d(DB.dof,data->A_cs,data->A_csc,"Inf");
+
+	if (diff_cs > 1e1*EPS)
 		*pass = 0;
 
-	double diff2 = 0.0;
-	if (data->CheckFullLinearization)
-		diff2 = PetscMatAIJ_norm_diff_d(DB.dof,data->A_cs,data->A_csc,"Inf");
-
-	if (diff2 > 1e1*EPS)
+	double const diff_LHS = PetscMatAIJ_norm_diff_d(DB.dof,data->A_cs,data->A,"Inf");
+	if (diff_LHS > 1e1*EPS)
 		*pass = 0;
 
 	if (data->CheckSymmetric) {
@@ -133,9 +145,9 @@ static void check_passing(struct S_linearization const *const data, unsigned int
 	}
 
 	if (!(*pass)) {
-		printf("%e\n",diff1);
 		if (data->CheckFullLinearization)
-			printf("%e\n",diff2);
+			printf("diff_cs:  %e\n",diff_cs);
+		printf("diff_LHS: %e\n",diff_LHS);
 	}
 }
 
@@ -262,7 +274,7 @@ DB.mu = 1e0; // ToBeDeleted (Increase contribution of viscous terms)
 			}
 
 			if (!CheckFullLinearization) {
-				unsigned int const CheckLevel = 1;
+				unsigned int const CheckLevel = 2;
 				for (size_t i = 1; i <= CheckLevel; i++)
 					finalize_LHS(&A,&b,&x,i);
 				finalize_Mat(&A,1);
@@ -360,13 +372,22 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 		initialize_KSP(A,b,x);
 
 	if (assemble_type == 0) {
+		if (strstr(DB.TestCase,"NavierStokes")) {
+			TestDB.CheckOffDiagonal = 1;
+		} else if (strstr(DB.TestCase,"Poisson") || strstr(DB.TestCase,"Euler")) {
+			// Note: If modified to be more similar to the Navier-Stokes solver, the Poisson solver would also likely
+			//       need to used the treatment for the Navier-Stokes below (i.e. there would be off-diagonal terms in
+			//       the global linear system matrix when only running considering the VOLUME terms (due to the use of
+			//       the fully corrected gradient). As it is currently implemented, these contributions appear to be
+			//       included in FACE->LHS(LL/RR), meaning that this is not necessary.
+			; // Do nothing
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+
 		compute_A_cs(A,b,x,1);
-if (0) {
 		compute_A_cs(A,b,x,2);
 		compute_A_cs(A,b,x,3);
-} else {
-	printf("Commented in compute_A_cs.\n"); PRINT_FILELINE;
-}
 
 		finalize_Mat(A,1);
 		return;
@@ -431,23 +452,11 @@ if (0) {
 			if (assemble_type == 1) {
 				unsigned int const dof = DB.dof;
 
-				bool CheckOffDiagonal = 0;
+				bool CheckOffDiagonal = TestDB.CheckOffDiagonal;
 				unsigned int *A_nz  = NULL;
-				if (1) {
-//				if (strstr(DB.TestCase,"Poisson") || strstr(DB.TestCase,"Euler")) {
-					// Note: If modified to be more similar to the Navier-Stokes solver, the Poisson solver would
-					//       also likely need to used the treatment for the Navier-Stokes below (i.e. there would be
-					//       off-diagonal terms in the global linear system matrix when only running considering the
-					//       VOLUME terms (due to the use of the fully corrected gradient). As it is currently
-					//       implemented, these contributions appear to be included in FACE->LHS(LL/RR), meaning that
-					//       this is not necessary.
-					; // Do nothing
-				} else if (strstr(DB.TestCase,"NavierStokes")) {
-					CheckOffDiagonal = 1;
+				if (CheckOffDiagonal) {
 					A_nz = calloc(dof*dof , sizeof *A_nz); // free
 					flag_nonzero_LHS(A_nz);
-				} else {
-					EXIT_UNSUPPORTED;
 				}
 
 				for (struct S_VOLUME *VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
@@ -510,8 +519,7 @@ if (0) {
 						for (size_t j = 0, jMax = NvnS[0]*Nvar; j < jMax; j++) {
 							m[j]  = IndA[0]+j;
 							n[j]  = IndA[0]+i;
-//							vv[j] = cimag(RHS_c[j])/h;
-vv[j] = 0.0*cimag(RHS_c[j])/h;
+							vv[j] = cimag(RHS_c[j])/h;
 						}
 
 						MatSetValues(*A,nnz_d,m,1,n,vv,ADD_VALUES);
@@ -541,8 +549,7 @@ vv[j] = 0.0*cimag(RHS_c[j])/h;
 						for (size_t j = 0, jMax = NvnS[1]*Nvar; j < jMax; j++) {
 							m[j]  = IndA[1]+j;
 							n[j]  = IndA[0]+i;
-//							vv[j] = cimag(RHS_c[j])/h;
-vv[j] = 0.0*cimag(RHS_c[j])/h;
+							vv[j] = cimag(RHS_c[j])/h;
 						}
 
 						MatSetValues(*A,nnz_d,m,1,n,vv,ADD_VALUES);
@@ -563,12 +570,6 @@ vv[j] = 0.0*cimag(RHS_c[j])/h;
 
 static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 {
-	bool const CheckOffDiag = 0;
-
-	if (!CheckOffDiag) {
-		printf("Not checking off diagonal in compute_A_cs_complete.\n"); PRINT_FILELINE;
-	}
-
 	unsigned int const dof = DB.dof;
 
 	unsigned int *A_nz = calloc(dof*dof , sizeof *A_nz); // free
@@ -605,9 +606,6 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 			for (struct S_VOLUME *VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
 				IndA[1] = VOLUME2->IndA;
 				if (!A_nz[(IndA[0]+i)*dof+IndA[1]])
-					continue;
-
-				if (!CheckOffDiag && (VOLUME != VOLUME2))
 					continue;
 
 				NvnS[1] = VOLUME2->NvnS;

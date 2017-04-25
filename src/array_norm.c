@@ -156,11 +156,6 @@ double PetscMatAIJ_norm_diff_d(const unsigned int NRows, Mat A, Mat B, const cha
 	const PetscScalar *vals[2];
 
 	norm = 0.0;
-unsigned int PrintOn = 1; // ToBeDeleted
-if (PrintOn) {
-printf("\n\nPrinting");
-PRINT_FILELINE;
-}
 	if (strstr(NormType,"Inf")) {
 		for (i = 0; i < NRows; i++) {
 
@@ -173,25 +168,25 @@ PRINT_FILELINE;
 				EXIT_UNSUPPORTED;
 			}
 
-unsigned int Inde = 15; // diff = 0 for Inde = 0, 4 for the current mesh.
-if (PrintOn && (i >= Inde*12 && i < (Inde+1)*12)) {
-printf("%d\n",i);
-for (int j = 0; j < ncols[0]; j++) {
-	double const diff = vals[0][j]-vals[1][j];
-	if (fabs(diff) < 2e-15)
-		printf(" %d          ",0);
-	else
-		printf("% .4e ",diff);
-}
-printf("\n");
-if (1) {
-printf("\n\n");
-array_print_d(1,ncols[0],vals[0],'R');
-array_print_d(1,ncols[1],vals[1],'R');
-printf("\n");
-}
-}
 			norm_row = array_norm_diff_d(ncols[0],vals[0],vals[1],"Inf");
+
+unsigned int PrintOn = 1; // ToBeDeleted
+if (PrintOn) {
+//printf("PetscMatAIJ_norm: %d % .3e\n",i,norm_row);
+}
+unsigned int Inde = 0, P = 0; // diff = 0 for Inde = 0, 4 for the current mesh.
+if (PrintOn && (i >= Inde*(4+8*P) && i < (Inde+1)*(4+8*P))) {
+	printf("PetscMat_norm: %d\n",i);
+	for (int j = 0; j < ncols[0]; j++) {
+		double const diff = vals[0][j]-vals[1][j];
+		if (fabs(diff) < 2e-15)
+			printf(" %d          ",0);
+		else
+			printf("% .4e ",diff);
+	}
+	printf("\n");
+}
+
 			if (norm_row > norm)
 				norm = norm_row;
 

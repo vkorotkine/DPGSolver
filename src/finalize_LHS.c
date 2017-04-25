@@ -169,12 +169,8 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 		maxRHS = finalize_RHS();
 
 		finalize_LHS(A,b,x,1);
-if (0) {
 		finalize_LHS(A,b,x,2);
 		finalize_LHS(A,b,x,3);
-} else {
-	printf("\n\n***Commented finalize_LHS. ***\n"); PRINT_FILELINE;
-}
 
 		assemble_RHS(b,x);
 

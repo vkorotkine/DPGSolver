@@ -32,6 +32,9 @@ struct S_TEST {
 
 	// Parameters
 	unsigned int PG_add, IntOrder_add, IntOrder_mult;
+
+	// Integration Testing
+	bool CheckOffDiagonal;
 };
 extern struct S_TEST TestDB;
 
