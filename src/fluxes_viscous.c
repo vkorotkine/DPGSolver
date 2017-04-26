@@ -165,18 +165,22 @@ void flux_viscous(unsigned int const Nn, unsigned int const Nel, double const *c
 		}
 	} else if (d == 2) {
 		for (size_t n = 0; n < NnTotal; n++) {
-			const double rho      = *rho_ptr++,
+			double const rho      = *rho_ptr++,
 			             rho_inv  = 1.0/rho,
-			             rho_inv2 = rho_inv*rho_inv;
-
-			const double u = (*rhou_ptr++)*rho_inv,
+			             rho_inv2 = rho_inv*rho_inv,
+			             u = (*rhou_ptr++)*rho_inv,
 			             v = (*rhov_ptr++)*rho_inv,
 			             E = *E_ptr++;
 
-			const double drho[DMAX]  = { *drho_ptr[0]++,  *drho_ptr[1]++,  0.0, },
+			// Add 'const' (ToBeDeleted)
+			double drho[DMAX]  = { *drho_ptr[0]++,  *drho_ptr[1]++,  0.0, },
 			             drhou[DMAX] = { *drhou_ptr[0]++, *drhou_ptr[1]++, 0.0, },
 			             drhov[DMAX] = { *drhov_ptr[0]++, *drhov_ptr[1]++, 0.0, },
 			             dE[DMAX]    = { *dE_ptr[0]++,    *dE_ptr[1]++,    0.0, };
+bool const zero_FQ = 0;
+for (size_t dim = 0; zero_FQ && dim < d; dim++) {
+	drho[dim] = 1.0; drhou[dim] = 1.0; drhov[dim] = 1.0; dE[dim] = 1.0;
+}
 
 			const double du[DMAX] = { rho_inv*(drhou[0]-drho[0]*u), rho_inv*(drhou[1]-drho[1]*u), 0.0, },
 			             dv[DMAX] = { rho_inv*(drhov[0]-drho[0]*v), rho_inv*(drhov[1]-drho[1]*v), 0.0, };

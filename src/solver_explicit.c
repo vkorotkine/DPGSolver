@@ -235,7 +235,7 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 					else if (ML <= 2) { data->dt = 2e-0; }
 					else if (ML <= 3) { data->dt = 4e-0; }
 					else              { EXIT_UNSUPPORTED; }
-				} else if (P <= 3) {
+				} else if (P <= 2) {
 					if      (ML <= 0) { data->dt = 5e-1; }
 					else if (ML <= 1) { data->dt = 1e-0; }
 					else if (ML <= 2) { data->dt = 2e-0; }

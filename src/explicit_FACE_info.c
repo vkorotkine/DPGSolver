@@ -204,9 +204,15 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 
 
 			// Compute FACE RHS terms
+printf("Remove this eFi 207.\n");
+unsigned int NvnSL = OPSL[0]->NvnS,
+             NvnSR = OPSR[0]->NvnS;
+memset(FACE->RHSIn,0.0,NvnSL*Neq * sizeof *(FACE->RHSIn));
 			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'L','E','V');
-			if (!FACE->Boundary)
+			if (!FACE->Boundary) {
+memset(FACE->RHSOut,0.0,NvnSR*Neq * sizeof *(FACE->RHSOut));
 				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'R','E','V');
+			}
 
 			free(NFluxData->nFluxViscNum_fI);
 		}

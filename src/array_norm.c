@@ -174,7 +174,8 @@ unsigned int PrintOn = 1; // ToBeDeleted
 if (PrintOn) {
 //printf("PetscMatAIJ_norm: %d % .3e\n",i,norm_row);
 }
-unsigned int Inde = 0, P = 0; // diff = 0 for Inde = 0, 4 for the current mesh.
+unsigned int Inde = 0, P = 1;
+//unsigned int Inde = 15, P = 1;
 if (PrintOn && (i >= Inde*(4+8*P) && i < (Inde+1)*(4+8*P))) {
 	printf("PetscMat_norm: %d\n",i);
 	for (int j = 0; j < ncols[0]; j++) {
@@ -185,6 +186,11 @@ if (PrintOn && (i >= Inde*(4+8*P) && i < (Inde+1)*(4+8*P))) {
 			printf("% .4e ",diff);
 	}
 	printf("\n");
+	printf("\n");
+if (1) {
+array_print_d(1,ncols[0],vals[0],'R');
+array_print_d(1,ncols[0],vals[1],'R');
+}
 }
 
 			if (norm_row > norm)

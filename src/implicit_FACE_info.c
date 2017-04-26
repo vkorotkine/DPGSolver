@@ -101,18 +101,18 @@ static void compute_Inviscid_FACE_EFE(void)
 			             NvnSR = OPSR[0]->NvnS;
 
 			memset(FACE->RHSIn,0.0,NvnSL*Neq * sizeof *(FACE->RHSIn));
-			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,NULL,'L','E','W');
-
 			memset(FACE->LHSInIn,0.0,NvnSL*NvnSL*Neq*Nvar * sizeof *(FACE->LHSInIn));
+
+			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,NULL,'L','E','W');
 			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->dnFluxNumdWL_fI,NFluxData->dnFluxNumdWR_fI,'L','I','W');
 
 			if (!FACE->Boundary) {
 				memset(FACE->RHSOut,0.0,NvnSR*Neq * sizeof *(FACE->RHSOut));
-				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,NULL,'R','E','W');
-
 				memset(FACE->LHSOutIn,0.0,NvnSL*NvnSR*Neq*Nvar * sizeof *(FACE->LHSOutIn));
 				memset(FACE->LHSInOut,0.0,NvnSR*NvnSL*Neq*Nvar * sizeof *(FACE->LHSInOut));
 				memset(FACE->LHSOutOut,0.0,NvnSR*NvnSR*Neq*Nvar * sizeof *(FACE->LHSOutOut));
+
+				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,NULL,'R','E','W');
 				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->dnFluxNumdWL_fI,NFluxData->dnFluxNumdWR_fI,'R','I','W');
 			}
 			free(NFluxData->nFluxNum_fI);
@@ -217,11 +217,21 @@ static void compute_Viscous_FACE_EFE(void)
 
 
 			// Compute FACE RHS and LHS terms
+unsigned int NvnSL = OPSL[0]->NvnS,
+             NvnSR = OPSR[0]->NvnS;
+memset(FACE->RHSIn,0.0,NvnSL*Neq * sizeof *(FACE->RHSIn));
+memset(FACE->LHSInIn,0.0,NvnSL*NvnSL*Neq*Nvar * sizeof *(FACE->LHSInIn));
+
 			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'L','E','V');
 			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->dnFluxViscNumdWL_fI,NFluxData->dnFluxViscNumdWR_fI,'L','I','V');
 			finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'L');
 
 			if (!FACE->Boundary) {
+memset(FACE->RHSOut,0.0,NvnSR*Neq * sizeof *(FACE->RHSOut));
+memset(FACE->LHSOutIn,0.0,NvnSL*NvnSR*Neq*Nvar * sizeof *(FACE->LHSOutIn));
+memset(FACE->LHSInOut,0.0,NvnSR*NvnSL*Neq*Nvar * sizeof *(FACE->LHSInOut));
+memset(FACE->LHSOutOut,0.0,NvnSR*NvnSR*Neq*Nvar * sizeof *(FACE->LHSOutOut));
+
 				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'R','E','V');
 				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->dnFluxViscNumdWL_fI,NFluxData->dnFluxViscNumdWR_fI,'R','I','V');
 				finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'R');

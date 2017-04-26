@@ -209,7 +209,7 @@ static unsigned int compare_jacobian_flux_viscous(unsigned int const Nn, unsigne
 		if (diff < 1e1*EPS) {
 			pass = 1;
 		} else {
-			bool PrintEnabled = 0;
+			bool PrintEnabled = 1;
 			if (PrintEnabled) {
 				printf("% .3e\n",diff);
 				for (size_t dim = 0; dim < d; dim++) {

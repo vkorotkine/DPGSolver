@@ -79,6 +79,7 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 
 	data->PG_add        = 1;
 	data->IntOrder_mult = 2;
+	data->IntOrder_add  = 0;
 
 	data->PGlobal = 3;
 	data->ML      = 0;
@@ -108,8 +109,9 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 		}
 	} else if (strstr(TestName,"NavierStokes")) {
 		data->CheckWeakGradients = 1;
-data->PGlobal = 0;
+data->PGlobal = 1;
 data->CheckFullLinearization = 0;
+//data->IntOrder_add = 4;
 		if (strstr(TestName,"TRI")) {
 			strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedTRI");
 		} else {
@@ -184,6 +186,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 	TestDB.PGlobal       = data->PGlobal;
 	TestDB.ML            = data->ML;
 	TestDB.PG_add        = data->PG_add;
+	TestDB.IntOrder_add  = data->IntOrder_add;
 	TestDB.IntOrder_mult = data->IntOrder_mult;
 
 	code_startup(nargc,argvNew,Nref,update_argv);
@@ -274,7 +277,7 @@ DB.mu = 1e0; // ToBeDeleted (Increase contribution of viscous terms)
 			}
 
 			if (!CheckFullLinearization) {
-				unsigned int const CheckLevel = 2;
+				unsigned int const CheckLevel = 3;
 				for (size_t i = 1; i <= CheckLevel; i++)
 					finalize_LHS(&A,&b,&x,i);
 				finalize_Mat(&A,1);

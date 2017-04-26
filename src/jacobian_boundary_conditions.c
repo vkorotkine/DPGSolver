@@ -1095,6 +1095,16 @@ u = 0.0; v = 0.0; w = 0.0;
 				*dWBdWL_ptr[InddWdW++] = -(drhoLdW[var]*wL+rhoL*dwLdW[var]) + 0.0;
 			*dWBdWL_ptr[InddWdW++] = -dELdW[var] + 2.0*dELdW[var];
 }
+/*
+printf("Warning: Remove this jaco_BC.\n");
+InddWdW -= d+2;
+*dWBdWL_ptr[InddWdW++] = 0.0;
+*dWBdWL_ptr[InddWdW++] = 0.0;
+*dWBdWL_ptr[InddWdW++] = 0.0;
+if (d == 3)
+	*dWBdWL_ptr[InddWdW++] = 0.0;
+*dWBdWL_ptr[InddWdW++] = 0.0;
+		*/
 		}
 
 		for (size_t i = 0, iMax = Neq*Nvar; i < iMax; i++)

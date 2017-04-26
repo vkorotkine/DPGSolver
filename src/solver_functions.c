@@ -813,6 +813,10 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 		} else {
 			EXIT_UNSUPPORTED;
 		}
+//if (!Boundary)
+//if (FDATA->side == 'R')
+if (0)
+chi = 0.0;
 
 		// Partially correct Qhat
 		if (chi != 0.0) {
@@ -1718,9 +1722,6 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 			}
 		}}
 		free(dWBdWL_fIL);
-printf("Boundary dnFVdWL should be zero (%d).\n",BC);
-array_print_d(NfnI,Neq*Nvar,dnFluxViscNumdWL_fIL,'C');
-array_print_d(NfnI,Neq*Nvar,dWBdWL_fIL,'C');
 	}
 }
 
@@ -2511,7 +2512,8 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 
 		double const *const *const Q_What = (double const *const *const) FDATAL->Q_WhatLL;
 		compute_LHS_FACE_Q_Weak(NvnSL,NvnSL,NfnI,I_FF,dnFluxViscNumdQL_fI,Q_What,IdnFdQ,FACE->LHSInIn,Boundary);
-		array_free2_d(d,(double **) Q_What);
+		if (Boundary)
+			array_free2_d(d,(double **) Q_What);
 		free(IdnFdQ);
 	} else if (side == 'R') {
 		if (Boundary)
@@ -2527,37 +2529,68 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 		I_FF   = OPSL[0]->I_Weak_FF[VfL];
 		IdnFdQ = malloc(NvnSL*NfnI * sizeof *IdnFdQ); // free
 
-		// Add cross term from dependence of QR on WL
+
+
+unsigned int const *const nOrdRL = OPSL[IndFType]->nOrdRL,
+                   *const nOrdLR = OPSL[IndFType]->nOrdLR;
+
+// Move these array_rearrange calls elsewhere (ToBeDeleted)
+for (size_t dim = 0; dim < d; dim++) {
+	array_rearrange_d(NfnI,NvnSL,nOrdRL,'R',FDATAR->Q_WhatLR[dim]);
+	array_rearrange_d(NfnI,NvnSR,nOrdRL,'R',FDATAR->Q_WhatRR[dim]);
+
+	for (size_t i = 0;  i < NfnI*NvnSL; i++) {
+//		FDATAR->Q_WhatLR[dim][i] *= -1.0;
+	}
+}
+
+
+		// LHSLL (Effect of QR on (L)eft VOLUME)
 		Q_What = (double const *const *const) FDATAR->Q_WhatLR;
 		compute_LHS_FACE_Q_Weak(NvnSL,NvnSL,NfnI,I_FF,dnFluxViscNumdQR_fI,Q_What,IdnFdQ,FACE->LHSInIn,Boundary);
 
 		// Q_WhatRL (Effect of (R)ight VOLUME on (L)eft VOLUME)
 		Q_What = (double const *const *const) FDATAL->Q_WhatRL;
+		compute_LHS_FACE_Q_Weak(NvnSL,NvnSR,NfnI,I_FF,dnFluxViscNumdQL_fI,Q_What,IdnFdQ,FACE->LHSOutIn,Boundary);
+
+		Q_What = (double const *const *const) FDATAR->Q_WhatRR;
 		compute_LHS_FACE_Q_Weak(NvnSL,NvnSR,NfnI,I_FF,dnFluxViscNumdQR_fI,Q_What,IdnFdQ,FACE->LHSOutIn,Boundary);
 		free(IdnFdQ);
 
+for (size_t dim = 0; dim < d; dim++) {
+	array_rearrange_d(NfnI,NvnSL,nOrdLR,'R',FDATAR->Q_WhatLR[dim]);
+	array_rearrange_d(NfnI,NvnSR,nOrdLR,'R',FDATAR->Q_WhatRR[dim]);
+}
 		// Swap orientation of numerical flux Jacobian terms
 		swap_FACE_orientation(FDATAR,'I','P');
+for (size_t dim = 0; dim < d; dim++) {
+	array_rearrange_d(NfnI,NvnSL,nOrdLR,'R',FDATAL->Q_WhatLL[dim]);
+	array_rearrange_d(NfnI,NvnSR,nOrdLR,'R',FDATAL->Q_WhatRL[dim]);
+}
 
 		I_FF   = OPSR[0]->I_Weak_FF[VfR];
 		IdnFdQ = malloc(NvnSR*NfnI * sizeof *IdnFdQ); // free
 
 		// Q_WhatLR (Effect of (L)eft VOLUME on (R)ight VOLUME)
-		Q_What = (double const *const *const) FDATAR->Q_WhatLR;
+// Combine terms before passing to compute_LHS_FACE_Q_Weak. (ToBeModified)
+		Q_What = (double const *const *const) FDATAL->Q_WhatLL;
 		compute_LHS_FACE_Q_Weak(NvnSR,NvnSL,NfnI,I_FF,dnFluxViscNumdQL_fI,Q_What,IdnFdQ,FACE->LHSInOut,Boundary);
-		array_free2_d(d,(double **) Q_What);
 
-		// Add cross term from dependence of QL on WR
+		Q_What = (double const *const *const) FDATAR->Q_WhatLR;
+		compute_LHS_FACE_Q_Weak(NvnSR,NvnSL,NfnI,I_FF,dnFluxViscNumdQR_fI,Q_What,IdnFdQ,FACE->LHSInOut,Boundary);
+
+		// Q_WhatRR (Effect of (R)ight VOLUME on (R)ight VOLUME)
 		Q_What = (double const *const *const) FDATAL->Q_WhatRL;
 		compute_LHS_FACE_Q_Weak(NvnSR,NvnSR,NfnI,I_FF,dnFluxViscNumdQL_fI,Q_What,IdnFdQ,FACE->LHSOutOut,Boundary);
 
-		// Q_WhatRR (Effect of (R)ight VOLUME on (R)ight VOLUME)
 		Q_What = (double const *const *const) FDATAR->Q_WhatRR;
 		compute_LHS_FACE_Q_Weak(NvnSR,NvnSR,NfnI,I_FF,dnFluxViscNumdQR_fI,Q_What,IdnFdQ,FACE->LHSOutOut,Boundary);
-		array_free2_d(d,(double **) Q_What);
 		free(IdnFdQ);
 
+		array_free2_d(d,(double **) FDATAL->Q_WhatLL);
 		array_free2_d(d,(double **) FDATAL->Q_WhatRL);
+		array_free2_d(d,(double **) FDATAR->Q_WhatLR);
+		array_free2_d(d,(double **) FDATAR->Q_WhatRR);
 	} else {
 		EXIT_UNSUPPORTED;
 	}
