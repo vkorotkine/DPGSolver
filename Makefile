@@ -248,7 +248,7 @@ mesh_vars_and_deps : $(MESHVARIABLES)
 $(MESHVARIABLES) : $(CONTROL_FILES)
 	@echo
 	@echo Creating MeshVariables file based on existing .ctrl files.
-	@$(PYTHONC) python/MeshVariables_update.py $(CONFIGURATIONS)
+	$(PYTHONC) python/MeshVariables_update.py $(CONFIGURATIONS)
 	@$(PYTHONC) python/MeshVariables_remove_duplicates.py
 	@echo
 

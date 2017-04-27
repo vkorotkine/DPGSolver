@@ -161,7 +161,7 @@ void test_equivalence_real_complex(struct S_equivalence_rc *const data, char con
 		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			unsigned int const NvnS = VOLUME->NvnS;
 
-			if (array_norm_diff_dc(NvnS*Nvar,VOLUME->RHS,VOLUME->RHS_c,"Inf") > 1e1*EPS ||
+			if (array_norm_diff_dc(NvnS*Nvar,VOLUME->RHS,VOLUME->RHS_c,"Inf") > 1e2*EPS ||
 				array_norm_d(NvnS*Nvar,VOLUME->RHS,"Inf") < EPS) {
 				array_print_d(NvnS,Nvar,VOLUME->RHS,'C');
 				array_print_cmplx(NvnS,Nvar,VOLUME->RHS_c,'C');

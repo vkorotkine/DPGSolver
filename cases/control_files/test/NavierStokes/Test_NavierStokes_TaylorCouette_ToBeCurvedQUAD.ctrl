@@ -7,7 +7,7 @@ GeomSpecifier Test
 Dimension     2
 
 MeshPath      ../meshes/
-MeshType      TRI
+MeshType      QUAD
 MeshCurving   ToBeCurved
 MeshLevel     1
 

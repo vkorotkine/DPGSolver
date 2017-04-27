@@ -38,7 +38,6 @@
 
 static void compute_Inviscid_VOLUME_EFE(void);
 static void compute_Viscous_VOLUME_EFE(void);
-static void compute_Viscous_VOLUME_VOLUME_EFE(void);
 
 void implicit_VOLUME_info(void)
 {
@@ -55,12 +54,6 @@ void implicit_VOLUME_info(void)
 	} else {
 		;
 	}
-}
-
-void implicit_VOLUME_Q_info(void)
-{
-if (0) // This is included in compute_Viscous_VOLUME_EFE
-	compute_Viscous_VOLUME_VOLUME_EFE();
 }
 
 static void compute_Inviscid_VOLUME_EFE(void)
@@ -226,25 +219,4 @@ static void compute_Viscous_VOLUME_EFE(void)
 	free(VDATA);
 	for (size_t i = 0; i < 2; i++)
 		free(OPS[i]);
-}
-
-static void compute_Viscous_VOLUME_VOLUME_EFE(void)
-{
-	EXIT_UNSUPPORTED;
-	/*
-	 *	Comments:
-	 *		It is assumed that VOLUME->LHSQ has been computed and that VOLUME->LHS has been initialized.
-	 */
-
-	if (!DB.Viscous)
-		return;
-
-	if (strstr(DB.Form,"Weak")) {
-		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
-			finalize_VOLUME_LHSQV_Weak(VOLUME);
-	} else if (strstr(DB.Form,"Strong")) {
-		EXIT_UNSUPPORTED;
-	} else {
-		EXIT_UNSUPPORTED;
-	}
 }

@@ -134,8 +134,8 @@ class TestCase_class:
 			if (self.name.lower().find('test') != -1):
 				self.VarName = 'NAVIERSTOKES_TEST'
 
-				MeshCurving     = ['ToBeCurved']
-				MeshTypes       = ['TRI']
+				MeshCurving     = ['ToBeCurved','ToBeCurved']
+				MeshTypes       = ['TRI','QUAD']
 				NTotal = len(MeshTypes)
 				MeshTypesPrefix = ['TaylorCouette_' for i in range(0,NTotal)]
 				if   (MeshName.find('all')    != -1):

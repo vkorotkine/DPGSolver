@@ -163,12 +163,16 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 		if (strstr(TestName,"n-Cylinder_Hollow")) {
 //data->SolveImplicit = 0;
 			if (strstr(TestName,"ToBeCurved")) {
-				if (strstr(TestName,"TRI")) {
-					data->PrintEnabled = 1;
+data->PG_add = 0;
+data->IntOrder_add  = 0;
 data->PMin  = 3;
 data->PMax  = 3;
-data->MLMax = 1;
+data->MLMax = 0;
+data->PrintEnabled = 1;
+				if (strstr(TestName,"TRI")) {
 					strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedTRI");
+				} else if (strstr(TestName,"QUAD")) {
+					strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedQUAD");
 				} else {
 					EXIT_UNSUPPORTED;
 				}
@@ -207,7 +211,7 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 	                   MLMin = data->MLMin,
 	                   MLMax = data->MLMax;
 
-	TestDB.PGlobal       = 2; // ToBeModified (Not important for Adapt != ADAPT_0)
+	TestDB.PGlobal       = 1; // ToBeModified (Not important for Adapt != ADAPT_0)
 	TestDB.PG_add        = data->PG_add;
 	TestDB.IntOrder_add  = data->IntOrder_add;
 	TestDB.IntOrder_mult = data->IntOrder_mult;

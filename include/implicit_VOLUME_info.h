@@ -4,7 +4,6 @@
 #ifndef DPG__implicit_VOLUME_info_h__INCLUDED
 #define DPG__implicit_VOLUME_info_h__INCLUDED
 
-extern void implicit_VOLUME_info   (void);
-extern void implicit_VOLUME_Q_info (void);
+extern void implicit_VOLUME_info (void);
 
 #endif // DPG__implicit_VOLUME_info_h__INCLUDED

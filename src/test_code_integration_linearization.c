@@ -109,6 +109,8 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 			EXIT_UNSUPPORTED;
 		}
 	} else if (strstr(TestName,"NavierStokes")) {
+data->PGlobal = 1;
+data->IntOrder_add = 4;
 		data->CheckWeakGradients = 1;
 		if (strstr(TestName,"TRI")) {
 			strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedTRI");

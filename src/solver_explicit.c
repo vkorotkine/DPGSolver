@@ -248,8 +248,11 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 				} else {
 					EXIT_UNSUPPORTED;
 				}
+//				data->dt *= pow(0.5,7.0);
+				data->dt *= pow(0.5,1.0);
 			}
 			data->exit_tol   = 1e-7;
+//			data->exit_tol   = 1e-9;
 //			data->exit_tol   = 1e1*EPS;
 			data->exit_ratio = 1.0/EPS;
 		} else {

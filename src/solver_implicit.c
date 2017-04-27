@@ -92,7 +92,8 @@ void setup_KSP(Mat A, KSP ksp)
 
 			KSPSetType(ksp,KSPGMRES);
 			KSPGMRESSetOrthogonalization(ksp,KSPGMRESModifiedGramSchmidtOrthogonalization);
-			KSPGMRESSetRestart(ksp,60); // Default: 30
+//			KSPGMRESSetRestart(ksp,60); // Default: 30
+			KSPGMRESSetRestart(ksp,200); // Default: 30
 
 			PCSetType(pc,PCILU);
 			PCFactorSetLevels(pc,1); // Cannot use MatOrdering with 0 fill
@@ -195,7 +196,7 @@ static void compute_underRelax(struct S_VOLUME *VOLUME, const double *dWhat, dou
 
 		if (alphaO < EPS) {
 			printf("%d %d\n",flag[0],flag[1]);
-			printf("Potential problem: Under Relaxation driven to 0.\n");//, EXIT_MSG;
+			printf("Potential problem: Under relaxation driven to 0.\n");//, EXIT_MSG;
 			break;
 		}
 
@@ -268,7 +269,19 @@ void solver_implicit(bool const PrintEnabled)
 		KSPSolve(ksp,b,x);
 		KSPGetConvergedReason(ksp,&reason);
 		KSPGetIterationNumber(ksp,&iteration_ksp);
+
+		PetscReal emax, emin;
+		KSPComputeExtremeSingularValues(ksp,&emax,&emin);
 //		KSPView(ksp,PETSC_VIEWER_STDOUT_WORLD);
+
+		// Display solver progress
+		if (!iteration)
+			maxRHS0 = maxRHS;
+
+		if (PrintEnabled) {
+			printf("Iteration: %5d, KSP iterations (cond, reason): %5d (% .3e, %d), maxRHS (no MInv): % .3e\n",
+			       iteration,iteration_ksp,emax/emin,reason,maxRHS);
+		}
 
 		// Update What
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -289,11 +302,18 @@ void solver_implicit(bool const PrintEnabled)
 if (iteration < 3)
 			compute_underRelax(VOLUME,dWhat,&alpha);
 
+alpha = 0.5;
+printf("%d\n",VOLUME->indexg);
+array_print_d(NvnS,Nvar,What,'C');
+array_print_d(NvnS,Nvar,dWhat,'C');
 //printf("% .3e\n",alpha);
-//alpha = 1.0;
 
-			for (i = 0; i < iMax; i++)
-				(*What++) += alpha*dWhat[i];
+			for (i = 0; i < iMax; i++) {
+				if (fabs(dWhat[i]) <= EPS)
+					What++;
+				else
+					(*What++) += alpha*dWhat[i];
+			}
 			free(dWhat);
 
 			enforce_positivity_highorder(VOLUME);
@@ -308,15 +328,6 @@ if (iteration < 3)
 			strcpy(dummyPtr_c[0],"SolStart");
 			strcat(dummyPtr_c[0],dummyPtr_c[1]);
 			output_to_paraview(dummyPtr_c[0]);
-		}
-
-		// Display solver progress
-		if (!iteration)
-			maxRHS0 = maxRHS;
-
-		if (PrintEnabled) {
-			printf("Iteration: %5d, KSP iterations (reason): %5d (%d), maxRHS (no MInv): % .3e\n",
-			       iteration,iteration_ksp,reason,maxRHS);
 		}
 
 		// Additional exit conditions
