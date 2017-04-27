@@ -22,7 +22,7 @@ void test_print2(unsigned int const pass, char const *const string)
 
 	TestDB.Ntest++;
 
-	printf("%-80s",string);
+	printf("%-90s",string);
 	if (pass) {
 		TestDB.Npass++;
 		printf("Pass\n");

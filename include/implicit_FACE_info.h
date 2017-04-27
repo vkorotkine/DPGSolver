@@ -5,6 +5,5 @@
 #define DPG__implicit_FACE_info_h__INCLUDED
 
 extern void implicit_FACE_info   (void);
-extern void implicit_FACE_Q_info (void);
 
 #endif // DPG__implicit_FACE_info_h__INCLUDED

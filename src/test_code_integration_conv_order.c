@@ -161,13 +161,13 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 		}
 	} else if (strstr(TestName,"NavierStokes")) {
 		if (strstr(TestName,"n-Cylinder_Hollow")) {
-data->SolveImplicit = 0;
+//data->SolveImplicit = 0;
 			if (strstr(TestName,"ToBeCurved")) {
 				if (strstr(TestName,"TRI")) {
 					data->PrintEnabled = 1;
 data->PMin  = 3;
 data->PMax  = 3;
-data->MLMax = 2;
+data->MLMax = 1;
 					strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedTRI");
 				} else {
 					EXIT_UNSUPPORTED;

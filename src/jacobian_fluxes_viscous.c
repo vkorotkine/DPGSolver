@@ -347,14 +347,10 @@ void jacobian_flux_viscous(unsigned int const Nn, unsigned int const Nel, double
 			             v = (*rhov_ptr++)*rho_inv,
 			             E = *E_ptr++;
 
-			double drho[DMAX]  = { *drho_ptr[0]++,  *drho_ptr[1]++,  0.0, },
+			double const drho[DMAX]  = { *drho_ptr[0]++,  *drho_ptr[1]++,  0.0, },
 			             drhou[DMAX] = { *drhou_ptr[0]++, *drhou_ptr[1]++, 0.0, },
 			             drhov[DMAX] = { *drhov_ptr[0]++, *drhov_ptr[1]++, 0.0, },
 			             dE[DMAX]    = { *dE_ptr[0]++,    *dE_ptr[1]++,    0.0, };
-bool const zero_FQ = 0;
-for (size_t dim = 0; zero_FQ && dim < d; dim++) {
-	drho[dim] = 1.0; drhou[dim] = 1.0; drhov[dim] = 1.0; dE[dim] = 1.0;
-}
 
 			const double du[DMAX] = { rho_inv*(drhou[0]-drho[0]*u), rho_inv*(drhou[1]-drho[1]*u), 0.0, },
 			             dv[DMAX] = { rho_inv*(drhov[0]-drho[0]*v), rho_inv*(drhov[1]-drho[1]*v), 0.0, };
@@ -557,16 +553,6 @@ for (size_t dim = 0; zero_FQ && dim < d; dim++) {
 				for (size_t i = 0, iMax = Neq*Nvar*DMAX; i < iMax; i++)
 					dFdQ_ptr[dim1][i]++;
 			}
-
-if (zero_FQ) {
-for (size_t dim1 = 0; dim1 < d; dim1++) {
-for (size_t eq  = 0; eq  < Neq;  eq++)  {
-for (size_t var = 0; var < Nvar; var++) {
-for (size_t dim = 0; dim < d;    dim++) {
-for (size_t n = 0; n < NnTotal; n++) {
-	dFdQ[dim1][((eq*Nvar+var)*d+dim)*NnTotal+n] = 0.0;
-}}}}}
-}
 
 			}
 		}

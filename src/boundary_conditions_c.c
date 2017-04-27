@@ -789,15 +789,6 @@ u = 0.0; v = 0.0; w = 0.0;
 			*WB_ptr[IndW++] = -rhoL*wL + 2.0*rhoL*w;
 		*WB_ptr[IndW++] = -EL + 2.0*EL;
 }
-/*
-IndW = 0;
-*WB_ptr[IndW++] = 1.0;
-*WB_ptr[IndW++] = 0.0;
-*WB_ptr[IndW++] = 0.0;
-if (d == 3)
-	*WB_ptr[IndW++] = 0.0;
-*WB_ptr[IndW++] = 1.0;
-*/
 
 		for (size_t var = 0; var < Nvar; var++)
 			WB_ptr[var]++;

@@ -188,14 +188,9 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 			array_free2_cmplx(d,GradWL_fIL_c);
 			array_free2_cmplx(d,GradWR_fIL_c);
 
-
-unsigned int NvnSL = OPSL[0]->NvnS,
-             NvnSR = OPSR[0]->NvnS;
-memset(FACE->RHSIn_c,0.0,NvnSL*Neq * sizeof *(FACE->RHSIn_c));
 			// Compute FACE RHS terms
 			finalize_FACE_Viscous_Weak_c(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI_c,'L','E','V');
 			if (!FACE->Boundary) {
-memset(FACE->RHSOut_c,0.0,NvnSR*Neq * sizeof *(FACE->RHSOut_c));
 				finalize_FACE_Viscous_Weak_c(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI_c,'R','E','V');
 			}
 

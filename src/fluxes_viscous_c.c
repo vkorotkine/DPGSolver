@@ -154,14 +154,10 @@ void flux_viscous_c(unsigned int const Nn, unsigned int const Nel, double comple
 			                     v = (*rhov_ptr++)*rho_inv,
 			                     E = *E_ptr++;
 
-			double complex drho[DMAX]  = { *drho_ptr[0]++,  *drho_ptr[1]++,  0.0, },
+			double complex const drho[DMAX]  = { *drho_ptr[0]++,  *drho_ptr[1]++,  0.0, },
 			                     drhou[DMAX] = { *drhou_ptr[0]++, *drhou_ptr[1]++, 0.0, },
 			                     drhov[DMAX] = { *drhov_ptr[0]++, *drhov_ptr[1]++, 0.0, },
 			                     dE[DMAX]    = { *dE_ptr[0]++,    *dE_ptr[1]++,    0.0, };
-bool const zero_FQ = 0;
-for (size_t dim = 0; zero_FQ && dim < d; dim++) {
-	drho[dim] = 1.0; drhou[dim] = 1.0; drhov[dim] = 1.0; dE[dim] = 1.0;
-}
 
 			const double complex du[DMAX] = { rho_inv*(drhou[0]-drho[0]*u), rho_inv*(drhou[1]-drho[1]*u), 0.0, },
 			                     dv[DMAX] = { rho_inv*(drhov[0]-drho[0]*v), rho_inv*(drhov[1]-drho[1]*v), 0.0, };

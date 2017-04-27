@@ -29,18 +29,11 @@
 
 static void compute_Inviscid_FACE_EFE (void);
 static void compute_Viscous_FACE_EFE (void);
-static void compute_Viscous_VOLUME_FACE_EFE(void);
 
 void implicit_FACE_info(void)
 {
 	compute_Inviscid_FACE_EFE();
 	compute_Viscous_FACE_EFE();
-}
-
-void implicit_FACE_Q_info(void)
-{
-if (0) // Included in compute_Viscous_FACE_EFE
-	compute_Viscous_VOLUME_FACE_EFE();
 }
 
 static void compute_Inviscid_FACE_EFE(void)
@@ -217,21 +210,11 @@ static void compute_Viscous_FACE_EFE(void)
 
 
 			// Compute FACE RHS and LHS terms
-unsigned int NvnSL = OPSL[0]->NvnS,
-             NvnSR = OPSR[0]->NvnS;
-memset(FACE->RHSIn,0.0,NvnSL*Neq * sizeof *(FACE->RHSIn));
-memset(FACE->LHSInIn,0.0,NvnSL*NvnSL*Neq*Nvar * sizeof *(FACE->LHSInIn));
-
 			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'L','E','V');
 			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->dnFluxViscNumdWL_fI,NFluxData->dnFluxViscNumdWR_fI,'L','I','V');
 			finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'L');
 
 			if (!FACE->Boundary) {
-memset(FACE->RHSOut,0.0,NvnSR*Neq * sizeof *(FACE->RHSOut));
-memset(FACE->LHSOutIn,0.0,NvnSL*NvnSR*Neq*Nvar * sizeof *(FACE->LHSOutIn));
-memset(FACE->LHSInOut,0.0,NvnSR*NvnSL*Neq*Nvar * sizeof *(FACE->LHSInOut));
-memset(FACE->LHSOutOut,0.0,NvnSR*NvnSR*Neq*Nvar * sizeof *(FACE->LHSOutOut));
-
 				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'R','E','V');
 				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->dnFluxViscNumdWL_fI,NFluxData->dnFluxViscNumdWR_fI,'R','I','V');
 				finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'R');
@@ -254,26 +237,4 @@ memset(FACE->LHSOutOut,0.0,NvnSR*NvnSR*Neq*Nvar * sizeof *(FACE->LHSOutOut));
 	free(FDATAL);
 	free(FDATAR);
 	free(NFluxData);
-}
-
-static void compute_Viscous_VOLUME_FACE_EFE(void)
-{
-	EXIT_UNSUPPORTED;
-	/*
-	 *	Comments:
-	 *		It is assumed that VOLUME->LHSQ has been computed and that VL->LHS, VR->LHS and FACE->LHS(RL/LR) have been
-	 *		initialized.
-	 */
-
-	if (!DB.Viscous)
-		return;
-
-	if (strstr(DB.Form,"Weak")) {
-		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next)
-			finalize_VOLUME_LHSQF_Weak(FACE);
-	} else if (strstr(DB.Form,"Strong")) {
-		EXIT_UNSUPPORTED;
-	} else {
-		EXIT_UNSUPPORTED;
-	}
 }

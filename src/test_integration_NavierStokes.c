@@ -91,15 +91,6 @@ void test_integration_NavierStokes(int nargc, char **argv)
 	// Linearization Testing
 	// **************************************************************************************************** //
 	if (RunTests_linearization) {
-struct S_convorder *const data_c = calloc(1 , sizeof *data_c); // free
-data_c->nargc     = nargc;
-data_c->argvNew   = argvNew;
-data_c->PrintName = PrintName;
-if (0) {
-test_conv_order(data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedTRI");
-EXIT_BASIC;
-}
-free(data_c);
 		struct S_linearization *const data_l = calloc(1 , sizeof *data_l); // free
 
 		data_l->nargc     = nargc;
@@ -107,7 +98,6 @@ free(data_c);
 		data_l->PrintName = PrintName;
 
 		test_linearization(data_l,"NavierStokes_TRI");
-EXIT_BASIC;
 
 		free(data_l);
 	}

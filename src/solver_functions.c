@@ -813,10 +813,6 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 		} else {
 			EXIT_UNSUPPORTED;
 		}
-//if (!Boundary)
-//if (FDATA->side == 'R')
-if (0)
-chi = 0.0;
 
 		// Partially correct Qhat
 		if (chi != 0.0) {
@@ -2519,6 +2515,9 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 		if (Boundary)
 			EXIT_UNSUPPORTED;
 
+		unsigned int const *const nOrdRL = OPSL[IndFType]->nOrdRL,
+		                   *const nOrdLR = OPSL[IndFType]->nOrdLR;
+
 		double const *const *      Q_What;
 		double const *const *const dnFluxViscNumdQL_fI = (double const *const *const) NFluxData->dnFluxViscNumdQL_fI;
 		double const *const *const dnFluxViscNumdQR_fI = (double const *const *const) NFluxData->dnFluxViscNumdQR_fI;
@@ -2529,60 +2528,53 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 		I_FF   = OPSL[0]->I_Weak_FF[VfL];
 		IdnFdQ = malloc(NvnSL*NfnI * sizeof *IdnFdQ); // free
 
+		// Rearrange such that dQRdW(L/R) are seen at the nodes as ordered from the left VOLUME
+		for (size_t dim = 0; dim < d; dim++) {
+			array_rearrange_d(NfnI,NvnSL,nOrdRL,'R',FDATAR->Q_WhatLR[dim]);
+			array_rearrange_d(NfnI,NvnSR,nOrdRL,'R',FDATAR->Q_WhatRR[dim]);
+		}
 
-
-unsigned int const *const nOrdRL = OPSL[IndFType]->nOrdRL,
-                   *const nOrdLR = OPSL[IndFType]->nOrdLR;
-
-// Move these array_rearrange calls elsewhere (ToBeDeleted)
-for (size_t dim = 0; dim < d; dim++) {
-	array_rearrange_d(NfnI,NvnSL,nOrdRL,'R',FDATAR->Q_WhatLR[dim]);
-	array_rearrange_d(NfnI,NvnSR,nOrdRL,'R',FDATAR->Q_WhatRR[dim]);
-
-	for (size_t i = 0;  i < NfnI*NvnSL; i++) {
-//		FDATAR->Q_WhatLR[dim][i] *= -1.0;
-	}
-}
-
-
-		// LHSLL (Effect of QR on (L)eft VOLUME)
+		// LHSLL (Effect of QR(WL,...))
 		Q_What = (double const *const *const) FDATAR->Q_WhatLR;
 		compute_LHS_FACE_Q_Weak(NvnSL,NvnSL,NfnI,I_FF,dnFluxViscNumdQR_fI,Q_What,IdnFdQ,FACE->LHSInIn,Boundary);
 
-		// Q_WhatRL (Effect of (R)ight VOLUME on (L)eft VOLUME)
+// Combine terms before passing to compute_LHS_FACE_Q_Weak. (ToBeModified)
+		// LHSRL (Effect of QL(...,WR))
 		Q_What = (double const *const *const) FDATAL->Q_WhatRL;
 		compute_LHS_FACE_Q_Weak(NvnSL,NvnSR,NfnI,I_FF,dnFluxViscNumdQL_fI,Q_What,IdnFdQ,FACE->LHSOutIn,Boundary);
 
+		//       (Effect of QR(...,WR))
 		Q_What = (double const *const *const) FDATAR->Q_WhatRR;
 		compute_LHS_FACE_Q_Weak(NvnSL,NvnSR,NfnI,I_FF,dnFluxViscNumdQR_fI,Q_What,IdnFdQ,FACE->LHSOutIn,Boundary);
 		free(IdnFdQ);
 
-for (size_t dim = 0; dim < d; dim++) {
-	array_rearrange_d(NfnI,NvnSL,nOrdLR,'R',FDATAR->Q_WhatLR[dim]);
-	array_rearrange_d(NfnI,NvnSR,nOrdLR,'R',FDATAR->Q_WhatRR[dim]);
-}
+		// Rearrange such that dQ(R/L)dW(L/R) are seen at the nodes as ordered from the right VOLUME
+		for (size_t dim = 0; dim < d; dim++) {
+			array_rearrange_d(NfnI,NvnSL,nOrdLR,'R',FDATAL->Q_WhatLL[dim]);
+			array_rearrange_d(NfnI,NvnSR,nOrdLR,'R',FDATAL->Q_WhatRL[dim]);
+			array_rearrange_d(NfnI,NvnSL,nOrdLR,'R',FDATAR->Q_WhatLR[dim]);
+			array_rearrange_d(NfnI,NvnSR,nOrdLR,'R',FDATAR->Q_WhatRR[dim]);
+		}
+
 		// Swap orientation of numerical flux Jacobian terms
 		swap_FACE_orientation(FDATAR,'I','P');
-for (size_t dim = 0; dim < d; dim++) {
-	array_rearrange_d(NfnI,NvnSL,nOrdLR,'R',FDATAL->Q_WhatLL[dim]);
-	array_rearrange_d(NfnI,NvnSR,nOrdLR,'R',FDATAL->Q_WhatRL[dim]);
-}
 
 		I_FF   = OPSR[0]->I_Weak_FF[VfR];
 		IdnFdQ = malloc(NvnSR*NfnI * sizeof *IdnFdQ); // free
 
-		// Q_WhatLR (Effect of (L)eft VOLUME on (R)ight VOLUME)
-// Combine terms before passing to compute_LHS_FACE_Q_Weak. (ToBeModified)
+		// LHSLR (Effect of QL(WL,...))
 		Q_What = (double const *const *const) FDATAL->Q_WhatLL;
 		compute_LHS_FACE_Q_Weak(NvnSR,NvnSL,NfnI,I_FF,dnFluxViscNumdQL_fI,Q_What,IdnFdQ,FACE->LHSInOut,Boundary);
 
+		//       (Effect of QR(WL,...))
 		Q_What = (double const *const *const) FDATAR->Q_WhatLR;
 		compute_LHS_FACE_Q_Weak(NvnSR,NvnSL,NfnI,I_FF,dnFluxViscNumdQR_fI,Q_What,IdnFdQ,FACE->LHSInOut,Boundary);
 
-		// Q_WhatRR (Effect of (R)ight VOLUME on (R)ight VOLUME)
+		// LHSRR (Effect of QL(...,WR))
 		Q_What = (double const *const *const) FDATAL->Q_WhatRL;
 		compute_LHS_FACE_Q_Weak(NvnSR,NvnSR,NfnI,I_FF,dnFluxViscNumdQL_fI,Q_What,IdnFdQ,FACE->LHSOutOut,Boundary);
 
+		//       (Effect of QR(...,WR))
 		Q_What = (double const *const *const) FDATAR->Q_WhatRR;
 		compute_LHS_FACE_Q_Weak(NvnSR,NvnSR,NfnI,I_FF,dnFluxViscNumdQR_fI,Q_What,IdnFdQ,FACE->LHSOutOut,Boundary);
 		free(IdnFdQ);

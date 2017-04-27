@@ -59,7 +59,8 @@
  *		Martins(2003)-The_Complex-Step_Derivative_Approximation
  */
 
-static void compute_A_cs               (Mat *A, Vec *b, Vec *x, unsigned int const assemble_type);
+static void compute_A_cs               (Mat *A, Vec *b, Vec *x, unsigned int const assemble_type,
+                                        bool const AllowOffDiag);
 static void compute_A_cs_complete      (Mat *A, Vec *b, Vec *x);
 static void finalize_LHS_Qhat          (Mat *const A, Vec *const b, Vec *const x, unsigned int const assemble_type,
                                         unsigned int const dim);
@@ -109,9 +110,6 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 		}
 	} else if (strstr(TestName,"NavierStokes")) {
 		data->CheckWeakGradients = 1;
-data->PGlobal = 1;
-data->CheckFullLinearization = 0;
-//data->IntOrder_add = 4;
 		if (strstr(TestName,"TRI")) {
 			strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedTRI");
 		} else {
@@ -205,7 +203,6 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 		EXIT_UNSUPPORTED;
 	}
 
-DB.mu = 1e0; // ToBeDeleted (Increase contribution of viscous terms)
 	for (size_t nTest = 0; nTest < 2; nTest++) {
 		if (nTest == 0) { // Check weak gradients
 			if (!CheckWeakGradients)
@@ -282,12 +279,16 @@ DB.mu = 1e0; // ToBeDeleted (Increase contribution of viscous terms)
 					finalize_LHS(&A,&b,&x,i);
 				finalize_Mat(&A,1);
 
+				bool AllowOffDiag = 0;
+				if (CheckLevel == 3)
+					AllowOffDiag = 1;
+
 				for (size_t i = 1; i <= CheckLevel; i++)
-					compute_A_cs(&A_cs,&b_cs,&x_cs,i);
+					compute_A_cs(&A_cs,&b_cs,&x_cs,i,AllowOffDiag);
 				finalize_Mat(&A_cs,1);
 			} else {
 				finalize_LHS(&A,&b,&x,0);
-				compute_A_cs(&A_cs,&b_cs,&x_cs,0);
+				compute_A_cs(&A_cs,&b_cs,&x_cs,0,1);
 				compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
 			}
 
@@ -369,12 +370,13 @@ static void flag_nonzero_LHS(unsigned int *A)
 	}
 }
 
-static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int const assemble_type)
+static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int const assemble_type,
+                         bool const AllowOffDiag)
 {
 	if (*A == NULL)
 		initialize_KSP(A,b,x);
 
-	if (assemble_type == 0) {
+	if (AllowOffDiag) {
 		if (strstr(DB.TestCase,"NavierStokes")) {
 			TestDB.CheckOffDiagonal = 1;
 		} else if (strstr(DB.TestCase,"Poisson") || strstr(DB.TestCase,"Euler")) {
@@ -387,10 +389,12 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 		} else {
 			EXIT_UNSUPPORTED;
 		}
+	}
 
-		compute_A_cs(A,b,x,1);
-		compute_A_cs(A,b,x,2);
-		compute_A_cs(A,b,x,3);
+	if (assemble_type == 0) {
+		compute_A_cs(A,b,x,1,AllowOffDiag);
+		compute_A_cs(A,b,x,2,AllowOffDiag);
+		compute_A_cs(A,b,x,3,AllowOffDiag);
 
 		finalize_Mat(A,1);
 		return;

@@ -196,10 +196,6 @@ void coef_to_values_fI_c(struct S_FDATA *const FDATA, char const coef_type, char
 		} else {
 			EXIT_UNSUPPORTED;
 		}
-//if (!Boundary)
-//if (FDATA->side == 'R')
-if (0)
-chi = 0.0;
 
 		// Partially correct Qhat
 		if (chi != 0.0) {

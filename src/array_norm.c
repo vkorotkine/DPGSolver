@@ -170,29 +170,6 @@ double PetscMatAIJ_norm_diff_d(const unsigned int NRows, Mat A, Mat B, const cha
 
 			norm_row = array_norm_diff_d(ncols[0],vals[0],vals[1],"Inf");
 
-unsigned int PrintOn = 1; // ToBeDeleted
-if (PrintOn) {
-//printf("PetscMatAIJ_norm: %d % .3e\n",i,norm_row);
-}
-unsigned int Inde = 0, P = 1;
-//unsigned int Inde = 15, P = 1;
-if (PrintOn && (i >= Inde*(4+8*P) && i < (Inde+1)*(4+8*P))) {
-	printf("PetscMat_norm: %d\n",i);
-	for (int j = 0; j < ncols[0]; j++) {
-		double const diff = vals[0][j]-vals[1][j];
-		if (fabs(diff) < 2e-15)
-			printf(" %d          ",0);
-		else
-			printf("% .4e ",diff);
-	}
-	printf("\n");
-	printf("\n");
-if (1) {
-array_print_d(1,ncols[0],vals[0],'R');
-array_print_d(1,ncols[0],vals[1],'R');
-}
-}
-
 			if (norm_row > norm)
 				norm = norm_row;
 
