@@ -1,15 +1,15 @@
 PDEName       NavierStokes
-PDESpecifier  Internal/TaylorCouette
+PDESpecifier  Internal/PlaneCouette
 
-Geometry      n-Cylinder_Hollow n-Cylinder_Hollow/n-Cylinder_Hollow2D.geo
+Geometry      n-Cube n-Cube/n-Cube2D.geo
 GeomSpecifier Test
 
 Dimension     2
 
 MeshPath      ../meshes/
-MeshType      TRI
-MeshCurving   ToBeCurved
-MeshLevel     0
+MeshType      QUAD
+MeshCurving   Straight
+MeshLevel     1
 
 Form       Weak   // Options: Weak, (Strong)
 NodeType   GL-AO // Options: GL/GLL-AO/WSH/EQ

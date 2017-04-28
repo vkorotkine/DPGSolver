@@ -63,7 +63,8 @@ int main(void)
 //	strcpy(MeshType,"TRI");
 //	strcpy(MeshType,"CurvedTRI");
 //	strcpy(MeshType,"CurvedQUAD");
-	strcpy(MeshType,"ToBeCurvedTRI");
+//	strcpy(MeshType,"ToBeCurvedTRI");
+	strcpy(MeshType,"ToBeCurvedQUAD");
 //	strcpy(MeshType,"CurvedTET");
 //	strcpy(MeshType,"ToBeCurvedStructuredTRI");
 //	strcpy(MeshType,"ToBeCurvedStructuredQUAD");
@@ -81,8 +82,8 @@ int main(void)
 	unsigned int CasesRun[72] = { 0, 1, 1, 1, 0, 0, 0, 0, 0,
 	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
 	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
-	                              0, 1, 1, 0, 0, 0, 0, 0, 0,
-	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0};

@@ -341,7 +341,7 @@ static void ToBeCurved_square_to_circle(unsigned int Nn, double *XYZ_S, double *
 
 		if      (t >= -1.0*PIo4 && t <  1.0*PIo4) t =          XYZn[1]/r*PIo4;
 		else if (t >=  1.0*PIo4 && t <  3.0*PIo4) t = 0.5*PI - XYZn[0]/r*PIo4;
-		else if ((t >=  3.0*PIo4 && t <  4.0*PIo4)|| (t >= -4.0*PIo4 && t < -3.0*PIo4))
+		else if ((t >=  3.0*PIo4 && t <= 4.0*PIo4)|| (t >= -4.0*PIo4 && t < -3.0*PIo4))
 		                                          t =     PI - XYZn[1]/r*PIo4;
 		else if (t >= -3.0*PIo4 && t < -1.0*PIo4) t = 1.5*PI + XYZn[0]/r*PIo4;
 		else

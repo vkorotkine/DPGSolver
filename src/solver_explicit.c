@@ -248,12 +248,27 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 				} else {
 					EXIT_UNSUPPORTED;
 				}
-//				data->dt *= pow(0.5,7.0);
 				data->dt *= pow(0.5,1.0);
+			} else {
+				EXIT_UNSUPPORTED;
 			}
-			data->exit_tol   = 1e-7;
-//			data->exit_tol   = 1e-9;
-//			data->exit_tol   = 1e1*EPS;
+			data->exit_tol   = 1e-6;
+			data->exit_ratio = 1.0/EPS;
+		} else if (strstr(TestCase,"PlaneCouette")) {
+			if (TestDB.Active) {
+				unsigned int const ML = TestDB.ML,
+				                   P  = TestDB.PGlobal;
+				if (P == 1) { // Nodal basis (16 TRIs on ML = 0)
+					if      (ML <= 1) { data->dt = 1e-0; }
+					else              { EXIT_UNSUPPORTED; }
+				} else {
+					EXIT_UNSUPPORTED;
+				}
+				data->dt *= pow(0.5,4.0);
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+			data->exit_tol   = 1e-6;
 			data->exit_ratio = 1.0/EPS;
 		} else {
 			EXIT_UNSUPPORTED;

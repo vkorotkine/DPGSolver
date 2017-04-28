@@ -42,7 +42,7 @@ struct S_DB {
 	unsigned int Nvar, Neq, OutputInterval, DOF0, SourcePresent;
 	double       Xc, Yc, Rc, MInf, rhoInf, pInf, TInf, cInf, VInf, uInf, vInf, wInf, Rg, Cscale, pBack, p_Total, T_Total,
 	             PeriodL, PeriodFraction, FinalTime, Poisson_scale,
-	             rIn, MIn, rhoIn, pIn, VIn, rOut, TIn, omega, mu, Pr, Cp, kappa,
+	             rIn, MIn, rhoIn, pIn, VIn, rOut, TIn, uIn, omega, mu, Pr, Cp, kappa,
 	             Q0, KMin, KMax, GBa, GBb, GBc, aIn, bIn, cIn, aOut, bOut, cOut, lHR,
 	             NSc, NSt, NS0, NS1, NS2, NS3, NS4, JSa, JSl, JSxL;
 

@@ -1057,44 +1057,22 @@ void jacobian_boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 		for (size_t var = 0; var < Nvar; var++)
 			dpLdW[var] *= GM1;
 
-		double u = 0.0, v = 0.0, w = 0.0, dudW[Nvar], dvdW[Nvar], dwdW[Nvar];
-		if (strstr(DB.TestCase,"TaylorCouette")) {
-			u = -uL;
-			v = -vL;
-			w = -wL;
-
-			for (size_t i = 0; i < Nvar; i++) {
-				dudW[i] = -duLdW[i];
-				dvdW[i] = -dvLdW[i];
-				dwdW[i] = -dwLdW[i];
-			}
+		double u = 0.0, v = 0.0, w = 0.0;
+		if (strstr(DB.TestCase,"PlaneCouette") ||
+		    strstr(DB.TestCase,"TaylorCouette")) {
+			; // Do nothing
 		} else {
 			EXIT_UNSUPPORTED;
 		}
 
-		double const V2 = u*u+v*v+w*w;
-
 		size_t InddWdW = 0;
 		for (size_t var = 0; var < Nvar; var++) {
-			double const dV2dW = 2.0*(u*dudW[var]+v*dvdW[var]+w*dwdW[var]);
-
-if (0) {
 			*dWBdWL_ptr[InddWdW++] = drhoLdW[var];
-			*dWBdWL_ptr[InddWdW++] = drhoLdW[var]*u+rhoL*dudW[var];
-			*dWBdWL_ptr[InddWdW++] = drhoLdW[var]*v+rhoL*dvdW[var];
+			*dWBdWL_ptr[InddWdW++] = -(drhoLdW[var]*uL+rhoL*duLdW[var]) + 2.0*drhoLdW[var]*u;
+			*dWBdWL_ptr[InddWdW++] = -(drhoLdW[var]*vL+rhoL*dvLdW[var]) + 2.0*drhoLdW[var]*v;
 			if (d == 3)
-				*dWBdWL_ptr[InddWdW++] = drhoLdW[var]*w+rhoL*dwdW[var];
-			*dWBdWL_ptr[InddWdW++] = dpLdW[var]/GM1+0.5*(drhoLdW[var]*V2+rhoL*dV2dW);
-} else {
-u = 0.0; v = 0.0; w = 0.0;
-			*dWBdWL_ptr[InddWdW++] = -drhoLdW[var] + 2.0*drhoLdW[var];
-			// Fix this for general u, v, w if retained (ToBeDeleted)
-			*dWBdWL_ptr[InddWdW++] = -(drhoLdW[var]*uL+rhoL*duLdW[var]) + 0.0;
-			*dWBdWL_ptr[InddWdW++] = -(drhoLdW[var]*vL+rhoL*dvLdW[var]) + 0.0;
-			if (d == 3)
-				*dWBdWL_ptr[InddWdW++] = -(drhoLdW[var]*wL+rhoL*dwLdW[var]) + 0.0;
-			*dWBdWL_ptr[InddWdW++] = -dELdW[var] + 2.0*dELdW[var];
-}
+				*dWBdWL_ptr[InddWdW++] = -(drhoLdW[var]*wL+rhoL*dwLdW[var]) + 2.0*drhoLdW[var]*w;
+			*dWBdWL_ptr[InddWdW++] = dELdW[var];
 		}
 
 		for (size_t i = 0, iMax = Neq*Nvar; i < iMax; i++)

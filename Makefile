@@ -197,14 +197,15 @@ $(EXECDIR):
 
 OUTPUT_LIST   := paraview errors results
 #TESTCASE_LIST := Poisson SupersonicVortex InviscidChannel SubsonicNozzle PrandtlMeyer
-TESTCASE_LIST := Poisson Euler_PeriodicVortex Euler_SupersonicVortex NavierStokes_TaylorCouette
+TESTCASE_LIST := Poisson Euler_PeriodicVortex Euler_SupersonicVortex NavierStokes_TaylorCouette \
+                 NavierStokes_PlaneCouette
 MESHTYPE_LIST := TRI CurvedTRI ToBeCurvedTRI \
                  QUAD CurvedQUAD ToBeCurvedQUAD \
                  TET ToBeCurvedTET \
                  HEX ToBeCurvedHEX \
                  WEDGE ToBeCurvedWEDGE \
                  PYR ToBeCurvedPYR \
-				 MIXED2D CurvedMIXED2D ToBeCurvedMIXED2D \
+                 MIXED2D CurvedMIXED2D ToBeCurvedMIXED2D \
 
 OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))
 TESTCASE_LIST := $(subst $(space),$(comma),$(TESTCASE_LIST))

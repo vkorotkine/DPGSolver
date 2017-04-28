@@ -420,6 +420,14 @@ void initialize_test_case_parameters(void)
 				DB.mu    = 1e-3;
 
 				DB.Const_mu = 1;
+			} else if (strstr(TestCase,"PlaneCouette")) {
+				DB.uIn   = 1.0;
+				DB.TIn   = 1.0;
+				DB.pIn   = 1.0;
+				DB.rhoIn = DB.pIn/(DB.Rg*DB.TIn);
+				DB.mu    = 1e-0;
+
+				DB.Const_mu = 1;
 			} else {
 				EXIT_UNSUPPORTED;
 			}
@@ -966,6 +974,7 @@ void compute_solution(const unsigned int Nn, double *XYZ, double *UEx, const uns
 
 	if (strstr(TestCase,"PeriodicVortex") ||
 	    strstr(TestCase,"SupersonicVortex") ||
+	    strstr(TestCase,"PlaneCouette") ||
 		strstr(TestCase,"TaylorCouette")) {
 		compute_exact_solution(Nn,XYZ,UEx,solved);
 	} else if (strstr(TestCase,"InviscidChannel") ||

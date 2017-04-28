@@ -20,6 +20,7 @@
 
 #include "adaptation.h"
 #include "update_VOLUMEs.h"
+#include "implicit_GradW.h"
 #include "implicit_VOLUME_info.h"
 #include "implicit_FACE_info.h"
 #include "finalize_LHS.h"
@@ -92,8 +93,7 @@ void setup_KSP(Mat A, KSP ksp)
 
 			KSPSetType(ksp,KSPGMRES);
 			KSPGMRESSetOrthogonalization(ksp,KSPGMRESModifiedGramSchmidtOrthogonalization);
-//			KSPGMRESSetRestart(ksp,60); // Default: 30
-			KSPGMRESSetRestart(ksp,200); // Default: 30
+			KSPGMRESSetRestart(ksp,60); // Default: 30
 
 			PCSetType(pc,PCILU);
 			PCFactorSetLevels(pc,1); // Cannot use MatOrdering with 0 fill
@@ -256,9 +256,18 @@ void solver_implicit(bool const PrintEnabled)
 
 		PetscInt *ix;
 
+		if (PrintEnabled && DB.Viscous) { printf("G"); } implicit_GradW();
+
 		if (PrintEnabled) { printf("V");  } implicit_VOLUME_info();
 		if (PrintEnabled) { printf("F");  } implicit_FACE_info();
 		if (PrintEnabled) { printf("F "); } maxRHS = finalize_LHS(&A,&b,&x,0);
+
+		// Used for outputting matrix to file in matlab sparse format
+//		PetscViewer viewer;
+//		PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat.output", &viewer);
+//		PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
+//		MatView(A,viewer);
+//		PetscViewerDestroy(&viewer);
 
 		// Solve linear system
 		if (PrintEnabled) { printf("S"); }
@@ -301,12 +310,7 @@ void solver_implicit(bool const PrintEnabled)
 			double alpha = 1.0;
 if (iteration < 3)
 			compute_underRelax(VOLUME,dWhat,&alpha);
-
-alpha = 0.5;
-printf("%d\n",VOLUME->indexg);
-array_print_d(NvnS,Nvar,What,'C');
-array_print_d(NvnS,Nvar,dWhat,'C');
-//printf("% .3e\n",alpha);
+			//printf("% .3e\n",alpha);
 
 			for (i = 0; i < iMax; i++) {
 				if (fabs(dWhat[i]) <= EPS)

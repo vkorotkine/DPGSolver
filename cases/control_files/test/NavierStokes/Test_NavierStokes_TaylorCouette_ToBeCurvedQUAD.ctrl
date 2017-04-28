@@ -9,7 +9,7 @@ Dimension     2
 MeshPath      ../meshes/
 MeshType      QUAD
 MeshCurving   ToBeCurved
-MeshLevel     1
+MeshLevel     0
 
 Form       Weak   // Options: Weak, (Strong)
 NodeType   GL-AO // Options: GL/GLL-AO/WSH/EQ

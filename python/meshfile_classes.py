@@ -134,10 +134,11 @@ class TestCase_class:
 			if (self.name.lower().find('test') != -1):
 				self.VarName = 'NAVIERSTOKES_TEST'
 
-				MeshCurving     = ['ToBeCurved','ToBeCurved']
-				MeshTypes       = ['TRI','QUAD']
+				MeshCurving     = ['ToBeCurved','ToBeCurved','']
+				MeshTypes       = ['TRI','QUAD','QUAD']
 				NTotal = len(MeshTypes)
-				MeshTypesPrefix = ['TaylorCouette_' for i in range(0,NTotal)]
+				MeshTypesPrefix = ['TaylorCouette_' for i in range(0,2)]
+				MeshTypesPrefix += ['PlaneCouette_' for i in range(2,3)]
 				if   (MeshName.find('all')    != -1):
 					iRange = range(0,NTotal)
 				else:

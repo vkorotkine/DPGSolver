@@ -85,6 +85,8 @@ static void update_TestCase(void)
 	} else if (strstr(DB.TestCase,"NavierStokes")) {
 		if (strstr(DB.TestCase,"TaylorCouette")) {
 			strcpy(DB.TestCase,"NavierStokes_TaylorCouette");
+		} else if (strstr(DB.TestCase,"PlaneCouette")) {
+			strcpy(DB.TestCase,"NavierStokes_PlaneCouette");
 		} else {
 			EXIT_UNSUPPORTED;
 		}

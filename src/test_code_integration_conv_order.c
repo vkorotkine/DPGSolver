@@ -160,22 +160,30 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 			EXIT_UNSUPPORTED;
 		}
 	} else if (strstr(TestName,"NavierStokes")) {
-		if (strstr(TestName,"n-Cylinder_Hollow")) {
+		strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_");
 //data->SolveImplicit = 0;
-			if (strstr(TestName,"ToBeCurved")) {
-data->PG_add = 0;
-data->IntOrder_add  = 0;
-data->PMin  = 3;
-data->PMax  = 3;
-data->MLMax = 0;
+data->PG_add = 1;
+data->MLMax = 3;
 data->PrintEnabled = 1;
+		if (strstr(TestName,"n-Cylinder_Hollow")) {
+			strcat(data->argvNew[1],"TaylorCouette_");
+			if (strstr(TestName,"ToBeCurved")) {
+				strcat(data->argvNew[1],"ToBeCurved");
 				if (strstr(TestName,"TRI")) {
-					strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedTRI");
+					strcat(data->argvNew[1],"TRI");
 				} else if (strstr(TestName,"QUAD")) {
-					strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedQUAD");
+					strcat(data->argvNew[1],"QUAD");
 				} else {
 					EXIT_UNSUPPORTED;
 				}
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else if (strstr(TestName,"n-Cube")) {
+			strcat(data->argvNew[1],"PlaneCouette_");
+			if (strstr(TestName,"Straight")) {
+				if (strstr(TestName,"QUAD")) { strcat(data->argvNew[1],"QUAD"); }
+				else { EXIT_UNSUPPORTED; }
 			} else {
 				EXIT_UNSUPPORTED;
 			}
@@ -218,6 +226,9 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 
 	double *mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
 
+	if (!SolveExplicit && !SolveImplicit)
+		EXIT_UNSUPPORTED; // Enabled at least one
+
 	unsigned int pass = 0;
 	if (Adapt != ADAPT_0) {
 		TestDB.ML = DB.ML;
@@ -259,7 +270,8 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 				solver_Poisson(PrintEnabled);
 			}
 		} else if (strstr(TestName,"Euler") || strstr(TestName,"NavierStokes")) {
-			if (SolveExplicit)
+//			if (SolveExplicit)
+			if (!SolveImplicit || (ML == MLMin && P == PMin))
 				solver_explicit(PrintEnabled);
 
 			if (SolveImplicit)

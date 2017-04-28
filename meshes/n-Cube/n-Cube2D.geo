@@ -1,5 +1,5 @@
 Include "../Parameters.geo";
-
+//MeshCurving = STRAIGHT; MeshType = QUAD; PDEName = NAVIERSTOKES; MeshLevel = 1;
 
 // Geometry Specification
 L = 1;
@@ -55,6 +55,21 @@ ElseIf (PDEName == EULER)
 
 	Periodic Line {2002} = {2001}; // Periodic (x)
 	Periodic Line {1002} = {1001}; // Periodic (y)
+ElseIf (PDEName == NAVIERSTOKES)
+	// Periodic in x
+	Physical Point(BC_Base+PERIODIC_XL) = {1,3};
+	Physical Point(BC_Base+PERIODIC_XR) = {2,4};
+	Physical Point(BC_Base+PERIODIC_YL) = {1,2};
+	Physical Point(BC_Base+PERIODIC_YR) = {3,4};
+
+	Physical Line(BC_Base+PERIODIC_XL) = {2001};
+	Physical Line(BC_Base+PERIODIC_XR) = {2002};
+
+	Periodic Line {2002} = {2001}; // Periodic (x)
+
+	// No slip for remaining boundaries
+	Physical Line (BC_Base+BC_NOSLIP_T)         = {1001};
+	Physical Line (BC_Base+BC_NOSLIP_ADIABATIC) = {1002};
 EndIf
 
 Physical Surface(9401) = 4001;

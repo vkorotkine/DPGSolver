@@ -9,7 +9,7 @@
 ### Supported PDEs
 - Poisson       : DONE
 - Euler         : DONE
-- Navier-Stokes : TO BE DONE
+- Navier-Stokes : DONE
 
 See the CODE STATUS section below for details regarding current functionality.
 
@@ -52,6 +52,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 | PeriodicVortex   | DONE       |
 | SupersonicVortex | DONE       |
 | InviscidChannel  | DONE       |
+| Taylor-Couette   | DONE       |
 
 #### Explicit
 | Function        |             |                         |
@@ -65,6 +66,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 |                 | Weak Form   | DONE                    |
 |                 | Strong Form | UNDER CONSIDERATION     |
 |                 | Vectorized  | UNDER CONSIDERATION     |
+| GradW           |             | DONE                    |
 | finalize        |             | DONE                    |
 
 #### Implicit
@@ -80,6 +82,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 |                 | Weak Form   | DONE                    |
 |                 | Strong Form | UNDER CONSIDERATION     |
 |                 | Vectorized  | UNDER CONSIDERATION     |
+| GradW           |             | DONE                    |
 | finalize        |             | DONE                    |
 
 #### Fluxes
@@ -87,32 +90,35 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 |-----------|------------------|-------------------------|
 | Standard  |                  | DONE FOR THE TIME BEING |
 |           | inviscid         | DONE                    |
-|           | viscous          | TO BE DONE              |
+|           | viscous          | DONE                    |
 | Numerical |                  | DONE FOR THE TIME BEING |
+|           | Lax-Friedrichs   | DONE                    |
+|           | Roe-Pike         | DONE                    |
 |           | internal penalty | DONE                    |
 |           | Bassi-Rebay 2    | DONE                    |
 |           | compact DG 2     | DONE                    |
-|           | Lax-Friedrichs   | DONE                    |
-|           | Roe-Pike         | DONE                    |
 
 #### Boundary
-| Function     |      |
-|--------------|------|
-| Dirichlet    | DONE |
-| Neumann      | DONE |
-| Riemann      | DONE |
-| SlipWall     | DONE |
-| BackPressure | DONE |
+| Function                |      |
+|-------------------------|------|
+| Dirichlet               | DONE |
+| Neumann                 | DONE |
+| Riemann                 | DONE |
+| SlipWall                | DONE |
+| BackPressure            | DONE |
+| Supersonic (In/Out)flow | DONE |
+| Total Temp/Pressure     | DONE |
+| No Slip Dirichlet       | DONE |
+| No Slip Adiabatic       | DONE |
 
 #### Jacobians
-| Function              |      |
-|-----------------------|------|
-| flux inviscid         | DONE |
-| flux Lax-Friedrichs   | DONE |
-| flux Roe-Pike         | DONE |
-| boundary Riemann      | DONE |
-| boundary SlipWall     | DONE |
-| boundary BackPressure | DONE |
+| Function                |      |
+|-------------------------|------|
+| flux inviscid           | DONE |
+| flux Lax-Friedrichs     | DONE |
+| flux Roe-Pike           | DONE |
+| flux viscous            | DONE |
+| All boundary conditions | DONE |
 
 
 ### Postprocessing : ACTIVE (As cases are added)

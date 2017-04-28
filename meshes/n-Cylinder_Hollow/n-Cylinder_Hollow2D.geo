@@ -1,5 +1,5 @@
 Include "../Parameters.geo";
-//MeshCurving = TOBECURVED; MeshType = TRI; PDEName = NAVIERSTOKES; MeshLevel = 1;
+//MeshCurving = TOBECURVED; MeshType = TRI; PDEName = NAVIERSTOKES; MeshLevel = 0;
 
 
 // Geometry Specification
@@ -62,16 +62,29 @@ ElseIf (MeshCurving == CURVED)
 EndIf
 
 
-// Include something for aspect ratio: 1.0, 2.5, 5.0, 20.0
-Transfinite Line {1001:1008} = 2^(MeshLevel+1)+1 Using Progression 1;
-Transfinite Line {1009:1012} = 2^(MeshLevel)+1 Using Progression 1;
+// Allows different (A)spect (R)atio elements
+AR = 16.0;
+If (AR == 1.0)
+	Transfinite Line {1001:1008} = 2^(MeshLevel+1)+1 Using Progression 1;
+	Transfinite Line {1009:1012} = 2^(MeshLevel)+1 Using Progression 1;
+ElseIf (AR == 2.0)
+	Transfinite Line {1001:1008} = 2^(MeshLevel)+1 Using Progression 1;
+	Transfinite Line {1009:1012} = 2^(MeshLevel)+1 Using Progression 1;
+ElseIf (AR == 4.0)
+	Transfinite Line {1001:1008} = 2^(MeshLevel)+1 Using Progression 1;
+	Transfinite Line {1009:1012} = 2^(MeshLevel+1)+1 Using Progression 1;
+ElseIf (AR == 8.0)
+	Transfinite Line {1001:1008} = 2^(MeshLevel)+1 Using Progression 1;
+	Transfinite Line {1009:1012} = 2^(MeshLevel+2)+1 Using Progression 1;
+ElseIf (AR == 16.0)
+	Transfinite Line {1001:1008} = 2^(MeshLevel)+1 Using Progression 1;
+	Transfinite Line {1009:1012} = 2^(MeshLevel+3)+1 Using Progression 1;
+EndIf
 
 IndL = 4001;
-//Line Loop (IndL) = {1001,1010,-1005,-1009}; IndL++;
 Line Loop (IndL) = {1005,-1010,-1001,1009}; IndL++;
 Line Loop (IndL) = {1002,1012,-1006,-1011}; IndL++;
 Line Loop (IndL) = {1003,1011,-1007,-1009}; IndL++;
-//Line Loop (IndL) = {1004,1012,-1008,-1010}; IndL++;
 Line Loop (IndL) = {1008,-1012,-1004,1010}; IndL++;
 
 IndL = 4001;

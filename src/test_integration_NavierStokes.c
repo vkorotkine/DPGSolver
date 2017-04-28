@@ -114,6 +114,8 @@ void test_integration_NavierStokes(int nargc, char **argv)
 		data_c->argvNew   = argvNew;
 		data_c->PrintName = PrintName;
 
+//		test_conv_order(data_c,"NavierStokes_n-Cube_StraightQUAD");
+
 		// Note: The case is converging fastest with non-collocated GL-WSH Nodal (ToBeDeleted)
 //		test_conv_order(data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedTRI");
 		test_conv_order(data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedQUAD");

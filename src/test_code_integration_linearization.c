@@ -295,6 +295,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 			}
 
 			if (PrintEnabled) {
+				// See commented MatView options in solver_implicit to output in more readable format.
 				MatView(A,PETSC_VIEWER_STDOUT_SELF);
 				MatView(A_cs,PETSC_VIEWER_STDOUT_SELF);
 			}

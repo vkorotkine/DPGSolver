@@ -109,6 +109,29 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
 			vEx[i] =  cos(t)*Vt;
 			wEx[i] =  0.0;
 		}
+	} else if (strstr(TestCase,"PlaneCouette")) {
+		double const uIn = DB.uIn,
+		             TIn = DB.TIn,
+		             pIn = DB.pIn,
+		             Pr  = DB.Pr,
+		             Rg  = DB.Rg;
+
+		double const b = uIn*uIn/(DB.Cp*TIn);
+
+		if (DB.Const_mu) {
+			for (size_t n = 0; n < Nn; n++) {
+				double const eta = 0.5*(Y[n]+1.0),
+				             T   = -0.5*Pr*b*pow(1.0-eta,2.0)+1.0+0.5*Pr*b;
+
+				pEx[n]   = pIn;
+				rhoEx[n] = pEx[n]/(Rg*T);
+				uEx[n]   = 1.0-eta;
+				vEx[n]   = 0.0;
+				wEx[n]   = 0.0;
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
 	} else if (strstr(TestCase,"TaylorCouette")) {
 		// Note: This exact solution is valid only before the Taylor-Couette instability develops and is only accurate
 		//       for velocity and temperature (except for r = rIn where all components are exact).
