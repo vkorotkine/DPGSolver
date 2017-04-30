@@ -556,7 +556,7 @@ void init_ops_FACE(struct S_OPERATORS_F *const OPS, struct S_VOLUME const *const
 {
 	/*
 	 *	Comments:
- 	 *		For WEDGE ELEMENTs, the nOrd arrays for QUAD FACEs are stored with the TRI OPs, while those for TRI FACEs
+	 *		For WEDGE ELEMENTs, the nOrd arrays for QUAD FACEs are stored with the TRI OPs, while those for TRI FACEs
 	 *		are stored with the LINE OPs. While this is not logical, it precludes the need for an additional OP struct.
 	 */
 
@@ -1028,7 +1028,8 @@ void compute_WR_fIL(struct S_FDATA const *const FDATA, double const *const WL_fI
 		if (BC % BC_STEP_SC == BC_RIEMANN) {
 			boundary_Riemann(NfnI,1,XYZ_fIL,WL_fIL,NULL,WR_fIL,n_fIL,d);
 		} else if (BC % BC_STEP_SC == BC_SLIPWALL) {
-			bool const ExactSlipWall = 0;
+			bool const ExactSlipWall = 0, // Should only be enabled for the SupersonicVortex case.
+			           ExactNormal   = 0;
 			if (ExactSlipWall) {
 				double *const UR_fIL = malloc(NVAR3D*NfnI * sizeof *UR_fIL); // free
 
@@ -1036,6 +1037,42 @@ void compute_WR_fIL(struct S_FDATA const *const FDATA, double const *const WL_fI
 				convert_variables(UR_fIL,WR_fIL,DMAX,d,NfnI,1,'p','c');
 
 				free(UR_fIL);
+			} else if (ExactNormal) {
+				double *const nEx_fIL = malloc(NfnI*d * sizeof *nEx_fIL); // free
+
+				double diff_ri = 0.0, diff_ro = 0.0;
+				for (size_t n = 0; n < NfnI; n++) {
+					double x = FACE->XYZ_fI[0*NfnI+n],
+					       y = FACE->XYZ_fI[1*NfnI+n];
+
+					double r_n = sqrt(x*x+y*y);
+					diff_ri += fabs(DB.rIn-r_n);
+					diff_ro += fabs(DB.rOut-r_n);
+
+					double t = atan2(y,x);
+					nEx_fIL[n*d+0] = cos(t);
+					nEx_fIL[n*d+1] = sin(t);
+				}
+
+				diff_ri /= NfnI;
+				diff_ro /= NfnI;
+
+				bool NegateNormal = 0;
+				if (diff_ri <= 1e-2)
+					NegateNormal = 1;
+				else if (diff_ro <= 1e-2)
+					; // Do nothing
+				else
+					EXIT_UNSUPPORTED;
+
+				if (NegateNormal) {
+					for (size_t n = 0; n < NfnI*d; n++) {
+						nEx_fIL[n] *= -1.0;
+					}
+				}
+
+				boundary_SlipWall(NfnI,1,WL_fIL,WR_fIL,nEx_fIL,d);
+				free(nEx_fIL);
 			} else {
 				boundary_SlipWall(NfnI,1,WL_fIL,WR_fIL,n_fIL,d);
 			}

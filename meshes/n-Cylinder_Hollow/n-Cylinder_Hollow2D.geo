@@ -63,7 +63,7 @@ EndIf
 
 
 // Allows different (A)spect (R)atio elements
-AR = 16.0;
+AR = 1.0;
 If (AR == 1.0)
 	Transfinite Line {1001:1008} = 2^(MeshLevel+1)+1 Using Progression 1;
 	Transfinite Line {1009:1012} = 2^(MeshLevel)+1 Using Progression 1;

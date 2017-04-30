@@ -296,7 +296,7 @@ if (test_3D) {
 
 if (!PeriodicVortexOnly) {
 		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_CurvedMIXED2D");
-//		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedMIXED2D");
+		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedMIXED2D");
 }
 
 bool const test_3D = 0;

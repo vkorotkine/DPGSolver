@@ -463,8 +463,10 @@ if __name__ == '__main__':
 #	output.Geometry = 'Ellipsoidal_Section'
 	output.Geometry = 'InviscidChannel_Joukowski'
 
-	output.MeshType = 'CurvedTRI'
+#	output.MeshType = 'CurvedTRI'
 #	output.MeshType = 'CurvedQUAD'
+#	output.MeshType = 'ToBeCurvedTRI'
+	output.MeshType = 'ToBeCurvedQUAD'
 
 	output.name = 'std'
 #	output.name = 'Optimal Surface'

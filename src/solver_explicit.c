@@ -248,11 +248,18 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 				} else {
 					EXIT_UNSUPPORTED;
 				}
-				data->dt *= pow(0.5,1.0);
+				if (DB.mu <= 1e-3) {
+					data->dt *= pow(0.5,1.0);
+					data->exit_tol = 4e-5;
+				} else if (DB.mu == 1e-0) {
+					data->dt *= pow(0.5,9.0);
+					data->exit_tol = 1e-3;
+				} else {
+					EXIT_UNSUPPORTED;
+				}
 			} else {
 				EXIT_UNSUPPORTED;
 			}
-			data->exit_tol   = 1e-6;
 			data->exit_ratio = 1.0/EPS;
 		} else if (strstr(TestCase,"PlaneCouette")) {
 			if (TestDB.Active) {
@@ -278,6 +285,11 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 			printf("Using default value for timestepping parameters.\n");
 			data->dt         = 1e-3; // Selected for stability of P3 ML5 (where ML0 has 4 QUADs)
 			data->exit_tol   = EPS;
+			data->exit_ratio = 1.0/EPS;
+		} else if (strstr(TestCase,"SupersonicVortex")) {
+			printf("Using default value for timestepping parameters.\n");
+			data->dt         = 1e-2;
+			data->exit_tol   = 1e-6;
 			data->exit_ratio = 1.0/EPS;
 		} else {
 			EXIT_UNSUPPORTED;
@@ -477,10 +489,12 @@ void solver_explicit(bool const PrintEnabled)
 		// Additional exit conditions
 		if (tstep > 2) {
 			if (maxRHS0/maxRHS > exit_ratio) {
-				printf("Exiting: maxRHS dropped by % .2e orders.\n",log10(exit_ratio));
+				if (PrintEnabled)
+					printf("Exiting: maxRHS dropped by % .2e orders.\n",log10(exit_ratio));
 				break;
 			} else if (maxRHS < exit_tol) {
-				printf("Exiting: maxRHS is below % .3e.\n",exit_tol);
+				if (PrintEnabled)
+					printf("Exiting: maxRHS is below % .3e.\n",exit_tol);
 				break;
 			}
 		}

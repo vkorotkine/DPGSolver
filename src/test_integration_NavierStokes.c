@@ -51,7 +51,7 @@ void test_integration_NavierStokes(int nargc, char **argv)
 {
 	bool const RunTests_equivalence_real_complex = 1,
 	           RunTests_equivalence_algorithms   = 1,
-	           RunTests_linearization            = 0,
+	           RunTests_linearization            = 1,
 	           RunTests_conv_order               = 1;
 
 	char **argvNew, *PrintName;
@@ -114,16 +114,15 @@ void test_integration_NavierStokes(int nargc, char **argv)
 		data_c->argvNew   = argvNew;
 		data_c->PrintName = PrintName;
 
-//		test_conv_order(data_c,"NavierStokes_n-Cube_StraightQUAD");
-
-		// Note: The case is converging fastest with non-collocated GL-WSH Nodal (ToBeDeleted)
-//		test_conv_order(data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedTRI");
+		test_conv_order(data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedTRI");
 		test_conv_order(data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedQUAD");
 //		test_conv_order(data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedMIXED2D");
 
 		// Add tests for:
-		// 1) Analytical Solution for simple shearing motion between parallel flat plates (Illingworth(1950), problem 3)
+		// 1) PlaneCouette (Illingworth(1950), problem 3)
 		// 2) Stokes flow over a sphere (analytical solution for compressible?)
+
+//		test_conv_order(data_c,"NavierStokes_n-Cube_StraightQUAD"); // PlaneCouette (Possibly not yet working)
 
 		free(data_c);
 	}

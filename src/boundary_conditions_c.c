@@ -667,6 +667,7 @@ void boundary_NoSlip_Dirichlet_c(struct S_BC *const BCdata)
 		                     V2L = uL*uL+vL*vL+wL*wL,
 		                     pL  = GM1*(EL-0.5*rhoL*V2L);
 
+		bool   ApplyExtraBC = 0;
 		double uB = 0.0, vB = 0.0, wB = 0.0, TB = 0.0;
 		if (strstr(DB.TestCase,"TaylorCouette")) {
 			double const X  = X_ptr[n],
@@ -677,23 +678,31 @@ void boundary_NoSlip_Dirichlet_c(struct S_BC *const BCdata)
 			vB =  cos(t)*Vt;
 			wB =  0.0;
 			TB =  DB.TIn;
+
+			ApplyExtraBC = 1;
 		} else {
 			EXIT_UNSUPPORTED;
 		}
 
-if (0) {
-		printf("%f %f\n",creal(pL),TB); // Update if used (Entropy variables) (ToBeModified)
-} else {
-		size_t IndW = 0;
-		double const rhoB = DB.rhoIn,
-		             pB   = DB.pIn;
-		*WB_ptr[IndW++] = -rhoL    + 2.0*rhoB;
-		*WB_ptr[IndW++] = -rhoL*uL + 2.0*rhoB*uB;
-		*WB_ptr[IndW++] = -rhoL*vL + 2.0*rhoB*vB;
-		if (d == 3)
-			*WB_ptr[IndW++] = -rhoL*wL + 2.0*rhoB*wB;
-		*WB_ptr[IndW++] = -EL + 2.0*(pB/GM1+0.5*rhoB*(uB*uB+vB*vB+wB*wB));
-}
+		if (!ApplyExtraBC) {
+			EXIT_UNSUPPORTED;
+			printf("%f %f\n",creal(pL),TB); // Update if used (Entropy variables) (ToBeModified)
+		} else {
+			if (!strstr(DB.TestCase,"TaylorCouette") &&
+			    !strstr(DB.TestCase,"PlaneCouette")) {
+				EXIT_UNSUPPORTED;
+			}
+
+			size_t IndW = 0;
+			double const rhoB = DB.rhoIn,
+			             pB   = DB.pIn;
+			*WB_ptr[IndW++] = -rhoL    + 2.0*rhoB;
+			*WB_ptr[IndW++] = -rhoL*uL + 2.0*rhoB*uB;
+			*WB_ptr[IndW++] = -rhoL*vL + 2.0*rhoB*vB;
+			if (d == 3)
+				*WB_ptr[IndW++] = -rhoL*wL + 2.0*rhoB*wB;
+			*WB_ptr[IndW++] = -EL + 2.0*(pB/GM1+0.5*rhoB*(uB*uB+vB*vB+wB*wB));
+		}
 
 		for (size_t var = 0; var < Nvar; var++)
 			WB_ptr[var]++;
@@ -758,37 +767,23 @@ void boundary_NoSlip_Adiabatic_c(struct S_BC *const BCdata)
 		                     uL   = (*rhouL_ptr++)*rhoL_inv,
 		                     vL   = (*rhovL_ptr++)*rhoL_inv,
 		                     wL   = (*rhowL_ptr++)*rhoL_inv,
-		                     EL   = *EL_ptr++,
-
-		                     V2L = uL*uL+vL*vL+wL*wL,
-		                     pL  = GM1*(EL-0.5*rhoL*V2L);
+		                     EL   = *EL_ptr++;
 
 		double complex u = 0.0, v = 0.0, w = 0.0;
-		if (strstr(DB.TestCase,"TaylorCouette")) {
-			u = -uL;
-			v = -vL;
-			w = -wL;
+		if (strstr(DB.TestCase,"PlaneCouette") ||
+		    strstr(DB.TestCase,"TaylorCouette")) {
+			; // Do nothing
 		} else {
 			EXIT_UNSUPPORTED;
 		}
 
 		size_t IndW = 0;
-if (0) {
 		*WB_ptr[IndW++] = rhoL;
-		*WB_ptr[IndW++] = rhoL*u;
-		*WB_ptr[IndW++] = rhoL*v;
-		if (d == 3)
-			*WB_ptr[IndW++] = rhoL*w;
-		*WB_ptr[IndW++] = pL/GM1+0.5*rhoL*(u*u+v*v+w*w);
-} else {
-u = 0.0; v = 0.0; w = 0.0;
-		*WB_ptr[IndW++] = -rhoL    + 2.0*rhoL;
 		*WB_ptr[IndW++] = -rhoL*uL + 2.0*rhoL*u;
 		*WB_ptr[IndW++] = -rhoL*vL + 2.0*rhoL*v;
 		if (d == 3)
 			*WB_ptr[IndW++] = -rhoL*wL + 2.0*rhoL*w;
-		*WB_ptr[IndW++] = -EL + 2.0*EL;
-}
+		*WB_ptr[IndW++] = EL;
 
 		for (size_t var = 0; var < Nvar; var++)
 			WB_ptr[var]++;
@@ -800,8 +795,7 @@ u = 0.0; v = 0.0; w = 0.0;
 	// Set QB == QL but set the Energy equation component of the numerical flux to 0. Alternatively, set QB here such
 	// that the computed numerical flux is zero (More expensive and more difficult, but more general). (ToBeModified)
 	for (size_t dim = 0; dim < d; dim++) {
-		for (size_t n = 0; n < NnTotal*Nvar; n++) {
+		for (size_t n = 0; n < NnTotal*Nvar; n++)
 			GradWB[dim][n] = GradWL[dim][n];
-		}
 	}
 }

@@ -71,7 +71,7 @@ static void compute_A_Qhat_cs_complete (Mat *const A, Vec *const b, Vec *const x
 static void set_test_linearization_data(struct S_linearization *const data, char const *const TestName)
 {
 	// default values
-	TestDB.CheckOffDiagonal = 0;
+	TestDB.CheckOffDiagonal = 0; // Should not be modified.
 
 	data->PrintEnabled           = 0;
 	data->CheckFullLinearization = 1;
@@ -109,8 +109,6 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 			EXIT_UNSUPPORTED;
 		}
 	} else if (strstr(TestName,"NavierStokes")) {
-data->PGlobal = 1;
-data->IntOrder_add = 4;
 		data->CheckWeakGradients = 1;
 		if (strstr(TestName,"TRI")) {
 			strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedTRI");

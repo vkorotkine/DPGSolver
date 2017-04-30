@@ -589,7 +589,7 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 {
 	/*
 	 *	Comments:
-	 *		Following remark 11 in Nordstrom(2005), only four conditions are imposed for the Dirichlet boundary (No slip
+	 *		Following remark 11 in Nordstrom(2005), only d+1 conditions are imposed for the Dirichlet boundary (No slip
 	 *		with prescribed velocity).
 	 *		This imposes the velocity and temperature on the boundary face by converting to the entropy variables,
 	 *		setting the last d+1 values using the boundary conditions, then converting back to the conservative
@@ -599,6 +599,9 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 	 *		The entropy variables of Barth(1998_Thesis, p. 16) are used.
 	 *		See Hughes(1986) eq. (48)-(53) for conversion between entropy and conservative variables. Note the
 	 *		additional GM1 factor and that rho*i == P/GM1.
+	 *
+	 *		In the case of the TaylorCouette and PlaneCouette test cases, the boundary condition is pure Neumann for the
+	 *		last variable and an extra boundary condition is thus set here.
 	 *
 	 *	References:
 	 *		Nordstrom(2005)-Well-Posed_Boundary_Conditions_for_the_Navier-Stokes_Equations
@@ -660,6 +663,7 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 		             V2L = uL*uL+vL*vL+wL*wL,
 		             pL  = GM1*(EL-0.5*rhoL*V2L);
 
+		bool   ApplyExtraBC = 0;
 		double uB = 0.0, vB = 0.0, wB = 0.0, TB = 0.0;
 		if (strstr(DB.TestCase,"TaylorCouette")) {
 			double const X  = X_ptr[n],
@@ -670,66 +674,62 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 			vB =  cos(t)*Vt;
 			wB =  0.0;
 			TB =  DB.TIn;
+
+			ApplyExtraBC = 1;
 		} else if (strstr(DB.TestCase,"PlaneCouette")) {
 			uB = DB.uIn;
 			vB = 0.0;
 			wB = 0.0;
 			TB = DB.TIn;
+
+			ApplyExtraBC = 1;
 		} else {
 			EXIT_UNSUPPORTED;
 		}
 
-if (0) {
-		// Compute boundary entropy variables
-		double const sL = log(pL/pow(rhoL,GAMMA)),
-		             rho_over_p = 1.0/(DB.Rg*TB); // Using the ideal gas law
+		if (!ApplyExtraBC) {
+			EXIT_UNSUPPORTED; // Ensure that this is working correctly
 
-		double V[NVAR3D];
-		size_t IndV = 0;
-		V[IndV++] =  (GAMMA+1.0-sL)/GM1-EL/pL;
-		V[IndV++] =  rho_over_p*uB;
-		V[IndV++] =  rho_over_p*vB;
-		V[IndV++] =  rho_over_p*wB;
-		V[IndV++] = -rho_over_p;
+			// Compute boundary entropy variables
+			double const sL = log(pL/pow(rhoL,GAMMA)),
+			             rho_over_p = 1.0/(DB.Rg*TB); // Using the ideal gas law
 
-		// Convert to conservative variables
-		double const V2 = V[1]*V[1]+V[2]*V[2]+V[3]*V[3], // V2 == (rho/p)^2*(u^2+v^2+w^2)
-		             sB = GAMMA+GM1*(-V[0]+0.5*V2/V[4]),
-		             pB = GM1*(pow(GM1/pow(-GM1*V[4],GAMMA),1.0/GM1)*exp(-sB/GM1));
+			double V[NVAR3D];
+			size_t IndV = 0;
+			V[IndV++] =  (GAMMA+1.0-sL)/GM1-EL/pL;
+			V[IndV++] =  rho_over_p*uB;
+			V[IndV++] =  rho_over_p*vB;
+			V[IndV++] =  rho_over_p*wB;
+			V[IndV++] = -rho_over_p;
 
-		// Not working (ToBeModified)
-		size_t IndW = 0;
-if (0) {
-		*WB_ptr[IndW++] = -pB*V[4];
-		*WB_ptr[IndW++] =  pB*V[1];
-		*WB_ptr[IndW++] =  pB*V[2];
-		if (d == 3)
-			*WB_ptr[IndW++] = pB*V[3];
-		*WB_ptr[IndW++] = pB*(1.0/GM1-0.5*V2/V[4]);
-} else {
-printf("% .3e % .3e\n",pB,V[4]);
-//EXIT_BASIC;
-		*WB_ptr[IndW++] = -rhoL    + 2.0*(-pB*V[4]);
-		*WB_ptr[IndW++] = -rhoL*uL + 2.0*( pB*V[1]);
-		*WB_ptr[IndW++] = -rhoL*vL + 2.0*( pB*V[2]);
-		if (d == 3)
-			*WB_ptr[IndW++] = -rhoL*wL + 2.0*( pB*V[3]);
-		*WB_ptr[IndW++] = -EL + 2.0*(pB*(1.0/GM1-0.5*V2/V[4]));
-}
-} else {
-		// Not imposing ALL boundary conditions led to blow-up (either negative pressure or density). Imposing all
-		// boundary conditions (as below) seems inconsistent with the conclusions of Nordstrom(2005). Investigate.
-		// ToBeModified
-		size_t IndW = 0;
-		double const rhoB = DB.rhoIn,
-		             pB   = DB.pIn;
-		*WB_ptr[IndW++] = -rhoL    + 2.0*rhoB;
-		*WB_ptr[IndW++] = -rhoL*uL + 2.0*rhoB*uB;
-		*WB_ptr[IndW++] = -rhoL*vL + 2.0*rhoB*vB;
-		if (d == 3)
-			*WB_ptr[IndW++] = -rhoL*wL + 2.0*rhoB*wB;
-		*WB_ptr[IndW++] = -EL + 2.0*(pB/GM1+0.5*rhoB*(uB*uB+vB*vB+wB*wB));
-}
+			// Convert to conservative variables
+			double const V2 = V[1]*V[1]+V[2]*V[2]+V[3]*V[3], // V2 == (rho/p)^2*(u^2+v^2+w^2)
+			             sB = GAMMA+GM1*(-V[0]+0.5*V2/V[4]),
+			             pB = GM1*(pow(GM1/pow(-GM1*V[4],GAMMA),1.0/GM1)*exp(-sB/GM1));
+
+			size_t IndW = 0;
+			*WB_ptr[IndW++] = -rhoL    + 2.0*(-pB*V[4]);
+			*WB_ptr[IndW++] = -rhoL*uL + 2.0*( pB*V[1]);
+			*WB_ptr[IndW++] = -rhoL*vL + 2.0*( pB*V[2]);
+			if (d == 3)
+				*WB_ptr[IndW++] = -rhoL*wL + 2.0*( pB*V[3]);
+			*WB_ptr[IndW++] = -EL + 2.0*(pB*(1.0/GM1-0.5*V2/V[4]));
+		} else {
+			if (!strstr(DB.TestCase,"TaylorCouette") &&
+			    !strstr(DB.TestCase,"PlaneCouette")) {
+				EXIT_UNSUPPORTED;
+			}
+
+			size_t IndW = 0;
+			double const rhoB = DB.rhoIn,
+			             pB   = DB.pIn;
+			*WB_ptr[IndW++] = -rhoL    + 2.0*rhoB;
+			*WB_ptr[IndW++] = -rhoL*uL + 2.0*rhoB*uB;
+			*WB_ptr[IndW++] = -rhoL*vL + 2.0*rhoB*vB;
+			if (d == 3)
+				*WB_ptr[IndW++] = -rhoL*wL + 2.0*rhoB*wB;
+			*WB_ptr[IndW++] = -EL + 2.0*(pB/GM1+0.5*rhoB*(uB*uB+vB*vB+wB*wB));
+		}
 
 		for (size_t var = 0; var < Nvar; var++)
 			WB_ptr[var]++;
@@ -753,6 +753,10 @@ void boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 	 *		This imposes three velocity BCs on the solution and the final boundary condition on the solution gradient.
 	 *		Parsani(2014) discusses the correct method to impose this last boundary condition for the scheme to be
 	 *		entropy stable (See Theorem 3.2 and eq. (55)). Investigate (ToBeModified).
+	 *
+	 *		The boundary solution gradients are set equal to the internal values for the gradients and the imposition of
+	 *		the adiabatic boundary condition on the temperature flux must be imposed elsewhere. This is done in
+	 *		solver_functions.c/compute_numerical_flux_viscous.
 	 *
 	 *	References:
 	 *		Parsani(2014)-Entropy_Stable_Wall_Boundary_Conditions_for_the_Compressible_Navier-Stokes_Equations

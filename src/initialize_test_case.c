@@ -246,9 +246,6 @@ void initialize_test_case_parameters(void)
 				DB.Yc =  0.0;
 				DB.Rc =  0.1;
 
-				// Based on Rc (ToBeDeleted)
-				printf("Warning: Ensure that vortex strength decays to machine precision at the boundary.\n"), PRINT_FILELINE;
-
 				DB.pInf = 1.0;
 				DB.TInf = 1.0;
 				DB.Rg   = 1.0;
