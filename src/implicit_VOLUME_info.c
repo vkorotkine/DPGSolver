@@ -31,6 +31,9 @@
  *		function provides the VOLUME contribution to this part of the linearization and the associated function in
  *		implicit_FACE_info adds the remaining part.
  *
+ *		Computing fluxes and jacobians require many of the same operations and could be combined for speed-up in the
+ *		future. A similar comment applies to the inviscid and viscous contributions. Profile and revisit (ToBeModified).
+ *
  *	Notation:
  *
  *	References:

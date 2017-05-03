@@ -28,12 +28,9 @@
  *		See comments of explicit_GradW.c.
  *
  *	Notation:
- *		FORM_MF1 : (FORM) used for (M)ixed (F)ormulation equation (1). Can be either ('W')eak or ('S')trong.
  *
  *	References:
  */
-
-#define FORM_MF1 'S' // Should not use 'W' without modifications to viscous flux computation (See comments above).
 
 static void implicit_GradW_VOLUME   (void);
 static void implicit_GradW_FACE     (void);
@@ -92,18 +89,8 @@ static void implicit_GradW_VOLUME(void)
 			free(Dxyz);
 
 			// Compute intermediate Qhat contribution
-			if (FORM_MF1 == 'W') {
-				for (size_t i = 0; i < NvnS*NvnS; i++)
-					QhatV_What[dim][i] *= -1.0;
-			} else if (FORM_MF1 == 'S') {
-				mkl_dimatcopy('R','T',NvnS,NvnS,1.0,QhatV_What[dim],NvnS,NvnS);
-			} else {
-				EXIT_UNSUPPORTED;
-			}
+			mkl_dimatcopy('R','T',NvnS,NvnS,1.0,QhatV_What[dim],NvnS,NvnS);
 			mm_CTN_d(NvnS,Nvar,NvnS,QhatV_What[dim],VOLUME->What,VOLUME->QhatV[dim]);
-
-//			for (size_t i = 0; i < NvnS*NvnS; i++)
-//				VOLUME->Qhat_What[dim][i] = VOLUME->QhatV_What[dim][i];
 
 			for (size_t i = 0; i < NvnS*Nvar; i++)
 				VOLUME->Qhat[dim][i] = VOLUME->QhatV[dim][i];
@@ -177,11 +164,11 @@ static void implicit_GradW_FACE(void)
 		compute_numerical_solution(FDATAL,'I');
 		add_Jacobian_scaling_FACE(FDATAL,'I','Q');
 
-		finalize_QhatF_Weak(FDATAL,FDATAR,'L','E',FORM_MF1);
-		finalize_QhatF_Weak(FDATAL,FDATAR,'L','I',FORM_MF1);
+		finalize_QhatF_Weak(FDATAL,FDATAR,'L','E');
+		finalize_QhatF_Weak(FDATAL,FDATAR,'L','I');
 		if (!FACE->Boundary) {
-			finalize_QhatF_Weak(FDATAL,FDATAR,'R','E',FORM_MF1);
-			finalize_QhatF_Weak(FDATAL,FDATAR,'R','I',FORM_MF1);
+			finalize_QhatF_Weak(FDATAL,FDATAR,'R','E');
+			finalize_QhatF_Weak(FDATAL,FDATAR,'R','I');
 		}
 
 		free(FDATAL->W_fIL);
@@ -325,7 +312,6 @@ static void implicit_GradW_finalize(void)
 		finalize_Qhat(VOLUME,NvnS,VOLUME->Qhat);
 		finalize_Qhat(VOLUME,NvnS,VOLUME->QhatV);
 
-//		finalize_Qhat_What(VOLUME,NvnS,NvnS,VOLUME->Qhat_What);
 		finalize_Qhat_What(VOLUME,NvnS,NvnS,0,VOLUME->QhatV_What);
 	}
 }

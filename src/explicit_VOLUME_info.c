@@ -35,6 +35,9 @@
  *		interpolated to the cubature nodes. EFE is the analogue of the (C)hain(R)ule approach for the strong form of the
  *		scheme. See Zwanenburg(2016) for additional discussion.
  *
+ *		The inviscid and viscous contributions could be combined as they both require identical operations after the
+ *		initial flux evaluation. Consider implementing this in the future based on profiling results. (ToBeModified)
+ *
  *	Notation:
  *
  *	References:

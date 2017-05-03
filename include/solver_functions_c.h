@@ -25,12 +25,12 @@ extern void finalize_VOLUME_Viscous_Weak_c  (unsigned int const Nrc, double comp
 
 // FACE functions
 
-extern void coef_to_values_fI_c     (struct S_FDATA *const FDATA, char const coef_type, char const imex_type);
-extern void compute_WR_fIL_c        (struct S_FDATA const *const FDATA, double complex const *const WL_fIL,
-                                     double complex *const WR_fIL);
-extern void compute_WR_GradWR_fIL_c (struct S_FDATA const *const FDATA, double complex const *const WL_fIL,
-                                     double complex *const WR_fIL, double complex const *const *const GradWL_fIL,
-                                     double complex *const *const GradWR_fIL, char const imex_type);
+extern void coef_to_values_fI_c  (struct S_FDATA *const FDATA, char const coef_type, char const imex_type);
+extern void compute_WR_fIL_c     (struct S_FDATA const *const FDATA, double complex const *const WL_fIL,
+                                  double complex *const WR_fIL);
+extern void compute_WR_QpR_fIL_c (struct S_FDATA const *const FDATA, double complex const *const WL_fIL,
+                                  double complex *const WR_fIL, double complex const *const *const QpL_fIL,
+                                  double complex *const *const QpR_fIL, char const imex_type);
 
 extern void compute_numerical_flux_c         (struct S_FDATA const *const FDATA, char const imex_type);
 extern void compute_numerical_solution_c     (struct S_FDATA const *const FDATA, char const imex_type);
@@ -42,7 +42,7 @@ extern void finalize_FACE_Inviscid_Weak_c (struct S_FDATA const *const FDATAL, s
                                            double complex const *const nANumL_fI, char const side, char const imex_type,
                                            char const coef_type);
 extern void finalize_QhatF_Weak_c         (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
-                                           char const side, char const imex_type, char const FORM_MF1);
+                                           char const side, char const imex_type);
 extern void finalize_FACE_Viscous_Weak_c  (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
                                            double complex const *const nANumL_fI, char const side, char const imex_type,
                                            char const coef_type);

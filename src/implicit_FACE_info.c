@@ -128,8 +128,6 @@ static void compute_Inviscid_FACE_EFE(void)
 
 static void compute_Viscous_FACE_EFE(void)
 {
-	// Potentially change name of GradW(L/R) to Qp(L/R) (ToBeDeleted)
-
 	if (!DB.Viscous)
 		return;
 
@@ -169,20 +167,20 @@ static void compute_Viscous_FACE_EFE(void)
 			FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
 			FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
 
-			double **const GradWL_fIL = malloc(d * sizeof *GradWL_fIL), // free
-			       **const GradWR_fIL = malloc(d * sizeof *GradWR_fIL); // free
+			double **const QpL_fIL = malloc(d * sizeof *QpL_fIL), // free
+			       **const QpR_fIL = malloc(d * sizeof *QpR_fIL); // free
 
 			for (size_t dim = 0; dim < d; dim++) {
-				GradWL_fIL[dim] = malloc(NfnI*Nvar * sizeof *GradWL_fIL[dim]); // free
-				GradWR_fIL[dim] = malloc(NfnI*Nvar * sizeof *GradWR_fIL[dim]); // free
+				QpL_fIL[dim] = malloc(NfnI*Nvar * sizeof *QpL_fIL[dim]); // free
+				QpR_fIL[dim] = malloc(NfnI*Nvar * sizeof *QpR_fIL[dim]); // free
 			}
 
-			FDATAL->GradW_fIL = GradWL_fIL;
-			FDATAR->GradW_fIL = GradWR_fIL;
+			FDATAL->Qp_fIL = QpL_fIL;
+			FDATAR->Qp_fIL = QpR_fIL;
 
 			coef_to_values_fI(FDATAL,'W','I');
 			coef_to_values_fI(FDATAL,'Q','I');
-			compute_WR_GradWR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,(double const *const *const) GradWL_fIL,GradWR_fIL,'I');
+			compute_WR_QpR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,(double const *const *const) QpL_fIL,QpR_fIL,'I');
 
 
 			// Compute numerical flux and its Jacobian as seen from the left VOLUME
@@ -205,8 +203,8 @@ static void compute_Viscous_FACE_EFE(void)
 
 			free(FDATAL->W_fIL);
 			free(FDATAR->W_fIL);
-			array_free2_d(d,GradWL_fIL);
-			array_free2_d(d,GradWR_fIL);
+			array_free2_d(d,QpL_fIL);
+			array_free2_d(d,QpR_fIL);
 
 
 			// Compute FACE RHS and LHS terms

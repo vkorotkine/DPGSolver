@@ -120,8 +120,6 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 
 static void compute_Viscous_FACE_RHS_EFE(void)
 {
-	// Potentially change name of GradW(L/R) to Qp(L/R) (ToBeDeleted)
-
 	if (!DB.Viscous)
 		return;
 
@@ -158,21 +156,21 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 			FDATAL->W_fIL_c = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL_c)), // free
 			FDATAR->W_fIL_c = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL_c)); // free
 
-			double complex **const GradWL_fIL_c = malloc(d * sizeof *GradWL_fIL_c), // free
-			               **const GradWR_fIL_c = malloc(d * sizeof *GradWR_fIL_c); // free
+			double complex **const QpL_fIL_c = malloc(d * sizeof *QpL_fIL_c), // free
+			               **const QpR_fIL_c = malloc(d * sizeof *QpR_fIL_c); // free
 
 			for (size_t dim = 0; dim < d; dim++) {
-				GradWL_fIL_c[dim] = malloc(NfnI*Nvar * sizeof *GradWL_fIL_c[dim]); // free
-				GradWR_fIL_c[dim] = malloc(NfnI*Nvar * sizeof *GradWR_fIL_c[dim]); // free
+				QpL_fIL_c[dim] = malloc(NfnI*Nvar * sizeof *QpL_fIL_c[dim]); // free
+				QpR_fIL_c[dim] = malloc(NfnI*Nvar * sizeof *QpR_fIL_c[dim]); // free
 			}
 
-			FDATAL->GradW_fIL_c = GradWL_fIL_c;
-			FDATAR->GradW_fIL_c = GradWR_fIL_c;
+			FDATAL->Qp_fIL_c = QpL_fIL_c;
+			FDATAR->Qp_fIL_c = QpR_fIL_c;
 
 			coef_to_values_fI_c(FDATAL,'W','E');
 			coef_to_values_fI_c(FDATAL,'Q','E');
-			compute_WR_GradWR_fIL_c(FDATAR,FDATAL->W_fIL_c,FDATAR->W_fIL_c,
-			                        (double complex const *const *const) GradWL_fIL_c,GradWR_fIL_c,'E');
+			compute_WR_QpR_fIL_c(FDATAR,FDATAL->W_fIL_c,FDATAR->W_fIL_c,
+			                     (double complex const *const *const) QpL_fIL_c,QpR_fIL_c,'E');
 
 
 			// Compute numerical flux as seen from the left VOLUME
@@ -185,8 +183,8 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 
 			free(FDATAL->W_fIL_c);
 			free(FDATAR->W_fIL_c);
-			array_free2_cmplx(d,GradWL_fIL_c);
-			array_free2_cmplx(d,GradWR_fIL_c);
+			array_free2_cmplx(d,QpL_fIL_c);
+			array_free2_cmplx(d,QpR_fIL_c);
 
 			// Compute FACE RHS terms
 			finalize_FACE_Viscous_Weak_c(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI_c,'L','E','V');

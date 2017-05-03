@@ -36,7 +36,7 @@ void flux_viscous(unsigned int const Nn, unsigned int const Nel, double const *c
 	 *		is minimized when converting from physical to reference space.
 	 *
 	 *		Assumptions:
-	 *			Stokes hypothesis: Coefficient of bulk viscosity = -2/3*mu
+	 *      	Coefficient of bulk viscosity = 0.0
 	 *
 	 *			kappa = mu*Cp/Pr  (1)
 	 *			Cp/Rg = GAMMA/GM1 (2)

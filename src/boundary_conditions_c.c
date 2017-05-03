@@ -14,11 +14,12 @@
 #include "S_DB.h"
 #include "Test.h"
 
+#include "boundary_conditions.h"
 #include "variable_functions_c.h"
 
 /*
  *	Purpose:
- *		Identical to fluxes_inviscid using complex variables (for complex step verification).
+ *		Identical to boundary_conditions using complex variables (for complex step verification).
  *
  *	Comments:
  *
@@ -26,6 +27,94 @@
  *
  *	References:
  */
+
+void set_BC_from_BType(struct S_BC *const BCdata, char const *const BType)
+{
+	if (strstr(BType,"SlipWall"))
+		BCdata->BC = BC_SLIPWALL;
+	else if (strstr(BType,"Riemann"))
+		BCdata->BC = BC_RIEMANN;
+	else if (strstr(BType,"BackPressure"))
+		BCdata->BC = BC_BACKPRESSURE;
+	else if (strstr(BType,"Total_TP"))
+		BCdata->BC = BC_TOTAL_TP;
+	else if (strstr(BType,"SupersonicIn"))
+		BCdata->BC = BC_SUPERSONIC_IN;
+	else if (strstr(BType,"SupersonicOut"))
+		BCdata->BC = BC_SUPERSONIC_OUT;
+	else if (strstr(BType,"NoSlip_Dirichlet"))
+		BCdata->BC = BC_NOSLIP_T;
+	else if (strstr(BType,"NoSlip_Adiabatic"))
+		BCdata->BC = BC_NOSLIP_ADIABATIC;
+	else
+		EXIT_UNSUPPORTED;
+}
+
+void correct_XYZ_for_exact_normal(struct S_BC *const BCdata, char const *const BType)
+{
+	/*
+	 *	Purpose:
+	 *		Ensure that the coordinates are on the annular boundary (necessary when 'ExactNormal' is enabled)
+	 */
+
+	if (!EXACT_NORMAL)
+		return;
+
+	if (strstr(BType,"SlipWall")) {
+		unsigned int const Nn  = BCdata->Nn,
+		                   Nel = BCdata->Nel;
+
+		double *const XYZ = (double *const) BCdata->XYZ;
+
+		unsigned int NnTotal = Nn*Nel;
+
+		for (size_t n = 0; n < NnTotal; n++) {
+			double const x = XYZ[0*NnTotal+n],
+			             y = XYZ[1*NnTotal+n],
+			             r = sqrt(x*x+y*y);
+
+			XYZ[0*NnTotal+n] = x/r;
+			XYZ[1*NnTotal+n] = y/r;
+		}
+	}
+}
+
+void compute_boundary_values_c(struct S_BC *const BCdata)
+{
+	switch((BCdata->BC) % BC_STEP_SC) {
+		case BC_RIEMANN:          boundary_Riemann_c(BCdata);           break;
+		case BC_SLIPWALL: {
+			if (EXACT_SLIPWALL) {
+				compute_exact_boundary_solution(BCdata);
+				unsigned int const d    = BCdata->d,
+				                   Nvar = d+2,
+				                   Nn   = BCdata->Nn,
+				                   Nel  = BCdata->Nel;
+
+				for (size_t i = 0; i < Nn*Nvar*Nel; i++)
+					BCdata->WB_c[i] = BCdata->WB[i];
+			} else if (EXACT_NORMAL) {
+				double const *const nL = BCdata->nL;
+
+				BCdata->nL = compute_exact_boundary_normal(BCdata);
+				boundary_SlipWall_c(BCdata);
+
+				free((double *) BCdata->nL);
+				BCdata->nL = nL;
+			} else {
+				boundary_SlipWall_c(BCdata);
+			}
+			break;
+		}
+		case BC_BACKPRESSURE:     boundary_BackPressure_c(BCdata);      break;
+		case BC_TOTAL_TP:         boundary_Total_TP_c(BCdata);          break;
+		case BC_SUPERSONIC_IN:    boundary_SupersonicInflow_c(BCdata);  break;
+		case BC_SUPERSONIC_OUT:   boundary_SupersonicOutflow_c(BCdata); break;
+		case BC_NOSLIP_T:         boundary_NoSlip_Dirichlet_c(BCdata);  break;
+		case BC_NOSLIP_ADIABATIC: boundary_NoSlip_Adiabatic_c(BCdata);  break;
+		default:                  EXIT_UNSUPPORTED;                     break;
+	}
+}
 
 static void get_boundary_values_c(const double X, const double Y, double complex *const rho, double complex *const u,
                                   double complex *const v, double complex *const w, double complex *const p)
@@ -86,14 +175,17 @@ static void get_boundary_values_c(const double X, const double Y, double complex
 	}
 }
 
-void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
-                        const double complex *const WL, double complex *const WOut, double complex *const WB,
-                        const double *const nL, const unsigned int d)
+void boundary_Riemann_c(struct S_BC *const BCdata)
 {
-	/*
-	 *	Comments:
-	 *		WOut is not used for all test cases.
-	 */
+	unsigned int const d    = BCdata->d,
+	                   Nn   = BCdata->Nn,
+	                   Nel  = BCdata->Nel;
+
+	double const *const XYZ = BCdata->XYZ,
+	             *const nL  = BCdata->nL;
+
+	double complex const *const WL = BCdata->WL_c;
+	double complex       *const WB = BCdata->WB_c;
 
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
@@ -109,9 +201,6 @@ void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, const dou
 	               *rhoB, *uB, *vB, *wB, *pB, *UB,
 	               Vt, RL, RR, Vn, c, ut, vt, wt;
 	const double   *X, *Y;
-
-	// silence
-	UL = WOut;
 
 	NnTotal = Nn*Nel;
 
@@ -249,10 +338,17 @@ void boundary_Riemann_c(const unsigned int Nn, const unsigned int Nel, const dou
 	free(n);
 }
 
-void boundary_SlipWall_c(const unsigned int Nn, const unsigned int Nel, const double complex *const WL,
-                         double complex *const WB, const double *const nL, const unsigned int d)
+void boundary_SlipWall_c(struct S_BC *const BCdata)
 {
-	// Standard datatypes
+	unsigned int const d    = BCdata->d,
+	                   Nn   = BCdata->Nn,
+	                   Nel  = BCdata->Nel;
+
+	double const *const nL  = BCdata->nL;
+
+	double complex const *const WL = BCdata->WL_c;
+	double complex       *const WB = BCdata->WB_c;
+
 	unsigned int         i, NnTotal, IndE;
 	double complex       *rhoB, *rhouB, *rhovB, *rhowB, *EB, rhoVL;
 	const double complex *rhoL, *rhouL, *rhovL, *rhowL, *EL;
@@ -307,15 +403,23 @@ void boundary_SlipWall_c(const unsigned int Nn, const unsigned int Nel, const do
 	}
 }
 
-void boundary_BackPressure_c(const unsigned int Nn, const unsigned int Nel, const double complex *const WL,
-                             double complex *const WB, const double *const nL, const unsigned int d,
-                             const unsigned int Neq)
+void boundary_BackPressure_c(struct S_BC *const BCdata)
 {
+	unsigned int const d    = BCdata->d,
+	                   Nvar = d+2,
+	                   Nn   = BCdata->Nn,
+	                   Nel  = BCdata->Nel;
+
+	double const *const nL  = BCdata->nL;
+
+	double complex const *const WL = BCdata->WL_c;
+	double complex       *const WB = BCdata->WB_c;
+
 	// Standard datatypes
-	unsigned int   n, NnTotal, eq, var, Nvar, IndW;
-	double complex rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, rhoB, cL, c2L, VnL, *WB_ptr[Neq];
+	unsigned int   n, NnTotal, eq, var, IndW;
+	double complex rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, rhoB, cL, c2L, VnL, *WB_ptr[Nvar];
 	double         n1, n2, n3;
-	const double complex *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Neq];
+	const double complex *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Nvar];
 	const double         *n_ptr;
 
 	// silence
@@ -323,9 +427,8 @@ void boundary_BackPressure_c(const unsigned int Nn, const unsigned int Nel, cons
 	rhovL_ptr = rhowL_ptr = NULL;
 
 	NnTotal = Nn*Nel;
-	Nvar    = Neq;
 
-	for (eq = 0; eq < Neq; eq++) {
+	for (eq = 0; eq < Nvar; eq++) {
 		WL_ptr[eq] = &WL[eq*NnTotal];
 		WB_ptr[eq] = &WB[eq*NnTotal];
 	}
@@ -416,21 +519,17 @@ void boundary_BackPressure_c(const unsigned int Nn, const unsigned int Nel, cons
 	}
 }
 
-void boundary_Total_TP_c(const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
-                         const double complex *const WL, double complex *const WB, const double *const nL,
-                         const unsigned int d, const unsigned int Nvar)
+void boundary_Total_TP_c(struct S_BC *const BCdata)
 {
-	/*
-	 *	Purpose:
-	 *		Impose total (P)ressure/(T)emperature (inflow) boundary condition.
-	 *
-	 *	Comments:
-	 *		eq. (38) in Carlson(2011) implies that the velocity should be normal to the boundary.
-	 *
-	 *	References:
-	 *		Carlson(2011): 2.7
-	 *		Toro(2009): (3.9), (8.58)
-	 */
+	unsigned int const d    = BCdata->d,
+	                   Nvar = d+2,
+	                   Nn   = BCdata->Nn,
+	                   Nel  = BCdata->Nel;
+
+	double const *const nL  = BCdata->nL;
+
+	double complex const *const WL = BCdata->WL_c;
+	double complex       *const WB = BCdata->WB_c;
 
 	// Initialize DB Parameters
 	double Rg      = DB.Rg,
@@ -439,13 +538,9 @@ void boundary_Total_TP_c(const unsigned int Nn, const unsigned int Nel, const do
 
 	// Standard datatypes
 	unsigned int   NnTotal;
-	const double complex *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Nvar];
+	const double complex *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr = NULL, *EL_ptr, *WL_ptr[Nvar];
 	double complex *WB_ptr[Nvar];
 	const double   *n_ptr;
-
-	// silence
-	rhowL_ptr = NULL;
-	WB[0] = XYZ[0];
 
 	NnTotal = Nn*Nel;
 
@@ -548,17 +643,20 @@ void boundary_Total_TP_c(const unsigned int Nn, const unsigned int Nel, const do
 	}
 }
 
-void boundary_SupersonicInflow_c(const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
-                                 const double complex *const WL, double complex *const WB, const double *const nL,
-                                 const unsigned int d, const unsigned int Nvar)
+void boundary_SupersonicInflow_c(struct S_BC *const BCdata)
 {
+	unsigned int const d    = BCdata->d,
+	                   Nvar = d+2,
+	                   Nn   = BCdata->Nn,
+	                   Nel  = BCdata->Nel;
+
+	double const *const XYZ = BCdata->XYZ;
+
+	double complex       *const WB = BCdata->WB_c;
+
 	unsigned int   NnTotal;
 	const double   *X_ptr, *Y_ptr;
 	double complex *WB_ptr[Nvar];
-
-	// silence
-	WB[0] = WL[0];
-	WB[0] = nL[0];
 
 	NnTotal = Nn*Nel;
 
@@ -595,18 +693,17 @@ void boundary_SupersonicInflow_c(const unsigned int Nn, const unsigned int Nel, 
 	}
 }
 
-void boundary_SupersonicOutflow_c(const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
-                                  const double complex *const WL, double complex *const WB, const double *const nL,
-                                  const unsigned int d, const unsigned int Nvar)
+void boundary_SupersonicOutflow_c(struct S_BC *const BCdata)
 {
-	unsigned int NnTotal;
+	unsigned int const d    = BCdata->d,
+	                   Nvar = d+2,
+	                   Nn   = BCdata->Nn,
+	                   Nel  = BCdata->Nel;
 
-	// silence
-	WB[0] = XYZ[0];
-	WB[0] = nL[0];
-	NnTotal = d;
+	double complex const *const WL = BCdata->WL_c;
+	double complex       *const WB = BCdata->WB_c;
 
-	NnTotal = Nn*Nel;
+	unsigned int const NnTotal = Nn*Nel;
 
 	for (size_t i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
 		WB[i] = WL[i];
@@ -622,10 +719,10 @@ void boundary_NoSlip_Dirichlet_c(struct S_BC *const BCdata)
 
 	double const *const XYZ = BCdata->XYZ;
 
-	double complex const *const        WL     = BCdata->WL_c,
-	                     *const *const GradWL = BCdata->GradWL_c;
-	double complex       *const        WB     = BCdata->WB_c,
-	                     *const *const GradWB = BCdata->GradWB_c;
+	double complex const *const        WL = BCdata->WL_c,
+	                     *const *const QL = BCdata->QL_c;
+	double complex       *const        WB = BCdata->WB_c,
+	                     *const *const QB = BCdata->QB_c;
 
 	double const *X_ptr = &XYZ[NnTotal*0],
 	             *Y_ptr = &XYZ[NnTotal*1];
@@ -709,12 +806,12 @@ void boundary_NoSlip_Dirichlet_c(struct S_BC *const BCdata)
 	}
 
 	// Set QB == QL (if necessary)
-	if (GradWL == NULL)
+	if (QL == NULL)
 		return;
 
 	for (size_t dim = 0; dim < d; dim++) {
 		for (size_t n = 0; n < NnTotal*Nvar; n++) {
-			GradWB[dim][n] = GradWL[dim][n];
+			QB[dim][n] = QL[dim][n];
 		}
 	}
 }
@@ -726,11 +823,11 @@ void boundary_NoSlip_Adiabatic_c(struct S_BC *const BCdata)
 	                   Nn   = BCdata->Nn,
 	                   Nel  = BCdata->Nel;
 
-	double complex const *const        WL     = BCdata->WL_c,
-	                     *const *const GradWL = BCdata->GradWL_c;
+	double complex const *const        WL = BCdata->WL_c,
+	                     *const *const QL = BCdata->QL_c;
 
-	double complex       *const        WB     = BCdata->WB_c,
-	                     *const *const GradWB = BCdata->GradWB_c;
+	double complex       *const        WB = BCdata->WB_c,
+	                     *const *const QB = BCdata->QB_c;
 
 	unsigned int const NnTotal = Nn*Nel;
 
@@ -789,13 +886,13 @@ void boundary_NoSlip_Adiabatic_c(struct S_BC *const BCdata)
 			WB_ptr[var]++;
 	}
 
-	if (GradWL == NULL)
+	if (QL == NULL)
 		return;
 
 	// Set QB == QL but set the Energy equation component of the numerical flux to 0. Alternatively, set QB here such
 	// that the computed numerical flux is zero (More expensive and more difficult, but more general). (ToBeModified)
 	for (size_t dim = 0; dim < d; dim++) {
 		for (size_t n = 0; n < NnTotal*Nvar; n++)
-			GradWB[dim][n] = GradWL[dim][n];
+			QB[dim][n] = QL[dim][n];
 	}
 }

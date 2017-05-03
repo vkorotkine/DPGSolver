@@ -131,7 +131,7 @@ void test_integration_Poisson(int nargc, char **argv)
 
 		free(data_l);
 	} else {
-		test_print_warning("Euler linearization testing currently disabled");
+		test_print_warning("Poisson linearization testing currently disabled");
 	}
 
 	// **************************************************************************************************** //
@@ -145,7 +145,7 @@ void test_integration_Poisson(int nargc, char **argv)
 		data_c->PrintName = PrintName;
 
 		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_TRI");
-		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_QUAD");
+//		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_QUAD");
 
 		free(data_c);
 	} else {

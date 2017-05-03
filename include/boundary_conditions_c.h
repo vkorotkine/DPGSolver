@@ -8,23 +8,16 @@
 
 #include "boundary_conditions.h"
 
-extern void boundary_Riemann_c           (const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
-                                          const double complex *const WL, double complex *const WOut,
-                                          double complex *const WB, const double *const nL, const unsigned int d);
-extern void boundary_SlipWall_c          (const unsigned int Nn, const unsigned int Nel, const double complex *const WL,
-                                          double complex *const WB, const double *const nL, const unsigned int d);
-extern void boundary_BackPressure_c      (const unsigned int Nn, const unsigned int Nel, const double complex *const WL,
-                                          double complex *const WB, const double *const nL, const unsigned int d,
-                                          const unsigned int Neq);
-extern void boundary_Total_TP_c          (const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
-                                          const double complex *const WL, double complex *const WB,
-                                          const double *const nL, const unsigned int d, const unsigned int Nvar);
-extern void boundary_SupersonicInflow_c  (const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
-                                          const double complex *const WL, double complex *const WB,
-                                          const double *const nL, const unsigned int d, const unsigned int Nvar);
-extern void boundary_SupersonicOutflow_c (const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
-                                          const double complex *const WL, double complex *const WB,
-                                          const double *const nL, const unsigned int d, const unsigned int Nvar);
+extern void set_BC_from_BType            (struct S_BC *const BCdata, char const *const BType);
+extern void correct_XYZ_for_exact_normal (struct S_BC *const BCdata, char const *const BType);
+
+extern void compute_boundary_values_c    (struct S_BC *const BCdata);
+extern void boundary_Riemann_c           (struct S_BC *const BCdata);
+extern void boundary_SlipWall_c          (struct S_BC *const BCdata);
+extern void boundary_BackPressure_c      (struct S_BC *const BCdata);
+extern void boundary_Total_TP_c          (struct S_BC *const BCdata);
+extern void boundary_SupersonicInflow_c  (struct S_BC *const BCdata);
+extern void boundary_SupersonicOutflow_c (struct S_BC *const BCdata);
 extern void boundary_NoSlip_Dirichlet_c  (struct S_BC *const BCdata);
 extern void boundary_NoSlip_Adiabatic_c  (struct S_BC *const BCdata);
 

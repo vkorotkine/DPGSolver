@@ -161,7 +161,9 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 		}
 	} else if (strstr(TestName,"NavierStokes")) {
 		data->PG_add = 0;
-//		data->PrintEnabled = 1;
+		data->PrintEnabled = 1;
+data->MLMax = 0;
+data->PMax  = 1;
 
 		strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_");
 		if (strstr(TestName,"n-Cylinder_Hollow")) {

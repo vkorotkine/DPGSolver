@@ -44,6 +44,9 @@
  *
  *		Likely include a dynamic rtol value for KSPSetTolerances.
  *
+ *		Adytia recommended trying PCSetType(pc,PCGAMG) (Does not required SetLevels or SetMatOrderingType). May need to
+ *		specify that blocks are arranged in sizes of Nvar*Neq*NvnS*NvnS. (ToBeModified)
+ *
  *	Notation:
  *
  *	References:

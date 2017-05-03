@@ -30,8 +30,6 @@
  *	References:
  */
 
-#define FORM_MF1 'S' // Should not use 'W' without modifications to viscous flux computation.
-
 static void explicit_GradW_VOLUME_c   (void);
 static void explicit_GradW_FACE_c     (void);
 static void explicit_GradW_finalize_c (void);
@@ -91,15 +89,9 @@ static void explicit_GradW_VOLUME_c(void)
 				free(VOLUME->QhatV_c[dim]);
 			VOLUME->QhatV_c[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV_c[dim])); // keep
 
-			if (FORM_MF1 == 'W') {
-				mm_dcc(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,-1.0,0.0,DxyzChiS[dim],VOLUME->What_c,VOLUME->QhatV_c[dim]);
-			} else if (FORM_MF1 == 'S') {
-				// Note: Using CBCM with CBNT for DxyzChiS (stored in row-major ordering) gives DxyzChiS' in the
-				//       operation below.
-				mm_dcc(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,DxyzChiS[dim],VOLUME->What_c,VOLUME->QhatV_c[dim]);
-			} else {
-				EXIT_UNSUPPORTED;
-			}
+			// Note: Using CBCM with CBNT for DxyzChiS (stored in row-major ordering) gives DxyzChiS' in the operation
+			//       below.
+			mm_dcc(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,DxyzChiS[dim],VOLUME->What_c,VOLUME->QhatV_c[dim]);
 
 			if (VOLUME->Qhat_c[dim] != NULL)
 				free(VOLUME->Qhat_c[dim]);
@@ -177,9 +169,9 @@ static void explicit_GradW_FACE_c(void)
 			}
 		}
 
-		finalize_QhatF_Weak_c(FDATAL,FDATAR,'L','E',FORM_MF1);
+		finalize_QhatF_Weak_c(FDATAL,FDATAR,'L','E');
 		if (!FACE->Boundary)
-			finalize_QhatF_Weak_c(FDATAL,FDATAR,'R','E',FORM_MF1);
+			finalize_QhatF_Weak_c(FDATAL,FDATAR,'R','E');
 
 		free(FDATAL->W_fIL_c);
 		free(FDATAR->W_fIL_c);

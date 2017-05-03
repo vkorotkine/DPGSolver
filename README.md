@@ -7,9 +7,12 @@
 - Supported refinements: isotropic h (size) or p (order).
 
 ### Supported PDEs
-- Poisson       : DONE
-- Euler         : DONE
-- Navier-Stokes : DONE
+| PDE           | STATUS               | BRANCH (if not master) |
+|---------------|----------------------| ---------------------- |
+| Poisson       | DONE (NEEDS CLEANUP) |                        |
+| Advection     | DONE (NEEDS CLEANUP) | lsfem                  |
+| Euler         | DONE                 |                        |
+| Navier-Stokes | DONE                 |                        |
 
 See the CODE STATUS section below for details regarding current functionality.
 
@@ -61,7 +64,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 | volume info     |             | DONE FOR THE TIME BEING |
 |                 | Weak Form   | DONE                    |
 |                 | Strong Form | UNDER CONSIDERATION     |
-|                 | Vectorized  | DONE                    |
+|                 | Vectorized  | NEEDS UPDATING          |
 | face info       |             | DONE FOR THE TIME BEING |
 |                 | Weak Form   | DONE                    |
 |                 | Strong Form | UNDER CONSIDERATION     |
@@ -110,15 +113,6 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 | Total Temp/Pressure     | DONE |
 | No Slip Dirichlet       | DONE |
 | No Slip Adiabatic       | DONE |
-
-#### Jacobians
-| Function                |      |
-|-------------------------|------|
-| flux inviscid           | DONE |
-| flux Lax-Friedrichs     | DONE |
-| flux Roe-Pike           | DONE |
-| flux viscous            | DONE |
-| All boundary conditions | DONE |
 
 
 ### Postprocessing : ACTIVE (As cases are added)

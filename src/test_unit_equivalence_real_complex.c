@@ -23,8 +23,10 @@
 #include "boundary_conditions_c.h"
 #include "variable_functions.h"
 #include "variable_functions_c.h"
+
 #include "array_norm.h"
 #include "array_free.h"
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -318,19 +320,34 @@ static unsigned int compare_boundary(const unsigned int Nn, const unsigned int N
 	for (i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
 		WLc[i] = WLr[i];
 
-	if (strstr(TestCase,"SlipWall")) {
-		boundary_SlipWall(Nn,Nel,WLr,WBr,nL,d);
-		boundary_SlipWall_c(Nn,Nel,WLc,WBc,nL,d);
-	} else if (strstr(TestCase,"Riemann")) {
-		boundary_Riemann(Nn,Nel,XYZ,WLr,NULL,WBr,nL,d);
-		boundary_Riemann_c(Nn,Nel,XYZ,WLc,NULL,WBc,nL,d);
-	}
+	struct S_BC *const BCdata = malloc(sizeof *BCdata); // free
+
+	BCdata->d   = d;
+	BCdata->Nn  = Nn;
+	BCdata->Nel = Nel;
+
+	BCdata->XYZ  = XYZ;
+	BCdata->nL   = nL;
+	BCdata->WL   = WLr;
+	BCdata->WB   = WBr;
+	BCdata->WL_c = WLc;
+	BCdata->WB_c = WBc;
+
+	set_BC_from_BType(BCdata,TestCase);
+	correct_XYZ_for_exact_normal(BCdata,TestCase);
+	compute_boundary_values(BCdata);
+	compute_boundary_values_c(BCdata);
 
 	for (i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
 		WBctr[i] = creal(WBc[i]);
 
-	if (array_norm_diff_d(NnTotal*Nvar,WBr,WBctr,"Inf") < 1e1*EPS)
+	if (array_norm_diff_d(NnTotal*Nvar,WBr,WBctr,"Inf") < 1e1*EPS) {
 		pass = 1;
+	} else {
+		printf("% .3e\n",array_norm_diff_d(NnTotal*Nvar,WBr,WBctr,"Inf"));
+		array_print_d(NnTotal,Nvar,WBr,'C');
+		array_print_d(NnTotal,Nvar,WBctr,'C');
+	}
 
 	free(WBr);
 	free(WLc);

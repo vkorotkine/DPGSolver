@@ -134,13 +134,15 @@ void coef_to_values_fI_c(struct S_FDATA *const FDATA, char const coef_type, char
 	                   NfnI     = OPS[IndFType]->NfnI,
 	                   NvnS     = OPS[0]->NvnS;
 
-	double complex **Qhat_c = NULL;
+	double complex **Qphat_c = NULL;
 	if (coef_type == 'Q') {
-		Qhat_c = malloc(d * sizeof *Qhat_c);
+		Qphat_c = malloc(d * sizeof *Qphat_c);
+
+		// Add VOLUME contribution
 		for (size_t dim = 0; dim < d; dim++) {
-			Qhat_c[dim] = malloc(NvnS*Nvar * sizeof *Qhat_c[dim]); // free
+			Qphat_c[dim] = malloc(NvnS*Nvar * sizeof *Qphat_c[dim]); // free
 			for (size_t i = 0; i < NvnS*Nvar; i++)
-				Qhat_c[dim][i] = VOLUME->QhatV_c[dim][i];
+				Qphat_c[dim][i] = VOLUME->QhatV_c[dim][i];
 		}
 
 		if (DB.ViscousFluxType == FLUX_CDG2) {
@@ -197,11 +199,11 @@ void coef_to_values_fI_c(struct S_FDATA *const FDATA, char const coef_type, char
 			EXIT_UNSUPPORTED;
 		}
 
-		// Partially correct Qhat
+		// Add partial FACE contribution
 		if (chi != 0.0) {
 			for (size_t dim = 0; dim < d; dim++) {
 				for (size_t i = 0; i < NvnS*Nvar; i++)
-					Qhat_c[dim][i] += chi*FDATA->QhatF_c[dim][i];
+					Qphat_c[dim][i] += chi*FDATA->QhatF_c[dim][i];
 			}
 		}
 	}
@@ -210,11 +212,40 @@ void coef_to_values_fI_c(struct S_FDATA *const FDATA, char const coef_type, char
 		mm_dcc(CBCM,CBT,CBNT,NfnI,Nvar,OPS[0]->NvnS,1.0,0.0,OPS[0]->ChiS_fI[Vf],VOLUME->What_c,FDATA->W_fIL_c);
 	} else if (coef_type == 'Q') {
 		for (size_t dim = 0; dim < d; dim++)
-			mm_dcc(CBCM,CBT,CBNT,NfnI,Nvar,OPS[0]->NvnS,1.0,0.0,OPS[0]->ChiS_fI[Vf],Qhat_c[dim],FDATA->GradW_fIL_c[dim]);
+			mm_dcc(CBCM,CBT,CBNT,NfnI,Nvar,OPS[0]->NvnS,1.0,0.0,OPS[0]->ChiS_fI[Vf],Qphat_c[dim],FDATA->Qp_fIL_c[dim]);
 	}
 
 	if (coef_type == 'Q')
-		array_free2_cmplx(d,Qhat_c);
+		array_free2_cmplx(d,Qphat_c);
+}
+
+static void evaluate_boundary_c(struct S_BC *const BCdata, bool const ComputeGradient)
+{
+	unsigned int const BC   = BCdata->BC;
+
+	if (ComputeGradient) {
+		if (!(BC % BC_STEP_SC == BC_NOSLIP_T         ||
+		      BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC)) {
+			EXIT_UNSUPPORTED;
+		}
+	}
+
+/*	if (BC % BC_STEP_SC == BC_RIEMANN) {
+		boundary_Riemann_c(NfnI,1,XYZ_fIL,WL_fIL,NULL,WR_fIL,n_fIL,d);
+	} else if (BC % BC_STEP_SC == BC_SLIPWALL) {
+		boundary_SlipWall_c(NfnI,1,WL_fIL,WR_fIL,n_fIL,d);
+	} else if (BC % BC_STEP_SC == BC_BACKPRESSURE) {
+		boundary_BackPressure_c(NfnI,1,WL_fIL,WR_fIL,n_fIL,d,Nvar);
+	} else if (BC % BC_STEP_SC == BC_TOTAL_TP) {
+		boundary_Total_TP_c(NfnI,1,XYZ_fIL,WL_fIL,WR_fIL,n_fIL,d,Nvar);
+	} else if (BC % BC_STEP_SC == BC_SUPERSONIC_IN) {
+		boundary_SupersonicInflow_c(NfnI,1,XYZ_fIL,WL_fIL,WR_fIL,n_fIL,d,Nvar);
+	} else if (BC % BC_STEP_SC == BC_SUPERSONIC_OUT) {
+		boundary_SupersonicOutflow_c(NfnI,1,XYZ_fIL,WL_fIL,WR_fIL,n_fIL,d,Nvar);
+	} else {
+		compute_boundary_values_c(BCdata);
+	}*/
+	compute_boundary_values_c(BCdata);
 }
 
 void compute_WR_fIL_c(struct S_FDATA const *const FDATA, double complex const *const WL_fIL,
@@ -242,40 +273,23 @@ void compute_WR_fIL_c(struct S_FDATA const *const FDATA, double complex const *c
 		BCdata->d   = DB.d;
 		BCdata->Nn  = NfnI;
 		BCdata->Nel = 1;
+		BCdata->BC  = BC;
 
-		BCdata->XYZ    = XYZ_fIL;
-		BCdata->nL     = n_fIL;
-		BCdata->WL_c     = WL_fIL;
-		BCdata->WB_c     = WR_fIL;
-		BCdata->GradWL_c = NULL;
-		BCdata->GradWB_c = NULL;
+		BCdata->XYZ  = XYZ_fIL;
+		BCdata->nL   = n_fIL;
+		BCdata->WL_c = WL_fIL;
+		BCdata->WB_c = WR_fIL;
+		BCdata->QL_c = NULL;
+		BCdata->QB_c = NULL;
 
-		if (BC % BC_STEP_SC == BC_RIEMANN) {
-			boundary_Riemann_c(NfnI,1,XYZ_fIL,WL_fIL,NULL,WR_fIL,n_fIL,d);
-		} else if (BC % BC_STEP_SC == BC_SLIPWALL) {
-			boundary_SlipWall_c(NfnI,1,WL_fIL,WR_fIL,n_fIL,d);
-		} else if (BC % BC_STEP_SC == BC_BACKPRESSURE) {
-			boundary_BackPressure_c(NfnI,1,WL_fIL,WR_fIL,n_fIL,d,Nvar);
-		} else if (BC % BC_STEP_SC == BC_TOTAL_TP) {
-			boundary_Total_TP_c(NfnI,1,XYZ_fIL,WL_fIL,WR_fIL,n_fIL,d,Nvar);
-		} else if (BC % BC_STEP_SC == BC_SUPERSONIC_IN) {
-			boundary_SupersonicInflow_c(NfnI,1,XYZ_fIL,WL_fIL,WR_fIL,n_fIL,d,Nvar);
-		} else if (BC % BC_STEP_SC == BC_SUPERSONIC_OUT) {
-			boundary_SupersonicOutflow_c(NfnI,1,XYZ_fIL,WL_fIL,WR_fIL,n_fIL,d,Nvar);
-		} else if (BC % BC_STEP_SC == BC_NOSLIP_T) {
-			boundary_NoSlip_Dirichlet_c(BCdata);
-		} else if (BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC) {
-			boundary_NoSlip_Adiabatic_c(BCdata);
-		} else {
-			EXIT_UNSUPPORTED;
-		}
+		evaluate_boundary_c(BCdata,0);
 		free(BCdata);
 	}
 }
 
-void compute_WR_GradWR_fIL_c(struct S_FDATA const *const FDATA, double complex const *const WL_fIL,
-                             double complex *const WR_fIL, double complex const *const *const GradWL_fIL,
-                             double complex *const *const GradWR_fIL, char const imex_type)
+void compute_WR_QpR_fIL_c(struct S_FDATA const *const FDATA, double complex const *const WL_fIL,
+                             double complex *const WR_fIL, double complex const *const *const QpL_fIL,
+                             double complex *const *const QpR_fIL, char const imex_type)
 {
 	struct S_OPERATORS_F const *const *const OPS  = FDATA->OPS;
 	struct S_FACE        const *const        FACE = FDATA->FACE;
@@ -292,28 +306,23 @@ void compute_WR_GradWR_fIL_c(struct S_FDATA const *const FDATA, double complex c
 
 		coef_to_values_fI_c((struct S_FDATA *const) FDATA,'Q',imex_type);
 		for (size_t dim = 0; dim < d; dim++)
-			array_rearrange_cmplx(NfnI,Nvar,nOrdRL,'C',GradWR_fIL[dim]);
+			array_rearrange_cmplx(NfnI,Nvar,nOrdRL,'C',QpR_fIL[dim]);
 	} else { // Boundary FACE
 		struct S_BC *const BCdata = malloc(sizeof *BCdata); // free
 
 		BCdata->d   = DB.d;
 		BCdata->Nn  = NfnI;
 		BCdata->Nel = 1;
+		BCdata->BC  = BC;
 
-		BCdata->XYZ      = FACE->XYZ_fI;
-		BCdata->nL       = FACE->n_fI;
-		BCdata->WL_c     = WL_fIL;
-		BCdata->WB_c     = WR_fIL;
-		BCdata->GradWL_c = GradWL_fIL;
-		BCdata->GradWB_c = GradWR_fIL;
+		BCdata->XYZ  = FACE->XYZ_fI;
+		BCdata->nL   = FACE->n_fI;
+		BCdata->WL_c = WL_fIL;
+		BCdata->WB_c = WR_fIL;
+		BCdata->QL_c = QpL_fIL;
+		BCdata->QB_c = QpR_fIL;
 
-		if (BC % BC_STEP_SC == BC_NOSLIP_T) {
-			boundary_NoSlip_Dirichlet_c(BCdata);
-		} else if (BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC) {
-			boundary_NoSlip_Adiabatic_c(BCdata);
-		} else {
-			EXIT_UNSUPPORTED;
-		}
+		evaluate_boundary_c(BCdata,1);
 		free(BCdata);
 	}
 }
@@ -377,12 +386,8 @@ void compute_numerical_solution_c(struct S_FDATA const *const FDATA, char const 
 	}}}
 }
 
-static void correct_numerical_solution_strong_c(struct S_FDATA const *const FDATA, char const imex_type, char const side,
-                                                char const Form_MF1)
+static void correct_numerical_solution_strong_c(struct S_FDATA const *const FDATA, char const imex_type, char const side)
 {
-	if (Form_MF1 != 'S')
-		EXIT_UNSUPPORTED;
-
 	if (!(imex_type == 'E'))
 		EXIT_UNSUPPORTED;
 
@@ -450,11 +455,11 @@ void compute_numerical_flux_viscous_c(struct S_FDATA const *const FDATAL, struct
 	                   Boundary = FACE->Boundary,
 	                   NfnI     = OPSL[IndFType]->NfnI;
 
-	double const *const n_fIL                = FACE->n_fI;
-	double complex const *const WL_fIL               = FDATAL->NFluxData->WL_fIL_c,
-	                     *const WR_fIL               = FDATAL->NFluxData->WR_fIL_c,
-	                     *const *const GradWL_fIL    = (double complex const *const *const) FDATAL->GradW_fIL_c,
-	                     *const *const GradWR_fIL    = (double complex const *const *const) FDATAR->GradW_fIL_c;
+	double const *const n_fIL                  = FACE->n_fI;
+	double complex const *const WL_fIL         = FDATAL->NFluxData->WL_fIL_c,
+	                     *const WR_fIL         = FDATAL->NFluxData->WR_fIL_c,
+	                     *const *const QpL_fIL = (double complex const *const *const) FDATAL->Qp_fIL_c,
+	                     *const *const QpR_fIL = (double complex const *const *const) FDATAR->Qp_fIL_c;
 
 	double complex *const nFluxViscNum_fIL = FDATAL->NFluxData->nFluxViscNum_fI_c;
 
@@ -468,7 +473,7 @@ void compute_numerical_flux_viscous_c(struct S_FDATA const *const FDATAL, struct
 		for (size_t dim = 0; dim < d; dim++) {
 			Q_fIL[dim] = malloc(NfnI*Nvar * sizeof *Q_fIL[dim]); // free
 			for (size_t i = 0; i < NfnI*Nvar; i++)
-				Q_fIL[dim][i] = 0.5*(GradWL_fIL[dim][i]+GradWR_fIL[dim][i]);
+				Q_fIL[dim][i] = 0.5*(QpL_fIL[dim][i]+QpR_fIL[dim][i]);
 		}
 
 		flux_viscous_c(NfnI,1,W_fIL,(double complex const *const *const) Q_fIL,FluxViscNum_fIL);
@@ -478,8 +483,8 @@ void compute_numerical_flux_viscous_c(struct S_FDATA const *const FDATAL, struct
 		double complex *const FluxViscL_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscL_fIL); // free
 		double complex *const FluxViscR_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscR_fIL); // free
 
-		flux_viscous_c(NfnI,1,WL_fIL,GradWL_fIL,FluxViscL_fIL);
-		flux_viscous_c(NfnI,1,WR_fIL,GradWR_fIL,FluxViscR_fIL);
+		flux_viscous_c(NfnI,1,WL_fIL,QpL_fIL,FluxViscL_fIL);
+		flux_viscous_c(NfnI,1,WR_fIL,QpR_fIL,FluxViscR_fIL);
 
 		for (size_t i = 0; i < NfnI*d*Neq; i++)
 			FluxViscNum_fIL[i] = 0.5*(FluxViscL_fIL[i]+FluxViscR_fIL[i]);
@@ -554,11 +559,11 @@ static void swap_FACE_orientation_c(struct S_FDATA const *const FDATA, char cons
 
 	struct S_OPERATORS_F const *const *const OPS  = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
 
-	unsigned int const d              = DB.d,
-	                   Neq            = d+2,
-	                   IndFType       = FDATA->IndFType,
-	                   NfnI           = OPS[IndFType]->NfnI,
-	                   *const nOrdLR  = OPS[IndFType]->nOrdLR;
+	unsigned int const d             = DB.d,
+	                   Neq           = d+2,
+	                   IndFType      = FDATA->IndFType,
+	                   NfnI          = OPS[IndFType]->NfnI,
+	                   *const nOrdLR = OPS[IndFType]->nOrdLR;
 
 
 	if (coef_type == 'W' || coef_type == 'V') {
@@ -620,15 +625,14 @@ void finalize_FACE_Inviscid_Weak_c(struct S_FDATA const *const FDATAL, struct S_
 }
 
 void finalize_QhatF_Weak_c(struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR, char const side,
-                           char const imex_type, char const FORM_MF1)
+                           char const imex_type)
 {
 	if (!(imex_type == 'E'))
 		EXIT_UNSUPPORTED;
 
 	struct S_FACE const *const FACE = FDATAL->FACE;
 
-	if (FORM_MF1 == 'S')
-		correct_numerical_solution_strong_c(FDATAL,'E',side,FORM_MF1);
+	correct_numerical_solution_strong_c(FDATAL,'E',side);
 
 	struct S_FDATA const *FDATA = NULL;
 

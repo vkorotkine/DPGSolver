@@ -13,6 +13,9 @@
 #include "S_DB.h"
 
 #include "variable_functions.h"
+#include "exact_solutions.h"
+
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -22,12 +25,117 @@
  *		If this is found to be slow after profiling, separate cases for different dimensions to avoid unnecessary
  *		operations (ToBeDeleted).
  *
+ *		The slip-wall boundary condition supports the use of the exact boundary condition and the exact normal vector
+ *		for the SupersonicVortex case. This was used for testing when superparametric geometry representation was
+ *		necessary for the Euler equations (see Zwanenburg(2017)).
+ *
  *	Notation:
  *
  *	References:
  *		Carlson(2011)-Inflow/Outflow_Boundary_Conditions_with_Application_to_FUN3D (NASA/TM–2011-217181)
  *		Toro(2009)-Riemann_Solvers_and_Numerical_Methods_for_Fluid_Dynamics
+ *		Zwanenburg(2017)-On_the_Necessity_of_Superparametric_Geometry_Representation_for_Discontinuous_Galerkin_Methods_
+ *		                 on_Domains_with_Curved_Boundaries
  */
+
+void compute_exact_boundary_solution(struct S_BC *const BCdata)
+{
+	if (!strstr(DB.TestCase,"SupersonicVortex"))
+		EXIT_UNSUPPORTED;
+
+	unsigned int const Nn  = BCdata->Nn,
+	                   Nel = BCdata->Nel;
+
+	unsigned int const NnTotal = Nn*Nel;
+
+	double *const UR_fIL = malloc(NVAR3D*NnTotal * sizeof *UR_fIL); // free
+
+	compute_exact_solution(NnTotal,BCdata->XYZ,UR_fIL,0);
+	convert_variables(UR_fIL,BCdata->WB,DMAX,BCdata->d,Nn,BCdata->Nel,'p','c');
+
+	free(UR_fIL);
+}
+
+double *compute_exact_boundary_normal(struct S_BC *const BCdata)
+{
+	if (!strstr(DB.TestCase,"SupersonicVortex"))
+		EXIT_UNSUPPORTED;
+
+	unsigned int const d   = BCdata->d,
+	                   Nn  = BCdata->Nn,
+	                   Nel = BCdata->Nel;
+
+	double const *const XYZ = BCdata->XYZ;
+
+	unsigned int const NnTotal = Nn*Nel;
+
+	double *const nEx_fIL = malloc(NnTotal*d * sizeof *nEx_fIL); // free
+
+	double diff_ri = 0.0, diff_ro = 0.0;
+	for (size_t n = 0; n < NnTotal; n++) {
+		double const x = XYZ[0*NnTotal+n],
+		             y = XYZ[1*NnTotal+n];
+
+		double const r_n = sqrt(x*x+y*y);
+		diff_ri += fabs(DB.rIn-r_n);
+		diff_ro += fabs(DB.rOut-r_n);
+
+		double const t = atan2(y,x);
+		nEx_fIL[n*d+0] = cos(t);
+		nEx_fIL[n*d+1] = sin(t);
+	}
+
+	diff_ri /= Nn;
+	diff_ro /= Nn;
+
+	bool NegateNormal = 0;
+	if (diff_ri <= 1e-2)
+		NegateNormal = 1;
+	else if (diff_ro <= 1e-2)
+		; // Do nothing
+	else {
+		array_print_d(NnTotal,d,XYZ,'C');
+		printf("% .3e % .3e\n",diff_ri,diff_ro);
+		EXIT_UNSUPPORTED;
+	}
+
+	if (NegateNormal) {
+		for (size_t n = 0; n < NnTotal*d; n++) {
+			nEx_fIL[n] *= -1.0;
+		}
+	}
+	return nEx_fIL;
+}
+
+void compute_boundary_values(struct S_BC *const BCdata)
+{
+	switch((BCdata->BC) % BC_STEP_SC) {
+		case BC_RIEMANN:          boundary_Riemann(BCdata);           break;
+		case BC_SLIPWALL: {
+			if (EXACT_SLIPWALL) {
+				compute_exact_boundary_solution(BCdata);
+			} else if (EXACT_NORMAL) {
+				double const *const nL = BCdata->nL;
+
+				BCdata->nL = compute_exact_boundary_normal(BCdata);
+				boundary_SlipWall(BCdata);
+
+				free((double *) BCdata->nL);
+				BCdata->nL = nL;
+			} else {
+				boundary_SlipWall(BCdata);
+			}
+			break;
+		}
+		case BC_BACKPRESSURE:     boundary_BackPressure(BCdata);      break;
+		case BC_TOTAL_TP:         boundary_Total_TP(BCdata);          break;
+		case BC_SUPERSONIC_IN:    boundary_SupersonicInflow(BCdata);  break;
+		case BC_SUPERSONIC_OUT:   boundary_SupersonicOutflow(BCdata); break;
+		case BC_NOSLIP_T:         boundary_NoSlip_Dirichlet(BCdata);  break;
+		case BC_NOSLIP_ADIABATIC: boundary_NoSlip_Adiabatic(BCdata);  break;
+		default:                  EXIT_UNSUPPORTED;                   break;
+	}
+}
 
 void get_boundary_values(const double X, const double Y, double *const rho, double *const u, double *const v,
                          double *const w, double *const p)
@@ -86,16 +194,22 @@ void get_boundary_values(const double X, const double Y, double *const rho, doub
 	}
 }
 
-void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, const double *const XYZ, const double *const WL,
-                      double *const WOut, double *const WB, const double *const nL, const unsigned int d)
+void boundary_Riemann(struct S_BC *const BCdata)
 {
 	/*
-	 *	Comments:
-	 *		WOut is not used for all test cases.
-	 *
 	 *	References:
 	 *		Carlson(2011): 2.2 (Note typo in eq. (14))
 	 */
+
+	unsigned int const d    = BCdata->d,
+	                   Nn   = BCdata->Nn,
+	                   Nel  = BCdata->Nel;
+
+	double const *const XYZ = BCdata->XYZ,
+	             *const nL  = BCdata->nL;
+
+	double const *const WL = BCdata->WL;
+	double       *const WB = BCdata->WB;
 
 	// Standard datatypes
 	unsigned int i, j, Indn, NnTotal;
@@ -103,9 +217,6 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, const doubl
 	             *rhoB, *uB, *vB, *wB, *pB, *UB,
 	             *n, RL, RR, Vn, c, ut, vt, wt;
 	const double *X, *Y;
-
-	// silence
-	UL = WOut;
 
 	NnTotal = Nn*Nel;
 
@@ -214,14 +325,22 @@ void boundary_Riemann(const unsigned int Nn, const unsigned int Nel, const doubl
 	free(n);
 }
 
-void boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, const double *const WL, double *const WB,
-                       const double *const nL, const unsigned int d)
+void boundary_SlipWall(struct S_BC *const BCdata)
 {
 	/*
 	 *	Comments:
 	 *		Specifying equality of the total energy is equivalent to specifying equality of pressure because the
 	 *		magnitude of the velocity is constant.
 	 */
+
+	unsigned int const d    = BCdata->d,
+	                   Nn   = BCdata->Nn,
+	                   Nel  = BCdata->Nel;
+
+	double const *const nL  = BCdata->nL;
+
+	double const *const WL = BCdata->WL;
+	double       *const WB = BCdata->WB;
 
 	// Standard datatypes
 	unsigned int i, NnTotal, IndE;
@@ -278,8 +397,7 @@ void boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, const doub
 	}
 }
 
-void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, const double *const WL, double *const WB,
-                           const double *const nL, const unsigned int d, const unsigned int Nvar)
+void boundary_BackPressure(struct S_BC *const BCdata)
 {
 	/*
 	 *	Purpose:
@@ -288,6 +406,16 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, const 
 	 *	References:
 	 *		Carlson(2011): 2.4
 	 */
+
+	unsigned int const d    = BCdata->d,
+	                   Nvar = d+2,
+	                   Nn   = BCdata->Nn,
+	                   Nel  = BCdata->Nel;
+
+	double const *const nL  = BCdata->nL;
+
+	double const *const WL = BCdata->WL;
+	double       *const WB = BCdata->WB;
 
 	// Standard datatypes
 	unsigned int n, NnTotal, var, IndW;
@@ -388,8 +516,7 @@ void boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, const 
 	}
 }
 
-void boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, const double *const XYZ, const double *const WL,
-                       double *const WB, const double *const nL, const unsigned int d, const unsigned int Nvar)
+void boundary_Total_TP(struct S_BC *const BCdata)
 {
 	/*
 	 *	Purpose:
@@ -404,21 +531,26 @@ void boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, const doub
 	 *		Toro(2009): (3.9), (8.58)
 	 */
 
+	unsigned int const d    = BCdata->d,
+	                   Nvar = d+2,
+	                   Nn   = BCdata->Nn,
+	                   Nel  = BCdata->Nel;
+
+	double const *const nL  = BCdata->nL;
+
+	double const *const WL = BCdata->WL;
+	double       *const WB = BCdata->WB;
+
 	// Initialize DB Parameters
 	double Rg      = DB.Rg,
 	       p_Total = DB.p_Total,
 	       T_Total = DB.T_Total;
 
 	// Standard datatypes
-	unsigned int NnTotal;
 	double       *WB_ptr[Nvar];
-	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Nvar], *n_ptr;
+	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr = NULL, *EL_ptr, *WL_ptr[Nvar], *n_ptr;
 
-	// silence
-	rhowL_ptr = NULL;
-	WB[0] = XYZ[0];
-
-	NnTotal = Nn*Nel;
+	unsigned int const NnTotal = Nn*Nel;
 
 	for (size_t var = 0; var < Nvar; var++) {
 		WL_ptr[var] = &WL[var*NnTotal];
@@ -522,19 +654,21 @@ void boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, const doub
 	}
 }
 
-void boundary_SupersonicInflow(const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
-                               const double *const WL, double *const WB, const double *const nL, const unsigned int d,
-                               const unsigned int Nvar)
+void boundary_SupersonicInflow(struct S_BC *const BCdata)
 {
-	unsigned int NnTotal;
+	unsigned int const d    = BCdata->d,
+	                   Nvar = d+2,
+	                   Nn   = BCdata->Nn,
+	                   Nel  = BCdata->Nel;
+
+	double const *const XYZ = BCdata->XYZ;
+
+	double       *const WB = BCdata->WB;
+
 	double       *WB_ptr[Nvar];
 	const double *X_ptr, *Y_ptr;
 
-	// silence
-	WB[0] = WL[0];
-	WB[0] = nL[0];
-
-	NnTotal = Nn*Nel;
+	unsigned int const NnTotal = Nn*Nel;
 
 	X_ptr = &XYZ[NnTotal*0];
 	Y_ptr = &XYZ[NnTotal*1];
@@ -568,18 +702,17 @@ void boundary_SupersonicInflow(const unsigned int Nn, const unsigned int Nel, co
 	}
 }
 
-void boundary_SupersonicOutflow(const unsigned int Nn, const unsigned int Nel, const double *const XYZ,
-                                const double *const WL, double *const WB, const double *const nL, const unsigned int d,
-                                const unsigned int Nvar)
+void boundary_SupersonicOutflow(struct S_BC *const BCdata)
 {
-	unsigned int NnTotal;
+	unsigned int const d    = BCdata->d,
+	                   Nvar = d+2,
+	                   Nn   = BCdata->Nn,
+	                   Nel  = BCdata->Nel;
 
-	// silence
-	WB[0] = XYZ[0];
-	WB[0] = nL[0];
-	NnTotal = d;
+	double const *const WL = BCdata->WL;
+	double       *const WB = BCdata->WB;
 
-	NnTotal = Nn*Nel;
+	unsigned int const NnTotal = Nn*Nel;
 
 	for (size_t i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
 		WB[i] = WL[i];
@@ -618,10 +751,10 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 
 	double const *const XYZ = BCdata->XYZ;
 
-	double const *const        WL     = BCdata->WL,
-	             *const *const GradWL = BCdata->GradWL;
-	double       *const        WB     = BCdata->WB,
-	             *const *const GradWB = BCdata->GradWB;
+	double const *const        WL = BCdata->WL,
+	             *const *const QL = BCdata->QL;
+	double       *const        WB = BCdata->WB,
+	             *const *const QB = BCdata->QB;
 
 	double const *X_ptr = &XYZ[NnTotal*0],
 	             *Y_ptr = &XYZ[NnTotal*1];
@@ -736,12 +869,12 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 	}
 
 	// Set QB == QL (if necessary)
-	if (GradWL == NULL)
+	if (QL == NULL)
 		return;
 
 	for (size_t dim = 0; dim < d; dim++) {
 		for (size_t n = 0; n < NnTotal*Nvar; n++) {
-			GradWB[dim][n] = GradWL[dim][n];
+			QB[dim][n] = QL[dim][n];
 		}
 	}
 }
@@ -767,11 +900,11 @@ void boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 	                   Nn   = BCdata->Nn,
 	                   Nel  = BCdata->Nel;
 
-	double const *const        WL     = BCdata->WL,
-	             *const *const GradWL = BCdata->GradWL;
+	double const *const        WL = BCdata->WL,
+	             *const *const QL = BCdata->QL;
 
-	double       *const        WB     = BCdata->WB,
-	             *const *const GradWB = BCdata->GradWB;
+	double       *const        WB = BCdata->WB,
+	             *const *const QB = BCdata->QB;
 
 	unsigned int const NnTotal = Nn*Nel;
 
@@ -830,13 +963,13 @@ void boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 			WB_ptr[var]++;
 	}
 
-	if (GradWL == NULL)
+	if (QL == NULL)
 		return;
 
 	// Set QB == QL but set the Energy equation component of the numerical flux to 0. Alternatively, set QB here such
 	// that the computed numerical flux is zero (More expensive and more difficult, but more general). (ToBeModified)
 	for (size_t dim = 0; dim < d; dim++) {
 		for (size_t n = 0; n < NnTotal*Nvar; n++)
-			GradWB[dim][n] = GradWL[dim][n];
+			QB[dim][n] = QL[dim][n];
 	}
 }

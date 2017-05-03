@@ -265,7 +265,7 @@ int main(int nargc, char **argv)
 	TestDB.Nwarnings = 0;
 
 	RunTest.unit        = 1;
-	RunTest.integration = 1;
+	RunTest.integration = 0;
 	RunTest.speed       = 0;
 
 	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
@@ -308,6 +308,7 @@ int main(int nargc, char **argv)
 
 		test_unit_equivalence_real_complex();
 	}
+EXIT_BASIC;
 
 	// Integration tests
 	if (RunTest.integration) {
@@ -315,8 +316,9 @@ int main(int nargc, char **argv)
 		test_integration_L2_projections(nargc,argv);
 		test_integration_Poisson(nargc,argv);
 	}
+//	test_integration_Poisson(nargc,argv);
 	test_integration_Euler(nargc,argv);
-	test_integration_NavierStokes(nargc,argv);
+//	test_integration_NavierStokes(nargc,argv);
 
 	PetscFinalize();
 

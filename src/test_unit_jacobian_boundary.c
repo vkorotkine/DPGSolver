@@ -68,29 +68,14 @@ static void compute_dWdW_cs(const unsigned int Neq, const unsigned int Nn, const
 		BCdata->nL   = nL;
 
 		BCdata->WL_c = Wp;
-		BCdata->GradWL_c = NULL;
+		BCdata->QL_c = NULL;
 
 		BCdata->WB_c = WB;
-		BCdata->GradWB_c = NULL;
+		BCdata->QB_c = NULL;
 
-		if (strstr(BType,"SlipWall"))
-			boundary_SlipWall_c(Nn,Nel,Wp,WB,nL,d);
-		else if (strstr(BType,"Riemann"))
-			boundary_Riemann_c(Nn,Nel,XYZ,Wp,NULL,WB,nL,d);
-		else if (strstr(BType,"BackPressure"))
-			boundary_BackPressure_c(Nn,Nel,Wp,WB,nL,d,Neq);
-		else if (strstr(BType,"Total_TP"))
-			boundary_Total_TP_c(Nn,Nel,XYZ,Wp,WB,nL,d,Nvar);
-		else if (strstr(BType,"SupersonicIn"))
-			boundary_SupersonicInflow_c(Nn,Nel,XYZ,Wp,WB,nL,d,Nvar);
-		else if (strstr(BType,"SupersonicOut"))
-			boundary_SupersonicOutflow_c(Nn,Nel,XYZ,Wp,WB,nL,d,Nvar);
-		else if (strstr(BType,"NoSlip_Dirichlet"))
-			boundary_NoSlip_Dirichlet_c(BCdata);
-		else if (strstr(BType,"NoSlip_Adiabatic"))
-			boundary_NoSlip_Adiabatic_c(BCdata);
-		else
-			EXIT_UNSUPPORTED;
+		set_BC_from_BType(BCdata,BType);
+		correct_XYZ_for_exact_normal(BCdata,BType);
+		compute_boundary_values_c(BCdata);
 		free(BCdata);
 
 		for (var2 = 0; var2 < Nvar; var2++) {
@@ -127,14 +112,13 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 	BCdata->Nn = Nn;
 	BCdata->Nel = Nel;
 
-	BCdata->XYZ    = XYZ;
-	BCdata->nL     = nL;
-	BCdata->WL     = W;
-	BCdata->GradWL = (double const *const *const) Q;
-	BCdata->GradWL = NULL;
+	BCdata->XYZ = XYZ;
+	BCdata->nL  = nL;
+	BCdata->WL  = W;
+	BCdata->QL  = (double const *const *const) Q;
 
-	BCdata->dWBdWL     = dWdW;
-	BCdata->dGradWBdWL = NULL;
+	BCdata->dWBdWL = dWdW;
+	BCdata->dQBdWL = NULL;
 
 	if (strstr(BType,"SlipWall"))
 		jacobian_boundary_SlipWall(Nn,Nel,W,dWdW,nL,d,Neq);

@@ -31,11 +31,16 @@
  *		Compute L2 errors for supported test cases.
  *
  *	Comments:
+ *		The OUTPUT_GRADIENTS flag is provided if it is desired to also output gradient errors for the TaylorCouette
+ *		case. It was found that gradients converged optimally whenever the solution converged optimally and this
+ *		functionality was disabled.
  *
  *	Notation:
  *
  *	References:
  */
+
+#define OUTPUT_GRADIENTS 0
 
 static void output_errors (const double *L2Error, const unsigned int NvarError, const unsigned int DOF, const double Vol);
 static void collect_errors (const unsigned int NvarError);
@@ -256,8 +261,16 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		free(sEx);
 		free(s);
 	} else if (strstr(TestCase,"TaylorCouette")) {
-		for (i = 0, iMax = 3; i < iMax; i++)
-			L2Error2[i] = 0.0;
+		if (d != 2)
+			EXIT_UNSUPPORTED;
+
+		if (!OUTPUT_GRADIENTS) {
+			for (i = 0, iMax = 3; i < iMax; i++)
+				L2Error2[i] = 0.0;
+		} else {
+			for (i = 0, iMax = 3*DMAX; i < iMax; i++)
+				L2Error2[i] = 0.0;
+		}
 
 		UEx = malloc(NvnI*NVAR3D * sizeof *UEx); // free
 		compute_solution(NvnI,XYZ_vI,UEx,solved);
@@ -283,6 +296,7 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 			T[j]   = p[j]/(rho[j]*Rg);
 		}
 
+		// Solution errors
 		for (i = 0; i < 3; i++) {
 			IndU = (i+1)*NvnI;
 			if (i < 2) { // u, v
@@ -296,6 +310,55 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 					L2Error2[i] += err*err*wdetJV_vI[j];
 				}
 			}
+		}
+
+		if (OUTPUT_GRADIENTS) {
+			// Compute exact gradients for the u, v velocity components and temperature
+			double *const QuvTEx = malloc(NvnI*3*d * sizeof *QuvTEx); // free
+			compute_exact_gradient(NvnI,XYZ_vI,QuvTEx);
+
+			// Compute approximate gradients
+			double *const Q    = malloc(NvnI*Nvar * sizeof *Q),    // free
+			       *const QuvT = malloc(NvnI*3*d  * sizeof *QuvT); // free
+
+			for (size_t dim = 0; dim < d; dim++) {
+				mm_CTN_d(NvnI,Nvar,NvnS,ChiS_vI,VOLUME->Qhat[dim],Q);
+				size_t const IndQ = dim*3*NvnI;
+				for (size_t n = 0; n < NvnI; n++) {
+					double const drho  = Q[0*NvnI+n],
+					             drhou = Q[1*NvnI+n],
+					             drhov = Q[2*NvnI+n],
+					             dE    = Q[(d+1)*NvnI+n];
+
+					double const rho_inv = 1.0/rho[n],
+					             u       = U[1*NvnI+n],
+					             v       = U[2*NvnI+n],
+					             E       = W[(d+1)*NvnI+n],
+					             du      = rho_inv*(drhou-drho*u),
+					             dv      = rho_inv*(drhov-drho*v);
+
+					double const dEoRho  = rho_inv*rho_inv*(dE*rho[n]-E*drho),
+					             dV2     = 2.0*(u*du+v*dv),
+					             dT      = GM1/Rg*(dEoRho-0.5*dV2);
+
+					QuvT[IndQ+0*NvnI+n] = du;
+					QuvT[IndQ+1*NvnI+n] = dv;
+					QuvT[IndQ+2*NvnI+n] = dT;
+				}
+			}
+
+			// Gradient errors
+			for (size_t i = 0; i < 2*3; i++) {
+				size_t const IndL2 = i+3;
+				for (size_t j = 0; j < NvnI; j++) {
+					err = QuvT[i*NvnI+j]-QuvTEx[i*NvnI+j];
+					L2Error2[IndL2] += err*err*wdetJV_vI[j];
+				}
+			}
+
+			free(Q);
+			free(QuvT);
+			free(QuvTEx);
 		}
 		free(W);
 		free(U);
@@ -354,7 +417,10 @@ void compute_errors_global(void)
 			CurvedOnly = 1; // Avoid trailing edge singularity when computing entropy error.
 		NvarError = 1;
 	} else if (strstr(TestCase,"TaylorCouette")) {
-		NvarError = 3; // u, v, T
+		if (!OUTPUT_GRADIENTS)
+			NvarError = 3; // u, v, T
+		else
+			NvarError = 3*DMAX; // u, v, T and Gradients in x, y directions
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -413,7 +479,10 @@ static void output_errors(const double *L2Error2, const unsigned int NvarError, 
 	           strstr(TestCase,"SubsonicNozzle")) {
 		fprintf(fID,"DOF         Vol         L2s2\n");
 	} else if (strstr(TestCase,"TaylorCouette")) {
-		fprintf(fID,"DOF         Vol         L2u2        L2v2        L2T2\n");
+		if (!OUTPUT_GRADIENTS)
+			fprintf(fID,"DOF         Vol         L2u2        L2v2        L2T2\n");
+		else
+			fprintf(fID,"DOF         Vol         L2u2        L2v2        L2T2        L2Gradu2                L2Gradv2                L2GradT2 \n");
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -484,7 +553,11 @@ static void collect_errors(const unsigned int NvarError)
 	           strstr(TestCase,"SubsonicNozzle")) {
 		fprintf(fID,"DOF         L2s\n");
 	} else if (strstr(TestCase,"TaylorCouette")) {
-		fprintf(fID,"DOF         L2u         L2v         L2T\n");
+		if (!OUTPUT_GRADIENTS) {
+			fprintf(fID,"DOF         L2u         L2v         L2T\n");
+		} else {
+			fprintf(fID,"DOF         L2u         L2v         L2T         L2ux        L2uy        L2vx        L2vy        L2Tx        L2Ty        \n");
+		}
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}

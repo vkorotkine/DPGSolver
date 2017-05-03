@@ -94,7 +94,7 @@ struct S_NumericalFlux {
 struct S_FDATA {
 	char         side;
 	unsigned int P, Vf, f, SpOp, Eclass, IndFType;
-	double       *W_fIL, **GradW_fIL, **QhatF, **Q_WhatLL, **Q_WhatRL, **Q_WhatLR, **Q_WhatRR;
+	double       *W_fIL, **Qp_fIL, **QhatF, **Qp_WhatL, **Qp_WhatR;
 
 	struct S_OPERATORS_F const *const *OPS;
 	struct S_VOLUME      const *VOLUME;
@@ -103,18 +103,16 @@ struct S_FDATA {
 	struct S_NumericalFlux const *NFluxData;
 
 	// Only used for verification.
-	double complex *W_fIL_c, **GradW_fIL_c, **QhatF_c;
+	double complex *W_fIL_c, **Qp_fIL_c, **QhatF_c;
 };
 
-extern void init_ops_FACE             (struct S_OPERATORS_F *const OPS, struct S_VOLUME const *const VOLUME,
-                                       struct S_FACE const *const FACE, unsigned int const IndFType);
-extern void init_FDATA                (struct S_FDATA *const FDATA, struct S_FACE const *const FACE, char const side);
-extern void coef_to_values_fI         (struct S_FDATA *const FDATA, char const coef_type, char const imex_type);
-extern void compute_WR_fIL            (struct S_FDATA const *const FDATA, double const *const WL_fIL,
-                                       double *const WR_fIL);
-extern void compute_WR_GradWR_fIL     (struct S_FDATA const *const FDATA, double const *const WL_fIL,
-                                       double *const WR_fIL, double const *const *const GradWL_fIL,
-                                       double *const *const GradWR_fIL, char const imex_type);
+extern void init_ops_FACE      (struct S_OPERATORS_F *const OPS, struct S_VOLUME const *const VOLUME,
+                                struct S_FACE const *const FACE, unsigned int const IndFType);
+extern void init_FDATA         (struct S_FDATA *const FDATA, struct S_FACE const *const FACE, char const side);
+extern void coef_to_values_fI  (struct S_FDATA *const FDATA, char const coef_type, char const imex_type);
+extern void compute_WR_fIL     (struct S_FDATA const *const FDATA, double const *const WL_fIL, double *const WR_fIL);
+extern void compute_WR_QpR_fIL (struct S_FDATA const *const FDATA, double const *const WL_fIL, double *const WR_fIL,
+                                double const *const *const QpL_fIL, double *const *const QpR_fIL, char const imex_type);
 
 extern void compute_numerical_flux         (struct S_FDATA const *const FDATA, char const imex_type);
 extern void compute_numerical_solution     (struct S_FDATA const *const FDATA, char const imex_type);
@@ -126,7 +124,7 @@ extern void finalize_FACE_Inviscid_Weak (struct S_FDATA const *const FDATAL, str
                                          double const *const nANumL_fI, double const *const nANumR_fI, char const side,
                                          char const imex_type, char const coef_type);
 extern void finalize_QhatF_Weak         (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
-                                         char const side, char const imex_type, char const FORM_MF1);
+                                         char const side, char const imex_type);
 extern void finalize_FACE_Viscous_Weak  (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
                                          double *const nANumL_fI, double *const nANumR_fI, char const side,
                                          char const imex_type, char const coef_type);

@@ -991,7 +991,7 @@ void set_PrintName(char *name_type, char *PrintName, bool *TestTRI)
 			if (strstr(name_type,"weak gradient"))
 				strcpy(PrintName,"Linearization (weak grad.) (");
 			else
-				strcpy(PrintName,"Linearization (             ");
+				strcpy(PrintName,"Linearization              (");
 		} else {
 			EXIT_UNSUPPORTED;
 		}

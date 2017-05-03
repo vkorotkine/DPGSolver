@@ -32,6 +32,21 @@
  *	References:
  */
 
+void compute_jacobian_boundary_values(struct S_BC *const BCdata)
+{
+	switch((BCdata->BC) % BC_STEP_SC) {
+//		case BC_RIEMANN:          jacobian_boundary_Riemann(BCdata);           break;
+//		case BC_SLIPWALL:         jacobian_boundary_SlipWall(BCdata);          break;
+//		case BC_BACKPRESSURE:     jacobian_boundary_BackPressure(BCdata);      break;
+//		case BC_TOTAL_TP:         jacobian_boundary_Total_TP(BCdata);          break;
+//		case BC_SUPERSONIC_IN:    jacobian_boundary_SupersonicInflow(BCdata);  break;
+//		case BC_SUPERSONIC_OUT:   jacobian_boundary_SupersonicOutflow(BCdata); break;
+		case BC_NOSLIP_T:         jacobian_boundary_NoSlip_Dirichlet(BCdata);  break;
+		case BC_NOSLIP_ADIABATIC: jacobian_boundary_NoSlip_Adiabatic(BCdata);  break;
+		default:                  EXIT_UNSUPPORTED;                            break;
+	}
+}
+
 void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *WL,
                                double *WOut, double *dWdW, const double *nL, const unsigned int d,
                                const unsigned int Neq)

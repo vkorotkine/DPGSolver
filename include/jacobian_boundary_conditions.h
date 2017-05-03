@@ -6,6 +6,7 @@
 
 #include "boundary_conditions.h"
 
+extern void compute_jacobian_boundary_values    (struct S_BC *const BCdata);
 extern void jacobian_boundary_Riemann           (const unsigned int Nn, const unsigned int Nel, const double *XYZ,
                                                  const double *WL, double *WOut, double *dWdW, const double *nL,
                                                  const unsigned int d, const unsigned int Neq);

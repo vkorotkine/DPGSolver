@@ -33,8 +33,6 @@
 #include "array_free.h"
 #include "array_print.h"
 
-#include "array_norm.h" // ToBeDeleted
-
 /*
  *	Purpose:
  *		Provide solver related functions.
@@ -176,10 +174,10 @@ void coef_to_values_vI(struct S_VDATA const *const VDATA, char const coef_type)
 		if (!(coef_type == 'W' || coef_type == 'Q'))
 			EXIT_UNSUPPORTED;
 
-		unsigned int const d        = DB.d,
-		                   Nvar     = d+2,
-		                   P        = VDATA->P,
-		                   Eclass   = VDATA->Eclass,
+		unsigned int const d      = DB.d,
+		                   Nvar   = d+2,
+		                   P      = VDATA->P,
+		                   Eclass = VDATA->Eclass,
 	                       *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
 
 		struct S_OPERATORS_V const *const *const OPS    = (struct S_OPERATORS_V const *const *const) VDATA->OPS;
@@ -230,7 +228,7 @@ void convert_between_rp(unsigned int const Nn, unsigned int const Nrc, double co
 {
 	/*
 	 *	Purpose:
-	 *		Convert input (A)rray between (p)hysical to (r)eference space by multiplying by by appropriate (C)ofactor
+	 *		Convert input (A)rray between (p)hysical and (r)eference space by multiplying by appropriate (C)ofactor
 	 *		terms.
 	 *
 	 *	Comments:
@@ -288,6 +286,11 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 	 *		computed). In this case, the ordering of Fr_vI in memory is such that the RHS can be computed using d BLAS3
 	 *		calls.
 	 *
+	 *		Various options are available for performing the computation:
+	 *			1) Using sum factorized operators for TP and WEDGE elements;
+	 *			2) Using the standard operator but exploiting sparsity;
+	 *			3) Using the standard approach.
+	 *
 	 *		For implicit runs, the total runtime is currently dominated by the linear system solve, and this function
 	 *		was thus not optimized. If fewer BLAS3 calls are to be used or if it is desired to compute the LHS terms
 	 *		using the sum factorized operators, it is required to multiply dFrdW_vI into the ChiS_vI term (as opposed to
@@ -301,16 +304,11 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 	 *		In the case of a collocated scheme, ChiS_vI == I results in the possibility of directly computing LHS terms
 	 *		without any matrix-matrix products.
 	 *
-	 *		Various options are available for performing the computation:
-	 *			1) Using sum factorized operators for TP and WEDGE elements;
-	 *			2) Using the standard operator but exploiting sparsity;
-	 *			3) Using the standard approach.
-	 *
 	 *		Certain multiplications can be avoided when computing LHS terms based on the sparsity of the flux Jacobian,
 	 *		usage of this knowledge is currently not incorporated.
 	 *
-	 *		If it is only desired to gain an understanding of what this contribution is, it is suffient to look only at
-	 *		the standard approach (i.e. the last condition in the if/else chain).
+	 *		If it is only desired to gain an understanding of what this function is doing is, it is suffient to look
+	 *		only at the standard approach (i.e. the last condition in the if/else chain).
 	 */
 
 	struct S_OPERATORS_V const *const *const OPS = (struct S_OPERATORS_V const *const *const) VDATA->OPS;
@@ -703,21 +701,16 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 	 *		It is currently uncertain whether the boundary gradients should also be corrected. Currently, they are
 	 *		corrected, for consistency with the internal formulation. INVESTIGATE. (ToBeModified)
 	 *
-	 *		Increasing the dissipation parameter beyond NfMax appears to potentially give converged L2 errors.
-	 *		INVESTIGATE. (ToBeModified)
-	 *
 	 *		For several of the viscous boundary conditions, including NoSlip_Dirichlet_T and NoSlip_Adiabatic (as they
 	 *		are currently implemented), there is no dependence of boundary values on variables other than the the
 	 *		variable under consideration (i.e. dWB/dWL is block diagonal). This means that only the block diagonal
-	 *		entries of Qhat_What, Q_What are non-zero, resulting in potentially significant cost savings if exploited.
-	 *		That non-boundary contributions are already block diagonal may reduce the importance of this observation
-	 *		when many interior elements are present. ToBeModified.
+	 *		entries of Qhat_What, Q_What are non-zero. This is currently not exploited. (ToBeModified)
 	 *
 	 *	Notation:
 	 *		imex_type : (im)plicit (ex)plicit (type) indicates whether this function is being called for an implicit or
 	 *		            explicit computation.
 	 *
-	 *		The allowed options for coef_type are 'W' (conserved variables), 'Q' ( == GradW here)
+	 *		The allowed options for coef_type are 'W' (conserved variables), 'Q' (partially corrected gradients (Qp))
 	 *
 	 *		To avoid confusion with (C)ofactor terms, (f)ace cubature nodes are denoted with the subscript (f)ace
 	 *		(I)ntegration.
@@ -740,26 +733,22 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 	struct S_VOLUME      const *const        VOLUME = FDATA->VOLUME;
 	struct S_FACE              *const        FACE   = (struct S_FACE *const) FDATA->FACE;
 
-	unsigned int const d            = DB.d,
-	                   Nvar         = d+2,
-	                   P            = FDATA->P,
-	                   Eclass       = FDATA->Eclass,
-	                   Vf           = FDATA->Vf,
-	                   f            = FDATA->f,
-	                   SpOp         = FDATA->SpOp,
-	                   IndFType     = FDATA->IndFType,
-	                   NfnI         = OPS[IndFType]->NfnI,
-	                   NvnS         = OPS[0]->NvnS,
-	                   *const VFPartUnity         = DB.VFPartUnity,
-	                   *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
+	unsigned int const d        = DB.d,
+	                   Nvar     = d+2,
+	                   Vf       = FDATA->Vf,
+	                   IndFType = FDATA->IndFType,
+	                   NfnI     = OPS[IndFType]->NfnI,
+	                   NvnS     = OPS[0]->NvnS;
 
-	double **Qhat = NULL;
+	double **Qphat = NULL;
 	if (coef_type == 'Q') {
-		Qhat = malloc(d * sizeof *Qhat);
+		Qphat = malloc(d * sizeof *Qphat);
+
+		// Add VOLUME contribution
 		for (size_t dim = 0; dim < d; dim++) {
-			Qhat[dim] = malloc(NvnS*Nvar * sizeof *Qhat[dim]); // free
+			Qphat[dim] = malloc(NvnS*Nvar * sizeof *Qphat[dim]); // free
 			for (size_t i = 0; i < NvnS*Nvar; i++)
-				Qhat[dim][i] = VOLUME->QhatV[dim][i];
+				Qphat[dim][i] = VOLUME->QhatV[dim][i];
 		}
 
 		if (DB.ViscousFluxType == FLUX_CDG2) {
@@ -814,15 +803,15 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 			EXIT_UNSUPPORTED;
 		}
 
-		// Partially correct Qhat
+		// Add partial FACE contribution
 		if (chi != 0.0) {
 			for (size_t dim = 0; dim < d; dim++) {
 				for (size_t i = 0; i < NvnS*Nvar; i++)
-					Qhat[dim][i] += chi*FDATA->QhatF[dim][i];
+					Qphat[dim][i] += chi*FDATA->QhatF[dim][i];
 			}
 		}
 
-		// Compute linearized contributions of partially corrected Q (Q_What**)
+		// Compute linearized contributions of partially corrected Q (Qp_What**)
 		if (imex_type == 'I') {
 			struct S_VOLUME const *const VL = FACE->VIn,
 			                      *const VR = FACE->VOut;
@@ -830,84 +819,91 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 			unsigned int const NvnSL = VL->NvnS,
 			                   NvnSR = VR->NvnS;
 
-			// Q_What** arrays are freed in finalize_implicit_FACE_Q_Weak.
+			// Qp_What** arrays are freed in finalize_implicit_FACE_Q_Weak.
 			if (Boundary) {
-				double *const Qhat_What = malloc(NvnSL*NvnSL * sizeof *Qhat_What); // free
+				double *const Qphat_What = malloc(NvnSL*NvnSL * sizeof *Qphat_What); // free
 
-				double **Q_What = malloc(d * sizeof *Q_What); // keep
+				double **Qp_What = malloc(d * sizeof *Qp_What); // keep
 				for (size_t dim = 0; dim < d; dim++) {
-					Q_What[dim] = malloc(NfnI*NvnSL*Nvar*Nvar * sizeof *Q_What[dim]); // keep
+					Qp_What[dim] = malloc(NfnI*NvnSL*Nvar*Nvar * sizeof *Qp_What[dim]); // keep
 
 					for (size_t varQ = 0; varQ < Nvar; varQ++) {
 					for (size_t var = 0; var < Nvar; var++) {
 						size_t const Indvv = varQ*Nvar+var;
 						if (varQ == var) {
 							for (size_t i = 0; i < NvnSL*NvnSL; i++)
-								Qhat_What[i] = VL->QhatV_What[dim][i];
+								Qphat_What[i] = VL->QhatV_What[dim][i];
 						} else {
-							memset(Qhat_What,0.0,NvnSL*NvnSL * sizeof *Qhat_What);
+							memset(Qphat_What,0.0,NvnSL*NvnSL * sizeof *Qphat_What);
 						}
 
 						if (chi != 0.0) {
 							for (size_t i = 0; i < NvnSL*NvnSL; i++)
-								Qhat_What[i] += chi*(FACE->Qhat_WhatLL[dim][Indvv*NvnSL*NvnSL+i]);
+								Qphat_What[i] += chi*(FACE->Qhat_WhatLL[dim][Indvv*NvnSL*NvnSL+i]);
 						}
-						mm_d(CBRM,CBNT,CBNT,NfnI,NvnSL,NvnSL,1.0,0.0,OPS[0]->ChiS_fI[Vf],Qhat_What,&Q_What[dim][Indvv*NfnI*NvnSL]);
+						mm_d(CBRM,CBNT,CBNT,NfnI,NvnSL,NvnSL,1.0,0.0,OPS[0]->ChiS_fI[Vf],Qphat_What,&Qp_What[dim][Indvv*NfnI*NvnSL]);
 					}}
 				}
-				free(Qhat_What);
-				FDATA->Q_WhatLL = Q_What;
+				free(Qphat_What);
+				FDATA->Qp_WhatL = Qp_What;
 			} else {
 				if (FDATA->side == 'L') {
-					double *const Qhat_WhatLL = malloc(NvnSL*NvnSL * sizeof *Qhat_WhatLL); // free
+					double *const QphatL_WhatL = malloc(NvnSL*NvnSL * sizeof *QphatL_WhatL); // free
 
-					double **Q_WhatLL = malloc(d * sizeof *Q_WhatLL), // keep
-					       **Q_WhatRL = malloc(d * sizeof *Q_WhatRL); // keep
+					double **Qp_WhatL = malloc(d * sizeof *Qp_WhatL), // keep
+					       **Qp_WhatR = malloc(d * sizeof *Qp_WhatR); // keep
 					for (size_t dim = 0; dim < d; dim++) {
-						Q_WhatLL[dim] = malloc(NfnI*NvnSL * sizeof *Q_WhatLL[dim]); // keep
+						Qp_WhatL[dim] = malloc(NfnI*NvnSL * sizeof *Qp_WhatL[dim]); // keep
 						for (size_t i = 0; i < NvnSL*NvnSL; i++)
-							Qhat_WhatLL[i] = VL->QhatV_What[dim][i];
+							QphatL_WhatL[i] = VL->QhatV_What[dim][i];
 						if (chi != 0.0) {
 							for (size_t i = 0; i < NvnSL*NvnSL; i++)
-								Qhat_WhatLL[i] += chi*(FACE->Qhat_WhatLL[dim][i]);
+								QphatL_WhatL[i] += chi*(FACE->Qhat_WhatLL[dim][i]);
 						}
-						mm_d(CBRM,CBNT,CBNT,NfnI,NvnSL,NvnSL,1.0,0.0,OPS[0]->ChiS_fI[Vf],Qhat_WhatLL,Q_WhatLL[dim]);
+						mm_d(CBRM,CBNT,CBNT,NfnI,NvnSL,NvnSL,1.0,0.0,OPS[0]->ChiS_fI[Vf],QphatL_WhatL,Qp_WhatL[dim]);
 
-						Q_WhatRL[dim] = calloc(NfnI*NvnSR , sizeof *Q_WhatRL[dim]); // keep
+						Qp_WhatR[dim] = calloc(NfnI*NvnSR , sizeof *Qp_WhatR[dim]); // keep
 						if (chi != 0.0)
-							mm_d(CBRM,CBNT,CBNT,NfnI,NvnSR,NvnSL,chi,0.0,OPS[0]->ChiS_fI[Vf],FACE->Qhat_WhatRL[dim],Q_WhatRL[dim]);
+							mm_d(CBRM,CBNT,CBNT,NfnI,NvnSR,NvnSL,chi,0.0,OPS[0]->ChiS_fI[Vf],FACE->Qhat_WhatRL[dim],Qp_WhatR[dim]);
 					}
-					free(Qhat_WhatLL);
+					free(QphatL_WhatL);
 
-					FDATA->Q_WhatLL = Q_WhatLL;
-					FDATA->Q_WhatRL = Q_WhatRL;
+					FDATA->Qp_WhatL = Qp_WhatL;
+					FDATA->Qp_WhatR = Qp_WhatR;
 				} else if (FDATA->side == 'R') {
-					double *const Qhat_WhatRR = malloc(NvnSR*NvnSR * sizeof *Qhat_WhatRR); // free
+					double *const QphatR_WhatR = malloc(NvnSR*NvnSR * sizeof *QphatR_WhatR); // free
 
-					double **Q_WhatLR = malloc(d * sizeof *Q_WhatLR), // keep
-					       **Q_WhatRR = malloc(d * sizeof *Q_WhatRR); // keep
+					double **Qp_WhatL = malloc(d * sizeof *Qp_WhatL), // keep
+					       **Qp_WhatR = malloc(d * sizeof *Qp_WhatR); // keep
 					for (size_t dim = 0; dim < d; dim++) {
-						Q_WhatLR[dim] = calloc(NfnI*NvnSL , sizeof *Q_WhatLR[dim]); // keep
+						Qp_WhatL[dim] = calloc(NfnI*NvnSL , sizeof *Qp_WhatL[dim]); // keep
 						if (chi != 0.0)
-							mm_d(CBRM,CBNT,CBNT,NfnI,NvnSL,NvnSR,chi,0.0,OPS[0]->ChiS_fI[Vf],FACE->Qhat_WhatLR[dim],Q_WhatLR[dim]);
+							mm_d(CBRM,CBNT,CBNT,NfnI,NvnSL,NvnSR,chi,0.0,OPS[0]->ChiS_fI[Vf],FACE->Qhat_WhatLR[dim],Qp_WhatL[dim]);
 
-						Q_WhatRR[dim] = malloc(NfnI*NvnSR * sizeof *Q_WhatRR[dim]); // keep
+						Qp_WhatR[dim] = malloc(NfnI*NvnSR * sizeof *Qp_WhatR[dim]); // keep
 						for (size_t i = 0; i < NvnSR*NvnSR; i++)
-							Qhat_WhatRR[i] = VR->QhatV_What[dim][i];
+							QphatR_WhatR[i] = VR->QhatV_What[dim][i];
 						if (chi != 0.0) {
 							for (size_t i = 0; i < NvnSR*NvnSR; i++)
-								Qhat_WhatRR[i] += chi*(FACE->Qhat_WhatRR[dim][i]);
+								QphatR_WhatR[i] += chi*(FACE->Qhat_WhatRR[dim][i]);
 						}
-						mm_d(CBRM,CBNT,CBNT,NfnI,NvnSR,NvnSR,1.0,0.0,OPS[0]->ChiS_fI[Vf],Qhat_WhatRR,Q_WhatRR[dim]);
+						mm_d(CBRM,CBNT,CBNT,NfnI,NvnSR,NvnSR,1.0,0.0,OPS[0]->ChiS_fI[Vf],QphatR_WhatR,Qp_WhatR[dim]);
 					}
-					free(Qhat_WhatRR);
+					free(QphatR_WhatR);
 
-					FDATA->Q_WhatLR = Q_WhatLR;
-					FDATA->Q_WhatRR = Q_WhatRR;
+					FDATA->Qp_WhatL = Qp_WhatL;
+					FDATA->Qp_WhatR = Qp_WhatR;
 				}
 			}
 		}
 	}
+
+	unsigned int const P      = FDATA->P,
+	                   Eclass = FDATA->Eclass,
+	                   f      = FDATA->f,
+	                   SpOp   = FDATA->SpOp,
+	                   *const VFPartUnity         = DB.VFPartUnity,
+	                   *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
 
 	unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX], NOut0, NOut1;
 	double const *OP[DMAX], *const *OP0, *const *OP1;
@@ -929,7 +925,7 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 			sf_apply_d(VOLUME->What,FDATA->W_fIL,NIn,NOut,Nvar,OP,Diag,d);
 		} else if (coef_type == 'Q') {
 			for (size_t dim = 0; dim < d; dim++)
-				sf_apply_d(Qhat[dim],FDATA->GradW_fIL[dim],NIn,NOut,Nvar,OP,Diag,d);
+				sf_apply_d(Qphat[dim],FDATA->Qp_fIL[dim],NIn,NOut,Nvar,OP,Diag,d);
 		}
 	} else if (Eclass == C_WEDGE && SF_BE[P][1][1]) {
 		if (f < 3) { OP0   = OPS[0]->ChiS_fI_SF, OP1   = OPS[1]->ChiS_vI_SF;
@@ -955,26 +951,78 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 			sf_apply_d(VOLUME->What,FDATA->W_fIL,NIn,NOut,Nvar,OP,Diag,d);
 		} else if (coef_type == 'Q') {
 			for (size_t dim = 0; dim < d; dim++)
-				sf_apply_d(Qhat[dim],FDATA->GradW_fIL[dim],NIn,NOut,Nvar,OP,Diag,d);
+				sf_apply_d(Qphat[dim],FDATA->Qp_fIL[dim],NIn,NOut,Nvar,OP,Diag,d);
 		}
 	} else if (((SpOp && (Eclass == C_TP || Eclass == C_WEDGE)) || (VFPartUnity[Eclass])) && DB.AllowSparseFACE) {
 		if (coef_type == 'W') {
 			mm_CTN_CSR_d(NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI_sp[Vf],VOLUME->What,FDATA->W_fIL);
 		} else if (coef_type == 'Q') {
 			for (size_t dim = 0; dim < d; dim++)
-				mm_CTN_CSR_d(NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI_sp[Vf],Qhat[dim],FDATA->GradW_fIL[dim]);
+				mm_CTN_CSR_d(NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI_sp[Vf],Qphat[dim],FDATA->Qp_fIL[dim]);
 		}
 	} else {
 		if (coef_type == 'W') {
 			mm_CTN_d(NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI[Vf],VOLUME->What,FDATA->W_fIL);
 		} else if (coef_type == 'Q') {
 			for (size_t dim = 0; dim < d; dim++)
-				mm_CTN_d(NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI[Vf],Qhat[dim],FDATA->GradW_fIL[dim]);
+				mm_CTN_d(NfnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_fI[Vf],Qphat[dim],FDATA->Qp_fIL[dim]);
 		}
 	}
 
 	if (coef_type == 'Q')
-		array_free2_d(d,Qhat);
+		array_free2_d(d,Qphat);
+}
+
+static void evaluate_boundary(struct S_BC *const BCdata, bool const ComputeGradient)
+{
+	unsigned int const BC = BCdata->BC;
+
+	if (ComputeGradient) {
+		if (!(BC % BC_STEP_SC == BC_NOSLIP_T         ||
+		      BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC)) {
+			EXIT_UNSUPPORTED;
+		}
+	}
+
+	compute_boundary_values(BCdata);
+}
+
+static void evaluate_jacobian_boundary(struct S_BC *const BCdata, bool const ComputeGradient)
+{
+	/*
+	 *	Purpose:
+	 *		Compute boundary Jacobian for the solution.
+	 */
+
+	unsigned int const d    = BCdata->d,
+	                   Neq  = d+2,
+	                   NfnI = BCdata->Nn,
+	                   BC   = BCdata->BC;
+
+	double const *const XYZ_fIL = BCdata->XYZ,
+	             *const n_fIL   = BCdata->nL;
+
+	double const *const WL_fIL     = BCdata->WL;
+	double       *const dWRdWL_fIL = BCdata->dWBdWL;
+
+	if (ComputeGradient) {
+		EXIT_UNSUPPORTED;
+	}
+
+	if (BC % BC_STEP_SC == BC_RIEMANN)
+		jacobian_boundary_Riemann(NfnI,1,XYZ_fIL,WL_fIL,NULL,dWRdWL_fIL,n_fIL,d,Neq);
+	else if (BC % BC_STEP_SC == BC_SLIPWALL)
+		jacobian_boundary_SlipWall(NfnI,1,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
+	else if (BC % BC_STEP_SC == BC_BACKPRESSURE)
+		jacobian_boundary_BackPressure(NfnI,1,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
+	else if (BC % BC_STEP_SC == BC_TOTAL_TP)
+		jacobian_boundary_Total_TP(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
+	else if (BC % BC_STEP_SC == BC_SUPERSONIC_IN)
+		jacobian_boundary_SupersonicInflow(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
+	else if (BC % BC_STEP_SC == BC_SUPERSONIC_OUT)
+		jacobian_boundary_SupersonicOutflow(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
+	else
+		compute_jacobian_boundary_values(BCdata);
 }
 
 void compute_WR_fIL(struct S_FDATA const *const FDATA, double const *const WL_fIL, double *const WR_fIL)
@@ -1017,90 +1065,26 @@ void compute_WR_fIL(struct S_FDATA const *const FDATA, double const *const WL_fI
 		BCdata->d   = DB.d;
 		BCdata->Nn  = NfnI;
 		BCdata->Nel = 1;
+		BCdata->BC  = BC;
 
-		BCdata->XYZ    = XYZ_fIL;
-		BCdata->nL     = n_fIL;
-		BCdata->WL     = WL_fIL;
-		BCdata->WB     = WR_fIL;
-		BCdata->GradWL = NULL;
-		BCdata->GradWB = NULL;
+		BCdata->XYZ = XYZ_fIL;
+		BCdata->nL  = n_fIL;
+		BCdata->WL  = WL_fIL;
+		BCdata->WB  = WR_fIL;
+		BCdata->QL  = NULL;
+		BCdata->QB  = NULL;
 
-		if (BC % BC_STEP_SC == BC_RIEMANN) {
-			boundary_Riemann(NfnI,1,XYZ_fIL,WL_fIL,NULL,WR_fIL,n_fIL,d);
-		} else if (BC % BC_STEP_SC == BC_SLIPWALL) {
-			bool const ExactSlipWall = 0, // Should only be enabled for the SupersonicVortex case.
-			           ExactNormal   = 0;
-			if (ExactSlipWall) {
-				double *const UR_fIL = malloc(NVAR3D*NfnI * sizeof *UR_fIL); // free
-
-				compute_exact_solution(NfnI,XYZ_fIL,UR_fIL,0);
-				convert_variables(UR_fIL,WR_fIL,DMAX,d,NfnI,1,'p','c');
-
-				free(UR_fIL);
-			} else if (ExactNormal) {
-				double *const nEx_fIL = malloc(NfnI*d * sizeof *nEx_fIL); // free
-
-				double diff_ri = 0.0, diff_ro = 0.0;
-				for (size_t n = 0; n < NfnI; n++) {
-					double x = FACE->XYZ_fI[0*NfnI+n],
-					       y = FACE->XYZ_fI[1*NfnI+n];
-
-					double r_n = sqrt(x*x+y*y);
-					diff_ri += fabs(DB.rIn-r_n);
-					diff_ro += fabs(DB.rOut-r_n);
-
-					double t = atan2(y,x);
-					nEx_fIL[n*d+0] = cos(t);
-					nEx_fIL[n*d+1] = sin(t);
-				}
-
-				diff_ri /= NfnI;
-				diff_ro /= NfnI;
-
-				bool NegateNormal = 0;
-				if (diff_ri <= 1e-2)
-					NegateNormal = 1;
-				else if (diff_ro <= 1e-2)
-					; // Do nothing
-				else
-					EXIT_UNSUPPORTED;
-
-				if (NegateNormal) {
-					for (size_t n = 0; n < NfnI*d; n++) {
-						nEx_fIL[n] *= -1.0;
-					}
-				}
-
-				boundary_SlipWall(NfnI,1,WL_fIL,WR_fIL,nEx_fIL,d);
-				free(nEx_fIL);
-			} else {
-				boundary_SlipWall(NfnI,1,WL_fIL,WR_fIL,n_fIL,d);
-			}
-		} else if (BC % BC_STEP_SC == BC_BACKPRESSURE) {
-			boundary_BackPressure(NfnI,1,WL_fIL,WR_fIL,n_fIL,d,Nvar);
-		} else if (BC % BC_STEP_SC == BC_TOTAL_TP) {
-			boundary_Total_TP(NfnI,1,XYZ_fIL,WL_fIL,WR_fIL,n_fIL,d,Nvar);
-		} else if (BC % BC_STEP_SC == BC_SUPERSONIC_IN) {
-			boundary_SupersonicInflow(NfnI,1,XYZ_fIL,WL_fIL,WR_fIL,n_fIL,d,Nvar);
-		} else if (BC % BC_STEP_SC == BC_SUPERSONIC_OUT) {
-			boundary_SupersonicOutflow(NfnI,1,XYZ_fIL,WL_fIL,WR_fIL,n_fIL,d,Nvar);
-		} else if (BC % BC_STEP_SC == BC_NOSLIP_T) {
-			boundary_NoSlip_Dirichlet(BCdata);
-		} else if (BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC) {
-			boundary_NoSlip_Adiabatic(BCdata);
-		} else {
-			EXIT_UNSUPPORTED;
-		}
+		evaluate_boundary(BCdata,0);
 		free(BCdata);
 	}
 }
 
-void compute_WR_GradWR_fIL(struct S_FDATA const *const FDATA, double const *const WL_fIL, double *const WR_fIL,
-                           double const *const *const GradWL_fIL, double *const *const GradWR_fIL, char const imex_type)
+void compute_WR_QpR_fIL(struct S_FDATA const *const FDATA, double const *const WL_fIL, double *const WR_fIL,
+                           double const *const *const QpL_fIL, double *const *const QpR_fIL, char const imex_type)
 {
 	/*
 	 *	Purpose:
-	 *		Compute W and GradW of the (R)ight VOLUME at the FACE cubature nodes corresponding to the (L)eft VOLUME.
+	 *		Compute W and Qp of the (R)ight VOLUME at the FACE cubature nodes corresponding to the (L)eft VOLUME.
 	 */
 
 	struct S_OPERATORS_F const *const *const OPS  = FDATA->OPS;
@@ -1118,28 +1102,23 @@ void compute_WR_GradWR_fIL(struct S_FDATA const *const FDATA, double const *cons
 
 		coef_to_values_fI((struct S_FDATA *const) FDATA,'Q',imex_type);
 		for (size_t dim = 0; dim < d; dim++)
-			array_rearrange_d(NfnI,Nvar,nOrdRL,'C',GradWR_fIL[dim]);
+			array_rearrange_d(NfnI,Nvar,nOrdRL,'C',QpR_fIL[dim]);
 	} else { // Boundary FACE
 		struct S_BC *const BCdata = malloc(sizeof *BCdata); // free
 
 		BCdata->d   = DB.d;
 		BCdata->Nn  = NfnI;
 		BCdata->Nel = 1;
+		BCdata->BC  = BC;
 
-		BCdata->XYZ    = FACE->XYZ_fI;
-		BCdata->nL     = FACE->n_fI;
-		BCdata->WL     = WL_fIL;
-		BCdata->WB     = WR_fIL;
-		BCdata->GradWL = GradWL_fIL;
-		BCdata->GradWB = GradWR_fIL;
+		BCdata->XYZ = FACE->XYZ_fI;
+		BCdata->nL  = FACE->n_fI;
+		BCdata->WL  = WL_fIL;
+		BCdata->WB  = WR_fIL;
+		BCdata->QL  = QpL_fIL;
+		BCdata->QB  = QpR_fIL;
 
-		if (BC % BC_STEP_SC == BC_NOSLIP_T) {
-			boundary_NoSlip_Dirichlet(BCdata);
-		} else if (BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC) {
-			boundary_NoSlip_Adiabatic(BCdata);
-		} else {
-			EXIT_UNSUPPORTED;
-		}
+		evaluate_boundary(BCdata,1);
 		free(BCdata);
 	}
 }
@@ -1211,32 +1190,16 @@ void compute_numerical_flux(struct S_FDATA const *const FDATA, char const imex_t
 		BCdata->d   = DB.d;
 		BCdata->Nn  = NfnI;
 		BCdata->Nel = 1;
+		BCdata->BC  = BC;
 
-		BCdata->XYZ    = XYZ_fIL;
-		BCdata->nL     = n_fIL;
-		BCdata->WL     = WL_fIL;
-		BCdata->GradWL = NULL;
+		BCdata->XYZ = XYZ_fIL;
+		BCdata->nL  = n_fIL;
+		BCdata->WL  = WL_fIL;
+		BCdata->QL  = NULL;
 
 		BCdata->dWBdWL = dWRdWL_fIL;
 
-		if (BC % BC_STEP_SC == BC_RIEMANN)
-			jacobian_boundary_Riemann(NfnI,1,XYZ_fIL,WL_fIL,NULL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_SLIPWALL)
-			jacobian_boundary_SlipWall(NfnI,1,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_BACKPRESSURE)
-			jacobian_boundary_BackPressure(NfnI,1,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_TOTAL_TP)
-			jacobian_boundary_Total_TP(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_SUPERSONIC_IN)
-			jacobian_boundary_SupersonicInflow(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_SUPERSONIC_OUT)
-			jacobian_boundary_SupersonicOutflow(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_NOSLIP_T)
-			jacobian_boundary_NoSlip_Dirichlet(BCdata);
-		else if (BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC)
-			jacobian_boundary_NoSlip_Adiabatic(BCdata);
-		else
-			EXIT_UNSUPPORTED;
+		evaluate_jacobian_boundary(BCdata,0);
 		free(BCdata);
 
 		for (size_t eq = 0; eq < Neq; eq++) {
@@ -1341,34 +1304,17 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 		BCdata->d   = DB.d;
 		BCdata->Nn  = NfnI;
 		BCdata->Nel = 1;
+		BCdata->BC  = BC;
 
-		BCdata->XYZ    = XYZ_fIL;
-		BCdata->nL     = n_fIL;
-		BCdata->WL     = WL_fIL;
-		BCdata->WB     = (double *const) WR_fIL;
-		BCdata->GradWL = NULL;
-		BCdata->GradWB = NULL;
+		BCdata->XYZ = XYZ_fIL;
+		BCdata->nL  = n_fIL;
+		BCdata->WL  = WL_fIL;
+		BCdata->WB  = (double *const) WR_fIL;
+		BCdata->QL  = NULL;
+		BCdata->QB  = NULL;
 
 		BCdata->dWBdWL = dWRdWL_fIL;
-
-		if (BC % BC_STEP_SC == BC_RIEMANN)
-			jacobian_boundary_Riemann(NfnI,1,XYZ_fIL,WL_fIL,NULL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_SLIPWALL)
-			jacobian_boundary_SlipWall(NfnI,1,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_BACKPRESSURE)
-			jacobian_boundary_BackPressure(NfnI,1,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_TOTAL_TP)
-			jacobian_boundary_Total_TP(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_SUPERSONIC_IN)
-			jacobian_boundary_SupersonicInflow(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_SUPERSONIC_OUT)
-			jacobian_boundary_SupersonicOutflow(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-		else if (BC % BC_STEP_SC == BC_NOSLIP_T)
-			jacobian_boundary_NoSlip_Dirichlet(BCdata);
-		else if (BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC)
-			jacobian_boundary_NoSlip_Adiabatic(BCdata);
-		else
-			EXIT_UNSUPPORTED;
+		evaluate_jacobian_boundary(BCdata,0);
 		free(BCdata);
 
 		for (size_t dim = 0; dim < d; dim++) {
@@ -1388,8 +1334,7 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 	}
 }
 
-static void correct_numerical_solution_strong(struct S_FDATA const *const FDATA, char const imex_type, char const side,
-                                              char const Form_MF1)
+static void correct_numerical_solution_strong(struct S_FDATA const *const FDATA, char const imex_type, char const side)
 {
 	/*
 	 *	Purpose:
@@ -1403,9 +1348,6 @@ static void correct_numerical_solution_strong(struct S_FDATA const *const FDATA,
 	 *		imex_type : (im)plicit (ex)plicit (type) indicates whether this function is being called for an implicit or
 	 *		            explicit computation.
 	 */
-
-	if (Form_MF1 != 'S')
-		EXIT_UNSUPPORTED;
 
 	if (!(imex_type == 'E' || imex_type == 'I'))
 		EXIT_UNSUPPORTED;
@@ -1535,8 +1477,8 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	 *
 	 *		When this is true the full Jacobian can be simplified as follows:
 	 *			dnFNumVisc/dWhatL = df/dQ*(dQ/dQL*dQL/dWhatL + dQ/dQR*(dQR/dWL*dWL/dWhatL + dQR/dQL*dQL/dWhatL))
-	 *			                  = df/dQ*( 0.5  * Q_WhatLL  +  0.5  *(  0.0  *  ChiS_vI  +    I   * Q_WhatLL ))
-	 *			                  = df/dQ*Q_WhatLL
+	 *			                  = df/dQ*( 0.5  * QL_WhatL  +  0.5  *(  0.0  *  ChiS_vI  +    I   * QL_WhatL ))
+	 *			                  = df/dQ*QL_WhatL
 	 *
 	 *		If this is not the case for this boundary condition, update the boundary treatment appropriately.
 	 *
@@ -1566,14 +1508,14 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	                   Boundary = FACE->Boundary,
 	                   NfnI     = OPSL[IndFType]->NfnI;
 
-	double const *const n_fIL                = FACE->n_fI,
-	             *const WL_fIL               = FDATAL->NFluxData->WL_fIL,
-	             *const WR_fIL               = FDATAL->NFluxData->WR_fIL,
-	             *const *const GradWL_fIL    = (double const *const *const) FDATAL->GradW_fIL,
-	             *const *const GradWR_fIL    = (double const *const *const) FDATAR->GradW_fIL;
-	double       *const nFluxViscNum_fIL     = FDATAL->NFluxData->nFluxViscNum_fI,
-	             *const dnFluxViscNumdWL_fIL = FDATAL->NFluxData->dnFluxViscNumdWL_fI,
-	             *const dnFluxViscNumdWR_fIL = FDATAL->NFluxData->dnFluxViscNumdWR_fI,
+	double const *const n_fIL                       = FACE->n_fI,
+	             *const WL_fIL                      = FDATAL->NFluxData->WL_fIL,
+	             *const WR_fIL                      = FDATAL->NFluxData->WR_fIL,
+	             *const *const QpL_fIL              = (double const *const *const) FDATAL->Qp_fIL,
+	             *const *const QpR_fIL              = (double const *const *const) FDATAR->Qp_fIL;
+	double       *const nFluxViscNum_fIL            = FDATAL->NFluxData->nFluxViscNum_fI,
+	             *const dnFluxViscNumdWL_fIL        = FDATAL->NFluxData->dnFluxViscNumdWL_fI,
+	             *const dnFluxViscNumdWR_fIL        = FDATAL->NFluxData->dnFluxViscNumdWR_fI,
 	             *const *const dnFluxViscNumdQL_fIL = (double *const *const) FDATAL->NFluxData->dnFluxViscNumdQL_fI,
 	             *const *const dnFluxViscNumdQR_fIL = (double *const *const) FDATAL->NFluxData->dnFluxViscNumdQR_fI;
 
@@ -1601,7 +1543,7 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 		for (size_t dim = 0; dim < d; dim++) {
 			Q_fIL[dim] = malloc(NfnI*Nvar * sizeof *Q_fIL[dim]); // free
 			for (size_t i = 0; i < NfnI*Nvar; i++)
-				Q_fIL[dim][i] = 0.5*(GradWL_fIL[dim][i]+GradWR_fIL[dim][i]);
+				Q_fIL[dim][i] = 0.5*(QpL_fIL[dim][i]+QpR_fIL[dim][i]);
 		}
 
 		flux_viscous(NfnI,1,W_fIL,(double const *const *const) Q_fIL,FluxViscNum_fIL);
@@ -1637,8 +1579,8 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 		double *const FluxViscL_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscL_fIL); // free
 		double *const FluxViscR_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscR_fIL); // free
 
-		flux_viscous(NfnI,1,WL_fIL,GradWL_fIL,FluxViscL_fIL);
-		flux_viscous(NfnI,1,WR_fIL,GradWR_fIL,FluxViscR_fIL);
+		flux_viscous(NfnI,1,WL_fIL,QpL_fIL,FluxViscL_fIL);
+		flux_viscous(NfnI,1,WR_fIL,QpR_fIL,FluxViscR_fIL);
 
 		for (size_t i = 0; i < NfnI*d*Neq; i++)
 			FluxViscNum_fIL[i] = 0.5*(FluxViscL_fIL[i]+FluxViscR_fIL[i]);
@@ -1647,8 +1589,8 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 		free(FluxViscR_fIL);
 
 		if (imex_type == 'I') {
-			jacobian_flux_viscous(NfnI,1,WL_fIL,(double const *const *const) GradWL_fIL,dFluxViscNumdWL_fIL,dFluxViscNumdQL_fIL);
-			jacobian_flux_viscous(NfnI,1,WR_fIL,(double const *const *const) GradWR_fIL,dFluxViscNumdWR_fIL,dFluxViscNumdQR_fIL);
+			jacobian_flux_viscous(NfnI,1,WL_fIL,(double const *const *const) QpL_fIL,dFluxViscNumdWL_fIL,dFluxViscNumdQL_fIL);
+			jacobian_flux_viscous(NfnI,1,WR_fIL,(double const *const *const) QpR_fIL,dFluxViscNumdWR_fIL,dFluxViscNumdQR_fIL);
 
 			dot_with_normal(NfnI,Neq*Nvar,n_fIL,dFluxViscNumdWL_fIL,dnFluxViscNumdWL_fIL);
 			dot_with_normal(NfnI,Neq*Nvar,n_fIL,dFluxViscNumdWR_fIL,dnFluxViscNumdWR_fIL);
@@ -1727,20 +1669,16 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 		BCdata->d   = DB.d;
 		BCdata->Nn  = NfnI;
 		BCdata->Nel = 1;
+		BCdata->BC  = BC;
 
-		BCdata->XYZ    = XYZ_fIL;
-		BCdata->nL     = n_fIL;
-		BCdata->WL     = WL_fIL;
-		BCdata->GradWL = NULL;
+		BCdata->XYZ = XYZ_fIL;
+		BCdata->nL  = n_fIL;
+		BCdata->WL  = WL_fIL;
+		BCdata->QL  = NULL;
 
 		BCdata->dWBdWL = dWBdWL_fIL;
 
-		if (BC % BC_STEP_SC == BC_NOSLIP_T)
-			jacobian_boundary_NoSlip_Dirichlet(BCdata);
-		else if (BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC)
-			jacobian_boundary_NoSlip_Adiabatic(BCdata);
-		else
-			EXIT_UNSUPPORTED;
+		evaluate_jacobian_boundary(BCdata,0);
 		free(BCdata);
 
 		for (size_t eq = 0; eq < Neq; eq++) {
@@ -1915,12 +1853,12 @@ static void swap_FACE_orientation(struct S_FDATA const *const FDATA, char const 
 	struct S_OPERATORS_F const *const *const OPS  = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
 	struct S_FACE        const *const        FACE = FDATA->FACE;
 
-	unsigned int const d              = DB.d,
-	                   Neq            = d+2,
-	                   Nvar           = d+2,
-	                   IndFType       = FDATA->IndFType,
-	                   NfnI           = OPS[IndFType]->NfnI,
-	                   *const nOrdLR  = OPS[IndFType]->nOrdLR;
+	unsigned int const d             = DB.d,
+	                   Neq           = d+2,
+	                   Nvar          = d+2,
+	                   IndFType      = FDATA->IndFType,
+	                   NfnI          = OPS[IndFType]->NfnI,
+	                   *const nOrdLR = OPS[IndFType]->nOrdLR;
 
 	if (coef_type == 'W' || coef_type == 'V') {
 		double *nFluxNum_fI, *dnFluxNumdWL_fI, *dnFluxNumdWR_fI;
@@ -2071,17 +2009,17 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 
 		struct S_OPERATORS_F const *const *const OPS = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
 
-		unsigned int const d            = DB.d,
-		                   Neq          = d+2,
-		                   Nvar         = d+2,
-		                   P            = FDATA->P,
-		                   Eclass       = FDATA->Eclass,
-		                   Vf           = FDATA->Vf,
-		                   f            = FDATA->f,
-		                   SpOp         = FDATA->SpOp,
-		                   IndFType     = FDATA->IndFType,
-		                   NfnI         = OPS[IndFType]->NfnI,
-		                   NvnS         = OPS[0]->NvnS,
+		unsigned int const d        = DB.d,
+		                   Neq      = d+2,
+		                   Nvar     = d+2,
+		                   P        = FDATA->P,
+		                   Eclass   = FDATA->Eclass,
+		                   Vf       = FDATA->Vf,
+		                   f        = FDATA->f,
+		                   SpOp     = FDATA->SpOp,
+		                   IndFType = FDATA->IndFType,
+		                   NfnI     = OPS[IndFType]->NfnI,
+		                   NvnS     = OPS[0]->NvnS,
 		                   *const VFPartUnity         = DB.VFPartUnity,
 		                   *const *const *const SF_BE = (unsigned int const *const *const *const) DB.SF_BE;
 
@@ -2138,8 +2076,8 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 		                           *const *const OPSR  = (struct S_OPERATORS_F const *const *const) FDATAR->OPS;
 		struct S_FACE        const *const        FACE = FDATAL->FACE;
 
-		unsigned int const VfL = FDATAL->Vf,
-		                   VfR = FDATAR->Vf,
+		unsigned int const VfL      = FDATAL->Vf,
+		                   VfR      = FDATAR->Vf,
 		                   IndFType = FDATAL->IndFType,
 		                   NfnI     = OPSL[IndFType]->NfnI;
 
@@ -2245,7 +2183,7 @@ static void compute_LHS_QhatF_Weak(unsigned int const NRows, unsigned int const 
 }
 
 void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR, char const side,
-                         char const imex_type, char const FORM_MF1)
+                         char const imex_type)
 {
 	/*
 	 *	Purpose:
@@ -2255,7 +2193,7 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 	 *		Except for the "-ve" sign, the need to compute d terms instead of 1, and the storage of the use of different
 	 *		arrays to be operated on and stored in, this function is identical to finalize_FACE_Inviscid_Weak.
 	 *
-	 *		When FORM_MF1 == 'S', the local contribution is added to the numerical flux before evaluating QhatF.
+	 *		The local contribution is added to the numerical flux before evaluating QhatF.
 	 */
 
 	if (!(imex_type == 'E' || imex_type == 'I'))
@@ -2264,8 +2202,7 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 	struct S_FACE const *const FACE = FDATAL->FACE;
 
 	if (imex_type == 'E') {
-		if (FORM_MF1 == 'S')
-			correct_numerical_solution_strong(FDATAL,'E',side,FORM_MF1);
+		correct_numerical_solution_strong(FDATAL,'E',side);
 
 		struct S_FDATA const *FDATA = NULL;
 
@@ -2284,17 +2221,17 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 
 		struct S_OPERATORS_F const *const *const OPS = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
 
-		unsigned int const d            = DB.d,
-		                   Neq          = d+2,
-		                   Nvar         = d+2,
-		                   P            = FDATA->P,
-		                   Eclass       = FDATA->Eclass,
-		                   Vf           = FDATA->Vf,
-		                   f            = FDATA->f,
-		                   SpOp         = FDATA->SpOp,
-		                   IndFType     = FDATA->IndFType,
-		                   NfnI         = OPS[IndFType]->NfnI,
-		                   NvnS         = OPS[0]->NvnS,
+		unsigned int const d        = DB.d,
+		                   Neq      = d+2,
+		                   Nvar     = d+2,
+		                   P        = FDATA->P,
+		                   Eclass   = FDATA->Eclass,
+		                   Vf       = FDATA->Vf,
+		                   f        = FDATA->f,
+		                   SpOp     = FDATA->SpOp,
+		                   IndFType = FDATA->IndFType,
+		                   NfnI     = OPS[IndFType]->NfnI,
+		                   NvnS     = OPS[0]->NvnS,
 		                   *const VFPartUnity         = DB.VFPartUnity,
 		                   *const *const *const SF_BE = (unsigned int const *const *const *const) DB.SF_BE;
 
@@ -2379,8 +2316,7 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 		double const *I_FF;
 
 		if (side == 'L') {
-			if (FORM_MF1 == 'S')
-				correct_numerical_solution_strong(FDATAL,'I',side,FORM_MF1);
+			correct_numerical_solution_strong(FDATAL,'I',side);
 
 			unsigned int const NvnSL = OPSL[0]->NvnS;
 
@@ -2426,8 +2362,7 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 			free(IdnFdW);
 
 			// Swap orientation of numerical flux Jacobian terms
-			if (FORM_MF1 == 'S')
-				correct_numerical_solution_strong(FDATAR,'I',side,FORM_MF1);
+			correct_numerical_solution_strong(FDATAR,'I',side);
 			swap_FACE_orientation(FDATAR,'I','Q');
 
 			I_FF   = OPSR[0]->I_Weak_FF[VfR];
@@ -2515,7 +2450,7 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 	 *
 	 *	Comments:
 	 *		Again, very similar to other finalize_* functions where the linearization with respect to Q is used and the
-	 *		right operator is given by Q_What (as opposed to ChiS_fI).
+	 *		right operator is given by Qp_What (as opposed to ChiS_fI).
 	 */
 
 	struct S_FACE const *const FACE = FDATAL->FACE;
@@ -2539,14 +2474,14 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 
 		double const *const *const dnFluxViscNumdQL_fI = (double const *const *const) NFluxData->dnFluxViscNumdQL_fI;
 
-		// Q_WhatLL (Effect of (L)eft VOLUME on (L)eft VOLUME)
+		// QL_WhatL (Effect of QL(WL,...))
 		I_FF   = OPSL[0]->I_Weak_FF[VfL];
 		IdnFdQ = malloc(NvnSL*NfnI * sizeof *IdnFdQ); // free
 
-		double const *const *const Q_What = (double const *const *const) FDATAL->Q_WhatLL;
-		compute_LHS_FACE_Q_Weak(NvnSL,NvnSL,NfnI,I_FF,dnFluxViscNumdQL_fI,Q_What,IdnFdQ,FACE->LHSInIn,Boundary);
+		double const *const *const Qp_What = (double const *const *const) FDATAL->Qp_WhatL;
+		compute_LHS_FACE_Q_Weak(NvnSL,NvnSL,NfnI,I_FF,dnFluxViscNumdQL_fI,Qp_What,IdnFdQ,FACE->LHSInIn,Boundary);
 		if (Boundary)
-			array_free2_d(d,(double **) Q_What);
+			array_free2_d(d,(double **) Qp_What);
 		free(IdnFdQ);
 	} else if (side == 'R') {
 		if (Boundary)
@@ -2555,7 +2490,7 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 		unsigned int const *const nOrdRL = OPSL[IndFType]->nOrdRL,
 		                   *const nOrdLR = OPSL[IndFType]->nOrdLR;
 
-		double const *const *      Q_What;
+		double const *const *      Qp_What;
 		double const *const *const dnFluxViscNumdQL_fI = (double const *const *const) NFluxData->dnFluxViscNumdQL_fI;
 		double const *const *const dnFluxViscNumdQR_fI = (double const *const *const) NFluxData->dnFluxViscNumdQR_fI;
 
@@ -2567,30 +2502,30 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 
 		// Rearrange such that dQRdW(L/R) are seen at the nodes as ordered from the left VOLUME
 		for (size_t dim = 0; dim < d; dim++) {
-			array_rearrange_d(NfnI,NvnSL,nOrdRL,'R',FDATAR->Q_WhatLR[dim]);
-			array_rearrange_d(NfnI,NvnSR,nOrdRL,'R',FDATAR->Q_WhatRR[dim]);
+			array_rearrange_d(NfnI,NvnSL,nOrdRL,'R',FDATAR->Qp_WhatL[dim]);
+			array_rearrange_d(NfnI,NvnSR,nOrdRL,'R',FDATAR->Qp_WhatR[dim]);
 		}
 
 		// LHSLL (Effect of QR(WL,...))
-		Q_What = (double const *const *const) FDATAR->Q_WhatLR;
-		compute_LHS_FACE_Q_Weak(NvnSL,NvnSL,NfnI,I_FF,dnFluxViscNumdQR_fI,Q_What,IdnFdQ,FACE->LHSInIn,Boundary);
+		Qp_What = (double const *const *const) FDATAR->Qp_WhatL;
+		compute_LHS_FACE_Q_Weak(NvnSL,NvnSL,NfnI,I_FF,dnFluxViscNumdQR_fI,Qp_What,IdnFdQ,FACE->LHSInIn,Boundary);
 
 // Combine terms before passing to compute_LHS_FACE_Q_Weak. (ToBeModified)
 		// LHSRL (Effect of QL(...,WR))
-		Q_What = (double const *const *const) FDATAL->Q_WhatRL;
-		compute_LHS_FACE_Q_Weak(NvnSL,NvnSR,NfnI,I_FF,dnFluxViscNumdQL_fI,Q_What,IdnFdQ,FACE->LHSOutIn,Boundary);
+		Qp_What = (double const *const *const) FDATAL->Qp_WhatR;
+		compute_LHS_FACE_Q_Weak(NvnSL,NvnSR,NfnI,I_FF,dnFluxViscNumdQL_fI,Qp_What,IdnFdQ,FACE->LHSOutIn,Boundary);
 
 		//       (Effect of QR(...,WR))
-		Q_What = (double const *const *const) FDATAR->Q_WhatRR;
-		compute_LHS_FACE_Q_Weak(NvnSL,NvnSR,NfnI,I_FF,dnFluxViscNumdQR_fI,Q_What,IdnFdQ,FACE->LHSOutIn,Boundary);
+		Qp_What = (double const *const *const) FDATAR->Qp_WhatR;
+		compute_LHS_FACE_Q_Weak(NvnSL,NvnSR,NfnI,I_FF,dnFluxViscNumdQR_fI,Qp_What,IdnFdQ,FACE->LHSOutIn,Boundary);
 		free(IdnFdQ);
 
 		// Rearrange such that dQ(R/L)dW(L/R) are seen at the nodes as ordered from the right VOLUME
 		for (size_t dim = 0; dim < d; dim++) {
-			array_rearrange_d(NfnI,NvnSL,nOrdLR,'R',FDATAL->Q_WhatLL[dim]);
-			array_rearrange_d(NfnI,NvnSR,nOrdLR,'R',FDATAL->Q_WhatRL[dim]);
-			array_rearrange_d(NfnI,NvnSL,nOrdLR,'R',FDATAR->Q_WhatLR[dim]);
-			array_rearrange_d(NfnI,NvnSR,nOrdLR,'R',FDATAR->Q_WhatRR[dim]);
+			array_rearrange_d(NfnI,NvnSL,nOrdLR,'R',FDATAL->Qp_WhatL[dim]);
+			array_rearrange_d(NfnI,NvnSR,nOrdLR,'R',FDATAL->Qp_WhatR[dim]);
+			array_rearrange_d(NfnI,NvnSL,nOrdLR,'R',FDATAR->Qp_WhatL[dim]);
+			array_rearrange_d(NfnI,NvnSR,nOrdLR,'R',FDATAR->Qp_WhatR[dim]);
 		}
 
 		// Swap orientation of numerical flux Jacobian terms
@@ -2600,26 +2535,26 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 		IdnFdQ = malloc(NvnSR*NfnI * sizeof *IdnFdQ); // free
 
 		// LHSLR (Effect of QL(WL,...))
-		Q_What = (double const *const *const) FDATAL->Q_WhatLL;
-		compute_LHS_FACE_Q_Weak(NvnSR,NvnSL,NfnI,I_FF,dnFluxViscNumdQL_fI,Q_What,IdnFdQ,FACE->LHSInOut,Boundary);
+		Qp_What = (double const *const *const) FDATAL->Qp_WhatL;
+		compute_LHS_FACE_Q_Weak(NvnSR,NvnSL,NfnI,I_FF,dnFluxViscNumdQL_fI,Qp_What,IdnFdQ,FACE->LHSInOut,Boundary);
 
 		//       (Effect of QR(WL,...))
-		Q_What = (double const *const *const) FDATAR->Q_WhatLR;
-		compute_LHS_FACE_Q_Weak(NvnSR,NvnSL,NfnI,I_FF,dnFluxViscNumdQR_fI,Q_What,IdnFdQ,FACE->LHSInOut,Boundary);
+		Qp_What = (double const *const *const) FDATAR->Qp_WhatL;
+		compute_LHS_FACE_Q_Weak(NvnSR,NvnSL,NfnI,I_FF,dnFluxViscNumdQR_fI,Qp_What,IdnFdQ,FACE->LHSInOut,Boundary);
 
 		// LHSRR (Effect of QL(...,WR))
-		Q_What = (double const *const *const) FDATAL->Q_WhatRL;
-		compute_LHS_FACE_Q_Weak(NvnSR,NvnSR,NfnI,I_FF,dnFluxViscNumdQL_fI,Q_What,IdnFdQ,FACE->LHSOutOut,Boundary);
+		Qp_What = (double const *const *const) FDATAL->Qp_WhatR;
+		compute_LHS_FACE_Q_Weak(NvnSR,NvnSR,NfnI,I_FF,dnFluxViscNumdQL_fI,Qp_What,IdnFdQ,FACE->LHSOutOut,Boundary);
 
 		//       (Effect of QR(...,WR))
-		Q_What = (double const *const *const) FDATAR->Q_WhatRR;
-		compute_LHS_FACE_Q_Weak(NvnSR,NvnSR,NfnI,I_FF,dnFluxViscNumdQR_fI,Q_What,IdnFdQ,FACE->LHSOutOut,Boundary);
+		Qp_What = (double const *const *const) FDATAR->Qp_WhatR;
+		compute_LHS_FACE_Q_Weak(NvnSR,NvnSR,NfnI,I_FF,dnFluxViscNumdQR_fI,Qp_What,IdnFdQ,FACE->LHSOutOut,Boundary);
 		free(IdnFdQ);
 
-		array_free2_d(d,(double **) FDATAL->Q_WhatLL);
-		array_free2_d(d,(double **) FDATAL->Q_WhatRL);
-		array_free2_d(d,(double **) FDATAR->Q_WhatLR);
-		array_free2_d(d,(double **) FDATAR->Q_WhatRR);
+		array_free2_d(d,(double **) FDATAL->Qp_WhatL);
+		array_free2_d(d,(double **) FDATAL->Qp_WhatR);
+		array_free2_d(d,(double **) FDATAR->Qp_WhatL);
+		array_free2_d(d,(double **) FDATAR->Qp_WhatR);
 	} else {
 		EXIT_UNSUPPORTED;
 	}

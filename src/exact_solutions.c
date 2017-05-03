@@ -135,6 +135,9 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
 	} else if (strstr(TestCase,"TaylorCouette")) {
 		// Note: This exact solution is valid only before the Taylor-Couette instability develops and is only accurate
 		//       for velocity and temperature (except for r = rIn where all components are exact).
+		if (d != 2)
+			EXIT_UNSUPPORTED;
+
 		double rIn   = DB.rIn,
 		       rOut  = DB.rOut,
 		       omega = DB.omega,
@@ -151,7 +154,7 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
 			r = sqrt(X[n]*X[n]+Y[n]*Y[n]);
 			t = atan2(Y[n],X[n]);
 
-			Vt = C*(1/r-r/(rOut*rOut));
+			Vt = C*(1.0/r-r/(rOut*rOut));
 			T  = TIn - 2.0*C*C/(rOut*rOut)*mu/kappa*log(r/rIn) - C*C*mu/kappa*(1.0/(r*r)-1.0/(rIn*rIn));
 
 			// Illingworth(1950), p.8 notes that the pressure is nearly uniform => set pEx ~= pIn and compute rhoEx
@@ -210,6 +213,43 @@ void compute_exact_gradient(const unsigned int Nn, const double *XYZ, double *QE
 				QEx[Nn*1+i] = PI*sin(PI*X[i])*cos(PI*Y[i])*sin(PI*Z[i]);
 				QEx[Nn*2+i] = PI*sin(PI*X[i])*sin(PI*Y[i])*cos(PI*Z[i]);
 			}
+		}
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		// Return gradients of velocity components and temperature.
+		double const rIn   = DB.rIn,
+		             rOut  = DB.rOut,
+		             omega = DB.omega,
+		             mu    = DB.mu,
+		             kappa = DB.kappa;
+
+		double const C = omega/(1.0/(rIn*rIn)-1.0/(rOut*rOut));
+		if (d == 2) {
+			for (size_t n = 0; n < Nn; n++) {
+				double const x = X[n],
+				             y = Y[n],
+				             r = sqrt(x*x+y*y),
+				             t = atan2(y,x);
+
+				double const drdX[DMAX] = {x/r, y/r, 0.0 },
+				             dtdX[DMAX] = {-y/(r*r), x/(r*r), 0.0 };
+
+				double const Vt = C*(1.0/r-r/(rOut*rOut));
+
+				double const dVtdr = C*(-1.0/(r*r)-1.0/(rOut*rOut)),
+				             dTdr  = -C*C*mu/kappa*(2.0/r*(1.0/(rOut*rOut)-1.0/(r*r)));
+
+				size_t dim = 0, var = 0;
+				QEx[Nn*(dim*3+var++)+n] = -(sin(t)*(dVtdr*drdX[dim]) + cos(t)*dtdX[dim]*Vt);
+				QEx[Nn*(dim*3+var++)+n] =  (cos(t)*(dVtdr*drdX[dim]) - sin(t)*dtdX[dim]*Vt);
+				QEx[Nn*(dim*3+var++)+n] =  (dTdr*drdX[dim]);
+
+				dim++; var = 0;
+				QEx[Nn*(dim*3+var++)+n] = -(sin(t)*(dVtdr*drdX[dim]) + cos(t)*dtdX[dim]*Vt);
+				QEx[Nn*(dim*3+var++)+n] =  (cos(t)*(dVtdr*drdX[dim]) - sin(t)*dtdX[dim]*Vt);
+				QEx[Nn*(dim*3+var++)+n] =  (dTdr*drdX[dim]);
+			}
+		} else {
+			EXIT_UNSUPPORTED;
 		}
 	} else {
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;

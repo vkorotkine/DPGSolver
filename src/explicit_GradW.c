@@ -23,22 +23,18 @@
  *		Compute weak gradients required for the computation of viscous fluxes.
  *
  *	Comments:
- *		Selection of FORM_MF1 == 'S' is much more consistent with the theoretical formulation of the stabilized mixed
- *		form as presented in Brezzi(2000) (and in general); the stabilization is a penalization on the solution jumps
- *		across the elements. This also gives a much more natural symmetry to the diffusive operator when compared with
- *		using the weak form for the first equation.
+ *		The use of the doubly integrated by parts weak form for the first equation in the mixed formulation is much more
+ *		consistent with the theoretical formulation of the stabilized mixed form as presented in Brezzi(2000) (and in
+ *		general); the stabilization is a penalization on the solution jumps across the elements. This also gives a much
+ *		more natural symmetry to the diffusive operator when compared with using the weak form for the first equation.
  *		Furthermore, the partially corrected gradient contributions required for the numerical viscous flux can be
- *		directly computed from the summation of the VOLUME and FACE terms to Qhat when using the strong form here. As
- *		expected, when the cubature order is sufficient, the fully corrected Qhat is identical for the strong and weak
- *		forms.
+ *		directly computed from the summation of the VOLUME and FACE terms to Qhat in this case. Note that the doubly
+ *		integrated by parts weak form was previously called the strong form.
  *
  *	Notation:
- *		FORM_MF1 : (FORM) used for (M)ixed (F)ormulation equation (1). Can be either ('W')eak or ('S')trong.
  *
  *	References:
  */
-
-#define FORM_MF1 'S' // Should not use 'W' without modifications to viscous flux computation (See comments above).
 
 static void explicit_GradW_VOLUME   (void);
 static void explicit_GradW_FACE     (void);
@@ -110,15 +106,10 @@ static void explicit_GradW_VOLUME(void)
 			}
 
 			// Compute intermediate Qhat contribution
-			if (FORM_MF1 == 'W') {
-				mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,-1.0,0.0,DxyzChiS[dim],VOLUME->What,VOLUME->QhatV[dim]);
-			} else if (FORM_MF1 == 'S') {
-				// Note: Using CBCM with CBNT for DxyzChiS (stored in row-major ordering) gives DxyzChiS' in the
-				//       operation below.
-				mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,DxyzChiS[dim],VOLUME->What,VOLUME->QhatV[dim]);
-			} else {
-				EXIT_UNSUPPORTED;
-			}
+
+			// Note: Using CBCM with CBNT for DxyzChiS (stored in row-major ordering) gives DxyzChiS' in the operation
+			//       below.
+			mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,DxyzChiS[dim],VOLUME->What,VOLUME->QhatV[dim]);
 
 			for (size_t i = 0; i < NvnS*Nvar; i++)
 				VOLUME->Qhat[dim][i] = VOLUME->QhatV[dim][i];
@@ -192,9 +183,9 @@ static void explicit_GradW_FACE(void)
 		compute_numerical_solution(FDATAL,'E');
 		add_Jacobian_scaling_FACE(FDATAL,'E','Q');
 
-		finalize_QhatF_Weak(FDATAL,FDATAR,'L','E',FORM_MF1);
+		finalize_QhatF_Weak(FDATAL,FDATAR,'L','E');
 		if (!FACE->Boundary)
-			finalize_QhatF_Weak(FDATAL,FDATAR,'R','E',FORM_MF1);
+			finalize_QhatF_Weak(FDATAL,FDATAR,'R','E');
 
 		free(FDATAL->W_fIL);
 		free(FDATAR->W_fIL);
