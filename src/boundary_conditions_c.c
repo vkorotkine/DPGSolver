@@ -30,24 +30,28 @@
 
 void set_BC_from_BType(struct S_BC *const BCdata, char const *const BType)
 {
-	if (strstr(BType,"SlipWall"))
+	BCdata->ComputeQ = 0;
+	if (strstr(BType,"SlipWall")) {
 		BCdata->BC = BC_SLIPWALL;
-	else if (strstr(BType,"Riemann"))
+	} else if (strstr(BType,"Riemann")) {
 		BCdata->BC = BC_RIEMANN;
-	else if (strstr(BType,"BackPressure"))
+	} else if (strstr(BType,"BackPressure")) {
 		BCdata->BC = BC_BACKPRESSURE;
-	else if (strstr(BType,"Total_TP"))
+	} else if (strstr(BType,"Total_TP")) {
 		BCdata->BC = BC_TOTAL_TP;
-	else if (strstr(BType,"SupersonicIn"))
+	} else if (strstr(BType,"SupersonicIn")) {
 		BCdata->BC = BC_SUPERSONIC_IN;
-	else if (strstr(BType,"SupersonicOut"))
+	} else if (strstr(BType,"SupersonicOut")) {
 		BCdata->BC = BC_SUPERSONIC_OUT;
-	else if (strstr(BType,"NoSlip_Dirichlet"))
+	} else if (strstr(BType,"NoSlip_Dirichlet")) {
 		BCdata->BC = BC_NOSLIP_T;
-	else if (strstr(BType,"NoSlip_Adiabatic"))
+		BCdata->ComputeQ = 1;
+	} else if (strstr(BType,"NoSlip_Adiabatic")) {
 		BCdata->BC = BC_NOSLIP_ADIABATIC;
-	else
+		BCdata->ComputeQ = 1;
+	} else {
 		EXIT_UNSUPPORTED;
+	}
 }
 
 void correct_XYZ_for_exact_normal(struct S_BC *const BCdata, char const *const BType)
@@ -85,14 +89,22 @@ void compute_boundary_values_c(struct S_BC *const BCdata)
 		case BC_RIEMANN:          boundary_Riemann_c(BCdata);           break;
 		case BC_SLIPWALL: {
 			if (EXACT_SLIPWALL) {
-				compute_exact_boundary_solution(BCdata);
 				unsigned int const d    = BCdata->d,
 				                   Nvar = d+2,
 				                   Nn   = BCdata->Nn,
 				                   Nel  = BCdata->Nel;
 
-				for (size_t i = 0; i < Nn*Nvar*Nel; i++)
+				unsigned int const NnTotal = Nn*Nel;
+
+				double *WB = BCdata->WB;
+				BCdata->WB = malloc(NnTotal*Nvar * sizeof *(BCdata->WB)); // free
+				compute_exact_boundary_solution(BCdata);
+
+				for (size_t i = 0; i < NnTotal*Nvar; i++)
 					BCdata->WB_c[i] = BCdata->WB[i];
+
+				free(BCdata->WB);
+				BCdata->WB = WB;
 			} else if (EXACT_NORMAL) {
 				double const *const nL = BCdata->nL;
 
@@ -112,7 +124,10 @@ void compute_boundary_values_c(struct S_BC *const BCdata)
 		case BC_SUPERSONIC_OUT:   boundary_SupersonicOutflow_c(BCdata); break;
 		case BC_NOSLIP_T:         boundary_NoSlip_Dirichlet_c(BCdata);  break;
 		case BC_NOSLIP_ADIABATIC: boundary_NoSlip_Adiabatic_c(BCdata);  break;
-		default:                  EXIT_UNSUPPORTED;                     break;
+		default:
+			printf("%d\n",BCdata->BC);
+			EXIT_UNSUPPORTED;
+			break;
 	}
 }
 
@@ -482,8 +497,8 @@ void boundary_BackPressure_c(struct S_BC *const BCdata)
 		c2L = GAMMA*pL/rhoL;
 		cL  = csqrt(c2L);
 
-		if (creal(VnL) < 0.0) // Inlet
-			printf("Warning: Velocity Inflow in boundary_BackPressure_c.\n");
+//		if (creal(VnL) < 0.0) // Inlet
+//			printf("Warning: Velocity Inflow in boundary_BackPressure_c.\n");
 
 		if (cabs(VL) >= cabs(cL)) { // Supersonic
 			TestDB.EnteredBackPressure[0]++;

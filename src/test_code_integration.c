@@ -18,6 +18,7 @@
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
 
+#include "test_support.h"
 #include "initialization.h"
 #include "setup_parameters.h"
 #include "setup_mesh.h"
@@ -960,9 +961,8 @@ void check_mesh_regularity(const double *mesh_quality, const unsigned int NML, u
 		for (i = 0; i < 2; i++)
 			slope_quality[i] = mesh_quality[NML-2+i]-mesh_quality[NML-3+i];
 
-		if (slope_quality[1]-slope_quality[0] > 1e-3) {
-			printf("\nWarning: Potential mesh regularity issue.\n\n");
-			TestDB.Nwarnings++;
+		if (slope_quality[1]-slope_quality[0] > 1e-3 && PrintEnabled) {
+			test_print_warning("Potential mesh regularity issue");
 		}
 
 		if (slope_quality[1] > 0.0) {

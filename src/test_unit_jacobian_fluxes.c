@@ -169,7 +169,6 @@ static unsigned int compare_jacobian_flux_viscous(unsigned int const Nn, unsigne
 {
 	DB.d        = d;
 	DB.Pr       = 0.72;
-//	DB.mu       = 1e-3;
 	DB.mu       = 1e-0;
 	DB.Const_mu = 1;
 

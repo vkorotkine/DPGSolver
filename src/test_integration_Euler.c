@@ -175,10 +175,8 @@ static void test_equivalence_alg(int const nargc, char const *const *const argvN
 		for (size_t IndV = 0; IndV < NV; IndV++)
 			RHS_diff += array_norm_diff_d(RHS_size[IndV],RHS[0][IndV],RHS[alg][IndV],"Inf");
 
-		if (RHS_diff == 0.0) {
-			printf("\nWarning: Potentially comparing the same functions.\n\n");
-			TestDB.Nwarnings++;
-		}
+		if (RHS_diff == 0.0)
+			test_print_warning("Potentially comparing the same functions");
 	}
 
 	for (size_t IndV = 0; IndV < NV; IndV++) {

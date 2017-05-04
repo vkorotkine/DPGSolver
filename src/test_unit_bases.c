@@ -68,13 +68,13 @@ void test_unit_basis_SI(void)
 	test_unit_basis_SI_Bezier();
 	memory_free_ELEMENTs();
 
-	printf("\nWarning: Simplex Bezier basis for d = 3 is not being tested.\n\n"); TestDB.Nwarnings++;
+	test_print_warning("Simplex Bezier basis for d = 3 is not being tested");
 }
 
 void test_unit_basis_PYR(void)
 {
 	test_unit_basis_PYR_modal();
-	printf("\nWarning: Pyramidal Bezier basis is not being tested.\n\n"); TestDB.Nwarnings++;
+	test_print_warning("Pyramidal Bezier basis is not being tested");
 }
 
 static void test_basis_orthogonality(struct S_orthogonality *data, const unsigned int no_last_entry)
@@ -673,8 +673,7 @@ static double *basis_TET2(const double *rst, const unsigned int Nn)
 
 static void test_unit_basis_SI_modal(void)
 {
-	printf("\nWarning: Ensure that discrepancy between M and I for WSH nodes is as expected\n\n");
-	TestDB.Nwarnings++;
+	test_print_warning("Ensure that discrepancy between M and I for WSH nodes is as expected");
 
 	unsigned int pass;
 	unsigned int printMI = 0;

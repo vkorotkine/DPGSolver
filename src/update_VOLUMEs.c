@@ -299,13 +299,27 @@ static void update_memory_VOLUME(struct S_VOLUME *const VOLUME)
 	// Other solver related arrays
 	if (strstr(TestCase,"Poisson")) {
 		for (size_t dim = 0; dim < d; dim++) {
-			if (VOLUME->qhat[dim] != NULL)
+// Needs clean-up, remove q/u and use Q/W instead (ToBeDeleted)
+			if (VOLUME->qhat[dim] != NULL) // ToBeDeleted
 				free(VOLUME->qhat[dim]);
 			VOLUME->qhat[dim]  = malloc(NvnS*Nvar * sizeof *(VOLUME->qhat[dim])); // keep
 
-			if (VOLUME->qhat_uhat[dim] != NULL)
+			if (VOLUME->qhat_uhat[dim] != NULL) // ToBeDeleted
 				free(VOLUME->qhat_uhat[dim]);
 			VOLUME->qhat_uhat[dim]  = malloc(NvnS*NvnS*Nvar*Neq * sizeof *(VOLUME->qhat_uhat[dim])); // keep
+
+
+			if (VOLUME->QhatV[dim] != NULL)
+				free(VOLUME->QhatV[dim]);
+			VOLUME->QhatV[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV[dim])); // keep
+
+			if (VOLUME->Qhat[dim] != NULL)
+				free(VOLUME->Qhat[dim]);
+			VOLUME->Qhat[dim]  = malloc(NvnS*Nvar * sizeof *(VOLUME->Qhat[dim])); // keep
+
+			if (VOLUME->QhatV_What[dim] != NULL)
+				free(VOLUME->QhatV_What[dim]);
+			VOLUME->QhatV_What[dim] = malloc(NvnS*NvnS * sizeof *(VOLUME->QhatV_What[dim])); // keep
 		}
 	} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 		if (strstr(TestCase,"NavierStokes")) {
@@ -323,10 +337,6 @@ static void update_memory_VOLUME(struct S_VOLUME *const VOLUME)
 					if (VOLUME->QhatV_What[dim] != NULL)
 						free(VOLUME->QhatV_What[dim]);
 					VOLUME->QhatV_What[dim] = malloc(NvnS*NvnS * sizeof *(VOLUME->QhatV_What[dim])); // keep
-
-//					if (VOLUME->Qhat_What[dim] != NULL)
-//						free(VOLUME->Qhat_What[dim]);
-//					VOLUME->Qhat_What[dim] = malloc(NvnS*NvnS*Nvar*Neq * sizeof *(VOLUME->Qhat_What[dim])); // keep
 				}
 			}
 		}
@@ -375,12 +385,21 @@ static void free_memory_solver_VOLUME(struct S_VOLUME *const VOLUME)
 	}
 
 	if (strstr(TestCase,"Poisson")) {
-		free(VOLUME->uhat);
+		free(VOLUME->What);
 		for (size_t dim = 0; dim < d; dim++) {
+// Needs clean-up, remove q/u and use Q/W instead (ToBeDeleted)
 			free(VOLUME->qhat[dim]);
 			VOLUME->qhat[dim] = NULL;
 			free(VOLUME->qhat_uhat[dim]);
 			VOLUME->qhat_uhat[dim] = NULL;
+
+			free(VOLUME->QhatV[dim]);
+			VOLUME->QhatV[dim] = NULL;
+			free(VOLUME->Qhat[dim]);
+			VOLUME->Qhat[dim] = NULL;
+
+			free(VOLUME->QhatV_What[dim]);
+			VOLUME->QhatV_What[dim] = NULL;
 		}
 	} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 		free(VOLUME->What);
@@ -397,8 +416,6 @@ static void free_memory_solver_VOLUME(struct S_VOLUME *const VOLUME)
 				for (size_t dim = 0; dim < d; dim++) {
 					free(VOLUME->QhatV_What[dim]);
 					VOLUME->QhatV_What[dim] = NULL;
-					free(VOLUME->Qhat_What[dim]);
-					VOLUME->Qhat_What[dim] = NULL;
 				}
 			}
 		}
@@ -539,7 +556,7 @@ void update_VOLUME_hp(void)
 			VOLUME->NvnS = NvnSP;
 
 			if (strstr(TestCase,"Poisson")) {
-				uhat = VOLUME->uhat;
+				uhat = VOLUME->What;
 
 				uhatP = malloc(NvnSP*Nvar * sizeof *uhatP); // keep
 
@@ -551,7 +568,7 @@ void update_VOLUME_hp(void)
 					mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],uhat,uhatP);
 				}
 				free(uhat);
-				VOLUME->uhat = uhatP;
+				VOLUME->What = uhatP;
 			} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 				WhatP = malloc(NvnSP*Nvar * sizeof *WhatP); // keep
 				if (adapt_type == PREFINE) {
@@ -598,7 +615,7 @@ void update_VOLUME_hp(void)
 			break;
 		case HREFINE:
 			VType = VOLUME->type;
-			uhat  = VOLUME->uhat;
+			uhat  = VOLUME->What;
 			What  = VOLUME->What;
 			RES   = VOLUME->RES;
 
@@ -756,7 +773,7 @@ void update_VOLUME_hp(void)
 
 					mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],uhat,uhatH);
 
-					VOLUMEc->uhat = uhatH;
+					VOLUMEc->What = uhatH;
 				} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 					WhatH = malloc(NvnS[IndEhref]*Nvar * sizeof *WhatH); // keep
 					mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],VOLUME->What,WhatH);
@@ -878,7 +895,7 @@ void update_VOLUME_hp(void)
 							VOLUMEc = VOLUMEc->next;
 
 						if (strstr(TestCase,"Poisson")) {
-							uhatH = VOLUMEc->uhat;
+							uhatH = VOLUMEc->What;
 							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],uhatH,dummyPtr_d);
 							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
 								uhat[i] += dummyPtr_d[i];
@@ -910,7 +927,7 @@ void update_VOLUME_hp(void)
 					free(dummyPtr_d);
 
 					if (strstr(TestCase,"Poisson")) {
-						VOLUMEp->uhat = uhat;
+						VOLUMEp->What = uhat;
 					} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 						VOLUMEp->What = What;
 						VOLUMEp->RES  = RES;

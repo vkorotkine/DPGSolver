@@ -734,7 +734,7 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 	struct S_FACE              *const        FACE   = (struct S_FACE *const) FDATA->FACE;
 
 	unsigned int const d        = DB.d,
-	                   Nvar     = d+2,
+	                   Nvar     = DB.Nvar,
 	                   Vf       = FDATA->Vf,
 	                   IndFType = FDATA->IndFType,
 	                   NfnI     = OPS[IndFType]->NfnI,
@@ -989,40 +989,10 @@ static void evaluate_boundary(struct S_BC *const BCdata, bool const ComputeGradi
 
 static void evaluate_jacobian_boundary(struct S_BC *const BCdata, bool const ComputeGradient)
 {
-	/*
-	 *	Purpose:
-	 *		Compute boundary Jacobian for the solution.
-	 */
-
-	unsigned int const d    = BCdata->d,
-	                   Neq  = d+2,
-	                   NfnI = BCdata->Nn,
-	                   BC   = BCdata->BC;
-
-	double const *const XYZ_fIL = BCdata->XYZ,
-	             *const n_fIL   = BCdata->nL;
-
-	double const *const WL_fIL     = BCdata->WL;
-	double       *const dWRdWL_fIL = BCdata->dWBdWL;
-
-	if (ComputeGradient) {
+	if (ComputeGradient)
 		EXIT_UNSUPPORTED;
-	}
 
-	if (BC % BC_STEP_SC == BC_RIEMANN)
-		jacobian_boundary_Riemann(NfnI,1,XYZ_fIL,WL_fIL,NULL,dWRdWL_fIL,n_fIL,d,Neq);
-	else if (BC % BC_STEP_SC == BC_SLIPWALL)
-		jacobian_boundary_SlipWall(NfnI,1,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-	else if (BC % BC_STEP_SC == BC_BACKPRESSURE)
-		jacobian_boundary_BackPressure(NfnI,1,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-	else if (BC % BC_STEP_SC == BC_TOTAL_TP)
-		jacobian_boundary_Total_TP(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-	else if (BC % BC_STEP_SC == BC_SUPERSONIC_IN)
-		jacobian_boundary_SupersonicInflow(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-	else if (BC % BC_STEP_SC == BC_SUPERSONIC_OUT)
-		jacobian_boundary_SupersonicOutflow(NfnI,1,XYZ_fIL,WL_fIL,dWRdWL_fIL,n_fIL,d,Neq);
-	else
-		compute_jacobian_boundary_values(BCdata);
+	compute_jacobian_boundary_values(BCdata);
 }
 
 void compute_WR_fIL(struct S_FDATA const *const FDATA, double const *const WL_fIL, double *const WR_fIL)
@@ -1037,17 +1007,12 @@ void compute_WR_fIL(struct S_FDATA const *const FDATA, double const *const WL_fI
 	 *		(recall that nOrdLR gives the (n)ode (Ord)ering from (L)eft to (R)ight).
 	 *		For other boundary conditions, the solution is computed directly with the correct ordering using the
 	 *		appropriate boundary condition functions.
-	 *
-	 *		The ExactSlipWall flag is present to enable computation of the exact solution, which may be used to
-	 *		demonstrate that it is the SlipWall BC which is responsible for the suboptimal convergence using
-	 *		isoparametric geometry representation for the Euler equations on curved domains.
 	 */
 
 	struct S_OPERATORS_F const *const *const OPS  = FDATA->OPS;
 	struct S_FACE        const *const        FACE = FDATA->FACE;
 
-	unsigned int const d             = DB.d,
-	                   Nvar          = d+2,
+	unsigned int const Nvar          = DB.Nvar,
 	                   IndFType      = FDATA->IndFType,
 	                   BC            = FACE->BC,
 	                   NfnI          = OPS[IndFType]->NfnI,
@@ -1244,8 +1209,8 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 	struct S_FACE        const *const        FACE = FDATA->FACE;
 
 	unsigned int const d        = DB.d,
-	                   Nvar     = d+2,
-	                   Neq      = d+2,
+	                   Nvar     = DB.Nvar,
+	                   Neq      = DB.Neq,
 	                   IndFType = FDATA->IndFType,
 	                   Boundary = FACE->Boundary,
 	                   NfnI     = OPS[IndFType]->NfnI;
@@ -1267,8 +1232,8 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 	if (imex_type == 'I') {
 		unsigned int eqMax, varMax;
 		if (Boundary) {
-			eqMax  = d+2;
-			varMax = d+2;
+			eqMax  = Neq;
+			varMax = Nvar;
 		} else {
 			eqMax  = 1;
 			varMax = 1;
@@ -2222,8 +2187,8 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 		struct S_OPERATORS_F const *const *const OPS = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
 
 		unsigned int const d        = DB.d,
-		                   Neq      = d+2,
-		                   Nvar     = d+2,
+		                   Neq      = DB.Neq,
+		                   Nvar     = DB.Nvar,
 		                   P        = FDATA->P,
 		                   Eclass   = FDATA->Eclass,
 		                   Vf       = FDATA->Vf,
@@ -2510,7 +2475,6 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 		Qp_What = (double const *const *const) FDATAR->Qp_WhatL;
 		compute_LHS_FACE_Q_Weak(NvnSL,NvnSL,NfnI,I_FF,dnFluxViscNumdQR_fI,Qp_What,IdnFdQ,FACE->LHSInIn,Boundary);
 
-// Combine terms before passing to compute_LHS_FACE_Q_Weak. (ToBeModified)
 		// LHSRL (Effect of QL(...,WR))
 		Qp_What = (double const *const *const) FDATAL->Qp_WhatR;
 		compute_LHS_FACE_Q_Weak(NvnSL,NvnSR,NfnI,I_FF,dnFluxViscNumdQL_fI,Qp_What,IdnFdQ,FACE->LHSOutIn,Boundary);

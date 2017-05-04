@@ -49,7 +49,7 @@ void implicit_GradW(void)
 static void implicit_GradW_VOLUME(void)
 {
 	unsigned int const d    = DB.d,
-	                   Nvar = d+2;
+	                   Nvar = DB.Nvar;
 
 	struct S_OPERATORS_V *OPS[2];
 
@@ -72,7 +72,7 @@ static void implicit_GradW_VOLUME(void)
 		DxyzInfo->D   = (double const *const *const) VDATA->OPS[0]->D_Weak;
 		DxyzInfo->C   = VOLUME->C_vI;
 
-		double const *const ChiS_vI  = VDATA->OPS[0]->ChiS_vI;
+		double const *const ChiS_vI = VDATA->OPS[0]->ChiS_vI;
 
 		double **const QhatV_What = VOLUME->QhatV_What;
 		for (size_t dim = 0; dim < d; dim++) {

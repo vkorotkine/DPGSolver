@@ -69,8 +69,10 @@ static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, co
 		else if (refType == 1) DB.TETrefineType = TET12;
 		else if (refType == 2) DB.TETrefineType = TET6;
 		code_startup_mod_prmtrs(nargc,(char const *const *const) argvNew,Nref,update_argv,2);
-		if (DB.PGlobal <= 1)
-			printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
+		if (DB.PGlobal <= 1) {
+			test_print_warning("Please increase PGlobal above 1 in the ctrl file");
+			printf("Ctrl file: %s.ctrl\n",argvNew[1]);
+		}
 
 		run_test(&pass,"FullREFINE");
 		if (strstr(EName,"TRI"))

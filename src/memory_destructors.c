@@ -275,7 +275,6 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	free(VOLUME->What_c);
 	free(VOLUME->RHS_c);
 
-	free(VOLUME->uhat_c);
 	array_free2_cmplx(d,VOLUME->qhat_c);
 
 	array_free2_cmplx(d,VOLUME->QhatV_c);
@@ -285,10 +284,8 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	free(VOLUME->XYZ_vVP2);
 
 	// Poisson
-	free(VOLUME->uhat);
 	array_free2_d(d,VOLUME->qhat);
 	array_free2_d(d,VOLUME->qhat_uhat);
-	array_free2_d(d,VOLUME->DxyzChiS);
 
 	// structs
 	free(VOLUME->FACE);

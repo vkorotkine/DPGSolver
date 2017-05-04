@@ -152,6 +152,8 @@ void test_integration_Poisson(int nargc, char **argv)
 		test_print_warning("Poisson convergence order testing currently disabled");
 	}
 
+	test_print_warning("solver_Poisson potentially leaking memory");
+
 	array_free2_c(2,argvNew);
 	free(PrintName);
 }

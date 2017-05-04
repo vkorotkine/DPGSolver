@@ -35,21 +35,44 @@
 void compute_jacobian_boundary_values(struct S_BC *const BCdata)
 {
 	switch((BCdata->BC) % BC_STEP_SC) {
-//		case BC_RIEMANN:          jacobian_boundary_Riemann(BCdata);           break;
-//		case BC_SLIPWALL:         jacobian_boundary_SlipWall(BCdata);          break;
-//		case BC_BACKPRESSURE:     jacobian_boundary_BackPressure(BCdata);      break;
-//		case BC_TOTAL_TP:         jacobian_boundary_Total_TP(BCdata);          break;
-//		case BC_SUPERSONIC_IN:    jacobian_boundary_SupersonicInflow(BCdata);  break;
-//		case BC_SUPERSONIC_OUT:   jacobian_boundary_SupersonicOutflow(BCdata); break;
+		case BC_RIEMANN:          jacobian_boundary_Riemann(BCdata);           break;
+		case BC_SLIPWALL: {
+			if (EXACT_SLIPWALL) {
+				unsigned int const d    = BCdata->d,
+				                   Nvar = d+2,
+				                   Neq  = d+2,
+				                   Nn   = BCdata->Nn,
+				                   Nel  = BCdata->Nel;
+
+				unsigned int const NnTotal = Nn*Nel;
+
+				double *const dWBdWL = BCdata->dWBdWL;
+				for (size_t i = 0; i < NnTotal*Nvar*Neq; i++)
+					dWBdWL[i] = 0.0;
+			} else if (EXACT_NORMAL) {
+				double const *const nL = BCdata->nL;
+
+				BCdata->nL = compute_exact_boundary_normal(BCdata);
+				jacobian_boundary_SlipWall(BCdata);
+
+				free((double *) BCdata->nL);
+				BCdata->nL = nL;
+			} else {
+				jacobian_boundary_SlipWall(BCdata);
+			}
+			break;
+		}
+		case BC_BACKPRESSURE:     jacobian_boundary_BackPressure(BCdata);      break;
+		case BC_TOTAL_TP:         jacobian_boundary_Total_TP(BCdata);          break;
+		case BC_SUPERSONIC_IN:    jacobian_boundary_SupersonicInflow(BCdata);  break;
+		case BC_SUPERSONIC_OUT:   jacobian_boundary_SupersonicOutflow(BCdata); break;
 		case BC_NOSLIP_T:         jacobian_boundary_NoSlip_Dirichlet(BCdata);  break;
 		case BC_NOSLIP_ADIABATIC: jacobian_boundary_NoSlip_Adiabatic(BCdata);  break;
 		default:                  EXIT_UNSUPPORTED;                            break;
 	}
 }
 
-void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *WL,
-                               double *WOut, double *dWdW, const double *nL, const unsigned int d,
-                               const unsigned int Neq)
+void jacobian_boundary_Riemann(struct S_BC *const BCdata)
 {
 	/*
 	 *	Jacobian Matrices [var * eq]
@@ -73,20 +96,29 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, co
 	 *
 	 */
 
+	unsigned int const d       = BCdata->d,
+	                   Nvar    = d+2,
+	                   Neq     = d+2,
+	                   Nn      = BCdata->Nn,
+	                   Nel     = BCdata->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double const *const nL  = BCdata->nL,
+	             *const XYZ = BCdata->XYZ,
+	             *const WL  = BCdata->WL;
+
+	double *const dWdW = BCdata->dWBdWL;
+
 	// Standard datatypes
-	unsigned int i, iMax, n, eq, var, NnTotal, Nvar, InddWdW;
+	unsigned int i, iMax, n, eq, var, InddWdW;
 	double       rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL, rhoR, uR, vR, wR, pR,
 	             cL, RL, VnL, cR, RR, VnR, c, Vn,
 	             X, Y, n1, n2, n3, *dWdW_ptr[Neq*Neq];
 	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *X_ptr, *Y_ptr;
 
 	// silence
-	rhoL_ptr = WOut;
 	rhovL_ptr = rhowL_ptr = NULL;
 	n2 = n3 = 0.0;
-
-	NnTotal = Nn*Nel;
-	Nvar    = Neq;
 
 	double zeros[NnTotal];
 
@@ -397,8 +429,7 @@ void jacobian_boundary_Riemann(const unsigned int Nn, const unsigned int Nel, co
 	}
 }
 
-void jacobian_boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, const double *WL, double *dWdW,
-                                const double *nL, const unsigned int d, const unsigned int Neq)
+void jacobian_boundary_SlipWall(struct S_BC *const BCdata)
 {
 	/*
 	 *	Jacobian Matrix [var * eq]
@@ -410,17 +441,21 @@ void jacobian_boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, c
 	 *	            0  0          0         0         1 ]
 	 */
 
+	unsigned int const d       = BCdata->d,
+	                   Nvar    = d+2,
+	                   Neq     = d+2,
+	                   Nn      = BCdata->Nn,
+	                   Nel     = BCdata->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double const *const nL  = BCdata->nL;
+
+	double *const dWdW = BCdata->dWBdWL;
+
 	// Standard datatypes
-	unsigned int i, iMax, n, eq, var, NnTotal, Nvar, InddWdW;
+	unsigned int i, iMax, n, eq, var, InddWdW;
 	double       n1, n2, n3, *dWdW_ptr[Neq*Neq];
 	const double *n_ptr;
-
-	// silence
-	if (0)
-		printf("%f",WL[0]);
-
-	NnTotal = Nn*Nel;
-	Nvar    = Neq;
 
 	for (eq  = 0; eq  < Neq;  eq++)  {
 	for (var = 0; var < Nvar; var++) {
@@ -535,8 +570,7 @@ void jacobian_boundary_SlipWall(const unsigned int Nn, const unsigned int Nel, c
 	}
 }
 
-void jacobian_boundary_BackPressure(const unsigned int Nn, const unsigned int Nel, const double *WL, double *dWdW,
-                                    const double *nL, const unsigned int d, const unsigned int Neq)
+void jacobian_boundary_BackPressure(struct S_BC *const BCdata)
 {
 	/*
 	 *	Jacobian Matrices [var * eq]
@@ -552,16 +586,25 @@ void jacobian_boundary_BackPressure(const unsigned int Nn, const unsigned int Ne
 	 *		See below.
 	 */
 
+	unsigned int const d       = BCdata->d,
+	                   Nvar    = d+2,
+	                   Neq     = d+2,
+	                   Nn      = BCdata->Nn,
+	                   Nel     = BCdata->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double const *const nL  = BCdata->nL,
+	             *const WL  = BCdata->WL;
+
+	double *const dWdW = BCdata->dWBdWL;
+
 	// Standard datatypes
-	unsigned int n, NnTotal, eq, var, Nvar;
+	unsigned int n, eq, var;
 	double       *dWdW_ptr[Neq*Neq];
 	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *WL_ptr[Neq];
 
 	// silence
 	rhovL_ptr = rhowL_ptr = n_ptr = NULL;
-
-	NnTotal = Nn*Nel;
-	Nvar    = Neq;
 
 	for (eq  = 0; eq  < Neq;  eq++)  {
 		WL_ptr[eq] = &WL[eq*NnTotal];
@@ -699,25 +742,32 @@ void jacobian_boundary_BackPressure(const unsigned int Nn, const unsigned int Ne
 	}
 }
 
-void jacobian_boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, const double *XYZ, const double *WL,
-                                double *dWdW, const double *nL, const unsigned int d, const unsigned int Neq)
+void jacobian_boundary_Total_TP(struct S_BC *const BCdata)
 {
+
+	unsigned int const d       = BCdata->d,
+	                   Nvar    = d+2,
+	                   Neq     = d+2,
+	                   Nn      = BCdata->Nn,
+	                   Nel     = BCdata->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double const *const nL  = BCdata->nL,
+	             *const WL  = BCdata->WL;
+
+	double *const dWdW = BCdata->dWBdWL;
+
 	// Initialize DB Parameters
 	double Rg      = DB.Rg,
 	       p_Total = DB.p_Total,
 	       T_Total = DB.T_Total;
 
 	// Standard datatypes
-	unsigned int NnTotal, Nvar;
 	double       *dWdW_ptr[Neq*Neq];
 	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *n_ptr, *WL_ptr[Neq];
 
 	// silence
 	rhowL_ptr = NULL;
-	dWdW[0] = XYZ[0];
-
-	NnTotal = Nn*Nel;
-	Nvar    = Neq;
 
 	for (size_t eq = 0; eq  < Neq;  eq++)  {
 		WL_ptr[eq] = &WL[eq*NnTotal];
@@ -886,22 +936,19 @@ void jacobian_boundary_Total_TP(const unsigned int Nn, const unsigned int Nel, c
 	}
 }
 
-void jacobian_boundary_SupersonicInflow(const unsigned int Nn, const unsigned int Nel, const double *XYZ,
-                                        const double *WL, double *dWdW, const double *nL, const unsigned int d,
-                                        const unsigned int Neq)
+void jacobian_boundary_SupersonicInflow(struct S_BC *const BCdata)
 {
+	unsigned int const d       = BCdata->d,
+	                   Nvar    = d+2,
+	                   Neq     = d+2,
+	                   Nn      = BCdata->Nn,
+	                   Nel     = BCdata->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double *const dWdW = BCdata->dWBdWL;
+
 	// Standard datatypes
-	unsigned int NnTotal, Nvar;
 	double       *dWdW_ptr[Neq*Neq];
-
-	// silence
-	dWdW[0] = XYZ[0];
-	dWdW[0] = WL[0];
-	dWdW[0] = nL[0];
-	Nvar    = d;
-
-	NnTotal = Nn*Nel;
-	Nvar    = Neq;
 
 	for (size_t eq  = 0; eq  < Neq;  eq++)  {
 	for (size_t var = 0; var < Nvar; var++) {
@@ -920,22 +967,19 @@ void jacobian_boundary_SupersonicInflow(const unsigned int Nn, const unsigned in
 	}
 }
 
-void jacobian_boundary_SupersonicOutflow(const unsigned int Nn, const unsigned int Nel, const double *XYZ,
-                                         const double *WL, double *dWdW, const double *nL, const unsigned int d,
-                                         const unsigned int Neq)
+void jacobian_boundary_SupersonicOutflow(struct S_BC *const BCdata)
 {
+	unsigned int const d       = BCdata->d,
+	                   Nvar    = d+2,
+	                   Neq     = d+2,
+	                   Nn      = BCdata->Nn,
+	                   Nel     = BCdata->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double *const dWdW = BCdata->dWBdWL;
+
 	// Standard datatypes
-	unsigned int NnTotal, Nvar;
 	double       *dWdW_ptr[Neq*Neq];
-
-	// silence
-	dWdW[0] = XYZ[0];
-	dWdW[0] = WL[0];
-	dWdW[0] = nL[0];
-	Nvar    = d;
-
-	NnTotal = Nn*Nel;
-	Nvar    = Neq;
 
 	for (size_t eq  = 0; eq  < Neq;  eq++)  {
 	for (size_t var = 0; var < Nvar; var++) {

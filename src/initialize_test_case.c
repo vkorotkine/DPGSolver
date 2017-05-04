@@ -193,6 +193,8 @@ void initialize_test_case_parameters(void)
 		DB.Nvar = 1;
 		DB.Neq  = 1;
 
+		DB.Viscous = 1; // Needed to use some of the functionality from the Navier-Stokes solver
+
 		DB.SourcePresent = 1;
 		strcpy(DB.SolverType,"Implicit");
 
@@ -509,7 +511,7 @@ static void compute_gradient_polynomial(struct S_VOLUME *VOLUME)
 		}
 
 		q = malloc(NvnS * sizeof *q); // free
-		mm_CTN_d(NvnS,1,NvnS,Dxyz,VOLUME->uhat,q);
+		mm_CTN_d(NvnS,1,NvnS,Dxyz,VOLUME->What,q);
 		mm_CTN_d(NvnS,1,NvnS,OPS->ChiInvS_vS,q,VOLUME->qhat[dim]);
 		free(q);
 		free(Dxyz);
@@ -676,11 +678,11 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 
 				VOLUME->NvnS = NvnS;
 
-				free(VOLUME->uhat);
+				free(VOLUME->What);
 				for (dim = 0; dim < d; dim++)
 					free(VOLUME->qhat[dim]);
 
-				VOLUME->uhat = calloc(NvnS*Nvar , sizeof *(VOLUME->uhat)); // keep
+				VOLUME->What = calloc(NvnS*Nvar , sizeof *(VOLUME->What)); // keep
 				for (dim = 0; dim < d; dim++)
 					VOLUME->qhat[dim] = calloc(NvnS*Nvar , sizeof *(VOLUME->qhat[dim])); // keep
 
@@ -701,7 +703,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				free(U);
 
 				compute_inverse_mass(VOLUME);
-				mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,VOLUME->MInv,u_inter,VOLUME->uhat);
+				mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,VOLUME->MInv,u_inter,VOLUME->What);
 				free(u_inter);
 				if (VOLUME->MInv) {
 					free(VOLUME->MInv);

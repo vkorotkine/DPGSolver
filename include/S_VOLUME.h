@@ -25,7 +25,7 @@ struct S_VOLUME {
 	double         *RHS, *LHS, **LHSQ, *wdetJV_vI, *MInv, *MInv_diag;
 
 	// Linearization testing
-	double complex *RHS_c, *What_c, **Qhat_c, **QhatV_c, *uhat_c, **qhat_c;
+	double complex *RHS_c, *What_c, **Qhat_c, **QhatV_c, **qhat_c;
 
 	// hp adaptivity
 	unsigned int refine_current, Vadapt, adapt_type, PNew, hrefine_type;
@@ -33,8 +33,7 @@ struct S_VOLUME {
 //	double       minRES, maxRES;
 
 	// Poisson
-	double *uhat, **qhat, **qhat_uhat;
-	double **DxyzChiS;
+	double **qhat, **qhat_uhat;
 
 	// structs
 	struct S_VOLUME *next, *grpnext, *child0, *parent;

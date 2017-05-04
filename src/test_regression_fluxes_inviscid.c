@@ -1,7 +1,7 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#include "test_unit_fluxes_inviscid.h"
+#include "test_regression_fluxes_inviscid.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,11 +25,9 @@
  *	References:
  */
 
-void test_unit_fluxes_inviscid(void)
+void test_regression_fluxes_inviscid(void)
 {
 	unsigned int pass;
-
-	test_print_warning("fluxes inviscid testing should be called a regression test");
 
 	/*
 	 *	Input:

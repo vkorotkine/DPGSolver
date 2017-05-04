@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <complex.h>
 
 #include "Parameters.h"
@@ -13,6 +14,7 @@
 #include "Test.h"
 
 #include "test_code_fluxes.h"
+#include "test_code_boundary_conditions.h"
 #include "test_support.h"
 #include "boundary_conditions.h"
 #include "jacobian_boundary_conditions.h"
@@ -97,7 +99,7 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 {
 	unsigned int pass = 0;
 
-	unsigned int NnTotal, Nvar, i, CheckedAll;
+	unsigned int NnTotal, Nvar;
 	double       *dWdW, *dWdW_cs;
 
 	NnTotal = Nn*Nel;
@@ -120,108 +122,34 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 	BCdata->dWBdWL = dWdW;
 	BCdata->dQBdWL = NULL;
 
-	if (strstr(BType,"SlipWall"))
-		jacobian_boundary_SlipWall(Nn,Nel,W,dWdW,nL,d,Neq);
-	else if (strstr(BType,"Riemann"))
-		jacobian_boundary_Riemann(Nn,Nel,XYZ,W,NULL,dWdW,nL,d,Neq);
-	else if (strstr(BType,"BackPressure"))
-		jacobian_boundary_BackPressure(Nn,Nel,W,dWdW,nL,d,Neq);
-	else if (strstr(BType,"Total_TP"))
-		jacobian_boundary_Total_TP(Nn,Nel,XYZ,W,dWdW,nL,d,Neq);
-	else if (strstr(BType,"SupersonicIn"))
-		jacobian_boundary_SupersonicInflow(Nn,Nel,XYZ,W,dWdW,nL,d,Neq);
-	else if (strstr(BType,"SupersonicOut"))
-		jacobian_boundary_SupersonicOutflow(Nn,Nel,XYZ,W,dWdW,nL,d,Neq);
-	else if (strstr(BType,"NoSlip_Dirichlet"))
-		jacobian_boundary_NoSlip_Dirichlet(BCdata);
-	else if (strstr(BType,"NoSlip_Adiabatic"))
-		jacobian_boundary_NoSlip_Adiabatic(BCdata);
-	else
-		EXIT_UNSUPPORTED;
+	set_BC_from_BType(BCdata,BType);
+	correct_XYZ_for_exact_normal(BCdata,BType);
+	compute_jacobian_boundary_values(BCdata);
 
 	compute_dWdW_cs(Neq,Nn,Nel,d,W,dWdW_cs,nL,XYZ,BType);
 
 	free(BCdata);
 
-	if (strstr(BType,"Riemann")) {
-		CheckedAll = 1;
-		for (i = 0; i < TEST_N_RIEMANN; i++) {
-			if (!TestDB.EnteredRiemann[i]) {
-				CheckedAll = 0;
-				break;
-			}
-		}
-//		array_print_ui(1,4,TestDB.EnteredRiemann,'R');
-		if (CheckedAll && array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS)
-			pass = 1;
-	} else if (strstr(BType,"BackPressure")) {
-		CheckedAll = 1;
-		for (i = 0; i < TEST_N_BACKPRESSURE; i++) {
-			if (!TestDB.EnteredBackPressure[i]) {
-				CheckedAll = 0;
-				break;
-			}
-		}
-//		array_print_ui(1,2,TestDB.EnteredBackPressure,'R');
-		if (CheckedAll && array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS)
-			pass = 1;
-		else {
-			printf("%d % .3e\n",CheckedAll,array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf"));
-			array_print_d(Neq*Nvar,NnTotal,dWdW,'R');
-			array_print_d(Neq*Nvar,NnTotal,dWdW_cs,'R');
-		}
+	if (array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS) {
+		pass = 1;
 	} else {
-		if (array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS) {
-			pass = 1;
-		} else {
-			array_print_d(NnTotal*Nvar,Neq,dWdW,'C');
-			array_print_d(NnTotal*Nvar,Neq,dWdW_cs,'C');
-		    printf("% .3e\n",array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf"));
-		}
+		array_print_d(NnTotal*Nvar,Neq,dWdW,'C');
+		array_print_d(NnTotal*Nvar,Neq,dWdW_cs,'C');
+		printf("% .3e\n",array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf"));
+	}
+
+	bool CheckedAll = 0;
+	check_entered_test_boundary_conditions(&CheckedAll,BType);
+
+	if (!CheckedAll) {
+		pass = 0;
+		printf("Did not check all boundary condition settings for boundary %s\n",BType);
 	}
 
 	free(dWdW);
 	free(dWdW_cs);
 
 	return pass;
-}
-
-static void update_values(const unsigned int Nn, const unsigned int Nel, double *W, double *nL, const unsigned int d)
-{
-	unsigned int n, NnTotal, dim, var;
-
-	NnTotal = Nn*Nel;
-
-	if (NnTotal != 6)
-		EXIT_UNSUPPORTED;
-
-	if (d == 3) {
-		unsigned int FinalIndices[6] = {0,2,2,3,0,6};
-		for (n = 0; n < NnTotal; n++) {
-			if (FinalIndices[n] != n) {
-				for (dim = 0; dim < d; dim++)
-					nL[n*d+dim] *= -1.0;
-				if (FinalIndices[n] == n+1) {
-					for (var = 1; var < d+1; var++)
-						W[n+var*NnTotal] *= 0.5;
-				}
-			}
-		}
-	} else if (d == 2) {
-		unsigned int FinalIndices[6] = {0,2,0,4,0,6};
-		for (n = 0; n < NnTotal; n++) {
-			if (FinalIndices[n] != n) {
-				for (dim = 0; dim < d; dim++)
-					nL[n*d+dim] *= -1.0;
-				if (FinalIndices[n] == n+1) {
-					for (var = 1; var < d+1; var++)
-						W[n+var*NnTotal] *= 0.5;
-				}
-			}
-		}
-	} else {
-		EXIT_UNSUPPORTED;
-	}
 }
 
 void test_unit_jacobian_boundary(void)
@@ -239,70 +167,31 @@ void test_unit_jacobian_boundary(void)
 	 *
 	 */
 
-	unsigned int NBTypes = 8;
+	test_print_warning("Not testing dQBdW (Currently unused in the code)");
 
-	char         *BType[NBTypes];
-	unsigned int i, j, Nn, Nel, d, Neq, dMin[NBTypes], dMax[NBTypes];
+	unsigned int i, Nn, Nel, d, Neq;
 	double       *W, **Q, *nL, *XYZ;
 
-	DB.TestCase      = calloc(STRLEN_MAX , sizeof *(DB.TestCase));      // free
-	DB.PDE           = calloc(STRLEN_MAX , sizeof *(DB.PDE));           // free
-	DB.PDESpecifier  = calloc(STRLEN_MAX , sizeof *(DB.PDESpecifier));  // free
-	DB.Geometry      = calloc(STRLEN_MAX , sizeof *(DB.Geometry));      // free
-	DB.GeomSpecifier = calloc(STRLEN_MAX , sizeof *(DB.GeomSpecifier)); // free
-	DB.MeshFile      = calloc(STRLEN_MAX , sizeof *(DB.MeshFile));      // free
-	DB.MeshType      = calloc(STRLEN_MAX , sizeof *(DB.MeshType));      // free
+	set_memory_test_boundary_conditions('a');
 
-	for (i = 0; i < NBTypes; i++)
-		BType[i] = malloc(STRLEN_MIN * sizeof *BType[i]); // free
+	unsigned int NBTypes = 0;
+	char         **BType;
+	set_BTypes(&NBTypes,&BType); // free
 
-	strcpy(BType[0],"SlipWall        ");
-	strcpy(BType[1],"Riemann         ");
-	strcpy(BType[2],"BackPressure    ");
-	strcpy(BType[3],"Total_TP        ");
-	strcpy(BType[4],"SupersonicIn    ");
-	strcpy(BType[5],"SupersonicOut   ");
-	strcpy(BType[6],"NoSlip_Dirichlet");
-	strcpy(BType[7],"NoSlip_Adiabatic");
-
-	strcpy(DB.PDE,"Euler");
 	strcpy(DB.MeshType,"ToBeCurved"); // Meshes are not used for this test (and thus need not exist)
 
+	unsigned int const dMin = 2, dMax = 3;
 	for (i = 0; i < NBTypes; i++) {
 		if (i <= 5)
 			strcpy(DB.PDE,"Euler");
 		else
 			strcpy(DB.PDE,"NavierStokes");
 
-		dMin[i] = 2; dMax[i] = 3;
-		if (strstr(BType[i],"SlipWall") || strstr(BType[i],"Riemann")) {
-			strcpy(DB.TestCase,"SupersonicVortex");
-			strcpy(DB.PDESpecifier,"Internal");
-			strcpy(DB.Geometry,"n-Cylinder_HollowSection");
-		} else if (strstr(BType[i],"BackPressure") || strstr(BType[i],"Total_TP")) {
-			strcpy(DB.TestCase,"InviscidChannel");
-			strcpy(DB.PDESpecifier,"InternalSubsonic");
-			strcpy(DB.Geometry,"EllipsoidalSection");
-			strcpy(DB.GeomSpecifier,"Annular/3/");
-		} else if (strstr(BType[i],"SupersonicIn") || strstr(BType[i],"SupersonicOut")) {
-			strcpy(DB.TestCase,"InviscidChannel");
-			strcpy(DB.PDESpecifier,"InternalSupersonic");
-			strcpy(DB.Geometry,"EllipsoidalSection");
-			strcpy(DB.GeomSpecifier,"Annular/3/");
-		} else if (strstr(BType[i],"NoSlip")) {
-			strcpy(DB.TestCase,"TaylorCouette");
-			strcpy(DB.Geometry,"n-Cylinder_Hollow");
-		}
+		set_parameters_test_boundary_conditions(BType[i]);
 		initialize_test_case_parameters();
 
-		for (d = dMin[i]; d <= dMax[i]; d++) {
-			if (strstr(BType[i],"Riemann")) {
-				for (j = 0; j < TEST_N_RIEMANN; j++)
-					TestDB.EnteredRiemann[j] = 0;
-			} else if (strstr(BType[i],"BackPressure")) {
-				for (j = 0; j < TEST_N_BACKPRESSURE; j++)
-					TestDB.EnteredBackPressure[j] = 0;
-			}
+		for (d = dMin; d <= dMax; d++) {
+			reset_entered_test_boundary_conditions(BType[i]);
 
 			Neq = d+2;
 
@@ -310,14 +199,20 @@ void test_unit_jacobian_boundary(void)
 			Q    = initialize_Q(Nn,Nel,d);   // free
 			nL   = initialize_n(Nn,Nel,d);   // free
 			XYZ  = initialize_XYZ(Nn,Nel,d); // free
+
 			if (strstr(BType[i],"BackPressure"))
-				update_values(Nn,Nel,W,nL,d);
+				update_values_BackPressure(Nn,Nel,W,nL,d);
 			pass = compare_jacobian_boundary(Nn,Nel,d,Neq,W,Q,nL,XYZ,BType[i]);
 
-			if (d == dMin[i])
-				sprintf(PrintName,"jacobian_boundary_%s (d = %d):",BType[i],d);
-			else
+			if (d == dMin) {
+				if (i == 0) {
+					sprintf(PrintName,"jacobian_boundary_%s (d = %d):",BType[i],d);
+				} else {
+					sprintf(PrintName,"                  %s (d = %d):",BType[i],d);
+				}
+			} else {
 				sprintf(PrintName,"                                   (d = %d):",d);
+			}
 			test_print2(pass,PrintName);
 
 			free(W);
@@ -328,13 +223,7 @@ void test_unit_jacobian_boundary(void)
 		free(DB.SolverType); // Initialized in "initialize_test_case_parameters"
 	}
 
-	free(DB.TestCase);
-	free(DB.PDE);
-	free(DB.PDESpecifier);
-	free(DB.Geometry);
-	free(DB.GeomSpecifier);
-	free(DB.MeshFile);
-	free(DB.MeshType);
+	set_memory_test_boundary_conditions('f');
 
 	for (i = 0; i < NBTypes; i++)
 		free(BType[i]);

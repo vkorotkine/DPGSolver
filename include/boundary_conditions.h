@@ -4,9 +4,11 @@
 #ifndef DPG__boundary_conditions_h__INCLUDED
 #define DPG__boundary_conditions_h__INCLUDED
 
+#include <stdbool.h>
 #include <complex.h>
 
 struct S_BC {
+	bool         ComputeQ;
 	unsigned int d, Nn, Nel, BC;
 
 	double const *XYZ, *nL;
@@ -28,7 +30,7 @@ struct S_BC {
 };
 
 // Make these DB parameters if used regularly.
-#define EXACT_SLIPWALL 1
+#define EXACT_SLIPWALL 0
 #define EXACT_NORMAL   0
 
 extern void   compute_exact_boundary_solution (struct S_BC *const BCdata);

@@ -101,12 +101,11 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 			EXIT_UNSUPPORTED;
 		}
 	} else if (strstr(TestName,"Euler")) {
-//		data->PrintEnabled   = 1;
 		if (strstr(TestName,"n-Cylinder_HollowSection")) {
 			data->SolveExplicit = 0;
 			if (strstr(TestName,"ToBeCurved")) {
 				if (strstr(TestName,"MIXED2D")) {
-//					data->PrintEnabled = 0;
+//					data->PrintEnabled = 1;
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
 				} else if (strstr(TestName,"TET")) {
 					// Starting with a coarser initial mesh than ML=2 lead to blow-up in solver_implicit. This is
@@ -134,10 +133,10 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 					EXIT_UNSUPPORTED;
 				}
 			} else if (strstr(TestName,"CurvedMIXED2D")) {
-//				data->PrintEnabled = 0;
-				printf("Modified Parameters.\n"); PRINT_FILELINE;
-				data->PMax = 2;
-				data->MLMax = 2;
+//				data->PrintEnabled = 1;
+test_print_warning("Modified Parameters"); PRINT_FILELINE;
+data->PMax = 2;
+data->MLMax = 2;
 				strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_CurvedMIXED2D");
 			} else {
 				EXIT_UNSUPPORTED;
@@ -162,6 +161,7 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 	} else if (strstr(TestName,"NavierStokes")) {
 		data->PG_add = 0;
 		data->PrintEnabled = 1;
+test_print_warning("Modified Parameters"); PRINT_FILELINE;
 data->MLMax = 0;
 data->PMax  = 1;
 

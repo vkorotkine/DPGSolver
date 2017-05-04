@@ -71,16 +71,16 @@ static void explicit_GradW_VOLUME_c(void)
 		DxyzInfo->C   = VOLUME->C_vI;
 
 		double const *const        ChiS_vI  = VDATA->OPS[0]->ChiS_vI;
-		double       *      *const DxyzChiS = VOLUME->DxyzChiS;
 		for (size_t dim = 0; dim < d; dim++) {
 			DxyzInfo->dim = dim;
 			double *const Dxyz = compute_Dxyz(DxyzInfo,d); // free
 
 			// Note: The detJ_vI term cancels with the gradient operator (Zwanenburg(2016), eq. (B.2))
+			double *DxyzChiS = NULL;
 			if (DB.Collocated) { // ChiS_vI == I
-				DxyzChiS[dim] = Dxyz;
+				DxyzChiS = Dxyz;
 			} else {
-				DxyzChiS[dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // free
+				DxyzChiS = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // free
 				free(Dxyz);
 			}
 
@@ -89,9 +89,10 @@ static void explicit_GradW_VOLUME_c(void)
 				free(VOLUME->QhatV_c[dim]);
 			VOLUME->QhatV_c[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV_c[dim])); // keep
 
-			// Note: Using CBCM with CBNT for DxyzChiS (stored in row-major ordering) gives DxyzChiS' in the operation
-			//       below.
-			mm_dcc(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,DxyzChiS[dim],VOLUME->What_c,VOLUME->QhatV_c[dim]);
+			// Note: Using CBCM with CBNT for DxyzChiS (stored in row-major ordering) gives DxyzChiS transposed in the
+			//       operation below.
+			mm_dcc(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,DxyzChiS,VOLUME->What_c,VOLUME->QhatV_c[dim]);
+			free(DxyzChiS);
 
 			if (VOLUME->Qhat_c[dim] != NULL)
 				free(VOLUME->Qhat_c[dim]);
@@ -99,8 +100,6 @@ static void explicit_GradW_VOLUME_c(void)
 
 			for (size_t i = 0; i < NvnS*Nvar; i++)
 				VOLUME->Qhat_c[dim][i] = VOLUME->QhatV_c[dim][i];
-
-			free(DxyzChiS[dim]); DxyzChiS[dim] = NULL;
 		}
 	}
 

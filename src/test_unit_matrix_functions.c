@@ -368,9 +368,7 @@ static void test_unit_matrix_mm(void)
 
 	RAND_MAXd = (double)RAND_MAX;
 
-	printf("\nWarning: Ensure that all options are tested for mm_CTN (mv/mm, useBLAS = 0/1) "
-	       "based on input dimensions (m, n, k)\n\n");
-	TestDB.Nwarnings++;
+	test_print_warning("Ensure that all options are tested for mm_CTN (mv/mm, useBLAS = 0/1) based on input dimensions (m, n, k)");
 
 
 	// mv, NoBLAS

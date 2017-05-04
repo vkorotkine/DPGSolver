@@ -594,7 +594,6 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->What_c = NULL; // free
 	VOLUME->RHS_c  = NULL; // free
 
-	VOLUME->uhat_c = NULL; // free
 	VOLUME->qhat_c = calloc(d , sizeof *(VOLUME->qhat_c)); // free
 
 	VOLUME->QhatV_c = calloc(d , sizeof *(VOLUME->QhatV_c)); // free
@@ -613,11 +612,8 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->XYZ_vVP2 = NULL; // free
 
 	// Poisson
-	VOLUME->uhat      = NULL; // free
 	VOLUME->qhat      = calloc(d , sizeof *(VOLUME->qhat)); // free
 	VOLUME->qhat_uhat = calloc(d , sizeof *(VOLUME->qhat)); // free
-
-	VOLUME->DxyzChiS = calloc(d , sizeof *(VOLUME->DxyzChiS)); // free
 
 	// structs
 	VOLUME->next    = NULL;

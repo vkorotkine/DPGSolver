@@ -19,6 +19,7 @@
 #include "matrix_functions.h"
 
 #include "array_swap.h"
+#include "boundary_conditions.h"
 #include "boundary_conditions_c.h"
 #include "fluxes_inviscid_c.h"
 #include "fluxes_viscous_c.h"

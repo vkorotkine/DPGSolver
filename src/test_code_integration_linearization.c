@@ -408,10 +408,10 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 
 		// Note: Initialize with zeros for linear cases.
 		if (strstr(DB.TestCase,"Poisson")) {
-			if (VOLUME->uhat_c)
-				free(VOLUME->uhat_c);
+			if (VOLUME->What_c)
+				free(VOLUME->What_c);
 
-			VOLUME->uhat_c = calloc(NvnS[0]*Nvar , sizeof *(VOLUME->uhat_c));
+			VOLUME->What_c = calloc(NvnS[0]*Nvar , sizeof *(VOLUME->What_c));
 		} else if (strstr(DB.TestCase,"Euler") || strstr(DB.TestCase,"NavierStokes")) {
 			if (VOLUME->What_c)
 				free(VOLUME->What_c);
@@ -430,7 +430,7 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 		for (size_t i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++) {
 			double const h = EPS*EPS;
 			if (strstr(DB.TestCase,"Poisson")) {
-				VOLUME->uhat_c[i] += h*I;
+				VOLUME->What_c[i] += h*I;
 
 				compute_qhat_VOLUME_c();
 				compute_qhat_FACE_c();
@@ -566,7 +566,7 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 				}}
 			}
 			if (strstr(DB.TestCase,"Poisson")) {
-				VOLUME->uhat_c[i] -= h*I;
+				VOLUME->What_c[i] -= h*I;
 			} else if (strstr(DB.TestCase,"Euler") || strstr(DB.TestCase,"NavierStokes")) {
 				VOLUME->What_c[i] -= h*I;
 			} else {
@@ -594,7 +594,7 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 		for (size_t i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++) {
 			double const h = EPS*EPS;
 			if (strstr(DB.TestCase,"Poisson")) {
-				VOLUME->uhat_c[i] += h*I;
+				VOLUME->What_c[i] += h*I;
 
 				compute_qhat_VOLUME_c();
 				compute_qhat_FACE_c();
@@ -635,7 +635,7 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 			}
 
 			if (strstr(DB.TestCase,"Poisson")) {
-				VOLUME->uhat_c[i] -= h*I;
+				VOLUME->What_c[i] -= h*I;
 			} else if (strstr(DB.TestCase,"Euler") || strstr(DB.TestCase,"NavierStokes")) {
 				VOLUME->What_c[i] -= h*I;
 			} else {

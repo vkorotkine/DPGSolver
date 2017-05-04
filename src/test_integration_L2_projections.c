@@ -124,10 +124,13 @@ static void test_L2_projection(struct S_L2proj *data)
 		if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1.4e4*EPS) {
 			pass = 1;
 		} else if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e-5) {
+			// Try including higher order accurate TET/PYR cubature nodes for the computation of L2 projection operators
+			// and check effect on error in this test. (ToBeModified)
+
 			pass = 1;
-			printf("\nWarning: h L2 projection test for P%d %ss passing with norm_diff = % .3e\n\n",
+			test_print_warning("h L2 projection test passing with elevated norm_diff");
+			printf("P = %d, CtrlName: %s, norm_diff = % .3e\n\n",
 				   DB.PGlobal,data->CtrlName[1],array_norm_diff_d(1,L2err[0],L2err[1],"Inf"));
-			TestDB.Nwarnings++;
 		}
 
 		test_print2(pass,"               (          ADAPT_H):");
@@ -190,10 +193,6 @@ void test_integration_L2_projections(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// TETs
-	printf("\nInclude higher order accurate TET/PYR cubature nodes for the computation of L2 projection operators and\n"
- 	         "check effect on error in this test.\n\n");
-	TestDB.Nwarnings++;
-
 	strcpy(data->EName,"TET   ");
 	strcpy(data->CtrlName[1],"TET");
 

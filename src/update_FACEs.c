@@ -1541,6 +1541,7 @@ static void update_memory_FACE(struct S_FACE *const FACE)
 	// Other solver related arrays
 	if (strstr(TestCase,"Poisson")) {
 		for (size_t dim = 0; dim < d; dim++) {
+// Needs clean-up, remove q/u and use Q/W instead (ToBeDeleted)
 			if (FACE->qhatIn[dim] != NULL)
 				free(FACE->qhatIn[dim]);
 			FACE->qhatIn[dim] = malloc(NvnSL*Nvar * sizeof *(FACE->qhatIn[dim])); // keep
@@ -1549,11 +1550,23 @@ static void update_memory_FACE(struct S_FACE *const FACE)
 				free(FACE->qhat_uhatInIn[dim]);
 			FACE->qhat_uhatInIn[dim] = malloc(NvnSL*NvnSL*Nvar*Neq * sizeof *(FACE->qhat_uhatInIn[dim])); // keep
 
+			if (FACE->QhatL[dim] != NULL)
+				free(FACE->QhatL[dim]);
+			FACE->QhatL[dim] = malloc(NvnSL*Nvar * sizeof *(FACE->QhatL[dim])); // keep
+
+			if (FACE->Qhat_WhatLL[dim] != NULL)
+				free(FACE->Qhat_WhatLL[dim]);
+			FACE->Qhat_WhatLL[dim] = malloc(NvnSL*NvnSL * sizeof *(FACE->Qhat_WhatLL[dim])); // keep
+
 			if (!FACE->Boundary) {
 				unsigned int const NvnSR = FACE->VOut->NvnS;
 				if (FACE->qhatOut[dim] != NULL)
 					free(FACE->qhatOut[dim]);
 				FACE->qhatOut[dim] = malloc(NvnSR*Nvar * sizeof *(FACE->qhatOut[dim])); // keep
+
+				if (FACE->QhatR[dim] != NULL)
+					free(FACE->QhatR[dim]);
+				FACE->QhatR[dim] = malloc(NvnSR*Nvar * sizeof *(FACE->QhatR[dim])); // keep
 
 				if (FACE->qhat_uhatInOut[dim] != NULL)
 					free(FACE->qhat_uhatInOut[dim]);
@@ -1564,6 +1577,16 @@ static void update_memory_FACE(struct S_FACE *const FACE)
 				if (FACE->qhat_uhatOutOut[dim] != NULL)
 					free(FACE->qhat_uhatOutOut[dim]);
 				FACE->qhat_uhatOutOut[dim] = malloc(NvnSR*NvnSR*Nvar*Neq * sizeof *(FACE->qhat_uhatOutOut[dim])); // keep
+
+				if (FACE->Qhat_WhatRL[dim] != NULL)
+					free(FACE->Qhat_WhatRL[dim]);
+				FACE->Qhat_WhatRL[dim] = malloc(NvnSL*NvnSR * sizeof *(FACE->Qhat_WhatRL[dim])); // keep
+				if (FACE->Qhat_WhatLR[dim] != NULL)
+					free(FACE->Qhat_WhatLR[dim]);
+				FACE->Qhat_WhatLR[dim] = malloc(NvnSR*NvnSL * sizeof *(FACE->Qhat_WhatLR[dim])); // keep
+				if (FACE->Qhat_WhatRR[dim] != NULL)
+					free(FACE->Qhat_WhatRR[dim]);
+				FACE->Qhat_WhatRR[dim] = malloc(NvnSR*NvnSR * sizeof *(FACE->Qhat_WhatRR[dim])); // keep
 			}
 		}
 	} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
@@ -1611,12 +1634,6 @@ static void update_memory_FACE(struct S_FACE *const FACE)
 
 void update_memory_FACEs(void)
 {
-//	printf("umF\n");
-//	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
-//		printf("%d %d\n",VOLUME->indexg,VOLUME->NvnS);
-//	struct S_FACE *FACE = DB.FACE;
-//	printf("%d %p %p %d %d\n",FACE->indexg,FACE->VIn,DB.VOLUME,FACE->VIn->indexg,FACE->VIn->NvnS);
-//
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next)
 		update_memory_FACE(FACE);
 }
@@ -1665,15 +1682,25 @@ static void free_memory_solver_FACE(struct S_FACE *const FACE)
 
 	if (strstr(TestCase,"Poisson")) {
 		for (size_t dim = 0; dim < d; dim++) {
+// Needs clean-up, remove q/u and use Q/W instead (ToBeDeleted)
 			free(FACE->qhatIn[dim]);
 			FACE->qhatIn[dim] = NULL;
 
 			free(FACE->qhat_uhatInIn[dim]);
 			FACE->qhat_uhatInIn[dim] = NULL;
 
+			free(FACE->QhatL[dim]);
+			FACE->QhatL[dim] = NULL;
+
+			free(FACE->Qhat_WhatLL[dim]);
+			FACE->Qhat_WhatLL[dim] = NULL;
+
 			if (!FACE->Boundary) {
 				free(FACE->qhatOut[dim]);
 				FACE->qhatOut[dim] = NULL;
+
+				free(FACE->QhatR[dim]);
+				FACE->QhatR[dim] = NULL;
 
 				free(FACE->qhat_uhatInOut[dim]);
 				FACE->qhat_uhatInOut[dim] = NULL;
@@ -1681,6 +1708,13 @@ static void free_memory_solver_FACE(struct S_FACE *const FACE)
 				FACE->qhat_uhatOutIn[dim] = NULL;
 				free(FACE->qhat_uhatOutOut[dim]);
 				FACE->qhat_uhatOutOut[dim] = NULL;
+
+				free(FACE->Qhat_WhatRL[dim]);
+				FACE->Qhat_WhatRL[dim] = NULL;
+				free(FACE->Qhat_WhatLR[dim]);
+				FACE->Qhat_WhatLR[dim] = NULL;
+				free(FACE->Qhat_WhatRR[dim]);
+				FACE->Qhat_WhatRR[dim] = NULL;
 			}
 		}
 	} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {

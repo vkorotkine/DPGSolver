@@ -136,7 +136,7 @@ void compute_qhat_VOLUME_c(void)
 
 	// Standard datatypes
 	unsigned int   dim1, NvnS;
-	double         *MInv, **DxyzChiS, *Sxyz;
+	double         *MInv, *Sxyz;
 	double complex *qhat;
 
 	struct S_OPERATORS *OPS;
@@ -151,14 +151,13 @@ void compute_qhat_VOLUME_c(void)
 
 		// Compute RHS term
 		MInv     = VOLUME->MInv;
-		DxyzChiS = VOLUME->DxyzChiS;
 
 		for (dim1 = 0; dim1 < d; dim1++) {
-			Sxyz = mm_Alloc_d(CBRM,CBNT,CBT,NvnS,NvnS,NvnS,1.0,MInv,DxyzChiS[dim1]); // free
+			Sxyz = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,1.0,MInv,VOLUME->QhatV_What[dim1]); // free
 
 			// RHS
 			qhat = malloc(NvnS*1 * sizeof *qhat); // keep
-			mm_dcc(CBCM,CBT,CBNT,NvnS,1,NvnS,1.0,0.0,Sxyz,VOLUME->uhat_c,qhat);
+			mm_dcc(CBCM,CBT,CBNT,NvnS,1,NvnS,1.0,0.0,Sxyz,VOLUME->What_c,qhat);
 			free(Sxyz);
 
 			if (VOLUME->qhat_c[dim1])
@@ -287,13 +286,13 @@ void compute_qhat_FACE_c(void)
 
 		// Compute uIn_fI
 		uIn_fI = malloc(NfnI * sizeof *uIn_fI); // free
-		mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSIn,1.0,0.0,OPSIn->ChiS_fI[VfIn],VIn->uhat_c,uIn_fI);
+		mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSIn,1.0,0.0,OPSIn->ChiS_fI[VfIn],VIn->What_c,uIn_fI);
 
 		// Compute_uOut_fI (Taking BCs into account if applicable)
 		uOut_fIIn = malloc(NfnI * sizeof *uOut_fIIn); // free
 		if (!Boundary) {
 			uOut_fI = malloc(NfnI * sizeof *uOut_fI); // free
-			mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSOut,1.0,0.0,OPSOut->ChiS_fI[VfOut],VOut->uhat_c,uOut_fI);
+			mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSOut,1.0,0.0,OPSOut->ChiS_fI[VfOut],VOut->What_c,uOut_fI);
 
 			// Reorder uOut_fI to correspond to uIn_fI
 			for (n = 0; n < NfnI; n++)
@@ -371,7 +370,6 @@ void compute_uhat_VOLUME_c(void)
 
 	// Standard datatypes
 	unsigned int   dim1, NvnS;
-	double         **DxyzChiS;
 	double complex *RHS;
 
 	struct S_OPERATORS *OPS;
@@ -385,7 +383,6 @@ void compute_uhat_VOLUME_c(void)
 		NvnS = OPS->NvnS;
 
 		// Compute RHS terms
-		DxyzChiS = VOLUME->DxyzChiS;
 
 		// RHS
 		if (VOLUME->RHS_c)
@@ -394,7 +391,7 @@ void compute_uhat_VOLUME_c(void)
 		VOLUME->RHS_c = RHS;
 
 		for (dim1 = 0; dim1 < d; dim1++)
-			mm_dcc(CBCM,CBT,CBNT,NvnS,1,NvnS,-1.0,1.0,DxyzChiS[dim1],VOLUME->qhat_c[dim1],RHS);
+			mm_dcc(CBCM,CBNT,CBNT,NvnS,1,NvnS,-1.0,1.0,VOLUME->QhatV_What[dim1],VOLUME->qhat_c[dim1],RHS);
 	}
 	free(OPS);
 }
@@ -487,14 +484,14 @@ void compute_uhat_FACE_c()
 			GradxyzIn[dim1]  = malloc(NfnI*NvnSIn  * sizeof **GradxyzIn);  // free
 			GradxyzOut[dim1] = malloc(NfnI*NvnSOut * sizeof **GradxyzOut); // free
 
-			mm_d(CBRM,CBNT,CBT,NfnI,NvnSIn, NvnSIn, 1.0,0.0,ChiSMInv_fIIn, VIn->DxyzChiS[dim1], GradxyzIn[dim1]);
-			mm_d(CBRM,CBNT,CBT,NfnI,NvnSOut,NvnSOut,1.0,0.0,ChiSMInv_fIOut,VOut->DxyzChiS[dim1],GradxyzOut[dim1]);
+			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSIn, NvnSIn, 1.0,0.0,ChiSMInv_fIIn, VIn->QhatV_What[dim1], GradxyzIn[dim1]);
+			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,0.0,ChiSMInv_fIOut,VOut->QhatV_What[dim1],GradxyzOut[dim1]);
 		}
 
-		mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSIn,1.0,0.0,OPSIn->ChiS_fI[VfIn],VIn->uhat_c,uIn_fI);
+		mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSIn,1.0,0.0,OPSIn->ChiS_fI[VfIn],VIn->What_c,uIn_fI);
 
 		for (dim = 0; dim < d; dim++)
-			mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSIn,1.0,0.0,GradxyzIn[dim],VIn->uhat_c,&grad_uIn_fI[NfnI*dim]);
+			mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSIn,1.0,0.0,GradxyzIn[dim],VIn->What_c,&grad_uIn_fI[NfnI*dim]);
 
 		// Compute_uOut_fI (Taking BCs into account if applicable)
 		uOut_fIIn      = malloc(NfnI   * sizeof *uOut_fIIn);      // free
@@ -503,7 +500,7 @@ void compute_uhat_FACE_c()
 		if (!Boundary) {
 			uOut_fI = malloc(NfnI * sizeof *uOut_fI); // free
 
-			mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSOut,1.0,0.0,OPSOut->ChiS_fI[VfOut],VOut->uhat_c,uOut_fI);
+			mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSOut,1.0,0.0,OPSOut->ChiS_fI[VfOut],VOut->What_c,uOut_fI);
 
 			// Reorder uOut_fI to correspond to inner VOLUME ordering
 			for (n = 0; n < NfnI; n++)
@@ -511,7 +508,7 @@ void compute_uhat_FACE_c()
 			free(uOut_fI);
 
 			for (dim = 0; dim < d; dim++)
-				mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSOut,1.0,0.0,GradxyzOut[dim],VOut->uhat_c,&grad_uOut_fIIn[NfnI*dim]);
+				mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSOut,1.0,0.0,GradxyzOut[dim],VOut->What_c,&grad_uOut_fIIn[NfnI*dim]);
 		} else {
 			boundary_Poisson_c(NfnI,1,FACE->XYZ_fI,n_fI,uIn_fI,uOut_fIIn,grad_uIn_fI,grad_uOut_fIIn,BC % BC_STEP_SC,BC / BC_STEP_SC);
 		}

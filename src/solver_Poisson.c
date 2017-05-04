@@ -20,8 +20,11 @@
 #include "S_FACE.h"
 #include "Test.h"
 
-#include "element_functions.h"
+#include "solver_functions.h"
 #include "update_VOLUMEs.h"
+#include "implicit_GradW.h"
+
+#include "element_functions.h"
 #include "matrix_functions.h"
 #include "exact_solutions.h"
 #include "setup_geom_factors.h"
@@ -42,22 +45,15 @@
  *		Many of the RHS terms computed are 0; they are included as they are used to check the linearization. Further,
  *		the computational cost is dominated by the global system solve making this additional cost negligible.
  *
- *		Originally, the Weak form was employed for both of the equations resulting from the transformation of the 2nd
- *		order equation to the system of 1st order equations. An overflow error in basis_SI (now resolved) initially
- *		resulted in lack of symmetry of the global system matrix when using P > 5 for TRIs. This would likely work
- *		correctly now if implemented but the strong from of the scheme very easily retains the symmetry required and is
- *		hence a more intuitive discretization.
- *
  *	Notation:
  *
  *	References:
- *		See alternate/solver_Poisson_weak.c for weak form implementation.
  */
 
 struct S_OPERATORS {
-	unsigned int NvnS, NvnI, NfnI, NvnC,
+	unsigned int NvnS, NfnI, NvnC,
 	             *nOrdOutIn, *nOrdInOut;
-	double       *w_fI, *w_vI, *ChiS_vI, **GradChiS_vI, **ChiS_fI, ***GradChiS_fI, **I_vC_fI;
+	double       *w_fI, *ChiS_vI, **ChiS_fI, ***GradChiS_fI, **I_vC_fI, **D_Weak;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
@@ -75,19 +71,11 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 
 	OPS->NvnS = ELEMENT->NvnS[P];
 	if (!curved) {
-		OPS->NvnI = ELEMENT->NvnIs[P];
-
-		OPS->w_vI = ELEMENT->w_vIs[P];
-
 		OPS->ChiS_vI     = ELEMENT->ChiS_vIs[P][P][0];
-		OPS->GradChiS_vI = ELEMENT->GradChiS_vIs[P][P][0];
+		OPS->D_Weak  = ELEMENT->Ds_Weak_VV[P][P][0];
 	} else {
-		OPS->NvnI = ELEMENT->NvnIc[P];
-
-		OPS->w_vI = ELEMENT->w_vIc[P];
-
 		OPS->ChiS_vI     = ELEMENT->ChiS_vIc[P][P][0];
-		OPS->GradChiS_vI = ELEMENT->GradChiS_vIc[P][P][0];
+		OPS->D_Weak  = ELEMENT->Dc_Weak_VV[P][P][0];
 	}
 }
 
@@ -155,68 +143,20 @@ static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, co
 
 static void compute_qhat_VOLUME(void)
 {
-	// Initialize DB Parameters
 	unsigned int d = DB.d;
 
-	// Standard datatypes
-	unsigned int i, j, dim1, dim2, IndD, IndC, NvnI, NvnS;
-	double       *w_vI, *diag_w_vI, *ChiS_vI, **GradChiS_vI, *MInv, **D, *C_vI, *Dxyz, **DxyzChiS;
-
-	struct S_OPERATORS *OPS;
-	struct S_VOLUME    *VOLUME;
-
-	OPS = malloc(sizeof *OPS); // free
-
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		compute_inverse_mass(VOLUME);
 
-		init_ops(OPS,VOLUME);
-
-		NvnI = OPS->NvnI;
-		NvnS = OPS->NvnS;
-
-		ChiS_vI     = OPS->ChiS_vI;
-		GradChiS_vI = OPS->GradChiS_vI;
-
-		// Construct physical derivative operator matrices
-		MInv = VOLUME->MInv;
-		C_vI = VOLUME->C_vI;
-		w_vI = OPS->w_vI;
-
-		diag_w_vI = diag_d(w_vI,NvnI); // free
-
-		D = malloc(d * sizeof *D); // free
-		for (dim1 = 0; dim1 < d; dim1++)
-			D[dim1] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS,NvnI,NvnI,1.0,GradChiS_vI[dim1],diag_w_vI);
-		free(diag_w_vI);
-
-		DxyzChiS = VOLUME->DxyzChiS;
-		for (dim1 = 0; dim1 < d; dim1++) {
-			Dxyz = calloc(NvnS*NvnI , sizeof *Dxyz); // free
-			for (dim2 = 0; dim2 < d; dim2++) {
-				IndD = 0;
-				IndC = (dim1+dim2*d)*NvnI;
-				for (i = 0; i < NvnS; i++) {
-					for (j = 0; j < NvnI; j++) {
-						Dxyz[IndD+j] += D[dim2][IndD+j]*C_vI[IndC+j];
-					}
-					IndD += NvnI;
-				}
-			}
-			if (DxyzChiS[dim1])
-				free(DxyzChiS[dim1]);
-			DxyzChiS[dim1] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // keep
-			free(Dxyz);
-		}
-		array_free2_d(d,D);
+		unsigned int const NvnS = VOLUME->NvnS;
 
 		// Compute RHS and LHS terms
-		for (dim1 = 0; dim1 < d; dim1++) {
-			mm_d(CBRM,CBNT,CBT,NvnS,NvnS,NvnS,1.0,0.0,MInv,DxyzChiS[dim1],VOLUME->qhat_uhat[dim1]);
-			mm_CTN_d(NvnS,1,NvnS,VOLUME->qhat_uhat[dim1],VOLUME->uhat,VOLUME->qhat[dim1]);
+		for (size_t dim = 0; dim < d; dim++) {
+// Remove MInv contribution when QhatV_What is finalized (ToBeDeleted)
+			mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,1.0,0.0,VOLUME->MInv,VOLUME->QhatV_What[dim],VOLUME->qhat_uhat[dim]);
+			mm_CTN_d(NvnS,1,NvnS,VOLUME->qhat_uhat[dim],VOLUME->What,VOLUME->qhat[dim]);
 		}
 	}
-	free(OPS);
 }
 
 void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, const unsigned int BCcurved)
@@ -389,6 +329,8 @@ static void jacobian_boundary_Poisson(const unsigned int Nn, const unsigned int 
 
 static void compute_qhat_FACE(void)
 {
+// qhat and qhat_uhat here do not include the contribution of ChiS_fI.
+// To use the general solver_functions, it would be required to add support for the Poisson boundary conditions.
 	// Initialize DB Parameters
 	unsigned int d = DB.d;
 
@@ -444,13 +386,13 @@ static void compute_qhat_FACE(void)
 
 		// Compute uIn_fI
 		uIn_fI = malloc(NfnI * sizeof *uIn_fI); // free
-		mm_CTN_d(NfnI,1,NvnSIn,OPSIn->ChiS_fI[VfIn],VIn->uhat,uIn_fI);
+		mm_CTN_d(NfnI,1,NvnSIn,OPSIn->ChiS_fI[VfIn],VIn->What,uIn_fI);
 
 		// Compute_uOut_fI (Taking BCs into account if applicable)
 		uOut_fIIn = malloc(NfnI * sizeof *uOut_fIIn); // free
 		if (!Boundary) {
 			uOut_fI = malloc(NfnI * sizeof *uOut_fI); // free
-			mm_CTN_d(NfnI,1,NvnSOut,OPSOut->ChiS_fI[VfOut],VOut->uhat,uOut_fI);
+			mm_CTN_d(NfnI,1,NvnSOut,OPSOut->ChiS_fI[VfOut],VOut->What,uOut_fI);
 
 			// Reorder uOut_fI to correspond to uIn_fI
 			for (n = 0; n < NfnI; n++)
@@ -592,6 +534,8 @@ static void compute_qhat_FACE(void)
 
 static void finalize_qhat(void)
 {
+// finalizes qhat but not qhat_uhat. Here: ChiS_fI*qhat := FACE->Qhat (before finalizing)
+
 	// Initialize DB Parameters
 	unsigned int d = DB.d;
 
@@ -620,11 +564,13 @@ static void finalize_qhat(void)
 
 		Fqhat = malloc(NvnSIn * sizeof *Fqhat); // free
 		for (dim = 0; dim < d; dim++) {
+// MInv*ChiS_fI*(FACE->qhatIn) := FACE->QhatL
 			mm_d(CBCM,CBT,CBNT,NvnSIn,1,NfnI,1.0,0.0,MInvChiS_fI,FACE->qhatIn[dim],Fqhat);
 
 			VqhatIn_ptr  = VIn->qhat[dim];
 			FqhatIn_ptr  = Fqhat;
 
+// Summation here gives VOLUME->Qhat
 			for (iMax = NvnSIn; iMax--; )
 				*VqhatIn_ptr++ += *FqhatIn_ptr++;
 		}
@@ -642,11 +588,13 @@ static void finalize_qhat(void)
 
 			Fqhat = malloc(NvnSOut * sizeof *Fqhat); // free
 			for (dim = 0; dim < d; dim++) {
+// MInv*ChiS_fI*(FACE->qhatOut) := FACE->QhatR
 				mm_d(CBCM,CBT,CBNT,NvnSOut,1,NfnI,1.0,0.0,MInvChiS_fI,FACE->qhatOut[dim],Fqhat);
 
 				VqhatOut_ptr = VOut->qhat[dim];
 				FqhatOut_ptr = Fqhat;
 
+// Summation here gives VOLUME->Qhat
 				for (iMax = NvnSOut; iMax--; )
 					*VqhatOut_ptr++ += *FqhatOut_ptr++;
 			}
@@ -667,7 +615,6 @@ static void compute_uhat_VOLUME(void)
 
 	// Standard datatypes
 	unsigned int dim1, NvnS;
-	double       **DxyzChiS;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME;
@@ -680,17 +627,17 @@ static void compute_uhat_VOLUME(void)
 		NvnS = OPS->NvnS;
 
 		// Compute RHS and LHS terms
-		DxyzChiS = VOLUME->DxyzChiS;
+		double **QhatV_What = VOLUME->QhatV_What;
 
 		// RHS
 		memset(VOLUME->RHS,0.0,NvnS*Neq * sizeof *(VOLUME->RHS));
 		for (dim1 = 0; dim1 < d; dim1++)
-			mm_d(CBCM,CBT,CBNT,NvnS,1,NvnS,-1.0,1.0,DxyzChiS[dim1],VOLUME->qhat[dim1],VOLUME->RHS);
+			mm_d(CBCM,CBNT,CBNT,NvnS,1,NvnS,-1.0,1.0,QhatV_What[dim1],VOLUME->qhat[dim1],VOLUME->RHS);
 
 		// LHS
 		memset(VOLUME->LHS,0.0,NvnS*NvnS*Neq*Nvar * sizeof *(VOLUME->LHS));
 		for (dim1 = 0; dim1 < d; dim1++)
-			mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,-1.0,1.0,DxyzChiS[dim1],VOLUME->qhat_uhat[dim1],VOLUME->LHS);
+			mm_d(CBRM,CBT,CBNT,NvnS,NvnS,NvnS,-1.0,1.0,QhatV_What[dim1],VOLUME->qhat_uhat[dim1],VOLUME->LHS);
 	}
 	free(OPS);
 }
@@ -840,59 +787,14 @@ static void compute_uhat_FACE()
 			GradxyzIn[dim1]  = malloc(NfnI*NvnSIn  * sizeof **GradxyzIn);  // free
 			GradxyzOut[dim1] = malloc(NfnI*NvnSOut * sizeof **GradxyzOut); // free
 
-			mm_d(CBRM,CBNT,CBT,NfnI,NvnSIn, NvnSIn, 1.0,0.0,ChiSMInv_fIIn, VIn->DxyzChiS[dim1], GradxyzIn[dim1]);
-			mm_d(CBRM,CBNT,CBT,NfnI,NvnSOut,NvnSOut,1.0,0.0,ChiSMInv_fIOut,VOut->DxyzChiS[dim1],GradxyzOut[dim1]);
+			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSIn, NvnSIn, 1.0,0.0,ChiSMInv_fIIn, VIn->QhatV_What[dim1], GradxyzIn[dim1]);
+			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,0.0,ChiSMInv_fIOut,VOut->QhatV_What[dim1],GradxyzOut[dim1]);
 		}
 
-/*
-		double **GradChiS_fI, *C_fI;
-		unsigned int dim2, IndC;
-
-		C_fI = malloc(NfnI*d*d * sizeof *C_fI); // free
-		mm_CTN_d(NfnI,d*d,OPSIn->NvnC,OPSIn->I_vC_fI[VfIn],VIn->C_vC,C_fI);
-
-		GradChiS_fI = OPSIn->GradChiS_fI[VfIn];
-		for (dim1 = 0; dim1 < d; dim1++) {
-			GradxyzIn[dim1]  = calloc(NfnI*NvnSIn  , sizeof **GradxyzIn);  // free
-			for (unsigned int dim2 = 0; dim2 < d; dim2++) {
-				int IndC = (dim1+dim2*d)*NfnI;
-				for (n = 0; n < NfnI; n++) {
-					for (j = 0; j < NvnSIn; j++)
-						GradxyzIn[dim1][n*NvnSIn+j] += GradChiS_fI[dim2][n*NvnSIn+j]*C_fI[IndC+n];
-				}
-			}
-			for (n = 0; n < NfnI; n++) {
-				for (j = 0; j < NvnSIn; j++)
-					GradxyzIn[dim1][n*NvnSIn+j] /= detJVIn_fI[n];
-			}
-		}
-
-		mm_CTN_d(NfnI,d*d,OPSOut->NvnC,OPSOut->I_vC_fI[VfOut],VOut->C_vC,C_fI);
-
-		GradChiS_fI = OPSOut->GradChiS_fI[VfOut];
-		// Note: Rearrangement is embedded in the operator
-		for (dim1 = 0; dim1 < d; dim1++) {
-			GradxyzOut[dim1] = calloc(NfnI*NvnSOut , sizeof **GradxyzOut); // free
-
-			for (dim2 = 0; dim2 < d; dim2++) {
-				IndC = (dim1+dim2*d)*NfnI;
-				for (n = 0; n < NfnI; n++) {
-					for (j = 0; j < NvnSOut; j++)
-						GradxyzOut[dim1][n*NvnSOut+j] += GradChiS_fI[dim2][nOrdOutIn[n]*NvnSOut+j]*C_fI[IndC+nOrdOutIn[n]];
-				}
-			}
-			for (n = 0; n < NfnI; n++) {
-				for (j = 0; j < NvnSOut; j++)
-					GradxyzOut[dim1][n*NvnSOut+j] /= detJVOut_fI[n];
-			}
-		}
-		free(C_fI);
-*/
-
-		mm_CTN_d(NfnI,1,NvnSIn,OPSIn->ChiS_fI[VfIn],VIn->uhat,uIn_fI);
+		mm_CTN_d(NfnI,1,NvnSIn,OPSIn->ChiS_fI[VfIn],VIn->What,uIn_fI);
 
 		for (dim = 0; dim < d; dim++)
-			mm_CTN_d(NfnI,1,NvnSIn,GradxyzIn[dim],VIn->uhat,&grad_uIn_fI[NfnI*dim]);
+			mm_CTN_d(NfnI,1,NvnSIn,GradxyzIn[dim],VIn->What,&grad_uIn_fI[NfnI*dim]);
 
 		// Compute_uOut_fI (Taking BCs into account if applicable)
 		uOut_fIIn      = malloc(NfnI   * sizeof *uOut_fIIn);      // free
@@ -901,7 +803,7 @@ static void compute_uhat_FACE()
 		if (!Boundary) {
 			uOut_fI = malloc(NfnI * sizeof *uOut_fI); // free
 
-			mm_CTN_d(NfnI,1,NvnSOut,OPSOut->ChiS_fI[VfOut],VOut->uhat,uOut_fI);
+			mm_CTN_d(NfnI,1,NvnSOut,OPSOut->ChiS_fI[VfOut],VOut->What,uOut_fI);
 
 			// Reorder uOut_fI to correspond to inner VOLUME ordering
 			for (n = 0; n < NfnI; n++)
@@ -909,7 +811,7 @@ static void compute_uhat_FACE()
 			free(uOut_fI);
 
 			for (dim = 0; dim < d; dim++)
-				mm_CTN_d(NfnI,1,NvnSOut,GradxyzOut[dim],VOut->uhat,&grad_uOut_fIIn[NfnI*dim]);
+				mm_CTN_d(NfnI,1,NvnSOut,GradxyzOut[dim],VOut->What,&grad_uOut_fIIn[NfnI*dim]);
 		} else {
 			boundary_Poisson(NfnI,1,FACE->XYZ_fI,n_fI,uIn_fI,uOut_fIIn,grad_uIn_fI,grad_uOut_fIIn,
 			                 BC % BC_STEP_SC,BC / BC_STEP_SC);
@@ -1189,6 +1091,9 @@ static void compute_uhat_FACE()
 
 void implicit_info_Poisson(void)
 {
+	update_memory_VOLUMEs();
+	implicit_GradW(); // Only used for implicit_GradW_VOLUME here
+
 	compute_qhat_VOLUME();
 	compute_qhat_FACE();
 
@@ -1243,7 +1148,7 @@ void solver_Poisson(bool PrintEnabled)
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		IndA = VOLUME->IndA;
 		NvnS = VOLUME->NvnS;
-		uhat = VOLUME->uhat;
+		uhat = VOLUME->What;
 
 		iMax = NvnS*Nvar;
 		ix    = malloc(iMax * sizeof *ix);    // free

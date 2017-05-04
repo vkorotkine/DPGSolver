@@ -51,7 +51,7 @@ void compute_exact_boundary_solution(struct S_BC *const BCdata)
 	double *const UR_fIL = malloc(NVAR3D*NnTotal * sizeof *UR_fIL); // free
 
 	compute_exact_solution(NnTotal,BCdata->XYZ,UR_fIL,0);
-	convert_variables(UR_fIL,BCdata->WB,DMAX,BCdata->d,Nn,BCdata->Nel,'p','c');
+	convert_variables(UR_fIL,BCdata->WB,DMAX,BCdata->d,Nn,Nel,'p','c');
 
 	free(UR_fIL);
 }
@@ -84,6 +84,10 @@ double *compute_exact_boundary_normal(struct S_BC *const BCdata)
 		nEx_fIL[n*d+0] = cos(t);
 		nEx_fIL[n*d+1] = sin(t);
 	}
+	if (d == 3) {
+		for (size_t n = 0; n < NnTotal; n++)
+			nEx_fIL[n*d+2] = 0.0;
+	}
 
 	diff_ri /= Nn;
 	diff_ro /= Nn;
@@ -100,7 +104,7 @@ double *compute_exact_boundary_normal(struct S_BC *const BCdata)
 	}
 
 	if (NegateNormal) {
-		for (size_t n = 0; n < NnTotal*d; n++) {
+		for (size_t n = 0; n < NnTotal*2; n++) {
 			nEx_fIL[n] *= -1.0;
 		}
 	}
@@ -483,11 +487,10 @@ void boundary_BackPressure(struct S_BC *const BCdata)
 		c2L = GAMMA*pL/rhoL;
 		cL  = sqrt(c2L);
 
-		if (VnL < 0.0) // Inlet
-			printf("\nWarning: Velocity Inflow in boundary_BackPressure.\n");
+//		if (VnL < 0.0) // Inlet
+//			printf("\nWarning: Velocity Inflow in boundary_BackPressure.\n");
 
 		if (fabs(VL) >= cL) { // Supersonic
-//		if (1 || fabs(VL) >= cL) { // Supersonic
 			for (var = 0; var < Nvar; var++) {
 				*WB_ptr[IndW] = *WL_ptr[IndW];
 				IndW++;
@@ -817,6 +820,7 @@ void boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 
 			ApplyExtraBC = 1;
 		} else {
+			printf("%s\n",DB.TestCase);
 			EXIT_UNSUPPORTED;
 		}
 

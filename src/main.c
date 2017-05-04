@@ -218,7 +218,7 @@ int main(int nargc, char **argv)
 #include "test_unit_find_periodic_connections.h"
 #include "test_unit_sum_factorization.h"
 #include "test_unit_plotting.h"
-#include "test_unit_fluxes_inviscid.h"
+#include "test_regression_fluxes_inviscid.h"
 #include "test_unit_jacobian_fluxes.h"
 #include "test_unit_jacobian_boundary.h"
 #include "test_unit_get_face_ordering.h"
@@ -264,7 +264,7 @@ int main(int nargc, char **argv)
 	TestDB.Npass = 0;
 	TestDB.Nwarnings = 0;
 
-	RunTest.unit        = 1;
+	RunTest.unit        = 0;
 	RunTest.integration = 0;
 	RunTest.speed       = 0;
 
@@ -301,14 +301,13 @@ int main(int nargc, char **argv)
 		test_unit_sum_factorization();
 		test_unit_plotting();
 
-		test_unit_fluxes_inviscid();
+		test_regression_fluxes_inviscid();
 		test_unit_jacobian_fluxes();
 		test_unit_jacobian_boundary();
 		test_unit_get_face_ordering();
 
 		test_unit_equivalence_real_complex();
 	}
-EXIT_BASIC;
 
 	// Integration tests
 	if (RunTest.integration) {
@@ -316,8 +315,8 @@ EXIT_BASIC;
 		test_integration_L2_projections(nargc,argv);
 		test_integration_Poisson(nargc,argv);
 	}
-//	test_integration_Poisson(nargc,argv);
-	test_integration_Euler(nargc,argv);
+	test_integration_Poisson(nargc,argv);
+//	test_integration_Euler(nargc,argv);
 //	test_integration_NavierStokes(nargc,argv);
 
 	PetscFinalize();

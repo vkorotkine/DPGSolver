@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <complex.h>
 
 #include "Parameters.h"
@@ -13,6 +14,7 @@
 #include "Test.h"
 
 #include "test_code_fluxes.h"
+#include "test_code_boundary_conditions.h"
 #include "test_support.h"
 #include "initialize_test_case.h"
 #include "fluxes_inviscid.h"
@@ -46,8 +48,8 @@ static unsigned int compare_flux_viscous  (unsigned int const Nn, unsigned int c
 static unsigned int compare_flux_Num      (const unsigned int Nn, const unsigned int Nel, const unsigned int d,
                                            const unsigned int Neq, double *Wr, double *nL, const char *nFType);
 static unsigned int compare_boundary      (const unsigned int Nn, const unsigned int Nel, const unsigned int d,
-                                           const unsigned int Neq, double *WLr, double *nL, double *XYZ,
-                                           const char *TestCase);
+                                           const unsigned int Neq, double *const WLr, double *const *const QLr,
+                                           double *nL, double *XYZ, const char *BType);
 static unsigned int compare_variables     (const unsigned int Nn, const unsigned int Nel, const unsigned int d,
                                            const unsigned int Neq, double *Wr);
 
@@ -66,25 +68,18 @@ void test_unit_equivalence_real_complex(void)
 	 *
 	 */
 
-	printf("\nWarning: Ensure that tests for real/complex equivalence for all relevant functions are implemented.\n\n");
-	TestDB.Nwarnings++;
+	test_print_warning("Ensure that tests for real/complex equivalence for all relevant functions are implemented");
 
 	unsigned int Nn, Nel, d, Neq;
 	double       *W, *nL, *XYZ;
 
-	DB.TestCase     = calloc(STRLEN_MAX , sizeof *(DB.TestCase));     // free
-	DB.PDE          = calloc(STRLEN_MAX , sizeof *(DB.PDE));          // free
-	DB.PDESpecifier = calloc(STRLEN_MAX , sizeof *(DB.PDESpecifier)); // free
-	DB.Geometry     = calloc(STRLEN_MAX , sizeof *(DB.Geometry));     // free
-	DB.MeshType     = calloc(STRLEN_MAX , sizeof *(DB.MeshType));     // free
+	set_memory_test_boundary_conditions('a');
 
-	strcpy(DB.TestCase,"SupersonicVortex");
-	strcpy(DB.PDE,"Euler");
-	strcpy(DB.PDESpecifier,"Internal");
-	strcpy(DB.Geometry,"n-Cylinder_HollowSection");
-	strcpy(DB.MeshType,"Curved");
+	unsigned int NBTypes = 0;
+	char         **BType;
+	set_BTypes(&NBTypes,&BType); // free
 
-	initialize_test_case_parameters();
+	strcpy(DB.MeshType,"ToBeCurved"); // Meshes are not used for this test (and thus need not exist)
 
 	unsigned int const dMin = 2, dMax = 3;
 	for (d = dMin; d <= dMax; d++) {
@@ -98,43 +93,52 @@ void test_unit_equivalence_real_complex(void)
 		// flux_inviscid
 		pass = compare_flux_inviscid(Nn,Nel,d,Neq,W);
 		if (d == dMin)
-			sprintf(PrintName,"equivalence_flux_inviscid     (d = %d):",d);
+			sprintf(PrintName,"equivalence_flux_inviscid             (d = %d):",d);
 		else
-			sprintf(PrintName,"            flux_inviscid     (d = %d):",d);
+			sprintf(PrintName,"            flux_inviscid             (d = %d):",d);
 		test_print2(pass,PrintName);
 
 		// flux_LF
 		pass = compare_flux_Num(Nn,Nel,d,Neq,W,nL,"LF");
-		sprintf(PrintName,"            flux_LF                  :");
+		sprintf(PrintName,"                 LF                          :");
 		test_print2(pass,PrintName);
 
 		// flux_Roe
 		pass = compare_flux_Num(Nn,Nel,d,Neq,W,nL,"Roe");
-		sprintf(PrintName,"            flux_Roe                 :");
+		sprintf(PrintName,"                 Roe                         :");
 		test_print2(pass,PrintName);
 
 		// flux_viscous
 		pass = compare_flux_viscous(Nn,Nel,d,W,(double const *const *const) Q);
-		sprintf(PrintName,"            flux_viscous             :");
+		sprintf(PrintName,"                 viscous                     :");
 		test_print2(pass,PrintName);
 
-		// boundary_SlipWall
-		pass = compare_boundary(Nn,Nel,d,Neq,W,nL,XYZ,"SlipWall");
-		sprintf(PrintName,"            boundary_SlipWall        :");
-		test_print2(pass,PrintName);
+		for (size_t i = 0; i < NBTypes; i++) {
+			if (i <= 5)
+				strcpy(DB.PDE,"Euler");
+			else
+				strcpy(DB.PDE,"NavierStokes");
 
-		// boundary_Riemann
-		if (d != 1) {
-			pass = compare_boundary(Nn,Nel,d,Neq,W,nL,XYZ,"Riemann");
-			sprintf(PrintName,"            boundary_Riemann         :");
+			set_parameters_test_boundary_conditions(BType[i]);
+			initialize_test_case_parameters();
+
+			reset_entered_test_boundary_conditions(BType[i]);
+
+			if (strstr(BType[i],"BackPressure"))
+				update_values_BackPressure(Nn,Nel,W,nL,d);
+			pass = compare_boundary(Nn,Nel,d,Neq,W,Q,nL,XYZ,BType[i]);
+			if (i == 0)
+				sprintf(PrintName,"            boundary_%s        :",BType[i]);
+			else
+				sprintf(PrintName,"                     %s        :",BType[i]);
 			test_print2(pass,PrintName);
-		}
 
-		test_print_warning("Missing many comparisons for boundary conditions");
+			free(DB.SolverType); // Initialized in "initialize_test_case_parameters"
+		}
 
 		// convert_variables
 		pass = compare_variables(Nn,Nel,d,Neq,W);
-		sprintf(PrintName,"            convert_variables        :");
+		sprintf(PrintName,"            convert_variables                :");
 		test_print2(pass,PrintName);
 
 		free(W);
@@ -143,12 +147,10 @@ void test_unit_equivalence_real_complex(void)
 		free(XYZ);
 	}
 
-	free(DB.TestCase);
-	free(DB.PDE);
-	free(DB.PDESpecifier);
-	free(DB.Geometry);
-	free(DB.MeshType);
-	free(DB.SolverType);
+	set_memory_test_boundary_conditions('f');
+
+	for (size_t i = 0; i < NBTypes; i++)
+		free(BType[i]);
 
 	free(PrintName);
 }
@@ -301,26 +303,26 @@ static unsigned int compare_flux_Num(const unsigned int Nn, const unsigned int N
 }
 
 static unsigned int compare_boundary(const unsigned int Nn, const unsigned int Nel, const unsigned int d,
-                                     const unsigned int Neq, double *WLr, double *nL, double *XYZ, const char *TestCase)
+                                     const unsigned int Neq, double *const WLr, double *const *const QLr,
+                                     double *nL, double *XYZ, const char *BType)
 {
 	unsigned int pass = 0;
 
-	unsigned int   i, iMax, NnTotal, Nvar;
-	double         *WBr, *WBctr;
-	double complex *WLc, *WBc;
+	unsigned int const NnTotal = Nn*Nel,
+	                   Nvar    = Neq;
 
-	NnTotal = Nn*Nel;
-	Nvar    = Neq;
+	double *const WBr   = malloc(NnTotal*Nvar * sizeof *WBr),   // free
+	       *const WBctr = malloc(NnTotal*Nvar * sizeof *WBctr); // free
 
-	WBr   = malloc(NnTotal*Nvar * sizeof *WBr);   // free
-	WLc   = malloc(NnTotal*Nvar * sizeof *WLc);   // free
-	WBc   = malloc(NnTotal*Nvar * sizeof *WBc);   // free
-	WBctr = malloc(NnTotal*Nvar * sizeof *WBctr); // free
+	double complex *const WLc = malloc(NnTotal*Nvar * sizeof *WLc),   // free
+	               *const WBc = malloc(NnTotal*Nvar * sizeof *WBc);   // free
 
-	for (i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
+	for (size_t i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
 		WLc[i] = WLr[i];
 
 	struct S_BC *const BCdata = malloc(sizeof *BCdata); // free
+
+	set_BC_from_BType(BCdata,BType);
 
 	BCdata->d   = d;
 	BCdata->Nn  = Nn;
@@ -333,20 +335,80 @@ static unsigned int compare_boundary(const unsigned int Nn, const unsigned int N
 	BCdata->WL_c = WLc;
 	BCdata->WB_c = WBc;
 
-	set_BC_from_BType(BCdata,TestCase);
-	correct_XYZ_for_exact_normal(BCdata,TestCase);
+	double **QBr = NULL, **QBctr = NULL;
+	double complex **QLc = NULL, **QBc = NULL;
+	if (BCdata->ComputeQ) {
+		QBr   = malloc(d * sizeof *QBr);   // free
+		QBctr = malloc(d * sizeof *QBctr); // free
+		QLc   = malloc(d * sizeof *QLc);   // free
+		QBc   = malloc(d * sizeof *QBc);   // free
+		for (size_t dim = 0; dim < d; dim++) {
+			QBr[dim]   = malloc(NnTotal*Nvar * sizeof *QBr[dim]);   // free
+			QBctr[dim] = malloc(NnTotal*Nvar * sizeof *QBctr[dim]); // free
+			QLc[dim]   = malloc(NnTotal*Nvar * sizeof *QLc[dim]);   // free
+			QBc[dim]   = malloc(NnTotal*Nvar * sizeof *QBc[dim]);   // free
+
+			for (size_t i = 0; i < NnTotal*Nvar; i++)
+				QLc[dim][i] = QLr[dim][i];
+		}
+
+		BCdata->QL   = (double const *const *const) QLr;
+		BCdata->QB   = QBr;
+		BCdata->QL_c = (double complex const *const *const) QLc;
+		BCdata->QB_c = QBc;
+	}
+
+	correct_XYZ_for_exact_normal(BCdata,BType);
 	compute_boundary_values(BCdata);
 	compute_boundary_values_c(BCdata);
 
-	for (i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
+	for (size_t i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
 		WBctr[i] = creal(WBc[i]);
 
-	if (array_norm_diff_d(NnTotal*Nvar,WBr,WBctr,"Inf") < 1e1*EPS) {
-		pass = 1;
+	if (!BCdata->ComputeQ) {
+		if (array_norm_diff_d(NnTotal*Nvar,WBr,WBctr,"Inf") < 1e1*EPS) {
+			pass = 1;
+		} else {
+			printf("% .3e\n",array_norm_diff_d(NnTotal*Nvar,WBr,WBctr,"Inf"));
+			array_print_d(NnTotal,Nvar,WBr,'C');
+			array_print_d(NnTotal,Nvar,WBctr,'C');
+		}
 	} else {
-		printf("% .3e\n",array_norm_diff_d(NnTotal*Nvar,WBr,WBctr,"Inf"));
-		array_print_d(NnTotal,Nvar,WBr,'C');
-		array_print_d(NnTotal,Nvar,WBctr,'C');
+		double diff = array_norm_diff_d(NnTotal*Nvar,WBr,WBctr,"Inf");
+		for (size_t dim = 0; dim < d; dim++) {
+			for (size_t i = 0; i < NnTotal*Nvar; i++)
+				QBctr[dim][i] = creal(QBc[dim][i]);
+			diff += array_norm_diff_d(NnTotal*Nvar,QBr[dim],QBctr[dim],"Inf");
+		}
+
+		if (diff < 1e1*EPS) {
+			pass = 1;
+		} else {
+			for (size_t i = 0; i < NnTotal*Nvar; i++)
+				WBr[i] -= WBctr[i];
+			array_print_d(NnTotal,Nvar,WBr,'C');
+
+			for (size_t dim = 0; dim < d; dim++) {
+				for (size_t i = 0; i < NnTotal*Nvar; i++)
+					QBr[dim][i] -= QBctr[dim][i];
+				printf("%zu\n",dim);
+				array_print_d(NnTotal,Nvar,QBr[dim],'C');
+			}
+		}
+
+		array_free2_d(d,QBr);
+		array_free2_d(d,QBctr);
+		array_free2_cmplx(d,QLc);
+		array_free2_cmplx(d,QBc);
+	}
+
+	// Ensure that all settings were entered for the boundary conditions (if applicable)
+	bool CheckedAll = 0;
+	check_entered_test_boundary_conditions(&CheckedAll,BType);
+
+	if (!CheckedAll) {
+		pass = 0;
+		printf("Did not check all boundary condition settings for boundary %s\n",BType);
 	}
 
 	free(WBr);
