@@ -32,6 +32,16 @@
  *	References:
  */
 
+static void jacobian_boundary_Poisson           (struct S_BC *const BCdata);
+static void jacobian_boundary_Riemann           (struct S_BC *const BCdata);
+static void jacobian_boundary_SlipWall          (struct S_BC *const BCdata);
+static void jacobian_boundary_BackPressure      (struct S_BC *const BCdata);
+static void jacobian_boundary_Total_TP          (struct S_BC *const BCdata);
+static void jacobian_boundary_SupersonicInflow  (struct S_BC *const BCdata);
+static void jacobian_boundary_SupersonicOutflow (struct S_BC *const BCdata);
+static void jacobian_boundary_NoSlip_Dirichlet  (struct S_BC *const BCdata);
+static void jacobian_boundary_NoSlip_Adiabatic  (struct S_BC *const BCdata);
+
 void compute_jacobian_boundary_values(struct S_BC *const BCdata)
 {
 	switch((BCdata->BC) % BC_STEP_SC) {
@@ -68,11 +78,45 @@ void compute_jacobian_boundary_values(struct S_BC *const BCdata)
 		case BC_SUPERSONIC_OUT:   jacobian_boundary_SupersonicOutflow(BCdata); break;
 		case BC_NOSLIP_T:         jacobian_boundary_NoSlip_Dirichlet(BCdata);  break;
 		case BC_NOSLIP_ADIABATIC: jacobian_boundary_NoSlip_Adiabatic(BCdata);  break;
+		case BC_DIRICHLET:        // fallthrough
+		case BC_NEUMANN:          jacobian_boundary_Poisson(BCdata);           break;
 		default:                  EXIT_UNSUPPORTED;                            break;
 	}
 }
 
-void jacobian_boundary_Riemann(struct S_BC *const BCdata)
+static void jacobian_boundary_Poisson(struct S_BC *const BCdata)
+{
+	unsigned int const BC_index = (BCdata->BC) % BC_STEP_SC;
+	if (!(BC_index == BC_DIRICHLET || BC_index == BC_NEUMANN))
+		EXIT_UNSUPPORTED;
+
+	/*
+	 *	Comments:
+	 *		The assumption that Nvar = 1 was used below.
+	 *		Currently does not support computing dQBd*.
+	 */
+
+	unsigned int const d   = BCdata->d,
+	                   Nn  = BCdata->Nn,
+	                   Nel = BCdata->Nel;
+
+	unsigned int const NnTotal = Nn*Nel;
+
+	if (d <= 1)
+		EXIT_UNSUPPORTED;
+
+	double *const dWBdWL = BCdata->dWBdWL;
+
+	if (BC_index == BC_DIRICHLET) {
+		for (size_t n = 0; n < NnTotal; n++)
+			dWBdWL[n] = -1.0;
+	} else if (BC_index == BC_NEUMANN) {
+		for (size_t n = 0; n < NnTotal; n++)
+			dWBdWL[n] =  1.0;
+	}
+}
+
+static void jacobian_boundary_Riemann(struct S_BC *const BCdata)
 {
 	/*
 	 *	Jacobian Matrices [var * eq]
@@ -429,7 +473,7 @@ void jacobian_boundary_Riemann(struct S_BC *const BCdata)
 	}
 }
 
-void jacobian_boundary_SlipWall(struct S_BC *const BCdata)
+static void jacobian_boundary_SlipWall(struct S_BC *const BCdata)
 {
 	/*
 	 *	Jacobian Matrix [var * eq]
@@ -570,7 +614,7 @@ void jacobian_boundary_SlipWall(struct S_BC *const BCdata)
 	}
 }
 
-void jacobian_boundary_BackPressure(struct S_BC *const BCdata)
+static void jacobian_boundary_BackPressure(struct S_BC *const BCdata)
 {
 	/*
 	 *	Jacobian Matrices [var * eq]
@@ -742,7 +786,7 @@ void jacobian_boundary_BackPressure(struct S_BC *const BCdata)
 	}
 }
 
-void jacobian_boundary_Total_TP(struct S_BC *const BCdata)
+static void jacobian_boundary_Total_TP(struct S_BC *const BCdata)
 {
 
 	unsigned int const d       = BCdata->d,
@@ -936,7 +980,7 @@ void jacobian_boundary_Total_TP(struct S_BC *const BCdata)
 	}
 }
 
-void jacobian_boundary_SupersonicInflow(struct S_BC *const BCdata)
+static void jacobian_boundary_SupersonicInflow(struct S_BC *const BCdata)
 {
 	unsigned int const d       = BCdata->d,
 	                   Nvar    = d+2,
@@ -967,7 +1011,7 @@ void jacobian_boundary_SupersonicInflow(struct S_BC *const BCdata)
 	}
 }
 
-void jacobian_boundary_SupersonicOutflow(struct S_BC *const BCdata)
+static void jacobian_boundary_SupersonicOutflow(struct S_BC *const BCdata)
 {
 	unsigned int const d       = BCdata->d,
 	                   Nvar    = d+2,
@@ -1001,7 +1045,7 @@ void jacobian_boundary_SupersonicOutflow(struct S_BC *const BCdata)
 	}
 }
 
-void jacobian_boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
+static void jacobian_boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 {
 
 	unsigned int const d       = BCdata->d,
@@ -1040,7 +1084,7 @@ void jacobian_boundary_NoSlip_Dirichlet(struct S_BC *const BCdata)
 	}
 }
 
-void jacobian_boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
+static void jacobian_boundary_NoSlip_Adiabatic(struct S_BC *const BCdata)
 {
 
 	unsigned int const d       = BCdata->d,

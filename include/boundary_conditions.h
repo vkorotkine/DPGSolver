@@ -35,17 +35,10 @@ struct S_BC {
 
 extern void   compute_exact_boundary_solution (struct S_BC *const BCdata);
 extern double *compute_exact_boundary_normal  (struct S_BC *const BCdata);
+extern double *compute_XYZ_boundary           (struct S_BC *const BCdata);
 
-extern void compute_boundary_values    (struct S_BC *const BCdata);
-extern void get_boundary_values        (const double X, const double Y, double *const rho, double *const u,
-                                        double *const v, double *const w, double *const p);
-extern void boundary_Riemann           (struct S_BC *const BCdata);
-extern void boundary_SlipWall          (struct S_BC *const BCdata);
-extern void boundary_BackPressure      (struct S_BC *const BCdata);
-extern void boundary_Total_TP          (struct S_BC *const BCdata);
-extern void boundary_SupersonicInflow  (struct S_BC *const BCdata);
-extern void boundary_SupersonicOutflow (struct S_BC *const BCdata);
-extern void boundary_NoSlip_Dirichlet  (struct S_BC *const BCdata);
-extern void boundary_NoSlip_Adiabatic  (struct S_BC *const BCdata);
+extern void compute_boundary_values (struct S_BC *const BCdata);
+extern void get_boundary_values     (const double X, const double Y, double *const rho, double *const u,
+                                     double *const v, double *const w, double *const p);
 
 #endif // DPG__boundary_conditions_h__INCLUDED

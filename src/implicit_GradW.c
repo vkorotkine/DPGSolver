@@ -111,8 +111,8 @@ static void implicit_GradW_FACE(void)
 	 */
 
 	unsigned int const d    = DB.d,
-	                   Nvar = d+2,
-	                   Neq  = d+2;
+	                   Nvar = DB.Nvar,
+	                   Neq  = DB.Neq;
 
 	// Standard datatypes
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
@@ -190,7 +190,7 @@ static void implicit_GradW_FACE(void)
 static void finalize_Qhat(struct S_VOLUME const *const VOLUME, unsigned int const NvnS, double *const *const Qhat)
 {
 	unsigned int const d    = DB.d,
-	                   Nvar = d+2;
+	                   Nvar = DB.Nvar;
 
 	if (DB.Collocated) {
 		double const *const detJV_vI = VOLUME->detJV_vI;
@@ -228,8 +228,8 @@ static void finalize_Qhat_What(struct S_VOLUME const *const VOLUME, unsigned int
 	unsigned int eqMax, varMax;
 
 	if (variable_eqvar) {
-		eqMax  = d+2;
-		varMax = d+2;
+		eqMax  = DB.Neq;
+		varMax = DB.Nvar;
 	} else {
 		eqMax  = 1;
 		varMax = 1;
@@ -273,7 +273,7 @@ static void implicit_GradW_finalize(void)
 	 */
 
 	unsigned int const d    = DB.d,
-	                   Nvar = d+2;
+	                   Nvar = DB.Nvar;
 
 	// Add FACE contributions to VOLUME->Qhat then multiply by MInv
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
@@ -312,6 +312,7 @@ static void implicit_GradW_finalize(void)
 		finalize_Qhat(VOLUME,NvnS,VOLUME->Qhat);
 		finalize_Qhat(VOLUME,NvnS,VOLUME->QhatV);
 
-		finalize_Qhat_What(VOLUME,NvnS,NvnS,0,VOLUME->QhatV_What);
+//		finalize_Qhat_What(VOLUME,NvnS,NvnS,0,VOLUME->QhatV_What);
 	}
+printf("iGf: disabled functionality.\n");
 }

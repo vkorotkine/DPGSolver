@@ -133,6 +133,7 @@ void test_integration_Poisson(int nargc, char **argv)
 	} else {
 		test_print_warning("Poisson linearization testing currently disabled");
 	}
+//EXIT_BASIC;
 
 	// **************************************************************************************************** //
 	// Convergence Order Testing

@@ -146,12 +146,12 @@ static void compute_qhat_VOLUME(void)
 	unsigned int d = DB.d;
 
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		compute_inverse_mass(VOLUME);
-
 		unsigned int const NvnS = VOLUME->NvnS;
 
 		// Compute RHS and LHS terms
 		for (size_t dim = 0; dim < d; dim++) {
+// Need to store this contribution without MInv for use below. To not interfere with the NS code, recompute when solving
+// Poisson even though this is redundant? Probably (ToBeDeleted)
 // Remove MInv contribution when QhatV_What is finalized (ToBeDeleted)
 			mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,1.0,0.0,VOLUME->MInv,VOLUME->QhatV_What[dim],VOLUME->qhat_uhat[dim]);
 			mm_CTN_d(NvnS,1,NvnS,VOLUME->qhat_uhat[dim],VOLUME->What,VOLUME->qhat[dim]);
@@ -1091,6 +1091,7 @@ static void compute_uhat_FACE()
 
 void implicit_info_Poisson(void)
 {
+	update_VOLUME_Ops();
 	update_memory_VOLUMEs();
 	implicit_GradW(); // Only used for implicit_GradW_VOLUME here
 

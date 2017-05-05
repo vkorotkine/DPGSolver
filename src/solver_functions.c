@@ -1321,7 +1321,7 @@ static void correct_numerical_solution_strong(struct S_FDATA const *const FDATA,
 	struct S_FACE        const *const        FACE = FDATA->FACE;
 
 	unsigned int const d        = DB.d,
-	                   Nvar     = d+2,
+	                   Nvar     = DB.Nvar,
 	                   IndFType = FDATA->IndFType,
 	                   NfnI     = OPS[IndFType]->NfnI;
 
@@ -1344,8 +1344,8 @@ static void correct_numerical_solution_strong(struct S_FDATA const *const FDATA,
 		} else if (imex_type == 'I') {
 			unsigned int eqMax, varMax;
 			if (FACE->Boundary) {
-				eqMax  = d+2;
-				varMax = d+2;
+				eqMax  = DB.Neq;
+				varMax = DB.Nvar;
 			} else {
 				eqMax  = 1;
 				varMax = 1;
@@ -1689,8 +1689,8 @@ void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const ime
 	struct S_FACE        const *const        FACE = FDATA->FACE;
 
 	unsigned int const d        = DB.d,
-	                   Neq      = d+2,
-	                   Nvar     = d+2,
+	                   Neq      = DB.Neq,
+	                   Nvar     = DB.Nvar,
 	                   IndFType = FDATA->IndFType,
 	                   NfnI     = OPS[IndFType]->NfnI;
 
@@ -1739,8 +1739,8 @@ void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const ime
 		if (imex_type == 'I') {
 			unsigned int eqMax, varMax;
 			if (FACE->Boundary) {
-				eqMax  = d+2;
-				varMax = d+2;
+				eqMax  = DB.Neq;
+				varMax = DB.Nvar;
 			} else {
 				eqMax  = 1;
 				varMax = 1;
@@ -1819,8 +1819,8 @@ static void swap_FACE_orientation(struct S_FDATA const *const FDATA, char const 
 	struct S_FACE        const *const        FACE = FDATA->FACE;
 
 	unsigned int const d             = DB.d,
-	                   Neq           = d+2,
-	                   Nvar          = d+2,
+	                   Neq           = DB.Neq,
+	                   Nvar          = DB.Nvar,
 	                   IndFType      = FDATA->IndFType,
 	                   NfnI          = OPS[IndFType]->NfnI,
 	                   *const nOrdLR = OPS[IndFType]->nOrdLR;
@@ -2128,8 +2128,8 @@ static void compute_LHS_QhatF_Weak(unsigned int const NRows, unsigned int const 
 
 	unsigned int eqMax, varMax;
 	if (Boundary) {
-		eqMax  = d+2;
-		varMax = d+2;
+		eqMax  = DB.Neq;
+		varMax = DB.Nvar;
 	} else {
 		eqMax  = 1;
 		varMax = 1;

@@ -94,16 +94,15 @@ static void compute_dWdW_cs(const unsigned int Neq, const unsigned int Nn, const
 }
 
 static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsigned int Nel, const unsigned int d,
-                                              const unsigned int Neq, double *W, double **Q, double *nL, double *XYZ,
-                                              const char *BType)
+                                              double *W, double **Q, double *nL, double *XYZ, const char *BType)
 {
 	unsigned int pass = 0;
 
-	unsigned int NnTotal, Nvar;
-	double       *dWdW, *dWdW_cs;
+	unsigned int const Nvar    = DB.Nvar,
+	                   Neq     = DB.Neq,
+	                   NnTotal = Nn*Nel;
 
-	NnTotal = Nn*Nel;
-	Nvar    = Neq;
+	double *dWdW, *dWdW_cs;
 
 	dWdW    = malloc(NnTotal*Nvar*Neq * sizeof *dWdW);    // free
 	dWdW_cs = malloc(NnTotal*Nvar*Neq * sizeof *dWdW_cs); // free
@@ -135,7 +134,7 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 	} else {
 		array_print_d(NnTotal*Nvar,Neq,dWdW,'C');
 		array_print_d(NnTotal*Nvar,Neq,dWdW_cs,'C');
-		printf("% .3e\n",array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf"));
+		printf("%d %d %d % .3e\n",NnTotal,Nvar,DB.Nvar,array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf"));
 	}
 
 	bool CheckedAll = 0;
@@ -181,47 +180,41 @@ void test_unit_jacobian_boundary(void)
 	strcpy(DB.MeshType,"ToBeCurved"); // Meshes are not used for this test (and thus need not exist)
 
 	unsigned int const dMin = 2, dMax = 3;
+	for (d = dMin; d <= dMax; d++) {
 	for (i = 0; i < NBTypes; i++) {
-		if (i <= 5)
-			strcpy(DB.PDE,"Euler");
-		else
-			strcpy(DB.PDE,"NavierStokes");
-
-		set_parameters_test_boundary_conditions(BType[i]);
+		set_parameters_test_boundary_conditions(BType[i],d);
 		initialize_test_case_parameters();
 
-		for (d = dMin; d <= dMax; d++) {
-			reset_entered_test_boundary_conditions(BType[i]);
+		reset_entered_test_boundary_conditions(BType[i]);
 
-			Neq = d+2;
+		Neq = d+2;
 
-			W    = initialize_W(&Nn,&Nel,d); // free
-			Q    = initialize_Q(Nn,Nel,d);   // free
-			nL   = initialize_n(Nn,Nel,d);   // free
-			XYZ  = initialize_XYZ(Nn,Nel,d); // free
+		W    = initialize_W(&Nn,&Nel,d); // free
+		Q    = initialize_Q(Nn,Nel,d);   // free
+		nL   = initialize_n(Nn,Nel,d);   // free
+		XYZ  = initialize_XYZ(Nn,Nel,d); // free
 
-			if (strstr(BType[i],"BackPressure"))
-				update_values_BackPressure(Nn,Nel,W,nL,d);
-			pass = compare_jacobian_boundary(Nn,Nel,d,Neq,W,Q,nL,XYZ,BType[i]);
+		if (strstr(BType[i],"BackPressure"))
+			update_values_BackPressure(Nn,Nel,W,nL,d);
+		pass = compare_jacobian_boundary(Nn,Nel,d,W,Q,nL,XYZ,BType[i]);
 
-			if (d == dMin) {
-				if (i == 0) {
-					sprintf(PrintName,"jacobian_boundary_%s (d = %d):",BType[i],d);
-				} else {
-					sprintf(PrintName,"                  %s (d = %d):",BType[i],d);
-				}
-			} else {
-				sprintf(PrintName,"                                   (d = %d):",d);
-			}
-			test_print2(pass,PrintName);
-
-			free(W);
-			array_free2_d(d,Q);
-			free(nL);
-			free(XYZ);
+		if (i == 0) {
+			if (d == dMin)
+				sprintf(PrintName,"jacobian_boundary_%s (d = %d):",BType[i],d);
+			else
+				sprintf(PrintName,"                  %s (d = %d):",BType[i],d);
+		} else {
+			sprintf(PrintName,"                  %s        :",BType[i]);
 		}
+		test_print2(pass,PrintName);
+
+		free(W);
+		array_free2_d(d,Q);
+		free(nL);
+		free(XYZ);
+
 		free(DB.SolverType); // Initialized in "initialize_test_case_parameters"
-	}
+	}}
 
 	set_memory_test_boundary_conditions('f');
 

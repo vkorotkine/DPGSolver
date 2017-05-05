@@ -231,21 +231,6 @@ static void evaluate_boundary_c(struct S_BC *const BCdata, bool const ComputeGra
 		}
 	}
 
-/*	if (BC % BC_STEP_SC == BC_RIEMANN) {
-		boundary_Riemann_c(NfnI,1,XYZ_fIL,WL_fIL,NULL,WR_fIL,n_fIL,d);
-	} else if (BC % BC_STEP_SC == BC_SLIPWALL) {
-		boundary_SlipWall_c(NfnI,1,WL_fIL,WR_fIL,n_fIL,d);
-	} else if (BC % BC_STEP_SC == BC_BACKPRESSURE) {
-		boundary_BackPressure_c(NfnI,1,WL_fIL,WR_fIL,n_fIL,d,Nvar);
-	} else if (BC % BC_STEP_SC == BC_TOTAL_TP) {
-		boundary_Total_TP_c(NfnI,1,XYZ_fIL,WL_fIL,WR_fIL,n_fIL,d,Nvar);
-	} else if (BC % BC_STEP_SC == BC_SUPERSONIC_IN) {
-		boundary_SupersonicInflow_c(NfnI,1,XYZ_fIL,WL_fIL,WR_fIL,n_fIL,d,Nvar);
-	} else if (BC % BC_STEP_SC == BC_SUPERSONIC_OUT) {
-		boundary_SupersonicOutflow_c(NfnI,1,XYZ_fIL,WL_fIL,WR_fIL,n_fIL,d,Nvar);
-	} else {
-		compute_boundary_values_c(BCdata);
-	}*/
 	compute_boundary_values_c(BCdata);
 }
 

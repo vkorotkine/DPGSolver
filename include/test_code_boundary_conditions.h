@@ -8,7 +8,7 @@
 
 extern void set_memory_test_boundary_conditions     (char const operation);
 extern void set_BTypes                              (unsigned int *NBTypesOut, char ***BTypeOut);
-extern void set_parameters_test_boundary_conditions (char const *const BType);
+extern void set_parameters_test_boundary_conditions (char const *const BType, unsigned int const d);
 extern void reset_entered_test_boundary_conditions  (char const *const BType);
 extern void update_values_BackPressure              (unsigned int const Nn, unsigned int const Nel, double *const W,
                                                      double *const nL, unsigned int const d);

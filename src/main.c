@@ -308,6 +308,8 @@ int main(int nargc, char **argv)
 
 		test_unit_equivalence_real_complex();
 	}
+test_unit_jacobian_boundary();
+test_unit_equivalence_real_complex();
 
 	// Integration tests
 	if (RunTest.integration) {

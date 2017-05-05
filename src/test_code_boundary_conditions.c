@@ -49,45 +49,57 @@ void set_memory_test_boundary_conditions(char const operation)
 
 void set_BTypes(unsigned int *NBTypesOut, char ***BTypeOut)
 {
-	unsigned int const NBTypes = 8;
+	unsigned int const NBTypes = 10;
 
 	char **BType = malloc(NBTypes * sizeof *BType); // keep
 
 	for (size_t i = 0; i < NBTypes; i++)
 		BType[i] = malloc(STRLEN_MAX * sizeof *BType[i]); // keep
 
-	strcpy(BType[0],"SlipWall        ");
-	strcpy(BType[1],"Riemann         ");
-	strcpy(BType[2],"BackPressure    ");
-	strcpy(BType[3],"Total_TP        ");
-	strcpy(BType[4],"SupersonicIn    ");
-	strcpy(BType[5],"SupersonicOut   ");
-	strcpy(BType[6],"NoSlip_Dirichlet");
-	strcpy(BType[7],"NoSlip_Adiabatic");
+	strcpy(BType[0],"SlipWall         ");
+	strcpy(BType[1],"Riemann          ");
+	strcpy(BType[2],"BackPressure     ");
+	strcpy(BType[3],"Total_TP         ");
+	strcpy(BType[4],"SupersonicIn     ");
+	strcpy(BType[5],"SupersonicOut    ");
+	strcpy(BType[6],"NoSlip_Dirichlet ");
+	strcpy(BType[7],"NoSlip_Adiabatic ");
+	strcpy(BType[8],"Poisson_Dirichlet");
+	strcpy(BType[9],"Poisson_Neumann  ");
 
 	*NBTypesOut = NBTypes;
 	*BTypeOut   = BType;
 }
 
-void set_parameters_test_boundary_conditions(char const *const BType)
+void set_parameters_test_boundary_conditions(char const *const BType, unsigned int const d)
 {
+	DB.d = d;
 	if (strstr(BType,"SlipWall") || strstr(BType,"Riemann")) {
+		strcpy(DB.PDE,"Euler");
 		strcpy(DB.TestCase,"SupersonicVortex");
 		strcpy(DB.PDESpecifier,"Internal");
 		strcpy(DB.Geometry,"n-Cylinder_HollowSection");
 	} else if (strstr(BType,"BackPressure") || strstr(BType,"Total_TP")) {
+		strcpy(DB.PDE,"Euler");
 		strcpy(DB.TestCase,"InviscidChannel");
 		strcpy(DB.PDESpecifier,"InternalSubsonic");
 		strcpy(DB.Geometry,"EllipsoidalSection");
 		strcpy(DB.GeomSpecifier,"Annular/3/");
 	} else if (strstr(BType,"SupersonicIn") || strstr(BType,"SupersonicOut")) {
+		strcpy(DB.PDE,"Euler");
 		strcpy(DB.TestCase,"InviscidChannel");
 		strcpy(DB.PDESpecifier,"InternalSupersonic");
 		strcpy(DB.Geometry,"EllipsoidalSection");
 		strcpy(DB.GeomSpecifier,"Annular/3/");
 	} else if (strstr(BType,"NoSlip")) {
+		strcpy(DB.PDE,"NavierStokes");
 		strcpy(DB.TestCase,"TaylorCouette");
 		strcpy(DB.Geometry,"n-Cylinder_Hollow");
+	} else if (strstr(BType,"Poisson")) {
+		strcpy(DB.PDE,"Poisson");
+		strcpy(DB.TestCase,"Poisson");
+		strcpy(DB.Geometry,"n-Ellipsoid");
+		strcpy(DB.GeomSpecifier,"AR_3");
 	} else {
 		EXIT_UNSUPPORTED;
 	}

@@ -16,6 +16,7 @@
 
 #include "boundary_conditions.h"
 #include "variable_functions_c.h"
+#include "exact_solutions.h"
 
 /*
  *	Purpose:
@@ -48,6 +49,12 @@ void set_BC_from_BType(struct S_BC *const BCdata, char const *const BType)
 		BCdata->ComputeQ = 1;
 	} else if (strstr(BType,"NoSlip_Adiabatic")) {
 		BCdata->BC = BC_NOSLIP_ADIABATIC;
+		BCdata->ComputeQ = 1;
+	} else if (strstr(BType,"Poisson_Dirichlet")) {
+		BCdata->BC = BC_DIRICHLET;
+		BCdata->ComputeQ = 1;
+	} else if (strstr(BType,"Poisson_Neumann")) {
+		BCdata->BC = BC_NEUMANN;
 		BCdata->ComputeQ = 1;
 	} else {
 		EXIT_UNSUPPORTED;
@@ -82,6 +89,16 @@ void correct_XYZ_for_exact_normal(struct S_BC *const BCdata, char const *const B
 		}
 	}
 }
+
+static void boundary_Poisson_c           (struct S_BC *const BCdata);
+static void boundary_Riemann_c           (struct S_BC *const BCdata);
+static void boundary_SlipWall_c          (struct S_BC *const BCdata);
+static void boundary_BackPressure_c      (struct S_BC *const BCdata);
+static void boundary_Total_TP_c          (struct S_BC *const BCdata);
+static void boundary_SupersonicInflow_c  (struct S_BC *const BCdata);
+static void boundary_SupersonicOutflow_c (struct S_BC *const BCdata);
+static void boundary_NoSlip_Dirichlet_c  (struct S_BC *const BCdata);
+static void boundary_NoSlip_Adiabatic_c  (struct S_BC *const BCdata);
 
 void compute_boundary_values_c(struct S_BC *const BCdata)
 {
@@ -124,6 +141,8 @@ void compute_boundary_values_c(struct S_BC *const BCdata)
 		case BC_SUPERSONIC_OUT:   boundary_SupersonicOutflow_c(BCdata); break;
 		case BC_NOSLIP_T:         boundary_NoSlip_Dirichlet_c(BCdata);  break;
 		case BC_NOSLIP_ADIABATIC: boundary_NoSlip_Adiabatic_c(BCdata);  break;
+		case BC_DIRICHLET:        // fallthrough
+		case BC_NEUMANN:          boundary_Poisson_c(BCdata);           break;
 		default:
 			printf("%d\n",BCdata->BC);
 			EXIT_UNSUPPORTED;
@@ -190,7 +209,60 @@ static void get_boundary_values_c(const double X, const double Y, double complex
 	}
 }
 
-void boundary_Riemann_c(struct S_BC *const BCdata)
+static void boundary_Poisson_c(struct S_BC *const BCdata)
+{
+	unsigned int const BC_index = (BCdata->BC) % BC_STEP_SC;
+	if (!(BC_index == BC_DIRICHLET || BC_index == BC_NEUMANN))
+		EXIT_UNSUPPORTED;
+
+	unsigned int const d       = BCdata->d,
+	                   Nn      = BCdata->Nn,
+	                   Nel     = BCdata->Nel,
+	                   NnTotal = Nn*Nel;
+
+	if (d <= 1)
+		EXIT_UNSUPPORTED;
+
+	double *const XYZB = compute_XYZ_boundary(BCdata); // free
+
+	double complex const *const WL = BCdata->WL_c,
+	                     *const *const QL = BCdata->QL_c;
+	double complex       *const WB = BCdata->WB_c,
+	                     *const *const QB = BCdata->QB_c;
+
+	if (BC_index == BC_DIRICHLET) {
+		double *const WBr = malloc(NnTotal * sizeof *WBr); // free
+		compute_exact_solution(NnTotal,XYZB,WBr,0);
+		for (size_t n = 0; n < NnTotal; n++) {
+			WB[n]  = 2.0*WBr[n];
+			WB[n] -= WL[n];
+		}
+		free(WBr);
+
+		if (!(QL == NULL)) {
+			for (size_t dim = 0; dim < d; dim++) {
+				for (size_t n = 0; n < NnTotal; n++)
+					QB[dim][n] = QL[dim][n];
+			}
+		}
+	} else if (BC_index == BC_NEUMANN) {
+		for (size_t n = 0; n < NnTotal; n++)
+			WB[n] = WL[n];
+
+		if (!(QL == NULL)) {
+			double *const QB_1D = malloc(NnTotal*d * sizeof *QB_1D); // free
+			compute_exact_gradient(NnTotal,XYZB,QB_1D);
+			for (size_t dim = 0; dim < d; dim++) {
+				for (size_t n = 0; n < NnTotal; n++)
+					QB[dim][n] = -QL[dim][n] + 2.0*QB_1D[NnTotal*dim+n];
+			}
+			free(QB_1D);
+		}
+	}
+
+	free(XYZB);
+}
+static void boundary_Riemann_c(struct S_BC *const BCdata)
 {
 	unsigned int const d    = BCdata->d,
 	                   Nn   = BCdata->Nn,
@@ -353,7 +425,7 @@ void boundary_Riemann_c(struct S_BC *const BCdata)
 	free(n);
 }
 
-void boundary_SlipWall_c(struct S_BC *const BCdata)
+static void boundary_SlipWall_c(struct S_BC *const BCdata)
 {
 	unsigned int const d    = BCdata->d,
 	                   Nn   = BCdata->Nn,
@@ -418,7 +490,7 @@ void boundary_SlipWall_c(struct S_BC *const BCdata)
 	}
 }
 
-void boundary_BackPressure_c(struct S_BC *const BCdata)
+static void boundary_BackPressure_c(struct S_BC *const BCdata)
 {
 	unsigned int const d    = BCdata->d,
 	                   Nvar = d+2,
@@ -534,7 +606,7 @@ void boundary_BackPressure_c(struct S_BC *const BCdata)
 	}
 }
 
-void boundary_Total_TP_c(struct S_BC *const BCdata)
+static void boundary_Total_TP_c(struct S_BC *const BCdata)
 {
 	unsigned int const d    = BCdata->d,
 	                   Nvar = d+2,
@@ -658,7 +730,7 @@ void boundary_Total_TP_c(struct S_BC *const BCdata)
 	}
 }
 
-void boundary_SupersonicInflow_c(struct S_BC *const BCdata)
+static void boundary_SupersonicInflow_c(struct S_BC *const BCdata)
 {
 	unsigned int const d    = BCdata->d,
 	                   Nvar = d+2,
@@ -708,7 +780,7 @@ void boundary_SupersonicInflow_c(struct S_BC *const BCdata)
 	}
 }
 
-void boundary_SupersonicOutflow_c(struct S_BC *const BCdata)
+static void boundary_SupersonicOutflow_c(struct S_BC *const BCdata)
 {
 	unsigned int const d    = BCdata->d,
 	                   Nvar = d+2,
@@ -724,7 +796,7 @@ void boundary_SupersonicOutflow_c(struct S_BC *const BCdata)
 		WB[i] = WL[i];
 }
 
-void boundary_NoSlip_Dirichlet_c(struct S_BC *const BCdata)
+static void boundary_NoSlip_Dirichlet_c(struct S_BC *const BCdata)
 {
 	unsigned int const d       = BCdata->d,
 	                   Nvar    = d+2,
@@ -831,7 +903,7 @@ void boundary_NoSlip_Dirichlet_c(struct S_BC *const BCdata)
 	}
 }
 
-void boundary_NoSlip_Adiabatic_c(struct S_BC *const BCdata)
+static void boundary_NoSlip_Adiabatic_c(struct S_BC *const BCdata)
 {
 	unsigned int const d    = BCdata->d,
 	                   Nvar = d+2,

@@ -48,8 +48,8 @@ static unsigned int compare_flux_viscous  (unsigned int const Nn, unsigned int c
 static unsigned int compare_flux_Num      (const unsigned int Nn, const unsigned int Nel, const unsigned int d,
                                            const unsigned int Neq, double *Wr, double *nL, const char *nFType);
 static unsigned int compare_boundary      (const unsigned int Nn, const unsigned int Nel, const unsigned int d,
-                                           const unsigned int Neq, double *const WLr, double *const *const QLr,
-                                           double *nL, double *XYZ, const char *BType);
+                                           double *const WLr, double *const *const QLr, double *nL, double *XYZ,
+                                           const char *BType);
 static unsigned int compare_variables     (const unsigned int Nn, const unsigned int Nel, const unsigned int d,
                                            const unsigned int Neq, double *Wr);
 
@@ -83,50 +83,45 @@ void test_unit_equivalence_real_complex(void)
 
 	unsigned int const dMin = 2, dMax = 3;
 	for (d = dMin; d <= dMax; d++) {
-		Neq  = d+2;
-
 		W   = initialize_W(&Nn,&Nel,d); // free
 		double **Q = initialize_Q(Nn,Nel,d); // free
 		nL  = initialize_n(Nn,Nel,d);   // free
 		XYZ = initialize_XYZ(Nn,Nel,d); // free
 
+		Neq  = d+2;
+
 		// flux_inviscid
 		pass = compare_flux_inviscid(Nn,Nel,d,Neq,W);
 		if (d == dMin)
-			sprintf(PrintName,"equivalence_flux_inviscid             (d = %d):",d);
+			sprintf(PrintName,"equivalence_flux_inviscid              (d = %d):",d);
 		else
-			sprintf(PrintName,"            flux_inviscid             (d = %d):",d);
+			sprintf(PrintName,"            flux_inviscid              (d = %d):",d);
 		test_print2(pass,PrintName);
 
 		// flux_LF
 		pass = compare_flux_Num(Nn,Nel,d,Neq,W,nL,"LF");
-		sprintf(PrintName,"                 LF                          :");
+		sprintf(PrintName,"                 LF                           :");
 		test_print2(pass,PrintName);
 
 		// flux_Roe
 		pass = compare_flux_Num(Nn,Nel,d,Neq,W,nL,"Roe");
-		sprintf(PrintName,"                 Roe                         :");
+		sprintf(PrintName,"                 Roe                          :");
 		test_print2(pass,PrintName);
 
 		// flux_viscous
 		pass = compare_flux_viscous(Nn,Nel,d,W,(double const *const *const) Q);
-		sprintf(PrintName,"                 viscous                     :");
+		sprintf(PrintName,"                 viscous                      :");
 		test_print2(pass,PrintName);
 
 		for (size_t i = 0; i < NBTypes; i++) {
-			if (i <= 5)
-				strcpy(DB.PDE,"Euler");
-			else
-				strcpy(DB.PDE,"NavierStokes");
-
-			set_parameters_test_boundary_conditions(BType[i]);
+			set_parameters_test_boundary_conditions(BType[i],d);
 			initialize_test_case_parameters();
 
 			reset_entered_test_boundary_conditions(BType[i]);
 
 			if (strstr(BType[i],"BackPressure"))
 				update_values_BackPressure(Nn,Nel,W,nL,d);
-			pass = compare_boundary(Nn,Nel,d,Neq,W,Q,nL,XYZ,BType[i]);
+			pass = compare_boundary(Nn,Nel,d,W,Q,nL,XYZ,BType[i]);
 			if (i == 0)
 				sprintf(PrintName,"            boundary_%s        :",BType[i]);
 			else
@@ -138,7 +133,7 @@ void test_unit_equivalence_real_complex(void)
 
 		// convert_variables
 		pass = compare_variables(Nn,Nel,d,Neq,W);
-		sprintf(PrintName,"            convert_variables                :");
+		sprintf(PrintName,"            convert_variables                 :");
 		test_print2(pass,PrintName);
 
 		free(W);
@@ -303,13 +298,13 @@ static unsigned int compare_flux_Num(const unsigned int Nn, const unsigned int N
 }
 
 static unsigned int compare_boundary(const unsigned int Nn, const unsigned int Nel, const unsigned int d,
-                                     const unsigned int Neq, double *const WLr, double *const *const QLr,
-                                     double *nL, double *XYZ, const char *BType)
+                                     double *const WLr, double *const *const QLr, double *nL, double *XYZ,
+                                     const char *BType)
 {
 	unsigned int pass = 0;
 
 	unsigned int const NnTotal = Nn*Nel,
-	                   Nvar    = Neq;
+	                   Nvar    = DB.Nvar;
 
 	double *const WBr   = malloc(NnTotal*Nvar * sizeof *WBr),   // free
 	       *const WBctr = malloc(NnTotal*Nvar * sizeof *WBctr); // free

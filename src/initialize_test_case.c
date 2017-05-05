@@ -188,6 +188,9 @@ void initialize_test_case_parameters(void)
 			InitializedGeometry = 0;
 	}
 
+	DB.Nvar = 0;
+	DB.Neq  = 0;
+
 	DB.SolverType = malloc(STRLEN_MIN * sizeof *(DB.SolverType)); // keep
 	if (strstr(PDE,"Poisson")) {
 		DB.Nvar = 1;
@@ -436,6 +439,7 @@ void initialize_test_case_parameters(void)
 		DB.Cp    = GAMMA/GM1*DB.Rg;
 		DB.kappa = DB.mu*DB.Cp/DB.Pr;
 	} else {
+		printf("PDE: %s\n",PDE);
 		EXIT_UNSUPPORTED;
 	}
 
