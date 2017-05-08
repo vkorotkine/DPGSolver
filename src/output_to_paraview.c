@@ -583,7 +583,7 @@ static void output_solution(const char *sol_type)
 			u = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->What); // free
 			q = calloc(DMAX*NvnP , sizeof *q); // free
 			for (dim = 0; dim < d; dim++)
-				mm_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,0.0,ChiS_vP,VOLUME->qhat[dim],&q[dim*NvnP]);
+				mm_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,0.0,ChiS_vP,VOLUME->Qhat[dim],&q[dim*NvnP]);
 
 			// Store solution error in q3 for d = 2
 			if (d == 2) {

@@ -133,7 +133,6 @@ void test_integration_Poisson(int nargc, char **argv)
 	} else {
 		test_print_warning("Poisson linearization testing currently disabled");
 	}
-//EXIT_BASIC;
 
 	// **************************************************************************************************** //
 	// Convergence Order Testing
@@ -147,6 +146,7 @@ void test_integration_Poisson(int nargc, char **argv)
 
 		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_TRI");
 //		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_QUAD");
+		test_print_warning("Add a test for a mixed mesh for Poisson Conv. order");
 
 		free(data_c);
 	} else {

@@ -144,7 +144,6 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 	                   Neq  = DB.Neq;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
-	struct S_FACE     *FACE;
 
 	struct S_FDATA *const FDATAL = malloc(sizeof *FDATAL), // free
 	               *const FDATAR = malloc(sizeof *FDATAR); // free
@@ -161,7 +160,7 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 	}
 
 	if (strstr(DB.Form,"Weak")) {
-		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
 			init_FDATA(FDATAL,FACE,'L');
 			init_FDATA(FDATAR,FACE,'R');
 

@@ -153,7 +153,7 @@ void compute_qhat_VOLUME_c(void)
 		MInv     = VOLUME->MInv;
 
 		for (dim1 = 0; dim1 < d; dim1++) {
-			Sxyz = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,1.0,MInv,VOLUME->QhatV_What[dim1]); // free
+			Sxyz = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,1.0,MInv,VOLUME->LHSQ[dim1]); // free
 
 			// RHS
 			qhat = malloc(NvnS*1 * sizeof *qhat); // keep
@@ -391,7 +391,7 @@ void compute_uhat_VOLUME_c(void)
 		VOLUME->RHS_c = RHS;
 
 		for (dim1 = 0; dim1 < d; dim1++)
-			mm_dcc(CBCM,CBNT,CBNT,NvnS,1,NvnS,-1.0,1.0,VOLUME->QhatV_What[dim1],VOLUME->qhat_c[dim1],RHS);
+			mm_dcc(CBCM,CBNT,CBNT,NvnS,1,NvnS,-1.0,1.0,VOLUME->LHSQ[dim1],VOLUME->qhat_c[dim1],RHS);
 	}
 	free(OPS);
 }
@@ -484,8 +484,8 @@ void compute_uhat_FACE_c()
 			GradxyzIn[dim1]  = malloc(NfnI*NvnSIn  * sizeof **GradxyzIn);  // free
 			GradxyzOut[dim1] = malloc(NfnI*NvnSOut * sizeof **GradxyzOut); // free
 
-			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSIn, NvnSIn, 1.0,0.0,ChiSMInv_fIIn, VIn->QhatV_What[dim1], GradxyzIn[dim1]);
-			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,0.0,ChiSMInv_fIOut,VOut->QhatV_What[dim1],GradxyzOut[dim1]);
+			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSIn, NvnSIn, 1.0,0.0,ChiSMInv_fIIn, VIn->LHSQ[dim1], GradxyzIn[dim1]);
+			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,0.0,ChiSMInv_fIOut,VOut->LHSQ[dim1],GradxyzOut[dim1]);
 		}
 
 		mm_dcc(CBCM,CBT,CBNT,NfnI,1,NvnSIn,1.0,0.0,OPSIn->ChiS_fI[VfIn],VIn->What_c,uIn_fI);

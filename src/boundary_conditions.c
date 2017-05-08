@@ -522,19 +522,18 @@ static void boundary_BackPressure(struct S_BC *const BCdata)
 	                   Nn   = BCdata->Nn,
 	                   Nel  = BCdata->Nel;
 
-	double const *const nL  = BCdata->nL;
+//	double const *const nL  = BCdata->nL;
 
 	double const *const WL = BCdata->WL;
 	double       *const WB = BCdata->WB;
 
 	// Standard datatypes
 	unsigned int n, NnTotal, var, IndW;
-	double       rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, pBack, rhoB, cL, c2L, VnL, n1, n2, n3, *WB_ptr[Nvar];
-	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Nvar], *n_ptr;
+	double       rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, pBack, rhoB, cL, c2L, *WB_ptr[Nvar];
+	const double *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[Nvar];
 
 
 	// silence
-	n2 = n3 = 0;
 	rhovL_ptr = rhowL_ptr = NULL;
 
 	NnTotal = Nn*Nel;
@@ -553,7 +552,7 @@ static void boundary_BackPressure(struct S_BC *const BCdata)
 	rhouL_ptr = WL_ptr[1];
 	EL_ptr    = WL_ptr[d+1];
 
-	n_ptr = nL;
+//	double const n_ptr = nL;
 
 	if (d == 3) {
 		rhovL_ptr = WL_ptr[2];
@@ -583,16 +582,15 @@ static void boundary_BackPressure(struct S_BC *const BCdata)
 
 		pL  = GM1*(EL-0.5*rhoL*V2L);
 
-		n1 = *n_ptr++;
-		if      (d == 3) { n2 = *n_ptr++; n3 = *n_ptr++; }
-		else if (d == 2) { n2 = *n_ptr++; n3 = 0.0;      }
-		else if (d == 1) { n2 = 0.0;      n3 = 0.0;      }
-
-		VnL = uL*n1+vL*n2+wL*n3;
-
 		c2L = GAMMA*pL/rhoL;
 		cL  = sqrt(c2L);
 
+//		double n1 = *n_ptr++, n2 = 0.0, n3 = 0.0;
+//		if      (d == 3) { n2 = *n_ptr++; n3 = *n_ptr++; }
+//		else if (d == 2) { n2 = *n_ptr++; n3 = 0.0;      }
+//		else if (d == 1) { n2 = 0.0;      n3 = 0.0;      }
+
+//		double const VnL = uL*n1+vL*n2+wL*n3;
 //		if (VnL < 0.0) // Inlet
 //			printf("\nWarning: Velocity Inflow in boundary_BackPressure.\n");
 

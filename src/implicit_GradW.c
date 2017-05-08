@@ -32,9 +32,9 @@
  *	References:
  */
 
-static void implicit_GradW_VOLUME   (void);
-static void implicit_GradW_FACE     (void);
-static void implicit_GradW_finalize (void);
+void implicit_GradW_VOLUME   (void);
+void implicit_GradW_FACE     (void);
+void implicit_GradW_finalize (void);
 
 void implicit_GradW(void)
 {
@@ -46,7 +46,7 @@ void implicit_GradW(void)
 	implicit_GradW_finalize();
 }
 
-static void implicit_GradW_VOLUME(void)
+void implicit_GradW_VOLUME(void)
 {
 	unsigned int const d    = DB.d,
 	                   Nvar = DB.Nvar;
@@ -103,7 +103,7 @@ static void implicit_GradW_VOLUME(void)
 	free(DxyzInfo);
 }
 
-static void implicit_GradW_FACE(void)
+void implicit_GradW_FACE(void)
 {
 	/*
 	 *	Comments:
@@ -264,7 +264,7 @@ static void finalize_Qhat_What(struct S_VOLUME const *const VOLUME, unsigned int
 	}
 }
 
-static void implicit_GradW_finalize(void)
+void implicit_GradW_finalize(void)
 {
 	/*
 	 *	Comments:
@@ -312,7 +312,6 @@ static void implicit_GradW_finalize(void)
 		finalize_Qhat(VOLUME,NvnS,VOLUME->Qhat);
 		finalize_Qhat(VOLUME,NvnS,VOLUME->QhatV);
 
-//		finalize_Qhat_What(VOLUME,NvnS,NvnS,0,VOLUME->QhatV_What);
+		finalize_Qhat_What(VOLUME,NvnS,NvnS,0,VOLUME->QhatV_What);
 	}
-printf("iGf: disabled functionality.\n");
 }

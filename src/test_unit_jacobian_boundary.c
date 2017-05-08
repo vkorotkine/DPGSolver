@@ -168,7 +168,7 @@ void test_unit_jacobian_boundary(void)
 
 	test_print_warning("Not testing dQBdW (Currently unused in the code)");
 
-	unsigned int i, Nn, Nel, d, Neq;
+	unsigned int i, Nn, Nel, d;
 	double       *W, **Q, *nL, *XYZ;
 
 	set_memory_test_boundary_conditions('a');
@@ -186,8 +186,6 @@ void test_unit_jacobian_boundary(void)
 		initialize_test_case_parameters();
 
 		reset_entered_test_boundary_conditions(BType[i]);
-
-		Neq = d+2;
 
 		W    = initialize_W(&Nn,&Nel,d); // free
 		Q    = initialize_Q(Nn,Nel,d);   // free

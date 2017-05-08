@@ -36,6 +36,7 @@
 #include "setup_Curved.h"
 
 #include "array_print.h"
+#include "array_norm.h" // ToBeDeleted
 
 /*
  *	Purpose:
@@ -55,29 +56,6 @@ struct S_OPERATORS {
 	             *nOrdOutIn, *nOrdInOut;
 	double       *w_fI, *ChiS_vI, **ChiS_fI, ***GradChiS_fI, **I_vC_fI, **D_Weak;
 };
-
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
-{
-	// Standard datatypes
-	unsigned int P, type, curved;
-
-	struct S_ELEMENT *ELEMENT;
-
-	P      = VOLUME->P;
-	type   = VOLUME->type;
-	curved = VOLUME->curved;
-
-	ELEMENT = get_ELEMENT_type(type);
-
-	OPS->NvnS = ELEMENT->NvnS[P];
-	if (!curved) {
-		OPS->ChiS_vI     = ELEMENT->ChiS_vIs[P][P][0];
-		OPS->D_Weak  = ELEMENT->Ds_Weak_VV[P][P][0];
-	} else {
-		OPS->ChiS_vI     = ELEMENT->ChiS_vIc[P][P][0];
-		OPS->D_Weak  = ELEMENT->Dc_Weak_VV[P][P][0];
-	}
-}
 
 static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
                       const unsigned int IndFType)
@@ -141,22 +119,29 @@ static void init_opsF(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, co
 	}
 }
 
-static void compute_qhat_VOLUME(void)
+static void compute_Qhat(void)
 {
+	/*
+	 *	Purpose:
+	 *		Compute the weak gradients and store LHSQ for use below.
+	 */
+
+	implicit_GradW_VOLUME();
+
 	unsigned int d = DB.d;
 
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		unsigned int const NvnS = VOLUME->NvnS;
 
-		// Compute RHS and LHS terms
+		// Store contribution before multiplication by MInv
 		for (size_t dim = 0; dim < d; dim++) {
-// Need to store this contribution without MInv for use below. To not interfere with the NS code, recompute when solving
-// Poisson even though this is redundant? Probably (ToBeDeleted)
-// Remove MInv contribution when QhatV_What is finalized (ToBeDeleted)
-			mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,1.0,0.0,VOLUME->MInv,VOLUME->QhatV_What[dim],VOLUME->qhat_uhat[dim]);
-			mm_CTN_d(NvnS,1,NvnS,VOLUME->qhat_uhat[dim],VOLUME->What,VOLUME->qhat[dim]);
+			for (size_t i = 0; i < NvnS*NvnS; i++)
+				VOLUME->LHSQ[dim][i] = VOLUME->QhatV_What[dim][i];
 		}
 	}
+
+	implicit_GradW_FACE();
+	implicit_GradW_finalize();
 }
 
 void project_to_sphere(const unsigned int Nn, double *XYZIn, double *XYZOut, const unsigned int BCcurved)
@@ -327,319 +312,30 @@ static void jacobian_boundary_Poisson(const unsigned int Nn, const unsigned int 
 	}
 }
 
-static void compute_qhat_FACE(void)
+static void compute_What_VOLUME(void)
 {
-// qhat and qhat_uhat here do not include the contribution of ChiS_fI.
-// To use the general solver_functions, it would be required to add support for the Poisson boundary conditions.
-	// Initialize DB Parameters
-	unsigned int d = DB.d;
-
-	// Standard datatypes
-	unsigned int n, dim, i, j,
-	             NfnI, NvnSIn, NvnSOut,
-	             VfIn, VfOut, fIn, EclassIn, IndFType, BC, Boundary,
-	             *nOrdOutIn, *nOrdInOut;
-	double       *w_fI, *n_fI, *detJF_fI, *wnJ_fI, *mult_diag,
-	             *uIn_fI, *uOut_fIIn, *uOut_fI, *uNum_fI, *duNumduIn_fI, *duNumduOut_fI, *duOutduIn,
-	             *ChiS_fI, *ChiS_fIOutIn, *ChiS_fIInOut;
-
-	struct S_OPERATORS *OPSIn, *OPSOut;
-	struct S_VOLUME    *VIn, *VOut;
-	struct S_FACE     *FACE;
-
-	// silence
-	uOut_fI = NULL;
-
-	OPSIn  = malloc(sizeof *OPSIn);  // free
-	OPSOut = malloc(sizeof *OPSOut); // free
-
-	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
-		setup_geom_factors_highorder(FACE);
-
-		VIn  = FACE->VIn;
-		VfIn = FACE->VfIn;
-		fIn  = VfIn/NFREFMAX;
-
-		EclassIn = VIn->Eclass;
-		IndFType = get_IndFType(EclassIn,fIn);
-		init_opsF(OPSIn,VIn,FACE,IndFType);
-
-		VOut  = FACE->VOut;
-		VfOut = FACE->VfOut;
-
-		init_opsF(OPSOut,VOut,FACE,IndFType);
-
-		BC       = FACE->BC;
-		Boundary = FACE->Boundary;
-
-		NfnI    = OPSIn->NfnI;
-		NvnSIn  = OPSIn->NvnS;
-		NvnSOut = OPSOut->NvnS;
-
-		w_fI = OPSIn->w_fI;
-
-		nOrdOutIn = OPSIn->nOrdOutIn;
-		nOrdInOut = OPSIn->nOrdInOut;
-
-		detJF_fI = FACE->detJF_fI;
-		n_fI     = FACE->n_fI;
-
-		// Compute uIn_fI
-		uIn_fI = malloc(NfnI * sizeof *uIn_fI); // free
-		mm_CTN_d(NfnI,1,NvnSIn,OPSIn->ChiS_fI[VfIn],VIn->What,uIn_fI);
-
-		// Compute_uOut_fI (Taking BCs into account if applicable)
-		uOut_fIIn = malloc(NfnI * sizeof *uOut_fIIn); // free
-		if (!Boundary) {
-			uOut_fI = malloc(NfnI * sizeof *uOut_fI); // free
-			mm_CTN_d(NfnI,1,NvnSOut,OPSOut->ChiS_fI[VfOut],VOut->What,uOut_fI);
-
-			// Reorder uOut_fI to correspond to uIn_fI
-			for (n = 0; n < NfnI; n++)
-				uOut_fIIn[n] = uOut_fI[nOrdOutIn[n]];
-		} else {
-			boundary_Poisson(NfnI,1,FACE->XYZ_fI,n_fI,uIn_fI,uOut_fIIn,NULL,NULL,BC % BC_STEP_SC,BC / BC_STEP_SC);
-		}
-
-		// Compute numerical trace and its Jacobians
-		uNum_fI       = malloc(NfnI * sizeof *uNum_fI);       // free
-		duNumduIn_fI  = malloc(NfnI * sizeof *duNumduIn_fI);  // free
-		duNumduOut_fI = malloc(NfnI * sizeof *duNumduOut_fI); // free
-
-	 	// Numerical trace: uNum = 0.5 * (uL+uR)
-		for (n = 0; n < NfnI; n++) {
-			uNum_fI[n]       = 0.5*(uIn_fI[n]+uOut_fIIn[n]);
-			duNumduIn_fI[n]  = 0.5;
-			duNumduOut_fI[n] = 0.5;
-		}
-		free(uOut_fIIn);
-
-		// Include BC information in duNumduIn_fI if on a boundary
-		if (Boundary) {
-			duOutduIn = malloc(NfnI * sizeof *duOutduIn); // free
-
-			jacobian_boundary_Poisson(NfnI,1,duOutduIn,BC % BC_STEP_SC);
-			for (n = 0; n < NfnI; n++)
-				duNumduIn_fI[n] += duNumduOut_fI[n]*duOutduIn[n];
-
-			free(duOutduIn);
-		}
-
-		wnJ_fI = malloc(NfnI*d * sizeof *wnJ_fI); // free
-		for (dim = 0; dim < d; dim++) {
-		for (n = 0; n < NfnI; n++) {
-			wnJ_fI[dim*NfnI+n] = w_fI[n]*detJF_fI[n]*n_fI[n*d+dim];
-		}}
-
-		// Compute partial FACE RHS and LHS terms
-
-		// Interior VOLUME
-		for (dim = 0; dim < d; dim++) {
-			// RHSIn (partial)
-			for (n = 0; n < NfnI; n++) {
-				FACE->qhatIn[dim][n] = wnJ_fI[dim*NfnI+n]*(uNum_fI[n]-uIn_fI[n]);
-			}
-
-			// LHSInIn (partial)
-			memset(FACE->qhat_uhatInIn[dim],0.0,NfnI*NvnSIn * sizeof *(FACE->qhat_uhatInIn[dim]));
-
-			mult_diag = malloc(NfnI * sizeof *mult_diag); // free
-			for (n = 0; n < NfnI; n++)
-				mult_diag[n] = wnJ_fI[dim*NfnI+n]*(duNumduIn_fI[n]-1.0);
-
-			mm_diag_d(NfnI,NvnSIn,mult_diag,OPSIn->ChiS_fI[VfIn],FACE->qhat_uhatInIn[dim],1.0,0.0,'L','R');
-			free(mult_diag);
-		}
-		free(uIn_fI);
-
-		// Exterior VOLUME
-		if (!Boundary) {
-			ChiS_fIOutIn = malloc(NfnI*NvnSOut * sizeof *ChiS_fIOutIn); // free
-
-			ChiS_fI = OPSOut->ChiS_fI[VfOut];
-			for (i = 0; i < NfnI; i++) {
-			for (j = 0; j < NvnSOut; j++) {
-				ChiS_fIOutIn[i*NvnSOut+j] = ChiS_fI[nOrdOutIn[i]*NvnSOut+j];
-			}}
-
-			for (dim = 0; dim < d; dim++) {
-				// LHSOutIn (partial)
-				memset(FACE->qhat_uhatOutIn[dim],0.0,NfnI*NvnSOut * sizeof *(FACE->qhat_uhatOutIn[dim]));
-
-				mult_diag = malloc(NfnI * sizeof *mult_diag); // free
-				for (n = 0; n < NfnI; n++)
-					mult_diag[n] = wnJ_fI[dim*NfnI+n]*(duNumduOut_fI[n]);
-
-				mm_diag_d(NfnI,NvnSOut,mult_diag,ChiS_fIOutIn,FACE->qhat_uhatOutIn[dim],1.0,0.0,'L','R');
-				free(mult_diag);
-			}
-			free(ChiS_fIOutIn);
-
-			// Use "-ve" normal for opposite VOLUME
-			for (n = 0; n < d*NfnI; n++) {
-				wnJ_fI[n] *= -1.0;
-			}
-
-			array_rearrange_d(NfnI,d,nOrdInOut,'C',wnJ_fI);
-			array_rearrange_d(NfnI,1,nOrdInOut,'R',uNum_fI);
-			array_rearrange_d(NfnI,1,nOrdInOut,'R',duNumduIn_fI);
-			array_rearrange_d(NfnI,1,nOrdInOut,'R',duNumduOut_fI);
-
-			ChiS_fIInOut = malloc(NfnI*NvnSIn * sizeof *ChiS_fIInOut); // free
-
-			ChiS_fI = OPSIn->ChiS_fI[VfIn];
-			for (i = 0; i < NfnI; i++) {
-			for (j = 0; j < NvnSIn; j++) {
-				ChiS_fIInOut[i*NvnSIn+j] = ChiS_fI[nOrdInOut[i]*NvnSIn+j];
-			}}
-
-			for (dim = 0; dim < d; dim++) {
-				// RHSOut (partial)
-				for (n = 0; n < NfnI; n++) {
-					FACE->qhatOut[dim][n] = wnJ_fI[dim*NfnI+n]*(uNum_fI[n]-uOut_fI[n]);
-				}
-
-				// LHSInOut (partial)
-				memset(FACE->qhat_uhatInOut[dim],0.0,NfnI*NvnSIn * sizeof *(FACE->qhat_uhatInOut[dim]));
-
-				mult_diag = malloc(NfnI * sizeof *mult_diag); // free
-				for (n = 0; n < NfnI; n++)
-					mult_diag[n] = wnJ_fI[dim*NfnI+n]*(duNumduIn_fI[n]);
-
-				mm_diag_d(NfnI,NvnSIn,mult_diag,ChiS_fIInOut,FACE->qhat_uhatInOut[dim],1.0,0.0,'L','R');
-				free(mult_diag);
-
-				// LHSOutOut (partial)
-				memset(FACE->qhat_uhatOutOut[dim],0.0,NfnI*NvnSOut * sizeof *(FACE->qhat_uhatOutOut[dim]));
-
-				mult_diag = malloc(NfnI * sizeof *mult_diag); // free
-				for (n = 0; n < NfnI; n++)
-					mult_diag[n] = wnJ_fI[dim*NfnI+n]*(duNumduOut_fI[n]-1.0);
-
-				mm_diag_d(NfnI,NvnSOut,mult_diag,OPSOut->ChiS_fI[VfOut],FACE->qhat_uhatOutOut[dim],1.0,0.0,'L','R');
-				free(mult_diag);
-			}
-			free(ChiS_fIInOut);
-
-			free(uOut_fI);
-		}
-		free(uNum_fI);
-		free(duNumduIn_fI);
-		free(duNumduOut_fI);
-		free(wnJ_fI);
-	}
-	free(OPSIn);
-	free(OPSOut);
-}
-
-static void finalize_qhat(void)
-{
-// finalizes qhat but not qhat_uhat. Here: ChiS_fI*qhat := FACE->Qhat (before finalizing)
-
-	// Initialize DB Parameters
-	unsigned int d = DB.d;
-
-	// Standard datatypes
-	unsigned int dim, iMax, NvnSIn, NvnSOut, NfnI, VfIn, VfOut;
-	double       *MInvChiS_fI;
-	double       *VqhatIn_ptr, *FqhatIn_ptr, *VqhatOut_ptr, *FqhatOut_ptr, *Fqhat;
-
-	struct S_OPERATORS *OPSIn, *OPSOut;
-	struct S_FACE     *FACE;
-	struct S_VOLUME    *VIn, *VOut;
-
-	OPSIn  = malloc(sizeof *OPSIn);  // free
-	OPSOut = malloc(sizeof *OPSOut); // free
-
-	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
-		VIn    = FACE->VIn;
-		VfIn   = FACE->VfIn;
-		NvnSIn = VIn->NvnS;
-
-		init_opsF(OPSIn,VIn,FACE,get_IndFType(VIn->Eclass,VfIn/NFREFMAX));
-
-		NfnI = OPSIn->NfnI;
-
-		MInvChiS_fI = mm_Alloc_d(CBRM,CBNT,CBT,NvnSIn,NfnI,NvnSIn,1.0,VIn->MInv,OPSIn->ChiS_fI[VfIn]); // free
-
-		Fqhat = malloc(NvnSIn * sizeof *Fqhat); // free
-		for (dim = 0; dim < d; dim++) {
-// MInv*ChiS_fI*(FACE->qhatIn) := FACE->QhatL
-			mm_d(CBCM,CBT,CBNT,NvnSIn,1,NfnI,1.0,0.0,MInvChiS_fI,FACE->qhatIn[dim],Fqhat);
-
-			VqhatIn_ptr  = VIn->qhat[dim];
-			FqhatIn_ptr  = Fqhat;
-
-// Summation here gives VOLUME->Qhat
-			for (iMax = NvnSIn; iMax--; )
-				*VqhatIn_ptr++ += *FqhatIn_ptr++;
-		}
-		free(MInvChiS_fI);
-		free(Fqhat);
-
-		if(!(FACE->Boundary)) {
-			VOut    = FACE->VOut;
-			VfOut   = FACE->VfOut;
-			NvnSOut = VOut->NvnS;
-
-			init_opsF(OPSOut,VOut,FACE,get_IndFType(VOut->Eclass,VfOut/NFREFMAX));
-
-			MInvChiS_fI = mm_Alloc_d(CBRM,CBNT,CBT,NvnSOut,NfnI,NvnSOut,1.0,VOut->MInv,OPSOut->ChiS_fI[VfOut]); // free
-
-			Fqhat = malloc(NvnSOut * sizeof *Fqhat); // free
-			for (dim = 0; dim < d; dim++) {
-// MInv*ChiS_fI*(FACE->qhatOut) := FACE->QhatR
-				mm_d(CBCM,CBT,CBNT,NvnSOut,1,NfnI,1.0,0.0,MInvChiS_fI,FACE->qhatOut[dim],Fqhat);
-
-				VqhatOut_ptr = VOut->qhat[dim];
-				FqhatOut_ptr = Fqhat;
-
-// Summation here gives VOLUME->Qhat
-				for (iMax = NvnSOut; iMax--; )
-					*VqhatOut_ptr++ += *FqhatOut_ptr++;
-			}
-			free(MInvChiS_fI);
-			free(Fqhat);
-		}
-	}
-	free(OPSIn);
-	free(OPSOut);
-}
-
-static void compute_uhat_VOLUME(void)
-{
-	// Initialize DB Parameters
-	unsigned int d    = DB.d,
-	             Neq  = 1,
-	             Nvar = 1;
-
-	// Standard datatypes
-	unsigned int dim1, NvnS;
-
-	struct S_OPERATORS *OPS;
-	struct S_VOLUME    *VOLUME;
-
-	OPS = malloc(sizeof *OPS); // free
-
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		init_ops(OPS,VOLUME);
-
-		NvnS = OPS->NvnS;
+	unsigned int const d    = DB.d,
+	                   Neq  = 1,
+	                   Nvar = 1;
+
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		unsigned int const NvnS = VOLUME->NvnS;
 
 		// Compute RHS and LHS terms
-		double **QhatV_What = VOLUME->QhatV_What;
+		double **LHSQ = VOLUME->LHSQ;
 
 		// RHS
+		// Note: Using CBCM and CBNT for LHSQ results in LHSQ'
 		memset(VOLUME->RHS,0.0,NvnS*Neq * sizeof *(VOLUME->RHS));
-		for (dim1 = 0; dim1 < d; dim1++)
-			mm_d(CBCM,CBNT,CBNT,NvnS,1,NvnS,-1.0,1.0,QhatV_What[dim1],VOLUME->qhat[dim1],VOLUME->RHS);
+		for (size_t dim = 0; dim < d; dim++)
+			mm_d(CBCM,CBNT,CBNT,NvnS,1,NvnS,-1.0,1.0,LHSQ[dim],VOLUME->QhatV[dim],VOLUME->RHS);
+// Potentially modify this to be Qhat instead of QhatV. (ToBeDeleted)
 
 		// LHS
 		memset(VOLUME->LHS,0.0,NvnS*NvnS*Neq*Nvar * sizeof *(VOLUME->LHS));
-		for (dim1 = 0; dim1 < d; dim1++)
-			mm_d(CBRM,CBT,CBNT,NvnS,NvnS,NvnS,-1.0,1.0,QhatV_What[dim1],VOLUME->qhat_uhat[dim1],VOLUME->LHS);
+		for (size_t dim = 0; dim < d; dim++)
+			mm_d(CBRM,CBT,CBNT,NvnS,NvnS,NvnS,-1.0,1.0,LHSQ[dim],VOLUME->QhatV_What[dim],VOLUME->LHS);
 	}
-	free(OPS);
 }
 
 void jacobian_flux_coef(const unsigned int Nn, const unsigned int Nel, const double *nIn, const double *h,
@@ -697,7 +393,7 @@ void jacobian_flux_coef(const unsigned int Nn, const unsigned int Nel, const dou
 	}
 }
 
-static void compute_uhat_FACE()
+static void compute_What_FACE()
 {
 	// Initialize DB Parameters
 	unsigned int d               = DB.d,
@@ -705,8 +401,8 @@ static void compute_uhat_FACE()
 
 	// Standard datatypes
 	unsigned int i, j, n, dim, dim1,
-	             NvnSIn, NvnSOut, NfnI,
-	             BC, Boundary, VfIn, VfOut, fIn, EclassIn, IndFType,
+	             NvnSIn, NvnSOut,
+	             BC, Boundary, VfIn, VfOut, fIn, EclassIn,
 	             *nOrdOutIn, *nOrdInOut;
 	double       **GradxyzIn, **GradxyzOut, *ChiS_fI, *ChiS_fI_std, *ChiSMInv_fIIn, *ChiSMInv_fIOut, *I_jump,
 	             *LHSInIn, *LHSOutIn, *LHSInOut, *LHSOutOut,
@@ -716,20 +412,86 @@ static void compute_uhat_FACE()
 	             *gradu_avg, *u_jump, *u_jump_part,
 	             *RHSIn, *RHSOut;
 
+	unsigned int const Nvar = DB.Nvar,
+	                   Neq  = DB.Neq;
+
 	struct S_OPERATORS *OPSIn, *OPSOut;
-	struct S_FACE     *FACE;
 	struct S_VOLUME    *VIn, *VOut;
 
 	OPSIn  = malloc(sizeof *OPSIn);  // free
 	OPSOut = malloc(sizeof *OPSOut); // free
 
-	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
+
+	struct S_FDATA *FDATAL = malloc(sizeof *FDATAL), // free
+	               *FDATAR = malloc(sizeof *FDATAR); // free
+	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
+	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
+
+	struct S_NumericalFlux *NFluxData = malloc(sizeof *NFluxData); // free
+	FDATAL->NFluxData = NFluxData;
+	FDATAR->NFluxData = NFluxData;
+
+	for (size_t i = 0; i < 2; i++) {
+		OPSL[i] = malloc(sizeof *OPSL[i]); // free
+		OPSR[i] = malloc(sizeof *OPSR[i]); // free
+	}
+
+	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+		init_FDATA(FDATAL,FACE,'L');
+		init_FDATA(FDATAR,FACE,'R');
+
+		// Compute WL_fIL, WR_fIL, QpL_fIL, and QpR_fIL (i.e. as seen from the (L)eft VOLUME)
+//		unsigned int const IndFType = FDATAL->IndFType,
+		unsigned int       IndFType = FDATAL->IndFType,
+		                   NfnI     = OPSL[IndFType]->NfnI;
+
+		FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
+		FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
+
+		double **const QpL_fIL = malloc(d * sizeof *QpL_fIL), // free
+		       **const QpR_fIL = malloc(d * sizeof *QpR_fIL); // free
+
+		for (size_t dim = 0; dim < d; dim++) {
+			QpL_fIL[dim] = malloc(NfnI*Nvar * sizeof *QpL_fIL[dim]); // free
+			QpR_fIL[dim] = malloc(NfnI*Nvar * sizeof *QpR_fIL[dim]); // free
+		}
+
+		FDATAL->Qp_fIL = QpL_fIL;
+		FDATAR->Qp_fIL = QpR_fIL;
+
+		coef_to_values_fI(FDATAL,'W','I');
+		coef_to_values_fI(FDATAL,'Q','I');
+		compute_WR_QpR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,(double const *const *const) QpL_fIL,QpR_fIL,'I');
+
+		// Compute numerical flux and its Jacobian as seen from the left VOLUME
+		NFluxData->WL_fIL              = FDATAL->W_fIL;
+		NFluxData->WR_fIL              = FDATAR->W_fIL;
+		NFluxData->nFluxViscNum_fI     = malloc(NfnI*Neq      * sizeof *(NFluxData->nFluxViscNum_fI));     // free
+		NFluxData->dnFluxViscNumdWL_fI = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdWL_fI)); // free
+		NFluxData->dnFluxViscNumdWR_fI = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdWR_fI)); // free
+		NFluxData->dnFluxViscNumdQL_fI = malloc(d             * sizeof *(NFluxData->dnFluxViscNumdQL_fI)); // free
+		NFluxData->dnFluxViscNumdQR_fI = malloc(d             * sizeof *(NFluxData->dnFluxViscNumdQR_fI)); // free
+
+		for (size_t dim = 0; dim < d; dim++) {
+			NFluxData->dnFluxViscNumdQL_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdQL_fI[dim])); // free
+			NFluxData->dnFluxViscNumdQR_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdQR_fI[dim])); // free
+		}
+
+		compute_numerical_flux_viscous(FDATAL,FDATAR,'I');
+
+
+
+
+		setup_geom_factors_highorder(FACE);
+
 		VIn  = FACE->VIn;
 		VfIn = FACE->VfIn;
 		fIn  = VfIn/NFREFMAX;
-
+if (0) {
 		EclassIn = VIn->Eclass;
 		IndFType = get_IndFType(EclassIn,fIn);
+}
 		init_opsF(OPSIn,VIn,FACE,IndFType);
 
 		VOut  = FACE->VOut;
@@ -740,7 +502,7 @@ static void compute_uhat_FACE()
 		BC       = FACE->BC;
 		Boundary = FACE->Boundary;
 
-		NfnI    = OPSIn->NfnI;
+//		NfnI    = OPSIn->NfnI;
 		NvnSIn  = OPSIn->NvnS;
 		NvnSOut = OPSOut->NvnS;
 
@@ -787,14 +549,15 @@ static void compute_uhat_FACE()
 			GradxyzIn[dim1]  = malloc(NfnI*NvnSIn  * sizeof **GradxyzIn);  // free
 			GradxyzOut[dim1] = malloc(NfnI*NvnSOut * sizeof **GradxyzOut); // free
 
-			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSIn, NvnSIn, 1.0,0.0,ChiSMInv_fIIn, VIn->QhatV_What[dim1], GradxyzIn[dim1]);
-			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,0.0,ChiSMInv_fIOut,VOut->QhatV_What[dim1],GradxyzOut[dim1]);
+			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSIn, NvnSIn, 1.0,0.0,ChiSMInv_fIIn, VIn->LHSQ[dim1], GradxyzIn[dim1]);
+			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,0.0,ChiSMInv_fIOut,VOut->LHSQ[dim1],GradxyzOut[dim1]);
 		}
 
 		mm_CTN_d(NfnI,1,NvnSIn,OPSIn->ChiS_fI[VfIn],VIn->What,uIn_fI);
 
 		for (dim = 0; dim < d; dim++)
 			mm_CTN_d(NfnI,1,NvnSIn,GradxyzIn[dim],VIn->What,&grad_uIn_fI[NfnI*dim]);
+// matches ChiS_fI*QhatV (OK)
 
 		// Compute_uOut_fI (Taking BCs into account if applicable)
 		uOut_fIIn      = malloc(NfnI   * sizeof *uOut_fIIn);      // free
@@ -813,6 +576,7 @@ static void compute_uhat_FACE()
 			for (dim = 0; dim < d; dim++)
 				mm_CTN_d(NfnI,1,NvnSOut,GradxyzOut[dim],VOut->What,&grad_uOut_fIIn[NfnI*dim]);
 		} else {
+// In solver_functions, grad_uOut_fIIn is computed based on the corrected grad_uIn_fI
 			boundary_Poisson(NfnI,1,FACE->XYZ_fI,n_fI,uIn_fI,uOut_fIIn,grad_uIn_fI,grad_uOut_fIIn,
 			                 BC % BC_STEP_SC,BC / BC_STEP_SC);
 		}
@@ -837,7 +601,41 @@ static void compute_uhat_FACE()
 			if (!Boundary) {
 				ChiS_fI = OPSIn->ChiS_fI[VfIn];
 				mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnSIn,1.0,0.0,ChiSMInv_fIIn,ChiS_fI,I_jump);
+/*
+double *Wdiff = malloc(NfnI * sizeof *Wdiff); // ToBeDeleted
+for (size_t n = 0; n < NfnI; n++)
+	Wdiff[n] = uIn_fI[n]-uOut_fIIn[n];
 
+double **qF = malloc(d * sizeof *qF); // Delete
+double *qpF = malloc(NfnI * sizeof *qpF); // Delete
+double *QpF = malloc(NfnI*d * sizeof *QpF);
+for (size_t dim = 0; dim < d; dim++) {
+	for (size_t n = 0; n < NfnI; n++)
+		qpF[n] = w_fI[n]*detJF_fI[n]*n_fI[n*d+dim]*-0.5*Wdiff[n];
+
+	qF[dim] = malloc(NvnSIn * sizeof *qF[dim]); // Delete
+	mm_d(CBCM,CBNT,CBNT,NvnSIn,1,NfnI,1.0,0.0,ChiS_fI,qpF,qF[dim]);
+
+	double *tmp_d = mm_Alloc_d(CBCM,CBT,CBNT,NvnSIn,1,NvnSIn,1.0,VIn->MInv,qF[dim]);
+
+	printf("619: %zu % .3e \n",dim,array_norm_diff_d(NvnSIn,tmp_d,FACE->QhatL[dim],"Inf"));
+//	array_print_d(NvnSIn,1,tmp_d,'C');
+//	array_print_d(NvnSIn,1,FACE->QhatL[dim],'C');
+
+	mm_d(CBCM,CBT,CBNT,NfnI,1,NfnI,1.0*DB.NfMax,0.0,I_jump,qpF,&QpF[dim*NfnI]);
+}
+
+array_print_d(NfnI,d,QpF,'C');
+for (size_t dim = 0; dim < d; dim++) {
+	mm_d(CBCM,CBT,CBNT,NfnI,1,NvnSIn,1.0*DB.NfMax,0.0,ChiS_fI,FACE->QhatL[dim],&QpF[dim*NfnI]);
+}
+array_print_d(NfnI,d,QpF,'C');
+for (size_t dim = 0; dim < d; dim++)
+	array_print_d(NfnI,1,FDATAL->Qp_fIL[dim],'C');
+
+
+//EXIT_BASIC;
+*/
 				ChiS_fI_std = OPSOut->ChiS_fI[VfOut];
 				ChiS_fI = malloc(NfnI*NvnSOut * sizeof *ChiS_fI); // free
 
@@ -847,6 +645,44 @@ static void compute_uhat_FACE()
 					ChiS_fI[i*NvnSOut+j] = ChiS_fI_std[nOrdInOut[i]*NvnSOut+j];
 				}}
 				mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnSOut,1.0,1.0,ChiSMInv_fIOut,ChiS_fI,I_jump);
+/*
+for (size_t dim = 0; dim < d; dim++) {
+	for (size_t n = 0; n < NfnI; n++)
+//		qpF[n] = w_fI[n]*detJF_fI[n]*n_fI[n*d+dim]*-0.5*Wdiff[n];
+		qpF[n] = w_fI[n]*detJF_fI[n]*n_fI[n*d+dim]*-0.5;
+
+	qF[dim] = malloc(NvnSOut * sizeof *qF[dim]); // Delete
+	mm_d(CBCM,CBNT,CBNT,NvnSOut,1,NfnI,1.0,0.0,ChiS_fI,qpF,qF[dim]);
+
+	double *tmp_d = mm_Alloc_d(CBCM,CBT,CBNT,NvnSIn,1,NvnSIn,1.0,VOut->MInv,qF[dim]);
+
+	printf("640: %zu % .3e\n",dim,array_norm_diff_d(NvnSOut,tmp_d,FACE->QhatR[dim],"Inf"));
+//	array_print_d(NvnSOut,1,tmp_d,'C');
+//	array_print_d(NvnSOut,1,FACE->QhatR[dim],'C');
+
+	mm_d(CBCM,CBT,CBNT,NfnI,1,NfnI,1.0*DB.NfMax,0.0,I_jump,qpF,&QpF[dim*NfnI]);
+}
+
+//EXIT_BASIC;
+
+printf("Used\n");
+array_print_d(NfnI,d,QpF,'C');
+for (size_t dim = 0; dim < d; dim++) {
+	mm_d(CBCM,CBT,CBNT,NfnI,1,NvnSOut,1.0*DB.NfMax,1.0,ChiS_fI,FACE->QhatR[dim],&QpF[dim*NfnI]);
+//	mm_d(CBCM,CBT,CBNT,NfnI,1,NvnSOut,1.0*DB.NfMax,0.0,ChiS_fI,FACE->QhatR[dim],&QpF[dim*NfnI]);
+}
+array_print_d(NfnI,d,QpF,'C');
+for (size_t dim = 0; dim < d; dim++)
+	array_print_d(NfnI,1,FDATAR->Qp_fIL[dim],'C');
+
+for (size_t dim = 0; dim < d; dim++) {
+for (size_t n = 0; n < NfnI; n++)
+//	QpF[dim*NfnI+n] = 0.5*(FDATAL->Qp_fIL[dim][n]+FDATAR->Qp_fIL[dim][n]);
+	QpF[dim*NfnI+n] = 1.0*(FDATAL->Qp_fIL[dim][n]+FDATAR->Qp_fIL[dim][n]);
+}
+array_print_d(NfnI,d,QpF,'C');
+*/
+
 				free(ChiS_fI);
 			} else {
 				ChiS_fI = OPSIn->ChiS_fI[VfIn];
@@ -859,6 +695,8 @@ static void compute_uhat_FACE()
 				u_jump_part[NfnI*dim+n] = u_jump[NfnI*dim+n]*detJF_fI[n]*w_fI[n];
 			}}
 			mm_CTN_d(NfnI,d,NfnI,I_jump,u_jump_part,u_jump);
+//printf("u_jump\n");
+//array_print_d(NfnI,d,u_jump,'C');
 
 			free(I_jump);
 			free(u_jump_part);
@@ -915,13 +753,37 @@ static void compute_uhat_FACE()
 
 		free(ChiSMInv_fIIn);
 		free(ChiSMInv_fIOut);
-
+/*
+double *QpF2 = malloc(NfnI*d * sizeof *QpF2);
+for (size_t dim = 0; dim < d; dim++) {
+	for (size_t n = 0; n < NfnI; n++)
+//		QpF2[dim*NfnI+n] = u_jump[NfnI*dim+n]*(uIn_fI[n]-uOut_fIIn[n]);
+		QpF2[dim*NfnI+n] = u_jump[NfnI*dim+n];
+}
+array_print_d(NfnI,d,QpF2,'C');
+*/
 		for (n = 0; n < NfnI; n++) {
 		for (dim = 0; dim < d; dim++) {
+// this should be what is returned by compute_numerical_flux_viscous
 			nqNum_fI[n] += n_fI[n*d+dim] *
 				(  gradu_avg[NfnI*dim+n] * (grad_uIn_fI[NfnI*dim+n] + grad_uOut_fIIn[NfnI*dim+n])
 				 + u_jump[NfnI*dim+n]    * (uIn_fI[n] - uOut_fIIn[n]));
 		}}
+/*
+printf("725: %d %d %d\n",FACE->indexg,Boundary,BC);
+array_print_d(NfnI,1,nqNum_fI,'C');
+array_print_d(NfnI,1,NFluxData->nFluxViscNum_fI,'C');
+
+if (!Boundary)
+EXIT_BASIC;
+*/
+
+bool useAlternate = 0;
+
+if (useAlternate) {
+for (size_t n = 0; n < NfnI; n++)
+	nqNum_fI[n] = NFluxData->nFluxViscNum_fI[n];
+}
 
 		free(grad_uIn_fI);
 		free(grad_uOut_fIIn);
@@ -935,13 +797,19 @@ static void compute_uhat_FACE()
 		ChiS_fI = OPSIn->ChiS_fI[VfIn];
 
 		for (dim = 0; dim < d; dim++) {
+if (!useAlternate) {
 			for (n = 0; n < NfnI; n++) {
 			for (j = 0; j < NvnSIn; j++) {
 				// row-major
 				dnqNumduhatIn_fI[n*NvnSIn+j] += n_fI[n*d+dim]*
 					(gradu_avg[NfnI*dim+n]*GradxyzIn[dim][n*NvnSIn+j] + u_jump[NfnI*dim+n]*ChiS_fI[n*NvnSIn+j]);
 			}}
+} else {
+// Can likely use compute_LHS_FACE_Q_Weak instead (ToModified)
+mm_diag_d(NfnI,NvnSIn,NFluxData->dnFluxViscNumdQL_fI[dim],FDATAL->Qp_WhatL[dim],dnqNumduhatIn_fI,1.0,1.0,'L','R');
+}
 		}
+		array_free2_d(d,GradxyzIn);
 
 		for (n = 0; n < NfnI*d; n++)
 			u_jump[n] *= -1.0;
@@ -958,14 +826,21 @@ static void compute_uhat_FACE()
 			}}
 
 			for (dim = 0; dim < d; dim++) {
+if (!useAlternate) {
 				for (n = 0; n < NfnI; n++) {
 				for (j = 0; j < NvnSOut; j++) {
 					dnqNumduhatOut_fI[n*NvnSOut+j] += n_fI[n*d+dim] *
 						(gradu_avg[NfnI*dim+n]*GradxyzOut[dim][n*NvnSOut+j] + u_jump[NfnI*dim+n]*ChiS_fI[n*NvnSOut+j]);
 				}}
+} else {
+// Can likely use compute_LHS_FACE_Q_Weak instead (ToModified)
+//mm_diag_d(NfnI,NvnSOut,NFluxData->dnFluxViscNumdQR_fI[dim],FDATAR->Qp_WhatL[dim],dnqNumduhatOut_fI,1.0,1.0,'L','R');
+mm_diag_d(NfnI,NvnSOut,NFluxData->dnFluxViscNumdQR_fI[dim],FDATAL->Qp_WhatR[dim],dnqNumduhatOut_fI,1.0,1.0,'L','R');
+}
 			}
 			free(ChiS_fI);
-		} else {
+} else if (!useAlternate) {
+//		} else {
 			// Include BC information in dnqNumduhatIn_fI
 
 			// Note: This approach is only possible because duOutduIn is a constant here. Otherwise, it would be
@@ -992,6 +867,7 @@ static void compute_uhat_FACE()
 		free(gradu_avg);
 		free(u_jump);
 		free(h);
+		array_free2_d(d,GradxyzOut);
 
 		// Multiply by area element and cubature weights
 		for (n = 0; n < NfnI; n++) {
@@ -1011,6 +887,7 @@ static void compute_uhat_FACE()
 		memset(FACE->RHSIn,0.0,NvnSIn * sizeof *FACE->RHSIn);
 		memset(FACE->LHSInIn,0.0,NvnSIn*NvnSIn * sizeof *FACE->LHSInIn);
 
+		RHSOut = LHSOutIn = LHSInOut = LHSOutOut = NULL;
 		if (!Boundary) {
 			RHSOut    = FACE->RHSOut;
 			LHSOutIn  = FACE->LHSOutIn;
@@ -1024,19 +901,15 @@ static void compute_uhat_FACE()
 		}
 
 		for (dim = 0; dim < d; dim++) {
-			mm_d(CBCM,CBNT,CBNT,NvnSIn, 1,NfnI,-1.0,1.0,GradxyzIn[dim], FACE->qhatIn[dim], RHSIn);
-			mm_d(CBRM,CBT,CBNT,NvnSIn, NvnSIn, NfnI,-1.0,1.0,GradxyzIn[dim], FACE->qhat_uhatInIn[dim],  LHSInIn);
+			mm_d(CBCM,CBNT,CBNT,NvnSIn,1,NvnSIn,-1.0,1.0,VIn->LHSQ[dim], FACE->QhatL[dim], RHSIn);
+			mm_d(CBRM,CBT,CBNT,NvnSIn,NvnSIn,NvnSIn,-1.0,1.0,VIn->LHSQ[dim],FACE->Qhat_WhatLL[dim],LHSInIn);
 			if (!Boundary) {
-				array_rearrange_d(NfnI,NvnSOut,nOrdInOut,'R',GradxyzOut[dim]);
-
-				mm_d(CBCM,CBNT,CBNT,NvnSOut,1,NfnI,-1.0,1.0,GradxyzOut[dim],FACE->qhatOut[dim],RHSOut);
-				mm_d(CBRM,CBT,CBNT,NvnSIn, NvnSOut,NfnI,-1.0,1.0,GradxyzIn[dim], FACE->qhat_uhatOutIn[dim], LHSOutIn);
-				mm_d(CBRM,CBT,CBNT,NvnSOut,NvnSIn, NfnI,-1.0,1.0,GradxyzOut[dim],FACE->qhat_uhatInOut[dim], LHSInOut);
-				mm_d(CBRM,CBT,CBNT,NvnSOut,NvnSOut,NfnI,-1.0,1.0,GradxyzOut[dim],FACE->qhat_uhatOutOut[dim],LHSOutOut);
+				mm_d(CBCM,CBNT,CBNT,NvnSOut,1,NvnSOut,-1.0,1.0,VOut->LHSQ[dim],FACE->QhatR[dim],RHSOut);
+				mm_d(CBRM,CBT,CBNT,NvnSIn, NvnSOut,NvnSIn,-1.0,1.0,VIn->LHSQ[dim],FACE->Qhat_WhatRL[dim],LHSOutIn);
+				mm_d(CBRM,CBT,CBNT,NvnSOut,NvnSIn,NvnSOut,-1.0,1.0,VOut->LHSQ[dim],FACE->Qhat_WhatLR[dim],LHSInOut);
+				mm_d(CBRM,CBT,CBNT,NvnSOut,NvnSOut,NvnSOut,-1.0,1.0,VOut->LHSQ[dim],FACE->Qhat_WhatRR[dim],LHSOutOut);
 			}
 		}
-		array_free2_d(d,GradxyzIn);
-		array_free2_d(d,GradxyzOut);
 
 		// Add FACE contributions to RHS and LHS
 
@@ -1087,19 +960,26 @@ static void compute_uhat_FACE()
 	}
 	free(OPSIn);
 	free(OPSOut);
+
+	for (size_t i = 0; i < 2; i++) {
+		free(OPSL[i]);
+		free(OPSR[i]);
+	}
+
+	free(FDATAL);
+	free(FDATAR);
+	free(NFluxData);
 }
 
 void implicit_info_Poisson(void)
 {
 	update_VOLUME_Ops();
 	update_memory_VOLUMEs();
-	implicit_GradW(); // Only used for implicit_GradW_VOLUME here
 
-	compute_qhat_VOLUME();
-	compute_qhat_FACE();
+	compute_Qhat();
 
-	compute_uhat_VOLUME();
-	compute_uhat_FACE();
+	compute_What_VOLUME();
+	compute_What_FACE();
 }
 
 void solver_Poisson(bool PrintEnabled)
@@ -1168,10 +1048,8 @@ void solver_Poisson(bool PrintEnabled)
 	KSPDestroy(&ksp);
 	finalize_ksp(&A,&b,&x,2);
 
-	// Update qhat
-	compute_qhat_VOLUME();
-	compute_qhat_FACE();
-	finalize_qhat();
+	// Update Qhat based on computed solution
+	implicit_GradW();
 
 	// Output to paraview
 	if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 5 && TestDB.ML <= 4)) {
@@ -1189,7 +1067,7 @@ void solver_Poisson(bool PrintEnabled)
 	}
 
 //	if (!DB.Testing)
-	if (PrintEnabled)
+	if (1||PrintEnabled)
 		printf("KSP iterations (cond, reason): %5d (% .3e, %d)\n",iteration_ksp,emax/emin,reason);
 
 	// Note: maxRHS is meaningless as it is based on the initial (zero) solution.

@@ -43,7 +43,6 @@ static void compute_Inviscid_FACE_EFE(void)
 	                   Neq  = d+2;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
-	struct S_FACE     *FACE;
 
 	struct S_FDATA *FDATAL = malloc(sizeof *FDATAL), // free
 	               *FDATAR = malloc(sizeof *FDATAR); // free
@@ -60,7 +59,7 @@ static void compute_Inviscid_FACE_EFE(void)
 	}
 
 	if (strstr(DB.Form,"Weak")) {
-		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
 			init_FDATA(FDATAL,FACE,'L');
 			init_FDATA(FDATAR,FACE,'R');
 
@@ -136,7 +135,6 @@ static void compute_Viscous_FACE_EFE(void)
 	                   Neq  = d+2;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
-	struct S_FACE     *FACE;
 
 	struct S_FDATA *FDATAL = malloc(sizeof *FDATAL), // free
 	               *FDATAR = malloc(sizeof *FDATAR); // free
@@ -153,14 +151,14 @@ static void compute_Viscous_FACE_EFE(void)
 	}
 
 	if (strstr(DB.Form,"Weak")) {
-		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
 			// FACE contribution to V(L/R)->LHS and related off-diagonal contributions from the VOLUME term
 			finalize_VOLUME_LHSQF_Weak(FACE);
 
 			init_FDATA(FDATAL,FACE,'L');
 			init_FDATA(FDATAR,FACE,'R');
 
-			// Compute WL_fIL and WR_fIL (i.e. as seen from the (L)eft VOLUME)
+			// Compute WL_fIL, WR_fIL, QpL_fIL, and QpR_fIL (i.e. as seen from the (L)eft VOLUME)
 			unsigned int const IndFType = FDATAL->IndFType,
 			                   NfnI     = OPSL[IndFType]->NfnI;
 

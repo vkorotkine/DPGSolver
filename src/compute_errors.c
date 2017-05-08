@@ -128,7 +128,7 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		q = calloc(NvnI*DMAX , sizeof *q); // free
 		mm_CTN_d(NvnI,1,NvnS,ChiS_vI,VOLUME->What,u);
 		for (dim = 0; dim < d; dim++)
-			mm_CTN_d(NvnI,1,NvnS,ChiS_vI,VOLUME->qhat[dim],&q[dim*NvnI]);
+			mm_CTN_d(NvnI,1,NvnS,ChiS_vI,VOLUME->Qhat[dim],&q[dim*NvnI]);
 
 		uEx = malloc(NvnI      * sizeof *uEx); // free
 		qEx = calloc(NvnI*DMAX , sizeof *qEx); // free

@@ -73,6 +73,8 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 	if (strstr(TestName,"Poisson")) {
 		data->AdaptiveRefine = 0;
 		data->MLMax = 4;
+//data->PMax  = 1;
+//data->MLMax = 0;
 		data->PG_add        = 0;
 		data->IntOrder_add  = 2; // See comments
 		if (strstr(TestName,"n-Ellipsoid_HollowSection")) {
