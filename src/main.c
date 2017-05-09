@@ -319,7 +319,7 @@ test_unit_equivalence_real_complex();
 	}
 	test_integration_Poisson(nargc,argv);
 //	test_integration_Euler(nargc,argv);
-	test_integration_NavierStokes(nargc,argv);
+//	test_integration_NavierStokes(nargc,argv);
 
 	PetscFinalize();
 

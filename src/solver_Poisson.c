@@ -293,25 +293,6 @@ void boundary_Poisson(const unsigned int Nn, const unsigned int Nel, double *XYZ
 	free(XYZproj);
 }
 
-static void jacobian_boundary_Poisson(const unsigned int Nn, const unsigned int Nel, double *duRduL,
-                                      const unsigned int BC)
-{
-	unsigned int n;
-
-	if (Nel != 1)
-		printf("Error: Vectorization unsupported.\n"), EXIT_MSG;
-
-	if (BC == BC_DIRICHLET) {
-		for (n = 0; n < Nn; n++)
-			duRduL[n] = -1.0;
-	} else if (BC == BC_NEUMANN) {
-		for (n = 0; n < Nn; n++)
-			duRduL[n] = 1.0;
-	} else {
-		printf("Error: Unsupported BC_type.\n"), EXIT_MSG;
-	}
-}
-
 static void compute_What_VOLUME(void)
 {
 	unsigned int const d    = DB.d,
@@ -395,21 +376,15 @@ void jacobian_flux_coef(const unsigned int Nn, const unsigned int Nel, const dou
 
 static void compute_What_FACE()
 {
-	// Initialize DB Parameters
-	unsigned int d               = DB.d,
-	             ViscousFluxType = DB.ViscousFluxType;
+	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int i, j, n, dim, dim1,
+	unsigned int j, n, dim,
 	             NvnSIn, NvnSOut,
-	             BC, Boundary, VfIn, VfOut, fIn, EclassIn,
+	             VfIn, VfOut,
 	             *nOrdOutIn, *nOrdInOut;
-	double       **GradxyzIn, **GradxyzOut, *ChiS_fI, *ChiS_fI_std, *ChiSMInv_fIIn, *ChiSMInv_fIOut, *I_jump,
-	             *LHSInIn, *LHSOutIn, *LHSInOut, *LHSOutOut,
-	             *detJVIn_fI, *detJVOut_fI, *h, *n_fI, *detJF_fI, *w_fI, VolL, VolR,
-	             *uIn_fI, *grad_uIn_fI, *uOut_fIIn, *grad_uOut_fIIn, *uOut_fI,
-	             *nqNum_fI, *dnqNumduhatIn_fI, *dnqNumduhatOut_fI, *duOutduIn,
-	             *gradu_avg, *u_jump, *u_jump_part,
+	double       *LHSInIn, *LHSOutIn, *LHSInOut, *LHSOutOut,
+	             *nqNum_fI, *dnqNumduhatIn_fI, *dnqNumduhatOut_fI,
 	             *RHSIn, *RHSOut;
 
 	unsigned int const Nvar = DB.Nvar,
@@ -465,14 +440,16 @@ static void compute_What_FACE()
 		compute_WR_QpR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,(double const *const *const) QpL_fIL,QpR_fIL,'I');
 
 		// Compute numerical flux and its Jacobian as seen from the left VOLUME
+// Make a memory allocation function (Options: imex, PDE). (ToBeDeleted)
 		NFluxData->WL_fIL              = FDATAL->W_fIL;
 		NFluxData->WR_fIL              = FDATAR->W_fIL;
 		NFluxData->nFluxViscNum_fI     = malloc(NfnI*Neq      * sizeof *(NFluxData->nFluxViscNum_fI));     // free
+// dnFNumdW is not needed (ToBeDeleted)
 		NFluxData->dnFluxViscNumdWL_fI = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdWL_fI)); // free
 		NFluxData->dnFluxViscNumdWR_fI = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdWR_fI)); // free
+
 		NFluxData->dnFluxViscNumdQL_fI = malloc(d             * sizeof *(NFluxData->dnFluxViscNumdQL_fI)); // free
 		NFluxData->dnFluxViscNumdQR_fI = malloc(d             * sizeof *(NFluxData->dnFluxViscNumdQR_fI)); // free
-
 		for (size_t dim = 0; dim < d; dim++) {
 			NFluxData->dnFluxViscNumdQL_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdQL_fI[dim])); // free
 			NFluxData->dnFluxViscNumdQR_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdQR_fI[dim])); // free
@@ -483,15 +460,11 @@ static void compute_What_FACE()
 
 
 
-		setup_geom_factors_highorder(FACE);
+		setup_geom_factors_highorder(FACE); // Delete the function itself once solver_Poisson_c.c is updated.
 
 		VIn  = FACE->VIn;
 		VfIn = FACE->VfIn;
-		fIn  = VfIn/NFREFMAX;
-if (0) {
-		EclassIn = VIn->Eclass;
-		IndFType = get_IndFType(EclassIn,fIn);
-}
+
 		init_opsF(OPSIn,VIn,FACE,IndFType);
 
 		VOut  = FACE->VOut;
@@ -499,377 +472,51 @@ if (0) {
 
 		init_opsF(OPSOut,VOut,FACE,IndFType);
 
-		BC       = FACE->BC;
-		Boundary = FACE->Boundary;
 
-//		NfnI    = OPSIn->NfnI;
 		NvnSIn  = OPSIn->NvnS;
 		NvnSOut = OPSOut->NvnS;
 
-		w_fI = OPSIn->w_fI;
 
 		nOrdOutIn = OPSIn->nOrdOutIn;
 		nOrdInOut = OPSIn->nOrdInOut;
 
-		n_fI = FACE->n_fI;
-
-		detJVIn_fI = FACE->detJVIn_fI;
-		if (!Boundary) {
-			detJVOut_fI = malloc(NfnI * sizeof *detJVOut_fI); // free
-			for (n = 0; n < NfnI; n++)
-				detJVOut_fI[n] = FACE->detJVOut_fI[nOrdOutIn[n]];
-		} else {
-			detJVOut_fI = detJVIn_fI;
-		}
-
-		detJF_fI = FACE->detJF_fI;
-		h = malloc(NfnI * sizeof *h); // free
-		for (n = 0; n < NfnI; n++)
-			h[n] = max(detJVIn_fI[n],detJVOut_fI[n])/detJF_fI[n];
-
-		// Compute uIn_fI and gradu_In_fI
-		uIn_fI      = malloc(NfnI   * sizeof *uIn_fI);      // free
-		grad_uIn_fI = calloc(NfnI*d , sizeof *grad_uIn_fI); // free
-
-		ChiSMInv_fIIn  = malloc(NfnI*NvnSIn  * sizeof *ChiSMInv_fIIn);  // free
-		ChiSMInv_fIOut = malloc(NfnI*NvnSOut * sizeof *ChiSMInv_fIOut); // free
-
-		// Note: GradxyzOut only needed if not on a boundary (ToBeDeleted)
-		GradxyzIn  = malloc(d * sizeof *GradxyzIn);  // free
-		GradxyzOut = malloc(d * sizeof *GradxyzOut); // free
-
-		// Note: This is analogous to Hesthaven's BuildCurvedOPS2D (Chapter 9.1)
-		// Alternative computation of GradxyzIn/Out commented below (No difference for straight VOLUMEs)
-		mm_d(CBRM,CBNT,CBNT,NfnI,NvnSIn, NvnSIn, 1.0,0.0,OPSIn->ChiS_fI[VfIn],  VIn->MInv, ChiSMInv_fIIn);
-		mm_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,0.0,OPSOut->ChiS_fI[VfOut],VOut->MInv,ChiSMInv_fIOut);
-		array_rearrange_d(NfnI,NvnSOut,nOrdOutIn,'R',ChiSMInv_fIOut);
-
-		// Note: GradxyzOut is arranged according to the FACE node ordering of VIn.
-		for (dim1 = 0; dim1 < d; dim1++) {
-			GradxyzIn[dim1]  = malloc(NfnI*NvnSIn  * sizeof **GradxyzIn);  // free
-			GradxyzOut[dim1] = malloc(NfnI*NvnSOut * sizeof **GradxyzOut); // free
-
-			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSIn, NvnSIn, 1.0,0.0,ChiSMInv_fIIn, VIn->LHSQ[dim1], GradxyzIn[dim1]);
-			mm_d(CBRM,CBNT,CBNT,NfnI,NvnSOut,NvnSOut,1.0,0.0,ChiSMInv_fIOut,VOut->LHSQ[dim1],GradxyzOut[dim1]);
-		}
-
-		mm_CTN_d(NfnI,1,NvnSIn,OPSIn->ChiS_fI[VfIn],VIn->What,uIn_fI);
-
-		for (dim = 0; dim < d; dim++)
-			mm_CTN_d(NfnI,1,NvnSIn,GradxyzIn[dim],VIn->What,&grad_uIn_fI[NfnI*dim]);
-// matches ChiS_fI*QhatV (OK)
-
-		// Compute_uOut_fI (Taking BCs into account if applicable)
-		uOut_fIIn      = malloc(NfnI   * sizeof *uOut_fIIn);      // free
-		grad_uOut_fIIn = calloc(NfnI*d , sizeof *grad_uOut_fIIn); // free
-
-		if (!Boundary) {
-			uOut_fI = malloc(NfnI * sizeof *uOut_fI); // free
-
-			mm_CTN_d(NfnI,1,NvnSOut,OPSOut->ChiS_fI[VfOut],VOut->What,uOut_fI);
-
-			// Reorder uOut_fI to correspond to inner VOLUME ordering
-			for (n = 0; n < NfnI; n++)
-				uOut_fIIn[n] = uOut_fI[nOrdOutIn[n]];
-			free(uOut_fI);
-
-			for (dim = 0; dim < d; dim++)
-				mm_CTN_d(NfnI,1,NvnSOut,GradxyzOut[dim],VOut->What,&grad_uOut_fIIn[NfnI*dim]);
-		} else {
-// In solver_functions, grad_uOut_fIIn is computed based on the corrected grad_uIn_fI
-			boundary_Poisson(NfnI,1,FACE->XYZ_fI,n_fI,uIn_fI,uOut_fIIn,grad_uIn_fI,grad_uOut_fIIn,
-			                 BC % BC_STEP_SC,BC / BC_STEP_SC);
-		}
-
-		// Compute numerical flux and its Jacobians
-		nqNum_fI = calloc(NfnI   , sizeof *nqNum_fI); // free
-
-		gradu_avg = malloc(NfnI*d * sizeof *gradu_avg); // free
-		u_jump    = malloc(NfnI*d * sizeof *u_jump);    // free
-
-		jacobian_flux_coef(NfnI,1,n_fI,h,FACE->P,gradu_avg,u_jump,d,ViscousFluxType);
-
-		// Modify gradu_avg and u_jump scaling terms if required
-		switch(ViscousFluxType) {
-		case FLUX_IP:
-			// No modifications needed.
-			break;
-		case FLUX_BR2:
-			// Assemble BR2 scaling term for u_jump
-			I_jump = malloc(NfnI*NfnI * sizeof *I_jump); // free
-
-			if (!Boundary) {
-				ChiS_fI = OPSIn->ChiS_fI[VfIn];
-				mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnSIn,1.0,0.0,ChiSMInv_fIIn,ChiS_fI,I_jump);
-/*
-double *Wdiff = malloc(NfnI * sizeof *Wdiff); // ToBeDeleted
-for (size_t n = 0; n < NfnI; n++)
-	Wdiff[n] = uIn_fI[n]-uOut_fIIn[n];
-
-double **qF = malloc(d * sizeof *qF); // Delete
-double *qpF = malloc(NfnI * sizeof *qpF); // Delete
-double *QpF = malloc(NfnI*d * sizeof *QpF);
-for (size_t dim = 0; dim < d; dim++) {
-	for (size_t n = 0; n < NfnI; n++)
-		qpF[n] = w_fI[n]*detJF_fI[n]*n_fI[n*d+dim]*-0.5*Wdiff[n];
-
-	qF[dim] = malloc(NvnSIn * sizeof *qF[dim]); // Delete
-	mm_d(CBCM,CBNT,CBNT,NvnSIn,1,NfnI,1.0,0.0,ChiS_fI,qpF,qF[dim]);
-
-	double *tmp_d = mm_Alloc_d(CBCM,CBT,CBNT,NvnSIn,1,NvnSIn,1.0,VIn->MInv,qF[dim]);
-
-	printf("619: %zu % .3e \n",dim,array_norm_diff_d(NvnSIn,tmp_d,FACE->QhatL[dim],"Inf"));
-//	array_print_d(NvnSIn,1,tmp_d,'C');
-//	array_print_d(NvnSIn,1,FACE->QhatL[dim],'C');
-
-	mm_d(CBCM,CBT,CBNT,NfnI,1,NfnI,1.0*DB.NfMax,0.0,I_jump,qpF,&QpF[dim*NfnI]);
-}
-
-array_print_d(NfnI,d,QpF,'C');
-for (size_t dim = 0; dim < d; dim++) {
-	mm_d(CBCM,CBT,CBNT,NfnI,1,NvnSIn,1.0*DB.NfMax,0.0,ChiS_fI,FACE->QhatL[dim],&QpF[dim*NfnI]);
-}
-array_print_d(NfnI,d,QpF,'C');
-for (size_t dim = 0; dim < d; dim++)
-	array_print_d(NfnI,1,FDATAL->Qp_fIL[dim],'C');
 
 
-//EXIT_BASIC;
-*/
-				ChiS_fI_std = OPSOut->ChiS_fI[VfOut];
-				ChiS_fI = malloc(NfnI*NvnSOut * sizeof *ChiS_fI); // free
 
-				// Reordering
-				for (i = 0; i < NfnI; i++) {
-				for (j = 0; j < NvnSOut; j++) {
-					ChiS_fI[i*NvnSOut+j] = ChiS_fI_std[nOrdInOut[i]*NvnSOut+j];
-				}}
-				mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnSOut,1.0,1.0,ChiSMInv_fIOut,ChiS_fI,I_jump);
-/*
-for (size_t dim = 0; dim < d; dim++) {
-	for (size_t n = 0; n < NfnI; n++)
-//		qpF[n] = w_fI[n]*detJF_fI[n]*n_fI[n*d+dim]*-0.5*Wdiff[n];
-		qpF[n] = w_fI[n]*detJF_fI[n]*n_fI[n*d+dim]*-0.5;
 
-	qF[dim] = malloc(NvnSOut * sizeof *qF[dim]); // Delete
-	mm_d(CBCM,CBNT,CBNT,NvnSOut,1,NfnI,1.0,0.0,ChiS_fI,qpF,qF[dim]);
-
-	double *tmp_d = mm_Alloc_d(CBCM,CBT,CBNT,NvnSIn,1,NvnSIn,1.0,VOut->MInv,qF[dim]);
-
-	printf("640: %zu % .3e\n",dim,array_norm_diff_d(NvnSOut,tmp_d,FACE->QhatR[dim],"Inf"));
-//	array_print_d(NvnSOut,1,tmp_d,'C');
-//	array_print_d(NvnSOut,1,FACE->QhatR[dim],'C');
-
-	mm_d(CBCM,CBT,CBNT,NfnI,1,NfnI,1.0*DB.NfMax,0.0,I_jump,qpF,&QpF[dim*NfnI]);
-}
-
-//EXIT_BASIC;
-
-printf("Used\n");
-array_print_d(NfnI,d,QpF,'C');
-for (size_t dim = 0; dim < d; dim++) {
-	mm_d(CBCM,CBT,CBNT,NfnI,1,NvnSOut,1.0*DB.NfMax,1.0,ChiS_fI,FACE->QhatR[dim],&QpF[dim*NfnI]);
-//	mm_d(CBCM,CBT,CBNT,NfnI,1,NvnSOut,1.0*DB.NfMax,0.0,ChiS_fI,FACE->QhatR[dim],&QpF[dim*NfnI]);
-}
-array_print_d(NfnI,d,QpF,'C');
-for (size_t dim = 0; dim < d; dim++)
-	array_print_d(NfnI,1,FDATAR->Qp_fIL[dim],'C');
-
-for (size_t dim = 0; dim < d; dim++) {
-for (size_t n = 0; n < NfnI; n++)
-//	QpF[dim*NfnI+n] = 0.5*(FDATAL->Qp_fIL[dim][n]+FDATAR->Qp_fIL[dim][n]);
-	QpF[dim*NfnI+n] = 1.0*(FDATAL->Qp_fIL[dim][n]+FDATAR->Qp_fIL[dim][n]);
-}
-array_print_d(NfnI,d,QpF,'C');
-*/
-
-				free(ChiS_fI);
-			} else {
-				ChiS_fI = OPSIn->ChiS_fI[VfIn];
-				mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnSIn,2.0,0.0,ChiSMInv_fIIn,ChiS_fI,I_jump);
-			}
-
-			u_jump_part = malloc(NfnI*d * sizeof *u_jump_part); // free
-			for (dim = 0; dim < d; dim++) {
-			for (n = 0; n < NfnI; n++) {
-				u_jump_part[NfnI*dim+n] = u_jump[NfnI*dim+n]*detJF_fI[n]*w_fI[n];
-			}}
-			mm_CTN_d(NfnI,d,NfnI,I_jump,u_jump_part,u_jump);
-//printf("u_jump\n");
-//array_print_d(NfnI,d,u_jump,'C');
-
-			free(I_jump);
-			free(u_jump_part);
-			break;
-		case FLUX_CDG2:
-			// Assemble 2*BR2 scaling term from appropriate side.
-			I_jump = malloc(NfnI*NfnI * sizeof *I_jump); // free
-
-			if (Boundary) {
-				ChiS_fI = OPSIn->ChiS_fI[VfIn];
-				mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnSIn,2.0,0.0,ChiSMInv_fIIn,ChiS_fI,I_jump);
-			} else {
-				// Evaluate from which side scaling should be computed based on area switch (Brdar(2012))
-				VolL = 0.0;
-				VolR = 0.0;
-				for (n = 0; n < NfnI; n++) {
-					VolL = max(VolL,detJVIn_fI[n]);
-					VolR = max(VolR,detJVOut_fI[n]);
-				}
-
-				if (VolL <= VolR) {
-					ChiS_fI = OPSIn->ChiS_fI[VfIn];
-					mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnSIn,2.0,0.0,ChiSMInv_fIIn,ChiS_fI,I_jump);
-				} else {
-					ChiS_fI_std = OPSOut->ChiS_fI[VfOut];
-					ChiS_fI = malloc(NfnI*NvnSOut * sizeof *ChiS_fI); // free
-
-					// Reordering
-					for (i = 0; i < NfnI; i++) {
-					for (j = 0; j < NvnSOut; j++) {
-						ChiS_fI[i*NvnSOut+j] = ChiS_fI_std[nOrdInOut[i]*NvnSOut+j];
-					}}
-					mm_d(CBRM,CBNT,CBT,NfnI,NfnI,NvnSOut,2.0,0.0,ChiSMInv_fIOut,ChiS_fI,I_jump);
-					free(ChiS_fI);
-				}
-			}
-
-			u_jump_part = malloc(NfnI*d * sizeof *u_jump_part); // free
-			for (dim = 0; dim < d; dim++) {
-			for (n = 0; n < NfnI; n++) {
-				u_jump_part[NfnI*dim+n] = u_jump[NfnI*dim+n]*detJF_fI[n]*w_fI[n];
-			}}
-			mm_CTN_d(NfnI,d,NfnI,I_jump,u_jump_part,u_jump);
-
-			free(I_jump);
-			free(u_jump_part);
-			break;
-		default:
-			printf("Error: Unsupported ViscousFluxType.\n"), EXIT_MSG;
-			break;
-		}
-		if (!Boundary)
-			free(detJVOut_fI);
-
-		free(ChiSMInv_fIIn);
-		free(ChiSMInv_fIOut);
-/*
-double *QpF2 = malloc(NfnI*d * sizeof *QpF2);
-for (size_t dim = 0; dim < d; dim++) {
-	for (size_t n = 0; n < NfnI; n++)
-//		QpF2[dim*NfnI+n] = u_jump[NfnI*dim+n]*(uIn_fI[n]-uOut_fIIn[n]);
-		QpF2[dim*NfnI+n] = u_jump[NfnI*dim+n];
-}
-array_print_d(NfnI,d,QpF2,'C');
-*/
-		for (n = 0; n < NfnI; n++) {
-		for (dim = 0; dim < d; dim++) {
-// this should be what is returned by compute_numerical_flux_viscous
-			nqNum_fI[n] += n_fI[n*d+dim] *
-				(  gradu_avg[NfnI*dim+n] * (grad_uIn_fI[NfnI*dim+n] + grad_uOut_fIIn[NfnI*dim+n])
-				 + u_jump[NfnI*dim+n]    * (uIn_fI[n] - uOut_fIIn[n]));
-		}}
-/*
-printf("725: %d %d %d\n",FACE->indexg,Boundary,BC);
-array_print_d(NfnI,1,nqNum_fI,'C');
-array_print_d(NfnI,1,NFluxData->nFluxViscNum_fI,'C');
-
-if (!Boundary)
-EXIT_BASIC;
-*/
-
-bool useAlternate = 0;
-
-if (useAlternate) {
-for (size_t n = 0; n < NfnI; n++)
-	nqNum_fI[n] = NFluxData->nFluxViscNum_fI[n];
-}
-
-		free(grad_uIn_fI);
-		free(grad_uOut_fIIn);
-		free(uIn_fI);
-		free(uOut_fIIn);
+		nqNum_fI = calloc(NfnI , sizeof *nqNum_fI); // free
+		for (size_t n = 0; n < NfnI; n++)
+			nqNum_fI[n] = NFluxData->nFluxViscNum_fI[n];
 
 		dnqNumduhatIn_fI  = calloc(NfnI*NvnSIn  , sizeof *dnqNumduhatIn_fI);  // free
 		dnqNumduhatOut_fI = calloc(NfnI*NvnSOut , sizeof *dnqNumduhatOut_fI); // free
 
+		unsigned int const Boundary = FACE->Boundary;
+
 		// InIn contributions
-		ChiS_fI = OPSIn->ChiS_fI[VfIn];
-
 		for (dim = 0; dim < d; dim++) {
-if (!useAlternate) {
-			for (n = 0; n < NfnI; n++) {
-			for (j = 0; j < NvnSIn; j++) {
-				// row-major
-				dnqNumduhatIn_fI[n*NvnSIn+j] += n_fI[n*d+dim]*
-					(gradu_avg[NfnI*dim+n]*GradxyzIn[dim][n*NvnSIn+j] + u_jump[NfnI*dim+n]*ChiS_fI[n*NvnSIn+j]);
-			}}
-} else {
-// Can likely use compute_LHS_FACE_Q_Weak instead (ToModified)
-mm_diag_d(NfnI,NvnSIn,NFluxData->dnFluxViscNumdQL_fI[dim],FDATAL->Qp_WhatL[dim],dnqNumduhatIn_fI,1.0,1.0,'L','R');
-}
+			// Can likely use compute_LHS_FACE_Q_Weak instead (ToModified)
+			mm_diag_d(NfnI,NvnSIn,NFluxData->dnFluxViscNumdQL_fI[dim],FDATAL->Qp_WhatL[dim],dnqNumduhatIn_fI,1.0,1.0,'L','R');
+			if (!Boundary) {
+				array_rearrange_d(NfnI,NvnSIn,nOrdOutIn,'R',FDATAR->Qp_WhatL[dim]);
+				mm_diag_d(NfnI,NvnSIn,NFluxData->dnFluxViscNumdQR_fI[dim],FDATAR->Qp_WhatL[dim],dnqNumduhatIn_fI,1.0,1.0,'L','R');
+			}
 		}
-		array_free2_d(d,GradxyzIn);
-
-		for (n = 0; n < NfnI*d; n++)
-			u_jump[n] *= -1.0;
 
 		// Note: Both dnqNumduhatIn and dnqNumduhatOut are ordered corresponding to VIn.
 		if (!Boundary) {
-			ChiS_fI_std = OPSOut->ChiS_fI[VfOut];
-			ChiS_fI = malloc(NfnI*NvnSOut * sizeof *ChiS_fI); // free
-
-			// Reordering
-			for (i = 0; i < NfnI; i++) {
-			for (j = 0; j < NvnSOut; j++) {
-				ChiS_fI[i*NvnSOut+j] = ChiS_fI_std[nOrdOutIn[i]*NvnSOut+j];
-			}}
-
 			for (dim = 0; dim < d; dim++) {
-if (!useAlternate) {
-				for (n = 0; n < NfnI; n++) {
-				for (j = 0; j < NvnSOut; j++) {
-					dnqNumduhatOut_fI[n*NvnSOut+j] += n_fI[n*d+dim] *
-						(gradu_avg[NfnI*dim+n]*GradxyzOut[dim][n*NvnSOut+j] + u_jump[NfnI*dim+n]*ChiS_fI[n*NvnSOut+j]);
-				}}
-} else {
-// Can likely use compute_LHS_FACE_Q_Weak instead (ToModified)
-//mm_diag_d(NfnI,NvnSOut,NFluxData->dnFluxViscNumdQR_fI[dim],FDATAR->Qp_WhatL[dim],dnqNumduhatOut_fI,1.0,1.0,'L','R');
-mm_diag_d(NfnI,NvnSOut,NFluxData->dnFluxViscNumdQR_fI[dim],FDATAL->Qp_WhatR[dim],dnqNumduhatOut_fI,1.0,1.0,'L','R');
-}
+				// Can likely use compute_LHS_FACE_Q_Weak instead (ToModified)
+				array_rearrange_d(NfnI,NvnSOut,nOrdOutIn,'R',FDATAR->Qp_WhatR[dim]);
+
+				mm_diag_d(NfnI,NvnSOut,NFluxData->dnFluxViscNumdQL_fI[dim],FDATAL->Qp_WhatR[dim],dnqNumduhatOut_fI,1.0,1.0,'L','R');
+				mm_diag_d(NfnI,NvnSOut,NFluxData->dnFluxViscNumdQR_fI[dim],FDATAR->Qp_WhatR[dim],dnqNumduhatOut_fI,1.0,1.0,'L','R');
 			}
-			free(ChiS_fI);
-} else if (!useAlternate) {
-//		} else {
-			// Include BC information in dnqNumduhatIn_fI
-
-			// Note: This approach is only possible because duOutduIn is a constant here. Otherwise, it would be
-			//       better to linearize the flux wrt the solution itself (not the coefficients), add the duOutduIn
-			//       term, and then add the final contribution for the linearization (du/duhat).
-			duOutduIn = malloc(NfnI * sizeof *duOutduIn); // free
-
-			jacobian_boundary_Poisson(NfnI,1,duOutduIn,BC % BC_STEP_SC);
-
-			// OutOut contribution (u)
-			ChiS_fI = OPSIn->ChiS_fI[VfIn];
-
-			// Note: dgraduOutduIn == -duOutduIn.
-			for (dim = 0; dim < d; dim++) {
-				for (n = 0; n < NfnI; n++) {
-				for (j = 0; j < NvnSIn; j++) {
-					dnqNumduhatIn_fI[n*NvnSIn+j] += n_fI[n*d+dim] *
-						(- duOutduIn[n]*gradu_avg[NfnI*dim+n]*GradxyzOut[dim][n*NvnSIn+j]
-				    	 + duOutduIn[n]*u_jump[NfnI*dim+n]*ChiS_fI[n*NvnSIn+j]);
-				}}
-			}
-			free(duOutduIn);
 		}
-		free(gradu_avg);
-		free(u_jump);
-		free(h);
-		array_free2_d(d,GradxyzOut);
 
 		// Multiply by area element and cubature weights
+		double const *const w_fI     = OPSIn->w_fI,
+		             *const detJF_fI = FACE->detJF_fI;
 		for (n = 0; n < NfnI; n++) {
 			nqNum_fI[n] *= detJF_fI[n]*w_fI[n];
 			for (j = 0; j < NvnSIn; j++)
