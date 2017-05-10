@@ -216,8 +216,7 @@ void test_unit_jacobian_boundary(void)
 
 	set_memory_test_boundary_conditions('f');
 
-	for (i = 0; i < NBTypes; i++)
-		free(BType[i]);
+	array_free2_c(NBTypes,BType);
 
 	free(PrintName);
 }

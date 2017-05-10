@@ -10,6 +10,7 @@
 #include "Parameters.h"
 #include "Macros.h"
 
+#include "fluxes_structs.h"
 #include "variable_functions.h"
 
 /*
@@ -63,14 +64,21 @@
  *		Li(2016)-Cures_for_the_Expansion_Shock_and_the_Shock_Instability_of_the_Roe_Scheme
  */
 
-void flux_inviscid(const unsigned int Nn, const unsigned int Nel, const double *const W, double *const F,
-                   const unsigned int d, const unsigned int Neq)
+void flux_inviscid(struct S_FLUX *const FLUXDATA)
 {
 	/*
 	 *	Comments:
 	 *		The storage ordering of the fluxes (Node, then dimension, then equation) is chosen such that memory stride
 	 *		is minimized when converting from physical to reference space.
 	 */
+
+	unsigned int const d   = FLUXDATA->d,
+	                   Neq = d+2,
+	                   Nn  = FLUXDATA->Nn,
+	                   Nel = FLUXDATA->Nel;
+
+	double const *const W = FLUXDATA->W;
+	double       *const F = FLUXDATA->F;
 
 	// Standard datatypes
 	unsigned int i, n, eq, dim, iMax, NnTotal, IndF;
@@ -223,8 +231,19 @@ void flux_LF(const unsigned int Nn, const unsigned int Nel, const double *const 
 	convert_variables(WL,UL,d,d,Nn,Nel,'c','p');
 	convert_variables(WR,UR,d,d,Nn,Nel,'c','p');
 
-	flux_inviscid(Nn,Nel,WL,FL,d,Neq);
-	flux_inviscid(Nn,Nel,WR,FR,d,Neq);
+	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->d   = d;
+	FLUXDATA->Nn  = Nn;
+	FLUXDATA->Nel = Nel;
+
+	FLUXDATA->W   = WL;
+	FLUXDATA->F   = FL;
+	flux_inviscid(FLUXDATA);
+
+	FLUXDATA->W   = WR;
+	FLUXDATA->F   = FR;
+	flux_inviscid(FLUXDATA);
+	free(FLUXDATA);
 
 	rhoL = &UL[NnTotal*0];
 	uL   = &UL[NnTotal*1];

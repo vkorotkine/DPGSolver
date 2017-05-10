@@ -137,12 +137,6 @@ static void explicit_GradW_FACE(void)
 	 *		Note, if Collocation is enable, that I_Weak includes the inverse cubature weights.
 	 */
 
-	// Initialize DB Parameters
-	unsigned int const d    = DB.d,
-	                   Nvar = d+2,
-	                   Neq  = d+2;
-
-	// Standard datatypes
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 	struct S_FDATA       *const FDATAL = malloc(sizeof *FDATAL), // free
 	                     *const FDATAR = malloc(sizeof *FDATAR); // free
@@ -152,6 +146,13 @@ static void explicit_GradW_FACE(void)
 	struct S_NumericalFlux *const NFluxData = malloc(sizeof *NFluxData); // free
 	FDATAL->NFluxData = NFluxData;
 	FDATAR->NFluxData = NFluxData;
+
+	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
+	DATA->FDATAL    = FDATAL;
+	DATA->FDATAR    = FDATAR;
+	DATA->NFluxData = NFluxData;
+	DATA->feature   = 'F';
+	DATA->imex_type = 'E';
 
 	for (size_t i = 0; i < 2; i++) {
 		OPSL[i]  = malloc(sizeof *OPSL[i]);  // free
@@ -163,21 +164,15 @@ static void explicit_GradW_FACE(void)
 		init_FDATA(FDATAR,FACE,'R');
 
 		// Compute WL_fIL and WR_fIL (i.e. as seen from the (L)eft VOLUME)
-		unsigned int const IndFType = FDATAL->IndFType,
-		                   NfnI     = OPSL[IndFType]->NfnI;
-
-		FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
-		FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
+		manage_solver_memory(DATA,'A','W'); // free
 
 		coef_to_values_fI(FDATAL,'W','E');
 		compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
 
 		// Compute numerical flux as seen from the left VOLUME
-		NFluxData->WL_fIL     = FDATAL->W_fIL;
-		NFluxData->WR_fIL     = FDATAR->W_fIL;
-		NFluxData->nSolNum_fI = malloc(d * sizeof *(NFluxData->nSolNum_fI)); // free
-		for (size_t dim = 0; dim < d; dim++)
-			NFluxData->nSolNum_fI[dim] = malloc(NfnI*Neq * sizeof *(NFluxData->nSolNum_fI[dim])); // free
+		NFluxData->WL_fIL = FDATAL->W_fIL;
+		NFluxData->WR_fIL = FDATAR->W_fIL;
+		manage_solver_memory(DATA,'A','S'); // free
 
 		compute_numerical_solution(FDATAL,'E');
 		add_Jacobian_scaling_FACE(FDATAL,'E','Q');
@@ -186,9 +181,8 @@ static void explicit_GradW_FACE(void)
 		if (!FACE->Boundary)
 			finalize_QhatF_Weak(FDATAL,FDATAR,'R','E');
 
-		free(FDATAL->W_fIL);
-		free(FDATAR->W_fIL);
-		array_free2_d(d,NFluxData->nSolNum_fI);
+		manage_solver_memory(DATA,'F','W');
+		manage_solver_memory(DATA,'F','S');
 	}
 
 	for (size_t i = 0; i < 2; i++) {
@@ -198,6 +192,7 @@ static void explicit_GradW_FACE(void)
 	free(NFluxData);
 	free(FDATAL);
 	free(FDATAR);
+	free(DATA);
 }
 
 static void finalize_Qhat(struct S_VOLUME const *const VOLUME, unsigned int const NvnS, double *const *const Qhat)
@@ -248,8 +243,8 @@ static void explicit_GradW_finalize(void)
 
 	// Add FACE contributions to VOLUME->Qhat then multiply by MInv
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
-		struct S_VOLUME const *const VL = FACE->VIn,
-		                      *const VR = FACE->VOut;
+		struct S_VOLUME const *const VL = FACE->VL,
+		                      *const VR = FACE->VR;
 
 		unsigned int const NvnSL = VL->NvnS,
 		                   NvnSR = VR->NvnS;

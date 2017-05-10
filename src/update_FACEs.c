@@ -30,7 +30,7 @@
  *		HCOARSE in order to ensure that neighbouring elements are no more than 1-irregular.
  *		Clean up this function: function names, variable names, comments, potentially combine the COARSE and FINE FACE
  *		list updating (ToBeDeleted)
- *		coarse_update and get_FACE_IndVIn use the same IndVInh => combine these during cleanup (ToBeDeleted)
+ *		coarse_update and get_FACE_IndVL use the same IndVLh => combine these during cleanup (ToBeDeleted)
  *		Likely include FACE renumbering as well to avoid overflow for long-time simulations. (ToBeDeleted)
  *
  *	Notation:
@@ -38,8 +38,8 @@
  *	References:
  */
 
-static void get_FACE_IndVIn(const unsigned int Vf, const unsigned int fh, const unsigned int VType,
-                             unsigned int *IndVInh, unsigned int *Vfh)
+static void get_FACE_IndVL(const unsigned int Vf, const unsigned int fh, const unsigned int VType,
+                             unsigned int *IndVLh, unsigned int *Vfh)
 {
 	/*
 	 *	Comments:
@@ -59,24 +59,24 @@ static void get_FACE_IndVIn(const unsigned int Vf, const unsigned int fh, const 
 		switch (f) {
 		default: // FACE 0
 			switch (fh) {
-			case 0: *IndVInh = 1; break;
-			case 1: *IndVInh = 2; break;
+			case 0: *IndVLh = 1; break;
+			case 1: *IndVLh = 2; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 0;
 			break;
 		case 1:
 			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 2; break;
+			case 0: *IndVLh = 0; break;
+			case 1: *IndVLh = 2; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 1;
 			break;
 		case 2:
 			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 1; break;
+			case 0: *IndVLh = 0; break;
+			case 1: *IndVLh = 1; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 2;
@@ -87,32 +87,32 @@ static void get_FACE_IndVIn(const unsigned int Vf, const unsigned int fh, const 
 		switch (f) {
 		default: // FACE 0
 			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 2; break;
+			case 0: *IndVLh = 0; break;
+			case 1: *IndVLh = 2; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 0;
 			break;
 		case 1:
 			switch (fh) {
-			case 0: *IndVInh = 1; break;
-			case 1: *IndVInh = 3; break;
+			case 0: *IndVLh = 1; break;
+			case 1: *IndVLh = 3; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 1;
 			break;
 		case 2:
 			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 1; break;
+			case 0: *IndVLh = 0; break;
+			case 1: *IndVLh = 1; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 2;
 			break;
 		case 3:
 			switch (fh) {
-			case 0: *IndVInh = 2; break;
-			case 1: *IndVInh = 3; break;
+			case 0: *IndVLh = 2; break;
+			case 1: *IndVLh = 3; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 3;
@@ -124,40 +124,40 @@ static void get_FACE_IndVIn(const unsigned int Vf, const unsigned int fh, const 
 			switch (f) {
 			default: // FACE 0
 				switch (fh) {
-				case 0: *IndVInh = 2; break;
-				case 1: *IndVInh = 3; break;
-				case 2: *IndVInh = 1; break;
-				case 3: *IndVInh = 4; break;
+				case 0: *IndVLh = 2; break;
+				case 1: *IndVLh = 3; break;
+				case 2: *IndVLh = 1; break;
+				case 3: *IndVLh = 4; break;
 				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 				}
 				*Vfh = 0;
 				break;
 			case 1:
 				switch (fh) {
-				case 0: *IndVInh = 2; break;
-				case 1: *IndVInh = 3; break;
-				case 2: *IndVInh = 0; break;
-				case 3: *IndVInh = 5; break;
+				case 0: *IndVLh = 2; break;
+				case 1: *IndVLh = 3; break;
+				case 2: *IndVLh = 0; break;
+				case 3: *IndVLh = 5; break;
 				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 				}
 				*Vfh = 1;
 				break;
 			case 2:
 				switch (fh) {
-				case 0: *IndVInh = 0; break;
-				case 1: *IndVInh = 1; break;
-				case 2: *IndVInh = 3; break;
-				case 3: *IndVInh = 6; break;
+				case 0: *IndVLh = 0; break;
+				case 1: *IndVLh = 1; break;
+				case 2: *IndVLh = 3; break;
+				case 3: *IndVLh = 6; break;
 				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 				}
 				*Vfh = 2;
 				break;
 			case 3:
 				switch (fh) {
-				case 0: *IndVInh = 0; break;
-				case 1: *IndVInh = 1; break;
-				case 2: *IndVInh = 2; break;
-				case 3: *IndVInh = 7; break;
+				case 0: *IndVLh = 0; break;
+				case 1: *IndVLh = 1; break;
+				case 2: *IndVLh = 2; break;
+				case 3: *IndVLh = 7; break;
 				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 				}
 				*Vfh = 3;
@@ -167,37 +167,37 @@ static void get_FACE_IndVIn(const unsigned int Vf, const unsigned int fh, const 
 			switch (f) {
 			default: // FACE 0
 				switch (fh) {
-				case 0: *IndVInh = 2; *Vfh = 0; break;
-				case 1: *IndVInh = 3; *Vfh = 0; break;
-				case 2: *IndVInh = 1; *Vfh = 0; break;
-				case 3: *IndVInh = 5; *Vfh = 1; break;
+				case 0: *IndVLh = 2; *Vfh = 0; break;
+				case 1: *IndVLh = 3; *Vfh = 0; break;
+				case 2: *IndVLh = 1; *Vfh = 0; break;
+				case 3: *IndVLh = 5; *Vfh = 1; break;
 				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 				}
 				break;
 			case 1:
 				switch (fh) {
-				case 0: *IndVInh = 2; *Vfh = 1; break;
-				case 1: *IndVInh = 3; *Vfh = 1; break;
-				case 2: *IndVInh = 0; *Vfh = 1; break;
-				case 3: *IndVInh = 5; *Vfh = 0; break;
+				case 0: *IndVLh = 2; *Vfh = 1; break;
+				case 1: *IndVLh = 3; *Vfh = 1; break;
+				case 2: *IndVLh = 0; *Vfh = 1; break;
+				case 3: *IndVLh = 5; *Vfh = 0; break;
 				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 				}
 				break;
 			case 2:
 				switch (fh) {
-				case 0: *IndVInh = 0; *Vfh = 2; break;
-				case 1: *IndVInh = 1; *Vfh = 2; break;
-				case 2: *IndVInh = 3; *Vfh = 2; break;
-				case 3: *IndVInh = 4; *Vfh = 2; break;
+				case 0: *IndVLh = 0; *Vfh = 2; break;
+				case 1: *IndVLh = 1; *Vfh = 2; break;
+				case 2: *IndVLh = 3; *Vfh = 2; break;
+				case 3: *IndVLh = 4; *Vfh = 2; break;
 				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 				}
 				break;
 			case 3:
 				switch (fh) {
-				case 0: *IndVInh = 0; *Vfh = 3; break;
-				case 1: *IndVInh = 1; *Vfh = 3; break;
-				case 2: *IndVInh = 2; *Vfh = 3; break;
-				case 3: *IndVInh = 4; *Vfh = 3; break;
+				case 0: *IndVLh = 0; *Vfh = 3; break;
+				case 1: *IndVLh = 1; *Vfh = 3; break;
+				case 2: *IndVLh = 2; *Vfh = 3; break;
+				case 3: *IndVLh = 4; *Vfh = 3; break;
 				default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 				}
 				break;
@@ -210,60 +210,60 @@ static void get_FACE_IndVIn(const unsigned int Vf, const unsigned int fh, const 
 		switch (f) {
 		default: // FACE 0
 			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 2; break;
-			case 2: *IndVInh = 4; break;
-			case 3: *IndVInh = 6; break;
+			case 0: *IndVLh = 0; break;
+			case 1: *IndVLh = 2; break;
+			case 2: *IndVLh = 4; break;
+			case 3: *IndVLh = 6; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 0;
 			break;
 		case 1:
 			switch (fh) {
-			case 0: *IndVInh = 1; break;
-			case 1: *IndVInh = 3; break;
-			case 2: *IndVInh = 5; break;
-			case 3: *IndVInh = 7; break;
+			case 0: *IndVLh = 1; break;
+			case 1: *IndVLh = 3; break;
+			case 2: *IndVLh = 5; break;
+			case 3: *IndVLh = 7; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 1;
 			break;
 		case 2:
 			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 1; break;
-			case 2: *IndVInh = 4; break;
-			case 3: *IndVInh = 5; break;
+			case 0: *IndVLh = 0; break;
+			case 1: *IndVLh = 1; break;
+			case 2: *IndVLh = 4; break;
+			case 3: *IndVLh = 5; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 2;
 			break;
 		case 3:
 			switch (fh) {
-			case 0: *IndVInh = 2; break;
-			case 1: *IndVInh = 3; break;
-			case 2: *IndVInh = 6; break;
-			case 3: *IndVInh = 7; break;
+			case 0: *IndVLh = 2; break;
+			case 1: *IndVLh = 3; break;
+			case 2: *IndVLh = 6; break;
+			case 3: *IndVLh = 7; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 3;
 			break;
 		case 4:
 			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 1; break;
-			case 2: *IndVInh = 2; break;
-			case 3: *IndVInh = 3; break;
+			case 0: *IndVLh = 0; break;
+			case 1: *IndVLh = 1; break;
+			case 2: *IndVLh = 2; break;
+			case 3: *IndVLh = 3; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 4;
 			break;
 		case 5:
 			switch (fh) {
-			case 0: *IndVInh = 4; break;
-			case 1: *IndVInh = 5; break;
-			case 2: *IndVInh = 6; break;
-			case 3: *IndVInh = 7; break;
+			case 0: *IndVLh = 4; break;
+			case 1: *IndVLh = 5; break;
+			case 2: *IndVLh = 6; break;
+			case 3: *IndVLh = 7; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 5;
@@ -274,50 +274,50 @@ static void get_FACE_IndVIn(const unsigned int Vf, const unsigned int fh, const 
 		switch (f) {
 		default: // FACE 0
 			switch (fh) {
-			case 0: *IndVInh = 1; break;
-			case 1: *IndVInh = 2; break;
-			case 2: *IndVInh = 5; break;
-			case 3: *IndVInh = 6; break;
+			case 0: *IndVLh = 1; break;
+			case 1: *IndVLh = 2; break;
+			case 2: *IndVLh = 5; break;
+			case 3: *IndVLh = 6; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 0;
 			break;
 		case 1:
 			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 2; break;
-			case 2: *IndVInh = 4; break;
-			case 3: *IndVInh = 6; break;
+			case 0: *IndVLh = 0; break;
+			case 1: *IndVLh = 2; break;
+			case 2: *IndVLh = 4; break;
+			case 3: *IndVLh = 6; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 1;
 			break;
 		case 2:
 			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 1; break;
-			case 2: *IndVInh = 4; break;
-			case 3: *IndVInh = 5; break;
+			case 0: *IndVLh = 0; break;
+			case 1: *IndVLh = 1; break;
+			case 2: *IndVLh = 4; break;
+			case 3: *IndVLh = 5; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 2;
 			break;
 		case 3:
 			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 1; break;
-			case 2: *IndVInh = 2; break;
-			case 3: *IndVInh = 3; break;
+			case 0: *IndVLh = 0; break;
+			case 1: *IndVLh = 1; break;
+			case 2: *IndVLh = 2; break;
+			case 3: *IndVLh = 3; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 3;
 			break;
 		case 4:
 			switch (fh) {
-			case 0: *IndVInh = 4; break;
-			case 1: *IndVInh = 5; break;
-			case 2: *IndVInh = 6; break;
-			case 3: *IndVInh = 7; break;
+			case 0: *IndVLh = 4; break;
+			case 1: *IndVLh = 5; break;
+			case 2: *IndVLh = 6; break;
+			case 3: *IndVLh = 7; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 4;
@@ -328,48 +328,48 @@ static void get_FACE_IndVIn(const unsigned int Vf, const unsigned int fh, const 
 		switch (f) {
 		default: // FACE 0
 			switch (fh) {
-			case 0: *IndVInh = 0; *Vfh = 0; break;
-			case 1: *IndVInh = 2; *Vfh = 0; break;
-			case 2: *IndVInh = 9; *Vfh = 0; break;
-			case 3: *IndVInh = 4; *Vfh = 1; break;
+			case 0: *IndVLh = 0; *Vfh = 0; break;
+			case 1: *IndVLh = 2; *Vfh = 0; break;
+			case 2: *IndVLh = 9; *Vfh = 0; break;
+			case 3: *IndVLh = 4; *Vfh = 1; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			break;
 		case 1:
 			switch (fh) {
-			case 0: *IndVInh = 1; *Vfh = 1; break;
-			case 1: *IndVInh = 3; *Vfh = 1; break;
-			case 2: *IndVInh = 9; *Vfh = 1; break;
-			case 3: *IndVInh = 5; *Vfh = 0; break;
+			case 0: *IndVLh = 1; *Vfh = 1; break;
+			case 1: *IndVLh = 3; *Vfh = 1; break;
+			case 2: *IndVLh = 9; *Vfh = 1; break;
+			case 3: *IndVLh = 5; *Vfh = 0; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			break;
 		case 2:
 			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 1; break;
-			case 2: *IndVInh = 9; break;
-			case 3: *IndVInh = 6; break;
+			case 0: *IndVLh = 0; break;
+			case 1: *IndVLh = 1; break;
+			case 2: *IndVLh = 9; break;
+			case 3: *IndVLh = 6; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 2;
 			break;
 		case 3:
 			switch (fh) {
-			case 0: *IndVInh = 2; break;
-			case 1: *IndVInh = 3; break;
-			case 2: *IndVInh = 9; break;
-			case 3: *IndVInh = 7; break;
+			case 0: *IndVLh = 2; break;
+			case 1: *IndVLh = 3; break;
+			case 2: *IndVLh = 9; break;
+			case 3: *IndVLh = 7; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 3;
 			break;
 		case 4:
 			switch (fh) {
-			case 0: *IndVInh = 0; break;
-			case 1: *IndVInh = 1; break;
-			case 2: *IndVInh = 2; break;
-			case 3: *IndVInh = 3; break;
+			case 0: *IndVLh = 0; break;
+			case 1: *IndVLh = 1; break;
+			case 2: *IndVLh = 2; break;
+			case 3: *IndVLh = 3; break;
 			default: printf("Error: Unsupported (%d, %d, %d).\n",VType,f,fh), EXIT_MSG; break;
 			}
 			*Vfh = 4;
@@ -382,12 +382,12 @@ static void get_FACE_IndVIn(const unsigned int Vf, const unsigned int fh, const 
 	}
 }
 
-static unsigned int get_FACE_VfOut(const unsigned int fh, const unsigned int IndOrd, const unsigned int neigh_f,
+static unsigned int get_FACE_VfR(const unsigned int fh, const unsigned int IndOrd, const unsigned int neigh_f,
                                     const unsigned int FType)
 {
 	/*
 	 *	Purpose:
-	 *		Returns VfOut based on IndOrd of neighbouring parent elements.
+	 *		Returns VfR based on IndOrd of neighbouring parent elements.
 	 *
 	 *	Comments:
 	 *		In the current implementation, the IndOrd of the refined external faces is the same as that of the parent
@@ -516,13 +516,13 @@ static unsigned int get_FACE_type(struct S_FACE *FACE)
 	const unsigned int d = DB.d;
 
 	// Standard datatypesc
-	unsigned int VType, VfIn, fIn;
+	unsigned int VType, VfL, fIn;
 
-	struct S_VOLUME *VIn = FACE->VIn;
+	struct S_VOLUME *VL = FACE->VL;
 
-	VType = VIn->type;
-	VfIn  = FACE->VfIn;
-	fIn   = VfIn/NFREFMAX;
+	VType = VL->type;
+	VfL  = FACE->VfL;
+	fIn   = VfL/NFREFMAX;
 
 	switch (d) {
 	default: // d = 3
@@ -582,12 +582,12 @@ static void set_FACE_Out(const unsigned int vh, const unsigned int fIn, struct S
 	unsigned int TETrefineType = DB.TETrefineType;
 
 	// Standard datatypes
-	unsigned int i, VType, IndVhOut, f, IndOrdInOut, IndOrdOutIn, sfIn, sfOut;
+	unsigned int i, VType, IndVhOut, f, IndOrdLR, IndOrdRL, sfIn, sfOut;
 
 	struct S_VOLUME *VOLUMEc;
 
 	// silence
-	IndVhOut = IndOrdInOut = IndOrdOutIn = f = 0;
+	IndVhOut = IndOrdLR = IndOrdRL = f = 0;
 
 	VType = VOLUME->type;
 	switch (VType) {
@@ -595,8 +595,8 @@ static void set_FACE_Out(const unsigned int vh, const unsigned int fIn, struct S
 		// Isotropic refinement only.
 		IndVhOut = 3;
 		f = vh;
-		IndOrdInOut = 1; // Reversed
-		IndOrdOutIn = 1; // Reversed
+		IndOrdLR = 1; // Reversed
+		IndOrdRL = 1; // Reversed
 		if (vh == 3)
 			printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
 			// Should already have found all FACEs
@@ -614,25 +614,25 @@ static void set_FACE_Out(const unsigned int vh, const unsigned int fIn, struct S
 		} else { // Should already have found all FACEs
 			printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
 		}
-		IndOrdInOut = 0; // Same
-		IndOrdOutIn = 0; // Same
+		IndOrdLR = 0; // Same
+		IndOrdRL = 0; // Same
 		break;
 	case TET:
 		// Isotropic refinement only.
 		if (TETrefineType == TET8) {
 			switch (vh) {
-			case 0: IndVhOut = 5; f = 0; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 0
-			case 1: IndVhOut = 4; f = 1; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 1
-			case 2: IndVhOut = 7; f = 2; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 2
-			case 3: IndVhOut = 6; f = 3; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 3
+			case 0: IndVhOut = 5; f = 0; IndOrdLR = 5; IndOrdRL = 5; break; // fIn = 0
+			case 1: IndVhOut = 4; f = 1; IndOrdLR = 5; IndOrdRL = 5; break; // fIn = 1
+			case 2: IndVhOut = 7; f = 2; IndOrdLR = 5; IndOrdRL = 5; break; // fIn = 2
+			case 3: IndVhOut = 6; f = 3; IndOrdLR = 5; IndOrdRL = 5; break; // fIn = 3
 			case 4:
-				if      (fIn == 2) { IndVhOut = 7; IndOrdInOut = 0; IndOrdOutIn = 0; }
-				else if (fIn == 3) { IndVhOut = 6; IndOrdInOut = 5; IndOrdOutIn = 5; }
+				if      (fIn == 2) { IndVhOut = 7; IndOrdLR = 0; IndOrdRL = 0; }
+				else if (fIn == 3) { IndVhOut = 6; IndOrdLR = 5; IndOrdRL = 5; }
 				f = 1;
 				break;
 			case 5:
-				if      (fIn == 2) { IndVhOut = 7; IndOrdInOut = 5; IndOrdOutIn = 5; }
-				else if (fIn == 3) { IndVhOut = 6; IndOrdInOut = 0; IndOrdOutIn = 0; }
+				if      (fIn == 2) { IndVhOut = 7; IndOrdLR = 5; IndOrdRL = 5; }
+				else if (fIn == 3) { IndVhOut = 6; IndOrdLR = 0; IndOrdRL = 0; }
 				f = 0;
 				break;
 			default: // Should already have found all FACEs
@@ -641,29 +641,29 @@ static void set_FACE_Out(const unsigned int vh, const unsigned int fIn, struct S
 			}
 		} else if (TETrefineType == TET12) {
 			switch (vh) {
-			case 0: IndVhOut = 8;  f = 0; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 0
-			case 1: IndVhOut = 9;  f = 1; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 1
-			case 2: IndVhOut = 10; f = 2; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 2
-			case 3: IndVhOut = 11; f = 3; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 3
+			case 0: IndVhOut = 8;  f = 0; IndOrdLR = 5; IndOrdRL = 5; break; // fIn = 0
+			case 1: IndVhOut = 9;  f = 1; IndOrdLR = 5; IndOrdRL = 5; break; // fIn = 1
+			case 2: IndVhOut = 10; f = 2; IndOrdLR = 5; IndOrdRL = 5; break; // fIn = 2
+			case 3: IndVhOut = 11; f = 3; IndOrdLR = 5; IndOrdRL = 5; break; // fIn = 3
 			case 4:
-				if      (fIn == 1) { IndVhOut = 9;  f = 0; IndOrdInOut = 0; IndOrdOutIn = 0; }
-				else if (fIn == 2) { IndVhOut = 10; f = 1; IndOrdInOut = 0; IndOrdOutIn = 0; }
-				else if (fIn == 3) { IndVhOut = 11; f = 1; IndOrdInOut = 5; IndOrdOutIn = 5; }
+				if      (fIn == 1) { IndVhOut = 9;  f = 0; IndOrdLR = 0; IndOrdRL = 0; }
+				else if (fIn == 2) { IndVhOut = 10; f = 1; IndOrdLR = 0; IndOrdRL = 0; }
+				else if (fIn == 3) { IndVhOut = 11; f = 1; IndOrdLR = 5; IndOrdRL = 5; }
 				break;
 			case 5:
-				if      (fIn == 0) { IndVhOut = 8;  f = 1; IndOrdInOut = 0; IndOrdOutIn = 0; }
-				else if (fIn == 2) { IndVhOut = 10; f = 0; IndOrdInOut = 5; IndOrdOutIn = 5; }
-				else if (fIn == 3) { IndVhOut = 11; f = 0; IndOrdInOut = 0; IndOrdOutIn = 0; }
+				if      (fIn == 0) { IndVhOut = 8;  f = 1; IndOrdLR = 0; IndOrdRL = 0; }
+				else if (fIn == 2) { IndVhOut = 10; f = 0; IndOrdLR = 5; IndOrdRL = 5; }
+				else if (fIn == 3) { IndVhOut = 11; f = 0; IndOrdLR = 0; IndOrdRL = 0; }
 				break;
 			case 6:
-				if      (fIn == 0) { IndVhOut = 8;  f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; }
-				else if (fIn == 1) { IndVhOut = 9;  f = 3; IndOrdInOut = 5; IndOrdOutIn = 5; }
-				else if (fIn == 3) { IndVhOut = 11; f = 2; IndOrdInOut = 0; IndOrdOutIn = 0; }
+				if      (fIn == 0) { IndVhOut = 8;  f = 3; IndOrdLR = 0; IndOrdRL = 0; }
+				else if (fIn == 1) { IndVhOut = 9;  f = 3; IndOrdLR = 5; IndOrdRL = 5; }
+				else if (fIn == 3) { IndVhOut = 11; f = 2; IndOrdLR = 0; IndOrdRL = 0; }
 				break;
 			case 7:
-				if      (fIn == 0) { IndVhOut = 8;  f = 2; IndOrdInOut = 5; IndOrdOutIn = 5; }
-				else if (fIn == 1) { IndVhOut = 9;  f = 2; IndOrdInOut = 0; IndOrdOutIn = 0; }
-				else if (fIn == 2) { IndVhOut = 10; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; }
+				if      (fIn == 0) { IndVhOut = 8;  f = 2; IndOrdLR = 5; IndOrdRL = 5; }
+				else if (fIn == 1) { IndVhOut = 9;  f = 2; IndOrdLR = 0; IndOrdRL = 0; }
+				else if (fIn == 2) { IndVhOut = 10; f = 3; IndOrdLR = 0; IndOrdRL = 0; }
 				break;
 			default: // Should already have found all FACEs
 				printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
@@ -671,11 +671,11 @@ static void set_FACE_Out(const unsigned int vh, const unsigned int fIn, struct S
 			}
 		} else if (TETrefineType == TET6) {
 			switch (vh) {
-			case 0: IndVhOut = 4; f = 1; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 0
-			case 1: IndVhOut = 4; f = 0; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 1
-			case 2: IndVhOut = 5; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 2
-			case 3: IndVhOut = 5; f = 2; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 3
-			case 4: IndVhOut = 5; f = 4; IndOrdInOut = 1; IndOrdOutIn = 1; break; // fIn = 4
+			case 0: IndVhOut = 4; f = 1; IndOrdLR = 5; IndOrdRL = 5; break; // fIn = 0
+			case 1: IndVhOut = 4; f = 0; IndOrdLR = 5; IndOrdRL = 5; break; // fIn = 1
+			case 2: IndVhOut = 5; f = 3; IndOrdLR = 0; IndOrdRL = 0; break; // fIn = 2
+			case 3: IndVhOut = 5; f = 2; IndOrdLR = 0; IndOrdRL = 0; break; // fIn = 3
+			case 4: IndVhOut = 5; f = 4; IndOrdLR = 1; IndOrdRL = 1; break; // fIn = 4
 			default: // Should already have found all FACEs
 				printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
 				break;
@@ -711,28 +711,28 @@ static void set_FACE_Out(const unsigned int vh, const unsigned int fIn, struct S
 			printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
 			break;
 		}
-		IndOrdInOut = 0; // Same
-		IndOrdOutIn = 0; // Same
+		IndOrdLR = 0; // Same
+		IndOrdRL = 0; // Same
 		break;
 	case WEDGE:
 		// Isotropic refinement only.
 		switch (vh) {
 		case 0:
-			if      (fIn == 0) { IndVhOut = 3; f = 0; IndOrdInOut = 1; IndOrdOutIn = 1; }
-			else if (fIn == 4) { IndVhOut = 4; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; }
+			if      (fIn == 0) { IndVhOut = 3; f = 0; IndOrdLR = 1; IndOrdRL = 1; }
+			else if (fIn == 4) { IndVhOut = 4; f = 3; IndOrdLR = 0; IndOrdRL = 0; }
 			break;
 		case 1:
-			if      (fIn == 1) { IndVhOut = 3; f = 1; IndOrdInOut = 1; IndOrdOutIn = 1; }
-			else if (fIn == 4) { IndVhOut = 5; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; }
+			if      (fIn == 1) { IndVhOut = 3; f = 1; IndOrdLR = 1; IndOrdRL = 1; }
+			else if (fIn == 4) { IndVhOut = 5; f = 3; IndOrdLR = 0; IndOrdRL = 0; }
 			break;
 		case 2:
-			if      (fIn == 2) { IndVhOut = 3; f = 2; IndOrdInOut = 1; IndOrdOutIn = 1; }
-			else if (fIn == 4) { IndVhOut = 6; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; }
+			if      (fIn == 2) { IndVhOut = 3; f = 2; IndOrdLR = 1; IndOrdRL = 1; }
+			else if (fIn == 4) { IndVhOut = 6; f = 3; IndOrdLR = 0; IndOrdRL = 0; }
 			break;
-		case 3: IndVhOut = 7; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 4
-		case 4: IndVhOut = 7; f = 0; IndOrdInOut = 1; IndOrdOutIn = 1; break; // fIn = 0
-		case 5: IndVhOut = 7; f = 1; IndOrdInOut = 1; IndOrdOutIn = 1; break; // fIn = 1
-		case 6: IndVhOut = 7; f = 2; IndOrdInOut = 1; IndOrdOutIn = 1; break; // fIn = 2
+		case 3: IndVhOut = 7; f = 3; IndOrdLR = 0; IndOrdRL = 0; break; // fIn = 4
+		case 4: IndVhOut = 7; f = 0; IndOrdLR = 1; IndOrdRL = 1; break; // fIn = 0
+		case 5: IndVhOut = 7; f = 1; IndOrdLR = 1; IndOrdRL = 1; break; // fIn = 1
+		case 6: IndVhOut = 7; f = 2; IndOrdLR = 1; IndOrdRL = 1; break; // fIn = 2
 		default: // Should already have found all FACEs
 			printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
 			break;
@@ -742,26 +742,26 @@ static void set_FACE_Out(const unsigned int vh, const unsigned int fIn, struct S
 		// Isotropic refinement only.
 		switch (vh) {
 		case 0:
-			if      (fIn == 1) { IndVhOut = 6; f = 0; IndOrdInOut = 5; IndOrdOutIn = 5; }
-			else if (fIn == 3) { IndVhOut = 4; f = 2; IndOrdInOut = 0; IndOrdOutIn = 0; }
+			if      (fIn == 1) { IndVhOut = 6; f = 0; IndOrdLR = 5; IndOrdRL = 5; }
+			else if (fIn == 3) { IndVhOut = 4; f = 2; IndOrdLR = 0; IndOrdRL = 0; }
 			break;
 		case 1:
-			if      (fIn == 0) { IndVhOut = 6; f = 1; IndOrdInOut = 5; IndOrdOutIn = 5; }
-			else if (fIn == 3) { IndVhOut = 5; f = 2; IndOrdInOut = 0; IndOrdOutIn = 0; }
+			if      (fIn == 0) { IndVhOut = 6; f = 1; IndOrdLR = 5; IndOrdRL = 5; }
+			else if (fIn == 3) { IndVhOut = 5; f = 2; IndOrdLR = 0; IndOrdRL = 0; }
 			break;
 		case 2:
-			if      (fIn == 1) { IndVhOut = 7; f = 0; IndOrdInOut = 5; IndOrdOutIn = 5; }
-			else if (fIn == 2) { IndVhOut = 4; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; }
+			if      (fIn == 1) { IndVhOut = 7; f = 0; IndOrdLR = 5; IndOrdRL = 5; }
+			else if (fIn == 2) { IndVhOut = 4; f = 3; IndOrdLR = 0; IndOrdRL = 0; }
 			break;
 		case 3:
-			if      (fIn == 0) { IndVhOut = 7; f = 1; IndOrdInOut = 5; IndOrdOutIn = 5; }
-			else if (fIn == 2) { IndVhOut = 5; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; }
+			if      (fIn == 0) { IndVhOut = 7; f = 1; IndOrdLR = 5; IndOrdRL = 5; }
+			else if (fIn == 2) { IndVhOut = 5; f = 3; IndOrdLR = 0; IndOrdRL = 0; }
 			break;
-		case 4: IndVhOut = 8; f = 1; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 0
-		case 5: IndVhOut = 8; f = 0; IndOrdInOut = 5; IndOrdOutIn = 5; break; // fIn = 1
-		case 6: IndVhOut = 8; f = 2; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 3
-		case 7: IndVhOut = 8; f = 3; IndOrdInOut = 0; IndOrdOutIn = 0; break; // fIn = 2
-		case 8: IndVhOut = 9; f = 4; IndOrdInOut = 1; IndOrdOutIn = 1; break; // fIn = 4
+		case 4: IndVhOut = 8; f = 1; IndOrdLR = 5; IndOrdRL = 5; break; // fIn = 0
+		case 5: IndVhOut = 8; f = 0; IndOrdLR = 5; IndOrdRL = 5; break; // fIn = 1
+		case 6: IndVhOut = 8; f = 2; IndOrdLR = 0; IndOrdRL = 0; break; // fIn = 3
+		case 7: IndVhOut = 8; f = 3; IndOrdLR = 0; IndOrdRL = 0; break; // fIn = 2
+		case 8: IndVhOut = 9; f = 4; IndOrdLR = 1; IndOrdRL = 1; break; // fIn = 4
 		default: // Should already have found all FACEs
 			printf("Error: Should not be entering for vh %d for VType %d.\n",vh,VType), EXIT_MSG;
 			break;
@@ -776,20 +776,20 @@ static void set_FACE_Out(const unsigned int vh, const unsigned int fIn, struct S
 	for (i = 0; i < IndVhOut; i++)
 		VOLUMEc = VOLUMEc->next;
 
-	FACEc->VOut  = VOLUMEc;
-	FACEc->VfOut = f*NFREFMAX;
+	FACEc->VR  = VOLUMEc;
+	FACEc->VfR = f*NFREFMAX;
 
-	FACEc->IndOrdInOut = IndOrdInOut;
-	FACEc->IndOrdOutIn = IndOrdOutIn;
+	FACEc->IndOrdLR = IndOrdLR;
+	FACEc->IndOrdRL = IndOrdRL;
 
 	get_Indsf(FACEc,&sfIn,&sfOut);
 
-	FACEc->VIn->FACE[sfIn] = FACEc;
-	FACEc->VOut->FACE[sfOut] = FACEc;
+	FACEc->VL->FACE[sfIn] = FACEc;
+	FACEc->VR->FACE[sfOut] = FACEc;
 	FACEc->type = get_FACE_type(FACEc);
 
-	FACEc->VIn->neigh_f[FACEc->VfIn]   = (FACEc->VfOut)/NFREFMAX;
-	FACEc->VOut->neigh_f[FACEc->VfOut] = (FACEc->VfIn)/NFREFMAX;
+	FACEc->VL->neigh_f[FACEc->VfL]   = (FACEc->VfR)/NFREFMAX;
+	FACEc->VR->neigh_f[FACEc->VfR] = (FACEc->VfL)/NFREFMAX;
 }
 
 static void set_FACE_Out_External(struct S_FACE *FACEc, struct S_VOLUME *VOLUME)
@@ -798,16 +798,16 @@ static void set_FACE_Out_External(struct S_FACE *FACEc, struct S_VOLUME *VOLUME)
 	unsigned int TETrefineType = DB.TETrefineType;
 
 	// standard datatypes
-	unsigned int i, VType, IndVhOut, VfOut, f, sfIn, sfOut;
+	unsigned int i, VType, IndVhOut, VfR, f, sfIn, sfOut;
 
 	struct S_VOLUME *VOLUMEc;
 
 	VType = VOLUME->type;
-	VfOut = FACEc->VfOut;
+	VfR = FACEc->VfR;
 	switch (VType) {
 	case TRI:
 		// Isotropic refinement only.
-		switch (VfOut) {
+		switch (VfR) {
 		case NFREFMAX+1:
 		case 2*NFREFMAX+1:
 			IndVhOut = 0; break;
@@ -818,14 +818,14 @@ static void set_FACE_Out_External(struct S_FACE *FACEc, struct S_VOLUME *VOLUME)
 		case NFREFMAX+2:
 			IndVhOut = 2; break;
 		default:
-			printf("Error: Unsupported VfOut = %d.\n",VfOut), EXIT_MSG;
+			printf("Error: Unsupported VfR = %d.\n",VfR), EXIT_MSG;
 			break;
 		}
-		f = VfOut/NFREFMAX;
+		f = VfR/NFREFMAX;
 		break;
 	case QUAD:
 		// Isotropic refinement only.
-		switch (VfOut) {
+		switch (VfR) {
 		case 1:
 		case 2*NFREFMAX+1:
 			IndVhOut = 0; break;
@@ -839,15 +839,15 @@ static void set_FACE_Out_External(struct S_FACE *FACEc, struct S_VOLUME *VOLUME)
 		case 3*NFREFMAX+2:
 			IndVhOut = 3; break;
 		default:
-			printf("Error: Unsupported VfOut = %d.\n",VfOut), EXIT_MSG;
+			printf("Error: Unsupported VfR = %d.\n",VfR), EXIT_MSG;
 			break;
 		}
-		f = VfOut/NFREFMAX;
+		f = VfR/NFREFMAX;
 		break;
 	case TET:
 		// Isotropic refinement only.
 		if (TETrefineType == TET8 || TETrefineType == TET12) {
-			switch (VfOut) {
+			switch (VfR) {
 			case NFREFMAX+3:
 			case 2*NFREFMAX+1:
 			case 3*NFREFMAX+1:
@@ -873,28 +873,28 @@ static void set_FACE_Out_External(struct S_FACE *FACEc, struct S_VOLUME *VOLUME)
 			case 3*NFREFMAX+4:
 				IndVhOut = 7; break;
 			default:
-				printf("Error: Unsupported VfOut = %d.\n",VfOut), EXIT_MSG;
+				printf("Error: Unsupported VfR = %d.\n",VfR), EXIT_MSG;
 				break;
 			}
-			f = VfOut/NFREFMAX;
+			f = VfR/NFREFMAX;
 		} else if (TETrefineType == TET6) {
-			switch (VfOut) {
+			switch (VfR) {
 			case NFREFMAX+3:
 			case 2*NFREFMAX+1:
 			case 3*NFREFMAX+1:
-				IndVhOut = 0; f = VfOut/NFREFMAX; break;
+				IndVhOut = 0; f = VfR/NFREFMAX; break;
 			case 3:
 			case 2*NFREFMAX+2:
 			case 3*NFREFMAX+2:
-				IndVhOut = 1; f = VfOut/NFREFMAX; break;
+				IndVhOut = 1; f = VfR/NFREFMAX; break;
 			case 1:
 			case NFREFMAX+1:
 			case 3*NFREFMAX+3:
-				IndVhOut = 2; f = VfOut/NFREFMAX; break;
+				IndVhOut = 2; f = VfR/NFREFMAX; break;
 			case 2:
 			case NFREFMAX+2:
 			case 2*NFREFMAX+3:
-				IndVhOut = 3; f = VfOut/NFREFMAX; break;
+				IndVhOut = 3; f = VfR/NFREFMAX; break;
 			case 4:
 				IndVhOut = 5; f = 1; break;
 			case NFREFMAX+4:
@@ -904,7 +904,7 @@ static void set_FACE_Out_External(struct S_FACE *FACEc, struct S_VOLUME *VOLUME)
 			case 3*NFREFMAX+4:
 				IndVhOut = 4; f = 3; break;
 			default:
-				printf("Error: Unsupported VfOut = %d.\n",VfOut), EXIT_MSG;
+				printf("Error: Unsupported VfR = %d.\n",VfR), EXIT_MSG;
 				break;
 			}
 		} else {
@@ -913,7 +913,7 @@ static void set_FACE_Out_External(struct S_FACE *FACEc, struct S_VOLUME *VOLUME)
 		break;
 	case HEX:
 		// Isotropic refinement only.
-		switch (VfOut) {
+		switch (VfR) {
 		case 1:
 		case 2*NFREFMAX+1:
 		case 4*NFREFMAX+1:
@@ -947,14 +947,14 @@ static void set_FACE_Out_External(struct S_FACE *FACEc, struct S_VOLUME *VOLUME)
 		case 5*NFREFMAX+4:
 			IndVhOut = 7; break;
 		default:
-			printf("Error: Unsupported VfOut = %d.\n",VfOut), EXIT_MSG;
+			printf("Error: Unsupported VfR = %d.\n",VfR), EXIT_MSG;
 			break;
 		}
-		f = VfOut/NFREFMAX;
+		f = VfR/NFREFMAX;
 		break;
 	case WEDGE:
 		// Isotropic refinement only.
-		switch (VfOut) {
+		switch (VfR) {
 		case NFREFMAX+1:
 		case 2*NFREFMAX+1:
 		case 3*NFREFMAX+1:
@@ -984,45 +984,45 @@ static void set_FACE_Out_External(struct S_FACE *FACEc, struct S_VOLUME *VOLUME)
 		case 4*NFREFMAX+4:
 			IndVhOut = 7; break;
 		default:
-			printf("Error: Unsupported VfOut = %d.\n",VfOut), EXIT_MSG;
+			printf("Error: Unsupported VfR = %d.\n",VfR), EXIT_MSG;
 			break;
 		}
-		f = VfOut/NFREFMAX;
+		f = VfR/NFREFMAX;
 		break;
 	case PYR:
 		// Isotropic refinement only.
-		switch (VfOut) {
+		switch (VfR) {
 		case 1:
 		case 2*NFREFMAX+1:
 		case 4*NFREFMAX+1:
-			IndVhOut = 0; f = VfOut/NFREFMAX; break;
+			IndVhOut = 0; f = VfR/NFREFMAX; break;
 		case NFREFMAX+1:
 		case 2*NFREFMAX+2:
 		case 4*NFREFMAX+2:
-			IndVhOut = 1; f = VfOut/NFREFMAX; break;
+			IndVhOut = 1; f = VfR/NFREFMAX; break;
 		case 2:
 		case 3*NFREFMAX+1:
 		case 4*NFREFMAX+3:
-			IndVhOut = 2; f = VfOut/NFREFMAX; break;
+			IndVhOut = 2; f = VfR/NFREFMAX; break;
 		case NFREFMAX+2:
 		case 3*NFREFMAX+2:
 		case 4*NFREFMAX+4:
-			IndVhOut = 3; f = VfOut/NFREFMAX; break;
+			IndVhOut = 3; f = VfR/NFREFMAX; break;
 		case 4:
 			IndVhOut = 4; f = 1; break;
 		case NFREFMAX+4:
 			IndVhOut = 5; f = 0; break;
 		case 2*NFREFMAX+4:
-			IndVhOut = 6; f = VfOut/NFREFMAX; break;
+			IndVhOut = 6; f = VfR/NFREFMAX; break;
 		case 3*NFREFMAX+4:
-			IndVhOut = 7; f = VfOut/NFREFMAX; break;
+			IndVhOut = 7; f = VfR/NFREFMAX; break;
 		case 3:
 		case NFREFMAX+3:
 		case 2*NFREFMAX+3:
 		case 3*NFREFMAX+3:
-			IndVhOut = 9; f = VfOut/NFREFMAX; break;
+			IndVhOut = 9; f = VfR/NFREFMAX; break;
 		default:
-			printf("Error: Unsupported VfOut = %d.\n",VfOut), EXIT_MSG;
+			printf("Error: Unsupported VfR = %d.\n",VfR), EXIT_MSG;
 			break;
 		}
 		break;
@@ -1035,11 +1035,11 @@ static void set_FACE_Out_External(struct S_FACE *FACEc, struct S_VOLUME *VOLUME)
 	for (i = 0; i < IndVhOut; i++)
 		VOLUMEc = VOLUMEc->next;
 
-	FACEc->VOut  = VOLUMEc;
-	FACEc->VfOut = f*NFREFMAX;
+	FACEc->VR  = VOLUMEc;
+	FACEc->VfR = f*NFREFMAX;
 
-	FACEc->VIn->neigh_f[FACEc->VfIn]   = (FACEc->VfOut)/NFREFMAX;
-	FACEc->VOut->neigh_f[FACEc->VfOut] = (FACEc->VfIn)/NFREFMAX;
+	FACEc->VL->neigh_f[FACEc->VfL]   = (FACEc->VfR)/NFREFMAX;
+	FACEc->VR->neigh_f[FACEc->VfR] = (FACEc->VfL)/NFREFMAX;
 
 	get_Indsf(FACEc,&sfIn,&sfOut);
 	VOLUMEc->FACE[sfOut] = FACEc;
@@ -1051,11 +1051,11 @@ static void get_Indsf(struct S_FACE *FACE, unsigned int *sfIn, unsigned int *sfO
 
 	for (i = 0; i < 2; i++) {
 		if (i == 0) {
-			Vf    = FACE->VfIn;
-			VType = FACE->VIn->type;
+			Vf    = FACE->VfL;
+			VType = FACE->VL->type;
 		} else {
-			Vf    = FACE->VfOut;
-			VType = FACE->VOut->type;
+			Vf    = FACE->VfR;
+			VType = FACE->VR->type;
 		}
 		f     = Vf/NFREFMAX;
 		Vfl   = Vf%NFREFMAX;
@@ -1157,9 +1157,9 @@ static void get_Indsf(struct S_FACE *FACE, unsigned int *sfIn, unsigned int *sfO
 
 static void update_memory_FACE(struct S_FACE *const FACE);
 
-static unsigned int is_VOLUME_VIn(const unsigned int indexgVOLUME, const unsigned int indexgVIn)
+static unsigned int is_VOLUME_VL(const unsigned int indexgVOLUME, const unsigned int indexgVL)
 {
-	if (indexgVOLUME == indexgVIn)
+	if (indexgVOLUME == indexgVL)
 		return 1;
 	return 0;
 }
@@ -1175,7 +1175,7 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 	             dummy_ui;
 
 	struct S_ELEMENT *ELEMENT;
-	struct S_VOLUME  *VOLUMEc, **VOLUMEc_list, *VIn, *VOut;
+	struct S_VOLUME  *VOLUMEc, **VOLUMEc_list, *VL, *VR;
 	struct S_FACE   *FACE, *FACEp;
 
 	ELEMENT = get_ELEMENT_type(VOLUME->type);
@@ -1197,7 +1197,7 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 		switch (VType) {
 		case TRI:
 			// Supported: Isotropic refinement
-			// NOTE: The computation of FACE->VfOut must be modified if anisotropic refinement is enabled.
+			// NOTE: The computation of FACE->VfR must be modified if anisotropic refinement is enabled.
 			//       (ToBeDeleted)
 			sfMax = 2;
 			switch (f) {
@@ -1313,16 +1313,16 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 		for (sf = 0; sf < sfMax; sf++) {
 			FACE = VOLUMEc_list[IndVc[sf]]->FACE[Indsf[sf]];
 
-			VIn  = FACE->VIn;
-			VOut = FACE->VOut;
+			VL  = FACE->VL;
+			VR = FACE->VR;
 
-			if (VIn == VOut || VIn->level != VOut->level) {
+			if (VL == VR || VL->level != VR->level) {
 				recombine_FACEs = 1;
 				break;
 			}
 		}
 
-		// Need to update FACE->VIn and FACE->VOut;
+		// Need to update FACE->VL and FACE->VR;
 		if (recombine_FACEs) {
 			VOLUME->NsubF[f] = 1;
 
@@ -1336,14 +1336,14 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 
 			VOLUME->FACE[f*NSUBFMAX] = FACE->parent;
 			FACEp = FACE->parent;
-			if (is_VOLUME_VIn(VOLUME->indexg,FACEp->VIn->indexg)) {
-				fOut = (FACEp->VfOut)/NFREFMAX;
-				FACEp->VOut->NsubF[fOut] = 1;
-				FACEp->VOut->FACE[fOut*NSUBFMAX] = FACEp;
+			if (is_VOLUME_VL(VOLUME->indexg,FACEp->VL->indexg)) {
+				fOut = (FACEp->VfR)/NFREFMAX;
+				FACEp->VR->NsubF[fOut] = 1;
+				FACEp->VR->FACE[fOut*NSUBFMAX] = FACEp;
 			} else {
-				fIn = (FACEp->VfIn)/NFREFMAX;
-				FACEp->VIn->NsubF[fIn] = 1;
-				FACEp->VIn->FACE[fIn*NSUBFMAX] = FACEp;
+				fIn = (FACEp->VfL)/NFREFMAX;
+				FACEp->VL->NsubF[fIn] = 1;
+				FACEp->VL->FACE[fIn*NSUBFMAX] = FACEp;
 			}
 //			update_memory_FACE(FACEp);
 		} else {
@@ -1351,16 +1351,16 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 				VOLUMEc = VOLUMEc_list[IndVc[sf]];
 				FACE = VOLUMEc->FACE[Indsf[sf]];
 
-				if (is_VOLUME_VIn(VOLUMEc->indexg,FACE->VIn->indexg)) {
-					FACE->VIn  = FACE->VOut;
-					FACE->VfIn = FACE->VfOut;
+				if (is_VOLUME_VL(VOLUMEc->indexg,FACE->VL->indexg)) {
+					FACE->VL  = FACE->VR;
+					FACE->VfL = FACE->VfR;
 
-					dummy_ui           = FACE->IndOrdInOut;
-					FACE->IndOrdInOut = FACE->IndOrdOutIn;
-					FACE->IndOrdOutIn = dummy_ui;
+					dummy_ui           = FACE->IndOrdLR;
+					FACE->IndOrdLR = FACE->IndOrdRL;
+					FACE->IndOrdRL = dummy_ui;
 
-					FACE->VOut  = VOLUME;
-					FACE->VfOut = f*NFREFMAX+sf+1; // CHANGE THIS TO BE GENERAL! (ToBeDeleted)
+					FACE->VR  = VOLUME;
+					FACE->VfR = f*NFREFMAX+sf+1; // CHANGE THIS TO BE GENERAL! (ToBeDeleted)
 
 					VOLUME->FACE[f*NSUBFMAX+sf] = FACE;
 
@@ -1369,8 +1369,8 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 					setup_FACE_XYZ(FACE);
 					setup_normals(FACE);
 				} else {
-					FACE->VOut  = VOLUME;
-					FACE->VfOut = f*NFREFMAX+sf+1;
+					FACE->VR  = VOLUME;
+					FACE->VfR = f*NFREFMAX+sf+1;
 
 					VOLUME->FACE[f*NSUBFMAX+sf] = FACE;
 				}
@@ -1504,89 +1504,66 @@ static void update_memory_FACE(struct S_FACE *const FACE)
 	                   Neq  = DB.Neq;
 
 	// Left VOLUME
-	unsigned int const NvnSL = FACE->VIn->NvnS;
+	unsigned int const NvnSL = FACE->VL->NvnS;
 	if (NvnSL == 0)
 		EXIT_UNSUPPORTED;
 
 	// RHS/LHS
-	if (FACE->RHSIn != NULL)
-		free(FACE->RHSIn);
-	FACE->RHSIn = malloc(NvnSL*Nvar * sizeof *(FACE->RHSIn)); // keep
+	if (FACE->RHSL != NULL)
+		free(FACE->RHSL);
+	FACE->RHSL = malloc(NvnSL*Nvar * sizeof *(FACE->RHSL)); // keep
 
 	if (strstr(DB.SolverType,"Implicit")) {
-		if (FACE->LHSInIn != NULL)
-			free(FACE->LHSInIn);
-		FACE->LHSInIn = malloc(NvnSL*NvnSL*Nvar*Neq * sizeof *(FACE->LHSInIn)); // keep
+		if (FACE->LHSLL != NULL)
+			free(FACE->LHSLL);
+		FACE->LHSLL = malloc(NvnSL*NvnSL*Nvar*Neq * sizeof *(FACE->LHSLL)); // keep
 	}
 
 	if (!(FACE->Boundary)) {
-		unsigned int const NvnSR = FACE->VOut->NvnS;
-		if (FACE->RHSOut != NULL)
-			free(FACE->RHSOut);
-		FACE->RHSOut = malloc(NvnSR*Nvar * sizeof *(FACE->RHSOut)); // keep
+		unsigned int const NvnSR = FACE->VR->NvnS;
+		if (FACE->RHSR != NULL)
+			free(FACE->RHSR);
+		FACE->RHSR = malloc(NvnSR*Nvar * sizeof *(FACE->RHSR)); // keep
 
 		if (strstr(DB.SolverType,"Implicit")) {
-			if (FACE->LHSInOut != NULL)
-				free(FACE->LHSInOut);
-			FACE->LHSInOut = malloc(NvnSR*NvnSL*Nvar*Neq * sizeof *(FACE->LHSInOut)); // keep
-			if (FACE->LHSOutIn != NULL)
-				free(FACE->LHSOutIn);
-			FACE->LHSOutIn = malloc(NvnSL*NvnSR*Nvar*Neq * sizeof *(FACE->LHSOutIn)); // keep
-			if (FACE->LHSOutOut != NULL)
-				free(FACE->LHSOutOut);
-			FACE->LHSOutOut = malloc(NvnSR*NvnSR*Nvar*Neq * sizeof *(FACE->LHSOutOut)); // keep
+			if (FACE->LHSLR != NULL)
+				free(FACE->LHSLR);
+			FACE->LHSLR = malloc(NvnSR*NvnSL*Nvar*Neq * sizeof *(FACE->LHSLR)); // keep
+			if (FACE->LHSRL != NULL)
+				free(FACE->LHSRL);
+			FACE->LHSRL = malloc(NvnSL*NvnSR*Nvar*Neq * sizeof *(FACE->LHSRL)); // keep
+			if (FACE->LHSRR != NULL)
+				free(FACE->LHSRR);
+			FACE->LHSRR = malloc(NvnSR*NvnSR*Nvar*Neq * sizeof *(FACE->LHSRR)); // keep
 		}
 	}
 
 	// Other solver related arrays
 	if (strstr(TestCase,"Poisson")) {
 		for (size_t dim = 0; dim < d; dim++) {
-// Needs clean-up, remove q/u and use Q/W instead (ToBeDeleted)
-			if (FACE->qhatIn[dim] != NULL)
-				free(FACE->qhatIn[dim]);
-			FACE->qhatIn[dim] = malloc(NvnSL*Nvar * sizeof *(FACE->qhatIn[dim])); // keep
-
-			if (FACE->qhat_uhatInIn[dim] != NULL)
-				free(FACE->qhat_uhatInIn[dim]);
-			FACE->qhat_uhatInIn[dim] = malloc(NvnSL*NvnSL*Nvar*Neq * sizeof *(FACE->qhat_uhatInIn[dim])); // keep
-
 			if (FACE->QhatL[dim] != NULL)
 				free(FACE->QhatL[dim]);
 			FACE->QhatL[dim] = malloc(NvnSL*Nvar * sizeof *(FACE->QhatL[dim])); // keep
 
-			if (FACE->Qhat_WhatLL[dim] != NULL)
-				free(FACE->Qhat_WhatLL[dim]);
-			FACE->Qhat_WhatLL[dim] = malloc(NvnSL*NvnSL * sizeof *(FACE->Qhat_WhatLL[dim])); // keep
+			if (FACE->QhatL_WhatL[dim] != NULL)
+				free(FACE->QhatL_WhatL[dim]);
+			FACE->QhatL_WhatL[dim] = malloc(NvnSL*NvnSL * sizeof *(FACE->QhatL_WhatL[dim])); // keep
 
 			if (!FACE->Boundary) {
-				unsigned int const NvnSR = FACE->VOut->NvnS;
-				if (FACE->qhatOut[dim] != NULL)
-					free(FACE->qhatOut[dim]);
-				FACE->qhatOut[dim] = malloc(NvnSR*Nvar * sizeof *(FACE->qhatOut[dim])); // keep
-
+				unsigned int const NvnSR = FACE->VR->NvnS;
 				if (FACE->QhatR[dim] != NULL)
 					free(FACE->QhatR[dim]);
 				FACE->QhatR[dim] = malloc(NvnSR*Nvar * sizeof *(FACE->QhatR[dim])); // keep
 
-				if (FACE->qhat_uhatInOut[dim] != NULL)
-					free(FACE->qhat_uhatInOut[dim]);
-				FACE->qhat_uhatInOut[dim] = malloc(NvnSR*NvnSL*Nvar*Neq * sizeof *(FACE->qhat_uhatInOut[dim])); // keep
-				if (FACE->qhat_uhatOutIn[dim] != NULL)
-					free(FACE->qhat_uhatOutIn[dim]);
-				FACE->qhat_uhatOutIn[dim] = malloc(NvnSL*NvnSR*Nvar*Neq * sizeof *(FACE->qhat_uhatOutIn[dim])); // keep
-				if (FACE->qhat_uhatOutOut[dim] != NULL)
-					free(FACE->qhat_uhatOutOut[dim]);
-				FACE->qhat_uhatOutOut[dim] = malloc(NvnSR*NvnSR*Nvar*Neq * sizeof *(FACE->qhat_uhatOutOut[dim])); // keep
-
-				if (FACE->Qhat_WhatRL[dim] != NULL)
-					free(FACE->Qhat_WhatRL[dim]);
-				FACE->Qhat_WhatRL[dim] = malloc(NvnSL*NvnSR * sizeof *(FACE->Qhat_WhatRL[dim])); // keep
-				if (FACE->Qhat_WhatLR[dim] != NULL)
-					free(FACE->Qhat_WhatLR[dim]);
-				FACE->Qhat_WhatLR[dim] = malloc(NvnSR*NvnSL * sizeof *(FACE->Qhat_WhatLR[dim])); // keep
-				if (FACE->Qhat_WhatRR[dim] != NULL)
-					free(FACE->Qhat_WhatRR[dim]);
-				FACE->Qhat_WhatRR[dim] = malloc(NvnSR*NvnSR * sizeof *(FACE->Qhat_WhatRR[dim])); // keep
+				if (FACE->QhatL_WhatR[dim] != NULL)
+					free(FACE->QhatL_WhatR[dim]);
+				FACE->QhatL_WhatR[dim] = malloc(NvnSL*NvnSR * sizeof *(FACE->QhatL_WhatR[dim])); // keep
+				if (FACE->QhatR_WhatL[dim] != NULL)
+					free(FACE->QhatR_WhatL[dim]);
+				FACE->QhatR_WhatL[dim] = malloc(NvnSR*NvnSL * sizeof *(FACE->QhatR_WhatL[dim])); // keep
+				if (FACE->QhatR_WhatR[dim] != NULL)
+					free(FACE->QhatR_WhatR[dim]);
+				FACE->QhatR_WhatR[dim] = malloc(NvnSR*NvnSR * sizeof *(FACE->QhatR_WhatR[dim])); // keep
 			}
 		}
 	} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
@@ -1597,7 +1574,7 @@ static void update_memory_FACE(struct S_FACE *const FACE)
 				FACE->QhatL[dim] = malloc(NvnSL*Nvar * sizeof *(FACE->QhatL[dim])); // keep
 
 				if (!FACE->Boundary) {
-					unsigned int const NvnSR = FACE->VOut->NvnS;
+					unsigned int const NvnSR = FACE->VR->NvnS;
 					if (FACE->QhatR[dim] != NULL)
 						free(FACE->QhatR[dim]);
 					FACE->QhatR[dim] = malloc(NvnSR*Nvar * sizeof *(FACE->QhatR[dim])); // keep
@@ -1606,23 +1583,23 @@ static void update_memory_FACE(struct S_FACE *const FACE)
 			if (strstr(DB.SolverType,"Implicit")) {
 				for (size_t dim = 0; dim < d; dim++) {
 					if (FACE->Boundary) {
-						if (FACE->Qhat_WhatLL[dim] != NULL)
-							free(FACE->Qhat_WhatLL[dim]);
-						FACE->Qhat_WhatLL[dim] = malloc(NvnSL*NvnSL*Nvar*Neq * sizeof *(FACE->Qhat_WhatLL[dim])); // keep
+						if (FACE->QhatL_WhatL[dim] != NULL)
+							free(FACE->QhatL_WhatL[dim]);
+						FACE->QhatL_WhatL[dim] = malloc(NvnSL*NvnSL*Nvar*Neq * sizeof *(FACE->QhatL_WhatL[dim])); // keep
 					} else {
-						unsigned int const NvnSR = FACE->VOut->NvnS;
-						if (FACE->Qhat_WhatLL[dim] != NULL)
-							free(FACE->Qhat_WhatLL[dim]);
-						FACE->Qhat_WhatLL[dim] = malloc(NvnSL*NvnSL * sizeof *(FACE->Qhat_WhatLL[dim])); // keep
-						if (FACE->Qhat_WhatRL[dim] != NULL)
-							free(FACE->Qhat_WhatRL[dim]);
-						FACE->Qhat_WhatRL[dim] = malloc(NvnSL*NvnSR * sizeof *(FACE->Qhat_WhatRL[dim])); // keep
-						if (FACE->Qhat_WhatLR[dim] != NULL)
-							free(FACE->Qhat_WhatLR[dim]);
-						FACE->Qhat_WhatLR[dim] = malloc(NvnSR*NvnSL * sizeof *(FACE->Qhat_WhatLR[dim])); // keep
-						if (FACE->Qhat_WhatRR[dim] != NULL)
-							free(FACE->Qhat_WhatRR[dim]);
-						FACE->Qhat_WhatRR[dim] = malloc(NvnSR*NvnSR * sizeof *(FACE->Qhat_WhatRR[dim])); // keep
+						unsigned int const NvnSR = FACE->VR->NvnS;
+						if (FACE->QhatL_WhatL[dim] != NULL)
+							free(FACE->QhatL_WhatL[dim]);
+						FACE->QhatL_WhatL[dim] = malloc(NvnSL*NvnSL * sizeof *(FACE->QhatL_WhatL[dim])); // keep
+						if (FACE->QhatL_WhatR[dim] != NULL)
+							free(FACE->QhatL_WhatR[dim]);
+						FACE->QhatL_WhatR[dim] = malloc(NvnSL*NvnSR * sizeof *(FACE->QhatL_WhatR[dim])); // keep
+						if (FACE->QhatR_WhatL[dim] != NULL)
+							free(FACE->QhatR_WhatL[dim]);
+						FACE->QhatR_WhatL[dim] = malloc(NvnSR*NvnSL * sizeof *(FACE->QhatR_WhatL[dim])); // keep
+						if (FACE->QhatR_WhatR[dim] != NULL)
+							free(FACE->QhatR_WhatR[dim]);
+						FACE->QhatR_WhatR[dim] = malloc(NvnSR*NvnSR * sizeof *(FACE->QhatR_WhatR[dim])); // keep
 					}
 				}
 			}
@@ -1658,63 +1635,46 @@ static void free_memory_solver_FACE(struct S_FACE *const FACE)
 	unsigned int const d = DB.d;
 
 	// RHS/LHS
-	free(FACE->RHSIn);
-	FACE->RHSIn = NULL;
+	free(FACE->RHSL);
+	FACE->RHSL = NULL;
 
 	if (strstr(DB.SolverType,"Implicit")) {
-		free(FACE->LHSInIn);
-		FACE->LHSInIn = NULL;
+		free(FACE->LHSLL);
+		FACE->LHSLL = NULL;
 	}
 
 	if (!FACE->Boundary) {
-		free(FACE->RHSOut);
-		FACE->RHSOut = NULL;
+		free(FACE->RHSR);
+		FACE->RHSR = NULL;
 
 		if (strstr(DB.SolverType,"Implicit")) {
-			free(FACE->LHSInOut);
-			FACE->LHSInOut = NULL;
-			free(FACE->LHSOutIn);
-			FACE->LHSOutIn = NULL;
-			free(FACE->LHSOutOut);
-			FACE->LHSOutOut = NULL;
+			free(FACE->LHSLR);
+			FACE->LHSLR = NULL;
+			free(FACE->LHSRL);
+			FACE->LHSRL = NULL;
+			free(FACE->LHSRR);
+			FACE->LHSRR = NULL;
 		}
 	}
 
 	if (strstr(TestCase,"Poisson")) {
 		for (size_t dim = 0; dim < d; dim++) {
-// Needs clean-up, remove q/u and use Q/W instead (ToBeDeleted)
-			free(FACE->qhatIn[dim]);
-			FACE->qhatIn[dim] = NULL;
-
-			free(FACE->qhat_uhatInIn[dim]);
-			FACE->qhat_uhatInIn[dim] = NULL;
-
 			free(FACE->QhatL[dim]);
 			FACE->QhatL[dim] = NULL;
 
-			free(FACE->Qhat_WhatLL[dim]);
-			FACE->Qhat_WhatLL[dim] = NULL;
+			free(FACE->QhatL_WhatL[dim]);
+			FACE->QhatL_WhatL[dim] = NULL;
 
 			if (!FACE->Boundary) {
-				free(FACE->qhatOut[dim]);
-				FACE->qhatOut[dim] = NULL;
-
 				free(FACE->QhatR[dim]);
 				FACE->QhatR[dim] = NULL;
 
-				free(FACE->qhat_uhatInOut[dim]);
-				FACE->qhat_uhatInOut[dim] = NULL;
-				free(FACE->qhat_uhatOutIn[dim]);
-				FACE->qhat_uhatOutIn[dim] = NULL;
-				free(FACE->qhat_uhatOutOut[dim]);
-				FACE->qhat_uhatOutOut[dim] = NULL;
-
-				free(FACE->Qhat_WhatRL[dim]);
-				FACE->Qhat_WhatRL[dim] = NULL;
-				free(FACE->Qhat_WhatLR[dim]);
-				FACE->Qhat_WhatLR[dim] = NULL;
-				free(FACE->Qhat_WhatRR[dim]);
-				FACE->Qhat_WhatRR[dim] = NULL;
+				free(FACE->QhatL_WhatR[dim]);
+				FACE->QhatL_WhatR[dim] = NULL;
+				free(FACE->QhatR_WhatL[dim]);
+				FACE->QhatR_WhatL[dim] = NULL;
+				free(FACE->QhatR_WhatR[dim]);
+				FACE->QhatR_WhatR[dim] = NULL;
 			}
 		}
 	} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
@@ -1730,16 +1690,16 @@ static void free_memory_solver_FACE(struct S_FACE *const FACE)
 			}
 			if (strstr(DB.SolverType,"Implicit")) {
 				for (size_t dim = 0; dim < d; dim++) {
-					free(FACE->Qhat_WhatLL[dim]);
-					FACE->Qhat_WhatLL[dim] = NULL;
+					free(FACE->QhatL_WhatL[dim]);
+					FACE->QhatL_WhatL[dim] = NULL;
 
 					if (!FACE->Boundary) {
-						free(FACE->Qhat_WhatRL[dim]);
-						FACE->Qhat_WhatRL[dim] = NULL;
-						free(FACE->Qhat_WhatLR[dim]);
-						FACE->Qhat_WhatLR[dim] = NULL;
-						free(FACE->Qhat_WhatRR[dim]);
-						FACE->Qhat_WhatRR[dim] = NULL;
+						free(FACE->QhatL_WhatR[dim]);
+						FACE->QhatL_WhatR[dim] = NULL;
+						free(FACE->QhatR_WhatL[dim]);
+						FACE->QhatR_WhatL[dim] = NULL;
+						free(FACE->QhatR_WhatR[dim]);
+						FACE->QhatR_WhatR[dim] = NULL;
 					}
 				}
 			}
@@ -1755,7 +1715,7 @@ void update_FACE_hp(void)
 	 *	Comments:
 	 *		Parameters to (potentially) modify:
 	 *			P, typeInt, BC, indexg,
-	 *			VIn/VOut, VfIn/VfOut, IndOrdInOut/IndOrdOutIn,
+	 *			VL/VR, VfL/VfR, IndOrdLR/IndOrdRL,
 	 *			n_fS, XYZ_fS, detJF_fS (ToBeModified (potentially to _fI))
 	 */
 
@@ -1766,15 +1726,15 @@ void update_FACE_hp(void)
 
 	// Standard datatypes
 	unsigned int l, Nf, f, fh, Vfh, vh, sf, sfIn, sfOut, fhMax, sfMax, dummy_ui,
-	             Indf, IndVInh, adapt_type, BC, internal_BC,
+	             Indf, IndVLh, adapt_type, BC, internal_BC,
 	             *NsubF;
 
 	struct S_ELEMENT *ELEMENT;
-	struct S_VOLUME  *VOLUME, *VOLUMEc, *VOLUMEp, *VIn, *VOut;
+	struct S_VOLUME  *VOLUME, *VOLUMEc, *VOLUMEp, *VL, *VR;
 	struct S_FACE   *FACE, *FACEc, *FACEnext, *FACEtmp;
 
 	// silence
-	IndVInh = Vfh = 0;
+	IndVLh = Vfh = 0;
 	FACEc = NULL;
 
 	switch (Adapt) {
@@ -1803,8 +1763,8 @@ void update_FACE_hp(void)
 							FACE->update = 1;
 							FACE->adapt_type = HREFINE;
 
-							VIn  = FACE->VIn;
-							VOut = FACE->VOut;
+							VL  = FACE->VL;
+							VR = FACE->VR;
 							BC   = FACE->BC;
 
 							internal_BC = (BC == 0 || (BC % BC_STEP_SC > 50));
@@ -1830,66 +1790,66 @@ void update_FACE_hp(void)
 								if (FACE->Boundary != 0 && FACE->Boundary != 1)
 									EXIT_UNSUPPORTED;
 
-								// Find out if VOLUME == VIn or VOut
+								// Find out if VOLUME == VL or VR
 								// If condition can be outside of fh loop (ToBeDeleted)
-								if (is_VOLUME_VIn(VOLUME->indexg,VIn->indexg)) {
-									get_FACE_IndVIn(FACE->VfIn,fh,VIn->type,&IndVInh,&Vfh);
+								if (is_VOLUME_VL(VOLUME->indexg,VL->indexg)) {
+									get_FACE_IndVL(FACE->VfL,fh,VL->type,&IndVLh,&Vfh);
 
 									VOLUMEc = VOLUME->child0;
-									for (vh = 0; vh < IndVInh; vh++)
+									for (vh = 0; vh < IndVLh; vh++)
 										VOLUMEc = VOLUMEc->next;
 
-									FACEc->VIn  = VOLUMEc;
-									FACEc->VfIn = Vfh*NFREFMAX;
+									FACEc->VL  = VOLUMEc;
+									FACEc->VfL = Vfh*NFREFMAX;
 									FACEc->type = get_FACE_type(FACEc);
 
 									if (internal_BC) {
-										FACEc->VOut  = VOut;
-										FACEc->VfOut = get_FACE_VfOut(fh,FACE->IndOrdOutIn,
-										                                VIn->neigh_f[f*NFREFMAX],FACEc->type);
+										FACEc->VR  = VR;
+										FACEc->VfR = get_FACE_VfR(fh,FACE->IndOrdRL,
+										                                VL->neigh_f[f*NFREFMAX],FACEc->type);
 									} else {
-										FACEc->VOut  = FACEc->VIn;
-										FACEc->VfOut = FACEc->VfIn;
+										FACEc->VR  = FACEc->VL;
+										FACEc->VfR = FACEc->VfL;
 									}
 
-									FACEc->IndOrdInOut = FACE->IndOrdInOut;
-									FACEc->IndOrdOutIn = FACE->IndOrdOutIn;
+									FACEc->IndOrdLR = FACE->IndOrdLR;
+									FACEc->IndOrdRL = FACE->IndOrdRL;
 								} else {
-									get_FACE_IndVIn(FACE->VfOut,fh,VOut->type,&IndVInh,&Vfh);
+									get_FACE_IndVL(FACE->VfR,fh,VR->type,&IndVLh,&Vfh);
 
 									VOLUMEc = VOLUME->child0;
-									for (vh = 0; vh < IndVInh; vh++)
+									for (vh = 0; vh < IndVLh; vh++)
 										VOLUMEc = VOLUMEc->next;
 
-									FACEc->VIn  = VOLUMEc;
-									FACEc->VfIn = Vfh*NFREFMAX;
+									FACEc->VL  = VOLUMEc;
+									FACEc->VfL = Vfh*NFREFMAX;
 									FACEc->type = get_FACE_type(FACEc);
 
-									FACEc->VOut  = VIn;
-									FACEc->VfOut = get_FACE_VfOut(fh,FACE->IndOrdInOut,VOut->neigh_f[f*NFREFMAX],FACEc->type);
+									FACEc->VR  = VL;
+									FACEc->VfR = get_FACE_VfR(fh,FACE->IndOrdLR,VR->neigh_f[f*NFREFMAX],FACEc->type);
 
-									FACEc->IndOrdInOut = FACE->IndOrdOutIn;
-									FACEc->IndOrdOutIn = FACE->IndOrdInOut;
+									FACEc->IndOrdLR = FACE->IndOrdRL;
+									FACEc->IndOrdRL = FACE->IndOrdLR;
 
 								}
-								FACEc->VIn->NsubF[(FACEc->VfIn)/NFREFMAX] = 1;
+								FACEc->VL->NsubF[(FACEc->VfL)/NFREFMAX] = 1;
 								if (internal_BC)
-									FACEc->VOut->NsubF[(FACEc->VfOut)/NFREFMAX] = fhMax;
-								VOLUMEc->neigh_f[FACEc->VfIn] = (FACEc->VfOut)/NFREFMAX;
+									FACEc->VR->NsubF[(FACEc->VfR)/NFREFMAX] = fhMax;
+								VOLUMEc->neigh_f[FACEc->VfL] = (FACEc->VfR)/NFREFMAX;
 
 								get_Indsf(FACEc,&sfIn,&sfOut);
 
-								FACEc->VIn->FACE[sfIn] = FACEc;
-								FACEc->VOut->FACE[sfOut] = FACEc;
+								FACEc->VL->FACE[sfIn] = FACEc;
+								FACEc->VR->FACE[sfOut] = FACEc;
 //								update_memory_FACE(FACEc);
 							}
 							free_memory_solver_FACE(FACE);
 						} else { // Connect to existing FACEs
-							// VOLUME = VOut
+							// VOLUME = VR
 							for (sf = 0; sf < sfMax; sf++) {
 								FACEc = VOLUME->FACE[Indf+sf];
 
-								// Only connectivity needs updating in FACEc->VOut
+								// Only connectivity needs updating in FACEc->VR
 								set_FACE_Out_External(FACEc,VOLUME);
 							}
 						}
@@ -1915,8 +1875,8 @@ void update_FACE_hp(void)
 
 								VOLUMEc->NsubF[f] = 1;
 
-								FACEc->VIn = VOLUMEc;
-								FACEc->VfIn = f*NFREFMAX;
+								FACEc->VL = VOLUMEc;
+								FACEc->VfL = f*NFREFMAX;
 								set_FACE_Out(vh,f,FACEc,VOLUME);
 //								update_memory_FACE(FACEc);
 							}
@@ -1963,11 +1923,11 @@ void update_FACE_hp(void)
 				FACE->update = 0;
 				if (FACE->parent && FACE->parent->update)
 					FACE->parent->update = 0;
-				VIn  = FACE->VIn;
-				VOut = FACE->VOut;
+				VL  = FACE->VL;
+				VR = FACE->VR;
 
-				FACE->P      = max(VIn->P,VOut->P);
-				FACE->curved = max(VIn->curved,VOut->curved);
+				FACE->P      = max(VL->P,VR->P);
+				FACE->curved = max(VL->curved,VR->curved);
 				if (!FACE->curved)
 					FACE->typeInt = 's';
 				else
@@ -2062,24 +2022,24 @@ void update_FACE_hp(void)
 		 */
 
 		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
-			VIn  = FACE->VIn;
-			VOut = FACE->VOut;
+			VL  = FACE->VL;
+			VR = FACE->VR;
 
-			if (VIn->update || VOut->update) {
-				FACE->P = max(VIn->P,VOut->P);
+			if (VL->update || VR->update) {
+				FACE->P = max(VL->P,VR->P);
 
-				// Ensure that VIn is the highest order VOLUME
-				if (VIn->P < VOut->P) {
-					FACE->VIn  = VOut;
-					FACE->VOut = VIn;
+				// Ensure that VL is the highest order VOLUME
+				if (VL->P < VR->P) {
+					FACE->VL  = VR;
+					FACE->VR = VL;
 
-					dummy_ui     = FACE->VfIn;
-					FACE->VfIn  = FACE->VfOut;
-					FACE->VfOut = dummy_ui;
+					dummy_ui     = FACE->VfL;
+					FACE->VfL  = FACE->VfR;
+					FACE->VfR = dummy_ui;
 
-					dummy_ui           = FACE->IndOrdInOut;
-					FACE->IndOrdInOut = FACE->IndOrdOutIn;
-					FACE->IndOrdOutIn = dummy_ui;
+					dummy_ui           = FACE->IndOrdLR;
+					FACE->IndOrdLR = FACE->IndOrdRL;
+					FACE->IndOrdRL = dummy_ui;
 				}
 
 				// Recompute XYZ_fS, n_fS, and detJF_fS (ToBeModified)

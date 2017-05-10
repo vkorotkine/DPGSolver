@@ -47,7 +47,7 @@ void explicit_GradW_c(void)
 static void explicit_GradW_VOLUME_c(void)
 {
 	unsigned int const d    = DB.d,
-	                   Nvar = d+2;
+	                   Nvar = DB.Nvar;
 
 	struct S_OPERATORS_V *OPS[2];
 
@@ -113,8 +113,8 @@ static void explicit_GradW_FACE_c(void)
 {
 	// Initialize DB Parameters
 	unsigned int const d    = DB.d,
-	                   Nvar = d+2,
-	                   Neq  = d+2;
+	                   Nvar = DB.Nvar,
+	                   Neq  = DB.Neq;
 
 	// Standard datatypes
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
@@ -190,7 +190,7 @@ static void finalize_Qhat_c(struct S_VOLUME const *const VOLUME, unsigned int co
                           double complex *const *const Qhat)
 {
 	unsigned int const d    = DB.d,
-	                   Nvar = d+2;
+	                   Nvar = DB.Nvar;
 
 	if (DB.Collocated) {
 		double const *const detJV_vI = VOLUME->detJV_vI;
@@ -216,12 +216,12 @@ static void finalize_Qhat_c(struct S_VOLUME const *const VOLUME, unsigned int co
 static void explicit_GradW_finalize_c(void)
 {
 	unsigned int const d    = DB.d,
-	                   Nvar = d+2;
+	                   Nvar = DB.Nvar;
 
 	// Add FACE contributions to VOLUME->Qhat then multiply by MInv
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
-		struct S_VOLUME const *const VL = FACE->VIn,
-		                      *const VR = FACE->VOut;
+		struct S_VOLUME const *const VL = FACE->VL,
+		                      *const VR = FACE->VR;
 
 		unsigned int const NvnSL = VL->NvnS,
 		                   NvnSR = VR->NvnS;

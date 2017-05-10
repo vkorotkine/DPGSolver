@@ -110,11 +110,6 @@ void implicit_GradW_FACE(void)
 	 *		dnSolNumdW(L/R) may only have dependence on all solution variables through the boundary condition.
 	 */
 
-	unsigned int const d    = DB.d,
-	                   Nvar = DB.Nvar,
-	                   Neq  = DB.Neq;
-
-	// Standard datatypes
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 	struct S_FDATA       *const FDATAL = malloc(sizeof *FDATAL), // free
 	                     *const FDATAR = malloc(sizeof *FDATAR); // free
@@ -124,6 +119,13 @@ void implicit_GradW_FACE(void)
 	struct S_NumericalFlux *const NFluxData = malloc(sizeof *NFluxData); // free
 	FDATAL->NFluxData = NFluxData;
 	FDATAR->NFluxData = NFluxData;
+
+	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
+	DATA->FDATAL    = FDATAL;
+	DATA->FDATAR    = FDATAR;
+	DATA->NFluxData = NFluxData;
+	DATA->feature   = 'F';
+	DATA->imex_type = 'I';
 
 	for (size_t i = 0; i < 2; i++) {
 		OPSL[i]  = malloc(sizeof *OPSL[i]);  // free
@@ -135,31 +137,15 @@ void implicit_GradW_FACE(void)
 		init_FDATA(FDATAR,FACE,'R');
 
 		// Compute WL_fIL and WR_fIL (i.e. as seen from the (L)eft VOLUME)
-		unsigned int const IndFType = FDATAL->IndFType,
-		                   NfnI     = OPSL[IndFType]->NfnI;
-
-		FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
-		FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
+		manage_solver_memory(DATA,'A','W'); // free
 
 		coef_to_values_fI(FDATAL,'W','I');
 		compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
 
 		// Compute numerical flux as seen from the left VOLUME
-		NFluxData->WL_fIL         = FDATAL->W_fIL;
-		NFluxData->WR_fIL         = FDATAR->W_fIL;
-		NFluxData->nSolNum_fI     = malloc(d * sizeof *(NFluxData->nSolNum_fI));     // free
-		NFluxData->dnSolNumdWL_fI = malloc(d * sizeof *(NFluxData->dnSolNumdWL_fI)); // free
-		NFluxData->dnSolNumdWR_fI = malloc(d * sizeof *(NFluxData->dnSolNumdWR_fI)); // free
-		for (size_t dim = 0; dim < d; dim++) {
-			NFluxData->nSolNum_fI[dim]     = malloc(NfnI*Neq      * sizeof *(NFluxData->nSolNum_fI[dim]));     // free
-			if (FACE->Boundary) {
-				NFluxData->dnSolNumdWL_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnSolNumdWL_fI[dim])); // free
-				NFluxData->dnSolNumdWR_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnSolNumdWR_fI[dim])); // free
-			} else {
-				NFluxData->dnSolNumdWL_fI[dim] = malloc(NfnI * sizeof *(NFluxData->dnSolNumdWL_fI[dim])); // free
-				NFluxData->dnSolNumdWR_fI[dim] = malloc(NfnI * sizeof *(NFluxData->dnSolNumdWR_fI[dim])); // free
-			}
-		}
+		NFluxData->WL_fIL = FDATAL->W_fIL;
+		NFluxData->WR_fIL = FDATAR->W_fIL;
+		manage_solver_memory(DATA,'A','S'); // free
 
 		compute_numerical_solution(FDATAL,'I');
 		add_Jacobian_scaling_FACE(FDATAL,'I','Q');
@@ -171,11 +157,8 @@ void implicit_GradW_FACE(void)
 			finalize_QhatF_Weak(FDATAL,FDATAR,'R','I');
 		}
 
-		free(FDATAL->W_fIL);
-		free(FDATAR->W_fIL);
-		array_free2_d(d,NFluxData->nSolNum_fI);
-		array_free2_d(d,NFluxData->dnSolNumdWL_fI);
-		array_free2_d(d,NFluxData->dnSolNumdWR_fI);
+		manage_solver_memory(DATA,'F','W');
+		manage_solver_memory(DATA,'F','S');
 	}
 
 	for (size_t i = 0; i < 2; i++) {
@@ -185,6 +168,7 @@ void implicit_GradW_FACE(void)
 	free(NFluxData);
 	free(FDATAL);
 	free(FDATAR);
+	free(DATA);
 }
 
 static void finalize_Qhat(struct S_VOLUME const *const VOLUME, unsigned int const NvnS, double *const *const Qhat)
@@ -277,8 +261,8 @@ void implicit_GradW_finalize(void)
 
 	// Add FACE contributions to VOLUME->Qhat then multiply by MInv
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
-		struct S_VOLUME const *const VL = FACE->VIn,
-		                      *const VR = FACE->VOut;
+		struct S_VOLUME const *const VL = FACE->VL,
+		                      *const VR = FACE->VR;
 
 		unsigned int const NvnSL = VL->NvnS,
 		                   NvnSR = VR->NvnS;
@@ -295,13 +279,13 @@ void implicit_GradW_finalize(void)
 
 		finalize_Qhat(VL,NvnSL,FACE->QhatL);
 		if (FACE->Boundary) {
-			finalize_Qhat_What(VL,NvnSL,NvnSL,1,FACE->Qhat_WhatLL);
+			finalize_Qhat_What(VL,NvnSL,NvnSL,1,FACE->QhatL_WhatL);
 		} else {
 			finalize_Qhat(VR,NvnSR,FACE->QhatR);
-			finalize_Qhat_What(VL,NvnSL,NvnSL,0,FACE->Qhat_WhatLL);
-			finalize_Qhat_What(VL,NvnSL,NvnSR,0,FACE->Qhat_WhatRL);
-			finalize_Qhat_What(VR,NvnSR,NvnSL,0,FACE->Qhat_WhatLR);
-			finalize_Qhat_What(VR,NvnSR,NvnSR,0,FACE->Qhat_WhatRR);
+			finalize_Qhat_What(VL,NvnSL,NvnSL,0,FACE->QhatL_WhatL);
+			finalize_Qhat_What(VL,NvnSL,NvnSR,0,FACE->QhatL_WhatR);
+			finalize_Qhat_What(VR,NvnSR,NvnSL,0,FACE->QhatR_WhatL);
+			finalize_Qhat_What(VR,NvnSR,NvnSR,0,FACE->QhatR_WhatR);
 		}
 	}
 

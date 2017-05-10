@@ -6,7 +6,8 @@
 
 #include <complex.h>
 
-extern void flux_viscous_c (unsigned int const Nn, unsigned int const Nel, double complex const *const W,
-                            double complex const *const *const Q, double complex *const F);
+#include "fluxes_structs.h"
+
+extern void flux_viscous_c (struct S_FLUX *const FLUXDATA);
 
 #endif // DPG__fluxes_viscous_c_h__INCLUDED

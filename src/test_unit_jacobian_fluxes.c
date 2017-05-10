@@ -15,6 +15,7 @@
 
 #include "test_code_fluxes.h"
 #include "test_support.h"
+#include "fluxes_structs.h"
 #include "fluxes_inviscid_c.h"
 #include "fluxes_viscous_c.h"
 #include "jacobian_fluxes_inviscid.h"
@@ -56,6 +57,14 @@ static void compute_dFdW_cs(unsigned int const Nn, unsigned int const Nel, unsig
 	double complex *const Wp = malloc(NnTotal*Neq  * sizeof *Wp), // free
 	               *const F = malloc(NnTotal*d*Neq * sizeof *F);  // free
 
+	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->d   = d;
+	FLUXDATA->Nn  = Nn;
+	FLUXDATA->Nel = Nel;
+	FLUXDATA->W_c = Wp;
+	FLUXDATA->Q_c = (double complex const *const *const) Q_c;
+	FLUXDATA->F_c = F;
+
 	for (size_t var = 0; var < Nvar; var++) {
 		double const h = EPS*EPS;
 		for (size_t eq = 0; eq < Neq; eq++) {
@@ -67,9 +76,9 @@ static void compute_dFdW_cs(unsigned int const Nn, unsigned int const Nel, unsig
 			}
 		}
 		if (flux_type == 'I')
-			flux_inviscid_c(Nn,Nel,Wp,F,d,Neq);
+			flux_inviscid_c(FLUXDATA);
 		else if (flux_type == 'V')
-			flux_viscous_c(Nn,Nel,Wp,(double complex const *const *const) Q_c,F);
+			flux_viscous_c(FLUXDATA);
 		else
 			EXIT_UNSUPPORTED;
 
@@ -87,6 +96,7 @@ static void compute_dFdW_cs(unsigned int const Nn, unsigned int const Nel, unsig
 
 	free(Wp);
 	free(F);
+	free(FLUXDATA);
 }
 
 static void compute_dFdQ_cs(unsigned int const Nn, unsigned int const Nel, unsigned int const d, double const *const W,
@@ -108,6 +118,15 @@ static void compute_dFdQ_cs(unsigned int const Nn, unsigned int const Nel, unsig
 	}
 
 	double complex *const F = malloc(NnTotal*d*Neq * sizeof *F);  // free
+
+	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->d   = d;
+	FLUXDATA->Nn  = Nn;
+	FLUXDATA->Nel = Nel;
+	FLUXDATA->W_c = W_c;
+	FLUXDATA->Q_c = (double complex const *const *const) Qp;
+	FLUXDATA->F_c = F;
+
 	for (size_t dim1 = 0; dim1 < d; dim1++) {
 		for (size_t var = 0; var < Nvar; var++) {
 			double const h = EPS*EPS;
@@ -116,7 +135,7 @@ static void compute_dFdQ_cs(unsigned int const Nn, unsigned int const Nel, unsig
 			for (size_t n = 0; n < NnTotal; n++)
 				Qp[dim1][IndQ+n] += h*I;
 
-			flux_viscous_c(Nn,Nel,W_c,(double complex const *const *const) Qp,F);
+			flux_viscous_c(FLUXDATA);
 
 			for (size_t eq = 0; eq < Neq; eq++) {
 			for (size_t dim = 0; dim < d; dim++) {
@@ -136,6 +155,7 @@ static void compute_dFdQ_cs(unsigned int const Nn, unsigned int const Nel, unsig
 
 	free(W_c);
 	free(F);
+	free(FLUXDATA);
 }
 
 static unsigned int compare_jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const unsigned int d,
@@ -152,8 +172,17 @@ static unsigned int compare_jacobian_flux_inviscid(const unsigned int Nn, const 
 	dFdW    = malloc(NnTotal*d*Nvar*Neq * sizeof *dFdW);    // free
 	dFdW_cs = malloc(NnTotal*d*Nvar*Neq * sizeof *dFdW_cs); // free
 
-	jacobian_flux_inviscid(Nn,Nel,W,dFdW,d,Neq);
+	struct S_FLUX *FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->d    = d;
+	FLUXDATA->Nn   = Nn;
+	FLUXDATA->Nel  = Nel;
+	FLUXDATA->W    = W;
+	FLUXDATA->F    = NULL;
+	FLUXDATA->dFdW = dFdW;
+
+	jacobian_flux_inviscid(FLUXDATA);
 	compute_dFdW_cs(Nn,Nel,d,W,NULL,dFdW_cs,'I');
+	free(FLUXDATA);
 
 	if (array_norm_diff_d(NnTotal*d*Nvar*Neq,dFdW,dFdW_cs,"Inf") < EPS)
 		pass = 1;
@@ -178,11 +207,21 @@ static unsigned int compare_jacobian_flux_viscous(unsigned int const Nn, unsigne
 	                   Neq     = d+2,
 	                   Nvar    = d+2;
 
+	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->d   = d;
+	FLUXDATA->Nn  = Nn;
+	FLUXDATA->Nel = Nel;
+	FLUXDATA->W   = W;
+	FLUXDATA->Q   = (double const *const *const) Q;
+	FLUXDATA->F   = NULL;
+
 	if (pert_var == 'W') {
 		double *const dFdW    = malloc(NnTotal*d*Nvar*Neq * sizeof *dFdW),    // free
 			   *const dFdW_cs = malloc(NnTotal*d*Nvar*Neq * sizeof *dFdW_cs); // free
 
-		jacobian_flux_viscous(Nn,Nel,W,(double const *const *const) Q,dFdW,NULL);
+		FLUXDATA->dFdW = dFdW;
+		FLUXDATA->dFdQ = NULL;
+		jacobian_flux_viscous(FLUXDATA);
 		compute_dFdW_cs(Nn,Nel,d,W,(double const *const *const) Q,dFdW_cs,'V');
 
 		if (array_norm_diff_d(NnTotal*d*Nvar*Neq,dFdW,dFdW_cs,"Inf") < EPS)
@@ -198,7 +237,9 @@ static unsigned int compare_jacobian_flux_viscous(unsigned int const Nn, unsigne
 			dFdQ_cs[dim] = malloc(NnTotal*d*Nvar*Neq * sizeof *dFdQ_cs[dim]); // free
 		}
 
-		jacobian_flux_viscous(Nn,Nel,W,(double const *const *const) Q,NULL,dFdQ);
+		FLUXDATA->dFdW = NULL;
+		FLUXDATA->dFdQ = dFdQ;
+		jacobian_flux_viscous(FLUXDATA);
 		compute_dFdQ_cs(Nn,Nel,d,W,(double const *const *const) Q,dFdQ_cs);
 
 		double diff = 0.0;
@@ -224,6 +265,7 @@ static unsigned int compare_jacobian_flux_viscous(unsigned int const Nn, unsigne
 	} else {
 		EXIT_UNSUPPORTED;
 	}
+	free(FLUXDATA);
 
 	return pass;
 }

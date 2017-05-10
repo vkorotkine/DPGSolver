@@ -229,13 +229,13 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
 		for (side = 0; side < 2; side++) {
 			if (side == 0) {
-				VOLUME = FACE->VIn;
-				LHS = FACE->LHSInIn;
+				VOLUME = FACE->VL;
+				LHS = FACE->LHSLL;
 			} else {
 				if (FACE->Boundary)
 					continue;
-				VOLUME = FACE->VOut;
-				LHS = FACE->LHSOutOut;
+				VOLUME = FACE->VR;
+				LHS = FACE->LHSRR;
 			}
 
 			IndA = VOLUME->IndA;
@@ -269,13 +269,13 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 				continue;
 
 			if (side == 0) {
-				VOLUME  = FACE->VOut;
-				VOLUME2 = FACE->VIn;
-				LHS = FACE->LHSInOut;
+				VOLUME  = FACE->VR;
+				VOLUME2 = FACE->VL;
+				LHS = FACE->LHSLR;
 			} else {
-				VOLUME  = FACE->VIn;
-				VOLUME2 = FACE->VOut;
-				LHS = FACE->LHSOutIn;
+				VOLUME  = FACE->VL;
+				VOLUME2 = FACE->VR;
+				LHS = FACE->LHSRL;
 			}
 
 			IndA  = VOLUME->IndA;
@@ -333,12 +333,12 @@ void compute_dof(void)
 	}
 
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
-		struct S_VOLUME *VIn  = FACE->VIn,
-		                *VOut = FACE->VOut;
+		struct S_VOLUME *VL = FACE->VL,
+		                *VR = FACE->VR;
 
-		if (VIn->indexg != VOut->indexg) {
-			VIn->nnz_o  += VOut->nnz_d;
-			VOut->nnz_o += VIn->nnz_d;
+		if (VL->indexg != VR->indexg) {
+			VL->nnz_o += VR->nnz_d;
+			VR->nnz_o += VL->nnz_d;
 		}
 	}
 

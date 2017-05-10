@@ -274,6 +274,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 			}
 
 			if (!CheckFullLinearization) {
+				// Potential problem with symmetry for Poisson using CheckLevel = 1 (ToBeModified)
 				unsigned int const CheckLevel = 3;
 				for (size_t i = 1; i <= CheckLevel; i++)
 					finalize_LHS(&A,&b,&x,i);
@@ -349,13 +350,13 @@ static void flag_nonzero_LHS(unsigned int *A)
 					continue;
 
 				if (side == 0) {
-					if (VOLUME->indexg != FACE->VIn->indexg)
+					if (VOLUME->indexg != FACE->VL->indexg)
 						continue;
-					VOLUME2 = FACE->VOut;
+					VOLUME2 = FACE->VR;
 				} else {
-					if (VOLUME->indexg != FACE->VOut->indexg)
+					if (VOLUME->indexg != FACE->VR->indexg)
 						continue;
-					VOLUME2 = FACE->VIn;
+					VOLUME2 = FACE->VL;
 				}
 
 				IndA[1] = VOLUME2->IndA;
@@ -378,14 +379,9 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 		initialize_KSP(A,b,x);
 
 	if (AllowOffDiag) {
-		if (strstr(DB.TestCase,"NavierStokes")) {
+		if (strstr(DB.TestCase,"Poisson") || strstr(DB.TestCase,"NavierStokes")) {
 			TestDB.CheckOffDiagonal = 1;
-		} else if (strstr(DB.TestCase,"Poisson") || strstr(DB.TestCase,"Euler")) {
-			// Note: If modified to be more similar to the Navier-Stokes solver, the Poisson solver would also likely
-			//       need to used the treatment for the Navier-Stokes below (i.e. there would be off-diagonal terms in
-			//       the global linear system matrix when only running considering the VOLUME terms (due to the use of
-			//       the fully corrected gradient). As it is currently implemented, these contributions appear to be
-			//       included in FACE->LHS(LL/RR), meaning that this is not necessary.
+		} else if (strstr(DB.TestCase,"Euler")) {
 			; // Do nothing
 		} else {
 			EXIT_UNSUPPORTED;
@@ -429,27 +425,12 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 		NvnS[0] = VOLUME->NvnS;
 		for (size_t i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++) {
 			double const h = EPS*EPS;
+			VOLUME->What_c[i] += h*I;
 			if (strstr(DB.TestCase,"Poisson")) {
-				VOLUME->What_c[i] += h*I;
-
-				compute_qhat_VOLUME_c();
-				compute_qhat_FACE_c();
-				switch (assemble_type) {
-				default: // 0
-					compute_uhat_VOLUME_c();
-					compute_uhat_FACE_c();
-					break;
-				case 1:
-					compute_uhat_VOLUME_c();
-					break;
-				case 2:
-				case 3:
-					compute_uhat_FACE_c();
-					break;
-				}
+				explicit_GradW_c();
+				compute_What_VOLUME_c();
+				compute_What_FACE_c();
 			} else if (strstr(DB.TestCase,"Euler") || strstr(DB.TestCase,"NavierStokes")) {
-				VOLUME->What_c[i] += h*I;
-
 				explicit_GradW_c();
 				explicit_VOLUME_info_c();
 				explicit_FACE_info_c();
@@ -505,13 +486,13 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 					struct S_VOLUME *VOLUME2;
 					if (assemble_type == 2) {
 						if (side == 0) {
-							VOLUME2 = FACE->VIn;
-							RHS_c = FACE->RHSIn_c;
+							VOLUME2 = FACE->VL;
+							RHS_c = FACE->RHSL_c;
 						} else {
 							if (FACE->Boundary)
 								continue;
-							VOLUME2 = FACE->VOut;
-							RHS_c = FACE->RHSOut_c;
+							VOLUME2 = FACE->VR;
+							RHS_c = FACE->RHSR_c;
 						}
 						if (VOLUME->indexg != VOLUME2->indexg)
 							continue;
@@ -536,12 +517,12 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 						if (FACE->Boundary)
 							continue;
 
-						if (side == 0 && VOLUME == FACE->VIn) {
-							VOLUME2 = FACE->VOut;
-							RHS_c = FACE->RHSOut_c;
-						} else if (side == 1 && VOLUME == FACE->VOut) {
-							VOLUME2 = FACE->VIn;
-							RHS_c = FACE->RHSIn_c;
+						if (side == 0 && VOLUME == FACE->VL) {
+							VOLUME2 = FACE->VR;
+							RHS_c = FACE->RHSR_c;
+						} else if (side == 1 && VOLUME == FACE->VR) {
+							VOLUME2 = FACE->VL;
+							RHS_c = FACE->RHSL_c;
 						} else {
 							continue;
 						}
@@ -565,13 +546,7 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 					}
 				}}
 			}
-			if (strstr(DB.TestCase,"Poisson")) {
-				VOLUME->What_c[i] -= h*I;
-			} else if (strstr(DB.TestCase,"Euler") || strstr(DB.TestCase,"NavierStokes")) {
-				VOLUME->What_c[i] -= h*I;
-			} else {
-				EXIT_UNSUPPORTED;
-			}
+			VOLUME->What_c[i] -= h*I;
 		}
 	}
 }
@@ -593,16 +568,13 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 		NvnS[0] = VOLUME->NvnS;
 		for (size_t i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++) {
 			double const h = EPS*EPS;
+
+			VOLUME->What_c[i] += h*I;
 			if (strstr(DB.TestCase,"Poisson")) {
-				VOLUME->What_c[i] += h*I;
-
-				compute_qhat_VOLUME_c();
-				compute_qhat_FACE_c();
-				compute_uhat_VOLUME_c();
-				compute_uhat_FACE_c();
+				explicit_GradW_c();
+				compute_What_VOLUME_c();
+				compute_What_FACE_c();
 			} else if (strstr(DB.TestCase,"Euler") || strstr(DB.TestCase,"NavierStokes")) {
-				VOLUME->What_c[i] += h*I;
-
 				explicit_GradW_c();
 				explicit_VOLUME_info_c();
 				explicit_FACE_info_c();
@@ -634,13 +606,7 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 				free(m); free(n); free(vv);
 			}
 
-			if (strstr(DB.TestCase,"Poisson")) {
-				VOLUME->What_c[i] -= h*I;
-			} else if (strstr(DB.TestCase,"Euler") || strstr(DB.TestCase,"NavierStokes")) {
-				VOLUME->What_c[i] -= h*I;
-			} else {
-				EXIT_UNSUPPORTED;
-			}
+			VOLUME->What_c[i] -= h*I;
 		}
 	}
 	free(A_nz);
@@ -716,13 +682,13 @@ static void finalize_LHS_Qhat(Mat *const A, Vec *const b, Vec *const x, unsigned
 
 			struct S_VOLUME const *VOLUME;
 			if (side == 0) {
-				VOLUME = FACE->VIn;
-				QhatF_What = FACE->Qhat_WhatLL[dim];
+				VOLUME = FACE->VL;
+				QhatF_What = FACE->QhatL_WhatL[dim];
 			} else {
 				if (FACE->Boundary)
 					continue;
-				VOLUME = FACE->VOut;
-				QhatF_What = FACE->Qhat_WhatRR[dim];
+				VOLUME = FACE->VR;
+				QhatF_What = FACE->QhatR_WhatR[dim];
 			}
 
 			unsigned int IndA = VOLUME->IndA,
@@ -771,13 +737,13 @@ static void finalize_LHS_Qhat(Mat *const A, Vec *const b, Vec *const x, unsigned
 
 			struct S_VOLUME const *VOLUME, *VOLUME2;
 			if (side == 0) {
-				VOLUME  = FACE->VOut;
-				VOLUME2 = FACE->VIn;
-				QhatF_What = FACE->Qhat_WhatLR[dim];
+				VOLUME  = FACE->VR;
+				VOLUME2 = FACE->VL;
+				QhatF_What = FACE->QhatR_WhatL[dim];
 			} else {
-				VOLUME  = FACE->VIn;
-				VOLUME2 = FACE->VOut;
-				QhatF_What = FACE->Qhat_WhatRL[dim];
+				VOLUME  = FACE->VL;
+				VOLUME2 = FACE->VR;
+				QhatF_What = FACE->QhatL_WhatR[dim];
 			}
 
 			unsigned int const IndA  = VOLUME->IndA,
@@ -809,7 +775,9 @@ static void finalize_LHS_Qhat(Mat *const A, Vec *const b, Vec *const x, unsigned
 					MatSetValues(*A,NvnS,m,NvnS2,n,vv,ADD_VALUES);
 				}
 			}
-			free(m); free(n);
+			free(m);
+			free(n);
+			free(zeros);
 		}}
 		break;
 	}
@@ -894,12 +862,12 @@ static void compute_A_Qhat_cs(Mat *const A, Vec *const b, Vec *const x, unsigned
 					struct S_VOLUME *VOLUME2;
 					if (assemble_type == 2) {
 						if (side == 0) {
-							VOLUME2 = FACE->VIn;
+							VOLUME2 = FACE->VL;
 							QhatF_c = FACE->QhatL_c[dim];
 						} else {
 							if (FACE->Boundary)
 								continue;
-							VOLUME2 = FACE->VOut;
+							VOLUME2 = FACE->VR;
 							QhatF_c = FACE->QhatR_c[dim];
 						}
 						if (VOLUME->indexg != VOLUME2->indexg)
@@ -925,11 +893,11 @@ static void compute_A_Qhat_cs(Mat *const A, Vec *const b, Vec *const x, unsigned
 						if (FACE->Boundary)
 							continue;
 
-						if (side == 0 && VOLUME == FACE->VIn) {
-							VOLUME2 = FACE->VOut;
+						if (side == 0 && VOLUME == FACE->VL) {
+							VOLUME2 = FACE->VR;
 							QhatF_c = FACE->QhatR_c[dim];
-						} else if (side == 1 && VOLUME == FACE->VOut) {
-							VOLUME2 = FACE->VIn;
+						} else if (side == 1 && VOLUME == FACE->VR) {
+							VOLUME2 = FACE->VL;
 							QhatF_c = FACE->QhatL_c[dim];
 						} else {
 							continue;

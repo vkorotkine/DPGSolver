@@ -229,12 +229,6 @@ void test_integration_L2_projections(int nargc, char **argv)
 }
 
 
-
-struct S_OPERATORS {
-	unsigned int NfnS, NvnGs, *nOrdInOut, *nOrdOutIn;
-	double       **I_vGs_fS;
-};
-
 static double *get_L2err(void)
 {
 	unsigned int i, iMax, dummy_ui;

@@ -12,6 +12,8 @@
 #include "Macros.h"
 #include "S_DB.h"
 
+#include "fluxes_structs.h"
+
 /*
  *	Purpose:
  *		Identical to fluxes_viscous using complex variables (for complex step verification).
@@ -23,12 +25,18 @@
  *	References:
  */
 
-void flux_viscous_c(unsigned int const Nn, unsigned int const Nel, double complex const *const W,
-                    double complex const *const *const Q, double complex *const F)
+void flux_viscous_c(struct S_FLUX *const FLUXDATA)
 {
-	const unsigned int d   = DB.d,
-	                   Neq = d+2;
-	const double       Pr  = DB.Pr;
+	unsigned int const d   = FLUXDATA->d,
+	                   Neq = d+2,
+	                   Nn  = FLUXDATA->Nn,
+	                   Nel = FLUXDATA->Nel;
+
+	double complex const *const W = FLUXDATA->W_c,
+	                     *const *const Q = FLUXDATA->Q_c;
+	double complex       *const F = FLUXDATA->F_c;
+
+	const double Pr = DB.Pr;
 
 	if (!(d == 2 || d == 3))
 		EXIT_UNSUPPORTED;

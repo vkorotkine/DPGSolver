@@ -327,12 +327,12 @@ static void output_normals(const char *normals_type)
 
 	// Standard datatypes
 	char         MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
-	unsigned int i, iMax, dim, nInd, curved, PV, PF, Nfn, NvnG, IndFType, Eclass, VfIn;
+	unsigned int i, iMax, dim, nInd, curved, PV, PF, Nfn, NvnG, IndFType, Eclass, VfL;
 	double       *Input, *I_vG_f, *XYZ_f, *n;
 	FILE         *fID;
 
 	struct S_ELEMENT *ELEMENT;
-	struct S_VOLUME  *VIn;
+	struct S_VOLUME  *VL;
 	struct S_FACE   *FACE;
 
 	// silence
@@ -388,32 +388,32 @@ static void output_normals(const char *normals_type)
 	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
 		curved = FACE->curved;
 
-		VIn  = FACE->VIn;
-		VfIn = FACE->VfIn;
+		VL  = FACE->VL;
+		VfL = FACE->VfL;
 
-		if (VfIn % NFREFMAX != 0)
-			printf("Error: VfIn should be h-conforming in output_to_paraview (output_normals).\n"), exit(1);
+		if (VfL % NFREFMAX != 0)
+			printf("Error: VfL should be h-conforming in output_to_paraview (output_normals).\n"), exit(1);
 
-		PV = VIn->P;
+		PV = VL->P;
 		PF = FACE->P;
 
-		ELEMENT = get_ELEMENT_type(VIn->type);
+		ELEMENT = get_ELEMENT_type(VL->type);
 		Eclass  = get_Eclass(ELEMENT->type);
 
-		IndFType = get_IndFType(Eclass,VfIn/NfrefMax);
+		IndFType = get_IndFType(Eclass,VfL/NfrefMax);
 
-		NvnG = VIn->NvnG;
+		NvnG = VL->NvnG;
 
-		Input = VIn->XYZ;
+		Input = VL->XYZ;
 
 		if (FACE->typeInt == 's') {
 			Nfn = ELEMENT->NfnIs[PF][IndFType];
-			if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIs[1][PF][VfIn];
-			else              I_vG_f = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
+			if (!VL->curved) I_vG_f = ELEMENT->I_vGs_fIs[1][PF][VfL];
+			else              I_vG_f = ELEMENT->I_vGc_fIs[PV][PF][VfL];
 		} else {
 			Nfn = ELEMENT->NfnIc[PF][IndFType];
-			if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIc[1][PF][VfIn];
-			else              I_vG_f = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
+			if (!VL->curved) I_vG_f = ELEMENT->I_vGs_fIc[1][PF][VfL];
+			else              I_vG_f = ELEMENT->I_vGc_fIc[PV][PF][VfL];
 		}
 		n = FACE->n_fI;
 		XYZ_f = mm_Alloc_d(CBCM,CBT,CBNT,Nfn,d,NvnG,1.0,I_vG_f,Input); // free

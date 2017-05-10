@@ -15,6 +15,7 @@
 
 #include "solver_functions.h"
 #include "solver_functions_c.h"
+#include "fluxes_structs.h"
 #include "fluxes_inviscid_c.h"
 #include "fluxes_viscous_c.h"
 #include "array_free.h"
@@ -68,6 +69,10 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
 	VDATA->OPS = (struct S_OPERATORS_V const *const *) OPS;
 
+	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->d   = d;
+	FLUXDATA->Nel = 1;
+
 	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
 
@@ -87,7 +92,11 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 			// Compute Flux in reference space
 			double complex *const F_vI = malloc(NvnI*d*Neq * sizeof *F_vI); // free
 
-			flux_inviscid_c(NvnI,1,VDATA->W_vI_c,F_vI,d,Neq);
+			FLUXDATA->Nn  = NvnI;
+			FLUXDATA->W_c = VDATA->W_vI_c;
+			FLUXDATA->F_c = F_vI;
+
+			flux_inviscid_c(FLUXDATA);
 
 			if (!DB.Collocated)
 				free(VDATA->W_vI_c);
@@ -112,6 +121,7 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 	}
 
 	free(VDATA);
+	free(FLUXDATA);
 	for (size_t i = 0; i < 2; i++)
 		free(OPS[i]);
 }
@@ -129,6 +139,10 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 
 	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
 	VDATA->OPS = (struct S_OPERATORS_V const *const *) OPS;
+
+	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->d   = d;
+	FLUXDATA->Nel = 1;
 
 	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
@@ -155,7 +169,12 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 			// Compute negated Flux in reference space
 			double complex *const F_vI = malloc(NvnI*d*Neq * sizeof *F_vI);
 
-			flux_viscous_c(NvnI,1,VDATA->W_vI_c,(double complex const *const *const) VDATA->Q_vI_c,F_vI);
+			FLUXDATA->Nn  = NvnI;
+			FLUXDATA->W_c = VDATA->W_vI_c;
+			FLUXDATA->Q_c = (double complex const *const *const) VDATA->Q_vI_c;
+			FLUXDATA->F_c = F_vI;
+
+			flux_viscous_c(FLUXDATA);
 
 			if (!DB.Collocated) {
 				free(VDATA->W_vI_c);
@@ -176,6 +195,7 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 	}
 
 	free(VDATA);
+	free(FLUXDATA);
 	for (size_t i = 0; i < 2; i++)
 		free(OPS[i]);
 }

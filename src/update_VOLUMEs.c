@@ -299,16 +299,6 @@ static void update_memory_VOLUME(struct S_VOLUME *const VOLUME)
 	// Other solver related arrays
 	if (strstr(TestCase,"Poisson")) {
 		for (size_t dim = 0; dim < d; dim++) {
-// Needs clean-up, remove q/u and use Q/W instead (ToBeDeleted)
-			if (VOLUME->qhat[dim] != NULL) // ToBeDeleted
-				free(VOLUME->qhat[dim]);
-			VOLUME->qhat[dim]  = malloc(NvnS*Nvar * sizeof *(VOLUME->qhat[dim])); // keep
-
-			if (VOLUME->qhat_uhat[dim] != NULL) // ToBeDeleted
-				free(VOLUME->qhat_uhat[dim]);
-			VOLUME->qhat_uhat[dim]  = malloc(NvnS*NvnS*Nvar*Neq * sizeof *(VOLUME->qhat_uhat[dim])); // keep
-
-
 			if (VOLUME->QhatV[dim] != NULL)
 				free(VOLUME->QhatV[dim]);
 			VOLUME->QhatV[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV[dim])); // keep
@@ -387,12 +377,6 @@ static void free_memory_solver_VOLUME(struct S_VOLUME *const VOLUME)
 	if (strstr(TestCase,"Poisson")) {
 		free(VOLUME->What);
 		for (size_t dim = 0; dim < d; dim++) {
-// Needs clean-up, remove q/u and use Q/W instead (ToBeDeleted)
-			free(VOLUME->qhat[dim]);
-			VOLUME->qhat[dim] = NULL;
-			free(VOLUME->qhat_uhat[dim]);
-			VOLUME->qhat_uhat[dim] = NULL;
-
 			free(VOLUME->QhatV[dim]);
 			VOLUME->QhatV[dim] = NULL;
 			free(VOLUME->Qhat[dim]);
@@ -1158,9 +1142,9 @@ void update_VOLUME_Ops(void)
 void update_VOLUME_finalize(void)
 {
 	unsigned int NV = 0;
-	unsigned int VfIn, VfOut, fIn, fOut;
+	unsigned int VfL, VfR, fL, fR;
 
-	struct S_VOLUME *VOLUME, *VIn, *VOut;
+	struct S_VOLUME *VOLUME, *VL, *VR;
 	struct S_FACE  *FACE;
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -1174,21 +1158,21 @@ void update_VOLUME_finalize(void)
 	DB.NVglobal = NV;
 
 	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
-		VIn   = FACE->VIn;
-		VfIn  = FACE->VfIn;
-		fIn   = VfIn/NFREFMAX;
+		VL  = FACE->VL;
+		VfL = FACE->VfL;
+		fL  = VfL/NFREFMAX;
 
-		VOut  = FACE->VOut;
-		VfOut = FACE->VfOut;
-		fOut  = VfOut/NFREFMAX;
+		VR  = FACE->VR;
+		VfR = FACE->VfR;
+		fR  = VfR/NFREFMAX;
 
-		FACE->Boundary = !((VIn->indexg != VOut->indexg) || (VIn->indexg == VOut->indexg && fIn != fOut));
+		FACE->Boundary = !((VL->indexg != VR->indexg) || (VL->indexg == VR->indexg && fL != fR));
 
-		VIn->neigh[VfIn]   = VOut->indexg;
-		VOut->neigh[VfOut] = VIn->indexg;
+		VL->neigh[VfL] = VR->indexg;
+		VR->neigh[VfR] = VL->indexg;
 
-		if (abs((int) VIn->level - (int) VOut->level) > 1.0) {
-			printf("%d %d %d\n",VIn->indexg,VOut->indexg,VIn->parent->indexg);
+		if (abs((int) VL->level - (int) VR->level) > 1.0) {
+			printf("%d %d %d\n",VL->indexg,VR->indexg,VL->parent->indexg);
 			printf("Error: Adjacent VOLUMEs are more than 1-irregular.\n"), EXIT_MSG;
 		}
 	}

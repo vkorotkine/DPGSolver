@@ -9,7 +9,7 @@
 ### Supported PDEs
 | PDE           | STATUS               | BRANCH (if not master) |
 |---------------|----------------------| ---------------------- |
-| Poisson       | DONE (NEEDS CLEANUP) |                        |
+| Poisson       | DONE                 |                        |
 | Advection     | DONE (NEEDS CLEANUP) | lsfem                  |
 | Euler         | DONE                 |                        |
 | Navier-Stokes | DONE                 |                        |
@@ -97,7 +97,6 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 | Numerical |                  | DONE FOR THE TIME BEING |
 |           | Lax-Friedrichs   | DONE                    |
 |           | Roe-Pike         | DONE                    |
-|           | internal penalty | DONE                    |
 |           | Bassi-Rebay 2    | DONE                    |
 |           | compact DG 2     | DONE                    |
 

@@ -9,9 +9,11 @@
 
 #include "Parameters.h"
 
+#include "fluxes_structs.h"
+
 /*
  *	Purpose:
- *		Compute inviscid flux jacobians from input W in conservative form.
+ *		Compute inviscid flux jacobians from input W in conservative form. Also returns the flux if applicable.
  *
  *	Comments:
  *		It is assumed that inputs: W, n and outputs: dFdW (Add others: ToBeModified) are vectorized (i.e. the memory
@@ -24,8 +26,7 @@
  *		   Note: There is a typo in the 3D Jacobian matrix (eq. 3.79), compare with eq. 3.70.
  */
 
-void jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const double *W, double *dFdW,
-                            const unsigned int d, const unsigned int Neq)
+void jacobian_flux_inviscid(struct S_FLUX *const FLUXDATA)
 {
 	/*
 	 *	Jacobian Matrices [ eq * var]
@@ -50,6 +51,15 @@ void jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const
 	 *
 	 */
 
+	unsigned int const d   = FLUXDATA->d,
+	                   Neq = d+2,
+	                   Nn  = FLUXDATA->Nn,
+	                   Nel = FLUXDATA->Nel;
+
+	double const *const W    = FLUXDATA->W;
+	double       *const F    = FLUXDATA->F,
+	             *const dFdW = FLUXDATA->dFdW;
+
 	// Standard datatypes
 	unsigned int i, n, eq, var, dim, iMax, Nvar, NnTotal, InddFdW;
 	double       rho, u, v, w, u2, uv, uw, v2, vw, w2, V2, E, p, H, alpha, beta, *dFdW_ptr[DMAX*Neq*Neq];
@@ -62,6 +72,14 @@ void jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const
 	rhou_ptr = &W[NnTotal*1];
 	E_ptr    = &W[NnTotal*(d+1)];
 
+	double *F_ptr[DMAX*Neq];
+	if (F != NULL) {
+		for (eq  = 0; eq  < Neq;  eq++)  {
+		for (dim = 0; dim < d;    dim++) {
+			F_ptr[eq*DMAX+dim] = &F[(eq*d+dim)*NnTotal];
+		}}
+	}
+
 	for (eq  = 0; eq  < Neq;  eq++)  {
 	for (var = 0; var < Nvar; var++) {
 	for (dim = 0; dim < d;    dim++) {
@@ -73,11 +91,15 @@ void jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const
 		rhow_ptr = &W[NnTotal*3];
 
 		for (n = 0; n < NnTotal; n++) {
-			rho = *rho_ptr;
-			u   = (*rhou_ptr)/rho;
-			v   = (*rhov_ptr)/rho;
-			w   = (*rhow_ptr)/rho;
+			rho  = *rho_ptr;
+			double const rhou = *rhou_ptr,
+			             rhov = *rhov_ptr,
+			             rhow = *rhow_ptr;
+			u   = rhou/rho;
+			v   = rhov/rho;
+			w   = rhow/rho;
 			E   = *E_ptr;
+
 
 			u2 = u*u;
 			uv = u*v;
@@ -92,6 +114,37 @@ void jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const
 
 			alpha = 0.5*GM1*V2;
 			beta  = alpha-H;
+
+			if (F != NULL) {
+				size_t IndF = 0;
+				// eq 1
+				*F_ptr[IndF++] = rhou;
+				*F_ptr[IndF++] = rhov;
+				*F_ptr[IndF++] = rhow;
+
+				// eq 2
+				*F_ptr[IndF++] = rhou*u + p;
+				*F_ptr[IndF++] = rhou*v;
+				*F_ptr[IndF++] = rhou*w;
+
+				// eq 3
+				*F_ptr[IndF++] = rhov*u;
+				*F_ptr[IndF++] = rhov*v + p;
+				*F_ptr[IndF++] = rhov*w;
+
+				// eq 4
+				*F_ptr[IndF++] = rhow*u;
+				*F_ptr[IndF++] = rhow*v;
+				*F_ptr[IndF++] = rhow*w + p;
+
+				// eq 5
+				*F_ptr[IndF++] = (E+p)*u;
+				*F_ptr[IndF++] = (E+p)*v;
+				*F_ptr[IndF++] = (E+p)*w;
+
+				for (i = 0, iMax = Neq*DMAX; i < iMax; i++)
+					F_ptr[i]++;
+			}
 
 			InddFdW = 0;
 			// *** eq 1 ***
@@ -233,8 +286,10 @@ void jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const
 
 		for (n = 0; n < NnTotal; n++) {
 			rho = *rho_ptr;
-			u   = (*rhou_ptr)/rho;
-			v   = (*rhov_ptr)/rho;
+			double const rhou = *rhou_ptr,
+			             rhov = *rhov_ptr;
+			u   = rhou/rho;
+			v   = rhov/rho;
 			E   = *E_ptr;
 
 			u2 = u*u;
@@ -247,6 +302,31 @@ void jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const
 
 			alpha = 0.5*GM1*V2;
 			beta  = alpha-H;
+
+			if (F != NULL) {
+				size_t IndF = 0;
+				// eq 1
+				*F_ptr[IndF++] = rhou;
+				*F_ptr[IndF++] = rhov;
+				IndF += 1;
+
+				// eq 2
+				*F_ptr[IndF++] = rhou*u + p;
+				*F_ptr[IndF++] = rhou*v;
+				IndF += 1;
+
+				// eq 3
+				*F_ptr[IndF++] = rhov*u;
+				*F_ptr[IndF++] = rhov*v + p;
+				IndF += 1;
+
+				// eq 4
+				*F_ptr[IndF++] = (E+p)*u;
+				*F_ptr[IndF++] = (E+p)*v;
+
+				for (i = 0, iMax = Neq*DMAX; i < iMax; i++)
+					F_ptr[i]++;
+			}
 
 			InddFdW = 0;
 			// *** eq 1 ***
@@ -339,7 +419,8 @@ void jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const
 	} else if (d == 1) {
 		for (n = 0; n < NnTotal; n++) {
 			rho = *rho_ptr;
-			u   = (*rhou_ptr)/rho;
+			double const rhou = *rhou_ptr;
+			u   = rhou/rho;
 			E   = *E_ptr;
 
 			u2 = u*u;
@@ -350,6 +431,24 @@ void jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const
 
 			alpha = 0.5*GM1*V2;
 			beta  = alpha-H;
+
+			if (F != NULL) {
+				size_t IndF = 0;
+				// eq 1
+				*F_ptr[IndF++] = rhou;
+				IndF += 2;
+
+				// eq 2
+				*F_ptr[IndF++] = rhou*u + p;
+				IndF += 2;
+
+				// eq 3
+				*F_ptr[IndF++] = (E+p)*u;
+				IndF += 2;
+
+				for (i = 0, iMax = Neq*DMAX; i < iMax; i++)
+					F_ptr[i]++;
+			}
 
 			InddFdW = 0;
 			// *** eq 1 ***
@@ -427,6 +526,12 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 		dnFdW_ptr[eq*Nvar+var] = &dnFdW[(eq*Nvar+var)*NnTotal];
 	}}
 
+	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->d   = d;
+	FLUXDATA->Nn  = 1;
+	FLUXDATA->Nel = 1;
+	FLUXDATA->F   = NULL;
+
 	if (d == 3) {
 		rhovL_ptr = &WL[NnTotal*2];
 		rhowL_ptr = &WL[NnTotal*3];
@@ -495,7 +600,9 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 				double WLn[Nvar];
 
 				WLn[0] = rhoL; WLn[1] = rhouL; WLn[2] = rhovL; WLn[3] = rhowL; WLn[4] = EL;
-				jacobian_flux_inviscid(1,1,WLn,dFdWn,d,Neq);
+				FLUXDATA->W    = WLn;
+				FLUXDATA->dFdW = dFdWn;
+				jacobian_flux_inviscid(FLUXDATA);
 
 				dF1dW_ptr = dFdWn;
 				dF2dW_ptr = dF1dW_ptr+1;
@@ -550,7 +657,9 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 				double WRn[Nvar];
 
 				WRn[0] = rhoR; WRn[1] = rhouR; WRn[2] = rhovR; WRn[3] = rhowR; WRn[4] = ER;
-				jacobian_flux_inviscid(1,1,WRn,dFdWn,d,Neq);
+				FLUXDATA->W    = WRn;
+				FLUXDATA->dFdW = dFdWn;
+				jacobian_flux_inviscid(FLUXDATA);
 
 				dF1dW_ptr = dFdWn;
 				dF2dW_ptr = dF1dW_ptr+1;
@@ -665,7 +774,9 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 				double WLn[Nvar];
 
 				WLn[0] = rhoL; WLn[1] = rhouL; WLn[2] = rhovL; WLn[3] = EL;
-				jacobian_flux_inviscid(1,1,WLn,dFdWn,d,Neq);
+				FLUXDATA->W    = WLn;
+				FLUXDATA->dFdW = dFdWn;
+				jacobian_flux_inviscid(FLUXDATA);
 
 				dF1dW_ptr = dFdWn;
 				dF2dW_ptr = dF1dW_ptr+1;
@@ -717,7 +828,9 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 				double WRn[Nvar];
 
 				WRn[0] = rhoR; WRn[1] = rhouR; WRn[2] = rhovR; WRn[3] = ER;
-				jacobian_flux_inviscid(1,1,WRn,dFdWn,d,Neq);
+				FLUXDATA->W    = WRn;
+				FLUXDATA->dFdW = dFdWn;
+				jacobian_flux_inviscid(FLUXDATA);
 
 				dF1dW_ptr = dFdWn;
 				dF2dW_ptr = dF1dW_ptr+1;
@@ -821,7 +934,9 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 				double WLn[Nvar];
 
 				WLn[0] = rhoL; WLn[1] = rhouL; WLn[2] = EL;
-				jacobian_flux_inviscid(1,1,WLn,dFdWn,d,Neq);
+				FLUXDATA->W    = WLn;
+				FLUXDATA->dFdW = dFdWn;
+				jacobian_flux_inviscid(FLUXDATA);
 
 				dF1dW_ptr = dFdWn;
 
@@ -870,7 +985,9 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 				double WRn[Nvar];
 
 				WRn[0] = rhoR; WRn[1] = rhouR; WRn[2] = ER;
-				jacobian_flux_inviscid(1,1,WRn,dFdWn,d,Neq);
+				FLUXDATA->W    = WRn;
+				FLUXDATA->dFdW = dFdWn;
+				jacobian_flux_inviscid(FLUXDATA);
 
 				dF1dW_ptr = dFdWn;
 
@@ -920,6 +1037,7 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 				dnFdW_ptr[i]++;
 		}
 	}
+	free(FLUXDATA);
 }
 
 void jacobian_flux_Roe(const unsigned int Nn, const unsigned int Nel, const double *WL, const double *WR, double *dnFdW,

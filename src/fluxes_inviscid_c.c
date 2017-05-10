@@ -12,6 +12,7 @@
 #include "Macros.h"
 #include "Test.h"
 
+#include "fluxes_structs.h"
 #include "variable_functions_c.h"
 
 #include "array_print.h"
@@ -27,9 +28,16 @@
  *	References:
  */
 
-void flux_inviscid_c(const unsigned int Nn, const unsigned int Nel, const double complex *const W,
-                     double complex *const F, const unsigned int d, const unsigned int Neq)
+void flux_inviscid_c(struct S_FLUX *const FLUX)
 {
+	unsigned int const d   = FLUX->d,
+	                   Neq = d+2,
+	                   Nn  = FLUX->Nn,
+	                   Nel = FLUX->Nel;
+
+	double complex const *const W = FLUX->W_c;
+	double complex       *const F = FLUX->F_c;
+
 	// Standard datatypes
 	unsigned int   i, n, eq, dim, iMax, NnTotal, IndF;
 	double complex rho, rhou, rhov, rhow, E, u, v, w, p, *F_ptr[DMAX*Neq];
@@ -186,8 +194,19 @@ void flux_LF_c(const unsigned int Nn, const unsigned int Nel, const double compl
 	convert_variables_c(WL,UL,d,d,Nn,Nel,'c','p');
 	convert_variables_c(WR,UR,d,d,Nn,Nel,'c','p');
 
-	flux_inviscid_c(Nn,Nel,WL,FL,d,Neq);
-	flux_inviscid_c(Nn,Nel,WR,FR,d,Neq);
+	struct S_FLUX *const FLUX = malloc(sizeof *FLUX); // free
+	FLUX->d   = d;
+	FLUX->Nn  = Nn;
+	FLUX->Nel = Nel;
+
+	FLUX->W_c = WL;
+	FLUX->F_c = FL;
+	flux_inviscid_c(FLUX);
+
+	FLUX->W_c = WR;
+	FLUX->F_c = FR;
+	flux_inviscid_c(FLUX);
+	free(FLUX);
 
 	rhoL = &UL[NnTotal*0];
 	uL   = &UL[NnTotal*1];

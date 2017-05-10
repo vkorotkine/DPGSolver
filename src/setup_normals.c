@@ -47,38 +47,38 @@ void setup_normals(struct S_FACE *FACE)
 
 	// Standard datatypes
 	unsigned int fn, fnMax, dim, dim1, dim2,
-	             VfIn, Eclass, IndFType, fIn,
+	             VfL, Eclass, IndFType, fIn,
 	             NvnC0, NfnI0, Nn;
 	double       nSum, nSum2, *C_fI, *C_vC, *nrIn, *n_fI, *detJF_fI;
 
 	struct S_OPERATORS *OPS;
-	struct S_VOLUME    *VIn;
+	struct S_VOLUME    *VL;
 
 	OPS = malloc(sizeof *OPS); // free
 
-	VIn  = FACE->VIn;
+	VL  = FACE->VL;
 
-	VfIn = FACE->VfIn;
+	VfL = FACE->VfL;
 
-	fIn = VfIn/NfrefMax;
+	fIn = VfL/NfrefMax;
 
-	Eclass = get_Eclass(VIn->type);
+	Eclass = get_Eclass(VL->type);
 	IndFType = get_IndFType(Eclass,fIn);
 
-	init_ops(OPS,VIn,FACE,IndFType);
+	init_ops(OPS,VL,FACE,IndFType);
 
 	NvnC0 = OPS->NvnC;
 	NfnI0 = OPS->NfnI;
 
-	C_vC = VIn->C_vC;
+	C_vC = VL->C_vC;
 
-	if (VfIn % NFREFMAX != 0)
-		printf("Error: VfIn should be h-conforming in setup_normals.\n"), exit(1);
+	if (VfL % NFREFMAX != 0)
+		printf("Error: VfL should be h-conforming in setup_normals.\n"), exit(1);
 
 	nrIn = &(OPS->nr[fIn*d]);
 
 	C_fI = malloc(NfnI0*d*d * sizeof *C_fI); // free
-	mm_CTN_d(NfnI0,d*d,NvnC0,OPS->I_vC_fI[VfIn],C_vC,C_fI);
+	mm_CTN_d(NfnI0,d*d,NvnC0,OPS->I_vC_fI[VfL],C_vC,C_fI);
 
 	Nn = NfnI0;
 
@@ -116,7 +116,7 @@ void setup_normals(struct S_FACE *FACE)
 		free(FACE->detJF_fI);
 	FACE->detJF_fI = detJF_fI;
 
-//printf("%d %d %d\n",FACE->indexg,VfIn,IndFType);
+//printf("%d %d %d\n",FACE->indexg,VfL,IndFType);
 //array_print_d(fnMax,d,n,'R');
 
 	free(OPS);

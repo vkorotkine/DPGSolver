@@ -4,7 +4,8 @@
 #ifndef DPG__jacobian_fluxes_viscous_h__INCLUDED
 #define DPG__jacobian_fluxes_viscous_h__INCLUDED
 
-extern void jacobian_flux_viscous (unsigned int const Nn, unsigned int const Nel, double const *const W,
-	                               double const *const *const Q, double *const dFdW, double *const *const dFdQ);
+#include "fluxes_structs.h"
+
+extern void jacobian_flux_viscous (struct S_FLUX *const FLUXDATA);
 
 #endif // DPG__jacobian_fluxes_viscous_h__INCLUDED

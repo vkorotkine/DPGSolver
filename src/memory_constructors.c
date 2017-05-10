@@ -594,8 +594,6 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->What_c = NULL; // free
 	VOLUME->RHS_c  = NULL; // free
 
-	VOLUME->qhat_c = calloc(d , sizeof *(VOLUME->qhat_c)); // free
-
 	VOLUME->QhatV_c = calloc(d , sizeof *(VOLUME->QhatV_c)); // free
 	VOLUME->Qhat_c  = calloc(d , sizeof *(VOLUME->Qhat_c));  // free
 
@@ -610,10 +608,6 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->hrefine_type   = UINT_MAX;
 
 	VOLUME->XYZ_vVP2 = NULL; // free
-
-	// Poisson
-	VOLUME->qhat      = calloc(d , sizeof *(VOLUME->qhat)); // free
-	VOLUME->qhat_uhat = calloc(d , sizeof *(VOLUME->qhat)); // free
 
 	// structs
 	VOLUME->next    = NULL;
@@ -643,13 +637,13 @@ struct S_FACE *New_FACE(void)
 	FACE->update = 0;
 	FACE->adapt_type = UINT_MAX;
 
-	FACE->VIn   = NULL; // free (in memory_destructor_V)
-	FACE->VOut  = NULL; // free (in memory_destructor_V)
-	FACE->VfIn  = UINT_MAX;
-	FACE->VfOut = UINT_MAX;
+	FACE->VL  = NULL; // free (in memory_destructor_V)
+	FACE->VR  = NULL; // free (in memory_destructor_V)
+	FACE->VfL = UINT_MAX;
+	FACE->VfR = UINT_MAX;
 
-	FACE->IndOrdInOut = UINT_MAX;
-	FACE->IndOrdOutIn = UINT_MAX;
+	FACE->IndOrdLR = UINT_MAX;
+	FACE->IndOrdRL = UINT_MAX;
 
 	// Geometry
 	FACE->curved  = 0;
@@ -666,36 +660,25 @@ struct S_FACE *New_FACE(void)
 	FACE->detJVOut_fI = NULL; // free
 
 	// Solving
-	FACE->RHSIn  = NULL; // free (in finalize_RHS)
-	FACE->RHSOut = NULL; // free (in finalize_RHS)
+	FACE->RHSL = NULL; // free
+	FACE->RHSR = NULL; // free
 
-	FACE->LHSInIn   = NULL; // free (in finalize_LHS)
-	FACE->LHSOutIn  = NULL; // free (in finalize_LHS)
-	FACE->LHSInOut  = NULL; // free (in finalize_LHS)
-	FACE->LHSOutOut = NULL; // free (in finalize_LHS)
+	FACE->LHSLL = NULL; // free
+	FACE->LHSRL = NULL; // free
+	FACE->LHSLR = NULL; // free
+	FACE->LHSRR = NULL; // free
 
 	FACE->QhatL = calloc(d , sizeof *(FACE->QhatL)); // free
 	FACE->QhatR = calloc(d , sizeof *(FACE->QhatR)); // free
 
-	FACE->Qhat_WhatLL = calloc(d , sizeof *(FACE->Qhat_WhatLL)); // free
-	FACE->Qhat_WhatRL = calloc(d , sizeof *(FACE->Qhat_WhatRL)); // free
-	FACE->Qhat_WhatLR = calloc(d , sizeof *(FACE->Qhat_WhatLR)); // free
-	FACE->Qhat_WhatRR = calloc(d , sizeof *(FACE->Qhat_WhatRR)); // free
-
-	// Poisson
-	FACE->qhatIn  = calloc(d , sizeof *(FACE->qhatIn));  // free
-	FACE->qhatOut = calloc(d , sizeof *(FACE->qhatOut)); // free
-	FACE->qhat_uhatInIn   = calloc(d , sizeof *(FACE->qhat_uhatInIn));   // free
-	FACE->qhat_uhatOutIn  = calloc(d , sizeof *(FACE->qhat_uhatOutIn));  // free
-	FACE->qhat_uhatInOut  = calloc(d , sizeof *(FACE->qhat_uhatInOut));  // free
-	FACE->qhat_uhatOutOut = calloc(d , sizeof *(FACE->qhat_uhatOutOut)); // free
+	FACE->QhatL_WhatL = calloc(d , sizeof *(FACE->QhatL_WhatL)); // free
+	FACE->QhatL_WhatR = calloc(d , sizeof *(FACE->QhatL_WhatR)); // free
+	FACE->QhatR_WhatL = calloc(d , sizeof *(FACE->QhatR_WhatL)); // free
+	FACE->QhatR_WhatR = calloc(d , sizeof *(FACE->QhatR_WhatR)); // free
 
 	// Linearization testing
-	FACE->RHSIn_c  = NULL; // free (in finalize_RHS_c)
-	FACE->RHSOut_c = NULL; // free (in finalize_RHS_c)
-
-	FACE->qhatIn_c  = calloc(d , sizeof *(FACE->qhatIn_c));  // free
-	FACE->qhatOut_c = calloc(d , sizeof *(FACE->qhatOut_c)); // free
+	FACE->RHSL_c = NULL; // free
+	FACE->RHSR_c = NULL; // free
 
 	FACE->QhatL_c = calloc(d , sizeof *(FACE->QhatL_c)); // free
 	FACE->QhatR_c = calloc(d , sizeof *(FACE->QhatR_c)); // free

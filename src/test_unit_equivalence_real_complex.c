@@ -17,6 +17,7 @@
 #include "test_code_boundary_conditions.h"
 #include "test_support.h"
 #include "initialize_test_case.h"
+#include "fluxes_structs.h"
 #include "fluxes_inviscid.h"
 #include "fluxes_inviscid_c.h"
 #include "fluxes_viscous.h"
@@ -144,8 +145,7 @@ void test_unit_equivalence_real_complex(void)
 
 	set_memory_test_boundary_conditions('f');
 
-	for (size_t i = 0; i < NBTypes; i++)
-		free(BType[i]);
+	array_free2_c(NBTypes,BType);
 
 	free(PrintName);
 }
@@ -155,33 +155,40 @@ static unsigned int compare_flux_inviscid(const unsigned int Nn, const unsigned 
 {
 	unsigned int pass = 0;
 
-	unsigned int   i, iMax, NnTotal, Nvar;
-	double         *Fr, *Fctr;
-	double complex *Wc, *Fc;
+	unsigned int const NnTotal = Nn*Nel,
+	                   Nvar    = Neq;
 
-	NnTotal = Nn*Nel;
-	Nvar    = Neq;
+	double complex *const Wc = malloc(NnTotal*Nvar  * sizeof *Wc), // free
+	               *const Fc = malloc(NnTotal*d*Neq * sizeof *Fc); // free
+	double *const Fr   = malloc(NnTotal*d*Neq * sizeof *Fr),   // free
+	       *const Fctr = malloc(NnTotal*d*Neq * sizeof *Fctr); // free
 
-	Wc   = malloc(NnTotal*Nvar  * sizeof *Wc);   // free
-	Fr   = malloc(NnTotal*d*Neq * sizeof *Fr);   // free
-	Fc   = malloc(NnTotal*d*Neq * sizeof *Fc);   // free
-	Fctr = malloc(NnTotal*d*Neq * sizeof *Fctr); // free
-
-	for (i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
+	for (size_t i = 0, iMax = NnTotal*Nvar; i < iMax; i++)
 		Wc[i] = Wr[i];
 
-	flux_inviscid(Nn,Nel,Wr,Fr,d,Neq);
-	flux_inviscid_c(Nn,Nel,Wc,Fc,d,Neq);
+	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
 
-	for (i = 0, iMax = NnTotal*d*Neq; i < iMax; i++)
+	FLUXDATA->d   = d;
+	FLUXDATA->Nn  = Nn;
+	FLUXDATA->Nel = Nel;
+	FLUXDATA->W   = Wr;
+	FLUXDATA->F   = Fr;
+	FLUXDATA->W_c = Wc;
+	FLUXDATA->F_c = Fc;
+
+	flux_inviscid(FLUXDATA);
+	flux_inviscid_c(FLUXDATA);
+	free(FLUXDATA);
+
+	for (size_t i = 0, iMax = NnTotal*d*Neq; i < iMax; i++)
 		Fctr[i] = creal(Fc[i]);
 
 	if (array_norm_diff_d(NnTotal*d*Neq,Fr,Fctr,"Inf") < EPS)
 		pass = 1;
 
 	free(Wc);
-	free(Fr);
 	free(Fc);
+	free(Fr);
 	free(Fctr);
 
 	return pass;
@@ -216,8 +223,20 @@ static unsigned int compare_flux_viscous(unsigned int const Nn, unsigned int con
 	               *const Fctr = malloc(NnTotal*d*Neq * sizeof *Fctr); // free
 	double complex *const Fc   = malloc(NnTotal*d*Neq * sizeof *Fc);   // free
 
-	flux_viscous(Nn,Nel,Wr,Qr,Fr);
-	flux_viscous_c(Nn,Nel,Wc,(double complex const *const *const) Qc,Fc);
+	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->d   = d;
+	FLUXDATA->Nn  = Nn;
+	FLUXDATA->Nel = Nel;
+	FLUXDATA->W   = Wr;
+	FLUXDATA->Q   = Qr;
+	FLUXDATA->F   = Fr;
+	FLUXDATA->W_c = Wc;
+	FLUXDATA->Q_c = (double complex const *const *const) Qc;
+	FLUXDATA->F_c = Fc;
+
+	flux_viscous(FLUXDATA);
+	flux_viscous_c(FLUXDATA);
+	free(FLUXDATA);
 
 	for (size_t i = 0; i < NnTotal*d*Neq; i++)
 		Fctr[i] = creal(Fc[i]);
@@ -396,6 +415,7 @@ static unsigned int compare_boundary(const unsigned int Nn, const unsigned int N
 		array_free2_cmplx(d,QLc);
 		array_free2_cmplx(d,QBc);
 	}
+	free(BCdata);
 
 	// Ensure that all settings were entered for the boundary conditions (if applicable)
 	bool CheckedAll = 0;

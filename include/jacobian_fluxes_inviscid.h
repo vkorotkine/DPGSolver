@@ -4,8 +4,9 @@
 #ifndef DPG__jacobian_fluxes_inviscid_h__INCLUDED
 #define DPG__jacobian_fluxes_inviscid_h__INCLUDED
 
-extern void jacobian_flux_inviscid (const unsigned int Nn, const unsigned int Nel, const double *W, double *dFdW,
-                                    const unsigned int d, const unsigned int Neq);
+#include "fluxes_structs.h"
+
+extern void jacobian_flux_inviscid (struct S_FLUX *const FLUXDATA);
 extern void jacobian_flux_LF       (const unsigned int Nn, const unsigned int Nel, const double *WL, const double *WR,
                                     double *dnFdW, const double *nL, const unsigned int d, const unsigned int Neq,
                                     const char side);

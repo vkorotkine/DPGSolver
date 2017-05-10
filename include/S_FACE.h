@@ -8,7 +8,7 @@
 
 struct S_FACE {
 	// Structures
-	unsigned int P, type, VfIn, VfOut, indexg, BC, IndOrdInOut, IndOrdOutIn, level, update, adapt_type;
+	unsigned int P, type, VfL, VfR, indexg, BC, IndOrdLR, IndOrdRL, level, update, adapt_type;
 
 	// Geometry
 	unsigned int curved, typeInt;
@@ -17,17 +17,14 @@ struct S_FACE {
 	// Solving
 	char         CDG2_side;
 	unsigned int Boundary;
-	double       *RHSIn, *RHSOut, *LHSInIn, *LHSOutIn, *LHSInOut, *LHSOutOut,
-	             **QhatL, **QhatR, **Qhat_WhatLL, **Qhat_WhatRL, **Qhat_WhatLR, **Qhat_WhatRR;
-
-	// Poisson
-	double **qhatIn, **qhatOut, **qhat_uhatInIn, **qhat_uhatOutIn, **qhat_uhatInOut, **qhat_uhatOutOut;
+	double       *RHSL, *RHSR, *LHSLL, *LHSRL, *LHSLR, *LHSRR,
+	             **QhatL, **QhatR, **QhatL_WhatL, **QhatL_WhatR, **QhatR_WhatL, **QhatR_WhatR;
 
 	// Linearization testing
-	double complex *RHSIn_c, *RHSOut_c, **qhatIn_c, **qhatOut_c, **QhatL_c, **QhatR_c;
+	double complex *RHSL_c, *RHSR_c, **QhatL_c, **QhatR_c;
 
 	// structs
-	struct S_VOLUME *VIn, *VOut;
+	struct S_VOLUME *VL, *VR;
 	struct S_FACE  *next, *grpnext, *child0, *parent;
 };
 

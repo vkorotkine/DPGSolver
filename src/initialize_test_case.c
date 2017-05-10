@@ -516,7 +516,7 @@ static void compute_gradient_polynomial(struct S_VOLUME *VOLUME)
 
 		q = malloc(NvnS * sizeof *q); // free
 		mm_CTN_d(NvnS,1,NvnS,Dxyz,VOLUME->What,q);
-		mm_CTN_d(NvnS,1,NvnS,OPS->ChiInvS_vS,q,VOLUME->qhat[dim]);
+		mm_CTN_d(NvnS,1,NvnS,OPS->ChiInvS_vS,q,VOLUME->Qhat[dim]);
 		free(q);
 		free(Dxyz);
 	}
@@ -544,7 +544,7 @@ static void compute_gradient_L2proj(struct S_VOLUME *VOLUME)
 
 	// Standard datatypes
 	unsigned int n, dim, NvnS, NvnI, P;
-	double       *w_vI, *XYZ_vI, *q, *detJV_vI, *q_inter, *qhat_inter, *FilterP;
+	double       *w_vI, *XYZ_vI, *q, *detJV_vI, *q_inter, *Qhat_inter, *FilterP;
 
 	struct S_OPERATORS *OPS;
 	struct S_ELEMENT   *ELEMENT;
@@ -559,7 +559,7 @@ static void compute_gradient_L2proj(struct S_VOLUME *VOLUME)
 	else if (VOLUME->P == 0) {
 		for (dim = 0; dim < d; dim++) {
 			for (size_t i = 0; i < NvnS*Nvar; i++)
-				VOLUME->qhat[dim][i] = 0.0;
+				VOLUME->Qhat[dim][i] = 0.0;
 		}
 		free(OPS);
 		return;
@@ -589,9 +589,9 @@ static void compute_gradient_L2proj(struct S_VOLUME *VOLUME)
 	compute_inverse_mass(VOLUME);
 
 	// Get L2 projection of order P
-	qhat_inter = malloc(NvnS*Nvar*d * sizeof *qhat_inter); // free
+	Qhat_inter = malloc(NvnS*Nvar*d * sizeof *Qhat_inter); // free
 	for (dim = 0; dim < d; dim++)
-		mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,VOLUME->MInv,&q_inter[NvnS*Nvar*dim],&qhat_inter[NvnS*Nvar*dim]);
+		mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,VOLUME->MInv,&q_inter[NvnS*Nvar*dim],&Qhat_inter[NvnS*Nvar*dim]);
 	free(q_inter);
 
 	if (VOLUME->MInv) {
@@ -610,8 +610,8 @@ static void compute_gradient_L2proj(struct S_VOLUME *VOLUME)
 	FilterP = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,OPS->NvnSPm1,1.0,OPS->Ihat_vS_vS[0],OPS->L2hat_vS_vS[0]);
 
 	for (dim = 0; dim < d; dim++)
-		mm_CTN_d(NvnS,Nvar,NvnS,FilterP,&qhat_inter[NvnS*Nvar*dim],VOLUME->qhat[dim]);
-	free(qhat_inter);
+		mm_CTN_d(NvnS,Nvar,NvnS,FilterP,&Qhat_inter[NvnS*Nvar*dim],VOLUME->Qhat[dim]);
+	free(Qhat_inter);
 	free(FilterP);
 
 	free(OPS);
@@ -684,11 +684,11 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 
 				free(VOLUME->What);
 				for (dim = 0; dim < d; dim++)
-					free(VOLUME->qhat[dim]);
+					free(VOLUME->Qhat[dim]);
 
 				VOLUME->What = calloc(NvnS*Nvar , sizeof *(VOLUME->What)); // keep
 				for (dim = 0; dim < d; dim++)
-					VOLUME->qhat[dim] = calloc(NvnS*Nvar , sizeof *(VOLUME->qhat[dim])); // keep
+					VOLUME->Qhat[dim] = calloc(NvnS*Nvar , sizeof *(VOLUME->Qhat[dim])); // keep
 
 				XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
 				mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
@@ -722,7 +722,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 					} else {
 						Q = calloc(NvnI*Nvar*d , sizeof *Q); // free
 						for (dim = 0; dim < d; dim++)
-							mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,&Q[NvnS*Nvar*dim],VOLUME->qhat[dim]);
+							mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,&Q[NvnS*Nvar*dim],VOLUME->Qhat[dim]);
 						free(Q);
 					}
 				}

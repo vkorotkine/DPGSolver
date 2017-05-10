@@ -83,10 +83,6 @@
  *
  *	*** IMPORTANT ***   Convergence Order Testing   *** IMPORTANT ***
  *
- *		When testing with FLUX_IP, the iterative solver seems much more likely to fail based on several tests,
- *		regardless of the value selected for tau. The tolerance on the symmetry test might also need to be increased to
- *		show a passing result for this flux.
- *
  *	Notation:
  *
  *	References:
@@ -145,15 +141,13 @@ void test_integration_Poisson(int nargc, char **argv)
 		data_c->PrintName = PrintName;
 
 		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_TRI");
-//		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_QUAD");
+		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_QUAD");
 		test_print_warning("Add a test for a mixed mesh for Poisson Conv. order");
 
 		free(data_c);
 	} else {
 		test_print_warning("Poisson convergence order testing currently disabled");
 	}
-
-	test_print_warning("solver_Poisson potentially leaking memory");
 
 	array_free2_c(2,argvNew);
 	free(PrintName);

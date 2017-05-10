@@ -264,8 +264,8 @@ int main(int nargc, char **argv)
 	TestDB.Npass = 0;
 	TestDB.Nwarnings = 0;
 
-	RunTest.unit        = 0;
-	RunTest.integration = 0;
+	RunTest.unit        = 1;
+	RunTest.integration = 1;
 	RunTest.speed       = 0;
 
 	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
@@ -313,11 +313,10 @@ int main(int nargc, char **argv)
 	if (RunTest.integration) {
 		test_integration_update_h(nargc,argv);
 		test_integration_L2_projections(nargc,argv);
-		test_integration_Poisson(nargc,argv);
 	}
-//	test_integration_Poisson(nargc,argv);
+	test_integration_Poisson(nargc,argv);
 	test_integration_Euler(nargc,argv);
-//	test_integration_NavierStokes(nargc,argv);
+	test_integration_NavierStokes(nargc,argv);
 
 	PetscFinalize();
 

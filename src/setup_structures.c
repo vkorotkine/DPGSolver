@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
- 
+
 #include "mkl.h"
 
 #include "Parameters.h"
@@ -79,35 +79,35 @@ static void compute_distance_matrix(const unsigned int Nn, const unsigned int BC
 	}}
 }
 
-static void get_ordering_index(const unsigned int Nn, const unsigned int d, double *DXYZ, unsigned int *IndOrdInOut,
-                               unsigned int *IndOrdOutIn)
+static void get_ordering_index(const unsigned int Nn, const unsigned int d, double *DXYZ, unsigned int *IndOrdLR,
+                               unsigned int *IndOrdRL)
 {
 	/*
 	 *	Purpose:
 	 *		Return the ordering index corresponding to the match between two FACEs based on DXYZ.
 	 *
 	 *	Comments:
-	 *		In 1D, IndOrdInOut == IndOrdOutIn == 0.
-	 *		In 2D, IndOrdInOut == IndOrdOutIn.
+	 *		In 1D, IndOrdLR == IndOrdRL == 0.
+	 *		In 2D, IndOrdLR == IndOrdRL.
 	 *
 	 *	Notation:
 	 *		IndZerosP : (Ind)ices of (Zeros) which are (P)ossible.
 	 */
 
 	if (d == 1) {
-		*IndOrdInOut = 0;
-		*IndOrdOutIn = 0;
+		*IndOrdLR = 0;
+		*IndOrdRL = 0;
 		return;
 	} else {
 		unsigned int i, j, countZeros,
-					 IndZerosInOut[Nn], IndZerosOutIn[Nn];
+					 IndZerosLR[Nn], IndZerosRL[Nn];
 
 		// Find indices of zeros in DXYZ
 		countZeros = 0;
 		for (i = 0; i < Nn; i++) {
 		for (j = 0; j < Nn; j++) {
 			if (fabs(DXYZ[i*Nn+j]) < EPS) {
-				IndZerosOutIn[i] = j;
+				IndZerosRL[i] = j;
 				countZeros++;
 				break;
 			}
@@ -123,7 +123,7 @@ static void get_ordering_index(const unsigned int Nn, const unsigned int d, doub
 			for (i = 0; i < Nn; i++) {
 			for (j = 0; j < Nn; j++) {
 				if (fabs(DXYZ[i*Nn+j]) < EPS) {
-					IndZerosInOut[i] = j;
+					IndZerosLR[i] = j;
 					break;
 				}
 			}}
@@ -139,10 +139,10 @@ static void get_ordering_index(const unsigned int Nn, const unsigned int d, doub
 				                               3, 1, 2, 0};
 
 				for (i = 0; i < 8; i++) {
-					if (array_norm_diff_ui(Nn,IndZerosInOut,&IndZerosP[i*Nn],"Inf") < EPS)
-						*IndOrdInOut = i;
-					if (array_norm_diff_ui(Nn,IndZerosOutIn,&IndZerosP[i*Nn],"Inf") < EPS)
-						*IndOrdOutIn = i;
+					if (array_norm_diff_ui(Nn,IndZerosLR,&IndZerosP[i*Nn],"Inf") < EPS)
+						*IndOrdLR = i;
+					if (array_norm_diff_ui(Nn,IndZerosRL,&IndZerosP[i*Nn],"Inf") < EPS)
+						*IndOrdRL = i;
 				}
 			} else if (Nn == 3) { // TRI FACE
 				unsigned int IndZerosP[18] = { 0, 1, 2,
@@ -153,19 +153,19 @@ static void get_ordering_index(const unsigned int Nn, const unsigned int d, doub
 				                               1, 0, 2};
 
 				for (i = 0; i < 6; i++) {
-					if (array_norm_diff_ui(Nn,IndZerosInOut,&IndZerosP[i*Nn],"Inf") < EPS)
-						*IndOrdInOut = i;
-					if (array_norm_diff_ui(Nn,IndZerosOutIn,&IndZerosP[i*Nn],"Inf") < EPS)
-						*IndOrdOutIn = i;
+					if (array_norm_diff_ui(Nn,IndZerosLR,&IndZerosP[i*Nn],"Inf") < EPS)
+						*IndOrdLR = i;
+					if (array_norm_diff_ui(Nn,IndZerosRL,&IndZerosP[i*Nn],"Inf") < EPS)
+						*IndOrdRL = i;
 				}
 			}
 		} else if (d == 2) {
 			unsigned int IndZerosP[4] = { 0, 1,
 			                              1, 0};
 			for (i = 0; i < 2; i++) {
-				if (array_norm_diff_ui(Nn,IndZerosOutIn,&IndZerosP[i*Nn],"Inf") < EPS) {
-					*IndOrdInOut = i;
-					*IndOrdOutIn = i;
+				if (array_norm_diff_ui(Nn,IndZerosRL,&IndZerosP[i*Nn],"Inf") < EPS) {
+					*IndOrdLR = i;
+					*IndOrdRL = i;
 					return;
 				}
 			}
@@ -201,20 +201,20 @@ void setup_structures(void)
 
 	// Standard datatypes
 	unsigned int i, f, v, dim, ve, gf, fh, fhMax,
-	             IndE, IndVC, IndVgrp, IndGFC, IndVIn, Indf, IndOrdInOut, IndOrdOutIn,
+	             IndE, IndVC, IndVgrp, IndGFC, IndVL, Indf, IndOrdLR, IndOrdRL,
 	             Vs, vlocal, NTVgrp, NVlocal, NECgrp, *NVgrp, Vf, Nf,
-	             VfIn, fIn, VfOut, fOut,
+	             VfL, fIn, VfR, fOut,
 	             Nve,*Nfve, Nfn,
 				 indexg, NvnGs,
 	             uMPIrank;
 	double       *XYZ_vV, **VeF, *XYZIn_fC, *XYZOut_fC, *DXYZ;
 
 	struct S_ELEMENT *ELEMENT;
-	struct S_VOLUME  *VOLUME, **Vgrp, **Vgrp_tmp, *VIn, *VOut;
+	struct S_VOLUME  *VOLUME, **Vgrp, **Vgrp_tmp, *VL, *VR;
 	struct S_FACE   **FACE, **FoundFACE;
 
 	// silence
-	Nf = NECgrp = IndOrdInOut = IndOrdOutIn = 0;
+	Nf = NECgrp = IndOrdLR = IndOrdRL = 0;
 
 	uMPIrank = MPIrank;
 
@@ -284,14 +284,14 @@ void setup_structures(void)
 					FACE[0]->P      = VOLUME->P;
 					FACE[0]->level  = 0;
 
-					FACE[0]->VIn   = VOLUME; IndVIn = VOLUME->indexg;
-					FACE[0]->VfIn  = NfrefMax*f;
+					FACE[0]->VL   = VOLUME; IndVL = VOLUME->indexg;
+					FACE[0]->VfL  = NfrefMax*f;
 
-					FACE[0]->BC    = VToBC[IndVIn*NfMax+f];
+					FACE[0]->BC    = VToBC[IndVL*NfMax+f];
 
 					// Overwritten if a second VOLUME is found adjacent to this FACE
-					FACE[0]->VOut  = VOLUME;
-					FACE[0]->VfOut = NfrefMax*f;
+					FACE[0]->VR  = VOLUME;
+					FACE[0]->VfR = NfrefMax*f;
 
 					if (!VOLUME->curved) {
 						FACE[0]->typeInt = 's';
@@ -303,16 +303,16 @@ void setup_structures(void)
 						}
 					}
 
-					FACE[0]->VOut->FACE[f*NSUBFMAX] = FACE[0];
+					FACE[0]->VR->FACE[f*NSUBFMAX] = FACE[0];
 
 					FoundFACE[gf] = FACE[0];
 				} else {
 					FACE[1] = FoundFACE[gf];
 
 					FACE[1]->P = max(FACE[1]->P,VOLUME->P);
-					FACE[1]->VOut  = VOLUME;
-					FACE[1]->VfOut = NfrefMax*f;
-					FACE[1]->VOut->FACE[f*NSUBFMAX] = FACE[1];
+					FACE[1]->VR  = VOLUME;
+					FACE[1]->VfR = NfrefMax*f;
+					FACE[1]->VR->FACE[f*NSUBFMAX] = FACE[1];
 					if (VOLUME->curved) {
 						FACE[1]->typeInt = 'c';
 						if (AC || (IndGFC < NGFC && gf == GFC[IndGFC])) {
@@ -386,15 +386,15 @@ void setup_structures(void)
 
 	// Flag boundary FACEs
 	for (FACE[0] = DB.FACE; FACE[0]; FACE[0] = FACE[0]->next) {
-		VIn   = FACE[0]->VIn;
-		VfIn  = FACE[0]->VfIn;
-		fIn   = VfIn/NFREFMAX;
+		VL   = FACE[0]->VL;
+		VfL  = FACE[0]->VfL;
+		fIn   = VfL/NFREFMAX;
 
-		VOut  = FACE[0]->VOut;
-		VfOut = FACE[0]->VfOut;
-		fOut  = VfOut/NFREFMAX;
+		VR  = FACE[0]->VR;
+		VfR = FACE[0]->VfR;
+		fOut  = VfR/NFREFMAX;
 
-		FACE[0]->Boundary = !((VIn->indexg != VOut->indexg) || (VIn->indexg == VOut->indexg && fIn != fOut));
+		FACE[0]->Boundary = !((VL->indexg != VR->indexg) || (VL->indexg == VR->indexg && fIn != fOut));
 	}
 
 	// Initialize VOLUME connectivity
@@ -418,8 +418,8 @@ void setup_structures(void)
 // Probably not as the FACE nodes would not be related to the PYR node ordering.
 
 		// Obtain FACE type
-		VOLUME  = FACE[0]->VIn;
-		Vf      = FACE[0]->VfIn;
+		VOLUME  = FACE[0]->VL;
+		Vf      = FACE[0]->VfL;
 		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
 
 		if (d == 1) {
@@ -427,17 +427,17 @@ void setup_structures(void)
 		} else if (d == 2) {
 			FACE[0]->type = LINE;
 		} else if (d == 3) {
-			VIn  = FACE[0]->VIn;
+			VL  = FACE[0]->VL;
 
-			if (VIn->type == TET || (VIn->type == WEDGE && Indf > 2) || (VIn->type == PYR && Indf < 4))
+			if (VL->type == TET || (VL->type == WEDGE && Indf > 2) || (VL->type == PYR && Indf < 4))
 				FACE[0]->type = TRI;
 			else
 				FACE[0]->type = QUAD;
 		}
 
 		// Obtain XYZIn_fC/XYZOut_fC
-		VOLUME  = FACE[0]->VIn;
-		Vf      = FACE[0]->VfIn;
+		VOLUME  = FACE[0]->VL;
+		Vf      = FACE[0]->VfL;
 		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
 
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
@@ -452,8 +452,8 @@ void setup_structures(void)
 		XYZIn_fC = malloc(Nfve[Indf]*d * sizeof *XYZIn_fC); // free
 		mm_CTN_d(Nfve[Indf],d,Nve,VeF[Vf],XYZ_vV,XYZIn_fC);
 
-		VOLUME  = FACE[0]->VOut;
-		Vf      = FACE[0]->VfOut;
+		VOLUME  = FACE[0]->VR;
+		Vf      = FACE[0]->VfR;
 		Indf    = Vf / NfrefMax; // face index (ToBeDeleted: Move to notation)
 
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
@@ -474,10 +474,10 @@ void setup_structures(void)
 		compute_distance_matrix(Nfn,FACE[0]->BC,d,XYZIn_fC,XYZOut_fC,DXYZ);
 
 		// Obtain the index of corresponding ordering between FACEs
-		get_ordering_index(Nfn,d,DXYZ,&IndOrdInOut,&IndOrdOutIn);
+		get_ordering_index(Nfn,d,DXYZ,&IndOrdLR,&IndOrdRL);
 
-		FACE[0]->IndOrdInOut = IndOrdInOut;
-		FACE[0]->IndOrdOutIn = IndOrdOutIn;
+		FACE[0]->IndOrdLR = IndOrdLR;
+		FACE[0]->IndOrdRL = IndOrdRL;
 
 /*
 printf("\n\n%d\n",FACE[0]->indexg);
@@ -486,7 +486,7 @@ array_print_d(Nfve[Indf],d,XYZOut_fC,'C');
 
 array_print_d(Nfn,Nfn,DXYZ,'R');
 
-printf("InOut: %d %d\n",IndOrdInOut,IndOrdOutIn);
+printf("LR: %d %d\n",IndOrdLR,IndOrdRL);
 */
 
 		free(XYZIn_fC);

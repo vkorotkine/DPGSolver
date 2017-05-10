@@ -11,6 +11,8 @@
 #include "Macros.h"
 #include "S_DB.h"
 
+#include "fluxes_structs.h"
+
 /*
  *	Purpose:
  *		Compute viscous fluxes from inputs W and Q in conservative form.
@@ -24,8 +26,7 @@
  *	References:
  */
 
-void flux_viscous(unsigned int const Nn, unsigned int const Nel, double const *const W, double const *const *const Q,
-                  double *const F)
+void flux_viscous(struct S_FLUX *const FLUXDATA)
 {
 	/*
 	 *	Comments:
@@ -44,9 +45,16 @@ void flux_viscous(unsigned int const Nn, unsigned int const Nel, double const *c
 	 *		(1), (2) -> q = -kappa*Grad(T) == -mu/Pr*GAMMA*Grad(E/rho-0.5*V^2)
 	 */
 
-	const unsigned int d   = DB.d,
-	                   Neq = d+2;
-	const double       Pr  = DB.Pr;
+	unsigned int const d   = FLUXDATA->d,
+	                   Neq = d+2,
+	                   Nn  = FLUXDATA->Nn,
+	                   Nel = FLUXDATA->Nel;
+
+	double const *const W        = FLUXDATA->W,
+	             *const *const Q = FLUXDATA->Q;
+	double       *const F        = FLUXDATA->F;
+
+	const double Pr = DB.Pr;
 
 	if (!(d == 2 || d == 3))
 		EXIT_UNSUPPORTED;

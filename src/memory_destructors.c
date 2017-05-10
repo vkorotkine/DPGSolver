@@ -275,17 +275,11 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	free(VOLUME->What_c);
 	free(VOLUME->RHS_c);
 
-	array_free2_cmplx(d,VOLUME->qhat_c);
-
 	array_free2_cmplx(d,VOLUME->QhatV_c);
 	array_free2_cmplx(d,VOLUME->Qhat_c);
 
 	// hp adaptivity
 	free(VOLUME->XYZ_vVP2);
-
-	// Poisson
-	array_free2_d(d,VOLUME->qhat);
-	array_free2_d(d,VOLUME->qhat_uhat);
 
 	// structs
 	free(VOLUME->FACE);
@@ -315,36 +309,25 @@ void memory_destructor_F(struct S_FACE *FACE)
 	free(FACE->detJVOut_fI);
 
 	// Solving
-	free(FACE->RHSIn);
-	free(FACE->RHSOut);
+	free(FACE->RHSL);
+	free(FACE->RHSR);
 
-	free(FACE->LHSInIn);
-	free(FACE->LHSOutIn);
-	free(FACE->LHSInOut);
-	free(FACE->LHSOutOut);
+	free(FACE->LHSLL);
+	free(FACE->LHSRL);
+	free(FACE->LHSLR);
+	free(FACE->LHSRR);
 
 	array_free2_d(d,FACE->QhatL);
 	array_free2_d(d,FACE->QhatR);
 
-	array_free2_d(d,FACE->Qhat_WhatLL);
-	array_free2_d(d,FACE->Qhat_WhatRL);
-	array_free2_d(d,FACE->Qhat_WhatLR);
-	array_free2_d(d,FACE->Qhat_WhatRR);
-
-	// Poisson
-	array_free2_d(d,FACE->qhatIn);
-	array_free2_d(d,FACE->qhatOut);
-	array_free2_d(d,FACE->qhat_uhatInIn);
-	array_free2_d(d,FACE->qhat_uhatOutIn);
-	array_free2_d(d,FACE->qhat_uhatInOut);
-	array_free2_d(d,FACE->qhat_uhatOutOut);
+	array_free2_d(d,FACE->QhatL_WhatL);
+	array_free2_d(d,FACE->QhatL_WhatR);
+	array_free2_d(d,FACE->QhatR_WhatL);
+	array_free2_d(d,FACE->QhatR_WhatR);
 
 	// Linearization testing
-	free(FACE->RHSIn_c);
-	free(FACE->RHSOut_c);
-
-	array_free2_cmplx(d,FACE->qhatIn_c);
-	array_free2_cmplx(d,FACE->qhatOut_c);
+	free(FACE->RHSL_c);
+	free(FACE->RHSR_c);
 
 	array_free2_cmplx(d,FACE->QhatL_c);
 	array_free2_cmplx(d,FACE->QhatR_c);

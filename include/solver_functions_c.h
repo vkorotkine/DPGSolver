@@ -47,5 +47,9 @@ extern void finalize_FACE_Viscous_Weak_c  (struct S_FDATA const *const FDATAL, s
                                            double complex const *const nANumL_fI, char const side, char const imex_type,
                                            char const coef_type);
 
+// General functions
+
+extern void manage_solver_memory_c(struct S_DATA *const DATA, char const mem_op, char const mem_type);
+
 
 #endif // DPG__solver_functions_c_h__INCLUDED

@@ -98,8 +98,8 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 
 
 			// Compute numerical flux as seen from the left VOLUME
-			NFluxData->WL_fIL      = FDATAL->W_fIL;
-			NFluxData->WR_fIL      = FDATAR->W_fIL;
+			NFluxData->WL_fIL = FDATAL->W_fIL;
+			NFluxData->WR_fIL = FDATAR->W_fIL;
 			manage_solver_memory(DATA,'A','I'); // free
 
 			compute_numerical_flux(FDATAL,'E');
@@ -112,11 +112,11 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 			unsigned int const NvnSL = OPSL[0]->NvnS,
 			                   NvnSR = OPSR[0]->NvnS;
 
-			memset(FACE->RHSIn,0.0,NvnSL*Neq * sizeof *(FACE->RHSIn));
+			memset(FACE->RHSL,0.0,NvnSL*Neq * sizeof *(FACE->RHSL));
 			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,NULL,'L','E','W');
 
 			if (!FACE->Boundary) {
-				memset(FACE->RHSOut,0.0,NvnSR*Neq * sizeof *(FACE->RHSOut));
+				memset(FACE->RHSR,0.0,NvnSR*Neq * sizeof *(FACE->RHSR));
 				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,NULL,'R','E','W');
 			}
 
@@ -141,10 +141,6 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 	if (!DB.Viscous)
 		return;
 
-	unsigned int const d    = DB.d,
-	                   Nvar = DB.Nvar,
-	                   Neq  = DB.Neq;
-
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 
 	struct S_FDATA *const FDATAL = malloc(sizeof *FDATAL), // free
@@ -155,6 +151,13 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 	struct S_NumericalFlux *const NFluxData = malloc(sizeof *NFluxData); // free
 	FDATAL->NFluxData = NFluxData;
 	FDATAR->NFluxData = NFluxData;
+
+	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
+	DATA->FDATAL    = FDATAL;
+	DATA->FDATAR    = FDATAR;
+	DATA->NFluxData = NFluxData;
+	DATA->feature   = 'F';
+	DATA->imex_type = 'E';
 
 	for (size_t i = 0; i < 2; i++) {
 		OPSL[i] = malloc(sizeof *OPSL[i]); // free
@@ -167,40 +170,25 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 			init_FDATA(FDATAR,FACE,'R');
 
 			// Compute WL_fIL and WR_fIL and their gradients (as seen from the (L)eft VOLUME)
-			unsigned int const IndFType = FDATAL->IndFType,
-			                   NfnI     = OPSL[IndFType]->NfnI;
-
-			FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
-			FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
-
-			double **const QpL_fIL = malloc(d * sizeof *QpL_fIL), // free
-			       **const QpR_fIL = malloc(d * sizeof *QpR_fIL); // free
-
-			for (size_t dim = 0; dim < d; dim++) {
-				QpL_fIL[dim] = malloc(NfnI*Nvar * sizeof *QpL_fIL[dim]); // free
-				QpR_fIL[dim] = malloc(NfnI*Nvar * sizeof *QpR_fIL[dim]); // free
-			}
-
-			FDATAL->Qp_fIL = QpL_fIL;
-			FDATAR->Qp_fIL = QpR_fIL;
+			manage_solver_memory(DATA,'A','W'); // free
+			manage_solver_memory(DATA,'A','Q'); // free
 
 			coef_to_values_fI(FDATAL,'W','E');
 			coef_to_values_fI(FDATAL,'Q','E');
-			compute_WR_QpR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,(double const *const *const) QpL_fIL,QpR_fIL,'E');
+			compute_WR_QpR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,
+			                   (double const *const *const) FDATAL->Qp_fIL,FDATAR->Qp_fIL,'E');
 
 
 			// Compute numerical flux as seen from the left VOLUME
-			NFluxData->WL_fIL          = FDATAL->W_fIL;
-			NFluxData->WR_fIL          = FDATAR->W_fIL;
-			NFluxData->nFluxViscNum_fI = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxViscNum_fI)); // free
+			NFluxData->WL_fIL = FDATAL->W_fIL;
+			NFluxData->WR_fIL = FDATAR->W_fIL;
+			manage_solver_memory(DATA,'A','V'); // free
 
 			compute_numerical_flux_viscous(FDATAL,FDATAR,'E');
 			add_Jacobian_scaling_FACE(FDATAL,'E','V');
 
-			free(FDATAL->W_fIL);
-			free(FDATAR->W_fIL);
-			array_free2_d(d,QpL_fIL);
-			array_free2_d(d,QpR_fIL);
+			manage_solver_memory(DATA,'F','W');
+			manage_solver_memory(DATA,'F','Q');
 
 
 			// Compute FACE RHS terms
@@ -208,7 +196,7 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 			if (!FACE->Boundary)
 				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'R','E','V');
 
-			free(NFluxData->nFluxViscNum_fI);
+			manage_solver_memory(DATA,'F','V');
 		}
 	} else if (strstr(DB.Form,"Strong")) {
 		// Note that the viscous flux is negated.
@@ -222,4 +210,5 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 	free(NFluxData);
 	free(FDATAL);
 	free(FDATAR);
+	free(DATA);
 }

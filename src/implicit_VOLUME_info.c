@@ -13,6 +13,7 @@
 #include "S_VOLUME.h"
 
 #include "solver_functions.h"
+#include "fluxes_structs.h"
 #include "fluxes_inviscid.h"
 #include "fluxes_viscous.h"
 #include "jacobian_fluxes_inviscid.h"
@@ -66,10 +67,19 @@ static void compute_Inviscid_VOLUME_EFE(void)
 				 Neq  = d+2;
 
 	struct S_OPERATORS_V *OPS[2];
-	struct S_VDATA       *VDATA;
 
-	VDATA = malloc(sizeof *VDATA); // free
+	struct S_VDATA *const VDATA = malloc(sizeof *VDATA); // free
 	VDATA->OPS = (struct S_OPERATORS_V const *const *) OPS;
+
+	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->d   = d;
+	FLUXDATA->Nel = 1;
+
+	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
+	DATA->VDATA     = VDATA;
+	DATA->FLUXDATA  = FLUXDATA;
+	DATA->feature   = 'V';
+	DATA->imex_type = 'I';
 
 	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
@@ -83,50 +93,46 @@ static void compute_Inviscid_VOLUME_EFE(void)
 			if (DB.Collocated) {
 				VDATA->W_vI = VOLUME->What;
 			} else {
-				VDATA->W_vI = malloc(NvnI*Nvar * sizeof *(VDATA->W_vI)); // free
+				manage_solver_memory(DATA,'A','W'); // free
 				coef_to_values_vI(VDATA,'W');
 			}
 
 			// Compute Flux and its Jacobian in reference space
-			double *const F_vI    = malloc(NvnI*d*Neq      * sizeof *F_vI),    // free
-			       *const dFdW_vI = malloc(NvnI*d*Nvar*Neq * sizeof *dFdW_vI); // free
+			manage_solver_memory(DATA,'A','I'); // free
 
-// Consider combining flux_inviscid and jacobian_flux_inviscid (ToBeDeleted)
-			flux_inviscid(NvnI,1,VDATA->W_vI,F_vI,d,Neq);
-			jacobian_flux_inviscid(NvnI,1,VDATA->W_vI,dFdW_vI,d,Neq);
+			FLUXDATA->Nn = NvnI;
+			FLUXDATA->W  = VDATA->W_vI;
+			jacobian_flux_inviscid(FLUXDATA);
 
 			if (!DB.Collocated)
-				free(VDATA->W_vI);
+				manage_solver_memory(DATA,'F','W');
 
 			// Convert to reference space
-			double *const Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
-			convert_between_rp(NvnI,Neq,VOLUME->C_vI,F_vI,Fr_vI,"FluxToRef");
-			free(F_vI);
-
-			double *const dFrdW_vI = malloc(NvnI*d*Nvar*Neq * sizeof *dFrdW_vI); // free
-			convert_between_rp(NvnI,Nvar*Neq,VOLUME->C_vI,dFdW_vI,dFrdW_vI,"FluxToRef");
-			free(dFdW_vI);
+			convert_between_rp(NvnI,Neq,VOLUME->C_vI,FLUXDATA->F,FLUXDATA->Fr,"FluxToRef");
+			convert_between_rp(NvnI,Nvar*Neq,VOLUME->C_vI,FLUXDATA->dFdW,FLUXDATA->dFrdW,"FluxToRef");
 
 			// Compute RHS and LHS terms
 			unsigned int NvnS = VDATA->OPS[0]->NvnS;
 
 			// RHS
 			memset(VOLUME->RHS,0.0,NvnS*Neq * sizeof *(VOLUME->RHS));
-			finalize_VOLUME_Inviscid_Weak(Neq,Fr_vI,VOLUME->RHS,'E',VDATA);
-			free(Fr_vI);
+			finalize_VOLUME_Inviscid_Weak(Neq,FLUXDATA->Fr,VOLUME->RHS,'E',VDATA);
 
 			// LHS
 			memset(VOLUME->LHS,0.0,NvnS*NvnS*Neq*Nvar * sizeof *(VOLUME->LHS));
-			finalize_VOLUME_Inviscid_Weak(NvnS*Neq*Nvar,dFrdW_vI,VOLUME->LHS,'I',VDATA);
-			free(dFrdW_vI);
+			finalize_VOLUME_Inviscid_Weak(NvnS*Neq*Nvar,FLUXDATA->dFrdW,VOLUME->LHS,'I',VDATA);
+
+			manage_solver_memory(DATA,'F','I');
 		}
 	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;
 	}
 
 	free(VDATA);
+	free(FLUXDATA);
 	for (size_t i = 0; i < 2; i++)
 		free(OPS[i]);
+	free(DATA);
 }
 
 static void compute_Viscous_VOLUME_EFE(void)
@@ -139,10 +145,19 @@ static void compute_Viscous_VOLUME_EFE(void)
 				 Neq  = d+2;
 
 	struct S_OPERATORS_V *OPS[2];
-	struct S_VDATA       *VDATA;
 
-	VDATA = malloc(sizeof *VDATA); // free
+	struct S_VDATA *const VDATA = malloc(sizeof *VDATA); // free
 	VDATA->OPS = (struct S_OPERATORS_V const *const *) OPS;
+
+	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->d   = d;
+	FLUXDATA->Nel = 1;
+
+	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
+	DATA->VDATA     = VDATA;
+	DATA->FLUXDATA  = FLUXDATA;
+	DATA->feature   = 'V';
+	DATA->imex_type = 'I';
 
 	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
@@ -157,69 +172,56 @@ static void compute_Viscous_VOLUME_EFE(void)
 				VDATA->W_vI = VOLUME->What;
 				VDATA->Q_vI = VOLUME->Qhat;
 			} else {
-				VDATA->W_vI = malloc(NvnI*Nvar * sizeof *(VDATA->W_vI)); // free
-				VDATA->Q_vI = malloc(d         * sizeof *(VDATA->Q_vI)); // free
-				for (size_t dim = 0; dim < d; dim++)
-					VDATA->Q_vI[dim] = malloc(NvnI*Nvar * sizeof *(VDATA->Q_vI[dim])); // free
+				manage_solver_memory(DATA,'A','W'); // free
+				manage_solver_memory(DATA,'A','Q'); // free
 
 				coef_to_values_vI(VDATA,'W');
 				coef_to_values_vI(VDATA,'Q');
 			}
 
 			// Compute negated Flux and its Jacobian in reference space
-			double * const F_vI    = malloc(NvnI*d*Neq      * sizeof *F_vI),    // free
-			       * const dFdW_vI = malloc(NvnI*d*Nvar*Neq * sizeof *dFdW_vI), // free
-			       **const dFdQ_vI = malloc(d               * sizeof *dFdQ_vI); // free
-			for (size_t dim = 0; dim < d; dim++)
-				dFdQ_vI[dim] = malloc(NvnI*d*Nvar*Neq * sizeof *dFdQ_vI[dim]); // free
+			manage_solver_memory(DATA,'A','V'); // free
 
-// Consider combining flux_viscous and jacobian_flux_viscous (ToBeDeleted)
-			flux_viscous(NvnI,1,VDATA->W_vI,(double const *const *const) VDATA->Q_vI,F_vI);
-			jacobian_flux_viscous(NvnI,1,VDATA->W_vI,(double const *const *const) VDATA->Q_vI,dFdW_vI,dFdQ_vI);
+			FLUXDATA->Nn = NvnI;
+			FLUXDATA->W  = VDATA->W_vI;
+			FLUXDATA->Q  = (double const *const *const) VDATA->Q_vI;
+
+			jacobian_flux_viscous(FLUXDATA);
 
 			if (!DB.Collocated) {
-				free(VDATA->W_vI);
-				array_free2_d(d,VDATA->Q_vI);
+				manage_solver_memory(DATA,'F','W');
+				manage_solver_memory(DATA,'F','Q');
 			}
 
 			// Convert to reference space
-			double *const Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
-			convert_between_rp(NvnI,Neq,VOLUME->C_vI,F_vI,Fr_vI,"FluxToRef");
-			free(F_vI);
-
-			double *const dFrdW_vI = malloc(NvnI*d*Nvar*Neq * sizeof *dFrdW_vI); // free
-			convert_between_rp(NvnI,Nvar*Neq,VOLUME->C_vI,dFdW_vI,dFrdW_vI,"FluxToRef");
-			free(dFdW_vI);
-
-			double **const dFrdQ_vI = malloc(d * sizeof *dFrdQ_vI); // free
-			for (size_t dim = 0; dim < d; dim++) {
-				dFrdQ_vI[dim] = malloc(NvnI*d*Nvar*Neq * sizeof *dFrdQ_vI[dim]); // free
-				convert_between_rp(NvnI,Nvar*Neq,VOLUME->C_vI,dFdQ_vI[dim],dFrdQ_vI[dim],"FluxToRef");
-			}
-			array_free2_d(d,dFdQ_vI);
+			convert_between_rp(NvnI,Neq,VOLUME->C_vI,FLUXDATA->F,FLUXDATA->Fr,"FluxToRef");
+			convert_between_rp(NvnI,Nvar*Neq,VOLUME->C_vI,FLUXDATA->dFdW,FLUXDATA->dFrdW,"FluxToRef");
+			for (size_t dim = 0; dim < d; dim++)
+				convert_between_rp(NvnI,Nvar*Neq,VOLUME->C_vI,FLUXDATA->dFdQ[dim],FLUXDATA->dFrdQ[dim],"FluxToRef");
 
 			// Compute RHS and LHS terms
 			unsigned int NvnS = VDATA->OPS[0]->NvnS;
 
 			// RHS
-			finalize_VOLUME_Viscous_Weak(Neq,Fr_vI,VOLUME->RHS,'E',VDATA);
-			free(Fr_vI);
+			finalize_VOLUME_Viscous_Weak(Neq,FLUXDATA->Fr,VOLUME->RHS,'E',VDATA);
 
 			// LHS
-			finalize_VOLUME_Viscous_Weak(NvnS*Neq*Nvar,dFrdW_vI,VOLUME->LHS,'I',VDATA);
-			free(dFrdW_vI);
+			finalize_VOLUME_Viscous_Weak(NvnS*Neq*Nvar,FLUXDATA->dFrdW,VOLUME->LHS,'I',VDATA);
 
 			for (size_t dim = 0; dim < d; dim++)
 				memset(VOLUME->LHSQ[dim],0.0,NvnS*NvnS*Neq*Nvar * sizeof *(VOLUME->LHSQ[dim]));
-			initialize_VOLUME_LHSQ_Weak(NvnS*Neq*Nvar,(double const *const *const) dFrdQ_vI,VOLUME->LHSQ,VDATA);
+			initialize_VOLUME_LHSQ_Weak(NvnS*Neq*Nvar,(double const *const *const) FLUXDATA->dFrdQ,VOLUME->LHSQ,VDATA);
 			finalize_VOLUME_LHSQV_Weak(VOLUME);
-			array_free2_d(d,dFrdQ_vI);
+
+			manage_solver_memory(DATA,'F','V');
 		}
 	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;
 	}
 
 	free(VDATA);
+	free(FLUXDATA);
 	for (size_t i = 0; i < 2; i++)
 		free(OPS[i]);
+	free(DATA);
 }

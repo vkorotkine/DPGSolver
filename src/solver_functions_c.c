@@ -21,6 +21,7 @@
 #include "array_swap.h"
 #include "boundary_conditions.h"
 #include "boundary_conditions_c.h"
+#include "fluxes_structs.h"
 #include "fluxes_inviscid_c.h"
 #include "fluxes_viscous_c.h"
 
@@ -40,6 +41,111 @@
  */
 
 // **************************************************************************************************** //
+// General functions
+// **************************************************************************************************** //
+
+void manage_solver_memory_c(struct S_DATA *const DATA, char const mem_op, char const mem_type)
+{
+	char const feature   = DATA->feature,
+	           imex_type = DATA->imex_type;
+
+	if (!(imex_type == 'E'))
+		EXIT_UNSUPPORTED;
+
+	struct S_VDATA         *const VDATA     = DATA->VDATA;
+	struct S_FDATA         *const FDATAL    = DATA->FDATAL,
+	                       *const FDATAR    = DATA->FDATAR;
+	struct S_FLUX          *const FLUXDATA  = DATA->FLUXDATA;
+	struct S_NumericalFlux *const NFluxData = DATA->NFluxData;
+
+
+	struct S_OPERATORS_F const *const *const OPSF = FDATAL->OPS;
+
+	unsigned int const d        = DB.d,
+	                   Nvar     = DB.Nvar,
+	                   Neq      = DB.Neq,
+	                   NvnI     = VDATA->OPS[0]->NvnI,
+	                   IndFType = FDATAL->IndFType,
+	                   NfnI     = OPSF[IndFType]->NfnI;
+
+	if (mem_op == 'A') {
+		if (feature == 'V') {
+			if (mem_type == 'W') {
+				VDATA->W_vI_c = malloc(NvnI*Nvar * sizeof *(VDATA->W_vI_c)); // keep
+			} else if (mem_type == 'Q') {
+				VDATA->Q_vI_c = malloc(d * sizeof *(VDATA->Q_vI_c)); // keep
+				for (size_t dim = 0; dim < d; dim++)
+					VDATA->Q_vI_c[dim] = malloc(NvnI*Nvar * sizeof *(VDATA->Q_vI_c[dim])); // keep
+			} else if (mem_type == 'I' || mem_type == 'V') {
+				FLUXDATA->F_c  = malloc(NvnI*d*Neq * sizeof *(FLUXDATA->F_c));  // keep
+				FLUXDATA->Fr_c = malloc(NvnI*Neq*d * sizeof *(FLUXDATA->Fr_c)); // keep
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else if (feature == 'F') {
+			if (mem_type == 'W') {
+				FDATAL->W_fIL_c = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL_c)), // keep
+				FDATAR->W_fIL_c = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL_c)); // keep
+			} else if (mem_type == 'Q') {
+				FDATAL->Qp_fIL_c = malloc(d * sizeof *(FDATAL->Qp_fIL_c)), // keep
+				FDATAR->Qp_fIL_c = malloc(d * sizeof *(FDATAR->Qp_fIL_c)); // keep
+				for (size_t dim = 0; dim < d; dim++) {
+					FDATAL->Qp_fIL_c[dim] = malloc(NfnI*Nvar * sizeof *(FDATAL->Qp_fIL_c[dim])); // keep
+					FDATAR->Qp_fIL_c[dim] = malloc(NfnI*Nvar * sizeof *(FDATAR->Qp_fIL_c[dim])); // keep
+				}
+			} else if (mem_type == 'S') {
+				NFluxData->nSolNum_fI_c = malloc(d * sizeof *(NFluxData->nSolNum_fI_c)); // keep
+				for (size_t dim = 0; dim < d; dim++)
+					NFluxData->nSolNum_fI_c[dim] = malloc(NfnI*Neq * sizeof *(NFluxData->nSolNum_fI_c[dim])); // keep
+			} else if (mem_type == 'I') {
+				NFluxData->nFluxNum_fI_c = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxNum_fI_c)); // keep
+			} else if (mem_type == 'V') {
+				NFluxData->nFluxViscNum_fI_c = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxViscNum_fI_c)); // keep
+			} else if (mem_type == 'P') {
+				NFluxData->nFluxViscNum_fI_c = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxViscNum_fI_c)); // keep
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else if (mem_op == 'F') {
+		if (feature == 'V') {
+			if (mem_type == 'W') {
+				free(VDATA->W_vI_c);
+			} else if (mem_type == 'Q') {
+				array_free2_cmplx(d,VDATA->Q_vI_c);
+			} else if (mem_type == 'I' || mem_type == 'V') {
+				free(FLUXDATA->F_c);
+				free(FLUXDATA->Fr_c);
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else if (feature == 'F') {
+			if (mem_type == 'W') {
+				free(FDATAL->W_fIL_c);
+				free(FDATAR->W_fIL_c);
+			} else if (mem_type == 'Q') {
+				array_free2_cmplx(d,FDATAL->Qp_fIL_c);
+				array_free2_cmplx(d,FDATAR->Qp_fIL_c);
+			} else if (mem_type == 'S') {
+				array_free2_cmplx(d,NFluxData->nSolNum_fI_c);
+			} else if (mem_type == 'I') {
+				free(NFluxData->nFluxNum_fI_c);
+			} else if (mem_type == 'V') {
+				free(NFluxData->nFluxViscNum_fI_c);
+			} else if (mem_type == 'P') {
+				free(NFluxData->nFluxViscNum_fI_c);
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
+
+// **************************************************************************************************** //
 // VOLUME functions
 // **************************************************************************************************** //
 
@@ -52,7 +158,7 @@ void coef_to_values_vI_c(struct S_VDATA const *const VDATA, char const coef_type
 			EXIT_UNSUPPORTED;
 
 		unsigned int const d    = DB.d,
-		                   Nvar = d+2;
+		                   Nvar = DB.Nvar;
 
 		struct S_OPERATORS_V const *const *const OPS    = (struct S_OPERATORS_V const *const *const) VDATA->OPS;
 		struct S_VOLUME      const *const        VOLUME = VDATA->VOLUME;
@@ -152,8 +258,8 @@ void coef_to_values_fI_c(struct S_FDATA *const FDATA, char const coef_type, char
 				if (FACE->Boundary) {
 					FACE->CDG2_side = 'L';
 				} else {
-					struct S_VOLUME const *const VL = FACE->VIn,
-					                      *const VR = FACE->VOut;
+					struct S_VOLUME const *const VL = FACE->VL,
+					                      *const VR = FACE->VR;
 
 					unsigned int const NvnSL = VL->NvnS,
 					                   NvnSR = VR->NvnS;
@@ -226,7 +332,9 @@ static void evaluate_boundary_c(struct S_BC *const BCdata, bool const ComputeGra
 
 	if (ComputeGradient) {
 		if (!(BC % BC_STEP_SC == BC_NOSLIP_T         ||
-		      BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC)) {
+		      BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC ||
+		      BC % BC_STEP_SC == BC_DIRICHLET        ||
+		      BC % BC_STEP_SC == BC_NEUMANN)) {
 			EXIT_UNSUPPORTED;
 		}
 	}
@@ -240,8 +348,7 @@ void compute_WR_fIL_c(struct S_FDATA const *const FDATA, double complex const *c
 	struct S_OPERATORS_F const *const *const OPS  = FDATA->OPS;
 	struct S_FACE        const *const        FACE = FDATA->FACE;
 
-	unsigned int const d        = DB.d,
-	                   Nvar     = d+2,
+	unsigned int const Nvar     = DB.Nvar,
 	                   IndFType = FDATA->IndFType,
 	                   BC       = FACE->BC,
 	                   NfnI     = OPS[IndFType]->NfnI,
@@ -322,7 +429,7 @@ void compute_numerical_flux_c(struct S_FDATA const *const FDATA, char const imex
 	struct S_FACE        const *const        FACE = FDATA->FACE;
 
 	unsigned int const d        = DB.d,
-	                   Neq      = d+2,
+	                   Neq      = DB.Neq,
 	                   IndFType = FDATA->IndFType,
 	                   NfnI     = OPS[IndFType]->NfnI;
 
@@ -354,7 +461,7 @@ void compute_numerical_solution_c(struct S_FDATA const *const FDATA, char const 
 	struct S_FACE        const *const        FACE = FDATA->FACE;
 
 	unsigned int const d        = DB.d,
-	                   Nvar     = d+2,
+	                   Nvar     = DB.Nvar,
 	                   IndFType = FDATA->IndFType,
 	                   NfnI     = OPS[IndFType]->NfnI;
 
@@ -381,7 +488,7 @@ static void correct_numerical_solution_strong_c(struct S_FDATA const *const FDAT
 	struct S_FACE        const *const        FACE = FDATA->FACE;
 
 	unsigned int const d        = DB.d,
-	                   Nvar     = d+2,
+	                   Nvar     = DB.Nvar,
 	                   IndFType = FDATA->IndFType,
 	                   NfnI     = OPS[IndFType]->NfnI;
 
@@ -434,9 +541,11 @@ void compute_numerical_flux_viscous_c(struct S_FDATA const *const FDATAL, struct
 	struct S_OPERATORS_F const *const *const OPSL = (struct S_OPERATORS_F const *const *const) FDATAL->OPS;
 	struct S_FACE        const *const        FACE = FDATAL->FACE;
 
+	char const *PDE = DB.PDE;
+
 	unsigned int const d        = DB.d,
-	                   Nvar     = d+2,
-	                   Neq      = d+2,
+	                   Nvar     = DB.Nvar,
+	                   Neq      = DB.Neq,
 	                   IndFType = FDATAL->IndFType,
 	                   Boundary = FACE->Boundary,
 	                   NfnI     = OPSL[IndFType]->NfnI;
@@ -450,36 +559,71 @@ void compute_numerical_flux_viscous_c(struct S_FDATA const *const FDATAL, struct
 	double complex *const nFluxViscNum_fIL = FDATAL->NFluxData->nFluxViscNum_fI_c;
 
 	double complex *const FluxViscNum_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscNum_fIL); // free
+
+	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->d   = d;
+	FLUXDATA->Nn  = NfnI;
+	FLUXDATA->Nel = 1;
+
 	if (Boundary) {
 		double complex *const W_fIL = malloc(NfnI*Nvar * sizeof *W_fIL); // free
 		for (size_t i = 0; i < NfnI*Nvar; i++)
 			W_fIL[i] = 0.5*(WL_fIL[i]+WR_fIL[i]);
 
-		double complex **Q_fIL = malloc(d * sizeof *Q_fIL); // free
+		double complex **Qp_fIL = malloc(d * sizeof *Qp_fIL); // free
 		for (size_t dim = 0; dim < d; dim++) {
-			Q_fIL[dim] = malloc(NfnI*Nvar * sizeof *Q_fIL[dim]); // free
+			Qp_fIL[dim] = malloc(NfnI*Nvar * sizeof *Qp_fIL[dim]); // free
 			for (size_t i = 0; i < NfnI*Nvar; i++)
-				Q_fIL[dim][i] = 0.5*(QpL_fIL[dim][i]+QpR_fIL[dim][i]);
+				Qp_fIL[dim][i] = 0.5*(QpL_fIL[dim][i]+QpR_fIL[dim][i]);
 		}
 
-		flux_viscous_c(NfnI,1,W_fIL,(double complex const *const *const) Q_fIL,FluxViscNum_fIL);
+		if (strstr(PDE,"NavierStokes")) {
+			FLUXDATA->W_c = W_fIL;
+			FLUXDATA->Q_c = (double complex const *const *const) Qp_fIL;
+			FLUXDATA->F_c = FluxViscNum_fIL;
+			flux_viscous_c(FLUXDATA);
+		} else if (strstr(PDE,"Poisson")) {
+			for (size_t dim = 0; dim < d; dim++) {
+				for (size_t i = 0, iMax = NfnI*Nvar; i < iMax; i++)
+					FluxViscNum_fIL[iMax*dim+i] = Qp_fIL[dim][i];
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+
 		free(W_fIL);
-		array_free2_cmplx(d,Q_fIL);
+		array_free2_cmplx(d,Qp_fIL);
 	} else {
-		double complex *const FluxViscL_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscL_fIL); // free
-		double complex *const FluxViscR_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscR_fIL); // free
+		if (strstr(PDE,"NavierStokes")) {
+			double complex *const FluxViscL_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscL_fIL); // free
+			double complex *const FluxViscR_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscR_fIL); // free
 
-		flux_viscous_c(NfnI,1,WL_fIL,QpL_fIL,FluxViscL_fIL);
-		flux_viscous_c(NfnI,1,WR_fIL,QpR_fIL,FluxViscR_fIL);
+			FLUXDATA->W_c = WL_fIL;
+			FLUXDATA->Q_c = (double complex const *const *const) QpL_fIL;
+			FLUXDATA->F_c = FluxViscL_fIL;
+			flux_viscous_c(FLUXDATA);
 
-		for (size_t i = 0; i < NfnI*d*Neq; i++)
-			FluxViscNum_fIL[i] = 0.5*(FluxViscL_fIL[i]+FluxViscR_fIL[i]);
+			FLUXDATA->W_c = WR_fIL;
+			FLUXDATA->Q_c = (double complex const *const *const) QpR_fIL;
+			FLUXDATA->F_c = FluxViscR_fIL;
+			flux_viscous_c(FLUXDATA);
 
-		free(FluxViscL_fIL);
-		free(FluxViscR_fIL);
+			for (size_t i = 0; i < NfnI*d*Neq; i++)
+				FluxViscNum_fIL[i] = 0.5*(FluxViscL_fIL[i]+FluxViscR_fIL[i]);
+
+			free(FluxViscL_fIL);
+			free(FluxViscR_fIL);
+		} else if (strstr(PDE,"Poisson")) {
+			for (size_t dim = 0; dim < d; dim++) {
+				for (size_t i = 0, iMax = NfnI*Nvar; i < iMax; i++)
+					FluxViscNum_fIL[iMax*dim+i] = 0.5*(QpL_fIL[dim][i] + QpR_fIL[dim][i]);
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
 	}
+	free(FLUXDATA);
 
-	// Take dot product with normal vector
 	dot_with_normal_c(NfnI,Neq,n_fIL,FluxViscNum_fIL,nFluxViscNum_fIL);
 	free(FluxViscNum_fIL);
 
@@ -503,7 +647,7 @@ void add_Jacobian_scaling_FACE_c(struct S_FDATA const *const FDATA, char const i
 	struct S_FACE        const *const        FACE = FDATA->FACE;
 
 	unsigned int const d        = DB.d,
-	                   Neq      = d+2,
+	                   Neq      = DB.Neq,
 	                   IndFType = FDATA->IndFType,
 	                   NfnI     = OPS[IndFType]->NfnI;
 
@@ -546,7 +690,7 @@ static void swap_FACE_orientation_c(struct S_FDATA const *const FDATA, char cons
 	struct S_OPERATORS_F const *const *const OPS  = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
 
 	unsigned int const d             = DB.d,
-	                   Neq           = d+2,
+	                   Neq           = DB.Neq,
 	                   IndFType      = FDATA->IndFType,
 	                   NfnI          = OPS[IndFType]->NfnI,
 	                   *const nOrdLR = OPS[IndFType]->nOrdLR;
@@ -590,10 +734,10 @@ void finalize_FACE_Inviscid_Weak_c(struct S_FDATA const *const FDATAL, struct S_
 
 	if (side == 'L') {
 		FDATA = FDATAL;
-		RHS   = FDATA->FACE->RHSIn_c;
+		RHS   = FDATA->FACE->RHSL_c;
 	} else if (side == 'R') {
 		FDATA = FDATAR;
-		RHS   = FDATA->FACE->RHSOut_c;
+		RHS   = FDATA->FACE->RHSR_c;
 
 		swap_FACE_orientation_c(FDATAR,imex_type,coef_type);
 	} else {
@@ -637,8 +781,8 @@ void finalize_QhatF_Weak_c(struct S_FDATA const *const FDATAL, struct S_FDATA co
 	struct S_OPERATORS_F const *const *const OPS = (struct S_OPERATORS_F const *const *const) FDATA->OPS;
 
 	unsigned int const d        = DB.d,
-	                   Neq      = d+2,
-	                   Nvar     = d+2,
+	                   Neq      = DB.Neq,
+	                   Nvar     = DB.Nvar,
 	                   Vf       = FDATA->Vf,
 	                   IndFType = FDATA->IndFType,
 	                   NfnI     = OPS[IndFType]->NfnI,

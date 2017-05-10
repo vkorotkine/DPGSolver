@@ -182,7 +182,6 @@
 #define FLUX_LF  0
 #define FLUX_ROE 1
 
-#define FLUX_IP   10
 #define FLUX_BR2  11
 #define FLUX_CDG2 12
 

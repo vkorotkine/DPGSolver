@@ -125,7 +125,7 @@
  *		InviscidFluxType : Type of inviscid numerical flux used.
  *		                   Options: LF, ROE
  *		ViscousFluxType  : Type of viscous numerical flux used.
- *		                   Options: IP, BR2, CDG2
+ *		                   Options: BR2, CDG2
  *		ExplicitSolverType : Type of explicit timestepping scheme used.
  *		                     Options: RK3_(S)trong(S)tability(Preserving), RK4_(L)ow(S)torage
  *		TETrefineType : Type of h-refinement to use for TET Elements.
@@ -554,7 +554,6 @@ void setup_parameters()
 //	DB.InviscidFluxType = FLUX_LF;
 	DB.InviscidFluxType = FLUX_ROE;
 
-//	DB.ViscousFluxType  = FLUX_IP;
 	DB.ViscousFluxType  = FLUX_BR2;
 //	DB.ViscousFluxType  = FLUX_CDG2;
 

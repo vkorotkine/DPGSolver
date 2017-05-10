@@ -4,7 +4,8 @@
 #ifndef DPG__fluxes_viscous_h__INCLUDED
 #define DPG__fluxes_viscous_h__INCLUDED
 
-extern void flux_viscous (unsigned int const Nn, unsigned int const Nel, double const *const W,
-                          double const *const *const Q, double *const F);
+#include "fluxes_structs.h"
+
+extern void flux_viscous (struct S_FLUX *const FLUXDATA);
 
 #endif // DPG__fluxes_viscous_h__INCLUDED

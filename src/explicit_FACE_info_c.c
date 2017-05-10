@@ -90,15 +90,15 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 			unsigned int const NvnSL = OPSL[0]->NvnS,
 			                   NvnSR = OPSR[0]->NvnS;
 
-			if (FACE->RHSIn_c != NULL)
-				free(FACE->RHSIn_c);
-			FACE->RHSIn_c = calloc(NvnSL*Neq , sizeof *(FACE->RHSIn_c)); // keep
+			if (FACE->RHSL_c != NULL)
+				free(FACE->RHSL_c);
+			FACE->RHSL_c = calloc(NvnSL*Neq , sizeof *(FACE->RHSL_c)); // keep
 			finalize_FACE_Inviscid_Weak_c(FDATAL,FDATAR,NFluxData->nFluxNum_fI_c,'L','E','W');
 
 			if (!FACE->Boundary) {
-				if (FACE->RHSOut_c != NULL)
-					free(FACE->RHSOut_c);
-				FACE->RHSOut_c = calloc(NvnSR*Neq , sizeof *(FACE->RHSOut_c)); // keep
+				if (FACE->RHSR_c != NULL)
+					free(FACE->RHSR_c);
+				FACE->RHSR_c = calloc(NvnSR*Neq , sizeof *(FACE->RHSR_c)); // keep
 
 				finalize_FACE_Inviscid_Weak_c(FDATAL,FDATAR,NFluxData->nFluxNum_fI_c,'R','E','W');
 			}
@@ -173,8 +173,8 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 
 
 			// Compute numerical flux as seen from the left VOLUME
-			NFluxData->WL_fIL_c          = FDATAL->W_fIL_c;
-			NFluxData->WR_fIL_c          = FDATAR->W_fIL_c;
+			NFluxData->WL_fIL_c = FDATAL->W_fIL_c;
+			NFluxData->WR_fIL_c = FDATAR->W_fIL_c;
 			NFluxData->nFluxViscNum_fI_c = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxViscNum_fI_c)); // free
 
 			compute_numerical_flux_viscous_c(FDATAL,FDATAR,'E');

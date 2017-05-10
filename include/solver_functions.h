@@ -10,6 +10,7 @@
 #include "S_VOLUME.h"
 #include "S_FACE.h"
 #include "S_OpCSR.h"
+#include "fluxes_structs.h"
 
 // VOLUME structs and functions
 
@@ -138,6 +139,7 @@ struct S_DATA {
 	struct S_VDATA *VDATA;
 	struct S_FDATA *FDATAL, *FDATAR;
 
+	struct S_FLUX          *FLUXDATA;
 	struct S_NumericalFlux *NFluxData;
 };
 
