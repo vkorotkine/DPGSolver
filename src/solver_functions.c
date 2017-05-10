@@ -44,6 +44,105 @@
  *	References:
  */
 
+// **************************************************************************************************** //
+// General functions
+// **************************************************************************************************** //
+
+void manage_solver_memory(struct S_DATA *const DATA, char const mem_op, char const mem_type)
+{
+	/*
+	 *	Puspose:
+	 *		Allocate or free memory associated with solver functions.
+	 *
+	 *	Comments:
+	 *
+	 *	Notation:
+	 *		mem_op    : (mem)ory (op)eration.         Options: 'A'llocate, 'F'ree
+	 *		feature   :                               Options: 'V'OLUME, 'F'ACE.
+	 *		mem_type  : (mem)ory (type).
+	 *		            Options: 'W' (Solution), 'Q' (Gradients), 'I' (Inviscid flux), 'V' (Viscous flux)
+	 *		imex_type : (im)plicit (ex)plicit (type). Options: 'I'mplicit, 'E'xplicit
+	 */
+
+	char const feature   = DATA->feature,
+	           imex_type = DATA->imex_type;
+
+	if (!(imex_type == 'E' || imex_type == 'I'))
+		EXIT_UNSUPPORTED;
+
+	struct S_VDATA         *const VDATA     = DATA->VDATA;
+	struct S_FDATA         *const FDATAL    = DATA->FDATAL,
+	                       *const FDATAR    = DATA->FDATAR;
+	struct S_NumericalFlux *const NFluxData = DATA->NFluxData;
+
+
+	struct S_OPERATORS_F const *const *const OPSF = FDATAL->OPS;
+
+	unsigned int const d        = DB.d,
+	                   Nvar     = DB.Nvar,
+	                   Neq      = DB.Neq,
+	                   NvnI     = VDATA->OPS[0]->NvnI,
+	                   IndFType = FDATAL->IndFType,
+	                   NfnI     = OPSF[IndFType]->NfnI;
+
+	if (mem_op == 'A') {
+		if (feature == 'V') {
+			if (mem_type == 'W') {
+				VDATA->W_vI = malloc(NvnI*Nvar * sizeof *(VDATA->W_vI)); // free
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else if (feature == 'F') {
+			if (mem_type == 'W') {
+				FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // keep
+				FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // keep
+
+				if (imex_type == 'I') {
+				}
+			} else if (mem_type == 'Q') {
+				FDATAL->Qp_fIL = malloc(d * sizeof *(FDATAL->Qp_fIL)), // keep
+				FDATAR->Qp_fIL = malloc(d * sizeof *(FDATAR->Qp_fIL)); // keep
+
+				for (size_t dim = 0; dim < d; dim++) {
+					FDATAL->Qp_fIL[dim] = malloc(NfnI*Nvar * sizeof *(FDATAL->Qp_fIL[dim])); // keep
+					FDATAR->Qp_fIL[dim] = malloc(NfnI*Nvar * sizeof *(FDATAR->Qp_fIL[dim])); // keep
+				}
+			} else if (mem_type == 'I') {
+				NFluxData->nFluxNum_fI = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxNum_fI)); // keep
+			} else if (mem_type == 'V') {
+				NFluxData->nFluxViscNum_fI = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxViscNum_fI)); // keep
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else if (mem_op == 'F') {
+		if (feature == 'V') {
+			if (mem_type == 'W') {
+				free(VDATA->W_vI);
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else if (feature == 'F') {
+			if (mem_type == 'W') {
+				free(FDATAL->W_fIL);
+				free(FDATAR->W_fIL);
+			} else if (mem_type == 'Q') {
+				array_free2_d(d,FDATAL->Qp_fIL);
+				array_free2_d(d,FDATAR->Qp_fIL);
+			} else if (mem_type == 'I') {
+				free(NFluxData->nFluxNum_fI);
+			} else if (mem_type == 'V') {
+				free(NFluxData->nFluxViscNum_fI);
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
 
 // **************************************************************************************************** //
 // VOLUME functions

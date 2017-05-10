@@ -59,9 +59,8 @@ void explicit_FACE_info(void)
 
 static void compute_Inviscid_FACE_RHS_EFE(void)
 {
-	unsigned int const d    = DB.d,
-	                   Nvar = d+2,
-	                   Neq  = d+2;
+	unsigned int const d   = DB.d,
+	                   Neq = d+2;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 
@@ -79,17 +78,20 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 		OPSR[i] = malloc(sizeof *OPSR[i]); // free
 	}
 
+	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
+	DATA->FDATAL    = FDATAL;
+	DATA->FDATAR    = FDATAR;
+	DATA->NFluxData = NFluxData;
+	DATA->feature   = 'F';
+	DATA->imex_type = 'E';
+
 	if (strstr(DB.Form,"Weak")) {
 		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
 			init_FDATA(FDATAL,FACE,'L');
 			init_FDATA(FDATAR,FACE,'R');
 
 			// Compute WL_fIL and WR_fIL (i.e. as seen from the (L)eft VOLUME)
-			unsigned int const IndFType = FDATAL->IndFType,
-			                   NfnI     = OPSL[IndFType]->NfnI;
-
-			FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // free
-			FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // free
+			manage_solver_memory(DATA,'A','W'); // free
 
 			coef_to_values_fI(FDATAL,'W','E');
 			compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
@@ -98,13 +100,12 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 			// Compute numerical flux as seen from the left VOLUME
 			NFluxData->WL_fIL      = FDATAL->W_fIL;
 			NFluxData->WR_fIL      = FDATAR->W_fIL;
-			NFluxData->nFluxNum_fI = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxNum_fI)); // free
+			manage_solver_memory(DATA,'A','I'); // free
 
 			compute_numerical_flux(FDATAL,'E');
 			add_Jacobian_scaling_FACE(FDATAL,'E','W');
 
-			free(FDATAL->W_fIL);
-			free(FDATAR->W_fIL);
+			manage_solver_memory(DATA,'F','W');
 
 
 			// Compute FACE RHS terms
@@ -119,7 +120,7 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,NULL,'R','E','W');
 			}
 
-			free(NFluxData->nFluxNum_fI);
+			manage_solver_memory(DATA,'F','I');
 		}
 	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;
@@ -129,9 +130,10 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 		free(OPSL[i]);
 		free(OPSR[i]);
 	}
-	free(NFluxData);
 	free(FDATAL);
 	free(FDATAR);
+	free(NFluxData);
+	free(DATA);
 }
 
 static void compute_Viscous_FACE_RHS_EFE(void)

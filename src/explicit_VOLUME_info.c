@@ -68,14 +68,18 @@ void explicit_VOLUME_info(void)
 static void compute_Inviscid_VOLUME_RHS_EFE(void)
 {
 	// Initialize DB Parameters
-	unsigned int const d    = DB.d,
-	                   Nvar = d+2,
-	                   Neq  = d+2;
+	unsigned int const d   = DB.d,
+	                   Neq = d+2;
 
 	struct S_OPERATORS_V *OPS[2];
 
 	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
 	VDATA->OPS = (struct S_OPERATORS_V const *const *) OPS;
+
+	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
+	DATA->VDATA     = VDATA;
+	DATA->feature   = 'V';
+	DATA->imex_type = 'E';
 
 	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
@@ -89,17 +93,18 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 			if (DB.Collocated) {
 				VDATA->W_vI = VOLUME->What;
 			} else {
-				VDATA->W_vI = malloc(NvnI*Nvar * sizeof *(VDATA->W_vI)); // free
+				manage_solver_memory(DATA,'A','W'); // free
 				coef_to_values_vI(VDATA,'W');
 			}
 
 			// Compute Flux in reference space
 			double *const F_vI = malloc(NvnI*d*Neq * sizeof *F_vI); // free
 
+// New struct to pass to flux_inviscid should include Nn, Nel, d, W, F, Fr (ToBeDeleted)
 			flux_inviscid(NvnI,1,VDATA->W_vI,F_vI,d,Neq);
 
 			if (!DB.Collocated)
-				free(VDATA->W_vI);
+				manage_solver_memory(DATA,'F','W'); // free
 
 			// Convert to reference space
 			double *const Fr_vI = malloc(NvnI*Neq*d * sizeof *Fr_vI); // free
@@ -120,6 +125,7 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 	free(VDATA);
 	for (size_t i = 0; i < 2; i++)
 		free(OPS[i]);
+	free(DATA);
 }
 
 static void compute_Viscous_VOLUME_RHS_EFE(void)

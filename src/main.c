@@ -308,8 +308,6 @@ int main(int nargc, char **argv)
 
 		test_unit_equivalence_real_complex();
 	}
-test_unit_jacobian_boundary();
-test_unit_equivalence_real_complex();
 
 	// Integration tests
 	if (RunTest.integration) {
@@ -317,8 +315,8 @@ test_unit_equivalence_real_complex();
 		test_integration_L2_projections(nargc,argv);
 		test_integration_Poisson(nargc,argv);
 	}
-	test_integration_Poisson(nargc,argv);
-//	test_integration_Euler(nargc,argv);
+//	test_integration_Poisson(nargc,argv);
+	test_integration_Euler(nargc,argv);
 //	test_integration_NavierStokes(nargc,argv);
 
 	PetscFinalize();

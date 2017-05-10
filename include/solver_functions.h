@@ -11,7 +11,6 @@
 #include "S_FACE.h"
 #include "S_OpCSR.h"
 
-
 // VOLUME structs and functions
 
 struct S_Dxyz {
@@ -131,5 +130,18 @@ extern void finalize_FACE_Viscous_Weak  (struct S_FDATA const *const FDATAL, str
 extern void finalize_implicit_FACE_Q_Weak (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
                                            char const side);
 extern void finalize_VOLUME_LHSQF_Weak  (struct S_FACE *const FACE);
+
+// General functions
+struct S_DATA {
+	char feature, imex_type;
+
+	struct S_VDATA *VDATA;
+	struct S_FDATA *FDATAL, *FDATAR;
+
+	struct S_NumericalFlux *NFluxData;
+};
+
+extern void manage_solver_memory (struct S_DATA *const DATA, char const mem_op, char const mem_type);
+
 
 #endif // DPG__solver_functions_h__INCLUDED
