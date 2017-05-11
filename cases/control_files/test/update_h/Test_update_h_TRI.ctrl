@@ -2,7 +2,7 @@ PDEName       Poisson
 PDESpecifier  Dirichlet
 
 Geometry      n-Cube n-Cube/n-Cube2D.geo
-GeomSpecifier Test
+GeomSpecifier NONE
 
 Dimension     2
 

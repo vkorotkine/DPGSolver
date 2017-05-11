@@ -197,8 +197,13 @@ $(EXECDIR):
 
 OUTPUT_LIST   := paraview errors results
 #TESTCASE_LIST := Poisson SupersonicVortex InviscidChannel SubsonicNozzle PrandtlMeyer
-TESTCASE_LIST := Poisson Euler_PeriodicVortex Euler_SupersonicVortex NavierStokes_TaylorCouette \
+TESTCASE_LIST := Poisson \
+                 Euler_PeriodicVortex \
+                 Euler_PeriodicVortex_Stationary \
+                 Euler_SupersonicVortex \
+                 NavierStokes_TaylorCouette \
                  NavierStokes_PlaneCouette
+
 MESHTYPE_LIST := TRI CurvedTRI ToBeCurvedTRI \
                  QUAD CurvedQUAD ToBeCurvedQUAD \
                  TET ToBeCurvedTET \
@@ -226,7 +231,7 @@ PYTHONC := python3
 
 #MAIN_CONFIGURATIONS := Euler
 MAIN_CONFIGURATIONS := $(nullstring)
-TEST_CONFIGURATIONS := update_h L2_proj_p L2_proj_h linearization Poisson Euler NavierStokes
+TEST_CONFIGURATIONS := update_h L2_proj_p L2_proj_h Poisson Euler NavierStokes
 
 MAIN_CONFIGURATIONS := $(addprefix main/,$(MAIN_CONFIGURATIONS))
 TEST_CONFIGURATIONS := $(addprefix test/,$(TEST_CONFIGURATIONS))
@@ -252,7 +257,6 @@ $(MESHVARIABLES) : $(CONTROL_FILES)
 	$(PYTHONC) python/MeshVariables_update.py $(CONFIGURATIONS)
 	@$(PYTHONC) python/MeshVariables_remove_duplicates.py
 	@echo
-
 
 
 

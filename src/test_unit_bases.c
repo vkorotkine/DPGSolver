@@ -673,10 +673,7 @@ static double *basis_TET2(const double *rst, const unsigned int Nn)
 
 static void test_unit_basis_SI_modal(void)
 {
-	test_print_warning("Ensure that discrepancy between M and I for WSH nodes is as expected");
-
 	unsigned int pass;
-	unsigned int printMI = 0;
 
 	/*
 	 *	basis_SI (d = 2):
@@ -801,7 +798,13 @@ static void test_unit_basis_SI_modal(void)
 	 *			d = 2, P = 2, rst_WSH (P = 2), rst_WV (P = 4):
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I with error in highest order entries (WSH)
 	 *				M = ChiRef_rst'*W*ChiRef_rst = I (WV)
+	 *
+	 *	Comments:
+	 *		Ensure that the discrepancy between M and I for WSH nodes is as expected. Can view the computed mass matrix
+	 *		by enabling 'printMI'.
 	 */
+
+	unsigned int const printMI = 0;
 
 	struct S_orthogonality *data;
 

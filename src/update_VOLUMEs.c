@@ -106,6 +106,8 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 		if      (vh == 1) { NF = 2; IndFP[0] = 1; IndFP[1] = 2; }
 		else if (vh == 2) { NF = 2; IndFP[0] = 0; IndFP[1] = 2; }
 		else if (vh == 3) { NF = 2; IndFP[0] = 0; IndFP[1] = 1; }
+		else if (vh == 4) { NF = 0; }
+		else              { EXIT_UNSUPPORTED; }
 
 		for (size_t f = 0; f < NF; f++)
 			IndF[f] = IndFP[f];
@@ -121,6 +123,7 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 		else if (vh == 6) { NF = 3; IndFP[0] = 1; IndFP[1] = 2; IndFP[2] = 3; }
 		else if (vh == 7) { NF = 3; IndFP[0] = 0; IndFP[1] = 1; IndFP[2] = 2; }
 		else if (vh == 8) { NF = 3; IndFP[0] = 0; IndFP[1] = 1; IndFP[2] = 3; }
+		else              { EXIT_UNSUPPORTED; }
 
 		for (size_t f = 0; f < NF; f++)
 			IndF[f] = IndFP[f];
@@ -137,7 +140,7 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 			else if (vh == 6) { NF = 1; IndFP[0] = 1; }
 			else if (vh == 7) { NF = 1; IndFP[0] = 2; }
 			else if (vh == 8) { NF = 1; IndFP[0] = 3; }
-			else              { printf("Error: Unsupported.\n"), EXIT_MSG; }
+			else              { EXIT_UNSUPPORTED; }
 
 			for (size_t f = 0; f < NF; f++)
 				IndF[f] = IndFP[f];
@@ -184,10 +187,10 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 				IndEP[0] = 3; IndEP[1] = 3; IndEP[2] = 3; IndEP[3] = 0; IndEP[4] = 1;
 				IndBC[0] = F; IndBC[1] = F; IndBC[2] = F; IndBC[3] = F; IndBC[4] = F;
 			} else {
-				printf("Error: Unsupported.\n"), EXIT_MSG;
+				EXIT_UNSUPPORTED;
 			}
 		} else {
-			printf("Add support.\n"), EXIT_MSG;
+			EXIT_UNSUPPORTED;
 		}
 		break;
 	case HEX:
@@ -200,7 +203,7 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 		else if (vh == 6) { NF = 3; IndFP[0] = 1; IndFP[1] = 2; IndFP[2] = 5; }
 		else if (vh == 7) { NF = 3; IndFP[0] = 0; IndFP[1] = 3; IndFP[2] = 5; }
 		else if (vh == 8) { NF = 3; IndFP[0] = 1; IndFP[1] = 3; IndFP[2] = 5; }
-		else              { printf("Error: Unsupported.\n"), EXIT_MSG; }
+		else              { EXIT_UNSUPPORTED; }
 
 		for (size_t f = 0; f < NF; f++)
 			IndF[f] = IndFP[f];
@@ -240,11 +243,71 @@ static void set_VOLUMEc_BC_Info(struct S_VOLUME *VOLUME, const unsigned int vh, 
 			IndEP[0] = 3; IndEP[1] = 5; IndEP[2] = 3; IndEP[3] = 1; IndEP[4] = 5; IndEP[5] = 7; IndEP[6] = 1; IndEP[7] = 3; IndEP[8] = 11;
 			IndBC[0] = F; IndBC[1] = F; IndBC[2] = E; IndBC[3] = F; IndBC[4] = F; IndBC[5] = E; IndBC[6] = F; IndBC[7] = F; IndBC[8] = E;
 		} else {
-			printf("Error: Unsupported.\n"), EXIT_MSG;
+			EXIT_UNSUPPORTED;
+		}
+		break;
+	case WEDGE:
+		// FACE
+		if      (vh == 1) { NF = 3; IndFP[0] = 1; IndFP[1] = 2; IndFP[2] = 3; }
+		else if (vh == 2) { NF = 3; IndFP[0] = 0; IndFP[1] = 2; IndFP[2] = 3; }
+		else if (vh == 3) { NF = 3; IndFP[0] = 0; IndFP[1] = 1; IndFP[2] = 3; }
+		else if (vh == 4) { NF = 1; IndFP[0] = 3; }
+		else if (vh == 5) { NF = 3; IndFP[0] = 1; IndFP[1] = 2; IndFP[2] = 4; }
+		else if (vh == 6) { NF = 3; IndFP[0] = 0; IndFP[1] = 2; IndFP[2] = 4; }
+		else if (vh == 7) { NF = 3; IndFP[0] = 0; IndFP[1] = 1; IndFP[2] = 4; }
+		else if (vh == 8) { NF = 1; IndFP[0] = 4; }
+		else              { EXIT_UNSUPPORTED; }
+
+		for (size_t f = 0; f < NF; f++)
+			IndF[f] = IndFP[f];
+
+		// EDGE
+		if (vh == 1) {
+			NE = 8;
+			IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 4; IndE[4]  = 5; IndE[5]  = 6; IndE[6]  = 7; IndE[7]  = 8;
+			IndEP[0] = 3; IndEP[1] = 1; IndEP[2] = 2; IndEP[3] = 1; IndEP[4] = 2; IndEP[5] = 6; IndEP[6] = 2; IndEP[7] = 1;
+			IndBC[0] = F; IndBC[1] = E; IndBC[2] = E; IndBC[3] = F; IndBC[4] = F; IndBC[5] = E; IndBC[6] = F; IndBC[7] = F;
+		} else if (vh == 2) {
+			NE = 8;
+			IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 3; IndE[4]  = 5; IndE[5]  = 6; IndE[6]  = 7; IndE[7]  = 8;
+			IndEP[0] = 0; IndEP[1] = 3; IndEP[2] = 2; IndEP[3] = 0; IndEP[4] = 2; IndEP[5] = 2; IndEP[6] = 7; IndEP[7] = 0;
+			IndBC[0] = E; IndBC[1] = F; IndBC[2] = E; IndBC[3] = F; IndBC[4] = F; IndBC[5] = F; IndBC[6] = E; IndBC[7] = F;
+		} else if (vh == 3) {
+			NE = 8;
+			IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 3; IndE[4]  = 4; IndE[5]  = 6; IndE[6]  = 7; IndE[7]  = 8;
+			IndEP[0] = 0; IndEP[1] = 1; IndEP[2] = 3; IndEP[3] = 0; IndEP[4] = 1; IndEP[5] = 1; IndEP[6] = 0; IndEP[7] = 8;
+			IndBC[0] = E; IndBC[1] = E; IndBC[2] = F; IndBC[3] = F; IndBC[4] = F; IndBC[5] = F; IndBC[6] = F; IndBC[7] = E;
+		} else if (vh == 4) {
+			NE = 6;
+			IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 2; IndE[3]  = 6; IndE[4]  = 7; IndE[5]  = 8;
+			IndEP[0] = 3; IndEP[1] = 3; IndEP[2] = 3; IndEP[3] = 0; IndEP[4] = 1; IndEP[5] = 2;
+			IndBC[0] = F; IndBC[1] = F; IndBC[2] = F; IndBC[3] = F; IndBC[4] = F; IndBC[5] = F;
+		} else if (vh == 5) {
+			NE = 8;
+			IndE[0]  = 1; IndE[1]  = 2; IndE[2]  = 3; IndE[3]  = 4; IndE[4]  = 5; IndE[5]  = 6; IndE[6]  = 7; IndE[7]  = 8;
+			IndEP[0] = 1; IndEP[1] = 2; IndEP[2] = 4; IndEP[3] = 4; IndEP[4] = 5; IndEP[5] = 6; IndEP[6] = 2; IndEP[7] = 1;
+			IndBC[0] = F; IndBC[1] = F; IndBC[2] = F; IndBC[3] = E; IndBC[4] = E; IndBC[5] = E; IndBC[6] = F; IndBC[7] = F;
+		} else if (vh == 6) {
+			NE = 8;
+			IndE[0]  = 0; IndE[1]  = 2; IndE[2]  = 3; IndE[3]  = 4; IndE[4]  = 5; IndE[5]  = 6; IndE[6]  = 7; IndE[7]  = 8;
+			IndEP[0] = 0; IndEP[1] = 2; IndEP[2] = 3; IndEP[3] = 4; IndEP[4] = 5; IndEP[5] = 2; IndEP[6] = 7; IndEP[7] = 0;
+			IndBC[0] = F; IndBC[1] = F; IndBC[2] = E; IndBC[3] = F; IndBC[4] = E; IndBC[5] = F; IndBC[6] = E; IndBC[7] = F;
+		} else if (vh == 7) {
+			NE = 8;
+			IndE[0]  = 0; IndE[1]  = 1; IndE[2]  = 3; IndE[3]  = 4; IndE[4]  = 5; IndE[5]  = 6; IndE[6]  = 7; IndE[7]  = 8;
+			IndEP[0] = 0; IndEP[1] = 1; IndEP[2] = 3; IndEP[3] = 4; IndEP[4] = 4; IndEP[5] = 1; IndEP[6] = 0; IndEP[7] = 8;
+			IndBC[0] = F; IndBC[1] = F; IndBC[2] = E; IndBC[3] = E; IndBC[4] = F; IndBC[5] = F; IndBC[6] = F; IndBC[7] = E;
+		} else if (vh == 8) {
+			NE = 6;
+			IndE[0]  = 3; IndE[1]  = 4; IndE[2]  = 5; IndE[3]  = 6; IndE[4]  = 7; IndE[5]  = 8;
+			IndEP[0] = 4; IndEP[1] = 4; IndEP[2] = 4; IndEP[3] = 0; IndEP[4] = 1; IndEP[5] = 2;
+			IndBC[0] = F; IndBC[1] = F; IndBC[2] = F; IndBC[3] = F; IndBC[4] = F; IndBC[5] = F;
+		} else {
+			EXIT_UNSUPPORTED;
 		}
 		break;
 	default:
-		printf("Error: Unsupported.\n"), EXIT_MSG;
+		EXIT_UNSUPPORTED;
 		break;
 	}
 
@@ -823,6 +886,9 @@ void update_VOLUME_hp(void)
 
 					// If the parent VOLUME is curved and its order will be changed, its geometry must be updated.
 					if (VOLUMEp->P != maxP && VOLUMEp->curved) {
+						VOLUMEp->P    = maxP;
+						VOLUMEp->PNew = maxP;
+
 						init_ops(OPSp,VOLUMEp,0);
 
 						NCols = d;
@@ -862,9 +928,9 @@ void update_VOLUME_hp(void)
 
 					dummyPtr_d = malloc(NvnS[0]*Nvar * sizeof *dummyPtr_d); // free
 
-					uhat = What = RES = NULL;
+					What = RES = NULL;
 					if (strstr(TestCase,"Poisson")) {
-						uhat = calloc(NvnS[0]*Nvar , sizeof *uhat); // keep
+						What = calloc(NvnS[0]*Nvar , sizeof *What); // keep
 					} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 						What = calloc(NvnS[0]*Nvar , sizeof *What); // keep
 						RES  = calloc(NvnS[0]*Nvar , sizeof *RES);  // keep
@@ -879,10 +945,10 @@ void update_VOLUME_hp(void)
 							VOLUMEc = VOLUMEc->next;
 
 						if (strstr(TestCase,"Poisson")) {
-							uhatH = VOLUMEc->What;
-							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],uhatH,dummyPtr_d);
+							WhatH = VOLUMEc->What;
+							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],WhatH,dummyPtr_d);
 							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
-								uhat[i] += dummyPtr_d[i];
+								What[i] += dummyPtr_d[i];
 						} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 							WhatH = VOLUMEc->What;
 							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],WhatH,dummyPtr_d);
@@ -910,11 +976,11 @@ void update_VOLUME_hp(void)
 					}
 					free(dummyPtr_d);
 
+					VOLUMEp->What = What;
 					if (strstr(TestCase,"Poisson")) {
-						VOLUMEp->What = uhat;
+						; // Do nothing
 					} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
-						VOLUMEp->What = What;
-						VOLUMEp->RES  = RES;
+						VOLUMEp->RES = RES;
 					} else {
 						EXIT_UNSUPPORTED;
 					}

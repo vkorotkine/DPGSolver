@@ -1,5 +1,5 @@
 PDEName       Euler
-PDESpecifier  Internal/SupersonicVortex/Test
+PDESpecifier  Internal/SupersonicVortex
 
 Geometry      n-Cylinder_HollowSection n-Cylinder_HollowSection/n-Cylinder_HollowSection3D.geo
 GeomSpecifier NONE
@@ -9,7 +9,7 @@ Dimension     3
 MeshPath      ../meshes/
 MeshType      TET
 MeshCurving   ToBeCurved
-MeshLevel     2
+MeshLevel     1
 
 Form       Weak   // Options: Weak, (Strong)
 NodeType   GLL-AO // Options: GL/GLL-AO/WSH/EQ
@@ -21,7 +21,7 @@ Collocated 0     // Options: 0, 1
 Adapt      3     // Options: 0, 1, 2, 3
 
 PGlobal    1
-PMax       2
+PMax       3
 LevelsMax  7
 
 Restart    -1    // Options: -1, 0, Iteration #

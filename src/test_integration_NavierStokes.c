@@ -3,34 +3,16 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 
 #include "Parameters.h"
-#include "Macros.h"
-#include "S_DB.h"
-#include "S_ELEMENT.h"
-#include "S_VOLUME.h"
-#include "Test.h"
 
-#include "test_code_integration.h"
 #include "test_code_integration_equivalence_real_complex.h"
+#include "test_code_integration_equivalence_algorithms.h"
 #include "test_code_integration_linearization.h"
 #include "test_code_integration_conv_order.h"
 #include "test_support.h"
 
-#include "adaptation.h"
-#include "output_to_paraview.h"
-#include "solver_explicit.h"
-#include "solver_implicit.h"
-#include "compute_errors.h"
 #include "array_free.h"
-#include "test_integration_Poisson.h"
-#include "element_functions.h"
-#include "array_norm.h"
-#include "array_print.h"
-#include "test_integration_Euler.h"
-#include "update_VOLUMEs.h"
-#include "update_FACEs.h"
 
 /*
  *	Purpose:
@@ -84,7 +66,18 @@ void test_integration_NavierStokes(int nargc, char **argv)
 	// Algorithm equivalence
 	// **************************************************************************************************** //
 	if (RunTests_equivalence_algorithms) {
-		test_print_warning("Equivalence algorithms not yet implemented for Navier-Stokes");
+		struct S_equivalence_algs *const data_alg = calloc(1 , sizeof *data_alg); // free
+
+		data_alg->nargc     = nargc;
+		data_alg->argvNew   = argvNew;
+		data_alg->PrintName = PrintName;
+
+		test_equivalence_algorithms(data_alg,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedMIXED2D");
+		test_print_warning("WEDGE equivalence algorithms not being tested for Navier-Stokes");
+
+		free(data_alg);
+	} else {
+		test_print_warning("Navier-Stokes equivalence algorithms testing currently disabled");
 	}
 
 	// **************************************************************************************************** //
@@ -120,11 +113,13 @@ void test_integration_NavierStokes(int nargc, char **argv)
 
 		// Add tests for:
 		// 1) PlaneCouette (Illingworth(1950), problem 3)
-		// 2) Stokes flow over a sphere (analytical solution for compressible?)
+		// 2) 3D Curved manufactured solution
 
 //		test_conv_order(data_c,"NavierStokes_n-Cube_StraightQUAD"); // PlaneCouette (Possibly not yet working)
 
 		free(data_c);
+	} else {
+		test_print_warning("Navier-Stokes convergence order testing currently disabled");
 	}
 
 	array_free2_c(2,argvNew);

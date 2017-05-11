@@ -468,7 +468,7 @@ static void output_errors(const double *L2Error2, const unsigned int NvarError, 
 
 	f_name = set_fname(0); // free
 	if ((fID = fopen(f_name,"w")) == NULL)
-		printf("Error: File: %s, did not open.\n",f_name), exit(1);
+		printf("Error: File: %s, did not open.\n",f_name), EXIT_MSG;
 
 	if (strstr(TestCase,"Poisson")) {
 		fprintf(fID,"DOF         Vol         L2u2        L2q1_2      L2q2_2      L2q3_2\n");
@@ -484,7 +484,7 @@ static void output_errors(const double *L2Error2, const unsigned int NvarError, 
 		else
 			fprintf(fID,"DOF         Vol         L2u2        L2v2        L2T2        L2Gradu2                L2Gradv2                L2GradT2 \n");
 	} else {
-		printf("Error: Unsupported.\n"), EXIT_MSG;
+		EXIT_UNSUPPORTED;
 	}
 	fprintf(fID,"%-10d  %.4e  ",DOF,Vol);
 	for (i = 0; i < NvarError; i++)
@@ -513,7 +513,7 @@ static void collect_errors(const unsigned int NvarError)
 	for (rank = 0; rank < MPIsize; rank++) {
 		f_name = set_fname(0); // free
 		if ((fID = fopen(f_name,"r")) == NULL)
-			printf("Error: File: %s, did not open.\n",f_name), exit(1);
+			printf("Error: File: %s, did not open.\n",f_name), EXIT_MSG;
 
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
@@ -542,7 +542,7 @@ static void collect_errors(const unsigned int NvarError)
 
 	f_name = set_fname(1); // free
 	if ((fID = fopen(f_name,"w")) == NULL)
-		printf("Error: File: %s, did not open.\n",f_name), exit(1);
+		printf("Error: File: %s, did not open.\n",f_name), EXIT_MSG;
 
 	if (strstr(TestCase,"Poisson")) {
 		fprintf(fID,"DOF         L2u         L2q1        L2q2        L2q3\n");
@@ -559,7 +559,7 @@ static void collect_errors(const unsigned int NvarError)
 			fprintf(fID,"DOF         L2u         L2v         L2T         L2ux        L2uy        L2vx        L2vy        L2Tx        L2Ty        \n");
 		}
 	} else {
-		printf("Error: Unsupported.\n"), EXIT_MSG;
+		EXIT_UNSUPPORTED;
 	}
 	fprintf(fID,"%-10d  ",DOF);
 	for (i = 0; i < NvarError; i++)

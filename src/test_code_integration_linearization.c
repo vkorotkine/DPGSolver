@@ -88,6 +88,7 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 	data->Nref        = 2;
 	data->update_argv = 1;
 
+	strcpy(data->argvNew[1],"test/");
 	if (strstr(TestName,"Poisson")) {
 		data->CheckSymmetric = 1;
 		if (strstr(TestName,"MIXED2D")) {
@@ -98,13 +99,13 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 		}
 	} else if (strstr(TestName,"Euler")) {
 		data->update_argv = 0;
-// Modify this to be consisten with other PDE types (i.e. test/Euler/Test_Euler... (ToBeDeleted)
+		strcat(data->argvNew[1],"Euler/Test_Euler_SupersonicVortex_ToBeCurved");
 		if (strstr(TestName,"MIXED2D")) {
-			strcpy(data->argvNew[1],"test/linearization/Test_linearization_ToBeCurvedMIXED2D");
+			strcat(data->argvNew[1],"MIXED2D");
 		} else if (strstr(TestName,"MIXED_TET_PYR")) {
-			strcpy(data->argvNew[1],"test/linearization/Test_linearization_ToBeCurvedMIXED3D_TP");
+			strcat(data->argvNew[1],"MIXED3D_TP");
 		} else if (strstr(TestName,"MIXED_HEX_WEDGE")) {
-			strcpy(data->argvNew[1],"test/linearization/Test_linearization_ToBeCurvedMIXED3D_HW");
+			strcat(data->argvNew[1],"MIXED3D_HW");
 		} else {
 			EXIT_UNSUPPORTED;
 		}

@@ -70,7 +70,10 @@ static void update_TestCase(void)
 		if (strstr(DB.TestCase,"SupersonicVortex")) {
 			strcpy(DB.TestCase,"Euler_SupersonicVortex");
 		} else if (strstr(DB.TestCase,"PeriodicVortex")) {
-			strcpy(DB.TestCase,"Euler_PeriodicVortex");
+			if (strstr(DB.TestCase,"Stationary"))
+				strcpy(DB.TestCase,"Euler_PeriodicVortex_Stationary");
+			else
+				strcpy(DB.TestCase,"Euler_PeriodicVortex");
 		} else {
 			EXIT_UNSUPPORTED;
 		}
@@ -982,11 +985,11 @@ void set_PrintName(char *name_type, char *PrintName, bool *TestTRI)
 	if (!(*TestTRI)) {
 		*TestTRI = 1;
 		if (strstr(name_type,"conv_orders")) {
-			strcpy(PrintName,"Convergence Orders (");
+			strcpy(PrintName,"Convergence Orders         (");
 		} else if (strstr(name_type,"equiv_rc")) {
-			strcpy(PrintName,"Equivalence Real/Complex (");
+			strcpy(PrintName,"Equivalence Real/Complex   (");
 		} else if (strstr(name_type,"equiv_alg")) {
-			strcpy(PrintName,"Equivalence Algorithms (");
+			strcpy(PrintName,"Equivalence Algorithms     (");
 		} else if (strstr(name_type,"linearization")) {
 			if (strstr(name_type,"weak gradient"))
 				strcpy(PrintName,"Linearization (weak grad.) (");
@@ -996,18 +999,12 @@ void set_PrintName(char *name_type, char *PrintName, bool *TestTRI)
 			EXIT_UNSUPPORTED;
 		}
 	} else {
-		if (strstr(name_type,"conv_orders")) {
-			strcpy(PrintName,"                   (");
-		} else if (strstr(name_type,"linearization")) {
-			strcpy(PrintName,"                           (");
-		} else {
-			EXIT_UNSUPPORTED;
-		}
+		strcpy(PrintName,"                           (");
 	}
 
-	strcat(PrintName,DB.PDE);          strcat(PrintName,", ");
+	strcat(PrintName,DB.PDE); strcat(PrintName,", ");
 	if (!strstr(DB.PDESpecifier,"NONE")) {
 		strcat(PrintName,DB.PDESpecifier); strcat(PrintName,", ");
 	}
-	strcat(PrintName,DB.MeshType);     strcat(PrintName,") : ");
+	strcat(PrintName,DB.MeshType); strcat(PrintName,") : ");
 }

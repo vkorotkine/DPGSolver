@@ -255,29 +255,27 @@ void initialize_test_case_parameters(void)
 				DB.TInf = 1.0;
 				DB.Rg   = 1.0;
 
-				DB.Cscale = 0.1;
-
-				if (strstr(TestCase,"Stationary")) {
-					DB.MInf = 0.0;
-				} else {
-					DB.MInf = 0.5;
-				}
-
+				DB.MInf    = 0.5;
 				DB.uInf    = DB.MInf*sqrt(GAMMA*DB.Rg*DB.TInf);
 				DB.vInf    = 1e-1*EPS;
 				DB.wInf    = 1e-1*EPS;
 				DB.VInf    = sqrt(DB.uInf*DB.uInf+DB.vInf*DB.vInf+DB.wInf*DB.wInf);
 				DB.PeriodL = 2.0;
 
+				DB.Cscale = 0.1*DB.VInf;
+
+//				DB.PeriodFraction = 1.0;
+				DB.PeriodFraction = 0.1;
+				DB.FinalTime      = DB.PeriodFraction*DB.PeriodL/DB.VInf;
+
+				// Update values for the stationary case
 				if (strstr(TestCase,"Stationary")) {
-					// Use FinalTime related to moving vortex case.
+					DB.MInf = 0.0;
+					DB.uInf = DB.MInf*sqrt(GAMMA*DB.Rg*DB.TInf);
+					DB.VInf = sqrt(DB.uInf*DB.uInf+DB.vInf*DB.vInf+DB.wInf*DB.wInf);
+
 					DB.PeriodFraction = 0.0;
-					DB.FinalTime      = 0.0;
-					printf("Use FinalTime from moving case.\n"), EXIT_MSG;
-				} else {
-//					DB.PeriodFraction = 1.0;
-					DB.PeriodFraction = 0.1;
-					DB.FinalTime      = DB.PeriodFraction*DB.PeriodL/DB.VInf;
+					// Uses FinalTime from moving vortex case.
 				}
 			} else {
 				printf("%s\n",TestCase);

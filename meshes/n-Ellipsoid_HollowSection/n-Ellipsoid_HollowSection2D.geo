@@ -1,4 +1,5 @@
 Include "../Parameters.geo";
+//Geom_AR = GEOM_AR_3; MeshLevel = 0; MeshType = MIXED2D; Extended = EXTENSION_ENABLED; PDEName = POISSON;
 
 // Modifiable Parameters
 AddRadial = 1;
@@ -54,6 +55,8 @@ Transfinite Surface{4002};
 
 If (MeshType == QUAD)
 	Recombine Surface{4001,4002};
+ElseIf (MeshType == MIXED2D)
+	Recombine Surface{4001};
 EndIf
 
 
@@ -110,6 +113,12 @@ If (Extended == EXTENSION_ENABLED)
 
 	Transfinite Surface{4004};
 	Transfinite Surface{4003,4005,4006} Right;
+
+	If (MeshType == QUAD)
+		Recombine Surface{4003:4006};
+	ElseIf (MeshType == MIXED2D)
+		Recombine Surface{4002,4005};
+	EndIf
 
 	Physical Surface(9403) = {4003};
 	Physical Surface(9404) = {4004};

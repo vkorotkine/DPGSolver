@@ -68,6 +68,9 @@ class TestCase_class:
 		self.MeshOutputs = ''
 
 	def add_MeshTypes(self,Paths,MeshName):
+		MeshCurving     = []
+		MeshTypes       = []
+		MeshTypesPrefix = []
 		if (self.name.find('update_h') != -1 or
 		    self.name.find('L2_proj')  != -1):
 			if (self.name.find('update_h') != -1):
@@ -102,11 +105,13 @@ class TestCase_class:
 			if (self.name.lower().find('test') != -1):
 				self.VarName = 'POISSON_TEST'
 
-				MeshTypesPrefix = ['n-Ball_HollowSection_','n-Ellipsoid_HollowSection_','n-Ellipsoid_HollowSection_']
-				MeshCurving     = ['Curved','Curved','Curved']
-				MeshTypes       = ['MIXED2D','TRI','QUAD']
+				MeshCurving.extend(('Curved'     for i in range (0,4)))
+				MeshTypes.extend(('MIXED2D','TRI','QUAD','MIXED2D'))
+				MeshTypesPrefix.extend(('n-Ball_HollowSection_'      for i in range(0,1)))
+				MeshTypesPrefix.extend(('n-Ellipsoid_HollowSection_' for i in range(0,3)))
+
 				NTotal = len(MeshTypes)
-				if   (MeshName.find('all')    != -1):
+				if (MeshName.find('all') != -1):
 					iRange = range(0,NTotal)
 				else:
 					iRange = range(0,1)
@@ -117,11 +122,18 @@ class TestCase_class:
 			if (self.name.lower().find('test') != -1):
 				self.VarName = 'EULER_TEST'
 
-				MeshCurving     = ['Curved','ToBeCurved','ToBeCurved','ToBeCurved','ToBeCurved','ToBeCurved','']
-				MeshTypes       = ['MIXED2D','MIXED2D','MIXED3D_TP','TET','HEX','WEDGE','QUAD']
+				MeshCurving.extend((''           for i in range (0,2)))
+				MeshCurving.extend(('Curved'     for i in range (0,1)))
+				MeshCurving.extend(('ToBeCurved' for i in range (0,6)))
+
+				MeshTypes.extend(('TRI','QUAD'))
+				MeshTypes.append(('MIXED2D'))
+				MeshTypes.extend(('MIXED2D','MIXED3D_TP','MIXED3D_HW','TET','HEX','WEDGE'))
+
+				MeshTypesPrefix.extend(('PeriodicVortex_'   for i in range(0,2)))
+				MeshTypesPrefix.extend(('SupersonicVortex_' for i in range(0,7)))
+
 				NTotal = len(MeshTypes)
-				MeshTypesPrefix = ['SupersonicVortex_' for i in range(0,6)]
-				MeshTypesPrefix.append('PeriodicVortex_')
 				if   (MeshName.find('all')    != -1):
 					iRange = range(0,NTotal)
 				else:
@@ -134,12 +146,17 @@ class TestCase_class:
 			if (self.name.lower().find('test') != -1):
 				self.VarName = 'NAVIERSTOKES_TEST'
 
-				MeshCurving     = ['ToBeCurved','ToBeCurved','']
-				MeshTypes       = ['TRI','QUAD','QUAD']
+				MeshCurving.extend((''           for i in range (0,1)))
+				MeshCurving.extend(('ToBeCurved' for i in range (0,3)))
+
+				MeshTypes.append(('QUAD'))
+				MeshTypes.extend(('TRI','QUAD','MIXED2D'))
+
+				MeshTypesPrefix.extend(('PlaneCouette_'  for i in range(0,1)))
+				MeshTypesPrefix.extend(('TaylorCouette_' for i in range(0,3)))
+
 				NTotal = len(MeshTypes)
-				MeshTypesPrefix = ['TaylorCouette_' for i in range(0,2)]
-				MeshTypesPrefix += ['PlaneCouette_' for i in range(2,3)]
-				if   (MeshName.find('all')    != -1):
+				if (MeshName.find('all') != -1):
 					iRange = range(0,NTotal)
 				else:
 					iRange = range(0,1)

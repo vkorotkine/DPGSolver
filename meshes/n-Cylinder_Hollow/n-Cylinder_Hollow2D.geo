@@ -1,5 +1,5 @@
 Include "../Parameters.geo";
-//MeshCurving = TOBECURVED; MeshType = TRI; PDEName = NAVIERSTOKES; MeshLevel = 0;
+//MeshCurving = TOBECURVED; MeshType = MIXED2D; PDEName = NAVIERSTOKES; MeshLevel = 0;
 
 
 // Geometry Specification

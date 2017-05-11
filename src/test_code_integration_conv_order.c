@@ -80,6 +80,8 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ellipsoid_HollowSection_CurvedTRI");
 			} else if (strstr(TestName,"QUAD")) {
 				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ellipsoid_HollowSection_CurvedQUAD");
+			} else if (strstr(TestName,"MIXED2D")) {
+				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ellipsoid_HollowSection_CurvedMIXED2D");
 			} else {
 				EXIT_UNSUPPORTED;
 			}
@@ -108,17 +110,20 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 //					data->PrintEnabled = 1;
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
 				} else if (strstr(TestName,"TET")) {
-					// Starting with a coarser initial mesh than ML=2 lead to blow-up in solver_implicit. This is
-					// potentially a result of poor element quality using the h-refinement of the initial mesh. Can try
-					// using a refined mesh sequence from gmsh or with SolverExplicit = 1 for initial convergence.
+					// Blowing up in solver_implicit. Revisit once DPG is implemented. (ToBeDeleted)
+					EXIT_UNSUPPORTED;
+
+					data->PrintEnabled = 1;
 					data->MLMax = 1;
-					data->PMax  = 2;
+					data->PMax  = 3;
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedTET");
 				} else if (strstr(TestName,"HEX")) {
+					data->PrintEnabled = 1;
 					data->MLMax = 2;
 					data->PMax  = 2;
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedHEX");
 				} else if (strstr(TestName,"WEDGE")) {
+					data->PrintEnabled = 1;
 					data->MLMax = 2;
 					data->PMax  = 2;
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedWEDGE");
@@ -146,11 +151,16 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 			if (strstr(TestName,"Curved")) {
 				EXIT_UNSUPPORTED;
 			} else {
+				data->PMin = 1;
+				data->PMax = 3;
+				data->MLMax = 5;
 				if (strstr(TestName,"QUAD")) {
-					data->PMin = 1;
-					data->PMax = 3;
-					data->MLMax = 5;
-					strcpy(data->argvNew[1],"test/Euler/Test_Euler_PeriodicVortex_QUAD");
+					if (strstr(TestName,"Stationary"))
+						strcpy(data->argvNew[1],"test/Euler/Test_Euler_PeriodicVortex_Stationary_QUAD");
+					else
+						strcpy(data->argvNew[1],"test/Euler/Test_Euler_PeriodicVortex_QUAD");
+				} else if (strstr(TestName,"TRI")) {
+					strcpy(data->argvNew[1],"test/Euler/Test_Euler_PeriodicVortex_TRI");
 				} else {
 					EXIT_UNSUPPORTED;
 				}
@@ -174,6 +184,8 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 					strcat(data->argvNew[1],"TRI");
 				} else if (strstr(TestName,"QUAD")) {
 					strcat(data->argvNew[1],"QUAD");
+				} else if (strstr(TestName,"MIXED2D")) {
+					strcat(data->argvNew[1],"MIXED2D");
 				} else {
 					EXIT_UNSUPPORTED;
 				}

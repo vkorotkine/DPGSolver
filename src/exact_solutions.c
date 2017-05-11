@@ -46,12 +46,10 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
 	Y = &XYZ[1*Nn];
 	Z = &XYZ[(d-1)*Nn];
 
-	// Perhaps modify TestCase for Test_L2_proj and Test_update_h to make this cleaner, also in other functions (ToBeDeleted)
 	if (strstr(TestCase,"PeriodicVortex")) {
 		// Initialize DB Parameters
 		double       pInf           = DB.pInf,
 					 TInf           = DB.TInf,
-					 VInf           = DB.VInf,
 					 uInf           = DB.uInf,
 					 vInf           = DB.vInf,
 					 wInf           = DB.wInf,
@@ -67,7 +65,7 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
 		double DistTraveled, Xc, rhoInf, r2, C;
 
 		rhoInf = pInf/(Rg*TInf);
-		C      = Cscale*VInf;
+		C      = Cscale;
 
 		if (solved) {
 			DistTraveled = PeriodL*PeriodFraction;

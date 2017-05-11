@@ -2095,6 +2095,10 @@ static void setup_TP_operators(const unsigned int EType)
 
 				// Note: Most VOLUME operators need not interpolate between different orders
 				if (P == Pb) {
+					get_sf_parameters(ELEMENTclass[0]->NvnS[P],ELEMENTclass[0]->NvnS[Pb],ELEMENTclass[0]->ChiS_vS[P][Pb][0],
+					                  ELEMENTclass[1]->NvnS[P],ELEMENTclass[1]->NvnS[Pb],ELEMENTclass[1]->ChiS_vS[P][Pb][0],
+					                  NIn,NOut,OP,dE,3,Eclass);
+					ChiS_vS[P][Pb][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parameters(ELEMENTclass[0]->NvnGs[1],ELEMENTclass[0]->NvnP[P],ELEMENTclass[0]->I_vGs_vP[1][Pb][0],
 					                  ELEMENTclass[1]->NvnGs[1],ELEMENTclass[1]->NvnP[P],ELEMENTclass[1]->I_vGs_vP[1][Pb][0],
 					                  NIn,NOut,OP,dE,3,Eclass);

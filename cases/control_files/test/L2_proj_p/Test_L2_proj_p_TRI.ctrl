@@ -1,8 +1,8 @@
 PDEName       Euler
-PDESpecifier  Periodic
+PDESpecifier  Periodic/PeriodicVortex
 
 Geometry      n-Cube n-Cube/n-Cube2D.geo
-GeomSpecifier Test
+GeomSpecifier NONE
 
 Dimension     2
 

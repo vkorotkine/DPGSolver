@@ -82,13 +82,13 @@ void set_parameters_test_boundary_conditions(char const *const BType, unsigned i
 	} else if (strstr(BType,"BackPressure") || strstr(BType,"Total_TP")) {
 		strcpy(DB.PDE,"Euler");
 		strcpy(DB.TestCase,"InviscidChannel");
-		strcpy(DB.PDESpecifier,"InternalSubsonic");
+		strcpy(DB.PDESpecifier,"Internal/Subsonic");
 		strcpy(DB.Geometry,"EllipsoidalSection");
 		strcpy(DB.GeomSpecifier,"Annular/3/");
 	} else if (strstr(BType,"SupersonicIn") || strstr(BType,"SupersonicOut")) {
 		strcpy(DB.PDE,"Euler");
 		strcpy(DB.TestCase,"InviscidChannel");
-		strcpy(DB.PDESpecifier,"InternalSupersonic");
+		strcpy(DB.PDESpecifier,"Internal/Supersonic");
 		strcpy(DB.Geometry,"EllipsoidalSection");
 		strcpy(DB.GeomSpecifier,"Annular/3/");
 	} else if (strstr(BType,"NoSlip")) {

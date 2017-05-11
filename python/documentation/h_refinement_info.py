@@ -96,6 +96,12 @@ class Refinement_class:
 				VTypes = ['PYR' for i in range(4)]
 				for i in range(4): VTypes.append('TET')
 				for i in range(2): VTypes.append('PYR')
+		elif (name.find('WEDGE') != -1):
+			if (name == 'WEDGE8'):
+				Nv = 8
+				VToVe = [[0,1,3,6,7,9],[1,2,4,7,8,10],[3,4,5,9,10,11],[4,3,1,10,9,7],\
+				         [6,7,9,12,13,15],[7,8,10,13,14,16],[9,10,11,15,16,17],[10,9,7,16,15,13]]
+				VTypes = ['WEDGE' for i in range(Nv)]
 		else:
 			print(name)
 			EXIT_TRACEBACK()
@@ -446,6 +452,7 @@ class ELEMENT_class:
 		self.EType = EType
 
 		Neve = 2
+		Nfve = []
 		if (EType == 'TRI'):
 			d         = 2
 			Nf        = 3
@@ -506,6 +513,20 @@ class ELEMENT_class:
 			             set([0,1,2,3,4,5,6,7,8])]
 			EVertices = [set([0,3,6]),set([2,5,8]),set([0,1,2]),set([6,7,8]),\
 			             set([0,9,13]),set([2,10,13]),set([6,11,13]),set([8,12,13])]
+		elif (EType == 'WEDGE'):
+			d  = 3
+			Nf = 5
+			Ne = 9
+			Nfve.extend((4 for i in range(0,3)))
+			Nfve.extend((3 for i in range(0,2)))
+
+			VToVe    = [[0,2,5,12,14,17]]
+			RefTypes = ['WEDGE8']
+
+			FVertices = [set([2,4,5,8,10,11,14,16,17]),set([0,3,5,6,9,11,12,15,17]),set([0,1,2,6,7,8,12,13,14]),\
+			             set([0,1,2,3,4,5]),set([12,13,14,15,16,17])]
+			EVertices = [set([2,4,5]),set([0,3,5]),set([0,1,2]),set([14,16,17]),set([12,15,17]),set([12,13,14]),\
+			             set([0,6,12]),set([2,8,14]),set([5,11,17])]
 		else:
 			EXIT_TRACEBACK()
 
@@ -536,6 +557,8 @@ class ELEMENT_class:
 			FToVe = [[[0,2,4,6]],[[1,3,5,7]],[[0,1,4,5]],[[2,3,6,7]],[[0,1,2,3]],[[4,5,6,7]]]
 		elif(self.EType == 'PYR'):
 			FToVe = [[[0,2,4]],[[1,3,4]],[[0,1,4]],[[2,3,4]],[[0,1,2,3]]]
+		elif(self.EType == 'WEDGE'):
+			FToVe = [[[1,2,4,5]],[[0,2,3,5]],[[0,1,3,4]],[[0,1,2]],[[3,4,5]]]
 		else:
 			EXIT_BACKTRACE()
 
@@ -553,6 +576,8 @@ class ELEMENT_class:
 			EToVe = [[[0,1]],[[2,3]],[[4,5]],[[6,7]],[[0,2]],[[1,3]],[[4,6]],[[5,7]],[[0,4]],[[1,5]],[[2,6]],[[3,7]]]
 		elif(self.EType == 'PYR'):
 			EToVe = [[[0,2]],[[1,3]],[[0,1]],[[2,3]],[[0,4]],[[1,4]],[[2,4]],[[3,4]]]
+		elif(self.EType == 'WEDGE'):
+			EToVe = [[[1,2]],[[0,2]],[[0,1]],[[4,5]],[[3,5]],[[3,4]],[[0,3]],[[1,4]],[[2,5]]]
 		else:
 			EXIT_BACKTRACE()
 
@@ -665,12 +690,14 @@ if __name__ == '__main__':
 	EType = 'TET';   ELEMENTs.append(ELEMENT_class(EType))
 	EType = 'HEX';   ELEMENTs.append(ELEMENT_class(EType))
 	EType = 'PYR';   ELEMENTs.append(ELEMENT_class(EType))
+	EType = 'WEDGE'; ELEMENTs.append(ELEMENT_class(EType))
 
-	EType = 'TRI'
+#	EType = 'TRI'
 #	EType = 'QUAD'
 #	EType = 'TET'
 #	EType = 'HEX'
 #	EType = 'PYR'
+	EType = 'WEDGE'
 
 	PrintAll = 0
 	PrintInd = 0

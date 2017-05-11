@@ -5,23 +5,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
-
-#include "petscmat.h"
 
 #include "Parameters.h"
-#include "Macros.h"
-#include "S_DB.h"
-#include "Test.h"
 
-#include "test_code_integration.h"
 #include "test_code_integration_conv_order.h"
 #include "test_code_integration_linearization.h"
 #include "test_support.h"
-#include "solver_Poisson.h"
-#include "finalize_LHS.h"
-#include "array_norm.h"
+
 #include "array_free.h"
 
 /*
@@ -50,7 +40,7 @@
  *		SZABO_BABUSKA, LENOIR) and that the NORMAL surface parametrization is best (certainly in the 2D case). For the
  *		extension to 3D blending, the approach to be taken would be to extend the SB blending to PYR elements (using a
  *		combination of GH and SB for the LINE and TRI parts of the WEDGE element). The surface parametrization for the
- *		non-edge geometry nodes could be use the NORMAL parametrization. An investigation into the optimal EDGE
+ *		non-edge geometry nodes could use the NORMAL parametrization. An investigation into the optimal EDGE
  *		parametrization is still required.
  *
  *		It may also be noted that, despite converging at the same rate, the L2 error of the computed solution is
@@ -76,7 +66,7 @@
  *
  *			1) A sequence of unstructured (non-nested) meshes (gmsh) with diminishing volume gave optimal orders.
  *			2) TET8 refinement along a consistent axis (this code) gave optimal orders.
- *			3) TET6 and TET12 refinement algorithms both gave sub-optimal orders to date.
+ *			3) TET6 and TET12 refinement algorithms both gave sub-optimal orders (to date).
  *				- Continued investigation may be made after a mesh quality improvement algorithm is implemented (e.g.
  *				  Peiro(2013)-Defining_Quality_Measures_for_Validation_and_Generation_of_High-Order_Tetrahedral_Meshes).
  *				  ToBeModified.
@@ -124,6 +114,7 @@ void test_integration_Poisson(int nargc, char **argv)
 		// 3D (TET mesh)
 //		test_linearization(data_l,"Poisson_TET");
 		test_print_warning("Poisson 3D testing needs to be updated");
+		// Revisit when parametrized 3D geometry is available. (ToBeDeleted)
 
 		free(data_l);
 	} else {
@@ -140,9 +131,9 @@ void test_integration_Poisson(int nargc, char **argv)
 		data_c->argvNew   = argvNew;
 		data_c->PrintName = PrintName;
 
-		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_TRI");
-		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_QUAD");
-		test_print_warning("Add a test for a mixed mesh for Poisson Conv. order");
+//		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_TRI");
+//		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_QUAD");
+		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_MIXED2D");
 
 		free(data_c);
 	} else {

@@ -282,7 +282,7 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 		}
 	} else if (strstr(PDE,"Euler")) {
 		if (strstr(TestCase,"PeriodicVortex")) {
-			printf("Using default value for timestepping parameters.\n");
+//			printf("Using default value for timestepping parameters.\n");
 			data->dt         = 1e-3; // Selected for stability of P3 ML5 (where ML0 has 4 QUADs)
 			data->exit_tol   = EPS;
 			data->exit_ratio = 1.0/EPS;

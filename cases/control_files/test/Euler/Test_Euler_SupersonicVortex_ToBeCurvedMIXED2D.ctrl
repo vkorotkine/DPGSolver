@@ -1,5 +1,5 @@
 PDEName       Euler
-PDESpecifier  Internal/SupersonicVortex/Test
+PDESpecifier  Internal/SupersonicVortex
 
 Geometry      n-Cylinder_HollowSection n-Cylinder_HollowSection/n-Cylinder_HollowSection2D.geo
 GeomSpecifier NONE

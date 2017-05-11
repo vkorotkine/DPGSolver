@@ -2,7 +2,7 @@ PDEName       NavierStokes
 PDESpecifier  Internal/PlaneCouette
 
 Geometry      n-Cube n-Cube/n-Cube2D.geo
-GeomSpecifier Test
+GeomSpecifier NONE
 
 Dimension     2
 

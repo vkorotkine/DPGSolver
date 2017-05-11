@@ -224,9 +224,8 @@ int main(int nargc, char **argv)
 #include "test_unit_get_face_ordering.h"
 #include "test_unit_equivalence_real_complex.h"
 
-#include "test_integration_L2_projections.h"
 #include "test_integration_update_h.h"
-#include "test_integration_L2_projection_errors.h"
+#include "test_integration_L2_projections.h"
 #include "test_integration_Poisson.h"
 #include "test_integration_Euler.h"
 #include "test_integration_NavierStokes.h"

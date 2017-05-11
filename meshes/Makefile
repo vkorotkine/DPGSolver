@@ -11,7 +11,6 @@ include MeshVariables
 # meshes_all               : generate all meshes
 # meshes_update_h          : generates meshes for the update_h      integration tests 
 # meshes_L2_proj_*         : generates meshes for the L2 projection integration tests 
-# meshes_linearization     : generates meshes for the linearization integration tests 
 # meshes_Poisson_test      : generates meshes for the Poisson       integration tests 
 # meshes_Euler_test        : generates meshes for the Euler         integration tests 
 # meshes_NavierStokes_test : generates meshes for the NavierStokes  integration tests 
@@ -31,7 +30,6 @@ meshes_all:
 	$(MAKE) meshes_update_h
 	$(MAKE) meshes_L2_proj_p
 	$(MAKE) meshes_L2_proj_h
-	$(MAKE) meshes_linearization
 	$(MAKE) meshes_Poisson_test
 	$(MAKE) meshes_Euler_test
 	$(MAKE) meshes_NavierStokes_test
@@ -50,11 +48,6 @@ $(L2_PROJ_P) :
 meshes_L2_proj_h : $(L2_PROJ_H)
 $(L2_PROJ_H) :
 	cd $(PYTHONDIR) && $(PYTHONC) $(SOURCE) L2_proj_h $@
-
-.PHONY : meshes_linearization
-meshes_linearization : $(LINEARIZATION)
-$(LINEARIZATION) :
-	cd $(PYTHONDIR) && $(PYTHONC) $(SOURCE) linearization $@
 
 .PHONY : meshes_Poisson_test
 meshes_Poisson_test : $(POISSON_TEST)
