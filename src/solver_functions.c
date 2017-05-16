@@ -80,19 +80,14 @@ void manage_solver_memory(struct S_DATA *const DATA, char const mem_op, char con
 	struct S_FLUX          *const FLUXDATA  = DATA->FLUXDATA;
 	struct S_NumericalFlux *const NFluxData = DATA->NFluxData;
 
-
-	struct S_OPERATORS_F const *const *const OPSF = FDATAL->OPS;
-	struct S_FACE              *const        FACE = (struct S_FACE *const) FDATAL->FACE;
-
-	unsigned int const d        = DB.d,
-	                   Nvar     = DB.Nvar,
-	                   Neq      = DB.Neq,
-	                   NvnI     = VDATA->OPS[0]->NvnI,
-	                   IndFType = FDATAL->IndFType,
-	                   NfnI     = OPSF[IndFType]->NfnI;
+	unsigned int const d    = DB.d,
+	                   Nvar = DB.Nvar,
+	                   Neq  = DB.Neq;
 
 	if (mem_op == 'A') {
 		if (feature == 'V') {
+			unsigned int const NvnI = VDATA->OPS[0]->NvnI;
+
 			if (mem_type == 'W') {
 				VDATA->W_vI = malloc(NvnI*Nvar * sizeof *(VDATA->W_vI)); // keep
 			} else if (mem_type == 'Q') {
@@ -119,6 +114,11 @@ void manage_solver_memory(struct S_DATA *const DATA, char const mem_op, char con
 				EXIT_UNSUPPORTED;
 			}
 		} else if (feature == 'F') {
+			struct S_FACE              *const        FACE = (struct S_FACE *const) FDATAL->FACE;
+			struct S_OPERATORS_F const *const *const OPSF = FDATAL->OPS;
+			unsigned int const IndFType = FDATAL->IndFType,
+			                   NfnI     = OPSF[IndFType]->NfnI;
+
 			if (mem_type == 'W') {
 				FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // keep
 				FDATAR->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAR->W_fIL)); // keep

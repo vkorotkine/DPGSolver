@@ -487,7 +487,6 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	// Standard datatypes
 	unsigned int i, j, k, l, f, e, c, Nf, Ne, Nve, iMax, jMax, kMax, lMax, Ecount,
 	             *IndsE, *IndsF, Found, TETcount, NormType, *VeEcon, *VeFcon;
-	int          **piv;
 	double       r_ratio, r, rIn, rOut, rTmp, d1, d2,
 	             *XYZ, *XYZdiff, *n, *nNorm, **LHS, **RHS, *lenE, *XYZc, *abcF, *rF, *XYZcE, *d_p, *XYZ_vV;
 
@@ -504,7 +503,7 @@ void evaluate_mesh_regularity(double *mesh_quality)
 
 	LHS = malloc(3 * sizeof *LHS); // free
 	RHS = malloc(3 * sizeof *RHS); // free
-	piv = malloc(3 * sizeof *piv); // free
+	lapack_int **piv = malloc(3 * sizeof *piv); // free
 
 	LHS[0] = malloc(DMAX*DMAX             * sizeof *LHS[0]); // free
 	LHS[1] = malloc(NFMAX*DMAX*NFMAX*DMAX * sizeof *LHS[1]); // free
@@ -933,6 +932,7 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	array_free2_d(3,LHS);
 	array_free2_d(3,RHS);
 	array_free2_i(3,piv);
+//	array_free2_ll(3,piv);
 
 	free(IndsE);
 	free(IndsF);

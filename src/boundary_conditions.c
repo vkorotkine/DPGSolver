@@ -20,7 +20,7 @@
 
 /*
  *	Purpose:
- *		Compute boundary conditions for given input parameters: XYZ, WL, WOut, nL
+ *		Compute boundary conditions for given input parameters in BCdata.
  *
  *	Comments:
  *		If this is found to be slow after profiling, separate cases for different dimensions to avoid unnecessary

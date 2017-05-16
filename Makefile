@@ -56,10 +56,15 @@ ifeq ($(KERNEL),Darwin)
   PARMETIS_INC   := -I$(METIS_DIR)/include
   PARMETIS_LDINC := -L$(METIS_DIR)/libparmetis -lparmetis
 
-  MKL_DIR := $(PROG_PATH)/intel_MKL/mkl
-  MKL_INC   := -I$(MKL_DIR)/include
   # MKL statically linked on OSX as the -Wl,--no-as-needed option is not supported by the OSX linker
-  MKL_LDINC := $(MKL_DIR)/lib/libmkl_intel_lp64.a $(MKL_DIR)/lib/libmkl_core.a $(MKL_DIR)/lib/libmkl_sequential.a -lpthread
+  MKL_DIR := $(PROG_PATH)/intel_MKL/mkl
+
+  MKL_INC := -I$(MKL_DIR)/include
+  MKL_LDINC := $(MKL_DIR)/lib/libmkl_intel_lp64.a $(MKL_DIR)/lib/libmkl_core.a $(MKL_DIR)/lib/libmkl_sequential.a -lpthread -ldl
+
+  # Enable 64-bit integers in the updated build
+#  MKL_INC :=  -DMKL_ILP64 -m64 -I$(MKL_DIR)/include
+#  MKL_LDINC := $(MKL_DIR)/lib/libmkl_intel_ilp64.a $(MKL_DIR)/lib/libmkl_core.a $(MKL_DIR)/lib/libmkl_sequential.a -lpthread -ldl
 endif
 
 # LINUX

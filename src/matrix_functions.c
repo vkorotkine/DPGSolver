@@ -86,9 +86,7 @@ double *inverse_d(const unsigned int N, const unsigned int NRHS, const double *A
 
 	info = LAPACKE_dgesv(LAPACK_ROW_MAJOR,N_LA,NRHS_LA,A,N_LA,ipiv,x,NRHS_LA);
 	if (info > 0) {
-		printf("The diagonal element of the triangular factor of A,\n");
-		printf("U(%i,%i) is zero, so that A is singular;\n", info, info);
-		printf("the solution could not be computed.\n");
+		printf("A diagonal element of the triangular factor of A is zero, so that A is singular.\n");
 		EXIT_MSG;
 	}
 
