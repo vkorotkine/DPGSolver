@@ -29,100 +29,40 @@ OPTS += -DTEST
 # Standard libraries (Math)
 STD_LIB := -lm
 
-# Machine dependent parameters
-KERNEL  := $(shell uname -s)
+# User dependent file (must be created by the user)
+include configure/user_configure.mk
+
 
 LOCAL_INC := -I./include
 
-# OSX
-ifeq ($(KERNEL),Darwin)
-#  PROG_PATH := /Users/philipzwanenburg/Desktop/Research_Codes/Downloaded
-  PROG_PATH := /Users/philip/Desktop/research_codes
-
-#  CC := $(PROG_PATH)/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/mpicc -fopenmp -m64
-#  CC := mpicc -fopenmp -m64
-
-# There is a problem that the -fopenmp -m64 flag is not included in CC. Compiling fine for now => fix later. (ToBeDeleted)
-
-  PETSC_DIR := $(PROG_PATH)/petsc/petsc-3.7.4
-  PETSC_ARCH := arch-osx-mpich-c-opt
-  CC := $(PETSC_DIR)/$(PETSC_ARCH)/bin/mpicc -fopenmp -m64
-
-  # METIS_DIR := $(PROG_PATH)/parmetis/parmetis-4.0.3
-  METIS_DIR := $(PROG_PATH)/parmetis/parmetis-4.0.3/build/opt
-
-  METIS_INC      := -I$(METIS_DIR)/metis/include
-  METIS_LDINC    := -L$(METIS_DIR)/libmetis -lmetis
-  PARMETIS_INC   := -I$(METIS_DIR)/include
-  PARMETIS_LDINC := -L$(METIS_DIR)/libparmetis -lparmetis
-
-  # MKL statically linked on OSX as the -Wl,--no-as-needed option is not supported by the OSX linker
-  MKL_DIR := $(PROG_PATH)/intel_MKL/mkl
-
-  MKL_INC := -I$(MKL_DIR)/include
-  MKL_LDINC := $(MKL_DIR)/lib/libmkl_intel_lp64.a $(MKL_DIR)/lib/libmkl_core.a $(MKL_DIR)/lib/libmkl_sequential.a -lpthread -ldl
-
-  # Enable 64-bit integers in the updated build
-#  MKL_INC :=  -DMKL_ILP64 -m64 -I$(MKL_DIR)/include
-#  MKL_LDINC := $(MKL_DIR)/lib/libmkl_intel_ilp64.a $(MKL_DIR)/lib/libmkl_core.a $(MKL_DIR)/lib/libmkl_sequential.a -lpthread -ldl
+ifeq ($(MKL_INTERFACE_LAYER),32)
+    MKL_INC := 
+else ifeq ($(MKL_INTERFACE_LAYER),64)
+    MKL_INC := -DMKL_ILP64 -m64
 endif
+MKL_INC += -I$(MKL_DIR)/include
 
-# LINUX
-ifeq ($(KERNEL),Linux)
-  NODENAME := $(shell uname -n)
-  ifeq ($(NODENAME),philip-Aspire-XC-605) #Home
-    PROG_PATH := /home/philip/Desktop/research/programs
-
-#    CC   := $(PROG_PATH)/petsc/petsc-3.7.0/arch-linux-c-/bin/mpicc -fopenmp -m64
-    CC := mpicc -fopenmp -m64
-
-#    PETSC_DIR := $(PROG_PATH)/petsc/petsc-3.7.0
-#    PETSC_ARCH := arch-linux-c-
-#    PETSC_ARCH := linux-c-debug
-    PETSC_DIR := /home/philip/petsc/petsc-3.7.5
-    PETSC_ARCH := arch-linux-c-opt
-
-    METIS_DIR      := $(PROG_PATH)/parmetis/parmetis-4.0.3/build/opt
-    METIS_INC      := -I$(METIS_DIR)/metis/include
-    METIS_LDINC    := -L$(METIS_DIR)/libmetis -lmetis
-    PARMETIS_INC   := -I$(METIS_DIR)/include
-    PARMETIS_LDINC := -L$(METIS_DIR)/libparmetis -lparmetis
-
-    MKL_DIR := $(PROG_PATH)/intel/mkl
-    MKL_INC := -I$(MKL_DIR)/include
-#    MKL_LDINC := -Wl,--no-as-needed -L$(MKL_DIR)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lgomp
-    # Needed when petsc is not linked with MKL during installation
-    MKL_LIBDIR := $(MKL_DIR)/lib/intel64
-    MKL_LDINC := $(MKL_LIBDIR)/libmkl_intel_lp64.so $(MKL_LIBDIR)/libmkl_core.so $(MKL_LIBDIR)/libmkl_sequential.so -lpthread
-  else #Guillimin
-    PROG_PATH := /home/pzwan/programs
-
-    CC   := $(PROG_PATH)/petsc/petsc-3.6.3/arch-linux-mpich-c-opt/bin/mpicc -fopenmp -m64
-
-    PETSC_DIR := $(PROG_PATH)/petsc-3.6.3
-    PETSC_ARCH := arch-linux-mpich-c-opt
-
-    METIS_DIR := $(PROG_PATH)/parmetis-4.0.3/build/opt
-    METIS_INC      := -I$(METIS_DIR)/metis/include
-    METIS_LDINC    := -L$(METIS_DIR)/libmetis -lmetis
-    PARMETIS_INC   := -I$(METIS_DIR)/include
-    PARMETIS_LDINC := -L$(METIS_DIR)/libparmetis -lparmetis
-
-    MKL_DIR := /software/compilers/Intel/2015-15.0/composer_xe_2015.0.090/mkl
-    MKL_INC   := -I$(MKL_DIR)/include
-    MKL_LDINC := -Wl,--no-as-needed -L$(MKL_DIR)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lgomp
-  endif
+LIB_DIR := $(MKL_DIR)/lib
+ifeq ($(MKL_LINKING),STATIC)
+    MKL_LDINC := $(LIB_DIR)/libmkl_intel_lp64.a
+else ifeq ($(MKL_LINKING),DYNAMIC)
+    MKL_LDINC := $(LIB_DIR)/libmkl_intel_lp64.so
 endif
+MKL_LDINC += $(LIB_DIR)/libmkl_core.a $(LIB_DIR)/libmkl_sequential.a -lpthread -ldl
 
 # PETSC's 'variables' makefile
 include $(PETSC_DIR)/lib/petsc/conf/variables
 PETSC_INC := $(PETSC_CC_INCLUDES)
 
+METIS_INC      := -I$(METIS_DIR)/metis/include
+METIS_LDINC    := -L$(METIS_DIR)/libmetis -lmetis
+PARMETIS_INC   := -I$(METIS_DIR)/include
+PARMETIS_LDINC := -L$(METIS_DIR)/libparmetis -lparmetis
+
 # Note: Parmetis must be linked before metis
-#LIBS := $(STD_LIB) $(PETSC_LIB) $(PARMETIS_LDINC) $(METIS_LDINC) $(MKL_LDINC)
-#INCS := $(LOCAL_INC) $(PETSC_INC) $(PARMETIS_INC) $(METIS_INC) $(MKL_INC)
 LIBS := $(STD_LIB) $(MKL_LDINC) $(PETSC_LIB) $(PARMETIS_LDINC) $(METIS_LDINC)
 INCS := $(LOCAL_INC) $(MKL_INC) $(PETSC_INC) $(PARMETIS_INC) $(METIS_INC)
+
 
 EXECUTABLE := DPGSolver.exe
 

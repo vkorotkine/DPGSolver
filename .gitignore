@@ -1,6 +1,7 @@
 bin/*
 obj/*
 depend/*
+configure/user_configure.mk
 src/*~
 src/*.swp
 src/*.txt
