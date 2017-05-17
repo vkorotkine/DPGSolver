@@ -42,13 +42,6 @@ else ifeq ($(MKL_INTERFACE_LAYER),64)
 endif
 MKL_INC += -I$(MKL_DIR)/include
 
-LIB_DIR := $(MKL_DIR)/lib
-ifeq ($(MKL_LINKING),STATIC)
-    MKL_LDINC := $(LIB_DIR)/libmkl_intel_lp64.a
-else ifeq ($(MKL_LINKING),DYNAMIC)
-    MKL_LDINC := $(LIB_DIR)/libmkl_intel_lp64.so
-endif
-MKL_LDINC += $(LIB_DIR)/libmkl_core.a $(LIB_DIR)/libmkl_sequential.a -lpthread -ldl
 
 # PETSC's 'variables' makefile
 include $(PETSC_DIR)/lib/petsc/conf/variables

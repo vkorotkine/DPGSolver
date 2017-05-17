@@ -264,7 +264,7 @@ int main(int nargc, char **argv)
 	TestDB.Nwarnings = 0;
 
 	RunTest.unit        = 1;
-	RunTest.integration = 1;
+	RunTest.integration = 0;
 	RunTest.speed       = 0;
 
 	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);

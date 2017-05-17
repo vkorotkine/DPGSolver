@@ -1,5 +1,5 @@
 Include "../Parameters.geo";
-//MeshCurving = STRAIGHT; MeshType = QUAD; PDEName = NAVIERSTOKES; MeshLevel = 1;
+//MeshCurving = STRAIGHT; MeshType = TRI; PDEName = NAVIERSTOKES; MeshLevel = 1;
 
 // Geometry Specification
 L = 1;

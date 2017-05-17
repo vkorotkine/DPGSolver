@@ -1,7 +1,10 @@
 # Library and Program Installation Instructions
 
-## Guillimin (Linux-x86_64)
-**Using Petsc modules on guillimin resulted in errors during runtime, petsc was thus configured manually.**
+0. Install MPI and BLAS/LAPACK
+- mpich2
+- Intel MKL (tested with mkl_2017.3)
+1. Install PETSc (tested with petsc-3.7.6)
+- Create a custom configure file as in ./config/examples or as in the [example PETSc configure file](configure/example_PETSc_configure.py)
 
 
 ### PETSc (petsc-3.6.3) - MPICH
