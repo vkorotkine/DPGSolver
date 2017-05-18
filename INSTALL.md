@@ -17,5 +17,5 @@ Tested on OSX (10.12.5), Ubuntu (16.04)
 
 3. Install ParMETIS (tested with parmetis-4.0.3)
 - Download and extract .tar file
-- In the root directory, modity the following parameters in the Makefile: cc = mpicc, cxx = mpicxx, debug = 0, BUILDDIR = build/name
+- In the root directory, modify the following parameters in the Makefile: cc = mpicc, cxx = mpicxx, debug = 0, BUILDDIR = build/name
 - make config, make install
