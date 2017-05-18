@@ -1497,8 +1497,6 @@ static void update_memory_FACE(struct S_FACE *const FACE)
 	if (DB.Vectorized)
 		EXIT_UNSUPPORTED;
 
-	char const *const TestCase = DB.TestCase;
-
 	unsigned int const d    = DB.d,
 	                   Nvar = DB.Nvar,
 	                   Neq  = DB.Neq;
@@ -1539,73 +1537,43 @@ static void update_memory_FACE(struct S_FACE *const FACE)
 	}
 
 	// Other solver related arrays
-	if (strstr(TestCase,"Poisson")) {
+	if (DB.Viscous) {
 		for (size_t dim = 0; dim < d; dim++) {
 			if (FACE->QhatL[dim] != NULL)
 				free(FACE->QhatL[dim]);
 			FACE->QhatL[dim] = malloc(NvnSL*Nvar * sizeof *(FACE->QhatL[dim])); // keep
-
-			if (FACE->QhatL_WhatL[dim] != NULL)
-				free(FACE->QhatL_WhatL[dim]);
-			FACE->QhatL_WhatL[dim] = malloc(NvnSL*NvnSL * sizeof *(FACE->QhatL_WhatL[dim])); // keep
 
 			if (!FACE->Boundary) {
 				unsigned int const NvnSR = FACE->VR->NvnS;
 				if (FACE->QhatR[dim] != NULL)
 					free(FACE->QhatR[dim]);
 				FACE->QhatR[dim] = malloc(NvnSR*Nvar * sizeof *(FACE->QhatR[dim])); // keep
-
-				if (FACE->QhatL_WhatR[dim] != NULL)
-					free(FACE->QhatL_WhatR[dim]);
-				FACE->QhatL_WhatR[dim] = malloc(NvnSL*NvnSR * sizeof *(FACE->QhatL_WhatR[dim])); // keep
-				if (FACE->QhatR_WhatL[dim] != NULL)
-					free(FACE->QhatR_WhatL[dim]);
-				FACE->QhatR_WhatL[dim] = malloc(NvnSR*NvnSL * sizeof *(FACE->QhatR_WhatL[dim])); // keep
-				if (FACE->QhatR_WhatR[dim] != NULL)
-					free(FACE->QhatR_WhatR[dim]);
-				FACE->QhatR_WhatR[dim] = malloc(NvnSR*NvnSR * sizeof *(FACE->QhatR_WhatR[dim])); // keep
 			}
 		}
-	} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
-		if (strstr(TestCase,"NavierStokes")) {
+
+		if (strstr(DB.SolverType,"Implicit")) {
 			for (size_t dim = 0; dim < d; dim++) {
-				if (FACE->QhatL[dim] != NULL)
-					free(FACE->QhatL[dim]);
-				FACE->QhatL[dim] = malloc(NvnSL*Nvar * sizeof *(FACE->QhatL[dim])); // keep
-
-				if (!FACE->Boundary) {
+				if (FACE->Boundary) {
+					if (FACE->QhatL_WhatL[dim] != NULL)
+						free(FACE->QhatL_WhatL[dim]);
+					FACE->QhatL_WhatL[dim] = malloc(NvnSL*NvnSL*Nvar*Neq * sizeof *(FACE->QhatL_WhatL[dim])); // keep
+				} else {
 					unsigned int const NvnSR = FACE->VR->NvnS;
-					if (FACE->QhatR[dim] != NULL)
-						free(FACE->QhatR[dim]);
-					FACE->QhatR[dim] = malloc(NvnSR*Nvar * sizeof *(FACE->QhatR[dim])); // keep
-				}
-			}
-			if (strstr(DB.SolverType,"Implicit")) {
-				for (size_t dim = 0; dim < d; dim++) {
-					if (FACE->Boundary) {
-						if (FACE->QhatL_WhatL[dim] != NULL)
-							free(FACE->QhatL_WhatL[dim]);
-						FACE->QhatL_WhatL[dim] = malloc(NvnSL*NvnSL*Nvar*Neq * sizeof *(FACE->QhatL_WhatL[dim])); // keep
-					} else {
-						unsigned int const NvnSR = FACE->VR->NvnS;
-						if (FACE->QhatL_WhatL[dim] != NULL)
-							free(FACE->QhatL_WhatL[dim]);
-						FACE->QhatL_WhatL[dim] = malloc(NvnSL*NvnSL * sizeof *(FACE->QhatL_WhatL[dim])); // keep
-						if (FACE->QhatL_WhatR[dim] != NULL)
-							free(FACE->QhatL_WhatR[dim]);
-						FACE->QhatL_WhatR[dim] = malloc(NvnSL*NvnSR * sizeof *(FACE->QhatL_WhatR[dim])); // keep
-						if (FACE->QhatR_WhatL[dim] != NULL)
-							free(FACE->QhatR_WhatL[dim]);
-						FACE->QhatR_WhatL[dim] = malloc(NvnSR*NvnSL * sizeof *(FACE->QhatR_WhatL[dim])); // keep
-						if (FACE->QhatR_WhatR[dim] != NULL)
-							free(FACE->QhatR_WhatR[dim]);
-						FACE->QhatR_WhatR[dim] = malloc(NvnSR*NvnSR * sizeof *(FACE->QhatR_WhatR[dim])); // keep
-					}
+					if (FACE->QhatL_WhatL[dim] != NULL)
+						free(FACE->QhatL_WhatL[dim]);
+					FACE->QhatL_WhatL[dim] = malloc(NvnSL*NvnSL * sizeof *(FACE->QhatL_WhatL[dim])); // keep
+					if (FACE->QhatL_WhatR[dim] != NULL)
+						free(FACE->QhatL_WhatR[dim]);
+					FACE->QhatL_WhatR[dim] = malloc(NvnSL*NvnSR * sizeof *(FACE->QhatL_WhatR[dim])); // keep
+					if (FACE->QhatR_WhatL[dim] != NULL)
+						free(FACE->QhatR_WhatL[dim]);
+					FACE->QhatR_WhatL[dim] = malloc(NvnSR*NvnSL * sizeof *(FACE->QhatR_WhatL[dim])); // keep
+					if (FACE->QhatR_WhatR[dim] != NULL)
+						free(FACE->QhatR_WhatR[dim]);
+					FACE->QhatR_WhatR[dim] = malloc(NvnSR*NvnSR * sizeof *(FACE->QhatR_WhatR[dim])); // keep
 				}
 			}
 		}
-	} else {
-		EXIT_UNSUPPORTED;
 	}
 }
 
@@ -1629,8 +1597,6 @@ static void free_memory_solver_FACE(struct S_FACE *const FACE)
 
 	if (!(FACE->adapt_type == HREFINE))
 		EXIT_UNSUPPORTED;
-
-	char const *const TestCase = DB.TestCase;
 
 	unsigned int const d = DB.d;
 
@@ -1657,55 +1623,31 @@ static void free_memory_solver_FACE(struct S_FACE *const FACE)
 		}
 	}
 
-	if (strstr(TestCase,"Poisson")) {
+	if (DB.Viscous) {
 		for (size_t dim = 0; dim < d; dim++) {
 			free(FACE->QhatL[dim]);
 			FACE->QhatL[dim] = NULL;
 
-			free(FACE->QhatL_WhatL[dim]);
-			FACE->QhatL_WhatL[dim] = NULL;
-
 			if (!FACE->Boundary) {
 				free(FACE->QhatR[dim]);
 				FACE->QhatR[dim] = NULL;
-
-				free(FACE->QhatL_WhatR[dim]);
-				FACE->QhatL_WhatR[dim] = NULL;
-				free(FACE->QhatR_WhatL[dim]);
-				FACE->QhatR_WhatL[dim] = NULL;
-				free(FACE->QhatR_WhatR[dim]);
-				FACE->QhatR_WhatR[dim] = NULL;
 			}
 		}
-	} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
-		if (strstr(TestCase,"NavierStokes")) {
+		if (strstr(DB.SolverType,"Implicit")) {
 			for (size_t dim = 0; dim < d; dim++) {
-				free(FACE->QhatL[dim]);
-				FACE->QhatL[dim] = NULL;
+				free(FACE->QhatL_WhatL[dim]);
+				FACE->QhatL_WhatL[dim] = NULL;
 
 				if (!FACE->Boundary) {
-					free(FACE->QhatR[dim]);
-					FACE->QhatR[dim] = NULL;
-				}
-			}
-			if (strstr(DB.SolverType,"Implicit")) {
-				for (size_t dim = 0; dim < d; dim++) {
-					free(FACE->QhatL_WhatL[dim]);
-					FACE->QhatL_WhatL[dim] = NULL;
-
-					if (!FACE->Boundary) {
-						free(FACE->QhatL_WhatR[dim]);
-						FACE->QhatL_WhatR[dim] = NULL;
-						free(FACE->QhatR_WhatL[dim]);
-						FACE->QhatR_WhatL[dim] = NULL;
-						free(FACE->QhatR_WhatR[dim]);
-						FACE->QhatR_WhatR[dim] = NULL;
-					}
+					free(FACE->QhatL_WhatR[dim]);
+					FACE->QhatL_WhatR[dim] = NULL;
+					free(FACE->QhatR_WhatL[dim]);
+					FACE->QhatR_WhatL[dim] = NULL;
+					free(FACE->QhatR_WhatR[dim]);
+					FACE->QhatR_WhatR[dim] = NULL;
 				}
 			}
 		}
-	} else {
-		EXIT_UNSUPPORTED;
 	}
 }
 

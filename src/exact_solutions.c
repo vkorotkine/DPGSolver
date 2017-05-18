@@ -25,6 +25,8 @@
  *	References:
  */
 
+static double get_boundary_value_Advection (double const x, double const y, double const z);
+
 void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UEx, const unsigned int solved)
 {
 	// Initialize DB Parameters
@@ -163,6 +165,20 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
 			vEx[n]   =  cos(t)*Vt;
 			wEx[n]   = 0.0;
 		}
+	} else if (strstr(TestCase,"Advection")) {
+		if (DB.SourcePresent) {
+			EXIT_UNSUPPORTED; // Manufactured solution
+		} else {
+			if (strstr(DB.PDESpecifier,"Unsteady")) {
+				EXIT_UNSUPPORTED;
+			} else if (strstr(DB.PDESpecifier,"Steady")) {
+				// Extrapolate from upwind boundary
+				for (size_t n = 0; n < Nn; n++)
+					UEx[n] = get_boundary_value_Advection(X[n],Y[n],Z[n]);
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		}
 	} else if (strstr(TestCase,"Poisson")) {
 		double Poisson_scale = DB.Poisson_scale;
 
@@ -291,4 +307,23 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 	} else {
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
 	}
+}
+
+static double get_boundary_value_Advection(double const x, double const y, double const z)
+{
+	char const *const PDESpecifier = DB.PDESpecifier;
+
+	double uEx = 0.0;
+	if (strstr(PDESpecifier,"Steady/Default")) {
+		double const *const b = DB.ADV_b;
+
+		if (!(b[0] == 0.0 && b[1] == 1.0 && b[2] == 0.0))
+			EXIT_UNSUPPORTED;
+
+		uEx = sin(6.0*x);
+	} else {
+		EXIT_UNSUPPORTED;
+		printf("%f %f\n",y,z);
+	}
+	return uEx;
 }

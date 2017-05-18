@@ -54,7 +54,15 @@ static void update_TestCase(void)
 	 *		adapt_initial to proceed for all VOLUMEs.
 	 */
 
-	if (strstr(DB.TestCase,"Poisson_Ringleb")               ||
+	if (strstr(DB.TestCase,"Advection")) {
+		if (strstr(DB.TestCase,"Default")) {
+			strcpy(DB.TestCase,"Advection_Default");
+		} else if (strstr(DB.TestCase,"Peterson")) {
+			strcpy(DB.TestCase,"Advection_Peterson");
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else if (strstr(DB.TestCase,"Poisson_Ringleb")               ||
 	    strstr(DB.TestCase,"Poisson_n-Ball") ||
 	    strstr(DB.TestCase,"Poisson_n-Ellipsoid")   ||
 	    strstr(DB.TestCase,"Poisson_HoldenRamp")            ||

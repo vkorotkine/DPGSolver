@@ -1,5 +1,5 @@
 Include "../Parameters.geo";
-//MeshCurving = STRAIGHT; MeshType = TRI; PDEName = NAVIERSTOKES; MeshLevel = 1;
+//MeshLevel = 2; MeshType = TRI; MeshCurving = STRAIGHT; PDEName = ADVECTION; Geom_Adv = GEOM_ADV_YL;
 
 // Geometry Specification
 L = 1;
@@ -38,7 +38,12 @@ Else
 	BC_Base = BC_Curved;
 EndIf
 
-If (PDEName == POISSON)
+If (PDEName == ADVECTION)
+	If (Geom_Adv == GEOM_ADV_YL)
+		Physical Line(BC_Base+BC_INFLOW)  = {1001};
+		Physical Line(BC_Base+BC_OUTFLOW) = {2001,1002,2002};
+	EndIf
+ElseIf (PDEName == POISSON)
 	Physical Line(BC_Base+BC_DIRICHLET) = {1001:1002,2001:2002};
 ElseIf (PDEName == EULER)
 	Physical Point(BC_Base+PERIODIC_XL) = {1,3};

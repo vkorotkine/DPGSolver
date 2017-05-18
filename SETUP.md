@@ -2,7 +2,7 @@
 
 The configure/user_configure.mk file must be created before the code can be run. See the instructions in default.mk.
 
-Before running the code, be sure to execute:
+Before running the code, be sure to:
 ```sh
 $ make directories
 $ make meshes

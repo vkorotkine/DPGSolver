@@ -101,6 +101,22 @@ class TestCase_class:
 			else:
 				iRange = range(0,1)
 				[MeshTypes,MeshTypesPrefix,MeshCurving] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName,MeshCurving)
+		elif (self.name.find('Advection') != -1):
+			if (self.name.lower().find('test') != -1):
+				self.VarName = 'ADVECTION_TEST'
+
+				MeshCurving.extend(('' for i in range (0,1)))
+				MeshTypes.append(('TRI'))
+				MeshTypesPrefix.extend(('Default_n-Cube_' for i in range(0,1)))
+
+				NTotal = len(MeshTypes)
+				if (MeshName.find('all') != -1):
+					iRange = range(0,NTotal)
+				else:
+					iRange = range(0,1)
+					[MeshTypes,MeshTypesPrefix,MeshCurving] = find_MeshType(NTotal,MeshTypes,MeshTypesPrefix,MeshName,MeshCurving)
+			else:
+				EXIT_TRACEBACK()
 		elif (self.name.find('Poisson') != -1):
 			if (self.name.lower().find('test') != -1):
 				self.VarName = 'POISSON_TEST'
@@ -187,6 +203,13 @@ class TestCase_class:
 		elif (self.name.find('linearization') != -1):
 			self.name = 'Test_linearization_'
 			self.Path = Paths.control_files+'test/linearization/'
+		elif (self.name.find('Advection') != -1):
+			if (self.name.find('test') != -1):
+				self.name = 'Test_Advection_'
+				self.Path = Paths.control_files+'test/Advection/'
+			else:
+				print("name: Advection")
+				EXIT_TRACEBACK()
 		elif (self.name.find('Poisson') != -1):
 			if (self.name.find('test') != -1):
 				self.name = 'Test_Poisson_'
@@ -227,6 +250,9 @@ class TestCase_class:
 
 
 class MeshType_class:
+	""" Both GeomSpecifier and PDESpecifier are included in the output path in order to allow for meshes having the same
+	    geometry but different boundary conditions to be stored. This may result in redundant mesh storage.
+	"""
 	def __init__(self,name,prefix):
 		self.name   = name
 		self.prefix = prefix

@@ -19,7 +19,9 @@
 
 #include "adaptation.h"
 #include "output_to_paraview.h"
+#include "test_code_output_to_paraview.h"
 #include "initialize_test_case.h"
+#include "solver_Advection.h"
 #include "solver_Poisson.h"
 #include "solver_explicit.h"
 #include "solver_implicit.h"
@@ -40,8 +42,7 @@
  *	References:
  */
 
-static char *get_fNameOut (char *output_type);
-static void h_adapt_test  (void);
+static void h_adapt_test (void);
 
 static void set_test_convorder_data(struct S_convorder *const data, char const *const TestName)
 {
@@ -70,7 +71,19 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 	data->IntOrder_add  = 0;
 	data->IntOrder_mult = 2;
 
-	if (strstr(TestName,"Poisson")) {
+	if (strstr(TestName,"Advection")) {
+		data->AdaptiveRefine = 0;
+		data->MLMax  = 2;
+		if (strstr(TestName,"n-Cube_Default")) {
+			if (strstr(TestName,"TRI")) {
+				strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_TRI");
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else if (strstr(TestName,"Poisson")) {
 		data->AdaptiveRefine = 0;
 		data->MLMax = 4;
 		data->PG_add        = 0;
@@ -269,7 +282,9 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 			code_startup(nargc,argvNew,0,1);
 		}
 
-		if (strstr(TestName,"Poisson")) {
+		if (strstr(TestName,"Advection")) {
+			solver_Advection(PrintEnabled);
+		} else if (strstr(TestName,"Poisson")) {
 			if (Compute_L2proj) { // Compute errors of L2 projection of the exact solution
 				initialize_test_case(0);
 
@@ -290,6 +305,8 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 
 			if (SolveImplicit)
 				solver_implicit(PrintEnabled);
+		} else {
+			EXIT_UNSUPPORTED;
 		}
 
 		// Output mesh edges to paraview
@@ -326,28 +343,6 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 	free(mesh_quality);
 
 	test_print2(pass,data->PrintName);
-}
-
-char *get_fNameOut(char *output_type)
-{
-	char string[STRLEN_MIN], *fNameOut;
-
-	fNameOut = malloc(STRLEN_MAX * sizeof *fNameOut); // keep
-
-	strcpy(fNameOut,output_type);
-	sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
-								   strcat(fNameOut,DB.MeshType);
-	// Choose one of the two options below to clean this up (probably DB and not TestDB) (ToBeDeleted)
-	if (DB.Adapt == ADAPT_0) {
-		EXIT_UNSUPPORTED;
-		sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
-		sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
-	} else {
-		sprintf(string,"_ML%d",TestDB.ML); strcat(fNameOut,string);
-		sprintf(string,"P%d_",TestDB.PGlobal); strcat(fNameOut,string);
-	}
-
-	return fNameOut;
 }
 
 void h_adapt_test(void)

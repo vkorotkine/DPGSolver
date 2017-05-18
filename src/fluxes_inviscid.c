@@ -12,6 +12,7 @@
 
 #include "fluxes_structs.h"
 #include "variable_functions.h"
+#include "solver_Advection_functions.h"
 
 /*
  *	Purpose:
@@ -693,6 +694,30 @@ void flux_Roe(const unsigned int Nn, const unsigned int Nel, const double *const
 			*nFluxNum_ptr5++ = 0.5*(nF5 - dis5);
 
 			nx += d;
+		}
+	}
+}
+
+void flux_Advection(struct S_FLUX *const FLUXDATA)
+{
+	unsigned int const d       = FLUXDATA->d,
+	                   Nn      = FLUXDATA->Nn,
+	                   Nel     = FLUXDATA->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double const *const W = FLUXDATA->W;
+	double       *const F = FLUXDATA->F;
+
+	double const *const b = compute_b_Advection(NnTotal,FLUXDATA->XYZ);
+
+	double *F_ptr[d];
+	for (size_t dim = 0; dim < d; dim++)
+		F_ptr[dim] = &F[dim*NnTotal];
+
+	for (size_t n = 0; n < NnTotal; n++) {
+		for (size_t IndF = 0, dim = 0; dim < d; dim++) {
+			*F_ptr[IndF++] = b[dim*Nn+n]*W[n];
+			F_ptr[dim]++;
 		}
 	}
 }

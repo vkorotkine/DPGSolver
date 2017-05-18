@@ -157,11 +157,8 @@ void gmsh_reader(void)
 
 	NE = malloc(4 * sizeof *NE); //keep
 
-	if ((fID = fopen(MeshFile,"r")) == NULL) {
-		// ToBeDeleted
-		printf("Modified how the mesh file name is obtained. See Test '.ctrl' files for examples if not working.\n");
+	if ((fID = fopen(MeshFile,"r")) == NULL)
 		printf("Mesh file: %s not present.\n",MeshFile), EXIT_MSG;
-	}
 
 	// Find NVe, NETotal
 	while (fscanf(fID,"%[^\n]\n",StringRead) == 1) {

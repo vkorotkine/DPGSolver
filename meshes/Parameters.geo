@@ -27,9 +27,10 @@ MIXED3D_HW = 23;
 
 
 // PDE Names
-POISSON      = 0;
-EULER        = 1;
-NAVIERSTOKES = 2;
+ADVECTION    = 0;
+POISSON      = 1;
+EULER        = 2;
+NAVIERSTOKES = 3;
 
 
 // PDE Specifiers
@@ -43,6 +44,10 @@ EXTENSION_ENABLED  = 1;
 GEOM_AR_1 = 1;
 GEOM_AR_2 = 2;
 GEOM_AR_3 = 3;
+
+GEOM_ADV_NONE = 0; // Dummy
+GEOM_ADV_YL   = 1; // (ADV)ection (Y)-coord (L)eft
+
 
 // MeshCurving Specifiers
 STRAIGHT   = 0;
@@ -70,15 +75,18 @@ GMSH_YZFACE_MIN = 6001;
 GMSH_XYZVOL_MIN = 7001;
 
 
-BC_RIEMANN        = 1;
+BC_RIEMANN        = 1; // Euler
 BC_SLIPWALL       = 2;
 BC_BACKPRESSURE   = 3;
 BC_TOTAL_TP       = 4;
 BC_SUPERSONIC_IN  = 5;
 BC_SUPERSONIC_OUT = 6;
 
-BC_NOSLIP_T         = 7;
+BC_NOSLIP_T         = 7; // Navier-Stokes
 BC_NOSLIP_ADIABATIC = 8;
 
-BC_DIRICHLET    = 11;
+BC_DIRICHLET    = 11; // Poisson
 BC_NEUMANN      = 12;
+
+BC_INFLOW       = 13; // Advection
+BC_OUTFLOW      = 14;

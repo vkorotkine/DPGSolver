@@ -330,8 +330,6 @@ static void update_memory_VOLUME(struct S_VOLUME *const VOLUME)
 	if (DB.Vectorized)
 		EXIT_UNSUPPORTED;
 
-	char const *const TestCase = DB.TestCase;
-
 	unsigned int const d    = DB.d,
 	                   Nvar = DB.Nvar,
 	                   Neq  = DB.Neq,
@@ -360,7 +358,7 @@ static void update_memory_VOLUME(struct S_VOLUME *const VOLUME)
 	}
 
 	// Other solver related arrays
-	if (strstr(TestCase,"Poisson")) {
+	if (DB.Viscous) {
 		for (size_t dim = 0; dim < d; dim++) {
 			if (VOLUME->QhatV[dim] != NULL)
 				free(VOLUME->QhatV[dim]);
@@ -369,32 +367,15 @@ static void update_memory_VOLUME(struct S_VOLUME *const VOLUME)
 			if (VOLUME->Qhat[dim] != NULL)
 				free(VOLUME->Qhat[dim]);
 			VOLUME->Qhat[dim]  = malloc(NvnS*Nvar * sizeof *(VOLUME->Qhat[dim])); // keep
-
-			if (VOLUME->QhatV_What[dim] != NULL)
-				free(VOLUME->QhatV_What[dim]);
-			VOLUME->QhatV_What[dim] = malloc(NvnS*NvnS * sizeof *(VOLUME->QhatV_What[dim])); // keep
 		}
-	} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
-		if (strstr(TestCase,"NavierStokes")) {
+
+		if (strstr(DB.SolverType,"Implicit")) {
 			for (size_t dim = 0; dim < d; dim++) {
-				if (VOLUME->QhatV[dim] != NULL)
-					free(VOLUME->QhatV[dim]);
-				VOLUME->QhatV[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV[dim])); // keep
-
-				if (VOLUME->Qhat[dim] != NULL)
-					free(VOLUME->Qhat[dim]);
-				VOLUME->Qhat[dim]  = malloc(NvnS*Nvar * sizeof *(VOLUME->Qhat[dim])); // keep
-			}
-			if (strstr(DB.SolverType,"Implicit")) {
-				for (size_t dim = 0; dim < d; dim++) {
-					if (VOLUME->QhatV_What[dim] != NULL)
-						free(VOLUME->QhatV_What[dim]);
-					VOLUME->QhatV_What[dim] = malloc(NvnS*NvnS * sizeof *(VOLUME->QhatV_What[dim])); // keep
-				}
+				if (VOLUME->QhatV_What[dim] != NULL)
+					free(VOLUME->QhatV_What[dim]);
+				VOLUME->QhatV_What[dim] = malloc(NvnS*NvnS * sizeof *(VOLUME->QhatV_What[dim])); // keep
 			}
 		}
-	} else {
-		EXIT_UNSUPPORTED;
 	}
 }
 
@@ -419,8 +400,6 @@ static void free_memory_solver_VOLUME(struct S_VOLUME *const VOLUME)
 	if (!(VOLUME->adapt_type == HREFINE))
 		EXIT_UNSUPPORTED;
 
-	char const *const TestCase = DB.TestCase;
-
 	unsigned int const d = DB.d;
 
 	free(VOLUME->RHS);
@@ -437,38 +416,25 @@ static void free_memory_solver_VOLUME(struct S_VOLUME *const VOLUME)
 		}
 	}
 
-	if (strstr(TestCase,"Poisson")) {
+	if (DB.Viscous) {
 		free(VOLUME->What);
 		for (size_t dim = 0; dim < d; dim++) {
 			free(VOLUME->QhatV[dim]);
 			VOLUME->QhatV[dim] = NULL;
 			free(VOLUME->Qhat[dim]);
 			VOLUME->Qhat[dim] = NULL;
-
-			free(VOLUME->QhatV_What[dim]);
-			VOLUME->QhatV_What[dim] = NULL;
 		}
-	} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
-		free(VOLUME->What);
-		free(VOLUME->RES);
 
-		if (strstr(TestCase,"NavierStokes")) {
+		if (strstr(DB.SolverType,"Implicit")) {
 			for (size_t dim = 0; dim < d; dim++) {
-				free(VOLUME->QhatV[dim]);
-				VOLUME->QhatV[dim] = NULL;
-				free(VOLUME->Qhat[dim]);
-				VOLUME->Qhat[dim] = NULL;
-			}
-			if (strstr(DB.SolverType,"Implicit")) {
-				for (size_t dim = 0; dim < d; dim++) {
-					free(VOLUME->QhatV_What[dim]);
-					VOLUME->QhatV_What[dim] = NULL;
-				}
+				free(VOLUME->QhatV_What[dim]);
+				VOLUME->QhatV_What[dim] = NULL;
 			}
 		}
-	} else {
-		EXIT_UNSUPPORTED;
 	}
+
+	if (strstr(DB.SolverType,"Explicit"))
+		free(VOLUME->RES);
 }
 
 void update_VOLUME_hp(void)

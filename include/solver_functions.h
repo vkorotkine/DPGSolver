@@ -25,7 +25,7 @@ extern double *compute_Dxyz(struct S_Dxyz *DxyzInfo, unsigned int d);
 struct S_OPERATORS_V {
 	// Standard
 	unsigned int NvnI, NvnS;
-	double const *ChiS_vI, *I_Weak, *const *D_Weak;
+	double const *ChiS_vI, *I_Weak, *const *D_Weak, *I_vG_vI;
 
 	// Sparse
 	struct S_OpCSR const *const *D_Weak_sp;

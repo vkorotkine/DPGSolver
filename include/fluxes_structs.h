@@ -9,7 +9,7 @@
 struct S_FLUX {
 	unsigned int d, Nn, Nel;
 
-	double const *W,
+	double const *W, *XYZ,
 	             *const *Q;
 	double *F, *Fr, *dFdW, *dFrdW, **dFdQ, **dFrdQ;
 

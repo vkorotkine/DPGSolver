@@ -125,6 +125,9 @@
 #define BC_DIRICHLET    11
 #define BC_NEUMANN      12
 
+#define BC_INFLOW       13
+#define BC_OUTFLOW      14
+
 // Allowed adaptation options
 #define ADAPT_0  0
 #define ADAPT_P  1

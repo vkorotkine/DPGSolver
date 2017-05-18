@@ -20,15 +20,19 @@
 
 #include "test_code_integration.h"
 #include "test_support.h"
+
+#include "solver_Advection.h"
 #include "solver_Poisson.h"
 #include "finalize_LHS.h"
+#include "implicit_VOLUME_info.h"
+#include "implicit_FACE_info.h"
+#include "implicit_GradW.h"
+
+#include "solver_Advection_c.h"
 #include "solver_Poisson_c.h"
 #include "explicit_VOLUME_info_c.h"
-#include "implicit_VOLUME_info.h"
 #include "explicit_FACE_info_c.h"
-#include "implicit_FACE_info.h"
 #include "explicit_GradW_c.h"
-#include "implicit_GradW.h"
 #include "finalize_RHS_c.h"
 
 #include "array_norm.h"
@@ -89,7 +93,13 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 	data->update_argv = 1;
 
 	strcpy(data->argvNew[1],"test/");
-	if (strstr(TestName,"Poisson")) {
+	if (strstr(TestName,"Advection")) {
+		if (strstr(TestName,"StraightTRI")) {
+			strcpy(data->argvNew[1],"test/Advection/Test_Advection_n-Cube_TRI");
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else if (strstr(TestName,"Poisson")) {
 		data->CheckSymmetric = 1;
 		if (strstr(TestName,"MIXED2D")) {
 			strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ball_HollowSection_CurvedMIXED2D");
@@ -198,7 +208,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 			for (size_t i = 0, iMax = NvnS*Nvar; i < iMax; i++)
 				VOLUME->What[i] += 1e3*EPS*((double) rand() / ((double) RAND_MAX+1));
 		}
-	} else if (strstr(TestName,"Poisson")) {
+	} else if (strstr(TestName,"Advection") || strstr(TestName,"Poisson")) {
 		; // Do nothing
 	} else {
 		EXIT_UNSUPPORTED;

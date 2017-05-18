@@ -192,11 +192,46 @@ void initialize_test_case_parameters(void)
 	DB.Neq  = 0;
 
 	DB.SolverType = malloc(STRLEN_MIN * sizeof *(DB.SolverType)); // keep
-	if (strstr(PDE,"Poisson")) {
+	if (strstr(PDE,"Advection")) {
+		// Currently requires div (dot) b = 0
+
 		DB.Nvar = 1;
 		DB.Neq  = 1;
 
-		DB.Viscous = 1; // Needed to use some of the functionality from the Navier-Stokes solver
+		DB.Viscous = 0;
+		DB.SourcePresent = 0;
+
+		if (strstr(PDESpecifier,"Steady"))
+			strcpy(DB.SolverType,"Implicit");
+		else if (strstr(PDESpecifier,"Unsteady"))
+			strcpy(DB.SolverType,"Explicit");
+		else
+			EXIT_UNSUPPORTED;
+
+		if (strstr(PDESpecifier,"Default")) {
+			DB.ADV_b[0] = 0.0;
+			DB.ADV_b[1] = 1.0;
+			DB.ADV_b[2] = 0.0;
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+
+		if (strstr(Geometry,"n-Cube")) {
+			if (strstr(GeomSpecifier,"YL")) {
+				DB.ADV_XYZB[0] = -1.0;
+				DB.ADV_XYZB[1] = -1.0;
+				DB.ADV_XYZB[2] = -1.0;
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else if (strstr(PDE,"Poisson")) {
+		DB.Nvar = 1;
+		DB.Neq  = 1;
+
+		DB.Viscous = 1;
 
 		DB.SourcePresent = 1;
 		strcpy(DB.SolverType,"Implicit");
@@ -639,7 +674,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	adapt_update = 1;
 	while (adapt_update) {
 		adapt_update = 0;
-		if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
+		if (strstr(TestCase,"Advection") || strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 				init_ops(OPS,VOLUME);
 
@@ -660,9 +695,12 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				U = malloc(NvnS*NVAR3D * sizeof *U); // free
 				W = malloc(NvnS*Nvar   * sizeof *W); // free
 
-				compute_solution(NvnS,XYZ_vS,U,0);
-
-				convert_variables(U,W,3,d,NvnS,1,'p','c');
+				if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
+					compute_solution(NvnS,XYZ_vS,U,0);
+					convert_variables(U,W,3,d,NvnS,1,'p','c');
+				} else if (strstr(TestCase,"Advection")) {
+					compute_solution(NvnS,XYZ_vS,W,0);
+				}
 				mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,W,What);
 
 				free(XYZ_vS);
@@ -670,7 +708,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				free(W);
 			}
 		} else if (strstr(TestCase,"Poisson")) {
-			// Initializing with the L2 projection (Update other TestCases above), ToBeModified
+			// Initializing with the L2 projection.
 			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 				init_ops(OPS,VOLUME);
 
@@ -973,17 +1011,18 @@ void compute_solution(const unsigned int Nn, double *XYZ, double *UEx, const uns
 	// Initialize DB Parameters
 	char *TestCase = DB.TestCase;
 
-	if (strstr(TestCase,"PeriodicVortex") ||
+	if (strstr(TestCase,"Advection") ||
+	    strstr(TestCase,"PeriodicVortex") ||
 	    strstr(TestCase,"SupersonicVortex") ||
 	    strstr(TestCase,"PlaneCouette") ||
-		strstr(TestCase,"TaylorCouette")) {
+	    strstr(TestCase,"TaylorCouette")) {
 		compute_exact_solution(Nn,XYZ,UEx,solved);
 	} else if (strstr(TestCase,"InviscidChannel") ||
 	           strstr(TestCase,"PrandtlMeyer") ||
 	           strstr(TestCase,"SubsonicNozzle")) {
 		compute_uniform_solution(Nn,XYZ,UEx);
 	} else {
-		printf("Error: Unsupported TestCase: %s.\n",TestCase), EXIT_MSG;
+		EXIT_UNSUPPORTED;
 	}
 }
 

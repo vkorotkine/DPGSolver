@@ -73,6 +73,12 @@ def add_gmsh_setnumber(gmsh_args,MeshType,Paths):
 	else:
 		gmsh_args += get_gmsh_number(gmsh_args,"Geom_AR_1",Paths)
 
+	gmsh_args += ' -setnumber Geom_Adv '
+	if (MeshType.GeomSpecifier.find('YL') != -1):
+		gmsh_args += get_gmsh_number(gmsh_args,"Geom_Adv_YL",Paths)
+	else: # Default
+		gmsh_args += get_gmsh_number(gmsh_args,"Geom_Adv_NONE",Paths)
+
 	return gmsh_args
 
 

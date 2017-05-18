@@ -507,16 +507,20 @@ static void output_solution(const char *sol_type)
 		fprintf_tn(fID,1,"<PUnstructuredGrid GhostLevel=\"0\">\n");
 
 		fprintf_tn(fID,2,"<PPointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
-		if (strstr(TestCase,"Poisson")) {
+		if (strstr(TestCase,"Advection")) {
+			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"u\" format=\"ascii\"/>");
+		} else if (strstr(TestCase,"Poisson")) {
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"u\" format=\"ascii\"/>");
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"q\" NumberOfComponents=\"3\" format=\"ascii\"/>");
-		} else {
+		} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"rho\" format=\"ascii\"/>");
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"V\" NumberOfComponents=\"3\" format=\"ascii\"/>");
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"p\" format=\"ascii\"/>");
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"E\" format=\"ascii\"/>");
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"s\" format=\"ascii\"/>");
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"Mach\" format=\"ascii\"/>");
+		} else {
+			EXIT_UNSUPPORTED;
 		}
 		fprintf_tn(fID,2,"</PPointData>\n");
 
@@ -579,7 +583,9 @@ static void output_solution(const char *sol_type)
 
 		XYZ_vP = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,d,NvnG,1.0,I_vG_vP,VOLUME->XYZ);     // free
 
-		if (strstr(TestCase,"Poisson")) {
+		if (strstr(TestCase,"Advection")) {
+			u = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->What); // free
+		} else if (strstr(TestCase,"Poisson")) {
 			u = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->What); // free
 			q = calloc(DMAX*NvnP , sizeof *q); // free
 			for (dim = 0; dim < d; dim++)
@@ -597,7 +603,7 @@ static void output_solution(const char *sol_type)
 
 				free(uEx);
 			}
-		} else {
+		} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 			W_vP = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->What); // free
 
 			U_vP = malloc(NvnP*5 * sizeof *U_vP); // free
@@ -624,6 +630,8 @@ static void output_solution(const char *sol_type)
 				s[i]    = p[i]/pow(rho[i],GAMMA);
 				Mach[i] = sqrt(V2/c2);
 			}
+		} else {
+			EXIT_UNSUPPORTED;
 		}
 
 		fprintf(fID,"\t\t<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n",NvnP,NE);
@@ -642,7 +650,18 @@ static void output_solution(const char *sol_type)
 			fprintf_tn(fID,3,"</Points>");
 
 			fprintf_tn(fID,3,"<PointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
-			if (strstr(TestCase,"Poisson")) {
+			if (strstr(TestCase,"Advection")) {
+				fprintf_tn(fID,4,"<DataArray type=\"Float32\" Name=\"u\" format=\"ascii\">");
+				fprintf(fID,"\t\t\t\t");
+				for (i = 0; i < NvnP; i++) {
+					fprintf(fID,"% .8e ",u[i]);
+					if ((i+1) % 5 == 0 && i != NvnP-1)
+						fprintf(fID,"\n\t\t\t\t");
+					else if (i == NvnP-1)
+						fprintf(fID,"\n");
+				}
+				fprintf_tn(fID,4,"</DataArray>");
+			} else if (strstr(TestCase,"Poisson")) {
 				fprintf_tn(fID,4,"<DataArray type=\"Float32\" Name=\"u\" format=\"ascii\">");
 				fprintf(fID,"\t\t\t\t");
 				for (i = 0; i < NvnP; i++) {
@@ -658,7 +677,7 @@ static void output_solution(const char *sol_type)
 				for (i = 0; i < NvnP; i++)
 					fprintf(fID,"\t\t\t\t % .8e % .8e % .8e\n",q[NvnP*0+i],q[NvnP*1+i],q[NvnP*2+i]);
 				fprintf_tn(fID,4,"</DataArray>");
-			} else {
+			} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 				fprintf_tn(fID,4,"<DataArray type=\"Float32\" Name=\"rho\" format=\"ascii\">");
 				fprintf(fID,"\t\t\t\t");
 				for (i = 0; i < NvnP; i++) {
@@ -718,6 +737,8 @@ static void output_solution(const char *sol_type)
 						fprintf(fID,"\n");
 				}
 				fprintf_tn(fID,4,"</DataArray>");
+			} else {
+				EXIT_UNSUPPORTED;
 			}
 
 			fprintf_tn(fID,3,"</PointData>");
@@ -766,14 +787,18 @@ static void output_solution(const char *sol_type)
 		fprintf_tn(fID,2,"</Piece>\n");
 
 		free(XYZ_vP);
-		if (strstr(TestCase,"Poisson")) {
+		if (strstr(TestCase,"Advection")) {
+			free(u);
+		} else if (strstr(TestCase,"Poisson")) {
 			free(u);
 			free(q);
-		} else {
+		} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 			free(W_vP);
 			free(U_vP);
 			free(s);
 			free(Mach);
+		} else {
+			EXIT_UNSUPPORTED;
 		}
 		free(VTK_Ncorners);
 	}

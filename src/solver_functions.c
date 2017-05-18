@@ -329,6 +329,8 @@ void init_ops_VOLUME(struct S_OPERATORS_V *const OPS, struct S_VOLUME const *con
 		OPS->I_Weak_SF  = ELEMENT_SF->Is_Weak_VV[P][P][0];
 
 		OPS->D_Weak_sp = (struct S_OpCSR const *const *const) ELEMENT->Ds_Weak_VV_sp[P][P][0];
+
+		OPS->I_vG_vI = ELEMENT->I_vGs_vIs[1][P][0];
 	} else {
 		OPS->NvnI    = ELEMENT->NvnIc[P];
 		OPS->NvnI_SF = ELEMENT_SF->NvnIc[P];
@@ -342,6 +344,8 @@ void init_ops_VOLUME(struct S_OPERATORS_V *const OPS, struct S_VOLUME const *con
 		OPS->I_Weak_SF  = ELEMENT_SF->Ic_Weak_VV[P][P][0];
 
 		OPS->D_Weak_sp = (struct S_OpCSR const *const *const) ELEMENT->Dc_Weak_VV_sp[P][P][0];
+
+		OPS->I_vG_vI = ELEMENT->I_vGc_vIc[P][P][0];
 	}
 }
 
