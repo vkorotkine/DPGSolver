@@ -29,7 +29,11 @@ OPTS += -DTEST
 # Standard libraries (Math)
 STD_LIB := -lm
 
-# User dependent file (must be created by the user)
+
+DPG_ROOT := $(shell pwd)
+ifeq (,$(wildcard $(DPG_ROOT)/configure/user_configure.mk))
+   $(error The 'configure/user_configure.mk' file is not present. Please create it)
+endif
 include configure/user_configure.mk
 
 
@@ -43,7 +47,6 @@ endif
 MKL_INC += -I$(MKL_DIR)/include
 
 
-# PETSC's 'variables' makefile
 include $(PETSC_DIR)/lib/petsc/conf/variables
 PETSC_INC := $(PETSC_CC_INCLUDES)
 

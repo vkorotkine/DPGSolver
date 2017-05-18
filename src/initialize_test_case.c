@@ -1060,6 +1060,7 @@ static void adapt_initial(unsigned int *adapt_update)
 
 			switch (Adapt) {
 			default: // ADAPT_HP
+				VInfo->adapt_class = ADAPT_P; // ToBeModified
 				// h vs p indicator goes here (ToBeDeleted).
 				break;
 			case ADAPT_P: VInfo->adapt_class = ADAPT_P; break;

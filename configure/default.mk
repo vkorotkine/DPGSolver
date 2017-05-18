@@ -8,9 +8,11 @@ PETSC_ARCH :=
 METIS_DIR  := 
 MKL_DIR    := 
 
-CC := mpicc
+CC := mpicc -m64
 
 # Parameters from Intal Math Kernel Library Link Line Advisor
-# It was required that MKL be statically linked on OSX as the -Wl,--no-as-needed option is not supported by the OSX linker
-MKL_LINKING := STATIC/DYNAMIC
-MKL_INTERFACE_LAYER := 32/64
+MKL_LINKING := DYNAMIC
+MKL_INTERFACE_LAYER := 32
+
+LIB_DIR   := $(MKL_DIR)/lib
+MKL_LDINC :=  -L$(LIB_DIR)/intel64 -Wl,-no-as-needed -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl
