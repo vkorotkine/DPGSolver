@@ -1,21 +1,43 @@
-# Library and Program Installation Instructions
+# Detailed Installation Instructions
 
-### Supported operating systems
+Last tested: 2017/05/18
 
-Tested on OSX (10.12.5), Ubuntu (16.04)
+### Supported Operating Systems
 
-### Detailed installation instructions
+- macOS (tested on 10.12.5)
+- Ubuntu (tested on 16.04)
+
+### Installation Instructions
 
 1. Install MPI and BLAS/LAPACK
-  - mpich2
-  - Intel MKL (tested with mkl_2017.3)
+	- MPICH
+	- Intel MKL (tested with mkl_2017.3)
+		- Ensure that the 'Cluster support' package is also installed.
+		- Consult the MKL [link line advisor](https://software.intel.com/en-us/articles/intel-mkl-link-line-advisor) for required information for [user_configure.mk](configure/user_configure.mk)
 
 2. Install PETSc (tested with petsc-3.7.6)
-  - Create a custom configure file as in PETSC_ROOT/config/examples or as in the [example PETSc configure file](configure/example_PETSc_configure.py)
-  - Configure from PETSC_ROOT using the configure file as ./PATH_TO_PETSc_CONFIG/configure.py
-  - Follow make instructions for: make, make install, make test
+	- Create a custom configure file as in PETSC_ROOT/config/examples or as in the [example PETSc configure file](configure/example_PETSc_configure.py). Note that PETSC_ARCH will be set to the name of your configure file. 
+	- Configure from PETSC_ROOT using the configure file as 
+		```sh
+		$ ./path_to_PETSc_configure_file/$(PETSC_ARCH).py
+		```
+	- Follow the PETSc make instructions:
+		```sh
+		$ make PETSC_DIR=/path_to_your_dir/ PETSC_ARCH=your_arch all
+		$ make PETSC_DIR=/path_to_your_dir/ PETSC_ARCH=your_arch test
+		```
 
 3. Install ParMETIS (tested with parmetis-4.0.3)
-  - Download and extract .tar file
-  - In the root directory, modify the following parameters in the Makefile: cc = mpicc, cxx = mpicxx, debug = 0, BUILDDIR = build/name
-  - make config, make install
+	- Download and extract .tar file
+	- In the root directory, modify the following parameters in the Makefile:
+		```make
+		cc = mpicc
+		cxx = mpicxx
+		debug = 0 or 1 (choose one)
+		BUILDDIR = build/name
+		```
+	- Follow make instructions:
+		```sh
+		$ make config
+		$ make install
+		```

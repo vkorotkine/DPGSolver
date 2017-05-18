@@ -20,6 +20,7 @@ src/support_functions/*.txt
 *.db
 *.db.json
 *.dSYM
+cases/.lipo
 
 meshes/Poisson/*
 meshes/PeriodicVortex/*

@@ -2,7 +2,9 @@
 
 ### Code Description
 - Uses only free to use/open source libraries/supporting programs.
-- Methods: Discontinuous Petrov Galerkin (DPG) (TO BE DONE) with the option for standard Discontinuous Galerkin (DG).
+- Methods:
+	- Discontinuous Petrov Galerkin (DPG) (TO BE DONE);
+	- Discontinuous Galerkin (DG).
 - Supported elements: TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
 - Supported refinements: isotropic h (size) or p (order).
 
@@ -14,14 +16,22 @@
 | Euler         | DONE                 |                        |
 | Navier-Stokes | DONE                 |                        |
 
+
+### Specific Test Cases
+| Test case        |      |
+|------------------|------|
+| PeriodicVortex   | DONE |
+| SupersonicVortex | DONE |
+| InviscidChannel  | DONE |
+| Taylor-Couette   | DONE |
+
 See the CODE STATUS section below for details regarding current functionality.
 
 ### Installation / Set up
-Follow the [installation instructions](INSTALL.md) for the set up of required libraries/programs (Currently running on
-either OSX or Ubuntu). Required:
-- PETSc
+Follow the [installation instructions](INSTALL.md) for the set up of required libraries/programs. Required:
 - MPI (MPICH or Open MPI)
 - Intel (M)ath (K)ernel (L)ibrary
+- PETSc
 - ParMETIS
 - Gmsh
 - Paraview
@@ -39,69 +49,16 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 | MPI            | TO BE DONE |
 | h/p Adaptation | DONE       |
 
-### Preprocessing : ACTIVE (AS NEEDED)
-| Function          |                    |
-|-------------------|--------------------|
-| set up parameters | DONE               |
-| set up mesh       | DONE               |
-| set up operators  | ACTIVE (AS NEEDED) |
-| set up structures | DONE               |
-| set up geometry   | DONE               |
+#### Supported Numerical Fluxes
+| Flux           |      |
+|----------------|----- |
+| Lax-Friedrichs | DONE |
+| Roe-Pike       | DONE |
+| Bassi-Rebay 2  | DONE |
+| Compact DG 2   | DONE |
 
-### Solving : ACTIVE
-#### Initialization
-| Test case        |            |
-|------------------|------------|
-| PeriodicVortex   | DONE       |
-| SupersonicVortex | DONE       |
-| InviscidChannel  | DONE       |
-| Taylor-Couette   | DONE       |
-
-#### Explicit
-| Function        |             |                         |
-|-----------------|-------------|-------------------------|
-| solver explicit |             | DONE FOR THE TIME BEING |
-| volume info     |             | DONE FOR THE TIME BEING |
-|                 | Weak Form   | DONE                    |
-|                 | Strong Form | UNDER CONSIDERATION     |
-|                 | Vectorized  | NEEDS UPDATING          |
-| face info       |             | DONE FOR THE TIME BEING |
-|                 | Weak Form   | DONE                    |
-|                 | Strong Form | UNDER CONSIDERATION     |
-|                 | Vectorized  | UNDER CONSIDERATION     |
-| GradW           |             | DONE                    |
-| finalize        |             | DONE                    |
-
-#### Implicit
-| Function        |             |                         |
-|-----------------|-------------|-------------------------|
-| solver Poisson  |             | DONE                    |
-| solver implicit |             | DONE FOR THE TIME BEING |
-| volume info     |             | DONE FOR THE TIME BEING |
-|                 | Weak Form   | DONE                    |
-|                 | Strong Form | UNDER CONSIDERATION     |
-|                 | Vectorized  | UNDER CONSIDERATION     |
-| face info       |             | DONE FOR THE TIME BEING |
-|                 | Weak Form   | DONE                    |
-|                 | Strong Form | UNDER CONSIDERATION     |
-|                 | Vectorized  | UNDER CONSIDERATION     |
-| GradW           |             | DONE                    |
-| finalize        |             | DONE                    |
-
-#### Fluxes
-|           | Function         |                         |
-|-----------|------------------|-------------------------|
-| Standard  |                  | DONE FOR THE TIME BEING |
-|           | inviscid         | DONE                    |
-|           | viscous          | DONE                    |
-| Numerical |                  | DONE FOR THE TIME BEING |
-|           | Lax-Friedrichs   | DONE                    |
-|           | Roe-Pike         | DONE                    |
-|           | Bassi-Rebay 2    | DONE                    |
-|           | compact DG 2     | DONE                    |
-
-#### Boundary
-| Function                |      |
+#### Supported Boundary Conditions
+| Boundary Condition      |      |
 |-------------------------|------|
 | Dirichlet               | DONE |
 | Neumann                 | DONE |
@@ -112,9 +69,6 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 | Total Temp/Pressure     | DONE |
 | No Slip Dirichlet       | DONE |
 | No Slip Adiabatic       | DONE |
-
-
-### Postprocessing : ACTIVE (As cases are added)
 
 
 ### License
