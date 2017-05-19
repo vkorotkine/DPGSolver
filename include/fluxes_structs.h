@@ -7,7 +7,7 @@
 #include <complex.h>
 
 struct S_FLUX {
-	unsigned int d, Nn, Nel;
+	unsigned int d, Nn, Nel, PDE_index;
 
 	double const *W, *XYZ,
 	             *const *Q;

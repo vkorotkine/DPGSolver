@@ -32,6 +32,7 @@
  *	References:
  */
 
+static void jacobian_boundary_Advection         (struct S_BC *const BCdata);
 static void jacobian_boundary_Poisson           (struct S_BC *const BCdata);
 static void jacobian_boundary_Riemann           (struct S_BC *const BCdata);
 static void jacobian_boundary_SlipWall          (struct S_BC *const BCdata);
@@ -80,7 +81,35 @@ void compute_jacobian_boundary_values(struct S_BC *const BCdata)
 		case BC_NOSLIP_ADIABATIC: jacobian_boundary_NoSlip_Adiabatic(BCdata);  break;
 		case BC_DIRICHLET:        // fallthrough
 		case BC_NEUMANN:          jacobian_boundary_Poisson(BCdata);           break;
+		case BC_INFLOW:           // fallthrough
+		case BC_OUTFLOW:          jacobian_boundary_Advection(BCdata);         break;
 		default:                  EXIT_UNSUPPORTED;                            break;
+	}
+}
+
+static void jacobian_boundary_Advection(struct S_BC *const BCdata)
+{
+	unsigned int const BC_index = (BCdata->BC) % BC_STEP_SC;
+	if (!(BC_index == BC_INFLOW || BC_index == BC_OUTFLOW))
+		EXIT_UNSUPPORTED;
+
+	/*
+	 *	Comments:
+	 *		It is implicitly assumed that Nvar = Neq = 1.
+	 */
+
+	unsigned int const Nn      = BCdata->Nn,
+	                   Nel     = BCdata->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double *const dWBdWL = BCdata->dWBdWL;
+
+	if (BC_index == BC_INFLOW) {
+		for (size_t n = 0; n < NnTotal; n++)
+			dWBdWL[n] = 0.0;
+	} else if (BC_index == BC_OUTFLOW) {
+		for (size_t n = 0; n < NnTotal; n++)
+			dWBdWL[n] = 1.0;
 	}
 }
 

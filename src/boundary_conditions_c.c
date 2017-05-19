@@ -56,6 +56,10 @@ void set_BC_from_BType(struct S_BC *const BCdata, char const *const BType)
 	} else if (strstr(BType,"Poisson_Neumann")) {
 		BCdata->BC = BC_NEUMANN;
 		BCdata->ComputeQ = 1;
+	} else if (strstr(BType,"Advection_Inflow")) {
+		BCdata->BC = BC_INFLOW;
+	} else if (strstr(BType,"Advection_Outflow")) {
+		BCdata->BC = BC_OUTFLOW;
 	} else {
 		EXIT_UNSUPPORTED;
 	}
@@ -90,6 +94,7 @@ void correct_XYZ_for_exact_normal(struct S_BC *const BCdata, char const *const B
 	}
 }
 
+static void boundary_Advection_c         (struct S_BC *const BCdata);
 static void boundary_Poisson_c           (struct S_BC *const BCdata);
 static void boundary_Riemann_c           (struct S_BC *const BCdata);
 static void boundary_SlipWall_c          (struct S_BC *const BCdata);
@@ -143,6 +148,8 @@ void compute_boundary_values_c(struct S_BC *const BCdata)
 		case BC_NOSLIP_ADIABATIC: boundary_NoSlip_Adiabatic_c(BCdata);  break;
 		case BC_DIRICHLET:        // fallthrough
 		case BC_NEUMANN:          boundary_Poisson_c(BCdata);           break;
+		case BC_INFLOW:           // fallthrough
+		case BC_OUTFLOW:          boundary_Advection_c(BCdata);         break;
 		default:
 			printf("%d\n",BCdata->BC);
 			EXIT_UNSUPPORTED;
@@ -206,6 +213,33 @@ static void get_boundary_values_c(const double X, const double Y, double complex
 	} else {
 		printf("TestCase: %s\n",TestCase);
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
+	}
+}
+
+static void boundary_Advection_c(struct S_BC *const BCdata)
+{
+	unsigned int const BC_index = (BCdata->BC) % BC_STEP_SC;
+	if (!(BC_index == BC_INFLOW || BC_index == BC_OUTFLOW))
+		EXIT_UNSUPPORTED;
+
+	unsigned int const Nn      = BCdata->Nn,
+	                   Nel     = BCdata->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double *const XYZB = compute_XYZ_boundary(BCdata); // free
+
+	double complex const *const WL = BCdata->WL_c;
+	double complex       *const WB = BCdata->WB_c;
+
+	if (BC_index == BC_INFLOW) {
+		double *const WBr = malloc(NnTotal * sizeof *WBr); // free
+		compute_exact_solution(NnTotal,XYZB,WBr,0);
+		for (size_t n = 0; n < NnTotal; n++)
+			WB[n] = WBr[n];
+		free(WBr);
+	} else if (BC_index == BC_OUTFLOW) {
+		for (size_t n = 0; n < NnTotal; n++)
+			WB[n] = WL[n];
 	}
 }
 

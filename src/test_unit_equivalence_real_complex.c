@@ -42,8 +42,7 @@
  *	References:
  */
 
-static unsigned int compare_flux_inviscid (const unsigned int Nn, const unsigned int Nel, const unsigned int d,
-                                           const unsigned int Neq, double *Wr);
+static unsigned int compare_flux_inviscid(unsigned int const Nn, unsigned int const Nel, double const *const Wr);
 static unsigned int compare_flux_viscous  (unsigned int const Nn, unsigned int const Nel, unsigned int const d,
                                            double const *const Wr, double const *const *const Qr);
 static unsigned int compare_flux_Num      (const unsigned int Nn, const unsigned int Nel, const unsigned int d,
@@ -74,11 +73,19 @@ void test_unit_equivalence_real_complex(void)
 	unsigned int Nn, Nel, d, Neq;
 	double       *W, *nL, *XYZ;
 
-	set_memory_test_boundary_conditions('a');
+	set_memory_test_jacobians('A');
 
 	unsigned int NBTypes = 0;
 	char         **BType;
 	set_BTypes(&NBTypes,&BType); // free
+
+	unsigned int NFiTypes = 0;
+	char         **FiType;
+	set_FiTypes(&NFiTypes,&FiType); // free
+
+	unsigned int NFNumTypes = 0;
+	char         **FNumType;
+	set_FiTypes(&NFNumTypes,&FNumType); // free
 
 	strcpy(DB.MeshType,"ToBeCurved"); // Meshes are not used for this test (and thus need not exist)
 
@@ -89,15 +96,24 @@ void test_unit_equivalence_real_complex(void)
 		nL  = initialize_n(Nn,Nel,d);   // free
 		XYZ = initialize_XYZ(Nn,Nel,d); // free
 
-		Neq  = d+2;
-
 		// flux_inviscid
-		pass = compare_flux_inviscid(Nn,Nel,d,Neq,W);
-		if (d == dMin)
-			sprintf(PrintName,"equivalence_flux_inviscid              (d = %d):",d);
-		else
-			sprintf(PrintName,"            flux_inviscid              (d = %d):",d);
-		test_print2(pass,PrintName);
+		for (size_t i = 0; i < NFiTypes; i++) {
+			set_parameters_test_flux_inviscid(FiType[i],d);
+			initialize_test_case_parameters();
+
+			pass = compare_flux_inviscid(Nn,Nel,W);
+			if (i == 0) {
+				if (d == dMin)
+					sprintf(PrintName,"equivalence_flux_%s             (d = %d):",FiType[i],d);
+				else
+					sprintf(PrintName,"            flux_%s             (d = %d):",FiType[i],d);
+			} else {
+				sprintf(PrintName,"            flux_%s                    :",FiType[i]);
+			}
+			test_print2(pass,PrintName);
+
+			free(DB.SolverType); // Initialized in "initialize_test_case_parameters"
+		}
 
 		// flux_LF
 		pass = compare_flux_Num(Nn,Nel,d,Neq,W,nL,"LF");
@@ -108,6 +124,8 @@ void test_unit_equivalence_real_complex(void)
 		pass = compare_flux_Num(Nn,Nel,d,Neq,W,nL,"Roe");
 		sprintf(PrintName,"                 Roe                          :");
 		test_print2(pass,PrintName);
+
+		Neq  = d+2;
 
 		// flux_viscous
 		pass = compare_flux_viscous(Nn,Nel,d,W,(double const *const *const) Q);
@@ -143,20 +161,23 @@ void test_unit_equivalence_real_complex(void)
 		free(XYZ);
 	}
 
-	set_memory_test_boundary_conditions('f');
+	set_memory_test_jacobians('F');
 
 	array_free2_c(NBTypes,BType);
+	array_free2_c(NFiTypes,FiType);
+	array_free2_c(NFNumTypes,FNumType);
 
 	free(PrintName);
 }
 
-static unsigned int compare_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const unsigned int d,
-                                          const unsigned int Neq, double *Wr)
+static unsigned int compare_flux_inviscid(unsigned int const Nn, unsigned int const Nel, double const *const Wr)
 {
 	unsigned int pass = 0;
 
-	unsigned int const NnTotal = Nn*Nel,
-	                   Nvar    = Neq;
+	unsigned int const d       = DB.d,
+	                   Nvar    = DB.Nvar,
+	                   Neq     = DB.Neq,
+	                   NnTotal = Nn*Nel;
 
 	double complex *const Wc = malloc(NnTotal*Nvar  * sizeof *Wc), // free
 	               *const Fc = malloc(NnTotal*d*Neq * sizeof *Fc); // free
@@ -168,6 +189,7 @@ static unsigned int compare_flux_inviscid(const unsigned int Nn, const unsigned 
 
 	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
 
+	FLUXDATA->PDE_index = DB.PDE_index;
 	FLUXDATA->d   = d;
 	FLUXDATA->Nn  = Nn;
 	FLUXDATA->Nel = Nel;

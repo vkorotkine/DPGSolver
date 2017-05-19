@@ -37,7 +37,7 @@ struct S_OPERATORS_V {
 
 struct S_VDATA {
 	unsigned int P, Eclass;
-	double       *W_vI, **Q_vI;
+	double       *W_vI, **Q_vI, *XYZ_vI;
 
 	struct S_OPERATORS_V const *const *OPS;
 	struct S_VOLUME      const *VOLUME;
@@ -50,6 +50,7 @@ extern void init_ops_VOLUME    (struct S_OPERATORS_V *const OPS, struct S_VOLUME
                                 unsigned int const IndClass);
 extern void init_VDATA         (struct S_VDATA *const VDATA, struct S_VOLUME const *const VOLUME);
 extern void coef_to_values_vI  (struct S_VDATA const *const VDATA, char const coef_type);
+extern void compute_flux_inviscid (struct S_VDATA *const VDATA, struct S_FLUX *const FLUXDATA, const char imex_type);
 extern void convert_between_rp (unsigned int const Nn, unsigned int const Nrc, double const *const C, double *const Ap,
                                 double *const Ar, char const *const conv_type);
 

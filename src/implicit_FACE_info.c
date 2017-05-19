@@ -38,9 +38,8 @@ void implicit_FACE_info(void)
 
 static void compute_Inviscid_FACE_EFE(void)
 {
-	unsigned int const d    = DB.d,
-	                   Nvar = d+2,
-	                   Neq  = d+2;
+	unsigned int const Nvar = DB.Nvar,
+	                   Neq  = DB.Neq;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 

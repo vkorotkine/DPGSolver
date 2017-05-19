@@ -9,4 +9,8 @@ extern double **initialize_Q  (unsigned int const Nn, unsigned int const Nel, un
 extern double *initialize_n   (const unsigned int Nn, const unsigned int Nel, const unsigned int d);
 extern double *initialize_XYZ (const unsigned int Nn, const unsigned int Nel, const unsigned int d);
 
+extern void set_FiTypes                       (unsigned int *NFiTypesOut, char ***FiTypeOut);
+extern void set_FNumTypes                     (unsigned int *NNumTypesOut, char ***FNumTypeOut);
+extern void set_parameters_test_flux_inviscid (char const *const FiType, unsigned int const d);
+
 #endif // DPG__test_code_fluxes_h__INCLUDED

@@ -194,6 +194,7 @@ void initialize_test_case_parameters(void)
 	DB.SolverType = malloc(STRLEN_MIN * sizeof *(DB.SolverType)); // keep
 	if (strstr(PDE,"Advection")) {
 		// Currently requires div (dot) b = 0
+		DB.PDE_index = PDE_ADVECTION;
 
 		DB.Nvar = 1;
 		DB.Neq  = 1;
@@ -228,6 +229,8 @@ void initialize_test_case_parameters(void)
 			EXIT_UNSUPPORTED;
 		}
 	} else if (strstr(PDE,"Poisson")) {
+		DB.PDE_index = PDE_POISSON;
+
 		DB.Nvar = 1;
 		DB.Neq  = 1;
 
@@ -272,6 +275,8 @@ void initialize_test_case_parameters(void)
 			}
 		}
 	} else if (strstr(PDE,"Euler")) {
+		DB.PDE_index = PDE_EULER;
+
 		DB.Nvar = d+2;
 		DB.Neq  = d+2;
 
@@ -425,6 +430,8 @@ void initialize_test_case_parameters(void)
 			EXIT_UNSUPPORTED;
 		}
 	} else if (strstr(PDE,"NavierStokes")) {
+		DB.PDE_index = PDE_NAVIERSTOKES;
+
 		DB.Nvar = d+2;
 		DB.Neq  = d+2;
 

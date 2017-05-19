@@ -8,8 +8,10 @@
 #include <math.h>
 
 #include "Parameters.h"
+#include "Macros.h"
 
 #include "fluxes_structs.h"
+#include "solver_Advection_functions.h"
 
 /*
  *	Purpose:
@@ -26,7 +28,20 @@
  *		   Note: There is a typo in the 3D Jacobian matrix (eq. 3.79), compare with eq. 3.70.
  */
 
+static void jacobian_flux_Euler     (struct S_FLUX *const FLUXDATA);
+static void jacobian_flux_Advection (struct S_FLUX *const FLUXDATA);
+
 void jacobian_flux_inviscid(struct S_FLUX *const FLUXDATA)
+{
+	switch(FLUXDATA->PDE_index) {
+		case PDE_ADVECTION:    jacobian_flux_Advection(FLUXDATA); break;
+		case PDE_EULER:        // fallthrough
+		case PDE_NAVIERSTOKES: jacobian_flux_Euler(FLUXDATA);     break;
+		default:               EXIT_UNSUPPORTED;                  break;
+	}
+}
+
+static void jacobian_flux_Euler(struct S_FLUX *const FLUXDATA)
 {
 	/*
 	 *	Jacobian Matrices [ eq * var]
@@ -602,7 +617,7 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 				WLn[0] = rhoL; WLn[1] = rhouL; WLn[2] = rhovL; WLn[3] = rhowL; WLn[4] = EL;
 				FLUXDATA->W    = WLn;
 				FLUXDATA->dFdW = dFdWn;
-				jacobian_flux_inviscid(FLUXDATA);
+				jacobian_flux_Euler(FLUXDATA);
 
 				dF1dW_ptr = dFdWn;
 				dF2dW_ptr = dF1dW_ptr+1;
@@ -627,8 +642,8 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 					InddnFdW++;
 				}}
 				if (sideMaxV == 'L') {
-					double WRn[Nvar], dudW[Nvar], dvdW[Nvar], dwdW[Nvar], drhodW[Nvar], dpdW[Nvar],
-					       dVdW, dcdW, dmaxVdW[Nvar];
+					double WRn[NVAR3D], dudW[NVAR3D], dvdW[NVAR3D], dwdW[NVAR3D], drhodW[NVAR3D], dpdW[NVAR3D],
+					       dVdW, dcdW, dmaxVdW[NVAR3D];
 
 					WRn[0] = rhoR; WRn[1] = rhouR; WRn[2] = rhovR; WRn[3] = rhowR; WRn[4] = ER;
 
@@ -659,7 +674,7 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 				WRn[0] = rhoR; WRn[1] = rhouR; WRn[2] = rhovR; WRn[3] = rhowR; WRn[4] = ER;
 				FLUXDATA->W    = WRn;
 				FLUXDATA->dFdW = dFdWn;
-				jacobian_flux_inviscid(FLUXDATA);
+				jacobian_flux_Euler(FLUXDATA);
 
 				dF1dW_ptr = dFdWn;
 				dF2dW_ptr = dF1dW_ptr+1;
@@ -684,8 +699,8 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 					InddnFdW++;
 				}}
 				if (sideMaxV == 'R') {
-					double WLn[Nvar], dudW[Nvar], dvdW[Nvar], dwdW[Nvar], drhodW[Nvar], dpdW[Nvar],
-					       dVdW, dcdW, dmaxVdW[Nvar];
+					double WLn[NVAR3D], dudW[NVAR3D], dvdW[NVAR3D], dwdW[NVAR3D], drhodW[NVAR3D], dpdW[NVAR3D],
+					       dVdW, dcdW, dmaxVdW[NVAR3D];
 
 					WLn[0] = rhoL; WLn[1] = rhouL; WLn[2] = rhovL; WLn[3] = rhowL; WLn[4] = EL;
 
@@ -776,7 +791,7 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 				WLn[0] = rhoL; WLn[1] = rhouL; WLn[2] = rhovL; WLn[3] = EL;
 				FLUXDATA->W    = WLn;
 				FLUXDATA->dFdW = dFdWn;
-				jacobian_flux_inviscid(FLUXDATA);
+				jacobian_flux_Euler(FLUXDATA);
 
 				dF1dW_ptr = dFdWn;
 				dF2dW_ptr = dF1dW_ptr+1;
@@ -799,8 +814,8 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 					InddnFdW++;
 				}}
 				if (sideMaxV == 'L') {
-					double WRn[Nvar], dudW[Nvar], dvdW[Nvar], drhodW[Nvar], dpdW[Nvar],
-					       dVdW, dcdW, dmaxVdW[Nvar];
+					double WRn[NVAR3D], dudW[NVAR3D], dvdW[NVAR3D], drhodW[NVAR3D], dpdW[NVAR3D],
+					       dVdW, dcdW, dmaxVdW[NVAR3D];
 
 					WRn[0] = rhoR; WRn[1] = rhouR; WRn[2] = rhovR; WRn[3] = ER;
 
@@ -830,7 +845,7 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 				WRn[0] = rhoR; WRn[1] = rhouR; WRn[2] = rhovR; WRn[3] = ER;
 				FLUXDATA->W    = WRn;
 				FLUXDATA->dFdW = dFdWn;
-				jacobian_flux_inviscid(FLUXDATA);
+				jacobian_flux_Euler(FLUXDATA);
 
 				dF1dW_ptr = dFdWn;
 				dF2dW_ptr = dF1dW_ptr+1;
@@ -853,8 +868,8 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 					InddnFdW++;
 				}}
 				if (sideMaxV == 'R') {
-					double WLn[Nvar], dudW[Nvar], dvdW[Nvar], drhodW[Nvar], dpdW[Nvar],
-					       dVdW, dcdW, dmaxVdW[Nvar];
+					double WLn[NVAR3D], dudW[NVAR3D], dvdW[NVAR3D], drhodW[NVAR3D], dpdW[NVAR3D],
+					       dVdW, dcdW, dmaxVdW[NVAR3D];
 
 					WLn[0] = rhoL; WLn[1] = rhouL; WLn[2] = rhovL; WLn[3] = EL;
 
@@ -936,7 +951,7 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 				WLn[0] = rhoL; WLn[1] = rhouL; WLn[2] = EL;
 				FLUXDATA->W    = WLn;
 				FLUXDATA->dFdW = dFdWn;
-				jacobian_flux_inviscid(FLUXDATA);
+				jacobian_flux_Euler(FLUXDATA);
 
 				dF1dW_ptr = dFdWn;
 
@@ -987,7 +1002,7 @@ void jacobian_flux_LF(const unsigned int Nn, const unsigned int Nel, const doubl
 				WRn[0] = rhoR; WRn[1] = rhouR; WRn[2] = ER;
 				FLUXDATA->W    = WRn;
 				FLUXDATA->dFdW = dFdWn;
-				jacobian_flux_inviscid(FLUXDATA);
+				jacobian_flux_Euler(FLUXDATA);
 
 				dF1dW_ptr = dFdWn;
 
@@ -1849,4 +1864,48 @@ void jacobian_flux_Roe(const unsigned int Nn, const unsigned int Nel, const doub
 		}
 	}
 
+}
+
+static void jacobian_flux_Advection(struct S_FLUX *const FLUXDATA)
+{
+	/*
+	 *	Comments:
+	 *		Implicitly assumed that Neq = Nvar = 1.
+	 */
+
+	unsigned int const d       = FLUXDATA->d,
+	                   Nn      = FLUXDATA->Nn,
+	                   Nel     = FLUXDATA->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double const *const W    = FLUXDATA->W;
+	double       *const F    = FLUXDATA->F,
+	             *const dFdW = FLUXDATA->dFdW;
+
+	double *F_ptr[d];
+	if (F != NULL) {
+		for (size_t dim = 0; dim < d; dim++)
+			F_ptr[dim] = &F[dim*NnTotal];
+	}
+
+	double *dFdW_ptr[d];
+	for (size_t dim = 0; dim < d; dim++)
+		dFdW_ptr[dim] = &dFdW[dim*NnTotal];
+
+	double const *const b = compute_b_Advection(NnTotal,FLUXDATA->XYZ); // free
+
+	for (size_t n = 0; n < NnTotal; n++) {
+		if (F != NULL) {
+			for (size_t dim = 0; dim < d; dim++) {
+				*F_ptr[dim] = b[dim*NnTotal+n]*W[n];
+				F_ptr[dim]++;
+			}
+		}
+
+		for (size_t dim = 0; dim < d; dim++) {
+			*dFdW_ptr[dim] = b[dim*NnTotal+n];
+			dFdW_ptr[dim]++;
+		}
+	}
+	free((double *) b);
 }

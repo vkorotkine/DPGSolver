@@ -26,30 +26,9 @@
  *	References:
  */
 
-void set_memory_test_boundary_conditions(char const operation)
-{
-	if (operation == 'a') { // allocate
-		DB.TestCase      = calloc(STRLEN_MAX , sizeof *(DB.TestCase));      // free
-		DB.PDE           = calloc(STRLEN_MAX , sizeof *(DB.PDE));           // free
-		DB.PDESpecifier  = calloc(STRLEN_MAX , sizeof *(DB.PDESpecifier));  // free
-		DB.Geometry      = calloc(STRLEN_MAX , sizeof *(DB.Geometry));      // free
-		DB.GeomSpecifier = calloc(STRLEN_MAX , sizeof *(DB.GeomSpecifier)); // free
-		DB.MeshFile      = calloc(STRLEN_MAX , sizeof *(DB.MeshFile));      // free
-		DB.MeshType      = calloc(STRLEN_MAX , sizeof *(DB.MeshType));      // free
-	} else if (operation == 'f') { // free
-		free(DB.TestCase);
-		free(DB.PDE);
-		free(DB.PDESpecifier);
-		free(DB.Geometry);
-		free(DB.GeomSpecifier);
-		free(DB.MeshFile);
-		free(DB.MeshType);
-	}
-}
-
 void set_BTypes(unsigned int *NBTypesOut, char ***BTypeOut)
 {
-	unsigned int const NBTypes = 10;
+	unsigned int const NBTypes = 12;
 
 	char **BType = malloc(NBTypes * sizeof *BType); // keep
 
@@ -66,6 +45,8 @@ void set_BTypes(unsigned int *NBTypesOut, char ***BTypeOut)
 	strcpy(BType[7],"NoSlip_Adiabatic ");
 	strcpy(BType[8],"Poisson_Dirichlet");
 	strcpy(BType[9],"Poisson_Neumann  ");
+	strcpy(BType[10],"Advection_Inflow ");
+	strcpy(BType[11],"Advection_Outflow");
 
 	*NBTypesOut = NBTypes;
 	*BTypeOut   = BType;
@@ -100,6 +81,11 @@ void set_parameters_test_boundary_conditions(char const *const BType, unsigned i
 		strcpy(DB.TestCase,"Poisson");
 		strcpy(DB.Geometry,"n-Ellipsoid");
 		strcpy(DB.GeomSpecifier,"AR_3");
+	} else if (strstr(BType,"Advection")) {
+		strcpy(DB.PDE,"Advection");
+		strcpy(DB.PDESpecifier,"Steady/Default");
+		strcpy(DB.Geometry,"n-Cube");
+		strcpy(DB.GeomSpecifier,"YL");
 	} else {
 		EXIT_UNSUPPORTED;
 	}

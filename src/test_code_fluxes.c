@@ -5,8 +5,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
+#include "Parameters.h"
 #include "Macros.h"
+#include "S_DB.h"
+
+#include "test_support.h"
 
 #include "array_print.h"
 
@@ -229,4 +234,54 @@ double *initialize_XYZ(const unsigned int Nn, const unsigned int Nel, const unsi
 		}
 	}
 	return XYZ;
+}
+
+void set_FiTypes(unsigned int *NFiTypesOut, char ***FiTypeOut)
+{
+	unsigned int const NFiTypes = 2;
+
+	char **FiType = malloc(NFiTypes * sizeof *FiType); // keep
+	for (size_t i = 0; i < NFiTypes; i++)
+		FiType[i] = malloc(STRLEN_MAX * sizeof *FiType[i]); // keep
+
+	strcpy(FiType[0],"Advection");
+	strcpy(FiType[1],"Euler    ");
+
+	*NFiTypesOut = NFiTypes;
+	*FiTypeOut   = FiType;
+}
+
+void set_FNumTypes(unsigned int *NNumTypesOut, char ***FNumTypeOut)
+{
+	unsigned int const NNumTypes = 3;
+
+	char **FNumType = malloc(NFNumTypes * sizeof *FNumType); // keep
+	for (size_t i = 0; i < NFNumTypes; i++)
+		FNumType[i] = malloc(STRLEN_MAX * sizeof *FNumType[i]); // keep
+
+	strcpy(FNumType[0],"LF     ");
+	strcpy(FNumType[1],"RoePike");
+	strcpy(FNumType[2],"Upwind ");
+
+	*NFNumTypesOut = NFNumTypes;
+	*FNumTypeOut   = FNumType;
+}
+
+void set_parameters_test_flux_inviscid(char const *const FiType, unsigned int const d)
+{
+	DB.d = d;
+	if (strstr(FiType,"Advection")) {
+		strcpy(DB.PDE,"Advection");
+		strcpy(DB.PDESpecifier,"Steady/Default");
+		strcpy(DB.Geometry,"n-Cube");
+		strcpy(DB.GeomSpecifier,"YL");
+	} else if (strstr(FiType,"Euler")) {
+		strcpy(DB.PDE,"Euler");
+		strcpy(DB.TestCase,"SupersonicVortex");
+		strcpy(DB.PDESpecifier,"Internal");
+		strcpy(DB.Geometry,"n-Cylinder_HollowSection");
+	} else {
+		printf("Unsupported FiType: %s\n",FiType);
+		EXIT_UNSUPPORTED;
+	}
 }

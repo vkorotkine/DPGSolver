@@ -6,7 +6,6 @@
 
 #include <stdbool.h>
 
-extern void set_memory_test_boundary_conditions     (char const operation);
 extern void set_BTypes                              (unsigned int *NBTypesOut, char ***BTypeOut);
 extern void set_parameters_test_boundary_conditions (char const *const BType, unsigned int const d);
 extern void reset_entered_test_boundary_conditions  (char const *const BType);

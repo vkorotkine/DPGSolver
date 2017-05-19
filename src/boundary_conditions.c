@@ -112,6 +112,7 @@ double *compute_exact_boundary_normal(struct S_BC *const BCdata)
 	return nEx_fIL;
 }
 
+static void boundary_Advection         (struct S_BC *const BCdata);
 static void boundary_Poisson           (struct S_BC *const BCdata);
 static void boundary_Riemann           (struct S_BC *const BCdata);
 static void boundary_SlipWall          (struct S_BC *const BCdata);
@@ -151,6 +152,8 @@ void compute_boundary_values(struct S_BC *const BCdata)
 		case BC_NOSLIP_ADIABATIC: boundary_NoSlip_Adiabatic(BCdata);  break;
 		case BC_DIRICHLET:        // fallthrough
 		case BC_NEUMANN:          boundary_Poisson(BCdata);           break;
+		case BC_INFLOW:           // fallthrough
+		case BC_OUTFLOW:          boundary_Advection(BCdata);         break;
 		default:                  EXIT_UNSUPPORTED;                   break;
 	}
 }
@@ -244,6 +247,34 @@ double *compute_XYZ_boundary(struct S_BC *const BCdata)
 	return XYZB;
 }
 
+static void boundary_Advection(struct S_BC *const BCdata)
+{
+	unsigned int const BC_index = (BCdata->BC) % BC_STEP_SC;
+	if (!(BC_index == BC_INFLOW || BC_index == BC_OUTFLOW))
+		EXIT_UNSUPPORTED;
+
+	/*
+	 *	Comments:
+	 *		It is implicitly assumed that Nvar = Neq = 1.
+	 */
+
+	unsigned int const Nn      = BCdata->Nn,
+	                   Nel     = BCdata->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double *const XYZB = compute_XYZ_boundary(BCdata); // free
+
+	double const *const WL = BCdata->WL;
+	double       *const WB = BCdata->WB;
+
+	if (BC_index == BC_INFLOW) {
+		compute_exact_solution(NnTotal,XYZB,WB,0);
+	} else if (BC_index == BC_OUTFLOW) {
+		for (size_t n = 0; n < NnTotal; n++)
+			WB[n] = WL[n];
+	}
+}
+
 static void boundary_Poisson(struct S_BC *const BCdata)
 {
 	unsigned int const BC_index = (BCdata->BC) % BC_STEP_SC;
@@ -254,6 +285,9 @@ static void boundary_Poisson(struct S_BC *const BCdata)
 	 *	Comments:
 	 *		The boundary condition must be computed on the exact geometry when curved boundaries are present. Otherwise,
 	 *		the problem is simply solved on the inexact domain.
+	 *
+	 *		The boundary conditions are computed as WB = 2*WEx - WL such that 0.5*(WB+WL) == WEx (which is used for the
+	 *		central fluxes).
 	 *
 	 *		The assumption that Nvar = 1 was used below.
 	 */

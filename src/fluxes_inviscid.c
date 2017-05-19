@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
 #include "Parameters.h"
 #include "Macros.h"
@@ -65,7 +66,20 @@
  *		Li(2016)-Cures_for_the_Expansion_Shock_and_the_Shock_Instability_of_the_Roe_Scheme
  */
 
+static void flux_Euler     (struct S_FLUX *const FLUXDATA);
+static void flux_Advection (struct S_FLUX *const FLUXDATA);
+
 void flux_inviscid(struct S_FLUX *const FLUXDATA)
+{
+	switch(FLUXDATA->PDE_index) {
+		case PDE_ADVECTION:    flux_Advection(FLUXDATA); break;
+		case PDE_EULER:        // fallthrough
+		case PDE_NAVIERSTOKES: flux_Euler(FLUXDATA);     break;
+		default:               EXIT_UNSUPPORTED;         break;
+	}
+}
+
+static void flux_Euler(struct S_FLUX *const FLUXDATA)
 {
 	/*
 	 *	Comments:
@@ -239,11 +253,11 @@ void flux_LF(const unsigned int Nn, const unsigned int Nel, const double *const 
 
 	FLUXDATA->W   = WL;
 	FLUXDATA->F   = FL;
-	flux_inviscid(FLUXDATA);
+	flux_Euler(FLUXDATA);
 
 	FLUXDATA->W   = WR;
 	FLUXDATA->F   = FR;
-	flux_inviscid(FLUXDATA);
+	flux_Euler(FLUXDATA);
 	free(FLUXDATA);
 
 	rhoL = &UL[NnTotal*0];
@@ -698,7 +712,7 @@ void flux_Roe(const unsigned int Nn, const unsigned int Nel, const double *const
 	}
 }
 
-void flux_Advection(struct S_FLUX *const FLUXDATA)
+static void flux_Advection(struct S_FLUX *const FLUXDATA)
 {
 	unsigned int const d       = FLUXDATA->d,
 	                   Nn      = FLUXDATA->Nn,
@@ -708,16 +722,17 @@ void flux_Advection(struct S_FLUX *const FLUXDATA)
 	double const *const W = FLUXDATA->W;
 	double       *const F = FLUXDATA->F;
 
-	double const *const b = compute_b_Advection(NnTotal,FLUXDATA->XYZ);
-
 	double *F_ptr[d];
 	for (size_t dim = 0; dim < d; dim++)
 		F_ptr[dim] = &F[dim*NnTotal];
 
+	double const *const b = compute_b_Advection(NnTotal,FLUXDATA->XYZ); // free
+
 	for (size_t n = 0; n < NnTotal; n++) {
-		for (size_t IndF = 0, dim = 0; dim < d; dim++) {
-			*F_ptr[IndF++] = b[dim*Nn+n]*W[n];
+		for (size_t dim = 0; dim < d; dim++) {
+			*F_ptr[dim] = b[dim*NnTotal+n]*W[n];
 			F_ptr[dim]++;
 		}
 	}
+	free((double *) b);
 }

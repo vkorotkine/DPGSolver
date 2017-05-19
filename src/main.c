@@ -308,6 +308,9 @@ int main(int nargc, char **argv)
 
 		test_unit_equivalence_real_complex();
 	}
+		test_unit_equivalence_real_complex();
+//		test_unit_jacobian_fluxes();
+EXIT_BASIC;
 
 	// Integration tests
 	if (RunTest.integration) {

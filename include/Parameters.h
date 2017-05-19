@@ -106,6 +106,13 @@
 #define PIvcMaxTET 10
 #define PIvcMaxPYR 10
 
+// PDE Names
+#define PDE_ADVECTION    1
+#define PDE_POISSON      2
+#define PDE_EULER        3
+#define PDE_NAVIERSTOKES 4
+
+
 // Solver related parameters
 #define RK3_SSP 0
 #define RK4_LS  1

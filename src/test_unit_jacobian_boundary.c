@@ -171,7 +171,7 @@ void test_unit_jacobian_boundary(void)
 	unsigned int i, Nn, Nel, d;
 	double       *W, **Q, *nL, *XYZ;
 
-	set_memory_test_boundary_conditions('a');
+	set_memory_test_jacobians('A');
 
 	unsigned int NBTypes = 0;
 	char         **BType;
@@ -214,7 +214,7 @@ void test_unit_jacobian_boundary(void)
 		free(DB.SolverType); // Initialized in "initialize_test_case_parameters"
 	}}
 
-	set_memory_test_boundary_conditions('f');
+	set_memory_test_jacobians('F');
 
 	array_free2_c(NBTypes,BType);
 

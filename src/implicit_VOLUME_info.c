@@ -63,8 +63,8 @@ void implicit_VOLUME_info(void)
 static void compute_Inviscid_VOLUME_EFE(void)
 {
 	unsigned int d    = DB.d,
-				 Nvar = d+2,
-				 Neq  = d+2;
+				 Nvar = DB.Nvar,
+				 Neq  = DB.Neq;
 
 	struct S_OPERATORS_V *OPS[2];
 
@@ -74,6 +74,7 @@ static void compute_Inviscid_VOLUME_EFE(void)
 	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
 	FLUXDATA->d   = d;
 	FLUXDATA->Nel = 1;
+	FLUXDATA->PDE_index = DB.PDE_index;
 
 	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
 	DATA->VDATA     = VDATA;
@@ -100,12 +101,16 @@ static void compute_Inviscid_VOLUME_EFE(void)
 			// Compute Flux and its Jacobian in reference space
 			manage_solver_memory(DATA,'A','I'); // free
 
-			FLUXDATA->Nn = NvnI;
-			FLUXDATA->W  = VDATA->W_vI;
-			jacobian_flux_inviscid(FLUXDATA);
+			if (DB.PDE_index == PDE_ADVECTION)
+				manage_solver_memory(DATA,'A','X'); // free
+
+			compute_flux_inviscid(VDATA,FLUXDATA,'I');
 
 			if (!DB.Collocated)
 				manage_solver_memory(DATA,'F','W');
+
+			if (DB.PDE_index == PDE_ADVECTION)
+				manage_solver_memory(DATA,'F','X');
 
 			// Convert to reference space
 			convert_between_rp(NvnI,Neq,VOLUME->C_vI,FLUXDATA->F,FLUXDATA->Fr,"FluxToRef");

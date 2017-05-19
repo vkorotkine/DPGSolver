@@ -80,6 +80,7 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
 	FLUXDATA->d   = d;
 	FLUXDATA->Nel = 1;
+	FLUXDATA->PDE_index = DB.PDE_index;
 
 	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
 	DATA->VDATA     = VDATA;
@@ -109,10 +110,16 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 			FLUXDATA->Nn = NvnI;
 			FLUXDATA->W  = VDATA->W_vI;
 
-			flux_inviscid(FLUXDATA);
+			if (DB.PDE_index == PDE_ADVECTION)
+				manage_solver_memory(DATA,'A','X'); // free
+
+			compute_flux_inviscid(VDATA,FLUXDATA,'E');
 
 			if (!DB.Collocated)
 				manage_solver_memory(DATA,'F','W');
+
+			if (DB.PDE_index == PDE_ADVECTION)
+				manage_solver_memory(DATA,'F','X');
 
 			// Convert to reference space
 			convert_between_rp(NvnI,Neq,VOLUME->C_vI,FLUXDATA->F,FLUXDATA->Fr,"FluxToRef");

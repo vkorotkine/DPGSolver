@@ -110,6 +110,8 @@ void manage_solver_memory(struct S_DATA *const DATA, char const mem_op, char con
 					   }
 				   }
 				}
+			} else if (mem_type == 'X') {
+				VDATA->XYZ_vI = malloc(NvnI*d * sizeof *(VDATA->XYZ_vI)); // keep
 			} else {
 				EXIT_UNSUPPORTED;
 			}
@@ -201,6 +203,8 @@ void manage_solver_memory(struct S_DATA *const DATA, char const mem_op, char con
 					   array_free2_d(d,FLUXDATA->dFrdQ);
 				   }
 				}
+			} else if (mem_type == 'X') {
+				free(VDATA->XYZ_vI);
 			} else {
 				EXIT_UNSUPPORTED;
 			}
@@ -429,6 +433,34 @@ void coef_to_values_vI(struct S_VDATA const *const VDATA, char const coef_type)
 					mm_CTN_d(OPS[0]->NvnI,Nvar,OPS[0]->NvnS,OPS[0]->ChiS_vI,VOLUME->Qhat[dim],VDATA->Q_vI[dim]);
 			}
 		}
+	}
+}
+
+void compute_flux_inviscid(struct S_VDATA *const VDATA, struct S_FLUX *const FLUXDATA, const char imex_type)
+{
+	if (!(imex_type == 'E' || imex_type == 'I'))
+		EXIT_UNSUPPORTED;
+
+	struct S_OPERATORS_V const *const *const OPS    = (struct S_OPERATORS_V const *const *const) VDATA->OPS;
+	struct S_VOLUME      const *const        VOLUME = VDATA->VOLUME;
+
+	unsigned int const d    = DB.d,
+	                   NvnI = VDATA->OPS[0]->NvnI;
+
+	FLUXDATA->Nn = NvnI;
+	FLUXDATA->W  = VDATA->W_vI;
+
+	if (DB.PDE_index == PDE_ADVECTION) {
+		// XYZ coordinates needed to compute the advection vector (in general)
+		mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS[0]->I_vG_vI,VOLUME->XYZ,VDATA->XYZ_vI);
+
+		FLUXDATA->XYZ = VDATA->XYZ_vI;
+	}
+
+	if (imex_type == 'E') {
+		flux_inviscid(FLUXDATA);
+	} else if (imex_type == 'I') {
+		jacobian_flux_inviscid(FLUXDATA);
 	}
 }
 

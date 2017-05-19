@@ -20,6 +20,7 @@
 #include "fluxes_viscous_c.h"
 #include "jacobian_fluxes_inviscid.h"
 #include "jacobian_fluxes_viscous.h"
+#include "initialize_test_case.h"
 #include "array_norm.h"
 #include "array_free.h"
 #include "array_print.h"
@@ -40,8 +41,8 @@
 static void compute_dFdW_cs(unsigned int const Nn, unsigned int const Nel, unsigned int const d, double const *const W,
                             double const *const *const Q, double *const dFdW_cs, char const flux_type)
 {
-	unsigned int const Neq     = d+2,
-	                   Nvar    = d+2,
+	unsigned int const Neq     = DB.Neq,
+	                   Nvar    = DB.Nvar,
 	                   NnTotal = Nn*Nel;
 
 	double complex **Q_c = NULL;
@@ -58,6 +59,7 @@ static void compute_dFdW_cs(unsigned int const Nn, unsigned int const Nel, unsig
 	               *const F = malloc(NnTotal*d*Neq * sizeof *F);  // free
 
 	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->PDE_index = DB.PDE_index;
 	FLUXDATA->d   = d;
 	FLUXDATA->Nn  = Nn;
 	FLUXDATA->Nel = Nel;
@@ -102,8 +104,8 @@ static void compute_dFdW_cs(unsigned int const Nn, unsigned int const Nel, unsig
 static void compute_dFdQ_cs(unsigned int const Nn, unsigned int const Nel, unsigned int const d, double const *const W,
                             double const *const *const Q, double *const *const dFdQ_cs)
 {
-	unsigned int const Neq     = d+2,
-	                   Nvar    = d+2,
+	unsigned int const Neq     = DB.Neq,
+	                   Nvar    = DB.Nvar,
 	                   NnTotal = Nn*Nel;
 
 	double complex *const W_c = malloc(NnTotal*Neq * sizeof *W_c); // free
@@ -120,6 +122,7 @@ static void compute_dFdQ_cs(unsigned int const Nn, unsigned int const Nel, unsig
 	double complex *const F = malloc(NnTotal*d*Neq * sizeof *F);  // free
 
 	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->PDE_index = DB.PDE_index;
 	FLUXDATA->d   = d;
 	FLUXDATA->Nn  = Nn;
 	FLUXDATA->Nel = Nel;
@@ -158,21 +161,20 @@ static void compute_dFdQ_cs(unsigned int const Nn, unsigned int const Nel, unsig
 	free(FLUXDATA);
 }
 
-static unsigned int compare_jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, const unsigned int d,
-                                                   const unsigned int Neq, double *W)
+static unsigned int compare_jacobian_flux_inviscid(const unsigned int Nn, const unsigned int Nel, double *W)
 {
 	unsigned int pass = 0;
 
-	unsigned int NnTotal, Nvar;
-	double       *dFdW, *dFdW_cs;
+	unsigned int const d       = DB.d,
+	                   Neq     = DB.Neq,
+	                   Nvar    = DB.Nvar,
+	                   NnTotal = Nn*Nel;
 
-	NnTotal = Nn*Nel;
-	Nvar    = Neq;
-
-	dFdW    = malloc(NnTotal*d*Nvar*Neq * sizeof *dFdW);    // free
-	dFdW_cs = malloc(NnTotal*d*Nvar*Neq * sizeof *dFdW_cs); // free
+	double *const dFdW    = malloc(NnTotal*d*Nvar*Neq * sizeof *dFdW);    // free
+	double *const dFdW_cs = malloc(NnTotal*d*Nvar*Neq * sizeof *dFdW_cs); // free
 
 	struct S_FLUX *FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->PDE_index = DB.PDE_index;
 	FLUXDATA->d    = d;
 	FLUXDATA->Nn   = Nn;
 	FLUXDATA->Nel  = Nel;
@@ -184,8 +186,12 @@ static unsigned int compare_jacobian_flux_inviscid(const unsigned int Nn, const 
 	compute_dFdW_cs(Nn,Nel,d,W,NULL,dFdW_cs,'I');
 	free(FLUXDATA);
 
-	if (array_norm_diff_d(NnTotal*d*Nvar*Neq,dFdW,dFdW_cs,"Inf") < EPS)
+	if (array_norm_diff_d(NnTotal*d*Nvar*Neq,dFdW,dFdW_cs,"Inf") < EPS) {
 		pass = 1;
+	} else {
+		array_print_d(NnTotal,d*Nvar*Neq,dFdW,'C');
+		array_print_d(NnTotal,d*Nvar*Neq,dFdW_cs,'C');
+	}
 
 	free(dFdW);
 	free(dFdW_cs);
@@ -208,6 +214,7 @@ static unsigned int compare_jacobian_flux_viscous(unsigned int const Nn, unsigne
 	                   Nvar    = d+2;
 
 	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->PDE_index = DB.PDE_index;
 	FLUXDATA->d   = d;
 	FLUXDATA->Nn  = Nn;
 	FLUXDATA->Nel = Nel;
@@ -336,18 +343,20 @@ static void compute_dnFdW_cs(const unsigned int Nn, const unsigned int Nel, cons
 	free(nF);
 }
 
-static unsigned int compare_jacobian_flux_Num(const unsigned int Nn, const unsigned int Nel, const unsigned int d,
-                                              const unsigned int Neq, double *W, double *nL, const char *nFType)
+static unsigned int compare_jacobian_flux_Num(const unsigned int Nn, const unsigned int Nel, double *W, double *nL,
+                                              const char *nFType)
 {
 	unsigned int pass = 0;
 
-	unsigned int i, n, var, Nvar, IndWLR, CheckedAllLF, CheckedAllRoe;
+	unsigned int const d    = DB.d,
+	                   Neq  = DB.Neq,
+	                   Nvar = DB.Nvar;
+
+	unsigned int i, n, var, IndWLR, CheckedAllLF, CheckedAllRoe;
 	double       *W_ptr, *WL, *WR, *dnFdWL, *dnFdWR, *dnFdWL_cs, *dnFdWR_cs;
 
 	if (Nel != 2)
 		EXIT_UNSUPPORTED;
-
-	Nvar = Neq;
 
 	WL        = malloc(Nn*Nvar     * sizeof *WL);        // free
 	WR        = malloc(Nn*Nvar     * sizeof *WR);        // free
@@ -429,57 +438,83 @@ void test_unit_jacobian_fluxes(void)
 	 *	Expected Output:
 	 *		No difference between the results.
 	 *
+	 *	Notation:
+	 *		FiType : (F)lux (i)nviscid (Type)
+	 *
 	 */
 
-	unsigned int Nn, Nel, d, Neq;
+	unsigned int Nn, Nel, d;
 	double       *W, *nL;
+
+	set_memory_test_jacobians('A');
+
+	unsigned int NFiTypes = 0;
+	char         **FiType;
+	set_FiTypes(&NFiTypes,&FiType); // free
+
+	strcpy(DB.MeshType,"ToBeCurved"); // Meshes are not used for this test (and thus need not exist)
+
+	test_print_warning("Advection test case currently used has b = constant");
 
 	unsigned int dMin = 2, dMax = 3;
 	for (d = dMin; d <= dMax; d++) {
-		Neq = d+2;
-
 		W  = initialize_W(&Nn,&Nel,d); // free
 		nL = initialize_n(Nn,Nel,d);   // free
 
 		// flux_inviscid
-		pass = compare_jacobian_flux_inviscid(Nn,Nel,d,Neq,W);
-		if (d == dMin)
-			sprintf(PrintName,"jacobian_flux_inviscid (d = %d):",d);
-		else
-			sprintf(PrintName,"         flux_inviscid (d = %d):",d);
-		test_print2(pass,PrintName);
+		for (size_t i = 0; i < NFiTypes; i++) {
+			set_parameters_test_flux_inviscid(FiType[i],d);
+			initialize_test_case_parameters();
+
+			pass = compare_jacobian_flux_inviscid(Nn,Nel,W);
+			if (i == 0) {
+				if (d == dMin)
+					sprintf(PrintName,"jacobian_flux_%s (d = %d):",FiType[i],d);
+				else
+					sprintf(PrintName,"              %s (d = %d):",FiType[i],d);
+			} else {
+				sprintf(PrintName,"              %s        :",FiType[i]);
+			}
+			test_print2(pass,PrintName);
+
+			free(DB.SolverType); // Initialized in "initialize_test_case_parameters"
+		}
 
 
 		// flux_LF
 		for (size_t i = 0; i < TEST_N_LF; i++)
 			TestDB.EnteredLF[i] = 0;
-		pass = compare_jacobian_flux_Num(Nn,Nel,d,Neq,W,nL,"LF");
-		sprintf(PrintName,"         flux_LF              :");
+		pass = compare_jacobian_flux_Num(Nn,Nel,W,nL,"LF");
+		sprintf(PrintName,"              LF               :");
 		test_print2(pass,PrintName);
 
 
 		// flux_Roe
 		for (size_t i = 0; i < TEST_N_ROE; i++)
 			TestDB.EnteredRoe[i] = 0;
-		pass = compare_jacobian_flux_Num(Nn,Nel,d,Neq,W,nL,"Roe");
-		sprintf(PrintName,"         flux_Roe             :");
+		pass = compare_jacobian_flux_Num(Nn,Nel,W,nL,"Roe");
+		sprintf(PrintName,"              Roe              :");
 		test_print2(pass,PrintName);
 
 
 		// flux_viscous
 		double **Q = initialize_Q(Nn,Nel,d); // free
 		pass = compare_jacobian_flux_viscous(Nn,Nel,d,W,Q,'W');
-		sprintf(PrintName,"         flux_viscous (W)     :");
+		sprintf(PrintName,"              viscous (W)      :");
 		test_print2(pass,PrintName);
 
 		pass = compare_jacobian_flux_viscous(Nn,Nel,d,W,Q,'Q');
-		sprintf(PrintName,"                      (Q)     :");
+		sprintf(PrintName,"                      (Q)      :");
 		test_print2(pass,PrintName);
 
 		free(W);
 		free(nL);
 		array_free2_d(d,Q);
 	}
+
+	set_memory_test_jacobians('F');
+
+	array_free2_c(NFiTypes,FiType);
 
 	free(PrintName);
 }
