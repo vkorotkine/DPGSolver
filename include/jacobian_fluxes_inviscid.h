@@ -6,12 +6,7 @@
 
 #include "fluxes_structs.h"
 
-extern void jacobian_flux_inviscid (struct S_FLUX *const FLUXDATA);
-extern void jacobian_flux_LF       (const unsigned int Nn, const unsigned int Nel, const double *WL, const double *WR,
-                                    double *dnFdW, const double *nL, const unsigned int d, const unsigned int Neq,
-                                    const char side);
-extern void jacobian_flux_Roe      (const unsigned int Nn, const unsigned int Nel, const double *WL, const double *WR,
-                                    double *dnFdW, const double *nL, const unsigned int d, const unsigned int Neq,
-                                    const char side);
+extern void jacobian_flux_inviscid     (struct S_FLUX *const FLUXDATA);
+extern void jacobian_flux_num_inviscid (struct S_NUMERICALFLUX *const NUMFLUXDATA);
 
 #endif // DPG__jacobian_fluxes_inviscid_h__INCLUDED

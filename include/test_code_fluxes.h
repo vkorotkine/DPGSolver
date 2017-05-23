@@ -10,7 +10,9 @@ extern double *initialize_n   (const unsigned int Nn, const unsigned int Nel, co
 extern double *initialize_XYZ (const unsigned int Nn, const unsigned int Nel, const unsigned int d);
 
 extern void set_FiTypes                       (unsigned int *NFiTypesOut, char ***FiTypeOut);
-extern void set_FNumTypes                     (unsigned int *NNumTypesOut, char ***FNumTypeOut);
+extern void set_FNumTypes                     (unsigned int *NFNumTypesOut, char ***FNumTypeOut);
+extern void set_parameters_test_flux_Num      (char const *const FNumType, unsigned int const d);
 extern void set_parameters_test_flux_inviscid (char const *const FiType, unsigned int const d);
+extern void reset_entered_test_num_flux       (char const *const FNumType);
 
 #endif // DPG__test_code_fluxes_h__INCLUDED

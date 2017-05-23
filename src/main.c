@@ -308,19 +308,21 @@ int main(int nargc, char **argv)
 
 		test_unit_equivalence_real_complex();
 	}
+if (1) {
 		test_unit_equivalence_real_complex();
-//		test_unit_jacobian_fluxes();
+		test_unit_jacobian_fluxes();
 EXIT_BASIC;
+}
 
 	// Integration tests
 	if (RunTest.integration) {
 		test_integration_update_h(nargc,argv);
 		test_integration_L2_projections(nargc,argv);
 	}
-if (1) {
+if (0) {
 	test_integration_Advection(nargc,argv);
 } else {
-	test_integration_Poisson(nargc,argv);
+//	test_integration_Poisson(nargc,argv);
 	test_integration_Euler(nargc,argv);
 	test_integration_NavierStokes(nargc,argv);
 }

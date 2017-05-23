@@ -10,6 +10,7 @@
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
+#include "Test.h"
 
 #include "test_support.h"
 
@@ -251,9 +252,9 @@ void set_FiTypes(unsigned int *NFiTypesOut, char ***FiTypeOut)
 	*FiTypeOut   = FiType;
 }
 
-void set_FNumTypes(unsigned int *NNumTypesOut, char ***FNumTypeOut)
+void set_FNumTypes(unsigned int *NFNumTypesOut, char ***FNumTypeOut)
 {
-	unsigned int const NNumTypes = 3;
+	unsigned int const NFNumTypes = 3;
 
 	char **FNumType = malloc(NFNumTypes * sizeof *FNumType); // keep
 	for (size_t i = 0; i < NFNumTypes; i++)
@@ -283,5 +284,44 @@ void set_parameters_test_flux_inviscid(char const *const FiType, unsigned int co
 	} else {
 		printf("Unsupported FiType: %s\n",FiType);
 		EXIT_UNSUPPORTED;
+	}
+}
+
+void set_parameters_test_flux_Num(char const *const FNumType, unsigned int const d)
+{
+	DB.d = d;
+	if (strstr(FNumType,"Upwind")) {
+		strcpy(DB.PDE,"Advection");
+		strcpy(DB.PDESpecifier,"Steady/Default");
+		strcpy(DB.Geometry,"n-Cube");
+		strcpy(DB.GeomSpecifier,"YL");
+
+		DB.InviscidFluxType = FLUX_UPWIND;
+	} else if (strstr(FNumType,"LF") || strstr(FNumType,"RoePike")) {
+		strcpy(DB.PDE,"Euler");
+		strcpy(DB.TestCase,"SupersonicVortex");
+		strcpy(DB.PDESpecifier,"Internal");
+		strcpy(DB.Geometry,"n-Cylinder_HollowSection");
+
+		if (strstr(FNumType,"LF"))
+			DB.InviscidFluxType = FLUX_LF;
+		else if (strstr(FNumType,"RoePike"))
+			DB.InviscidFluxType = FLUX_ROE;
+		else
+			EXIT_UNSUPPORTED;
+	} else {
+		printf("Unsupported FNumType: %s\n",FNumType);
+		EXIT_UNSUPPORTED;
+	}
+}
+
+void reset_entered_test_num_flux(char const *const FNumType)
+{
+	if (strstr(FNumType,"LF")) {
+		for (size_t i = 0; i < TEST_N_LF; i++)
+			TestDB.EnteredLF[i] = 0;
+	} else if (strstr(FNumType,"RoePike")) {
+		for (size_t i = 0; i < TEST_N_ROE; i++)
+			TestDB.EnteredRoe[i] = 0;
 	}
 }

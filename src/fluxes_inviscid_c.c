@@ -42,6 +42,20 @@ void flux_inviscid_c(struct S_FLUX *const FLUXDATA)
 	}
 }
 
+static void flux_LF_c     (struct S_NUMERICALFLUX *const NUMFLUXDATA);
+static void flux_Roe_c    (struct S_NUMERICALFLUX *const NUMFLUXDATA);
+static void flux_upwind_c (struct S_NUMERICALFLUX *const NUMFLUXDATA);
+
+void flux_num_inviscid_c(struct S_NUMERICALFLUX *const NUMFLUXDATA)
+{
+	switch(NUMFLUXDATA->NumFluxInviscid_index) {
+		case FLUX_LF:     flux_LF_c(NUMFLUXDATA);     break;
+		case FLUX_ROE:    flux_Roe_c(NUMFLUXDATA);    break;
+		case FLUX_UPWIND: flux_upwind_c(NUMFLUXDATA); break;
+		default:          EXIT_UNSUPPORTED;           break;
+	}
+}
+
 void flux_Euler_c(struct S_FLUX *const FLUXDATA)
 {
 	unsigned int const d   = FLUXDATA->d,
@@ -183,21 +197,56 @@ void flux_Euler_c(struct S_FLUX *const FLUXDATA)
 	}
 }
 
-void flux_LF_c(const unsigned int Nn, const unsigned int Nel, const double complex *const WL,
-               const double complex *const WR, double complex *const nFluxNum, const double *const nL,
-               const unsigned int d, const unsigned int Neq)
+static void flux_Advection_c(struct S_FLUX *const FLUXDATA)
+{
+	unsigned int const d       = FLUXDATA->d,
+	                   Nn      = FLUXDATA->Nn,
+	                   Nel     = FLUXDATA->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double complex const *const W = FLUXDATA->W_c;
+	double complex       *const F = FLUXDATA->F_c;
+
+	double complex *F_ptr[d];
+	for (size_t dim = 0; dim < d; dim++)
+		F_ptr[dim] = &F[dim*NnTotal];
+
+	double const *const b = compute_b_Advection(NnTotal,FLUXDATA->XYZ); // free
+
+	for (size_t n = 0; n < NnTotal; n++) {
+		for (size_t dim = 0; dim < d; dim++) {
+			*F_ptr[dim] = b[dim*NnTotal+n]*W[n];
+			F_ptr[dim]++;
+		}
+	}
+	free((double *) b);
+}
+
+
+static void flux_LF_c(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 {
 	TestDB.EnteredInviscidFlux[0]++;
 
+	unsigned int const d       = NUMFLUXDATA->d,
+	                   Neq     = d+2,
+	                   Nn      = NUMFLUXDATA->Nn,
+	                   Nel     = NUMFLUXDATA->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double const *const nL = NUMFLUXDATA->nL;
+
+	double complex const *const WL = NUMFLUXDATA->WL_c,
+	                     *const WR = NUMFLUXDATA->WR_c;
+
+	double complex       *const nFluxNum = NUMFLUXDATA->nFluxNum_c;
+
 	// Standard datatypes
-	unsigned int   i, iMax, jMax, NnTotal;
+	unsigned int   i, iMax, jMax;
 	double complex *rhoL, *uL, *vL, *wL, *pL, *UL, *rhoR, *uR, *vR, *wR, *pR, *UR, *FL, *FR, *maxV,
 	               *maxV_ptr, *nFluxNum_ptr,
 	               *FxL_ptr, *FyL_ptr, *FzL_ptr, *FxR_ptr, *FyR_ptr, *FzR_ptr;
 	const double   *nx_ptr, *ny_ptr, *nz_ptr;
 	const double complex *WL_ptr, *WR_ptr;
-
-	NnTotal = Nn*Nel;
 
 	UL   = malloc(NnTotal*Neq   * sizeof *UL);   // free
 	UR   = malloc(NnTotal*Neq   * sizeof *UR);   // free
@@ -388,14 +437,25 @@ void flux_LF_c(const unsigned int Nn, const unsigned int Nel, const double compl
 	free(maxV);
 }
 
-void flux_Roe_c(const unsigned int Nn, const unsigned int Nel, const double complex *const WL,
-                const double complex *const WR, double complex *const nFluxNum, const double *const nL,
-                const unsigned int d, const unsigned int Neq)
+static void flux_Roe_c(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 {
 	TestDB.EnteredInviscidFlux[1]++;
 
+	unsigned int const d       = NUMFLUXDATA->d,
+	                   Neq     = d+2,
+	                   Nn      = NUMFLUXDATA->Nn,
+	                   Nel     = NUMFLUXDATA->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double const *const nL = NUMFLUXDATA->nL;
+
+	double complex const *const WL = NUMFLUXDATA->WL_c,
+	                     *const WR = NUMFLUXDATA->WR_c;
+
+	double complex       *const nFluxNum = NUMFLUXDATA->nFluxNum_c;
+
 	// Standard datatypes
-	unsigned int   iMax, NnTotal;
+	unsigned int   iMax;
 	double         sign_l1, sign_l234, sign_l5;
 	double complex r, rP1, rho, u, v, w, H, Vn, V2, c, l1, l234, l5, l1L, l5R,
 	               VnL, rhoVnL, VnR, rhoVnR, pLR, drho, drhou, drhov, drhow, dE, dp, dVn, lc1, lc2, disInter1, disInter2,
@@ -407,9 +467,6 @@ void flux_Roe_c(const unsigned int Nn, const unsigned int Nel, const double comp
 
 	// silence
 	iMax = Neq;
-
-
-	NnTotal = Nn*Nel;
 
 	if (d == 3) {
 		nx = &nL[0];
@@ -786,27 +843,31 @@ void flux_Roe_c(const unsigned int Nn, const unsigned int Nel, const double comp
 	}
 }
 
-static void flux_Advection_c(struct S_FLUX *const FLUXDATA)
+static void flux_upwind_c(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 {
-	unsigned int const d       = FLUXDATA->d,
-	                   Nn      = FLUXDATA->Nn,
-	                   Nel     = FLUXDATA->Nel,
+	unsigned int const d       = NUMFLUXDATA->d,
+	                   Nn      = NUMFLUXDATA->Nn,
+	                   Nel     = NUMFLUXDATA->Nel,
 	                   NnTotal = Nn*Nel;
 
-	double complex const *const W = FLUXDATA->W_c;
-	double complex       *const F = FLUXDATA->F_c;
+	double const *const nL = NUMFLUXDATA->nL;
 
-	double complex *F_ptr[d];
-	for (size_t dim = 0; dim < d; dim++)
-		F_ptr[dim] = &F[dim*NnTotal];
+	double complex const *const WL = NUMFLUXDATA->WL_c,
+	                     *const WR = NUMFLUXDATA->WR_c;
 
-	double const *const b = compute_b_Advection(NnTotal,FLUXDATA->XYZ); // free
+	double complex       *const nFluxNum = NUMFLUXDATA->nFluxNum_c;
+
+	double const *const b = compute_b_Advection(NnTotal,NUMFLUXDATA->XYZ); // free
 
 	for (size_t n = 0; n < NnTotal; n++) {
-		for (size_t dim = 0; dim < d; dim++) {
-			*F_ptr[dim] = b[dim*NnTotal+n]*W[n];
-			F_ptr[dim]++;
-		}
+		double b_dot_n = 0.0;
+		for (size_t dim = 0; dim < d; dim++)
+			b_dot_n += b[dim*NnTotal+n]*nL[n*d+dim];
+
+		if (b_dot_n >= 0.0)
+			nFluxNum[n] = b_dot_n*WL[n];
+		else
+			nFluxNum[n] = b_dot_n*WR[n];
 	}
 	free((double *) b);
 }

@@ -79,6 +79,20 @@ void flux_inviscid(struct S_FLUX *const FLUXDATA)
 	}
 }
 
+static void flux_LF     (struct S_NUMERICALFLUX *const NUMFLUXDATA);
+static void flux_Roe    (struct S_NUMERICALFLUX *const NUMFLUXDATA);
+static void flux_upwind (struct S_NUMERICALFLUX *const NUMFLUXDATA);
+
+void flux_num_inviscid(struct S_NUMERICALFLUX *const NUMFLUXDATA)
+{
+	switch(NUMFLUXDATA->NumFluxInviscid_index) {
+		case FLUX_LF:     flux_LF(NUMFLUXDATA);     break;
+		case FLUX_ROE:    flux_Roe(NUMFLUXDATA);    break;
+		case FLUX_UPWIND: flux_upwind(NUMFLUXDATA); break;
+		default:          EXIT_UNSUPPORTED;         break;
+	}
+}
+
 static void flux_Euler(struct S_FLUX *const FLUXDATA)
 {
 	/*
@@ -87,328 +101,442 @@ static void flux_Euler(struct S_FLUX *const FLUXDATA)
 	 *		is minimized when converting from physical to reference space.
 	 */
 
-	unsigned int const d   = FLUXDATA->d,
-	                   Neq = d+2,
-	                   Nn  = FLUXDATA->Nn,
-	                   Nel = FLUXDATA->Nel;
+	unsigned int const d       = FLUXDATA->d,
+	                   Neq     = d+2,
+	                   Nn      = FLUXDATA->Nn,
+	                   Nel     = FLUXDATA->Nel,
+	                   NnTotal = Nn*Nel;
 
 	double const *const W = FLUXDATA->W;
 	double       *const F = FLUXDATA->F;
 
-	// Standard datatypes
-	unsigned int i, n, eq, dim, iMax, NnTotal, IndF;
-	const double *rho_ptr, *rhou_ptr, *rhov_ptr, *rhow_ptr, *E_ptr;
-	double       rho, rhou, rhov, rhow, E, u, v, w, p, *F_ptr[DMAX*Neq];
+	double const *rho_ptr  = &W[NnTotal*0],
+	             *rhou_ptr = &W[NnTotal*1],
+	             *E_ptr    = &W[NnTotal*(d+1)];
 
-	NnTotal = Nn*Nel;
-
-	rho_ptr  = &W[NnTotal*0];
-	rhou_ptr = &W[NnTotal*1];
-	E_ptr    = &W[NnTotal*(d+1)];
-
-	for (eq  = 0; eq  < Neq;  eq++)  {
-	for (dim = 0; dim < d;    dim++) {
-		F_ptr[eq*DMAX+dim] = &F[(eq*d+dim)*NnTotal];
+	double *F_ptr[d*Neq];
+	for (size_t eq = 0; eq < Neq; eq++)  {
+	for (size_t dim = 0; dim < d; dim++) {
+		F_ptr[eq*d+dim] = &F[(eq*d+dim)*NnTotal];
 	}}
 
 	if (d == 3) {
-		rhov_ptr = &W[NnTotal*2];
-		rhow_ptr = &W[NnTotal*3];
+		double const *rhov_ptr = &W[NnTotal*2],
+		             *rhow_ptr = &W[NnTotal*3];
 
-		for (n = 0; n < NnTotal; n++) {
-			rho  = *rho_ptr;
-			rhou = *rhou_ptr;
-			rhov = *rhov_ptr;
-			rhow = *rhow_ptr;
-			E    = *E_ptr;
+		for (size_t n = 0; n < NnTotal; n++) {
+			double const rho  = *rho_ptr++,
+			             rhou = *rhou_ptr++,
+			             rhov = *rhov_ptr++,
+			             rhow = *rhow_ptr++,
+			             E    = *E_ptr++,
 
-			u   = rhou/rho;
-			v   = rhov/rho;
-			w   = rhow/rho;
+			             u   = rhou/rho,
+			             v   = rhov/rho,
+			             w   = rhow/rho,
 
-			p = GM1*(E-0.5*rho*(u*u+v*v+w*w));
+			             p = GM1*(E-0.5*rho*(u*u+v*v+w*w));
 
-			IndF = 0;
+			size_t IndF = 0;
 			// eq 1
-			*F_ptr[IndF++] = rhou;
-			*F_ptr[IndF++] = rhov;
-			*F_ptr[IndF++] = rhow;
+			*F_ptr[IndF++]++ = rhou;
+			*F_ptr[IndF++]++ = rhov;
+			*F_ptr[IndF++]++ = rhow;
 
 			// eq 2
-			*F_ptr[IndF++] = rhou*u + p;
-			*F_ptr[IndF++] = rhou*v;
-			*F_ptr[IndF++] = rhou*w;
+			*F_ptr[IndF++]++ = rhou*u + p;
+			*F_ptr[IndF++]++ = rhou*v;
+			*F_ptr[IndF++]++ = rhou*w;
 
 			// eq 3
-			*F_ptr[IndF++] = rhov*u;
-			*F_ptr[IndF++] = rhov*v + p;
-			*F_ptr[IndF++] = rhov*w;
+			*F_ptr[IndF++]++ = rhov*u;
+			*F_ptr[IndF++]++ = rhov*v + p;
+			*F_ptr[IndF++]++ = rhov*w;
 
 			// eq 4
-			*F_ptr[IndF++] = rhow*u;
-			*F_ptr[IndF++] = rhow*v;
-			*F_ptr[IndF++] = rhow*w + p;
+			*F_ptr[IndF++]++ = rhow*u;
+			*F_ptr[IndF++]++ = rhow*v;
+			*F_ptr[IndF++]++ = rhow*w + p;
 
 			// eq 5
-			*F_ptr[IndF++] = (E+p)*u;
-			*F_ptr[IndF++] = (E+p)*v;
-			*F_ptr[IndF++] = (E+p)*w;
-
-			rho_ptr++; rhou_ptr++; rhov_ptr++; rhow_ptr++; E_ptr++;
-			for (i = 0, iMax = Neq*DMAX; i < iMax; i++)
-				F_ptr[i]++;
+			*F_ptr[IndF++]++ = (E+p)*u;
+			*F_ptr[IndF++]++ = (E+p)*v;
+			*F_ptr[IndF++]++ = (E+p)*w;
 		}
 	} else if (d == 2) {
-		rhov_ptr = &W[NnTotal*2];
+		double const *rhov_ptr = &W[NnTotal*2];
 
-		for (n = 0; n < NnTotal; n++) {
-			rho  = *rho_ptr;
-			rhou = *rhou_ptr;
-			rhov = *rhov_ptr;
-			E    = *E_ptr;
+		for (size_t n = 0; n < NnTotal; n++) {
+			double const rho  = *rho_ptr++,
+			             rhou = *rhou_ptr++,
+			             rhov = *rhov_ptr++,
+			             E    = *E_ptr++,
 
-			u   = rhou/rho;
-			v   = rhov/rho;
+			             u   = rhou/rho,
+			             v   = rhov/rho,
 
-			p = GM1*(E-0.5*rho*(u*u+v*v));
+			             p = GM1*(E-0.5*rho*(u*u+v*v));
 
-			IndF = 0;
+			size_t IndF = 0;
 			// eq 1
-			*F_ptr[IndF++] = rhou;
-			*F_ptr[IndF++] = rhov;
-			IndF += 1;
+			*F_ptr[IndF++]++ = rhou;
+			*F_ptr[IndF++]++ = rhov;
 
 			// eq 2
-			*F_ptr[IndF++] = rhou*u + p;
-			*F_ptr[IndF++] = rhou*v;
-			IndF += 1;
+			*F_ptr[IndF++]++ = rhou*u + p;
+			*F_ptr[IndF++]++ = rhou*v;
 
 			// eq 3
-			*F_ptr[IndF++] = rhov*u;
-			*F_ptr[IndF++] = rhov*v + p;
-			IndF += 1;
+			*F_ptr[IndF++]++ = rhov*u;
+			*F_ptr[IndF++]++ = rhov*v + p;
 
 			// eq 4
-			*F_ptr[IndF++] = (E+p)*u;
-			*F_ptr[IndF++] = (E+p)*v;
-
-			rho_ptr++; rhou_ptr++; rhov_ptr++; E_ptr++;
-			for (i = 0, iMax = Neq*DMAX; i < iMax; i++)
-				F_ptr[i]++;
+			*F_ptr[IndF++]++ = (E+p)*u;
+			*F_ptr[IndF++]++ = (E+p)*v;
 		}
 	} else if (d == 1) {
-		for (n = 0; n < NnTotal; n++) {
-			rho  = *rho_ptr;
-			rhou = *rhou_ptr;
-			E    = *E_ptr;
+		for (size_t n = 0; n < NnTotal; n++) {
+			double const rho  = *rho_ptr++,
+			             rhou = *rhou_ptr++,
+			             E    = *E_ptr++,
 
-			u   = rhou/rho;
+			             u   = rhou/rho,
 
-			p = GM1*(E-0.5*rho*(u*u));
+			             p = GM1*(E-0.5*rho*(u*u));
 
-			IndF = 0;
+			size_t IndF = 0;
 			// eq 1
 			*F_ptr[IndF++] = rhou;
-			IndF += 2;
 
 			// eq 2
 			*F_ptr[IndF++] = rhou*u + p;
-			IndF += 2;
 
 			// eq 3
 			*F_ptr[IndF++] = (E+p)*u;
-			IndF += 2;
-
-			rho_ptr++; rhou_ptr++; E_ptr++;
-			for (i = 0, iMax = Neq*DMAX; i < iMax; i++)
-				F_ptr[i]++;
 		}
 	}
 }
 
-void flux_LF(const unsigned int Nn, const unsigned int Nel, const double *const WL, const double *const WR,
-             double *const nFluxNum, const double *const nL, const unsigned int d, const unsigned int Neq)
+static void flux_Advection(struct S_FLUX *const FLUXDATA)
 {
-	// Standard datatypes
-	unsigned int i, iMax, jMax, NnTotal;
-	double       *UL, *UR, *FL, *FR, *maxV, *maxV_ptr, *nFluxNum_ptr,
-	             *FxL_ptr, *FyL_ptr, *FzL_ptr, *FxR_ptr, *FyR_ptr, *FzR_ptr;
-	const double *rhoL, *uL, *vL, *wL, *pL, *rhoR, *uR, *vR, *wR, *pR, *WL_ptr, *WR_ptr, *nx_ptr, *ny_ptr, *nz_ptr;
+	unsigned int const d       = FLUXDATA->d,
+	                   Nn      = FLUXDATA->Nn,
+	                   Nel     = FLUXDATA->Nel,
+	                   NnTotal = Nn*Nel;
 
-	NnTotal = Nn*Nel;
+	double const *const W = FLUXDATA->W;
+	double       *const F = FLUXDATA->F;
 
-	UL   = malloc(NnTotal*Neq   * sizeof *UL);   // free
-	UR   = malloc(NnTotal*Neq   * sizeof *UR);   // free
-	FL   = malloc(NnTotal*Neq*d * sizeof *FL);   // free
-	FR   = malloc(NnTotal*Neq*d * sizeof *FR);   // free
-	maxV = malloc(NnTotal       * sizeof *maxV); // free
+	double *F_ptr[d];
+	for (size_t dim = 0; dim < d; dim++)
+		F_ptr[dim] = &F[dim*NnTotal];
 
-	convert_variables(WL,UL,d,d,Nn,Nel,'c','p');
-	convert_variables(WR,UR,d,d,Nn,Nel,'c','p');
+	double const *const b = compute_b_Advection(NnTotal,FLUXDATA->XYZ); // free
+
+	for (size_t n = 0; n < NnTotal; n++) {
+		for (size_t dim = 0; dim < d; dim++) {
+			*F_ptr[dim] = b[dim*NnTotal+n]*W[n];
+			F_ptr[dim]++;
+		}
+	}
+	free((double *) b);
+}
+
+
+static void flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
+{
+	unsigned int const d       = NUMFLUXDATA->d,
+	                   Neq     = d+2,
+	                   Nn      = NUMFLUXDATA->Nn,
+	                   Nel     = NUMFLUXDATA->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double const *const nL = NUMFLUXDATA->nL;
+
+	double const *const WL = NUMFLUXDATA->WL,
+	             *const WR = NUMFLUXDATA->WR;
+
+	double       *const nFluxNum = NUMFLUXDATA->nFluxNum;
+
+	double const *rhoL_ptr  = &WL[NnTotal*0],
+	             *rhouL_ptr = &WL[NnTotal*1],
+	             *EL_ptr    = &WL[NnTotal*(d+1)],
+
+	             *rhoR_ptr  = &WR[NnTotal*0],
+	             *rhouR_ptr = &WR[NnTotal*1],
+	             *ER_ptr    = &WR[NnTotal*(d+1)];
+
+	double const *n_ptr = nL;
 
 	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
 	FLUXDATA->d   = d;
-	FLUXDATA->Nn  = Nn;
-	FLUXDATA->Nel = Nel;
+	FLUXDATA->Nn  = 1;
+	FLUXDATA->Nel = 1;
 
-	FLUXDATA->W   = WL;
-	FLUXDATA->F   = FL;
-	flux_Euler(FLUXDATA);
-
-	FLUXDATA->W   = WR;
-	FLUXDATA->F   = FR;
-	flux_Euler(FLUXDATA);
-	free(FLUXDATA);
-
-	rhoL = &UL[NnTotal*0];
-	uL   = &UL[NnTotal*1];
-	pL   = &UL[NnTotal*(d+1)];
-
-	rhoR = &UR[NnTotal*0];
-	uR   = &UR[NnTotal*1];
-	pR   = &UR[NnTotal*(d+1)];
+	double *nF_ptr[Neq];
+	for (size_t eq = 0; eq < Neq; eq++)
+		nF_ptr[eq] = &nFluxNum[eq*NnTotal];
 
 	if (d == 3) {
-		vL = &UL[NnTotal*2];
-		wL = &UL[NnTotal*3];
+		double const *rhovL_ptr = &WL[NnTotal*2],
+		             *rhowL_ptr = &WL[NnTotal*3],
 
-		vR = &UR[NnTotal*2];
-		wR = &UR[NnTotal*3];
+		             *rhovR_ptr = &WR[NnTotal*2],
+		             *rhowR_ptr = &WR[NnTotal*3];
 
-		// Compute wave speed
-		maxV_ptr = maxV;
-		for (iMax = NnTotal; iMax--; ) {
-			*maxV_ptr = max(sqrt((*uL)*(*uL)+(*vL)*(*vL)+(*wL)*(*wL)) + sqrt(GAMMA*(*pL)/(*rhoL)),
-			                sqrt((*uR)*(*uR)+(*vR)*(*vR)+(*wR)*(*wR)) + sqrt(GAMMA*(*pR)/(*rhoR)));
+		for (size_t n = 0; n < NnTotal; n++) {
+			// Left VOLUME
+			double const rhoL  = *rhoL_ptr++,
+			             rhouL = *rhouL_ptr++,
+			             rhovL = *rhovL_ptr++,
+			             rhowL = *rhowL_ptr++,
+			             EL    = *EL_ptr++,
 
-			maxV_ptr++;
-			rhoL++; uL++; vL++; wL++; pL++;
-			rhoR++; uR++; vR++; wR++; pR++;
-		}
+			             rhoL_inv = 1.0/rhoL,
+			             uL = rhouL*rhoL_inv,
+			             vL = rhovL*rhoL_inv,
+			             wL = rhowL*rhoL_inv,
 
-		// Compute n (dot) FluxNum
-		nFluxNum_ptr = nFluxNum;
-		WL_ptr       = WL;
-		WR_ptr       = WR;
-		for (i = 0; i < Neq; i++) {
-			maxV_ptr = maxV;
+			             V2L = uL*uL+vL*vL+wL*wL,
+			             VL  = sqrt(V2L),
 
-			nx_ptr = &nL[0];
-			ny_ptr = &nL[1];
-			nz_ptr = &nL[2];
+			             pL  = GM1*(EL-0.5*rhoL*V2L),
+			             cL  = sqrt(GAMMA*pL/rhoL);
 
-			FxL_ptr = &FL[NnTotal*(i*d+0)];
-			FyL_ptr = &FL[NnTotal*(i*d+1)];
-			FzL_ptr = &FL[NnTotal*(i*d+2)];
-			FxR_ptr = &FR[NnTotal*(i*d+0)];
-			FyR_ptr = &FR[NnTotal*(i*d+1)];
-			FzR_ptr = &FR[NnTotal*(i*d+2)];
+			// Right VOLUME
+			double const rhoR  = *rhoR_ptr++,
+			             rhouR = *rhouR_ptr++,
+			             rhovR = *rhovR_ptr++,
+			             rhowR = *rhowR_ptr++,
+			             ER    = *ER_ptr++,
 
-			for (jMax = NnTotal; jMax--; ) {
-				*nFluxNum_ptr = 0.5 * ( (*nx_ptr)*((*FxL_ptr)+(*FxR_ptr))
-				                       +(*ny_ptr)*((*FyL_ptr)+(*FyR_ptr))
-				                       +(*nz_ptr)*((*FzL_ptr)+(*FzR_ptr)) + (*maxV_ptr)*((*WL_ptr)-(*WR_ptr)));
+			             rhoR_inv = 1.0/rhoR,
+			             uR = rhouR*rhoR_inv,
+			             vR = rhovR*rhoR_inv,
+			             wR = rhowR*rhoR_inv,
 
-				nFluxNum_ptr++;
-				nx_ptr += d; ny_ptr += d; nz_ptr += d;
-				FxL_ptr++; FxR_ptr++;
-				FyL_ptr++; FyR_ptr++;
-				FzL_ptr++; FzR_ptr++;
+			             V2R = uR*uR+vR*vR+wR*wR,
+			             VR  = sqrt(V2R),
 
-				maxV_ptr++;
-				WL_ptr++; WR_ptr++;
+			             pR  = GM1*(ER-0.5*rhoR*V2R),
+			             cR  = sqrt(GAMMA*pR/rhoR);
+
+			double const maxlL = VL+cL,
+			             maxlR = VR+cR;
+
+			char sideMaxV;
+			double maxV;
+			if (maxlL > maxlR) {
+				sideMaxV = 'L';
+				maxV = maxlL;
+			} else {
+				sideMaxV = 'R';
+				maxV = maxlR;
 			}
+
+			double const n1 = *n_ptr++,
+			             n2 = *n_ptr++,
+			             n3 = *n_ptr++;
+
+			double WLn[NVAR3D] = {rhoL, rhouL, rhovL, rhowL, EL},
+			       FLn[Neq*d];
+			FLUXDATA->W = WLn;
+			FLUXDATA->F = FLn;
+			flux_Euler(FLUXDATA);
+
+			double const *FL1_ptr = FLn,
+			             *FL2_ptr = FL1_ptr+1,
+			             *FL3_ptr = FL2_ptr+1;
+
+			double WRn[NVAR3D] = {rhoR, rhouR, rhovR, rhowR, ER},
+			       FRn[Neq*d];
+			FLUXDATA->W = WRn;
+			FLUXDATA->F = FRn;
+			flux_Euler(FLUXDATA);
+
+			double const *FR1_ptr = FRn,
+			             *FR2_ptr = FR1_ptr+1,
+			             *FR3_ptr = FR2_ptr+1;
+
+			size_t IndnF = 0;
+			for (size_t eq = 0; eq < Neq; eq++) {
+				*nF_ptr[IndnF++] = 0.5*(n1*((*FL1_ptr)+(*FR1_ptr))+n2*((*FL2_ptr)+(*FR2_ptr))+n3*((*FL3_ptr)+(*FR3_ptr))
+				                        + maxV*(WLn[eq]-WRn[eq]));
+
+				FL1_ptr += d;
+				FL2_ptr += d;
+				FL3_ptr += d;
+				FR1_ptr += d;
+				FR2_ptr += d;
+				FR3_ptr += d;
+			}
+
+			for (size_t i = 0, iMax = Neq; i < iMax; i++)
+				nF_ptr[i]++;
 		}
 	} else if (d == 2) {
-		vL = &UL[NnTotal*2];
+		double const *rhovL_ptr = &WL[NnTotal*2],
 
-		vR = &UR[NnTotal*2];
+		             *rhovR_ptr = &WR[NnTotal*2];
 
-		// Compute wave speed
-		maxV_ptr = maxV;
-		for (iMax = NnTotal; iMax--; ) {
-			*maxV_ptr = max(sqrt((*uL)*(*uL)+(*vL)*(*vL)) + sqrt(GAMMA*(*pL)/(*rhoL)),
-			                sqrt((*uR)*(*uR)+(*vR)*(*vR)) + sqrt(GAMMA*(*pR)/(*rhoR)));
+		for (size_t n = 0; n < NnTotal; n++) {
+			// Left VOLUME
+			double const rhoL  = *rhoL_ptr++,
+			             rhouL = *rhouL_ptr++,
+			             rhovL = *rhovL_ptr++,
+			             EL    = *EL_ptr++,
 
-			maxV_ptr++;
-			rhoL++; uL++; vL++; pL++;
-			rhoR++; uR++; vR++; pR++;
-		}
+			             rhoL_inv = 1.0/rhoL,
+			             uL = rhouL*rhoL_inv,
+			             vL = rhovL*rhoL_inv,
 
-		// Compute n (dot) FluxNum
-		nFluxNum_ptr = nFluxNum;
-		WL_ptr       = WL;
-		WR_ptr       = WR;
-		for (i = 0; i < Neq; i++) {
-			maxV_ptr = maxV;
+			             V2L = uL*uL+vL*vL,
+			             VL  = sqrt(V2L),
 
-			nx_ptr = &nL[0];
-			ny_ptr = &nL[1];
+			             pL  = GM1*(EL-0.5*rhoL*V2L),
+			             cL  = sqrt(GAMMA*pL/rhoL);
 
-			FxL_ptr = &FL[NnTotal*(i*d+0)];
-			FyL_ptr = &FL[NnTotal*(i*d+1)];
-			FxR_ptr = &FR[NnTotal*(i*d+0)];
-			FyR_ptr = &FR[NnTotal*(i*d+1)];
+			// Right VOLUME
+			double const rhoR  = *rhoR_ptr++,
+			             rhouR = *rhouR_ptr++,
+			             rhovR = *rhovR_ptr++,
+			             ER    = *ER_ptr++,
 
-			for (jMax = NnTotal; jMax--; ) {
-				*nFluxNum_ptr = 0.5 * ( (*nx_ptr)*((*FxL_ptr)+(*FxR_ptr))
-				                       +(*ny_ptr)*((*FyL_ptr)+(*FyR_ptr)) + (*maxV_ptr)*((*WL_ptr)-(*WR_ptr)));
+			             rhoR_inv = 1.0/rhoR,
+			             uR = rhouR*rhoR_inv,
+			             vR = rhovR*rhoR_inv,
 
-				nFluxNum_ptr++;
-				nx_ptr += d; ny_ptr += d;
-				FxL_ptr++; FxR_ptr++;
-				FyL_ptr++; FyR_ptr++;
+			             V2R = uR*uR+vR*vR,
+			             VR  = sqrt(V2R),
 
-				maxV_ptr++;
-				WL_ptr++; WR_ptr++;
+			             pR  = GM1*(ER-0.5*rhoR*V2R),
+			             cR  = sqrt(GAMMA*pR/rhoR);
+
+			double const maxlL = VL+cL,
+			             maxlR = VR+cR;
+
+			char sideMaxV;
+			double maxV;
+			if (maxlL > maxlR) {
+				sideMaxV = 'L';
+				maxV = maxlL;
+			} else {
+				sideMaxV = 'R';
+				maxV = maxlR;
 			}
+
+			double const n1 = *n_ptr++,
+			             n2 = *n_ptr++;
+
+			double WLn[NVAR2D] = {rhoL, rhouL, rhovL, EL},
+			       FLn[Neq*d];
+			FLUXDATA->W = WLn;
+			FLUXDATA->F = FLn;
+			flux_Euler(FLUXDATA);
+
+			double const *FL1_ptr = FLn,
+			             *FL2_ptr = FL1_ptr+1;
+
+			double WRn[NVAR2D] = {rhoR, rhouR, rhovR, ER},
+			       FRn[Neq*d];
+			FLUXDATA->W = WRn;
+			FLUXDATA->F = FRn;
+			flux_Euler(FLUXDATA);
+
+			double const *FR1_ptr = FRn,
+			             *FR2_ptr = FR1_ptr+1;
+
+			size_t IndnF = 0;
+			for (size_t eq = 0; eq < Neq; eq++) {
+				*nF_ptr[IndnF++] = 0.5*(n1*((*FL1_ptr)+(*FR1_ptr))+n2*((*FL2_ptr)+(*FR2_ptr))
+				                        + maxV*(WLn[eq]-WRn[eq]));
+
+				FL1_ptr += d;
+				FL2_ptr += d;
+				FR1_ptr += d;
+				FR2_ptr += d;
+			}
+
+			for (size_t i = 0, iMax = Neq; i < iMax; i++)
+				nF_ptr[i]++;
 		}
 	} else if (d == 1) {
-		// Compute wave speed
-		maxV_ptr = maxV;
-		for (iMax = NnTotal; iMax--; ) {
-			*maxV_ptr = max(sqrt((*uL)*(*uL)) + sqrt(GAMMA*(*pL)/(*rhoL)),
-			                sqrt((*uR)*(*uR)) + sqrt(GAMMA*(*pR)/(*rhoR)));
+		for (size_t n = 0; n < NnTotal; n++) {
+			// Left VOLUME
+			double const rhoL  = *rhoL_ptr++,
+			             rhouL = *rhouL_ptr++,
+			             EL    = *EL_ptr++,
 
-			maxV_ptr++;
-			rhoL++; uL++; pL++;
-			rhoR++; uR++; pR++;
-		}
+			             rhoL_inv = 1.0/rhoL,
+			             uL = rhouL*rhoL_inv,
 
-		// Compute n (dot) FluxNum
-		nFluxNum_ptr = nFluxNum;
-		WL_ptr       = WL;
-		WR_ptr       = WR;
-		for (i = 0; i < Neq; i++) {
-			maxV_ptr = maxV;
+			             V2L = uL*uL,
+			             VL  = sqrt(V2L),
 
-			nx_ptr = &nL[0];
+			             pL  = GM1*(EL-0.5*rhoL*V2L),
+			             cL  = sqrt(GAMMA*pL/rhoL);
 
-			FxL_ptr = &FL[NnTotal*(i*d+0)];
-			FxR_ptr = &FR[NnTotal*(i*d+0)];
+			// Right VOLUME
+			double const rhoR  = *rhoR_ptr++,
+			             rhouR = *rhouR_ptr++,
+			             ER    = *ER_ptr++,
 
-			for (jMax = NnTotal; jMax--; ) {
-				*nFluxNum_ptr = 0.5 * ( (*nx_ptr)*((*FxL_ptr)+(*FxR_ptr)) + (*maxV_ptr)*((*WL_ptr)-(*WR_ptr)));
+			             rhoR_inv = 1.0/rhoR,
+			             uR = rhouR*rhoR_inv,
 
-				nFluxNum_ptr++;
-				nx_ptr += d;
-				FxL_ptr++; FxR_ptr++;
+			             V2R = uR*uR,
+			             VR  = sqrt(V2R),
 
-				maxV_ptr++;
-				WL_ptr++; WR_ptr++;
+			             pR  = GM1*(ER-0.5*rhoR*V2R),
+			             cR  = sqrt(GAMMA*pR/rhoR);
+
+			double const maxlL = VL+cL,
+			             maxlR = VR+cR;
+
+			char sideMaxV;
+			double maxV;
+			if (maxlL > maxlR) {
+				sideMaxV = 'L';
+				maxV = maxlL;
+			} else {
+				sideMaxV = 'R';
+				maxV = maxlR;
 			}
+
+			double const n1 = *n_ptr++;
+
+			double WLn[NVAR1D] = {rhoL, rhouL, EL},
+			       FLn[Neq*d];
+			FLUXDATA->W = WLn;
+			FLUXDATA->F = FLn;
+			flux_Euler(FLUXDATA);
+
+			double const *FL1_ptr = FLn;
+
+			double WRn[NVAR1D] = {rhoR, rhouR, ER},
+			       FRn[Neq*d];
+			FLUXDATA->W = WRn;
+			FLUXDATA->F = FRn;
+			flux_Euler(FLUXDATA);
+
+			double const *FR1_ptr = FRn;
+
+			size_t IndnF = 0;
+			for (size_t eq = 0; eq < Neq; eq++) {
+				*nF_ptr[IndnF++] = 0.5*(n1*((*FL1_ptr)+(*FR1_ptr)) + maxV*(WLn[eq]-WRn[eq]));
+
+				FL1_ptr += d;
+				FR1_ptr += d;
+			}
+
+			for (size_t i = 0, iMax = Neq; i < iMax; i++)
+				nF_ptr[i]++;
 		}
 	}
-
-	free(UL);
-	free(UR);
-	free(FL);
-	free(FR);
-	free(maxV);
+	free(FLUXDATA);
 }
 
-void flux_Roe(const unsigned int Nn, const unsigned int Nel, const double *const WL, const double *const WR,
-              double *const nFluxNum, const double *const nL, const unsigned int d, const unsigned int Neq)
+static void flux_Roe(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 {
 	/*
 	 *	Comments:
@@ -416,8 +544,21 @@ void flux_Roe(const unsigned int Nn, const unsigned int Nel, const double *const
 	 *		numbers are linearized for faster computation.
 	 */
 
+	unsigned int const d       = NUMFLUXDATA->d,
+	                   Neq     = d+2,
+	                   Nn      = NUMFLUXDATA->Nn,
+	                   Nel     = NUMFLUXDATA->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double const *const nL = NUMFLUXDATA->nL;
+
+	double const *const WL = NUMFLUXDATA->WL,
+	             *const WR = NUMFLUXDATA->WR;
+
+	double       *const nFluxNum = NUMFLUXDATA->nFluxNum;
+
 	// Standard datatypes
-	unsigned int iMax, NnTotal;
+	unsigned int iMax;
 	double       eps, r, rP1, rho, u, v, w, H, Vn, V2, c, l1, l234, l5,
 	             VnL, rhoVnL, VnR, rhoVnR, pLR, drho, drhou, drhov, drhow, dE, dp, dVn, lc1, lc2, disInter1, disInter2,
 	             rhoL, uL, vL, wL, pL, EL, rhoR, uR, vR, wR, pR, ER,
@@ -430,8 +571,6 @@ void flux_Roe(const unsigned int Nn, const unsigned int Nel, const double *const
 	// silence
 	iMax = Neq;
 	r    = eps;
-
-	NnTotal = Nn*Nel;
 
 	if (d == 3) {
 		nx = &nL[0];
@@ -712,27 +851,31 @@ void flux_Roe(const unsigned int Nn, const unsigned int Nel, const double *const
 	}
 }
 
-static void flux_Advection(struct S_FLUX *const FLUXDATA)
+static void flux_upwind(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 {
-	unsigned int const d       = FLUXDATA->d,
-	                   Nn      = FLUXDATA->Nn,
-	                   Nel     = FLUXDATA->Nel,
+	unsigned int const d       = NUMFLUXDATA->d,
+	                   Nn      = NUMFLUXDATA->Nn,
+	                   Nel     = NUMFLUXDATA->Nel,
 	                   NnTotal = Nn*Nel;
 
-	double const *const W = FLUXDATA->W;
-	double       *const F = FLUXDATA->F;
+	double const *const nL = NUMFLUXDATA->nL;
 
-	double *F_ptr[d];
-	for (size_t dim = 0; dim < d; dim++)
-		F_ptr[dim] = &F[dim*NnTotal];
+	double const *const WL = NUMFLUXDATA->WL,
+	             *const WR = NUMFLUXDATA->WR;
 
-	double const *const b = compute_b_Advection(NnTotal,FLUXDATA->XYZ); // free
+	double       *const nFluxNum = NUMFLUXDATA->nFluxNum;
+
+	double const *const b = compute_b_Advection(NnTotal,NUMFLUXDATA->XYZ); // free
 
 	for (size_t n = 0; n < NnTotal; n++) {
-		for (size_t dim = 0; dim < d; dim++) {
-			*F_ptr[dim] = b[dim*NnTotal+n]*W[n];
-			F_ptr[dim]++;
-		}
+		double b_dot_n = 0.0;
+		for (size_t dim = 0; dim < d; dim++)
+			b_dot_n += b[dim*NnTotal+n]*nL[n*d+dim];
+
+		if (b_dot_n >= 0.0)
+			nFluxNum[n] = b_dot_n*WL[n];
+		else
+			nFluxNum[n] = b_dot_n*WR[n];
 	}
 	free((double *) b);
 }

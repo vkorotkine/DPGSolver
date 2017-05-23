@@ -54,6 +54,7 @@
 #define DMAX            3
 #define NVAR3D          5
 #define NVAR2D          4
+#define NVAR1D          3
 
 #define BC_STEP_SC      10000
 #define BC_PERIODIC_MIN 50
@@ -189,8 +190,9 @@
 #define C_WEDGE 3
 
 // Flux types
-#define FLUX_LF  0
-#define FLUX_ROE 1
+#define FLUX_LF     0 // Change to 1-3 (ToBeModified)
+#define FLUX_ROE    1
+#define FLUX_UPWIND 2
 
 #define FLUX_BR2  11
 #define FLUX_CDG2 12

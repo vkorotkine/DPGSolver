@@ -1366,27 +1366,30 @@ void compute_numerical_flux(struct S_FDATA const *const FDATA, char const imex_t
 	             *const dnFluxNumdWL_fIL = FDATA->NFluxData->dnFluxNumdWL_fI,
 	             *const dnFluxNumdWR_fIL = FDATA->NFluxData->dnFluxNumdWR_fI;
 
-	// Consider combining numerical flux and jacobian computations (ToBeDeleted)
-	// Consder passing struct to numerical flux functions (as for standard fluxes) (ToBeDeleted)
-	switch (DB.InviscidFluxType) {
-	case FLUX_LF:
-		flux_LF(NfnI,1,WL_fIL,WR_fIL,nFluxNum_fIL,n_fIL,d,Neq);
-		if (imex_type == 'I') {
-			jacobian_flux_LF(NfnI,1,WL_fIL,WR_fIL,dnFluxNumdWL_fIL,n_fIL,d,Neq,'L');
-			jacobian_flux_LF(NfnI,1,WL_fIL,WR_fIL,dnFluxNumdWR_fIL,n_fIL,d,Neq,'R');
-		}
-		break;
-	case FLUX_ROE:
-		flux_Roe(NfnI,1,WL_fIL,WR_fIL,nFluxNum_fIL,n_fIL,d,Neq);
-		if (imex_type == 'I') {
-			jacobian_flux_Roe(NfnI,1,WL_fIL,WR_fIL,dnFluxNumdWL_fIL,n_fIL,d,Neq,'L');
-			jacobian_flux_Roe(NfnI,1,WL_fIL,WR_fIL,dnFluxNumdWR_fIL,n_fIL,d,Neq,'R');
-		}
-		break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
+// Consider combining numerical flux and jacobian computations (ToBeDeleted)
+// Consder passing struct to numerical flux functions (as for standard fluxes) (ToBeDeleted)
+	struct S_NUMERICALFLUX *const NUMFLUXDATA = malloc(sizeof *NUMFLUXDATA); // free
+	NUMFLUXDATA->NumFluxInviscid_index = DB.InviscidFluxType;
+	NUMFLUXDATA->d   = d;
+	NUMFLUXDATA->Nn  = NfnI;
+	NUMFLUXDATA->Nel = 1;
+
+	NUMFLUXDATA->nL           = n_fIL;
+	NUMFLUXDATA->XYZ          = FACE->XYZ_fI;
+	NUMFLUXDATA->WL           = WL_fIL;
+	NUMFLUXDATA->WR           = WR_fIL;
+	NUMFLUXDATA->nFluxNum     = nFluxNum_fIL;
+	NUMFLUXDATA->dnFluxNumdWL = dnFluxNumdWL_fIL;
+	NUMFLUXDATA->dnFluxNumdWR = dnFluxNumdWR_fIL;
+
+	flux_num_inviscid(NUMFLUXDATA);
+	if (imex_type == 'I') {
+		NUMFLUXDATA->side = 'L';
+		jacobian_flux_num_inviscid(NUMFLUXDATA);
+		NUMFLUXDATA->side = 'R';
+		jacobian_flux_num_inviscid(NUMFLUXDATA);
 	}
+	free(NUMFLUXDATA);
 
 	// Include the BC information in dnFluxNumWL_fIL if on a boundary
 	if (imex_type == 'I' && Boundary) {

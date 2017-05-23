@@ -279,7 +279,7 @@ static unsigned int compare_jacobian_flux_viscous(unsigned int const Nn, unsigne
 
 static void compute_dnFdW_cs(const unsigned int Nn, const unsigned int Nel, const unsigned int d,
                              const unsigned int Neq, double *WL, double *WR, double *dnFdWL_cs, double *dnFdWR_cs,
-                             double *nL, const char *nFType)
+                             double const *const nL)
 {
 	unsigned int   i, iMax, n, var, eq, Nvar, NnTotal, IndW, IndnF, InddnFdW;
 	double         h;
@@ -297,18 +297,26 @@ static void compute_dnFdW_cs(const unsigned int Nn, const unsigned int Nel, cons
 		WRp[i] = WR[i];
 	}
 
+	struct S_NUMERICALFLUX *const NUMFLUXDATA = malloc(sizeof *NUMFLUXDATA); // free
+
+	NUMFLUXDATA->NumFluxInviscid_index = DB.InviscidFluxType;
+	NUMFLUXDATA->d   = d;
+	NUMFLUXDATA->Nn  = Nn;
+	NUMFLUXDATA->Nel = Nel;
+	NUMFLUXDATA->nL  = nL;
+//	NUMFLUXDATA->XYZ = XYZ;
+
+	NUMFLUXDATA->WL_c       = WLp;
+	NUMFLUXDATA->WR_c       = WRp;
+	NUMFLUXDATA->nFluxNum_c = nF;
+
 	for (var = 0; var < Nvar; var++) {
 		// Left
 		IndW = NnTotal*var;
 		for (n = 0; n < NnTotal; n++)
 			WLp[IndW+n] += h*I;
 
-		if (strstr(nFType,"LF"))
-			flux_LF_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
-		else if (strstr(nFType,"Roe"))
-			flux_Roe_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
-		else
-			EXIT_UNSUPPORTED;
+		flux_num_inviscid_c(NUMFLUXDATA);
 
 		for (eq = 0; eq < Neq; eq++) {
 			IndnF    = eq*NnTotal;
@@ -323,12 +331,7 @@ static void compute_dnFdW_cs(const unsigned int Nn, const unsigned int Nel, cons
 			WRp[IndW+n] += h*I;
 		}
 
-		if (strstr(nFType,"LF"))
-			flux_LF_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
-		else if (strstr(nFType,"Roe"))
-			flux_Roe_c(Nn,Nel,WLp,WRp,nF,nL,d,Neq);
-		else
-			EXIT_UNSUPPORTED;
+		flux_num_inviscid_c(NUMFLUXDATA);
 
 		for (eq = 0; eq < Neq; eq++) {
 			IndnF    = eq*NnTotal;
@@ -343,49 +346,61 @@ static void compute_dnFdW_cs(const unsigned int Nn, const unsigned int Nel, cons
 	free(nF);
 }
 
-static unsigned int compare_jacobian_flux_Num(const unsigned int Nn, const unsigned int Nel, double *W, double *nL,
-                                              const char *nFType)
+static unsigned int compare_jacobian_flux_Num(unsigned int const Nn, unsigned int const Nel, double const *const nL,
+                                              double const *const XYZ, double const *const W)
 {
-	unsigned int pass = 0;
-
-	unsigned int const d    = DB.d,
-	                   Neq  = DB.Neq,
-	                   Nvar = DB.Nvar;
-
-	unsigned int i, n, var, IndWLR, CheckedAllLF, CheckedAllRoe;
-	double       *W_ptr, *WL, *WR, *dnFdWL, *dnFdWR, *dnFdWL_cs, *dnFdWR_cs;
-
 	if (Nel != 2)
 		EXIT_UNSUPPORTED;
 
-	WL        = malloc(Nn*Nvar     * sizeof *WL);        // free
-	WR        = malloc(Nn*Nvar     * sizeof *WR);        // free
-	dnFdWL    = malloc(Nn*Nvar*Neq * sizeof *dnFdWL);    // free
-	dnFdWR    = malloc(Nn*Nvar*Neq * sizeof *dnFdWR);    // free
-	dnFdWL_cs = malloc(Nn*Nvar*Neq * sizeof *dnFdWL_cs); // free
-	dnFdWR_cs = malloc(Nn*Nvar*Neq * sizeof *dnFdWR_cs); // free
+	unsigned int pass = 0;
 
-	W_ptr = W;
-	for (var = 0; var < Nvar; var++) {
+	unsigned int const d    = DB.d,
+	                   Nvar = DB.Nvar,
+	                   Neq  = DB.Neq;
+
+	unsigned int i, IndWLR, CheckedAllLF, CheckedAllRoe;
+
+	double *const WL        = malloc(Nn*Nvar     * sizeof *WL),        // free
+	       *const WR        = malloc(Nn*Nvar     * sizeof *WR),        // free
+	       *const dnFdWL    = malloc(Nn*Nvar*Neq * sizeof *dnFdWL),    // free
+	       *const dnFdWR    = malloc(Nn*Nvar*Neq * sizeof *dnFdWR),    // free
+	       *const dnFdWL_cs = malloc(Nn*Nvar*Neq * sizeof *dnFdWL_cs), // free
+	       *const dnFdWR_cs = malloc(Nn*Nvar*Neq * sizeof *dnFdWR_cs); // free
+
+	double const *W_ptr = W;
+	for (size_t var = 0; var < Nvar; var++) {
 		IndWLR = var*Nn;
-		for (n = 0; n < Nn; n++)
+		for (size_t n = 0; n < Nn; n++)
 			WL[IndWLR+n] = *W_ptr++;
-		for (n = 0; n < Nn; n++)
+		for (size_t n = 0; n < Nn; n++)
 			WR[IndWLR+n] = *W_ptr++;
 	}
 
-	if (strstr(nFType,"LF")) {
-		jacobian_flux_LF(Nn,1,WL,WR,dnFdWL,nL,d,Neq,'L');
-		jacobian_flux_LF(Nn,1,WL,WR,dnFdWR,nL,d,Neq,'R');
-	} else if (strstr(nFType,"Roe")) {
-		jacobian_flux_Roe(Nn,1,WL,WR,dnFdWL,nL,d,Neq,'L');
-		jacobian_flux_Roe(Nn,1,WL,WR,dnFdWR,nL,d,Neq,'R');
-	} else {
-		EXIT_UNSUPPORTED;
-	}
-	compute_dnFdW_cs(Nn,1,d,Neq,WL,WR,dnFdWL_cs,dnFdWR_cs,nL,nFType);
+	struct S_NUMERICALFLUX *const NUMFLUXDATA = malloc(sizeof *NUMFLUXDATA); // free
 
-	if (strstr(nFType,"LF")) {
+	NUMFLUXDATA->NumFluxInviscid_index = DB.InviscidFluxType;
+	NUMFLUXDATA->d   = d;
+	NUMFLUXDATA->Nn  = Nn;
+	NUMFLUXDATA->Nel = 1;
+	NUMFLUXDATA->nL  = nL;
+	NUMFLUXDATA->XYZ = XYZ;
+
+	NUMFLUXDATA->WL           = WL;
+	NUMFLUXDATA->WR           = WR;
+	NUMFLUXDATA->nFluxNum     = NULL;
+	NUMFLUXDATA->dnFluxNumdWL = dnFdWL;
+	NUMFLUXDATA->dnFluxNumdWR = dnFdWR;
+
+// remove 'L'/'R' here
+// Passing for LF and upwind with L/R removed, fixing Roe (ToBeDeleted)
+	NUMFLUXDATA->side = 'L';
+	jacobian_flux_num_inviscid(NUMFLUXDATA);
+	NUMFLUXDATA->side = 'R';
+	jacobian_flux_num_inviscid(NUMFLUXDATA);
+
+	compute_dnFdW_cs(Nn,1,d,Neq,WL,WR,dnFdWL_cs,dnFdWR_cs,nL);
+
+	if (DB.InviscidFluxType == FLUX_LF) {
 		CheckedAllLF = 1;
 		for (i = 0; i < TEST_N_LF; i++) {
 			if (!TestDB.EnteredLF[i]) {
@@ -397,7 +412,7 @@ static unsigned int compare_jacobian_flux_Num(const unsigned int Nn, const unsig
 		    array_norm_diff_d(Nn*Nvar*Neq,dnFdWL,dnFdWL_cs,"Inf") < EPS &&
 		    array_norm_diff_d(Nn*Nvar*Neq,dnFdWR,dnFdWR_cs,"Inf") < EPS)
 				pass = 1;
-	} else if (strstr(nFType,"Roe")) {
+	} else if (DB.InviscidFluxType ==  FLUX_ROE) {
 		CheckedAllRoe = 1;
 		for (i = 0; i < TEST_N_ROE; i++) {
 			if (!TestDB.EnteredRoe[i]) {
@@ -452,14 +467,19 @@ void test_unit_jacobian_fluxes(void)
 	char         **FiType;
 	set_FiTypes(&NFiTypes,&FiType); // free
 
+	unsigned int NFNumTypes = 0;
+	char         **FNumType;
+	set_FNumTypes(&NFNumTypes,&FNumType); // free
+
 	strcpy(DB.MeshType,"ToBeCurved"); // Meshes are not used for this test (and thus need not exist)
 
 	test_print_warning("Advection test case currently used has b = constant");
 
 	unsigned int dMin = 2, dMax = 3;
 	for (d = dMin; d <= dMax; d++) {
-		W  = initialize_W(&Nn,&Nel,d); // free
-		nL = initialize_n(Nn,Nel,d);   // free
+		W   = initialize_W(&Nn,&Nel,d); // free
+		nL  = initialize_n(Nn,Nel,d);   // free
+		double const *const XYZ = initialize_XYZ(Nn,Nel,d); // free
 
 		// flux_inviscid
 		for (size_t i = 0; i < NFiTypes; i++) {
@@ -480,24 +500,25 @@ void test_unit_jacobian_fluxes(void)
 			free(DB.SolverType); // Initialized in "initialize_test_case_parameters"
 		}
 
+		// flux_num_inviscid
+		for (size_t i = 0; i < NFNumTypes; i++) {
+			set_parameters_test_flux_Num(FNumType[i],d);
+			initialize_test_case_parameters();
 
-		// flux_LF
-		for (size_t i = 0; i < TEST_N_LF; i++)
-			TestDB.EnteredLF[i] = 0;
-		pass = compare_jacobian_flux_Num(Nn,Nel,W,nL,"LF");
-		sprintf(PrintName,"              LF               :");
-		test_print2(pass,PrintName);
+			reset_entered_test_num_flux(FNumType[i]);
+			pass = compare_jacobian_flux_Num(Nn,Nel,nL,XYZ,W);
+			if (i == 0)
+				sprintf(PrintName,"              Num_%s      :",FNumType[i]);
+			else
+				sprintf(PrintName,"                  %s      :",FNumType[i]);
+			test_print2(pass,PrintName);
 
-
-		// flux_Roe
-		for (size_t i = 0; i < TEST_N_ROE; i++)
-			TestDB.EnteredRoe[i] = 0;
-		pass = compare_jacobian_flux_Num(Nn,Nel,W,nL,"Roe");
-		sprintf(PrintName,"              Roe              :");
-		test_print2(pass,PrintName);
-
+			free(DB.SolverType); // Initialized in "initialize_test_case_parameters"
+		}
 
 		// flux_viscous
+		DB.Neq = DB.Nvar = d+2;
+
 		double **Q = initialize_Q(Nn,Nel,d); // free
 		pass = compare_jacobian_flux_viscous(Nn,Nel,d,W,Q,'W');
 		sprintf(PrintName,"              viscous (W)      :");
@@ -509,12 +530,14 @@ void test_unit_jacobian_fluxes(void)
 
 		free(W);
 		free(nL);
+		free((double *) XYZ);
 		array_free2_d(d,Q);
 	}
 
 	set_memory_test_jacobians('F');
 
 	array_free2_c(NFiTypes,FiType);
+	array_free2_c(NFNumTypes,FNumType);
 
 	free(PrintName);
 }

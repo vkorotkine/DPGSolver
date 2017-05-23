@@ -429,7 +429,6 @@ void compute_numerical_flux_c(struct S_FDATA const *const FDATA, char const imex
 	struct S_FACE        const *const        FACE = FDATA->FACE;
 
 	unsigned int const d        = DB.d,
-	                   Neq      = DB.Neq,
 	                   IndFType = FDATA->IndFType,
 	                   NfnI     = OPS[IndFType]->NfnI;
 
@@ -439,17 +438,31 @@ void compute_numerical_flux_c(struct S_FDATA const *const FDATA, char const imex
 	                     *const WR_fIL       = FDATA->NFluxData->WR_fIL_c;
 	double complex       *const nFluxNum_fIL = FDATA->NFluxData->nFluxNum_fI_c;
 
+	struct S_NUMERICALFLUX *const NUMFLUXDATA = malloc(sizeof *NUMFLUXDATA); // free
+	NUMFLUXDATA->NumFluxInviscid_index = DB.InviscidFluxType;
+	NUMFLUXDATA->d   = d;
+	NUMFLUXDATA->Nn  = NfnI;
+	NUMFLUXDATA->Nel = 1;
+
+	NUMFLUXDATA->nL       = n_fIL;
+	NUMFLUXDATA->XYZ      = FACE->XYZ_fI;
+	NUMFLUXDATA->WL_c       = WL_fIL;
+	NUMFLUXDATA->WR_c       = WR_fIL;
+	NUMFLUXDATA->nFluxNum_c = nFluxNum_fIL;
+
+	flux_num_inviscid_c(NUMFLUXDATA);
 	switch (DB.InviscidFluxType) {
 	case FLUX_LF:
-		flux_LF_c(NfnI,1,WL_fIL,WR_fIL,nFluxNum_fIL,n_fIL,d,Neq);
+//		flux_LF_c(NfnI,1,WL_fIL,WR_fIL,nFluxNum_fIL,n_fIL,d,Neq);
 		break;
 	case FLUX_ROE:
-		flux_Roe_c(NfnI,1,WL_fIL,WR_fIL,nFluxNum_fIL,n_fIL,d,Neq);
+//		flux_Roe_c(NfnI,1,WL_fIL,WR_fIL,nFluxNum_fIL,n_fIL,d,Neq);
 		break;
 	default:
 		EXIT_UNSUPPORTED;
 		break;
 	}
+	free(NUMFLUXDATA);
 }
 
 void compute_numerical_solution_c(struct S_FDATA const *const FDATA, char const imex_type)

@@ -19,4 +19,18 @@ struct S_FLUX {
 	double complex *F_c, *Fr_c;
 };
 
+struct S_NUMERICALFLUX {
+	char         side; // ToBeDeleted
+	unsigned int d, Nn, Nel, NumFluxInviscid_index, NumFluxViscous_index;
+
+	double const *nL, *XYZ,
+	             *WL, *WR;
+	double       *nFluxNum, *dnFluxNumdWL, *dnFluxNumdWR, **dnFluxNumdQL, **dnFluxNumdQR,
+	             *nSolNum,  *dnSolNumdWL,  *dnSolNumdWR;
+
+	// Only used for verification.
+	double complex const *WL_c, *WR_c;
+	double complex       *nFluxNum_c, **nSolNum_c;
+};
+
 #endif // DPG__fluxes_structs_h__INCLUDED

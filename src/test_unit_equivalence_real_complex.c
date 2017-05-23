@@ -45,8 +45,8 @@
 static unsigned int compare_flux_inviscid(unsigned int const Nn, unsigned int const Nel, double const *const Wr);
 static unsigned int compare_flux_viscous  (unsigned int const Nn, unsigned int const Nel, unsigned int const d,
                                            double const *const Wr, double const *const *const Qr);
-static unsigned int compare_flux_Num      (const unsigned int Nn, const unsigned int Nel, const unsigned int d,
-                                           const unsigned int Neq, double *Wr, double *nL, const char *nFType);
+static unsigned int compare_flux_Num      (unsigned int const Nn, unsigned int const Nel, double const *const nL,
+                                           double const *const XYZ, double const *const Wr);
 static unsigned int compare_boundary      (const unsigned int Nn, const unsigned int Nel, const unsigned int d,
                                            double *const WLr, double *const *const QLr, double *nL, double *XYZ,
                                            const char *BType);
@@ -85,7 +85,7 @@ void test_unit_equivalence_real_complex(void)
 
 	unsigned int NFNumTypes = 0;
 	char         **FNumType;
-	set_FiTypes(&NFNumTypes,&FNumType); // free
+	set_FNumTypes(&NFNumTypes,&FNumType); // free
 
 	strcpy(DB.MeshType,"ToBeCurved"); // Meshes are not used for this test (and thus need not exist)
 
@@ -108,22 +108,27 @@ void test_unit_equivalence_real_complex(void)
 				else
 					sprintf(PrintName,"            flux_%s             (d = %d):",FiType[i],d);
 			} else {
-				sprintf(PrintName,"            flux_%s                    :",FiType[i]);
+				sprintf(PrintName,"                 %s                    :",FiType[i]);
 			}
 			test_print2(pass,PrintName);
 
 			free(DB.SolverType); // Initialized in "initialize_test_case_parameters"
 		}
 
-		// flux_LF
-		pass = compare_flux_Num(Nn,Nel,d,Neq,W,nL,"LF");
-		sprintf(PrintName,"                 LF                           :");
-		test_print2(pass,PrintName);
+		// flux_num_inviscid
+		for (size_t i = 0; i < NFNumTypes; i++) {
+			set_parameters_test_flux_Num(FNumType[i],d);
+			initialize_test_case_parameters();
 
-		// flux_Roe
-		pass = compare_flux_Num(Nn,Nel,d,Neq,W,nL,"Roe");
-		sprintf(PrintName,"                 Roe                          :");
-		test_print2(pass,PrintName);
+			pass = compare_flux_Num(Nn,Nel,nL,XYZ,W);
+			if (i == 0)
+				sprintf(PrintName,"                 Num_%s                  :",FNumType[i]);
+			else
+				sprintf(PrintName,"                     %s                  :",FNumType[i]);
+			test_print2(pass,PrintName);
+
+			free(DB.SolverType); // Initialized in "initialize_test_case_parameters"
+		}
 
 		Neq  = d+2;
 
@@ -275,53 +280,61 @@ static unsigned int compare_flux_viscous(unsigned int const Nn, unsigned int con
 	return pass;
 }
 
-static unsigned int compare_flux_Num(const unsigned int Nn, const unsigned int Nel, const unsigned int d,
-                                     const unsigned int Neq, double *Wr, double *nL, const char *nFType)
+static unsigned int compare_flux_Num(unsigned int const Nn, unsigned int const Nel, double const *const nL,
+                                     double const *const XYZ, double const *const Wr)
 {
+	if (Nel != 2)
+		EXIT_UNSUPPORTED;
+
 	unsigned int pass = 0;
 
-	unsigned int   i, iMax, n, var, Nvar, IndWLR;
-	double         *W_ptr, *WLr, *WRr, *nFr, *nFctr;
-	double complex *WLc, *WRc, *nFc;
+	unsigned int const d    = DB.d,
+	                   Nvar = DB.Nvar,
+	                   Neq  = DB.Neq;
 
-	if (Nel != 2)
-		printf("Error: Unsupported Nel.\n"), EXIT_MSG;
+	double *const WLr   = malloc(Nn*Nvar * sizeof *WLr),   // free
+	       *const WRr   = malloc(Nn*Nvar * sizeof *WRr),   // free
+	       *const nFr   = malloc(Nn*Nvar * sizeof *nFr),   // free
+	       *const nFctr = malloc(Nn*Nvar * sizeof *nFctr); // free
+	double complex *const WLc = malloc(Nn*Nvar * sizeof *WLc), // free
+	               *const WRc = malloc(Nn*Nvar * sizeof *WRc), // free
+	               *const nFc = malloc(Nn*Nvar * sizeof *nFc); // free
 
-	Nvar = Neq;
-
-	WLr   = malloc(Nn*Nvar * sizeof *WLr);   // free
-	WRr   = malloc(Nn*Nvar * sizeof *WRr);   // free
-	WLc   = malloc(Nn*Nvar * sizeof *WLc);   // free
-	WRc   = malloc(Nn*Nvar * sizeof *WRc);   // free
-	nFr   = malloc(Nn*Nvar * sizeof *nFr);   // free
-	nFc   = malloc(Nn*Nvar * sizeof *nFc);   // free
-	nFctr = malloc(Nn*Nvar * sizeof *nFctr); // free
-
-	W_ptr = Wr;
-	for (var = 0; var < Nvar; var++) {
-		IndWLR = var*Nn;
-		for (n = 0; n < Nn; n++)
+	double const *W_ptr = Wr;
+	for (size_t var = 0; var < Nvar; var++) {
+		size_t const IndWLR = var*Nn;
+		for (size_t n = 0; n < Nn; n++)
 			WLr[IndWLR+n] = *W_ptr++;
-		for (n = 0; n < Nn; n++)
+		for (size_t n = 0; n < Nn; n++)
 			WRr[IndWLR+n] = *W_ptr++;
 	}
 
-	for (i = 0, iMax = Nn*Nvar; i < iMax; i++) {
+	for (size_t i = 0, iMax = Nn*Nvar; i < iMax; i++) {
 		WLc[i] = WLr[i];
 		WRc[i] = WRr[i];
 	}
 
-	if (strstr(nFType,"LF")) {
-		flux_LF(Nn,1,WLr,WRr,nFr,nL,d,Neq);
-		flux_LF_c(Nn,1,WLc,WRc,nFc,nL,d,Neq);
-	} else if (strstr(nFType,"Roe")) {
-		flux_Roe(Nn,1,WLr,WRr,nFr,nL,d,Neq);
-		flux_Roe_c(Nn,1,WLc,WRc,nFc,nL,d,Neq);
-	} else {
-		printf("Error: Unsupported nFType.\n"), EXIT_MSG;
-	}
+	struct S_NUMERICALFLUX *const NUMFLUXDATA = malloc(sizeof *NUMFLUXDATA); // free
 
-	for (i = 0, iMax = Nn*Neq; i < iMax; i++)
+	NUMFLUXDATA->NumFluxInviscid_index = DB.InviscidFluxType;
+	NUMFLUXDATA->d   = d;
+	NUMFLUXDATA->Nn  = Nn;
+	NUMFLUXDATA->Nel = 1;
+	NUMFLUXDATA->nL  = nL;
+	NUMFLUXDATA->XYZ = XYZ;
+
+	NUMFLUXDATA->WL         = WLr;
+	NUMFLUXDATA->WR         = WRr;
+	NUMFLUXDATA->nFluxNum   = nFr;
+	NUMFLUXDATA->WL_c       = WLc;
+	NUMFLUXDATA->WR_c       = WRc;
+	NUMFLUXDATA->nFluxNum_c = nFc;
+
+	flux_num_inviscid(NUMFLUXDATA);
+	flux_num_inviscid_c(NUMFLUXDATA);
+	free(NUMFLUXDATA);
+
+	for (size_t i = 0, iMax = Nn*Neq; i < iMax; i++)
 		nFctr[i] = creal(nFc[i]);
 
 	if (array_norm_diff_d(Nn*Neq,nFr,nFctr,"Inf") < EPS)

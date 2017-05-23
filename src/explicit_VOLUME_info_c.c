@@ -70,6 +70,7 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 	VDATA->OPS = (struct S_OPERATORS_V const *const *) OPS;
 
 	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->PDE_index = DB.PDE_index;
 	FLUXDATA->d   = d;
 	FLUXDATA->Nel = 1;
 

@@ -70,6 +70,7 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
 	struct S_NumericalFlux *const NFluxData = malloc(sizeof *NFluxData); // free
+// Use S_NUMERICALFLUX here instead
 	FDATAL->NFluxData = NFluxData;
 	FDATAR->NFluxData = NFluxData;
 
