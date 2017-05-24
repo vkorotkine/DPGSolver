@@ -241,6 +241,7 @@ static void boundary_Advection_c(struct S_BC *const BCdata)
 		for (size_t n = 0; n < NnTotal; n++)
 			WB[n] = WL[n];
 	}
+	free(XYZB);
 }
 
 static void boundary_Poisson_c(struct S_BC *const BCdata)

@@ -277,25 +277,24 @@ static unsigned int compare_jacobian_flux_viscous(unsigned int const Nn, unsigne
 	return pass;
 }
 
-static void compute_dnFdW_cs(const unsigned int Nn, const unsigned int Nel, const unsigned int d,
-                             const unsigned int Neq, double *WL, double *WR, double *dnFdWL_cs, double *dnFdWR_cs,
-                             double const *const nL)
+static void compute_dnFdW_cs(unsigned int const Nn, unsigned int const Nel, double const *const nL,
+                             double const *const XYZ, double *WL, double *WR, double *dnFdWL_cs, double *dnFdWR_cs)
 {
-	unsigned int   i, iMax, n, var, eq, Nvar, NnTotal, IndW, IndnF, InddnFdW;
-	double         h;
-	double complex WLp[Nn*Nel*Neq], WRp[Nn*Nel*Neq], *nF;
+	unsigned int const d       = DB.d,
+	                   Neq     = DB.Neq,
+	                   Nvar    = DB.Nvar,
+	                   NnTotal = Nn*Nel;
 
-	h = EPS*EPS;
 
-	Nvar    = Neq;
-	NnTotal = Nn*Nel;
+	double const h = EPS*EPS;
 
-	nF = malloc(NnTotal*Neq * sizeof *nF); // free
-
-	for (i = 0, iMax = NnTotal*Nvar; i < iMax; i++) {
+	double complex WLp[Nn*Nel*Neq], WRp[Nn*Nel*Neq];
+	for (size_t i = 0, iMax = NnTotal*Nvar; i < iMax; i++) {
 		WLp[i] = WL[i];
 		WRp[i] = WR[i];
 	}
+
+	double complex *const nF = malloc(NnTotal*Neq * sizeof *nF); // free
 
 	struct S_NUMERICALFLUX *const NUMFLUXDATA = malloc(sizeof *NUMFLUXDATA); // free
 
@@ -304,46 +303,47 @@ static void compute_dnFdW_cs(const unsigned int Nn, const unsigned int Nel, cons
 	NUMFLUXDATA->Nn  = Nn;
 	NUMFLUXDATA->Nel = Nel;
 	NUMFLUXDATA->nL  = nL;
-//	NUMFLUXDATA->XYZ = XYZ;
+	NUMFLUXDATA->XYZ = XYZ;
 
 	NUMFLUXDATA->WL_c       = WLp;
 	NUMFLUXDATA->WR_c       = WRp;
 	NUMFLUXDATA->nFluxNum_c = nF;
 
-	for (var = 0; var < Nvar; var++) {
+	for (size_t var = 0; var < Nvar; var++) {
 		// Left
-		IndW = NnTotal*var;
-		for (n = 0; n < NnTotal; n++)
+		size_t const IndW = NnTotal*var;
+		for (size_t n = 0; n < NnTotal; n++)
 			WLp[IndW+n] += h*I;
 
 		flux_num_inviscid_c(NUMFLUXDATA);
 
-		for (eq = 0; eq < Neq; eq++) {
-			IndnF    = eq*NnTotal;
-			InddnFdW = (eq*Neq+var)*NnTotal;
-			for (n = 0; n < NnTotal; n++)
+		for (size_t eq = 0; eq < Neq; eq++) {
+			size_t const IndnF    = eq*NnTotal,
+			             InddnFdW = (eq*Neq+var)*NnTotal;
+			for (size_t n = 0; n < NnTotal; n++)
 				dnFdWL_cs[InddnFdW+n] = cimag(nF[IndnF+n])/h;
 		}
 
 		// Right
-		for (n = 0; n < NnTotal; n++) {
+		for (size_t n = 0; n < NnTotal; n++) {
 			WLp[IndW+n] -= h*I;
 			WRp[IndW+n] += h*I;
 		}
 
 		flux_num_inviscid_c(NUMFLUXDATA);
 
-		for (eq = 0; eq < Neq; eq++) {
-			IndnF    = eq*NnTotal;
-			InddnFdW = (eq*Neq+var)*NnTotal;
-			for (n = 0; n < NnTotal; n++)
+		for (size_t eq = 0; eq < Neq; eq++) {
+			size_t const IndnF    = eq*NnTotal,
+			             InddnFdW = (eq*Neq+var)*NnTotal;
+			for (size_t n = 0; n < NnTotal; n++)
 				dnFdWR_cs[InddnFdW+n] = cimag(nF[IndnF+n])/h;
 		}
 
-		for (n = 0; n < NnTotal; n++)
+		for (size_t n = 0; n < NnTotal; n++)
 			WRp[IndW+n] -= h*I;
 	}
 	free(nF);
+	free(NUMFLUXDATA);
 }
 
 static unsigned int compare_jacobian_flux_Num(unsigned int const Nn, unsigned int const Nel, double const *const nL,
@@ -391,14 +391,10 @@ static unsigned int compare_jacobian_flux_Num(unsigned int const Nn, unsigned in
 	NUMFLUXDATA->dnFluxNumdWL = dnFdWL;
 	NUMFLUXDATA->dnFluxNumdWR = dnFdWR;
 
-// remove 'L'/'R' here
-// Passing for LF and upwind with L/R removed, fixing Roe (ToBeDeleted)
-	NUMFLUXDATA->side = 'L';
 	jacobian_flux_num_inviscid(NUMFLUXDATA);
-	NUMFLUXDATA->side = 'R';
-	jacobian_flux_num_inviscid(NUMFLUXDATA);
+	free(NUMFLUXDATA);
 
-	compute_dnFdW_cs(Nn,1,d,Neq,WL,WR,dnFdWL_cs,dnFdWR_cs,nL);
+	compute_dnFdW_cs(Nn,1,nL,XYZ,WL,WR,dnFdWL_cs,dnFdWR_cs);
 
 	if (DB.InviscidFluxType == FLUX_LF) {
 		CheckedAllLF = 1;

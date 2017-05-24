@@ -13,6 +13,7 @@
 #include "S_FACE.h"
 
 #include "solver_functions.h"
+#include "fluxes_structs.h"
 #include "array_free.h"
 
 
@@ -59,8 +60,7 @@ void explicit_FACE_info(void)
 
 static void compute_Inviscid_FACE_RHS_EFE(void)
 {
-	unsigned int const d   = DB.d,
-	                   Neq = d+2;
+	unsigned int const Neq = DB.Neq;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 
@@ -69,10 +69,9 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
 	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
-	struct S_NumericalFlux *const NFluxData = malloc(sizeof *NFluxData); // free
-// Use S_NUMERICALFLUX here instead
-	FDATAL->NFluxData = NFluxData;
-	FDATAR->NFluxData = NFluxData;
+	struct S_NUMERICALFLUX *const NFLUXDATA = malloc(sizeof *NFLUXDATA); // free
+	FDATAL->NFLUXDATA = NFLUXDATA;
+	FDATAR->NFLUXDATA = NFLUXDATA;
 
 	for (size_t i = 0; i < 2; i++) {
 		OPSL[i] = malloc(sizeof *OPSL[i]); // free
@@ -82,7 +81,7 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
 	DATA->FDATAL    = FDATAL;
 	DATA->FDATAR    = FDATAR;
-	DATA->NFluxData = NFluxData;
+	DATA->NFLUXDATA = NFLUXDATA;
 	DATA->feature   = 'F';
 	DATA->imex_type = 'E';
 
@@ -99,8 +98,8 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 
 
 			// Compute numerical flux as seen from the left VOLUME
-			NFluxData->WL_fIL = FDATAL->W_fIL;
-			NFluxData->WR_fIL = FDATAR->W_fIL;
+			NFLUXDATA->WL = FDATAL->W_fIL;
+			NFLUXDATA->WR = FDATAR->W_fIL;
 			manage_solver_memory(DATA,'A','I'); // free
 
 			compute_numerical_flux(FDATAL,'E');
@@ -114,11 +113,11 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 			                   NvnSR = OPSR[0]->NvnS;
 
 			memset(FACE->RHSL,0.0,NvnSL*Neq * sizeof *(FACE->RHSL));
-			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,NULL,'L','E','W');
+			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'L','E','W');
 
 			if (!FACE->Boundary) {
 				memset(FACE->RHSR,0.0,NvnSR*Neq * sizeof *(FACE->RHSR));
-				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,NULL,'R','E','W');
+				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'R','E','W');
 			}
 
 			manage_solver_memory(DATA,'F','I');
@@ -133,7 +132,7 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 	}
 	free(FDATAL);
 	free(FDATAR);
-	free(NFluxData);
+	free(NFLUXDATA);
 	free(DATA);
 }
 
@@ -149,14 +148,14 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
 	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
-	struct S_NumericalFlux *const NFluxData = malloc(sizeof *NFluxData); // free
-	FDATAL->NFluxData = NFluxData;
-	FDATAR->NFluxData = NFluxData;
+	struct S_NUMERICALFLUX *const NFLUXDATA = malloc(sizeof *NFLUXDATA); // free
+	FDATAL->NFLUXDATA = NFLUXDATA;
+	FDATAR->NFLUXDATA = NFLUXDATA;
 
 	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
 	DATA->FDATAL    = FDATAL;
 	DATA->FDATAR    = FDATAR;
-	DATA->NFluxData = NFluxData;
+	DATA->NFLUXDATA = NFLUXDATA;
 	DATA->feature   = 'F';
 	DATA->imex_type = 'E';
 
@@ -181,8 +180,8 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 
 
 			// Compute numerical flux as seen from the left VOLUME
-			NFluxData->WL_fIL = FDATAL->W_fIL;
-			NFluxData->WR_fIL = FDATAR->W_fIL;
+			NFLUXDATA->WL = FDATAL->W_fIL;
+			NFLUXDATA->WR = FDATAR->W_fIL;
 			manage_solver_memory(DATA,'A','V'); // free
 
 			compute_numerical_flux_viscous(FDATAL,FDATAR,'E');
@@ -193,9 +192,9 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 
 
 			// Compute FACE RHS terms
-			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'L','E','V');
+			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'L','E','V');
 			if (!FACE->Boundary)
-				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'R','E','V');
+				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'R','E','V');
 
 			manage_solver_memory(DATA,'F','V');
 		}
@@ -208,7 +207,7 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 		free(OPSL[i]);
 		free(OPSR[i]);
 	}
-	free(NFluxData);
+	free(NFLUXDATA);
 	free(FDATAL);
 	free(FDATAR);
 	free(DATA);

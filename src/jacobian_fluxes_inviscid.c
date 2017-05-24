@@ -11,6 +11,7 @@
 #include "Macros.h"
 
 #include "fluxes_structs.h"
+#include "fluxes_inviscid.h"
 #include "solver_Advection_functions.h"
 
 /*
@@ -584,20 +585,9 @@ static void jacobian_flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 	double const *const WL = NUMFLUXDATA->WL,
 	             *const WR = NUMFLUXDATA->WR;
 
-	char const side = NUMFLUXDATA->side;
-
-//	double       *const nFluxNum = NUMFLUXDATA->nFluxNum;
-	double *const dnFdWL = NUMFLUXDATA->dnFluxNumdWL,
-	       *const dnFdWR = NUMFLUXDATA->dnFluxNumdWR;
-
-	double *dnFdW;
-// Delete side here and compute if not NULL
-	if (side == 'L')
-		dnFdW = NUMFLUXDATA->dnFluxNumdWL;
-	else if (side == 'R')
-		dnFdW = NUMFLUXDATA->dnFluxNumdWR;
-	else
-		EXIT_UNSUPPORTED;
+	double *const nFluxNum = NUMFLUXDATA->nFluxNum,
+	       *const dnFdWL   = NUMFLUXDATA->dnFluxNumdWL,
+	       *const dnFdWR   = NUMFLUXDATA->dnFluxNumdWR;
 
 	double const *rhoL_ptr  = &WL[NnTotal*0],
 	             *rhouL_ptr = &WL[NnTotal*1],
@@ -608,12 +598,12 @@ static void jacobian_flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 	             *ER_ptr    = &WR[NnTotal*(d+1)];
 
 	double const *n_ptr = nL;
-/*
+
 	double *nF_ptr[Neq];
 	if (nFluxNum != NULL) {
 		for (size_t eq = 0; eq < Neq; eq++)
 			nF_ptr[eq] = &nFluxNum[eq*NnTotal];
-	}*/
+	}
 
 	double *dnFdWL_ptr[Neq*Neq];
 	for (size_t eq = 0; eq < Neq; eq++) {
@@ -628,12 +618,6 @@ static void jacobian_flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 			dnFdWR_ptr[eq*Nvar+var] = &dnFdWR[(eq*Nvar+var)*NnTotal];
 		}}
 	}
-
-	double *dnFdW_ptr[Neq*Neq];
-	for (size_t eq = 0; eq < Neq; eq++) {
-	for (size_t var = 0; var < Nvar; var++) {
-		dnFdW_ptr[eq*Nvar+var] = &dnFdW[(eq*Nvar+var)*NnTotal];
-	}}
 
 	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
 	FLUXDATA->d   = d;
@@ -703,10 +687,45 @@ static void jacobian_flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 			             n2 = *n_ptr++,
 			             n3 = *n_ptr++;
 
+			if (nFluxNum != NULL) {
+				double WLn[] = {rhoL, rhouL, rhovL, rhowL, EL},
+				       FLn[Neq*d];
+				FLUXDATA->W = WLn;
+				FLUXDATA->F = FLn;
+				flux_Euler(FLUXDATA);
+
+				double const *FL1_ptr = FLn,
+				             *FL2_ptr = FL1_ptr+1,
+				             *FL3_ptr = FL2_ptr+1;
+
+				double WRn[] = {rhoR, rhouR, rhovR, rhowR, ER},
+				       FRn[Neq*d];
+				FLUXDATA->W = WRn;
+				FLUXDATA->F = FRn;
+				flux_Euler(FLUXDATA);
+
+				double const *FR1_ptr = FRn,
+				             *FR2_ptr = FR1_ptr+1,
+				             *FR3_ptr = FR2_ptr+1;
+
+				size_t IndnF = 0;
+				for (size_t eq = 0; eq < Neq; eq++) {
+					*nF_ptr[IndnF++]++ = 0.5*( n1*((*FL1_ptr)+(*FR1_ptr))+n2*((*FL2_ptr)+(*FR2_ptr))
+					                          +n3*((*FL3_ptr)+(*FR3_ptr)) + maxV*(WLn[eq]-WRn[eq]));
+
+					FL1_ptr += d;
+					FL2_ptr += d;
+					FL3_ptr += d;
+					FR1_ptr += d;
+					FR2_ptr += d;
+					FR3_ptr += d;
+				}
+			}
+
 			double dFdWn[Nvar*Nvar*d];
 
 			// Flux term
-			double const WLn[NVAR3D] = {rhoL, rhouL, rhovL, rhowL, EL};
+			double const WLn[] = {rhoL, rhouL, rhovL, rhowL, EL};
 
 			FLUXDATA->W    = WLn;
 			FLUXDATA->dFdW = dFdWn;
@@ -735,14 +754,14 @@ static void jacobian_flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 				InddnFdW++;
 			}}
 			if (sideMaxV == 'L') {
-				double const WRn[NVAR3D]    = { rhoR,         rhouR,     rhovR,     rhowR,    ER},
-				             dudW[NVAR3D]   = {-uL*rhoL_inv,  rhoL_inv,  0.0,       0.0,      0.0},
-				             dvdW[NVAR3D]   = {-vL*rhoL_inv,  0.0,       rhoL_inv,  0.0,      0.0},
-				             dwdW[NVAR3D]   = {-wL*rhoL_inv,  0.0,       0.0,       rhoL_inv, 0.0},
-				             drhodW[NVAR3D] = { 1.0,          0.0,       0.0,       0.0,      0.0},
-				             dpdW[NVAR3D]   = { GM1*0.5*V2L, -GM1*uL,   -GM1*vL,   -GM1*wL,   GM1};
+				double const WRn[]    = { rhoR,         rhouR,     rhovR,     rhowR,    ER},
+				             dudW[]   = {-uL*rhoL_inv,  rhoL_inv,  0.0,       0.0,      0.0},
+				             dvdW[]   = {-vL*rhoL_inv,  0.0,       rhoL_inv,  0.0,      0.0},
+				             dwdW[]   = {-wL*rhoL_inv,  0.0,       0.0,       rhoL_inv, 0.0},
+				             drhodW[] = { 1.0,          0.0,       0.0,       0.0,      0.0},
+				             dpdW[]   = { GM1*0.5*V2L, -GM1*uL,   -GM1*vL,   -GM1*wL,   GM1};
 
-				double dmaxVdW[NVAR3D];
+				double dmaxVdW[Nvar];
 				for (size_t var = 0; var < Nvar; var++) {
 					double const dVdW = 1.0/VL*(uL*dudW[var]+vL*dvdW[var]+wL*dwdW[var]),
 					             dcdW = GAMMA/(2.0*cL*rhoL*rhoL)*(dpdW[var]*rhoL-pL*drhodW[var]);
@@ -761,7 +780,7 @@ static void jacobian_flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 
 			if (dnFdWR != NULL) {
 				// Flux term
-				double const WRn[NVAR3D] = {rhoR, rhouR, rhovR, rhowR, ER};
+				double const WRn[] = {rhoR, rhouR, rhovR, rhowR, ER};
 
 				FLUXDATA->W    = WRn;
 				FLUXDATA->dFdW = dFdWn;
@@ -790,14 +809,14 @@ static void jacobian_flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 					InddnFdW++;
 				}}
 				if (sideMaxV == 'R') {
-					double const WLn[NVAR3D]    = { rhoL,         rhouL,     rhovL,     rhowL,    EL},
-					             dudW[NVAR3D]   = {-uR*rhoR_inv,  rhoR_inv,  0.0,       0.0,      0.0},
-					             dvdW[NVAR3D]   = {-vR*rhoR_inv,  0.0,       rhoR_inv,  0.0,      0.0},
-					             dwdW[NVAR3D]   = {-wR*rhoR_inv,  0.0,       0.0,       rhoR_inv, 0.0},
-					             drhodW[NVAR3D] = { 1.0,          0.0,       0.0,       0.0,      0.0},
-					             dpdW[NVAR3D]   = { GM1*0.5*V2R, -GM1*uR,   -GM1*vR,   -GM1*wR,   GM1};
+					double const WLn[]    = { rhoL,         rhouL,     rhovL,     rhowL,    EL},
+					             dudW[]   = {-uR*rhoR_inv,  rhoR_inv,  0.0,       0.0,      0.0},
+					             dvdW[]   = {-vR*rhoR_inv,  0.0,       rhoR_inv,  0.0,      0.0},
+					             dwdW[]   = {-wR*rhoR_inv,  0.0,       0.0,       rhoR_inv, 0.0},
+					             drhodW[] = { 1.0,          0.0,       0.0,       0.0,      0.0},
+					             dpdW[]   = { GM1*0.5*V2R, -GM1*uR,   -GM1*vR,   -GM1*wR,   GM1};
 
-					double dmaxVdW[NVAR3D];
+					double dmaxVdW[Nvar];
 					for (size_t var = 0; var < Nvar; var++) {
 						double const dVdW = 1.0/VR*(uR*dudW[var]+vR*dvdW[var]+wR*dwdW[var]),
 						             dcdW = GAMMA/(2.0*cR*rhoR*rhoR)*(dpdW[var]*rhoR-pR*drhodW[var]);
@@ -869,10 +888,41 @@ static void jacobian_flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 			double const n1 = *n_ptr++,
 			             n2 = *n_ptr++;
 
+			if (nFluxNum != NULL) {
+				double WLn[] = {rhoL, rhouL, rhovL, EL},
+				       FLn[Neq*d];
+				FLUXDATA->W = WLn;
+				FLUXDATA->F = FLn;
+				flux_Euler(FLUXDATA);
+
+				double const *FL1_ptr = FLn,
+				             *FL2_ptr = FL1_ptr+1;
+
+				double WRn[] = {rhoR, rhouR, rhovR, ER},
+				       FRn[Neq*d];
+				FLUXDATA->W = WRn;
+				FLUXDATA->F = FRn;
+				flux_Euler(FLUXDATA);
+
+				double const *FR1_ptr = FRn,
+				             *FR2_ptr = FR1_ptr+1;
+
+				size_t IndnF = 0;
+				for (size_t eq = 0; eq < Neq; eq++) {
+					*nF_ptr[IndnF++]++ = 0.5*( n1*((*FL1_ptr)+(*FR1_ptr))+n2*((*FL2_ptr)+(*FR2_ptr))
+					                          + maxV*(WLn[eq]-WRn[eq]));
+
+					FL1_ptr += d;
+					FL2_ptr += d;
+					FR1_ptr += d;
+					FR2_ptr += d;
+				}
+			}
+
 			double dFdWn[Nvar*Nvar*d];
 
 			// Flux term
-			double WLn[NVAR2D] = {rhoL, rhouL, rhovL, EL};
+			double WLn[] = {rhoL, rhouL, rhovL, EL};
 
 			FLUXDATA->W    = WLn;
 			FLUXDATA->dFdW = dFdWn;
@@ -899,13 +949,13 @@ static void jacobian_flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 				InddnFdW++;
 			}}
 			if (sideMaxV == 'L') {
-				double const WRn[NVAR2D]    = { rhoR,         rhouR,     rhovR,    ER},
-				             dudW[NVAR2D]   = {-uL*rhoL_inv,  rhoL_inv,  0.0,      0.0},
-				             dvdW[NVAR2D]   = {-vL*rhoL_inv,  0.0,       rhoL_inv, 0.0},
-				             drhodW[NVAR2D] = { 1.0,          0.0,       0.0,      0.0},
-				             dpdW[NVAR2D]   = { GM1*0.5*V2L, -GM1*uL,   -GM1*vL,   GM1};
+				double const WRn[]    = { rhoR,         rhouR,     rhovR,    ER},
+				             dudW[]   = {-uL*rhoL_inv,  rhoL_inv,  0.0,      0.0},
+				             dvdW[]   = {-vL*rhoL_inv,  0.0,       rhoL_inv, 0.0},
+				             drhodW[] = { 1.0,          0.0,       0.0,      0.0},
+				             dpdW[]   = { GM1*0.5*V2L, -GM1*uL,   -GM1*vL,   GM1};
 
-				double dmaxVdW[NVAR2D];
+				double dmaxVdW[Nvar];
 				for (size_t var = 0; var < Nvar; var++) {
 					double const dVdW = 1.0/VL*(uL*dudW[var]+vL*dvdW[var]),
 					             dcdW = GAMMA/(2.0*cL*rhoL*rhoL)*(dpdW[var]*rhoL-pL*drhodW[var]);
@@ -924,7 +974,7 @@ static void jacobian_flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 
 			if (dnFdWR != NULL) {
 				// Flux term
-				double const WRn[NVAR2D] = {rhoR, rhouR, rhovR, ER};
+				double const WRn[] = {rhoR, rhouR, rhovR, ER};
 
 				FLUXDATA->W    = WRn;
 				FLUXDATA->dFdW = dFdWn;
@@ -951,13 +1001,13 @@ static void jacobian_flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 					InddnFdW++;
 				}}
 				if (sideMaxV == 'R') {
-					double const WLn[NVAR2D]    = { rhoL,         rhouL,     rhovL,    EL},
-					             dudW[NVAR2D]   = {-uR*rhoR_inv,  rhoR_inv,  0.0,      0.0},
-					             dvdW[NVAR2D]   = {-vR*rhoR_inv,  0.0,       rhoR_inv, 0.0},
-					             drhodW[NVAR2D] = { 1.0,          0.0,       0.0,      0.0},
-					             dpdW[NVAR2D]   = { GM1*0.5*V2R, -GM1*uR,   -GM1*vR,   GM1};
+					double const WLn[]    = { rhoL,         rhouL,     rhovL,    EL},
+					             dudW[]   = {-uR*rhoR_inv,  rhoR_inv,  0.0,      0.0},
+					             dvdW[]   = {-vR*rhoR_inv,  0.0,       rhoR_inv, 0.0},
+					             drhodW[] = { 1.0,          0.0,       0.0,      0.0},
+					             dpdW[]   = { GM1*0.5*V2R, -GM1*uR,   -GM1*vR,   GM1};
 
-					double dmaxVdW[NVAR2D];
+					double dmaxVdW[Nvar];
 					for (size_t var = 0; var < Nvar; var++) {
 						double const dVdW = 1.0/VR*(uR*dudW[var]+vR*dvdW[var]),
 						             dcdW = GAMMA/(2.0*cR*rhoR*rhoR)*(dpdW[var]*rhoR-pR*drhodW[var]);
@@ -1021,10 +1071,36 @@ static void jacobian_flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 
 			double const n1 = *n_ptr++;
 
+			if (nFluxNum != NULL) {
+				double WLn[] = {rhoL, rhouL, EL},
+				       FLn[Neq*d];
+				FLUXDATA->W = WLn;
+				FLUXDATA->F = FLn;
+				flux_Euler(FLUXDATA);
+
+				double const *FL1_ptr = FLn;
+
+				double WRn[] = {rhoR, rhouR, ER},
+				       FRn[Neq*d];
+				FLUXDATA->W = WRn;
+				FLUXDATA->F = FRn;
+				flux_Euler(FLUXDATA);
+
+				double const *FR1_ptr = FRn;
+
+				size_t IndnF = 0;
+				for (size_t eq = 0; eq < Neq; eq++) {
+					*nF_ptr[IndnF++]++ = 0.5*( n1*((*FL1_ptr)+(*FR1_ptr)) + maxV*(WLn[eq]-WRn[eq]));
+
+					FL1_ptr += d;
+					FR1_ptr += d;
+				}
+			}
+
 			double dFdWn[Nvar*Nvar*d];
 
 			// Flux term
-			double WLn[NVAR1D] = {rhoL, rhouL, EL};
+			double WLn[] = {rhoL, rhouL, EL};
 
 			FLUXDATA->W    = WLn;
 			FLUXDATA->dFdW = dFdWn;
@@ -1049,10 +1125,10 @@ static void jacobian_flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 				InddnFdW++;
 			}}
 			if (sideMaxV == 'L') {
-				double const WRn[NVAR1D]    = { rhoR,         rhouR,    ER},
-				             dudW[NVAR1D]   = {-uL*rhoL_inv,  rhoL_inv, 0.0},
-				             drhodW[NVAR1D] = { 1.0,          0.0,      0.0},
-				             dpdW[NVAR1D]   = { GM1*0.5*V2L, -GM1*uL,   GM1};
+				double const WRn[]    = { rhoR,         rhouR,    ER},
+				             dudW[]   = {-uL*rhoL_inv,  rhoL_inv, 0.0},
+				             drhodW[] = { 1.0,          0.0,      0.0},
+				             dpdW[]   = { GM1*0.5*V2L, -GM1*uL,   GM1};
 
 				double dmaxVdW[Nvar];
 				for (size_t var = 0; var < Nvar; var++) {
@@ -1073,7 +1149,7 @@ static void jacobian_flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 
 			if (dnFdWR != NULL) {
 				// Flux term
-				double const WRn[NVAR1D] = {rhoR, rhouR, ER};
+				double const WRn[] = {rhoR, rhouR, ER};
 
 				FLUXDATA->W    = WRn;
 				FLUXDATA->dFdW = dFdWn;
@@ -1098,10 +1174,10 @@ static void jacobian_flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 					InddnFdW++;
 				}}
 				if (sideMaxV == 'R') {
-					double const WLn[NVAR1D]    = { rhoL,         rhouL,    EL},
-					             dudW[NVAR1D]   = {-uR*rhoR_inv,  rhoR_inv, 0.0},
-					             drhodW[NVAR1D] = { 1.0,          0.0,      0.0},
-					             dpdW[NVAR1D]   = { GM1*0.5*V2R, -GM1*uR,   GM1};
+					double const WLn[]    = { rhoL,         rhouL,    EL},
+					             dudW[]   = {-uR*rhoR_inv,  rhoR_inv, 0.0},
+					             drhodW[] = { 1.0,          0.0,      0.0},
+					             dpdW[]   = { GM1*0.5*V2R, -GM1*uR,   GM1};
 
 					double dmaxVdW[Nvar];
 					for (size_t var = 0; var < Nvar; var++) {
@@ -1139,16 +1215,9 @@ static void jacobian_flux_Roe(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 	double const *const WL = NUMFLUXDATA->WL,
 	             *const WR = NUMFLUXDATA->WR;
 
-	char const side = NUMFLUXDATA->side;
-
-	double *dnFdW;
-// Delete side here and compute if not NULL
-	if (side == 'L')
-		dnFdW = NUMFLUXDATA->dnFluxNumdWL;
-	else if (side == 'R')
-		dnFdW = NUMFLUXDATA->dnFluxNumdWR;
-	else
-		EXIT_UNSUPPORTED;
+	double *const nFluxNum = NUMFLUXDATA->nFluxNum,
+	       *const dnFdWL   = NUMFLUXDATA->dnFluxNumdWL,
+	       *const dnFdWR   = NUMFLUXDATA->dnFluxNumdWR;
 
 	double const *rhoL_ptr  = &WL[NnTotal*0],
 	             *rhouL_ptr = &WL[NnTotal*1],
@@ -1160,11 +1229,25 @@ static void jacobian_flux_Roe(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 
 	double const *n_ptr = nL;
 
-	double *dnFdW_ptr[Neq*Neq];
+	double *nF_ptr[Neq];
+	if (nFluxNum != NULL) {
+		for (size_t eq = 0; eq < Neq; eq++)
+			nF_ptr[eq] = &nFluxNum[eq*NnTotal];
+	}
+
+	double *dnFdWL_ptr[Neq*Neq];
 	for (size_t eq = 0; eq < Neq; eq++) {
 	for (size_t var = 0; var < Nvar; var++) {
-		dnFdW_ptr[eq*Nvar+var] = &dnFdW[(eq*Nvar+var)*NnTotal];
+		dnFdWL_ptr[eq*Nvar+var] = &dnFdWL[(eq*Nvar+var)*NnTotal];
 	}}
+
+	double *dnFdWR_ptr[Neq*Neq];
+	if (dnFdWR != NULL) {
+		for (size_t eq = 0; eq < Neq; eq++) {
+		for (size_t var = 0; var < Nvar; var++) {
+			dnFdWR_ptr[eq*Nvar+var] = &dnFdWR[(eq*Nvar+var)*NnTotal];
+		}}
+	}
 
 	if (d == 3) {
 		double const *rhovL_ptr = &WL[NnTotal*2],
@@ -1285,84 +1368,117 @@ static void jacobian_flux_Roe(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 			             disInter1 = lc1*dp/(c*c) + lc2*rho*dVn/c,
 			             disInter2 = lc1*rho*dVn  + lc2*dp/c;
 
+			if (nFluxNum != NULL) {
+				double const rhoVnL = rhoL*VnL,
+				             rhoVnR = rhoR*VnR,
+				             pLR    = pL + pR;
+
+				double const nF1 = rhoVnL      + rhoVnR,
+				             nF2 = rhoVnL*uL   + rhoVnR*uR  + n1*pLR,
+				             nF3 = rhoVnL*vL   + rhoVnR*vR  + n2*pLR,
+				             nF4 = rhoVnL*wL   + rhoVnR*wR  + n3*pLR,
+				             nF5 = VnL*(EL+pL) + VnR*(ER+pR),
+
+				             dis1 = l234*drho  + disInter1,
+				             dis2 = l234*drhou + disInter1*u + disInter2*n1,
+				             dis3 = l234*drhov + disInter1*v + disInter2*n2,
+				             dis4 = l234*drhow + disInter1*w + disInter2*n3,
+				             dis5 = l234*dE    + disInter1*H + disInter2*(Vn);
+
+				// Assemble components
+				size_t IndnF = 0;
+				*nF_ptr[IndnF++]++ = 0.5*(nF1 - dis1);
+				*nF_ptr[IndnF++]++ = 0.5*(nF2 - dis2);
+				*nF_ptr[IndnF++]++ = 0.5*(nF3 - dis3);
+				*nF_ptr[IndnF++]++ = 0.5*(nF4 - dis4);
+				*nF_ptr[IndnF++]++ = 0.5*(nF5 - dis5);
+			}
+
 			double dnF1dW[Neq],  dnF2dW[Neq],  dnF3dW[Neq],  dnF4dW[Neq],  dnF5dW[Neq],
 			       ddis1dW[Neq], ddis2dW[Neq], ddis3dW[Neq], ddis4dW[Neq], ddis5dW[Neq];
-			if (side == 'L') {
+
+			// Flux term
+			double const duLdW[]   = {-uL*rhoL_inv,  rhoL_inv,  0.0,       0.0,      0.0},
+			             dvLdW[]   = {-vL*rhoL_inv,  0.0,       rhoL_inv,  0.0,      0.0},
+			             dwLdW[]   = {-wL*rhoL_inv,  0.0,       0.0,       rhoL_inv, 0.0},
+			             drhoLdW[] = { 1.0,          0.0,       0.0,       0.0,      0.0},
+			             dELdW[]   = { 0.0,          0.0,       0.0,       0.0,      1.0},
+			             dpLdW[]   = { GM1*0.5*V2L, -GM1*uL,   -GM1*vL,   -GM1*wL,   GM1};
+
+			double const rhoVn = rhoL*VnL;
+			double dVnLdW[Nvar];
+			for (size_t var = 0; var < Nvar; var++) {
+				dVnLdW[var] = n1*duLdW[var]+n2*dvLdW[var]+n3*dwLdW[var];
+				double const drhoVndW = drhoLdW[var]*VnL + rhoL*dVnLdW[var];
+
+				dnF1dW[var] = drhoVndW;
+				dnF2dW[var] = drhoVndW*uL + rhoVn*duLdW[var] + n1*dpLdW[var];
+				dnF3dW[var] = drhoVndW*vL + rhoVn*dvLdW[var] + n2*dpLdW[var];
+				dnF4dW[var] = drhoVndW*wL + rhoVn*dwLdW[var] + n3*dpLdW[var];
+				dnF5dW[var] = dVnLdW[var]*(EL+pL) + VnL*(dELdW[var]+dpLdW[var]);
+			}
+
+			// Dissipation term
+			double const mult = rhoLr_inv/Den;
+			double const drhodW[] = { 0.5*rhoR/rho,             0.0,          0.0,          0.0,         0.0},
+			             dudW[]   = {-0.5*(uL+u)*mult,          mult,         0.0,          0.0,         0.0},
+			             dvdW[]   = {-0.5*(vL+v)*mult,          0.0,          mult,         0.0,         0.0},
+			             dwdW[]   = {-0.5*(wL+w)*mult,          0.0,          0.0,          mult,        0.0},
+			             dHdW[]   = {-0.5*(HL+H-GM1*V2L)*mult, -GM1*uL*mult, -GM1*vL*mult, -GM1*wL*mult, GAMMA*mult};
+
+			for (size_t var = 0; var < Nvar; var++) {
+				double const dcdW  = 0.5*GM1/c*(dHdW[var]-(u*dudW[var]+v*dvdW[var]+w*dwdW[var])),
+				             dVndW = n1*dudW[var]+n2*dvdW[var]+n3*dwdW[var];
+
+				double dl1dW;
+				if (case_l1)
+					dl1dW = sign_l1*(dVndW-dcdW);
+				else
+					dl1dW = sign_l1*(dVnLdW[var]-dcdW);
+
+				double dl5dW;
+				if (case_l5)
+					dl5dW = sign_l5*(dVndW+dcdW);
+				else
+					dl5dW = sign_l5*(dcdW);
+
+				double const dl234dW = sign_l234*dVndW,
+				             dlc1dW = 0.5*(dl5dW+dl1dW) - dl234dW,
+				             dlc2dW = 0.5*(dl5dW-dl1dW),
+
+				             ddisInter1dW = (dlc1dW*dp-lc1*dpLdW[var])/c2-(2.0*lc1*dp*dcdW)/(c*c2) +
+				                            (dlc2dW*rho*dVn+lc2*drhodW[var]*dVn-lc2*rho*dVnLdW[var])/c -
+				                            (lc2*rho*dVn*dcdW)/c2,
+				             ddisInter2dW = dlc1dW*rho*dVn+lc1*drhodW[var]*dVn-lc1*rho*dVnLdW[var] +
+				                            (dlc2dW*dp-lc2*dpLdW[var])/c-(lc2*dp*dcdW)/c2,
+
+				             drhoudW = drhoLdW[var]*uL+rhoL*duLdW[var],
+				             drhovdW = drhoLdW[var]*vL+rhoL*dvLdW[var],
+				             drhowdW = drhoLdW[var]*wL+rhoL*dwLdW[var];
+
+				ddis1dW[var] = dl234dW*drho - l234*drhoLdW[var] + ddisInter1dW;
+				ddis2dW[var] = dl234dW*drhou - l234*drhoudW + ddisInter1dW*u + disInter1*dudW[var] + ddisInter2dW*n1;
+				ddis3dW[var] = dl234dW*drhov - l234*drhovdW + ddisInter1dW*v + disInter1*dvdW[var] + ddisInter2dW*n2;
+				ddis4dW[var] = dl234dW*drhow - l234*drhowdW + ddisInter1dW*w + disInter1*dwdW[var] + ddisInter2dW*n3;
+				ddis5dW[var] = dl234dW*dE - l234*dELdW[var] + ddisInter1dW*H  + disInter1*dHdW[var]
+				                                            + ddisInter2dW*Vn + disInter2*dVndW;
+			}
+
+			size_t InddnFdW = 0;
+			for (size_t var = 0; var < Nvar; var++) *dnFdWL_ptr[InddnFdW++]++ = 0.5*(dnF1dW[var]-ddis1dW[var]);
+			for (size_t var = 0; var < Nvar; var++) *dnFdWL_ptr[InddnFdW++]++ = 0.5*(dnF2dW[var]-ddis2dW[var]);
+			for (size_t var = 0; var < Nvar; var++) *dnFdWL_ptr[InddnFdW++]++ = 0.5*(dnF3dW[var]-ddis3dW[var]);
+			for (size_t var = 0; var < Nvar; var++) *dnFdWL_ptr[InddnFdW++]++ = 0.5*(dnF4dW[var]-ddis4dW[var]);
+			for (size_t var = 0; var < Nvar; var++) *dnFdWL_ptr[InddnFdW++]++ = 0.5*(dnF5dW[var]-ddis5dW[var]);
+
+			if (dnFdWR != NULL) {
 				// Flux term
-				double const duLdW[NVAR3D]   = {-uL*rhoL_inv,  rhoL_inv,  0.0,       0.0,      0.0},
-				             dvLdW[NVAR3D]   = {-vL*rhoL_inv,  0.0,       rhoL_inv,  0.0,      0.0},
-				             dwLdW[NVAR3D]   = {-wL*rhoL_inv,  0.0,       0.0,       rhoL_inv, 0.0},
-				             drhoLdW[NVAR3D] = { 1.0,          0.0,       0.0,       0.0,      0.0},
-				             dELdW[NVAR3D]   = { 0.0,          0.0,       0.0,       0.0,      1.0},
-				             dpLdW[NVAR3D]   = { GM1*0.5*V2L, -GM1*uL,   -GM1*vL,   -GM1*wL,   GM1};
-
-				double const rhoVn = rhoL*VnL;
-				double dVnLdW[Nvar];
-				for (size_t var = 0; var < Nvar; var++) {
-					dVnLdW[var] = n1*duLdW[var]+n2*dvLdW[var]+n3*dwLdW[var];
-					double const drhoVndW = drhoLdW[var]*VnL + rhoL*dVnLdW[var];
-
-					dnF1dW[var] = drhoVndW;
-					dnF2dW[var] = drhoVndW*uL + rhoVn*duLdW[var] + n1*dpLdW[var];
-					dnF3dW[var] = drhoVndW*vL + rhoVn*dvLdW[var] + n2*dpLdW[var];
-					dnF4dW[var] = drhoVndW*wL + rhoVn*dwLdW[var] + n3*dpLdW[var];
-					dnF5dW[var] = dVnLdW[var]*(EL+pL) + VnL*(dELdW[var]+dpLdW[var]);
-				}
-
-				// Dissipation term
-				double const mult = rhoLr_inv/Den;
-				double const drhodW[NVAR3D] = { 0.5*rhoR/rho,             0.0,          0.0,          0.0,         0.0},
-				             dudW[NVAR3D]   = {-0.5*(uL+u)*mult,          mult,         0.0,          0.0,         0.0},
-				             dvdW[NVAR3D]   = {-0.5*(vL+v)*mult,          0.0,          mult,         0.0,         0.0},
-				             dwdW[NVAR3D]   = {-0.5*(wL+w)*mult,          0.0,          0.0,          mult,        0.0},
-				             dHdW[NVAR3D]   = {-0.5*(HL+H-GM1*V2L)*mult, -GM1*uL*mult, -GM1*vL*mult, -GM1*wL*mult,
-				                                GAMMA*mult};
-
-				for (size_t var = 0; var < Nvar; var++) {
-					double const dcdW  = 0.5*GM1/c*(dHdW[var]-(u*dudW[var]+v*dvdW[var]+w*dwdW[var])),
-					             dVndW = n1*dudW[var]+n2*dvdW[var]+n3*dwdW[var];
-
-					double dl1dW;
-					if (case_l1)
-						dl1dW = sign_l1*(dVndW-dcdW);
-					else
-						dl1dW = sign_l1*(dVnLdW[var]-dcdW);
-
-					double dl5dW;
-					if (case_l5)
-						dl5dW = sign_l5*(dVndW+dcdW);
-					else
-						dl5dW = sign_l5*(dcdW);
-
-					double const dl234dW = sign_l234*dVndW,
-					             dlc1dW = 0.5*(dl5dW+dl1dW) - dl234dW,
-					             dlc2dW = 0.5*(dl5dW-dl1dW),
-
-					             ddisInter1dW = (dlc1dW*dp-lc1*dpLdW[var])/c2-(2.0*lc1*dp*dcdW)/(c*c2) +
-					                            (dlc2dW*rho*dVn+lc2*drhodW[var]*dVn-lc2*rho*dVnLdW[var])/c -
-					                            (lc2*rho*dVn*dcdW)/c2,
-					             ddisInter2dW = dlc1dW*rho*dVn+lc1*drhodW[var]*dVn-lc1*rho*dVnLdW[var] +
-					                            (dlc2dW*dp-lc2*dpLdW[var])/c-(lc2*dp*dcdW)/c2,
-
-					             drhoudW = drhoLdW[var]*uL+rhoL*duLdW[var],
-					             drhovdW = drhoLdW[var]*vL+rhoL*dvLdW[var],
-					             drhowdW = drhoLdW[var]*wL+rhoL*dwLdW[var];
-
-					ddis1dW[var] = dl234dW*drho - l234*drhoLdW[var] + ddisInter1dW;
-					ddis2dW[var] = dl234dW*drhou - l234*drhoudW + ddisInter1dW*u + disInter1*dudW[var] + ddisInter2dW*n1;
-					ddis3dW[var] = dl234dW*drhov - l234*drhovdW + ddisInter1dW*v + disInter1*dvdW[var] + ddisInter2dW*n2;
-					ddis4dW[var] = dl234dW*drhow - l234*drhowdW + ddisInter1dW*w + disInter1*dwdW[var] + ddisInter2dW*n3;
-					ddis5dW[var] = dl234dW*dE - l234*dELdW[var] + ddisInter1dW*H  + disInter1*dHdW[var]
-					                                            + ddisInter2dW*Vn + disInter2*dVndW;
-				}
-			} else {
-				// Flux term
-				double const duRdW[NVAR3D]   = {-uR*rhoR_inv,  rhoR_inv,  0.0,       0.0,      0.0},
-				             dvRdW[NVAR3D]   = {-vR*rhoR_inv,  0.0,       rhoR_inv,  0.0,      0.0},
-				             dwRdW[NVAR3D]   = {-wR*rhoR_inv,  0.0,       0.0,       rhoR_inv, 0.0},
-				             drhoRdW[NVAR3D] = { 1.0,          0.0,       0.0,       0.0,      0.0},
-				             dERdW[NVAR3D]   = { 0.0,          0.0,       0.0,       0.0,      1.0},
-				             dpRdW[NVAR3D]   = { GM1*0.5*V2R, -GM1*uR,   -GM1*vR,   -GM1*wR,   GM1};
+				double const duRdW[]   = {-uR*rhoR_inv,  rhoR_inv,  0.0,       0.0,      0.0},
+				             dvRdW[]   = {-vR*rhoR_inv,  0.0,       rhoR_inv,  0.0,      0.0},
+				             dwRdW[]   = {-wR*rhoR_inv,  0.0,       0.0,       rhoR_inv, 0.0},
+				             drhoRdW[] = { 1.0,          0.0,       0.0,       0.0,      0.0},
+				             dERdW[]   = { 0.0,          0.0,       0.0,       0.0,      1.0},
+				             dpRdW[]   = { GM1*0.5*V2R, -GM1*uR,   -GM1*vR,   -GM1*wR,   GM1};
 
 				double const rhoVn = rhoR*VnR;
 				double dVnRdW[Nvar];
@@ -1379,12 +1495,11 @@ static void jacobian_flux_Roe(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 
 				// Dissipation term
 				double const mult = rhoRr_inv/Den;
-				double const drhodW[NVAR3D] = { 0.5*rhoL/rho,             0.0,          0.0,          0.0,         0.0},
-				             dudW[NVAR3D]   = {-0.5*(uR+u)*mult,          mult,         0.0,          0.0,         0.0},
-				             dvdW[NVAR3D]   = {-0.5*(vR+v)*mult,          0.0,          mult,         0.0,         0.0},
-				             dwdW[NVAR3D]   = {-0.5*(wR+w)*mult,          0.0,          0.0,          mult,        0.0},
-				             dHdW[NVAR3D]   = {-0.5*(HR+H-GM1*V2R)*mult, -GM1*uR*mult, -GM1*vR*mult, -GM1*wR*mult,
-				                                GAMMA*mult};
+				double const drhodW[] = { 0.5*rhoL/rho,             0.0,          0.0,          0.0,         0.0},
+				             dudW[]   = {-0.5*(uR+u)*mult,          mult,         0.0,          0.0,         0.0},
+				             dvdW[]   = {-0.5*(vR+v)*mult,          0.0,          mult,         0.0,         0.0},
+				             dwdW[]   = {-0.5*(wR+w)*mult,          0.0,          0.0,          mult,        0.0},
+				             dHdW[]   = {-0.5*(HR+H-GM1*V2R)*mult, -GM1*uR*mult, -GM1*vR*mult, -GM1*wR*mult, GAMMA*mult};
 
 				for (size_t var = 0; var < Nvar; var++) {
 					double const dcdW  = 0.5*GM1/c*(dHdW[var]-(u*dudW[var]+v*dvdW[var]+w*dwdW[var])),
@@ -1423,17 +1538,14 @@ static void jacobian_flux_Roe(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 					ddis5dW[var] = dl234dW*dE + l234*dERdW[var] + ddisInter1dW*H  + disInter1*dHdW[var]
 					                                            + ddisInter2dW*Vn + disInter2*dVndW;
 				}
+
+				size_t InddnFdW = 0;
+				for (size_t var = 0; var < Nvar; var++) *dnFdWR_ptr[InddnFdW++]++ = 0.5*(dnF1dW[var]-ddis1dW[var]);
+				for (size_t var = 0; var < Nvar; var++) *dnFdWR_ptr[InddnFdW++]++ = 0.5*(dnF2dW[var]-ddis2dW[var]);
+				for (size_t var = 0; var < Nvar; var++) *dnFdWR_ptr[InddnFdW++]++ = 0.5*(dnF3dW[var]-ddis3dW[var]);
+				for (size_t var = 0; var < Nvar; var++) *dnFdWR_ptr[InddnFdW++]++ = 0.5*(dnF4dW[var]-ddis4dW[var]);
+				for (size_t var = 0; var < Nvar; var++) *dnFdWR_ptr[InddnFdW++]++ = 0.5*(dnF5dW[var]-ddis5dW[var]);
 			}
-
-			size_t InddnFdW = 0;
-			for (size_t var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*(dnF1dW[var]-ddis1dW[var]);
-			for (size_t var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*(dnF2dW[var]-ddis2dW[var]);
-			for (size_t var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*(dnF3dW[var]-ddis3dW[var]);
-			for (size_t var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*(dnF4dW[var]-ddis4dW[var]);
-			for (size_t var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*(dnF5dW[var]-ddis5dW[var]);
-
-			for (size_t i = 0, iMax = Neq*Nvar; i < iMax; i++)
-				dnFdW_ptr[i]++;
 		}
 	} else if (d == 2) {
 		double const *rhovL_ptr = &WL[NnTotal*2],
@@ -1545,77 +1657,107 @@ static void jacobian_flux_Roe(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 			             disInter1 = lc1*dp/(c*c) + lc2*rho*dVn/c,
 			             disInter2 = lc1*rho*dVn  + lc2*dp/c;
 
+			if (nFluxNum != NULL) {
+				double const rhoVnL = rhoL*VnL,
+				             rhoVnR = rhoR*VnR,
+				             pLR    = pL + pR;
+
+				double const nF1 = rhoVnL      + rhoVnR,
+				             nF2 = rhoVnL*uL   + rhoVnR*uR  + n1*pLR,
+				             nF3 = rhoVnL*vL   + rhoVnR*vR  + n2*pLR,
+				             nF5 = VnL*(EL+pL) + VnR*(ER+pR),
+
+				             dis1 = l234*drho  + disInter1,
+				             dis2 = l234*drhou + disInter1*u + disInter2*n1,
+				             dis3 = l234*drhov + disInter1*v + disInter2*n2,
+				             dis5 = l234*dE    + disInter1*H + disInter2*(Vn);
+
+				// Assemble components
+				size_t IndnF = 0;
+				*nF_ptr[IndnF++]++ = 0.5*(nF1 - dis1);
+				*nF_ptr[IndnF++]++ = 0.5*(nF2 - dis2);
+				*nF_ptr[IndnF++]++ = 0.5*(nF3 - dis3);
+				*nF_ptr[IndnF++]++ = 0.5*(nF5 - dis5);
+			}
+
 			double dnF1dW[Neq],  dnF2dW[Neq],  dnF3dW[Neq],  dnF5dW[Neq],
 			       ddis1dW[Neq], ddis2dW[Neq], ddis3dW[Neq], ddis5dW[Neq];
-			if (side == 'L') {
+
+			// Flux term
+			double const duLdW[]   = {-uL*rhoL_inv,  rhoL_inv,  0.0,      0.0},
+			             dvLdW[]   = {-vL*rhoL_inv,  0.0,       rhoL_inv, 0.0},
+			             drhoLdW[] = { 1.0,          0.0,       0.0,      0.0},
+			             dELdW[]   = { 0.0,          0.0,       0.0,      1.0},
+			             dpLdW[]   = { GM1*0.5*V2L, -GM1*uL,   -GM1*vL,   GM1};
+
+			double const rhoVn = rhoL*VnL;
+			double dVnLdW[Nvar];
+			for (size_t var = 0; var < Nvar; var++) {
+				dVnLdW[var] = n1*duLdW[var]+n2*dvLdW[var];
+				double const drhoVndW = drhoLdW[var]*VnL + rhoL*dVnLdW[var];
+
+				dnF1dW[var] = drhoVndW;
+				dnF2dW[var] = drhoVndW*uL + rhoVn*duLdW[var] + n1*dpLdW[var];
+				dnF3dW[var] = drhoVndW*vL + rhoVn*dvLdW[var] + n2*dpLdW[var];
+				dnF5dW[var] = dVnLdW[var]*(EL+pL) + VnL*(dELdW[var]+dpLdW[var]);
+			}
+
+			// Dissipation term
+			double const mult = rhoLr_inv/Den;
+			double const drhodW[] = { 0.5*rhoR/rho,             0.0,          0.0,         0.0},
+			             dudW[]   = {-0.5*(uL+u)*mult,          mult,         0.0,         0.0},
+			             dvdW[]   = {-0.5*(vL+v)*mult,          0.0,          mult,        0.0},
+			             dHdW[]   = {-0.5*(HL+H-GM1*V2L)*mult, -GM1*uL*mult, -GM1*vL*mult, GAMMA*mult};
+
+			for (size_t var = 0; var < Nvar; var++) {
+				double const dcdW  = 0.5*GM1/c*(dHdW[var]-(u*dudW[var]+v*dvdW[var])),
+				             dVndW = n1*dudW[var]+n2*dvdW[var];
+
+				double dl1dW;
+				if (case_l1)
+					dl1dW = sign_l1*(dVndW-dcdW);
+				else
+					dl1dW = sign_l1*(dVnLdW[var]-dcdW);
+
+				double dl5dW;
+				if (case_l5)
+					dl5dW = sign_l5*(dVndW+dcdW);
+				else
+					dl5dW = sign_l5*(dcdW);
+
+				double const dl234dW = sign_l234*dVndW,
+				             dlc1dW = 0.5*(dl5dW+dl1dW) - dl234dW,
+				             dlc2dW = 0.5*(dl5dW-dl1dW),
+
+				             ddisInter1dW = (dlc1dW*dp-lc1*dpLdW[var])/c2-(2.0*lc1*dp*dcdW)/(c*c2) +
+				                            (dlc2dW*rho*dVn+lc2*drhodW[var]*dVn-lc2*rho*dVnLdW[var])/c -
+				                            (lc2*rho*dVn*dcdW)/c2,
+				             ddisInter2dW = dlc1dW*rho*dVn+lc1*drhodW[var]*dVn-lc1*rho*dVnLdW[var] +
+				                            (dlc2dW*dp-lc2*dpLdW[var])/c-(lc2*dp*dcdW)/c2,
+
+				             drhoudW = drhoLdW[var]*uL+rhoL*duLdW[var],
+				             drhovdW = drhoLdW[var]*vL+rhoL*dvLdW[var];
+
+				ddis1dW[var] = dl234dW*drho - l234*drhoLdW[var] + ddisInter1dW;
+				ddis2dW[var] = dl234dW*drhou - l234*drhoudW + ddisInter1dW*u + disInter1*dudW[var] + ddisInter2dW*n1;
+				ddis3dW[var] = dl234dW*drhov - l234*drhovdW + ddisInter1dW*v + disInter1*dvdW[var] + ddisInter2dW*n2;
+				ddis5dW[var] = dl234dW*dE - l234*dELdW[var] + ddisInter1dW*H  + disInter1*dHdW[var]
+				                                            + ddisInter2dW*Vn + disInter2*dVndW;
+			}
+
+			size_t InddnFdW = 0;
+			for (size_t var = 0; var < Nvar; var++) *dnFdWL_ptr[InddnFdW++]++ = 0.5*(dnF1dW[var]-ddis1dW[var]);
+			for (size_t var = 0; var < Nvar; var++) *dnFdWL_ptr[InddnFdW++]++ = 0.5*(dnF2dW[var]-ddis2dW[var]);
+			for (size_t var = 0; var < Nvar; var++) *dnFdWL_ptr[InddnFdW++]++ = 0.5*(dnF3dW[var]-ddis3dW[var]);
+			for (size_t var = 0; var < Nvar; var++) *dnFdWL_ptr[InddnFdW++]++ = 0.5*(dnF5dW[var]-ddis5dW[var]);
+
+			if (dnFdWR != NULL) {
 				// Flux term
-				double const duLdW[NVAR3D]   = {-uL*rhoL_inv,  rhoL_inv,  0.0,      0.0},
-				             dvLdW[NVAR3D]   = {-vL*rhoL_inv,  0.0,       rhoL_inv, 0.0},
-				             drhoLdW[NVAR3D] = { 1.0,          0.0,       0.0,      0.0},
-				             dELdW[NVAR3D]   = { 0.0,          0.0,       0.0,      1.0},
-				             dpLdW[NVAR3D]   = { GM1*0.5*V2L, -GM1*uL,   -GM1*vL,   GM1};
-
-				double const rhoVn = rhoL*VnL;
-				double dVnLdW[Nvar];
-				for (size_t var = 0; var < Nvar; var++) {
-					dVnLdW[var] = n1*duLdW[var]+n2*dvLdW[var];
-					double const drhoVndW = drhoLdW[var]*VnL + rhoL*dVnLdW[var];
-
-					dnF1dW[var] = drhoVndW;
-					dnF2dW[var] = drhoVndW*uL + rhoVn*duLdW[var] + n1*dpLdW[var];
-					dnF3dW[var] = drhoVndW*vL + rhoVn*dvLdW[var] + n2*dpLdW[var];
-					dnF5dW[var] = dVnLdW[var]*(EL+pL) + VnL*(dELdW[var]+dpLdW[var]);
-				}
-
-				// Dissipation term
-				double const mult = rhoLr_inv/Den;
-				double const drhodW[NVAR3D] = { 0.5*rhoR/rho,             0.0,          0.0,         0.0},
-				             dudW[NVAR3D]   = {-0.5*(uL+u)*mult,          mult,         0.0,         0.0},
-				             dvdW[NVAR3D]   = {-0.5*(vL+v)*mult,          0.0,          mult,        0.0},
-				             dHdW[NVAR3D]   = {-0.5*(HL+H-GM1*V2L)*mult, -GM1*uL*mult, -GM1*vL*mult, GAMMA*mult};
-
-				for (size_t var = 0; var < Nvar; var++) {
-					double const dcdW  = 0.5*GM1/c*(dHdW[var]-(u*dudW[var]+v*dvdW[var])),
-					             dVndW = n1*dudW[var]+n2*dvdW[var];
-
-					double dl1dW;
-					if (case_l1)
-						dl1dW = sign_l1*(dVndW-dcdW);
-					else
-						dl1dW = sign_l1*(dVnLdW[var]-dcdW);
-
-					double dl5dW;
-					if (case_l5)
-						dl5dW = sign_l5*(dVndW+dcdW);
-					else
-						dl5dW = sign_l5*(dcdW);
-
-					double const dl234dW = sign_l234*dVndW,
-					             dlc1dW = 0.5*(dl5dW+dl1dW) - dl234dW,
-					             dlc2dW = 0.5*(dl5dW-dl1dW),
-
-					             ddisInter1dW = (dlc1dW*dp-lc1*dpLdW[var])/c2-(2.0*lc1*dp*dcdW)/(c*c2) +
-					                            (dlc2dW*rho*dVn+lc2*drhodW[var]*dVn-lc2*rho*dVnLdW[var])/c -
-					                            (lc2*rho*dVn*dcdW)/c2,
-					             ddisInter2dW = dlc1dW*rho*dVn+lc1*drhodW[var]*dVn-lc1*rho*dVnLdW[var] +
-					                            (dlc2dW*dp-lc2*dpLdW[var])/c-(lc2*dp*dcdW)/c2,
-
-					             drhoudW = drhoLdW[var]*uL+rhoL*duLdW[var],
-					             drhovdW = drhoLdW[var]*vL+rhoL*dvLdW[var];
-
-					ddis1dW[var] = dl234dW*drho - l234*drhoLdW[var] + ddisInter1dW;
-					ddis2dW[var] = dl234dW*drhou - l234*drhoudW + ddisInter1dW*u + disInter1*dudW[var] + ddisInter2dW*n1;
-					ddis3dW[var] = dl234dW*drhov - l234*drhovdW + ddisInter1dW*v + disInter1*dvdW[var] + ddisInter2dW*n2;
-					ddis5dW[var] = dl234dW*dE - l234*dELdW[var] + ddisInter1dW*H  + disInter1*dHdW[var]
-					                                            + ddisInter2dW*Vn + disInter2*dVndW;
-				}
-			} else {
-				// Flux term
-				double const duRdW[NVAR3D]   = {-uR*rhoR_inv,  rhoR_inv,  0.0,      0.0},
-				             dvRdW[NVAR3D]   = {-vR*rhoR_inv,  0.0,       rhoR_inv, 0.0},
-				             drhoRdW[NVAR3D] = { 1.0,          0.0,       0.0,      0.0},
-				             dERdW[NVAR3D]   = { 0.0,          0.0,       0.0,      1.0},
-				             dpRdW[NVAR3D]   = { GM1*0.5*V2R, -GM1*uR,   -GM1*vR,   GM1};
+				double const duRdW[]   = {-uR*rhoR_inv,  rhoR_inv,  0.0,      0.0},
+				             dvRdW[]   = {-vR*rhoR_inv,  0.0,       rhoR_inv, 0.0},
+				             drhoRdW[] = { 1.0,          0.0,       0.0,      0.0},
+				             dERdW[]   = { 0.0,          0.0,       0.0,      1.0},
+				             dpRdW[]   = { GM1*0.5*V2R, -GM1*uR,   -GM1*vR,   GM1};
 
 				double const rhoVn = rhoR*VnR;
 				double dVnRdW[Nvar];
@@ -1631,10 +1773,10 @@ static void jacobian_flux_Roe(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 
 				// Dissipation term
 				double const mult = rhoRr_inv/Den;
-				double const drhodW[NVAR3D] = { 0.5*rhoL/rho,             0.0,          0.0,         0.0},
-				             dudW[NVAR3D]   = {-0.5*(uR+u)*mult,          mult,         0.0,         0.0},
-				             dvdW[NVAR3D]   = {-0.5*(vR+v)*mult,          0.0,          mult,        0.0},
-				             dHdW[NVAR3D]   = {-0.5*(HR+H-GM1*V2R)*mult, -GM1*uR*mult, -GM1*vR*mult, GAMMA*mult};
+				double const drhodW[] = { 0.5*rhoL/rho,             0.0,          0.0,         0.0},
+				             dudW[]   = {-0.5*(uR+u)*mult,          mult,         0.0,         0.0},
+				             dvdW[]   = {-0.5*(vR+v)*mult,          0.0,          mult,        0.0},
+				             dHdW[]   = {-0.5*(HR+H-GM1*V2R)*mult, -GM1*uR*mult, -GM1*vR*mult, GAMMA*mult};
 
 				for (size_t var = 0; var < Nvar; var++) {
 					double const dcdW  = 0.5*GM1/c*(dHdW[var]-(u*dudW[var]+v*dvdW[var])),
@@ -1671,16 +1813,13 @@ static void jacobian_flux_Roe(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 					ddis5dW[var] = dl234dW*dE + l234*dERdW[var] + ddisInter1dW*H  + disInter1*dHdW[var]
 					                                            + ddisInter2dW*Vn + disInter2*dVndW;
 				}
+
+				size_t InddnFdW = 0;
+				for (size_t var = 0; var < Nvar; var++) *dnFdWR_ptr[InddnFdW++]++ = 0.5*(dnF1dW[var]-ddis1dW[var]);
+				for (size_t var = 0; var < Nvar; var++) *dnFdWR_ptr[InddnFdW++]++ = 0.5*(dnF2dW[var]-ddis2dW[var]);
+				for (size_t var = 0; var < Nvar; var++) *dnFdWR_ptr[InddnFdW++]++ = 0.5*(dnF3dW[var]-ddis3dW[var]);
+				for (size_t var = 0; var < Nvar; var++) *dnFdWR_ptr[InddnFdW++]++ = 0.5*(dnF5dW[var]-ddis5dW[var]);
 			}
-
-			size_t InddnFdW = 0;
-			for (size_t var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*(dnF1dW[var]-ddis1dW[var]);
-			for (size_t var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*(dnF2dW[var]-ddis2dW[var]);
-			for (size_t var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*(dnF3dW[var]-ddis3dW[var]);
-			for (size_t var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*(dnF5dW[var]-ddis5dW[var]);
-
-			for (size_t i = 0, iMax = Neq*Nvar; i < iMax; i++)
-				dnFdW_ptr[i]++;
 		}
 	} else if (d == 1) {
 		for (size_t n = 0; n < NnTotal; n++) {
@@ -1781,71 +1920,97 @@ static void jacobian_flux_Roe(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 			             disInter1 = lc1*dp/(c*c) + lc2*rho*dVn/c,
 			             disInter2 = lc1*rho*dVn  + lc2*dp/c;
 
+			if (nFluxNum != NULL) {
+				double const rhoVnL = rhoL*VnL,
+				             rhoVnR = rhoR*VnR,
+				             pLR    = pL + pR;
+
+				double const nF1 = rhoVnL      + rhoVnR,
+				             nF2 = rhoVnL*uL   + rhoVnR*uR  + n1*pLR,
+				             nF5 = VnL*(EL+pL) + VnR*(ER+pR),
+
+				             dis1 = l234*drho  + disInter1,
+				             dis2 = l234*drhou + disInter1*u + disInter2*n1,
+				             dis5 = l234*dE    + disInter1*H + disInter2*(Vn);
+
+				// Assemble components
+				size_t IndnF = 0;
+				*nF_ptr[IndnF++]++ = 0.5*(nF1 - dis1);
+				*nF_ptr[IndnF++]++ = 0.5*(nF2 - dis2);
+				*nF_ptr[IndnF++]++ = 0.5*(nF5 - dis5);
+			}
+
 			double dnF1dW[Neq],  dnF2dW[Neq],  dnF5dW[Neq],
 			       ddis1dW[Neq], ddis2dW[Neq], ddis5dW[Neq];
-			if (side == 'L') {
+
+			// Flux term
+			double const duLdW[]   = {-uL*rhoL_inv,  rhoL_inv, 0.0},
+			             drhoLdW[] = { 1.0,          0.0,      0.0},
+			             dELdW[]   = { 0.0,          0.0,      1.0},
+			             dpLdW[]   = { GM1*0.5*V2L, -GM1*uL,   GM1};
+
+			double const rhoVn = rhoL*VnL;
+			double dVnLdW[Nvar];
+			for (size_t var = 0; var < Nvar; var++) {
+				dVnLdW[var] = n1*duLdW[var];
+				double const drhoVndW = drhoLdW[var]*VnL + rhoL*dVnLdW[var];
+
+				dnF1dW[var] = drhoVndW;
+				dnF2dW[var] = drhoVndW*uL + rhoVn*duLdW[var] + n1*dpLdW[var];
+				dnF5dW[var] = dVnLdW[var]*(EL+pL) + VnL*(dELdW[var]+dpLdW[var]);
+			}
+
+			// Dissipation term
+			double const mult = rhoLr_inv/Den;
+			double const drhodW[] = { 0.5*rhoR/rho,             0.0,         0.0},
+			             dudW[]   = {-0.5*(uL+u)*mult,          mult,        0.0},
+			             dHdW[]   = {-0.5*(HL+H-GM1*V2L)*mult, -GM1*uL*mult, GAMMA*mult};
+
+			for (size_t var = 0; var < Nvar; var++) {
+				double const dcdW  = 0.5*GM1/c*(dHdW[var]-(u*dudW[var])),
+				             dVndW = n1*dudW[var];
+
+				double dl1dW;
+				if (case_l1)
+					dl1dW = sign_l1*(dVndW-dcdW);
+				else
+					dl1dW = sign_l1*(dVnLdW[var]-dcdW);
+
+				double dl5dW;
+				if (case_l5)
+					dl5dW = sign_l5*(dVndW+dcdW);
+				else
+					dl5dW = sign_l5*(dcdW);
+
+				double const dl234dW = sign_l234*dVndW,
+				             dlc1dW = 0.5*(dl5dW+dl1dW) - dl234dW,
+				             dlc2dW = 0.5*(dl5dW-dl1dW),
+
+				             ddisInter1dW = (dlc1dW*dp-lc1*dpLdW[var])/c2-(2.0*lc1*dp*dcdW)/(c*c2) +
+				                            (dlc2dW*rho*dVn+lc2*drhodW[var]*dVn-lc2*rho*dVnLdW[var])/c -
+				                            (lc2*rho*dVn*dcdW)/c2,
+				             ddisInter2dW = dlc1dW*rho*dVn+lc1*drhodW[var]*dVn-lc1*rho*dVnLdW[var] +
+				                            (dlc2dW*dp-lc2*dpLdW[var])/c-(lc2*dp*dcdW)/c2,
+
+				             drhoudW = drhoLdW[var]*uL+rhoL*duLdW[var];
+
+				ddis1dW[var] = dl234dW*drho - l234*drhoLdW[var] + ddisInter1dW;
+				ddis2dW[var] = dl234dW*drhou - l234*drhoudW + ddisInter1dW*u + disInter1*dudW[var] + ddisInter2dW*n1;
+				ddis5dW[var] = dl234dW*dE - l234*dELdW[var] + ddisInter1dW*H  + disInter1*dHdW[var]
+				                                            + ddisInter2dW*Vn + disInter2*dVndW;
+			}
+
+			size_t InddnFdW = 0;
+			for (size_t var = 0; var < Nvar; var++) *dnFdWL_ptr[InddnFdW++]++ = 0.5*(dnF1dW[var]-ddis1dW[var]);
+			for (size_t var = 0; var < Nvar; var++) *dnFdWL_ptr[InddnFdW++]++ = 0.5*(dnF2dW[var]-ddis2dW[var]);
+			for (size_t var = 0; var < Nvar; var++) *dnFdWL_ptr[InddnFdW++]++ = 0.5*(dnF5dW[var]-ddis5dW[var]);
+
+			if (dnFdWR != NULL) {
 				// Flux term
-				double const duLdW[NVAR3D]   = {-uL*rhoL_inv,  rhoL_inv, 0.0},
-				             drhoLdW[NVAR3D] = { 1.0,          0.0,      0.0},
-				             dELdW[NVAR3D]   = { 0.0,          0.0,      1.0},
-				             dpLdW[NVAR3D]   = { GM1*0.5*V2L, -GM1*uL,   GM1};
-
-				double const rhoVn = rhoL*VnL;
-				double dVnLdW[Nvar];
-				for (size_t var = 0; var < Nvar; var++) {
-					dVnLdW[var] = n1*duLdW[var];
-					double const drhoVndW = drhoLdW[var]*VnL + rhoL*dVnLdW[var];
-
-					dnF1dW[var] = drhoVndW;
-					dnF2dW[var] = drhoVndW*uL + rhoVn*duLdW[var] + n1*dpLdW[var];
-					dnF5dW[var] = dVnLdW[var]*(EL+pL) + VnL*(dELdW[var]+dpLdW[var]);
-				}
-
-				// Dissipation term
-				double const mult = rhoLr_inv/Den;
-				double const drhodW[NVAR3D] = { 0.5*rhoR/rho,             0.0,         0.0},
-				             dudW[NVAR3D]   = {-0.5*(uL+u)*mult,          mult,        0.0},
-				             dHdW[NVAR3D]   = {-0.5*(HL+H-GM1*V2L)*mult, -GM1*uL*mult, GAMMA*mult};
-
-				for (size_t var = 0; var < Nvar; var++) {
-					double const dcdW  = 0.5*GM1/c*(dHdW[var]-(u*dudW[var])),
-					             dVndW = n1*dudW[var];
-
-					double dl1dW;
-					if (case_l1)
-						dl1dW = sign_l1*(dVndW-dcdW);
-					else
-						dl1dW = sign_l1*(dVnLdW[var]-dcdW);
-
-					double dl5dW;
-					if (case_l5)
-						dl5dW = sign_l5*(dVndW+dcdW);
-					else
-						dl5dW = sign_l5*(dcdW);
-
-					double const dl234dW = sign_l234*dVndW,
-					             dlc1dW = 0.5*(dl5dW+dl1dW) - dl234dW,
-					             dlc2dW = 0.5*(dl5dW-dl1dW),
-
-					             ddisInter1dW = (dlc1dW*dp-lc1*dpLdW[var])/c2-(2.0*lc1*dp*dcdW)/(c*c2) +
-					                            (dlc2dW*rho*dVn+lc2*drhodW[var]*dVn-lc2*rho*dVnLdW[var])/c -
-					                            (lc2*rho*dVn*dcdW)/c2,
-					             ddisInter2dW = dlc1dW*rho*dVn+lc1*drhodW[var]*dVn-lc1*rho*dVnLdW[var] +
-					                            (dlc2dW*dp-lc2*dpLdW[var])/c-(lc2*dp*dcdW)/c2,
-
-					             drhoudW = drhoLdW[var]*uL+rhoL*duLdW[var];
-
-					ddis1dW[var] = dl234dW*drho - l234*drhoLdW[var] + ddisInter1dW;
-					ddis2dW[var] = dl234dW*drhou - l234*drhoudW + ddisInter1dW*u + disInter1*dudW[var] + ddisInter2dW*n1;
-					ddis5dW[var] = dl234dW*dE - l234*dELdW[var] + ddisInter1dW*H  + disInter1*dHdW[var]
-					                                            + ddisInter2dW*Vn + disInter2*dVndW;
-				}
-			} else {
-				// Flux term
-				double const duRdW[NVAR3D]   = {-uR*rhoR_inv,  rhoR_inv, 0.0},
-				             drhoRdW[NVAR3D] = { 1.0,          0.0,      0.0},
-				             dERdW[NVAR3D]   = { 0.0,          0.0,      1.0},
-				             dpRdW[NVAR3D]   = { GM1*0.5*V2R, -GM1*uR,   GM1};
+				double const duRdW[]   = {-uR*rhoR_inv,  rhoR_inv, 0.0},
+				             drhoRdW[] = { 1.0,          0.0,      0.0},
+				             dERdW[]   = { 0.0,          0.0,      1.0},
+				             dpRdW[]   = { GM1*0.5*V2R, -GM1*uR,   GM1};
 
 				double const rhoVn = rhoR*VnR;
 				double dVnRdW[Nvar];
@@ -1860,9 +2025,9 @@ static void jacobian_flux_Roe(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 
 				// Dissipation term
 				double const mult = rhoRr_inv/Den;
-				double const drhodW[NVAR3D] = { 0.5*rhoL/rho,             0.0,         0.0},
-				             dudW[NVAR3D]   = {-0.5*(uR+u)*mult,          mult,        0.0},
-				             dHdW[NVAR3D]   = {-0.5*(HR+H-GM1*V2R)*mult, -GM1*uR*mult, GAMMA*mult};
+				double const drhodW[] = { 0.5*rhoL/rho,             0.0,         0.0},
+				             dudW[]   = {-0.5*(uR+u)*mult,          mult,        0.0},
+				             dHdW[]   = {-0.5*(HR+H-GM1*V2R)*mult, -GM1*uR*mult, GAMMA*mult};
 
 				for (size_t var = 0; var < Nvar; var++) {
 					double const dcdW  = 0.5*GM1/c*(dHdW[var]-(u*dudW[var])),
@@ -1897,15 +2062,12 @@ static void jacobian_flux_Roe(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 					ddis5dW[var] = dl234dW*dE + l234*dERdW[var] + ddisInter1dW*H  + disInter1*dHdW[var]
 					                                            + ddisInter2dW*Vn + disInter2*dVndW;
 				}
+
+				size_t InddnFdW = 0;
+				for (size_t var = 0; var < Nvar; var++) *dnFdWR_ptr[InddnFdW++]++ = 0.5*(dnF1dW[var]-ddis1dW[var]);
+				for (size_t var = 0; var < Nvar; var++) *dnFdWR_ptr[InddnFdW++]++ = 0.5*(dnF2dW[var]-ddis2dW[var]);
+				for (size_t var = 0; var < Nvar; var++) *dnFdWR_ptr[InddnFdW++]++ = 0.5*(dnF5dW[var]-ddis5dW[var]);
 			}
-
-			size_t InddnFdW = 0;
-			for (size_t var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*(dnF1dW[var]-ddis1dW[var]);
-			for (size_t var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*(dnF2dW[var]-ddis2dW[var]);
-			for (size_t var = 0; var < Nvar; var++) *dnFdW_ptr[InddnFdW++] = 0.5*(dnF5dW[var]-ddis5dW[var]);
-
-			for (size_t i = 0, iMax = Neq*Nvar; i < iMax; i++)
-				dnFdW_ptr[i]++;
 		}
 	}
 

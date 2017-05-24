@@ -56,7 +56,7 @@ void manage_solver_memory_c(struct S_DATA *const DATA, char const mem_op, char c
 	struct S_FDATA         *const FDATAL    = DATA->FDATAL,
 	                       *const FDATAR    = DATA->FDATAR;
 	struct S_FLUX          *const FLUXDATA  = DATA->FLUXDATA;
-	struct S_NumericalFlux *const NFluxData = DATA->NFluxData;
+	struct S_NUMERICALFLUX *const NFLUXDATA = DATA->NFLUXDATA;
 
 
 	struct S_OPERATORS_F const *const *const OPSF = FDATAL->OPS;
@@ -94,15 +94,15 @@ void manage_solver_memory_c(struct S_DATA *const DATA, char const mem_op, char c
 					FDATAR->Qp_fIL_c[dim] = malloc(NfnI*Nvar * sizeof *(FDATAR->Qp_fIL_c[dim])); // keep
 				}
 			} else if (mem_type == 'S') {
-				NFluxData->nSolNum_fI_c = malloc(d * sizeof *(NFluxData->nSolNum_fI_c)); // keep
+				NFLUXDATA->nSolNum_c = malloc(d * sizeof *(NFLUXDATA->nSolNum_c)); // keep
 				for (size_t dim = 0; dim < d; dim++)
-					NFluxData->nSolNum_fI_c[dim] = malloc(NfnI*Neq * sizeof *(NFluxData->nSolNum_fI_c[dim])); // keep
+					NFLUXDATA->nSolNum_c[dim] = malloc(NfnI*Neq * sizeof *(NFLUXDATA->nSolNum_c[dim])); // keep
 			} else if (mem_type == 'I') {
-				NFluxData->nFluxNum_fI_c = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxNum_fI_c)); // keep
+				NFLUXDATA->nFluxNum_c = malloc(NfnI*Neq * sizeof *(NFLUXDATA->nFluxNum_c)); // keep
 			} else if (mem_type == 'V') {
-				NFluxData->nFluxViscNum_fI_c = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxViscNum_fI_c)); // keep
+				NFLUXDATA->nFluxNum_c = malloc(NfnI*Neq * sizeof *(NFLUXDATA->nFluxNum_c)); // keep
 			} else if (mem_type == 'P') {
-				NFluxData->nFluxViscNum_fI_c = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxViscNum_fI_c)); // keep
+				NFLUXDATA->nFluxNum_c = malloc(NfnI*Neq * sizeof *(NFLUXDATA->nFluxNum_c)); // keep
 			} else {
 				EXIT_UNSUPPORTED;
 			}
@@ -129,13 +129,13 @@ void manage_solver_memory_c(struct S_DATA *const DATA, char const mem_op, char c
 				array_free2_cmplx(d,FDATAL->Qp_fIL_c);
 				array_free2_cmplx(d,FDATAR->Qp_fIL_c);
 			} else if (mem_type == 'S') {
-				array_free2_cmplx(d,NFluxData->nSolNum_fI_c);
+				array_free2_cmplx(d,NFLUXDATA->nSolNum_c);
 			} else if (mem_type == 'I') {
-				free(NFluxData->nFluxNum_fI_c);
+				free(NFLUXDATA->nFluxNum_c);
 			} else if (mem_type == 'V') {
-				free(NFluxData->nFluxViscNum_fI_c);
+				free(NFLUXDATA->nFluxNum_c);
 			} else if (mem_type == 'P') {
-				free(NFluxData->nFluxViscNum_fI_c);
+				free(NFLUXDATA->nFluxNum_c);
 			}
 		} else {
 			EXIT_UNSUPPORTED;
@@ -434,9 +434,9 @@ void compute_numerical_flux_c(struct S_FDATA const *const FDATA, char const imex
 
 	double const *const n_fIL = FACE->n_fI;
 
-	double complex const *const WL_fIL       = FDATA->NFluxData->WL_fIL_c,
-	                     *const WR_fIL       = FDATA->NFluxData->WR_fIL_c;
-	double complex       *const nFluxNum_fIL = FDATA->NFluxData->nFluxNum_fI_c;
+	double complex const *const WL_fIL       = FDATA->NFLUXDATA->WL_c,
+	                     *const WR_fIL       = FDATA->NFLUXDATA->WR_c;
+	double complex       *const nFluxNum_fIL = FDATA->NFLUXDATA->nFluxNum_c;
 
 	struct S_NUMERICALFLUX *const NUMFLUXDATA = malloc(sizeof *NUMFLUXDATA); // free
 	NUMFLUXDATA->NumFluxInviscid_index = DB.InviscidFluxType;
@@ -480,10 +480,10 @@ void compute_numerical_solution_c(struct S_FDATA const *const FDATA, char const 
 
 	double const *const n_fIL = FACE->n_fI;
 
-	double complex const *const WL_fIL = FDATA->NFluxData->WL_fIL_c,
-	                     *const WR_fIL = FDATA->NFluxData->WR_fIL_c;
+	double complex const *const WL_fIL = FDATA->NFLUXDATA->WL_c,
+	                     *const WR_fIL = FDATA->NFLUXDATA->WR_c;
 
-	double complex       *const *const nSolNum_fIL = FDATA->NFluxData->nSolNum_fI_c;
+	double complex       *const *const nSolNum_fIL = FDATA->NFLUXDATA->nSolNum_c;
 
 	for (size_t dim = 0; dim < d; dim++) {
 	for (size_t var = 0; var < Nvar; var++) {
@@ -508,10 +508,10 @@ static void correct_numerical_solution_strong_c(struct S_FDATA const *const FDAT
 	double const *const n_fIL     = FACE->n_fI,
 	             *const detJF_fIL = FACE->detJF_fI;
 
-	double complex const *const WL_fIL = FDATA->NFluxData->WL_fIL_c,
-	                     *const WR_fIL = FDATA->NFluxData->WR_fIL_c;
+	double complex const *const WL_fIL = FDATA->NFLUXDATA->WL_c,
+	                     *const WR_fIL = FDATA->NFLUXDATA->WR_c;
 
-	double complex       *const *const nSolNum_fIL = FDATA->NFluxData->nSolNum_fI_c;
+	double complex       *const *const nSolNum_fIL = FDATA->NFLUXDATA->nSolNum_c;
 
 	if (side == 'L') {
 		for (size_t dim = 0; dim < d; dim++) {
@@ -564,12 +564,12 @@ void compute_numerical_flux_viscous_c(struct S_FDATA const *const FDATAL, struct
 	                   NfnI     = OPSL[IndFType]->NfnI;
 
 	double const *const n_fIL                  = FACE->n_fI;
-	double complex const *const WL_fIL         = FDATAL->NFluxData->WL_fIL_c,
-	                     *const WR_fIL         = FDATAL->NFluxData->WR_fIL_c,
+	double complex const *const WL_fIL         = FDATAL->NFLUXDATA->WL_c,
+	                     *const WR_fIL         = FDATAL->NFLUXDATA->WR_c,
 	                     *const *const QpL_fIL = (double complex const *const *const) FDATAL->Qp_fIL_c,
 	                     *const *const QpR_fIL = (double complex const *const *const) FDATAR->Qp_fIL_c;
 
-	double complex *const nFluxViscNum_fIL = FDATAL->NFluxData->nFluxViscNum_fI_c;
+	double complex *const nFluxViscNum_fIL = FDATAL->NFLUXDATA->nFluxNum_c;
 
 	double complex *const FluxViscNum_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscNum_fIL); // free
 
@@ -667,12 +667,7 @@ void add_Jacobian_scaling_FACE_c(struct S_FDATA const *const FDATA, char const i
 	double const *const detJF_fIL = FACE->detJF_fI;
 
 	if (coef_type == 'W' || coef_type == 'V') {
-		double complex *nFluxNum_fIL;
-		if (coef_type == 'W') {
-			nFluxNum_fIL = (double complex *const) FDATA->NFluxData->nFluxNum_fI_c;
-		} else if (coef_type == 'V') {
-			nFluxNum_fIL = (double complex *const) FDATA->NFluxData->nFluxViscNum_fI_c;
-		}
+		double complex *const nFluxNum_fIL = FDATA->NFLUXDATA->nFluxNum_c;
 
 		for (size_t eq = 0; eq < Neq; eq++) {
 			size_t const IndnF = eq*NfnI;
@@ -680,7 +675,7 @@ void add_Jacobian_scaling_FACE_c(struct S_FDATA const *const FDATA, char const i
 				nFluxNum_fIL[IndnF+n] *= detJF_fIL[n];
 		}
 	} else if (coef_type == 'Q') {
-		double complex *const *const nSolNum_fIL = FDATA->NFluxData->nSolNum_fI_c;
+		double complex *const *const nSolNum_fIL = FDATA->NFLUXDATA->nSolNum_c;
 
 		for (size_t dim = 0; dim < d; dim++) {
 			for (size_t eq = 0; eq < Neq; eq++) {
@@ -710,19 +705,14 @@ static void swap_FACE_orientation_c(struct S_FDATA const *const FDATA, char cons
 
 
 	if (coef_type == 'W' || coef_type == 'V') {
-		double complex *nFluxNum_fI;
-		if (coef_type == 'W') {
-			nFluxNum_fI = (double complex *const) FDATA->NFluxData->nFluxNum_fI_c;
-		} else if (coef_type == 'V') {
-			nFluxNum_fI = (double complex *const) FDATA->NFluxData->nFluxViscNum_fI_c;
-		}
+		double complex *const nFluxNum_fI = FDATA->NFLUXDATA->nFluxNum_c;
 
 		for (size_t i = 0, iMax = Neq*NfnI; i < iMax; i++)
 			nFluxNum_fI[i] *= -1.0;
 
 		array_rearrange_cmplx(NfnI,Neq,nOrdLR,'C',nFluxNum_fI);
 	} else if (coef_type == 'Q') {
-		double complex *const *const nSolNum_fI = FDATA->NFluxData->nSolNum_fI_c;
+		double complex *const *const nSolNum_fI = FDATA->NFLUXDATA->nSolNum_c;
 
 		for (size_t dim = 0; dim < d; dim++) {
 			for (size_t i = 0, iMax = Neq*NfnI; i < iMax; i++)
@@ -801,7 +791,7 @@ void finalize_QhatF_Weak_c(struct S_FDATA const *const FDATAL, struct S_FDATA co
 	                   NfnI     = OPS[IndFType]->NfnI,
 	                   NvnS     = OPS[0]->NvnS;
 
-	double complex const *const *const nSolNum_fI = (double complex const *const *const) FDATA->NFluxData->nSolNum_fI_c;
+	double complex const *const *const nSolNum_fI = (double complex const *const *const) FDATA->NFLUXDATA->nSolNum_c;
 
 	double complex *const InSNum = malloc(NvnS*Nvar * sizeof *InSNum); // free
 	for (size_t dim = 0; dim < d; dim++) {

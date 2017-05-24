@@ -447,15 +447,13 @@ void update_VOLUME_hp(void)
 				 LevelsMax = DB.LevelsMax,
 	             Nvar      = DB.Nvar;
 
-	char         *MeshType = DB.MeshType,
-	             *TestCase = DB.TestCase;
+	char         *MeshType = DB.MeshType;
 
 	// Standard datatypes
 	unsigned int i, j, ve, dim, iMax, P, PNew, f, level, adapt_type, vh, vhMin, vhMax, VType, Nf, Nve, NveP2,
 	             IndEhref, NvnGs[2], NvnGc[2], NvnS[2], NvnSP, NCols, update, maxP, *VeInfo, cVeCount, **VeMask;
 	double       *I_vGs_vGc[2], *XYZ_vV, *XYZ_vVP2, *XYZ_S,
-	             **Ihat_vS_vS, **I_vGs_vGs, **L2hat_vS_vS, *What, *RES, *WhatP, *WhatH, *RESP, *RESH, *dummyPtr_d,
-	             *uhat, *uhatP, *uhatH;
+	             **Ihat_vS_vS, **I_vGs_vGs, **L2hat_vS_vS, *What, *RES, *WhatP, *WhatH, *RESP, *RESH, *dummyPtr_d;
 
 	struct S_OPERATORS *OPS, *OPSp;
 	struct S_ELEMENT   *ELEMENT;
@@ -568,59 +566,41 @@ void update_VOLUME_hp(void)
 
 			VOLUME->NvnS = NvnSP;
 
-			if (strstr(TestCase,"Poisson")) {
-				uhat = VOLUME->What;
-
-				uhatP = malloc(NvnSP*Nvar * sizeof *uhatP); // keep
-
-				if (adapt_type == PREFINE) {
-					Ihat_vS_vS = OPS->Ihat_vS_vS;
-					mm_CTN_d(NvnSP,Nvar,NvnS[0],Ihat_vS_vS[0],uhat,uhatP);
-				} else {
-					L2hat_vS_vS = OPS->L2hat_vS_vS;
-					mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],uhat,uhatP);
-				}
-				free(uhat);
-				VOLUME->What = uhatP;
-			} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
-				WhatP = malloc(NvnSP*Nvar * sizeof *WhatP); // keep
-				if (adapt_type == PREFINE) {
-					Ihat_vS_vS = OPS->Ihat_vS_vS;
-					mm_CTN_d(NvnSP,Nvar,NvnS[0],Ihat_vS_vS[0],VOLUME->What,WhatP);
-				} else {
-					L2hat_vS_vS = OPS->L2hat_vS_vS;
-					mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],VOLUME->What,WhatP);
-				}
-				free(VOLUME->What);
-				VOLUME->What = WhatP;
-
-				if (strstr(DB.SolverType,"Explicit")) {
-					switch (DB.ExplicitSolverType) {
-					case EULER:
-						free(VOLUME->RES);
-						VOLUME->RES = NULL;
-						break;
-					case RK3_SSP:
-						free(VOLUME->RES);
-						VOLUME->RES = malloc(NvnSP*Nvar * sizeof *(VOLUME->RES)); // keep
-						break;
-					case RK4_LS:
-						RESP = malloc(NvnSP*Nvar * sizeof *RESP); // keep
-						if (adapt_type == PREFINE)
-							mm_CTN_d(NvnSP,Nvar,NvnS[0],OPS->Ihat_vS_vS[0],VOLUME->RES,RESP);
-						else
-							mm_CTN_d(NvnSP,Nvar,NvnS[0],OPS->L2hat_vS_vS[0],VOLUME->RES,RESP);
-
-						free(VOLUME->RES);
-						VOLUME->RES = RESP;
-						break;
-					default:
-						EXIT_UNSUPPORTED;
-						break;
-					}
-				}
+			WhatP = malloc(NvnSP*Nvar * sizeof *WhatP); // keep
+			if (adapt_type == PREFINE) {
+				Ihat_vS_vS = OPS->Ihat_vS_vS;
+				mm_CTN_d(NvnSP,Nvar,NvnS[0],Ihat_vS_vS[0],VOLUME->What,WhatP);
 			} else {
-				EXIT_UNSUPPORTED;
+				L2hat_vS_vS = OPS->L2hat_vS_vS;
+				mm_CTN_d(NvnSP,Nvar,NvnS[0],L2hat_vS_vS[0],VOLUME->What,WhatP);
+			}
+			free(VOLUME->What);
+			VOLUME->What = WhatP;
+
+			if (strstr(DB.SolverType,"Explicit")) {
+				switch (DB.ExplicitSolverType) {
+				case EULER:
+					free(VOLUME->RES);
+					VOLUME->RES = NULL;
+					break;
+				case RK3_SSP:
+					free(VOLUME->RES);
+					VOLUME->RES = malloc(NvnSP*Nvar * sizeof *(VOLUME->RES)); // keep
+					break;
+				case RK4_LS:
+					RESP = malloc(NvnSP*Nvar * sizeof *RESP); // keep
+					if (adapt_type == PREFINE)
+						mm_CTN_d(NvnSP,Nvar,NvnS[0],OPS->Ihat_vS_vS[0],VOLUME->RES,RESP);
+					else
+						mm_CTN_d(NvnSP,Nvar,NvnS[0],OPS->L2hat_vS_vS[0],VOLUME->RES,RESP);
+
+					free(VOLUME->RES);
+					VOLUME->RES = RESP;
+					break;
+				default:
+					EXIT_UNSUPPORTED;
+					break;
+				}
 			}
 
 			// Update memory required by the non-vectorized solver
@@ -628,7 +608,6 @@ void update_VOLUME_hp(void)
 			break;
 		case HREFINE:
 			VType = VOLUME->type;
-			uhat  = VOLUME->What;
 			What  = VOLUME->What;
 			RES   = VOLUME->RES;
 
@@ -781,41 +760,31 @@ void update_VOLUME_hp(void)
 				// Project solution coefficients (and RES if applicable)
 				Ihat_vS_vS = OPS->Ihat_vS_vS;
 				VOLUMEc->NvnS = NvnS[IndEhref];
-				if (strstr(TestCase,"Poisson")) {
-					uhatH = malloc(NvnS[IndEhref]*Nvar * sizeof *uhatH); // keep
 
-					mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],uhat,uhatH);
+				WhatH = malloc(NvnS[IndEhref]*Nvar * sizeof *WhatH); // keep
+				mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],VOLUME->What,WhatH);
+				VOLUMEc->What = WhatH;
 
-					VOLUMEc->What = uhatH;
-				} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
-					WhatH = malloc(NvnS[IndEhref]*Nvar * sizeof *WhatH); // keep
-					mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],VOLUME->What,WhatH);
-					VOLUMEc->What = WhatH;
-
-
-					if (strstr(DB.SolverType,"Explicit")) {
-						switch (DB.ExplicitSolverType) {
-						case EULER:
-							free(VOLUME->RES);
-							VOLUME->RES = NULL;
-							break;
-						case RK3_SSP:
-							free(VOLUMEc->RES);
-							VOLUMEc->RES = malloc(NvnS[IndEhref]*Nvar * sizeof *(VOLUMEc->RES));  // keep
-							break;
-						case RK4_LS:
-							RESH  = malloc(NvnS[IndEhref]*Nvar * sizeof *RESH);  // keep
-							mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],VOLUME->RES,RESH);
-							free(VOLUMEc->RES);
-							VOLUMEc->RES = RESH;
-							break;
-						default:
-							EXIT_UNSUPPORTED;
-							break;
-						}
+				if (strstr(DB.SolverType,"Explicit")) {
+					switch (DB.ExplicitSolverType) {
+					case EULER:
+						free(VOLUME->RES);
+						VOLUME->RES = NULL;
+						break;
+					case RK3_SSP:
+						free(VOLUMEc->RES);
+						VOLUMEc->RES = malloc(NvnS[IndEhref]*Nvar * sizeof *(VOLUMEc->RES));  // keep
+						break;
+					case RK4_LS:
+						RESH  = malloc(NvnS[IndEhref]*Nvar * sizeof *RESH);  // keep
+						mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],VOLUME->RES,RESH);
+						free(VOLUMEc->RES);
+						VOLUMEc->RES = RESH;
+						break;
+					default:
+						EXIT_UNSUPPORTED;
+						break;
 					}
-				} else {
-					EXIT_UNSUPPORTED;
 				}
 
 				update_memory_VOLUME(VOLUMEc);
@@ -894,15 +863,11 @@ void update_VOLUME_hp(void)
 
 					dummyPtr_d = malloc(NvnS[0]*Nvar * sizeof *dummyPtr_d); // free
 
-					What = RES = NULL;
-					if (strstr(TestCase,"Poisson")) {
-						What = calloc(NvnS[0]*Nvar , sizeof *What); // keep
-					} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
-						What = calloc(NvnS[0]*Nvar , sizeof *What); // keep
-						RES  = calloc(NvnS[0]*Nvar , sizeof *RES);  // keep
-					} else {
-						EXIT_UNSUPPORTED;
-					}
+					What = calloc(NvnS[0]*Nvar , sizeof *What); // keep
+
+					RES = NULL;
+					if (strstr(DB.SolverType,"Explicit"))
+						RES = calloc(NvnS[0]*Nvar , sizeof *RES); // keep
 
 					VOLUMEc = VOLUME;
 					for (vh = vhMin; vh <= vhMax; vh++) {
@@ -910,46 +875,32 @@ void update_VOLUME_hp(void)
 						if (vh > vhMin)
 							VOLUMEc = VOLUMEc->next;
 
-						if (strstr(TestCase,"Poisson")) {
-							WhatH = VOLUMEc->What;
-							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],WhatH,dummyPtr_d);
-							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
-								What[i] += dummyPtr_d[i];
-						} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
-							WhatH = VOLUMEc->What;
-							mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],WhatH,dummyPtr_d);
-							for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
-								What[i] += dummyPtr_d[i];
+						WhatH = VOLUMEc->What;
+						mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],WhatH,dummyPtr_d);
+						for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
+							What[i] += dummyPtr_d[i];
 
-							if (strstr(DB.SolverType,"Explicit")) {
-								switch (DB.ExplicitSolverType) {
-								case EULER:
-									free(RES); RES = NULL;
-									break;
-								case RK3_SSP:
-									; // Do nothing
-									break;
-								case RK4_LS:
-									mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],VOLUMEc->RES,dummyPtr_d);
-									for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
-										RES[i] += dummyPtr_d[i];
-									break;
-								}
+						if (strstr(DB.SolverType,"Explicit")) {
+							switch (DB.ExplicitSolverType) {
+							case EULER:
+								free(RES); RES = NULL;
+								break;
+							case RK3_SSP:
+								; // Do nothing
+								break;
+							case RK4_LS:
+								mm_CTN_d(NvnS[0],Nvar,NvnS[IndEhref],L2hat_vS_vS[vh],VOLUMEc->RES,dummyPtr_d);
+								for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
+									RES[i] += dummyPtr_d[i];
+								break;
 							}
-						} else {
-							EXIT_UNSUPPORTED;
 						}
 					}
 					free(dummyPtr_d);
 
 					VOLUMEp->What = What;
-					if (strstr(TestCase,"Poisson")) {
-						; // Do nothing
-					} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
+					if (strstr(DB.SolverType,"Explicit"))
 						VOLUMEp->RES = RES;
-					} else {
-						EXIT_UNSUPPORTED;
-					}
 					update_memory_VOLUME(VOLUMEp);
 				} else {
 					// Ensure that all children are marked as not to be coarsened.

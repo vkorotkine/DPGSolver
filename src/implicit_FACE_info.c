@@ -48,9 +48,9 @@ static void compute_Inviscid_FACE_EFE(void)
 	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
 	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
-	struct S_NumericalFlux *NFluxData = malloc(sizeof *NFluxData); // free
-	FDATAL->NFluxData = NFluxData;
-	FDATAR->NFluxData = NFluxData;
+	struct S_NUMERICALFLUX *NFLUXDATA = malloc(sizeof *NFLUXDATA); // free
+	FDATAL->NFLUXDATA = NFLUXDATA;
+	FDATAR->NFLUXDATA = NFLUXDATA;
 
 	for (size_t i = 0; i < 2; i++) {
 		OPSL[i] = malloc(sizeof *OPSL[i]); // free
@@ -60,7 +60,7 @@ static void compute_Inviscid_FACE_EFE(void)
 	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
 	DATA->FDATAL    = FDATAL;
 	DATA->FDATAR    = FDATAR;
-	DATA->NFluxData = NFluxData;
+	DATA->NFLUXDATA = NFLUXDATA;
 	DATA->feature   = 'F';
 	DATA->imex_type = 'I';
 
@@ -77,8 +77,8 @@ static void compute_Inviscid_FACE_EFE(void)
 
 
 			// Compute numerical flux and its Jacobian as seen from the left VOLUME
-			NFluxData->WL_fIL = FDATAL->W_fIL;
-			NFluxData->WR_fIL = FDATAR->W_fIL;
+			NFLUXDATA->WL = FDATAL->W_fIL;
+			NFLUXDATA->WR = FDATAR->W_fIL;
 			manage_solver_memory(DATA,'A','I'); // free
 
 			compute_numerical_flux(FDATAL,'I');
@@ -94,8 +94,8 @@ static void compute_Inviscid_FACE_EFE(void)
 			memset(FACE->RHSL, 0.0,NvnSL*Neq            * sizeof *(FACE->RHSL));
 			memset(FACE->LHSLL,0.0,NvnSL*NvnSL*Neq*Nvar * sizeof *(FACE->LHSLL));
 
-			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,NULL,'L','E','W');
-			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->dnFluxNumdWL_fI,NFluxData->dnFluxNumdWR_fI,'L','I','W');
+			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'L','E','W');
+			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'L','I','W');
 
 			if (!FACE->Boundary) {
 				memset(FACE->RHSR, 0.0,NvnSR*Neq            * sizeof *(FACE->RHSR));
@@ -103,8 +103,8 @@ static void compute_Inviscid_FACE_EFE(void)
 				memset(FACE->LHSLR,0.0,NvnSR*NvnSL*Neq*Nvar * sizeof *(FACE->LHSLR));
 				memset(FACE->LHSRR,0.0,NvnSR*NvnSR*Neq*Nvar * sizeof *(FACE->LHSRR));
 
-				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->nFluxNum_fI,NULL,'R','E','W');
-				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFluxData->dnFluxNumdWL_fI,NFluxData->dnFluxNumdWR_fI,'R','I','W');
+				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'R','E','W');
+				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'R','I','W');
 			}
 			manage_solver_memory(DATA,'F','I');
 		}
@@ -119,7 +119,7 @@ static void compute_Inviscid_FACE_EFE(void)
 
 	free(FDATAL);
 	free(FDATAR);
-	free(NFluxData);
+	free(NFLUXDATA);
 	free(DATA);
 }
 
@@ -135,14 +135,14 @@ static void compute_Viscous_FACE_EFE(void)
 	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
 	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
-	struct S_NumericalFlux *NFluxData = malloc(sizeof *NFluxData); // free
-	FDATAL->NFluxData = NFluxData;
-	FDATAR->NFluxData = NFluxData;
+	struct S_NUMERICALFLUX *NFLUXDATA = malloc(sizeof *NFLUXDATA); // free
+	FDATAL->NFLUXDATA = NFLUXDATA;
+	FDATAR->NFLUXDATA = NFLUXDATA;
 
 	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
 	DATA->FDATAL    = FDATAL;
 	DATA->FDATAR    = FDATAR;
-	DATA->NFluxData = NFluxData;
+	DATA->NFLUXDATA = NFLUXDATA;
 	DATA->feature   = 'F';
 	DATA->imex_type = 'I';
 
@@ -170,8 +170,8 @@ static void compute_Viscous_FACE_EFE(void)
 
 
 			// Compute numerical flux and its Jacobian as seen from the left VOLUME
-			NFluxData->WL_fIL = FDATAL->W_fIL;
-			NFluxData->WR_fIL = FDATAR->W_fIL;
+			NFLUXDATA->WL = FDATAL->W_fIL;
+			NFLUXDATA->WR = FDATAR->W_fIL;
 			manage_solver_memory(DATA,'A','V'); // free
 
 			compute_numerical_flux_viscous(FDATAL,FDATAR,'I');
@@ -183,13 +183,13 @@ static void compute_Viscous_FACE_EFE(void)
 
 
 			// Compute FACE RHS and LHS terms
-			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'L','E','V');
-			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->dnFluxViscNumdWL_fI,NFluxData->dnFluxViscNumdWR_fI,'L','I','V');
+			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'L','E','V');
+			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'L','I','V');
 			finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'L');
 
 			if (!FACE->Boundary) {
-				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'R','E','V');
-				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->dnFluxViscNumdWL_fI,NFluxData->dnFluxViscNumdWR_fI,'R','I','V');
+				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'R','E','V');
+				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'R','I','V');
 				finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'R');
 			}
 			manage_solver_memory(DATA,'F','V');
@@ -205,6 +205,6 @@ static void compute_Viscous_FACE_EFE(void)
 
 	free(FDATAL);
 	free(FDATAR);
-	free(NFluxData);
+	free(NFLUXDATA);
 	free(DATA);
 }

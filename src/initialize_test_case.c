@@ -194,7 +194,8 @@ void initialize_test_case_parameters(void)
 	DB.SolverType = malloc(STRLEN_MIN * sizeof *(DB.SolverType)); // keep
 	if (strstr(PDE,"Advection")) {
 		// Currently requires div (dot) b = 0
-		DB.PDE_index = PDE_ADVECTION;
+		DB.PDE_index        = PDE_ADVECTION;
+		DB.InviscidFluxType = FLUX_UPWIND;
 
 		DB.Nvar = 1;
 		DB.Neq  = 1;

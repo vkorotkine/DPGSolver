@@ -123,9 +123,9 @@ static void explicit_GradW_FACE_c(void)
 	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
 	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
-	struct S_NumericalFlux *const NFluxData = malloc(sizeof *NFluxData); // free
-	FDATAL->NFluxData = NFluxData;
-	FDATAR->NFluxData = NFluxData;
+	struct S_NUMERICALFLUX *const NFLUXDATA = malloc(sizeof *NFLUXDATA); // free
+	FDATAL->NFLUXDATA = NFLUXDATA;
+	FDATAR->NFLUXDATA = NFLUXDATA;
 
 	for (size_t i = 0; i < 2; i++) {
 		OPSL[i]  = malloc(sizeof *OPSL[i]);  // free
@@ -147,11 +147,11 @@ static void explicit_GradW_FACE_c(void)
 		compute_WR_fIL_c(FDATAR,FDATAL->W_fIL_c,FDATAR->W_fIL_c);
 
 		// Compute numerical flux as seen from the left VOLUME
-		NFluxData->WL_fIL_c     = FDATAL->W_fIL_c;
-		NFluxData->WR_fIL_c     = FDATAR->W_fIL_c;
-		NFluxData->nSolNum_fI_c = malloc(d * sizeof *(NFluxData->nSolNum_fI_c)); // free
+		NFLUXDATA->WL_c      = FDATAL->W_fIL_c;
+		NFLUXDATA->WR_c      = FDATAR->W_fIL_c;
+		NFLUXDATA->nSolNum_c = malloc(d * sizeof *(NFLUXDATA->nSolNum_c)); // free
 		for (size_t dim = 0; dim < d; dim++)
-			NFluxData->nSolNum_fI_c[dim] = malloc(NfnI*Neq * sizeof *(NFluxData->nSolNum_fI_c[dim])); // free
+			NFLUXDATA->nSolNum_c[dim] = malloc(NfnI*Neq * sizeof *(NFLUXDATA->nSolNum_c[dim])); // free
 
 		compute_numerical_solution_c(FDATAL,'E');
 		add_Jacobian_scaling_FACE_c(FDATAL,'E','Q');
@@ -174,14 +174,14 @@ static void explicit_GradW_FACE_c(void)
 
 		free(FDATAL->W_fIL_c);
 		free(FDATAR->W_fIL_c);
-		array_free2_cmplx(d,NFluxData->nSolNum_fI_c);
+		array_free2_cmplx(d,NFLUXDATA->nSolNum_c);
 	}
 
 	for (size_t i = 0; i < 2; i++) {
 		free(OPSL[i]);
 		free(OPSR[i]);
 	}
-	free(NFluxData);
+	free(NFLUXDATA);
 	free(FDATAL);
 	free(FDATAR);
 }

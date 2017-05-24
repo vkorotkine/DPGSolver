@@ -182,15 +182,15 @@ void jacobian_flux_viscous(struct S_FLUX *const FLUXDATA)
 
 			// ***************************************** dFdW ***************************************** //
 			if (dFdW != NULL) {
-				double drhodW[NVAR3D]      = { 1.0,                  0.0, 0.0, 0.0, 0.0 },
-				       drho_invdW[NVAR3D]  = {-rho_inv2,             0.0, 0.0, 0.0, 0.0 },
-				       drho_inv2dW[NVAR3D] = {-2.0*rho_inv2*rho_inv, 0.0, 0.0, 0.0, 0.0 },
+				double drhodW[]      = { 1.0,                  0.0, 0.0, 0.0, 0.0 },
+				       drho_invdW[]  = {-rho_inv2,             0.0, 0.0, 0.0, 0.0 },
+				       drho_inv2dW[] = {-2.0*rho_inv2*rho_inv, 0.0, 0.0, 0.0, 0.0 },
 
-				       dudW[NVAR3D] = { -u*rho_inv, rho_inv, 0.0,     0.0,     0.0 },
-				       dvdW[NVAR3D] = { -v*rho_inv, 0.0,     rho_inv, 0.0,     0.0 },
-				       dwdW[NVAR3D] = { -w*rho_inv, 0.0,     0.0,     rho_inv, 0.0 },
+				       dudW[] = { -u*rho_inv, rho_inv, 0.0,     0.0,     0.0 },
+				       dvdW[] = { -v*rho_inv, 0.0,     rho_inv, 0.0,     0.0 },
+				       dwdW[] = { -w*rho_inv, 0.0,     0.0,     rho_inv, 0.0 },
 
-				       dEdW[NVAR3D] = { 0.0, 0.0, 0.0, 0.0, 1.0 };
+				       dEdW[] = { 0.0, 0.0, 0.0, 0.0, 1.0 };
 
 				double ddudW[d][Nvar], ddvdW[d][Nvar], ddwdW[d][Nvar];
 				for (size_t var = 0; var < Nvar; var++) {
@@ -217,7 +217,7 @@ void jacobian_flux_viscous(struct S_FLUX *const FLUXDATA)
 					dtaudW[2][2][var] = mu*2.0*(ddwdW[2][var]-ddivVdW[var]/3.0);
 				}
 
-				double dmudW[NVAR3D] = { 0.0, 0.0, 0.0, 0.0, 0.0 };
+				double dmudW[NVAR3D] = {0.0};
 				if (!DB.Const_mu) {
 					EXIT_UNSUPPORTED;
 
@@ -293,15 +293,15 @@ void jacobian_flux_viscous(struct S_FLUX *const FLUXDATA)
 			// ***************************************** dFdQ ***************************************** //
 			if (dFdQ != NULL) {
 				for (size_t dim1 = 0; dim1 < d; dim1++) {
-					const double ddrhodQ[NVAR3D]  = { 1.0, 0.0, 0.0, 0.0, 0.0 },
-					             ddrhoudQ[NVAR3D] = { 0.0, 1.0, 0.0, 0.0, 0.0 },
-					             ddrhovdQ[NVAR3D] = { 0.0, 0.0, 1.0, 0.0, 0.0 },
-					             ddrhowdQ[NVAR3D] = { 0.0, 0.0, 0.0, 1.0, 0.0 },
-					             ddEdQ[NVAR3D]    = { 0.0, 0.0, 0.0, 0.0, 1.0 };
+					const double ddrhodQ[]  = { 1.0, 0.0, 0.0, 0.0, 0.0 },
+					             ddrhoudQ[] = { 0.0, 1.0, 0.0, 0.0, 0.0 },
+					             ddrhovdQ[] = { 0.0, 0.0, 1.0, 0.0, 0.0 },
+					             ddrhowdQ[] = { 0.0, 0.0, 0.0, 1.0, 0.0 },
+					             ddEdQ[]    = { 0.0, 0.0, 0.0, 0.0, 1.0 };
 
-					double ddudQ[DMAX][NVAR3D] = {{0.0}},
-					       ddvdQ[DMAX][NVAR3D] = {{0.0}},
-					       ddwdQ[DMAX][NVAR3D] = {{0.0}};
+					double ddudQ[3][NVAR3D] = {{0.0}},
+					       ddvdQ[3][NVAR3D] = {{0.0}},
+					       ddwdQ[3][NVAR3D] = {{0.0}};
 					for (size_t var = 0; var < Nvar; var++) {
 						ddudQ[dim1][var] = rho_inv*(ddrhoudQ[var]-ddrhodQ[var]*u);
 						ddvdQ[dim1][var] = rho_inv*(ddrhovdQ[var]-ddrhodQ[var]*v);
@@ -329,7 +329,7 @@ void jacobian_flux_viscous(struct S_FLUX *const FLUXDATA)
 						EXIT_UNSUPPORTED; // Ensure that mu does not depend on solution gradients for this to be OK.
 					}
 
-					double ddTsdQ[DMAX][NVAR3D] = {{0.0}};
+					double ddTsdQ[3][NVAR3D] = {{0.0}};
 					for (size_t var = 0; var < Nvar; var++) {
 						double const ddEoRhodQ = rho_inv2*(ddEdQ[var]*rho-E*ddrhodQ[var]),
 						             ddV2dQ    = 2.0*(u*ddudQ[dim1][var]+v*ddvdQ[dim1][var]+w*ddwdQ[dim1][var]);
@@ -443,14 +443,14 @@ void jacobian_flux_viscous(struct S_FLUX *const FLUXDATA)
 
 			// ***************************************** dFdW ***************************************** //
 			if (dFdW != NULL) {
-				double drhodW[NVAR3D]      = { 1.0,                  0.0, 0.0, 0.0, 0.0 },
-				       drho_invdW[NVAR3D]  = {-rho_inv2,             0.0, 0.0, 0.0, 0.0 },
-				       drho_inv2dW[NVAR3D] = {-2.0*rho_inv2*rho_inv, 0.0, 0.0, 0.0, 0.0 },
+				double drhodW[]      = { 1.0,                  0.0, 0.0, 0.0 },
+				       drho_invdW[]  = {-rho_inv2,             0.0, 0.0, 0.0 },
+				       drho_inv2dW[] = {-2.0*rho_inv2*rho_inv, 0.0, 0.0, 0.0 },
 
-				       dudW[NVAR3D] = { -u*rho_inv, rho_inv, 0.0,     0.0, 0.0 },
-				       dvdW[NVAR3D] = { -v*rho_inv, 0.0,     rho_inv, 0.0, 0.0 },
+				       dudW[] = { -u*rho_inv, rho_inv, 0.0,     0.0 },
+				       dvdW[] = { -v*rho_inv, 0.0,     rho_inv, 0.0 },
 
-				       dEdW[NVAR3D] = { 0.0, 0.0, 0.0, 1.0, 0.0 };
+				       dEdW[] = { 0.0, 0.0, 0.0, 1.0 };
 
 				double ddudW[d][Nvar], ddvdW[d][Nvar];
 				for (size_t var = 0; var < Nvar; var++) {
@@ -471,7 +471,7 @@ void jacobian_flux_viscous(struct S_FLUX *const FLUXDATA)
 					dtaudW[1][1][var] = mu*2.0*(ddvdW[1][var]-ddivVdW[var]/3.0);
 				}
 
-				double dmudW[NVAR3D] = { 0.0, 0.0, 0.0, 0.0, 0.0 };
+				double dmudW[NVAR2D] = {0.0};
 				if (!DB.Const_mu) {
 					EXIT_UNSUPPORTED;
 
@@ -541,13 +541,13 @@ void jacobian_flux_viscous(struct S_FLUX *const FLUXDATA)
 			// ***************************************** dFdQ ***************************************** //
 			if (dFdQ != NULL) {
 				for (size_t dim1 = 0; dim1 < d; dim1++) {
-					const double ddrhodQ[NVAR3D]  = { 1.0, 0.0, 0.0, 0.0, 0.0 },
-					             ddrhoudQ[NVAR3D] = { 0.0, 1.0, 0.0, 0.0, 0.0 },
-					             ddrhovdQ[NVAR3D] = { 0.0, 0.0, 1.0, 0.0, 0.0 },
-					             ddEdQ[NVAR3D]    = { 0.0, 0.0, 0.0, 1.0, 0.0 };
+					const double ddrhodQ[]  = { 1.0, 0.0, 0.0, 0.0 },
+					             ddrhoudQ[] = { 0.0, 1.0, 0.0, 0.0 },
+					             ddrhovdQ[] = { 0.0, 0.0, 1.0, 0.0 },
+					             ddEdQ[]    = { 0.0, 0.0, 0.0, 1.0 };
 
-					double ddudQ[DMAX][NVAR3D] = {{0.0}},
-					       ddvdQ[DMAX][NVAR3D] = {{0.0}};
+					double ddudQ[2][NVAR2D] = {{0.0}},
+					       ddvdQ[2][NVAR2D] = {{0.0}};
 					for (size_t var = 0; var < Nvar; var++) {
 						ddudQ[dim1][var] = rho_inv*(ddrhoudQ[var]-ddrhodQ[var]*u);
 						ddvdQ[dim1][var] = rho_inv*(ddrhovdQ[var]-ddrhodQ[var]*v);
@@ -569,7 +569,7 @@ void jacobian_flux_viscous(struct S_FLUX *const FLUXDATA)
 						EXIT_UNSUPPORTED; // Ensure that mu does not depend on solution gradients for this to be OK.
 					}
 
-					double ddTsdQ[DMAX][NVAR3D] = {{0.0}};
+					double ddTsdQ[2][NVAR2D] = {{0.0}};
 					for (size_t var = 0; var < Nvar; var++) {
 						double const ddEoRhodQ = rho_inv2*(ddEdQ[var]*rho-E*ddrhodQ[var]),
 						             ddV2dQ    = 2.0*(u*ddudQ[dim1][var]+v*ddvdQ[dim1][var]);

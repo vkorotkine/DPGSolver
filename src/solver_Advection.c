@@ -8,6 +8,10 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "petscvec.h"
+#include "petscmat.h"
+#include "petscksp.h"
+
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
@@ -19,26 +23,12 @@
 #include "explicit_FACE_info.h"
 #include "implicit_VOLUME_info.h"
 #include "implicit_FACE_info.h"
+#include "solver_implicit.h"
+#include "finalize_LHS.h"
 
 #include "output_to_paraview.h"
 #include "test_code_output_to_paraview.h"
 
-#include "matrix_functions.h"
-/*
-#include "petscvec.h"
-#include "petscmat.h"
-#include "petscksp.h"
-
-#include "S_FACE.h"
-#include "Test.h"
-
-#include "update_VOLUMEs.h"
-
-#include "finalize_LHS.h"
-#include "solver_implicit.h"
-
-#include "array_print.h"
-*/
 /*
  *	Purpose:
  *		Provide functions for the Advection solver.
@@ -62,13 +52,21 @@ void solver_Advection(bool const PrintEnabled)
 		EXIT_UNSUPPORTED;
 		printf("%d\n",PrintEnabled);
 	} else if (strstr(DB.SolverType,"Implicit")) {
-		implicit_VOLUME_info();
-		implicit_FACE_info();
+		if (PrintEnabled) { printf("V");  } implicit_VOLUME_info();
+		if (PrintEnabled) { printf("F");  } implicit_FACE_info();
 
-		char *const fNameOut = get_fNameOut("SolFinal_");
+		Mat A = NULL;
+		Vec b = NULL, x = NULL;
+		KSP ksp = NULL;
+
+		solver_implicit_linear_system(&A,&b,&x,&ksp,0,PrintEnabled);
+		solver_implicit_update_What(x);
+
+		KSPDestroy(&ksp);
+		finalize_ksp(&A,&b,&x,2);
+
+		char *const fNameOut = get_fNameOut("SolFinal_"); // free
 		output_to_paraview(fNameOut);
 		free(fNameOut);
-
-		EXIT_UNSUPPORTED;
 	}
 }

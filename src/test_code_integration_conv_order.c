@@ -73,6 +73,7 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 
 	if (strstr(TestName,"Advection")) {
 		data->AdaptiveRefine = 0;
+		data->PMin   = 2;
 		data->MLMax  = 2;
 		if (strstr(TestName,"n-Cube_Default")) {
 			if (strstr(TestName,"TRI")) {

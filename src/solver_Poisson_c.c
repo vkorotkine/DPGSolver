@@ -54,14 +54,14 @@ void compute_What_FACE_c()
 	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
 	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
-	struct S_NumericalFlux *NFluxData = malloc(sizeof *NFluxData); // free
-	FDATAL->NFluxData = NFluxData;
-	FDATAR->NFluxData = NFluxData;
+	struct S_NUMERICALFLUX *NFLUXDATA = malloc(sizeof *NFLUXDATA); // free
+	FDATAL->NFLUXDATA = NFLUXDATA;
+	FDATAR->NFLUXDATA = NFLUXDATA;
 
 	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
 	DATA->FDATAL    = FDATAL;
 	DATA->FDATAR    = FDATAR;
-	DATA->NFluxData = NFluxData;
+	DATA->NFLUXDATA = NFLUXDATA;
 	DATA->feature   = 'F';
 	DATA->imex_type = 'E';
 
@@ -84,8 +84,8 @@ void compute_What_FACE_c()
 		                     (double complex const *const *const) FDATAL->Qp_fIL_c,FDATAR->Qp_fIL_c,'E');
 
 		// Compute numerical flux and its Jacobian as seen from the left VOLUME
-		NFluxData->WL_fIL_c = FDATAL->W_fIL_c;
-		NFluxData->WR_fIL_c = FDATAR->W_fIL_c;
+		NFLUXDATA->WL_c = FDATAL->W_fIL_c;
+		NFLUXDATA->WR_c = FDATAR->W_fIL_c;
 		manage_solver_memory_c(DATA,'A','P'); // free
 
 		compute_numerical_flux_viscous_c(FDATAL,FDATAR,'E');
@@ -99,7 +99,7 @@ void compute_What_FACE_c()
 		                   NfnI     = OPSL[IndFType]->NfnI;
 
 		for (size_t n = 0; n < NfnI; n++)
-			NFluxData->nFluxViscNum_fI_c[n] *= -1.0;
+			NFLUXDATA->nFluxNum_c[n] *= -1.0;
 
 		// Finalize FACE RHS terms
 		unsigned int const NvnSL = OPSL[0]->NvnS,
@@ -119,11 +119,11 @@ void compute_What_FACE_c()
 		// Add FACE contributions to RHS
 
 		// Interior FACE
-		finalize_FACE_Viscous_Weak_c(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI_c,'L','E','V');
+		finalize_FACE_Viscous_Weak_c(FDATAL,FDATAR,NFLUXDATA->nFluxNum_c,'L','E','V');
 
 		// Exterior FACE
 		if (!FACE->Boundary) {
-			finalize_FACE_Viscous_Weak_c(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI_c,'R','E','V');
+			finalize_FACE_Viscous_Weak_c(FDATAL,FDATAR,NFLUXDATA->nFluxNum_c,'R','E','V');
 		}
 		manage_solver_memory_c(DATA,'F','P');
 	}
@@ -134,6 +134,6 @@ void compute_What_FACE_c()
 
 	free(FDATAL);
 	free(FDATAR);
-	free(NFluxData);
+	free(NFLUXDATA);
 	free(DATA);
 }

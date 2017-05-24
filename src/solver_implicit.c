@@ -213,6 +213,70 @@ static void compute_underRelax(struct S_VOLUME *VOLUME, const double *dWhat, dou
 	free(dU);
 }
 
+void solver_implicit_linear_system(Mat *A, Vec *b, Vec *x, KSP *ksp, unsigned int const iteration, bool const PrintEnabled)
+{
+	if (PrintEnabled) { printf("F "); }
+	double const maxRHS = finalize_LHS(A,b,x,0);
+
+	bool const Output_A_MATLAB = 0;
+	if (Output_A_MATLAB) {
+		// Used for outputting matrix to file in matlab sparse format
+		PetscViewer viewer;
+		PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat.output", &viewer);
+		PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
+		MatView(*A,viewer);
+		PetscViewerDestroy(&viewer);
+	}
+
+	// Setup Preconditioner
+	if (PrintEnabled) { printf("S"); }
+	KSPCreate(MPI_COMM_WORLD,ksp);
+	setup_KSP(*A,*ksp);
+
+	// Solve the system of equations
+	if (PrintEnabled) { printf("S"); }
+	KSPSolve(*ksp,*b,*x);
+
+	KSPConvergedReason reason;
+	KSPGetConvergedReason(*ksp,&reason);
+
+	PetscInt iteration_ksp;
+	KSPGetIterationNumber(*ksp,&iteration_ksp);
+
+	PetscReal emax, emin;
+	KSPComputeExtremeSingularValues(*ksp,&emax,&emin);
+
+	// Display solver progress
+	if (PrintEnabled) {
+		printf("Iteration: %5d, KSP iterations (cond, reason): %5d (% .3e, %d), maxRHS (no MInv): % .3e\n",
+		       iteration,iteration_ksp,emax/emin,reason,maxRHS);
+	}
+}
+
+void solver_implicit_update_What(Vec x) {
+	unsigned int Nvar = DB.Nvar;
+
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		unsigned int const IndA = VOLUME->IndA,
+		                   NvnS = VOLUME->NvnS,
+		                   Ndof = NvnS*Nvar;
+
+		double *const What  = VOLUME->What,
+		       *const dWhat = malloc(Ndof * sizeof *dWhat); // free
+
+		PetscInt *const ix = malloc(Ndof * sizeof *ix); // free
+		for (size_t i = 0; i < Ndof; i++)
+			ix[i] = IndA+i;
+
+		VecGetValues(x,Ndof,ix,dWhat);
+		free(ix);
+
+		for (size_t i = 0; i < Ndof; i++)
+			What[i] += dWhat[i];
+		free(dWhat);
+	}
+}
+
 void solver_implicit(bool const PrintEnabled)
 {
 	// Initialize DB Parameters

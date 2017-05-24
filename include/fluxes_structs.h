@@ -20,13 +20,12 @@ struct S_FLUX {
 };
 
 struct S_NUMERICALFLUX {
-	char         side; // ToBeDeleted
 	unsigned int d, Nn, Nel, NumFluxInviscid_index, NumFluxViscous_index;
 
 	double const *nL, *XYZ,
 	             *WL, *WR;
 	double       *nFluxNum, *dnFluxNumdWL, *dnFluxNumdWR, **dnFluxNumdQL, **dnFluxNumdQR,
-	             *nSolNum,  *dnSolNumdWL,  *dnSolNumdWR;
+	             **nSolNum, **dnSolNumdWL, **dnSolNumdWR;
 
 	// Only used for verification.
 	double complex const *WL_c, *WR_c;

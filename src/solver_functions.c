@@ -78,7 +78,7 @@ void manage_solver_memory(struct S_DATA *const DATA, char const mem_op, char con
 	struct S_FDATA         *const FDATAL    = DATA->FDATAL,
 	                       *const FDATAR    = DATA->FDATAR;
 	struct S_FLUX          *const FLUXDATA  = DATA->FLUXDATA;
-	struct S_NumericalFlux *const NFluxData = DATA->NFluxData;
+	struct S_NUMERICALFLUX *const NFLUXDATA = DATA->NFLUXDATA;
 
 	unsigned int const d    = DB.d,
 	                   Nvar = DB.Nvar,
@@ -132,52 +132,52 @@ void manage_solver_memory(struct S_DATA *const DATA, char const mem_op, char con
 					FDATAR->Qp_fIL[dim] = malloc(NfnI*Nvar * sizeof *(FDATAR->Qp_fIL[dim])); // keep
 				}
 			} else if (mem_type == 'S') {
-				NFluxData->nSolNum_fI = malloc(d * sizeof *(NFluxData->nSolNum_fI)); // keep
+				NFLUXDATA->nSolNum = malloc(d * sizeof *(NFLUXDATA->nSolNum)); // keep
 				for (size_t dim = 0; dim < d; dim++)
-					NFluxData->nSolNum_fI[dim] = malloc(NfnI*Neq * sizeof *(NFluxData->nSolNum_fI[dim])); // keep
+					NFLUXDATA->nSolNum[dim] = malloc(NfnI*Neq * sizeof *(NFLUXDATA->nSolNum[dim])); // keep
 
 				if (imex_type == 'I') {
-					NFluxData->dnSolNumdWL_fI = malloc(d * sizeof *(NFluxData->dnSolNumdWL_fI)); // keep
-					NFluxData->dnSolNumdWR_fI = malloc(d * sizeof *(NFluxData->dnSolNumdWR_fI)); // keep
+					NFLUXDATA->dnSolNumdWL = malloc(d * sizeof *(NFLUXDATA->dnSolNumdWL)); // keep
+					NFLUXDATA->dnSolNumdWR = malloc(d * sizeof *(NFLUXDATA->dnSolNumdWR)); // keep
 					for (size_t dim = 0; dim < d; dim++) {
 						if (FACE->Boundary) {
-							NFluxData->dnSolNumdWL_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnSolNumdWL_fI[dim])); // keep
-							NFluxData->dnSolNumdWR_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnSolNumdWR_fI[dim])); // keep
+							NFLUXDATA->dnSolNumdWL[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnSolNumdWL[dim])); // keep
+							NFLUXDATA->dnSolNumdWR[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnSolNumdWR[dim])); // keep
 						} else {
-							NFluxData->dnSolNumdWL_fI[dim] = malloc(NfnI * sizeof *(NFluxData->dnSolNumdWL_fI[dim])); // keep
-							NFluxData->dnSolNumdWR_fI[dim] = malloc(NfnI * sizeof *(NFluxData->dnSolNumdWR_fI[dim])); // keep
+							NFLUXDATA->dnSolNumdWL[dim] = malloc(NfnI * sizeof *(NFLUXDATA->dnSolNumdWL[dim])); // keep
+							NFLUXDATA->dnSolNumdWR[dim] = malloc(NfnI * sizeof *(NFLUXDATA->dnSolNumdWR[dim])); // keep
 						}
 					}
 				}
 			} else if (mem_type == 'I') {
-				NFluxData->nFluxNum_fI = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxNum_fI)); // keep
+				NFLUXDATA->nFluxNum = malloc(NfnI*Neq * sizeof *(NFLUXDATA->nFluxNum)); // keep
 
 				if (imex_type == 'I') {
-					NFluxData->dnFluxNumdWL_fI = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxNumdWL_fI)); // keep
-					NFluxData->dnFluxNumdWR_fI = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxNumdWR_fI)); // keep
+					NFLUXDATA->dnFluxNumdWL = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnFluxNumdWL)); // keep
+					NFLUXDATA->dnFluxNumdWR = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnFluxNumdWR)); // keep
 				}
 			} else if (mem_type == 'V') {
-				NFluxData->nFluxViscNum_fI = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxViscNum_fI)); // keep
+				NFLUXDATA->nFluxNum = malloc(NfnI*Neq * sizeof *(NFLUXDATA->nFluxNum)); // keep
 
 				if (imex_type == 'I') {
-					NFluxData->dnFluxViscNumdWL_fI = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdWL_fI)); // keep
-					NFluxData->dnFluxViscNumdWR_fI = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdWR_fI)); // keep
-					NFluxData->dnFluxViscNumdQL_fI = malloc(d * sizeof *(NFluxData->dnFluxViscNumdQL_fI)); // keep
-					NFluxData->dnFluxViscNumdQR_fI = malloc(d * sizeof *(NFluxData->dnFluxViscNumdQR_fI)); // keep
+					NFLUXDATA->dnFluxNumdWL = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnFluxNumdWL)); // keep
+					NFLUXDATA->dnFluxNumdWR = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnFluxNumdWR)); // keep
+					NFLUXDATA->dnFluxNumdQL = malloc(d * sizeof *(NFLUXDATA->dnFluxNumdQL)); // keep
+					NFLUXDATA->dnFluxNumdQR = malloc(d * sizeof *(NFLUXDATA->dnFluxNumdQR)); // keep
 					for (size_t dim = 0; dim < d; dim++) {
-						NFluxData->dnFluxViscNumdQL_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdQL_fI[dim])); // keep
-						NFluxData->dnFluxViscNumdQR_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdQR_fI[dim])); // keep
+						NFLUXDATA->dnFluxNumdQL[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnFluxNumdQL[dim])); // keep
+						NFLUXDATA->dnFluxNumdQR[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnFluxNumdQR[dim])); // keep
 					}
 				}
 			} else if (mem_type == 'P') {
-				NFluxData->nFluxViscNum_fI = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxViscNum_fI)); // keep
+				NFLUXDATA->nFluxNum = malloc(NfnI*Neq * sizeof *(NFLUXDATA->nFluxNum)); // keep
 
 				if (imex_type == 'I') {
-					NFluxData->dnFluxViscNumdQL_fI = malloc(d * sizeof *(NFluxData->dnFluxViscNumdQL_fI)); // keep
-					NFluxData->dnFluxViscNumdQR_fI = malloc(d * sizeof *(NFluxData->dnFluxViscNumdQR_fI)); // keep
+					NFLUXDATA->dnFluxNumdQL = malloc(d * sizeof *(NFLUXDATA->dnFluxNumdQL)); // keep
+					NFLUXDATA->dnFluxNumdQR = malloc(d * sizeof *(NFLUXDATA->dnFluxNumdQR)); // keep
 					for (size_t dim = 0; dim < d; dim++) {
-						NFluxData->dnFluxViscNumdQL_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdQL_fI[dim])); // keep
-						NFluxData->dnFluxViscNumdQR_fI[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFluxData->dnFluxViscNumdQR_fI[dim])); // keep
+						NFLUXDATA->dnFluxNumdQL[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnFluxNumdQL[dim])); // keep
+						NFLUXDATA->dnFluxNumdQR[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnFluxNumdQR[dim])); // keep
 					}
 				}
 			} else {
@@ -216,34 +216,34 @@ void manage_solver_memory(struct S_DATA *const DATA, char const mem_op, char con
 				array_free2_d(d,FDATAL->Qp_fIL);
 				array_free2_d(d,FDATAR->Qp_fIL);
 			} else if (mem_type == 'S') {
-				array_free2_d(d,NFluxData->nSolNum_fI);
+				array_free2_d(d,NFLUXDATA->nSolNum);
 
 				if (imex_type == 'I') {
-					array_free2_d(d,NFluxData->dnSolNumdWL_fI);
-					array_free2_d(d,NFluxData->dnSolNumdWR_fI);
+					array_free2_d(d,NFLUXDATA->dnSolNumdWL);
+					array_free2_d(d,NFLUXDATA->dnSolNumdWR);
 				}
 			} else if (mem_type == 'I') {
-				free(NFluxData->nFluxNum_fI);
+				free(NFLUXDATA->nFluxNum);
 
 				if (imex_type == 'I') {
-					free(NFluxData->dnFluxNumdWL_fI);
-					free(NFluxData->dnFluxNumdWR_fI);
+					free(NFLUXDATA->dnFluxNumdWL);
+					free(NFLUXDATA->dnFluxNumdWR);
 				}
 			} else if (mem_type == 'V') {
-				free(NFluxData->nFluxViscNum_fI);
+				free(NFLUXDATA->nFluxNum);
 
 				if (imex_type == 'I') {
-					free(NFluxData->dnFluxViscNumdWL_fI);
-					free(NFluxData->dnFluxViscNumdWR_fI);
-					array_free2_d(d,NFluxData->dnFluxViscNumdQL_fI);
-					array_free2_d(d,NFluxData->dnFluxViscNumdQR_fI);
+					free(NFLUXDATA->dnFluxNumdWL);
+					free(NFLUXDATA->dnFluxNumdWR);
+					array_free2_d(d,NFLUXDATA->dnFluxNumdQL);
+					array_free2_d(d,NFLUXDATA->dnFluxNumdQR);
 				}
 			} else if (mem_type == 'P') {
-				free(NFluxData->nFluxViscNum_fI);
+				free(NFLUXDATA->nFluxNum);
 
 				if (imex_type == 'I') {
-					array_free2_d(d,NFluxData->dnFluxViscNumdQL_fI);
-					array_free2_d(d,NFluxData->dnFluxViscNumdQR_fI);
+					array_free2_d(d,NFLUXDATA->dnFluxNumdQL);
+					array_free2_d(d,NFLUXDATA->dnFluxNumdQR);
 				}
 			}
 		} else {
@@ -1353,21 +1353,20 @@ void compute_numerical_flux(struct S_FDATA const *const FDATA, char const imex_t
 	struct S_FACE        const *const        FACE = FDATA->FACE;
 
 	unsigned int const d        = DB.d,
-	                   Nvar     = d+2,
-	                   Neq      = d+2,
+	                   Nvar     = DB.Nvar,
+	                   Neq      = DB.Neq,
 	                   IndFType = FDATA->IndFType,
 	                   Boundary = FACE->Boundary,
 	                   NfnI     = OPS[IndFType]->NfnI;
 
 	double const *const n_fIL            = FACE->n_fI,
-	             *const WL_fIL           = FDATA->NFluxData->WL_fIL,
-	             *const WR_fIL           = FDATA->NFluxData->WR_fIL;
-	double       *const nFluxNum_fIL     = FDATA->NFluxData->nFluxNum_fI,
-	             *const dnFluxNumdWL_fIL = FDATA->NFluxData->dnFluxNumdWL_fI,
-	             *const dnFluxNumdWR_fIL = FDATA->NFluxData->dnFluxNumdWR_fI;
+	             *const WL_fIL           = FDATA->NFLUXDATA->WL,
+	             *const WR_fIL           = FDATA->NFLUXDATA->WR;
+	double       *const nFluxNum_fIL     = FDATA->NFLUXDATA->nFluxNum,
+	             *const dnFluxNumdWL_fIL = FDATA->NFLUXDATA->dnFluxNumdWL,
+	             *const dnFluxNumdWR_fIL = FDATA->NFLUXDATA->dnFluxNumdWR;
 
-// Consider combining numerical flux and jacobian computations (ToBeDeleted)
-// Consder passing struct to numerical flux functions (as for standard fluxes) (ToBeDeleted)
+// Consider passing struct to numerical flux functions (as for standard fluxes) (ToBeDeleted)
 	struct S_NUMERICALFLUX *const NUMFLUXDATA = malloc(sizeof *NUMFLUXDATA); // free
 	NUMFLUXDATA->NumFluxInviscid_index = DB.InviscidFluxType;
 	NUMFLUXDATA->d   = d;
@@ -1382,13 +1381,10 @@ void compute_numerical_flux(struct S_FDATA const *const FDATA, char const imex_t
 	NUMFLUXDATA->dnFluxNumdWL = dnFluxNumdWL_fIL;
 	NUMFLUXDATA->dnFluxNumdWR = dnFluxNumdWR_fIL;
 
-	flux_num_inviscid(NUMFLUXDATA);
-	if (imex_type == 'I') {
-		NUMFLUXDATA->side = 'L';
+	if (imex_type == 'E')
+		flux_num_inviscid(NUMFLUXDATA);
+	else if (imex_type == 'I')
 		jacobian_flux_num_inviscid(NUMFLUXDATA);
-		NUMFLUXDATA->side = 'R';
-		jacobian_flux_num_inviscid(NUMFLUXDATA);
-	}
 	free(NUMFLUXDATA);
 
 	// Include the BC information in dnFluxNumWL_fIL if on a boundary
@@ -1464,12 +1460,12 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 	                   NfnI     = OPS[IndFType]->NfnI;
 
 	double const *const n_fIL  = FACE->n_fI,
-	             *const WL_fIL = FDATA->NFluxData->WL_fIL,
-	             *const WR_fIL = FDATA->NFluxData->WR_fIL;
+	             *const WL_fIL = FDATA->NFLUXDATA->WL,
+	             *const WR_fIL = FDATA->NFLUXDATA->WR;
 
-	double       *const *const nSolNum_fIL     = FDATA->NFluxData->nSolNum_fI,
-	             *const *const dnSolNumdWL_fIL = FDATA->NFluxData->dnSolNumdWL_fI,
-	             *const *const dnSolNumdWR_fIL = FDATA->NFluxData->dnSolNumdWR_fI;
+	double       *const *const nSolNum_fIL     = FDATA->NFLUXDATA->nSolNum,
+	             *const *const dnSolNumdWL_fIL = FDATA->NFLUXDATA->dnSolNumdWL,
+	             *const *const dnSolNumdWR_fIL = FDATA->NFLUXDATA->dnSolNumdWR;
 
 	for (size_t dim = 0; dim < d; dim++) {
 	for (size_t var = 0; var < Nvar; var++) {
@@ -1575,12 +1571,12 @@ static void correct_numerical_solution_strong(struct S_FDATA const *const FDATA,
 
 	double const *const n_fIL     = FACE->n_fI,
 	             *const detJF_fIL = FACE->detJF_fI,
-	             *const WL_fIL    = FDATA->NFluxData->WL_fIL,
-	             *const WR_fIL    = FDATA->NFluxData->WR_fIL;
+	             *const WL_fIL    = FDATA->NFLUXDATA->WL,
+	             *const WR_fIL    = FDATA->NFLUXDATA->WR;
 
-	double       *const *const nSolNum_fIL     = FDATA->NFluxData->nSolNum_fI,
-	             *const *const dnSolNumdWL_fIL = FDATA->NFluxData->dnSolNumdWL_fI,
-	             *const *const dnSolNumdWR_fIL = FDATA->NFluxData->dnSolNumdWR_fI;
+	double       *const *const nSolNum_fIL     = FDATA->NFLUXDATA->nSolNum,
+	             *const *const dnSolNumdWL_fIL = FDATA->NFLUXDATA->dnSolNumdWL,
+	             *const *const dnSolNumdWR_fIL = FDATA->NFLUXDATA->dnSolNumdWR;
 
 	if (side == 'L') {
 		if (imex_type == 'E') {
@@ -1727,15 +1723,15 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	                   NfnI     = OPSL[IndFType]->NfnI;
 
 	double const *const n_fIL                       = FACE->n_fI,
-	             *const WL_fIL                      = FDATAL->NFluxData->WL_fIL,
-	             *const WR_fIL                      = FDATAL->NFluxData->WR_fIL,
+	             *const WL_fIL                      = FDATAL->NFLUXDATA->WL,
+	             *const WR_fIL                      = FDATAL->NFLUXDATA->WR,
 	             *const *const QpL_fIL              = (double const *const *const) FDATAL->Qp_fIL,
 	             *const *const QpR_fIL              = (double const *const *const) FDATAR->Qp_fIL;
-	double       *const nFluxViscNum_fIL            = FDATAL->NFluxData->nFluxViscNum_fI,
-	             *const dnFluxViscNumdWL_fIL        = FDATAL->NFluxData->dnFluxViscNumdWL_fI,
-	             *const dnFluxViscNumdWR_fIL        = FDATAL->NFluxData->dnFluxViscNumdWR_fI,
-	             *const *const dnFluxViscNumdQL_fIL = (double *const *const) FDATAL->NFluxData->dnFluxViscNumdQL_fI,
-	             *const *const dnFluxViscNumdQR_fIL = (double *const *const) FDATAL->NFluxData->dnFluxViscNumdQR_fI;
+	double       *const nFluxViscNum_fIL            = FDATAL->NFLUXDATA->nFluxNum,
+	             *const dnFluxViscNumdWL_fIL        = FDATAL->NFLUXDATA->dnFluxNumdWL,
+	             *const dnFluxViscNumdWR_fIL        = FDATAL->NFLUXDATA->dnFluxNumdWR,
+	             *const *const dnFluxViscNumdQL_fIL = (double *const *const) FDATAL->NFLUXDATA->dnFluxNumdQL,
+	             *const *const dnFluxViscNumdQR_fIL = (double *const *const) FDATAL->NFLUXDATA->dnFluxNumdQR;
 
 	double *const FluxViscNum_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscNum_fIL); // free
 
@@ -2051,16 +2047,9 @@ void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const ime
 	double const *const detJF_fIL = FACE->detJF_fI;
 
 	if (coef_type == 'W' || coef_type == 'V') {
-		double *nFluxNum_fIL, *dnFluxNumdWL_fIL, *dnFluxNumdWR_fIL;
-		if (coef_type == 'W') {
-			nFluxNum_fIL     = (double *const) FDATA->NFluxData->nFluxNum_fI,
-			dnFluxNumdWL_fIL = (double *const) FDATA->NFluxData->dnFluxNumdWL_fI,
-			dnFluxNumdWR_fIL = (double *const) FDATA->NFluxData->dnFluxNumdWR_fI;
-		} else if (coef_type == 'V') {
-			nFluxNum_fIL     = (double *const) FDATA->NFluxData->nFluxViscNum_fI,
-			dnFluxNumdWL_fIL = (double *const) FDATA->NFluxData->dnFluxViscNumdWL_fI,
-			dnFluxNumdWR_fIL = (double *const) FDATA->NFluxData->dnFluxViscNumdWR_fI;
-		}
+		double *const nFluxNum_fIL     = FDATA->NFLUXDATA->nFluxNum,
+		       *const dnFluxNumdWL_fIL = FDATA->NFLUXDATA->dnFluxNumdWL,
+		       *const dnFluxNumdWR_fIL = FDATA->NFLUXDATA->dnFluxNumdWR;
 
 		for (size_t eq = 0; eq < Neq; eq++) {
 			size_t const IndnF = eq*NfnI;
@@ -2078,9 +2067,9 @@ void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const ime
 			}
 		}
 	} else if (coef_type == 'Q') {
-		double *const *const nSolNum_fIL     = FDATA->NFluxData->nSolNum_fI,
-		       *const *const dnSolNumdWL_fIL = FDATA->NFluxData->dnSolNumdWL_fI,
-		       *const *const dnSolNumdWR_fIL = FDATA->NFluxData->dnSolNumdWR_fI;
+		double *const *const nSolNum_fIL     = FDATA->NFLUXDATA->nSolNum,
+		       *const *const dnSolNumdWL_fIL = FDATA->NFLUXDATA->dnSolNumdWL,
+		       *const *const dnSolNumdWR_fIL = FDATA->NFLUXDATA->dnSolNumdWR;
 
 		for (size_t dim = 0; dim < d; dim++) {
 			for (size_t eq = 0; eq < Neq; eq++) {
@@ -2112,8 +2101,8 @@ void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const ime
 			}
 		}
 	} else if (coef_type == 'P') {
-		double *const *const dnFluxViscNumdQL_fIL = FDATA->NFluxData->dnFluxViscNumdQL_fI,
-		       *const *const dnFluxViscNumdQR_fIL = FDATA->NFluxData->dnFluxViscNumdQR_fI;
+		double *const *const dnFluxViscNumdQL_fIL = FDATA->NFLUXDATA->dnFluxNumdQL,
+		       *const *const dnFluxViscNumdQR_fIL = FDATA->NFLUXDATA->dnFluxNumdQR;
 
 		if (imex_type == 'E') {
 			EXIT_UNSUPPORTED;
@@ -2180,16 +2169,9 @@ static void swap_FACE_orientation(struct S_FDATA const *const FDATA, char const 
 	                   *const nOrdLR = OPS[IndFType]->nOrdLR;
 
 	if (coef_type == 'W' || coef_type == 'V') {
-		double *nFluxNum_fI, *dnFluxNumdWL_fI, *dnFluxNumdWR_fI;
-		if (coef_type == 'W') {
-			nFluxNum_fI     = (double *const) FDATA->NFluxData->nFluxNum_fI,
-			dnFluxNumdWL_fI = (double *const) FDATA->NFluxData->dnFluxNumdWL_fI,
-			dnFluxNumdWR_fI = (double *const) FDATA->NFluxData->dnFluxNumdWR_fI;
-		} else if (coef_type == 'V') {
-			nFluxNum_fI     = (double *const) FDATA->NFluxData->nFluxViscNum_fI,
-			dnFluxNumdWL_fI = (double *const) FDATA->NFluxData->dnFluxViscNumdWL_fI,
-			dnFluxNumdWR_fI = (double *const) FDATA->NFluxData->dnFluxViscNumdWR_fI;
-		}
+		double *const nFluxNum_fI     = FDATA->NFLUXDATA->nFluxNum,
+		       *const dnFluxNumdWL_fI = FDATA->NFLUXDATA->dnFluxNumdWL,
+		       *const dnFluxNumdWR_fI = FDATA->NFLUXDATA->dnFluxNumdWR;
 
 		if (imex_type == 'E') {
 			for (size_t i = 0, iMax = Neq*NfnI; i < iMax; i++)
@@ -2207,7 +2189,7 @@ static void swap_FACE_orientation(struct S_FDATA const *const FDATA, char const 
 		}
 	} else if (coef_type == 'Q') {
 		if (imex_type == 'E') {
-			double *const *const nSolNum_fI = FDATA->NFluxData->nSolNum_fI;
+			double *const *const nSolNum_fI = FDATA->NFLUXDATA->nSolNum;
 
 			for (size_t dim = 0; dim < d; dim++) {
 				for (size_t i = 0, iMax = Neq*NfnI; i < iMax; i++)
@@ -2216,13 +2198,13 @@ static void swap_FACE_orientation(struct S_FDATA const *const FDATA, char const 
 				array_rearrange_d(NfnI,Neq,nOrdLR,'C',nSolNum_fI[dim]);
 			}
 		} else if (imex_type == 'I') {
-			double *const *const dnSolNumdWL_fI = FDATA->NFluxData->dnSolNumdWL_fI,
-			       *const *const dnSolNumdWR_fI = FDATA->NFluxData->dnSolNumdWR_fI;
+			double *const *const dnSolNumdWL_fI = FDATA->NFLUXDATA->dnSolNumdWL,
+			       *const *const dnSolNumdWR_fI = FDATA->NFLUXDATA->dnSolNumdWR;
 
 			unsigned int eqMax, varMax;
 			if (FACE->Boundary) {
-				eqMax  = d+2;
-				varMax = d+2;
+				eqMax  = Neq;
+				varMax = Nvar;
 			} else {
 				eqMax  = 1;
 				varMax = 1;
@@ -2239,8 +2221,8 @@ static void swap_FACE_orientation(struct S_FDATA const *const FDATA, char const 
 			}
 		}
 	} else if (coef_type == 'P') {
-		double *const *const dnFluxViscNumdQL_fI = FDATA->NFluxData->dnFluxViscNumdQL_fI,
-		       *const *const dnFluxViscNumdQR_fI = FDATA->NFluxData->dnFluxViscNumdQR_fI;
+		double *const *const dnFluxViscNumdQL_fI = FDATA->NFLUXDATA->dnFluxNumdQL,
+		       *const *const dnFluxViscNumdQR_fI = FDATA->NFLUXDATA->dnFluxNumdQR;
 
 		if (imex_type == 'E') {
 			EXIT_UNSUPPORTED;
@@ -2553,7 +2535,7 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 		                   *const VFPartUnity         = DB.VFPartUnity,
 		                   *const *const *const SF_BE = (unsigned int const *const *const *const) DB.SF_BE;
 
-		double const *const *const nSolNum_fI = (double const *const *const) FDATA->NFluxData->nSolNum_fI;
+		double const *const *const nSolNum_fI = (double const *const *const) FDATA->NFLUXDATA->nSolNum;
 
 		unsigned int NIn[DMAX], NOut[DMAX], Diag[DMAX], NIn0, NIn1;
 		double const *OP[DMAX], *const *OP0, *const *OP1;
@@ -2638,7 +2620,7 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 
 			unsigned int const NvnSL = OPSL[0]->NvnS;
 
-			double const *const *const dnSolNumdWL_fI = (double const *const *const) FDATAL->NFluxData->dnSolNumdWL_fI;
+			double const *const *const dnSolNumdWL_fI = (double const *const *const) FDATAL->NFLUXDATA->dnSolNumdWL;
 
 			// QhatL_WhatL (Effect of (L)eft VOLUME on (L)eft VOLUME)
 			I_FF   = OPSL[0]->I_Weak_FF[VfL];
@@ -2653,8 +2635,8 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 				EXIT_UNSUPPORTED;
 
 			double const *      ChiS_fI;
-			double const *const *const dnSolNumdWL_fI = (double const *const *const) FDATAL->NFluxData->dnSolNumdWL_fI;
-			double const *const *const dnSolNumdWR_fI = (double const *const *const) FDATAL->NFluxData->dnSolNumdWR_fI;
+			double const *const *const dnSolNumdWL_fI = (double const *const *const) FDATAL->NFLUXDATA->dnSolNumdWL;
+			double const *const *const dnSolNumdWR_fI = (double const *const *const) FDATAL->NFLUXDATA->dnSolNumdWR;
 
 			unsigned int const NvnSL         = OPSL[0]->NvnS,
 			                   NvnSR         = OPSR[0]->NvnS,
@@ -2775,7 +2757,7 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 
 	struct S_OPERATORS_F const *const *const OPSL = (struct S_OPERATORS_F const *const *const) FDATAL->OPS,
 	                           *const *const OPSR = (struct S_OPERATORS_F const *const *const) FDATAR->OPS;
-	struct S_NumericalFlux const *const NFluxData = (struct S_NumericalFlux const *const) FDATAL->NFluxData;
+	struct S_NUMERICALFLUX const *const NFLUXDATA = (struct S_NUMERICALFLUX const *const) FDATAL->NFLUXDATA;
 
 	unsigned int const d        = DB.d,
 	                   VfL      = FDATAL->Vf,
@@ -2790,7 +2772,7 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 	if (side == 'L') {
 		unsigned int const NvnSL = OPSL[0]->NvnS;
 
-		double const *const *const dnFluxViscNumdQL_fI = (double const *const *const) NFluxData->dnFluxViscNumdQL_fI;
+		double const *const *const dnFluxViscNumdQL_fI = (double const *const *const) NFLUXDATA->dnFluxNumdQL;
 
 		// QL_WhatL (Effect of QL(WL,...))
 		I_FF   = OPSL[0]->I_Weak_FF[VfL];
@@ -2809,8 +2791,8 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 		                   *const nOrdLR = OPSL[IndFType]->nOrdLR;
 
 		double const *const *      Qp_What;
-		double const *const *const dnFluxViscNumdQL_fI = (double const *const *const) NFluxData->dnFluxViscNumdQL_fI;
-		double const *const *const dnFluxViscNumdQR_fI = (double const *const *const) NFluxData->dnFluxViscNumdQR_fI;
+		double const *const *const dnFluxViscNumdQL_fI = (double const *const *const) NFLUXDATA->dnFluxNumdQL;
+		double const *const *const dnFluxViscNumdQR_fI = (double const *const *const) NFLUXDATA->dnFluxNumdQR;
 
 		unsigned int const NvnSL = OPSL[0]->NvnS,
 		                   NvnSR = OPSR[0]->NvnS;

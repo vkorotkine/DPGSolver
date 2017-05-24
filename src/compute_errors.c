@@ -120,7 +120,25 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 	XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
 	mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
 
-	if (strstr(TestCase,"Poisson")) {
+	if (strstr(TestCase,"Advection")) {
+		for (i = 0, iMax = 1; i < iMax; i++)
+			L2Error2[i] = 0.0;
+
+		u = malloc(NvnI * sizeof *u); // free
+		mm_CTN_d(NvnI,1,NvnS,ChiS_vI,VOLUME->What,u);
+
+		uEx = malloc(NvnI * sizeof *uEx); // free
+		compute_exact_solution(NvnI,XYZ_vI,uEx,solved);
+
+		for (i = 0, iMax = 1; i < iMax; i++) {
+			for (j = 0; j < NvnI; j++) {
+				err = u[j]-uEx[j];
+				L2Error2[i] += err*err*wdetJV_vI[j];
+			}
+		}
+		free(u);
+		free(uEx);
+	} else if (strstr(TestCase,"Poisson")) {
 		for (i = 0, iMax = DMAX+1; i < iMax; i++)
 			L2Error2[i] = 0.0;
 
@@ -406,7 +424,9 @@ void compute_errors_global(void)
 	DOF = 0; Vol = 0.0;
 
 	CurvedOnly = 0;
-	if (strstr(TestCase,"Poisson")) {
+	if (strstr(TestCase,"Advection")) {
+		NvarError = 1;
+	} else if (strstr(TestCase,"Poisson")) {
 		NvarError = DMAX+1;
 	} else if (strstr(TestCase,"PeriodicVortex") ||
 	           strstr(TestCase,"SupersonicVortex")) {
@@ -470,7 +490,9 @@ static void output_errors(const double *L2Error2, const unsigned int NvarError, 
 	if ((fID = fopen(f_name,"w")) == NULL)
 		printf("Error: File: %s, did not open.\n",f_name), EXIT_MSG;
 
-	if (strstr(TestCase,"Poisson")) {
+	if (strstr(TestCase,"Advection")) {
+		fprintf(fID,"DOF         Vol         L2u2\n");
+	} else if (strstr(TestCase,"Poisson")) {
 		fprintf(fID,"DOF         Vol         L2u2        L2q1_2      L2q2_2      L2q3_2\n");
 	} else if (strstr(TestCase,"PeriodicVortex") ||
 	           strstr(TestCase,"SupersonicVortex")) {
@@ -544,7 +566,9 @@ static void collect_errors(const unsigned int NvarError)
 	if ((fID = fopen(f_name,"w")) == NULL)
 		printf("Error: File: %s, did not open.\n",f_name), EXIT_MSG;
 
-	if (strstr(TestCase,"Poisson")) {
+	if (strstr(TestCase,"Advection")) {
+		fprintf(fID,"DOF         L2u\n");
+	} else if (strstr(TestCase,"Poisson")) {
 		fprintf(fID,"DOF         L2u         L2q1        L2q2        L2q3\n");
 	} else if (strstr(TestCase,"PeriodicVortex") ||
 	           strstr(TestCase,"SupersonicVortex")) {

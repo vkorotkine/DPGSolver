@@ -116,14 +116,14 @@ void implicit_GradW_FACE(void)
 	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
 	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
-	struct S_NumericalFlux *const NFluxData = malloc(sizeof *NFluxData); // free
-	FDATAL->NFluxData = NFluxData;
-	FDATAR->NFluxData = NFluxData;
+	struct S_NUMERICALFLUX *const NFLUXDATA = malloc(sizeof *NFLUXDATA); // free
+	FDATAL->NFLUXDATA = NFLUXDATA;
+	FDATAR->NFLUXDATA = NFLUXDATA;
 
 	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
 	DATA->FDATAL    = FDATAL;
 	DATA->FDATAR    = FDATAR;
-	DATA->NFluxData = NFluxData;
+	DATA->NFLUXDATA = NFLUXDATA;
 	DATA->feature   = 'F';
 	DATA->imex_type = 'I';
 
@@ -143,8 +143,8 @@ void implicit_GradW_FACE(void)
 		compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
 
 		// Compute numerical flux as seen from the left VOLUME
-		NFluxData->WL_fIL = FDATAL->W_fIL;
-		NFluxData->WR_fIL = FDATAR->W_fIL;
+		NFLUXDATA->WL = FDATAL->W_fIL;
+		NFLUXDATA->WR = FDATAR->W_fIL;
 		manage_solver_memory(DATA,'A','S'); // free
 
 		compute_numerical_solution(FDATAL,'I');
@@ -165,7 +165,7 @@ void implicit_GradW_FACE(void)
 		free(OPSL[i]);
 		free(OPSR[i]);
 	}
-	free(NFluxData);
+	free(NFLUXDATA);
 	free(FDATAL);
 	free(FDATAR);
 	free(DATA);

@@ -49,9 +49,9 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
 	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
-	struct S_NumericalFlux *const NFluxData = malloc(sizeof *NFluxData); // free
-	FDATAL->NFluxData = NFluxData;
-	FDATAR->NFluxData = NFluxData;
+	struct S_NUMERICALFLUX *const NFLUXDATA = malloc(sizeof *NFLUXDATA); // free
+	FDATAL->NFLUXDATA = NFLUXDATA;
+	FDATAR->NFLUXDATA = NFLUXDATA;
 
 	for (size_t i = 0; i < 2; i++) {
 		OPSL[i] = malloc(sizeof *OPSL[i]); // free
@@ -75,9 +75,9 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 
 
 			// Compute numerical flux as seen from the left VOLUME
-			NFluxData->WL_fIL_c      = FDATAL->W_fIL_c;
-			NFluxData->WR_fIL_c      = FDATAR->W_fIL_c;
-			NFluxData->nFluxNum_fI_c = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxNum_fI_c)); // free
+			NFLUXDATA->WL_c       = FDATAL->W_fIL_c;
+			NFLUXDATA->WR_c       = FDATAR->W_fIL_c;
+			NFLUXDATA->nFluxNum_c = malloc(NfnI*Neq * sizeof *(NFLUXDATA->nFluxNum_c)); // free
 
 			compute_numerical_flux_c(FDATAL,'E');
 			add_Jacobian_scaling_FACE_c(FDATAL,'E','W');
@@ -93,17 +93,17 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 			if (FACE->RHSL_c != NULL)
 				free(FACE->RHSL_c);
 			FACE->RHSL_c = calloc(NvnSL*Neq , sizeof *(FACE->RHSL_c)); // keep
-			finalize_FACE_Inviscid_Weak_c(FDATAL,FDATAR,NFluxData->nFluxNum_fI_c,'L','E','W');
+			finalize_FACE_Inviscid_Weak_c(FDATAL,FDATAR,NFLUXDATA->nFluxNum_c,'L','E','W');
 
 			if (!FACE->Boundary) {
 				if (FACE->RHSR_c != NULL)
 					free(FACE->RHSR_c);
 				FACE->RHSR_c = calloc(NvnSR*Neq , sizeof *(FACE->RHSR_c)); // keep
 
-				finalize_FACE_Inviscid_Weak_c(FDATAL,FDATAR,NFluxData->nFluxNum_fI_c,'R','E','W');
+				finalize_FACE_Inviscid_Weak_c(FDATAL,FDATAR,NFLUXDATA->nFluxNum_c,'R','E','W');
 			}
 
-			free(NFluxData->nFluxNum_fI_c);
+			free(NFLUXDATA->nFluxNum_c);
 		}
 	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;
@@ -113,7 +113,7 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 		free(OPSL[i]);
 		free(OPSR[i]);
 	}
-	free(NFluxData);
+	free(NFLUXDATA);
 	free(FDATAL);
 	free(FDATAR);
 }
@@ -134,9 +134,9 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
 	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
-	struct S_NumericalFlux *const NFluxData = malloc(sizeof *NFluxData); // free
-	FDATAL->NFluxData = NFluxData;
-	FDATAR->NFluxData = NFluxData;
+	struct S_NUMERICALFLUX *const NFLUXDATA = malloc(sizeof *NFLUXDATA); // free
+	FDATAL->NFLUXDATA = NFLUXDATA;
+	FDATAR->NFLUXDATA = NFLUXDATA;
 
 	for (size_t i = 0; i < 2; i++) {
 		OPSL[i] = malloc(sizeof *OPSL[i]); // free
@@ -173,9 +173,9 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 
 
 			// Compute numerical flux as seen from the left VOLUME
-			NFluxData->WL_fIL_c = FDATAL->W_fIL_c;
-			NFluxData->WR_fIL_c = FDATAR->W_fIL_c;
-			NFluxData->nFluxViscNum_fI_c = malloc(NfnI*Neq * sizeof *(NFluxData->nFluxViscNum_fI_c)); // free
+			NFLUXDATA->WL_c = FDATAL->W_fIL_c;
+			NFLUXDATA->WR_c = FDATAR->W_fIL_c;
+			NFLUXDATA->nFluxNum_c = malloc(NfnI*Neq * sizeof *(NFLUXDATA->nFluxNum_c)); // free
 
 			compute_numerical_flux_viscous_c(FDATAL,FDATAR,'E');
 			add_Jacobian_scaling_FACE_c(FDATAL,'E','V');
@@ -186,12 +186,12 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 			array_free2_cmplx(d,QpR_fIL_c);
 
 			// Compute FACE RHS terms
-			finalize_FACE_Viscous_Weak_c(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI_c,'L','E','V');
+			finalize_FACE_Viscous_Weak_c(FDATAL,FDATAR,NFLUXDATA->nFluxNum_c,'L','E','V');
 			if (!FACE->Boundary) {
-				finalize_FACE_Viscous_Weak_c(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI_c,'R','E','V');
+				finalize_FACE_Viscous_Weak_c(FDATAL,FDATAR,NFLUXDATA->nFluxNum_c,'R','E','V');
 			}
 
-			free(NFluxData->nFluxViscNum_fI_c);
+			free(NFLUXDATA->nFluxNum_c);
 		}
 	} else if (strstr(DB.Form,"Strong")) {
 		// Note that the viscous flux is negated.
@@ -202,7 +202,7 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 		free(OPSL[i]);
 		free(OPSR[i]);
 	}
-	free(NFluxData);
+	free(NFLUXDATA);
 	free(FDATAL);
 	free(FDATAR);
 }

@@ -146,8 +146,8 @@ static void compute_Viscous_VOLUME_EFE(void)
 		return;
 
 	unsigned int d    = DB.d,
-				 Nvar = d+2,
-				 Neq  = d+2;
+				 Nvar = DB.Nvar,
+				 Neq  = DB.Neq;
 
 	struct S_OPERATORS_V *OPS[2];
 

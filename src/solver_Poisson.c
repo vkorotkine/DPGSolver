@@ -37,6 +37,9 @@
  *		Many of the RHS terms computed are 0; they are included as they are used to check the linearization. Further,
  *		the computational cost is dominated by the global system solve making this additional cost negligible.
  *
+ *		Modify the implementation such that the implicit_VOLUME/FACE functions can be called directly here (Analogously
+ *		to solver_Advection). (ToBeModified)
+ *
  *	Notation:
  *
  *	References:
@@ -109,14 +112,14 @@ static void compute_What_FACE()
 	FDATAL->OPS = (struct S_OPERATORS_F const *const *) OPSL;
 	FDATAR->OPS = (struct S_OPERATORS_F const *const *) OPSR;
 
-	struct S_NumericalFlux *NFluxData = malloc(sizeof *NFluxData); // free
-	FDATAL->NFluxData = NFluxData;
-	FDATAR->NFluxData = NFluxData;
+	struct S_NUMERICALFLUX *NFLUXDATA = malloc(sizeof *NFLUXDATA); // free
+	FDATAL->NFLUXDATA = NFLUXDATA;
+	FDATAR->NFLUXDATA = NFLUXDATA;
 
 	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
 	DATA->FDATAL    = FDATAL;
 	DATA->FDATAR    = FDATAR;
-	DATA->NFluxData = NFluxData;
+	DATA->NFLUXDATA = NFLUXDATA;
 	DATA->feature   = 'F';
 	DATA->imex_type = 'I';
 
@@ -139,8 +142,8 @@ static void compute_What_FACE()
 		                   (double const *const *const) FDATAL->Qp_fIL,FDATAR->Qp_fIL,'I');
 
 		// Compute numerical flux and its Jacobian as seen from the left VOLUME
-		NFluxData->WL_fIL = FDATAL->W_fIL;
-		NFluxData->WR_fIL = FDATAR->W_fIL;
+		NFLUXDATA->WL = FDATAL->W_fIL;
+		NFLUXDATA->WR = FDATAR->W_fIL;
 		manage_solver_memory(DATA,'A','P'); // free
 
 		compute_numerical_flux_viscous(FDATAL,FDATAR,'I');
@@ -155,12 +158,12 @@ static void compute_What_FACE()
 		                   NfnI     = OPSL[IndFType]->NfnI;
 
 		for (size_t n = 0; n < NfnI; n++)
-			NFluxData->nFluxViscNum_fI[n] *= -1.0;
+			NFLUXDATA->nFluxNum[n] *= -1.0;
 
 		for (size_t dim = 0; dim < d; dim++) {
 			for (size_t n = 0; n < NfnI; n++) {
-				NFluxData->dnFluxViscNumdQL_fI[dim][n] *= -1.0;
-				NFluxData->dnFluxViscNumdQR_fI[dim][n] *= -1.0;
+				NFLUXDATA->dnFluxNumdQL[dim][n] *= -1.0;
+				NFLUXDATA->dnFluxNumdQR[dim][n] *= -1.0;
 			}
 		}
 
@@ -184,12 +187,12 @@ static void compute_What_FACE()
 
 		// Interior FACE
 
-		finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'L','E','V');
+		finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'L','E','V');
 		finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'L');
 
 		// Exterior FACE
 		if (!FACE->Boundary) {
-			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFluxData->nFluxViscNum_fI,NULL,'R','E','V');
+			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'R','E','V');
 			finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'R');
 		}
 		manage_solver_memory(DATA,'F','P');
@@ -201,7 +204,7 @@ static void compute_What_FACE()
 
 	free(FDATAL);
 	free(FDATAR);
-	free(NFluxData);
+	free(NFLUXDATA);
 	free(DATA);
 }
 

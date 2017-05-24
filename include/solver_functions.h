@@ -80,18 +80,6 @@ struct S_OPERATORS_F {
 	double const *const *ChiS_fI_SF, *const *ChiS_vI_SF, *const *I_Weak_FF_SF, *const *I_Weak_VV_SF;
 };
 
-struct S_NumericalFlux {
-	double const *WL_fIL, *WR_fIL;
-	double       *nFluxNum_fI,     *dnFluxNumdWL_fI,     *dnFluxNumdWR_fI,
-	             **nSolNum_fI,     **dnSolNumdWL_fI,     **dnSolNumdWR_fI,
-	             *nFluxViscNum_fI, *dnFluxViscNumdWL_fI, *dnFluxViscNumdWR_fI,
-	             **dnFluxViscNumdQL_fI, **dnFluxViscNumdQR_fI;
-
-	// Only used for verification.
-	double complex const *WL_fIL_c, *WR_fIL_c;
-	double complex       *nFluxNum_fI_c, **nSolNum_fI_c, *nFluxViscNum_fI_c;
-};
-
 struct S_FDATA {
 	char         side;
 	unsigned int P, Vf, f, SpOp, Eclass, IndFType;
@@ -101,7 +89,7 @@ struct S_FDATA {
 	struct S_VOLUME      const *VOLUME;
 	struct S_FACE        const *FACE;
 
-	struct S_NumericalFlux const *NFluxData;
+	struct S_NUMERICALFLUX const *NFLUXDATA;
 
 	// Only used for verification.
 	double complex *W_fIL_c, **Qp_fIL_c, **QhatF_c;
@@ -141,7 +129,7 @@ struct S_DATA {
 	struct S_FDATA *FDATAL, *FDATAR;
 
 	struct S_FLUX          *FLUXDATA;
-	struct S_NumericalFlux *NFluxData;
+	struct S_NUMERICALFLUX *NFLUXDATA;
 };
 
 extern void manage_solver_memory (struct S_DATA *const DATA, char const mem_op, char const mem_type);

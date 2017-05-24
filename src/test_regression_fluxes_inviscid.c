@@ -45,6 +45,7 @@ void test_regression_fluxes_inviscid(void)
 	Nn  = 3;
 	Nel = 2;
 
+	FLUX->PDE_index = PDE_EULER;
 	FLUX->Nn  = Nn;
 	FLUX->Nel = Nel;
 
