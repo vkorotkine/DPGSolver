@@ -6,7 +6,7 @@ L2_PROJ_P := n-Cube/Euler/Periodic/PeriodicVortex/n-Cube2D_TRI0x.msh n-Cube/Eule
 
 L2_PROJ_H := 
 
-ADVECTION_TEST := n-Cube/Advection/Steady/Default/YL/n-Cube2D_TRI1x.msh
+ADVECTION_TEST := n-Cube/Advection/Steady/Default/YL/n-Cube2D_TRI1x.msh n-Cube/Advection/Steady/Default/YL/n-Cube2D_QUAD0x.msh
 
 POISSON_TEST := n-Ball_HollowSection/Poisson/n-Ball_HollowSection2D_CurvedMIXED2D0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedTRI0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedQUAD0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedMIXED2D0x.msh
 

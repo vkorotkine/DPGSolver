@@ -213,7 +213,8 @@ static void compute_underRelax(struct S_VOLUME *VOLUME, const double *dWhat, dou
 	free(dU);
 }
 
-void solver_implicit_linear_system(Mat *A, Vec *b, Vec *x, KSP *ksp, unsigned int const iteration, bool const PrintEnabled)
+void solver_implicit_linear_system(Mat *A, Vec *b, Vec *x, KSP *ksp, unsigned int const iteration,
+                                   bool const PrintEnabled)
 {
 	if (PrintEnabled) { printf("F "); }
 	double const maxRHS = finalize_LHS(A,b,x,0);

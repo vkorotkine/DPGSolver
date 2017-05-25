@@ -250,7 +250,9 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 	// silence
 	NVars = 0;
 
-	if (strstr(TestCase,"Poisson")) {
+	if (strstr(TestCase,"Advection")) {
+		NVars = 1;
+	} else if (strstr(TestCase,"Poisson")) {
 		NVars = DMAX+1;
 	} else if (strstr(TestCase,"SupersonicVortex") ||
 	           strstr(TestCase,"PeriodicVortex")) {
@@ -266,7 +268,12 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 
 	VarsToCheck    = malloc(NVars * sizeof *VarsToCheck);    // free
 	OrderIncrement = malloc(NVars * sizeof *OrderIncrement); // free
-	if (strstr(TestCase,"Poisson")) {
+	if (strstr(TestCase,"Advection")) {
+		for (size_t i = 0; i < NVars; i++) {
+			OrderIncrement[i] = 1;
+			VarsToCheck[i]    = 1;
+		}
+	} else if (strstr(TestCase,"Poisson")) {
 		for (i = 0; i < NVars; i++) {
 			OrderIncrement[i] = 0;
 			if (i == 0) {

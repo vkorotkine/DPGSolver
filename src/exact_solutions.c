@@ -320,7 +320,7 @@ static double get_boundary_value_Advection(double const x, double const y, doubl
 		if (!(b[0] == 0.0 && b[1] == 1.0 && b[2] == 0.0))
 			EXIT_UNSUPPORTED;
 
-		uEx = sin(6.0*x);
+		uEx = sin(2.0*x);
 	} else {
 		EXIT_UNSUPPORTED;
 		printf("%f %f\n",y,z);

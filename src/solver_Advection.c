@@ -31,12 +31,9 @@
 
 /*
  *	Purpose:
- *		Provide functions for the Advection solver.
+ *		Solve the linear Advection equation.
  *
  *	Comments:
- *		Many of the RHS terms computed are 0; they are included as they are used to check the linearization. Further,
- *		the computational cost is dominated by the global system solve making this additional cost negligible.
- *
  *		It is currently assumed that div (dot) b = 0.
  *
  *	Notation:
@@ -50,7 +47,6 @@ void solver_Advection(bool const PrintEnabled)
 		explicit_VOLUME_info();
 		explicit_FACE_info();
 		EXIT_UNSUPPORTED;
-		printf("%d\n",PrintEnabled);
 	} else if (strstr(DB.SolverType,"Implicit")) {
 		if (PrintEnabled) { printf("V");  } implicit_VOLUME_info();
 		if (PrintEnabled) { printf("F");  } implicit_FACE_info();

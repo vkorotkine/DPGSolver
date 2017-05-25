@@ -105,9 +105,9 @@ class TestCase_class:
 			if (self.name.lower().find('test') != -1):
 				self.VarName = 'ADVECTION_TEST'
 
-				MeshCurving.extend(('' for i in range (0,1)))
-				MeshTypes.append(('TRI'))
-				MeshTypesPrefix.extend(('Default_n-Cube_' for i in range(0,1)))
+				MeshCurving.extend(('' for i in range (0,2)))
+				MeshTypes.extend(('TRI','QUAD'))
+				MeshTypesPrefix.extend(('Default_n-Cube_' for i in range(0,2)))
 
 				NTotal = len(MeshTypes)
 				if (MeshName.find('all') != -1):

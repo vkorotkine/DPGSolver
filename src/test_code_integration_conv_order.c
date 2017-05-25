@@ -72,12 +72,15 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 	data->IntOrder_mult = 2;
 
 	if (strstr(TestName,"Advection")) {
+data->PrintEnabled = 1;
 		data->AdaptiveRefine = 0;
-		data->PMin   = 2;
-		data->MLMax  = 2;
+		data->MLMax  = 4;
 		if (strstr(TestName,"n-Cube_Default")) {
 			if (strstr(TestName,"TRI")) {
 				strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_TRI");
+			} else if (strstr(TestName,"QUAD")) {
+				data->IntOrder_add  = 2; // The exact solution is obtained if this is omitted
+				strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_QUAD");
 			} else {
 				EXIT_UNSUPPORTED;
 			}

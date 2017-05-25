@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #include "Parameters.h"
+#include "Macros.h"
 
 #include "test_code_integration_conv_order.h"
 #include "test_code_integration_linearization.h"
@@ -21,6 +22,10 @@
  *			- Optimal convergence orders.
  *
  *	Comments:
+ *		Convergence order tests failed (TRI/QUAD) meshes when using a GLL nodal basis (but succeeded for WSH/GL nodal
+ *		and all modal). The failure was due to KSPConvergedReason = -11. Aditya tried with a pseudotimestepping code and
+ *		obtained optimal orders for P2 EQ nodes.
+ *		INVESTIGATE (ToBeModified)
  *
  *	Notation:
  *
@@ -76,6 +81,8 @@ void test_integration_Advection(int nargc, char **argv)
 		data_c->PrintName = PrintName;
 
 		test_conv_order(data_c,"Advection_n-Cube_Default_TRI");
+		test_conv_order(data_c,"Advection_n-Cube_Default_QUAD");
+
 		test_conv_order(data_c,"Advection_n-Cube_Peterson_TRI");
 
 		free(data_c);
