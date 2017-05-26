@@ -95,7 +95,10 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 	strcpy(data->argvNew[1],"test/");
 	if (strstr(TestName,"Advection")) {
 		if (strstr(TestName,"StraightTRI")) {
-			strcpy(data->argvNew[1],"test/Advection/Test_Advection_n-Cube_TRI");
+			strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_TRI");
+		} else if (strstr(TestName,"StraightQUAD")) {
+			data->IntOrder_add  = 2; // The exact solution is obtained if this is omitted
+			strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_QUAD");
 		} else {
 			EXIT_UNSUPPORTED;
 		}
@@ -273,15 +276,13 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 			set_PrintName("linearization",data->PrintName,&data->TestTRI);
 			if (strstr(TestName,"Poisson")) {
 				implicit_info_Poisson();
-			} else if (strstr(TestName,"Euler") || strstr(TestName,"NavierStokes")) {
+			} else {
 				// Comment implicit_FACE_info here and used Q_vI = ChiS_vI*VOLUME->QhatV to only check VOLUME-VOLUME
 				// contribution to the VOLUME term.
 
 				implicit_GradW(); // Only executed if DB.Viscous = 1
 				implicit_VOLUME_info();
 				implicit_FACE_info();
-			} else {
-				EXIT_UNSUPPORTED;
 			}
 
 			if (!CheckFullLinearization) {
@@ -390,13 +391,8 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 		initialize_KSP(A,b,x);
 
 	if (AllowOffDiag) {
-		if (strstr(DB.TestCase,"Poisson") || strstr(DB.TestCase,"NavierStokes")) {
+		if (DB.Viscous)
 			TestDB.CheckOffDiagonal = 1;
-		} else if (strstr(DB.TestCase,"Euler")) {
-			; // Do nothing
-		} else {
-			EXIT_UNSUPPORTED;
-		}
 	}
 
 	if (assemble_type == 0) {
@@ -414,7 +410,7 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 		NvnS[0] = VOLUME->NvnS;
 
 		// Note: Initialize with zeros for linear cases.
-		if (strstr(DB.TestCase,"Poisson")) {
+		if (strstr(DB.TestCase,"Advection") || strstr(DB.TestCase,"Poisson")) {
 			if (VOLUME->What_c)
 				free(VOLUME->What_c);
 
@@ -441,12 +437,10 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 				explicit_GradW_c();
 				compute_What_VOLUME_c();
 				compute_What_FACE_c();
-			} else if (strstr(DB.TestCase,"Euler") || strstr(DB.TestCase,"NavierStokes")) {
+			} else {
 				explicit_GradW_c();
 				explicit_VOLUME_info_c();
 				explicit_FACE_info_c();
-			} else {
-				EXIT_UNSUPPORTED;
 			}
 
 			if (assemble_type == 1) {
@@ -585,12 +579,10 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 				explicit_GradW_c();
 				compute_What_VOLUME_c();
 				compute_What_FACE_c();
-			} else if (strstr(DB.TestCase,"Euler") || strstr(DB.TestCase,"NavierStokes")) {
+			} else {
 				explicit_GradW_c();
 				explicit_VOLUME_info_c();
 				explicit_FACE_info_c();
-			} else {
-				EXIT_UNSUPPORTED;
 			}
 			finalize_RHS_c();
 

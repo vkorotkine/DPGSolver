@@ -29,7 +29,7 @@ double *compute_b_Advection(unsigned int const Nn, double const *const XYZ)
 
 	double *const b = malloc(Nn*d * sizeof *b); // keep
 
-	if (strstr(PDESpecifier,"Default")) {
+	if (strstr(PDESpecifier,"Default") || strstr(PDESpecifier,"Peterson")) {
 		if (strstr(PDESpecifier,"Unsteady")) {
 			EXIT_UNSUPPORTED;
 		} else if (strstr(PDESpecifier,"Steady")) {

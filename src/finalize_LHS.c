@@ -278,8 +278,8 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 			                   NvnS  = VOLUME->NvnS,
 			                   NvnS2 = VOLUME2->NvnS;
 
-			PetscInt *const m = malloc(NvnS * sizeof *m), // free
-			         *const n = malloc(NvnS * sizeof *n); // free
+			PetscInt *const m = malloc(NvnS  * sizeof *m), // free
+			         *const n = malloc(NvnS2 * sizeof *n); // free
 
 			for (size_t eq = 0; eq < Neq; eq++) {
 				size_t const Indm = IndA + eq*NvnS;

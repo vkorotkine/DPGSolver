@@ -314,7 +314,7 @@ static double get_boundary_value_Advection(double const x, double const y, doubl
 	char const *const PDESpecifier = DB.PDESpecifier;
 
 	double uEx = 0.0;
-	if (strstr(PDESpecifier,"Steady/Default")) {
+	if (strstr(PDESpecifier,"Steady/Default") || strstr(PDESpecifier,"Steady/Peterson")) {
 		double const *const b = DB.ADV_b;
 
 		if (!(b[0] == 0.0 && b[1] == 1.0 && b[2] == 0.0))

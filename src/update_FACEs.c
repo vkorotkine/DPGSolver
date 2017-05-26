@@ -1989,6 +1989,7 @@ void update_FACE_hp(void)
 				setup_normals(FACE);
 			}
 		}
+		update_memory_FACEs();
 		break;
 	}
 }

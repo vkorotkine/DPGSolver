@@ -13,11 +13,15 @@ References:
 BC_INFLOW  = 13
 BC_OUTFLOW = 14
 
+DPG_ROOT    = '../../'
+PYTHON_ROOT = DPG_ROOT + 'python/'
+MESHES_ROOT = DPG_ROOT + 'meshes/'
+
 import sys
+import os
 import math
 import numpy as np
 
-PYTHON_ROOT = '../'
 sys.path.insert(0,PYTHON_ROOT)
 from support_functions import EXIT_TRACEBACK
 from support_functions import list_print
@@ -52,11 +56,18 @@ class Mesh_c:
 		self.gmsh_elements = []
 
 	def compute_nonzero_cols(self):
+		ensure_no_intersection = 0 # Ensure that vertical lines do not intersect boundary elements
+
 		Interval = (self.NRows-1)/(self.NCols-1)
 
 		NZCols = self.NZCols
 		for i in range(0,self.NCols):
 			Index = round(i*Interval)
+			if (ensure_no_intersection and (Index % 2 != 0)):
+				if (Index < self.NRows/2):
+					Index += 1
+				else:
+					Index -= 1
 			NZCols[Index] = 1
 
 		for i in range(0,self.NRows):
@@ -207,7 +218,6 @@ class Mesh_c:
 					else:
 						conn_E = [base_c+col,base_c+col+1]
 
-					print(col,conn_E)
 					boundaries.append([2,10000+BC_index,line_index]+conn_E)
 
 			elif (math.floor(line_index / 1000) == 2):
@@ -252,11 +262,15 @@ class Mesh_c:
 
 		# LINEs
 		for item in boundaries:
+			for i in range(len(item)-2,len(item)):
+				item[i] += 1
 			gmsh_elements.append([IndE,1]+item)
 			IndE += 1
 
 		# TRIs
 		for item in conn:
+			for i in range(0,len(item)):
+				item[i] += 1
 			gmsh_elements.append([IndE,2,2,9401,4001]+item)
 			IndE += 1
 
@@ -266,7 +280,14 @@ class Mesh_c:
 		def f_write(f,string):
 			f.write(string + '\n')
 
-		f = open('test.msh','w')
+		mesh_dir = MESHES_ROOT + 'n-Cube/Advection/Steady/Peterson/YL/'
+		mesh_name = mesh_dir + 'n-Cube2D_TRI' + str(self.ML) + 'x.msh'
+
+		if not os.path.exists(mesh_dir):
+			os.makedirs(mesh_dir)
+
+		print("Generating mesh: ",mesh_name)
+		f = open(mesh_name,'w')
 
 		# Header
 		f_write(f,'$MeshFormat')
@@ -275,23 +296,27 @@ class Mesh_c:
 
 		# Nodes
 		coordinates = self.coordinates
+		node_index = self.node_index
 
 		f_write(f,'$Nodes')
-		print(coordinates.shape[0])
+		f_write(f,str(sum(x >= 0 for x in node_index)))
 		for n in range(0,coordinates.shape[0]):
-			x = coordinates[n][0]
-			y = coordinates[n][1]
-			z = coordinates[n][2]
-			f_write(f,str(n) + ' ' + str(x) + ' ' + str(y) + ' ' + str(z))
-#			f_write(f,' '.join(np.array_str(coordinates[n])))
+			if (node_index[n] < 0):
+				continue
+			Indn = node_index[n]
+			f_write(f,str(Indn+1) + ' ' + ' '.join([str(x) for x in coordinates[n]]))
 		f_write(f,'$EndNodes')
 
 		# Elements
+		gmsh_elements = self.gmsh_elements
+
+		f_write(f,'$Elements')
+		f_write(f,str(len(gmsh_elements)))
+		for item in gmsh_elements:
+			f_write(f,' '.join([str(x) for x in item]))
+		f_write(f,'$EndElements')
 
 		f.close()
-
-		EXIT_TRACEBACK()
-
 
 
 ### Functions ###
@@ -301,11 +326,11 @@ if __name__ == '__main__':
 	Generate meshes and export in the gmsh format.
 	"""
 
-	sigma = 0.75
-	NML   = 1
+	sigma = 0.75  # Good for suboptimal P1
+#	sigma = 0.875 # Good for suboptimal P2
+	NML   = 6
 
-#	for ML in range(0,NML):
-	for ML in range(2,3):
+	for ML in range(0,NML):
 		Mesh = Mesh_c(sigma,ML)
 
 		Mesh.compute_nonzero_cols()
@@ -318,8 +343,3 @@ if __name__ == '__main__':
 		Mesh.compute_gmsh_elements_array()
 
 		Mesh.output()
-
-	#nodes by line (even and odd)
-	#nodes
-	#connectivity
-	#output_mesh

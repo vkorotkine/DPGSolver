@@ -99,6 +99,39 @@
  *
  */
 
+void set_MeshFile(void)
+{
+	// Set up MeshFile
+	DB.MeshFile = calloc(STRLEN_MAX , sizeof *(DB.MeshFile)); // keep
+
+	char *const d  = malloc(STRLEN_MIN * sizeof *d),  // free
+	     *const ML = malloc(STRLEN_MIN * sizeof *ML); // free
+
+	sprintf(d,"%d",DB.d);
+	sprintf(ML,"%d",DB.ML);
+
+	strcpy(DB.MeshFile,"");
+
+	strcat(DB.MeshFile,DB.MeshPath);
+	strcat(DB.MeshFile,DB.Geometry); strcat(DB.MeshFile,"/");
+	strcat(DB.MeshFile,DB.PDE);      strcat(DB.MeshFile,"/");
+	if (!strstr(DB.PDESpecifier,"NONE")) {
+		strcat(DB.MeshFile,DB.PDESpecifier);
+		strcat(DB.MeshFile,"/");
+	}
+	if (!strstr(DB.GeomSpecifier,"NONE")) {
+		strcat(DB.MeshFile,DB.GeomSpecifier);
+		strcat(DB.MeshFile,"/");
+	}
+	strcat(DB.MeshFile,DB.Geometry);
+	strcat(DB.MeshFile,strcat(d,"D_"));
+	strcat(DB.MeshFile,DB.MeshType);
+	strcat(DB.MeshFile,strcat(ML,"x.msh"));
+
+	free(d);
+	free(ML);
+}
+
 void initialization(int const nargc, char const *const *const argv)
 {
 	// Set DB Parameters
@@ -197,35 +230,7 @@ void initialization(int const nargc, char const *const *const argv)
 	free(MeshCurving);
 
 	// Set up MeshFile
-	DB.MeshFile = calloc(STRLEN_MAX , sizeof *(DB.MeshFile)); // keep
-
-	char *d, *ML;
-	d  = malloc(STRLEN_MIN * sizeof *d);  // free
-	ML = malloc(STRLEN_MIN * sizeof *ML); // free
-
-	sprintf(d,"%d",DB.d);
-	sprintf(ML,"%d",DB.ML);
-
-	strcpy(DB.MeshFile,"");
-
-	strcat(DB.MeshFile,DB.MeshPath);
-	strcat(DB.MeshFile,DB.Geometry); strcat(DB.MeshFile,"/");
-	strcat(DB.MeshFile,DB.PDE);      strcat(DB.MeshFile,"/");
-	if (!strstr(DB.PDESpecifier,"NONE")) {
-		strcat(DB.MeshFile,DB.PDESpecifier);
-		strcat(DB.MeshFile,"/");
-	}
-	if (!strstr(DB.GeomSpecifier,"NONE")) {
-		strcat(DB.MeshFile,DB.GeomSpecifier);
-		strcat(DB.MeshFile,"/");
-	}
-	strcat(DB.MeshFile,DB.Geometry);
-	strcat(DB.MeshFile,strcat(d,"D_"));
-	strcat(DB.MeshFile,DB.MeshType);
-	strcat(DB.MeshFile,strcat(ML,"x.msh"));
-
-	free(d);
-	free(ML);
+	set_MeshFile();
 
 	// Print some information
 	if (!DB.MPIrank && !DB.Testing) {

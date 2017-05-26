@@ -210,7 +210,7 @@ void initialize_test_case_parameters(void)
 		else
 			EXIT_UNSUPPORTED;
 
-		if (strstr(PDESpecifier,"Default")) {
+		if (strstr(PDESpecifier,"Default") || strstr(PDESpecifier,"Peterson")) {
 			DB.ADV_b[0] = 0.0;
 			DB.ADV_b[1] = 1.0;
 			DB.ADV_b[2] = 0.0;

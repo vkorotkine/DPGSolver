@@ -26,8 +26,7 @@
 #include "finalize_LHS.h"
 #include "solver_implicit.h"
 #include "output_to_paraview.h"
-
-#include "array_print.h"
+#include "test_code_output_to_paraview.h"
 
 /*
  *	Purpose:
@@ -221,66 +220,19 @@ void implicit_info_Poisson(void)
 
 void solver_Poisson(bool PrintEnabled)
 {
-	// Initialize DB Parameters
-	unsigned int Nvar = DB.Nvar;
-
-	// Standard datatypes
-	char         *string, *fNameOut;
-	unsigned int i, iMax, IndA, NvnS;
-	int          iteration_ksp;
-	double       maxRHS, *uhat, *duhat;
-
-	struct S_VOLUME *VOLUME;
-
-	fNameOut = malloc(STRLEN_MAX * sizeof *fNameOut); // free
-	string   = malloc(STRLEN_MIN * sizeof *string);   // free
-
-	// Build the RHS and LHS terms
-	Mat                A = NULL;
-	Vec                b = NULL, x = NULL;
-	KSP                ksp;
-	KSPConvergedReason reason;
-
-	PetscInt  *ix;
-	PetscReal emax, emin;
+	if (!strstr(DB.SolverType,"Implicit"))
+		EXIT_UNSUPPORTED;
 
 	implicit_info_Poisson();
-	maxRHS = finalize_LHS(&A,&b,&x,0);
+//	if (PrintEnabled) { printf("V");  } implicit_VOLUME_info();
+//	if (PrintEnabled) { printf("F");  } implicit_FACE_info();
 
-//	MatView(A,PETSC_VIEWER_STDOUT_SELF);
-//	VecView(b,PETSC_VIEWER_STDOUT_SELF);
-//	EXIT_MSG;
+	Mat A = NULL;
+	Vec b = NULL, x = NULL;
+	KSP ksp = NULL;
 
-	// Solve linear system
-	KSPCreate(MPI_COMM_WORLD,&ksp);
-	setup_KSP(A,ksp);
-
-	KSPSolve(ksp,b,x);
-	KSPGetConvergedReason(ksp,&reason);
-	KSPGetIterationNumber(ksp,&iteration_ksp);
-	KSPComputeExtremeSingularValues(ksp,&emax,&emin);
-
-//	KSPView(ksp,PETSC_VIEWER_STDOUT_WORLD);
-
-	// Update uhat
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		IndA = VOLUME->IndA;
-		NvnS = VOLUME->NvnS;
-		uhat = VOLUME->What;
-
-		iMax = NvnS*Nvar;
-		ix    = malloc(iMax * sizeof *ix);    // free
-		duhat = malloc(iMax * sizeof *duhat); // free
-		for (i = 0; i < iMax; i++)
-			ix[i] = IndA+i;
-
-		VecGetValues(x,iMax,ix,duhat);
-		free(ix);
-
-		for (i = 0; i < iMax; i++)
-			(*uhat++) += duhat[i];
-		free(duhat);
-	}
+	solver_implicit_linear_system(&A,&b,&x,&ksp,0,PrintEnabled);
+	solver_implicit_update_What(x);
 
 	KSPDestroy(&ksp);
 	finalize_ksp(&A,&b,&x,2);
@@ -288,30 +240,7 @@ void solver_Poisson(bool PrintEnabled)
 	// Update Qhat based on computed solution
 	implicit_GradW();
 
-	// Output to paraview
-	if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 5 && TestDB.ML <= 4)) {
-		strcpy(fNameOut,"SolFinal_");
-		sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
-		                               strcat(fNameOut,DB.MeshType);
-		if (DB.Adapt == ADAPT_0) {
-			sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
-			sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
-		} else {
-			sprintf(string,"_ML%d",TestDB.ML); strcat(fNameOut,string);
-			sprintf(string,"P%d_",TestDB.PGlobal); strcat(fNameOut,string);
-		}
-		output_to_paraview(fNameOut);
-	}
-
-	if (PrintEnabled)
-		printf("KSP iterations (cond, reason): %5d (% .3e, %d)\n",iteration_ksp,emax/emin,reason);
-
-	// Note: maxRHS is meaningless as it is based on the initial (zero) solution.
-	if (0)
-		printf("% .3e\n",maxRHS);
-
+	char *const fNameOut = get_fNameOut("SolFinal_"); // free
+	output_to_paraview(fNameOut);
 	free(fNameOut);
-	free(string);
-
-	// Potentially adaptation option (ToBeDeleted)
 }

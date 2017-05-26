@@ -1,5 +1,5 @@
 PDEName       Advection
-PDESpecifier  Steady/Default
+PDESpecifier  Steady/Peterson
 
 Geometry      n-Cube n-Cube/n-Cube2D.geo
 GeomSpecifier YL
@@ -18,7 +18,7 @@ BasisType  Nodal  // Options: Nodal, Modal
 Vectorized 0     // Options: 0, 1
 EFE        1     // Options: (0), 1
 Collocated 0     // Options: 0, 1
-Adapt      3     // Options: 0, 1, 2, 3
+Adapt      1     // Options: 0, 1, 2, 3
 
 PGlobal    1
 PMax       4

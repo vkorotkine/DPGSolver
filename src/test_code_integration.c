@@ -129,8 +129,10 @@ void code_startup(int const nargc, char const *const *const argv, unsigned int c
 	update_TestCase();
 	if (update_argv) {
 		DB.PGlobal = TestDB.PGlobal;
-		if (update_argv == 1)
+		if (update_argv == 1) {
 			DB.ML = TestDB.ML;
+			set_MeshFile();
+		}
 	}
 
 	setup_parameters();
@@ -241,7 +243,7 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 
 	// Standard datatypes
 	char         f_name[STRLEN_MAX], string[STRLEN_MAX], StringRead[STRLEN_MAX], *data;
-	unsigned int i, ML, P, NVars, NML, NP, Indh, *VarsToCheck, *OrderIncrement;
+	unsigned int i, ML, P, NVars, NML, NP, Indh, *VarsToCheck;
 	int          offset;
 	double       **L2Errors, **ConvOrders, *h, tmp_d;
 
@@ -267,7 +269,7 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 	}
 
 	VarsToCheck    = malloc(NVars * sizeof *VarsToCheck);    // free
-	OrderIncrement = malloc(NVars * sizeof *OrderIncrement); // free
+	double *const OrderIncrement = malloc(NVars * sizeof *OrderIncrement); // free
 	if (strstr(TestCase,"Advection")) {
 		for (size_t i = 0; i < NVars; i++) {
 			OrderIncrement[i] = 1;
@@ -363,14 +365,18 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 
 	*pass = 1;
 
-	ML = MLMax;
+	bool Peterson_warning = 0;
 	for (i = 0; i < NVars; i++) {
 		if (!VarsToCheck[i])
 			continue;
 
 		for (P = PMin; P <= PMax; P++) {
-			Indh = (ML-MLMin)*NP+(P-PMin);
+			Indh = (MLMax-MLMin)*NP+(P-PMin);
 			if ((ConvOrders[i][Indh]-(P+OrderIncrement[i])) < -0.125) {
+				if (strstr(DB.PDESpecifier,"Peterson") && (ConvOrders[i][Indh]-(P+OrderIncrement[i]-0.5)) > -0.125) {
+					Peterson_warning = 1;
+					continue;
+				}
 				*pass = 0;
 
 				printf("i = %d, P = %d, ConvOrder = (% .3e, % .3e)\n",i,P,ConvOrders[i][Indh],1.0*(P+OrderIncrement[i]));
@@ -379,17 +385,21 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 		}
 	}
 
+	if (Peterson_warning)
+		test_print_warning("Convergence orders suboptimal by up to half of an order on Peterson meshes");
+
 	free(VarsToCheck);
 	free(OrderIncrement);
 
 	if (!(*pass)) {
-printf("Re-enable printing here.\n");
-//		for (i = 0; i < NVars; i++)
-//			array_print_d(NML,NP,ConvOrders[i],'R');
+		test_print_warning("Suboptimal Convergence");
+		for (i = 0; i < NVars; i++)
+			array_print_d(NML,NP,ConvOrders[i],'R');
+		printf("\n\n\n");
 	}
 
 	if (PrintEnabled) {
-		printf("ViscousFlux, Blending, Parametrization: %d, %d, %d\n",DB.ViscousFluxType,DB.Blending,DB.Parametrization);
+//		printf("ViscousFlux, Blending, Parametrization: %d, %d, %d\n",DB.ViscousFluxType,DB.Blending,DB.Parametrization);
 		printf("h:\n");
 		array_print_d(NML,NP,h,'R');
 		printf("L2Errors: \n");

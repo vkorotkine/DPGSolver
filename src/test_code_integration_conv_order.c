@@ -72,15 +72,24 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 	data->IntOrder_mult = 2;
 
 	if (strstr(TestName,"Advection")) {
-data->PrintEnabled = 1;
+//		data->PrintEnabled = 1;
 		data->AdaptiveRefine = 0;
-		data->MLMax  = 4;
+		data->MLMax  = 5;
 		if (strstr(TestName,"n-Cube_Default")) {
 			if (strstr(TestName,"TRI")) {
 				strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_TRI");
 			} else if (strstr(TestName,"QUAD")) {
 				data->IntOrder_add  = 2; // The exact solution is obtained if this is omitted
 				strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_QUAD");
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else if (strstr(TestName,"n-Cube_Peterson")) {
+			data->Adapt = ADAPT_P;
+			data->PMin = 1;
+			data->PMax = 1;
+			if (strstr(TestName,"TRI")) {
+				strcpy(data->argvNew[1],"test/Advection/Test_Advection_Peterson_n-Cube_TRI");
 			} else {
 				EXIT_UNSUPPORTED;
 			}
@@ -260,31 +269,31 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 		EXIT_UNSUPPORTED; // Enabled at least one
 
 	unsigned int pass = 0;
-	if (Adapt != ADAPT_0) {
+	if (Adapt != ADAPT_0 && Adapt != ADAPT_P) {
 		TestDB.ML = DB.ML;
 		code_startup(nargc,argvNew,0,2);
 	}
 
-	for (size_t P = PMin; P <= PMax; P++) {
 	for (size_t ML = MLMin; ML <= MLMax; ML++) {
+	for (size_t P = PMin; P <= PMax; P++) {
 		TestDB.PGlobal = P;
 		TestDB.ML = ML;
 
-		if (Adapt != ADAPT_0) {
-			if (ML == MLMin) {
-				mesh_to_level(ML);
-				if (AdaptiveRefine)
-					h_adapt_test();
-			} else {
-				mesh_h_adapt(1,'r');
-			}
-			mesh_to_order(P);
-
-			if (!SolveImplicit)
-				initialize_test_case(0);
-		} else {
+		if (Adapt == ADAPT_0) {
 			code_startup(nargc,argvNew,0,1);
+		} else if (P == PMin) {
+			if (Adapt == ADAPT_P) {
+				code_startup(nargc,argvNew,0,1);
+			} else {
+				mesh_to_level(ML);
+				if (ML == MLMin && AdaptiveRefine)
+					h_adapt_test();
+			}
 		}
+
+		mesh_to_order(P);
+		if (!SolveImplicit)
+			initialize_test_case(0);
 
 		if (strstr(TestName,"Advection")) {
 			solver_Advection(PrintEnabled);
@@ -335,12 +344,13 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 			check_mesh_regularity(mesh_quality,MLMax-MLMin+1,&pass,PrintEnabled);
 		}
 
-		if (Adapt == ADAPT_0) {
+		if ( Adapt == ADAPT_0 ||
+		    (Adapt == ADAPT_P && P == PMax)) {
 			set_PrintName("conv_orders",data->PrintName,&data->TestTRI);
 			code_cleanup();
 		}
 	}}
-	if (Adapt != ADAPT_0) {
+	if (Adapt == ADAPT_H || Adapt == ADAPT_HP) {
 		set_PrintName("conv_orders",data->PrintName,&data->TestTRI);
 		code_cleanup();
 	}

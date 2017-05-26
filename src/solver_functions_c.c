@@ -451,17 +451,6 @@ void compute_numerical_flux_c(struct S_FDATA const *const FDATA, char const imex
 	NUMFLUXDATA->nFluxNum_c = nFluxNum_fIL;
 
 	flux_num_inviscid_c(NUMFLUXDATA);
-	switch (DB.InviscidFluxType) {
-	case FLUX_LF:
-//		flux_LF_c(NfnI,1,WL_fIL,WR_fIL,nFluxNum_fIL,n_fIL,d,Neq);
-		break;
-	case FLUX_ROE:
-//		flux_Roe_c(NfnI,1,WL_fIL,WR_fIL,nFluxNum_fIL,n_fIL,d,Neq);
-		break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
 	free(NUMFLUXDATA);
 }
 

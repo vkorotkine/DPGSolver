@@ -139,6 +139,7 @@ $(EXECDIR):
 OUTPUT_LIST   := paraview errors results
 #TESTCASE_LIST := Poisson SupersonicVortex InviscidChannel SubsonicNozzle PrandtlMeyer
 TESTCASE_LIST := Advection_Default \
+                 Advection_Peterson \
                  Poisson \
                  Euler_PeriodicVortex \
                  Euler_PeriodicVortex_Stationary \
@@ -180,7 +181,7 @@ TEST_CONFIGURATIONS := $(addprefix test/,$(TEST_CONFIGURATIONS))
 
 CONFIGURATIONS := $(addprefix $(CTRLDIR)/,$(MAIN_CONFIGURATIONS) $(TEST_CONFIGURATIONS))
 CONTROL_FILES  := $(shell find $(CTRLDIR) -name '*.ctrl')
-MESHVARIABLES  := $(MESHDIR)/MeshVariables
+MESHVARIABLES  := $(MESHDIR)/MeshVariables $(MESHDIR)/MeshVariables_python
 
 
 .PHONY : meshes
@@ -196,8 +197,9 @@ mesh_vars_and_deps : $(MESHVARIABLES)
 $(MESHVARIABLES) : $(CONTROL_FILES)
 	@echo
 	@echo Creating MeshVariables file based on existing .ctrl files.
-	$(PYTHONC) python/MeshVariables_update.py $(CONFIGURATIONS)
-	@$(PYTHONC) python/MeshVariables_remove_duplicates.py
+	cd python && $(PYTHONC) MeshVariables_update.py $(CONFIGURATIONS)
+	@cd python && $(PYTHONC) MeshVariables_remove_duplicates.py
+	cd python/peterson_mesh/ && $(PYTHONC) MeshVariables_update.py
 	@echo
 
 

@@ -235,7 +235,7 @@ void solver_implicit_linear_system(Mat *A, Vec *b, Vec *x, KSP *ksp, unsigned in
 	setup_KSP(*A,*ksp);
 
 	// Solve the system of equations
-	if (PrintEnabled) { printf("S"); }
+	if (PrintEnabled) { printf("S "); }
 	KSPSolve(*ksp,*b,*x);
 
 	KSPConvergedReason reason;

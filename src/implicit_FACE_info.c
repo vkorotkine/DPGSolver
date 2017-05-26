@@ -153,9 +153,6 @@ static void compute_Viscous_FACE_EFE(void)
 
 	if (strstr(DB.Form,"Weak")) {
 		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
-			// FACE contribution to V(L/R)->LHS and related off-diagonal contributions from the VOLUME term
-			finalize_VOLUME_LHSQF_Weak(FACE);
-
 			init_FDATA(FDATAL,FACE,'L');
 			init_FDATA(FDATAR,FACE,'R');
 
@@ -181,6 +178,9 @@ static void compute_Viscous_FACE_EFE(void)
 			manage_solver_memory(DATA,'F','W');
 			manage_solver_memory(DATA,'F','Q');
 
+
+			// FACE contribution to V(L/R)->LHS and related off-diagonal contributions from the VOLUME term
+			finalize_VOLUME_LHSQF_Weak(FACE);
 
 			// Compute FACE RHS and LHS terms
 			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'L','E','V');

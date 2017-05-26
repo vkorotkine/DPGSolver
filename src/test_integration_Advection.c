@@ -34,7 +34,7 @@
 
 void test_integration_Advection(int nargc, char **argv)
 {
-	bool const RunTests_linearization = 0,
+	bool const RunTests_linearization = 1,
 	           RunTests_conv_order    = 1;
 
 	char **argvNew, *PrintName;
@@ -59,9 +59,11 @@ void test_integration_Advection(int nargc, char **argv)
 
 		// 2D (Mixed TRI/QUAD mesh)
 		test_linearization(data_l,"Advection_StraightTRI");
-		test_linearization(data_l,"Advection_CurvedTRI");
-		test_linearization(data_l,"Advection_ToBeCurvedTRI");
-		test_linearization(data_l,"Advection_MIXED2D");
+		test_linearization(data_l,"Advection_StraightQUAD");
+
+		test_print_warning("Advection curved element testing not yet implemented");
+//		test_linearization(data_l,"Advection_CurvedTRI");
+//		test_linearization(data_l,"Advection_ToBeCurvedTRI");
 
 		test_print_warning("Advection 3D testing needs to be implemented");
 
