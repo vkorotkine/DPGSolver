@@ -1,0 +1,30 @@
+PDEName       Advection
+PDESpecifier  Steady/Default
+
+Geometry      n-Cube n-Cube/n-Cube2D.geo
+GeomSpecifier YL
+
+Dimension     2
+
+MeshPath      ../meshes/
+MeshType      TRI
+MeshCurving   Straight
+MeshLevel     0
+
+Method     METHOD_HDG
+Form       Weak
+NodeType   GL-WSH
+BasisType  Nodal
+
+Vectorized 0
+EFE        1
+Collocated 0
+Adapt      3
+
+PGlobal    1
+PMax       4
+LevelsMax  7
+
+Restart    -1
+
+Testing    1

@@ -7,6 +7,7 @@
 #include "mkl.h"
 
 #include "S_OpCSR.h"
+#include "matrix_structs.h"
 
 
 extern double *diag_d          (const double *x, const unsigned int N);
@@ -27,5 +28,8 @@ extern void   mm_CTN_d         (const int m, const int n, const int k, const dou
 extern void   mm_CTN_CSR_d     (const int m, const int n, const int k, const struct S_OpCSR *A, const double *B, double *C);
 extern void   convert_to_CSR_d (const unsigned int NRows, const unsigned int NCols, const double *Input,
                                 struct S_OpCSR **Output);
+
+extern struct S_MATRIX * mm_Alloc_Mat_d
+       (char const layout, struct S_MATRIX const *const A, struct S_MATRIX const *const B);
 
 #endif // DPG__matrix_functions_h__INCLUDED

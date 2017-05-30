@@ -35,6 +35,9 @@
  *			MeshType   : Specifies element types used and if the mesh is 'ToBeCurved' in setup_geometry.c
  *			MeshLevel  : (M)esh (L)evel - Uniform refinement level from base mesh (ML = 0)
  *
+ *			Method     : Solver method employed.
+ *			             Options: METHOD_DG   (Default)
+ *			                      METHOD_HDG
  *			Form       : Form of the equations (i.e. how many times they are itnegrated by parts)
  *			             Options: Weak
  *			                      Strong
@@ -199,6 +202,7 @@ void initialization(int const nargc, char const *const *const argv)
 		if (strstr(StringRead,"MeshCurving"))   sscanf(StringRead,"%s %s",dummys,MeshCurving);
 		if (strstr(StringRead,"MeshLevel"))     sscanf(StringRead,"%s %d",dummys,&DB.ML);
 
+		if (strstr(StringRead,"Method"))     sscanf(StringRead,"%s %d",dummys,&DB.Method);
 		if (strstr(StringRead,"Form"))       sscanf(StringRead,"%s %s",dummys,DB.Form);
 		if (strstr(StringRead,"NodeType"))   sscanf(StringRead,"%s %s",dummys,DB.NodeType);
 		if (strstr(StringRead,"BasisType"))  sscanf(StringRead,"%s %s",dummys,DB.BasisType);
@@ -223,6 +227,12 @@ void initialization(int const nargc, char const *const *const argv)
 	free(dummys);
 	fclose(fID);
 
+	if (DB.Method == 0) {
+		// Default
+		printf("Setting Method to DG.\n");
+		DB.Method = METHOD_DG;
+	}
+
 	if (!strstr(MeshCurving,"Straight")) {
 		strcat(MeshCurving,DB.MeshType);
 		strcpy(DB.MeshType,MeshCurving);
@@ -237,6 +247,7 @@ void initialization(int const nargc, char const *const *const argv)
 		printf("\n\nRunning the %s test case using the %s mesh type in %dD on mesh level %d.\n\n",
 		       DB.TestCase,DB.MeshType,DB.d,DB.ML);
 		printf("Parameters:\n\n");
+		printf("Method     : %d\n",    DB.Method);
 		printf("Form       : %s\n",    DB.Form);
 		printf("NodeType   : %s\n",    DB.NodeType);
 		printf("BasisType  : %s\n\n",  DB.BasisType);

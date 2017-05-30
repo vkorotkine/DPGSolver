@@ -5,6 +5,7 @@
 #define DPG__S_ELEMENT_h__INCLUDED
 
 #include "S_OpCSR.h"
+#include "matrix_structs.h"
 
 struct S_ELEMENT {
 	// Mesh
@@ -47,14 +48,17 @@ struct S_ELEMENT {
 	             ****I_fGs_vGc, ****I_fGc_vGc, ****I_fGs_vG2, ****I_fG2_vG2,
 	             ****I_eGs_vGc, ****I_eGc_vGc, ****I_eGs_vG2, ****I_eG2_vG2,
 	             ****Is_Weak_VV, ****Ic_Weak_VV,
-	             ****Is_Weak_FF, ****Ic_Weak_FF,
+	             ****Is_Weak_FV, ****Ic_Weak_FV,
 	             *****Ds_Weak_VV, *****Dc_Weak_VV,
 	             ****L2hat_vS_vS,
 	             ****GfS_fIs, ****GfS_fIc;
 
 	struct S_OpCSR ****ChiS_fIs_sp, ****ChiS_fIc_sp,
 	               *****Ds_Weak_VV_sp, *****Dc_Weak_VV_sp,
-	               ****Is_Weak_FF_sp, ****Ic_Weak_FF_sp;
+	               ****Is_Weak_FV_sp, ****Ic_Weak_FV_sp;
+
+	struct S_MATRIX **ChiTRS_vIs, **ChiTRS_vIc,
+	                **Is_FF, **Ic_FF;
 
 	struct S_ELEMENT *next;
 	struct S_ELEMENT **ELEMENTclass, **ELEMENT_FACE;

@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 
 #include "Parameters.h"
 #include "Macros.h"
@@ -36,7 +37,7 @@
  *
  *				2D (TRI):
  *					WS : Best collocated nodes? => Compare with Taylor(2007) (ToBeModified)
- *					WV : Best cubature nodes?   => Compare with Xiao(2010) (ToBeModified)
+ *					WV : Best symmetric cubature nodes (Papanicolopulos(2015))
  *
  *				3D (TET):
  *					SH : Best collocated nodes? (ToBeModified)
@@ -48,7 +49,7 @@
  *				Combination of TP and SI Element nodes
  *
  *			PYR Elements:
- *				ToBeModified
+ *				See cubature.c/cubature_PYR().
  *
  *		For the collocated scheme, it is advantageous to use WV nodes for TET FACE cubature nodes as they have better
  *		integration properties and there is no collocated with the FACE between the 2D and 3D WSH nodes anyways.
@@ -82,6 +83,9 @@
  *		           () : (s)traight, (c)urved
  *		           [] : TP [0], SI [1], PYR [2]
  *		PF       : Order used for representation of the (F)lux.
+ *		PTRS     : Order used for representation of the (TR)ace (S)olution.
+ *		PTRF     : Order used for representation of the (TR)ace (F)lux.
+ *		           If globally conforming traces are used, the order should be greater than 0.
  *
  *		PI(1)(2) : Order used for integration (cubature order).
  *		           (1) : (v)olume, (f)ace
@@ -134,10 +138,21 @@
  *	References:
  *		Lenoir(1986)-Optimal_Isoparametric_Finite_Elements_and_Error_Estimates_for_Domains_Involving_Curved_Boundaries
  *		Scott(1973)-Finite_Element_Techniques_for_Curved_Boundaries
+ *		Papanicolopulos(2015)-Computation of moderate-degree fully-symmetric cubature rules on the triangle using
+ *		                      symmetric polynomials and algebraic solving
  *
  */
 
-void setup_parameters()
+static void setup_parameters_DG  (void);
+static void setup_parameters_HDG (void);
+
+void setup_parameters(void)
+{
+	setup_parameters_DG();
+	setup_parameters_HDG();
+}
+
+static void setup_parameters_DG(void)
 {
 	// Initialize DB Parameters
 	unsigned int d          = DB.d,
@@ -416,8 +431,8 @@ void setup_parameters()
 				strcpy(NodeTypeIvs[P][1],"WV");
 				strcpy(NodeTypeIvc[P][1],"WV");
 
-				PIfs[P][1] = floor(1.0*IntOrderfs/2.0);
-				PIfc[P][1] = floor(1.0*IntOrderfc/2.0);
+				PIfs[P][1] = UINT_MAX; // Not used
+				PIfc[P][1] = UINT_MAX; // Not used
 				PIvs[P][1] = IntOrdervs;
 				PIvc[P][1] = IntOrdervc;
 			} else if (d == 3) {
@@ -438,8 +453,8 @@ void setup_parameters()
 			strcpy(NodeTypeIvs[P][2],"GJW");
 			strcpy(NodeTypeIvc[P][2],"GJW");
 
-			PIfs[P][2] = 0; // Not used
-			PIfc[P][2] = 0; // Not used
+			PIfs[P][2] = UINT_MAX; // Not used
+			PIfc[P][2] = UINT_MAX; // Not used
 			PIvs[P][2] = floor(1.0*IntOrdervs/2.0);
 			PIvc[P][2] = floor(1.0*IntOrdervc/2.0);
 		} else { // Collocated
@@ -505,6 +520,7 @@ void setup_parameters()
 					strcpy(NodeTypeIfc[P][1],"GL");
 				}
 			} else if (d == 3) {
+				// Currently must use WSH nodes for the FACE as well for consistency between TET FACE and TRI VOLUME.
 				strcpy(NodeTypeIfs[P][1],"WSH");
 				strcpy(NodeTypeIfc[P][1],"WSH");
 //				strcpy(NodeTypeIfs[P][1],"WV");
@@ -606,7 +622,36 @@ void setup_parameters()
 	DB.VFPartUnity = VFPartUnity;
 }
 
-void setup_parameters_L2proj(void)
+static void setup_parameters_HDG(void)
+{
+	if (DB.Method != METHOD_HDG)
+		return;
+
+	unsigned int const PMax = DB.PMax,
+	                   NP   = PMax+1;
+
+	unsigned int *const PTRS = malloc(NP * sizeof *PTRS), // keep
+	             *const PTRF = malloc(NP * sizeof *PTRF); // keep
+
+	for (size_t P = 0; P <= PMax; P++) {
+		// Interpolation and Integration
+		PTRS[P] = P;
+		PTRF[P] = P;
+	}
+
+	DB.PTRS = PTRS;
+	DB.PTRF = PTRF;
+}
+
+static void setup_parameters_L2proj_DG  (void);
+static void setup_parameters_L2proj_HDG (void);
+
+void setup_parameters_L2proj(void) {
+	setup_parameters_L2proj_DG();
+	setup_parameters_L2proj_HDG();
+}
+
+static void setup_parameters_L2proj_DG(void)
 {
 	/*
 	 *	Purpose:
@@ -679,12 +724,20 @@ void setup_parameters_L2proj(void)
 			}
 
 			// PYR
-			PIfs[P][2] = 0; // Not used
-			PIfc[P][2] = 0; // Not used
+			PIfs[P][2] = UINT_MAX; // Not used
+			PIfc[P][2] = UINT_MAX; // Not used
 			PIvs[P][2] = floor(1.0*IntOrder/2.0);
 			PIvc[P][2] = floor(1.0*IntOrder/2.0);
 		} else { // Collocated
 			// Do nothing.
 		}
 	}
+}
+
+static void setup_parameters_L2proj_HDG(void)
+{
+	if (DB.Method != METHOD_HDG)
+		return;
+
+	// Currently nothing to be done. FACE cubature order modified as part of DG parameters.
 }

@@ -743,7 +743,7 @@ void finalize_FACE_Inviscid_Weak_c(struct S_FDATA const *const FDATAL, struct S_
 	                   IndFType = FDATA->IndFType,
 	                   NfnI     = OPS[IndFType]->NfnI;
 
-	mm_dcc(CBCM,CBT,CBNT,OPS[0]->NvnS,Neq,NfnI,1.0,1.0,OPS[0]->I_Weak_FF[Vf],nANumL_fI,RHS);
+	mm_dcc(CBCM,CBT,CBNT,OPS[0]->NvnS,Neq,NfnI,1.0,1.0,OPS[0]->I_Weak_FV[Vf],nANumL_fI,RHS);
 }
 
 void finalize_QhatF_Weak_c(struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR, char const side,
@@ -784,8 +784,8 @@ void finalize_QhatF_Weak_c(struct S_FDATA const *const FDATAL, struct S_FDATA co
 
 	double complex *const InSNum = malloc(NvnS*Nvar * sizeof *InSNum); // free
 	for (size_t dim = 0; dim < d; dim++) {
-		// Note that there is a minus sign included in the definition of I_Weak_FF.
-		mm_dcc(CBCM,CBT,CBNT,OPS[0]->NvnS,Neq,NfnI,1.0,0.0,OPS[0]->I_Weak_FF[Vf],nSolNum_fI[dim],InSNum);
+		// Note that there is a minus sign included in the definition of I_Weak_FV.
+		mm_dcc(CBCM,CBT,CBNT,OPS[0]->NvnS,Neq,NfnI,1.0,0.0,OPS[0]->I_Weak_FV[Vf],nSolNum_fI[dim],InSNum);
 		for (size_t i = 0, iMax = NvnS*Nvar; i < iMax; i++)
 			QhatF[dim][i] = -InSNum[i];
 	}

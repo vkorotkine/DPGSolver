@@ -837,15 +837,15 @@ void init_ops_FACE(struct S_OPERATORS_F *const OPS, struct S_VOLUME const *const
 		OPS->w_fI    = ELEMENT->w_fIs[PF][IndFType];
 
 		OPS->ChiS_fI   = (double const *const *const) ELEMENT->ChiS_fIs[PV][PF];
-		OPS->I_Weak_FF = (double const *const *const) ELEMENT->Is_Weak_FF[PV][PF];
+		OPS->I_Weak_FV = (double const *const *const) ELEMENT->Is_Weak_FV[PV][PF];
 
 		OPS->ChiS_fI_SF   = (double const *const *const) ELEMENT_SF->ChiS_fIs[PV][PF];
 		OPS->ChiS_vI_SF   = (double const *const *const) ELEMENT_SF->ChiS_vIs[PV][PF];
-		OPS->I_Weak_FF_SF = (double const *const *const) ELEMENT_SF->Is_Weak_FF[PV][PF];
+		OPS->I_Weak_FV_SF = (double const *const *const) ELEMENT_SF->Is_Weak_FV[PV][PF];
 		OPS->I_Weak_VV_SF = (double const *const *const) ELEMENT_SF->Is_Weak_VV[PV][PF];
 
 		OPS->ChiS_fI_sp   = (struct S_OpCSR const *const *const) ELEMENT->ChiS_fIs_sp[PV][PF];
-		OPS->I_Weak_FF_sp = (struct S_OpCSR const *const *const) ELEMENT->Is_Weak_FF_sp[PV][PF];
+		OPS->I_Weak_FV_sp = (struct S_OpCSR const *const *const) ELEMENT->Is_Weak_FV_sp[PV][PF];
 
 		OPS->nOrdLR = ELEMENT_FACE->nOrd_fIs[PF][IndOrdLR];
 		OPS->nOrdRL = ELEMENT_FACE->nOrd_fIs[PF][IndOrdRL];
@@ -858,15 +858,15 @@ void init_ops_FACE(struct S_OPERATORS_F *const OPS, struct S_VOLUME const *const
 		OPS->w_fI    = ELEMENT->w_fIc[PF][IndFType];
 
 		OPS->ChiS_fI   = (double const *const *const) ELEMENT->ChiS_fIc[PV][PF];
-		OPS->I_Weak_FF = (double const *const *const) ELEMENT->Ic_Weak_FF[PV][PF];
+		OPS->I_Weak_FV = (double const *const *const) ELEMENT->Ic_Weak_FV[PV][PF];
 
 		OPS->ChiS_fI_SF   = (double const *const *const) ELEMENT_SF->ChiS_fIc[PV][PF];
 		OPS->ChiS_vI_SF   = (double const *const *const) ELEMENT_SF->ChiS_vIc[PV][PF];
-		OPS->I_Weak_FF_SF = (double const *const *const) ELEMENT_SF->Ic_Weak_FF[PV][PF];
+		OPS->I_Weak_FV_SF = (double const *const *const) ELEMENT_SF->Ic_Weak_FV[PV][PF];
 		OPS->I_Weak_VV_SF = (double const *const *const) ELEMENT_SF->Ic_Weak_VV[PV][PF];
 
 		OPS->ChiS_fI_sp   = (struct S_OpCSR const *const *const) ELEMENT->ChiS_fIc_sp[PV][PF];
-		OPS->I_Weak_FF_sp = (struct S_OpCSR const *const *const) ELEMENT->Ic_Weak_FF_sp[PV][PF];
+		OPS->I_Weak_FV_sp = (struct S_OpCSR const *const *const) ELEMENT->Ic_Weak_FV_sp[PV][PF];
 
 		OPS->nOrdLR = ELEMENT_FACE->nOrd_fIc[PF][IndOrdLR];
 		OPS->nOrdRL = ELEMENT_FACE->nOrd_fIc[PF][IndOrdRL];
@@ -2243,7 +2243,7 @@ static void swap_FACE_orientation(struct S_FDATA const *const FDATA, char const 
 }
 
 static void compute_LHS_FACE_Inviscid_Weak(unsigned int const NRows, unsigned int const NCols, unsigned int const Nn,
-                                           double const *const I_FF, double const *const dnFluxNumdW_fI,
+                                           double const *const I_FV, double const *const dnFluxNumdW_fI,
                                            double const *const ChiS_fI, double *const IdnFdW, double *const LHS)
 {
 	unsigned int const Neq  = DB.Neq,
@@ -2252,7 +2252,7 @@ static void compute_LHS_FACE_Inviscid_Weak(unsigned int const NRows, unsigned in
 	for (size_t eq = 0; eq < Neq; eq++) {
 	for (size_t var = 0; var < Nvar; var++) {
 		size_t const Indeqvar = eq*Nvar+var;
-		mm_diag_d(NRows,Nn,&dnFluxNumdW_fI[Indeqvar*Nn],I_FF,IdnFdW,1.0,0.0,'R','R');
+		mm_diag_d(NRows,Nn,&dnFluxNumdW_fI[Indeqvar*Nn],I_FV,IdnFdW,1.0,0.0,'R','R');
 
 		size_t const IndLHS = Indeqvar*NRows*NCols;
 		mm_d(CBRM,CBNT,CBNT,NRows,NCols,Nn,1.0,1.0,IdnFdW,ChiS_fI,&LHS[IndLHS]);
@@ -2329,7 +2329,7 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 		double *const InFNum = malloc(NvnS*Nvar * sizeof *InFNum); // free
 		if (Eclass == C_TP && SF_BE[P][0][1]) {
 			get_sf_parametersF(OPS[0]->NvnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_VV_SF,
-			                   OPS[0]->NfnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_FF_SF,NIn,NOut,OP,d,Vf,C_TP);
+			                   OPS[0]->NfnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_FV_SF,NIn,NOut,OP,d,Vf,C_TP);
 
 			if (SpOp) {
 				for (size_t dim = 0; dim < d; dim++)
@@ -2342,9 +2342,9 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 
 			sf_apply_d(nANumL_fI,InFNum,NIn,NOut,Neq,OP,Diag,d);
 		} else if (Eclass == C_WEDGE && SF_BE[P][1][1]) {
-			if (f < 3) { OP0  = OPS[0]->I_Weak_FF_SF, OP1  = OPS[1]->I_Weak_VV_SF;
+			if (f < 3) { OP0  = OPS[0]->I_Weak_FV_SF, OP1  = OPS[1]->I_Weak_VV_SF;
 			             NIn0 = OPS[0]->NfnI_SF,      NIn1 = OPS[1]->NvnI_SF;
-			} else {     OP0  = OPS[0]->I_Weak_VV_SF, OP1  = OPS[1]->I_Weak_FF_SF;
+			} else {     OP0  = OPS[0]->I_Weak_VV_SF, OP1  = OPS[1]->I_Weak_FV_SF;
 			             NIn0 = OPS[0]->NvnI_SF,      NIn1 = OPS[1]->NfnI_SF; }
 			get_sf_parametersF(NIn0,OPS[0]->NvnS_SF,OP0,NIn1,OPS[1]->NvnS_SF,OP1,NIn,NOut,OP,d,Vf,C_WEDGE);
 
@@ -2363,9 +2363,9 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 
 			sf_apply_d(nANumL_fI,InFNum,NIn,NOut,Neq,OP,Diag,d);
 		} else if ((SpOp && (Eclass == C_TP || Eclass == C_WEDGE)) || (VFPartUnity[Eclass])) {
-			mm_CTN_CSR_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FF_sp[Vf],nANumL_fI,InFNum);
+			mm_CTN_CSR_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FV_sp[Vf],nANumL_fI,InFNum);
 		} else  {
-			mm_CTN_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FF[Vf],nANumL_fI,InFNum);
+			mm_CTN_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FV[Vf],nANumL_fI,InFNum);
 		}
 
 		for (size_t i = 0, iMax = NvnS*Nvar; i < iMax; i++)
@@ -2382,17 +2382,17 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 		                   NfnI     = OPSL[IndFType]->NfnI;
 
 		double       *IdnFdW;
-		double const *I_FF;
+		double const *I_FV;
 
 		if (side == 'L') {
 			unsigned int const NvnSL = OPSL[0]->NvnS;
 
 			// LHSLL (Effect of (L)eft VOLUME on (L)eft VOLUME)
-			I_FF   = OPSL[0]->I_Weak_FF[VfL];
+			I_FV   = OPSL[0]->I_Weak_FV[VfL];
 			IdnFdW = malloc(NvnSL*NfnI * sizeof *IdnFdW); // free
 
 			double const *const ChiSL_fIL = OPSL[0]->ChiS_fI[VfL];
-			compute_LHS_FACE_Inviscid_Weak(NvnSL,NvnSL,NfnI,I_FF,nANumL_fI,ChiSL_fIL,IdnFdW,FACE->LHSLL);
+			compute_LHS_FACE_Inviscid_Weak(NvnSL,NvnSL,NfnI,I_FV,nANumL_fI,ChiSL_fIL,IdnFdW,FACE->LHSLL);
 
 			free(IdnFdW);
 		} else if (side == 'R') {
@@ -2404,7 +2404,7 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 			                   *const nOrdLR = OPSL[IndFType]->nOrdLR,
 			                   *const nOrdRL = OPSL[IndFType]->nOrdRL;
 
-			I_FF   = OPSL[0]->I_Weak_FF[VfL];
+			I_FV   = OPSL[0]->I_Weak_FV[VfL];
 			IdnFdW = malloc(NvnSL*NfnI * sizeof *IdnFdW); // free
 
 			// LHSRL (Effect of (R)ight VOLUME on (L)eft VOLUME)
@@ -2416,7 +2416,7 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 				ChiSR_fIL[i*NvnSR+j] = ChiS_fI[nOrdRL[i]*NvnSR+j];
 			}}
 
-			compute_LHS_FACE_Inviscid_Weak(NvnSL,NvnSR,NfnI,I_FF,nANumR_fI,ChiSR_fIL,IdnFdW,FACE->LHSRL);
+			compute_LHS_FACE_Inviscid_Weak(NvnSL,NvnSR,NfnI,I_FV,nANumR_fI,ChiSR_fIL,IdnFdW,FACE->LHSRL);
 
 			free(ChiSR_fIL);
 			free(IdnFdW);
@@ -2424,7 +2424,7 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 			// Swap orientation of numerical flux Jacobian terms
 			swap_FACE_orientation(FDATAR,imex_type,coef_type);
 
-			I_FF   = OPSR[0]->I_Weak_FF[VfR];
+			I_FV   = OPSR[0]->I_Weak_FV[VfR];
 			IdnFdW = malloc(NvnSR*NfnI * sizeof *IdnFdW); // free
 
 			// LHSLR (Effect of (L)eft VOLUME on (R)ight VOLUME)
@@ -2436,14 +2436,14 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 				ChiSL_fIR[i*NvnSL+j] = ChiS_fI[nOrdLR[i]*NvnSL+j];
 			}}
 
-			compute_LHS_FACE_Inviscid_Weak(NvnSR,NvnSL,NfnI,I_FF,nANumL_fI,ChiSL_fIR,IdnFdW,FACE->LHSLR);
+			compute_LHS_FACE_Inviscid_Weak(NvnSR,NvnSL,NfnI,I_FV,nANumL_fI,ChiSL_fIR,IdnFdW,FACE->LHSLR);
 
 			free(ChiSL_fIR);
 
 			// LHSRR (Effect of (R)ight VOLUME on (R)ight VOLUME)
 			double const *const ChiSR_fIR = OPSR[0]->ChiS_fI[VfR];
 
-			compute_LHS_FACE_Inviscid_Weak(NvnSR,NvnSR,NfnI,I_FF,nANumR_fI,ChiSR_fIR,IdnFdW,FACE->LHSRR);
+			compute_LHS_FACE_Inviscid_Weak(NvnSR,NvnSR,NfnI,I_FV,nANumR_fI,ChiSR_fIR,IdnFdW,FACE->LHSRR);
 
 			free(IdnFdW);
 		} else {
@@ -2455,7 +2455,7 @@ void finalize_FACE_Inviscid_Weak(struct S_FDATA const *const FDATAL, struct S_FD
 }
 
 static void compute_LHS_QhatF_Weak(unsigned int const NRows, unsigned int const NCols, unsigned int const Nn,
-                                   double const *const I_FF, double const *const *const dnSolNumdW_fI,
+                                   double const *const I_FV, double const *const *const dnSolNumdW_fI,
                                    double const *const ChiS_fI, double *const IdnFdW, double *const *const Qhat_What,
                                    bool const Boundary)
 {
@@ -2474,10 +2474,10 @@ static void compute_LHS_QhatF_Weak(unsigned int const NRows, unsigned int const 
 	for (size_t eq = 0; eq < eqMax; eq++) {
 	for (size_t var = 0; var < varMax; var++) {
 		size_t const Indeqvar = eq*varMax+var;
-		mm_diag_d(NRows,Nn,&dnSolNumdW_fI[dim][Indeqvar*Nn],I_FF,IdnFdW,1.0,0.0,'R','R');
+		mm_diag_d(NRows,Nn,&dnSolNumdW_fI[dim][Indeqvar*Nn],I_FV,IdnFdW,1.0,0.0,'R','R');
 
 		size_t const IndQ_W = Indeqvar*NRows*NCols;
-		// Note that there is a minus sign included in the definition of I_Weak_FF.
+		// Note that there is a minus sign included in the definition of I_Weak_FV.
 		mm_d(CBRM,CBNT,CBNT,NRows,NCols,Nn,-1.0,0.0,IdnFdW,ChiS_fI,&Qhat_What[dim][IndQ_W]);
 	}}}
 }
@@ -2543,7 +2543,7 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 		double *const InSNum = malloc(NvnS*Nvar * sizeof *InSNum); // free
 		if (Eclass == C_TP && SF_BE[P][0][1]) {
 			get_sf_parametersF(OPS[0]->NvnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_VV_SF,
-			                   OPS[0]->NfnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_FF_SF,NIn,NOut,OP,d,Vf,C_TP);
+			                   OPS[0]->NfnI_SF,OPS[0]->NvnS_SF,OPS[0]->I_Weak_FV_SF,NIn,NOut,OP,d,Vf,C_TP);
 
 			if (SpOp) {
 				for (size_t dim = 0; dim < d; dim++)
@@ -2555,15 +2555,15 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 			}
 
 			for (size_t dim = 0; dim < d; dim++) {
-				// Note that there is a minus sign included in the definition of I_Weak_FF.
+				// Note that there is a minus sign included in the definition of I_Weak_FV.
 				sf_apply_d(nSolNum_fI[dim],InSNum,NIn,NOut,Neq,OP,Diag,d);
 				for (size_t i = 0, iMax = NvnS*Nvar; i < iMax; i++)
 					QhatF[dim][i] = -InSNum[i];
 			}
 		} else if (Eclass == C_WEDGE && SF_BE[P][1][1]) {
-			if (f < 3) { OP0  = OPS[0]->I_Weak_FF_SF, OP1  = OPS[1]->I_Weak_VV_SF;
+			if (f < 3) { OP0  = OPS[0]->I_Weak_FV_SF, OP1  = OPS[1]->I_Weak_VV_SF;
 			             NIn0 = OPS[0]->NfnI_SF,      NIn1 = OPS[1]->NvnI_SF;
-			} else {     OP0  = OPS[0]->I_Weak_VV_SF, OP1  = OPS[1]->I_Weak_FF_SF;
+			} else {     OP0  = OPS[0]->I_Weak_VV_SF, OP1  = OPS[1]->I_Weak_FV_SF;
 			             NIn0 = OPS[0]->NvnI_SF,      NIn1 = OPS[1]->NfnI_SF; }
 			get_sf_parametersF(NIn0,OPS[0]->NvnS_SF,OP0,NIn1,OPS[1]->NvnS_SF,OP1,NIn,NOut,OP,d,Vf,C_WEDGE);
 
@@ -2581,22 +2581,22 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 			}
 
 			for (size_t dim = 0; dim < d; dim++) {
-				// Note that there is a minus sign included in the definition of I_Weak_FF.
+				// Note that there is a minus sign included in the definition of I_Weak_FV.
 				sf_apply_d(nSolNum_fI[dim],InSNum,NIn,NOut,Neq,OP,Diag,d);
 				for (size_t i = 0, iMax = NvnS*Nvar; i < iMax; i++)
 					QhatF[dim][i] = -InSNum[i];
 			}
 		} else if ((SpOp && (Eclass == C_TP || Eclass == C_WEDGE)) || (VFPartUnity[Eclass])) {
 			for (size_t dim = 0; dim < d; dim++) {
-				// Note that there is a minus sign included in the definition of I_Weak_FF.
-				mm_CTN_CSR_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FF_sp[Vf],nSolNum_fI[dim],InSNum);
+				// Note that there is a minus sign included in the definition of I_Weak_FV.
+				mm_CTN_CSR_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FV_sp[Vf],nSolNum_fI[dim],InSNum);
 				for (size_t i = 0, iMax = NvnS*Nvar; i < iMax; i++)
 					QhatF[dim][i] = -InSNum[i];
 			}
 		} else  {
 			for (size_t dim = 0; dim < d; dim++) {
-				// Note that there is a minus sign included in the definition of I_Weak_FF.
-				mm_CTN_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FF[Vf],nSolNum_fI[dim],InSNum);
+				// Note that there is a minus sign included in the definition of I_Weak_FV.
+				mm_CTN_d(OPS[0]->NvnS,Neq,NfnI,OPS[0]->I_Weak_FV[Vf],nSolNum_fI[dim],InSNum);
 				for (size_t i = 0, iMax = NvnS*Nvar; i < iMax; i++)
 					QhatF[dim][i] = -InSNum[i];
 			}
@@ -2613,7 +2613,7 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 		                   NfnI     = OPSL[IndFType]->NfnI;
 
 		double       *IdnFdW;
-		double const *I_FF;
+		double const *I_FV;
 
 		if (side == 'L') {
 			correct_numerical_solution_strong(FDATAL,'I',side);
@@ -2623,11 +2623,11 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 			double const *const *const dnSolNumdWL_fI = (double const *const *const) FDATAL->NFLUXDATA->dnSolNumdWL;
 
 			// QhatL_WhatL (Effect of (L)eft VOLUME on (L)eft VOLUME)
-			I_FF   = OPSL[0]->I_Weak_FF[VfL];
+			I_FV   = OPSL[0]->I_Weak_FV[VfL];
 			IdnFdW = malloc(NvnSL*NfnI * sizeof *IdnFdW); // free
 
 			double const *const ChiSL_fIL = OPSL[0]->ChiS_fI[VfL];
-			compute_LHS_QhatF_Weak(NvnSL,NvnSL,NfnI,I_FF,dnSolNumdWL_fI,ChiSL_fIL,IdnFdW,FACE->QhatL_WhatL,Boundary);
+			compute_LHS_QhatF_Weak(NvnSL,NvnSL,NfnI,I_FV,dnSolNumdWL_fI,ChiSL_fIL,IdnFdW,FACE->QhatL_WhatL,Boundary);
 
 			free(IdnFdW);
 		} else if (side == 'R') {
@@ -2644,7 +2644,7 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 			                   *const nOrdLR = OPSL[IndFType]->nOrdLR,
 			                   *const nOrdRL = OPSL[IndFType]->nOrdRL;
 
-			I_FF   = OPSL[0]->I_Weak_FF[VfL];
+			I_FV   = OPSL[0]->I_Weak_FV[VfL];
 			IdnFdW = malloc(NvnSL*NfnI * sizeof *IdnFdW); // free
 
 			// QhatL_WhatR (Effect of (R)ight VOLUME on (L)eft VOLUME)
@@ -2656,7 +2656,7 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 				ChiSR_fIL[i*NvnSR+j] = ChiS_fI[nOrdRL[i]*NvnSR+j];
 			}}
 
-			compute_LHS_QhatF_Weak(NvnSL,NvnSR,NfnI,I_FF,dnSolNumdWR_fI,ChiSR_fIL,IdnFdW,FACE->QhatL_WhatR,Boundary);
+			compute_LHS_QhatF_Weak(NvnSL,NvnSR,NfnI,I_FV,dnSolNumdWR_fI,ChiSR_fIL,IdnFdW,FACE->QhatL_WhatR,Boundary);
 
 			free(ChiSR_fIL);
 			free(IdnFdW);
@@ -2665,7 +2665,7 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 			correct_numerical_solution_strong(FDATAR,'I',side);
 			swap_FACE_orientation(FDATAR,'I','Q');
 
-			I_FF   = OPSR[0]->I_Weak_FF[VfR];
+			I_FV   = OPSR[0]->I_Weak_FV[VfR];
 			IdnFdW = malloc(NvnSR*NfnI * sizeof *IdnFdW); // free
 
 			// QhatR_WhatL (Effect of (L)eft VOLUME on (R)ight VOLUME)
@@ -2677,14 +2677,14 @@ void finalize_QhatF_Weak(struct S_FDATA const *const FDATAL, struct S_FDATA cons
 				ChiSL_fIR[i*NvnSL+j] = ChiS_fI[nOrdLR[i]*NvnSL+j];
 			}}
 
-			compute_LHS_QhatF_Weak(NvnSR,NvnSL,NfnI,I_FF,dnSolNumdWL_fI,ChiSL_fIR,IdnFdW,FACE->QhatR_WhatL,Boundary);
+			compute_LHS_QhatF_Weak(NvnSR,NvnSL,NfnI,I_FV,dnSolNumdWL_fI,ChiSL_fIR,IdnFdW,FACE->QhatR_WhatL,Boundary);
 
 			free(ChiSL_fIR);
 
 			// QhatR_WhatR (Effect of (R)ight VOLUME on (R)ight VOLUME)
 			double const *const ChiSR_fIR = OPSR[0]->ChiS_fI[VfR];
 
-			compute_LHS_QhatF_Weak(NvnSR,NvnSR,NfnI,I_FF,dnSolNumdWR_fI,ChiSR_fIR,IdnFdW,FACE->QhatR_WhatR,Boundary);
+			compute_LHS_QhatF_Weak(NvnSR,NvnSR,NfnI,I_FV,dnSolNumdWR_fI,ChiSR_fIR,IdnFdW,FACE->QhatR_WhatR,Boundary);
 
 			free(IdnFdW);
 		} else {
@@ -2710,7 +2710,7 @@ void finalize_FACE_Viscous_Weak(struct S_FDATA const *const FDATAL, struct S_FDA
 }
 
 static void compute_LHS_FACE_Q_Weak(unsigned int const NRows, unsigned int const NCols, unsigned int const Nn,
-                                    double const *const I_FF, double const *const *const dnFluxViscNumdQ_fI,
+                                    double const *const I_FV, double const *const *const dnFluxViscNumdQ_fI,
                                     double const *const *const Q_What, double *const IdnFdQ, double *const LHS,
                                     bool const Boundary)
 {
@@ -2722,7 +2722,7 @@ static void compute_LHS_FACE_Q_Weak(unsigned int const NRows, unsigned int const
 	for (size_t varQ = 0; varQ < Nvar; varQ++) {
 		for (size_t dim = 0; dim < d; dim++) {
 			size_t const InddFdQ = (eq*Nvar+varQ)*Nn;
-			mm_diag_d(NRows,Nn,&dnFluxViscNumdQ_fI[dim][InddFdQ],I_FF,IdnFdQ,1.0,0.0,'R','R');
+			mm_diag_d(NRows,Nn,&dnFluxViscNumdQ_fI[dim][InddFdQ],I_FV,IdnFdQ,1.0,0.0,'R','R');
 
 			for (size_t var = 0; var < Nvar; var++) {
 				if (!Boundary && (var != varQ))
@@ -2767,7 +2767,7 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 	                   NfnI     = OPSL[IndFType]->NfnI;
 
 	double       *IdnFdQ;
-	double const *I_FF;
+	double const *I_FV;
 
 	if (side == 'L') {
 		unsigned int const NvnSL = OPSL[0]->NvnS;
@@ -2775,11 +2775,11 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 		double const *const *const dnFluxViscNumdQL_fI = (double const *const *const) NFLUXDATA->dnFluxNumdQL;
 
 		// QL_WhatL (Effect of QL(WL,...))
-		I_FF   = OPSL[0]->I_Weak_FF[VfL];
+		I_FV   = OPSL[0]->I_Weak_FV[VfL];
 		IdnFdQ = malloc(NvnSL*NfnI * sizeof *IdnFdQ); // free
 
 		double const *const *const Qp_What = (double const *const *const) FDATAL->Qp_WhatL;
-		compute_LHS_FACE_Q_Weak(NvnSL,NvnSL,NfnI,I_FF,dnFluxViscNumdQL_fI,Qp_What,IdnFdQ,FACE->LHSLL,Boundary);
+		compute_LHS_FACE_Q_Weak(NvnSL,NvnSL,NfnI,I_FV,dnFluxViscNumdQL_fI,Qp_What,IdnFdQ,FACE->LHSLL,Boundary);
 		if (Boundary)
 			array_free2_d(d,(double **) Qp_What);
 		free(IdnFdQ);
@@ -2797,7 +2797,7 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 		unsigned int const NvnSL = OPSL[0]->NvnS,
 		                   NvnSR = OPSR[0]->NvnS;
 
-		I_FF   = OPSL[0]->I_Weak_FF[VfL];
+		I_FV   = OPSL[0]->I_Weak_FV[VfL];
 		IdnFdQ = malloc(NvnSL*NfnI * sizeof *IdnFdQ); // free
 
 		// Rearrange such that dQRdW(L/R) are seen at the nodes as ordered from the left VOLUME
@@ -2808,15 +2808,15 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 
 		// LHSLL (Effect of QR(WL,...))
 		Qp_What = (double const *const *const) FDATAR->Qp_WhatL;
-		compute_LHS_FACE_Q_Weak(NvnSL,NvnSL,NfnI,I_FF,dnFluxViscNumdQR_fI,Qp_What,IdnFdQ,FACE->LHSLL,Boundary);
+		compute_LHS_FACE_Q_Weak(NvnSL,NvnSL,NfnI,I_FV,dnFluxViscNumdQR_fI,Qp_What,IdnFdQ,FACE->LHSLL,Boundary);
 
 		// LHSRL (Effect of QL(...,WR))
 		Qp_What = (double const *const *const) FDATAL->Qp_WhatR;
-		compute_LHS_FACE_Q_Weak(NvnSL,NvnSR,NfnI,I_FF,dnFluxViscNumdQL_fI,Qp_What,IdnFdQ,FACE->LHSRL,Boundary);
+		compute_LHS_FACE_Q_Weak(NvnSL,NvnSR,NfnI,I_FV,dnFluxViscNumdQL_fI,Qp_What,IdnFdQ,FACE->LHSRL,Boundary);
 
 		//       (Effect of QR(...,WR))
 		Qp_What = (double const *const *const) FDATAR->Qp_WhatR;
-		compute_LHS_FACE_Q_Weak(NvnSL,NvnSR,NfnI,I_FF,dnFluxViscNumdQR_fI,Qp_What,IdnFdQ,FACE->LHSRL,Boundary);
+		compute_LHS_FACE_Q_Weak(NvnSL,NvnSR,NfnI,I_FV,dnFluxViscNumdQR_fI,Qp_What,IdnFdQ,FACE->LHSRL,Boundary);
 		free(IdnFdQ);
 
 		// Rearrange such that dQ(R/L)dW(L/R) are seen at the nodes as ordered from the right VOLUME
@@ -2830,24 +2830,24 @@ void finalize_implicit_FACE_Q_Weak(struct S_FDATA const *const FDATAL, struct S_
 		// Swap orientation of numerical flux Jacobian terms
 		swap_FACE_orientation(FDATAR,'I','P');
 
-		I_FF   = OPSR[0]->I_Weak_FF[VfR];
+		I_FV   = OPSR[0]->I_Weak_FV[VfR];
 		IdnFdQ = malloc(NvnSR*NfnI * sizeof *IdnFdQ); // free
 
 		// LHSLR (Effect of QL(WL,...))
 		Qp_What = (double const *const *const) FDATAL->Qp_WhatL;
-		compute_LHS_FACE_Q_Weak(NvnSR,NvnSL,NfnI,I_FF,dnFluxViscNumdQL_fI,Qp_What,IdnFdQ,FACE->LHSLR,Boundary);
+		compute_LHS_FACE_Q_Weak(NvnSR,NvnSL,NfnI,I_FV,dnFluxViscNumdQL_fI,Qp_What,IdnFdQ,FACE->LHSLR,Boundary);
 
 		//       (Effect of QR(WL,...))
 		Qp_What = (double const *const *const) FDATAR->Qp_WhatL;
-		compute_LHS_FACE_Q_Weak(NvnSR,NvnSL,NfnI,I_FF,dnFluxViscNumdQR_fI,Qp_What,IdnFdQ,FACE->LHSLR,Boundary);
+		compute_LHS_FACE_Q_Weak(NvnSR,NvnSL,NfnI,I_FV,dnFluxViscNumdQR_fI,Qp_What,IdnFdQ,FACE->LHSLR,Boundary);
 
 		// LHSRR (Effect of QL(...,WR))
 		Qp_What = (double const *const *const) FDATAL->Qp_WhatR;
-		compute_LHS_FACE_Q_Weak(NvnSR,NvnSR,NfnI,I_FF,dnFluxViscNumdQL_fI,Qp_What,IdnFdQ,FACE->LHSRR,Boundary);
+		compute_LHS_FACE_Q_Weak(NvnSR,NvnSR,NfnI,I_FV,dnFluxViscNumdQL_fI,Qp_What,IdnFdQ,FACE->LHSRR,Boundary);
 
 		//       (Effect of QR(...,WR))
 		Qp_What = (double const *const *const) FDATAR->Qp_WhatR;
-		compute_LHS_FACE_Q_Weak(NvnSR,NvnSR,NfnI,I_FF,dnFluxViscNumdQR_fI,Qp_What,IdnFdQ,FACE->LHSRR,Boundary);
+		compute_LHS_FACE_Q_Weak(NvnSR,NvnSR,NfnI,I_FV,dnFluxViscNumdQR_fI,Qp_What,IdnFdQ,FACE->LHSRR,Boundary);
 		free(IdnFdQ);
 
 		array_free2_d(d,(double **) FDATAL->Qp_WhatL);

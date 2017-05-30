@@ -197,6 +197,10 @@
 #define FLUX_BR2  11
 #define FLUX_CDG2 12
 
+// Solver Methods
+#define METHOD_DG   1
+#define METHOD_HDG  2
+
 // Tolerances
 #define NODETOL      1.0e-10
 #define NODETOL_MESH 1.0e-5

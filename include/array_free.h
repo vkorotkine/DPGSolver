@@ -7,6 +7,7 @@
 #include <complex.h>
 
 #include "S_OpCSR.h"
+#include "matrix_structs.h"
 
 
 extern void array_free2_c     (unsigned int iMax, char           **A);
@@ -33,5 +34,7 @@ extern void array_free5_d     (unsigned int iMax, unsigned int jMax, unsigned in
 extern void array_free1_CSR_d (struct S_OpCSR *A);
 extern void array_free4_CSR_d (unsigned int iMax, unsigned int jMax, unsigned int kMax, struct S_OpCSR ****A);
 extern void array_free5_CSR_d (unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int lMax, struct S_OpCSR *****A);
+
+extern void matrix_free (struct S_MATRIX *A);
 
 #endif // DPG__array_free_h__INCLUDED

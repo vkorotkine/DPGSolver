@@ -1131,3 +1131,14 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 		*w = NULL;
 	}
 }
+
+void cubature_s_TP(struct S_CUBATURE *const CUBDATA)
+{
+	cubature_TP(&CUBDATA->rst,&CUBDATA->w,&CUBDATA->symms,&CUBDATA->Nn,&CUBDATA->Ns,
+	            CUBDATA->return_w,CUBDATA->P,CUBDATA->d,CUBDATA->NodeType);
+
+	if (!CUBDATA->return_symm) {
+		CUBDATA->Ns = 0;
+		free(CUBDATA->symms);
+	}
+}

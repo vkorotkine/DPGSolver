@@ -80,7 +80,7 @@
  *		related L2 projections, it is easily seen that the QMF coefficient matrices perform exactly such projections.
  *		See Alpert(2002) for their definitions.
  *
- *		Consider removing the "-ve" sign included in the I()_Weak_FF operator to avoid confusion. (ToBeModified)
+ *		Consider removing the "-ve" sign included in the I()_Weak_FV operator to avoid confusion. (ToBeModified)
  *
  *	Notation:
  *
@@ -248,15 +248,15 @@
  *		Ds_Weak_VV       | [P][P][0][rd]   [rP][P(P)][0][rd]   [P][P][0][rd]   [rP][P(P)][0][rd]
  *		Dc_Weak_VV       |
  *		                 |
- *		Is_Weak_FF       | [P][P][^]       [rP][rPb][^]       [P][P][^^]       [rP][rP][^^]
- *		Ic_Weak_FF       |
+ *		Is_Weak_FV       | [P][P][^]       [rP][rPb][^]       [P][P][^^]       [rP][rP][^^]
+ *		Ic_Weak_FV       |
  *		                 |
  *		ChiS_fIs_sp      | [P][P][^]       [rP][rPb][^]        [P][P][^^]      [rP][rP][^^]
  *		ChiS_fIc_sp      |
  *		Ds_Weak_VV_sp    | [P][P][0][rd]   [rP][P(P)][0][rd]   [P][P][0][rd]   [rP][P(P)][0][rd]
  *		Dc_Weak_VV_sp    |
- *		Is_Weak_FF_sp    | [P][P][^]       [rP][rPb][^]       [P][P][^^]       [rP][rP][^^]
- *		Ic_Weak_FF_sp    |
+ *		Is_Weak_FV_sp    | [P][P][^]       [rP][rPb][^]       [P][P][^^]       [rP][rP][^^]
+ *		Ic_Weak_FV_sp    |
  *
  *
  *	References:
@@ -391,11 +391,11 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             *****D_vGs_fIs, *****D_vGs_fIc,
 	             *****D_vGc_fIs, *****D_vGc_fIc,
 	             ****Is_Weak_VV, ****Ic_Weak_VV,
-	             ****Is_Weak_FF, ****Ic_Weak_FF,
+	             ****Is_Weak_FV, ****Ic_Weak_FV,
 	             *****Ds_Weak_VV, *****Dc_Weak_VV;
 
 	struct S_OpCSR ****ChiS_fIs_sp, ****ChiS_fIc_sp,
-	               ****Is_Weak_FF_sp, ****Ic_Weak_FF_sp;
+	               ****Is_Weak_FV_sp, ****Ic_Weak_FV_sp;
 
 	// Initialize DB Parameters
 	unsigned int PMax         = DB.PMax,
@@ -623,10 +623,10 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	Is_Weak_VV    = ELEMENT->Is_Weak_VV;
 	Ic_Weak_VV    = ELEMENT->Ic_Weak_VV;
-	Is_Weak_FF    = ELEMENT->Is_Weak_FF;
-	Ic_Weak_FF    = ELEMENT->Ic_Weak_FF;
-	Is_Weak_FF_sp = ELEMENT->Is_Weak_FF_sp;
-	Ic_Weak_FF_sp = ELEMENT->Ic_Weak_FF_sp;
+	Is_Weak_FV    = ELEMENT->Is_Weak_FV;
+	Ic_Weak_FV    = ELEMENT->Ic_Weak_FV;
+	Is_Weak_FV_sp = ELEMENT->Is_Weak_FV_sp;
+	Ic_Weak_FV_sp = ELEMENT->Ic_Weak_FV_sp;
 
 	Ds_Weak_VV = ELEMENT->Ds_Weak_VV;
 	Dc_Weak_VV = ELEMENT->Dc_Weak_VV;
@@ -1225,15 +1225,15 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 						GradChiS_fIc[P][Pb][Vf][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NfnIc[Pb][IndFType],NvnS[P],NvnS[P],1.0,GradChiRefS_fIc[dim],TS[P][P][0]); // keep
 					}
 
-					Is_Weak_FF[P][Pb][Vf] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NfnIs[Pb][IndFType],NfnIs[Pb][IndFType],-1.0,ChiS_fIs[P][Pb][Vf],diag_w_fIs); // keep
-					Ic_Weak_FF[P][Pb][Vf] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NfnIc[Pb][IndFType],NfnIc[Pb][IndFType],-1.0,ChiS_fIc[P][Pb][Vf],diag_w_fIc); // keep
+					Is_Weak_FV[P][Pb][Vf] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NfnIs[Pb][IndFType],NfnIs[Pb][IndFType],-1.0,ChiS_fIs[P][Pb][Vf],diag_w_fIs); // keep
+					Ic_Weak_FV[P][Pb][Vf] = mm_Alloc_d(CBRM,CBT,CBNT,NvnS[P],NfnIc[Pb][IndFType],NfnIc[Pb][IndFType],-1.0,ChiS_fIc[P][Pb][Vf],diag_w_fIc); // keep
 
 					if (Collocated) {
-						dummyPtr_d = Is_Weak_FF[P][Pb][Vf];
-						Is_Weak_FF[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[P],NfnIs[Pb][IndFType],NvnS[P],1.0,diag_wInv_vIs,dummyPtr_d); // keep
+						dummyPtr_d = Is_Weak_FV[P][Pb][Vf];
+						Is_Weak_FV[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[P],NfnIs[Pb][IndFType],NvnS[P],1.0,diag_wInv_vIs,dummyPtr_d); // keep
 						free(dummyPtr_d);
-						dummyPtr_d = Ic_Weak_FF[P][Pb][Vf];
-						Ic_Weak_FF[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[P],NfnIc[Pb][IndFType],NvnS[P],1.0,diag_wInv_vIc,dummyPtr_d); // keep
+						dummyPtr_d = Ic_Weak_FV[P][Pb][Vf];
+						Ic_Weak_FV[P][Pb][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIc[P],NfnIc[Pb][IndFType],NvnS[P],1.0,diag_wInv_vIc,dummyPtr_d); // keep
 						free(dummyPtr_d);
 					}
 
@@ -1241,8 +1241,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 						convert_to_CSR_d(NfnIs[Pb][IndFType],NvnS[P],ChiS_fIs[P][Pb][Vf],&ChiS_fIs_sp[P][Pb][Vf]); // keep
 						convert_to_CSR_d(NfnIc[Pb][IndFType],NvnS[P],ChiS_fIc[P][Pb][Vf],&ChiS_fIc_sp[P][Pb][Vf]); // keep
 
-						convert_to_CSR_d(NvnS[P],NfnIs[Pb][IndFType],Is_Weak_FF[P][Pb][Vf],&Is_Weak_FF_sp[P][Pb][Vf]); // keep
-						convert_to_CSR_d(NvnS[P],NfnIc[Pb][IndFType],Ic_Weak_FF[P][Pb][Vf],&Ic_Weak_FF_sp[P][Pb][Vf]); // keep
+						convert_to_CSR_d(NvnS[P],NfnIs[Pb][IndFType],Is_Weak_FV[P][Pb][Vf],&Is_Weak_FV_sp[P][Pb][Vf]); // keep
+						convert_to_CSR_d(NvnS[P],NfnIc[Pb][IndFType],Ic_Weak_FV[P][Pb][Vf],&Ic_Weak_FV_sp[P][Pb][Vf]); // keep
 					}
 
 					ChiRefGs_fS  = basis(PGs           ,rst_fS, NfnS[Pb][IndFType], &Nbf,dE); // free
@@ -1547,12 +1547,12 @@ static void setup_TP_operators(const unsigned int EType)
 				 *****D_vGs_fIs, *****D_vGs_fIc,
 				 *****D_vGc_fIs, *****D_vGc_fIc,
 	             ****Is_Weak_VV, ****Ic_Weak_VV,
-	             ****Is_Weak_FF, ****Ic_Weak_FF,
+	             ****Is_Weak_FV, ****Ic_Weak_FV,
 	             *****Ds_Weak_VV, *****Dc_Weak_VV;
 
 	struct S_OpCSR ****ChiS_fIs_sp, ****ChiS_fIc_sp,
 	               *****Ds_Weak_VV_sp, *****Dc_Weak_VV_sp,
-	               ****Is_Weak_FF_sp, ****Ic_Weak_FF_sp;
+	               ****Is_Weak_FV_sp, ****Ic_Weak_FV_sp;
 
 	// Initialize DB Parameters
 	unsigned int EFE          = DB.EFE,
@@ -1682,10 +1682,10 @@ static void setup_TP_operators(const unsigned int EType)
 
 	Is_Weak_VV    = ELEMENT->Is_Weak_VV;
 	Ic_Weak_VV    = ELEMENT->Ic_Weak_VV;
-	Is_Weak_FF    = ELEMENT->Is_Weak_FF;
-	Ic_Weak_FF    = ELEMENT->Ic_Weak_FF;
-	Is_Weak_FF_sp = ELEMENT->Is_Weak_FF_sp;
-	Ic_Weak_FF_sp = ELEMENT->Ic_Weak_FF_sp;
+	Is_Weak_FV    = ELEMENT->Is_Weak_FV;
+	Ic_Weak_FV    = ELEMENT->Ic_Weak_FV;
+	Is_Weak_FV_sp = ELEMENT->Is_Weak_FV_sp;
+	Ic_Weak_FV_sp = ELEMENT->Ic_Weak_FV_sp;
 
 	Ds_Weak_VV    = ELEMENT->Ds_Weak_VV;
 	Dc_Weak_VV    = ELEMENT->Dc_Weak_VV;
@@ -1915,17 +1915,17 @@ static void setup_TP_operators(const unsigned int EType)
 					}
 
 					get_sf_parametersF(ELEMENTclass[0]->NvnIs[Pb],   ELEMENTclass[0]->NvnS[P],(double const *const *const) ELEMENTclass[0]->Is_Weak_VV[P][Pb],
-					                   ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->NvnS[P],(double const *const *const) ELEMENTclass[0]->Is_Weak_FF[P][Pb],
+					                   ELEMENTclass[0]->NfnIs[Pb][0],ELEMENTclass[0]->NvnS[P],(double const *const *const) ELEMENTclass[0]->Is_Weak_FV[P][Pb],
 					                   NIn,NOut,OP,dE,Vf,Eclass);
-					Is_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					Is_Weak_FV[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					get_sf_parametersF(ELEMENTclass[0]->NvnIc[Pb],   ELEMENTclass[0]->NvnS[P],(double const *const *const) ELEMENTclass[0]->Ic_Weak_VV[P][Pb],
-					                   ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->NvnS[P],(double const *const *const) ELEMENTclass[0]->Ic_Weak_FF[P][Pb],
+					                   ELEMENTclass[0]->NfnIc[Pb][0],ELEMENTclass[0]->NvnS[P],(double const *const *const) ELEMENTclass[0]->Ic_Weak_FV[P][Pb],
 					                   NIn,NOut,OP,dE,Vf,Eclass);
-					Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					Ic_Weak_FV[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 					if (Collocated || VFPartUnity[Eclass]) {
-						convert_to_CSR_d(NvnS[P],NfnIs[Pb][0],Is_Weak_FF[P][Pb][Vf],&Is_Weak_FF_sp[P][Pb][Vf]); // keep
-						convert_to_CSR_d(NvnS[P],NfnIc[Pb][0],Ic_Weak_FF[P][Pb][Vf],&Ic_Weak_FF_sp[P][Pb][Vf]); // keep
+						convert_to_CSR_d(NvnS[P],NfnIs[Pb][0],Is_Weak_FV[P][Pb][Vf],&Is_Weak_FV_sp[P][Pb][Vf]); // keep
+						convert_to_CSR_d(NvnS[P],NfnIc[Pb][0],Ic_Weak_FV[P][Pb][Vf],&Ic_Weak_FV_sp[P][Pb][Vf]); // keep
 					}
 
 					if (fh == 0) {
@@ -2268,27 +2268,27 @@ static void setup_TP_operators(const unsigned int EType)
 						I_vGs_fS[1][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 					}
 
-					if (f < 3) { OPF0 = ELEMENTclass[0]->Is_Weak_FF[P][Pb], OPF1 = ELEMENTclass[1]->Is_Weak_VV[P][Pb];
+					if (f < 3) { OPF0 = ELEMENTclass[0]->Is_Weak_FV[P][Pb], OPF1 = ELEMENTclass[1]->Is_Weak_VV[P][Pb];
 					             NIn0 = ELEMENTclass[0]->NfnIs[Pb][0],      NIn1 = ELEMENTclass[1]->NvnIs[Pb];
-					} else {     OPF0 = ELEMENTclass[0]->Is_Weak_VV[P][Pb], OPF1 = ELEMENTclass[1]->Is_Weak_FF[P][Pb];
+					} else {     OPF0 = ELEMENTclass[0]->Is_Weak_VV[P][Pb], OPF1 = ELEMENTclass[1]->Is_Weak_FV[P][Pb];
 					             NIn0 = ELEMENTclass[0]->NvnIs[Pb],         NIn1 = ELEMENTclass[1]->NfnIs[Pb][0]; }
 					get_sf_parametersF(NIn0,ELEMENTclass[0]->NvnS[P],(double const *const *const) OPF0,
 					                   NIn1,ELEMENTclass[1]->NvnS[P],(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
-					Is_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
-					if (f < 3) { OPF0 = ELEMENTclass[0]->Ic_Weak_FF[P][Pb], OPF1 = ELEMENTclass[1]->Ic_Weak_VV[P][Pb];
+					Is_Weak_FV[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					if (f < 3) { OPF0 = ELEMENTclass[0]->Ic_Weak_FV[P][Pb], OPF1 = ELEMENTclass[1]->Ic_Weak_VV[P][Pb];
 					             NIn0 = ELEMENTclass[0]->NfnIc[Pb][0],      NIn1 = ELEMENTclass[1]->NvnIc[Pb];
-					} else {     OPF0 = ELEMENTclass[0]->Ic_Weak_VV[P][Pb], OPF1 = ELEMENTclass[1]->Ic_Weak_FF[P][Pb];
+					} else {     OPF0 = ELEMENTclass[0]->Ic_Weak_VV[P][Pb], OPF1 = ELEMENTclass[1]->Ic_Weak_FV[P][Pb];
 					             NIn0 = ELEMENTclass[0]->NvnIc[Pb],         NIn1 = ELEMENTclass[1]->NfnIc[Pb][0]; }
 					get_sf_parametersF(NIn0,ELEMENTclass[0]->NvnS[P],(double const *const *const) OPF0,
 					                   NIn1,ELEMENTclass[1]->NvnS[P],(double const *const *const) OPF1,NIn,NOut,OP,dE,Vf,Eclass);
-					Ic_Weak_FF[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
+					Ic_Weak_FV[P][Pb][Vf] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
 					if (Collocated || VFPartUnity[Eclass]) {
 						if (f < 3) IndClass = 0;
 						else       IndClass = 1;
 
-						convert_to_CSR_d(NvnS[P],NfnIs[Pb][IndClass],Is_Weak_FF[P][Pb][Vf],&Is_Weak_FF_sp[P][Pb][Vf]); // keep
-						convert_to_CSR_d(NvnS[P],NfnIc[Pb][IndClass],Ic_Weak_FF[P][Pb][Vf],&Ic_Weak_FF_sp[P][Pb][Vf]); // keep
+						convert_to_CSR_d(NvnS[P],NfnIs[Pb][IndClass],Is_Weak_FV[P][Pb][Vf],&Is_Weak_FV_sp[P][Pb][Vf]); // keep
+						convert_to_CSR_d(NvnS[P],NfnIc[Pb][IndClass],Ic_Weak_FV[P][Pb][Vf],&Ic_Weak_FV_sp[P][Pb][Vf]); // keep
 					}
 
 					if (fh == 0) {

@@ -20,4 +20,14 @@ extern void select_functions_grad_basis (grad_basis_tdef *grad_basis, const unsi
 extern void select_functions_cubature   (cubature_tdef *cubature,     const unsigned int type);
 extern void select_functions_basis_Bezier (basis_tdef *basis, const unsigned int type);
 
+#include "cubature.h"
+#include "bases.h"
+#include "matrix_structs.h"
+
+typedef void (*cubature_s_tdef) (struct S_CUBATURE *const CUBDATA);
+typedef struct S_MATRIX * (*basis_s_tdef) (struct S_BASIS *const BASISDATA);
+
+extern void select_functions_cubature_s (cubature_s_tdef *cubature, unsigned int const type);
+extern void select_functions_basis_s    (basis_s_tdef *basis, unsigned int const type);
+
 #endif // DPG__select_functions_h__INCLUDED

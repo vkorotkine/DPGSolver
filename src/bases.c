@@ -23,6 +23,8 @@
 #include "array_norm.h"
 #include "array_print.h"
 
+#include "matrix_structs.h"
+
 /*
  *	Purpose:
  *		Return the "matrix" ChiRef_rst representing the orthonormal or Bezier basis functions evaluated at the provided
@@ -1187,4 +1189,17 @@ void rst_to_barycentric_SI(const unsigned int Nn, const unsigned int d, const do
 
 	free(A_Nve_Inv);
 	free(A_Nn);
+}
+
+struct S_MATRIX * basis_s_TP (struct S_BASIS *const BASISDATA)
+{
+	struct S_MATRIX *ChiRef_rst = malloc(sizeof *ChiRef_rst); // keep
+
+	ChiRef_rst->format = 'D';
+	ChiRef_rst->layout = 'R';
+	ChiRef_rst->NRows  = BASISDATA->Nn;
+	ChiRef_rst->NCols  = BASISDATA->Nbf;
+	ChiRef_rst->values = basis_TP(BASISDATA->P,BASISDATA->rst,BASISDATA->Nn,&BASISDATA->Nbf,BASISDATA->d); // keep
+
+	return ChiRef_rst;
 }

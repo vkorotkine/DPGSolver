@@ -366,7 +366,7 @@ void initialize_test_case_parameters(void)
 				pIn = pow(DB.rhoIn,GAMMA)/GAMMA;
 				cIn = sqrt(GAMMA*pIn/DB.rhoIn);
 
-				DB.VIn = cIn*DB.MIn*DB.rIn;
+				DB.VIn = cIn*DB.MIn/DB.rIn;
 
 //				printf("Add documentation.\n"), EXIT_BASIC;
 			} else if (strstr(TestCase,"InviscidChannel")) {

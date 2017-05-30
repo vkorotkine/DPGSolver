@@ -101,6 +101,8 @@ void memory_free(void)
 			array_free2_ui(DB.NP,DB.PIfc);
 			array_free2_ui(DB.NP,DB.PIvs);
 			array_free2_ui(DB.NP,DB.PIvc);
+			free(DB.PTRS);
+			free(DB.PTRF);
 			free(DB.VFPartUnity);
 
 			// setup_mesh

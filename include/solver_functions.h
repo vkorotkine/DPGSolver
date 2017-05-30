@@ -70,14 +70,14 @@ struct S_OPERATORS_F {
 	unsigned int       NvnS, NfnI;
 	unsigned int const *nOrdLR, *nOrdRL;
 
-	double const *w_fI, *const *ChiS_fI, *const *I_Weak_FF;
+	double const *w_fI, *const *ChiS_fI, *const *I_Weak_FV;
 
 	// Sparse
-	struct S_OpCSR const *const *ChiS_fI_sp, *const *I_Weak_FF_sp;
+	struct S_OpCSR const *const *ChiS_fI_sp, *const *I_Weak_FV_sp;
 
 	// (S)um (F)actorized
 	unsigned int NvnS_SF, NfnI_SF, NvnI_SF;
-	double const *const *ChiS_fI_SF, *const *ChiS_vI_SF, *const *I_Weak_FF_SF, *const *I_Weak_VV_SF;
+	double const *const *ChiS_fI_SF, *const *ChiS_vI_SF, *const *I_Weak_FV_SF, *const *I_Weak_VV_SF;
 };
 
 struct S_FDATA {

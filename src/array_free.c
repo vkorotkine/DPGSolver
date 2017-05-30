@@ -7,7 +7,8 @@
 #include <complex.h>
 
 #include "S_OpCSR.h"
- 
+#include "matrix_structs.h"
+
 /*
  *	Purpose:
  *		Free dynamically allocated arrays with more than one level of pointer abstraction.
@@ -359,4 +360,11 @@ void array_free5_CSR_d(unsigned int iMax, unsigned int jMax, unsigned int kMax, 
 		}
 	}
 	free(A);
+}
+
+void matrix_free(struct S_MATRIX *A)
+{
+	free(A->values);
+	free(A->rowIndex);
+	free(A->columns);
 }

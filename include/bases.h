@@ -22,4 +22,13 @@ extern double *basis_TP_Bezier (const unsigned int P, const double *rst, const u
 extern double *basis_SI_Bezier (const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut, const unsigned int d);
 extern void   rst_to_barycentric_SI (const unsigned int Nn, const unsigned int d, const double *rst, double *BCoords);
 
+struct S_BASIS {
+	unsigned int P, Nn, Nbf, d;
+	double       *rst;
+};
+
+#include "matrix_structs.h"
+
+extern struct S_MATRIX * basis_s_TP (struct S_BASIS *const BASISDATA);
+
 #endif // DPG__bases_h__INCLUDED

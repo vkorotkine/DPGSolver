@@ -13,6 +13,7 @@
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_OpCSR.h"
+#include "matrix_structs.h"
 
 /*
  *	Purpose:
@@ -2017,4 +2018,50 @@ void convert_to_CSR_d(const unsigned int NRows, const unsigned int NCols, const 
 	(*Output)->rowIndex = rowIndex;
 	(*Output)->columns = columns;
 	(*Output)->values = values;
+}
+
+struct S_MATRIX * mm_Alloc_Mat_d
+(char const layout, struct S_MATRIX const *const A, struct S_MATRIX const *const B)
+{
+	/*
+	 *	Purpose:
+	 *		Compute C = A*B in the appropriate layout using the matrix struct.
+	 *
+	 *	Comments:
+	 *		Note that a matrix in the alternate layout is simply interpreted as being transposed in the current layout.
+	 */
+
+	if (A->format == 'S' || B->format == 'S')
+		EXIT_UNSUPPORTED;
+
+	CBLAS_LAYOUT CBlayout = CBRM;
+	if (layout == 'C')
+		CBlayout = CBCM;
+
+	CBLAS_TRANSPOSE transa = CBNT;
+	if (layout != A->layout)
+		transa = CBT;
+
+	CBLAS_TRANSPOSE transb = CBNT;
+	if (layout != B->layout)
+		transb = CBT;
+
+	int m = A->NRows,
+	    n = B->NCols,
+	    k = A->NCols;
+
+//	if (k != B->NRows)
+//		EXIT_UNSUPPORTED;
+
+	double const alpha = 1.0;
+
+	struct S_MATRIX *C = malloc(sizeof *C); // keep
+
+	C->layout = layout;
+	C->format = 'D';
+	C->NRows  = m;
+	C->NCols  = n;
+	C->values = mm_Alloc_d(CBlayout,transa,transb,m,n,k,alpha,A->values,B->values); // keep
+
+	return C;
 }

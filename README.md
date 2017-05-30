@@ -3,27 +3,30 @@
 ### Code Description
 - Uses only free to use/open source libraries/supporting programs.
 - Methods:
-	- Discontinuous Petrov Galerkin (DPG) (TO BE DONE);
 	- Discontinuous Galerkin (DG).
+	- Discontinuous Petrov Galerkin (DPG) (TO BE DONE);
 - Supported elements: TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
 - Supported refinements: isotropic h (size) or p (order).
 
 ### Supported PDEs
-| PDE           | STATUS               | BRANCH (if not master) |
-|---------------|----------------------| ---------------------- |
-| Poisson       | DONE                 |                        |
-| Advection     | DONE (NEEDS CLEANUP) | lsfem                  |
-| Euler         | DONE                 |                        |
-| Navier-Stokes | DONE                 |                        |
+| PDE           | STATUS               | COMMENTS |
+|---------------|----------------------|----------|
+| Advection     | DONE                 |Additional functionality in lsfem branch|
+| Poisson       | DONE                 ||
+| Euler         | DONE                 ||
+| Navier-Stokes | DONE                 ||
 
 
-### Specific Test Cases
-| Test case        |      |
-|------------------|------|
-| PeriodicVortex   | DONE |
-| SupersonicVortex | DONE |
-| InviscidChannel  | DONE |
-| Taylor-Couette   | DONE |
+### Test Cases
+| PDE           | Name             | Status |
+|---------------|------------------|--------|
+| Advection     | Default          | DONE   |
+|               | Peterson         | DONE   |
+| Poisson       | Default          | DONE   |
+| Euler         | PeriodicVortex   | DONE   |
+|               | SupersonicVortex | DONE   |
+|               | InviscidChannel  | DONE   |
+| Navier-Stokes | Taylor-Couette   | DONE   |
 
 See the CODE STATUS section below for details regarding current functionality.
 
@@ -44,31 +47,34 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 
 
 ## Code Status
-| Functionality  |            |
+| Functionality  | Status     |
 |----------------|------------|
 | MPI            | TO BE DONE |
 | h/p Adaptation | DONE       |
 
 #### Supported Numerical Fluxes
-| Flux           |      |
-|----------------|----- |
-| Lax-Friedrichs | DONE |
-| Roe-Pike       | DONE |
-| Bassi-Rebay 2  | DONE |
-| Compact DG 2   | DONE |
+| Name           | Status |
+|----------------|------- |
+| Upwind         | DONE   |
+| Lax-Friedrichs | DONE   |
+| Roe-Pike       | DONE   |
+| Bassi-Rebay 2  | DONE   |
+| Compact DG 2   | DONE   |
 
 #### Supported Boundary Conditions
-| Boundary Condition      |      |
-|-------------------------|------|
-| Dirichlet               | DONE |
-| Neumann                 | DONE |
-| Riemann                 | DONE |
-| SlipWall                | DONE |
-| BackPressure            | DONE |
-| Supersonic (In/Out)flow | DONE |
-| Total Temp/Pressure     | DONE |
-| No Slip Dirichlet       | DONE |
-| No Slip Adiabatic       | DONE |
+| PDE           | Name                    | Status |
+|---------------|-------------------------|--------|
+| Advection     | Inflow                  | DONE   |
+|               | Outflow                 | DONE   |
+| Poisson       | Dirichlet               | DONE   |
+|               | Neumann                 | DONE   |
+| Euler         | Riemann                 | DONE   |
+|               | SlipWall                | DONE   |
+|               | BackPressure            | DONE   |
+|               | Supersonic (In/Out)flow | DONE   |
+|               | Total Temp/Pressure     | DONE   |
+| Navier-Stokes | No Slip Dirichlet       | DONE   |
+|               | No Slip Adiabatic       | DONE   |
 
 
 ### License

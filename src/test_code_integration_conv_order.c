@@ -75,26 +75,38 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 //		data->PrintEnabled = 1;
 		data->AdaptiveRefine = 0;
 		data->MLMax  = 5;
-		if (strstr(TestName,"n-Cube_Default")) {
-			if (strstr(TestName,"TRI")) {
-				strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_TRI");
-			} else if (strstr(TestName,"QUAD")) {
-				data->IntOrder_add  = 2; // The exact solution is obtained if this is omitted
-				strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_QUAD");
+		if (strstr(TestName,"hDG")) {
+			if (strstr(TestName,"n-Cube_Default")) {
+				if (strstr(TestName,"TRI")) {
+					strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_hDG_n-Cube_TRI");
+				} else {
+					EXIT_UNSUPPORTED;
+				}
 			} else {
 				EXIT_UNSUPPORTED;
 			}
-		} else if (strstr(TestName,"n-Cube_Peterson")) {
-			data->Adapt = ADAPT_P;
-			data->PMin = 1;
-			data->PMax = 1;
-			if (strstr(TestName,"TRI")) {
-				strcpy(data->argvNew[1],"test/Advection/Test_Advection_Peterson_n-Cube_TRI");
+		} else { // Default: DG
+			if (strstr(TestName,"n-Cube_Default")) {
+				if (strstr(TestName,"TRI")) {
+					strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_TRI");
+				} else if (strstr(TestName,"QUAD")) {
+					data->IntOrder_add  = 2; // The exact solution is obtained if this is omitted
+					strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_QUAD");
+				} else {
+					EXIT_UNSUPPORTED;
+				}
+			} else if (strstr(TestName,"n-Cube_Peterson")) {
+				data->Adapt = ADAPT_P;
+				data->PMin = 1;
+				data->PMax = 1;
+				if (strstr(TestName,"TRI")) {
+					strcpy(data->argvNew[1],"test/Advection/Test_Advection_Peterson_n-Cube_TRI");
+				} else {
+					EXIT_UNSUPPORTED;
+				}
 			} else {
 				EXIT_UNSUPPORTED;
 			}
-		} else {
-			EXIT_UNSUPPORTED;
 		}
 	} else if (strstr(TestName,"Poisson")) {
 		data->AdaptiveRefine = 0;

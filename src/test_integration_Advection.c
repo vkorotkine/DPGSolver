@@ -87,6 +87,8 @@ void test_integration_Advection(int nargc, char **argv)
 
 		test_conv_order(data_c,"Advection_n-Cube_Peterson_TRI");
 
+//		test_conv_order(data_c,"Advection_n-Cube_Default_hDG_TRI");
+
 		free(data_c);
 	} else {
 		test_print_warning("Advection convergence order testing currently disabled");
