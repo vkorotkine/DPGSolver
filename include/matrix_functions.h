@@ -29,7 +29,8 @@ extern void   mm_CTN_CSR_d     (const int m, const int n, const int k, const str
 extern void   convert_to_CSR_d (const unsigned int NRows, const unsigned int NCols, const double *Input,
                                 struct S_OpCSR **Output);
 
-extern struct S_MATRIX * mm_Alloc_Mat_d
-       (char const layout, struct S_MATRIX const *const A, struct S_MATRIX const *const B);
+extern struct S_MATRIX *mm_Alloc_mat_d (char const layout, struct S_MATRIX const *const A,
+                                        struct S_MATRIX const *const B);
+extern struct S_MATRIX *inverse_mat (struct S_MATRIX const *const A);
 
 #endif // DPG__matrix_functions_h__INCLUDED

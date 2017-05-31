@@ -891,11 +891,17 @@ static double get_arc_length(const double XL, const double XR, const double Z, c
 
 	if (!AnalyticalArcLen) {
 		unsigned int n, l, iMax, lMax, IndX, IndZ,
-		             FoundArcLen, Nn, Ns, *symms;
+		             FoundArcLen, Nn;
 		double       h, xL, xR,
 		             *ArcLen, *XZInt, *dFdX_X, *rst, *w;
 
-		cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,PGlobal,1,"GL"); // free
+		struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
+		set_cubdata(CUBDATA,true,false,"GL",1,PGlobal,cubature_TP); // free
+
+		Nn    = CUBDATA->Nn;
+		rst   = CUBDATA->rst;
+		w     = CUBDATA->w;
 
 		lMax = 20;
 
@@ -952,7 +958,7 @@ static double get_arc_length(const double XL, const double XR, const double Z, c
 		free(XZInt);
 		free(rst);
 		free(w);
-		free(symms);
+		free(CUBDATA);
 	} else {
 		double aF, bF, a, b, c, b1, c1, X, P_X;
 

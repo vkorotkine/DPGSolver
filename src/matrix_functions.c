@@ -2020,7 +2020,7 @@ void convert_to_CSR_d(const unsigned int NRows, const unsigned int NCols, const 
 	(*Output)->values = values;
 }
 
-struct S_MATRIX * mm_Alloc_Mat_d
+struct S_MATRIX * mm_Alloc_mat_d
 (char const layout, struct S_MATRIX const *const A, struct S_MATRIX const *const B)
 {
 	/*
@@ -2064,4 +2064,21 @@ struct S_MATRIX * mm_Alloc_Mat_d
 	C->values = mm_Alloc_d(CBlayout,transa,transb,m,n,k,alpha,A->values,B->values); // keep
 
 	return C;
+}
+
+struct S_MATRIX *inverse_mat (struct S_MATRIX const *const A)
+{
+	if (A->NRows != A->NCols)
+		EXIT_UNSUPPORTED;
+
+	struct S_MATRIX *AInv = malloc(sizeof *AInv); // keep
+
+	AInv->layout  = A->layout;
+	AInv->format  = A->format;
+	AInv->NRows   = A->NRows;
+	AInv->NCols   = A->NCols;
+	AInv->valuess = inverse_d(A->NRows,A->NRows,
+
+
+	return AInv;
 }

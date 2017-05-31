@@ -156,37 +156,3 @@ void select_functions_basis_Bezier(basis_tdef *basis, const unsigned int type)
 		break;
 	}
 }
-
-void select_functions_cubature_s(cubature_s_tdef *cubature, unsigned int const type)
-{
-	switch(type) {
-	case LINE:
-	case QUAD:
-		*cubature = cubature_s_TP;
-		break;
-	case TRI:
-		EXIT_UNSUPPORTED;
-//		*cubature = cubature_s_TRI;
-		break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
-}
-
-void select_functions_basis_s(basis_s_tdef *basis, unsigned int const type)
-{
-	switch(type) {
-	case LINE:
-	case QUAD:
-		*basis = basis_s_TP;
-		break;
-	case TRI:
-		EXIT_UNSUPPORTED;
-//		*basis = basis_s_TRI;
-		break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
-}

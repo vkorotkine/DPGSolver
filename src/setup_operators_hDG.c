@@ -47,79 +47,60 @@
  *	References:
  */
 
-static void set_CUBDATA_no_symm
-(unsigned int const return_w, unsigned int const P, unsigned int Nn, double *rst, double *w, char const *NodeType)
-{
-}
-
 static void setup_operators_hDG_std(EType)
 {
-	char const*const*const*const NodeTypeIfs = (char const*const*const*const) DB.NodeTypeIfs,
-	          *const*const*const NodeTypeIfc = (char const*const*const*const) DB.NodeTypeIfc;
+	char const *const *const *const NodeTypeIfs = (char const *const *const *const) DB.NodeTypeIfs,
+	           *const *const *const NodeTypeIfc = (char const *const *const *const) DB.NodeTypeIfc;
 
-	unsigned int const             Eclass = get_Eclass(EType),
-	                  *const       PTRS   = DB.PTRS,
-	                  *const*const PIfs   = (unsigned int const*const*const) DB.PIfs;
-//	                  *const*const PIfc   = (unsigned int const*const*const) DB.PIfc;
+	unsigned int const              Eclass = get_Eclass(EType),
+	                   *const       PTRS   = DB.PTRS,
+	                   *const *const PIfs   = (unsigned int const *const *const) DB.PIfs;
+//	                   *const *const PIfc   = (unsigned int const *const *const) DB.PIfc;
 
 	struct S_ELEMENT *const ELEMENT = get_ELEMENT_type(EType);
 
 	unsigned int const dE = ELEMENT->d;
 
 	// Returned operators
-	struct S_MATRIX ** ChiTRS_vIs = ELEMENT->ChiTRS_vIs;
-//	                ** Is_FF      = ELEMENT->Is_FF;
+	struct S_MATRIX **ChiTRS_vIs = ELEMENT->ChiTRS_vIs;
+//	                **Is_FF      = ELEMENT->Is_FF;
 
-	cubature_s_tdef cubature;
-	basis_s_tdef    basis;
+	cubature_tdef cubature;
+	basis_tdef    basis;
 
-	select_functions_cubature_s(&cubature,EType);
-	select_functions_basis_s(&basis,EType);
+	select_functions_cubature(&cubature,EType);
+	select_functions_basis(&basis,EType);
 
 	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
-	unsigned int Ns = 0,
-	             *symms = NULL;
-	CUBDATA->return_symm = 0;
-	CUBDATA->symms       = symms;
-	CUBDATA->Ns          = Ns;
-	CUBDATA->d           = dE;
-
-	struct S_BASIS *BASISDATA = malloc(sizeof *BASISDATA); // free
-	unsigned int Nbf = 0;
-	BASISDATA->Nbf = Nbf;
-	BASISDATA->d   = dE;
 
 	unsigned int PSMin, PSMax;
 	get_PS_range(&PSMin,&PSMax);
 	for (size_t P = PSMin; P <= PSMax; P++) {
+
+		unsigned int NvnTRS = 0;
+		double       *rst_vTRS = NULL,
+		set_cubdata(CUBDATA,false,false,NodeTypeS[P][Eclass],dE,PTRS[P],cubature); // free
+		set_from_cubdata(CUBDATA,&NvnTRS,NULL,&rst_vTRS,NULL,NULL);
+
+		struct S_MATRIX *ChiRefTRS_vTRS    = basis_mat(PTRS[P],dE,NvnTRS,rst_vTRS,basis), // tbd
+		                *ChiRefInvTRS_vTRS = inverse_mat(ChiRefTRS_vTRS); // tbd
+		struct S_MATRIX *TTRS = mm_Alloc_Mat_d('R',ChiRefInvTRS_vTRS,ChiTRS_vTRS); // free
+
 		unsigned int NvnIs = 0;
-		double       *rst_vIs = NULL,
-		             *w_vIs   = NULL;
+		double       *rst_vIs = NULL, *w_vIs = NULL;
+		set_cubdata(CUBDATA,true,false,NodeTypeIfs[P][Eclass],dE,PIfs[P][Eclass],cubature); // free
+		set_from_cubdata(CUBDATA,&NvnIs,NULL,&rst_vIs,&w_vIs,NULL);
 
-		set_CUBDATA_no_symm(1,PIfs[P][Eclass],NvnIs,rst_vIs,w_vIs,NodeTypeIfs[P][Eclass]);
-		CUBDATA->return_w = 1;
-		CUBDATA->P = PIfs[P][Eclass];
-		CUBDATA->Nn  = NvnIs;
-		CUBDATA->rst = rst_vIs;
-		CUBDATA->w   = w_vIs;
+		struct S_MATRIX *ChiRefTRS_vIs  = basis_mat(PTRS[P],dE,NvnIs,rst_vIs,basis); // tbd
 
-		CUBDATA->NodeType = NodeTypeIfs[P][Eclass];
-		cubature(CUBDATA); // free
-
-		BASISDATA->P   = PTRS[P];
-		BASISDATA->Nn  = NvnIs;
-		BASISDATA->rst = rst_vIs;
-		struct S_MATRIX * ChiRefTRS_vIs = basis(BASISDATA); // free
-
-		struct S_MATRIX * ChiRefTRS_vTRS = basis(BASISDATA); // tbd
-
-		struct S_MATRIX * TTRS = mm_Alloc_Mat_d('R',ChiRefInvTRS_vTRS,ChiTRS_vTRS); // free
 
 		ChiTRS_vIs[P] = mm_Alloc_Mat_d('R',ChiRefTRS_vIs,TTRS); // keep
 
 		matrix_free(TTRS);
 
 printf("%p\n",ChiRefTRS_vIs);
+
+		free(rst_vTRS);
 
 		free(rst_vIs);
 		free(w_vIs);
@@ -128,8 +109,10 @@ printf("%p\n",ChiRefTRS_vIs);
 	free(CUBDATA);
 	free(BASISDATA);
 
-if (0)
+if (0) {
 	printf("%p %p\n",NodeTypeIfs,NodeTypeIfc);
+	printf("%d\n",EType);
+}
 }
 
 static void setup_operators_hDG_TP(EType)

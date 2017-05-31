@@ -305,10 +305,8 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 
 		// Standard datatypes
 		unsigned int dE, Nbf,
-		             NfnGs, EType, EclassF,
-		             dummy_ui, *dummyPtr_ui;
+		             NfnGs, EType, EclassF;
 		double       *rst_vGs, *rst_fG2, *rst_fGc, *rst_fS, *rst_fIs, *rst_fIc,
-		             *dummyPtr_d[2],
 		             *IGs,
 		             *ChiRefGs_vGs,
 		             *ChiRefInvGs_vGs,
@@ -330,11 +328,13 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 
 		Nve = ELEMENT_F->Nve;
 
+		struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
 		// It is important to use the nodes corresponding to the VeF ordering
 		rst_vGs = get_rst_vV(ELEMENT_F); // free
-		cubature(&dummyPtr_d[0],&dummyPtr_d[1],&dummyPtr_ui,&NfnGs,&dummy_ui,0,1,dE,NodeTypeG[EclassF]); // free
-		free(dummyPtr_ui);
-		free(dummyPtr_d[0]);
+		set_cubdata(CUBDATA,false,false,NodeTypeG[EclassF],dE,1,cubature); // free
+		free(CUBDATA->rst);
+		NfnGs = CUBDATA->Nn;
 
 		IGs             = identity_d(NfnGs);                       // free
 		ChiRefGs_vGs    = basis(1,rst_vGs,NfnGs,&Nbf,dE);          // free
@@ -346,10 +346,17 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 		free(ChiRefGs_vGs);
 
 		for (P = 0; P <= PMax; P++) {
-			cubature(&rst_fGc,&dummyPtr_d[0],&dummyPtr_ui,&NfnGc[P],&dummy_ui,0,PGc[P],          dE,NodeTypeG[EclassF]);      free(dummyPtr_ui); // free
-			cubature(&rst_fS, &dummyPtr_d[0],&dummyPtr_ui,&NfnS[P], &dummy_ui,0,P,               dE,NodeTypeS[P][EclassF]);   free(dummyPtr_ui); // free
-			cubature(&rst_fIs,&w_fIs[P],     &dummyPtr_ui,&NfnIs[P],&dummy_ui,1,PIfs[P][EclassF],dE,NodeTypeIfs[P][EclassF]); free(dummyPtr_ui); // free
-			cubature(&rst_fIc,&w_fIc[P],     &dummyPtr_ui,&NfnIc[P],&dummy_ui,1,PIfc[P][EclassF],dE,NodeTypeIfc[P][EclassF]); free(dummyPtr_ui); // free
+			set_cubdata(CUBDATA,false,false,NodeTypeG[EclassF],dE,PGc[P],cubature); // free
+			set_from_cubdata(CUBDATA,&NfnGc[P],NULL,&rst_fGc,NULL,NULL);
+
+			set_cubdata(CUBDATA,false,false,NodeTypeS[P][EclassF],dE,P,cubature); // free
+			set_from_cubdata(CUBDATA,&NfnS[P],NULL,&rst_fS,NULL,NULL);
+
+			set_cubdata(CUBDATA,true,false,NodeTypeIfs[P][EclassF],dE,PIfs[P][EclassF],cubature); // free
+			set_from_cubdata(CUBDATA,&NfnIs[P],NULL,&rst_fIs,&w_fIs[P],NULL);
+
+			set_cubdata(CUBDATA,true,false,NodeTypeIfc[P][EclassF],dE,PIfc[P][EclassF],cubature); // free
+			set_from_cubdata(CUBDATA,&NfnIc[P],NULL,&rst_fIc,&w_fIc[P],NULL);
 
 			ChiRefGs_fGc = basis(1,rst_fGc,NfnGc[P],&Nbf,dE); // free
 			ChiRefGs_fS  = basis(1,rst_fS, NfnS[P], &Nbf,dE); // free
@@ -357,7 +364,9 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 			ChiRefGs_fIc = basis(1,rst_fIc,NfnIc[P],&Nbf,dE); // free
 
 			if (P == 2) {
-				cubature(&rst_fG2,&dummyPtr_d[0],&dummyPtr_ui,&NfnG2[P],&dummy_ui,0,P,dE,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
+				set_cubdata(CUBDATA,false,false,NodeTypeG[EclassF],dE,P,cubature); // free
+				set_from_cubdata(CUBDATA,&NfnG2[P],NULL,&rst_fG2,NULL,NULL);
+
 				ChiRefGs_fG2 = basis(1,rst_fG2,NfnG2[P],&Nbf,dE); // free
 				BCoords_G2[P] = mm_Alloc_d(CBCM,CBT,CBT,NfnG2[P],NfnGs,NfnGs,1.0,ChiRefGs_fG2,ChiRefInvGs_vGs); // keep
 
@@ -381,6 +390,7 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 			free(ChiRefGs_fIc);
 		}
 		free(ChiRefInvGs_vGs);
+		free(CUBDATA);
 	}
 
 	free(one);
@@ -411,9 +421,9 @@ struct S_BCOORDS *get_BCoords_dEm2(const struct S_ELEMENT *ELEMENT)
 	             *PGc        = DB.PGc;
 
 	// Standard datatypes
-	unsigned int dE, Nbf, P, NenGs, Nve, EType, Eclass, *NenG2, *NenGc, dummy_ui, *dummyPtr_ui;
+	unsigned int dE, Nbf, P, NenGs, Nve, EType, Eclass, *NenG2, *NenGc;
 	double       **BCoords_G2, **BCoords_Gc, *rst_vGs, *rst_eG2, *rst_eGc,
-	             *IGs, *ChiRefGs_vGs, *ChiRefInvGs_vGs, *ChiRefGs_eG2, *ChiRefGs_eGc, *dummyPtr_d[2];
+	             *IGs, *ChiRefGs_vGs, *ChiRefInvGs_vGs, *ChiRefGs_eG2, *ChiRefGs_eGc;
 
 	struct S_BCOORDS *BCoords_dEm2;
 	struct S_ELEMENT *ELEMENT_E;
@@ -443,11 +453,13 @@ struct S_BCOORDS *get_BCoords_dEm2(const struct S_ELEMENT *ELEMENT)
 	dE  = ELEMENT_E->d;
 	Nve = ELEMENT_E->Nve;
 
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
 	// It is important to use the nodes corresponding to the VeE ordering
 	rst_vGs = get_rst_vV(ELEMENT_E); // free
-	cubature(&dummyPtr_d[0],&dummyPtr_d[1],&dummyPtr_ui,&NenGs,&dummy_ui,0,1,dE,NodeTypeG[Eclass]); // free
-	free(dummyPtr_ui);
-	free(dummyPtr_d[0]);
+	set_cubdata(CUBDATA,false,false,NodeTypeG[Eclass],dE,1,cubature); // free
+	free(CUBDATA->rst);
+	NenGs = CUBDATA->Nn;
 
 	IGs             = identity_d(NenGs);                       // free
 	ChiRefGs_vGs    = basis(1,rst_vGs,NenGs,&Nbf,dE);          // free
@@ -459,12 +471,15 @@ struct S_BCOORDS *get_BCoords_dEm2(const struct S_ELEMENT *ELEMENT)
 	free(ChiRefGs_vGs);
 
 	for (P = 0; P <= PMax; P++) {
-		cubature(&rst_eGc,&dummyPtr_d[0],&dummyPtr_ui,&NenGc[P],&dummy_ui,0,PGc[P],   dE,NodeTypeG[Eclass]); free(dummyPtr_ui); // free
+		set_cubdata(CUBDATA,false,false,NodeTypeG[Eclass],dE,PGc[P],cubature); // free
+		set_from_cubdata(CUBDATA,&NenGc[P],NULL,&rst_eGc,NULL,NULL);
 
 		ChiRefGs_eGc = basis(1,rst_eGc,NenGc[P],&Nbf,dE); // free
 
 		if (P == 2) {
-			cubature(&rst_eG2,&dummyPtr_d[0],&dummyPtr_ui,&NenG2[P],&dummy_ui,0,P,dE,NodeTypeG[Eclass]); free(dummyPtr_ui); // free
+			set_cubdata(CUBDATA,false,false,NodeTypeG[Eclass],dE,P,cubature); // free
+			set_from_cubdata(CUBDATA,&NenG2[P],NULL,&rst_eG2,NULL,NULL);
+
 			ChiRefGs_eG2 = basis(1,rst_eG2,NenG2[P],&Nbf,dE); // free
 			BCoords_G2[P] = mm_Alloc_d(CBCM,CBT,CBT,NenG2[P],NenGs,NenGs,1.0,ChiRefGs_eG2,ChiRefInvGs_vGs); // keep
 
@@ -483,6 +498,8 @@ struct S_BCOORDS *get_BCoords_dEm2(const struct S_ELEMENT *ELEMENT)
 	BCoords_dEm2->NenGc = NenGc;
 	BCoords_dEm2->BCoords_G2 = BCoords_G2;
 	BCoords_dEm2->BCoords_Gc = BCoords_Gc;
+
+	free(CUBDATA);
 
 	return BCoords_dEm2;
 }
@@ -1217,7 +1234,7 @@ void setup_ELEMENT_FACE_ordering(const unsigned int FType)
 		// Standard datatypes
 		unsigned int dE, NfnS, NfnIs, NfnIc, NsS, NsIs, NsIc, Eclass,
 		             *symms_fS, *symms_fIs, *symms_fIc;
-		double       *rst_fS, *rst_fIs, *rst_fIc, *w;
+		double       *rst_fS, *rst_fIs, *rst_fIc;
 
 		// Function pointers
 		cubature_tdef   cubature;
@@ -1242,10 +1259,17 @@ void setup_ELEMENT_FACE_ordering(const unsigned int FType)
 		nOrd_fIs = ELEMENT->nOrd_fIs;
 		nOrd_fIc = ELEMENT->nOrd_fIc;
 
+		struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
 		for (P = 0; P <= PMax; P++) {
-			cubature(&rst_fS, &w,&symms_fS, &NfnS, &NsS, 0,P,              dE,NodeTypeS[P][Eclass]);   // free
-			cubature(&rst_fIs,&w,&symms_fIs,&NfnIs,&NsIs,0,PIfs[P][Eclass],dE,NodeTypeIfs[P][Eclass]); // free
-			cubature(&rst_fIc,&w,&symms_fIc,&NfnIc,&NsIc,0,PIfc[P][Eclass],dE,NodeTypeIfc[P][Eclass]); // free
+			set_cubdata(CUBDATA,false,true,NodeTypeS[P][Eclass],dE,P,cubature); // free
+			set_from_cubdata(CUBDATA,&NfnS,&NsS,&rst_fS,NULL,&symms_fS);
+
+			set_cubdata(CUBDATA,false,true,NodeTypeIfs[P][Eclass],dE,PIfs[P][Eclass],cubature); // free
+			set_from_cubdata(CUBDATA,&NfnIs,&NsIs,&rst_fIs,NULL,&symms_fIs);
+
+			set_cubdata(CUBDATA,false,true,NodeTypeIfc[P][Eclass],dE,PIfc[P][Eclass],cubature); // free
+			set_from_cubdata(CUBDATA,&NfnIc,&NsIc,&rst_fIc,NULL,&symms_fIc);
 
 			for (IndOrd = 0; IndOrd < NOrd; IndOrd++) {
 				nOrd_fS[P][IndOrd]  = malloc(NfnS  * sizeof ***nOrd_fS);  //  keep
@@ -1263,6 +1287,8 @@ void setup_ELEMENT_FACE_ordering(const unsigned int FType)
 			free(symms_fIs);
 			free(symms_fIc);
 		}
+
+		free(CUBDATA);
 	} else {
 		NOrd = 1;
 

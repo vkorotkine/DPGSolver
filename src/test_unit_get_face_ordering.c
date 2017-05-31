@@ -281,7 +281,9 @@ void test_unit_get_face_ordering(void)
 
 	// d == 3 (FType = TRI)
 	unsigned int P, Ns, *symms;
-	double       *rst, *w;
+	double       *rst;
+
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
 
 	d     = 3;
 	FType = TRI;
@@ -295,7 +297,8 @@ void test_unit_get_face_ordering(void)
 	                               { 2, 1, 0, 4, 3, 5},
 	                               { 1, 0, 2, 3, 5, 4}};
 
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,0,P,d-1,"WSH");
+	set_cubdata(CUBDATA,false,true,"WSH",d-1,P,cubature_TRI); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,NULL,&symms);
 
 	nOrd = malloc(Nn * sizeof *nOrd); // free
 
@@ -326,7 +329,8 @@ void test_unit_get_face_ordering(void)
 	                                { 5, 4, 3, 2, 1, 0, 8, 7, 6, 9},
 	                                { 4, 3, 5, 1, 0, 2, 7, 6, 8, 9}};
 
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,0,P,d-1,"WSH");
+	set_cubdata(CUBDATA,false,true,"WSH",d-1,P,cubature_TRI); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,NULL,&symms);
 
 	nOrd = malloc(Nn * sizeof *nOrd); // free
 
@@ -349,4 +353,6 @@ void test_unit_get_face_ordering(void)
 	free(nOrd);
 
 	free(PrintName);
+
+	free(CUBDATA);
 }

@@ -83,7 +83,7 @@ static void test_basis_orthogonality(struct S_orthogonality *data, const unsigne
 	unsigned int pass = 0;
 
 	char         *NodeType, *PrntName;
-	unsigned int d, P, Nn, Ns, Nbf, *symms;
+	unsigned int d, P, Nn, Nbf;
 	double       *rst, *w, *ChiRef_rst, *WChiRef_rst, *M, *I;
 
 	// Function pointers
@@ -98,7 +98,10 @@ static void test_basis_orthogonality(struct S_orthogonality *data, const unsigne
 	NodeType = data->NodeType;
 	PrntName = data->PrntName;
 
-	cubature(&rst,&w,&symms,&Nn,&Ns,1,data->PIv,d,NodeType); // free
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
+	set_cubdata(CUBDATA,true,false,NodeType,d,data->PIv,cubature); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,&w,NULL);
 
 	ChiRef_rst = basis(P,rst,Nn,&Nbf,d); // free
 
@@ -129,7 +132,8 @@ static void test_basis_orthogonality(struct S_orthogonality *data, const unsigne
 
 	free(rst);
 	free(w);
-	free(symms);
+	free(CUBDATA);
+
 	free(ChiRef_rst);
 	free(WChiRef_rst);
 	free(M);
@@ -260,9 +264,10 @@ static void test_unit_basis_TP_modal(void)
 	 *				ChiRef_rst = @(r) [ See basis_TP13 ]
 	 */
 
-	unsigned int dE, Nn, Ns, Nbf, P, Prst;
-	unsigned int *symms;
-	double *rst, *w;
+	unsigned int dE, Nn, Nbf, P, Prst;
+	double *rst;
+
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
 
 	dE = 1;
 
@@ -271,7 +276,8 @@ static void test_unit_basis_TP_modal(void)
 	P = 3;
 	Prst = 4;
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GL"); // free
+	set_cubdata(CUBDATA,false,false,"GL",dE,Prst,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	ChiRef13_code = basis_TP(P,rst,Nn,&Nbf,dE); // free
 	ChiRef13_test = basis_TP13(rst,Nn); // free
@@ -283,7 +289,6 @@ static void test_unit_basis_TP_modal(void)
 	test_print2(pass,"basis_TP (d1, P3):");
 
 	free(rst);
-	free(symms);
 	free(ChiRef13_code);
 	free(ChiRef13_test);
 
@@ -307,7 +312,8 @@ static void test_unit_basis_TP_modal(void)
 	P = 2;
 	Prst = 4;
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GL"); // free
+	set_cubdata(CUBDATA,false,false,"GL",dE,Prst,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	ChiRef22_code = basis_TP(P,rst,Nn,&Nbf,dE); // free
 	ChiRef22_test = basis_TP22(rst,Nn); // free
@@ -319,7 +325,6 @@ static void test_unit_basis_TP_modal(void)
 	test_print2(pass,"         (d2, P2):");
 
 	free(rst);
-	free(symms);
 	free(ChiRef22_code);
 	free(ChiRef22_test);
 
@@ -343,7 +348,8 @@ static void test_unit_basis_TP_modal(void)
 	P = 1;
 	Prst = 4;
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GL"); // free
+	set_cubdata(CUBDATA,false,false,"GL",dE,Prst,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	ChiRef31_code = basis_TP(P,rst,Nn,&Nbf,dE); // free
 	ChiRef31_test = basis_TP31(rst,Nn); // free
@@ -355,9 +361,10 @@ static void test_unit_basis_TP_modal(void)
 	test_print2(pass,"         (d3, P1):");
 
 	free(rst);
-	free(symms);
 	free(ChiRef31_code);
 	free(ChiRef31_test);
+
+	free(CUBDATA);
 
 	/*
 	 *	basis_TP orthogonality:
@@ -691,9 +698,10 @@ static void test_unit_basis_SI_modal(void)
 	 *				ChiRef_rst = @(r,s) [ See basis_TRI3 ]
 	 */
 
-	unsigned int d, Nn, Ns, Nbf, P, Prst;
-	unsigned int *symms;
-	double *rst, *w;
+	unsigned int d, Nn, Nbf, P, Prst;
+	double *rst;
+
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
 
 	d = 2;
 
@@ -702,7 +710,8 @@ static void test_unit_basis_SI_modal(void)
 	P = 2;
 	Prst = 4;
 
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,0,Prst,d,"AO"); // free
+	set_cubdata(CUBDATA,false,false,"AO",d,Prst,cubature_TRI); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	ChiRef22_code = basis_SI(P,rst,Nn,&Nbf,d); // free
 	ChiRef22_test = basis_TRI2(rst,Nn);        // free
@@ -715,7 +724,6 @@ static void test_unit_basis_SI_modal(void)
 	test_print2(pass,"basis_SI (d2, P2):");
 
 	free(rst);
-	free(symms);
 	free(ChiRef22_code);
 	free(ChiRef22_test);
 
@@ -724,7 +732,8 @@ static void test_unit_basis_SI_modal(void)
 	P = 3;
 	Prst = 4;
 
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,0,Prst,d,"AO"); // free
+	set_cubdata(CUBDATA,false,false,"AO",d,Prst,cubature_TRI); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	ChiRef23_code = basis_SI(P,rst,Nn,&Nbf,d); // free
 	ChiRef23_test = basis_TRI3(rst,Nn);        // free
@@ -736,7 +745,6 @@ static void test_unit_basis_SI_modal(void)
 	test_print2(pass,"         (d2, P3):");
 
 	free(rst);
-	free(symms);
 	free(ChiRef23_code);
 	free(ChiRef23_test);
 
@@ -760,7 +768,8 @@ static void test_unit_basis_SI_modal(void)
 	P = 2;
 	Prst = 4;
 
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,0,Prst,d,"AO"); // free
+	set_cubdata(CUBDATA,false,false,"AO",d,Prst,cubature_TET); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	ChiRef32_code = basis_SI(P,rst,Nn,&Nbf,d); // free
 	ChiRef32_test = basis_TET2(rst,Nn);        // free
@@ -773,9 +782,10 @@ static void test_unit_basis_SI_modal(void)
 	test_print2(pass,"         (d3, P2):");
 
 	free(rst);
-	free(symms);
 	free(ChiRef32_code);
 	free(ChiRef32_test);
+
+	free(CUBDATA);
 
 	/*
 	 *	basis_SI orthogonality:
@@ -1017,9 +1027,10 @@ static void test_unit_basis_PYR_modal(void)
 	 *			P = 2:
 	 *				ChiRef_rst = @(r,s,t) [ See basis_PYR2 ]
 	 */
-	unsigned int d, Nn, Ns, Nbf, P, Prst;
-	unsigned int *symms;
-	double *rst, *w;
+	unsigned int d, Nn, Nbf, P, Prst;
+	double *rst;
+
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
 
 	d = 3;
 
@@ -1028,7 +1039,8 @@ static void test_unit_basis_PYR_modal(void)
 	P = 2;
 	Prst = 4;
 
-	cubature_PYR(&rst,&w,&symms,&Nn,&Ns,0,Prst,d,"WV"); // free
+	set_cubdata(CUBDATA,false,false,"WV",d,Prst,cubature_PYR); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	ChiRef32_code = basis_PYR(P,rst,Nn,&Nbf,d); // free
 	ChiRef32_test = basis_PYR2(rst,Nn);         // free
@@ -1040,9 +1052,10 @@ static void test_unit_basis_PYR_modal(void)
 	test_print2(pass,"basis_PYR (P2):");
 
 	free(rst);
-	free(symms);
 	free(ChiRef32_code);
 	free(ChiRef32_test);
+
+	free(CUBDATA);
 
 	/*
 	 *	basis_PYR orthogonality:
@@ -1250,9 +1263,11 @@ static void test_unit_basis_TP_Bezier(void)
 	 *			ChiBez_rst = @(r,s,t) [ See basis_TP32_Bezier ]
 	 */
 
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
 	for (unsigned int dE = 1; dE <= DMAX; dE++) {
-		unsigned int P, Prst, Nn, Ns, Nbf, *symms;
-		double       *rst, *w, *ChiBez_code, *ChiBez_test;
+		unsigned int P, Prst, Nn, Nbf;
+		double       *rst, *ChiBez_code, *ChiBez_test;
 
 		basis_test_tdef basis_test;
 
@@ -1269,7 +1284,9 @@ static void test_unit_basis_TP_Bezier(void)
 		} else {
 			EXIT_UNSUPPORTED;
 		}
-		cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GLL"); // free
+		set_cubdata(CUBDATA,false,false,"GLL",dE,Prst,cubature_TP); // free
+		set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
+
 		ChiBez_code = basis_TP_Bezier(P,rst,Nn,&Nbf,dE);
 		ChiBez_test = basis_test(rst,Nn);
 
@@ -1285,7 +1302,6 @@ static void test_unit_basis_TP_Bezier(void)
 		test_print2(pass,PrintName);
 
 		free(rst);
-		free(symms);
 		free(ChiBez_test);
 		free(ChiBez_code);
 	}
@@ -1304,13 +1320,15 @@ static void test_unit_basis_TP_Bezier(void)
 	 */
 
 	for (unsigned int dE = 1; dE <= DMAX; dE++) {
-		unsigned int P, Prst, Nn, Ns, Nbf, *symms;
-		double       *rst, *w, *ChiBez;
+		unsigned int P, Prst, Nn, Nbf;
+		double       *rst, *ChiBez;
 
 		Prst = 4;
 		P    = 3;
 
-		cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GLL"); // free
+		set_cubdata(CUBDATA,false,false,"GLL",dE,Prst,cubature_TP); // free
+		set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
+
 		ChiBez = basis_TP_Bezier(P,rst,Nn,&Nbf,dE);
 
 		double *RowSum, *ones;
@@ -1345,11 +1363,11 @@ static void test_unit_basis_TP_Bezier(void)
 		test_print2(pass,PrintName);
 
 		free(rst);
-		free(symms);
 		free(ChiBez);
 		free(RowSum);
 		free(ones);
 	}
+	free(CUBDATA);
 
 	free(PrintName);
 }
@@ -1652,10 +1670,12 @@ static void test_unit_basis_SI_Bezier(void)
 	 *			ChiBez_rst = @(r,s,t) [ See basis_SI3_Bezier ]
 	 */
 
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
 //	for (unsigned int dE = 2; dE <= DMAX; dE++) {
 	for (unsigned int dE = 2; dE <= 2; dE++) {
-		unsigned int PMin, PMax, Prst, Nn, Ns, Nbf, *symms;
-		double       *rst, *w, *ChiBez_code, *ChiBez_test;
+		unsigned int PMin, PMax, Prst, Nn, Nbf;
+		double       *rst, *ChiBez_code, *ChiBez_test;
 
 		cubature_tdef cubature;
 		basis_tdef    basis_test;
@@ -1673,7 +1693,8 @@ static void test_unit_basis_SI_Bezier(void)
 		}
 
 		Prst = 4;
-		cubature(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"WV"); // free
+		set_cubdata(CUBDATA,false,false,"WV",dE,Prst,cubature); // free
+		set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 		pass = 1;
 		for (unsigned int P = PMin; P <= PMax; P++) {
@@ -1695,7 +1716,6 @@ static void test_unit_basis_SI_Bezier(void)
 		test_print2(pass,PrintName);
 
 		free(rst);
-		free(symms);
 	}
 
 	/*
@@ -1713,8 +1733,8 @@ static void test_unit_basis_SI_Bezier(void)
 
 //	for (unsigned int dE = 2; dE <= DMAX; dE++) {
 	for (unsigned int dE = 2; dE <= 2; dE++) {
-		unsigned int PMin, PMax, Prst, Nn, Ns, Nbf, *symms;
-		double       *rst, *w, *ChiBez;
+		unsigned int PMin, PMax, Prst, Nn, Nbf;
+		double       *rst, *ChiBez;
 
 		cubature_tdef cubature;
 
@@ -1730,7 +1750,8 @@ static void test_unit_basis_SI_Bezier(void)
 			EXIT_UNSUPPORTED;
 		}
 
-		cubature(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"AO"); // free
+		set_cubdata(CUBDATA,false,false,"AO",dE,Prst,cubature); // free
+		set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 		pass = 1;
 		for (size_t P = PMin; P <= PMax; P++) {
@@ -1772,8 +1793,9 @@ static void test_unit_basis_SI_Bezier(void)
 		test_print2(pass,PrintName);
 
 		free(rst);
-		free(symms);
 	}
+
+	free(CUBDATA);
 
 	free(PrintName);
 }

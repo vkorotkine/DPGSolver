@@ -98,8 +98,11 @@ void test_unit_cubature_TP(void)
 	symms13_GLL[0] = 2;
 	symms13_GLL[1] = 2;
 
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
 	// GL
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GL"); // free
+	set_cubdata(CUBDATA,true,true,"GL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,&w,&symms);
 
 	pass = 0;
 	if (array_norm_diff_d(N13,rst13_GL,rst,"Inf")       < EPS &&
@@ -113,7 +116,8 @@ void test_unit_cubature_TP(void)
 	free(rst), free(w), free(symms);
 
 	// GLL
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GLL"); // free
+	set_cubdata(CUBDATA,true,true,"GLL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,&w,&symms);
 
 	pass = 0;
 	if (array_norm_diff_d(N13,rst13_GLL,rst,"Inf")       < EPS &&
@@ -167,7 +171,8 @@ void test_unit_cubature_TP(void)
 	symms14_GLL[2] = 1;
 
 	// GL
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GL"); // free
+	set_cubdata(CUBDATA,true,true,"GL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,&w,&symms);
 
 	pass = 0;
 	if (array_norm_diff_d(N14,rst14_GL,rst,"Inf")       < EPS &&
@@ -181,7 +186,8 @@ void test_unit_cubature_TP(void)
 	free(rst), free(w), free(symms);
 
 	// GLL
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GLL"); // free
+	set_cubdata(CUBDATA,true,true,"GLL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,&w,&symms);
 
 	pass = 0;
 	if (array_norm_diff_d(N14,rst14_GLL,rst,"Inf")       < EPS &&
@@ -233,7 +239,8 @@ void test_unit_cubature_TP(void)
 	}}
 
 	// GL
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GL"); // free
+	set_cubdata(CUBDATA,true,false,"GL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,&w,NULL);
 
 	pass = 0;
 	if (array_norm_diff_d(N23,rst23_GL,rst,"Inf") < EPS &&
@@ -243,10 +250,11 @@ void test_unit_cubature_TP(void)
 
 	test_print2(pass,"            (d2, P3, GL):");
 
-	free(rst), free(w), free(symms);
+	free(rst), free(w);
 
 	// GLL
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GLL"); // free
+	set_cubdata(CUBDATA,true,false,"GLL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,&w,NULL);
 
 	pass = 0;
 	if (array_norm_diff_d(N23,rst23_GLL,rst,"Inf") < EPS &&
@@ -256,7 +264,7 @@ void test_unit_cubature_TP(void)
 
 	test_print2(pass,"            (d2, P3, GLL):");
 
-	free(rst), free(w), free(symms);
+	free(rst), free(w);
 
 	/*
 	 *	Cubature_TP (dE = 3):
@@ -300,7 +308,8 @@ void test_unit_cubature_TP(void)
 	}}}
 
 	// GL
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GL"); // free
+	set_cubdata(CUBDATA,true,false,"GL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,&w,NULL);
 
 	pass = 0;
 	if (array_norm_diff_d(N33,rst33_GL,rst,"Inf") < EPS &&
@@ -310,10 +319,11 @@ void test_unit_cubature_TP(void)
 
 	test_print2(pass,"            (d3, P3, GL):");
 
-	free(rst), free(w), free(symms);
+	free(rst), free(w);
 
 	// GLL
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,P,dE,"GLL"); // free
+	set_cubdata(CUBDATA,true,false,"GLL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,&w,NULL);
 
 	pass = 0;
 	if (array_norm_diff_d(N33,rst33_GLL,rst,"Inf") < EPS &&
@@ -323,7 +333,8 @@ void test_unit_cubature_TP(void)
 
 	test_print2(pass,"            (d3, P3, GLL):");
 
-	free(rst), free(w), free(symms);
+	free(rst), free(w);
+	free(CUBDATA);
 }
 
 void test_unit_cubature_SI(void)
@@ -377,6 +388,8 @@ void test_unit_cubature_SI(void)
 	unsigned int *symms;
 	double *rst, *w;
 
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
 	d = 2;
 
 	// AO (P = 3)
@@ -397,7 +410,8 @@ void test_unit_cubature_SI(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn23_AO,d,1.0,rst23_AO,d,Nn23_AO);
 
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,0,P,d,"AO");
+	set_cubdata(CUBDATA,false,true,"AO",d,P,cubature_TRI); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,NULL,&symms);
 
 	pass = 0;
 	if (array_norm_diff_d(Nn23_AO*d,rst23_AO,rst,"Inf")    < EPS &&
@@ -439,7 +453,8 @@ void test_unit_cubature_SI(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn23_WSH,d,1.0,rst23_WSH,d,Nn23_WSH);
 
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,1,P,d,"WSH");
+	set_cubdata(CUBDATA,true,true,"WSH",d,P,cubature_TRI); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,&w,&symms);
 
 	pass = 0;
 	if (array_norm_diff_d(Nn23_WSH*d,rst23_WSH,rst,"Inf")    < EPS &&
@@ -488,7 +503,8 @@ void test_unit_cubature_SI(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn26_WV,d,1.0,rst26_WV,d,Nn26_WV);
 
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,1,P,d,"WV");
+	set_cubdata(CUBDATA,true,true,"WV",d,P,cubature_TRI); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,&w,&symms);
 
 	pass = 0;
 	if (array_norm_diff_d(Nn26_WV*d,rst26_WV,rst,"Inf")    < EPS &&
@@ -553,7 +569,8 @@ void test_unit_cubature_SI(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn33_AO,d,1.0,rst33_AO,d,Nn33_AO);
 
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,0,P,d,"AO");
+	set_cubdata(CUBDATA,false,true,"AO",d,P,cubature_TET); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,NULL,&symms);
 
 	pass = 0;
 	if (array_norm_diff_d(Nn33_AO*d,rst33_AO,rst,"Inf")    < EPS &&
@@ -595,7 +612,8 @@ void test_unit_cubature_SI(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn33_WSH,d,1.0,rst33_WSH,d,Nn33_WSH);
 
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,1,P,d,"WSH");
+	set_cubdata(CUBDATA,true,true,"WSH",d,P,cubature_TET); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,&w,&symms);
 
 	pass = 0;
 	if (array_norm_diff_d(Nn33_WSH*d,rst33_WSH,rst,"Inf")    < EPS &&
@@ -648,7 +666,8 @@ void test_unit_cubature_SI(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn34_WV,d,1.0,rst34_WV,d,Nn34_WV);
 
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,1,P,d,"WV");
+	set_cubdata(CUBDATA,true,true,"WV",d,P,cubature_TET); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,&w,&symms);
 
 	pass = 0;
 	if (array_norm_diff_d(Nn34_WV*d,rst34_WV,rst,"Inf")    < EPS*10 &&
@@ -661,6 +680,8 @@ void test_unit_cubature_SI(void)
 
 	free(rst), free(w);
 	free(symms);
+
+	free(CUBDATA);
 }
 
 void test_unit_cubature_PYR(void)
@@ -712,6 +733,8 @@ void test_unit_cubature_PYR(void)
 	unsigned int *symms;
 	double *rst, *w;
 
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
 	d = 3;
 
 	// GL (P = 2)
@@ -736,7 +759,8 @@ void test_unit_cubature_PYR(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn2_GL,d,1.0,rst2_GL,d,Nn2_GL);
 
-	cubature_PYR(&rst,&w,&symms,&Nn,&Ns,0,P,d,"GL");
+	set_cubdata(CUBDATA,false,true,"GL",d,P,cubature_PYR); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,NULL,&symms);
 
 	pass = 0;
 	if (array_norm_diff_d(Nn2_GL*d,rst2_GL,rst,"Inf")    < EPS &&
@@ -787,7 +811,8 @@ void test_unit_cubature_PYR(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn3_GLL,d,1.0,rst3_GLL,d,Nn3_GLL);
 
-	cubature_PYR(&rst,&w,&symms,&Nn,&Ns,0,P,d,"GLL");
+	set_cubdata(CUBDATA,false,true,"GLL",d,P,cubature_PYR); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,NULL,&symms);
 
 	pass = 0;
 	if (array_norm_diff_d(Nn3_GLL*d,rst3_GLL,rst,"Inf")    < EPS &&
@@ -829,7 +854,8 @@ void test_unit_cubature_PYR(void)
 	// Convert to column-major ordering
 	mkl_dimatcopy('R','T',Nn4_WV,d,1.0,rst4_WV,d,Nn4_WV);
 
-	cubature_PYR(&rst,&w,&symms,&Nn,&Ns,1,P,d,"WV");
+	set_cubdata(CUBDATA,true,true,"WV",d,P,cubature_PYR); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,&w,&symms);
 
 	pass = 0;
 	if (array_norm_diff_d(Nn4_WV*d,rst4_WV,rst,"Inf")    < EPS*10 &&
@@ -843,4 +869,6 @@ void test_unit_cubature_PYR(void)
 	free(rst);
 	free(w);
 	free(symms);
+
+	free(CUBDATA);
 }

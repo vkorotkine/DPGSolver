@@ -289,10 +289,8 @@ static void setup_ELEMENT_operator_dependencies(const unsigned int EType)
 	             ***NodeTypeS   = DB.NodeTypeS;
 
 	// Standard datatypes
-	unsigned int dE, P, Pb, PSMin, PSMax, PbMin, PbMax, Eclass, Nbf,
-	             dummy_ui, *dummyPtr_ui[2];
-	double       *rst_vGs, *rst_vIs, *rst_vIc, *rst_vS, *IS, *ChiRefS_vS, *ChiS_vS,
-	             *dummyPtr_d;
+	unsigned int dE, P, Pb, PSMin, PSMax, PbMin, PbMax, Eclass, Nbf;
+	double       *rst_vS, *IS, *ChiRefS_vS, *ChiS_vS;
 
 	struct S_ELEMENT *ELEMENT;
 
@@ -319,15 +317,19 @@ static void setup_ELEMENT_operator_dependencies(const unsigned int EType)
 
 	ChiInvS_vS = ELEMENT->ChiInvS_vS;
 
-	cubature(&rst_vGs,&dummyPtr_d,&dummyPtr_ui[0],&NvnGs[1],&dummy_ui,0,PGs,dE,NodeTypeG[Eclass]); free(dummyPtr_ui[0]); // free
-	free(rst_vGs);
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
+	set_cubdata(CUBDATA,false,false,NodeTypeG[Eclass],dE,PGs,cubature); // free
+	free(CUBDATA->rst);
+	NvnGs[1] = CUBDATA->Nn;
 
 	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
 		get_Pb_range(P,&PbMin,&PbMax);
 
 		for (Pb = PbMax; Pb >= P; Pb--) {
-			cubature(&rst_vS,&dummyPtr_d,&dummyPtr_ui[0],&NvnS[Pb],&dummy_ui,0,Pb,dE,NodeTypeS[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+			set_cubdata(CUBDATA,false,false,NodeTypeS[Pb][Eclass],dE,Pb,cubature); // free
+			set_from_cubdata(CUBDATA,&NvnS[Pb],NULL,&rst_vS,NULL,NULL);
 
 			IS         = identity_d(NvnS[Pb]);  // free
 			ChiRefS_vS = basis(Pb,rst_vS,NvnS[Pb],&Nbf,dE); // free
@@ -351,13 +353,17 @@ static void setup_ELEMENT_operator_dependencies(const unsigned int EType)
 		}
 
 		for (Pb = PbMin; Pb <= PbMax; Pb++) {
-			cubature(&rst_vIs,&dummyPtr_d,&dummyPtr_ui[0],&NvnIs[Pb],&dummy_ui,0,PIvs[Pb][Eclass],dE,NodeTypeIvs[Pb][Eclass]); free(dummyPtr_ui[0]); // free
-			cubature(&rst_vIc,&dummyPtr_d,&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,0,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+			set_cubdata(CUBDATA,false,false,NodeTypeIvs[Pb][Eclass],dE,PIvs[Pb][Eclass],cubature); // free
+			free(CUBDATA->rst);
+			NvnIs[Pb] = CUBDATA->Nn;
 
-			free(rst_vIs);
-			free(rst_vIc);
+			set_cubdata(CUBDATA,false,false,NodeTypeIvc[Pb][Eclass],dE,PIvc[Pb][Eclass],cubature); // free
+			free(CUBDATA->rst);
+			NvnIc[Pb] = CUBDATA->Nn;
 		}
 	}
+
+	free(CUBDATA);
 }
 
 static void setup_ELEMENT_operators(const unsigned int EType)
@@ -424,7 +430,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             BE_Nve, BF_Nve[2], Neve, *Nfve, *Nvve, *EType_h,
 	             dummy_ui, *dummyPtr_ui[3];
 	double       *E_rst_vV, *rst_vV, **VeE, **VeF, **VeV,
-	             *rst_vP, *rst_vGs, *rst_vG2, *rst_vGc, *rst_vCs, *rst_vCc, **rst_vIs, **rst_vIc, **rst_vS,
+	             *rst_vP, *rst_vG2, *rst_vGc, *rst_vCs, *rst_vCc, **rst_vIs, **rst_vIc, **rst_vS,
 	             *rst_fG2, *rst_fGc, *rst_fS, *rst_fIs, *rst_fIc,
 	             *rst_eG2, *rst_eGc,
 	             *wInv_vIs, *wInv_vIc,
@@ -648,10 +654,14 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	GradChiGc_fIs = malloc(dE * sizeof *GradChiGc_fIs); // free
 	GradChiGc_fIc = malloc(dE * sizeof *GradChiGc_fIc); // free
 
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
 	// VOLUME Nodes (Order Independent)
-	cubature(&rst_vGs,&dummyPtr_d,&dummyPtr_ui[0],&NvnGs[1],&dummy_ui,0,PGs,dE,NodeTypeG[Eclass]); free(dummyPtr_ui[0]); // free
+	set_cubdata(CUBDATA,false,false,NodeTypeG[Eclass],dE,PGs,cubature); // free
+	free(CUBDATA->rst);
+	NvnGs[1] = CUBDATA->Nn;
+
 	// Use E_rst_vV instead of rst_vGs (!= for PYR ELEMENTs)
-	free(rst_vGs);
 	E_rst_vV = get_rst_vV(ELEMENT); // free
 	rst_vV = malloc((Nve+1)*dE * sizeof *rst_vV); // free (+1 for h-refined TET -> PYR) ToBeModified (remove +1)
 
@@ -677,7 +687,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	// Vertex blending operators
 	P = 2;
-	cubature(&rst_vG2,&dummyPtr_d,&dummyPtr_ui[0],&NvnG2[P],&dummy_ui,0,P,dE,NodeTypeG[Eclass]); free(dummyPtr_ui[0]); // free
+	set_cubdata(CUBDATA,false,false,NodeTypeG[Eclass],dE,P,cubature); // free
+	rst_vG2 = CUBDATA->rst;
+	NvnG2[P] = CUBDATA->Nn;
 
 	ChiRefGs_vG2 = basis(PGs,rst_vG2,NvnG2[P],&Nbf,dE); // free
 	ChiGs_vG2    = mm_Alloc_d(CBRM,CBNT,CBNT,NvnG2[P],NvnGs[1],NvnGs[1],1.0,ChiRefGs_vG2,TGs[1][1][0]); // free
@@ -688,6 +700,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	IG2[P][P][0] = identity_d(NvnG2[P]); // keep
 
 	ChiRefG2_vG2 = basis(P,rst_vG2,NvnG2[P],&Nbf,dE); // free
+	free(rst_vG2);
 
 	if (strstr(BasisType,"Modal"))
 		ChiG2_vG2 = ChiRefG2_vG2;
@@ -698,7 +711,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	ChiInvG2_vG2    = inverse_d(NvnG2[P],NvnG2[P],ChiG2_vG2,IG2[P][P][0]);    // free
 	TG2             = mm_Alloc_d(CBRM,CBNT,CBNT,NvnG2[P],NvnG2[P],NvnG2[P],1.0,ChiRefInvG2_vG2,ChiG2_vG2); // free
 
-	free(rst_vG2);
 	free(ChiRefGs_vG2);
 	free(ChiGs_vG2);
 	free(ChiRefG2_vG2);
@@ -782,10 +794,13 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		IS = ChiRefS_vS = NULL;
 
 		for (Pb = PbMax; Pb >= P; Pb--) {
-			cubature(&rst_vS[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnS[Pb],&dummy_ui,0,Pb,dE,NodeTypeS[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+			set_cubdata(CUBDATA,false,false,NodeTypeS[Pb][Eclass],dE,Pb,cubature); // free
+			set_from_cubdata(CUBDATA,&NvnS[Pb],NULL,&rst_vS[0],NULL,NULL);
 
 			IS         = identity_d(NvnS[Pb]);  // free
 			ChiRefS_vS = basis(Pb,rst_vS[0],NvnS[Pb],&Nbf,dE); // free
+			free(rst_vS[0]);
+
 			if (strstr(BasisType,"Modal")) {
 				ChiS_vS[P][Pb][0] = ChiRefS_vS;
 			} else if (strstr(BasisType,"Nodal")) {
@@ -795,7 +810,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 			if (ChiInvS_vS[Pb][Pb][0] == NULL)
 				ChiInvS_vS[Pb][Pb][0] = inverse_d(NvnS[Pb],NvnS[Pb],ChiS_vS[P][Pb][0],IS); // keep
 
-			free(rst_vS[0]);
 			if (Pb != P) {
 				free(IS);
 				free(ChiRefS_vS);
@@ -804,9 +818,14 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				break;
 			}
 		}
-		cubature(&rst_vGc,&dummyPtr_d,&dummyPtr_ui[0],&NvnGc[P],&dummy_ui,0,PGc[P],        dE,NodeTypeG[Eclass]); free(dummyPtr_ui[0]); // free
-		cubature(&rst_vCs,&dummyPtr_d,&dummyPtr_ui[0],&NvnCs[P],&dummy_ui,0,PCs[P][Eclass],dE,NodeTypeG[Eclass]); free(dummyPtr_ui[0]); // free
-		cubature(&rst_vCc,&dummyPtr_d,&dummyPtr_ui[0],&NvnCc[P],&dummy_ui,0,PCc[P][Eclass],dE,NodeTypeG[Eclass]); free(dummyPtr_ui[0]); // free
+		set_cubdata(CUBDATA,false,false,NodeTypeG[Eclass],dE,PGc[P],cubature); // free
+		set_from_cubdata(CUBDATA,&NvnGc[P],NULL,&rst_vGc,NULL,NULL);
+
+		set_cubdata(CUBDATA,false,false,NodeTypeG[Eclass],dE,PCs[P][Eclass],cubature); // free
+		set_from_cubdata(CUBDATA,&NvnCs[P],NULL,&rst_vCs,NULL,NULL);
+
+		set_cubdata(CUBDATA,false,false,NodeTypeG[Eclass],dE,PCc[P][Eclass],cubature); // free
+		set_from_cubdata(CUBDATA,&NvnCc[P],NULL,&rst_vCc,NULL,NULL);
 
 		// Preliminary Operators
 		IGc[P][P][0] = identity_d(NvnGc[P]); // keep
@@ -843,7 +862,9 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		TS[P][P][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[P], NvnS[P], NvnS[P], 1.0,ChiRefInvS_vS,ChiS_vS[P][P][0]); // keep
 
 		if (EType != TET && EType != PYR) {
-			cubature(&rst_vS[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnS[P],&dummy_ui,0,P,dE,NodeTypeS[P][Eclass]); free(dummyPtr_ui[0]); // free
+			set_cubdata(CUBDATA,false,false,NodeTypeS[P][Eclass],dE,P,cubature); // free
+			set_from_cubdata(CUBDATA,&NvnS[P],NULL,&rst_vS[0],NULL,NULL);
+
 			ChiBezS_vS             = basis_Bezier(P,rst_vS[0],NvnS[P],&Nbf,dE); // free
 			ChiBezInvS_vS[P][P][0] = inverse_d(NvnS[P],NvnS[P],ChiBezS_vS,IS);  // keep
 			TS_vB[P][P][0]         = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS[P],NvnS[P],NvnS[P],1.0,ChiBezInvS_vS[P][P][0],ChiS_vS[P][P][0]); // keep
@@ -869,11 +890,14 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		for (Pb = PbMin; Pb <= PbMax; Pb++) {
 			if (w_vIs[Pb])
 				free(w_vIs[Pb]);
-			cubature(&rst_vIs[0],&w_vIs[Pb],&dummyPtr_ui[0],&NvnIs[Pb],&dummy_ui,1,PIvs[Pb][Eclass],dE,NodeTypeIvs[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+			set_cubdata(CUBDATA,true,false,NodeTypeIvs[Pb][Eclass],dE,PIvs[Pb][Eclass],cubature); // free
+			set_from_cubdata(CUBDATA,&NvnIs[Pb],NULL,&rst_vIs[0],&w_vIs[Pb],NULL);
+			free(rst_vIs[0]);
+
 			if (w_vIc[Pb])
 				free(w_vIc[Pb]);
-			cubature(&rst_vIc[0],&w_vIc[Pb],&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,1,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
-			free(rst_vIs[0]);
+			set_cubdata(CUBDATA,true,false,NodeTypeIvc[Pb][Eclass],dE,PIvc[Pb][Eclass],cubature); // free
+			set_from_cubdata(CUBDATA,&NvnIc[Pb],NULL,&rst_vIc[0],&w_vIc[Pb],NULL);
 			free(rst_vIc[0]);
 
 			wInv_vIs = malloc(NvnIs[P] * sizeof *wInv_vIs); // free
@@ -906,9 +930,14 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 				NvnIs = ELEMENT_h->NvnIs;
 				NvnIc = ELEMENT_h->NvnIc;
 
-				cubature(&rst_vS[0], &dummyPtr_d,&dummyPtr_ui[0],&NvnS[Pb], &dummy_ui,0,Pb,              dE,NodeTypeS[Pb][Eclass]);   free(dummyPtr_ui[0]); // free
-				cubature(&rst_vIs[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIs[Pb],&dummy_ui,0,PIvs[Pb][Eclass],dE,NodeTypeIvs[Pb][Eclass]); free(dummyPtr_ui[0]); // free
-				cubature(&rst_vIc[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,0,PIvc[Pb][Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+				set_cubdata(CUBDATA,false,false,NodeTypeS[Pb][Eclass],dE,Pb,cubature); // free
+				set_from_cubdata(CUBDATA,&NvnS[Pb],NULL,&rst_vS[0],NULL,NULL);
+
+				set_cubdata(CUBDATA,false,false,NodeTypeIvs[Pb][Eclass],dE,PIvs[Pb][Eclass],cubature); // free
+				set_from_cubdata(CUBDATA,&NvnIs[Pb],NULL,&rst_vIs[0],NULL,NULL);
+
+				set_cubdata(CUBDATA,false,false,NodeTypeIvc[Pb][Eclass],dE,PIvc[Pb][Eclass],cubature); // free
+				set_from_cubdata(CUBDATA,&NvnIc[Pb],NULL,&rst_vIc[0],NULL,NULL);
 
 				ChiRefGs_vS  = basis(PGs,rst_vS[0], NvnS[Pb], &Nbf,dE); // free
 				ChiRefGs_vIs = basis(PGs,rst_vIs[0],NvnIs[Pb],&Nbf,dE); // free
@@ -1496,6 +1525,8 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	free(GradChiGc_fIc);
 
 	free(ones_Nf);
+
+	free(CUBDATA);
 
 	compute_ELEMENT_Volume(EType);
 }
@@ -2400,10 +2431,10 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 
 	// Standard datatypes
 	unsigned int i, iMax, dE, P, vh, PSMin, PSMax, Pb, PbMin, PbMax, PIvc[NEC],
-	             Nve, Nbf, Eclass, Nvref, NEhref, Indh, *Nvve, *EType_h, dummy_ui, *dummyPtr_ui[2];
+	             Nve, Nbf, Eclass, Nvref, NEhref, Indh, *Nvve, *EType_h;
 	double       *E_rst_vV, *rst_vV, **VeV, **rst_vIc, *rst_vS,
 	             *IGs, *IS, *TS, *ChiRefS_vS, *ChiRefInvGs_vGs, *ChiRefInvS_vS,
-	             *ChiRefGs_vGs, *ChiRefGs_vIc, *ChiRefS_vIc, *ChiS_vS, *dummyPtr_d;
+	             *ChiRefGs_vGs, *ChiRefGs_vIc, *ChiRefS_vIc, *ChiS_vS;
 
 	struct BCoords {
 		double **Ic;
@@ -2455,12 +2486,15 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 		BCoords_V[i]->Ic = calloc(NP , sizeof *(BCoords_V[i]->Ic)); // free
 	}
 
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
 	// Nve + 1 for TETrefineType == TET6
 	rst_vV = malloc((Nve+1)*dE * sizeof *rst_vV); // free
 
 	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
-		cubature(&rst_vS,&dummyPtr_d,&dummyPtr_ui[0],&NvnS[P],&dummy_ui,0,P,dE,NodeTypeS[P][Eclass]); free(dummyPtr_ui[0]); // free
+		set_cubdata(CUBDATA,false,false,NodeTypeS[P][Eclass],dE,P,cubature); // free
+		set_from_cubdata(CUBDATA,&NvnS[P],NULL,&rst_vS,NULL,NULL);
 
 		IS         = identity_d(NvnS[P]);             // free
 		ChiRefS_vS = basis(P,rst_vS,NvnS[P],&Nbf,dE); // free
@@ -2482,7 +2516,8 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 		for (Pb = PbMin; Pb <= PbMax; Pb++) {
 			if (w_vIc[Pb])
 				free(w_vIc[Pb]);
-			cubature(&rst_vIc[0],&w_vIc[Pb],&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,1,PIvc[Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+			set_cubdata(CUBDATA,true,false,NodeTypeIvc[Pb][Eclass],dE,PIvc[Eclass],cubature); // free
+			set_from_cubdata(CUBDATA,&NvnIc[Pb],NULL,&rst_vIc[0],&w_vIc[Pb],NULL);
 			free(rst_vIc[0]);
 
 			for (i = iMax = NEhref; i--; ) {
@@ -2494,7 +2529,8 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 				Nve   = ELEMENT_h->Nve;
 				NvnIc = ELEMENT_h->NvnIc;
 
-				cubature(&rst_vIc[0],&dummyPtr_d,&dummyPtr_ui[0],&NvnIc[Pb],&dummy_ui,0,PIvc[Eclass],dE,NodeTypeIvc[Pb][Eclass]); free(dummyPtr_ui[0]); // free
+				set_cubdata(CUBDATA,false,false,NodeTypeIvc[Pb][Eclass],dE,PIvc[Eclass],cubature); // free
+				set_from_cubdata(CUBDATA,&NvnIc[Pb],NULL,&rst_vIc[0],NULL,NULL);
 
 				E_rst_vV        = get_rst_vV(ELEMENT_h);                   // free
 				IGs             = identity_d(Nve);                         // free
@@ -2549,6 +2585,8 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 		free(BCoords_V[i]);
 	}
 	free(BCoords_V);
+
+	free(CUBDATA);
 }
 
 static void setup_L2_projection_operators(const unsigned int EType)
@@ -2841,12 +2879,11 @@ static void setup_blending(const unsigned int EType)
 	// Standard datatypes
 	unsigned int f, e, n, ve, P, Pb, Vf, Ve, dim, PSMin, PSMax, PbMin, PbMax, Nf, Ne, Nve, *Nfve, Neve, *VeFcon, *VeEcon,
 	             *NvnGc, *Nv0nGs, *Nv0nGc, *NvnG2, *Nv0nG2,
-	             Eclass, EclassF, EclassE, dE, Nbf, dimF[2], dimE, dummy_ui, *dummyPtr_ui;
+	             Eclass, EclassF, EclassE, dE, Nbf, dimF[2], dimE;
 	double       *BCoords_V, *BCoords_V2, *BCoords_F, *BCoords_E,
 	             *rst_v0Gs, *rst_proj, *rst_proj2, *rst_v0G2, *rst_v0Gc, *rst_vGs, *rst_vGsF, *rst_vGsE, rst_Num, rst_Den,
 	             *ChiRefGs_vGs, *ChiRefGc_vGc, *ChiRefGs_vProj, *ChiRefGc_vProj, *ChiRefG2_vG2, *ChiRefGs_vProj2, *ChiRefG2_vProj2,
-	             *ChiRefInvGs_vGs, *IGs, *ChiRefInvGc_vGc, *IGc, *IG2, *ChiRefInvG2_vG2,
-	             *dummyPtr_d;
+	             *ChiRefInvGs_vGs, *IGs, *ChiRefInvGc_vGc, *IGc, *IG2, *ChiRefInvG2_vG2;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_F, *ELEMENT_E;
 
@@ -2876,6 +2913,8 @@ static void setup_blending(const unsigned int EType)
 
 	I_eGs_vGc = ELEMENT->I_eGs_vGc;
 	I_eGc_vGc = ELEMENT->I_eGc_vGc;
+
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
 
 	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
@@ -2996,7 +3035,8 @@ if (P == 4 && EType == TRI && f == 2) {
 			}
 
 			for (Pb = PbMin; Pb <= PbMax; Pb++) {
-				cubature(&rst_v0Gc,&dummyPtr_d,&dummyPtr_ui,&Nv0nGc[Pb],&dummy_ui,0,PGc[Pb],   dE-1,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
+				set_cubdata(CUBDATA,false,false,NodeTypeG[EclassF],dE-1,PGc[Pb],cubature); // free
+				set_from_cubdata(CUBDATA,&Nv0nGc[Pb],NULL,&rst_v0Gc,NULL,NULL);
 
 				ChiRefGs_vGs    = basis(PGs,    rst_v0Gs, Nv0nGs[1],&Nbf,dE-1);           // free
 				ChiRefGc_vGc    = basis(PGc[Pb],rst_v0Gc, Nv0nGc[Pb],&Nbf,dE-1);          // free
@@ -3011,7 +3051,8 @@ if (P == 4 && EType == TRI && f == 2) {
 				if (Pb == P) {
 					I_fGs_vGc[1][P][Vf] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGc[P],Nv0nGs[1],Nv0nGs[1],1.0,ChiRefGs_vProj,ChiRefInvGs_vGs); // keep
 					if (P == 2) {
-						cubature(&rst_v0G2,&dummyPtr_d,&dummyPtr_ui,&Nv0nG2[P],&dummy_ui,0,P,dE-1,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
+						set_cubdata(CUBDATA,false,false,NodeTypeG[EclassF],dE-1,P,cubature); // free
+						set_from_cubdata(CUBDATA,&Nv0nG2[P],NULL,&rst_v0G2,NULL,NULL);
 
 						ChiRefGs_vProj2 = basis(PGs,rst_proj2,NvnG2[P], &Nbf,dE-1); // free
 						ChiRefG2_vG2    = basis(P,  rst_v0G2, Nv0nG2[P],&Nbf,dE-1); // free
@@ -3100,7 +3141,8 @@ if (P == 4 && EType == TRI && f == 2) {
 			select_functions_cubature(&cubature,ELEMENT_E->type);
 			select_functions_basis(&basis,ELEMENT_E->type);
 
-			cubature(&rst_v0Gc,&dummyPtr_d,&dummyPtr_ui,&Nv0nGc[P],&dummy_ui,0,PGc[P],dE-2,NodeTypeG[EclassE]); free(dummyPtr_ui); // free
+			set_cubdata(CUBDATA,false,false,NodeTypeG[EclassE],dE-2,PGc[P],cubature); // free
+			set_from_cubdata(CUBDATA,&Nv0nGc[P],NULL,&rst_v0Gc,NULL,NULL);
 
 			ChiRefGs_vGs    = basis(PGs,   rst_v0Gs,Nv0nGs[1],&Nbf,dE-2);        // free
 			ChiRefGc_vGc    = basis(PGc[P],rst_v0Gc,Nv0nGc[P],&Nbf,dE-2);        // free
@@ -3131,6 +3173,7 @@ if (P == 4 && EType == TRI && f == 2) {
 			free(rst_proj);
 		}
 	}
+	free(CUBDATA);
 }
 
 static void setup_vertex_projection(const unsigned int EType)
@@ -3143,8 +3186,8 @@ static void setup_vertex_projection(const unsigned int EType)
 	char         **NodeTypeG = DB.NodeTypeG;
 
 	// Standard datatypes
-	unsigned int vh, ve, veP2, Eclass, dE, Nve, NveP2, Nbf, Nvref, *Nvve, dummy_ui, *dummyPtr_ui[2];
-	double       *rst_vGs, *TGs, *ChiInvGs_vGs, *ChiRefGs_vGs, *ChiGs_vGs, *dummyPtr_d;
+	unsigned int vh, ve, veP2, Eclass, dE, Nve, NveP2, Nbf, Nvref, *Nvve;
+	double       *rst_vGs, *TGs, *ChiInvGs_vGs, *ChiRefGs_vGs, *ChiGs_vGs;
 
 	struct S_ELEMENT *ELEMENT;
 
@@ -3174,7 +3217,10 @@ static void setup_vertex_projection(const unsigned int EType)
 
 
 	// P2 geometry nodes
-	cubature(&rst_vGs,&dummyPtr_d,&dummyPtr_ui[0],&NvnGs[2],&dummy_ui,0,2,dE,NodeTypeG[Eclass]); free(dummyPtr_ui[0]); // free
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+	set_cubdata(CUBDATA,false,false,NodeTypeG[Eclass],dE,2,cubature); // free
+	set_from_cubdata(CUBDATA,&NvnGs[2],NULL,&rst_vGs,NULL,NULL);
+
 	if (NvnGs[2] != NveP2)
 		printf("Error: Incorrect.\n"), EXIT_MSG;
 
@@ -3184,6 +3230,7 @@ static void setup_vertex_projection(const unsigned int EType)
 	I_vGs_vGs[1][2][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGs[2],NvnGs[1],NvnGs[1],1.0,ChiGs_vGs,ChiInvGs_vGs); // keep
 
 	free(rst_vGs);
+	free(CUBDATA);
 
 	free(ChiRefGs_vGs);
 	free(ChiGs_vGs);

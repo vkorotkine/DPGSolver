@@ -367,4 +367,6 @@ void matrix_free(struct S_MATRIX *A)
 	free(A->values);
 	free(A->rowIndex);
 	free(A->columns);
+
+	free(A);
 }

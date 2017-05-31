@@ -194,9 +194,10 @@ void test_unit_grad_basis_TP(void)
 	 *				GradChiRef_rst = @(r) [ See grad_basis_TP13 ]
 	 */
 
-	unsigned int dE, Nn, Ns, Nbf, P, Prst;
-	unsigned int *symms;
-	double *rst, *w;
+	unsigned int dE, Nn, Nbf, P, Prst;
+	double *rst;
+
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
 
 	dE = 1;
 
@@ -205,7 +206,8 @@ void test_unit_grad_basis_TP(void)
 	P = 3;
 	Prst = 4;
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GL"); // free
+	set_cubdata(CUBDATA,false,false,"GL",dE,Prst,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	GradChiRef13_code = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 	GradChiRef13_test = grad_basis_TP13(rst,Nn); // free
@@ -217,7 +219,6 @@ void test_unit_grad_basis_TP(void)
 	test_print2(pass,"grad_basis_TP (d1, P3):");
 
 	free(rst);
-	free(symms);
 	array_free2_d(dE,GradChiRef13_code);
 	array_free2_d(dE,GradChiRef13_test);
 
@@ -242,7 +243,8 @@ void test_unit_grad_basis_TP(void)
 	P = 2;
 	Prst = 4;
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GL"); // free
+	set_cubdata(CUBDATA,false,false,"GL",dE,Prst,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	GradChiRef22_code = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 	GradChiRef22_test = grad_basis_TP22(rst,Nn); // free
@@ -255,7 +257,6 @@ void test_unit_grad_basis_TP(void)
 	test_print2(pass,"              (d2, P2):");
 
 	free(rst);
-	free(symms);
 	array_free2_d(dE,GradChiRef22_code);
 	array_free2_d(dE,GradChiRef22_test);
 
@@ -281,7 +282,8 @@ void test_unit_grad_basis_TP(void)
 	P = 1;
 	Prst = 4;
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GL"); // free
+	set_cubdata(CUBDATA,false,false,"GL",dE,Prst,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	GradChiRef31_code = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 	GradChiRef31_test = grad_basis_TP31(rst,Nn); // free
@@ -295,7 +297,6 @@ void test_unit_grad_basis_TP(void)
 	test_print2(pass,"              (d3, P1):");
 
 	free(rst);
-	free(symms);
 	array_free2_d(dE,GradChiRef31_code);
 	array_free2_d(dE,GradChiRef31_test);
 
@@ -322,7 +323,8 @@ void test_unit_grad_basis_TP(void)
 	// dE = 1
 	dE = 1;
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,P,dE,"GL"); // free
+	set_cubdata(CUBDATA,false,false,"GL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -356,7 +358,6 @@ void test_unit_grad_basis_TP(void)
 	test_print2(pass,"              derivative  (d1):");
 
 	free(rst), free(r), free(s), free(t);
-	free(symms);
 	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(dE,GradChiRef_rst);
@@ -367,7 +368,8 @@ void test_unit_grad_basis_TP(void)
 	// dE = 2
 	dE = 2;
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,P,dE,"GL"); // free
+	set_cubdata(CUBDATA,false,false,"GL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -403,7 +405,6 @@ void test_unit_grad_basis_TP(void)
 	test_print2(pass,"              derivatives (d2):");
 
 	free(rst), free(r), free(s), free(t);
-	free(symms);
 	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(dE,GradChiRef_rst);
@@ -414,7 +415,8 @@ void test_unit_grad_basis_TP(void)
 	// dE = 3
 	dE = 3;
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,P,dE,"GL"); // free
+	set_cubdata(CUBDATA,false,false,"GL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -452,13 +454,14 @@ void test_unit_grad_basis_TP(void)
 	test_print2(pass,"              derivatives (d3):");
 
 	free(rst), free(r), free(s), free(t);
-	free(symms);
 	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(dE,GradChiRef_rst);
 	free(f), free(f_hat);
 	free(f_r), free(f_s), free(f_t);
 	free(f_rcomp), free(f_scomp), free(f_tcomp);
+
+	free(CUBDATA);
 }
 
 /*
@@ -643,9 +646,10 @@ void test_unit_grad_basis_SI(void)
 	 *				GradChiRef_rst[1] = @(r,s) [ See grad_basis_SI22[1] ]
 	 */
 
-	unsigned int d, Nn, Ns, Nbf, P, Prst;
-	unsigned int *symms;
-	double *rst, *w;
+	unsigned int d, Nn, Nbf, P, Prst;
+	double *rst;
+
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
 
 	d = 2;
 
@@ -654,7 +658,8 @@ void test_unit_grad_basis_SI(void)
 	P = 2;
 	Prst = 4;
 
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,0,Prst,d,"AO"); // free
+	set_cubdata(CUBDATA,false,false,"AO",d,Prst,cubature_TRI); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	GradChiRef22_code = grad_basis_SI(P,rst,Nn,&Nbf,d); // free
 	GradChiRef22_test = grad_basis_SI22(rst,Nn);        // free
@@ -667,7 +672,6 @@ void test_unit_grad_basis_SI(void)
 	test_print2(pass,"grad_basis_SI (d2, P2):");
 
 	free(rst);
-	free(symms);
 	array_free2_d(d,GradChiRef22_code);
 	array_free2_d(d,GradChiRef22_test);
 
@@ -693,7 +697,8 @@ void test_unit_grad_basis_SI(void)
 	P = 1;
 	Prst = 4;
 
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,0,Prst,d,"AO"); // free
+	set_cubdata(CUBDATA,false,false,"AO",d,Prst,cubature_TET); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	GradChiRef31_code = grad_basis_SI(P,rst,Nn,&Nbf,d); // free
 	GradChiRef31_test = grad_basis_SI31(rst,Nn); // free
@@ -707,7 +712,6 @@ void test_unit_grad_basis_SI(void)
 	test_print2(pass,"              (d3, P1):");
 
 	free(rst);
-	free(symms);
 	array_free2_d(d,GradChiRef31_code);
 	array_free2_d(d,GradChiRef31_test);
 
@@ -734,7 +738,8 @@ void test_unit_grad_basis_SI(void)
 	// d = 2
 	d = 2;
 
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,0,P,d,"AO"); // free
+	set_cubdata(CUBDATA,false,false,"AO",d,P,cubature_TRI); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -770,7 +775,6 @@ void test_unit_grad_basis_SI(void)
 	test_print2(pass,"              derivatives (d2):");
 
 	free(rst), free(r), free(s), free(t);
-	free(symms);
 	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(d,GradChiRef_rst);
@@ -781,7 +785,8 @@ void test_unit_grad_basis_SI(void)
 	// d = 3
 	d = 3;
 
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,0,P,d,"AO"); // free
+	set_cubdata(CUBDATA,false,false,"AO",d,P,cubature_TET); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -819,13 +824,14 @@ void test_unit_grad_basis_SI(void)
 	test_print2(pass,"              derivatives (d3):");
 
 	free(rst), free(r), free(s), free(t);
-	free(symms);
 	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(d,GradChiRef_rst);
 	free(f), free(f_hat);
 	free(f_r), free(f_s), free(f_t);
 	free(f_rcomp), free(f_scomp), free(f_tcomp);
+
+	free(CUBDATA);
 }
 
 /*
@@ -1124,9 +1130,10 @@ void test_unit_grad_basis_PYR(void)
 	 *				GradChiRef_rst[2] = @(r,s,t) [ See grad_basis_PYR32[2] ]
 	 */
 
-	unsigned int d, Nn, Ns, Nbf, P, Prst;
-	unsigned int *symms;
-	double *rst, *w;
+	unsigned int d, Nn, Nbf, P, Prst;
+	double *rst;
+
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
 
 	d = 3;
 
@@ -1135,7 +1142,8 @@ void test_unit_grad_basis_PYR(void)
 	P = 2;
 	Prst = 4;
 
-	cubature_PYR(&rst,&w,&symms,&Nn,&Ns,0,Prst,d,"WV");  // free
+	set_cubdata(CUBDATA,false,false,"WV",d,Prst,cubature_PYR); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	GradChiRef32_code = grad_basis_PYR(P,rst,Nn,&Nbf,d); // free
 	GradChiRef32_test = grad_basis_PYR32(rst,Nn);        // free
@@ -1157,7 +1165,6 @@ exit(1);
 	test_print2(pass,"grad_basis_PYR (P2):");
 
 	free(rst);
-	free(symms);
 	array_free2_d(d,GradChiRef32_code);
 	array_free2_d(d,GradChiRef32_test);
 
@@ -1183,7 +1190,8 @@ exit(1);
 
 	d = 3;
 
-	cubature_PYR(&rst,&w,&symms,&Nn,&Ns,0,P,d,"GLL"); // free
+	set_cubdata(CUBDATA,false,false,"GLL",d,P,cubature_PYR); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -1221,11 +1229,12 @@ exit(1);
 	test_print2(pass,"               derivatives (d3):");
 
 	free(rst), free(r), free(s), free(t);
-	free(symms);
 	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(d,GradChiRef_rst);
 	free(f), free(f_hat);
 	free(f_r), free(f_s), free(f_t);
 	free(f_rcomp), free(f_scomp), free(f_tcomp);
+
+	free(CUBDATA);
 }

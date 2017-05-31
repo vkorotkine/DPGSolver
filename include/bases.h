@@ -4,6 +4,13 @@
 #ifndef DPG__bases_h__INCLUDED
 #define DPG__bases_h__INCLUDED
 
+#include "matrix_structs.h"
+
+typedef double *(*basis_tdef) (const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
+                               const unsigned int d);
+typedef double **(*grad_basis_tdef) (const unsigned int P, const double *rst, const unsigned int Nn,
+                                     unsigned int *NbfOut, const unsigned int d);
+
 extern double jacobiP          (const double x, const double alpha, const double beta, const int N);
 extern double grad_jacobiP     (const double x, const double alpha, const double beta, const int N);
 
@@ -22,13 +29,8 @@ extern double *basis_TP_Bezier (const unsigned int P, const double *rst, const u
 extern double *basis_SI_Bezier (const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut, const unsigned int d);
 extern void   rst_to_barycentric_SI (const unsigned int Nn, const unsigned int d, const double *rst, double *BCoords);
 
-struct S_BASIS {
-	unsigned int P, Nn, Nbf, d;
-	double       *rst;
-};
 
-#include "matrix_structs.h"
-
-extern struct S_MATRIX * basis_s_TP (struct S_BASIS *const BASISDATA);
+extern struct S_MATRIX *basis_mat (unsigned int const P, unsigned int const d, unsigned int const Nn,
+                                   double const *const rst, basis_tdef basis);
 
 #endif // DPG__bases_h__INCLUDED
