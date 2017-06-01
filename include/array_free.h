@@ -4,6 +4,7 @@
 #ifndef DPG__array_free_h__INCLUDED
 #define DPG__array_free_h__INCLUDED
 
+#include <stddef.h>
 #include <complex.h>
 
 #include "S_OpCSR.h"
@@ -35,6 +36,7 @@ extern void array_free1_CSR_d (struct S_OpCSR *A);
 extern void array_free4_CSR_d (unsigned int iMax, unsigned int jMax, unsigned int kMax, struct S_OpCSR ****A);
 extern void array_free5_CSR_d (unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int lMax, struct S_OpCSR *****A);
 
-extern void matrix_free (struct S_MATRIX *A);
+extern void matrix_free  (struct S_MATRIX *A);
+extern void matrix_free2 (size_t const iMax, struct S_MATRIX **A);
 
 #endif // DPG__array_free_h__INCLUDED

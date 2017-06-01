@@ -34,7 +34,7 @@
 
 void test_integration_Advection(int nargc, char **argv)
 {
-	bool const RunTests_linearization = 1,
+	bool const RunTests_linearization = 0,
 	           RunTests_conv_order    = 1;
 
 	char **argvNew, *PrintName;
@@ -81,14 +81,14 @@ void test_integration_Advection(int nargc, char **argv)
 		data_c->nargc     = nargc;
 		data_c->argvNew   = argvNew;
 		data_c->PrintName = PrintName;
-
+if (0) {
 		test_conv_order(data_c,"Advection_n-Cube_Default_TRI");
 		test_conv_order(data_c,"Advection_n-Cube_Default_QUAD");
 
 		test_conv_order(data_c,"Advection_n-Cube_Peterson_TRI");
-
-//		test_conv_order(data_c,"Advection_n-Cube_Default_hDG_TRI");
-
+} else {
+		test_conv_order(data_c,"Advection_n-Cube_Default_hDG_TRI");
+}
 		free(data_c);
 	} else {
 		test_print_warning("Advection convergence order testing currently disabled");

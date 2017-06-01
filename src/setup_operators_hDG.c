@@ -5,6 +5,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
 
 #include "Parameters.h"
 #include "Macros.h"
@@ -20,6 +22,8 @@
 
 #include "cubature.h" // Needed only for the definitions of the structs
 #include "bases.h"
+
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -49,21 +53,24 @@
 
 static void setup_operators_hDG_std(EType)
 {
-	char const *const *const *const NodeTypeIfs = (char const *const *const *const) DB.NodeTypeIfs,
+	char const *const *const *const NodeTypeS   = (char const *const *const *const) DB.NodeTypeS,
+	           *const *const *const NodeTypeIfs = (char const *const *const *const) DB.NodeTypeIfs,
 	           *const *const *const NodeTypeIfc = (char const *const *const *const) DB.NodeTypeIfc;
 
 	unsigned int const              Eclass = get_Eclass(EType),
 	                   *const       PTRS   = DB.PTRS,
-	                   *const *const PIfs   = (unsigned int const *const *const) DB.PIfs;
-//	                   *const *const PIfc   = (unsigned int const *const *const) DB.PIfc;
+	                   *const *const PIfs   = (unsigned int const *const *const) DB.PIfs,
+	                   *const *const PIfc   = (unsigned int const *const *const) DB.PIfc;
 
 	struct S_ELEMENT *const ELEMENT = get_ELEMENT_type(EType);
 
 	unsigned int const dE = ELEMENT->d;
 
 	// Returned operators
-	struct S_MATRIX **ChiTRS_vIs = ELEMENT->ChiTRS_vIs;
-//	                **Is_FF      = ELEMENT->Is_FF;
+	struct S_MATRIX **ChiTRS_vIs = ELEMENT->ChiTRS_vIs,
+	                **ChiTRS_vIc = ELEMENT->ChiTRS_vIc,
+	                **Is_FF      = ELEMENT->Is_FF,
+	                **Ic_FF      = ELEMENT->Ic_FF;
 
 	cubature_tdef cubature;
 	basis_tdef    basis;
@@ -71,48 +78,59 @@ static void setup_operators_hDG_std(EType)
 	select_functions_cubature(&cubature,EType);
 	select_functions_basis(&basis,EType);
 
-	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
-
 	unsigned int PSMin, PSMax;
 	get_PS_range(&PSMin,&PSMax);
 	for (size_t P = PSMin; P <= PSMax; P++) {
+		// Build transformation matrix
+		struct S_CUBATURE *cub_vTRS = cub_constructor(false,false,NodeTypeS[P][Eclass],dE,PTRS[P],cubature); // free
 
-		unsigned int NvnTRS = 0;
-		double       *rst_vTRS = NULL,
-		set_cubdata(CUBDATA,false,false,NodeTypeS[P][Eclass],dE,PTRS[P],cubature); // free
-		set_from_cubdata(CUBDATA,&NvnTRS,NULL,&rst_vTRS,NULL,NULL);
+		struct S_MATRIX *ChiRefTRS_vTRS    = basis_mat(PTRS[P],cub_vTRS,basis), // free
+		                *ChiRefInvTRS_vTRS = inverse_mat(ChiRefTRS_vTRS);       // free
 
-		struct S_MATRIX *ChiRefTRS_vTRS    = basis_mat(PTRS[P],dE,NvnTRS,rst_vTRS,basis), // tbd
-		                *ChiRefInvTRS_vTRS = inverse_mat(ChiRefTRS_vTRS); // tbd
-		struct S_MATRIX *TTRS = mm_Alloc_Mat_d('R',ChiRefInvTRS_vTRS,ChiTRS_vTRS); // free
+		struct S_MATRIX *ChiTRS_vTRS = NULL;
+		if (strstr(DB.BasisType,"Modal"))
+			ChiTRS_vTRS = ChiRefTRS_vTRS;
+		else if (strstr(DB.BasisType,"Nodal"))
+			ChiTRS_vTRS = identity_mat(cub_vTRS->Nn); // free
+		else
+			EXIT_UNSUPPORTED;
 
-		unsigned int NvnIs = 0;
-		double       *rst_vIs = NULL, *w_vIs = NULL;
-		set_cubdata(CUBDATA,true,false,NodeTypeIfs[P][Eclass],dE,PIfs[P][Eclass],cubature); // free
-		set_from_cubdata(CUBDATA,&NvnIs,NULL,&rst_vIs,&w_vIs,NULL);
+		cub_destructor(cub_vTRS);
 
-		struct S_MATRIX *ChiRefTRS_vIs  = basis_mat(PTRS[P],dE,NvnIs,rst_vIs,basis); // tbd
+		struct S_MATRIX *TTRS = mm_alloc_mat('R','N','N',ChiRefInvTRS_vTRS,ChiTRS_vTRS); // free
+
+		matrix_free(ChiRefInvTRS_vTRS);
+		matrix_free(ChiTRS_vTRS);
+
+		// Compute returned operators (straight)
+		struct S_CUBATURE *cub_vIs = cub_constructor(true,false,NodeTypeIfs[P][Eclass],dE,PIfs[P][Eclass],cubature); // free
+
+		struct S_VECTOR *w_vIs = vec_constructor_move(cub_vIs->Nn,cub_vIs->w);
+
+		struct S_MATRIX *ChiRefTRS_vIs = basis_mat(PTRS[P],cub_vIs,basis); // free
+
+		ChiTRS_vIs[P] = mm_alloc_mat('R','N','N',ChiRefTRS_vIs,TTRS);       // keep
+		Is_FF[P]      = mm_diag_mat_alloc('R','T','R',ChiTRS_vIs[P],w_vIs); // keep
+
+		cub_destructor(cub_vIs);
+		matrix_free(ChiRefTRS_vIs);
 
 
-		ChiTRS_vIs[P] = mm_Alloc_Mat_d('R',ChiRefTRS_vIs,TTRS); // keep
+		// Compute returned operators (curved)
+		struct S_CUBATURE *cub_vIc = cub_constructor(true,false,NodeTypeIfc[P][Eclass],dE,PIfc[P][Eclass],cubature); // free
+
+		struct S_VECTOR *w_vIc = vec_constructor_move(cub_vIc->Nn,cub_vIc->w);
+
+		struct S_MATRIX *ChiRefTRS_vIc = basis_mat(PTRS[P],cub_vIc,basis); // free
+
+		ChiTRS_vIc[P] = mm_alloc_mat('R','N','N',ChiRefTRS_vIc,TTRS);       // keep
+		Ic_FF[P]      = mm_diag_mat_alloc('R','T','R',ChiTRS_vIc[P],w_vIc); // keep
+
+		cub_destructor(cub_vIc);
+		matrix_free(ChiRefTRS_vIc);
 
 		matrix_free(TTRS);
-
-printf("%p\n",ChiRefTRS_vIs);
-
-		free(rst_vTRS);
-
-		free(rst_vIs);
-		free(w_vIs);
 	}
-
-	free(CUBDATA);
-	free(BASISDATA);
-
-if (0) {
-	printf("%p %p\n",NodeTypeIfs,NodeTypeIfc);
-	printf("%d\n",EType);
-}
 }
 
 static void setup_operators_hDG_TP(EType)
@@ -125,6 +143,9 @@ static void setup_operators_hDG_TP(EType)
 
 void setup_operators_hDG(void)
 {
+	if (DB.Method != METHOD_HDG)
+		return;
+
 	unsigned int const d = DB.d;
 
 	unsigned int EType;

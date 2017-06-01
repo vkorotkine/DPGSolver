@@ -362,11 +362,20 @@ void array_free5_CSR_d(unsigned int iMax, unsigned int jMax, unsigned int kMax, 
 	free(A);
 }
 
-void matrix_free(struct S_MATRIX *A)
+void matrix_free (struct S_MATRIX *A)
 {
 	free(A->values);
 	free(A->rowIndex);
 	free(A->columns);
 
+	free(A);
+}
+
+void matrix_free2 (size_t const iMax, struct S_MATRIX **A)
+{
+	for (size_t i = 0; i < iMax; i++) {
+		if (A[i])
+			matrix_free(A[i]);
+	}
 	free(A);
 }

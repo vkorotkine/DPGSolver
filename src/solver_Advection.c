@@ -43,26 +43,38 @@
 
 void solver_Advection(bool const PrintEnabled)
 {
-	if (strstr(DB.SolverType,"Explicit")) {
-		explicit_VOLUME_info();
-		explicit_FACE_info();
+	if (DB.Method == METHOD_DG) {
+		if (strstr(DB.SolverType,"Explicit")) {
+			explicit_VOLUME_info();
+			explicit_FACE_info();
+			EXIT_UNSUPPORTED;
+		} else if (strstr(DB.SolverType,"Implicit")) {
+			if (PrintEnabled) { printf("V");  } implicit_VOLUME_info();
+			if (PrintEnabled) { printf("F");  } implicit_FACE_info();
+
+			Mat A = NULL;
+			Vec b = NULL, x = NULL;
+			KSP ksp = NULL;
+
+			solver_implicit_linear_system(&A,&b,&x,&ksp,0,PrintEnabled);
+			solver_implicit_update_What(x);
+
+			KSPDestroy(&ksp);
+			finalize_ksp(&A,&b,&x,2);
+
+			char *const fNameOut = get_fNameOut("SolFinal_"); // free
+			output_to_paraview(fNameOut);
+			free(fNameOut);
+		}
+	} else if (DB.Method == METHOD_HDG) {
+		if (strstr(DB.SolverType,"Explicit")) {
+			EXIT_UNSUPPORTED;
+		} else if (strstr(DB.SolverType,"Implicit")) {
+			if (PrintEnabled) { printf("V");  } implicit_VOLUME_info();
+			if (PrintEnabled) { printf("F");  } implicit_FACE_info();
+		}
 		EXIT_UNSUPPORTED;
-	} else if (strstr(DB.SolverType,"Implicit")) {
-		if (PrintEnabled) { printf("V");  } implicit_VOLUME_info();
-		if (PrintEnabled) { printf("F");  } implicit_FACE_info();
-
-		Mat A = NULL;
-		Vec b = NULL, x = NULL;
-		KSP ksp = NULL;
-
-		solver_implicit_linear_system(&A,&b,&x,&ksp,0,PrintEnabled);
-		solver_implicit_update_What(x);
-
-		KSPDestroy(&ksp);
-		finalize_ksp(&A,&b,&x,2);
-
-		char *const fNameOut = get_fNameOut("SolFinal_"); // free
-		output_to_paraview(fNameOut);
-		free(fNameOut);
+	} else {
+		EXIT_UNSUPPORTED;
 	}
 }

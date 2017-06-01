@@ -11,7 +11,7 @@ MeshType      TRI
 MeshCurving   Straight
 MeshLevel     0
 
-Method     METHOD_HDG
+Method     2      // 1: DG, 2: HDG
 Form       Weak
 NodeType   GL-WSH
 BasisType  Nodal

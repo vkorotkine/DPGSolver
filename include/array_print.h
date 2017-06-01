@@ -6,6 +6,7 @@
 
 #include <complex.h>
 
+#include "matrix_structs.h"
 
 extern void array_print_ui    (const unsigned int m, const unsigned int n, const unsigned int   *A, const char layout);
 extern void array_print_i     (const unsigned int m, const unsigned int n, const int            *A, const char layout);
@@ -15,5 +16,8 @@ extern void array_print_f     (const unsigned int m, const unsigned int n, const
 extern void array_print_d     (const unsigned int m, const unsigned int n, const double         *A, const char layout);
 extern void array_print_ld    (const unsigned int m, const unsigned int n, const long double    *A, const char layout);
 extern void array_print_cmplx (const unsigned int m, const unsigned int n, const double complex *A, const char layout);
+
+extern void matrix_print (struct S_MATRIX const *const A);
+extern void vector_print (struct S_VECTOR const *const A);
 
 #endif // DPG__array_print_h__INCLUDED

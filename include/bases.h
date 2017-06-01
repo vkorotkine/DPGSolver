@@ -5,6 +5,7 @@
 #define DPG__bases_h__INCLUDED
 
 #include "matrix_structs.h"
+#include "cubature.h"
 
 typedef double *(*basis_tdef) (const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
                                const unsigned int d);
@@ -30,7 +31,6 @@ extern double *basis_SI_Bezier (const unsigned int P, const double *rst, const u
 extern void   rst_to_barycentric_SI (const unsigned int Nn, const unsigned int d, const double *rst, double *BCoords);
 
 
-extern struct S_MATRIX *basis_mat (unsigned int const P, unsigned int const d, unsigned int const Nn,
-                                   double const *const rst, basis_tdef basis);
+extern struct S_MATRIX *basis_mat (unsigned int const P, struct S_CUBATURE const *const CUBDATA, basis_tdef basis);
 
 #endif // DPG__bases_h__INCLUDED

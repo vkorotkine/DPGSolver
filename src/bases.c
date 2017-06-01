@@ -1191,17 +1191,16 @@ void rst_to_barycentric_SI(const unsigned int Nn, const unsigned int d, const do
 	free(A_Nn);
 }
 
-struct S_MATRIX *basis_mat (unsigned int const P, unsigned int const d, unsigned int const Nn, double const *const rst,
-                            basis_tdef basis)
+struct S_MATRIX *basis_mat (unsigned int const P, struct S_CUBATURE const *const CUBDATA, basis_tdef basis)
 {
 	struct S_MATRIX *ChiRef_rst = malloc(sizeof *ChiRef_rst); // keep
 
 	unsigned int Nbf = 0;
-	ChiRef_rst->values = basis(P,rst,Nn,&Nbf,d); // keep
+	ChiRef_rst->values = basis(P,CUBDATA->rst,CUBDATA->Nn,&Nbf,CUBDATA->d); // keep
 
 	ChiRef_rst->format = 'D';
 	ChiRef_rst->layout = 'R';
-	ChiRef_rst->NRows  = Nn;
+	ChiRef_rst->NRows  = CUBDATA->Nn;
 	ChiRef_rst->NCols  = Nbf;
 
 	return ChiRef_rst;

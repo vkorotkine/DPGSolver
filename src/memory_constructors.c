@@ -223,6 +223,14 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->nOrd_fIc  = calloc(NP , sizeof *(ELEMENT->nOrd_fIc)); // free
 
 
+	ELEMENT->ChiTRS_vIs = calloc(NP , sizeof *(ELEMENT->ChiTRS_vIs)); // free
+	ELEMENT->ChiTRS_vIc = calloc(NP , sizeof *(ELEMENT->ChiTRS_vIc)); // free
+
+	ELEMENT->Is_FF = calloc(NP , sizeof *(ELEMENT->Is_FF)); // free
+	ELEMENT->Ic_FF = calloc(NP , sizeof *(ELEMENT->Ic_FF)); // free
+
+
+
 	ELEMENT->TGs[1] = calloc(NP , sizeof **(ELEMENT->TGs));
 
 	ELEMENT->VeMask[1] = calloc(NP , sizeof **(ELEMENT->VeMask));
@@ -353,6 +361,12 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->L2hat_vS_vS[P] = calloc(NP , sizeof **(ELEMENT->L2hat_vS_vS));
 		ELEMENT->GfS_fIs[P]    = calloc(NP , sizeof **(ELEMENT->GfS_fIs));
 		ELEMENT->GfS_fIc[P]    = calloc(NP , sizeof **(ELEMENT->GfS_fIc));
+
+		ELEMENT->ChiTRS_vIs[P] = calloc(NP , sizeof **(ELEMENT->ChiTRS_vIs));
+		ELEMENT->ChiTRS_vIc[P] = calloc(NP , sizeof **(ELEMENT->ChiTRS_vIc));
+
+		ELEMENT->Is_FF[P] = calloc(NP , sizeof **(ELEMENT->Is_FF));
+		ELEMENT->Ic_FF[P] = calloc(NP , sizeof **(ELEMENT->Ic_FF));
 
 		get_Pb_range(P,&PbMin,&PbMax);
 		for (Pb = PbMin; Pb <= PbMax; Pb++) {

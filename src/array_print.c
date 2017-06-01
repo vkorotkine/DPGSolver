@@ -12,6 +12,8 @@
 #include "Parameters.h"
 #include "Macros.h"
 
+#include "matrix_structs.h"
+
 /*
  *	Purpose:
  *		Print arrays for debugging purposes.
@@ -237,4 +239,17 @@ void array_print_cmplx(const unsigned int m, const unsigned int n, const double 
 		printf("\n");
 		break;
 	}
+}
+
+void matrix_print (struct S_MATRIX const *const A)
+{
+	if (A->format != 'D')
+		EXIT_UNSUPPORTED;
+
+	array_print_d(A->NRows,A->NCols,A->values,A->layout);
+}
+
+void vector_print (struct S_VECTOR const *const A)
+{
+	array_print_d(1,A->NRows,A->values,'R');
 }

@@ -17,4 +17,10 @@ struct S_MATRIX {
 	unsigned int *rowIndex, *columns;
 };
 
+struct S_VECTOR {
+	size_t NRows;
+
+	double *values;
+};
+
 #endif // DPG__matrix_structs_h__INCLUDED

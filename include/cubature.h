@@ -28,4 +28,8 @@ extern void set_cubdata (struct S_CUBATURE *const CUBDATA, bool const return_w, 
 extern void set_from_cubdata (struct S_CUBATURE const *const CUBDATA, unsigned int *Nn, unsigned int *Ns, double **rst,
                               double **w, unsigned int **symms);
 
+extern struct S_CUBATURE *cub_constructor (bool const return_w, bool const return_symm, char const *const NodeType,
+                                           unsigned int const d, unsigned int const P, cubature_tdef cubature);
+extern void cub_destructor (struct S_CUBATURE *CUBDATA);
+
 #endif // DPG__cubature_h__INCLUDED

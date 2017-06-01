@@ -200,6 +200,11 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free3_ui(NP,NFORDMAX,ELEMENT->nOrd_fIs);
 	array_free3_ui(NP,NFORDMAX,ELEMENT->nOrd_fIc);
 
+	matrix_free2(NP,ELEMENT->ChiTRS_vIs);
+	matrix_free2(NP,ELEMENT->ChiTRS_vIc);
+
+	matrix_free2(NP,ELEMENT->Is_FF);
+	matrix_free2(NP,ELEMENT->Ic_FF);
 
 	free(ELEMENT->ELEMENTclass);
 	free(ELEMENT->ELEMENT_FACE);

@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <complex.h>
+#include <stdbool.h>
 
 #include "mkl.h"
 
@@ -14,6 +15,8 @@
 #include "Macros.h"
 #include "S_OpCSR.h"
 #include "matrix_structs.h"
+
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -102,7 +105,7 @@ void mm_diag_d(const unsigned int NRows, const unsigned int NCols, double const 
 	unsigned int i, j, iMax;
 
 	if (beta != 1.0) {
-		if (beta == 0) {
+		if (beta == 0.0) {
 			for (i = 0, iMax = NRows*NCols; i < iMax; i++)
 				Output[i] = 0.0;
 		} else {
@@ -2020,40 +2023,34 @@ void convert_to_CSR_d(const unsigned int NRows, const unsigned int NCols, const 
 	(*Output)->values = values;
 }
 
-struct S_MATRIX * mm_Alloc_mat_d
-(char const layout, struct S_MATRIX const *const A, struct S_MATRIX const *const B)
+struct S_MATRIX *mm_alloc_mat (char const layout, char const opA, char const opB, struct S_MATRIX const *const A,
+                               struct S_MATRIX const *const B)
 {
 	/*
 	 *	Purpose:
-	 *		Compute C = A*B in the appropriate layout using the matrix struct.
+	 *		Compute C = opA(A)*opB(B) in the appropriate layout using the matrix struct.
 	 *
 	 *	Comments:
 	 *		Note that a matrix in the alternate layout is simply interpreted as being transposed in the current layout.
+	 *
+	 *	Notation:
+	 *		Op(A/B) : 'N'(o transpose), 'T'(ranspose)
 	 */
 
-	if (A->format == 'S' || B->format == 'S')
+	if (A->format != 'D' || B->format != 'D')
 		EXIT_UNSUPPORTED;
 
-	CBLAS_LAYOUT CBlayout = CBRM;
-	if (layout == 'C')
-		CBlayout = CBCM;
+	CBLAS_LAYOUT    const CBlayout = ( layout == 'R' ? CBRM : CBCM );
+	CBLAS_TRANSPOSE const transa   = ( (layout == A->layout) == (opA == 'N') ? CBNT : CBT ),
+	                      transb   = ( (layout == B->layout) == (opB == 'N') ? CBNT : CBT );
+	size_t          const m        = ( transa == CBNT ? A->NRows : A->NCols ),
+	                      n        = ( transb == CBNT ? B->NCols : B->NRows ),
+	                      k        = ( transa == CBNT ? A->NCols : A->NRows );
+	double          const alpha    = 1.0;
 
-	CBLAS_TRANSPOSE transa = CBNT;
-	if (layout != A->layout)
-		transa = CBT;
-
-	CBLAS_TRANSPOSE transb = CBNT;
-	if (layout != B->layout)
-		transb = CBT;
-
-	int m = A->NRows,
-	    n = B->NCols,
-	    k = A->NCols;
-
-//	if (k != B->NRows)
-//		EXIT_UNSUPPORTED;
-
-	double const alpha = 1.0;
+	// Check matching internal length
+	if (k != ( transb == CBNT ? B->NRows : B->NCols ))
+		EXIT_UNSUPPORTED;
 
 	struct S_MATRIX *C = malloc(sizeof *C); // keep
 
@@ -2064,6 +2061,78 @@ struct S_MATRIX * mm_Alloc_mat_d
 	C->values = mm_Alloc_d(CBlayout,transa,transb,m,n,k,alpha,A->values,B->values); // keep
 
 	return C;
+}
+
+static struct S_MATRIX *mat_constructor_dense (const char layout, const size_t NRows, const size_t NCols)
+{
+	struct S_MATRIX *A = malloc(sizeof *A); // keep
+
+	A->layout = layout;
+	A->format = 'D';
+	A->NRows  = NRows;
+	A->NCols  = NCols;
+	A->values = calloc(NRows*NCols , sizeof *(A->values)); // keep
+
+	return A;
+}
+
+struct S_MATRIX *mat_copy (struct S_MATRIX const *const A)
+{
+	struct S_MATRIX *B = malloc(sizeof *B); // keep
+
+	B->layout = A->layout;
+	B->format = A->format;
+	B->NRows  = A->NRows;
+	B->NCols  = A->NCols;
+
+	size_t const Nvals = (B->NRows)*(B->NCols);
+
+	B->values = malloc(Nvals * sizeof *(B->values)); // keep
+	for (size_t i = 0; i < Nvals; i++)
+		B->values[i] = A->values[i];
+
+	return B;
+}
+
+void mat_transpose (struct S_MATRIX *const A)
+{
+	if (A->format != 'D')
+		EXIT_UNSUPPORTED;
+
+	mkl_dimatcopy(A->layout,'T',A->NRows,A->NCols,1.0,A->values,A->NCols,A->NRows);
+
+	size_t const swap = A->NRows;
+	A->NRows = A->NCols;
+	A->NCols = swap;
+
+	A->layout = (A->layout == 'R' ? 'C' : 'R');
+}
+
+struct S_MATRIX *mm_diag_mat_alloc (char const layout, char const opA, char const side, struct S_MATRIX const *const A,
+                                    struct S_VECTOR const *const a)
+{
+	/*
+	 *	Comments:
+	 *		B is computed with the layout of A and transposed if necessary.
+	 */
+
+	if (A->format != 'D')
+		EXIT_UNSUPPORTED;
+
+	struct S_MATRIX *B = mat_constructor_dense(A->layout,A->NRows,A->NCols); // keep
+
+	char const side_to_use = ( opA == 'N' ? side : ( side == 'L' ? 'R' : 'L' ) );
+
+	if (a->NRows != ( side_to_use == 'L' ? A->NRows : A->NCols))
+		EXIT_UNSUPPORTED;
+
+	mm_diag_d(B->NRows,B->NCols,a->values,A->values,B->values,1.0,0.0,side_to_use,A->layout);
+
+	// Transpose B if necessary
+	if ((layout == A->layout) != (opA == 'N'))
+		mat_transpose(B);
+
+	return B;
 }
 
 struct S_MATRIX *inverse_mat (struct S_MATRIX const *const A)
@@ -2077,8 +2146,75 @@ struct S_MATRIX *inverse_mat (struct S_MATRIX const *const A)
 	AInv->format  = A->format;
 	AInv->NRows   = A->NRows;
 	AInv->NCols   = A->NCols;
-	AInv->valuess = inverse_d(A->NRows,A->NRows,
 
+	double *I_d = identity_d(A->NRows); // free
+	AInv->values = inverse_d(A->NRows,A->NCols,A->values,I_d); // keep
+	free(I_d);
 
 	return AInv;
+}
+
+struct S_MATRIX *identity_mat (unsigned int const N)
+{
+	struct S_MATRIX *A = malloc(sizeof *A); // keep
+
+	A->layout = 'R';
+	A->format = 'D';
+	A->NRows  = N;
+	A->NCols  = N;
+	A->values = identity_d(N); // keep
+
+	return A;
+}
+
+struct S_MATRIX *mat_constructor_move (char const layout, char const format, size_t const NRows, size_t const NCols,
+                                       double *const values, struct S_OpCSR *const A_CSR)
+{
+	struct S_MATRIX *A = malloc(sizeof *A); // keep
+
+	A->layout = layout;
+	A->format = format;
+	A->NRows  = NRows;
+	A->NCols  = NCols;
+
+	if (format == 'D') {
+		A->values = values;
+	} else if (format == 'S') {
+		A->values   = A_CSR->values;
+		A->rowIndex = A_CSR->rowIndex;
+		A->columns  = A_CSR->columns;
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+
+	return A;
+}
+
+struct S_MATRIX **mat_constructor2_move (char const layout, char const format, size_t const NRows, size_t const NCols,
+                                         size_t const dim1, double *const *const values, struct S_OpCSR *const *const A_CSR)
+{
+	struct S_MATRIX **A = malloc(dim1 * sizeof *A); // keep
+
+	for (size_t i = 0; i < dim1; i++) {
+		A[i] = malloc(sizeof *A[i]); // keep
+		if (format == 'D')
+			mat_constructor_move(layout,format,NRows,NCols,values[i],NULL);
+		else if (format == 'S')
+			mat_constructor_move(layout,format,NRows,NCols,NULL,A_CSR[i]);
+		else
+			EXIT_UNSUPPORTED;
+	}
+
+	return A;
+}
+
+
+struct S_VECTOR *vec_constructor_move (size_t const NRows, double *const values)
+{
+	struct S_VECTOR *a = malloc(sizeof *a); // keep
+
+	a->NRows  = NRows;
+	a->values = values;
+
+	return a;
 }

@@ -1183,6 +1183,36 @@ void set_cubdata (struct S_CUBATURE *const CUBDATA, bool const return_w, bool co
 	cubature(CUBDATA); // keep
 }
 
+struct S_CUBATURE *cub_constructor (bool const return_w, bool const return_symm, char const *const NodeType,
+                                    unsigned int const d, unsigned int const P, cubature_tdef cubature)
+{
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // keep
+
+	CUBDATA->return_w    = return_w;
+	CUBDATA->return_symm = return_symm;
+
+	CUBDATA->NodeType = NodeType;
+	CUBDATA->d = d;
+	CUBDATA->P = P;
+
+	cubature(CUBDATA); // keep
+
+	return CUBDATA;
+}
+
+void cub_destructor (struct S_CUBATURE *CUBDATA)
+{
+	free(CUBDATA->rst);
+
+	if (CUBDATA->return_w)
+		free(CUBDATA->w);
+
+	if (CUBDATA->return_symm)
+		free(CUBDATA->symms);
+
+	free(CUBDATA);
+}
+
 void set_from_cubdata (struct S_CUBATURE const *const CUBDATA, unsigned int *Nn, unsigned int *Ns, double **rst,
                        double **w, unsigned int **symms)
 {

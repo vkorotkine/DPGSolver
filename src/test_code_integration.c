@@ -23,6 +23,7 @@
 #include "setup_parameters.h"
 #include "setup_mesh.h"
 #include "setup_operators.h"
+#include "setup_operators_hDG.h"
 #include "setup_structures.h"
 #include "setup_geometry.h"
 #include "initialize_test_case.h"
@@ -144,6 +145,7 @@ void code_startup(int const nargc, char const *const *const argv, unsigned int c
 	if (strstr(DB.MeshType,"Curved"))
 		strcat(DB.Geometry,"Curved");
 	setup_operators();
+	setup_operators_hDG();
 	setup_structures();
 	setup_geometry();
 
