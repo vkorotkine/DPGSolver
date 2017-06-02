@@ -11,30 +11,30 @@
 #include "matrix_structs.h"
 
 
-extern void array_free2_c     (unsigned int iMax, char           **A);
-extern void array_free2_ui    (unsigned int iMax, unsigned int   **A);
-extern void array_free2_i     (unsigned int iMax, int            **A);
-extern void array_free2_l     (unsigned int iMax, long           **A);
-extern void array_free2_ll    (unsigned int iMax, long long      **A);
-extern void array_free2_f     (unsigned int iMax, float          **A);
-extern void array_free2_d     (unsigned int iMax, double         **A);
-extern void array_free2_cmplx (unsigned int iMax, double complex **A);
-extern void array_free2_ld    (unsigned int iMax, long double    **A);
-extern void array_free3_c     (unsigned int iMax, unsigned int jMax, char         ***A);
-extern void array_free3_ui    (unsigned int iMax, unsigned int jMax, unsigned int ***A);
-extern void array_free3_i     (unsigned int iMax, unsigned int jMax, int          ***A);
-extern void array_free3_l     (unsigned int iMax, unsigned int jMax, long         ***A);
-extern void array_free3_ll    (unsigned int iMax, unsigned int jMax, long long    ***A);
-extern void array_free3_f     (unsigned int iMax, unsigned int jMax, float        ***A);
-extern void array_free3_d     (unsigned int iMax, unsigned int jMax, double       ***A);
-extern void array_free3_ld    (unsigned int iMax, unsigned int jMax, long double  ***A);
-extern void array_free4_ui    (unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int ****A);
-extern void array_free4_d     (unsigned int iMax, unsigned int jMax, unsigned int kMax, double       ****A);
-extern void array_free5_d     (unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int lMax, double *****A);
+extern void array_free2_c     (size_t const iMax, char           **A);
+extern void array_free2_ui    (size_t const iMax, unsigned int   **A);
+extern void array_free2_i     (size_t const iMax, int            **A);
+extern void array_free2_l     (size_t const iMax, long           **A);
+extern void array_free2_ll    (size_t const iMax, long long      **A);
+extern void array_free2_f     (size_t const iMax, float          **A);
+extern void array_free2_d     (size_t const iMax, double         **A);
+extern void array_free2_cmplx (size_t const iMax, double complex **A);
+extern void array_free2_ld    (size_t const iMax, long double    **A);
+extern void array_free3_c     (size_t const iMax, size_t const jMax, char         ***A);
+extern void array_free3_ui    (size_t const iMax, size_t const jMax, unsigned int ***A);
+extern void array_free3_i     (size_t const iMax, size_t const jMax, int          ***A);
+extern void array_free3_l     (size_t const iMax, size_t const jMax, long         ***A);
+extern void array_free3_ll    (size_t const iMax, size_t const jMax, long long    ***A);
+extern void array_free3_f     (size_t const iMax, size_t const jMax, float        ***A);
+extern void array_free3_d     (size_t const iMax, size_t const jMax, double       ***A);
+extern void array_free3_ld    (size_t const iMax, size_t const jMax, long double  ***A);
+extern void array_free4_ui    (size_t const iMax, size_t const jMax, size_t const kMax, unsigned int ****A);
+extern void array_free4_d     (size_t const iMax, size_t const jMax, size_t const kMax, double       ****A);
+extern void array_free5_d     (size_t const iMax, size_t const jMax, size_t const kMax, size_t const lMax, double *****A);
 
 extern void array_free1_CSR_d (struct S_OpCSR *A);
-extern void array_free4_CSR_d (unsigned int iMax, unsigned int jMax, unsigned int kMax, struct S_OpCSR ****A);
-extern void array_free5_CSR_d (unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int lMax, struct S_OpCSR *****A);
+extern void array_free4_CSR_d (size_t const iMax, size_t const jMax, size_t const kMax, struct S_OpCSR ****A);
+extern void array_free5_CSR_d (size_t const iMax, size_t const jMax, size_t const kMax, size_t const lMax, struct S_OpCSR *****A);
 
 extern void matrix_free  (struct S_MATRIX *A);
 extern void matrix_free2 (size_t const iMax, struct S_MATRIX **A);

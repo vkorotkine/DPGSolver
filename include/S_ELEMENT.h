@@ -53,12 +53,22 @@ struct S_ELEMENT {
 	             ****L2hat_vS_vS,
 	             ****GfS_fIs, ****GfS_fIc;
 
+	// S_OpCSR should be converted to S_MATRIX in the future (ToBeModified)
 	struct S_OpCSR ****ChiS_fIs_sp, ****ChiS_fIc_sp,
 	               *****Ds_Weak_VV_sp, *****Dc_Weak_VV_sp,
 	               ****Is_Weak_FV_sp, ****Ic_Weak_FV_sp;
 
-	struct S_MATRIX **ChiTRS_vIs, **ChiTRS_vIc,
-	                **Is_FF, **Ic_FF;
+	struct S_OPS {
+		struct S_OPS_SOLVER {
+			struct S_OPS_SOLVER_DG {
+			} DG;
+
+			struct S_OPS_SOLVER_HDG {
+				struct S_MATRIX **ChiTRS_vIs, **ChiTRS_vIc,
+								**Is_FF, **Ic_FF;
+			} HDG;
+		} solver;
+	} ops;
 
 	struct S_ELEMENT *next;
 	struct S_ELEMENT **ELEMENTclass, **ELEMENT_FACE;

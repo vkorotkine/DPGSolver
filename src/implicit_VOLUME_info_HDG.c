@@ -1,7 +1,7 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#include "implicit_VOLUME_info_hDG.h"
+#include "implicit_VOLUME_info_HDG.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -24,11 +24,11 @@
 #include "array_print.h"
 */
 
-#include "solver_functions_hDG.h"
+#include "solver_functions_HDG.h"
 
 /*
  *	Purpose:
- *		Evaluate the VOLUME contributions to the RHS and LHS terms for the hDG scheme.
+ *		Evaluate the VOLUME contributions to the RHS and LHS terms for the HDG scheme.
  *
  *	Comments:
  *
@@ -37,17 +37,17 @@
  *	References:
  */
 
-static void compute_Inviscid_VOLUME_hDG (void);
+static void compute_Inviscid_VOLUME_HDG (void);
 
-void implicit_VOLUME_info_hDG (void)
+void implicit_VOLUME_info_HDG (void)
 {
-	compute_Inviscid_VOLUME_hDG();
+	compute_Inviscid_VOLUME_HDG();
 }
 
-static void compute_Inviscid_VOLUME_hDG (void)
+static void compute_Inviscid_VOLUME_HDG (void)
 {
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		struct S_OPERATORS_V *OPS = init_ops_VOLUME(VOLUME);
+		struct S_OPERATORS_V *OPS = init_mat_ops_VOLUME(VOLUME);
 printf("%p\n",OPS);
 
 		// Obtain W_vI

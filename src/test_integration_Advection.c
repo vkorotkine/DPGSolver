@@ -87,7 +87,7 @@ if (0) {
 
 		test_conv_order(data_c,"Advection_n-Cube_Peterson_TRI");
 } else {
-		test_conv_order(data_c,"Advection_n-Cube_Default_hDG_TRI");
+		test_conv_order(data_c,"Advection_n-Cube_Default_HDG_TRI");
 }
 		free(data_c);
 	} else {

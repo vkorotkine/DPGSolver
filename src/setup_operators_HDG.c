@@ -1,7 +1,7 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#include "setup_operators_hDG.h"
+#include "setup_operators_HDG.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -27,7 +27,7 @@
 
 /*
  *	Purpose:
- *		Set up additional operators required for the hDG method.
+ *		Set up additional operators required for the HDG method.
  *
  *	Comments:
  *		The operators computed here are those required assuming that the traces are in L2 (non-conforming). As it is
@@ -51,7 +51,7 @@
  *	References:
  */
 
-static void setup_operators_hDG_std(EType)
+static void setup_operators_HDG_std (unsigned int const EType)
 {
 	char const *const *const *const NodeTypeS   = (char const *const *const *const) DB.NodeTypeS,
 	           *const *const *const NodeTypeIfs = (char const *const *const *const) DB.NodeTypeIfs,
@@ -67,10 +67,12 @@ static void setup_operators_hDG_std(EType)
 	unsigned int const dE = ELEMENT->d;
 
 	// Returned operators
-	struct S_MATRIX **ChiTRS_vIs = ELEMENT->ChiTRS_vIs,
-	                **ChiTRS_vIc = ELEMENT->ChiTRS_vIc,
-	                **Is_FF      = ELEMENT->Is_FF,
-	                **Ic_FF      = ELEMENT->Ic_FF;
+	struct S_OPS_SOLVER_HDG *const HDG = &ELEMENT->ops.solver.HDG;
+
+	struct S_MATRIX **ChiTRS_vIs = HDG->ChiTRS_vIs,
+	                **ChiTRS_vIc = HDG->ChiTRS_vIc,
+	                **Is_FF      = HDG->Is_FF,
+	                **Ic_FF      = HDG->Ic_FF;
 
 	cubature_tdef cubature;
 	basis_tdef    basis;
@@ -133,7 +135,7 @@ static void setup_operators_hDG_std(EType)
 	}
 }
 
-static void setup_operators_hDG_TP(EType)
+static void setup_operators_HDG_TP(unsigned int const EType)
 {
 	if (EType != QUAD)
 		EXIT_UNSUPPORTED;
@@ -141,7 +143,33 @@ static void setup_operators_hDG_TP(EType)
 	EXIT_UNSUPPORTED;
 }
 
-void setup_operators_hDG(void)
+static void move_operators_to_mat_std (unsigned int const EType)
+{
+	/*
+	 *	Purpose:
+	 *		Convert required operators to mat format.
+	 *
+	 *	Comments:
+	 *		This can be removed as setup_operators is converted to directly set up in this format.
+	 */
+
+printf("%d\n",EType);
+EXIT_BASIC;
+//	struct S_ELEMENT *const ELEMENT = get_ELEMENT_type(EType);
+
+//		OPS->D_Weak =
+//			mat_constructor2_move('R','D',ELEMENT->NvnS[P],ELEMENT->NvnIs[P],DB.d, ELEMENT->Ds_Weak_VV[P][P][0],NULL);
+}
+
+static void move_operators_to_mat_TP (unsigned int const EType)
+{
+	if (EType != QUAD)
+		EXIT_UNSUPPORTED;
+
+	EXIT_UNSUPPORTED;
+}
+
+void setup_operators_HDG(void)
 {
 	if (DB.Method != METHOD_HDG)
 		return;
@@ -152,15 +180,18 @@ void setup_operators_hDG(void)
 
 	// LINE
 	EType = LINE;
-	setup_operators_hDG_std(EType);
+	setup_operators_HDG_std(EType);
+	move_operators_to_mat_std(EType);
 
 	if (d == 3) {
 		if (is_ELEMENT_present(TET) || is_ELEMENT_present(WEDGE) || is_ELEMENT_present(PYR)) {
 			EType = TRI;
-			setup_operators_hDG_std(EType);
+			setup_operators_HDG_std(EType);
+			move_operators_to_mat_std(EType);
 		} else if (is_ELEMENT_present(HEX) || is_ELEMENT_present(WEDGE) || is_ELEMENT_present(PYR)) {
 			EType = QUAD;
-			setup_operators_hDG_TP(EType);
+			setup_operators_HDG_TP(EType);
+			move_operators_to_mat_TP(EType);
 		}
 	}
 }

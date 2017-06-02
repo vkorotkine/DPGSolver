@@ -2052,7 +2052,7 @@ struct S_MATRIX *mm_alloc_mat (char const layout, char const opA, char const opB
 	if (k != ( transb == CBNT ? B->NRows : B->NCols ))
 		EXIT_UNSUPPORTED;
 
-	struct S_MATRIX *C = malloc(sizeof *C); // keep
+	struct S_MATRIX *C = calloc(1,sizeof *C); // keep
 
 	C->layout = layout;
 	C->format = 'D';
@@ -2065,7 +2065,7 @@ struct S_MATRIX *mm_alloc_mat (char const layout, char const opA, char const opB
 
 static struct S_MATRIX *mat_constructor_dense (const char layout, const size_t NRows, const size_t NCols)
 {
-	struct S_MATRIX *A = malloc(sizeof *A); // keep
+	struct S_MATRIX *A = calloc(1,sizeof *A); // keep
 
 	A->layout = layout;
 	A->format = 'D';
@@ -2078,7 +2078,7 @@ static struct S_MATRIX *mat_constructor_dense (const char layout, const size_t N
 
 struct S_MATRIX *mat_copy (struct S_MATRIX const *const A)
 {
-	struct S_MATRIX *B = malloc(sizeof *B); // keep
+	struct S_MATRIX *B = calloc(1,sizeof *B); // keep
 
 	B->layout = A->layout;
 	B->format = A->format;
@@ -2140,7 +2140,7 @@ struct S_MATRIX *inverse_mat (struct S_MATRIX const *const A)
 	if (A->NRows != A->NCols)
 		EXIT_UNSUPPORTED;
 
-	struct S_MATRIX *AInv = malloc(sizeof *AInv); // keep
+	struct S_MATRIX *AInv = calloc(1,sizeof *AInv); // keep
 
 	AInv->layout  = A->layout;
 	AInv->format  = A->format;
@@ -2156,7 +2156,7 @@ struct S_MATRIX *inverse_mat (struct S_MATRIX const *const A)
 
 struct S_MATRIX *identity_mat (unsigned int const N)
 {
-	struct S_MATRIX *A = malloc(sizeof *A); // keep
+	struct S_MATRIX *A = calloc(1,sizeof *A); // keep
 
 	A->layout = 'R';
 	A->format = 'D';
@@ -2170,7 +2170,7 @@ struct S_MATRIX *identity_mat (unsigned int const N)
 struct S_MATRIX *mat_constructor_move (char const layout, char const format, size_t const NRows, size_t const NCols,
                                        double *const values, struct S_OpCSR *const A_CSR)
 {
-	struct S_MATRIX *A = malloc(sizeof *A); // keep
+	struct S_MATRIX *A = calloc(1,sizeof *A); // keep
 
 	A->layout = layout;
 	A->format = format;
@@ -2196,11 +2196,10 @@ struct S_MATRIX **mat_constructor2_move (char const layout, char const format, s
 	struct S_MATRIX **A = malloc(dim1 * sizeof *A); // keep
 
 	for (size_t i = 0; i < dim1; i++) {
-		A[i] = malloc(sizeof *A[i]); // keep
 		if (format == 'D')
-			mat_constructor_move(layout,format,NRows,NCols,values[i],NULL);
+			A[i] = mat_constructor_move(layout,format,NRows,NCols,values[i],NULL);
 		else if (format == 'S')
-			mat_constructor_move(layout,format,NRows,NCols,NULL,A_CSR[i]);
+			A[i] = mat_constructor_move(layout,format,NRows,NCols,NULL,A_CSR[i]);
 		else
 			EXIT_UNSUPPORTED;
 	}
@@ -2211,7 +2210,7 @@ struct S_MATRIX **mat_constructor2_move (char const layout, char const format, s
 
 struct S_VECTOR *vec_constructor_move (size_t const NRows, double *const values)
 {
-	struct S_VECTOR *a = malloc(sizeof *a); // keep
+	struct S_VECTOR *a = calloc(1,sizeof *a); // keep
 
 	a->NRows  = NRows;
 	a->values = values;

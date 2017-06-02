@@ -75,10 +75,10 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 //		data->PrintEnabled = 1;
 		data->AdaptiveRefine = 0;
 		data->MLMax  = 5;
-		if (strstr(TestName,"hDG")) {
+		if (strstr(TestName,"HDG")) {
 			if (strstr(TestName,"n-Cube_Default")) {
 				if (strstr(TestName,"TRI")) {
-					strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_hDG_n-Cube_TRI");
+					strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_TRI");
 				} else {
 					EXIT_UNSUPPORTED;
 				}

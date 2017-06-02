@@ -30,18 +30,60 @@
  *	References:
  */
 
+// Move to separate file (ToBeDeleted)
+static struct S_MATRIX *constructor1_mat (size_t const N0);
+static struct S_MATRIX **constructor2_mat (size_t const N0, size_t const N1);
+
+static struct S_MATRIX *constructor1_mat (size_t const N0)
+{
+	struct S_MATRIX *A = calloc(N0 , sizeof *A);
+	return A;
+}
+
+static struct S_MATRIX **constructor2_mat (size_t const N0, size_t const N1)
+{
+	struct S_MATRIX **A = calloc(N0 , sizeof *A);
+	for (size_t i = 0; i < N0; i++)
+		A[i] = constructor1_mat(N1);
+	return A;
+}
+
+static void constructors_ops_solver_DG (struct S_ELEMENT *const ELEMENT)
+{
+	if (0) printf("%p\n",ELEMENT);
+	return;
+}
+
+static void constructors_ops_solver_HDG (struct S_ELEMENT *const ELEMENT)
+{
+	unsigned int const NP = DB.NP;
+
+	struct S_OPS_SOLVER_HDG *const HDG = &ELEMENT->ops.solver.HDG;
+
+	HDG->ChiTRS_vIs = constructor2_mat(NP,NP);
+	HDG->ChiTRS_vIc = constructor2_mat(NP,NP);
+	HDG->Is_FF      = constructor2_mat(NP,NP);
+	HDG->Ic_FF      = constructor2_mat(NP,NP);
+}
+
+static void constructors_ops_solver(struct S_ELEMENT *const ELEMENT)
+{
+	constructors_ops_solver_DG(ELEMENT);
+	constructors_ops_solver_HDG(ELEMENT);
+}
+
+static void constructors_ops (struct S_ELEMENT *const ELEMENT)
+{
+	constructors_ops_solver(ELEMENT);
+}
+
 struct S_ELEMENT *New_ELEMENT(void)
 {
 	// Initialize DB Parameters
-	unsigned int d    = DB.d,
-	             NP   = DB.NP;
+	unsigned int const d  = DB.d,
+	                   NP = DB.NP;
 
-	// Standard datatypes
-	unsigned int P, Pb, Vf, PbMin, PbMax;
-
-	struct S_ELEMENT *ELEMENT;
-
-	ELEMENT = malloc(sizeof *ELEMENT); // free
+	struct S_ELEMENT *ELEMENT = malloc(sizeof *ELEMENT); // free
 
 	// Mesh
 	ELEMENT->present = 0;
@@ -223,11 +265,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->nOrd_fIc  = calloc(NP , sizeof *(ELEMENT->nOrd_fIc)); // free
 
 
-	ELEMENT->ChiTRS_vIs = calloc(NP , sizeof *(ELEMENT->ChiTRS_vIs)); // free
-	ELEMENT->ChiTRS_vIc = calloc(NP , sizeof *(ELEMENT->ChiTRS_vIc)); // free
-
-	ELEMENT->Is_FF = calloc(NP , sizeof *(ELEMENT->Is_FF)); // free
-	ELEMENT->Ic_FF = calloc(NP , sizeof *(ELEMENT->Ic_FF)); // free
+	constructors_ops(ELEMENT);
 
 
 
@@ -262,7 +300,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->I_eGs_vG2[1] = calloc(NP , sizeof **(ELEMENT->I_eGs_vG2));
 	ELEMENT->I_eGs_vGc[1] = calloc(NP , sizeof **(ELEMENT->I_eGs_vGc));
 
-	for (P = 0; P < NP; P++) {
+	for (size_t P = 0; P < NP; P++) {
 		ELEMENT->NfnG2[P] = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnG2));
 		ELEMENT->NfnGc[P] = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnGc));
 		ELEMENT->NfnS[P]  = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnS));
@@ -362,14 +400,9 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->GfS_fIs[P]    = calloc(NP , sizeof **(ELEMENT->GfS_fIs));
 		ELEMENT->GfS_fIc[P]    = calloc(NP , sizeof **(ELEMENT->GfS_fIc));
 
-		ELEMENT->ChiTRS_vIs[P] = calloc(NP , sizeof **(ELEMENT->ChiTRS_vIs));
-		ELEMENT->ChiTRS_vIc[P] = calloc(NP , sizeof **(ELEMENT->ChiTRS_vIc));
-
-		ELEMENT->Is_FF[P] = calloc(NP , sizeof **(ELEMENT->Is_FF));
-		ELEMENT->Ic_FF[P] = calloc(NP , sizeof **(ELEMENT->Ic_FF));
-
+		unsigned int PbMin, PbMax;
 		get_Pb_range(P,&PbMin,&PbMax);
-		for (Pb = PbMin; Pb <= PbMax; Pb++) {
+		for (size_t Pb = PbMin; Pb <= PbMax; Pb++) {
 			ELEMENT->ChiS_vS[P][Pb]    = calloc(NVREFSFMAX , sizeof ***(ELEMENT->ChiS_vS));
 			ELEMENT->ChiS_vIs[P][Pb]   = calloc(NVREFSFMAX , sizeof ***(ELEMENT->ChiS_vIs));
 			ELEMENT->ChiS_vIc[P][Pb]   = calloc(NVREFMAX   , sizeof ***(ELEMENT->ChiS_vIc));
@@ -460,7 +493,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 				ELEMENT->D_vGs_fIs[1][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->D_vGs_fIs));
 				ELEMENT->D_vGs_fIc[1][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->D_vGs_fIc));
 
-				for (Vf = 0; Vf < NFREFMAX*NFMAX; Vf++) {
+				for (size_t Vf = 0; Vf < NFREFMAX*NFMAX; Vf++) {
 					ELEMENT->D_vGs_fIs[1][Pb][Vf] = calloc(d , sizeof ****(ELEMENT->D_vGs_fIs));
 					ELEMENT->D_vGs_fIc[1][Pb][Vf] = calloc(d , sizeof ****(ELEMENT->D_vGs_fIc));
 				}
@@ -486,7 +519,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 			ELEMENT->GradChiS_fIs[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->GradChiS_fIs));
 			ELEMENT->GradChiS_fIc[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->GradChiS_fIc));
 
-			for (Vf = 0; Vf < NFREFMAX*NFMAX; Vf++) {
+			for (size_t Vf = 0; Vf < NFREFMAX*NFMAX; Vf++) {
 				ELEMENT->GradChiS_fIs[P][Pb][Vf] = calloc(d , sizeof ***(ELEMENT->GradChiS_fIs));
 				ELEMENT->GradChiS_fIc[P][Pb][Vf] = calloc(d , sizeof ***(ELEMENT->GradChiS_fIc));
 			}
@@ -510,7 +543,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 			ELEMENT->I_vGc_eGc[P][Pb] = calloc(NEREFMAX*NEMAX , sizeof ***(ELEMENT->I_vGc_eGc));
 			ELEMENT->I_vG2_eG2[P][Pb] = calloc(NEREFMAX*NEMAX , sizeof ***(ELEMENT->I_vG2_eG2));
 
-			for (Vf = 0; Vf < NFREFMAX*NFMAX; Vf++) {
+			for (size_t Vf = 0; Vf < NFREFMAX*NFMAX; Vf++) {
 				ELEMENT->D_vGc_fIs[P][Pb][Vf] = calloc(d , sizeof ****(ELEMENT->D_vGc_fIs));
 				ELEMENT->D_vGc_fIc[P][Pb][Vf] = calloc(d , sizeof ****(ELEMENT->D_vGc_fIc));
 			}

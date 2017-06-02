@@ -111,15 +111,18 @@ $(DEPDIR)/%.d : %.c
 	@echo Creating/updating: $@
 
 # Additional dependencies needed for modified dynamic memory allocation
-DYN_MEM_DEPS_NOPATH := S_ELEMENT.h S_VOLUME.h S_FACE.h
-DYN_MEM_DEPS        := $(INCDIR)/S_ELEMENT.h $(INCDIR)/S_VOLUME.h $(INCDIR)/S_FACE.h
+# Upon reflection, this should not be necessary. (ToBeDeleted)
+#DYN_MEM_DEPS_NOPATH := S_ELEMENT.h S_VOLUME.h S_FACE.h
+#DYN_MEM_DEPS        := $(INCDIR)/S_ELEMENT.h $(INCDIR)/S_VOLUME.h $(INCDIR)/S_FACE.h
 
-$(DYN_MEM_DEPS_NOPATH) : $(DYN_MEM_DEPS)
-$(DYN_MEM_DEPS) : memory_constructors.c
-	@echo
-	@echo Updating memory_constructor dependencies.
-	@echo
-	@touch $(DYN_MEM_DEPS)
+#$(DYN_MEM_DEPS_NOPATH) : $(DYN_MEM_DEPS)
+#$(DYN_MEM_DEPS) : memory_constructors.c
+#	@echo
+#	@echo Updating memory_constructor dependencies.
+#	@echo
+#	@echo here
+#	@echo $(wildcard $(SRCDIR)/array_*)
+#	@touch $(DYN_MEM_DEPS)
 
 
 # Create directories if not present

@@ -1,7 +1,7 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#include "solver_functions_hDG.h"
+#include "solver_functions_HDG.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "element_functions.h"
 #include "matrix_functions.h"
 
-struct S_OPERATORS_V *init_ops_VOLUME (struct S_VOLUME const *const VOLUME)
+struct S_OPERATORS_V *init_mat_ops_VOLUME (struct S_VOLUME const *const VOLUME)
 {
 	struct S_OPERATORS_V *OPS = malloc(sizeof *OPS); // returned
 

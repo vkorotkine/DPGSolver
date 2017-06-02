@@ -3,6 +3,7 @@
 
 #include "memory_destructors.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "Parameters.h"
@@ -25,6 +26,19 @@
  *
  *	References:
  */
+
+static void op_destructors_solver_HDG (struct S_ELEMENT *const ELEMENT)
+{
+	unsigned int const NP = DB.NP;
+
+	struct S_OPS_SOLVER_HDG const* HDG = &ELEMENT->ops.solver.HDG;
+
+	matrix_free2(NP,HDG->ChiTRS_vIs);
+	matrix_free2(NP,HDG->ChiTRS_vIc);
+
+	matrix_free2(NP,HDG->Is_FF);
+	matrix_free2(NP,HDG->Ic_FF);
+}
 
 void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 {
@@ -200,11 +214,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free3_ui(NP,NFORDMAX,ELEMENT->nOrd_fIs);
 	array_free3_ui(NP,NFORDMAX,ELEMENT->nOrd_fIc);
 
-	matrix_free2(NP,ELEMENT->ChiTRS_vIs);
-	matrix_free2(NP,ELEMENT->ChiTRS_vIc);
-
-	matrix_free2(NP,ELEMENT->Is_FF);
-	matrix_free2(NP,ELEMENT->Ic_FF);
+	op_destructors_solver_HDG(ELEMENT);
 
 	free(ELEMENT->ELEMENTclass);
 	free(ELEMENT->ELEMENT_FACE);
