@@ -20,7 +20,7 @@ example search command in the src directory:
   - Check if 'S_ELEMENT' is found while 'S_ELEMENT.h' is not found:
   - $ find . -name "*.c" -exec grep -lR 'S_ELEMENT' {} \; | xargs grep -L 'S_ELEMENT.h'
 
-Multiple statements placed on the same line should generally be avoided but may be u
+Tabs are NOT expanded to spaces.
 
 The limit on the length of lines is 120 columns
 - 120 seemed justifiable based on the size of current terminal screens.

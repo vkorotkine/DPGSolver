@@ -99,7 +99,7 @@ static void setup_operators_HDG_std (unsigned int const EType)
 
 		cub_destructor(cub_vTRS);
 
-		struct S_MATRIX *TTRS = mm_alloc_mat('R','N','N',ChiRefInvTRS_vTRS,ChiTRS_vTRS); // free
+		struct S_MATRIX *TTRS = mm_mat_alloc('R','N','N',ChiRefInvTRS_vTRS,ChiTRS_vTRS); // free
 
 		matrix_free(ChiRefInvTRS_vTRS);
 		matrix_free(ChiTRS_vTRS);
@@ -111,7 +111,7 @@ static void setup_operators_HDG_std (unsigned int const EType)
 
 		struct S_MATRIX *ChiRefTRS_vIs = basis_mat(PTRS[P],cub_vIs,basis); // free
 
-		ChiTRS_vIs[P] = mm_alloc_mat('R','N','N',ChiRefTRS_vIs,TTRS);       // keep
+		ChiTRS_vIs[P] = mm_mat_alloc('R','N','N',ChiRefTRS_vIs,TTRS);       // keep
 		Is_FF[P]      = mm_diag_mat_alloc('R','T','R',ChiTRS_vIs[P],w_vIs); // keep
 
 		cub_destructor(cub_vIs);
@@ -125,7 +125,8 @@ static void setup_operators_HDG_std (unsigned int const EType)
 
 		struct S_MATRIX *ChiRefTRS_vIc = basis_mat(PTRS[P],cub_vIc,basis); // free
 
-		ChiTRS_vIc[P] = mm_alloc_mat('R','N','N',ChiRefTRS_vIc,TTRS);       // keep
+// Likely currently overwriting allocated memory in constructors_matrix (Check this)
+		ChiTRS_vIc[P] = mm_mat_alloc('R','N','N',ChiRefTRS_vIc,TTRS);       // keep
 		Ic_FF[P]      = mm_diag_mat_alloc('R','T','R',ChiTRS_vIc[P],w_vIc); // keep
 
 		cub_destructor(cub_vIc);
@@ -150,7 +151,7 @@ static void move_operators_to_mat_std (unsigned int const EType)
 	 *		Convert required operators to mat format.
 	 *
 	 *	Comments:
-	 *		This can be removed as setup_operators is converted to directly set up in this format.
+	 *		This can be removed once setup_operators is modified to directly set up arrays in this format.
 	 */
 
 printf("%d\n",EType);

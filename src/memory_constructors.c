@@ -14,13 +14,13 @@
 #include "S_FACE.h"
 
 #include "adaptation.h"
+#include "memory_constructors_ELEMENT.h"
 
 /*
  *	Purpose:
  *		Allocate memory for and initialize new structures.
  *
  *	Comments:
- *		Split this function into memory_constructor for each struct type to minimize dependencies. (ToBeDeleted)
  *		Change all initializations from 0 to UINT_MAX. (ToBeDeleted)
  *		GfS_fIs/c may not be needed based on FACE_info testing. See comments at the start of explicit_FACE_Info.
  *		(ToBeDeleted)
@@ -29,53 +29,6 @@
  *
  *	References:
  */
-
-// Move to separate file (ToBeDeleted)
-static struct S_MATRIX *constructor1_mat (size_t const N0);
-static struct S_MATRIX **constructor2_mat (size_t const N0, size_t const N1);
-
-static struct S_MATRIX *constructor1_mat (size_t const N0)
-{
-	struct S_MATRIX *A = calloc(N0 , sizeof *A);
-	return A;
-}
-
-static struct S_MATRIX **constructor2_mat (size_t const N0, size_t const N1)
-{
-	struct S_MATRIX **A = calloc(N0 , sizeof *A);
-	for (size_t i = 0; i < N0; i++)
-		A[i] = constructor1_mat(N1);
-	return A;
-}
-
-static void constructors_ops_solver_DG (struct S_ELEMENT *const ELEMENT)
-{
-	if (0) printf("%p\n",ELEMENT);
-	return;
-}
-
-static void constructors_ops_solver_HDG (struct S_ELEMENT *const ELEMENT)
-{
-	unsigned int const NP = DB.NP;
-
-	struct S_OPS_SOLVER_HDG *const HDG = &ELEMENT->ops.solver.HDG;
-
-	HDG->ChiTRS_vIs = constructor2_mat(NP,NP);
-	HDG->ChiTRS_vIc = constructor2_mat(NP,NP);
-	HDG->Is_FF      = constructor2_mat(NP,NP);
-	HDG->Ic_FF      = constructor2_mat(NP,NP);
-}
-
-static void constructors_ops_solver(struct S_ELEMENT *const ELEMENT)
-{
-	constructors_ops_solver_DG(ELEMENT);
-	constructors_ops_solver_HDG(ELEMENT);
-}
-
-static void constructors_ops (struct S_ELEMENT *const ELEMENT)
-{
-	constructors_ops_solver(ELEMENT);
-}
 
 struct S_ELEMENT *New_ELEMENT(void)
 {
@@ -265,7 +218,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->nOrd_fIc  = calloc(NP , sizeof *(ELEMENT->nOrd_fIc)); // free
 
 
-	constructors_ops(ELEMENT);
+	constructors_ELEMENT(ELEMENT);
 
 
 

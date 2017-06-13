@@ -2023,7 +2023,7 @@ void convert_to_CSR_d(const unsigned int NRows, const unsigned int NCols, const 
 	(*Output)->values = values;
 }
 
-struct S_MATRIX *mm_alloc_mat (char const layout, char const opA, char const opB, struct S_MATRIX const *const A,
+struct S_MATRIX *mm_mat_alloc (char const layout, char const opA, char const opB, struct S_MATRIX const *const A,
                                struct S_MATRIX const *const B)
 {
 	/*

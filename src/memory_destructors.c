@@ -15,6 +15,7 @@
 #include "array_free.h"
 #include "element_functions.h"
 #include "adaptation.h"
+#include "memory_destructors_ELEMENT.h"
 
 /*
  *	Purpose:
@@ -26,19 +27,6 @@
  *
  *	References:
  */
-
-static void op_destructors_solver_HDG (struct S_ELEMENT *const ELEMENT)
-{
-	unsigned int const NP = DB.NP;
-
-	struct S_OPS_SOLVER_HDG const* HDG = &ELEMENT->ops.solver.HDG;
-
-	matrix_free2(NP,HDG->ChiTRS_vIs);
-	matrix_free2(NP,HDG->ChiTRS_vIc);
-
-	matrix_free2(NP,HDG->Is_FF);
-	matrix_free2(NP,HDG->Ic_FF);
-}
 
 void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 {
@@ -214,7 +202,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free3_ui(NP,NFORDMAX,ELEMENT->nOrd_fIs);
 	array_free3_ui(NP,NFORDMAX,ELEMENT->nOrd_fIc);
 
-	op_destructors_solver_HDG(ELEMENT);
+	destructors_ELEMENT(ELEMENT);
 
 	free(ELEMENT->ELEMENTclass);
 	free(ELEMENT->ELEMENT_FACE);

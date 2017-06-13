@@ -29,7 +29,7 @@ extern void   mm_CTN_CSR_d     (const int m, const int n, const int k, const str
 extern void   convert_to_CSR_d (const unsigned int NRows, const unsigned int NCols, const double *Input,
                                 struct S_OpCSR **Output);
 
-extern struct S_MATRIX *mm_alloc_mat (char const layout, char const opA, char const opB, struct S_MATRIX const *const A,
+extern struct S_MATRIX *mm_mat_alloc (char const layout, char const opA, char const opB, struct S_MATRIX const *const A,
                                       struct S_MATRIX const *const B);
 extern struct S_MATRIX *inverse_mat  (struct S_MATRIX const *const A);
 extern struct S_MATRIX *identity_mat (unsigned int const N);
