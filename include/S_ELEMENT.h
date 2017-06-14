@@ -61,11 +61,18 @@ struct S_ELEMENT {
 	struct S_OPS {
 		struct S_OPS_SOLVER {
 			struct S_OPS_SOLVER_DG {
+				// VOLUME
+				struct S_MATRIX ****ChiS_vIs, ****ChiS_vIc,
+				                *****Ds_Weak_VV, *****Dc_Weak_VV;
+
+				// FACE
+				struct S_MATRIX ****ChiS_fIs, ****ChiS_fIc,
+				                ****Is_Weak_FV, ****Ic_Weak_FV;
 			} DG;
 
 			struct S_OPS_SOLVER_HDG {
 				struct S_MATRIX **ChiTRS_vIs, **ChiTRS_vIc,
-								**Is_FF, **Ic_FF;
+				                **Is_FF, **Ic_FF;
 			} HDG;
 		} solver;
 	} ops;

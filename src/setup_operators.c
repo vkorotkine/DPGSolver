@@ -289,7 +289,7 @@ static void setup_ELEMENT_operator_dependencies(const unsigned int EType)
 	             ***NodeTypeS   = DB.NodeTypeS;
 
 	// Standard datatypes
-	unsigned int dE, P, Pb, PSMin, PSMax, PbMin, PbMax, Eclass, Nbf;
+	unsigned int dE, Eclass, Nbf;
 	double       *rst_vS, *IS, *ChiRefS_vS, *ChiS_vS;
 
 	struct S_ELEMENT *ELEMENT;
@@ -323,11 +323,12 @@ static void setup_ELEMENT_operator_dependencies(const unsigned int EType)
 	free(CUBDATA->rst);
 	NvnGs[1] = CUBDATA->Nn;
 
+	size_t PSMin, PSMax;
 	get_PS_range(&PSMin,&PSMax);
-	for (P = PSMin; P <= PSMax; P++) {
+	for (size_t P = PSMin; P <= PSMax; P++) {
+		size_t PbMin, PbMax;
 		get_Pb_range(P,&PbMin,&PbMax);
-
-		for (Pb = PbMax; Pb >= P; Pb--) {
+		for (size_t Pb = PbMax; Pb >= P; Pb--) {
 			set_cubdata(CUBDATA,false,false,NodeTypeS[Pb][Eclass],dE,Pb,cubature); // free
 			set_from_cubdata(CUBDATA,&NvnS[Pb],NULL,&rst_vS,NULL,NULL);
 
@@ -352,7 +353,7 @@ static void setup_ELEMENT_operator_dependencies(const unsigned int EType)
 			}
 		}
 
-		for (Pb = PbMin; Pb <= PbMax; Pb++) {
+		for (size_t Pb = PbMin; Pb <= PbMax; Pb++) {
 			set_cubdata(CUBDATA,false,false,NodeTypeIvs[Pb][Eclass],dE,PIvs[Pb][Eclass],cubature); // free
 			free(CUBDATA->rst);
 			NvnIs[Pb] = CUBDATA->Nn;
@@ -424,7 +425,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	             ***NodeTypeS   = DB.NodeTypeS;
 
 	// Standard datatypes
-	unsigned int i, iMax, dim, dE, P, e, f, vh, fh, Ve, Vf, IndFType, PSMin, PSMax, Pb, PbMin, PbMax, fhMax,
+	unsigned int i, iMax, dim, dE, P, e, f, vh, fh, Ve, Vf, IndFType, fhMax,
 	             Nve, Nve_h, Ne, Nf, Nbf, Eclass, NFTypes, Nvref, vref, vrefSF, NvrefSF, *Nfref, *ones_Nf, NEhref,
 	             Indh, NvnP, u1 = 1,
 	             BE_Nve, BF_Nve[2], Neve, *Nfve, *Nvve, *EType_h,
@@ -786,14 +787,16 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		BCoords_V[i]->Ic = calloc(NP , sizeof *(BCoords_V[i]->Ic)); // free
 	}
 
+	size_t PSMin, PSMax;
 	get_PS_range(&PSMin,&PSMax);
-	for (P = PSMin; P <= PSMax; P++) {
+	for (size_t P = PSMin; P <= PSMax; P++) {
+		size_t PbMin, PbMax;
 		get_Pb_range(P,&PbMin,&PbMax);
 
 		// Build preliminary operators needed for P adaptation.
 		IS = ChiRefS_vS = NULL;
 
-		for (Pb = PbMax; Pb >= P; Pb--) {
+		for (size_t Pb = PbMax; Pb >= P; Pb--) {
 			set_cubdata(CUBDATA,false,false,NodeTypeS[Pb][Eclass],dE,Pb,cubature); // free
 			set_from_cubdata(CUBDATA,&NvnS[Pb],NULL,&rst_vS[0],NULL,NULL);
 
@@ -887,7 +890,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 		free(ChiRefInvCc_vCc);
 		free(ChiRefInvS_vS);
 
-		for (Pb = PbMin; Pb <= PbMax; Pb++) {
+		for (size_t Pb = PbMin; Pb <= PbMax; Pb++) {
 			if (w_vIs[Pb])
 				free(w_vIs[Pb]);
 			set_cubdata(CUBDATA,true,false,NodeTypeIvs[Pb][Eclass],dE,PIvs[Pb][Eclass],cubature); // free
@@ -1592,7 +1595,7 @@ static void setup_TP_operators(const unsigned int EType)
 	             *VFPartUnity = DB.VFPartUnity;
 
 	// Standard datatypes
-	unsigned int dim, P, vh, f, fh, e, Pb, PSMin, PSMax, PbMin, PbMax, fhMax, Nvref, IndClass,
+	unsigned int dim, vh, f, fh, e, fhMax, Nvref, IndClass,
 	             Eclass, dE, Nf, Ne, Vf, Ve, *Nfref, *ones_Nf,
 	             NIn[3], NOut[3];
 	double const      * OP[3];
@@ -1723,6 +1726,7 @@ static void setup_TP_operators(const unsigned int EType)
 	Ds_Weak_VV_sp = ELEMENT->Ds_Weak_VV_sp;
 	Dc_Weak_VV_sp = ELEMENT->Dc_Weak_VV_sp;
 
+	size_t PSMin, PSMax;
 	get_PS_range(&PSMin,&PSMax);
 	if (Eclass == C_TP) {
 		NvnGs[1] = pow(ELEMENTclass[0]->NvnGs[1],dE);
@@ -1739,14 +1743,15 @@ static void setup_TP_operators(const unsigned int EType)
 						  0,0,NULL,NIn,NOut,OP,dE,3,Eclass);
 		I_vGs_vG2[1][2][0] = sf_assemble_d(NIn,NOut,dE,OP); // keep
 
-		for (P = PSMin; P <= PSMax; P++) {
+		for (size_t P = PSMin; P <= PSMax; P++) {
 			NvnGc[P] = pow(ELEMENTclass[0]->NvnGc[P],dE);
 			NvnCs[P] = pow(ELEMENTclass[0]->NvnCs[P],dE);
 			NvnCc[P] = pow(ELEMENTclass[0]->NvnCc[P],dE);
 			NvnS[P]  = pow(ELEMENTclass[0]->NvnS[P],dE);
 
+			size_t PbMin, PbMax;
 			get_Pb_range(P,&PbMin,&PbMax);
-			for (Pb = PbMin; Pb <= PbMax; Pb++) {
+			for (size_t Pb = PbMin; Pb <= PbMax; Pb++) {
 				NvnIs[Pb] = pow(ELEMENTclass[0]->NvnIs[Pb],dE);
 				NvnIc[Pb] = pow(ELEMENTclass[0]->NvnIc[Pb],dE);
 
@@ -2065,14 +2070,15 @@ static void setup_TP_operators(const unsigned int EType)
 
 		NvnGs[1] = (ELEMENTclass[0]->NvnGs[1])*(ELEMENTclass[1]->NvnGs[1]);
 
-		for (P = PSMin; P <= PSMax; P++) {
+		for (size_t P = PSMin; P <= PSMax; P++) {
 			NvnGc[P] = (ELEMENTclass[0]->NvnGc[P])*(ELEMENTclass[1]->NvnGc[P]);
 			NvnCs[P] = (ELEMENTclass[0]->NvnCs[P])*(ELEMENTclass[1]->NvnCs[P]);
 			NvnCc[P] = (ELEMENTclass[0]->NvnCc[P])*(ELEMENTclass[1]->NvnCc[P]);
 			NvnS[P]  = (ELEMENTclass[0]->NvnS[P])*(ELEMENTclass[1]->NvnS[P]);
 
+			size_t PbMin, PbMax;
 			get_Pb_range(P,&PbMin,&PbMax);
-			for (Pb = PbMin; Pb <= PbMax; Pb++) {
+			for (size_t Pb = PbMin; Pb <= PbMax; Pb++) {
 				NvnIs[Pb] = (ELEMENTclass[0]->NvnIs[Pb])*(ELEMENTclass[1]->NvnIs[Pb]);
 				NvnIc[Pb] = (ELEMENTclass[0]->NvnIc[Pb])*(ELEMENTclass[1]->NvnIc[Pb]);
 
@@ -2430,7 +2436,7 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 	             ***NodeTypeS   = DB.NodeTypeS;
 
 	// Standard datatypes
-	unsigned int i, iMax, dE, P, vh, PSMin, PSMax, Pb, PbMin, PbMax, PIvc[NEC],
+	unsigned int i, iMax, dE, vh, PIvc[NEC],
 	             Nve, Nbf, Eclass, Nvref, NEhref, Indh, *Nvve, *EType_h;
 	double       *E_rst_vV, *rst_vV, **VeV, **rst_vIc, *rst_vS,
 	             *IGs, *IS, *TS, *ChiRefS_vS, *ChiRefInvGs_vGs, *ChiRefInvS_vS,
@@ -2491,8 +2497,9 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 	// Nve + 1 for TETrefineType == TET6
 	rst_vV = malloc((Nve+1)*dE * sizeof *rst_vV); // free
 
+	size_t PSMin, PSMax;
 	get_PS_range(&PSMin,&PSMax);
-	for (P = PSMin; P <= PSMax; P++) {
+	for (size_t P = PSMin; P <= PSMax; P++) {
 		set_cubdata(CUBDATA,false,false,NodeTypeS[P][Eclass],dE,P,cubature); // free
 		set_from_cubdata(CUBDATA,&NvnS[P],NULL,&rst_vS,NULL,NULL);
 
@@ -2512,8 +2519,9 @@ static void setup_L2_projection_preoperators(const unsigned int EType)
 		free(ChiRefS_vS);
 		free(ChiRefInvS_vS);
 
+		size_t PbMin, PbMax;
 		get_Pb_range(P,&PbMin,&PbMax);
-		for (Pb = PbMin; Pb <= PbMax; Pb++) {
+		for (size_t Pb = PbMin; Pb <= PbMax; Pb++) {
 			if (w_vIc[Pb])
 				free(w_vIc[Pb]);
 			set_cubdata(CUBDATA,true,false,NodeTypeIvc[Pb][Eclass],dE,PIvc[Eclass],cubature); // free
@@ -2611,7 +2619,7 @@ static void setup_L2_projection_operators(const unsigned int EType)
 	unsigned int Adapt = DB.Adapt;
 
 	// Standard datatypes
-	unsigned int P, Pb, vh, PSMin, PSMax, PbMin, PbMax,
+	unsigned int vh,
 	             Indh, Nvref, *NvnS, *NvnIc, *EType_h;
 	double       L2_scale, *IS, *ChiTW, *M, *MInv, *S, *diag_w_vIc,
 	             ****ChiS_vIc, **w_vIc;
@@ -2638,10 +2646,12 @@ static void setup_L2_projection_operators(const unsigned int EType)
 	ChiS_vIc = ELEMENT->ChiS_vIc;
 	w_vIc    = ELEMENT->w_vIc;
 
+	size_t PSMin, PSMax;
 	get_PS_range(&PSMin,&PSMax);
-	for (P = PSMin; P <= PSMax; P++) {
+	for (size_t P = PSMin; P <= PSMax; P++) {
+		size_t PbMin, PbMax;
 		get_Pb_range(P,&PbMin,&PbMax);
-		for (Pb = PbMin; Pb <= PbMax; Pb++) {
+		for (size_t Pb = PbMin; Pb <= PbMax; Pb++) {
 			diag_w_vIc = diag_d(w_vIc[Pb],NvnIc[Pb]); // free
 
 			IS    = identity_d(NvnS[Pb]);                                                                       // free
@@ -2877,7 +2887,7 @@ static void setup_blending(const unsigned int EType)
 	char         **NodeTypeG = DB.NodeTypeG;
 
 	// Standard datatypes
-	unsigned int f, e, n, ve, P, Pb, Vf, Ve, dim, PSMin, PSMax, PbMin, PbMax, Nf, Ne, Nve, *Nfve, Neve, *VeFcon, *VeEcon,
+	unsigned int f, e, n, ve, P, Pb, Vf, Ve, dim, PbMin, PbMax, Nf, Ne, Nve, *Nfve, Neve, *VeFcon, *VeEcon,
 	             *NvnGc, *Nv0nGs, *Nv0nGc, *NvnG2, *Nv0nG2,
 	             Eclass, EclassF, EclassE, dE, Nbf, dimF[2], dimE;
 	double       *BCoords_V, *BCoords_V2, *BCoords_F, *BCoords_E,
@@ -2916,6 +2926,7 @@ static void setup_blending(const unsigned int EType)
 
 	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
 
+	size_t PSMin, PSMax;
 	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
 		BCoords_V  = ELEMENT->I_vGs_vGc[1][P][0];

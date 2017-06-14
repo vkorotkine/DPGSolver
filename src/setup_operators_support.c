@@ -66,10 +66,106 @@
  *		See setup_operators.
  */
 
+void set_operator_ranges (struct S_OP_RANGE *const op_range, char const range_type)
+{
+	/*
+	 *	Purpose:
+	 *		Return the appropriate operator index ranges.
+	 *
+	 *	Comments:
+	 *		Currently, the supported range types include:
+	 *			'S': Solution range
+	 *			'I': Interpolation range (i.e. range to which the solution may be interpolated)
+	 *			'V': VOLUME h-refinement range (0 is the placeholder for the std operator)
+	 *			'F': FACE   h-refinement range (0 is the placeholder for the std operator)
+	 *			'D': Dimension range (0:d-1)
+	 */
+
+	switch (range_type) {
+	case 'S':
+		switch (op_range->PS_range) {
+		case one_op_t:
+			op_range->PSMin = 1;
+			op_range->PSMax = 1;
+			break;
+		case P_op_t:
+			op_range->PSMin = DB.PGlobal;
+			op_range->PSMax = DB.PGlobal;
+			break;
+		case rP_op_t:
+			get_PS_range(&op_range->PSMin,&op_range->PSMax);
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+		break;
+	case 'I':
+		switch (op_range->Pb_range) {
+		case rP_op_t:
+			get_Pb_range(op_range->PS,&op_range->PbMin,&op_range->PbMax);
+			break;
+		case P_op_t:
+			op_range->PbMin = op_range->PS;
+			op_range->PbMax = op_range->PS;
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+		break;
+	case 'V':
+		switch (op_range->vh_range) {
+		case zero_op_t:
+			op_range->vhMin = 0;
+			op_range->vhMax = 1;
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+		break;
+	case 'F':
+		switch (op_range->fh_range) {
+		case zero_op_t:
+			op_range->fhMin = 0;
+			op_range->fhMax = 0;
+			break;
+		case rfh_op_t:
+			op_range->fhMin = 0;
+			op_range->fhMax = op_range->ELEMENT->Nfref[op_range->f];
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+		break;
+	case 'D':
+		switch (op_range->vh_range) {
+		case zero_op_t:
+			op_range->dMin = 0;
+			op_range->dMax = 0;
+			break;
+		case rd_op_t:
+			op_range->dMin = 0;
+			op_range->dMax = DB.d-1;
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+		break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+}
+
+
 void setup_ELEMENT_plotting(const unsigned int EType)
 {
 	// Standard datatypes
-	unsigned int P, PSMin, PSMax, NvnP, NE, u1 = 1,
+	unsigned int P, NvnP, NE, u1 = 1,
 	             *connectivity, *types, *connectivityE;
 	double       *rst_vP;
 
@@ -77,6 +173,7 @@ void setup_ELEMENT_plotting(const unsigned int EType)
 
 	ELEMENT = get_ELEMENT_type(EType);
 
+	size_t PSMin, PSMax;
 	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
 		plotting_element_info(&rst_vP,&connectivity,&types,&connectivityE,&NvnP,&NE,max(P,u1),EType); // free
@@ -1311,11 +1408,12 @@ void setup_ELEMENT_FACE_ordering(const unsigned int FType)
 
 void compute_ELEMENT_Volume(const unsigned int EType)
 {
-	unsigned int P, PMax, *NvnIs;
+	unsigned int *NvnIs;
 	double       *w_vIs;
 
 	struct S_ELEMENT *ELEMENT;
 
+	size_t P, PMax;
 	get_PS_range(&P,&PMax);
 	ELEMENT = get_ELEMENT_type(EType);
 

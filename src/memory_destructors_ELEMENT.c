@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 
+#include "Parameters.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 
@@ -48,8 +49,22 @@ static void destructors_ops_solver (struct S_ELEMENT *const ELEMENT)
 
 static void destructors_ops_solver_DG (struct S_ELEMENT *const ELEMENT)
 {
-	return;
-	if (0) printf("%p\n",ELEMENT);
+	unsigned int const NP = DB.NP,
+	                   d  = DB.d;
+
+	struct S_OPS_SOLVER_DG *const DG = &ELEMENT->ops.solver.DG;
+
+	// VOLUME
+	matrix_free4(NP,NP,NVREFSFMAX,DG->ChiS_vIs);
+	matrix_free4(NP,NP,NVREFSFMAX,DG->ChiS_vIc);
+	matrix_free5(NP,NP,1,d,DG->Ds_Weak_VV);
+	matrix_free5(NP,NP,1,d,DG->Dc_Weak_VV);
+
+	// FACE
+	matrix_free4(NP,NP,NFREFMAX*NFMAX,DG->ChiS_fIs);
+	matrix_free4(NP,NP,NFREFMAX*NFMAX,DG->ChiS_fIc);
+	matrix_free4(NP,NP,NFREFMAX*NFMAX,DG->Is_Weak_FV);
+	matrix_free4(NP,NP,NFREFMAX*NFMAX,DG->Ic_Weak_FV);
 }
 
 static void destructors_ops_solver_HDG (struct S_ELEMENT *const ELEMENT)

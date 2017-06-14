@@ -247,3 +247,27 @@ void matrix_free2 (size_t const iMax, struct S_MATRIX **A)
 			matrix_free(A[i]);
 	free_NULL(A);
 }
+
+void matrix_free3 (size_t const N0, size_t const N1, struct S_MATRIX ***A)
+{
+	for (size_t i = 0; i < N0; i++)
+		if (A[i])
+			matrix_free2(N1,A[i]);
+	free_NULL(A);
+}
+
+void matrix_free4 (size_t const N0, size_t const N1, size_t const N2, struct S_MATRIX ****A)
+{
+	for (size_t i = 0; i < N0; i++)
+		if (A[i])
+			matrix_free3(N1,N2,A[i]);
+	free_NULL(A);
+}
+
+void matrix_free5 (size_t const N0, size_t const N1, size_t const N2, size_t const N3, struct S_MATRIX *****A)
+{
+	for (size_t i = 0; i < N0; i++)
+		if (A[i])
+			matrix_free4(N1,N2,N3,A[i]);
+	free_NULL(A);
+}

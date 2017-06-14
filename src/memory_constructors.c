@@ -353,7 +353,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->GfS_fIs[P]    = calloc(NP , sizeof **(ELEMENT->GfS_fIs));
 		ELEMENT->GfS_fIc[P]    = calloc(NP , sizeof **(ELEMENT->GfS_fIc));
 
-		unsigned int PbMin, PbMax;
+		size_t PbMin, PbMax;
 		get_Pb_range(P,&PbMin,&PbMax);
 		for (size_t Pb = PbMin; Pb <= PbMax; Pb++) {
 			ELEMENT->ChiS_vS[P][Pb]    = calloc(NVREFSFMAX , sizeof ***(ELEMENT->ChiS_vS));

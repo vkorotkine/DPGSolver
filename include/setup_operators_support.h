@@ -6,6 +6,26 @@
 
 #include "S_ELEMENT.h"
 
+struct S_OP_RANGE {
+	char type_op;
+	unsigned int EType;
+
+	enum type_range { P_op_t, rP_op_t, one_op_t, zero_op_t, rfh_op_t, rd_op_t }
+	     PS_range, Pb_range, vh_range, fh_range, d_range;
+
+	// RvCf_op_r: (R)ow (v)olume (C)olumn (f)ace
+	enum entity_to_entity { RvCv_op_r, RfCv_op_r, RvCf_op_r, RfCf_op_r } e_to_e;
+
+	size_t PS, f,
+	       PSMin, PSMax,
+	       PbMin, PbMax,
+	       vhMin, vhMax,
+	       fhMin, fhMax,
+	       dMin,  dMax;
+
+	struct S_ELEMENT *ELEMENT;
+};
+
 struct S_BCOORDS {
 	unsigned int Nve,
 	             *NfnG2, *NfnGc, *NfnS, *NfnIs, *NfnIc, *NenG2, *NenGc;
@@ -27,5 +47,7 @@ extern void   get_face_ordering           (const unsigned int d, const unsigned 
                                            const double *rst, unsigned int *nOrd);
 extern void   setup_ELEMENT_FACE_ordering (const unsigned int FType);
 extern void   compute_ELEMENT_Volume      (const unsigned int EType);
+
+extern void set_operator_ranges (struct S_OP_RANGE *const op_range, char const range_type);
 
 #endif // DPG__setup_operators_support_h__INCLUDED

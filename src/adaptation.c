@@ -42,7 +42,7 @@ struct S_VInfo {
 	             *hp_refine, *hp_coarse, *hp_coarse_l, *hp_update;
 } *VInfo;
 
-void get_PS_range(unsigned int *PSMin, unsigned int *PSMax)
+void get_PS_range(size_t *const PSMin, size_t *const PSMax)
 {
 	/*
 	 *	Purpose:
@@ -67,7 +67,7 @@ void get_PS_range(unsigned int *PSMin, unsigned int *PSMax)
 	}
 }
 
-void get_Pb_range(const unsigned int P, unsigned int *PbMin, unsigned int *PbMax)
+void get_Pb_range(unsigned int const P, size_t *const PbMin, size_t *const PbMax)
 {
 	/*
 	 *	Purpose:

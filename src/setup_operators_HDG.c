@@ -19,6 +19,8 @@
 #include "adaptation.h"
 #include "matrix_functions.h"
 #include "array_free.h"
+#include "setup_operators_support.h"
+#include "memory_constructors_matrix.h"
 
 #include "cubature.h" // Needed only for the definitions of the structs
 #include "bases.h"
@@ -80,7 +82,7 @@ static void setup_operators_HDG_std (unsigned int const EType)
 	select_functions_cubature(&cubature,EType);
 	select_functions_basis(&basis,EType);
 
-	unsigned int PSMin, PSMax;
+	size_t PSMin, PSMax;
 	get_PS_range(&PSMin,&PSMax);
 	for (size_t P = PSMin; P <= PSMax; P++) {
 		// Build transformation matrix
@@ -125,7 +127,6 @@ static void setup_operators_HDG_std (unsigned int const EType)
 
 		struct S_MATRIX *ChiRefTRS_vIc = basis_mat(PTRS[P],cub_vIc,basis); // free
 
-// Likely currently overwriting allocated memory in constructors_matrix (Check this)
 		ChiTRS_vIc[P] = mm_mat_alloc('R','N','N',ChiRefTRS_vIc,TTRS);       // keep
 		Ic_FF[P]      = mm_diag_mat_alloc('R','T','R',ChiTRS_vIc[P],w_vIc); // keep
 
@@ -151,15 +152,50 @@ static void move_operators_to_mat_std (unsigned int const EType)
 	 *		Convert required operators to mat format.
 	 *
 	 *	Comments:
-	 *		This can be removed once setup_operators is modified to directly set up arrays in this format.
+	 *		This can be removed once setup_operators is modified to directly set up arrays in this format. (ToBeDeleted)
 	 */
 
-printf("%d\n",EType);
-EXIT_BASIC;
-//	struct S_ELEMENT *const ELEMENT = get_ELEMENT_type(EType);
+	struct S_ELEMENT       *const ELEMENT = get_ELEMENT_type(EType);
+	struct S_OPS_SOLVER_DG *const DG      = &ELEMENT->ops.solver.DG;
 
-//		OPS->D_Weak =
-//			mat_constructor2_move('R','D',ELEMENT->NvnS[P],ELEMENT->NvnIs[P],DB.d, ELEMENT->Ds_Weak_VV[P][P][0],NULL);
+	struct S_OP_RANGE op_range;
+	op_range.PS_range = rP_op_t;
+	op_range.d_range  = rd_op_t;
+	op_range.ELEMENT  = ELEMENT;
+
+	unsigned int const *const NvnS  = ELEMENT->NvnS;
+
+	// VOLUME operators
+	unsigned int const *const NvnIs = ELEMENT->NvnIs,
+	                   *const NvnIc = ELEMENT->NvnIc;
+	op_range.type_op  = 'V';
+
+	op_range.Pb_range = P_op_t;
+	op_range.vh_range = zero_op_t;
+	constructor_move5_mat('R','D',NvnS,NvnIs,ELEMENT->Ds_Weak_VV,DG->Ds_Weak_VV,&op_range);
+	constructor_move5_mat('R','D',NvnS,NvnIc,ELEMENT->Dc_Weak_VV,DG->Dc_Weak_VV,&op_range);
+
+//	op_range.Pb_range = rP_op_t; // Required for assembly of sum factorized operators
+//	op_range.vh_range = rhrefSF_op_t;
+	constructor_move4_mat('R','D',NvnIs,NvnS,NULL,NULL,ELEMENT->ChiS_vIs,DG->ChiS_vIs,&op_range);
+	constructor_move4_mat('R','D',NvnIc,NvnS,NULL,NULL,ELEMENT->ChiS_vIc,DG->ChiS_vIc,&op_range);
+
+	// FACE operators
+	unsigned int const *const *const NfnIs = (unsigned int const *const *const) ELEMENT->NfnIs,
+	                   *const *const NfnIc = (unsigned int const *const *const) ELEMENT->NfnIc;
+	op_range.type_op  = 'F';
+	op_range.EType    = EType;
+
+	op_range.Pb_range = rP_op_t;
+	op_range.fh_range = rfh_op_t;
+	op_range.e_to_e   = RfCv_op_r;
+	constructor_move4_mat('R','D',NULL,NvnS,NfnIs,NULL,ELEMENT->ChiS_fIs,DG->ChiS_fIs,&op_range);
+if (0)
+	printf("%p\n",NfnIc);
+
+matrix_print(DG->ChiS_fIs[2][2][0]);
+array_print_d(NfnIs[2][0],NvnS[2],ELEMENT->ChiS_fIs[2][2][0],'R');
+// Is_Weak_FV
 }
 
 static void move_operators_to_mat_TP (unsigned int const EType)
