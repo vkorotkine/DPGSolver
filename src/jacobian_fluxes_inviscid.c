@@ -11,6 +11,7 @@
 #include "Macros.h"
 
 #include "fluxes_structs.h"
+#include "matrix_structs.h"
 #include "fluxes_inviscid.h"
 #include "solver_Advection_functions.h"
 
@@ -54,6 +55,23 @@ void jacobian_flux_num_inviscid(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 		case FLUX_UPWIND: jacobian_flux_upwind(NUMFLUXDATA); break;
 		default:          EXIT_UNSUPPORTED;                  break;
 	}
+}
+
+void jacobian_flux_inviscid_M (struct S_FLUX_M *const FLUXDATA_M)
+{
+	struct S_FLUX FLUXDATA;
+
+	FLUXDATA.d = FLUXDATA_M->d;
+	FLUXDATA.Nn  = FLUXDATA_M->W->NRows;
+	FLUXDATA.Nel = 1;
+
+	FLUXDATA.W    = FLUXDATA_M->W->values;
+	FLUXDATA.F    = FLUXDATA_M->F->values;
+	FLUXDATA.dFdW = FLUXDATA_M->dFdW->values;
+
+	FLUXDATA.XYZ = FLUXDATA_M->XYZ->values;
+
+	jacobian_flux_inviscid(&FLUXDATA);
 }
 
 static void jacobian_flux_Euler(struct S_FLUX *const FLUXDATA)

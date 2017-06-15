@@ -9,7 +9,7 @@
 struct S_MATRIX {
 	char   layout, // May be (R)ow or (C)olumn major.
 	       format; // May be (D)ense or (S)parse.
-	size_t NRows, NCols;
+	size_t NRows, NCols, NColsSub;
 
 	double *values;
 

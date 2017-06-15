@@ -12,6 +12,7 @@
 #include "Macros.h"
 
 #include "fluxes_structs.h"
+#include "matrix_structs.h"
 #include "variable_functions.h"
 #include "solver_Advection_functions.h"
 
@@ -49,6 +50,9 @@
  *		conclusions then. (ToBeModified).
  *
  *		The simple entropy fix is taken from Qu(2015), eq. 35.
+ *
+ *		The functions with '_M' subscripts are used to wrap calls to the original functions where the new matrix struct
+ *		format is used.
  *
  *	Notation:
  *
@@ -91,6 +95,22 @@ void flux_num_inviscid(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 		case FLUX_UPWIND: flux_upwind(NUMFLUXDATA); break;
 		default:          EXIT_UNSUPPORTED;         break;
 	}
+}
+
+void flux_inviscid_M (struct S_FLUX_M *const FLUXDATA_M)
+{
+	struct S_FLUX FLUXDATA;
+
+	FLUXDATA.d   = FLUXDATA_M->d;
+	FLUXDATA.Nn  = FLUXDATA_M->W->NRows;
+	FLUXDATA.Nel = 1;
+
+	FLUXDATA.W = FLUXDATA_M->W->values;
+	FLUXDATA.F = FLUXDATA_M->F->values;
+
+	FLUXDATA.XYZ = FLUXDATA_M->XYZ->values;
+
+	flux_inviscid(&FLUXDATA);
 }
 
 void flux_Euler(struct S_FLUX *const FLUXDATA)

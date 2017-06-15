@@ -5,6 +5,7 @@
 #define DPG__fluxes_structs_h__INCLUDED
 
 #include <complex.h>
+#include "matrix_structs.h"
 
 struct S_FLUX {
 	unsigned int d, Nn, Nel, PDE_index;
@@ -30,6 +31,13 @@ struct S_NUMERICALFLUX {
 	// Only used for verification.
 	double complex const *WL_c, *WR_c;
 	double complex       *nFluxNum_c, **nSolNum_c;
+};
+
+struct S_FLUX_M {
+	unsigned int d;
+
+	struct S_MATRIX const *W, *XYZ;
+	struct S_MATRIX *F, *Fr, *dFdW, *dFrdW;
 };
 
 #endif // DPG__fluxes_structs_h__INCLUDED

@@ -27,6 +27,20 @@
  *	References:
  */
 
+struct S_MATRIX *constructor1_mat_D (const char layout, const size_t NRows, const size_t NCols, const size_t NColsSub)
+{
+	struct S_MATRIX *A = calloc(1,sizeof *A); // returned
+
+	A->layout = layout;
+	A->format = 'D';
+	A->NRows  = NRows;
+	A->NCols  = NCols;
+	A->NColsSub = NColsSub;
+	A->values = calloc(NRows*NCols , sizeof *(A->values)); // keep
+
+	return A;
+}
+
 struct S_MATRIX **constructor2_mat (size_t const N0)
 {
 	struct S_MATRIX **A = calloc(N0 , sizeof *A);
@@ -58,18 +72,24 @@ struct S_MATRIX *****constructor5_mat (size_t const N0, size_t const N1, size_t 
 }
 
 
-void constructor0_mat_move (char const layout, const char format, const size_t NRows, const size_t NCols,
-                            double *const values, struct S_MATRIX *A)
+void constructor_move2_mat (char const layout, const char format, const size_t NRows, const size_t NCols,
+                            double *const values, struct S_MATRIX **A)
 {
-	A = calloc(1,sizeof *A); // returned
+	/*
+	 *	Comments:
+	 *		Assumed that a single matrix is returned.
+	 */
 
-	A->layout = layout;
-	A->format = format;
-	A->NRows  = NRows;
-	A->NCols  = NCols;
-	A->values = values;
+	struct S_MATRIX *A1 = calloc(1,sizeof *A1); // returned
+
+	A1->layout = layout;
+	A1->format = format;
+	A1->NRows  = NRows;
+	A1->NCols  = NCols;
+	A1->values = values;
+
+	A[0] = A1;
 }
-
 
 void constructor_move4_mat (char const layout, char const format,
                             unsigned int const *const NRows1, unsigned int const *const NCols1,

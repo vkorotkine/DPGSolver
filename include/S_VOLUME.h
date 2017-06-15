@@ -6,6 +6,8 @@
 
 #include <complex.h>
 
+#include "matrix_structs.h"
+
 struct S_VOLUME {
 	// Structures
 	unsigned int indexl, indexg, P, type, Eclass, update, curved, level,
@@ -16,9 +18,13 @@ struct S_VOLUME {
 	unsigned int NvnG, *VeInd, *VeInfo, **BC;
 	double *XYZ_S, *XYZ, *detJV_vI, *C_vC, *C_vI, **C_vf;
 
+	struct S_MATRIX *XYZ_M, *detJV_vI_M, *C_vI_M;
+
 	// Initialization
 	unsigned int NvnS;
 	double *What, **QhatV, **Qhat, *RES, **QhatV_What, **Qhat_What;
+
+	struct S_MATRIX *What_M;
 
 	// Solving
 	unsigned int   IndA, nnz_d, nnz_o;

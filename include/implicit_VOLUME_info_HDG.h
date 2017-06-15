@@ -4,6 +4,8 @@
 #ifndef DPG__implicit_VOLUME_info_HDG_h__INCLUDED
 #define DPG__implicit_VOLUME_info_HDG_h__INCLUDED
 
-extern void implicit_VOLUME_info_HDG (void);
+#include <stdbool.h>
+
+extern void implicit_VOLUME_info_HDG (bool const PrintEnabled);
 
 #endif // DPG__implicit_VOLUME_info_HDG_h__INCLUDED

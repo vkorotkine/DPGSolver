@@ -59,6 +59,8 @@ static void constructors_ops_solver_DG (struct S_ELEMENT *const ELEMENT)
 	DG->ChiS_vIc = constructor4_mat(NP,NP,NVREFSFMAX); // free
 	DG->Ds_Weak_VV = constructor5_mat(NP,NP,1,d); // free
 	DG->Dc_Weak_VV = constructor5_mat(NP,NP,1,d); // free
+	DG->I_vGs_vIs = constructor4_mat(NP,NP,NVREFSFMAX); // free
+	DG->I_vGc_vIc = constructor4_mat(NP,NP,NVREFSFMAX); // free
 
 	// FACE
 	DG->ChiS_fIs = constructor4_mat(NP,NP,NFREFMAX*NFMAX); // free

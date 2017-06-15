@@ -2043,13 +2043,13 @@ struct S_MATRIX *mm_mat_alloc (char const layout, char const opA, char const opB
 	CBLAS_LAYOUT    const CBlayout = ( layout == 'R' ? CBRM : CBCM );
 	CBLAS_TRANSPOSE const transa   = ( (layout == A->layout) == (opA == 'N') ? CBNT : CBT ),
 	                      transb   = ( (layout == B->layout) == (opB == 'N') ? CBNT : CBT );
-	size_t          const m        = ( transa == CBNT ? A->NRows : A->NCols ),
-	                      n        = ( transb == CBNT ? B->NCols : B->NRows ),
-	                      k        = ( transa == CBNT ? A->NCols : A->NRows );
+	size_t          const m        = A->NRows,
+	                      n        = B->NCols,
+	                      k        = A->NCols;
 	double          const alpha    = 1.0;
 
 	// Check matching internal length
-	if (k != ( transb == CBNT ? B->NRows : B->NCols ))
+	if (k != B->NRows)
 		EXIT_UNSUPPORTED;
 
 	struct S_MATRIX *C = calloc(1,sizeof *C); // keep

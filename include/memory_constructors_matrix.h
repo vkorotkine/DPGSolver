@@ -7,11 +7,15 @@
 #include "matrix_structs.h"
 #include "setup_operators_support.h"
 
+extern struct S_MATRIX *     constructor1_mat_D (const char layout, const size_t NRows, const size_t NCols,
+                                                 const size_t NColsSub);
 extern struct S_MATRIX **    constructor2_mat (size_t const N0);
 extern struct S_MATRIX ***   constructor3_mat (size_t const N0, size_t const N1);
 extern struct S_MATRIX ****  constructor4_mat (size_t const N0, size_t const N1, size_t const N2);
 extern struct S_MATRIX ***** constructor5_mat (size_t const N0, size_t const N1, size_t const N2, size_t const N3);
 
+extern void constructor_move2_mat (char const layout, const char format, const size_t NRows, const size_t NCols,
+                                   double *const values, struct S_MATRIX **A);
 extern void constructor_move4_mat (char const layout, char const format,
                                    unsigned int const *const NRows1, unsigned int const *const NCols1,
                                    unsigned int const *const *const NRows2, unsigned int const *const *const NCols2,

@@ -59,6 +59,8 @@ static void destructors_ops_solver_DG (struct S_ELEMENT *const ELEMENT)
 	matrix_free4(NP,NP,NVREFSFMAX,DG->ChiS_vIc);
 	matrix_free5(NP,NP,1,d,DG->Ds_Weak_VV);
 	matrix_free5(NP,NP,1,d,DG->Dc_Weak_VV);
+	matrix_free4(NP,NP,NVREFSFMAX,DG->I_vGs_vIs);
+	matrix_free4(NP,NP,NVREFSFMAX,DG->I_vGc_vIc);
 
 	// FACE
 	matrix_free4(NP,NP,NFREFMAX*NFMAX,DG->ChiS_fIs);

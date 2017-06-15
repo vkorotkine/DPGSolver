@@ -29,6 +29,8 @@
 #include "output_to_paraview.h"
 #include "test_code_output_to_paraview.h"
 
+#include "implicit_VOLUME_info_HDG.h"
+
 /*
  *	Purpose:
  *		Solve the linear Advection equation.
@@ -70,8 +72,8 @@ void solver_Advection(bool const PrintEnabled)
 		if (strstr(DB.SolverType,"Explicit")) {
 			EXIT_UNSUPPORTED;
 		} else if (strstr(DB.SolverType,"Implicit")) {
-			if (PrintEnabled) { printf("V");  } implicit_VOLUME_info();
-			if (PrintEnabled) { printf("F");  } implicit_FACE_info();
+			implicit_VOLUME_info_HDG(PrintEnabled);
+//			implicit_FACE_info_HDG(PrintEnabled);
 		}
 		EXIT_UNSUPPORTED;
 	} else {

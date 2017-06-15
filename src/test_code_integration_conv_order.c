@@ -76,6 +76,7 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 		data->AdaptiveRefine = 0;
 		data->MLMax  = 5;
 		if (strstr(TestName,"HDG")) {
+data->PMin = 2;
 			if (strstr(TestName,"n-Cube_Default")) {
 				if (strstr(TestName,"TRI")) {
 					strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_TRI");

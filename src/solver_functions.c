@@ -297,22 +297,12 @@ double *compute_Dxyz(struct S_Dxyz *DxyzInfo, unsigned int d)
 
 void init_ops_VOLUME(struct S_OPERATORS_V *const OPS, struct S_VOLUME const *const VOLUME, unsigned int const IndClass)
 {
-	// Initialize DB Parameters
-	const unsigned int *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
+	unsigned int const P      = VOLUME->P,
+	                   Eclass = VOLUME->Eclass,
+	                   *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
 
-	// Standard datatypes
-	unsigned int P, type, curved, Eclass;
-	struct S_ELEMENT *ELEMENT, *ELEMENT_SF;
-
-	// silence
-	ELEMENT_SF = NULL;
-
-	P      = VOLUME->P;
-	type   = VOLUME->type;
-	curved = VOLUME->curved;
-	Eclass = VOLUME->Eclass;
-
-	ELEMENT = get_ELEMENT_type(type);
+	struct S_ELEMENT *const ELEMENT = get_ELEMENT_type(VOLUME->type),
+	                 *ELEMENT_SF = NULL;
 	if ((Eclass == C_TP && SF_BE[P][0][0]) || (Eclass == C_WEDGE && SF_BE[P][1][0]))
 		ELEMENT_SF = ELEMENT->ELEMENTclass[IndClass];
 	else
@@ -320,13 +310,13 @@ void init_ops_VOLUME(struct S_OPERATORS_V *const OPS, struct S_VOLUME const *con
 
 	OPS->NvnS    = ELEMENT->NvnS[P];
 	OPS->NvnS_SF = ELEMENT_SF->NvnS[P];
-	if (!curved) {
+	if (!VOLUME->curved) {
 		OPS->NvnI    = ELEMENT->NvnIs[P];
 		OPS->NvnI_SF = ELEMENT_SF->NvnIs[P];
 
 		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P][0];
 		OPS->D_Weak  = (double const *const *const) ELEMENT->Ds_Weak_VV[P][P][0];
-		OPS->I_Weak  = ELEMENT->Is_Weak_VV[P][P][0];
+//		OPS->I_Weak  = ELEMENT->Is_Weak_VV[P][P][0];
 
 		OPS->ChiS_vI_SF = ELEMENT_SF->ChiS_vIs[P][P][0];
 		OPS->D_Weak_SF  = (double const *const *const) ELEMENT_SF->Ds_Weak_VV[P][P][0];
@@ -341,7 +331,7 @@ void init_ops_VOLUME(struct S_OPERATORS_V *const OPS, struct S_VOLUME const *con
 
 		OPS->ChiS_vI = ELEMENT->ChiS_vIc[P][P][0];
 		OPS->D_Weak  = (double const *const *const) ELEMENT->Dc_Weak_VV[P][P][0];
-		OPS->I_Weak  = ELEMENT->Ic_Weak_VV[P][P][0];
+//		OPS->I_Weak  = ELEMENT->Ic_Weak_VV[P][P][0];
 
 		OPS->ChiS_vI_SF = ELEMENT_SF->ChiS_vIc[P][P][0];
 		OPS->D_Weak_SF  = (double const *const *const) ELEMENT_SF->Dc_Weak_VV[P][P][0];
@@ -457,11 +447,10 @@ void compute_flux_inviscid(struct S_VDATA *const VDATA, struct S_FLUX *const FLU
 		FLUXDATA->XYZ = VDATA->XYZ_vI;
 	}
 
-	if (imex_type == 'E') {
+	if (imex_type == 'E')
 		flux_inviscid(FLUXDATA);
-	} else if (imex_type == 'I') {
+	else if (imex_type == 'I')
 		jacobian_flux_inviscid(FLUXDATA);
-	}
 }
 
 void convert_between_rp(unsigned int const Nn, unsigned int const Nrc, double const *const C, double *const Ap,

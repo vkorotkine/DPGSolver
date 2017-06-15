@@ -63,7 +63,8 @@ struct S_ELEMENT {
 			struct S_OPS_SOLVER_DG {
 				// VOLUME
 				struct S_MATRIX ****ChiS_vIs, ****ChiS_vIc,
-				                *****Ds_Weak_VV, *****Dc_Weak_VV;
+				                *****Ds_Weak_VV, *****Dc_Weak_VV,
+				                ****I_vGs_vIs, ****I_vGc_vIc;
 
 				// FACE
 				struct S_MATRIX ****ChiS_fIs, ****ChiS_fIc,

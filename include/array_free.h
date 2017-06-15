@@ -10,6 +10,7 @@
 #include "S_OpCSR.h"
 #include "matrix_structs.h"
 
+extern void free_NULL (void *A);
 
 extern void array_free2_c     (size_t const iMax, char           **A);
 extern void array_free2_ui    (size_t const iMax, unsigned int   **A);

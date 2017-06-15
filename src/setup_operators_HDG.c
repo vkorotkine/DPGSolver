@@ -159,7 +159,6 @@ static void move_operators_to_mat_std (unsigned int const EType)
 	struct S_OPS_SOLVER_DG *const DG      = &ELEMENT->ops.solver.DG;
 
 	struct S_OP_RANGE op_range;
-	op_range.PS_range = rP_op_t;
 	op_range.d_range  = rd_op_t;
 	op_range.ELEMENT  = ELEMENT;
 
@@ -167,9 +166,12 @@ static void move_operators_to_mat_std (unsigned int const EType)
 
 	// VOLUME operators
 	unsigned int const *const NvnIs = ELEMENT->NvnIs,
-	                   *const NvnIc = ELEMENT->NvnIc;
+	                   *const NvnIc = ELEMENT->NvnIc,
+	                   *const NvnGs = ELEMENT->NvnGs,
+	                   *const NvnGc = ELEMENT->NvnGc;
 	op_range.type_op  = 'V';
 
+	op_range.PS_range = rP_op_t;
 	op_range.Pb_range = P_op_t;
 	op_range.vh_range = zero_op_t;
 	constructor_move5_mat('R','D',NvnS,NvnIs,ELEMENT->Ds_Weak_VV,DG->Ds_Weak_VV,&op_range);
@@ -179,6 +181,13 @@ static void move_operators_to_mat_std (unsigned int const EType)
 //	op_range.vh_range = rhrefSF_op_t;
 	constructor_move4_mat('R','D',NvnIs,NvnS,NULL,NULL,ELEMENT->ChiS_vIs,DG->ChiS_vIs,&op_range);
 	constructor_move4_mat('R','D',NvnIc,NvnS,NULL,NULL,ELEMENT->ChiS_vIc,DG->ChiS_vIc,&op_range);
+
+	op_range.PS_range = one_op_t;
+	op_range.Pb_range = rP_op_t;
+	constructor_move4_mat('R','D',NvnIs,NvnGs,NULL,NULL,ELEMENT->I_vGs_vIs,DG->I_vGs_vIs,&op_range);
+
+	op_range.PS_range = rP_op_t;
+	constructor_move4_mat('R','D',NvnIc,NvnGc,NULL,NULL,ELEMENT->I_vGc_vIc,DG->I_vGc_vIc,&op_range);
 
 	// FACE operators
 	unsigned int const *const *const NfnIs = (unsigned int const *const *const) ELEMENT->NfnIs,
@@ -190,20 +199,17 @@ static void move_operators_to_mat_std (unsigned int const EType)
 	op_range.fh_range = rfh_op_t;
 	op_range.e_to_e   = RfCv_op_r;
 	constructor_move4_mat('R','D',NULL,NvnS,NfnIs,NULL,ELEMENT->ChiS_fIs,DG->ChiS_fIs,&op_range);
-if (0)
-	printf("%p\n",NfnIc);
+	constructor_move4_mat('R','D',NULL,NvnS,NfnIc,NULL,ELEMENT->ChiS_fIc,DG->ChiS_fIc,&op_range);
 
-matrix_print(DG->ChiS_fIs[2][2][0]);
-array_print_d(NfnIs[2][0],NvnS[2],ELEMENT->ChiS_fIs[2][2][0],'R');
-// Is_Weak_FV
+	op_range.e_to_e   = RvCf_op_r;
+	constructor_move4_mat('R','D',NvnS,NULL,NULL,NfnIs,ELEMENT->Is_Weak_FV,DG->Is_Weak_FV,&op_range);
+	constructor_move4_mat('R','D',NvnS,NULL,NULL,NfnIc,ELEMENT->Ic_Weak_FV,DG->Ic_Weak_FV,&op_range);
 }
 
 static void move_operators_to_mat_TP (unsigned int const EType)
 {
-	if (EType != QUAD)
-		EXIT_UNSUPPORTED;
-
-	EXIT_UNSUPPORTED;
+	EXIT_UNSUPPORTED; // Add support
+	printf("%d\n",EType);
 }
 
 void setup_operators_HDG(void)
@@ -224,11 +230,21 @@ void setup_operators_HDG(void)
 		if (is_ELEMENT_present(TET) || is_ELEMENT_present(WEDGE) || is_ELEMENT_present(PYR)) {
 			EType = TRI;
 			setup_operators_HDG_std(EType);
-			move_operators_to_mat_std(EType);
 		} else if (is_ELEMENT_present(HEX) || is_ELEMENT_present(WEDGE) || is_ELEMENT_present(PYR)) {
 			EType = QUAD;
 			setup_operators_HDG_TP(EType);
-			move_operators_to_mat_TP(EType);
 		}
+	}
+
+	// TRI
+	EType = TRI;
+	if (is_ELEMENT_present(EType)) {
+		move_operators_to_mat_std(EType);
+	}
+
+	// QUAD
+	EType = QUAD;
+	if (is_ELEMENT_present(EType)) {
+		move_operators_to_mat_TP(EType);
 	}
 }

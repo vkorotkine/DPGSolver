@@ -22,7 +22,7 @@
  *
  */
 
-static void free_NULL (void *A)
+void free_NULL (void *A)
 {
 	free(A);
 	A = NULL;
