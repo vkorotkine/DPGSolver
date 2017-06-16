@@ -30,6 +30,8 @@
  *		Provide HDG solver related functions.
  *
  *	Comments:
+ *		Many functions contain a (mem)ory_(op)eration parameter which indicates whether memory is to be allocated or
+ *		freed.
  *
  *	Notation:
  *
@@ -37,7 +39,7 @@
  */
 
 
-// Memory moving functions (ToBeDeleted)
+// Memory moving functions (ToBeDeleted after matrix structs are adopted)
 
 void convert_to_mat_V (struct S_VOLUME *const VOLUME, char const mem_op)
 {
@@ -141,7 +143,8 @@ void compute_flux_inviscid_M (struct S_VDATA *const VDATA, struct S_FLUX_M *cons
 	 *	Comments:
 	 *		In the case of linear advection, the flux depends on the physical coordinates in general; this is not
 	 *		currently the case for other PDEs.
-	 *		The fluxes and flux jacobians are stored as single matrices where the ordering is as follows:
+	 *		The fluxes and flux jacobians are stored as single matrices where the ordering is as specified below. To
+	 *		support these "higher-dimensional" matrices, an NColsSub index is also included in the matrix struct.
 	 *			flux:          (C)olumn-major: (N)umber of (n)odes, (d)imensions, (N)umber of (eq)uations
 	 *			flux jacobian: (C)olumn-major: (N)umber of (n)odes, (d)imensions, (N)umber of (eq)uations/(var)iables
 	 */
@@ -180,53 +183,106 @@ void compute_flux_inviscid_M (struct S_VDATA *const VDATA, struct S_FLUX_M *cons
 		EXIT_UNSUPPORTED;
 	}
 }
-/*
-void convert_between_rp_M (struct S_MATRIX const *const C, struct S_MATRIX *const Ap, struct S_MATRIX *const Ar
-                           char const *const conv_type)
+
+void compute_flux_ref_M (struct S_MATRIX const *const C, struct S_MATRIX const *const Mp, struct S_MATRIX **Mr,
+                         const char mem_op)
 {
-	//
+	/*
 	 *	Purpose:
-	 *		Convert input (A)rray between (p)hysical and (r)eference space by multiplying by appropriate (C)ofactor
-	 *		terms.
+	 *		Convert input physical (M)atrix to (ref)erence space by multiplying by appropriate (C)ofactor terms.
 	 *
 	 *	Comments:
 	 *		See comments in setup_geom_factors.c for storage convection of C.
-	 *		Supported conversion types:
-	 *			1) "FluxToRef": 1d arrays (values), column major ordering, input/output dims: [Nn*d*Nrc], [Nn*Nrc*d]
-	 *				Nrc is equal either to Neq or Neq*Nvar.
-	 *				The flux in reference space is ordered such that terms are grouped by dimension so that
-	 *				differentiation operators in the solver can be applied blockwise. Note that this is not the same
-	 *				ordering as that used for the flux in physical space.
+	 *
+	 *		The flux in reference space is ordered such that terms are grouped by dimension so that differentiation
+	 *		operators in the solver can be applied blockwise. Note that this is not the same ordering as that used for
+	 *		the flux in physical space.
 	 *
 	 *		Certain multiplications can be avoided when computing dFrdW from dFdW based on the sparsity of the flux
 	 *		Jacobian, usage of this knowledge is currently not incorporated.
 	 *
 	 *	Notation:
-	 *		Ap  : (A)rray (p)hysical
-	 *		Ar  : (A)rray (r)eference
+	 *		Mp  : (M)atrix (p)hysical
+	 *		Mr  : (M)atrix (r)eference
 	 *		C   : (C)ofactor terms
 	 *
-	 *		conv_type : (conv)ersion (type)
-	 *
 	 *	References:
-	 //
+	 *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_
+	 *		                 Schemes (Eq. B.3)
+	 */
 
-	unsigned int const d = DB.d;
+	if (mem_op == 'A') {
+		size_t const NRows      = Mp->NRows,
+		             NCols      = Mp->NCols,
+		             NColsSub_p = Mp->NColsSub,
+		             NColsSub_r = NCols/NColsSub_p,
+		             d          = DB.d;
 
-	if (strstr(conv_type,"FluxToRef")) {
-		memset(Ar,0.0,Nn*Nrc*d * sizeof *Ar);
-		for (size_t col = 0; col < Nrc; col++) {
+		if (NRows != C->NRows)
+			EXIT_UNSUPPORTED;
+
+		struct S_MATRIX *Mr1 = constructor1_mat_D('C',NRows,NCols,NColsSub_r); // free
+		set_to_zero_mat(Mr1);
+
+		double *const C_vals  = C->values,
+		       *const Mp_vals = Mp->values,
+		       *const Mr_vals = Mr1->values;
+
+		for (size_t col = 0; col < NColsSub_r; col++) {
 		for (size_t dim1 = 0; dim1 < d; dim1++) {
-			size_t const IndAr = (Nrc*dim1+col)*Nn;
+			size_t const IndMr = (col+NColsSub_r*dim1)*NRows;
 			for (size_t dim2 = 0; dim2 < d; dim2++) {
-				size_t const IndAp = (col*d+dim2)*Nn,
-				             IndC  = (dim1*d+dim2)*Nn;
-				for (size_t n = 0; n < Nn; n++)
-					Ar[IndAr+n] += Ap[IndAp+n]*C[IndC+n];
+				size_t const IndMp = (col*NColsSub_p+dim2)*NRows,
+				             IndC  = (dim1*d+dim2)*NRows;
+				for (size_t n = 0; n < NRows; n++)
+					Mr_vals[IndMr+n] += Mp_vals[IndMp+n]*C_vals[IndC+n];
 			}
 		}}
+
+		*Mr = Mr1;
+	} else if (mem_op == 'F') {
+		matrix_free(*Mr);
 	} else {
 		EXIT_UNSUPPORTED;
 	}
 }
-*/
+
+void finalize_VOLUME_Inviscid_Weak_M()
+//(unsigned int const Nrc, double const *const Ar_vI, double *const RLHS,
+ //                                    char const imex_type, struct S_VDATA const *const VDATA)
+{
+	/*
+	 *	Purpose:
+	 *		Compute the inviscid contribution to the the RHS/LHS terms for the weak formulation by applying the D_Weak
+	 *		operator to the input array.
+	 *
+	 *	Comments:
+	 *		The implementation of this function is optimized for explicit runs (i.e. where only the RHS needs to be
+	 *		computed). In this case, the ordering of Fr_vI in memory is such that the RHS can be computed using d BLAS3
+	 *		calls.
+	 *
+	 *		For implicit runs, the total runtime is currently dominated by the linear system solve, and this function
+	 *		was thus not optimized. If fewer BLAS3 calls are to be used or if it is desired to compute the LHS terms
+	 *		using the sum factorized operators, it is required to multiply dFrdW_vI into the ChiS_vI term (as opposed to
+	 *		the derivative terms). However, this results in d times the total number of flops for the computation as the
+	 *		new ChiS_vI terms are then different for each dimension. Note that computing the LHS in this manner changes
+	 *		the storage format of LHS terms from Neq*Nvar blocks of size NvnS*NvnS to a single block of size
+	 *		NvnS*(NvnS*Neq*Nvar) which is differently ordered in memory due to it being stored in row-major ordering.
+	 *		This then requires an alternate version of the finalize_LHS function for the VOLUME term (Note that this
+	 *		would not be a problem if the LHS was stored in column-major ordering).
+	 *
+	 *		In the case of a collocated scheme, ChiS_vI == I results in the possibility of directly computing LHS terms
+	 *		without any matrix-matrix products.
+	 *
+	 *		Certain multiplications can be avoided when computing LHS terms based on the sparsity of the flux Jacobian,
+	 *		usage of this knowledge is currently not incorporated.
+	 */
+
+	if (imex_type == 'E') {
+		for (size_t dim = 0; dim < d; dim++)
+			mm_mat('C','N','N',1.0,1.0,OPS->D_Weak[dim],&Ar_vI[NvnI*Nrc*dim],RLHS);
+	} else if (imex_type == 'I') {
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}

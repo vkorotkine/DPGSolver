@@ -27,6 +27,7 @@
 #include "solver_implicit.h"
 #include "output_to_paraview.h"
 #include "test_code_output_to_paraview.h"
+#include "support.h"
 
 /*
  *	Purpose:
@@ -83,12 +84,12 @@ static void compute_What_VOLUME(void)
 		double **LHSQ = VOLUME->LHSQ;
 
 		// RHS
-		memset(VOLUME->RHS,0.0,NvnS*Neq * sizeof *(VOLUME->RHS));
+		set_to_zero_d(NvnS*Neq,VOLUME->RHS);
 		for (size_t dim = 0; dim < d; dim++)
 			mm_d(CBCM,CBT,CBNT,NvnS,1,NvnS,1.0,1.0,LHSQ[dim],VOLUME->Qhat[dim],VOLUME->RHS);
 
 		// LHS
-		memset(VOLUME->LHS,0.0,NvnS*NvnS*Neq*Nvar * sizeof *(VOLUME->LHS));
+		set_to_zero_d(NvnS*NvnS*Neq*Nvar,VOLUME->LHS);
 		for (size_t dim = 0; dim < d; dim++)
 			mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,1.0,1.0,LHSQ[dim],VOLUME->QhatV_What[dim],VOLUME->LHS);
 	}
@@ -171,14 +172,14 @@ static void compute_What_FACE()
 		                   NvnSR = OPSR[0]->NvnS;
 
 		// Add VOLUME contributions to RHS and LHS
-		memset(FACE->RHSL, 0.0,NvnSL       * sizeof *FACE->RHSL);
-		memset(FACE->LHSLL,0.0,NvnSL*NvnSL * sizeof *FACE->LHSLL);
+		set_to_zero_d(NvnSL,FACE->RHSL);
+		set_to_zero_d(NvnSL*NvnSL,FACE->LHSLL);
 
 		if (!FACE->Boundary) {
-			memset(FACE->RHSR, 0.0,NvnSR       * sizeof *FACE->RHSR);
-			memset(FACE->LHSRL,0.0,NvnSL*NvnSR * sizeof *FACE->LHSRL);
-			memset(FACE->LHSLR,0.0,NvnSR*NvnSL * sizeof *FACE->LHSLR);
-			memset(FACE->LHSRR,0.0,NvnSR*NvnSR * sizeof *FACE->LHSRR);
+			set_to_zero_d(NvnSR,FACE->RHSR);
+			set_to_zero_d(NvnSL*NvnSR,FACE->LHSRL);
+			set_to_zero_d(NvnSR*NvnSL,FACE->LHSLR);
+			set_to_zero_d(NvnSR*NvnSR,FACE->LHSRR);
 		}
 		finalize_VOLUME_LHSQF_Weak(FACE);
 

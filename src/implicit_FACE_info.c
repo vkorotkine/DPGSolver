@@ -14,6 +14,7 @@
 
 #include "solver_functions.h"
 #include "array_free.h"
+#include "support.h"
 
 
 /*
@@ -91,17 +92,17 @@ static void compute_Inviscid_FACE_EFE(void)
 			unsigned int const NvnSL = OPSL[0]->NvnS,
 			                   NvnSR = OPSR[0]->NvnS;
 
-			memset(FACE->RHSL, 0.0,NvnSL*Neq            * sizeof *(FACE->RHSL));
-			memset(FACE->LHSLL,0.0,NvnSL*NvnSL*Neq*Nvar * sizeof *(FACE->LHSLL));
+			set_to_zero_d(NvnSL*Neq,FACE->RHSL);
+			set_to_zero_d(NvnSL*NvnSL*Neq*Nvar,FACE->LHSLL);
 
 			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'L','E','W');
 			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'L','I','W');
 
 			if (!FACE->Boundary) {
-				memset(FACE->RHSR, 0.0,NvnSR*Neq            * sizeof *(FACE->RHSR));
-				memset(FACE->LHSRL,0.0,NvnSL*NvnSR*Neq*Nvar * sizeof *(FACE->LHSRL));
-				memset(FACE->LHSLR,0.0,NvnSR*NvnSL*Neq*Nvar * sizeof *(FACE->LHSLR));
-				memset(FACE->LHSRR,0.0,NvnSR*NvnSR*Neq*Nvar * sizeof *(FACE->LHSRR));
+				set_to_zero_d(NvnSR*Neq,FACE->RHSR);
+				set_to_zero_d(NvnSL*NvnSR*Neq*Nvar,FACE->LHSRL);
+				set_to_zero_d(NvnSR*NvnSL*Neq*Nvar,FACE->LHSLR);
+				set_to_zero_d(NvnSR*NvnSR*Neq*Nvar,FACE->LHSRR);
 
 				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'R','E','W');
 				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'R','I','W');

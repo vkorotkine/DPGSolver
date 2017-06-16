@@ -27,6 +27,8 @@ extern struct S_OPERATORS_V *init_mat_ops_VOLUME (struct S_VOLUME const *const V
 extern void coef_to_values_vI_M (struct S_VDATA *const VDATA, char const coef_type, char const mem_op);
 extern void compute_flux_inviscid_M (struct S_VDATA *const VDATA, struct S_FLUX_M *const FLUXDATA, char const imex_type,
                                      char const mem_op);
+extern void compute_flux_ref_M (struct S_MATRIX const *const C, struct S_MATRIX const *const Mp, struct S_MATRIX **Mr,
+	                            const char mem_op);
 
 
 #endif // DPG__solver_functions_HDG_h__INCLUDED

@@ -28,6 +28,8 @@
 #include "array_free.h"
 #include "array_print.h"
 
+#include "support.h"
+
 /*
  *	Purpose:
  *		Provide solver related functions for complex variables (used for complex step verification).
@@ -178,7 +180,7 @@ void convert_between_rp_c(unsigned int const Nn, unsigned int const Nrc, double 
 	unsigned int d = DB.d;
 
 	if (strstr(conv_type,"FluxToRef")) {
-		memset(Ar,0.0,Nn*Nrc*d * sizeof *Ar);
+		set_to_zero_cmplx(Nn*Nrc*d,Ar);
 		for (size_t col = 0; col < Nrc; col++) {
 		for (size_t dim1 = 0; dim1 < d; dim1++) {
 			size_t const IndAr = (Nrc*dim1+col)*Nn;
@@ -524,7 +526,7 @@ static void dot_with_normal_c(unsigned int const Nn, unsigned int const NCol, do
 {
 	unsigned int const d = DB.d;
 
-	memset(nANum_fIL,0.0,Nn*NCol * sizeof *nANum_fIL);
+	set_to_zero_cmplx(Nn*NCol,nANum_fIL);
 	for (size_t col = 0; col < NCol; col++) {
 		double complex const *const ANum_ptr = &ANum_fIL[Nn*d*col];
 		for (size_t dim = 0; dim < d; dim++) {

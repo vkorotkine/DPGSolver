@@ -7,20 +7,19 @@
 #include <stddef.h>
 
 struct S_MATRIX {
-	char   layout, // May be (R)ow or (C)olumn major.
-	       format; // May be (D)ense or (S)parse.
-	size_t NRows, NCols, NColsSub;
+	char   layout,  // May be (R)ow or (C)olumn major.
+	       format;  // May be (D)ense or (S)parse.
 
-	double *values;
+	size_t order,   // Number of matrix dimensions (== 2 for std matrices)
+	       *extent; // Size of arrays in each dimension
+//	       size;    // Total number of entries in the matrix
+
+	double *data;
 
 	// Used for CSR format
 	unsigned int *rowIndex, *columns;
 };
 
-struct S_VECTOR {
-	size_t NRows;
-
-	double *values;
-};
+extern struct S_MATRIX *constructor1_default_mat (const size_t order);
 
 #endif // DPG__matrix_structs_h__INCLUDED

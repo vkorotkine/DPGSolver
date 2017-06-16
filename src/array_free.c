@@ -230,7 +230,7 @@ void array_free5_CSR_d(size_t const iMax, size_t const jMax, size_t const kMax, 
 
 void matrix_free (struct S_MATRIX *A)
 {
-	free_NULL(A->values);
+	free_NULL(A->data);
 
 	if (A->format == 'S') {
 		free_NULL(A->rowIndex);

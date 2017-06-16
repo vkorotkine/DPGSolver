@@ -25,4 +25,6 @@ extern void constructor_move5_mat (char const layout, char const format, unsigne
                                    unsigned int const *const NCols, double *****A_d, struct S_MATRIX *****A,
                                    struct S_OP_RANGE *const op_range);
 
+extern void set_to_zero_mat (struct S_MATRIX *const A);
+
 #endif // DPG__memory_constructors_matrix_h__INCLUDED

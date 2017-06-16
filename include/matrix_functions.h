@@ -35,11 +35,9 @@ extern struct S_MATRIX *inverse_mat  (struct S_MATRIX const *const A);
 extern struct S_MATRIX *identity_mat (unsigned int const N);
 extern struct S_MATRIX *mat_copy     (struct S_MATRIX const *const A);
 extern struct S_MATRIX *mm_diag_mat_alloc (char const layout, char const opA, char const side,
-                                           struct S_MATRIX const *const A, struct S_VECTOR const *const a);
+                                           struct S_MATRIX const *const A, struct S_MATRIX const *const a);
 extern void            mat_transpose (struct S_MATRIX *const A);
 
-
-extern struct S_VECTOR *vec_constructor_move (size_t const NRows, double *const values);
 
 extern struct S_MATRIX *mat_constructor_move (char const layout, char const format, size_t const NRows,
                                               size_t const NCols, double *const values, struct S_OpCSR *const A_CSR);

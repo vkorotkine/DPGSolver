@@ -19,7 +19,7 @@
 #include "jacobian_fluxes_inviscid.h"
 #include "jacobian_fluxes_viscous.h"
 #include "array_free.h"
-#include "array_print.h"
+#include "support.h"
 
 /*
  *	Purpose:
@@ -120,11 +120,11 @@ static void compute_Inviscid_VOLUME_EFE(void)
 			unsigned int NvnS = VDATA->OPS[0]->NvnS;
 
 			// RHS
-			memset(VOLUME->RHS,0.0,NvnS*Neq * sizeof *(VOLUME->RHS));
+			set_to_zero_d(NvnS*Neq,VOLUME->RHS);
 			finalize_VOLUME_Inviscid_Weak(Neq,FLUXDATA->Fr,VOLUME->RHS,'E',VDATA);
 
 			// LHS
-			memset(VOLUME->LHS,0.0,NvnS*NvnS*Neq*Nvar * sizeof *(VOLUME->LHS));
+			set_to_zero_d(NvnS*NvnS*Neq*Nvar,VOLUME->LHS);
 			finalize_VOLUME_Inviscid_Weak(NvnS*Neq*Nvar,FLUXDATA->dFrdW,VOLUME->LHS,'I',VDATA);
 
 			manage_solver_memory(DATA,'F','I');
@@ -214,7 +214,7 @@ static void compute_Viscous_VOLUME_EFE(void)
 			finalize_VOLUME_Viscous_Weak(NvnS*Neq*Nvar,FLUXDATA->dFrdW,VOLUME->LHS,'I',VDATA);
 
 			for (size_t dim = 0; dim < d; dim++)
-				memset(VOLUME->LHSQ[dim],0.0,NvnS*NvnS*Neq*Nvar * sizeof *(VOLUME->LHSQ[dim]));
+				set_to_zero_d(NvnS*NvnS*Neq*Nvar,VOLUME->LHSQ[dim]);
 			initialize_VOLUME_LHSQ_Weak(NvnS*Neq*Nvar,(double const *const *const) FLUXDATA->dFrdQ,VOLUME->LHSQ,VDATA);
 			finalize_VOLUME_LHSQV_Weak(VOLUME);
 

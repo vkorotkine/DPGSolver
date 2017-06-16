@@ -109,7 +109,8 @@ static void setup_operators_HDG_std (unsigned int const EType)
 		// Compute returned operators (straight)
 		struct S_CUBATURE *cub_vIs = cub_constructor(true,false,NodeTypeIfs[P][Eclass],dE,PIfs[P][Eclass],cubature); // free
 
-		struct S_VECTOR *w_vIs = vec_constructor_move(cub_vIs->Nn,cub_vIs->w);
+//		struct S_VECTOR *w_vIs = vec_constructor_move(cub_vIs->Nn,cub_vIs->w);
+		struct S_MATRIX *w_vIs = constructor_mat1_move_d_D1(cub_vIs->Nn,cub_vIs->w);
 
 		struct S_MATRIX *ChiRefTRS_vIs = basis_mat(PTRS[P],cub_vIs,basis); // free
 
@@ -123,7 +124,8 @@ static void setup_operators_HDG_std (unsigned int const EType)
 		// Compute returned operators (curved)
 		struct S_CUBATURE *cub_vIc = cub_constructor(true,false,NodeTypeIfc[P][Eclass],dE,PIfc[P][Eclass],cubature); // free
 
-		struct S_VECTOR *w_vIc = vec_constructor_move(cub_vIc->Nn,cub_vIc->w);
+//		struct S_VECTOR *w_vIc = vec_constructor_move(cub_vIc->Nn,cub_vIc->w);
+		struct S_MATRIX *w_vIs = constructor_mat1_move_d_D1(cub_vIs->Nn,cub_vIc->w);
 
 		struct S_MATRIX *ChiRefTRS_vIc = basis_mat(PTRS[P],cub_vIc,basis); // free
 

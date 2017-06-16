@@ -34,15 +34,11 @@
 #include "array_free.h"
 #include "array_print.h"
 
+#include "support.h"
+
 /*
  *	Purpose:
  *		Provide solver related functions.
- *
- *	Comments:
- *
- *	Notation:
- *
- *	References:
  */
 
 // **************************************************************************************************** //
@@ -301,8 +297,8 @@ void init_ops_VOLUME(struct S_OPERATORS_V *const OPS, struct S_VOLUME const *con
 	                   Eclass = VOLUME->Eclass,
 	                   *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
 
-	struct S_ELEMENT *const ELEMENT = get_ELEMENT_type(VOLUME->type),
-	                 *ELEMENT_SF = NULL;
+	struct S_ELEMENT const *const ELEMENT = get_ELEMENT_type(VOLUME->type),
+	                       *ELEMENT_SF = NULL;
 	if ((Eclass == C_TP && SF_BE[P][0][0]) || (Eclass == C_WEDGE && SF_BE[P][1][0]))
 		ELEMENT_SF = ELEMENT->ELEMENTclass[IndClass];
 	else
@@ -316,7 +312,6 @@ void init_ops_VOLUME(struct S_OPERATORS_V *const OPS, struct S_VOLUME const *con
 
 		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P][0];
 		OPS->D_Weak  = (double const *const *const) ELEMENT->Ds_Weak_VV[P][P][0];
-//		OPS->I_Weak  = ELEMENT->Is_Weak_VV[P][P][0];
 
 		OPS->ChiS_vI_SF = ELEMENT_SF->ChiS_vIs[P][P][0];
 		OPS->D_Weak_SF  = (double const *const *const) ELEMENT_SF->Ds_Weak_VV[P][P][0];
@@ -331,7 +326,6 @@ void init_ops_VOLUME(struct S_OPERATORS_V *const OPS, struct S_VOLUME const *con
 
 		OPS->ChiS_vI = ELEMENT->ChiS_vIc[P][P][0];
 		OPS->D_Weak  = (double const *const *const) ELEMENT->Dc_Weak_VV[P][P][0];
-//		OPS->I_Weak  = ELEMENT->Ic_Weak_VV[P][P][0];
 
 		OPS->ChiS_vI_SF = ELEMENT_SF->ChiS_vIc[P][P][0];
 		OPS->D_Weak_SF  = (double const *const *const) ELEMENT_SF->Dc_Weak_VV[P][P][0];
@@ -487,7 +481,7 @@ void convert_between_rp(unsigned int const Nn, unsigned int const Nrc, double co
 	unsigned int const d = DB.d;
 
 	if (strstr(conv_type,"FluxToRef")) {
-		memset(Ar,0.0,Nn*Nrc*d * sizeof *Ar);
+		set_to_zero_d(Nn*Nrc*d,Ar);
 		for (size_t col = 0; col < Nrc; col++) {
 		for (size_t dim1 = 0; dim1 < d; dim1++) {
 			size_t const IndAr = (Nrc*dim1+col)*Nn;
@@ -670,7 +664,7 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 			for (size_t var = 0; var < Nvar; var++) {
 				size_t const IndAr = (eq*Nvar+var)*NvnI;
 
-				memset(DAr_vI,0.0,NvnS*NvnI * sizeof *DAr_vI);
+				set_to_zero_d(NvnS*NvnI,DAr_vI);
 				for (size_t dim = 0; dim < d; dim++)
 					mm_diag_d(NvnS,NvnI,&Ar_vI_ptr[dim][IndAr],D[dim],DAr_vI,1.0,1.0,'R','R');
 
@@ -684,7 +678,7 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 			// Ensure that finalize_LHS for VOLUME terms is modified if this is used.
 			double *ChiS_vI = OPS[0]->ChiS_vI;
 			double *ArChiS_vI = calloc(NvnS*NvnI*Neq*Nvar , sizeof *ArChiS_vI); // free
-			memset(RLHS,0.0,NvnS*Nrc * sizeof *RLHS);
+			set_to_zero_d(NvnS*Nrc,RLHS);
 			for (size_t dim = 0; dim < d; dim++) {
 				double *ArChiS_vI_ptr = ArChiS_vI;
 				for (size_t i = 0; i < NvnI; i++) {
@@ -788,28 +782,18 @@ void init_ops_FACE(struct S_OPERATORS_F *const OPS, struct S_VOLUME const *const
 	 *		are stored with the LINE OPs. While this is not logical, it precludes the need for an additional OP struct.
 	 */
 
-	// Initialize DB Parameters
-	unsigned int const *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
+	unsigned int const PV       = VOLUME->P,
+	                   PF       = FACE->P,
+	                   Vtype    = VOLUME->type,
+	                   Eclass   = VOLUME->Eclass,
+	                   IndOrdLR = FACE->IndOrdLR,
+	                   IndOrdRL = FACE->IndOrdRL,
+	                   *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
 
-	// Standard datatypes
-	unsigned int PV, PF, Vtype, Eclass, FtypeInt, IndOrdLR, IndOrdRL;
+	struct S_ELEMENT const *const ELEMENT      = get_ELEMENT_type(Vtype),
+	                       *const ELEMENT_FACE = get_ELEMENT_FACE(Vtype,IndFType),
+	                       *ELEMENT_SF = NULL;
 
-	struct S_ELEMENT *ELEMENT, *ELEMENT_SF, *ELEMENT_FACE;
-
-	// silence
-	ELEMENT_SF = NULL;
-
-	PV       = VOLUME->P;
-	PF       = FACE->P;
-	Vtype    = VOLUME->type;
-	Eclass   = VOLUME->Eclass;
-
-	FtypeInt = FACE->typeInt;
-	IndOrdLR = FACE->IndOrdLR;
-	IndOrdRL = FACE->IndOrdRL;
-
-	ELEMENT      = get_ELEMENT_type(Vtype);
-	ELEMENT_FACE = get_ELEMENT_FACE(Vtype,IndFType);
 	if ((Eclass == C_TP && SF_BE[PF][0][1]) || (Eclass == C_WEDGE && SF_BE[PF][1][1]))
 		ELEMENT_SF = ELEMENT->ELEMENTclass[IndFType];
 	else
@@ -817,7 +801,7 @@ void init_ops_FACE(struct S_OPERATORS_F *const OPS, struct S_VOLUME const *const
 
 	OPS->NvnS    = ELEMENT->NvnS[PV];
 	OPS->NvnS_SF = ELEMENT_SF->NvnS[PV];
-	if (FtypeInt == 's') {
+	if (FACE->typeInt == 's') {
 		// Straight FACE Integration
 		OPS->NfnI    = ELEMENT->NfnIs[PF][IndFType];
 		OPS->NfnI_SF = ELEMENT_SF->NfnIs[PF][0];
@@ -1064,7 +1048,7 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 							for (size_t i = 0; i < NvnSL*NvnSL; i++)
 								Qphat_What[i] = VL->QhatV_What[dim][i];
 						} else {
-							memset(Qphat_What,0.0,NvnSL*NvnSL * sizeof *Qphat_What);
+							set_to_zero_d(NvnSL*NvnSL,Qphat_What);
 						}
 
 						if (chi != 0.0) {
@@ -1478,8 +1462,8 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 			size_t const Indeqvar = (eq*Nvar+var)*NfnI;
 
 			if (eq != var) {
-				memset(&dnSolNumdWL_fIL[dim][Indeqvar],0.0,NfnI * sizeof dnSolNumdWL_fIL[dim][Indeqvar]);
-				memset(&dnSolNumdWR_fIL[dim][Indeqvar],0.0,NfnI * sizeof dnSolNumdWR_fIL[dim][Indeqvar]);
+				set_to_zero_d(NfnI,&dnSolNumdWL_fIL[dim][Indeqvar]);
+				set_to_zero_d(NfnI,&dnSolNumdWR_fIL[dim][Indeqvar]);
 				continue;
 			}
 
@@ -1631,7 +1615,7 @@ static void dot_with_normal(unsigned int const Nn, unsigned int const NCol, doub
 {
 	unsigned int const d = DB.d;
 
-	memset(nANum_fIL,0.0,Nn*NCol * sizeof *nANum_fIL);
+	set_to_zero_d(Nn*NCol,nANum_fIL);
 	for (size_t col = 0; col < NCol; col++) {
 		double const *const ANum_ptr = &ANum_fIL[Nn*d*col];
 		for (size_t dim = 0; dim < d; dim++) {
@@ -1804,7 +1788,7 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 				unsigned int const BC = FACE->BC;
 		      	if (BC % BC_STEP_SC == BC_DIRICHLET) {
 					for (size_t dim = 0; dim < d; dim++) {
-						memset(dFluxViscNumdQL_fIL[dim],0.0,NfnI*d*Neq*Nvar * sizeof *dFluxViscNumdQL_fIL[dim]);
+						set_to_zero_d(NfnI*d*Neq*Nvar,dFluxViscNumdQL_fIL[dim]);
 						for (size_t i = 0, iMax = NfnI*Nvar; i < iMax; i++)
 							dFluxViscNumdQL_fIL[dim][iMax*dim+i] = 1.0;
 					}
@@ -1813,7 +1797,7 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 						dot_with_normal(NfnI,Neq*Nvar,n_fIL,dFluxViscNumdQL_fIL[dim],dnFluxViscNumdQL_fIL[dim]);
 				} else if (BC % BC_STEP_SC == BC_NEUMANN) {
 					for (size_t dim = 0; dim < d; dim++)
-						memset(dnFluxViscNumdQL_fIL[dim],0.0,NfnI*Neq*Nvar * sizeof *dnFluxViscNumdQL_fIL[dim]);
+						set_to_zero_d(NfnI*Neq*Nvar,dnFluxViscNumdQL_fIL[dim]);
 				} else {
 					EXIT_UNSUPPORTED;
 				}
@@ -1880,8 +1864,8 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 				}
 			} else if (strstr(PDE,"Poisson")) {
 				for (size_t dim = 0; dim < d; dim++) {
-					memset(dFluxViscNumdQL_fIL[dim],0.0,NfnI*d*Neq*Nvar * sizeof *dFluxViscNumdQL_fIL[dim]);
-					memset(dFluxViscNumdQR_fIL[dim],0.0,NfnI*d*Neq*Nvar * sizeof *dFluxViscNumdQR_fIL[dim]);
+					set_to_zero_d(NfnI*d*Neq*Nvar,dFluxViscNumdQL_fIL[dim]);
+					set_to_zero_d(NfnI*d*Neq*Nvar,dFluxViscNumdQR_fIL[dim]);
 					for (size_t i = 0, iMax = NfnI*Nvar; i < iMax; i++) {
 						dFluxViscNumdQL_fIL[dim][iMax*dim+i] = 1.0;
 						dFluxViscNumdQR_fIL[dim][iMax*dim+i] = 1.0;

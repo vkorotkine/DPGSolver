@@ -73,21 +73,23 @@ static void compute_Inviscid_VOLUME_HDG (void)
 
 		// Compute Flux and its Jacobian in reference space
 		compute_flux_inviscid_M(&VDATA,&FLUXDATA,'I','A'); // free
-matrix_print(VDATA.W_vI);
-EXIT_UNSUPPORTED;
-
 		coef_to_values_vI_M(&VDATA,'W','F');
 
+
 		// Convert to reference space
+		compute_flux_ref_M(VOLUME->C_vI_M,FLUXDATA.F,&FLUXDATA.Fr,'A');       // free
+		compute_flux_ref_M(VOLUME->C_vI_M,FLUXDATA.dFdW,&FLUXDATA.dFrdW,'A'); // free
+		compute_flux_inviscid_M(&VDATA,&FLUXDATA,'I','F');
 
-
-		compute_flux_inviscid_M(&VDATA,&FLUXDATA,'I','F'); // free
-
+EXIT_UNSUPPORTED;
 		// Compute RHS and LHS terms
 
 		// RHS
 
 		// LHS
+
+//		compute_flux_ref_M(VOLUME->C_vI_M,FLUXDATA.F,&FLUXDATA.Fr,'F');
+//		compute_flux_ref_M(VOLUME->C_vI_M,FLUXDATA.dFdW,&FLUXDATA.dFrdW,'F');
 
 		free((void *) VDATA.OPS);
 

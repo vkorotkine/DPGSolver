@@ -72,6 +72,7 @@ void solver_Advection(bool const PrintEnabled)
 		if (strstr(DB.SolverType,"Explicit")) {
 			EXIT_UNSUPPORTED;
 		} else if (strstr(DB.SolverType,"Implicit")) {
+//			implicit_VOLUME_info();
 			implicit_VOLUME_info_HDG(PrintEnabled);
 //			implicit_FACE_info_HDG(PrintEnabled);
 		}

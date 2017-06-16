@@ -246,10 +246,5 @@ void matrix_print (struct S_MATRIX const *const A)
 	if (A->format != 'D')
 		EXIT_UNSUPPORTED;
 
-	array_print_d(A->NRows,A->NCols,A->values,A->layout);
-}
-
-void vector_print (struct S_VECTOR const *const A)
-{
-	array_print_d(1,A->NRows,A->values,'R');
+	array_print_d(A->extent[0],A->extent[1],A->data,A->layout);
 }

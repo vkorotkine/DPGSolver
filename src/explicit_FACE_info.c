@@ -15,7 +15,7 @@
 #include "solver_functions.h"
 #include "fluxes_structs.h"
 #include "array_free.h"
-
+#include "support.h"
 
 /*
  *	Purpose:
@@ -112,11 +112,11 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 			unsigned int const NvnSL = OPSL[0]->NvnS,
 			                   NvnSR = OPSR[0]->NvnS;
 
-			memset(FACE->RHSL,0.0,NvnSL*Neq * sizeof *(FACE->RHSL));
+			set_to_zero_d(NvnSL*Neq,FACE->RHSL);
 			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'L','E','W');
 
 			if (!FACE->Boundary) {
-				memset(FACE->RHSR,0.0,NvnSR*Neq * sizeof *(FACE->RHSR));
+				set_to_zero_d(NvnSR*Neq,FACE->RHSR);
 				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'R','E','W');
 			}
 

@@ -62,14 +62,14 @@ void jacobian_flux_inviscid_M (struct S_FLUX_M *const FLUXDATA_M)
 	struct S_FLUX FLUXDATA;
 
 	FLUXDATA.d = FLUXDATA_M->d;
-	FLUXDATA.Nn  = FLUXDATA_M->W->NRows;
+	FLUXDATA.Nn  = FLUXDATA_M->W->extent[0];
 	FLUXDATA.Nel = 1;
 
-	FLUXDATA.W    = FLUXDATA_M->W->values;
-	FLUXDATA.F    = FLUXDATA_M->F->values;
-	FLUXDATA.dFdW = FLUXDATA_M->dFdW->values;
+	FLUXDATA.W    = FLUXDATA_M->W->data;
+	FLUXDATA.F    = FLUXDATA_M->F->data;
+	FLUXDATA.dFdW = FLUXDATA_M->dFdW->data;
 
-	FLUXDATA.XYZ = FLUXDATA_M->XYZ->values;
+	FLUXDATA.XYZ = FLUXDATA_M->XYZ->data;
 
 	jacobian_flux_inviscid(&FLUXDATA);
 }

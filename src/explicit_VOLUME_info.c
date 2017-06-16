@@ -20,6 +20,7 @@
 #include "fluxes_viscous.h"
 #include "array_free.h"
 #include "array_print.h"
+#include "support.h"
 
 /*
  *	Purpose:
@@ -127,7 +128,7 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 			// Compute RHS term
 			unsigned int const NvnS = VDATA->OPS[0]->NvnS;
 
-			memset(VOLUME->RHS,0.0,NvnS*Neq * sizeof *(VOLUME->RHS));
+			set_to_zero_d(NvnS*Neq,VOLUME->RHS);
 			finalize_VOLUME_Inviscid_Weak(Neq,FLUXDATA->Fr,VOLUME->RHS,'E',VDATA);
 
 			manage_solver_memory(DATA,'F','I');

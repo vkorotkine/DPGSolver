@@ -202,3 +202,14 @@ void constructor_move5_mat (char const layout, char const format, unsigned int c
 		EXIT_UNSUPPORTED;
 	}
 }
+
+void set_to_zero_mat (struct S_MATRIX *const A)
+{
+	if (A->format == 'D') {
+		double *A_vals = A->values;
+		for (size_t iMax = (A->NRows)*(A->NCols); iMax--; )
+			*A_vals++ = 0.0;
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
