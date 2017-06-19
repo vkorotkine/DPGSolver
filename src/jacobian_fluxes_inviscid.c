@@ -62,7 +62,7 @@ void jacobian_flux_inviscid_M (struct S_FLUX_M *const FLUXDATA_M)
 	struct S_FLUX FLUXDATA;
 
 	FLUXDATA.d = FLUXDATA_M->d;
-	FLUXDATA.Nn  = FLUXDATA_M->W->extent[0];
+	FLUXDATA.Nn  = FLUXDATA_M->W->extents[0];
 	FLUXDATA.Nel = 1;
 
 	FLUXDATA.W    = FLUXDATA_M->W->data;

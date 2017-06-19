@@ -231,12 +231,6 @@ void array_free5_CSR_d(size_t const iMax, size_t const jMax, size_t const kMax, 
 void matrix_free (struct S_MATRIX *A)
 {
 	free_NULL(A->data);
-
-	if (A->format == 'S') {
-		free_NULL(A->rowIndex);
-		free_NULL(A->columns);
-	}
-
 	free_NULL(A);
 }
 
@@ -270,4 +264,11 @@ void matrix_free5 (size_t const N0, size_t const N1, size_t const N2, size_t con
 		if (A[i])
 			matrix_free4(N1,N2,N3,A[i]);
 	free_NULL(A);
+}
+
+void multiarray_free (struct S_MULTI_ARRAY *A)
+{
+	free_NULL(A->data);
+	free_NULL(A->extents);
+	free(A);
 }

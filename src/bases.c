@@ -1193,15 +1193,14 @@ void rst_to_barycentric_SI(const unsigned int Nn, const unsigned int d, const do
 
 struct S_MATRIX *basis_mat (unsigned int const P, struct S_CUBATURE const *const CUBDATA, basis_tdef basis)
 {
-	struct S_MATRIX *ChiRef_rst = constructor1_default_mat(2); // keep
+	struct S_MATRIX *ChiRef_rst = constructor_matrix1_default(); // keep
 
 	unsigned int Nbf = 0;
 	ChiRef_rst->data = basis(P,CUBDATA->rst,CUBDATA->Nn,&Nbf,CUBDATA->d); // keep
 
-	ChiRef_rst->format = 'D';
 	ChiRef_rst->layout = 'R';
-	ChiRef_rst->extent[0] = CUBDATA->Nn;
-	ChiRef_rst->extent[1] = Nbf;
+	ChiRef_rst->extents[0] = CUBDATA->Nn;
+	ChiRef_rst->extents[1] = Nbf;
 
 	return ChiRef_rst;
 }

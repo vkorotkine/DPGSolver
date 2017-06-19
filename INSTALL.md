@@ -16,7 +16,7 @@ Last tested: 2017/05/18
 		- Consult the MKL [link line advisor](https://software.intel.com/en-us/articles/intel-mkl-link-line-advisor) for required information for [user_configure.mk](configure/user_configure.mk)
 
 2. Install PETSc (tested with petsc-3.7.6)
-	- Create a custom configure file as in PETSC_ROOT/config/examples or as in the [example PETSc configure file](configure/example_PETSc_configure.py). Note that PETSC_ARCH will be set to the name of your configure file. 
+	- Create a custom configure file as in PETSC_ROOT/config/examples or as in the [example PETSc configure file](configure/example_PETSc_configure.py). Note that PETSC_ARCH will be set to the name of your configure file.
 	- Configure from PETSC_ROOT using the configure file as 
 		```sh
 		$ ./path_to_PETSc_configure_file/$(PETSC_ARCH).py
@@ -36,7 +36,7 @@ Last tested: 2017/05/18
 		debug = 0 or 1 (choose one)
 		BUILDDIR = build/name
 		```
-	- Follow make instructions:
+	- Follow make instructions (elaborated in BUILD.txt):
 		```sh
 		$ make config
 		$ make install

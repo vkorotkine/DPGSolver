@@ -20,16 +20,14 @@
 
 /*
  *	Purpose:
- *		Provide matrix functions (ToBeModified):
- *			double *identity_d(const unsigned int N);
- *			double *inverse_d(int N, int NRHS, double A, double b);
- *			double mm_Alloc_d(const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m, const int n,
- *			                  const int k, const double alpha, const double *A, const double *B)
- *			void mm_d(const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb, const int m, const int n,
- *			          const int k, const double alpha, const double *A, const double *B)
+ *		Provide matrix functions.
  *
  *	Comments:
  *		The functions using LAPACKE do not use const arguments for consistency with the LAPACKE function definitions.
+ *
+ *	 	The zeros of matrices with special structure are (redundantly) stored to maintain the generality of the
+ *	 	preprocessor functions where the operators is primarily used. Performance critical functions specifically
+ *	 	account for special matrix structure when present.
  *
  *	Notation:
  *
@@ -2037,27 +2035,23 @@ struct S_MATRIX *mm_mat_alloc (char const layout, char const opA, char const opB
 	 *		Op(A/B) : 'N'(o transpose), 'T'(ranspose)
 	 */
 
-	if (A->format != 'D' || B->format != 'D')
-		EXIT_UNSUPPORTED;
-
 	CBLAS_LAYOUT    const CBlayout = ( layout == 'R' ? CBRM : CBCM );
 	CBLAS_TRANSPOSE const transa   = ( (layout == A->layout) == (opA == 'N') ? CBNT : CBT ),
 	                      transb   = ( (layout == B->layout) == (opB == 'N') ? CBNT : CBT );
-	size_t          const m        = A->extent[0],
-	                      n        = B->extent[1],
-	                      k        = A->extent[1];
+	size_t          const m        = A->extents[0],
+	                      n        = B->extents[1],
+	                      k        = A->extents[1];
 	double          const alpha    = 1.0;
 
 	// Check matching internal length
-	if (k != B->extent[0])
+	if (k != B->extents[0])
 		EXIT_UNSUPPORTED;
 
 	struct S_MATRIX *C = calloc(1,sizeof *C); // keep
 
 	C->layout = layout;
-	C->format = 'D';
-	C->extent[0] = m;
-	C->extent[1] = n;
+	C->extents[0] = m;
+	C->extents[1] = n;
 	C->data      = mm_Alloc_d(CBlayout,transa,transb,m,n,k,alpha,A->data,B->data); // keep
 
 	return C;
@@ -2070,17 +2064,11 @@ struct S_MATRIX *mm_mat_alloc (char const layout, char const opA, char const opB
 
 void mat_transpose (struct S_MATRIX *const A)
 {
-	if (A->format != 'D')
-		EXIT_UNSUPPORTED;
+	mkl_dimatcopy(A->layout,'T',A->extents[0],A->extents[1],1.0,A->data,A->extents[1],A->extents[0]);
 
-	if (A->order != 2)
-		EXIT_UNSUPPORTED;
-
-	mkl_dimatcopy(A->layout,'T',A->extent[0],A->extent[1],1.0,A->data,A->extent[1],A->extent[0]);
-
-	size_t const swap = A->extent[0];
-	A->extent[0] = A->extent[1];
-	A->extent[1] = swap;
+	size_t const swap = A->extents[0];
+	A->extents[0] = A->extents[1];
+	A->extents[1] = swap;
 
 	A->layout = (A->layout == 'R' ? 'C' : 'R');
 }
@@ -2093,20 +2081,17 @@ struct S_MATRIX *mm_diag_mat_alloc (char const layout, char const opA, char cons
 	 *		B is computed with the layout of A and transposed if necessary.
 	 */
 
-	if (A->format != 'D')
+	if (a->structure != oneD_M)
 		EXIT_UNSUPPORTED;
 
-	if (a->order != 1)
-		EXIT_UNSUPPORTED;
-
-	struct S_MATRIX *B = constructor1_mat_D2(A->layout,A->extent[0],A->extent[1]); // keep
+	struct S_MATRIX *B = constructor_matrix1_copy(A); // keep
 
 	char const side_to_use = ( opA == 'N' ? side : ( side == 'L' ? 'R' : 'L' ) );
 
-	if (a->NRows != ( side_to_use == 'L' ? A->NRows : A->NCols))
+	if (a->extents[0] != ( side_to_use == 'L' ? A->extents[0]: A->extents[1]))
 		EXIT_UNSUPPORTED;
 
-	mm_diag_d(B->NRows,B->NCols,a->values,A->values,B->values,1.0,0.0,side_to_use,A->layout);
+	mm_diag_d(B->extents[0],B->extents[1],a->data,A->data,B->data,1.0,0.0,side_to_use,A->layout);
 
 	// Transpose B if necessary
 	if ((layout == A->layout) != (opA == 'N'))
@@ -2117,18 +2102,17 @@ struct S_MATRIX *mm_diag_mat_alloc (char const layout, char const opA, char cons
 
 struct S_MATRIX *inverse_mat (struct S_MATRIX const *const A)
 {
-	if (A->NRows != A->NCols)
+	if (A->extents[0] != A->extents[1])
 		EXIT_UNSUPPORTED;
 
-	struct S_MATRIX *AInv = calloc(1,sizeof *AInv); // keep
+	struct S_MATRIX *AInv = constructor_matrix1_default(); // returned
 
-	AInv->layout  = A->layout;
-	AInv->format  = A->format;
-	AInv->NRows   = A->NRows;
-	AInv->NCols   = A->NCols;
+	AInv->layout    = A->layout;
+	AInv->extents[0] = A->extents[0];
+	AInv->extents[1] = A->extents[1];
 
-	double *I_d = identity_d(A->NRows); // free
-	AInv->values = inverse_d(A->NRows,A->NCols,A->values,I_d); // keep
+	double *I_d = identity_d(A->extents[0]); // free
+	AInv->data = inverse_d(A->extents[0],A->extents[1],A->data,I_d); // keep
 	free(I_d);
 
 	return AInv;
@@ -2136,17 +2120,17 @@ struct S_MATRIX *inverse_mat (struct S_MATRIX const *const A)
 
 struct S_MATRIX *identity_mat (unsigned int const N)
 {
-	struct S_MATRIX *A = calloc(1,sizeof *A); // keep
+	struct S_MATRIX *A = constructor_matrix1_default(); // returned
 
-	A->layout = 'R';
-	A->format = 'D';
-	A->NRows  = N;
-	A->NCols  = N;
-	A->values = identity_d(N); // keep
+	A->layout    = 'R';
+	A->extents[0] = N;
+	A->extents[1] = N;
+	A->structure = identity_M;
+	A->data      = identity_d(N); // keep
 
 	return A;
 }
-
+/*
 struct S_MATRIX *mat_constructor_move (char const layout, char const format, size_t const NRows, size_t const NCols,
                                        double *const values, struct S_OpCSR *const A_CSR)
 {
@@ -2168,8 +2152,8 @@ struct S_MATRIX *mat_constructor_move (char const layout, char const format, siz
 	}
 
 	return A;
-}
-
+}*/
+/*
 struct S_MATRIX **mat_constructor2_move (char const layout, char const format, size_t const NRows, size_t const NCols,
                                          size_t const dim1, double *const *const values, struct S_OpCSR *const *const A_CSR)
 {
@@ -2185,4 +2169,4 @@ struct S_MATRIX **mat_constructor2_move (char const layout, char const format, s
 	}
 
 	return A;
-}
+}*/

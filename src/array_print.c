@@ -243,8 +243,5 @@ void array_print_cmplx(const unsigned int m, const unsigned int n, const double 
 
 void matrix_print (struct S_MATRIX const *const A)
 {
-	if (A->format != 'D')
-		EXIT_UNSUPPORTED;
-
-	array_print_d(A->extent[0],A->extent[1],A->data,A->layout);
+	array_print_d(A->extents[0],A->extents[1],A->data,A->layout);
 }

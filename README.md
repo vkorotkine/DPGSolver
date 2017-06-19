@@ -38,7 +38,7 @@ Follow the [installation instructions](INSTALL.md) for the set up of required li
 - ParMETIS
 - Gmsh
 - Paraview
-- Python3
+- Python3 (including Numpy)
 
 Follow the instructions in [SETUP](SETUP.md) regarding additional requirements for running the code:
 - Mesh generation

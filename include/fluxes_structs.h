@@ -36,8 +36,8 @@ struct S_NUMERICALFLUX {
 struct S_FLUX_M {
 	unsigned int d;
 
-	struct S_MATRIX const *W, *XYZ;
-	struct S_MATRIX *F, *Fr, *dFdW, *dFrdW;
+	struct S_MULTI_ARRAY const *W, *XYZ;
+	struct S_MULTI_ARRAY *F, *Fr, *dFdW, *dFrdW;
 };
 
 #endif // DPG__fluxes_structs_h__INCLUDED

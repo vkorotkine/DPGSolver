@@ -164,11 +164,13 @@ void compute_flux_inviscid_M (struct S_VDATA *const VDATA, struct S_FLUX_M *cons
 		             Neq  = DB.Neq,
 		             Nn   = FLUXDATA->W->NRows;
 
+// Use a MULTI_ARRAY
 		FLUXDATA->F = constructor1_mat_D('C',Nn,d*Neq,d); // free
 
 		if (imex_type == 'E') {
 			flux_inviscid_M(FLUXDATA);
 		} else if (imex_type == 'I') {
+// Use a MULTI_ARRAY
 			FLUXDATA->dFdW = constructor1_mat_D('C',Nn,d*Neq*Nvar,d); // free
 			jacobian_flux_inviscid_M(FLUXDATA);
 		}
@@ -184,12 +186,38 @@ void compute_flux_inviscid_M (struct S_VDATA *const VDATA, struct S_FLUX_M *cons
 	}
 }
 
-void compute_flux_ref_M (struct S_MATRIX const *const C, struct S_MATRIX const *const Mp, struct S_MATRIX **Mr,
-                         const char mem_op)
+static void dot_row (struct S_MATRIX const *const A, struct S_MATRIX const *const B, struct S_MATRIX *const C)
 {
 	/*
 	 *	Purpose:
-	 *		Convert input physical (M)atrix to (ref)erence space by multiplying by appropriate (C)ofactor terms.
+	 *		Computes the dot product of each row of the input arrays (A, B) and adds the results to the corresponding
+	 *		row of the output array (C).
+	 */
+
+	size_t const m = A->extents[0],
+	             n = A->extents[1];
+
+	double const *const A_data = A->data,
+	             *const B_data = B->data;
+	double       *const C_data = C->data;
+
+	if ((A->layout != 'C') || (B->layout != 'C') || (C->layout != 'C'))
+		EXIT_UNSUPPORTED;
+
+	for (size_t j = 0; j < n; j++) {
+		size_t const IndA = j*m;
+		for (size_t i = 0; i < m; i++) {
+			C_data[i] += A_data[IndA+i]*B_data[IndA+i];
+		}
+	}
+}
+
+void compute_flux_ref_M (struct S_MULTI_ARRAY const *const C, struct S_MULTI_ARRAY const *const Ap,
+                         struct S_MULTI_ARRAY **Ar, const char mem_op)
+{
+	/*
+	 *	Purpose:
+	 *		Convert input physical (A)rray to (ref)erence space by multiplying by appropriate (C)ofactor terms.
 	 *
 	 *	Comments:
 	 *		See comments in setup_geom_factors.c for storage convection of C.
@@ -202,9 +230,13 @@ void compute_flux_ref_M (struct S_MATRIX const *const C, struct S_MATRIX const *
 	 *		Jacobian, usage of this knowledge is currently not incorporated.
 	 *
 	 *	Notation:
-	 *		Mp  : (M)atrix (p)hysical
-	 *		Mr  : (M)atrix (r)eference
+	 *		Ap  : (A)rray (p)hysical
+	 *		Ar  : (A)rray (r)eference
 	 *		C   : (C)ofactor terms
+	 *
+	 *		Nvar == Ap->extents[3] is only equal to:
+	 *			1       for the flux
+	 *			DB.Nvar for the flux jacobian
 	 *
 	 *	References:
 	 *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_
@@ -212,36 +244,33 @@ void compute_flux_ref_M (struct S_MATRIX const *const C, struct S_MATRIX const *
 	 */
 
 	if (mem_op == 'A') {
-		size_t const NRows      = Mp->NRows,
-		             NCols      = Mp->NCols,
-		             NColsSub_p = Mp->NColsSub,
-		             NColsSub_r = NCols/NColsSub_p,
-		             d          = DB.d;
+		size_t const Nn   = Ap->extents[0],
+		             Ndim = Ap->extents[1],
+		             Neq  = Ap->extents[2],
+		             Nvar = Ap->extents[3];
 
-		if (NRows != C->NRows)
+		if ((Nn != C->extents[0]) || (Ndim != DB.d) || (Neq != DB.Neq))
 			EXIT_UNSUPPORTED;
 
-		struct S_MATRIX *Mr1 = constructor1_mat_D('C',NRows,NCols,NColsSub_r); // free
-		set_to_zero_mat(Mr1);
+		struct S_MULTI_ARRAY *Ar1 = constructor1_multiarray_4('C',Nn,Neq,Nvar,Ndim); // free
+		set_to_zero_mat(Ar1);
 
-		double *const C_vals  = C->values,
-		       *const Mp_vals = Mp->values,
-		       *const Mr_vals = Mr1->values;
+		for (size_t dim = 0; dim < Ndim; dim++) {
+			struct S_MATRIX *const C_sub = constructor_matrix1_move_multiarray32(C,dim);
+			for (size_t eq = 0; eq < Neq; eq++) {
+			for (size_t var = 0; var < Nvar; var++) {
+				struct S_MATRIX *const Ap_sub = constructor_matrix1_move_multiarray42(Ap,eq,var),
+				                *const Ar_sub = constructor_matrix1_move_multiarray41(Ar1,eq,var,dim);
+				dot_row(Ap_sub,C_sub,Ar_sub);
+				free(Ap_sub);
+				free(Ar_sub);
+			}}
+			free(C_sub);
+		}
 
-		for (size_t col = 0; col < NColsSub_r; col++) {
-		for (size_t dim1 = 0; dim1 < d; dim1++) {
-			size_t const IndMr = (col+NColsSub_r*dim1)*NRows;
-			for (size_t dim2 = 0; dim2 < d; dim2++) {
-				size_t const IndMp = (col*NColsSub_p+dim2)*NRows,
-				             IndC  = (dim1*d+dim2)*NRows;
-				for (size_t n = 0; n < NRows; n++)
-					Mr_vals[IndMr+n] += Mp_vals[IndMp+n]*C_vals[IndC+n];
-			}
-		}}
-
-		*Mr = Mr1;
+		*Ar = Ar1;
 	} else if (mem_op == 'F') {
-		matrix_free(*Mr);
+		multiarray_free(*Mr);
 	} else {
 		EXIT_UNSUPPORTED;
 	}
