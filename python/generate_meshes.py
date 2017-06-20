@@ -8,7 +8,7 @@ Purpose:
 	Generate .msh files necessary for the code using the gmsh .geo files.
 
 Comments:
-	Paths to necessary executables are set (in set_paths) according to the user and platform being used.
+	Paths to necessary executables are set in set_paths.
 '''
 
 ### Classes ###
@@ -30,8 +30,7 @@ def create_meshes(TestCase,Paths):
 		gmsh_args = add_gmsh_setnumber(gmsh_args,MeshType,Paths)
 		gmsh_args += ' -o ' + MeshType.OutputName
 
-		print("MON:",MeshType.OutputName)
-	
+#		print("MON:",MeshType.OutputName)
 		subprocess.call(shlex.split('mkdir -p ' + MeshType.OutputDir))
 		subprocess.call(shlex.split(Paths.gmsh + gmsh_args))
 
@@ -99,11 +98,8 @@ def get_gmsh_number(gmsh_args,name,Paths):
 if __name__ == '__main__':
 	""" Generate meshes based on the CaseList read from command line arguments. """
 
-	user = 'PZwan'
-
-
 	Paths = Paths_class()
-	Paths.set_paths(user)
+	Paths.set_paths()
 
 	CaseName = sys.argv[1]
 	MeshName = sys.argv[2]
@@ -112,7 +108,7 @@ if __name__ == '__main__':
 		print("Input arguments should be limitted to 'TestCase MeshFile'")
 		EXIT_TRACEBACK()
 
-	print('Generating '+MeshName+' for user '+user+'.\n')
+	print('\n\n\nGenerating '+MeshName+'.\n\n')
 
 	TestCase = TestCase_class(CaseName)
 

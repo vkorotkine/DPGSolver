@@ -61,8 +61,8 @@ static void setup_operators_HDG_std (unsigned int const EType)
 
 	unsigned int const              Eclass = get_Eclass(EType),
 	                   *const       PTRS   = DB.PTRS,
-	                   *const *const PIfs   = (unsigned int const *const *const) DB.PIfs,
-	                   *const *const PIfc   = (unsigned int const *const *const) DB.PIfc;
+	                   *const *const PIfs  = (unsigned int const *const *const) DB.PIfs,
+	                   *const *const PIfc  = (unsigned int const *const *const) DB.PIfc;
 
 	struct S_ELEMENT *const ELEMENT = get_ELEMENT_type(EType);
 
@@ -109,7 +109,7 @@ static void setup_operators_HDG_std (unsigned int const EType)
 		// Compute returned operators (straight)
 		struct S_CUBATURE *cub_vIs = cub_constructor(true,false,NodeTypeIfs[P][Eclass],dE,PIfs[P][Eclass],cubature); // free
 
-		struct S_MATRIX *w_vIs = constructor_mat1_move_d_D1(cub_vIs->Nn,cub_vIs->w);
+		struct S_MATRIX *w_vIs = constructor_matrix1_move_d_1(cub_vIs->Nn,cub_vIs->w);
 
 		struct S_MATRIX *ChiRefTRS_vIs = basis_mat(PTRS[P],cub_vIs,basis); // free
 
@@ -123,8 +123,7 @@ static void setup_operators_HDG_std (unsigned int const EType)
 		// Compute returned operators (curved)
 		struct S_CUBATURE *cub_vIc = cub_constructor(true,false,NodeTypeIfc[P][Eclass],dE,PIfc[P][Eclass],cubature); // free
 
-//		struct S_VECTOR *w_vIc = vec_constructor_move(cub_vIc->Nn,cub_vIc->w);
-		struct S_MATRIX *w_vIs = constructor_mat1_move_d_D1(cub_vIs->Nn,cub_vIc->w);
+		struct S_MATRIX *w_vIc = constructor_matrix1_move_d_1(cub_vIc->Nn,cub_vIc->w);
 
 		struct S_MATRIX *ChiRefTRS_vIc = basis_mat(PTRS[P],cub_vIc,basis); // free
 
@@ -175,20 +174,20 @@ static void move_operators_to_mat_std (unsigned int const EType)
 	op_range.PS_range = rP_op_t;
 	op_range.Pb_range = P_op_t;
 	op_range.vh_range = zero_op_t;
-	constructor_move5_mat('R','D',NvnS,NvnIs,ELEMENT->Ds_Weak_VV,DG->Ds_Weak_VV,&op_range);
-	constructor_move5_mat('R','D',NvnS,NvnIc,ELEMENT->Dc_Weak_VV,DG->Dc_Weak_VV,&op_range);
+	move_pointers_matrix5('R','D',NvnS,NvnIs,ELEMENT->Ds_Weak_VV,DG->Ds_Weak_VV,&op_range);
+	move_pointers_matrix5('R','D',NvnS,NvnIc,ELEMENT->Dc_Weak_VV,DG->Dc_Weak_VV,&op_range);
 
 //	op_range.Pb_range = rP_op_t; // Required for assembly of sum factorized operators
 //	op_range.vh_range = rhrefSF_op_t;
-	constructor_move4_mat('R','D',NvnIs,NvnS,NULL,NULL,ELEMENT->ChiS_vIs,DG->ChiS_vIs,&op_range);
-	constructor_move4_mat('R','D',NvnIc,NvnS,NULL,NULL,ELEMENT->ChiS_vIc,DG->ChiS_vIc,&op_range);
+	move_pointers_matrix4('R','D',NvnIs,NvnS,NULL,NULL,ELEMENT->ChiS_vIs,DG->ChiS_vIs,&op_range);
+	move_pointers_matrix4('R','D',NvnIc,NvnS,NULL,NULL,ELEMENT->ChiS_vIc,DG->ChiS_vIc,&op_range);
 
 	op_range.PS_range = one_op_t;
 	op_range.Pb_range = rP_op_t;
-	constructor_move4_mat('R','D',NvnIs,NvnGs,NULL,NULL,ELEMENT->I_vGs_vIs,DG->I_vGs_vIs,&op_range);
+	move_pointers_matrix4('R','D',NvnIs,NvnGs,NULL,NULL,ELEMENT->I_vGs_vIs,DG->I_vGs_vIs,&op_range);
 
 	op_range.PS_range = rP_op_t;
-	constructor_move4_mat('R','D',NvnIc,NvnGc,NULL,NULL,ELEMENT->I_vGc_vIc,DG->I_vGc_vIc,&op_range);
+	move_pointers_matrix4('R','D',NvnIc,NvnGc,NULL,NULL,ELEMENT->I_vGc_vIc,DG->I_vGc_vIc,&op_range);
 
 	// FACE operators
 	unsigned int const *const *const NfnIs = (unsigned int const *const *const) ELEMENT->NfnIs,
@@ -199,12 +198,12 @@ static void move_operators_to_mat_std (unsigned int const EType)
 	op_range.Pb_range = rP_op_t;
 	op_range.fh_range = rfh_op_t;
 	op_range.e_to_e   = RfCv_op_r;
-	constructor_move4_mat('R','D',NULL,NvnS,NfnIs,NULL,ELEMENT->ChiS_fIs,DG->ChiS_fIs,&op_range);
-	constructor_move4_mat('R','D',NULL,NvnS,NfnIc,NULL,ELEMENT->ChiS_fIc,DG->ChiS_fIc,&op_range);
+	move_pointers_matrix4('R','D',NULL,NvnS,NfnIs,NULL,ELEMENT->ChiS_fIs,DG->ChiS_fIs,&op_range);
+	move_pointers_matrix4('R','D',NULL,NvnS,NfnIc,NULL,ELEMENT->ChiS_fIc,DG->ChiS_fIc,&op_range);
 
 	op_range.e_to_e   = RvCf_op_r;
-	constructor_move4_mat('R','D',NvnS,NULL,NULL,NfnIs,ELEMENT->Is_Weak_FV,DG->Is_Weak_FV,&op_range);
-	constructor_move4_mat('R','D',NvnS,NULL,NULL,NfnIc,ELEMENT->Ic_Weak_FV,DG->Ic_Weak_FV,&op_range);
+	move_pointers_matrix4('R','D',NvnS,NULL,NULL,NfnIs,ELEMENT->Is_Weak_FV,DG->Is_Weak_FV,&op_range);
+	move_pointers_matrix4('R','D',NvnS,NULL,NULL,NfnIc,ELEMENT->Ic_Weak_FV,DG->Ic_Weak_FV,&op_range);
 }
 
 static void move_operators_to_mat_TP (unsigned int const EType)

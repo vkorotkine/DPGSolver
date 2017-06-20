@@ -81,7 +81,7 @@ void test_integration_Advection(int nargc, char **argv)
 		data_c->nargc     = nargc;
 		data_c->argvNew   = argvNew;
 		data_c->PrintName = PrintName;
-if (1) {
+if (0) {
 		test_conv_order(data_c,"Advection_n-Cube_Default_TRI");
 		test_conv_order(data_c,"Advection_n-Cube_Default_QUAD");
 

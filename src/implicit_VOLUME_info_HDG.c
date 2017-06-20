@@ -60,32 +60,34 @@ static void compute_Inviscid_VOLUME_HDG (void)
 
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		// convert c arrays to matrix structs
-		convert_to_mat_V(VOLUME,'A');
+		convert_to_multiarray_V(VOLUME,'A');
 
 		struct S_VDATA VDATA;
 		VDATA.OPS    = init_mat_ops_VOLUME(VOLUME);
 		VDATA.VOLUME = VOLUME;
 
-		struct S_FLUX_M FLUXDATA;
+		struct S_FLUX_MA FLUXDATA;
 
 		// Obtain W_vI
-		coef_to_values_vI_M(&VDATA,'W','A'); // free
+		coef_to_values_vI_MA(&VDATA,'W','A'); // free
 
 		// Compute Flux and its Jacobian in reference space
-		compute_flux_inviscid_M(&VDATA,&FLUXDATA,'I','A'); // free
-		coef_to_values_vI_M(&VDATA,'W','F');
-
+		compute_flux_inviscid_MA(&VDATA,&FLUXDATA,'I','A'); // free
+		coef_to_values_vI_MA(&VDATA,'W','F');
 
 		// Convert to reference space
-		compute_flux_ref_M(VOLUME->C_vI_M,FLUXDATA.F,&FLUXDATA.Fr,'A');       // free
-		compute_flux_ref_M(VOLUME->C_vI_M,FLUXDATA.dFdW,&FLUXDATA.dFrdW,'A'); // free
-		compute_flux_inviscid_M(&VDATA,&FLUXDATA,'I','F');
+		compute_flux_ref_MA(VOLUME->C_vI_MA,FLUXDATA.F,&FLUXDATA.Fr,'A');       // free
+		compute_flux_ref_MA(VOLUME->C_vI_MA,FLUXDATA.dFdW,&FLUXDATA.dFrdW,'A'); // free
+		compute_flux_inviscid_MA(&VDATA,&FLUXDATA,'I','F');
 
-EXIT_UNSUPPORTED;
 		// Compute RHS and LHS terms
 
 		// RHS
+		set_to_zero_multiarray(VOLUME->RHS_MA);
+		finalize_VOLUME_Inviscid_Weak_MA(FLUXDATA.Fr,VOLUME->RHS_MA,'E',&VDATA);
 
+multiarray_print(VOLUME->RHS_MA);
+EXIT_UNSUPPORTED;
 		// LHS
 
 //		compute_flux_ref_M(VOLUME->C_vI_M,FLUXDATA.F,&FLUXDATA.Fr,'F');
@@ -93,6 +95,6 @@ EXIT_UNSUPPORTED;
 
 		free((void *) VDATA.OPS);
 
-		convert_to_mat_V(VOLUME,'F');
+		convert_to_multiarray_V(VOLUME,'F');
 	}
 }

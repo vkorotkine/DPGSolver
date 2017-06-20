@@ -33,7 +33,7 @@ struct S_NUMERICALFLUX {
 	double complex       *nFluxNum_c, **nSolNum_c;
 };
 
-struct S_FLUX_M {
+struct S_FLUX_MA {
 	unsigned int d;
 
 	struct S_MULTI_ARRAY const *W, *XYZ;

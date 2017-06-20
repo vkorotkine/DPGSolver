@@ -31,12 +31,15 @@ extern void   convert_to_CSR_d (const unsigned int NRows, const unsigned int NCo
 
 extern struct S_MATRIX *mm_mat_alloc (char const layout, char const opA, char const opB, struct S_MATRIX const *const A,
                                       struct S_MATRIX const *const B);
+extern void mm_mat (char const layout, char const opA, char const opB, double const alpha, double const beta,
+                    struct S_MATRIX const *const A, struct S_MATRIX const *const B, struct S_MATRIX *const C);
 extern struct S_MATRIX *inverse_mat  (struct S_MATRIX const *const A);
 extern struct S_MATRIX *identity_mat (unsigned int const N);
 extern struct S_MATRIX *mat_copy     (struct S_MATRIX const *const A);
 extern struct S_MATRIX *mm_diag_mat_alloc (char const layout, char const opA, char const side,
                                            struct S_MATRIX const *const A, struct S_MATRIX const *const a);
-extern void            mat_transpose (struct S_MATRIX *const A);
+extern void transpose_matrix   (struct S_MATRIX *const A);
+extern void set_to_zero_matrix (struct S_MATRIX *const A);
 
 
 extern struct S_MATRIX *mat_constructor_move (char const layout, char const format, size_t const NRows,
@@ -44,5 +47,6 @@ extern struct S_MATRIX *mat_constructor_move (char const layout, char const form
 extern struct S_MATRIX **mat_constructor2_move (char const layout, char const format, size_t const NRows,
                                                 size_t const NCols, size_t const dim1, double *const *const values,
                                                 struct S_OpCSR *const *const A_CSR);
+
 
 #endif // DPG__matrix_functions_h__INCLUDED

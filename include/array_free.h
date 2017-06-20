@@ -43,4 +43,6 @@ extern void matrix_free3 (size_t const N0, size_t const N1, struct S_MATRIX ***A
 extern void matrix_free4 (size_t const N0, size_t const N1, size_t const N2, struct S_MATRIX ****A);
 extern void matrix_free5 (size_t const N0, size_t const N1, size_t const N2, size_t const N3, struct S_MATRIX *****A);
 
+extern void multiarray_free (struct S_MULTI_ARRAY *A);
+
 #endif // DPG__array_free_h__INCLUDED

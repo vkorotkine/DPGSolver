@@ -13,6 +13,7 @@
 #include "Macros.h"
 
 #include "matrix_structs.h"
+#include "array_free.h"
 
 /*
  *	Purpose:
@@ -244,4 +245,43 @@ void array_print_cmplx(const unsigned int m, const unsigned int n, const double 
 void matrix_print (struct S_MATRIX const *const A)
 {
 	array_print_d(A->extents[0],A->extents[1],A->data,A->layout);
+}
+
+void multiarray_print (struct S_MULTI_ARRAY const *const A)
+{
+	size_t const *const extents = A->extents;
+
+	printf("Multi-array extents:");
+	for (size_t i = 0; i < A->order; i++)
+		printf(" %zu",A->extents[i]);
+	printf("\n\n");
+
+	switch (A->order) {
+	case 2: {
+		struct S_MATRIX const A_M = constructor_matrix1_move_multiarray2_2(A);
+		printf("(:,:):\n");
+		matrix_print(&A_M);
+		break;
+	} case 3:
+		for (size_t i = 0; i < extents[2]; i++) {
+			struct S_MATRIX const A_M = constructor_matrix1_move_multiarray3_2(A,i);
+
+			printf("(:,:,%zu):\n",i);
+			matrix_print(&A_M);
+		}
+		break;
+	case 4:
+		for (size_t j = 0; j < extents[3]; j++) {
+		for (size_t i = 0; i < extents[2]; i++) {
+			struct S_MATRIX const A_M = constructor_matrix1_move_multiarray4_2(A,i,j);
+
+			printf("(:,:,%zu,%zu):\n",i,j);
+			matrix_print(&A_M);
+		}}
+		break;
+	default:
+		printf("%zu\n",A->order);
+		EXIT_UNSUPPORTED;
+		break;
+	}
 }

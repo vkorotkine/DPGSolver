@@ -2057,12 +2057,32 @@ struct S_MATRIX *mm_mat_alloc (char const layout, char const opA, char const opB
 	return C;
 }
 
-/*void mm_mat (char const layout, char const opA, char const opB, double const alpha, double const beta,
+void mm_mat (char const layout, char const opA, char const opB, double const alpha, double const beta,
              struct S_MATRIX const *const A, struct S_MATRIX const *const B, struct S_MATRIX *const C)
 {
-}*/
+	/*
+	 *	Purpose:
+	 *		Same as mm_mat_alloc with allocation performed externally.
+	 */
 
-void mat_transpose (struct S_MATRIX *const A)
+	CBLAS_LAYOUT    const CBlayout = ( layout == 'R' ? CBRM : CBCM );
+	CBLAS_TRANSPOSE const transa   = ( (layout == A->layout) == (opA == 'N') ? CBNT : CBT ),
+	                      transb   = ( (layout == B->layout) == (opB == 'N') ? CBNT : CBT );
+	size_t          const m        = A->extents[0],
+	                      n        = B->extents[1],
+	                      k        = A->extents[1];
+
+	// Check matching internal length
+	if (k != B->extents[0])
+		EXIT_UNSUPPORTED;
+
+	C->layout = layout;
+	C->extents[0] = m;
+	C->extents[1] = n;
+	mm_d(CBlayout,transa,transb,m,n,k,alpha,beta,A->data,B->data,C->data);
+}
+
+void transpose_matrix (struct S_MATRIX *const A)
 {
 	mkl_dimatcopy(A->layout,'T',A->extents[0],A->extents[1],1.0,A->data,A->extents[1],A->extents[0]);
 
@@ -2095,7 +2115,7 @@ struct S_MATRIX *mm_diag_mat_alloc (char const layout, char const opA, char cons
 
 	// Transpose B if necessary
 	if ((layout == A->layout) != (opA == 'N'))
-		mat_transpose(B);
+		transpose_matrix(B);
 
 	return B;
 }
@@ -2130,43 +2150,10 @@ struct S_MATRIX *identity_mat (unsigned int const N)
 
 	return A;
 }
-/*
-struct S_MATRIX *mat_constructor_move (char const layout, char const format, size_t const NRows, size_t const NCols,
-                                       double *const values, struct S_OpCSR *const A_CSR)
+
+void set_to_zero_matrix (struct S_MATRIX *const A)
 {
-	struct S_MATRIX *A = calloc(1,sizeof *A); // keep
-
-	A->layout = layout;
-	A->format = format;
-	A->NRows  = NRows;
-	A->NCols  = NCols;
-
-	if (format == 'D') {
-		A->values = values;
-	} else if (format == 'S') {
-		A->values   = A_CSR->values;
-		A->rowIndex = A_CSR->rowIndex;
-		A->columns  = A_CSR->columns;
-	} else {
-		EXIT_UNSUPPORTED;
-	}
-
-	return A;
-}*/
-/*
-struct S_MATRIX **mat_constructor2_move (char const layout, char const format, size_t const NRows, size_t const NCols,
-                                         size_t const dim1, double *const *const values, struct S_OpCSR *const *const A_CSR)
-{
-	struct S_MATRIX **A = malloc(dim1 * sizeof *A); // keep
-
-	for (size_t i = 0; i < dim1; i++) {
-		if (format == 'D')
-			A[i] = mat_constructor_move(layout,format,NRows,NCols,values[i],NULL);
-		else if (format == 'S')
-			A[i] = mat_constructor_move(layout,format,NRows,NCols,NULL,A_CSR[i]);
-		else
-			EXIT_UNSUPPORTED;
-	}
-
-	return A;
-}*/
+	double *A_data = A->data;
+	for (size_t iMax = (A->extents[0])*(A->extents[1]); iMax--; )
+		*A_data++ = 0.0;
+}

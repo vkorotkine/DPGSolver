@@ -1,4 +1,5 @@
 import platform
+import os
 
 from support_functions import EXIT_TRACEBACK
 
@@ -10,21 +11,15 @@ class Paths_class:
 		self.cases         = ''
 		self.control_files = ''
 
-	def set_paths(self,user):
-		""" Set paths based on the current user.  """
-		if (user == 'PZwan'):
-			if any('Darwin' in string for string in platform.uname()):
-				self.gmsh     = '/Applications/Gmsh.app/Contents/MacOS/gmsh'
-				self.DPG_ROOT = '/Users/philip/Desktop/DPGSolver/'
-			else:
-				# Ubuntu (home)
-				self.gmsh = '/home/philip/Desktop/research/programs/gmsh/gmsh-2.12.0-Linux/bin/gmsh'
-				self.DPG_ROOT = '/home/philip/Desktop/research/codes/DPGSolver/'
-			self.meshes = self.DPG_ROOT+'meshes/'
-		else:
-			print('Add an option for yourself as a user.')
-			EXIT_TRACEBACK()
+	def set_paths(self):
+		""" Set paths.  """
+		self.DPG_ROOT = os.path.realpath(__file__)
+		for i in range(0,2):
+			self.DPG_ROOT = os.path.dirname(self.DPG_ROOT)
+		self.DPG_ROOT += '/'
 
+		self.gmsh          = 'gmsh' # Be sure to add the gmsh executable location to your $PATH
+		self.meshes        = self.DPG_ROOT+'meshes/'
 		self.cases         = self.DPG_ROOT+'cases/'
 		self.control_files = self.cases+'control_files/'
 
@@ -298,7 +293,7 @@ class MeshType_class:
 			self.OutputDir += self.GeomSpecifier + '/'
 		self.OutputName = self.OutputDir + self.Geometry + self.dim + 'D_'
 		self.OutputDir  = Paths.meshes + self.OutputDir
-		
+
 		if (self.MeshCurving.find('Straight') != 0):
 			self.OutputName += self.MeshCurving
 		self.OutputName += self.name + self.MeshLevel + 'x.msh'

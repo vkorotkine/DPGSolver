@@ -31,10 +31,8 @@ def write_MeshVariables(TestCases,Paths):
 
 if __name__ == '__main__':
 	"""Generate the MeshVariables file based on .ctrl files specified in the Makefile of the ROOT directory."""
-	user = 'PZwan'
-
 	Paths = Paths_class()
-	Paths.set_paths(user)
+	Paths.set_paths()
 
 	SubDirectories = sys.argv[1:]
 
@@ -45,7 +43,7 @@ if __name__ == '__main__':
 		TestCase = TestCase_class(SubDirectories[i])
 		TestCase.set_paths(Paths)
 		TestCase.add_MeshTypes(Paths,'all')
-		
+
 		TestCase.get_geo_dependencies()
 		TestCase.get_mesh_outputs()
 

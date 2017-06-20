@@ -21,6 +21,8 @@
 #include "array_free.h"
 #include "support.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Evaluate the VOLUME contributions to the RHS and LHS terms.
@@ -126,6 +128,9 @@ static void compute_Inviscid_VOLUME_EFE(void)
 			// LHS
 			set_to_zero_d(NvnS*NvnS*Neq*Nvar,VOLUME->LHS);
 			finalize_VOLUME_Inviscid_Weak(NvnS*Neq*Nvar,FLUXDATA->dFrdW,VOLUME->LHS,'I',VDATA);
+
+array_print_d(NvnS,DB.Nvar,VOLUME->RHS,'C');
+EXIT_UNSUPPORTED;
 
 			manage_solver_memory(DATA,'F','I');
 		}

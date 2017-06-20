@@ -55,18 +55,18 @@ static void constructors_ops_solver_DG (struct S_ELEMENT *const ELEMENT)
 	struct S_OPS_SOLVER_DG *const DG = &ELEMENT->ops.solver.DG;
 
 	// VOLUME
-	DG->ChiS_vIs = constructor4_mat(NP,NP,NVREFSFMAX); // free
-	DG->ChiS_vIc = constructor4_mat(NP,NP,NVREFSFMAX); // free
-	DG->Ds_Weak_VV = constructor5_mat(NP,NP,1,d); // free
-	DG->Dc_Weak_VV = constructor5_mat(NP,NP,1,d); // free
-	DG->I_vGs_vIs = constructor4_mat(NP,NP,NVREFSFMAX); // free
-	DG->I_vGc_vIc = constructor4_mat(NP,NP,NVREFSFMAX); // free
+	DG->ChiS_vIs = constructor_matrix4_pointer(NP,NP,NVREFSFMAX); // free
+	DG->ChiS_vIc = constructor_matrix4_pointer(NP,NP,NVREFSFMAX); // free
+	DG->Ds_Weak_VV = constructor_matrix5_pointer(NP,NP,1,d); // free
+	DG->Dc_Weak_VV = constructor_matrix5_pointer(NP,NP,1,d); // free
+	DG->I_vGs_vIs = constructor_matrix4_pointer(NP,NP,NVREFSFMAX); // free
+	DG->I_vGc_vIc = constructor_matrix4_pointer(NP,NP,NVREFSFMAX); // free
 
 	// FACE
-	DG->ChiS_fIs = constructor4_mat(NP,NP,NFREFMAX*NFMAX); // free
-	DG->ChiS_fIc = constructor4_mat(NP,NP,NFREFMAX*NFMAX); // free
-	DG->Is_Weak_FV = constructor4_mat(NP,NP,NFREFMAX*NFMAX); // free
-	DG->Ic_Weak_FV = constructor4_mat(NP,NP,NFREFMAX*NFMAX); // free
+	DG->ChiS_fIs = constructor_matrix4_pointer(NP,NP,NFREFMAX*NFMAX); // free
+	DG->ChiS_fIc = constructor_matrix4_pointer(NP,NP,NFREFMAX*NFMAX); // free
+	DG->Is_Weak_FV = constructor_matrix4_pointer(NP,NP,NFREFMAX*NFMAX); // free
+	DG->Ic_Weak_FV = constructor_matrix4_pointer(NP,NP,NFREFMAX*NFMAX); // free
 }
 
 static void constructors_ops_solver_HDG (struct S_ELEMENT *const ELEMENT)
@@ -75,8 +75,8 @@ static void constructors_ops_solver_HDG (struct S_ELEMENT *const ELEMENT)
 
 	struct S_OPS_SOLVER_HDG *const HDG = &ELEMENT->ops.solver.HDG;
 
-	HDG->ChiTRS_vIs = constructor2_mat(NP); // free
-	HDG->ChiTRS_vIc = constructor2_mat(NP); // free
-	HDG->Is_FF      = constructor2_mat(NP); // free
-	HDG->Ic_FF      = constructor2_mat(NP); // free
+	HDG->ChiTRS_vIs = constructor_matrix2_pointer(NP); // free
+	HDG->ChiTRS_vIc = constructor_matrix2_pointer(NP); // free
+	HDG->Is_FF      = constructor_matrix2_pointer(NP); // free
+	HDG->Ic_FF      = constructor_matrix2_pointer(NP); // free
 }

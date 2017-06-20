@@ -18,5 +18,6 @@ extern void array_print_ld    (const unsigned int m, const unsigned int n, const
 extern void array_print_cmplx (const unsigned int m, const unsigned int n, const double complex *A, const char layout);
 
 extern void matrix_print (struct S_MATRIX const *const A);
+extern void multiarray_print (struct S_MULTI_ARRAY const *const A);
 
 #endif // DPG__array_print_h__INCLUDED

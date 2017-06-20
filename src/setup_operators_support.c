@@ -141,7 +141,7 @@ void set_operator_ranges (struct S_OP_RANGE *const op_range, char const range_ty
 		}
 		break;
 	case 'D':
-		switch (op_range->vh_range) {
+		switch (op_range->d_range) {
 		case zero_op_t:
 			op_range->dMin = 0;
 			op_range->dMax = 0;

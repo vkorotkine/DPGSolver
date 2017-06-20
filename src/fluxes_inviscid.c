@@ -97,18 +97,18 @@ void flux_num_inviscid(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 	}
 }
 
-void flux_inviscid_M (struct S_FLUX_M *const FLUXDATA_M)
+void flux_inviscid_MA (struct S_FLUX_MA *const FLUXDATA_MA)
 {
 	struct S_FLUX FLUXDATA;
 
-	FLUXDATA.d   = FLUXDATA_M->d;
-	FLUXDATA.Nn  = FLUXDATA_M->W->extents[0];
+	FLUXDATA.d   = FLUXDATA_MA->d;
+	FLUXDATA.Nn  = FLUXDATA_MA->W->extents[0];
 	FLUXDATA.Nel = 1;
 
-	FLUXDATA.W = FLUXDATA_M->W->data;
-	FLUXDATA.F = FLUXDATA_M->F->data;
+	FLUXDATA.W = FLUXDATA_MA->W->data;
+	FLUXDATA.F = FLUXDATA_MA->F->data;
 
-	FLUXDATA.XYZ = FLUXDATA_M->XYZ->data;
+	FLUXDATA.XYZ = FLUXDATA_MA->XYZ->data;
 
 	flux_inviscid(&FLUXDATA);
 }

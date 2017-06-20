@@ -41,3 +41,9 @@ Last tested: 2017/05/18
 		$ make config
 		$ make install
 		```
+
+4. Install gmsh
+	- Add a symbolic link to the gmsh executable in one of the $PATH directories or add the directory to $PATH (e.g. in .bash_profile add "PATH=$PATH:/Applications/Gmsh.app/Contents/MacOS/").
+
+5. Install python3
+	- Also install numpy.

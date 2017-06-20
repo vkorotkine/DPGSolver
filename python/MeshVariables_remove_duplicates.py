@@ -9,10 +9,8 @@ from support_functions import f_write
 
 if __name__ == '__main__':
 	"""Remove duplicate msh file entries to avoid warnings in the Makefile."""
-	user = 'PZwan'
-
 	Paths = Paths_class()
-	Paths.set_paths(user)
+	Paths.set_paths()
 
 	fName = Paths.meshes+'MeshVariables'
 	with open(fName, 'r') as f:
