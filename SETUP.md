@@ -9,15 +9,13 @@ $ make meshes (see note below)
 $ make
 ```
 
-Note that making meshes currently requires that you add a 'user' name for yourself specifying the appropriate links to
-the gmsh executable and the solver ROOT directory in 'meshfile_classes.py' as well as modifying the user in:
-- MeshVariables_remove_duplicates.py
-- MeshVariables_update.py
-- generate_meshes.py
-
-To run the code, cd to $(ROOT)/cases and execute using the script (.sh) files:
-- quick.sh:    Standard
-- memcheck.sh: With valgrind enabled
+To run the code:
+1. cd to $(ROOT)/cases,
+2. copy the sample.sh script to your_script_file_name.sh and modify the the parameters according to your build
+3. run using
+	```sh
+	$ sh your_script_file_name.sh
+	```
 
 Parameters to be used for the run are specified in the '.ctrl' files located in $(ROOT)/cases/control_files.
 

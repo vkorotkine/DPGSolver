@@ -23,7 +23,8 @@ struct S_VDATA {
 	struct S_VOLUME      const *VOLUME;
 };
 
-extern struct S_OPERATORS_V *init_mat_ops_VOLUME (struct S_VOLUME const *const VOLUME);
+extern void set_VDATA (struct S_VDATA *const VDATA, struct S_VOLUME const *const VOLUME, char const mem_op);
+extern void set_FLUXDATA (struct S_FLUX_MA *const FLUXDATA);
 extern void coef_to_values_vI_MA (struct S_VDATA *const VDATA, char const coef_type, char const mem_op);
 extern void compute_flux_inviscid_MA (struct S_VDATA *const VDATA, struct S_FLUX_MA *const FLUXDATA,
                                       char const imex_type, char const mem_op);

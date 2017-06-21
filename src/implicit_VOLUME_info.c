@@ -4,7 +4,6 @@
 #include "implicit_VOLUME_info.h"
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 
 #include "Parameters.h"
@@ -14,14 +13,8 @@
 
 #include "solver_functions.h"
 #include "fluxes_structs.h"
-#include "fluxes_inviscid.h"
-#include "fluxes_viscous.h"
-#include "jacobian_fluxes_inviscid.h"
 #include "jacobian_fluxes_viscous.h"
-#include "array_free.h"
 #include "support.h"
-
-#include "array_print.h"
 
 /*
  *	Purpose:
@@ -128,9 +121,6 @@ static void compute_Inviscid_VOLUME_EFE(void)
 			// LHS
 			set_to_zero_d(NvnS*NvnS*Neq*Nvar,VOLUME->LHS);
 			finalize_VOLUME_Inviscid_Weak(NvnS*Neq*Nvar,FLUXDATA->dFrdW,VOLUME->LHS,'I',VDATA);
-
-array_print_d(NvnS,DB.Nvar,VOLUME->RHS,'C');
-EXIT_UNSUPPORTED;
 
 			manage_solver_memory(DATA,'F','I');
 		}

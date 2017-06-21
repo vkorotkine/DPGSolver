@@ -42,6 +42,7 @@ Follow the [installation instructions](INSTALL.md) for the set up of required li
 
 Follow the instructions in [SETUP](SETUP.md) regarding additional requirements for running the code:
 - Mesh generation
+- Creating a script file
 
 Please follow the [style guidelines](STYLE.md) when making additions to the code.
 

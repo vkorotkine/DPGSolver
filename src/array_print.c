@@ -271,8 +271,8 @@ void multiarray_print (struct S_MULTI_ARRAY const *const A)
 		}
 		break;
 	case 4:
-		for (size_t j = 0; j < extents[3]; j++) {
 		for (size_t i = 0; i < extents[2]; i++) {
+		for (size_t j = 0; j < extents[3]; j++) {
 			struct S_MATRIX const A_M = constructor_matrix1_move_multiarray4_2(A,i,j);
 
 			printf("(:,:,%zu,%zu):\n",i,j);

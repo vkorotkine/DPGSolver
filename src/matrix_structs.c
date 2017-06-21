@@ -320,8 +320,15 @@ struct S_MULTI_ARRAY *constructor_multiarray1_move_d_4 (char const layout, size_
 	return A;
 }
 
-struct S_MULTI_ARRAY *constructor_multiarray1_move_matrix_2 (struct S_MATRIX const *const A_M)
+struct S_MULTI_ARRAY *constructor_multiarray1_move_matrix_2 (struct S_MATRIX const *const A_M, bool const destruct_M)
 {
+	/*
+	 *	Purpose:
+	 *		Move information from a matrix to a multiarray struct.
+	 *
+	 *	Comments:
+	 *		the destruct_M parameter indicates whether the "shell" of the passed matrix struct should be freed.
+	 */
 	size_t const order = 2;
 	struct S_MULTI_ARRAY *A = constructor_multiarray1_default(order); // returned
 
@@ -329,6 +336,9 @@ struct S_MULTI_ARRAY *constructor_multiarray1_move_matrix_2 (struct S_MATRIX con
 	A->extents[0] = A_M->extents[0];
 	A->extents[1] = A_M->extents[1];
 	A->data       = A_M->data;
+
+	if (destruct_M)
+		destructor_matrix1_default_const(A_M);
 
 	return A;
 }
@@ -338,6 +348,11 @@ struct S_MULTI_ARRAY *constructor_multiarray1_move_matrix_2 (struct S_MATRIX con
 
 void destructor_matrix1_default (struct S_MATRIX *A)
 {
+	/*
+	 *	Comments:
+	 *		Does not free A->data.
+	 */
+
 	free_NULL(A);
 }
 
@@ -345,6 +360,46 @@ void destructor_matrix1_default_const (struct S_MATRIX const *const A)
 {
 	destructor_matrix1_default((void *) A);
 }
+
+void destructor_matrix1 (struct S_MATRIX *A)
+{
+	free_NULL(A->data);
+	free_NULL(A);
+}
+
+void destructor_matrix2_pointer (size_t const N0, struct S_MATRIX **A)
+{
+	for (size_t i = 0; i < N0; i++)
+		if (A[i])
+			destructor_matrix1(A[i]);
+	free_NULL(A);
+}
+
+void destructor_matrix3_pointer (size_t const N0, size_t const N1, struct S_MATRIX ***A)
+{
+	for (size_t i = 0; i < N0; i++)
+		if (A[i])
+			destructor_matrix2_pointer(N1,A[i]);
+	free_NULL(A);
+}
+
+void destructor_matrix4_pointer (size_t const N0, size_t const N1, size_t const N2, struct S_MATRIX ****A)
+{
+	for (size_t i = 0; i < N0; i++)
+		if (A[i])
+			destructor_matrix3_pointer(N1,N2,A[i]);
+	free_NULL(A);
+}
+
+void destructor_matrix5_pointer (size_t const N0, size_t const N1, size_t const N2, size_t const N3,
+                                 struct S_MATRIX *****A)
+{
+	for (size_t i = 0; i < N0; i++)
+		if (A[i])
+			destructor_matrix4_pointer(N1,N2,N3,A[i]);
+	free_NULL(A);
+}
+
 
 void destructor_multiarray1_default (struct S_MULTI_ARRAY *A)
 {
@@ -355,6 +410,18 @@ void destructor_multiarray1_default (struct S_MULTI_ARRAY *A)
 void destructor_multiarray1_default_const (struct S_MULTI_ARRAY const *const A)
 {
 	destructor_multiarray1_default((void *) A);
+}
+
+void destructor_multiarray1 (struct S_MULTI_ARRAY *A)
+{
+	free_NULL(A->extents);
+	free_NULL(A->data);
+	free_NULL(A);
+}
+
+void destructor_multiarray1_const (struct S_MULTI_ARRAY const *const A)
+{
+	destructor_multiarray1((void *) A);
 }
 
 

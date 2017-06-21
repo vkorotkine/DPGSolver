@@ -53,6 +53,7 @@ extern struct S_MATRIX *****constructor_matrix5_pointer (size_t const N0, size_t
                                                          size_t const N3);
 
 extern struct S_MATRIX *constructor_matrix1_default (void);
+extern struct S_MATRIX *constructor_matrix1_empty (char const layout, size_t const m, size_t const n);
 extern struct S_MATRIX *constructor_matrix1_copy (struct S_MATRIX const *const A);
 
 extern struct S_MATRIX *constructor_matrix1_move_d_1 (size_t const m, double *const data);
@@ -64,6 +65,12 @@ extern struct S_MATRIX constructor_matrix1_move_multiarray4_1 (struct S_MULTI_AR
 	                                                           size_t const N2, size_t const N3);
 extern void destructor_matrix1_default (struct S_MATRIX *A);
 extern void destructor_matrix1_default_const (struct S_MATRIX const *const A);
+extern void destructor_matrix1         (struct S_MATRIX *A);
+extern void destructor_matrix2_pointer (size_t const N0, struct S_MATRIX **A);
+extern void destructor_matrix3_pointer (size_t const N0, size_t const N1, struct S_MATRIX ***A);
+extern void destructor_matrix4_pointer (size_t const N0, size_t const N1, size_t const N2, struct S_MATRIX ****A);
+extern void destructor_matrix5_pointer (size_t const N0, size_t const N1, size_t const N2, size_t const N3,
+                                        struct S_MATRIX *****A);
 
 
 extern struct S_MULTI_ARRAY *constructor_multiarray1_empty4 (char const layout, size_t const N0, size_t const N1,
@@ -75,9 +82,11 @@ extern struct S_MULTI_ARRAY *constructor_multiarray1_move_d_3 (char const layout
 	                                                           size_t const N2, double *const data);
 extern struct S_MULTI_ARRAY *constructor_multiarray1_move_d_4 (char const layout, size_t const N0, size_t const N1,
                                                                size_t const N2, size_t const N3, double *const data);
-extern struct S_MULTI_ARRAY *constructor_multiarray1_move_matrix_2 (struct S_MATRIX const *const A_M);
+extern struct S_MULTI_ARRAY *constructor_multiarray1_move_matrix_2 (struct S_MATRIX const *const A_M, bool const destruct_M);
 extern void destructor_multiarray1_default (struct S_MULTI_ARRAY *A);
 extern void destructor_multiarray1_default_const (struct S_MULTI_ARRAY const *const A);
+extern void destructor_multiarray1 (struct S_MULTI_ARRAY *A);
+extern void destructor_multiarray1_const (struct S_MULTI_ARRAY const *const A);
 
 
 extern void set_to_zero_multiarray (struct S_MULTI_ARRAY *const A);

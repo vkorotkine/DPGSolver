@@ -30,6 +30,7 @@
 #include "test_code_output_to_paraview.h"
 
 #include "implicit_VOLUME_info_HDG.h"
+#include "implicit_FACE_info_HDG.h"
 
 /*
  *	Purpose:
@@ -72,9 +73,8 @@ void solver_Advection(bool const PrintEnabled)
 		if (strstr(DB.SolverType,"Explicit")) {
 			EXIT_UNSUPPORTED;
 		} else if (strstr(DB.SolverType,"Implicit")) {
-//			implicit_VOLUME_info();
 			implicit_VOLUME_info_HDG(PrintEnabled);
-//			implicit_FACE_info_HDG(PrintEnabled);
+			implicit_FACE_info_HDG(PrintEnabled);
 		}
 		EXIT_UNSUPPORTED;
 	} else {

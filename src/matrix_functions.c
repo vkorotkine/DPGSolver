@@ -2021,8 +2021,8 @@ void convert_to_CSR_d(const unsigned int NRows, const unsigned int NCols, const 
 	(*Output)->values = values;
 }
 
-struct S_MATRIX *mm_mat_alloc (char const layout, char const opA, char const opB, struct S_MATRIX const *const A,
-                               struct S_MATRIX const *const B)
+struct S_MATRIX *mm_matrix_alloc (char const layout, char const opA, char const opB, struct S_MATRIX const *const A,
+                                  struct S_MATRIX const *const B)
 {
 	/*
 	 *	Purpose:
@@ -2057,33 +2057,35 @@ struct S_MATRIX *mm_mat_alloc (char const layout, char const opA, char const opB
 	return C;
 }
 
-void mm_mat (char const layout, char const opA, char const opB, double const alpha, double const beta,
-             struct S_MATRIX const *const A, struct S_MATRIX const *const B, struct S_MATRIX *const C)
+void mm_matrix (char const opA, char const opB, double const alpha, double const beta,
+                struct S_MATRIX const *const A, struct S_MATRIX const *const B, struct S_MATRIX *const C)
 {
 	/*
 	 *	Purpose:
-	 *		Same as mm_mat_alloc with allocation performed externally.
+	 *		Same as mm_matrix_alloc with allocation performed externally.
 	 */
 
-	CBLAS_LAYOUT    const CBlayout = ( layout == 'R' ? CBRM : CBCM );
-	CBLAS_TRANSPOSE const transa   = ( (layout == A->layout) == (opA == 'N') ? CBNT : CBT ),
-	                      transb   = ( (layout == B->layout) == (opB == 'N') ? CBNT : CBT );
+	CBLAS_LAYOUT    const CBlayout = ( C->layout == 'R' ? CBRM : CBCM );
+	CBLAS_TRANSPOSE const transa   = ( (C->layout == A->layout) == (opA == 'N') ? CBNT : CBT ),
+	                      transb   = ( (C->layout == B->layout) == (opB == 'N') ? CBNT : CBT );
 	size_t          const m        = A->extents[0],
 	                      n        = B->extents[1],
 	                      k        = A->extents[1];
 
-	// Check matching internal length
-	if (k != B->extents[0])
+	// Check matching extents
+	if (k != B->extents[0] || m != C->extents[0] || n != C->extents[1])
 		EXIT_UNSUPPORTED;
 
-	C->layout = layout;
-	C->extents[0] = m;
-	C->extents[1] = n;
 	mm_d(CBlayout,transa,transb,m,n,k,alpha,beta,A->data,B->data,C->data);
 }
 
 void transpose_matrix (struct S_MATRIX *const A)
 {
+	/*
+	 *	Comments:
+	 *		Note that transposing a matrix is also equivalent to changing between row and column major layouts.
+	 */
+
 	mkl_dimatcopy(A->layout,'T',A->extents[0],A->extents[1],1.0,A->data,A->extents[1],A->extents[0]);
 
 	size_t const swap = A->extents[0];
@@ -2093,8 +2095,8 @@ void transpose_matrix (struct S_MATRIX *const A)
 	A->layout = (A->layout == 'R' ? 'C' : 'R');
 }
 
-struct S_MATRIX *mm_diag_mat_alloc (char const layout, char const opA, char const side, struct S_MATRIX const *const A,
-                                    struct S_MATRIX const *const a)
+struct S_MATRIX *mm_diag_matrix_alloc (char const layoutB, char const opA, char const side,
+                                       struct S_MATRIX const *const a, struct S_MATRIX const *const A)
 {
 	/*
 	 *	Comments:
@@ -2111,13 +2113,35 @@ struct S_MATRIX *mm_diag_mat_alloc (char const layout, char const opA, char cons
 	if (a->extents[0] != ( side_to_use == 'L' ? A->extents[0]: A->extents[1]))
 		EXIT_UNSUPPORTED;
 
-	mm_diag_d(B->extents[0],B->extents[1],a->data,A->data,B->data,1.0,0.0,side_to_use,A->layout);
+	mm_diag_d(A->extents[0],A->extents[1],a->data,A->data,B->data,1.0,0.0,side_to_use,A->layout);
 
-	// Transpose B if necessary
-	if ((layout == A->layout) != (opA == 'N'))
+	// Change the layout of B->data in memory if necessary
+	if ((layoutB == A->layout) != (opA == 'N'))
 		transpose_matrix(B);
 
 	return B;
+}
+
+void mm_diag_matrix (char const opA, char const side, const double alpha, const double beta,
+                     struct S_MATRIX const *const a, struct S_MATRIX const *const A, struct S_MATRIX *const B)
+{
+	/*
+	 *	Comments:
+	 *		B->data is computed with the layout of A and transposed if necessary.
+	 */
+
+	char const side_to_use = ( opA == 'N' ? side : ( side == 'L' ? 'R' : 'L' ) );
+
+	if ((a->structure != oneD_M) ||
+	    (a->extents[0] != ( side_to_use == 'L' ? A->extents[0]: A->extents[1])) ||
+		((A->extents[0])*(A->extents[1]) != (B->extents[0])*(B->extents[1])))
+		EXIT_UNSUPPORTED;
+
+	mm_diag_d(A->extents[0],A->extents[1],a->data,A->data,B->data,alpha,beta,side_to_use,A->layout);
+
+	// Change the layout of B->data in memory if necessary
+	if ((B->layout == A->layout) != (opA == 'N'))
+		transpose_matrix(B);
 }
 
 struct S_MATRIX *inverse_mat (struct S_MATRIX const *const A)

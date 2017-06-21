@@ -101,10 +101,10 @@ static void setup_operators_HDG_std (unsigned int const EType)
 
 		cub_destructor(cub_vTRS);
 
-		struct S_MATRIX *TTRS = mm_mat_alloc('R','N','N',ChiRefInvTRS_vTRS,ChiTRS_vTRS); // free
+		struct S_MATRIX *TTRS = mm_matrix_alloc('R','N','N',ChiRefInvTRS_vTRS,ChiTRS_vTRS); // free
 
-		matrix_free(ChiRefInvTRS_vTRS);
-		matrix_free(ChiTRS_vTRS);
+		destructor_matrix1(ChiRefInvTRS_vTRS);
+		destructor_matrix1(ChiTRS_vTRS);
 
 		// Compute returned operators (straight)
 		struct S_CUBATURE *cub_vIs = cub_constructor(true,false,NodeTypeIfs[P][Eclass],dE,PIfs[P][Eclass],cubature); // free
@@ -113,11 +113,11 @@ static void setup_operators_HDG_std (unsigned int const EType)
 
 		struct S_MATRIX *ChiRefTRS_vIs = basis_mat(PTRS[P],cub_vIs,basis); // free
 
-		ChiTRS_vIs[P] = mm_mat_alloc('R','N','N',ChiRefTRS_vIs,TTRS);       // keep
-		Is_FF[P]      = mm_diag_mat_alloc('R','T','R',ChiTRS_vIs[P],w_vIs); // keep
+		ChiTRS_vIs[P] = mm_matrix_alloc('R','N','N',ChiRefTRS_vIs,TTRS);       // keep
+		Is_FF[P]      = mm_diag_matrix_alloc('R','T','R',w_vIs,ChiTRS_vIs[P]); // keep
 
 		cub_destructor(cub_vIs);
-		matrix_free(ChiRefTRS_vIs);
+		destructor_matrix1(ChiRefTRS_vIs);
 
 
 		// Compute returned operators (curved)
@@ -127,13 +127,13 @@ static void setup_operators_HDG_std (unsigned int const EType)
 
 		struct S_MATRIX *ChiRefTRS_vIc = basis_mat(PTRS[P],cub_vIc,basis); // free
 
-		ChiTRS_vIc[P] = mm_mat_alloc('R','N','N',ChiRefTRS_vIc,TTRS);       // keep
-		Ic_FF[P]      = mm_diag_mat_alloc('R','T','R',ChiTRS_vIc[P],w_vIc); // keep
+		ChiTRS_vIc[P] = mm_matrix_alloc('R','N','N',ChiRefTRS_vIc,TTRS);       // keep
+		Ic_FF[P]      = mm_diag_matrix_alloc('R','T','R',w_vIc,ChiTRS_vIc[P]); // keep
 
 		cub_destructor(cub_vIc);
-		matrix_free(ChiRefTRS_vIc);
+		destructor_matrix1(ChiRefTRS_vIc);
 
-		matrix_free(TTRS);
+		destructor_matrix1(TTRS);
 	}
 }
 
@@ -208,8 +208,9 @@ static void move_operators_to_mat_std (unsigned int const EType)
 
 static void move_operators_to_mat_TP (unsigned int const EType)
 {
-	EXIT_UNSUPPORTED; // Add support
-	printf("%d\n",EType);
+//	EXIT_UNSUPPORTED; // Add support
+	PRINT_FILELINE;
+	printf("Add support for operators of type: %d\n",EType);
 }
 
 void setup_operators_HDG(void)

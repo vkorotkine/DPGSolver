@@ -34,7 +34,7 @@ struct S_NUMERICALFLUX {
 };
 
 struct S_FLUX_MA {
-	unsigned int d;
+	unsigned int d, PDE_index;
 
 	struct S_MULTI_ARRAY const *W, *XYZ;
 	struct S_MULTI_ARRAY *F, *Fr, *dFdW, *dFrdW;

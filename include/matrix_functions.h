@@ -29,15 +29,17 @@ extern void   mm_CTN_CSR_d     (const int m, const int n, const int k, const str
 extern void   convert_to_CSR_d (const unsigned int NRows, const unsigned int NCols, const double *Input,
                                 struct S_OpCSR **Output);
 
-extern struct S_MATRIX *mm_mat_alloc (char const layout, char const opA, char const opB, struct S_MATRIX const *const A,
-                                      struct S_MATRIX const *const B);
-extern void mm_mat (char const layout, char const opA, char const opB, double const alpha, double const beta,
-                    struct S_MATRIX const *const A, struct S_MATRIX const *const B, struct S_MATRIX *const C);
+extern struct S_MATRIX *mm_matrix_alloc (char const layout, char const opA, char const opB, struct S_MATRIX const *const A,
+                                         struct S_MATRIX const *const B);
+extern void mm_matrix (char const opA, char const opB, double const alpha, double const beta,
+                       struct S_MATRIX const *const A, struct S_MATRIX const *const B, struct S_MATRIX *const C);
 extern struct S_MATRIX *inverse_mat  (struct S_MATRIX const *const A);
 extern struct S_MATRIX *identity_mat (unsigned int const N);
 extern struct S_MATRIX *mat_copy     (struct S_MATRIX const *const A);
-extern struct S_MATRIX *mm_diag_mat_alloc (char const layout, char const opA, char const side,
-                                           struct S_MATRIX const *const A, struct S_MATRIX const *const a);
+extern struct S_MATRIX *mm_diag_matrix_alloc (char const layoutB, char const opA, char const side,
+                                              struct S_MATRIX const *const a, struct S_MATRIX const *const A);
+extern void mm_diag_matrix (char const opA, char const side, const double alpha, const double beta,
+                            struct S_MATRIX const *const a, struct S_MATRIX const *const A, struct S_MATRIX *const B);
 extern void transpose_matrix   (struct S_MATRIX *const A);
 extern void set_to_zero_matrix (struct S_MATRIX *const A);
 

@@ -5,6 +5,7 @@
 #include "matrix_structs.h"
 #include "fluxes_structs.h"
 #include "S_VOLUME.h"
+#include "S_FACE.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -22,7 +23,6 @@
 #include "fluxes_inviscid.h"
 #include "jacobian_fluxes_inviscid.h"
 
-#include "array_free.h"
 #include "array_print.h"
 
 /*
@@ -80,10 +80,39 @@ void convert_to_multiarray_V (struct S_VOLUME *const VOLUME, char const mem_op)
 	}
 }
 
+void convert_to_multiarray_F (struct S_FACE *const FACE, char const mem_op)
+{
+	/*
+	 *	Purpose:
+	 *		Used to temporarily store array data in multiarray structs.
+	 */
+
+	if (mem_op == 'A') {
+printf("%p\n",FACE);
+	} else if (mem_op == 'F') {
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
+
 
 // VOLUME solver functions
 
-struct S_OPERATORS_V *init_mat_ops_VOLUME (struct S_VOLUME const *const VOLUME)
+static struct S_OPERATORS_V *init_mat_ops_VOLUME (struct S_VOLUME const *const VOLUME);
+
+void set_VDATA (struct S_VDATA *const VDATA, struct S_VOLUME const *const VOLUME, char const mem_op)
+{
+	if (mem_op == 'A') {
+		VDATA->OPS = init_mat_ops_VOLUME(VOLUME); // keep
+		VDATA->VOLUME = VOLUME;
+	} else if (mem_op == 'F') {
+		free((void *) VDATA->OPS);
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
+
+static struct S_OPERATORS_V *init_mat_ops_VOLUME (struct S_VOLUME const *const VOLUME)
 {
 	struct S_OPERATORS_V *OPS = malloc(sizeof *OPS); // returned
 
@@ -98,10 +127,18 @@ struct S_OPERATORS_V *init_mat_ops_VOLUME (struct S_VOLUME const *const VOLUME)
 
 		OPS->I_vG_vI = (struct S_MATRIX const *const)        DG->I_vGs_vIs[1][P][0];
 	} else {
-		EXIT_UNSUPPORTED; // Add support
+		OPS->ChiS_vI = (struct S_MATRIX const *const)        DG->ChiS_vIc[P][P][0];
+		OPS->D_Weak  = (struct S_MATRIX const *const *const) DG->Dc_Weak_VV[P][P][0];
+
+		OPS->I_vG_vI = (struct S_MATRIX const *const)        DG->I_vGc_vIc[P][P][0];
 	}
 
 	return OPS;
+}
+
+void set_FLUXDATA (struct S_FLUX_MA *const FLUXDATA)
+{
+	FLUXDATA->PDE_index = DB.PDE_index;
 }
 
 void coef_to_values_vI_MA (struct S_VDATA *const VDATA, char const coef_type, char const mem_op)
@@ -133,12 +170,11 @@ void coef_to_values_vI_MA (struct S_VDATA *const VDATA, char const coef_type, ch
 			struct S_VOLUME      const *const VOLUME = VDATA->VOLUME;
 
 			struct S_MATRIX const What_M = constructor_matrix1_move_multiarray2_2(VOLUME->What_MA);
-			struct S_MATRIX       *const W_vI_M = mm_mat_alloc('C','N','N',OPS->ChiS_vI,&What_M); // free
+			struct S_MATRIX       *const W_vI_M = mm_matrix_alloc('C','N','N',OPS->ChiS_vI,&What_M); // free (shell)
 
-			VDATA->W_vI = constructor_multiarray1_move_matrix_2(W_vI_M); // free (below)
-			destructor_matrix1_default_const(W_vI_M);
+			VDATA->W_vI = constructor_multiarray1_move_matrix_2(W_vI_M,1); // free (mem_op == 'F')
 		} else if (mem_op == 'F') {
-			multiarray_free(VDATA->W_vI);
+			destructor_multiarray1(VDATA->W_vI);
 		} else {
 			EXIT_UNSUPPORTED;
 		}
@@ -164,10 +200,11 @@ void compute_flux_inviscid_MA (struct S_VDATA *const VDATA, struct S_FLUX_MA *co
 	if (mem_op == 'A') {
 		if (DB.PDE_index == PDE_ADVECTION) {
 			struct S_MATRIX const V_XYZ_M = constructor_matrix1_move_multiarray2_2(VDATA->VOLUME->XYZ_MA);
-			struct S_MATRIX       *const XYZ_M = mm_mat_alloc('C','N','N',VDATA->OPS->I_vG_vI,&V_XYZ_M); // free
+			struct S_MATRIX *const XYZ_M = mm_matrix_alloc('C','N','N',VDATA->OPS->I_vG_vI,&V_XYZ_M); // free (shell)
 
-			FLUXDATA->XYZ = constructor_multiarray1_move_matrix_2(XYZ_M); // free (below)
-			destructor_matrix1_default_const(XYZ_M);
+			FLUXDATA->XYZ = constructor_multiarray1_move_matrix_2(XYZ_M,1); // free (mem_op == 'F')
+		} else {
+			FLUXDATA->XYZ = NULL;
 		}
 
 		FLUXDATA->d = DB.d;
@@ -178,21 +215,21 @@ void compute_flux_inviscid_MA (struct S_VDATA *const VDATA, struct S_FLUX_MA *co
 		             Neq  = DB.Neq,
 		             Nn   = FLUXDATA->W->extents[0];
 
-		FLUXDATA->F = constructor_multiarray1_empty4('C',Nn,d,Neq,1); // free
+		FLUXDATA->F = constructor_multiarray1_empty4('C',Nn,d,Neq,1); // free (mem_op == 'F')
 
 		if (imex_type == 'E') {
 			flux_inviscid_MA(FLUXDATA);
 		} else if (imex_type == 'I') {
-			FLUXDATA->dFdW = constructor_multiarray1_empty4('C',Nn,d,Neq,Nvar); // free
+			FLUXDATA->dFdW = constructor_multiarray1_empty4('C',Nn,d,Neq,Nvar); // free (mem_op == 'F')
 			jacobian_flux_inviscid_MA(FLUXDATA);
 		}
 	} else if (mem_op == 'F') {
 		if (DB.PDE_index == PDE_ADVECTION)
-			matrix_free((void *) FLUXDATA->XYZ);
+			destructor_multiarray1_const(FLUXDATA->XYZ);
 
-		multiarray_free(FLUXDATA->F);
+		destructor_multiarray1(FLUXDATA->F);
 		if (imex_type == 'I')
-			multiarray_free(FLUXDATA->dFdW);
+			destructor_multiarray1(FLUXDATA->dFdW);
 	} else {
 		EXIT_UNSUPPORTED;
 	}
@@ -279,7 +316,7 @@ void compute_flux_ref_MA (struct S_MULTI_ARRAY const *const C, struct S_MULTI_AR
 
 		*Ar = Ar1;
 	} else if (mem_op == 'F') {
-		multiarray_free(*Ar);
+		destructor_multiarray1(*Ar);
 	} else {
 		EXIT_UNSUPPORTED;
 	}
@@ -317,23 +354,35 @@ void finalize_VOLUME_Inviscid_Weak_MA (struct S_MULTI_ARRAY const *const Ar_vI, 
 
 	struct S_OPERATORS_V const *const OPS = VDATA->OPS;
 
+	unsigned int const d = DB.d;
+
 	if (imex_type == 'E') {
-		unsigned int const d = DB.d;
-
-		struct S_MATRIX RLHS_M = constructor_matrix1_move_multiarray2_2(RLHS);
-
-//		struct S_MATRIX Ar_vI_M;
+		struct S_MATRIX RHS_M = constructor_matrix1_move_multiarray2_2(RLHS);
 
 		for (size_t dim = 0; dim < d; dim++) {
 			struct S_MATRIX const Ar_vI_M = constructor_matrix1_move_multiarray4_2(Ar_vI,0,dim);
-			mm_mat('C','N','N',1.0,1.0,OPS->D_Weak[dim],&Ar_vI_M,&RLHS_M);
+			mm_matrix('N','N',1.0,1.0,OPS->D_Weak[dim],&Ar_vI_M,&RHS_M);
 		}
 	} else if (imex_type == 'I') {
 		size_t const Neq  = DB.Neq,
 		             Nvar = DB.Nvar;
+
+		struct S_MATRIX const *const *const D_M = OPS->D_Weak;
+		struct S_MATRIX *const DAr_M = constructor_matrix1_empty(D_M[0]->layout,D_M[0]->extents[0],D_M[0]->extents[1]); // free
+
 		for (size_t eq = 0; eq < Neq; eq++) {
 		for (size_t var = 0; var < Nvar; var++) {
+
+			set_to_zero_matrix(DAr_M);
+			for (size_t dim = 0; dim < d; dim++) {
+				struct S_MATRIX Ar_M = constructor_matrix1_move_multiarray4_1(Ar_vI,eq,var,dim);
+				mm_diag_matrix('N','R',1.0,1.0,&Ar_M,D_M[dim],DAr_M);
+			}
+
+			struct S_MATRIX LHS_M = constructor_matrix1_move_multiarray4_2(RLHS,var,eq);
+			mm_matrix('N','N',1.0,1.0,DAr_M,OPS->ChiS_vI,&LHS_M);
 		}}
+		destructor_matrix1(DAr_M);
 	} else {
 		EXIT_UNSUPPORTED;
 	}

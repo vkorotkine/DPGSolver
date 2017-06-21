@@ -4,7 +4,6 @@
 #include "jacobian_fluxes_inviscid.h"
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
 
 #include "Parameters.h"
@@ -64,12 +63,14 @@ void jacobian_flux_inviscid_MA (struct S_FLUX_MA *const FLUXDATA_MA)
 	FLUXDATA.d   = FLUXDATA_MA->d;
 	FLUXDATA.Nn  = FLUXDATA_MA->W->extents[0];
 	FLUXDATA.Nel = 1;
+	FLUXDATA.PDE_index = FLUXDATA_MA->PDE_index;
 
 	FLUXDATA.W    = FLUXDATA_MA->W->data;
 	FLUXDATA.F    = FLUXDATA_MA->F->data;
 	FLUXDATA.dFdW = FLUXDATA_MA->dFdW->data;
 
-	FLUXDATA.XYZ = FLUXDATA_MA->XYZ->data;
+	if (FLUXDATA_MA->XYZ)
+		FLUXDATA.XYZ = FLUXDATA_MA->XYZ->data;
 
 	jacobian_flux_inviscid(&FLUXDATA);
 }

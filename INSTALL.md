@@ -31,10 +31,10 @@ Last tested: 2017/05/18
 	- Download and extract .tar file
 	- In the root directory, modify the following parameters in the Makefile:
 		```make
-		cc = mpicc
-		cxx = mpicxx
+		cc = $(PATH_TO_MPICC)/mpicc
+		cxx = $(PATH_TO_MPICXX)/mpicxx
 		debug = 0 or 1 (choose one)
-		BUILDDIR = build/name
+		BUILDDIR = build/your_build_name
 		```
 	- Follow make instructions (elaborated in BUILD.txt):
 		```sh
@@ -44,6 +44,10 @@ Last tested: 2017/05/18
 
 4. Install gmsh
 	- Add a symbolic link to the gmsh executable in one of the $PATH directories or add the directory to $PATH (e.g. in .bash_profile add "PATH=$PATH:/Applications/Gmsh.app/Contents/MacOS/").
+	- Check that this was successful by obtaining some output when typing
+		```sh
+		$ gmsh --version
+		```
 
 5. Install python3
 	- Also install numpy.

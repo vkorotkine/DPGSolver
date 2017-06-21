@@ -21,6 +21,8 @@ src/support_functions/*.txt
 *.db.json
 *.dSYM
 cases/.lipo
+cases/*.sh
+!cases/sample.sh
 
 meshes/Poisson/*
 meshes/PeriodicVortex/*
