@@ -351,6 +351,9 @@ void initialize_test_case_parameters(void)
 						DB.bIn = DB.aIn/ratio;
 						DB.cIn = DB.aIn;
 					}
+				} else if (strstr(Geometry,"n-Cube")) {
+					printf("ToBeModified.\n");
+					PRINT_FILELINE;
 				} else {
 					printf("%s\n",Geometry);
 					EXIT_UNSUPPORTED;
@@ -390,7 +393,11 @@ void initialize_test_case_parameters(void)
 				} else {
 					EXIT_UNSUPPORTED;
 				}
+			} else if (strstr(TestCase,"EllipticPipe")) {
+				printf("ToBeModified.\n");
+				PRINT_FILELINE;
 			} else {
+				printf("%s\n",TestCase);
 				EXIT_UNSUPPORTED;
 			}
 		} else if (strstr(PDESpecifier,"External")) {

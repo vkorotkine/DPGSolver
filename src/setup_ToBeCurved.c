@@ -39,6 +39,7 @@
  *		Rosca(2011)-Uniform_Spherical_Grids_via_Equal_Area_Projection_from_the_Cube_to_the_Sphere
  */
 
+static void         ToBeCurved_elliptic_pipe    (unsigned int const Nn, double const *const XYZ_S, double *const XYZ);
 static void         ToBeCurved_cube_to_sphere   (unsigned int Nn, double *XYZ_S, double *XYZ);
 static void         ToBeCurved_square_to_circle (unsigned int Nn, double *XYZ_S, double *XYZ);
 static double         *cube_to_sphere           (double XY[2], unsigned int OrderOut[3], int SignOut, double beta);
@@ -50,6 +51,29 @@ static double         get_arc_length            (const double XL, const double X
                                                  const unsigned int DOrder[2]);
 static double         *eval_TP_function         (const unsigned int Nn, const double *XZ, const unsigned int DOrder[2],
                                                  const unsigned int Single, double **abcP);
+
+static void ToBeCurved_elliptic_pipe (unsigned int const Nn, double const *const XYZ_S, double *const XYZ)
+{
+	if (DB.d != 2)
+		EXIT_UNSUPPORTED;
+
+	double *const X = &XYZ[Nn*0],
+	       *const Y = &XYZ[Nn*1];
+
+	double const *const X_S = &XYZ_S[Nn*0],
+	             *const Y_S = &XYZ_S[Nn*1];
+
+	double const a = 1.0,
+	             b = 2.0;
+
+	for (size_t n = 0; n < Nn; n++) {
+		double const xi  = 0.0 + (PI -0.0)*(X_S[n]+1.0)/2.0,
+		             eta = 2.0 + (4.0-2.0)*(Y_S[n]+1.0)/2.0;
+
+		X[n] = -eta/b*cos(xi);
+		Y[n] =  eta/a*sin(xi);
+	}
+}
 
 static void ToBeCurved_sphere_to_ellipsoid(const unsigned int Nn, double *XYZ)
 {
@@ -306,7 +330,10 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 				}
 			} else if (strstr(Geometry,"n-Cylinder")) {
 				ToBeCurved_square_to_circle(NvnG,XYZ_S,XYZ);
+			} else if (strstr(Geometry,"n-CubeCurved")) {
+				ToBeCurved_elliptic_pipe(NvnG,XYZ_S,XYZ);
 			} else {
+				printf("%s\n",Geometry);
 				printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
 			}
 

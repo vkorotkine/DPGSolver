@@ -1,5 +1,5 @@
 Include "../Parameters.geo";
-//MeshLevel = 2; MeshType = TRI; MeshCurving = STRAIGHT; PDEName = ADVECTION; Geom_Adv = GEOM_ADV_YL;
+//MeshLevel = 1; MeshType = TRI; MeshCurving = TOBECURVED; PDEName = EULER; Geom_Adv = GEOM_ADV_MANUFACTURED;
 
 // Geometry Specification
 L = 1;
@@ -46,20 +46,25 @@ If (PDEName == ADVECTION)
 ElseIf (PDEName == POISSON)
 	Physical Line(BC_Base+BC_DIRICHLET) = {1001:1002,2001:2002};
 ElseIf (PDEName == EULER)
-	Physical Point(BC_Base+PERIODIC_XL) = {1,3};
-	Physical Point(BC_Base+PERIODIC_XR) = {2,4};
-	Physical Point(BC_Base+PERIODIC_YL) = {1,2};
-	Physical Point(BC_Base+PERIODIC_YR) = {3,4};
+    If (Geom_Adv == GEOM_ADV_MANUFACTURED)
+        Physical Line(BC_Straight+BC_RIEMANN) = {2001,2002};
+        Physical Line(BC_Curved+BC_SLIPWALL)  = {1001,1002};
+    Else
+        Physical Point(BC_Base+PERIODIC_XL) = {1,3};
+        Physical Point(BC_Base+PERIODIC_XR) = {2,4};
+        Physical Point(BC_Base+PERIODIC_YL) = {1,2};
+        Physical Point(BC_Base+PERIODIC_YR) = {3,4};
 
-	Physical Line(BC_Base+PERIODIC_XL) = {2001};
-	Physical Line(BC_Base+PERIODIC_XR) = {2002};
-	Physical Line(BC_Base+PERIODIC_YL) = {1001};
-	Physical Line(BC_Base+PERIODIC_YR) = {1002};
+        Physical Line(BC_Base+PERIODIC_XL) = {2001};
+        Physical Line(BC_Base+PERIODIC_XR) = {2002};
+        Physical Line(BC_Base+PERIODIC_YL) = {1001};
+        Physical Line(BC_Base+PERIODIC_YR) = {1002};
 
-	// Periodic Indicator (Slave = Master)
+        // Periodic Indicator (Slave = Master)
 
-	Periodic Line {2002} = {2001}; // Periodic (x)
-	Periodic Line {1002} = {1001}; // Periodic (y)
+        Periodic Line {2002} = {2001}; // Periodic (x)
+        Periodic Line {1002} = {1001}; // Periodic (y)
+    EndIf
 ElseIf (PDEName == NAVIERSTOKES)
 	// Periodic in x
 	Physical Point(BC_Base+PERIODIC_XL) = {1,3};

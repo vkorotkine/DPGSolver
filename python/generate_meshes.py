@@ -73,8 +73,12 @@ def add_gmsh_setnumber(gmsh_args,MeshType,Paths):
 		gmsh_args += get_gmsh_number(gmsh_args,"Geom_AR_1",Paths)
 
 	gmsh_args += ' -setnumber Geom_Adv '
+	print('MeshType',MeshType.GeomSpecifier)
 	if (MeshType.GeomSpecifier.find('YL') != -1):
 		gmsh_args += get_gmsh_number(gmsh_args,"Geom_Adv_YL",Paths)
+	elif (MeshType.GeomSpecifier.find('EllipticPipe') != -1):
+		print('here?')
+		gmsh_args += get_gmsh_number(gmsh_args,"Geom_Adv_Manufactured",Paths)
 	else: # Default
 		gmsh_args += get_gmsh_number(gmsh_args,"Geom_Adv_NONE",Paths)
 

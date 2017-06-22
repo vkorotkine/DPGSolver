@@ -47,6 +47,7 @@ GEOM_AR_3 = 3;
 
 GEOM_ADV_NONE = 0; // Dummy
 GEOM_ADV_YL   = 1; // (ADV)ection (Y)-coord (L)eft
+GEOM_ADV_MANUFACTURED = 2; // For Manufactured solutions
 
 
 // MeshCurving Specifiers

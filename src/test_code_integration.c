@@ -84,6 +84,8 @@ static void update_TestCase(void)
 				strcpy(DB.TestCase,"Euler_PeriodicVortex_Stationary");
 			else
 				strcpy(DB.TestCase,"Euler_PeriodicVortex");
+		} else if (strstr(DB.TestCase,"EllipticPipe")) {
+			strcpy(DB.TestCase,"Euler_EllipticPipe");
 		} else {
 			EXIT_UNSUPPORTED;
 		}

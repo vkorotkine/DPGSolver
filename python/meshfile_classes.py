@@ -139,13 +139,16 @@ class TestCase_class:
 				MeshCurving.extend((''           for i in range (0,2)))
 				MeshCurving.extend(('Curved'     for i in range (0,1)))
 				MeshCurving.extend(('ToBeCurved' for i in range (0,6)))
+				MeshCurving.extend(('ToBeCurved' for i in range (0,1)))
 
 				MeshTypes.extend(('TRI','QUAD'))
 				MeshTypes.append(('MIXED2D'))
 				MeshTypes.extend(('MIXED2D','MIXED3D_TP','MIXED3D_HW','TET','HEX','WEDGE'))
+				MeshTypes.extend(('TRI' for i in range(0,1)))
 
 				MeshTypesPrefix.extend(('PeriodicVortex_'   for i in range(0,2)))
 				MeshTypesPrefix.extend(('SupersonicVortex_' for i in range(0,7)))
+				MeshTypesPrefix.extend(('EllipticPipe_' for i in range(0,1)))
 
 				NTotal = len(MeshTypes)
 				if   (MeshName.find('all')    != -1):

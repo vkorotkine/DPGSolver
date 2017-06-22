@@ -210,6 +210,16 @@ data->PMin = 2;
 					EXIT_UNSUPPORTED;
 				}
 			}
+		} else if (strstr(TestName,"n-Elliptic_Pipe")) {
+			if (strstr(TestName,"ToBeCurved")) {
+				if (strstr(TestName,"TRI")) {
+					strcpy(data->argvNew[1],"test/Euler/Test_Euler_EllipticPipe_ToBeCurvedTRI");
+				} else {
+					EXIT_UNSUPPORTED;
+				}
+			} else {
+				EXIT_UNSUPPORTED;
+			}
 		} else {
 			EXIT_UNSUPPORTED;
 		}
