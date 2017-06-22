@@ -104,7 +104,9 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 		}
 	} else if (strstr(TestName,"Poisson")) {
 		data->CheckSymmetric = 1;
-		if (strstr(TestName,"MIXED2D")) {
+		if (strstr(TestName,"1D")) {
+			strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Cube_LINE");
+		} else if (strstr(TestName,"MIXED2D")) {
 			strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ball_HollowSection_CurvedMIXED2D");
 		} else {
 			// 3D TET test previously had Nref = 0, update_argv = 1

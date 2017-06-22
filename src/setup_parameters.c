@@ -272,8 +272,8 @@ static void setup_parameters_DG(void)
 			SF_BE[P][i] = calloc(2 , sizeof ***SF_BE);
 
 		// TP (2D is possibly higher than P8, 3D was tested on the PeriodicVortex case)
-		if (d == 1 || (d == 2 && P > 8) || (d == 3 && P > 2)) SF_BE[P][0][0] = 1;
-		if (d == 1 || (d == 2 && P > 8) || (d == 3 && P > 2)) SF_BE[P][0][1] = 1;
+		if ((d == 2 && P > 8) || (d == 3 && P > 2)) SF_BE[P][0][0] = 1;
+		if ((d == 2 && P > 8) || (d == 3 && P > 2)) SF_BE[P][0][1] = 1;
 
 		// WEDGE
 		if (d == 3 && P > 4) SF_BE[P][1][0] = 1;
@@ -288,10 +288,10 @@ static void setup_parameters_DG(void)
 		// ToBeDeleted: These orders may not be sufficient for 3D. To be investigated.
 		PGc[P]    = max(P,u1);
 //		PGc[P]    = P+1;
-		PCs[P][0] = (d-1)*PGs;
+		PCs[P][0] = max((d-1),u1)*PGs;
 		PCs[P][1] = (d-1)*max(PGs-1,u1);
 		PCs[P][2] = (d-1)*PGs;
-		PCc[P][0] = (d-1)*PGc[P];
+		PCc[P][0] = max((d-1)*PGc[P],PGs);
 		PCc[P][1] = (d-1)*max(PGc[P]-1,u1);
 		PCc[P][2] = (d-1)*PGc[P];
 		PJs[P][0] = PGs;
@@ -357,11 +357,18 @@ static void setup_parameters_DG(void)
 
 				strcpy(NodeTypeFrs[P][0],"GLL");
 				strcpy(NodeTypeFrc[P][0],"GLL");
-			} else {
+			} else if (strstr(DB.NodeType,"GL")) {
 				strcpy(NodeTypeS  [P][0],"GL");
 				strcpy(NodeTypeF  [P][0],"GL");
 				strcpy(NodeTypeFrs[P][0],"GL");
 				strcpy(NodeTypeFrc[P][0],"GL");
+			} else if (strstr(DB.NodeType,"EQ")) {
+				strcpy(NodeTypeS  [P][0],"EQ");
+				strcpy(NodeTypeF  [P][0],"EQ");
+				strcpy(NodeTypeFrs[P][0],"EQ");
+				strcpy(NodeTypeFrc[P][0],"EQ");
+			} else {
+				EXIT_UNSUPPORTED;
 			}
 
 			// Interpolation (SI)
@@ -379,32 +386,38 @@ static void setup_parameters_DG(void)
 			} else if (strstr(DB.NodeType,"EQ")) {
 				strcpy(NodeTypeS  [P][1],"EQ");
 				strcpy(NodeTypeF  [P][1],"EQ");
-			} else {
+			} else if (strstr(DB.NodeType,"WSH")) {
 				strcpy(NodeTypeS  [P][1],"WSH");
 				strcpy(NodeTypeF  [P][1],"WSH");
+			} else {
+				EXIT_UNSUPPORTED;
 			}
 			strcpy(NodeTypeFrs[P][1],"NOT_USED");
 			strcpy(NodeTypeFrc[P][1],"NOT_USED");
 
 			// Interpolation (PYR)
-			if (strstr(DB.NodeType,"GLL")) {
-				if (P == 0)
-					strcpy(NodeTypeS[P][2],"GL");
-				else
-					strcpy(NodeTypeS[P][2],"GLL");
+			if (d == 3) {
+				if (strstr(DB.NodeType,"GLL")) {
+					if (P == 0)
+						strcpy(NodeTypeS[P][2],"GL");
+					else
+						strcpy(NodeTypeS[P][2],"GLL");
 
-				if (PF[P] == 0)
-					strcpy(NodeTypeF[P][2],"GL");
-				else
-					strcpy(NodeTypeF[P][2],"GLL");
+					if (PF[P] == 0)
+						strcpy(NodeTypeF[P][2],"GL");
+					else
+						strcpy(NodeTypeF[P][2],"GLL");
 
-				strcpy(NodeTypeFrs[P][2],"GLL");
-				strcpy(NodeTypeFrc[P][2],"GLL");
-			} else {
-				strcpy(NodeTypeS  [P][2],"GL");
-				strcpy(NodeTypeF  [P][2],"GL");
-				strcpy(NodeTypeFrs[P][2],"GL");
-				strcpy(NodeTypeFrc[P][2],"GL");
+					strcpy(NodeTypeFrs[P][2],"GLL");
+					strcpy(NodeTypeFrc[P][2],"GLL");
+				} else if (strstr(DB.NodeType,"GL")) {
+					strcpy(NodeTypeS  [P][2],"GL");
+					strcpy(NodeTypeF  [P][2],"GL");
+					strcpy(NodeTypeFrs[P][2],"GL");
+					strcpy(NodeTypeFrc[P][2],"GL");
+				} else {
+					EXIT_UNSUPPORTED;
+				}
 			}
 
 			// Integration
@@ -687,10 +700,10 @@ static void setup_parameters_L2proj_DG(void)
 		PGc[P]    = max(P+PG_add,u1);
 //		PGc[P]    = max(P+PG_add,(unsigned int) 2);
 //		PGc[P]    = 1;
-		PCs[P][0] = (d-1)*PGs;
+		PCs[P][0] = max((d-1),u1)*PGs;
 		PCs[P][1] = (d-1)*max(PGs-1,u1);
 		PCs[P][2] = (d-1)*PGs;
-		PCc[P][0] = (d-1)*PGc[P];
+		PCc[P][0] = max((d-1)*PGc[P],PGs);
 		PCc[P][1] = (d-1)*max(PGc[P]-1,u1);
 		PCc[P][2] = (d-1)*PGc[P];
 		PJs[P][0] = PGs;

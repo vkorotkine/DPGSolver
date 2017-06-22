@@ -255,9 +255,6 @@ static void boundary_Poisson_c(struct S_BC *const BCdata)
 	                   Nel     = BCdata->Nel,
 	                   NnTotal = Nn*Nel;
 
-	if (d <= 1)
-		EXIT_UNSUPPORTED;
-
 	double *const XYZB = compute_XYZ_boundary(BCdata); // free
 
 	double complex const *const WL = BCdata->WL_c,

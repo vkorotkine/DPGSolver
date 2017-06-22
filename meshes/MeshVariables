@@ -8,7 +8,7 @@ L2_PROJ_H :=
 
 ADVECTION_TEST := n-Cube/Advection/Steady/Default/YL/n-Cube2D_TRI0x.msh n-Cube/Advection/Steady/Default/YL/n-Cube2D_QUAD0x.msh
 
-POISSON_TEST := n-Ball_HollowSection/Poisson/n-Ball_HollowSection2D_CurvedMIXED2D0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedTRI0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedQUAD0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedMIXED2D0x.msh
+POISSON_TEST := n-Ball_HollowSection/Poisson/n-Ball_HollowSection2D_CurvedMIXED2D0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedTRI0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedQUAD0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedMIXED2D0x.msh n-Cube/Poisson/Dirichlet/n-Cube1D_LINE2x.msh
 
 EULER_TEST := n-Cube/Euler/Periodic/PeriodicVortex/n-Cube2D_TRI1x.msh n-Cube/Euler/Periodic/PeriodicVortex/n-Cube2D_QUAD1x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection2D_CurvedMIXED2D0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection2D_ToBeCurvedMIXED2D0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection3D_ToBeCurvedMIXED3D_TP0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection3D_ToBeCurvedMIXED3D_HW0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection3D_ToBeCurvedTET1x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection3D_ToBeCurvedHEX0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection3D_ToBeCurvedWEDGE0x.msh
 
@@ -24,7 +24,7 @@ $(L2_PROJ_H) : n-Cube/n-Cube2D.geo n-Cube/n-Cube3D.geo
 
 $(ADVECTION_TEST) : n-Cube/n-Cube2D.geo 
 
-$(POISSON_TEST) : n-Ball_HollowSection/n-Ball_HollowSection2D.geo n-Ellipsoid_HollowSection/n-Ellipsoid_HollowSection2D.geo 
+$(POISSON_TEST) : n-Ball_HollowSection/n-Ball_HollowSection2D.geo n-Ellipsoid_HollowSection/n-Ellipsoid_HollowSection2D.geo n-Cube/n-Cube1D.geo 
 
 $(EULER_TEST) : n-Cube/n-Cube2D.geo n-Cylinder_HollowSection/n-Cylinder_HollowSection2D.geo n-Cylinder_HollowSection/n-Cylinder_HollowSection3D.geo 
 

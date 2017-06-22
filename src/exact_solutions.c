@@ -186,15 +186,19 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
 			printf("Error: Make sure to set Poisson_scale.\n"), EXIT_MSG;
 
 		for (i = 0; i < Nn; i++) {
-			if (d == 2)
+			if (d == 1)
+				UEx[i] = sin(2.0*PI*X[i]);
+			else if (d == 2)
 //				UEx[i] = sin(PI*X[i])*sin(PI*Y[i]);
 				UEx[i] = cos(Poisson_scale*PI*X[i])*cos(Poisson_scale*PI*Y[i]);
 //				UEx[i] = X[i]*Y[i]*sin(PI*X[i])*sin(PI*Y[i]);
 			else if (d == 3)
 				UEx[i] = sin(PI*X[i])*sin(PI*Y[i])*sin(PI*Z[i]);
+			else
+				EXIT_UNSUPPORTED;
 		}
 	} else {
-		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
+		EXIT_UNSUPPORTED;
 	}
 }
 
@@ -215,7 +219,9 @@ void compute_exact_gradient(const unsigned int Nn, const double *XYZ, double *QE
 	if (strstr(TestCase,"Poisson")) {
 		double Poisson_scale = DB.Poisson_scale;
 		for (i = 0; i < Nn; i++) {
-			if (d == 2) {
+			if (d == 1) {
+				QEx[Nn*0+i] = 2.0*PI*cos(2.0*PI*X[i]);
+			} else if (d == 2) {
 //				QEx[Nn*0+i] = PI*cos(PI*X[i])*sin(PI*Y[i]);
 //				QEx[Nn*1+i] = PI*sin(PI*X[i])*cos(PI*Y[i]);
 				QEx[Nn*0+i] = -Poisson_scale*PI*sin(Poisson_scale*PI*X[i])*cos(Poisson_scale*PI*Y[i]);
@@ -226,6 +232,8 @@ void compute_exact_gradient(const unsigned int Nn, const double *XYZ, double *QE
 				QEx[Nn*0+i] = PI*cos(PI*X[i])*sin(PI*Y[i])*sin(PI*Z[i]);
 				QEx[Nn*1+i] = PI*sin(PI*X[i])*cos(PI*Y[i])*sin(PI*Z[i]);
 				QEx[Nn*2+i] = PI*sin(PI*X[i])*sin(PI*Y[i])*cos(PI*Z[i]);
+			} else {
+				EXIT_UNSUPPORTED;
 			}
 		}
 	} else if (strstr(TestCase,"TaylorCouette")) {
@@ -266,7 +274,7 @@ void compute_exact_gradient(const unsigned int Nn, const double *XYZ, double *QE
 			EXIT_UNSUPPORTED;
 		}
 	} else {
-		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
+		EXIT_UNSUPPORTED;
 	}
 }
 
@@ -295,17 +303,21 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 
 		for (eq = 0; eq < Neq; eq++) {
 			for (n = 0; n < Nn; n++) {
-				if (d == 2)
+				if (d == 1)
+					source[eq*Nn+n] = -pow(2.0*PI,2.0)*sin(2.0*PI*X[n]);
+				else if (d == 2)
 //					source[eq*Nn+n] = -2.0*PI*PI*sin(PI*X[n])*sin(PI*Y[n]);
 					source[eq*Nn+n] = -2.0*pow(Poisson_scale*PI,2.0)*cos(Poisson_scale*PI*X[n])*cos(Poisson_scale*PI*Y[n]);
 //					source[eq*Nn+n] = PI*(Y[n]*sin(PI*Y[n])*(2*cos(PI*X[n])-PI*X[n]*sin(PI*X[n]))
 //					                     +X[n]*sin(PI*X[n])*(2*cos(PI*Y[n])-PI*Y[n]*sin(PI*Y[n])));
 				else if (d == 3)
 					source[eq*Nn+n] = -3.0*PI*PI*sin(PI*X[n])*sin(PI*Y[n])*sin(PI*Z[n]);
+				else
+					EXIT_UNSUPPORTED;
 			}
 		}
 	} else {
-		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
+		EXIT_UNSUPPORTED;
 	}
 }
 

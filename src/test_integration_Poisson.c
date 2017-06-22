@@ -85,7 +85,7 @@
 
 void test_integration_Poisson(int nargc, char **argv)
 {
-	bool const RunTests_linearization = 1,
+	bool const RunTests_linearization = 0,
 	           RunTests_conv_order    = 1;
 
 	char **argvNew, *PrintName;
@@ -107,6 +107,9 @@ void test_integration_Poisson(int nargc, char **argv)
 		data_l->nargc     = nargc;
 		data_l->argvNew   = argvNew;
 		data_l->PrintName = PrintName;
+
+		// 1D
+		test_linearization(data_l,"Poisson_1D");
 
 		// 2D (Mixed TRI/QUAD mesh)
 		test_linearization(data_l,"Poisson_MIXED2D");
@@ -130,6 +133,8 @@ void test_integration_Poisson(int nargc, char **argv)
 		data_c->nargc     = nargc;
 		data_c->argvNew   = argvNew;
 		data_c->PrintName = PrintName;
+
+//		test_conv_order(data_c,"Poisson_n-Cube_LINE");
 
 //		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_TRI");
 //		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_QUAD");

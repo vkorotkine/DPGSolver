@@ -114,7 +114,13 @@ data->PMin = 2;
 		data->MLMax = 4;
 		data->PG_add        = 0;
 		data->IntOrder_add  = 2; // See comments
-		if (strstr(TestName,"n-Ellipsoid_HollowSection")) {
+		if (strstr(TestName,"n-Cube")) {
+			if (strstr(TestName,"LINE")) {
+				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Cube_LINE");
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else if (strstr(TestName,"n-Ellipsoid_HollowSection")) {
 			if (strstr(TestName,"TRI")) {
 				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ellipsoid_HollowSection_CurvedTRI");
 			} else if (strstr(TestName,"QUAD")) {
@@ -336,7 +342,7 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 		}
 
 		// Output mesh edges to paraview
-		if (TestDB.PGlobal == 3 && TestDB.ML <= 2) {
+		if (DB.d > 1 && TestDB.PGlobal == 3 && TestDB.ML <= 2) {
 			char *const fNameOut = get_fNameOut("MeshEdges_");
 			output_to_paraview(fNameOut);
 			free(fNameOut);

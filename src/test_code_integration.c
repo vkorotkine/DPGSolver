@@ -63,11 +63,12 @@ static void update_TestCase(void)
 		} else {
 			EXIT_UNSUPPORTED;
 		}
-	} else if (strstr(DB.TestCase,"Poisson_Ringleb")               ||
-	    strstr(DB.TestCase,"Poisson_n-Ball") ||
-	    strstr(DB.TestCase,"Poisson_n-Ellipsoid")   ||
-	    strstr(DB.TestCase,"Poisson_HoldenRamp")            ||
-	    strstr(DB.TestCase,"Poisson_GaussianBump")) {
+	} else if (strstr(DB.TestCase,"Poisson_Ringleb") ||
+	           strstr(DB.TestCase,"Poisson_n-Cube") ||
+	           strstr(DB.TestCase,"Poisson_n-Ball") ||
+	           strstr(DB.TestCase,"Poisson_n-Ellipsoid") ||
+	           strstr(DB.TestCase,"Poisson_HoldenRamp") ||
+	           strstr(DB.TestCase,"Poisson_GaussianBump")) {
 		strcpy(DB.TestCase,"Poisson");
 	} else if (strstr(DB.TestCase,"update_h")) {
 		strcpy(DB.TestCase,"Poisson_Test");

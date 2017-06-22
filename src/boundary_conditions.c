@@ -229,7 +229,9 @@ double *compute_XYZ_boundary(struct S_BC *const BCdata)
 
 	double *XYZB = malloc(NnTotal*d * sizeof *XYZB); // keep
 	if (BC_Curved == 2) {
-		if (d == 2) {
+		if (d == 1) {
+			EXIT_UNSUPPORTED; // Should not be curved
+		} else if (d == 2) {
 			compute_normal_displacement(NnTotal,1,XYZ,nL,XYZB,BC);
 		} else if (d == 3) {
 			// Using normal projection in 3D will result in gaps in the projected mesh. Investigate whether this is a
@@ -297,9 +299,6 @@ static void boundary_Poisson(struct S_BC *const BCdata)
 	                   Nn      = BCdata->Nn,
 	                   Nel     = BCdata->Nel,
 	                   NnTotal = Nn*Nel;
-
-	if (d <= 1)
-		EXIT_UNSUPPORTED;
 
 	double *const XYZB = compute_XYZ_boundary(BCdata); // free
 

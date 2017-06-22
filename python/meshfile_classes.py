@@ -117,9 +117,12 @@ class TestCase_class:
 				self.VarName = 'POISSON_TEST'
 
 				MeshCurving.extend(('Curved'     for i in range (0,4)))
+				MeshCurving.extend((''           for i in range (0,1)))
 				MeshTypes.extend(('MIXED2D','TRI','QUAD','MIXED2D'))
+				MeshTypes.extend(('LINE' for i in range(0,1)))
 				MeshTypesPrefix.extend(('n-Ball_HollowSection_'      for i in range(0,1)))
 				MeshTypesPrefix.extend(('n-Ellipsoid_HollowSection_' for i in range(0,3)))
+				MeshTypesPrefix.extend(('n-Cube_'                    for i in range(0,1)))
 
 				NTotal = len(MeshTypes)
 				if (MeshName.find('all') != -1):

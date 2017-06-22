@@ -110,20 +110,6 @@ $(DEPDIR)/%.d : %.c
 	@sed -i -e 's|.*:|$(OBJDIR)/$*.o $(DEPDIR)/$*.d:|' $@
 	@echo Creating/updating: $@
 
-# Additional dependencies needed for modified dynamic memory allocation
-# Upon reflection, this should not be necessary. (ToBeDeleted)
-#DYN_MEM_DEPS_NOPATH := S_ELEMENT.h S_VOLUME.h S_FACE.h
-#DYN_MEM_DEPS        := $(INCDIR)/S_ELEMENT.h $(INCDIR)/S_VOLUME.h $(INCDIR)/S_FACE.h
-
-#$(DYN_MEM_DEPS_NOPATH) : $(DYN_MEM_DEPS)
-#$(DYN_MEM_DEPS) : memory_constructors.c
-#	@echo
-#	@echo Updating memory_constructor dependencies.
-#	@echo
-#	@echo here
-#	@echo $(wildcard $(SRCDIR)/array_*)
-#	@touch $(DYN_MEM_DEPS)
-
 
 # Create directories if not present
 $(OBJECTS): | $(OBJDIR)
@@ -140,7 +126,6 @@ $(EXECDIR):
 
 
 OUTPUT_LIST   := paraview errors results
-#TESTCASE_LIST := Poisson SupersonicVortex InviscidChannel SubsonicNozzle PrandtlMeyer
 TESTCASE_LIST := Advection_Default \
                  Advection_Peterson \
                  Poisson \
@@ -150,7 +135,8 @@ TESTCASE_LIST := Advection_Default \
                  NavierStokes_TaylorCouette \
                  NavierStokes_PlaneCouette
 
-MESHTYPE_LIST := TRI CurvedTRI ToBeCurvedTRI \
+MESHTYPE_LIST := LINE \
+                 TRI CurvedTRI ToBeCurvedTRI \
                  QUAD CurvedQUAD ToBeCurvedQUAD \
                  TET ToBeCurvedTET \
                  HEX ToBeCurvedHEX \

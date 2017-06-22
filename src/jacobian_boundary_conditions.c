@@ -125,14 +125,9 @@ static void jacobian_boundary_Poisson(struct S_BC *const BCdata)
 	 *		Currently does not support computing dQBd*.
 	 */
 
-	unsigned int const d   = BCdata->d,
-	                   Nn  = BCdata->Nn,
-	                   Nel = BCdata->Nel;
-
-	unsigned int const NnTotal = Nn*Nel;
-
-	if (d <= 1)
-		EXIT_UNSUPPORTED;
+	unsigned int const Nn  = BCdata->Nn,
+	                   Nel = BCdata->Nel,
+	                   NnTotal = Nn*Nel;
 
 	double *const dWBdWL = BCdata->dWBdWL;
 
