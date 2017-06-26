@@ -187,7 +187,7 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
 
 		for (i = 0; i < Nn; i++) {
 			if (d == 1)
-				UEx[i] = sin(2.0*PI*X[i]);
+				UEx[i] = -sin(PI*X[i]);
 			else if (d == 2)
 //				UEx[i] = sin(PI*X[i])*sin(PI*Y[i]);
 				UEx[i] = cos(Poisson_scale*PI*X[i])*cos(Poisson_scale*PI*Y[i]);
@@ -220,7 +220,7 @@ void compute_exact_gradient(const unsigned int Nn, const double *XYZ, double *QE
 		double Poisson_scale = DB.Poisson_scale;
 		for (i = 0; i < Nn; i++) {
 			if (d == 1) {
-				QEx[Nn*0+i] = 2.0*PI*cos(2.0*PI*X[i]);
+				QEx[Nn*0+i] = -PI*cos(PI*X[i]);
 			} else if (d == 2) {
 //				QEx[Nn*0+i] = PI*cos(PI*X[i])*sin(PI*Y[i]);
 //				QEx[Nn*1+i] = PI*sin(PI*X[i])*cos(PI*Y[i]);
@@ -304,7 +304,7 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 		for (eq = 0; eq < Neq; eq++) {
 			for (n = 0; n < Nn; n++) {
 				if (d == 1)
-					source[eq*Nn+n] = -pow(2.0*PI,2.0)*sin(2.0*PI*X[n]);
+					source[eq*Nn+n] = pow(PI,2.0)*sin(PI*X[n]);
 				else if (d == 2)
 //					source[eq*Nn+n] = -2.0*PI*PI*sin(PI*X[n])*sin(PI*Y[n]);
 					source[eq*Nn+n] = -2.0*pow(Poisson_scale*PI,2.0)*cos(Poisson_scale*PI*X[n])*cos(Poisson_scale*PI*Y[n]);

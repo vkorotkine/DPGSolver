@@ -948,6 +948,8 @@ void evaluate_mesh_regularity(double *mesh_quality)
 			*mesh_quality = r_ratio/Ecount;
 		else
 			printf("Error: Unsupported.\n"), EXIT_MSG;
+	} else if (d == 1) {
+		*mesh_quality = 1.0;
 	}
 
 //	printf("%d % .3e\n",DB.ML,*mesh_quality);

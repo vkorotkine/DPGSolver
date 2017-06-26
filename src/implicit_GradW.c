@@ -69,7 +69,7 @@ void implicit_GradW_VOLUME(void)
 
 		DxyzInfo->Nbf = VDATA->OPS[0]->NvnS;
 		DxyzInfo->Nn  = VDATA->OPS[0]->NvnI;
-		DxyzInfo->D   = (double const *const *const) VDATA->OPS[0]->D_Weak;
+		DxyzInfo->D   = (double const *const *const) VDATA->OPS[0]->D_Strong;
 		DxyzInfo->C   = VOLUME->C_vI;
 
 		double const *const ChiS_vI = VDATA->OPS[0]->ChiS_vI;
@@ -77,19 +77,18 @@ void implicit_GradW_VOLUME(void)
 		double **const QhatV_What = VOLUME->QhatV_What;
 		for (size_t dim = 0; dim < d; dim++) {
 			DxyzInfo->dim = dim;
-			double *const Dxyz = compute_Dxyz(DxyzInfo,d); // free
+			double *const Dxyz = compute_Dxyz_strong(DxyzInfo,d); // free
 
 			// Note: The detJ_vI term cancels with the gradient operator (Zwanenburg(2016), eq. (B.2))
 			if (DB.Collocated) { // ChiS_vI == I
 				for (size_t i = 0; i < NvnS*NvnS; i++)
 					QhatV_What[dim][i] = Dxyz[i];
 			} else {
-				mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,0.0,Dxyz,ChiS_vI,QhatV_What[dim]);
+				mm_d(CBRM,CBT,CBNT,NvnS,NvnS,NvnI,1.0,0.0,ChiS_vI,Dxyz,QhatV_What[dim]);
 			}
 			free(Dxyz);
 
 			// Compute intermediate Qhat contribution
-			mkl_dimatcopy('R','T',NvnS,NvnS,1.0,QhatV_What[dim],NvnS,NvnS);
 			mm_CTN_d(NvnS,Nvar,NvnS,QhatV_What[dim],VOLUME->What,VOLUME->QhatV[dim]);
 
 			for (size_t i = 0; i < NvnS*Nvar; i++)

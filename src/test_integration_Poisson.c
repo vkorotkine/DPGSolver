@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "Macros.h"
 #include "Parameters.h"
 
 #include "test_code_integration_conv_order.h"
@@ -85,8 +86,8 @@
 
 void test_integration_Poisson(int nargc, char **argv)
 {
-	bool const RunTests_linearization = 0,
-	           RunTests_conv_order    = 1;
+	bool const RunTests_linearization = 1,
+	           RunTests_conv_order    = 0;
 
 	char **argvNew, *PrintName;
 
@@ -134,7 +135,7 @@ void test_integration_Poisson(int nargc, char **argv)
 		data_c->argvNew   = argvNew;
 		data_c->PrintName = PrintName;
 
-//		test_conv_order(data_c,"Poisson_n-Cube_LINE");
+		test_conv_order(data_c,"Poisson_n-Cube_LINE");
 
 //		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_TRI");
 //		test_conv_order(data_c,"Poisson_n-Ellipsoid_HollowSection_QUAD");

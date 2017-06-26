@@ -20,12 +20,13 @@ struct S_Dxyz {
 };
 
 extern double *compute_Dxyz(struct S_Dxyz *DxyzInfo, unsigned int d);
+extern double *compute_Dxyz_strong (struct S_Dxyz *DxyzInfo, unsigned int d);
 
 
 struct S_OPERATORS_V {
 	// Standard
 	unsigned int NvnI, NvnS;
-	double const *ChiS_vI, *I_Weak, *const *D_Weak, *I_vG_vI;
+	double const *ChiS_vI, *I_Weak, *const *D_Weak, *const *D_Strong, *I_vG_vI;
 
 	// Sparse
 	struct S_OpCSR const *const *D_Weak_sp;
@@ -64,6 +65,8 @@ extern void finalize_VOLUME_LHSQV_Weak    (struct S_VOLUME *const VOLUME);
 
 
 // FACE structs and functions
+
+#define PENALIZATION_SCALING 1.01
 
 struct S_OPERATORS_F {
 	// Standard

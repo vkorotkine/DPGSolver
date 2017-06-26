@@ -21,6 +21,8 @@
 #include "memory_constructors.h"
 #include "memory_destructors.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Update FACE information/operators in ELEMENTs which have undergone hp refinement.
@@ -55,6 +57,22 @@ static void get_FACE_IndVL(const unsigned int Vf, const unsigned int fh, const u
 	f = Vf/NFREFMAX;
 
 	switch (VType) {
+	case LINE:
+		if (fh != 0)
+			EXIT_UNSUPPORTED;
+
+		switch (f) {
+		default:
+		case 0:
+			*IndVLh = 0;
+			*Vfh    = 0;
+			break;
+		case 1:
+			*IndVLh = 1;
+			*Vfh    = 1;
+			break;
+		}
+		break;
 	case TRI:
 		switch (f) {
 		default: // FACE 0
@@ -395,12 +413,15 @@ static unsigned int get_FACE_VfR(const unsigned int fh, const unsigned int IndOr
 	 *		no longer be true and IndOrd would also need to be returned.
 	 */
 
-	unsigned int Vfl;
-
-	// silence
-	Vfl = 0;
+	unsigned int Vfl = 0;
 
 	switch (FType) {
+	case POINT:
+		if (IndOrd != 0)
+			EXIT_UNSUPPORTED;
+
+		Vfl = 0;
+		break;
 	case LINE:
 		// Isotropic refinement only
 		switch (IndOrd) {
@@ -525,7 +546,8 @@ static unsigned int get_FACE_type(struct S_FACE *FACE)
 	fIn   = VfL/NFREFMAX;
 
 	switch (d) {
-	default: // d = 3
+	default:
+	case 3:
 		if (VType == HEX || (VType == WEDGE && fIn < 3) || (VType == PYR && fIn > 3))
 			return QUAD;
 		else
@@ -546,6 +568,9 @@ static unsigned int get_fhMax(const unsigned int VType, const unsigned int href_
 		printf("Error: Unsupported href_type (%d).\n",href_type), EXIT_MSG;
 
 	switch (VType) {
+	case LINE:
+		return 1;
+		break;
 	case TRI:
 	case QUAD:
 		// Supported href_type: 0 (Isotropic)
@@ -591,6 +616,19 @@ static void set_FACE_Out(const unsigned int vh, const unsigned int fIn, struct S
 
 	VType = VOLUME->type;
 	switch (VType) {
+	case LINE:
+		if (vh > 0) // Should already have found all faces
+			EXIT_UNSUPPORTED;
+
+		if (fIn != 1) // Only internal FACE
+			EXIT_UNSUPPORTED;
+
+		IndVhOut = 1;
+		f        = 0;
+		IndOrdLR = 0;
+		IndOrdRL = 0;
+
+		break;
 	case TRI:
 		// Isotropic refinement only.
 		IndVhOut = 3;
@@ -805,6 +843,18 @@ static void set_FACE_Out_External(struct S_FACE *FACEc, struct S_VOLUME *VOLUME)
 	VType = VOLUME->type;
 	VfR = FACEc->VfR;
 	switch (VType) {
+	case LINE:
+		switch (VfR) {
+		case 0:
+			IndVhOut = 0; break;
+		case NFREFMAX:
+			IndVhOut = 1; break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+		f = VfR/NFREFMAX;
+		break;
 	case TRI:
 		// Isotropic refinement only.
 		switch (VfR) {
@@ -1061,6 +1111,11 @@ static void get_Indsf(struct S_FACE *FACE, unsigned int *sfIn, unsigned int *sfO
 		Vfl   = Vf%NFREFMAX;
 
 		switch (VType) {
+		case LINE:
+			if (Vfl != 0)
+				EXIT_UNSUPPORTED;
+			sf[i] = 0;
+			break;
 		case TRI:
 		case QUAD:
 			// Isotropic refinement only.
@@ -1195,6 +1250,22 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 	VType = VOLUME->type;
 	for (f = 0; f < Nf; f++) {
 		switch (VType) {
+		case LINE:
+			sfMax = 1;
+			switch (f) {
+			case 0:
+				IndVc[0] = 0;
+				Indsf[0] = 0*NSUBFMAX;
+				break;
+			case 1:
+				IndVc[0] = 1;
+				Indsf[0] = 1*NSUBFMAX;
+				break;
+			default:
+				EXIT_UNSUPPORTED;
+				break;
+			}
+			break;
 		case TRI:
 			// Supported: Isotropic refinement
 			// NOTE: The computation of FACE->VfR must be modified if anisotropic refinement is enabled.
@@ -1383,6 +1454,14 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 	// Mark internal FACEs for updating
 	// Note: sfMax_i = ((#ELEMENTc)*(Nfc)-(Nfp)*(Nsubfp))/2; (c)hild, (p)arent
 	switch (VType) {
+	case LINE:
+		sfMax_i = 1;
+
+		IndVc[0] = 0;
+		Indsf[0] = 1;
+		for (i = 0; i < sfMax_i; i++)
+			Indsf[i] *= NSUBFMAX;
+		break;
 	case TRI:
 		// Supported: Isotropic refinement
 		sfMax_i = 3;
@@ -1700,14 +1779,18 @@ void update_FACE_hp(void)
 					for (f = 0; f < Nf; f++) {
 						Indf = f*NSUBFMAX;
 						sfMax = NsubF[f];
-						if (sfMax == 1) { // Create new FACEs between two VOLUMEs which were previously on the same level.
+						if (sfMax == 1 && l == VOLUME->FACE[Indf]->level) {
+							// Create new FACE(s) between two VOLUMEs which were previously on the same level.
+
+							// For 1D LINE elements, sfMax == 1, and the second condition is used to guarantee that a
+							// FACE is not created if unnecessary.
 							FACE = VOLUME->FACE[Indf];
 							FACE->update = 1;
 							FACE->adapt_type = HREFINE;
 
-							VL  = FACE->VL;
+							VL = FACE->VL;
 							VR = FACE->VR;
-							BC   = FACE->BC;
+							BC = FACE->BC;
 
 							internal_BC = (BC == 0 || (BC % BC_STEP_SC > 50));
 

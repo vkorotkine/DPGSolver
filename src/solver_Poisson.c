@@ -50,22 +50,57 @@ static void compute_Qhat(void)
 	/*
 	 *	Purpose:
 	 *		Compute the weak gradients and store LHSQ for use below.
+	 *
+	 *	Comments:
+	 *		LHSQ stores the weak derivative operator used for the 2nd equation; the "-ve" sign from the integration by
+	 *		parts is included.
+	 *
+	 *		The Dxyz matrices are computed here (for the 2nd time) to simplify the current implementation. This will be
+	 *		removed when the Poisson solver is made to work using the same functions as the Navier-Stokes solver.
 	 */
 
 	implicit_GradW_VOLUME();
 
 	unsigned int d = DB.d;
 
-	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		unsigned int const NvnS = VOLUME->NvnS;
+	struct S_OPERATORS_V *OPS[2];
+	for (size_t i = 0; i < 2; i++)
+		OPS[i] = malloc(sizeof *OPS[i]); // free
 
-		// Store contribution before multiplication by MInv
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		struct S_VDATA VDATA;
+
+		VDATA.OPS = (struct S_OPERATORS_V const *const *) OPS;
+		init_VDATA(&VDATA,VOLUME);
+
+		struct S_Dxyz DxyzInfo;
+
+		unsigned int const NvnS = VDATA.OPS[0]->NvnS,
+		                   NvnI = VDATA.OPS[0]->NvnI;
+
+		DxyzInfo.Nbf = VDATA.OPS[0]->NvnS;
+		DxyzInfo.Nn  = VDATA.OPS[0]->NvnI;
+		DxyzInfo.D   = (double const *const *const) VDATA.OPS[0]->D_Weak;
+		DxyzInfo.C   = VOLUME->C_vI;
+
+		double const *const ChiS_vI = VDATA.OPS[0]->ChiS_vI;
+
 		for (size_t dim = 0; dim < d; dim++) {
-			for (size_t i = 0; i < NvnS*NvnS; i++)
-				VOLUME->LHSQ[dim][i] = -VOLUME->QhatV_What[dim][i];
-			mkl_dimatcopy('R','T',NvnS,NvnS,1.0,VOLUME->LHSQ[dim],NvnS,NvnS);
+			DxyzInfo.dim = dim;
+			double *const Dxyz = compute_Dxyz(&DxyzInfo,d); // free
+			// Note: The detJ_vI term cancels with the gradient operator (Zwanenburg(2016), eq. (B.2))
+			if (DB.Collocated) { // ChiS_vI == I
+				for (size_t i = 0; i < NvnS*NvnS; i++)
+					VOLUME->LHSQ[dim][i] = -Dxyz[i];
+			} else {
+				mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,-1.0,0.0,Dxyz,ChiS_vI,VOLUME->LHSQ[dim]);
+			}
+			free(Dxyz);
 		}
 	}
+
+	for (size_t i = 0; i < 2; i++)
+		free(OPS[i]);
 
 	implicit_GradW_FACE();
 	implicit_GradW_finalize();

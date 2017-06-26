@@ -47,9 +47,9 @@ struct S_ELEMENT {
 	             *****D_vGc_fIs, *****D_vGc_fIc,
 	             ****I_fGs_vGc, ****I_fGc_vGc, ****I_fGs_vG2, ****I_fG2_vG2,
 	             ****I_eGs_vGc, ****I_eGc_vGc, ****I_eGs_vG2, ****I_eG2_vG2,
-	             ****Is_Weak_VV, ****Ic_Weak_VV,
+	             ****Is_Weak_VV, ****Ic_Weak_VV, ****Is_Strong_VV, ****Ic_Strong_VV,
 	             ****Is_Weak_FV, ****Ic_Weak_FV,
-	             *****Ds_Weak_VV, *****Dc_Weak_VV,
+	             *****Ds_Weak_VV, *****Dc_Weak_VV, *****Ds_Strong_VV, *****Dc_Strong_VV,
 	             ****L2hat_vS_vS,
 	             ****GfS_fIs, ****GfS_fIc;
 

@@ -116,6 +116,8 @@ data->PMin = 2;
 		data->IntOrder_add  = 2; // See comments
 		if (strstr(TestName,"n-Cube")) {
 			if (strstr(TestName,"LINE")) {
+//data->PrintEnabled = 1;
+//data->IntOrder_add  = 0;
 				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Cube_LINE");
 			} else {
 				EXIT_UNSUPPORTED;

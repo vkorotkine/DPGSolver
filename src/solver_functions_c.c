@@ -307,6 +307,7 @@ void coef_to_values_fI_c(struct S_FDATA *const FDATA, char const coef_type, char
 		} else {
 			EXIT_UNSUPPORTED;
 		}
+		chi *= PENALIZATION_SCALING;
 
 		// Add partial FACE contribution
 		if (chi != 0.0) {

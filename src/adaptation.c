@@ -112,6 +112,11 @@ void get_vh_range(const struct S_VOLUME *VOLUME, unsigned int *vhMin, unsigned i
 //	href_type = VOLUME->hrefine_type;
 
 	switch (VType) {
+	case LINE:
+		// Supported href_type: 0 (Isotropic)
+		*vhMin = 1;
+		*vhMax = 2;
+		break;
 	case TRI:
 	case QUAD:
 		// Supported href_type: 0 (Isotropic)

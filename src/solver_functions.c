@@ -254,6 +254,45 @@ void manage_solver_memory(struct S_DATA *const DATA, char const mem_op, char con
 // VOLUME functions
 // **************************************************************************************************** //
 
+double *compute_Dxyz_strong (struct S_Dxyz *DxyzInfo, unsigned int d)
+{
+	/*
+	 *	Purpose:
+	 *		Compute physical derivative operator matrices using the chain rule.
+	 *
+	 *	Comments:
+	 *		The ordering of C specified in the comments of setup_geom_factors.
+	 *
+	 *		The D_Strong_VV operator should be passed as D in DxyzInfo.
+	 *
+	 *		Including the cofactor terms in the differentiation operators as opposed to the fluxes results in a slightly
+	 *		more clear linearization but a significant cost increase in assembly as the number of entries which must be
+	 *		multiplied scales with the number of basis functions. If the cofactor terms are included in the flux, they
+	 *		will always multiply only d flux terms. Furthermore, inclusion in the flux terms would allow for
+	 *		vectorization of this function. A possible drawback is the required enforcement of the geometric
+	 *		conservation if the strong form of the scheme is used. INVESTIGATE. (ToBeModified)
+	 *
+	 *	References:
+	 *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_
+	 *		                 Schemes (eq. B.2)
+	 */
+
+	unsigned int const Nn   = DxyzInfo->Nn,
+	                   Nbf  = DxyzInfo->Nbf,
+	                   dim1 = DxyzInfo->dim;
+
+	double const *const *const D = DxyzInfo->D,
+	             *const        C = DxyzInfo->C;
+
+	double *const Dxyz = calloc(Nn*Nbf, sizeof *Dxyz); // keep
+	for (size_t dim2 = 0; dim2 < d; dim2++) {
+		size_t const IndC = (dim1+dim2*d)*Nn;
+		mm_diag_d(Nn,Nbf,&C[IndC],D[dim2],Dxyz,1.0,1.0,'L','R');
+	}
+
+	return Dxyz;
+}
+
 double *compute_Dxyz(struct S_Dxyz *DxyzInfo, unsigned int d)
 {
 	/*
@@ -310,8 +349,9 @@ void init_ops_VOLUME(struct S_OPERATORS_V *const OPS, struct S_VOLUME const *con
 		OPS->NvnI    = ELEMENT->NvnIs[P];
 		OPS->NvnI_SF = ELEMENT_SF->NvnIs[P];
 
-		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P][0];
-		OPS->D_Weak  = (double const *const *const) ELEMENT->Ds_Weak_VV[P][P][0];
+		OPS->ChiS_vI  = ELEMENT->ChiS_vIs[P][P][0];
+		OPS->D_Weak   = (double const *const *const) ELEMENT->Ds_Weak_VV[P][P][0];
+		OPS->D_Strong = (double const *const *const) ELEMENT->Ds_Strong_VV[P][P][0];
 
 		OPS->ChiS_vI_SF = ELEMENT_SF->ChiS_vIs[P][P][0];
 		OPS->D_Weak_SF  = (double const *const *const) ELEMENT_SF->Ds_Weak_VV[P][P][0];
@@ -324,8 +364,9 @@ void init_ops_VOLUME(struct S_OPERATORS_V *const OPS, struct S_VOLUME const *con
 		OPS->NvnI    = ELEMENT->NvnIc[P];
 		OPS->NvnI_SF = ELEMENT_SF->NvnIc[P];
 
-		OPS->ChiS_vI = ELEMENT->ChiS_vIc[P][P][0];
-		OPS->D_Weak  = (double const *const *const) ELEMENT->Dc_Weak_VV[P][P][0];
+		OPS->ChiS_vI  = ELEMENT->ChiS_vIc[P][P][0];
+		OPS->D_Weak   = (double const *const *const) ELEMENT->Dc_Weak_VV[P][P][0];
+		OPS->D_Strong = (double const *const *const) ELEMENT->Dc_Strong_VV[P][P][0];
 
 		OPS->ChiS_vI_SF = ELEMENT_SF->ChiS_vIc[P][P][0];
 		OPS->D_Weak_SF  = (double const *const *const) ELEMENT_SF->Dc_Weak_VV[P][P][0];
@@ -934,7 +975,7 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 	 *		Fidkowski(2016)-A_Hybridized_Discontinuous_Galerkin_Method_on_Mapped_Deforming_Domains
 	 *		Bassi(2000)-A_High_Order_Discontinuous_Galerking_Method_for_Compressible_Turbulent_Flows
 	 *		Bassi(2010)-Very_High-Order_Accurate_Discontinuous_Galerkin_Computation_of_Transonic_Turbulent_Flows_on_
-	 *		            Aeronautical_Configurations
+	 *		            Aeronautical_Configurations - Chapter 3
 	 */
 
 	if (!(imex_type == 'E' || imex_type == 'I'))
@@ -1016,6 +1057,7 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 		} else {
 			EXIT_UNSUPPORTED;
 		}
+		chi *= PENALIZATION_SCALING; // The penalization constant must be strictly greater than the number of FACEs.
 
 		// Add partial FACE contribution
 		if (chi != 0.0) {
@@ -1677,7 +1719,7 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	 *		Fidkowski(2016)-A_Hybridized_Discontinuous_Galerkin_Method_on_Mapped_Deforming_Domains
 	 *		Bassi(2000)-A_High_Order_Discontinuous_Galerking_Method_for_Compressible_Turbulent_Flows
 	 *		Bassi(2010)-Very_High-Order_Accurate_Discontinuous_Galerkin_Computation_of_Transonic_Turbulent_Flows_on_
-	 *		            Aeronautical_Configurations
+	 *		            Aeronautical_Configurations - Chapter 3
 	 */
 
 	if (!(imex_type == 'E' || imex_type == 'I'))

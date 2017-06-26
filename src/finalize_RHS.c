@@ -41,7 +41,7 @@
 
 struct S_OPERATORS {
 	unsigned int NvnI, NvnS;
-	double       *w_vI, *I_vG_vI, *ChiS_vI;
+	double       *w_vI, *I_vG_vI, *ChiS_vI, *I_Weak_VV;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
@@ -64,6 +64,8 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 
 		OPS->I_vG_vI = ELEMENT->I_vGs_vIs[1][P][0];
 		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P][0];
+
+		OPS->I_Weak_VV = ELEMENT->Is_Weak_VV[P][P][0];
 	} else {
 		OPS->NvnI = ELEMENT->NvnIc[P];
 
@@ -71,6 +73,8 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 
 		OPS->I_vG_vI = ELEMENT->I_vGc_vIc[P][P][0];
 		OPS->ChiS_vI = ELEMENT->ChiS_vIc[P][P][0];
+
+		OPS->I_Weak_VV = ELEMENT->Ic_Weak_VV[P][P][0];
 	}
 }
 
@@ -105,10 +109,10 @@ static void add_source(const struct S_VOLUME *VOLUME)
 	detJV_vI = VOLUME->detJV_vI;
 	for (eq = 0; eq < Neq; eq++) {
 		for (n = 0; n < NvnI; n++)
-			f_vI[eq*NvnI+n] *= w_vI[n]*detJV_vI[n];
+			f_vI[eq*NvnI+n] *= detJV_vI[n];
 	}
 
-	mm_d(CBCM,CBNT,CBNT,NvnS,Neq,NvnI,-1.0,1.0,OPS->ChiS_vI,f_vI,VOLUME->RHS);
+	mm_d(CBCM,CBT,CBNT,NvnS,Neq,NvnI,-1.0,1.0,OPS->I_Weak_VV,f_vI,VOLUME->RHS);
 	free(f_vI);
 
 	free(OPS);

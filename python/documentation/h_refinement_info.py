@@ -49,7 +49,12 @@ class Refinement_class:
 		self.name = name
 
 		Nv = 0
-		if (name.find('TRI') != -1):
+		if (name.find('LINE') != -1):
+			if (name == 'LINE2'):
+				Nv = 2
+				VToVe  = [[0,1],[1,2]]
+				VTypes = ['LINE' for i in range(Nv)]
+		elif (name.find('TRI') != -1):
 			if (name == 'TRI4'):
 				Nv = 4
 				VToVe  = [[0,1,3],[1,2,4],[3,4,5],[4,3,1]]
@@ -212,7 +217,7 @@ class Refinement_class:
 					f2 = VToF[v][f]
 
 					VToV[v2][f2] = 'xx'
-					VToF[v2][f2] = 'xx' 
+					VToF[v2][f2] = 'xx'
 
 			# Note: Ne == 0 for (d <= 2)
 			for e in range(0,ELEMENT.Ne):
@@ -230,7 +235,7 @@ class Refinement_class:
 			"""Return IndOrd indices for RL and LR. The convention used here corresponds to the cases in d = 2, 3
 			   expected outputs of DPG_ROOT/src/test_unit_get_face_ordering.c (P = 1). The notation may be different
 			   here as compared to the code (L == In, R == Out, e.g. LR == InOut).
-			   
+
 			   The concept behind the convention is:
 			   	Given an index for each configuration of vals, find the index of the configuration as seen by the
 				neighboring element.
@@ -266,10 +271,12 @@ class Refinement_class:
 			"""
 
 			data = collections.namedtuple('data','RL LR')
-			if (Nve == 2): # LINE (d == 2)
+			if (Nve == 1): # POINT (d = 1)
+				IndOrdInfo = data(RL = 0, LR = 0)
+			elif (Nve == 2): # LINE (d == 2)
 				if   (vals == [0,1]): IndOrdInfo = data(RL = 0, LR = 0)
 				elif (vals == [1,0]): IndOrdInfo = data(RL = 1, LR = 1)
-				else                        : EXIT_TRACEBACK()
+				else                : EXIT_TRACEBACK()
 			elif (Nve == 3): # TRI (d == 3)
 				if   (vals == [0,1,2]): IndOrdInfo = data(RL = 0, LR = 0)
 				elif (vals == [1,2,0]): IndOrdInfo = data(RL = 1, LR = 2)
@@ -352,7 +359,7 @@ class Refinement_class:
 		self.IndOrdLR = IndOrdLR
 
 	def compute_FE_correspondence(self,ELEMENTs):
-		
+
 		# Parent ELEMENT
 		ELEMENT = get_ELEMENT_type(self.name,ELEMENTs)
 
@@ -453,7 +460,18 @@ class ELEMENT_class:
 
 		Neve = 2
 		Nfve = []
-		if (EType == 'TRI'):
+		if (EType == 'LINE'):
+			d         = 1
+			Nf        = 2
+			Ne        = 0
+			Nfve      = [1 for i in range(0,Nf)]
+
+			VToVe    = [[0,2]]
+			RefTypes = ['LINE2']
+
+			FVertices = [set([0]),set([2])]
+			EVertices = []
+		elif (EType == 'TRI'):
 			d         = 2
 			Nf        = 3
 			Ne        = 0
@@ -547,7 +565,9 @@ class ELEMENT_class:
 		Nf    = self.Nf
 		Nfve  = self.Nfve
 
-		if (self.EType == 'TRI'):
+		if (self.EType == 'LINE'):
+			FToVe = [[[0]],[[1]]]
+		elif (self.EType == 'TRI'):
 			FToVe = [[[1,2]],[[0,2]],[[0,1]]]
 		elif(self.EType == 'QUAD'):
 			FToVe = [[[0,2]],[[1,3]],[[0,1]],[[2,3]]]
@@ -640,7 +660,7 @@ def get_ELEMENT_type(EType,ELEMENTs):
 		if (EType.find(ELEMENT.EType) != -1):
 			return ELEMENT
 
-	print("Did not find the ELEMENT of type:",EType) 
+	print("Did not find the ELEMENT of type:",EType)
 	EXIT_TRACEBACK()
 
 def list_print_BC(list_array,names,dim):
@@ -685,6 +705,7 @@ if __name__ == '__main__':
 
 	# Initialize all ELEMENT types (necessary as some refinements depend on several ELEMENTs)
 	ELEMENTs = []
+	EType = 'LINE';  ELEMENTs.append(ELEMENT_class(EType))
 	EType = 'TRI';   ELEMENTs.append(ELEMENT_class(EType))
 	EType = 'QUAD';  ELEMENTs.append(ELEMENT_class(EType))
 	EType = 'TET';   ELEMENTs.append(ELEMENT_class(EType))
@@ -692,12 +713,13 @@ if __name__ == '__main__':
 	EType = 'PYR';   ELEMENTs.append(ELEMENT_class(EType))
 	EType = 'WEDGE'; ELEMENTs.append(ELEMENT_class(EType))
 
+	EType = 'LINE'
 #	EType = 'TRI'
 #	EType = 'QUAD'
 #	EType = 'TET'
 #	EType = 'HEX'
 #	EType = 'PYR'
-	EType = 'WEDGE'
+#	EType = 'WEDGE'
 
 	PrintAll = 0
 	PrintInd = 0
