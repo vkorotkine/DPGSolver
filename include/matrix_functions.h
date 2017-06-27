@@ -4,6 +4,8 @@
 #ifndef DPG__matrix_functions_h__INCLUDED
 #define DPG__matrix_functions_h__INCLUDED
 
+#include <complex.h>
+
 #include "mkl.h"
 
 #include "S_OpCSR.h"
@@ -16,6 +18,10 @@ extern double *inverse_d       (const unsigned int N, const unsigned int NRHS, c
 extern void   mm_diag_d        (const unsigned int NRows, const unsigned int NCols, double const *const a,
                                 double const *const A, double *const Output, const double alpha, const double beta,
                                 const char side, const char layout);
+extern void mm_diag_d_inplace (unsigned int const NRows, unsigned int const NCols, double const *const a,
+                               double *const A, const double alpha, const char side, const char layout);
+extern void mm_diag_dc_inplace (unsigned int const NRows, unsigned int const NCols, double const *const a,
+                                double complex *const A, const double alpha, const char side, const char layout);
 extern double *mm_Alloc_d      (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb,
                                 const int m, const int n, const int k, const double alpha, const double *A, const double *B);
 extern void   mm_d             (const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb,

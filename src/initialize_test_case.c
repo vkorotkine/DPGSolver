@@ -200,6 +200,7 @@ void initialize_test_case_parameters(void)
 		DB.Nvar = 1;
 		DB.Neq  = 1;
 
+		DB.Symmetric = 0;
 		DB.Viscous = 0;
 		DB.SourcePresent = 0;
 
@@ -235,6 +236,7 @@ void initialize_test_case_parameters(void)
 		DB.Nvar = 1;
 		DB.Neq  = 1;
 
+		DB.Symmetric = 1;
 		DB.Viscous = 1;
 
 		DB.SourcePresent = 1;
@@ -281,6 +283,7 @@ void initialize_test_case_parameters(void)
 		DB.Nvar = d+2;
 		DB.Neq  = d+2;
 
+		DB.Symmetric = 0;
 		DB.Viscous = 0;
 		DB.SourcePresent = 0;
 
@@ -436,6 +439,7 @@ void initialize_test_case_parameters(void)
 		DB.Nvar = d+2;
 		DB.Neq  = d+2;
 
+		DB.Symmetric = 0;
 		DB.Viscous = 1;
 		DB.Pr      = 0.72;
 		DB.Rg      = 1.0;

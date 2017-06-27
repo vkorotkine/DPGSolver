@@ -26,7 +26,7 @@
  *
  *	Comments:
  *		When the 'Collocated' option is enabled, the inverse VOLUME cubature weights are already included in the VV and
- *		FF operators used in the VOLUME and FACE info functions. Thus, only the inverse VOLUME element must be applied
+ *		FV operators used in the VOLUME and FACE info functions. Thus, only the inverse VOLUME element must be applied
  *		to RHS terms. When the option is disabled, the standard procedure of multiplication with the inverse mass matrix
  *		is carried out. The motivation for this is that a particular sum factorized operator becomes identity for the
  *		collocated scheme when this approach is adopted; see cases where diag = 2 in the VOLUME/FACE info routines.
@@ -40,7 +40,7 @@
  */
 
 struct S_OPERATORS {
-	unsigned int NvnI, NvnS;
+	unsigned int NvnI;
 	double       *w_vI, *I_vG_vI, *ChiS_vI, *I_Weak_VV;
 };
 
@@ -56,7 +56,6 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 
 	ELEMENT = get_ELEMENT_type(type);
 
-	OPS->NvnS = ELEMENT->NvnS[P];
 	if (!curved) {
 		OPS->NvnI = ELEMENT->NvnIs[P];
 
@@ -85,7 +84,7 @@ static void add_source(const struct S_VOLUME *VOLUME)
 	             Neq = DB.Neq;
 
 	// Standard datatypes
-	unsigned int eq, n, NvnI, NvnS;
+	unsigned int eq, n, NvnI;
 	double       *XYZ_vI, *f_vI, *detJV_vI, *w_vI;
 
 	struct S_OPERATORS *OPS;
@@ -94,7 +93,6 @@ static void add_source(const struct S_VOLUME *VOLUME)
 
 	init_ops(OPS,VOLUME);
 
-	NvnS = OPS->NvnS;
 	NvnI = OPS->NvnI;
 
 	w_vI = OPS->w_vI;
@@ -112,7 +110,7 @@ static void add_source(const struct S_VOLUME *VOLUME)
 			f_vI[eq*NvnI+n] *= detJV_vI[n];
 	}
 
-	mm_d(CBCM,CBT,CBNT,NvnS,Neq,NvnI,-1.0,1.0,OPS->I_Weak_VV,f_vI,VOLUME->RHS);
+	mm_d(CBCM,CBT,CBNT,VOLUME->NvnS,Neq,NvnI,-1.0,1.0,OPS->I_Weak_VV,f_vI,VOLUME->RHS);
 	free(f_vI);
 
 	free(OPS);

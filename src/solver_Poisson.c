@@ -29,6 +29,8 @@
 #include "test_code_output_to_paraview.h"
 #include "support.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Perform the implicit solve for the Poisson equation.
@@ -221,7 +223,6 @@ static void compute_What_FACE()
 		// Add FACE contributions to RHS and LHS
 
 		// Interior FACE
-
 		finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'L','E','V');
 		finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'L');
 
@@ -240,6 +241,7 @@ static void compute_What_FACE()
 	free(FDATAL);
 	free(FDATAR);
 	free(NFLUXDATA);
+
 	free(DATA);
 }
 

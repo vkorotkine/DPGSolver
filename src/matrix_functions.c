@@ -143,6 +143,74 @@ void mm_diag_d(const unsigned int NRows, const unsigned int NCols, double const 
 	}
 }
 
+void mm_diag_d_inplace (unsigned int const NRows, unsigned int const NCols, double const *const a, double *const A,
+                        const double alpha, const char side, const char layout)
+{
+	if (layout == 'R') {
+		if (side == 'L') {
+			for (size_t i = 0; i < NRows; i++) {
+			for (size_t j = 0; j < NCols; j++) {
+				A[i*NCols+j] *= alpha*a[i];
+			}}
+		} else if (side == 'R') {
+			for (size_t i = 0; i < NRows; i++) {
+			for (size_t j = 0; j < NCols; j++) {
+				A[i*NCols+j] *= alpha*a[j];
+			}}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else if (layout == 'C') {
+		if (side == 'L') {
+			for (size_t j = 0; j < NCols; j++) {
+			for (size_t i = 0; i < NRows; i++) {
+				A[i+j*NRows] *= alpha*a[i];
+			}}
+		} else if (side == 'R') {
+			for (size_t j = 0; j < NCols; j++) {
+			for (size_t i = 0; i < NRows; i++) {
+				A[i+j*NRows] *= alpha*a[j];
+			}}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	}
+}
+
+void mm_diag_dc_inplace (unsigned int const NRows, unsigned int const NCols, double const *const a,
+                         double complex *const A, const double alpha, const char side, const char layout)
+{
+	if (layout == 'R') {
+		if (side == 'L') {
+			for (size_t i = 0; i < NRows; i++) {
+			for (size_t j = 0; j < NCols; j++) {
+				A[i*NCols+j] *= alpha*a[i];
+			}}
+		} else if (side == 'R') {
+			for (size_t i = 0; i < NRows; i++) {
+			for (size_t j = 0; j < NCols; j++) {
+				A[i*NCols+j] *= alpha*a[j];
+			}}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else if (layout == 'C') {
+		if (side == 'L') {
+			for (size_t j = 0; j < NCols; j++) {
+			for (size_t i = 0; i < NRows; i++) {
+				A[i+j*NRows] *= alpha*a[i];
+			}}
+		} else if (side == 'R') {
+			for (size_t j = 0; j < NCols; j++) {
+			for (size_t i = 0; i < NRows; i++) {
+				A[i+j*NRows] *= alpha*a[j];
+			}}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	}
+}
+
 double *mm_Alloc_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_TRANSPOSE transb,
                    const int m, const int n, const int k, const double alpha, const double *A, const double *B)
 {

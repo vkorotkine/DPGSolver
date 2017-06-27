@@ -23,6 +23,7 @@
 
 #include "solver_Advection.h"
 #include "solver_Poisson.h"
+#include "solver_symmetric_functions.h"
 #include "finalize_LHS.h"
 #include "implicit_VOLUME_info.h"
 #include "implicit_FACE_info.h"
@@ -46,6 +47,8 @@
  *		The linearization is verified by comparing with the output when using the complex step method.
  *
  *		For second order equations, the verification of the linearization of the weak gradients is also performed.
+ *
+ *		When collocation is enabled, symmetry of the diffusion g
  *
  *		For second order equations, the VOLUME->RHS_c contributes off-diagonal terms to the global system matrix due to
  *		the use of the fully corrected gradient. A flag is provided to avoid the computation of these terms when
@@ -80,7 +83,6 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 	data->PrintEnabled           = 0;
 	data->CheckFullLinearization = 1;
 	data->CheckWeakGradients     = 0;
-	data->CheckSymmetric         = 0;
 
 	data->PG_add        = 1;
 	data->IntOrder_mult = 2;
@@ -103,7 +105,6 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 			EXIT_UNSUPPORTED;
 		}
 	} else if (strstr(TestName,"Poisson")) {
-		data->CheckSymmetric = 1;
 		if (strstr(TestName,"1D")) {
 			strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Cube_LINE");
 		} else if (strstr(TestName,"MIXED2D")) {
@@ -150,7 +151,7 @@ static void check_passing(struct S_linearization const *const data, unsigned int
 	if (diff_LHS > 1e1*EPS)
 		*pass = 0;
 
-	if (data->CheckSymmetric) {
+	if (DB.Symmetric) {
 		PetscBool Symmetric = 0;
 		MatIsSymmetric(data->A,1e2*EPS,&Symmetric);
 //		MatIsSymmetric(data->A_cs,EPS,&Symmetric);
@@ -217,6 +218,11 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 		; // Do nothing
 	} else {
 		EXIT_UNSUPPORTED;
+	}
+
+	if (strstr(TestName,"Poisson")) {
+		if (!DB.Symmetric)
+			EXIT_UNSUPPORTED;
 	}
 
 	for (size_t nTest = 0; nTest < 2; nTest++) {
@@ -439,6 +445,7 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 				explicit_GradW_c();
 				compute_What_VOLUME_c();
 				compute_What_FACE_c();
+				correct_collocated_for_symmetry_c();
 			} else {
 				explicit_GradW_c();
 				explicit_VOLUME_info_c();
@@ -581,6 +588,7 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 				explicit_GradW_c();
 				compute_What_VOLUME_c();
 				compute_What_FACE_c();
+				correct_collocated_for_symmetry_c();
 			} else {
 				explicit_GradW_c();
 				explicit_VOLUME_info_c();

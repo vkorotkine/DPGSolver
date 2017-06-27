@@ -87,7 +87,7 @@
 void test_integration_Poisson(int nargc, char **argv)
 {
 	bool const RunTests_linearization = 1,
-	           RunTests_conv_order    = 0;
+	           RunTests_conv_order    = 1;
 
 	char **argvNew, *PrintName;
 

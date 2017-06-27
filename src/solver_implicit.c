@@ -16,6 +16,7 @@
 #include "S_DB.h"
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
+#include "S_FACE.h"
 #include "Test.h"
 
 #include "adaptation.h"
@@ -223,7 +224,7 @@ void solver_implicit_linear_system(Mat *A, Vec *b, Vec *x, KSP *ksp, unsigned in
 	if (Output_A_MATLAB) {
 		// Used for outputting matrix to file in matlab sparse format
 		PetscViewer viewer;
-		PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat.output", &viewer);
+		PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat_output.m", &viewer);
 		PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
 		MatView(*A,viewer);
 		PetscViewerDestroy(&viewer);

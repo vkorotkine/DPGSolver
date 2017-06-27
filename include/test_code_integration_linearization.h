@@ -9,7 +9,7 @@
 #include "petscmat.h"
 
 struct S_linearization {
-	bool         update_argv, CheckSymmetric, PrintEnabled, TestTRI, CheckFullLinearization, CheckWeakGradients;
+	bool         update_argv, PrintEnabled, TestTRI, CheckFullLinearization, CheckWeakGradients;
 	char         **argvNew, *PrintName;
 	unsigned int Nref, PGlobal, ML, PG_add, IntOrder_mult, IntOrder_add;
 	int          nargc;

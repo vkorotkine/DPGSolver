@@ -15,6 +15,7 @@
 #include "S_FACE.h"
 
 #include "finalize_RHS.h"
+#include "solver_symmetric_functions.h"
 #include "array_print.h"
 
 /*
@@ -156,6 +157,7 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 	switch (assemble_type) {
 	default: // 0
 		maxRHS = finalize_RHS();
+		correct_collocated_for_symmetry();
 
 		finalize_LHS(A,b,x,1);
 		finalize_LHS(A,b,x,2);

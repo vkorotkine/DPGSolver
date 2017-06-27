@@ -63,6 +63,16 @@
  *			(ToBeModified: DON'T FORGET TO DO THIS. Remove the sum factorized output_to_paraview function as well. This
  *			can be done when sum factorization is included in the solver).
  *
+ *		When collocation is enabled (such that mass matrices are diagonal), the inverse weights are prepended to the
+ *		most commonly used solver operators ([I/D][s/c]_[Weak/Strong]_[VV/FV]). This is especially beneficial as it
+ *		results in the I[s/c]_Weak_VV being identity (instead of diagonal), reducing the required sum factorized
+ *		operations when applying the derivative operators; the impact of this saving is significant for low order, high
+ *		dimension simulations. Despite this advantage, complications arise from this treatment, with those currently
+ *		known listed below:
+ *			1) Using the same operator for construction of the Poisson system of equations leads to an asymmetric global
+ *			   matrix, which must be subsequently corrected through multiplication by the diagonal weights to recover
+ *			   the symmetry.
+ *
  *		Standard (i.e. non sum-factorized) operators are used for all functions which are not performance critical in
  *		order to improve code readability.
  *		Ensure that operators for hp refinement are only stored when refinement is enabled (ToBeDeleted).
@@ -1212,13 +1222,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 						Dc_Strong_VV[P][Pb][0][dim] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnIs[P],NvnIs[P],NvnS[P],1.0,diag_wInv_vIs,dummyPtr_d); // keep
 						free(dummyPtr_d);
 					}
-if (0&&P == 2) {
-printf("sOP\n");
-//array_print_d(NvnIs[P],NvnIs[P],diag_w_vIs,'R');
-array_print_d(NvnIs[P],NvnIs[P],diag_wInv_vIs,'R');
-//array_print_d(NvnS[P],NvnIs[P],Ds_Weak_VV[P][Pb][0][dim],'R');
-//array_print_d(NvnIs[P],NvnS[P],Ds_Strong_VV[P][Pb][0][dim],'R');
-}
 				}
 
 				free(ChiRefGs_vP);
