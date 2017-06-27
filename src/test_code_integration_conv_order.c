@@ -78,8 +78,26 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 data->PMin = 2;
 		if (strstr(TestName,"HDG")) {
 			if (strstr(TestName,"n-Cube_Default")) {
-				if (strstr(TestName,"TRI")) {
-					strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_TRI");
+				if (strstr(TestName,"Straight")) {
+					if (strstr(TestName,"TRI")) {
+						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_TRI");
+					} else if (strstr(TestName,"QUAD")) {
+						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_QUAD");
+					} else if (strstr(TestName,"MIXED2D")) {
+						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_MIXED2D");
+					} else {
+						EXIT_UNSUPPORTED;
+					}
+				} else if (strstr(TestName,"Curved")) {
+					if (strstr(TestName,"TRI")) {
+						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_CurvedTRI");
+					} else if (strstr(TestName,"QUAD")) {
+						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_CurvedQUAD");
+					} else if (strstr(TestName,"MIXED2D")) {
+						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_CurvedMIXED2D");
+					} else {
+						EXIT_UNSUPPORTED;
+					}
 				} else {
 					EXIT_UNSUPPORTED;
 				}

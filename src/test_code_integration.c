@@ -1032,6 +1032,11 @@ void set_PrintName(char *name_type, char *PrintName, bool *TestTRI)
 		strcpy(PrintName,"                           (");
 	}
 
+	char *method = malloc(STRLEN_MIN * sizeof *method); // free
+	sprintf(method,"Method: %d",DB.Method);
+	strcat(PrintName,method); strcat(PrintName,", ");
+	free(method);
+
 	strcat(PrintName,DB.PDE); strcat(PrintName,", ");
 	if (!strstr(DB.PDESpecifier,"NONE")) {
 		strcat(PrintName,DB.PDESpecifier); strcat(PrintName,", ");

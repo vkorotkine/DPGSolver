@@ -25,7 +25,7 @@
 #include "solver_Poisson.h"
 #include "solver_symmetric_functions.h"
 #include "finalize_LHS.h"
-#include "implicit_VOLUME_info.h"
+#include "implicit_VOLUME_info_DG.h"
 #include "implicit_FACE_info.h"
 #include "implicit_GradW.h"
 
@@ -83,6 +83,7 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 	data->PrintEnabled           = 0;
 	data->CheckFullLinearization = 1;
 	data->CheckWeakGradients     = 0;
+	data->StaticCondensation     = 1;
 
 	data->PG_add        = 1;
 	data->IntOrder_mult = 2;
@@ -96,13 +97,44 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 
 	strcpy(data->argvNew[1],"test/");
 	if (strstr(TestName,"Advection")) {
-		if (strstr(TestName,"StraightTRI")) {
-			strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_TRI");
-		} else if (strstr(TestName,"StraightQUAD")) {
-			data->IntOrder_add  = 2; // The exact solution is obtained if this is omitted
-			strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_QUAD");
-		} else {
-			EXIT_UNSUPPORTED;
+		if (strstr(TestName,"HDG")) {
+data->StaticCondensation = 0;
+			if (strstr(TestName,"n-Cube_Default")) {
+				if (strstr(TestName,"Straight")) {
+					if (strstr(TestName,"TRI")) {
+						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_TRI");
+					} else if (strstr(TestName,"QUAD")) {
+						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_QUAD");
+					} else if (strstr(TestName,"MIXED2D")) {
+						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_MIXED2D");
+					} else {
+						EXIT_UNSUPPORTED;
+					}
+				} else if (strstr(TestName,"Curved")) {
+					if (strstr(TestName,"TRI")) {
+						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_CurvedTRI");
+					} else if (strstr(TestName,"QUAD")) {
+						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_CurvedQUAD");
+					} else if (strstr(TestName,"MIXED2D")) {
+						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_CurvedMIXED2D");
+					} else {
+						EXIT_UNSUPPORTED;
+					}
+				} else {
+					EXIT_UNSUPPORTED;
+				}
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else { // Default: DG
+			if (strstr(TestName,"StraightTRI")) {
+				strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_TRI");
+			} else if (strstr(TestName,"StraightQUAD")) {
+				data->IntOrder_add  = 2; // The exact solution is obtained if this is omitted
+				strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_QUAD");
+			} else {
+				EXIT_UNSUPPORTED;
+			}
 		}
 	} else if (strstr(TestName,"Poisson")) {
 		if (strstr(TestName,"1D")) {
@@ -174,7 +206,9 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 	 *	Expected Output:
 	 *		Correspondence of LHS matrices computed using complex step and exact linearization.
 	 *
-	 *	Comments
+	 *	Comments:
+	 *
+	 *		DG:
 	 *
 	 *		By default, the complete linearization is checked here. However, linearizations of the individual
 	 *		contributions listed below may be checked separately:
@@ -184,6 +218,16 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 	 *			3) off-diagonal FACE contributions
 	 *		Further, the complete linearization can be checked either through the assembly of the individual
 	 *		contributions or more simply by using the assembled RHS directly.
+	 *
+	 *
+	 *		HDG:
+	 *
+	 *		Similar functionality to that of the DG scheme is provided. Additionally, the statically condensed
+	 *		representation of the matrix may be compared with both the analytically computed Jacobian as well as the
+	 *		matrix computed based on sparse matrix-matrix multiplication of the components of the non condensed
+	 *		representation.
+	 *
+	 *		By default, static condensation is enabled as this is the configuration in which the code is run.
 	 */
 
 	set_test_linearization_data(data,TestName);
@@ -289,7 +333,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 				// contribution to the VOLUME term.
 
 				implicit_GradW(); // Only executed if DB.Viscous = 1
-				implicit_VOLUME_info();
+				implicit_VOLUME_info_DG();
 				implicit_FACE_info();
 			}
 

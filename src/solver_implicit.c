@@ -22,7 +22,7 @@
 #include "adaptation.h"
 #include "update_VOLUMEs.h"
 #include "implicit_GradW.h"
-#include "implicit_VOLUME_info.h"
+#include "implicit_VOLUME_info_DG.h"
 #include "implicit_FACE_info.h"
 #include "finalize_LHS.h"
 #include "output_to_paraview.h"
@@ -324,7 +324,7 @@ void solver_implicit(bool const PrintEnabled)
 
 		if (PrintEnabled && DB.Viscous) { printf("G"); } implicit_GradW();
 
-		if (PrintEnabled) { printf("V");  } implicit_VOLUME_info();
+		if (PrintEnabled) { printf("V");  } implicit_VOLUME_info_DG();
 		if (PrintEnabled) { printf("F");  } implicit_FACE_info();
 		if (PrintEnabled) { printf("F "); } maxRHS = finalize_LHS(&A,&b,&x,0);
 

@@ -21,7 +21,7 @@
 #include "solver_Advection_functions.h"
 #include "explicit_VOLUME_info.h"
 #include "explicit_FACE_info.h"
-#include "implicit_VOLUME_info.h"
+#include "implicit_VOLUME_info_DG.h"
 #include "implicit_FACE_info.h"
 #include "solver_implicit.h"
 #include "finalize_LHS.h"
@@ -52,7 +52,7 @@ void solver_Advection(bool const PrintEnabled)
 			explicit_FACE_info();
 			EXIT_UNSUPPORTED;
 		} else if (strstr(DB.SolverType,"Implicit")) {
-			if (PrintEnabled) { printf("V");  } implicit_VOLUME_info();
+			if (PrintEnabled) { printf("V");  } implicit_VOLUME_info_DG();
 			if (PrintEnabled) { printf("F");  } implicit_FACE_info();
 
 			Mat A = NULL;

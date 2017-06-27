@@ -262,7 +262,7 @@ void solver_Poisson(bool PrintEnabled)
 		EXIT_UNSUPPORTED;
 
 	implicit_info_Poisson();
-//	if (PrintEnabled) { printf("V");  } implicit_VOLUME_info();
+//	if (PrintEnabled) { printf("V");  } implicit_VOLUME_info_DG();
 //	if (PrintEnabled) { printf("F");  } implicit_FACE_info();
 
 	Mat A = NULL;
