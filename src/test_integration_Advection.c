@@ -34,6 +34,7 @@
 
 void test_integration_Advection(int nargc, char **argv)
 {
+bool const TestHDG = 0;
 	bool const RunTests_linearization = 1,
 	           RunTests_conv_order    = 1;
 
@@ -57,12 +58,14 @@ void test_integration_Advection(int nargc, char **argv)
 		data_l->argvNew   = argvNew;
 		data_l->PrintName = PrintName;
 
+if (TestHDG) {
 		test_linearization(data_l,"Advection_n-Cube_Default_HDG_StraightTRI");
 		test_linearization(data_l,"Advection_n-Cube_Default_HDG_StraightQUAD");
 		test_linearization(data_l,"Advection_n-Cube_Default_HDG_StraightMIXED2D");
 		test_linearization(data_l,"Advection_n-Cube_Default_HDG_CurvedTRI");
 		test_linearization(data_l,"Advection_n-Cube_Default_HDG_CurvedQUAD");
 		test_linearization(data_l,"Advection_n-Cube_Default_HDG_CurvedMIXED2D");
+}
 
 		// 2D (Mixed TRI/QUAD mesh)
 		test_linearization(data_l,"Advection_StraightTRI");
@@ -88,7 +91,7 @@ void test_integration_Advection(int nargc, char **argv)
 		data_c->nargc     = nargc;
 		data_c->argvNew   = argvNew;
 		data_c->PrintName = PrintName;
-if (0) {
+if (!TestHDG) {
 		test_conv_order(data_c,"Advection_n-Cube_Default_TRI");
 		test_conv_order(data_c,"Advection_n-Cube_Default_QUAD");
 

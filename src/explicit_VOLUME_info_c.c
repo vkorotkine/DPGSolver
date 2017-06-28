@@ -2,17 +2,19 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "explicit_VOLUME_info_c.h"
+#include "S_VOLUME.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <complex.h>
+#include <stdbool.h>
 
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
-#include "S_VOLUME.h"
 
+#include "explicit_info_c.h"
 #include "solver_functions.h"
 #include "solver_functions_c.h"
 #include "fluxes_structs.h"
@@ -26,16 +28,18 @@
  *		Identical to explicit_VOLUME_info using complex variables (for complex step verification).
  *
  *	Comments:
+ *		VOLUME is passed to the functions such that only the necessary RHS terms are evaluated when applicable. When
+ *		compute_all is passed as TRUE, the RHS of every VOLUME is computed.
  *
  *	Notation:
  *
  *	References:
  */
 
-static void compute_Inviscid_VOLUME_RHS_EFE (void);
-static void compute_Viscous_VOLUME_RHS_EFE  (void);
+static void compute_Inviscid_VOLUME_RHS_EFE (struct S_VOLUME *const VOLUME_center, bool const compute_all);
+static void compute_Viscous_VOLUME_RHS_EFE  ();
 
-void explicit_VOLUME_info_c(void)
+void explicit_VOLUME_info_c (struct S_VOLUME *const VOLUME_center, bool const compute_all)
 {
 	// Initialize DB Parameters
 	unsigned int EFE        = DB.EFE,
@@ -44,7 +48,7 @@ void explicit_VOLUME_info_c(void)
 	if (EFE) {
 		switch (Vectorized) {
 		case 0:
-			compute_Inviscid_VOLUME_RHS_EFE();
+			compute_Inviscid_VOLUME_RHS_EFE(VOLUME_center,compute_all);
 			compute_Viscous_VOLUME_RHS_EFE();
 			break;
 		default:
@@ -56,7 +60,7 @@ void explicit_VOLUME_info_c(void)
 	}
 }
 
-static void compute_Inviscid_VOLUME_RHS_EFE(void)
+static void compute_Inviscid_VOLUME_RHS_EFE (struct S_VOLUME *const VOLUME_center, bool const compute_all)
 {
 	// Initialize DB Parameters
 	unsigned int d    = DB.d,
@@ -77,8 +81,15 @@ static void compute_Inviscid_VOLUME_RHS_EFE(void)
 	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
 
+	struct S_LOCAL_VOLUMES local_VOLUMEs;
+	if (!compute_all)
+		local_VOLUMEs = compute_local_VOLUME_list(VOLUME_center);
+
 	if (strstr(DB.Form,"Weak")) {
 		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			if (!compute_all && !is_VOLUME_in_local_list(VOLUME,&local_VOLUMEs))
+				continue;
+
 			init_VDATA(VDATA,VOLUME);
 
 			// Obtain W_vI

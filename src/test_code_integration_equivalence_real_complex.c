@@ -152,7 +152,7 @@ void test_equivalence_real_complex(struct S_equivalence_rc *const data, char con
 			finalize_RHS();
 
 		explicit_GradW_c();
-		explicit_VOLUME_info_c();
+		explicit_VOLUME_info_c(NULL,1);
 		explicit_FACE_info_c();
 		if (!VOLUMEOnly)
 			finalize_RHS_c();

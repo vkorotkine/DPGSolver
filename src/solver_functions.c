@@ -951,7 +951,7 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 	 *			int_{\Omega} r_e([[u]]) (dot) Chi  = - \int_{Gamma} [[u]] (dot) {{chi}}                  Brdar(2012, eq. (2.5))
 	 *			int_{V_L}    r_e([[u]]) (dot) ChiL = - \int_{Gamma} [[u]] (dot) 0.5*(ChiL+ChiR)          Restriction to V_L
 	 *			int_{V_L}    r_e([[u]]) (dot) ChiL = - \int_{Gamma} [[u]] (dot) 0.5*(ChiL)               Omitting ChiR
-	 *			ChiL(R_vI)'*W_vI*J_vI*ChiL(R_vI)*\hat{r_e}([[u]]) = -0.5*ChiL(R_fI)'*W_fI*J_fI*[[u]]_fI  Numerical Integration
+	 *			ChiL(R_vI)'*W_vI*J_vI*ChiL(R_vI)*\hat{r_e}([[u]]) = -0.5*ChiL(R_fI)'*W_fI*J_fI*[[u]]_fI  Numerical Quadrature
 	 *			M_L*\hat{r_e}([[u]]) = -0.5*ChiL(R_fI)'*W_fI*J_fI*n_fIL*(uL-uR)_fI                       Def. of [[u]]
 	 *			                     = ChiL(R_fI)'*W_fI*J_fI*n_fIL*0.5*(uR-uL)_fI                        Rearranging
 	 *			                     = ChiL(R_fI)'*W_fI*J_fI*n_fIL*({{u}}-uL)_fI                         Def. of {{u}}

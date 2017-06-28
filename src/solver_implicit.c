@@ -322,8 +322,7 @@ void solver_implicit(bool const PrintEnabled)
 
 		PetscInt *ix;
 
-		if (PrintEnabled && DB.Viscous) { printf("G"); } implicit_GradW();
-
+		if (PrintEnabled) { printf("G");  } implicit_GradW();
 		if (PrintEnabled) { printf("V");  } implicit_VOLUME_info_DG();
 		if (PrintEnabled) { printf("F");  } implicit_FACE_info();
 		if (PrintEnabled) { printf("F "); } maxRHS = finalize_LHS(&A,&b,&x,0);

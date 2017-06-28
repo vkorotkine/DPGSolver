@@ -614,7 +614,7 @@ void gmsh_reader(void)
 	numflag[0]      = 0;
 	ncommonnodes[0] = d;
 
-//	elmwgt  = malloc(1 * sizeof *elmwgt); // free
+	elmwgt  = calloc(1 , sizeof *elmwgt); // free
 	wgtflag = malloc(1 * sizeof *wgtflag); // free
 	ncon    = malloc(1 * sizeof *ncon); // free
 	nparts  = malloc(1 * sizeof *nparts); // free
@@ -638,10 +638,10 @@ void gmsh_reader(void)
 	for (i = 0; i < 3; i++)
 		options[i] = 0; // See manual p.17 for options
 
-	edgecut = malloc(1 *sizeof *edgecut); // free
+	edgecut = calloc(1 , sizeof *edgecut); // free
 
 	// Set part size according to number of elements initially placed on this proc
-	part = malloc((elmdist[MPIrank+1]-elmdist[MPIrank]) * sizeof *part); // free
+	part = calloc((elmdist[MPIrank+1]-elmdist[MPIrank]) , sizeof *part); // free
 
 	// Valgrind showing memory leak in ParMETIS_V3_PartMeshKway on ubuntu (MPICH 3.2, Parmetis 4.0.3) ToBeDeleted
 	int ParMETIS_Return = ParMETIS_V3_PartMeshKway(elmdist,eptr,eind,elmwgt,wgtflag,numflag,ncon,ncommonnodes,nparts,
@@ -730,7 +730,7 @@ void gmsh_reader(void)
 	METIS_Free(elmdist);
 	METIS_Free(eptr);
 	METIS_Free(eind);
-//	METIS_Free(elmwgt);
+	METIS_Free(elmwgt);
 	METIS_Free(wgtflag);
 	METIS_Free(numflag);
 	METIS_Free(ncon);

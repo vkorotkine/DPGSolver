@@ -612,6 +612,7 @@ struct S_ELEMENT *get_ELEMENT_FACE(const unsigned int type, const unsigned int I
 	// Quite similar to get_ELEMENT_F_type ... Likely delete one of this function (ToBeDeleted)
 	struct S_ELEMENT *ELEMENT = DB.ELEMENT;
 
+	// ToBeDeleted: Remove magic numbers here.
 	if (type == LINE) {
 		while (ELEMENT) {
 			if (ELEMENT->type == POINT)
@@ -642,18 +643,19 @@ struct S_ELEMENT *get_ELEMENT_FACE(const unsigned int type, const unsigned int I
 
 unsigned int get_IndFType(const unsigned int Eclass, const unsigned int f)
 {
+	// ToBeDeleted: Remove magic numbers here. Note: potentially non-intuitive values used.
 	switch (Eclass) {
 	case C_TP:
 	case C_SI:
 		return 0;
 		break;
 	case C_PYR:
-		if (f < 4) return 0;
-		else       return 1;
+		if (f < 4) return 0; // TRI
+		else       return 1; // QUAD
 		break;
 	case C_WEDGE:
-		if (f < 3) return 0;
-		else       return 1;
+		if (f < 3) return 0; // QUAD
+		else       return 1; // TRI
 		break;
 	default:
 		printf("Error: Unsupported Eclass/f combination in get_IndFType.\n"), exit(1);

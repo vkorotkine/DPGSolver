@@ -48,7 +48,9 @@
  *
  *		For second order equations, the verification of the linearization of the weak gradients is also performed.
  *
- *		When collocation is enabled, symmetry of the diffusion g
+ *		When collocation is enabled, symmetry of the global system matrix is lost for the diffusion operator due to the
+ *		premultiplication of operators by inverse cubature weights. To recover the symmetry, the RHS/LHS terms are
+ *		corrected before calling the linear solver.
  *
  *		For second order equations, the VOLUME->RHS_c contributes off-diagonal terms to the global system matrix due to
  *		the use of the fully corrected gradient. A flag is provided to avoid the computation of these terms when
@@ -66,6 +68,7 @@
  *		Martins(2003)-The_Complex-Step_Derivative_Approximation
  */
 
+static void update_VOLUME_FACEs        (void);
 static void compute_A_cs               (Mat *A, Vec *b, Vec *x, unsigned int const assemble_type,
                                         bool const AllowOffDiag);
 static void compute_A_cs_complete      (Mat *A, Vec *b, Vec *x);
@@ -249,6 +252,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 	TestDB.IntOrder_mult = data->IntOrder_mult;
 
 	code_startup(nargc,argvNew,Nref,update_argv);
+	update_VOLUME_FACEs();
 
 	// Perturb the solution for nonlinear equations
 	if (strstr(TestName,"Euler") || strstr(TestName,"NavierStokes")) {
@@ -436,6 +440,35 @@ static void flag_nonzero_LHS(unsigned int *A)
 	}
 }
 
+static void update_VOLUME_FACEs (void)
+{
+	/*
+	 *	Purpose:
+	 *		For each VOLUME, set the list of pointers to all adjacent FACEs.
+	 *
+	 *	Comments:
+	 *		This function will likely need to be modified when parallelization is implemented.
+	 */
+
+	// Ensure that the lists are reset (in case the mesh has been updated)
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		for (size_t i = 0; i < NFMAX*NSUBFMAX; i++)
+			VOLUME->FACE[i] = NULL;
+	}
+
+	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+		update_data_FACE(FACE);
+
+		struct S_SIDE_DATA data = FACE->data[0];
+		data.VOLUME->FACE[data.Indsfh] = FACE;
+
+		if (!FACE->Boundary) {
+			data = FACE->data[1];
+			data.VOLUME->FACE[data.Indsfh] = FACE;
+		}
+	}
+}
+
 static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int const assemble_type,
                          bool const AllowOffDiag)
 {
@@ -479,6 +512,11 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 		}
 	}
 
+/*
+Function: Compute Pointer list to related VOLUMEs
+	Loop over FACEs, find all VOLUMEs connected to VOLUME having indexg. Do not include if VL == VR
+*/
+
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		IndA[0] = VOLUME->IndA;
 		NvnS[0] = VOLUME->NvnS;
@@ -492,7 +530,7 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 				correct_collocated_for_symmetry_c();
 			} else {
 				explicit_GradW_c();
-				explicit_VOLUME_info_c();
+				explicit_VOLUME_info_c(VOLUME,0);
 				explicit_FACE_info_c();
 			}
 
@@ -635,10 +673,10 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 				correct_collocated_for_symmetry_c();
 			} else {
 				explicit_GradW_c();
-				explicit_VOLUME_info_c();
-				explicit_FACE_info_c();
+				explicit_VOLUME_info_c(VOLUME,0);
+				explicit_FACE_info_c(VOLUME,0);
 			}
-			finalize_RHS_c();
+			finalize_RHS_c(VOLUME,0);
 
 			for (struct S_VOLUME *VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
 				IndA[1] = VOLUME2->IndA;

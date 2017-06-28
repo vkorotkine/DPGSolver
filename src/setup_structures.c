@@ -284,6 +284,7 @@ void setup_structures(void)
 					FACE[0]->P      = VOLUME->P;
 					FACE[0]->level  = 0;
 
+// When updating this function, use dataL/dataR to store this information (ToBeDeleted)
 					FACE[0]->VL   = VOLUME; IndVL = VOLUME->indexg;
 					FACE[0]->VfL  = NfrefMax*f;
 

@@ -4,6 +4,10 @@
 #ifndef DPG__explicit_VOLUME_info_c_h__INCLUDED
 #define DPG__explicit_VOLUME_info_c_h__INCLUDED
 
-extern void explicit_VOLUME_info_c (void);
+#include <stdbool.h>
+
+#include "S_VOLUME.h"
+
+extern void explicit_VOLUME_info_c (struct S_VOLUME *const VOLUME_center, bool const compute_all);
 
 #endif // DPG__explicit_VOLUME_info_c_h__INCLUDED

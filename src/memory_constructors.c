@@ -641,7 +641,7 @@ struct S_FACE *New_FACE(void)
 	unsigned int d = DB.d;
 
 	struct S_FACE *FACE;
-	FACE = malloc(sizeof *FACE); // free
+	FACE = calloc(1,sizeof *FACE); // free
 
 	// Structures
 	FACE->indexg = UINT_MAX;

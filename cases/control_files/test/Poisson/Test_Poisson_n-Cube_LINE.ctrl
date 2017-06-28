@@ -9,10 +9,10 @@ Dimension     1
 MeshPath      ../meshes/
 MeshType      LINE
 MeshCurving   Straight
-MeshLevel     1
+MeshLevel     2
 
 Form       Strong   // Options: Weak, (Strong)
-NodeType   GL-AO // Options: GL/GLL-AO/WSH/EQ
+NodeType   GLL-AO // Options: GL/GLL-AO/WSH/EQ
 BasisType  Nodal  // Options: Nodal, Modal
 
 Vectorized 0     // Options: 0, 1

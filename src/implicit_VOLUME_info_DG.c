@@ -38,7 +38,7 @@
 static void compute_Inviscid_VOLUME_EFE(void);
 static void compute_Viscous_VOLUME_EFE(void);
 
-void implicit_VOLUME_info(void)
+void implicit_VOLUME_info_DG(void)
 {
 	if (DB.EFE) {
 		switch (DB.Vectorized) {
