@@ -36,10 +36,10 @@
  *	References:
  */
 
-static void compute_Inviscid_VOLUME_RHS_EFE (struct S_VOLUME *const VOLUME_center, bool const compute_all);
-static void compute_Viscous_VOLUME_RHS_EFE  ();
+static void compute_Inviscid_VOLUME_RHS_EFE (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all);
+static void compute_Viscous_VOLUME_RHS_EFE  (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all);
 
-void explicit_VOLUME_info_c (struct S_VOLUME *const VOLUME_center, bool const compute_all)
+void explicit_VOLUME_info_c (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
 {
 	// Initialize DB Parameters
 	unsigned int EFE        = DB.EFE,
@@ -48,8 +48,8 @@ void explicit_VOLUME_info_c (struct S_VOLUME *const VOLUME_center, bool const co
 	if (EFE) {
 		switch (Vectorized) {
 		case 0:
-			compute_Inviscid_VOLUME_RHS_EFE(VOLUME_center,compute_all);
-			compute_Viscous_VOLUME_RHS_EFE();
+			compute_Inviscid_VOLUME_RHS_EFE(VOLUME_perturbed,compute_all);
+			compute_Viscous_VOLUME_RHS_EFE(VOLUME_perturbed,compute_all);
 			break;
 		default:
 			EXIT_UNSUPPORTED;
@@ -60,7 +60,7 @@ void explicit_VOLUME_info_c (struct S_VOLUME *const VOLUME_center, bool const co
 	}
 }
 
-static void compute_Inviscid_VOLUME_RHS_EFE (struct S_VOLUME *const VOLUME_center, bool const compute_all)
+static void compute_Inviscid_VOLUME_RHS_EFE (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
 {
 	// Initialize DB Parameters
 	unsigned int d    = DB.d,
@@ -81,14 +81,22 @@ static void compute_Inviscid_VOLUME_RHS_EFE (struct S_VOLUME *const VOLUME_cente
 	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
 
-	struct S_LOCAL_VOLUMES local_VOLUMEs;
+	struct S_LOCAL_MESH_ELEMENTS local_ELEMENTs;
 	if (!compute_all)
-		local_VOLUMEs = compute_local_VOLUME_list(VOLUME_center);
+		local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'V');
 
 	if (strstr(DB.Form,"Weak")) {
 		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-			if (!compute_all && !is_VOLUME_in_local_list(VOLUME,&local_VOLUMEs))
-				continue;
+			if (!compute_all) {
+				if (!is_VOLUME_in_local_list(VOLUME,&local_ELEMENTs)) {
+					continue;
+				} else if (VOLUME != VOLUME_perturbed) {
+					if (VOLUME->RHS_c)
+						free(VOLUME->RHS_c);
+					VOLUME->RHS_c = calloc((VOLUME->NvnS)*Neq , sizeof *(VOLUME->RHS_c)); // keep
+					continue;
+				}
+			}
 
 			init_VDATA(VDATA,VOLUME);
 
@@ -138,7 +146,7 @@ static void compute_Inviscid_VOLUME_RHS_EFE (struct S_VOLUME *const VOLUME_cente
 		free(OPS[i]);
 }
 
-static void compute_Viscous_VOLUME_RHS_EFE(void)
+static void compute_Viscous_VOLUME_RHS_EFE (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
 {
 	if (!DB.Viscous)
 		return;
@@ -159,8 +167,18 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
 
+	struct S_LOCAL_MESH_ELEMENTS local_ELEMENTs;
+	if (!compute_all)
+		local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'V');
+
 	if (strstr(DB.Form,"Weak")) {
 		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			if (!compute_all) {
+				// Note: Can't skip neighbouring VOLUMEs to VOLUME_perturbed as Qhat depends on What of VNeigh.
+				if (!is_VOLUME_in_local_list(VOLUME,&local_ELEMENTs))
+					continue;
+			}
+
 			init_VDATA(VDATA,VOLUME);
 
 			// Obtain W_vI and Q_vI
@@ -185,6 +203,13 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 			FLUXDATA->W_c = VDATA->W_vI_c;
 			FLUXDATA->Q_c = (double complex const *const *const) VDATA->Q_vI_c;
 			FLUXDATA->F_c = F_vI;
+if (VOLUME->indexg == 0) {
+printf("eVi_c\n");
+size_t dim = 0;
+array_print_cmplx(VOLUME->NvnS,Neq,VDATA->W_vI_c,'C');
+array_print_cmplx(VOLUME->NvnS,Neq,VDATA->Q_vI_c[dim],'C');
+//EXIT_UNSUPPORTED;
+}
 
 			flux_viscous_c(FLUXDATA);
 

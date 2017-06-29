@@ -94,7 +94,7 @@ void test_equivalence_real_complex(struct S_equivalence_rc *const data, char con
 	 *		Correspondence between RHS terms computed using real and complex functions.
 	 */
 
-	bool const VOLUMEOnly = 0;
+	bool const VOLUMEOnly = 1;
 
 	set_test_equivalence_data(data,TestName);
 
@@ -151,11 +151,11 @@ void test_equivalence_real_complex(struct S_equivalence_rc *const data, char con
 		if (!VOLUMEOnly)
 			finalize_RHS();
 
-		explicit_GradW_c();
+		explicit_GradW_c(NULL,1);
 		explicit_VOLUME_info_c(NULL,1);
-		explicit_FACE_info_c();
+		explicit_FACE_info_c(NULL,1);
 		if (!VOLUMEOnly)
-			finalize_RHS_c();
+			finalize_RHS_c(NULL,1);
 
 		// Check for equivalence
 		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -163,10 +163,11 @@ void test_equivalence_real_complex(struct S_equivalence_rc *const data, char con
 
 			if (array_norm_diff_dc(NvnS*Nvar,VOLUME->RHS,VOLUME->RHS_c,"Inf") > 1e3*EPS ||
 				array_norm_d(NvnS*Nvar,VOLUME->RHS,"Inf") < EPS) {
+EXIT_UNSUPPORTED;
 				array_print_d(NvnS,Nvar,VOLUME->RHS,'C');
 				array_print_cmplx(NvnS,Nvar,VOLUME->RHS_c,'C');
-			    printf("% .3e % .3e\n",array_norm_diff_dc(NvnS*Nvar,VOLUME->RHS,VOLUME->RHS_c,"Inf"),
-				                       array_norm_d(NvnS*Nvar,VOLUME->RHS,"Inf"));
+			    printf("%d % .3e % .3e\n",VOLUME->indexg,array_norm_diff_dc(NvnS*Nvar,VOLUME->RHS,VOLUME->RHS_c,"Inf"),
+				                          array_norm_d(NvnS*Nvar,VOLUME->RHS,"Inf"));
 				pass = 0;
 				break;
 			}

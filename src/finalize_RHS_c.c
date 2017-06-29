@@ -2,11 +2,13 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "finalize_RHS_c.h"
+#include "S_VOLUME.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <complex.h>
+#include <stdbool.h>
 
 #include "petscvec.h"
 
@@ -14,9 +16,9 @@
 #include "Macros.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
-#include "S_VOLUME.h"
 #include "S_FACE.h"
 
+#include "explicit_info_c.h"
 #include "array_norm.h"
 #include "matrix_functions.h"
 #include "element_functions.h"
@@ -124,7 +126,7 @@ static void add_source(const struct S_VOLUME *VOLUME)
 	free(OPS);
 }
 
-void finalize_RHS_c(void)
+void finalize_RHS_c(struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
 {
 	// Initialize DB Parameters
 	char         *SolverType = DB.SolverType;
@@ -138,7 +140,14 @@ void finalize_RHS_c(void)
 	struct S_VOLUME  *VOLUME, *VL, *VR;
 	struct S_FACE   *FACE;
 
+	struct S_LOCAL_MESH_ELEMENTS local_ELEMENTs;
+	if (!compute_all)
+		local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'F');
+
 	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
+		if (!compute_all && !is_FACE_in_local_list(FACE,&local_ELEMENTs))
+			continue;
+
 		VL    = FACE->VL;
 		NvnSL = VL->NvnS;
 
@@ -167,9 +176,16 @@ void finalize_RHS_c(void)
 	}
 
 	// Add source contribution
+	if (!compute_all)
+		local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'V');
+
 	if (SourcePresent) {
-		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			if (!compute_all && !is_VOLUME_in_local_list(VOLUME,&local_ELEMENTs))
+				continue;
+
 			add_source(VOLUME);
+		}
 	}
 
 	if (strstr(SolverType,"Explicit"))

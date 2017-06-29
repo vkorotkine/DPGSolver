@@ -18,6 +18,7 @@
 #include "matrix_functions.h"
 #include "fluxes_structs.h"
 #include "array_free.h"
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -115,6 +116,8 @@ static void explicit_GradW_VOLUME(void)
 
 			for (size_t i = 0; i < NvnS*Nvar; i++)
 				VOLUME->Qhat[dim][i] = VOLUME->QhatV[dim][i];
+if (VOLUME->indexg == 0 && dim == 0)
+array_print_d(NvnS,Nvar,VOLUME->Qhat[dim],'C');
 		}
 	}
 

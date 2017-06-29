@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <complex.h>
+#include <time.h>
 
 #include "petscmat.h"
 
@@ -84,6 +85,7 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 	TestDB.CheckOffDiagonal = 0; // Should not be modified.
 
 	data->PrintEnabled           = 0;
+	data->PrintTimings           = 0;
 	data->CheckFullLinearization = 1;
 	data->CheckWeakGradients     = 0;
 	data->StaticCondensation     = 1;
@@ -149,6 +151,7 @@ data->StaticCondensation = 0;
 			EXIT_UNSUPPORTED;
 		}
 	} else if (strstr(TestName,"Euler")) {
+data->PrintTimings = 1;
 		data->update_argv = 0;
 		strcat(data->argvNew[1],"Euler/Test_Euler_SupersonicVortex_ToBeCurved");
 		if (strstr(TestName,"MIXED2D")) {
@@ -161,6 +164,7 @@ data->StaticCondensation = 0;
 			EXIT_UNSUPPORTED;
 		}
 	} else if (strstr(TestName,"NavierStokes")) {
+data->PrintTimings = 1;
 		data->CheckWeakGradients = 1;
 		if (strstr(TestName,"TRI")) {
 			strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedTRI");
@@ -201,6 +205,28 @@ static void check_passing(struct S_linearization const *const data, unsigned int
 			printf("diff_cs:  %e\n",diff_cs);
 		printf("diff_LHS: %e\n",diff_LHS);
 	}
+}
+
+static void update_times (clock_t *const tc, clock_t *const tp, double *const times, unsigned int const counter,
+                          bool const PrintTimings)
+{
+	if (!PrintTimings)
+		return;
+
+	*tc = clock();
+	times[counter] = (*tc-*tp)/(1.0*CLOCKS_PER_SEC);
+	*tp = *tc;
+}
+
+static void print_times (double const *const times, bool const PrintTimings)
+{
+	if (!PrintTimings)
+		return;
+
+	printf("Timing ratios: ");
+	for (size_t i = 0; i < 2; i++)
+		printf("% .2f ",times[i+1]/times[0]);
+	printf("\n");
 }
 
 void test_linearization(struct S_linearization *const data, char const *const TestName)
@@ -304,9 +330,20 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 				}
 			} else {
 				for (size_t dim = 0; dim < d; dim++) {
+					clock_t tp = clock(), tc;
+					double times[3];
+					unsigned int counter = 0;
+
 					finalize_LHS_Qhat(&A[dim],&b[dim],&x[dim],0,dim);
+					update_times(&tc,&tp,times,counter++,data->PrintTimings);
+
 					compute_A_Qhat_cs(&A_cs[dim],&b_cs[dim],&x_cs[dim],0,dim);
+					update_times(&tc,&tp,times,counter++,data->PrintTimings);
+
 					compute_A_Qhat_cs_complete(&A_csc[dim],&b_csc[dim],&x_csc[dim],dim);
+					update_times(&tc,&tp,times,counter++,data->PrintTimings);
+
+					print_times(times,data->PrintTimings);
 				}
 			}
 
@@ -356,9 +393,20 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 					compute_A_cs(&A_cs,&b_cs,&x_cs,i,AllowOffDiag);
 				finalize_Mat(&A_cs,1);
 			} else {
+				clock_t tp = clock(), tc;
+				double times[3];
+				unsigned int counter = 0;
+
 				finalize_LHS(&A,&b,&x,0);
+				update_times(&tc,&tp,times,counter++,data->PrintTimings);
+
 				compute_A_cs(&A_cs,&b_cs,&x_cs,0,1);
+				update_times(&tc,&tp,times,counter++,data->PrintTimings);
+
 				compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
+				update_times(&tc,&tp,times,counter++,data->PrintTimings);
+
+				print_times(times,data->PrintTimings);
 			}
 
 			if (PrintEnabled) {
@@ -512,26 +560,25 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 		}
 	}
 
-/*
-Function: Compute Pointer list to related VOLUMEs
-	Loop over FACEs, find all VOLUMEs connected to VOLUME having indexg. Do not include if VL == VR
-*/
-
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		IndA[0] = VOLUME->IndA;
 		NvnS[0] = VOLUME->NvnS;
 		for (size_t i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++) {
 			double const h = EPS*EPS;
 			VOLUME->What_c[i] += h*I;
+// Eliminate redundant calculations in explicit_GradW_c (ToBeDeleted)
+			explicit_GradW_c(VOLUME,0);
 			if (strstr(DB.TestCase,"Poisson")) {
-				explicit_GradW_c();
 				compute_What_VOLUME_c();
 				compute_What_FACE_c();
 				correct_collocated_for_symmetry_c();
 			} else {
-				explicit_GradW_c();
-				explicit_VOLUME_info_c(VOLUME,0);
-				explicit_FACE_info_c();
+				if (assemble_type == 1)
+					explicit_VOLUME_info_c(VOLUME,0);
+				else if (assemble_type == 2 || assemble_type == 3)
+					explicit_FACE_info_c(VOLUME,0);
+				else
+					EXIT_UNSUPPORTED;
 			}
 
 			if (assemble_type == 1) {
@@ -666,13 +713,13 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 			double const h = EPS*EPS;
 
 			VOLUME->What_c[i] += h*I;
+
+			explicit_GradW_c(VOLUME,0);
 			if (strstr(DB.TestCase,"Poisson")) {
-				explicit_GradW_c();
 				compute_What_VOLUME_c();
 				compute_What_FACE_c();
 				correct_collocated_for_symmetry_c();
 			} else {
-				explicit_GradW_c();
 				explicit_VOLUME_info_c(VOLUME,0);
 				explicit_FACE_info_c(VOLUME,0);
 			}
@@ -919,7 +966,7 @@ static void compute_A_Qhat_cs(Mat *const A, Vec *const b, Vec *const x, unsigned
 			if (strstr(DB.TestCase,"NavierStokes")) {
 				VOLUME->What_c[i] += h*I;
 
-				explicit_GradW_c();
+				explicit_GradW_c(VOLUME,0);
 			} else {
 				EXIT_UNSUPPORTED;
 			}
@@ -1046,7 +1093,7 @@ static void compute_A_Qhat_cs_complete(Mat *const A, Vec *const b, Vec *const x,
 			if (strstr(DB.TestCase,"NavierStokes")) {
 				VOLUME->What_c[i] += h*I;
 
-				explicit_GradW_c();
+				explicit_GradW_c(VOLUME,0);
 			} else {
 				EXIT_UNSUPPORTED;
 			}

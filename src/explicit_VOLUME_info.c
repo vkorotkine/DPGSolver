@@ -202,6 +202,13 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 			FLUXDATA->Nn = NvnI;
 			FLUXDATA->W  = VDATA->W_vI;
 			FLUXDATA->Q  = (double const *const *const) VDATA->Q_vI;
+if (VOLUME->indexg == 0) {
+printf("eVi\n");
+size_t dim = 0;
+array_print_d(VOLUME->NvnS,Neq,VDATA->W_vI,'C');
+array_print_d(VOLUME->NvnS,Neq,VDATA->Q_vI[dim],'C');
+//EXIT_UNSUPPORTED;
+}
 
 			flux_viscous(FLUXDATA);
 

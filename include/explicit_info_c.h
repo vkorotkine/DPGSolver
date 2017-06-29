@@ -6,13 +6,18 @@
 
 #include "Parameters.h"
 #include "S_VOLUME.h"
+#include "S_FACE.h"
 
- struct S_LOCAL_VOLUMES {
-	unsigned int size;
-	struct S_VOLUME *Vlist[NFMAX*NSUBFMAX];
+ struct S_LOCAL_MESH_ELEMENTS {
+	unsigned int NVl, NFl;
+	struct S_VOLUME *Vlist[NFMAX*NSUBFMAX+1];
+	struct S_FACE   *Flist[NFMAX*NSUBFMAX];
 };
 
-extern struct S_LOCAL_VOLUMES compute_local_VOLUME_list (struct S_VOLUME const *const VOLUME);
-extern bool is_VOLUME_in_local_list (struct S_VOLUME const *const VOLUME, struct S_LOCAL_VOLUMES const *const local_VOLUMEs);
+extern struct S_LOCAL_MESH_ELEMENTS compute_local_ELEMENT_list (struct S_VOLUME const *const VOLUME, char const entity);
+extern bool   is_VOLUME_in_local_list (struct S_VOLUME const *const VOLUME,
+                                       struct S_LOCAL_MESH_ELEMENTS const *const local_ELEMENTs);
+extern bool   is_FACE_in_local_list (struct S_FACE const *const FACE,
+                                     struct S_LOCAL_MESH_ELEMENTS const *const local_ELEMENTs);
 
 #endif // DPG__template_h__INCLUDED

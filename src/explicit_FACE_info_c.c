@@ -2,6 +2,8 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "explicit_FACE_info_c.h"
+#include <stdbool.h>
+#include "S_VOLUME.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,6 +14,7 @@
 #include "S_DB.h"
 #include "S_FACE.h"
 
+#include "explicit_info_c.h"
 #include "solver_functions.h"
 #include "solver_functions_c.h"
 #include "array_free.h"
@@ -21,22 +24,23 @@
  *		Identical to explicit_FACE_info using complex variables (for complex step verification).
  *
  *	Comments:
+ *		Only necessary RHS terms are computed (based on the currently perturbed VOLUME or the 'compute_all' variable).
  *
  *	Notation:
  *
  *	References:
  */
 
-static void compute_Inviscid_FACE_RHS_EFE (void);
-static void compute_Viscous_FACE_RHS_EFE  (void);
+static void compute_Inviscid_FACE_RHS_EFE (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all);
+static void compute_Viscous_FACE_RHS_EFE  (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all);
 
-void explicit_FACE_info_c(void)
+void explicit_FACE_info_c(struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
 {
-	compute_Inviscid_FACE_RHS_EFE();
-	compute_Viscous_FACE_RHS_EFE();
+	compute_Inviscid_FACE_RHS_EFE(VOLUME_perturbed,compute_all);
+	compute_Viscous_FACE_RHS_EFE(VOLUME_perturbed,compute_all);
 }
 
-static void compute_Inviscid_FACE_RHS_EFE(void)
+static void compute_Inviscid_FACE_RHS_EFE (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
 {
 	unsigned int const d    = DB.d,
 	                   Neq  = d+2,
@@ -58,8 +62,15 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 		OPSR[i] = malloc(sizeof *OPSR[i]); // free
 	}
 
+	struct S_LOCAL_MESH_ELEMENTS local_ELEMENTs;
+	if (!compute_all)
+		local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'F');
+
 	if (strstr(DB.Form,"Weak")) {
 		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+			if (!compute_all && !is_FACE_in_local_list(FACE,&local_ELEMENTs))
+				continue;
+
 			init_FDATA(FDATAL,FACE,'L');
 			init_FDATA(FDATAR,FACE,'R');
 
@@ -118,7 +129,7 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 	free(FDATAR);
 }
 
-static void compute_Viscous_FACE_RHS_EFE(void)
+static void compute_Viscous_FACE_RHS_EFE (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
 {
 	if (!DB.Viscous)
 		return;
@@ -143,8 +154,15 @@ static void compute_Viscous_FACE_RHS_EFE(void)
 		OPSR[i] = malloc(sizeof *OPSR[i]); // free
 	}
 
+	struct S_LOCAL_MESH_ELEMENTS local_ELEMENTs;
+	if (!compute_all)
+		local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'F');
+
 	if (strstr(DB.Form,"Weak")) {
 		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+			if (!compute_all && !is_FACE_in_local_list(FACE,&local_ELEMENTs))
+				continue;
+
 			init_FDATA(FDATAL,FACE,'L');
 			init_FDATA(FDATAR,FACE,'R');
 

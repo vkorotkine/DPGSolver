@@ -4,7 +4,6 @@ If missing, add copyright info to header of every .c and .h file as below
 Ensure that the link is correct
 
 Make solver_Poisson run using the same functions as for the NS equations (i.e. remove the custom compute_What_* functions).
-Remove redundant computations for linearization testing (i.e. only check effects of neighbouring elements).
 
 grep through all files for 'ToBeModified' and 'ToBeDeleted' comments, making appropriate modifications when possible.
 

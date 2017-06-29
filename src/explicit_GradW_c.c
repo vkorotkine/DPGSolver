@@ -2,6 +2,7 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "explicit_GradW_c.h"
+#include "S_VOLUME.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,13 +12,14 @@
 #include "Macros.h"
 #include "Parameters.h"
 #include "S_DB.h"
-#include "S_VOLUME.h"
 #include "S_FACE.h"
 
+#include "explicit_info_c.h"
 #include "solver_functions.h"
 #include "solver_functions_c.h"
 #include "matrix_functions.h"
 #include "array_free.h"
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -30,21 +32,21 @@
  *	References:
  */
 
-static void explicit_GradW_VOLUME_c   (void);
-static void explicit_GradW_FACE_c     (void);
-static void explicit_GradW_finalize_c (void);
+static void explicit_GradW_VOLUME_c   (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all);
+static void explicit_GradW_FACE_c     (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all);
+static void explicit_GradW_finalize_c (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all);
 
-void explicit_GradW_c(void)
+void explicit_GradW_c (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
 {
 	if (!DB.Viscous)
 		return;
 
-	explicit_GradW_VOLUME_c();
-	explicit_GradW_FACE_c();
-	explicit_GradW_finalize_c();
+	explicit_GradW_VOLUME_c(VOLUME_perturbed,compute_all);
+	explicit_GradW_FACE_c(VOLUME_perturbed,compute_all);
+	explicit_GradW_finalize_c(VOLUME_perturbed,compute_all);
 }
 
-static void explicit_GradW_VOLUME_c(void)
+static void explicit_GradW_VOLUME_c (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
 {
 	unsigned int const d    = DB.d,
 	                   Nvar = DB.Nvar;
@@ -59,7 +61,16 @@ static void explicit_GradW_VOLUME_c(void)
 
 	struct S_Dxyz *const DxyzInfo = malloc(sizeof *DxyzInfo); // free
 
+	struct S_LOCAL_MESH_ELEMENTS local_ELEMENTs;
+	if (!compute_all)
+		local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'V');
+
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		if (!compute_all) {
+			if (!is_VOLUME_in_local_list(VOLUME,&local_ELEMENTs))
+				continue;
+		}
+
 		init_VDATA(VDATA,VOLUME);
 
 		unsigned int const NvnS = VDATA->OPS[0]->NvnS,
@@ -76,34 +87,24 @@ static void explicit_GradW_VOLUME_c(void)
 			double *const Dxyz = compute_Dxyz_strong(DxyzInfo,d); // free
 
 			// Note: The detJ_vI term cancels with the gradient operator (Zwanenburg(2016), eq. (B.2))
-			double *DxyzChiS = NULL;
-// Name needs to be changed ChiS'*Dxyz (ToBeDeleted)
+			double *ChiSDxyz = NULL;
 			if (DB.Collocated) { // ChiS_vI == I
 				for (size_t i = 0; i < NvnS*NvnS; i++)
-					DxyzChiS = Dxyz;
+					ChiSDxyz = Dxyz;
 			} else {
-				DxyzChiS = mm_Alloc_d(CBRM,CBT,CBNT,NvnS,NvnS,NvnI,1.0,ChiS_vI,Dxyz);
+				ChiSDxyz = mm_Alloc_d(CBRM,CBT,CBNT,NvnS,NvnS,NvnI,1.0,ChiS_vI,Dxyz);
 				free(Dxyz);
 			}
-/*
-			// Note: The detJ_vI term cancels with the gradient operator (Zwanenburg(2016), eq. (B.2))
-			if (DB.Collocated) { // ChiS_vI == I
-				DxyzChiS = Dxyz;
-			} else {
-				DxyzChiS = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // free
-				free(Dxyz);
-			}*/
 
 			// Compute intermediate Qhat contribution
 			if (VOLUME->QhatV_c[dim] != NULL)
 				free(VOLUME->QhatV_c[dim]);
 			VOLUME->QhatV_c[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV_c[dim])); // keep
 
-			// Note: Using CBCM with CBNT for DxyzChiS (stored in row-major ordering) gives DxyzChiS transposed in the
-			//       operation below.
-//			mm_dcc(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,DxyzChiS,VOLUME->What_c,VOLUME->QhatV_c[dim]);
-			mm_dcc(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,DxyzChiS,VOLUME->What_c,VOLUME->QhatV_c[dim]);
-			free(DxyzChiS);
+			// Note: Using CBCM with CBT for ChiSDxyz (stored in row-major ordering) gives ChiSDxyz non-transposed in
+			//       the operation below.
+			mm_dcc(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,ChiSDxyz,VOLUME->What_c,VOLUME->QhatV_c[dim]);
+			free(ChiSDxyz);
 
 			if (VOLUME->Qhat_c[dim] != NULL)
 				free(VOLUME->Qhat_c[dim]);
@@ -111,6 +112,10 @@ static void explicit_GradW_VOLUME_c(void)
 
 			for (size_t i = 0; i < NvnS*Nvar; i++)
 				VOLUME->Qhat_c[dim][i] = VOLUME->QhatV_c[dim][i];
+if (VOLUME->indexg == 0 && dim == 0) {
+	printf("eGW_c\n");
+array_print_cmplx(NvnS,Nvar,VOLUME->Qhat_c[dim],'C');
+}
 		}
 	}
 
@@ -120,7 +125,7 @@ static void explicit_GradW_VOLUME_c(void)
 	free(DxyzInfo);
 }
 
-static void explicit_GradW_FACE_c(void)
+static void explicit_GradW_FACE_c (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
 {
 	// Initialize DB Parameters
 	unsigned int const d    = DB.d,
@@ -143,7 +148,14 @@ static void explicit_GradW_FACE_c(void)
 		OPSR[i]  = malloc(sizeof *OPSR[i]);  // free
 	}
 
+	struct S_LOCAL_MESH_ELEMENTS local_ELEMENTs;
+	if (!compute_all)
+		local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'F');
+
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+		if (!compute_all && !is_FACE_in_local_list(FACE,&local_ELEMENTs))
+			continue;
+
 		init_FDATA(FDATAL,FACE,'L');
 		init_FDATA(FDATAR,FACE,'R');
 
@@ -224,13 +236,20 @@ static void finalize_Qhat_c(struct S_VOLUME const *const VOLUME, unsigned int co
 	}
 }
 
-static void explicit_GradW_finalize_c(void)
+static void explicit_GradW_finalize_c (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
 {
 	unsigned int const d    = DB.d,
 	                   Nvar = DB.Nvar;
 
+	struct S_LOCAL_MESH_ELEMENTS local_ELEMENTs;
+	if (!compute_all)
+		local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'F');
+
 	// Add FACE contributions to VOLUME->Qhat then multiply by MInv
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+		if (!compute_all && !is_FACE_in_local_list(FACE,&local_ELEMENTs))
+			continue;
+
 		struct S_VOLUME const *const VL = FACE->VL,
 		                      *const VR = FACE->VR;
 
@@ -253,7 +272,13 @@ static void explicit_GradW_finalize_c(void)
 	}
 
 	// Multiply VOLUME Qhat terms by MInv
+	if (!compute_all)
+		local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'V');
+
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		if (!compute_all && !is_VOLUME_in_local_list(VOLUME,&local_ELEMENTs))
+			continue;
+
 		unsigned int const NvnS = VOLUME->NvnS;
 
 		finalize_Qhat_c(VOLUME,NvnS,VOLUME->Qhat_c);

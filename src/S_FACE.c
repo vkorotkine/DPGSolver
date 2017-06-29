@@ -39,18 +39,18 @@ void update_data_FACE (struct S_FACE *const FACE)
 	for (size_t side = 0; side < Nsides; side++) {
 		struct S_SIDE_DATA *const data = &FACE->data[side];
 
-		data->Indmf  = compute_Indmf(data->Indfh);
-		data->Indlfh = compute_Indlfh(data->Indfh);
-
 		if (side == 0) {
 			data->Indfh  = FACE->VfL;
 			data->VOLUME = FACE->VL;
-
-			set_type_FACE(FACE);
 		} else if (side == 1) {
 			data->Indfh  = FACE->VfR;
 			data->VOLUME = FACE->VR;
 		}
+
+		data->Indmf  = compute_Indmf(data->Indfh);
+		data->Indlfh = compute_Indlfh(data->Indfh);
+		if (side == 0)
+			set_type_FACE(FACE);
 
 		data->Indsfh = compute_Indsfh(data,FACE->type);
 	}
@@ -111,7 +111,6 @@ static unsigned int compute_Indsfh (struct S_SIDE_DATA const *const data, unsign
 			break;
 		}
 	}
-
 	return (data->Indmf)*NSUBFMAX+Indlsfh;
 }
 
