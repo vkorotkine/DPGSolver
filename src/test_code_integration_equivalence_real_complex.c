@@ -74,8 +74,12 @@ static void set_test_equivalence_data(struct S_equivalence_rc *data, const char 
 		data->EnteredNumFluxes = TestDB.EnteredViscousFlux;
 
 		if (strstr(TestName,"n-Cylinder_Hollow")) {
-			if (strstr(TestName,"CurvedTRI")) {
-				strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedTRI");
+			if (strstr(TestName,"ToBeCurvedMIXED2D")) {
+				if (strstr(TestName,"Collocated")) {
+					strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedMIXED2D_Col");
+				} else {
+					strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedMIXED2D");
+				}
 			} else {
 				EXIT_UNSUPPORTED;
 			}
@@ -163,7 +167,6 @@ void test_equivalence_real_complex(struct S_equivalence_rc *const data, char con
 
 			if (array_norm_diff_dc(NvnS*Nvar,VOLUME->RHS,VOLUME->RHS_c,"Inf") > 1e3*EPS ||
 				array_norm_d(NvnS*Nvar,VOLUME->RHS,"Inf") < EPS) {
-EXIT_UNSUPPORTED;
 				array_print_d(NvnS,Nvar,VOLUME->RHS,'C');
 				array_print_cmplx(NvnS,Nvar,VOLUME->RHS_c,'C');
 			    printf("%d % .3e % .3e\n",VOLUME->indexg,array_norm_diff_dc(NvnS*Nvar,VOLUME->RHS,VOLUME->RHS_c,"Inf"),

@@ -62,6 +62,19 @@ static void compute_Inviscid_FACE_RHS_EFE(void)
 {
 	unsigned int const Neq = DB.Neq;
 
+	if (!DB.Inviscid) {
+		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+			unsigned int const NvnSL = FACE->VL->NvnS;
+			set_to_zero_d(NvnSL*Neq,FACE->RHSL);
+
+			if (!FACE->Boundary) {
+				unsigned int const NvnSR = FACE->VR->NvnS;
+				set_to_zero_d(NvnSR*Neq,FACE->RHSR);
+			}
+		}
+		return;
+	}
+
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 
 	struct S_FDATA *const FDATAL = malloc(sizeof *FDATAL), // free

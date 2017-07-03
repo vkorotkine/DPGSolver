@@ -18,6 +18,7 @@
  *		Compute viscous flux jacobians from inputs W, Q in conservative form.
  *
  *	Comments:
+ *		See comments of fluxes_viscous.
  *		See comments of jacobian_fluxes_inviscid.
  *
  *		Jacobians with respect to W and Q are both returned.
@@ -27,7 +28,99 @@
  *	References:
  */
 
+static void jacobian_flux_Poisson      (struct S_FLUX *const FLUXDATA);
+static void jacobian_flux_NavierStokes (struct S_FLUX *const FLUXDATA);
+
 void jacobian_flux_viscous(struct S_FLUX *const FLUXDATA)
+{
+	switch(FLUXDATA->PDE_index) {
+		case PDE_POISSON:      jacobian_flux_Poisson(FLUXDATA);      break;
+		case PDE_NAVIERSTOKES: jacobian_flux_NavierStokes(FLUXDATA); break;
+		default:
+			printf("%d\n",FLUXDATA->PDE_index);
+			EXIT_UNSUPPORTED;
+		break;
+	}
+}
+
+static void jacobian_flux_Poisson (struct S_FLUX *const FLUXDATA)
+{
+	/*
+	 *	Comments:
+	 *		Implicitly assumed that Neq = Nvar = 1.
+	 *		F(W,Q) == Q => dFdW = 0, dFdQ = 1.
+	 */
+
+	unsigned int const d       = FLUXDATA->d,
+	                   Nn      = FLUXDATA->Nn,
+	                   Nel     = FLUXDATA->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double const *const *const Q    = FLUXDATA->Q;
+	double       *const F           = FLUXDATA->F,
+	             *const dFdW        = FLUXDATA->dFdW,
+	             *const *const dFdQ = FLUXDATA->dFdQ;
+
+	double *F_ptr[DMAX];
+	if (F != NULL) {
+		for (size_t dim = 0; dim < d; dim++)
+			F_ptr[dim] = &F[dim*NnTotal];
+	}
+
+	double *dFdW_ptr[DMAX];
+	if (dFdW != NULL) {
+		for (size_t dim = 0; dim < d; dim++)
+			dFdW_ptr[dim] = &dFdW[dim*NnTotal];
+	}
+
+	double *dFdQ_ptr[d][DMAX];
+	if (dFdQ != NULL) {
+		for (size_t dim1 = 0; dim1 < d; dim1++) {
+		for (size_t dim = 0; dim < d; dim++) {
+			dFdQ_ptr[dim1][dim] = &dFdQ[dim1][dim*NnTotal];
+		}}
+	}
+
+	for (size_t n = 0; n < NnTotal; n++) {
+		// ***************************************** F ***************************************** //
+		if (F != NULL) {
+			size_t IndF = 0;
+			for (size_t dim = 0; dim < d; dim++)
+				*F_ptr[IndF++] = -Q[dim][n];
+
+			for (size_t i = 0, iMax = DMAX; i < iMax; i++)
+				F_ptr[i]++;
+		}
+
+		// ***************************************** dFdW ***************************************** //
+		if (dFdW != NULL) {
+			size_t InddFdW = 0;
+			for (size_t dim = 0; dim < d; dim++)
+				*dFdW_ptr[InddFdW++] = 0.0;
+
+			for (size_t i = 0, iMax = DMAX; i < iMax; i++)
+				dFdW_ptr[i]++;
+		}
+
+		// ***************************************** dFdQ ***************************************** //
+		if (dFdQ != NULL) {
+			for (size_t dim1 = 0; dim1 < d; dim1++) {
+				size_t InddFdQ = 0;
+				for (size_t dim = 0; dim < d; dim++) {
+					if (dim == dim1)
+						*dFdQ_ptr[dim1][InddFdQ++] = -1.0;
+					else
+						*dFdQ_ptr[dim1][InddFdQ++] = 0.0;
+				}
+
+				for (size_t i = 0, iMax = DMAX; i < iMax; i++)
+					dFdQ_ptr[dim1][i]++;
+			}
+		}
+	}
+}
+
+static void jacobian_flux_NavierStokes (struct S_FLUX *const FLUXDATA)
 {
 	unsigned int const d       = FLUXDATA->d,
 	                   Neq     = d+2,

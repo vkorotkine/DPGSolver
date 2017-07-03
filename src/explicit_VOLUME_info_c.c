@@ -62,13 +62,26 @@ void explicit_VOLUME_info_c (struct S_VOLUME *const VOLUME_perturbed, bool const
 
 static void compute_Inviscid_VOLUME_RHS_EFE (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
 {
+	unsigned int const Neq = DB.Neq;
+
+	if (!DB.Inviscid) {
+		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			unsigned int NvnS = VOLUME->NvnS;
+			if (VOLUME->RHS_c)
+				free(VOLUME->RHS_c);
+			VOLUME->RHS_c = calloc(NvnS*Neq , sizeof *(VOLUME->RHS_c)); // keep
+		}
+		return;
+	}
+
 	// Initialize DB Parameters
-	unsigned int d    = DB.d,
-				 Nvar = d+2,
-				 Neq  = d+2;
+	unsigned int const d    = DB.d,
+	                   Nvar = DB.Nvar;
 
 	// Standard datatypes
 	struct S_OPERATORS_V *OPS[2];
+	for (size_t i = 0; i < 2; i++)
+		OPS[i] = malloc(sizeof *OPS[i]); // free
 
 	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
 	VDATA->OPS = (struct S_OPERATORS_V const *const *) OPS;
@@ -77,9 +90,6 @@ static void compute_Inviscid_VOLUME_RHS_EFE (struct S_VOLUME *const VOLUME_pertu
 	FLUXDATA->PDE_index = DB.PDE_index;
 	FLUXDATA->d   = d;
 	FLUXDATA->Nel = 1;
-
-	for (size_t i = 0; i < 2; i++)
-		OPS[i] = malloc(sizeof *OPS[i]); // free
 
 	struct S_LOCAL_MESH_ELEMENTS local_ELEMENTs;
 	if (!compute_all)
@@ -152,8 +162,8 @@ static void compute_Viscous_VOLUME_RHS_EFE (struct S_VOLUME *const VOLUME_pertur
 		return;
 
 	unsigned int const d    = DB.d,
-	                   Nvar = d+2,
-	                   Neq  = d+2;
+	                   Nvar = DB.Nvar,
+	                   Neq  = DB.Neq;
 
 	struct S_OPERATORS_V *OPS[2];
 
@@ -163,6 +173,7 @@ static void compute_Viscous_VOLUME_RHS_EFE (struct S_VOLUME *const VOLUME_pertur
 	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
 	FLUXDATA->d   = d;
 	FLUXDATA->Nel = 1;
+	FLUXDATA->PDE_index = DB.PDE_index;
 
 	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
@@ -203,13 +214,6 @@ static void compute_Viscous_VOLUME_RHS_EFE (struct S_VOLUME *const VOLUME_pertur
 			FLUXDATA->W_c = VDATA->W_vI_c;
 			FLUXDATA->Q_c = (double complex const *const *const) VDATA->Q_vI_c;
 			FLUXDATA->F_c = F_vI;
-if (VOLUME->indexg == 0) {
-printf("eVi_c\n");
-size_t dim = 0;
-array_print_cmplx(VOLUME->NvnS,Neq,VDATA->W_vI_c,'C');
-array_print_cmplx(VOLUME->NvnS,Neq,VDATA->Q_vI_c[dim],'C');
-//EXIT_UNSUPPORTED;
-}
 
 			flux_viscous_c(FLUXDATA);
 

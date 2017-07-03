@@ -316,8 +316,8 @@ int main(int nargc, char **argv)
 	}
 if (1) {
 //	test_integration_Advection(nargc,argv);
-//	test_integration_Poisson(nargc,argv);
-//	test_integration_Euler(nargc,argv);
+	test_integration_Poisson(nargc,argv);
+	test_integration_Euler(nargc,argv);
 	test_integration_NavierStokes(nargc,argv);
 }
 

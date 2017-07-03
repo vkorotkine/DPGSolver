@@ -21,6 +21,7 @@
 #include "solver_functions.h"
 #include "update_VOLUMEs.h"
 #include "implicit_GradW.h"
+#include "implicit_VOLUME_info_DG.h"
 
 #include "matrix_functions.h"
 #include "finalize_LHS.h"
@@ -106,30 +107,6 @@ static void compute_Qhat(void)
 
 	implicit_GradW_FACE();
 	implicit_GradW_finalize();
-}
-
-static void compute_What_VOLUME(void)
-{
-	unsigned int const d    = DB.d,
-	                   Neq  = 1,
-	                   Nvar = 1;
-
-	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		unsigned int const NvnS = VOLUME->NvnS;
-
-		// Compute RHS and LHS terms
-		double **LHSQ = VOLUME->LHSQ;
-
-		// RHS
-		set_to_zero_d(NvnS*Neq,VOLUME->RHS);
-		for (size_t dim = 0; dim < d; dim++)
-			mm_d(CBCM,CBT,CBNT,NvnS,1,NvnS,1.0,1.0,LHSQ[dim],VOLUME->Qhat[dim],VOLUME->RHS);
-
-		// LHS
-		set_to_zero_d(NvnS*NvnS*Neq*Nvar,VOLUME->LHS);
-		for (size_t dim = 0; dim < d; dim++)
-			mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnS,1.0,1.0,LHSQ[dim],VOLUME->QhatV_What[dim],VOLUME->LHS);
-	}
 }
 
 static void compute_What_FACE()
@@ -252,7 +229,7 @@ void implicit_info_Poisson(void)
 
 	compute_Qhat();
 
-	compute_What_VOLUME();
+	implicit_VOLUME_info_DG();
 	compute_What_FACE();
 }
 

@@ -11,13 +11,13 @@ MeshType      LINE
 MeshCurving   Straight
 MeshLevel     2
 
-Form       Strong   // Options: Weak, (Strong)
+Form       Weak   // Options: Weak, (Strong)
 NodeType   GLL-AO // Options: GL/GLL-AO/WSH/EQ
 BasisType  Nodal  // Options: Nodal, Modal
 
 Vectorized 0     // Options: 0, 1
 EFE        1     // Options: (0), 1
-Collocated 1     // Options: 0, 1
+Collocated 0     // Options: 0, 1
 Adapt      3     // Options: 0, 1, 2, 3
 
 PGlobal    1

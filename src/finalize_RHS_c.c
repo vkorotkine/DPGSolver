@@ -176,10 +176,10 @@ void finalize_RHS_c(struct S_VOLUME *const VOLUME_perturbed, bool const compute_
 	}
 
 	// Add source contribution
-	if (!compute_all)
-		local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'V');
-
 	if (SourcePresent) {
+		if (!compute_all)
+			local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'V');
+
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			if (!compute_all && !is_VOLUME_in_local_list(VOLUME,&local_ELEMENTs))
 				continue;

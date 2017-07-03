@@ -2,15 +2,17 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "solver_symmetric_functions.h"
+#include "S_VOLUME.h"
 
 #include <stdlib.h>
 #include <complex.h>
 
+#include "Macros.h"
 #include "S_DB.h"
 #include "S_ELEMENT.h"
-#include "S_VOLUME.h"
 #include "S_FACE.h"
 
+#include "explicit_info_c.h"
 #include "element_functions.h"
 #include "matrix_functions.h"
 
@@ -19,7 +21,6 @@
  *		Provide solver related functions for symmetric systems.
  *
  *	Comments:
- *		Currently this function is only used for the Poisson equation.
  *
  *	Notation:
  *
@@ -54,7 +55,7 @@ void correct_collocated_for_symmetry (void)
 {
 	/*
 	 *	Purpose:
-	 *		Premultiply RHS/LHS entries by diagonal weights for collocated schemes to recover teh symmetry of the global
+	 *		Premultiply RHS/LHS entries by diagonal weights for collocated schemes to recover the symmetry of the global
 	 *		system matrix.
 	 *
 	 *	Comments:
@@ -98,7 +99,7 @@ void correct_collocated_for_symmetry (void)
 		if (!FACE->Boundary) {
 			struct S_OPERATORS OPSR = init_ops(FACE->VR);
 
-			unsigned int const NvnSR = OPSL.NvnI;
+			unsigned int const NvnSR = OPSR.NvnI;
 
 			mm_diag_d_inplace(NvnSR,Neq,OPSR.w_vI,FACE->RHSR,1.0,'L','C');
 			for (size_t eq  = 0; eq < Neq; eq++) {
@@ -113,7 +114,8 @@ void correct_collocated_for_symmetry (void)
 	}
 }
 
-void correct_collocated_for_symmetry_c (void)
+void correct_collocated_for_symmetry_c (struct S_VOLUME *const VOLUME_perturbed, bool const correct_all,
+                                        bool const correct_V, bool const correct_F)
 {
 	/*
 	 *	Purpose:
@@ -122,34 +124,61 @@ void correct_collocated_for_symmetry_c (void)
 	 *
 	 *	Comments:
 	 *		See comments in setup_operators for why this correction is necessary.
+	 *
+	 *	Notation:
+	 *		correct_all : multiply (all) RHS terms by diagonal weights?
+	 *		correct_V   : multiply (V)OLUME RHS terms?
+	 *		correct_F   : multiply (F)ACE   RHS terms?
 	 */
 
 	if (!DB.Collocated)
 		return;
 
+	if (correct_all && !(correct_V || correct_F))
+		EXIT_UNSUPPORTED;
+
+	if (!(correct_V || correct_F))
+		EXIT_UNSUPPORTED;
+
 	unsigned int const Neq  = DB.Neq;
 
-	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		struct S_OPERATORS OPS = init_ops(VOLUME);
+	struct S_LOCAL_MESH_ELEMENTS local_ELEMENTs;
 
-		unsigned int const NvnS = OPS.NvnI;
+	if (correct_V) {
+		if (!correct_all)
+			local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'V');
 
-		mm_diag_dc_inplace(NvnS,Neq,OPS.w_vI,VOLUME->RHS_c,1.0,'L','C');
+		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			if (!correct_all && !is_VOLUME_in_local_list(VOLUME,&local_ELEMENTs))
+				continue;
+
+			struct S_OPERATORS OPS = init_ops(VOLUME);
+
+			unsigned int const NvnS = OPS.NvnI;
+
+			mm_diag_dc_inplace(NvnS,Neq,OPS.w_vI,VOLUME->RHS_c,1.0,'L','C');
+		}
 	}
 
-	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
-		struct S_OPERATORS OPSL = init_ops(FACE->VL);
+	if (correct_F) {
+		if (!correct_all)
+			local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'F');
 
-		unsigned int const NvnSL = OPSL.NvnI;
+		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+			if (!correct_all && !is_FACE_in_local_list(FACE,&local_ELEMENTs))
+				continue;
 
-		mm_diag_dc_inplace(NvnSL,Neq,OPSL.w_vI,FACE->RHSL_c,1.0,'L','C');
+			struct S_OPERATORS OPSL = init_ops(FACE->VL);
 
-		if (!FACE->Boundary) {
-			struct S_OPERATORS OPSR = init_ops(FACE->VR);
+			unsigned int const NvnSL = OPSL.NvnI;
+			mm_diag_dc_inplace(NvnSL,Neq,OPSL.w_vI,FACE->RHSL_c,1.0,'L','C');
 
-			unsigned int const NvnSR = OPSL.NvnI;
+			if (!FACE->Boundary) {
+				struct S_OPERATORS OPSR = init_ops(FACE->VR);
 
-			mm_diag_dc_inplace(NvnSR,Neq,OPSR.w_vI,FACE->RHSR_c,1.0,'L','C');
+				unsigned int const NvnSR = OPSR.NvnI;
+				mm_diag_dc_inplace(NvnSR,Neq,OPSR.w_vI,FACE->RHSR_c,1.0,'L','C');
+			}
 		}
 	}
 }

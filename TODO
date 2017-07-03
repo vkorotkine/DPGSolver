@@ -3,8 +3,6 @@ If missing, add copyright info to header of every .c and .h file as below
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 Ensure that the link is correct
 
-Make solver_Poisson run using the same functions as for the NS equations (i.e. remove the custom compute_What_* functions).
-
 grep through all files for 'ToBeModified' and 'ToBeDeleted' comments, making appropriate modifications when possible.
 
 change tab spaces to 8 and increase max lines to check alignment of the code under different options in .vimrc

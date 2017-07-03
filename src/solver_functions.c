@@ -1690,6 +1690,8 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	 *		cubature nodes as seen from the left VOLUME.
 	 *
 	 *	Comments:
+	 *		Needs some clean-up. Merge Navier-Stokes/Poisson (ToBeDeleted).
+	 *
 	 *		If on a boundary FACE, the boundary Jacobian contributions are included in dnFluxViscNumdWL_fIL for the
 	 *		solution only. The boundary Jacobian contributions with respect to Q are treated here directly.
 	 *
@@ -1781,6 +1783,17 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	FLUXDATA->d   = d;
 	FLUXDATA->Nn  = NfnI;
 	FLUXDATA->Nel = 1;
+	FLUXDATA->PDE_index = DB.PDE_index;
+
+	// Note: dFdW = 0 for the Poisson equation.
+	bool update_dnFluxViscNumdWL_fIL = 0;
+	if (strstr(PDE,"NavierStokes")) {
+		update_dnFluxViscNumdWL_fIL = 1;
+	} else if (strstr(PDE,"Poisson")) {
+		update_dnFluxViscNumdWL_fIL = 0;
+	} else {
+		EXIT_UNSUPPORTED;
+	}
 
 	if (Boundary) {
 		double *const W_fIL = malloc(NfnI*Nvar * sizeof *W_fIL); // free
@@ -1991,16 +2004,6 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	}
 
 	// Include the BC information in dnFluxViscNumdWL_fIL if on a boundary.
-	// Not currently required for the Poisson solver as dFNumdW = 0.
-	bool update_dnFluxViscNumdWL_fIL = 0;
-	if (strstr(PDE,"NavierStokes")) {
-		update_dnFluxViscNumdWL_fIL = 1;
-	} else if (strstr(PDE,"Poisson")) {
-		update_dnFluxViscNumdWL_fIL = 0;
-	} else {
-		EXIT_UNSUPPORTED;
-	}
-
 	if (imex_type == 'I' && Boundary && update_dnFluxViscNumdWL_fIL) {
 		// This is only done for dWBdW, the contribution from dQd(W/Q) is assumed to have been properly treated above.
 		unsigned int const BC = FACE->BC;

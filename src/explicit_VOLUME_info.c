@@ -69,79 +69,83 @@ void explicit_VOLUME_info(void)
 
 static void compute_Inviscid_VOLUME_RHS_EFE(void)
 {
-	// Initialize DB Parameters
-	unsigned int const d   = DB.d,
-	                   Neq = d+2;
+	unsigned int const Neq = DB.Neq;
+
+	if (!DB.Inviscid) {
+		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			unsigned int NvnS = VOLUME->NvnS;
+			set_to_zero_d(NvnS*Neq,VOLUME->RHS);
+		}
+		return;
+	}
+
+	unsigned int const d = DB.d;
 
 	struct S_OPERATORS_V *OPS[2];
-
-	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
-	VDATA->OPS = (struct S_OPERATORS_V const *const *) OPS;
-
-	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
-	FLUXDATA->PDE_index = DB.PDE_index;
-	FLUXDATA->d   = d;
-	FLUXDATA->Nel = 1;
-
-	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
-	DATA->VDATA     = VDATA;
-	DATA->FLUXDATA  = FLUXDATA;
-	DATA->feature   = 'V';
-	DATA->imex_type = 'E';
-
 	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
 
+	struct S_VDATA VDATA;
+	VDATA.OPS = (struct S_OPERATORS_V const *const *) OPS;
+
+	struct S_FLUX FLUXDATA;
+	FLUXDATA.PDE_index = DB.PDE_index;
+	FLUXDATA.d   = d;
+	FLUXDATA.Nel = 1;
+
+	struct S_DATA DATA;
+	DATA.VDATA     = &VDATA;
+	DATA.FLUXDATA  = &FLUXDATA;
+	DATA.feature   = 'V';
+	DATA.imex_type = 'E';
+
 	if (strstr(DB.Form,"Weak")) {
 		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-			init_VDATA(VDATA,VOLUME);
+			init_VDATA(&VDATA,VOLUME);
 
 			// Obtain W_vI
-			unsigned int const NvnI = VDATA->OPS[0]->NvnI;
+			unsigned int const NvnI = VDATA.OPS[0]->NvnI;
 			if (DB.Collocated) {
-				VDATA->W_vI = VOLUME->What;
+				VDATA.W_vI = VOLUME->What;
 			} else {
-				manage_solver_memory(DATA,'A','W'); // free
-				coef_to_values_vI(VDATA,'W');
+				manage_solver_memory(&DATA,'A','W'); // free
+				coef_to_values_vI(&VDATA,'W');
 			}
 
 			// Compute Flux in reference space
-			manage_solver_memory(DATA,'A','I'); // free
+			manage_solver_memory(&DATA,'A','I'); // free
 
-			FLUXDATA->Nn = NvnI;
-			FLUXDATA->W  = VDATA->W_vI;
+			FLUXDATA.Nn = NvnI;
+			FLUXDATA.W  = VDATA.W_vI;
 
 			if (DB.PDE_index == PDE_ADVECTION)
-				manage_solver_memory(DATA,'A','X'); // free
+				manage_solver_memory(&DATA,'A','X'); // free
 
-			compute_flux_inviscid(VDATA,FLUXDATA,'E');
+			compute_flux_inviscid(&VDATA,&FLUXDATA,'E');
 
 			if (!DB.Collocated)
-				manage_solver_memory(DATA,'F','W');
+				manage_solver_memory(&DATA,'F','W');
 
 			if (DB.PDE_index == PDE_ADVECTION)
-				manage_solver_memory(DATA,'F','X');
+				manage_solver_memory(&DATA,'F','X');
 
 			// Convert to reference space
-			convert_between_rp(NvnI,Neq,VOLUME->C_vI,FLUXDATA->F,FLUXDATA->Fr,"FluxToRef");
+			convert_between_rp(NvnI,Neq,VOLUME->C_vI,FLUXDATA.F,FLUXDATA.Fr,"FluxToRef");
 
 			// Compute RHS term
-			unsigned int const NvnS = VDATA->OPS[0]->NvnS;
+			unsigned int const NvnS = VDATA.OPS[0]->NvnS;
 
 			set_to_zero_d(NvnS*Neq,VOLUME->RHS);
-			finalize_VOLUME_Inviscid_Weak(Neq,FLUXDATA->Fr,VOLUME->RHS,'E',VDATA);
+			finalize_VOLUME_Inviscid_Weak(Neq,FLUXDATA.Fr,VOLUME->RHS,'E',&VDATA);
 
-			manage_solver_memory(DATA,'F','I');
+			manage_solver_memory(&DATA,'F','I');
 		}
 	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;
 	}
 
-	free(VDATA);
-	free(FLUXDATA);
 	for (size_t i = 0; i < 2; i++)
 		free(OPS[i]);
-	free(DATA);
 }
 
 static void compute_Viscous_VOLUME_RHS_EFE(void)
@@ -169,6 +173,7 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
 	FLUXDATA->d   = d;
 	FLUXDATA->Nel = 1;
+	FLUXDATA->PDE_index = DB.PDE_index;
 
 	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
 	DATA->VDATA     = VDATA;
@@ -202,13 +207,6 @@ static void compute_Viscous_VOLUME_RHS_EFE(void)
 			FLUXDATA->Nn = NvnI;
 			FLUXDATA->W  = VDATA->W_vI;
 			FLUXDATA->Q  = (double const *const *const) VDATA->Q_vI;
-if (VOLUME->indexg == 0) {
-printf("eVi\n");
-size_t dim = 0;
-array_print_d(VOLUME->NvnS,Neq,VDATA->W_vI,'C');
-array_print_d(VOLUME->NvnS,Neq,VDATA->Q_vI[dim],'C');
-//EXIT_UNSUPPORTED;
-}
 
 			flux_viscous(FLUXDATA);
 

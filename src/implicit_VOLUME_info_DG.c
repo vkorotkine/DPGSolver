@@ -61,6 +61,14 @@ static void compute_Inviscid_VOLUME_EFE(void)
 				 Nvar = DB.Nvar,
 				 Neq  = DB.Neq;
 
+	if (!DB.Inviscid) {
+		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			unsigned int NvnS = VOLUME->NvnS;
+			set_to_zero_d(NvnS*Neq,VOLUME->RHS);
+			set_to_zero_d(NvnS*NvnS*Neq*Nvar,VOLUME->LHS);
+		}
+		return;
+	}
 	struct S_OPERATORS_V *OPS[2];
 
 	struct S_VDATA *const VDATA = malloc(sizeof *VDATA); // free
@@ -152,6 +160,7 @@ static void compute_Viscous_VOLUME_EFE(void)
 	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
 	FLUXDATA->d   = d;
 	FLUXDATA->Nel = 1;
+	FLUXDATA->PDE_index = DB.PDE_index;
 
 	struct S_DATA *const DATA = malloc(sizeof *DATA); // free
 	DATA->VDATA     = VDATA;

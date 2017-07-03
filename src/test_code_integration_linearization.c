@@ -31,7 +31,6 @@
 #include "implicit_GradW.h"
 
 #include "solver_Advection_c.h"
-#include "solver_Poisson_c.h"
 #include "explicit_VOLUME_info_c.h"
 #include "explicit_FACE_info_c.h"
 #include "explicit_GradW_c.h"
@@ -62,6 +61,10 @@
  *
  *		A similar formulation for the Navier-Stokes equations may be possible due to the linearity of the viscous flux
  *		with respect to the solution gradients. INVESTIGATE. (ToBeModified)
+ *
+ *		For 2nd order equations, modifying What in a given VOLUME results in a modification of Qhat in all adjacent
+ *		VOLUMEs, which in turn results in explicit_VOLUME_info generating off-diagonal terms in the global system. These
+ *		terms are verified with CheckOffDiagonal is set to true.
  *
  *	Notation:
  *
@@ -142,6 +145,7 @@ data->StaticCondensation = 0;
 			}
 		}
 	} else if (strstr(TestName,"Poisson")) {
+//data->CheckFullLinearization = 0;
 		if (strstr(TestName,"1D")) {
 			strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Cube_LINE");
 		} else if (strstr(TestName,"MIXED2D")) {
@@ -166,8 +170,12 @@ data->PrintTimings = 1;
 	} else if (strstr(TestName,"NavierStokes")) {
 data->PrintTimings = 1;
 		data->CheckWeakGradients = 1;
-		if (strstr(TestName,"TRI")) {
-			strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedTRI");
+		if (strstr(TestName,"ToBeCurvedMIXED2D")) {
+			if (strstr(TestName,"Collocated")) {
+				strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedMIXED2D_Col");
+			} else {
+				strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedMIXED2D");
+			}
 		} else {
 			EXIT_UNSUPPORTED;
 		}
@@ -368,6 +376,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 
 			set_PrintName("linearization",data->PrintName,&data->TestTRI);
 			if (strstr(TestName,"Poisson")) {
+//			if (0&&strstr(TestName,"Poisson")) {
 				implicit_info_Poisson();
 			} else {
 				// Comment implicit_FACE_info here and used Q_vI = ChiS_vI*VOLUME->QhatV to only check VOLUME-VOLUME
@@ -379,6 +388,8 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 			}
 
 			if (!CheckFullLinearization) {
+				correct_collocated_for_symmetry();
+
 				// Potential problem with symmetry for Poisson using CheckLevel = 1 (ToBeModified)
 				unsigned int const CheckLevel = 3;
 				for (size_t i = 1; i <= CheckLevel; i++)
@@ -400,7 +411,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 				finalize_LHS(&A,&b,&x,0);
 				update_times(&tc,&tp,times,counter++,data->PrintTimings);
 
-				compute_A_cs(&A_cs,&b_cs,&x_cs,0,1);
+				compute_A_cs(&A_cs,&b_cs,&x_cs,0,true);
 				update_times(&tc,&tp,times,counter++,data->PrintTimings);
 
 				compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
@@ -566,17 +577,22 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 		for (size_t i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++) {
 			double const h = EPS*EPS;
 			VOLUME->What_c[i] += h*I;
-// Eliminate redundant calculations in explicit_GradW_c (ToBeDeleted)
-			explicit_GradW_c(VOLUME,0);
-			if (strstr(DB.TestCase,"Poisson")) {
-				compute_What_VOLUME_c();
-				compute_What_FACE_c();
-				correct_collocated_for_symmetry_c();
+
+			if (0&&strstr(DB.TestCase,"Poisson")) {
+// ToBeModified (Merge these)
+				explicit_GradW_c(NULL,true);
+				explicit_VOLUME_info_c(NULL,true);
+				explicit_FACE_info_c(NULL,true);
+				correct_collocated_for_symmetry_c(NULL,true,true,true);
 			} else {
-				if (assemble_type == 1)
+				explicit_GradW_c(VOLUME,false);
+				if (assemble_type == 1) {
 					explicit_VOLUME_info_c(VOLUME,0);
-				else if (assemble_type == 2 || assemble_type == 3)
+					correct_collocated_for_symmetry_c(VOLUME,0,true,false);
+				} else if (assemble_type == 2 || assemble_type == 3) {
 					explicit_FACE_info_c(VOLUME,0);
+					correct_collocated_for_symmetry_c(VOLUME,false,false,true);
+				}
 				else
 					EXIT_UNSUPPORTED;
 			}
@@ -688,6 +704,8 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 						free(m); free(n); free(vv);
 					}
 				}}
+			} else {
+				EXIT_UNSUPPORTED;
 			}
 			VOLUME->What_c[i] -= h*I;
 		}
@@ -716,14 +734,20 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 
 			explicit_GradW_c(VOLUME,0);
 			if (strstr(DB.TestCase,"Poisson")) {
-				compute_What_VOLUME_c();
-				compute_What_FACE_c();
-				correct_collocated_for_symmetry_c();
+				explicit_VOLUME_info_c(NULL,true);
+				explicit_FACE_info_c(NULL,true);
 			} else {
 				explicit_VOLUME_info_c(VOLUME,0);
 				explicit_FACE_info_c(VOLUME,0);
 			}
 			finalize_RHS_c(VOLUME,0);
+
+			// correct_FACE = false as FACE terms were added to VOLUME RHS in finalize_RHS_c
+			if (strstr(DB.TestCase,"Poisson")) {
+				correct_collocated_for_symmetry_c(NULL,true,true,false);
+			} else {
+				correct_collocated_for_symmetry_c(VOLUME,0,true,false);
+			}
 
 			for (struct S_VOLUME *VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
 				IndA[1] = VOLUME2->IndA;

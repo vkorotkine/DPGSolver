@@ -25,7 +25,43 @@
  *	References:
  */
 
+static void flux_Poisson_c      (struct S_FLUX *const FLUXDATA);
+static void flux_NavierStokes_c (struct S_FLUX *const FLUXDATA);
+
 void flux_viscous_c(struct S_FLUX *const FLUXDATA)
+{
+	switch(FLUXDATA->PDE_index) {
+		case PDE_POISSON:      flux_Poisson_c(FLUXDATA);      break;
+		case PDE_NAVIERSTOKES: flux_NavierStokes_c(FLUXDATA); break;
+		default:               EXIT_UNSUPPORTED;              break;
+	}
+}
+
+static void flux_Poisson_c (struct S_FLUX *const FLUXDATA)
+{
+	unsigned int const d       = FLUXDATA->d,
+	                   Nn      = FLUXDATA->Nn,
+	                   Nel     = FLUXDATA->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double complex const *const *const Q = FLUXDATA->Q_c;
+	double complex       *const F        = FLUXDATA->F_c;
+
+	double complex *F_ptr[DMAX];
+	for (size_t dim = 0; dim < d; dim++)
+		F_ptr[dim] = &F[dim*NnTotal];
+
+	for (size_t n = 0; n < NnTotal; n++) {
+		size_t IndF = 0;
+		for (size_t dim = 0; dim < d; dim++)
+			*F_ptr[IndF++] = -Q[dim][n];
+
+		for (size_t i = 0, iMax = DMAX; i < iMax; i++)
+			F_ptr[i]++;
+	}
+}
+
+static void flux_NavierStokes_c (struct S_FLUX *const FLUXDATA)
 {
 	unsigned int const d   = FLUXDATA->d,
 	                   Neq = d+2,

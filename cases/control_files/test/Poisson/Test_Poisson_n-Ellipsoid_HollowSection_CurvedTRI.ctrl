@@ -11,7 +11,7 @@ MeshType      TRI
 MeshCurving   Curved
 MeshLevel     0
 
-Form       Strong   // Options: Weak, (Strong)
+Form       Weak   // Options: Weak, (Strong)
 NodeType   GLL-AO // Options: GL/GLL-AO/WSH/EQ
 BasisType  Nodal  // Options: Nodal, Modal
 

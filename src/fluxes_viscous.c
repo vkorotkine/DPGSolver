@@ -26,7 +26,49 @@
  *	References:
  */
 
-void flux_viscous(struct S_FLUX *const FLUXDATA)
+static void flux_Poisson      (struct S_FLUX *const FLUXDATA);
+static void flux_NavierStokes (struct S_FLUX *const FLUXDATA);
+
+void flux_viscous (struct S_FLUX *const FLUXDATA)
+{
+	switch(FLUXDATA->PDE_index) {
+		case PDE_POISSON:      flux_Poisson(FLUXDATA);      break;
+		case PDE_NAVIERSTOKES: flux_NavierStokes(FLUXDATA); break;
+		default:               EXIT_UNSUPPORTED;            break;
+	}
+}
+
+static void flux_Poisson (struct S_FLUX *const FLUXDATA)
+{
+	/*
+	 *	Comments:
+	 *		Implicitly assumed that Neq = Nvar = 1.
+	 *		F(W,Q) == Q
+	 */
+
+	unsigned int const d       = FLUXDATA->d,
+	                   Nn      = FLUXDATA->Nn,
+	                   Nel     = FLUXDATA->Nel,
+	                   NnTotal = Nn*Nel;
+
+	double const *const *const Q = FLUXDATA->Q;
+	double       *const F        = FLUXDATA->F;
+
+	double *F_ptr[DMAX];
+	for (size_t dim = 0; dim < d; dim++)
+		F_ptr[dim] = &F[dim*NnTotal];
+
+	for (size_t n = 0; n < NnTotal; n++) {
+		size_t IndF = 0;
+		for (size_t dim = 0; dim < d; dim++)
+			*F_ptr[IndF++] = -Q[dim][n];
+
+		for (size_t i = 0, iMax = DMAX; i < iMax; i++)
+			F_ptr[i]++;
+	}
+}
+
+static void flux_NavierStokes (struct S_FLUX *const FLUXDATA)
 {
 	/*
 	 *	Comments:

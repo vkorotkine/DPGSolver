@@ -23,6 +23,8 @@
  *			- Optimal convergence orders.
  *
  *	Comments:
+ *		Both the collocated and non-collocated version of the code are checked below as the operators are different in
+ *		the two cases.
  *
  *	Notation:
  *
@@ -34,7 +36,7 @@ void test_integration_NavierStokes(int nargc, char **argv)
 	bool const RunTests_equivalence_real_complex = 1,
 	           RunTests_equivalence_algorithms   = 1,
 	           RunTests_linearization            = 1,
-	           RunTests_conv_order               = 0;
+	           RunTests_conv_order               = 1;
 
 	char **argvNew, *PrintName;
 
@@ -55,7 +57,8 @@ void test_integration_NavierStokes(int nargc, char **argv)
 		data_rc->argvNew   = argvNew;
 		data_rc->PrintName = PrintName;
 
-		test_equivalence_real_complex(data_rc,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedTRI");
+		test_equivalence_real_complex(data_rc,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedMIXED2D_Collocated");
+		test_equivalence_real_complex(data_rc,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedMIXED2D");
 
 		free(data_rc);
 	} else {
@@ -90,7 +93,8 @@ void test_integration_NavierStokes(int nargc, char **argv)
 		data_l->argvNew   = argvNew;
 		data_l->PrintName = PrintName;
 
-		test_linearization(data_l,"NavierStokes_TRI");
+		test_linearization(data_l,"NavierStokes_ToBeCurvedMIXED2D_Collocated");
+		test_linearization(data_l,"NavierStokes_ToBeCurvedMIXED2D");
 
 		free(data_l);
 	} else {

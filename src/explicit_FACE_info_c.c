@@ -42,9 +42,26 @@ void explicit_FACE_info_c(struct S_VOLUME *const VOLUME_perturbed, bool const co
 
 static void compute_Inviscid_FACE_RHS_EFE (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
 {
-	unsigned int const d    = DB.d,
-	                   Neq  = d+2,
-	                   Nvar = d+2;
+	unsigned int const Neq = DB.Neq;
+
+	if (!DB.Inviscid) {
+		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+			unsigned int const NvnSL = FACE->VL->NvnS;
+			if (FACE->RHSL_c != NULL)
+				free(FACE->RHSL_c);
+			FACE->RHSL_c = calloc(NvnSL*Neq , sizeof *(FACE->RHSL_c)); // keep
+
+			if (!FACE->Boundary) {
+				unsigned int const NvnSR = FACE->VR->NvnS;
+				if (FACE->RHSR_c != NULL)
+					free(FACE->RHSR_c);
+				FACE->RHSR_c = calloc(NvnSR*Neq , sizeof *(FACE->RHSR_c)); // keep
+			}
+		}
+		return;
+	}
+
+	unsigned int const Nvar = DB.Nvar;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 

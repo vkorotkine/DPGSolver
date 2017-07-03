@@ -112,10 +112,6 @@ static void explicit_GradW_VOLUME_c (struct S_VOLUME *const VOLUME_perturbed, bo
 
 			for (size_t i = 0; i < NvnS*Nvar; i++)
 				VOLUME->Qhat_c[dim][i] = VOLUME->QhatV_c[dim][i];
-if (VOLUME->indexg == 0 && dim == 0) {
-	printf("eGW_c\n");
-array_print_cmplx(NvnS,Nvar,VOLUME->Qhat_c[dim],'C');
-}
 		}
 	}
 

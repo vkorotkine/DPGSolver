@@ -569,6 +569,7 @@ void compute_numerical_flux_viscous_c(struct S_FDATA const *const FDATAL, struct
 	FLUXDATA->d   = d;
 	FLUXDATA->Nn  = NfnI;
 	FLUXDATA->Nel = 1;
+	FLUXDATA->PDE_index = DB.PDE_index;
 
 	if (Boundary) {
 		double complex *const W_fIL = malloc(NfnI*Nvar * sizeof *W_fIL); // free
@@ -630,6 +631,10 @@ void compute_numerical_flux_viscous_c(struct S_FDATA const *const FDATAL, struct
 	free(FLUXDATA);
 
 	dot_with_normal_c(NfnI,Neq,n_fIL,FluxViscNum_fIL,nFluxViscNum_fIL);
+	if (strstr(PDE,"Poisson")) {
+		for (size_t n = 0; n < NfnI; n++)
+			nFluxViscNum_fIL[n] *= -1.0;
+	}
 	free(FluxViscNum_fIL);
 
 	// Modify nFluxViscNum_fIL to account for boundary conditions (if necessary)

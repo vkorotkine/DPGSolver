@@ -90,34 +90,36 @@ static void explicit_GradW_VOLUME(void)
 
 		DxyzInfo->Nbf = VDATA->OPS[0]->NvnS;
 		DxyzInfo->Nn  = VDATA->OPS[0]->NvnI;
-		DxyzInfo->D   = (double const *const *const) VDATA->OPS[0]->D_Weak;
+		DxyzInfo->D   = (double const *const *const) VDATA->OPS[0]->D_Strong;
 		DxyzInfo->C   = VOLUME->C_vI;
 
-		double const *const        ChiS_vI  = VDATA->OPS[0]->ChiS_vI;
+		double const *const ChiS_vI = VDATA->OPS[0]->ChiS_vI;
 		for (size_t dim = 0; dim < d; dim++) {
 			DxyzInfo->dim = dim;
-			double *const Dxyz = compute_Dxyz(DxyzInfo,d); // free
+			double *const Dxyz = compute_Dxyz_strong(DxyzInfo,d); // free
 
 			// Note: The detJ_vI term cancels with the gradient operator (Zwanenburg(2016), eq. (B.2))
-			double *DxyzChiS = NULL;
+			double *ChiSDxyz = NULL;
 			if (DB.Collocated) { // ChiS_vI == I
-				DxyzChiS = Dxyz;
+				for (size_t i = 0; i < NvnS*NvnS; i++)
+					ChiSDxyz = Dxyz;
 			} else {
-				DxyzChiS = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,Dxyz,ChiS_vI); // free
+				ChiSDxyz = mm_Alloc_d(CBRM,CBT,CBNT,NvnS,NvnS,NvnI,1.0,ChiS_vI,Dxyz);
 				free(Dxyz);
 			}
 
 			// Compute intermediate Qhat contribution
+			if (VOLUME->QhatV_c[dim] != NULL)
+				free(VOLUME->QhatV_c[dim]);
+			VOLUME->QhatV_c[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV_c[dim])); // keep
 
-			// Note: Using CBCM with CBNT for DxyzChiS (stored in row-major ordering) gives DxyzChiS transposed in the
-			//       operation below.
-			mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,DxyzChiS,VOLUME->What,VOLUME->QhatV[dim]);
-			free(DxyzChiS);
+			// Note: Using CBCM with CBT for ChiSDxyz (stored in row-major ordering) gives ChiSDxyz non-transposed in
+			//       the operation below.
+			mm_d(CBCM,CBT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,ChiSDxyz,VOLUME->What,VOLUME->QhatV[dim]);
+			free(ChiSDxyz);
 
 			for (size_t i = 0; i < NvnS*Nvar; i++)
 				VOLUME->Qhat[dim][i] = VOLUME->QhatV[dim][i];
-if (VOLUME->indexg == 0 && dim == 0)
-array_print_d(NvnS,Nvar,VOLUME->Qhat[dim],'C');
 		}
 	}
 
