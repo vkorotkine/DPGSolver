@@ -42,6 +42,7 @@
  *		there, and only coarsening in regions where the initial solution error is low (ToBeDeleted).
  *
  *	Notation:
+ *		Fv_func_of_W : Flag for whether (F)lux (v)iscous is a (func)tion (of) the solution (W).
  *
  *	References:
  */
@@ -240,6 +241,7 @@ void initialize_test_case_parameters(void)
 		DB.Symmetric = 1;
 		DB.Inviscid = 0;
 		DB.Viscous = 1;
+		DB.Fv_func_of_W = false;
 
 		DB.SourcePresent = 1;
 		strcpy(DB.SolverType,"Implicit");
@@ -445,6 +447,7 @@ void initialize_test_case_parameters(void)
 		DB.Symmetric = 0;
 		DB.Inviscid = 1;
 		DB.Viscous = 1;
+		DB.Fv_func_of_W = true;
 		DB.Pr      = 0.72;
 		DB.Rg      = 1.0;
 

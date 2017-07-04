@@ -3,7 +3,8 @@
 ### Code Description
 - Uses only free to use/open source libraries/supporting programs.
 - Methods:
-	- Discontinuous Galerkin (DG).
+	- Discontinuous Galerkin (DG);
+	- Hybridized Discontinuous Galerkin (HDG) (ACTIVE);
 	- Discontinuous Petrov Galerkin (DPG) (TO BE DONE);
 - Supported elements: TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
 - Supported refinements: isotropic h (size) or p (order).
@@ -28,7 +29,7 @@
 |               | InviscidChannel  | DONE   |
 | Navier-Stokes | Taylor-Couette   | DONE   |
 
-See the CODE STATUS section below for details regarding current functionality.
+See the 'Code Status' section below for details regarding current functionality.
 
 ### Installation / Set up
 Follow the [installation instructions](INSTALL.md) for the set up of required libraries/programs. Required:

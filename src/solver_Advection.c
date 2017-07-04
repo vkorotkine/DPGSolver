@@ -15,9 +15,7 @@
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
-#include "S_VOLUME.h"
 
-#include "solver_functions.h"
 #include "solver_Advection_functions.h"
 #include "explicit_VOLUME_info.h"
 #include "explicit_FACE_info.h"

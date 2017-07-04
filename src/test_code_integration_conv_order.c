@@ -29,7 +29,6 @@
 #include "element_functions.h"
 #include "finalize_LHS.h"
 #include "array_norm.h"
-#include "array_print.h"
 
 /*
  *	Purpose:

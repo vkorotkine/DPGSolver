@@ -6,7 +6,6 @@
 
 #include <stdbool.h>
 
-extern void solver_Poisson        (bool PrintEnabled);
-extern void implicit_info_Poisson (void);
+extern void solver_Poisson (bool PrintEnabled);
 
 #endif // DPG__solver_Poisson_h__INCLUDED

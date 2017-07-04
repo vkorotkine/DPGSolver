@@ -60,7 +60,7 @@ void manage_solver_memory(struct S_DATA *const DATA, char const mem_op, char con
 	 *		feature   :                               Options: 'V'OLUME, 'F'ACE.
 	 *		mem_type  : (mem)ory (type).
 	 *		            Options: 'W' (Solution), 'Q' (Gradients), 'S' (Solution flux), 'I' (Inviscid flux),
-	 *		                     'V' (Viscous flux), 'P' (Poisson Viscous flux)
+	 *		                     'V' (Viscous flux)
 	 *		imex_type : (im)plicit (ex)plicit (type). Options: 'I'mplicit, 'E'xplicit
 	 */
 
@@ -156,19 +156,10 @@ void manage_solver_memory(struct S_DATA *const DATA, char const mem_op, char con
 				NFLUXDATA->nFluxNum = malloc(NfnI*Neq * sizeof *(NFLUXDATA->nFluxNum)); // keep
 
 				if (imex_type == 'I') {
-					NFLUXDATA->dnFluxNumdWL = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnFluxNumdWL)); // keep
-					NFLUXDATA->dnFluxNumdWR = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnFluxNumdWR)); // keep
-					NFLUXDATA->dnFluxNumdQL = malloc(d * sizeof *(NFLUXDATA->dnFluxNumdQL)); // keep
-					NFLUXDATA->dnFluxNumdQR = malloc(d * sizeof *(NFLUXDATA->dnFluxNumdQR)); // keep
-					for (size_t dim = 0; dim < d; dim++) {
-						NFLUXDATA->dnFluxNumdQL[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnFluxNumdQL[dim])); // keep
-						NFLUXDATA->dnFluxNumdQR[dim] = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnFluxNumdQR[dim])); // keep
+					if (DB.Fv_func_of_W) {
+						NFLUXDATA->dnFluxNumdWL = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnFluxNumdWL)); // keep
+						NFLUXDATA->dnFluxNumdWR = malloc(NfnI*Neq*Nvar * sizeof *(NFLUXDATA->dnFluxNumdWR)); // keep
 					}
-				}
-			} else if (mem_type == 'P') {
-				NFLUXDATA->nFluxNum = malloc(NfnI*Neq * sizeof *(NFLUXDATA->nFluxNum)); // keep
-
-				if (imex_type == 'I') {
 					NFLUXDATA->dnFluxNumdQL = malloc(d * sizeof *(NFLUXDATA->dnFluxNumdQL)); // keep
 					NFLUXDATA->dnFluxNumdQR = malloc(d * sizeof *(NFLUXDATA->dnFluxNumdQR)); // keep
 					for (size_t dim = 0; dim < d; dim++) {
@@ -229,18 +220,15 @@ void manage_solver_memory(struct S_DATA *const DATA, char const mem_op, char con
 				free(NFLUXDATA->nFluxNum);
 
 				if (imex_type == 'I') {
-					free(NFLUXDATA->dnFluxNumdWL);
-					free(NFLUXDATA->dnFluxNumdWR);
+					if (DB.Fv_func_of_W) {
+						free(NFLUXDATA->dnFluxNumdWL);
+						free(NFLUXDATA->dnFluxNumdWR);
+					}
 					array_free2_d(d,NFLUXDATA->dnFluxNumdQL);
 					array_free2_d(d,NFLUXDATA->dnFluxNumdQR);
 				}
-			} else if (mem_type == 'P') {
-				free(NFLUXDATA->nFluxNum);
-
-				if (imex_type == 'I') {
-					array_free2_d(d,NFLUXDATA->dnFluxNumdQL);
-					array_free2_d(d,NFLUXDATA->dnFluxNumdQR);
-				}
+			} else {
+				EXIT_UNSUPPORTED;
 			}
 		} else {
 			EXIT_UNSUPPORTED;
@@ -639,7 +627,7 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 					RLHS[i] += DAr[i];
 			}
 			free(DAr);
-		} else if (Collocated && (Eclass == C_TP || Eclass == C_WEDGE) && DB.AllowSparseVOL) {
+		} else if (Collocated && ((Eclass == C_TP && d > 1) || Eclass == C_WEDGE) && DB.AllowSparseVOL) {
 			double *const DAr = malloc(NvnS*Nrc * sizeof *DAr); // free
 			for (size_t dim = 0; dim < d; dim++) {
 				mm_CTN_CSR_d(NvnS,Nrc,NvnI,OPS[0]->D_Weak_sp[dim],&Ar_vI[NvnI*Nrc*dim],DAr);
@@ -660,7 +648,7 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 			Ar_vI_ptr[dim] = &Ar_vI[Nvar*Neq*NvnI*dim];
 
 		if (Collocated) {
-			if (Eclass == C_TP || Eclass == C_WEDGE) {
+			if ((Eclass == C_TP && d > 1) || Eclass == C_WEDGE) {
 				struct S_OpCSR const *const *const D = OPS[0]->D_Weak_sp;
 				for (size_t eq = 0; eq < Neq; eq++) {
 				for (size_t var = 0; var < Nvar; var++) {
@@ -1686,16 +1674,14 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 {
 	/*
 	 *	Purpose:
-	 *		Compute the numerical viscous flux (and its Jacobians wrt to WL and WR if applicable) evaluated at the FACE
+	 *		Compute the numerical viscous flux (and its Jacobians wrt to [W/Q][L/R] if applicable) evaluated at the FACE
 	 *		cubature nodes as seen from the left VOLUME.
 	 *
 	 *	Comments:
-	 *		Needs some clean-up. Merge Navier-Stokes/Poisson (ToBeDeleted).
-	 *
 	 *		If on a boundary FACE, the boundary Jacobian contributions are included in dnFluxViscNumdWL_fIL for the
 	 *		solution only. The boundary Jacobian contributions with respect to Q are treated here directly.
 	 *
-	 *		The CDG2 and BR2 fluxes are determined according to Brdar(2012, eq. (4.3)) following the comments of section
+	 *		The CDG2 and BR2 fluxes are computed according to Brdar(2012, eq. (4.3)) following the comments of section
 	 *		4.1 (i.e. setting eta = 0 and taking chi according to Theorem 2 part b. The area switch (eq. (4.5)) is used
 	 *		such that only one of the two VOLUME contributions must be accounted for in the CDG2 flux. Note, as the
 	 *		viscous fluxes are linear in the gradients, that this formulation corresponds exactly to that typically
@@ -1721,9 +1707,9 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	 *			                  = df/dQ*QL_WhatL
 	 *		Note that only the dfdQ contribution (with the normal) is computed here.
 	 *
-	 *		For the Poisson Neumann boundary condition, dQR/dQL = -I resulting in dnFNumVisc/dWhatL = 0.
-	 *
 	 *		If this is not the case for this boundary condition, update the boundary treatment appropriately.
+	 *
+	 *		For the Poisson Neumann boundary condition, dQR/dQL = -I resulting in dnFNumVisc/dWhatL = 0.
 	 *
 	 *
 	 *	Notation:
@@ -1743,8 +1729,6 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 
 	struct S_OPERATORS_F const *const *const OPSL = (struct S_OPERATORS_F const *const *const) FDATAL->OPS;
 	struct S_FACE        const *const        FACE = FDATAL->FACE;
-
-	char const *PDE = DB.PDE;
 
 	unsigned int const d        = DB.d,
 	                   Nvar     = DB.Nvar,
@@ -1769,8 +1753,10 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	double *dFluxViscNumdWL_fIL = NULL, **dFluxViscNumdQL_fIL = NULL,
 	       *dFluxViscNumdWR_fIL = NULL, **dFluxViscNumdQR_fIL = NULL;
 	if (imex_type == 'I') {
-		dFluxViscNumdWL_fIL  = malloc(NfnI*d*Neq*Nvar * sizeof *dFluxViscNumdWL_fIL);  // free
-		dFluxViscNumdWR_fIL  = malloc(NfnI*d*Neq*Nvar * sizeof *dFluxViscNumdWR_fIL);  // free
+		if (DB.Fv_func_of_W) {
+			dFluxViscNumdWL_fIL  = malloc(NfnI*d*Neq*Nvar * sizeof *dFluxViscNumdWL_fIL);  // free
+			dFluxViscNumdWR_fIL  = malloc(NfnI*d*Neq*Nvar * sizeof *dFluxViscNumdWR_fIL);  // free
+		}
 		dFluxViscNumdQL_fIL  = malloc(d               * sizeof *dFluxViscNumdQL_fIL);  // free
 		dFluxViscNumdQR_fIL  = malloc(d               * sizeof *dFluxViscNumdQR_fIL);  // free
 		for (size_t dim = 0; dim < d; dim++) {
@@ -1785,16 +1771,6 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	FLUXDATA->Nel = 1;
 	FLUXDATA->PDE_index = DB.PDE_index;
 
-	// Note: dFdW = 0 for the Poisson equation.
-	bool update_dnFluxViscNumdWL_fIL = 0;
-	if (strstr(PDE,"NavierStokes")) {
-		update_dnFluxViscNumdWL_fIL = 1;
-	} else if (strstr(PDE,"Poisson")) {
-		update_dnFluxViscNumdWL_fIL = 0;
-	} else {
-		EXIT_UNSUPPORTED;
-	}
-
 	if (Boundary) {
 		double *const W_fIL = malloc(NfnI*Nvar * sizeof *W_fIL); // free
 		for (size_t i = 0; i < NfnI*Nvar; i++)
@@ -1807,123 +1783,73 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 				Qp_fIL[dim][i] = 0.5*(QpL_fIL[dim][i]+QpR_fIL[dim][i]);
 		}
 
-		if (strstr(PDE,"NavierStokes")) {
-			// Note: This term can be computed in jacobian_flux_viscous for imex_type == 'I' (ToBeModified)
-			FLUXDATA->W = W_fIL;
-			FLUXDATA->Q = (double const *const *const) Qp_fIL;
-			FLUXDATA->F = FluxViscNum_fIL;
+		FLUXDATA->W = W_fIL;
+		FLUXDATA->Q = (double const *const *const) Qp_fIL;
+		FLUXDATA->F = FluxViscNum_fIL;
+
+		if (imex_type == 'E') {
 			flux_viscous(FLUXDATA);
-		} else if (strstr(PDE,"Poisson")) {
-			if (imex_type != 'I')
-				EXIT_UNSUPPORTED;
+		} else if (imex_type == 'I') {
+			FLUXDATA->dFdW = dFluxViscNumdWL_fIL;
+			FLUXDATA->dFdQ = dFluxViscNumdQL_fIL;
+			jacobian_flux_viscous(FLUXDATA);
 
-			for (size_t dim = 0; dim < d; dim++) {
-				for (size_t i = 0, iMax = NfnI*Nvar; i < iMax; i++)
-					FluxViscNum_fIL[iMax*dim+i] = Qp_fIL[dim][i];
-			}
-		} else {
-			EXIT_UNSUPPORTED;
-		}
-
-		if (imex_type == 'I') {
-			if (strstr(PDE,"NavierStokes")) {
-				FLUXDATA->F    = NULL;
-				FLUXDATA->dFdW = dFluxViscNumdWL_fIL;
-				FLUXDATA->dFdQ = dFluxViscNumdQL_fIL;
-				jacobian_flux_viscous(FLUXDATA);
-
+			if (DB.Fv_func_of_W) {
 				dot_with_normal(NfnI,Neq*Nvar,n_fIL,dFluxViscNumdWL_fIL,dnFluxViscNumdWL_fIL);
 				for (size_t i = 0; i < NfnI*Neq*Nvar; i++) {
 					dnFluxViscNumdWL_fIL[i] *= 0.5;
 					dnFluxViscNumdWR_fIL[i]  = dnFluxViscNumdWL_fIL[i];
 				}
-
-				/* Commented as this is identical to doing nothing to dnFluxViscNumQL_fIL. See comments.
-				for (size_t dim = 0; dim < d; dim++) {
-					for (size_t i = 0; i < NfnI*Neq*Nvar; i++) {
-						// dQ/dQL
-						dnFluxViscNumdQL_fIL[dim][i] *= 0.5;
-
-						// dQ/dQR
-						dnFluxViscNumdQR_fIL[dim][i]  = dnFluxViscNumdQL_fIL[dim][i];
-
-						// Add effect of boundary Jacobian to dnFluxViscNumQL_fIL
-						dnFluxViscNumdQL_fIL[dim][i] += 1.0*dnFluxViscNumdQR_fIL[dim][i];
-					}
-				} */
-				for (size_t dim = 0; dim < d; dim++)
-					dot_with_normal(NfnI,Neq*Nvar,n_fIL,dFluxViscNumdQL_fIL[dim],dnFluxViscNumdQL_fIL[dim]);
-			} else if (strstr(PDE,"Poisson")) {
-				unsigned int const BC = FACE->BC;
-		      	if (BC % BC_STEP_SC == BC_DIRICHLET) {
-					for (size_t dim = 0; dim < d; dim++) {
-						set_to_zero_d(NfnI*d*Neq*Nvar,dFluxViscNumdQL_fIL[dim]);
-						for (size_t i = 0, iMax = NfnI*Nvar; i < iMax; i++)
-							dFluxViscNumdQL_fIL[dim][iMax*dim+i] = 1.0;
-					}
-
-					for (size_t dim = 0; dim < d; dim++)
-						dot_with_normal(NfnI,Neq*Nvar,n_fIL,dFluxViscNumdQL_fIL[dim],dnFluxViscNumdQL_fIL[dim]);
-				} else if (BC % BC_STEP_SC == BC_NEUMANN) {
-					for (size_t dim = 0; dim < d; dim++)
-						set_to_zero_d(NfnI*Neq*Nvar,dnFluxViscNumdQL_fIL[dim]);
-				} else {
-					EXIT_UNSUPPORTED;
-				}
-			} else {
-				EXIT_UNSUPPORTED;
 			}
 
+			/* Commented as this is identical to doing nothing to dnFluxViscNumQL_fIL. See comments.
+			for (size_t dim = 0; dim < d; dim++) {
+				for (size_t i = 0; i < NfnI*Neq*Nvar; i++) {
+					// dQ/dQL
+					dnFluxViscNumdQL_fIL[dim][i] *= 0.5;
+
+					// dQ/dQR
+					dnFluxViscNumdQR_fIL[dim][i]  = dnFluxViscNumdQL_fIL[dim][i];
+
+					// Add effect of boundary Jacobian to dnFluxViscNumQL_fIL
+					dnFluxViscNumdQL_fIL[dim][i] += 1.0*dnFluxViscNumdQR_fIL[dim][i];
+				}
+			} */
+			for (size_t dim = 0; dim < d; dim++)
+				dot_with_normal(NfnI,Neq*Nvar,n_fIL,dFluxViscNumdQL_fIL[dim],dnFluxViscNumdQL_fIL[dim]);
 		}
 		free(W_fIL);
 		array_free2_d(d,Qp_fIL);
 	} else {
-		if (strstr(PDE,"NavierStokes")) {
-			double *const FluxViscL_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscL_fIL); // free
-			double *const FluxViscR_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscR_fIL); // free
+		double *const FluxViscL_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscL_fIL), // free
+		       *const FluxViscR_fIL = malloc(NfnI*d*Neq * sizeof *FluxViscR_fIL); // free
 
+		if (imex_type == 'E') {
 			FLUXDATA->W = WL_fIL;
 			FLUXDATA->Q = QpL_fIL;
 			FLUXDATA->F = FluxViscL_fIL;
-			// Note: This term can be computed in jacobian_flux_viscous for imex_type == 'I' (ToBeModified)
 			flux_viscous(FLUXDATA);
 
 			FLUXDATA->W = WR_fIL;
 			FLUXDATA->Q = QpR_fIL;
 			FLUXDATA->F = FluxViscR_fIL;
-			// Note: This term can be computed in jacobian_flux_viscous for imex_type == 'I' (ToBeModified)
 			flux_viscous(FLUXDATA);
+		} else if (imex_type == 'I') {
+			FLUXDATA->W    = WL_fIL;
+			FLUXDATA->Q    = QpL_fIL;
+			FLUXDATA->F    = FluxViscL_fIL;
+			FLUXDATA->dFdW = dFluxViscNumdWL_fIL;
+			FLUXDATA->dFdQ = dFluxViscNumdQL_fIL;
+			jacobian_flux_viscous(FLUXDATA);
 
-			for (size_t i = 0; i < NfnI*d*Neq; i++)
-				FluxViscNum_fIL[i] = 0.5*(FluxViscL_fIL[i]+FluxViscR_fIL[i]);
+			FLUXDATA->W    = WR_fIL;
+			FLUXDATA->Q    = QpR_fIL;
+			FLUXDATA->F    = FluxViscR_fIL;
+			FLUXDATA->dFdW = dFluxViscNumdWR_fIL;
+			FLUXDATA->dFdQ = dFluxViscNumdQR_fIL;
+			jacobian_flux_viscous(FLUXDATA);
 
-			free(FluxViscL_fIL);
-			free(FluxViscR_fIL);
-		} else if (strstr(PDE,"Poisson")) {
-			for (size_t dim = 0; dim < d; dim++) {
-				for (size_t i = 0, iMax = NfnI*Nvar; i < iMax; i++)
-					FluxViscNum_fIL[iMax*dim+i] = 0.5*(QpL_fIL[dim][i] + QpR_fIL[dim][i]);
-			}
-		} else {
-			EXIT_UNSUPPORTED;
-		}
-
-		if (imex_type == 'I') {
-			if (strstr(PDE,"NavierStokes")) {
-				FLUXDATA->F = NULL;
-
-				FLUXDATA->W    = WL_fIL;
-				FLUXDATA->Q    = QpL_fIL;
-				FLUXDATA->dFdW = dFluxViscNumdWL_fIL;
-				FLUXDATA->dFdQ = dFluxViscNumdQL_fIL;
-				jacobian_flux_viscous(FLUXDATA);
-
-				FLUXDATA->W    = WR_fIL;
-				FLUXDATA->Q    = QpR_fIL;
-				FLUXDATA->dFdW = dFluxViscNumdWR_fIL;
-				FLUXDATA->dFdQ = dFluxViscNumdQR_fIL;
-				jacobian_flux_viscous(FLUXDATA);
-
+			if (DB.Fv_func_of_W) {
 				dot_with_normal(NfnI,Neq*Nvar,n_fIL,dFluxViscNumdWL_fIL,dnFluxViscNumdWL_fIL);
 				dot_with_normal(NfnI,Neq*Nvar,n_fIL,dFluxViscNumdWR_fIL,dnFluxViscNumdWR_fIL);
 
@@ -1931,17 +1857,6 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 					dnFluxViscNumdWL_fIL[i] *= 0.5;
 					dnFluxViscNumdWR_fIL[i] *= 0.5;
 				}
-			} else if (strstr(PDE,"Poisson")) {
-				for (size_t dim = 0; dim < d; dim++) {
-					set_to_zero_d(NfnI*d*Neq*Nvar,dFluxViscNumdQL_fIL[dim]);
-					set_to_zero_d(NfnI*d*Neq*Nvar,dFluxViscNumdQR_fIL[dim]);
-					for (size_t i = 0, iMax = NfnI*Nvar; i < iMax; i++) {
-						dFluxViscNumdQL_fIL[dim][iMax*dim+i] = 1.0;
-						dFluxViscNumdQR_fIL[dim][iMax*dim+i] = 1.0;
-					}
-				}
-			} else {
-				EXIT_UNSUPPORTED;
 			}
 
 			for (size_t dim = 0; dim < d; dim++) {
@@ -1954,6 +1869,11 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 				}
 			}
 		}
+		for (size_t i = 0; i < NfnI*d*Neq; i++)
+			FluxViscNum_fIL[i] = 0.5*(FluxViscL_fIL[i]+FluxViscR_fIL[i]);
+
+		free(FluxViscL_fIL);
+		free(FluxViscR_fIL);
 	}
 	free(FLUXDATA);
 
@@ -1961,8 +1881,10 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	free(FluxViscNum_fIL);
 
 	if (imex_type == 'I') {
-		free(dFluxViscNumdWL_fIL);
-		free(dFluxViscNumdWR_fIL);
+		if (DB.Fv_func_of_W) {
+			free(dFluxViscNumdWL_fIL);
+			free(dFluxViscNumdWR_fIL);
+		}
 		array_free2_d(d,dFluxViscNumdQL_fIL);
 		array_free2_d(d,dFluxViscNumdQR_fIL);
 	}
@@ -1970,7 +1892,10 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	// Modify nFluxViscNum_fIL to account for boundary conditions (if necessary)
 	unsigned int const BC = FACE->BC;
 
-	if (BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC) {
+	if (BC % BC_STEP_SC == BC_NEUMANN) {
+		for (size_t dim = 0; dim < d; dim++)
+			set_to_zero_d(NfnI*Neq*Nvar,dnFluxViscNumdQL_fIL[dim]);
+	} else if (BC % BC_STEP_SC == BC_NOSLIP_ADIABATIC) {
 		// Set last component of nFluxViscNum to zero
 		size_t const eq = Neq-1;
 		for (size_t n = 0; n < NfnI; n++)
@@ -2004,7 +1929,7 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	}
 
 	// Include the BC information in dnFluxViscNumdWL_fIL if on a boundary.
-	if (imex_type == 'I' && Boundary && update_dnFluxViscNumdWL_fIL) {
+	if (imex_type == 'I' && Boundary && DB.Fv_func_of_W) {
 		// This is only done for dWBdW, the contribution from dQd(W/Q) is assumed to have been properly treated above.
 		unsigned int const BC = FACE->BC;
 
@@ -2089,11 +2014,13 @@ void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const ime
 				nFluxNum_fIL[IndnF+n] *= detJF_fIL[n];
 
 			if (imex_type == 'I') {
-				for (size_t var = 0; var < Nvar; var++) {
-					size_t const InddnFdWIn = (eq*Nvar+var)*NfnI;
-					for (size_t n = 0; n < NfnI; n++) {
-						dnFluxNumdWL_fIL[InddnFdWIn+n] *= detJF_fIL[n];
-						dnFluxNumdWR_fIL[InddnFdWIn+n] *= detJF_fIL[n];
+				if (coef_type == 'W' || (coef_type == 'V' && DB.Fv_func_of_W)) {
+					for (size_t var = 0; var < Nvar; var++) {
+						size_t const InddnFdWIn = (eq*Nvar+var)*NfnI;
+						for (size_t n = 0; n < NfnI; n++) {
+							dnFluxNumdWL_fIL[InddnFdWIn+n] *= detJF_fIL[n];
+							dnFluxNumdWR_fIL[InddnFdWIn+n] *= detJF_fIL[n];
+						}
 					}
 				}
 			}
@@ -2736,7 +2663,18 @@ void finalize_FACE_Viscous_Weak(struct S_FDATA const *const FDATAL, struct S_FDA
 	 *	Comments:
 	 *		The required operation is identical to that of finalize_FACE_Inviscid_Weak as the viscous flux has already
 	 *		been negated.
+	 *		If Fv_func_of_W == false, there is no viscous flux Jacobian dependence on W and the calculation is not
+	 *		performed.
+	 *
+	 *	Notation:
+	 *		Fv_func_of_W : Flag for whether (F)lux (v)iscous is a (func)tion (of) the solution (W).
 	 */
+
+	if (!DB.Viscous)
+		EXIT_UNSUPPORTED;
+
+	if (!DB.Fv_func_of_W && imex_type == 'I')
+		return;
 
 	finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,nANumL_fI,nANumR_fI,side,imex_type,coef_type);
 }

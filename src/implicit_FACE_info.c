@@ -190,12 +190,11 @@ static void compute_Viscous_FACE_EFE(void)
 			manage_solver_memory(DATA,'A','V'); // free
 
 			compute_numerical_flux_viscous(FDATAL,FDATAR,'I');
-			add_Jacobian_scaling_FACE(FDATAL,'I','V');
-			add_Jacobian_scaling_FACE(FDATAL,'I','P');
-
 			manage_solver_memory(DATA,'F','W');
 			manage_solver_memory(DATA,'F','Q');
 
+			add_Jacobian_scaling_FACE(FDATAL,'I','V');
+			add_Jacobian_scaling_FACE(FDATAL,'I','P');
 
 			// FACE contribution to V(L/R)->LHS and related off-diagonal contributions from the VOLUME term
 			finalize_VOLUME_LHSQF_Weak(FACE);

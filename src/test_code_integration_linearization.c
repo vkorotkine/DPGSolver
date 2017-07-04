@@ -22,22 +22,18 @@
 #include "test_code_integration.h"
 #include "test_support.h"
 
-#include "solver_Advection.h"
-#include "solver_Poisson.h"
 #include "solver_symmetric_functions.h"
 #include "finalize_LHS.h"
 #include "implicit_VOLUME_info_DG.h"
 #include "implicit_FACE_info.h"
 #include "implicit_GradW.h"
 
-#include "solver_Advection_c.h"
 #include "explicit_VOLUME_info_c.h"
 #include "explicit_FACE_info_c.h"
 #include "explicit_GradW_c.h"
 #include "finalize_RHS_c.h"
 
 #include "array_norm.h"
-#include "array_print.h"
 
 /*
  *	Purpose:
@@ -55,12 +51,7 @@
  *		For second order equations, the VOLUME->RHS_c contributes off-diagonal terms to the global system matrix due to
  *		the use of the fully corrected gradient. A flag is provided to avoid the computation of these terms when
  *		checking only the diagonal VOLUME/FACE contributions to the global system using compute_A_cs with assembly_type
- *		equal to 1 or 2. The current implementation for the Poisson equation avoids this problem by separating the
- *		contributions of the local and correction contributions to the VOLUME gradient and this issue is thus not
- *		present in that case.
- *
- *		A similar formulation for the Navier-Stokes equations may be possible due to the linearity of the viscous flux
- *		with respect to the solution gradients. INVESTIGATE. (ToBeModified)
+ *		equal to 1 or 2.
  *
  *		For 2nd order equations, modifying What in a given VOLUME results in a modification of Qhat in all adjacent
  *		VOLUMEs, which in turn results in explicit_VOLUME_info generating off-diagonal terms in the global system. These
@@ -155,7 +146,7 @@ data->StaticCondensation = 0;
 			EXIT_UNSUPPORTED;
 		}
 	} else if (strstr(TestName,"Euler")) {
-data->PrintTimings = 1;
+//data->PrintTimings = 1;
 		data->update_argv = 0;
 		strcat(data->argvNew[1],"Euler/Test_Euler_SupersonicVortex_ToBeCurved");
 		if (strstr(TestName,"MIXED2D")) {
@@ -168,7 +159,7 @@ data->PrintTimings = 1;
 			EXIT_UNSUPPORTED;
 		}
 	} else if (strstr(TestName,"NavierStokes")) {
-data->PrintTimings = 1;
+//data->PrintTimings = 1;
 		data->CheckWeakGradients = 1;
 		if (strstr(TestName,"ToBeCurvedMIXED2D")) {
 			if (strstr(TestName,"Collocated")) {
@@ -375,22 +366,19 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 			Vec b = NULL, b_cs = NULL, b_csc = NULL, x = NULL, x_cs = NULL, x_csc = NULL;
 
 			set_PrintName("linearization",data->PrintName,&data->TestTRI);
-			if (strstr(TestName,"Poisson")) {
-//			if (0&&strstr(TestName,"Poisson")) {
-				implicit_info_Poisson();
-			} else {
-				// Comment implicit_FACE_info here and used Q_vI = ChiS_vI*VOLUME->QhatV to only check VOLUME-VOLUME
-				// contribution to the VOLUME term.
 
-				implicit_GradW(); // Only executed if DB.Viscous = 1
-				implicit_VOLUME_info_DG();
-				implicit_FACE_info();
-			}
+			// Comment implicit_FACE_info here and used Q_vI = ChiS_vI*VOLUME->QhatV to only check VOLUME-VOLUME
+			// contribution to the VOLUME term.
+			implicit_GradW(); // Only executed if DB.Viscous = 1
+			implicit_VOLUME_info_DG();
+			implicit_FACE_info();
 
 			if (!CheckFullLinearization) {
 				correct_collocated_for_symmetry();
 
-				// Potential problem with symmetry for Poisson using CheckLevel = 1 (ToBeModified)
+				// Note: Poisson fails symmetric for CheckLevel = 1 and this is as expected. There is a FACE
+				//       contribution from Qhat which has not yet been balanced by the FACE contribution from the 2nd
+				//       equation.
 				unsigned int const CheckLevel = 3;
 				for (size_t i = 1; i <= CheckLevel; i++)
 					finalize_LHS(&A,&b,&x,i);
@@ -578,23 +566,15 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 			double const h = EPS*EPS;
 			VOLUME->What_c[i] += h*I;
 
-			if (0&&strstr(DB.TestCase,"Poisson")) {
-// ToBeModified (Merge these)
-				explicit_GradW_c(NULL,true);
-				explicit_VOLUME_info_c(NULL,true);
-				explicit_FACE_info_c(NULL,true);
-				correct_collocated_for_symmetry_c(NULL,true,true,true);
+			explicit_GradW_c(VOLUME,false);
+			if (assemble_type == 1) {
+				explicit_VOLUME_info_c(VOLUME,0);
+				correct_collocated_for_symmetry_c(VOLUME,0,true,false);
+			} else if (assemble_type == 2 || assemble_type == 3) {
+				explicit_FACE_info_c(VOLUME,0);
+				correct_collocated_for_symmetry_c(VOLUME,false,false,true);
 			} else {
-				explicit_GradW_c(VOLUME,false);
-				if (assemble_type == 1) {
-					explicit_VOLUME_info_c(VOLUME,0);
-					correct_collocated_for_symmetry_c(VOLUME,0,true,false);
-				} else if (assemble_type == 2 || assemble_type == 3) {
-					explicit_FACE_info_c(VOLUME,0);
-					correct_collocated_for_symmetry_c(VOLUME,false,false,true);
-				}
-				else
-					EXIT_UNSUPPORTED;
+				EXIT_UNSUPPORTED;
 			}
 
 			if (assemble_type == 1) {
@@ -733,21 +713,12 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 			VOLUME->What_c[i] += h*I;
 
 			explicit_GradW_c(VOLUME,0);
-			if (strstr(DB.TestCase,"Poisson")) {
-				explicit_VOLUME_info_c(NULL,true);
-				explicit_FACE_info_c(NULL,true);
-			} else {
-				explicit_VOLUME_info_c(VOLUME,0);
-				explicit_FACE_info_c(VOLUME,0);
-			}
+			explicit_VOLUME_info_c(VOLUME,0);
+			explicit_FACE_info_c(VOLUME,0);
 			finalize_RHS_c(VOLUME,0);
 
 			// correct_FACE = false as FACE terms were added to VOLUME RHS in finalize_RHS_c
-			if (strstr(DB.TestCase,"Poisson")) {
-				correct_collocated_for_symmetry_c(NULL,true,true,false);
-			} else {
-				correct_collocated_for_symmetry_c(VOLUME,0,true,false);
-			}
+			correct_collocated_for_symmetry_c(VOLUME,0,true,false);
 
 			for (struct S_VOLUME *VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
 				IndA[1] = VOLUME2->IndA;
@@ -952,6 +923,9 @@ static void finalize_LHS_Qhat(Mat *const A, Vec *const b, Vec *const x, unsigned
 static void compute_A_Qhat_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int const assemble_type,
                               unsigned int const dim)
 {
+	if (!strstr(DB.TestCase,"NavierStokes"))
+		EXIT_UNSUPPORTED;
+
 	if (*A == NULL)
 		initialize_KSP(A,b,x);
 
@@ -987,13 +961,10 @@ static void compute_A_Qhat_cs(Mat *const A, Vec *const b, Vec *const x, unsigned
 		NvnS[0] = VOLUME->NvnS;
 		for (size_t i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++) {
 			double const h = EPS*EPS;
-			if (strstr(DB.TestCase,"NavierStokes")) {
-				VOLUME->What_c[i] += h*I;
 
-				explicit_GradW_c(VOLUME,0);
-			} else {
-				EXIT_UNSUPPORTED;
-			}
+			VOLUME->What_c[i] += h*I;
+
+			explicit_GradW_c(VOLUME,0);
 
 			if (assemble_type == 1) {
 				for (struct S_VOLUME *VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
@@ -1088,17 +1059,16 @@ static void compute_A_Qhat_cs(Mat *const A, Vec *const b, Vec *const x, unsigned
 					}
 				}}
 			}
-			if (strstr(DB.TestCase,"NavierStokes")) {
-				VOLUME->What_c[i] -= h*I;
-			} else {
-				EXIT_UNSUPPORTED;
-			}
+			VOLUME->What_c[i] -= h*I;
 		}
 	}
 }
 
 static void compute_A_Qhat_cs_complete(Mat *const A, Vec *const b, Vec *const x, unsigned int const dim)
 {
+	if (!strstr(DB.TestCase,"NavierStokes"))
+		EXIT_UNSUPPORTED;
+
 	unsigned int const dof = DB.dof;
 
 	unsigned int *A_nz = calloc(dof*dof , sizeof *A_nz); // free
@@ -1114,13 +1084,10 @@ static void compute_A_Qhat_cs_complete(Mat *const A, Vec *const b, Vec *const x,
 		NvnS[0] = VOLUME->NvnS;
 		for (size_t i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++) {
 			double const h = EPS*EPS;
-			if (strstr(DB.TestCase,"NavierStokes")) {
-				VOLUME->What_c[i] += h*I;
 
-				explicit_GradW_c(VOLUME,0);
-			} else {
-				EXIT_UNSUPPORTED;
-			}
+			VOLUME->What_c[i] += h*I;
+
+			explicit_GradW_c(VOLUME,0);
 
 			for (struct S_VOLUME *VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
 				IndA[1] = VOLUME2->IndA;
@@ -1145,11 +1112,7 @@ static void compute_A_Qhat_cs_complete(Mat *const A, Vec *const b, Vec *const x,
 				free(m); free(n); free(vv);
 			}
 
-			if (strstr(DB.TestCase,"NavierStokes")) {
-				VOLUME->What_c[i] -= h*I;
-			} else {
-				EXIT_UNSUPPORTED;
-			}
+			VOLUME->What_c[i] -= h*I;
 		}
 	}
 	free(A_nz);

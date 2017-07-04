@@ -18,6 +18,14 @@
  *		Compute viscous flux jacobians from inputs W, Q in conservative form.
  *
  *	Comments:
+ *
+ *		*** IMPORTANT ***   *** IMPORTANT ***   *** IMPORTANT ***
+ *
+ *		Returned viscous fluxes are negated. This is done so that the same functions can be used for the inviscid and
+ *		viscous contributions.
+ *
+ *		*** IMPORTANT ***   *** IMPORTANT ***   *** IMPORTANT ***
+ *
  *		See comments of fluxes_viscous.
  *		See comments of jacobian_fluxes_inviscid.
  *
@@ -67,11 +75,9 @@ static void jacobian_flux_Poisson (struct S_FLUX *const FLUXDATA)
 			F_ptr[dim] = &F[dim*NnTotal];
 	}
 
-	double *dFdW_ptr[DMAX];
-	if (dFdW != NULL) {
-		for (size_t dim = 0; dim < d; dim++)
-			dFdW_ptr[dim] = &dFdW[dim*NnTotal];
-	}
+	// dFdW == 0
+	if (dFdW != NULL)
+		EXIT_UNSUPPORTED;
 
 	double *dFdQ_ptr[d][DMAX];
 	if (dFdQ != NULL) {
@@ -90,16 +96,6 @@ static void jacobian_flux_Poisson (struct S_FLUX *const FLUXDATA)
 
 			for (size_t i = 0, iMax = DMAX; i < iMax; i++)
 				F_ptr[i]++;
-		}
-
-		// ***************************************** dFdW ***************************************** //
-		if (dFdW != NULL) {
-			size_t InddFdW = 0;
-			for (size_t dim = 0; dim < d; dim++)
-				*dFdW_ptr[InddFdW++] = 0.0;
-
-			for (size_t i = 0, iMax = DMAX; i < iMax; i++)
-				dFdW_ptr[i]++;
 		}
 
 		// ***************************************** dFdQ ***************************************** //

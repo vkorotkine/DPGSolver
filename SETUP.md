@@ -1,17 +1,17 @@
 # Additional Setup
 
-The configure/user_configure.mk file must be created before the code can be run. See the instructions in default.mk.
+The 'configure/user_configure.mk' file must be created before the code can be run. See the instructions in [default.mk](configure/default.mk).
 
 Before running the code, be sure execute the following in the $(ROOT) directory:
 ```sh
 $ make directories
-$ make meshes (see note below)
+$ make meshes
 $ make
 ```
 
 To run the code:
 1. cd to $(ROOT)/cases,
-2. copy the sample.sh script to your_script_file_name.sh and modify the the parameters according to your build
+2. copy the [sample.sh](cases/sample.sh) script to your_script_file_name.sh and modify the the parameters according to your build
 3. run using
 	```sh
 	$ sh your_script_file_name.sh
@@ -19,4 +19,4 @@ To run the code:
 
 Parameters to be used for the run are specified in the '.ctrl' files located in $(ROOT)/cases/control_files.
 
-Unit/Integration testing can be performed by uncommenting DTEST in the $(ROOT)/Makefile.
+Unit/Integration testing can be performed by uncommenting DTEST in the [ROOT Makefile](Makefile).

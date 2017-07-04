@@ -43,7 +43,7 @@ Last tested: 2017/05/18
 		```
 
 4. Install gmsh
-	- Add a symbolic link to the gmsh executable in one of the $PATH directories or add the directory to $PATH (e.g. in .bash_profile add "PATH=$PATH:/Applications/Gmsh.app/Contents/MacOS/").
+	- Add the path to the gmsh executable to $PATH (e.g. in .bash_profile add "PATH=$PATH:/Applications/Gmsh.app/Contents/MacOS/").
 	- Check that this was successful by obtaining some output when typing
 		```sh
 		$ gmsh --version

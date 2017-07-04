@@ -194,6 +194,8 @@ static void compute_Viscous_VOLUME_EFE(void)
 			FLUXDATA->Nn = NvnI;
 			FLUXDATA->W  = VDATA->W_vI;
 			FLUXDATA->Q  = (double const *const *const) VDATA->Q_vI;
+			if (!DB.Fv_func_of_W)
+				FLUXDATA->dFdW = NULL;
 
 			jacobian_flux_viscous(FLUXDATA);
 
@@ -204,7 +206,8 @@ static void compute_Viscous_VOLUME_EFE(void)
 
 			// Convert to reference space
 			convert_between_rp(NvnI,Neq,VOLUME->C_vI,FLUXDATA->F,FLUXDATA->Fr,"FluxToRef");
-			convert_between_rp(NvnI,Nvar*Neq,VOLUME->C_vI,FLUXDATA->dFdW,FLUXDATA->dFrdW,"FluxToRef");
+			if (DB.Fv_func_of_W)
+				convert_between_rp(NvnI,Nvar*Neq,VOLUME->C_vI,FLUXDATA->dFdW,FLUXDATA->dFrdW,"FluxToRef");
 			for (size_t dim = 0; dim < d; dim++)
 				convert_between_rp(NvnI,Nvar*Neq,VOLUME->C_vI,FLUXDATA->dFdQ[dim],FLUXDATA->dFrdQ[dim],"FluxToRef");
 
@@ -215,7 +218,8 @@ static void compute_Viscous_VOLUME_EFE(void)
 			finalize_VOLUME_Viscous_Weak(Neq,FLUXDATA->Fr,VOLUME->RHS,'E',VDATA);
 
 			// LHS
-			finalize_VOLUME_Viscous_Weak(NvnS*Neq*Nvar,FLUXDATA->dFrdW,VOLUME->LHS,'I',VDATA);
+			if (DB.Fv_func_of_W)
+				finalize_VOLUME_Viscous_Weak(NvnS*Neq*Nvar,FLUXDATA->dFrdW,VOLUME->LHS,'I',VDATA);
 
 			for (size_t dim = 0; dim < d; dim++)
 				set_to_zero_d(NvnS*NvnS*Neq*Nvar,VOLUME->LHSQ[dim]);
