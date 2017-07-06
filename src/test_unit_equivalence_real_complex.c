@@ -133,6 +133,7 @@ void test_unit_equivalence_real_complex(void)
 		Neq  = d+2;
 
 		// flux_viscous
+		DB.PDE_index = PDE_NAVIERSTOKES;
 		pass = compare_flux_viscous(Nn,Nel,d,W,(double const *const *const) Q);
 		sprintf(PrintName,"                 viscous                      :");
 		test_print2(pass,PrintName);
@@ -251,6 +252,7 @@ static unsigned int compare_flux_viscous(unsigned int const Nn, unsigned int con
 	double complex *const Fc   = malloc(NnTotal*d*Neq * sizeof *Fc);   // free
 
 	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->PDE_index = DB.PDE_index;
 	FLUXDATA->d   = d;
 	FLUXDATA->Nn  = Nn;
 	FLUXDATA->Nel = Nel;

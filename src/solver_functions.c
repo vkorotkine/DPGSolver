@@ -281,43 +281,6 @@ double *compute_Dxyz_strong (struct S_Dxyz *DxyzInfo, unsigned int d)
 	return Dxyz;
 }
 
-double *compute_Dxyz(struct S_Dxyz *DxyzInfo, unsigned int d)
-{
-	/*
-	 *	Purpose:
-	 *		Compute physical derivative operator matrices using the chain rule.
-	 *
-	 *	Comments:
-	 *		Note the ordering of C specified in the comments of setup_geom_factors.
-	 *
-	 *		Including the cofactor terms in the differentiation operators as opposed to the fluxes results in a slightly
-	 *		more clear linearization but a significant cost increase in assembly as the number of entries which must be
-	 *		multiplied scales with the number of basis functions. If the cofactor terms are included in the flux, they
-	 *		will always multiply only d flux terms. Furthermore, inclusion in the flux terms would allow for
-	 *		vectorization of this function. A possible drawback is the required enforcement of the geometric
-	 *		conservation if the strong form of the scheme is used. INVESTIGATE. (ToBeModified)
-	 *
-	 *	References:
-	 *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_
-	 *		                 Schemes (eq. B.2)
-	 */
-
-	unsigned int const Nbf  = DxyzInfo->Nbf,
-	                   Nn   = DxyzInfo->Nn,
-	                   dim1 = DxyzInfo->dim;
-
-	double const *const *const D = DxyzInfo->D,
-	             *const        C = DxyzInfo->C;
-
-	double *const Dxyz = calloc(Nbf*Nn, sizeof *Dxyz); // keep
-	for (size_t dim2 = 0; dim2 < d; dim2++) {
-		size_t const IndC = (dim1+dim2*d)*Nn;
-		mm_diag_d(Nbf,Nn,&C[IndC],D[dim2],Dxyz,1.0,1.0,'R','R');
-	}
-
-	return Dxyz;
-}
-
 void init_ops_VOLUME(struct S_OPERATORS_V *const OPS, struct S_VOLUME const *const VOLUME, unsigned int const IndClass)
 {
 	unsigned int const P      = VOLUME->P,
@@ -390,7 +353,7 @@ void coef_to_values_vI(struct S_VDATA const *const VDATA, char const coef_type)
 	 *			3) Using the standard approach.
 	 *
 	 *	Notation:
-	 *		To avoid confusion with (C)ofactor terms, (v)olume cubature nodes are denoted with the subscript (v)olume
+	 *		To avoid confusion with (C)ofactor terms, VOLUME cubature nodes are denoted with the subscript (v)olume
 	 *		(I)ntegration.
 	 */
 
@@ -950,10 +913,8 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 	 *
 	 *		It is currently unclear to me where the cost savings arise when using CDG2 flux as compared to the BR2 flux
 	 *		as all terms must be computed for the full contribution to Qhat used in the VOLUME term. Savings were stated
-	 *		as being as high as 10% in Brdar(2012). (ToBeModified)
-	 *
-	 *		Fidkowski(2016, p. 81) takes chi >= 2*Nf for BR2. There is also discussion of boundary condition
-	 *		implementation. ToBeModified.
+	 *		as being as high as 10% in Brdar(2012). Is it possible that these savings would be seen when the scheme was
+	 *		directly discretized in the primal formulation? (ToBeModified)
 	 *
 	 *		It is currently uncertain whether the boundary gradients should also be corrected. Currently, they are
 	 *		corrected, for consistency with the internal formulation. INVESTIGATE. (ToBeModified)
@@ -969,12 +930,11 @@ void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char c
 	 *
 	 *		The allowed options for coef_type are 'W' (conserved variables), 'Q' (partially corrected gradients (Qp))
 	 *
-	 *		To avoid confusion with (C)ofactor terms, (f)ace cubature nodes are denoted with the subscript (f)ace
+	 *		To avoid confusion with (C)ofactor terms, FACE cubature nodes are denoted with the subscript (f)ace
 	 *		(I)ntegration.
 	 *
 	 *	References:
 	 *		Brdar(2012)-Compact and Stable Discontinuous Galerkin Methods for Convection-Diffusion Problems
-	 *		Fidkowski(2016)-A Hybridized Discontinuous Galerkin Method on Mapped Deforming Domains
 	 *		Bassi(2000)-A High Order Discontinuous Galerking Method for Compressible Turbulent Flows
 	 *		Bassi(2010)-Very High-Order Accurate Discontinuous Galerkin Computation of Transonic Turbulent Flows on
 	 *		            Aeronautical Configurations - Chapter 3
@@ -1383,7 +1343,6 @@ void compute_numerical_flux(struct S_FDATA const *const FDATA, char const imex_t
 	             *const dnFluxNumdWL_fIL = FDATA->NFLUXDATA->dnFluxNumdWL,
 	             *const dnFluxNumdWR_fIL = FDATA->NFLUXDATA->dnFluxNumdWR;
 
-// Consider passing struct to numerical flux functions (as for standard fluxes) (ToBeDeleted)
 	struct S_NUMERICALFLUX *const NUMFLUXDATA = malloc(sizeof *NUMFLUXDATA); // free
 	NUMFLUXDATA->NumFluxInviscid_index = DB.InviscidFluxType;
 	NUMFLUXDATA->d   = d;
@@ -1452,11 +1411,12 @@ void compute_numerical_solution(struct S_FDATA const *const FDATA, char const im
 	 *		cubature nodes as seen from the left VOLUME (used for the FACE contribution to the weak gradient).
 	 *
 	 *	Comments:
-	 *		It is currently hard-coded that a central numerical solution is used. As the numerical solution is linear in
-	 *		the solution variables, its Jacobian is constant for all variables/equations. However, the potential
-	 *		dependence of the boundary conditions on all variables results in different linearized terms being required
-	 *		for each variable of each equation. This is why the dnSolNumdW(L/R) terms are potentially redundantly
-	 *		computed.
+	 *		It is currently hard-coded that a central numerical solution is used.
+	 *		As the numerical solution is linear in the solution variables, its Jacobian is constant for all
+	 *		variables/equations. However, the potential dependence of the boundary conditions on all variables results
+	 *		in different linearized terms being required for each variable of each equation. This is why the
+	 *		dnSolNumdW(L/R) terms are potentially redundantly computed. This discussion is only applicable for Neq, Nvar
+	 *		> 1.
 	 *
 	 *	Notation:
 	 *		imex_type : (im)plicit (ex)plicit (type) indicates whether this function is being called for an implicit or
@@ -1681,22 +1641,6 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	 *		If on a boundary FACE, the boundary Jacobian contributions are included in dnFluxViscNumdWL_fIL for the
 	 *		solution only. The boundary Jacobian contributions with respect to Q are treated here directly.
 	 *
-	 *		The CDG2 and BR2 fluxes are computed according to Brdar(2012, eq. (4.3)) following the comments of section
-	 *		4.1 (i.e. setting eta = 0 and taking chi according to Theorem 2 part b. The area switch (eq. (4.5)) is used
-	 *		such that only one of the two VOLUME contributions must be accounted for in the CDG2 flux. Note, as the
-	 *		viscous fluxes are linear in the gradients, that this formulation corresponds exactly to that typically
-	 *		presented for the BR2 flux (such as in eq. (10) in Bassi(2010)) with the stabilization parameter selected
-	 *		according to the guidelines above. Note also that this is the analogue of the original form of the BR2 flux
-	 *		(eq. (21) in Bassi(2000)) when the scaling is added.
-	 *
-	 *		It is currently unclear to me where the cost savings arise when using CDG2 flux as compared to the BR2 flux
-	 *		as all terms must be computed for the full contribution to Qhat used in the VOLUME term. Savings were stated
-	 *		as being as high as 10% in Brdar(2012). (ToBeModified)
-	 *
-	 *		Fidkowski(2016, p. 81) takes chi >= 2*Nf for BR2. There is also discussion of boundary condition
-	 *		implementation. ToBeModified.
-	 *
-	 *
 	 *		In the treatment for the linearization with respect to the boundary conditions, it was assumed that:
 	 *			1) dQR/dQL = I (Identity);
 	 *			2) dQR/dWL = 0 (Zero).
@@ -1715,13 +1659,6 @@ void compute_numerical_flux_viscous(struct S_FDATA const *const FDATAL, struct S
 	 *	Notation:
 	 *		imex_type : (im)plicit (ex)plicit (type) indicates whether this function is being called for an implicit or
 	 *		            explicit computation.
-	 *
-	 *	References:
-	 *		Brdar(2012)-Compact_and_Stable_Discontinuous_Galerkin_Methods_for_Convection-Diffusion_Problems
-	 *		Fidkowski(2016)-A_Hybridized_Discontinuous_Galerkin_Method_on_Mapped_Deforming_Domains
-	 *		Bassi(2000)-A_High_Order_Discontinuous_Galerking_Method_for_Compressible_Turbulent_Flows
-	 *		Bassi(2010)-Very_High-Order_Accurate_Discontinuous_Galerkin_Computation_of_Transonic_Turbulent_Flows_on_
-	 *		            Aeronautical_Configurations - Chapter 3
 	 */
 
 	if (!(imex_type == 'E' || imex_type == 'I'))
@@ -1976,7 +1913,6 @@ void add_Jacobian_scaling_FACE(struct S_FDATA const *const FDATA, char const ime
 	 *		orientation as seen from the left VOLUME).
 	 *
 	 *	Comments:
-	 *		Potentially don't need to add scaling to d*d*R if on boundary. CHANGE BELOW (ToBeDeleted)
 	 *
 	 *	Notation:
 	 *		imex_type : (im)plicit (ex)plicit (type) indicates whether this function is being called for an implicit or
@@ -2664,7 +2600,7 @@ void finalize_FACE_Viscous_Weak(struct S_FDATA const *const FDATAL, struct S_FDA
 	 *		The required operation is identical to that of finalize_FACE_Inviscid_Weak as the viscous flux has already
 	 *		been negated.
 	 *		If Fv_func_of_W == false, there is no viscous flux Jacobian dependence on W and the calculation is not
-	 *		performed.
+	 *		performed for the linearized term.
 	 *
 	 *	Notation:
 	 *		Fv_func_of_W : Flag for whether (F)lux (v)iscous is a (func)tion (of) the solution (W).

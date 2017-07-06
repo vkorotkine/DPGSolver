@@ -104,11 +104,6 @@ void implicit_GradW_VOLUME(void)
 
 void implicit_GradW_FACE(void)
 {
-	/*
-	 *	Comments:
-	 *		dnSolNumdW(L/R) may only have dependence on all solution variables through the boundary condition.
-	 */
-
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 	struct S_FDATA       *const FDATAL = malloc(sizeof *FDATAL), // free
 	                     *const FDATAR = malloc(sizeof *FDATAR); // free

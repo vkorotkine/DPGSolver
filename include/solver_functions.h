@@ -19,7 +19,7 @@ struct S_Dxyz {
 	double const *const *D, *C;
 };
 
-extern double *compute_Dxyz(struct S_Dxyz *DxyzInfo, unsigned int d);
+//extern double *compute_Dxyz(struct S_Dxyz *DxyzInfo, unsigned int d);
 extern double *compute_Dxyz_strong (struct S_Dxyz *DxyzInfo, unsigned int d);
 
 

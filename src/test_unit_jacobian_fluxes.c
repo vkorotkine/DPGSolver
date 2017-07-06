@@ -514,6 +514,7 @@ void test_unit_jacobian_fluxes(void)
 
 		// flux_viscous
 		DB.Neq = DB.Nvar = d+2;
+		DB.PDE_index = PDE_NAVIERSTOKES;
 
 		double **Q = initialize_Q(Nn,Nel,d); // free
 		pass = compare_jacobian_flux_viscous(Nn,Nel,d,W,Q,'W');

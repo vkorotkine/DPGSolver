@@ -25,17 +25,22 @@
  *		Compute weak gradients required for the computation of viscous fluxes.
  *
  *	Comments:
- *		The use of the doubly integrated by parts weak form for the first equation in the mixed formulation is much more
- *		consistent with the theoretical formulation of the stabilized mixed form as presented in Brezzi(2000) (and in
- *		general); the stabilization is a penalization on the solution jumps across the elements. This also gives a much
- *		more natural symmetry to the diffusive operator when compared with using the weak form for the first equation.
- *		Furthermore, the partially corrected gradient contributions required for the numerical viscous flux can be
- *		directly computed from the summation of the VOLUME and FACE terms to Qhat in this case. Note that the doubly
- *		integrated by parts weak form was previously called the strong form.
  *
- *	Notation:
+ *		For all 2nd order equations, the auxiliary variable, Qhat = QhatV + QhatF, is first computed in the
+ *		explicit/implicit_GradW functions and then substituted into the primary equation such that a primal
+ *		formulation of the DG scheme is obtained. Thus, despite the presence of the two equations, a mixed formulation
+ *		is not being used to solve the system; in that case, both What and Qhat would likely be global unknowns. Based
+ *		on the mathematical analysis in Arnold(2002), restructuring the code to solve the system directly in the primal
+ *		form would potentially have advantages in terms of:
+ *			1) Consistency with the mathematical theory;
+ *			2) Potential elimination of redundant storage/operations: (ToBeModified)
+ *				- storage of Qhat, QhatV, QhatF;
+ *				- computation of the same symmetric operators twice;
+ *				- computation of both contributions of the lifting operator for CDG2);
+ *				- reordering operatotion in the penalty terms (Investigate, ToBeModified);
  *
  *	References:
+ *		Arnold(2002)-Unified Analysis of Discontinuous Galerkin Methods for Elliptic Problems
  */
 
 static void explicit_GradW_VOLUME   (void);
@@ -61,9 +66,9 @@ static void explicit_GradW_VOLUME(void)
 	 *	Comments:
 	 *		This is an intermediate contribution because the multiplication by MInv is not included.
 	 *		The contribution from this function is duplicated in QhatV as the local contribution is required for the
-	 *		numerical flux in the second equation of the mixed form.
+	 *		numerical flux in the second equation.
 	 *		It is currently hard-coded that GradW is of the same order as the solution.
-	 *		Note, if Collocation is enable, that D_Weak includes the inverse cubature weights.
+	 *		Note, if Collocation is enable, that D_Strong includes the inverse cubature weights.
 	 *
 	 *	References:
 	 *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_Schemes
@@ -231,7 +236,7 @@ static void explicit_GradW_finalize(void)
 {
 	/*
 	 *	Purpose:
-	 *		Add in inverse mass matrix contribution to VOLUME->Qhat, VOLUME->QhatV.
+	 *		Add inverse mass matrix contribution to VOLUME->Qhat, VOLUME->QhatV.
 	 *
 	 *	Comments:
 	 *		All contributions continue to be stored individually as they must be used as such for the computation of the
@@ -241,7 +246,7 @@ static void explicit_GradW_finalize(void)
 	 *		The FACE contribution were included direcly in VL/VR->Qhat while the VOLUME contributions were stored in
 	 *		QhatV. The two are now summed in VL/VR->Qhat and QhatV is retained for use in the numerical flux for the
 	 *		second equation of the mixed formulation.
-	 *		If Collocation is enable, only the inverse Jacobian determinant is missing.
+	 *		If Collocation is enable, only the inverse Jacobian determinant must be added here.
 	 */
 
 	unsigned int const d    = DB.d,
