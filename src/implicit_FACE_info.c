@@ -31,8 +31,11 @@
 static void compute_Inviscid_FACE_EFE (void);
 static void compute_Viscous_FACE_EFE (void);
 
-void implicit_FACE_info(void)
+void implicit_FACE_info (const bool PrintEnabled)
 {
+	if (PrintEnabled)
+		printf("F");
+
 	compute_Inviscid_FACE_EFE();
 	compute_Viscous_FACE_EFE();
 }

@@ -194,9 +194,6 @@ void compute_flux_inviscid_MA (struct S_VDATA *const VDATA, struct S_FLUX_MA *co
 	 *			flux jacobian: (C)olumn-major: (N)umber of (n)odes, (d)imensions, (N)umber of (eq)uations/(var)iables
 	 */
 
-	if (!(imex_type == 'E' || imex_type == 'I'))
-		EXIT_UNSUPPORTED;
-
 	if (mem_op == 'A') {
 		if (DB.PDE_index == PDE_ADVECTION) {
 			struct S_MATRIX const V_XYZ_M = constructor_matrix1_move_multiarray2_2(VDATA->VOLUME->XYZ_MA);
@@ -293,6 +290,9 @@ void compute_flux_ref_MA (struct S_MULTI_ARRAY const *const C, struct S_MULTI_AR
 	 */
 
 	if (mem_op == 'A') {
+		if (Ap->order != 4)
+			EXIT_UNSUPPORTED;
+
 		size_t const Nn   = Ap->extents[0],
 		             Ndim = Ap->extents[1],
 		             Neq  = Ap->extents[2],
@@ -302,8 +302,6 @@ void compute_flux_ref_MA (struct S_MULTI_ARRAY const *const C, struct S_MULTI_AR
 			EXIT_UNSUPPORTED;
 
 		struct S_MULTI_ARRAY *Ar1 = constructor_multiarray1_empty4('C',Nn,Neq,Nvar,Ndim); // free
-		set_to_zero_multiarray(Ar1);
-
 		for (size_t dim = 0; dim < Ndim; dim++) {
 			struct S_MATRIX const C_sub = constructor_matrix1_move_multiarray3_2(C,dim);
 			for (size_t eq = 0; eq < Neq; eq++) {

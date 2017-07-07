@@ -4,6 +4,8 @@
 #ifndef DPG__implicit_FACE_info_h__INCLUDED
 #define DPG__implicit_FACE_info_h__INCLUDED
 
-extern void implicit_FACE_info   (void);
+#include <stdbool.h>
+
+extern void implicit_FACE_info (const bool PrintEnabled);
 
 #endif // DPG__implicit_FACE_info_h__INCLUDED

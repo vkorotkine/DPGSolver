@@ -1,7 +1,7 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#include "implicit_VOLUME_info_HDG.h"
+#include "compute_VOLUME_info_HDG.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,32 +11,38 @@
 #include "S_DB.h"
 #include "S_VOLUME.h"
 
+#include "compute_RLHS.h"
 #include "solver_functions_HDG.h"
 
 /*
  *	Purpose:
- *		Evaluate the VOLUME contributions to the RHS and LHS terms for the HDG scheme.
+ *		Evaluate the VOLUME contributions to the RHS and (optionally) the LHS terms for the HDG scheme.
  *
  *	Comments:
  *		The VOLUME contribution is identical to that of the DG scheme.
+ *
+ *		When imex_type == 'I', LHS (linearization) terms are computed as well.
  *
  *		In preparation for moving to storing all data in vector/matrix struct format, necessary arrays are moved to the
  *		appropriate format here. To avoid memory leaks and remain consistent with the current code, the struct templates
  *		are then freed while retaining the array data. This can be removed as the conversion to the new format is
  *		implemented (ToBeDeleted).
+ *
+ *	Notation:
+ *		imex_type: Flag indicating whether the solver is being run in (im)plicit or (ex)plicit mode.
  */
 
-static void compute_Inviscid_VOLUME_HDG (void);
+static void compute_Inviscid_VOLUME_HDG (const char imex_type);
 
-void implicit_VOLUME_info_HDG (bool const PrintEnabled)
+void compute_VOLUME_info_HDG (const struct S_RLHS_info*const RLHS_info)
 {
-	if (PrintEnabled)
+	if (RLHS_info->PrintEnabled)
 		printf("V");
 
-	compute_Inviscid_VOLUME_HDG();
+	compute_Inviscid_VOLUME_HDG(RLHS_info->imex_type);
 }
 
-static void compute_Inviscid_VOLUME_HDG (void)
+static void compute_Inviscid_VOLUME_HDG (const char imex_type)
 {
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		convert_to_multiarray_V(VOLUME,'A'); // free ('F')
@@ -51,13 +57,14 @@ static void compute_Inviscid_VOLUME_HDG (void)
 		coef_to_values_vI_MA(&VDATA,'W','A'); // free ('F')
 
 		// Compute Flux and its Jacobian in reference space
-		compute_flux_inviscid_MA(&VDATA,&FLUXDATA,'I','A'); // free ('F')
+		compute_flux_inviscid_MA(&VDATA,&FLUXDATA,imex_type,'A'); // free ('F')
 		coef_to_values_vI_MA(&VDATA,'W','F');
 
 		// Convert to reference space
-		compute_flux_ref_MA(VOLUME->C_vI_MA,FLUXDATA.F,&FLUXDATA.Fr,'A');       // free ('F')
-		compute_flux_ref_MA(VOLUME->C_vI_MA,FLUXDATA.dFdW,&FLUXDATA.dFrdW,'A'); // free ('F')
-		compute_flux_inviscid_MA(&VDATA,&FLUXDATA,'I','F');
+		compute_flux_ref_MA(VOLUME->C_vI_MA,FLUXDATA.F,&FLUXDATA.Fr,'A'); // free ('F')
+		if (imex_type == 'I')
+			compute_flux_ref_MA(VOLUME->C_vI_MA,FLUXDATA.dFdW,&FLUXDATA.dFrdW,'A'); // free ('F')
+		compute_flux_inviscid_MA(&VDATA,&FLUXDATA,imex_type,'F');
 
 		// Compute RHS and LHS terms
 
@@ -67,9 +74,11 @@ static void compute_Inviscid_VOLUME_HDG (void)
 		compute_flux_ref_MA(VOLUME->C_vI_MA,FLUXDATA.F,&FLUXDATA.Fr,'F');
 
 		// LHS
-		set_to_zero_multiarray(VOLUME->LHS_MA);
-		finalize_VOLUME_Inviscid_Weak_MA(FLUXDATA.dFrdW,VOLUME->LHS_MA,'I',&VDATA);
-		compute_flux_ref_MA(VOLUME->C_vI_MA,FLUXDATA.dFdW,&FLUXDATA.dFrdW,'F');
+		if (imex_type == 'I') {
+			set_to_zero_multiarray(VOLUME->LHS_MA);
+			finalize_VOLUME_Inviscid_Weak_MA(FLUXDATA.dFrdW,VOLUME->LHS_MA,imex_type,&VDATA);
+			compute_flux_ref_MA(VOLUME->C_vI_MA,FLUXDATA.dFdW,&FLUXDATA.dFrdW,'F');
+		}
 
 		set_VDATA(&VDATA,VOLUME,'F');
 

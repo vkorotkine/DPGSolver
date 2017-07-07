@@ -247,8 +247,8 @@ int main(int nargc, char **argv)
  *	Notation:
  *
  *	References:
- *		Squire(1998)-Using_Complex_Variables_to_Estimate_Derivatives_of_Real_Functions
- *		Martins(2003)-The_Complex-Step_Derivative_Approximation
+ *		Squire(1998)-Using Complex Variables to Estimate Derivatives of Real Functions
+ *		Martins(2003)-The Complex-Step Derivative Approximation
  */
 
 int main(int nargc, char **argv)

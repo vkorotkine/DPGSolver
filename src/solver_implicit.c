@@ -322,17 +322,10 @@ void solver_implicit(bool const PrintEnabled)
 
 		PetscInt *ix;
 
-		if (PrintEnabled) { printf("G");  } implicit_GradW();
-		if (PrintEnabled) { printf("V");  } implicit_VOLUME_info_DG();
-		if (PrintEnabled) { printf("F");  } implicit_FACE_info();
+		implicit_GradW(PrintEnabled);
+		implicit_VOLUME_info_DG(PrintEnabled);
+		implicit_FACE_info(PrintEnabled);
 		if (PrintEnabled) { printf("F "); } maxRHS = finalize_LHS(&A,&b,&x,0);
-
-		// Used for outputting matrix to file in matlab sparse format
-//		PetscViewer viewer;
-//		PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat.output", &viewer);
-//		PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
-//		MatView(A,viewer);
-//		PetscViewerDestroy(&viewer);
 
 		// Solve linear system
 		if (PrintEnabled) { printf("S"); }

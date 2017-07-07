@@ -16,9 +16,9 @@
 #include "Test.h"
 
 #include "update_VOLUMEs.h"
+#include "solver.h"
+
 #include "implicit_GradW.h"
-#include "implicit_VOLUME_info_DG.h"
-#include "implicit_FACE_info.h"
 
 #include "finalize_LHS.h"
 #include "solver_implicit.h"
@@ -45,9 +45,9 @@ void solver_Poisson(bool PrintEnabled)
 
 	update_VOLUME_Ops();
 	update_memory_VOLUMEs();
-	if (PrintEnabled) { printf("G"); } implicit_GradW();
-	if (PrintEnabled) { printf("V"); } implicit_VOLUME_info_DG();
-	if (PrintEnabled) { printf("F"); } implicit_FACE_info();
+
+	struct S_RLHS_info RLHS_info = constructor_RLHS_info_2(PrintEnabled,DB.imex_type);
+	compute_RLHS(&RLHS_info);
 
 	Mat A = NULL;
 	Vec b = NULL, x = NULL;
@@ -60,7 +60,9 @@ void solver_Poisson(bool PrintEnabled)
 	finalize_ksp(&A,&b,&x,2);
 
 	// Update Qhat based on computed solution
-	implicit_GradW();
+	implicit_GradW(false);
+// Try with explicit here instead, should be sufficient
+//	explicit_GradW();
 
 	char *const fNameOut = get_fNameOut("SolFinal_"); // free
 	output_to_paraview(fNameOut);

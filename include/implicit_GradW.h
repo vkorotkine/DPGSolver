@@ -4,7 +4,9 @@
 #ifndef DPG__implicit_GradW_h__INCLUDED
 #define DPG__implicit_GradW_h__INCLUDED
 
-extern void implicit_GradW          (void);
+#include <stdbool.h>
+
+extern void implicit_GradW          (const bool PrintEnabled);
 extern void implicit_GradW_VOLUME   (void);
 extern void implicit_GradW_FACE     (void);
 extern void implicit_GradW_finalize (void);

@@ -1,7 +1,8 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#include "implicit_FACE_info_HDG.h"
+#include "compute_FACE_info_HDG.h"
+#include "compute_RLHS.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,6 +10,7 @@
 
 #include "S_DB.h"
 #include "S_FACE.h"
+
 /*
 #include <stdio.h>
 #include <string.h>
@@ -54,18 +56,20 @@
  *		Nguyen(2015)-A Class of Embedded Discontinuous Galerkin Methods for Computation Fluid Dynamics
  */
 
-static void compute_Inviscid_FACE_HDG (void);
+static void compute_Inviscid_FACE_HDG (const char imex_type);
 
-void implicit_FACE_info_HDG (bool const PrintEnabled)
+void compute_FACE_info_HDG (const struct S_RLHS_info*const RLHS_info)
 {
-	if (PrintEnabled)
+	if (RLHS_info->PrintEnabled)
 		printf("F");
 
-	compute_Inviscid_FACE_HDG();
+	compute_Inviscid_FACE_HDG(RLHS_info->imex_type);
 }
 
-static void compute_Inviscid_FACE_HDG (void)
+static void compute_Inviscid_FACE_HDG (const char imex_type)
 {
+if (0)
+printf("%d\n",imex_type);
 /*
 	Step 1 (Similar to DG)
 	Loop over FACEs:   Complete A (store in VOLUME->LHS)

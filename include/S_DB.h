@@ -38,7 +38,7 @@ struct S_DB {
 
 	// Initialization
 	bool         Inviscid, Viscous, Const_mu, Symmetric, Fv_func_of_W;
-	char         *SolverType;
+	char         *SolverType, imex_type;
 	unsigned int Nvar, Neq, OutputInterval, DOF0, SourcePresent, PDE_index;
 	double       Xc, Yc, Rc, MInf, rhoInf, pInf, TInf, cInf, VInf, uInf, vInf, wInf, Rg, Cscale, pBack, p_Total, T_Total,
 	             PeriodL, PeriodFraction, FinalTime, Poisson_scale, ADV_b[3], ADV_XYZB[3],

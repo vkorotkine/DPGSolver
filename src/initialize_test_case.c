@@ -497,6 +497,13 @@ void initialize_test_case_parameters(void)
 
 	if (strstr(DB.SolverType,"Implicit"))
 		DB.FinalTime = 1e10;
+
+	if (strstr(DB.SolverType,"Explicit"))
+		DB.imex_type = 'E';
+	else if (strstr(DB.SolverType,"Implicit"))
+		DB.imex_type = 'I';
+	else
+		EXIT_UNSUPPORTED;
 }
 
 static void compute_gradient_polynomial(struct S_VOLUME *VOLUME)

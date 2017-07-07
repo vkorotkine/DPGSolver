@@ -38,8 +38,11 @@
 static void compute_Inviscid_VOLUME_EFE(void);
 static void compute_Viscous_VOLUME_EFE(void);
 
-void implicit_VOLUME_info_DG(void)
+void implicit_VOLUME_info_DG (const bool PrintEnabled)
 {
+	if (PrintEnabled)
+		printf("V");
+
 	if (DB.EFE) {
 		switch (DB.Vectorized) {
 		case 0:

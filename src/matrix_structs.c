@@ -329,6 +329,7 @@ struct S_MULTI_ARRAY *constructor_multiarray1_move_matrix_2 (struct S_MATRIX con
 	 *	Comments:
 	 *		the destruct_M parameter indicates whether the "shell" of the passed matrix struct should be freed.
 	 */
+
 	size_t const order = 2;
 	struct S_MULTI_ARRAY *A = constructor_multiarray1_default(order); // returned
 

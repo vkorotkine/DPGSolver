@@ -36,10 +36,13 @@ void implicit_GradW_VOLUME   (void);
 void implicit_GradW_FACE     (void);
 void implicit_GradW_finalize (void);
 
-void implicit_GradW(void)
+void implicit_GradW (const bool PrintEnabled)
 {
 	if (!DB.Viscous)
 		return;
+
+	if (PrintEnabled)
+		printf("G");
 
 	implicit_GradW_VOLUME();
 	implicit_GradW_FACE();

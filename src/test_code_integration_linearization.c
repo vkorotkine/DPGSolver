@@ -28,6 +28,7 @@
 #include "implicit_FACE_info.h"
 #include "implicit_GradW.h"
 
+#include "compute_RLHS.h"
 #include "explicit_VOLUME_info_c.h"
 #include "explicit_FACE_info_c.h"
 #include "explicit_GradW_c.h"
@@ -60,7 +61,8 @@
  *	Notation:
  *
  *	References:
- *		Martins(2003)-The_Complex-Step_Derivative_Approximation
+ *		Martins(2003)-The Complex-Step Derivative Approximation
+ *		Squire(1998)-Using Complex Variables to Estimate Derivatives of Real Functions
  */
 
 static void update_VOLUME_FACEs        (void);
@@ -78,7 +80,7 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 	// default values
 	TestDB.CheckOffDiagonal = 0; // Should not be modified.
 
-	data->PrintEnabled           = 0;
+	data->PrintEnabled           = 0; // Here used to output the matrix to a file when enabled.
 	data->PrintTimings           = 0;
 	data->CheckFullLinearization = 1;
 	data->CheckWeakGradients     = 0;
@@ -311,7 +313,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 
 			set_PrintName("linearization (weak gradient)",data->PrintName,&data->TestTRI);
 			if (strstr(TestName,"NavierStokes")) {
-				implicit_GradW();
+				implicit_GradW(false);
 			} else {
 				EXIT_UNSUPPORTED;
 			}
@@ -367,11 +369,12 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 
 			set_PrintName("linearization",data->PrintName,&data->TestTRI);
 
-			// Comment implicit_FACE_info here and used Q_vI = ChiS_vI*VOLUME->QhatV to only check VOLUME-VOLUME
-			// contribution to the VOLUME term.
-			implicit_GradW(); // Only executed if DB.Viscous = 1
-			implicit_VOLUME_info_DG();
-			implicit_FACE_info();
+			struct S_RLHS_info RLHS_info = constructor_RLHS_info_2(false,'I');
+			compute_RLHS(&RLHS_info);
+
+//			implicit_GradW(false); // Only executed if DB.Viscous = 1
+//			implicit_VOLUME_info_DG(false);
+//			implicit_FACE_info(false);
 
 			if (!CheckFullLinearization) {
 				correct_collocated_for_symmetry();

@@ -120,7 +120,6 @@ void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 		correct_What_Bezier(WhatB,t,NvnS,&rhoAvg,'d');
 
 		mm_CTN_d(NvnS,Nvar,NvnS,TInvS_vB,WhatB,What);
-//		mm_CTN_d(NvnS,Nvar-1,NvnS,TInvS_vB,WhatB,What);
 	}
 
 	// *** Pressure *** ///
@@ -329,6 +328,18 @@ static void perform_timestepping(double const dt, double *maxRHS, bool const Pri
 	 *		Perform the timestepping for the current time step using the selected scheme.
 	 *
 	 *	Comments:
+	 *		An positivity enforcement is included here based on the method of Wang(2012). Based on the discussion of
+	 *		section 3.2, the time step must be dynamically adapted such that the average density and pressure values are
+	 *		not negative at any RK stage. They recommend achieving this by reducing the timestep by two whenever such an
+	 *		occurence is encountered.
+	 *		For improved efficiency, it would be advantageous to reorder the VOLUMEs in order of increasing stable
+	 *		timestep limit such that the potentially problematic VOLUMEs are treated first and unnecessary computations
+	 *		are not performed. Ideally, the limiting VOLUMEs would be driven all the way to the end of the timestep
+	 *		using the minimal possible stencil. This would,however, require the storage of the intermediate states for
+	 *		many VOLUMEs.
+	 *		Currently, non of this functionality is implemented but it would likely be very advantageous for difficult
+	 *		unsteady cases. (ToBeModified)
+	 *
 	 *		The currently supported options are:
 	 *			1) (R)unge-(K)utta (3)rd order (S)trong (S)tability (P)reserving
 	 *			2) (R)unge-(K)utta (4)th order (L)ow (S)torage
@@ -337,8 +348,9 @@ static void perform_timestepping(double const dt, double *maxRHS, bool const Pri
 	 *			3) Forward (EULER) - 1st order
 	 *
 	 *	References:
-	 *		Gottlieb(2001)-Strong_Stability-Preserving_High-Order_Time_Discretization_Methods (eq. (4.2))
-	 *		Carpenter(1994)-Fourth-Order_2N-Storage_Runge-Kutta_Schemes
+	 *		Gottlieb(2001)-Strong Stability-Preserving High-Order Time Discretization Methods (eq. (4.2))
+	 *		Carpenter(1994)-Fourth-Order 2N-Storage Runge-Kutta Schemes
+	 *		Wang-Shu(2012)-Robust High Order Discontinuous Galerkin Schemes for Two-Dimensional Gaseous Detonations
 	 */
 
 	unsigned int const d    = DB.d,
