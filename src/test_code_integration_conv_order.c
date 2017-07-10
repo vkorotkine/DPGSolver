@@ -229,6 +229,22 @@ data->PMin = 2;
 					EXIT_UNSUPPORTED;
 				}
 			}
+		} else if (strstr(TestName,"n-GaussianBump")) {
+			if (strstr(TestName,"ToBeCurved")) {
+				EXIT_UNSUPPORTED;
+			} else if (strstr(TestName,"Curved")) {
+data->PMin = 1;
+data->PMax = 3;
+data->MLMax = 1;
+data->PrintEnabled = 1;
+				if (strstr(TestName,"CurvedQUAD")) {
+					strcpy(data->argvNew[1],"test/Euler/Test_Euler_GaussianBump_CurvedQUAD");
+				} else {
+					EXIT_UNSUPPORTED;
+				}
+			} else {
+				EXIT_UNSUPPORTED;
+			}
 		} else {
 			EXIT_UNSUPPORTED;
 		}
@@ -419,7 +435,8 @@ void h_adapt_test(void)
 	if (TestDB.ML > 0)
 		printf("Error: Only enter for ML == 0.\n"), EXIT_MSG;
 
-	if (strstr(Geometry,"n-Cylinder") || strstr(Geometry,"n-Cube")) {
+	if (strstr(Geometry,"n-Cylinder") || strstr(Geometry,"n-Cube") ||
+	    strstr(Geometry,"GaussianBump")) {
 		Nref = 0;
 	} else if (strstr(Geometry,"JoukowskiSymmetric")) {
 		double a  = DB.JSa,

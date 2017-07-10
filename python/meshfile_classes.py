@@ -32,6 +32,10 @@ def find_MeshType(N,MeshTypes,MeshTypesPrefix,MeshName,MeshCurving):
 			if (MeshName.find('ToBeCurved') != -1 and MeshCurving[i].find('ToBeCurved') == -1):
 				continue
 
+# Fix finding wrong meshes (ToBeModified: Add this check to original if statement and ensure that all is working)
+			if (MeshName.find('GaussianBump')!=-1 and MeshTypesPrefix[i].find('GaussianBump')==-1):
+				continue
+
 			Found = 1
 			MeshType    = [MeshTypes[i]]
 			MeshCurving = [MeshCurving[i]]
@@ -139,13 +143,16 @@ class TestCase_class:
 				MeshCurving.extend((''           for i in range (0,2)))
 				MeshCurving.extend(('Curved'     for i in range (0,1)))
 				MeshCurving.extend(('ToBeCurved' for i in range (0,6)))
+				MeshCurving.extend(('Curved'     for i in range (0,1)))
 
 				MeshTypes.extend(('TRI','QUAD'))
 				MeshTypes.append(('MIXED2D'))
 				MeshTypes.extend(('MIXED2D','MIXED3D_TP','MIXED3D_HW','TET','HEX','WEDGE'))
+				MeshTypes.append(('QUAD'))
 
 				MeshTypesPrefix.extend(('PeriodicVortex_'   for i in range(0,2)))
 				MeshTypesPrefix.extend(('SupersonicVortex_' for i in range(0,7)))
+				MeshTypesPrefix.extend(('GaussianBump_'     for i in range(0,1)))
 
 				NTotal = len(MeshTypes)
 				if   (MeshName.find('all')    != -1):

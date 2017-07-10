@@ -132,6 +132,7 @@ TESTCASE_LIST := Advection_Default \
                  Euler_PeriodicVortex \
                  Euler_PeriodicVortex_Stationary \
                  Euler_SupersonicVortex \
+                 Euler_InternalSubsonic_GaussianBump \
                  NavierStokes_TaylorCouette \
                  NavierStokes_PlaneCouette
 

@@ -127,9 +127,9 @@ void initialize_test_case_parameters(void)
 		DB.GBb = 0.0;
 
 		double BExp = 0.0;
-		if      (strstr(GeomSpecifier,"/0/"))   BExp = 0.0;
-		else if (strstr(GeomSpecifier,"/0-5/")) BExp = 0.5;
-		else if (strstr(GeomSpecifier,"/1/"))   BExp = 1.0;
+		if      (strstr(GeomSpecifier,"BumpExp_0"))   BExp = 0.0;
+		else if (strstr(GeomSpecifier,"BumpExp_0-5")) BExp = 0.5;
+		else if (strstr(GeomSpecifier,"BumpExp_1"))   BExp = 1.0;
 		else
 			EXIT_UNSUPPORTED;
 
@@ -377,18 +377,19 @@ void initialize_test_case_parameters(void)
 				DB.VIn = cIn*DB.MIn/DB.rIn;
 
 //				printf("Add documentation.\n"), EXIT_BASIC;
-			} else if (strstr(TestCase,"InviscidChannel")) {
-				if (strstr(PDESpecifier,"Supersonic")) {
-					DB.rhoInf = 1.0;
-					DB.pInf   = 1.0;
-					DB.MInf   = 1.01;
-					DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
-				} else if (strstr(PDESpecifier,"Subsonic")) {
-					DB.MInf    = 0.0;
+			} else if (strstr(TestCase,"Supersonic")) {
+				EXIT_UNSUPPORTED; // limit to supported cases
+				DB.rhoInf = 1.0;
+				DB.pInf   = 1.0;
+				DB.MInf   = 1.01;
+				DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
+			} else if (strstr(TestCase,"Subsonic")) {
+				if (strstr(TestCase,"GaussianBump")) {
 					DB.p_Total = 1.0;
 					DB.T_Total = 1.0;
 					DB.Rg      = 1.0;
 					DB.pBack   = 0.99*DB.p_Total;
+					DB.pBack   = 0.90*DB.p_Total;
 
 					DB.rhoInf = DB.p_Total/(DB.Rg*DB.T_Total);
 					DB.pInf   = DB.p_Total;
@@ -396,6 +397,7 @@ void initialize_test_case_parameters(void)
 					DB.MInf   = 0.0*sqrt(2.0/GM1*(pow((DB.pBack/DB.p_Total),-GM1/GAMMA)-1.0));
 					DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
 				} else {
+					// GaussianBump solution likely also to be used for other internal channel cases.
 					EXIT_UNSUPPORTED;
 				}
 			} else {
@@ -837,7 +839,7 @@ static void compute_uniform_solution(const unsigned int Nn, const double *XYZ, d
 	cInf   = DB.cInf;
 
 	VInf = MInf*cInf;
-	if (strstr(TestCase,"InviscidChannel")) {
+	if (strstr(TestCase,"InternalSubsonic")) {
 		for (n = 0; n < Nn; n++) {
 			U[0*Nn+n] = rhoInf;
 			U[1*Nn+n] = VInf;
@@ -1044,6 +1046,7 @@ void compute_solution(const unsigned int Nn, double *XYZ, double *UEx, const uns
 	    strstr(TestCase,"TaylorCouette")) {
 		compute_exact_solution(Nn,XYZ,UEx,solved);
 	} else if (strstr(TestCase,"InviscidChannel") ||
+	           strstr(TestCase,"GaussianBump") ||
 	           strstr(TestCase,"PrandtlMeyer") ||
 	           strstr(TestCase,"SubsonicNozzle")) {
 		compute_uniform_solution(Nn,XYZ,UEx);
