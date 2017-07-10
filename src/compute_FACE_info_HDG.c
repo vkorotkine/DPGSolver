@@ -2,7 +2,7 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "compute_FACE_info_HDG.h"
-#include "compute_RLHS.h"
+#include "solver.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -58,12 +58,12 @@
 
 static void compute_Inviscid_FACE_HDG (const char imex_type);
 
-void compute_FACE_info_HDG (const struct S_RLHS_info*const RLHS_info)
+void compute_FACE_info_HDG (const struct S_solver_info*const solver_info)
 {
-	if (RLHS_info->PrintEnabled)
+	if (solver_info->display)
 		printf("F");
 
-	compute_Inviscid_FACE_HDG(RLHS_info->imex_type);
+	compute_Inviscid_FACE_HDG(solver_info->imex_type);
 }
 
 static void compute_Inviscid_FACE_HDG (const char imex_type)

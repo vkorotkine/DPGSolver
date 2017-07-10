@@ -11,7 +11,7 @@
  *	Comments:
  *		A FACE is a d-1 dimensional ELEMENT which exists on each face of the VOLUMEs in the mesh.
  *
- *	Notation (ToBeModified: Likely needs to be updated)
+ *	Notation: (ToBeModified: Likely needs to be updated)
  *		Please consult Parameters.h for the definition of the constants used below.
  *		Integer division is purposely used in several definitions below.
  *		Please consult the conversion functions in S_FACE.c for equivalence between old and new notation. (ToBeDeleted)
@@ -89,8 +89,8 @@ struct S_FACE {
 	struct S_SIDE_DATA {
 		unsigned int   Indfh, Indmf, Indlfh, Indsfh, IndOrd;
 // Likely use S_MULTI_ARRAYs for the variables below (ToBeDeleted)
-//		double         *RHS, *LHSL, *LHSR, **Qhat, **dQhat_dWhatL, **dQhat_dWhatR;
-//		double complex *RHS_c, **Qhat_c;
+//		double         **Qhat, **dQhat_dWhatL, **dQhat_dWhatR;
+//		double complex **Qhat_c;
 
 		struct S_VOLUME *VOLUME;
 	} data[2];

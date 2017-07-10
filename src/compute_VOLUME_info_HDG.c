@@ -11,7 +11,7 @@
 #include "S_DB.h"
 #include "S_VOLUME.h"
 
-#include "compute_RLHS.h"
+#include "solver.h"
 #include "solver_functions_HDG.h"
 
 /*
@@ -34,12 +34,12 @@
 
 static void compute_Inviscid_VOLUME_HDG (const char imex_type);
 
-void compute_VOLUME_info_HDG (const struct S_RLHS_info*const RLHS_info)
+void compute_VOLUME_info_HDG (const struct S_solver_info*const solver_info)
 {
-	if (RLHS_info->PrintEnabled)
+	if (solver_info->display)
 		printf("V");
 
-	compute_Inviscid_VOLUME_HDG(RLHS_info->imex_type);
+	compute_Inviscid_VOLUME_HDG(solver_info->imex_type);
 }
 
 static void compute_Inviscid_VOLUME_HDG (const char imex_type)
@@ -75,8 +75,8 @@ static void compute_Inviscid_VOLUME_HDG (const char imex_type)
 
 		// LHS
 		if (imex_type == 'I') {
-			set_to_zero_multiarray(VOLUME->LHS_MA);
-			finalize_VOLUME_Inviscid_Weak_MA(FLUXDATA.dFrdW,VOLUME->LHS_MA,imex_type,&VDATA);
+			set_to_zero_multiarray(VOLUME->LHS_L_MA);
+			finalize_VOLUME_Inviscid_Weak_MA(FLUXDATA.dFrdW,VOLUME->LHS_L_MA,imex_type,&VDATA);
 			compute_flux_ref_MA(VOLUME->C_vI_MA,FLUXDATA.dFdW,&FLUXDATA.dFrdW,'F');
 		}
 

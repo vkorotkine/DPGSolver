@@ -67,14 +67,14 @@ void convert_to_multiarray_V (struct S_VOLUME *const VOLUME, char const mem_op)
 		VOLUME->detJV_vI_MA = constructor_multiarray1_move_d_2('C',NvnI,1,VOLUME->detJV_vI);
 		VOLUME->XYZ_MA      = constructor_multiarray1_move_d_2('C',NvnG,d,VOLUME->XYZ);
 		VOLUME->RHS_MA      = constructor_multiarray1_move_d_2('C',NvnS,Nvar,VOLUME->RHS);
-		VOLUME->LHS_MA      = constructor_multiarray1_move_d_4('R',NvnS,NvnS,Nvar,Neq,VOLUME->LHS);
+		VOLUME->LHS_L_MA     = constructor_multiarray1_move_d_4('R',NvnS,NvnS,Nvar,Neq,VOLUME->LHS);
 	} else if (mem_op == 'F') {
 		destructor_multiarray1_default(VOLUME->What_MA);
 		destructor_multiarray1_default(VOLUME->C_vI_MA);
 		destructor_multiarray1_default(VOLUME->detJV_vI_MA);
 		destructor_multiarray1_default(VOLUME->XYZ_MA);
 		destructor_multiarray1_default(VOLUME->RHS_MA);
-		destructor_multiarray1_default(VOLUME->LHS_MA);
+		destructor_multiarray1_default(VOLUME->LHS_L_MA);
 	} else {
 		EXIT_UNSUPPORTED;
 	}

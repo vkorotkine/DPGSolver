@@ -28,7 +28,7 @@
 #include "implicit_FACE_info.h"
 #include "implicit_GradW.h"
 
-#include "compute_RLHS.h"
+#include "solver.h"
 #include "explicit_VOLUME_info_c.h"
 #include "explicit_FACE_info_c.h"
 #include "explicit_GradW_c.h"
@@ -369,8 +369,8 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 
 			set_PrintName("linearization",data->PrintName,&data->TestTRI);
 
-			struct S_RLHS_info RLHS_info = constructor_RLHS_info_2(false,'I');
-			compute_RLHS(&RLHS_info);
+			struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
+			compute_RLHS(&solver_info);
 
 //			implicit_GradW(false); // Only executed if DB.Viscous = 1
 //			implicit_VOLUME_info_DG(false);

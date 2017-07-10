@@ -46,8 +46,8 @@ void solver_Poisson(bool PrintEnabled)
 	update_VOLUME_Ops();
 	update_memory_VOLUMEs();
 
-	struct S_RLHS_info RLHS_info = constructor_RLHS_info_2(PrintEnabled,DB.imex_type);
-	compute_RLHS(&RLHS_info);
+	struct S_solver_info solver_info = constructor_solver_info(PrintEnabled,true,false,DB.imex_type,DB.Method);
+	compute_RLHS(&solver_info);
 
 	Mat A = NULL;
 	Vec b = NULL, x = NULL;

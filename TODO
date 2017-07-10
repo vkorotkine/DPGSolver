@@ -9,3 +9,10 @@ change tab spaces to 8 and increase max lines to check alignment of the code und
 
 put src code into logical subfolders
 check that all includes in the headers are also present in the associated .c files (for correct dependency generation)
+
+
+Petsc Solver Updates
+1) Assemble LHS terms directly in Petsc Mat
+	- Remove memory initialization for LHS terms.
+2) Assemble HDG complete and Schur complement matrix as in [Petsc ex70](http://www.mcs.anl.gov/petsc/petsc-current/src/snes/examples/tutorials/ex70.c.html)
+	- Compare cost of MatMatMult with direct assembly if assembly dominates solver cost.

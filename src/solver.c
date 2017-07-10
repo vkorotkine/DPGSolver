@@ -1,7 +1,7 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#include "compute_RLHS.h"
+#include "solver.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -33,14 +33,15 @@
  *			- update_space.
  */
 
-bool evaluate_exit_condition (const struct S_solver_info*const solver_info)
+/*bool evaluate_exit_condition (const struct S_solver_info*const solver_info)
 {
 	if (solver_info->steady) {
 		if (solver_info->linear)
 			return true;
 
 		double const EXIT_RHS_RATIO = 1e10;
-		double const maxRHS = compute_maxRHS();
+//		double const maxRHS = compute_maxRHS();
+double maxRHS = 0.0, maxRHS0 = 0.0;
 
 		if ((maxRHS0/maxRHS > EXIT_RHS_RATIO) || (maxRHS < 1e1*EPS))
 			return true;
@@ -49,9 +50,9 @@ bool evaluate_exit_condition (const struct S_solver_info*const solver_info)
 			return true;
 	}
 	return false;
-}
+}*/
 
-void compute_solution (const struct S_solver_info*const solver_info)
+void compute_final_solution (const struct S_solver_info*const solver_info)
 {
 	/*
 	 *	Purpose:
@@ -59,18 +60,20 @@ void compute_solution (const struct S_solver_info*const solver_info)
 	 */
 
 	for (bool finished = false; !finished; ) {
+EXIT_UNSUPPORTED;
+finished = false;
 		compute_RLHS(solver_info);
-		finalize_RLHS(solver_info);
-		update_solution(solver_info);
-		update_space(solver_info); // For adaptation (ToBeDeleted: remove this comment)
+//		finalize_RLHS(solver_info);
+//		update_solution(solver_info);
+//		update_space(solver_info); // For adaptation (ToBeDeleted: remove this comment)
 
-		finished = evaluate_exit_condition(solver_info);
+//		finished = evaluate_exit_condition(solver_info);
 	}
 
 // Move to postprocessing function: (ToBeDeleted)
-	update_gradients();
-	if (solver_info->output)
-		output_to_paraview("SolFinal_");
+//	update_gradients();
+//	if (solver_info->output)
+//		output_to_paraview("SolFinal_");
 }
 
 void compute_RLHS (const struct S_solver_info*const solver_info)
@@ -129,6 +132,34 @@ void finalize_RLHS (const struct S_solver_info*const solver_info)
 	 *		computed using VOLUME or FACE integrals. This function combines these contributions if applicable.
 	 *		(ToBeModified)
 	 */
+
+	switch (solver_info->method) {
+	case METHOD_DG: {
+// Refactor such that the RHS and LHS terms are directly store in the same memory location. (ToBeDeleted)
+		const bool display   = solver_info->display;
+		const char imex_type = solver_info->imex_type;
+
+		if (imex_type == 'E') {
+			explicit_GradW();
+			explicit_VOLUME_info();
+			explicit_FACE_info();
+		} else if (imex_type == 'I') {
+			implicit_GradW(display);
+			implicit_VOLUME_info_DG(display);
+			implicit_FACE_info(display);
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+		break;
+	} case METHOD_HDG:
+// Change info to RLHS (ToBeDeleted)
+		compute_VOLUME_info_HDG(solver_info);
+		compute_FACE_info_HDG(solver_info);
+		break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
 }
 
 void update_solution (const struct S_solver_info*const solver_info)
@@ -148,7 +179,7 @@ void update_solution (const struct S_solver_info*const solver_info)
 
 	if (solver_info->imex_type == 'E') {
 	} else if (solver_info->imex_type == 'I') {
-		Mat A   = NULL;
+/*		Mat A   = NULL;
 		Vec b   = NULL,
 		    x   = NULL;
 		KSP ksp = NULL;
@@ -158,7 +189,7 @@ void update_solution (const struct S_solver_info*const solver_info)
 		solver_implicit_update_What(x);
 
 		KSPDestroy(&ksp);
-		finalize_ksp(&A,&b,&x,2);
+		finalize_ksp(&A,&b,&x,2);*/
 	}
 }
 

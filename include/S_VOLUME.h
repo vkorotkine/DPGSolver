@@ -4,6 +4,11 @@
 #ifndef DPG__S_VOLUME_h__INCLUDED
 #define DPG__S_VOLUME_h__INCLUDED
 
+/*
+ *	Purpose:
+ *		Provide a (S_)truct to hold information relating to VOLUMEs.
+ */
+
 #include <complex.h>
 
 #include "matrix_structs.h"
@@ -30,7 +35,7 @@ struct S_VOLUME {
 	unsigned int   IndA, nnz_d, nnz_o;
 	double         *RHS, *LHS, **LHSQ, *wdetJV_vI, *MInv, *MInv_diag;
 
-	struct S_MULTI_ARRAY *RHS_MA, *LHS_MA;
+	struct S_MULTI_ARRAY *RHS_MA, *LHS_L_MA, *LHS_R_MA;
 
 	// Linearization testing
 	double complex *RHS_c, *What_c, **Qhat_c, **QhatV_c, **qhat_c;
@@ -39,9 +44,6 @@ struct S_VOLUME {
 	unsigned int refine_current, Vadapt, adapt_type, PNew, hrefine_type;
 	double       *XYZ_vVP2;
 //	double       minRES, maxRES;
-
-	// Poisson
-	double **qhat, **qhat_uhat;
 
 	// structs
 	struct S_VOLUME *next, *grpnext, *child0, *parent;
