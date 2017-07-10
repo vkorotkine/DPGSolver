@@ -86,7 +86,11 @@ static void update_TestCase(void)
 				strcpy(DB.TestCase,"Euler_PeriodicVortex");
 		} else if (strstr(DB.TestCase,"EllipticPipe")) {
 			strcpy(DB.TestCase,"Euler_EllipticPipe");
-		} else {
+		} else if (strstr(DB.TestCase,"ParabolicPipe")) {
+                        strcpy(DB.TestCase,"Euler_ParabolicPipe");
+                } else if (strstr(DB.TestCase,"SinusoidalPipe")) {
+                        strcpy(DB.TestCase,"Euler_SinusoidalPipe");
+                } else {
 			EXIT_UNSUPPORTED;
 		}
 /*		if (strstr(DB.Geometry,"Ellipsoidal_Section") ||

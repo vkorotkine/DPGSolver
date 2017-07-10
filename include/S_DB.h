@@ -44,7 +44,7 @@ struct S_DB {
 	             PeriodL, PeriodFraction, FinalTime, Poisson_scale, ADV_b[3], ADV_XYZB[3],
 	             rIn, MIn, rhoIn, pIn, VIn, rOut, TIn, uIn, omega, mu, Pr, Cp, kappa,
 	             Q0, KMin, KMax, GBa, GBb, GBc, aIn, bIn, cIn, aOut, bOut, cOut, lHR,
-	             NSc, NSt, NS0, NS1, NS2, NS3, NS4, JSa, JSl, JSxL;
+	             NSc, NSt, NS0, NS1, NS2, NS3, NS4, JSa, JSl, JSxL, rho_store[5], p_store[5], w_store[5];
 
 	// Solving
 	unsigned int dof;

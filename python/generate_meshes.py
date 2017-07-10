@@ -79,6 +79,12 @@ def add_gmsh_setnumber(gmsh_args,MeshType,Paths):
 	elif (MeshType.GeomSpecifier.find('EllipticPipe') != -1):
 		print('here?')
 		gmsh_args += get_gmsh_number(gmsh_args,"Geom_Adv_Manufactured",Paths)
+	elif (MeshType.GeomSpecifier.find('ParabolicPipe') != -1):
+	        print('here?')
+	        gmsh_args += get_gmsh_number(gmsh_args,"Geom_Adv_Manufactured",Paths)
+	elif (MeshType.GeomSpecifier.find('SinusoidalPipe') != -1):
+		print('here?')
+		gmsh_args += get_gmsh_number(gmsh_args,"Geom_Adv_Manufactured",Paths)
 	else: # Default
 		gmsh_args += get_gmsh_number(gmsh_args,"Geom_Adv_NONE",Paths)
 

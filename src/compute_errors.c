@@ -173,7 +173,10 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		free(uEx);
 		free(qEx);
 	} else if (strstr(TestCase,"PeriodicVortex") ||
-	           strstr(TestCase,"SupersonicVortex")) {
+	           strstr(TestCase,"EllipticPipe") ||
+                   strstr(TestCase,"ParabolicPipe") ||
+                   strstr(TestCase,"SinusoidalPipe") ||
+                   strstr(TestCase,"SupersonicVortex")) {
 		for (i = 0, iMax = NVAR3D+1; i < iMax; i++)
 			L2Error2[i] = 0.0;
 

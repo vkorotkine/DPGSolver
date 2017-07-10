@@ -40,6 +40,8 @@
  */
 
 static void         ToBeCurved_elliptic_pipe    (unsigned int const Nn, double const *const XYZ_S, double *const XYZ);
+static void         ToBeCurved_parabolic_pipe    (unsigned int const Nn, double const *const XYZ_S, double *const XYZ);
+static void         ToBeCurved_sinusoidal_pipe    (unsigned int const Nn, double const *const XYZ_S, double *const XYZ);
 static void         ToBeCurved_cube_to_sphere   (unsigned int Nn, double *XYZ_S, double *XYZ);
 static void         ToBeCurved_square_to_circle (unsigned int Nn, double *XYZ_S, double *XYZ);
 static double         *cube_to_sphere           (double XY[2], unsigned int OrderOut[3], int SignOut, double beta);
@@ -63,17 +65,53 @@ static void ToBeCurved_elliptic_pipe (unsigned int const Nn, double const *const
 	double const *const X_S = &XYZ_S[Nn*0],
 	             *const Y_S = &XYZ_S[Nn*1];
 
-	double const a = 1.0,
-	             b = 2.0;
+	double const a = 2.0, b = 4.0, a_1 = 1.0, a_2 = 2.0;
+
 
 	for (size_t n = 0; n < Nn; n++) {
-		double const xi  = 0.0 + (PI -0.0)*(X_S[n]+1.0)/2.0,
-		             eta = 2.0 + (4.0-2.0)*(Y_S[n]+1.0)/2.0;
-
-		X[n] = -eta/b*cos(xi);
-		Y[n] =  eta/a*sin(xi);
+	     Y[n] = (b/(2*a))*((a_2-a_1)*Y_S[n]+(a_2+a_1))*sin((PI/2)*(X_S[n]+1));
+             X[n] = -0.5*((a_2-a_1)*Y_S[n]+(a_2+a_1))*cos((PI/2)*(X_S[n]+1));
 	}
 }
+
+static void ToBeCurved_parabolic_pipe (unsigned int const Nn, double const *const XYZ_S, double *const XYZ)
+{
+        if (DB.d != 2)
+                EXIT_UNSUPPORTED;
+
+        double *const X = &XYZ[Nn*0],
+               *const Y = &XYZ[Nn*1];
+
+        double const *const X_S = &XYZ_S[Nn*0],
+                     *const Y_S = &XYZ_S[Nn*1];
+
+        double const  b = 2.0, a_1 = 2.0, a_2 = 4.0;
+
+        for (size_t n = 0; n < Nn; n++) {
+             Y[n] = (a_2+a_1)/2+(a_2-a_1)*Y_S[n]/2-a_1*pow(X_S[n],2);
+             X[n] = sqrt(a_1/b)*X_S[n];
+        }
+}
+
+static void ToBeCurved_sinusoidal_pipe (unsigned int const Nn, double const *const XYZ_S, double *const XYZ)
+{
+        if (DB.d != 2)
+                EXIT_UNSUPPORTED;
+
+        double *const X = &XYZ[Nn*0],
+               *const Y = &XYZ[Nn*1];
+
+        double const *const X_S = &XYZ_S[Nn*0],
+                     *const Y_S = &XYZ_S[Nn*1];
+
+        double const a = 2.0,  b = PI/2, c_1 = 0, c_2 = 2.0;
+
+        for (size_t n = 0; n < Nn; n++) {
+               Y[n] = (c_2+c_1)/2+(c_2-c_1)*Y_S[n]/2+a*cos(X_S[n]*acos(-c_1/a));
+               X[n] = (1/b)*acos(-c_1/a)*X_S[n];
+        }
+}
+
 
 static void ToBeCurved_sphere_to_ellipsoid(const unsigned int Nn, double *XYZ)
 {
@@ -332,7 +370,9 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 				ToBeCurved_square_to_circle(NvnG,XYZ_S,XYZ);
 			} else if (strstr(Geometry,"n-CubeCurved")) {
 				ToBeCurved_elliptic_pipe(NvnG,XYZ_S,XYZ);
-			} else {
+ 372                            ToBeCurved_parabolic_pipe(NvnG,XYZ_S,XYZ);
+ 372                            ToBeCurved_sinusoidal_pipe(NvnG,XYZ_S,XYZ);
+ 373                    }  else {
 				printf("%s\n",Geometry);
 				printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
 			}
