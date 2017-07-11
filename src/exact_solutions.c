@@ -423,7 +423,8 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 
                                 double a = 2, b = 4;
                                 
-                                double RUVP[4][3];        
+                                double RUVP[12];
+                 
           
                    for (eq = 0; eq < Neq; eq++) {
                            for(n = 0; n < Nn; n++) {
@@ -469,7 +470,8 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 
                                 double  b = 2;
                                 
-                                double RUVP[4][3];        
+                                double RUVP[12];
+                 
           
                    for (eq = 0; eq < Neq; eq++) {
                            for(n = 0; n < Nn; n++) {
@@ -515,7 +517,8 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 
                                 double a = 2,  b = PI/2;
                                 
-                                double RUVP[4][3];        
+                                double RUVP[12];
+                 
           
                    for (eq = 0; eq < Neq; eq++) {
                            for(n = 0; n < Nn; n++) {
@@ -565,12 +568,13 @@ static double get_boundary_value_Advection(double const x, double const y, doubl
 static double generate_Euler_source(unsigned int eq, double *RUVP) 
 {
 
+double r, rx, ry, u, ux, uy, v, vx, vy, p, px, py;
 double f;
 
-        r = RUVP[0][0], rx = RUVP[0][1], ry = RUVP[0][2];
-        u = RUVP[1][0], ux = RUVP[1][1], uy = RUVP[1][2];
-        v = RUVP[2][0], vx = RUVP[2][1], vy = RUVP[2][2];
-        p = RUVP[3][0], px = RUVP[3][1], py = RUVP[3][2];
+        r = RUVP[0], rx = RUVP[1], ry = RUVP[2];
+        u = RUVP[3], ux = RUVP[4], uy = RUVP[5];
+        v = RUVP[6], vx = RUVP[7], vy = RUVP[8];
+        p = RUVP[9], px = RUVP[10], py = RUVP[11];
 
           if (eq == 1) {
            f = rx*u+ux*r+ry*v+vy*r;
@@ -581,10 +585,11 @@ double f;
         } else if (eq == 3) {
            f = py+pow(v,2)*ry+2*r*v*vy+r*v*ux+r*u*vx+v*u*rx;
                
-        } else (eq == 4) {
+        } else if (eq == 4) {
            f = (GAMMA/(GAMMA-1))*(px*u+ux*p)+rx*0.5*(pow(u,3)+u*pow(v,2))+0.5*r*(3*pow(u,2)*ux+pow(v,2)*ux+2*v*u*vx)+
                (GAMMA/(GAMMA-1))*(py*v+vy*p)+ry*0.5*(pow(v,3)+v*pow(u,2))+0.5*r*(3*pow(v,2)*vy+pow(u,2)*vy+2*v*u*uy);
-               }
+        } else {
+           EXIT_UNSUPPORTED; }  
+            
         return f;  
-
 }

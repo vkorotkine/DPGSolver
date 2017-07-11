@@ -370,9 +370,9 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 				ToBeCurved_square_to_circle(NvnG,XYZ_S,XYZ);
 			} else if (strstr(Geometry,"n-CubeCurved")) {
 				ToBeCurved_elliptic_pipe(NvnG,XYZ_S,XYZ);
- 372                            ToBeCurved_parabolic_pipe(NvnG,XYZ_S,XYZ);
- 372                            ToBeCurved_sinusoidal_pipe(NvnG,XYZ_S,XYZ);
- 373                    }  else {
+                                ToBeCurved_parabolic_pipe(NvnG,XYZ_S,XYZ);
+                                ToBeCurved_sinusoidal_pipe(NvnG,XYZ_S,XYZ);
+                        }  else {
 				printf("%s\n",Geometry);
 				printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
 			}

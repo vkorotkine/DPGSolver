@@ -351,9 +351,6 @@ void initialize_test_case_parameters(void)
 						DB.bIn = DB.aIn/ratio;
 						DB.cIn = DB.aIn;
 					}
-				} else if (strstr(Geometry,"n-Cube")) {
-					printf("ToBeModified.\n");
-					PRINT_FILELINE;
 				} else {
 					printf("%s\n",Geometry);
 					EXIT_UNSUPPORTED;
@@ -394,16 +391,25 @@ void initialize_test_case_parameters(void)
 					EXIT_UNSUPPORTED;
 				}
 			} else if (strstr(TestCase,"EllipticPipe")) {
-				        DB.rho_store[5] = {5, 2, 1, 1, 1};
-				        DB.p_store[5] = {1000, 250, 1, 250, 1};                 
+				        int i;
+                                        double r_par[5] = {5, 2, 1, 1, 1}, p_par[5] = {1000, 250, 1, 250, 1};
+					for (i = 0; i < 5; i++) {
+      						DB.rho_store[i] = r_par[i];
+						DB.p_store[i] = p_par[i];}               
 			} else if (strstr(TestCase,"ParabolicPipe")) {
-                                        DB.rho_store[5] = {3, 1, 1, -1, 1};
-                                        DB.p_store[5] =  {4000, 2000, 1, -2000, 1};
-                                        DB.w_store[5] = {20, 5, 0.5, 5, 0.5};
+                                        int i;
+                                        double r_par[5] = {3, 1, 1, -1, 1}, p_par[5] = {4000, 2000, 1, -2000, 1}, w_par[5] = {20, 5, 0.5, 5, 0.5};
+                                        for (i = 0; i < 5; i++) {
+						DB.rho_store[i] = r_par[i];
+						DB.p_store[i] = p_par[i];
+						DB.w_store[i] = w_par[i];}
                         } else if (strstr(TestCase,"SinusoidalPipe")) {
-                                        DB.rho_store[5] = {3, 1, 1, -1, 1};
-                                        DB.p_store[5] = {6000, 2000, 1, -2000, 1};
-                                        DB.w_store[5] = {30, 10, 0.5, 10, 0.5};
+                                        int i;
+                                        double r_par[5] = {3, 1, 1, -1, 1}, p_par[5] = {6000, 2000, 1, -2000, 1}, w_par[5] = {30, 10, 0.5, 10, 0.5};
+                                        for (i = 0; i < 5; i++) {
+                                                DB.rho_store[i] = r_par[i];
+                                                DB.p_store[i] = p_par[i];
+                                                DB.w_store[i] = w_par[i];}
                         } else {
 				printf("%s\n",TestCase);
 				EXIT_UNSUPPORTED;
@@ -1041,7 +1047,7 @@ void compute_solution(const unsigned int Nn, double *XYZ, double *UEx, const uns
 	    strstr(TestCase,"TaylorCouette") ||
             strstr(TestCase,"EllipticPipe") ||
             strstr(TestCase,"ParabolicPipe") ||
-            strstr(TestCase,"SinusoidalPipe")) ||{
+            strstr(TestCase,"SinusoidalPipe")) {
 		compute_exact_solution(Nn,XYZ,UEx,solved);
 	} else if (strstr(TestCase,"InviscidChannel") ||
 	           strstr(TestCase,"PrandtlMeyer") ||
