@@ -148,8 +148,8 @@ class TestCase_class:
 
 				MeshTypesPrefix.extend(('PeriodicVortex_'   for i in range(0,2)))
 				MeshTypesPrefix.extend(('SupersonicVortex_' for i in range(0,7)))
-				MeshTypesPrefix.extend(('EllipticPipe_' for i in range(0,1)))
 				MeshTypesPrefix.extend(('ParabolicPipe_' for i in range(0,1)))
+				MeshTypesPrefix.extend(('EllipticPipe_' for i in range(0,1)))
 				MeshTypesPrefix.extend(('SinusoidalPipe_' for i in range(0,1)))
 
 				NTotal = len(MeshTypes)

@@ -9,7 +9,7 @@ Dimension     2
 MeshPath      ../meshes/
 MeshType      TRI
 MeshCurving   ToBeCurved
-MeshLevel     4
+MeshLevel     2
 
 Form       Weak   // Options: Weak, (Strong)
 NodeType   GLL-AO // Options: GL/GLL-AO/WSH/EQ

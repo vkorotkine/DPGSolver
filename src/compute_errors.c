@@ -174,9 +174,9 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		free(qEx);
 	} else if (strstr(TestCase,"PeriodicVortex") ||
 	           strstr(TestCase,"EllipticPipe") ||
-                   strstr(TestCase,"ParabolicPipe") ||
-                   strstr(TestCase,"SinusoidalPipe") ||
-                   strstr(TestCase,"SupersonicVortex")) {
+	           strstr(TestCase,"ParabolicPipe") ||
+	           strstr(TestCase,"SinusoidalPipe") ||
+	           strstr(TestCase,"SupersonicVortex")) {
 		for (i = 0, iMax = NVAR3D+1; i < iMax; i++)
 			L2Error2[i] = 0.0;
 
@@ -432,7 +432,8 @@ void compute_errors_global(void)
 	} else if (strstr(TestCase,"Poisson")) {
 		NvarError = DMAX+1;
 	} else if (strstr(TestCase,"PeriodicVortex") ||
-	           strstr(TestCase,"SupersonicVortex")) {
+	           strstr(TestCase,"SupersonicVortex") ||
+	           strstr(TestCase,"ParabolicPipe")) {
 		NvarError = NVAR3D+1;
 	} else if (strstr(TestCase,"InviscidChannel") ||
 	           strstr(TestCase,"SubsonicNozzle")) {
@@ -498,7 +499,8 @@ static void output_errors(const double *L2Error2, const unsigned int NvarError, 
 	} else if (strstr(TestCase,"Poisson")) {
 		fprintf(fID,"DOF         Vol         L2u2        L2q1_2      L2q2_2      L2q3_2\n");
 	} else if (strstr(TestCase,"PeriodicVortex") ||
-	           strstr(TestCase,"SupersonicVortex")) {
+	           strstr(TestCase,"SupersonicVortex") ||
+	           strstr(TestCase,"ParabolicPipe")) {
 		fprintf(fID,"DOF         Vol         L2rho2      L2u2        L2v2        L2w2        L2p2        L2s2\n");
 	} else if (strstr(TestCase,"InviscidChannel") ||
 	           strstr(TestCase,"SubsonicNozzle")) {
@@ -574,7 +576,8 @@ static void collect_errors(const unsigned int NvarError)
 	} else if (strstr(TestCase,"Poisson")) {
 		fprintf(fID,"DOF         L2u         L2q1        L2q2        L2q3\n");
 	} else if (strstr(TestCase,"PeriodicVortex") ||
-	           strstr(TestCase,"SupersonicVortex")) {
+	           strstr(TestCase,"SupersonicVortex") ||
+	           strstr(TestCase,"ParabolicPipe")) {
 		fprintf(fID,"DOF         L2rho       L2u         L2v         L2w         L2p         L2s\n");
 	} else if (strstr(TestCase,"InviscidChannel") ||
 	           strstr(TestCase,"SubsonicNozzle")) {

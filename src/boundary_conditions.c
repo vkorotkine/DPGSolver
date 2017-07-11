@@ -209,6 +209,20 @@ void get_boundary_values(const double X, const double Y, double *const rho, doub
 		*u   = DB.VIn;
 		*v   = 0.0;
 		*w   = 0.0;
+	} else if (strstr(TestCase,"ParabolicPipe") ||
+	           strstr(TestCase,"EllipticPipe") ||
+	           strstr(TestCase,"SinusoidalPipe")) {
+		double U[NVAR3D], XYZ[DMAX-1];
+
+		if (DB.d > 2)
+			EXIT_UNSUPPORTED;
+
+		compute_exact_solution(1,XYZ,U,0);
+		*rho = U[0];
+		*u   = U[1];
+		*v   = U[2];
+		*w   = U[3];
+		*p   = U[4];
 	} else {
 		printf("TestCase: %s\n",TestCase);
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;

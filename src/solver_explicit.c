@@ -291,6 +291,11 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 			data->dt         = 1e-2;
 			data->exit_tol   = 1e-6;
 			data->exit_ratio = 1.0/EPS;
+		} else if (strstr(TestCase,"ParabolicPipe")) {
+			printf("Using default value for timestepping parameters.\n");
+			data->dt         = 1e-3;
+			data->exit_tol   = 1e-2;
+			data->exit_ratio = 1.0/EPS;
 		} else {
 			EXIT_UNSUPPORTED;
 		}

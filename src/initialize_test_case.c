@@ -351,6 +351,11 @@ void initialize_test_case_parameters(void)
 						DB.bIn = DB.aIn/ratio;
 						DB.cIn = DB.aIn;
 					}
+				} else if (strstr(Geometry,"n-Cube")) {
+					if (!(strstr(TestCase,"EllipticPipe") ||
+					      strstr(TestCase,"ParabolicPipe") ||
+					      strstr(TestCase,"SinusoidalPipe")))
+						EXIT_UNSUPPORTED; // Do nothing, eventually store parameters in DB.
 				} else {
 					printf("%s\n",Geometry);
 					EXIT_UNSUPPORTED;
@@ -395,7 +400,7 @@ void initialize_test_case_parameters(void)
                                         double r_par[5] = {5, 2, 1, 1, 1}, p_par[5] = {1000, 250, 1, 250, 1};
 					for (i = 0; i < 5; i++) {
       						DB.rho_store[i] = r_par[i];
-						DB.p_store[i] = p_par[i];}               
+						DB.p_store[i] = p_par[i];}
 			} else if (strstr(TestCase,"ParabolicPipe")) {
                                         int i;
                                         double r_par[5] = {3, 1, 1, -1, 1}, p_par[5] = {4000, 2000, 1, -2000, 1}, w_par[5] = {20, 5, 0.5, 5, 0.5};

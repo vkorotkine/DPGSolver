@@ -211,6 +211,7 @@ data->PMin = 2;
 				}
 			}
 		} else if (strstr(TestName,"n-Elliptic_Pipe")) {
+//			data->SolveExplicit = 0;
 			if (strstr(TestName,"ToBeCurved")) {
 				if (strstr(TestName,"TRI")) {
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_EllipticPipe_ToBeCurvedTRI");
@@ -221,26 +222,29 @@ data->PMin = 2;
 				EXIT_UNSUPPORTED;
 			}
 		} else if (strstr(TestName,"n-Parabolic_Pipe")) {
-                        if (strstr(TestName,"ToBeCurved")) {
-                                if (strstr(TestName,"TRI")) {
-                                         strcpy(data->argvNew[1],"test/Euler/Test_Euler_ParabolicPipe_ToBeCurvedTRI");
-                                } else {
-                                         EXIT_UNSUPPORTED;
-                                }
-                        } else {
-                                 EXIT_UNSUPPORTED;
-                        }
-                } else if (strstr(TestName,"n-Sinusoidal_Pipe")) {
-                        if (strstr(TestName,"ToBeCurved")) {
-                                if (strstr(TestName,"TRI")) {
-                                         strcpy(data->argvNew[1],"test/Euler/Test_Euler_SinusoidalPipe_ToBeCurvedTRI");
-                                } else {
-                                         EXIT_UNSUPPORTED;
-                                }
-                        } else {
-                                 EXIT_UNSUPPORTED;
-                        }
-                } else {
+//			data->SolveExplicit = 0;
+data->PrintEnabled = 1;
+			if (strstr(TestName,"ToBeCurved")) {
+				if (strstr(TestName,"TRI")) {
+					strcpy(data->argvNew[1],"test/Euler/Test_Euler_ParabolicPipe_ToBeCurvedTRI");
+				} else {
+					EXIT_UNSUPPORTED;
+				}
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else if (strstr(TestName,"n-Sinusoidal_Pipe")) {
+//			data->SolveExplicit = 0;
+			if (strstr(TestName,"ToBeCurved")) {
+				if (strstr(TestName,"TRI")) {
+					strcpy(data->argvNew[1],"test/Euler/Test_Euler_SinusoidalPipe_ToBeCurvedTRI");
+				} else {
+					EXIT_UNSUPPORTED;
+				}
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else {
 			EXIT_UNSUPPORTED;
 		}
 	} else if (strstr(TestName,"NavierStokes")) {
