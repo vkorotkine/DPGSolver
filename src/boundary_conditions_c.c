@@ -160,60 +160,14 @@ void compute_boundary_values_c(struct S_BC *const BCdata)
 static void get_boundary_values_c(const double X, const double Y, double complex *const rho, double complex *const u,
                                   double complex *const v, double complex *const w, double complex *const p)
 {
-	// Initialize DB Parameters
-	char   *TestCase = DB.TestCase;
+	double rho_r, u_r, v_r, w_r, p_r;
+	get_boundary_values(X,Y,&rho_r,&u_r,&v_r,&w_r,&p_r);
 
-
-	if (strstr(TestCase,"SupersonicVortex")) {
-		// Use the exact solution for the Outer VOLUME
-		double rIn   = DB.rIn,
-	           MIn   = DB.MIn,
-	           rhoIn = DB.rhoIn,
-	           VIn   = DB.VIn;
-
-		double         r, t;
-		double complex Vt;
-
-		r = sqrt(X*X+Y*Y);
-		t = atan2(Y,X);
-
-		*rho = rhoIn*pow(1.0+0.5*GM1*MIn*MIn*(1.0-pow(rIn/r,2.0)),1.0/GM1);
-		*p   = cpow(*rho,GAMMA)/GAMMA;
-
-		Vt = -VIn/r;
-		*u = -sin(t)*Vt;
-		*v =  cos(t)*Vt;
-		*w =  0.0;
-	} else if (strstr(TestCase,"InviscidChannel")) {
-		// Use exact uniform channel solution for outer VOLUME
-		*rho = DB.rhoInf;
-		*p   = DB.pInf;
-		*u   = DB.MInf*DB.cInf;
-		*v   = 0.0;
-		*w   = 0.0;
-	} else if (strstr(TestCase,"SubsonicNozzle")) {
-		if (fabs(Y) < EPS) { // Inflow
-			*rho = DB.rhoInf;
-			*p   = DB.pInf;
-			*u   = 0.0;
-			*v   = DB.MInf*DB.cInf;
-			*w   = 0.0;
-		} else if (fabs(X) < EPS) { // Outflow
-			printf("Error: Use BackPressure BC here as the outlet state is not known.\n"), EXIT_MSG;
-		} else {
-			printf("Error: Unsupported.\n"), EXIT_MSG;
-		}
-	} else if (strstr(TestCase,"PrandtlMeyer")) {
-		// Use supersonic inflow solution
-		*rho = DB.rhoIn;
-		*p   = DB.pIn;
-		*u   = DB.VIn;
-		*v   = 0.0;
-		*w   = 0.0;
-	} else {
-		printf("TestCase: %s\n",TestCase);
-		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
-	}
+	*rho = rho_r;
+	*u   = u_r;
+	*v   = v_r;
+	*w   = w_r;
+	*p   = p_r;
 }
 
 static void boundary_Advection_c(struct S_BC *const BCdata)

@@ -230,13 +230,10 @@ data->PMin = 2;
 				}
 			}
 		} else if (strstr(TestName,"n-GaussianBump")) {
+//			data->SolveExplicit = 0;
 			if (strstr(TestName,"ToBeCurved")) {
 				EXIT_UNSUPPORTED;
 			} else if (strstr(TestName,"Curved")) {
-data->PMin = 1;
-data->PMax = 3;
-data->MLMax = 1;
-data->PrintEnabled = 1;
 				if (strstr(TestName,"CurvedQUAD")) {
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_GaussianBump_CurvedQUAD");
 				} else {

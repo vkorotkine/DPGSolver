@@ -95,8 +95,6 @@ static void update_TestCase(void)
 			strcpy(DB.TestCase,"SubsonicNozzle");
 		else if (strstr(DB.Geometry,"ExpansionCorner"))
 			strcpy(DB.TestCase,"PrandtlMeyer");
-		else
-			strcpy(DB.TestCase,"InviscidChannel");
 */
 	} else if (strstr(DB.TestCase,"NavierStokes")) {
 		if (strstr(DB.TestCase,"TaylorCouette")) {

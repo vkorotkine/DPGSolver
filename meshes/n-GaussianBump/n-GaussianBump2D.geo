@@ -1,5 +1,5 @@
 Include "../Parameters.geo";
-//Geom_2BEXP = GEOM_2BEXP_1; MeshLevel = 1; MeshType = QUAD; MeshCurving = CURVED; PDEName = EULER;
+//Geom_2BEXP = GEOM_2BEXP_0; MeshLevel = 0; MeshType = QUAD; MeshCurving = CURVED; PDEName = EULER;
 
 // Modifiable Parameters
 

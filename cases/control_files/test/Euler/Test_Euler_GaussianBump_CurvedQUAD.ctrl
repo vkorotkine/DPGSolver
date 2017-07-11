@@ -2,14 +2,14 @@ PDEName       Euler
 PDESpecifier  Internal/Subsonic/GaussianBump
 
 Geometry      n-GaussianBump n-GaussianBump/n-GaussianBump2D.geo
-GeomSpecifier BumpExp_0-5
+GeomSpecifier BumpExp_0-0
 
 Dimension     2
 
 MeshPath      ../meshes/
 MeshType      QUAD
 MeshCurving   Curved
-MeshLevel     3
+MeshLevel     0
 
 Form       Weak   // Options: Weak, (Strong)
 NodeType   GL-AO // Options: GL/GLL-AO/WSH/EQ
