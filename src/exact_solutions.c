@@ -203,8 +203,8 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
                            rho_x = DB.rho_store[1],
                            rho_1 = DB.rho_store[2],
                            rho_y = DB.rho_store[3],
-                           rho_2 = DB.rho_store[4];  
- 
+                           rho_2 = DB.rho_store[4];
+
                     double p_0 = DB.p_store[0],
                            p_x = DB.p_store[1],
                            p_1 = DB.p_store[2],
@@ -212,17 +212,18 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
                            p_2 = DB.p_store[4];
 
                     double a = 2, b = 4;
- 
+
                     if (d == 2 ) {
                             for (i = 0; i < Nn; i++) {
                          rhoEx[i] = rho_0 + rho_x*cos(rho_1*X[i])+rho_y*sin(rho_2*Y[i]);
                          pEx[i] = p_0 + p_x*cos(p_1*X[i])+p_y*sin(p_2*Y[i]);
                          uEx[i] = pow(a,2)*Y[i];
                          vEx[i] = -pow(b,2)*X[i];
+                         wEx[i] = 0.0;
                             }
-                    } else 
+                    } else
                            EXIT_UNSUPPORTED;
-                    
+
         } else if (strstr(TestCase,"ParabolicPipe")) {
                     double rho_0 = DB.rho_store[0],
                            rho_x = DB.rho_store[1],
@@ -235,13 +236,13 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
                            p_1 = DB.p_store[2],
                            p_y = DB.p_store[3],
                            p_2 = DB.p_store[4];
-                     
+
                     double w_0 = DB.w_store[0],
                            w_x = DB.w_store[1],
                            w_1 = DB.w_store[2],
                            w_y = DB.w_store[3],
                            w_2 = DB.w_store[4];
-                    
+
                     double b = 2;
 
                     if (d == 2 ) {
@@ -250,10 +251,12 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
                              pEx[i] = p_0 + p_x*cos(p_1*X[i])+p_y*sin(p_2*Y[i]);
                              uEx[i] = w_0 + w_x*sin(w_1*X[i])+w_y*cos(w_2*Y[i]);
                              vEx[i] = (-2*b*X[i])*(w_0 + w_x*sin(w_1*X[i])+w_y*cos(w_2*Y[i]));
+                             wEx[i] = 0.0;
+
                                 }
-                    } else 
+                    } else
                             EXIT_UNSUPPORTED;
-                   
+
         } else if (strstr(TestCase,"SinusoidalPipe")) {
                     double rho_0 = DB.rho_store[0],
                            rho_x = DB.rho_store[1],
@@ -281,6 +284,7 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
                       pEx[i] = p_0 + p_x*cos(p_1*X[i])+p_y*sin(p_2*Y[i]);
                       uEx[i] = w_0 + w_x*sin(w_1*X[i])+w_y*cos(w_2*Y[i]);
                       vEx[i] = (-a*b*sin(b*X[i]))*(w_0 + w_x*sin(w_1*X[i])+w_y*cos(w_2*Y[i]));
+                      wEx[i] = 0.0;
                          }
                     } else
                             EXIT_UNSUPPORTED;
@@ -407,7 +411,7 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 			}
 		}
 	} else if (strstr(TestCase,"EllipticPipe")) {
-              
+
              if (d == 2) {
                                 double rho_0 = DB.rho_store[0],
                                        rho_x = DB.rho_store[1],
@@ -422,10 +426,10 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
                                        p_2 = DB.p_store[4];
 
                                 double a = 2, b = 4;
-                                
+
                                 double RUVP[12];
-                 
-          
+
+
                    for (eq = 0; eq < Neq; eq++) {
                            for(n = 0; n < Nn; n++) {
                                     *(RUVP) = rho_0 + rho_x*cos(rho_1*X[n])+rho_y*sin(rho_2*Y[n]);
@@ -434,8 +438,8 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
                                     *(RUVP+3) = pow(a,2)*Y[n];
                                     *(RUVP+4) = 0;
                                     *(RUVP+5) = pow(a,2);
-                                    *(RUVP+6) = -pow(b,2)*X[n];                                   
-                                    *(RUVP+7) = -pow(b,2); 
+                                    *(RUVP+6) = -pow(b,2)*X[n];
+                                    *(RUVP+7) = -pow(b,2);
                                     *(RUVP+8) = 0;
                                     *(RUVP+9) = p_0 + p_x*cos(p_1*X[n])+p_y*sin(p_2*Y[n]);
                                     *(RUVP+10) = -p_1*p_x*sin(p_1*X[n]);
@@ -444,11 +448,11 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
                            }
                    }
              } else
-                   EXIT_UNSUPPORTED; 
+                   EXIT_UNSUPPORTED;
 
 
        } else if (strstr(TestCase,"ParabolicPipe")) {
-              
+
              if (d == 2) {
                                 double rho_0 = DB.rho_store[0],
                                        rho_x = DB.rho_store[1],
@@ -469,10 +473,10 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
                                        w_2 = DB.w_store[4];
 
                                 double  b = 2;
-                                
+
                                 double RUVP[12];
-                 
-          
+
+
                    for (eq = 0; eq < Neq; eq++) {
                            for(n = 0; n < Nn; n++) {
                                     *(RUVP) = rho_0 + rho_x*sin(rho_1*X[n])+rho_y*cos(rho_2*Y[n]);
@@ -482,7 +486,7 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
                                     *(RUVP+4) = w_1*w_x*cos(w_1*X[n]);
                                     *(RUVP+5) = -w_2*w_y*sin(w_2*Y[n]);
                                     *(RUVP+6) = (w_0+w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n]))*(-2*b*X[n]);
-                                    *(RUVP+7) = -2*b*X[n]*(w_1*w_x*cos(w_1*X[n]))-2*b*(w_0+w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n])); 
+                                    *(RUVP+7) = -2*b*X[n]*(w_1*w_x*cos(w_1*X[n]))-2*b*(w_0+w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n]));
                                     *(RUVP+8) = 2*b*X[n]*w_y*w_2*sin(w_2*Y[n]);
                                     *(RUVP+9) = p_0 + p_x*cos(p_1*X[n])+p_y*sin(p_2*Y[n]);
                                     *(RUVP+10) = -p_1*p_x*sin(p_1*X[n]);
@@ -491,11 +495,11 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
                            }
                    }
              } else
-                   EXIT_UNSUPPORTED; 
+                   EXIT_UNSUPPORTED;
 
 
        } else if (strstr(TestCase,"SinusoidalPipe")) {
-              
+
              if (d == 2) {
                                 double rho_0 = DB.rho_store[0],
                                        rho_x = DB.rho_store[1],
@@ -516,10 +520,10 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
                                        w_2 = DB.w_store[4];
 
                                 double a = 2,  b = PI/2;
-                                
+
                                 double RUVP[12];
-                 
-          
+
+
                    for (eq = 0; eq < Neq; eq++) {
                            for(n = 0; n < Nn; n++) {
                                     *(RUVP) = rho_0 + rho_x*sin(rho_1*X[n])+rho_y*cos(rho_2*Y[n]);
@@ -529,7 +533,7 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
                                     *(RUVP+4) = w_1*w_x*cos(w_1*X[n]);
                                     *(RUVP+5) = -w_2*w_y*sin(w_2*Y[n]);
                                     *(RUVP+6) = (w_0+w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n]))*(-a*b*sin(b*X[n]));
-                                    *(RUVP+7) = -a*b*sin(b*X[n])*(w_1*w_x*cos(w_1*X[n]))-a*pow(b,2)*cos(b*X[n])*(w_0+w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n])); 
+                                    *(RUVP+7) = -a*b*sin(b*X[n])*(w_1*w_x*cos(w_1*X[n]))-a*pow(b,2)*cos(b*X[n])*(w_0+w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n]));
                                     *(RUVP+8) = a*b*sin(b*X[n])*w_y*w_2*sin(w_2*Y[n]);
                                     *(RUVP+9) = p_0 + p_x*cos(p_1*X[n])+p_y*sin(p_2*Y[n]);
                                     *(RUVP+10) = -p_1*p_x*sin(p_1*X[n]);
@@ -538,7 +542,7 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
                            }
                    }
              } else
-                   EXIT_UNSUPPORTED; 
+                   EXIT_UNSUPPORTED;
 
 
        } else {
@@ -565,7 +569,7 @@ static double get_boundary_value_Advection(double const x, double const y, doubl
 	return uEx;
 }
 
-static double generate_Euler_source(unsigned int eq, double *RUVP) 
+static double generate_Euler_source(unsigned int eq, double *RUVP)
 {
 
 double r, rx, ry, u, ux, uy, v, vx, vy, p, px, py;
@@ -578,18 +582,18 @@ double f;
 
           if (eq == 1) {
            f = rx*u+ux*r+ry*v+vy*r;
-              
+
         } else if (eq == 2) {
            f = px+pow(u,2)*rx+2*r*u*ux+r*u*vy+r*v*uy+v*u*ry;
-               
+
         } else if (eq == 3) {
            f = py+pow(v,2)*ry+2*r*v*vy+r*v*ux+r*u*vx+v*u*rx;
-               
+
         } else if (eq == 4) {
            f = (GAMMA/(GAMMA-1))*(px*u+ux*p)+rx*0.5*(pow(u,3)+u*pow(v,2))+0.5*r*(3*pow(u,2)*ux+pow(v,2)*ux+2*v*u*vx)+
                (GAMMA/(GAMMA-1))*(py*v+vy*p)+ry*0.5*(pow(v,3)+v*pow(u,2))+0.5*r*(3*pow(v,2)*vy+pow(u,2)*vy+2*v*u*uy);
         } else {
-           EXIT_UNSUPPORTED; }  
-            
-        return f;  
+           EXIT_UNSUPPORTED; }
+
+        return f;
 }

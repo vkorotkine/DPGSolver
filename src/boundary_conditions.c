@@ -212,7 +212,7 @@ void get_boundary_values(const double X, const double Y, double *const rho, doub
 	} else if (strstr(TestCase,"ParabolicPipe") ||
 	           strstr(TestCase,"EllipticPipe") ||
 	           strstr(TestCase,"SinusoidalPipe")) {
-		double U[NVAR3D], XYZ[DMAX-1];
+		double U[NVAR3D] = {0.0}, XYZ[] = {X,Y};
 
 		if (DB.d > 2)
 			EXIT_UNSUPPORTED;

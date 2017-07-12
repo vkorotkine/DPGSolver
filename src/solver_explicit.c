@@ -124,7 +124,7 @@ void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 	}
 
 	// *** Pressure *** ///
-	double *const p_hatB = malloc(NvnS * sizeof *p_hatB); // free
+	double *const p_hatB = calloc(NvnS , sizeof *p_hatB); // free
 	compute_pressure(WhatB,p_hatB,d,NvnS,1,'c');
 
 	// Correct W if necessary

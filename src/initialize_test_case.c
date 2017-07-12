@@ -726,7 +726,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 
 				mm_CTN_d(NvnS,d,VOLUME->NvnG,OPS->I_vG_vS,VOLUME->XYZ,XYZ_vS);
 
-				U = malloc(NvnS*NVAR3D * sizeof *U); // free
+				U = calloc(NvnS*NVAR3D , sizeof *U); // free
 				W = malloc(NvnS*Nvar   * sizeof *W); // free
 
 				if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
@@ -1050,9 +1050,9 @@ void compute_solution(const unsigned int Nn, double *XYZ, double *UEx, const uns
 	    strstr(TestCase,"SupersonicVortex") ||
 	    strstr(TestCase,"PlaneCouette") ||
 	    strstr(TestCase,"TaylorCouette") ||
-            strstr(TestCase,"EllipticPipe") ||
-            strstr(TestCase,"ParabolicPipe") ||
-            strstr(TestCase,"SinusoidalPipe")) {
+	    strstr(TestCase,"EllipticPipe") ||
+	    strstr(TestCase,"ParabolicPipe") ||
+	    strstr(TestCase,"SinusoidalPipe")) {
 		compute_exact_solution(Nn,XYZ,UEx,solved);
 	} else if (strstr(TestCase,"InviscidChannel") ||
 	           strstr(TestCase,"PrandtlMeyer") ||
