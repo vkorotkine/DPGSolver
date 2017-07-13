@@ -144,10 +144,13 @@ void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 
 		double pAvg;
 		compute_pressure(WAvg,&pAvg,d,1,1,'c');
-		free(WAvg);
 
-		if (pAvg < 0.0)
+		if (pAvg < 0.0) {
+			printf("\n\n\np: %e\nWAvg:\n",pAvg);
+			array_print_d(1,Nvar,WAvg,'R');
 			printf("Error: Negative average pressure.\n"), EXIT_MSG;
+		}
+		free(WAvg);
 
 		double const t = pAvg/(pAvg-pMin);
 		correct_What_Bezier(WhatB,t,NvnS,WAvg,'p');

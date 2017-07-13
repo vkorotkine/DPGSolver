@@ -76,6 +76,8 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 
 static void add_source(const struct S_VOLUME *VOLUME)
 {
+// Potential different treatment for Poisson and Euler equations -> Investigate (ToBeDeleted).
+
 	// Initialize DB Parameters
 	unsigned int d   = DB.d,
 	             Neq = DB.Neq;
@@ -108,7 +110,8 @@ static void add_source(const struct S_VOLUME *VOLUME)
 			f_vI[eq*NvnI+n] *= w_vI[n]*detJV_vI[n];
 	}
 
-	mm_d(CBCM,CBNT,CBNT,NvnS,Neq,NvnI,-1.0,1.0,OPS->ChiS_vI,f_vI,VOLUME->RHS);
+//	mm_d(CBCM,CBNT,CBNT,NvnS,Neq,NvnI,-1.0,1.0,OPS->ChiS_vI,f_vI,VOLUME->RHS);
+	mm_d(CBCM,CBNT,CBNT,NvnS,Neq,NvnI, 1.0,1.0,OPS->ChiS_vI,f_vI,VOLUME->RHS);
 	free(f_vI);
 
 	free(OPS);
@@ -176,9 +179,6 @@ double finalize_RHS(void)
 
 	// Add MInv contribution to RHS for explicit runs
 	if (strstr(SolverType,"Explicit")) {
-//		if (SourcePresent)
-//			printf("Warning: Ensure that sources are being treated properly.\n");
-
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			// Add (remaining) MInv contribution to RHS
 			if (Collocated) {
