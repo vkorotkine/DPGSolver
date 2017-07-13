@@ -133,6 +133,19 @@ double array_norm_diff_d(const unsigned int LenA, const double *A, const double 
 		return norm_num;
 }
 
+double array_norm_diff_dc(const unsigned int LenA, const double *A, const double complex *B, const char *NormType)
+{
+	double *Br = malloc(LenA * sizeof *Br); // free
+
+	for (size_t i = 0; i < LenA; i++)
+		Br[i] = creal(B[i]);
+
+	double norm_diff = array_norm_diff_d(LenA,A,Br,NormType);
+	free(Br);
+
+	return norm_diff;
+}
+
 double PetscMatAIJ_norm_diff_d(const unsigned int NRows, Mat A, Mat B, const char *NormType)
 {
 	unsigned int i;
@@ -149,10 +162,14 @@ double PetscMatAIJ_norm_diff_d(const unsigned int NRows, Mat A, Mat B, const cha
 			MatGetRow(A,i,&ncols[0],&cols[0],&vals[0]);
 			MatGetRow(B,i,&ncols[1],&cols[1],&vals[1]);
 
-			if (ncols[0] != ncols[1])
-				printf("Error: Different number of non-zero columns in A (%d) and B (%d).\n",ncols[0],ncols[1]), EXIT_MSG;
+			if (ncols[0] != ncols[1]) {
+				printf("Error: Different number of non-zero columns in A (%d) and B (%d) on line %d.\n",
+				       ncols[0],ncols[1],i);
+				EXIT_UNSUPPORTED;
+			}
 
 			norm_row = array_norm_diff_d(ncols[0],vals[0],vals[1],"Inf");
+
 			if (norm_row > norm)
 				norm = norm_row;
 

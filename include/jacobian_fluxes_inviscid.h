@@ -4,11 +4,11 @@
 #ifndef DPG__jacobian_fluxes_inviscid_h__INCLUDED
 #define DPG__jacobian_fluxes_inviscid_h__INCLUDED
 
-extern void jacobian_flux_inviscid (const unsigned int Nn, const unsigned int Nel, double *W, double *dFdW,
-                                    const unsigned int d, const unsigned int Neq);
-extern void jacobian_flux_LF       (const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *dnFdW,
-                                    double *nL, const unsigned int d, const unsigned int Neq, const char side);
-extern void jacobian_flux_Roe      (const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *dnFdW,
-                                    double *nL, const unsigned int d, const unsigned int Neq, const char side);
+#include "fluxes_structs.h"
+
+extern void jacobian_flux_inviscid     (struct S_FLUX *const FLUXDATA);
+extern void jacobian_flux_num_inviscid (struct S_NUMERICALFLUX *const NUMFLUXDATA);
+
+extern void jacobian_flux_inviscid_MA (struct S_FLUX_MA *const FLUXDATA_MA);
 
 #endif // DPG__jacobian_fluxes_inviscid_h__INCLUDED

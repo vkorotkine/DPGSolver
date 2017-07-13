@@ -53,6 +53,8 @@
 #define NEC             3
 #define DMAX            3
 #define NVAR3D          5
+#define NVAR2D          4
+#define NVAR1D          3
 
 #define BC_STEP_SC      10000
 #define BC_PERIODIC_MIN 50
@@ -105,17 +107,34 @@
 #define PIvcMaxTET 10
 #define PIvcMaxPYR 10
 
+// PDE Names
+#define PDE_ADVECTION    1
+#define PDE_POISSON      2
+#define PDE_EULER        3
+#define PDE_NAVIERSTOKES 4
+
+
 // Solver related parameters
 #define RK3_SSP 0
 #define RK4_LS  1
+#define EULER   2
 
 // Boundary conditions
-#define BC_RIEMANN      1
-#define BC_SLIPWALL     2
-#define BC_BACKPRESSURE 3
+#define BC_RIEMANN        1
+#define BC_SLIPWALL       2
+#define BC_BACKPRESSURE   3
+#define BC_TOTAL_TP       4
+#define BC_SUPERSONIC_IN  5
+#define BC_SUPERSONIC_OUT 6
+
+#define BC_NOSLIP_T         7
+#define BC_NOSLIP_ADIABATIC 8
 
 #define BC_DIRICHLET    11
 #define BC_NEUMANN      12
+
+#define BC_INFLOW       13
+#define BC_OUTFLOW      14
 
 // Allowed adaptation options
 #define ADAPT_0  0
@@ -171,18 +190,23 @@
 #define C_WEDGE 3
 
 // Flux types
-#define FLUX_LF  0
-#define FLUX_ROE 1
+#define FLUX_LF     0 // Change to 1-3 (ToBeModified)
+#define FLUX_ROE    1
+#define FLUX_UPWIND 2
 
-#define FLUX_IP   10
 #define FLUX_BR2  11
 #define FLUX_CDG2 12
+
+// Solver Methods
+#define METHOD_DG   1
+#define METHOD_HDG  2
 
 // Tolerances
 #define NODETOL      1.0e-10
 #define NODETOL_MESH 1.0e-5
 
 #define EPS        1.0e-15
+#define EPS_PHYS   1.0e-13
 #define SQRT_EPS   3.162277660168379e-08
 #define REFINE_TOL 1.0e-10 // Decrease for additional refinement
 #define COARSE_TOL 1.0e-4 // Increase for additional coarsening

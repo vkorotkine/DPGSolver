@@ -3,232 +3,150 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 
 #include "Parameters.h"
-#include "Macros.h"
-#include "S_DB.h"
-#include "S_ELEMENT.h"
-#include "S_VOLUME.h"
-#include "Test.h"
 
-#include "test_code_integration.h"
+#include "test_code_integration_equivalence_real_complex.h"
+#include "test_code_integration_equivalence_algorithms.h"
+#include "test_code_integration_linearization.h"
+#include "test_code_integration_conv_order.h"
 #include "test_support.h"
-#include "adaptation.h"
-#include "output_to_paraview.h"
-#include "solver_explicit.h"
-#include "solver_implicit.h"
-#include "compute_errors.h"
+
 #include "array_free.h"
-#include "test_integration_Poisson.h"
-#include "element_functions.h"
-#include "array_norm.h"
-#include "array_print.h"
 
 /*
  *	Purpose:
- *		Test optimal convergence of the Euler solver implementation.
+ *		Test various aspects of the Euler solver implementation:
+ *			- Equivalence between real and complex versions of functions;
+ *			- Equivalence between running using different algorithms (with different flop counts);
+ *			- Linearization;
+ *			- Optimal convergence orders.
  *
  *	Comments:
+ *		Optimal convergence orders for 3D curved meshes which are not associated with extruded 2D meshes has so far not
+ *		been obtained. This is potentially a result of mesh regularity issues or because memory constraints do not allow
+ *		for the attainment of the asymptotic regime. (ToBeModified)
  *
  *	Notation:
  *
  *	References:
- *
  */
-
-static void h_adapt(void)
-{
-	/*
-	 * Purpose:
-	 *		Perform local mesh refinement around specified XYZref coordinate locations.
-	 */
-
-	// Initialize DB Parameters
-	char         *Geometry = DB.Geometry;
-	unsigned int d         = DB.d;
-
-	// Standard datatypes
-	unsigned int NrefMax = 2, MLMax = 5;
-
-	unsigned int Nref, NML[NrefMax];
-	double       *XYZref;
-
-	XYZref = malloc(NrefMax*DMAX * sizeof *XYZref); // free
-
-	if (TestDB.ML > 0)
-		printf("Error: Only enter for ML == 0.\n"), EXIT_MSG;
-
-	if (strstr(Geometry,"JoukowskiSymmetric")) {
-		double a  = DB.JSa,
-		       xL = DB.JSxL;
-
-		Nref = 2;
-
-		NML[0] = 0;
-		NML[1] = 3;
-
-		XYZref[0+0*DMAX] = xL;  XYZref[1+0*DMAX] = 0.0; XYZref[2+0*DMAX] = 0.0;
-		XYZref[0+1*DMAX] = 2*a; XYZref[1+1*DMAX] = 0.0; XYZref[2+1*DMAX] = 0.0;
-	} else {
-		printf("Error: Unsupported.\n"), EXIT_MSG;
-	}
-
-	// Store indices of VOLUMEs to be updated and the adaptation type (HREFINE here) in hp_update
-	unsigned int ML;
-	for (ML = 0; ML < MLMax; ML++) {
-		unsigned int NVglobal = DB.NVglobal;
-
-		struct S_VOLUME *VOLUME;
-
-		unsigned int *hp_update;
-		hp_update = calloc(NVglobal , sizeof *hp_update); // free
-
-		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-			unsigned int n, ve, dim, Nve, indexg;
-			double       *XYZ_vV;
-
-			struct S_ELEMENT *ELEMENT;
-
-			ELEMENT = get_ELEMENT_type(VOLUME->type);
-
-			Nve = ELEMENT->Nve;
-
-			indexg = VOLUME->indexg;
-
-			// Store XYZ_vV as a row vector
-			XYZ_vV = malloc(Nve*d * sizeof *XYZ_vV); // free
-			for (ve = 0; ve < Nve; ve++) {
-			for (dim = 0; dim < d; dim++) {
-				XYZ_vV[ve*d+dim] = VOLUME->XYZ_vV[ve+dim*Nve];
-			}}
-
-			for (n = 0; n < Nref; n++) {
-				if (VOLUME->level < NML[n]) {
-					// Check if one of the XYZ_vV matches any of the specified XYZref
-					for (ve = 0; ve < Nve; ve++) {
-						if (array_norm_diff_d(d,&XYZref[n*DMAX],&XYZ_vV[ve*d],"Inf") < EPS) {
-							hp_update[indexg] = HREFINE;
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		// Add additional indices to the list of hp_update to ensure that the resulting mesh will not be more than
-		// 1-irregular.
-		ensure_1irregular(hp_update);
-
-		// Mark VOLUMEs for refinement and perform the mesh update
-		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-			if (hp_update[VOLUME->indexg] == 0) {
-				// Do nothing
-			} else if (hp_update[VOLUME->indexg] == HREFINE) {
-				VOLUME->Vadapt = 1;
-				VOLUME->adapt_type = HREFINE;
-			} else {
-				printf("Error: Unsupported.\n"), EXIT_MSG;
-			}
-		}
-		free(hp_update);
-		mesh_update();
-	}
-	free(XYZref);
-}
 
 void test_integration_Euler(int nargc, char **argv)
 {
-	unsigned int pass = 0;
-	char         **argvNew;
+//	bool const (ToBeModified)
+	bool RunTests_equivalence_real_complex = 0,
+	     RunTests_equivalence_algorithms   = 0,
+	     RunTests_linearization            = 0,
+	     RunTests_conv_order               = 1;
 
-	argvNew    = malloc(2          * sizeof *argvNew);  // free
-	argvNew[0] = malloc(STRLEN_MAX * sizeof **argvNew); // free
-	argvNew[1] = malloc(STRLEN_MAX * sizeof **argvNew); // free
-
-	strcpy(argvNew[0],argv[0]);
-
-	/*
-	 *	Input:
-	 *		Meshes for a curved Poisson problem.
-	 *
-	 *	Expected Output:
-	 *		Optimal convergence orders in L2 for the solution (P+1).
-	 *
-	 */
-
-	unsigned int P, ML, PMin, PMax, MLMin, MLMax, Adapt, AdaptiveRefine;
-	double       *mesh_quality;
-
-	strcpy(argvNew[1],"test/Test_Euler_2D_TRI");
-
-
-	TestDB.PG_add = 1;
-	TestDB.IntOrder_add  = 0; // > 1 for non-zero error for L2 projection on TP elements
-	TestDB.IntOrder_mult = 2;
-
-	// Convergence orders
-	PMin  = 1; PMax  = 3;
-	MLMin = 0; MLMax = 2;
-TestDB.PGlobal = 1;
-
-	mesh_quality = malloc((MLMax-MLMin+1) * sizeof *mesh_quality); // free
-
-	AdaptiveRefine = 1;
-//	Adapt = ADAPT_0;
-	Adapt = ADAPT_HP;
-	if (Adapt != ADAPT_0) {
-		TestDB.ML = DB.ML;
-		code_startup(nargc,argvNew,0,2);
+	// ToBeDeleted after Manmeet has finished his initial verification.
+	bool const PeriodicVortexOnly = 0;
+	if (PeriodicVortexOnly) {
+		RunTests_equivalence_real_complex = 0;
+		RunTests_equivalence_algorithms   = 0;
+		RunTests_linearization            = 0;
 	}
 
-	for (P = PMin; P <= PMax; P++) {
-	for (ML = MLMin; ML <= MLMax; ML++) {
-		TestDB.PGlobal = P;
-		TestDB.ML = ML;
+	char **argvNew, *PrintName;
 
-		if (Adapt != ADAPT_0) {
-			if (ML == MLMin) {
-				mesh_to_level(TestDB.ML);
-				if (AdaptiveRefine)
-					h_adapt();
-			} else {
-				mesh_h_adapt(1,'r');
-			}
-			mesh_to_order(TestDB.PGlobal);
-		} else {
-			code_startup(nargc,argvNew,0,1);
-		}
+	argvNew    = malloc(2          * sizeof *argvNew);   // free
+	argvNew[0] = malloc(STRLEN_MAX * sizeof **argvNew);  // free
+	argvNew[1] = malloc(STRLEN_MAX * sizeof **argvNew);  // free
+	PrintName  = malloc(STRLEN_MAX * sizeof *PrintName); // free
 
-		// Output mesh edges to paraview
-		if (TestDB.PGlobal == 3 && TestDB.ML <= 2) {
-			char *fNameOut = get_fNameOut("MeshEdges_");
-			output_to_paraview(fNameOut);
-			free(fNameOut);
-		}
-		solver_implicit();
+	// silence
+	strcpy(argvNew[0],argv[0]);
 
-		compute_errors_global();
+	// **************************************************************************************************** //
+	// Real/Complex Equivalence
+	// **************************************************************************************************** //
+	if (RunTests_equivalence_real_complex) {
+		struct S_equivalence_rc *const data_rc = calloc(1 , sizeof *data_rc); // free
+		data_rc->nargc     = nargc;
+		data_rc->argvNew   = argvNew;
+		data_rc->PrintName = PrintName;
 
-		printf("ML, P, dof: %d %d %d\n",ML,P,DB.dof);
+		test_equivalence_real_complex(data_rc,"Euler_n-Cylinder_HollowSection_CurvedMIXED2D");
 
-		if (P == PMin)
-			evaluate_mesh_regularity(&mesh_quality[ML-MLMin]);
+		free(data_rc);
+	} else {
+		test_print_warning("Euler equivalence real/complex testing currently disabled");
+	}
 
-		if (P == PMax && ML == MLMax) {
-			check_convergence_orders(MLMin,MLMax,PMin,PMax,&pass);
-			check_mesh_regularity(mesh_quality,MLMax-MLMin+1,&pass);
-		}
+	// **************************************************************************************************** //
+	// Algorithm equivalence
+	// **************************************************************************************************** //
+	if (RunTests_equivalence_algorithms) {
+		struct S_equivalence_algs *const data_alg = calloc(1 , sizeof *data_alg); // free
 
-		if (Adapt == ADAPT_0)
-			code_cleanup();
-	}}
-	if (Adapt != ADAPT_0)
-		code_cleanup();
-	free(mesh_quality);
+		data_alg->nargc     = nargc;
+		data_alg->argvNew   = argvNew;
+		data_alg->PrintName = PrintName;
 
-	printf("Convergence Orders - Poisson (3D - TRI  ):       ");
-	test_print(pass);
+		test_equivalence_algorithms(data_alg,"Euler_n-Cylinder_HollowSection_CurvedMIXED3D_HW");
+
+		free(data_alg);
+	} else {
+		test_print_warning("Euler equivalence algorithms testing currently disabled");
+	}
+
+	// **************************************************************************************************** //
+	// Linearization Testing
+	// **************************************************************************************************** //
+	if (RunTests_linearization) {
+		struct S_linearization *const data_l = calloc(1 , sizeof *data_l); // free
+
+		data_l->nargc     = nargc;
+		data_l->argvNew   = argvNew;
+		data_l->PrintName = PrintName;
+
+		test_linearization(data_l,"Euler_MIXED2D");
+		test_linearization(data_l,"Euler_MIXED_TET_PYR");
+		test_linearization(data_l,"Euler_MIXED_HEX_WEDGE");
+
+		free(data_l);
+	} else {
+		test_print_warning("Euler linearization testing currently disabled");
+	}
+
+	// **************************************************************************************************** //
+	// Convergence Order
+	// **************************************************************************************************** //
+	if (RunTests_conv_order) {
+		struct S_convorder *const data_c = calloc(1 , sizeof *data_c); // free
+
+		data_c->nargc     = nargc;
+		data_c->argvNew   = argvNew;
+		data_c->PrintName = PrintName;
+
+if (!PeriodicVortexOnly) {
+//		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_CurvedMIXED2D");
+//		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedMIXED2D");
+		test_conv_order(data_c,"Euler_n-Parabolic_Pipe_ToBeCurvedTRI");
+		test_conv_order(data_c,"Euler_n-Sinusoidal_Pipe_ToBeCurvedTRI");
+		test_conv_order(data_c,"Euler_n-Elliptic_Pipe_ToBeCurvedTRI");
+}
+
+bool const test_3D = 0;
+if (test_3D) {
+		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedTET");   // Revisit with DPG (ToBeDeleted)
+		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedHEX");   // ~Optimal
+		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedWEDGE"); // ~Optimal
+} else {
+		test_print_warning("3D SupersonicVortex testing is currently disabled");
+}
+
+if (PeriodicVortexOnly) {
+//		test_conv_order(data_c,"Euler_PeriodicVortex_Stationary_n-Cube_QUAD");
+//		test_conv_order(data_c,"Euler_PeriodicVortex_n-Cube_TRI");
+		test_conv_order(data_c,"Euler_PeriodicVortex_n-Cube_QUAD");
+}
+		free(data_c);
+	} else {
+		test_print_warning("Euler convergence order testing currently disabled");
+	}
 
 	array_free2_c(2,argvNew);
+	free(PrintName);
 }

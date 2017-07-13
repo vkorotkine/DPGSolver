@@ -194,9 +194,10 @@ void test_unit_grad_basis_TP(void)
 	 *				GradChiRef_rst = @(r) [ See grad_basis_TP13 ]
 	 */
 
-	unsigned int dE, Nn, Ns, Nbf, P, Prst;
-	unsigned int *symms;
-	double *rst, *w;
+	unsigned int dE, Nn, Nbf, P, Prst;
+	double *rst;
+
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
 
 	dE = 1;
 
@@ -205,21 +206,19 @@ void test_unit_grad_basis_TP(void)
 	P = 3;
 	Prst = 4;
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GL"); // free
+	set_cubdata(CUBDATA,false,false,"GL",dE,Prst,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	GradChiRef13_code = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 	GradChiRef13_test = grad_basis_TP13(rst,Nn); // free
 
 	pass = 0;
 	if (array_norm_diff_d(Nn*pow(P+1,dE),GradChiRef13_code[0],GradChiRef13_test[0],"Inf") < EPS*10)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("grad_basis_TP (d1, P3):                          ");
-	test_print(pass);
+	test_print2(pass,"grad_basis_TP (d1, P3):");
 
 	free(rst);
-	free(symms);
 	array_free2_d(dE,GradChiRef13_code);
 	array_free2_d(dE,GradChiRef13_test);
 
@@ -244,7 +243,8 @@ void test_unit_grad_basis_TP(void)
 	P = 2;
 	Prst = 4;
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GL"); // free
+	set_cubdata(CUBDATA,false,false,"GL",dE,Prst,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	GradChiRef22_code = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 	GradChiRef22_test = grad_basis_TP22(rst,Nn); // free
@@ -252,14 +252,11 @@ void test_unit_grad_basis_TP(void)
 	pass = 0;
 	if (array_norm_diff_d(Nn*pow(P+1,dE),GradChiRef22_code[0],GradChiRef22_test[0],"Inf") < EPS*10 &&
 	    array_norm_diff_d(Nn*pow(P+1,dE),GradChiRef22_code[1],GradChiRef22_test[1],"Inf") < EPS*10)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("              (d2, P2):                          ");
-	test_print(pass);
+	test_print2(pass,"              (d2, P2):");
 
 	free(rst);
-	free(symms);
 	array_free2_d(dE,GradChiRef22_code);
 	array_free2_d(dE,GradChiRef22_test);
 
@@ -285,7 +282,8 @@ void test_unit_grad_basis_TP(void)
 	P = 1;
 	Prst = 4;
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,Prst,dE,"GL"); // free
+	set_cubdata(CUBDATA,false,false,"GL",dE,Prst,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	GradChiRef31_code = grad_basis_TP(P,rst,Nn,&Nbf,dE); // free
 	GradChiRef31_test = grad_basis_TP31(rst,Nn); // free
@@ -294,14 +292,11 @@ void test_unit_grad_basis_TP(void)
 	if (array_norm_diff_d(Nn*pow(P+1,dE),GradChiRef31_code[0],GradChiRef31_test[0],"Inf") < EPS*10 &&
 	    array_norm_diff_d(Nn*pow(P+1,dE),GradChiRef31_code[1],GradChiRef31_test[1],"Inf") < EPS*10 &&
 	    array_norm_diff_d(Nn*pow(P+1,dE),GradChiRef31_code[2],GradChiRef31_test[2],"Inf") < EPS*10)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("              (d3, P1):                          ");
-	test_print(pass);
+	test_print2(pass,"              (d3, P1):");
 
 	free(rst);
-	free(symms);
 	array_free2_d(dE,GradChiRef31_code);
 	array_free2_d(dE,GradChiRef31_test);
 
@@ -328,7 +323,8 @@ void test_unit_grad_basis_TP(void)
 	// dE = 1
 	dE = 1;
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,P,dE,"GL"); // free
+	set_cubdata(CUBDATA,false,false,"GL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -354,17 +350,14 @@ void test_unit_grad_basis_TP(void)
 
 	pass = 0;
 	if (array_norm_diff_d(Nn,f_r,f_rcomp,"Inf") < EPS*100)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 	else
 		printf("%e\n",array_norm_diff_d(Nn,f_r,f_rcomp,"Inf"));
 
 
-	//     0         10        20        30        40        50
-	printf("              derivative  (d1):                  ");
-	test_print(pass);
+	test_print2(pass,"              derivative  (d1):");
 
 	free(rst), free(r), free(s), free(t);
-	free(symms);
 	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(dE,GradChiRef_rst);
@@ -375,7 +368,8 @@ void test_unit_grad_basis_TP(void)
 	// dE = 2
 	dE = 2;
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,P,dE,"GL"); // free
+	set_cubdata(CUBDATA,false,false,"GL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -402,18 +396,15 @@ void test_unit_grad_basis_TP(void)
 	pass = 0;
 	if (array_norm_diff_d(Nn,f_r,f_rcomp,"Inf") < EPS*100 &&
 	    array_norm_diff_d(Nn,f_s,f_scomp,"Inf") < EPS*100) {
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 	} else {
 		printf("%e\n",array_norm_diff_d(Nn,f_r,f_rcomp,"Inf"));
 		printf("%e\n",array_norm_diff_d(Nn,f_s,f_scomp,"Inf"));
 	}
 
-	//     0         10        20        30        40        50
-	printf("              derivatives (d2):                  ");
-	test_print(pass);
+	test_print2(pass,"              derivatives (d2):");
 
 	free(rst), free(r), free(s), free(t);
-	free(symms);
 	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(dE,GradChiRef_rst);
@@ -424,7 +415,8 @@ void test_unit_grad_basis_TP(void)
 	// dE = 3
 	dE = 3;
 
-	cubature_TP(&rst,&w,&symms,&Nn,&Ns,0,P,dE,"GL"); // free
+	set_cubdata(CUBDATA,false,false,"GL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -452,25 +444,24 @@ void test_unit_grad_basis_TP(void)
 	if (array_norm_diff_d(Nn,f_r,f_rcomp,"Inf") < EPS*1000 &&
 	    array_norm_diff_d(Nn,f_s,f_scomp,"Inf") < EPS*1000 &&
 	    array_norm_diff_d(Nn,f_t,f_tcomp,"Inf") < EPS*1000) {
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 	} else {
 		printf("%e\n",array_norm_diff_d(Nn,f_r,f_rcomp,"Inf"));
 		printf("%e\n",array_norm_diff_d(Nn,f_s,f_scomp,"Inf"));
 		printf("%e\n",array_norm_diff_d(Nn,f_t,f_tcomp,"Inf"));
 	}
 
-	//     0         10        20        30        40        50
-	printf("              derivatives (d3):                  ");
-	test_print(pass);
+	test_print2(pass,"              derivatives (d3):");
 
 	free(rst), free(r), free(s), free(t);
-	free(symms);
 	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(dE,GradChiRef_rst);
 	free(f), free(f_hat);
 	free(f_r), free(f_s), free(f_t);
 	free(f_rcomp), free(f_scomp), free(f_tcomp);
+
+	free(CUBDATA);
 }
 
 /*
@@ -542,10 +533,10 @@ static double **grad_basis_SI22(const double *rst, const unsigned int Nn)
 		GradChiRef_rst[1][n*Nbf+4] = con*( -2.0/3.0*sqrt(3.0)*i*pow(1.0-b_n,i-1.0)
 		                                 * con_i*(a_n)
 		                                 * con_j*(1.0/2.0*(5.0*b_n+3.0))
-										 + 2.0/3.0*sqrt(3.0)*a_n*pow(1.0-b_n,i-1.0)
+		                                 + 2.0/3.0*sqrt(3.0)*a_n*pow(1.0-b_n,i-1.0)
 		                                 * con_i*(1.0)
 		                                 * con_j*(1.0/2.0*(5.0*b_n+3.0))
-										 + 2.0/3.0*sqrt(3.0)*pow(1.0-b_n,(double) i)
+		                                 + 2.0/3.0*sqrt(3.0)*pow(1.0-b_n,(double) i)
 		                                 * con_i*(a_n)
 		                                 * con_j*(5.0/2.0) );
 
@@ -557,7 +548,7 @@ static double **grad_basis_SI22(const double *rst, const unsigned int Nn)
 		GradChiRef_rst[1][n*Nbf+5] = con*( -2.0/3.0*sqrt(3.0)*i*pow(1.0-b_n,i-1.0)
 		                                 * con_i*(1.0/2.0*(3.0*pow(a_n,2.0)-1.0))
 		                                 * con_j*(1.0)
-										 + 2.0/3.0*sqrt(3.0)*a_n*pow(1.0-b_n,i-1.0)
+		                                 + 2.0/3.0*sqrt(3.0)*a_n*pow(1.0-b_n,i-1.0)
 		                                 * con_i*(3.0*a_n)
 		                                 * con_j*(1.0) );
 	}
@@ -655,9 +646,10 @@ void test_unit_grad_basis_SI(void)
 	 *				GradChiRef_rst[1] = @(r,s) [ See grad_basis_SI22[1] ]
 	 */
 
-	unsigned int d, Nn, Ns, Nbf, P, Prst;
-	unsigned int *symms;
-	double *rst, *w;
+	unsigned int d, Nn, Nbf, P, Prst;
+	double *rst;
+
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
 
 	d = 2;
 
@@ -666,7 +658,8 @@ void test_unit_grad_basis_SI(void)
 	P = 2;
 	Prst = 4;
 
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,0,Prst,d,"AO"); // free
+	set_cubdata(CUBDATA,false,false,"AO",d,Prst,cubature_TRI); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	GradChiRef22_code = grad_basis_SI(P,rst,Nn,&Nbf,d); // free
 	GradChiRef22_test = grad_basis_SI22(rst,Nn);        // free
@@ -674,14 +667,11 @@ void test_unit_grad_basis_SI(void)
 	pass = 0;
 	if (array_norm_diff_d(Nn*Nbf,GradChiRef22_code[0],GradChiRef22_test[0],"Inf") < EPS*10 &&
 	    array_norm_diff_d(Nn*Nbf,GradChiRef22_code[1],GradChiRef22_test[1],"Inf") < EPS*10)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("grad_basis_SI (d2, P2):                          ");
-	test_print(pass);
+	test_print2(pass,"grad_basis_SI (d2, P2):");
 
 	free(rst);
-	free(symms);
 	array_free2_d(d,GradChiRef22_code);
 	array_free2_d(d,GradChiRef22_test);
 
@@ -707,7 +697,8 @@ void test_unit_grad_basis_SI(void)
 	P = 1;
 	Prst = 4;
 
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,0,Prst,d,"AO"); // free
+	set_cubdata(CUBDATA,false,false,"AO",d,Prst,cubature_TET); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	GradChiRef31_code = grad_basis_SI(P,rst,Nn,&Nbf,d); // free
 	GradChiRef31_test = grad_basis_SI31(rst,Nn); // free
@@ -716,14 +707,11 @@ void test_unit_grad_basis_SI(void)
 	if (array_norm_diff_d(Nn*Nbf,GradChiRef31_code[0],GradChiRef31_test[0],"Inf") < EPS*10 &&
 	    array_norm_diff_d(Nn*Nbf,GradChiRef31_code[1],GradChiRef31_test[1],"Inf") < EPS*10 &&
 	    array_norm_diff_d(Nn*Nbf,GradChiRef31_code[2],GradChiRef31_test[2],"Inf") < EPS*10)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("              (d3, P1):                          ");
-	test_print(pass);
+	test_print2(pass,"              (d3, P1):");
 
 	free(rst);
-	free(symms);
 	array_free2_d(d,GradChiRef31_code);
 	array_free2_d(d,GradChiRef31_test);
 
@@ -750,7 +738,8 @@ void test_unit_grad_basis_SI(void)
 	// d = 2
 	d = 2;
 
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,0,P,d,"AO"); // free
+	set_cubdata(CUBDATA,false,false,"AO",d,P,cubature_TRI); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -777,18 +766,15 @@ void test_unit_grad_basis_SI(void)
 	pass = 0;
 	if (array_norm_diff_d(Nn,f_r,f_rcomp,"Inf") < EPS*100 &&
 	    array_norm_diff_d(Nn,f_s,f_scomp,"Inf") < EPS*100) {
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 	} else {
 		printf("%e\n",array_norm_diff_d(Nn,f_r,f_rcomp,"Inf"));
 		printf("%e\n",array_norm_diff_d(Nn,f_s,f_scomp,"Inf"));
 	}
 
-	//     0         10        20        30        40        50
-	printf("              derivatives (d2):                  ");
-	test_print(pass);
+	test_print2(pass,"              derivatives (d2):");
 
 	free(rst), free(r), free(s), free(t);
-	free(symms);
 	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(d,GradChiRef_rst);
@@ -799,7 +785,8 @@ void test_unit_grad_basis_SI(void)
 	// d = 3
 	d = 3;
 
-	cubature_TET(&rst,&w,&symms,&Nn,&Ns,0,P,d,"AO"); // free
+	set_cubdata(CUBDATA,false,false,"AO",d,P,cubature_TET); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -827,25 +814,24 @@ void test_unit_grad_basis_SI(void)
 	if (array_norm_diff_d(Nn,f_r,f_rcomp,"Inf") < EPS*1e3 &&
 	    array_norm_diff_d(Nn,f_s,f_scomp,"Inf") < EPS*1e3 &&
 	    array_norm_diff_d(Nn,f_t,f_tcomp,"Inf") < EPS*1e3) {
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 	} else {
 		printf("%e\n",array_norm_diff_d(Nn,f_r,f_rcomp,"Inf"));
 		printf("%e\n",array_norm_diff_d(Nn,f_s,f_scomp,"Inf"));
 		printf("%e\n",array_norm_diff_d(Nn,f_t,f_tcomp,"Inf"));
 	}
 
-	//     0         10        20        30        40        50
-	printf("              derivatives (d3):                  ");
-	test_print(pass);
+	test_print2(pass,"              derivatives (d3):");
 
 	free(rst), free(r), free(s), free(t);
-	free(symms);
 	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(d,GradChiRef_rst);
 	free(f), free(f_hat);
 	free(f_r), free(f_s), free(f_t);
 	free(f_rcomp), free(f_scomp), free(f_tcomp);
+
+	free(CUBDATA);
 }
 
 /*
@@ -1144,9 +1130,10 @@ void test_unit_grad_basis_PYR(void)
 	 *				GradChiRef_rst[2] = @(r,s,t) [ See grad_basis_PYR32[2] ]
 	 */
 
-	unsigned int d, Nn, Ns, Nbf, P, Prst;
-	unsigned int *symms;
-	double *rst, *w;
+	unsigned int d, Nn, Nbf, P, Prst;
+	double *rst;
+
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
 
 	d = 3;
 
@@ -1155,7 +1142,8 @@ void test_unit_grad_basis_PYR(void)
 	P = 2;
 	Prst = 4;
 
-	cubature_PYR(&rst,&w,&symms,&Nn,&Ns,0,Prst,d,"WV");  // free
+	set_cubdata(CUBDATA,false,false,"WV",d,Prst,cubature_PYR); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	GradChiRef32_code = grad_basis_PYR(P,rst,Nn,&Nbf,d); // free
 	GradChiRef32_test = grad_basis_PYR32(rst,Nn);        // free
@@ -1172,14 +1160,11 @@ exit(1);
 	if (array_norm_diff_d(Nn*Nbf,GradChiRef32_code[0],GradChiRef32_test[0],"Inf") < EPS*10 &&
 	    array_norm_diff_d(Nn*Nbf,GradChiRef32_code[1],GradChiRef32_test[1],"Inf") < EPS*10 &&
 	    array_norm_diff_d(Nn*Nbf,GradChiRef32_code[2],GradChiRef32_test[2],"Inf") < EPS*10)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("grad_basis_PYR (P2):                             ");
-	test_print(pass);
+	test_print2(pass,"grad_basis_PYR (P2):");
 
 	free(rst);
-	free(symms);
 	array_free2_d(d,GradChiRef32_code);
 	array_free2_d(d,GradChiRef32_test);
 
@@ -1205,7 +1190,8 @@ exit(1);
 
 	d = 3;
 
-	cubature_PYR(&rst,&w,&symms,&Nn,&Ns,0,P,d,"GLL"); // free
+	set_cubdata(CUBDATA,false,false,"GLL",d,P,cubature_PYR); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
 
 	r = malloc(Nn * sizeof *r); // free
 	s = malloc(Nn * sizeof *s); // free
@@ -1233,23 +1219,22 @@ exit(1);
 	if (array_norm_diff_d(Nn,f_r,f_rcomp,"Inf") < EPS*1e3 &&
 	    array_norm_diff_d(Nn,f_s,f_scomp,"Inf") < EPS*1e3 &&
 	    array_norm_diff_d(Nn,f_t,f_tcomp,"Inf") < EPS*1e3) {
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 	} else {
 		printf("%e\n",array_norm_diff_d(Nn,f_r,f_rcomp,"Inf"));
 		printf("%e\n",array_norm_diff_d(Nn,f_s,f_scomp,"Inf"));
 		printf("%e\n",array_norm_diff_d(Nn,f_t,f_tcomp,"Inf"));
 	}
 
-	//     0         10        20        30        40        50
-	printf("               derivatives (d3):                 ");
-	test_print(pass);
+	test_print2(pass,"               derivatives (d3):");
 
 	free(rst), free(r), free(s), free(t);
-	free(symms);
 	free(I);
 	free(ChiRef_rst), free(ChiRefInv_rst);
 	array_free2_d(d,GradChiRef_rst);
 	free(f), free(f_hat);
 	free(f_r), free(f_s), free(f_t);
 	free(f_rcomp), free(f_scomp), free(f_tcomp);
+
+	free(CUBDATA);
 }

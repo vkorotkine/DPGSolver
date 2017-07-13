@@ -11,7 +11,7 @@
 
 #include "test_support.h"
 #include "array_norm.h"
-#include "solver_functions.h"
+#include "setup_operators_support.h"
 #include "cubature.h"
 
 /*
@@ -28,6 +28,8 @@
 void test_unit_get_face_ordering(void)
 {
 	unsigned int pass;
+
+	char *PrintName = malloc(STRLEN_MAX * sizeof *PrintName); // free
 
 	/*
 	 *	Input:
@@ -60,11 +62,9 @@ void test_unit_get_face_ordering(void)
 
 	pass = 0;
 	if (array_norm_diff_ui(Nn,nOrd,nOrd10,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("get_face_ordering (d = 1, case 0):               ");
-	test_print(pass);
+	test_print2(pass,"get_face_ordering (d = 1, case 0):");
 
 	free(nOrd);
 
@@ -109,11 +109,10 @@ void test_unit_get_face_ordering(void)
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd2P2[IndOrd],"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-		//     0         10        20        30        40        50
-		printf("                   (d = 2, case %d (P2)):         ",IndOrd);
-		test_print(pass);
+		sprintf(PrintName,"                  (d = 2, case %d (P2)):",IndOrd);
+		test_print2(pass,PrintName);
 	}
 	free(nOrd);
 
@@ -132,11 +131,10 @@ void test_unit_get_face_ordering(void)
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd2P3[IndOrd],"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-		//     0         10        20        30        40        50
-		printf("                   (d = 2, case %d (P3)):         ",IndOrd);
-		test_print(pass);
+		sprintf(PrintName,"                  (d = 2, case %d (P3)):",IndOrd);
+		test_print2(pass,PrintName);
 	}
 	free(nOrd);
 
@@ -210,11 +208,10 @@ void test_unit_get_face_ordering(void)
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd3P2Q[IndOrd],"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-		//     0         10        20        30        40        50
-		printf("                   (d = 3 (QUAD), case %d (P2)):  ",IndOrd);
-		test_print(pass);
+		sprintf(PrintName,"                  (d = 3 (QUAD), case %d (P2)):",IndOrd);
+		test_print2(pass,PrintName);
 	}
 	free(nOrd);
 
@@ -240,11 +237,10 @@ void test_unit_get_face_ordering(void)
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd3P3Q[IndOrd],"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-		//     0         10        20        30        40        50
-		printf("                   (d = 3 (QUAD), case %d (P3)):  ",IndOrd);
-		test_print(pass);
+		sprintf(PrintName,"                  (d = 3 (QUAD), case %d (P3)):",IndOrd);
+		test_print2(pass,PrintName);
 	}
 	free(nOrd);
 
@@ -285,7 +281,9 @@ void test_unit_get_face_ordering(void)
 
 	// d == 3 (FType = TRI)
 	unsigned int P, Ns, *symms;
-	double       *rst, *w;
+	double       *rst;
+
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
 
 	d     = 3;
 	FType = TRI;
@@ -299,7 +297,8 @@ void test_unit_get_face_ordering(void)
 	                               { 2, 1, 0, 4, 3, 5},
 	                               { 1, 0, 2, 3, 5, 4}};
 
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,0,P,d-1,"WSH");
+	set_cubdata(CUBDATA,false,true,"WSH",d-1,P,cubature_TRI); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,NULL,&symms);
 
 	nOrd = malloc(Nn * sizeof *nOrd); // free
 
@@ -312,11 +311,10 @@ void test_unit_get_face_ordering(void)
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd3P2T[IndOrd],"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-		//     0         10        20        30        40        50
-		printf("                   (d = 3 (TRI), case %d (P2)):   ",IndOrd);
-		test_print(pass);
+		sprintf(PrintName,"                  (d = 3 (TRI), case %d (P2)):",IndOrd);
+		test_print2(pass,PrintName);
 	}
 	free(rst);
 	free(symms);
@@ -331,7 +329,8 @@ void test_unit_get_face_ordering(void)
 	                                { 5, 4, 3, 2, 1, 0, 8, 7, 6, 9},
 	                                { 4, 3, 5, 1, 0, 2, 7, 6, 8, 9}};
 
-	cubature_TRI(&rst,&w,&symms,&Nn,&Ns,0,P,d-1,"WSH");
+	set_cubdata(CUBDATA,false,true,"WSH",d-1,P,cubature_TRI); // free
+	set_from_cubdata(CUBDATA,&Nn,&Ns,&rst,NULL,&symms);
 
 	nOrd = malloc(Nn * sizeof *nOrd); // free
 
@@ -344,13 +343,16 @@ void test_unit_get_face_ordering(void)
 
 		pass = 0;
 		if (array_norm_diff_ui(Nn,nOrd,nOrd3P3T[IndOrd],"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-		//     0         10        20        30        40        50
-		printf("                   (d = 3 (TRI), case %d (P3)):   ",IndOrd);
-		test_print(pass);
+		sprintf(PrintName,"                  (d = 3 (TRI), case %d (P3)):",IndOrd);
+		test_print2(pass,PrintName);
 	}
 	free(rst);
 	free(symms);
 	free(nOrd);
+
+	free(PrintName);
+
+	free(CUBDATA);
 }

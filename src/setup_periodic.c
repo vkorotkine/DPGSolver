@@ -353,7 +353,7 @@ void setup_periodic()
 	NGF -= NPFSum[d-1];
 	GFToVeUnder = malloc(NGF*NfveMax * sizeof *GFToVeUnder); // keep
 	for (gf = 0, count = 0; gf < NGF; gf++) {
-		while (gf+count == GFToRemove[count])
+		while (count < NPFTotal && gf+count == GFToRemove[count])
 			count++;
 		for (j = 0; j < NfveMax; j++)
 			GFToVeUnder[gf*NfveMax+j] = GFToVe[(gf+count)*NfveMax+j];

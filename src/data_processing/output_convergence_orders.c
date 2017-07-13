@@ -55,13 +55,16 @@ int main(void)
 //	strcpy(TestCase,"PeriodicVortex");
 //	strcpy(TestCase,"SupersonicVortex");
 //	strcpy(TestCase,"Poisson");
-	strcpy(TestCase,"InviscidChannel");
+//	strcpy(TestCase,"InviscidChannel");
+//	strcpy(TestCase,"SubsonicNozzle");
+	strcpy(TestCase,"NavierStokes_TaylorCouette");
 
 //	strcpy(MeshType,"StructuredTRI");
 //	strcpy(MeshType,"TRI");
-	strcpy(MeshType,"CurvedTRI");
+//	strcpy(MeshType,"CurvedTRI");
 //	strcpy(MeshType,"CurvedQUAD");
-//	strcpy(MeshType,"ToBeCurvedTRI");
+	strcpy(MeshType,"ToBeCurvedTRI");
+//	strcpy(MeshType,"ToBeCurvedQUAD");
 //	strcpy(MeshType,"CurvedTET");
 //	strcpy(MeshType,"ToBeCurvedStructuredTRI");
 //	strcpy(MeshType,"ToBeCurvedStructuredQUAD");
@@ -71,8 +74,9 @@ int main(void)
 
 	d     = 2;
 //	NVars = DMAX+2+1;
-	NVars = DMAX+1;
-	MLMax = 4; NML = MLMax+1;
+//	NVars = DMAX+1;
+	NVars = d+1;
+	MLMax = 3; NML = MLMax+1;
 	PMax  = 8; NP  = PMax+1;
 
 	unsigned int CasesRun[72] = { 0, 1, 1, 1, 0, 0, 0, 0, 0,
@@ -80,7 +84,7 @@ int main(void)
 	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
 	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
 	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
-	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
+	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -202,7 +206,21 @@ static void data_to_txt(const unsigned int d, const unsigned int NVars, const un
 			else
 				IndVars[i] = i+1;
 		}
-	} else if (strstr(TestCase,"InviscidChannel")) {
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		NVarsOut = NVars;
+		Vars_c = malloc(NVarsOut * sizeof *Vars_c); // free
+		for (i = 0; i < NVarsOut; i++)
+			Vars_c[i] = malloc(STRLEN_MIN * sizeof *Vars_c[i]); // free
+
+		strcpy(Vars_c[0],"$u$");
+		strcpy(Vars_c[1],"$v$");
+		strcpy(Vars_c[2],"$T$");
+
+		for (i = 0; i < NVarsOut; i++) {
+			IndVars[i] = i;
+		}
+	} else if (strstr(TestCase,"InviscidChannel") ||
+	           strstr(TestCase,"SubsonicNozzle")) {
 		NVarsOut = 1;
 		Vars_c = malloc(NVarsOut * sizeof *Vars_c); // free
 		for (i = 0; i < NVarsOut; i++)
@@ -226,6 +244,8 @@ static void data_to_txt(const unsigned int d, const unsigned int NVars, const un
 
 		for (i = 0; i < NVarsOut; i++)
 			IndVars[i] = i;
+	} else {
+		printf("Error: Unsupported (234).\n"), exit(1);
 	}
 
 	NML = MLMax+1;

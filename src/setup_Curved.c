@@ -102,6 +102,7 @@ void compute_plane(const double *XYZ1, const double *XYZ2, const double *XYZ3, d
 void get_abc_ellipse(const unsigned int Nn, double *XYZ, double *abc)
 {
 	// Initialize DB Parameters
+	char         *TestCase = DB.TestCase;
 	unsigned int d    = DB.d;
 	double       rIn  = DB.rIn,
 	             aIn  = DB.aIn,
@@ -115,6 +116,13 @@ void get_abc_ellipse(const unsigned int Nn, double *XYZ, double *abc)
 	// Standard datatypes
 	unsigned int n;
 	double       *x, *y, *z, norm_In, norm_Out;
+
+	if (strstr(TestCase,"PrandtlMeyer")) {
+		abc[0] = aIn;
+		abc[1] = bIn;
+		abc[2] = cIn;
+		return;
+	}
 
 	x = &XYZ[0*Nn];
 	y = &XYZ[1*Nn];
@@ -153,42 +161,52 @@ void get_abc_ellipse(const unsigned int Nn, double *XYZ, double *abc)
 static double get_radius(const unsigned int Nn, double *XYZ)
 {
 	// Initialize DB Parameters
-	unsigned int d    = DB.d;
-	double       rIn  = DB.rIn,
-	             rOut = DB.rOut;
+	char         *Geometry = DB.Geometry;
+	unsigned int d         = DB.d;
+	double       rIn       = DB.rIn,
+	             rOut      = DB.rOut;
 
 	// Standard datatypes
 	unsigned int n;
-	double       *x, *y, *z, norm_rIn, norm_rOut, r, r2;
+	double       *x, *y, *z, dist_rIn, dist_rOut, r, r2;
 
 	x = &XYZ[0*Nn];
 	y = &XYZ[1*Nn];
 	z = &XYZ[(d-1)*Nn];
 
-	norm_rIn  = 0.0;
-	norm_rOut = 0.0;
+	dist_rIn  = 1.0/EPS;
+	dist_rOut = 1.0/EPS;
 
 	for (n = 0; n < Nn; n++) {
 		r2 = x[n]*x[n]+y[n]*y[n];
-		if (d == 3)
+		if (d == 3 && strstr(Geometry,"n-Ball"))
 			r2 += z[n]*z[n];
-		r          = sqrt(r2);
-		norm_rIn  += sqrt((r-rIn)* (r-rIn));
-		norm_rOut += sqrt((r-rOut)*(r-rOut));
-	}
-	norm_rIn  /= Nn;
-	norm_rOut /= Nn;
+		else if (d == 3 && strstr(Geometry,"n-Cylinder"))
+			{ ; } // Do nothing
 
-	if (norm_rIn < 4e-1*(rOut-rIn)) {
-		r = rIn;
-	} else if (norm_rOut < 4e-1*(rOut-rIn)) {
-		r = rOut;
-	} else {
-		printf("% .3e % .3e\n",norm_rIn,norm_rOut);
-		array_print_d(Nn,d,XYZ,'C');
-		printf("Error: Did not find the radius.\n"), EXIT_MSG;
+		r = sqrt(r2);
+		if (fabs(r-rIn) < dist_rIn)
+			dist_rIn = fabs(r-rIn);
+		if (fabs(r-rOut) < dist_rOut)
+			dist_rOut = fabs(r-rOut);
 	}
-	return r;
+
+//	double dist_tol = EPS;
+	double dist_tol = 1e-3;
+	if (dist_rIn < dist_tol && dist_rOut < dist_tol) {
+		array_print_d(Nn,d,XYZ,'C');
+		printf("Error: Found two radii.\n"), EXIT_MSG;
+	}
+
+	if (dist_rIn < dist_tol) {
+		return rIn;
+	} else if (dist_rOut < dist_tol) {
+		return rOut;
+	}
+
+	printf("% .3e % .3e % .3e % .3e\n\n",dist_rIn,dist_rOut,rIn,rOut);
+	array_print_d(Nn,d,XYZ,'C');
+	printf("Error: Did not find the radius.\n"), EXIT_MSG;
 }
 
 void compute_normal_displacement(const unsigned int Nn, const unsigned int curved_normal, const double *XYZ_S,
@@ -203,8 +221,14 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 	double       r, D, D1, D2, ABC[3], XYZ[DMAX] = {0.0}, XYZ_C[DMAX] ={0.0};
 
 	Indn = 0;
-	if (strstr(Geometry,"dm1-Spherical_Section")) {
+	if (strstr(Geometry,"n-Ball") || strstr(Geometry,"n-Cylinder")) {
 		r = get_radius(Nn,(double *) XYZ_S);
+
+		double dCheck = 0;
+		if (strstr(Geometry,"n-Ball"))
+			dCheck = d;
+		else if (strstr(Geometry,"n-Cylinder"))
+			dCheck = 2;
 
 		for (n = 0; n < Nn; n++) {
 			if (curved_normal)
@@ -217,7 +241,7 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 			ABC[0] = 0.0;
 			ABC[1] = 0.0;
 			ABC[2] = -r*r;
-			for (dim = 0; dim < d; dim++) {
+			for (dim = 0; dim < dCheck; dim++) {
 				ABC[0] += normals[Indn*d+dim]*normals[Indn*d+dim];
 				ABC[1] += normals[Indn*d+dim]*XYZ[dim];
 				ABC[2] += XYZ[dim]*XYZ[dim];
@@ -251,7 +275,7 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 			for (dim = 0; dim < d; dim++)
 				XYZ_CmS[n+Nn*dim] = XYZ_C[dim]-XYZ[dim];
 		}
-	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+	} else if (strstr(Geometry,"n-Ellipsoid")) {
 		double *abc;
 
 		abc = malloc(DMAX * sizeof *abc); // free
@@ -515,6 +539,7 @@ void compute_normal_displacement(const unsigned int Nn, const unsigned int curve
 	} else if (strstr(Geometry,"GaussianBump")  ||
 	           strstr(Geometry,"NacaSymmetric") ||
 	           strstr(Geometry,"JoukowskiSymmetric") ||
+	           strstr(Geometry,"ExpansionCorner") ||
 	           strstr(Geometry,"EllipsoidalBump")) {
 		double       nx, ny, xS, yS, DStep, x, y, h, xp, yp, ypE;
 
@@ -869,20 +894,22 @@ static void select_functions_Curved(compute_pc_tdef *compute_pc, compute_XYZ_tde
 	// Initialize DB Parameters
 	char *Geometry = DB.Geometry;
 
-	if (strstr(Geometry,"dm1-Spherical_Section")) {
+	if (strstr(Geometry,"n-Ball")) {
 		*compute_pc  = compute_pc_dsphere;
 		*compute_XYZ = compute_XYZ_dsphere;
-	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+	} else if (strstr(Geometry,"n-Ellipsoid")) {
 		*compute_pc  = compute_pc_ellipsoid;
 		*compute_XYZ = compute_XYZ_ellipsoid;
 		if (DB.Parametrization != NORMAL &&
 		    DB.Parametrization != RADIAL_PROJECTION)
 				printf("Error: Unsupported parametrization.\n"), EXIT_MSG;
-	} else if (strstr(Geometry,"Ringleb")       ||
+	} else if (strstr(Geometry,"n-Cylinder") ||
+	           strstr(Geometry,"Ringleb")       ||
 			   strstr(Geometry,"HoldenRamp")    ||
 			   strstr(Geometry,"GaussianBump")  ||
 			   strstr(Geometry,"NacaSymmetric") ||
 			   strstr(Geometry,"JoukowskiSymmetric") ||
+			   strstr(Geometry,"ExpansionCorner") ||
 			   strstr(Geometry,"EllipsoidalBump")) {
 		if (DB.Parametrization != NORMAL)
 			printf("Add support if not using NORMAL parametrization.\n"), EXIT_MSG;

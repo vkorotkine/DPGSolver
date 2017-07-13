@@ -1,0 +1,29 @@
+PDEName       Advection
+PDESpecifier  Steady/Peterson
+
+Geometry      n-Cube n-Cube/n-Cube2D.geo
+GeomSpecifier YL
+
+Dimension     2
+
+MeshPath      ../meshes/
+MeshType      TRI
+MeshCurving   Straight
+MeshLevel     0
+
+Form       Weak   // Options: Weak, (Strong)
+NodeType   GL-WSH // Options: GL/GLL-AO/WSH/EQ
+BasisType  Nodal  // Options: Nodal, Modal
+
+Vectorized 0     // Options: 0, 1
+EFE        1     // Options: (0), 1
+Collocated 0     // Options: 0, 1
+Adapt      1     // Options: 0, 1, 2, 3
+
+PGlobal    1
+PMax       4
+LevelsMax  7
+
+Restart    -1    // Options: -1, 0, Iteration #
+
+Testing    1     // Options: 0, 1

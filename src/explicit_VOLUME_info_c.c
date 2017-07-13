@@ -11,12 +11,14 @@
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
-#include "S_ELEMENT.h"
 #include "S_VOLUME.h"
 
-#include "element_functions.h"
-#include "matrix_functions.h"
+#include "solver_functions.h"
+#include "solver_functions_c.h"
+#include "fluxes_structs.h"
 #include "fluxes_inviscid_c.h"
+#include "fluxes_viscous_c.h"
+#include "array_free.h"
 #include "array_print.h"
 
 /*
@@ -30,15 +32,8 @@
  *	References:
  */
 
-struct S_OPERATORS {
-	unsigned int NvnI, NvnS, NvnS_SF, NvnI_SF;
-	double       *ChiS_vI, **D_Weak, *I_Weak;
-
-	struct S_OpCSR **D_Weak_sp;
-};
-
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass);
-static void compute_VOLUME_RHS_EFE(void);
+static void compute_Inviscid_VOLUME_RHS_EFE (void);
+static void compute_Viscous_VOLUME_RHS_EFE  (void);
 
 void explicit_VOLUME_info_c(void)
 {
@@ -49,11 +44,11 @@ void explicit_VOLUME_info_c(void)
 	if (EFE) {
 		switch (Vectorized) {
 		case 0:
-			compute_VOLUME_RHS_EFE();
+			compute_Inviscid_VOLUME_RHS_EFE();
+			compute_Viscous_VOLUME_RHS_EFE();
 			break;
 		default:
-			printf("Error: Vectorized version not yet converted.\n"), EXIT_MSG;
-//			compute_VOLUMEVec_RHS_EFE();
+			EXIT_UNSUPPORTED;
 			break;
 		}
 	} else {
@@ -61,134 +56,147 @@ void explicit_VOLUME_info_c(void)
 	}
 }
 
-static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndClass)
-{
-	// Standard datatypes
-	unsigned int P, type, curved;
-	struct S_ELEMENT *ELEMENT, *ELEMENT_OPS;
-
-	// silence
-	P = IndClass;
-	ELEMENT_OPS = NULL;
-
-	P      = VOLUME->P;
-	type   = VOLUME->type;
-	curved = VOLUME->curved;
-
-	ELEMENT = get_ELEMENT_type(type);
-	ELEMENT_OPS = ELEMENT;
-
-	OPS->NvnS    = ELEMENT->NvnS[P];
-	OPS->NvnS_SF = ELEMENT_OPS->NvnS[P];
-	if (!curved) {
-		OPS->NvnI    = ELEMENT->NvnIs[P];
-		OPS->NvnI_SF = ELEMENT_OPS->NvnIs[P];
-
-		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIs[P][P][0];
-		OPS->D_Weak  = ELEMENT_OPS->Ds_Weak_VV[P][P][0];
-		OPS->I_Weak  = ELEMENT_OPS->Is_Weak_VV[P][P][0];
-
-		OPS->D_Weak_sp = ELEMENT->Ds_Weak_VV_sp[P][P][0];
-	} else {
-		OPS->NvnI    = ELEMENT->NvnIc[P];
-		OPS->NvnI_SF = ELEMENT_OPS->NvnIc[P];
-
-		OPS->ChiS_vI = ELEMENT_OPS->ChiS_vIc[P][P][0];
-		OPS->D_Weak  = ELEMENT_OPS->Dc_Weak_VV[P][P][0];
-		OPS->I_Weak  = ELEMENT_OPS->Ic_Weak_VV[P][P][0];
-
-		OPS->D_Weak_sp = ELEMENT->Dc_Weak_VV_sp[P][P][0];
-	}
-}
-
-static void compute_VOLUME_RHS_EFE(void)
+static void compute_Inviscid_VOLUME_RHS_EFE(void)
 {
 	// Initialize DB Parameters
-	char         *Form = DB.Form;
-	unsigned int d          = DB.d,
-	             Collocated = DB.Collocated,
-				 Nvar       = DB.Nvar,
-				 Neq        = DB.Neq;
+	unsigned int d    = DB.d,
+				 Nvar = d+2,
+				 Neq  = d+2;
 
 	// Standard datatypes
-	unsigned int   i, eq, dim1, dim2,
-	               IndFr, IndF, IndC, IndRHS,
-	               NvnI, NvnS;
-	double         *C_vI, **D;
-	double complex *W_vI, *F_vI, *Fr_vI, *RHS, *DFr;
+	struct S_OPERATORS_V *OPS[2];
 
-	struct S_OPERATORS *OPS[2];
-	struct S_VOLUME    *VOLUME;
+	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
+	VDATA->OPS = (struct S_OPERATORS_V const *const *) OPS;
 
-	for (i = 0; i < 2; i++)
+	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->PDE_index = DB.PDE_index;
+	FLUXDATA->d   = d;
+	FLUXDATA->Nel = 1;
+
+	for (size_t i = 0; i < 2; i++)
 		OPS[i] = malloc(sizeof *OPS[i]); // free
 
-	if (strstr(Form,"Weak")) {
-		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-			// Obtain operators
-			init_ops(OPS[0],VOLUME,0);
-			if (VOLUME->type == WEDGE)
-				init_ops(OPS[1],VOLUME,1);
+	if (strstr(DB.Form,"Weak")) {
+		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			init_VDATA(VDATA,VOLUME);
 
 			// Obtain W_vI
-			NvnI = OPS[0]->NvnI;
-			if (Collocated) {
-				W_vI = VOLUME->What_c;
+			unsigned int NvnI = VDATA->OPS[0]->NvnI;
+			if (DB.Collocated) {
+				VDATA->W_vI_c = VOLUME->What_c;
 			} else {
-				W_vI = malloc(NvnI*Nvar * sizeof *W_vI); // free
-
-				mm_dcc(CBCM,CBT,CBNT,NvnI,Nvar,OPS[0]->NvnS,1.0,0.0,OPS[0]->ChiS_vI,VOLUME->What_c,W_vI);
+				VDATA->W_vI_c = malloc(NvnI*Nvar * sizeof *(VDATA->W_vI_c)); // free
+				coef_to_values_vI_c(VDATA,'W');
 			}
 
 			// Compute Flux in reference space
-			F_vI = malloc(NvnI*d*Neq * sizeof *F_vI); // free
-			flux_inviscid_c(NvnI,1,W_vI,F_vI,d,Neq);
+			double complex *const F_vI = malloc(NvnI*d*Neq * sizeof *F_vI); // free
 
-			if (!Collocated)
-				free(W_vI);
+			FLUXDATA->Nn  = NvnI;
+			FLUXDATA->W_c = VDATA->W_vI_c;
+			FLUXDATA->F_c = F_vI;
 
-			C_vI = VOLUME->C_vI;
+			flux_inviscid_c(FLUXDATA);
 
-			Fr_vI = calloc(NvnI*d*Neq , sizeof *Fr_vI); // free
-			for (eq = 0; eq < Neq; eq++) {
-			for (dim1 = 0; dim1 < d; dim1++) {
-			for (dim2 = 0; dim2 < d; dim2++) {
-				IndFr = (eq*d+dim1)*NvnI;
-				IndF  = (eq*d+dim2)*NvnI;
-				IndC  = (dim1*d+dim2)*NvnI;
-				for (i = 0; i < NvnI; i++)
-					Fr_vI[IndFr+i] += F_vI[IndF+i]*C_vI[IndC+i];
-			}}}
+			if (!DB.Collocated)
+				free(VDATA->W_vI_c);
+
+			// Convert to reference space
+			double complex *const Fr_vI = malloc(NvnI*d*Neq * sizeof *Fr_vI); // free
+			convert_between_rp_c(NvnI,Neq,VOLUME->C_vI,F_vI,Fr_vI,"FluxToRef");
 			free(F_vI);
 
-			// Compute RHS terms
-			NvnS = OPS[0]->NvnS;
+			// Compute RHS term
+			unsigned int NvnS = VDATA->OPS[0]->NvnS;
 
 			if (VOLUME->RHS_c)
 				free(VOLUME->RHS_c);
-			RHS = calloc(NvnS*Neq , sizeof *RHS); // keep (requires external free)
-			VOLUME->RHS_c = RHS;
+			VOLUME->RHS_c = calloc(NvnS*Neq , sizeof *(VOLUME->RHS_c)); // keep
 
-			DFr = malloc(NvnS * sizeof *DFr); // free
-
-			D = OPS[0]->D_Weak;
-
-			for (eq = 0; eq < Neq; eq++) {
-			for (dim1 = 0; dim1 < d; dim1++) {
-				mm_dcc(CBCM,CBT,CBNT,NvnS,1,NvnI,1.0,0.0,D[dim1],&Fr_vI[(eq*d+dim1)*NvnI],DFr);
-
-				IndRHS = eq*NvnS;
-				for (i = 0; i < NvnS; i++)
-					RHS[IndRHS+i] += DFr[i];
-			}}
-
-			free(DFr);
+			finalize_VOLUME_Inviscid_Weak_c(Neq,Fr_vI,VOLUME->RHS_c,'E',VDATA);
 			free(Fr_vI);
 		}
-	} else if (strstr(Form,"Strong")) {
-		printf("Exiting: Implement the strong form in compute_VOLUME_RHS_EFE.\n"), exit(1);
+	} else if (strstr(DB.Form,"Strong")) {
+		EXIT_UNSUPPORTED;
 	}
 
-	for (i = 0; i < 2; i++)
+	free(VDATA);
+	free(FLUXDATA);
+	for (size_t i = 0; i < 2; i++)
+		free(OPS[i]);
+}
+
+static void compute_Viscous_VOLUME_RHS_EFE(void)
+{
+	if (!DB.Viscous)
+		return;
+
+	unsigned int const d    = DB.d,
+	                   Nvar = d+2,
+	                   Neq  = d+2;
+
+	struct S_OPERATORS_V *OPS[2];
+
+	struct S_VDATA *VDATA = malloc(sizeof *VDATA); // free
+	VDATA->OPS = (struct S_OPERATORS_V const *const *) OPS;
+
+	struct S_FLUX *const FLUXDATA = malloc(sizeof *FLUXDATA); // free
+	FLUXDATA->d   = d;
+	FLUXDATA->Nel = 1;
+
+	for (size_t i = 0; i < 2; i++)
+		OPS[i] = malloc(sizeof *OPS[i]); // free
+
+	if (strstr(DB.Form,"Weak")) {
+		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			init_VDATA(VDATA,VOLUME);
+
+			// Obtain W_vI and Q_vI
+			unsigned int const NvnI = VDATA->OPS[0]->NvnI;
+			if (DB.Collocated) {
+				VDATA->W_vI_c = VOLUME->What_c;
+				VDATA->Q_vI_c = VOLUME->Qhat_c;
+			} else {
+				VDATA->W_vI_c = malloc(NvnI*Nvar * sizeof *(VDATA->W_vI_c)); // free
+				VDATA->Q_vI_c = malloc(d         * sizeof *(VDATA->Q_vI_c)); // free
+				for (size_t dim = 0; dim < d; dim++)
+					VDATA->Q_vI_c[dim] = malloc(NvnI*Nvar * sizeof *(VDATA->Q_vI_c[dim])); // free
+
+				coef_to_values_vI_c(VDATA,'W');
+				coef_to_values_vI_c(VDATA,'Q');
+			}
+
+			// Compute negated Flux in reference space
+			double complex *const F_vI = malloc(NvnI*d*Neq * sizeof *F_vI);
+
+			FLUXDATA->Nn  = NvnI;
+			FLUXDATA->W_c = VDATA->W_vI_c;
+			FLUXDATA->Q_c = (double complex const *const *const) VDATA->Q_vI_c;
+			FLUXDATA->F_c = F_vI;
+
+			flux_viscous_c(FLUXDATA);
+
+			if (!DB.Collocated) {
+				free(VDATA->W_vI_c);
+				array_free2_cmplx(d,VDATA->Q_vI_c);
+			}
+
+			// Convert to reference space
+			double complex *const Fr_vI = malloc(NvnI*Neq*d * sizeof *Fr_vI); // free
+			convert_between_rp_c(NvnI,Neq,VOLUME->C_vI,F_vI,Fr_vI,"FluxToRef");
+			free(F_vI);
+
+			// Compute RHS term
+			finalize_VOLUME_Viscous_Weak_c(Neq,Fr_vI,VOLUME->RHS_c,'E',VDATA);
+			free(Fr_vI);
+		}
+	} else if (strstr(DB.Form,"Strong")) {
+		EXIT_UNSUPPORTED;
+	}
+
+	free(VDATA);
+	free(FLUXDATA);
+	for (size_t i = 0; i < 2; i++)
 		free(OPS[i]);
 }

@@ -101,11 +101,9 @@ void test_unit_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_ui(10,A_ui,A_ui1,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("array_sort_ui (1 row(s) sorted):                 ");
-	test_print(pass);
+	test_print2(pass,"array_sort_ui (1 row(s) sorted):");
 
 	// row(s) sorted: 2
 	for (i = 0; i < 30; i++) A_ui[i]   = A_ui0[i];
@@ -115,11 +113,9 @@ void test_unit_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_ui(20,A_ui,A_ui2,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("              (2 row(s) sorted):                 ");
-	test_print(pass);
+	test_print2(pass,"              (2 row(s) sorted):");
 
 	// row(s) sorted: 3
 	for (i = 0; i < 30; i++) A_ui[i]   = A_ui0[i];
@@ -129,12 +125,10 @@ void test_unit_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_ui(30,A_ui,A_ui3,"Inf") < EPS &&
-		array_norm_diff_ui(10,Ind_ui,Ind_ui3,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+	    array_norm_diff_ui(10,Ind_ui,Ind_ui3,"Inf") < EPS)
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("              (3 row(s) sorted):                 ");
-	test_print(pass);
+	test_print2(pass,"              (3 row(s) sorted):");
 
 
 	// Transposed
@@ -149,11 +143,9 @@ void test_unit_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_ui(10,A_ui,A_ui1,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("array_sort_ui - Transposed (1 row(s) sorted):    ");
-	test_print(pass);
+	test_print2(pass,"array_sort_ui - Transposed (1 row(s) sorted):");
 
 	// row(s) sorted: 2
 	for (i = 0; i < 30; i++) A_ui[i]   = A_ui0[i];
@@ -166,11 +158,9 @@ void test_unit_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_ui(20,A_ui,A_ui2,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                           (2 row(s) sorted):    ");
-	test_print(pass);
+	test_print2(pass,"                           (2 row(s) sorted):");
 
 	// row(s) sorted: 3
 	for (i = 0; i < 30; i++) A_ui[i]   = A_ui0[i];
@@ -183,12 +173,10 @@ void test_unit_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_ui(30,A_ui,A_ui3,"Inf") < EPS &&
-		array_norm_diff_ui(10,Ind_ui,Ind_ui3,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+	    array_norm_diff_ui(10,Ind_ui,Ind_ui3,"Inf") < EPS)
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                           (3 row(s) sorted):    ");
-	test_print(pass);
+	test_print2(pass,"                           (3 row(s) sorted):");
 
 	unsigned int NRows = 30, NCols = 4;
 	unsigned int B_ui[4*30],
@@ -232,11 +220,9 @@ void test_unit_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_ui(NRows*1,B_ui,B_ui1,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("array_sort_ui - test 2 (1 row(s) sorted):        ");
-	test_print(pass);
+	test_print2(pass,"array_sort_ui - test 2 (1 row(s) sorted):");
 
 	// row(s) sorted: 2
 	for (i = 0; i < NRows*NCols; i++) B_ui[i]    = B_ui0[i];
@@ -246,11 +232,9 @@ void test_unit_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_ui(NRows*2,B_ui,B_ui2,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                       (2 row(s) sorted):        ");
-	test_print(pass);
+	test_print2(pass,"                       (2 row(s) sorted):");
 
 	// row(s) sorted: 3
 	for (i = 0; i < NRows*NCols; i++) B_ui[i]    = B_ui0[i];
@@ -260,11 +244,9 @@ void test_unit_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_ui(NRows*3,B_ui,B_ui3,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                       (3 row(s) sorted):        ");
-	test_print(pass);
+	test_print2(pass,"                       (3 row(s) sorted):");
 
 	// row(s) sorted: 4
 	for (i = 0; i < NRows*NCols; i++) B_ui[i]    = B_ui0[i];
@@ -275,11 +257,9 @@ void test_unit_array_sort(void)
 	pass = 0;
 	if (array_norm_diff_ui(NRows*4,B_ui,B_ui4,"Inf")       < EPS &&
 	    array_norm_diff_ui(NRows*1,IndB_ui,IndB_ui4,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                       (4 row(s) sorted):        ");
-	test_print(pass);
+	test_print2(pass,"                       (4 row(s) sorted):");
 
 	/*
 	 *	array_sort_d:
@@ -302,13 +282,10 @@ void test_unit_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_d(30,A_d,A_d0,"Inf") < EPS &&
-		array_norm_diff_ui(10,Ind_ui,Ind_ui0,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+	    array_norm_diff_ui(10,Ind_ui,Ind_ui0,"Inf") < EPS)
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("array_sort_d (0 row(s) sorted):                  ");
-	test_print(pass);
-
+	test_print2(pass,"array_sort_d (0 row(s) sorted):");
 
 	// row(s) sorted: 1
 	for (i = 0; i < 30; i++) A_d[i]   = A_d0[i];
@@ -318,11 +295,9 @@ void test_unit_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_d(10,A_d,A_d1,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("             (1 row(s) sorted):                  ");
-	test_print(pass);
+	test_print2(pass,"             (1 row(s) sorted):");
 
 	// row(s) sorted: 2
 	for (i = 0; i < 30; i++) A_d[i]   = A_d0[i];
@@ -332,11 +307,9 @@ void test_unit_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_d(20,A_d,A_d2,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("             (2 row(s) sorted):                  ");
-	test_print(pass);
+	test_print2(pass,"             (2 row(s) sorted):");
 
 	// row(s) sorted: 3
 	for (i = 0; i < 30; i++) A_d[i]   = A_d0[i];
@@ -347,11 +320,9 @@ void test_unit_array_sort(void)
 	pass = 0;
 	if (array_norm_diff_d(30,A_d,A_d3,"Inf") < EPS &&
 		array_norm_diff_ui(10,Ind_ui,Ind_ui3,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("             (3 row(s) sorted):                  ");
-	test_print(pass);
+	test_print2(pass,"             (3 row(s) sorted):");
 
 
 	// Transposed
@@ -366,11 +337,9 @@ void test_unit_array_sort(void)
 	pass = 0;
 	if (array_norm_diff_d(30,A_d,A_d0,"Inf") < EPS &&
 		array_norm_diff_ui(10,Ind_ui,Ind_ui0,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("array_sort_d - Transposed (0 row(s) sorted):     ");
-	test_print(pass);
+	test_print2(pass,"array_sort_d - Transposed (0 row(s) sorted):");
 
 	// row(s) sorted: 1
 	for (i = 0; i < 30; i++) A_d[i]   = A_d0[i];
@@ -383,11 +352,9 @@ void test_unit_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_d(10,A_d,A_d1,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                          (1 row(s) sorted):     ");
-	test_print(pass);
+	test_print2(pass,"                          (1 row(s) sorted):");
 
 	// row(s) sorted: 2
 	for (i = 0; i < 30; i++) A_d[i]   = A_d0[i];
@@ -400,11 +367,9 @@ void test_unit_array_sort(void)
 
 	pass = 0;
 	if (array_norm_diff_d(20,A_d,A_d2,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                          (2 row(s) sorted):     ");
-	test_print(pass);
+	test_print2(pass,"                          (2 row(s) sorted):");
 
 	// row(s) sorted: 3
 	for (i = 0; i < 30; i++) A_d[i]   = A_d0[i];
@@ -418,9 +383,7 @@ void test_unit_array_sort(void)
 	pass = 0;
 	if (array_norm_diff_d(30,A_d,A_d3,"Inf") < EPS &&
 		array_norm_diff_ui(10,Ind_ui,Ind_ui3,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                          (3 row(s) sorted):     ");
-	test_print(pass);
+	test_print2(pass,"                          (3 row(s) sorted):");
 }

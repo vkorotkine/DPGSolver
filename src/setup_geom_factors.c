@@ -89,14 +89,20 @@ void compute_detJV(const unsigned int Nn, double *J, double *detJV)
 		}
 	}
 
-	for (n = 0; n < Nn; n++) {
-		if (0&&detJV[n] < EPS) {
-			array_print_d(Nn,1,detJV,'R');
-			output_to_paraview("ZTest_Geom_curved");
+	double detJV_avg = 0.0;
+	for (n = 0; n < Nn; n++)
+		detJV_avg += detJV[n];
 
-			printf("Error: Negative VOLUME.\n");
-			printf("Mesh output to paraview.\n"), EXIT_MSG;
-		}
+	if (detJV_avg < EPS) {
+		array_print_d(Nn,1,detJV,'R');
+		output_to_paraview("ZTest_Geom_curved");
+
+		// If this is triggering as a result of curved elements, consider exiting only if the average of all
+		// Jacobian determinates is negative as this will still trigger from inverted .msh file elements but may
+		// allow slightly bad quality curved element meshes to go through.
+		printf("Error: Negative VOLUME.\n\n");
+		printf("Potential inverted element in .msh file from enabling Transfinite in gmsh.\n");
+		printf("Mesh output to paraview (look for negative normals).\n"), EXIT_MSG;
 	}
 }
 
@@ -253,83 +259,6 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 	VOLUME->C_vC     = C_vC;
 	VOLUME->C_vI     = C_vI;
 
-}
-
-void setup_geom_factors_highorder(struct S_FACE *FACE)
-{
-	/*
-	 *	Purpose:
-	 *		Compute detJV_fI from each VOLUME.
-	 *
-	 *	Comments:
-	 *		detJV_fI is only used for computing gradients at FACE nodes and thus not required for systems of 1st order
-	 *		equations (such as when solving only the Euler equations).
-	 */
-
-	// Initialize DB Parameters
-	unsigned int d = DB.d;
-
-	// Standard datatypes
-	unsigned int row, col, IndFType,
-	             NvnG, NfnI,
-	             Vf, f, Eclass;
-	double       *XYZ, *J_fI, *detJV_fI;
-
-	struct S_OPERATORS *OPS;
-	struct S_VOLUME    *VOLUME;
-
-	OPS = malloc(sizeof *OPS); // free
-
-	// Obtain operators
-	VOLUME = FACE->VIn;
-	Vf     = FACE->VfIn;
-	f      = Vf/NFREFMAX;
-
-	Eclass = get_Eclass(VOLUME->type);
-	IndFType = get_IndFType(Eclass,f);
-
-	init_ops(OPS,VOLUME,FACE,IndFType);
-
-	NvnG = OPS->NvnG;
-	NfnI = OPS->NfnI;
-
-	XYZ = VOLUME->XYZ;
-
-	J_fI = malloc(NfnI*d*d * sizeof *J_fI); // free
-	for (row = 0; row < d; row++) {
-	for (col = 0; col < d; col++) {
-		mm_CTN_d(NfnI,1,NvnG,OPS->D_vG_fI[Vf][col],&XYZ[NvnG*row],&J_fI[NfnI*(d*row+col)]);
-	}}
-
-	if (FACE->detJVIn_fI)
-		free(FACE->detJVIn_fI);
-	FACE->detJVIn_fI = malloc(NfnI * sizeof *detJV_fI); // keep
-	compute_detJV(NfnI,J_fI,FACE->detJVIn_fI);
-
-	if (!FACE->Boundary) {
-		VOLUME = FACE->VOut;
-		Vf     = FACE->VfOut;
-		f      = Vf/NFREFMAX;
-
-		init_ops(OPS,VOLUME,FACE,IndFType);
-
-		NvnG = OPS->NvnG;
-
-		XYZ = VOLUME->XYZ;
-
-		for (row = 0; row < d; row++) {
-		for (col = 0; col < d; col++) {
-			mm_CTN_d(NfnI,1,NvnG,OPS->D_vG_fI[Vf][col],&XYZ[NvnG*row],&J_fI[NfnI*(d*row+col)]);
-		}}
-
-		if (FACE->detJVOut_fI)
-			free(FACE->detJVOut_fI);
-		FACE->detJVOut_fI = malloc(NfnI * sizeof *detJV_fI); // keep
-		compute_detJV(NfnI,J_fI,FACE->detJVOut_fI);
-	}
-	free(J_fI);
-
-	free(OPS);
 }
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,

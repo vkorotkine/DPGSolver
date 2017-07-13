@@ -1,0 +1,28 @@
+PDEName       Euler
+PDESpecifier  Subsonic
+
+Geometry      GaussianBump
+GeomSpecifier 0-5
+
+Dimension     2
+
+MeshPath      ../meshes/
+MeshType      CurvedQUAD
+MeshLevel     0
+
+Form       Weak   // Options: Weak, (Strong)
+NodeType   GL-WSH // Options: GL/GLL-AO/WSH/EQ
+BasisType  Nodal  // Options: Nodal, Modal
+
+Vectorized 0     // Options: 0, 1
+EFE        1     // Options: (0), 1
+Collocated 0     // Options: 0, 1
+Adapt      3     // Options: 0, 1, 2, (3)
+
+PGlobal    2
+PMax       8
+LevelsMax  6
+
+Restart    -1    // Options: -1, 0, Iteration #
+
+Testing    1     // Options: 0, 1

@@ -6,5 +6,6 @@
 
 extern void memory_free          (void);
 extern void memory_free_children (void);
+extern void memory_free_ELEMENTs (void);
 
 #endif // DPG__memory_free_h__INCLUDED

@@ -47,9 +47,7 @@ void test_unit_array_find_index(void)
 
 	pass = 0;
 	if (Idx == 5 && Len == 5)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("array_find_indexo_ui:                            ");
-	test_print(pass);
+	test_print2(pass,"array_find_indexo_ui:");
 }

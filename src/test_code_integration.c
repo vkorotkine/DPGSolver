@@ -3,7 +3,10 @@
 
 #include "test_code_integration.h"
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "petscsys.h"
 #include "mkl.h"
@@ -15,10 +18,12 @@
 #include "S_ELEMENT.h"
 #include "S_VOLUME.h"
 
+#include "test_support.h"
 #include "initialization.h"
 #include "setup_parameters.h"
 #include "setup_mesh.h"
 #include "setup_operators.h"
+#include "setup_operators_HDG.h"
 #include "setup_structures.h"
 #include "setup_geometry.h"
 #include "initialize_test_case.h"
@@ -42,59 +47,82 @@
  *	References:
  */
 
-static void update_MeshFile(void)
-{
-	// Standard datatypes
-	char *d, *ML;
-
-	d  = malloc(STRLEN_MIN * sizeof *d);  // free
-	ML = malloc(STRLEN_MIN * sizeof *ML); // free
-
-	sprintf(d,"%d",DB.d);
-	sprintf(ML,"%d",DB.ML);
-
-	strcpy(DB.MeshFile,"");
-	strcat(DB.MeshFile,DB.MeshPath);
-	strcat(DB.MeshFile,DB.Geometry);
-	strcat(DB.MeshFile,"/");
-	strcat(DB.MeshFile,DB.Geometry);
-	strcat(DB.MeshFile,strcat(d,"D_"));
-	strcat(DB.MeshFile,DB.MeshType);
-	strcat(DB.MeshFile,strcat(ML,"x.msh"));
-
-	free(d);
-	free(ML);
-}
-
 static void update_TestCase(void)
 {
-	if (strstr(DB.TestCase,"Poisson_Ringleb")               ||
-	    strstr(DB.TestCase,"Poisson_dm1-Spherical_Section") ||
-	    strstr(DB.TestCase,"Poisson_Ellipsoidal_Section")   ||
-	    strstr(DB.TestCase,"Poisson_HoldenRamp")            ||
-	    strstr(DB.TestCase,"Poisson_GaussianBump")) {
+	/*
+	 *	Comments:
+	 *		Appending '_Test' for certain integration test cases is necessary to allow for the mesh refinement in
+	 *		adapt_initial to proceed for all VOLUMEs.
+	 */
+
+	if (strstr(DB.TestCase,"Advection")) {
+		if (strstr(DB.TestCase,"Default")) {
+			strcpy(DB.TestCase,"Advection_Default");
+		} else if (strstr(DB.TestCase,"Peterson")) {
+			strcpy(DB.TestCase,"Advection_Peterson");
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else if (strstr(DB.TestCase,"Poisson_Ringleb") ||
+	           strstr(DB.TestCase,"Poisson_n-Cube") ||
+	           strstr(DB.TestCase,"Poisson_n-Ball") ||
+	           strstr(DB.TestCase,"Poisson_n-Ellipsoid") ||
+	           strstr(DB.TestCase,"Poisson_HoldenRamp") ||
+	           strstr(DB.TestCase,"Poisson_GaussianBump")) {
 		strcpy(DB.TestCase,"Poisson");
-	} else if (strstr(DB.TestCase,"Euler")) {
-		strcpy(DB.TestCase,"InviscidChannel");
-	} else if (strstr(DB.TestCase,"L2_proj") ||
-	           strstr(DB.TestCase,"update_h")) {
-		strcpy(DB.TestCase,"PeriodicVortex_Test");
-		strcpy(DB.Geometry,"PeriodicVortex"); // ToBeModified: Rename this.
+	} else if (strstr(DB.TestCase,"update_h")) {
+		strcpy(DB.TestCase,"Poisson_Test");
+	} else if (strstr(DB.TestCase,"L2_proj")) {
+		strcpy(DB.TestCase,"Euler_PeriodicVortex_Test");
 	} else if (strstr(DB.TestCase,"linearization")) {
-		strcpy(DB.TestCase,"SupersonicVortex_Test");
-		strcpy(DB.Geometry,"Annular_Section");
+		strcpy(DB.TestCase,"Euler_SupersonicVortex_Test");
+	} else if (strstr(DB.TestCase,"Euler")) {
+		if (strstr(DB.TestCase,"SupersonicVortex")) {
+			strcpy(DB.TestCase,"Euler_SupersonicVortex");
+		} else if (strstr(DB.TestCase,"PeriodicVortex")) {
+			if (strstr(DB.TestCase,"Stationary"))
+				strcpy(DB.TestCase,"Euler_PeriodicVortex_Stationary");
+			else
+				strcpy(DB.TestCase,"Euler_PeriodicVortex");
+		} else if (strstr(DB.TestCase,"EllipticPipe")) {
+			strcpy(DB.TestCase,"Euler_EllipticPipe");
+		} else if (strstr(DB.TestCase,"ParabolicPipe")) {
+                        strcpy(DB.TestCase,"Euler_ParabolicPipe");
+                } else if (strstr(DB.TestCase,"SinusoidalPipe")) {
+                        strcpy(DB.TestCase,"Euler_SinusoidalPipe");
+                } else {
+			EXIT_UNSUPPORTED;
+		}
+/*		if (strstr(DB.Geometry,"Ellipsoidal_Section") ||
+		    strstr(DB.Geometry,"GaussianBump") ||
+		    strstr(DB.Geometry,"EllipsoidalBump"))
+			strcpy(DB.TestCase,"SubsonicNozzle");
+		else if (strstr(DB.Geometry,"ExpansionCorner"))
+			strcpy(DB.TestCase,"PrandtlMeyer");
+		else
+			strcpy(DB.TestCase,"InviscidChannel");
+*/
+	} else if (strstr(DB.TestCase,"NavierStokes")) {
+		if (strstr(DB.TestCase,"TaylorCouette")) {
+			strcpy(DB.TestCase,"NavierStokes_TaylorCouette");
+		} else if (strstr(DB.TestCase,"PlaneCouette")) {
+			strcpy(DB.TestCase,"NavierStokes_PlaneCouette");
+		} else {
+			EXIT_UNSUPPORTED;
+		}
 	} else {
 		printf("%s\n",DB.TestCase);
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
 }
 
-void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigned int update_argv)
+void code_startup(int const nargc, char const *const *const argv, unsigned int const Nref,
+                  unsigned int const update_argv)
 {
 	int  MPIrank, MPIsize;
 
 	// Start MPI and PETSC
-	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+	PetscInitialize((int *) &nargc,(char ***) &argv,PETSC_NULL,PETSC_NULL);
 	MPI_Comm_size(MPI_COMM_WORLD,&MPIsize);
 	MPI_Comm_rank(MPI_COMM_WORLD,&MPIrank);
 
@@ -109,9 +137,10 @@ void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigne
 	update_TestCase();
 	if (update_argv) {
 		DB.PGlobal = TestDB.PGlobal;
-		if (update_argv == 1)
+		if (update_argv == 1) {
 			DB.ML = TestDB.ML;
-		update_MeshFile();
+			set_MeshFile();
+		}
 	}
 
 	setup_parameters();
@@ -123,6 +152,7 @@ void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigne
 	if (strstr(DB.MeshType,"Curved"))
 		strcat(DB.Geometry,"Curved");
 	setup_operators();
+	setup_operators_HDG();
 	setup_structures();
 	setup_geometry();
 
@@ -134,18 +164,17 @@ void code_startup(int nargc, char **argv, const unsigned int Nref, const unsigne
 
 void code_cleanup(void)
 {
-	mesh_to_level(0);
 	memory_free();
 }
 
-void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, const unsigned int update_argv,
-                             const unsigned int phase)
+void code_startup_mod_prmtrs(int const nargc, char const *const *const argv, unsigned int const Nref,
+                             unsigned int const update_argv, unsigned int const phase)
 {
 	int  MPIrank, MPIsize;
 
 	if (phase == 1) {
 		// Start MPI and PETSC
-		PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+		PetscInitialize((int *) &nargc,(char ***) &argv,PETSC_NULL,PETSC_NULL);
 		MPI_Comm_size(MPI_COMM_WORLD,&MPIsize);
 		MPI_Comm_rank(MPI_COMM_WORLD,&MPIrank);
 
@@ -162,7 +191,6 @@ void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, co
 			DB.PGlobal = TestDB.PGlobal;
 			if (update_argv == 1)
 				DB.ML      = TestDB.ML;
-			update_MeshFile();
 		}
 
 		initialize_test_case_parameters();
@@ -186,9 +214,36 @@ void code_startup_mod_prmtrs(int nargc, char **argv, const unsigned int Nref, co
 	}
 }
 
+void code_startup_mod_ctrl(int const nargc, char const *const *const argv, unsigned int const Nref,
+                           unsigned int const update_argv, unsigned int const phase)
+{
+	if (phase == 1) {
+		// Start MPI and PETSC
+		PetscInitialize((int *) &nargc,(char ***) &argv,PETSC_NULL,PETSC_NULL);
+		MPI_Comm_size(MPI_COMM_WORLD,&DB.MPIsize);
+		MPI_Comm_rank(MPI_COMM_WORLD,&DB.MPIrank);
+
+		// Initialization
+		initialization(nargc,argv);
+	} else if (phase == 2) {
+		initialize_test_case_parameters();
+		setup_parameters();
+		if (update_argv)
+			setup_parameters_L2proj();
+	} else if (phase == 3) {
+		setup_mesh();
+		setup_operators();
+		setup_structures();
+		setup_geometry();
+
+		initialize_test_case(Nref);
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}
 
 void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax, const unsigned int PMin,
-                              const unsigned int PMax, unsigned int *pass)
+                              const unsigned int PMax, unsigned int *pass, const bool PrintEnabled)
 {
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase,
@@ -197,7 +252,7 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 
 	// Standard datatypes
 	char         f_name[STRLEN_MAX], string[STRLEN_MAX], StringRead[STRLEN_MAX], *data;
-	unsigned int i, ML, P, NVars, NML, NP, Indh, *VarsToCheck, *OrderIncrement;
+	unsigned int i, ML, P, NVars, NML, NP, Indh, *VarsToCheck;
 	int          offset;
 	double       **L2Errors, **ConvOrders, *h, tmp_d;
 
@@ -206,19 +261,31 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 	// silence
 	NVars = 0;
 
-	if (strstr(TestCase,"Poisson")) {
-		NVars = DMAX+1;
-	} else if (strstr(TestCase,"SupersonicVortex")) {
-		NVars = DMAX+2+1;
-	} else if (strstr(TestCase,"InviscidChannel")) {
+	if (strstr(TestCase,"Advection")) {
 		NVars = 1;
+	} else if (strstr(TestCase,"Poisson")) {
+		NVars = DMAX+1;
+	} else if (strstr(TestCase,"SupersonicVortex") ||
+	           strstr(TestCase,"PeriodicVortex") ||
+	           strstr(TestCase,"ParabolicPipe")) {
+		NVars = DMAX+2+1;
+	} else if (strstr(TestCase,"InviscidChannel") ||
+	           strstr(TestCase,"SubsonicNozzle")) {
+		NVars = 1;
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		NVars = 3;
 	} else {
 		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
 	}
 
 	VarsToCheck    = malloc(NVars * sizeof *VarsToCheck);    // free
-	OrderIncrement = malloc(NVars * sizeof *OrderIncrement); // free
-	if (strstr(TestCase,"Poisson")) {
+	double *const OrderIncrement = malloc(NVars * sizeof *OrderIncrement); // free
+	if (strstr(TestCase,"Advection")) {
+		for (size_t i = 0; i < NVars; i++) {
+			OrderIncrement[i] = 1;
+			VarsToCheck[i]    = 1;
+		}
+	} else if (strstr(TestCase,"Poisson")) {
 		for (i = 0; i < NVars; i++) {
 			OrderIncrement[i] = 0;
 			if (i == 0) {
@@ -231,7 +298,10 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 			}
 		}
 	} else if (strstr(TestCase,"SupersonicVortex") ||
-	           strstr(TestCase,"InviscidChannel")) {
+	           strstr(TestCase,"PeriodicVortex")  ||
+	           strstr(TestCase,"ParabolicPipe")  ||
+	           strstr(TestCase,"InviscidChannel")  ||
+	           strstr(TestCase,"SubsonicNozzle")) {
 		for (i = 0; i < NVars; i++) {
 			OrderIncrement[i] = 1;
 			if (i <= d || i > DMAX) {
@@ -240,6 +310,13 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 				VarsToCheck[i] = 0;
 			}
 		}
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		for (i = 0; i < NVars; i++) {
+			OrderIncrement[i] = 1;
+			VarsToCheck[i] = 1;
+		}
+	} else {
+		EXIT_UNSUPPORTED;
 	}
 
 
@@ -270,7 +347,7 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 		strcat(f_name,".txt");
 
 		if ((fID = fopen(f_name,"r")) == NULL)
-			printf("Error: File: %s, did not open.\n",f_name), exit(1);
+			printf("Error: File: %s, did not open.\n",f_name), EXIT_MSG;
 
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
@@ -299,14 +376,18 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 
 	*pass = 1;
 
-	ML = MLMax;
+	bool Peterson_warning = 0;
 	for (i = 0; i < NVars; i++) {
 		if (!VarsToCheck[i])
 			continue;
 
 		for (P = PMin; P <= PMax; P++) {
-			Indh = (ML-MLMin)*NP+(P-PMin);
+			Indh = (MLMax-MLMin)*NP+(P-PMin);
 			if ((ConvOrders[i][Indh]-(P+OrderIncrement[i])) < -0.125) {
+				if (strstr(DB.PDESpecifier,"Peterson") && (ConvOrders[i][Indh]-(P+OrderIncrement[i]-0.5)) > -0.125) {
+					Peterson_warning = 1;
+					continue;
+				}
 				*pass = 0;
 
 				printf("i = %d, P = %d, ConvOrder = (% .3e, % .3e)\n",i,P,ConvOrders[i][Indh],1.0*(P+OrderIncrement[i]));
@@ -315,45 +396,48 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 		}
 	}
 
+	if (Peterson_warning)
+		test_print_warning("Convergence orders suboptimal by up to half of an order on Peterson meshes");
+
 	free(VarsToCheck);
 	free(OrderIncrement);
 
 	if (!(*pass)) {
-printf("Re-enable printing here.\n");
-//		for (i = 0; i < NVars; i++)
-//			array_print_d(NML,NP,ConvOrders[i],'R');
-	} else {
-		TestDB.Npass++;
+		test_print_warning("Suboptimal Convergence");
+		for (i = 0; i < NVars; i++)
+			array_print_d(NML,NP,ConvOrders[i],'R');
+		printf("\n\n\n");
 	}
-printf("ViscousFlux, Blending, Parametrization: %d, %d, %d\n",DB.ViscousFluxType,DB.Blending,DB.Parametrization);
-printf("h:\n");
-array_print_d(NML,NP,h,'R');
-printf("L2Errors: \n");
-for (i = 0; i < NVars; i++)
-array_print_d(NML,NP,L2Errors[i],'R');
-printf("Conv Orders (h): \n");
-for (i = 0; i < NVars; i++)
-array_print_d(NML,NP,ConvOrders[i],'R');
 
-unsigned int u1 = 1;
-double **L2ErrorsP;
+	if (PrintEnabled) {
+//		printf("ViscousFlux, Blending, Parametrization: %d, %d, %d\n",DB.ViscousFluxType,DB.Blending,DB.Parametrization);
+		printf("h:\n");
+		array_print_d(NML,NP,h,'R');
+		printf("L2Errors: \n");
+		for (i = 0; i < NVars; i++)
+		array_print_d(NML,NP,L2Errors[i],'R');
+		printf("Conv Orders (h): \n");
+		for (i = 0; i < NVars; i++)
+		array_print_d(NML,NP,ConvOrders[i],'R');
 
-L2ErrorsP = malloc(NVars * sizeof *L2ErrorsP); // free
+		unsigned int u1 = 1;
+		double **L2ErrorsP;
 
-//printf("Conv (p): \n");
-for (i = 0; i < NVars; i++) {
-	L2ErrorsP[i] = calloc(NML*NP , sizeof *L2ErrorsP[i]);
-	for (ML = MLMin; ML <= MLMax; ML++) {
-	for (P = max(PMin,u1); P <= PMax; P++) {
-		Indh = (ML-MLMin)*NP+(P-PMin);
-		if (L2Errors[i][Indh] > EPS)
-			L2ErrorsP[i][Indh] = log(L2Errors[i][Indh])/((double) P);
-	}}
-//	array_print_d(NML,NP,L2ErrorsP[i],'R');
-}
-array_free2_d(NVars,L2ErrorsP);
+		L2ErrorsP = malloc(NVars * sizeof *L2ErrorsP); // free
 
-
+		//printf("Conv (p): \n");
+		for (i = 0; i < NVars; i++) {
+			L2ErrorsP[i] = calloc(NML*NP , sizeof *L2ErrorsP[i]);
+			for (ML = MLMin; ML <= MLMax; ML++) {
+			for (P = max(PMin,u1); P <= PMax; P++) {
+				Indh = (ML-MLMin)*NP+(P-PMin);
+				if (L2Errors[i][Indh] > EPS)
+					L2ErrorsP[i][Indh] = log(L2Errors[i][Indh])/((double) P);
+			}}
+		//	array_print_d(NML,NP,L2ErrorsP[i],'R');
+		}
+		array_free2_d(NVars,L2ErrorsP);
+	}
 
 	for (i = 0; i < NVars; i++) {
 		free(L2Errors[i]);
@@ -439,7 +523,6 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	// Standard datatypes
 	unsigned int i, j, k, l, f, e, c, Nf, Ne, Nve, iMax, jMax, kMax, lMax, Ecount,
 	             *IndsE, *IndsF, Found, TETcount, NormType, *VeEcon, *VeFcon;
-	int          **piv;
 	double       r_ratio, r, rIn, rOut, rTmp, d1, d2,
 	             *XYZ, *XYZdiff, *n, *nNorm, **LHS, **RHS, *lenE, *XYZc, *abcF, *rF, *XYZcE, *d_p, *XYZ_vV;
 
@@ -456,7 +539,7 @@ void evaluate_mesh_regularity(double *mesh_quality)
 
 	LHS = malloc(3 * sizeof *LHS); // free
 	RHS = malloc(3 * sizeof *RHS); // free
-	piv = malloc(3 * sizeof *piv); // free
+	lapack_int **piv = malloc(3 * sizeof *piv); // free
 
 	LHS[0] = malloc(DMAX*DMAX             * sizeof *LHS[0]); // free
 	LHS[1] = malloc(NFMAX*DMAX*NFMAX*DMAX * sizeof *LHS[1]); // free
@@ -885,6 +968,7 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	array_free2_d(3,LHS);
 	array_free2_d(3,RHS);
 	array_free2_i(3,piv);
+//	array_free2_ll(3,piv);
 
 	free(IndsE);
 	free(IndsF);
@@ -897,7 +981,8 @@ void evaluate_mesh_regularity(double *mesh_quality)
 	free(rF);
 }
 
-void check_mesh_regularity(const double *mesh_quality, const unsigned int NML, unsigned int *pass)
+void check_mesh_regularity(const double *mesh_quality, const unsigned int NML, unsigned int *pass,
+                           const bool PrintEnabled)
 {
 	/*
 	 *	Purpose:
@@ -915,14 +1000,47 @@ void check_mesh_regularity(const double *mesh_quality, const unsigned int NML, u
 		for (i = 0; i < 2; i++)
 			slope_quality[i] = mesh_quality[NML-2+i]-mesh_quality[NML-3+i];
 
-		if (slope_quality[1]-slope_quality[0] > 1e-3)
-			printf("\nWarning: Potential mesh regularity issue.\n\n"); TestDB.Nwarnings++;
+		if (slope_quality[1]-slope_quality[0] > 1e-3 && PrintEnabled) {
+			test_print_warning("Potential mesh regularity issue");
+		}
 
 		if (slope_quality[1] > 0.0) {
 			if (slope_quality[1]/slope_quality[0] > 5e0)
 				*pass = 0;
 		}
-		printf("\nMesh quality:");
-		array_print_d(1,NML,mesh_quality,'R');
+
+		if (PrintEnabled) {
+			printf("\nMesh quality:");
+			array_print_d(1,NML,mesh_quality,'R');
+		}
 	}
+}
+
+void set_PrintName(char *name_type, char *PrintName, bool *TestTRI)
+{
+	if (!(*TestTRI)) {
+		*TestTRI = 1;
+		if (strstr(name_type,"conv_orders")) {
+			strcpy(PrintName,"Convergence Orders         (");
+		} else if (strstr(name_type,"equiv_rc")) {
+			strcpy(PrintName,"Equivalence Real/Complex   (");
+		} else if (strstr(name_type,"equiv_alg")) {
+			strcpy(PrintName,"Equivalence Algorithms     (");
+		} else if (strstr(name_type,"linearization")) {
+			if (strstr(name_type,"weak gradient"))
+				strcpy(PrintName,"Linearization (weak grad.) (");
+			else
+				strcpy(PrintName,"Linearization              (");
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else {
+		strcpy(PrintName,"                           (");
+	}
+
+	strcat(PrintName,DB.PDE); strcat(PrintName,", ");
+	if (!strstr(DB.PDESpecifier,"NONE")) {
+		strcat(PrintName,DB.PDESpecifier); strcat(PrintName,", ");
+	}
+	strcat(PrintName,DB.MeshType); strcat(PrintName,") : ");
 }

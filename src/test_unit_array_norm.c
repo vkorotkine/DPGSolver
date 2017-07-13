@@ -44,19 +44,15 @@ void test_unit_array_norm(void)
 
 	pass = 0;
 	if ((array_norm_ui(3,A_ui,"Inf") - 3) < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("array_norm_ui (Inf):                             ");
-	test_print(pass);
+	test_print2(pass,"array_norm_ui (Inf):");
 
 	pass = 0;
 	if ((array_norm_ui(3,A_ui,"L1") - 6) < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("              (L1) :                             ");
-	test_print(pass);
+	test_print2(pass,"              (L1) :");
 
 	/*
 	 *	array_norm_d:
@@ -76,27 +72,21 @@ void test_unit_array_norm(void)
 
 	pass = 0;
 	if ((array_norm_d(3,A_d,"Inf") - 3.0) < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("array_norm_d (Inf):                              ");
-	test_print(pass);
+	test_print2(pass,"array_norm_d (Inf):");
 
 	pass = 0;
 	if ((array_norm_d(3,A_d,"L1") - 6.0) < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("             (L1) :                              ");
-	test_print(pass);
+	test_print2(pass,"             (L1) :");
 
 	pass = 0;
 	if ((array_norm_d(3,A_d,"L2") - 3.741657386773941) < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("             (L2) :                              ");
-	test_print(pass);
+	test_print2(pass,"             (L2) :");
 
 	/*
 	 *	array_norm_diff_ui:
@@ -116,19 +106,15 @@ void test_unit_array_norm(void)
 
 	pass = 0;
 	if ((array_norm_diff_ui(3,A_diff_ui,B_diff_ui,"Inf") - 3) < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("array_norm_diff_ui (Inf):                        ");
-	test_print(pass);
+	test_print2(pass,"array_norm_diff_ui (Inf):");
 
 	pass = 0;
 	if ((array_norm_diff_ui(3,A_diff_ui,B_diff_ui,"L1") - 9) < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                   (L1) :                        ");
-	test_print(pass);
+	test_print2(pass,"                   (L1) :");
 
 	/*
 	 *	array_norm_diff_d:
@@ -149,25 +135,19 @@ void test_unit_array_norm(void)
 
 	pass = 0;
 	if ((array_norm_diff_d(3,A_diff_d,B_diff_d,"Inf") - 3.0) < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("array_norm_diff_d (Inf):                         ");
-	test_print(pass);
+	test_print2(pass,"array_norm_diff_d (Inf):");
 
 	pass = 0;
 	if ((array_norm_diff_d(3,A_diff_d,B_diff_d,"L1") - 9.0) < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                  (L1) :                         ");
-	test_print(pass);
+	test_print2(pass,"                  (L1) :");
 
 	pass = 0;
 	if ((array_norm_diff_d(3,A_diff_d,B_diff_d,"L2") - 5.196152422706632) < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("                  (L2) :                         ");
-	test_print(pass);
+	test_print2(pass,"                  (L2) :");
 }

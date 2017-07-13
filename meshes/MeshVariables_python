@@ -1,0 +1,4 @@
+# Variables and dependencies needed for DPG_ROOT/meshes/Makefile for python generated meshes
+
+ADVECTION_TEST_PETERSON := n-Cube/Advection/Steady/Peterson/YL/n-Cube2D_TRI0x.msh n-Cube/Advection/Steady/Peterson/YL/n-Cube2D_TRI1x.msh n-Cube/Advection/Steady/Peterson/YL/n-Cube2D_TRI2x.msh n-Cube/Advection/Steady/Peterson/YL/n-Cube2D_TRI3x.msh n-Cube/Advection/Steady/Peterson/YL/n-Cube2D_TRI4x.msh n-Cube/Advection/Steady/Peterson/YL/n-Cube2D_TRI5x.msh 
+

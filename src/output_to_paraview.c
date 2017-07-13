@@ -321,19 +321,18 @@ static void output_normals(const char *normals_type)
 	// Initialize DB Parameters
 //	char         *TestCase = DB.TestCase;
 	unsigned int d         = DB.d,
-	             Adapt     = DB.Adapt,
 	             NfrefMax  = DB.NfrefMax;
 	int          MPIrank   = DB.MPIrank,
 	             MPIsize   = DB.MPIsize;
 
 	// Standard datatypes
 	char         MPIrank_c[STRLEN_MIN], f_name[STRLEN_MAX], f_parallel[STRLEN_MAX], f_serial[STRLEN_MAX];
-	unsigned int i, iMax, dim, nInd, curved, PV, PF, Nfn, NvnG, IndFType, Eclass, VfIn;
+	unsigned int i, iMax, dim, nInd, curved, PV, PF, Nfn, NvnG, IndFType, Eclass, VfL;
 	double       *Input, *I_vG_f, *XYZ_f, *n;
 	FILE         *fID;
 
 	struct S_ELEMENT *ELEMENT;
-	struct S_VOLUME  *VIn;
+	struct S_VOLUME  *VL;
 	struct S_FACE   *FACE;
 
 	// silence
@@ -389,51 +388,35 @@ static void output_normals(const char *normals_type)
 	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
 		curved = FACE->curved;
 
-		VIn  = FACE->VIn;
-		VfIn = FACE->VfIn;
+		VL  = FACE->VL;
+		VfL = FACE->VfL;
 
-		if (VfIn % NFREFMAX != 0)
-			printf("Error: VfIn should be h-conforming in output_to_paraview (output_normals).\n"), exit(1);
+		if (VfL % NFREFMAX != 0)
+			printf("Error: VfL should be h-conforming in output_to_paraview (output_normals).\n"), exit(1);
 
-		PV = VIn->P;
+		PV = VL->P;
 		PF = FACE->P;
 
-		ELEMENT = get_ELEMENT_type(VIn->type);
+		ELEMENT = get_ELEMENT_type(VL->type);
 		Eclass  = get_Eclass(ELEMENT->type);
 
-		IndFType = get_IndFType(Eclass,VfIn/NfrefMax);
+		IndFType = get_IndFType(Eclass,VfL/NfrefMax);
 
-		NvnG = VIn->NvnG;
+		NvnG = VL->NvnG;
 
-		Input = VIn->XYZ;
+		Input = VL->XYZ;
 
-		switch (Adapt) {
-		default: // ADAPT_P, ADAPT_H, ADAPT_HP
-printf("Error: Should not be entering default in output_to_paraview.\n"), exit(1);
-			Nfn = ELEMENT->NfnS[PF][IndFType];
-			if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fS[1][PF][VfIn];
-			else              I_vG_f = ELEMENT->I_vGc_fS[PV][PF][VfIn];
-
-			n = FACE->n_fS;
-			XYZ_f = mm_Alloc_d(CBCM,CBT,CBNT,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
-			break;
-case ADAPT_P: // ToBeModified
-case ADAPT_H:
-case ADAPT_HP:
-		case ADAPT_0:
-			if (FACE->typeInt == 's') {
-				Nfn = ELEMENT->NfnIs[PF][IndFType];
-				if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIs[1][PF][VfIn];
-				else              I_vG_f = ELEMENT->I_vGc_fIs[PV][PF][VfIn];
-			} else {
-				Nfn = ELEMENT->NfnIc[PF][IndFType];
-				if (!VIn->curved) I_vG_f = ELEMENT->I_vGs_fIc[1][PF][VfIn];
-				else              I_vG_f = ELEMENT->I_vGc_fIc[PV][PF][VfIn];
-			}
-			n = FACE->n_fI;
-			XYZ_f = mm_Alloc_d(CBCM,CBT,CBNT,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
-			break;
+		if (FACE->typeInt == 's') {
+			Nfn = ELEMENT->NfnIs[PF][IndFType];
+			if (!VL->curved) I_vG_f = ELEMENT->I_vGs_fIs[1][PF][VfL];
+			else              I_vG_f = ELEMENT->I_vGc_fIs[PV][PF][VfL];
+		} else {
+			Nfn = ELEMENT->NfnIc[PF][IndFType];
+			if (!VL->curved) I_vG_f = ELEMENT->I_vGs_fIc[1][PF][VfL];
+			else              I_vG_f = ELEMENT->I_vGc_fIc[PV][PF][VfL];
 		}
+		n = FACE->n_fI;
+		XYZ_f = mm_Alloc_d(CBCM,CBT,CBNT,Nfn,d,NvnG,1.0,I_vG_f,Input); // free
 
 		fprintf(fID,"\t\t<Piece NumberOfPoints=\"%d\" NumberOfVerts=\"%d\" NumberOfLines=\"%d\" NumberOfStrips=\"%d\" "
 		            "NumberOfPolys=\"%d\">\n",Nfn,0,0,0,0);
@@ -524,16 +507,20 @@ static void output_solution(const char *sol_type)
 		fprintf_tn(fID,1,"<PUnstructuredGrid GhostLevel=\"0\">\n");
 
 		fprintf_tn(fID,2,"<PPointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
-		if (strstr(TestCase,"Poisson")) {
+		if (strstr(TestCase,"Advection")) {
+			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"u\" format=\"ascii\"/>");
+		} else if (strstr(TestCase,"Poisson")) {
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"u\" format=\"ascii\"/>");
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"q\" NumberOfComponents=\"3\" format=\"ascii\"/>");
-		} else {
+		} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"rho\" format=\"ascii\"/>");
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"V\" NumberOfComponents=\"3\" format=\"ascii\"/>");
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"p\" format=\"ascii\"/>");
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"E\" format=\"ascii\"/>");
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"s\" format=\"ascii\"/>");
 			fprintf_tn(fID,3,"<PDataArray type=\"Float32\" Name=\"Mach\" format=\"ascii\"/>");
+		} else {
+			EXIT_UNSUPPORTED;
 		}
 		fprintf_tn(fID,2,"</PPointData>\n");
 
@@ -596,11 +583,13 @@ static void output_solution(const char *sol_type)
 
 		XYZ_vP = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,d,NvnG,1.0,I_vG_vP,VOLUME->XYZ);     // free
 
-		if (strstr(TestCase,"Poisson")) {
-			u = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->uhat); // free
+		if (strstr(TestCase,"Advection")) {
+			u = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->What); // free
+		} else if (strstr(TestCase,"Poisson")) {
+			u = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->What); // free
 			q = calloc(DMAX*NvnP , sizeof *q); // free
 			for (dim = 0; dim < d; dim++)
-				mm_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,0.0,ChiS_vP,VOLUME->qhat[dim],&q[dim*NvnP]);
+				mm_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,0.0,ChiS_vP,VOLUME->Qhat[dim],&q[dim*NvnP]);
 
 			// Store solution error in q3 for d = 2
 			if (d == 2) {
@@ -614,7 +603,7 @@ static void output_solution(const char *sol_type)
 
 				free(uEx);
 			}
-		} else {
+		} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 			W_vP = mm_Alloc_d(CBCM,CBT,CBNT,NvnP,Nvar,NvnS,1.0,ChiS_vP,VOLUME->What); // free
 
 			U_vP = malloc(NvnP*5 * sizeof *U_vP); // free
@@ -635,10 +624,14 @@ static void output_solution(const char *sol_type)
 			for (i = 0; i < NvnP; i++) {
 				V2 = u[i]*u[i] + v[i]*v[i] + w[i]*w[i];
 				c2 = GAMMA*p[i]/rho[i];
+				if (c2 < 0.0)
+					c2 = EPS;
 
 				s[i]    = p[i]/pow(rho[i],GAMMA);
 				Mach[i] = sqrt(V2/c2);
 			}
+		} else {
+			EXIT_UNSUPPORTED;
 		}
 
 		fprintf(fID,"\t\t<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n",NvnP,NE);
@@ -657,7 +650,18 @@ static void output_solution(const char *sol_type)
 			fprintf_tn(fID,3,"</Points>");
 
 			fprintf_tn(fID,3,"<PointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
-			if (strstr(TestCase,"Poisson")) {
+			if (strstr(TestCase,"Advection")) {
+				fprintf_tn(fID,4,"<DataArray type=\"Float32\" Name=\"u\" format=\"ascii\">");
+				fprintf(fID,"\t\t\t\t");
+				for (i = 0; i < NvnP; i++) {
+					fprintf(fID,"% .8e ",u[i]);
+					if ((i+1) % 5 == 0 && i != NvnP-1)
+						fprintf(fID,"\n\t\t\t\t");
+					else if (i == NvnP-1)
+						fprintf(fID,"\n");
+				}
+				fprintf_tn(fID,4,"</DataArray>");
+			} else if (strstr(TestCase,"Poisson")) {
 				fprintf_tn(fID,4,"<DataArray type=\"Float32\" Name=\"u\" format=\"ascii\">");
 				fprintf(fID,"\t\t\t\t");
 				for (i = 0; i < NvnP; i++) {
@@ -673,7 +677,7 @@ static void output_solution(const char *sol_type)
 				for (i = 0; i < NvnP; i++)
 					fprintf(fID,"\t\t\t\t % .8e % .8e % .8e\n",q[NvnP*0+i],q[NvnP*1+i],q[NvnP*2+i]);
 				fprintf_tn(fID,4,"</DataArray>");
-			} else {
+			} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 				fprintf_tn(fID,4,"<DataArray type=\"Float32\" Name=\"rho\" format=\"ascii\">");
 				fprintf(fID,"\t\t\t\t");
 				for (i = 0; i < NvnP; i++) {
@@ -733,6 +737,8 @@ static void output_solution(const char *sol_type)
 						fprintf(fID,"\n");
 				}
 				fprintf_tn(fID,4,"</DataArray>");
+			} else {
+				EXIT_UNSUPPORTED;
 			}
 
 			fprintf_tn(fID,3,"</PointData>");
@@ -781,14 +787,18 @@ static void output_solution(const char *sol_type)
 		fprintf_tn(fID,2,"</Piece>\n");
 
 		free(XYZ_vP);
-		if (strstr(TestCase,"Poisson")) {
+		if (strstr(TestCase,"Advection")) {
+			free(u);
+		} else if (strstr(TestCase,"Poisson")) {
 			free(u);
 			free(q);
-		} else {
+		} else if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 			free(W_vP);
 			free(U_vP);
 			free(s);
 			free(Mach);
+		} else {
+			EXIT_UNSUPPORTED;
 		}
 		free(VTK_Ncorners);
 	}

@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <complex.h>
 
 #include "Parameters.h"
@@ -12,15 +13,17 @@
 #include "S_DB.h"
 #include "Test.h"
 
-#include "test_code_fluxes_inviscid.h"
+#include "test_code_fluxes.h"
+#include "test_code_boundary_conditions.h"
 #include "test_support.h"
-#include "array_norm.h"
+#include "boundary_conditions.h"
 #include "jacobian_boundary_conditions.h"
 #include "boundary_conditions_c.h"
 #include "initialize_test_case.h"
+#include "array_norm.h"
+#include "array_free.h"
 
 #include "array_print.h"
-#include "boundary_conditions.h" // ToBeDeleted
 
 /*
  *	Purpose:
@@ -57,14 +60,25 @@ static void compute_dWdW_cs(const unsigned int Neq, const unsigned int Nn, const
 		for (n = 0; n < NnTotal; n++)
 			Wp[IndW+n] += h*I;
 
-		if (strstr(BType,"SlipWall"))
-			boundary_SlipWall_c(Nn,Nel,Wp,WB,nL,d);
-		else if (strstr(BType,"Riemann"))
-			boundary_Riemann_c(Nn,Nel,XYZ,Wp,NULL,WB,nL,d);
-		else if (strstr(BType,"PT"))
-			boundary_BackPressure_c(Nn,Nel,Wp,WB,nL,d,Neq);
-		else
-			printf("Error: Unsupported BType.\n"), EXIT_MSG;
+		struct S_BC *const BCdata = malloc(sizeof *BCdata); // free
+
+		BCdata->d = d;
+		BCdata->Nn = Nn;
+		BCdata->Nel = Nel;
+
+		BCdata->XYZ  = XYZ;
+		BCdata->nL   = nL;
+
+		BCdata->WL_c = Wp;
+		BCdata->QL_c = NULL;
+
+		BCdata->WB_c = WB;
+		BCdata->QB_c = NULL;
+
+		set_BC_from_BType(BCdata,BType);
+		correct_XYZ_for_exact_normal(BCdata,BType);
+		compute_boundary_values_c(BCdata);
+		free(BCdata);
 
 		for (var2 = 0; var2 < Nvar; var2++) {
 			IndWB = NnTotal*var2;
@@ -80,61 +94,55 @@ static void compute_dWdW_cs(const unsigned int Neq, const unsigned int Nn, const
 }
 
 static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsigned int Nel, const unsigned int d,
-                                              const unsigned int Neq, double *W, double *nL, double *XYZ,
-                                              const char *BType)
+                                              double *W, double **Q, double *nL, double *XYZ, const char *BType)
 {
 	unsigned int pass = 0;
 
-	unsigned int NnTotal, Nvar, i, CheckedAll;
-	double       *dWdW, *dWdW_cs;
+	unsigned int const Nvar    = DB.Nvar,
+	                   Neq     = DB.Neq,
+	                   NnTotal = Nn*Nel;
 
-	NnTotal = Nn*Nel;
-	Nvar    = Neq;
+	double *dWdW, *dWdW_cs;
 
 	dWdW    = malloc(NnTotal*Nvar*Neq * sizeof *dWdW);    // free
 	dWdW_cs = malloc(NnTotal*Nvar*Neq * sizeof *dWdW_cs); // free
 
-	if (strstr(BType,"SlipWall"))
-		jacobian_boundary_SlipWall(Nn,Nel,W,dWdW,nL,d,Neq);
-	else if (strstr(BType,"Riemann"))
-		jacobian_boundary_Riemann(Nn,Nel,XYZ,W,NULL,dWdW,nL,d,Neq);
-	else if (strstr(BType,"PT"))
-		jacobian_boundary_BackPressure(Nn,Nel,W,dWdW,nL,d,Neq);
-	else
-		printf("Error: Unsupported BType.\n"), EXIT_MSG;
+	struct S_BC *const BCdata = malloc(sizeof *BCdata); // free
+
+	BCdata->d = d;
+	BCdata->Nn = Nn;
+	BCdata->Nel = Nel;
+
+	BCdata->XYZ = XYZ;
+	BCdata->nL  = nL;
+	BCdata->WL  = W;
+	BCdata->QL  = (double const *const *const) Q;
+
+	BCdata->dWBdWL = dWdW;
+	BCdata->dQBdWL = NULL;
+
+	set_BC_from_BType(BCdata,BType);
+	correct_XYZ_for_exact_normal(BCdata,BType);
+	compute_jacobian_boundary_values(BCdata);
 
 	compute_dWdW_cs(Neq,Nn,Nel,d,W,dWdW_cs,nL,XYZ,BType);
 
-	if (strstr(BType,"Riemann")) {
-		CheckedAll = 1;
-		for (i = 0; i < 4; i++) {
-			if (!TestDB.EnteredRiemann[i]) {
-				CheckedAll = 0;
-				break;
-			}
-		}
-//		array_print_ui(1,4,TestDB.EnteredRiemann,'R');
-		if (CheckedAll && array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS)
-			pass = 1, TestDB.Npass++;
-	} else if (strstr(BType,"PT")) {
-		CheckedAll = 1;
-		for (i = 0; i < 2; i++) {
-			if (!TestDB.EnteredPT[i]) {
-				CheckedAll = 0;
-				break;
-			}
-		}
-//		array_print_ui(1,2,TestDB.EnteredPT,'R');
-		if (CheckedAll && array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS)
-			pass = 1, TestDB.Npass++;
-		else {
-			printf("%d % .3e\n",CheckedAll,array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf"));
-			array_print_d(Neq*Nvar,NnTotal,dWdW,'R');
-			array_print_d(Neq*Nvar,NnTotal,dWdW_cs,'R');
-		}
+	free(BCdata);
+
+	if (array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < 10*EPS) {
+		pass = 1;
 	} else {
-		if (array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf") < EPS)
-			pass = 1, TestDB.Npass++;
+		array_print_d(NnTotal*Nvar,Neq,dWdW,'C');
+		array_print_d(NnTotal*Nvar,Neq,dWdW_cs,'C');
+		printf("%d %d %d % .3e\n",NnTotal,Nvar,DB.Nvar,array_norm_diff_d(NnTotal*Nvar*Neq,dWdW,dWdW_cs,"Inf"));
+	}
+
+	bool CheckedAll = 0;
+	check_entered_test_boundary_conditions(&CheckedAll,BType);
+
+	if (!CheckedAll) {
+		pass = 0;
+		printf("Did not check all boundary condition settings for boundary %s\n",BType);
 	}
 
 	free(dWdW);
@@ -143,49 +151,11 @@ static unsigned int compare_jacobian_boundary(const unsigned int Nn, const unsig
 	return pass;
 }
 
-static void update_values(const unsigned int Nn, const unsigned int Nel, double *W, double *nL, const unsigned int d)
-{
-	unsigned int n, NnTotal, dim, var;
-
-	NnTotal = Nn*Nel;
-
-	if (NnTotal != 6)
-		printf("Error: Unsupported.\n"), EXIT_MSG;
-
-	if (d == 3) {
-		unsigned int FinalIndices[6] = {0,2,2,3,0,6};
-		for (n = 0; n < NnTotal; n++) {
-			if (FinalIndices[n] != n) {
-				for (dim = 0; dim < d; dim++)
-					nL[n*d+dim] *= -1.0;
-				if (FinalIndices[n] == n+1) {
-					for (var = 1; var < d+1; var++)
-						W[n+var*NnTotal] *= 0.5;
-				}
-			}
-		}
-	} else if (d == 2) {
-		unsigned int FinalIndices[6] = {0,2,0,4,0,6};
-//		unsigned int FinalIndices[6] = {0,0,0,0,0,0};
-		for (n = 0; n < NnTotal; n++) {
-			if (FinalIndices[n] != n) {
-				for (dim = 0; dim < d; dim++)
-					nL[n*d+dim] *= -1.0;
-				if (FinalIndices[n] == n+1) {
-					for (var = 1; var < d+1; var++)
-						W[n+var*NnTotal] *= 0.5;
-				}
-			}
-		}
-	} else {
-		printf("Error: Unsupported.\n"), EXIT_MSG;
-	}
-
-}
-
 void test_unit_jacobian_boundary(void)
 {
 	unsigned int pass;
+
+	char *PrintName = malloc(STRLEN_MAX * sizeof *PrintName); // free
 
 	/*
 	 *	Input:
@@ -196,72 +166,57 @@ void test_unit_jacobian_boundary(void)
 	 *
 	 */
 
-	unsigned int NBTypes = 3;
+	test_print_warning("Not testing dQBdW (Currently unused in the code)");
 
-	char         *BType[NBTypes];
-	unsigned int i, j, Nn, Nel, d, Neq, dMin[NBTypes], dMax[NBTypes];
-	double       *W, *nL, *XYZ;
+	unsigned int i, Nn, Nel, d;
+	double       *W, **Q, *nL, *XYZ;
 
-	DB.TestCase = malloc(STRLEN_MAX * sizeof *(DB.TestCase)); // free
-	DB.Geometry = malloc(STRLEN_MAX * sizeof *(DB.Geometry)); // free
+	set_memory_test_jacobians('A');
 
-	for (i = 0; i < NBTypes; i++)
-		BType[i] = malloc(STRLEN_MIN * sizeof *BType[i]); // free
+	unsigned int NBTypes = 0;
+	char         **BType;
+	set_BTypes(&NBTypes,&BType); // free
 
-	strcpy(BType[0],"SlipWall");
-	strcpy(BType[1],"Riemann ");
-	strcpy(BType[2],"PT      ");
+	strcpy(DB.MeshType,"ToBeCurved"); // Meshes are not used for this test (and thus need not exist)
 
-	dMin[0] = 1; dMax[0] = 3;
-	dMin[1] = 2; dMax[1] = 3;
-	dMin[2] = 2; dMax[2] = 3;
-
+	unsigned int const dMin = 2, dMax = 3;
+	for (d = dMin; d <= dMax; d++) {
 	for (i = 0; i < NBTypes; i++) {
-		if (strstr(BType[i],"SlipWall") ||
-		    strstr(BType[i],"Riemann")) {
-				strcpy(DB.TestCase,"SupersonicVortex");
-				initialize_test_case_parameters();
-		} else if (strstr(BType[i],"PT")) {
-			strcpy(DB.TestCase,"InviscidChannel");
-			strcpy(DB.Geometry,"EllipsoidalBump");
-			initialize_test_case_parameters();
-		}
-	for (d = dMin[i]; d <= dMax[i]; d++) {
-		if (strstr(BType[i],"Riemann")) {
-			for (j = 0; j < 4; j++)
-				TestDB.EnteredRiemann[j] = 0;
-		} else if (strstr(BType[i],"PT")) {
-			for (j = 0; j < 2; j++)
-				TestDB.EnteredPT[j] = 0;
-		}
+		set_parameters_test_boundary_conditions(BType[i],d);
+		initialize_test_case_parameters();
 
-		Neq = d+2;
+		reset_entered_test_boundary_conditions(BType[i]);
 
 		W    = initialize_W(&Nn,&Nel,d); // free
+		Q    = initialize_Q(Nn,Nel,d);   // free
 		nL   = initialize_n(Nn,Nel,d);   // free
 		XYZ  = initialize_XYZ(Nn,Nel,d); // free
-		if (strstr(BType[i],"PT"))
-			update_values(Nn,Nel,W,nL,d);
-		pass = compare_jacobian_boundary(Nn,Nel,d,Neq,W,nL,XYZ,BType[i]);
 
-		if (d == dMin[i]) {
-			//     0         10        20        30        40        50
-			printf("jacobian_boundary_%s (d = %d):              ",BType[i],d);
+		if (strstr(BType[i],"BackPressure"))
+			update_values_BackPressure(Nn,Nel,W,nL,d);
+		pass = compare_jacobian_boundary(Nn,Nel,d,W,Q,nL,XYZ,BType[i]);
+
+		if (i == 0) {
+			if (d == dMin)
+				sprintf(PrintName,"jacobian_boundary_%s (d = %d):",BType[i],d);
+			else
+				sprintf(PrintName,"                  %s (d = %d):",BType[i],d);
 		} else {
-			printf("                           (d = %d):              ",d);
+			sprintf(PrintName,"                  %s        :",BType[i]);
 		}
-		test_print(pass);
+		test_print2(pass,PrintName);
 
 		free(W);
+		array_free2_d(d,Q);
 		free(nL);
 		free(XYZ);
+
+		free(DB.SolverType); // Initialized in "initialize_test_case_parameters"
 	}}
 
-	free(DB.TestCase);
-	free(DB.Geometry);
+	set_memory_test_jacobians('F');
 
-	for (i = 0; i < NBTypes; i++)
-		free(BType[i]);
+	array_free2_c(NBTypes,BType);
 
-	free(DB.SolverType); // From initialize_test_case_parameters
+	free(PrintName);
 }

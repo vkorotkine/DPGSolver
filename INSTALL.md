@@ -1,60 +1,53 @@
-# Library and Program Installation Instructions
+# Detailed Installation Instructions
 
-## Guillimin (Linux-x86_64)
-**Using Petsc modules on guillimin resulted in errors during runtime, petsc was thus configured manually.**
+Last tested: 2017/05/18
 
+### Supported Operating Systems
 
-### PETSc (petsc-3.6.3) - MPICH
-0. Prerequisites (loaded modules):
-  - cmake/2.8.12.2
-  - MKL/11.2
-1. Download and extract .tar file.
-2. petsc configuration options:
-  - A single build directory was made with debugging disabled.
-  - -march=native had to be removed when compiling on OSX.
-  - Linux: ./configure PETSC_ARCH=arch-linux-mpich-c-opt --download-mpich --with-blas-lapack-dir=/software/compilers/Intel/2015-15.0/composer_xe_2015.0.090/mkl --with-debugging=0 COPTFLAGS='-O3 -march=native -mtune=native' CXXOPTFLAGS='-O3 -march=native -mtune=native' FOPTFLAGS='-O3 -march=native -mtune=native'
-3. Follow make instructions for installation and testing.
+- macOS (tested on 10.12.5)
+- Ubuntu (tested on 16.04)
 
-### ParMETIS (parmetis-4.0.3)
-0. Prerequisites:
-  - MPI (either OpenMPI or mpich (used below), link appropriately)
-1. Download and extract .tar file
-2. In the top directory, modify the following parameters in the Makefile:
-  - debug  = 1
-  - prefix = /home/pzwan/programs/parmetis-4.0.3/build/opt/
-  - cc     = /home/pzwan/programs/petsc-3.6.3/arch-linux-mpich-c-opt/bin/mpicc
-  - cxx    = /home/pzwan/programs/petsc-3.6.3/arch-linux-mpich-c-opt/bin/mpicxx
-  - BUILDDIR = build/opt
-3. Execute make commands
-  - make config
-  - make install
+### Installation Instructions
 
+1. Install MPI and BLAS/LAPACK
+	- MPICH
+	- Intel MKL (tested with mkl_2017.3)
+		- Ensure that the 'Cluster support' package is also installed.
+		- Consult the MKL [link line advisor](https://software.intel.com/en-us/articles/intel-mkl-link-line-advisor) for required information for [user_configure.mk](configure/user_configure.mk)
 
-## Personal Computer (OSX 10.10)
-**Using MPICH resulted in fewer valgrind memory leaks.**
+2. Install PETSc (tested with petsc-3.7.6)
+	- Create a custom configure file as in PETSC_ROOT/config/examples or as in the [example PETSc configure file](configure/example_PETSc_configure.py). Note that PETSC_ARCH will be set to the name of your configure file.
+	- Configure from PETSC_ROOT using the configure file as 
+		```sh
+		$ ./path_to_PETSc_configure_file/$(PETSC_ARCH).py
+		```
+	- Follow the PETSc make instructions:
+		```sh
+		$ make PETSC_DIR=/path_to_your_dir/ PETSC_ARCH=your_arch all
+		$ make PETSC_DIR=/path_to_your_dir/ PETSC_ARCH=your_arch test
+		```
 
+3. Install ParMETIS (tested with parmetis-4.0.3)
+	- Download and extract .tar file
+	- In the root directory, modify the following parameters in the Makefile:
+		```make
+		cc = $(PATH_TO_MPICC)/mpicc
+		cxx = $(PATH_TO_MPICXX)/mpicxx
+		debug = 0 or 1 (choose one)
+		BUILDDIR = build/your_build_name
+		```
+	- Follow make instructions (elaborated in BUILD.txt):
+		```sh
+		$ make config
+		$ make install
+		```
 
-### PETSC (petsc-3.6.3) - MPICH
-0. Prerequisites:
-  - Intel MKL
-1. Download and extract .tar file.
-2. PETSC Configuration options:
-  - It is suggested to make two build directories, with debugging enabled/disabled.
-  - I was unable to build PETSC using COPTFLAGS='-O3 -march=native -mtune=native' on OSX 10.10
-  - ./configure PETSC_ARCH=arch-osx-mpich-c-opt --download-mpich --with-blas-lapack-dir=/Users/philip/Desktop/research_codes/intel_MKL/compilers_and_libraries_2016.4.210/mac/mkl --with-debugging=0 COPTFLAGS='-O3 -mtune=native' CXXOPTFLAGS='-O3 -mtune=native' FOPTFLAGS='-O3 -mtune=native'
-3. Follow make instructions for installation and testing.
+4. Install gmsh
+	- Add a symbolic link to the gmsh executable in one of the $PATH directories or add the directory to $PATH (e.g. in .bash_profile add "PATH=$PATH:/Applications/Gmsh.app/Contents/MacOS/").
+	- Check that this was successful by obtaining some output when typing
+		```sh
+		$ gmsh --version
+		```
 
-### ParMETIS (parmetis-4.0.3)
-0. Prerequisites:
-  - CMake
-  - MPI (either OpenMPI or mpich (used below), link appropriately)
-1. Download and extract .tar file.
-2. In the top directory, modify the following parameters in the Makefile:
-  - debug  = 0
-  - prefix = /Users/philip/Desktop/research_codes/parmetis/parmetis-4.0.3/build/opt/
-  - cc     = /Users/philip/Desktop/research_codes/petsc/petsc-3.7.4/arch-osx-mpich-c-opt/bin/mpicc
-  - cxx    = /Users/philip/Desktop/research_codes/petsc/petsc-3.7.4/arch-osx-mpich-c-opt/bin/mpicxx
-  - BUILDDIR = build/opt
-3. Execute make commands.
-  - make config
-  - make install
+5. Install python3
+	- Also install numpy.

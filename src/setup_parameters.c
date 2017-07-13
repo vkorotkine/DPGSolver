@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 
 #include "Parameters.h"
 #include "Macros.h"
@@ -36,7 +37,7 @@
  *
  *				2D (TRI):
  *					WS : Best collocated nodes? => Compare with Taylor(2007) (ToBeModified)
- *					WV : Best cubature nodes?   => Compare with Xiao(2010) (ToBeModified)
+ *					WV : Best symmetric cubature nodes (Papanicolopulos(2015))
  *
  *				3D (TET):
  *					SH : Best collocated nodes? (ToBeModified)
@@ -48,7 +49,7 @@
  *				Combination of TP and SI Element nodes
  *
  *			PYR Elements:
- *				ToBeModified
+ *				See cubature.c/cubature_PYR().
  *
  *		For the collocated scheme, it is advantageous to use WV nodes for TET FACE cubature nodes as they have better
  *		integration properties and there is no collocated with the FACE between the 2D and 3D WSH nodes anyways.
@@ -82,6 +83,9 @@
  *		           () : (s)traight, (c)urved
  *		           [] : TP [0], SI [1], PYR [2]
  *		PF       : Order used for representation of the (F)lux.
+ *		PTRS     : Order used for representation of the (TR)ace (S)olution.
+ *		PTRF     : Order used for representation of the (TR)ace (F)lux.
+ *		           If globally conforming traces are used, the order should be greater than 0.
  *
  *		PI(1)(2) : Order used for integration (cubature order).
  *		           (1) : (v)olume, (f)ace
@@ -101,6 +105,9 @@
  *		                       computational considerations.
  *
  *		VFPartUnity     : Flag for whether the (V)OLUME nodes form a (Part)ition of (Unity) on the ELEMENT (F)ACEs.
+ *		                  If enabled, certain FACE operators are sparse.
+ *		AllowSparseVOL  : Flag for whether (Sparse) (VOL)UME operators may be used.
+ *		                  If enabled, certain VOLUME operations are performed using sparse operators.
  *
  *		AC              : Specifies whether (a)ll elements are (c)urved or not.
  *		ExactGeom       : Move boundary nodes to exact geometry if enabled.
@@ -122,7 +129,7 @@
  *		InviscidFluxType : Type of inviscid numerical flux used.
  *		                   Options: LF, ROE
  *		ViscousFluxType  : Type of viscous numerical flux used.
- *		                   Options: IP, BR2, CDG2
+ *		                   Options: BR2, CDG2
  *		ExplicitSolverType : Type of explicit timestepping scheme used.
  *		                     Options: RK3_(S)trong(S)tability(Preserving), RK4_(L)ow(S)torage
  *		TETrefineType : Type of h-refinement to use for TET Elements.
@@ -131,10 +138,21 @@
  *	References:
  *		Lenoir(1986)-Optimal_Isoparametric_Finite_Elements_and_Error_Estimates_for_Domains_Involving_Curved_Boundaries
  *		Scott(1973)-Finite_Element_Techniques_for_Curved_Boundaries
+ *		Papanicolopulos(2015)-Computation of moderate-degree fully-symmetric cubature rules on the triangle using
+ *		                      symmetric polynomials and algebraic solving
  *
  */
 
-void setup_parameters()
+static void setup_parameters_DG  (void);
+static void setup_parameters_HDG (void);
+
+void setup_parameters(void)
+{
+	setup_parameters_DG();
+	setup_parameters_HDG();
+}
+
+static void setup_parameters_DG(void)
 {
 	// Initialize DB Parameters
 	unsigned int d          = DB.d,
@@ -254,8 +272,8 @@ void setup_parameters()
 			SF_BE[P][i] = calloc(2 , sizeof ***SF_BE);
 
 		// TP (2D is possibly higher than P8, 3D was tested on the PeriodicVortex case)
-		if (d == 1 || (d == 2 && P > 8) || (d == 3 && P > 2)) SF_BE[P][0][0] = 1;
-		if (d == 1 || (d == 2 && P > 8) || (d == 3 && P > 2)) SF_BE[P][0][1] = 1;
+		if ((d == 2 && P > 8) || (d == 3 && P > 2)) SF_BE[P][0][0] = 1;
+		if ((d == 2 && P > 8) || (d == 3 && P > 2)) SF_BE[P][0][1] = 1;
 
 		// WEDGE
 		if (d == 3 && P > 4) SF_BE[P][1][0] = 1;
@@ -270,10 +288,10 @@ void setup_parameters()
 		// ToBeDeleted: These orders may not be sufficient for 3D. To be investigated.
 		PGc[P]    = max(P,u1);
 //		PGc[P]    = P+1;
-		PCs[P][0] = (d-1)*PGs;
+		PCs[P][0] = max((d-1),u1)*PGs;
 		PCs[P][1] = (d-1)*max(PGs-1,u1);
 		PCs[P][2] = (d-1)*PGs;
-		PCc[P][0] = (d-1)*PGc[P];
+		PCc[P][0] = max((d-1)*PGc[P],PGs);
 		PCc[P][1] = (d-1)*max(PGc[P]-1,u1);
 		PCc[P][2] = (d-1)*PGc[P];
 		PJs[P][0] = PGs;
@@ -339,11 +357,18 @@ void setup_parameters()
 
 				strcpy(NodeTypeFrs[P][0],"GLL");
 				strcpy(NodeTypeFrc[P][0],"GLL");
-			} else {
+			} else if (strstr(DB.NodeType,"GL")) {
 				strcpy(NodeTypeS  [P][0],"GL");
 				strcpy(NodeTypeF  [P][0],"GL");
 				strcpy(NodeTypeFrs[P][0],"GL");
 				strcpy(NodeTypeFrc[P][0],"GL");
+			} else if (strstr(DB.NodeType,"EQ")) {
+				strcpy(NodeTypeS  [P][0],"EQ");
+				strcpy(NodeTypeF  [P][0],"EQ");
+				strcpy(NodeTypeFrs[P][0],"EQ");
+				strcpy(NodeTypeFrc[P][0],"EQ");
+			} else {
+				EXIT_UNSUPPORTED;
 			}
 
 			// Interpolation (SI)
@@ -361,32 +386,38 @@ void setup_parameters()
 			} else if (strstr(DB.NodeType,"EQ")) {
 				strcpy(NodeTypeS  [P][1],"EQ");
 				strcpy(NodeTypeF  [P][1],"EQ");
-			} else {
+			} else if (strstr(DB.NodeType,"WSH")) {
 				strcpy(NodeTypeS  [P][1],"WSH");
 				strcpy(NodeTypeF  [P][1],"WSH");
+			} else {
+				EXIT_UNSUPPORTED;
 			}
 			strcpy(NodeTypeFrs[P][1],"NOT_USED");
 			strcpy(NodeTypeFrc[P][1],"NOT_USED");
 
 			// Interpolation (PYR)
-			if (strstr(DB.NodeType,"GLL")) {
-				if (P == 0)
-					strcpy(NodeTypeS[P][2],"GL");
-				else
-					strcpy(NodeTypeS[P][2],"GLL");
+			if (d == 3) {
+				if (strstr(DB.NodeType,"GLL")) {
+					if (P == 0)
+						strcpy(NodeTypeS[P][2],"GL");
+					else
+						strcpy(NodeTypeS[P][2],"GLL");
 
-				if (PF[P] == 0)
-					strcpy(NodeTypeF[P][2],"GL");
-				else
-					strcpy(NodeTypeF[P][2],"GLL");
+					if (PF[P] == 0)
+						strcpy(NodeTypeF[P][2],"GL");
+					else
+						strcpy(NodeTypeF[P][2],"GLL");
 
-				strcpy(NodeTypeFrs[P][2],"GLL");
-				strcpy(NodeTypeFrc[P][2],"GLL");
-			} else {
-				strcpy(NodeTypeS  [P][2],"GL");
-				strcpy(NodeTypeF  [P][2],"GL");
-				strcpy(NodeTypeFrs[P][2],"GL");
-				strcpy(NodeTypeFrc[P][2],"GL");
+					strcpy(NodeTypeFrs[P][2],"GLL");
+					strcpy(NodeTypeFrc[P][2],"GLL");
+				} else if (strstr(DB.NodeType,"GL")) {
+					strcpy(NodeTypeS  [P][2],"GL");
+					strcpy(NodeTypeF  [P][2],"GL");
+					strcpy(NodeTypeFrs[P][2],"GL");
+					strcpy(NodeTypeFrc[P][2],"GL");
+				} else {
+					EXIT_UNSUPPORTED;
+				}
 			}
 
 			// Integration
@@ -413,8 +444,8 @@ void setup_parameters()
 				strcpy(NodeTypeIvs[P][1],"WV");
 				strcpy(NodeTypeIvc[P][1],"WV");
 
-				PIfs[P][1] = floor(1.0*IntOrderfs/2.0);
-				PIfc[P][1] = floor(1.0*IntOrderfc/2.0);
+				PIfs[P][1] = UINT_MAX; // Not used
+				PIfc[P][1] = UINT_MAX; // Not used
 				PIvs[P][1] = IntOrdervs;
 				PIvc[P][1] = IntOrdervc;
 			} else if (d == 3) {
@@ -435,8 +466,8 @@ void setup_parameters()
 			strcpy(NodeTypeIvs[P][2],"GJW");
 			strcpy(NodeTypeIvc[P][2],"GJW");
 
-			PIfs[P][2] = 0; // Not used
-			PIfc[P][2] = 0; // Not used
+			PIfs[P][2] = UINT_MAX; // Not used
+			PIfc[P][2] = UINT_MAX; // Not used
 			PIvs[P][2] = floor(1.0*IntOrdervs/2.0);
 			PIvc[P][2] = floor(1.0*IntOrdervc/2.0);
 		} else { // Collocated
@@ -502,6 +533,7 @@ void setup_parameters()
 					strcpy(NodeTypeIfc[P][1],"GL");
 				}
 			} else if (d == 3) {
+				// Currently must use WSH nodes for the FACE as well for consistency between TET FACE and TRI VOLUME.
 				strcpy(NodeTypeIfs[P][1],"WSH");
 				strcpy(NodeTypeIfc[P][1],"WSH");
 //				strcpy(NodeTypeIfs[P][1],"WV");
@@ -544,17 +576,19 @@ void setup_parameters()
 					VFPartUnity[i] = 1;
 		}
 	}
+	DB.AllowSparseVOL  = 1;
+	DB.AllowSparseFACE = 1;
 
 	// Solver
 //	DB.InviscidFluxType = FLUX_LF;
 	DB.InviscidFluxType = FLUX_ROE;
 
-//	DB.ViscousFluxType  = FLUX_IP;
-//	DB.ViscousFluxType  = FLUX_BR2;
-	DB.ViscousFluxType  = FLUX_CDG2;
+	DB.ViscousFluxType  = FLUX_BR2;
+//	DB.ViscousFluxType  = FLUX_CDG2;
 
- 	DB.ExplicitSolverType = RK3_SSP;
+// 	DB.ExplicitSolverType = RK3_SSP;
 // 	DB.ExplicitSolverType = RK4_LS;
+ 	DB.ExplicitSolverType = EULER;
 
 	// hp adaptation
 //	DB.DOFcap_frac = 10.0;
@@ -601,7 +635,36 @@ void setup_parameters()
 	DB.VFPartUnity = VFPartUnity;
 }
 
-void setup_parameters_L2proj(void)
+static void setup_parameters_HDG(void)
+{
+	if (DB.Method != METHOD_HDG)
+		return;
+
+	unsigned int const PMax = DB.PMax,
+	                   NP   = PMax+1;
+
+	unsigned int *const PTRS = malloc(NP * sizeof *PTRS), // keep
+	             *const PTRF = malloc(NP * sizeof *PTRF); // keep
+
+	for (size_t P = 0; P <= PMax; P++) {
+		// Interpolation and Integration
+		PTRS[P] = P;
+		PTRF[P] = P;
+	}
+
+	DB.PTRS = PTRS;
+	DB.PTRF = PTRF;
+}
+
+static void setup_parameters_L2proj_DG  (void);
+static void setup_parameters_L2proj_HDG (void);
+
+void setup_parameters_L2proj(void) {
+	setup_parameters_L2proj_DG();
+	setup_parameters_L2proj_HDG();
+}
+
+static void setup_parameters_L2proj_DG(void)
 {
 	/*
 	 *	Purpose:
@@ -634,12 +697,13 @@ void setup_parameters_L2proj(void)
 
 	for (P = 0; P <= PMax; P++) {
 		// Geometry
-		PGc[P]    = max(P,u1)+PG_add;
-//PGc[P] = 1;
-		PCs[P][0] = (d-1)*PGs;
+		PGc[P]    = max(P+PG_add,u1);
+//		PGc[P]    = max(P+PG_add,(unsigned int) 2);
+//		PGc[P]    = 1;
+		PCs[P][0] = max((d-1),u1)*PGs;
 		PCs[P][1] = (d-1)*max(PGs-1,u1);
 		PCs[P][2] = (d-1)*PGs;
-		PCc[P][0] = (d-1)*PGc[P];
+		PCc[P][0] = max((d-1)*PGc[P],PGs);
 		PCc[P][1] = (d-1)*max(PGc[P]-1,u1);
 		PCc[P][2] = (d-1)*PGc[P];
 		PJs[P][0] = PGs;
@@ -673,12 +737,20 @@ void setup_parameters_L2proj(void)
 			}
 
 			// PYR
-			PIfs[P][2] = 0; // Not used
-			PIfc[P][2] = 0; // Not used
+			PIfs[P][2] = UINT_MAX; // Not used
+			PIfc[P][2] = UINT_MAX; // Not used
 			PIvs[P][2] = floor(1.0*IntOrder/2.0);
 			PIvc[P][2] = floor(1.0*IntOrder/2.0);
 		} else { // Collocated
 			// Do nothing.
 		}
 	}
+}
+
+static void setup_parameters_L2proj_HDG(void)
+{
+	if (DB.Method != METHOD_HDG)
+		return;
+
+	// Currently nothing to be done. FACE cubature order modified as part of DG parameters.
 }

@@ -4,10 +4,16 @@ Refine = 0;
 
 lc = 2/2^Refine;
 
-rIn = 0.5;
-rOut = 1.0;
+EqIndex = 1; // Options: 0 (Poisson), 1 (Euler)
+Orientation = 0; // Options: 0 (Standard), 1 (More Regular)
 
-
+If (EqIndex == 0)
+	rIn  = 0.5;
+	rOut = 1.0;
+ElseIf (EqIndex == 1)
+	rIn  = 0.5;
+	rOut = 1.0;
+EndIf
 
 // Geometry Specification
 
@@ -30,16 +36,25 @@ Transfinite Line {1001:1004} = 1*2^(Refine)+1 Using Progression 1;
 Transfinite Line {1005:1006} = 1*2^(Refine)+1 Using Progression 1;
 Transfinite Line {1007}      = 1*2^(Refine)+1 Using Progression 1;
 
-//Line Loop (4001) = {1007,1005,-1002,-1003};
-//Line Loop (4002) = {-1007,1004,1001,-1006};
-Line Loop (4001) = {-1007,-1005,1002,1003};
-Line Loop (4002) = {1007,-1004,-1001,1006};
+If (Orientation == 0)
+	Line Loop (4001) = {1007,1005,-1002,-1003};
+	Line Loop (4002) = {-1007,1004,1001,-1006};
 
-Plane Surface(4001) = {4001};
-Plane Surface(4002) = {4002};
+	Plane Surface(4001) = {4001};
+	Plane Surface(4002) = {4002};
 
-Transfinite Surface{4001} Right;
-Transfinite Surface{4002} Right;
+	Transfinite Surface{4001};
+	Transfinite Surface{4002};
+ElseIf (Orientation == 1)
+	Line Loop (4001) = {-1007,-1005,1002,1003};
+	Line Loop (4002) = {1007,-1004,-1001,1006};
+
+	Plane Surface(4001) = {4001};
+	Plane Surface(4002) = {4002};
+
+	Transfinite Surface{4001} Right;
+	Transfinite Surface{4002} Right;
+EndIf
 
 //Recombine Surface{4002};
 
@@ -47,10 +62,16 @@ Transfinite Surface{4002} Right;
 
 // Physical Parameters for '.msh' file
 
-Physical Line(10011) = {1002}; // Straight Dirichlet
-Physical Line(10012) = {1001}; // Straight Neumann
-Physical Line(20011) = {1003:1004}; // Curved Dirichlet
-Physical Line(20012) = {1005:1006}; // Curved Neumann
+If (EqIndex == 0) // Poisson
+	Physical Line(10011) = {1002}; // Straight Dirichlet
+	Physical Line(10012) = {1001}; // Straight Neumann
+	Physical Line(20011) = {1003:1004}; // Curved Dirichlet
+	Physical Line(20012) = {1005:1006}; // Curved Neumann
+ElseIf (EqIndex == 1) // Euler
+	Physical Line(10004) = {1001}; // Straight Total Temperature/Pressure
+	Physical Line(10003) = {1002}; // Straight Back Pressure
+	Physical Line(20002) = {1003:1006}; // Curved SlipWall
+EndIf
 
 Physical Surface(9401) = {4001};
 Physical Surface(9402) = {4002};

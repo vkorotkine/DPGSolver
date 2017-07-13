@@ -3,6 +3,7 @@
 
 #include "memory_destructors.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "Parameters.h"
@@ -14,6 +15,7 @@
 #include "array_free.h"
 #include "element_functions.h"
 #include "adaptation.h"
+#include "memory_destructors_ELEMENT.h"
 
 /*
  *	Purpose:
@@ -89,12 +91,17 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free4_d(NP,NP,1,         ELEMENT->ChiInvS_vS);
 	array_free4_d(NP,NP,1,         ELEMENT->ChiInvGs_vGs);
 
+	array_free4_d(NP,NP,1,         ELEMENT->ChiBezInvS_vS);
+
 	array_free4_d(NP,NP,1,ELEMENT->IG2);
 	array_free4_d(NP,NP,1,ELEMENT->IGc);
 	array_free4_d(NP,NP,1,ELEMENT->ICs);
 	array_free4_d(NP,NP,1,ELEMENT->ICc);
 
 	array_free4_d(NP,NP,1,ELEMENT->TGs);
+	array_free4_d(NP,NP,1,ELEMENT->TS);
+	array_free4_d(NP,NP,1,ELEMENT->TS_vB);
+	array_free4_d(NP,NP,1,ELEMENT->TInvS_vB);
 
 	array_free4_ui(NP,NP,NVREFMAX,ELEMENT->VeMask);
 
@@ -182,10 +189,10 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free5_CSR_d(NP,NP,1,d,ELEMENT->Ds_Weak_VV_sp);
 	array_free5_CSR_d(NP,NP,1,d,ELEMENT->Dc_Weak_VV_sp);
 
-	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->Is_Weak_FF);
-	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->Ic_Weak_FF);
-	array_free4_CSR_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->Is_Weak_FF_sp);
-	array_free4_CSR_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->Ic_Weak_FF_sp);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->Is_Weak_FV);
+	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->Ic_Weak_FV);
+	array_free4_CSR_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->Is_Weak_FV_sp);
+	array_free4_CSR_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->Ic_Weak_FV_sp);
 
 	array_free4_d(NP,NP,NVREFMAX      ,ELEMENT->L2hat_vS_vS);
 	array_free4_d(NP,NP,NFREFMAX*NFMAX,ELEMENT->GfS_fIs);
@@ -195,6 +202,7 @@ void memory_destructor_E(struct S_ELEMENT *ELEMENT)
 	array_free3_ui(NP,NFORDMAX,ELEMENT->nOrd_fIs);
 	array_free3_ui(NP,NFORDMAX,ELEMENT->nOrd_fIc);
 
+	destructors_ELEMENT(ELEMENT);
 
 	free(ELEMENT->ELEMENTclass);
 	free(ELEMENT->ELEMENT_FACE);
@@ -206,18 +214,18 @@ void memory_destructor_L2_projection(const unsigned int EType)
 {
 	unsigned int NP = DB.NP;
 
-	unsigned int i, P, Pb, PbMin, PbMax;
 	struct S_ELEMENT *ELEMENT = get_ELEMENT_type(EType);
 
-	for (P = 0; P < NP; P++) {
+	for (size_t P = 0; P < NP; P++) {
 		if (ELEMENT->w_vIc[P]) {
 			free(ELEMENT->w_vIc[P]);
 			ELEMENT->w_vIc[P] = NULL;
 		}
 
+		size_t PbMin, PbMax;
 		get_Pb_range(P,&PbMin,&PbMax);
-		for (Pb = PbMin; Pb <= PbMax; Pb++) {
-			for (i = 0; i < NVREFMAX; i++) {
+		for (size_t Pb = PbMin; Pb <= PbMax; Pb++) {
+			for (size_t i = 0; i < NVREFMAX; i++) {
 				if (ELEMENT->ChiS_vIc[P][Pb][i]) {
 					free(ELEMENT->ChiS_vIc[P][Pb][i]);
 					ELEMENT->ChiS_vIc[P][Pb][i] = NULL;
@@ -254,27 +262,27 @@ void memory_destructor_V(struct S_VOLUME *VOLUME)
 	// Initialization
 	free(VOLUME->What);
 	free(VOLUME->RES);
+	array_free2_d(d,VOLUME->QhatV);
+	array_free2_d(d,VOLUME->Qhat);
+	array_free2_d(d,VOLUME->QhatV_What);
+	array_free2_d(d,VOLUME->Qhat_What);
 
 	// Solving
 	free(VOLUME->RHS);
 	free(VOLUME->LHS);
+	array_free2_d(d,VOLUME->LHSQ);
 	free(VOLUME->MInv);
+	free(VOLUME->MInv_diag);
 
 	// Linearization testing
 	free(VOLUME->What_c);
 	free(VOLUME->RHS_c);
 
-	free(VOLUME->uhat_c);
-	array_free2_cmplx(d,VOLUME->qhat_c);
+	array_free2_cmplx(d,VOLUME->QhatV_c);
+	array_free2_cmplx(d,VOLUME->Qhat_c);
 
 	// hp adaptivity
 	free(VOLUME->XYZ_vVP2);
-
-	// Poisson
-	free(VOLUME->uhat);
-	array_free2_d(d,VOLUME->qhat);
-	array_free2_d(d,VOLUME->qhat_uhat);
-	array_free2_d(d,VOLUME->DxyzChiS);
 
 	// structs
 	free(VOLUME->FACE);
@@ -304,29 +312,28 @@ void memory_destructor_F(struct S_FACE *FACE)
 	free(FACE->detJVOut_fI);
 
 	// Solving
-	if (FACE->LHSInIn)
-		free(FACE->LHSInIn);
-	if (FACE->LHSOutIn)
-		free(FACE->LHSOutIn);
-	if (FACE->LHSInOut)
-		free(FACE->LHSInOut);
-	if (FACE->LHSOutOut)
-		free(FACE->LHSOutOut);
+	free(FACE->RHSL);
+	free(FACE->RHSR);
 
-	// Poisson
-	array_free2_d(d,FACE->qhatIn);
-	array_free2_d(d,FACE->qhatOut);
-	array_free2_d(d,FACE->qhat_uhatInIn);
-	array_free2_d(d,FACE->qhat_uhatOutIn);
-	array_free2_d(d,FACE->qhat_uhatInOut);
-	array_free2_d(d,FACE->qhat_uhatOutOut);
+	free(FACE->LHSLL);
+	free(FACE->LHSRL);
+	free(FACE->LHSLR);
+	free(FACE->LHSRR);
+
+	array_free2_d(d,FACE->QhatL);
+	array_free2_d(d,FACE->QhatR);
+
+	array_free2_d(d,FACE->QhatL_WhatL);
+	array_free2_d(d,FACE->QhatL_WhatR);
+	array_free2_d(d,FACE->QhatR_WhatL);
+	array_free2_d(d,FACE->QhatR_WhatR);
 
 	// Linearization testing
-	free(FACE->RHSIn_c);
-	free(FACE->RHSOut_c);
+	free(FACE->RHSL_c);
+	free(FACE->RHSR_c);
 
-	array_free2_cmplx(d,FACE->qhatIn_c);
-	array_free2_cmplx(d,FACE->qhatOut_c);
+	array_free2_cmplx(d,FACE->QhatL_c);
+	array_free2_cmplx(d,FACE->QhatR_c);
 
 	free(FACE);
 }

@@ -24,6 +24,7 @@
 #include "adaptation.h"
 #include "element_functions.h"
 #include "matrix_functions.h"
+#include "output_to_paraview.h"
 
 /*
  *	Purpose:
@@ -55,31 +56,33 @@ static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, co
 
 	unsigned int pass = 0, refType, NrefTypes;
 
+	char *PrintName = malloc(STRLEN_MAX * sizeof *PrintName); // free
+
 	if (strstr(EName,"TET"))
 		NrefTypes = 3;
 	else
 		NrefTypes = 1;
 
 	for (refType = 0; refType < NrefTypes; refType++) {
-		code_startup_mod_prmtrs(nargc,argvNew,Nref,update_argv,1);
+		code_startup_mod_prmtrs(nargc,(char const *const *const) argvNew,Nref,update_argv,1);
 		if      (refType == 0) DB.TETrefineType = TET8;
 		else if (refType == 1) DB.TETrefineType = TET12;
 		else if (refType == 2) DB.TETrefineType = TET6;
-		code_startup_mod_prmtrs(nargc,argvNew,Nref,update_argv,2);
-		if (DB.PGlobal <= 1)
-			printf("Please increase PGlobal above 1 in the ctrl file (%s.ctrl)\n",argvNew[1]), TestDB.Nwarnings++;
+		code_startup_mod_prmtrs(nargc,(char const *const *const) argvNew,Nref,update_argv,2);
+		if (DB.PGlobal <= 1) {
+			test_print_warning("Please increase PGlobal above 1 in the ctrl file");
+			printf("Ctrl file: %s.ctrl\n",argvNew[1]);
+		}
 
 		run_test(&pass,"FullREFINE");
 		if (strstr(EName,"TRI"))
-			printf("update_h (%s%d FullREFINE):                   ",EName,refType);
+			sprintf(PrintName,"update_h (%s%d FullREFINE):",EName,refType);
 		else
-			printf("         (%s%d FullREFINE):                   ",EName,refType);
-		test_print(pass);
+			sprintf(PrintName,"         (%s%d FullREFINE):",EName,refType);
+		test_print2(pass,PrintName);
 
-		//     0         10        20        30        40        50
 		run_test(&pass,"FullCOARSE");
-		printf("         (        FullCOARSE):                   ");
-		test_print(pass);
+		test_print2(pass,"         (        FullCOARSE):");
 
 		mark_VOLUMEs(HREFINE,Lmts[0]);
 		mark_VOLUMEs(HCOARSE,Lmts[1]);
@@ -89,25 +92,22 @@ static void test_update_h(int nargc, char **argvNew, const unsigned int Nref, co
 		mark_VOLUMEs(HREFINE,Lmts[2]);
 		mark_VOLUMEs(HCOARSE,Lmts[3]);
 
-		//     0         10        20        30        40        50
 		run_test(&pass,"Mixed");
-		printf("         (        Mixed):                        ");
-		test_print(pass);
+		test_print2(pass,"         (        Mixed):");
 
 		pass = 1;
 		check_Jacobians(&pass);
-		//     0         10        20        30        40        50
-		printf("         (        Jacobians):                    ");
-		test_print(pass);
+		test_print2(pass,"         (        Jacobians):");
 
 		code_cleanup();
 	}
 	DB.TETrefineType = TETrefineType;
+
+	free(PrintName);
 }
 
 void test_integration_update_h(int nargc, char **argv)
 {
-//	unsigned int pass = 0;
 	char         **argvNew;
 
 	argvNew    = malloc(2          * sizeof *argvNew);  // free
@@ -138,7 +138,7 @@ void test_integration_update_h(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// TRIs
-	strcpy(argvNew[1],"test/Test_update_h_TRI");
+	strcpy(argvNew[1],"test/update_h/Test_update_h_TRI");
 	strcpy(EName,"TRI   ");
 	Lmts[0]->XYZ[0] = -0.75; Lmts[0]->XYZ[1] = -0.75; Lmts[0]->type = 'd'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->type = 'd'; Lmts[1]->index = 1;
@@ -148,7 +148,7 @@ void test_integration_update_h(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// QUADs
-	strcpy(argvNew[1],"test/Test_update_h_QUAD");
+	strcpy(argvNew[1],"test/update_h/Test_update_h_QUAD");
 	strcpy(EName,"QUAD  ");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
@@ -158,7 +158,7 @@ void test_integration_update_h(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// TETs
-	strcpy(argvNew[1],"test/Test_update_h_TET");
+	strcpy(argvNew[1],"test/update_h/Test_update_h_TET");
 	strcpy(EName,"TET   ");
 	Lmts[0]->XYZ[0] =  1.00; Lmts[0]->XYZ[1] =  1.00; Lmts[0]->XYZ[2] =  0.00; Lmts[0]->type = 'd'; Lmts[0]->index = 1;
 	Lmts[1]->XYZ[0] = -1.00; Lmts[1]->XYZ[1] = -1.00; Lmts[1]->XYZ[2] =  1.00; Lmts[1]->type = 'd'; Lmts[1]->index = 0;
@@ -168,7 +168,7 @@ void test_integration_update_h(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// HEXs
-	strcpy(argvNew[1],"test/Test_update_h_HEX");
+	strcpy(argvNew[1],"test/update_h/Test_update_h_HEX");
 	strcpy(EName,"HEX   ");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->XYZ[2] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
@@ -178,7 +178,7 @@ void test_integration_update_h(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// WEDGEs
-	strcpy(argvNew[1],"test/Test_update_h_WEDGE");
+	strcpy(argvNew[1],"test/update_h/Test_update_h_WEDGE");
 	strcpy(EName,"WEDGE ");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->XYZ[2] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
@@ -188,7 +188,7 @@ void test_integration_update_h(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// PYRs
-	strcpy(argvNew[1],"test/Test_update_h_PYR");
+	strcpy(argvNew[1],"test/update_h/Test_update_h_PYR");
 	strcpy(EName,"PYR   ");
 	Lmts[0]->XYZ[0] = -0.50; Lmts[0]->XYZ[1] = -0.50; Lmts[0]->XYZ[2] = -0.50; Lmts[0]->type = 'a'; Lmts[0]->index = 0;
 	Lmts[1]->XYZ[0] =  0.00; Lmts[1]->XYZ[1] =  0.00; Lmts[1]->XYZ[2] =  0.00; Lmts[1]->type = 'a'; Lmts[1]->index = 1;
@@ -245,7 +245,7 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *L
 				case 0: if (!(XYZ_cent[dim] < Lmts->XYZ[dim])) update = 0; break;
 				case 1: if (!(XYZ_cent[dim] > Lmts->XYZ[dim])) update = 0; break;
 				default:
-					printf("Error: Unsupported index in mark_VOLUMEs for type (a).\n"), EXIT_MSG;
+					EXIT_UNSUPPORTED;
 					break;
 				}
 			}
@@ -257,7 +257,7 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *L
 				case 0: if (XYZ_cent[dim] < Lmts->XYZ[dim]) update = 1; break;
 				case 1: if (XYZ_cent[dim] > Lmts->XYZ[dim]) update = 1; break;
 				default:
-					printf("Error: Unsupported index in mark_VOLUMEs for type (o).\n"), EXIT_MSG;
+					EXIT_UNSUPPORTED;
 					break;
 				}
 			}
@@ -274,12 +274,12 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *L
 			case 0: if (!(XYZ_cent_sum < Lmts_sum)) update = 0; break;
 			case 1: if (!(XYZ_cent_sum > Lmts_sum)) update = 0; break;
 			default:
-				printf("Error: Unsupported index in mark_VOLUMEs for type (d).\n"), EXIT_MSG;
+				EXIT_UNSUPPORTED;
 				break;
 			}
 			break;
 		default:
-			printf("Error: Unsupported type in mark_VOLUMEs.\n"), EXIT_MSG;
+			EXIT_UNSUPPORTED;
 			break;
 		}
 
@@ -292,14 +292,14 @@ static void mark_VOLUMEs(const unsigned int adapt_type, const struct S_Limits *L
 
 
 struct S_OPERATORS {
-	unsigned int NfnS, NvnGs, *nOrdInOut, *nOrdOutIn;
+	unsigned int NfnS, NvnGs, *nOrdLR, *nOrdRL;
 	double       **I_vGs_fS;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const struct S_FACE *FACE,
                      const unsigned int IndFType)
 {
-	unsigned int PF, VType, IndOrdInOut, IndOrdOutIn;
+	unsigned int PF, VType, IndOrdLR, IndOrdRL;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_FACE;
 
@@ -307,8 +307,8 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	VType = VOLUME->type;
 
 	PF = FACE->P;
-	IndOrdInOut = FACE->IndOrdInOut;
-	IndOrdOutIn = FACE->IndOrdOutIn;
+	IndOrdLR = FACE->IndOrdLR;
+	IndOrdRL = FACE->IndOrdRL;
 
 	ELEMENT = get_ELEMENT_type(VType);
 	ELEMENT_FACE = get_ELEMENT_FACE(VType,IndFType);
@@ -318,8 +318,8 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 
 	OPS->I_vGs_fS = ELEMENT->I_vGs_fS[1][PF];
 
-	OPS->nOrdInOut = ELEMENT_FACE->nOrd_fS[PF][IndOrdInOut];
-	OPS->nOrdOutIn = ELEMENT_FACE->nOrd_fS[PF][IndOrdOutIn];
+	OPS->nOrdLR = ELEMENT_FACE->nOrd_fS[PF][IndOrdLR];
+	OPS->nOrdRL = ELEMENT_FACE->nOrd_fS[PF][IndOrdRL];
 }
 
 static void check_correspondence(unsigned int *pass)
@@ -328,9 +328,9 @@ static void check_correspondence(unsigned int *pass)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int Vf, IndFType, NfnS, *nOrdInOut, *nOrdOutIn, vhIn, vhOut,
+	unsigned int Vf, IndFType, NfnS, *nOrdLR, *nOrdRL, vhIn, vhOut,
 	             dim, n, Indd, BC, FACE_is_internal;
-	double       *XYZ_fSIn, *XYZ_fSOut, *XYZ_fSInOut, *XYZ_fSOutIn;
+	double       *XYZ_fSIn, *XYZ_fSOut, *XYZ_fSLR, *XYZ_fSRL;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME, *VOLUMEc;
@@ -340,76 +340,74 @@ static void check_correspondence(unsigned int *pass)
 
 	*pass = 1;
 	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
-		VOLUME = FACE->VIn;
-		Vf     = FACE->VfIn;
+		VOLUME = FACE->VL;
+		Vf     = FACE->VfL;
 
 		IndFType = get_IndFType(VOLUME->Eclass,Vf/NFREFMAX);
 		init_ops(OPS,VOLUME,FACE,IndFType);
 
 		NfnS = OPS->NfnS;
 
-		nOrdInOut = OPS->nOrdInOut;
-		nOrdOutIn = OPS->nOrdOutIn;
+		nOrdLR = OPS->nOrdLR;
+		nOrdRL = OPS->nOrdRL;
 
 		XYZ_fSIn = mm_Alloc_d(CBCM,CBT,CBNT,NfnS,d,OPS->NvnGs,1.0,OPS->I_vGs_fS[Vf],VOLUME->XYZ_vV); // free
 
-		VOLUME = FACE->VOut;
-		Vf     = FACE->VfOut;
+		VOLUME = FACE->VR;
+		Vf     = FACE->VfR;
 
 		IndFType = get_IndFType(VOLUME->Eclass,Vf/NFREFMAX);
 		init_ops(OPS,VOLUME,FACE,IndFType);
 
 		XYZ_fSOut = mm_Alloc_d(CBCM,CBT,CBNT,NfnS,d,OPS->NvnGs,1.0,OPS->I_vGs_fS[Vf],VOLUME->XYZ_vV); // free
 
-		XYZ_fSInOut = malloc(NfnS*d * sizeof *XYZ_fSInOut); // free
-		XYZ_fSOutIn = malloc(NfnS*d * sizeof *XYZ_fSOutIn); // free
+		XYZ_fSLR = malloc(NfnS*d * sizeof *XYZ_fSLR); // free
+		XYZ_fSRL = malloc(NfnS*d * sizeof *XYZ_fSRL); // free
 
 		for (dim = 0; dim < d; dim++) {
 			Indd = dim*NfnS;
 			for (n = 0; n < NfnS; n++) {
-				XYZ_fSInOut[Indd+n] = XYZ_fSIn[Indd+nOrdInOut[n]];
-				XYZ_fSOutIn[Indd+n] = XYZ_fSOut[Indd+nOrdOutIn[n]];
+				XYZ_fSLR[Indd+n] = XYZ_fSIn[Indd+nOrdLR[n]];
+				XYZ_fSRL[Indd+n] = XYZ_fSOut[Indd+nOrdRL[n]];
 			}
 		}
 
 		BC = FACE->BC;
-		FACE_is_internal = (BC == 0 || (BC % BC_STEP_SC > 50));
+//		FACE_is_internal = (BC == 0 || (BC % BC_STEP_SC > 50));
+		FACE_is_internal = (BC == 0); // Not including periodic faces
 
-		if (FACE_is_internal && (array_norm_diff_d(NfnS*d,XYZ_fSIn,XYZ_fSOutIn,"Inf")  > 10*EPS ||
-		                          array_norm_diff_d(NfnS*d,XYZ_fSInOut,XYZ_fSOut,"Inf") > 10*EPS)) {
+		if (FACE_is_internal && (array_norm_diff_d(NfnS*d,XYZ_fSIn,XYZ_fSRL,"Inf")  > 10*EPS ||
+		                          array_norm_diff_d(NfnS*d,XYZ_fSLR,XYZ_fSOut,"Inf") > 10*EPS)) {
 				*pass = 0;
 				printf("Problem in check_correspondence\n");
 
 				vhIn = 0;
-				for (VOLUMEc = FACE->VIn->parent->child0; VOLUMEc != FACE->VIn; VOLUMEc = VOLUMEc->next)
+				for (VOLUMEc = FACE->VL->parent->child0; VOLUMEc != FACE->VL; VOLUMEc = VOLUMEc->next)
 					vhIn++;
 
 				vhOut = 0;
-				for (VOLUMEc = FACE->VOut->parent->child0; VOLUMEc != FACE->VOut; VOLUMEc = VOLUMEc->next)
+				for (VOLUMEc = FACE->VR->parent->child0; VOLUMEc != FACE->VR ; VOLUMEc = VOLUMEc->next)
 					vhOut++;
 
-printf("%d %d %d %d %d\n",FACE->indexg,FACE->IndOrdInOut,FACE->IndOrdOutIn,vhIn,vhOut);
-printf("%d %d %d %d\n",FACE->VIn->type,FACE->VIn->indexg,FACE->VfIn,FACE->VIn->level);
-printf("%d %d %d %d\n",FACE->VOut->type,FACE->VOut->indexg,FACE->VfOut,FACE->VOut->level);
-				printf("Errors: %e %e\n\n",array_norm_diff_d(NfnS*d,XYZ_fSIn,XYZ_fSOutIn,"Inf"),
-		                                   array_norm_diff_d(NfnS*d,XYZ_fSInOut,XYZ_fSOut,"Inf"));
+				printf("%d %d %d %d %d\n",FACE->indexg,FACE->IndOrdLR,FACE->IndOrdRL,vhIn,vhOut);
+				printf("%d %d %d %d\n",FACE->VL->type,FACE->VL->indexg,FACE->VfL,FACE->VL->level);
+				printf("%d %d %d %d\n",FACE->VR->type,FACE->VR->indexg,FACE->VfR,FACE->VR->level);
+				printf("Errors: %e %e\n\n",array_norm_diff_d(NfnS*d,XYZ_fSIn,XYZ_fSRL,"Inf"),
+		                                   array_norm_diff_d(NfnS*d,XYZ_fSLR,XYZ_fSOut,"Inf"));
 				array_print_d(NfnS,d,XYZ_fSIn,'C');
-				array_print_d(NfnS,d,XYZ_fSOutIn,'C');
+				array_print_d(NfnS,d,XYZ_fSRL,'C');
 				array_print_d(NfnS,d,XYZ_fSOut,'C');
-				array_print_d(NfnS,d,XYZ_fSInOut,'C');
-EXIT_MSG;
+				array_print_d(NfnS,d,XYZ_fSLR,'C');
+				EXIT_MSG;
 				break;
 		}
 
 		free(XYZ_fSIn);
 		free(XYZ_fSOut);
-		free(XYZ_fSInOut);
-		free(XYZ_fSOutIn);
+		free(XYZ_fSLR);
+		free(XYZ_fSRL);
 	}
 	free(OPS);
-
-	if (*pass)
-		TestDB.Npass++;
 }
 
 static void check_Jacobians(unsigned int *pass)
@@ -438,9 +436,6 @@ static void check_Jacobians(unsigned int *pass)
 			}
 		}
 	}
-
-	if (*pass)
-		TestDB.Npass++;
 }
 
 static void run_test(unsigned int *pass, const char *test_type)

@@ -1,6 +1,6 @@
 If missing, add copyright info to header of every .c and .h file as below
 // Copyright 2017 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/master/LICENSE)
+// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 Ensure that the link is correct
 
 grep through all files for 'ToBeModified' and 'ToBeDeleted' comments, making appropriate modifications when possible.
@@ -8,7 +8,4 @@ grep through all files for 'ToBeModified' and 'ToBeDeleted' comments, making app
 change tab spaces to 8 and increase max lines to check alignment of the code under different options in .vimrc
 
 put src code into logical subfolders
-
-
-formatting left to be fixed:
-many of the test routines have improper tabbing when checking the pass condition.
+check that all includes in the headers are also present in the associated .c files (for correct dependency generation)

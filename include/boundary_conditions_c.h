@@ -6,12 +6,11 @@
 
 #include <complex.h>
 
+#include "boundary_conditions.h"
 
-extern void boundary_Riemann_c      (const unsigned int Nn, const unsigned int Nel, double *XYZ, double complex *WL,
-                                     double complex *WOut, double complex *WB, double *nL, const unsigned int d);
-extern void boundary_SlipWall_c     (const unsigned int Nn, const unsigned int Nel, double complex *WL, double complex *WB,
-                                     double *nL, const unsigned int d);
-extern void boundary_BackPressure_c (const unsigned int Nn, const unsigned int Nel, double complex *WL, double complex *WB,
-                                     double *nL, const unsigned int d, const unsigned int Neq);
+extern void set_BC_from_BType            (struct S_BC *const BCdata, char const *const BType);
+extern void correct_XYZ_for_exact_normal (struct S_BC *const BCdata, char const *const BType);
+
+extern void compute_boundary_values_c    (struct S_BC *const BCdata);
 
 #endif // DPG__boundary_conditions_c_h__INCLUDED

@@ -15,6 +15,7 @@
 #include "S_FACE.h"
 
 #include "finalize_RHS.h"
+#include "array_print.h"
 
 /*
  *	Purpose:
@@ -36,24 +37,16 @@ void initialize_KSP(Mat *A, Vec *b, Vec *x)
 	 *		Potentially need to add CHKERRQ for MatCreate. (ToBeDeleted)
 	 */
 
-	// Initialize DB Parameters
-	unsigned int dof = DB.dof;
-
-	// Standard datatypes
-	unsigned int i, nnz_d, Indi;
-
-	struct S_VOLUME *VOLUME;
+	unsigned int const dof = DB.dof;
 
 	MPI_Comm comm = MPI_COMM_WORLD;
-	PetscInt *nnz;
+	PetscInt *nnz = malloc(dof * sizeof *nnz); // free
 
-	nnz = malloc(dof * sizeof *nnz); // free
+	size_t Indi = 0;
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		unsigned int const nnz_d = VOLUME->nnz_d;
 
-	Indi = 0;
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		nnz_d = VOLUME->nnz_d;
-
-		for (i = 0; i < nnz_d; i++)
+		for (size_t i = 0; i < nnz_d; i++)
 			nnz[Indi+i] = nnz_d + VOLUME->nnz_o;
 
 		Indi += nnz_d;
@@ -95,7 +88,7 @@ void finalize_Mat(Mat *A, const unsigned int finalize_type)
 			A = NULL;
 			break;
 		default:
-			printf("Error: Unsupported finalize_type.\n"), EXIT_MSG;
+			EXIT_UNSUPPORTED;
 			break;
 	}
 }
@@ -151,26 +144,15 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 	 */
 
 	// Initialize DB Parameters
-	unsigned int Nvar = DB.Nvar,
-	             Neq  = DB.Neq;
-
-	// Standard datatypes
-	unsigned int i, NvnS, NvnS2, eq, var, side,
-	             IndA, IndA2, Indm, Indn;
-	double       maxRHS, *LHS;
-
-	struct S_VOLUME *VOLUME, *VOLUME2;
-	struct S_FACE  *FACE;
-
-	PetscInt    *m, *n;
-	PetscScalar *vv;
+	unsigned int const Nvar = DB.Nvar,
+	                   Neq  = DB.Neq;
 
 	compute_dof();
 
 	if (*A == NULL)
 		initialize_KSP(A,b,x);
 
-	maxRHS = 1.0;
+	double maxRHS = 1.0;
 	switch (assemble_type) {
 	default: // 0
 		maxRHS = finalize_RHS();
@@ -182,118 +164,140 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 		assemble_RHS(b,x);
 
 		finalize_ksp(A,b,x,1);
-
-		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
-			free(FACE->LHSInIn);   FACE->LHSInIn   = NULL;
-			free(FACE->LHSOutIn);  FACE->LHSOutIn  = NULL;
-			free(FACE->LHSInOut);  FACE->LHSInOut  = NULL;
-			free(FACE->LHSOutOut); FACE->LHSOutOut = NULL;
-		}
-
 		break;
 	case 1: // diagonal VOLUME contributions
-		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-			IndA  = VOLUME->IndA;
-			NvnS  = VOLUME->NvnS;
+		for (struct S_VOLUME const *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			unsigned int const IndA = VOLUME->IndA,
+			                   NvnS = VOLUME->NvnS;
 
-			m = malloc(NvnS * sizeof *m); // free
-			n = malloc(NvnS * sizeof *n); // free
+			PetscInt *const m = malloc(NvnS * sizeof *m), // free
+			         *const n = malloc(NvnS * sizeof *n); // free
 
-			for (eq = 0; eq < Neq; eq++) {
-				Indm = IndA + eq*NvnS;
-				for (i = 0; i < NvnS; i++)
+			for (size_t eq = 0; eq < Neq; eq++) {
+				size_t const Indm = IndA + eq*NvnS;
+				for (size_t i = 0; i < NvnS; i++)
 					m[i] = Indm+i;
 
-				for (var = 0; var < Nvar; var++) {
-					Indn = IndA + var*NvnS;
-					for (i = 0; i < NvnS; i++)
+				for (size_t var = 0; var < Nvar; var++) {
+					size_t const Indn = IndA + var*NvnS;
+					for (size_t i = 0; i < NvnS; i++)
 						n[i] = Indn+i;
 
-					vv = &(VOLUME->LHS[(eq*Nvar+var)*NvnS*NvnS]);
+					PetscScalar const *const vv = &(VOLUME->LHS[(eq*Nvar+var)*NvnS*NvnS]);
 
 					MatSetValues(*A,NvnS,m,NvnS,n,vv,ADD_VALUES);
 				}
 			}
-			free(m); free(n);
+			free(m);
+			free(n);
+		/*
+			// finalize_LHS modified in the case of d BLAS3 calls being used in finalize_VOLUME_Weak("LHS")
+			m = malloc(1         * sizeof *m); // free
+			n = malloc(NvnS*Nvar * sizeof *n); // free
+
+			Indn = IndA;
+			for (size_t j = 0; j < NvnS*Nvar; j++)
+				n[j] = Indn+j;
+
+			for (eq = 0; eq < Neq; eq++) {
+				Indm = IndA + eq*NvnS;
+
+				for (i = 0; i < NvnS; i++) {
+					m[0] = Indm+i;
+
+					vv = &(VOLUME->LHS[(Nvar*NvnS)*(eq+Neq*i)]);
+
+					MatSetValues(*A,1,m,NvnS*Nvar,n,vv,ADD_VALUES);
+				}
+			}
+			free(m);
+			free(n);
+		*/
 		}
 		break;
 	case 2: // diagonal FACE contributions
-		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
-		for (side = 0; side < 2; side++) {
+		for (struct S_FACE const *FACE = DB.FACE; FACE; FACE = FACE->next) {
+		for (size_t side = 0; side < 2; side++) {
+			struct S_VOLUME const *VOLUME;
+			double const *LHS;
 			if (side == 0) {
-				VOLUME = FACE->VIn;
-				LHS = FACE->LHSInIn;
+				VOLUME = FACE->VL;
+				LHS = FACE->LHSLL;
 			} else {
 				if (FACE->Boundary)
 					continue;
-				VOLUME = FACE->VOut;
-				LHS = FACE->LHSOutOut;
+				VOLUME = FACE->VR;
+				LHS = FACE->LHSRR;
 			}
 
-			IndA = VOLUME->IndA;
-			NvnS = VOLUME->NvnS;
+			unsigned int const IndA = VOLUME->IndA,
+			                   NvnS = VOLUME->NvnS;
 
-			m = malloc(NvnS * sizeof *m); // free
-			n = malloc(NvnS * sizeof *n); // free
+			PetscInt *const m = malloc(NvnS * sizeof *m), // free
+			         *const n = malloc(NvnS * sizeof *n); // free
 
-			for (eq = 0; eq < Neq; eq++) {
-				Indm = IndA + eq*NvnS;
-				for (i = 0; i < NvnS; i++)
+			for (size_t eq = 0; eq < Neq; eq++) {
+				size_t const Indm = IndA + eq*NvnS;
+				for (size_t i = 0; i < NvnS; i++)
 					m[i] = Indm+i;
 
-				for (var = 0; var < Nvar; var++) {
-					Indn = IndA + var*NvnS;
-					for (i = 0; i < NvnS; i++)
+				for (size_t var = 0; var < Nvar; var++) {
+					size_t const Indn = IndA + var*NvnS;
+					for (size_t i = 0; i < NvnS; i++)
 						n[i] = Indn+i;
 
-					vv = &LHS[(eq*Nvar+var)*NvnS*NvnS];
+					PetscScalar const *const vv = &LHS[(eq*Nvar+var)*NvnS*NvnS];
 
 					MatSetValues(*A,NvnS,m,NvnS,n,vv,ADD_VALUES);
 				}
 			}
-			free(m); free(n);
+			free(m);
+			free(n);
 		}}
 		break;
 	case 3: // off-diagonal contributions
-		for (FACE = DB.FACE; FACE; FACE = FACE->next) {
-		for (side = 0; side < 2; side++) {
+		for (struct S_FACE const *FACE = DB.FACE; FACE; FACE = FACE->next) {
+		for (size_t side = 0; side < 2; side++) {
 			if (FACE->Boundary)
 				continue;
 
+			struct S_VOLUME const *VOLUME, *VOLUME2;
+			double const *LHS;
 			if (side == 0) {
-				VOLUME  = FACE->VOut;
-				VOLUME2 = FACE->VIn;
-				LHS = FACE->LHSInOut;
+				VOLUME  = FACE->VR;
+				VOLUME2 = FACE->VL;
+				LHS = FACE->LHSLR;
 			} else {
-				VOLUME  = FACE->VIn;
-				VOLUME2 = FACE->VOut;
-				LHS = FACE->LHSOutIn;
+				VOLUME  = FACE->VL;
+				VOLUME2 = FACE->VR;
+				LHS = FACE->LHSRL;
 			}
 
-			IndA  = VOLUME->IndA;
-			IndA2 = VOLUME2->IndA;
-			NvnS  = VOLUME->NvnS;
-			NvnS2 = VOLUME2->NvnS;
+			unsigned int const IndA  = VOLUME->IndA,
+			                   IndA2 = VOLUME2->IndA,
+			                   NvnS  = VOLUME->NvnS,
+			                   NvnS2 = VOLUME2->NvnS;
 
-			m = malloc(NvnS  * sizeof *m); // free
-			n = malloc(NvnS2 * sizeof *n); // free
+			PetscInt *const m = malloc(NvnS  * sizeof *m), // free
+			         *const n = malloc(NvnS2 * sizeof *n); // free
 
-			for (eq = 0; eq < Neq; eq++) {
-				Indm = IndA + eq*NvnS;
-				for (i = 0; i < NvnS; i++)
+			for (size_t eq = 0; eq < Neq; eq++) {
+				size_t const Indm = IndA + eq*NvnS;
+				for (size_t i = 0; i < NvnS; i++)
 					m[i] = Indm+i;
 
-				for (var = 0; var < Nvar; var++) {
-					Indn = IndA2 + var*NvnS2;
-					for (i = 0; i < NvnS2; i++)
+				for (size_t var = 0; var < Nvar; var++) {
+					size_t const Indn = IndA2 + var*NvnS2;
+					for (size_t i = 0; i < NvnS2; i++)
 						n[i] = Indn+i;
 
-					vv = &LHS[(eq*Nvar+var)*NvnS*NvnS2];
+					PetscScalar const *const vv = &LHS[(eq*Nvar+var)*NvnS*NvnS2];
 
 					MatSetValues(*A,NvnS,m,NvnS2,n,vv,ADD_VALUES);
 				}
 			}
-			free(m); free(n);
+			free(m);
+			free(n);
 		}}
 		break;
 	}
@@ -310,33 +314,27 @@ void compute_dof(void)
 	 *		Persson(2008)-Newton-GMRES_Preconditioning_for_Discontinuous_Galerkin_Discretizations_of_the_Navier-Stokes_
 	 *		              Equations
 	 */
-	// Initialize DB Parameters
+
 	unsigned int Nvar = DB.Nvar;
 
-	// Standard datatypes
-	unsigned int dof, nnz_d;
-
-	struct S_VOLUME *VOLUME, *VIn, *VOut;
-	struct S_FACE  *FACE;
-
-	dof = 0;
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+	unsigned int dof = 0;
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		VOLUME->IndA = dof;
 
-		nnz_d = Nvar*(VOLUME->NvnS);
+		unsigned int nnz_d = Nvar*(VOLUME->NvnS);
 		dof += nnz_d;
 
 		VOLUME->nnz_d = nnz_d;
 		VOLUME->nnz_o = 0;
 	}
 
-	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
-		VIn  = FACE->VIn;
-		VOut = FACE->VOut;
+	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+		struct S_VOLUME *VL = FACE->VL,
+		                *VR = FACE->VR;
 
-		if (VIn->indexg != VOut->indexg) {
-			VIn->nnz_o  += VOut->nnz_d;
-			VOut->nnz_o += VIn->nnz_d;
+		if (VL->indexg != VR->indexg) {
+			VL->nnz_o += VR->nnz_d;
+			VR->nnz_o += VL->nnz_d;
 		}
 	}
 

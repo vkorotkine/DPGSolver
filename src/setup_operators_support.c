@@ -19,7 +19,6 @@
 #include "plotting_element_info.h"
 #include "bases.h"
 #include "cubature.h"
-#include "solver_functions.h"
 
 #include "array_print.h"
 
@@ -67,10 +66,106 @@
  *		See setup_operators.
  */
 
+void set_operator_ranges (struct S_OP_RANGE *const op_range, char const range_type)
+{
+	/*
+	 *	Purpose:
+	 *		Return the appropriate operator index ranges.
+	 *
+	 *	Comments:
+	 *		Currently, the supported range types include:
+	 *			'S': Solution range
+	 *			'I': Interpolation range (i.e. range to which the solution may be interpolated)
+	 *			'V': VOLUME h-refinement range (0 is the placeholder for the std operator)
+	 *			'F': FACE   h-refinement range (0 is the placeholder for the std operator)
+	 *			'D': Dimension range (0:d-1)
+	 */
+
+	switch (range_type) {
+	case 'S':
+		switch (op_range->PS_range) {
+		case one_op_t:
+			op_range->PSMin = 1;
+			op_range->PSMax = 1;
+			break;
+		case P_op_t:
+			op_range->PSMin = DB.PGlobal;
+			op_range->PSMax = DB.PGlobal;
+			break;
+		case rP_op_t:
+			get_PS_range(&op_range->PSMin,&op_range->PSMax);
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+		break;
+	case 'I':
+		switch (op_range->Pb_range) {
+		case rP_op_t:
+			get_Pb_range(op_range->PS,&op_range->PbMin,&op_range->PbMax);
+			break;
+		case P_op_t:
+			op_range->PbMin = op_range->PS;
+			op_range->PbMax = op_range->PS;
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+		break;
+	case 'V':
+		switch (op_range->vh_range) {
+		case zero_op_t:
+			op_range->vhMin = 0;
+			op_range->vhMax = 1;
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+		break;
+	case 'F':
+		switch (op_range->fh_range) {
+		case zero_op_t:
+			op_range->fhMin = 0;
+			op_range->fhMax = 0;
+			break;
+		case rfh_op_t:
+			op_range->fhMin = 0;
+			op_range->fhMax = op_range->ELEMENT->Nfref[op_range->f];
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+		break;
+	case 'D':
+		switch (op_range->d_range) {
+		case zero_op_t:
+			op_range->dMin = 0;
+			op_range->dMax = 0;
+			break;
+		case rd_op_t:
+			op_range->dMin = 0;
+			op_range->dMax = DB.d-1;
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+		break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+}
+
+
 void setup_ELEMENT_plotting(const unsigned int EType)
 {
 	// Standard datatypes
-	unsigned int P, PSMin, PSMax, NvnP, NE, u1 = 1,
+	unsigned int P, NvnP, NE, u1 = 1,
 	             *connectivity, *types, *connectivityE;
 	double       *rst_vP;
 
@@ -78,6 +173,7 @@ void setup_ELEMENT_plotting(const unsigned int EType)
 
 	ELEMENT = get_ELEMENT_type(EType);
 
+	size_t PSMin, PSMax;
 	get_PS_range(&PSMin,&PSMax);
 	for (P = PSMin; P <= PSMax; P++) {
 		plotting_element_info(&rst_vP,&connectivity,&types,&connectivityE,&NvnP,&NE,max(P,u1),EType); // free
@@ -306,10 +402,8 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 
 		// Standard datatypes
 		unsigned int dE, Nbf,
-		             NfnGs, EType, EclassF,
-		             dummy_ui, *dummyPtr_ui;
+		             NfnGs, EType, EclassF;
 		double       *rst_vGs, *rst_fG2, *rst_fGc, *rst_fS, *rst_fIs, *rst_fIc,
-		             *dummyPtr_d[2],
 		             *IGs,
 		             *ChiRefGs_vGs,
 		             *ChiRefInvGs_vGs,
@@ -331,11 +425,13 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 
 		Nve = ELEMENT_F->Nve;
 
+		struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
 		// It is important to use the nodes corresponding to the VeF ordering
 		rst_vGs = get_rst_vV(ELEMENT_F); // free
-		cubature(&dummyPtr_d[0],&dummyPtr_d[1],&dummyPtr_ui,&NfnGs,&dummy_ui,0,1,dE,NodeTypeG[EclassF]); // free
-		free(dummyPtr_ui);
-		free(dummyPtr_d[0]);
+		set_cubdata(CUBDATA,false,false,NodeTypeG[EclassF],dE,1,cubature); // free
+		free(CUBDATA->rst);
+		NfnGs = CUBDATA->Nn;
 
 		IGs             = identity_d(NfnGs);                       // free
 		ChiRefGs_vGs    = basis(1,rst_vGs,NfnGs,&Nbf,dE);          // free
@@ -347,10 +443,17 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 		free(ChiRefGs_vGs);
 
 		for (P = 0; P <= PMax; P++) {
-			cubature(&rst_fGc,&dummyPtr_d[0],&dummyPtr_ui,&NfnGc[P],&dummy_ui,0,PGc[P],          dE,NodeTypeG[EclassF]);      free(dummyPtr_ui); // free
-			cubature(&rst_fS, &dummyPtr_d[0],&dummyPtr_ui,&NfnS[P], &dummy_ui,0,P,               dE,NodeTypeS[P][EclassF]);   free(dummyPtr_ui); // free
-			cubature(&rst_fIs,&w_fIs[P],     &dummyPtr_ui,&NfnIs[P],&dummy_ui,1,PIfs[P][EclassF],dE,NodeTypeIfs[P][EclassF]); free(dummyPtr_ui); // free
-			cubature(&rst_fIc,&w_fIc[P],     &dummyPtr_ui,&NfnIc[P],&dummy_ui,1,PIfc[P][EclassF],dE,NodeTypeIfc[P][EclassF]); free(dummyPtr_ui); // free
+			set_cubdata(CUBDATA,false,false,NodeTypeG[EclassF],dE,PGc[P],cubature); // free
+			set_from_cubdata(CUBDATA,&NfnGc[P],NULL,&rst_fGc,NULL,NULL);
+
+			set_cubdata(CUBDATA,false,false,NodeTypeS[P][EclassF],dE,P,cubature); // free
+			set_from_cubdata(CUBDATA,&NfnS[P],NULL,&rst_fS,NULL,NULL);
+
+			set_cubdata(CUBDATA,true,false,NodeTypeIfs[P][EclassF],dE,PIfs[P][EclassF],cubature); // free
+			set_from_cubdata(CUBDATA,&NfnIs[P],NULL,&rst_fIs,&w_fIs[P],NULL);
+
+			set_cubdata(CUBDATA,true,false,NodeTypeIfc[P][EclassF],dE,PIfc[P][EclassF],cubature); // free
+			set_from_cubdata(CUBDATA,&NfnIc[P],NULL,&rst_fIc,&w_fIc[P],NULL);
 
 			ChiRefGs_fGc = basis(1,rst_fGc,NfnGc[P],&Nbf,dE); // free
 			ChiRefGs_fS  = basis(1,rst_fS, NfnS[P], &Nbf,dE); // free
@@ -358,7 +461,9 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 			ChiRefGs_fIc = basis(1,rst_fIc,NfnIc[P],&Nbf,dE); // free
 
 			if (P == 2) {
-				cubature(&rst_fG2,&dummyPtr_d[0],&dummyPtr_ui,&NfnG2[P],&dummy_ui,0,P,dE,NodeTypeG[EclassF]); free(dummyPtr_ui); // free
+				set_cubdata(CUBDATA,false,false,NodeTypeG[EclassF],dE,P,cubature); // free
+				set_from_cubdata(CUBDATA,&NfnG2[P],NULL,&rst_fG2,NULL,NULL);
+
 				ChiRefGs_fG2 = basis(1,rst_fG2,NfnG2[P],&Nbf,dE); // free
 				BCoords_G2[P] = mm_Alloc_d(CBCM,CBT,CBT,NfnG2[P],NfnGs,NfnGs,1.0,ChiRefGs_fG2,ChiRefInvGs_vGs); // keep
 
@@ -382,6 +487,7 @@ struct S_BCOORDS *get_BCoords_dEm1(const struct S_ELEMENT *ELEMENT, const unsign
 			free(ChiRefGs_fIc);
 		}
 		free(ChiRefInvGs_vGs);
+		free(CUBDATA);
 	}
 
 	free(one);
@@ -412,9 +518,9 @@ struct S_BCOORDS *get_BCoords_dEm2(const struct S_ELEMENT *ELEMENT)
 	             *PGc        = DB.PGc;
 
 	// Standard datatypes
-	unsigned int dE, Nbf, P, NenGs, Nve, EType, Eclass, *NenG2, *NenGc, dummy_ui, *dummyPtr_ui;
+	unsigned int dE, Nbf, P, NenGs, Nve, EType, Eclass, *NenG2, *NenGc;
 	double       **BCoords_G2, **BCoords_Gc, *rst_vGs, *rst_eG2, *rst_eGc,
-	             *IGs, *ChiRefGs_vGs, *ChiRefInvGs_vGs, *ChiRefGs_eG2, *ChiRefGs_eGc, *dummyPtr_d[2];
+	             *IGs, *ChiRefGs_vGs, *ChiRefInvGs_vGs, *ChiRefGs_eG2, *ChiRefGs_eGc;
 
 	struct S_BCOORDS *BCoords_dEm2;
 	struct S_ELEMENT *ELEMENT_E;
@@ -444,11 +550,13 @@ struct S_BCOORDS *get_BCoords_dEm2(const struct S_ELEMENT *ELEMENT)
 	dE  = ELEMENT_E->d;
 	Nve = ELEMENT_E->Nve;
 
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
 	// It is important to use the nodes corresponding to the VeE ordering
 	rst_vGs = get_rst_vV(ELEMENT_E); // free
-	cubature(&dummyPtr_d[0],&dummyPtr_d[1],&dummyPtr_ui,&NenGs,&dummy_ui,0,1,dE,NodeTypeG[Eclass]); // free
-	free(dummyPtr_ui);
-	free(dummyPtr_d[0]);
+	set_cubdata(CUBDATA,false,false,NodeTypeG[Eclass],dE,1,cubature); // free
+	free(CUBDATA->rst);
+	NenGs = CUBDATA->Nn;
 
 	IGs             = identity_d(NenGs);                       // free
 	ChiRefGs_vGs    = basis(1,rst_vGs,NenGs,&Nbf,dE);          // free
@@ -460,12 +568,15 @@ struct S_BCOORDS *get_BCoords_dEm2(const struct S_ELEMENT *ELEMENT)
 	free(ChiRefGs_vGs);
 
 	for (P = 0; P <= PMax; P++) {
-		cubature(&rst_eGc,&dummyPtr_d[0],&dummyPtr_ui,&NenGc[P],&dummy_ui,0,PGc[P],   dE,NodeTypeG[Eclass]); free(dummyPtr_ui); // free
+		set_cubdata(CUBDATA,false,false,NodeTypeG[Eclass],dE,PGc[P],cubature); // free
+		set_from_cubdata(CUBDATA,&NenGc[P],NULL,&rst_eGc,NULL,NULL);
 
 		ChiRefGs_eGc = basis(1,rst_eGc,NenGc[P],&Nbf,dE); // free
 
 		if (P == 2) {
-			cubature(&rst_eG2,&dummyPtr_d[0],&dummyPtr_ui,&NenG2[P],&dummy_ui,0,P,dE,NodeTypeG[Eclass]); free(dummyPtr_ui); // free
+			set_cubdata(CUBDATA,false,false,NodeTypeG[Eclass],dE,P,cubature); // free
+			set_from_cubdata(CUBDATA,&NenG2[P],NULL,&rst_eG2,NULL,NULL);
+
 			ChiRefGs_eG2 = basis(1,rst_eG2,NenG2[P],&Nbf,dE); // free
 			BCoords_G2[P] = mm_Alloc_d(CBCM,CBT,CBT,NenG2[P],NenGs,NenGs,1.0,ChiRefGs_eG2,ChiRefInvGs_vGs); // keep
 
@@ -484,6 +595,8 @@ struct S_BCOORDS *get_BCoords_dEm2(const struct S_ELEMENT *ELEMENT)
 	BCoords_dEm2->NenGc = NenGc;
 	BCoords_dEm2->BCoords_G2 = BCoords_G2;
 	BCoords_dEm2->BCoords_Gc = BCoords_Gc;
+
+	free(CUBDATA);
 
 	return BCoords_dEm2;
 }
@@ -971,6 +1084,226 @@ double get_L2_scaling(const unsigned int EType, const unsigned int vref)
 	return -1e20;
 }
 
+void get_face_ordering(const unsigned int d, const unsigned int IndOrd, const unsigned int FType,
+                        const unsigned int Nn, const unsigned int Ns, const unsigned int *symms, const double *rst,
+                        unsigned int *nOrd)
+{
+	/*
+	 *	Purpose:
+	 *		Return ordering of opposite FACE such that surface nodes match.
+	 *
+	 *	Comments:
+	 *		FType is only used in 3D.
+	 *		symms is only used for 3D TRI FACEs.
+	 *
+	 *		If it is found that a significant portion of time is spent in this function after profiling, compare speed
+	 *		with the addition of switch statement with explicitly written out low-order options. (ToBeDeleted)
+	 *		TRIs are significantly more complicated to handle because the the somewhat arbitrary position of the nodes
+	 *		within the 3-symmetry orbits. Thus, the physical coordinates are used to swap indices for the last three
+	 *		cases, which ensures that the ordering will be correct as long as nodes are input in 3 and 1-symmetry blocks.
+	 */
+
+	unsigned int i, j, iMax, jMax, iInd;
+
+	switch (d) {
+	case 1:
+		nOrd[0] = 0;
+		break;
+	case 2:
+		switch (IndOrd) {
+		default:
+			for (i = 0; i < Nn; i++)
+				nOrd[i] = i;
+			break;
+		case 1:
+			// Add in switch (Nn) here and write out low order options (ToBeDeleted)
+
+			if (Nn % 2 == 0) {
+				for (i = 0, iMax = Nn; i < iMax; i++) {
+					if (i % 2 == 0) nOrd[i] = i+1;
+					else            nOrd[i] = i-1;
+				}
+			} else {
+				for (i = 0, iMax = Nn-1; i < iMax; i++) {
+					if (i % 2 == 0) nOrd[i] = i+1;
+					else            nOrd[i] = i-1;
+				}
+				nOrd[iMax] = iMax;
+			}
+			break;
+		}
+		break;
+	default: // default to 3D
+		if (FType == QUAD) {
+			unsigned int sqrtNn = sqrt(Nn), nOrdswap[Nn];
+			// Add in switch (Nn) here and write out low order options (ToBeDeleted)
+
+			switch(IndOrd) {
+				default: // default case 0
+				case 1:
+				case 2:
+				case 3:
+					for (i = 0; i < Nn; i++)
+						nOrd[i] = i;
+					break;
+				case 4:
+				case 5:
+				case 6:
+				case 7:
+					for (i = 0; i < sqrtNn; i++) {
+						iInd = i*sqrtNn;
+						for (j = 0; j < sqrtNn; j++)
+							nOrd[iInd+j] = i+j*sqrtNn;
+					}
+					break;
+			}
+
+			// Swap 1D-blocks if necessary
+			switch(IndOrd) {
+				default:
+					; // Do nothing
+					break;
+				case 2:
+				case 3:
+				case 6:
+				case 7:
+					for (i = 0; i < Nn; i++)
+						nOrdswap[i] = nOrd[i];
+
+					if (sqrtNn % 2 == 0) iMax = sqrtNn;
+					else                 iMax = sqrtNn-1;
+
+					for (i = 0; i < iMax; i++) {
+						iInd = i*sqrtNn;
+						for (j = 0, jMax = sqrtNn; j < jMax; j++) {
+							if (i % 2 == 0) nOrd[iInd+j] = nOrdswap[(iInd+sqrtNn)+j];
+							else            nOrd[iInd+j] = nOrdswap[(iInd-sqrtNn)+j];
+						}
+					}
+					// Setting the last block of nOrd is redundant for sqrtNn odd as it is unchanged.
+					break;
+			}
+
+			// Reverse entries of 1D-blocks if necessary
+			switch(IndOrd) {
+				default:
+					return;
+					break;
+				case 1:
+				case 3:
+				case 5:
+				case 7:
+					for (i = 0; i < Nn; i++)
+						nOrdswap[i] = nOrd[i];
+
+					if (sqrtNn % 2 == 0) jMax = sqrtNn;
+					else                 jMax = sqrtNn-1;
+
+					for (i = 0, iMax = sqrtNn; i < iMax; i++) {
+						iInd = i*iMax;
+						for (j = 0; j < jMax; j++) {
+							if (j % 2 == 0) nOrd[iInd+j] = nOrdswap[iInd+j+1];
+							else            nOrd[iInd+j] = nOrdswap[iInd+j-1];
+						}
+					}
+					break;
+			}
+		} else if (FType == TRI) {
+			unsigned int j, k, kMax, iInd, subOrder[3], nOrdswap3[3], nOrdswap[Nn], Foundn[Nn], IndX[Nn];
+			double       DY[Nn*Nn];
+			// Add in switch (Nn) here and write out low order options (ToBeDeleted)
+
+			for (i = 0; i < Nn; i++)
+				nOrd[i] = i;
+
+			// Swap entries if necessary
+			switch(IndOrd) {
+				default: // default cases 0, 1, 2
+					; // Do nothing
+					break;
+				case 3:
+				case 4:
+				case 5:
+					for (i = 0; i < Nn; i++) {
+						iInd = i*Nn;
+						for (j = 0; j < Nn; j++) {
+							DY[iInd+j] = fabs(rst[Nn+i]-rst[Nn+j]);
+						}
+					}
+
+					for (i = 0; i < Nn; i++)
+						Foundn[i] = 0;
+
+					for (i = 0; i < Nn; i++) {
+						if (!Foundn[i]) {
+							iInd = i*Nn;
+							kMax = 0;
+							for (j = 0; j < Nn; j++) {
+								if (!Foundn[j] && i != j && DY[iInd+j] < 10*EPS)
+									IndX[kMax++] = j;
+							}
+							for (k = 0; k < kMax; k++) {
+								if (fabs(rst[i]+rst[IndX[k]]) < 1e3*EPS) {
+									Foundn[i] = 1;
+									Foundn[IndX[k]] = 1;
+									nOrdswap[i] = IndX[k];
+									nOrdswap[IndX[k]] = i;
+
+									break;
+								}
+							}
+							if (kMax == 0) {
+								Foundn[i] = 1;
+								nOrdswap[i] = i;
+							}
+						}
+					}
+
+					for (i = 0; i < Nn; i++) {
+						if (Foundn[i] == 0)
+							printf("Error: Did not find all nodes in get_face_ordering (TRI).\n"), exit(1);
+					}
+
+					for (i = 0; i < Nn; i++)
+						nOrd[i] = nOrdswap[i];
+					break;
+			}
+
+			// Rotate entries of 3-symmetry blocks if necessary
+			switch(IndOrd) {
+				default: // cases 0, 5
+					; // No rotations needed
+					return;
+					break;
+				case 1:
+				case 3:
+					subOrder[0] = 1; subOrder[1] = 2; subOrder[2] = 0;
+					break;
+				case 2:
+				case 4:
+					subOrder[0] = 2; subOrder[1] = 0; subOrder[2] = 1;
+					break;
+			}
+
+			iInd = 0;
+			for (i = 0; i < Ns; i++) {
+				if (i) iInd += symms[i-1];
+				jMax = symms[i];
+				if (jMax == 3) {
+					for (j = 0; j < jMax; j++)
+						nOrdswap3[j] = nOrd[iInd+subOrder[j]];
+					for (j = 0; j < jMax; j++)
+						nOrd[iInd+j] = nOrdswap3[j];
+				}
+				// Setting the 1-symmetry orbit (if present) is redundant as the node position remains unchanged.
+			}
+		} else {
+			printf("Error: Unsupported FType in 3D in get_face_ordering.\n"), exit(1);
+		}
+		break;
+	}
+}
+
 void setup_ELEMENT_FACE_ordering(const unsigned int FType)
 {
 	// Returned operators
@@ -998,7 +1331,7 @@ void setup_ELEMENT_FACE_ordering(const unsigned int FType)
 		// Standard datatypes
 		unsigned int dE, NfnS, NfnIs, NfnIc, NsS, NsIs, NsIc, Eclass,
 		             *symms_fS, *symms_fIs, *symms_fIc;
-		double       *rst_fS, *rst_fIs, *rst_fIc, *w;
+		double       *rst_fS, *rst_fIs, *rst_fIc;
 
 		// Function pointers
 		cubature_tdef   cubature;
@@ -1023,10 +1356,17 @@ void setup_ELEMENT_FACE_ordering(const unsigned int FType)
 		nOrd_fIs = ELEMENT->nOrd_fIs;
 		nOrd_fIc = ELEMENT->nOrd_fIc;
 
+		struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
 		for (P = 0; P <= PMax; P++) {
-			cubature(&rst_fS, &w,&symms_fS, &NfnS, &NsS, 0,P,              dE,NodeTypeS[P][Eclass]);   // free
-			cubature(&rst_fIs,&w,&symms_fIs,&NfnIs,&NsIs,0,PIfs[P][Eclass],dE,NodeTypeIfs[P][Eclass]); // free
-			cubature(&rst_fIc,&w,&symms_fIc,&NfnIc,&NsIc,0,PIfc[P][Eclass],dE,NodeTypeIfc[P][Eclass]); // free
+			set_cubdata(CUBDATA,false,true,NodeTypeS[P][Eclass],dE,P,cubature); // free
+			set_from_cubdata(CUBDATA,&NfnS,&NsS,&rst_fS,NULL,&symms_fS);
+
+			set_cubdata(CUBDATA,false,true,NodeTypeIfs[P][Eclass],dE,PIfs[P][Eclass],cubature); // free
+			set_from_cubdata(CUBDATA,&NfnIs,&NsIs,&rst_fIs,NULL,&symms_fIs);
+
+			set_cubdata(CUBDATA,false,true,NodeTypeIfc[P][Eclass],dE,PIfc[P][Eclass],cubature); // free
+			set_from_cubdata(CUBDATA,&NfnIc,&NsIc,&rst_fIc,NULL,&symms_fIc);
 
 			for (IndOrd = 0; IndOrd < NOrd; IndOrd++) {
 				nOrd_fS[P][IndOrd]  = malloc(NfnS  * sizeof ***nOrd_fS);  //  keep
@@ -1044,6 +1384,8 @@ void setup_ELEMENT_FACE_ordering(const unsigned int FType)
 			free(symms_fIs);
 			free(symms_fIc);
 		}
+
+		free(CUBDATA);
 	} else {
 		NOrd = 1;
 
@@ -1062,4 +1404,25 @@ void setup_ELEMENT_FACE_ordering(const unsigned int FType)
 			get_face_ordering(d,0,0,0,0,NULL,NULL,nOrd_fIc[P][IndOrd]);
 		}}
 	}
+}
+
+void compute_ELEMENT_Volume(const unsigned int EType)
+{
+	unsigned int *NvnIs;
+	double       *w_vIs;
+
+	struct S_ELEMENT *ELEMENT;
+
+	size_t P, PMax;
+	get_PS_range(&P,&PMax);
+	ELEMENT = get_ELEMENT_type(EType);
+
+	NvnIs = ELEMENT->NvnIs;
+	w_vIs = ELEMENT->w_vIs[P];
+
+	double Volume = 0.0;
+	for (size_t n = 0; n < NvnIs[P]; n++)
+		Volume += w_vIs[n];
+
+	ELEMENT->Volume = Volume;
 }

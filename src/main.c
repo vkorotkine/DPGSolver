@@ -122,6 +122,7 @@ int main(int nargc, char **argv)
 
 	if (!DB.MPIrank)
 		printf("  Initializing\n");
+	initialize_test_case_parameters();
 	initialize_test_case(DB.LevelsMax+1);
 
 	// Output initial solution to paraview
@@ -141,12 +142,12 @@ int main(int nargc, char **argv)
 		printf("  Nonlinear Iterative Solve\n\n");
 
 	if (strstr(DB.TestCase,"Poisson")) {
-		solver_Poisson();
+		solver_Poisson(1);
 	} else {
 		if (strstr(DB.SolverType,"Explicit")) {
-			solver_explicit();
+			solver_explicit(1);
 		} else if (strstr(DB.SolverType,"Implicit")) {
-			solver_implicit();
+			solver_implicit(1);
 		} else {
 			printf("Error: Unsupported SolverType in dpg_solver.\n"), EXIT_MSG;
 		}
@@ -199,6 +200,7 @@ int main(int nargc, char **argv)
 
 #include <stdio.h>
 #include <time.h>
+#include <stdbool.h>
 
 #include "petscsys.h"
 
@@ -216,18 +218,18 @@ int main(int nargc, char **argv)
 #include "test_unit_find_periodic_connections.h"
 #include "test_unit_sum_factorization.h"
 #include "test_unit_plotting.h"
-#include "test_unit_fluxes_inviscid.h"
-#include "test_unit_jacobian_fluxes_inviscid.h"
+#include "test_regression_fluxes_inviscid.h"
+#include "test_unit_jacobian_fluxes.h"
 #include "test_unit_jacobian_boundary.h"
 #include "test_unit_get_face_ordering.h"
 #include "test_unit_equivalence_real_complex.h"
 
-#include "test_integration_L2_projections.h"
 #include "test_integration_update_h.h"
-#include "test_integration_linearization.h"
-#include "test_integration_L2_projection_errors.h"
+#include "test_integration_L2_projections.h"
+#include "test_integration_Advection.h"
 #include "test_integration_Poisson.h"
 #include "test_integration_Euler.h"
+#include "test_integration_NavierStokes.h"
 
 #include "test_speed_array_swap.h"
 #include "test_speed_mm_CTN.h"
@@ -240,10 +242,13 @@ int main(int nargc, char **argv)
  *
  *	Comments:
  *		Get some kind of code coverage figure as well (ToBeDeleted)
+ *		Linearizations are tested using the complex step method (Squire(1998), Martins(2003)).
  *
  *	Notation:
  *
  *	References:
+ *		Squire(1998)-Using_Complex_Variables_to_Estimate_Derivatives_of_Real_Functions
+ *		Martins(2003)-The_Complex-Step_Derivative_Approximation
  */
 
 int main(int nargc, char **argv)
@@ -254,6 +259,7 @@ int main(int nargc, char **argv)
 
 	clock_t ts, te;
 
+	TestDB.Active = 1;
 	TestDB.Ntest = 0;
 	TestDB.Npass = 0;
 	TestDB.Nwarnings = 0;
@@ -262,6 +268,7 @@ int main(int nargc, char **argv)
 	RunTest.integration = 0;
 	RunTest.speed       = 0;
 
+	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
 
 	printf("\n\nRunning Tests:\n\n\n");
 	ts = clock();
@@ -276,12 +283,7 @@ int main(int nargc, char **argv)
 		test_unit_math_factorial();
 		test_unit_math_gamma();
 
-		test_unit_matrix_diag();
-		test_unit_matrix_identity();
-		test_unit_matrix_inverse();
-		test_unit_matrix_mm();
-		printf("\nNeed a test for mm_diag_d\n\n"); TestDB.Nwarnings++;
-		test_unit_convert_to_CSR();
+		test_unit_matrix_functions();
 
 		test_unit_find_periodic_connections();
 
@@ -299,27 +301,27 @@ int main(int nargc, char **argv)
 		test_unit_sum_factorization();
 		test_unit_plotting();
 
-		test_unit_fluxes_inviscid();
-		test_unit_jacobian_fluxes_inviscid();
+		test_regression_fluxes_inviscid();
+		test_unit_jacobian_fluxes();
 		test_unit_jacobian_boundary();
 		test_unit_get_face_ordering();
 
 		test_unit_equivalence_real_complex();
-		printf("\nFor the VOLUME/FACE info functions, test that all 'versions' give identical results.\n\n");
-		TestDB.Nwarnings++;
 	}
 
 	// Integration tests
 	if (RunTest.integration) {
 		test_integration_update_h(nargc,argv);
 		test_integration_L2_projections(nargc,argv);
-		test_integration_linearization(nargc,argv);
-//		PetscFinalize();
 	}
+if (1) {
+//	test_integration_Advection(nargc,argv);
 //	test_integration_Poisson(nargc,argv);
 	test_integration_Euler(nargc,argv);
-	PetscFinalize();
+//	test_integration_NavierStokes(nargc,argv);
+}
 
+	PetscFinalize();
 
 	te = clock();
 
@@ -332,8 +334,8 @@ int main(int nargc, char **argv)
 
 	printf("\n\nRan %d test(s) in %.4f seconds.\n",TestDB.Ntest,(te-ts)/(float)CLOCKS_PER_SEC);
 
-	unsigned int Nfail = TestDB.Ntest - TestDB.Npass;
-	if (Nfail > 0) {
+	int Nfail = TestDB.Ntest - TestDB.Npass;
+	if (Nfail != 0) {
 		printf("\n******** FAILED %d TEST(S) ********\n\n",Nfail);
 	} else {
 		printf("\nAll tests passed.\n\n");

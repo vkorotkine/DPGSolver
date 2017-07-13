@@ -113,14 +113,14 @@ void test_unit_find_periodic_connections(void)
 
 	unsigned int *PVe, pve,
 	              PVeFinal[30] = { 0, 1, 0, 2, 0, 3, 0, 5, 0, 8, 1, 2, 1, 3, 1,
-				                   5, 1, 8, 2, 3, 2, 5, 2, 8, 3, 5, 3, 8, 5, 8 };
+	                               5, 1, 8, 2, 3, 2, 5, 2, 8, 3, 5, 3, 8, 5, 8 };
 
 	PVe = malloc(6*6*2 * sizeof *PVe); // free
 
 	PVe[0] = 1;  PVe[1] = 0;
 	PVe[2] = 2;  PVe[3] = 8;
 	PVe[4] = 1;  PVe[5] = 3;
-   	PVe[6] = 8;  PVe[7] = 3;
+	PVe[6] = 8;  PVe[7] = 3;
 	PVe[8] = 3;  PVe[9] = 2;
 	PVe[10] = 8; PVe[11] = 1;
 	PVe[12] = 5; PVe[13] = 8;
@@ -131,11 +131,9 @@ void test_unit_find_periodic_connections(void)
 
 	pass = 0;
 	if (array_norm_diff_ui(30,PVeFinal,PVe,"Inf") < EPS)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("find_periodic_connections:                       ");
-	test_print(pass);
+	test_print2(pass,"find_periodic_connections:");
 
 	free(PVe);
 }

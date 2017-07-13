@@ -58,6 +58,8 @@ static void   mark_VOLUMEs  (const unsigned int adapt_type);
 
 static void test_L2_projection(struct S_L2proj *data)
 {
+	char *PrintName = malloc(STRLEN_MAX * sizeof *PrintName); // free
+
 	unsigned int TETrefineType = DB.TETrefineType;
 
 	char         *argvNew[2];
@@ -74,13 +76,14 @@ static void test_L2_projection(struct S_L2proj *data)
 
 	for (refType = 0; refType < NrefTypes; refType++) {
 		// p-refinement
-		strcpy(argvNew[1],data->CtrlName[0]); strcat(argvNew[1],"_p_"); strcat(argvNew[1],data->CtrlName[1]);
+		strcpy(argvNew[1],data->CtrlName[0]);
+		strcat(argvNew[1],"_p/Test_L2_proj_p_"); strcat(argvNew[1],data->CtrlName[1]);
 
-		code_startup_mod_prmtrs(data->nargc,argvNew,0,data->update_argv,1);
+		code_startup_mod_prmtrs(data->nargc,(char const *const *const) data->argvNew,0,data->update_argv,1);
 		if      (refType == 0) DB.TETrefineType = TET8;
 		else if (refType == 1) DB.TETrefineType = TET12;
 		else if (refType == 2) DB.TETrefineType = TET6;
-		code_startup_mod_prmtrs(data->nargc,data->argvNew,data->Nref,data->update_argv,2);
+		code_startup_mod_prmtrs(data->nargc,(char const *const *const) data->argvNew,data->Nref,data->update_argv,2);
 
 		L2err[0] = get_L2err();
 		mark_VOLUMEs(PREFINE); mesh_update();
@@ -89,28 +92,28 @@ static void test_L2_projection(struct S_L2proj *data)
 
 		pass = 0;
 		if (array_norm_diff_d(NVAR3D+1,L2err[0],L2err[1],"Inf") < 1e2*EPS)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
 		//     0         10        20        30        40        50
 		if (strstr(data->EName,"TRI"))
-			printf("L2_projections (%s%d,  ADAPT_P):              ",data->EName,refType);
+			sprintf(PrintName,"L2_projections (%s%d,  ADAPT_P):",data->EName,refType);
 		else
-			printf("               (%s%d,  ADAPT_P):              ",data->EName,refType);
-		test_print(pass);
+			sprintf(PrintName,"               (%s%d,  ADAPT_P):",data->EName,refType);
+		test_print2(pass,PrintName);
 		free(L2err[0]), free(L2err[1]);
 
 		code_cleanup();
 
 
 		// h-refinement
-		strcpy(argvNew[1],data->CtrlName[0]); strcat(argvNew[1],"_h_"); strcat(argvNew[1],data->CtrlName[1]);
+		strcpy(argvNew[1],data->CtrlName[0]);
+		strcat(argvNew[1],"_h/Test_L2_proj_h_"); strcat(argvNew[1],data->CtrlName[1]);
 
-		code_startup_mod_prmtrs(data->nargc,argvNew,0,data->update_argv,1);
+		code_startup_mod_prmtrs(data->nargc,(char const *const *const) data->argvNew,0,data->update_argv,1);
 		if      (refType == 0) DB.TETrefineType = TET8;
 		else if (refType == 1) DB.TETrefineType = TET12;
 		else if (refType == 2) DB.TETrefineType = TET6;
-		code_startup_mod_prmtrs(data->nargc,data->argvNew,data->Nref,data->update_argv,2);
-//		code_startup_mod_prmtrs(data->nargc,data->argvNew,0,data->update_argv,2);
+		code_startup_mod_prmtrs(data->nargc,(char const *const *const) data->argvNew,data->Nref,data->update_argv,2);
 
 		L2err[0] = get_L2err();
 		mark_VOLUMEs(HREFINE); mesh_update();
@@ -119,22 +122,25 @@ static void test_L2_projection(struct S_L2proj *data)
 
 		pass = 0;
 		if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1.4e4*EPS) {
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 		} else if (array_norm_diff_d(1,L2err[0],L2err[1],"Inf") < 1e-5) {
-			pass = 1, TestDB.Npass++;
-			printf("\nWarning: h L2 projection test for P%d %ss passing with norm_diff = % .3e\n\n",
+			// Try including higher order accurate TET/PYR cubature nodes for the computation of L2 projection operators
+			// and check effect on error in this test. (ToBeModified)
+
+			pass = 1;
+			test_print_warning("h L2 projection test passing with elevated norm_diff");
+			printf("P = %d, CtrlName: %s, norm_diff = % .3e\n\n",
 				   DB.PGlobal,data->CtrlName[1],array_norm_diff_d(1,L2err[0],L2err[1],"Inf"));
-			TestDB.Nwarnings++;
 		}
 
-		//     0         10        20        30        40        50
-		printf("               (          ADAPT_H):              ");
-		test_print(pass);
+		test_print2(pass,"               (          ADAPT_H):");
 		free(L2err[0]), free(L2err[1]);
 
 		code_cleanup();
 	}
 	DB.TETrefineType = TETrefineType;
+
+	free(PrintName);
 }
 
 void test_integration_L2_projections(int nargc, char **argv)
@@ -165,7 +171,7 @@ void test_integration_L2_projections(int nargc, char **argv)
 	data->CtrlName[0] = malloc(STRLEN_MAX * sizeof *(data->CtrlName[0])); // free
 	data->CtrlName[1] = malloc(STRLEN_MAX * sizeof *(data->CtrlName[1])); // free
 
-	strcpy(data->CtrlName[0],"test/Test_L2_proj");
+	strcpy(data->CtrlName[0],"test/L2_proj");
 	data->argvNew     = argvNew;
 	data->nargc       = nargc;
 	data->Nref        = 2;
@@ -187,10 +193,6 @@ void test_integration_L2_projections(int nargc, char **argv)
 
 	// **************************************************************************************************** //
 	// TETs
-	printf("\nInclude higher order accurate TET/PYR cubature nodes for the computation of L2 projection operators and\n"
- 	         "check effect on error in this test.\n\n");
-	TestDB.Nwarnings++;
-
 	strcpy(data->EName,"TET   ");
 	strcpy(data->CtrlName[1],"TET");
 
@@ -226,12 +228,6 @@ void test_integration_L2_projections(int nargc, char **argv)
 	free(argvNew[0]); free(argvNew[1]); free(argvNew);
 }
 
-
-
-struct S_OPERATORS {
-	unsigned int NfnS, NvnGs, *nOrdInOut, *nOrdOutIn;
-	double       **I_vGs_fS;
-};
 
 static double *get_L2err(void)
 {

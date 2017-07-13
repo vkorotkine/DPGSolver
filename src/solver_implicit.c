@@ -20,6 +20,7 @@
 
 #include "adaptation.h"
 #include "update_VOLUMEs.h"
+#include "implicit_GradW.h"
 #include "implicit_VOLUME_info.h"
 #include "implicit_FACE_info.h"
 #include "finalize_LHS.h"
@@ -27,6 +28,7 @@
 #include "element_functions.h"
 #include "matrix_functions.h"
 #include "variable_functions.h"
+#include "solver_explicit.h"
 
 #include "array_print.h"
 
@@ -41,6 +43,9 @@
  *		Petsc's Cholesky solvers (direct and indirect) are much slower than the LU solvers (Petsc 3.6.3). ToBeModified
  *
  *		Likely include a dynamic rtol value for KSPSetTolerances.
+ *
+ *		Adytia recommended trying PCSetType(pc,PCGAMG) (Does not required SetLevels or SetMatOrderingType). May need to
+ *		specify that blocks are arranged in sizes of Nvar*Neq*NvnS*NvnS. (ToBeModified)
  *
  *	Notation:
  *
@@ -65,9 +70,6 @@ void setup_KSP(Mat A, KSP ksp)
 
 	KSPGetPC(ksp,&pc);
 	if (strstr(TestCase,"Poisson")) {
-//		if (DB.ViscousFluxType == FLUX_IP)
-//			SolverType = 'd';
-
 		if (SolverType == 'i') {
 			// Iterative Solve (Using Incomplete Cholesky)
 			KSPSetInitialGuessNonzero(ksp,PETSC_TRUE);
@@ -194,10 +196,13 @@ static void compute_underRelax(struct S_VOLUME *VOLUME, const double *dWhat, dou
 
 		if (alphaO < EPS) {
 			printf("%d %d\n",flag[0],flag[1]);
-			printf("Potential problem: Under Relaxation driven to 0.\n"), EXIT_MSG;
+			printf("Potential problem: Under relaxation driven to 0.\n");//, EXIT_MSG;
+			break;
 		}
 
 	}
+	if (alphaO < EPS)
+		alphaO = 1e5*EPS;
 
 	*alpha = alphaO;
 
@@ -208,7 +213,72 @@ static void compute_underRelax(struct S_VOLUME *VOLUME, const double *dWhat, dou
 	free(dU);
 }
 
-void solver_implicit(void)
+void solver_implicit_linear_system(Mat *A, Vec *b, Vec *x, KSP *ksp, unsigned int const iteration,
+                                   bool const PrintEnabled)
+{
+	if (PrintEnabled) { printf("F "); }
+	double const maxRHS = finalize_LHS(A,b,x,0);
+
+	bool const Output_A_MATLAB = 0;
+	if (Output_A_MATLAB) {
+		// Used for outputting matrix to file in matlab sparse format
+		PetscViewer viewer;
+		PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat.output", &viewer);
+		PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
+		MatView(*A,viewer);
+		PetscViewerDestroy(&viewer);
+	}
+
+	// Setup Preconditioner
+	if (PrintEnabled) { printf("S"); }
+	KSPCreate(MPI_COMM_WORLD,ksp);
+	setup_KSP(*A,*ksp);
+
+	// Solve the system of equations
+	if (PrintEnabled) { printf("S "); }
+	KSPSolve(*ksp,*b,*x);
+
+	KSPConvergedReason reason;
+	KSPGetConvergedReason(*ksp,&reason);
+
+	PetscInt iteration_ksp;
+	KSPGetIterationNumber(*ksp,&iteration_ksp);
+
+	PetscReal emax, emin;
+	KSPComputeExtremeSingularValues(*ksp,&emax,&emin);
+
+	// Display solver progress
+	if (PrintEnabled) {
+		printf("Iteration: %5d, KSP iterations (cond, reason): %5d (% .3e, %d), maxRHS (no MInv): % .3e\n",
+		       iteration,iteration_ksp,emax/emin,reason,maxRHS);
+	}
+}
+
+void solver_implicit_update_What(Vec x) {
+	unsigned int Nvar = DB.Nvar;
+
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		unsigned int const IndA = VOLUME->IndA,
+		                   NvnS = VOLUME->NvnS,
+		                   Ndof = NvnS*Nvar;
+
+		double *const What  = VOLUME->What,
+		       *const dWhat = malloc(Ndof * sizeof *dWhat); // free
+
+		PetscInt *const ix = malloc(Ndof * sizeof *ix); // free
+		for (size_t i = 0; i < Ndof; i++)
+			ix[i] = IndA+i;
+
+		VecGetValues(x,Ndof,ix,dWhat);
+		free(ix);
+
+		for (size_t i = 0; i < Ndof; i++)
+			What[i] += dWhat[i];
+		free(dWhat);
+	}
+}
+
+void solver_implicit(bool const PrintEnabled)
 {
 	// Initialize DB Parameters
 	unsigned int OutputInterval = DB.OutputInterval,
@@ -231,6 +301,7 @@ void solver_implicit(void)
 	fNameOut = malloc(STRLEN_MAX * sizeof *fNameOut); // free
 	string   = malloc(STRLEN_MIN * sizeof *string);   // free
 
+	update_VOLUME_Ops();
 	update_VOLUME_finalize();
 
 	output_to_paraview("ZTest_Sol_Init");
@@ -250,20 +321,41 @@ void solver_implicit(void)
 
 		PetscInt *ix;
 
-		printf("V");  implicit_VOLUME_info();
-		printf("F");  implicit_FACE_info();
-		printf("F "); maxRHS = finalize_LHS(&A,&b,&x,0);
+		if (PrintEnabled && DB.Viscous) { printf("G"); } implicit_GradW();
+
+		if (PrintEnabled) { printf("V");  } implicit_VOLUME_info();
+		if (PrintEnabled) { printf("F");  } implicit_FACE_info();
+		if (PrintEnabled) { printf("F "); } maxRHS = finalize_LHS(&A,&b,&x,0);
+
+		// Used for outputting matrix to file in matlab sparse format
+//		PetscViewer viewer;
+//		PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat.output", &viewer);
+//		PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
+//		MatView(A,viewer);
+//		PetscViewerDestroy(&viewer);
 
 		// Solve linear system
-		printf("S");
+		if (PrintEnabled) { printf("S"); }
 		KSPCreate(MPI_COMM_WORLD,&ksp);
 		setup_KSP(A,ksp);
 
-		printf("S ");
+		if (PrintEnabled) { printf("S "); }
 		KSPSolve(ksp,b,x);
 		KSPGetConvergedReason(ksp,&reason);
 		KSPGetIterationNumber(ksp,&iteration_ksp);
+
+		PetscReal emax, emin;
+		KSPComputeExtremeSingularValues(ksp,&emax,&emin);
 //		KSPView(ksp,PETSC_VIEWER_STDOUT_WORLD);
+
+		// Display solver progress
+		if (!iteration)
+			maxRHS0 = maxRHS;
+
+		if (PrintEnabled) {
+			printf("Iteration: %5d, KSP iterations (cond, reason): %5d (% .3e, %d), maxRHS (no MInv): % .3e\n",
+			       iteration,iteration_ksp,emax/emin,reason,maxRHS);
+		}
 
 		// Update What
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -281,14 +373,19 @@ void solver_implicit(void)
 			free(ix);
 
 			double alpha = 1.0;
+if (iteration < 3)
 			compute_underRelax(VOLUME,dWhat,&alpha);
+			//printf("% .3e\n",alpha);
 
-//printf("% .3e\n",alpha);
-alpha = 1.0;
-
-			for (i = 0; i < iMax; i++)
-				(*What++) += alpha*dWhat[i];
+			for (i = 0; i < iMax; i++) {
+				if (fabs(dWhat[i]) <= EPS)
+					What++;
+				else
+					(*What++) += alpha*dWhat[i];
+			}
 			free(dWhat);
+
+			enforce_positivity_highorder(VOLUME);
 		}
 
 		KSPDestroy(&ksp);
@@ -302,16 +399,9 @@ alpha = 1.0;
 			output_to_paraview(dummyPtr_c[0]);
 		}
 
-		// Display solver progress
-		if (!iteration)
-			maxRHS0 = maxRHS;
-
-		printf("Iteration: %5d, KSP iterations (reason): %5d (%d), maxRHS (no MInv): % .3e\n",
-		       iteration,iteration_ksp,reason,maxRHS);
-
 		// Additional exit conditions
 		if (maxRHS < 10*EPS && iteration) {
-			printf("Exiting: maxRHS is below 10*EPS.\n");
+			if (PrintEnabled) { printf("Exiting: maxRHS is below 10*EPS.\n"); }
 			break;
 		}
 
@@ -324,8 +414,7 @@ alpha = 1.0;
 	}
 
 	// Output to paraview
-//	if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 4 && TestDB.ML <= 4)) {
-	if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal <= 4 && TestDB.ML <= 4)) {
+	if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal+TestDB.ML) <= 8) {
 		strcpy(fNameOut,"SolFinal_");
 		sprintf(string,"%dD_",DB.d);   strcat(fNameOut,string);
 		                               strcat(fNameOut,DB.MeshType);

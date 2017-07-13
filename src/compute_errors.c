@@ -31,11 +31,16 @@
  *		Compute L2 errors for supported test cases.
  *
  *	Comments:
+ *		The OUTPUT_GRADIENTS flag is provided if it is desired to also output gradient errors for the TaylorCouette
+ *		case. It was found that gradients converged optimally whenever the solution converged optimally and this
+ *		functionality was disabled.
  *
  *	Notation:
  *
  *	References:
  */
+
+#define OUTPUT_GRADIENTS 0
 
 static void output_errors (const double *L2Error, const unsigned int NvarError, const unsigned int DOF, const double Vol);
 static void collect_errors (const unsigned int NvarError);
@@ -115,15 +120,33 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 	XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
 	mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
 
-	if (strstr(TestCase,"Poisson")) {
+	if (strstr(TestCase,"Advection")) {
+		for (i = 0, iMax = 1; i < iMax; i++)
+			L2Error2[i] = 0.0;
+
+		u = malloc(NvnI * sizeof *u); // free
+		mm_CTN_d(NvnI,1,NvnS,ChiS_vI,VOLUME->What,u);
+
+		uEx = malloc(NvnI * sizeof *uEx); // free
+		compute_exact_solution(NvnI,XYZ_vI,uEx,solved);
+
+		for (i = 0, iMax = 1; i < iMax; i++) {
+			for (j = 0; j < NvnI; j++) {
+				err = u[j]-uEx[j];
+				L2Error2[i] += err*err*wdetJV_vI[j];
+			}
+		}
+		free(u);
+		free(uEx);
+	} else if (strstr(TestCase,"Poisson")) {
 		for (i = 0, iMax = DMAX+1; i < iMax; i++)
 			L2Error2[i] = 0.0;
 
 		u = malloc(NvnI      * sizeof *u); // free
 		q = calloc(NvnI*DMAX , sizeof *q); // free
-		mm_CTN_d(NvnI,1,NvnS,ChiS_vI,VOLUME->uhat,u);
+		mm_CTN_d(NvnI,1,NvnS,ChiS_vI,VOLUME->What,u);
 		for (dim = 0; dim < d; dim++)
-			mm_CTN_d(NvnI,1,NvnS,ChiS_vI,VOLUME->qhat[dim],&q[dim*NvnI]);
+			mm_CTN_d(NvnI,1,NvnS,ChiS_vI,VOLUME->Qhat[dim],&q[dim*NvnI]);
 
 		uEx = malloc(NvnI      * sizeof *uEx); // free
 		qEx = calloc(NvnI*DMAX , sizeof *qEx); // free
@@ -150,6 +173,9 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		free(uEx);
 		free(qEx);
 	} else if (strstr(TestCase,"PeriodicVortex") ||
+	           strstr(TestCase,"EllipticPipe") ||
+	           strstr(TestCase,"ParabolicPipe") ||
+	           strstr(TestCase,"SinusoidalPipe") ||
 	           strstr(TestCase,"SupersonicVortex")) {
 		for (i = 0, iMax = NVAR3D+1; i < iMax; i++)
 			L2Error2[i] = 0.0;
@@ -223,7 +249,8 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		free(s);
 		free(UEx);
 		free(sEx);
-	} else if (strstr(TestCase,"InviscidChannel")) {
+	} else if (strstr(TestCase,"InviscidChannel") ||
+	           strstr(TestCase,"SubsonicNozzle")) {
 		L2Error2[0] = 0.0;
 
 		W = malloc(NvnI*Nvar   * sizeof *W); // free
@@ -240,6 +267,7 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		sEx = malloc(NvnI * sizeof *sEx); // free
 		s   = malloc(NvnI * sizeof *s);   // free
 		for (i = 0; i < NvnI; i++) {
+			// Should s = log(P/rho^GAMMA)? ToBeModified
 			sEx[i] = DB.pInf/pow(DB.rhoInf,GAMMA);
 			s[i]   = p[i]/pow(rho[i],GAMMA);
 		}
@@ -253,8 +281,113 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		free(U);
 		free(sEx);
 		free(s);
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		if (d != 2)
+			EXIT_UNSUPPORTED;
+
+		if (!OUTPUT_GRADIENTS) {
+			for (i = 0, iMax = 3; i < iMax; i++)
+				L2Error2[i] = 0.0;
+		} else {
+			for (i = 0, iMax = 3*DMAX; i < iMax; i++)
+				L2Error2[i] = 0.0;
+		}
+
+		UEx = malloc(NvnI*NVAR3D * sizeof *UEx); // free
+		compute_solution(NvnI,XYZ_vI,UEx,solved);
+
+		W = malloc(NvnI*Nvar   * sizeof *W); // free
+		U = malloc(NvnI*NVAR2D * sizeof *U); // free
+
+		mm_CTN_d(NvnI,Nvar,NvnS,ChiS_vI,VOLUME->What,W);
+
+		convert_variables(W,U,d,2,NvnI,1,'c','p');
+
+		rhoEx = &UEx[NvnI*0];
+		pEx   = &UEx[NvnI*(NVAR3D-1)];
+		rho   = &U[NvnI*0];
+		p     = &U[NvnI*(NVAR2D-1)];
+
+		double *const TEx = malloc(NvnI * sizeof *TEx), // free
+		       *const T   = malloc(NvnI * sizeof *T);   // free
+
+		double const Rg = DB.Rg;
+		for (j = 0; j < NvnI; j++) {
+			TEx[j] = pEx[j]/(rhoEx[j]*Rg);
+			T[j]   = p[j]/(rho[j]*Rg);
+		}
+
+		// Solution errors
+		for (i = 0; i < 3; i++) {
+			IndU = (i+1)*NvnI;
+			if (i < 2) { // u, v
+				for (j = 0; j < NvnI; j++) {
+					err = U[IndU+j]-UEx[IndU+j]; // u, v (Not normalized as variables may be negative)
+					L2Error2[i] += err*err*wdetJV_vI[j];
+				}
+			} else if (i == 2) { // T
+				for (j = 0; j < NvnI; j++) {
+					err = (T[j]-TEx[j])/TEx[j];
+					L2Error2[i] += err*err*wdetJV_vI[j];
+				}
+			}
+		}
+
+		if (OUTPUT_GRADIENTS) {
+			// Compute exact gradients for the u, v velocity components and temperature
+			double *const QuvTEx = malloc(NvnI*3*d * sizeof *QuvTEx); // free
+			compute_exact_gradient(NvnI,XYZ_vI,QuvTEx);
+
+			// Compute approximate gradients
+			double *const Q    = malloc(NvnI*Nvar * sizeof *Q),    // free
+			       *const QuvT = malloc(NvnI*3*d  * sizeof *QuvT); // free
+
+			for (size_t dim = 0; dim < d; dim++) {
+				mm_CTN_d(NvnI,Nvar,NvnS,ChiS_vI,VOLUME->Qhat[dim],Q);
+				size_t const IndQ = dim*3*NvnI;
+				for (size_t n = 0; n < NvnI; n++) {
+					double const drho  = Q[0*NvnI+n],
+					             drhou = Q[1*NvnI+n],
+					             drhov = Q[2*NvnI+n],
+					             dE    = Q[(d+1)*NvnI+n];
+
+					double const rho_inv = 1.0/rho[n],
+					             u       = U[1*NvnI+n],
+					             v       = U[2*NvnI+n],
+					             E       = W[(d+1)*NvnI+n],
+					             du      = rho_inv*(drhou-drho*u),
+					             dv      = rho_inv*(drhov-drho*v);
+
+					double const dEoRho  = rho_inv*rho_inv*(dE*rho[n]-E*drho),
+					             dV2     = 2.0*(u*du+v*dv),
+					             dT      = GM1/Rg*(dEoRho-0.5*dV2);
+
+					QuvT[IndQ+0*NvnI+n] = du;
+					QuvT[IndQ+1*NvnI+n] = dv;
+					QuvT[IndQ+2*NvnI+n] = dT;
+				}
+			}
+
+			// Gradient errors
+			for (size_t i = 0; i < 2*3; i++) {
+				size_t const IndL2 = i+3;
+				for (size_t j = 0; j < NvnI; j++) {
+					err = QuvT[i*NvnI+j]-QuvTEx[i*NvnI+j];
+					L2Error2[IndL2] += err*err*wdetJV_vI[j];
+				}
+			}
+
+			free(Q);
+			free(QuvT);
+			free(QuvTEx);
+		}
+		free(W);
+		free(U);
+		free(UEx);
+		free(TEx);
+		free(T);
 	} else {
-		printf("Error: Unsupported.\n"), EXIT_MSG;
+		EXIT_UNSUPPORTED;
 	}
 
 	*DOF = NvnS;
@@ -294,15 +427,24 @@ void compute_errors_global(void)
 	DOF = 0; Vol = 0.0;
 
 	CurvedOnly = 0;
-	if (strstr(TestCase,"Poisson")) {
+	if (strstr(TestCase,"Advection")) {
+		NvarError = 1;
+	} else if (strstr(TestCase,"Poisson")) {
 		NvarError = DMAX+1;
 	} else if (strstr(TestCase,"PeriodicVortex") ||
-	         strstr(TestCase,"SupersonicVortex")) {
+	           strstr(TestCase,"SupersonicVortex") ||
+	           strstr(TestCase,"ParabolicPipe")) {
 		NvarError = NVAR3D+1;
-	} else if (strstr(TestCase,"InviscidChannel")) {
+	} else if (strstr(TestCase,"InviscidChannel") ||
+	           strstr(TestCase,"SubsonicNozzle")) {
 		if (strstr(Geometry,"NacaSymmetric"))
 			CurvedOnly = 1; // Avoid trailing edge singularity when computing entropy error.
 		NvarError = 1;
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		if (!OUTPUT_GRADIENTS)
+			NvarError = 3; // u, v, T
+		else
+			NvarError = 3*DMAX; // u, v, T and Gradients in x, y directions
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
@@ -350,15 +492,26 @@ static void output_errors(const double *L2Error2, const unsigned int NvarError, 
 
 	f_name = set_fname(0); // free
 	if ((fID = fopen(f_name,"w")) == NULL)
-		printf("Error: File: %s, did not open.\n",f_name), exit(1);
+		printf("Error: File: %s, did not open.\n",f_name), EXIT_MSG;
 
-	if (strstr(TestCase,"Poisson")) {
+	if (strstr(TestCase,"Advection")) {
+		fprintf(fID,"DOF         Vol         L2u2\n");
+	} else if (strstr(TestCase,"Poisson")) {
 		fprintf(fID,"DOF         Vol         L2u2        L2q1_2      L2q2_2      L2q3_2\n");
 	} else if (strstr(TestCase,"PeriodicVortex") ||
-	           strstr(TestCase,"SupersonicVortex")) {
+	           strstr(TestCase,"SupersonicVortex") ||
+	           strstr(TestCase,"ParabolicPipe")) {
 		fprintf(fID,"DOF         Vol         L2rho2      L2u2        L2v2        L2w2        L2p2        L2s2\n");
-	} else if (strstr(TestCase,"InviscidChannel")) {
+	} else if (strstr(TestCase,"InviscidChannel") ||
+	           strstr(TestCase,"SubsonicNozzle")) {
 		fprintf(fID,"DOF         Vol         L2s2\n");
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		if (!OUTPUT_GRADIENTS)
+			fprintf(fID,"DOF         Vol         L2u2        L2v2        L2T2\n");
+		else
+			fprintf(fID,"DOF         Vol         L2u2        L2v2        L2T2        L2Gradu2                L2Gradv2                L2GradT2 \n");
+	} else {
+		EXIT_UNSUPPORTED;
 	}
 	fprintf(fID,"%-10d  %.4e  ",DOF,Vol);
 	for (i = 0; i < NvarError; i++)
@@ -387,7 +540,7 @@ static void collect_errors(const unsigned int NvarError)
 	for (rank = 0; rank < MPIsize; rank++) {
 		f_name = set_fname(0); // free
 		if ((fID = fopen(f_name,"r")) == NULL)
-			printf("Error: File: %s, did not open.\n",f_name), exit(1);
+			printf("Error: File: %s, did not open.\n",f_name), EXIT_MSG;
 
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) { ; }
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
@@ -416,15 +569,27 @@ static void collect_errors(const unsigned int NvarError)
 
 	f_name = set_fname(1); // free
 	if ((fID = fopen(f_name,"w")) == NULL)
-		printf("Error: File: %s, did not open.\n",f_name), exit(1);
+		printf("Error: File: %s, did not open.\n",f_name), EXIT_MSG;
 
-	if (strstr(TestCase,"Poisson")) {
+	if (strstr(TestCase,"Advection")) {
+		fprintf(fID,"DOF         L2u\n");
+	} else if (strstr(TestCase,"Poisson")) {
 		fprintf(fID,"DOF         L2u         L2q1        L2q2        L2q3\n");
 	} else if (strstr(TestCase,"PeriodicVortex") ||
-	           strstr(TestCase,"SupersonicVortex")) {
+	           strstr(TestCase,"SupersonicVortex") ||
+	           strstr(TestCase,"ParabolicPipe")) {
 		fprintf(fID,"DOF         L2rho       L2u         L2v         L2w         L2p         L2s\n");
-	} else if (strstr(TestCase,"InviscidChannel")) {
+	} else if (strstr(TestCase,"InviscidChannel") ||
+	           strstr(TestCase,"SubsonicNozzle")) {
 		fprintf(fID,"DOF         L2s\n");
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		if (!OUTPUT_GRADIENTS) {
+			fprintf(fID,"DOF         L2u         L2v         L2T\n");
+		} else {
+			fprintf(fID,"DOF         L2u         L2v         L2T         L2ux        L2uy        L2vx        L2vy        L2Tx        L2Ty        \n");
+		}
+	} else {
+		EXIT_UNSUPPORTED;
 	}
 	fprintf(fID,"%-10d  ",DOF);
 	for (i = 0; i < NvarError; i++)

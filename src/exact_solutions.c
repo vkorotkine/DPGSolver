@@ -12,6 +12,8 @@
 #include "Macros.h"
 #include "S_DB.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Provide functions related to exact solutions.
@@ -22,10 +24,11 @@
  *
  *	References:
  */
+static double generate_Euler_source(unsigned int eq, double *RUVP) ;
 
-#define POISSON_SCALE 0.125
+static double get_boundary_value_Advection (double const x, double const y, double const z);
 
-void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, const unsigned int solved)
+void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UEx, const unsigned int solved)
 {
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
@@ -33,7 +36,8 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, con
 
 	// Standard datatypes
 	unsigned int i;
-	double       *X, *Y, *Z, *rhoEx, *uEx, *vEx, *wEx, *pEx;
+	double       *rhoEx, *uEx, *vEx, *wEx, *pEx;
+	const double *X, *Y, *Z;
 
 	rhoEx = &UEx[Nn*0];
 	uEx   = &UEx[Nn*1];
@@ -45,12 +49,10 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, con
 	Y = &XYZ[1*Nn];
 	Z = &XYZ[(d-1)*Nn];
 
-	// Perhaps modify TestCase for Test_L2_proj and Test_update_h to make this cleaner, also in other functions (ToBeDeleted)
 	if (strstr(TestCase,"PeriodicVortex")) {
 		// Initialize DB Parameters
 		double       pInf           = DB.pInf,
 					 TInf           = DB.TInf,
-					 VInf           = DB.VInf,
 					 uInf           = DB.uInf,
 					 vInf           = DB.vInf,
 					 wInf           = DB.wInf,
@@ -66,7 +68,7 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, con
 		double DistTraveled, Xc, rhoInf, r2, C;
 
 		rhoInf = pInf/(Rg*TInf);
-		C      = Cscale*VInf;
+		C      = Cscale;
 
 		if (solved) {
 			DistTraveled = PeriodL*PeriodFraction;
@@ -108,21 +110,189 @@ void compute_exact_solution(const unsigned int Nn, double *XYZ, double *UEx, con
 			vEx[i] =  cos(t)*Vt;
 			wEx[i] =  0.0;
 		}
+	} else if (strstr(TestCase,"PlaneCouette")) {
+		double const uIn = DB.uIn,
+		             TIn = DB.TIn,
+		             pIn = DB.pIn,
+		             Pr  = DB.Pr,
+		             Rg  = DB.Rg;
+
+		double const b = uIn*uIn/(DB.Cp*TIn);
+
+		if (DB.Const_mu) {
+			for (size_t n = 0; n < Nn; n++) {
+				double const eta = 0.5*(Y[n]+1.0),
+				             T   = -0.5*Pr*b*pow(1.0-eta,2.0)+1.0+0.5*Pr*b;
+
+				pEx[n]   = pIn;
+				rhoEx[n] = pEx[n]/(Rg*T);
+				uEx[n]   = 1.0-eta;
+				vEx[n]   = 0.0;
+				wEx[n]   = 0.0;
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		// Note: This exact solution is valid only before the Taylor-Couette instability develops and is only accurate
+		//       for velocity and temperature (except for r = rIn where all components are exact).
+		if (d != 2)
+			EXIT_UNSUPPORTED;
+
+		double rIn   = DB.rIn,
+		       rOut  = DB.rOut,
+		       omega = DB.omega,
+		       TIn   = DB.TIn,
+		       pIn   = DB.pIn,
+		       mu    = DB.mu,
+		       kappa = DB.kappa,
+		       Rg    = DB.Rg;
+
+		double C = omega/(1.0/(rIn*rIn)-1.0/(rOut*rOut));
+
+		for (size_t n = 0; n < Nn; n++) {
+			double r, t, Vt, T;
+			r = sqrt(X[n]*X[n]+Y[n]*Y[n]);
+			t = atan2(Y[n],X[n]);
+
+			Vt = C*(1.0/r-r/(rOut*rOut));
+			T  = TIn - 2.0*C*C/(rOut*rOut)*mu/kappa*log(r/rIn) - C*C*mu/kappa*(1.0/(r*r)-1.0/(rIn*rIn));
+
+			// Illingworth(1950), p.8 notes that the pressure is nearly uniform => set pEx ~= pIn and compute rhoEx
+			// using the ideal gas law.
+			pEx[n]   = pIn;
+			rhoEx[n] = pEx[n]/(Rg*T);
+			uEx[n]   = -sin(t)*Vt;
+			vEx[n]   =  cos(t)*Vt;
+			wEx[n]   = 0.0;
+		}
+	} else if (strstr(TestCase,"Advection")) {
+		if (DB.SourcePresent) {
+			EXIT_UNSUPPORTED; // Manufactured solution
+		} else {
+			if (strstr(DB.PDESpecifier,"Unsteady")) {
+				EXIT_UNSUPPORTED;
+			} else if (strstr(DB.PDESpecifier,"Steady")) {
+				// Extrapolate from upwind boundary
+				for (size_t n = 0; n < Nn; n++)
+					UEx[n] = get_boundary_value_Advection(X[n],Y[n],Z[n]);
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		}
 	} else if (strstr(TestCase,"Poisson")) {
+		double Poisson_scale = DB.Poisson_scale;
+
+		if (fabs(Poisson_scale) < EPS)
+			printf("Error: Make sure to set Poisson_scale.\n"), EXIT_MSG;
+
 		for (i = 0; i < Nn; i++) {
-			if (d == 2)
+			if (d == 1)
+				UEx[i] = sin(2.0*PI*X[i]);
+			else if (d == 2)
 //				UEx[i] = sin(PI*X[i])*sin(PI*Y[i]);
-				UEx[i] = cos(POISSON_SCALE*PI*X[i])*cos(POISSON_SCALE*PI*Y[i]);
+				UEx[i] = cos(Poisson_scale*PI*X[i])*cos(Poisson_scale*PI*Y[i]);
 //				UEx[i] = X[i]*Y[i]*sin(PI*X[i])*sin(PI*Y[i]);
 			else if (d == 3)
 				UEx[i] = sin(PI*X[i])*sin(PI*Y[i])*sin(PI*Z[i]);
+			else
+				EXIT_UNSUPPORTED;
 		}
-	} else {
-		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
+	} else if (strstr(TestCase,"EllipticPipe")) {
+                    double rho_0 = DB.rho_store[0],
+                           rho_x = DB.rho_store[1],
+                           rho_1 = DB.rho_store[2],
+                           rho_y = DB.rho_store[3],
+                           rho_2 = DB.rho_store[4];
+
+                    double p_0 = DB.p_store[0],
+                           p_x = DB.p_store[1],
+                           p_1 = DB.p_store[2],
+                           p_y = DB.p_store[3],
+                           p_2 = DB.p_store[4];
+
+                    double a = 2, b = 4;
+
+                    if (d == 2 ) {
+                            for (i = 0; i < Nn; i++) {
+                         rhoEx[i] = rho_0 + rho_x*cos(rho_1*X[i])+rho_y*sin(rho_2*Y[i]);
+                         pEx[i] = p_0 + p_x*cos(p_1*X[i])+p_y*sin(p_2*Y[i]);
+                         uEx[i] = pow(a,2)*Y[i];
+                         vEx[i] = -pow(b,2)*X[i];
+                         wEx[i] = 0.0;
+                            }
+                    } else
+                           EXIT_UNSUPPORTED;
+
+	} else if (strstr(TestCase,"ParabolicPipe")) {
+		if (d != 2)
+			EXIT_UNSUPPORTED;
+
+		double rho_0 = DB.rho_store[0],
+		       rho_x = DB.rho_store[1],
+		       rho_1 = DB.rho_store[2],
+		       rho_y = DB.rho_store[3],
+		       rho_2 = DB.rho_store[4];
+
+		double p_0 = DB.p_store[0],
+		       p_x = DB.p_store[1],
+		       p_1 = DB.p_store[2],
+		       p_y = DB.p_store[3],
+		       p_2 = DB.p_store[4];
+
+		double w_0 = DB.w_store[0],
+		       w_x = DB.w_store[1],
+		       w_1 = DB.w_store[2],
+		       w_y = DB.w_store[3],
+		       w_2 = DB.w_store[4];
+
+		double b = 2;
+
+		for (size_t n = 0; n < Nn; n++) {
+			rhoEx[n] = rho_0 + rho_x*sin(rho_1*X[n])+rho_y*cos(rho_2*Y[n]);
+			pEx[n]   = p_0 + p_x*cos(p_1*X[n])+p_y*sin(p_2*Y[n]);
+			uEx[n]   = w_0 + w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n]);
+			vEx[n]   = (-2*b*X[n])*(w_0 + w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n]));
+			wEx[n]   = 0.0;
+		}
+	} else if (strstr(TestCase,"SinusoidalPipe")) {
+                    double rho_0 = DB.rho_store[0],
+                           rho_x = DB.rho_store[1],
+                           rho_1 = DB.rho_store[2],
+                           rho_y = DB.rho_store[3],
+                           rho_2 = DB.rho_store[4];
+
+                    double p_0 = DB.p_store[0],
+                           p_x = DB.p_store[1],
+                           p_1 = DB.p_store[2],
+                           p_y = DB.p_store[3],
+                           p_2 = DB.p_store[4];
+
+                    double w_0 = DB.w_store[0],
+                           w_x = DB.w_store[1],
+                           w_1 = DB.w_store[2],
+                           w_y = DB.w_store[3],
+                           w_2 = DB.w_store[4];
+
+                    double a = 1, b = 2;
+
+                    if (d == 2 ) {
+                         for (i = 0; i < Nn; i++) {
+                      rhoEx[i] = rho_0 + rho_x*sin(rho_1*X[i])+rho_y*cos(rho_2*Y[i]);
+                      pEx[i] = p_0 + p_x*cos(p_1*X[i])+p_y*sin(p_2*Y[i]);
+                      uEx[i] = w_0 + w_x*sin(w_1*X[i])+w_y*cos(w_2*Y[i]);
+                      vEx[i] = (-a*b*sin(b*X[i]))*(w_0 + w_x*sin(w_1*X[i])+w_y*cos(w_2*Y[i]));
+                      wEx[i] = 0.0;
+                         }
+                    } else
+                            EXIT_UNSUPPORTED;
+
+        } else {
+		EXIT_UNSUPPORTED;
 	}
 }
 
-void compute_exact_gradient(const unsigned int Nn, double *XYZ, double *QEx)
+void compute_exact_gradient(const unsigned int Nn, const double *XYZ, double *QEx)
 {
 	// Initialize DB Parameters
 	char         *TestCase = DB.TestCase;
@@ -130,33 +300,75 @@ void compute_exact_gradient(const unsigned int Nn, double *XYZ, double *QEx)
 
 	// Standard datatypes
 	unsigned int i;
-	double       *X, *Y, *Z;
+	const double *X, *Y, *Z;
 
 	X = &XYZ[0*Nn];
 	Y = &XYZ[1*Nn];
 	Z = &XYZ[(d-1)*Nn];
 
 	if (strstr(TestCase,"Poisson")) {
+		double Poisson_scale = DB.Poisson_scale;
 		for (i = 0; i < Nn; i++) {
-			if (d == 2) {
+			if (d == 1) {
+				QEx[Nn*0+i] = 2.0*PI*cos(2.0*PI*X[i]);
+			} else if (d == 2) {
 //				QEx[Nn*0+i] = PI*cos(PI*X[i])*sin(PI*Y[i]);
 //				QEx[Nn*1+i] = PI*sin(PI*X[i])*cos(PI*Y[i]);
-				QEx[Nn*0+i] = -POISSON_SCALE*PI*sin(POISSON_SCALE*PI*X[i])*cos(POISSON_SCALE*PI*Y[i]);
-				QEx[Nn*1+i] = -POISSON_SCALE*PI*cos(POISSON_SCALE*PI*X[i])*sin(POISSON_SCALE*PI*Y[i]);
+				QEx[Nn*0+i] = -Poisson_scale*PI*sin(Poisson_scale*PI*X[i])*cos(Poisson_scale*PI*Y[i]);
+				QEx[Nn*1+i] = -Poisson_scale*PI*cos(Poisson_scale*PI*X[i])*sin(Poisson_scale*PI*Y[i]);
 //				QEx[Nn*0+i] = Y[i]*sin(PI*Y[i])*(sin(PI*X[i])+X[i]*PI*cos(PI*X[i]));
 //				QEx[Nn*1+i] = X[i]*sin(PI*X[i])*(sin(PI*Y[i])+Y[i]*PI*cos(PI*Y[i]));
 			} else if (d == 3) {
 				QEx[Nn*0+i] = PI*cos(PI*X[i])*sin(PI*Y[i])*sin(PI*Z[i]);
 				QEx[Nn*1+i] = PI*sin(PI*X[i])*cos(PI*Y[i])*sin(PI*Z[i]);
 				QEx[Nn*2+i] = PI*sin(PI*X[i])*sin(PI*Y[i])*cos(PI*Z[i]);
+			} else {
+				EXIT_UNSUPPORTED;
 			}
 		}
+	} else if (strstr(TestCase,"TaylorCouette")) {
+		// Return gradients of velocity components and temperature.
+		double const rIn   = DB.rIn,
+		             rOut  = DB.rOut,
+		             omega = DB.omega,
+		             mu    = DB.mu,
+		             kappa = DB.kappa;
+
+		double const C = omega/(1.0/(rIn*rIn)-1.0/(rOut*rOut));
+		if (d == 2) {
+			for (size_t n = 0; n < Nn; n++) {
+				double const x = X[n],
+				             y = Y[n],
+				             r = sqrt(x*x+y*y),
+				             t = atan2(y,x);
+
+				double const drdX[DMAX] = {x/r, y/r, 0.0 },
+				             dtdX[DMAX] = {-y/(r*r), x/(r*r), 0.0 };
+
+				double const Vt = C*(1.0/r-r/(rOut*rOut));
+
+				double const dVtdr = C*(-1.0/(r*r)-1.0/(rOut*rOut)),
+				             dTdr  = -C*C*mu/kappa*(2.0/r*(1.0/(rOut*rOut)-1.0/(r*r)));
+
+				size_t dim = 0, var = 0;
+				QEx[Nn*(dim*3+var++)+n] = -(sin(t)*(dVtdr*drdX[dim]) + cos(t)*dtdX[dim]*Vt);
+				QEx[Nn*(dim*3+var++)+n] =  (cos(t)*(dVtdr*drdX[dim]) - sin(t)*dtdX[dim]*Vt);
+				QEx[Nn*(dim*3+var++)+n] =  (dTdr*drdX[dim]);
+
+				dim++; var = 0;
+				QEx[Nn*(dim*3+var++)+n] = -(sin(t)*(dVtdr*drdX[dim]) + cos(t)*dtdX[dim]*Vt);
+				QEx[Nn*(dim*3+var++)+n] =  (cos(t)*(dVtdr*drdX[dim]) - sin(t)*dtdX[dim]*Vt);
+				QEx[Nn*(dim*3+var++)+n] =  (dTdr*drdX[dim]);
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
 	} else {
-		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
+		EXIT_UNSUPPORTED;
 	}
 }
 
-void compute_source(const unsigned int Nn, double *XYZ, double *source)
+void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 {
 	/*
 	 *	Purpose:
@@ -170,25 +382,213 @@ void compute_source(const unsigned int Nn, double *XYZ, double *source)
 
 	// Standard datatypes
 	unsigned int n, eq;
-	double       *X, *Y, *Z;
+
+	const double *const X = &XYZ[Nn*0],
+	             *const Y = &XYZ[Nn*1],
+	             *const Z = &XYZ[Nn*(d-1)];
+
 
 	if (strstr(TestCase,"Poisson")) {
-		X = &XYZ[Nn*0];
-		Y = &XYZ[Nn*1];
-		Z = &XYZ[Nn*(d-1)];
+		double Poisson_scale = DB.Poisson_scale;
 
 		for (eq = 0; eq < Neq; eq++) {
 			for (n = 0; n < Nn; n++) {
-				if (d == 2)
+				if (d == 1)
+					source[eq*Nn+n] = -pow(2.0*PI,2.0)*sin(2.0*PI*X[n]);
+				else if (d == 2)
 //					source[eq*Nn+n] = -2.0*PI*PI*sin(PI*X[n])*sin(PI*Y[n]);
-					source[eq*Nn+n] = -2.0*pow(POISSON_SCALE*PI,2.0)*cos(POISSON_SCALE*PI*X[n])*cos(POISSON_SCALE*PI*Y[n]);
+					source[eq*Nn+n] = -2.0*pow(Poisson_scale*PI,2.0)*cos(Poisson_scale*PI*X[n])*cos(Poisson_scale*PI*Y[n]);
 //					source[eq*Nn+n] = PI*(Y[n]*sin(PI*Y[n])*(2*cos(PI*X[n])-PI*X[n]*sin(PI*X[n]))
 //					                     +X[n]*sin(PI*X[n])*(2*cos(PI*Y[n])-PI*Y[n]*sin(PI*Y[n])));
 				else if (d == 3)
 					source[eq*Nn+n] = -3.0*PI*PI*sin(PI*X[n])*sin(PI*Y[n])*sin(PI*Z[n]);
+				else
+					EXIT_UNSUPPORTED;
+				source[eq*Nn+n] *= -1.0; // Conflict between source term treatment for Euler and Poisson (ToBeDeleted)
 			}
 		}
-	} else {
-		printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
+	} else if (strstr(TestCase,"EllipticPipe")) {
+
+             if (d == 2) {
+                                double rho_0 = DB.rho_store[0],
+                                       rho_x = DB.rho_store[1],
+                                       rho_1 = DB.rho_store[2],
+                                       rho_y = DB.rho_store[3],
+                                       rho_2 = DB.rho_store[4];
+
+                                double p_0 = DB.p_store[0],
+                                       p_x = DB.p_store[1],
+                                       p_1 = DB.p_store[2],
+                                       p_y = DB.p_store[3],
+                                       p_2 = DB.p_store[4];
+
+                                double a = 2, b = 4;
+
+                                double RUVP[12];
+
+
+                   for (eq = 0; eq < Neq; eq++) {
+                           for(n = 0; n < Nn; n++) {
+                                    *(RUVP) = rho_0 + rho_x*cos(rho_1*X[n])+rho_y*sin(rho_2*Y[n]);
+                                    *(RUVP+1) =  -rho_1*rho_x*sin(rho_1*X[n]);
+                                    *(RUVP+2) = rho_2*rho_y*cos(rho_2*Y[n]);
+                                    *(RUVP+3) = pow(a,2)*Y[n];
+                                    *(RUVP+4) = 0;
+                                    *(RUVP+5) = pow(a,2);
+                                    *(RUVP+6) = -pow(b,2)*X[n];
+                                    *(RUVP+7) = -pow(b,2);
+                                    *(RUVP+8) = 0;
+                                    *(RUVP+9) = p_0 + p_x*cos(p_1*X[n])+p_y*sin(p_2*Y[n]);
+                                    *(RUVP+10) = -p_1*p_x*sin(p_1*X[n]);
+                                    *(RUVP+11) = p_2*p_y*cos(p_2*Y[n]);
+                                     source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
+                           }
+                   }
+             } else
+                   EXIT_UNSUPPORTED;
+
+
+	} else if (strstr(TestCase,"ParabolicPipe")) {
+		if (d != 2)
+			EXIT_UNSUPPORTED;
+
+		double rho_0 = DB.rho_store[0],
+		       rho_x = DB.rho_store[1],
+		       rho_1 = DB.rho_store[2],
+		       rho_y = DB.rho_store[3],
+		       rho_2 = DB.rho_store[4];
+
+		double p_0 = DB.p_store[0],
+		       p_x = DB.p_store[1],
+		       p_1 = DB.p_store[2],
+		       p_y = DB.p_store[3],
+		       p_2 = DB.p_store[4];
+
+		double w_0 = DB.w_store[0],
+		       w_x = DB.w_store[1],
+		       w_1 = DB.w_store[2],
+		       w_y = DB.w_store[3],
+		       w_2 = DB.w_store[4];
+
+		double b = 2;
+		double RUVP[12];
+
+		for (size_t n = 0; n < Nn; n++) {
+			RUVP[0]  =  rho_0 + rho_x*sin(rho_1*X[n])+rho_y*cos(rho_2*Y[n]);
+			RUVP[1]  =  rho_1*rho_x*cos(rho_1*X[n]);
+			RUVP[2]  = -rho_2*rho_y*sin(rho_2*Y[n]);
+			RUVP[3]  =  w_0 + w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n]);
+			RUVP[4]  =  w_1*w_x*cos(w_1*X[n]);
+			RUVP[5]  = -w_2*w_y*sin(w_2*Y[n]);
+			RUVP[6]  = (-2*b*X[n])*(w_0 + w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n]));
+			RUVP[7]  = (-2*b)*(w_0 + w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n])) + (-2*b*X[n])*(w_1*w_x*cos(w_1*X[n]));
+			RUVP[8]  = (-2*b*X[n])*(-w_2*w_y*sin(w_2*Y[n]));
+			RUVP[9]  =  p_0 + p_x*cos(p_1*X[n])+p_y*sin(p_2*Y[n]);
+			RUVP[10] = -p_1*p_x*sin(p_1*X[n]);
+			RUVP[11] =  p_2*p_y*cos(p_2*Y[n]);
+			for (size_t eq = 0; eq < Neq; eq++)
+				source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
+		}
+	} else if (strstr(TestCase,"SinusoidalPipe")) {
+
+             if (d == 2) {
+                                double rho_0 = DB.rho_store[0],
+                                       rho_x = DB.rho_store[1],
+                                       rho_1 = DB.rho_store[2],
+                                       rho_y = DB.rho_store[3],
+                                       rho_2 = DB.rho_store[4];
+
+                                double p_0 = DB.p_store[0],
+                                       p_x = DB.p_store[1],
+                                       p_1 = DB.p_store[2],
+                                       p_y = DB.p_store[3],
+                                       p_2 = DB.p_store[4];
+
+                                double w_0 = DB.w_store[0],
+                                       w_x = DB.w_store[1],
+                                       w_1 = DB.w_store[2],
+                                       w_y = DB.w_store[3],
+                                       w_2 = DB.w_store[4];
+
+                                double a = 2,  b = PI/2;
+
+                                double RUVP[12];
+
+
+                   for (eq = 0; eq < Neq; eq++) {
+                           for(n = 0; n < Nn; n++) {
+                                    *(RUVP) = rho_0 + rho_x*sin(rho_1*X[n])+rho_y*cos(rho_2*Y[n]);
+                                    *(RUVP+1) =  rho_1*rho_x*cos(rho_1*X[n]);
+                                    *(RUVP+2) = -rho_2*rho_y*sin(rho_2*Y[n]);
+                                    *(RUVP+3) = w_0+w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n]);
+                                    *(RUVP+4) = w_1*w_x*cos(w_1*X[n]);
+                                    *(RUVP+5) = -w_2*w_y*sin(w_2*Y[n]);
+                                    *(RUVP+6) = (w_0+w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n]))*(-a*b*sin(b*X[n]));
+                                    *(RUVP+7) = -a*b*sin(b*X[n])*(w_1*w_x*cos(w_1*X[n]))-a*pow(b,2)*cos(b*X[n])*(w_0+w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n]));
+                                    *(RUVP+8) = a*b*sin(b*X[n])*w_y*w_2*sin(w_2*Y[n]);
+                                    *(RUVP+9) = p_0 + p_x*cos(p_1*X[n])+p_y*sin(p_2*Y[n]);
+                                    *(RUVP+10) = -p_1*p_x*sin(p_1*X[n]);
+                                    *(RUVP+11) = p_2*p_y*cos(p_2*Y[n]);
+                                     source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
+                           }
+                   }
+             } else
+                   EXIT_UNSUPPORTED;
+
+
+       } else {
+		EXIT_UNSUPPORTED;
 	}
+}
+
+static double get_boundary_value_Advection(double const x, double const y, double const z)
+{
+	char const *const PDESpecifier = DB.PDESpecifier;
+
+	double uEx = 0.0;
+	if (strstr(PDESpecifier,"Steady/Default") || strstr(PDESpecifier,"Steady/Peterson")) {
+		double const *const b = DB.ADV_b;
+
+		if (!(b[0] == 0.0 && b[1] == 1.0 && b[2] == 0.0))
+			EXIT_UNSUPPORTED;
+
+		uEx = sin(2.0*x);
+	} else {
+		EXIT_UNSUPPORTED;
+		printf("%f %f\n",y,z);
+	}
+	return uEx;
+}
+
+static double generate_Euler_source(unsigned int eq, double *RUVP)
+{
+	if (DB.d != 2)
+		EXIT_UNSUPPORTED;
+
+	double r, rx, ry, u, ux, uy, v, vx, vy, p, px, py;
+	double f;
+
+	r = RUVP[0], rx = RUVP[1],  ry = RUVP[2];
+	u = RUVP[3], ux = RUVP[4],  uy = RUVP[5];
+	v = RUVP[6], vx = RUVP[7],  vy = RUVP[8];
+	p = RUVP[9], px = RUVP[10], py = RUVP[11];
+
+	if (eq == 1) {
+		f = rx*u+ux*r+ry*v+vy*r;
+	} else if (eq == 2) {
+		f = px+pow(u,2)*rx+2*r*u*ux+r*u*vy+r*v*uy+v*u*ry;
+	} else if (eq == 3) {
+		f = py+pow(v,2)*ry+2*r*v*vy+r*v*ux+r*u*vx+v*u*rx;
+	} else if (eq == 4) {
+		double const V2  = u*u+v*v,
+		             V2x = 2*(u*ux+v*vx),
+		             V2y = 2*(u*uy+v*vy);
+		double const E  = p/GM1  + 0.5*r*V2,
+		             Ex = px/GM1 + 0.5*(rx*V2+r*V2x),
+		             Ey = py/GM1 + 0.5*(ry*V2+r*V2y);
+		f = (Ex+px)*u + (E+p)*ux + (Ey+py)*v + (E+p)*vy;
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+	return f;
 }

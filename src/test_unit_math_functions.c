@@ -50,11 +50,9 @@ void test_unit_math_factorial(void)
 	if (factorial_ull(A) == 6         &&
 	    factorial_ull(B) == 5040      &&
 	    factorial_ull(C) == 479001600)
-		pass = 1, TestDB.Npass++;
+		pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("math_factorial_ull:                              ");
-	test_print(pass);
+	test_print2(pass,"math_factorial_ull:");
 
 }
 
@@ -82,13 +80,11 @@ void test_unit_math_gamma(void)
 
 	pass = 0;
 	if (gamma_d(A_ull) == 6.0    &&
-		gamma_d(B_ull) == 5040.0 &&
-		gamma_d(C_ull) == 1307674368000.0)
-		    pass = 1, TestDB.Npass++;
+	    gamma_d(B_ull) == 5040.0 &&
+	    gamma_d(C_ull) == 1307674368000.0)
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("math_gamma_d:                                    ");
-	test_print(pass);
+	test_print2(pass,"math_gamma_d (ui):");
 
 	/*
 	 *	gamma_d:
@@ -117,9 +113,7 @@ void test_unit_math_gamma(void)
 	if (array_norm_d(1,&errA_d,"Inf") < EPS    &&
 	    array_norm_d(1,&errB_d,"Inf") < EPS*10 &&
 	    array_norm_d(1,&errC_d,"Inf") < EPS*10)
-			pass = 1, TestDB.Npass++;
+			pass = 1;
 
-	//     0         10        20        30        40        50
-	printf("math_gamma_d:                                    ");
-	test_print(pass);
+	test_print2(pass,"             (d) :");
 }

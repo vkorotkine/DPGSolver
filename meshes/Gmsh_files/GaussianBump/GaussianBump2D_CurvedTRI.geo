@@ -8,19 +8,21 @@ lc = 0.5/2.0^Refine;
 RefType = 0;
 
 BumpExp = 0;
-BumpScale = 3;
+BumpScale = 0;
 N = 1e2;
 
 
 
 // Geometry Specification
-l = 1.5;
-h = 0.8;
 
-a = 0.0625/2^BumpScale;
+a = 0.0625;
 b = 0.0;
-//c = 0.2/2^BumpExp;
-c = Sqrt(a*l);
+c = 0.2/2^BumpExp;
+
+EPS = 1e-15;
+l = Sqrt(-2.0*c^2*Log(EPS/a));
+
+h = 3*a;
 
 
 

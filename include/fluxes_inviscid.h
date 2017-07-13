@@ -4,11 +4,12 @@
 #ifndef DPG__fluxes_inviscid_h__INCLUDED
 #define DPG__fluxes_inviscid_h__INCLUDED
 
-extern void flux_inviscid (const unsigned int Nn, const unsigned int Nel, double *W, double *F, const unsigned int d,
-                           const unsigned int Neq);
-extern void flux_LF       (const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
-                           double *nL, const unsigned int d, const unsigned int Neq);
-extern void flux_Roe      (const unsigned int Nn, const unsigned int Nel, double *WL, double *WR, double *nFluxNum,
-                           double *nL, const unsigned int d, const unsigned int Neq);
+#include "fluxes_structs.h"
+
+extern void flux_inviscid     (struct S_FLUX *const FLUXDATA);
+extern void flux_num_inviscid (struct S_NUMERICALFLUX *const NUMFLUXDATA);
+extern void flux_Euler        (struct S_FLUX *const FLUXDATA);
+
+extern void flux_inviscid_MA (struct S_FLUX_MA *const FLUXDATA_MA);
 
 #endif // DPG__fluxes_inviscid_h__INCLUDED

@@ -39,6 +39,9 @@
  *		Rosca(2011)-Uniform_Spherical_Grids_via_Equal_Area_Projection_from_the_Cube_to_the_Sphere
  */
 
+static void         ToBeCurved_elliptic_pipe    (unsigned int const Nn, double const *const XYZ_S, double *const XYZ);
+static void         ToBeCurved_parabolic_pipe    (unsigned int const Nn, double const *const XYZ_S, double *const XYZ);
+static void         ToBeCurved_sinusoidal_pipe    (unsigned int const Nn, double const *const XYZ_S, double *const XYZ);
 static void         ToBeCurved_cube_to_sphere   (unsigned int Nn, double *XYZ_S, double *XYZ);
 static void         ToBeCurved_square_to_circle (unsigned int Nn, double *XYZ_S, double *XYZ);
 static double         *cube_to_sphere           (double XY[2], unsigned int OrderOut[3], int SignOut, double beta);
@@ -50,6 +53,65 @@ static double         get_arc_length            (const double XL, const double X
                                                  const unsigned int DOrder[2]);
 static double         *eval_TP_function         (const unsigned int Nn, const double *XZ, const unsigned int DOrder[2],
                                                  const unsigned int Single, double **abcP);
+
+static void ToBeCurved_elliptic_pipe (unsigned int const Nn, double const *const XYZ_S, double *const XYZ)
+{
+	if (DB.d != 2)
+		EXIT_UNSUPPORTED;
+
+	double *const X = &XYZ[Nn*0],
+	       *const Y = &XYZ[Nn*1];
+
+	double const *const X_S = &XYZ_S[Nn*0],
+	             *const Y_S = &XYZ_S[Nn*1];
+
+	double const a = 2.0, b = 4.0, a_1 = 1.0, a_2 = 2.0;
+
+
+	for (size_t n = 0; n < Nn; n++) {
+	     Y[n] = (b/(2*a))*((a_2-a_1)*Y_S[n]+(a_2+a_1))*sin((PI/2)*(X_S[n]+1));
+             X[n] = -0.5*((a_2-a_1)*Y_S[n]+(a_2+a_1))*cos((PI/2)*(X_S[n]+1));
+	}
+}
+
+static void ToBeCurved_parabolic_pipe (unsigned int const Nn, double const *const XYZ_S, double *const XYZ)
+{
+        if (DB.d != 2)
+                EXIT_UNSUPPORTED;
+
+        double *const X = &XYZ[Nn*0],
+               *const Y = &XYZ[Nn*1];
+
+        double const *const X_S = &XYZ_S[Nn*0],
+                     *const Y_S = &XYZ_S[Nn*1];
+
+        double const  b = 2.0, a_1 = 2.0, a_2 = 4.0;
+
+        for (size_t n = 0; n < Nn; n++) {
+             Y[n] = (a_2+a_1)/2+(a_2-a_1)*Y_S[n]/2-a_1*pow(X_S[n],2);
+             X[n] = sqrt(a_1/b)*X_S[n];
+        }
+}
+
+static void ToBeCurved_sinusoidal_pipe (unsigned int const Nn, double const *const XYZ_S, double *const XYZ)
+{
+        if (DB.d != 2)
+                EXIT_UNSUPPORTED;
+
+        double *const X = &XYZ[Nn*0],
+               *const Y = &XYZ[Nn*1];
+
+        double const *const X_S = &XYZ_S[Nn*0],
+                     *const Y_S = &XYZ_S[Nn*1];
+
+        double const a = 2.0,  b = PI/2, c_1 = 0, c_2 = 2.0;
+
+        for (size_t n = 0; n < Nn; n++) {
+               Y[n] = (c_2+c_1)/2+(c_2-c_1)*Y_S[n]/2+a*cos(X_S[n]*acos(-c_1/a));
+               X[n] = (1/b)*acos(-c_1/a)*X_S[n];
+        }
+}
+
 
 static void ToBeCurved_sphere_to_ellipsoid(const unsigned int Nn, double *XYZ)
 {
@@ -131,13 +193,13 @@ static void correct_ToBeCurved(struct S_VOLUME *VOLUME)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int n, dim, ve, P, PV, f, Vf, NvnG, NfnG, Eclass, Nf, Nve, BC, *Nfve, *VeFcon, internalCurved;
+	unsigned int n, dim, ve, P, PV, f, Vf, NvnG, NfnG, Eclass, Nf, Nve, BC, *Nfve, *VeFcon, InternalCurved;
 	double       *XYZ, *XYZ_S, *XYZ_C, *XYZ_CmS, *XYZ_update, *I_vGs_vGc, *I_vGc_fGc, *I_fGc_vGc, *I_fGs_vGc,
 	             BlendNum, BlendDen, *BlendV;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_F;
 
-	internalCurved = 0;
+	InternalCurved = 1;
 
 	PV     = VOLUME->P;
 	NvnG   = VOLUME->NvnG;
@@ -162,7 +224,7 @@ static void correct_ToBeCurved(struct S_VOLUME *VOLUME)
 
 	P = PV;
 	for (f = 0; f < Nf; f++) {
-		if (!internalCurved) {
+		if (!InternalCurved) {
 			BC = VOLUME->BC[0][f];
 			if (BC / BC_STEP_SC != 2)
 				continue;
@@ -304,9 +366,19 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 				} else {
 					printf("Error: PeriodicVortex TestCase not supported for dimension d = %d.\n",d), EXIT_MSG;
 				}
-			} else if (strstr(Geometry,"Annular_Section")) {
+			} else if (strstr(Geometry,"n-Cylinder")) {
 				ToBeCurved_square_to_circle(NvnG,XYZ_S,XYZ);
-			} else {
+			} else if (strstr(Geometry,"n-CubeCurved")) {
+				if (strstr(DB.GeomSpecifier,"ParabolicPipe"))
+					ToBeCurved_parabolic_pipe(NvnG,XYZ_S,XYZ);
+				else if (strstr(DB.GeomSpecifier,"EllipticPipe"))
+					ToBeCurved_elliptic_pipe(NvnG,XYZ_S,XYZ);
+				else if (strstr(DB.GeomSpecifier,"SinusoidalPipe"))
+					ToBeCurved_sinusoidal_pipe(NvnG,XYZ_S,XYZ);
+				else
+					EXIT_UNSUPPORTED;
+			}  else {
+				printf("%s\n",Geometry);
 				printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
 			}
 
@@ -339,12 +411,13 @@ static void ToBeCurved_square_to_circle(unsigned int Nn, double *XYZ_S, double *
 		r = array_norm_d(d,XYZn,"Inf");
 		t = atan2(XYZn[1],XYZn[0]);
 
-		if      (t >= -    PIo4 && t <      PIo4) t =          XYZn[1]/r*PIo4;
-		else if (t >=      PIo4 && t <  3.0*PIo4) t = 0.5*PI - XYZn[0]/r*PIo4;
-		else if (t >=  3.0*PIo4 && t < -3.0*PIo4) t =     PI - XYZn[1]/r*PIo4;
-		else if (t >= -3.0*PIo4 && t < -    PIo4) t = 1.5*PI + XYZn[0]/r*PIo4;
+		if      (t >= -1.0*PIo4 && t <  1.0*PIo4) t =          XYZn[1]/r*PIo4;
+		else if (t >=  1.0*PIo4 && t <  3.0*PIo4) t = 0.5*PI - XYZn[0]/r*PIo4;
+		else if ((t >=  3.0*PIo4 && t <= 4.0*PIo4)|| (t >= -4.0*PIo4 && t < -3.0*PIo4))
+		                                          t =     PI - XYZn[1]/r*PIo4;
+		else if (t >= -3.0*PIo4 && t < -1.0*PIo4) t = 1.5*PI + XYZn[0]/r*PIo4;
 		else
-			printf("Error\n"), EXIT_MSG;
+			printf("Error: % .3e % .3e % .3e\n",XYZn[0],XYZn[1],t), EXIT_MSG;
 
 		XYZ[     n] = r*cos(t);
 		XYZ[Nn*1+n] = r*sin(t);
@@ -890,11 +963,17 @@ static double get_arc_length(const double XL, const double XR, const double Z, c
 
 	if (!AnalyticalArcLen) {
 		unsigned int n, l, iMax, lMax, IndX, IndZ,
-		             FoundArcLen, Nn, Ns, *symms;
+		             FoundArcLen, Nn;
 		double       h, xL, xR,
 		             *ArcLen, *XZInt, *dFdX_X, *rst, *w;
 
-		cubature_TP(&rst,&w,&symms,&Nn,&Ns,1,PGlobal,1,"GL"); // free
+		struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
+		set_cubdata(CUBDATA,true,false,"GL",1,PGlobal,cubature_TP); // free
+
+		Nn    = CUBDATA->Nn;
+		rst   = CUBDATA->rst;
+		w     = CUBDATA->w;
 
 		lMax = 20;
 
@@ -951,7 +1030,7 @@ static double get_arc_length(const double XL, const double XR, const double Z, c
 		free(XZInt);
 		free(rst);
 		free(w);
-		free(symms);
+		free(CUBDATA);
 	} else {
 		double aF, bF, a, b, c, b1, c1, X, P_X;
 

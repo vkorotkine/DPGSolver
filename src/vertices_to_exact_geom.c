@@ -35,6 +35,7 @@
 double f_gaussian_bump      (const double x, const double y, const unsigned int d);
 double f_naca_symmetric     (const double x, const double y, const unsigned int d);
 double f_ellipsoidal_bump   (const double x, const double y, const unsigned int d);
+double f_ellipsoidal_corner (const double x, const double y, const unsigned int d);
 double f_joukowski_symmetric(const double x, const double y, const unsigned int d);
 
 void select_functions_surface(surface_tdef *f_surface)
@@ -48,6 +49,8 @@ void select_functions_surface(surface_tdef *f_surface)
 		*f_surface = f_naca_symmetric;
 	} else if (strstr(Geometry,"EllipsoidalBump")) {
 		*f_surface = f_ellipsoidal_bump;
+	} else if (strstr(Geometry,"ExpansionCorner")) {
+		*f_surface = f_ellipsoidal_corner;
 	} else if (strstr(Geometry,"JoukowskiSymmetric")) {
 		*f_surface = f_joukowski_symmetric;
 	} else {
@@ -186,28 +189,29 @@ void vertices_to_exact_geom(void)
 				VeXYZ[ve*d+dM1] = F_xy;
 			}
 		}
-	} else if (strstr(Geometry,"Annular_Section")) {
-		double rIn, rOut, ve_norm2, t;
+	} else if (strstr(Geometry,"n-Cylinder_Hollow")) {
+		unsigned int dCheck = 2;
+		double       rIn, rOut, ve_norm2, t;
 
 		rIn  = DB.rIn;
 		rOut = DB.rOut;
 
 		for (ve = 0; ve < NVe; ve++) {
-			ve_norm2 = array_norm_d(d,&VeXYZ[ve*d],"L2");
+			ve_norm2 = array_norm_d(dCheck,&VeXYZ[ve*d],"L2");
 
 			if (fabs(ve_norm2-rIn) < NODETOL_MESH) {
 				VeSurface[ve] = 0;
-				t = atan2(VeXYZ[ve*d+1],VeXYZ[ve*d+2]);
+				t = atan2(VeXYZ[ve*d+1],VeXYZ[ve*d]);
 				VeXYZ[ve*d]   = rIn*cos(t);
 				VeXYZ[ve*d+1] = rIn*sin(t);
 			} else if (fabs(ve_norm2-rOut) < NODETOL_MESH) {
 				VeSurface[ve] = 1;
-				t = atan2(VeXYZ[ve*d+1],VeXYZ[ve*d+2]);
-				VeXYZ[ve*d]   = rIn*cos(t);
+				t = atan2(VeXYZ[ve*d+1],VeXYZ[ve*d]);
+				VeXYZ[ve*d]   = rOut*cos(t);
 				VeXYZ[ve*d+1] = rOut*sin(t);
 			}
 		}
-	} else if (strstr(Geometry,"dm1-Spherical_Section")) {
+	} else if (strstr(Geometry,"n-Ball")) {
 		double rIn, rOut, r, ve_norm2, t, p;
 
 		rIn  = DB.rIn;
@@ -244,7 +248,8 @@ void vertices_to_exact_geom(void)
 				VeXYZ[ve*d+2] = r*cos(p);
 			}
 		}
-	} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+	} else if (strstr(Geometry,"n-Ellipsoid") ||
+	           strstr(Geometry,"ExpansionCorner")) {
 		double t, p, *abc, X, Y, Z, a, b, c, aIn, aOut;
 
 		aIn  = DB.aIn;
@@ -335,7 +340,7 @@ void vertices_to_exact_geom(void)
 				printf("Error: Unsupported.\n"), EXIT_MSG;
 			}
 		}
-	} else if (strstr(Geometry,"PeriodicVortex")) {
+	} else if (strstr(Geometry,"n-Cube")) {
 		// Do nothing
 	} else if (strstr(Geometry,"HoldenRamp")) {
 		if (!strstr(Geometry,"HoldenRampCurved")) {
@@ -390,6 +395,7 @@ void vertices_to_exact_geom(void)
 			}
 		}
 	} else {
+		printf("%s\n",Geometry);
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}
 }
@@ -458,6 +464,19 @@ double f_ellipsoidal_bump(const double x, const double y, const unsigned int d)
 		c = DB.cIn;
 		printf("Add support.\n"), EXIT_MSG;
 		printf("%e %e\n",y,c); // silence
+	} else {
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	}
+}
+
+double f_ellipsoidal_corner(const double x, const double y, const unsigned int d)
+{
+	if (d == 2) {
+		return f_ellipsoidal_bump(x,y,d);
+	} else if (d == 3) {
+		// Ensure that the same function can be used in 3D as well if this becomes supported.
+		printf("Add support.\n"), EXIT_MSG;
+		printf("%e\n",y); // silence
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
 	}

@@ -7,8 +7,13 @@
 #include <stdio.h>
 #include <math.h>
 #include <complex.h>
+#include <stdbool.h>
 
 #include "Parameters.h"
+#include "Macros.h"
+
+#include "matrix_structs.h"
+#include "array_free.h"
 
 /*
  *	Purpose:
@@ -55,7 +60,7 @@ void array_print_i(const unsigned int m, const unsigned int n, const int *A, con
 	case 'R':
 		for (i = 0; i < m; i++) {
 			for (j = 0; j < n; j++)
-				printf("% 12d ",A[i*n+j]);
+				printf("% 11d ",A[i*n+j]);
 			printf("\n");
 		}
 		printf("\n");
@@ -63,7 +68,7 @@ void array_print_i(const unsigned int m, const unsigned int n, const int *A, con
 	case 'C':
 		for (i = 0; i < m; i++) {
 			for (j = 0; j < n; j++)
-				printf("% 12d ",A[i+j*m]);
+				printf("% 11d ",A[i+j*m]);
 			printf("\n");
 		}
 		printf("\n");
@@ -147,11 +152,13 @@ void array_print_d(const unsigned int m, const unsigned int n, const double *A, 
 {
 	unsigned int i, j;
 
+	bool const AllowZero = 0;
+
 	switch (layout) {
 	case 'R':
 		for (i = 0; i < m; i++) {
 			for (j = 0; j < n; j++) {
-				if (isnan(A[i*n+j]) || fabs(A[i*n+j]) > EPS)
+				if ((isnan(A[i*n+j]) || fabs(A[i*n+j]) > EPS) || !AllowZero)
 					printf("% .4e ",A[i*n+j]);
 				else
 					printf(" %d          ",0);
@@ -164,7 +171,7 @@ void array_print_d(const unsigned int m, const unsigned int n, const double *A, 
 	case 'C':
 		for (i = 0; i < m; i++) {
 			for (j = 0; j < n; j++) {
-				if (isnan(A[i+j*m]) || fabs(A[i+j*m]) > EPS)
+				if ((isnan(A[i+j*m]) || fabs(A[i+j*m]) > EPS) || !AllowZero)
 					printf("% .4e ",A[i+j*m]);
 				else
 					printf(" %d          ",0);
@@ -231,6 +238,50 @@ void array_print_cmplx(const unsigned int m, const unsigned int n, const double 
 			printf("\n");
 		}
 		printf("\n");
+		break;
+	}
+}
+
+void matrix_print (struct S_MATRIX const *const A)
+{
+	array_print_d(A->extents[0],A->extents[1],A->data,A->layout);
+}
+
+void multiarray_print (struct S_MULTI_ARRAY const *const A)
+{
+	size_t const *const extents = A->extents;
+
+	printf("Multi-array extents:");
+	for (size_t i = 0; i < A->order; i++)
+		printf(" %zu",A->extents[i]);
+	printf("\n\n");
+
+	switch (A->order) {
+	case 2: {
+		struct S_MATRIX const A_M = constructor_matrix1_move_multiarray2_2(A);
+		printf("(:,:):\n");
+		matrix_print(&A_M);
+		break;
+	} case 3:
+		for (size_t i = 0; i < extents[2]; i++) {
+			struct S_MATRIX const A_M = constructor_matrix1_move_multiarray3_2(A,i);
+
+			printf("(:,:,%zu):\n",i);
+			matrix_print(&A_M);
+		}
+		break;
+	case 4:
+		for (size_t i = 0; i < extents[2]; i++) {
+		for (size_t j = 0; j < extents[3]; j++) {
+			struct S_MATRIX const A_M = constructor_matrix1_move_multiarray4_2(A,i,j);
+
+			printf("(:,:,%zu,%zu):\n",i,j);
+			matrix_print(&A_M);
+		}}
+		break;
+	default:
+		printf("%zu\n",A->order);
+		EXIT_UNSUPPORTED;
 		break;
 	}
 }

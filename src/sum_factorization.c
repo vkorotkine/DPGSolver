@@ -29,9 +29,9 @@
  *		ToBeModified.
  */
 
-void get_sf_parameters(const unsigned int NIn0, const unsigned int NOut0, double *OP0,
-                       const unsigned int NIn1, const unsigned int NOut1, double *OP1,
-                       unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+void get_sf_parameters(const unsigned int NIn0, const unsigned int NOut0, double const *const OP0,
+                       const unsigned int NIn1, const unsigned int NOut1, double const *const OP1,
+                       unsigned int *const NIn_SF, unsigned int *const NOut_SF, double const **const OP_SF,
                        const unsigned int d, const unsigned int dim1, const unsigned int Eclass)
 {
 	/*
@@ -78,13 +78,13 @@ void get_sf_parameters(const unsigned int NIn0, const unsigned int NOut0, double
 			}
 		}
 	} else {
-		printf("Error: Unsupported Eclass in get_sf_parameters.\n"), exit(1);
+		EXIT_UNSUPPORTED;
 	}
 }
 
-void get_sf_parametersV(const unsigned int NIn0, const unsigned int NOut0, double **OP0,
-                        const unsigned int NIn1, const unsigned int NOut1, double **OP1,
-                        unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+void get_sf_parametersV(const unsigned int NIn0, const unsigned int NOut0, double const *const *const OP0,
+                        const unsigned int NIn1, const unsigned int NOut1, double const *const *const OP1,
+                        unsigned int *const NIn_SF, unsigned int *const NOut_SF, double const **const OP_SF,
                         const unsigned int d, const unsigned int vh, const unsigned int Eclass)
 {
 	/*
@@ -136,7 +136,7 @@ void get_sf_parametersV(const unsigned int NIn0, const unsigned int NOut0, doubl
 			case 25: OP_SF[0] = OP0[0]; OP_SF[1] = OP0[0]; OP_SF[2] = OP0[1]; break;
 			case 26: OP_SF[0] = OP0[0]; OP_SF[1] = OP0[0]; OP_SF[2] = OP0[2]; break;
 			default:
-				printf("Error: Unsupported vh in get_sf_parametersV (C_TP, d = 3).\n"), exit(1);
+				EXIT_UNSUPPORTED;
 				break;
 			}
 			break;
@@ -167,7 +167,7 @@ void get_sf_parametersV(const unsigned int NIn0, const unsigned int NOut0, doubl
 			case 13: OP_SF[0] = OP0[0]; OP_SF[2] = OP1[1]; break; // Anisotropic (1 -> 2)
 			case 14: OP_SF[0] = OP0[0]; OP_SF[2] = OP1[2]; break;
 			default:
-				printf("Error: Unsupported vh in get_sf_parametersV (C_WEDGE).\n"), exit(1);
+				EXIT_UNSUPPORTED;
 				break;
 			}
 			break;
@@ -193,16 +193,16 @@ void get_sf_parametersV(const unsigned int NIn0, const unsigned int NOut0, doubl
 		case 7: OP_SF[0] = OP0[0]; OP_SF[1] = OP0[1]; break;
 		case 8: OP_SF[0] = OP0[0]; OP_SF[1] = OP0[2]; break;
 		default:
-			printf("Error: Unsupported vh in get_sf_parametersV (C_TP, d = 2).\n"), exit(1);
+			EXIT_UNSUPPORTED;
 			break;
 		}
 		break;
 	}
 }
 
-void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, double **OP0,
-                        const unsigned int NIn1, const unsigned int NOut1, double **OP1,
-                        unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, double const *const *const OP0,
+                        const unsigned int NIn1, const unsigned int NOut1, double const *const *const OP1,
+                        unsigned int *const NIn_SF, unsigned int *const NOut_SF, double const **const OP_SF,
                         const unsigned int d, const unsigned int Vf, const unsigned int Eclass)
 {
 	/*
@@ -262,7 +262,7 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 			case 7: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[1]; break;
 			case 8: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[2]; break;
 			default:
-				printf("Error: Unsupported fh in get_sf_parametersF.\n"), exit(1);
+				EXIT_UNSUPPORTED;
 				break;
 			}
 			break;
@@ -290,17 +290,17 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 				case 7: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[1]; break;
 				case 8: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[2]; break;
 				default:
-					printf("Error: Unsupported fh for f < 3 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
+					EXIT_UNSUPPORTED;
 					break;
 				}
 			} else if (f < 5) { // TRI FACEs
 				if (fh > 4)
-					printf("Error: Unsupported fh for f < 5 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
+					EXIT_UNSUPPORTED;
 
 				OP_SF[0] = OP0[fh];
 				OP_SF[2] = OP1[((f+1)%2)*NFREFMAX];
 			} else {
-				printf("Error: Unsupported f in get_sf_parametersF (C_WEDGE).\n"), exit(1);
+				EXIT_UNSUPPORTED;
 			}
 			break;
 		}
@@ -311,9 +311,9 @@ void get_sf_parametersF(const unsigned int NIn0, const unsigned int NOut0, doubl
 	}
 }
 
-void get_sf_parametersFd(const unsigned int NIn0, const unsigned int NOut0, double **OP0,
-                         const unsigned int NIn1, const unsigned int NOut1, double ***OP1,
-                         unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+void get_sf_parametersFd(const unsigned int NIn0, const unsigned int NOut0, double const *const *const OP0,
+                         const unsigned int NIn1, const unsigned int NOut1, double const *const *const *const OP1,
+                         unsigned int *const NIn_SF, unsigned int *const NOut_SF, double const **const OP_SF,
                          const unsigned int d, const unsigned int Vf, const unsigned int Eclass,
                          const unsigned int dimF, const unsigned int dimD)
 {
@@ -371,7 +371,7 @@ void get_sf_parametersFd(const unsigned int NIn0, const unsigned int NOut0, doub
 			case 7: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[1]; break;
 			case 8: OP_SF[dimV1] = OP0[0]; OP_SF[dimV2] = OP0[2]; break;
 			default:
-				printf("Error: Unsupported fh in get_sf_parametersF.\n"), exit(1);
+				EXIT_UNSUPPORTED;
 				break;
 			}
 			break;
@@ -399,17 +399,17 @@ void get_sf_parametersFd(const unsigned int NIn0, const unsigned int NOut0, doub
 				case 7: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[1][dimD]; break;
 				case 8: OP_SF[0] = OP0[f*NFREFMAX+0]; OP_SF[2] = OP1[2][dimD]; break;
 				default:
-					printf("Error: Unsupported fh for f < 3 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
+					EXIT_UNSUPPORTED;
 					break;
 				}
 			} else if (f < 5) { // TRI FACEs
 				if (fh > 4)
-					printf("Error: Unsupported fh for f < 5 in get_sf_parametersF (C_WEDGE).\n"), exit(1);
+					EXIT_UNSUPPORTED;
 
 				OP_SF[0] = OP0[fh];
 				OP_SF[2] = OP1[((f+1)%2)*NFREFMAX][dimD];
 			} else {
-				printf("Error: Unsupported f in get_sf_parametersF (C_WEDGE).\n"), exit(1);
+				EXIT_UNSUPPORTED;
 			}
 			break;
 		}
@@ -420,9 +420,9 @@ void get_sf_parametersFd(const unsigned int NIn0, const unsigned int NOut0, doub
 	}
 }
 
-void get_sf_parametersE(const unsigned int NIn0, const unsigned int NOut0, double **OP0,
-                        const unsigned int NIn1, const unsigned int NOut1, double **OP1,
-                        unsigned int NIn_SF[3], unsigned int NOut_SF[3], double *OP_SF[3],
+void get_sf_parametersE(const unsigned int NIn0, const unsigned int NOut0, double const *const *const OP0,
+                        const unsigned int NIn1, const unsigned int NOut1, double const *const *const OP1,
+                        unsigned int *const NIn_SF, unsigned int *const NOut_SF, double const **const OP_SF,
                         const unsigned int d, const unsigned int Ve, const unsigned int Eclass)
 {
 	/*
@@ -536,13 +536,12 @@ void sf_swap_d(double *Input, const unsigned int NRows, const unsigned int NCols
 	}}}
 }
 
-void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const unsigned int NOut[3],
-                const unsigned int NCols, double *OP[3], const unsigned int Diag[3], const unsigned int d)
+void sf_apply_d(const double *Input, double *Output, const unsigned int NIn[3], const unsigned int NOut[3],
+                const unsigned int NCols, double const *const *const OP, const unsigned int Diag[3], const unsigned int d)
 {
 	/*
 	 *	Purpose:
 	 *		Use TP sum factorized operators to speed up calculations.
-	 *		LIKELY HAVE THIS FUNCTION ACT ON BOTH SIMPLEX AND TP ELEMENTS IN FUTURE. (ToBeDeleted)
 	 *
 	 *	Comments:
 	 *		*** IMPORTANT ***
@@ -688,7 +687,7 @@ void sf_apply_d(double *Input, double *Output, const unsigned int NIn[3], const 
 	free(Output_Inter);
 }
 
-double *sf_assemble_d(const unsigned int NIn[3], const unsigned int NOut[3], const unsigned int d, double *BOP[3])
+double *sf_assemble_d(const unsigned int NIn[3], const unsigned int NOut[3], const unsigned int d, double const **const BOP)
 {
 	/*
 	 *	Purpose:

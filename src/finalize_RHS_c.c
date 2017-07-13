@@ -129,37 +129,38 @@ void finalize_RHS_c(void)
 	             SourcePresent = DB.SourcePresent;
 
 	// Standard datatypes
-	unsigned int   iMax, jMax, NvnSIn, NvnSOut, Boundary;
-	double complex *VRHSIn_ptr, *VRHSOut_ptr, *FRHSIn_ptr, *FRHSOut_ptr;
+	unsigned int   iMax, jMax, NvnSL, NvnSR, Boundary;
+	double complex *VRHSL_ptr, *VRHSR_ptr, *FRHSL_ptr, *FRHSR_ptr;
 
-	struct S_VOLUME  *VOLUME, *VIn, *VOut;
+	struct S_VOLUME  *VOLUME, *VL, *VR;
 	struct S_FACE   *FACE;
 
 	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
-		VIn    = FACE->VIn;
-		NvnSIn = VIn->NvnS;
+		VL    = FACE->VL;
+		NvnSL = VL->NvnS;
 
-		VOut    = FACE->VOut;
-		NvnSOut = VOut->NvnS;
+		VR    = FACE->VR;
+		NvnSR = VR->NvnS;
 
-		VRHSIn_ptr  = VIn->RHS_c;
-		VRHSOut_ptr = VOut->RHS_c;
+		VRHSL_ptr = VL->RHS_c;
+		VRHSR_ptr = VR->RHS_c;
 
-		FRHSIn_ptr  = FACE->RHSIn_c;
-		FRHSOut_ptr = FACE->RHSOut_c;
+		FRHSL_ptr = FACE->RHSL_c;
+		FRHSR_ptr = FACE->RHSR_c;
 
 		Boundary = FACE->Boundary;
 		for (iMax = Neq; iMax--; ) {
-			for (jMax = NvnSIn; jMax--; )
-				*VRHSIn_ptr++ += *FRHSIn_ptr++;
+			for (jMax = NvnSL; jMax--; )
+				*VRHSL_ptr++ += *FRHSL_ptr++;
 			if (!Boundary) {
-				for (jMax = NvnSOut; jMax--; )
-					*VRHSOut_ptr++ += *FRHSOut_ptr++;
+				for (jMax = NvnSR; jMax--; )
+					*VRHSR_ptr++ += *FRHSR_ptr++;
 			}
 		}
 
-		free(FACE->RHSIn_c);  FACE->RHSIn_c  = NULL;
-		free(FACE->RHSOut_c); FACE->RHSOut_c = NULL;
+		// ToBeDeleted (2 lines below)
+		free(FACE->RHSL_c); FACE->RHSL_c = NULL;
+		free(FACE->RHSR_c); FACE->RHSR_c = NULL;
 	}
 
 	// Add source contribution

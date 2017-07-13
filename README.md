@@ -1,120 +1,81 @@
 # Discontinuous Petrov Galerkin Solver
 
 ### Code Description
-- Uses only open source libraries/supporting programs.
-- Methods: Discontinuous Petrov Galerkin (DPG) (TO BE DONE) with the option for standard Discontinuous Galerkin (DG).
+- Uses only free to use/open source libraries/supporting programs.
+- Methods:
+	- Discontinuous Galerkin (DG).
+	- Discontinuous Petrov Galerkin (DPG) (TO BE DONE);
 - Supported elements: TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
 - Supported refinements: isotropic h (size) or p (order).
 
 ### Supported PDEs
-- Poisson       : DONE
-- Euler         : DONE
-- Navier-Stokes : TO BE DONE
+| PDE           | STATUS               | COMMENTS |
+|---------------|----------------------|----------|
+| Advection     | DONE                 |Additional functionality in lsfem branch|
+| Poisson       | DONE                 ||
+| Euler         | DONE                 ||
+| Navier-Stokes | DONE                 ||
+
+
+### Test Cases
+| PDE           | Name             | Status |
+|---------------|------------------|--------|
+| Advection     | Default          | DONE   |
+|               | Peterson         | DONE   |
+| Poisson       | Default          | DONE   |
+| Euler         | PeriodicVortex   | DONE   |
+|               | SupersonicVortex | DONE   |
+|               | InviscidChannel  | DONE   |
+| Navier-Stokes | Taylor-Couette   | DONE   |
 
 See the CODE STATUS section below for details regarding current functionality.
 
 ### Installation / Set up
-Follow the [installation instructions](INSTALL.md) for the set up of required libraries/programs (Currently running on
-either OSX or Ubuntu). Required:
-- PETSc
+Follow the [installation instructions](INSTALL.md) for the set up of required libraries/programs. Required:
 - MPI (MPICH or Open MPI)
 - Intel (M)ath (K)ernel (L)ibrary
+- PETSc
 - ParMETIS
 - Gmsh
 - Paraview
+- Python3 (including Numpy)
 
 Follow the instructions in [SETUP](SETUP.md) regarding additional requirements for running the code:
 - Mesh generation
+- Creating a script file
 
 Please follow the [style guidelines](STYLE.md) when making additions to the code.
 
 
 ## Code Status
-| Functionality  |            |
+| Functionality  | Status     |
 |----------------|------------|
 | MPI            | TO BE DONE |
 | h/p Adaptation | DONE       |
 
-### Preprocessing : ACTIVE (AS NEEDED)
-| Function          |                    |
-|-------------------|--------------------|
-| set up parameters | DONE               |
-| set up mesh       | DONE               |
-| set up operators  | ACTIVE (AS NEEDED) |
-| set up structures | DONE               |
-| set up geometry   | DONE               |
+#### Supported Numerical Fluxes
+| Name           | Status |
+|----------------|------- |
+| Upwind         | DONE   |
+| Lax-Friedrichs | DONE   |
+| Roe-Pike       | DONE   |
+| Bassi-Rebay 2  | DONE   |
+| Compact DG 2   | DONE   |
 
-### Solving : ACTIVE
-#### Initialization
-| Test case        |            |
-|------------------|------------|
-| PeriodicVortex   | DONE       |
-| SupersonicVortex | DONE       |
-| InviscidChannel  | DONE       |
-
-#### Explicit
-| Function        |             |                         |
-|-----------------|-------------|-------------------------|
-| solver explicit |             | DONE FOR THE TIME BEING |
-| volume info     |             | DONE FOR THE TIME BEING |
-|                 | Weak Form   | DONE                    |
-|                 | Strong Form | UNDER CONSIDERATION     |
-|                 | Vectorized  | DONE                    |
-| face info       |             | DONE FOR THE TIME BEING |
-|                 | Weak Form   | DONE                    |
-|                 | Strong Form | UNDER CONSIDERATION     |
-|                 | Vectorized  | UNDER CONSIDERATION     |
-| finalize        |             | DONE                    |
-
-#### Implicit
-| Function        |             |                         |
-|-----------------|-------------|-------------------------|
-| solver Poisson  |             | DONE                    |
-| solver implicit |             | DONE FOR THE TIME BEING |
-| volume info     |             | DONE FOR THE TIME BEING |
-|                 | Weak Form   | DONE                    |
-|                 | Strong Form | UNDER CONSIDERATION     |
-|                 | Vectorized  | UNDER CONSIDERATION     |
-| face info       |             | DONE FOR THE TIME BEING |
-|                 | Weak Form   | DONE                    |
-|                 | Strong Form | UNDER CONSIDERATION     |
-|                 | Vectorized  | UNDER CONSIDERATION     |
-| finalize        |             | DONE                    |
-
-#### Fluxes
-|           | Function         |                         |
-|-----------|------------------|-------------------------|
-| Standard  |                  | DONE FOR THE TIME BEING |
-|           | inviscid         | DONE                    |
-|           | viscous          | TO BE DONE              |
-| Numerical |                  | DONE FOR THE TIME BEING |
-|           | internal penalty | DONE                    |
-|           | Bassi-Rebay 2    | DONE                    |
-|           | compact DG 2     | DONE                    |
-|           | Lax-Friedrichs   | DONE                    |
-|           | Roe-Pike         | DONE                    |
-
-#### Boundary
-| Function     |      |
-|--------------|------|
-| Dirichlet    | DONE |
-| Neumann      | DONE |
-| Riemann      | DONE |
-| SlipWall     | DONE |
-| BackPressure | DONE |
-
-#### Jacobians
-| Function              |      |
-|-----------------------|------|
-| flux inviscid         | DONE |
-| flux Lax-Friedrichs   | DONE |
-| flux Roe-Pike         | DONE |
-| boundary Riemann      | DONE |
-| boundary SlipWall     | DONE |
-| boundary BackPressure | DONE |
-
-
-### Postprocessing : ACTIVE (As cases are added)
+#### Supported Boundary Conditions
+| PDE           | Name                    | Status |
+|---------------|-------------------------|--------|
+| Advection     | Inflow                  | DONE   |
+|               | Outflow                 | DONE   |
+| Poisson       | Dirichlet               | DONE   |
+|               | Neumann                 | DONE   |
+| Euler         | Riemann                 | DONE   |
+|               | SlipWall                | DONE   |
+|               | BackPressure            | DONE   |
+|               | Supersonic (In/Out)flow | DONE   |
+|               | Total Temp/Pressure     | DONE   |
+| Navier-Stokes | No Slip Dirichlet       | DONE   |
+|               | No Slip Adiabatic       | DONE   |
 
 
 ### License

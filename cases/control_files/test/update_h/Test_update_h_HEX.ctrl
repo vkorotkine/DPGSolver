@@ -1,0 +1,29 @@
+PDEName       Poisson
+PDESpecifier  Dirichlet
+
+Geometry      n-Cube n-Cube/n-Cube3D.geo
+GeomSpecifier NONE
+
+Dimension     3
+
+MeshPath      ../meshes/
+MeshType      HEX
+MeshCurving   Straight
+MeshLevel     0
+
+Form       Weak   // Options: Weak, (Strong)
+NodeType   GL-AO // Options: GL/GLL-AO/WSH/EQ
+BasisType  Nodal  // Options: Nodal, Modal
+
+Vectorized 0     // Options: 0, 1
+EFE        1     // Options: (0), 1
+Collocated 0     // Options: 0, 1
+Adapt      2     // Options: 0, 1, 2, 3
+
+PGlobal    2
+PMax       3
+LevelsMax  5
+
+Restart    -1    // Options: -1, 0, Iteration #
+
+Testing    1     // Options: 0, 1

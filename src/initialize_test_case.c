@@ -8,6 +8,7 @@
 #include <math.h>
 #include <string.h>
 #include <limits.h>
+#include <stdbool.h>
 
 #include "Parameters.h"
 #include "Macros.h"
@@ -24,6 +25,7 @@
 #include "array_print.h"
 #include "output_to_paraview.h"
 #include "update_VOLUMEs.h"
+#include "update_FACEs.h"
 #include "setup_geom_factors.h"
 #include "array_free.h"
 
@@ -110,169 +112,411 @@ static void check_levels_refine(const unsigned int indexg, struct S_VInfo **VInf
 
 void initialize_test_case_parameters(void)
 {
-	// Initialize DB Parameters
-	char         *TestCase = DB.TestCase,
-	             *Geometry = DB.Geometry;
-	unsigned int d         = DB.d;
+	char         *TestCase      = DB.TestCase,
+	             *PDE           = DB.PDE,
+	             *PDESpecifier  = DB.PDESpecifier,
+	             *Geometry      = DB.Geometry,
+	             *GeomSpecifier = DB.GeomSpecifier;
+	unsigned int d              = DB.d;
 
-	DB.Nvar = d+2; // Euler and NS Equations
-	DB.Neq  = d+2;
+	// Initialize Geometry related parameters which are used for all TestCase types
+	bool InitializedGeometry = 1;
+	if (strstr(Geometry,"GaussianBump")) {
+		DB.GBa = 0.0625;
+		DB.GBb = 0.0;
 
-	// Standard datatypes
-	char         *SolverType;
-	unsigned int SourcePresent;
+		double BExp = 0.0;
+		if      (strstr(GeomSpecifier,"/0/"))   BExp = 0.0;
+		else if (strstr(GeomSpecifier,"/0-5/")) BExp = 0.5;
+		else if (strstr(GeomSpecifier,"/1/"))   BExp = 1.0;
+		else
+			EXIT_UNSUPPORTED;
 
-	if (strstr(TestCase,"Poisson")) {
-		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
-		strcpy(SolverType,"Implicit");
-		SourcePresent = 1;
+		DB.GBc = 0.2/pow(2.0,BExp);
+	} else if (strstr(Geometry,"Ringleb")) {
+		DB.Q0   = 0.5;
+		DB.KMin = 0.7;
+		DB.KMax = 1.5;
+	} else if (strstr(Geometry,"NacaSymmetric")) {
+		double r = 0.25;
 
-		if (strstr(Geometry,"dm1-Spherical_Section")) {
-			DB.rIn  = 0.5;
-			DB.rOut = 1.0;
-		} else if (strstr(Geometry,"Ellipsoidal_Section")) {
-			// These parameters must be consistent with the mesh for "ToBeCurved" meshes
-			DB.rIn  = 0.5;
-			DB.rOut = 1.0;
+		DB.NSc = 1.0;
+		DB.NSt = DB.NSc*sqrt(r)/1.1019;
+		DB.NS0 =  0.2969;
+		DB.NS1 = -0.1260;
+		DB.NS2 = -0.3516;
+		DB.NS3 =  0.2843;
+		DB.NS4 = -0.1036;
+	} else if (strstr(Geometry,"JoukowskiSymmetric")) {
+		double a, l, t;
+		a = 1.0;
 
-			// These parameters must be consistent with the mesh for "Curved" meshes
-			DB.aIn  = 0.50; DB.bIn  = 0.50; DB.aOut = 1.00;
+		double ratio = 0.0;
+		if      (strstr(GeomSpecifier,"/1/"))    ratio = 1.0;
+		else if (strstr(GeomSpecifier,"/2-25/")) ratio = 2.25;
+		else
+			EXIT_UNSUPPORTED;
 
-//			DB.bOut = 1.00; // POISSON_SCALE = 0.5
-//			DB.bOut = 2.00; // POISSON_SCALE = 0.25
-			DB.bOut = 3.00; // POISSON_SCALE = 0.125
+//			l = a/1.00; // MInf = 0.20
+//			l = a/2.25; // MInf = 0.25
+		l = a/ratio;
+		t = PI;
 
-			DB.cIn  = 1.50*DB.rIn;
-			DB.cOut = 1.50*DB.rOut;
-		} else if (strstr(Geometry,"Ringleb")) {
-			DB.Q0   = 0.5;
-			DB.KMin = 0.7;
-			DB.KMax = 1.5;
-		} else if (strstr(Geometry,"HoldenRamp")) {
-			DB.lHR = 1.0;
-//			DB.rIn = 2.54161;   // L/C ~= 1
-//			DB.rIn = 1.52613;   // L/C ~= 2
-			DB.rIn = 0.363683;  // L/C ~= 10
-//			DB.rIn = 0.0380061; // L/C ~= 100
-//			DB.rIn = 0.0038178; // L/C ~= 1000
-		} else if (strstr(Geometry,"GaussianBump")) {
-			DB.GBa = 0.0625;
-			DB.GBb = 0.0;
-			DB.GBc = 0.2/pow(2.0,1.0);
-		} else {
-			printf("Error: Unsupported.\n"), EXIT_MSG;
-		}
+		double l2, l3, cost2;
+		l2    = pow(l,2.0);
+		l3    = pow(l,3.0);
+		cost2 = pow(cos(t),2.0);
+
+		DB.JSxL = -2.0*a*(l3+(l3+2.0*l2+l)*cost2+l2-(2.0*l3+3.0*l2+2.0*l+1.0)*cos(t)+l)/
+		          (2.0*l2-2.0*(l2+l)*cos(t)+2.0*l+1.0);
+		DB.JSa = a;
+		DB.JSl = l;
+	} else if (strstr(Geometry,"HoldenRamp")) {
+		// Current not used.
+		printf("Warning: Ensure correct implementation before using.\n"), EXIT_MSG;
+
+		DB.lHR = 1.0;
+
+		printf("Error: Update this to depend on GeomSpecifier.\n"), EXIT_MSG;
+//		DB.rIn = 2.54161;   // L/C ~= 1
+//		DB.rIn = 1.52613;   // L/C ~= 2
+		DB.rIn = 0.363683;  // L/C ~= 10
+//		DB.rIn = 0.0380061; // L/C ~= 100
+//		DB.rIn = 0.0038178; // L/C ~= 1000
+	} else {
+		if (strstr(DB.MeshType,"Curved"))
+			InitializedGeometry = 0;
+	}
+
+	DB.Nvar = 0;
+	DB.Neq  = 0;
+
+	DB.SolverType = malloc(STRLEN_MIN * sizeof *(DB.SolverType)); // keep
+	if (strstr(PDE,"Advection")) {
+		// Currently requires div (dot) b = 0
+		DB.PDE_index        = PDE_ADVECTION;
+		DB.InviscidFluxType = FLUX_UPWIND;
 
 		DB.Nvar = 1;
 		DB.Neq  = 1;
-	} else if (strstr(TestCase,"InviscidChannel")) {
-		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
-		strcpy(SolverType,"Implicit");
-		SourcePresent = 0;
 
-		// Equivalent to choosing total pressure/temperature and back pressure
-		DB.MInf   = 0.20;
-		DB.rhoInf = 1.0;
-		DB.pInf   = 1.0;
-		DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
+		DB.Viscous = 0;
+		DB.SourcePresent = 0;
 
-		if (strstr(Geometry,"GaussianBump")) {
-			unsigned int BumpFactor = 3;
-
-			DB.GBb = 0.0;
-//			DB.GBa = 0.0625;
-//			DB.GBc = 0.2/pow(2.0,BumpFactor);
-			DB.GBa = 0.0625/pow(2.0,BumpFactor);
-			DB.GBc = sqrt(1.5*DB.GBa);
-		} else if (strstr(Geometry,"NacaSymmetric")) {
-			double r = 0.25;
-
-			DB.NSc = 1.0;
-			DB.NSt = DB.NSc*sqrt(r)/1.1019;
-			DB.NS0 =  0.2969;
-			DB.NS1 = -0.1260;
-			DB.NS2 = -0.3516;
-			DB.NS3 =  0.2843;
-			DB.NS4 = -0.1036;
-		} else if (strstr(Geometry,"EllipsoidalBump")) {
-			DB.aIn = 0.5;
-			DB.bIn = DB.aIn/1.0;
-		} else if (strstr(Geometry,"JoukowskiSymmetric")) {
-			double a, l, t;
-			a = 1.0;
-//			l = a/1.00; // MInf = 0.20
-			l = a/2.25; // MInf = 0.25
-			t = PI;
-
-			double l2, l3, cost2;
-			l2    = pow(l,2.0);
-			l3    = pow(l,3.0);
-			cost2 = pow(cos(t),2.0);
-
-			DB.JSxL = -2.0*a*(l3+(l3+2.0*l2+l)*cost2+l2-(2.0*l3+3.0*l2+2.0*l+1.0)*cos(t)+l)/
-			          (2.0*l2-2.0*(l2+l)*cos(t)+2.0*l+1.0);
-			DB.JSa = a;
-			DB.JSl = l;
-		} else {
-			printf("Error: Unsupported.\n"), EXIT_MSG;
-		}
-	} else if (strstr(TestCase,"PeriodicVortex")) {
-		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
-		strcpy(SolverType,"Explicit");
-		SourcePresent = 0;
-
-//		DB.Xc = -DB.PeriodL*0.05;
-		DB.Xc =  0.0;
-		DB.Yc =  0.0;
-		DB.Rc =  0.2;
-//		DB.PeriodFraction = 0.5;
-		DB.PeriodFraction = 1.0;
-
-		DB.MInf = 0.5;
-//		DB.MInf = 0.0;
-		DB.pInf = 1.0;
-		DB.TInf = 1.0;
-		DB.Rg   = 1.0;
-
-		DB.Cscale = 0.1;
-
-		DB.uInf   = DB.MInf*sqrt(GAMMA*DB.Rg*DB.TInf);
-		DB.vInf   = 0.1*EPS;
-		DB.wInf   = 0.1*EPS;
-		DB.VInf   = sqrt(DB.uInf*DB.uInf+DB.vInf*DB.vInf+DB.wInf*DB.wInf);
-
-		if (fabs(DB.VInf) < 10*EPS)
-			DB.FinalTime = 0.3;
+		if (strstr(PDESpecifier,"Steady"))
+			strcpy(DB.SolverType,"Implicit");
+		else if (strstr(PDESpecifier,"Unsteady"))
+			strcpy(DB.SolverType,"Explicit");
 		else
-			DB.FinalTime = DB.PeriodFraction*DB.PeriodL/DB.VInf;
-	} else if (strstr(TestCase,"SupersonicVortex")) {
-		// Standard datatypes
-		double pIn, cIn;
+			EXIT_UNSUPPORTED;
 
-		SolverType = malloc(STRLEN_MIN * sizeof *SolverType); // keep
-//		strcpy(SolverType,"Explicit");
-		strcpy(SolverType,"Implicit");
-		SourcePresent = 0;
+		if (strstr(PDESpecifier,"Default") || strstr(PDESpecifier,"Peterson")) {
+			DB.ADV_b[0] = 0.0;
+			DB.ADV_b[1] = 1.0;
+			DB.ADV_b[2] = 0.0;
+		} else {
+			EXIT_UNSUPPORTED;
+		}
 
-		DB.rIn  = 1.0;
-		DB.rOut = 1.384;
+		if (strstr(Geometry,"n-Cube")) {
+			if (strstr(GeomSpecifier,"YL")) {
+				DB.ADV_XYZB[0] = -1.0;
+				DB.ADV_XYZB[1] = -1.0;
+				DB.ADV_XYZB[2] = -1.0;
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else if (strstr(PDE,"Poisson")) {
+		DB.PDE_index = PDE_POISSON;
 
-		DB.MIn = 2.25;
+		DB.Nvar = 1;
+		DB.Neq  = 1;
 
-		DB.rhoIn = 1.0;
-		pIn   = pow(DB.rhoIn,GAMMA)/GAMMA;
+		DB.Viscous = 1;
 
-		cIn = sqrt(GAMMA*pIn/DB.rhoIn);
-		DB.VIn = cIn*DB.MIn/DB.rIn;
+		DB.SourcePresent = 1;
+		strcpy(DB.SolverType,"Implicit");
+
+		// Default
+		DB.Poisson_scale = 0.5;
+
+		if (!InitializedGeometry) {
+			if (strstr(Geometry,"n-Ball_HollowSection")) {
+				DB.rIn  = 0.5;
+				DB.rOut = 1.0;
+			} else if (strstr(Geometry,"n-Ellipsoid")) {
+				// These parameters must be consistent with the mesh for "ToBeCurved" meshes
+				DB.rIn  = 0.5;
+				DB.rOut = 1.0;
+
+				DB.aIn  = 0.50;
+				DB.bIn  = 0.50;
+				DB.aOut = 1.00;
+
+				if      (strstr(GeomSpecifier,"AR_1")) {
+					DB.bOut = 1.0;
+					DB.Poisson_scale = 0.5;
+				} else if (strstr(GeomSpecifier,"AR_2")) {
+					DB.bOut = 2.0;
+					DB.Poisson_scale = 0.25;
+				} else if (strstr(GeomSpecifier,"AR_3")) {
+					DB.bOut = 3.0;
+					DB.Poisson_scale = 0.125;
+				} else {
+					EXIT_UNSUPPORTED;
+				}
+
+				DB.cIn  = 1.50*DB.rIn;
+				DB.cOut = 1.50*DB.rOut;
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		}
+	} else if (strstr(PDE,"Euler")) {
+		DB.PDE_index = PDE_EULER;
+
+		DB.Nvar = d+2;
+		DB.Neq  = d+2;
+
+		DB.Viscous = 0;
+		DB.SourcePresent = 0;
+
+		if (strstr(PDESpecifier,"Periodic")) {
+			if (strstr(TestCase,"Vortex")) {
+				strcpy(DB.SolverType,"Explicit");
+
+				DB.Xc =  0.0;
+				DB.Yc =  0.0;
+				DB.Rc =  0.1;
+
+				DB.pInf = 1.0;
+				DB.TInf = 1.0;
+				DB.Rg   = 1.0;
+
+				DB.MInf    = 0.5;
+				DB.uInf    = DB.MInf*sqrt(GAMMA*DB.Rg*DB.TInf);
+				DB.vInf    = 1e-1*EPS;
+				DB.wInf    = 1e-1*EPS;
+				DB.VInf    = sqrt(DB.uInf*DB.uInf+DB.vInf*DB.vInf+DB.wInf*DB.wInf);
+				DB.PeriodL = 2.0;
+
+				DB.Cscale = 0.1*DB.VInf;
+
+//				DB.PeriodFraction = 1.0;
+				DB.PeriodFraction = 0.1;
+				DB.FinalTime      = DB.PeriodFraction*DB.PeriodL/DB.VInf;
+
+				// Update values for the stationary case
+				if (strstr(TestCase,"Stationary")) {
+					DB.MInf = 0.0;
+					DB.uInf = DB.MInf*sqrt(GAMMA*DB.Rg*DB.TInf);
+					DB.VInf = sqrt(DB.uInf*DB.uInf+DB.vInf*DB.vInf+DB.wInf*DB.wInf);
+
+					DB.PeriodFraction = 0.0;
+					// Uses FinalTime from moving vortex case.
+				}
+			} else {
+				printf("%s\n",TestCase);
+				EXIT_UNSUPPORTED;
+			}
+		} else if (strstr(PDESpecifier,"Internal")) {
+			if (!InitializedGeometry) {
+				if (strstr(Geometry,"n-Cylinder")) {
+					DB.rIn  = 1.0;
+					DB.rOut = 1.384;
+				} else if (strstr(Geometry,"EllipsoidalSection")) {
+					if (strstr(GeomSpecifier,"Annular")) {
+						// These parameters must be consistent with the mesh for "ToBeCurved" meshes
+						DB.rIn  = 0.50;
+						DB.rOut = 1.00;
+
+						// These parameters must be consistent with the mesh for "Curved" meshes
+						DB.aIn  = 0.50; DB.bIn  = 0.50; DB.aOut = 1.00;
+
+						if      (strstr(GeomSpecifier,"/1/")) DB.bOut = 1.0;
+						else if (strstr(GeomSpecifier,"/2/")) DB.bOut = 2.0;
+						else if (strstr(GeomSpecifier,"/3/")) DB.bOut = 3.0;
+						else
+							EXIT_UNSUPPORTED;
+					} else {
+						DB.aIn = 0.5;
+						double ratio = 0.0;
+						if (strstr(GeomSpecifier,"/3/")) ratio = 3.0;
+						else
+							EXIT_UNSUPPORTED;
+
+						DB.bIn = DB.aIn/ratio;
+						DB.cIn = DB.aIn;
+					}
+				} else if (strstr(Geometry,"n-Cube")) {
+					if (!(strstr(TestCase,"EllipticPipe") ||
+					      strstr(TestCase,"ParabolicPipe") ||
+					      strstr(TestCase,"SinusoidalPipe")))
+						EXIT_UNSUPPORTED; // Do nothing, eventually store parameters in DB.
+				} else {
+					printf("%s\n",Geometry);
+					EXIT_UNSUPPORTED;
+				}
+			}
+
+			strcpy(DB.SolverType,"Implicit");
+			if (strstr(TestCase,"SupersonicVortex")) {
+				DB.MIn   = 2.25;
+				DB.rhoIn = 1.0;
+
+				double pIn, cIn;
+				pIn = pow(DB.rhoIn,GAMMA)/GAMMA;
+				cIn = sqrt(GAMMA*pIn/DB.rhoIn);
+
+				DB.VIn = cIn*DB.MIn/DB.rIn;
+
+//				printf("Add documentation.\n"), EXIT_BASIC;
+			} else if (strstr(TestCase,"InviscidChannel")) {
+				if (strstr(PDESpecifier,"Supersonic")) {
+					DB.rhoInf = 1.0;
+					DB.pInf   = 1.0;
+					DB.MInf   = 1.01;
+					DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
+				} else if (strstr(PDESpecifier,"Subsonic")) {
+					DB.MInf    = 0.0;
+					DB.p_Total = 1.0;
+					DB.T_Total = 1.0;
+					DB.Rg      = 1.0;
+					DB.pBack   = 0.99*DB.p_Total;
+
+					DB.rhoInf = DB.p_Total/(DB.Rg*DB.T_Total);
+					DB.pInf   = DB.p_Total;
+
+					DB.MInf   = 0.0*sqrt(2.0/GM1*(pow((DB.pBack/DB.p_Total),-GM1/GAMMA)-1.0));
+					DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
+				} else {
+					EXIT_UNSUPPORTED;
+				}
+			} else if (strstr(TestCase,"EllipticPipe")) {
+				DB.SourcePresent = 1;
+				        int i;
+                                        double r_par[5] = {5, 2, 1, 1, 1}, p_par[5] = {1000, 250, 1, 250, 1};
+					for (i = 0; i < 5; i++) {
+      						DB.rho_store[i] = r_par[i];
+						DB.p_store[i] = p_par[i];}
+			} else if (strstr(TestCase,"ParabolicPipe")) {
+				DB.SourcePresent = 1;
+				double r_par[5] = {3, 1, 1, -1, 1},
+				       p_par[5] = {4, 2, 1, -2, 1},
+				       w_par[5] = {2, 1.5, 0.5, 1.5, 0.5};
+				for (int i = 0; i < 5; i++) {
+					DB.rho_store[i] = r_par[i];
+					DB.p_store[i]   = p_par[i];
+					DB.w_store[i]   = w_par[i];
+				}
+			} else if (strstr(TestCase,"SinusoidalPipe")) {
+				DB.SourcePresent = 1;
+                                        int i;
+                                        double r_par[5] = {3, 1, 1, -1, 1}, p_par[5] = {6000, 2000, 1, -2000, 1}, w_par[5] = {30, 10, 0.5, 10, 0.5};
+                                        for (i = 0; i < 5; i++) {
+                                                DB.rho_store[i] = r_par[i];
+                                                DB.p_store[i] = p_par[i];
+                                                DB.w_store[i] = w_par[i];}
+                        } else {
+				printf("%s\n",TestCase);
+				EXIT_UNSUPPORTED;
+			}
+		} else if (strstr(PDESpecifier,"External")) {
+			if (strstr(TestCase,"PrandtlMeyer")) {
+				strcpy(DB.SolverType,"Implicit");
+
+				double l = 1.0, cIn;
+
+				DB.aIn = 2.0*l;
+				DB.bIn = l;
+
+				// Compute at a reasonable angle (15 degrees) and then a 90 degree angle in preparation for ellipse.
+				// ToBeDeleted
+				printf("Error: Add dependence on GeomSpecifier.\n"), EXIT_MSG;
+				DB.MIn   = 1.41421356237;
+				DB.rhoIn = 1.0;
+				DB.pIn   = 1.0;
+
+				cIn = sqrt(GAMMA*DB.pIn/DB.rhoIn);
+				DB.VIn = cIn*DB.MIn;
+
+				// See: http://www.potto.org/fluidMech/2Dgd2.php
+//				printf("Add documentation.\n"), EXIT_BASIC;
+			} else {
+				DB.MInf   = 0.10;
+				DB.rhoInf = 1.0;
+				DB.pInf   = 1.0;
+				DB.cInf   = sqrt(GAMMA*DB.pInf/DB.rhoInf);
+// ToBeDeleted
+//// Initialized for Testing
+//DB.p_Total = 1.0;
+//DB.T_Total = 1.0;
+//DB.Rg      = 1.0;
+//DB.pBack   = 0.99*DB.p_Total;
+				EXIT_UNSUPPORTED;
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	} else if (strstr(PDE,"NavierStokes")) {
+		DB.PDE_index = PDE_NAVIERSTOKES;
+
+		DB.Nvar = d+2;
+		DB.Neq  = d+2;
+
+		DB.Viscous = 1;
+		DB.Pr      = 0.72;
+		DB.Rg      = 1.0;
+
+		DB.Const_mu = 0; // Default
+
+		DB.SourcePresent = 0;
+		if (strstr(PDESpecifier,"Internal")) {
+			if (!InitializedGeometry) {
+				if (strstr(Geometry,"n-Cylinder")) {
+					DB.rIn  = 0.5;
+					DB.rOut = 1.0;
+				} else {
+					printf("%s\n",Geometry); EXIT_UNSUPPORTED;
+				}
+			}
+
+			strcpy(DB.SolverType,"Explicit"); DB.FinalTime = 1e10; DB.ExplicitSolverType = EULER;
+			strcpy(DB.SolverType,"Implicit");
+			if (strstr(TestCase,"TaylorCouette")) {
+				DB.omega = 1.0;
+				DB.TIn   = 1.0;
+				DB.pIn   = 1.0;
+				DB.rhoIn = DB.pIn/(DB.Rg*DB.TIn);
+				DB.mu    = 1e-3;
+
+				DB.Const_mu = 1;
+			} else if (strstr(TestCase,"PlaneCouette")) {
+				DB.uIn   = 1.0;
+				DB.TIn   = 1.0;
+				DB.pIn   = 1.0;
+				DB.rhoIn = DB.pIn/(DB.Rg*DB.TIn);
+				DB.mu    = 1e-0;
+
+				DB.Const_mu = 1;
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+		DB.Cp    = GAMMA/GM1*DB.Rg;
+		DB.kappa = DB.mu*DB.Cp/DB.Pr;
 	} else {
-		printf("Error: Unsupported TestCase: %s.\n",TestCase), EXIT_MSG;
+		printf("PDE: %s\n",PDE);
+		EXIT_UNSUPPORTED;
 	}
 
-	if (strstr(SolverType,"Implicit"))
-		DB.FinalTime  = 1e10;
-
-	DB.SolverType    = SolverType;
-	DB.SourcePresent = SourcePresent;
+	if (strstr(DB.SolverType,"Implicit"))
+		DB.FinalTime = 1e10;
 }
 
 static void compute_gradient_polynomial(struct S_VOLUME *VOLUME)
@@ -343,8 +587,8 @@ static void compute_gradient_polynomial(struct S_VOLUME *VOLUME)
 		}
 
 		q = malloc(NvnS * sizeof *q); // free
-		mm_CTN_d(NvnS,1,NvnS,Dxyz,VOLUME->uhat,q);
-		mm_CTN_d(NvnS,1,NvnS,OPS->ChiInvS_vS,q,VOLUME->qhat[dim]);
+		mm_CTN_d(NvnS,1,NvnS,Dxyz,VOLUME->What,q);
+		mm_CTN_d(NvnS,1,NvnS,OPS->ChiInvS_vS,q,VOLUME->Qhat[dim]);
 		free(q);
 		free(Dxyz);
 	}
@@ -358,27 +602,41 @@ static void compute_gradient_polynomial(struct S_VOLUME *VOLUME)
 
 static void compute_gradient_L2proj(struct S_VOLUME *VOLUME)
 {
+	/*
+	 *	Comments:
+	 *		Requires use of P (or HP) adaptation as this function performs a projection between different orders.
+	 */
+
+	if (!(DB.Adapt == ADAPT_P || DB.Adapt == ADAPT_HP))
+		EXIT_UNSUPPORTED;
+
 	// Initialize DB Parameters
 	unsigned int d    = DB.d,
 	             Nvar = DB.Nvar;
 
 	// Standard datatypes
 	unsigned int n, dim, NvnS, NvnI, P;
-	double       *w_vI, *XYZ_vI, *q, *detJV_vI, *q_inter, *qhat_inter, *FilterP;
+	double       *w_vI, *XYZ_vI, *q, *detJV_vI, *q_inter, *Qhat_inter, *FilterP;
 
 	struct S_OPERATORS *OPS;
 	struct S_ELEMENT   *ELEMENT;
 
 	OPS = malloc(sizeof *OPS); // free
-
-	if (DB.Adapt == ADAPT_0)
-		printf("Error: Unsupported.\n"), EXIT_MSG;
-	else if (VOLUME->P == 0)
-		printf("Error: Increased order (i.e. use P > 0) required.\n"), EXIT_MSG;
-
 	init_ops(OPS,VOLUME);
 
 	NvnS = OPS->NvnS;
+
+	if (DB.Adapt == ADAPT_0)
+		printf("Error: Unsupported.\n"), EXIT_MSG;
+	else if (VOLUME->P == 0) {
+		for (dim = 0; dim < d; dim++) {
+			for (size_t i = 0; i < NvnS*Nvar; i++)
+				VOLUME->Qhat[dim][i] = 0.0;
+		}
+		free(OPS);
+		return;
+	}
+
 	NvnI = OPS->NvnI;
 	w_vI = OPS->w_vI;
 
@@ -403,9 +661,9 @@ static void compute_gradient_L2proj(struct S_VOLUME *VOLUME)
 	compute_inverse_mass(VOLUME);
 
 	// Get L2 projection of order P
-	qhat_inter = malloc(NvnS*Nvar*d * sizeof *qhat_inter); // free
+	Qhat_inter = malloc(NvnS*Nvar*d * sizeof *Qhat_inter); // free
 	for (dim = 0; dim < d; dim++)
-		mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,VOLUME->MInv,&q_inter[NvnS*Nvar*dim],&qhat_inter[NvnS*Nvar*dim]);
+		mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,VOLUME->MInv,&q_inter[NvnS*Nvar*dim],&Qhat_inter[NvnS*Nvar*dim]);
 	free(q_inter);
 
 	if (VOLUME->MInv) {
@@ -424,8 +682,8 @@ static void compute_gradient_L2proj(struct S_VOLUME *VOLUME)
 	FilterP = mm_Alloc_d(CBRM,CBNT,CBNT,NvnS,NvnS,OPS->NvnSPm1,1.0,OPS->Ihat_vS_vS[0],OPS->L2hat_vS_vS[0]);
 
 	for (dim = 0; dim < d; dim++)
-		mm_CTN_d(NvnS,Nvar,NvnS,FilterP,&qhat_inter[NvnS*Nvar*dim],VOLUME->qhat[dim]);
-	free(qhat_inter);
+		mm_CTN_d(NvnS,Nvar,NvnS,FilterP,&Qhat_inter[NvnS*Nvar*dim],VOLUME->Qhat[dim]);
+	free(Qhat_inter);
 	free(FilterP);
 
 	free(OPS);
@@ -439,7 +697,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	             Nvar      = DB.Nvar,
 	             Adapt     = DB.Adapt;
 
-	DB.OutputInterval = 1e3;
+	DB.OutputInterval = 2e4;
 
 	// Standard datatypes
 	unsigned int DOF0 = 0, PolyGradient = 0;
@@ -455,10 +713,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	adapt_update = 1;
 	while (adapt_update) {
 		adapt_update = 0;
-		if (strstr(TestCase,"PeriodicVortex") ||
-		    strstr(TestCase,"SupersonicVortex") ||
-			strstr(TestCase,"InviscidChannel")) {
-
+		if (strstr(TestCase,"Advection") || strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
 			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 				init_ops(OPS,VOLUME);
 
@@ -472,16 +727,19 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				VOLUME->RES  = calloc(NvnS*Nvar , sizeof *(VOLUME->RES));  // keep
 				What = VOLUME->What;
 
-				XYZ_vS = malloc(NvnS*d    * sizeof *XYZ_vS); // free
+				XYZ_vS = malloc(NvnS*d * sizeof *XYZ_vS); // free
 
 				mm_CTN_d(NvnS,d,VOLUME->NvnG,OPS->I_vG_vS,VOLUME->XYZ,XYZ_vS);
 
-				U = malloc(NvnS*NVAR3D * sizeof *U); // free
+				U = calloc(NvnS*NVAR3D , sizeof *U); // free
 				W = malloc(NvnS*Nvar   * sizeof *W); // free
 
-				compute_solution(NvnS,XYZ_vS,U,0);
-
-				convert_variables(U,W,3,d,NvnS,1,'p','c');
+				if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
+					compute_solution(NvnS,XYZ_vS,U,0);
+					convert_variables(U,W,3,d,NvnS,1,'p','c');
+				} else if (strstr(TestCase,"Advection")) {
+					compute_solution(NvnS,XYZ_vS,W,0);
+				}
 				mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,W,What);
 
 				free(XYZ_vS);
@@ -489,9 +747,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				free(W);
 			}
 		} else if (strstr(TestCase,"Poisson")) {
-			// Initializing with the L2 projection (Update other TestCases above), ToBeModified
-			adapt_count = adapt_update_MAX; // No need for updating
-
+			// Initializing with the L2 projection.
 			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 				init_ops(OPS,VOLUME);
 
@@ -501,13 +757,13 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 
 				VOLUME->NvnS = NvnS;
 
-				free(VOLUME->uhat);
+				free(VOLUME->What);
 				for (dim = 0; dim < d; dim++)
-					free(VOLUME->qhat[dim]);
+					free(VOLUME->Qhat[dim]);
 
-				VOLUME->uhat = calloc(NvnS*Nvar , sizeof *(VOLUME->uhat)); // keep
+				VOLUME->What = calloc(NvnS*Nvar , sizeof *(VOLUME->What)); // keep
 				for (dim = 0; dim < d; dim++)
-					VOLUME->qhat[dim] = calloc(NvnS*Nvar , sizeof *(VOLUME->qhat[dim])); // keep
+					VOLUME->Qhat[dim] = calloc(NvnS*Nvar , sizeof *(VOLUME->Qhat[dim])); // keep
 
 				XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
 				mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
@@ -526,7 +782,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				free(U);
 
 				compute_inverse_mass(VOLUME);
-				mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,VOLUME->MInv,u_inter,VOLUME->uhat);
+				mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,VOLUME->MInv,u_inter,VOLUME->What);
 				free(u_inter);
 				if (VOLUME->MInv) {
 					free(VOLUME->MInv);
@@ -536,18 +792,18 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				if (PolyGradient) {
 					compute_gradient_polynomial(VOLUME);
 				} else {
-					if (Adapt != ADAPT_0) {
+					if (Adapt == ADAPT_P || Adapt == ADAPT_HP) {
 						compute_gradient_L2proj(VOLUME);
 					} else {
 						Q = calloc(NvnI*Nvar*d , sizeof *Q); // free
 						for (dim = 0; dim < d; dim++)
-							mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,&Q[NvnS*Nvar*dim],VOLUME->qhat[dim]);
+							mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,&Q[NvnS*Nvar*dim],VOLUME->Qhat[dim]);
 						free(Q);
 					}
 				}
 			}
 		} else {
-			printf("Error: Unsupported TestCase.\n"), EXIT_MSG;
+			printf("Error: Unsupported TestCase (%s).\n",TestCase), EXIT_MSG;
 		}
 
 		if (adapt_count < adapt_update_MAX) {
@@ -572,34 +828,217 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 		VOLUME->update = 1;
 
+	update_memory_VOLUMEs();
+	update_memory_FACEs();
 	// Output initial solution to paraview
 //	output_to_paraview("ZTest_Sol_Init");
 }
 
-static void compute_uniform_solution(const unsigned int Nn, double *U)
+static void compute_uniform_solution(const unsigned int Nn, const double *XYZ, double *U)
 {
 	// Initialize DB Parameters
-	char *TestCase = DB.TestCase;
+	char         *TestCase = DB.TestCase;
+	unsigned int d         = DB.d;
 
 	// Standard datatypes
 	unsigned int n;
+	double       rhoInf, pInf, MInf, cInf, VInf;
 
+	rhoInf = DB.rhoInf;
+	pInf   = DB.pInf;
+	MInf   = DB.MInf;
+	cInf   = DB.cInf;
+
+	VInf = MInf*cInf;
 	if (strstr(TestCase,"InviscidChannel")) {
-		double rhoInf, pInf, MInf, cInf, uInf;
-
-		rhoInf = DB.rhoInf;
-		pInf   = DB.pInf;
-		MInf   = DB.MInf;
-		cInf   = DB.cInf;
-
-		uInf = MInf*cInf;
-
 		for (n = 0; n < Nn; n++) {
 			U[0*Nn+n] = rhoInf;
-			U[1*Nn+n] = uInf;
+			U[1*Nn+n] = VInf;
 			U[2*Nn+n] = 0.0;
 			U[3*Nn+n] = 0.0;
 			U[4*Nn+n] = pInf;
+		}
+	} else if (strstr(TestCase,"SubsonicNozzle")) {
+
+		if (d == 3)
+			printf("Add support.\n"), EXIT_MSG;
+
+		if (strstr(DB.PDESpecifier,"Subsonic")) {
+			for (n = 0; n < Nn; n++) {
+				U[0*Nn+n] = DB.rhoInf;
+				U[1*Nn+n] = 0.0;
+				U[2*Nn+n] = 0.0;
+				U[3*Nn+n] = 0.0;
+				U[4*Nn+n] = DB.pInf;
+			}
+		} else if (strstr(DB.PDESpecifier,"Supersonic")) {
+			// Define the initial solution such that the velocity vector points in approximately the correct direction.
+			const double *X, *Y;
+
+			X = &XYZ[0*Nn];
+			Y = &XYZ[1*Nn];
+
+			double aIn  = DB.aIn,
+				   aOut = DB.aOut,
+				   bIn  = DB.bIn,
+				   bOut = DB.bOut;
+//printf("\n");
+			for (n = 0; n < Nn; n++) {
+				// Find the equation of the ellipse on which the point lies
+				// Note: Points on polynomial curved edges may lie outside of the analytical domain and will not be
+				//       found by the algorithm below even for very high tolerances.
+				double da, db, a, b, a_sign;
+
+				db = bOut-bIn;
+
+				da = 0.5*(aOut-aIn);
+				a_sign = 1.0;
+				a = aIn;
+
+				unsigned int count, countMax = 60;
+//printf("\n\n");
+				for (count = 0; count < countMax; count++) {
+					double y;
+					a += a_sign*da;
+					b = bIn+db*(a-aIn)/(aOut-aIn);
+
+					da *= 0.5;
+
+					if (X[n] > a) {
+//printf("%2d % .3e % .3e % .3e % .3e\n",count,X[n],Y[n],a,X[n]-a);
+						a_sign = 1.0;
+						if (da > EPS)
+							continue;
+
+						if (fabs(X[n]-a) < 1e1*EPS)
+							break;
+//printf("daX\n");
+					}
+
+					y = b*sqrt(1.0-pow(X[n]/a,2.0));
+//printf("cxy: %2d % .3e % .3e % .3e % .3e % .3e % .3e % .3e\n",count,X[n],Y[n],da,a,b,y,y-Y[n]);
+
+					if (fabs(y-Y[n]) < 1e-5)
+						break;
+
+					if (da < EPS) {
+						if (!(fabs(a-aIn) < 1e1*EPS || fabs(a-aOut) < 1e1*EPS))
+							count = countMax;
+						break;
+					}
+
+					if (Y[n] < y)
+						a_sign = -1.0;
+					else
+						a_sign = 1.0;
+				}
+
+				if (count == countMax)
+					printf("Error: Did not find ellipse (% .3e % .3e % .3e % .3e % .3e).\n",X[n],Y[n],da,a,b), EXIT_MSG;
+
+				// Find the tangent to the ellipse in the direction of the flow
+				double dydx, t1, t2, tNorm;
+
+//			if (X[n] > a)
+				if (Y[n] < EPS)
+					dydx = -1e16;
+				else
+					dydx = 0.5*b/sqrt(1.0-pow(X[n]/a,2.0))*(-2.0*X[n]/(a*a));
+
+				t1 = -1.0;
+				t2 = -dydx;
+
+				tNorm = sqrt(t1*t1+t2*t2);
+				t1 /= tNorm;
+				t2 /= tNorm;
+
+				// Find the local Mach Number based on the area ratio relation
+				double t, A, AIn, Achoke;
+
+				t = atan2(Y[n],X[n]);
+
+				A   = sqrt(pow((aOut-aIn)*cos(t),2.0)+pow((bOut-bIn)*sin(t),2.0));
+				AIn = aOut-aIn;
+
+				double MIn = DB.MInf;
+
+				Achoke = AIn/(1.0/MIn*pow(2.0/(GAMMA+1)*(1+0.5*GM1*MIn*MIn),(GAMMA+1)/(2*GM1)));
+
+				// Iterate to find M (Newton's method)
+				double f, dfdM, M;
+
+				M = MIn;
+				for (count = 0; count < countMax; count++) {
+					double update;
+					f    = 1.0/M*pow(2.0/(GAMMA+1)*(1+0.5*GM1*M*M),(GAMMA+1)/(2*GM1)) - A/Achoke;
+					dfdM = 2.0*(M*M-1.0)/((GAMMA-1)*pow(M,4.0)+2.0*M*M)*
+						   pow(((GAMMA-1)*M*M+2.0)/(GAMMA+1),0.5*GAMMA/(GAMMA-1)+0.5/(GAMMA-1));
+
+					update = -f/dfdM;
+					if (fabs(update) < 1e2*EPS)
+						break;
+
+					M += update;
+				}
+
+				if (count == countMax)
+					printf("Error: Newton's method not converging (% .3e % .3e % .3e % .3e).\n",f,dfdM,M,A/Achoke), EXIT_MSG;
+
+//if (A/AIn > 1.0+EPS) {
+//	printf("% .3e % .3e\n",A/AIn,M);
+//	EXIT_MSG;
+//}
+
+				// Initialize the flow using Isentropic relations based on local Mach number
+				double rhoIn = DB.rhoInf,
+					   pIn   = DB.pInf;
+
+				double rho, p, c, V;
+
+				rho = rhoIn*pow((1+0.5*GM1*M*M)/(1+0.5*GM1*MIn*MIn),-1.0/GM1);
+				p   = pIn*pow(rho/rhoIn,GAMMA);
+				c   = sqrt(GAMMA*p/rho);
+				V   = M*c;
+
+				U[0*Nn+n] = rho;
+				U[1*Nn+n] = V*t1;
+				U[2*Nn+n] = V*t2;
+				U[3*Nn+n] = 0.0;
+				U[4*Nn+n] = p;
+//printf("%2d % .3e % .3e % .3e % .3e % .3e\n",n,rho,V,t1,t2,p);
+			}
+		} else {
+			printf("Error: Unsupported.\n"), EXIT_MSG;
+		}
+	} else if (strstr(TestCase,"PrandtlMeyer")) {
+		// Standard datatypes
+		const double *X, *Y;
+
+		X = &XYZ[0*Nn];
+		Y = &XYZ[1*Nn];
+		if (d == 3)
+			printf("Add support.\n"), EXIT_MSG;
+
+		// Define the initial solution such that the velocity vector points in approximately the correct direction.
+		for (n = 0; n < Nn; n++) {
+			double t;
+
+			t = atan2(Y[n],X[n]);
+			U[0*Nn+n] = DB.rhoIn;
+			U[4*Nn+n] = DB.pIn;
+			if (X[n] < EPS) {
+				U[1*Nn+n] = DB.VIn;
+				U[2*Nn+n] = 0.0;
+			} else if (Y[n] < EPS) {
+				U[1*Nn+n] = 0.0;
+				U[2*Nn+n] = -DB.VIn;
+			} else {
+				U[1*Nn+n] =  sin(t)*DB.VIn;
+				U[2*Nn+n] = -cos(t)*DB.VIn;
+			}
+//			U[1*Nn+n] = 0.0;
+//			U[2*Nn+n] = 0.0;
+			U[3*Nn+n] = 0.0*t;
 		}
 	} else {
 		printf("Error: Unsupported.\n"), EXIT_MSG;
@@ -611,12 +1050,21 @@ void compute_solution(const unsigned int Nn, double *XYZ, double *UEx, const uns
 	// Initialize DB Parameters
 	char *TestCase = DB.TestCase;
 
-	if (strstr(TestCase,"PeriodicVortex") || strstr(TestCase,"SupersonicVortex")) {
+	if (strstr(TestCase,"Advection") ||
+	    strstr(TestCase,"PeriodicVortex") ||
+	    strstr(TestCase,"SupersonicVortex") ||
+	    strstr(TestCase,"PlaneCouette") ||
+	    strstr(TestCase,"TaylorCouette") ||
+	    strstr(TestCase,"EllipticPipe") ||
+	    strstr(TestCase,"ParabolicPipe") ||
+	    strstr(TestCase,"SinusoidalPipe")) {
 		compute_exact_solution(Nn,XYZ,UEx,solved);
-	} else if (strstr(TestCase,"InviscidChannel")) {
-		compute_uniform_solution(Nn,UEx);
+	} else if (strstr(TestCase,"InviscidChannel") ||
+	           strstr(TestCase,"PrandtlMeyer") ||
+	           strstr(TestCase,"SubsonicNozzle")) {
+		compute_uniform_solution(Nn,XYZ,UEx);
 	} else {
-		printf("Error: Unsupported TestCase: %s.\n",TestCase), EXIT_MSG;
+		EXIT_UNSUPPORTED;
 	}
 }
 
@@ -654,8 +1102,6 @@ static void adapt_initial(unsigned int *adapt_update)
 
 	VInfo_list = malloc(NVglobal * sizeof *VInfo_list); // free
 
-	L2Error2 = malloc((NVAR3D+1) * sizeof *L2Error2); // free
-
 	// Initialize VInfo structs
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		indexg = VOLUME->indexg;
@@ -685,18 +1131,22 @@ static void adapt_initial(unsigned int *adapt_update)
 	}
 
 	// Compute L2 Errors
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		compute_errors(VOLUME,L2Error2,&dummy_d,&dummy_ui,0);
+	L2Error2 = malloc((NVAR3D+1) * sizeof *L2Error2); // free
+	if (strstr(DB.TestCase,"Euler")) {
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			compute_errors(VOLUME,L2Error2,&dummy_d,&dummy_ui,0);
 
-		VInfo = VInfo_list[VOLUME->indexg];
-		VInfo->L2s = sqrt(L2Error2[NVAR3D]);
+			VInfo = VInfo_list[VOLUME->indexg];
+			VInfo->L2s = sqrt(L2Error2[NVAR3D]);
 
-		switch (Adapt) {
-		default: // ADAPT_HP
-			// h vs p indicator goes here (ToBeDeleted).
-			break;
-		case ADAPT_P: VInfo->adapt_class = ADAPT_P; break;
-		case ADAPT_H: VInfo->adapt_class = ADAPT_H; break;
+			switch (Adapt) {
+			default: // ADAPT_HP
+				VInfo->adapt_class = ADAPT_P; // ToBeModified
+				// h vs p indicator goes here (ToBeDeleted).
+				break;
+			case ADAPT_P: VInfo->adapt_class = ADAPT_P; break;
+			case ADAPT_H: VInfo->adapt_class = ADAPT_H; break;
+			}
 		}
 	}
 
@@ -708,12 +1158,14 @@ static void adapt_initial(unsigned int *adapt_update)
 	}
 
 	// Mark VOLUMEs for refinement (No limits on refinement)
-	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		indexg = VOLUME->indexg;
+	if (strstr(DB.TestCase,"Euler")) {
+		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+			indexg = VOLUME->indexg;
 
-		VInfo = VInfo_list[indexg];
-		if (VInfo->L2s > REFINE_TOL)
-			check_levels_refine(indexg,VInfo_list,VInfo->adapt_class);
+			VInfo = VInfo_list[indexg];
+			if (VInfo->L2s > REFINE_TOL)
+				check_levels_refine(indexg,VInfo_list,VInfo->adapt_class);
+		}
 	}
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -725,6 +1177,8 @@ static void adapt_initial(unsigned int *adapt_update)
 			if (Adapt == ADAPT_P)
 				VOLUME->adapt_type = PREFINE;
 			else if (Adapt == ADAPT_H)
+				VOLUME->adapt_type = HREFINE;
+			else if (Adapt == ADAPT_HP) // Default to h-refinement for the time being. (ToBeModified)
 				VOLUME->adapt_type = HREFINE;
 			else
 				printf("Error: Unsupported Adapt = %d.\n",Adapt), EXIT_MSG;

@@ -6,6 +6,8 @@
 
 #include <complex.h>
 
+#include "matrix_structs.h"
+
 struct S_VOLUME {
 	// Structures
 	unsigned int indexl, indexg, P, type, Eclass, update, curved, level,
@@ -16,16 +18,22 @@ struct S_VOLUME {
 	unsigned int NvnG, *VeInd, *VeInfo, **BC;
 	double *XYZ_S, *XYZ, *detJV_vI, *C_vC, *C_vI, **C_vf;
 
+	struct S_MULTI_ARRAY *XYZ_MA, *detJV_vI_MA, *C_vI_MA;
+
 	// Initialization
 	unsigned int NvnS;
-	double *What, *RES;
+	double *What, **QhatV, **Qhat, *RES, **QhatV_What, **Qhat_What;
+
+	struct S_MULTI_ARRAY *What_MA;
 
 	// Solving
 	unsigned int   IndA, nnz_d, nnz_o;
-	double         *RHS, *LHS, *wdetJV_vI, *MInv;
+	double         *RHS, *LHS, **LHSQ, *wdetJV_vI, *MInv, *MInv_diag;
+
+	struct S_MULTI_ARRAY *RHS_MA, *LHS_MA;
 
 	// Linearization testing
-	double complex *RHS_c, *What_c, *uhat_c, **qhat_c;
+	double complex *RHS_c, *What_c, **Qhat_c, **QhatV_c, **qhat_c;
 
 	// hp adaptivity
 	unsigned int refine_current, Vadapt, adapt_type, PNew, hrefine_type;
@@ -33,8 +41,7 @@ struct S_VOLUME {
 //	double       minRES, maxRES;
 
 	// Poisson
-	double *uhat, **qhat, **qhat_uhat;
-	double **DxyzChiS;
+	double **qhat, **qhat_uhat;
 
 	// structs
 	struct S_VOLUME *next, *grpnext, *child0, *parent;

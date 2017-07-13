@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <execinfo.h>
+#include <stddef.h>
 //#include <signal.h>
 //#include <unistd.h>
 
@@ -15,7 +16,6 @@
  *			void exit_backtrace(void)
  *
  *	Comments:
- *		This is not currently working, always giving a single stack frame.
  *
  *	Notation:
  *
@@ -41,4 +41,16 @@ void exit_trace(void)
 
 	free(strings);
 	exit(1);
+}
+
+void set_to_zero_d (size_t len, double *A)
+{
+	for ( ; len--; )
+		*A++ = 0.0;
+}
+
+void set_to_zero_cmplx (size_t len, double complex *A)
+{
+	for ( ; len--; )
+		*A++ = 0.0;
 }

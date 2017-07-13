@@ -21,8 +21,7 @@
 
 #include "array_print.h"
 
-void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *Nn, unsigned int *Ns,
-                 const unsigned int return_w, const unsigned int P, const unsigned int d, const char *NodeType)
+void cubature_TP (struct S_CUBATURE *const CUBDATA)
 {
 	/*
 	 *	Purpose:
@@ -54,27 +53,25 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 	 *		http://www.ntu.edu.sg/home/lilian/book.htm
 	 */
 
+	char const *const NodeType = CUBDATA->NodeType;
+
+	unsigned int const d  = CUBDATA->d,
+	                   P  = CUBDATA->P,
+	                   N  = P+1,
+	                   u1 = 1;
+
 	// Standard datatypes
-	unsigned int i, j, k, iMax, jMax, kMax, dim, u1,
-	             N, rInd, row, Nrows, NsOut,
-	             *symmsOut;
-	int          sd, sN;
-	double       *r, *wOut, *r_d, *wOut_d, *r_std, *wOut_std;
+	unsigned int i, j, k, iMax;
+	double       *w1D, *r_std, *wasdfOut_std;
 
-	// Arbitrary initializations for variables defined in conditionals (to eliminate compiler warnings)
-	Nrows = 0;
+	int const sd = d,
+	          sN = N;
 
-	N = P+1;
+	double *r = malloc(N * sizeof *r); // free
+	w1D = malloc(N * sizeof *w1D); // free
 
-	u1 = 1;
-	sd = d;
-	sN = N;
-
-	r    = malloc(N * sizeof *r); // free
-	wOut = malloc(N * sizeof *wOut); // free
-
-		unsigned int count;
-		double       err, theta, Phi, dPhi, r_Delta;
+	unsigned int count;
+	double       err, theta, Phi, dPhi, r_Delta;
 
 	// Note: GLL must be first as "GL" is in "GLL"
 	if (strstr(NodeType,"GLL")) {
@@ -118,10 +115,10 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 		// Compute weights (Ensure that normalization is removed from Phi)
 		for (i = 1; i < P; i++) {
 			Phi     = sqrt(2.0/(2.0*P+1.0))*jacobiP(r[i],0.0,0.0,P);
-			wOut[i] = 2.0/(P*N*Phi*Phi);
+			w1D[i] = 2.0/(P*N*Phi*Phi);
 		}
-		wOut[0] = 2.0/(P*N);
-		wOut[P] = wOut[0];
+		w1D[0] = 2.0/(P*N);
+		w1D[P] = w1D[0];
 	} else if (strstr(NodeType,"GL")) {
 		// Compute initial guess
 		for (i = 0; i < N; i++) {
@@ -152,10 +149,10 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 		// Compute weights (Ensure that normalization is removed from dPhi)
 		for (i = 0; i < N; i++) {
 			dPhi    = sqrt(2.0/(2.0*N+1.0))*grad_jacobiP(r[i],0.0,0.0,N);
-			wOut[i] = 2.0/((1.0-r[i]*r[i])*dPhi*dPhi);
+			w1D[i] = 2.0/((1.0-r[i]*r[i])*dPhi*dPhi);
 		}
 	} else if (strstr(NodeType,"EQ")) {
-		if (return_w)
+		if (CUBDATA->return_w)
 			printf("Error: Unsupported.\n"), exit(1);
 
 		for (i = 0; i < N; i++)
@@ -166,27 +163,27 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 
 	// Re-arrange r and w for GL/GLL nodes
 	r_std    = malloc(N * sizeof *r_std); // free
-	wOut_std = malloc(N * sizeof *wOut_std); // free
+	wasdfOut_std = malloc(N * sizeof *wasdfOut_std); // free
 
 	for (i = 0; i < N; i++) {
 		r_std[i]    = r[i];
-		wOut_std[i] = wOut[i];
+		wasdfOut_std[i] = w1D[i];
 	}
 
 	if (N % 2 == 1) {
 		k = (unsigned int) floor(N/2);
 
 		r[N-1]    = r_std[k];
-		wOut[N-1] = wOut_std[k];
+		w1D[N-1] = wasdfOut_std[k];
 
 		j = k;
 		for (i = 0, iMax = N-1; i < iMax; ) {
 			r[i]    = r_std[k-j];
-			wOut[i] = wOut_std[k-j];
+			w1D[i] = wasdfOut_std[k-j];
 			i++;
 
 			r[i]    = r_std[k+j];
-			wOut[i] = wOut_std[k+j];
+			w1D[i] = wasdfOut_std[k+j];
 			i++;
 
 			j--;
@@ -196,11 +193,11 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 		j = k;
 		for (i = 0, iMax = N; i < iMax; ) {
 			r[i]    = r_std[k-j];
-			wOut[i] = wOut_std[k-j];
+			w1D[i] = wasdfOut_std[k-j];
 			i++;
 
 			r[i]    = r_std[k+j-1];
-			wOut[i] = wOut_std[k+j-1];
+			w1D[i] = wasdfOut_std[k+j-1];
 			i++;
 
 			j--;
@@ -208,57 +205,73 @@ void cubature_TP(double **rst, double **w, unsigned int **symms, unsigned int *N
 	}
 
 	free(r_std);
-	free(wOut_std);
+	free(wasdfOut_std);
 
 
-	r_d    = malloc(pow(N,d)*d * sizeof *r_d);    // keep (requires external free)
-	wOut_d = malloc(pow(N,d)   * sizeof *wOut_d); // free/keep (Conditional return_w)
+	double *rst = malloc(pow(N,d)*d * sizeof *rst); // keep
 
-	row = 0; Nrows = pow(N,d);
-	for (k = 0, kMax = (unsigned int) min(max((sd-2)*sN,1),sN); k < kMax; k++) {
-	for (j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
-	for (i = 0, iMax = min(max((d-0)*N,u1),N); i < iMax; i++) {
-		wOut_d[row] = wOut[i];
-		if (d == 2) wOut_d[row] *= wOut[j];
-		if (d == 3) wOut_d[row] *= wOut[j]*wOut[k];
-		for (dim = 0; dim < d; dim++) {
-			if (dim == 0) rInd = i;
-			if (dim == 1) rInd = j;
-			if (dim == 2) rInd = k;
-			r_d[dim*Nrows+row] = r[rInd];
+	size_t row = 0;
+	size_t const Nrows = pow(N,d);
+//	for (k = 0, kMax = (unsigned int) min(max((sd-2)*sN,1),sN); k < kMax; k++) {
+	for (size_t k = 0, kMax = min(max((sd-2)*sN,1),sN); k < kMax; k++) {
+	for (size_t j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
+	for (size_t i = 0, iMax = min(max((d-0)*N,u1),N); i < iMax; i++) {
+		for (size_t dim = 0; dim < d; dim++) {
+			switch (dim) {
+				default: // fallthrough
+				case 0: rst[dim*Nrows+row] = r[i]; break;
+				case 1: rst[dim*Nrows+row] = r[j]; break;
+				case 2: rst[dim*Nrows+row] = r[k]; break;
+			}
 		}
 		row++;
 	}}}
 	free(r);
-	free(wOut);
 
-	// Compute symmetries
-	NsOut = (unsigned int) ceil(N/2.0);
-	symmsOut = malloc(NsOut * sizeof *symmsOut); // keep (requires external free)
-	if (N % 2 == 1) {
-		for (i = 0; i < NsOut-1; i++)
-			symmsOut[i] = 2;
-		symmsOut[NsOut-1] = 1;
+	CUBDATA->rst = rst;
+	CUBDATA->Nn  = pow(N,d);
+// Replace NRows above (ToBeDelted)
+
+	if (CUBDATA->return_w) {
+		double *w = malloc(pow(N,d) * sizeof *w); // keep
+
+		size_t row = 0;
+//		for (size_t k = 0, kMax = (size_t) min(max((sd-2)*sN,1),sN); k < kMax; k++) {
+		for (size_t k = 0, kMax = min(max((sd-2)*sN,1),sN); k < kMax; k++) {
+		for (size_t j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
+		for (size_t i = 0, iMax = min(max((d-0)*N,u1),N); i < iMax; i++) {
+			w[row] = w1D[i];
+			if (d == 2) w[row] *= w1D[j];
+			if (d == 3) w[row] *= w1D[j]*w1D[k];
+			row++;
+		}}}
+
+		CUBDATA->w = w;
 	} else {
-		for (i = 0; i < NsOut; i++)
-			symmsOut[i] = 2;
+		CUBDATA->w = NULL;
 	}
+	free(w1D);
 
-	*rst   = r_d;
-	*symms = symmsOut;
-
-	*Nn = pow(N,d);
-	*Ns = NsOut;
-
-	if (return_w != 0) *w = wOut_d;
-	else               *w = NULL, free(wOut_d);
-
-// array_print_d(pow(N,d),d,r_d,'R');
-// array_print_d(pow(N,d),1,wOut_d,'R');
+	if (CUBDATA->return_symm) {
+		unsigned int NsOut = (unsigned int) ceil(N/2.0),
+		             *symmsOut = malloc(NsOut * sizeof *symmsOut); // keep
+		if (N % 2 == 1) {
+			for (i = 0; i < NsOut-1; i++)
+				symmsOut[i] = 2;
+			symmsOut[NsOut-1] = 1;
+		} else {
+			for (i = 0; i < NsOut; i++)
+				symmsOut[i] = 2;
+		}
+		CUBDATA->Ns    = NsOut;
+		CUBDATA->symms = symmsOut;
+	} else {
+		CUBDATA->Ns    = UINT_MAX;
+		CUBDATA->symms = NULL;
+	}
 }
 
-void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *Nn, unsigned int *Ns,
-                  const unsigned int return_w, const unsigned int P, const unsigned int d, const char *NodeType)
+void cubature_TRI (struct S_CUBATURE *const CUBDATA)
 {
 	/*
 	 *	Purpose:
@@ -295,6 +308,11 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 	 *		WV  : pyfr/quadrules/tri + conversion to barycentric coordinates (ToBeModified: See python script)
 	 */
 
+	char const *const NodeType = CUBDATA->NodeType;
+
+	unsigned int const d  = CUBDATA->d,
+	                   P  = CUBDATA->P;
+
 	// Standard datatypes
 	static unsigned int perms[18] = { 0, 1, 2,
 	                                  2, 0, 1,
@@ -320,12 +338,12 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 	wOut = NULL;
 
 	if (strstr(NodeType,"AO")) {
-		if (return_w)
+		if (CUBDATA->return_w)
 			printf("Error: Invalid value for return_w in cubature_TRI.\n"), exit(1);
 
 		PMax = 15;
 	} else if (strstr(NodeType,"EQ")) {
-		if (return_w)
+		if (CUBDATA->return_w)
 			printf("Error: Unsupported.\n"), EXIT_MSG;
 
 		PMax = 8;
@@ -392,7 +410,7 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 	}
 
 	// Read weights
-	if (return_w) {
+	if (CUBDATA->return_w) {
 		for (iMax = 1; iMax--; ) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 				; // skip 1 line(s)
@@ -420,7 +438,7 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 	for (i = 0; i < Nsymms; i++)
 		NnOut += symms_count[i]*symms_Nperms[i];
 
-	if (return_w)
+	if (CUBDATA->return_w)
 		wOut = malloc(NnOut * sizeof *wOut); // free/keep (conditional return_w)
 
 	BCoords_complete = malloc(NnOut*Nc * sizeof *BCoords_complete); // free
@@ -446,7 +464,7 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 		else if (jMax == 1) symms31[1] += 1;
 
 		for (j = 0; j < jMax; j++) {
-			if (return_w)
+			if (CUBDATA->return_w)
 				wOut[IndBC] = w_read[IndB];
 
 			for (k = 0; k < Nc; k++) {
@@ -466,8 +484,7 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 	free(BCoords);
 	free(w_read);
 
-	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_V);
-	// keep (requires external free)
+	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_V); // keep
 	free(BCoords_complete);
 
 //array_print_d(NnOut,d,rstOut,'C');
@@ -476,30 +493,33 @@ void cubature_TRI(double **rst, double **w, unsigned int **symms, unsigned int *
 	for (i = 0; i < 2; i++)
 		NsOut += symms31[i];
 
-	symmsOut = malloc(NsOut * sizeof *symmsOut); // keep (requires external free)
-	k = 0;
-	for (i = 0; i < 2; i++) {
-	for (j = 0; jMax = symms31[i], j < jMax; j++) {
-		if (i == 0) symmsOut[k] = 3;
-		else        symmsOut[k] = 1;
-		k++;
-	}}
-
-	*rst   = rstOut;
-	*symms = symmsOut;
-
-	*Nn = NnOut;
-	*Ns = NsOut;
-
-	if (return_w) {
-		*w = wOut;
+	if (CUBDATA->return_symm) {
+		symmsOut = malloc(NsOut * sizeof *symmsOut); // keep
+		k = 0;
+		for (i = 0; i < 2; i++) {
+		for (j = 0; jMax = symms31[i], j < jMax; j++) {
+			if (i == 0) symmsOut[k] = 3;
+			else        symmsOut[k] = 1;
+			k++;
+		}}
+		CUBDATA->Ns = NsOut;
+		CUBDATA->symms = symmsOut;
 	} else {
-		*w = NULL;
+		CUBDATA->Ns = 0;
+		CUBDATA->symms = NULL;
+	}
+
+	CUBDATA->Nn = NnOut;
+	CUBDATA->rst   = rstOut;
+
+	if (CUBDATA->return_w) {
+		CUBDATA->w = wOut;
+	} else {
+		CUBDATA->w = NULL;
 	}
 }
 
-void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *Nn, unsigned int *Ns,
-                  const unsigned int return_w, const unsigned int P, const unsigned int d, const char *NodeType)
+void cubature_TET (struct S_CUBATURE *const CUBDATA)
 {
 	/*
 	 *	Purpose:
@@ -536,6 +556,11 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 	 *		WV  : pyfr/quadrules/tet + conversion to barycentric coordinates (ToBeModified: See python script)
 	 */
 
+	char const *const NodeType = CUBDATA->NodeType;
+
+	unsigned int const d  = CUBDATA->d,
+	                   P  = CUBDATA->P;
+
 	// Standard datatypes
 	static unsigned int perms_TRI[18] = { 0, 1, 2,
 	                                      2, 0, 1,
@@ -566,7 +591,7 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 	w_read = wOut = NULL;
 
 	if (strstr(NodeType,"AO")) {
-		if (return_w)
+		if (CUBDATA->return_w)
 			printf("Error: Invalid value for return_w in cubature_TET.\n"), exit(1);
 
 		PMax = 15;
@@ -633,7 +658,7 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 	}
 
 	// Read weights
-	if (return_w) {
+	if (CUBDATA->return_w) {
 		for (iMax = 1; iMax--; ) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 				; // skip 1 line(s)
@@ -663,7 +688,7 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 		NnOut += symms_count[i]*symms_Nperms[i];
 	}
 
-	if (return_w)
+	if (CUBDATA->return_w)
 		wOut = malloc(NnOut * sizeof *wOut); // free/keep (conditional return_w)
 
 	BCoords_complete = malloc(NnOut*Nc * sizeof *BCoords_complete); // free
@@ -721,7 +746,7 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 			for (k = 0; k < Nc; k++)
 				BCoords_complete[(NnOut-N1+Ind1)*Nc+k] = BCoords_tmp[k];
 
-			if (return_w)
+			if (CUBDATA->return_w)
 				wOut[NnOut-N1+Ind1] = w_read[IndB];
 
 			Ind1++;
@@ -739,7 +764,7 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 					jMax += k;
 
 				for (j = 0; j < jMax; j++) {
-					if (return_w)
+					if (CUBDATA->return_w)
 						wOut[IndBC] = w_read[IndB];
 
 					for (k = 0; k < Nc-1; k++)
@@ -768,40 +793,42 @@ void cubature_TET(double **rst, double **w, unsigned int **symms, unsigned int *
 	free(BCoords);
 	free(w_read);
 
-	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_V);
-	// keep (requires external free)
+	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_V); // keep
 	free(BCoords_complete);
 
 //array_print_d(NnOut,d,rstOut,'C');
 
-	NsOut = 0;
-	for (i = 0; i < 2; i++)
-		NsOut += symms31[i];
+	if (CUBDATA->return_symm) {
+		NsOut = 0;
+		for (i = 0; i < 2; i++)
+			NsOut += symms31[i];
 
-	symmsOut = malloc(NsOut * sizeof *symmsOut); // keep (requires external free)
-	k = 0;
-	for (i = 0; i < 2; i++) {
-	for (j = 0; jMax = symms31[i], j < jMax; j++) {
-		if (i == 0) symmsOut[k] = 3;
-		else        symmsOut[k] = 1;
-		k++;
-	}}
-
-	*rst   = rstOut;
-	*symms = symmsOut;
-
-	*Nn = NnOut;
-	*Ns = NsOut;
-
-	if (return_w) {
-		*w = wOut;
+		symmsOut = malloc(NsOut * sizeof *symmsOut); // keep
+		k = 0;
+		for (i = 0; i < 2; i++) {
+		for (j = 0; jMax = symms31[i], j < jMax; j++) {
+			if (i == 0) symmsOut[k] = 3;
+			else        symmsOut[k] = 1;
+			k++;
+		}}
+		CUBDATA->Ns = NsOut;
+		CUBDATA->symms = symmsOut;
 	} else {
-		*w = NULL;
+		CUBDATA->Ns = 0;
+		CUBDATA->symms = NULL;
+	}
+
+	CUBDATA->Nn = NnOut;
+	CUBDATA->rst   = rstOut;
+
+	if (CUBDATA->return_w) {
+		CUBDATA->w = wOut;
+	} else {
+		CUBDATA->w = NULL;
 	}
 }
 
-void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *Nn, unsigned int *Ns,
-                  const unsigned int return_w, const unsigned int P, const unsigned int d, const char *NodeType)
+void cubature_PYR (struct S_CUBATURE *const CUBDATA)
 {
 	/*
 	 *	Purpose:
@@ -883,6 +910,11 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	 *		WV  : pyfr/quadrules/pyr + conversion to barycentric coordinates (ToBeModified: See python script)
 	 */
 
+	char const *const NodeType = CUBDATA->NodeType;
+
+	unsigned int const d  = CUBDATA->d,
+	                   P  = CUBDATA->P;
+
 	// Standard datatypes
 	static unsigned int perms_QUAD[16] = { 0, 1, 2, 3,
 	                                       3, 0, 1, 2,
@@ -909,7 +941,7 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 
 	if (strstr(NodeType,"GL") || strstr(NodeType,"GJ")) {
 		if (strstr(NodeType,"W") == NULL) {
-			if (return_w)
+			if (CUBDATA->return_w)
 				printf("Error: Invalid value for return_w in cubature_PYR.\n"), exit(1);
 
 			if (strstr(NodeType,"GL"))
@@ -930,7 +962,7 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	}
 
 	if (P > PMax)
-		printf("Error: %s PYR nodes of order %d are not available.\n",NodeType,P), exit(1);
+		printf("Error: %s PYR nodes of order %d are not available.\n",NodeType,P), EXIT_MSG;
 
 	Nc = 5;
 
@@ -986,7 +1018,7 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	}
 
 	// Read weights
-	if (return_w) {
+	if (CUBDATA->return_w) {
 		for (iMax = 1; iMax--; ) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 				; // skip 1 line(s)
@@ -1017,7 +1049,7 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 		NnOut += symms_count[i]*symms_Nperms[i];
 	}
 
-	if (return_w)
+	if (CUBDATA->return_w)
 		wOut = malloc(NnOut * sizeof *wOut); // free/keep (conditional return_w)
 
 	BCoords_complete = malloc(NnOut*Nc * sizeof *BCoords_complete); // free
@@ -1057,7 +1089,7 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 			for (k = 0; k < Nc; k++)
 				BCoords_complete[(NnOut-N1+Ind1)*Nc+k] = BCoords_tmp[k];
 
-			if (return_w)
+			if (CUBDATA->return_w)
 				wOut[NnOut-N1+Ind1] = w_read[IndB];
 
 			Ind1++;
@@ -1075,7 +1107,7 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 				}
 
 				for (j = 0; j < 4; j++) {
-					if (return_w)
+					if (CUBDATA->return_w)
 						wOut[IndBC] = w_read[IndB];
 
 					for (k = 0; k < Nc-1; k++)
@@ -1102,35 +1134,97 @@ void cubature_PYR(double **rst, double **w, unsigned int **symms, unsigned int *
 	free(BCoords);
 	free(w_read);
 
-	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_V);
-	// keep (requires external free)
+	rstOut = mm_Alloc_d(CblasColMajor,CblasTrans,CblasNoTrans,NnOut,d,Nc,1.0,BCoords_complete,rst_V); // keep
 	free(BCoords_complete);
 
 //array_print_d(NnOut,d,rstOut,'C');
 
-	NsOut = 0;
-	for (i = 0; i < 2; i++)
-		NsOut += symms41[i];
+	if (CUBDATA->return_symm) {
+		NsOut = 0;
+		for (i = 0; i < 2; i++)
+			NsOut += symms41[i];
 
-	symmsOut = malloc(NsOut * sizeof *symmsOut); // keep (requires external free)
-	k = 0;
-	for (i = 0; i < 2; i++) {
-	for (j = 0; jMax = symms41[i], j < jMax; j++) {
-		if (i == 0) symmsOut[k] = 4;
-		else        symmsOut[k] = 1;
-		k++;
-	}}
+		symmsOut = malloc(NsOut * sizeof *symmsOut); // keep
+		k = 0;
+		for (i = 0; i < 2; i++) {
+		for (j = 0; jMax = symms41[i], j < jMax; j++) {
+			if (i == 0) symmsOut[k] = 4;
+			else        symmsOut[k] = 1;
+			k++;
+		}}
+		CUBDATA->Ns = NsOut;
+		CUBDATA->symms = symmsOut;
+	} else {
+		CUBDATA->Ns = 0;
+		CUBDATA->symms = NULL;
+	}
 
-	*rst   = rstOut;
-	*symms = symmsOut;
+	CUBDATA->Nn = NnOut;
+	CUBDATA->rst   = rstOut;
 
-	*Nn = NnOut;
-	*Ns = NsOut;
-
-	if (return_w) {
-		*w = wOut;
+	if (CUBDATA->return_w) {
+		CUBDATA->w = wOut;
 	} else {
 		free(wOut);
-		*w = NULL;
+		CUBDATA->w = NULL;
+	}
+}
+
+void set_cubdata (struct S_CUBATURE *const CUBDATA, bool const return_w, bool const return_symm,
+                  char const *const NodeType, unsigned int const d, unsigned int const P, cubature_tdef cubature)
+{
+	CUBDATA->return_w    = return_w;
+	CUBDATA->return_symm = return_symm;
+
+	CUBDATA->NodeType = NodeType;
+	CUBDATA->d = d;
+	CUBDATA->P = P;
+
+	cubature(CUBDATA); // keep
+}
+
+struct S_CUBATURE *cub_constructor (bool const return_w, bool const return_symm, char const *const NodeType,
+                                    unsigned int const d, unsigned int const P, cubature_tdef cubature)
+{
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // keep
+
+	CUBDATA->return_w    = return_w;
+	CUBDATA->return_symm = return_symm;
+
+	CUBDATA->NodeType = NodeType;
+	CUBDATA->d = d;
+	CUBDATA->P = P;
+
+	cubature(CUBDATA); // keep
+
+	return CUBDATA;
+}
+
+void cub_destructor (struct S_CUBATURE *CUBDATA)
+{
+	free(CUBDATA->rst);
+
+	if (CUBDATA->return_w)
+		free(CUBDATA->w);
+
+	if (CUBDATA->return_symm)
+		free(CUBDATA->symms);
+
+	free(CUBDATA);
+}
+
+void set_from_cubdata (struct S_CUBATURE const *const CUBDATA, unsigned int *Nn, unsigned int *Ns, double **rst,
+                       double **w, unsigned int **symms)
+{
+	*Nn  = CUBDATA->Nn;
+	*rst = CUBDATA->rst;
+
+	if (CUBDATA->return_w) {
+		*w = CUBDATA->w;
+	}
+
+	if (CUBDATA->return_symm) {
+		*Ns    = CUBDATA->Ns;
+		*symms = CUBDATA->symms;
 	}
 }

@@ -76,6 +76,8 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 
 static void add_source(const struct S_VOLUME *VOLUME)
 {
+// Potential different treatment for Poisson and Euler equations -> Investigate (ToBeDeleted).
+
 	// Initialize DB Parameters
 	unsigned int d   = DB.d,
 	             Neq = DB.Neq;
@@ -108,7 +110,8 @@ static void add_source(const struct S_VOLUME *VOLUME)
 			f_vI[eq*NvnI+n] *= w_vI[n]*detJV_vI[n];
 	}
 
-	mm_d(CBCM,CBNT,CBNT,NvnS,Neq,NvnI,-1.0,1.0,OPS->ChiS_vI,f_vI,VOLUME->RHS);
+//	mm_d(CBCM,CBNT,CBNT,NvnS,Neq,NvnI,-1.0,1.0,OPS->ChiS_vI,f_vI,VOLUME->RHS);
+	mm_d(CBCM,CBNT,CBNT,NvnS,Neq,NvnI, 1.0,1.0,OPS->ChiS_vI,f_vI,VOLUME->RHS);
 	free(f_vI);
 
 	free(OPS);
@@ -124,41 +127,38 @@ double finalize_RHS(void)
 
 	// Standard datatypes
 	unsigned int iMax, jMax,
-	             NvnSIn, NvnSOut, Boundary;
-	double       maxRHS, maxRHSV, *VRHSIn_ptr, *VRHSOut_ptr, *FRHSIn_ptr, *FRHSOut_ptr, *detJV_vI_ptr,
+	             NvnSL, NvnSR, Boundary;
+	double       maxRHS, maxRHSV, *VRHSL_ptr, *VRHSR_ptr, *FRHSL_ptr, *FRHSR_ptr, *detJV_vI_ptr,
 	             *RHS_Final;
 
-	struct S_VOLUME    *VIn, *VOut, *VOLUME;
+	struct S_VOLUME    *VL, *VR, *VOLUME;
 	struct S_FACE     *FACE;
 
 	// silence
-	NvnSIn = 0;
+	NvnSL = 0;
 
 	for (FACE = DB.FACE; FACE; FACE = FACE->next) {
-		VIn    = FACE->VIn;
-		NvnSIn = VIn->NvnS;
+		VL    = FACE->VL;
+		NvnSL = VL->NvnS;
 
-		VOut    = FACE->VOut;
-		NvnSOut = VOut->NvnS;
+		VR    = FACE->VR;
+		NvnSR = VR->NvnS;
 
-		VRHSIn_ptr  = VIn->RHS;
-		VRHSOut_ptr = VOut->RHS;
+		VRHSL_ptr = VL->RHS;
+		VRHSR_ptr = VR->RHS;
 
-		FRHSIn_ptr  = FACE->RHSIn;
-		FRHSOut_ptr = FACE->RHSOut;
+		FRHSL_ptr = FACE->RHSL;
+		FRHSR_ptr = FACE->RHSR;
 
 		Boundary = FACE->Boundary;
 		for (iMax = Neq; iMax--; ) {
-			for (jMax = NvnSIn; jMax--; )
-				*VRHSIn_ptr++ += *FRHSIn_ptr++;
+			for (jMax = NvnSL; jMax--; )
+				*VRHSL_ptr++ += *FRHSL_ptr++;
 			if (!Boundary) {
-				for (jMax = NvnSOut; jMax--; )
-					*VRHSOut_ptr++ += *FRHSOut_ptr++;
+				for (jMax = NvnSR; jMax--; )
+					*VRHSR_ptr++ += *FRHSR_ptr++;
 			}
 		}
-
-		free(FACE->RHSIn);
-		free(FACE->RHSOut);
 	}
 
 	// Add source contribution
@@ -171,30 +171,27 @@ double finalize_RHS(void)
 	maxRHS = 0.0;
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		// Compute maxRHS for convergence monitoring
-		NvnSIn = VOLUME->NvnS;
-		maxRHSV = array_norm_d(NvnSIn,VOLUME->RHS,"Inf");
+		NvnSL = VOLUME->NvnS;
+		maxRHSV = array_norm_d(NvnSL,VOLUME->RHS,"Inf");
 		if (maxRHSV > maxRHS)
 			maxRHS = maxRHSV;
 	}
 
 	// Add MInv contribution to RHS for explicit runs
 	if (strstr(SolverType,"Explicit")) {
-		if (SourcePresent)
-			printf("Warning: Ensure that sources are being treated properly.\n");
-
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			// Add (remaining) MInv contribution to RHS
 			if (Collocated) {
-				VRHSIn_ptr = VOLUME->RHS;
+				VRHSL_ptr = VOLUME->RHS;
 				for (iMax = Neq; iMax--; ) {
 					detJV_vI_ptr = VOLUME->detJV_vI;
-					for (jMax = NvnSIn; jMax--; )
-						*VRHSIn_ptr++ /= *detJV_vI_ptr++;
+					for (jMax = NvnSL; jMax--; )
+						*VRHSL_ptr++ /= *detJV_vI_ptr++;
 				}
 			} else {
-				RHS_Final = malloc(NvnSIn*Neq * sizeof *RHS_Final);
+				RHS_Final = malloc(NvnSL*Neq * sizeof *RHS_Final);
 
-				mm_CTN_d(NvnSIn,Neq,NvnSIn,VOLUME->MInv,VOLUME->RHS,RHS_Final);
+				mm_CTN_d(NvnSL,Neq,NvnSL,VOLUME->MInv,VOLUME->RHS,RHS_Final);
 				free(VOLUME->RHS);
 				VOLUME->RHS = RHS_Final;
 			}

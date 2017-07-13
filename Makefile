@@ -1,4 +1,4 @@
-# Makefile
+# Makefile for most code functionality
 
 # References
 #   GNU Make manual
@@ -8,15 +8,17 @@
 # - .RECIPEPREFIX == \t (TAB)
 
 # Additional make targets:
-# $ make directories
+# directories
+# meshes
 #
-# $ make clean
-# $ make clean_code
-# $ make clean_test
-# $ make clean_exec
+# clean
+# clean_code
+# clean_test
+# clean_exec
+# clean_empty (removes empty directories)
 
-# C standard and compiler
-CSTD := -std=c99
+# C standard
+CSTD := -std=c11
 
 # Options
 OPTS := -O3
@@ -27,94 +29,36 @@ OPTS += -DTEST
 # Standard libraries (Math)
 STD_LIB := -lm
 
-# Machine dependent parameters
-KERNEL  := $(shell uname -s)
+
+DPG_ROOT := $(shell pwd)
+ifeq (,$(wildcard $(DPG_ROOT)/configure/user_configure.mk))
+   $(error The 'configure/user_configure.mk' file is not present. Please create it)
+endif
+include configure/user_configure.mk
+
 
 LOCAL_INC := -I./include
 
-# OSX
-ifeq ($(KERNEL),Darwin)
-#  PROG_PATH := /Users/philipzwanenburg/Desktop/Research_Codes/Downloaded
-  PROG_PATH := /Users/philip/Desktop/research_codes
-
-#  CC := $(PROG_PATH)/petsc/petsc-3.6.3/arch-darwin-mpich-c-debug/bin/mpicc -fopenmp -m64
-#  CC := mpicc -fopenmp -m64
-
-# There is a problem that the -fopenmp -m64 flag is not included in CC. Compiling fine for now => fix later. (ToBeDeleted)
-
-  PETSC_DIR := $(PROG_PATH)/petsc/petsc-3.7.4
-  PETSC_ARCH := arch-osx-mpich-c-opt
-  CC := $(PETSC_DIR)/$(PETSC_ARCH)/bin/mpicc -fopenmp -m64
-
-  # METIS_DIR := $(PROG_PATH)/parmetis/parmetis-4.0.3
-  METIS_DIR := $(PROG_PATH)/parmetis/parmetis-4.0.3/build/opt
-
-  METIS_INC      := -I$(METIS_DIR)/metis/include
-  METIS_LDINC    := -L$(METIS_DIR)/libmetis -lmetis
-  PARMETIS_INC   := -I$(METIS_DIR)/include
-  PARMETIS_LDINC := -L$(METIS_DIR)/libparmetis -lparmetis
-
-  MKL_DIR := $(PROG_PATH)/intel_MKL/mkl
-  MKL_INC   := -I$(MKL_DIR)/include
-  # MKL statically linked on OSX as the -Wl,--no-as-needed option is not supported by the OSX linker
-  MKL_LDINC := $(MKL_DIR)/lib/libmkl_intel_lp64.a $(MKL_DIR)/lib/libmkl_core.a $(MKL_DIR)/lib/libmkl_sequential.a -lpthread
+ifeq ($(MKL_INTERFACE_LAYER),32)
+    MKL_INC := 
+else ifeq ($(MKL_INTERFACE_LAYER),64)
+    MKL_INC := -DMKL_ILP64 -m64
 endif
+MKL_INC += -I$(MKL_DIR)/include
 
-# LINUX
-ifeq ($(KERNEL),Linux)
-  NODENAME := $(shell uname -n)
-  ifeq ($(NODENAME),philip-Aspire-XC-605) #Home
-    PROG_PATH := /home/philip/Desktop/research/programs
 
-#    CC   := $(PROG_PATH)/petsc/petsc-3.7.0/arch-linux-c-/bin/mpicc -fopenmp -m64
-    CC := mpicc -fopenmp -m64
-
-#    PETSC_DIR := $(PROG_PATH)/petsc/petsc-3.7.0
-#    PETSC_ARCH := arch-linux-c-
-    PETSC_DIR := /home/philip/petsc/petsc-3.7.5
-    PETSC_ARCH := linux-c-debug
-
-    METIS_DIR      := $(PROG_PATH)/parmetis/parmetis-4.0.3/build/opt
-    METIS_INC      := -I$(METIS_DIR)/metis/include
-    METIS_LDINC    := -L$(METIS_DIR)/libmetis -lmetis
-    PARMETIS_INC   := -I$(METIS_DIR)/include
-    PARMETIS_LDINC := -L$(METIS_DIR)/libparmetis -lparmetis
-
-    MKL_DIR := $(PROG_PATH)/intel/mkl
-    MKL_INC := -I$(MKL_DIR)/include
-#    MKL_LDINC := -Wl,--no-as-needed -L$(MKL_DIR)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lgomp
-    # Needed when petsc is not linked with MKL during installation
-	MKL_LIBDIR := $(MKL_DIR)/lib/intel64
-    MKL_LDINC := $(MKL_LIBDIR)/libmkl_intel_lp64.so $(MKL_LIBDIR)/libmkl_core.so $(MKL_LIBDIR)/libmkl_sequential.so -lpthread
-  else #Guillimin
-    PROG_PATH := /home/pzwan/programs
-
-    CC   := $(PROG_PATH)/petsc/petsc-3.6.3/arch-linux-mpich-c-opt/bin/mpicc -fopenmp -m64
-
-    PETSC_DIR := $(PROG_PATH)/petsc-3.6.3
-    PETSC_ARCH := arch-linux-mpich-c-opt
-
-    METIS_DIR := $(PROG_PATH)/parmetis-4.0.3/build/opt
-    METIS_INC      := -I$(METIS_DIR)/metis/include
-    METIS_LDINC    := -L$(METIS_DIR)/libmetis -lmetis
-    PARMETIS_INC   := -I$(METIS_DIR)/include
-    PARMETIS_LDINC := -L$(METIS_DIR)/libparmetis -lparmetis
-
-    MKL_DIR := /software/compilers/Intel/2015-15.0/composer_xe_2015.0.090/mkl
-    MKL_INC   := -I$(MKL_DIR)/include
-    MKL_LDINC := -Wl,--no-as-needed -L$(MKL_DIR)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lgomp
-  endif
-endif
-
-# PETSC's 'variables' makefile
 include $(PETSC_DIR)/lib/petsc/conf/variables
 PETSC_INC := $(PETSC_CC_INCLUDES)
 
+METIS_INC      := -I$(METIS_DIR)/metis/include
+METIS_LDINC    := -L$(METIS_DIR)/libmetis -lmetis
+PARMETIS_INC   := -I$(METIS_DIR)/include
+PARMETIS_LDINC := -L$(METIS_DIR)/libparmetis -lparmetis
+
 # Note: Parmetis must be linked before metis
-#LIBS := $(STD_LIB) $(PETSC_LIB) $(PARMETIS_LDINC) $(METIS_LDINC) $(MKL_LDINC)
-#INCS := $(LOCAL_INC) $(PETSC_INC) $(PARMETIS_INC) $(METIS_INC) $(MKL_INC)
 LIBS := $(STD_LIB) $(MKL_LDINC) $(PETSC_LIB) $(PARMETIS_LDINC) $(METIS_LDINC)
 INCS := $(LOCAL_INC) $(MKL_INC) $(PETSC_INC) $(PARMETIS_INC) $(METIS_INC)
+
 
 EXECUTABLE := DPGSolver.exe
 
@@ -123,6 +67,8 @@ INCDIR  := include
 OBJDIR  := obj
 DEPDIR  := depend
 EXECDIR := bin
+CTRLDIR := cases/control_files
+MESHDIR := meshes
 
 nullstring :=
 space := $(nullstring) # Single space
@@ -164,17 +110,6 @@ $(DEPDIR)/%.d : %.c
 	@sed -i -e 's|.*:|$(OBJDIR)/$*.o $(DEPDIR)/$*.d:|' $@
 	@echo Creating/updating: $@
 
-# Additional dependencies needed for modified dynamic memory allocation
-DYN_MEM_DEPS_NOPATH := S_ELEMENT.h S_VOLUME.h S_FACE.h
-DYN_MEM_DEPS        := $(INCDIR)/S_ELEMENT.h $(INCDIR)/S_VOLUME.h $(INCDIR)/S_FACE.h
-
-$(DYN_MEM_DEPS_NOPATH) : $(DYN_MEM_DEPS)
-$(DYN_MEM_DEPS) : memory_constructors.c
-	@echo
-	@echo Updating memory_constructor dependencies.
-	@echo
-	@touch $(DYN_MEM_DEPS)
-
 
 # Create directories if not present
 $(OBJECTS): | $(OBJDIR)
@@ -191,41 +126,88 @@ $(EXECDIR):
 
 
 OUTPUT_LIST   := paraview errors results
-TESTCASE_LIST := Poisson SupersonicVortex InviscidChannel
-# To BeModified (Remove unneeded meshcases folders which may have been created previously)
-MESHCASE_LIST := Ringleb dm1-Spherical_Section Ellipsoidal_Section Annular_Section HoldenRamp GaussianBump NacaSymmetric \
-                 EllipsoidalBump JoukowskiSymmetric
-# ToBeModified (Remove unneeded meshtypes)
-MESHTYPE_LIST := TRI CurvedTRI CurvedQUAD ToBeCurvedTRI ToBeCurvedQUAD Mixed CurvedMixed
+TESTCASE_LIST := Advection_Default \
+                 Advection_Peterson \
+                 Poisson \
+                 Euler_PeriodicVortex \
+                 Euler_PeriodicVortex_Stationary \
+                 Euler_SupersonicVortex \
+                 Euler_ParabolicPipe \
+                 NavierStokes_TaylorCouette \
+                 NavierStokes_PlaneCouette
+
+MESHTYPE_LIST := LINE \
+                 TRI CurvedTRI ToBeCurvedTRI \
+                 QUAD CurvedQUAD ToBeCurvedQUAD \
+                 TET ToBeCurvedTET \
+                 HEX ToBeCurvedHEX \
+                 WEDGE ToBeCurvedWEDGE \
+                 PYR ToBeCurvedPYR \
+                 MIXED2D CurvedMIXED2D ToBeCurvedMIXED2D \
 
 OUTPUT_LIST   := $(subst $(space),$(comma),$(OUTPUT_LIST))
 TESTCASE_LIST := $(subst $(space),$(comma),$(TESTCASE_LIST))
-MESHCASE_LIST := $(subst $(space),$(comma),$(MESHCASE_LIST))
 MESHTYPE_LIST := $(subst $(space),$(comma),$(MESHTYPE_LIST))
 
 
 ### Additional Rules ###
 .PHONY : directories
 directories:
+	@echo
+	@echo Creating directories if not present
 	mkdir -p cases/{$(OUTPUT_LIST)}/{$(TESTCASE_LIST)}/{$(MESHTYPE_LIST)}
-	mkdir -p meshes/{$(MESHCASE_LIST)}
-	mkdir -p meshes/Test
 	@echo
 
 
-.PHONY : clean
+# Python compiler
+PYTHONC := python3
+
+#MAIN_CONFIGURATIONS := Euler
+MAIN_CONFIGURATIONS := $(nullstring)
+TEST_CONFIGURATIONS := update_h L2_proj_p L2_proj_h Advection Poisson Euler NavierStokes
+
+MAIN_CONFIGURATIONS := $(addprefix main/,$(MAIN_CONFIGURATIONS))
+TEST_CONFIGURATIONS := $(addprefix test/,$(TEST_CONFIGURATIONS))
+
+CONFIGURATIONS := $(addprefix $(CTRLDIR)/,$(MAIN_CONFIGURATIONS) $(TEST_CONFIGURATIONS))
+CONTROL_FILES  := $(shell find $(CTRLDIR) -name '*.ctrl')
+MESHVARIABLES  := $(MESHDIR)/MeshVariables $(MESHDIR)/MeshVariables_python
+
+
+.PHONY : meshes
+meshes:
+	@echo
+	$(MAKE) mesh_vars_and_deps
+	$(MAKE) -C meshes meshes_all
+	@echo
+
+
+.PHONY : mesh_vars_and_deps
+mesh_vars_and_deps : $(MESHVARIABLES)
+$(MESHVARIABLES) : $(CONTROL_FILES)
+	@echo
+	@echo Creating MeshVariables file based on existing .ctrl files.
+	cd python && $(PYTHONC) MeshVariables_update.py $(CONFIGURATIONS)
+	@cd python && $(PYTHONC) MeshVariables_remove_duplicates.py
+	cd python/peterson_mesh/ && $(PYTHONC) MeshVariables_update.py
+	@echo
+
+
+
+# Cleaning
+.PHONY : clean clean_test clean_code clean_exec clean_empty
 clean:
 	rm $(EXECUTABLE) $(OBJECTS) $(DEPENDS)
 
-.PHONY : clean_test
 clean_test:
 	rm $(OBJDIR)/test* $(DEPDIR)/test*
 
-.PHONY : clean_code
 clean_code:
 	find $(OBJDIR)/ -type f -not -name 'test*' -delete
 	find $(DEPDIR)/ -type f -not -name 'test*' -delete
 
-.PHONY : clean_exec
 clean_exec:
 	rm $(OBJDIR)/main.o $(DEPDIR)/main.d
+
+clean_empty:
+	find . -type d -empty -delete

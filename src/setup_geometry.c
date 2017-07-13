@@ -84,22 +84,22 @@ void setup_FACE_XYZ(struct S_FACE *FACE)
 	             Adapt = DB.Adapt;
 
 	// Standard datatypes
-	unsigned int VfIn, fIn, Eclass, IndFType, NvnG, NfnS, NfnI;
+	unsigned int VfL, fIn, Eclass, IndFType, NvnG, NfnS, NfnI;
 	double       *XYZ_fS, *XYZ_fI;
 
 	struct S_OPERATORS *OPS;
-	struct S_VOLUME    *VIn;
+	struct S_VOLUME    *VL;
 
 	OPS = malloc(sizeof *OPS); // free
 
-	VIn  = FACE->VIn;
-	VfIn = FACE->VfIn;
-	fIn  = VfIn/NFREFMAX;
+	VL  = FACE->VL;
+	VfL = FACE->VfL;
+	fIn  = VfL/NFREFMAX;
 
-	Eclass = get_Eclass(VIn->type);
+	Eclass = get_Eclass(VL->type);
 	IndFType = get_IndFType(Eclass,fIn);
 
-	init_ops(OPS,VIn,FACE,IndFType);
+	init_ops(OPS,VL,FACE,IndFType);
 
 	NvnG = OPS->NvnG;
 	switch (Adapt) {
@@ -108,7 +108,7 @@ printf("Error: Should not be entering default in setup_FACE_XYZ.\n"), exit(1);
 		NfnS = OPS->NfnS;
 
 		XYZ_fS = malloc(NfnS*d *sizeof *XYZ_fS); // keep
-		mm_CTN_d(NfnS,d,NvnG,OPS->I_vG_fS[VfIn],VIn->XYZ,XYZ_fS);
+		mm_CTN_d(NfnS,d,NvnG,OPS->I_vG_fS[VfL],VL->XYZ,XYZ_fS);
 
 		FACE->XYZ_fS = XYZ_fS;
 		break;
@@ -119,7 +119,7 @@ case ADAPT_HP:
 		NfnI = OPS->NfnI;
 
 		XYZ_fI = malloc(NfnI*d *sizeof *XYZ_fI); // keep
-		mm_CTN_d(NfnI,d,NvnG,OPS->I_vG_fI[VfIn],VIn->XYZ,XYZ_fI);
+		mm_CTN_d(NfnI,d,NvnG,OPS->I_vG_fI[VfL],VL->XYZ,XYZ_fI);
 
 		if (FACE->XYZ_fI)
 			free(FACE->XYZ_fI);
@@ -167,8 +167,8 @@ static void mark_curved_vertices()
 				RinglebType = 'w';
 		}
 
-		VOLUME = FACE->VIn;
-		f      = (FACE->VfIn)/NFREFMAX;
+		VOLUME = FACE->VL;
+		f      = (FACE->VfL)/NFREFMAX;
 
 		ELEMENT = get_ELEMENT_type(VOLUME->type);
 
@@ -294,8 +294,8 @@ static void set_VOLUME_BC_info(void)
 		if (!FACE->BC)
 			continue;
 
-		Vf = FACE->VfIn;
-		FACE->VIn->BC[0][Vf/NFREFMAX] = FACE->BC;
+		Vf = FACE->VfL;
+		FACE->VL->BC[0][Vf/NFREFMAX] = FACE->BC;
 	}
 }
 
@@ -309,7 +309,7 @@ void setup_geometry(void)
 	             *EToVe    = DB.EToVe;
 	double       *VeXYZ    = DB.VeXYZ;
 
-	unsigned int PrintTesting = 0;
+	unsigned int PrintTesting = 1;
 
 	// Standard datatypes
 	unsigned int ve, dim, P, vn, Vs,
@@ -401,8 +401,7 @@ void setup_geometry(void)
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 			setup_ToBeCurved(VOLUME);
 	} else if (strstr(MeshType,"Curved")) {
-//		if (!DB.MPIrank && !DB.Testing)
-		if (!DB.MPIrank)
+		if (!DB.MPIrank && !DB.Testing)
 			printf("    Set geometry of VOLUME nodes in Curved Mesh\n");
 
 		set_VOLUME_BC_info();

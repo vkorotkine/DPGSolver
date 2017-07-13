@@ -14,13 +14,13 @@
 #include "S_FACE.h"
 
 #include "adaptation.h"
+#include "memory_constructors_ELEMENT.h"
 
 /*
  *	Purpose:
  *		Allocate memory for and initialize new structures.
  *
  *	Comments:
- *		Split this function into memory_constructor for each struct type to minimize dependencies. (ToBeDeleted)
  *		Change all initializations from 0 to UINT_MAX. (ToBeDeleted)
  *		GfS_fIs/c may not be needed based on FACE_info testing. See comments at the start of explicit_FACE_Info.
  *		(ToBeDeleted)
@@ -33,15 +33,10 @@
 struct S_ELEMENT *New_ELEMENT(void)
 {
 	// Initialize DB Parameters
-	unsigned int d    = DB.d,
-	             NP   = DB.NP;
+	unsigned int const d  = DB.d,
+	                   NP = DB.NP;
 
-	// Standard datatypes
-	unsigned int P, Pb, Vf, PbMin, PbMax;
-
-	struct S_ELEMENT *ELEMENT;
-
-	ELEMENT = malloc(sizeof *ELEMENT); // free
+	struct S_ELEMENT *ELEMENT = malloc(sizeof *ELEMENT); // free
 
 	// Mesh
 	ELEMENT->present = 0;
@@ -112,12 +107,18 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->ChiInvS_vS   = calloc(NP , sizeof *(ELEMENT->ChiInvS_vS));   // free
 	ELEMENT->ChiInvGs_vGs = calloc(NP , sizeof *(ELEMENT->ChiInvGs_vGs)); // free
 
+	ELEMENT->ChiBezInvS_vS = calloc(NP , sizeof *(ELEMENT->ChiBezInvS_vS)); // free
+
 	ELEMENT->IG2 = calloc(NP , sizeof *(ELEMENT->IG2)); // free
 	ELEMENT->IGc = calloc(NP , sizeof *(ELEMENT->IGc)); // free
 	ELEMENT->ICs = calloc(NP , sizeof *(ELEMENT->ICs)); // free
 	ELEMENT->ICc = calloc(NP , sizeof *(ELEMENT->ICc)); // free
 
-	ELEMENT->TGs = calloc(NP , sizeof *(ELEMENT->TGs)); // free
+	ELEMENT->TGs   = calloc(NP , sizeof *(ELEMENT->TGs));   // free
+	ELEMENT->TS    = calloc(NP , sizeof *(ELEMENT->TS));    // free
+	ELEMENT->TS_vB = calloc(NP , sizeof *(ELEMENT->TS_vB)); // free
+
+	ELEMENT->TInvS_vB = calloc(NP , sizeof *(ELEMENT->TInvS_vB)); // free
 
 	ELEMENT->VeMask = calloc(NP , sizeof *(ELEMENT->VeMask)); // free
 
@@ -203,10 +204,10 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->Dc_Weak_VV    = calloc(NP , sizeof *(ELEMENT->Dc_Weak_VV));    // free
 	ELEMENT->Ds_Weak_VV_sp = calloc(NP , sizeof *(ELEMENT->Ds_Weak_VV_sp)); // free
 	ELEMENT->Dc_Weak_VV_sp = calloc(NP , sizeof *(ELEMENT->Dc_Weak_VV_sp)); // free
-	ELEMENT->Is_Weak_FF    = calloc(NP , sizeof *(ELEMENT->Is_Weak_FF));    // free
-	ELEMENT->Ic_Weak_FF    = calloc(NP , sizeof *(ELEMENT->Ic_Weak_FF));    // free
-	ELEMENT->Is_Weak_FF_sp = calloc(NP , sizeof *(ELEMENT->Is_Weak_FF_sp)); // free
-	ELEMENT->Ic_Weak_FF_sp = calloc(NP , sizeof *(ELEMENT->Ic_Weak_FF_sp)); // free
+	ELEMENT->Is_Weak_FV    = calloc(NP , sizeof *(ELEMENT->Is_Weak_FV));    // free
+	ELEMENT->Ic_Weak_FV    = calloc(NP , sizeof *(ELEMENT->Ic_Weak_FV));    // free
+	ELEMENT->Is_Weak_FV_sp = calloc(NP , sizeof *(ELEMENT->Is_Weak_FV_sp)); // free
+	ELEMENT->Ic_Weak_FV_sp = calloc(NP , sizeof *(ELEMENT->Ic_Weak_FV_sp)); // free
 
 	ELEMENT->L2hat_vS_vS = calloc(NP , sizeof *(ELEMENT->L2hat_vS_vS)); // free
 	ELEMENT->GfS_fIs    = calloc(NP , sizeof *(ELEMENT->GfS_fIs));    // free
@@ -215,6 +216,10 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->nOrd_fS   = calloc(NP , sizeof *(ELEMENT->nOrd_fS));  // free
 	ELEMENT->nOrd_fIs  = calloc(NP , sizeof *(ELEMENT->nOrd_fIs)); // free
 	ELEMENT->nOrd_fIc  = calloc(NP , sizeof *(ELEMENT->nOrd_fIc)); // free
+
+
+	constructors_ELEMENT(ELEMENT);
+
 
 
 	ELEMENT->TGs[1] = calloc(NP , sizeof **(ELEMENT->TGs));
@@ -248,7 +253,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 	ELEMENT->I_eGs_vG2[1] = calloc(NP , sizeof **(ELEMENT->I_eGs_vG2));
 	ELEMENT->I_eGs_vGc[1] = calloc(NP , sizeof **(ELEMENT->I_eGs_vGc));
 
-	for (P = 0; P < NP; P++) {
+	for (size_t P = 0; P < NP; P++) {
 		ELEMENT->NfnG2[P] = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnG2));
 		ELEMENT->NfnGc[P] = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnGc));
 		ELEMENT->NfnS[P]  = calloc(NESUBCMAX , sizeof **(ELEMENT->NfnS));
@@ -264,10 +269,17 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->ChiS_vIc[P]   = calloc(NP , sizeof **(ELEMENT->ChiS_vIc));
 		ELEMENT->ChiInvS_vS[P] = calloc(NP , sizeof **(ELEMENT->ChiInvS_vS));
 
+		ELEMENT->ChiBezInvS_vS[P] = calloc(NP , sizeof **(ELEMENT->ChiBezInvS_vS));
+
 		ELEMENT->IG2[P] = calloc(NP , sizeof **(ELEMENT->IG2));
 		ELEMENT->IGc[P] = calloc(NP , sizeof **(ELEMENT->IGc));
 		ELEMENT->ICs[P] = calloc(NP , sizeof **(ELEMENT->ICs));
 		ELEMENT->ICc[P] = calloc(NP , sizeof **(ELEMENT->ICc));
+
+		ELEMENT->TS[P]    = calloc(NP , sizeof **(ELEMENT->TS));
+		ELEMENT->TS_vB[P] = calloc(NP , sizeof **(ELEMENT->TS_vB));
+
+		ELEMENT->TInvS_vB[P] = calloc(NP , sizeof **(ELEMENT->TInvS_vB));
 
 		ELEMENT->I_vGc_vP[P]  = calloc(NP , sizeof **(ELEMENT->I_vGc_vP));
 		ELEMENT->I_vGc_vCc[P] = calloc(NP , sizeof **(ELEMENT->I_vGc_vCc));
@@ -332,17 +344,18 @@ struct S_ELEMENT *New_ELEMENT(void)
 		ELEMENT->Dc_Weak_VV[P]    = calloc(NP , sizeof **(ELEMENT->Dc_Weak_VV));
 		ELEMENT->Ds_Weak_VV_sp[P] = calloc(NP , sizeof **(ELEMENT->Ds_Weak_VV_sp));
 		ELEMENT->Dc_Weak_VV_sp[P] = calloc(NP , sizeof **(ELEMENT->Dc_Weak_VV_sp));
-		ELEMENT->Is_Weak_FF[P]    = calloc(NP , sizeof **(ELEMENT->Is_Weak_FF));
-		ELEMENT->Ic_Weak_FF[P]    = calloc(NP , sizeof **(ELEMENT->Ic_Weak_FF));
-		ELEMENT->Is_Weak_FF_sp[P] = calloc(NP , sizeof **(ELEMENT->Is_Weak_FF_sp));
-		ELEMENT->Ic_Weak_FF_sp[P] = calloc(NP , sizeof **(ELEMENT->Ic_Weak_FF_sp));
+		ELEMENT->Is_Weak_FV[P]    = calloc(NP , sizeof **(ELEMENT->Is_Weak_FV));
+		ELEMENT->Ic_Weak_FV[P]    = calloc(NP , sizeof **(ELEMENT->Ic_Weak_FV));
+		ELEMENT->Is_Weak_FV_sp[P] = calloc(NP , sizeof **(ELEMENT->Is_Weak_FV_sp));
+		ELEMENT->Ic_Weak_FV_sp[P] = calloc(NP , sizeof **(ELEMENT->Ic_Weak_FV_sp));
 
 		ELEMENT->L2hat_vS_vS[P] = calloc(NP , sizeof **(ELEMENT->L2hat_vS_vS));
 		ELEMENT->GfS_fIs[P]    = calloc(NP , sizeof **(ELEMENT->GfS_fIs));
 		ELEMENT->GfS_fIc[P]    = calloc(NP , sizeof **(ELEMENT->GfS_fIc));
 
+		size_t PbMin, PbMax;
 		get_Pb_range(P,&PbMin,&PbMax);
-		for (Pb = PbMin; Pb <= PbMax; Pb++) {
+		for (size_t Pb = PbMin; Pb <= PbMax; Pb++) {
 			ELEMENT->ChiS_vS[P][Pb]    = calloc(NVREFSFMAX , sizeof ***(ELEMENT->ChiS_vS));
 			ELEMENT->ChiS_vIs[P][Pb]   = calloc(NVREFSFMAX , sizeof ***(ELEMENT->ChiS_vIs));
 			ELEMENT->ChiS_vIc[P][Pb]   = calloc(NVREFMAX   , sizeof ***(ELEMENT->ChiS_vIc));
@@ -369,12 +382,18 @@ struct S_ELEMENT *New_ELEMENT(void)
 				ELEMENT->ChiInvS_vS[P][Pb]   = calloc(1 , sizeof ***(ELEMENT->ChiInvS_vS));
 				ELEMENT->ChiInvGs_vGs[1][Pb] = calloc(1 , sizeof ***(ELEMENT->ChiInvGs_vGs));
 
+				ELEMENT->ChiBezInvS_vS[P][Pb] = calloc(1 , sizeof ***(ELEMENT->ChiBezInvS_vS));
+
 				ELEMENT->IG2[P][Pb] = calloc(1 , sizeof ***(ELEMENT->IG2));
 				ELEMENT->IGc[P][Pb] = calloc(1 , sizeof ***(ELEMENT->IGc));
 				ELEMENT->ICs[P][Pb] = calloc(1 , sizeof ***(ELEMENT->ICs));
 				ELEMENT->ICc[P][Pb] = calloc(1 , sizeof ***(ELEMENT->ICc));
 
-				ELEMENT->TGs[1][Pb] = calloc(1 , sizeof ***(ELEMENT->TGs));
+				ELEMENT->TGs[1][Pb]   = calloc(1 , sizeof ***(ELEMENT->TGs));
+				ELEMENT->TS[P][Pb]    = calloc(1 , sizeof ***(ELEMENT->TS));
+				ELEMENT->TS_vB[P][Pb] = calloc(1 , sizeof ***(ELEMENT->TS_vB));
+
+				ELEMENT->TInvS_vB[P][Pb] = calloc(1 , sizeof ***(ELEMENT->TInvS_vB));
 
 				ELEMENT->VeMask[1][Pb] = calloc(NVREFMAX , sizeof ***(ELEMENT->VeMask));
 
@@ -427,7 +446,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 				ELEMENT->D_vGs_fIs[1][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->D_vGs_fIs));
 				ELEMENT->D_vGs_fIc[1][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->D_vGs_fIc));
 
-				for (Vf = 0; Vf < NFREFMAX*NFMAX; Vf++) {
+				for (size_t Vf = 0; Vf < NFREFMAX*NFMAX; Vf++) {
 					ELEMENT->D_vGs_fIs[1][Pb][Vf] = calloc(d , sizeof ****(ELEMENT->D_vGs_fIs));
 					ELEMENT->D_vGs_fIc[1][Pb][Vf] = calloc(d , sizeof ****(ELEMENT->D_vGs_fIc));
 				}
@@ -453,7 +472,7 @@ struct S_ELEMENT *New_ELEMENT(void)
 			ELEMENT->GradChiS_fIs[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->GradChiS_fIs));
 			ELEMENT->GradChiS_fIc[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->GradChiS_fIc));
 
-			for (Vf = 0; Vf < NFREFMAX*NFMAX; Vf++) {
+			for (size_t Vf = 0; Vf < NFREFMAX*NFMAX; Vf++) {
 				ELEMENT->GradChiS_fIs[P][Pb][Vf] = calloc(d , sizeof ***(ELEMENT->GradChiS_fIs));
 				ELEMENT->GradChiS_fIc[P][Pb][Vf] = calloc(d , sizeof ***(ELEMENT->GradChiS_fIc));
 			}
@@ -477,15 +496,15 @@ struct S_ELEMENT *New_ELEMENT(void)
 			ELEMENT->I_vGc_eGc[P][Pb] = calloc(NEREFMAX*NEMAX , sizeof ***(ELEMENT->I_vGc_eGc));
 			ELEMENT->I_vG2_eG2[P][Pb] = calloc(NEREFMAX*NEMAX , sizeof ***(ELEMENT->I_vG2_eG2));
 
-			for (Vf = 0; Vf < NFREFMAX*NFMAX; Vf++) {
+			for (size_t Vf = 0; Vf < NFREFMAX*NFMAX; Vf++) {
 				ELEMENT->D_vGc_fIs[P][Pb][Vf] = calloc(d , sizeof ****(ELEMENT->D_vGc_fIs));
 				ELEMENT->D_vGc_fIc[P][Pb][Vf] = calloc(d , sizeof ****(ELEMENT->D_vGc_fIc));
 			}
 
-			ELEMENT->Is_Weak_FF[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Is_Weak_FF));
-			ELEMENT->Ic_Weak_FF[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Ic_Weak_FF));
-			ELEMENT->Is_Weak_FF_sp[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Is_Weak_FF_sp));
-			ELEMENT->Ic_Weak_FF_sp[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Ic_Weak_FF_sp));
+			ELEMENT->Is_Weak_FV[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Is_Weak_FV));
+			ELEMENT->Ic_Weak_FV[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Ic_Weak_FV));
+			ELEMENT->Is_Weak_FV_sp[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Is_Weak_FV_sp));
+			ELEMENT->Ic_Weak_FV_sp[P][Pb] = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->Ic_Weak_FV_sp));
 
 			ELEMENT->L2hat_vS_vS[P][Pb] = calloc(NVREFMAX       , sizeof ***(ELEMENT->L2hat_vS_vS));
 			ELEMENT->GfS_fIs[P][Pb]    = calloc(NFREFMAX*NFMAX , sizeof ***(ELEMENT->GfS_fIs));
@@ -554,6 +573,13 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->NvnS = UINT_MAX;
 	VOLUME->What = NULL; // free
 	VOLUME->RES  = NULL; // free
+	VOLUME->QhatV = calloc(d , sizeof *(VOLUME->QhatV)); // free
+	VOLUME->Qhat  = calloc(d , sizeof *(VOLUME->Qhat));  // free
+
+	VOLUME->QhatV_What = calloc(d , sizeof *(VOLUME->QhatV_What)); // free
+	VOLUME->Qhat_What  = calloc(d , sizeof *(VOLUME->Qhat_What));  // free
+
+	VOLUME->What_MA = NULL; // tbd
 
 	// Solving
 	VOLUME->IndA  = UINT_MAX;
@@ -561,14 +587,17 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->nnz_o = UINT_MAX;
 	VOLUME->RHS   = NULL; // free
 	VOLUME->LHS   = NULL; // free
-	VOLUME->MInv  = NULL; // free
+	VOLUME->LHSQ  = calloc(d , sizeof *(VOLUME->LHSQ)); // free
+
+	VOLUME->MInv      = NULL; // free
+	VOLUME->MInv_diag = NULL; // free
 
 	// Linearization testing
 	VOLUME->What_c = NULL; // free
 	VOLUME->RHS_c  = NULL; // free
 
-	VOLUME->uhat_c = NULL; // free
-	VOLUME->qhat_c = calloc(d , sizeof *(VOLUME->qhat_c)); // free
+	VOLUME->QhatV_c = calloc(d , sizeof *(VOLUME->QhatV_c)); // free
+	VOLUME->Qhat_c  = calloc(d , sizeof *(VOLUME->Qhat_c));  // free
 
 	// hp adaptivity
 //	VOLUME->minRES = 0.0;
@@ -581,13 +610,6 @@ struct S_VOLUME *New_VOLUME(void)
 	VOLUME->hrefine_type   = UINT_MAX;
 
 	VOLUME->XYZ_vVP2 = NULL; // free
-
-	// Poisson
-	VOLUME->uhat      = NULL; // free
-	VOLUME->qhat      = calloc(d , sizeof *(VOLUME->qhat)); // free
-	VOLUME->qhat_uhat = calloc(d , sizeof *(VOLUME->qhat)); // free
-
-	VOLUME->DxyzChiS = calloc(d , sizeof *(VOLUME->DxyzChiS)); // free
 
 	// structs
 	VOLUME->next    = NULL;
@@ -612,17 +634,18 @@ struct S_FACE *New_FACE(void)
 	FACE->P      = UINT_MAX;
 	FACE->type   = UINT_MAX;
 	FACE->BC     = UINT_MAX;
+	FACE->Boundary = UINT_MAX;
 	FACE->level  = 0;
 	FACE->update = 0;
 	FACE->adapt_type = UINT_MAX;
 
-	FACE->VIn   = NULL; // free (in memory_destructor_V)
-	FACE->VOut  = NULL; // free (in memory_destructor_V)
-	FACE->VfIn  = UINT_MAX;
-	FACE->VfOut = UINT_MAX;
+	FACE->VL  = NULL; // free (in memory_destructor_V)
+	FACE->VR  = NULL; // free (in memory_destructor_V)
+	FACE->VfL = UINT_MAX;
+	FACE->VfR = UINT_MAX;
 
-	FACE->IndOrdInOut = UINT_MAX;
-	FACE->IndOrdOutIn = UINT_MAX;
+	FACE->IndOrdLR = UINT_MAX;
+	FACE->IndOrdRL = UINT_MAX;
 
 	// Geometry
 	FACE->curved  = 0;
@@ -639,28 +662,28 @@ struct S_FACE *New_FACE(void)
 	FACE->detJVOut_fI = NULL; // free
 
 	// Solving
-	FACE->RHSIn  = NULL; // free (in finalize_RHS)
-	FACE->RHSOut = NULL; // free (in finalize_RHS)
+	FACE->RHSL = NULL; // free
+	FACE->RHSR = NULL; // free
 
-	FACE->LHSInIn   = NULL; // free (in finalize_LHS)
-	FACE->LHSOutIn  = NULL; // free (in finalize_LHS)
-	FACE->LHSInOut  = NULL; // free (in finalize_LHS)
-	FACE->LHSOutOut = NULL; // free (in finalize_LHS)
+	FACE->LHSLL = NULL; // free
+	FACE->LHSRL = NULL; // free
+	FACE->LHSLR = NULL; // free
+	FACE->LHSRR = NULL; // free
 
-	// Poisson
-	FACE->qhatIn  = calloc(d , sizeof *(FACE->qhatIn));  // free
-	FACE->qhatOut = calloc(d , sizeof *(FACE->qhatOut)); // free
-	FACE->qhat_uhatInIn   = calloc(d , sizeof *(FACE->qhat_uhatInIn));   // free
-	FACE->qhat_uhatOutIn  = calloc(d , sizeof *(FACE->qhat_uhatOutIn));  // free
-	FACE->qhat_uhatInOut  = calloc(d , sizeof *(FACE->qhat_uhatInOut));  // free
-	FACE->qhat_uhatOutOut = calloc(d , sizeof *(FACE->qhat_uhatOutOut)); // free
+	FACE->QhatL = calloc(d , sizeof *(FACE->QhatL)); // free
+	FACE->QhatR = calloc(d , sizeof *(FACE->QhatR)); // free
+
+	FACE->QhatL_WhatL = calloc(d , sizeof *(FACE->QhatL_WhatL)); // free
+	FACE->QhatL_WhatR = calloc(d , sizeof *(FACE->QhatL_WhatR)); // free
+	FACE->QhatR_WhatL = calloc(d , sizeof *(FACE->QhatR_WhatL)); // free
+	FACE->QhatR_WhatR = calloc(d , sizeof *(FACE->QhatR_WhatR)); // free
 
 	// Linearization testing
-	FACE->RHSIn_c  = NULL; // free (in finalize_RHS_c)
-	FACE->RHSOut_c = NULL; // free (in finalize_RHS_c)
+	FACE->RHSL_c = NULL; // free
+	FACE->RHSR_c = NULL; // free
 
-	FACE->qhatIn_c  = calloc(d , sizeof *(FACE->qhatIn_c));  // free
-	FACE->qhatOut_c = calloc(d , sizeof *(FACE->qhatOut_c)); // free
+	FACE->QhatL_c = calloc(d , sizeof *(FACE->QhatL_c)); // free
+	FACE->QhatR_c = calloc(d , sizeof *(FACE->QhatR_c)); // free
 
 	FACE->next   = NULL;
 	FACE->child0 = NULL; // free (in memory_free_children)

@@ -1,12 +1,14 @@
 bin/*
 obj/*
 depend/*
+configure/user_configure.mk
 src/*~
 src/*.swp
 src/*.txt
 src/data_processing/*.swp
 src/data_processing/*.out
 src/data_processing/*.txt
+src/data_processing/NavierStokes/*.txt
 src/support_functions/*.swp
 src/support_functions/*.out
 src/support_functions/*.txt
@@ -14,6 +16,13 @@ src/support_functions/*.txt
 *.swp
 *.msh
 *.DS_Store
+*octave-workspace
+*.db
+*.db.json
+*.dSYM
+cases/.lipo
+cases/*.sh
+!cases/sample.sh
 
 meshes/Poisson/*
 meshes/PeriodicVortex/*
@@ -37,3 +46,4 @@ cases/results/*
 test/*.o
 test/*.exe
 python/*.txt
+*/__pycache__/*

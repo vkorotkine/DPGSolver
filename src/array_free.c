@@ -3,11 +3,13 @@
 
 #include "array_free.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <complex.h>
 
 #include "S_OpCSR.h"
- 
+#include "matrix_structs.h"
+
 /*
  *	Purpose:
  *		Free dynamically allocated arrays with more than one level of pointer abstraction.
@@ -20,343 +22,208 @@
  *
  */
 
-void array_free2_c(unsigned int iMax, char **A)
+void free_NULL (void *A)
 {
-	unsigned int i;
+	free(A);
+	A = NULL;
+}
 
-	for (i = 0; i < iMax; i++)
+void array_free2_c(size_t const iMax, char **A)
+{
+	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
-			free(A[i]);
-	free(A);
+			free_NULL(A[i]);
+	free_NULL(A);
 }
 
-void array_free2_ui(unsigned int iMax, unsigned int **A)
+void array_free2_ui(size_t const iMax, unsigned int **A)
 {
-	unsigned int i;
-
-	for (i = 0; i < iMax; i++)
+	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
-			free(A[i]);
-	free(A);
+			free_NULL(A[i]);
+	free_NULL(A);
 }
 
-void array_free2_i(unsigned int iMax, int **A)
+void array_free2_i(size_t const iMax, int **A)
 {
-	unsigned int i;
-
-	for (i = 0; i < iMax; i++)
+	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
-			free(A[i]);
-	free(A);
+			free_NULL(A[i]);
+	free_NULL(A);
 }
 
-void array_free2_l(unsigned int iMax, long **A)
+void array_free2_l(size_t const iMax, long **A)
 {
-	unsigned int i;
-
-	for (i = 0; i < iMax; i++)
+	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
-			free(A[i]);
-	free(A);
+			free_NULL(A[i]);
+	free_NULL(A);
 }
 
-void array_free2_ll(unsigned int iMax, long long **A)
+void array_free2_ll(size_t const iMax, long long **A)
 {
-	unsigned int i;
-
-	for (i = 0; i < iMax; i++)
+	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
-			free(A[i]);
-	free(A);
+			free_NULL(A[i]);
+	free_NULL(A);
 }
 
-void array_free2_f(unsigned int iMax, float **A)
+void array_free2_f(size_t const iMax, float **A)
 {
-	unsigned int i;
-
-	for (i = 0; i < iMax; i++)
+	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
-			free(A[i]);
-	free(A);
+			free_NULL(A[i]);
+	free_NULL(A);
 }
 
-void array_free2_d(unsigned int iMax, double **A)
+void array_free2_d(size_t const iMax, double **A)
 {
-	unsigned int i;
-
-	for (i = 0; i < iMax; i++)
+	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
-			free(A[i]);
-	free(A);
+			free_NULL(A[i]);
+	free_NULL(A);
 }
 
-void array_free2_ld(unsigned int iMax, long double **A)
+void array_free2_ld(size_t const iMax, long double **A)
 {
-	unsigned int i;
-
-	for (i = 0; i < iMax; i++)
+	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
-			free(A[i]);
-	free(A);
+			free_NULL(A[i]);
+	free_NULL(A);
 }
 
-void array_free2_cmplx(unsigned int iMax, double complex **A)
+void array_free2_cmplx(size_t const iMax, double complex **A)
 {
-	unsigned int i;
-
-	for (i = 0; i < iMax; i++)
+	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
-			free(A[i]);
-	free(A);
+			free_NULL(A[i]);
+	free_NULL(A);
 }
 
 
 
-void array_free3_c(unsigned int iMax, unsigned int jMax, char ***A)
+void array_free3_c(size_t const iMax, size_t const jMax, char ***A)
 {
-	unsigned int i, j;
-
-	for (i = 0; i < iMax; i++) {
-		if (A[i]) {
-			for (j = 0; j < jMax; j++)
-				if (A[i][j])
-					free(A[i][j]);
-			free(A[i]);
-		}
-	}
-	free(A);
+	for (size_t i = 0; i < iMax; i++)
+		if (A[i])
+			array_free2_c(jMax,A[i]);
+	free_NULL(A);
 }
 
-void array_free3_ui(unsigned int iMax, unsigned int jMax, unsigned int ***A)
+void array_free3_ui(size_t const iMax, size_t const jMax, unsigned int ***A)
 {
-	unsigned int i, j;
-
-	for (i = 0; i < iMax; i++) {
-		if (A[i]) {
-			for (j = 0; j < jMax; j++)
-				if (A[i][j])
-					free(A[i][j]);
-			free(A[i]);
-		}
-	}
-	free(A);
+	for (size_t i = 0; i < iMax; i++)
+		if (A[i])
+			array_free2_ui(jMax,A[i]);
+	free_NULL(A);
 }
 
-void array_free3_i(unsigned int iMax, unsigned int jMax, int ***A)
+void array_free3_i(size_t const iMax, size_t const jMax, int ***A)
 {
-	unsigned int i, j;
-
-	for (i = 0; i < iMax; i++) {
-		if (A[i]) {
-			for (j = 0; j < jMax; j++)
-				if (A[i][j])
-					free(A[i][j]);
-			free(A[i]);
-		}
-	}
-	free(A);
+	for (size_t i = 0; i < iMax; i++)
+		if (A[i])
+			array_free2_i(jMax,A[i]);
+	free_NULL(A);
 }
 
-void array_free3_l(unsigned int iMax, unsigned int jMax, long ***A)
+void array_free3_l(size_t const iMax, size_t const jMax, long ***A)
 {
-	unsigned int i, j;
-
-	for (i = 0; i < iMax; i++) {
-		if (A[i]) {
-			for (j = 0; j < jMax; j++)
-				if (A[i][j])
-					free(A[i][j]);
-			free(A[i]);
-		}
-	}
-	free(A);
+	for (size_t i = 0; i < iMax; i++)
+		if (A[i])
+			array_free2_l(jMax,A[i]);
+	free_NULL(A);
 }
 
-void array_free3_ll(unsigned int iMax, unsigned int jMax, long long ***A)
+void array_free3_ll(size_t const iMax, size_t const jMax, long long ***A)
 {
-	unsigned int i, j;
-
-	for (i = 0; i < iMax; i++) {
-		if (A[i]) {
-			for (j = 0; j < jMax; j++)
-				if (A[i][j])
-					free(A[i][j]);
-			free(A[i]);
-		}
-	}
-	free(A);
+	for (size_t i = 0; i < iMax; i++)
+		if (A[i])
+			array_free2_ll(jMax,A[i]);
+	free_NULL(A);
 }
 
-void array_free3_f(unsigned int iMax, unsigned int jMax, float ***A)
+void array_free3_f(size_t const iMax, size_t const jMax, float ***A)
 {
-	unsigned int i, j;
-
-	for (i = 0; i < iMax; i++) {
-		if (A[i]) {
-			for (j = 0; j < jMax; j++)
-				if (A[i][j])
-					free(A[i][j]);
-			free(A[i]);
-		}
-	}
-	free(A);
+	for (size_t i = 0; i < iMax; i++)
+		if (A[i])
+			array_free2_f(jMax,A[i]);
+	free_NULL(A);
 }
 
-void array_free3_d(unsigned int iMax, unsigned int jMax, double ***A)
+void array_free3_d(size_t const iMax, size_t const jMax, double ***A)
 {
-	unsigned int i, j;
-
-	for (i = 0; i < iMax; i++) {
-		if (A[i]) {
-			for (j = 0; j < jMax; j++)
-				if (A[i][j])
-					free(A[i][j]);
-			free(A[i]);
-		}
-	}
-	free(A);
+	for (size_t i = 0; i < iMax; i++)
+		if (A[i])
+			array_free2_d(jMax,A[i]);
+	free_NULL(A);
 }
 
-void array_free3_ld(unsigned int iMax, unsigned int jMax, long double ***A)
+void array_free3_ld(size_t const iMax, size_t const jMax, long double ***A)
 {
-	unsigned int i, j;
-
-	for (i = 0; i < iMax; i++) {
-		if (A[i]) {
-			for (j = 0; j < jMax; j++)
-				if (A[i][j])
-					free(A[i][j]);
-			free(A[i]);
-		}
-	}
-	free(A);
+	for (size_t i = 0; i < iMax; i++)
+		if (A[i])
+			array_free2_ld(jMax,A[i]);
+	free_NULL(A);
 }
 
-void array_free4_ui(unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int ****A)
+void array_free4_ui(size_t const iMax, size_t const jMax, size_t const kMax, unsigned int ****A)
 {
-	unsigned int i, j, k;
-
-	for (i = 0; i < iMax; i++) {
-		if (A[i]) {
-			for (j = 0; j < jMax; j++) {
-				if (A[i][j]) {
-					for (k = 0; k < kMax; k++)
-						if (A[i][j][k])
-							free(A[i][j][k]);
-					free(A[i][j]);
-				}
-			}
-			free(A[i]);
-		}
-	}
-	free(A);
+	for (size_t i = 0; i < iMax; i++)
+		if (A[i])
+			array_free3_ui(jMax,kMax,A[i]);
+	free_NULL(A);
 }
 
-void array_free4_d(unsigned int iMax, unsigned int jMax, unsigned int kMax, double ****A)
+void array_free4_d(size_t const iMax, size_t const jMax, size_t const kMax, double ****A)
 {
-	unsigned int i, j, k;
-
-	for (i = 0; i < iMax; i++) {
-		if (A[i]) {
-			for (j = 0; j < jMax; j++) {
-				if (A[i][j]) {
-					for (k = 0; k < kMax; k++)
-						if (A[i][j][k])
-							free(A[i][j][k]);
-					free(A[i][j]);
-				}
-			}
-			free(A[i]);
-		}
-	}
-	free(A);
+	for (size_t i = 0; i < iMax; i++)
+		if (A[i])
+			array_free3_d(jMax,kMax,A[i]);
+	free_NULL(A);
 }
 
-void array_free5_d(unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int lMax, double *****A)
+void array_free5_d(size_t const iMax, size_t const jMax, size_t const kMax, size_t const lMax, double *****A)
 {
-	unsigned int i, j, k, l;
-
-	for (i = 0; i < iMax; i++) {
-		if (A[i]) {
-			for (j = 0; j < jMax; j++) {
-				if (A[i][j]) {
-					for (k = 0; k < kMax; k++) {
-						if (A[i][j][k]) {
-							for (l = 0; l < lMax; l++)
-								if (A[i][j][k][l])
-									free(A[i][j][k][l]);
-							free(A[i][j][k]);
-						}
-					}
-					free(A[i][j]);
-				}
-			}
-			free(A[i]);
-		}
-	}
-	free(A);
+	for (size_t i = 0; i < iMax; i++)
+		if (A[i])
+			array_free4_d(jMax,kMax,lMax,A[i]);
+	free_NULL(A);
 }
 
 void array_free1_CSR_d(struct S_OpCSR *A)
 {
 	if (A) {
-		free(A->rowIndex);
-		free(A->columns);
-		free(A->values);
-		free(A);
+		free_NULL(A->rowIndex);
+		free_NULL(A->columns);
+		free_NULL(A->values);
+		free_NULL(A);
 	}
 }
 
-void array_free4_CSR_d(unsigned int iMax, unsigned int jMax, unsigned int kMax, struct S_OpCSR ****A)
+void array_free4_CSR_d(size_t const iMax, size_t const jMax, size_t const kMax, struct S_OpCSR ****A)
 {
-	unsigned int i, j, k;
-
-	for (i = 0; i < iMax; i++) {
-		if (A[i]) {
-			for (j = 0; j < jMax; j++) {
-				if (A[i][j]) {
-					for (k = 0; k < kMax; k++) {
-						if (A[i][j][k]) {
-							free(A[i][j][k]->rowIndex);
-							free(A[i][j][k]->columns);
-							free(A[i][j][k]->values);
-							free(A[i][j][k]);
-						}
-					}
-					free(A[i][j]);
-				}
-			}
-			free(A[i]);
-		}
-	}
-	free(A);
+	for (size_t i = 0; i < iMax; i++) {
+	if (A[i]) {
+		for (size_t j = 0; j < jMax; j++) {
+		if (A[i][j]) {
+			for (size_t k = 0; k < kMax; k++) {
+			if (A[i][j][k]) {
+				free_NULL(A[i][j][k]->rowIndex);
+				free_NULL(A[i][j][k]->columns);
+				free_NULL(A[i][j][k]->values);
+				free_NULL(A[i][j][k]);
+			}}
+			free_NULL(A[i][j]);
+		}}
+		free_NULL(A[i]);
+	}}
+	free_NULL(A);
 }
 
-void array_free5_CSR_d(unsigned int iMax, unsigned int jMax, unsigned int kMax, unsigned int lMax, struct S_OpCSR *****A)
+void array_free5_CSR_d(size_t const iMax, size_t const jMax, size_t const kMax, size_t const lMax, struct S_OpCSR *****A)
 {
-	unsigned int i, j, k, l;
-
-	for (i = 0; i < iMax; i++) {
-		if (A[i]) {
-			for (j = 0; j < jMax; j++) {
-				if (A[i][j]) {
-					for (k = 0; k < kMax; k++) {
-						if (A[i][j][k]) {
-							for (l = 0; l < lMax; l++)
-								if (A[i][j][k][l]) {
-									free(A[i][j][k][l]->rowIndex);
-									free(A[i][j][k][l]->columns);
-									free(A[i][j][k][l]->values);
-									free(A[i][j][k][l]);
-								}
-							free(A[i][j][k]);
-						}
-					}
-					free(A[i][j]);
-				}
-			}
-			free(A[i]);
-		}
-	}
-	free(A);
+	for (size_t i = 0; i < iMax; i++)
+		if (A[i])
+			array_free4_CSR_d(jMax,kMax,lMax,A[i]);
+	free_NULL(A);
 }

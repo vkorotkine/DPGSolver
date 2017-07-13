@@ -8,6 +8,7 @@
 #include <complex.h>
 
 #include "Parameters.h"
+#include "Macros.h"
 
 /*
  *	Purpose:
@@ -20,16 +21,13 @@
  *	References:
  */
 
-void convert_variables_c(double complex *VarIn, double complex *VarOut, const unsigned int dIn, const unsigned int dOut,
-                         const unsigned int Nn, const unsigned int Nel, const char TypeIn, const char TypeOut)
+void convert_variables_c(const double complex *const VarIn, double complex *const VarOut, const unsigned int dIn,
+                         const unsigned int dOut, const unsigned int Nn, const unsigned int Nel, const char TypeIn,
+                         const char TypeOut)
 {
 	// Standard datatypes
 	unsigned int   n, NnTotal, varInMax = dIn + 1, varOutMax = dOut+1;
-	double complex *rho, *u, *v, *w, *p, *rhou, *rhov, *rhow, *E, *U, *W;
-
-	// silence
-	u = v = w = NULL;
-	rhov = rhow = NULL;
+	double complex *U, *W;
 
 	NnTotal = Nn*Nel;
 
@@ -39,7 +37,12 @@ void convert_variables_c(double complex *VarIn, double complex *VarOut, const un
 		zeros[n] = 0.0;
 
 	switch(TypeIn) {
-	case 'p':
+	case 'p': {
+		const double complex *rho, *u, *v, *w, *p;
+
+		// silence
+		v = w = NULL;
+
 		rho = &VarIn[NnTotal*0];
 		u   = &VarIn[NnTotal*1];
 		p   = &VarIn[NnTotal*varInMax];
@@ -82,7 +85,12 @@ void convert_variables_c(double complex *VarIn, double complex *VarOut, const un
 			break;
 		}
 		break;
-	case 'c':
+	} case 'c': {
+		const double complex *rho, *rhou, *rhov, *rhow, *E;
+
+		// silence
+		rhov = rhow = NULL;
+
 		rho  = &VarIn[NnTotal*0];
 		rhou = &VarIn[NnTotal*1];
 		E    = &VarIn[NnTotal*varInMax];
@@ -121,12 +129,12 @@ void convert_variables_c(double complex *VarIn, double complex *VarOut, const un
 			}
 			break;
 		default:
-			printf("Error: Unsupported TypeIn/Out combination in convert_variables.\n"), exit(1);
+			EXIT_UNSUPPORTED;
 			break;
 		}
 		break;
-	default:
-		printf("Error: Unsupported TypeIn in convert_variables.\n"), exit(1);
+	} default: {
+		EXIT_UNSUPPORTED;
 		break;
-	}
+	}}
 }
