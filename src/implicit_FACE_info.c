@@ -1,7 +1,7 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#include "implicit_FACE_info.h"
+#include "compute_FACE_RLHS_DG.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,6 +12,7 @@
 #include "S_DB.h"
 #include "S_FACE.h"
 
+#include "solver.h"
 #include "solver_functions.h"
 #include "array_free.h"
 #include "support.h"
@@ -28,39 +29,47 @@
  *	References:
  */
 
-static void compute_Inviscid_FACE_EFE (void);
-static void compute_Viscous_FACE_EFE (void);
+static void set_memory_to_zero_FACEs  (const char imex_type);
+static void compute_Inviscid_FACE_EFE (const char imex_type);
+static void compute_Viscous_FACE_EFE  (const char imex_type);
 
-void implicit_FACE_info (const bool PrintEnabled)
+void compute_FACE_RLHS_DG (const struct S_solver_info*const solver_info)
 {
-	if (PrintEnabled)
+	if (solver_info->display)
 		printf("F");
 
-	compute_Inviscid_FACE_EFE();
-	compute_Viscous_FACE_EFE();
+	set_memory_to_zero_FACEs(solver_info->imex_type);
+	compute_Inviscid_FACE_EFE(solver_info->imex_type);
+	compute_Viscous_FACE_EFE(solver_info->imex_type);
 }
 
-static void compute_Inviscid_FACE_EFE(void)
+static void set_memory_to_zero_FACEs (const char imex_type)
 {
 	unsigned int const Nvar = DB.Nvar,
 	                   Neq  = DB.Neq;
 
-	if (!DB.Inviscid) {
-		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
-			unsigned int const NvnSL = FACE->VL->NvnS;
-			set_to_zero_d(NvnSL*Neq,FACE->RHSL);
+	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+		unsigned int const NvnSL = FACE->VL->NvnS;
+		set_to_zero_d(NvnSL*Neq,FACE->RHSL);
+		if (imex_type == 'I')
 			set_to_zero_d(NvnSL*NvnSL*Neq*Nvar,FACE->LHSLL);
 
-			if (!FACE->Boundary) {
-				unsigned int const NvnSR = FACE->VR->NvnS;
-				set_to_zero_d(NvnSR*Neq,FACE->RHSR);
+		if (!FACE->Boundary) {
+			unsigned int const NvnSR = FACE->VR->NvnS;
+			set_to_zero_d(NvnSR*Neq,FACE->RHSR);
+			if (imex_type == 'I') {
 				set_to_zero_d(NvnSL*NvnSR*Neq*Nvar,FACE->LHSRL);
 				set_to_zero_d(NvnSR*NvnSL*Neq*Nvar,FACE->LHSLR);
 				set_to_zero_d(NvnSR*NvnSR*Neq*Nvar,FACE->LHSRR);
 			}
 		}
-		return;
 	}
+}
+
+static void compute_Inviscid_FACE_EFE (const char imex_type)
+{
+	if (!DB.Inviscid)
+		return;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 
@@ -83,7 +92,7 @@ static void compute_Inviscid_FACE_EFE(void)
 	DATA->FDATAR    = FDATAR;
 	DATA->NFLUXDATA = NFLUXDATA;
 	DATA->feature   = 'F';
-	DATA->imex_type = 'I';
+	DATA->imex_type = imex_type;
 
 	if (strstr(DB.Form,"Weak")) {
 		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
@@ -93,7 +102,7 @@ static void compute_Inviscid_FACE_EFE(void)
 			// Compute WL_fIL and WR_fIL (i.e. as seen from the (L)eft VOLUME)
 			manage_solver_memory(DATA,'A','W'); // free
 
-			coef_to_values_fI(FDATAL,'W','I');
+			coef_to_values_fI(FDATAL,'W',imex_type);
 			compute_WR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL);
 
 
@@ -102,30 +111,21 @@ static void compute_Inviscid_FACE_EFE(void)
 			NFLUXDATA->WR = FDATAR->W_fIL;
 			manage_solver_memory(DATA,'A','I'); // free
 
-			compute_numerical_flux(FDATAL,'I');
-			add_Jacobian_scaling_FACE(FDATAL,'I','W');
+			compute_numerical_flux(FDATAL,imex_type);
+			add_Jacobian_scaling_FACE(FDATAL,imex_type,'W');
 
 			manage_solver_memory(DATA,'F','W');
 
 
 			// Compute FACE RHS and LHS terms
-			unsigned int const NvnSL = OPSL[0]->NvnS,
-			                   NvnSR = OPSR[0]->NvnS;
-
-			set_to_zero_d(NvnSL*Neq,FACE->RHSL);
-			set_to_zero_d(NvnSL*NvnSL*Neq*Nvar,FACE->LHSLL);
-
 			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'L','E','W');
-			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'L','I','W');
+			if (imex_type == 'I')
+				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'L','I','W');
 
 			if (!FACE->Boundary) {
-				set_to_zero_d(NvnSR*Neq,FACE->RHSR);
-				set_to_zero_d(NvnSL*NvnSR*Neq*Nvar,FACE->LHSRL);
-				set_to_zero_d(NvnSR*NvnSL*Neq*Nvar,FACE->LHSLR);
-				set_to_zero_d(NvnSR*NvnSR*Neq*Nvar,FACE->LHSRR);
-
 				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'R','E','W');
-				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'R','I','W');
+				if (imex_type == 'I')
+					finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'R','I','W');
 			}
 			manage_solver_memory(DATA,'F','I');
 		}
@@ -144,7 +144,7 @@ static void compute_Inviscid_FACE_EFE(void)
 	free(DATA);
 }
 
-static void compute_Viscous_FACE_EFE(void)
+static void compute_Viscous_FACE_EFE (const char imex_type)
 {
 	if (!DB.Viscous)
 		return;
@@ -165,7 +165,7 @@ static void compute_Viscous_FACE_EFE(void)
 	DATA->FDATAR    = FDATAR;
 	DATA->NFLUXDATA = NFLUXDATA;
 	DATA->feature   = 'F';
-	DATA->imex_type = 'I';
+	DATA->imex_type = imex_type;
 
 	for (size_t i = 0; i < 2; i++) {
 		OPSL[i] = malloc(sizeof *OPSL[i]); // free
@@ -181,8 +181,8 @@ static void compute_Viscous_FACE_EFE(void)
 			manage_solver_memory(DATA,'A','W'); // free
 			manage_solver_memory(DATA,'A','Q'); // free
 
-			coef_to_values_fI(FDATAL,'W','I');
-			coef_to_values_fI(FDATAL,'Q','I');
+			coef_to_values_fI(FDATAL,'W',imex_type);
+			coef_to_values_fI(FDATAL,'Q',imex_type);
 			compute_WR_QpR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,
 			                   (double const *const *const) FDATAL->Qp_fIL,FDATAR->Qp_fIL,'I');
 
@@ -192,25 +192,32 @@ static void compute_Viscous_FACE_EFE(void)
 			NFLUXDATA->WR = FDATAR->W_fIL;
 			manage_solver_memory(DATA,'A','V'); // free
 
-			compute_numerical_flux_viscous(FDATAL,FDATAR,'I');
+			compute_numerical_flux_viscous(FDATAL,FDATAR,imex_type);
 			manage_solver_memory(DATA,'F','W');
 			manage_solver_memory(DATA,'F','Q');
 
-			add_Jacobian_scaling_FACE(FDATAL,'I','V');
-			add_Jacobian_scaling_FACE(FDATAL,'I','P');
+			add_Jacobian_scaling_FACE(FDATAL,imex_type,'V');
+			if (imex_type == 'I')
+				add_Jacobian_scaling_FACE(FDATAL,'I','P');
 
-			// FACE contribution to V(L/R)->LHS and related off-diagonal contributions from the VOLUME term
-			finalize_VOLUME_LHSQF_Weak(FACE);
+			if (imex_type == 'I') {
+				// FACE contribution to V(L/R)->LHS and related off-diagonal contributions from the VOLUME term
+				finalize_VOLUME_LHSQF_Weak(FACE);
+			}
 
 			// Compute FACE RHS and LHS terms
 			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'L','E','V');
-			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'L','I','V');
-			finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'L');
+			if (imex_type == 'I') {
+				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'L','I','V');
+				finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'L');
+			}
 
 			if (!FACE->Boundary) {
 				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'R','E','V');
-				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'R','I','V');
-				finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'R');
+				if (imex_type == 'I') {
+					finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'R','I','V');
+					finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'R');
+				}
 			}
 			manage_solver_memory(DATA,'F','V');
 		}

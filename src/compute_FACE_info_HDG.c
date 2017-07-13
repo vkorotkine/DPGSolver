@@ -50,7 +50,7 @@
  *				r = -C*inv(A)*f + g
  *
  *		The A contribution to the system is stored in the appropriate VOLUME->LHS term. Note that A has a contribution
- *		from implicit_VOLUME_info_HDG as well.
+ *		from compute_VOLUME_RLHS_HDG as well.
  *
  *	References:
  *		Nguyen(2015)-A Class of Embedded Discontinuous Galerkin Methods for Computation Fluid Dynamics

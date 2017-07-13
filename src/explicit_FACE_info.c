@@ -54,6 +54,7 @@ static void compute_Viscous_FACE_RHS_EFE  (void);
 
 void explicit_FACE_info(void)
 {
+EXIT_UNSUPPORTED;
 	compute_Inviscid_FACE_RHS_EFE();
 	compute_Viscous_FACE_RHS_EFE();
 }

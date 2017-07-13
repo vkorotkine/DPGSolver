@@ -19,11 +19,9 @@
 #include "S_FACE.h"
 #include "Test.h"
 
+#include "solver.h"
 #include "adaptation.h"
 #include "update_VOLUMEs.h"
-#include "implicit_GradW.h"
-#include "implicit_VOLUME_info_DG.h"
-#include "implicit_FACE_info.h"
 #include "finalize_LHS.h"
 #include "output_to_paraview.h"
 #include "element_functions.h"
@@ -307,6 +305,9 @@ void solver_implicit(bool const PrintEnabled)
 
 	output_to_paraview("ZTest_Sol_Init");
 
+// Modify parameters when incorporating solver_info (ToBeDeleted)
+	struct S_solver_info solver_info = constructor_solver_info(PrintEnabled,false,false,'I',DB.Method);
+
 	iteration = 0;
 	maxRHS = 1.0; maxRHS0 = 1.0;
 	while (maxRHS0/maxRHS < 1e10) {
@@ -322,9 +323,7 @@ void solver_implicit(bool const PrintEnabled)
 
 		PetscInt *ix;
 
-		implicit_GradW(PrintEnabled);
-		implicit_VOLUME_info_DG(PrintEnabled);
-		implicit_FACE_info(PrintEnabled);
+		compute_RLHS(&solver_info);
 		if (PrintEnabled) { printf("F "); } maxRHS = finalize_LHS(&A,&b,&x,0);
 
 		// Solve linear system

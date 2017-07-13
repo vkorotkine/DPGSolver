@@ -54,7 +54,7 @@ static void flux_Poisson_c (struct S_FLUX *const FLUXDATA)
 	for (size_t n = 0; n < NnTotal; n++) {
 		size_t IndF = 0;
 		for (size_t dim = 0; dim < d; dim++)
-			*F_ptr[IndF++] = -Q[dim][n];
+			*F_ptr[IndF++] = Q[dim][n];
 
 		for (size_t i = 0, iMax = DMAX; i < iMax; i++)
 			F_ptr[i]++;

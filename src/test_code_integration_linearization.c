@@ -24,9 +24,9 @@
 
 #include "solver_symmetric_functions.h"
 #include "finalize_LHS.h"
-#include "implicit_VOLUME_info_DG.h"
-#include "implicit_FACE_info.h"
-#include "implicit_GradW.h"
+#include "compute_VOLUME_RLHS_DG.h"
+#include "compute_FACE_RLHS_DG.h"
+#include "compute_GradW_DG.h"
 
 #include "solver.h"
 #include "explicit_VOLUME_info_c.h"
@@ -313,7 +313,8 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 
 			set_PrintName("linearization (weak gradient)",data->PrintName,&data->TestTRI);
 			if (strstr(TestName,"NavierStokes")) {
-				implicit_GradW(false);
+				struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
+				compute_GradW_DG(&solver_info);
 			} else {
 				EXIT_UNSUPPORTED;
 			}
@@ -371,10 +372,6 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 
 			struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
 			compute_RLHS(&solver_info);
-
-//			implicit_GradW(false); // Only executed if DB.Viscous = 1
-//			implicit_VOLUME_info_DG(false);
-//			implicit_FACE_info(false);
 
 			if (!CheckFullLinearization) {
 				correct_collocated_for_symmetry();

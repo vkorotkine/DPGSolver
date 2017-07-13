@@ -15,12 +15,10 @@
 #include "compute_VOLUME_info_HDG.h"
 #include "compute_FACE_info_HDG.h"
 
-#include "explicit_GradW.h"
-#include "explicit_VOLUME_info.h"
 #include "explicit_FACE_info.h"
-#include "implicit_GradW.h"
-#include "implicit_VOLUME_info_DG.h"
-#include "implicit_FACE_info.h"
+#include "compute_GradW_DG.h"
+#include "compute_VOLUME_RLHS_DG.h"
+#include "compute_FACE_RLHS_DG.h"
 
 /*
  *	Purpose:
@@ -94,21 +92,11 @@ void compute_RLHS (const struct S_solver_info*const solver_info)
 
 	switch (solver_info->method) {
 	case METHOD_DG: {
-// Refactor such that the implicit and explicit DG functions are combined. (ToBeDeleted)
-		const bool display   = solver_info->display;
-		const char imex_type = solver_info->imex_type;
+		compute_GradW_DG(solver_info);
+		compute_VOLUME_RLHS_DG(solver_info);
+		compute_FACE_RLHS_DG(solver_info);
+// Delete explicit_FACE_info file (ToBeDeleted)
 
-		if (imex_type == 'E') {
-			explicit_GradW();
-			explicit_VOLUME_info();
-			explicit_FACE_info();
-		} else if (imex_type == 'I') {
-			implicit_GradW(display);
-			implicit_VOLUME_info_DG(display);
-			implicit_FACE_info(display);
-		} else {
-			EXIT_UNSUPPORTED;
-		}
 		break;
 	} case METHOD_HDG:
 // Change info to RLHS (ToBeDeleted)
@@ -136,25 +124,11 @@ void finalize_RLHS (const struct S_solver_info*const solver_info)
 	switch (solver_info->method) {
 	case METHOD_DG: {
 // Refactor such that the RHS and LHS terms are directly store in the same memory location. (ToBeDeleted)
-		const bool display   = solver_info->display;
-		const char imex_type = solver_info->imex_type;
-
-		if (imex_type == 'E') {
-			explicit_GradW();
-			explicit_VOLUME_info();
-			explicit_FACE_info();
-		} else if (imex_type == 'I') {
-			implicit_GradW(display);
-			implicit_VOLUME_info_DG(display);
-			implicit_FACE_info(display);
-		} else {
-			EXIT_UNSUPPORTED;
-		}
+		EXIT_UNSUPPORTED;
 		break;
 	} case METHOD_HDG:
 // Change info to RLHS (ToBeDeleted)
-		compute_VOLUME_info_HDG(solver_info);
-		compute_FACE_info_HDG(solver_info);
+		EXIT_UNSUPPORTED;
 		break;
 	default:
 		EXIT_UNSUPPORTED;

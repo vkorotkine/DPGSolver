@@ -18,7 +18,7 @@
 #include "update_VOLUMEs.h"
 #include "solver.h"
 
-#include "implicit_GradW.h"
+#include "compute_GradW_DG.h"
 
 #include "finalize_LHS.h"
 #include "solver_implicit.h"
@@ -60,11 +60,9 @@ void solver_Poisson(bool PrintEnabled)
 	finalize_ksp(&A,&b,&x,2);
 
 	// Update Qhat based on computed solution
-	implicit_GradW(false);
-// Try with explicit here instead, should be sufficient
-//	explicit_GradW();
+	solver_info.display   = false;
+	solver_info.imex_type = 'E';
+	compute_GradW_DG(&solver_info);
 
-	char *const fNameOut = get_fNameOut("SolFinal_"); // free
-	output_to_paraview(fNameOut);
-	free(fNameOut);
+	output_to_paraview("SolFinal_");
 }

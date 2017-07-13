@@ -19,15 +19,14 @@
 
 #include "adaptation.h"
 #include "update_VOLUMEs.h"
-#include "explicit_VOLUME_info.h"
-#include "explicit_FACE_info.h"
 #include "finalize_RHS.h"
 #include "output_to_paraview.h"
-#include "explicit_GradW.h"
 #include "element_functions.h"
 #include "matrix_functions.h"
 #include "variable_functions.h"
 #include "array_print.h"
+
+#include "solver.h"
 
 static void correct_What_Bezier(double *const WhatB, double const t, unsigned int const NvnS, double const *const WAvg,
                                 char const type)
@@ -313,15 +312,12 @@ static void update_RHS(double *maxRHS, bool const PrintEnabled)
 	 *		RHS as used here is defined as all terms of the discretization which are not associated with the unsteady
 	 *		term (i.e. d/dt What == RHS. With this notation, RHS thus corresponds to the negative of the steady
 	 *		residual.
-	 *		explicit_GradW returns immediately if DB.Viscous = 0 (i.e. for Euler cases).
 	 */
 
-	// Compute weak gradients (for viscous terms)
-	if (PrintEnabled && DB.Viscous) { printf("G"); } explicit_GradW();
+	struct S_solver_info solver_info = constructor_solver_info(PrintEnabled,false,false,'E',DB.Method);
 
-	// Build the RHS (== -Residual)
-	if (PrintEnabled) { printf("V");  } explicit_VOLUME_info();
-	if (PrintEnabled) { printf("F");  } explicit_FACE_info();
+	compute_RLHS(&solver_info);
+
 	if (PrintEnabled) { printf("F "); } *maxRHS = finalize_RHS();
 
 }
