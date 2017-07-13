@@ -144,10 +144,13 @@ void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 
 		double pAvg;
 		compute_pressure(WAvg,&pAvg,d,1,1,'c');
-		free(WAvg);
 
-		if (pAvg < 0.0)
+		if (pAvg < 0.0) {
+			printf("\n\n\np: %e\nWAvg:\n",pAvg);
+			array_print_d(1,Nvar,WAvg,'R');
 			printf("Error: Negative average pressure.\n"), EXIT_MSG;
+		}
+		free(WAvg);
 
 		double const t = pAvg/(pAvg-pMin);
 		correct_What_Bezier(WhatB,t,NvnS,WAvg,'p');
@@ -293,7 +296,7 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 			data->exit_ratio = 1.0/EPS;
 		} else if (strstr(TestCase,"ParabolicPipe")) {
 			printf("Using default value for timestepping parameters.\n");
-			data->dt         = 1e-3;
+			data->dt         = 1e-4;
 			data->exit_tol   = 1e-2;
 			data->exit_ratio = 1.0/EPS;
 		} else {

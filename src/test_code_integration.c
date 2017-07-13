@@ -266,7 +266,8 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 	} else if (strstr(TestCase,"Poisson")) {
 		NVars = DMAX+1;
 	} else if (strstr(TestCase,"SupersonicVortex") ||
-	           strstr(TestCase,"PeriodicVortex")) {
+	           strstr(TestCase,"PeriodicVortex") ||
+	           strstr(TestCase,"ParabolicPipe")) {
 		NVars = DMAX+2+1;
 	} else if (strstr(TestCase,"InviscidChannel") ||
 	           strstr(TestCase,"SubsonicNozzle")) {
@@ -298,6 +299,7 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 		}
 	} else if (strstr(TestCase,"SupersonicVortex") ||
 	           strstr(TestCase,"PeriodicVortex")  ||
+	           strstr(TestCase,"ParabolicPipe")  ||
 	           strstr(TestCase,"InviscidChannel")  ||
 	           strstr(TestCase,"SubsonicNozzle")) {
 		for (i = 0; i < NVars; i++) {

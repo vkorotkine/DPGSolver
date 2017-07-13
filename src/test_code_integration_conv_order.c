@@ -224,6 +224,8 @@ data->PMin = 2;
 		} else if (strstr(TestName,"n-Parabolic_Pipe")) {
 //			data->SolveExplicit = 0;
 data->PrintEnabled = 1;
+data->PMin  = 3;
+data->MLMax = 1;
 			if (strstr(TestName,"ToBeCurved")) {
 				if (strstr(TestName,"TRI")) {
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_ParabolicPipe_ToBeCurvedTRI");
@@ -366,8 +368,14 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 		} else if (strstr(TestName,"Euler") || strstr(TestName,"NavierStokes")) {
 //			if (SolveExplicit)
 //			if (!SolveImplicit || (ML == MLMin && P == PMin))
-			if (SolveExplicit && (!SolveImplicit || (ML <= MLMin+1)))
+			if (SolveExplicit && (!SolveImplicit || (ML <= MLMin+1))) {
+				bool const update_SolverType = (strstr(DB.SolverType,"Implicit") ? 1 : 0);
+				if (update_SolverType)
+					strcpy(DB.SolverType,"Explicit");
 				solver_explicit(PrintEnabled);
+				if (update_SolverType)
+					strcpy(DB.SolverType,"Implicit");
+			}
 
 			if (SolveImplicit)
 				solver_implicit(PrintEnabled);

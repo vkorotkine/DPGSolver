@@ -1108,7 +1108,7 @@ void update_VOLUME_Ops(void)
 	struct S_VOLUME    *VOLUME;
 
 	for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-		if (VOLUME->update) {
+		if (VOLUME->update || VOLUME->MInv == NULL) {
 			VOLUME->update = 0;
 			if (strstr(SolverType,"Explicit")) {
 				if (!Collocated)

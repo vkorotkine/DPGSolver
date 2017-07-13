@@ -369,10 +369,15 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 			} else if (strstr(Geometry,"n-Cylinder")) {
 				ToBeCurved_square_to_circle(NvnG,XYZ_S,XYZ);
 			} else if (strstr(Geometry,"n-CubeCurved")) {
-				ToBeCurved_elliptic_pipe(NvnG,XYZ_S,XYZ);
-                                ToBeCurved_parabolic_pipe(NvnG,XYZ_S,XYZ);
-                                ToBeCurved_sinusoidal_pipe(NvnG,XYZ_S,XYZ);
-                        }  else {
+				if (strstr(DB.GeomSpecifier,"ParabolicPipe"))
+					ToBeCurved_parabolic_pipe(NvnG,XYZ_S,XYZ);
+				else if (strstr(DB.GeomSpecifier,"EllipticPipe"))
+					ToBeCurved_elliptic_pipe(NvnG,XYZ_S,XYZ);
+				else if (strstr(DB.GeomSpecifier,"SinusoidalPipe"))
+					ToBeCurved_sinusoidal_pipe(NvnG,XYZ_S,XYZ);
+				else
+					EXIT_UNSUPPORTED;
+			}  else {
 				printf("%s\n",Geometry);
 				printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
 			}
