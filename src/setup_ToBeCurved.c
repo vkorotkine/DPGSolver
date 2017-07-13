@@ -69,7 +69,7 @@ static void ToBeCurved_elliptic_pipe (unsigned int const Nn, double const *const
 
 
 	for (size_t n = 0; n < Nn; n++) {
-	     Y[n] = (b/(2*a))*((a_2-a_1)*Y_S[n]+(a_2+a_1))*sin((PI/2)*(X_S[n]+1));
+	         Y[n] = (b/(2*a))*((a_2-a_1)*Y_S[n]+(a_2+a_1))*sin((PI/2)*(X_S[n]+1));
              X[n] = -0.5*((a_2-a_1)*Y_S[n]+(a_2+a_1))*cos((PI/2)*(X_S[n]+1));
 	}
 }
@@ -88,9 +88,12 @@ static void ToBeCurved_parabolic_pipe (unsigned int const Nn, double const *cons
         double const  b = 2.0, a_1 = 2.0, a_2 = 4.0;
 
         for (size_t n = 0; n < Nn; n++) {
-             Y[n] = (a_2+a_1)/2+(a_2-a_1)*Y_S[n]/2-a_1*pow(X_S[n],2);
+
+		     Y[n] = (a_2+a_1)/2+(a_2-a_1)*Y_S[n]/2-a_1*pow(X_S[n],2);
              X[n] = sqrt(a_1/b)*X_S[n];
-        }
+
+		}
+
 }
 
 static void ToBeCurved_sinusoidal_pipe (unsigned int const Nn, double const *const XYZ_S, double *const XYZ)
@@ -369,10 +372,14 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 			} else if (strstr(Geometry,"n-Cylinder")) {
 				ToBeCurved_square_to_circle(NvnG,XYZ_S,XYZ);
 			} else if (strstr(Geometry,"n-CubeCurved")) {
+				if (strstr(DB.GeomSpecifier,"ParabolicPipe"))
+					ToBeCurved_parabolic_pipe(NvnG,XYZ_S,XYZ);
+				else
+					EXIT_UNSUPPORTED; // Fix this later
 				ToBeCurved_elliptic_pipe(NvnG,XYZ_S,XYZ);
                                 ToBeCurved_parabolic_pipe(NvnG,XYZ_S,XYZ);
                                 ToBeCurved_sinusoidal_pipe(NvnG,XYZ_S,XYZ);
-                        }  else {
+			}  else {
 				printf("%s\n",Geometry);
 				printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
 			}

@@ -447,7 +447,8 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
                                      source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
                            }
                    }
-             } else
+            						printf("error\n");
+			} else
                    EXIT_UNSUPPORTED;
 
 

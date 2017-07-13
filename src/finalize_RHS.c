@@ -176,8 +176,8 @@ double finalize_RHS(void)
 
 	// Add MInv contribution to RHS for explicit runs
 	if (strstr(SolverType,"Explicit")) {
-		if (SourcePresent)
-			printf("Warning: Ensure that sources are being treated properly.\n");
+//		if (SourcePresent)
+//			printf("Warning: Ensure that sources are being treated properly.\n");
 
 		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			// Add (remaining) MInv contribution to RHS
