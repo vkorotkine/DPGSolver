@@ -5,6 +5,7 @@
 #define DPG__solver_h__INCLUDED
 
 #include <stdbool.h>
+#include "petscmat.h"
 
 struct S_solver_info {
 	/*
@@ -28,6 +29,9 @@ struct S_solver_info {
 	bool display, output, adapt, positivity, symmetric, steady, linear;
 	char imex_type;
 	unsigned int method;
+
+	// Petsc related parameters
+	Mat *A;
 };
 extern struct S_solver_info constructor_solver_info (const bool display, const bool output, const bool adapt,
                                                      const char imex_type, const unsigned int method);

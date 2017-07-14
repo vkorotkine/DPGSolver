@@ -1,7 +1,7 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#include "compute_VOLUME_info_HDG.h"
+#include "compute_VOLUME_RLHS_HDG.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,7 +34,7 @@
 
 static void compute_Inviscid_VOLUME_HDG (const char imex_type);
 
-void compute_VOLUME_info_HDG (const struct S_solver_info*const solver_info)
+void compute_VOLUME_RLHS_HDG (const struct S_solver_info*const solver_info)
 {
 	if (solver_info->display)
 		printf("V");

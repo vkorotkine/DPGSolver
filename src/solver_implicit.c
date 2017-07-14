@@ -59,6 +59,9 @@ void setup_KSP(Mat A, KSP ksp)
 	// Standard datatypes
 	char SolverType = 'i'; // Options: (i)terative, (d)irect
 
+	if (DB.d == 1)
+		SolverType = 'd';
+
 	// Petsc datatypes
 	PC pc;
 

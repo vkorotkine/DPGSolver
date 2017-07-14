@@ -134,6 +134,8 @@ data->PMin = 2;
 		if (strstr(TestName,"n-Cube")) {
 			if (strstr(TestName,"LINE")) {
 //data->PrintEnabled = 1;
+//data->PMax = 5;
+//data->MLMax = 8;
 //data->IntOrder_add  = 0;
 				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Cube_LINE");
 			} else {

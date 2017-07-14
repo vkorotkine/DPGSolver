@@ -12,10 +12,9 @@
 #include "Macros.h"
 #include "S_DB.h"
 
-#include "compute_VOLUME_info_HDG.h"
-#include "compute_FACE_info_HDG.h"
+#include "compute_VOLUME_RLHS_HDG.h"
+#include "compute_FACE_RLHS_HDG.h"
 
-#include "explicit_FACE_info.h"
 #include "compute_GradW_DG.h"
 #include "compute_VOLUME_RLHS_DG.h"
 #include "compute_FACE_RLHS_DG.h"
@@ -95,13 +94,10 @@ void compute_RLHS (const struct S_solver_info*const solver_info)
 		compute_GradW_DG(solver_info);
 		compute_VOLUME_RLHS_DG(solver_info);
 		compute_FACE_RLHS_DG(solver_info);
-// Delete explicit_FACE_info file (ToBeDeleted)
-
 		break;
 	} case METHOD_HDG:
-// Change info to RLHS (ToBeDeleted)
-		compute_VOLUME_info_HDG(solver_info);
-		compute_FACE_info_HDG(solver_info);
+		compute_VOLUME_RLHS_HDG(solver_info);
+		compute_FACE_RLHS_HDG(solver_info);
 		break;
 	default:
 		EXIT_UNSUPPORTED;

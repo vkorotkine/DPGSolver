@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "petscmat.h"
+
 #include "Parameters.h"
 #include "Macros.h"
 #include "S_DB.h"
@@ -45,8 +47,18 @@
  *		Zwanenburg(2016)-Equivalence_between_the_Energy_Stable_Flux_Reconstruction_and_Discontinuous_Galerkin_Schemes
  */
 
+struct S_LHS_info {
+	size_t IndA[2], Nn[2];
+	const double* LHS;
+
+	InsertMode addv;
+};
+static struct S_LHS_info constructor_LHS_info (const double*const LHS, const struct S_VOLUME*const V0,
+                                               const struct S_VOLUME*const V1, const InsertMode addv);
+static void fill_PetscMat (const struct S_solver_info*const solver_info, const struct S_LHS_info*const LHS_info);
+
 static void set_memory_to_zero_VOLUMEs  (const char imex_type);
-static void compute_Inviscid_VOLUME_EFE (const char imex_type);
+static void compute_Inviscid_VOLUME_EFE (const struct S_solver_info*const solver_info);
 static void compute_Viscous_VOLUME_EFE  (const char imex_type);
 
 void compute_VOLUME_RLHS_DG (const struct S_solver_info*const solver_info)
@@ -58,7 +70,7 @@ void compute_VOLUME_RLHS_DG (const struct S_solver_info*const solver_info)
 		switch (DB.Vectorized) {
 		case 0:
 			set_memory_to_zero_VOLUMEs(solver_info->imex_type);
-			compute_Inviscid_VOLUME_EFE(solver_info->imex_type);
+			compute_Inviscid_VOLUME_EFE(solver_info);
 			compute_Viscous_VOLUME_EFE(solver_info->imex_type);
 // Add source contribution here as well (ToBeDeleted)
 			break;
@@ -90,8 +102,10 @@ static void set_memory_to_zero_VOLUMEs (const char imex_type)
 	}
 }
 
-static void compute_Inviscid_VOLUME_EFE (const char imex_type)
+static void compute_Inviscid_VOLUME_EFE (const struct S_solver_info*const solver_info)
 {
+	const char imex_type = solver_info->imex_type;
+
 	if (!DB.Inviscid)
 		return;
 
@@ -156,7 +170,17 @@ static void compute_Inviscid_VOLUME_EFE (const char imex_type)
 			// Compute LHS terms
 			if (imex_type == 'I') {
 				unsigned int NvnS = VDATA->OPS[0]->NvnS;
-				finalize_VOLUME_Inviscid_Weak(NvnS*Neq*Nvar,FLUXDATA->dFrdW,VOLUME->LHS,'I',VDATA);
+// Initialize memory for LHS, add to PetscMat, then free (ToBeModified)
+// Initialize memory for LHS in manage_solver_memory for imex_type == 'I'
+				double*const LHS = calloc(NvnS*NvnS*Neq*Nvar , sizeof *LHS); // free
+
+// Remove addition of LHS in finalize_LHS to test equivalence of this treatment.
+//				finalize_VOLUME_Inviscid_Weak(NvnS*Neq*Nvar,FLUXDATA->dFrdW,VOLUME->LHS,'I',VDATA);
+				finalize_VOLUME_Inviscid_Weak(NvnS*Neq*Nvar,FLUXDATA->dFrdW,LHS,'I',VDATA);
+
+				struct S_LHS_info LHS_info = constructor_LHS_info(LHS,VOLUME,VOLUME,ADD_VALUES);
+				fill_PetscMat(solver_info,&LHS_info);
+				free(LHS);
 			}
 			manage_solver_memory(DATA,'F','I');
 		}
@@ -277,3 +301,58 @@ static void compute_Viscous_VOLUME_EFE (const char imex_type)
 		free(OPS[i]);
 	free(DATA);
 }
+
+static struct S_LHS_info constructor_LHS_info (const double*const LHS, const struct S_VOLUME*const V0,
+                                               const struct S_VOLUME*const V1, const InsertMode addv)
+{
+	struct S_LHS_info LHS_info;
+
+	LHS_info.LHS     = LHS;
+	LHS_info.IndA[0] = V0->IndA;
+	LHS_info.IndA[1] = V1->IndA;
+	LHS_info.Nn[0]   = V0->NvnS;
+	LHS_info.Nn[1]   = V1->NvnS;
+	LHS_info.addv    = addv;
+
+	return LHS_info;
+}
+
+static void fill_PetscMat (const struct S_solver_info*const solver_info, const struct S_LHS_info*const LHS_info)
+{
+	/*
+	 *	Purpose:
+	 *		Add individual LHS contributions to the global system matrix.
+	 */
+
+// need to call compute_dof before calling this function to set VOLUME->IndA (ToBeDeleted)
+	Mat *A = solver_info->A;
+
+	const double*const LHS = LHS_info->LHS;
+
+	const size_t*const IndA = LHS_info->IndA,
+	            *const Nn   = LHS_info->Nn;
+
+	PetscInt idxm[Nn[0]],
+	         idxn[Nn[1]];
+	const InsertMode addv = LHS_info->addv;
+
+	const unsigned int Neq  = DB.Neq,
+	                   Nvar = DB.Nvar;
+
+	for (size_t eq = 0; eq < Neq; eq++) {
+		const size_t Indm = IndA[0] + eq*Nn[0];
+		for (size_t i = 0; i < Nn[0]; i++)
+			idxm[i] = Indm+i;
+
+		for (size_t var = 0; var < Nvar; var++) {
+			const size_t Indn = IndA[1] + var*Nn[1];
+			for (size_t i = 0; i < Nn[1]; i++)
+				idxn[i] = Indn+i;
+
+			const PetscScalar*const vv = &LHS[(eq*Nvar+var)*Nn[0]*Nn[1]];
+
+			MatSetValues(*A,Nn[0],idxm,Nn[1],idxn,vv,addv);
+		}
+	}
+}
+

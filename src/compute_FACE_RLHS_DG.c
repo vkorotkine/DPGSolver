@@ -24,9 +24,29 @@
  *
  *	Comments:
  *
+ *		When adaptation is enabled, the method used here to lift the FACE information to the VOLUME remains quite
+ *		similar to that of the conforming case. The normal numerical flux is computed on each of the FACEs of the mesh
+ *		and is used directly to form RHSL/RHSR terms to be added to the appropriate VOLUME. This is in contrast to the
+ *		traditional mortar element method (based on my current understanding), which first uses an L2 projection of the
+ *		normal numerical flux of all non-conforming FACEs to standard VOLUME FACEs and then computes RHSL/RHSR exactly
+ *		as if the mesh were conforming. As no L2 projection is required for the current approach, the same functions
+ *		can in fact be called even for the case of non-conforming discretizations allowing for:
+ *			1) Reduced cost because the interpolation from FACE solution to FACE cubature nodes is not required;
+ *			2) Reduced aliasing because the normal numerical flux can be computed at the cubature nodes.
+ *
+ *		Based on this discussion, it is unclear why this approach is not adopted instead of the traditional mortar
+ *		method (Kopriva(1996)) as this alternative seems to satisfy both the conservation and outflow condition
+ *		requirements which motivated the use of the mortar element method.
+ *
+ *		Vectorization is more involved for FACE terms as there are many more possible combinations than for VOLUMEs.
+ *		Given that the VOLUME vectorization seems not to have a significant impact on performance, the FACE
+ *		vectorization may not be pursued. (ToBeModified)
+ *
  *	Notation:
+ *		Qp : (p)artially corrected weak solution gradients (Q).
  *
  *	References:
+ *		Kopriva(1996)-A Conservative Staggered-Grid Chebyshev Multidomain Method for Compressible Flows II. A Semi-Structured Method
  */
 
 static void set_memory_to_zero_FACEs  (const char imex_type);
