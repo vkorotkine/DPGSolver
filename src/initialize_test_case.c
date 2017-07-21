@@ -404,13 +404,15 @@ void initialize_test_case_parameters(void)
 						DB.p_store[i] = p_par[i];}
 			} else if (strstr(TestCase,"ParabolicPipe")) {
 				DB.SourcePresent = 1;
-				double r_par[5] = {3, 1, 1, -1, 1},
-				       p_par[5] = {4, 2, 1, -2, 1},
-				       w_par[5] = {2, 1.5, 0.5, 1.5, 0.5};
-				for (int i = 0; i < 5; i++) {
+				double r_par[7] = {5, 4, 3, 4, 3, 2, 4},
+				       p_par[7] = {10, 8, 3, 2, 3, 2, 3},
+				       u_par[7] = {5, 3, 2, -3, 2, 4, 3},
+				       v_par[7] = {5, -3, 2, 3, 2, 4, 3};
+				for (int i = 0; i < 7; i++) {
 					DB.rho_store[i] = r_par[i];
 					DB.p_store[i]   = p_par[i];
-					DB.w_store[i]   = w_par[i];
+					DB.u_store[i]   = u_par[i];
+					DB.v_store[i]   = v_par[i];
 				}
 			} else if (strstr(TestCase,"SinusoidalPipe")) {
 				DB.SourcePresent = 1;

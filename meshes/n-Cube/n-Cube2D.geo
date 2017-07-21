@@ -48,7 +48,7 @@ ElseIf (PDEName == POISSON)
 ElseIf (PDEName == EULER)
     If (Geom_Adv == GEOM_ADV_MANUFACTURED)
         Physical Line(BC_Straight+BC_RIEMANN) = {2001,2002};
-        Physical Line(BC_Curved+BC_SLIPWALL)  = {1001,1002};
+        Physical Line(BC_Curved+BC_RIEMANN) = {1001,1002};
     Else
         Physical Point(BC_Base+PERIODIC_XL) = {1,3};
         Physical Point(BC_Base+PERIODIC_XR) = {2,4};

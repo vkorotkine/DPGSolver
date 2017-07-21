@@ -219,13 +219,14 @@ data->PMin = 2;
 					EXIT_UNSUPPORTED;
 				}
 			} else {
-				EXIT_UNSUPPORTED;
+			EXIT_UNSUPPORTED;
 			}
 		} else if (strstr(TestName,"n-Parabolic_Pipe")) {
 //			data->SolveExplicit = 0;
 data->PrintEnabled = 1;
 data->PMin  = 3;
-data->MLMax = 1;
+data->PMax  = 4;
+data->MLMax = 4;
 			if (strstr(TestName,"ToBeCurved")) {
 				if (strstr(TestName,"TRI")) {
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_ParabolicPipe_ToBeCurvedTRI");

@@ -85,11 +85,12 @@ static void ToBeCurved_parabolic_pipe (unsigned int const Nn, double const *cons
         double const *const X_S = &XYZ_S[Nn*0],
                      *const Y_S = &XYZ_S[Nn*1];
 
-        double const  b = 2.0, a_1 = 2.0, a_2 = 4.0;
+        double const  b = 0.25, a_1 = 0.25, a_2 = 2.25;
 
         for (size_t n = 0; n < Nn; n++) {
-             Y[n] = (a_2+a_1)/2+(a_2-a_1)*Y_S[n]/2-a_1*pow(X_S[n],2);
-             X[n] = sqrt(a_1/b)*X_S[n];
+
+			 Y[n] = (a_2+a_1)/2+(a_2-a_1)*Y_S[n]/2-a_1*pow((X_S[n]+1),2)/4;
+             X[n] = sqrt(a_1/b)*(X_S[n]+1)/2;
         }
 }
 

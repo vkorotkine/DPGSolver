@@ -9,7 +9,7 @@ Dimension     2
 MeshPath      ../meshes/
 MeshType      TRI
 MeshCurving   ToBeCurved
-MeshLevel     4
+MeshLevel     2
 
 Form       Weak   // Options: Weak, (Strong)
 NodeType   GLL-AO // Options: GL/GLL-AO/WSH/EQ
@@ -20,8 +20,8 @@ EFE        1     // Options: (0), 1
 Collocated 0     // Options: 0, 1
 Adapt      3     // Options: 0, 1, 2, 3
 
-PGlobal    1
-PMax       3
+PGlobal    3
+PMax       4
 LevelsMax  7
 
 Restart    -1    // Options: -1, 0, Iteration #
