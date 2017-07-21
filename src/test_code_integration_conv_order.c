@@ -225,8 +225,8 @@ data->PMin = 2;
 //			data->SolveExplicit = 0;
 data->PrintEnabled = 1;
 data->PMin  = 3;
-data->PMax  = 4;
-data->MLMax = 4;
+data->PMax  = 3;
+data->MLMax = 6;
 			if (strstr(TestName,"ToBeCurved")) {
 				if (strstr(TestName,"TRI")) {
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_ParabolicPipe_ToBeCurvedTRI");
@@ -315,6 +315,7 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 	                   MLMax = data->MLMax;
 
 	TestDB.PGlobal       = 1; // ToBeModified (Not important for Adapt != ADAPT_0)
+//	TestDB.PGlobal       = 4; // ToBeModified (Not important for Adapt != ADAPT_0)
 	TestDB.PG_add        = data->PG_add;
 	TestDB.IntOrder_add  = data->IntOrder_add;
 	TestDB.IntOrder_mult = data->IntOrder_mult;
@@ -330,8 +331,8 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 		code_startup(nargc,argvNew,0,2);
 	}
 
-	for (size_t ML = MLMin; ML <= MLMax; ML++) {
 	for (size_t P = PMin; P <= PMax; P++) {
+	for (size_t ML = MLMin; ML <= MLMax; ML++) {
 		TestDB.PGlobal = P;
 		TestDB.ML = ML;
 
@@ -350,6 +351,13 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 		mesh_to_order(P);
 		if (!SolveImplicit)
 			initialize_test_case(0);
+
+		// Output mesh edges to paraview
+		if (DB.d > 1 && TestDB.PGlobal == 3 && TestDB.ML <= 2) {
+			char *const fNameOut = get_fNameOut("MeshEdges_");
+			output_to_paraview(fNameOut);
+			free(fNameOut);
+		}
 
 		if (strstr(TestName,"Advection")) {
 			solver_Advection(PrintEnabled);
@@ -382,13 +390,6 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 				solver_implicit(PrintEnabled);
 		} else {
 			EXIT_UNSUPPORTED;
-		}
-
-		// Output mesh edges to paraview
-		if (DB.d > 1 && TestDB.PGlobal == 3 && TestDB.ML <= 2) {
-			char *const fNameOut = get_fNameOut("MeshEdges_");
-			output_to_paraview(fNameOut);
-			free(fNameOut);
 		}
 
 		compute_errors_global();

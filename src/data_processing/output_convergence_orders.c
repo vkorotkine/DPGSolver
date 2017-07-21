@@ -57,7 +57,8 @@ int main(void)
 //	strcpy(TestCase,"Poisson");
 //	strcpy(TestCase,"InviscidChannel");
 //	strcpy(TestCase,"SubsonicNozzle");
-	strcpy(TestCase,"NavierStokes_TaylorCouette");
+//	strcpy(TestCase,"NavierStokes_TaylorCouette");
+	strcpy(TestCase,"Euler_ParabolicPipe");
 
 //	strcpy(MeshType,"StructuredTRI");
 //	strcpy(MeshType,"TRI");
@@ -73,17 +74,17 @@ int main(void)
 //	strcpy(MeshType,"ToBeCurvedStructuredMixed");
 
 	d     = 2;
-//	NVars = DMAX+2+1;
+	NVars = DMAX+2+1;
 //	NVars = DMAX+1;
-	NVars = d+1;
-	MLMax = 3; NML = MLMax+1;
+//	NVars = d+1;
+	MLMax = 4; NML = MLMax+1;
 	PMax  = 8; NP  = PMax+1;
 
-	unsigned int CasesRun[72] = { 0, 1, 1, 1, 0, 0, 0, 0, 0,
-	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
-	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
-	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
-	                              0, 1, 1, 1, 0, 0, 0, 0, 0,
+	unsigned int CasesRun[72] = { 0, 1, 1, 1, 1, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 1, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 1, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 1, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 1, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -183,6 +184,7 @@ static void data_to_txt(const unsigned int d, const unsigned int NVars, const un
 	data_name = malloc(STRLEN_MAX * sizeof *data_name); // free
 
 	if (strstr(TestCase,"PeriodicVortex") != NULL ||
+		strstr(TestCase,"ParabolicPipe") != NULL ||
 		strstr(TestCase,"SupersonicVortex") != NULL) {
 		if      (d == 2) Indp = 3;
 		else if (d == 3) Indp = 4;

@@ -400,7 +400,8 @@ if (iteration < 3)
 		}
 
 		// Additional exit conditions
-		if (maxRHS < 10*EPS && iteration) {
+//		if (maxRHS < 10*EPS && iteration) {
+		if (maxRHS < 10*EPS*10 && iteration) {
 			if (PrintEnabled) { printf("Exiting: maxRHS is below 10*EPS.\n"); }
 			break;
 		}

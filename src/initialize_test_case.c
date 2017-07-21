@@ -404,10 +404,10 @@ void initialize_test_case_parameters(void)
 						DB.p_store[i] = p_par[i];}
 			} else if (strstr(TestCase,"ParabolicPipe")) {
 				DB.SourcePresent = 1;
-				double r_par[7] = {5, 4, 3, 4, 3, 2, 4},
-				       p_par[7] = {10, 8, 3, 2, 3, 2, 3},
-				       u_par[7] = {5, 3, 2, -3, 2, 4, 3},
-				       v_par[7] = {5, -3, 2, 3, 2, 4, 3};
+				double r_par[7] = {10, 4, 0.25, 4, 0.25, 2, 0.25},
+				       p_par[7] = {10, 8, 0.25, 2, 0.25, 2, 0.25},
+				       u_par[7] = {10, 3, 0.25, 3, 0.25, 4, 0.25},
+				       v_par[7] = {10, -3, 0.25, 3, 0.25, 4, 0.25};
 				for (int i = 0; i < 7; i++) {
 					DB.rho_store[i] = r_par[i];
 					DB.p_store[i]   = p_par[i];

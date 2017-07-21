@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "Macros.h"
 #include "Parameters.h"
 
 #include "test_code_integration_equivalence_real_complex.h"
@@ -124,6 +125,7 @@ if (!PeriodicVortexOnly) {
 //		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_CurvedMIXED2D");
 //		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedMIXED2D");
 		test_conv_order(data_c,"Euler_n-Parabolic_Pipe_ToBeCurvedTRI");
+EXIT_UNSUPPORTED;
 		test_conv_order(data_c,"Euler_n-Sinusoidal_Pipe_ToBeCurvedTRI");
 		test_conv_order(data_c,"Euler_n-Elliptic_Pipe_ToBeCurvedTRI");
 }
