@@ -2,6 +2,7 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "compute_FACE_RLHS_DG.h"
+#include "solver.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,7 +13,6 @@
 #include "S_DB.h"
 #include "S_FACE.h"
 
-#include "solver.h"
 #include "solver_functions.h"
 #include "array_free.h"
 #include "support.h"
@@ -50,8 +50,8 @@
  */
 
 static void set_memory_to_zero_FACEs  (const char imex_type);
-static void compute_Inviscid_FACE_EFE (const char imex_type);
-static void compute_Viscous_FACE_EFE  (const char imex_type);
+static void compute_Inviscid_FACE_EFE (const struct S_solver_info*const solver_info);
+static void compute_Viscous_FACE_EFE  (const struct S_solver_info*const solver_info);
 
 void compute_FACE_RLHS_DG (const struct S_solver_info*const solver_info)
 {
@@ -59,8 +59,8 @@ void compute_FACE_RLHS_DG (const struct S_solver_info*const solver_info)
 		printf("F");
 
 	set_memory_to_zero_FACEs(solver_info->imex_type);
-	compute_Inviscid_FACE_EFE(solver_info->imex_type);
-	compute_Viscous_FACE_EFE(solver_info->imex_type);
+	compute_Inviscid_FACE_EFE(solver_info);
+	compute_Viscous_FACE_EFE(solver_info);
 }
 
 static void set_memory_to_zero_FACEs (const char imex_type)
@@ -86,10 +86,12 @@ static void set_memory_to_zero_FACEs (const char imex_type)
 	}
 }
 
-static void compute_Inviscid_FACE_EFE (const char imex_type)
+static void compute_Inviscid_FACE_EFE (const struct S_solver_info*const solver_info)
 {
 	if (!DB.Inviscid)
 		return;
+
+	const char imex_type = solver_info->imex_type;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 
@@ -138,16 +140,36 @@ static void compute_Inviscid_FACE_EFE (const char imex_type)
 
 
 			// Compute FACE RHS and LHS terms
+
 			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'L','E','W');
-			if (imex_type == 'I')
+			if (imex_type == 'I') {
+				manage_solver_memory(DATA,'A','L'); // free
 				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'L','I','W');
+			}
 
 			if (!FACE->Boundary) {
 				finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'R','E','W');
-				if (imex_type == 'I')
+				if (imex_type == 'I') {
 					finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'R','I','W');
+				}
 			}
+
 			manage_solver_memory(DATA,'F','I');
+
+			if (imex_type == 'I') {
+				struct S_LHS_info LHS_info_LL = constructor_LHS_info(FDATAL->LHSL,FACE->VL,FACE->VL,ADD_VALUES);
+				fill_PetscMat(solver_info,&LHS_info_LL);
+
+				if (!FACE->Boundary) {
+					struct S_LHS_info LHS_info_LR = constructor_LHS_info(FDATAL->LHSR,FACE->VR,FACE->VL,ADD_VALUES);
+					fill_PetscMat(solver_info,&LHS_info_LR);
+					struct S_LHS_info LHS_info_RL = constructor_LHS_info(FDATAR->LHSL,FACE->VL,FACE->VR,ADD_VALUES);
+					fill_PetscMat(solver_info,&LHS_info_RL);
+					struct S_LHS_info LHS_info_RR = constructor_LHS_info(FDATAR->LHSR,FACE->VR,FACE->VR,ADD_VALUES);
+					fill_PetscMat(solver_info,&LHS_info_RR);
+				}
+				manage_solver_memory(DATA,'F','L');
+			}
 		}
 	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;
@@ -164,10 +186,12 @@ static void compute_Inviscid_FACE_EFE (const char imex_type)
 	free(DATA);
 }
 
-static void compute_Viscous_FACE_EFE (const char imex_type)
+static void compute_Viscous_FACE_EFE (const struct S_solver_info*const solver_info)
 {
 	if (!DB.Viscous)
 		return;
+
+	const char imex_type = solver_info->imex_type;
 
 	struct S_OPERATORS_F *OPSL[2], *OPSR[2];
 
@@ -220,12 +244,14 @@ static void compute_Viscous_FACE_EFE (const char imex_type)
 			if (imex_type == 'I')
 				add_Jacobian_scaling_FACE(FDATAL,'I','P');
 
+			// Compute FACE RHS and LHS terms
 			if (imex_type == 'I') {
+				manage_solver_memory(DATA,'A','L'); // free
+
 				// FACE contribution to V(L/R)->LHS and related off-diagonal contributions from the VOLUME term
-				finalize_VOLUME_LHSQF_Weak(FACE);
+				finalize_VOLUME_LHSQF_Weak(DATA);
 			}
 
-			// Compute FACE RHS and LHS terms
 			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'L','E','V');
 			if (imex_type == 'I') {
 				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'L','I','V');
@@ -240,6 +266,23 @@ static void compute_Viscous_FACE_EFE (const char imex_type)
 				}
 			}
 			manage_solver_memory(DATA,'F','V');
+
+			if (imex_type == 'I') {
+				struct S_LHS_info LHS_info_LL = constructor_LHS_info(FDATAL->LHSL,FACE->VL,FACE->VL,ADD_VALUES);
+				fill_PetscMat(solver_info,&LHS_info_LL);
+
+				if (!FACE->Boundary) {
+					struct S_LHS_info LHS_info_LR = constructor_LHS_info(FDATAL->LHSR,FACE->VR,FACE->VL,ADD_VALUES);
+					fill_PetscMat(solver_info,&LHS_info_LR);
+					struct S_LHS_info LHS_info_RL = constructor_LHS_info(FDATAR->LHSL,FACE->VL,FACE->VR,ADD_VALUES);
+					fill_PetscMat(solver_info,&LHS_info_RL);
+					struct S_LHS_info LHS_info_RR = constructor_LHS_info(FDATAR->LHSR,FACE->VR,FACE->VR,ADD_VALUES);
+					fill_PetscMat(solver_info,&LHS_info_RR);
+				}
+			}
+
+			if (imex_type == 'I')
+				manage_solver_memory(DATA,'F','L');
 		}
 	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;

@@ -39,15 +39,20 @@
 void solver_Advection(bool const PrintEnabled)
 {
 	struct S_solver_info solver_info = constructor_solver_info(PrintEnabled,true,false,DB.imex_type,DB.Method);
+	initialize_petsc_structs(&solver_info);
 	compute_RLHS(&solver_info);
 
 	if (DB.Method == METHOD_DG) {
 		if (strstr(DB.SolverType,"Explicit")) {
 			EXIT_UNSUPPORTED;
 		} else if (strstr(DB.SolverType,"Implicit")) {
-			Mat A = NULL;
-			Vec b = NULL, x = NULL;
+//			Mat A = NULL;
+//			Vec b = NULL, x = NULL;
 			KSP ksp = NULL;
+
+			Mat A = solver_info.A;
+			Vec b = solver_info.b;
+			Vec x = solver_info.x;
 
 			solver_implicit_linear_system(&A,&b,&x,&ksp,0,PrintEnabled);
 			solver_implicit_update_What(x);

@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include "petscmat.h"
 
+#include "S_VOLUME.h"
+
 struct S_solver_info {
 	/*
 	 *	Purpose:
@@ -31,12 +33,29 @@ struct S_solver_info {
 	unsigned int method;
 
 	// Petsc related parameters
-	Mat *A;
+	unsigned int dof;
+	PetscInt *nnz;
+
+	Mat A;
+	Vec x,
+	    b;
 };
+
+struct S_LHS_info {
+	size_t IndA[2], Nn[2];
+	const double* LHS;
+
+	InsertMode addv;
+};
+
 extern struct S_solver_info constructor_solver_info (const bool display, const bool output, const bool adapt,
                                                      const char imex_type, const unsigned int method);
+extern void initialize_petsc_structs (struct S_solver_info*const solver_info);
 
+extern struct S_LHS_info constructor_LHS_info (const double*const LHS, const struct S_VOLUME*const V0,
+                                               const struct S_VOLUME*const V1, const InsertMode addv);
 
-extern void compute_RLHS (const struct S_solver_info*const solver_info);
+extern void compute_RLHS  (const struct S_solver_info*const solver_info);
+extern void fill_PetscMat (const struct S_solver_info*const solver_info, const struct S_LHS_info*const LHS_info);
 
 #endif // DPG__solver_h__INCLUDED

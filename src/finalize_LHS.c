@@ -37,6 +37,7 @@ void initialize_KSP(Mat *A, Vec *b, Vec *x)
 	 *		Likely generalize this to use MPI matrix once MPI is pursued.
 	 *		Potentially need to add CHKERRQ for MatCreate. (ToBeDeleted)
 	 */
+printf("iKSP\n");
 
 	unsigned int const dof = DB.dof;
 
@@ -157,6 +158,9 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 	switch (assemble_type) {
 	default: // 0
 		maxRHS = finalize_RHS();
+// Potentially need to scale petscMat by weights for collocation correction. (ToBeDeleted)
+// Other option is simply to scale the term before adding to PetscMat (redundant as the same scaling will be applied to
+// multipled terms but should be negligible)
 		correct_collocated_for_symmetry();
 
 		finalize_LHS(A,b,x,1);
@@ -168,6 +172,7 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 		finalize_ksp(A,b,x,1);
 		break;
 	case 1: // diagonal VOLUME contributions
+break;
 		for (struct S_VOLUME const *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			unsigned int const IndA = VOLUME->IndA,
 			                   NvnS = VOLUME->NvnS;
@@ -218,6 +223,7 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 		}
 		break;
 	case 2: // diagonal FACE contributions
+break;
 		for (struct S_FACE const *FACE = DB.FACE; FACE; FACE = FACE->next) {
 		for (size_t side = 0; side < 2; side++) {
 			struct S_VOLUME const *VOLUME;
@@ -258,6 +264,7 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 		}}
 		break;
 	case 3: // off-diagonal contributions
+break;
 		for (struct S_FACE const *FACE = DB.FACE; FACE; FACE = FACE->next) {
 		for (size_t side = 0; side < 2; side++) {
 			if (FACE->Boundary)

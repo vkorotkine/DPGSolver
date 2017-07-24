@@ -47,11 +47,16 @@ void solver_Poisson(bool PrintEnabled)
 	update_memory_VOLUMEs();
 
 	struct S_solver_info solver_info = constructor_solver_info(PrintEnabled,true,false,DB.imex_type,DB.Method);
+	initialize_petsc_structs(&solver_info);
 	compute_RLHS(&solver_info);
 
-	Mat A = NULL;
-	Vec b = NULL, x = NULL;
+//	Mat A = NULL;
+//	Vec b = NULL, x = NULL;
 	KSP ksp = NULL;
+
+	Mat A = solver_info.A;
+	Vec b = solver_info.b;
+	Vec x = solver_info.x;
 
 	solver_implicit_linear_system(&A,&b,&x,&ksp,0,PrintEnabled);
 	solver_implicit_update_What(x);

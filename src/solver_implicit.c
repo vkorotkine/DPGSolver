@@ -318,8 +318,12 @@ void solver_implicit(bool const PrintEnabled)
 			mesh_update();
 
 		// Build the RHS and LHS terms
-		Mat                A = NULL;
-		Vec                b = NULL, x = NULL;
+		initialize_petsc_structs(&solver_info);
+		Mat A = solver_info.A;
+		Vec b = solver_info.b;
+		Vec x = solver_info.x;
+//		Mat                A = NULL;
+//		Vec                b = NULL, x = NULL;
 		KSP                ksp;
 //		PC                 pc;
 		KSPConvergedReason reason;

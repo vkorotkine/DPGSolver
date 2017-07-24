@@ -321,7 +321,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 
 			if (!CheckFullLinearization) {
 				for (size_t dim = 0; dim < d; dim++) {
-					unsigned int CheckLevel = 3;
+					const unsigned int CheckLevel = 3;
 					for (size_t i = 1; i <= CheckLevel; i++)
 						finalize_LHS_Qhat(&A[dim],&b[dim],&x[dim],i,dim);
 					finalize_Mat(&A[dim],1);
@@ -371,7 +371,25 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 			set_PrintName("linearization",data->PrintName,&data->TestTRI);
 
 			struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
+// add destructors below (ToBeDeleted)
+			initialize_petsc_structs(&solver_info);
 			compute_RLHS(&solver_info);
+
+			A = solver_info.A;
+			b = solver_info.b;
+			x = solver_info.x;
+
+			struct S_solver_info solver_info_cs = constructor_solver_info(false,false,false,'I',DB.Method);
+			initialize_petsc_structs(&solver_info_cs);
+			A_cs = solver_info_cs.A;
+			b_cs = solver_info_cs.b;
+			x_cs = solver_info_cs.x;
+
+			struct S_solver_info solver_info_csc = constructor_solver_info(false,false,false,'I',DB.Method);
+			initialize_petsc_structs(&solver_info_csc);
+			A_csc = solver_info_csc.A;
+			b_csc = solver_info_csc.b;
+			x_csc = solver_info_csc.x;
 
 			if (!CheckFullLinearization) {
 				correct_collocated_for_symmetry();
@@ -379,8 +397,9 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 				// Note: Poisson fails symmetric for CheckLevel = 1 and this is as expected. There is a FACE
 				//       contribution from Qhat which has not yet been balanced by the FACE contribution from the 2nd
 				//       equation.
-				unsigned int const CheckLevel = 3;
+				const unsigned int CheckLevel = 3;
 				for (size_t i = 1; i <= CheckLevel; i++)
+// remove finalize_LHS calls (ToBeDeleted)
 					finalize_LHS(&A,&b,&x,i);
 				finalize_Mat(&A,1);
 
@@ -697,10 +716,9 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 	unsigned int const dof = DB.dof;
 
 	unsigned int *A_nz = calloc(dof*dof , sizeof *A_nz); // free
-	if (*A == NULL) {
-		flag_nonzero_LHS(A_nz);
+	flag_nonzero_LHS(A_nz);
+	if (*A == NULL)
 		initialize_KSP(A,b,x);
-	}
 
 	unsigned int const Nvar = DB.Nvar;
 	unsigned int       NvnS[2], IndA[2];

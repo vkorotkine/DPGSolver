@@ -96,7 +96,8 @@ void test_equivalence_real_complex(struct S_equivalence_rc *const data, char con
 	 *		Correspondence between RHS terms computed using real and complex functions.
 	 */
 
-	bool const VOLUMEOnly = 1;
+	// Currently not matching for VOLUMEOnly = 1 as VOLUME/FACE RHS terms are now stored in the same memory location.
+	bool const VOLUMEOnly = 0;
 
 	set_test_equivalence_data(data,TestName);
 
