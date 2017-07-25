@@ -11,6 +11,7 @@
 #include "Macros.h"
 #include "S_DB.h"
 #include "S_VOLUME.h"
+#include "S_FACE.h"
 
 #include "solver_functions.h"
 #include "fluxes_structs.h"
@@ -186,6 +187,10 @@ static void compute_Viscous_VOLUME_EFE (const struct S_solver_info*const solver_
 	 *	Comments:
 	 *		The viscous VOLUME contributions have a nearly identical form to those of the inviscid contributions.
 	 *		Consider combining the two functions in the future. (ToBeModified)
+	 *
+	 *		There is an additional FACE contribution here arising from the linearization of Qhat_What (i.e. local
+	 *		changes to What affects Qhat in all neighbouring VOLUMEs and off-diagonal terms enter the linearization,
+	 *		unlike the inviscid contributions).
 	 */
 
 	if (!DB.Viscous)
@@ -285,6 +290,43 @@ static void compute_Viscous_VOLUME_EFE (const struct S_solver_info*const solver_
 
 			manage_solver_memory(DATA,'F','V');
 		}
+
+		// FACE contribution to V(L/R)->LHS and related off-diagonal contributions from the VOLUME term
+		if (imex_type == 'I') {
+			struct S_FDATA* FDATAL = malloc(sizeof *FDATAL), // free
+						  * FDATAR = malloc(sizeof *FDATAR); // free
+
+			DATA->FDATAL  = FDATAL;
+			DATA->FDATAR  = FDATAR;
+			DATA->feature = 'F';
+
+			for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
+				init_FDATA(FDATAL,FACE,'L',false);
+				init_FDATA(FDATAR,FACE,'R',false);
+
+				manage_solver_memory(DATA,'A','L'); // free
+				finalize_VOLUME_LHSQF_Weak(DATA);
+
+				struct S_LHS_info LHS_info_LL = constructor_LHS_info(FDATAL->LHSL,FACE->VL,FACE->VL,ADD_VALUES);
+				fill_PetscMat(solver_info,&LHS_info_LL);
+
+				if (!FACE->Boundary) {
+					struct S_LHS_info LHS_info_LR = constructor_LHS_info(FDATAL->LHSR,FACE->VR,FACE->VL,ADD_VALUES);
+					fill_PetscMat(solver_info,&LHS_info_LR);
+					struct S_LHS_info LHS_info_RL = constructor_LHS_info(FDATAR->LHSL,FACE->VL,FACE->VR,ADD_VALUES);
+					fill_PetscMat(solver_info,&LHS_info_RL);
+					struct S_LHS_info LHS_info_RR = constructor_LHS_info(FDATAR->LHSR,FACE->VR,FACE->VR,ADD_VALUES);
+					fill_PetscMat(solver_info,&LHS_info_RR);
+				}
+				manage_solver_memory(DATA,'F','L');
+			}
+
+			free(FDATAL);
+			free(FDATAR);
+		}
+
+
+
 	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;
 	}

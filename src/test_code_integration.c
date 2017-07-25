@@ -19,6 +19,7 @@
 #include "S_VOLUME.h"
 
 #include "test_support.h"
+#include "solver.h"
 #include "initialization.h"
 #include "setup_parameters.h"
 #include "setup_mesh.h"
@@ -1042,4 +1043,12 @@ void set_PrintName(char *name_type, char *PrintName, bool *TestTRI)
 		strcat(PrintName,DB.PDESpecifier); strcat(PrintName,", ");
 	}
 	strcat(PrintName,DB.MeshType); strcat(PrintName,") : ");
+}
+
+void compute_dof (void)
+{
+	struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
+	set_global_indices(&solver_info);
+
+	DB.dof = solver_info.dof;
 }

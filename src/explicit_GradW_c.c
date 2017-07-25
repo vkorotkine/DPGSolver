@@ -152,8 +152,8 @@ static void explicit_GradW_FACE_c (struct S_VOLUME *const VOLUME_perturbed, bool
 		if (!compute_all && !is_FACE_in_local_list(FACE,&local_ELEMENTs))
 			continue;
 
-		init_FDATA(FDATAL,FACE,'L');
-		init_FDATA(FDATAR,FACE,'R');
+		init_FDATA(FDATAL,FACE,'L',true);
+		init_FDATA(FDATAR,FACE,'R',true);
 
 		// Compute WL_fIL and WR_fIL (i.e. as seen from the (L)eft VOLUME)
 		unsigned int const IndFType = FDATAL->IndFType,

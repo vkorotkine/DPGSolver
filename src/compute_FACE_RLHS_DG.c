@@ -118,8 +118,8 @@ static void compute_Inviscid_FACE_EFE (const struct S_solver_info*const solver_i
 
 	if (strstr(DB.Form,"Weak")) {
 		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
-			init_FDATA(FDATAL,FACE,'L');
-			init_FDATA(FDATAR,FACE,'R');
+			init_FDATA(FDATAL,FACE,'L',true);
+			init_FDATA(FDATAR,FACE,'R',true);
 
 			// Compute WL_fIL and WR_fIL (i.e. as seen from the (L)eft VOLUME)
 			manage_solver_memory(DATA,'A','W'); // free
@@ -218,8 +218,8 @@ static void compute_Viscous_FACE_EFE (const struct S_solver_info*const solver_in
 
 	if (strstr(DB.Form,"Weak")) {
 		for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
-			init_FDATA(FDATAL,FACE,'L');
-			init_FDATA(FDATAR,FACE,'R');
+			init_FDATA(FDATAL,FACE,'L',true);
+			init_FDATA(FDATAR,FACE,'R',true);
 
 			// Compute WL_fIL, WR_fIL, QpL_fIL, and QpR_fIL (i.e. as seen from the (L)eft VOLUME)
 			manage_solver_memory(DATA,'A','W'); // free
@@ -245,15 +245,9 @@ static void compute_Viscous_FACE_EFE (const struct S_solver_info*const solver_in
 				add_Jacobian_scaling_FACE(FDATAL,'I','P');
 
 			// Compute FACE RHS and LHS terms
-			if (imex_type == 'I') {
-				manage_solver_memory(DATA,'A','L'); // free
-
-				// FACE contribution to V(L/R)->LHS and related off-diagonal contributions from the VOLUME term
-				finalize_VOLUME_LHSQF_Weak(DATA);
-			}
-
 			finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'L','E','V');
 			if (imex_type == 'I') {
+				manage_solver_memory(DATA,'A','L'); // free
 				finalize_FACE_Viscous_Weak(FDATAL,FDATAR,NFLUXDATA->dnFluxNumdWL,NFLUXDATA->dnFluxNumdWR,'L','I','V');
 				finalize_implicit_FACE_Q_Weak(FDATAL,FDATAR,'L');
 			}

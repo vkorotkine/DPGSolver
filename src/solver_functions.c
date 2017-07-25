@@ -120,7 +120,7 @@ void manage_solver_memory(struct S_DATA *const DATA, char const mem_op, char con
 			struct S_FACE              *const        FACE = (struct S_FACE *const) FDATAL->FACE;
 			struct S_OPERATORS_F const *const *const OPSF = FDATAL->OPS;
 			unsigned int const IndFType = FDATAL->IndFType,
-			                   NfnI     = OPSF[IndFType]->NfnI;
+			                   NfnI     = ( FDATAL->compute_OPS ? OPSF[IndFType]->NfnI : 0 );
 
 			if (mem_type == 'W') {
 				FDATAL->W_fIL = malloc(NfnI*Nvar * sizeof *(FDATAL->W_fIL)), // keep
@@ -861,7 +861,7 @@ void init_ops_FACE(struct S_OPERATORS_F *const OPS, struct S_VOLUME const *const
 	}
 }
 
-void init_FDATA(struct S_FDATA *const FDATA, struct S_FACE const *const FACE, char const side)
+void init_FDATA(struct S_FDATA *const FDATA, struct S_FACE const *const FACE, char const side, const bool compute_OPS)
 {
 	// Initialize DB Parameters
 	unsigned int const Collocated = DB.Collocated;
@@ -891,10 +891,13 @@ void init_FDATA(struct S_FDATA *const FDATA, struct S_FACE const *const FACE, ch
 	FDATA->Eclass = FDATA->VOLUME->Eclass;
 	FDATA->IndFType = get_IndFType(FDATA->Eclass,FDATA->f);
 
-	init_ops_FACE((struct S_OPERATORS_F *const) FDATA->OPS[0],FDATA->VOLUME,FACE,0);
-	if (FDATA->VOLUME->type == WEDGE || FDATA->VOLUME->type == PYR)
-		// Needed for sum factorized operators and alternate FACE operators (TRIs/QUADs)
-		init_ops_FACE((struct S_OPERATORS_F *const) FDATA->OPS[1],FDATA->VOLUME,FACE,1);
+	FDATA->compute_OPS = compute_OPS;
+	if (compute_OPS) {
+		init_ops_FACE((struct S_OPERATORS_F *const) FDATA->OPS[0],FDATA->VOLUME,FACE,0);
+		if (FDATA->VOLUME->type == WEDGE || FDATA->VOLUME->type == PYR)
+			// Needed for sum factorized operators and alternate FACE operators (TRIs/QUADs)
+			init_ops_FACE((struct S_OPERATORS_F *const) FDATA->OPS[1],FDATA->VOLUME,FACE,1);
+	}
 }
 
 void coef_to_values_fI(struct S_FDATA *const FDATA, char const coef_type, char const imex_type)

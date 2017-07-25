@@ -179,8 +179,8 @@ static void compute_GradW_FACE (const char imex_type)
 	}
 
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
-		init_FDATA(FDATAL,FACE,'L');
-		init_FDATA(FDATAR,FACE,'R');
+		init_FDATA(FDATAL,FACE,'L',true);
+		init_FDATA(FDATAR,FACE,'R',true);
 
 		// Compute WL_fIL and WR_fIL (i.e. as seen from the (L)eft VOLUME)
 		manage_solver_memory(DATA,'A','W'); // free

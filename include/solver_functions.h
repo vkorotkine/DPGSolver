@@ -63,6 +63,7 @@ struct S_OPERATORS_F {
 };
 
 struct S_FDATA {
+	bool         compute_OPS;
 	char         side;
 	unsigned int P, Vf, f, SpOp, Eclass, IndFType;
 	double       *W_fIL, **Qp_fIL, **QhatF, **Qp_WhatL, **Qp_WhatR, *LHSL, *LHSR;
@@ -114,7 +115,8 @@ extern void finalize_VOLUME_LHSQV_Weak    (struct S_VOLUME *const VOLUME, double
 
 extern void init_ops_FACE      (struct S_OPERATORS_F *const OPS, struct S_VOLUME const *const VOLUME,
                                 struct S_FACE const *const FACE, unsigned int const IndFType);
-extern void init_FDATA         (struct S_FDATA *const FDATA, struct S_FACE const *const FACE, char const side);
+extern void init_FDATA         (struct S_FDATA *const FDATA, struct S_FACE const *const FACE, char const side,
+                                const bool compute_OPS);
 extern void coef_to_values_fI  (struct S_FDATA *const FDATA, char const coef_type, char const imex_type);
 extern void compute_WR_fIL     (struct S_FDATA const *const FDATA, double const *const WL_fIL, double *const WR_fIL);
 extern void compute_WR_QpR_fIL (struct S_FDATA const *const FDATA, double const *const WL_fIL, double *const WR_fIL,

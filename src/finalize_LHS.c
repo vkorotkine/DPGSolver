@@ -37,6 +37,7 @@ void initialize_KSP(Mat *A, Vec *b, Vec *x)
 	 *		Likely generalize this to use MPI matrix once MPI is pursued.
 	 *		Potentially need to add CHKERRQ for MatCreate. (ToBeDeleted)
 	 */
+EXIT_UNSUPPORTED;
 printf("iKSP\n");
 
 	unsigned int const dof = DB.dof;
@@ -138,6 +139,7 @@ void assemble_RHS(Vec *b, Vec *x)
 	}
 }
 
+static void compute2_dof(void);
 double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 {
 	/*
@@ -145,11 +147,7 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 	 *		assemble_type is a flag for which parts of the global matrix are assembled.
 	 */
 
-	// Initialize DB Parameters
-	unsigned int const Nvar = DB.Nvar,
-	                   Neq  = DB.Neq;
-
-	compute_dof();
+	compute2_dof();
 
 	if (*A == NULL)
 		initialize_KSP(A,b,x);
@@ -163,157 +161,24 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 // multipled terms but should be negligible)
 		correct_collocated_for_symmetry();
 
-		finalize_LHS(A,b,x,1);
-		finalize_LHS(A,b,x,2);
-		finalize_LHS(A,b,x,3);
+//		finalize_LHS(A,b,x,1);
+//		finalize_LHS(A,b,x,2);
+//		finalize_LHS(A,b,x,3);
 
 		assemble_RHS(b,x);
 
 		finalize_ksp(A,b,x,1);
 		break;
 	case 1: // diagonal VOLUME contributions
-break;
-		for (struct S_VOLUME const *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
-			unsigned int const IndA = VOLUME->IndA,
-			                   NvnS = VOLUME->NvnS;
-
-			PetscInt *const m = malloc(NvnS * sizeof *m), // free
-			         *const n = malloc(NvnS * sizeof *n); // free
-
-			for (size_t eq = 0; eq < Neq; eq++) {
-				size_t const Indm = IndA + eq*NvnS;
-				for (size_t i = 0; i < NvnS; i++)
-					m[i] = Indm+i;
-
-				for (size_t var = 0; var < Nvar; var++) {
-					size_t const Indn = IndA + var*NvnS;
-					for (size_t i = 0; i < NvnS; i++)
-						n[i] = Indn+i;
-
-					PetscScalar const *const vv = &(VOLUME->LHS[(eq*Nvar+var)*NvnS*NvnS]);
-
-					MatSetValues(*A,NvnS,m,NvnS,n,vv,ADD_VALUES);
-				}
-			}
-			free(m);
-			free(n);
-		/*
-			// finalize_LHS modified in the case of d BLAS3 calls being used in finalize_VOLUME_Weak("LHS")
-			m = malloc(1         * sizeof *m); // free
-			n = malloc(NvnS*Nvar * sizeof *n); // free
-
-			Indn = IndA;
-			for (size_t j = 0; j < NvnS*Nvar; j++)
-				n[j] = Indn+j;
-
-			for (eq = 0; eq < Neq; eq++) {
-				Indm = IndA + eq*NvnS;
-
-				for (i = 0; i < NvnS; i++) {
-					m[0] = Indm+i;
-
-					vv = &(VOLUME->LHS[(Nvar*NvnS)*(eq+Neq*i)]);
-
-					MatSetValues(*A,1,m,NvnS*Nvar,n,vv,ADD_VALUES);
-				}
-			}
-			free(m);
-			free(n);
-		*/
-		}
-		break;
 	case 2: // diagonal FACE contributions
-break;
-		for (struct S_FACE const *FACE = DB.FACE; FACE; FACE = FACE->next) {
-		for (size_t side = 0; side < 2; side++) {
-			struct S_VOLUME const *VOLUME;
-			double const *LHS;
-			if (side == 0) {
-				VOLUME = FACE->VL;
-				LHS = FACE->LHSLL;
-			} else {
-				if (FACE->Boundary)
-					continue;
-				VOLUME = FACE->VR;
-				LHS = FACE->LHSRR;
-			}
-
-			unsigned int const IndA = VOLUME->IndA,
-			                   NvnS = VOLUME->NvnS;
-
-			PetscInt *const m = malloc(NvnS * sizeof *m), // free
-			         *const n = malloc(NvnS * sizeof *n); // free
-
-			for (size_t eq = 0; eq < Neq; eq++) {
-				size_t const Indm = IndA + eq*NvnS;
-				for (size_t i = 0; i < NvnS; i++)
-					m[i] = Indm+i;
-
-				for (size_t var = 0; var < Nvar; var++) {
-					size_t const Indn = IndA + var*NvnS;
-					for (size_t i = 0; i < NvnS; i++)
-						n[i] = Indn+i;
-
-					PetscScalar const *const vv = &LHS[(eq*Nvar+var)*NvnS*NvnS];
-
-					MatSetValues(*A,NvnS,m,NvnS,n,vv,ADD_VALUES);
-				}
-			}
-			free(m);
-			free(n);
-		}}
-		break;
 	case 3: // off-diagonal contributions
-break;
-		for (struct S_FACE const *FACE = DB.FACE; FACE; FACE = FACE->next) {
-		for (size_t side = 0; side < 2; side++) {
-			if (FACE->Boundary)
-				continue;
-
-			struct S_VOLUME const *VOLUME, *VOLUME2;
-			double const *LHS;
-			if (side == 0) {
-				VOLUME  = FACE->VR;
-				VOLUME2 = FACE->VL;
-				LHS = FACE->LHSLR;
-			} else {
-				VOLUME  = FACE->VL;
-				VOLUME2 = FACE->VR;
-				LHS = FACE->LHSRL;
-			}
-
-			unsigned int const IndA  = VOLUME->IndA,
-			                   IndA2 = VOLUME2->IndA,
-			                   NvnS  = VOLUME->NvnS,
-			                   NvnS2 = VOLUME2->NvnS;
-
-			PetscInt *const m = malloc(NvnS  * sizeof *m), // free
-			         *const n = malloc(NvnS2 * sizeof *n); // free
-
-			for (size_t eq = 0; eq < Neq; eq++) {
-				size_t const Indm = IndA + eq*NvnS;
-				for (size_t i = 0; i < NvnS; i++)
-					m[i] = Indm+i;
-
-				for (size_t var = 0; var < Nvar; var++) {
-					size_t const Indn = IndA2 + var*NvnS2;
-					for (size_t i = 0; i < NvnS2; i++)
-						n[i] = Indn+i;
-
-					PetscScalar const *const vv = &LHS[(eq*Nvar+var)*NvnS*NvnS2];
-
-					MatSetValues(*A,NvnS,m,NvnS2,n,vv,ADD_VALUES);
-				}
-			}
-			free(m);
-			free(n);
-		}}
+		// Do nothing
 		break;
 	}
 	return maxRHS;
 }
 
-void compute_dof(void)
+static void compute2_dof(void)
 {
 	/*
 	 *	Comments:

@@ -66,14 +66,11 @@
  */
 
 static void update_VOLUME_FACEs        (void);
-static void compute_A_cs               (Mat *A, Vec *b, Vec *x, unsigned int const assemble_type,
-                                        bool const AllowOffDiag);
-static void compute_A_cs_complete      (Mat *A, Vec *b, Vec *x);
-static void finalize_LHS_Qhat          (Mat *const A, Vec *const b, Vec *const x, unsigned int const assemble_type,
-                                        unsigned int const dim);
-static void compute_A_Qhat_cs          (Mat *const A, Vec *const b, Vec *const x, unsigned int const assemble_type,
-                                        unsigned int const dim);
-static void compute_A_Qhat_cs_complete (Mat *const A, Vec *const b, Vec *const x, unsigned int const dim);
+static void compute_A_cs               (Mat *A, unsigned int const assemble_type, bool const AllowOffDiag);
+static void compute_A_cs_complete      (Mat *A);
+static void finalize_LHS_Qhat          (Mat*const A, unsigned int const assemble_type, unsigned int const dim);
+static void compute_A_Qhat_cs          (Mat*const A, unsigned int const assemble_type, unsigned int const dim);
+static void compute_A_Qhat_cs_complete (Mat*const A, unsigned int const dim);
 
 static void set_test_linearization_data(struct S_linearization *const data, char const *const TestName)
 {
@@ -162,6 +159,7 @@ data->StaticCondensation = 0;
 		}
 	} else if (strstr(TestName,"NavierStokes")) {
 //data->PrintTimings = 1;
+data->CheckFullLinearization = 0;
 		data->CheckWeakGradients = 1;
 		if (strstr(TestName,"ToBeCurvedMIXED2D")) {
 			if (strstr(TestName,"Collocated")) {
@@ -176,7 +174,6 @@ data->StaticCondensation = 0;
 		printf("%s\n",TestName); EXIT_UNSUPPORTED;
 	}
 }
-
 
 static void check_passing(struct S_linearization const *const data, unsigned int *pass)
 {
@@ -230,6 +227,42 @@ static void print_times (double const *const times, bool const PrintTimings)
 	printf("\n");
 }
 
+static Mat allocate_A (void)
+{
+	struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
+	solver_info.create_RHS = false;
+	initialize_petsc_structs(&solver_info);
+
+	return solver_info.A;
+}
+
+static void compute_A (Mat A, const unsigned int CheckLevel)
+{
+	struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
+	solver_info.create_RHS = false;
+	solver_info.A = A;
+	compute_RLHS(&solver_info);
+
+	if (CheckLevel != 3)
+		printf("Fix this (tcil).\n");
+}
+
+static void assemble_A (Mat A)
+{
+	struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
+	solver_info.create_RHS = false;
+	solver_info.A = A;
+	assemble_petsc_structs(&solver_info);
+}
+
+static void destroy_A (Mat A)
+{
+	struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
+	solver_info.create_RHS = false;
+	solver_info.A = A;
+	destroy_petsc_structs(&solver_info);
+}
+
 void test_linearization(struct S_linearization *const data, char const *const TestName)
 {
 	/*
@@ -280,6 +313,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 
 	code_startup(nargc,argvNew,Nref,update_argv);
 	update_VOLUME_FACEs();
+	compute_dof();
 
 	// Perturb the solution for nonlinear equations
 	if (strstr(TestName,"Euler") || strstr(TestName,"NavierStokes")) {
@@ -305,12 +339,6 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 			if (!CheckWeakGradients)
 				continue;
 
-			unsigned int const d = DB.d;
-
-			Mat A[DMAX] = { NULL }, A_cs[DMAX] = { NULL }, A_csc[DMAX] = { NULL };
-			Vec b[DMAX] = { NULL }, b_cs[DMAX] = { NULL }, b_csc[DMAX] = { NULL },
-			    x[DMAX] = { NULL }, x_cs[DMAX] = { NULL }, x_csc[DMAX] = { NULL };
-
 			set_PrintName("linearization (weak gradient)",data->PrintName,&data->TestTRI);
 			if (strstr(TestName,"NavierStokes")) {
 				struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
@@ -319,16 +347,25 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 				EXIT_UNSUPPORTED;
 			}
 
+			unsigned int const d = DB.d;
+
+			Mat A[DMAX]     = { NULL },
+			    A_cs[DMAX]  = { NULL },
+			    A_csc[DMAX] = { NULL };
+
 			if (!CheckFullLinearization) {
 				for (size_t dim = 0; dim < d; dim++) {
 					const unsigned int CheckLevel = 3;
-					for (size_t i = 1; i <= CheckLevel; i++)
-						finalize_LHS_Qhat(&A[dim],&b[dim],&x[dim],i,dim);
-					finalize_Mat(&A[dim],1);
 
+					A[dim] = allocate_A();
 					for (size_t i = 1; i <= CheckLevel; i++)
-						compute_A_Qhat_cs(&A_cs[dim],&b_cs[dim],&x_cs[dim],i,dim);
-					finalize_Mat(&A_cs[dim],1);
+						finalize_LHS_Qhat(&A[dim],i,dim);
+					assemble_A(A[dim]);
+
+					A_cs[dim] = allocate_A();
+					for (size_t i = 1; i <= CheckLevel; i++)
+						compute_A_Qhat_cs(&A_cs[dim],i,dim);
+					assemble_A(A_cs[dim]);
 				}
 			} else {
 				for (size_t dim = 0; dim < d; dim++) {
@@ -336,13 +373,16 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 					double times[3];
 					unsigned int counter = 0;
 
-					finalize_LHS_Qhat(&A[dim],&b[dim],&x[dim],0,dim);
+					A[dim] = allocate_A();
+					finalize_LHS_Qhat(&A[dim],0,dim);
 					update_times(&tc,&tp,times,counter++,data->PrintTimings);
 
-					compute_A_Qhat_cs(&A_cs[dim],&b_cs[dim],&x_cs[dim],0,dim);
+					A_cs[dim] = allocate_A();
+					compute_A_Qhat_cs(&A_cs[dim],0,dim);
 					update_times(&tc,&tp,times,counter++,data->PrintTimings);
 
-					compute_A_Qhat_cs_complete(&A_csc[dim],&b_csc[dim],&x_csc[dim],dim);
+					A_csc[dim] = allocate_A();
+					compute_A_Qhat_cs_complete(&A_csc[dim],dim);
 					update_times(&tc,&tp,times,counter++,data->PrintTimings);
 
 					print_times(times,data->PrintTimings);
@@ -351,45 +391,25 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 
 			unsigned int pass = 1;
 			for (size_t dim = 0; dim < d; dim++) {
-				data->A = A[dim]; data->A_cs = A_cs[dim]; data->A_csc = A_csc[dim];
-				data->b = b[dim]; data->b_cs = b_cs[dim]; data->b_csc = b_csc[dim];
-				data->x = x[dim]; data->x_cs = x_cs[dim]; data->x_csc = x_csc[dim];
+				data->A     = A[dim];
+				data->A_cs  = A_cs[dim];
+				data->A_csc = A_csc[dim];
 
 				check_passing(data,&pass);
 			}
 			test_print2(pass,data->PrintName);
 
 			for (size_t dim = 0; dim < d; dim++) {
-				finalize_ksp(&A[dim],&b[dim],&x[dim],2);
-				finalize_ksp(&A_cs[dim],&b_cs[dim],&x_cs[dim],2);
-				finalize_ksp(&A_csc[dim],&b_csc[dim],&x_csc[dim],2);
+				destroy_A(A[dim]);
+				destroy_A(A_cs[dim]);
+				destroy_A(A_csc[dim]);
 			}
 		} else { // Standard (Full linearization)
-			Mat A = NULL, A_cs = NULL, A_csc = NULL;
-			Vec b = NULL, b_cs = NULL, b_csc = NULL, x = NULL, x_cs = NULL, x_csc = NULL;
-
 			set_PrintName("linearization",data->PrintName,&data->TestTRI);
 
-			struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
-// add destructors below (ToBeDeleted)
-			initialize_petsc_structs(&solver_info);
-			compute_RLHS(&solver_info);
-
-			A = solver_info.A;
-			b = solver_info.b;
-			x = solver_info.x;
-
-			struct S_solver_info solver_info_cs = constructor_solver_info(false,false,false,'I',DB.Method);
-			initialize_petsc_structs(&solver_info_cs);
-			A_cs = solver_info_cs.A;
-			b_cs = solver_info_cs.b;
-			x_cs = solver_info_cs.x;
-
-			struct S_solver_info solver_info_csc = constructor_solver_info(false,false,false,'I',DB.Method);
-			initialize_petsc_structs(&solver_info_csc);
-			A_csc = solver_info_csc.A;
-			b_csc = solver_info_csc.b;
-			x_csc = solver_info_csc.x;
+			Mat A     = allocate_A(),
+			    A_cs  = allocate_A(),
+			    A_csc = allocate_A();
 
 			if (!CheckFullLinearization) {
 				correct_collocated_for_symmetry();
@@ -397,31 +417,34 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 				// Note: Poisson fails symmetric for CheckLevel = 1 and this is as expected. There is a FACE
 				//       contribution from Qhat which has not yet been balanced by the FACE contribution from the 2nd
 				//       equation.
-				const unsigned int CheckLevel = 3;
-				for (size_t i = 1; i <= CheckLevel; i++)
-// remove finalize_LHS calls (ToBeDeleted)
-					finalize_LHS(&A,&b,&x,i);
-				finalize_Mat(&A,1);
+//				const unsigned int CheckLevel = 3;
+const unsigned int CheckLevel = 3;
+// No longer working for CheckLevel < 3 (ToBeModified)
+// To fix CheckLevel = 1: Likely need to move final VOLUME contribution from FACE to VOLUME compute_RLHS
+// To fix CheckLevel = 2: Need to avoid computing off-diagonal FACE contributions
+				compute_A(A,CheckLevel);
+				assemble_A(A);
 
 				bool AllowOffDiag = 0;
 				if (CheckLevel == 3)
 					AllowOffDiag = 1;
 
 				for (size_t i = 1; i <= CheckLevel; i++)
-					compute_A_cs(&A_cs,&b_cs,&x_cs,i,AllowOffDiag);
-				finalize_Mat(&A_cs,1);
+					compute_A_cs(&A_cs,i,AllowOffDiag);
+				assemble_A(A_cs);
 			} else {
 				clock_t tp = clock(), tc;
 				double times[3];
 				unsigned int counter = 0;
 
-				finalize_LHS(&A,&b,&x,0);
+				compute_A(A,3);
+				assemble_A(A);
 				update_times(&tc,&tp,times,counter++,data->PrintTimings);
 
-				compute_A_cs(&A_cs,&b_cs,&x_cs,0,true);
+				compute_A_cs(&A_cs,0,true);
 				update_times(&tc,&tp,times,counter++,data->PrintTimings);
 
-				compute_A_cs_complete(&A_csc,&b_csc,&x_csc);
+				compute_A_cs_complete(&A_csc);
 				update_times(&tc,&tp,times,counter++,data->PrintTimings);
 
 				print_times(times,data->PrintTimings);
@@ -434,16 +457,14 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 			}
 
 			data->A = A; data->A_cs = A_cs; data->A_csc = A_csc;
-			data->b = b; data->b_cs = b_cs; data->b_csc = b_csc;
-			data->x = x; data->x_cs = x_cs; data->x_csc = x_csc;
 
 			unsigned int pass = 1;
 			check_passing(data,&pass);
 			test_print2(pass,data->PrintName);
 
-			finalize_ksp(&A,&b,&x,2);
-			finalize_ksp(&A_cs,&b_cs,&x_cs,2);
-			finalize_ksp(&A_csc,&b_csc,&x_csc,2);
+			destroy_A(A);
+			destroy_A(A_cs);
+			destroy_A(A_csc);
 		}
 	}
 	code_cleanup();
@@ -511,9 +532,6 @@ static void update_VOLUME_FACEs (void)
 	/*
 	 *	Purpose:
 	 *		For each VOLUME, set the list of pointers to all adjacent FACEs.
-	 *
-	 *	Comments:
-	 *		This function will likely need to be modified when parallelization is implemented.
 	 */
 
 	// Ensure that the lists are reset (in case the mesh has been updated)
@@ -535,23 +553,19 @@ static void update_VOLUME_FACEs (void)
 	}
 }
 
-static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int const assemble_type,
-                         bool const AllowOffDiag)
+static void compute_A_cs(Mat *const A, unsigned int const assemble_type, bool const AllowOffDiag)
 {
-	if (*A == NULL)
-		initialize_KSP(A,b,x);
-
 	if (AllowOffDiag) {
 		if (DB.Viscous)
 			TestDB.CheckOffDiagonal = 1;
 	}
 
 	if (assemble_type == 0) {
-		compute_A_cs(A,b,x,1,AllowOffDiag);
-		compute_A_cs(A,b,x,2,AllowOffDiag);
-		compute_A_cs(A,b,x,3,AllowOffDiag);
+		compute_A_cs(A,1,AllowOffDiag);
+		compute_A_cs(A,2,AllowOffDiag);
+		compute_A_cs(A,3,AllowOffDiag);
 
-		finalize_Mat(A,1);
+		assemble_A(*A);
 		return;
 	}
 
@@ -711,18 +725,17 @@ static void compute_A_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int 
 	}
 }
 
-static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
+static void compute_A_cs_complete(Mat *A)
 {
 	unsigned int const dof = DB.dof;
 
 	unsigned int *A_nz = calloc(dof*dof , sizeof *A_nz); // free
 	flag_nonzero_LHS(A_nz);
-	if (*A == NULL)
-		initialize_KSP(A,b,x);
 
-	unsigned int const Nvar = DB.Nvar;
-	unsigned int       NvnS[2], IndA[2];
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		unsigned int const Nvar = DB.Nvar;
+		unsigned int       NvnS[2], IndA[2];
+
 		IndA[0] = VOLUME->IndA;
 		NvnS[0] = VOLUME->NvnS;
 		for (size_t i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++) {
@@ -766,11 +779,10 @@ static void compute_A_cs_complete(Mat *A, Vec *b, Vec *x)
 	}
 	free(A_nz);
 
-	finalize_Mat(A,1);
+	assemble_A(*A);
 }
 
-static void finalize_LHS_Qhat(Mat *const A, Vec *const b, Vec *const x, unsigned int const assemble_type,
-                              unsigned int const dim)
+static void finalize_LHS_Qhat(Mat *const A, unsigned int const assemble_type, unsigned int const dim)
 {
 	/*
 	 *	Purpose:
@@ -783,18 +795,13 @@ static void finalize_LHS_Qhat(Mat *const A, Vec *const b, Vec *const x, unsigned
 	unsigned int Nvar = DB.Nvar,
 	             Neq  = DB.Neq;
 
-	compute_dof();
-
-	if (*A == NULL)
-		initialize_KSP(A,b,x);
-
 	switch (assemble_type) {
 	default: // 0
-		finalize_LHS_Qhat(A,b,x,1,dim);
-		finalize_LHS_Qhat(A,b,x,2,dim);
-		finalize_LHS_Qhat(A,b,x,3,dim);
+		finalize_LHS_Qhat(A,1,dim);
+		finalize_LHS_Qhat(A,2,dim);
+		finalize_LHS_Qhat(A,3,dim);
 
-		finalize_Mat(A,1);
+		assemble_A(*A);
 		break;
 	case 1: // diagonal VOLUME contributions
 		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
@@ -938,21 +945,17 @@ static void finalize_LHS_Qhat(Mat *const A, Vec *const b, Vec *const x, unsigned
 	}
 }
 
-static void compute_A_Qhat_cs(Mat *const A, Vec *const b, Vec *const x, unsigned int const assemble_type,
-                              unsigned int const dim)
+static void compute_A_Qhat_cs(Mat *const A, unsigned int const assemble_type, unsigned int const dim)
 {
 	if (!strstr(DB.TestCase,"NavierStokes"))
 		EXIT_UNSUPPORTED;
 
-	if (*A == NULL)
-		initialize_KSP(A,b,x);
-
 	if (assemble_type == 0) {
-		compute_A_Qhat_cs(A,b,x,1,dim);
-		compute_A_Qhat_cs(A,b,x,2,dim);
-		compute_A_Qhat_cs(A,b,x,3,dim);
+		compute_A_Qhat_cs(A,1,dim);
+		compute_A_Qhat_cs(A,2,dim);
+		compute_A_Qhat_cs(A,3,dim);
 
-		finalize_Mat(A,1);
+		assemble_A(*A);
 		return;
 	}
 
@@ -1082,7 +1085,7 @@ static void compute_A_Qhat_cs(Mat *const A, Vec *const b, Vec *const x, unsigned
 	}
 }
 
-static void compute_A_Qhat_cs_complete(Mat *const A, Vec *const b, Vec *const x, unsigned int const dim)
+static void compute_A_Qhat_cs_complete(Mat *const A, unsigned int const dim)
 {
 	if (!strstr(DB.TestCase,"NavierStokes"))
 		EXIT_UNSUPPORTED;
@@ -1090,14 +1093,12 @@ static void compute_A_Qhat_cs_complete(Mat *const A, Vec *const b, Vec *const x,
 	unsigned int const dof = DB.dof;
 
 	unsigned int *A_nz = calloc(dof*dof , sizeof *A_nz); // free
-	if (*A == NULL) {
-		flag_nonzero_LHS(A_nz);
-		initialize_KSP(A,b,x);
-	}
+	flag_nonzero_LHS(A_nz);
 
-	unsigned int const Nvar = DB.Nvar;
-	unsigned int       NvnS[2], IndA[2];
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		unsigned int const Nvar = DB.Nvar;
+		unsigned int       NvnS[2], IndA[2];
+
 		IndA[0] = VOLUME->IndA;
 		NvnS[0] = VOLUME->NvnS;
 		for (size_t i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++) {
@@ -1135,5 +1136,5 @@ static void compute_A_Qhat_cs_complete(Mat *const A, Vec *const b, Vec *const x,
 	}
 	free(A_nz);
 
-	finalize_Mat(A,1);
+	assemble_A(*A);
 }

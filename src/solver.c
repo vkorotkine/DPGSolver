@@ -228,7 +228,6 @@ void update_solution (const struct S_solver_info*const solver_info)
 	}
 }
 
-static void set_global_indices   (struct S_solver_info*const solver_info);
 static void compute_nnz          (struct S_solver_info*const solver_info);
 static void create_petsc_structs (struct S_solver_info*const solver_info);
 
@@ -243,16 +242,60 @@ void initialize_petsc_structs (struct S_solver_info*const solver_info)
 	create_petsc_structs(solver_info);
 }
 
+static void assemble_Mat (Mat A)
+{
+	MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);
+	MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);
+}
+
+static void assemble_Vec (Vec a)
+{
+	VecAssemblyBegin(a);
+	VecAssemblyEnd(a);
+}
+
+void assemble_petsc_structs (struct S_solver_info*const solver_info)
+{
+	/*
+	 *	Purpose:
+	 *		Assemble Petsc data storage structs for global system solve.
+	 *
+	 *	Comments:
+	 *		Called after containers are filled before passing to KSP.
+	 */
+
+	assemble_Mat(solver_info->A);
+	if (solver_info->create_RHS) {
+		assemble_Vec(solver_info->b);
+		assemble_Vec(solver_info->x);
+	}
+}
+
+void destroy_petsc_structs (struct S_solver_info*const solver_info)
+{
+	/*
+	 *	Purpose:
+	 *		Destroy Petsc data storage structs for global system solve.
+	 */
 
 
-static void set_global_indices (struct S_solver_info*const solver_info)
+	MatDestroy(&solver_info->A); solver_info->A = NULL;
+	if (solver_info->create_RHS) {
+		VecDestroy(&solver_info->b); solver_info->b = NULL;
+		VecDestroy(&solver_info->x); solver_info->x = NULL;
+	}
+}
+
+
+
+void set_global_indices (struct S_solver_info*const solver_info)
 {
 	/*
 	 *	Purpose:
 	 *		Set the indices of the degrees of freedom of VOLUME/FACE unknowns in the global system matrix.
 	 *
 	 *	Comments:
-	 *		The total number of globally coupled degress of freedom is also computed and stored.
+	 *		The total number of globally coupled degrees of freedom is also computed and stored.
 	 *
 	 *	Notation:
 	 *		IndA_G  : (G)lobal (Ind)ex of global system matrix (A)
@@ -268,6 +311,8 @@ static void set_global_indices (struct S_solver_info*const solver_info)
 		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			VOLUME->IndA = IndA_G;
 			IndA_G += Nvar*(VOLUME->NvnS);
+// Currently needed for linearization testing (ToBeDeleted)
+VOLUME->nnz_d = Nvar*(VOLUME->NvnS);
 		}
 		break;
 	case METHOD_HDG:
@@ -347,16 +392,21 @@ static void create_petsc_structs (struct S_solver_info*const solver_info)
 	/*
 	 *	Purpose:
 	 *		Initialize Petsc data storage structs for global system solve.
+	 *
+	 *	Comments:
+	 *		Memory for the RHS and solution vector need not be allocated for the linearization tests.
 	 */
 
 	const unsigned int dof = solver_info->dof;
-	const PetscInt* nnz = solver_info->nnz;
+	PetscInt* nnz = solver_info->nnz;
 
 	MatCreateSeqAIJ(MPI_COMM_WORLD,dof,dof,0,nnz,&solver_info->A); // keep
-	VecCreateSeq(MPI_COMM_WORLD,dof,&solver_info->b);              // keep
-	VecCreateSeq(MPI_COMM_WORLD,dof,&solver_info->x);              // keep
+	if (solver_info->create_RHS) {
+		VecCreateSeq(MPI_COMM_WORLD,dof,&solver_info->b); // keep
+		VecCreateSeq(MPI_COMM_WORLD,dof,&solver_info->x); // keep
+	}
 
-	free((PetscInt*) nnz);
+	free(nnz); nnz = NULL;
 }
 
 static void add_to_nnz (const unsigned int IndA, const unsigned int nnz_c, const unsigned int nnz_n, PetscInt*const nnz)
@@ -454,6 +504,8 @@ struct S_solver_info constructor_solver_info (const bool display, const bool out
 	solver_info.imex_type = imex_type;
 
 	if (imex_type == 'I') {
+		solver_info.create_RHS = true;
+
 		solver_info.A = NULL;
 		solver_info.b = NULL;
 		solver_info.x = NULL;
