@@ -42,7 +42,7 @@ void test_integration_Euler(int nargc, char **argv)
 	     RunTests_conv_order               = 1;
 
 	// ToBeDeleted after Manmeet has finished his initial verification.
-	bool const PeriodicVortexOnly = 1;
+	bool const PeriodicVortexOnly = 0;
 	if (PeriodicVortexOnly) {
 		RunTests_equivalence_real_complex = 0;
 		RunTests_equivalence_algorithms   = 0;
