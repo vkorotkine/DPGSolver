@@ -12,16 +12,12 @@
 #include "S_OpCSR.h"
 #include "fluxes_structs.h"
 
-// VOLUME structs and functions
+// VOLUME structs
 
 struct S_Dxyz {
 	unsigned int dim, Nbf, Nn;
 	double const *const *D, *C;
 };
-
-//extern double *compute_Dxyz(struct S_Dxyz *DxyzInfo, unsigned int d);
-extern double *compute_Dxyz_strong (struct S_Dxyz *DxyzInfo, unsigned int d);
-
 
 struct S_OPERATORS_V {
 	// Standard
@@ -38,7 +34,7 @@ struct S_OPERATORS_V {
 
 struct S_VDATA {
 	unsigned int P, Eclass;
-	double       *W_vI, **Q_vI, *XYZ_vI;
+	double       *W_vI, **Q_vI, *XYZ_vI, *LHS;
 
 	struct S_OPERATORS_V const *const *OPS;
 	struct S_VOLUME      const *VOLUME;
@@ -47,24 +43,7 @@ struct S_VDATA {
 	double complex *W_vI_c, **Q_vI_c;
 };
 
-extern void init_ops_VOLUME    (struct S_OPERATORS_V *const OPS, struct S_VOLUME const *const VOLUME,
-                                unsigned int const IndClass);
-extern void init_VDATA         (struct S_VDATA *const VDATA, struct S_VOLUME const *const VOLUME);
-extern void coef_to_values_vI  (struct S_VDATA const *const VDATA, char const coef_type);
-extern void compute_flux_inviscid (struct S_VDATA *const VDATA, struct S_FLUX *const FLUXDATA, const char imex_type);
-extern void convert_between_rp (unsigned int const Nn, unsigned int const Nrc, double const *const C, double *const Ap,
-                                double *const Ar, char const *const conv_type);
-
-extern void finalize_VOLUME_Inviscid_Weak (unsigned int const Nrc, double const *const Ar_vI, double *const RLHS,
-                                           char const imex_type, struct S_VDATA const *const VDATA);
-extern void finalize_VOLUME_Viscous_Weak  (unsigned int const Nrc, double *const Ar_vI, double *const RLHS,
-                                           char const imex_type, struct S_VDATA const *const VDATA);
-extern void initialize_VOLUME_LHSQ_Weak   (unsigned int const Nrc, double const *const *const dFrdQ_vI,
-                                           double *const *const LHSQ, struct S_VDATA const *const VDATA);
-extern void finalize_VOLUME_LHSQV_Weak    (struct S_VOLUME *const VOLUME);
-
-
-// FACE structs and functions
+// FACE structs
 
 #define PENALIZATION_SCALING 1.01
 
@@ -84,9 +63,10 @@ struct S_OPERATORS_F {
 };
 
 struct S_FDATA {
+	bool         compute_OPS;
 	char         side;
 	unsigned int P, Vf, f, SpOp, Eclass, IndFType;
-	double       *W_fIL, **Qp_fIL, **QhatF, **Qp_WhatL, **Qp_WhatR;
+	double       *W_fIL, **Qp_fIL, **QhatF, **Qp_WhatL, **Qp_WhatR, *LHSL, *LHSR;
 
 	struct S_OPERATORS_F const *const *OPS;
 	struct S_VOLUME      const *VOLUME;
@@ -98,9 +78,45 @@ struct S_FDATA {
 	double complex *W_fIL_c, **Qp_fIL_c, **QhatF_c;
 };
 
+// General struct(s)
+struct S_DATA {
+	char feature, imex_type;
+
+	struct S_VDATA *VDATA;
+	struct S_FDATA *FDATAL, *FDATAR;
+
+	struct S_FLUX          *FLUXDATA;
+	struct S_NUMERICALFLUX *NFLUXDATA;
+};
+
+
+// VOLUME functions
+
+extern double *compute_Dxyz_strong (struct S_Dxyz *DxyzInfo, unsigned int d);
+
+extern void init_ops_VOLUME    (struct S_OPERATORS_V *const OPS, struct S_VOLUME const *const VOLUME,
+                                unsigned int const IndClass);
+extern void init_VDATA         (struct S_VDATA *const VDATA, struct S_VOLUME const *const VOLUME);
+extern void coef_to_values_vI  (struct S_VDATA const *const VDATA, char const coef_type);
+extern void compute_flux_inviscid (struct S_VDATA *const VDATA, struct S_FLUX *const FLUXDATA, const char imex_type);
+extern void convert_between_rp (unsigned int const Nn, unsigned int const Nrc, double const *const C, double *const Ap,
+                                double *const Ar, char const *const conv_type);
+
+extern void finalize_VOLUME_Inviscid_Weak (unsigned int const Nrc, double const *const Ar_vI, double *const RLHS,
+                                           char const imex_type, struct S_VDATA const *const VDATA);
+extern void finalize_VOLUME_Viscous_Weak  (unsigned int const Nrc, double *const Ar_vI, double *const RLHS,
+                                           char const imex_type, struct S_VDATA const *const VDATA);
+extern void initialize_VOLUME_LHSQ_Weak   (unsigned int const Nrc, double const *const *const dFrdQ_vI,
+                                           double *const *const LHSQ, struct S_VDATA const *const VDATA);
+extern void finalize_VOLUME_LHSQV_Weak    (struct S_VOLUME *const VOLUME, double*const LHS);
+
+
+// FACE functions
+
 extern void init_ops_FACE      (struct S_OPERATORS_F *const OPS, struct S_VOLUME const *const VOLUME,
                                 struct S_FACE const *const FACE, unsigned int const IndFType);
-extern void init_FDATA         (struct S_FDATA *const FDATA, struct S_FACE const *const FACE, char const side);
+extern void init_FDATA         (struct S_FDATA *const FDATA, struct S_FACE const *const FACE, char const side,
+                                const bool compute_OPS);
 extern void coef_to_values_fI  (struct S_FDATA *const FDATA, char const coef_type, char const imex_type);
 extern void compute_WR_fIL     (struct S_FDATA const *const FDATA, double const *const WL_fIL, double *const WR_fIL);
 extern void compute_WR_QpR_fIL (struct S_FDATA const *const FDATA, double const *const WL_fIL, double *const WR_fIL,
@@ -122,18 +138,11 @@ extern void finalize_FACE_Viscous_Weak  (struct S_FDATA const *const FDATAL, str
                                          char const imex_type, char const coef_type);
 extern void finalize_implicit_FACE_Q_Weak (struct S_FDATA const *const FDATAL, struct S_FDATA const *const FDATAR,
                                            char const side);
-extern void finalize_VOLUME_LHSQF_Weak  (struct S_FACE *const FACE);
+//extern void finalize_VOLUME_LHSQF_Weak  (struct S_FACE *const FACE);
+extern void finalize_VOLUME_LHSQF_Weak  (struct S_DATA*const DATA);
 
-// General functions
-struct S_DATA {
-	char feature, imex_type;
 
-	struct S_VDATA *VDATA;
-	struct S_FDATA *FDATAL, *FDATAR;
-
-	struct S_FLUX          *FLUXDATA;
-	struct S_NUMERICALFLUX *NFLUXDATA;
-};
+// General function(s)
 
 extern void manage_solver_memory (struct S_DATA *const DATA, char const mem_op, char const mem_type);
 

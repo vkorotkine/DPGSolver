@@ -246,7 +246,7 @@ void compute_errors(struct S_VOLUME *VOLUME, double *L2Error2, double *Vol, unsi
 		free(s);
 		free(UEx);
 		free(sEx);
-	} else if (strstr(TestCase,"InviscidChannel") ||
+	} else if (strstr(TestCase,"GaussianBump") ||
 	           strstr(TestCase,"SubsonicNozzle")) {
 		L2Error2[0] = 0.0;
 
@@ -431,7 +431,7 @@ void compute_errors_global(void)
 	} else if (strstr(TestCase,"PeriodicVortex") ||
 	           strstr(TestCase,"SupersonicVortex")) {
 		NvarError = NVAR3D+1;
-	} else if (strstr(TestCase,"InviscidChannel") ||
+	} else if (strstr(TestCase,"GaussianBump") ||
 	           strstr(TestCase,"SubsonicNozzle")) {
 		if (strstr(Geometry,"NacaSymmetric"))
 			CurvedOnly = 1; // Avoid trailing edge singularity when computing entropy error.
@@ -497,7 +497,7 @@ static void output_errors(const double *L2Error2, const unsigned int NvarError, 
 	} else if (strstr(TestCase,"PeriodicVortex") ||
 	           strstr(TestCase,"SupersonicVortex")) {
 		fprintf(fID,"DOF         Vol         L2rho2      L2u2        L2v2        L2w2        L2p2        L2s2\n");
-	} else if (strstr(TestCase,"InviscidChannel") ||
+	} else if (strstr(TestCase,"GaussianBump") ||
 	           strstr(TestCase,"SubsonicNozzle")) {
 		fprintf(fID,"DOF         Vol         L2s2\n");
 	} else if (strstr(TestCase,"TaylorCouette")) {
@@ -573,7 +573,7 @@ static void collect_errors(const unsigned int NvarError)
 	} else if (strstr(TestCase,"PeriodicVortex") ||
 	           strstr(TestCase,"SupersonicVortex")) {
 		fprintf(fID,"DOF         L2rho       L2u         L2v         L2w         L2p         L2s\n");
-	} else if (strstr(TestCase,"InviscidChannel") ||
+	} else if (strstr(TestCase,"GaussianBump") ||
 	           strstr(TestCase,"SubsonicNozzle")) {
 		fprintf(fID,"DOF         L2s\n");
 	} else if (strstr(TestCase,"TaylorCouette")) {

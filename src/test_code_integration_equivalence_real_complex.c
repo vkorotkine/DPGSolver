@@ -17,12 +17,10 @@
 #include "test_code_integration.h"
 #include "test_support.h"
 
+#include "solver.h"
 #include "adaptation.h"
-#include "explicit_GradW.h"
 #include "explicit_GradW_c.h"
-#include "explicit_VOLUME_info.h"
 #include "explicit_VOLUME_info_c.h"
-#include "explicit_FACE_info.h"
 #include "explicit_FACE_info_c.h"
 #include "finalize_RHS.h"
 #include "finalize_RHS_c.h"
@@ -98,7 +96,8 @@ void test_equivalence_real_complex(struct S_equivalence_rc *const data, char con
 	 *		Correspondence between RHS terms computed using real and complex functions.
 	 */
 
-	bool const VOLUMEOnly = 1;
+	// Currently not matching for VOLUMEOnly = 1 as VOLUME/FACE RHS terms are now stored in the same memory location.
+	bool const VOLUMEOnly = 0;
 
 	set_test_equivalence_data(data,TestName);
 
@@ -148,10 +147,12 @@ void test_equivalence_real_complex(struct S_equivalence_rc *const data, char con
 			}
 		}
 
+if (DB.Method != METHOD_DG)
+	EXIT_UNSUPPORTED; // update this (ToBeDeleted)
+
 		// Compute RHS terms using the real and complex functions
-		explicit_GradW();
-		explicit_VOLUME_info();
-		explicit_FACE_info();
+		struct S_solver_info solver_info = constructor_solver_info(false,false,false,'E',DB.Method);
+		compute_RLHS(&solver_info);
 		if (!VOLUMEOnly)
 			finalize_RHS();
 

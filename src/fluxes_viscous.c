@@ -61,7 +61,7 @@ static void flux_Poisson (struct S_FLUX *const FLUXDATA)
 	for (size_t n = 0; n < NnTotal; n++) {
 		size_t IndF = 0;
 		for (size_t dim = 0; dim < d; dim++)
-			*F_ptr[IndF++] = -Q[dim][n];
+			*F_ptr[IndF++] = Q[dim][n];
 
 		for (size_t i = 0, iMax = DMAX; i < iMax; i++)
 			F_ptr[i]++;
@@ -73,7 +73,7 @@ static void flux_NavierStokes (struct S_FLUX *const FLUXDATA)
 	/*
 	 *	Comments:
 	 *		The negated viscous flux is returned such that the same operators can be used as for the inviscid
-	 *		contribution.
+	 *		contribution (i.e. This is as if we had: +div (dot) (F^i + F^v) in the NS equations).
 	 *
 	 *		The storage ordering of the fluxes (Node, then dimension, then equation) is chosen such that memory stride
 	 *		is minimized when converting from physical to reference space.

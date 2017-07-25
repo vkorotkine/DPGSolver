@@ -19,6 +19,7 @@
 #include "S_VOLUME.h"
 
 #include "test_support.h"
+#include "solver.h"
 #include "initialization.h"
 #include "setup_parameters.h"
 #include "setup_mesh.h"
@@ -84,6 +85,8 @@ static void update_TestCase(void)
 				strcpy(DB.TestCase,"Euler_PeriodicVortex_Stationary");
 			else
 				strcpy(DB.TestCase,"Euler_PeriodicVortex");
+		} else if (strstr(DB.TestCase,"GaussianBump")) {
+			strcpy(DB.TestCase,"Euler_InternalSubsonic_GaussianBump");
 		} else {
 			EXIT_UNSUPPORTED;
 		}
@@ -93,8 +96,6 @@ static void update_TestCase(void)
 			strcpy(DB.TestCase,"SubsonicNozzle");
 		else if (strstr(DB.Geometry,"ExpansionCorner"))
 			strcpy(DB.TestCase,"PrandtlMeyer");
-		else
-			strcpy(DB.TestCase,"InviscidChannel");
 */
 	} else if (strstr(DB.TestCase,"NavierStokes")) {
 		if (strstr(DB.TestCase,"TaylorCouette")) {
@@ -262,7 +263,7 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 	} else if (strstr(TestCase,"SupersonicVortex") ||
 	           strstr(TestCase,"PeriodicVortex")) {
 		NVars = DMAX+2+1;
-	} else if (strstr(TestCase,"InviscidChannel") ||
+	} else if (strstr(TestCase,"GaussianBump") ||
 	           strstr(TestCase,"SubsonicNozzle")) {
 		NVars = 1;
 	} else if (strstr(TestCase,"TaylorCouette")) {
@@ -292,7 +293,7 @@ void check_convergence_orders(const unsigned int MLMin, const unsigned int MLMax
 		}
 	} else if (strstr(TestCase,"SupersonicVortex") ||
 	           strstr(TestCase,"PeriodicVortex")  ||
-	           strstr(TestCase,"InviscidChannel")  ||
+	           strstr(TestCase,"GaussianBump")  ||
 	           strstr(TestCase,"SubsonicNozzle")) {
 		for (i = 0; i < NVars; i++) {
 			OrderIncrement[i] = 1;
@@ -1042,4 +1043,12 @@ void set_PrintName(char *name_type, char *PrintName, bool *TestTRI)
 		strcat(PrintName,DB.PDESpecifier); strcat(PrintName,", ");
 	}
 	strcat(PrintName,DB.MeshType); strcat(PrintName,") : ");
+}
+
+void compute_dof (void)
+{
+	struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
+	set_global_indices(&solver_info);
+
+	DB.dof = solver_info.dof;
 }

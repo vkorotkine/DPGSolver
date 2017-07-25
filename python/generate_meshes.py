@@ -70,13 +70,21 @@ def add_gmsh_setnumber(gmsh_args,MeshType,Paths):
 		AR_Num = re.search('\/AR_(.+?)\/',MeshType.GeomSpecifier)
 		gmsh_args += get_gmsh_number(gmsh_args,"Geom_AR_"+AR_Num.group(1),Paths)
 	else:
-		gmsh_args += get_gmsh_number(gmsh_args,"Geom_AR_1",Paths)
+		gmsh_args += get_gmsh_number(gmsh_args,"Geom_NONE",Paths)
 
 	gmsh_args += ' -setnumber Geom_Adv '
 	if (MeshType.GeomSpecifier.find('YL') != -1):
 		gmsh_args += get_gmsh_number(gmsh_args,"Geom_Adv_YL",Paths)
 	else: # Default
-		gmsh_args += get_gmsh_number(gmsh_args,"Geom_Adv_NONE",Paths)
+		gmsh_args += get_gmsh_number(gmsh_args,"Geom_NONE",Paths)
+
+	gmsh_args += ' -setnumber Geom_2BEXP '
+	if (MeshType.GeomSpecifier.find('BumpExp') != -1):
+		tmp = [int(c) for c in MeshType.GeomSpecifier if c.isdigit()]
+		BExp_Num = int(2*(tmp[0]+0.1*tmp[1]))
+		gmsh_args += get_gmsh_number(gmsh_args,"Geom_2BExp_"+str(BExp_Num),Paths)
+	else:
+		gmsh_args += get_gmsh_number(gmsh_args,"Geom_NONE",Paths)
 
 	return gmsh_args
 

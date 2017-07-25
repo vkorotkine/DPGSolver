@@ -632,10 +632,6 @@ void compute_numerical_flux_viscous_c(struct S_FDATA const *const FDATAL, struct
 
 	dot_with_normal_c(NfnI,Neq,n_fIL,FluxViscNum_fIL,nFluxViscNum_fIL);
 	free(FluxViscNum_fIL);
-	if (strstr(PDE,"Poisson")) {
-		for (size_t n = 0; n < NfnI; n++)
-			nFluxViscNum_fIL[n] *= -1.0;
-	}
 
 	// Modify nFluxViscNum_fIL to account for boundary conditions (if necessary)
 	unsigned int const BC = FACE->BC;

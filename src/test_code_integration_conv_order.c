@@ -134,6 +134,8 @@ data->PMin = 2;
 		if (strstr(TestName,"n-Cube")) {
 			if (strstr(TestName,"LINE")) {
 //data->PrintEnabled = 1;
+//data->PMax = 5;
+//data->MLMax = 8;
 //data->IntOrder_add  = 0;
 				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Cube_LINE");
 			} else {
@@ -228,6 +230,20 @@ data->PMin = 2;
 				} else {
 					EXIT_UNSUPPORTED;
 				}
+			}
+		} else if (strstr(TestName,"n-GaussianBump")) {
+			data->PrintEnabled = 1;
+data->SolveExplicit = 1;
+			if (strstr(TestName,"ToBeCurved")) {
+				EXIT_UNSUPPORTED;
+			} else if (strstr(TestName,"Curved")) {
+				if (strstr(TestName,"CurvedQUAD")) {
+					strcpy(data->argvNew[1],"test/Euler/Test_Euler_GaussianBump_CurvedQUAD");
+				} else {
+					EXIT_UNSUPPORTED;
+				}
+			} else {
+				EXIT_UNSUPPORTED;
 			}
 		} else {
 			EXIT_UNSUPPORTED;
@@ -419,7 +435,8 @@ void h_adapt_test(void)
 	if (TestDB.ML > 0)
 		printf("Error: Only enter for ML == 0.\n"), EXIT_MSG;
 
-	if (strstr(Geometry,"n-Cylinder") || strstr(Geometry,"n-Cube")) {
+	if (strstr(Geometry,"n-Cylinder") || strstr(Geometry,"n-Cube") ||
+	    strstr(Geometry,"GaussianBump")) {
 		Nref = 0;
 	} else if (strstr(Geometry,"JoukowskiSymmetric")) {
 		double a  = DB.JSa,

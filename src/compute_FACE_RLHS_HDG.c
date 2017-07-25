@@ -1,7 +1,7 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#include "compute_FACE_info_HDG.h"
+#include "compute_FACE_RLHS_HDG.h"
 #include "solver.h"
 
 #include <stdlib.h>
@@ -50,7 +50,7 @@
  *				r = -C*inv(A)*f + g
  *
  *		The A contribution to the system is stored in the appropriate VOLUME->LHS term. Note that A has a contribution
- *		from implicit_VOLUME_info_HDG as well.
+ *		from compute_VOLUME_RLHS_HDG as well.
  *
  *	References:
  *		Nguyen(2015)-A Class of Embedded Discontinuous Galerkin Methods for Computation Fluid Dynamics
@@ -58,7 +58,7 @@
 
 static void compute_Inviscid_FACE_HDG (const char imex_type);
 
-void compute_FACE_info_HDG (const struct S_solver_info*const solver_info)
+void compute_FACE_RLHS_HDG (const struct S_solver_info*const solver_info)
 {
 	if (solver_info->display)
 		printf("F");

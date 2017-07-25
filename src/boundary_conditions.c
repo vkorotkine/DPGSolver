@@ -183,7 +183,7 @@ void get_boundary_values(const double X, const double Y, double *const rho, doub
 		*u = -sin(t)*Vt;
 		*v =  cos(t)*Vt;
 		*w =  0.0;
-	} else if (strstr(TestCase,"InviscidChannel")) {
+	} else if (strstr(TestCase,"Euler_Channel")) {
 		// Use exact uniform channel solution for outer VOLUME
 		*rho = DB.rhoInf;
 		*p   = DB.pInf;

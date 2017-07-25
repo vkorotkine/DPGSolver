@@ -10,6 +10,8 @@
 lc = 1.0;
 
 
+EPS = 1e-15;
+
 // Element types (Gmsh convention)
 POINT = 15;
 LINE  = 1;
@@ -41,12 +43,17 @@ PERIODIC = 0;
 EXTENSION_DISABLED = 0;
 EXTENSION_ENABLED  = 1;
 
+GEOM_NONE = 0; // Dummy value
+
 GEOM_AR_1 = 1;
 GEOM_AR_2 = 2;
 GEOM_AR_3 = 3;
 
-GEOM_ADV_NONE = 0; // Dummy
 GEOM_ADV_YL   = 1; // (ADV)ection (Y)-coord (L)eft
+
+GEOM_2BEXP_0 = 0;
+GEOM_2BEXP_1 = 1;
+GEOM_2BEXP_2 = 2;
 
 
 // MeshCurving Specifiers
@@ -58,6 +65,9 @@ TOBECURVED = 2;
 
 // Boundary conditions
 BC_STEP_SC      = 10000;
+BC_STRAIGHT     =   BC_STEP_SC;
+BC_CURVED       = 2*BC_STEP_SC;
+
 BC_PERIODIC_MIN = 50;
 PERIODIC_XL     = 51;
 PERIODIC_XR     = 52;

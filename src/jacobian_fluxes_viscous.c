@@ -92,7 +92,7 @@ static void jacobian_flux_Poisson (struct S_FLUX *const FLUXDATA)
 		if (F != NULL) {
 			size_t IndF = 0;
 			for (size_t dim = 0; dim < d; dim++)
-				*F_ptr[IndF++] = -Q[dim][n];
+				*F_ptr[IndF++] = Q[dim][n];
 
 			for (size_t i = 0, iMax = DMAX; i < iMax; i++)
 				F_ptr[i]++;
@@ -104,7 +104,7 @@ static void jacobian_flux_Poisson (struct S_FLUX *const FLUXDATA)
 				size_t InddFdQ = 0;
 				for (size_t dim = 0; dim < d; dim++) {
 					if (dim == dim1)
-						*dFdQ_ptr[dim1][InddFdQ++] = -1.0;
+						*dFdQ_ptr[dim1][InddFdQ++] = 1.0;
 					else
 						*dFdQ_ptr[dim1][InddFdQ++] = 0.0;
 				}

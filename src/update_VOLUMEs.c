@@ -432,8 +432,8 @@ static void free_memory_solver_VOLUME(struct S_VOLUME *const VOLUME)
 			}
 		}
 	}
-
-	if (strstr(DB.SolverType,"Explicit"))
+// Currently, explicit solver is called even for implicit runs to start off so this must be reset (ToBeModified)
+	if (1||strstr(DB.SolverType,"Explicit"))
 		free(VOLUME->RES);
 }
 
@@ -577,7 +577,9 @@ void update_VOLUME_hp(void)
 			free(VOLUME->What);
 			VOLUME->What = WhatP;
 
-			if (strstr(DB.SolverType,"Explicit")) {
+//			if (strstr(DB.SolverType,"Explicit")) {
+// Currently, explicit solver is called even for implicit runs to start off so this must be reset (ToBeModified)
+			if (1||strstr(DB.SolverType,"Explicit")) {
 				switch (DB.ExplicitSolverType) {
 				case EULER:
 					free(VOLUME->RES);
@@ -765,7 +767,9 @@ void update_VOLUME_hp(void)
 				mm_CTN_d(NvnS[IndEhref],Nvar,NvnS[0],Ihat_vS_vS[vh],VOLUME->What,WhatH);
 				VOLUMEc->What = WhatH;
 
-				if (strstr(DB.SolverType,"Explicit")) {
+//			if (strstr(DB.SolverType,"Explicit")) {
+// Currently, explicit solver is called even for implicit runs to start off so this must be reset (ToBeModified)
+				if (1||strstr(DB.SolverType,"Explicit")) {
 					switch (DB.ExplicitSolverType) {
 					case EULER:
 						free(VOLUME->RES);
@@ -865,8 +869,9 @@ void update_VOLUME_hp(void)
 
 					What = calloc(NvnS[0]*Nvar , sizeof *What); // keep
 
+// Currently, explicit solver is called even for implicit runs to start off so this must be reset (ToBeModified)
 					RES = NULL;
-					if (strstr(DB.SolverType,"Explicit"))
+					if (1||strstr(DB.SolverType,"Explicit"))
 						RES = calloc(NvnS[0]*Nvar , sizeof *RES); // keep
 
 					VOLUMEc = VOLUME;
@@ -880,7 +885,7 @@ void update_VOLUME_hp(void)
 						for (i = 0, iMax = NvnS[0]*Nvar; i < iMax; i++)
 							What[i] += dummyPtr_d[i];
 
-						if (strstr(DB.SolverType,"Explicit")) {
+						if (1||strstr(DB.SolverType,"Explicit")) {
 							switch (DB.ExplicitSolverType) {
 							case EULER:
 								free(RES); RES = NULL;
@@ -899,7 +904,7 @@ void update_VOLUME_hp(void)
 					free(dummyPtr_d);
 
 					VOLUMEp->What = What;
-					if (strstr(DB.SolverType,"Explicit"))
+					if (1||strstr(DB.SolverType,"Explicit"))
 						VOLUMEp->RES = RES;
 					update_memory_VOLUME(VOLUMEp);
 				} else {

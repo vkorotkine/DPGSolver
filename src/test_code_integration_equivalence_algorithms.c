@@ -17,11 +17,8 @@
 #include "test_code_integration.h"
 #include "test_support.h"
 
+#include "solver.h"
 #include "adaptation.h"
-#include "explicit_GradW.h"
-#include "explicit_VOLUME_info.h"
-#include "explicit_FACE_info.h"
-#include "finalize_RHS.h"
 
 #include "array_norm.h"
 #include "array_free.h"
@@ -146,10 +143,12 @@ void test_equivalence_algorithms(struct S_equivalence_algs *const data, char con
 		mesh_to_level(TestDB.ML);
 		mesh_to_order(TestDB.PGlobal);
 
+if (DB.Method != METHOD_DG)
+	EXIT_UNSUPPORTED; // update this (ToBeDeleted)
+
 		// Compute RHS
-		explicit_GradW();
-		explicit_VOLUME_info();
-		explicit_FACE_info();
+		struct S_solver_info solver_info = constructor_solver_info(false,false,false,'E',DB.Method);
+		compute_RLHS(&solver_info);
 
 		// Copy VOLUME->RHS to RHS[alg]
 		unsigned int Nvar = DB.Nvar;

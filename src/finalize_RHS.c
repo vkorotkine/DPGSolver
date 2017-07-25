@@ -110,7 +110,7 @@ static void add_source(const struct S_VOLUME *VOLUME)
 			f_vI[eq*NvnI+n] *= detJV_vI[n];
 	}
 
-	mm_d(CBCM,CBT,CBNT,VOLUME->NvnS,Neq,NvnI,-1.0,1.0,OPS->I_Weak_VV,f_vI,VOLUME->RHS);
+	mm_d(CBCM,CBT,CBNT,VOLUME->NvnS,Neq,NvnI,1.0,1.0,OPS->I_Weak_VV,f_vI,VOLUME->RHS);
 	free(f_vI);
 
 	free(OPS);

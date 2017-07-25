@@ -72,9 +72,12 @@ struct S_FACE {
 	unsigned int curved, typeInt;
 	double       *XYZ_fI, *XYZ_fS, *n_fI, *n_fS, *detJF_fI, *detJF_fS, *detJVIn_fI, *detJVOut_fI;
 
+	// Initialization
+	unsigned int NvnS;
+
 	// Solving
 	char         CDG2_side;
-	unsigned int Boundary;
+	unsigned int IndA, Boundary;
 	double       *RHSL, *RHSR, *LHSLL, *LHSRL, *LHSLR, *LHSRR,
 	             **QhatL, **QhatR, **QhatL_WhatL, **QhatL_WhatR, **QhatR_WhatL, **QhatR_WhatR;
 

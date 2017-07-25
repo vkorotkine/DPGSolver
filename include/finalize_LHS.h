@@ -9,7 +9,6 @@
 
 extern double finalize_LHS   (Mat *A, Vec *b, Vec *x, const unsigned int assemble_type);
 extern void   initialize_KSP (Mat *A, Vec *b, Vec *x);
-extern void   compute_dof    (void);
 extern void   finalize_Vec   (Vec *a, const unsigned int finalize_type);
 extern void   finalize_Mat   (Mat *A, const unsigned int finalize_type);
 extern void   finalize_ksp   (Mat *A, Vec *b, Vec *x, const unsigned int finalize_type);

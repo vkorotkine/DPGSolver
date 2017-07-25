@@ -19,11 +19,9 @@
 #include "S_FACE.h"
 #include "Test.h"
 
+#include "solver.h"
 #include "adaptation.h"
 #include "update_VOLUMEs.h"
-#include "implicit_GradW.h"
-#include "implicit_VOLUME_info_DG.h"
-#include "implicit_FACE_info.h"
 #include "finalize_LHS.h"
 #include "output_to_paraview.h"
 #include "element_functions.h"
@@ -60,6 +58,9 @@ void setup_KSP(Mat A, KSP ksp)
 
 	// Standard datatypes
 	char SolverType = 'i'; // Options: (i)terative, (d)irect
+
+	if (DB.d == 1)
+		SolverType = 'd';
 
 	// Petsc datatypes
 	PC pc;
@@ -307,6 +308,9 @@ void solver_implicit(bool const PrintEnabled)
 
 	output_to_paraview("ZTest_Sol_Init");
 
+// Modify parameters when incorporating solver_info (ToBeDeleted)
+	struct S_solver_info solver_info = constructor_solver_info(PrintEnabled,false,false,'I',DB.Method);
+
 	iteration = 0;
 	maxRHS = 1.0; maxRHS0 = 1.0;
 	while (maxRHS0/maxRHS < 1e10) {
@@ -314,17 +318,19 @@ void solver_implicit(bool const PrintEnabled)
 			mesh_update();
 
 		// Build the RHS and LHS terms
-		Mat                A = NULL;
-		Vec                b = NULL, x = NULL;
+		initialize_petsc_structs(&solver_info);
+		Mat A = solver_info.A;
+		Vec b = solver_info.b;
+		Vec x = solver_info.x;
+//		Mat                A = NULL;
+//		Vec                b = NULL, x = NULL;
 		KSP                ksp;
 //		PC                 pc;
 		KSPConvergedReason reason;
 
 		PetscInt *ix;
 
-		implicit_GradW(PrintEnabled);
-		implicit_VOLUME_info_DG(PrintEnabled);
-		implicit_FACE_info(PrintEnabled);
+		compute_RLHS(&solver_info);
 		if (PrintEnabled) { printf("F "); } maxRHS = finalize_LHS(&A,&b,&x,0);
 
 		// Solve linear system

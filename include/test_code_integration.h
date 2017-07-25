@@ -19,5 +19,6 @@ extern void check_convergence_orders (const unsigned int MLMin, const unsigned i
 extern void check_mesh_regularity    (const double *mesh_quality, const unsigned int NML, unsigned int *pass,
                                       const bool PrintEnabled);
 extern void set_PrintName            (char *name_type, char *PrintName, bool *TestTRI);
+extern void compute_dof              (void);
 
 #endif // DPG__test_code_integration_h__INCLUDED
