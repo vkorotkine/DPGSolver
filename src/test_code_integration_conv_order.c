@@ -232,8 +232,8 @@ data->PMin = 2;
 				}
 			}
 		} else if (strstr(TestName,"n-GaussianBump")) {
-			data->PrintEnabled = 1;
-data->SolveExplicit = 1;
+//			data->PrintEnabled = 1;
+//data->SolveExplicit = 1;
 			if (strstr(TestName,"ToBeCurved")) {
 				EXIT_UNSUPPORTED;
 			} else if (strstr(TestName,"Curved")) {

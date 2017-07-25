@@ -137,7 +137,10 @@ data->StaticCondensation = 0;
 	} else if (strstr(TestName,"Poisson")) {
 //data->CheckFullLinearization = 0;
 		if (strstr(TestName,"1D")) {
-			strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Cube_LINE");
+			if (strstr(TestName,"Collocated"))
+				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Cube_LINE_Col");
+			else
+				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Cube_LINE");
 		} else if (strstr(TestName,"MIXED2D")) {
 			strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ball_HollowSection_CurvedMIXED2D");
 		} else {
@@ -179,13 +182,13 @@ static void check_passing(struct S_linearization const *const data, unsigned int
 {
 	double diff_cs = 0.0;
 	if (data->CheckFullLinearization)
-		diff_cs = PetscMatAIJ_norm_diff_d(DB.dof,data->A_cs,data->A_csc,"Inf");
+		diff_cs = PetscMatAIJ_norm_diff_d(DB.dof,data->A_cs,data->A_csc,"Inf",false);
 
-	if (diff_cs > 1e1*EPS)
+	if (diff_cs > 2e1*EPS)
 		*pass = 0;
 
-	double const diff_LHS = PetscMatAIJ_norm_diff_d(DB.dof,data->A_cs,data->A,"Inf");
-	if (diff_LHS > 1e1*EPS)
+	double const diff_LHS = PetscMatAIJ_norm_diff_d(DB.dof,data->A_cs,data->A,"Inf",true);
+	if (diff_LHS > 2e1*EPS)
 		*pass = 0;
 
 	if (DB.Symmetric) {
@@ -241,10 +244,11 @@ static void compute_A (Mat A, const unsigned int CheckLevel)
 	struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
 	solver_info.create_RHS = false;
 	solver_info.A = A;
-	compute_RLHS(&solver_info);
 
-	if (CheckLevel != 3)
-		printf("Fix this (tcil).\n");
+	if (CheckLevel == 1)
+		solver_info.compute_FACE = false;
+
+	compute_RLHS(&solver_info);
 }
 
 static void assemble_A (Mat A)
@@ -404,7 +408,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 				destroy_A(A_cs[dim]);
 				destroy_A(A_csc[dim]);
 			}
-		} else { // Standard (Full linearization)
+		} else { // Standard linearization
 			set_PrintName("linearization",data->PrintName,&data->TestTRI);
 
 			Mat A     = allocate_A(),
@@ -417,11 +421,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 				// Note: Poisson fails symmetric for CheckLevel = 1 and this is as expected. There is a FACE
 				//       contribution from Qhat which has not yet been balanced by the FACE contribution from the 2nd
 				//       equation.
-//				const unsigned int CheckLevel = 3;
-const unsigned int CheckLevel = 3;
-// No longer working for CheckLevel < 3 (ToBeModified)
-// To fix CheckLevel = 1: Likely need to move final VOLUME contribution from FACE to VOLUME compute_RLHS
-// To fix CheckLevel = 2: Need to avoid computing off-diagonal FACE contributions
+				const unsigned int CheckLevel = 3;
 				compute_A(A,CheckLevel);
 				assemble_A(A);
 

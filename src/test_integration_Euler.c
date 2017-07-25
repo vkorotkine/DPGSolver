@@ -36,9 +36,9 @@
 void test_integration_Euler(int nargc, char **argv)
 {
 //	bool const (ToBeModified)
-	bool RunTests_equivalence_real_complex = 0,
-	     RunTests_equivalence_algorithms   = 0,
-	     RunTests_linearization            = 0,
+	bool RunTests_equivalence_real_complex = 1,
+	     RunTests_equivalence_algorithms   = 1,
+	     RunTests_linearization            = 1,
 	     RunTests_conv_order               = 1;
 
 	// ToBeDeleted after Manmeet has finished his initial verification.
@@ -123,7 +123,6 @@ void test_integration_Euler(int nargc, char **argv)
 
 if (!PeriodicVortexOnly) {
 		test_conv_order(data_c,"Euler_n-GaussianBump_CurvedQUAD");
-EXIT_UNSUPPORTED;
 		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_CurvedMIXED2D");
 		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedMIXED2D");
 }

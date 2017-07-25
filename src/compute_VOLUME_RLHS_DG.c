@@ -82,7 +82,7 @@ static void set_memory_to_zero_VOLUMEs (const char imex_type)
 		unsigned int NvnS = VOLUME->NvnS;
 		set_to_zero_d(NvnS*Neq,VOLUME->RHS);
 		if (imex_type == 'I') {
-			set_to_zero_d(NvnS*NvnS*Neq*Nvar,VOLUME->LHS);
+//			set_to_zero_d(NvnS*NvnS*Neq*Nvar,VOLUME->LHS);
 			if (DB.Viscous) {
 				for (size_t dim = 0; dim < d; dim++)
 					set_to_zero_d(NvnS*NvnS*Neq*Nvar,VOLUME->LHSQ[dim]);
@@ -324,9 +324,6 @@ static void compute_Viscous_VOLUME_EFE (const struct S_solver_info*const solver_
 			free(FDATAL);
 			free(FDATAR);
 		}
-
-
-
 	} else if (strstr(DB.Form,"Strong")) {
 		EXIT_UNSUPPORTED;
 	}

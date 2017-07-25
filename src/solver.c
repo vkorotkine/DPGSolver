@@ -21,6 +21,7 @@
 #include "compute_GradW_DG.h"
 #include "compute_VOLUME_RLHS_DG.h"
 #include "compute_FACE_RLHS_DG.h"
+#include "solver_symmetric_functions.h"
 
 /*
  *	Purpose:
@@ -108,7 +109,7 @@ void compute_RLHS (const struct S_solver_info*const solver_info)
 	}
 }
 
-struct S_LHS_info constructor_LHS_info (const double*const LHS, const struct S_VOLUME*const V0,
+struct S_LHS_info constructor_LHS_info (double*const LHS, const struct S_VOLUME*const V0,
                                         const struct S_VOLUME*const V1, const InsertMode addv)
 {
 	/*
@@ -122,11 +123,15 @@ struct S_LHS_info constructor_LHS_info (const double*const LHS, const struct S_V
 	struct S_LHS_info LHS_info;
 
 	LHS_info.LHS     = LHS;
+	LHS_info.VOLUME[0] = V0;
+	LHS_info.VOLUME[1] = V1;
 	LHS_info.IndA[0] = V0->IndA;
 	LHS_info.IndA[1] = V1->IndA;
 	LHS_info.Nn[0]   = V0->NvnS;
 	LHS_info.Nn[1]   = V1->NvnS;
 	LHS_info.addv    = addv;
+
+	correct_collocated_for_symmetry_local(&LHS_info);
 
 	return LHS_info;
 }
@@ -503,6 +508,7 @@ struct S_solver_info constructor_solver_info (const bool display, const bool out
 		EXIT_UNSUPPORTED;
 	solver_info.imex_type = imex_type;
 
+	solver_info.compute_FACE = true;
 	if (imex_type == 'I') {
 		solver_info.create_RHS = true;
 

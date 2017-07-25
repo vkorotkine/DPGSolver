@@ -2,6 +2,7 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "solver_symmetric_functions.h"
+#include "solver.h"
 #include "S_VOLUME.h"
 
 #include <stdlib.h>
@@ -112,6 +113,37 @@ void correct_collocated_for_symmetry (void)
 			}}
 		}
 	}
+}
+
+void correct_collocated_for_symmetry_local (struct S_LHS_info*const LHS_info)
+{
+	/*
+	 *	Purpose:
+	 *		Premultiply local LHS entry by diagonal weights for collocated schemes before adding to the petsc Mat.
+	 *
+	 *	Comments:
+	 *		Some redundant operations are performed when using this function as the same diagonal scaling is applied to
+	 *		several terms occupying the same position in the global system matrix. However, this is a relatively cheap
+	 *		operation and it allows for the duplicated memory to no longer be needed as the data is stored directly in
+	 *		the petsc Mat.
+	 */
+
+	if (!DB.Collocated)
+		return;
+
+	const unsigned int Neq  = DB.Neq,
+	                   Nvar = DB.Nvar;
+
+	const struct S_OPERATORS OPS = init_ops(LHS_info->VOLUME[0]);
+
+	const unsigned int NvnSL = LHS_info->Nn[0],
+	                   NvnSR = LHS_info->Nn[1];
+
+	for (size_t eq  = 0; eq < Neq; eq++) {
+	for (size_t var = 0; var < Nvar; var++) {
+		size_t const IndLHS = (eq*Nvar+var)*NvnSL*NvnSR;
+		mm_diag_d_inplace(NvnSL,NvnSR,OPS.w_vI,&LHS_info->LHS[IndLHS],1.0,'L','R');
+	}}
 }
 
 void correct_collocated_for_symmetry_c (struct S_VOLUME *const VOLUME_perturbed, bool const correct_all,

@@ -49,7 +49,7 @@
  *		Kopriva(1996)-A Conservative Staggered-Grid Chebyshev Multidomain Method for Compressible Flows II. A Semi-Structured Method
  */
 
-static void set_memory_to_zero_FACEs  (const char imex_type);
+static void set_memory_to_zero_FACEs  (void);
 static void compute_Inviscid_FACE_EFE (const struct S_solver_info*const solver_info);
 static void compute_Viscous_FACE_EFE  (const struct S_solver_info*const solver_info);
 
@@ -58,30 +58,25 @@ void compute_FACE_RLHS_DG (const struct S_solver_info*const solver_info)
 	if (solver_info->display)
 		printf("F");
 
-	set_memory_to_zero_FACEs(solver_info->imex_type);
+	if (!solver_info->compute_FACE)
+		return;
+
+	set_memory_to_zero_FACEs();
 	compute_Inviscid_FACE_EFE(solver_info);
 	compute_Viscous_FACE_EFE(solver_info);
 }
 
-static void set_memory_to_zero_FACEs (const char imex_type)
+static void set_memory_to_zero_FACEs (void)
 {
-	unsigned int const Nvar = DB.Nvar,
-	                   Neq  = DB.Neq;
+	unsigned int const Neq  = DB.Neq;
 
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
 		unsigned int const NvnSL = FACE->VL->NvnS;
 		set_to_zero_d(NvnSL*Neq,FACE->RHSL);
-		if (imex_type == 'I')
-			set_to_zero_d(NvnSL*NvnSL*Neq*Nvar,FACE->LHSLL);
 
 		if (!FACE->Boundary) {
 			unsigned int const NvnSR = FACE->VR->NvnS;
 			set_to_zero_d(NvnSR*Neq,FACE->RHSR);
-			if (imex_type == 'I') {
-				set_to_zero_d(NvnSL*NvnSR*Neq*Nvar,FACE->LHSRL);
-				set_to_zero_d(NvnSR*NvnSL*Neq*Nvar,FACE->LHSLR);
-				set_to_zero_d(NvnSR*NvnSR*Neq*Nvar,FACE->LHSRR);
-			}
 		}
 	}
 }

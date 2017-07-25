@@ -146,8 +146,42 @@ double array_norm_diff_dc(const unsigned int LenA, const double *A, const double
 	return norm_diff;
 }
 
-double PetscMatAIJ_norm_diff_d(const unsigned int NRows, Mat A, Mat B, const char *NormType)
+static double array_norm_diff_d_sp (const unsigned int LenA, const double*const A, const double*const B,
+                                    const PetscInt*const colsA, const PetscInt*const colsB)
 {
+	/*
+	 *	Comments:
+	 *		LenA must be less than or equal to LenB.
+	 *		Currently only supported the relative infinity norm.
+	 */
+
+	double norm_num = 0.0,
+	       norm_den = 0.0;
+	for (size_t i = 0, j = 0; i < LenA; i++) {
+		while (colsA[i] != colsB[j])
+			j++;
+
+		double tmp = fabs(A[i]-B[j]);
+		if (tmp > norm_num)
+			norm_num = tmp;
+
+		tmp = fabs(A[i]);
+		if (tmp > norm_den)
+			norm_den = tmp;
+	}
+
+	return norm_num/norm_den;
+}
+
+double PetscMatAIJ_norm_diff_d(const unsigned int NRows, Mat A, Mat B, const char *NormType, const bool allow_uninit)
+{
+	/*
+	 *	Comments:
+	 *		It is possible that some entries of one of the two input matrices are not initialized when separating the
+	 *		VOLUME and FACE LHS contributions to A. The (allow)_(un)(init)ialized flag, causes the norm to ignore
+	 *		uninitialized entries if present.
+	 */
+
 	unsigned int i;
 	double       norm_row, norm;
 
@@ -162,13 +196,19 @@ double PetscMatAIJ_norm_diff_d(const unsigned int NRows, Mat A, Mat B, const cha
 			MatGetRow(A,i,&ncols[0],&cols[0],&vals[0]);
 			MatGetRow(B,i,&ncols[1],&cols[1],&vals[1]);
 
-			if (ncols[0] != ncols[1]) {
-				printf("Error: Different number of non-zero columns in A (%d) and B (%d) on line %d.\n",
-				       ncols[0],ncols[1],i);
-				EXIT_UNSUPPORTED;
-			}
+			if (!allow_uninit) {
+				if (ncols[0] != ncols[1]) {
+					printf("Error: Different number of non-zero columns in A (%d) and B (%d) on line %d.\n",
+				           ncols[0],ncols[1],i);
+					EXIT_UNSUPPORTED;
+				}
 
-			norm_row = array_norm_diff_d(ncols[0],vals[0],vals[1],"Inf");
+				norm_row = array_norm_diff_d(ncols[0],vals[0],vals[1],"Inf");
+			} else {
+				const size_t indA = ( ncols[0] < ncols[1] ? 0 : 1 ),
+				             indB = ( indA ? 0 : 1 );
+				norm_row = array_norm_diff_d_sp(ncols[indA],vals[indA],vals[indB],cols[indA],cols[indB]);
+			}
 
 			if (norm_row > norm)
 				norm = norm_row;

@@ -537,8 +537,6 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 	 *		new ChiS_vI terms are then different for each dimension. Note that computing the LHS in this manner changes
 	 *		the storage format of LHS terms from Neq*Nvar blocks of size NvnS*NvnS to a single block of size
 	 *		NvnS*(NvnS*Neq*Nvar) which is differently ordered in memory due to it being stored in row-major ordering.
-	 *		This then requires an alternate version of the finalize_LHS function for the VOLUME term (Note that this
-	 *		would not be a problem if the LHS was stored in column-major ordering).
 	 *
 	 *		In the case of a collocated scheme, ChiS_vI == I results in the possibility of directly computing LHS terms
 	 *		without any matrix-matrix products.
@@ -687,30 +685,6 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 				mm_d(CBRM,CBNT,CBNT,NvnS,NvnS,NvnI,1.0,1.0,DAr_vI,OPS[0]->ChiS_vI,&RLHS[IndLHS]);
 			}}
 			free(DAr_vI);
-
-		/*
-			// d BLAS3 calls with increased total flops
-			// Ensure that finalize_LHS for VOLUME terms is modified if this is used.
-			double *ChiS_vI = OPS[0]->ChiS_vI;
-			double *ArChiS_vI = calloc(NvnS*NvnI*Neq*Nvar , sizeof *ArChiS_vI); // free
-			set_to_zero_d(NvnS*Nrc,RLHS);
-			for (size_t dim = 0; dim < d; dim++) {
-				double *ArChiS_vI_ptr = ArChiS_vI;
-				for (size_t i = 0; i < NvnI; i++) {
-					for (size_t eq = 0; eq < Neq; eq++) {
-					for (size_t var = 0; var < Nvar; var++) {
-						double *ChiS_vI_ptr = &ChiS_vI[i*NvnS];
-						double const *Ar_vI_ptr2 = &Ar_vI_ptr[dim][(eq*Nvar+var)*NvnI+i];
-						for (size_t j = 0; j < NvnS; j++)
-							*ArChiS_vI_ptr++ = (*ChiS_vI_ptr++)*(*Ar_vI_ptr2);
-					}}
-				}
-
-				mm_d(CBRM,CBNT,CBNT,NvnS,NvnS*Neq*Nvar,NvnI,1.0,1.0,D[dim],ArChiS_vI,RLHS);
-			}
-
-			free(ArChiS_vI);
-		*/
 		}
 	} else {
 		EXIT_UNSUPPORTED;

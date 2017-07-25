@@ -340,8 +340,6 @@ void finalize_VOLUME_Inviscid_Weak_MA (struct S_MULTI_ARRAY const *const Ar_vI, 
 	 *		new ChiS_vI terms are then different for each dimension. Note that computing the LHS in this manner changes
 	 *		the storage format of LHS terms from Neq*Nvar blocks of size NvnS*NvnS to a single block of size
 	 *		NvnS*(NvnS*Neq*Nvar) which is differently ordered in memory due to it being stored in row-major ordering.
-	 *		This then requires an alternate version of the finalize_LHS function for the VOLUME term (Note that this
-	 *		would not be a problem if the LHS was stored in column-major ordering).
 	 *
 	 *		In the case of a collocated scheme, ChiS_vI == I results in the possibility of directly computing LHS terms
 	 *		without any matrix-matrix products.

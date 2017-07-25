@@ -25,6 +25,8 @@ struct S_solver_info {
 	 *		             Newton step.
 	 *		create_RHS : create petsc Vec's for x and b (in Ax = b). Enabled by default. Disabled for linearization
 	 *		             testing.
+	 *		compute_FACE : Specify whether FACE terms should be included in the computation. Enabled by default.
+	 *		               Disabled for partial linearization testing.
 	 *
 	 *		imex_type : (im)plicit-(ex)plicit (type) (i.e. whether using an implicit or explicit solver).
 	 *		method    : method used for the computation of the solution.
@@ -35,7 +37,7 @@ struct S_solver_info {
 	 *		A, x, b   : Petsc containers for global system solve (Ax = b).
 	 */
 
-	bool display, output, adapt, positivity, symmetric, steady, linear, create_RHS;
+	bool display, output, adapt, positivity, symmetric, steady, linear, create_RHS, compute_FACE;
 	char imex_type;
 	unsigned int method;
 
@@ -50,7 +52,9 @@ struct S_solver_info {
 
 struct S_LHS_info {
 	size_t IndA[2], Nn[2];
-	const double* LHS;
+	double* LHS;
+
+	const struct S_VOLUME* VOLUME[2];
 
 	InsertMode addv;
 };
@@ -62,7 +66,7 @@ extern void initialize_petsc_structs (struct S_solver_info*const solver_info);
 extern void assemble_petsc_structs   (struct S_solver_info*const solver_info);
 extern void destroy_petsc_structs    (struct S_solver_info*const solver_info);
 
-extern struct S_LHS_info constructor_LHS_info (const double*const LHS, const struct S_VOLUME*const V0,
+extern struct S_LHS_info constructor_LHS_info (double*const LHS, const struct S_VOLUME*const V0,
                                                const struct S_VOLUME*const V1, const InsertMode addv);
 
 extern void compute_RLHS  (const struct S_solver_info*const solver_info);

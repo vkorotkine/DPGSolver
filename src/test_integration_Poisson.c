@@ -110,6 +110,7 @@ void test_integration_Poisson(int nargc, char **argv)
 		data_l->PrintName = PrintName;
 
 		// 1D
+		test_linearization(data_l,"Poisson_1D_Collocated");
 		test_linearization(data_l,"Poisson_1D");
 
 		// 2D (Mixed TRI/QUAD mesh)

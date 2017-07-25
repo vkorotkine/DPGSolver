@@ -156,14 +156,7 @@ double finalize_LHS(Mat *A, Vec *b, Vec *x, const unsigned int assemble_type)
 	switch (assemble_type) {
 	default: // 0
 		maxRHS = finalize_RHS();
-// Potentially need to scale petscMat by weights for collocation correction. (ToBeDeleted)
-// Other option is simply to scale the term before adding to PetscMat (redundant as the same scaling will be applied to
-// multipled terms but should be negligible)
 		correct_collocated_for_symmetry();
-
-//		finalize_LHS(A,b,x,1);
-//		finalize_LHS(A,b,x,2);
-//		finalize_LHS(A,b,x,3);
 
 		assemble_RHS(b,x);
 

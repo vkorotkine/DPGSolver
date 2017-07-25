@@ -5,6 +5,7 @@
 #define DPG__array_norm_h__INCLUDED
 
 #include <complex.h>
+#include <stdbool.h>
 
 #include "petscmat.h"
 
@@ -15,6 +16,7 @@ extern unsigned int array_norm_diff_ui (const unsigned int LenA, const unsigned 
 extern double       array_norm_diff_d  (const unsigned int LenA, const double       *A, const double         *B, const char *NormType);
 extern double       array_norm_diff_dc (const unsigned int LenA, const double       *A, const double complex *B, const char *NormType);
 
-extern double       PetscMatAIJ_norm_diff_d (const unsigned int NRows, Mat A, Mat B, const char *NormType);
+extern double       PetscMatAIJ_norm_diff_d (const unsigned int NRows, Mat A, Mat B, const char *NormType,
+                                             const bool allow_uninit);
 
 #endif // DPG__array_norm_h__INCLUDED
