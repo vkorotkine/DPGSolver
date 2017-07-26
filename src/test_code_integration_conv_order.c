@@ -51,6 +51,13 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 	 *		elements and SI elements (P <= 2), non-trivial L2 projection error requires:
 	 *			TP         : InOrder_add > 1
 	 *			SI (P <= 2): InOrder_add > 0
+	 *
+	 *		For the Peterson mesh suboptimal orders, the current meshes were generated with horizontal spacing such that
+	 *		the converge is suboptimal for P = 1. For suboptimality of other orders, see Richter(2008) Figure 3 for the
+	 *		required mesh spacing.
+	 *
+	 *	References:
+	 *		Richter(2008)-On the Order of Convergence of the Discontinuous Galerkin Method for Hyperbolic Equations
 	 */
 
 	// default values
@@ -70,61 +77,16 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 	data->IntOrder_add  = 0;
 	data->IntOrder_mult = 2;
 
+	strcpy(data->argvNew[1],TestName);
 	if (strstr(TestName,"Advection")) {
-//		data->PrintEnabled = 1;
+		data->IntOrder_add  = 2; // For certain cases, the exact solution is obtained if this is omitted.
 		data->AdaptiveRefine = 0;
-		data->MLMax  = 5;
-data->PMin = 2;
-		if (strstr(TestName,"HDG")) {
-			if (strstr(TestName,"n-Cube_Default")) {
-				if (strstr(TestName,"Straight")) {
-					if (strstr(TestName,"TRI")) {
-						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_TRI");
-					} else if (strstr(TestName,"QUAD")) {
-						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_QUAD");
-					} else if (strstr(TestName,"MIXED2D")) {
-						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_MIXED2D");
-					} else {
-						EXIT_UNSUPPORTED;
-					}
-				} else if (strstr(TestName,"Curved")) {
-					if (strstr(TestName,"TRI")) {
-						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_CurvedTRI");
-					} else if (strstr(TestName,"QUAD")) {
-						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_CurvedQUAD");
-					} else if (strstr(TestName,"MIXED2D")) {
-						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_CurvedMIXED2D");
-					} else {
-						EXIT_UNSUPPORTED;
-					}
-				} else {
-					EXIT_UNSUPPORTED;
-				}
-			} else {
-				EXIT_UNSUPPORTED;
-			}
-		} else { // Default: DG
-			if (strstr(TestName,"n-Cube_Default")) {
-				if (strstr(TestName,"TRI")) {
-					strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_TRI");
-				} else if (strstr(TestName,"QUAD")) {
-					data->IntOrder_add  = 2; // The exact solution is obtained if this is omitted
-					strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_QUAD");
-				} else {
-					EXIT_UNSUPPORTED;
-				}
-			} else if (strstr(TestName,"n-Cube_Peterson")) {
-				data->Adapt = ADAPT_P;
-				data->PMin = 1;
-				data->PMax = 1;
-				if (strstr(TestName,"TRI")) {
-					strcpy(data->argvNew[1],"test/Advection/Test_Advection_Peterson_n-Cube_TRI");
-				} else {
-					EXIT_UNSUPPORTED;
-				}
-			} else {
-				EXIT_UNSUPPORTED;
-			}
+		data->MLMax  = 4;
+		if (strstr(TestName,"Peterson_n-Cube")) {
+			// Meshes are not nested and the spacing is selected for suboptimality for P = 1
+			data->Adapt = ADAPT_P;
+			data->PMin = 1;
+			data->PMax = 1;
 		}
 	} else if (strstr(TestName,"Poisson")) {
 		data->AdaptiveRefine = 0;
@@ -133,11 +95,7 @@ data->PMin = 2;
 		data->IntOrder_add  = 2; // See comments
 		if (strstr(TestName,"n-Cube")) {
 			if (strstr(TestName,"LINE")) {
-//data->PrintEnabled = 1;
-//data->PMax = 5;
-//data->MLMax = 8;
-//data->IntOrder_add  = 0;
-				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Cube_LINE");
+				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Cube_StraightLINE");
 			} else {
 				EXIT_UNSUPPORTED;
 			}

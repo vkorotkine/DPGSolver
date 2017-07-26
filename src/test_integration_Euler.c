@@ -102,9 +102,9 @@ void test_integration_Euler(int nargc, char **argv)
 		data_l->argvNew   = argvNew;
 		data_l->PrintName = PrintName;
 
-		test_linearization(data_l,"Euler_MIXED2D");
-		test_linearization(data_l,"Euler_MIXED_TET_PYR");
-		test_linearization(data_l,"Euler_MIXED_HEX_WEDGE");
+		test_linearization(data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
+		test_linearization(data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED3D_TP");
+		test_linearization(data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED3D_HW");
 
 		free(data_l);
 	} else {

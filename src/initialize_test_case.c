@@ -748,12 +748,11 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 				VOLUME->NvnS = NvnS;
 
 				free(VOLUME->What);
-				for (dim = 0; dim < d; dim++)
-					free(VOLUME->Qhat[dim]);
-
 				VOLUME->What = calloc(NvnS*Nvar , sizeof *(VOLUME->What)); // keep
-				for (dim = 0; dim < d; dim++)
+				for (dim = 0; dim < d; dim++) {
+					free(VOLUME->Qhat[dim]);
 					VOLUME->Qhat[dim] = calloc(NvnS*Nvar , sizeof *(VOLUME->Qhat[dim])); // keep
+				}
 
 				XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
 				mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);

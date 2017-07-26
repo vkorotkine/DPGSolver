@@ -23,7 +23,7 @@
 
 /*
  *	Purpose:
- *		Compute weak gradient contributions required for the computation of viscous fluxes.
+ *		Compute weak gradient (auxiliary variable) contributions required for the computation of viscous fluxes.
  *
  *	Comments:
  *		For all 2nd order equations, the auxiliary variable, Qhat = QhatV + QhatF, is first computed here and then
@@ -43,6 +43,7 @@
  *		Arnold(2002)-Unified Analysis of Discontinuous Galerkin Methods for Elliptic Problems
  */
 
+static void allocate_GradW         (const struct S_solver_info*const solver_info);
 static void compute_GradW_VOLUME   (const char imex_type);
 static void compute_GradW_FACE     (const char imex_type);
 static void compute_GradW_finalize (const char imex_type);
@@ -55,9 +56,60 @@ void compute_GradW_DG (const struct S_solver_info*const solver_info)
 	if (solver_info->display)
 		printf("G");
 
+	allocate_GradW(solver_info);
 	compute_GradW_VOLUME(solver_info->imex_type);
 	compute_GradW_FACE(solver_info->imex_type);
 	compute_GradW_finalize(solver_info->imex_type);
+}
+
+//static void check_NULL_and_allocate (double**const A, const size_t n)
+void __attribute__ ((noinline)) check_NULL_and_allocate (double**const A, const size_t n)
+{
+	if (*A != NULL) {
+//		printf("%f\n",*A[n]);
+//		EXIT_UNSUPPORTED;
+	}
+
+	*A = calloc(n , sizeof **A);
+}
+
+static void allocate_GradW (const struct S_solver_info*const solver_info)
+{
+	/*
+	 *	Purpose:
+	 *		Allocate memory for storage of data relating to the auxiliary variable.
+	 *
+	 *	Comments:
+	 *		If the primal formulation of the scheme is adopted in the future:
+	 *			- the Qhat[L/R]/[L/R] terms would no longer need to be stored for every FACE at once;
+	 *			- the QhatV terms would still need to be stored for all VOLUMEs and could only be freed after the loop
+	 *			  over FACEs was completed.
+	 *
+	 *		Memory allocated here is freed at the end of compute_RLHS.
+	 *
+	 *		The memory for Qhat_What terms need not be scaled by Neq*Nvar as Qhat is linear in What.
+	 */
+
+	const unsigned int d    = DB.d,
+	                   Nvar = DB.Nvar;
+
+	// VOLUME
+	for (struct S_VOLUME* VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		const unsigned int NvnS = VOLUME->NvnS;
+		for (size_t dim = 0; dim < d; dim++) {
+//if (VOLUME->QhatV[dim] != NULL)
+//	EXIT_UNSUPPORTED;
+			check_NULL_and_allocate(&VOLUME->QhatV[dim],NvnS*Nvar); // keep
+			if (solver_info->imex_type == 'I')
+{
+//if (VOLUME->QhatV_What[dim] != NULL)
+//	EXIT_UNSUPPORTED;
+				check_NULL_and_allocate(&VOLUME->QhatV_What[dim],NvnS*NvnS); // keep
+}
+		}
+	}
+
+	// FACE
 }
 
 static void compute_GradW_VOLUME (const char imex_type)
@@ -364,4 +416,25 @@ static void compute_GradW_finalize (const char imex_type)
 		if (imex_type == 'I')
 			finalize_Qhat_What(VOLUME,NvnS,NvnS,0,VOLUME->QhatV_What);
 	}
+}
+
+void free_GradW_DG (const struct S_solver_info*const solver_info)
+{
+	/*
+	 *	Purpose:
+	 *		Free memory allocated for auxiliary variable terms which is still in use.
+	 */
+
+	const unsigned int d = DB.d;
+
+	// VOLUME
+	for (struct S_VOLUME* VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		for (size_t dim = 0; dim < d; dim++) {
+			FREE_NULL(VOLUME->QhatV[dim]);
+			if (solver_info->imex_type == 'I')
+				FREE_NULL(VOLUME->QhatV_What[dim]);
+		}
+	}
+
+	// FACE
 }

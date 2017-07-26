@@ -10,7 +10,7 @@
 
 struct S_linearization {
 	bool         PrintEnabled, PrintTimings,
-	             CheckFullLinearization, CheckWeakGradients, StaticCondensation,
+	             CheckFullLinearization, CheckWeakGradients,
 	             update_argv, TestTRI;
 	char         **argvNew, *PrintName;
 	unsigned int Nref, PGlobal, ML, PG_add, IntOrder_mult, IntOrder_add;

@@ -91,6 +91,8 @@ void compute_RLHS (const struct S_solver_info*const solver_info)
 	 *			2) solve:       LHS*dWhat = -RHS(What);
 	 *			3) update:      What += dWhat
 	 *			4) repeat:      if LHS is a function of What, repeat until convergence.
+	 *
+	 *		The LHS terms are computed and stored directly in the Petsc Mat to avoid memory duplication during assembly.
 	 */
 
 	switch (solver_info->method) {
@@ -98,6 +100,7 @@ void compute_RLHS (const struct S_solver_info*const solver_info)
 		compute_GradW_DG(solver_info);
 		compute_VOLUME_RLHS_DG(solver_info);
 		compute_FACE_RLHS_DG(solver_info);
+		free_GradW_DG(solver_info);
 		break;
 	} case METHOD_HDG:
 		compute_VOLUME_RLHS_HDG(solver_info);

@@ -360,21 +360,9 @@ static void update_memory_VOLUME(struct S_VOLUME *const VOLUME)
 	// Other solver related arrays
 	if (DB.Viscous) {
 		for (size_t dim = 0; dim < d; dim++) {
-			if (VOLUME->QhatV[dim] != NULL)
-				free(VOLUME->QhatV[dim]);
-			VOLUME->QhatV[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV[dim])); // keep
-
 			if (VOLUME->Qhat[dim] != NULL)
 				free(VOLUME->Qhat[dim]);
 			VOLUME->Qhat[dim]  = malloc(NvnS*Nvar * sizeof *(VOLUME->Qhat[dim])); // keep
-		}
-
-		if (strstr(DB.SolverType,"Implicit")) {
-			for (size_t dim = 0; dim < d; dim++) {
-				if (VOLUME->QhatV_What[dim] != NULL)
-					free(VOLUME->QhatV_What[dim]);
-				VOLUME->QhatV_What[dim] = malloc(NvnS*NvnS * sizeof *(VOLUME->QhatV_What[dim])); // keep
-			}
 		}
 	}
 }
@@ -419,17 +407,8 @@ static void free_memory_solver_VOLUME(struct S_VOLUME *const VOLUME)
 	if (DB.Viscous) {
 		free(VOLUME->What);
 		for (size_t dim = 0; dim < d; dim++) {
-			free(VOLUME->QhatV[dim]);
-			VOLUME->QhatV[dim] = NULL;
 			free(VOLUME->Qhat[dim]);
 			VOLUME->Qhat[dim] = NULL;
-		}
-
-		if (strstr(DB.SolverType,"Implicit")) {
-			for (size_t dim = 0; dim < d; dim++) {
-				free(VOLUME->QhatV_What[dim]);
-				VOLUME->QhatV_What[dim] = NULL;
-			}
 		}
 	}
 // Currently, explicit solver is called even for implicit runs to start off so this must be reset (ToBeModified)

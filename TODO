@@ -16,3 +16,13 @@ Petsc Solver Updates
 	- Remove memory initialization for LHS terms.
 2) Assemble HDG complete and Schur complement matrix as in [Petsc ex70](http://www.mcs.anl.gov/petsc/petsc-current/src/snes/examples/tutorials/ex70.c.html)
 	- Compare cost of MatMatMult with direct assembly if assembly dominates solver cost.
+
+
+LHS changes:
+1) Move memory allocation (calloc) to relevant compute_* functions (remove in update_VOLUME/FACE functions)
+2) Free memory as soon as it is no longer needed during compute_RLHS stage (Including freeing Qhat_What**)
+3) Remove dependence on global variables (when implementing HDG)
+	- remove variables which are only used in certain functions of the code from currently defined global structs (e.g.
+	  remove LHS, QhatV from the VOLUME struct). Replace these with new structs derived from the common VOLUME with the
+	  additional required parameters for the specific functions under consideration (e.g. solving, geometry).
+

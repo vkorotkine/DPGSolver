@@ -5,6 +5,8 @@
 
 #include <stdlib.h>
 
+#include "Macros.h"
+
 #include "array_free.h"
 
 /*
@@ -354,7 +356,7 @@ void destructor_matrix1_default (struct S_MATRIX *A)
 	 *		Does not free A->data.
 	 */
 
-	free_NULL(A);
+	FREE_NULL(A);
 }
 
 void destructor_matrix1_default_const (struct S_MATRIX const *const A)
@@ -364,8 +366,8 @@ void destructor_matrix1_default_const (struct S_MATRIX const *const A)
 
 void destructor_matrix1 (struct S_MATRIX *A)
 {
-	free_NULL(A->data);
-	free_NULL(A);
+	FREE_NULL(A->data);
+	FREE_NULL(A);
 }
 
 void destructor_matrix2_pointer (size_t const N0, struct S_MATRIX **A)
@@ -373,7 +375,7 @@ void destructor_matrix2_pointer (size_t const N0, struct S_MATRIX **A)
 	for (size_t i = 0; i < N0; i++)
 		if (A[i])
 			destructor_matrix1(A[i]);
-	free_NULL(A);
+	FREE_NULL(A);
 }
 
 void destructor_matrix3_pointer (size_t const N0, size_t const N1, struct S_MATRIX ***A)
@@ -381,7 +383,7 @@ void destructor_matrix3_pointer (size_t const N0, size_t const N1, struct S_MATR
 	for (size_t i = 0; i < N0; i++)
 		if (A[i])
 			destructor_matrix2_pointer(N1,A[i]);
-	free_NULL(A);
+	FREE_NULL(A);
 }
 
 void destructor_matrix4_pointer (size_t const N0, size_t const N1, size_t const N2, struct S_MATRIX ****A)
@@ -389,7 +391,7 @@ void destructor_matrix4_pointer (size_t const N0, size_t const N1, size_t const 
 	for (size_t i = 0; i < N0; i++)
 		if (A[i])
 			destructor_matrix3_pointer(N1,N2,A[i]);
-	free_NULL(A);
+	FREE_NULL(A);
 }
 
 void destructor_matrix5_pointer (size_t const N0, size_t const N1, size_t const N2, size_t const N3,
@@ -398,14 +400,14 @@ void destructor_matrix5_pointer (size_t const N0, size_t const N1, size_t const 
 	for (size_t i = 0; i < N0; i++)
 		if (A[i])
 			destructor_matrix4_pointer(N1,N2,N3,A[i]);
-	free_NULL(A);
+	FREE_NULL(A);
 }
 
 
 void destructor_multiarray1_default (struct S_MULTI_ARRAY *A)
 {
-	free_NULL(A->extents);
-	free_NULL(A);
+	FREE_NULL(A->extents);
+	FREE_NULL(A);
 }
 
 void destructor_multiarray1_default_const (struct S_MULTI_ARRAY const *const A)
@@ -415,9 +417,9 @@ void destructor_multiarray1_default_const (struct S_MULTI_ARRAY const *const A)
 
 void destructor_multiarray1 (struct S_MULTI_ARRAY *A)
 {
-	free_NULL(A->extents);
-	free_NULL(A->data);
-	free_NULL(A);
+	FREE_NULL(A->extents);
+	FREE_NULL(A->data);
+	FREE_NULL(A);
 }
 
 void destructor_multiarray1_const (struct S_MULTI_ARRAY const *const A)

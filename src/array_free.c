@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <complex.h>
 
+#include "Macros.h"
 #include "S_OpCSR.h"
 #include "matrix_structs.h"
 
@@ -22,82 +23,44 @@
  *
  */
 
-void free_NULL (void *A)
-{
-	free(A);
-	A = NULL;
-}
-
 void array_free2_c(size_t const iMax, char **A)
 {
 	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
-			free_NULL(A[i]);
-	free_NULL(A);
+			FREE_NULL(A[i]);
+	FREE_NULL(A);
 }
 
 void array_free2_ui(size_t const iMax, unsigned int **A)
 {
 	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
-			free_NULL(A[i]);
-	free_NULL(A);
+			FREE_NULL(A[i]);
+	FREE_NULL(A);
 }
 
 void array_free2_i(size_t const iMax, int **A)
 {
 	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
-			free_NULL(A[i]);
-	free_NULL(A);
-}
-
-void array_free2_l(size_t const iMax, long **A)
-{
-	for (size_t i = 0; i < iMax; i++)
-		if (A[i])
-			free_NULL(A[i]);
-	free_NULL(A);
-}
-
-void array_free2_ll(size_t const iMax, long long **A)
-{
-	for (size_t i = 0; i < iMax; i++)
-		if (A[i])
-			free_NULL(A[i]);
-	free_NULL(A);
-}
-
-void array_free2_f(size_t const iMax, float **A)
-{
-	for (size_t i = 0; i < iMax; i++)
-		if (A[i])
-			free_NULL(A[i]);
-	free_NULL(A);
+			FREE_NULL(A[i]);
+	FREE_NULL(A);
 }
 
 void array_free2_d(size_t const iMax, double **A)
 {
 	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
-			free_NULL(A[i]);
-	free_NULL(A);
-}
-
-void array_free2_ld(size_t const iMax, long double **A)
-{
-	for (size_t i = 0; i < iMax; i++)
-		if (A[i])
-			free_NULL(A[i]);
-	free_NULL(A);
+			FREE_NULL(A[i]);
+	FREE_NULL(A);
 }
 
 void array_free2_cmplx(size_t const iMax, double complex **A)
 {
 	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
-			free_NULL(A[i]);
-	free_NULL(A);
+			FREE_NULL(A[i]);
+	FREE_NULL(A);
 }
 
 
@@ -107,7 +70,7 @@ void array_free3_c(size_t const iMax, size_t const jMax, char ***A)
 	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
 			array_free2_c(jMax,A[i]);
-	free_NULL(A);
+	FREE_NULL(A);
 }
 
 void array_free3_ui(size_t const iMax, size_t const jMax, unsigned int ***A)
@@ -115,7 +78,7 @@ void array_free3_ui(size_t const iMax, size_t const jMax, unsigned int ***A)
 	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
 			array_free2_ui(jMax,A[i]);
-	free_NULL(A);
+	FREE_NULL(A);
 }
 
 void array_free3_i(size_t const iMax, size_t const jMax, int ***A)
@@ -123,31 +86,7 @@ void array_free3_i(size_t const iMax, size_t const jMax, int ***A)
 	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
 			array_free2_i(jMax,A[i]);
-	free_NULL(A);
-}
-
-void array_free3_l(size_t const iMax, size_t const jMax, long ***A)
-{
-	for (size_t i = 0; i < iMax; i++)
-		if (A[i])
-			array_free2_l(jMax,A[i]);
-	free_NULL(A);
-}
-
-void array_free3_ll(size_t const iMax, size_t const jMax, long long ***A)
-{
-	for (size_t i = 0; i < iMax; i++)
-		if (A[i])
-			array_free2_ll(jMax,A[i]);
-	free_NULL(A);
-}
-
-void array_free3_f(size_t const iMax, size_t const jMax, float ***A)
-{
-	for (size_t i = 0; i < iMax; i++)
-		if (A[i])
-			array_free2_f(jMax,A[i]);
-	free_NULL(A);
+	FREE_NULL(A);
 }
 
 void array_free3_d(size_t const iMax, size_t const jMax, double ***A)
@@ -155,23 +94,17 @@ void array_free3_d(size_t const iMax, size_t const jMax, double ***A)
 	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
 			array_free2_d(jMax,A[i]);
-	free_NULL(A);
+	FREE_NULL(A);
 }
 
-void array_free3_ld(size_t const iMax, size_t const jMax, long double ***A)
-{
-	for (size_t i = 0; i < iMax; i++)
-		if (A[i])
-			array_free2_ld(jMax,A[i]);
-	free_NULL(A);
-}
+
 
 void array_free4_ui(size_t const iMax, size_t const jMax, size_t const kMax, unsigned int ****A)
 {
 	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
 			array_free3_ui(jMax,kMax,A[i]);
-	free_NULL(A);
+	FREE_NULL(A);
 }
 
 void array_free4_d(size_t const iMax, size_t const jMax, size_t const kMax, double ****A)
@@ -179,7 +112,7 @@ void array_free4_d(size_t const iMax, size_t const jMax, size_t const kMax, doub
 	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
 			array_free3_d(jMax,kMax,A[i]);
-	free_NULL(A);
+	FREE_NULL(A);
 }
 
 void array_free5_d(size_t const iMax, size_t const jMax, size_t const kMax, size_t const lMax, double *****A)
@@ -187,16 +120,16 @@ void array_free5_d(size_t const iMax, size_t const jMax, size_t const kMax, size
 	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
 			array_free4_d(jMax,kMax,lMax,A[i]);
-	free_NULL(A);
+	FREE_NULL(A);
 }
 
 void array_free1_CSR_d(struct S_OpCSR *A)
 {
 	if (A) {
-		free_NULL(A->rowIndex);
-		free_NULL(A->columns);
-		free_NULL(A->values);
-		free_NULL(A);
+		FREE_NULL(A->rowIndex);
+		FREE_NULL(A->columns);
+		FREE_NULL(A->values);
+		FREE_NULL(A);
 	}
 }
 
@@ -208,16 +141,16 @@ void array_free4_CSR_d(size_t const iMax, size_t const jMax, size_t const kMax, 
 		if (A[i][j]) {
 			for (size_t k = 0; k < kMax; k++) {
 			if (A[i][j][k]) {
-				free_NULL(A[i][j][k]->rowIndex);
-				free_NULL(A[i][j][k]->columns);
-				free_NULL(A[i][j][k]->values);
-				free_NULL(A[i][j][k]);
+				FREE_NULL(A[i][j][k]->rowIndex);
+				FREE_NULL(A[i][j][k]->columns);
+				FREE_NULL(A[i][j][k]->values);
+				FREE_NULL(A[i][j][k]);
 			}}
-			free_NULL(A[i][j]);
+			FREE_NULL(A[i][j]);
 		}}
-		free_NULL(A[i]);
+		FREE_NULL(A[i]);
 	}}
-	free_NULL(A);
+	FREE_NULL(A);
 }
 
 void array_free5_CSR_d(size_t const iMax, size_t const jMax, size_t const kMax, size_t const lMax, struct S_OpCSR *****A)
@@ -225,5 +158,5 @@ void array_free5_CSR_d(size_t const iMax, size_t const jMax, size_t const kMax, 
 	for (size_t i = 0; i < iMax; i++)
 		if (A[i])
 			array_free4_CSR_d(jMax,kMax,lMax,A[i]);
-	free_NULL(A);
+	FREE_NULL(A);
 }

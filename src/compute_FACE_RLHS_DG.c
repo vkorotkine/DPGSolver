@@ -14,6 +14,7 @@
 #include "S_FACE.h"
 
 #include "solver_functions.h"
+#include "compute_GradW_DG.h"
 #include "array_free.h"
 #include "support.h"
 
@@ -58,12 +59,13 @@ void compute_FACE_RLHS_DG (const struct S_solver_info*const solver_info)
 	if (solver_info->display)
 		printf("F");
 
-	if (!solver_info->compute_FACE)
-		return;
-
-	set_memory_to_zero_FACEs();
-	compute_Inviscid_FACE_EFE(solver_info);
-	compute_Viscous_FACE_EFE(solver_info);
+	if (solver_info->compute_FACE) {
+		set_memory_to_zero_FACEs();
+		compute_Inviscid_FACE_EFE(solver_info);
+		compute_Viscous_FACE_EFE(solver_info);
+//		free_GradW_DG(solver_info);
+	}
+	free_GradW_DG(solver_info);
 }
 
 static void set_memory_to_zero_FACEs (void)
@@ -223,7 +225,7 @@ static void compute_Viscous_FACE_EFE (const struct S_solver_info*const solver_in
 			coef_to_values_fI(FDATAL,'W',imex_type);
 			coef_to_values_fI(FDATAL,'Q',imex_type);
 			compute_WR_QpR_fIL(FDATAR,FDATAL->W_fIL,FDATAR->W_fIL,
-			                   (double const *const *const) FDATAL->Qp_fIL,FDATAR->Qp_fIL,'I');
+			                   (double const *const *const) FDATAL->Qp_fIL,FDATAR->Qp_fIL,imex_type);
 
 
 			// Compute numerical flux and its Jacobian as seen from the left VOLUME

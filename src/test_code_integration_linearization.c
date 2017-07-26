@@ -77,11 +77,10 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 	// default values
 	TestDB.CheckOffDiagonal = 0; // Should not be modified.
 
-	data->PrintEnabled           = 0; // Here used to output the matrix to a file when enabled.
-	data->PrintTimings           = 0;
-	data->CheckFullLinearization = 1;
-	data->CheckWeakGradients     = 0;
-	data->StaticCondensation     = 1;
+	data->PrintEnabled           = false; // Here used to output the matrix to a file when enabled.
+	data->PrintTimings           = false;
+	data->CheckFullLinearization = true;
+	data->CheckWeakGradients     = false;
 
 	data->PG_add        = 1;
 	data->IntOrder_mult = 2;
@@ -91,88 +90,19 @@ static void set_test_linearization_data(struct S_linearization *const data, char
 	data->ML      = 0;
 
 	data->Nref        = 2;
-	data->update_argv = 1;
+	data->update_argv = true;
 
-	strcpy(data->argvNew[1],"test/");
+	strcpy(data->argvNew[1],TestName);
 	if (strstr(TestName,"Advection")) {
-		if (strstr(TestName,"HDG")) {
-data->StaticCondensation = 0;
-			if (strstr(TestName,"n-Cube_Default")) {
-				if (strstr(TestName,"Straight")) {
-					if (strstr(TestName,"TRI")) {
-						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_TRI");
-					} else if (strstr(TestName,"QUAD")) {
-						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_QUAD");
-					} else if (strstr(TestName,"MIXED2D")) {
-						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_MIXED2D");
-					} else {
-						EXIT_UNSUPPORTED;
-					}
-				} else if (strstr(TestName,"Curved")) {
-					if (strstr(TestName,"TRI")) {
-						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_CurvedTRI");
-					} else if (strstr(TestName,"QUAD")) {
-						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_CurvedQUAD");
-					} else if (strstr(TestName,"MIXED2D")) {
-						strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_HDG_n-Cube_CurvedMIXED2D");
-					} else {
-						EXIT_UNSUPPORTED;
-					}
-				} else {
-					EXIT_UNSUPPORTED;
-				}
-			} else {
-				EXIT_UNSUPPORTED;
-			}
-		} else { // Default: DG
-			if (strstr(TestName,"StraightTRI")) {
-				strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_TRI");
-			} else if (strstr(TestName,"StraightQUAD")) {
-				data->IntOrder_add  = 2; // The exact solution is obtained if this is omitted
-				strcpy(data->argvNew[1],"test/Advection/Test_Advection_Default_n-Cube_QUAD");
-			} else {
-				EXIT_UNSUPPORTED;
-			}
-		}
+		; // Do nothing
 	} else if (strstr(TestName,"Poisson")) {
-//data->CheckFullLinearization = 0;
-		if (strstr(TestName,"1D")) {
-			if (strstr(TestName,"Collocated"))
-				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Cube_LINE_Col");
-			else
-				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Cube_LINE");
-		} else if (strstr(TestName,"MIXED2D")) {
-			strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ball_HollowSection_CurvedMIXED2D");
-		} else {
-			// 3D TET test previously had Nref = 0, update_argv = 1
-			EXIT_UNSUPPORTED;
-		}
+		; // Do nothing
 	} else if (strstr(TestName,"Euler")) {
-//data->PrintTimings = 1;
-		data->update_argv = 0;
-		strcat(data->argvNew[1],"Euler/Test_Euler_SupersonicVortex_ToBeCurved");
-		if (strstr(TestName,"MIXED2D")) {
-			strcat(data->argvNew[1],"MIXED2D");
-		} else if (strstr(TestName,"MIXED_TET_PYR")) {
-			strcat(data->argvNew[1],"MIXED3D_TP");
-		} else if (strstr(TestName,"MIXED_HEX_WEDGE")) {
-			strcat(data->argvNew[1],"MIXED3D_HW");
-		} else {
-			EXIT_UNSUPPORTED;
-		}
+//		data->PrintTimings = true;
+		data->update_argv = false;
 	} else if (strstr(TestName,"NavierStokes")) {
-//data->PrintTimings = 1;
-data->CheckFullLinearization = 0;
-		data->CheckWeakGradients = 1;
-		if (strstr(TestName,"ToBeCurvedMIXED2D")) {
-			if (strstr(TestName,"Collocated")) {
-				strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedMIXED2D_Col");
-			} else {
-				strcpy(data->argvNew[1],"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedMIXED2D");
-			}
-		} else {
-			EXIT_UNSUPPORTED;
-		}
+//		data->PrintTimings = true;
+		data->CheckWeakGradients = true;
 	} else {
 		printf("%s\n",TestName); EXIT_UNSUPPORTED;
 	}
@@ -193,8 +123,7 @@ static void check_passing(struct S_linearization const *const data, unsigned int
 
 	if (DB.Symmetric) {
 		PetscBool Symmetric = 0;
-		MatIsSymmetric(data->A,1e2*EPS,&Symmetric);
-//		MatIsSymmetric(data->A_cs,EPS,&Symmetric);
+		MatIsSymmetric(data->A,1e1*EPS,&Symmetric);
 		if (!Symmetric) {
 			*pass = 0;
 			printf("Failed symmetric.\n");
@@ -282,19 +211,14 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 	 *			0) complete check (default)
 	 *			1) diagonal VOLUME contributions
 	 *			2) diagonal FACE contributions
-	 *			3) off-diagonal FACE contributions
+	 *			3) off-diagonal FACE (and VOLUME for 2nd order equations) contributions
 	 *		Further, the complete linearization can be checked either through the assembly of the individual
 	 *		contributions or more simply by using the assembled RHS directly.
 	 *
 	 *
 	 *		HDG:
 	 *
-	 *		Similar functionality to that of the DG scheme is provided. Additionally, the statically condensed
-	 *		representation of the matrix may be compared with both the analytically computed Jacobian as well as the
-	 *		matrix computed based on sparse matrix-matrix multiplication of the components of the non condensed
-	 *		representation.
-	 *
-	 *		By default, static condensation is enabled as this is the configuration in which the code is run.
+	 *		Similar functionality to that of the DG scheme is provided.
 	 */
 
 	set_test_linearization_data(data,TestName);
@@ -333,30 +257,24 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 		EXIT_UNSUPPORTED;
 	}
 
-	if (strstr(TestName,"Poisson")) {
-		if (!DB.Symmetric)
-			EXIT_UNSUPPORTED;
-	}
-
 	for (size_t nTest = 0; nTest < 2; nTest++) {
 		if (nTest == 0) { // Check weak gradients
 			if (!CheckWeakGradients)
 				continue;
 
-			set_PrintName("linearization (weak gradient)",data->PrintName,&data->TestTRI);
-			if (strstr(TestName,"NavierStokes")) {
-				struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
-				compute_GradW_DG(&solver_info);
-			} else {
+			if (!strstr(TestName,"NavierStokes"))
 				EXIT_UNSUPPORTED;
-			}
 
-			unsigned int const d = DB.d;
+			set_PrintName("linearization (weak gradient)",data->PrintName,&data->TestTRI);
+
+			struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
+			compute_GradW_DG(&solver_info);
 
 			Mat A[DMAX]     = { NULL },
 			    A_cs[DMAX]  = { NULL },
 			    A_csc[DMAX] = { NULL };
 
+			unsigned int const d = DB.d;
 			if (!CheckFullLinearization) {
 				for (size_t dim = 0; dim < d; dim++) {
 					const unsigned int CheckLevel = 3;

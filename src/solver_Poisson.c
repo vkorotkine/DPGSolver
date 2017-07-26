@@ -68,6 +68,7 @@ void solver_Poisson(bool PrintEnabled)
 	solver_info.display   = false;
 	solver_info.imex_type = 'E';
 	compute_GradW_DG(&solver_info);
+	free_GradW_DG(&solver_info);
 
 	output_to_paraview("SolFinal_");
 }

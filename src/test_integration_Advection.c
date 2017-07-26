@@ -59,17 +59,17 @@ bool const TestHDG = 0;
 		data_l->PrintName = PrintName;
 
 if (TestHDG) {
-		test_linearization(data_l,"Advection_n-Cube_Default_HDG_StraightTRI");
-		test_linearization(data_l,"Advection_n-Cube_Default_HDG_StraightQUAD");
-		test_linearization(data_l,"Advection_n-Cube_Default_HDG_StraightMIXED2D");
-		test_linearization(data_l,"Advection_n-Cube_Default_HDG_CurvedTRI");
-		test_linearization(data_l,"Advection_n-Cube_Default_HDG_CurvedQUAD");
-		test_linearization(data_l,"Advection_n-Cube_Default_HDG_CurvedMIXED2D");
+		test_linearization(data_l,"test/Advection/Test_Advection_Default_HDG_n-Cube_StraightTRI");
+		test_linearization(data_l,"test/Advection/Test_Advection_Default_HDG_n-Cube_StraightQUAD");
+		test_linearization(data_l,"test/Advection/Test_Advection_Default_HDG_n-Cube_StraightMIXED2D");
+		test_linearization(data_l,"test/Advection/Test_Advection_Default_HDG_n-Cube_CurvedTRI");
+		test_linearization(data_l,"test/Advection/Test_Advection_Default_HDG_n-Cube_CurvedQUAD");
+		test_linearization(data_l,"test/Advection/Test_Advection_Default_HDG_n-Cube_CurvedMIXED2D");
 }
 
 		// 2D (Mixed TRI/QUAD mesh)
-		test_linearization(data_l,"Advection_StraightTRI");
-		test_linearization(data_l,"Advection_StraightQUAD");
+		test_linearization(data_l,"test/Advection/Test_Advection_Default_n-Cube_StraightTRI");
+		test_linearization(data_l,"test/Advection/Test_Advection_Default_n-Cube_StraightQUAD");
 
 		test_print_warning("Advection curved element testing not yet implemented");
 //		test_linearization(data_l,"Advection_CurvedTRI");
@@ -92,12 +92,12 @@ if (TestHDG) {
 		data_c->argvNew   = argvNew;
 		data_c->PrintName = PrintName;
 if (!TestHDG) {
-		test_conv_order(data_c,"Advection_n-Cube_Default_TRI");
-		test_conv_order(data_c,"Advection_n-Cube_Default_QUAD");
+		test_conv_order(data_c,"test/Advection/Test_Advection_Default_n-Cube_StraightTRI");
+		test_conv_order(data_c,"test/Advection/Test_Advection_Default_n-Cube_StraightQUAD");
 
-		test_conv_order(data_c,"Advection_n-Cube_Peterson_TRI");
+		test_conv_order(data_c,"test/Advection/Test_Advection_Peterson_n-Cube_StraightTRI");
 } else {
-		test_conv_order(data_c,"Advection_n-Cube_Default_HDG_TRI");
+		test_conv_order(data_c,"test/Advection/Test_Advection_Default_HDG_n-Cube_StraightTRI");
 }
 		free(data_c);
 	} else {

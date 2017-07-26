@@ -93,8 +93,8 @@ void test_integration_NavierStokes(int nargc, char **argv)
 		data_l->argvNew   = argvNew;
 		data_l->PrintName = PrintName;
 
-		test_linearization(data_l,"NavierStokes_ToBeCurvedMIXED2D_Collocated");
-		test_linearization(data_l,"NavierStokes_ToBeCurvedMIXED2D");
+		test_linearization(data_l,"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedMIXED2D_Col");
+		test_linearization(data_l,"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedMIXED2D");
 
 		free(data_l);
 	} else {
