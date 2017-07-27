@@ -19,7 +19,7 @@
 
 #include "solver.h"
 #include "adaptation.h"
-#include "explicit_GradW_c.h"
+#include "compute_GradW_DG_c.h"
 #include "explicit_VOLUME_info_c.h"
 #include "explicit_FACE_info_c.h"
 #include "finalize_RHS.h"
@@ -156,9 +156,12 @@ if (DB.Method != METHOD_DG)
 		if (!VOLUMEOnly)
 			finalize_RHS();
 
-		explicit_GradW_c(NULL,1);
+		solver_info.compute_all = true;
+
+		compute_GradW_DG_c(&solver_info);
 		explicit_VOLUME_info_c(NULL,1);
 		explicit_FACE_info_c(NULL,1);
+		free_GradW_DG_c(&solver_info);
 		if (!VOLUMEOnly)
 			finalize_RHS_c(NULL,1);
 

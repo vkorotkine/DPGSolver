@@ -50,8 +50,6 @@ void solver_Poisson(bool PrintEnabled)
 	initialize_petsc_structs(&solver_info);
 	compute_RLHS(&solver_info);
 
-//	Mat A = NULL;
-//	Vec b = NULL, x = NULL;
 	KSP ksp = NULL;
 
 	Mat A = solver_info.A;
@@ -67,8 +65,8 @@ void solver_Poisson(bool PrintEnabled)
 	// Update Qhat based on computed solution
 	solver_info.display   = false;
 	solver_info.imex_type = 'E';
-	compute_GradW_DG(&solver_info);
-	free_GradW_DG(&solver_info);
+	compute_GradW(&solver_info,'A');
+	compute_GradW(&solver_info,'F');
 
 	output_to_paraview("SolFinal_");
 }

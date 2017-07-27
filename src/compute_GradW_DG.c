@@ -62,13 +62,11 @@ void compute_GradW_DG (const struct S_solver_info*const solver_info)
 	compute_GradW_finalize(solver_info->imex_type);
 }
 
-//static void check_NULL_and_allocate (double**const A, const size_t n)
-void __attribute__ ((noinline)) check_NULL_and_allocate (double**const A, const size_t n)
+static void check_NULL_and_allocate (double**const A, const size_t n)
+//void __attribute__ ((noinline)) check_NULL_and_allocate (double**const A, const size_t n)
 {
-	if (*A != NULL) {
-//		printf("%f\n",*A[n]);
-//		EXIT_UNSUPPORTED;
-	}
+	if (*A != NULL)
+		EXIT_UNSUPPORTED;
 
 	*A = calloc(n , sizeof **A);
 }
@@ -97,15 +95,9 @@ static void allocate_GradW (const struct S_solver_info*const solver_info)
 	for (struct S_VOLUME* VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		const unsigned int NvnS = VOLUME->NvnS;
 		for (size_t dim = 0; dim < d; dim++) {
-//if (VOLUME->QhatV[dim] != NULL)
-//	EXIT_UNSUPPORTED;
 			check_NULL_and_allocate(&VOLUME->QhatV[dim],NvnS*Nvar); // keep
 			if (solver_info->imex_type == 'I')
-{
-//if (VOLUME->QhatV_What[dim] != NULL)
-//	EXIT_UNSUPPORTED;
 				check_NULL_and_allocate(&VOLUME->QhatV_What[dim],NvnS*NvnS); // keep
-}
 		}
 	}
 

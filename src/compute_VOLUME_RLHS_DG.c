@@ -52,6 +52,14 @@ static void compute_Viscous_VOLUME_EFE  (const struct S_solver_info*const solver
 
 void compute_VOLUME_RLHS_DG (const struct S_solver_info*const solver_info)
 {
+	/*
+	 *	Comments:
+	 *		Should only be called through compute_RLHS (solver.c).
+	 */
+
+	if (!solver_info->compute_V)
+		return;
+
 	if (solver_info->display)
 		printf("V");
 
@@ -163,7 +171,7 @@ static void compute_Inviscid_VOLUME_EFE (const struct S_solver_info*const solver
 				unsigned int NvnS = VDATA->OPS[0]->NvnS;
 				finalize_VOLUME_Inviscid_Weak(NvnS*Neq*Nvar,FLUXDATA->dFrdW,VDATA->LHS,'I',VDATA);
 
-				struct S_LHS_info LHS_info = constructor_LHS_info(VDATA->LHS,VOLUME,VOLUME,ADD_VALUES);
+				struct S_LHS_info LHS_info = constructor_LHS_info(VDATA->LHS,VOLUME,VOLUME,ADD_VALUES,true);
 				fill_PetscMat(solver_info,&LHS_info);
 
 				manage_solver_memory(DATA,'F','L');
@@ -282,7 +290,7 @@ static void compute_Viscous_VOLUME_EFE (const struct S_solver_info*const solver_
 				initialize_VOLUME_LHSQ_Weak(NvnS*Neq*Nvar,(double const *const *const) FLUXDATA->dFrdQ,VOLUME->LHSQ,VDATA);
 				finalize_VOLUME_LHSQV_Weak(VOLUME,VDATA->LHS);
 
-				struct S_LHS_info LHS_info = constructor_LHS_info(VDATA->LHS,VOLUME,VOLUME,ADD_VALUES);
+				struct S_LHS_info LHS_info = constructor_LHS_info(VDATA->LHS,VOLUME,VOLUME,ADD_VALUES,true);
 				fill_PetscMat(solver_info,&LHS_info);
 
 				manage_solver_memory(DATA,'F','L');
@@ -307,15 +315,15 @@ static void compute_Viscous_VOLUME_EFE (const struct S_solver_info*const solver_
 				manage_solver_memory(DATA,'A','L'); // free
 				finalize_VOLUME_LHSQF_Weak(DATA);
 
-				struct S_LHS_info LHS_info_LL = constructor_LHS_info(FDATAL->LHSL,FACE->VL,FACE->VL,ADD_VALUES);
+				struct S_LHS_info LHS_info_LL = constructor_LHS_info(FDATAL->LHSL,FACE->VL,FACE->VL,ADD_VALUES,true);
 				fill_PetscMat(solver_info,&LHS_info_LL);
 
 				if (!FACE->Boundary) {
-					struct S_LHS_info LHS_info_LR = constructor_LHS_info(FDATAL->LHSR,FACE->VR,FACE->VL,ADD_VALUES);
+					struct S_LHS_info LHS_info_LR = constructor_LHS_info(FDATAL->LHSR,FACE->VR,FACE->VL,ADD_VALUES,true);
 					fill_PetscMat(solver_info,&LHS_info_LR);
-					struct S_LHS_info LHS_info_RL = constructor_LHS_info(FDATAR->LHSL,FACE->VL,FACE->VR,ADD_VALUES);
+					struct S_LHS_info LHS_info_RL = constructor_LHS_info(FDATAR->LHSL,FACE->VL,FACE->VR,ADD_VALUES,true);
 					fill_PetscMat(solver_info,&LHS_info_RL);
-					struct S_LHS_info LHS_info_RR = constructor_LHS_info(FDATAR->LHSR,FACE->VR,FACE->VR,ADD_VALUES);
+					struct S_LHS_info LHS_info_RR = constructor_LHS_info(FDATAR->LHSR,FACE->VR,FACE->VR,ADD_VALUES,true);
 					fill_PetscMat(solver_info,&LHS_info_RR);
 				}
 				manage_solver_memory(DATA,'F','L');

@@ -77,6 +77,36 @@ finished = false;
 //		output_to_paraview("SolFinal_");
 }
 
+void compute_GradW (const struct S_solver_info*const solver_info, const char stage)
+{
+	/*
+	 *	Purpose:
+	 *		Compute/Free the weak gradient terms depending on stage.
+	 *
+	 *	Comments:
+	 *		stage : stage of the computation.
+	 *		        Options: 'A'llocate
+	 *		                 'F'ree
+	 */
+
+	if (!(stage == 'A' || stage == 'F'))
+		EXIT_UNSUPPORTED;
+
+	switch (solver_info->method) {
+	case METHOD_DG:
+		if (stage == 'A')
+			compute_GradW_DG(solver_info);
+		else if (stage == 'F')
+			free_GradW_DG(solver_info);
+
+		break;
+	case METHOD_HDG:
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+}
+
 void compute_RLHS (const struct S_solver_info*const solver_info)
 {
 	/*
@@ -96,13 +126,13 @@ void compute_RLHS (const struct S_solver_info*const solver_info)
 	 */
 
 	switch (solver_info->method) {
-	case METHOD_DG: {
+	case METHOD_DG:
 		compute_GradW_DG(solver_info);
 		compute_VOLUME_RLHS_DG(solver_info);
 		compute_FACE_RLHS_DG(solver_info);
 		free_GradW_DG(solver_info);
 		break;
-	} case METHOD_HDG:
+	case METHOD_HDG:
 		compute_VOLUME_RLHS_HDG(solver_info);
 		compute_FACE_RLHS_HDG(solver_info);
 		break;
@@ -113,7 +143,7 @@ void compute_RLHS (const struct S_solver_info*const solver_info)
 }
 
 struct S_LHS_info constructor_LHS_info (double*const LHS, const struct S_VOLUME*const V0,
-                                        const struct S_VOLUME*const V1, const InsertMode addv)
+                                        const struct S_VOLUME*const V1, const InsertMode addv, const bool is_not_GradW)
 {
 	/*
 	 *	Purpose:
@@ -121,6 +151,9 @@ struct S_LHS_info constructor_LHS_info (double*const LHS, const struct S_VOLUME*
 	 *
 	 *	Comments:
 	 *		V0 gives the global row index and V1 the column index.
+	 *
+	 *		The 'is_not_GradW' variable is provided to allow for this function to also be used for the assembly of weak
+	 *		gradient terms during testing. It should always be 'true' during standard LHS assembly.
 	 */
 
 	struct S_LHS_info LHS_info;
@@ -134,7 +167,8 @@ struct S_LHS_info constructor_LHS_info (double*const LHS, const struct S_VOLUME*
 	LHS_info.Nn[1]   = V1->NvnS;
 	LHS_info.addv    = addv;
 
-	correct_collocated_for_symmetry_local(&LHS_info);
+	if (is_not_GradW)
+		correct_collocated_for_symmetry_local(&LHS_info);
 
 	return LHS_info;
 }
@@ -470,7 +504,6 @@ static void update_VOLUME_FACE_pointers (void)
 }
 
 
-// "class" functions
 
 struct S_solver_info constructor_solver_info (const bool display, const bool output, const bool adapt,
                                               const char imex_type, const unsigned int method)
@@ -511,7 +544,8 @@ struct S_solver_info constructor_solver_info (const bool display, const bool out
 		EXIT_UNSUPPORTED;
 	solver_info.imex_type = imex_type;
 
-	solver_info.compute_FACE = true;
+	solver_info.compute_V = true;
+	solver_info.compute_F = true;
 	if (imex_type == 'I') {
 		solver_info.create_RHS = true;
 
@@ -519,6 +553,9 @@ struct S_solver_info constructor_solver_info (const bool display, const bool out
 		solver_info.b = NULL;
 		solver_info.x = NULL;
 	}
+
+	solver_info.compute_all = false;
+	solver_info.VOLUME_perturbed = NULL;
 
 	return solver_info;
 }

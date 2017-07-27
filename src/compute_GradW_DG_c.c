@@ -1,8 +1,8 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#include "explicit_GradW_c.h"
-#include "S_VOLUME.h"
+#include "compute_GradW_DG_c.h"
+#include "solver.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,6 +12,7 @@
 #include "Macros.h"
 #include "Parameters.h"
 #include "S_DB.h"
+#include "S_VOLUME.h"
 #include "S_FACE.h"
 
 #include "explicit_info_c.h"
@@ -23,31 +24,57 @@
 
 /*
  *	Purpose:
- *		Identical to explicit_GradW using complex variables (for complex step verification).
- *
- *	Comments:
- *
- *	Notation:
- *
- *	References:
+ *		Provide analogous functions of the real versions using complex variables.
  */
 
-static void explicit_GradW_VOLUME_c   (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all);
-static void explicit_GradW_FACE_c     (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all);
-static void explicit_GradW_finalize_c (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all);
+static void allocate_GradW_c         (const struct S_solver_info*const solver_info);
+static void compute_GradW_VOLUME_c   (const struct S_solver_info*const solver_info);
+static void compute_GradW_FACE_c     (const struct S_solver_info*const solver_info);
+static void compute_GradW_finalize_c (const struct S_solver_info*const solver_info);
 
-void explicit_GradW_c (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
+void compute_GradW_DG_c (const struct S_solver_info*const solver_info)
 {
 	if (!DB.Viscous)
 		return;
 
-	explicit_GradW_VOLUME_c(VOLUME_perturbed,compute_all);
-	explicit_GradW_FACE_c(VOLUME_perturbed,compute_all);
-	explicit_GradW_finalize_c(VOLUME_perturbed,compute_all);
+	allocate_GradW_c(solver_info);
+	compute_GradW_VOLUME_c(solver_info);
+	compute_GradW_FACE_c(solver_info);
+	compute_GradW_finalize_c(solver_info);
 }
 
-static void explicit_GradW_VOLUME_c (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
+static void check_NULL_and_allocate (double complex**const A, const size_t n)
 {
+	if (*A != NULL)
+		EXIT_UNSUPPORTED;
+
+	*A = calloc(n , sizeof **A);
+}
+
+static void allocate_GradW_c (const struct S_solver_info*const solver_info)
+{
+	const unsigned int d    = DB.d,
+	                   Nvar = DB.Nvar;
+
+	struct S_LOCAL_MESH_ELEMENTS local_ELEMENTs;
+	if (!solver_info->compute_all)
+		local_ELEMENTs = compute_local_ELEMENT_list(solver_info->VOLUME_perturbed,'V');
+
+	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		if (!solver_info->compute_all) {
+			if (!is_VOLUME_in_local_list(VOLUME,&local_ELEMENTs))
+				continue;
+		}
+		const unsigned int NvnS = VOLUME->NvnS;
+		for (size_t dim = 0; dim < d; dim++)
+			check_NULL_and_allocate(&VOLUME->QhatV_c[dim],NvnS*Nvar); // keep
+	}
+}
+
+static void compute_GradW_VOLUME_c (const struct S_solver_info*const solver_info)
+{
+	const bool compute_all = solver_info->compute_all;
+
 	unsigned int const d    = DB.d,
 	                   Nvar = DB.Nvar;
 
@@ -63,7 +90,7 @@ static void explicit_GradW_VOLUME_c (struct S_VOLUME *const VOLUME_perturbed, bo
 
 	struct S_LOCAL_MESH_ELEMENTS local_ELEMENTs;
 	if (!compute_all)
-		local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'V');
+		local_ELEMENTs = compute_local_ELEMENT_list(solver_info->VOLUME_perturbed,'V');
 
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		if (!compute_all) {
@@ -97,9 +124,6 @@ static void explicit_GradW_VOLUME_c (struct S_VOLUME *const VOLUME_perturbed, bo
 			}
 
 			// Compute intermediate Qhat contribution
-			if (VOLUME->QhatV_c[dim] != NULL)
-				free(VOLUME->QhatV_c[dim]);
-			VOLUME->QhatV_c[dim] = malloc(NvnS*Nvar * sizeof *(VOLUME->QhatV_c[dim])); // keep
 
 			// Note: Using CBCM with CBT for ChiSDxyz (stored in row-major ordering) gives ChiSDxyz non-transposed in
 			//       the operation below.
@@ -121,8 +145,10 @@ static void explicit_GradW_VOLUME_c (struct S_VOLUME *const VOLUME_perturbed, bo
 	free(DxyzInfo);
 }
 
-static void explicit_GradW_FACE_c (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
+static void compute_GradW_FACE_c (const struct S_solver_info*const solver_info)
 {
+	const bool compute_all = solver_info->compute_all;
+
 	// Initialize DB Parameters
 	unsigned int const d    = DB.d,
 	                   Nvar = DB.Nvar,
@@ -146,7 +172,7 @@ static void explicit_GradW_FACE_c (struct S_VOLUME *const VOLUME_perturbed, bool
 
 	struct S_LOCAL_MESH_ELEMENTS local_ELEMENTs;
 	if (!compute_all)
-		local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'F');
+		local_ELEMENTs = compute_local_ELEMENT_list(solver_info->VOLUME_perturbed,'F');
 
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
 		if (!compute_all && !is_FACE_in_local_list(FACE,&local_ELEMENTs))
@@ -232,14 +258,16 @@ static void finalize_Qhat_c(struct S_VOLUME const *const VOLUME, unsigned int co
 	}
 }
 
-static void explicit_GradW_finalize_c (struct S_VOLUME *const VOLUME_perturbed, bool const compute_all)
+static void compute_GradW_finalize_c (const struct S_solver_info*const solver_info)
 {
+	const bool compute_all = solver_info->compute_all;
+
 	unsigned int const d    = DB.d,
 	                   Nvar = DB.Nvar;
 
 	struct S_LOCAL_MESH_ELEMENTS local_ELEMENTs;
 	if (!compute_all)
-		local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'F');
+		local_ELEMENTs = compute_local_ELEMENT_list(solver_info->VOLUME_perturbed,'F');
 
 	// Add FACE contributions to VOLUME->Qhat then multiply by MInv
 	for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {
@@ -269,7 +297,7 @@ static void explicit_GradW_finalize_c (struct S_VOLUME *const VOLUME_perturbed, 
 
 	// Multiply VOLUME Qhat terms by MInv
 	if (!compute_all)
-		local_ELEMENTs = compute_local_ELEMENT_list(VOLUME_perturbed,'V');
+		local_ELEMENTs = compute_local_ELEMENT_list(solver_info->VOLUME_perturbed,'V');
 
 	for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 		if (!compute_all && !is_VOLUME_in_local_list(VOLUME,&local_ELEMENTs))
@@ -279,5 +307,24 @@ static void explicit_GradW_finalize_c (struct S_VOLUME *const VOLUME_perturbed, 
 
 		finalize_Qhat_c(VOLUME,NvnS,VOLUME->Qhat_c);
 		finalize_Qhat_c(VOLUME,NvnS,VOLUME->QhatV_c);
+	}
+}
+
+void free_GradW_DG_c (const struct S_solver_info*const solver_info)
+{
+	const unsigned int d = DB.d;
+
+	struct S_LOCAL_MESH_ELEMENTS local_ELEMENTs;
+	if (!solver_info->compute_all)
+		local_ELEMENTs = compute_local_ELEMENT_list(solver_info->VOLUME_perturbed,'V');
+
+	for (struct S_VOLUME* VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
+		if (!solver_info->compute_all) {
+			if (!is_VOLUME_in_local_list(VOLUME,&local_ELEMENTs))
+				continue;
+		}
+
+		for (size_t dim = 0; dim < d; dim++)
+			FREE_NULL(VOLUME->QhatV_c[dim]);
 	}
 }

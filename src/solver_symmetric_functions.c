@@ -122,6 +122,10 @@ void correct_collocated_for_symmetry_local (struct S_LHS_info*const LHS_info)
 	 *		Premultiply local LHS entry by diagonal weights for collocated schemes before adding to the petsc Mat.
 	 *
 	 *	Comments:
+	 *		When collocation is enabled, symmetry of the global system matrix is lost for the diffusion operator due to
+	 *		the premultiplication of operators by inverse cubature weights. To recover the symmetry, the RHS/LHS terms
+	 *		are corrected before assembly of the global system matrix.
+	 *
 	 *		Some redundant operations are performed when using this function as the same diagonal scaling is applied to
 	 *		several terms occupying the same position in the global system matrix. However, this is a relatively cheap
 	 *		operation and it allows for the duplicated memory to no longer be needed as the data is stored directly in

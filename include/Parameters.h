@@ -208,6 +208,7 @@
 #define EPS        1.0e-15
 #define EPS_PHYS   1.0e-13
 #define SQRT_EPS   3.162277660168379e-08
+#define CX_STEP    1.0e-30
 #define REFINE_TOL 1.0e-10 // Decrease for additional refinement
 #define COARSE_TOL 1.0e-4 // Increase for additional coarsening
 

@@ -13,7 +13,7 @@ struct S_linearization {
 	             CheckFullLinearization, CheckWeakGradients,
 	             update_argv, TestTRI;
 	char         **argvNew, *PrintName;
-	unsigned int Nref, PGlobal, ML, PG_add, IntOrder_mult, IntOrder_add;
+	unsigned int Nref, PGlobal, ML, PG_add, IntOrder_mult, IntOrder_add, check_level;
 	int          nargc;
 
 	Mat A, A_cs, A_csc;
