@@ -3,7 +3,7 @@ If missing, add copyright info to header of every .c and .h file as below
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 Ensure that the link above is correct
 
-grep through all files for 'ToBeModified' and 'ToBeDeleted' comments, making appropriate modifications when possible.
+grep through all files for '\todo', 'ToBeModified' and 'ToBeDeleted' comments, making appropriate modifications when possible.
 
 change tab spaces to 8 and increase max lines to check alignment of the code under different options in .vimrc
 
@@ -25,4 +25,14 @@ LHS changes:
 	- remove variables which are only used in certain functions of the code from currently defined global structs (e.g.
 	  remove LHS, QhatV from the VOLUME struct). Replace these with new structs derived from the common VOLUME with the
 	  additional required parameters for the specific functions under consideration (e.g. solving, geometry).
+
+Linearization changes: (generalize to all functions in the future)
+1) Make new structs for specific functions with const reference (const move constructor) to required previously
+   initialized data and with declarations of required limited scope data as part of the constructor.
+   - Start by simply transferring to local struct and getting the function to work, then switch to new "classes" for
+	 data storage (S_MULTI_ARRAY_cx)
+   Ex: Construct S_VOLUME_solver_cx which takes required parameters from S_VOLUME for complex RHS evaluation.
+2) When completed, should be able to remove the following variables from S_VOLUME:
+	- *RHS_c, *What_c, **Qhat_c, **QhatV_c, **qhat_c
+
 

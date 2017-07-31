@@ -7,7 +7,7 @@
 #include <stdbool.h>
 
 struct S_equivalence_algs {
-	bool         TestTRI;
+	bool         omit_root;
 	char         **argvNew, *PrintName;
 	unsigned int P, ML, PG_add, IntOrder_add, IntOrder_mult, NAlgs;
 	int          nargc;

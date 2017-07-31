@@ -11,7 +11,7 @@
 struct S_linearization {
 	bool         PrintEnabled, PrintTimings,
 	             CheckFullLinearization, CheckWeakGradients,
-	             update_argv, TestTRI;
+	             update_argv, omit_root;
 	char         **argvNew, *PrintName;
 	unsigned int Nref, PGlobal, ML, PG_add, IntOrder_mult, IntOrder_add, check_level;
 	int          nargc;

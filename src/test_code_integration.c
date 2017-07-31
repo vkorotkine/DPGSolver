@@ -1010,10 +1010,10 @@ void check_mesh_regularity(const double *mesh_quality, const unsigned int NML, u
 	}
 }
 
-void set_PrintName(char *name_type, char *PrintName, bool *TestTRI)
+void set_PrintName(char *name_type, char *PrintName, bool *omit_root)
 {
-	if (!(*TestTRI)) {
-		*TestTRI = 1;
+	if (!(*omit_root)) {
+		*omit_root = 1;
 		if (strstr(name_type,"conv_orders")) {
 			strcpy(PrintName,"Convergence Orders         (");
 		} else if (strstr(name_type,"equiv_rc")) {

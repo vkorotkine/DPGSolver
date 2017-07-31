@@ -358,12 +358,12 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 
 		if ( Adapt == ADAPT_0 ||
 		    (Adapt == ADAPT_P && P == PMax)) {
-			set_PrintName("conv_orders",data->PrintName,&data->TestTRI);
+			set_PrintName("conv_orders",data->PrintName,&data->omit_root);
 			code_cleanup();
 		}
 	}}
 	if (Adapt == ADAPT_H || Adapt == ADAPT_HP) {
-		set_PrintName("conv_orders",data->PrintName,&data->TestTRI);
+		set_PrintName("conv_orders",data->PrintName,&data->omit_root);
 		code_cleanup();
 	}
 	free(mesh_quality);

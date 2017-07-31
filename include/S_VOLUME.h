@@ -12,12 +12,15 @@
 #include <complex.h>
 
 #include "matrix_structs.h"
+#include "S_ELEMENT.h"
 
 struct S_VOLUME {
 	// Structures
 	unsigned int indexl, indexg, P, type, Eclass, update, curved, level,
 	             *NsubF, *neigh, *neigh_f;
 	double *XYZ_vV, *XYZ_vVc;
+
+	struct S_ELEMENT*const element;
 
 	// Geometry
 	unsigned int NvnG, *VeInd, *VeInfo, **BC;
@@ -49,5 +52,7 @@ struct S_VOLUME {
 	struct S_VOLUME *next, *grpnext, *child0, *parent;
 	struct S_FACE  **FACE;
 };
+
+void set_element (struct S_VOLUME*const volume, struct S_ELEMENT*const element_head);
 
 #endif // DPG__S_VOLUME_h__INCLUDED

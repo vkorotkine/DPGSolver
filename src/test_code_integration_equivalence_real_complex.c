@@ -181,7 +181,7 @@ if (DB.Method != METHOD_DG)
 		}
 
 		if (nNF == 0)
-			set_PrintName("equiv_rc",data->PrintName,&data->TestTRI);
+			set_PrintName("equiv_rc",data->PrintName,&data->omit_root);
 		code_cleanup();
 	}
 

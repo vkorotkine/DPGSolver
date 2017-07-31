@@ -107,6 +107,7 @@ static void set_test_linearization_data (struct S_linearization *const data, cha
 
 static void update_VOLUME_FACEs (void);
 static void perturb_solution    (void);
+
 static void print_times         (double const *const times, bool const PrintTimings);
 static void check_passing       (struct S_linearization const *const data, bool*const pass);
 
@@ -124,10 +125,10 @@ static void compute_A_cs_complete      (Mat *A);
 
 static void update_times (clock_t *const tc, clock_t *const tp, double *const times, const unsigned int counter,
                           bool const PrintTimings);
-static Mat  allocate_A (void);
+static Mat  construct_A (void);
 static void compute_A (Mat A, const unsigned int check_level);
 static void assemble_A (Mat A);
-static void destroy_A (Mat A);
+static void destruct_A (Mat A);
 
 
 void test_linearization(struct S_linearization *const data, char const *const TestName)
@@ -169,14 +170,21 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 
 	perturb_solution();
 
+// \todo Move this to VOLUME struct initialization
+	for (struct S_VOLUME* VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+		set_element(VOLUME,DB.ELEMENT);
+
+	struct Simulation simulation = constructor_Simulation(DB.d,DB.Nvar);
+	struct Context_solver_c context_solver_c = constructor_Context_solver_c(&simulation,DB.VOLUME);
+
 	// Weak Gradient Linearization
 	if (data->CheckWeakGradients) {
 		if (!strstr(TestName,"NavierStokes"))
 			EXIT_UNSUPPORTED;
 
-		data->TestTRI = false;
-		set_PrintName("linearization (weak gradient)",data->PrintName,&data->TestTRI);
-		data->TestTRI = false;
+		data->omit_root = false;
+		set_PrintName("linearization (weak gradient)",data->PrintName,&data->omit_root);
+		data->omit_root = false;
 
 		struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
 		compute_GradW(&solver_info,'A'); // free
@@ -216,11 +224,12 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 	}
 
 	// Standard Linearization
-	set_PrintName("linearization",data->PrintName,&data->TestTRI);
+	set_PrintName("linearization",data->PrintName,&data->omit_root);
 
-	data->A     = allocate_A(),
-	data->A_cs  = allocate_A(),
-	data->A_csc = allocate_A();
+// Move into set_A
+	data->A     = construct_A(),
+	data->A_cs  = construct_A(),
+	data->A_csc = construct_A();
 
 	if (!data->CheckFullLinearization) {
 		// Note: Poisson fails symmetric for check_level = 1 and this is as expected. There is a FACE contribution from
@@ -263,6 +272,10 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 	bool pass = 1;
 	check_passing(data,&pass);
 	test_print2(pass,data->PrintName);
+
+	destructor_Context_solver_c(&context_solver_c);
+if (0)
+	printf("%p\n",&context_solver_c);
 
 	code_cleanup();
 }
@@ -309,7 +322,7 @@ static void perturb_solution (void)
 
 static Mat set_A_Qhat (const unsigned int check_level, const unsigned int dim, compute_A_Qhat_tdef compute_A_Qhat)
 {
-	Mat A = allocate_A();
+	Mat A = construct_A();
 	compute_A_Qhat(A,check_level,dim);
 	assemble_A(A);
 
@@ -344,9 +357,9 @@ static void check_passing(struct S_linearization const *const data, bool*const p
 		printf("diff_LHS: %e\n",diff_LHS);
 	}
 
-	destroy_A(data->A);
-	destroy_A(data->A_cs);
-	destroy_A(data->A_csc);
+	destruct_A(data->A);
+	destruct_A(data->A_cs);
+	destruct_A(data->A_csc);
 }
 
 static void update_times (clock_t *const tc, clock_t *const tp, double *const times, const unsigned int counter,
@@ -371,7 +384,7 @@ static void print_times (double const *const times, bool const PrintTimings)
 	printf("\n");
 }
 
-static Mat allocate_A (void)
+static Mat construct_A (void)
 {
 	struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
 	solver_info.create_RHS = false;
@@ -400,7 +413,7 @@ static void assemble_A (Mat A)
 	assemble_petsc_structs(&solver_info);
 }
 
-static void destroy_A (Mat A)
+static void destruct_A (Mat A)
 {
 	struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
 	solver_info.create_RHS = false;

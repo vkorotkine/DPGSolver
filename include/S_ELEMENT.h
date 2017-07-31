@@ -82,4 +82,7 @@ struct S_ELEMENT {
 	struct S_ELEMENT **ELEMENTclass, **ELEMENT_FACE;
 };
 
+struct S_ELEMENT* get_element_by_type (struct S_ELEMENT*const element_head, const size_t type);
+const struct S_ELEMENT* get_const_element_by_type (const struct S_ELEMENT*const element_head, const size_t type);
+
 #endif // DPG__S_ELEMENT_h__INCLUDED

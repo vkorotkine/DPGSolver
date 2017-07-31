@@ -68,6 +68,17 @@ struct S_LHS_info {
 	InsertMode addv;
 };
 
+struct Simulation {
+	/*	Purpose:
+	 *		Container for simulation-related information.
+	 */
+
+	const unsigned int d,     // (d)imension
+	                   n_var; // (n)umber of (var)iables
+};
+
+struct Simulation constructor_Simulation (const unsigned int d, const unsigned int n_var);
+
 extern struct S_solver_info constructor_solver_info (const bool display, const bool output, const bool adapt,
                                                      const char imex_type, const unsigned int method);
 extern void set_global_indices       (struct S_solver_info*const solver_info);

@@ -174,7 +174,7 @@ if (DB.Method != METHOD_DG)
 
 		if (alg == 0) {
 			NV = DB.NV;
-			set_PrintName("equiv_alg",data->PrintName,&data->TestTRI);
+			set_PrintName("equiv_alg",data->PrintName,&data->omit_root);
 		}
 		code_cleanup();
 	}

@@ -559,3 +559,12 @@ struct S_solver_info constructor_solver_info (const bool display, const bool out
 
 	return solver_info;
 }
+
+struct Simulation constructor_Simulation (const unsigned int d, const unsigned int n_var)
+{
+	struct Simulation simulation = { .d     = d,
+	                                 .n_var = n_var,
+	                               };
+
+	return simulation;
+}

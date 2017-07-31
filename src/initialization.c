@@ -28,8 +28,7 @@
  *			GeomSpecifier : Specifier indicating restrictions on the Geometry. Used to choose appropriate mesh based on
  *			                variable geometry parameters.
  *
- *			Dimension    : d = 2-3. Note that 1D is not supported for any cases and that functions supporting 1D are
- *			               used either for testing purposes or to construct higher dimensional variants.
+ *			Dimension    : d = 2-3.
  *
  *			MeshPath   : Path to the meshes root directory.
  *			MeshType   : Specifies element types used and if the mesh is 'ToBeCurved' in setup_geometry.c

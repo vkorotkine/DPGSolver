@@ -7,7 +7,7 @@
 #include <stdbool.h>
 
 struct S_convorder {
-	bool         PrintEnabled, SolveExplicit, SolveImplicit, AdaptiveRefine, TestTRI, Compute_L2proj;
+	bool         PrintEnabled, SolveExplicit, SolveImplicit, AdaptiveRefine, omit_root, Compute_L2proj;
 	char         **argvNew, *PrintName;
 	unsigned int PMin, PMax, MLMin, MLMax, Adapt, PG_add, IntOrder_add, IntOrder_mult;
 	int          nargc;
