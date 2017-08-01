@@ -3,8 +3,12 @@
 
 #ifndef DPG__template_h__INCLUDED
 #define DPG__template_h__INCLUDED
+/// \file
 
 //#include "S_DB.h"
 
+/**
+ *	Add comments in header by default.
+ */
 
 #endif // DPG__template_h__INCLUDED

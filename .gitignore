@@ -47,3 +47,6 @@ test/*.o
 test/*.exe
 python/*.txt
 */__pycache__/*
+
+doc/*
+!doc/default_doxygen.cfg

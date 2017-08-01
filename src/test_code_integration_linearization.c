@@ -1,5 +1,6 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
+/// \file
 
 #include "test_code_integration_linearization.h"
 
@@ -34,43 +35,17 @@
 
 #include "array_norm.h"
 
-/*
- *	Purpose:
- *		Provide functions for linearization integration testing.
- *
- *	Comments:
- *		The linearization is verified by comparing with the output when using the complex step method.
- *
- *		For second order equations, the verification of the linearization of the weak gradients is also performed.
- *
- *		For second order equations, the VOLUME->RHS_c contributes off-diagonal terms to the global system matrix due to
- *		the use of the fully corrected gradient. A flag is provided to avoid the computation of these terms when
- *		checking only the diagonal VOLUME/FACE contributions to the global system using compute_A_cs with assembly_type
- *		equal to 1 or 2.
- *
- *		For 2nd order equations, modifying What in a given VOLUME results in a modification of Qhat in all adjacent
- *		VOLUMEs, which in turn results in explicit_VOLUME_info generating off-diagonal terms in the global system. These
- *		terms are verified with CheckOffDiagonal is set to true.
- *
- *	Notation:
- *
- *	References:
- *		Martins(2003)-The Complex-Step Derivative Approximation
- *		Squire(1998)-Using Complex Variables to Estimate Derivatives of Real Functions
- */
-
 #define CHECK_VOLUME_DIAG      1
 #define CHECK_VOLUME_FACE_DIAG 2
 #define CHECK_VOLUME_FACE_ALL  3
 
-static void set_test_linearization_data (struct S_linearization *const data, char const *const TestName)
+/// \todo There are things to be deleted.
+static void set_test_linearization_data (struct Test_Linearization *const data, char const *const TestName)
 {
-	TestDB.CheckOffDiagonal = 0; // Should not be modified.
-
-	data->PrintEnabled           = false; // Here used to output the matrix to a file when enabled.
-	data->PrintTimings           = false;
-	data->CheckFullLinearization = true;
-	data->CheckWeakGradients     = false;
+	data->print_mat_to_file        = false;
+	data->print_timings            = false;
+	data->check_full_linearization = true;
+	data->check_weak_gradients     = false;
 
 	data->PG_add        = 1;
 	data->IntOrder_mult = 2;
@@ -88,17 +63,17 @@ static void set_test_linearization_data (struct S_linearization *const data, cha
 	} else if (strstr(TestName,"Poisson")) {
 		; // Do nothing
 	} else if (strstr(TestName,"Euler")) {
-//		data->PrintTimings = true;
+//		data->print_timings = true;
 		data->update_argv = false;
 	} else if (strstr(TestName,"NavierStokes")) {
-//		data->PrintTimings = true;
-		data->CheckWeakGradients = true;
+//		data->print_timings = true;
+		data->check_weak_gradients = true;
 	} else {
 		printf("%s\n",TestName); EXIT_UNSUPPORTED;
 	}
 
 	data->check_level = CHECK_VOLUME_FACE_ALL;
-	if (!data->CheckFullLinearization) {
+	if (!data->check_full_linearization) {
 		data->check_level = CHECK_VOLUME_FACE_ALL;
 		printf("check_level set to %d for partial contribution to the linearization.\n",data->check_level);
 	}
@@ -108,8 +83,8 @@ static void set_test_linearization_data (struct S_linearization *const data, cha
 static void update_VOLUME_FACEs (void);
 static void perturb_solution    (void);
 
-static void print_times         (double const *const times, bool const PrintTimings);
-static void check_passing       (struct S_linearization const *const data, bool*const pass);
+static void print_times         (double const *const times, bool const print_timings);
+static void check_passing       (struct Test_Linearization const *const data, bool*const pass);
 
 typedef void (*compute_A_Qhat_tdef)    (Mat A, const unsigned int check_level, const unsigned int dim);
 static Mat  set_A_Qhat                 (const unsigned int check_level, const unsigned int dim,
@@ -124,38 +99,18 @@ static void compute_A_cs               (Mat *A, const unsigned int check_level, 
 static void compute_A_cs_complete      (Mat *A);
 
 static void update_times (clock_t *const tc, clock_t *const tp, double *const times, const unsigned int counter,
-                          bool const PrintTimings);
+                          bool const print_timings);
 static Mat  construct_A (void);
 static void compute_A (Mat A, const unsigned int check_level);
 static void assemble_A (Mat A);
 static void destruct_A (Mat A);
 
 
-void test_linearization(struct S_linearization *const data, char const *const TestName)
+void test_linearization
+	(struct Test_Linearization *const data,
+	 char const *const TestName
+	)
 {
-	/*
-	 *	Expected Output:
-	 *		Correspondence of LHS matrices computed using complex step and exact linearization.
-	 *
-	 *	Comments:
-	 *
-	 *		DG:
-	 *
-	 *		By default, the complete linearization is checked here. However, linearizations of the individual
-	 *		contributions listed below may be checked separately:
-	 *			0) complete check (default)
-	 *			1) diagonal VOLUME contributions
-	 *			2) diagonal FACE contributions
-	 *			3) off-diagonal FACE (and VOLUME for 2nd order equations) contributions
-	 *		Further, the complete linearization can be checked either through the assembly of the individual
-	 *		contributions or more simply by using the assembled RHS directly.
-	 *
-	 *
-	 *		HDG:
-	 *
-	 *		Similar functionality to that of the DG scheme is provided.
-	 */
-
 	set_test_linearization_data(data,TestName);
 
 	TestDB.PGlobal       = data->PGlobal;
@@ -170,15 +125,15 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 
 	perturb_solution();
 
-// \todo Move this to VOLUME struct initialization
+/// \todo Move this to VOLUME struct initialization
 	for (struct S_VOLUME* VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 		set_element(VOLUME,DB.ELEMENT);
 
 	struct Simulation simulation = constructor_Simulation(DB.d,DB.Nvar);
-	struct Context_solver_c context_solver_c = constructor_Context_solver_c(&simulation,DB.VOLUME);
+	struct Context_Solver_c context_solver_c = constructor_Context_Solver_c(&simulation,DB.VOLUME);
 
 	// Weak Gradient Linearization
-	if (data->CheckWeakGradients) {
+	if (data->check_weak_gradients) {
 		if (!strstr(TestName,"NavierStokes"))
 			EXIT_UNSUPPORTED;
 
@@ -196,7 +151,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 			data->A_cs  = NULL;
 			data->A_csc = NULL;
 
-			if (!data->CheckFullLinearization) {
+			if (!data->check_full_linearization) {
 				data->A    = set_A_Qhat(data->check_level,dim,compute_A_Qhat);
 				data->A_cs = set_A_Qhat(data->check_level,dim,compute_A_Qhat_cs);
 			} else {
@@ -205,15 +160,15 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 				unsigned int counter = 0;
 
 				data->A = set_A_Qhat(data->check_level,dim,compute_A_Qhat);
-				update_times(&tc,&tp,times,counter++,data->PrintTimings);
+				update_times(&tc,&tp,times,counter++,data->print_timings);
 
 				data->A_cs = set_A_Qhat(data->check_level,dim,compute_A_Qhat_cs);
-				update_times(&tc,&tp,times,counter++,data->PrintTimings);
+				update_times(&tc,&tp,times,counter++,data->print_timings);
 
 				data->A_csc = set_A_Qhat(data->check_level,dim,compute_A_Qhat_cs_complete);
-				update_times(&tc,&tp,times,counter++,data->PrintTimings);
+				update_times(&tc,&tp,times,counter++,data->print_timings);
 
-				print_times(times,data->PrintTimings);
+				print_times(times,data->print_timings);
 			}
 
 			check_passing(data,&pass);
@@ -231,7 +186,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 	data->A_cs  = construct_A(),
 	data->A_csc = construct_A();
 
-	if (!data->CheckFullLinearization) {
+	if (!data->check_full_linearization) {
 		// Note: Poisson fails symmetric for check_level = 1 and this is as expected. There is a FACE contribution from
 		//       Qhat which has not yet been balanced by the FACE contribution from the 2nd equation.
 		const unsigned int check_level = data->check_level;
@@ -252,18 +207,18 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 
 		compute_A(data->A,CHECK_VOLUME_FACE_ALL);
 		assemble_A(data->A);
-		update_times(&tc,&tp,times,counter++,data->PrintTimings);
+		update_times(&tc,&tp,times,counter++,data->print_timings);
 
 		compute_A_cs(&data->A_cs,0,true);
-		update_times(&tc,&tp,times,counter++,data->PrintTimings);
+		update_times(&tc,&tp,times,counter++,data->print_timings);
 
 		compute_A_cs_complete(&data->A_csc);
-		update_times(&tc,&tp,times,counter++,data->PrintTimings);
+		update_times(&tc,&tp,times,counter++,data->print_timings);
 
-		print_times(times,data->PrintTimings);
+		print_times(times,data->print_timings);
 	}
 
-	if (data->PrintEnabled) {
+	if (data->print_mat_to_file) {
 		// See commented MatView options in solver_implicit to output in more readable format.
 		MatView(data->A,PETSC_VIEWER_STDOUT_SELF);
 		MatView(data->A_cs,PETSC_VIEWER_STDOUT_SELF);
@@ -273,9 +228,8 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 	check_passing(data,&pass);
 	test_print2(pass,data->PrintName);
 
-	destructor_Context_solver_c(&context_solver_c);
-if (0)
-	printf("%p\n",&context_solver_c);
+	destructor_Simulation(&simulation);
+	destructor_Context_Solver_c(&context_solver_c);
 
 	code_cleanup();
 }
@@ -329,10 +283,10 @@ static Mat set_A_Qhat (const unsigned int check_level, const unsigned int dim, c
 	return A;
 }
 
-static void check_passing(struct S_linearization const *const data, bool*const pass)
+static void check_passing(struct Test_Linearization const *const data, bool*const pass)
 {
 	double diff_cs = 0.0;
-	if (data->CheckFullLinearization)
+	if (data->check_full_linearization)
 		diff_cs = PetscMatAIJ_norm_diff_d(DB.dof,data->A_cs,data->A_csc,"Inf",false);
 
 	if (diff_cs > 2e1*EPS)
@@ -352,7 +306,7 @@ static void check_passing(struct S_linearization const *const data, bool*const p
 	}
 
 	if (!(*pass)) {
-		if (data->CheckFullLinearization)
+		if (data->check_full_linearization)
 			printf("diff_cs:  %e\n",diff_cs);
 		printf("diff_LHS: %e\n",diff_LHS);
 	}
@@ -363,9 +317,9 @@ static void check_passing(struct S_linearization const *const data, bool*const p
 }
 
 static void update_times (clock_t *const tc, clock_t *const tp, double *const times, const unsigned int counter,
-                          bool const PrintTimings)
+                          bool const print_timings)
 {
-	if (!PrintTimings)
+	if (!print_timings)
 		return;
 
 	*tc = clock();
@@ -373,9 +327,9 @@ static void update_times (clock_t *const tc, clock_t *const tp, double *const ti
 	*tp = *tc;
 }
 
-static void print_times (double const *const times, bool const PrintTimings)
+static void print_times (double const *const times, bool const print_timings)
 {
-	if (!PrintTimings)
+	if (!print_timings)
 		return;
 
 	printf("Timing ratios: ");
@@ -480,9 +434,10 @@ static void flag_nonzero_LHS(unsigned int *A)
 
 static void compute_A_cs(Mat *const A, const unsigned int check_level, bool const AllowOffDiag)
 {
+	bool check_off_diagonal = false;
 	if (AllowOffDiag) {
 		if (DB.Viscous)
-			TestDB.CheckOffDiagonal = 1;
+			check_off_diagonal = true;
 	}
 
 	if (check_level == 0) {
@@ -541,21 +496,20 @@ static void compute_A_cs(Mat *const A, const unsigned int check_level, bool cons
 			if (check_level == 1) {
 				const unsigned int dof = DB.dof;
 
-				bool CheckOffDiagonal = TestDB.CheckOffDiagonal;
 				unsigned int *A_nz  = NULL;
-				if (CheckOffDiagonal) {
+				if (check_off_diagonal) {
 					A_nz = calloc(dof*dof , sizeof *A_nz); // free
 					flag_nonzero_LHS(A_nz);
 				}
 
 				for (struct S_VOLUME *VOLUME2 = DB.VOLUME; VOLUME2; VOLUME2 = VOLUME2->next) {
-					if (!CheckOffDiagonal) {
+					if (!check_off_diagonal) {
 						if (VOLUME->indexg != VOLUME2->indexg)
 							continue;
 					}
 
 					IndA[1] = VOLUME2->IndA;
-					if (CheckOffDiagonal && !A_nz[(IndA[0]+i)*dof+IndA[1]])
+					if (check_off_diagonal && !A_nz[(IndA[0]+i)*dof+IndA[1]])
 						continue;
 
 					NvnS[1] = VOLUME2->NvnS;
@@ -576,7 +530,7 @@ static void compute_A_cs(Mat *const A, const unsigned int check_level, bool cons
 					free(m); free(n); free(vv);
 				}
 
-				if (CheckOffDiagonal)
+				if (check_off_diagonal)
 					free(A_nz);
 			} else if (check_level == 2 || check_level == 3) {
 				for (struct S_FACE *FACE = DB.FACE; FACE; FACE = FACE->next) {

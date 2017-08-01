@@ -52,7 +52,7 @@ bool const TestHDG = 0;
 	// Linearization Testing
 	// **************************************************************************************************** //
 	if (RunTests_linearization) {
-		struct S_linearization *data_l = calloc(1 , sizeof *data_l); // free
+		struct Test_Linearization *data_l = calloc(1 , sizeof *data_l); // free
 
 		data_l->nargc     = nargc;
 		data_l->argvNew   = argvNew;

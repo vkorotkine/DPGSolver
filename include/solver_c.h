@@ -3,37 +3,46 @@
 
 #ifndef DPG__solver_c_h__INCLUDED
 #define DPG__solver_c_h__INCLUDED
+/**	\file
+ *	\brief Provide solver related functions for complex datatypes.
+ *
+ *	\todo Potential separate these structs into different files.
+ */
 
 #include "containers.h"
 #include "containers_c.h"
 #include "solver.h"
 
-struct Volume_solver_c {
-	// Moved variables
-	const struct const_Multiarray_d*const XYZ,
-	                               *const detJV_vI,
-	                               *const C_vI;
+/// \brief Holds information needed by volumes during the solve.
+struct Volume_Solver_c {
+	const struct const_Multiarray_d*const xyz,       ///< Moved from S_VOLUME.
+	                               *const det_jv_vi, ///< Moved from S_VOLUME.
+	                               *const c_vi;      ///< Moved from S_VOLUME.
 
-	// Function specific allocated variables
-	struct Multiarray_c*const What,  // Solution coefficients
-	                   *const QhatV, // Local weak gradient coefficients
-	                   *const Qhat,  // Weak gradient coefficients
-	                   *const RHS;   // Residual
+	struct Multiarray_c*const w_hat,   ///< Solution coefficients.
+	                   *const q_hat_v, ///< Local weak gradient coefficients.
+	                   *const q_hat,   ///< Weak gradient coefficients.
+	                   *const rhs;     ///< Residual.
 
-	// Additional variables
-	struct Volume_solver_c* next;
+	struct Volume_Solver_c* next; ///< Pointer to next volume.
 };
 
-struct Context_solver_c {
-	const unsigned int d,
-	                   n_var;
+/// \brief Holds information related to the complex solver context.
+struct Context_Solver_c {
+	const unsigned int d,     ///< Moved from S_DB.
+	                   n_var; ///< Moved from S_DB.
 
-	struct Volume_solver_c*const volume_head; // Pointer to first Volume_solver_c
+	struct Volume_Solver_c*const volume_head; ///< Pointer to first volume
 };
 
-struct Context_solver_c constructor_Context_solver_c
+/// \brief Constructor.
+struct Context_Solver_c constructor_Context_Solver_c
 	(const struct Simulation*const simulation, const struct S_VOLUME*const VOLUME_head);
 
+/// \brief Destructor.
+void destructor_Context_Solver_c (struct Context_Solver_c* context);
+
+/// \brief Calls function which evaluate q_hat.
 extern void compute_GradW_c (const struct S_solver_info*const solver_info, const char stage);
 
 #endif // DPG__solver_c_h__INCLUDED

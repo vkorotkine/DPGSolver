@@ -1,10 +1,31 @@
-# Coding style guide
+# Coding Style Guidelines
 
 The majority of the coding style choices were selected based on the [Linux kernel coding style guide](https://www.kernel.org/doc/html/v4.10/process/coding-style.html).
 
 ### Additional guidelines
 
-Header files
+#### General
+
+- Tabs are NOT expanded to spaces.
+
+- The limit on the length of lines is 120 columns.
+	- 120 seemed justifiable based on the size of current terminal screens.
+	- Longer lines are sometimes (but rarely) used when declaring/passing arguments to functions.
+
+##### May not currently be the case ... Correct where occurences are found
+- Names of user-defined types (structs) should be capitalized to distinguish them from standard types.
+- Use conventional 'const' notation (to avoid confusion for those used to the conventional style):
+```c
+const int i = 0; // ok
+int const i = 0; // avoid
+
+const int*const p = NULL; // ok
+int const*const p = NULL; // avoid
+```
+
+
+
+#### Header files
 - What they contain: Function prototypes and minimum required headers needed by these function prototypes.
 - To ensure that the required headers have been included, the header file associated with the source file must be the first one listed.
 - Any other headers on which the source is dependent are to be included in the source file.
@@ -14,9 +35,3 @@ recommendations.
 - To find struct header (S_*.h) dependencies hidden through the inclusion of other header files, use the following example search command in the src directory:
 	- Check if 'S_ELEMENT' is found while 'S_ELEMENT.h' is not found:
 	- $ find . -name "*.c" -exec grep -lR 'S_ELEMENT' {} \; | xargs grep -L 'S_ELEMENT.h'
-
-Tabs are NOT expanded to spaces.
-
-The limit on the length of lines is 120 columns.
-- 120 seemed justifiable based on the size of current terminal screens.
-- Longer lines are sometimes (but rarely) used when declaring/passing arguments to functions.

@@ -7,15 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "containers.h"
-
-/*	Purpose:
- *		Provide functions relating to containers for complex datatypes.
- *
- *	Comments:
- *		See comments in 'containers.c'.
- */
 
 struct Multiarray_c* constructor_empty_Multiarray_c_1 (const char layout, const size_t order, ...)
 {
@@ -32,4 +26,13 @@ struct Multiarray_c* constructor_empty_Multiarray_c_1 (const char layout, const 
 	A->data    = calloc(compute_size(order,extents) , sizeof *(A->data)); // keep
 
 	return A;
+}
+
+void destructor_Multiarray_c_1 (struct Multiarray_c* A)
+{
+	free(A->extents);
+	if (A->owns_data)
+		free(A->data);
+	free(A);
+	A = NULL;
 }

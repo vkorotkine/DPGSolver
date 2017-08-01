@@ -78,6 +78,7 @@ struct Simulation {
 };
 
 struct Simulation constructor_Simulation (const unsigned int d, const unsigned int n_var);
+void              destructor_Simulation (struct Simulation* simulation);
 
 extern struct S_solver_info constructor_solver_info (const bool display, const bool output, const bool adapt,
                                                      const char imex_type, const unsigned int method);

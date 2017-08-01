@@ -568,3 +568,8 @@ struct Simulation constructor_Simulation (const unsigned int d, const unsigned i
 
 	return simulation;
 }
+
+void destructor_Simulation (struct Simulation* simulation)
+{
+	DO_NOTHING_P(simulation);
+}

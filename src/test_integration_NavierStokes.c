@@ -87,7 +87,7 @@ void test_integration_NavierStokes(int nargc, char **argv)
 	// Linearization Testing
 	// **************************************************************************************************** //
 	if (RunTests_linearization) {
-		struct S_linearization *const data_l = calloc(1 , sizeof *data_l); // free
+		struct Test_Linearization *const data_l = calloc(1 , sizeof *data_l); // free
 
 		data_l->nargc     = nargc;
 		data_l->argvNew   = argvNew;
