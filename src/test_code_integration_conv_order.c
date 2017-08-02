@@ -226,7 +226,7 @@ data->PMin = 2;
 data->PrintEnabled = 1;
 data->PMin  = 3;
 data->PMax  = 3;
-data->MLMax = 6;
+data->MLMax = 5;
 			if (strstr(TestName,"ToBeCurved")) {
 				if (strstr(TestName,"TRI")) {
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_ParabolicPipe_ToBeCurvedTRI");

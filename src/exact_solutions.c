@@ -229,45 +229,72 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
 			EXIT_UNSUPPORTED;
 
 		double rho_0 = DB.rho_store[0],
-		       rho_x = DB.rho_store[1],
+		       //rho_x = DB.rho_store[1],
 		       rho_1 = DB.rho_store[2],
-		       rho_y = DB.rho_store[3],
+		       //rho_y = DB.rho_store[3],
 		       rho_2 = DB.rho_store[4],
-		       rho_xy = DB.rho_store[5],
+		       //rho_xy = DB.rho_store[5],
 		       rho_3 = DB.rho_store[6];
 
 		double p_0 = DB.p_store[0],
-		       p_x = DB.p_store[1],
+		       //p_x = DB.p_store[1],
 		       p_1 = DB.p_store[2],
-		       p_y = DB.p_store[3],
+		       //p_y = DB.p_store[3],
 		       p_2 = DB.p_store[4],
-		       p_xy = DB.p_store[5],
+		       //p_xy = DB.p_store[5],
 		       p_3 = DB.p_store[6];
 
 		double u_0 = DB.u_store[0],
-		       u_x = DB.u_store[1],
+		       //u_x = DB.u_store[1],
 		       u_1 = DB.u_store[2],
-		       u_y = DB.u_store[3],
+		       //u_y = DB.u_store[3],
 		       u_2 = DB.u_store[4],
-		       u_xy = DB.u_store[5],
+		       //u_xy = DB.u_store[5],
 		       u_3 = DB.u_store[6];
 
 	 	double v_0 = DB.v_store[0],
-		       v_x = DB.v_store[1],
+		       //v_x = DB.v_store[1],
 		       v_1 = DB.v_store[2],
-		       v_y = DB.v_store[3],
+		       //v_y = DB.v_store[3],
 		       v_2 = DB.v_store[4],
-      	       v_xy = DB.v_store[5],
+      	       //v_xy = DB.v_store[5],
 		       v_3 = DB.v_store[6];
 
-		for (size_t n = 0; n < Nn; n++) {
+		double a_1 = DB.geo_store[0],
+			   a_2 = DB.geo_store[1],
+			   b = DB.geo_store[2];
+
+		/*for (size_t n = 0; n < Nn; n++) {
 			rhoEx[n] = rho_0 + rho_x*sin(rho_1*X[n])+rho_y*cos(rho_2*Y[n])+rho_xy*cos(rho_3*X[n]*Y[n]);
 			pEx[n] = p_0 + p_x*cos(p_1*X[n])+p_y*sin(p_2*Y[n])+p_xy*sin(p_3*X[n]*Y[n]);
 			uEx[n] = u_0 + u_x*sin(u_1*X[n])+u_y*cos(u_2*Y[n])+u_xy*cos(u_3*X[n]*Y[n]);
 			vEx[n] = v_0 + v_x*cos(v_1*X[n])+v_y*sin(v_2*Y[n])+v_xy*cos(v_3*X[n]*Y[n]);
 			wEx[n]   = 0.0;
+		}*/
+
+		/*for (size_t n = 0; n < Nn; n++) {
+			rhoEx[n] = rho_0 + rho_x*sin(rho_1*X[n])+rho_y*sin(rho_2*Y[n])+rho_xy*sin(rho_3*X[n]*Y[n]);
+			pEx[n] = p_0 + p_x*sin(p_1*X[n])+p_y*sin(p_2*Y[n])+p_xy*sin(p_3*X[n]*Y[n]);
+			uEx[n] = u_0 + u_x*sin(u_1*X[n])+u_y*sin(u_2*Y[n])+u_xy*sin(u_3*X[n]*Y[n]);
+			vEx[n] = v_0 + v_x*sin(v_1*X[n])+v_y*sin(v_2*Y[n])+v_xy*sin(v_3*X[n]*Y[n]);
+			wEx[n] = 0.0;
+		}*/
+
+		for (size_t n = 0; n < Nn; n++) {
+
+			double const xi = 2*sqrt(b/a_1)*X[n]-1,
+						 eta = (2*Y[n]+2*b*X[n]*X[n]-a_1-a_2)/(a_2-a_1);
+
+			rhoEx[n] = rho_0 + rho_1*cos(rho_2*xi)*cos(rho_3*eta);
+			pEx[n] = p_0 + p_1*cos(p_2*xi)*cos(p_3*eta);
+			pEx[n] = u_0 + u_1*cos(u_2*xi)*cos(u_3*eta);
+			vEx[n] = v_0 + v_1*cos(v_2*xi)*cos(v_3*eta);
+			wEx[n] = 0.0;
 		}
-	} else if (strstr(TestCase,"SinusoidalPipe")) {
+
+
+
+		} else if (strstr(TestCase,"SinusoidalPipe")) {
                     double rho_0 = DB.rho_store[0],
                            rho_x = DB.rho_store[1],
                            rho_1 = DB.rho_store[2],
@@ -466,40 +493,44 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 			EXIT_UNSUPPORTED;
 
 		double rho_0 = DB.rho_store[0],
-		       rho_x = DB.rho_store[1],
+		       //rho_x = DB.rho_store[1],
 		       rho_1 = DB.rho_store[2],
-		       rho_y = DB.rho_store[3],
+		       //rho_y = DB.rho_store[3],
 		       rho_2 = DB.rho_store[4],
-		       rho_xy = DB.rho_store[5],
+		       //rho_xy = DB.rho_store[5],
 		       rho_3 = DB.rho_store[6];
 
 		double p_0 = DB.p_store[0],
-		       p_x = DB.p_store[1],
+		       //p_x = DB.p_store[1],
 		       p_1 = DB.p_store[2],
-		       p_y = DB.p_store[3],
+		       //p_y = DB.p_store[3],
 		       p_2 = DB.p_store[4],
-		       p_xy = DB.p_store[5],
+		       //p_xy = DB.p_store[5],
 		       p_3 = DB.p_store[6];
 
 		double u_0 = DB.u_store[0],
-		       u_x = DB.u_store[1],
+		       //u_x = DB.u_store[1],
 		       u_1 = DB.u_store[2],
-		       u_y = DB.u_store[3],
+		       //u_y = DB.u_store[3],
 		       u_2 = DB.u_store[4],
-		       u_xy = DB.u_store[5],
+		       //u_xy = DB.u_store[5],
 		       u_3 = DB.u_store[6];
 
 	 	double v_0 = DB.v_store[0],
-		       v_x = DB.v_store[1],
+		       //v_x = DB.v_store[1],
 		       v_1 = DB.v_store[2],
-		       v_y = DB.v_store[3],
+		       //v_y = DB.v_store[3],
 		       v_2 = DB.v_store[4],
-      	       v_xy = DB.v_store[5],
+      	       //v_xy = DB.v_store[5],
 		       v_3 = DB.v_store[6];
+
+		double a_1 = DB.geo_store[0],
+			   a_2 = DB.geo_store[1],
+			   b = DB.geo_store[2];
 
 		double RUVP[12];
 
-		for (size_t n = 0; n < Nn; n++) {
+		/*for (size_t n = 0; n < Nn; n++) {
 			RUVP[0]  =  rho_0 + rho_x*sin(rho_1*X[n])+rho_y*cos(rho_2*Y[n])+rho_xy*cos(rho_3*X[n]*Y[n]);
 			RUVP[1]  =  rho_x*rho_1*cos(rho_1*X[n])-rho_xy*rho_3*Y[n]*sin(rho_3*X[n]*Y[n]);
 			RUVP[2]  = -rho_y*rho_2*sin(rho_2*Y[n])-rho_xy*rho_3*X[n]*sin(rho_3*X[n]*Y[n]);
@@ -512,9 +543,64 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 			RUVP[9]  =  p_0 + p_x*cos(p_1*X[n])+p_y*sin(p_2*Y[n])+p_xy*sin(p_3*X[n]*Y[n]);
 			RUVP[10]  = -p_x*p_1*sin(p_1*X[n])+p_xy*p_3*Y[n]*cos(p_3*X[n]*Y[n]);
 			RUVP[11]  = p_y*p_2*cos(p_2*Y[n])+p_xy*p_3*X[n]*cos(p_3*X[n]*Y[n]);
-	for (size_t eq = 0; eq < Neq; eq++)
-				source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
+				for (size_t eq = 0; eq < Neq; eq++)
+						source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
+		}*/
+
+		/*for (size_t n = 0; n < Nn; n++) {
+			RUVP[0]  =  rho_0 + rho_x*sin(rho_1*X[n])+rho_y*sin(rho_2*Y[n])+rho_xy*sin(rho_3*X[n]*Y[n]);
+			RUVP[1]  =  rho_x*rho_1*cos(rho_1*X[n])+rho_xy*rho_3*Y[n]*cos(rho_3*X[n]*Y[n]);
+			RUVP[2]  =  rho_y*rho_2*cos(rho_2*Y[n])+rho_xy*rho_3*X[n]*cos(rho_3*X[n]*Y[n]);
+			RUVP[3]  =  u_0 + u_x*sin(u_1*X[n])+u_y*sin(u_2*Y[n])+u_xy*sin(u_3*X[n]*Y[n]);
+			RUVP[4]  =  u_x*u_1*cos(u_1*X[n])+u_xy*u_3*Y[n]*cos(u_3*X[n]*Y[n]);
+			RUVP[5]  =  u_y*u_2*cos(u_2*Y[n])+u_xy*u_3*X[n]*cos(u_3*X[n]*Y[n]);
+			RUVP[6]  =  v_0 + v_x*sin(v_1*X[n])+v_y*sin(v_2*Y[n])+v_xy*sin(v_3*X[n]*Y[n]);
+			RUVP[7]  =  v_x*v_1*cos(v_1*X[n])+v_xy*v_3*Y[n]*cos(v_3*X[n]*Y[n]);
+			RUVP[8]  =  v_y*v_2*cos(v_2*Y[n])+v_xy*v_3*X[n]*cos(v_3*X[n]*Y[n]);
+			RUVP[9]  =  p_0 + p_x*sin(p_1*X[n])+p_y*sin(p_2*Y[n])+p_xy*sin(p_3*X[n]*Y[n]);
+			RUVP[10]  = p_x*p_1*cos(p_1*X[n])+p_xy*p_3*Y[n]*cos(p_3*X[n]*Y[n]);
+			RUVP[11]  = p_y*p_2*cos(p_2*Y[n])+p_xy*p_3*X[n]*cos(p_3*X[n]*Y[n]);
+				for (size_t eq = 0; eq < Neq; eq++)
+						source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
+		}*/
+
+		for (size_t n = 0; n < Nn; n++) {
+
+			double const xi = 2*sqrt(b/a_1)*X[n]-1,
+						 eta = (2*Y[n]+2*b*X[n]*X[n]-a_1-a_2)/(a_2-a_1),
+						 xi_x = 2*sqrt(b/a_1),
+				   		 eta_x = (4*b*X[n])/(a_2-a_1),
+						 xi_y = 0,
+						 eta_y = 2/(a_2-a_1);
+
+			RUVP[0] = rho_0 + rho_1*cos(rho_2*xi)*cos(rho_3*eta);
+			RUVP[3] = u_0 + u_1*cos(u_2*xi)*cos(u_3*eta);
+			RUVP[6] = v_0 + v_1*cos(v_2*xi)*cos(v_3*eta);
+			RUVP[9] = p_0 + p_1*cos(p_2*xi)*cos(p_3*eta);
+
+			double const rho_xi = -rho_1*rho_2*cos(rho_3*eta)*sin(rho_2*xi),
+						 rho_eta = -rho_1*rho_3*cos(rho_2*xi)*sin(rho_3*eta),
+						 u_xi = -u_1*u_2*cos(u_3*eta)*sin(u_2*xi),
+						 u_eta = -u_1*u_3*cos(u_2*xi)*sin(u_3*eta),
+						 v_xi = -v_1*v_2*cos(v_3*eta)*sin(v_2*xi),
+						 v_eta = -v_1*v_3*cos(v_2*xi)*sin(v_3*eta),
+						 p_xi = -p_1*p_2*cos(p_3*eta)*sin(p_2*xi),
+						 p_eta = -p_1*p_3*cos(p_2*xi)*sin(p_3*eta);
+
+			RUVP[1] = rho_xi*xi_x + rho_eta*eta_x;
+			RUVP[2] = rho_xi*xi_y + rho_eta*eta_y;
+			RUVP[4] = u_xi*xi_x + u_eta*eta_x;
+			RUVP[5] = u_xi*xi_y + u_eta*eta_y;
+			RUVP[7] = v_xi*xi_x + v_eta*eta_x;
+			RUVP[8] = v_xi*xi_y + v_eta*eta_y;
+			RUVP[10] = p_xi*xi_x + p_eta*eta_x;
+			RUVP[11] = p_xi*xi_y + p_eta*eta_y;
+
+				for (size_t eq = 0; eq < Neq; eq++)
+						source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
 		}
+
+
 	} else if (strstr(TestCase,"SinusoidalPipe")) {
 
              if (d == 2) {

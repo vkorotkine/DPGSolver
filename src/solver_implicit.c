@@ -433,5 +433,4 @@ if (iteration < 3)
 		free(dummyPtr_c[i]);
 
 	free(fNameOut);
-	free(string);
-}
+	free(string); }

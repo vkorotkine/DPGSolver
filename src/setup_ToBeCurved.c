@@ -86,7 +86,10 @@ static void ToBeCurved_parabolic_pipe (unsigned int const Nn, double const *cons
                      *const Y_S = &XYZ_S[Nn*1];
 
 //        double const  b = 0.25, a_1 = 0.25, a_2 = 2.25; // Working (Optimal for P1-P4, ML0-4)
-        double const  b = 2.00, a_1 = 2.00, a_2 = 4.00; // Working (Tested Optimal for P3, ML0-6)
+
+		double a_1 = DB.geo_store[0],
+			   a_2 = DB.geo_store[1],
+			   b = DB.geo_store[2];
 
         for (size_t n = 0; n < Nn; n++) {
 

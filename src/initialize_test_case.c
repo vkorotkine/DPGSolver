@@ -354,8 +354,14 @@ void initialize_test_case_parameters(void)
 				} else if (strstr(Geometry,"n-Cube")) {
 					if (!(strstr(TestCase,"EllipticPipe") ||
 					      strstr(TestCase,"ParabolicPipe") ||
-					      strstr(TestCase,"SinusoidalPipe")))
-						EXIT_UNSUPPORTED; // Do nothing, eventually store parameters in DB.
+					      strstr(TestCase,"SinusoidalPipe"))){
+
+						double a_1 = 0.5, a_2 = 2.5, b = 0.5;
+						DB.geo_store[0] = a_1;
+						DB.geo_store[1] = a_2;
+						DB.geo_store[2] = b;
+						}
+
 				} else {
 					printf("%s\n",Geometry);
 					EXIT_UNSUPPORTED;
@@ -402,18 +408,27 @@ void initialize_test_case_parameters(void)
 					for (i = 0; i < 5; i++) {
       						DB.rho_store[i] = r_par[i];
 						DB.p_store[i] = p_par[i];}
+
 			} else if (strstr(TestCase,"ParabolicPipe")) {
 				DB.SourcePresent = 1;
-				double r_par[7] = {10, 4, 0.25, 4, 0.25, 2, 0.25},
-				       p_par[7] = {10, 8, 0.25, 2, 0.25, 2, 0.25},
-				       u_par[7] = {10, 3, 0.25, 3, 0.25, 4, 0.25},
-				       v_par[7] = {10, -3, 0.25, 3, 0.25, 4, 0.25};
+
+		      /*double r_par[7] = {5, -1, PI/2, 1, PI/5, 0, 0.25},
+				       p_par[7] = {5, 1, PI/2, 1, PI/5, 0, 0.25},
+				       u_par[7] = {3, -1, PI/2, -1, PI/5, 0, 0.25},
+				       v_par[7] = {3, -1, PI/2, -1, PI/5, 0, 0.25};*/
+
+			    double r_par[7] = {2, 0, 0.5, 0, PI/2, 0, PI/2},
+				       p_par[7] = {2, 0, 0.5, 0, PI/2, 0, PI/2},
+				       u_par[7] = {2, 0, 0.5, 0, PI/2, 0, PI/2},
+				       v_par[7] = {2, 0, 0.5, 0, PI/2, 0, PI/2};
+
 				for (int i = 0; i < 7; i++) {
 					DB.rho_store[i] = r_par[i];
 					DB.p_store[i]   = p_par[i];
 					DB.u_store[i]   = u_par[i];
 					DB.v_store[i]   = v_par[i];
 				}
+
 			} else if (strstr(TestCase,"SinusoidalPipe")) {
 				DB.SourcePresent = 1;
                                         int i;
