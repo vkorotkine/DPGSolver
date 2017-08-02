@@ -11,19 +11,26 @@
 
 /// \brief Container for information relating to linearization testing.
 struct Test_Linearization {
+	const int nargc; ///< Standard.
+	char **argv_new, ///< New argv to be used for the test case under consideration.
+	     *test_name; ///< Name of the test.
+
 	bool         print_mat_to_file,        ///< Flag for whether the petsc `Mat` is printed to file.
 	             print_timings,            /**< Flag for whether print timing comparison of complex step vs. analytical
 	                                            linearization is done. */
 	             check_full_linearization, ///< Flag for whether the full linearization is checked.
 	             check_weak_gradients,     ///< Flag for whether the weak gradient linearization is checked.
-	             update_argv,
-	             omit_root;
-	char         **argvNew, *PrintName;
-	unsigned int Nref, PGlobal, ML, PG_add, IntOrder_mult, IntOrder_add, check_level;
-	int          nargc;
+	             omit_root;                ///< Flag for whether the root of the test name should be omitted.
+	unsigned int n_ref,                    ///< Defined in \ref test_code_integration.h
+	             modify_params,            ///< Defined in \ref test_code_integration.h
+	             PGlobal,                  ///< Polynomial order to be used for the test.
+	             ML,
+	             PG_add,
+	             IntOrder_mult,
+	             IntOrder_add,
+	             check_level;
 
 	Mat A, A_cs, A_csc;
-	Vec b, b_cs, b_csc, x, x_cs, x_csc;
 };
 
 /** \test Performs integration testing for the solver linearization.
@@ -54,7 +61,6 @@ struct Test_Linearization {
  */
 void test_linearization
 	(struct Test_Linearization *const data, ///< The data specific to the instance of the test.
-	 char const *const TestName             ///< The test name.
-	);
+	 char const *const TestName);           ///< The test name.
 
 #endif // DPG__test_code_integration_linearization_h__INCLUDED

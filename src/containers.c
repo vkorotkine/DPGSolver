@@ -17,10 +17,11 @@ struct Multiarray_d* constructor_move_Multiarray_d_1_d (const char layout, doubl
 	size_t* extents = set_extents(order,ap); // keep
 	va_end(ap);
 
-	struct Multiarray_d local = { .layout  = layout,
-	                              .order   = order,
-	                              .extents = extents,
-	                              .data    = data,
+	struct Multiarray_d local = { .layout    = layout,
+	                              .order     = order,
+	                              .extents   = extents,
+	                              .owns_data = false,
+	                              .data      = data,
 	                            };
 
 	struct Multiarray_d* A = malloc(sizeof *A); // returned

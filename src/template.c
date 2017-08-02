@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-/** \brief Brief
+/**	\brief Brief
  *	\test  Replace brief if this is a test.
  *
  *	General comments.

@@ -54,17 +54,16 @@ static void set_test_linearization_data (struct Test_Linearization *const data, 
 	data->PGlobal = 3;
 	data->ML      = 0;
 
-	data->Nref        = 2;
-	data->update_argv = true;
+	data->n_ref         = 2;
+	data->modify_params = 0;
 
-	strcpy(data->argvNew[1],TestName);
+	strcpy(data->argv_new[1],TestName);
 	if (strstr(TestName,"Advection")) {
 		; // Do nothing
 	} else if (strstr(TestName,"Poisson")) {
 		; // Do nothing
 	} else if (strstr(TestName,"Euler")) {
 //		data->print_timings = true;
-		data->update_argv = false;
 	} else if (strstr(TestName,"NavierStokes")) {
 //		data->print_timings = true;
 		data->check_weak_gradients = true;
@@ -119,7 +118,7 @@ void test_linearization
 	TestDB.IntOrder_add  = data->IntOrder_add;
 	TestDB.IntOrder_mult = data->IntOrder_mult;
 
-	code_startup(data->nargc,(const char*const*const) data->argvNew,data->Nref,data->update_argv);
+	code_startup(data->nargc,(const char*const*const) data->argv_new,data->n_ref,data->modify_params);
 	update_VOLUME_FACEs();
 	compute_dof();
 
@@ -138,7 +137,7 @@ void test_linearization
 			EXIT_UNSUPPORTED;
 
 		data->omit_root = false;
-		set_PrintName("linearization (weak gradient)",data->PrintName,&data->omit_root);
+		set_PrintName("linearization (weak gradient)",data->test_name,&data->omit_root);
 		data->omit_root = false;
 
 		struct S_solver_info solver_info = constructor_solver_info(false,false,false,'I',DB.Method);
@@ -175,11 +174,11 @@ void test_linearization
 		}
 		compute_GradW(&solver_info,'F');
 
-		test_print2(pass,data->PrintName);
+		test_print2(pass,data->test_name);
 	}
 
 	// Standard Linearization
-	set_PrintName("linearization",data->PrintName,&data->omit_root);
+	set_PrintName("linearization",data->test_name,&data->omit_root);
 
 // Move into set_A
 	data->A     = construct_A(),
@@ -226,7 +225,7 @@ void test_linearization
 
 	bool pass = 1;
 	check_passing(data,&pass);
-	test_print2(pass,data->PrintName);
+	test_print2(pass,data->test_name);
 
 	destructor_Simulation(&simulation);
 	destructor_Context_Solver_c(&context_solver_c);

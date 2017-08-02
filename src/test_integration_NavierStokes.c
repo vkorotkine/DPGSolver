@@ -1,5 +1,6 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
+// \file
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,55 +13,32 @@
 #include "test_code_integration_conv_order.h"
 #include "test_support.h"
 
-#include "array_free.h"
-
-/*
- *	Purpose:
- *		Test various aspects of the Navier-Stokes solver implementation:
- *			- Equivalence between real and complex versions of functions;
- *			- Equivalence between running using different algorithms (with different flop counts);
- *			- Linearization;
- *			- Optimal convergence orders.
- *
- *	Comments:
- *		Both the collocated and non-collocated version of the code are checked below as the operators are different in
- *		the two cases.
- *
- *	Notation:
- *
- *	References:
- */
+#include "allocators.h"
 
 void test_integration_NavierStokes(int nargc, char **argv)
 {
-	bool const RunTests_equivalence_real_complex = 1,
-	           RunTests_equivalence_algorithms   = 1,
-	           RunTests_linearization            = 1,
-	           RunTests_conv_order               = 1;
+	const bool run_tests_equivalence_real_complex = 1,
+	           run_tests_equivalence_algorithms   = 1,
+	           run_tests_linearization            = 1,
+	           run_tests_conv_order               = 1;
 
-	char **argvNew, *PrintName;
+	const size_t n_argv_new = 2;
+	char** argv_new = mallocator(CHAR_T,2,STRLEN_MAX,n_argv_new); // free
+	char* test_name = mallocator(CHAR_T,1,STRLEN_MAX);            // free
 
-	argvNew    = malloc(2          * sizeof *argvNew);  // free
-	argvNew[0] = malloc(STRLEN_MAX * sizeof **argvNew); // free
-	argvNew[1] = malloc(STRLEN_MAX * sizeof **argvNew); // free
-	PrintName  = malloc(STRLEN_MAX * sizeof *PrintName); // free
-
-	// silence
-	strcpy(argvNew[0],argv[0]);
+	if (0) // silence
+		printf("%p",argv);
 
 	// **************************************************************************************************** //
 	// Real/Complex Equivalence
 	// **************************************************************************************************** //
-	if (RunTests_equivalence_real_complex) {
-		struct S_equivalence_rc *const data_rc = calloc(1 , sizeof *data_rc); // free
-		data_rc->nargc     = nargc;
-		data_rc->argvNew   = argvNew;
-		data_rc->PrintName = PrintName;
+	if (run_tests_equivalence_real_complex) {
+		struct S_equivalence_rc data_rc = { .nargc     = nargc,
+		                                    .argvNew   = argv_new,
+		                                    .PrintName = test_name, };
 
-		test_equivalence_real_complex(data_rc,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedMIXED2D_Collocated");
-		test_equivalence_real_complex(data_rc,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedMIXED2D");
-
-		free(data_rc);
+		test_equivalence_real_complex(&data_rc,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedMIXED2D_Collocated");
+		test_equivalence_real_complex(&data_rc,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedMIXED2D");
 	} else {
 		test_print_warning("Navier-Stokes equivalence real/complex testing currently disabled");
 	}
@@ -68,17 +46,13 @@ void test_integration_NavierStokes(int nargc, char **argv)
 	// **************************************************************************************************** //
 	// Algorithm equivalence
 	// **************************************************************************************************** //
-	if (RunTests_equivalence_algorithms) {
-		struct S_equivalence_algs *const data_alg = calloc(1 , sizeof *data_alg); // free
+	if (run_tests_equivalence_algorithms) {
+		struct S_equivalence_algs data_alg = { .nargc     = nargc,
+		                                       .argvNew   = argv_new,
+		                                       .PrintName = test_name, };
 
-		data_alg->nargc     = nargc;
-		data_alg->argvNew   = argvNew;
-		data_alg->PrintName = PrintName;
-
-		test_equivalence_algorithms(data_alg,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedMIXED2D");
+		test_equivalence_algorithms(&data_alg,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedMIXED2D");
 		test_print_warning("WEDGE equivalence algorithms not being tested for Navier-Stokes");
-
-		free(data_alg);
 	} else {
 		test_print_warning("Navier-Stokes equivalence algorithms testing currently disabled");
 	}
@@ -86,17 +60,13 @@ void test_integration_NavierStokes(int nargc, char **argv)
 	// **************************************************************************************************** //
 	// Linearization Testing
 	// **************************************************************************************************** //
-	if (RunTests_linearization) {
-		struct Test_Linearization *const data_l = calloc(1 , sizeof *data_l); // free
+	if (run_tests_linearization) {
+		struct Test_Linearization data_l = { .nargc     = nargc,
+		                                     .argv_new  = argv_new,
+		                                     .test_name = test_name, };
 
-		data_l->nargc     = nargc;
-		data_l->argvNew   = argvNew;
-		data_l->PrintName = PrintName;
-
-		test_linearization(data_l,"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedMIXED2D_Col");
-		test_linearization(data_l,"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedMIXED2D");
-
-		free(data_l);
+		test_linearization(&data_l,"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedMIXED2D_Col");
+		test_linearization(&data_l,"test/NavierStokes/Test_NavierStokes_TaylorCouette_ToBeCurvedMIXED2D");
 	} else {
 		test_print_warning("Navier-Stokes linearization testing currently disabled");
 	}
@@ -104,28 +74,25 @@ void test_integration_NavierStokes(int nargc, char **argv)
 	// **************************************************************************************************** //
 	// Convergence Order
 	// **************************************************************************************************** //
-	if (RunTests_conv_order) {
-		struct S_convorder *const data_c = calloc(1 , sizeof *data_c); // free
+	if (run_tests_conv_order) {
+		struct S_convorder data_c = { .nargc     = nargc,
+		                              .argvNew   = argv_new,
+		                              .PrintName = test_name, };
 
-		data_c->nargc     = nargc;
-		data_c->argvNew   = argvNew;
-		data_c->PrintName = PrintName;
+		test_conv_order(&data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedTRI");
+		test_conv_order(&data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedQUAD");
+//		test_conv_order(&data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedMIXED2D");
 
-		test_conv_order(data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedTRI");
-		test_conv_order(data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedQUAD");
-//		test_conv_order(data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedMIXED2D");
+		/**	\todo Add tests for:
+		 *		1. PlaneCouette (Illingworth(1950), problem 3)
+		 *		2. 3D Curved manufactured solution
+		 */
 
-		// Add tests for:
-		// 1) PlaneCouette (Illingworth(1950), problem 3)
-		// 2) 3D Curved manufactured solution
-
-//		test_conv_order(data_c,"NavierStokes_n-Cube_StraightQUAD"); // PlaneCouette (Possibly not yet working)
-
-		free(data_c);
+//		test_conv_order(&data_c,"NavierStokes_n-Cube_StraightQUAD"); // PlaneCouette (Possibly not yet working)
 	} else {
 		test_print_warning("Navier-Stokes convergence order testing currently disabled");
 	}
 
-	array_free2_c(2,argvNew);
-	free(PrintName);
+	deallocator(argv_new,CHAR_T,2,STRLEN_MAX,n_argv_new);
+	deallocator(test_name,CHAR_T,1,STRLEN_MAX);
 }

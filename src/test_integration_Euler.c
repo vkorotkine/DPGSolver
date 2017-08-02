@@ -1,5 +1,6 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
+/// \file
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -13,64 +14,40 @@
 #include "test_code_integration_conv_order.h"
 #include "test_support.h"
 
-#include "array_free.h"
-
-/*
- *	Purpose:
- *		Test various aspects of the Euler solver implementation:
- *			- Equivalence between real and complex versions of functions;
- *			- Equivalence between running using different algorithms (with different flop counts);
- *			- Linearization;
- *			- Optimal convergence orders.
- *
- *	Comments:
- *		Optimal convergence orders for 3D curved meshes which are not associated with extruded 2D meshes has so far not
- *		been obtained. This is potentially a result of mesh regularity issues or because memory constraints do not allow
- *		for the attainment of the asymptotic regime. (ToBeModified)
- *
- *	Notation:
- *
- *	References:
- */
+#include "allocators.h"
 
 void test_integration_Euler(int nargc, char **argv)
 {
-//	bool const (ToBeModified)
-	bool RunTests_equivalence_real_complex = 1,
-	     RunTests_equivalence_algorithms   = 1,
-	     RunTests_linearization            = 1,
-	     RunTests_conv_order               = 1;
+	///	\todo Make this `const bool`.
+	bool run_tests_equivalence_real_complex = 1,
+	     run_tests_equivalence_algorithms   = 1,
+	     run_tests_linearization            = 1,
+	     run_tests_conv_order               = 1;
 
-	// ToBeDeleted after Manmeet has finished his initial verification.
-	bool const PeriodicVortexOnly = 0;
+	/// \todo Delete this after Manmeet has finished his initial verification.
+	const bool PeriodicVortexOnly = 0;
 	if (PeriodicVortexOnly) {
-		RunTests_equivalence_real_complex = 0;
-		RunTests_equivalence_algorithms   = 0;
-		RunTests_linearization            = 0;
+		run_tests_equivalence_real_complex = 0;
+		run_tests_equivalence_algorithms   = 0;
+		run_tests_linearization            = 0;
 	}
 
-	char **argvNew, *PrintName;
+	const size_t n_argv_new = 2;
+	char** argv_new = mallocator(CHAR_T,2,STRLEN_MAX,n_argv_new); // free
+	char* test_name = mallocator(CHAR_T,1,STRLEN_MAX);            // free
 
-	argvNew    = malloc(2          * sizeof *argvNew);   // free
-	argvNew[0] = malloc(STRLEN_MAX * sizeof **argvNew);  // free
-	argvNew[1] = malloc(STRLEN_MAX * sizeof **argvNew);  // free
-	PrintName  = malloc(STRLEN_MAX * sizeof *PrintName); // free
-
-	// silence
-	strcpy(argvNew[0],argv[0]);
+	if (0) // silence
+		printf("%p",argv);
 
 	// **************************************************************************************************** //
 	// Real/Complex Equivalence
 	// **************************************************************************************************** //
-	if (RunTests_equivalence_real_complex) {
-		struct S_equivalence_rc *const data_rc = calloc(1 , sizeof *data_rc); // free
-		data_rc->nargc     = nargc;
-		data_rc->argvNew   = argvNew;
-		data_rc->PrintName = PrintName;
+	if (run_tests_equivalence_real_complex) {
+		struct S_equivalence_rc data_rc =  { .nargc     = nargc,
+		                                     .argvNew   = argv_new,
+		                                     .PrintName = test_name, };
 
-		test_equivalence_real_complex(data_rc,"Euler_n-Cylinder_HollowSection_CurvedMIXED2D");
-
-		free(data_rc);
+		test_equivalence_real_complex(&data_rc,"Euler_n-Cylinder_HollowSection_CurvedMIXED2D");
 	} else {
 		test_print_warning("Euler equivalence real/complex testing currently disabled");
 	}
@@ -78,16 +55,12 @@ void test_integration_Euler(int nargc, char **argv)
 	// **************************************************************************************************** //
 	// Algorithm equivalence
 	// **************************************************************************************************** //
-	if (RunTests_equivalence_algorithms) {
-		struct S_equivalence_algs *const data_alg = calloc(1 , sizeof *data_alg); // free
+	if (run_tests_equivalence_algorithms) {
+		struct S_equivalence_algs data_alg = { .nargc     = nargc,
+		                                       .argvNew   = argv_new,
+		                                       .PrintName = test_name, };
 
-		data_alg->nargc     = nargc;
-		data_alg->argvNew   = argvNew;
-		data_alg->PrintName = PrintName;
-
-		test_equivalence_algorithms(data_alg,"Euler_n-Cylinder_HollowSection_CurvedMIXED3D_HW");
-
-		free(data_alg);
+		test_equivalence_algorithms(&data_alg,"Euler_n-Cylinder_HollowSection_CurvedMIXED3D_HW");
 	} else {
 		test_print_warning("Euler equivalence algorithms testing currently disabled");
 	}
@@ -95,18 +68,14 @@ void test_integration_Euler(int nargc, char **argv)
 	// **************************************************************************************************** //
 	// Linearization Testing
 	// **************************************************************************************************** //
-	if (RunTests_linearization) {
-		struct Test_Linearization *const data_l = calloc(1 , sizeof *data_l); // free
+	if (run_tests_linearization) {
+		struct Test_Linearization data_l = { .nargc     = nargc,
+		                                     .argv_new  = argv_new,
+		                                     .test_name = test_name, };
 
-		data_l->nargc     = nargc;
-		data_l->argvNew   = argvNew;
-		data_l->PrintName = PrintName;
-
-		test_linearization(data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
-		test_linearization(data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED3D_TP");
-		test_linearization(data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED3D_HW");
-
-		free(data_l);
+		test_linearization(&data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
+		test_linearization(&data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED3D_TP");
+		test_linearization(&data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED3D_HW");
 	} else {
 		test_print_warning("Euler linearization testing currently disabled");
 	}
@@ -114,38 +83,35 @@ void test_integration_Euler(int nargc, char **argv)
 	// **************************************************************************************************** //
 	// Convergence Order
 	// **************************************************************************************************** //
-	if (RunTests_conv_order) {
-		struct S_convorder *const data_c = calloc(1 , sizeof *data_c); // free
-
-		data_c->nargc     = nargc;
-		data_c->argvNew   = argvNew;
-		data_c->PrintName = PrintName;
+	if (run_tests_conv_order) {
+		struct S_convorder data_c = { .nargc     = nargc,
+		                              .argvNew   = argv_new,
+		                              .PrintName = test_name, };
 
 if (!PeriodicVortexOnly) {
-		test_conv_order(data_c,"Euler_n-GaussianBump_CurvedQUAD");
-		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_CurvedMIXED2D");
-		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedMIXED2D");
+		test_conv_order(&data_c,"Euler_n-GaussianBump_CurvedQUAD");
+		test_conv_order(&data_c,"Euler_n-Cylinder_HollowSection_CurvedMIXED2D");
+		test_conv_order(&data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedMIXED2D");
 }
 
 bool const test_3D = 0;
 if (test_3D) {
-		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedTET");   // Revisit with DPG (ToBeDeleted)
-		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedHEX");   // ~Optimal
-		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedWEDGE"); // ~Optimal
+		test_conv_order(&data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedTET");   // Revisit with DPG (ToBeDeleted)
+		test_conv_order(&data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedHEX");   // ~Optimal
+		test_conv_order(&data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedWEDGE"); // ~Optimal
 } else {
 		test_print_warning("3D SupersonicVortex testing is currently disabled");
 }
 
 if (PeriodicVortexOnly) {
-//		test_conv_order(data_c,"Euler_PeriodicVortex_Stationary_n-Cube_QUAD");
-//		test_conv_order(data_c,"Euler_PeriodicVortex_n-Cube_TRI");
-		test_conv_order(data_c,"Euler_PeriodicVortex_n-Cube_QUAD");
+//		test_conv_order(&data_c,"Euler_PeriodicVortex_Stationary_n-Cube_QUAD");
+//		test_conv_order(&data_c,"Euler_PeriodicVortex_n-Cube_TRI");
+		test_conv_order(&data_c,"Euler_PeriodicVortex_n-Cube_QUAD");
 }
-		free(data_c);
 	} else {
 		test_print_warning("Euler convergence order testing currently disabled");
 	}
 
-	array_free2_c(2,argvNew);
-	free(PrintName);
+	deallocator(argv_new,CHAR_T,2,STRLEN_MAX,n_argv_new);
+	deallocator(test_name,CHAR_T,1,STRLEN_MAX);
 }

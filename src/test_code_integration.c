@@ -111,8 +111,8 @@ static void update_TestCase(void)
 	}
 }
 
-void code_startup(int const nargc, char const *const *const argv, unsigned int const Nref,
-                  unsigned int const update_argv)
+void code_startup
+	(const int nargc, const char*const*const argv, const unsigned int n_ref, const unsigned int modify_params)
 {
 	int  MPIrank, MPIsize;
 
@@ -130,16 +130,16 @@ void code_startup(int const nargc, char const *const *const argv, unsigned int c
 	// Initialization
 	initialization(nargc,argv);
 	update_TestCase();
-	if (update_argv) {
+	if (modify_params) {
 		DB.PGlobal = TestDB.PGlobal;
-		if (update_argv == 1) {
+		if (modify_params == 1) {
 			DB.ML = TestDB.ML;
 			set_MeshFile();
 		}
 	}
 
 	setup_parameters();
-	if (update_argv)
+	if (modify_params)
 		setup_parameters_L2proj();
 
 	initialize_test_case_parameters();
@@ -151,9 +151,9 @@ void code_startup(int const nargc, char const *const *const argv, unsigned int c
 	setup_structures();
 	setup_geometry();
 
-	initialize_test_case(Nref);
+	initialize_test_case(n_ref);
 
-	if (update_argv == 2)
+	if (modify_params == 2)
 		mesh_to_level(TestDB.ML);
 }
 

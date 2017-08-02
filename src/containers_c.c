@@ -9,6 +9,8 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
+#include "Macros.h"
+
 #include "containers.h"
 
 struct Multiarray_c* constructor_empty_Multiarray_c_1 (const char layout, const size_t order, ...)
@@ -20,10 +22,11 @@ struct Multiarray_c* constructor_empty_Multiarray_c_1 (const char layout, const 
 
 	struct Multiarray_c* A = malloc(sizeof *A); // returned
 
-	A->layout  = layout;
-	A->order   = order;
-	A->extents = extents;
-	A->data    = calloc(compute_size(order,extents) , sizeof *(A->data)); // keep
+	A->layout    = layout;
+	A->order     = order;
+	A->extents   = extents;
+	A->owns_data = true;
+	A->data      = calloc(compute_size(order,extents) , sizeof *(A->data)); // keep
 
 	return A;
 }
@@ -33,6 +36,5 @@ void destructor_Multiarray_c_1 (struct Multiarray_c* A)
 	free(A->extents);
 	if (A->owns_data)
 		free(A->data);
-	free(A);
-	A = NULL;
+	FREE_NULL(A);
 }
