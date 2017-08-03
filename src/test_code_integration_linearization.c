@@ -1,6 +1,8 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-/// \file
+/** \file
+ *  \todo There are things to be deleted.
+ */
 
 #include "test_code_integration_linearization.h"
 
@@ -35,11 +37,6 @@
 
 #include "array_norm.h"
 
-#define CHECK_VOLUME_DIAG      1
-#define CHECK_VOLUME_FACE_DIAG 2
-#define CHECK_VOLUME_FACE_ALL  3
-
-/// \todo There are things to be deleted.
 static void set_test_linearization_data (struct Test_Linearization *const data, char const *const TestName)
 {
 	data->print_mat_to_file        = false;
@@ -47,12 +44,12 @@ static void set_test_linearization_data (struct Test_Linearization *const data, 
 	data->check_full_linearization = true;
 	data->check_weak_gradients     = false;
 
-	data->PG_add        = 1;
-	data->IntOrder_mult = 2;
-	data->IntOrder_add  = 0;
+	data->p_g_rel = 1;
+	data->p_i_x   = 2;
+	data->p_i_p   = 0;
 
-	data->PGlobal = 3;
-	data->ML      = 0;
+	data->p_global = 3;
+	data->ml       = 0;
 
 	data->n_ref         = 2;
 	data->modify_params = 0;
@@ -112,11 +109,11 @@ void test_linearization
 {
 	set_test_linearization_data(data,TestName);
 
-	TestDB.PGlobal       = data->PGlobal;
-	TestDB.ML            = data->ML;
-	TestDB.PG_add        = data->PG_add;
-	TestDB.IntOrder_add  = data->IntOrder_add;
-	TestDB.IntOrder_mult = data->IntOrder_mult;
+	TestDB.PGlobal       = data->p_global;
+	TestDB.ML            = data->ml;
+	TestDB.PG_add        = data->p_g_rel;
+	TestDB.IntOrder_add  = data->p_i_p;
+	TestDB.IntOrder_mult = data->p_i_x;
 
 	code_startup(data->nargc,(const char*const*const) data->argv_new,data->n_ref,data->modify_params);
 	update_VOLUME_FACEs();
@@ -128,8 +125,12 @@ void test_linearization
 	for (struct S_VOLUME* VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 		set_element(VOLUME,DB.ELEMENT);
 
-	struct Simulation simulation = constructor_Simulation(DB.d,DB.Nvar);
-	struct Context_Solver_c context_solver_c = constructor_Context_Solver_c(&simulation,DB.VOLUME);
+/// \todo Move this to the top level (initialized somewhere in code_startup) and add all relevant parameters.
+	struct Simulation* simulation = constructor_Simulation(); // destructed
+	set_Simulation_parameters(simulation,DB.d,DB.Nvar,DB.Neq);
+	set_Simulation_volume(simulation,DB.VOLUME);
+
+	struct Solver_c* solver_c = constructor_Solver_c(simulation); // destructed
 
 	// Weak Gradient Linearization
 	if (data->check_weak_gradients) {
@@ -227,8 +228,8 @@ void test_linearization
 	check_passing(data,&pass);
 	test_print2(pass,data->test_name);
 
-	destructor_Simulation(&simulation);
-	destructor_Context_Solver_c(&context_solver_c);
+	destructor_Simulation(simulation);
+	destructor_Solver_c(solver_c);
 
 	code_cleanup();
 }

@@ -36,3 +36,55 @@ Linearization changes: (generalize to all functions in the future)
 	- *RHS_c, *What_c, **Qhat_c, **QhatV_c, **qhat_c
 
 
+
+
+Code refactoring:
+1) The `Simulation` struct
+
+- Make a default ctrl file with all possible inputs but only require relevant parameters in individual ctrl files.
+	- Initialized from parameters in the ctrl file.
+	- Most parameters should be `const`. Some may not be depending on desired flexibility:
+		- adaptation enabled: p, ml
+	- Add all relevant parameters to the ctrl file which are currently hard-coded. If they are to be flexible, add them
+	  as 'default':
+		- flux types (inviscid/viscous)
+		- blending/parametrization type
+	- Additional members:
+		- Elements, Volumes, Faces (pointer to head)
+			- These are structs holding information common to derived structs
+			- The input mesh file should be used to determine:
+				- The available element types.
+				- The initial volumes and faces (including connectivity)
+			  and should then all intermediary objects should be deleted (EToE, etc..) as they are not useful when
+			  adaptivity is enabled and unnecessary after the initial processing otherwise.
+			- Common operators (such as the Vandermonde matrices ('T' in the current notation) should be computed for
+			  each available element type.
+		- Test case
+			- This should have most of the data currently set in init_test_case_parameters().
+			- This should include function pointers relevant to the case under consideration.
+
+A `simulation` is then passed around the code as the substitute for the current global variables. Various submodules
+then derive from the `simulation`:
+	- solver::simulation
+		- adaptation::solver
+			- For adaptation, update values of the base volume/face, then construct new derived volume/face, then add
+			  any remaining data from the derived parent.
+	- post-processing::simulation
+To avoid referencing variables in derived structs using multiple levels of dereferencing (e.g.
+solver.simulation.test_case), variables will be copied/moved to the derived structs.
+
+The computation of operators will also be separated such that the operators required for a module are constructed at the
+start of the module and destructed at its termination.
+
+3) Different test cases should be implemeted by:
+	- Defining test case specific functions reading test case specific data but which have a common interface such that
+	  they can be passed as function pointers to various core library functions.
+		- These functions will take a struct holding required input/output data for the specific functionality so that
+		  they may be easily extended.
+	- Test case specific data (geometry, solution, boundary conditions) should be stored in external files, read and set
+	  (once) within the file in which the variables are required.
+		- Variable setting is done by storing `static bool initialized = 0`, and static variables for any other required
+		  data, setting the variables by reading the data file (if (!initialized)), then setting initialized = 1.
+
+This procedure results in not requiring a general struct to store all potential variables for all test cases, which
+rapidly becomes excessive as many test cases are added.

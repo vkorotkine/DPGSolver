@@ -4,6 +4,7 @@
 #include "solver_c.h"
 #include "containers.h"
 #include "containers_c.h"
+#include "Simulation.h"
 #include "solver.h"
 
 #include <stdlib.h>
@@ -15,6 +16,65 @@
 #include "S_VOLUME.h"
 
 #include "compute_GradW_DG_c.h"
+
+static struct Element_Solver_c* constructor_Elements_Solver_c (const struct Simulation*const simulation);
+static struct Volume_Solver_c*  constructor_Volumes_Solver_c  (const struct Simulation*const simulation);
+static void                     destructor_Elements_Solver_c  (struct Solver_c*const solver_c);
+static void                     destructor_Volumes_Solver_c   (struct Solver_c*const solver_c);
+
+
+struct Solver_c* constructor_Solver_c (const struct Simulation*const sim)
+{
+	struct Solver_c* solver_c = malloc(sizeof *solver_c); // returned
+
+	// Parameters
+	*(unsigned int*)&solver_c->d     = sim->d;
+	*(unsigned int*)&solver_c->n_var = sim->n_var;
+
+	// Elements
+	*(struct Element_Solver_c**)&solver_c->element_head = constructor_Elements_Solver_c(sim); // destructed
+
+	// Volumes
+	solver_c->volume_head = constructor_Volumes_Solver_c(sim); // destructed
+
+	return solver_c;
+}
+
+void destructor_Solver_c (struct Solver_c* solver_c)
+{
+	destructor_Elements_Solver_c(solver_c);
+	destructor_Volumes_Solver_c(solver_c);
+	FREE_NULL(solver_c);
+}
+
+
+
+
+// Static functions
+
+// Element_Solver_c ************************************************************************************************* //
+
+static struct Element_Solver_c* constructor_Element_Solver_c
+	(const struct Element*const element)
+{
+}
+
+static void destructor_Element_Solver_c (struct Element_Solver_c* element)
+{
+}
+
+static struct Element_Solver_c* constructor_Elements_Solver_c
+	(const struct Simulation*const simulation)
+{
+}
+
+static void destructor_Elements_Solver_c
+	(struct Solver_c*const solver_c)
+{
+}
+
+
+// Volume_Solver_c ************************************************************************************************** //
 
 static struct Volume_Solver_c* constructor_Volume_Solver_c
 	(const struct Simulation*const simulation, const struct S_VOLUME*const VOLUME)
@@ -55,9 +115,10 @@ static void destructor_Volume_Solver_c (struct Volume_Solver_c* volume)
 	free(volume);
 }
 
-static struct Volume_Solver_c* constructor_Volumes_solver_c
-	(const struct Simulation*const simulation, const struct S_VOLUME*const VOLUME_head)
+static struct Volume_Solver_c* constructor_Volumes_Solver_c (const struct Simulation*const simulation)
 {
+	struct S_VOLUME* VOLUME_head = simulation->volume_head;
+
 	struct Volume_Solver_c* head = NULL,
 	                      * prev = NULL;
 	for (const struct S_VOLUME* VOLUME = VOLUME_head; VOLUME; VOLUME = VOLUME->next) {
@@ -75,33 +136,14 @@ static struct Volume_Solver_c* constructor_Volumes_solver_c
 	return head;
 }
 
-static void destructor_Volumes_solver_c (struct Volume_Solver_c*const volume_head)
+static void destructor_Volumes_Solver_c (struct Solver_c*const solver_c)
 {
 	struct Volume_Solver_c* next;
-	for (struct Volume_Solver_c* volume = volume_head; volume; ) {
+	for (struct Volume_Solver_c* volume = solver_c->volume_head; volume; ) {
 		next = volume->next;
 		destructor_Volume_Solver_c(volume);
 		volume = next;
 	}
-}
-
-struct Context_Solver_c constructor_Context_Solver_c
-	(const struct Simulation*const simulation, const struct S_VOLUME*const VOLUME_head)
-{
-
-	struct Volume_Solver_c*const volume_head = constructor_Volumes_solver_c(simulation,VOLUME_head);
-
-	struct Context_Solver_c context = { .d     = simulation->d,
-	                                    .n_var = simulation->n_var,
-	                                    .volume_head = volume_head,
-	                                  };
-
-	return context;
-}
-
-void destructor_Context_Solver_c (struct Context_Solver_c* context)
-{
-	destructor_Volumes_solver_c(context->volume_head);
 }
 
 
