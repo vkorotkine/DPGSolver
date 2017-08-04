@@ -127,7 +127,12 @@ void test_linearization
 
 /// \todo Move this to the top level (initialized somewhere in code_startup) and add all relevant parameters.
 	struct Simulation* simulation = constructor_Simulation(); // destructed
+	set_Simulation_flags(simulation,DB.Collocated);
 	set_Simulation_parameters(simulation,DB.d,DB.Nvar,DB.Neq);
+	*(unsigned int*)&simulation->method = METHOD_DG;
+	set_Simulation_element(simulation,DB.ELEMENT);
+
+	set_up_operators(simulation);
 	set_Simulation_volume(simulation,DB.VOLUME);
 
 	struct Solver_c* solver_c = constructor_Solver_c(simulation); // destructed

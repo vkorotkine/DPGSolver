@@ -3,11 +3,28 @@
 
 #ifndef DPG__S_ELEMENT_h__INCLUDED
 #define DPG__S_ELEMENT_h__INCLUDED
+/// \file
+
+#include <stdbool.h>
 
 #include "S_OpCSR.h"
 #include "matrix_structs.h"
 
+/**\{ \name Alternate notation
+ *  Provide an alternate notation. ToBeDeleted after eventual code refactoring.
+ *  \todo Fix the notation.
+ */
+#define Element S_ELEMENT
+///\}
+
+#include "Simulation.h"
+
+
+/** \brief Struct holding data related to the base Element. */
 struct S_ELEMENT {
+	// New
+	const bool tensor_product;
+
 	// Mesh
 	unsigned int present, type, d, Nve, NveP2, Ne, Nf, Nvref, NvrefSF, Eclass, NEhref,
 	             Neve, *Nfve, *VeCGmsh, *VeEcon, *VeFcon, *NrefV, *type_h;
@@ -20,7 +37,7 @@ struct S_ELEMENT {
 	             Neref, *Nfref, *NfMixed,
 	             **connectivity, **connect_types, **connectivityE,
 	             ***nOrd_fS, ***nOrd_fIs, ***nOrd_fIc, ****Fmask, ****VeMask;
-	double       Volume, **VeE, **VeF, **VeV, *nr,
+	double       volume, **VeE, **VeF, **VeV, *nr,
 	             **w_vIs, **w_vIc, ***w_fIs, ***w_fIc,
 	             ****ChiS_vP, ****ChiS_vS, ****ChiS_vIs, ****ChiS_vIc,
 	             ****ChiInvS_vS, ****ChiInvGs_vGs, ****ChiBezInvS_vS,
@@ -84,5 +101,10 @@ struct S_ELEMENT {
 
 struct S_ELEMENT* get_element_by_type (struct S_ELEMENT*const element_head, const size_t type);
 const struct S_ELEMENT* get_const_element_by_type (const struct S_ELEMENT*const element_head, const size_t type);
+
+///< \brief Set up operators for the base Element.
+void set_up_operators
+	(const struct Simulation*const simulation ///< Standard.
+	);
 
 #endif // DPG__S_ELEMENT_h__INCLUDED

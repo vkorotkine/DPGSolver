@@ -10,14 +10,14 @@
  *
  *	\subsection s1_1 Naming Convention
  *
- *	Function names are chosen according to the following template: `constructor_[0]_(1)_[2]_[3]_(4)` where elements in
- *	square brackets [] are required, those in round brackets () are optional.
- *		- [0] : Type of constructor
+ *	Function names are chosen according to the following template: `constructor_{0}_(1)_{2}_{3}_{4}` where elements in
+ *	curly braces {} are required and those in round brackets () are optional.
+ *		- {0} : Type of constructor
  *			- Options: move
  *		- (1) : Optional `const` specifier
- *		- [2] : Type of container to be returned
- *			- Options: Multiarray_d
- *		- [3] : Level of dereferencing of the returned container object
+ *		- {2} : Type of container to be returned
+ *			- Options: Multiarray_d, Matrix_d
+ *		- {3} : Level of dereferencing of the returned container object
  *		- (4) : Type of input from which the container is constructed
  *
  *	\subsection s1_2 Variadic Arguments
@@ -54,6 +54,14 @@
 #include <stdbool.h>
 #include <stdarg.h>
 
+struct Multiarray_d;
+struct const_Multiarray_d;
+
+struct Matrix_d;
+struct const_Matrix_d;
+
+// Multiarray_* ***************************************************************************************************** //
+
 /// \brief Supports dense multi-dimensional (double) arrays.
 struct Multiarray_d {
 	char layout; ///< The layout may be 'R'ow or 'C'olumn major.
@@ -66,7 +74,7 @@ struct Multiarray_d {
 	double* data;      ///< The data.
 };
 
-/// \brief \c const version of Multiarray_d.
+/// \brief \c const version of \ref Multiarray_d.
 struct const_Multiarray_d {
 	const char layout;
 
@@ -88,11 +96,32 @@ size_t* set_extents
 	 va_list ap          ///< List of variadic arguments.
 	);
 
-/// \brief Compute `size` \f$ = \prod{} \f$ `extents`.
+/// \brief `size` is the product of the `extents`.
 size_t compute_size
 	(const size_t order,
 	 const size_t *const extents
 	);
 
+// Matrix_* ********************************************************************************************************* //
+
+/// \brief 2-dimensional version of \ref Multiarray_d.
+struct Matrix_d {
+	char layout;
+
+	size_t extents[2];
+
+	bool    owns_data;
+	double* data;
+};
+
+/// \brief const version of \ref Matrix_d.
+struct const_Matrix_d {
+	const char layout;
+
+	const size_t extents[2];
+
+	const bool         owns_data;
+	const double*const data;
+};
 
 #endif // DPG__containers_h__INCLUDED

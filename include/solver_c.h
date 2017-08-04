@@ -27,7 +27,8 @@ struct Solver_c {
 /// \brief Struct holding data related to the Elements for the solve using complex variables.
 struct Element_Solver_c {
 
-	struct Element_Solver_c* next; ///< Pointer to the next \ref Element_Solver_c in the list.
+	struct Element_Solver_c* prev, ///< Pointer to the previous \ref Element_Solver_c in the list.
+	                       * next; ///< Pointer to the next     \ref Element_Solver_c in the list.
 };
 
 /// \brief Struct holding data related to the Volumes for the solve using complex variables.
@@ -43,7 +44,8 @@ struct Volume_Solver_c {
 
 	const struct Element_Solver_c*const element; ///< Pointer to the element associated with this volume.
 
-	struct Volume_Solver_c* next; ///< Pointer to next \ref Volume_Solver_c in the list.
+	struct Volume_Solver_c* prev, ///< Pointer to previous \ref Volume_Solver_c in the list.
+	                      * next; ///< Pointer to next     \ref Volume_Solver_c in the list.
 };
 
 /// \brief Constructor for \ref Solver_c.

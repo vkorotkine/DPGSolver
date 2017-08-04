@@ -74,6 +74,8 @@ void initialize_ELEMENTs(void)
 	ELEMENT = New_ELEMENT();
 	DB.ELEMENT = ELEMENT;
 
+	*(bool*)&ELEMENT->tensor_product = false;
+
 	ELEMENT->type      = POINT;
 	ELEMENT->Eclass    = C_TP;
 	ELEMENT->d         = 0;
@@ -89,10 +91,11 @@ void initialize_ELEMENTs(void)
 	ELEMENT->VeCGmsh[0]    = 0;
 	ELEMENT->VeFcon[0*NFVEMAX  ] = 0;
 
-	ELEMENT->next = New_ELEMENT();
-
 	// LINE
+	ELEMENT->next = New_ELEMENT();
 	ELEMENT = ELEMENT->next;
+
+	*(bool*)&ELEMENT->tensor_product = false;
 
 	ELEMENT->type      = LINE;
 	ELEMENT->Eclass    = C_TP;
@@ -111,10 +114,11 @@ void initialize_ELEMENTs(void)
 	ELEMENT->VeFcon[1*NFVEMAX  ] = 1;
 	ELEMENT->NrefV[0] = 2;
 
-	ELEMENT->next = New_ELEMENT();
-
 	// TRI
+	ELEMENT->next = New_ELEMENT();
 	ELEMENT = ELEMENT->next;
+
+	*(bool*)&ELEMENT->tensor_product = false;
 
 	ELEMENT->type      = TRI;
 	ELEMENT->Eclass    = C_SI;
@@ -134,10 +138,11 @@ void initialize_ELEMENTs(void)
 	ELEMENT->VeFcon[2*NFVEMAX  ] = 0; ELEMENT->VeFcon[2*NFVEMAX+1] = 1;
 	ELEMENT->NrefV[0] = 4;
 
-	ELEMENT->next = New_ELEMENT();
-
 	// QUAD
+	ELEMENT->next = New_ELEMENT();
 	ELEMENT = ELEMENT->next;
+
+	*(bool*)&ELEMENT->tensor_product = true;
 
 	ELEMENT->type      = QUAD;
 	ELEMENT->Eclass    = C_TP;
@@ -158,10 +163,11 @@ void initialize_ELEMENTs(void)
 	ELEMENT->VeFcon[3*NFVEMAX  ] = 2; ELEMENT->VeFcon[3*NFVEMAX+1] = 3; // ToBeDeleted: Modified from matlab code
 	ELEMENT->NrefV[0] = 4; ELEMENT->NrefV[1] = 2; ELEMENT->NrefV[2] = 2;
 
-	ELEMENT->next = New_ELEMENT();
-
 	// TET
+	ELEMENT->next = New_ELEMENT();
 	ELEMENT = ELEMENT->next;
+
+	*(bool*)&ELEMENT->tensor_product = false;
 
 	ELEMENT->type      = TET;
 	ELEMENT->Eclass    = C_SI;
@@ -189,10 +195,11 @@ void initialize_ELEMENTs(void)
 // Make into a separate function for initializing ELEMENTs to make this clearner (ToBeDeleted).
 	ELEMENT->NrefV[0] = 6;
 
-	ELEMENT->next = New_ELEMENT();
-
 	// HEX
+	ELEMENT->next = New_ELEMENT();
 	ELEMENT = ELEMENT->next;
+
+	*(bool*)&ELEMENT->tensor_product = true;
 
 	ELEMENT->type      = HEX;
 	ELEMENT->Eclass    = C_TP;
@@ -230,10 +237,11 @@ void initialize_ELEMENTs(void)
 	ELEMENT->NrefV[0] = 8; ELEMENT->NrefV[1] = 4; ELEMENT->NrefV[2] = 4; ELEMENT->NrefV[3] = 4;
 	ELEMENT->NrefV[4] = 2; ELEMENT->NrefV[5] = 2; ELEMENT->NrefV[6] = 2;
 
-	ELEMENT->next = New_ELEMENT();
-
 	// WEDGE
+	ELEMENT->next = New_ELEMENT();
 	ELEMENT = ELEMENT->next;
+
+	*(bool*)&ELEMENT->tensor_product = true;
 
 	ELEMENT->type      = WEDGE;
 	ELEMENT->Eclass    = C_WEDGE;
@@ -266,10 +274,11 @@ void initialize_ELEMENTs(void)
 	ELEMENT->VeEcon[8*NEVEMAX  ] = 2; ELEMENT->VeEcon[8*NEVEMAX+1] = 5;
 	ELEMENT->NrefV[0] = 8; ELEMENT->NrefV[1] = 4; ELEMENT->NrefV[2] = 2;
 
-	ELEMENT->next = New_ELEMENT();
-
 	// PYR
+	ELEMENT->next = New_ELEMENT();
 	ELEMENT = ELEMENT->next;
+
+	*(bool*)&ELEMENT->tensor_product = false;
 
 	ELEMENT->type      = PYR;
 	ELEMENT->Eclass    = C_PYR;

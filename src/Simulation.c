@@ -5,8 +5,6 @@
 
 #include "Simulation.h"
 
-#include <stdlib.h>
-
 #include "Macros.h"
 
 
@@ -27,8 +25,14 @@ void destructor_Simulation (struct Simulation* sim)
 
 // Setters/Getters
 
+void set_Simulation_flags
+	(struct Simulation*const sim, const bool collocated)
+{
+	*(bool*)&sim->collocated = collocated;
+}
+
 void set_Simulation_parameters
-	(struct Simulation*const sim, unsigned int d, unsigned int n_var, unsigned int n_eq)
+	(struct Simulation*const sim, const unsigned int d, const unsigned int n_var, const unsigned int n_eq)
 {
 	*(unsigned int*)&sim->d     = d;
 	*(unsigned int*)&sim->n_var = n_var;

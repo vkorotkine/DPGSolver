@@ -3,17 +3,21 @@
 
 #ifndef DPG__S_VOLUME_h__INCLUDED
 #define DPG__S_VOLUME_h__INCLUDED
-
-/*
- *	Purpose:
- *		Provide a (S_)truct to hold information relating to VOLUMEs.
- */
+/// \file
 
 #include <complex.h>
 
 #include "matrix_structs.h"
 #include "S_ELEMENT.h"
 
+/**\{ \name Alternate notation
+ *  Provide an alternate notation to be deleted after eventual code refactoring.
+ *  \todo Fix the notation.
+ */
+#define Volume S_VOLUME
+///\}
+
+/** \brief Struct holding data related to the base Volume. */
 struct S_VOLUME {
 	// Structures
 	unsigned int indexl, indexg, P, type, Eclass, update, curved, level,

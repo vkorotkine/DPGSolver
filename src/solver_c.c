@@ -53,55 +53,164 @@ void destructor_Solver_c (struct Solver_c* solver_c)
 // Static functions
 
 // Element_Solver_c ************************************************************************************************* //
-
 static struct Element_Solver_c* constructor_Element_Solver_c
-	(const struct Element*const element)
-{
-}
+	(const struct Simulation*const simulation, const struct Element*const element_base);
+static void                     destructor_Element_Solver_c  (struct Element_Solver_c* element);
 
-static void destructor_Element_Solver_c (struct Element_Solver_c* element)
-{
-}
-
+/// \brief Constructor for a doubly-linked list.
 static struct Element_Solver_c* constructor_Elements_Solver_c
-	(const struct Simulation*const simulation)
+	(const struct Simulation*const simulation ///< Standard.
+	)
 {
+	const struct Element*const element_head = simulation->element_head;
+
+	struct Element_Solver_c* head = NULL,
+	                       * prev = NULL;
+	for (const struct Element* element = element_head; element; element = element->next) {
+		struct Element_Solver_c* curr = constructor_Element_Solver_c(simulation,element);
+
+		if (prev) {
+			prev->next = curr;
+			curr->prev = prev;
+		}
+		prev = curr;
+
+		if (element == element_head)
+			head = curr;
+	}
+	return head;
 }
 
+/// \brief Destructor for the list.
 static void destructor_Elements_Solver_c
-	(struct Solver_c*const solver_c)
+	(struct Solver_c*const solver_c ///< Standard.
+	)
 {
+	for (struct Element_Solver_c* element = solver_c->element_head; element; ) {
+		struct Element_Solver_c* next = element->next;
+		destructor_Element_Solver_c(element);
+		element = next;
+	}
+}
+
+/** \brief Constructor.
+ *	Moves requires members of the base and constructs members which are necessary for the complex solver functions.
+ */
+static struct Element_Solver_c* constructor_Element_Solver_c
+	(const struct Simulation*const simulation, ///< Standard.
+	 const struct Element*const element_base   ///< The base \ref Element.
+	)
+{
+	struct Element_Solver_c*const element = calloc(1 , sizeof *element); // returned
+
+	//	Construct relevant operators
+	set_up_operators_Solver_c(simulation,element_base);
+DO_NOTHING_P(simulation); // Need simulation->collocated
+DO_NOTHING_P(element_base);
+	//	Move T
+	//	Construct:
+	//		- All cases: D_Strong
+	//		- Not collocated: ChiS_vI, ChiS_fI,
+
+	return element;
+}
+
+/// \brief Destructor.
+static void destructor_Element_Solver_c
+	(struct Element_Solver_c* element ///< Standard.
+	)
+{
+DO_NOTHING_P(element);
+}
+
+set_up_operators_Solver_c
+	(const struct Simulation*const simulation, ///< Standard.
+	 const struct Element*const element_base   ///< The base \ref Element.
+	)
+{
+	// E_vs_vc(s/c) (Previously ChiS_vI(s/c)) - Only using (s)traight in the comments below.
+	// Needs Er_vs_vcs*T_vs_vs
+	// Needs cub data, basis evaluation.
 }
 
 
 // Volume_Solver_c ************************************************************************************************** //
-
 static struct Volume_Solver_c* constructor_Volume_Solver_c
-	(const struct Simulation*const simulation, const struct S_VOLUME*const VOLUME)
-{
-	struct Volume_Solver_c*const volume_s_c = calloc(1 , sizeof *volume_s_c); // returned
+	(const struct Simulation*const simulation, const struct Volume*const volume_base);
+static void destructor_Volume_Solver_c (struct Volume_Solver_c* volume);
 
-	const unsigned int P    = VOLUME->P,
-	                   NvnG = VOLUME->NvnG,
-	                   NvnS = VOLUME->NvnS,
-	                   NvnI = { !VOLUME->curved ? VOLUME->element->NvnIs[P] : VOLUME->element->NvnIc[P] };
+/// \brief Constructor for a doubly-linked list.
+static struct Volume_Solver_c* constructor_Volumes_Solver_c
+	(const struct Simulation*const simulation ///< Standard.
+	)
+{
+	struct Volume* volume_base_head = simulation->volume_head;
+
+	struct Volume_Solver_c* head = NULL,
+	                      * prev = NULL;
+	for (const struct Volume* volume_base = volume_base_head; volume_base; volume_base = volume_base->next) {
+		struct Volume_Solver_c* curr = constructor_Volume_Solver_c(simulation,volume_base);
+
+		if (prev) {
+			curr->prev = prev;
+			curr->prev->next = curr;
+		}
+		prev = curr;
+
+		if (volume_base == volume_base_head)
+			head = curr;
+	}
+	return head;
+}
+
+/// \brief Destructor for the list.
+static void destructor_Volumes_Solver_c
+	(struct Solver_c*const solver_c ///< Standard.
+	)
+{
+	for (struct Volume_Solver_c* volume = solver_c->volume_head; volume; ) {
+		struct Volume_Solver_c* next = volume->next;
+		destructor_Volume_Solver_c(volume);
+		volume = next;
+	}
+}
+
+/** \brief Constructor.
+ *	Moves requires members of the base and constructs members which are necessary for the complex solver functions.
+ */
+static struct Volume_Solver_c* constructor_Volume_Solver_c
+	(const struct Simulation*const simulation, ///< Standard.
+	 const struct Volume*const volume_base     ///< The base \ref Volume.
+	)
+{
+	struct Volume_Solver_c*const volume = calloc(1 , sizeof *volume); // returned
+
+	const unsigned int P    = volume_base->P,
+	                   NvnG = volume_base->NvnG,
+	                   NvnS = volume_base->NvnS,
+	                   NvnI = (!volume_base->curved ? volume_base->element->NvnIs[P] : volume_base->element->NvnIc[P]);
 
 	const unsigned int d     = simulation->d,
 	                   n_var = simulation->n_var;
 
-	*(struct Multiarray_d**)&volume_s_c->xyz       = constructor_move_Multiarray_d_1_d('C',VOLUME->XYZ,2,NvnG,d);
-	*(struct Multiarray_d**)&volume_s_c->det_jv_vi = constructor_move_Multiarray_d_1_d('C',VOLUME->detJV_vI,2,NvnI,1);
-	*(struct Multiarray_d**)&volume_s_c->c_vi      = constructor_move_Multiarray_d_1_d('C',VOLUME->C_vI,3,NvnI,d,d);
+	*(struct Multiarray_d**)&volume->xyz       = constructor_move_Multiarray_d_1_d('C',volume_base->XYZ,2,NvnG,d);
+	*(struct Multiarray_d**)&volume->det_jv_vi = constructor_move_Multiarray_d_1_d('C',volume_base->detJV_vI,2,NvnI,1);
+	*(struct Multiarray_d**)&volume->c_vi      = constructor_move_Multiarray_d_1_d('C',volume_base->C_vI,3,NvnI,d,d);
+	// if (!collocated) op_M_inv
 
-	*(struct Multiarray_c**)&volume_s_c->w_hat   = constructor_empty_Multiarray_c_1('C',2,NvnS,n_var);
-	*(struct Multiarray_c**)&volume_s_c->q_hat   = constructor_empty_Multiarray_c_1('C',3,NvnS,n_var,d);
-	*(struct Multiarray_c**)&volume_s_c->q_hat_v = constructor_empty_Multiarray_c_1('C',3,NvnS,n_var,d);
-	*(struct Multiarray_c**)&volume_s_c->rhs     = constructor_empty_Multiarray_c_1('C',2,NvnS,n_var);
+	// Will likely require modification for HDG.
+	*(struct Multiarray_c**)&volume->w_hat   = constructor_empty_Multiarray_c_1('C',2,NvnS,n_var);
+	*(struct Multiarray_c**)&volume->q_hat   = constructor_empty_Multiarray_c_1('C',3,NvnS,n_var,d);
+	*(struct Multiarray_c**)&volume->q_hat_v = constructor_empty_Multiarray_c_1('C',3,NvnS,n_var,d);
+	*(struct Multiarray_c**)&volume->rhs     = constructor_empty_Multiarray_c_1('C',2,NvnS,n_var);
 
-	return volume_s_c;
+	return volume;
 }
 
-static void destructor_Volume_Solver_c (struct Volume_Solver_c* volume)
+/// \brief Destructor.
+static void destructor_Volume_Solver_c
+	(struct Volume_Solver_c* volume ///< Standard.
+	)
 {
 	destructor_Multiarray_d_1((struct Multiarray_d*)volume->xyz);
 	destructor_Multiarray_d_1((struct Multiarray_d*)volume->det_jv_vi);
@@ -115,36 +224,6 @@ static void destructor_Volume_Solver_c (struct Volume_Solver_c* volume)
 	free(volume);
 }
 
-static struct Volume_Solver_c* constructor_Volumes_Solver_c (const struct Simulation*const simulation)
-{
-	struct S_VOLUME* VOLUME_head = simulation->volume_head;
-
-	struct Volume_Solver_c* head = NULL,
-	                      * prev = NULL;
-	for (const struct S_VOLUME* VOLUME = VOLUME_head; VOLUME; VOLUME = VOLUME->next) {
-		struct Volume_Solver_c* curr = constructor_Volume_Solver_c(simulation,VOLUME);
-
-		if (prev)
-			prev->next = curr;
-
-		if (VOLUME == VOLUME_head)
-			head = curr;
-
-		prev = curr;
-	}
-
-	return head;
-}
-
-static void destructor_Volumes_Solver_c (struct Solver_c*const solver_c)
-{
-	struct Volume_Solver_c* next;
-	for (struct Volume_Solver_c* volume = solver_c->volume_head; volume; ) {
-		next = volume->next;
-		destructor_Volume_Solver_c(volume);
-		volume = next;
-	}
-}
 
 
 void compute_GradW_c (const struct S_solver_info*const solver_info, const char stage)

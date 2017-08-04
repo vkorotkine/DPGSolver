@@ -1420,9 +1420,9 @@ void compute_ELEMENT_Volume(const unsigned int EType)
 	NvnIs = ELEMENT->NvnIs;
 	w_vIs = ELEMENT->w_vIs[P];
 
-	double Volume = 0.0;
+	double volume = 0.0;
 	for (size_t n = 0; n < NvnIs[P]; n++)
-		Volume += w_vIs[n];
+		volume += w_vIs[n];
 
-	ELEMENT->Volume = Volume;
+	ELEMENT->volume = volume;
 }

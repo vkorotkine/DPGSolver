@@ -3,11 +3,9 @@
 
 #ifndef DPG__S_FACE_h__INCLUDED
 #define DPG__S_FACE_h__INCLUDED
+/// \file
 
 /*
- *	Purpose:
- *		Provide a (S_)truct to hold information relating to FACEs.
- *
  *	Comments:
  *		A FACE is a d-1 dimensional ELEMENT which exists on each face of the VOLUMEs in the mesh.
  *
@@ -64,6 +62,14 @@
 
 #include "S_VOLUME.h"
 
+/**\{ \name Alternate notation
+ *  Provide an alternate notation to be deleted after eventual code refactoring.
+ *  \todo Fix the notation.
+ */
+#define Face S_FACE
+///\}
+
+/** \brief Struct holding data related to the base Face. */
 struct S_FACE {
 	// Structures
 	unsigned int P, type, VfL, VfR, indexg, BC, IndOrdLR, IndOrdRL, level, update, adapt_type;

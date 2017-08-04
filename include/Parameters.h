@@ -198,7 +198,7 @@
 #define FLUX_CDG2 12
 
 // Solver Methods
-#define METHOD_DG   1
+#define METHOD_DG   1 /// \todo ToBeDeleted (Only need this when simulation is included -> defined in Simulation.h)
 #define METHOD_HDG  2
 
 // Tolerances

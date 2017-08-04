@@ -82,7 +82,7 @@ void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 	                   Nvar = d+2,
 	                   P    = VOLUME->P,
 	                   NvnS = ELEMENT->NvnS[P];
-	double const Volume         = ELEMENT->Volume,
+	double const volume         = ELEMENT->volume,
 	            *const TS       = ELEMENT->TS[P][P][0],
 	            *const TS_vB    = ELEMENT->TS_vB[P][P][0],
 	            *const TInvS_vB = ELEMENT->TInvS_vB[P][P][0];
@@ -95,7 +95,7 @@ void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 	       *const rho_hat = &What[0];
 
 	// Note compensation for orthonormal basis scaling
-	mm_d(CBCM,CBT,CBNT,1,1,NvnS,1.0/sqrt(Volume),0.0,&TS[0],rho_hat,&rhoAvg);
+	mm_d(CBCM,CBT,CBNT,1,1,NvnS,1.0/sqrt(volume),0.0,&TS[0],rho_hat,&rhoAvg);
 
 	if (rhoAvg < EPS_PHYS)
 		printf("Error: Average density approaching 0.\n"), EXIT_MSG;
@@ -138,7 +138,7 @@ void enforce_positivity_highorder(struct S_VOLUME *VOLUME)
 		double *const WAvg = malloc(Nvar * sizeof *WAvg); // free
 
 		// Note compensation for orthonormal basis scaling
-		mm_d(CBCM,CBT,CBNT,1,Nvar,NvnS,1.0/sqrt(Volume),0.0,&TS[0],What,WAvg);
+		mm_d(CBCM,CBT,CBNT,1,Nvar,NvnS,1.0/sqrt(volume),0.0,&TS[0],What,WAvg);
 
 		double pAvg;
 		compute_pressure(WAvg,&pAvg,d,1,1,'c');

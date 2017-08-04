@@ -10,6 +10,8 @@
 
 #include "Macros.h"
 
+// Multiarray_* ***************************************************************************************************** //
+
 struct Multiarray_d* constructor_move_Multiarray_d_1_d (const char layout, double*const data, const size_t order, ...)
 {
 	va_list ap;
@@ -56,3 +58,5 @@ size_t compute_size (const size_t order, const size_t *const extents)
 
 	return size;
 }
+
+// Matrix_* ********************************************************************************************************* //
