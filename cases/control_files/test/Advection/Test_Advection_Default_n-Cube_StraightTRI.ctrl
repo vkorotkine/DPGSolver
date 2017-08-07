@@ -1,29 +1,54 @@
+// Core parameters
 PDEName       Advection
 PDESpecifier  Steady/Default
-
 Geometry      n-Cube n-Cube/n-Cube2D.geo
 GeomSpecifier YL
 
-Dimension     2
+MeshPath    ../meshes/
+MeshType    TRI
+MeshCurving Straight
+MeshLevel   0
 
-MeshPath      ../meshes/
-MeshType      TRI
-MeshCurving   Straight
-MeshLevel     0
+Vectorized 0
+Collocated 0
 
-Form       Weak   // Options: Weak, (Strong)
-NodeType   GL-WSH // Options: GL/GLL-AO/WSH/EQ
-BasisType  Nodal  // Options: Nodal, Modal
+Adapt 3
+PMax  4
 
-Vectorized 0     // Options: 0, 1
-EFE        1     // Options: (0), 1
-Collocated 0     // Options: 0, 1
-Adapt      3     // Options: 0, 1, 2, 3
 
+// Curved geometry parameters
+p_geom_p 1
+
+blending         Szabo_Babuska
+blending_HO      1
+parameterization Normal
+
+// Solver parameters
+p_cub_x 2
+p_cub_p 0
+p_sol_v 1
+p_sol_f 1
+p_test  1
+
+Method 1
+
+NodeType  GL-WSH
+BasisType Nodal
+
+flux_inviscid Roe_Pike
+flux_viscous  BR2_scaled
+
+rk_explicit RK3_SSP
+
+// Adaptation parameters
+LevelsMax       7
+tet_refine_type TET8
+
+
+// ToBeDeleted
+Dimension  2
+Form       Weak
+EFE        1
+Restart    -1
+Testing    1
 PGlobal    1
-PMax       4
-LevelsMax  7
-
-Restart    -1    // Options: -1, 0, Iteration #
-
-Testing    1     // Options: 0, 1

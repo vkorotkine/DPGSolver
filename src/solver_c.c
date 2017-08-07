@@ -92,6 +92,7 @@ static void destructor_Elements_Solver_c
 		element = next;
 	}
 }
+void set_up_operators_Solver_c (const struct Simulation*const simulation, const struct Element*const element_base);
 
 /** \brief Constructor.
  *	Moves requires members of the base and constructs members which are necessary for the complex solver functions.
@@ -105,8 +106,6 @@ static struct Element_Solver_c* constructor_Element_Solver_c
 
 	//	Construct relevant operators
 	set_up_operators_Solver_c(simulation,element_base);
-DO_NOTHING_P(simulation); // Need simulation->collocated
-DO_NOTHING_P(element_base);
 	//	Move T
 	//	Construct:
 	//		- All cases: D_Strong
@@ -123,7 +122,7 @@ static void destructor_Element_Solver_c
 DO_NOTHING_P(element);
 }
 
-set_up_operators_Solver_c
+void set_up_operators_Solver_c
 	(const struct Simulation*const simulation, ///< Standard.
 	 const struct Element*const element_base   ///< The base \ref Element.
 	)
@@ -131,6 +130,8 @@ set_up_operators_Solver_c
 	// E_vs_vc(s/c) (Previously ChiS_vI(s/c)) - Only using (s)traight in the comments below.
 	// Needs Er_vs_vcs*T_vs_vs
 	// Needs cub data, basis evaluation.
+DO_NOTHING_P(simulation); // Need simulation->collocated
+DO_NOTHING_P(element_base);
 }
 
 

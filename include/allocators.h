@@ -7,6 +7,11 @@
 
 #include <stddef.h>
 
+///\{ \name String length definitions.
+#define STRLEN_MAX 508
+#define STRLEN_MIN 60
+///\}
+
 /// \brief Specifies the type of the variable to be used in allocator functions.
 enum TYPE {
 	CHAR_T,
@@ -37,7 +42,10 @@ void* mallocator
 	 ...                   ///< Sizes of the allocated variable for each level of dereferencing.
 	);
 
-///	\brief Performs deallocation.
+/**	\brief Performs deallocation.
+ *
+ *	`NULL` can be passed if `order` is 1.
+ */
 void deallocator
 	(void* a,              ///< Pointer to the variable to be freed.
 	 const enum TYPE type, ///< Defined in \ref mallocator.

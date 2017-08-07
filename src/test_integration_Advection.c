@@ -12,6 +12,7 @@
 
 #include "test_code_integration_conv_order.h"
 #include "test_code_integration_linearization.h"
+#include "test_integration_linearization.h"
 #include "test_support.h"
 
 #include "allocators.h"
@@ -48,6 +49,9 @@ if (TestHDG) {
 
 		// 2D (Mixed TRI/QUAD mesh)
 		test_linearization(&data_l,"test/Advection/Test_Advection_Default_n-Cube_StraightTRI");
+if (1) {
+		test_integration_linearization("test/Advection/Test_Advection_Default_n-Cube_StraightTRI");
+}
 		test_linearization(&data_l,"test/Advection/Test_Advection_Default_n-Cube_StraightQUAD");
 
 		test_print_warning("Advection curved element testing not yet implemented");

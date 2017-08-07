@@ -39,6 +39,10 @@ Linearization changes: (generalize to all functions in the future)
 
 
 Code refactoring:
+0) Make new base structs (Element, Volume, Face) and re-write code, reusing where possible with comments for required
+refactoring or depracation.
+
+
 1) The `Simulation` struct
 
 - Make a default ctrl file with all possible inputs but only require relevant parameters in individual ctrl files.

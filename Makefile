@@ -193,6 +193,9 @@ $(MESHVARIABLES) : $(CONTROL_FILES)
 	@echo
 
 
+.PHONY : doc
+doc:
+	cd doc && doxygen DPGSolver.cfg
 
 # Cleaning
 .PHONY : clean clean_test clean_code clean_exec clean_empty

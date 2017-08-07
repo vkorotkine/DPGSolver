@@ -219,16 +219,6 @@ static void setup_parameters_DG(void)
 	}
 
 	DB.PP = max(DB.PGlobal,u1);
-/*
-	if (DB.PGlobal == 0) {
-		DB.PP = DB.PGlobal+1;
-	} else {
-		if (PMax >= ML)
-			DB.PP = max(PMax-ML,DB.PGlobal);
-		else
-			DB.PP = DB.PGlobal;
-	}
-*/
 
 	// Geometry
 	PGs = 1;

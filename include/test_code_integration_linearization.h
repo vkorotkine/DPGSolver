@@ -9,7 +9,9 @@
 
 #include "petscmat.h"
 
-/// \brief Container for information relating to linearization testing.
+/** \brief Container for information relating to linearization testing.
+ *	\deprecated This struct.
+ */
 struct Test_Linearization {
 	const int nargc; ///< Standard.
 
