@@ -124,4 +124,44 @@ struct const_Matrix_d {
 	const double*const data;
 };
 
+/// \brief Constructs an empty \ref Matrix_d.
+struct Matrix_d* constructor_empty_Matrix_d
+	(const char layout,   ///< Defined in \ref Matrix_d.
+	 const size_t n_rows, ///< Value of extents[0].
+	 const size_t n_cols  ///< Value of extents[1].
+	);
+
+/** \brief Get pointer to row of row-major \ref Matrix_d.
+ *	\return Pointer to the first entry of the row.
+ */
+double* get_row_Matrix_d
+	(const size_t row,        ///< Desired row.
+	 const struct Matrix_d* a ///< Matrix.
+	);
+
+/// \brief Print a \ref Matrix_d to the terminal.
+void print_Matrix_d
+	(const struct Matrix_d*const a /// Standard.
+	);
+
+// Vector_* ********************************************************************************************************* //
+
+/// \brief 1-dimensional Multiarray.
+struct Vector_ui {
+	size_t extents[1];
+
+	bool    owns_data;
+	unsigned int* data;
+};
+
+/// \brief Constructs an empty \ref Vector_ui.
+struct Vector_ui* constructor_empty_Vector_ui
+	(const size_t n_rows ///< The value of extents[0].
+	);
+
+/// \brief Print a \ref Vector_ui to the terminal.
+void print_Vector_ui
+	(const struct Vector_ui*const a ///< Standard.
+	);
+
 #endif // DPG__containers_h__INCLUDED

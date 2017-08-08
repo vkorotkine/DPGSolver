@@ -10,6 +10,7 @@ MeshPath      ../meshes/
 MeshType      QUAD
 MeshCurving   Straight
 MeshLevel     1
+mesh_generator gmsh
 
 Form       Weak   // Options: Weak, (Strong)
 NodeType   GL-AO // Options: GL/GLL-AO/WSH/EQ

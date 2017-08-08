@@ -4,10 +4,8 @@ PDESpecifier  Steady/Default
 Geometry      n-Cube n-Cube/n-Cube2D.geo
 GeomSpecifier YL
 
-MeshPath    ../meshes/
-MeshType    TRI
-MeshCurving Straight
-MeshLevel   0
+Dimension 2
+MeshLevel 0
 
 Vectorized 0
 Collocated 0
@@ -15,6 +13,11 @@ Collocated 0
 Adapt 3
 PMax  4
 
+// Mesh parameters
+MeshPath       ../meshes/
+mesh_generator gmsh
+MeshType       TRI
+MeshCurving    Straight
 
 // Curved geometry parameters
 p_geom_p 1
@@ -46,7 +49,6 @@ tet_refine_type TET8
 
 
 // ToBeDeleted
-Dimension  2
 Form       Weak
 EFE        1
 Restart    -1

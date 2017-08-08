@@ -7,16 +7,30 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
+#include <stdbool.h>
 
 #include "Macros.h"
-#include "allocators.h"
+#include "file_processing.h"
+
+///< \brief Holds data relating to the mesh as read from the control file.
+struct Mesh_Ctrl_Data {
+	char mesh_path[STRLEN_MAX],      ///< Relative path to the meshes directory.
+	     mesh_elem_type[STRLEN_MIN], ///< Type of elements present in the mesh; used to set the mesh file name.
+	     mesh_curving[STRLEN_MAX],   /**< Type of the mesh.
+	                                  *   	Options: Straight, Curved, Parametric. */
+	     mesh_generator[STRLEN_MAX], /**< Type of mesh generator used.
+	                                  *   	Options: gmsh */
+	     mesh_extension[STRLEN_MIN]; ///< File extension (set based on \ref mesh_generator.
+};
 
 static void set_ctrl_name_full      (struct Simulation*const sim, const char*const ctrl_name);
-static void set_const_ui            (const char*const line, const unsigned int*const sim_var);
-static void set_const_char_p        (const char*const line, const char*const sim_var);
-static void set_const_bool          (const char*const line, const bool*const sim_var);
 static void set_string_associations (struct Simulation*const sim);
+static void set_mesh_extension      (const char*const mesh_generator, char*const mesh_extension);
+static void mesh_name_assemble
+	(const struct Simulation*const sim, const struct Mesh_Ctrl_Data*const mesh_ctrl_data);
 
+void set_mesh_name_full (const struct Simulation*const sim);
 
 
 struct Simulation* constructor_Simulation ()
@@ -33,48 +47,62 @@ void destructor_Simulation (struct Simulation* sim)
 
 void set_simulation_core (struct Simulation*const sim, const char*const ctrl_name)
 {
-/// \todo Potentially remove commented variables below.
+/// \todo Remove commented variables below.
 
-	// Open control file
 	set_ctrl_name_full(sim,ctrl_name);
-
-	FILE *ctrl_file = fopen(sim->ctrl_name_full,"r");
-	if (ctrl_file == NULL) {
-		printf("Control file: '%s' is not present.\n",sim->ctrl_name_full);
-		EXIT_UNSUPPORTED;
-	}
+	FILE *ctrl_file = fopen_checked(sim->ctrl_name_full);
 
 	// Read information
-	char* line = mallocator(CHAR_T,1,STRLEN_MAX); // free
-	while(fscanf(ctrl_file,"%[^\n]\n",line) == 1) {
-		if (strstr(line,"PDEName"))  set_const_char_p(line,sim->pde_name);
-		if (strstr(line,"PDESpec"))  set_const_char_p(line,sim->pde_spec);
-		if (strstr(line,"Geometry")) set_const_char_p(line,sim->geom_name);
-		if (strstr(line,"GeomSpec")) set_const_char_p(line,sim->geom_spec);
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),ctrl_file)) {
+		if (strstr(line,"PDEName"))  read_skip_const_c(line,sim->pde_name);
+		if (strstr(line,"PDESpec"))  read_skip_const_c(line,sim->pde_spec);
+		if (strstr(line,"Geometry")) read_skip_const_c(line,sim->geom_name);
+		if (strstr(line,"GeomSpec")) read_skip_const_c(line,sim->geom_spec);
 
-		if (strstr(line,"MeshPath"))    set_const_char_p(line,sim->mesh_path);
-		if (strstr(line,"MeshType"))    set_const_char_p(line,sim->mesh_elem_type);
-		if (strstr(line,"MeshCurving")) set_const_char_p(line,sim->mesh_type);
-		if (strstr(line,"MeshLevel"))   set_const_ui(line,&sim->ml);
+		if (strstr(line,"MeshLevel")) read_skip_const_ui(line,&sim->ml);
 
-//		if (strstr(line,"NodeType"))  set_const_char_p(line,sim->node_type);
-//		if (strstr(line,"BasisType")) set_const_char_p(line,sim->basis_type);
+//		if (strstr(line,"NodeType"))  read_skip_const_c(line,sim->node_type);
+//		if (strstr(line,"BasisType")) read_skip_const_c(line,sim->basis_type);
 
-		if (strstr(line,"Vectorized")) set_const_bool(line,&sim->vectorized);
-		if (strstr(line,"Collocated")) set_const_bool(line,&sim->collocated);
+//		if (strstr(line,"Vectorized")) read_skip_const_b(line,&sim->vectorized);
+//		if (strstr(line,"Collocated")) read_skip_const_b(line,&sim->collocated);
 
-//		if (strstr(line,"Dimension")) set_const_ui(line,&sim->d);
-//		if (strstr(line,"Method"))    set_const_ui(line,&sim->method);
-		if (strstr(line,"Adapt"))     set_const_ui(line,&sim->adapt_type);
-		if (strstr(line,"PGlobal"))   set_const_ui(line,&sim->p);
-		if (strstr(line,"PMax"))      set_const_ui(line,&sim->p_max);
+		if (strstr(line,"Dimension")) read_skip_const_ui(line,&sim->d);
+//		if (strstr(line,"Method"))    read_skip_const_ui(line,&sim->method);
+//		if (strstr(line,"Adapt"))     read_skip_const_ui(line,&sim->adapt_type);
+//		if (strstr(line,"PGlobal"))   read_skip_const_ui(line,&sim->p);
+//		if (strstr(line,"PMax"))      read_skip_const_ui(line,&sim->p_max);
 
-//		if (strstr(line,"LevelsMax")) set_const_ui(line,&sim->ml_max);
+//		if (strstr(line,"LevelsMax")) read_skip_const_ui(line,&sim->ml_max);
 	}
-	deallocator(line,CHAR_T,1,STRLEN_MAX); // free
+	fclose(ctrl_file);
+
+	set_mesh_name_full(sim);
 
 if (0)
 	set_string_associations(sim);
+}
+
+void set_mesh_name_full (const struct Simulation*const sim)
+{
+	struct Mesh_Ctrl_Data mesh_ctrl_data;
+
+	// Read ctrl info
+	FILE *ctrl_file = fopen_checked(sim->ctrl_name_full); // closed
+
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),ctrl_file)) {
+		if (strstr(line,"mesh_generator")) read_skip_c(line,mesh_ctrl_data.mesh_generator);
+		if (strstr(line,"MeshPath"))       read_skip_c(line,mesh_ctrl_data.mesh_path);
+		if (strstr(line,"MeshType"))       read_skip_c(line,mesh_ctrl_data.mesh_elem_type);
+		if (strstr(line,"MeshCurving"))    read_skip_c(line,mesh_ctrl_data.mesh_curving);
+	}
+	fclose(ctrl_file);
+
+	// Set the mesh name
+	set_mesh_extension(mesh_ctrl_data.mesh_generator,mesh_ctrl_data.mesh_extension);
+	mesh_name_assemble(sim,&mesh_ctrl_data);
 }
 
 
@@ -128,32 +156,6 @@ static void set_ctrl_name_full
 	strcat((char*)sim->ctrl_name_full,".ctrl");
 }
 
-/// \brief Set `const unsigned int` variable in \ref Simulation.
-static void set_const_ui
-	(const char*const line,           ///< Line from which to read data.
-	 const unsigned int*const sim_var ///< Simulation variable.
-	)
-{
-	sscanf(line,"%*s %u",(unsigned int*)sim_var);
-}
-
-/// \brief Set `const char*const` variable in \ref Simulation.
-static void set_const_char_p
-	(const char*const line,   ///< Line from which to read data.
-	 const char*const sim_var ///< Simulation variable.
-	)
-{
-	sscanf(line,"%*s %s",(char*)sim_var);
-}
-
-static void set_const_bool
-	(const char*const line,   ///< Line from which to read data.
-	 const bool*const sim_var ///< Simulation variable.
-	)
-{
-	sscanf(line,"%*s %d",(int*)&sim_var);
-}
-
 /** \brief Set associations between `char*` and `unsigned int` variables.
  *
  *	This is done such that if/switch conditions are simplified when these variables are used.
@@ -173,5 +175,35 @@ static void set_string_associations (struct Simulation*const sim)
 		*(unsigned int*)&sim->pde_index = PDE_NAVIERSTOKES;
 	else
 		EXIT_UNSUPPORTED;
+}
+
+/// \brief Set the mesh extension based on the mesh generator used.
+static void set_mesh_extension (const char*const mesh_generator, char*const mesh_extension)
+{
+	if (strstr(mesh_generator,"gmsh"))
+		strcpy(mesh_extension,".msh");
+	else
+		EXIT_UNSUPPORTED;
+}
+
+/// \brief Assemble the mesh name with full path and extension.
+static void mesh_name_assemble (const struct Simulation*const sim, const struct Mesh_Ctrl_Data*const mesh_ctrl_data)
+{
+	char* mesh_name_full = (char*)sim->mesh_name_full;
+
+	strcpy(mesh_name_full,"");
+	strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_path,false);
+	strcat_path_c(mesh_name_full,sim->geom_name,true);
+	strcat_path_c(mesh_name_full,sim->pde_name,true);
+	strcat_path_c(mesh_name_full,sim->pde_spec,true);
+	strcat_path_c(mesh_name_full,sim->geom_spec,true);
+	strcat_path_c(mesh_name_full,sim->geom_name,false);
+	strcat_path_ui(mesh_name_full,sim->d);
+	strcat_path_c(mesh_name_full,"D_",false);
+	strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_curving,false);
+	strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_elem_type,false);
+	strcat_path_ui(mesh_name_full,sim->ml);
+	strcat_path_c(mesh_name_full,"x",false);
+	strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_extension,false);
 }
 

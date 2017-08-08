@@ -35,16 +35,12 @@
 /// \brief Struct holding data related to the simulation.
 struct Simulation {
 	const char ctrl_name_full[STRLEN_MAX]; ///< Name of the control file (including the full path and file extension).
+	const char mesh_name_full[STRLEN_MAX]; ///< Name of the mesh    file (including the full path and file extension).
 
 	const char pde_name[STRLEN_MIN];  ///< Name of the Partial Differential Equation (PDE).
 	const char pde_spec[STRLEN_MAX];  ///< Additional specifications for the PDE.
 	const char geom_name[STRLEN_MAX]; ///< Name of the base geometry to be used for the domain.
 	const char geom_spec[STRLEN_MAX]; ///< Additional specifications for the geometry.
-
-	const char mesh_path[STRLEN_MAX];      ///< Relative path to the meshes directory.
-	const char mesh_elem_type[STRLEN_MAX]; ///< Type of elements present in the mesh; used to set the mesh file name.
-	const char mesh_type[STRLEN_MAX];      /**< Type of the mesh.
-	                                        *   	Options: Straight, Curved, Parametric. */
 
 	const char node_type[STRLEN_MIN];  /**< Type of nodes to be used for interpolation.
 	                                    *   The node_type input should be of the form (1)_(2) where (1) and (2) denote

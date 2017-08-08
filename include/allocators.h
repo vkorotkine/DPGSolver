@@ -15,6 +15,7 @@
 /// \brief Specifies the type of the variable to be used in allocator functions.
 enum TYPE {
 	CHAR_T,
+	UINT_T,
 	DOUBLE_T,
 };
 

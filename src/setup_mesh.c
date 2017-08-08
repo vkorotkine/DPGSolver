@@ -26,7 +26,6 @@
 
 void setup_mesh()
 {
-// Move this to be immediately adjacent to finalize_ELEMENTs when finished (ToBeDeleted)
 	initialize_ELEMENTs();
 
 	// Read mesh file

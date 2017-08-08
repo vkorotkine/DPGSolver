@@ -73,6 +73,24 @@ static void* mallocator_local (const enum TYPE type, const size_t order, const s
 			break;
 		}
 		break;
+	case UINT_T:
+		switch (order) {
+		case 1: {
+			unsigned int* A = malloc(N[index] * sizeof *A);
+			return A;
+			break;
+		} case 2: {
+			unsigned int** A = malloc(N[index] * sizeof *A);
+			for (size_t i = 0; i < N[index]; i++)
+				A[i] = mallocator_local(UINT_T,index,N);
+			return A;
+			break;
+		} case 0:
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+		break;
 	default:
 		EXIT_UNSUPPORTED;
 		break;

@@ -7,6 +7,9 @@
 #include <string.h>
 
 #include "Simulation.h"
+#include "set_up_mesh.h"
+
+#include "Macros.h"
 
 void test_integration_linearization (const char*const ctrl_name)
 {
@@ -14,9 +17,9 @@ void test_integration_linearization (const char*const ctrl_name)
 
 	set_simulation_core(simulation,ctrl_name);
 	// set up parameters when needed (geometry/solver/postprocessing)
-	set_up_mesh(simulation);
-	// re-write gmsh reader such that global variables are not used. Also do not include VeCGmsh in Element struct.
 
+	struct Mesh* mesh = set_up_mesh(simulation->mesh_name_full,simulation->d);
+DO_NOTHING_P(mesh);
 
 	destructor_Simulation(simulation);
 }

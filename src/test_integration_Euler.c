@@ -12,6 +12,7 @@
 #include "test_code_integration_equivalence_algorithms.h"
 #include "test_code_integration_linearization.h"
 #include "test_code_integration_conv_order.h"
+#include "test_integration_linearization.h"
 #include "test_support.h"
 
 #include "allocators.h"
@@ -19,8 +20,8 @@
 void test_integration_Euler(int nargc, char **argv)
 {
 	///	\todo Make this `const bool`.
-	bool run_tests_equivalence_real_complex = 1,
-	     run_tests_equivalence_algorithms   = 1,
+	bool run_tests_equivalence_real_complex = 0,
+	     run_tests_equivalence_algorithms   = 0,
 	     run_tests_linearization            = 1,
 	     run_tests_conv_order               = 1;
 
@@ -73,6 +74,9 @@ void test_integration_Euler(int nargc, char **argv)
 		                                     .argv_new  = argv_new,
 		                                     .test_name = test_name, };
 
+#if 1
+		test_integration_linearization("test/Euler/Test_Euler_PeriodicVortex_Stationary_QUAD");
+#endif
 		test_linearization(&data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
 		test_linearization(&data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED3D_TP");
 		test_linearization(&data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED3D_HW");

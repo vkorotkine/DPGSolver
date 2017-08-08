@@ -35,6 +35,7 @@
 #define PRINT_FILELINE   ({ printf("\n\nFILE: %s, FUNCTION: %s (LINE: %d)\n\n\n",__FILE__,__func__,__LINE__); })
 #define FREE_NULL(a)     ({free(a); a = NULL;})
 #define DO_NOTHING_P(p)  ({if(0) printf("%p",&p);})
+#define UNUSED(x)        (void)(x)
 
 
 #endif // DPG__Macros_h__INCLUDED

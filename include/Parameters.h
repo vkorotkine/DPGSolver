@@ -39,6 +39,8 @@
  *
  */
 
+#include "constants_gmsh.h"
+
 #ifndef TEST
 	#define TEST 0
 #endif // TEST
@@ -172,16 +174,6 @@
 #define GAMMA 1.4
 #define GM1   0.4
 #define GM3   -1.6
-
-// Element types (Gmsh convention)
-#define POINT 15
-#define LINE  1
-#define TRI   2
-#define QUAD  3
-#define TET   4
-#define HEX   5
-#define WEDGE 6
-#define PYR   7
 
 // Element classes
 #define C_TP    0
