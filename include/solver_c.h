@@ -7,7 +7,7 @@
  *	\brief Provide solver related functions for complex datatypes.
  */
 
-#include "containers.h"
+#include "Multiarray.h"
 #include "containers_c.h"
 #include "Simulation.h"
 #include "solver.h"

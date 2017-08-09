@@ -1,10 +1,10 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#ifndef DPG__containers_h__INCLUDED
-#define DPG__containers_h__INCLUDED
+#ifndef DPG__Multiarray_h__INCLUDED
+#define DPG__Multiarray_h__INCLUDED
 /**	\file
- *	\brief Provides standard containers and related functions.
+ *	\brief Provides Multiarray_\* containers and related functions.
  *
  *	\section s1 Functions
  *
@@ -16,7 +16,7 @@
  *			- Options: move
  *		- (1) : Optional `const` specifier
  *		- {2} : Type of container to be returned
- *			- Options: Multiarray_d, Matrix_d
+ *			- Options: Multiarray_d,
  *		- {3} : Level of dereferencing of the returned container object
  *		- (4) : Type of input from which the container is constructed
  *
@@ -57,12 +57,7 @@
 struct Multiarray_d;
 struct const_Multiarray_d;
 
-struct Matrix_d;
-struct const_Matrix_d;
-
-// Multiarray_* ***************************************************************************************************** //
-
-/// \brief Supports dense multi-dimensional (double) arrays.
+/// \brief Multiarray (`double`).
 struct Multiarray_d {
 	char layout; ///< The layout may be 'R'ow or 'C'olumn major.
 
@@ -74,7 +69,7 @@ struct Multiarray_d {
 	double* data;      ///< The data.
 };
 
-/// \brief \c const version of \ref Multiarray_d.
+/// \brief Multiarray (`const double`).
 struct const_Multiarray_d {
 	const char layout;
 
@@ -85,7 +80,13 @@ struct const_Multiarray_d {
 	const double*const data;
 };
 
-struct Multiarray_d* constructor_move_Multiarray_d_1_d (const char layout, double*const data, const size_t order, ...);
+/// \brief Move constructor for a \ref Multiarray_d\* from a `double*`.
+struct Multiarray_d* constructor_move_Multiarray_d_1_d
+	(const char layout,  ///< Defined in \ref Multiarray_d.
+	 double*const data,  ///< Defined in \ref Multiarray_d.
+	 const size_t order, ///< Defined in \ref Multiarray_d.
+	 ...                 ///< Variadic arguments holding the extents in each dimension.
+	);
 
 void destructor_Multiarray_d_1 (struct Multiarray_d* A);
 
@@ -102,66 +103,4 @@ size_t compute_size
 	 const size_t *const extents
 	);
 
-// Matrix_* ********************************************************************************************************* //
-
-/// \brief 2-dimensional version of \ref Multiarray_d.
-struct Matrix_d {
-	char layout;
-
-	size_t extents[2];
-
-	bool    owns_data;
-	double* data;
-};
-
-/// \brief const version of \ref Matrix_d.
-struct const_Matrix_d {
-	const char layout;
-
-	const size_t extents[2];
-
-	const bool         owns_data;
-	const double*const data;
-};
-
-/// \brief Constructs an empty \ref Matrix_d.
-struct Matrix_d* constructor_empty_Matrix_d
-	(const char layout,   ///< Defined in \ref Matrix_d.
-	 const size_t n_rows, ///< Value of extents[0].
-	 const size_t n_cols  ///< Value of extents[1].
-	);
-
-/** \brief Get pointer to row of row-major \ref Matrix_d.
- *	\return Pointer to the first entry of the row.
- */
-double* get_row_Matrix_d
-	(const size_t row,        ///< Desired row.
-	 const struct Matrix_d* a ///< Matrix.
-	);
-
-/// \brief Print a \ref Matrix_d to the terminal.
-void print_Matrix_d
-	(const struct Matrix_d*const a /// Standard.
-	);
-
-// Vector_* ********************************************************************************************************* //
-
-/// \brief 1-dimensional Multiarray.
-struct Vector_ui {
-	size_t extents[1];
-
-	bool    owns_data;
-	unsigned int* data;
-};
-
-/// \brief Constructs an empty \ref Vector_ui.
-struct Vector_ui* constructor_empty_Vector_ui
-	(const size_t n_rows ///< The value of extents[0].
-	);
-
-/// \brief Print a \ref Vector_ui to the terminal.
-void print_Vector_ui
-	(const struct Vector_ui*const a ///< Standard.
-	);
-
-#endif // DPG__containers_h__INCLUDED
+#endif // DPG__Multiarray_h__INCLUDED

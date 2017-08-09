@@ -19,17 +19,27 @@ FILE* fopen_checked
 
 // Reading data from the current line ******************************************************************************* //
 
+/// \brief Skip lines in a file while reading
+void skip_lines
+	(FILE* file,               ///< Standard.
+	 char**const line,         ///< The line.
+	 const size_t line_size,   ///< The size allocated for the line.
+	 const unsigned int n_skip ///< The number of lines to skip.
+	);
+
 /// \brief Discard values from the beginning of a line.
 void discard_line_values
-	(const char**const line, ///< The line.
-	 unsigned int n_discard  ///< The number of values to discard.
+	(char**const line,      ///< The line.
+	 unsigned int n_discard ///< The number of values to discard.
 	);
 
 /// \brief Reads values from the line into an `unsigned int` array.
 void read_line_values_ui
-	(const char**const line, ///< The line.
-	 unsigned int n_val,     ///< The number of values to read.
-	 unsigned int*const vals ///< The array in which to store the values.
+	(char**const line,         ///< The line.
+	 const unsigned int n_val, ///< The number of values to read.
+	 unsigned int*const vals,  ///< The array in which to store the values.
+	 const bool decrement      /**< Flag for whether decrementing by 1 is enabled. Used to convert from 1-based to
+	                            *   0-based indexing. */
 	);
 
 /// \brief Read a `char*`, skipping the first string.

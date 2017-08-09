@@ -23,7 +23,13 @@ FILE* fopen_checked (const char*const file_name_full)
 	return file;
 }
 
-void discard_line_values (const char**const line, unsigned int n_discard)
+void skip_lines (FILE* file, char**const line, const size_t line_size, const unsigned int n_skip)
+{
+	for (unsigned int n = 0; n < n_skip; n++)
+		fgets(*line,line_size,file);
+}
+
+void discard_line_values (char**const line, unsigned int n_discard)
 {
 	char* endptr = NULL;
 	for (unsigned int n = 0; n < n_discard; n++) {
@@ -32,12 +38,18 @@ void discard_line_values (const char**const line, unsigned int n_discard)
 	}
 }
 
-void read_line_values_ui (const char**const line, unsigned int n_val, unsigned int*const vals)
+void read_line_values_ui (char**const line, const unsigned int n_val, unsigned int*const vals, const bool decrement)
 {
 	char* endptr = NULL;
 	for (unsigned int n = 0; n < n_val; n++) {
 		vals[n] = strtol(*line,&endptr,10);
 		*line = endptr;
+
+		if (decrement) {
+			if (!(vals[n] > 0))
+				EXIT_UNSUPPORTED;
+			--vals[n];
+		}
 	}
 }
 
