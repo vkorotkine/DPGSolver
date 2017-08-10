@@ -6,6 +6,8 @@
 /**	\file
  *	\brief Provides Multiarray_\* containers and related functions.
  *
+ *	The Multiarray container has two specializations: Matrix (2D Multiarray) and Vector (1D Multiarray).
+ *
  *	\section s1 Functions
  *
  *	\subsection s1_1 Naming Convention
@@ -13,10 +15,12 @@
  *	Function names are chosen according to the following template: `constructor_{0}_(1)_{2}_{3}_{4}` where elements in
  *	curly braces {} are required and those in round brackets () are optional.
  *		- {0} : Type of constructor
- *			- Options: move
+ *			- default: reserve memory only for the container itself (not for the data).
+ *			- empty:   reserve memory storage for the data but do not set it.
+ *			- move:    move data to the container being constructed.
  *		- (1) : Optional `const` specifier
  *		- {2} : Type of container to be returned
- *			- Options: Multiarray_d,
+ *			- Options: Multiarray_d, Multiarray_Vector_ui
  *		- {3} : Level of dereferencing of the returned container object
  *		- (4) : Type of input from which the container is constructed
  *
@@ -80,6 +84,32 @@ struct const_Multiarray_d {
 	const double*const data;
 };
 
+/// \brief Multiarray (`Vector_ui*`).
+struct Multiarray_Vector_ui {
+	char layout;
+
+	size_t  order;
+	size_t* extents;
+
+	bool    owns_data;
+
+	struct Vector_ui** data;
+};
+
+/// \brief Multiarray (`const Vector_ui*`).
+struct const_Multiarray_Vector_ui {
+	const char layout;
+
+	const size_t  order;
+	const size_t*const  extents;
+
+	const bool    owns_data;
+
+	const struct Vector_ui*const*const data;
+};
+
+// Constructor/Destructor functions ********************************************************************************* //
+
 /// \brief Move constructor for a \ref Multiarray_d\* from a `double*`.
 struct Multiarray_d* constructor_move_Multiarray_d_1_d
 	(const char layout,  ///< Defined in \ref Multiarray_d.
@@ -88,8 +118,23 @@ struct Multiarray_d* constructor_move_Multiarray_d_1_d
 	 ...                 ///< Variadic arguments holding the extents in each dimension.
 	);
 
+/** \brief Constructs an empty \ref Multiarray_Vector_ui\*.
+ *	\note The layout is set to row-major by default as the data cannot be used directly as for the standard datatypes.
+ */
+struct Multiarray_Vector_ui* constructor_empty_Multiarray_Vector_ui_1
+	(const size_t order, ///< Order of the Multiarray.
+	 ...                 ///< Variadic arguments.
+	);
+
+/// \brief Move Constructor for a `const` \ref const_Multiarray_Vector_ui `*const` from a \ref Multiarray_Vector_ui\*.
+void const_constructor_const_Multiarray_Vector_ui_1_Multiarray_Vector_ui
+	(const struct const_Multiarray_Vector_ui*const* dest, ///< Destination.
+	 struct Multiarray_Vector_ui* src                     ///< Source.
+	);
+
 void destructor_Multiarray_d_1 (struct Multiarray_d* A);
 
+// Helper functions ************************************************************************************************* //
 
 /// \brief Set `extents` for a `Multiarray_*`.
 size_t* set_extents

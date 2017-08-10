@@ -6,28 +6,24 @@
 /**	\file
  *	\brief Provides functions for casting to const lvalues for standard datatypes.
  *
- *	The function naming convention is: const_cast_{0}_{1}
+ *	Variables with standard datatypes with higher levels of dereferencing than 0 should be placed in Multiarray
+ *	containers. Const cast functions are thus not provided for higher levels of dereferencing.
+ *
+ *	The function naming convention is: const_cast_{0}
  *		- {0} : Datatype.
- *			- Options: ui
- *		- {1} : Level of dereferencing.
+ *			- Options: ui.
  */
 
 #include <stddef.h>
 
-/// \brief Cast from `unsigned int*` to `const unsigned int*const`.
-void const_cast_ui_1
-	(const unsigned int*const* dest, ///< Destination.
-	 unsigned int* src               ///< Source.
-	);
-
-/// \brief Cast from `unsigned int**` to `const unsigned int*const*const`.
-void const_cast_ui_2
-	(const unsigned int*const*const* dest, ///< Destination.
-	 unsigned int** src                    ///< Source.
+/// \brief Cast from `unsigned int` to `const unsigned int`.
+void const_cast_ui
+	(const unsigned int* dest, ///< Destination.
+	 unsigned int src          ///< Source.
 	);
 
 /// \brief Cast from `size_t` to `const size_t`.
-void const_cast_st_0
+void const_cast_st
 	(const size_t* dest, ///< Destination.
 	 const size_t src    ///< Source.
 	);

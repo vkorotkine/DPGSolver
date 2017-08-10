@@ -22,11 +22,35 @@ struct Vector_ui {
 	unsigned int* data;
 };
 
+/// \brief Vector (`const unsigned int`).
+struct const_Vector_ui {
+	const size_t extents[1];
+
+	const bool    owns_data;
+	const unsigned int* data;
+};
+
 // Constructor/Destructor functions ********************************************************************************* //
 
-/// \brief Constructs an empty \ref Vector_ui.
-struct Vector_ui* constructor_empty_Vector_ui
-	(const size_t n_rows ///< The value of extents[0].
+/// \brief Constructs a default \ref Vector_ui\*\*.
+struct Vector_ui** constructor_default_Vector_ui_2
+	(const size_t n_dest ///< The number of \ref Vector_ui\* components in the returned container.
+	);
+
+/// \brief Constructs an empty \ref Vector_ui\*.
+struct Vector_ui* constructor_empty_Vector_ui_1
+	(const size_t ext_0 ///< The value of extents[0].
+	);
+
+/// \brief Move Constructor for a \ref const_Vector_ui.
+struct const_Vector_ui* constructor_move_const_Vector_ui_1_Vector_ui
+	(struct Vector_ui*const src ///< Standard.
+	);
+
+/// \brief Move Constructor for a `const` \ref const_Vector_ui `*const` from a \ref Vector_ui\*.
+void const_constructor_const_Vector_ui_1_Vector_ui
+	(const struct const_Vector_ui*const* dest, ///< Destination.
+	 struct Vector_ui* src                     ///< Source.
 	);
 
 // Helper functions ************************************************************************************************* //

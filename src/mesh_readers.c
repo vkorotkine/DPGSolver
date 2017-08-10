@@ -9,6 +9,7 @@
 
 #include "file_processing.h"
 #include "allocators.h"
+#include "Multiarray.h"
 #include "Matrix.h"
 #include "Vector.h"
 #include "const_cast.h"
@@ -45,10 +46,10 @@ static void                 skip_periodic_entity (FILE* file, char**const line, 
 struct Element_Data {
 	size_t n_elems;
 
-	unsigned int*  elem_types,
-	            ** elem_tags;
+	struct Vector_ui* elem_types;
+	struct Matrix_ui* elem_tags;
 
-	struct Vector_ui** node_nums;
+	struct Multiarray_Vector_ui* node_nums;
 };
 
 /// Expected number of tags for elements in the gmsh file.
@@ -61,11 +62,31 @@ static struct Element_Data* constructor_Element_Data (const unsigned int n_elems
 
 	elem_data->n_elems = n_elems;
 
-	elem_data->elem_types = mallocator(UINT_T,1,n_elems);             // keep
-	elem_data->elem_tags  = mallocator(UINT_T,2,n_elems,GMSH_N_TAGS); // keep
-	elem_data->node_nums  = malloc(n_elems * sizeof *(elem_data->node_nums)); // keep
+	elem_data->elem_types = constructor_empty_Vector_ui_1(n_elems);                 // keep
+	elem_data->elem_tags  = constructor_empty_Matrix_ui_1('R',n_elems,GMSH_N_TAGS); // keep
+	elem_data->node_nums  = constructor_empty_Multiarray_Vector_ui_1(1,n_elems);    // keep
 
 	return elem_data;
+}
+
+static struct Mesh_Data* construct_const_mesh_data
+	(struct Matrix_d* nodes, struct Element_Data* element_data, struct Matrix_ui* periodic_corr)
+{
+	struct Mesh_Data* mesh_data = malloc(1 * sizeof *mesh_data);
+
+	const_constructor_const_Matrix_d_1_Matrix_d(&mesh_data->nodes,nodes);
+
+	const_constructor_const_Vector_ui_1_Vector_ui(&mesh_data->elem_types,element_data->elem_types);
+	const_constructor_const_Matrix_ui_1_Matrix_ui(&mesh_data->elem_tags,element_data->elem_tags);
+	const_constructor_const_Multiarray_Vector_ui_1_Multiarray_Vector_ui(&mesh_data->node_nums,element_data->node_nums);
+
+	const_constructor_const_Matrix_ui_1_Matrix_ui(&mesh_data->periodic_corr,periodic_corr);
+
+	destructor_Matrix_d_1(nodes);
+	free(element_data);
+	destructor_Matrix_ui_1(periodic_corr);
+
+	return mesh_data;
 }
 
 /** /brief Read data from a mesh in gmsh format.
@@ -117,24 +138,10 @@ static struct Mesh_Data* mesh_reader_gmsh (const char*const mesh_name_full, cons
 	}
 	fclose(mesh_file);
 
-	struct Mesh_Data* mesh_data = malloc(1 * sizeof *mesh_data);
+	struct Mesh_Data* mesh_data = construct_const_mesh_data(nodes,element_data,periodic_corr);
 
-	const_cast_st_0(&mesh_data->n_elems,element_data->n_elems);
-
-	const_constructor_const_Matrix_d_1_Matrix_d(&mesh_data->nodes,nodes);
-
-	const_cast_ui_1(&mesh_data->elem_types,element_data->elem_types);
-	const_cast_ui_2(&mesh_data->elem_tags,element_data->elem_tags);
-	const_constructor_const_Vector_ui_2_Vector_ui(&mesh_data->node_nums,element_data->node_nums,element_data->n_elems);
-
-	const_constructor_const_Matrix_ui_1_Matrix_ui(&mesh_data->periodic_corr,periodic_corr);
-
-	destructor_Matrix_d_1(nodes);
-	free(element_data);
-	destructor_Matrix_ui_1(periodic_corr);
-
-	print_const_Matrix_d(mesh_data->nodes);
-
+print_const_Matrix_d(mesh_data->nodes);
+print_const_Matrix_ui(mesh_data->elem_tags);
 EXIT_UNSUPPORTED;
 
 	return mesh_data;
@@ -148,7 +155,7 @@ static struct Matrix_d* read_nodes (FILE* mesh_file, const unsigned int d)
 
 	fgets(line,sizeof(line),mesh_file);
 	size_t n_nodes = strtol(line,&endptr,10);
-	struct Matrix_d* nodes = constructor_empty_Matrix_d('R',n_nodes,d);
+	struct Matrix_d* nodes = constructor_empty_Matrix_d_1('R',n_nodes,d);
 
 	size_t row = 0;
 	while (fgets(line,sizeof(line),mesh_file)) {
@@ -225,7 +232,7 @@ static struct Matrix_ui* read_periodic (FILE* mesh_file, const unsigned int d)
 	if (n_periodic == 0)
 		EXIT_UNSUPPORTED;
 
-	struct Matrix_ui* periodic_corr = constructor_empty_Matrix_ui('R',n_periodic,2);
+	struct Matrix_ui* periodic_corr = constructor_empty_Matrix_ui_1('R',n_periodic,2);
 
 	size_t row = 0;
 	do {
@@ -264,20 +271,19 @@ static void fill_elements (const size_t row, struct Element_Data*const elem_data
 
 	discard_line_values(&line,1);
 
-	read_line_values_ui(&line,1,&elem_data->elem_types[row],false);
+	read_line_values_ui(&line,1,&elem_data->elem_types->data[row],false);
 
 	read_line_values_ui(&line,1,&n_tags,false);
-	if (n_tags != GMSH_N_TAGS)
+	if (n_tags != elem_data->elem_tags->extents[1])
 		EXIT_UNSUPPORTED;
 
-	for (size_t n = 0; n < n_tags; n++)
-		read_line_values_ui(&line,1,&elem_data->elem_tags[n][row],false);
+	read_line_values_ui(&line,n_tags,get_row_Matrix_ui(row,elem_data->elem_tags),false);
 
-	unsigned int n_nodes = get_n_nodes(elem_data->elem_types[row]);
-	elem_data->node_nums[row] = constructor_empty_Vector_ui(n_nodes); // keep
+	unsigned int n_nodes = get_n_nodes(elem_data->elem_types->data[row]);
+	elem_data->node_nums->data[row] = constructor_empty_Vector_ui_1(n_nodes); // keep
 
-	read_line_values_ui(&line,n_nodes,elem_data->node_nums[row]->data,true);
-	reorder_nodes(elem_data->elem_types[row],elem_data->node_nums[row]);
+	read_line_values_ui(&line,n_nodes,elem_data->node_nums->data[row]->data,true);
+	reorder_nodes(elem_data->elem_types->data[row],elem_data->node_nums->data[row]);
 }
 
 /** \brief Get the number of nodes specifying the geometry for the element of the given type.

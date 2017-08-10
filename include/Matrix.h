@@ -56,55 +56,55 @@ struct const_Matrix_ui {
 
 // Constructor/Destructor functions ********************************************************************************* //
 
-/// \brief Constructs an empty \ref Matrix_d.
-struct Matrix_d* constructor_empty_Matrix_d
+/// \brief Constructs an empty \ref Matrix_d\*.
+struct Matrix_d* constructor_empty_Matrix_d_1
 	(const char layout,  ///< Standard.
 	 const size_t ext_0, ///< Standard.
 	 const size_t ext_1  ///< Standard.
 	);
 
-/// \brief Move Constructor for a \ref const_Matrix_d.
+/// \brief Move Constructor for a \ref const_Matrix_d\*.
 struct const_Matrix_d* constructor_move_const_Matrix_d_1_Matrix_d
 	(struct Matrix_d*const src ///< Source Matrix.
 	);
 
-/// \brief Move Constructor for a `const` \ref const_Matrix_d `*const` from a \ref Matrix_d.
+/// \brief Move Constructor for a `const` \ref const_Matrix_d `*const` from a \ref Matrix_d\*.
 void const_constructor_const_Matrix_d_1_Matrix_d
 	(const struct const_Matrix_d*const* dest, ///< Destination.
 	 struct Matrix_d* src                     ///< Source.
 	);
 
-/// \brief Destructs a \ref Matrix_d.
+/// \brief Destructs a \ref Matrix_d\*.
 void destructor_Matrix_d_1
 	(struct Matrix_d* a ///< Standard.
 	);
 
-/// \brief Constructs an empty \ref Matrix_ui.
-struct Matrix_ui* constructor_empty_Matrix_ui
+/// \brief Constructs an empty \ref Matrix_ui\*.
+struct Matrix_ui* constructor_empty_Matrix_ui_1
 	(const char layout,  ///< Standard.
 	 const size_t ext_0, ///< Standard.
 	 const size_t ext_1  ///< Standard.
 	);
 
-/// \brief Move Constructor for a \ref const_Matrix_ui.
+/// \brief Move Constructor for a \ref const_Matrix_ui\*.
 struct const_Matrix_ui* constructor_move_const_Matrix_ui_1_Matrix_ui
 	(struct Matrix_ui*const src ///< Source Matrix.
 	);
 
-/// \brief Move Constructor for a `const` \ref const_Matrix_ui `*const` from a \ref Matrix_ui.
+/// \brief Move Constructor for a `const` \ref const_Matrix_ui `*const` from a \ref Matrix_ui\*.
 void const_constructor_const_Matrix_ui_1_Matrix_ui
 	(const struct const_Matrix_ui*const* dest, ///< Destination.
 	 struct Matrix_ui* src                     ///< Source.
 	);
 
-/// \brief Destructs a \ref Matrix_ui.
+/// \brief Destructs a \ref Matrix_ui\*.
 void destructor_Matrix_ui_1
 	(struct Matrix_ui* a ///< Standard.
 	);
 
 // Helper functions ************************************************************************************************* //
 
-/** \brief Get pointer to row of row-major \ref Matrix_d.
+/** \brief Get pointer to row of row-major \ref Matrix_d\*.
  *	\return Pointer to the first entry of the row.
  */
 double* get_row_Matrix_d
@@ -112,7 +112,7 @@ double* get_row_Matrix_d
 	 const struct Matrix_d* a ///< Matrix.
 	);
 
-/** \brief Get pointer to row of row-major \ref Matrix_ui.
+/** \brief Get pointer to row of row-major \ref Matrix_ui\*.
  *	\return Pointer to the first entry of the row.
  */
 unsigned int* get_row_Matrix_ui
@@ -122,16 +122,25 @@ unsigned int* get_row_Matrix_ui
 
 // Printing functions *********************************************************************************************** //
 
-/// \brief Print a \ref Matrix_d to the terminal.
+/// \brief Print a \ref Matrix_d\* to the terminal.
 void print_Matrix_d
 	(const struct Matrix_d*const a ///< Standard.
 	);
 
-void print_const_Matrix_d (const struct const_Matrix_d*const a);
+/// \brief Print a \ref const_Matrix_d to the terminal.
+void print_const_Matrix_d
+	(const struct const_Matrix_d*const a ///< Standard.
+	);
 
-/// \brief Print a \ref Matrix_ui to the terminal.
+/// \brief Print a \ref Matrix_ui\* to the terminal.
 void print_Matrix_ui
 	(const struct Matrix_ui*const a ///< Standard.
 	);
+
+/// \brief Print a \ref const_Matrix_ui\* to the terminal.
+void print_const_Matrix_ui
+	(const struct const_Matrix_ui*const a ///< Standard.
+	);
+
 
 #endif // DPG__Matrix_h__INCLUDED

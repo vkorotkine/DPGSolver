@@ -17,6 +17,7 @@ enum TYPE {
 	CHAR_T,
 	UINT_T,
 	DOUBLE_T,
+	SIZE_T_T,
 };
 
 /**	\brief Performs allocation using malloc.

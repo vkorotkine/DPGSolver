@@ -21,14 +21,11 @@
 
 /// \brief Holds data read from the mesh file.
 struct Mesh_Data {
-	const size_t n_elems; /**< The number of elements read from the mesh file.
-	                       *   \note Includes elements of all dimension (not only Volumes).  */
-
 	const struct const_Matrix_d*const nodes; ///< The xyz coordinates of the mesh elements.
 
-	const unsigned int*const                 elem_types; ///< The list of element types.
-	const unsigned int*const*const           elem_tags;  ///< The list of element tags.
-	const struct const_Vector_ui*const*const node_nums;  ///< The list of node numbers for the elements.
+	const struct const_Vector_ui*const       elem_types;      ///< The list of element types.
+	const struct const_Matrix_ui*const       elem_tags;       ///< The list of element tags.
+	const struct const_Multiarray_Vector_ui*const node_nums; ///< The list of node numbers for the elements.
 
 	const struct const_Matrix_ui*const periodic_corr; ///< The periodic entity correspondence.
 };

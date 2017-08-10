@@ -10,18 +10,19 @@
 #include <math.h>
 
 #include "Macros.h"
+#include "allocators.h"
 
-static struct Matrix_d make_local_Matrix_d
+static struct Matrix_d make_local_Matrix_d_0
 	(const char layout, const size_t ext_0, const size_t ext_1, const bool owns_data, double*const data);
-static struct Matrix_ui make_local_Matrix_ui
+static struct Matrix_ui make_local_Matrix_ui_0
 	(const char layout, const size_t ext_0, const size_t ext_1, const bool owns_data, unsigned int*const data);
 
 
-struct Matrix_d* constructor_empty_Matrix_d (const char layout, const size_t ext_0, const size_t ext_1)
+struct Matrix_d* constructor_empty_Matrix_d_1 (const char layout, const size_t ext_0, const size_t ext_1)
 {
-	double* data = malloc(ext_0*ext_1 * sizeof *data); // keep
+	double* data = mallocator(DOUBLE_T,1,ext_0*ext_1); // keep
 
-	struct Matrix_d local = make_local_Matrix_d(layout,ext_0,ext_1,true,data);
+	struct Matrix_d local = make_local_Matrix_d_0(layout,ext_0,ext_1,true,data);
 
 	struct Matrix_d* a = malloc(sizeof *a); // returned
 	memcpy(a,&local,sizeof *a);
@@ -33,7 +34,7 @@ struct const_Matrix_d* constructor_move_const_Matrix_d_1_Matrix_d (struct Matrix
 {
 	src->owns_data = false;
 
-	struct Matrix_d local = make_local_Matrix_d(src->layout,src->extents[0],src->extents[1],true,src->data);
+	struct Matrix_d local = make_local_Matrix_d_0(src->layout,src->extents[0],src->extents[1],true,src->data);
 
 	struct const_Matrix_d* a = malloc(sizeof *a); // returned
 	memcpy(a,&local,sizeof *a);
@@ -54,11 +55,11 @@ void destructor_Matrix_d_1 (struct Matrix_d* a)
 	FREE_NULL(a);
 }
 
-struct Matrix_ui* constructor_empty_Matrix_ui (const char layout, const size_t ext_0, const size_t ext_1)
+struct Matrix_ui* constructor_empty_Matrix_ui_1 (const char layout, const size_t ext_0, const size_t ext_1)
 {
-	unsigned int* data = malloc(ext_0*ext_1 * sizeof *data); // keep
+	unsigned int* data = mallocator(UINT_T,1,ext_0*ext_1); // keep
 
-	struct Matrix_ui local = make_local_Matrix_ui(layout,ext_0,ext_1,true,data);
+	struct Matrix_ui local = make_local_Matrix_ui_0(layout,ext_0,ext_1,true,data);
 
 	struct Matrix_ui* a = malloc(sizeof *a); // returned
 	memcpy(a,&local,sizeof *a);
@@ -70,7 +71,7 @@ struct const_Matrix_ui* constructor_move_const_Matrix_ui_1_Matrix_ui (struct Mat
 {
 	src->owns_data = false;
 
-	struct Matrix_ui local = make_local_Matrix_ui(src->layout,src->extents[0],src->extents[1],true,src->data);
+	struct Matrix_ui local = make_local_Matrix_ui_0(src->layout,src->extents[0],src->extents[1],true,src->data);
 
 	struct const_Matrix_ui* a = malloc(sizeof *a); // returned
 	memcpy(a,&local,sizeof *a);
@@ -145,7 +146,7 @@ void print_Matrix_d (const struct Matrix_d*const a)
 
 void print_const_Matrix_d (const struct const_Matrix_d*const a)
 {
-	struct Matrix_d local = make_local_Matrix_d(a->layout,a->extents[0],a->extents[1],false,(double*)a->data);
+	struct Matrix_d local = make_local_Matrix_d_0(a->layout,a->extents[0],a->extents[1],false,(double*)a->data);
 	print_Matrix_d(&local);
 }
 
@@ -183,10 +184,16 @@ void print_Matrix_ui (const struct Matrix_ui*const a)
 	}
 }
 
+void print_const_Matrix_ui (const struct const_Matrix_ui*const a)
+{
+	struct Matrix_ui local = make_local_Matrix_ui_0(a->layout,a->extents[0],a->extents[1],false,(unsigned int*)a->data);
+	print_Matrix_ui(&local);
+}
+
 // Static functions ************************************************************************************************* //
 
-/// \brief Make a local copy of a \ref Matrix_d.
-static struct Matrix_d make_local_Matrix_d
+/// \brief Make a local copy of a \ref Matrix_d (static memory).
+static struct Matrix_d make_local_Matrix_d_0
 	(const char layout,    ///< Standard.
 	 const size_t ext_0,   ///< Standard.
 	 const size_t ext_1,   ///< Standard.
@@ -203,8 +210,8 @@ static struct Matrix_d make_local_Matrix_d
 	return local;
 }
 
-/// \brief Make a local copy of a \ref Matrix_ui.
-static struct Matrix_ui make_local_Matrix_ui
+/// \brief Make a local copy of a \ref Matrix_ui (static memory).
+static struct Matrix_ui make_local_Matrix_ui_0
 	(const char layout,      ///< Standard.
 	 const size_t ext_0,     ///< Standard.
 	 const size_t ext_1,     ///< Standard.
