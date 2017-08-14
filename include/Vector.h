@@ -34,23 +34,29 @@ struct const_Vector_ui {
 
 /// \brief Constructs a default \ref Vector_ui\*\*.
 struct Vector_ui** constructor_default_Vector_ui_2
-	(const size_t n_dest ///< The number of \ref Vector_ui\* components in the returned container.
+	(const size_t n_dest ///< The number of \ref Vector_ui\* components.
 	);
 
 /// \brief Constructs an empty \ref Vector_ui\*.
-struct Vector_ui* constructor_empty_Vector_ui_1
+struct Vector_ui* constructor_empty_Vector_ui
 	(const size_t ext_0 ///< The value of extents[0].
 	);
 
-/// \brief Move Constructor for a \ref const_Vector_ui.
-struct const_Vector_ui* constructor_move_const_Vector_ui_1_Vector_ui
-	(struct Vector_ui*const src ///< Standard.
-	);
-
-/// \brief Move Constructor for a `const` \ref const_Vector_ui `*const` from a \ref Vector_ui\*.
-void const_constructor_const_Vector_ui_1_Vector_ui
+/// \brief Move Constructor for a `const` \ref const_Vector_ui `*const`.
+void const_constructor_move_Vector_ui
 	(const struct const_Vector_ui*const* dest, ///< Destination.
 	 struct Vector_ui* src                     ///< Source.
+	);
+
+/// \brief Destructs a \ref Vector_ui\*.
+void destructor_Vector_ui
+	(struct Vector_ui* a ///< Standard.
+	);
+
+/// \brief Destructs a \ref Vector_ui\*\*.
+void destructor_Vector_ui_2
+	(struct Vector_ui** a, ///< Standard.
+	 const size_t n_src    ///< The number of \ref Vector_ui\* components.
 	);
 
 // Helper functions ************************************************************************************************* //
@@ -64,11 +70,27 @@ void reorder_Vector_ui
 	 unsigned int*const ordering
 	);
 
+/// \brief Reserve space for a \ref Vector_ui\*.
+void reserve_Vector_ui
+	(struct Vector_ui*const a, ///< Standard.
+	 const size_t ext_0        ///< New value for extents[0].
+	);
+
+/// \brief Set all data entries to zero.
+void set_to_zero_Vector_ui
+	(struct Vector_ui*const a ///< Standard.
+	);
+
 // Printing functions *********************************************************************************************** //
 
-/// \brief Print a \ref Vector_ui to the terminal.
+/// \brief Print a \ref Vector_ui\* to the terminal.
 void print_Vector_ui
 	(const struct Vector_ui*const a ///< Standard.
+	);
+
+/// \brief Print a \ref const_Vector_ui\* to the terminal.
+void print_const_Vector_ui
+	(const struct const_Vector_ui*const a ///< Standard.
 	);
 
 #endif // DPG__Vector_h__INCLUDED

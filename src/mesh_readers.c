@@ -3,19 +3,19 @@
 ///	\file
 
 #include "mesh_readers.h"
+#include "Multiarray.h"
+#include "Matrix.h"
+#include "Vector.h"
 
 #include <stdlib.h>
 #include <string.h>
 
+#include "Macros.h"
 #include "file_processing.h"
 #include "allocators.h"
-#include "Multiarray.h"
-#include "Matrix.h"
-#include "Vector.h"
 #include "const_cast.h"
 
 #include "constants_gmsh.h"
-#include "Macros.h"
 
 static struct Mesh_Data* mesh_reader_gmsh (const char*const mesh_name_full, const unsigned int d);
 
@@ -25,6 +25,19 @@ struct Mesh_Data* mesh_reader (const char*const mesh_name_full, const unsigned i
 		return mesh_reader_gmsh(mesh_name_full,d);
 
 	EXIT_UNSUPPORTED;
+}
+
+void destructor_Mesh_Data (struct Mesh_Data* mesh_data)
+{
+	destructor_Matrix_d((struct Matrix_d*)mesh_data->nodes);
+
+	destructor_Vector_ui((struct Vector_ui*)mesh_data->elem_types);
+	destructor_Matrix_ui((struct Matrix_ui*)mesh_data->elem_tags);
+	destructor_Multiarray_Vector_ui((struct Multiarray_Vector_ui*)mesh_data->node_nums);
+
+	destructor_Matrix_ui((struct Matrix_ui*)mesh_data->periodic_corr);
+
+	free(mesh_data);
 }
 
 
@@ -62,29 +75,27 @@ static struct Element_Data* constructor_Element_Data (const unsigned int n_elems
 
 	elem_data->n_elems = n_elems;
 
-	elem_data->elem_types = constructor_empty_Vector_ui_1(n_elems);                 // keep
-	elem_data->elem_tags  = constructor_empty_Matrix_ui_1('R',n_elems,GMSH_N_TAGS); // keep
-	elem_data->node_nums  = constructor_empty_Multiarray_Vector_ui_1(1,n_elems);    // keep
+	elem_data->elem_types = constructor_empty_Vector_ui(n_elems);                 // keep
+	elem_data->elem_tags  = constructor_empty_Matrix_ui('R',n_elems,GMSH_N_TAGS); // keep
+	elem_data->node_nums  = constructor_empty_Multiarray_Vector_ui(1,n_elems);    // keep
 
 	return elem_data;
 }
 
-static struct Mesh_Data* construct_const_mesh_data
-	(struct Matrix_d* nodes, struct Element_Data* element_data, struct Matrix_ui* periodic_corr)
+static struct Mesh_Data* constructor_Mesh_Data
+	(struct Matrix_d* nodes, struct Element_Data* elem_data, struct Matrix_ui* periodic_corr)
 {
 	struct Mesh_Data* mesh_data = malloc(1 * sizeof *mesh_data);
 
-	const_constructor_const_Matrix_d_1_Matrix_d(&mesh_data->nodes,nodes);
+	const_constructor_move_Matrix_d(&mesh_data->nodes,nodes);
 
-	const_constructor_const_Vector_ui_1_Vector_ui(&mesh_data->elem_types,element_data->elem_types);
-	const_constructor_const_Matrix_ui_1_Matrix_ui(&mesh_data->elem_tags,element_data->elem_tags);
-	const_constructor_const_Multiarray_Vector_ui_1_Multiarray_Vector_ui(&mesh_data->node_nums,element_data->node_nums);
+	const_constructor_move_Vector_ui(&mesh_data->elem_types,elem_data->elem_types);
+	const_constructor_move_Matrix_ui(&mesh_data->elem_tags,elem_data->elem_tags);
+	const_constructor_move_Multiarray_Vector_ui(&mesh_data->node_nums,elem_data->node_nums);
 
-	const_constructor_const_Matrix_ui_1_Matrix_ui(&mesh_data->periodic_corr,periodic_corr);
+	const_constructor_move_Matrix_ui(&mesh_data->periodic_corr,periodic_corr);
 
-	destructor_Matrix_d_1(nodes);
-	free(element_data);
-	destructor_Matrix_ui_1(periodic_corr);
+	free(elem_data);
 
 	return mesh_data;
 }
@@ -120,7 +131,7 @@ static struct Mesh_Data* construct_const_mesh_data
 static struct Mesh_Data* mesh_reader_gmsh (const char*const mesh_name_full, const unsigned int d)
 {
 	struct Matrix_d*     nodes = NULL;
-	struct Element_Data* element_data = NULL;
+	struct Element_Data* elem_data = NULL;
 	struct Matrix_ui*    periodic_corr = NULL;
 
 	FILE* mesh_file = fopen_checked(mesh_name_full); // closed
@@ -128,21 +139,17 @@ static struct Mesh_Data* mesh_reader_gmsh (const char*const mesh_name_full, cons
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),mesh_file)) {
 		if (strstr(line,"$Nodes"))
-			nodes = read_nodes(mesh_file,d); // destructed
+			nodes = read_nodes(mesh_file,d); // keep
 
 		if (strstr(line,"$Elements"))
-			element_data = read_elements(mesh_file); // moved members; freed struct
+			elem_data = read_elements(mesh_file); // keep
 
 		if (strstr(line,"Periodic"))
-			periodic_corr = read_periodic(mesh_file,d); // destructed
+			periodic_corr = read_periodic(mesh_file,d); // keep
 	}
 	fclose(mesh_file);
 
-	struct Mesh_Data* mesh_data = construct_const_mesh_data(nodes,element_data,periodic_corr);
-
-print_const_Matrix_d(mesh_data->nodes);
-print_const_Matrix_ui(mesh_data->elem_tags);
-EXIT_UNSUPPORTED;
+	struct Mesh_Data* mesh_data = constructor_Mesh_Data(nodes,elem_data,periodic_corr); // keep
 
 	return mesh_data;
 }
@@ -155,7 +162,7 @@ static struct Matrix_d* read_nodes (FILE* mesh_file, const unsigned int d)
 
 	fgets(line,sizeof(line),mesh_file);
 	size_t n_nodes = strtol(line,&endptr,10);
-	struct Matrix_d* nodes = constructor_empty_Matrix_d_1('R',n_nodes,d);
+	struct Matrix_d* nodes = constructor_empty_Matrix_d('R',n_nodes,d);
 
 	size_t row = 0;
 	while (fgets(line,sizeof(line),mesh_file)) {
@@ -232,7 +239,7 @@ static struct Matrix_ui* read_periodic (FILE* mesh_file, const unsigned int d)
 	if (n_periodic == 0)
 		EXIT_UNSUPPORTED;
 
-	struct Matrix_ui* periodic_corr = constructor_empty_Matrix_ui_1('R',n_periodic,2);
+	struct Matrix_ui* periodic_corr = constructor_empty_Matrix_ui('R',n_periodic,2);
 
 	size_t row = 0;
 	do {
@@ -280,7 +287,7 @@ static void fill_elements (const size_t row, struct Element_Data*const elem_data
 	read_line_values_ui(&line,n_tags,get_row_Matrix_ui(row,elem_data->elem_tags),false);
 
 	unsigned int n_nodes = get_n_nodes(elem_data->elem_types->data[row]);
-	elem_data->node_nums->data[row] = constructor_empty_Vector_ui_1(n_nodes); // keep
+	reserve_Vector_ui(elem_data->node_nums->data[row],n_nodes);
 
 	read_line_values_ui(&line,n_nodes,elem_data->node_nums->data[row]->data,true);
 	reorder_nodes(elem_data->elem_types->data[row],elem_data->node_nums->data[row]);
@@ -348,16 +355,3 @@ static void skip_periodic_entity (FILE* file, char**const line, const size_t lin
 
 	skip_lines(file,line,line_size,n_skip);
 }
-
-/**\{ \name Definitions for the gmsh geometry numbering convention.
- *	\todo Move this to where it is needed.
- */
-#define GMSH_XLINE_MIN  1001
-#define GMSH_YLINE_MIN  2001
-#define GMSH_ZLINE_MIN  3001
-#define GMSH_XYFACE_MIN 4001
-#define GMSH_XZFACE_MIN 5001
-#define GMSH_YZFACE_MIN 6001
-#define GMSH_XYZVOL_MIN 7001
-///\}
-

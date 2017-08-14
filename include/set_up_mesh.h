@@ -17,22 +17,8 @@
 
 /// \brief Holds data output from the mesh set up.
 struct Mesh {
-/*	unsigned int n_ve,               ///< Number of vertices.
-	             n_pve,              ///< Number of periodic vertices.
-	             n_elem_dim[DMAX+1], ///< Number of elements of each dimension.
-	             n_elem_tot,         ///< Sum of \ref n_elem_dim components
-*/
-
-//	unsigned int* pve,        ///< Holds the list of periodic vertices.
-//	            * elem_types, ///< Holds the list of element types (gmsh convention) as read from the mesh file.
-//	            * elem_tags,  /**< Holds the list of tags associated with each element.
-/*	                           *   - 1st tag: Physical tag (associated with gmsh's physical elements); gives boundary
-	                           *     condition information.
-	                           *   - 2nd tag: Index of the geometry element in gmsh associated with this element; needed
-	                           *     for the determination of periodic connections if present.
-	                           */
-
-//	double* ve_xyz, ///< Vertex xyz locations.
+	const struct Mesh_Data*const         mesh_data; ///< \ref Mesh_Data.
+	const struct Mesh_Connectivity*const mesh_conn; ///< \ref Mesh_Connectivity.
 };
 
 /// \brief Holds data relating to the mesh connectivity.
@@ -44,6 +30,11 @@ struct Mesh_Connectivity {
 struct Mesh* set_up_mesh
 	(const char*const mesh_name_full, ///< Defined in \ref Simulation.
 	 const unsigned int d             ///< Defined in \ref Simulation.
+	);
+
+///< \brief Destructor for a \ref Mesh.
+void destructor_Mesh
+	(struct Mesh* mesh ///< Standard.
 	);
 
 

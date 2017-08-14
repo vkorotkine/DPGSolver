@@ -23,7 +23,7 @@ void test_integration_Euler(int nargc, char **argv)
 	bool run_tests_equivalence_real_complex = 0,
 	     run_tests_equivalence_algorithms   = 0,
 	     run_tests_linearization            = 1,
-	     run_tests_conv_order               = 1;
+	     run_tests_conv_order               = 0;
 
 	/// \todo Delete this after Manmeet has finished his initial verification.
 	const bool PeriodicVortexOnly = 0;
@@ -78,8 +78,10 @@ void test_integration_Euler(int nargc, char **argv)
 		test_integration_linearization("test/Euler/Test_Euler_PeriodicVortex_Stationary_QUAD");
 #endif
 		test_linearization(&data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
+#if 0
 		test_linearization(&data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED3D_TP");
 		test_linearization(&data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED3D_HW");
+#endif
 	} else {
 		test_print_warning("Euler linearization testing currently disabled");
 	}

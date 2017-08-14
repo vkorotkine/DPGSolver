@@ -194,9 +194,9 @@ static struct Volume_Solver_c* constructor_Volume_Solver_c
 	const unsigned int d     = simulation->d,
 	                   n_var = simulation->n_var;
 
-	*(struct Multiarray_d**)&volume->xyz       = constructor_move_Multiarray_d_1_d('C',volume_base->XYZ,2,NvnG,d);
-	*(struct Multiarray_d**)&volume->det_jv_vi = constructor_move_Multiarray_d_1_d('C',volume_base->detJV_vI,2,NvnI,1);
-	*(struct Multiarray_d**)&volume->c_vi      = constructor_move_Multiarray_d_1_d('C',volume_base->C_vI,3,NvnI,d,d);
+	*(struct Multiarray_d**)&volume->xyz       = constructor_move_Multiarray_d_d('C',volume_base->XYZ,2,NvnG,d);
+	*(struct Multiarray_d**)&volume->det_jv_vi = constructor_move_Multiarray_d_d('C',volume_base->detJV_vI,2,NvnI,1);
+	*(struct Multiarray_d**)&volume->c_vi      = constructor_move_Multiarray_d_d('C',volume_base->C_vI,3,NvnI,d,d);
 	// if (!collocated) op_M_inv
 
 	// Will likely require modification for HDG.
@@ -213,9 +213,9 @@ static void destructor_Volume_Solver_c
 	(struct Volume_Solver_c* volume ///< Standard.
 	)
 {
-	destructor_Multiarray_d_1((struct Multiarray_d*)volume->xyz);
-	destructor_Multiarray_d_1((struct Multiarray_d*)volume->det_jv_vi);
-	destructor_Multiarray_d_1((struct Multiarray_d*)volume->c_vi);
+	destructor_Multiarray_d((struct Multiarray_d*)volume->xyz);
+	destructor_Multiarray_d((struct Multiarray_d*)volume->det_jv_vi);
+	destructor_Multiarray_d((struct Multiarray_d*)volume->c_vi);
 
 	destructor_Multiarray_c_1(volume->w_hat);
 	destructor_Multiarray_c_1(volume->q_hat);

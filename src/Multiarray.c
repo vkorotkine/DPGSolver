@@ -13,7 +13,9 @@
 static struct Multiarray_Vector_ui make_local_Multiarray_Vector_ui_0
 	(const char layout, const size_t order, size_t*const extents, const bool owns_data, struct Vector_ui**const data);
 
-struct Multiarray_d* constructor_move_Multiarray_d_1_d (const char layout, double*const data, const size_t order, ...)
+// Constructor/Destructor functions ********************************************************************************* //
+
+struct Multiarray_d* constructor_move_Multiarray_d_d (const char layout, double*const data, const size_t order, ...)
 {
 	va_list ap;
 	va_start(ap,order); // free
@@ -33,7 +35,7 @@ struct Multiarray_d* constructor_move_Multiarray_d_1_d (const char layout, doubl
 	return A;
 }
 
-struct Multiarray_Vector_ui* constructor_empty_Multiarray_Vector_ui_1 (const size_t order, ...)
+struct Multiarray_Vector_ui* constructor_empty_Multiarray_Vector_ui (const size_t order, ...)
 {
 	va_list ap;
 	va_start(ap,order); // free
@@ -50,38 +52,29 @@ struct Multiarray_Vector_ui* constructor_empty_Multiarray_Vector_ui_1 (const siz
 	return dest;
 }
 
-struct const_Multiarray_Vector_ui* constructor_move_const_Multiarray_Vector_ui_1_Multiarray_Vector_ui
-	(struct Multiarray_Vector_ui*const src)
-{
-	src->owns_data = false;
-	for (size_t n = 0; n < src->extents[0]; n++)
-		src->data[n]->owns_data = false;
-
-	struct Multiarray_Vector_ui local =
-		make_local_Multiarray_Vector_ui_0(src->layout,src->order,src->extents,true,src->data);
-
-	struct const_Multiarray_Vector_ui* dest = malloc(sizeof *dest); // returned
-	memcpy(dest,&local,sizeof *dest);
-
-	return dest;
-}
-
-void const_constructor_const_Multiarray_Vector_ui_1_Multiarray_Vector_ui
+void const_constructor_move_Multiarray_Vector_ui
 	(const struct const_Multiarray_Vector_ui*const* dest, struct Multiarray_Vector_ui* src)
 {
-	struct const_Multiarray_Vector_ui* local =
-		constructor_move_const_Multiarray_Vector_ui_1_Multiarray_Vector_ui(src); // keep
-	*(struct const_Multiarray_Vector_ui**) dest = local;
+	*(struct const_Multiarray_Vector_ui**) dest = (struct const_Multiarray_Vector_ui*) src;
 }
 
-
-void destructor_Multiarray_d_1 (struct Multiarray_d* A)
+void destructor_Multiarray_d (struct Multiarray_d* a)
 {
-	free(A->extents);
-	if (A->owns_data)
-		free(A->data);
-	FREE_NULL(A);
+	free(a->extents);
+	if (a->owns_data)
+		free(a->data);
+	free(a);
 }
+
+void destructor_Multiarray_Vector_ui (struct Multiarray_Vector_ui* a)
+{
+	if (a->owns_data)
+		destructor_Vector_ui_2(a->data,compute_size(a->order,a->extents));
+	free(a->extents);
+	free(a);
+}
+
+// Helper functions ************************************************************************************************* //
 
 size_t* set_extents (const size_t order, va_list ap)
 {
@@ -100,6 +93,47 @@ size_t compute_size (const size_t order, const size_t *const extents)
 		size *= extents[i];
 
 	return size;
+}
+
+void set_Multiarray_Vector_ui_ui
+	(struct Multiarray_Vector_ui* a, const unsigned int*data_V, const unsigned int*const ext_V)
+{
+	const size_t size = compute_size(a->order,a->extents);
+	for (size_t i = 0; i < size; i++) {
+		reserve_Vector_ui(a->data[i],ext_V[i]);
+		for (size_t j = 0; j < ext_V[i]; j++)
+			a->data[i]->data[j] = *data_V++;
+	}
+}
+
+// Printing functions *********************************************************************************************** //
+
+void print_Multiarray_Vector_ui (const struct Multiarray_Vector_ui*const a)
+{
+	const size_t order          = a->order;
+	const size_t *const extents = a->extents;
+
+	printf("Multi-array extents:");
+	for (size_t i = 0; i < order; i++)
+		printf(" %zu",extents[i]);
+	printf("\n\n");
+
+	switch (order) {
+	case 1:
+		for (size_t i = 0; i < extents[0]; i++)
+			print_Vector_ui(a->data[i]);
+		break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+}
+
+void print_const_Multiarray_Vector_ui (const struct const_Multiarray_Vector_ui*const a)
+{
+	struct Multiarray_Vector_ui local =
+		make_local_Multiarray_Vector_ui_0('R',a->order,(size_t*)a->extents,false,(struct Vector_ui**)a->data);
+	print_Multiarray_Vector_ui(&local);
 }
 
 // Static functions ************************************************************************************************* //

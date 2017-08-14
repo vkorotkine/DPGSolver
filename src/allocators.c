@@ -120,12 +120,13 @@ void deallocator_local (void* a, const enum TYPE type, const size_t order, const
 		switch (order) {
 		case 1: {
 			char* b = a;
-			FREE_NULL(b);
+			free(b);
 			break;
 		} case 2: {
 			char** b = a;
 			for (size_t i = 0; i < N[index]; i++)
 				deallocator_local(b[i],type,index,N);
+			free(b);
 			break;
 		} case 0:
 		default:
