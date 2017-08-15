@@ -50,6 +50,7 @@
  *		- {0} : Type of constructor
  *			- default: reserve memory only for the container itself (not for the data).
  *			- empty:   reserve memory storage for the data but do not set it.
+ *			- copy:    reserve memory storage for the data and set it to a copy of the input data.
  *			- move:    move data to the container being constructed.
  *		- (1) : Optional `const` specifier
  *		- {2} : Type of container to be returned
@@ -127,7 +128,7 @@ struct const_Multiarray_Vector_ui {
 
 	const bool    owns_data;
 
-	const struct Vector_ui*const*const data;
+	const struct const_Vector_ui*const*const data;
 };
 
 // Constructor/Destructor functions ********************************************************************************* //
@@ -137,15 +138,23 @@ struct Multiarray_d* constructor_move_Multiarray_d_d
 	(const char layout,  ///< Defined in \ref Multiarray_d.
 	 double*const data,  ///< Defined in \ref Multiarray_d.
 	 const size_t order, ///< Defined in \ref Multiarray_d.
-	 ...                 ///< Variadic arguments holding the extents in each dimension.
+	 ...                 ///< Variadic arguments holding the extents.
 	);
 
 /** \brief Constructs an empty \ref Multiarray_Vector_ui\*.
  *	\note The layout is set to row-major by default as the data cannot be used directly as for the standard datatypes.
  */
 struct Multiarray_Vector_ui* constructor_empty_Multiarray_Vector_ui
-	(const size_t order, ///< Order of the Multiarray.
+	(const size_t order, ///< Defined in \ref Multiarray_d.
 	 ...                 ///< Variadic arguments.
+	);
+
+/// \brief Constructs an empty \ref Multiarray_Vector_ui\* and sets the values of its \ref Vector_ui\* components.
+struct Multiarray_Vector_ui* constructor_copy_Multiarray_Vector_ui
+	(const unsigned int* data_V,     ///< Defined in \ref set_Multiarray_Vector_ui_ui.
+	 const unsigned int*const ext_V, ///< Defined in \ref set_Multiarray_Vector_ui_ui.
+	 const size_t order,             ///< Defined in \ref Multiarray_d.
+	 ...                             ///< Variadic arguments holding the extents of the Multiarray.
 	);
 
 /// \brief Move constructor for a `const` \ref const_Multiarray_Vector_ui `*const`.
@@ -183,6 +192,14 @@ void set_Multiarray_Vector_ui_ui
 	(struct Multiarray_Vector_ui* a, ///< Standard.
 	 const unsigned int*data_V,      ///< Input data for the Vectors.
 	 const unsigned int*const ext_V  ///< Input extent[0] for the Vectors.
+	);
+
+/** \brief Sort the data of the \ref Multiarray_Vector_ui\*.
+ *	\return Optionally return indices.
+ */
+struct Vector_ui* sort_Multiarray_Vector_ui
+	(struct Multiarray_Vector_ui* a, ///< Standard.
+	 const bool return_indices       ///< Flag for whether the indices should also be returned.
 	);
 
 // Printing functions *********************************************************************************************** //

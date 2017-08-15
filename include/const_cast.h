@@ -19,7 +19,7 @@
 /// \brief Cast from `unsigned int` to `const unsigned int`.
 void const_cast_ui
 	(const unsigned int* dest, ///< Destination.
-	 unsigned int src          ///< Source.
+	 const unsigned int src    ///< Source.
 	);
 
 /// \brief Cast from `size_t` to `const size_t`.

@@ -12,7 +12,7 @@
  *		Provide functions related to the S_ELEMENT struct.
  */
 
-struct S_ELEMENT* get_element_by_type (struct S_ELEMENT*const element_head, const size_t type)
+struct S_ELEMENT* get_element_by_type2 (struct S_ELEMENT*const element_head, const size_t type)
 {
 	for (struct S_ELEMENT* element = element_head; element; element = element->next) {
 		if (element->type == type)

@@ -318,7 +318,7 @@ static unsigned int get_n_nodes (const unsigned int elem_type)
 static void reorder_nodes (const unsigned int elem_type, struct Vector_ui* node_nums)
 {
 	const unsigned int n_nodes_max = 8;
-	unsigned int gmsh_ordering[n_nodes_max];
+	size_t gmsh_ordering[n_nodes_max];
 
 	switch (elem_type) {
 		case POINT: case LINE: case TRI: case TET: case WEDGE:
@@ -326,15 +326,15 @@ static void reorder_nodes (const unsigned int elem_type, struct Vector_ui* node_
 			return;
 			break;
 		case QUAD: {
-			const unsigned int gmsh_ordering_l[] = {0,1,3,2};
+			const size_t gmsh_ordering_l[] = {0,1,3,2};
 			memcpy(gmsh_ordering,gmsh_ordering_l,sizeof(gmsh_ordering_l));
 			break;
 		} case HEX: {
-			const unsigned int gmsh_ordering_l[] = {0,1,3,2,4,5,7,6};
+			const size_t gmsh_ordering_l[] = {0,1,3,2,4,5,7,6};
 			memcpy(gmsh_ordering,gmsh_ordering_l,sizeof(gmsh_ordering_l));
 			break;
 		} case PYR: {
-			const unsigned int gmsh_ordering_l[] = {0,1,3,2,4};
+			const size_t gmsh_ordering_l[] = {0,1,3,2,4};
 			memcpy(gmsh_ordering,gmsh_ordering_l,sizeof(gmsh_ordering_l));
 			break;
 		} default:

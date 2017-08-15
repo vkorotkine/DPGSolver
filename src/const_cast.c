@@ -4,12 +4,12 @@
 
 #include "const_cast.h"
 
-void const_cast_ui (const unsigned int* dest, unsigned int src)
+void const_cast_ui (const unsigned int* dest, const unsigned int src)
 {
-	*(unsigned int*)& dest = src;
+	*(unsigned int*) dest = src;
 }
 
 void const_cast_st (const size_t* dest, const size_t src)
 {
-	*(size_t*)& dest = src;
+	*(size_t*) dest = src;
 }

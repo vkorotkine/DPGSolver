@@ -42,7 +42,21 @@ struct Vector_ui* constructor_empty_Vector_ui
 	(const size_t ext_0 ///< The value of extents[0].
 	);
 
-/// \brief Move Constructor for a `const` \ref const_Vector_ui `*const`.
+/// \brief Move constructor for a \ref Vector_ui\* from a `unsigned int*`.
+struct Vector_ui* constructor_move_Vector_ui_ui
+	(const size_t ext_0,     ///< The value of extents[0].
+	 const bool owns_data,   ///< Standard.
+	 unsigned int*const data ///< Standard.
+	);
+
+/// \brief Move constructor for a \ref const_Vector_ui\* from a `const unsigned int*`.
+struct const_Vector_ui* constructor_move_const_Vector_ui_ui
+	(const size_t ext_0,           ///< The value of extents[0].
+	 const bool owns_data,         ///< Standard.
+	 const unsigned int*const data ///< Standard.
+	);
+
+/// \brief Move constructor for a `const` \ref const_Vector_ui `*const`.
 void const_constructor_move_Vector_ui
 	(const struct const_Vector_ui*const* dest, ///< Destination.
 	 struct Vector_ui* src                     ///< Source.
@@ -62,12 +76,11 @@ void destructor_Vector_ui_2
 // Helper functions ************************************************************************************************* //
 
 /** \brief Reorder a \ref Vector_ui based on the provided ordering.
- *	\warning This is not currently done in place and should consequently not be used for large Vectors if limited memory
- *	         usage is a concern.
+ *	\warning This is not currently done in place.
  */
 void reorder_Vector_ui
-	(struct Vector_ui*const a,
-	 unsigned int*const ordering
+	(struct Vector_ui*const a,   ///< Standard.
+	 const size_t*const ordering ///< The ordering.
 	);
 
 /// \brief Reserve space for a \ref Vector_ui\*.
@@ -79,6 +92,18 @@ void reserve_Vector_ui
 /// \brief Set all data entries to zero.
 void set_to_zero_Vector_ui
 	(struct Vector_ui*const a ///< Standard.
+	);
+
+/// \brief Sort the data of the \ref Vector_ui\*.
+void sort_Vector_ui
+	(struct Vector_ui* a ///< Standard.
+	);
+
+/** \brief See return.
+ *	\return The sum of the components of the \ref Vector_ui\*.
+ */
+unsigned int sum_Vector_ui
+	(struct Vector_ui* a ///< Standard.
 	);
 
 // Printing functions *********************************************************************************************** //

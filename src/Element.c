@@ -3,15 +3,17 @@
 ///	\file
 
 #include "Element.h"
+#include "Intrusive.h"
 
 #include <string.h>
 
 #include "Parameters.h"
 #include "Macros.h"
-#include "Intrusive.h"
 #include "Multiarray.h"
+#include "const_cast.h"
 
-struct Element* constructor_Element (const unsigned int elem_type);
+/// \brief Constructs an \ref Element.
+static struct Element* constructor_Element (const unsigned int elem_type);
 
 
 struct Intrusive_List* constructor_Element_List (const unsigned int d)
@@ -35,43 +37,111 @@ struct Intrusive_List* constructor_Element_List (const unsigned int d)
 	return Elements;
 }
 
+struct Element* get_element_by_type (const struct Intrusive_List* elements, const unsigned int type)
+{
+	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
+		struct Element* element = (struct Element*) curr;
+		if (element->type == type)
+			return element;
+	}
+	printf("Could not find the element of type: %d.\n",type);
+	EXIT_UNSUPPORTED;
+}
+
 // Static functions ************************************************************************************************* //
 
-/// \brief Constructs an \ref Element.
-struct Element* constructor_Element
+/// \brief Container for local element-related information.
+struct Elem_info {
+	unsigned int d,
+	             n_f,
+	             n_f_ve[NFMAX],
+	             f_ve[NFMAX*NFVEMAX];
+};
+
+/** \brief Copy local (to each element type) element information to a container with larger scope.
+ *	\returns Copy of local element info.
+ */
+static struct Elem_info copy_local_elem_info
+	(const struct Elem_info*const src ///< The source element info.
+	)
+{
+	struct Elem_info dest;
+
+	dest.n_f = src->n_f;
+	memcpy(dest.n_f_ve,src->n_f_ve,sizeof(src->n_f_ve));
+	memcpy(dest.f_ve,  src->f_ve,  sizeof(src->f_ve));
+
+	return dest;
+}
+
+static struct Element* constructor_Element
 	(const unsigned int elem_type ///< The element type (e.g. LINE, TRI, ...)
 	)
 {
-	struct Element* element = malloc(sizeof *element); // keep
-
-	unsigned int Nf = 0,
-	             n_f_ve[NFMAX]       = {0},
-	             f_ve[NFMAX*NFVEMAX] = {0};
-
+	struct Elem_info e_info;
 	switch (elem_type) {
 	case LINE: {
-		Nf = 2;
-		const unsigned int n_f_ve_l[] = {1, 1,};
-		const unsigned int f_ve_l[]   = {0, 1,};
-		memcpy(n_f_ve,n_f_ve_l,sizeof(n_f_ve_l));
-		memcpy(f_ve,f_ve_l,sizeof(f_ve_l));
+		const struct Elem_info e_info_l =
+			{ .d      = 1,
+			  .n_f    = 2,
+			  .n_f_ve = {1, 1,},
+			  .f_ve   = {0, 1,},
+			};
+		e_info = copy_local_elem_info(&e_info_l);
 		break;
 	} case TRI: {
-		Nf = 3;
-		const unsigned int n_f_ve_l[] = {2, 2, 2,};
-		const unsigned int f_ve_l[]   = {1,2, 0,2, 0,1,};
-		memcpy(n_f_ve,n_f_ve_l,sizeof(n_f_ve_l));
-		memcpy(f_ve,f_ve_l,sizeof(f_ve_l));
+		const struct Elem_info e_info_l =
+			{ .d      = 2,
+			  .n_f    = 3,
+			  .n_f_ve = {2, 2, 2,},
+			  .f_ve   = {1,2, 0,2, 0,1,},
+			};
+		e_info = copy_local_elem_info(&e_info_l);
+		break;
+	} case QUAD: {
+		const struct Elem_info e_info_l =
+			{ .d      = 2,
+			  .n_f    = 4,
+			  .n_f_ve = {2, 2, 2, 2,},
+			  .f_ve   = {0,2, 1,3, 0,1, 2,3},
+			};
+		e_info = copy_local_elem_info(&e_info_l);
+		break;
+	} case TET: {
+		EXIT_ADD_SUPPORT;
+		break;
+	} case HEX: {
+		const struct Elem_info e_info_l =
+			{ .d      = 3,
+			  .n_f    = 6,
+			  .n_f_ve = {4, 4, 4, 4, 4, 4,},
+			  .f_ve   = {0,2,4,6, 1,3,5,7, 0,1,4,5, 2,3,6,7, 0,1,2,3, 4,5,6,7}
+			};
+		e_info = copy_local_elem_info(&e_info_l);
+		break;
+	} case WEDGE: {
+		EXIT_ADD_SUPPORT;
+		break;
+	} case PYR: {
+		EXIT_ADD_SUPPORT;
 		break;
 	} default: {
 		EXIT_UNSUPPORTED;
 		break;
 	}}
 
-	struct Multiarray_Vector_ui* corr_f_ve = constructor_empty_Multiarray_Vector_ui(1,Nf);
-	set_Multiarray_Vector_ui_ui(corr_f_ve,f_ve,n_f_ve);
-	print_Multiarray_Vector_ui(corr_f_ve);
+	struct Multiarray_Vector_ui* f_ve = constructor_copy_Multiarray_Vector_ui(e_info.f_ve,e_info.n_f_ve,1,e_info.n_f);
+//	print_Multiarray_Vector_ui(f_ve);
+
+	struct Element* element = malloc(sizeof *element); // keep
+
+	const_cast_ui(&element->type,elem_type);
+	const_cast_ui(&element->d,e_info.d);
+	const_cast_ui(&element->n_f,e_info.n_f);
+	const_constructor_move_Multiarray_Vector_ui(&element->f_ve,f_ve);
 
 
 	return element;
 }
+
+

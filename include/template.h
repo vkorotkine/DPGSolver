@@ -4,7 +4,7 @@
 #ifndef DPG__template_h__INCLUDED
 #define DPG__template_h__INCLUDED
 /**	\file
- *	Add general comments for the header file here.
+ *	\todo Add general comments for the header file here.
  */
 
 #endif // DPG__template_h__INCLUDED

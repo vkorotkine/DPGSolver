@@ -12,7 +12,9 @@
  *		- gmsh
  */
 
+#include "Intrusive.h"
 #include "mesh_readers.h"
+#include "mesh_connectivity.h"
 
 
 /// \brief Holds data output from the mesh set up.
@@ -21,15 +23,19 @@ struct Mesh {
 	const struct Mesh_Connectivity*const mesh_conn; ///< \ref Mesh_Connectivity.
 };
 
-/// \brief Holds data relating to the mesh connectivity.
-struct Mesh_Connectivity {
-};
 
-
-///< \brief Set up the \ref Mesh.
+/** \brief Set up the \ref Mesh.
+ *
+ *	To provide addtional modularity, it is possible to pass a `NULL` value for the `elements` list. This results in the
+ *	list being constructed and destructed as part of the connectivity set up. \todo Add support for this functionality.
+ *
+ *	However, as the base \ref Element list is used in many other modules of the code, it is generally convenient to set
+ *	it up before setting up the mesh.
+ */
 struct Mesh* set_up_mesh
-	(const char*const mesh_name_full, ///< Defined in \ref Simulation.
-	 const unsigned int d             ///< Defined in \ref Simulation.
+	(const char*const mesh_name_full,      ///< Defined in \ref Simulation.
+	 const unsigned int d,                 ///< Defined in \ref Simulation.
+	 const struct Intrusive_List* elements ///< The base \ref Element list.
 	);
 
 ///< \brief Destructor for a \ref Mesh.

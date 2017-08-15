@@ -7,17 +7,17 @@
  */
 
 #include "set_up_mesh.h"
+#include "Intrusive.h"
+#include "mesh_readers.h"
+#include "mesh_connectivity.h"
 
 #include <limits.h>
 #include <string.h>
 
 #include "Macros.h"
-#include "Intrusive.h"
 #include "Element.h"
 
 #include "file_processing.h"
-#include "mesh_readers.h"
-#include "mesh_connectivity.h"
 
 
 struct Mesh* constructor_Mesh ()
@@ -33,16 +33,12 @@ void destructor_Mesh (struct Mesh* mesh)
 	free(mesh);
 }
 
-struct Mesh* set_up_mesh (const char*const mesh_name_full, const unsigned int d)
+struct Mesh* set_up_mesh (const char*const mesh_name_full, const unsigned int d, const struct Intrusive_List* elements)
 {
 	struct Mesh* mesh = constructor_Mesh();
 
-// Set up Elements?
-	struct Intrusive_List* Elements = constructor_Element_List(d);
-UNUSED(Elements);
-
 	*(struct Mesh_Data**)&         mesh->mesh_data = mesh_reader(mesh_name_full,d);
-	*(struct Mesh_Connectivity**)& mesh->mesh_conn = mesh_connect(mesh->mesh_data);
+	*(struct Mesh_Connectivity**)& mesh->mesh_conn = mesh_connect(mesh->mesh_data,elements);
 
 //destructor_Mesh(mesh);
 

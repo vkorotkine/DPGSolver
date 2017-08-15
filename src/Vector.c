@@ -11,9 +11,24 @@
 #include "allocators.h"
 #include "Multiarray.h"
 
-// Add number indicating level of dereferencing for constructors here and for Matrix.
+// Static function declarations ************************************************************************************* //
 
-static struct Vector_ui make_local_Vector_ui_0 (const size_t ext_0, const bool owns_data, unsigned int*const data);
+/** \brief Make a local copy of a \ref Vector_ui (static memory).
+ *	\return The \ref Vector_ui.
+ */
+static struct Vector_ui make_local_Vector_ui_0
+	(const size_t ext_0,     ///< Standard.
+	 const bool owns_data,   ///< Standard.
+	 unsigned int*const data ///< Standard.
+	);
+
+/** \brief Comparison function for std::qsort between `unsigned int*` `a` and `b`.
+ *	\return a - b.
+ */
+static int cmp_ui
+	(const void *a, ///< Variable 1.
+	 const void *b  ///< Variable 2.
+	);
 
 // Constructor/Destructor functions ********************************************************************************* //
 
@@ -41,12 +56,31 @@ struct Vector_ui* constructor_empty_Vector_ui (const size_t ext_0)
 {
 	unsigned int* data = mallocator(UINT_T,1,ext_0); // keep
 
-	struct Vector_ui local = { .extents[0] = ext_0,
-	                           .owns_data  = true,
-	                           .data       = data,
-	                         };
-
 	struct Vector_ui* dest = malloc(sizeof *dest); // returned
+
+	dest->extents[0] = ext_0;
+	dest->owns_data  = true;
+	dest->data       = data;
+
+	return dest;
+}
+
+struct Vector_ui* constructor_move_Vector_ui_ui (const size_t ext_0, const bool owns_data, unsigned int*const data)
+{
+	struct Vector_ui* dest = malloc(sizeof *dest); // returned
+	dest->extents[0] = ext_0;
+	dest->owns_data  = owns_data;
+	dest->data       = data;
+
+	return dest;
+}
+
+struct const_Vector_ui* constructor_move_const_Vector_ui_ui
+	(const size_t ext_0, const bool owns_data, const unsigned int*const data)
+{
+	struct Vector_ui local = make_local_Vector_ui_0(ext_0,owns_data,(unsigned int*)data);
+
+	struct const_Vector_ui* dest = malloc(sizeof *dest); // returned
 	memcpy(dest,&local,sizeof *dest);
 
 	return dest;
@@ -73,9 +107,9 @@ void destructor_Vector_ui_2 (struct Vector_ui** a, const size_t n_src)
 
 // Helper functions ************************************************************************************************* //
 
-void reorder_Vector_ui (struct Vector_ui*const a, unsigned int*const ordering)
+void reorder_Vector_ui (struct Vector_ui*const a, const size_t*const ordering)
 {
-	const size_t size = a->extents[0];
+	const size_t size = compute_size(1,a->extents);
 
 	unsigned int b[size];
 	for (size_t i = 0; i < size; i++)
@@ -108,6 +142,22 @@ void set_to_zero_Vector_ui (struct Vector_ui*const a)
 		a->data[i] = 0;
 }
 
+void sort_Vector_ui (struct Vector_ui* a)
+{
+	const size_t size = compute_size(1,a->extents);
+	qsort(a->data,size,sizeof(a->data[0]),cmp_ui);
+}
+
+unsigned int sum_Vector_ui (struct Vector_ui* a)
+{
+	unsigned int sum = 0;
+
+	const size_t size = compute_size(1,a->extents);
+	for (size_t i = 0; i < size; ++i)
+		sum += a->data[i];
+	return sum;
+}
+
 // Printing functions *********************************************************************************************** //
 
 void print_Vector_ui (const struct Vector_ui*const a)
@@ -133,16 +183,17 @@ void print_const_Vector_ui (const struct const_Vector_ui*const a)
 
 // Static functions ************************************************************************************************* //
 
-/// \brief Make a local copy of a \ref Vector_ui (static memory).
-static struct Vector_ui make_local_Vector_ui_0
-	(const size_t ext_0,     ///< Standard.
-	 const bool owns_data,   ///< Standard.
-	 unsigned int*const data ///< Standard.
-	)
+static struct Vector_ui make_local_Vector_ui_0 (const size_t ext_0, const bool owns_data, unsigned int*const data)
 {
-	struct Vector_ui local = { .extents[0] = ext_0,
-	                           .owns_data  = owns_data,
-	                           .data       = data,
-	                         };
+	struct Vector_ui local =
+		{ .extents[0] = ext_0,
+		  .owns_data  = owns_data,
+		  .data       = data,
+		};
 	return local;
+}
+
+static int cmp_ui (const void *a, const void *b)
+{
+	return (int) ( *(unsigned int*)a - *(unsigned int*)b );
 }

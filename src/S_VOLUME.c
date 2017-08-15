@@ -23,5 +23,5 @@ void set_element (struct S_VOLUME*const volume, struct S_ELEMENT*const element_h
 	 *		type).
 	 */
 
-	*(struct S_ELEMENT**)&volume->element = get_element_by_type(element_head,volume->type);
+	*(struct S_ELEMENT**)&volume->element = get_element_by_type2(element_head,volume->type);
 }
