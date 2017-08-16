@@ -89,6 +89,38 @@ unsigned int* get_row_Matrix_ui (const size_t row, const struct Matrix_ui* a)
 	return &a->data[row*(a->extents[1])];
 }
 
+unsigned int get_val_Matrix_ui (const size_t row, const size_t col, const struct Matrix_ui*const a)
+{
+	unsigned int*const data = a->data;
+	switch (a->layout) {
+	case 'R': {
+		const size_t ext_1 = a->extents[1];
+		return data[row*ext_1+col];
+	} case 'C':
+		EXIT_ADD_SUPPORT;
+		break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+}
+
+unsigned int get_val_const_Matrix_ui (const size_t row, const size_t col, const struct const_Matrix_ui*const a)
+{
+	const unsigned int*const data = a->data;
+	switch (a->layout) {
+	case 'R': {
+		const size_t ext_1 = a->extents[1];
+		return data[row*ext_1+col];
+	} case 'C':
+		EXIT_ADD_SUPPORT;
+		break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+}
+
 // Printing functions *********************************************************************************************** //
 
 void print_Matrix_d (const struct Matrix_d*const a)

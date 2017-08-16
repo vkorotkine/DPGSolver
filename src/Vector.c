@@ -107,7 +107,7 @@ void destructor_Vector_ui_2 (struct Vector_ui** a, const size_t n_src)
 
 // Helper functions ************************************************************************************************* //
 
-void reorder_Vector_ui (struct Vector_ui*const a, const size_t*const ordering)
+void reorder_Vector_ui (struct Vector_ui*const a, const unsigned int*const ordering)
 {
 	const size_t size = compute_size(1,a->extents);
 
@@ -156,6 +156,22 @@ unsigned int sum_Vector_ui (struct Vector_ui* a)
 	for (size_t i = 0; i < size; ++i)
 		sum += a->data[i];
 	return sum;
+}
+
+bool check_equal_Vector_ui (const struct Vector_ui*const a, const struct Vector_ui*const b)
+{
+	const size_t size = compute_size(1,a->extents);
+	if (size != compute_size(1,b->extents))
+		return false;
+
+	const unsigned int* data_a = a->data,
+	                  * data_b = b->data;
+
+	for (size_t i = 0; i < size; i++) {
+		if (*data_a++ != *data_b++)
+			return false;
+	}
+	return true;
 }
 
 // Printing functions *********************************************************************************************** //

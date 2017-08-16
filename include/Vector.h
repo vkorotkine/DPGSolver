@@ -80,7 +80,7 @@ void destructor_Vector_ui_2
  */
 void reorder_Vector_ui
 	(struct Vector_ui*const a,   ///< Standard.
-	 const size_t*const ordering ///< The ordering.
+	 const unsigned int*const ordering ///< The ordering.
 	);
 
 /// \brief Reserve space for a \ref Vector_ui\*.
@@ -104,6 +104,14 @@ void sort_Vector_ui
  */
 unsigned int sum_Vector_ui
 	(struct Vector_ui* a ///< Standard.
+	);
+
+/** \brief See return.
+ *	\return `bool` indicating whether the \ref Vector_ui\* inputs are equal.
+ */
+bool check_equal_Vector_ui
+	(const struct Vector_ui*const a, ///< Input 1.
+	 const struct Vector_ui*const b  ///< Input 2.
 	);
 
 // Printing functions *********************************************************************************************** //

@@ -149,7 +149,7 @@ struct Multiarray_Vector_ui* constructor_empty_Multiarray_Vector_ui
 	 ...                 ///< Variadic arguments.
 	);
 
-/// \brief Constructs an empty \ref Multiarray_Vector_ui\* and sets the values of its \ref Vector_ui\* components.
+/// \brief Constructs a \ref Multiarray_Vector_ui\* and sets the values of its \ref Vector_ui\* components.
 struct Multiarray_Vector_ui* constructor_copy_Multiarray_Vector_ui
 	(const unsigned int* data_V,     ///< Defined in \ref set_Multiarray_Vector_ui_ui.
 	 const unsigned int*const ext_V, ///< Defined in \ref set_Multiarray_Vector_ui_ui.

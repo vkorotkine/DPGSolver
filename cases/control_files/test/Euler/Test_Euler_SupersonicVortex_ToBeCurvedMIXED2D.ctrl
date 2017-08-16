@@ -10,6 +10,7 @@ MeshPath      ../meshes/
 MeshType      MIXED2D
 MeshCurving   ToBeCurved
 MeshLevel     0
+mesh_generator gmsh
 
 Form       Weak   // Options: Weak, (Strong)
 NodeType   GLL-AO // Options: GL/GLL-AO/WSH/EQ

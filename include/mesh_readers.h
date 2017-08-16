@@ -16,13 +16,13 @@
 /**\{ Definitions for the gmsh physical numbering convention.
  *	\todo Move this to where it is needed.
  */
-#define BC_PERIODIC_MIN 50
+/*#define BC_PERIODIC_MIN 50
 #define PERIODIC_XL     51
 #define PERIODIC_XR     52
 #define PERIODIC_YL     53
 #define PERIODIC_YR     54
 #define PERIODIC_ZL     55
-#define PERIODIC_ZR     56
+#define PERIODIC_ZR     56*/
 ///\}
 
 

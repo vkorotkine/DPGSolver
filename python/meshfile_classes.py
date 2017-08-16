@@ -104,7 +104,7 @@ class TestCase_class:
 			if (self.name.lower().find('test') != -1):
 				self.VarName = 'ADVECTION_TEST'
 
-				MeshCurving.extend(('' for i in range (0,2)))
+				MeshCurving.extend(('Straight' for i in range (0,2)))
 				MeshTypes.extend(('TRI','QUAD'))
 				MeshTypesPrefix.extend(('Default_n-Cube_' for i in range(0,2)))
 
@@ -121,7 +121,7 @@ class TestCase_class:
 				self.VarName = 'POISSON_TEST'
 
 				MeshCurving.extend(('Curved'     for i in range (0,4)))
-				MeshCurving.extend((''           for i in range (0,1)))
+				MeshCurving.extend(('Straight'   for i in range (0,1)))
 				MeshTypes.extend(('MIXED2D','TRI','QUAD','MIXED2D'))
 				MeshTypes.extend(('LINE' for i in range(0,1)))
 				MeshTypesPrefix.extend(('n-Ball_HollowSection_'      for i in range(0,1)))
@@ -304,8 +304,7 @@ class MeshType_class:
 		self.OutputName = self.OutputDir + self.Geometry + self.dim + 'D_'
 		self.OutputDir  = Paths.meshes + self.OutputDir
 
-		if (self.MeshCurving.find('Straight') != 0):
-			self.OutputName += self.MeshCurving
+		self.OutputName += self.MeshCurving
 		self.OutputName += self.name + self.MeshLevel + 'x.msh'
 
 		self.OutputName_from_meshesROOT = self.OutputName

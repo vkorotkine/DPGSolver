@@ -120,6 +120,22 @@ unsigned int* get_row_Matrix_ui
 	 const struct Matrix_ui* a ///< Matrix.
 	);
 
+/** \brief Get value of the (row,col) entry of a \ref Matrix_ui\*.
+ *	\return See brief. */
+unsigned int get_val_Matrix_ui
+	(const size_t row,              ///< The row.
+	 const size_t col,              ///< The column.
+	 const struct Matrix_ui*const a ///< Standard.
+	);
+
+/** \brief Get value of the (row,col) entry of a \ref const_Matrix_ui\*.
+ *	\return See brief. */
+unsigned int get_val_const_Matrix_ui
+	(const size_t row,              ///< The row.
+	 const size_t col,              ///< The column.
+	 const struct const_Matrix_ui*const a ///< Standard.
+	);
+
 // Printing functions *********************************************************************************************** //
 
 /// \brief Print a \ref Matrix_d\* to the terminal.

@@ -17,88 +17,10 @@
 
 #include "constants_gmsh.h"
 
-static struct Mesh_Data* mesh_reader_gmsh (const char*const mesh_name_full, const unsigned int d);
-
-struct Mesh_Data* mesh_reader (const char*const mesh_name_full, const unsigned int d)
-{
-	if (strstr(mesh_name_full,".msh"))
-		return mesh_reader_gmsh(mesh_name_full,d);
-
-	EXIT_UNSUPPORTED;
-}
-
-void destructor_Mesh_Data (struct Mesh_Data* mesh_data)
-{
-	destructor_Matrix_d((struct Matrix_d*)mesh_data->nodes);
-
-	destructor_Vector_ui((struct Vector_ui*)mesh_data->elem_types);
-	destructor_Matrix_ui((struct Matrix_ui*)mesh_data->elem_tags);
-	destructor_Multiarray_Vector_ui((struct Multiarray_Vector_ui*)mesh_data->node_nums);
-
-	destructor_Matrix_ui((struct Matrix_ui*)mesh_data->periodic_corr);
-
-	free(mesh_data);
-}
-
-
-// Static functions ************************************************************************************************* //
-
-// Gmsh ************************************************************************************************************* //
-
-static struct Matrix_d*     read_nodes    (FILE* mesh_file, const unsigned int d);
-static struct Element_Data* read_elements (FILE* mesh_file);
-static struct Matrix_ui*    read_periodic (FILE* mesh_file, const unsigned int d);
-
-static void                 fill_nodes           (double*const node_row, char* line, const unsigned int d);
-static unsigned int         get_n_nodes          (const unsigned int elem_type);
-static void                 fill_elements        (const size_t row, struct Element_Data*const elem_data, char* line);
-static void                 reorder_nodes        (const unsigned int elem_type, struct Vector_ui* node_nums);
-static void                 skip_periodic_entity (FILE* file, char**const line, const size_t line_size);
-
-/// \brief Holds data relating to elements in the gmsh file.
-struct Element_Data {
-	size_t n_elems;
-
-	struct Vector_ui* elem_types;
-	struct Matrix_ui* elem_tags;
-
-	struct Multiarray_Vector_ui* node_nums;
-};
+// Static function declarations ************************************************************************************* //
 
 /// Expected number of tags for elements in the gmsh file.
 #define GMSH_N_TAGS 2
-
-/// \brief Constructor.
-static struct Element_Data* constructor_Element_Data (const unsigned int n_elems)
-{
-	struct Element_Data* elem_data = malloc(1 * sizeof *elem_data); // returned
-
-	elem_data->n_elems = n_elems;
-
-	elem_data->elem_types = constructor_empty_Vector_ui(n_elems);                 // keep
-	elem_data->elem_tags  = constructor_empty_Matrix_ui('R',n_elems,GMSH_N_TAGS); // keep
-	elem_data->node_nums  = constructor_empty_Multiarray_Vector_ui(1,n_elems);    // keep
-
-	return elem_data;
-}
-
-static struct Mesh_Data* constructor_Mesh_Data
-	(struct Matrix_d* nodes, struct Element_Data* elem_data, struct Matrix_ui* periodic_corr)
-{
-	struct Mesh_Data* mesh_data = malloc(1 * sizeof *mesh_data);
-
-	const_constructor_move_Matrix_d(&mesh_data->nodes,nodes);
-
-	const_constructor_move_Vector_ui(&mesh_data->elem_types,elem_data->elem_types);
-	const_constructor_move_Matrix_ui(&mesh_data->elem_tags,elem_data->elem_tags);
-	const_constructor_move_Multiarray_Vector_ui(&mesh_data->node_nums,elem_data->node_nums);
-
-	const_constructor_move_Matrix_ui(&mesh_data->periodic_corr,periodic_corr);
-
-	free(elem_data);
-
-	return mesh_data;
-}
 
 /** /brief Read data from a mesh in gmsh format.
  *
@@ -126,8 +48,86 @@ static struct Mesh_Data* constructor_Mesh_Data
  *		- \*0056 : Periodic (+z)
  *
  *		\* : 1 (Straight), 2 (Curved). This is the same treatment as for all other BCs.
- *
  */
+static struct Mesh_Data* mesh_reader_gmsh
+	(const char*const mesh_name_full, ///< The name of the mesh including the full path.
+	 const unsigned int d             ///< The dimension.
+	);
+
+// Interface functions ********************************************************************************************** //
+
+struct Mesh_Data* mesh_reader (const char*const mesh_name_full, const unsigned int d)
+{
+	if (strstr(mesh_name_full,".msh"))
+		return mesh_reader_gmsh(mesh_name_full,d);
+
+	EXIT_UNSUPPORTED;
+}
+
+void destructor_Mesh_Data (struct Mesh_Data* mesh_data)
+{
+	destructor_Matrix_d((struct Matrix_d*)mesh_data->nodes);
+
+	destructor_Vector_ui((struct Vector_ui*)mesh_data->elem_types);
+	destructor_Matrix_ui((struct Matrix_ui*)mesh_data->elem_tags);
+	destructor_Multiarray_Vector_ui((struct Multiarray_Vector_ui*)mesh_data->node_nums);
+
+	destructor_Matrix_ui((struct Matrix_ui*)mesh_data->periodic_corr);
+
+	free(mesh_data);
+}
+
+// Static functions ************************************************************************************************* //
+
+// Gmsh ************************************************************************************************************* //
+
+/// \brief Holds data relating to elements in the gmsh file.
+struct Element_Data {
+	size_t n_elems;
+
+	struct Vector_ui* elem_types; ///< Defined in \ref Mesh_Data.
+	struct Matrix_ui* elem_tags;  ///< Defined in \ref Mesh_Data.
+
+	struct Multiarray_Vector_ui* node_nums; ///< Defined in \ref Mesh_Data.
+};
+
+/** \brief Read the nodes (xyz coordinates) from the mesh file.
+ *	\return A \ref Matrix_d\* containing the \ref Mesh_Data::nodes.
+ */
+static struct Matrix_d* read_nodes
+	(FILE* mesh_file,     ///< The mesh file.
+	 const unsigned int d ///< The dimension.
+	);
+
+/** \brief Read the element data from the mesh file.
+ *	\return A \ref Element_Data\* container holding the element related mesh data.
+ */
+static struct Element_Data* read_elements
+	(FILE* mesh_file ///< The mesh file.
+	);
+
+/** \brief Reads periodic entity data.
+ *	\return A \ref Matrix_ui\* containing the \ref Mesh_Data::periodic_corr.
+ *
+ *	The use of `line_ptr` in the code below is required for passing the address of the `char[]` line to a `char**` as
+ *	explained in [this SO answer][multidim_arrays].
+ *
+ *	[multidim_arrays]: https://stackoverflow.com/questions/1584100/converting-multidimensional-arrays-to-pointers-in-c
+ */
+static struct Matrix_ui* read_periodic
+	(FILE* mesh_file,     ///< The mesh file.
+	 const unsigned int d ///< The dimension.
+	);
+
+/** \brief Constructor for the \ref Mesh_Data.
+ *	\return Standard.
+ */
+static struct Mesh_Data* constructor_Mesh_Data
+	(struct Matrix_d* nodes,         ///< Defined in \ref Mesh_Data.
+	 struct Element_Data* elem_data, ///< \ref Element_Data.
+	 struct Matrix_ui* periodic_corr ///< Defined in \ref Mesh_Data.
+	);
+
 static struct Mesh_Data* mesh_reader_gmsh (const char*const mesh_name_full, const unsigned int d)
 {
 	struct Matrix_d*     nodes = NULL;
@@ -154,7 +154,36 @@ static struct Mesh_Data* mesh_reader_gmsh (const char*const mesh_name_full, cons
 	return mesh_data;
 }
 
-/// \brief Read the nodes (xyz coordinates) from the mesh file.
+/** \brief Fill one row of the nodes \ref Matrix_d.
+ *	Note that the first entry of the line is the node index and is discarded.
+ */
+static void fill_nodes
+	(double*const node_row, ///< The current row.
+	 char* line,            ///< The current line of the file.
+	 const unsigned int d   ///< The dimension.
+	);
+
+/** \brief Constructor for \ref Element_Data\*.
+ *	\return Standard.
+ */
+static struct Element_Data* constructor_Element_Data
+	(const unsigned int n_elems ///< The number of elements.
+	);
+
+/// \brief Fill one row of the members of \ref elem_data.
+static void fill_elements
+	(const size_t row,                    ///< The current row.
+	 struct Element_Data*const elem_data, ///< The \ref Element_Data.
+	 char* line                           ///< The current line of the file.
+	);
+
+/// \brief Skips the current periodic entity
+static void skip_periodic_entity
+	(FILE* file,            ///< The file.
+	 char**const line,      ///< The pointer to the current line.
+	 const size_t line_size ///< The size of the line array.
+	);
+
 static struct Matrix_d* read_nodes (FILE* mesh_file, const unsigned int d)
 {
 	char line[STRLEN_MAX];
@@ -177,7 +206,6 @@ static struct Matrix_d* read_nodes (FILE* mesh_file, const unsigned int d)
 	return nodes;
 }
 
-/// \brief Read the element data from the mesh file.
 static struct Element_Data* read_elements (FILE* mesh_file)
 {
 	char line[STRLEN_MAX];
@@ -201,13 +229,6 @@ static struct Element_Data* read_elements (FILE* mesh_file)
 	return elem_data;
 }
 
-/** \brief Reads periodic entity data.
- *
- *	The use of `line_ptr` in the code below is required for passing the address of the `char[]` line to a `char**` as
- *	explained in [this SO answer][multidim_arrays].
- *
- *	[multidim_arrays]: https://stackoverflow.com/questions/1584100/converting-multidimensional-arrays-to-pointers-in-c
- */
 static struct Matrix_ui* read_periodic (FILE* mesh_file, const unsigned int d)
 {
 	char line[STRLEN_MAX];
@@ -257,9 +278,42 @@ static struct Matrix_ui* read_periodic (FILE* mesh_file, const unsigned int d)
 	return periodic_corr;
 }
 
-/** \brief Fill one row of the nodes \ref Matrix_d.
- *	Note that the first entry of the line is the node index and is discarded.
+static struct Mesh_Data* constructor_Mesh_Data
+	(struct Matrix_d* nodes, struct Element_Data* elem_data, struct Matrix_ui* periodic_corr)
+{
+	struct Mesh_Data* mesh_data = malloc(1 * sizeof *mesh_data);
+
+	const_constructor_move_Matrix_d(&mesh_data->nodes,nodes);
+
+	const_constructor_move_Vector_ui(&mesh_data->elem_types,elem_data->elem_types);
+	const_constructor_move_Matrix_ui(&mesh_data->elem_tags,elem_data->elem_tags);
+	const_constructor_move_Multiarray_Vector_ui(&mesh_data->node_nums,elem_data->node_nums);
+
+	if (periodic_corr)
+		const_constructor_move_Matrix_ui(&mesh_data->periodic_corr,periodic_corr);
+	else
+		*(struct const_Matrix_ui**)&mesh_data->periodic_corr = NULL;
+
+	free(elem_data);
+
+	return mesh_data;
+}
+
+/** \brief Get the number of nodes specifying the geometry for the element of the given type.
+ *	\return See brief.
+ *
+ *	The convention for the element type numbering is that of gmsh.
  */
+static unsigned int get_n_nodes
+	(const unsigned int elem_type ///< The element type.
+	);
+
+/// \brief Reorder the nodes such that they correspond to the ordering convention of this code.
+static void reorder_nodes
+	(const unsigned int elem_type, ///< Defined in \ref Mesh_Data.
+	 struct Vector_ui* node_nums   ///< Defined in \ref Mesh_Data.
+	);
+
 static void fill_nodes (double*const node_row, char* line, const unsigned int d)
 {
 	discard_line_values(&line,1);
@@ -271,7 +325,19 @@ static void fill_nodes (double*const node_row, char* line, const unsigned int d)
 	}
 }
 
-/// \brief Fill one row of the members of \ref elem_data.
+static struct Element_Data* constructor_Element_Data (const unsigned int n_elems)
+{
+	struct Element_Data* elem_data = malloc(1 * sizeof *elem_data); // returned
+
+	elem_data->n_elems = n_elems;
+
+	elem_data->elem_types = constructor_empty_Vector_ui(n_elems);                 // keep
+	elem_data->elem_tags  = constructor_empty_Matrix_ui('R',n_elems,GMSH_N_TAGS); // keep
+	elem_data->node_nums  = constructor_empty_Multiarray_Vector_ui(1,n_elems);    // keep
+
+	return elem_data;
+}
+
 static void fill_elements (const size_t row, struct Element_Data*const elem_data, char* line)
 {
 	unsigned int n_tags;
@@ -293,10 +359,16 @@ static void fill_elements (const size_t row, struct Element_Data*const elem_data
 	reorder_nodes(elem_data->elem_types->data[row],elem_data->node_nums->data[row]);
 }
 
-/** \brief Get the number of nodes specifying the geometry for the element of the given type.
- *
- *	The convention for the element type numbering is that of gmsh.
- */
+static void skip_periodic_entity (FILE* file, char**const line, const size_t line_size)
+{
+	char* endptr = NULL;
+
+	fgets(*line,line_size,file);
+	size_t n_skip = strtol(*line,&endptr,10);
+
+	skip_lines(file,line,line_size,n_skip);
+}
+
 static unsigned int get_n_nodes (const unsigned int elem_type)
 {
 	switch (elem_type) {
@@ -314,11 +386,10 @@ static unsigned int get_n_nodes (const unsigned int elem_type)
 	}
 }
 
-/// \brief Reorder the nodes such that they correspond to the ordering convention of this code.
 static void reorder_nodes (const unsigned int elem_type, struct Vector_ui* node_nums)
 {
 	const unsigned int n_nodes_max = 8;
-	size_t gmsh_ordering[n_nodes_max];
+	unsigned int gmsh_ordering[n_nodes_max];
 
 	switch (elem_type) {
 		case POINT: case LINE: case TRI: case TET: case WEDGE:
@@ -326,32 +397,20 @@ static void reorder_nodes (const unsigned int elem_type, struct Vector_ui* node_
 			return;
 			break;
 		case QUAD: {
-			const size_t gmsh_ordering_l[] = {0,1,3,2};
+			const unsigned int gmsh_ordering_l[] = {0,1,3,2};
 			memcpy(gmsh_ordering,gmsh_ordering_l,sizeof(gmsh_ordering_l));
 			break;
 		} case HEX: {
-			const size_t gmsh_ordering_l[] = {0,1,3,2,4,5,7,6};
+			const unsigned int gmsh_ordering_l[] = {0,1,3,2,4,5,7,6};
 			memcpy(gmsh_ordering,gmsh_ordering_l,sizeof(gmsh_ordering_l));
 			break;
 		} case PYR: {
-			const size_t gmsh_ordering_l[] = {0,1,3,2,4};
+			const unsigned int gmsh_ordering_l[] = {0,1,3,2,4};
 			memcpy(gmsh_ordering,gmsh_ordering_l,sizeof(gmsh_ordering_l));
 			break;
 		} default:
 			EXIT_UNSUPPORTED;
 			break;
 	}
-
 	reorder_Vector_ui(node_nums,gmsh_ordering);
-}
-
-/// \brief Skips the current periodic entity
-static void skip_periodic_entity (FILE* file, char**const line, const size_t line_size)
-{
-	char* endptr = NULL;
-
-	fgets(*line,line_size,file);
-	size_t n_skip = strtol(*line,&endptr,10);
-
-	skip_lines(file,line,line_size,n_skip);
 }

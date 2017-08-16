@@ -100,7 +100,7 @@ def get_gmsh_number(gmsh_args,name,Paths):
 				return line.split()[2][:-1]
 
 	print('Error: Did not find a value for '+name.upper()+' in '+fName+'\n')
-	EXIT_BACKTRACE()
+	EXIT_TRACEBACK()
 
 
 if __name__ == '__main__':
