@@ -8,13 +8,15 @@
 
 #include <limits.h>
 
-#include "Parameters.h"
+#include "constants_core.h"
+#include "constants_gmsh.h"
 #include "Macros.h"
 
 #include "Multiarray.h"
 #include "Vector.h"
 #include "Element.h"
 
+#include "mesh_periodic.h"
 #include "const_cast.h"
 #include "allocators.h"
 
@@ -24,19 +26,6 @@
 struct Mesh_Connectivity_l {
 	struct Multiarray_Vector_ui* v_to_v;  ///< Defined in \ref Mesh_Connectivity.
 	struct Multiarray_Vector_ui* v_to_lf; ///< Defined in \ref Mesh_Connectivity.
-};
-
-/// \brief Container for local connectivity related information.
-struct Conn_info {
-	// Available from mesh_data:
-	const unsigned int d;                 ///< The dimension.
-	struct Vector_ui* elem_per_dim;       ///< The number of elements of each dimension.
-	struct const_Vector_ui* volume_types; ///< Pointer to the first volume entry in \ref Mesh_Data::elem_types.
-	struct Vector_ui* v_n_lf;             ///< The number of faces for each volume.
-
-	// Computed here:
-	struct Multiarray_Vector_ui* f_ve;     ///< Global face to vertex correspondence.
-	struct Vector_ui*            ind_f_ve; ///< Indices of \ref f_ve after sorting.
 };
 
 /** \brief Constructor for \ref Conn_info.
@@ -70,12 +59,15 @@ static void compute_v_to__v_lf
 	 struct Mesh_Connectivity_l*const mesh_conn_l ///< The \ref Mesh_Connectivity_l.
 	);
 
-static void compute_bc_info
-	()
-{
-//	const size_t d    = conn_info->d,
-//	             n_bf = conn_info->elem_per_dim->data[d-1];
-}
+/** \brief Add the boundary condition information to \ref v_to_lf.
+ *
+ *	This function replaces all invalid entries in the volume to local face container with the number corresponding to
+ *	the appropriate boundary condition.
+ */
+static void add_bc_info
+	(const struct Conn_info*const conn_info,      ///< The \ref Conn_info.
+	 struct Mesh_Connectivity_l*const mesh_conn_l ///< The \ref Mesh_Connectivity_l.
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -88,12 +80,12 @@ struct Mesh_Connectivity* mesh_connect (const struct Mesh_Data*const mesh_data, 
 	struct Conn_info* conn_info = constructor_Conn_info(mesh_data,elements); // destructed
 
 	compute_f_ve(mesh_data,elements,conn_info);
-
 	compute_v_to__v_lf(conn_info,&mesh_conn_l);
+
 print_Multiarray_Vector_ui(mesh_conn_l.v_to_v);
 print_Multiarray_Vector_ui(mesh_conn_l.v_to_lf);
-
-	compute_bc_info();
+	add_bc_info(conn_info,&mesh_conn_l);
+print_Multiarray_Vector_ui(mesh_conn_l.v_to_lf);
 
 
 	destructor_Multiarray_Vector_ui(conn_info->f_ve);
@@ -104,21 +96,22 @@ print_Multiarray_Vector_ui(mesh_conn_l.v_to_lf);
 	return mesh_connectivity;
 }
 
+size_t get_first_volume_index (const struct Vector_ui*const elem_per_dim, const unsigned int d)
+{
+	size_t ind = 0;
+	for (unsigned int dim = 0; dim < d; dim++)
+		ind += elem_per_dim->data[dim];
+	return ind;
+}
+
 // Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
 
 /** \brief See return.
  *	\return The number of elements of each dimension.
  */
 static struct Vector_ui* count_elements_per_dim
 	(const struct const_Vector_ui*const elem_types ///< Defined in \ref Conn_info.
-	);
-
-/** \brief See return.
- *	\return The index of the first volume.
- */
-static size_t get_first_volume_index
-	(const struct Vector_ui*const elem_per_dim, ///< Defined in \ref Conn_info.
-	 const unsigned int d                       ///< Defined in \ref Conn_info.
 	);
 
 /** \brief See return.
@@ -163,148 +156,6 @@ static void destructor_Conn_info (struct Conn_info* conn_info)
 	free(conn_info);
 }
 
-
-
-/// \brief Container for periodic node information.
-struct Periodic_Node {
-	char   dir;           ///< The direction of the periodicity. Options: 'x', 'y', 'z'.
-	double coord[DMAX-1]; ///< The node coordinates in directions other than the periodic one.
-};
-
-static bool check_bf_periodic
-	(const char sm,        ///< Indicator for whether it is desired to check for 'M'aster or 'S'lave.
-	 const unsigned int bc ///< The value of the boundary condition.
-	)
-{
-	const unsigned int bc_base = bc % BC_STEP_SC;
-	switch (sm) {
-	case 'M':
-		return ((bc_base == PERIODIC_XL) || (bc_base == PERIODIC_YL) || (bc_base == PERIODIC_ZL));
-		break;
-	case 'S':
-		return ((bc_base == PERIODIC_XR) || (bc_base == PERIODIC_YR) || (bc_base == PERIODIC_ZR));
-		break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
-}
-
-static size_t count_periodic_faces
-	(const size_t ind_bf, const size_t n_bf, const struct const_Matrix_ui*const elem_tags)
-{
-	size_t count = 0;
-
-	const size_t n_max = ind_bf+n_bf;
-	for (size_t n = ind_bf; n < n_max; ++n) {
-		if (check_bf_periodic('M',get_val_const_Matrix_ui(n,0,elem_tags)))
-			++count;
-	}
-	return count;
-}
-
-/// \brief Container for periodic face information.
-struct Periodic_Face_Info {
-	struct Periodic_Node** per_nodes;       ///< The list of \ref Periodic_Node entities.
-	struct Vector_ui**     bface_node_nums; ///< The boundary face node numbers.
-	struct Vector_ui*      ind_sorted;      ///< The indices corresponding to the sorted boundary face node numbers.
-};
-
-static struct Periodic_Face_Info* constructor_Periodic_Face_Info (size_t const n_pf)
-{
-	struct Periodic_Face_Info* p_f_info = malloc(sizeof *p_f_info); // returned
-
-	p_f_info->per_nodes       = malloc(n_pf * sizeof *(p_f_info->per_nodes));       // destructed
-	p_f_info->bface_node_nums = malloc(n_pf * sizeof *(p_f_info->bface_node_nums)); // destructed
-
-	return p_f_info;
-}
-
-static void destructor_Periodic_Face_Info (struct Periodic_Face_Info* p_f_info)
-{
-	free(p_f_info->per_nodes);
-	free(p_f_info->bface_node_nums);
-
-	free(p_f_info);
-}
-
-static void set_p_nodes_and_nums
-	(struct Periodic_Face_Info* p_info[2], const size_t ind_bf, const size_t n_bf,
-	 const struct Mesh_Data*const mesh_data)
-{
-	const struct const_Matrix_d*const             nodes     = mesh_data->nodes;
-	const struct const_Matrix_ui*const            elem_tags = mesh_data->elem_tags;
-	const struct const_Multiarray_Vector_ui*const node_nums = mesh_data->node_nums;
-
-	const size_t n_max = ind_bf+n_bf;
-	for (size_t n = ind_bf; n < n_max; ++n) {
-		if (check_bf_periodic('M',get_val_const_Matrix_ui(n,0,elem_tags)))
-			; // Fill master [0]
-		else if (check_bf_periodic('S',get_val_const_Matrix_ui(n,0,elem_tags)))
-			; // Fill slave [1]
-	}
-}
-
-/** \brief Correct the face vertex correspondence if the mesh is periodic.
- *
- *	The correction modifies the vertices of the "slave" faces to those of the "master" faces. The correspondence is
- *	established by checking the equivalence of the mesh node coordinates in the appropriate directions.
- */
-void correct_f_ve_for_periodic
-	(struct Multiarray_Vector_ui*const f_ve, ///< Defined in \ref Conn_info.
-	 const struct Mesh_Data*const mesh_data, ///< Defined in \ref Mesh_Data.
-	 const struct Conn_info*const conn_info  ///< The \ref Conn_info.
-	)
-{
-	if (mesh_data->periodic_corr == NULL)
-		return;
-
-	// 1) Make lists of master and slave [direction, centroid] containers (sorted).
-	// 2) Make lists of master and slave boundary face vertices (sorted Vector data only).
-	// 2.1) Find face indices of master faces (binary search).
-	// 2.2) Replace face indices of slave faces (binary search) with those of corresponding master faces.
-
-	const size_t d      = conn_info->d,
-	             ind_bf = get_first_volume_index(conn_info->elem_per_dim,d-1),
-	             n_bf   = conn_info->elem_per_dim->data[d-1];
-
-	const size_t n_pf = count_periodic_faces(ind_bf,n_bf,mesh_data->elem_tags);
-
-	const size_t n_ms = 2;
-	struct Periodic_Face_Info* p_info[n_ms];
-
-	for (size_t i = 0; i < n_ms; i++)
-		p_info[i] = constructor_Periodic_Face_Info(n_pf);
-
-
-
-	for (size_t i = 0; i < n_ms; i++)
-		destructor_Periodic_Face_Info(p_info[i]);
-
-
-UNUSED(p_info);
-
-printf("%zu\n",n_pf);
-UNUSED(n_pf);
-
-print_const_Matrix_d(mesh_data->nodes);
-print_const_Matrix_ui(mesh_data->elem_tags);
-print_const_Multiarray_Vector_ui(mesh_data->node_nums);
-//print_const_Matrix_ui(mesh_data->periodic_corr);
-//print_Multiarray_Vector_ui(conn_info->f_ve);
-	const struct const_Vector_ui*const*const bface_nums = &mesh_data->node_nums->data[ind_bf];
-	for (size_t bf = 0; bf < n_bf; ++bf) {
-	}
-// void * std::bsearch (const void *key, const void *array, size_t count, size_t size, comparison_fn_t compare)
-UNUSED(ind_bf);
-UNUSED(bface_nums);
-
-
-UNUSED(f_ve);
-EXIT_UNSUPPORTED;
-}
-
-
 static void compute_f_ve
 	(const struct Mesh_Data*const mesh_data, const struct Intrusive_List* elements, struct Conn_info* conn_info)
 {
@@ -335,8 +186,7 @@ static void compute_f_ve
 	conn_info->f_ve     = f_ve; // keep
 	conn_info->ind_f_ve = sort_Multiarray_Vector_ui(f_ve,true); // keep
 
-	correct_f_ve_for_periodic(f_ve,mesh_data,conn_info);
-
+	correct_f_ve_for_periodic(mesh_data,conn_info);
 }
 
 static void compute_v_to__v_lf (const struct Conn_info*const conn_info, struct Mesh_Connectivity_l*const mesh_conn_l)
@@ -402,10 +252,35 @@ static void compute_v_to__v_lf (const struct Conn_info*const conn_info, struct M
 	mesh_conn_l->v_to_lf = constructor_copy_Multiarray_Vector_ui(v_to_lf_ui,conn_info->v_n_lf->data,1,n_v); // keep
 }
 
+static void add_bc_info (const struct Conn_info*const conn_info, struct Mesh_Connectivity_l*const mesh_conn_l)
+{
 
+	struct Vector_ui*const v_to_v_V  = collapse_Multiarray_Vector_ui(mesh_conn_l->v_to_v);  // destructed
+	struct Vector_ui*const v_to_lf_V = collapse_Multiarray_Vector_ui(mesh_conn_l->v_to_lf); // destructed
 
+	unsigned int*const v_to_lf_ui  = v_to_lf_V->data,
+	            *const ind_f_ve_ui = conn_info->ind_f_ve->data;
 
+	struct Vector_ui*const*const f_ve_V = conn_info->f_ve->data;
 
+	const size_t n_f = v_to_lf_V->extents[0];
+	for (size_t n = 0; n < n_f; ++n) {
+		const size_t f = ind_f_ve_ui[n];
+		if (v_to_lf_ui[f] != UINT_MAX)
+			continue;
+printf("%zu\n",f);
+print_Vector_ui(f_ve_V[n]);
+// Make a container for bf_ve + bc. Use data from node_nums + elem_tags.
+// Sort as for f_ve but indices are not required.
+// Binary search in container for this f_ve_V.
+// Modify the value of of v_to_lf_ui[f] = bc;
+	}
+
+	destructor_Vector_ui(v_to_v_V);
+	destructor_Vector_ui(v_to_lf_V);
+}
+
+// Level 1 ********************************************************************************************************** //
 
 static struct Vector_ui* count_elements_per_dim (const struct const_Vector_ui*const elem_types)
 {
@@ -434,14 +309,6 @@ static struct Vector_ui* count_elements_per_dim (const struct const_Vector_ui*co
 	}
 
 	return count;
-}
-
-static size_t get_first_volume_index (const struct Vector_ui*const elem_per_dim, const unsigned int d)
-{
-	size_t ind = 0;
-	for (unsigned int dim = 0; dim < d; dim++)
-		ind += elem_per_dim->data[dim];
-	return ind;
 }
 
 static size_t compute_sum_n_f (const struct Intrusive_List* elements, const struct const_Vector_ui*const volume_types)

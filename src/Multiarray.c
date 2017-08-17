@@ -41,16 +41,6 @@ static struct Multiarray_Vector_ui make_local_Multiarray_Vector_ui_0
 	 struct Vector_ui**const data ///< Standard.
 	);
 
-/** \brief Comparison function for std::qsort between \ref Vector_ui\*\* `a` and `b`.
- *	\return The lexicographical comparison of `a` and `b`.
- *
- *	\note Input Vectors must be have sorted data.
- */
-static int cmp_Vector_ui
-	(const void *a, ///< Variable 1.
-	 const void *b  ///< Variable 2.
-	);
-
 /** \brief Comparison function for std::qsort between `struct Vector_ui_indexed**` `a` and `b`.
  *	\return The lexicographical comparison of `a` and `b`.
  *
@@ -67,6 +57,11 @@ static int cmp_Vector_ui_indexed
 static void reorder_Multiarray_Vector_ui
 	(struct Multiarray_Vector_ui*const a, ///< Standard.
 	 const unsigned int*const ordering    ///< The ordering.
+	);
+
+/// \brief Compute the total number of entries in a \ref Multiarray_Vector_ui\*.
+static size_t compute_total_entries
+	(const struct Multiarray_Vector_ui*const src ///< Standard.
 	);
 
 // Constructor/Destructor functions ********************************************************************************* //
@@ -214,6 +209,31 @@ struct Vector_ui* sort_Multiarray_Vector_ui (struct Multiarray_Vector_ui* a, con
 	return ordering;
 }
 
+struct Vector_ui* collapse_Multiarray_Vector_ui (const struct Multiarray_Vector_ui*const src)
+{
+	const size_t n_entries = compute_total_entries(src);
+
+	unsigned int*const data = malloc(n_entries * sizeof *data); // keep
+
+	size_t ind_d = 0;
+	const size_t size = compute_size(src->order,src->extents);
+	for (size_t i = 0; i < size; ++i) {
+		struct Vector_ui*const src_curr = src->data[i];
+		const size_t size_V = compute_size(1,src_curr->extents);
+		for (size_t j = 0; j < size_V; ++j) {
+			data[ind_d] = src_curr->data[j];
+			++ind_d;
+		}
+	}
+
+	struct Vector_ui*const dest = malloc(sizeof *dest); // returned
+	dest->extents[0] = n_entries;
+	dest->owns_data  = true;
+	dest->data       = data;
+
+	return dest;
+}
+
 // Printing functions *********************************************************************************************** //
 
 void print_Multiarray_Vector_ui (const struct Multiarray_Vector_ui*const a)
@@ -235,6 +255,7 @@ void print_Multiarray_Vector_ui (const struct Multiarray_Vector_ui*const a)
 		EXIT_UNSUPPORTED;
 		break;
 	}
+	printf("\n");
 }
 
 void print_const_Multiarray_Vector_ui (const struct const_Multiarray_Vector_ui*const a)
@@ -291,53 +312,39 @@ static void reorder_Multiarray_Vector_ui (struct Multiarray_Vector_ui*const a, c
 		a->data[i] = b[i];
 }
 
-static int cmp_Vector_ui (const void *a, const void *b)
-{
-	const struct Vector_ui*const*const ia = (const struct Vector_ui*const*const) a,
-	                      *const*const ib = (const struct Vector_ui*const*const) b;
-
-	const unsigned int*const a_data = (*ia)->data,
-	                  *const b_data = (*ib)->data;
-
-	const size_t size_a = compute_size(1,(*ia)->extents),
-	             size_b = compute_size(1,(*ib)->extents);
-
-	if (size_a > size_b)
-		return 1;
-	if (size_a < size_b)
-		return -1;
-
-	for (size_t i = 0; i < size_a; ++i) {
-		if (a_data[i] > b_data[i])
-			return 1;
-		else if (a_data[i] < b_data[i])
-			return -1;
-	}
-	return 0;
-}
-
 static int cmp_Vector_ui_indexed (const void *a, const void *b)
 {
 	const struct Vector_ui_indexed*const*const ia = (const struct Vector_ui_indexed*const*const) a,
 	                              *const*const ib = (const struct Vector_ui_indexed*const*const) b;
-
-	const unsigned int*const a_data = (*ia)->vector->data,
-	                  *const b_data = (*ib)->vector->data;
 
 	const size_t size_a = compute_size(1,(*ia)->vector->extents),
 	             size_b = compute_size(1,(*ib)->vector->extents);
 
 	if (size_a > size_b)
 		return 1;
-	if (size_a < size_b)
+	else if (size_a < size_b)
 		return -1;
 
+	const unsigned int*const data_a = (*ia)->vector->data,
+	                  *const data_b = (*ib)->vector->data;
+
 	for (size_t i = 0; i < size_a; ++i) {
-		if (a_data[i] > b_data[i])
+		if (data_a[i] > data_b[i])
 			return 1;
-		else if (a_data[i] < b_data[i])
+		else if (data_a[i] < data_b[i])
 			return -1;
 	}
 	return 0;
+}
+
+static size_t compute_total_entries (const struct Multiarray_Vector_ui*const src)
+{
+	const size_t size = compute_size(src->order,src->extents);
+
+	size_t count = 0;
+	for (size_t i = 0; i < size; ++i)
+		count += compute_size(1,src->data[i]->extents);
+
+	return count;
 }
 

@@ -13,32 +13,6 @@
 #include "Matrix.h"
 #include "Vector.h"
 
-/**\{ Definitions for the gmsh physical numbering convention.
- *	\todo Move this to where it is needed.
- */
-/*#define BC_PERIODIC_MIN 50
-#define PERIODIC_XL     51
-#define PERIODIC_XR     52
-#define PERIODIC_YL     53
-#define PERIODIC_YR     54
-#define PERIODIC_ZL     55
-#define PERIODIC_ZR     56*/
-///\}
-
-
-/**\{ \name Definitions for the gmsh geometry numbering convention.
- *	\todo Move this to where it is needed.
- */
-#define GMSH_XLINE_MIN  1001
-#define GMSH_YLINE_MIN  2001
-#define GMSH_ZLINE_MIN  3001
-#define GMSH_XYFACE_MIN 4001
-#define GMSH_XZFACE_MIN 5001
-#define GMSH_YZFACE_MIN 6001
-#define GMSH_XYZVOL_MIN 7001
-///\}
-
-
 /** \brief Holds data read from the mesh file.
  *
  *	A detailed description of the variables constructed from a Gmsh .msh file can be found in the

@@ -33,6 +33,7 @@
 #define EXIT_BASIC       ({ printf("\n\nFILE: %s, FUNCTION: %s (LINE: %d)\n\n\n",__FILE__,__func__,__LINE__); exit(1); })
 #define EXIT_UNSUPPORTED ({printf("Error: Unsupported.\n"), EXIT_MSG; })
 #define EXIT_ADD_SUPPORT ({printf("Error: Add support.\n"), EXIT_MSG; })
+#define EXIT_ERROR(s)    ({printf("Error: %s.\n",s), EXIT_MSG; })
 #define PRINT_FILELINE   ({ printf("\n\nFILE: %s, FUNCTION: %s (LINE: %d)\n\n\n",__FILE__,__func__,__LINE__); })
 #define FREE_NULL(a)     ({free(a); a = NULL;})
 #define DO_NOTHING_P(p)  ({if(0) printf("%p",&p);})

@@ -2,8 +2,8 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 /**	\file
  *	\brief Reads a mesh file and returns relevant data as part of
- *
- *	General comments.
+
+ \todo Complete this.
  */
 
 #include "set_up_mesh.h"

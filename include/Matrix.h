@@ -112,6 +112,14 @@ double* get_row_Matrix_d
 	 const struct Matrix_d* a ///< Matrix.
 	);
 
+/** \brief Get pointer to row of row-major \ref const_Matrix_d\*.
+ *	\return Pointer to the first entry of the row.
+ */
+const double* get_row_const_Matrix_d
+	(const size_t row,        ///< Desired row.
+	 const struct const_Matrix_d* a ///< Matrix.
+	);
+
 /** \brief Get pointer to row of row-major \ref Matrix_ui\*.
  *	\return Pointer to the first entry of the row.
  */

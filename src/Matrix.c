@@ -81,6 +81,14 @@ double* get_row_Matrix_d (const size_t row, const struct Matrix_d* a)
 	return &a->data[row*(a->extents[1])];
 }
 
+const double* get_row_const_Matrix_d (const size_t row, const struct const_Matrix_d*const a)
+{
+	if (a->layout != 'R')
+		EXIT_UNSUPPORTED;
+
+	return &a->data[row*(a->extents[1])];
+}
+
 unsigned int* get_row_Matrix_ui (const size_t row, const struct Matrix_ui* a)
 {
 	if (a->layout != 'R')

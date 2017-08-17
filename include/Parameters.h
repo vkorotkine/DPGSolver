@@ -13,8 +13,6 @@
  *
  *	Notation:
  *		NEC             : (N)umber of (E)lement (C)lasses: TP, SI, PYR
- *		DMAX            : (MAX)imum (D)imension
- *		BC_STEP_SC      : (B)oundary(C)ondition step between (S)traight and (C)urved BCs.
  *		BC_PERIODIC_MIN : (B)oundary(C)ondition (PERIODIC) (MIN)imum.
  *		NVEMAX          : (MAX)imum (N)umber of (VE)rtices for an element.
  *		NEVEMAX         : (MAX)imum (N)umber of (E)DGE (VE)rtices for an element.
@@ -39,7 +37,9 @@
  *
  */
 
+#include "constants_core.h"
 #include "constants_gmsh.h"
+#include "constants_bc.h"
 
 #ifndef TEST
 	#define TEST 0
@@ -53,19 +53,9 @@
 
 // Magic numbers
 #define NEC             3
-#define DMAX            3
-#define NVAR3D          5
-#define NVAR2D          4
-#define NVAR1D          3
 
-#define BC_STEP_SC      10000
+///\{ \deprecated
 #define BC_PERIODIC_MIN 50
-#define PERIODIC_XL     51
-#define PERIODIC_XR     52
-#define PERIODIC_YL     53
-#define PERIODIC_YR     54
-#define PERIODIC_ZL     55
-#define PERIODIC_ZR     56
 
 #define GMSH_XLINE_MIN  1001
 #define GMSH_YLINE_MIN  2001
@@ -74,6 +64,7 @@
 #define GMSH_XZFACE_MIN 5001
 #define GMSH_YZFACE_MIN 6001
 #define GMSH_XYZVOL_MIN 7001
+///\}
 
 // Geometry related parameters
 #define GORDON_HALL       1
@@ -120,23 +111,6 @@
 #define RK3_SSP 0
 #define RK4_LS  1
 #define EULER   2
-
-// Boundary conditions
-#define BC_RIEMANN        1
-#define BC_SLIPWALL       2
-#define BC_BACKPRESSURE   3
-#define BC_TOTAL_TP       4
-#define BC_SUPERSONIC_IN  5
-#define BC_SUPERSONIC_OUT 6
-
-#define BC_NOSLIP_T         7
-#define BC_NOSLIP_ADIABATIC 8
-
-#define BC_DIRICHLET    11
-#define BC_NEUMANN      12
-
-#define BC_INFLOW       13
-#define BC_OUTFLOW      14
 
 // Allowed adaptation options
 #define ADAPT_0  0

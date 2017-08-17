@@ -202,6 +202,12 @@ struct Vector_ui* sort_Multiarray_Vector_ui
 	 const bool return_indices       ///< Flag for whether the indices should also be returned.
 	);
 
+/** \brief Collapse a \ref Multiarray_Vector_ui\* into a \ref Vector_ui\* with copied data.
+ *	\return The \ref Vector_ui\*. */
+struct Vector_ui* collapse_Multiarray_Vector_ui
+	(const struct Multiarray_Vector_ui*const src ///< The source.
+	);
+
 // Printing functions *********************************************************************************************** //
 
 /// \brief Print a \ref Multiarray_Vector_ui\* to the terminal.

@@ -8,6 +8,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "Macros.h"
+
 #include "allocators.h"
 #include "Multiarray.h"
 
@@ -58,6 +60,20 @@ struct Vector_ui* constructor_empty_Vector_ui (const size_t ext_0)
 
 	struct Vector_ui* dest = malloc(sizeof *dest); // returned
 
+	dest->extents[0] = ext_0;
+	dest->owns_data  = true;
+	dest->data       = data;
+
+	return dest;
+}
+
+struct Vector_ui* constructor_copy_Vector_ui_ui (const size_t ext_0, const unsigned int*const data_src)
+{
+	unsigned int* data = malloc(ext_0 * sizeof *data); // keep
+	for (size_t i = 0; i < ext_0; i++)
+		data[i] = data_src[i];
+
+	struct Vector_ui* dest = malloc(sizeof *dest); // returned
 	dest->extents[0] = ext_0;
 	dest->owns_data  = true;
 	dest->data       = data;
@@ -172,6 +188,43 @@ bool check_equal_Vector_ui (const struct Vector_ui*const a, const struct Vector_
 			return false;
 	}
 	return true;
+}
+
+int cmp_Vector_ui (const void *a, const void *b)
+{
+	const struct Vector_ui*const*const ia = (const struct Vector_ui*const*const) a,
+	                      *const*const ib = (const struct Vector_ui*const*const) b;
+
+	const size_t size_a = compute_size(1,(*ia)->extents),
+	             size_b = compute_size(1,(*ib)->extents);
+
+	if (size_a > size_b)
+		return 1;
+	else if (size_a < size_b)
+		return -1;
+
+	const unsigned int*const data_a = (*ia)->data,
+	                  *const data_b = (*ib)->data;
+
+	for (size_t i = 0; i < size_a; ++i) {
+		if (data_a[i] > data_b[i])
+			return 1;
+		else if (data_a[i] < data_b[i])
+			return -1;
+	}
+	return 0;
+}
+
+void copy_data_Vector_ui_Vector_ui (const struct Vector_ui*const src, struct Vector_ui*const dest)
+{
+	const size_t size_src  = compute_size(1,src->extents),
+	             size_dest = compute_size(1,dest->extents);
+
+	if (size_src != size_dest)
+		EXIT_UNSUPPORTED;
+
+	for (size_t i = 0; i < size_src; ++i)
+		dest->data[i] = src->data[i];
 }
 
 // Printing functions *********************************************************************************************** //

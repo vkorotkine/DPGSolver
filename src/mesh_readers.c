@@ -22,33 +22,7 @@
 /// Expected number of tags for elements in the gmsh file.
 #define GMSH_N_TAGS 2
 
-/** /brief Read data from a mesh in gmsh format.
- *
- *	\todo Move these comments to the appropriate function.
- *
- *	When dealing with **periodic** meshes, adherence to the numbering convention specified below is required for the
- *	correspondence of periodic entities to be identified.
- *
- *	Numbering (Geometry):
- *		- 0001-1000: Points (all).
- *		- 1001-2000: Lines x (constant yz).
- *		- 2001-3000: Lines y (constant xz).
- *		- 3001-4000: Lines z (constant xy).
- *		- 4001-5000: Surfaces xy (constant z).
- *		- 5001-6000: Surfaces xz (constant y).
- *		- 6001-7000: Surfaces yz (constant x).
- *		- 7001-8000: Volumes xyz.
- *
- *	Numbering (Physical):
- *		- \*0051 : Periodic (-x)
- *		- \*0052 : Periodic (+x)
- *		- \*0053 : Periodic (-y)
- *		- \*0054 : Periodic (+y)
- *		- \*0055 : Periodic (-z)
- *		- \*0056 : Periodic (+z)
- *
- *		\* : 1 (Straight), 2 (Curved). This is the same treatment as for all other BCs.
- */
+/// /brief Read data from a mesh in gmsh format.
 static struct Mesh_Data* mesh_reader_gmsh
 	(const char*const mesh_name_full, ///< The name of the mesh including the full path.
 	 const unsigned int d             ///< The dimension.
@@ -80,6 +54,7 @@ void destructor_Mesh_Data (struct Mesh_Data* mesh_data)
 // Static functions ************************************************************************************************* //
 
 // Gmsh ************************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
 
 /// \brief Holds data relating to elements in the gmsh file.
 struct Element_Data {
@@ -153,6 +128,8 @@ static struct Mesh_Data* mesh_reader_gmsh (const char*const mesh_name_full, cons
 
 	return mesh_data;
 }
+
+// Level 1 ********************************************************************************************************** //
 
 /** \brief Fill one row of the nodes \ref Matrix_d.
  *	Note that the first entry of the line is the node index and is discarded.
@@ -299,6 +276,8 @@ static struct Mesh_Data* constructor_Mesh_Data
 	return mesh_data;
 }
 
+// Level 2 ********************************************************************************************************** //
+
 /** \brief Get the number of nodes specifying the geometry for the element of the given type.
  *	\return See brief.
  *
@@ -368,6 +347,8 @@ static void skip_periodic_entity (FILE* file, char**const line, const size_t lin
 
 	skip_lines(file,line,line_size,n_skip);
 }
+
+// Level 3 ********************************************************************************************************** //
 
 static unsigned int get_n_nodes (const unsigned int elem_type)
 {

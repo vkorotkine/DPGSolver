@@ -42,6 +42,12 @@ struct Vector_ui* constructor_empty_Vector_ui
 	(const size_t ext_0 ///< The value of extents[0].
 	);
 
+/// \brief Copy constructor for a \ref Vector_ui\* from a `const unsigned int*`.
+struct Vector_ui* constructor_copy_Vector_ui_ui
+	(const size_t ext_0,               ///< The value of extents[0].
+	 const unsigned int*const data_src ///< The source data.
+	);
+
 /// \brief Move constructor for a \ref Vector_ui\* from a `unsigned int*`.
 struct Vector_ui* constructor_move_Vector_ui_ui
 	(const size_t ext_0,     ///< The value of extents[0].
@@ -79,7 +85,7 @@ void destructor_Vector_ui_2
  *	\warning This is not currently done in place.
  */
 void reorder_Vector_ui
-	(struct Vector_ui*const a,   ///< Standard.
+	(struct Vector_ui*const a,         ///< Standard.
 	 const unsigned int*const ordering ///< The ordering.
 	);
 
@@ -112,6 +118,22 @@ unsigned int sum_Vector_ui
 bool check_equal_Vector_ui
 	(const struct Vector_ui*const a, ///< Input 1.
 	 const struct Vector_ui*const b  ///< Input 2.
+	);
+
+/** \brief Comparison function for std::qsort between \ref Vector_ui\*\* `a` and `b`.
+ *	\return The lexicographical comparison of `a` and `b`.
+ *
+ *	\note Input Vectors must be have sorted data.
+ */
+int cmp_Vector_ui
+	(const void *a, ///< Variable 1.
+	 const void *b  ///< Variable 2.
+	);
+
+/// \brief Copy the data of the `src` to that of the `dest` \ref Vector_ui\*.
+void copy_data_Vector_ui_Vector_ui
+	(const struct Vector_ui*const src, ///< Standard.
+	 struct Vector_ui*const dest       ///< Standard.
 	);
 
 // Printing functions *********************************************************************************************** //

@@ -75,7 +75,7 @@ void test_integration_Euler(int nargc, char **argv)
 		                                     .test_name = test_name, };
 
 #if 1
-#if 0
+#if 1
 test_integration_linearization("test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
 EXIT_UNSUPPORTED;
 #else
