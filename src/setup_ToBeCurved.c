@@ -59,18 +59,20 @@ static void ToBeCurved_elliptic_pipe (unsigned int const Nn, double const *const
 	if (DB.d != 2)
 		EXIT_UNSUPPORTED;
 
-	double *const X = &XYZ[Nn*0],
-	       *const Y = &XYZ[Nn*1];
+		double *const X = &XYZ[Nn*0],
+		       *const Y = &XYZ[Nn*1];
 
-	double const *const X_S = &XYZ_S[Nn*0],
-	             *const Y_S = &XYZ_S[Nn*1];
+		double const *const X_S = &XYZ_S[Nn*0],
+		             *const Y_S = &XYZ_S[Nn*1];
 
-	double const a = 2.0, b = 4.0, a_1 = 1.0, a_2 = 2.0;
+		double a = DB.geo_store[0],
+			   b = DB.geo_store[1],
+			   c = DB.geo_store[2];
 
+		for (size_t n = 0; n < Nn; n++) {
 
-	for (size_t n = 0; n < Nn; n++) {
-	     Y[n] = (b/(2*a))*((a_2-a_1)*Y_S[n]+(a_2+a_1))*sin((PI/2)*(X_S[n]+1));
-             X[n] = -0.5*((a_2-a_1)*Y_S[n]+(a_2+a_1))*cos((PI/2)*(X_S[n]+1));
+	    	 Y[n] = (b/(2*a))*(Y_S[n]+1)*sqrt(a*a+0.25*c*c*(X_S[n]+1)*(X_S[n]+1));
+             X[n] = c*(X_S[n]+1)/2;
 	}
 }
 
@@ -84,8 +86,6 @@ static void ToBeCurved_parabolic_pipe (unsigned int const Nn, double const *cons
 
         double const *const X_S = &XYZ_S[Nn*0],
                      *const Y_S = &XYZ_S[Nn*1];
-
-//        double const  b = 0.25, a_1 = 0.25, a_2 = 2.25; // Working (Optimal for P1-P4, ML0-4)
 
 		double a_1 = DB.geo_store[0],
 			   a_2 = DB.geo_store[1],

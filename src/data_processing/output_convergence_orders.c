@@ -77,7 +77,7 @@ int main(void)
 	NVars = DMAX+2+1;
 //	NVars = DMAX+1;
 //	NVars = d+1;
-	MLMax = 4; NML = MLMax+1;
+	MLMax = 5; NML = MLMax+1;
 	PMax  = 8; NP  = PMax+1;
 
 	unsigned int CasesRun[72] = { 0, 1, 1, 1, 1, 0, 0, 0, 0,
@@ -85,7 +85,7 @@ int main(void)
 	                              0, 1, 1, 1, 1, 0, 0, 0, 0,
 	                              0, 1, 1, 1, 1, 0, 0, 0, 0,
 	                              0, 1, 1, 1, 1, 0, 0, 0, 0,
-	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
+	                              0, 1, 1, 1, 1, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0,
 	                              0, 0, 0, 0, 0, 0, 0, 0, 0};
 

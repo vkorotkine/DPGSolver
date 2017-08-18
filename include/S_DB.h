@@ -45,7 +45,7 @@ struct S_DB {
 	             rIn, MIn, rhoIn, pIn, VIn, rOut, TIn, uIn, omega, mu, Pr, Cp, kappa,
 	             Q0, KMin, KMax, GBa, GBb, GBc, aIn, bIn, cIn, aOut, bOut, cOut, lHR,
 	             NSc, NSt, NS0, NS1, NS2, NS3, NS4, JSa, JSl, JSxL, rho_store[7], p_store[7], u_store[7], v_store[7],
-				 w_store[5], geo_store[3];
+				 w_store[5], geo_store[3], f_store[7];
 
 	// Solving
 	unsigned int dof;

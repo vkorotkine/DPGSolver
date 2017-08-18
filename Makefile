@@ -133,6 +133,7 @@ TESTCASE_LIST := Advection_Default \
                  Euler_PeriodicVortex_Stationary \
                  Euler_SupersonicVortex \
                  Euler_ParabolicPipe \
+                 Euler_EllipticPipe \
                  NavierStokes_TaylorCouette \
                  NavierStokes_PlaneCouette
 

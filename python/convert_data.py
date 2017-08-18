@@ -1,7 +1,6 @@
 import sys
 import re
 import numpy as np
-import matplotlib.pyplot as plt
 
 from numpy import linalg as LA
 
@@ -373,16 +372,16 @@ def output_figure(data_i,output):
 
 		# varNames go in legend
 #				print(data_y)
-				plt.plot(data_x,data_y,'-o')
+#				plt.plot(data_x,data_y,'-o')
 
 #			print(" ")
 
 
-	plt.xscale('log')
-	plt.yscale('log')
-	axes = plt.gca()
-	axes.set_xlim([1.05*np.amin(h),1.05*np.amax(h)])
-	plt.savefig('latex_figure.eps', format='eps', dpi=1200)
+#	plt.xscale('log')
+#	plt.yscale('log')
+#	axes = plt.gca()
+#	axes.set_xlim([1.05*np.amin(h),1.05*np.amax(h)])
+#	plt.savefig('latex_figure.eps', format='eps', dpi=1200)
 	sys.exit()
 
 
@@ -438,7 +437,7 @@ def output_data(output,data_i):
 
 	if ('table' in output.format):
 		f.close()
-	
+
 
 
 
