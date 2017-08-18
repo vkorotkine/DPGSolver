@@ -34,7 +34,8 @@ void init_IL
  */
 struct Intrusive_List* constructor_empty_IL ();
 
-/// \brief Destructs all Intrusive_Links in the \ref Intrusive_List.
+/** \brief Destructs all Intrusive_Links in the \ref Intrusive_List.
+ *	\note Only frees the link entries and not any members which may be pointing to allocated memory. */
 void clear_IL
 	(struct Intrusive_List* lst ///< Standard.
 	);

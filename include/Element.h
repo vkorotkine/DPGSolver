@@ -28,6 +28,11 @@ struct Intrusive_List* constructor_Element_List
 	(const unsigned int d ///< The dimension.
 	);
 
+/// \brief Destructs the base \ref Element \ref Intrusive_List.
+void destructor_Elements
+	(struct Intrusive_List* Elements ///< Standard.
+	);
+
 // Helper functions ************************************************************************************************* //
 
 /** \brief See return.

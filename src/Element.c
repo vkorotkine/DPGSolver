@@ -7,14 +7,24 @@
 
 #include <string.h>
 
-#include "Parameters.h"
+#include "constants_elements.h"
 #include "Macros.h"
 #include "Multiarray.h"
 #include "const_cast.h"
 
-/// \brief Constructs an \ref Element.
-static struct Element* constructor_Element (const unsigned int elem_type);
+// Static function declarations ************************************************************************************* //
 
+/// \brief Constructor for an individual \ref Element.
+static struct Element* constructor_Element
+	(const unsigned int elem_type ///< The element type.
+	);
+
+/// \brief Destructor for an individual \ref Element.
+static void destructor_Element
+	(struct Element* element ///< Standard.
+	);
+
+// Interface functions ********************************************************************************************** //
 
 struct Intrusive_List* constructor_Element_List (const unsigned int d)
 {
@@ -37,6 +47,16 @@ struct Intrusive_List* constructor_Element_List (const unsigned int d)
 	return Elements;
 }
 
+void destructor_Elements (struct Intrusive_List* elements)
+{
+	for (const struct Intrusive_Link* curr = elements->first; curr; ) {
+		struct Intrusive_Link* next = curr->next;
+		destructor_Element((struct Element*) curr);
+		curr = next;
+	}
+	destructor_IL(elements);
+}
+
 struct Element* get_element_by_type (const struct Intrusive_List* elements, const unsigned int type)
 {
 	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
@@ -49,6 +69,7 @@ struct Element* get_element_by_type (const struct Intrusive_List* elements, cons
 }
 
 // Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
 
 /// \brief Container for local element-related information.
 struct Elem_info {
@@ -133,15 +154,18 @@ static struct Element* constructor_Element
 	struct Multiarray_Vector_ui* f_ve = constructor_copy_Multiarray_Vector_ui(e_info.f_ve,e_info.n_f_ve,1,e_info.n_f);
 //	print_Multiarray_Vector_ui(f_ve);
 
-	struct Element* element = malloc(sizeof *element); // keep
+	struct Element* element = malloc(sizeof *element); // returned
 
 	const_cast_ui(&element->type,elem_type);
 	const_cast_ui(&element->d,e_info.d);
 	const_cast_ui(&element->n_f,e_info.n_f);
-	const_constructor_move_Multiarray_Vector_ui(&element->f_ve,f_ve);
+	const_constructor_move_Multiarray_Vector_ui(&element->f_ve,f_ve); // destructed
 
 
 	return element;
 }
 
-
+static void destructor_Element (struct Element* element)
+{
+	destructor_Multiarray_Vector_ui((struct Multiarray_Vector_ui*)element->f_ve);
+}

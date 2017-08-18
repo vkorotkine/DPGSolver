@@ -67,6 +67,24 @@ struct Vector_ui* constructor_empty_Vector_ui (const size_t ext_0)
 	return dest;
 }
 
+struct Vector_ui* constructor_copy_Vector_ui (const struct Vector_ui*const src)
+{
+	const size_t ext_0 = src->extents[0];
+	const unsigned int*const data_src = src->data;
+
+	unsigned int* data = malloc(ext_0 * sizeof *data); // keep
+	for (size_t i = 0; i < ext_0; i++)
+		data[i] = data_src[i];
+
+	struct Vector_ui* dest = malloc(sizeof *dest); // returned
+
+	dest->extents[0] = ext_0;
+	dest->owns_data  = true;
+	dest->data       = data;
+
+	return dest;
+}
+
 struct Vector_ui* constructor_copy_Vector_ui_ui (const size_t ext_0, const unsigned int*const data_src)
 {
 	unsigned int* data = malloc(ext_0 * sizeof *data); // keep
@@ -156,6 +174,13 @@ void set_to_zero_Vector_ui (struct Vector_ui*const a)
 {
 	for (size_t i = 0; i < a->extents[0]; i++)
 		a->data[i] = 0;
+}
+
+void set_to_data_Vector_ui (struct Vector_ui*const a, const unsigned int*const data_src)
+{
+	const size_t ext_0 = compute_size(1,a->extents);
+	for (size_t i = 0; i < ext_0; ++i)
+		a->data[i] = data_src[i];
 }
 
 void sort_Vector_ui (struct Vector_ui* a)

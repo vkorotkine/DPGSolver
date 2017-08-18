@@ -42,6 +42,11 @@ struct Vector_ui* constructor_empty_Vector_ui
 	(const size_t ext_0 ///< The value of extents[0].
 	);
 
+/// \brief Copy constructor for a \ref Vector_ui\* from a `Vector_ui*`.
+struct Vector_ui* constructor_copy_Vector_ui
+	(const struct Vector_ui*const src  ///< The source data.
+	);
+
 /// \brief Copy constructor for a \ref Vector_ui\* from a `const unsigned int*`.
 struct Vector_ui* constructor_copy_Vector_ui_ui
 	(const size_t ext_0,               ///< The value of extents[0].
@@ -98,6 +103,12 @@ void reserve_Vector_ui
 /// \brief Set all data entries to zero.
 void set_to_zero_Vector_ui
 	(struct Vector_ui*const a ///< Standard.
+	);
+
+/// \brief Set data entries to those of the src data.
+void set_to_data_Vector_ui
+	(struct Vector_ui*const a,         ///< Standard.
+	 const unsigned int*const data_src ///< The source data.
 	);
 
 /// \brief Sort the data of the \ref Vector_ui\*.

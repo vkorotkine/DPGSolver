@@ -15,7 +15,7 @@
 #include "allocators.h"
 #include "const_cast.h"
 
-#include "constants_gmsh.h"
+#include "constants_elements.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -46,7 +46,8 @@ void destructor_Mesh_Data (struct Mesh_Data* mesh_data)
 	destructor_Matrix_ui((struct Matrix_ui*)mesh_data->elem_tags);
 	destructor_Multiarray_Vector_ui((struct Multiarray_Vector_ui*)mesh_data->node_nums);
 
-	destructor_Matrix_ui((struct Matrix_ui*)mesh_data->periodic_corr);
+	if (mesh_data->periodic_corr)
+		destructor_Matrix_ui((struct Matrix_ui*)mesh_data->periodic_corr);
 
 	free(mesh_data);
 }
@@ -95,8 +96,7 @@ static struct Matrix_ui* read_periodic
 	);
 
 /** \brief Constructor for the \ref Mesh_Data.
- *	\return Standard.
- */
+ *	\return Standard. */
 static struct Mesh_Data* constructor_Mesh_Data
 	(struct Matrix_d* nodes,         ///< Defined in \ref Mesh_Data.
 	 struct Element_Data* elem_data, ///< \ref Element_Data.

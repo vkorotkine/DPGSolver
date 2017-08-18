@@ -27,10 +27,9 @@ struct Mesh {
 /** \brief Set up the \ref Mesh.
  *
  *	To provide addtional modularity, it is possible to pass a `NULL` value for the `elements` list. This results in the
- *	list being constructed and destructed as part of the connectivity set up. \todo Add support for this functionality.
- *
- *	However, as the base \ref Element list is used in many other modules of the code, it is generally convenient to set
- *	it up before setting up the mesh.
+ *	list being constructed and destructed as part of the connectivity set up. However, as the base \ref Element list is
+ *	used in many other modules of the code, it is generally convenient to set it up before setting up the mesh.
+ *	\todo Add support for this functionality.
  */
 struct Mesh* set_up_mesh
 	(const char*const mesh_name_full,      ///< Defined in \ref Simulation.

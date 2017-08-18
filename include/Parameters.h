@@ -16,13 +16,11 @@
  *		BC_PERIODIC_MIN : (B)oundary(C)ondition (PERIODIC) (MIN)imum.
  *		NVEMAX          : (MAX)imum (N)umber of (VE)rtices for an element.
  *		NEVEMAX         : (MAX)imum (N)umber of (E)DGE (VE)rtices for an element.
- *		NFVEMAX         : (MAX)imum (N)umber of (F)ACE (VE)rtices for an element.
  *		NEREFMAX        : (MAX)imum (N)umber of (E)DGE (REF)inements.
  *		NFREFMAX        : (MAX)imum (N)umber of (F)ACE (REF)inements.
  *		NVREFMAX        : (MAX)imum (N)umber of (V)OLUME (REF)inements.
  *		NVREFSFMAX      : (MAX)imum (N)umber of (V)OLUME (REF)inements if using (S)um (F)actorized operators.
  *		NEMAX           : (MAX)imum (N)umber of (E)DGEs for an element.
- *		NFMAX           : (MAX)imum (N)umber of (F)ACEs for an element.
  *		NFMIXEDMAX      : (MAX)imum (N)umber of (MIXED) (F)ACEs for an element.
  *		NESUBCMAX       : (MAX)imum (N)umber of (E)lement (SUB)(C)lasses
  *		NFORDMAX        : (MAX)imum (N)umber of (F)ACE (ORD)ering possibilities
@@ -38,7 +36,7 @@
  */
 
 #include "constants_core.h"
-#include "constants_gmsh.h"
+#include "constants_elements.h"
 #include "constants_bc.h"
 
 #ifndef TEST
@@ -54,18 +52,6 @@
 // Magic numbers
 #define NEC             3
 
-///\{ \deprecated
-#define BC_PERIODIC_MIN 50
-
-#define GMSH_XLINE_MIN  1001
-#define GMSH_YLINE_MIN  2001
-#define GMSH_ZLINE_MIN  3001
-#define GMSH_XYFACE_MIN 4001
-#define GMSH_XZFACE_MIN 5001
-#define GMSH_YZFACE_MIN 6001
-#define GMSH_XYZVOL_MIN 7001
-///\}
-
 // Geometry related parameters
 #define GORDON_HALL       1
 #define SZABO_BABUSKA     2
@@ -80,13 +66,11 @@
 // ELEMENT related numbers
 #define NVEMAX          8  // HEX
 #define NEVEMAX         2  // LINE
-#define NFVEMAX         4  // QUAD
 #define NEREFMAX        3  // LINE
 #define NFREFMAX        9  // QUAD
 #define NVREFMAX        27 // HEX
 #define NVREFSFMAX      5  // TRI
 #define NEMAX           12 // HEX
-#define NFMAX           6  // HEX
 #define NFMIXEDMAX      2  // WEDGE/PYR (TRI + QUAD)
 #define NESUBCMAX       2  // WEDGE (TRI + LINE)
 #define NFORDMAX        8  // QUAD
@@ -183,5 +167,22 @@
 #define STRLEN_MIN 60
 #define STRLEN_MAX 508
 
+
+
+
+
+
+
+///\{ \deprecated
+#define BC_PERIODIC_MIN 50
+
+#define GMSH_XLINE_MIN  1001
+#define GMSH_YLINE_MIN  2001
+#define GMSH_ZLINE_MIN  3001
+#define GMSH_XYFACE_MIN 4001
+#define GMSH_XZFACE_MIN 5001
+#define GMSH_YZFACE_MIN 6001
+#define GMSH_XYZVOL_MIN 7001
+///\}
 
 #endif // DPG__Parameters_h__INCLUDED

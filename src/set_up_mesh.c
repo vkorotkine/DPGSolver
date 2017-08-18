@@ -29,7 +29,7 @@ struct Mesh* constructor_Mesh ()
 void destructor_Mesh (struct Mesh* mesh)
 {
 	destructor_Mesh_Data((struct Mesh_Data*)mesh->mesh_data);
-//	destructor_Mesh_Connectivity((struct Mesh_Connectivity*)mesh->mesh_connectivity);
+	destructor_Mesh_Connectivity((struct Mesh_Connectivity*)mesh->mesh_conn);
 	free(mesh);
 }
 
@@ -39,8 +39,6 @@ struct Mesh* set_up_mesh (const char*const mesh_name_full, const unsigned int d,
 
 	*(struct Mesh_Data**)&         mesh->mesh_data = mesh_reader(mesh_name_full,d);
 	*(struct Mesh_Connectivity**)& mesh->mesh_conn = mesh_connect(mesh->mesh_data,elements);
-
-//destructor_Mesh(mesh);
 
 	return mesh;
 }

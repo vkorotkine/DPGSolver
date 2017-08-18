@@ -19,9 +19,8 @@
 
 /// \brief Container for a list of periodic face information.
 struct Periodic_Face_Info {
-	unsigned int n_pf;                 ///< The number of periodic faces.
-	struct Periodic_Face** p_faces;    ///< The list of \ref Periodic_Face entities.
-	struct Vector_ui*      ind_sorted; ///< The indices corresponding to the sorted boundary face node numbers.
+	unsigned int n_pf;              ///< The number of periodic faces.
+	struct Periodic_Face** p_faces; ///< The list of \ref Periodic_Face entities.
 };
 
 /** \brief Constructor for \ref Periodic_Face_Info.
@@ -54,8 +53,9 @@ void destructor_Periodic_Face
 /** \brief Count the number of periodic faces.
  *	\return See brief. */
 static size_t count_periodic_faces
-	(const size_t ind_bf,                         ///< Index of the first boundary face in the mesh element list.
-	 const size_t n_bf,                           ///< The number of boundary faces.
+	(const size_t ind_pfe,                        /**< Index of the first physical face element in the mesh element
+	                                               *   list. */
+	 const size_t n_pfe,                          ///< The number of physical face elements.
 	 const struct const_Matrix_ui*const elem_tags ///< \ref Mesh_Data::elem_tags.
 	);
 
@@ -65,8 +65,9 @@ static size_t count_periodic_faces
  */
 static void set_pf_info
 	(struct Periodic_Face_Info* pf_info[N_MS], ///< The \ref Periodic_Face_Info for the master [0] and slave [1] faces.
-	 const size_t ind_bf,                      ///< Index of the first boundary face in the mesh element list.
-	 const size_t n_bf,                        ///< The number of boundary faces.
+	 const size_t ind_pfe,                        /**< Index of the first physical face element in the mesh element
+	                                               *   list. */
+	 const size_t n_pfe,                          ///< The number of physical face elements.
 	 const struct Mesh_Data*const mesh_data    ///< The \ref Mesh_Data.
 	);
 
@@ -86,18 +87,18 @@ void correct_f_ve_for_periodic (const struct Mesh_Data*const mesh_data, struct C
 	if (mesh_data->periodic_corr == NULL)
 		return;
 
-	const size_t d      = conn_info->d,
-	             ind_bf = get_first_volume_index(conn_info->elem_per_dim,d-1),
-	             n_bf   = conn_info->elem_per_dim->data[d-1];
+	const size_t d       = conn_info->d,
+	             ind_pfe = get_first_volume_index(conn_info->elem_per_dim,d-1),
+	             n_pfe   = conn_info->elem_per_dim->data[d-1];
 
-	const size_t n_pf = count_periodic_faces(ind_bf,n_bf,mesh_data->elem_tags);
+	const size_t n_pf = count_periodic_faces(ind_pfe,n_pfe,mesh_data->elem_tags);
 
 	struct Periodic_Face_Info* pf_info[N_MS];
 
 	for (size_t i = 0; i < N_MS; i++)
 		pf_info[i] = constructor_Periodic_Face_Info(n_pf);
 
-	set_pf_info(pf_info,ind_bf,n_bf,mesh_data);
+	set_pf_info(pf_info,ind_pfe,n_pfe,mesh_data);
 
 	struct Multiarray_Vector_ui*const f_ve = conn_info->f_ve;
 	substitute_m_for_s(f_ve,pf_info);
@@ -106,7 +107,7 @@ void correct_f_ve_for_periodic (const struct Mesh_Data*const mesh_data, struct C
 		destructor_Periodic_Face_Info(pf_info[i]);
 
 	// re-sort f_ve.
-	struct Vector_ui* ind_f_ve_final = sort_Multiarray_Vector_ui(f_ve,true); // destructed.
+	struct Vector_ui* ind_f_ve_final = sort_Multiarray_Vector_ui(f_ve,true); // destructed
 	reorder_Vector_ui(conn_info->ind_f_ve,ind_f_ve_final->data);
 
 	destructor_Vector_ui(ind_f_ve_final);
@@ -115,9 +116,9 @@ void correct_f_ve_for_periodic (const struct Mesh_Data*const mesh_data, struct C
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Check if the face is a master or slave periodic boundary.
+/** \brief Check if the physical face element is a master or slave periodic boundary.
  *	\return See brief. */
-static bool check_bf_periodic
+static bool check_pfe_periodic
 	(const char sm,        ///< Indicator for whether it is desired to check for 'M'aster or 'S'lave.
 	 const unsigned int bc ///< The value of the boundary condition.
 	);
@@ -133,12 +134,6 @@ static void set_pf_centr
 	(struct Periodic_Face*const pf,                ///< The \ref Periodic_Face.
 	 const struct const_Vector_ui*const node_nums, ///< The entry of \ref Mesh_Data::node_nums for the current face.
 	 const struct const_Matrix_d*const nodes       ///< The \ref Mesh_Data::nodes.
-	);
-
-/// \brief Set the periodic face node numbers and sort them.
-static void set_pf_node_nums
-	(struct Periodic_Face*const pf,               ///< The \ref Periodic_Face.
-	 const struct const_Vector_ui*const node_nums ///< The entry of \ref Mesh_Data::node_nums for the current face.
 	);
 
 /// \brief Sort the master and slave periodic face lists based on the [`dir`,`centr`] pairs.
@@ -192,20 +187,20 @@ void destructor_Periodic_Face (struct Periodic_Face* pf)
 }
 
 static size_t count_periodic_faces
-	(const size_t ind_bf, const size_t n_bf, const struct const_Matrix_ui*const elem_tags)
+	(const size_t ind_pfe, const size_t n_pfe, const struct const_Matrix_ui*const elem_tags)
 {
 	size_t count = 0;
 
-	const size_t n_max = ind_bf+n_bf;
-	for (size_t n = ind_bf; n < n_max; ++n) {
-		if (check_bf_periodic('M',get_val_const_Matrix_ui(n,0,elem_tags)))
+	const size_t n_max = ind_pfe+n_pfe;
+	for (size_t n = ind_pfe; n < n_max; ++n) {
+		if (check_pfe_periodic('M',get_val_const_Matrix_ui(n,0,elem_tags)))
 			++count;
 	}
 	return count;
 }
 
 static void set_pf_info
-	(struct Periodic_Face_Info* pf_info[N_MS], const size_t ind_bf, const size_t n_bf,
+	(struct Periodic_Face_Info* pf_info[N_MS], const size_t ind_pfe, const size_t n_pfe,
 	 const struct Mesh_Data*const mesh_data)
 {
 	const struct const_Matrix_d*const             nodes     = mesh_data->nodes;
@@ -214,14 +209,14 @@ static void set_pf_info
 
 	unsigned int count_ms[N_MS] = {0};
 
-	const size_t n_max = ind_bf+n_bf;
-	for (size_t n = ind_bf; n < n_max; ++n) {
+	const size_t n_max = ind_pfe+n_pfe;
+	for (size_t n = ind_pfe; n < n_max; ++n) {
 		const unsigned int bc = get_val_const_Matrix_ui(n,0,elem_tags);
 
 		unsigned int ind_ms = UINT_MAX;
-		if (check_bf_periodic('M',bc))
+		if (check_pfe_periodic('M',bc))
 			ind_ms = 0;
-		else if (check_bf_periodic('S',bc))
+		else if (check_pfe_periodic('S',bc))
 			ind_ms = 1;
 		else
 			continue;
@@ -229,7 +224,7 @@ static void set_pf_info
 		struct Periodic_Face*const pf = pf_info[ind_ms]->p_faces[count_ms[ind_ms]];
 		set_pf_dir(pf,bc);
 		set_pf_centr(pf,node_nums->data[n],nodes);
-		set_pf_node_nums(pf,node_nums->data[n]);
+		set_f_node_nums(&pf->node_nums,node_nums->data[n]);
 
 		++count_ms[ind_ms];
 	}
@@ -281,7 +276,7 @@ static int cmp_Periodic_Face
 	 const void *b  ///< Variable 2.
 	);
 
-static bool check_bf_periodic (const char sm, const unsigned int bc)
+static bool check_pfe_periodic (const char sm, const unsigned int bc)
 {
 	const unsigned int bc_base = bc % BC_STEP_SC;
 	switch (sm) {
@@ -344,12 +339,6 @@ static void set_pf_centr
 
 	for (size_t i = 0; i < DMAX-1; ++i)
 		centr[i] /= n_max;
-}
-
-static void set_pf_node_nums (struct Periodic_Face*const pf, const struct const_Vector_ui*const node_nums)
-{
-	pf->node_nums = constructor_copy_Vector_ui_ui(node_nums->extents[0],node_nums->data);
-	sort_Vector_ui(pf->node_nums);
 }
 
 static void sort_pf_info (struct Periodic_Face_Info* pf_info[N_MS])

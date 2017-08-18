@@ -23,7 +23,8 @@ void test_integration_linearization (const char*const ctrl_name)
 	struct Intrusive_List* elements = constructor_Element_List(simulation->d);
 
 	struct Mesh* mesh = set_up_mesh(simulation->mesh_name_full,simulation->d,elements);
-DO_NOTHING_P(mesh);
 
+	destructor_Mesh(mesh);
+	destructor_Elements(elements);
 	destructor_Simulation(simulation);
 }

@@ -10,6 +10,9 @@
 #include "mesh_readers.h"
 #include "Intrusive.h"
 
+#include "Multiarray.h"
+#include "Vector.h"
+
 /// \brief The number of 'M'aster and 'S'lave entities (always two but defined to avoid use of the magic number).
 #define N_MS 2
 
@@ -28,12 +31,23 @@ struct Conn_info {
 
 /// \brief Holds data relating to the mesh connectivity.
 struct Mesh_Connectivity {
+	const struct const_Multiarray_Vector_ui*const v_to_v;  ///< Volume to volume connectivity.
+
+	/** Volume to local face connectvity.
+	 *	Redundant self-reference entries are replaced with the number corresponding to the appropriate boundary
+	 *	condition. */
+	const struct const_Multiarray_Vector_ui*const v_to_lf;
 };
 
 /// \brief Set up the mesh connectivity.
 struct Mesh_Connectivity* mesh_connect
 	(const struct Mesh_Data*const mesh_data, ///< \ref Mesh_Data.
 	 const struct Intrusive_List* elements   ///< The base \ref Element list.
+	);
+
+/// \brief Destructor for \ref Mesh_Connectivity.
+void destructor_Mesh_Connectivity
+	(struct Mesh_Connectivity* mesh_conn ///< Standard.
 	);
 
 /** \brief See return.
@@ -43,5 +57,10 @@ size_t get_first_volume_index
 	 const unsigned int d                       ///< Defined in \ref Conn_info.
 	);
 
+/// \brief Set the face node numbers and sort them.
+void set_f_node_nums
+	(struct Vector_ui**const f_node_nums,         ///< The face node numbers.
+	 const struct const_Vector_ui*const node_nums ///< The entry of \ref Mesh_Data::node_nums for the current face.
+	);
 
 #endif // DPG__mesh_connectivity_h__INCLUDED
