@@ -58,7 +58,8 @@ int main(void)
 //	strcpy(TestCase,"InviscidChannel");
 //	strcpy(TestCase,"SubsonicNozzle");
 //	strcpy(TestCase,"NavierStokes_TaylorCouette");
-	strcpy(TestCase,"Euler_ParabolicPipe");
+//	strcpy(TestCase,"Euler_ParabolicPipe");
+	strcpy(TestCase,"Euler_EllipticPipe");
 
 //	strcpy(MeshType,"StructuredTRI");
 //	strcpy(MeshType,"TRI");
@@ -185,6 +186,7 @@ static void data_to_txt(const unsigned int d, const unsigned int NVars, const un
 
 	if (strstr(TestCase,"PeriodicVortex") != NULL ||
 		strstr(TestCase,"ParabolicPipe") != NULL ||
+		strstr(TestCase,"EllipticPipe") != NULL ||
 		strstr(TestCase,"SupersonicVortex") != NULL) {
 		if      (d == 2) Indp = 3;
 		else if (d == 3) Indp = 4;

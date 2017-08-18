@@ -211,13 +211,15 @@ data->PMin = 2;
 				}
 			}
 		} else if (strstr(TestName,"n-Elliptic_Pipe")) {
+data->IntOrder_add  = 2;
+data->Compute_L2proj = 1;
 //			data->SolveExplicit = 0;
 			if (strstr(TestName,"ToBeCurved")) {
 				if (strstr(TestName,"TRI")) {
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_EllipticPipe_ToBeCurvedTRI");
 data->PrintEnabled = 1;
-data->PMin  = 2;
-data->PMax  = 2;
+data->PMin  = 3;
+data->PMax  = 3;
 data->MLMax = 5;
 				} else {
 					EXIT_UNSUPPORTED;
@@ -357,43 +359,47 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 			initialize_test_case(0);
 
 		// Output mesh edges to paraview
-		if (DB.d > 1 && TestDB.PGlobal == 3 && TestDB.ML <= 2) {
+//		if (DB.d > 1 && TestDB.PGlobal == 3 && TestDB.ML <= 2) {
+		if (DB.d > 1 && TestDB.PGlobal == 2 && TestDB.ML <= 2) {
 			char *const fNameOut = get_fNameOut("MeshEdges_");
 			output_to_paraview(fNameOut);
 			free(fNameOut);
 		}
 
-		if (strstr(TestName,"Advection")) {
-			solver_Advection(PrintEnabled);
-		} else if (strstr(TestName,"Poisson")) {
-			if (Compute_L2proj) { // Compute errors of L2 projection of the exact solution
-				initialize_test_case(0);
+		if (Compute_L2proj) {
+			if (!(strstr(TestName,"Poisson") || strstr(TestName,"Euler")))
+				EXIT_UNSUPPORTED;
 
-				// Output to paraview
-				if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 5 && TestDB.ML <= 4)) {
-					char *const fNameOut = get_fNameOut("SolFinal_");
-					output_to_paraview(fNameOut);
-					free(fNameOut);
-				}
-			} else {
-				solver_Poisson(PrintEnabled);
-			}
-		} else if (strstr(TestName,"Euler") || strstr(TestName,"NavierStokes")) {
-//			if (SolveExplicit)
-//			if (!SolveImplicit || (ML == MLMin && P == PMin))
-			if (SolveExplicit && (!SolveImplicit || (ML <= MLMin+1))) {
-				bool const update_SolverType = (strstr(DB.SolverType,"Implicit") ? 1 : 0);
-				if (update_SolverType)
-					strcpy(DB.SolverType,"Explicit");
-				solver_explicit(PrintEnabled);
-				if (update_SolverType)
-					strcpy(DB.SolverType,"Implicit");
-			}
+			initialize_test_case(0);
 
-			if (SolveImplicit)
-				solver_implicit(PrintEnabled);
+			// Output to paraview
+			if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 5 && TestDB.ML <= 4)) {
+				char *const fNameOut = get_fNameOut("SolFinal_");
+				output_to_paraview(fNameOut);
+				free(fNameOut);
+			}
 		} else {
-			EXIT_UNSUPPORTED;
+			if (strstr(TestName,"Advection")) {
+				solver_Advection(PrintEnabled);
+			} else if (strstr(TestName,"Poisson")) {
+				solver_Poisson(PrintEnabled);
+			} else if (strstr(TestName,"Euler") || strstr(TestName,"NavierStokes")) {
+//				if (SolveExplicit)
+//				if (!SolveImplicit || (ML == MLMin && P == PMin))
+				if (SolveExplicit && (!SolveImplicit || (ML <= MLMin+1))) {
+					bool const update_SolverType = (strstr(DB.SolverType,"Implicit") ? 1 : 0);
+					if (update_SolverType)
+						strcpy(DB.SolverType,"Explicit");
+					solver_explicit(PrintEnabled);
+					if (update_SolverType)
+						strcpy(DB.SolverType,"Implicit");
+				}
+
+				if (SolveImplicit)
+					solver_implicit(PrintEnabled);
+			} else {
+				EXIT_UNSUPPORTED;
+			}
 		}
 
 		compute_errors_global();
