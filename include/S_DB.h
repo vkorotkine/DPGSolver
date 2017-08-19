@@ -49,6 +49,7 @@ struct S_DB {
 
 	// Solving
 	unsigned int dof;
+	bool         init_with_L2;
 
 	// Vectorization
 	unsigned int update, NTVgrp, *NVgrp;

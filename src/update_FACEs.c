@@ -1171,7 +1171,7 @@ static void coarse_update(struct S_VOLUME *VOLUME)
 
 	// Standard datatypes
 	unsigned int i, iMax, f, Nf, VType, vhMin, vhMax, sf, sfMax, sfMax_i, fIn, fOut,
-	             IndVc[NVISUBFMAX],Indsf[NVISUBFMAX], recombine_FACEs,
+	             IndVc[NVISUBFMAX] = {0},Indsf[NVISUBFMAX] = {0}, recombine_FACEs,
 	             dummy_ui;
 
 	struct S_ELEMENT *ELEMENT;

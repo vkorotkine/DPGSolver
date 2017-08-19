@@ -270,6 +270,7 @@ static void output_geom(const char *geom_type)
 			for (i = 0; i < NE; i++)
 				VTK_Ncorners[i] = get_ELEMENT_Ncorners(types[i]);
 
+#pragma GCC diagnostic ignored "-Wmisleading-indentation"
 				fprintf_tn(fID,4,"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">");
 				for (i = 0; i < NE; i++) {
 					fprintf(fID,"\t\t\t\t");

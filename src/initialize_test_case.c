@@ -752,7 +752,7 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 	// Standard datatypes
 	unsigned int DOF0 = 0, PolyGradient = 0;
 	unsigned int n, dim, NvnS, NvnI, adapt_update, adapt_count;
-	double       *XYZ_vI, *U, *What, *Q, *u_inter, *w_vI, *detJV_vI;
+	double       *XYZ_vI, *U, *Q, *u_inter, *w_vI, *detJV_vI;
 
 	struct S_OPERATORS *OPS;
 	struct S_VOLUME    *VOLUME;
@@ -775,65 +775,64 @@ void initialize_test_case(const unsigned int adapt_update_MAX)
 
 				VOLUME->What = malloc(NvnS*Nvar * sizeof *(VOLUME->What)); // keep
 				VOLUME->RES  = calloc(NvnS*Nvar , sizeof *(VOLUME->RES));  // keep
-				What = VOLUME->What;
 
-#if 0
-				double* XYZ_vS = malloc(NvnS*d * sizeof *XYZ_vS); // free
+				if (!DB.init_with_L2) {
+					double* What = VOLUME->What;
+					double* XYZ_vS = malloc(NvnS*d * sizeof *XYZ_vS); // free
 
-				mm_CTN_d(NvnS,d,VOLUME->NvnG,OPS->I_vG_vS,VOLUME->XYZ,XYZ_vS);
+					mm_CTN_d(NvnS,d,VOLUME->NvnG,OPS->I_vG_vS,VOLUME->XYZ,XYZ_vS);
 
-				U = calloc(NvnS*NVAR3D , sizeof *U); // free
-				double* W = malloc(NvnS*Nvar   * sizeof *W); // free
+					U = calloc(NvnS*NVAR3D , sizeof *U); // free
+					double* W = malloc(NvnS*Nvar   * sizeof *W); // free
 
-				if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
-					compute_solution(NvnS,XYZ_vS,U,0);
-					convert_variables(U,W,3,d,NvnS,1,'p','c');
-				} else if (strstr(TestCase,"Advection")) {
-					compute_solution(NvnS,XYZ_vS,W,0);
+					if (strstr(TestCase,"Euler") || strstr(TestCase,"NavierStokes")) {
+						compute_solution(NvnS,XYZ_vS,U,0);
+						convert_variables(U,W,3,d,NvnS,1,'p','c');
+					} else if (strstr(TestCase,"Advection")) {
+						compute_solution(NvnS,XYZ_vS,W,0);
+					}
+					mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,W,What);
+
+					free(XYZ_vS);
+					free(U);
+					free(W);
+				} else {
+					if (!strstr(TestCase,"Euler"))
+						EXIT_UNSUPPORTED;
+
+					NvnI = OPS->NvnI;
+					w_vI = OPS->w_vI;
+
+					XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
+					mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
+
+					U = malloc(NvnI*NVAR3D * sizeof *U); // free
+
+					compute_solution(NvnI,XYZ_vI,U,0);
+					free(XYZ_vI);
+
+					double* W = malloc(NvnI*Nvar   * sizeof *W); // free
+					convert_variables(U,W,3,d,NvnI,1,'p','c');
+
+					detJV_vI = VOLUME->detJV_vI;
+					for (unsigned int i = 0; i < Nvar; i++) {
+						for (n = 0; n < NvnI; n++)
+							W[NvnI*i+n] *= w_vI[n]*detJV_vI[n];
+					}
+
+					u_inter = malloc(NvnS*Nvar * sizeof *u_inter); // free
+
+					mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnI,1.0,0.0,OPS->ChiS_vI,W,u_inter);
+					free(U);
+
+					compute_inverse_mass(VOLUME);
+					mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,VOLUME->MInv,u_inter,VOLUME->What);
+					free(u_inter);
+					if (VOLUME->MInv) {
+						free(VOLUME->MInv);
+						VOLUME->MInv = NULL;
+					}
 				}
-				mm_CTN_d(NvnS,Nvar,NvnS,OPS->ChiInvS_vS,W,What);
-
-				free(XYZ_vS);
-				free(U);
-				free(W);
-#else
-printf("Using L2 projection for initial solution.\n");
-				if (!strstr(TestCase,"Euler"))
-					EXIT_UNSUPPORTED;
-
-				NvnI = OPS->NvnI;
-				w_vI = OPS->w_vI;
-
-				XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
-				mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
-
-				U = malloc(NvnI*NVAR3D * sizeof *U); // free
-
-				compute_solution(NvnI,XYZ_vI,U,0);
-				free(XYZ_vI);
-
-				double* W = malloc(NvnI*Nvar   * sizeof *W); // free
-				convert_variables(U,W,3,d,NvnI,1,'p','c');
-
-				detJV_vI = VOLUME->detJV_vI;
-				for (unsigned int i = 0; i < Nvar; i++) {
-					for (n = 0; n < NvnI; n++)
-						W[NvnI*i+n] *= w_vI[n]*detJV_vI[n];
-				}
-
-				u_inter = malloc(NvnS*Nvar * sizeof *u_inter); // free
-
-				mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnI,1.0,0.0,OPS->ChiS_vI,W,u_inter);
-				free(U);
-
-				compute_inverse_mass(VOLUME);
-				mm_d(CBCM,CBNT,CBNT,NvnS,Nvar,NvnS,1.0,0.0,VOLUME->MInv,u_inter,VOLUME->What);
-				free(u_inter);
-				if (VOLUME->MInv) {
-					free(VOLUME->MInv);
-					VOLUME->MInv = NULL;
-				}
-#endif
 			}
 		} else if (strstr(TestCase,"Poisson")) {
 			// Initializing with the L2 projection.

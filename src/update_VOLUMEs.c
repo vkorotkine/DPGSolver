@@ -521,7 +521,7 @@ void update_VOLUME_hp(void)
 			else
 				init_ops(OPS,VOLUME,0);
 
-				NvnS[1] = OPS->NvnS;
+			NvnS[1] = OPS->NvnS;
 		}
 
 		init_ops(OPS,VOLUME,0);

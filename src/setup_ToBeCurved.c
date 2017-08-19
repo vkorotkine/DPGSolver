@@ -39,9 +39,10 @@
  *		Rosca(2011)-Uniform_Spherical_Grids_via_Equal_Area_Projection_from_the_Cube_to_the_Sphere
  */
 
-static void         ToBeCurved_elliptic_pipe    (unsigned int const Nn, double const *const XYZ_S, double *const XYZ);
-static void         ToBeCurved_parabolic_pipe    (unsigned int const Nn, double const *const XYZ_S, double *const XYZ);
-static void         ToBeCurved_sinusoidal_pipe    (unsigned int const Nn, double const *const XYZ_S, double *const XYZ);
+static void ToBeCurved_elliptic_pipe
+	(unsigned int const Nn, double const *const XYZ_S, double *const XYZ, const bool corners_only);
+static void         ToBeCurved_parabolic_pipe   (unsigned int const Nn, double const *const XYZ_S, double *const XYZ);
+static void         ToBeCurved_sinusoidal_pipe  (unsigned int const Nn, double const *const XYZ_S, double *const XYZ);
 static void         ToBeCurved_cube_to_sphere   (unsigned int Nn, double *XYZ_S, double *XYZ);
 static void         ToBeCurved_square_to_circle (unsigned int Nn, double *XYZ_S, double *XYZ);
 static double         *cube_to_sphere           (double XY[2], unsigned int OrderOut[3], int SignOut, double beta);
@@ -54,25 +55,101 @@ static double         get_arc_length            (const double XL, const double X
 static double         *eval_TP_function         (const unsigned int Nn, const double *XZ, const unsigned int DOrder[2],
                                                  const unsigned int Single, double **abcP);
 
-static void ToBeCurved_elliptic_pipe (unsigned int const Nn, double const *const XYZ_S, double *const XYZ)
+#define N_V_LINE 2 // (N)umber of (V)ertices for a LINE
+#define N_V_QUAD 4 // (N)umber of (V)ertices for a QUAD
+#define N_V_HEX  8 // (N)umber of (V)ertices for a HEX
+
+struct k1_lagrange {
+	const unsigned int d;       // dimension
+	const double* XYZ_ve[DMAX]; // XYZ coordinates of the vertices
+};
+
+struct XYZ_data {
+	unsigned int  Nn;    // Number of nodes
+	const double* XYZ_S; // XYZ coordinates to project from
+	double*       XYZ;   // XYZ coordinates to set
+};
+
+static void set_XYZ_k1_lagrange (const struct k1_lagrange*const k1_l, struct XYZ_data*const xyz_data)
+{
+	const unsigned int Nn = xyz_data->Nn;
+
+	switch (k1_l->d) {
+	case 2: {
+		const double*const  X_ve = k1_l->XYZ_ve[0],
+		            *const  Y_ve = k1_l->XYZ_ve[1];
+
+		const double*const  X_S = &xyz_data->XYZ_S[0*Nn],
+		            *const  Y_S = &xyz_data->XYZ_S[1*Nn];
+
+		double*const X = &xyz_data->XYZ[0*Nn],
+		      *const Y = &xyz_data->XYZ[1*Nn];
+
+		for (unsigned int n = 0; n < Nn; n++) {
+			double basis[] = { 0.25*(X_S[n]-1.0)*(Y_S[n]-1.0),
+			                  -0.25*(X_S[n]+1.0)*(Y_S[n]-1.0),
+			                  -0.25*(X_S[n]-1.0)*(Y_S[n]+1.0),
+			                   0.25*(X_S[n]+1.0)*(Y_S[n]+1.0), };
+
+			X[n] = 0.0;
+			Y[n] = 0.0;
+			for (int i = 0; i < N_V_QUAD; ++i) {
+				X[n] += X_ve[i]*basis[i];
+				Y[n] += Y_ve[i]*basis[i];
+			}
+		}
+		break;
+	} default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+}
+
+static void ToBeCurved_elliptic_pipe
+	(unsigned int const Nn, double const *const XYZ_S, double *const XYZ, const bool corners_only)
 {
 	if (DB.d != 2)
 		EXIT_UNSUPPORTED;
 
-		double *const X = &XYZ[Nn*0],
-		       *const Y = &XYZ[Nn*1];
+	double*const X = &XYZ[Nn*0],
+	      *const Y = &XYZ[Nn*1];
 
-		double const *const X_S = &XYZ_S[Nn*0],
-		             *const Y_S = &XYZ_S[Nn*1];
+	const double*const X_S = &XYZ_S[Nn*0],
+	            *const Y_S = &XYZ_S[Nn*1];
 
-		double a = DB.geo_store[0],
-			   b = DB.geo_store[1],
-			   c = DB.geo_store[2];
+	double a = DB.geo_store[0],
+		   b = DB.geo_store[1],
+		   c = DB.geo_store[2];
 
+	if (corners_only) {
+		const double X_ve_S[] = {-1, 1,-1, 1},
+		             Y_ve_S[] = {-1,-1, 1, 1};
+
+		// Get corner values
+		double X_ve[N_V_QUAD] = {0},
+		       Y_ve[N_V_QUAD] = {0};
+		for (size_t n = 0; n < N_V_QUAD; ++n) {
+			X_ve[n] = c*(X_ve_S[n]+1)/2;
+			Y_ve[n] = (b/(2*a))*(Y_ve_S[n]+1)*sqrt(a*a+0.25*c*c*(X_ve_S[n]+1)*(X_ve_S[n]+1));
+		}
+
+		// Evaluate using k1 Lagrange basis
+		struct k1_lagrange k1_l =
+			{ .d         = DB.d,
+			  .XYZ_ve[0] = X_ve,
+			  .XYZ_ve[1] = Y_ve, };
+
+		struct XYZ_data xyz_data =
+			{ .Nn    = Nn,
+			  .XYZ_S = XYZ_S,
+			  .XYZ   = XYZ, };
+
+		set_XYZ_k1_lagrange(&k1_l,&xyz_data);
+	} else {
 		for (size_t n = 0; n < Nn; n++) {
-
-	    	 Y[n] = (b/(2*a))*(Y_S[n]+1)*sqrt(a*a+0.25*c*c*(X_S[n]+1)*(X_S[n]+1));
-             X[n] = c*(X_S[n]+1)/2;
+			Y[n] = (b/(2*a))*(Y_S[n]+1)*sqrt(a*a+0.25*c*c*(X_S[n]+1)*(X_S[n]+1));
+			X[n] = c*(X_S[n]+1)/2;
+		}
 	}
 }
 
@@ -302,13 +379,16 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 	unsigned int d         = DB.d;
 
 	// Standard datatypes
-	unsigned int returnStraight = 0; // return the straight mesh
-	unsigned int i, nG, dim, NvnG, correctTBC;
+	unsigned int i, nG, dim, NvnG;
 	double *XYZ, *XYZ_S;
 
 	struct S_ELEMENT *ELEMENT;
 
-	correctTBC = 1; // Correct internal nodes with blending
+	const bool returnStraight       = false, // Return the straight mesh
+	                                         // Should be false for computed solutions.
+	           project_corners_only = false, // Project to a straight sided domain where only the corners are correct.
+	                                         // Should be false for computed solutions.
+	           correctTBC           = true;  // Correct internal nodes with blending
 	for (nG = 0; nG < 2; nG++) {
 		if (nG == 0) {
 			NvnG = VOLUME->NvnG;
@@ -377,7 +457,7 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 				if (strstr(DB.GeomSpecifier,"ParabolicPipe"))
 					ToBeCurved_parabolic_pipe(NvnG,XYZ_S,XYZ);
 				else if (strstr(DB.GeomSpecifier,"EllipticPipe"))
-					ToBeCurved_elliptic_pipe(NvnG,XYZ_S,XYZ);
+					ToBeCurved_elliptic_pipe(NvnG,XYZ_S,XYZ,project_corners_only);
 				else if (strstr(DB.GeomSpecifier,"SinusoidalPipe"))
 					ToBeCurved_sinusoidal_pipe(NvnG,XYZ_S,XYZ);
 				else

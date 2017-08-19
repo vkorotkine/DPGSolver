@@ -115,7 +115,7 @@ static void test_basis_orthogonality(struct S_orthogonality *data, const unsigne
 		if (array_norm_diff_d(pow(Nbf,2)-no_last_entry,M,I,"Inf") < EPS*1e3)
 			pass = 1;
 
-		char *PrintName = malloc(STRLEN_MAX * sizeof *PrintName); // free
+		char *PrintName = malloc(2*STRLEN_MAX * sizeof *PrintName); // free
 
 		sprintf(PrintName,"          orthogonality - %s (d%d, P%d):",PrntName,d,P);
 		test_print2(pass,PrintName);

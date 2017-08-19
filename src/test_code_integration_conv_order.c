@@ -218,9 +218,9 @@ data->Compute_L2proj = 1;
 				if (strstr(TestName,"TRI")) {
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_EllipticPipe_ToBeCurvedTRI");
 data->PrintEnabled = 1;
-data->PMin  = 3;
-data->PMax  = 3;
-data->MLMax = 5;
+data->PMin  = 1;
+data->PMax  = 4;
+data->MLMax = 4;
 				} else {
 					EXIT_UNSUPPORTED;
 				}
@@ -344,14 +344,12 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 
 		if (Adapt == ADAPT_0) {
 			code_startup(nargc,argvNew,0,1);
-		} else if (P == PMin) {
-			if (Adapt == ADAPT_P) {
-				code_startup(nargc,argvNew,0,1);
-			} else {
-				mesh_to_level(ML);
-				if (ML == MLMin && AdaptiveRefine)
-					h_adapt_test();
-			}
+		} else if (Adapt == ADAPT_P && ML == MLMin) {
+			code_startup(nargc,argvNew,0,1);
+		} else {
+			mesh_to_level(ML);
+			if (ML == MLMin && AdaptiveRefine)
+				h_adapt_test();
 		}
 
 		mesh_to_order(P);
@@ -359,8 +357,7 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 			initialize_test_case(0);
 
 		// Output mesh edges to paraview
-//		if (DB.d > 1 && TestDB.PGlobal == 3 && TestDB.ML <= 2) {
-		if (DB.d > 1 && TestDB.PGlobal == 2 && TestDB.ML <= 2) {
+		if (DB.d > 1 && TestDB.PGlobal == 3 && TestDB.ML <= 2) {
 			char *const fNameOut = get_fNameOut("MeshEdges_");
 			output_to_paraview(fNameOut);
 			free(fNameOut);
@@ -370,7 +367,9 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 			if (!(strstr(TestName,"Poisson") || strstr(TestName,"Euler")))
 				EXIT_UNSUPPORTED;
 
+			DB.init_with_L2 = true;
 			initialize_test_case(0);
+			DB.init_with_L2 = false;
 
 			// Output to paraview
 			if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 5 && TestDB.ML <= 4)) {
