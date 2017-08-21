@@ -9,6 +9,7 @@ Dimension     2
 MeshPath      ../meshes/
 MeshType      QUAD
 MeshCurving   Straight
+MeshDomain    Straight
 MeshLevel     1
 mesh_generator gmsh
 

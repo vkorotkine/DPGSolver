@@ -32,8 +32,8 @@ struct Mesh_Connectivity_l {
 /** \brief Constructor for \ref Conn_info.
  *	\return Standard. */
 static struct Conn_info* constructor_Conn_info
-	(const struct Mesh_Data*const mesh_data, ///< Standard.
-	 const struct Intrusive_List* elements   ///< Standard.
+	(const struct Mesh_Data*const mesh_data,          ///< Standard.
+	 const struct const_Intrusive_List*const elements ///< Standard.
 	);
 
 /// \brief Destructor for \ref Conn_info.
@@ -44,9 +44,9 @@ static void destructor_Conn_info
 /** \brief Compute the list of (f)ace (ve)rtices for each face.
  *	\return See brief. */
 static void compute_f_ve
-	(const struct Mesh_Data*const mesh_data, ///< Standard.
-	 const struct Intrusive_List* elements,  ///< Standard.
-	 struct Conn_info* conn_info             ///< The \ref Conn_info.
+	(const struct Mesh_Data*const mesh_data,           ///< Standard.
+	 const struct const_Intrusive_List*const elements, ///< Standard.
+	 struct Conn_info* conn_info                       ///< The \ref Conn_info.
 	);
 
 /** \brief Compute the volume to (volume, local face) correspondence.
@@ -79,7 +79,8 @@ static struct Mesh_Connectivity* constructor_Mesh_Connectivity
 
 // Interface functions ********************************************************************************************** //
 
-struct Mesh_Connectivity* mesh_connect (const struct Mesh_Data*const mesh_data, const struct Intrusive_List* elements)
+struct Mesh_Connectivity* mesh_connect
+	(const struct Mesh_Data*const mesh_data, const struct const_Intrusive_List* elements)
 {
 	if (elements == NULL)
 		EXIT_ADD_SUPPORT; // Add constructor. Don't forget to destruct.
@@ -91,12 +92,13 @@ struct Mesh_Connectivity* mesh_connect (const struct Mesh_Data*const mesh_data, 
 	compute_v_to__v_lf(conn_info,&mesh_conn_l);
 	add_bc_info(mesh_data,conn_info,&mesh_conn_l);
 
-
 	destructor_Multiarray_Vector_ui(conn_info->f_ve);
 	destructor_Vector_ui(conn_info->ind_f_ve);
 	destructor_Conn_info(conn_info);
 
 	struct Mesh_Connectivity* mesh_connectivity = constructor_Mesh_Connectivity(&mesh_conn_l); // keep
+
+print_const_Multiarray_Vector_ui(mesh_connectivity->v_to_v);
 
 	return mesh_connectivity;
 }
@@ -163,8 +165,8 @@ static struct Vector_ui* count_elements_per_dim
  *	\return The sum of the number of faces of all volumes.
  */
 static size_t compute_sum_n_f
-	(const struct Intrusive_List* elements,          ///< Standard.
-	 const struct const_Vector_ui*const volume_types ///< Defined in \ref Conn_info.
+	(const struct const_Intrusive_List*const elements, ///< Standard.
+	 const struct const_Vector_ui*const volume_types   ///< Defined in \ref Conn_info.
 	);
 
 /// \brief Set boundary face info for all entries in the list.
@@ -208,7 +210,7 @@ static void update_v_to_lf_bc
 	);
 
 static struct Conn_info* constructor_Conn_info
-	(const struct Mesh_Data*const mesh_data, const struct Intrusive_List* elements)
+	(const struct Mesh_Data*const mesh_data, const struct const_Intrusive_List*const elements)
 {
 	const size_t d = mesh_data->nodes->extents[1];
 
@@ -222,7 +224,7 @@ static struct Conn_info* constructor_Conn_info
 
 	struct Vector_ui* v_n_lf = constructor_empty_Vector_ui(n_v);
 	for (unsigned int v = 0; v < n_v; ++v) {
-		const struct Element*const element = get_element_by_type(elements,volume_types->data[v]);
+		const struct const_Element*const element = get_element_by_type(elements,volume_types->data[v]);
 		v_n_lf->data[v] = element->n_f;
 	}
 
@@ -238,11 +240,14 @@ static struct Conn_info* constructor_Conn_info
 static void destructor_Conn_info (struct Conn_info* conn_info)
 {
 	destructor_Vector_ui(conn_info->elem_per_dim);
+	destructor_Vector_ui((struct Vector_ui*)conn_info->volume_types);
+	destructor_Vector_ui(conn_info->v_n_lf);
 	free(conn_info);
 }
 
 static void compute_f_ve
-	(const struct Mesh_Data*const mesh_data, const struct Intrusive_List* elements, struct Conn_info* conn_info)
+	(const struct Mesh_Data*const mesh_data, const struct const_Intrusive_List*const elements,
+	 struct Conn_info* conn_info)
 {
 	const unsigned int d     = conn_info->d,
 	                   ind_v = get_first_volume_index(conn_info->elem_per_dim,d),
@@ -255,7 +260,7 @@ static void compute_f_ve
 
 	const struct const_Vector_ui*const*const volume_nums = &mesh_data->node_nums->data[ind_v];
 	for (unsigned int v = 0, ind_f = 0; v < n_v; ++v) {
-		const struct Element*const element = get_element_by_type(elements,volume_types->data[v]);
+		const struct const_Element*const element = get_element_by_type(elements,volume_types->data[v]);
 		for (size_t f = 0, f_max = conn_info->v_n_lf->data[v]; f < f_max; ++f) {
 			const struct const_Vector_ui*const f_ve_f = element->f_ve->data[f];
 			const size_t n_n = f_ve_f->extents[0];
@@ -304,8 +309,8 @@ static void compute_v_to__v_lf (const struct Conn_info*const conn_info, struct M
 	reorder_Vector_ui(ind_lf_V,ind_f_ve_V->data);
 
 	// Compute v_to_v and v_to_lf
-	unsigned int* v_to_v_ui  = mallocator(UINT_T,1,n_f); // moved
-	unsigned int* v_to_lf_ui = mallocator(UINT_T,1,n_f); // moved
+	unsigned int* v_to_v_ui  = mallocator(UINT_T,1,n_f); // free
+	unsigned int* v_to_lf_ui = mallocator(UINT_T,1,n_f); // free
 
 	struct Multiarray_Vector_ui* f_ve = conn_info->f_ve;
 	const unsigned int*const ind_f_ve_ui = ind_f_ve_V->data;
@@ -335,6 +340,9 @@ static void compute_v_to__v_lf (const struct Conn_info*const conn_info, struct M
 
 	mesh_conn_l->v_to_v  = constructor_copy_Multiarray_Vector_ui(v_to_v_ui,conn_info->v_n_lf->data,1,n_v);  // keep
 	mesh_conn_l->v_to_lf = constructor_copy_Multiarray_Vector_ui(v_to_lf_ui,conn_info->v_n_lf->data,1,n_v); // keep
+
+	free(v_to_v_ui);
+	free(v_to_lf_ui);
 }
 
 static void add_bc_info
@@ -467,11 +475,12 @@ static struct Vector_ui* count_elements_per_dim (const struct const_Vector_ui*co
 	return count;
 }
 
-static size_t compute_sum_n_f (const struct Intrusive_List* elements, const struct const_Vector_ui*const volume_types)
+static size_t compute_sum_n_f
+	(const struct const_Intrusive_List*const elements, const struct const_Vector_ui*const volume_types)
 {
 	size_t sum_n_f = 0;
 	for (size_t v = 0, v_max = volume_types->extents[0]; v < v_max; ++v) {
-		const struct Element*const element = get_element_by_type(elements,volume_types->data[v]);
+		const struct const_Element*const element = get_element_by_type(elements,volume_types->data[v]);
 		sum_n_f += element->n_f;
 	}
 	return sum_n_f;
@@ -604,6 +613,7 @@ static struct Boundary_Face* constructor_Boundary_Face ( )
 
 static void destructor_Boundary_Face (struct Boundary_Face* bf)
 {
+	destructor_Vector_ui(bf->node_nums);
 	free(bf);
 }
 

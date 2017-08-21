@@ -26,7 +26,7 @@ static void destructor_Element
 
 // Interface functions ********************************************************************************************** //
 
-struct Intrusive_List* constructor_Element_List (const unsigned int d)
+struct const_Intrusive_List* constructor_Element_List (const unsigned int d)
 {
 	struct Intrusive_List* Elements = constructor_empty_IL();
 
@@ -44,7 +44,7 @@ struct Intrusive_List* constructor_Element_List (const unsigned int d)
 		push_back_IL(Elements,(struct Intrusive_Link*) constructor_Element(PYR));
 	}
 
-	return Elements;
+	return (struct const_Intrusive_List*) Elements;
 }
 
 void destructor_Elements (struct Intrusive_List* elements)
@@ -57,10 +57,10 @@ void destructor_Elements (struct Intrusive_List* elements)
 	destructor_IL(elements);
 }
 
-struct Element* get_element_by_type (const struct Intrusive_List* elements, const unsigned int type)
+struct const_Element* get_element_by_type (const struct const_Intrusive_List*const elements, const unsigned int type)
 {
 	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
-		struct Element* element = (struct Element*) curr;
+		struct const_Element* element = (struct const_Element*) curr;
 		if (element->type == type)
 			return element;
 	}

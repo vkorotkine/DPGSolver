@@ -11,7 +11,16 @@
 #include <stdbool.h>
 
 #include "Macros.h"
+#include "Element.h"
+#include "Volume.h"
+#include "Face.h"
+
 #include "file_processing.h"
+#include "const_cast.h"
+
+#include "constants_mesh.h"
+
+// Static function declarations ************************************************************************************* //
 
 ///< \brief Holds data relating to the mesh as read from the control file.
 struct Mesh_Ctrl_Data {
@@ -21,17 +30,32 @@ struct Mesh_Ctrl_Data {
 	                                  *   	Options: Straight, Curved, Parametric. */
 	     mesh_generator[STRLEN_MAX], /**< Type of mesh generator used.
 	                                  *   	Options: gmsh */
-	     mesh_extension[STRLEN_MIN]; ///< File extension (set based on \ref mesh_generator.
+	     mesh_extension[STRLEN_MIN], ///< File extension (set based on \ref mesh_generator.
+	     mesh_domain[STRLEN_MIN];    ///< The domain type. \todo Should replace mesh_curving.
 };
 
-static void set_ctrl_name_full      (struct Simulation*const sim, const char*const ctrl_name);
-static void set_string_associations (struct Simulation*const sim);
-static void set_mesh_extension      (const char*const mesh_generator, char*const mesh_extension);
-static void mesh_name_assemble
-	(const struct Simulation*const sim, const struct Mesh_Ctrl_Data*const mesh_ctrl_data);
+/// \brief Set full control file name (including path and file extension).
+static void set_ctrl_name_full
+	(struct Simulation*const sim, /// Standard.
+	 const char*const ctrl_name   /// Defined in \ref set_simulation_core.
+	);
 
-void set_mesh_name_full (const struct Simulation*const sim);
+/// \brief Set the mesh parameters.
+static void set_mesh_parameters
+	(struct Simulation*const sim ///< Standard.
+	);
 
+/** \brief Set associations between `char*` and `unsigned int` variables.
+ *
+ *	This is done such that if/switch conditions are simplified when these variables are used.
+ *
+ *	\todo This should be moved to the Solver context.
+ */
+static void set_string_associations
+	(struct Simulation*const sim ///< Standard.
+	);
+
+// Interface functions ********************************************************************************************** //
 
 struct Simulation* constructor_Simulation ()
 {
@@ -42,6 +66,9 @@ struct Simulation* constructor_Simulation ()
 
 void destructor_Simulation (struct Simulation* sim)
 {
+	destructor_Elements((struct Intrusive_List*) sim->elements);
+	destructor_Volumes(sim->volumes);
+	destructor_Faces(sim->faces);
 	FREE_NULL(sim);
 }
 
@@ -78,38 +105,22 @@ void set_simulation_core (struct Simulation*const sim, const char*const ctrl_nam
 	}
 	fclose(ctrl_file);
 
-	set_mesh_name_full(sim);
+	set_mesh_parameters(sim);
 
 if (0)
 	set_string_associations(sim);
 }
 
-void set_mesh_name_full (const struct Simulation*const sim)
+void set_Simulation_elements (struct Simulation*const sim, struct const_Intrusive_List* elements)
 {
-	struct Mesh_Ctrl_Data mesh_ctrl_data;
-
-	// Read ctrl info
-	FILE *ctrl_file = fopen_checked(sim->ctrl_name_full); // closed
-
-	char line[STRLEN_MAX];
-	while (fgets(line,sizeof(line),ctrl_file)) {
-		if (strstr(line,"mesh_generator")) read_skip_c(line,mesh_ctrl_data.mesh_generator);
-		if (strstr(line,"MeshPath"))       read_skip_c(line,mesh_ctrl_data.mesh_path);
-		if (strstr(line,"MeshType"))       read_skip_c(line,mesh_ctrl_data.mesh_elem_type);
-		if (strstr(line,"MeshCurving"))    read_skip_c(line,mesh_ctrl_data.mesh_curving);
-	}
-	fclose(ctrl_file);
-
-	// Set the mesh name
-	set_mesh_extension(mesh_ctrl_data.mesh_generator,mesh_ctrl_data.mesh_extension);
-	mesh_name_assemble(sim,&mesh_ctrl_data);
+	*(struct const_Intrusive_List**)&sim->elements = elements;
 }
 
 
 
 
 
-
+///{ \todo Remove these functions if unused.
 // Setters/Getters
 
 void set_Simulation_flags
@@ -125,43 +136,39 @@ void set_Simulation_parameters
 	*(unsigned int*)&sim->n_var = n_var;
 	*(unsigned int*)&sim->n_eq  = n_eq;
 }
-
-void set_Simulation_element (struct Simulation*const sim, const struct Element*const e_head)
-{
-	*(const struct Element**)&sim->element_head = e_head;
-}
-
-void set_Simulation_volume (struct Simulation*const sim, struct Volume* v_head)
-{
-	sim->volume_head = v_head;
-}
-
-void set_Simulation_face (struct Simulation*const sim, struct Face* f_head)
-{
-	sim->face_head = f_head;
-}
-
+///}
 
 
 // Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
 
-/// \brief Set full control file name (including path and file extension).
-static void set_ctrl_name_full
-	(struct Simulation*const sim, /// Standard.
-	 const char*const ctrl_name   /// Defined in \ref set_simulation_core.
-	)
+/// \brief Set the mesh extension based on the mesh generator used.
+static void set_mesh_extension
+	(const char*const mesh_generator, ///< The mesh generator.
+	 char*const mesh_extension        ///< The mesh file extension.
+	);
+
+/// \brief Assemble the mesh name with full path and extension.
+static void mesh_name_assemble
+	(struct Simulation*const sim,                     ///< Standard.
+	 const struct Mesh_Ctrl_Data*const mesh_ctrl_data ///< The \ref Mesh_Ctrl_Data.
+	);
+
+/** \brief Set the domain type based on the `MeshDomain` input.
+ *	\todo Remove the redundant `MeshCurving` variable.
+ */
+static void set_domain_type
+	(struct Simulation*const sim,                     ///< Standard.
+	 const struct Mesh_Ctrl_Data*const mesh_ctrl_data ///< The \ref Mesh_Ctrl_Data.
+	);
+
+static void set_ctrl_name_full (struct Simulation*const sim, const char*const ctrl_name)
 {
 	strcpy((char*)sim->ctrl_name_full,"control_files/");
 	strcat((char*)sim->ctrl_name_full,ctrl_name);
 	strcat((char*)sim->ctrl_name_full,".ctrl");
 }
 
-/** \brief Set associations between `char*` and `unsigned int` variables.
- *
- *	This is done such that if/switch conditions are simplified when these variables are used.
- *
- *	\todo This should be moved to the Solver context.
- */
 static void set_string_associations (struct Simulation*const sim)
 {
 	// pde_index
@@ -177,7 +184,31 @@ static void set_string_associations (struct Simulation*const sim)
 		EXIT_UNSUPPORTED;
 }
 
-/// \brief Set the mesh extension based on the mesh generator used.
+static void set_mesh_parameters (struct Simulation*const sim)
+{
+	struct Mesh_Ctrl_Data mesh_ctrl_data;
+
+	// Read ctrl info
+	FILE *ctrl_file = fopen_checked(sim->ctrl_name_full); // closed
+
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),ctrl_file)) {
+		if (strstr(line,"mesh_generator")) read_skip_c(line,mesh_ctrl_data.mesh_generator);
+		if (strstr(line,"MeshPath"))       read_skip_c(line,mesh_ctrl_data.mesh_path);
+		if (strstr(line,"MeshType"))       read_skip_c(line,mesh_ctrl_data.mesh_elem_type);
+		if (strstr(line,"MeshCurving"))    read_skip_c(line,mesh_ctrl_data.mesh_curving);
+		if (strstr(line,"MeshDomain"))     read_skip_c(line,mesh_ctrl_data.mesh_domain);
+	}
+	fclose(ctrl_file);
+
+	set_mesh_extension(mesh_ctrl_data.mesh_generator,mesh_ctrl_data.mesh_extension);
+	mesh_name_assemble(sim,&mesh_ctrl_data);
+
+	set_domain_type(sim,&mesh_ctrl_data);
+}
+
+// Level 1 ********************************************************************************************************** //
+
 static void set_mesh_extension (const char*const mesh_generator, char*const mesh_extension)
 {
 	if (strstr(mesh_generator,"gmsh"))
@@ -186,8 +217,7 @@ static void set_mesh_extension (const char*const mesh_generator, char*const mesh
 		EXIT_UNSUPPORTED;
 }
 
-/// \brief Assemble the mesh name with full path and extension.
-static void mesh_name_assemble (const struct Simulation*const sim, const struct Mesh_Ctrl_Data*const mesh_ctrl_data)
+static void mesh_name_assemble (struct Simulation*const sim, const struct Mesh_Ctrl_Data*const mesh_ctrl_data)
 {
 	char* mesh_name_full = (char*)sim->mesh_name_full;
 
@@ -207,3 +237,21 @@ static void mesh_name_assemble (const struct Simulation*const sim, const struct 
 	strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_extension,false);
 }
 
+static void set_domain_type (struct Simulation*const sim, const struct Mesh_Ctrl_Data*const mesh_ctrl_data)
+{
+	if (strstr(mesh_ctrl_data->mesh_domain,"Straight")) {
+		const_cast_ui(&sim->domain_type,DOM_STRAIGHT);
+		if (!strstr(mesh_ctrl_data->mesh_curving,"Straight"))
+			EXIT_UNSUPPORTED;
+	} else if (strstr(mesh_ctrl_data->mesh_domain,"Curved")) {
+		const_cast_ui(&sim->domain_type,DOM_CURVED);
+		if (!strstr(mesh_ctrl_data->mesh_curving,"Curved"))
+			EXIT_UNSUPPORTED;
+	} else if (strstr(mesh_ctrl_data->mesh_domain,"Mapped")) {
+		const_cast_ui(&sim->domain_type,DOM_MAPPED);
+		if (!strstr(mesh_ctrl_data->mesh_curving,"ToBeCurved"))
+			EXIT_UNSUPPORTED;
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+}

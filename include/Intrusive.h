@@ -18,10 +18,22 @@ struct Intrusive_List {
 	struct Intrusive_Link* last;  ///< Pointer to the last \ref Intrusive_Link\* in the list.
 };
 
+/// \brief `const` version of \ref Intrusive_List.
+struct const_Intrusive_List {
+	const struct Intrusive_Link*const first; ///< See non-`const`.
+	const struct Intrusive_Link*const last;  ///< See non-`const`.
+};
+
 /// \brief A link for a doubly-linked list.
 struct Intrusive_Link {
 	struct Intrusive_Link* prev; ///< Pointer to the previous \ref Intrusive_Link\* in the list.
 	struct Intrusive_Link* next; ///< Pointer to the next \ref Intrusive_Link\* in the list.
+};
+
+/// \brief `const` version of \ref Intrusive_Link.
+struct const_Intrusive_Link {
+	const struct Intrusive_Link*const prev; ///< See non-`const`.
+	const struct Intrusive_Link*const next; ///< See non-`const`.
 };
 
 /// \brief Initialize an \ref Intrusive_List to `NULL`.

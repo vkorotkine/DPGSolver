@@ -62,7 +62,7 @@ static struct Element_Solver_c* constructor_Elements_Solver_c
 	(const struct Simulation*const simulation ///< Standard.
 	)
 {
-	const struct Element*const element_head = simulation->element_head;
+	const struct Element*const element_head = (struct Element*) simulation->elements;
 
 	struct Element_Solver_c* head = NULL,
 	                       * prev = NULL;
@@ -145,7 +145,7 @@ static struct Volume_Solver_c* constructor_Volumes_Solver_c
 	(const struct Simulation*const simulation ///< Standard.
 	)
 {
-	struct Volume* volume_base_head = simulation->volume_head;
+	struct Volume* volume_base_head = (struct Volume*) simulation->volumes;
 
 	struct Volume_Solver_c* head = NULL,
 	                      * prev = NULL;

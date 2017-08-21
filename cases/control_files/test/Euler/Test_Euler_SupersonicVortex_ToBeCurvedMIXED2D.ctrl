@@ -9,6 +9,7 @@ Dimension     2
 MeshPath      ../meshes/
 MeshType      MIXED2D
 MeshCurving   ToBeCurved
+MeshDomain    Mapped
 MeshLevel     0
 mesh_generator gmsh
 

@@ -108,13 +108,18 @@ struct Multiarray_Vector_ui* constructor_copy_Multiarray_Vector_ui
 {
 	va_list ap;
 	va_start(ap,order); // free
-	size_t* extents = set_extents(order,ap); // keep
+	size_t* extents = set_extents(order,ap); // free (reallocated in constructor_empty)
 	va_end(ap);
+
+	size_t extents_l[order];
+	for (size_t i = 0; i < order; ++i)
+		extents_l[i] = extents[i];
+	free(extents);
 
 	struct Multiarray_Vector_ui* dest;
 	switch (order) {
 	case 1:
-		dest = constructor_empty_Multiarray_Vector_ui(order,extents[0]);
+		dest = constructor_empty_Multiarray_Vector_ui(order,extents_l[0]);
 		break;
 	default:
 		EXIT_UNSUPPORTED;
@@ -141,8 +146,7 @@ void destructor_Multiarray_d (struct Multiarray_d* a)
 
 void destructor_Multiarray_Vector_ui (struct Multiarray_Vector_ui* a)
 {
-	if (a->owns_data)
-		destructor_Vector_ui_2(a->data,compute_size(a->order,a->extents));
+	destructor_Vector_ui_2(a->data,compute_size(a->order,a->extents),a->owns_data);
 	free(a->extents);
 	free(a);
 }

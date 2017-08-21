@@ -37,14 +37,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "S_ELEMENT.h"
+#include "Macros.h"
 
 void set_up_operators (const struct Simulation*const simulation)
 {
-	for (struct Element* element = simulation->element_head; element; element = element->next) {
+UNUSED(simulation);
+/*	for (struct Element* element = simulation->element_head; element; element = element->next) {
 		if (!element->tensor_product)
 			;
 		else
 			;
 	}
+*/
 }

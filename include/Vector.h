@@ -81,7 +81,8 @@ void destructor_Vector_ui
 /// \brief Destructs a \ref Vector_ui\*\*.
 void destructor_Vector_ui_2
 	(struct Vector_ui** a, ///< Standard.
-	 const size_t n_src    ///< The number of \ref Vector_ui\* components.
+	 const size_t n_src,   ///< The number of \ref Vector_ui\* components.
+	 const bool owns_data  ///< Standard.
 	);
 
 // Helper functions ************************************************************************************************* //

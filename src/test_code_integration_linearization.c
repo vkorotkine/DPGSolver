@@ -125,7 +125,9 @@ void test_linearization
 /// \todo Move this to VOLUME struct initialization
 	for (struct S_VOLUME* VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
 		set_element(VOLUME,DB.ELEMENT);
-
+#if 0
+// This is now broken as simulation does not have an S_ELEMENT member.
+EXIT_UNSUPPORTED;
 /// \todo Move this to the top level (initialized somewhere in code_startup) and add all relevant parameters.
 	struct Simulation* simulation = constructor_Simulation(); // destructed
 	set_Simulation_flags(simulation,DB.Collocated);
@@ -137,6 +139,7 @@ void test_linearization
 	set_Simulation_volume(simulation,DB.VOLUME);
 
 	struct Solver_c* solver_c = constructor_Solver_c(simulation); // destructed
+#endif
 
 	// Weak Gradient Linearization
 	if (data->check_weak_gradients) {
@@ -233,9 +236,10 @@ void test_linearization
 	bool pass = 1;
 	check_passing(data,&pass);
 	test_print2(pass,data->test_name);
-
+#if 0
 	destructor_Simulation(simulation);
 	destructor_Solver_c(solver_c);
+#endif
 
 	code_cleanup();
 }

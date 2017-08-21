@@ -6,7 +6,7 @@
  \todo Complete this.
  */
 
-#include "set_up_mesh.h"
+#include "Mesh.h"
 #include "Intrusive.h"
 #include "mesh_readers.h"
 #include "mesh_connectivity.h"
@@ -33,7 +33,8 @@ void destructor_Mesh (struct Mesh* mesh)
 	free(mesh);
 }
 
-struct Mesh* set_up_mesh (const char*const mesh_name_full, const unsigned int d, const struct Intrusive_List* elements)
+struct Mesh* set_up_mesh
+	(const char*const mesh_name_full, const unsigned int d, const struct const_Intrusive_List* elements)
 {
 	struct Mesh* mesh = constructor_Mesh();
 

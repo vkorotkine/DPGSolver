@@ -21,7 +21,8 @@
 CSTD := -std=c11
 
 # Options
-OPTS := -O3
+#OPTS := -O3
+OPTS := -O0
 OPTS += -g -Wall -Wextra -Werror
 OPTS += -DTEST
 

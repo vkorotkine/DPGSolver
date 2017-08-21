@@ -132,10 +132,12 @@ void destructor_Vector_ui (struct Vector_ui* a)
 	free(a);
 }
 
-void destructor_Vector_ui_2 (struct Vector_ui** a, const size_t n_src)
+void destructor_Vector_ui_2 (struct Vector_ui** a, const size_t n_src, const bool owns_data)
 {
-	for (size_t n = 0; n < n_src; n++)
-		destructor_Vector_ui(a[n]);
+	if (owns_data) {
+		for (size_t n = 0; n < n_src; n++)
+			destructor_Vector_ui(a[n]);
+	}
 	free(a);
 }
 

@@ -4,7 +4,9 @@
 #ifndef DPG__Element_h__INCLUDED
 #define DPG__Element_h__INCLUDED
 /**	\file
- *	\todo Provides the interface for the base \ref Element container and associated functions.
+ *	Provides the interface for the base \ref Element container and associated functions.
+ *
+ *	\note `const` and non-`const` versions of \ref Element must have identical members and layout.
  */
 
 #include "Intrusive.h"
@@ -21,10 +23,21 @@ struct Element {
 
 };
 
+/// \brief `const` version of the base Element container.
+struct const_Element {
+	const struct const_Intrusive_Link lnk;
+
+	const unsigned int type,
+	                   d,
+	                   n_f;
+
+	const struct const_Multiarray_Vector_ui*const f_ve;
+};
+
 // Constructor/Destructor functions ********************************************************************************* //
 
 /// \brief Constructs the base \ref Element \ref Intrusive_List.
-struct Intrusive_List* constructor_Element_List
+struct const_Intrusive_List* constructor_Element_List
 	(const unsigned int d ///< The dimension.
 	);
 
@@ -38,9 +51,9 @@ void destructor_Elements
 /** \brief See return.
  *	\return Pointer to a base \ref Element of the input `type`.
  */
-struct Element* get_element_by_type
-	(const struct Intrusive_List* elements, ///< The list of elements.
-	 const unsigned int type                ///< Defined in \ref Element.
+struct const_Element* get_element_by_type
+	(const struct const_Intrusive_List*const elements, ///< The list of elements.
+	 const unsigned int type                           ///< Defined in \ref Element.
 	);
 
 

@@ -32,9 +32,9 @@ struct Mesh {
  *	\todo Add support for this functionality.
  */
 struct Mesh* set_up_mesh
-	(const char*const mesh_name_full,      ///< Defined in \ref Simulation.
-	 const unsigned int d,                 ///< Defined in \ref Simulation.
-	 const struct Intrusive_List* elements ///< The base \ref Element list.
+	(const char*const mesh_name_full,            ///< Defined in \ref Simulation.
+	 const unsigned int d,                       ///< Defined in \ref Simulation.
+	 const struct const_Intrusive_List* elements ///< The base \ref Element list.
 	);
 
 ///< \brief Destructor for a \ref Mesh.
