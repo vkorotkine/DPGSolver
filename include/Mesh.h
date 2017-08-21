@@ -37,9 +37,16 @@ struct Mesh* set_up_mesh
 	 const struct const_Intrusive_List* elements ///< The base \ref Element list.
 	);
 
-///< \brief Destructor for a \ref Mesh.
+/// \brief Destructor for a \ref Mesh.
 void destructor_Mesh
 	(struct Mesh* mesh ///< Standard.
+	);
+
+/** \brief See return.
+ *	\return The index of the first volume. */
+size_t get_first_volume_index
+	(const struct const_Vector_ui*const elem_per_dim, ///< Defined in \ref Conn_info.
+	 const unsigned int d                             ///< Defined in \ref Conn_info.
 	);
 
 

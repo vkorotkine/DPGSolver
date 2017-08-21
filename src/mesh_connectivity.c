@@ -17,6 +17,7 @@
 #include "Vector.h"
 #include "Element.h"
 
+#include "Mesh.h"
 #include "mesh_periodic.h"
 #include "const_cast.h"
 #include "allocators.h"
@@ -111,14 +112,6 @@ void destructor_Mesh_Connectivity (struct Mesh_Connectivity* mesh_conn)
 	free(mesh_conn);
 }
 
-size_t get_first_volume_index (const struct Vector_ui*const elem_per_dim, const unsigned int d)
-{
-	size_t ind = 0;
-	for (unsigned int dim = 0; dim < d; dim++)
-		ind += elem_per_dim->data[dim];
-	return ind;
-}
-
 void set_f_node_nums (struct Vector_ui**const f_node_nums, const struct const_Vector_ui*const node_nums)
 {
 	*f_node_nums = constructor_copy_Vector_ui_ui(node_nums->extents[0],node_nums->data);
@@ -152,13 +145,6 @@ static struct Boundary_Face_Info* constructor_Boundary_Face_Info
 /// \brief Destructor for \ref Boundary_Face_Info.
 static void destructor_Boundary_Face_Info
 	(struct Boundary_Face_Info* bf_info ///< Standard.
-	);
-
-/** \brief See return.
- *	\return The number of elements of each dimension.
- */
-static struct Vector_ui* count_elements_per_dim
-	(const struct const_Vector_ui*const elem_types ///< Defined in \ref Conn_info.
 	);
 
 /** \brief See return.
@@ -214,11 +200,12 @@ static struct Conn_info* constructor_Conn_info
 {
 	const size_t d = mesh_data->nodes->extents[1];
 
-	struct Vector_ui* elem_per_dim = count_elements_per_dim(mesh_data->elem_types);
+	const struct const_Vector_ui*const elem_per_dim = mesh_data->elem_per_dim;
 
-	const unsigned int n_v   = elem_per_dim->data[d],
-	                   ind_v = get_first_volume_index(elem_per_dim,d);
+	const unsigned int n_v   = mesh_data->elem_per_dim->data[d],
+	                   ind_v = get_first_volume_index(mesh_data->elem_per_dim,d);
 
+// add const_constructor
 	struct const_Vector_ui* volume_types =
 		constructor_move_const_Vector_ui_ui(n_v,false,&mesh_data->elem_types->data[ind_v]);
 
@@ -230,7 +217,7 @@ static struct Conn_info* constructor_Conn_info
 
 	struct Conn_info* conn_info = malloc(sizeof *conn_info); // returned;
 	const_cast_ui(&conn_info->d,d);
-	conn_info->elem_per_dim = elem_per_dim;
+	*(const struct const_Vector_ui**)&conn_info->elem_per_dim = elem_per_dim;
 	conn_info->volume_types = volume_types;
 	conn_info->v_n_lf       = v_n_lf;
 
@@ -239,7 +226,6 @@ static struct Conn_info* constructor_Conn_info
 
 static void destructor_Conn_info (struct Conn_info* conn_info)
 {
-	destructor_Vector_ui(conn_info->elem_per_dim);
 	destructor_Vector_ui((struct Vector_ui*)conn_info->volume_types);
 	destructor_Vector_ui(conn_info->v_n_lf);
 	free(conn_info);
@@ -445,35 +431,6 @@ static void destructor_Boundary_Face
 static bool check_pfe_boundary
 	(const unsigned int bc ///< The value of the boundary condition.
 	);
-
-static struct Vector_ui* count_elements_per_dim (const struct const_Vector_ui*const elem_types)
-{
-	struct Vector_ui* count = constructor_empty_Vector_ui(DMAX+1); // returned
-	set_to_zero_Vector_ui(count);
-	for (size_t i = 0; i < elem_types->extents[0]; i++) {
-		const unsigned int elem_type = elem_types->data[i];
-
-		switch (elem_type) {
-		case POINT:
-			count->data[0]++;
-			break;
-		case LINE:
-			count->data[1]++;
-			break;
-		case TRI: case QUAD:
-			count->data[2]++;
-			break;
-		case TET: case HEX: case WEDGE: case PYR:
-			count->data[3]++;
-			break;
-		default:
-			EXIT_UNSUPPORTED;
-			break;
-		}
-	}
-
-	return count;
-}
 
 static size_t compute_sum_n_f
 	(const struct const_Intrusive_List*const elements, const struct const_Vector_ui*const volume_types)

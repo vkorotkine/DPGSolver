@@ -11,10 +11,12 @@
 #include <string.h>
 
 #include "Macros.h"
+#include "Mesh.h"
 #include "file_processing.h"
 #include "allocators.h"
 #include "const_cast.h"
 
+#include "constants_core.h"
 #include "constants_elements.h"
 
 // Static function declarations ************************************************************************************* //
@@ -40,6 +42,7 @@ struct Mesh_Data* mesh_reader (const char*const mesh_name_full, const unsigned i
 
 void destructor_Mesh_Data (struct Mesh_Data* mesh_data)
 {
+	destructor_Vector_ui((struct Vector_ui*)mesh_data->elem_per_dim);
 	destructor_Matrix_d((struct Matrix_d*)mesh_data->nodes);
 
 	destructor_Vector_ui((struct Vector_ui*)mesh_data->elem_types);
@@ -161,6 +164,13 @@ static void skip_periodic_entity
 	 const size_t line_size ///< The size of the line array.
 	);
 
+/** \brief See return.
+ *	\return The number of elements of each dimension.
+ */
+static struct Vector_ui* count_elements_per_dim
+	(const struct const_Vector_ui*const elem_types ///< Defined in \ref Conn_info.
+	);
+
 static struct Matrix_d* read_nodes (FILE* mesh_file, const unsigned int d)
 {
 	char line[STRLEN_MAX];
@@ -258,7 +268,7 @@ static struct Matrix_ui* read_periodic (FILE* mesh_file, const unsigned int d)
 static struct Mesh_Data* constructor_Mesh_Data
 	(struct Matrix_d* nodes, struct Element_Data* elem_data, struct Matrix_ui* periodic_corr)
 {
-	struct Mesh_Data* mesh_data = malloc(1 * sizeof *mesh_data);
+	struct Mesh_Data* mesh_data = malloc(sizeof *mesh_data); // returned
 
 	const_constructor_move_Matrix_d(&mesh_data->nodes,nodes);
 
@@ -270,6 +280,16 @@ static struct Mesh_Data* constructor_Mesh_Data
 		const_constructor_move_Matrix_ui(&mesh_data->periodic_corr,periodic_corr);
 	else
 		*(struct const_Matrix_ui**)&mesh_data->periodic_corr = NULL;
+
+	struct Vector_ui* elem_per_dim = count_elements_per_dim(mesh_data->elem_types); // keep
+	const_constructor_move_Vector_ui(&mesh_data->elem_per_dim,elem_per_dim);
+
+	const size_t d = nodes->extents[1];
+	const unsigned int ind_v = get_first_volume_index(mesh_data->elem_per_dim,d);
+
+	const_cast_ui(&mesh_data->d,d);
+	const_cast_ui(&mesh_data->ind_v,ind_v);
+
 
 	free(elem_data);
 
@@ -346,6 +366,35 @@ static void skip_periodic_entity (FILE* file, char**const line, const size_t lin
 	size_t n_skip = strtol(*line,&endptr,10);
 
 	skip_lines(file,line,line_size,n_skip);
+}
+
+static struct Vector_ui* count_elements_per_dim (const struct const_Vector_ui*const elem_types)
+{
+	struct Vector_ui* count = constructor_empty_Vector_ui(DMAX+1); // returned
+	set_to_zero_Vector_ui(count);
+	for (size_t i = 0; i < elem_types->extents[0]; i++) {
+		const unsigned int elem_type = elem_types->data[i];
+
+		switch (elem_type) {
+		case POINT:
+			count->data[0]++;
+			break;
+		case LINE:
+			count->data[1]++;
+			break;
+		case TRI: case QUAD:
+			count->data[2]++;
+			break;
+		case TET: case HEX: case WEDGE: case PYR:
+			count->data[3]++;
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+	}
+
+	return count;
 }
 
 // Level 3 ********************************************************************************************************** //

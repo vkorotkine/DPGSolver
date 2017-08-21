@@ -22,6 +22,11 @@
  *	[gmsh_ff]: http://gmsh.info/doc/texinfo/gmsh.html#File-formats
  */
 struct Mesh_Data {
+	const unsigned int d,     ///< The dimension.
+	                   ind_v; ///< The index of the first volume in the list of elements.
+
+	const struct const_Vector_ui*const elem_per_dim; ///< The number of elements per dimension.
+
 	const struct const_Matrix_d*const nodes; ///< The xyz coordinates of the mesh elements (the mesh vertices).
 
 	const struct const_Vector_ui*const            elem_types; ///< The list of element types.

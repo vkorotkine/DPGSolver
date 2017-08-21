@@ -19,19 +19,13 @@
 
 #include "file_processing.h"
 
+// Static function declarations ************************************************************************************* //
 
-struct Mesh* constructor_Mesh ()
-{
-	struct Mesh* mesh = malloc(1 * sizeof *mesh); // returned
-	return mesh;
-}
+/** \brief Constructor for a \ref Mesh.
+ *	\return Standard. */
+struct Mesh* constructor_Mesh ();
 
-void destructor_Mesh (struct Mesh* mesh)
-{
-	destructor_Mesh_Data((struct Mesh_Data*)mesh->mesh_data);
-	destructor_Mesh_Connectivity((struct Mesh_Connectivity*)mesh->mesh_conn);
-	free(mesh);
-}
+// Interface functions ********************************************************************************************** //
 
 struct Mesh* set_up_mesh
 	(const char*const mesh_name_full, const unsigned int d, const struct const_Intrusive_List* elements)
@@ -44,3 +38,26 @@ struct Mesh* set_up_mesh
 	return mesh;
 }
 
+void destructor_Mesh (struct Mesh* mesh)
+{
+	destructor_Mesh_Data((struct Mesh_Data*)mesh->mesh_data);
+	destructor_Mesh_Connectivity((struct Mesh_Connectivity*)mesh->mesh_conn);
+	free(mesh);
+}
+
+size_t get_first_volume_index (const struct const_Vector_ui*const elem_per_dim, const unsigned int d)
+{
+	size_t ind = 0;
+	for (unsigned int dim = 0; dim < d; dim++)
+		ind += elem_per_dim->data[dim];
+	return ind;
+}
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
+
+struct Mesh* constructor_Mesh ()
+{
+	struct Mesh* mesh = malloc(1 * sizeof *mesh); // returned
+	return mesh;
+}

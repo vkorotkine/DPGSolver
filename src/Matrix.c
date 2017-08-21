@@ -129,6 +129,18 @@ unsigned int get_val_const_Matrix_ui (const size_t row, const size_t col, const 
 	}
 }
 
+void set_row_Matrix_d (const size_t row, const struct Matrix_d* dest, const double*const data_src)
+{
+	if (dest->layout != 'R')
+		EXIT_ADD_SUPPORT;
+
+	double*const data = get_row_Matrix_d(row,dest);
+
+	const size_t i_max = dest->extents[1];
+	for (size_t i = 0; i < i_max; ++i)
+		data[i] = data_src[i];
+}
+
 // Printing functions *********************************************************************************************** //
 
 void print_Matrix_d (const struct Matrix_d*const a)

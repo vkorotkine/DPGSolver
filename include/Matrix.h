@@ -144,6 +144,13 @@ unsigned int get_val_const_Matrix_ui
 	 const struct const_Matrix_ui*const a ///< Standard.
 	);
 
+/// \brief Set the values of the destination row to that of the source data.
+void set_row_Matrix_d
+	(const size_t row,            ///< The destination row.
+	 const struct Matrix_d* dest, ///< The destination Matrix.
+	 const double*const data_src  ///< The source data.
+	);
+
 // Printing functions *********************************************************************************************** //
 
 /// \brief Print a \ref Matrix_d\* to the terminal.

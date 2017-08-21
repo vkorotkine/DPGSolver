@@ -56,9 +56,10 @@ struct Intrusive_List* constructor_Volume_List (const struct Simulation*const si
 
 	const unsigned int n_v = v_to_v->extents[0];
 	for (size_t v = 0; v < n_v; ++v) {
+		const size_t ind_v = v + mesh->mesh_data->ind_v;
 		struct Volume_mesh_info vol_mi =
-			{ .elem_type = elem_types->data[v],
-			  .ve_inds   = node_nums->data[v],
+			{ .elem_type = elem_types->data[ind_v],
+			  .ve_inds   = node_nums->data[ind_v],
 			  .to_lf     = v_to_lf->data[v],
 			};
 
@@ -97,8 +98,8 @@ static bool check_if_curved
 /** \brief Constructor for the xyz coordinates of the volume vertices.
  *	\return See brief. */
 static struct Matrix_d* constructor_volume_vertices
-	(const struct Vector_ui*const ve_inds,   ///< The vertex indices.
-	 const struct const_Matrix_d*const nodes ///< \ref Mesh_Data::nodes.
+	(const struct const_Vector_ui*const ve_inds, ///< The vertex indices.
+	 const struct const_Matrix_d*const nodes     ///< \ref Mesh_Data::nodes.
 	);
 
 static struct Volume* constructor_Volume
@@ -148,12 +149,14 @@ static bool check_if_curved (const struct const_Vector_ui*const to_lf, const uns
 }
 
 static struct Matrix_d* constructor_volume_vertices
-	(const struct Vector_ui*const ve_inds, const struct const_Matrix_d*const nodes)
+	(const struct const_Vector_ui*const ve_inds, const struct const_Matrix_d*const nodes)
 {
 	struct Matrix_d* dest = constructor_empty_Matrix_d('R',ve_inds->extents[0],nodes->extents[1]);
 
 	const size_t i_max = dest->extents[0];
-	for (size_t i = 0; i < i_max; ++i) {
-		set_row
-	}
+	for (size_t i = 0; i < i_max; ++i)
+		set_row_Matrix_d(i,dest,get_row_const_Matrix_d(ve_inds->data[i],nodes));
+
+print_Matrix_d(dest);
+	return dest;
 }

@@ -20,7 +20,7 @@
 struct Conn_info {
 	// Available from mesh_data:
 	const unsigned int d;                 ///< The dimension.
-	struct Vector_ui* elem_per_dim;       ///< The number of elements of each dimension.
+	const struct const_Vector_ui*const elem_per_dim; ///< The number of elements of each dimension.
 	struct const_Vector_ui* volume_types; ///< Pointer to the first volume entry in \ref Mesh_Data::elem_types.
 	struct Vector_ui* v_n_lf;             ///< The number of local faces for each volume.
 
@@ -48,13 +48,6 @@ struct Mesh_Connectivity* mesh_connect
 /// \brief Destructor for \ref Mesh_Connectivity.
 void destructor_Mesh_Connectivity
 	(struct Mesh_Connectivity* mesh_conn ///< Standard.
-	);
-
-/** \brief See return.
- *	\return The index of the first volume. */
-size_t get_first_volume_index
-	(const struct Vector_ui*const elem_per_dim, ///< Defined in \ref Conn_info.
-	 const unsigned int d                       ///< Defined in \ref Conn_info.
 	);
 
 /// \brief Set the face node numbers and sort them.
