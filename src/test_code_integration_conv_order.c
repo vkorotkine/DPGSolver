@@ -372,7 +372,7 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 			DB.init_with_L2 = false;
 
 			// Output to paraview
-			if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 5 && TestDB.ML <= 4)) {
+			if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 4 && TestDB.ML <= 4)) {
 				char *const fNameOut = get_fNameOut("SolFinal_");
 				output_to_paraview(fNameOut);
 				free(fNameOut);

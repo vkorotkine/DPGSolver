@@ -76,6 +76,7 @@ static void set_XYZ_k1_lagrange (const struct k1_lagrange*const k1_l, struct XYZ
 
 	switch (k1_l->d) {
 	case 2: {
+		// Project the domain using one of two triangles.
 		const double*const  X_ve = k1_l->XYZ_ve[0],
 		            *const  Y_ve = k1_l->XYZ_ve[1];
 
@@ -86,16 +87,26 @@ static void set_XYZ_k1_lagrange (const struct k1_lagrange*const k1_l, struct XYZ
 		      *const Y = &xyz_data->XYZ[1*Nn];
 
 		for (unsigned int n = 0; n < Nn; n++) {
-			double basis[] = { 0.25*(X_S[n]-1.0)*(Y_S[n]-1.0),
-			                  -0.25*(X_S[n]+1.0)*(Y_S[n]-1.0),
-			                  -0.25*(X_S[n]-1.0)*(Y_S[n]+1.0),
-			                   0.25*(X_S[n]+1.0)*(Y_S[n]+1.0), };
+			double basis_t1[] = { 0.5*(-X_S[n]-Y_S[n]), // 0
+			                      0.5*(1.0+X_S[n]),     // 1
+			                      0.5*(1.0+Y_S[n]),     // 2
+			                      0.0             , };  // 3
+
+			double basis_t2[] = { 0.0,             	      // 0
+			                      0.5*(1.0-Y_S[n]),	      // 1
+			                      0.5*(1.0-X_S[n]),	      // 2
+			                      0.5*(X_S[n]+Y_S[n]), }; // 3
 
 			X[n] = 0.0;
 			Y[n] = 0.0;
 			for (int i = 0; i < N_V_QUAD; ++i) {
-				X[n] += X_ve[i]*basis[i];
-				Y[n] += Y_ve[i]*basis[i];
+				if (X_S[n]+Y_S[n] <= 0.0) {
+					X[n] += X_ve[i]*basis_t1[i];
+					Y[n] += Y_ve[i]*basis_t1[i];
+				} else {
+					X[n] += X_ve[i]*basis_t2[i];
+					Y[n] += Y_ve[i]*basis_t2[i];
+				}
 			}
 		}
 		break;
