@@ -399,20 +399,20 @@ void initialize_test_case_parameters(void)
 			} else if (strstr(TestCase,"EllipticPipe")) {
 				DB.SourcePresent = 1;
 
-				double u_1, u_2 = 0.25, u_3, u_4 = 0.50, alpha = 0.50; //Period adjusters(u_2, u_4) and B.V adjuster(alpha)
+				double u_1, u_2 = 0.10, u_3, u_4 = 0.10, alpha = 0.70; //Period adjusters(u_2, u_4) and B.V adjuster(alpha)
 				u_3 = (1+alpha)/(2*cos(u_4));
 				u_1 = (1-alpha)/(2*sin(u_2));
-				double v_1, v_2 = 0.25, v_3, v_4 = 0.75; //Period adjusters(v_2, v_4)
+				double v_1, v_2 = 0.1, v_3, v_4 = 0.1; //Period adjusters(v_2, v_4)
 				v_3 = 1/(2*cos(v_4));
 				v_1 = 1/(2*sin(v_2));
 
-			    double r_par[7] = {1, 0.3, PI/3, 0.30, PI/4, -0.2, PI/8},
-				       p_par[7] = {1, 0.2, PI/3, 0.25, PI/3, 0.2, PI/8},
+			    double r_par[7] = {1, 0.5, PI/20, 0.30, PI/20, -0.2, PI/20},
+				       p_par[7] = {1, 0.3, PI/20, 0.65, PI/20, 0.4, PI/20},
 				       u_par[7] = {u_1, u_2, u_3, u_4},
 				       v_par[7] = {v_1, v_2, v_3, v_4},
-					   f_par[7] = {0.5, 0.2, PI/3, 0.2, PI/4, 0.1, PI/5};
+					   f_par[7] = {1.0, -0.2, PI/16, -0.2, PI/8, -0.2, -PI/8};
 
-				double a = 1/sqrt(3), b = 1, c = 1; //Geometry parameters
+				double a = 1/sqrt(25), b = 1, c = 1; //Geometry parameters
 					   DB.geo_store[0] = a;
 					   DB.geo_store[1] = b;
 					   DB.geo_store[2] = c;

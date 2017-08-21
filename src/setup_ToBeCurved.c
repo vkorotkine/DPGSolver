@@ -386,7 +386,7 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 
 	const bool returnStraight       = false, // Return the straight mesh
 	                                         // Should be false for computed solutions.
-	           project_corners_only = false, // Project to a straight sided domain where only the corners are correct.
+	           project_corners_only = true, // Project to a straight sided domain where only the corners are correct.
 	                                         // Should be false for computed solutions.
 	           correctTBC           = true;  // Correct internal nodes with blending
 	for (nG = 0; nG < 2; nG++) {

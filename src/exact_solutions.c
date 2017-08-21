@@ -216,23 +216,23 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
 		       p_xy = DB.p_store[5],
 		       p_3 = DB.p_store[6];
 
-		double u_1 = DB.u_store[0],
+		/*double u_1 = DB.u_store[0],
 		       u_2 = DB.u_store[1],
 		       u_3 = DB.u_store[2],
-		       u_4 = DB.u_store[3];
+		       u_4 = DB.u_store[3];*/
 
-	 	double v_1 = DB.v_store[0],
+	 	/*double v_1 = DB.v_store[0],
 		       v_2 = DB.v_store[1],
 		       v_3 = DB.v_store[2],
-		       v_4 = DB.v_store[3];
+		       v_4 = DB.v_store[3];*/
 
-		double f_0 = DB.f_store[0],
+		/*double f_0 = DB.f_store[0],
 		       f_1 = DB.f_store[1],
 		       f_2 = DB.f_store[2],
 		       f_3 = DB.f_store[3],
 		       f_4 = DB.f_store[4],
 		       f_5 = DB.f_store[5],
-		       f_6 = DB.f_store[6];
+		       f_6 = DB.f_store[6];*/
 
 		double a = DB.geo_store[0],
 			   b = DB.geo_store[1],
@@ -240,20 +240,20 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
 
 		for (size_t n = 0; n < Nn; n++) {
 
-			double const xi = (2/c)*X[n]-1, //The domain transformations
-						 eta = (2*a*Y[n])/(b*sqrt(a*a+X[n]*X[n]))-1;
+			double const xi = (2/c)*X[n]-1; //The domain transformations
+						 //eta = (2*a*Y[n])/(b*sqrt(a*a+X[n]*X[n]))-1;
 
 			double const u_a = a*sqrt(a*a+0.25*c*c*(xi+1)*(xi+1)),
-						 u_b = u_1*sin(u_2*eta)+u_3*cos(u_4*eta),
-						 u_c = f_0 + f_1*sin(f_2*(xi+1))+f_3*sin(f_4*(eta+1))+f_5*sin(f_6*(xi+1)*(eta+1)),
-						 v_a = 0.5*b*c*(xi+1),
-						 v_b = v_1*sin(v_2*eta)+v_3*cos(v_4*eta),
-						 v_c = f_0 + f_1*sin(f_2*(xi+1))+f_3*sin(f_4*(eta+1))+f_5*sin(f_6*(xi+1)*(eta+1));
+						 //u_b = u_1*sin(u_2*eta)+u_3*cos(u_4*eta),
+						 //u_c = f_0 + f_1*sin(f_2*(xi+1))+f_3*sin(f_4*(eta+1))+f_5*sin(f_6*(xi+1)*(eta+1)),
+						 v_a = 0.5*b*c*(xi+1);
+						 //v_b = v_1*sin(v_2*eta)+v_3*cos(v_4*eta),
+						 //v_c = f_0 + f_1*sin(f_2*(xi+1))+f_3*sin(f_4*(eta+1))+f_5*sin(f_6*(xi+1)*(eta+1));
 
 			rhoEx[n] = rho_0 + rho_x*sin(rho_1*X[n])+rho_y*sin(rho_2*Y[n])+rho_xy*sin(rho_3*X[n]*Y[n]);
 			pEx[n] = p_0 + p_x*sin(p_1*X[n])+p_y*sin(p_2*Y[n])+p_xy*sin(p_3*X[n]*Y[n]);
-			uEx[n] = u_a*u_b*u_c;
-			vEx[n] = v_a*v_b*v_c;
+			uEx[n] = u_a;//*u_b*u_c;
+			vEx[n] = v_a;//*v_b*v_c;
 			wEx[n] = 0.0;
 		}
 
@@ -500,23 +500,23 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 		       p_xy = DB.p_store[5],
 		       p_3 = DB.p_store[6];
 
-		double u_1 = DB.u_store[0],
+		/*double u_1 = DB.u_store[0],
 		       u_2 = DB.u_store[1],
 		       u_3 = DB.u_store[2],
-		       u_4 = DB.u_store[3];
+		       u_4 = DB.u_store[3];*/
 
-	 	double v_1 = DB.v_store[0],
+	 	/*double v_1 = DB.v_store[0],
 		       v_2 = DB.v_store[1],
 		       v_3 = DB.v_store[2],
-		       v_4 = DB.v_store[3];
+		       v_4 = DB.v_store[3];*/
 
-		double f_0 = DB.f_store[0],
+		/*double f_0 = DB.f_store[0],
 		       f_1 = DB.f_store[1],
 		       f_2 = DB.f_store[2],
 		       f_3 = DB.f_store[3],
 		       f_4 = DB.f_store[4],
 		       f_5 = DB.f_store[5],
-		       f_6 = DB.f_store[6];
+		       f_6 = DB.f_store[6];*/
 
 		double a = DB.geo_store[0],
 			   b = DB.geo_store[1],
@@ -534,50 +534,50 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 
 			//Domain transformations and partial derivatives of the transformations.
 			double const xi = (2/c)*X[n]-1,
-						 eta = (2*a*Y[n])/(b*sqrt(a*a+X[n]*X[n]))-1,
+						 //eta = (2*a*Y[n])/(b*sqrt(a*a+X[n]*X[n]))-1,
 						 xi_x = 2/c,
 				   		 eta_x = (-2*a*X[n]*Y[n]/b)*pow(a*a+X[n]*X[n],-1.5),
 						 xi_y = 0,
 						 eta_y = (2*a)/(b*sqrt(a*a+X[n]*X[n]));
 
 			double const u_a = a*sqrt(a*a+0.25*c*c*(xi+1)*(xi+1)),
-						 u_b = u_1*sin(u_2*eta)+u_3*cos(u_4*eta),
-						 u_c = f_0 + f_1*sin(f_2*(xi+1))+f_3*sin(f_4*(eta+1))+f_5*sin(f_6*(xi+1)*(eta+1)),
+						 //u_b = u_1*sin(u_2*eta)+u_3*cos(u_4*eta),
+						 //u_c = f_0 + f_1*sin(f_2*(xi+1))+f_3*sin(f_4*(eta+1))+f_5*sin(f_6*(xi+1)*(eta+1)),
 						 v_a = 0.5*b*c*(xi+1),
-						 v_b = v_1*sin(v_2*eta)+v_3*cos(v_4*eta),
-						 v_c = f_0 + f_1*sin(f_2*(xi+1))+f_3*sin(f_4*(eta+1))+f_5*sin(f_6*(xi+1)*(eta+1)),
+						 //v_b = v_1*sin(v_2*eta)+v_3*cos(v_4*eta),
+						 //v_c = f_0 + f_1*sin(f_2*(xi+1))+f_3*sin(f_4*(eta+1))+f_5*sin(f_6*(xi+1)*(eta+1)),
 						 u_a_xi = 0.25*a*c*c*(xi+1)/sqrt(a*a+0.25*c*c*(xi+1)*(xi+1)),
 						 u_a_eta = 0,
 					   	 v_a_xi = 0.5*b*c,
-						 v_a_eta = 0,
-						 u_b_xi = 0,
-						 u_b_eta = u_1*u_2*cos(u_2*eta)-u_3*u_4*sin(u_4*eta),
-					   	 v_b_xi = 0,
-						 v_b_eta = v_1*v_2*cos(v_2*eta)-v_3*v_4*sin(v_4*eta),
-						 u_c_xi = f_1*f_2*cos(f_2*(xi+1))+f_5*f_6*(eta+1)*cos(f_6*(xi+1)*(eta+1)),
-						 u_c_eta = f_3*f_4*cos(f_4*(eta+1))+f_5*f_6*(xi+1)*cos(f_6*(xi+1)*(eta+1)),
-						 v_c_xi = f_1*f_2*cos(f_2*(xi+1))+f_5*f_6*(eta+1)*cos(f_6*(xi+1)*(eta+1)),
-						 v_c_eta = f_3*f_4*cos(f_4*(eta+1))+f_5*f_6*(xi+1)*cos(f_6*(xi+1)*(eta+1));
+						 v_a_eta = 0;
+						 //u_b_xi = 0,
+						 //u_b_eta = u_1*u_2*cos(u_2*eta)-u_3*u_4*sin(u_4*eta),
+					   	 //v_b_xi = 0,
+						 //v_b_eta = v_1*v_2*cos(v_2*eta)-v_3*v_4*sin(v_4*eta),
+						 //u_c_xi = f_1*f_2*cos(f_2*(xi+1))+f_5*f_6*(eta+1)*cos(f_6*(xi+1)*(eta+1)),
+						 //u_c_eta = f_3*f_4*cos(f_4*(eta+1))+f_5*f_6*(xi+1)*cos(f_6*(xi+1)*(eta+1)),
+						 //v_c_xi = f_1*f_2*cos(f_2*(xi+1))+f_5*f_6*(eta+1)*cos(f_6*(xi+1)*(eta+1)),
+						 //v_c_eta = f_3*f_4*cos(f_4*(eta+1))+f_5*f_6*(xi+1)*cos(f_6*(xi+1)*(eta+1));
 
 			double const u_a_x = u_a_xi*xi_x+u_a_eta*eta_x,
 						 u_a_y = u_a_xi*xi_y+u_a_eta*eta_y,
-		 				 u_b_x = u_b_xi*xi_x+u_b_eta*eta_x,
-						 u_b_y = u_b_xi*xi_y+u_b_eta*eta_y,
-						 u_c_x = u_c_xi*xi_x+u_c_eta*eta_x,
-						 u_c_y = u_c_xi*xi_y+u_c_eta*eta_y,
+		 				 //u_b_x = u_b_xi*xi_x+u_b_eta*eta_x,
+						 //u_b_y = u_b_xi*xi_y+u_b_eta*eta_y,
+						 //u_c_x = u_c_xi*xi_x+u_c_eta*eta_x,
+						 //u_c_y = u_c_xi*xi_y+u_c_eta*eta_y,
 						 v_a_x = v_a_xi*xi_x+v_a_eta*eta_x,
-						 v_a_y = v_a_xi*xi_y+v_a_eta*eta_y,
-		 				 v_b_x = v_b_xi*xi_x+v_b_eta*eta_x,
-						 v_b_y = v_b_xi*xi_y+v_b_eta*eta_y,
-						 v_c_x = v_c_xi*xi_x+v_c_eta*eta_x,
-						 v_c_y = v_c_xi*xi_y+v_c_eta*eta_y;
+						 v_a_y = v_a_xi*xi_y+v_a_eta*eta_y;
+		 				 //v_b_x = v_b_xi*xi_x+v_b_eta*eta_x,
+						 //v_b_y = v_b_xi*xi_y+v_b_eta*eta_y,
+						 //v_c_x = v_c_xi*xi_x+v_c_eta*eta_x,
+						 //v_c_y = v_c_xi*xi_y+v_c_eta*eta_y;
 
-			RUVP[3] = u_a*u_b*u_c;
-			RUVP[4] = u_a_x*u_b*u_c+u_a*u_b_x*u_c+u_a*u_b*u_c_x;
-			RUVP[5] = u_a_y*u_b*u_c+u_a*u_b_y*u_c+u_a*u_b*u_c_y;
-			RUVP[6] = v_a*v_b*v_c;
-			RUVP[7] = v_a_x*v_b*v_c+v_a*v_b_x*v_c+v_a*v_b*v_c_x;
-			RUVP[8] = v_a_y*v_b*v_c+v_a*v_b_y*v_c+v_a*v_b*v_c_y;
+			RUVP[3] = u_a;//*u_b*u_c;
+			RUVP[4] = u_a_x;//*u_b*u_c+u_a*u_b_x*u_c+u_a*u_b*u_c_x;
+			RUVP[5] = u_a_y;//*u_b*u_c+u_a*u_b_y*u_c+u_a*u_b*u_c_y;
+			RUVP[6] = v_a;//*v_b*v_c;
+			RUVP[7] = v_a_x;//*v_b*v_c+v_a*v_b_x*v_c+v_a*v_b*v_c_x;
+			RUVP[8] = v_a_y;//*v_b*v_c+v_a*v_b_y*v_c+v_a*v_b*v_c_y;
 				for (size_t eq = 0; eq < Neq; eq++)
 						source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
 		}

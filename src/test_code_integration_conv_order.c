@@ -211,7 +211,7 @@ data->PMin = 2;
 				}
 			}
 		} else if (strstr(TestName,"n-Elliptic_Pipe")) {
-data->IntOrder_add  = 2;
+data->IntOrder_add  = 3;
 data->Compute_L2proj = 1;
 //			data->SolveExplicit = 0;
 			if (strstr(TestName,"ToBeCurved")) {
@@ -220,7 +220,7 @@ data->Compute_L2proj = 1;
 data->PrintEnabled = 1;
 data->PMin  = 1;
 data->PMax  = 4;
-data->MLMax = 4;
+data->MLMax = 5;
 				} else {
 					EXIT_UNSUPPORTED;
 				}
