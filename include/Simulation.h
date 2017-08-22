@@ -43,6 +43,9 @@ struct Simulation {
 	                        *   	            simulation domain.
 	                        */
 
+	ptrdiff_t n_v, ///< The number of \ref Volume finite elements.
+	          n_f; ///< The number of \ref Face   finite elements.
+
 
 
 	const char node_type[STRLEN_MIN];  /**< Type of nodes to be used for interpolation.

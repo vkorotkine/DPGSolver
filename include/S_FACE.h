@@ -3,8 +3,6 @@
 
 #ifndef DPG__S_FACE_h__INCLUDED
 #define DPG__S_FACE_h__INCLUDED
-/// \file
-
 /*
  *	Comments:
  *		A FACE is a d-1 dimensional ELEMENT which exists on each face of the VOLUMEs in the mesh.

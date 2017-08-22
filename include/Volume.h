@@ -5,6 +5,8 @@
 #define DPG__Volume_h__INCLUDED
 /**	\file
  *	Provides the interface for the base \ref Volume container and associated functions.
+ *
+ *	A \ref Volume is a `d` dimensional finite element.
  */
 
 #include <stdbool.h>
@@ -26,7 +28,7 @@ struct Volume {
 
 	const struct const_Matrix_d*const xyz_ve; ///< The xyz coordinates of the volume vertices.
 
-	const struct Face*const faces[NFMAX]; ///< Array of pointers to the neighbouring \ref Face containers.
+	const struct Face*const faces[NFMAX][NSUBFMAX]; ///< Array of pointers to the neighbouring \ref Face containers.
 
 	const struct const_Element*const element; ///< Pointer to the associated \ref const_Element.
 };
@@ -35,8 +37,8 @@ struct Volume {
 
 /// \brief Constructs the base \ref Volume \ref Intrusive_List.
 struct Intrusive_List* constructor_Volume_List
-	(const struct Simulation*const sim, ///< The \ref Simulation.
-	 const struct Mesh*const mesh       ///< The \ref Mesh.
+	(struct Simulation*const sim, ///< The \ref Simulation.
+	 const struct Mesh*const mesh ///< The \ref Mesh.
 	);
 
 /// \brief Destructs the base \ref Volume \ref Intrusive_List.

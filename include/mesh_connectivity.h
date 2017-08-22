@@ -34,7 +34,7 @@ struct Conn_info {
 struct Mesh_Connectivity {
 	const struct const_Multiarray_Vector_i*const v_to_v; ///< Volume to volume connectivity.
 
-	/** Volume to local face connectvity.
+	/** Volume to local face connectivity.
 	 *	Redundant self-reference entries are replaced with the number corresponding to the appropriate boundary
 	 *	condition. */
 	const struct const_Multiarray_Vector_i*const v_to_lf;

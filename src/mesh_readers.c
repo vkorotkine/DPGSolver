@@ -417,8 +417,7 @@ static int get_n_nodes (const int elem_type)
 
 static void reorder_nodes (const int elem_type, struct Vector_i* node_nums)
 {
-	const int n_nodes_max = 8;
-	int gmsh_ordering[n_nodes_max];
+	int gmsh_ordering[NVEMAX];
 
 	switch (elem_type) {
 		case POINT: case LINE: case TRI: case TET: case WEDGE:

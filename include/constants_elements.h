@@ -26,8 +26,15 @@
 ///\}
 
 ///\{ \name Element related values
-#define NFMAX           6  ///< (MAX)imum (N)umber of (F)aces.           "HEX"
-#define NFVEMAX         4  ///< (MAX)imum (N)unber of (F)ace (VE)rtices. "QUAD"
+
+// Vertex
+#define NVEMAX          8  ///< (MAX)imum (N)umber of (VE)rtices for an element. "HEX"
+
+// Face
+#define NFMAX           6  ///< (MAX)imum (N)umber of (F)aces.                                 "HEX"
+#define NFVEMAX         4  ///< (MAX)imum (N)unber of (F)ace (VE)rtices.                       "QUAD"
+#define NFREFMAX        9  ///< (MAX)imum (N)umber of (F)ACE (REF)inements.                    "QUAD"
+#define NSUBFMAX        4  ///< (MAX)imum (N)umber of h-adaptive (SUB)-(F)aces (on each FACE). "QUAD/TRI (Isotropic)"
 ///\}
 
 #endif // DPG__constants_elements_h__INCLUDED

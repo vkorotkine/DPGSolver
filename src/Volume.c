@@ -24,12 +24,13 @@
 
 // Static function declarations ************************************************************************************* //
 
+/// \brief Container for \ref Volume related mesh information.
 struct Volume_mesh_info {
-	int elem_type;
-	const struct const_Vector_i* ve_inds;
+	int elem_type;                        ///< The type of \ref Element associated with the volume.
+	const struct const_Vector_i* ve_inds; ///< The indices of the vertices of the volume.
 
-	const struct const_Vector_i* to_v;
-	const struct const_Vector_i* to_lf;
+	const struct const_Vector_i* to_v;    ///< The relevant row of \ref Mesh_Connectivity::v_to_v.
+	const struct const_Vector_i* to_lf;   ///< The relevant row of \ref Mesh_Connectivity::v_to_lf.
 };
 
 /// \brief Constructor for an individual \ref Volume.
@@ -46,7 +47,7 @@ static void destructor_Volume
 
 // Interface functions ********************************************************************************************** //
 
-struct Intrusive_List* constructor_Volume_List (const struct Simulation*const sim, const struct Mesh*const mesh)
+struct Intrusive_List* constructor_Volume_List (struct Simulation*const sim, const struct Mesh*const mesh)
 {
 	struct Intrusive_List* Volumes = constructor_empty_IL();
 
@@ -69,7 +70,10 @@ struct Intrusive_List* constructor_Volume_List (const struct Simulation*const si
 
 		push_back_IL(Volumes,(struct Intrusive_Link*) constructor_Volume(sim,&vol_mi,nodes));
 	}
+	sim->n_v = n_v;
 
+/// \todo Use v_to_v to set up volume->faces.
+EXIT_UNSUPPORTED;
 	return Volumes;
 }
 

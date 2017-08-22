@@ -14,10 +14,8 @@
  *	Notation:
  *		NEC             : (N)umber of (E)lement (C)lasses: TP, SI, PYR
  *		BC_PERIODIC_MIN : (B)oundary(C)ondition (PERIODIC) (MIN)imum.
- *		NVEMAX          : (MAX)imum (N)umber of (VE)rtices for an element.
  *		NEVEMAX         : (MAX)imum (N)umber of (E)DGE (VE)rtices for an element.
  *		NEREFMAX        : (MAX)imum (N)umber of (E)DGE (REF)inements.
- *		NFREFMAX        : (MAX)imum (N)umber of (F)ACE (REF)inements.
  *		NVREFMAX        : (MAX)imum (N)umber of (V)OLUME (REF)inements.
  *		NVREFSFMAX      : (MAX)imum (N)umber of (V)OLUME (REF)inements if using (S)um (F)actorized operators.
  *		NEMAX           : (MAX)imum (N)umber of (E)DGEs for an element.
@@ -25,7 +23,6 @@
  *		NESUBCMAX       : (MAX)imum (N)umber of (E)lement (SUB)(C)lasses
  *		NFORDMAX        : (MAX)imum (N)umber of (F)ACE (ORD)ering possibilities
  *		NREFVVARMAX     : (MAX)imum (N)umber of h-adaptive (REF)ined (V)olume (VAR)iations
- *		NSUBFMAX        : (MAX)imum (N)umber of h-adaptive (SUB)-(F)aces (on each FACE).
  *		NVISUBFMAX      : (MAX)imum (N)umber of h-adaptive (V)OLUME (I)nternal (SUB)-(F)aces (within the VOLUME).
  *		NSIBMAX         : (MAX)imum (N)umber of (SIB)lings on the same level after h-refinement.
  *		NEHREFMAX       : (MAX)imum (N)umber of (E)LEMENT types present in (H)-(REF)ined ELEMENT
@@ -64,10 +61,8 @@
 #define ORDER_H           4
 
 // ELEMENT related numbers
-#define NVEMAX          8  // HEX
 #define NEVEMAX         2  // LINE
 #define NEREFMAX        3  // LINE
-#define NFREFMAX        9  // QUAD
 #define NVREFMAX        27 // HEX
 #define NVREFSFMAX      5  // TRI
 #define NEMAX           12 // HEX
@@ -75,7 +70,6 @@
 #define NESUBCMAX       2  // WEDGE (TRI + LINE)
 #define NFORDMAX        8  // QUAD
 #define NREFVVARMAX     7  // HEX
-#define NSUBFMAX        4  // QUAD/TRI (Isotropic refinement)
 #define NVISUBFMAX      16 // TET (Isotropic refinement to 12 TETs)
 #define NSIBMAX         12 // TET (12 TET)
 #define NVEINFO         4
