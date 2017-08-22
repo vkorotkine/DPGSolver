@@ -10,13 +10,6 @@
 #include "matrix_structs.h"
 #include "S_ELEMENT.h"
 
-/**\{ \name Alternate notation
- *  Provide an alternate notation to be deleted after eventual code refactoring.
- *  \todo Fix the notation.
- */
-#define Volume S_VOLUME
-///\}
-
 /** \brief Struct holding data related to the base Volume. */
 struct S_VOLUME {
 	// Structures

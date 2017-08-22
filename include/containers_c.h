@@ -17,14 +17,14 @@
 struct Multiarray_c {
 	char layout;
 
-	size_t  order;
-	size_t* extents;
+	int order;
+	ptrdiff_t* extents;
 
 	bool            owns_data;
 	double complex* data;
 };
 
-struct Multiarray_c* constructor_empty_Multiarray_c_1 (const char layout, const size_t order, ...);
+struct Multiarray_c* constructor_empty_Multiarray_c_1 (const char layout, const int order, ...);
 
 void destructor_Multiarray_c_1 (struct Multiarray_c* A);
 

@@ -1,6 +1,5 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-/// \file
 
 #include "test_integration_Advection.h"
 
@@ -19,16 +18,15 @@
 
 void test_integration_Advection(int nargc, char **argv)
 {
+	UNUSED(argv);
 bool const TestHDG = 0;
+
 	const bool run_tests_linearization = 1,
 	           run_tests_conv_order    = 1;
 
 	const size_t n_argv_new = 2;
 	char** argv_new = mallocator(CHAR_T,2,STRLEN_MAX,n_argv_new); // free
 	char* test_name = mallocator(CHAR_T,1,STRLEN_MAX);            // free
-
-	if (0) // silence
-		printf("%p",argv);
 
 	// **************************************************************************************************** //
 	// Linearization Testing

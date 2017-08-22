@@ -41,7 +41,7 @@ double *compute_b_Advection(unsigned int const Nn, double const *const XYZ)
 		}
 	} else {
 		EXIT_UNSUPPORTED;
-		printf("%p\n",XYZ);
+		UNUSED(XYZ);
 	}
 
 	return b;

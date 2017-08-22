@@ -16,7 +16,7 @@
 
 /// \brief Constructor for an individual \ref Element.
 static struct Element* constructor_Element
-	(const unsigned int elem_type ///< The element type.
+	(const int elem_type ///< The element type.
 	);
 
 /// \brief Destructor for an individual \ref Element.
@@ -26,7 +26,7 @@ static void destructor_Element
 
 // Interface functions ********************************************************************************************** //
 
-struct const_Intrusive_List* constructor_Element_List (const unsigned int d)
+struct const_Intrusive_List* constructor_Element_List (const int d)
 {
 	struct Intrusive_List* Elements = constructor_empty_IL();
 
@@ -57,7 +57,7 @@ void destructor_Elements (struct Intrusive_List* elements)
 	destructor_IL(elements);
 }
 
-struct const_Element* get_element_by_type (const struct const_Intrusive_List*const elements, const unsigned int type)
+struct const_Element* get_element_by_type (const struct const_Intrusive_List*const elements, const int type)
 {
 	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
 		struct const_Element* element = (struct const_Element*) curr;
@@ -73,10 +73,10 @@ struct const_Element* get_element_by_type (const struct const_Intrusive_List*con
 
 /// \brief Container for local element-related information.
 struct Elem_info {
-	unsigned int d,
-	             n_f,
-	             n_f_ve[NFMAX],
-	             f_ve[NFMAX*NFVEMAX];
+	int d,
+	    n_f,
+	    n_f_ve[NFMAX],
+	    f_ve[NFMAX*NFVEMAX];
 };
 
 /** \brief Copy local (to each element type) element information to a container with larger scope.
@@ -96,7 +96,7 @@ static struct Elem_info copy_local_elem_info
 }
 
 static struct Element* constructor_Element
-	(const unsigned int elem_type ///< The element type (e.g. LINE, TRI, ...)
+	(const int elem_type ///< The element type (e.g. LINE, TRI, ...)
 	)
 {
 	struct Elem_info e_info;
@@ -151,15 +151,15 @@ static struct Element* constructor_Element
 		break;
 	}}
 
-	struct Multiarray_Vector_ui* f_ve = constructor_copy_Multiarray_Vector_ui(e_info.f_ve,e_info.n_f_ve,1,e_info.n_f);
-//	print_Multiarray_Vector_ui(f_ve);
+	struct Multiarray_Vector_i* f_ve = constructor_copy_Multiarray_Vector_i(e_info.f_ve,e_info.n_f_ve,1,e_info.n_f);
+//	print_Multiarray_Vector_i(f_ve);
 
 	struct Element* element = malloc(sizeof *element); // returned
 
-	const_cast_ui(&element->type,elem_type);
-	const_cast_ui(&element->d,e_info.d);
-	const_cast_ui(&element->n_f,e_info.n_f);
-	const_constructor_move_Multiarray_Vector_ui(&element->f_ve,f_ve); // destructed
+	const_cast_i(&element->type,elem_type);
+	const_cast_i(&element->d,e_info.d);
+	const_cast_i(&element->n_f,e_info.n_f);
+	const_constructor_move_Multiarray_Vector_i(&element->f_ve,f_ve); // destructed
 
 
 	return element;
@@ -167,5 +167,5 @@ static struct Element* constructor_Element
 
 static void destructor_Element (struct Element* element)
 {
-	destructor_Multiarray_Vector_ui((struct Multiarray_Vector_ui*)element->f_ve);
+	destructor_Multiarray_Vector_i((struct Multiarray_Vector_i*)element->f_ve);
 }

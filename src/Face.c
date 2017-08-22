@@ -26,10 +26,10 @@ struct Intrusive_List* constructor_Face_List (const struct Simulation*const sim,
 	struct Intrusive_List* Faces = constructor_empty_IL();
 
 //	const struct const_Matrix_d*const nodes = mesh->mesh_data->nodes;
-//	const struct const_Multiarray_Vector_ui*const node_nums = mesh->mesh_data->node_nums;
+//	const struct const_Multiarray_Vector_i*const node_nums = mesh->mesh_data->node_nums;
 
-	const struct const_Multiarray_Vector_ui*const v_to_v  = mesh->mesh_conn->v_to_v,
-	                                       *const v_to_lf = mesh->mesh_conn->v_to_lf;
+	const struct const_Multiarray_Vector_i*const v_to_v  = mesh->mesh_conn->v_to_v,
+	                                      *const v_to_lf = mesh->mesh_conn->v_to_lf;
 UNUSED(v_to_v);
 UNUSED(v_to_lf);
 UNUSED(sim);

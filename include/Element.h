@@ -15,11 +15,11 @@
 struct Element {
 	struct Intrusive_Link lnk; ///< The \ref Intrusive_Link.
 
-	const unsigned int type, ///< The element type.
-	                   d,    ///< The dimension.
-	                   n_f;  ///< The number of faces.
+	const int type, ///< The element type.
+	          d,    ///< The dimension.
+	          n_f;  ///< The number of faces.
 
-	const struct const_Multiarray_Vector_ui*const f_ve; ///< The correspondence between the (f)aces and (ve)rtices.
+	const struct const_Multiarray_Vector_i*const f_ve; ///< The correspondence between the (f)aces and (ve)rtices.
 
 };
 
@@ -27,18 +27,18 @@ struct Element {
 struct const_Element {
 	const struct const_Intrusive_Link lnk;
 
-	const unsigned int type,
-	                   d,
-	                   n_f;
+	const int type,
+	          d,
+	          n_f;
 
-	const struct const_Multiarray_Vector_ui*const f_ve;
+	const struct const_Multiarray_Vector_i*const f_ve;
 };
 
 // Constructor/Destructor functions ********************************************************************************* //
 
 /// \brief Constructs the base \ref Element \ref Intrusive_List.
 struct const_Intrusive_List* constructor_Element_List
-	(const unsigned int d ///< The dimension.
+	(const int d ///< The dimension.
 	);
 
 /// \brief Destructs the base \ref Element \ref Intrusive_List.
@@ -53,7 +53,7 @@ void destructor_Elements
  */
 struct const_Element* get_element_by_type
 	(const struct const_Intrusive_List*const elements, ///< The list of elements.
-	 const unsigned int type                           ///< Defined in \ref Element.
+	 const int type                                    ///< Defined in \ref Element.
 	);
 
 

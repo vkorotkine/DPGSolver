@@ -10,13 +10,6 @@
 #include "S_OpCSR.h"
 #include "matrix_structs.h"
 
-/**\{ \name Alternate notation
- *  Provide an alternate notation. ToBeDeleted after eventual code refactoring.
- *  \todo Fix the notation.
- */
-#define Element S_ELEMENT
-///\}
-
 #include "Simulation.h"
 
 

@@ -33,7 +33,7 @@ struct Mesh {
  */
 struct Mesh* set_up_mesh
 	(const char*const mesh_name_full,            ///< Defined in \ref Simulation.
-	 const unsigned int d,                       ///< Defined in \ref Simulation.
+	 const int d,                                ///< Defined in \ref Simulation.
 	 const struct const_Intrusive_List* elements ///< The base \ref Element list.
 	);
 
@@ -44,9 +44,9 @@ void destructor_Mesh
 
 /** \brief See return.
  *	\return The index of the first volume. */
-size_t get_first_volume_index
-	(const struct const_Vector_ui*const elem_per_dim, ///< Defined in \ref Conn_info.
-	 const unsigned int d                             ///< Defined in \ref Conn_info.
+ptrdiff_t get_first_volume_index
+	(const struct const_Vector_i*const elem_per_dim, ///< Defined in \ref Conn_info.
+	 const int d                                     ///< Defined in \ref Conn_info.
 	);
 
 

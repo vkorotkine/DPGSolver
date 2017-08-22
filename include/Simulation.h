@@ -33,15 +33,15 @@ struct Simulation {
 	const char geom_name[STRLEN_MAX]; ///< Name of the base geometry to be used for the domain.
 	const char geom_spec[STRLEN_MAX]; ///< Additional specifications for the geometry.
 
-	const unsigned int d,           ///< Dimension.
-	                   domain_type; /**< The type of domain.
-	                                 *   Options:
-									 *   	- Straight: All volumes have a geometry order of 1 (affine for simplicies).
-									 *   	- Curved:   Volumes along the boundary of the domain may have a higher
-									 *   	            geometry order.
-									 *   	- Mapped:   All volumes are mapped from a simple reference domain to the
-									 *   	            final simulation domain.
-	                                 */
+	const int d,           ///< Dimension.
+	          domain_type; /**< The type of domain.
+	                        *   Options:
+	                        *   	- Straight: All volumes have a geometry order of 1 (affine for simplicies).
+	                        *   	- Curved:   Volumes along the boundary of the domain may have a higher geometry
+	                        *   	            order.
+	                        *   	- Mapped:   All volumes are mapped from a simple reference domain to the final
+	                        *   	            simulation domain.
+	                        */
 
 
 
@@ -68,25 +68,24 @@ struct Simulation {
 	           collocated; /**< Whether a collocated interpolation and integration node set is being used. Significant
 	                        *   performance increase may be observed when this is `true`. */
 
-	const unsigned int method,     /**< Solver method to be used.
-	                                *   	Options: 1 (DG), 2 (HDG), 3 (HDPG), 4 (DPG). */
-	                   adapt_type, /**< Adaptation type. This can be any combination of polynomial (p) or mesh (h)
-	                                *   adaptation.
-	                                *   	Options: 0 (None), 1 (p), 2 (h), 3 (hp). */
-	                   p,      ///< Polynomial order to be used for the simulation when p adaptation is disabled.
-	                   ml,     ///< Mesh level to be used for the simulation when h adaptation is disabled.
-	                   p_max,  ///< Maximum polynomial order to be used for the simulation when p adaptation is enabled.
-	                   ml_max; ///< Maximum mesh level to be used for the simulation when h adaptation is enabled.
+	const int method,     /**< Solver method to be used.
+	                       *   	Options: 1 (DG), 2 (HDG), 3 (HDPG), 4 (DPG). */
+	          adapt_type, /**< Adaptation type. This can be any combination of polynomial (p) or mesh (h) adaptation.
+	                       *   	Options: 0 (None), 1 (p), 2 (h), 3 (hp). */
+	          p,      ///< Polynomial order to be used for the simulation when p adaptation is disabled.
+	          ml,     ///< Mesh level to be used for the simulation when h adaptation is disabled.
+	          p_max,  ///< Maximum polynomial order to be used for the simulation when p adaptation is enabled.
+	          ml_max; ///< Maximum mesh level to be used for the simulation when h adaptation is enabled.
 
 	const struct const_Intrusive_List*const elements; ///< Pointer to the head of the Element list.
 	struct Intrusive_List* volumes;                   ///< Pointer to the head of the Volume  list.
 	struct Intrusive_List* faces;                     ///< Pointer to the head of the Face    list.
 
 // ToBeMoved to the solver context.
-const unsigned int pde_index; ///< Index corresponding to \ref pde_name.
+const int pde_index; ///< Index corresponding to \ref pde_name.
 
-	const unsigned int n_var,  ///< Number of variables in the PDE under consideration.
-	                   n_eq;   ///< Number of equations in the PDE under consideration.
+	const int n_var, ///< Number of variables in the PDE under consideration.
+	          n_eq;  ///< Number of equations in the PDE under consideration.
 };
 
 /** \brief Constructor for \ref Simulation.
@@ -120,9 +119,9 @@ void set_Simulation_flags
 /// \brief Set several \ref Simulation parameters.
 void set_Simulation_parameters
 	(struct Simulation*const sim, ///< Standard.
-	 const unsigned int d,        ///< See \ref Simulation.
-	 const unsigned int n_var,    ///< See \ref Simulation.
-	 const unsigned int n_eq      ///< See \ref Simulation.
+	 const int d,                 ///< See \ref Simulation.
+	 const int n_var,             ///< See \ref Simulation.
+	 const int n_eq               ///< See \ref Simulation.
 	);
 
 /// \brief Set \ref Simulation::elements.

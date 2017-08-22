@@ -11,7 +11,7 @@
  *
  *	The function naming convention is: const_cast_{0}
  *		- {0} : Datatype.
- *			- Options: ui, st, bool, const_Element.
+ *			- Options: i, ptrdiff, bool, const_Element.
  */
 
 #include <stddef.h>
@@ -21,16 +21,16 @@
 
 // Standard data types ********************************************************************************************** //
 
-/// \brief Cast from `unsigned int` to `const unsigned int`.
-void const_cast_ui
-	(const unsigned int* dest, ///< Destination.
-	 const unsigned int src    ///< Source.
+/// \brief Cast from `int` to `const int`.
+void const_cast_i
+	(const int* dest, ///< Destination.
+	 const int src    ///< Source.
 	);
 
-/// \brief Cast from `size_t` to `const size_t`.
-void const_cast_st
-	(const size_t* dest, ///< Destination.
-	 const size_t src    ///< Source.
+/// \brief Cast from `ptrdiff_t` to `const ptrdiff_t`.
+void const_cast_ptrdiff
+	(const ptrdiff_t* dest, ///< Destination.
+	 const ptrdiff_t src    ///< Source.
 	);
 
 /// \brief Cast from `bool` to `const bool`.

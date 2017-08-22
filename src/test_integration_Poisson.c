@@ -18,15 +18,14 @@
 
 void test_integration_Poisson(int nargc, char **argv)
 {
+	UNUSED(argv);
+
 	const bool run_tests_linearization = 1,
 	           run_tests_conv_order    = 1;
 
 	const size_t n_argv_new = 2;
 	char** argv_new = mallocator(CHAR_T,2,STRLEN_MAX,n_argv_new); // free
 	char* test_name = mallocator(CHAR_T,1,STRLEN_MAX);            // free
-
-	if (0) // silence
-		printf("%p",argv);
 
 	// **************************************************************************************************** //
 	// Linearization Testing

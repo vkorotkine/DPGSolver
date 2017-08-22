@@ -54,7 +54,7 @@ void destructor_Solver_c (struct Solver_c* solver_c)
 
 // Element_Solver_c ************************************************************************************************* //
 static struct Element_Solver_c* constructor_Element_Solver_c
-	(const struct Simulation*const simulation, const struct Element*const element_base);
+	(const struct Simulation*const simulation, const struct S_ELEMENT*const element_base);
 static void                     destructor_Element_Solver_c  (struct Element_Solver_c* element);
 
 /// \brief Constructor for a doubly-linked list.
@@ -62,11 +62,11 @@ static struct Element_Solver_c* constructor_Elements_Solver_c
 	(const struct Simulation*const simulation ///< Standard.
 	)
 {
-	const struct Element*const element_head = (struct Element*) simulation->elements;
+	const struct S_ELEMENT*const element_head = (struct S_ELEMENT*) simulation->elements;
 
 	struct Element_Solver_c* head = NULL,
 	                       * prev = NULL;
-	for (const struct Element* element = element_head; element; element = element->next) {
+	for (const struct S_ELEMENT* element = element_head; element; element = element->next) {
 		struct Element_Solver_c* curr = constructor_Element_Solver_c(simulation,element);
 
 		if (prev) {
@@ -92,14 +92,14 @@ static void destructor_Elements_Solver_c
 		element = next;
 	}
 }
-void set_up_operators_Solver_c (const struct Simulation*const simulation, const struct Element*const element_base);
+void set_up_operators_Solver_c (const struct Simulation*const simulation, const struct S_ELEMENT*const element_base);
 
 /** \brief Constructor.
  *	Moves requires members of the base and constructs members which are necessary for the complex solver functions.
  */
 static struct Element_Solver_c* constructor_Element_Solver_c
 	(const struct Simulation*const simulation, ///< Standard.
-	 const struct Element*const element_base   ///< The base \ref Element.
+	 const struct S_ELEMENT*const element_base   ///< The base \ref Element.
 	)
 {
 	struct Element_Solver_c*const element = calloc(1 , sizeof *element); // returned
@@ -119,25 +119,25 @@ static void destructor_Element_Solver_c
 	(struct Element_Solver_c* element ///< Standard.
 	)
 {
-DO_NOTHING_P(element);
+UNUSED(element);
 }
 
 void set_up_operators_Solver_c
 	(const struct Simulation*const simulation, ///< Standard.
-	 const struct Element*const element_base   ///< The base \ref Element.
+	 const struct S_ELEMENT*const element_base   ///< The base \ref Element.
 	)
 {
 	// E_vs_vc(s/c) (Previously ChiS_vI(s/c)) - Only using (s)traight in the comments below.
 	// Needs Er_vs_vcs*T_vs_vs
 	// Needs cub data, basis evaluation.
-DO_NOTHING_P(simulation); // Need simulation->collocated
-DO_NOTHING_P(element_base);
+UNUSED(simulation); // Need simulation->collocated
+UNUSED(element_base);
 }
 
 
 // Volume_Solver_c ************************************************************************************************** //
 static struct Volume_Solver_c* constructor_Volume_Solver_c
-	(const struct Simulation*const simulation, const struct Volume*const volume_base);
+	(const struct Simulation*const simulation, const struct S_VOLUME*const volume_base);
 static void destructor_Volume_Solver_c (struct Volume_Solver_c* volume);
 
 /// \brief Constructor for a doubly-linked list.
@@ -145,11 +145,11 @@ static struct Volume_Solver_c* constructor_Volumes_Solver_c
 	(const struct Simulation*const simulation ///< Standard.
 	)
 {
-	struct Volume* volume_base_head = (struct Volume*) simulation->volumes;
+	struct S_VOLUME* volume_base_head = (struct S_VOLUME*) simulation->volumes;
 
 	struct Volume_Solver_c* head = NULL,
 	                      * prev = NULL;
-	for (const struct Volume* volume_base = volume_base_head; volume_base; volume_base = volume_base->next) {
+	for (const struct S_VOLUME* volume_base = volume_base_head; volume_base; volume_base = volume_base->next) {
 		struct Volume_Solver_c* curr = constructor_Volume_Solver_c(simulation,volume_base);
 
 		if (prev) {
@@ -181,7 +181,7 @@ static void destructor_Volumes_Solver_c
  */
 static struct Volume_Solver_c* constructor_Volume_Solver_c
 	(const struct Simulation*const simulation, ///< Standard.
-	 const struct Volume*const volume_base     ///< The base \ref Volume.
+	 const struct S_VOLUME*const volume_base     ///< The base \ref Volume.
 	)
 {
 	struct Volume_Solver_c*const volume = calloc(1 , sizeof *volume); // returned

@@ -10,9 +10,12 @@
 #include <stdbool.h>
 
 #include "Intrusive.h"
+#include "Matrix.h"
 
 #include "Simulation.h"
 #include "Mesh.h"
+
+#include "constants_elements.h"
 
 /// \brief Container for data relating to the base Volumes.
 struct Volume {
@@ -22,6 +25,8 @@ struct Volume {
 	           curved;   ///< Flag for whether the volume is curved.
 
 	const struct const_Matrix_d*const xyz_ve; ///< The xyz coordinates of the volume vertices.
+
+	const struct Face*const faces[NFMAX]; ///< Array of pointers to the neighbouring \ref Face containers.
 
 	const struct const_Element*const element; ///< Pointer to the associated \ref const_Element.
 };

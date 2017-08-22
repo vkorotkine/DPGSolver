@@ -28,7 +28,7 @@ struct Mesh* constructor_Mesh ();
 // Interface functions ********************************************************************************************** //
 
 struct Mesh* set_up_mesh
-	(const char*const mesh_name_full, const unsigned int d, const struct const_Intrusive_List* elements)
+	(const char*const mesh_name_full, const int d, const struct const_Intrusive_List* elements)
 {
 	struct Mesh* mesh = constructor_Mesh();
 
@@ -45,10 +45,10 @@ void destructor_Mesh (struct Mesh* mesh)
 	free(mesh);
 }
 
-size_t get_first_volume_index (const struct const_Vector_ui*const elem_per_dim, const unsigned int d)
+ptrdiff_t get_first_volume_index (const struct const_Vector_i*const elem_per_dim, const int d)
 {
-	size_t ind = 0;
-	for (unsigned int dim = 0; dim < d; dim++)
+	ptrdiff_t ind = 0;
+	for (int dim = 0; dim < d; dim++)
 		ind += elem_per_dim->data[dim];
 	return ind;
 }

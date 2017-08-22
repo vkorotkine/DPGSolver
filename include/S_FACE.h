@@ -62,13 +62,6 @@
 
 #include "S_VOLUME.h"
 
-/**\{ \name Alternate notation
- *  Provide an alternate notation to be deleted after eventual code refactoring.
- *  \todo Fix the notation.
- */
-#define Face S_FACE
-///\}
-
 /** \brief Struct holding data related to the base Face. */
 struct S_FACE {
 	// Structures

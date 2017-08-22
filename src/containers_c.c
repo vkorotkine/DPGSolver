@@ -13,11 +13,11 @@
 
 #include "Multiarray.h"
 
-struct Multiarray_c* constructor_empty_Multiarray_c_1 (const char layout, const size_t order, ...)
+struct Multiarray_c* constructor_empty_Multiarray_c_1 (const char layout, const int order, ...)
 {
 	va_list ap;
 	va_start(ap,order); // free
-	size_t* extents = set_extents(order,ap); // keep
+	ptrdiff_t* extents = allocate_and_set_extents(order,ap); // keep
 	va_end(ap);
 
 	struct Multiarray_c* A = malloc(sizeof *A); // returned

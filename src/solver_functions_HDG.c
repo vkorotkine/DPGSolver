@@ -88,7 +88,7 @@ void convert_to_multiarray_F (struct S_FACE *const FACE, char const mem_op)
 	 */
 
 	if (mem_op == 'A') {
-printf("%p\n",FACE);
+UNUSED(FACE);
 	} else if (mem_op == 'F') {
 	} else {
 		EXIT_UNSUPPORTED;

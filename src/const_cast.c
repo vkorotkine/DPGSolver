@@ -7,14 +7,14 @@
 
 // Standard data types ********************************************************************************************** //
 
-void const_cast_ui (const unsigned int* dest, const unsigned int src)
+void const_cast_i (const int* dest, const int src)
 {
-	*(unsigned int*) dest = src;
+	*(int*) dest = src;
 }
 
-void const_cast_st (const size_t* dest, const size_t src)
+void const_cast_ptrdiff (const ptrdiff_t* dest, const ptrdiff_t src)
 {
-	*(size_t*) dest = src;
+	*(ptrdiff_t*) dest = src;
 }
 
 void const_cast_bool (const bool* dest, const bool src)

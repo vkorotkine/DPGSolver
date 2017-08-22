@@ -45,7 +45,7 @@ static void set_mesh_parameters
 	(struct Simulation*const sim ///< Standard.
 	);
 
-/** \brief Set associations between `char*` and `unsigned int` variables.
+/** \brief Set associations between `char*` and `int` variables.
  *
  *	This is done such that if/switch conditions are simplified when these variables are used.
  *
@@ -87,7 +87,7 @@ void set_simulation_core (struct Simulation*const sim, const char*const ctrl_nam
 		if (strstr(line,"Geometry")) read_skip_const_c(line,sim->geom_name);
 		if (strstr(line,"GeomSpec")) read_skip_const_c(line,sim->geom_spec);
 
-		if (strstr(line,"MeshLevel")) read_skip_const_ui(line,&sim->ml);
+		if (strstr(line,"MeshLevel")) read_skip_const_i(line,&sim->ml);
 
 //		if (strstr(line,"NodeType"))  read_skip_const_c(line,sim->node_type);
 //		if (strstr(line,"BasisType")) read_skip_const_c(line,sim->basis_type);
@@ -95,13 +95,13 @@ void set_simulation_core (struct Simulation*const sim, const char*const ctrl_nam
 //		if (strstr(line,"Vectorized")) read_skip_const_b(line,&sim->vectorized);
 //		if (strstr(line,"Collocated")) read_skip_const_b(line,&sim->collocated);
 
-		if (strstr(line,"Dimension")) read_skip_const_ui(line,&sim->d);
-//		if (strstr(line,"Method"))    read_skip_const_ui(line,&sim->method);
-//		if (strstr(line,"Adapt"))     read_skip_const_ui(line,&sim->adapt_type);
-//		if (strstr(line,"PGlobal"))   read_skip_const_ui(line,&sim->p);
-//		if (strstr(line,"PMax"))      read_skip_const_ui(line,&sim->p_max);
+		if (strstr(line,"Dimension")) read_skip_const_i(line,&sim->d);
+//		if (strstr(line,"Method"))    read_skip_const_i(line,&sim->method);
+//		if (strstr(line,"Adapt"))     read_skip_const_i(line,&sim->adapt_type);
+//		if (strstr(line,"PGlobal"))   read_skip_const_i(line,&sim->p);
+//		if (strstr(line,"PMax"))      read_skip_const_i(line,&sim->p_max);
 
-//		if (strstr(line,"LevelsMax")) read_skip_const_ui(line,&sim->ml_max);
+//		if (strstr(line,"LevelsMax")) read_skip_const_i(line,&sim->ml_max);
 	}
 	fclose(ctrl_file);
 
@@ -130,11 +130,11 @@ void set_Simulation_flags
 }
 
 void set_Simulation_parameters
-	(struct Simulation*const sim, const unsigned int d, const unsigned int n_var, const unsigned int n_eq)
+	(struct Simulation*const sim, const int d, const int n_var, const int n_eq)
 {
-	*(unsigned int*)&sim->d     = d;
-	*(unsigned int*)&sim->n_var = n_var;
-	*(unsigned int*)&sim->n_eq  = n_eq;
+	*(int*)&sim->d     = d;
+	*(int*)&sim->n_var = n_var;
+	*(int*)&sim->n_eq  = n_eq;
 }
 ///}
 
@@ -171,15 +171,16 @@ static void set_ctrl_name_full (struct Simulation*const sim, const char*const ct
 
 static void set_string_associations (struct Simulation*const sim)
 {
+// use const_cast.
 	// pde_index
 	if (strstr(sim->pde_name,"Advection"))
-		*(unsigned int*)&sim->pde_index = PDE_ADVECTION;
+		*(int*)&sim->pde_index = PDE_ADVECTION;
 	else if (strstr(sim->pde_name,"Poisson"))
-		*(unsigned int*)&sim->pde_index = PDE_POISSON;
+		*(int*)&sim->pde_index = PDE_POISSON;
 	else if (strstr(sim->pde_name,"Euler"))
-		*(unsigned int*)&sim->pde_index = PDE_EULER;
+		*(int*)&sim->pde_index = PDE_EULER;
 	else if (strstr(sim->pde_name,"NavierStokes"))
-		*(unsigned int*)&sim->pde_index = PDE_NAVIERSTOKES;
+		*(int*)&sim->pde_index = PDE_NAVIERSTOKES;
 	else
 		EXIT_UNSUPPORTED;
 }
@@ -228,11 +229,11 @@ static void mesh_name_assemble (struct Simulation*const sim, const struct Mesh_C
 	strcat_path_c(mesh_name_full,sim->pde_spec,true);
 	strcat_path_c(mesh_name_full,sim->geom_spec,true);
 	strcat_path_c(mesh_name_full,sim->geom_name,false);
-	strcat_path_ui(mesh_name_full,sim->d);
+	strcat_path_i(mesh_name_full,sim->d);
 	strcat_path_c(mesh_name_full,"D_",false);
 	strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_curving,false);
 	strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_elem_type,false);
-	strcat_path_ui(mesh_name_full,sim->ml);
+	strcat_path_i(mesh_name_full,sim->ml);
 	strcat_path_c(mesh_name_full,"x",false);
 	strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_extension,false);
 }
@@ -240,15 +241,15 @@ static void mesh_name_assemble (struct Simulation*const sim, const struct Mesh_C
 static void set_domain_type (struct Simulation*const sim, const struct Mesh_Ctrl_Data*const mesh_ctrl_data)
 {
 	if (strstr(mesh_ctrl_data->mesh_domain,"Straight")) {
-		const_cast_ui(&sim->domain_type,DOM_STRAIGHT);
+		const_cast_i(&sim->domain_type,DOM_STRAIGHT);
 		if (!strstr(mesh_ctrl_data->mesh_curving,"Straight"))
 			EXIT_UNSUPPORTED;
 	} else if (strstr(mesh_ctrl_data->mesh_domain,"Curved")) {
-		const_cast_ui(&sim->domain_type,DOM_CURVED);
+		const_cast_i(&sim->domain_type,DOM_CURVED);
 		if (!strstr(mesh_ctrl_data->mesh_curving,"Curved"))
 			EXIT_UNSUPPORTED;
 	} else if (strstr(mesh_ctrl_data->mesh_domain,"Mapped")) {
-		const_cast_ui(&sim->domain_type,DOM_MAPPED);
+		const_cast_i(&sim->domain_type,DOM_MAPPED);
 		if (!strstr(mesh_ctrl_data->mesh_curving,"ToBeCurved"))
 			EXIT_UNSUPPORTED;
 	} else {

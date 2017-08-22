@@ -1,6 +1,5 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-/// \file
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -19,6 +18,8 @@
 
 void test_integration_Euler(int nargc, char **argv)
 {
+	UNUSED(argv);
+
 	///	\todo Make this `const bool`.
 	bool run_tests_equivalence_real_complex = 0,
 	     run_tests_equivalence_algorithms   = 0,
@@ -36,9 +37,6 @@ void test_integration_Euler(int nargc, char **argv)
 	const size_t n_argv_new = 2;
 	char** argv_new = mallocator(CHAR_T,2,STRLEN_MAX,n_argv_new); // free
 	char* test_name = mallocator(CHAR_T,1,STRLEN_MAX);            // free
-
-	if (0) // silence
-		printf("%p",argv);
 
 	// **************************************************************************************************** //
 	// Real/Complex Equivalence

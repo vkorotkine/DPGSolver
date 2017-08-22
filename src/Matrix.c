@@ -1,6 +1,7 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-/// \file
+/** \file
+ */
 
 #include "Matrix.h"
 
@@ -12,25 +13,34 @@
 #include "Macros.h"
 #include "allocators.h"
 
-// Will never have _# where # > 1 as this would require storing the dimension of the other levels of dereferencing
-// (which should be in the Multiarray). Further, as we consider passing between const/non-const, we want all allocations
-// in dynamic memory requiring # > 0. Together these imply that only # = 1 functions are required and the subscript is
-// redundant (Same for multiarrays). \todo Add a comment
-static struct Matrix_d make_local_Matrix_d_0
-	(const char layout, const size_t ext_0, const size_t ext_1, const bool owns_data, double*const data);
-static struct Matrix_ui make_local_Matrix_ui_0
-	(const char layout, const size_t ext_0, const size_t ext_1, const bool owns_data, unsigned int*const data);
+// Static function declarations ************************************************************************************* //
+
+/** \brief Make a local \ref Matrix_d\* (dynamic memory).
+ *	\return See brief. */
+static struct Matrix_d* constructor_local_Matrix_d_1
+	(const char layout,     ///< Standard.
+	 const ptrdiff_t ext_0, ///< Standard.
+	 const ptrdiff_t ext_1, ///< Standard.
+	 const bool owns_data,  ///< Standard.
+	 double*const data      ///< Standard.
+	);
+
+/** \brief Make a local \ref Matrix_i\* (dynamic memory).
+ *	\return See brief. */
+static struct Matrix_i* constructor_local_Matrix_i_1
+	(const char layout,     ///< Standard.
+	 const ptrdiff_t ext_0, ///< Standard.
+	 const ptrdiff_t ext_1, ///< Standard.
+	 const bool owns_data,  ///< Standard.
+	 int*const data         ///< Standard.
+	);
 
 // Constructor/Destructor functions ********************************************************************************* //
 
-struct Matrix_d* constructor_empty_Matrix_d (const char layout, const size_t ext_0, const size_t ext_1)
+struct Matrix_d* constructor_empty_Matrix_d (const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1)
 {
 	double* data = mallocator(DOUBLE_T,1,ext_0*ext_1); // keep
-
-	struct Matrix_d local = make_local_Matrix_d_0(layout,ext_0,ext_1,true,data);
-
-	struct Matrix_d* a = malloc(sizeof *a); // returned
-	memcpy(a,&local,sizeof *a);
+	struct Matrix_d* a = constructor_local_Matrix_d_1(layout,ext_0,ext_1,true,data); // returned
 
 	return a;
 }
@@ -47,24 +57,20 @@ void destructor_Matrix_d (struct Matrix_d* a)
 	free(a);
 }
 
-struct Matrix_ui* constructor_empty_Matrix_ui (const char layout, const size_t ext_0, const size_t ext_1)
+struct Matrix_i* constructor_empty_Matrix_i (const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1)
 {
-	unsigned int* data = mallocator(UINT_T,1,ext_0*ext_1); // keep
-
-	struct Matrix_ui local = make_local_Matrix_ui_0(layout,ext_0,ext_1,true,data);
-
-	struct Matrix_ui* a = malloc(sizeof *a); // returned
-	memcpy(a,&local,sizeof *a);
+	int* data = mallocator(UINT_T,1,ext_0*ext_1); // keep
+	struct Matrix_i* a = constructor_local_Matrix_i_1(layout,ext_0,ext_1,true,data); // returned
 
 	return a;
 }
 
-void const_constructor_move_Matrix_ui (const struct const_Matrix_ui*const* dest, struct Matrix_ui* src)
+void const_constructor_move_Matrix_i (const struct const_Matrix_i*const* dest, struct Matrix_i* src)
 {
-	*(struct const_Matrix_ui**) dest = (struct const_Matrix_ui*) src;
+	*(struct const_Matrix_i**) dest = (struct const_Matrix_i*) src;
 }
 
-void destructor_Matrix_ui (struct Matrix_ui* a)
+void destructor_Matrix_i (struct Matrix_i* a)
 {
 	if (a->owns_data)
 		free(a->data);
@@ -73,7 +79,7 @@ void destructor_Matrix_ui (struct Matrix_ui* a)
 
 // Helper functions ************************************************************************************************* //
 
-double* get_row_Matrix_d (const size_t row, const struct Matrix_d* a)
+double* get_row_Matrix_d (const ptrdiff_t row, const struct Matrix_d* a)
 {
 	if (a->layout != 'R')
 		EXIT_UNSUPPORTED;
@@ -81,7 +87,7 @@ double* get_row_Matrix_d (const size_t row, const struct Matrix_d* a)
 	return &a->data[row*(a->extents[1])];
 }
 
-const double* get_row_const_Matrix_d (const size_t row, const struct const_Matrix_d*const a)
+const double* get_row_const_Matrix_d (const ptrdiff_t row, const struct const_Matrix_d*const a)
 {
 	if (a->layout != 'R')
 		EXIT_UNSUPPORTED;
@@ -89,7 +95,7 @@ const double* get_row_const_Matrix_d (const size_t row, const struct const_Matri
 	return &a->data[row*(a->extents[1])];
 }
 
-unsigned int* get_row_Matrix_ui (const size_t row, const struct Matrix_ui* a)
+int* get_row_Matrix_i (const ptrdiff_t row, const struct Matrix_i* a)
 {
 	if (a->layout != 'R')
 		EXIT_UNSUPPORTED;
@@ -97,12 +103,12 @@ unsigned int* get_row_Matrix_ui (const size_t row, const struct Matrix_ui* a)
 	return &a->data[row*(a->extents[1])];
 }
 
-unsigned int get_val_Matrix_ui (const size_t row, const size_t col, const struct Matrix_ui*const a)
+int get_val_Matrix_i (const ptrdiff_t row, const ptrdiff_t col, const struct Matrix_i*const a)
 {
-	unsigned int*const data = a->data;
+	int*const data = a->data;
 	switch (a->layout) {
 	case 'R': {
-		const size_t ext_1 = a->extents[1];
+		const ptrdiff_t ext_1 = a->extents[1];
 		return data[row*ext_1+col];
 	} case 'C':
 		EXIT_ADD_SUPPORT;
@@ -113,12 +119,12 @@ unsigned int get_val_Matrix_ui (const size_t row, const size_t col, const struct
 	}
 }
 
-unsigned int get_val_const_Matrix_ui (const size_t row, const size_t col, const struct const_Matrix_ui*const a)
+int get_val_const_Matrix_i (const ptrdiff_t row, const ptrdiff_t col, const struct const_Matrix_i*const a)
 {
-	const unsigned int*const data = a->data;
+	const int*const data = a->data;
 	switch (a->layout) {
 	case 'R': {
-		const size_t ext_1 = a->extents[1];
+		const ptrdiff_t ext_1 = a->extents[1];
 		return data[row*ext_1+col];
 	} case 'C':
 		EXIT_ADD_SUPPORT;
@@ -129,15 +135,15 @@ unsigned int get_val_const_Matrix_ui (const size_t row, const size_t col, const 
 	}
 }
 
-void set_row_Matrix_d (const size_t row, const struct Matrix_d* dest, const double*const data_src)
+void set_row_Matrix_d (const ptrdiff_t row, const struct Matrix_d* dest, const double*const data_src)
 {
 	if (dest->layout != 'R')
 		EXIT_ADD_SUPPORT;
 
 	double*const data = get_row_Matrix_d(row,dest);
 
-	const size_t i_max = dest->extents[1];
-	for (size_t i = 0; i < i_max; ++i)
+	const ptrdiff_t i_max = dest->extents[1];
+	for (ptrdiff_t i = 0; i < i_max; ++i)
 		data[i] = data_src[i];
 }
 
@@ -145,15 +151,15 @@ void set_row_Matrix_d (const size_t row, const struct Matrix_d* dest, const doub
 
 void print_Matrix_d (const struct Matrix_d*const a)
 {
-	const size_t ext_r = a->extents[0],
-	             ext_c = a->extents[1];
+	const ptrdiff_t ext_r = a->extents[0],
+	                ext_c = a->extents[1];
 
 	const double* data = a->data;
 
 	switch (a->layout) {
 	case 'R':
-		for (size_t i = 0; i < ext_r; i++) {
-			for (size_t j = 0; j < ext_c; j++) {
+		for (ptrdiff_t i = 0; i < ext_r; i++) {
+			for (ptrdiff_t j = 0; j < ext_c; j++) {
 				const double val = *data++;
 				printf("% .4e ",( (isnan(val) || fabs(val)) ? val : 0.0 ));
 			}
@@ -162,8 +168,8 @@ void print_Matrix_d (const struct Matrix_d*const a)
 		printf("\n");
 		break;
 	case 'C':
-		for (size_t i = 0; i < ext_r; i++) {
-			for (size_t j = 0; j < ext_c; j++) {
+		for (ptrdiff_t i = 0; i < ext_r; i++) {
+			for (ptrdiff_t j = 0; j < ext_c; j++) {
 				const double val = data[i+ext_r*j];
 				printf("% .4e ",( (isnan(val) || fabs(val)) ? val : 0.0 ));
 			}
@@ -179,22 +185,23 @@ void print_Matrix_d (const struct Matrix_d*const a)
 
 void print_const_Matrix_d (const struct const_Matrix_d*const a)
 {
-	struct Matrix_d local = make_local_Matrix_d_0(a->layout,a->extents[0],a->extents[1],false,(double*)a->data);
-	print_Matrix_d(&local);
+	struct Matrix_d* local = constructor_local_Matrix_d_1(a->layout,a->extents[0],a->extents[1],false,(double*)a->data);
+	print_Matrix_d(local);
+	free(local);
 }
 
-void print_Matrix_ui (const struct Matrix_ui*const a)
+void print_Matrix_i (const struct Matrix_i*const a)
 {
-	const size_t ext_r = a->extents[0],
-	             ext_c = a->extents[1];
+	const ptrdiff_t ext_r = a->extents[0],
+	                ext_c = a->extents[1];
 
-	const unsigned int* data = a->data;
+	const int* data = a->data;
 
 	switch (a->layout) {
 	case 'R':
-		for (size_t i = 0; i < ext_r; i++) {
-			for (size_t j = 0; j < ext_c; j++) {
-				const unsigned int val = *data++;
+		for (ptrdiff_t i = 0; i < ext_r; i++) {
+			for (ptrdiff_t j = 0; j < ext_c; j++) {
+				const int val = *data++;
 				printf("% 12d ",val);
 			}
 			printf("\n");
@@ -202,9 +209,9 @@ void print_Matrix_ui (const struct Matrix_ui*const a)
 		printf("\n");
 		break;
 	case 'C':
-		for (size_t i = 0; i < ext_r; i++) {
-			for (size_t j = 0; j < ext_c; j++) {
-				const unsigned int val = data[i+ext_r*j];
+		for (ptrdiff_t i = 0; i < ext_r; i++) {
+			for (ptrdiff_t j = 0; j < ext_c; j++) {
+				const int val = data[i+ext_r*j];
 				printf("% 12d ",val);
 			}
 			printf("\n");
@@ -217,47 +224,40 @@ void print_Matrix_ui (const struct Matrix_ui*const a)
 	}
 }
 
-void print_const_Matrix_ui (const struct const_Matrix_ui*const a)
+void print_const_Matrix_i (const struct const_Matrix_i*const a)
 {
-	struct Matrix_ui local = make_local_Matrix_ui_0(a->layout,a->extents[0],a->extents[1],false,(unsigned int*)a->data);
-	print_Matrix_ui(&local);
+	struct Matrix_i* local = constructor_local_Matrix_i_1(a->layout,a->extents[0],a->extents[1],false,(int*)a->data);
+	print_Matrix_i(local);
+	free(local);
 }
 
 // Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
 
-/// \brief Make a local copy of a \ref Matrix_d (static memory).
-static struct Matrix_d make_local_Matrix_d_0
-	(const char layout,    ///< Standard.
-	 const size_t ext_0,   ///< Standard.
-	 const size_t ext_1,   ///< Standard.
-	 const bool owns_data, ///< Standard.
-	 double*const data     ///< Standard.
-	)
+static struct Matrix_d* constructor_local_Matrix_d_1
+	(const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1, const bool owns_data, double*const data)
 {
-	struct Matrix_d local = { .layout     = layout,
-	                          .extents[0] = ext_0,
-	                          .extents[1] = ext_1,
-	                          .owns_data  = owns_data,
-	                          .data       = data,
-	                        };
-	return local;
+	struct Matrix_d* dest = malloc(sizeof *dest); // returned
+
+	dest->layout     = layout;
+	dest->extents[0] = ext_0;
+	dest->extents[1] = ext_1;
+	dest->owns_data  = owns_data;
+	dest->data       = data;
+
+	return dest;
 }
 
-/// \brief Make a local copy of a \ref Matrix_ui (static memory).
-static struct Matrix_ui make_local_Matrix_ui_0
-	(const char layout,      ///< Standard.
-	 const size_t ext_0,     ///< Standard.
-	 const size_t ext_1,     ///< Standard.
-	 const bool owns_data,   ///< Standard.
-	 unsigned int*const data ///< Standard.
-	)
+static struct Matrix_i* constructor_local_Matrix_i_1
+	(const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1, const bool owns_data, int*const data)
 {
-	struct Matrix_ui local = { .layout     = layout,
-	                           .extents[0] = ext_0,
-	                           .extents[1] = ext_1,
-	                           .owns_data  = owns_data,
-	                           .data       = data,
-	                         };
-	return local;
-}
+	struct Matrix_i* dest = malloc(sizeof *dest); // returned
 
+	dest->layout     = layout;
+	dest->extents[0] = ext_0;
+	dest->extents[1] = ext_1;
+	dest->owns_data  = owns_data;
+	dest->data       = data;
+
+	return dest;
+}

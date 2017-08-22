@@ -22,24 +22,24 @@
  *	[gmsh_ff]: http://gmsh.info/doc/texinfo/gmsh.html#File-formats
  */
 struct Mesh_Data {
-	const unsigned int d,     ///< The dimension.
-	                   ind_v; ///< The index of the first volume in the list of elements.
+	const int d;           ///< The dimension.
+	const ptrdiff_t ind_v; ///< The index of the first volume in the list of elements.
 
-	const struct const_Vector_ui*const elem_per_dim; ///< The number of elements per dimension.
+	const struct const_Vector_i*const elem_per_dim; ///< The number of elements per dimension.
 
 	const struct const_Matrix_d*const nodes; ///< The xyz coordinates of the mesh elements (the mesh vertices).
 
-	const struct const_Vector_ui*const            elem_types; ///< The list of element types.
-	const struct const_Matrix_ui*const            elem_tags;  /**< The list of element tags.
+	const struct const_Vector_i*const elem_types;            ///< The list of element types.
+	const struct const_Matrix_i*const elem_tags;             /**< The list of element tags.
 	                                                           *   The 1st tag gives boundary condition information.
 	                                                           *   The 2nd tag gives periodic connectivity information.
 	                                                           */
-	const struct const_Multiarray_Vector_ui*const node_nums;  ///< The list of node numbers for the elements.
+	const struct const_Multiarray_Vector_i*const node_nums;  ///< The list of node numbers for the elements.
 
 	/** The periodic entity correspondence.
 	 * Currently used only as an indicator for whether periodic boundaries are present.
 	 * \todo Change to simple boolean flag after testing. */
-	const struct const_Matrix_ui*const periodic_corr;
+	const struct const_Matrix_i*const periodic_corr;
 };
 
 /// \brief Destructor for \ref Mesh_Data\*.
@@ -50,7 +50,7 @@ void destructor_Mesh_Data
 /// \brief Set the mesh data from the input mesh file.
 struct Mesh_Data* mesh_reader
 	(const char*const mesh_name_full, ///< Mesh file name.
-	 const unsigned int d             ///< Dimension.
+	 const int d                      ///< Dimension.
 	);
 
 #endif // DPG__mesh_readers_h__INCLUDED
