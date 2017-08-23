@@ -12,13 +12,25 @@
 
 #include "Macros.h"
 
+#include "Volume.h"
+
+#include "const_cast.h"
+
+#include "constants_mesh.h"
+#include "constants_bc.h"
+
 // Static function declarations ************************************************************************************* //
 
 /// \brief Container for \ref Volume related mesh information.
 struct Face_mesh_info {
-	int elem_type; ///< The type of \ref Element associated with the volume.
+	struct const_Element* element; ///< The pointer to the \ref Element corresponding to the face.
 
-	int bc; ///< The boundary condition of the face.
+	int to_lf; ///< The boundary condition of the face.
+
+	struct Neigh_info_mi {
+		struct Volume* volume; /**< The pointers to the two adjacent \ref Volume elements. The second pointer is NULL
+	                            *   for a boundary face. */
+	} neigh_info[2];
 };
 
 /// \brief Constructor for an individual \ref Face.
@@ -34,12 +46,9 @@ static void destructor_Face
 
 // Interface functions ********************************************************************************************** //
 
-struct Intrusive_List* constructor_Face_List (const struct Simulation*const sim, const struct Mesh*const mesh)
+struct Intrusive_List* constructor_Face_List (struct Simulation*const sim, const struct Mesh*const mesh)
 {
-	struct Intrusive_List* Faces = constructor_empty_IL();
-
-//	const struct const_Matrix_d*const nodes = mesh->mesh_data->nodes;
-//	const struct const_Multiarray_Vector_i*const node_nums = mesh->mesh_data->node_nums;
+	struct Intrusive_List* faces = constructor_empty_IL();
 
 	const struct const_Multiarray_Vector_i*const v_to_v  = mesh->mesh_conn->v_to_v,
 	                                      *const v_to_lf = mesh->mesh_conn->v_to_lf;
@@ -54,7 +63,7 @@ struct Intrusive_List* constructor_Face_List (const struct Simulation*const sim,
 
 print_const_Multiarray_Vector_i(v_to_v);
 print_const_Multiarray_Vector_i(v_to_lf);
-	ptrdiff_t f = 0;
+	ptrdiff_t n_f = 0;
 
 	const ptrdiff_t v_max = sim->n_v;
 	for (ptrdiff_t v = 0; v < v_max; ++v) {
@@ -62,28 +71,35 @@ print_const_Multiarray_Vector_i(v_to_lf);
 
 		const struct const_Vector_i*const v_to_v_V = v_to_v->data[v];
 
-		const int f_max = v_to_v_V->extents[0];
-		for (int f = 0; f < f_max; ++f) {
-			struct Face_mesh_info vol_mi =
-				{ .elem_type = get_element_by_face(volume_l->element,f);
-				  .bc        = v_to_lf->data[v]->data[f],
+		const int lf_max = v_to_v_V->extents[0];
+		for (int lf = 0; lf < lf_max; ++lf) {
+			if (volume_l->faces[lf][0] != NULL) // Already found this face.
+				continue;
+
+			const int v_neigh = v_to_v_V->data[lf];
+
+			struct Face_mesh_info face_mi =
+				{ .element              = get_element_by_face(volume_l->element,lf),
+				  .to_lf                = v_to_lf->data[v]->data[lf],
+				  .neigh_info[0].volume = volume_l,
+				  .neigh_info[1].volume = (v_neigh == -1) ? NULL : volume_array[v_neigh],
 				};
 
-			const int v_neigh = v_to_v_V->data[f];
+			push_back_IL(faces,(struct Intrusive_Link*) constructor_Face(sim,&face_mi));
 
-			if (v_neigh == -1) { // Boundary face
-				push_back_IL(Faces,(struct Intrusive_Link*) constructor_Face(sim,&face_mi));
-				volume_l->faces[f][0] =
-				volume_array[v]
-			}
+			struct Face* face = (struct Face*) faces->last;
+			const_cast_Face(&volume_l->faces[lf][0],face);
+			if (v_neigh != -1)
+				const_cast_Face(&face_mi.neigh_info[1].volume->faces[face_mi.to_lf][0],face);
 
-//			if (volume_array[v_neigh]->faces[
-		UNUSED(v_to_v_V);
-		UNUSED(f);
+			++n_f;
+		}
 	}
 	free(volume_array);
 
-	return Faces;
+	sim->n_f = n_f;
+
+	return faces;
 }
 
 void destructor_Faces (struct Intrusive_List* faces)
@@ -96,22 +112,75 @@ void destructor_Faces (struct Intrusive_List* faces)
 	destructor_IL(faces);
 }
 
-static void destructor_Face (struct Face* face)
+void const_cast_Face (const struct Face*const* dest, const struct Face*const src)
 {
-	UNUSED(face);
+	*(struct Face**) dest = (struct Face*) src;
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static struct Volume* constructor_Face (const struct Simulation*const sim, const struct Face_mesh_info*const face_mi)
+/** \brief Check if the current face is on a boundary of the domain based on the boundary condition in `to_lf`.
+ *	\return True if on a boundary. */
+static bool check_if_boundary_f
+	(const int to_lf ///< Current face component of \ref Mesh_Connectivity::v_to_lf.
+	);
+
+/** \brief Check if the current face is curved.
+ *	\return True if curved. */
+static bool check_if_curved_f
+	(const int to_lf,      ///< Current face component of \ref Mesh_Connectivity::v_to_lf.
+	 const int domain_type ///< \ref Simulation::domain_type.
+	);
+
+static struct Face* constructor_Face (const struct Simulation*const sim, const struct Face_mesh_info*const face_mi)
 {
 	struct Face* face = malloc(sizeof *face); // returned
 
-	const_cast_bool(&volume->boundary,check_if_boundary(face_mi->to_lf));
-	const_cast_bool(&volume->curved,  check_if_curved(face_mi->to_lf,sim->domain_type));
+	const_cast_bool(&face->boundary,check_if_boundary_f(face_mi->to_lf));
+	const_cast_bool(&face->curved,  check_if_curved_f(face_mi->to_lf,sim->domain_type));
 
-	const_cast_const_Element(&face->element,get_element_by_type(sim->elements,face_mi->elem_type));
+	const_cast_const_Element(&face->element,face_mi->element);
+
+	for (int i = 0; i < 2; ++i) {
+		if (face_mi->neigh_info[i].volume) {
+			face->neigh_info[i].ind_lf   = face_mi->to_lf;
+			face->neigh_info[i].ind_href = 0;
+			face->neigh_info[i].ind_sref = 0;
+			face->neigh_info[i].ind_ord  = -1; // Set to invalid value, to be subsequently determined.
+			face->neigh_info[i].volume   = face_mi->neigh_info[i].volume;
+		} else {
+			face->neigh_info[i].ind_lf   = -1;
+			face->neigh_info[i].ind_href = -1;
+			face->neigh_info[i].ind_sref = -1;
+			face->neigh_info[i].ind_ord  = -1;
+			face->neigh_info[i].volume   = NULL;
+		}
+	}
 
 	return face;
+}
+
+static void destructor_Face (struct Face* face)
+{
+	UNUSED(face);
+}
+
+// Level 1 ********************************************************************************************************** //
+
+static bool check_if_boundary_f (const int to_lf)
+{
+	if (to_lf > BC_STEP_SC)
+		return true;
+	return false;
+}
+
+static bool check_if_curved_f (const int to_lf, const int domain_type)
+{
+	if (domain_type == DOM_MAPPED)
+		return true;
+
+	if (to_lf > 2*BC_STEP_SC)
+		return true;
+	return false;
 }

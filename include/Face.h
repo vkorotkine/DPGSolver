@@ -20,8 +20,12 @@
 struct Face {
 	struct Intrusive_Link lnk; ///< \ref Intrusive_Link.
 
-	const bool boundary, ///< Flag for whether the volume is on a domain boundary.
-	           curved;   ///< Flag for whether the volume is curved.
+	const bool boundary, ///< Flag for whether the face is on a domain boundary.
+	           curved;   ///< Flag for whether the face is curved.
+
+/// \todo Add this member to Face_Solver.
+//	const char cub_type; /**< Type of cubature to be used for the face. Options: 's'traight, 'c'urved. This should be
+//	                      *   curved whenever an adjacent volume is curved. */
 
 	const struct const_Element*const element; ///< Pointer to the associated \ref const_Element.
 
@@ -75,13 +79,19 @@ struct Face {
 
 /// \brief Constructs the base \ref Volume \ref Intrusive_List.
 struct Intrusive_List* constructor_Face_List
-	(const struct Simulation*const sim, ///< The \ref Simulation.
-	 const struct Mesh*const mesh       ///< The \ref Mesh.
+	(struct Simulation*const sim, ///< The \ref Simulation.
+	 const struct Mesh*const mesh ///< The \ref Mesh.
 	);
 
 /// \brief Destructs the base \ref Face \ref Intrusive_List.
 void destructor_Faces
 	(struct Intrusive_List* Faces ///< Standard.
+	);
+
+/// \brief Cast from \ref Face\* to `const` \ref Face `*const`.
+void const_cast_Face
+	(const struct Face*const* dest, ///< Destination.
+	 const struct Face*const src    ///< Source.
 	);
 
 // Helper functions ************************************************************************************************* //

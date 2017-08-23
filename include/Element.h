@@ -46,6 +46,12 @@ void destructor_Elements
 	(struct Intrusive_List* Elements ///< Standard.
 	);
 
+/// \brief Cast from \ref const_Element\* to `const` \ref const_Element `*const`.
+void const_cast_const_Element
+	(const struct const_Element*const* dest, ///< Destination.
+	 const struct const_Element*const src    ///< Source.
+	);
+
 // Helper functions ************************************************************************************************* //
 
 /** \brief See return.
@@ -56,5 +62,12 @@ struct const_Element* get_element_by_type
 	 const int type                                    ///< Defined in \ref Element.
 	);
 
+/** \brief See return.
+ *	\return Pointer to a base \ref Element corresponding to the specified face of the input volume.
+ */
+struct const_Element* get_element_by_face
+	(const struct const_Element*const element, ///< The element corresponding to the volume.
+	 const int lf                              ///< The index of the local face.
+	);
 
 #endif // DPG__Element_h__INCLUDED

@@ -4,6 +4,7 @@
 
 #include "const_cast.h"
 #include "Element.h"
+#include "Face.h"
 
 // Standard data types ********************************************************************************************** //
 
@@ -23,8 +24,3 @@ void const_cast_bool (const bool* dest, const bool src)
 }
 
 // Custom data types ************************************************************************************************ //
-
-void const_cast_const_Element (const struct const_Element*const* dest, const struct const_Element*const src)
-{
-	*(struct const_Element**) dest = (struct const_Element*) src;
-}

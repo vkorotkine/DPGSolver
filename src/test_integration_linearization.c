@@ -17,19 +17,26 @@
 
 void test_integration_linearization (const char*const ctrl_name)
 {
-	struct Simulation*const simulation = constructor_Simulation(); // destructed
+	struct Simulation*const sim = constructor_Simulation(); // destructed
 
-	set_simulation_core(simulation,ctrl_name);
+	set_simulation_core(sim,ctrl_name);
 // set up parameters when needed (geometry/solver/postprocessing)
 
-	set_Simulation_elements(simulation,constructor_Element_List(simulation->d));
+	set_Simulation_elements(sim,constructor_Element_List(sim->d));
 
-	struct Mesh* mesh = set_up_mesh(simulation->mesh_name_full,simulation->d,simulation->elements);
+	struct Mesh_Input mesh_input = { .d              = sim->d,
+	                                 .domain_type    = sim->domain_type,
+	                                 .mesh_name_full = sim->mesh_name_full,
+	                                 .geom_name      = sim->geom_name,
+	                                 .geom_spec      = sim->geom_spec, };
 
-	simulation->volumes = constructor_Volume_List(simulation,mesh);
-	simulation->faces   = constructor_Face_List(simulation,mesh);
+	struct Mesh* mesh = set_up_mesh(&mesh_input,sim->elements);
+
+
+	sim->volumes = constructor_Volume_List(sim,mesh);
+	sim->faces   = constructor_Face_List(sim,mesh);
 // set connectivity volumes/faces
 
 	destructor_Mesh(mesh);
-	destructor_Simulation(simulation);
+	destructor_Simulation(sim);
 }

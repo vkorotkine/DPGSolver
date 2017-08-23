@@ -27,13 +27,13 @@ struct Mesh* constructor_Mesh ();
 
 // Interface functions ********************************************************************************************** //
 
-struct Mesh* set_up_mesh
-	(const char*const mesh_name_full, const int d, const struct const_Intrusive_List* elements)
+struct Mesh* set_up_mesh (const struct Mesh_Input* mesh_input, const struct const_Intrusive_List* elements)
 {
 	struct Mesh* mesh = constructor_Mesh();
 
-	*(struct Mesh_Data**)&         mesh->mesh_data = mesh_reader(mesh_name_full,d);
+	*(struct Mesh_Data**)&         mesh->mesh_data = mesh_reader(mesh_input->mesh_name_full,mesh_input->d);
 	*(struct Mesh_Connectivity**)& mesh->mesh_conn = mesh_connect(mesh->mesh_data,elements);
+	*(struct Mesh_Vertices**)&     mesh->mesh_vert = mesh_process_vertices(mesh,elements,mesh_input);
 
 	return mesh;
 }

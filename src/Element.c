@@ -57,6 +57,11 @@ void destructor_Elements (struct Intrusive_List* elements)
 	destructor_IL(elements);
 }
 
+void const_cast_const_Element (const struct const_Element*const* dest, const struct const_Element*const src)
+{
+	*(struct const_Element**) dest = (struct const_Element*) src;
+}
+
 struct const_Element* get_element_by_type (const struct const_Intrusive_List*const elements, const int type)
 {
 	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
@@ -66,6 +71,47 @@ struct const_Element* get_element_by_type (const struct const_Intrusive_List*con
 	}
 	printf("Could not find the element of type: %d.\n",type);
 	EXIT_UNSUPPORTED;
+}
+
+struct const_Element* get_element_by_face (const struct const_Element*const element, const int lf)
+{
+	int type_to_find = -1;
+	switch (element->type) {
+	case LINE:
+		type_to_find = POINT;
+		break;
+	case TRI: case QUAD:
+		type_to_find = LINE;
+		break;
+	case TET:
+		type_to_find = TRI;
+		break;
+	case HEX:
+		type_to_find = QUAD;
+		break;
+	case WEDGE:
+		if (lf < 3)
+			type_to_find = QUAD;
+		else
+			type_to_find = TRI;
+		break;
+	case PYR:
+		if (lf < 4)
+			type_to_find = TRI;
+		else
+			type_to_find = QUAD;
+		break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+
+	for (const struct Intrusive_Link* curr = (const struct Intrusive_Link*) element; curr; curr = curr->prev) {
+		struct const_Element* element_curr = (struct const_Element*) curr;
+		if (element_curr->type == type_to_find)
+			return element_curr;
+	}
+	EXIT_ERROR("Did not find the pointer to the face element");
 }
 
 // Static functions ************************************************************************************************* //

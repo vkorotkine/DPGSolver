@@ -18,6 +18,7 @@
 #include <stdbool.h>
 
 #include "Element.h"
+#include "Face.h"
 
 // Standard data types ********************************************************************************************** //
 
@@ -40,11 +41,5 @@ void const_cast_bool
 	);
 
 // Custom data types ************************************************************************************************ //
-
-/// \brief Cast from \ref const_Element\* to `const` \ref const_Element `*const`.
-void const_cast_const_Element
-	(const struct const_Element*const* dest, ///< Destination.
-	 const struct const_Element*const src    ///< Source.
-	);
 
 #endif // DPG__const_cast_h__INCLUDED
