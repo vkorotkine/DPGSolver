@@ -1,5 +1,5 @@
 Include "../Parameters.geo";
-
+//MeshCurving = TOBECURVED; MeshLevel = 0; MeshType = MIXED2D; PDEName = EULER;
 
 // Geometry Specification
 rIn  = 1.000;
@@ -66,8 +66,9 @@ BC_Straight =   BC_STEP_SC;
 BC_Curved   = 2*BC_STEP_SC;
 
 If (PDEName == EULER)
-	Physical Line (BC_Straight+BC_RIEMANN)  = {1001,1002};
-	Physical Line (BC_Curved  +BC_SLIPWALL) = {1003:1006};
+	Physical Line (1*BC_STEP_SC+BC_RIEMANN)  = {1001,1002};
+	Physical Line (2*BC_STEP_SC+BC_SLIPWALL) = {1003:1004};
+	Physical Line (3*BC_STEP_SC+BC_SLIPWALL) = {1005:1006};
 EndIf
 
 Physical Surface(9401) = {4001};

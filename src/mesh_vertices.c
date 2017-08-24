@@ -20,8 +20,9 @@
 
 /// \brief Container for locally computed \ref Mesh_Vectices members.
 struct Mesh_Vertices_l {
-	struct Vector_i* ve_curved;   // Local version of variable defined in \ref Mesh_Vertices.
-	struct Vector_i* ve_boundary; // Local version of variable defined in \ref Mesh_Vertices.
+	struct Vector_i* ve_curved;        // Local version of variable defined in \ref Mesh_Vertices.
+	struct Vector_i* ve_boundary;      // Local version of variable defined in \ref Mesh_Vertices.
+	struct Multiarray_Vector_i* ve_bc; // Local version of variable defined in \ref Mesh_Vertices.
 };
 
 /** \brief Constructor for the \ref Mesh_Vertices.
@@ -58,10 +59,9 @@ struct Mesh_Vertices* mesh_process_vertices
 
 	mesh_vert_l.ve_curved   = constructor_empty_Vector_i(n_ve); // keep
 	mesh_vert_l.ve_boundary = constructor_empty_Vector_i(n_ve); // keep
-	mesh_vert_l.ve_bc       = constructor_empty_Vector_i(n_ve); // keep
+	mesh_vert_l.ve_bc       = constructor_empty_Multiarray_Vector_i (1,n_ve); // keep
 	set_to_zero_Vector_i(mesh_vert_l.ve_curved);
 	set_to_zero_Vector_i(mesh_vert_l.ve_boundary);
-	set_to_zero_Vector_i(mesh_vert_l.ve_bc);
 
 	const ptrdiff_t n_v = v_to_lf->extents[0];
 	for (ptrdiff_t v = 0; v < n_v; ++v) {
@@ -70,7 +70,7 @@ struct Mesh_Vertices* mesh_process_vertices
 
 		const int lf_max = v_to_v_V->extents[0];
 		for (int lf = 0; lf < lf_max; ++lf) {
-			const ptrdiff_t v_to_lf_i = v_to_lf_V->data[lf];
+			const int v_to_lf_i = v_to_lf_V->data[lf];
 			if (v_to_lf_i < BC_STEP_SC)
 				continue;
 
@@ -79,10 +79,10 @@ struct Mesh_Vertices* mesh_process_vertices
 			const ptrdiff_t n_ve_f = f_ve->extents[0];
 
 			for (int ve = 0; ve < n_ve_f; ++ve) {
-				const ptrdiff_t ind_ve = volume_nums[v]->data[f_ve->data[ve]];
+				const int ind_ve = volume_nums[v]->data[f_ve->data[ve]];
 
-				mesh_vert_l.ve_bc->data[ind_ve]       = v_to_lf_i;
 				mesh_vert_l.ve_boundary->data[ind_ve] = 1;
+				push_back_Vector_i(mesh_vert_l.ve_bc->data[ind_ve],v_to_lf_i,true,true);
 				if (v_to_lf_i > 2*BC_STEP_SC)
 					mesh_vert_l.ve_curved->data[ind_ve] = 1;
 			}
@@ -93,8 +93,6 @@ struct Mesh_Vertices* mesh_process_vertices
 
 	// Correct vertex coordinates if necessary.
 	correct_mesh_vertices(mesh_input,mesh_vert,mesh->mesh_data->nodes);
-print_const_Vector_i(mesh_vert->ve_curved);
-print_const_Vector_i(mesh_vert->ve_boundary);
 
 	return mesh_vert;
 }
@@ -132,6 +130,7 @@ static struct Mesh_Vertices* constructor_Mesh_Vertices (const struct Mesh_Vertic
 
 	const_constructor_move_Vector_i(&mesh_vert->ve_curved,mesh_vert_l->ve_curved);
 	const_constructor_move_Vector_i(&mesh_vert->ve_boundary,mesh_vert_l->ve_boundary);
+	const_constructor_move_Multiarray_Vector_i(&mesh_vert->ve_bc,mesh_vert_l->ve_bc);
 
 	return mesh_vert;
 }

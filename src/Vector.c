@@ -253,6 +253,42 @@ void copy_data_Vector_i_Vector_i (const struct Vector_i*const src, struct Vector
 		dest->data[i] = src->data[i];
 }
 
+void push_back_Vector_i (struct Vector_i*const src, const int val, const bool sorted, const bool unique)
+{
+	if (sorted)
+		sort_Vector_i(src);
+
+	const bool add_val = unique ? !find_val_Vector_i((struct const_Vector_i*)src,val,sorted) : true;
+
+	if (!add_val)
+		return;
+
+	reserve_Vector_i(src,src->extents[0]+1);
+	src->data[src->extents[0]-1] = val;
+
+	if (sorted)
+		sort_Vector_i(src);
+}
+
+bool find_val_Vector_i (const struct const_Vector_i*const src, const int val, const bool sorted)
+{
+	bool found = false;
+	if (!sorted) {
+		const ptrdiff_t i_max = 0;
+		for (ptrdiff_t i = 0; i < i_max; ++i) {
+			if (src->data[i] == val) {
+				found = true;
+				break;
+			}
+		}
+	} else {
+		const int* ind_ptr = bsearch(&val,src->data,src->extents[0],sizeof(src->data[0]),cmp_i);
+		if (ind_ptr)
+			found = true;
+	}
+	return found;
+}
+
 // Printing functions *********************************************************************************************** //
 
 void print_Vector_i (const struct Vector_i*const a)

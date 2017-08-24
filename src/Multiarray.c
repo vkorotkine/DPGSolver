@@ -72,7 +72,7 @@ struct Multiarray_d* constructor_move_Multiarray_d_d (const char layout, double*
 	va_start(ap,order); // free
 	ptrdiff_t* extents = allocate_and_set_extents(order,ap); // keep
 	va_end(ap);
-
+/// \todo Replace with constructor_local_\*.
 	struct Multiarray_d local = { .layout    = layout,
 	                              .order     = order,
 	                              .extents   = extents,

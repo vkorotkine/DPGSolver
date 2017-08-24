@@ -148,6 +148,23 @@ void copy_data_Vector_i_Vector_i
 	 struct Vector_i*const dest       ///< Standard.
 	);
 
+/** \brief Push a value to the back of a \ref Vector_i\*.
+ *	The vector may optionally be sorted and/or accept only unique values. */
+void push_back_Vector_i
+	(struct Vector_i*const src, ///< The source vector.
+	 const int val,             ///< The value to be added.
+	 const bool sorted,         ///< Flag for whether the vector should be sorted.
+	 const bool unique          ///< Flag for whether the value should only be added if it is unique.
+	);
+
+/** \brief Check if the input value is present in the optionally sorted src \ref Vector_i\*.
+ *	\return `true` if found. */
+bool find_val_Vector_i
+	(const struct const_Vector_i*const src, ///< The input vector.
+	 const int val,                         ///< The value to find.
+	 const bool sorted                      ///< Flag indicating whether the vector is sorted.
+	);
+
 // Printing functions *********************************************************************************************** //
 
 /// \brief Print a \ref Vector_i\* to the terminal.

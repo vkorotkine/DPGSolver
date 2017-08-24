@@ -42,6 +42,7 @@ void destructor_Mesh (struct Mesh* mesh)
 {
 	destructor_Mesh_Data((struct Mesh_Data*)mesh->mesh_data);
 	destructor_Mesh_Connectivity((struct Mesh_Connectivity*)mesh->mesh_conn);
+	destructor_Mesh_Vertices((struct Mesh_Vertices*)mesh->mesh_vert);
 	free(mesh);
 }
 

@@ -34,10 +34,9 @@ struct Volume_mesh_info {
 
 /// \brief Constructor for an individual \ref Volume.
 static struct Volume* constructor_Volume
-	(const struct Simulation*const sim,          ///< The \ref Simulation.
-	 const struct Volume_mesh_info*const vol_mi, ///< The \ref Volume_mesh_info.
-	 const struct const_Matrix_d*const nodes,    ///< \ref Mesh_Data::nodes.
-	 const struct Mesh_Vertices*const mesh_vert  ///< \ref Mesh_Vertices.
+	(const struct Simulation*const sim,         ///< \ref Simulation.
+	 const struct Mesh*const mesh,              ///< \ref Mesh.
+	 const struct Volume_mesh_info*const vol_mi ///< \ref Volume_mesh_info.
 	);
 
 /// \brief Destructor for an individual \ref Volume.
@@ -45,13 +44,24 @@ static void destructor_Volume
 	(struct Volume* volume ///< Standard.
 	);
 
+/** \brief Check for a match of boundaries relating to the two input vertex bc vectors.
+ *
+ *	The two input vectors of vertex boundary conditions are searched for a matching boundary condition possibly subject
+ *	to the constraint of looking only at curved boundary conditions.
+ *
+ *	\return `true` if a matching boundary condition is found for the two vertices; `false` otherwise. */
+static bool find_bc_match
+	(const struct const_Vector_i*const ve_bc_0, ///< The vector of boundary conditions associated with the first vertex.
+	 const struct const_Vector_i*const ve_bc_1, ///< The vector of boundary conditions associated with the second vertex.
+	 const bool curved_only                     /**< Flag indicating whether only curved boundary conditions should be
+	                                             *   considered. */
+	);
+
 // Interface functions ********************************************************************************************** //
 
 struct Intrusive_List* constructor_Volume_List (struct Simulation*const sim, const struct Mesh*const mesh)
 {
 	struct Intrusive_List* volumes = constructor_empty_IL();
-
-	const struct const_Matrix_d*const nodes = mesh->mesh_data->nodes;
 
 	const struct const_Vector_i*const            elem_types = mesh->mesh_data->elem_types;
 	const struct const_Multiarray_Vector_i*const node_nums = mesh->mesh_data->node_nums;
@@ -67,12 +77,9 @@ struct Intrusive_List* constructor_Volume_List (struct Simulation*const sim, con
 			  .to_lf     = v_to_lf->data[v],
 			};
 
-		push_back_IL(volumes,(struct Intrusive_Link*) constructor_Volume(sim,&vol_mi,nodes,mesh->mesh_vert));
+		push_back_IL(volumes,(struct Intrusive_Link*) constructor_Volume(sim,mesh,&vol_mi));
 	}
 	sim->n_v = n_v;
-
-EXIT_UNSUPPORTED;
-/// \bug The volume of index 6 is being marked as being on the boundary...
 
 	return volumes;
 }
@@ -87,6 +94,37 @@ void destructor_Volumes (struct Intrusive_List* volumes)
 	destructor_IL(volumes);
 }
 
+bool check_ve_condition
+	(const struct const_Multiarray_Vector_i*const f_ve, const struct const_Vector_i*const ve_inds,
+	 const struct const_Vector_i*const ve_condition, const struct const_Multiarray_Vector_i*const ve_bc,
+	 const bool curved_only)
+{
+	const int n_lf = f_ve->extents[0];
+	for (int lf = 0; lf < n_lf; ++lf) {
+		const struct const_Vector_i*const f_ve_f = f_ve->data[lf];
+
+		int count_ve_condition = 0;
+
+		const struct const_Vector_i* ve_bc_V = NULL;
+
+		const int n_ve_f = f_ve_f->extents[0];
+		for (int ve = 0; ve < n_ve_f; ++ve) {
+			const ptrdiff_t ind_ve = ve_inds->data[f_ve_f->data[ve]];
+			if (ve_condition->data[ind_ve]) {
+				if (count_ve_condition == 0)
+					ve_bc_V = ve_bc->data[ind_ve];
+
+				// Ensure that the the vertices are on the same curved surface
+				if (find_bc_match(ve_bc_V,ve_bc->data[ind_ve],curved_only)) {
+					if (++count_ve_condition == 2)
+						return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -94,29 +132,29 @@ void destructor_Volumes (struct Intrusive_List* volumes)
  *
  *	This function works similarly to \ref check_if_curved_v.
  *
- *	\return True if on a boundary. */
+ *	\return `true` if on a boundary. */
 static bool check_if_boundary_v
 	(const struct const_Vector_i*const to_lf,           ///< Current volume component of \ref Mesh_Connectivity::v_to_lf.
 	 const struct const_Multiarray_Vector_i*const f_ve, ///< Defined in \ref Element.
 	 const struct const_Vector_i*const ve_inds,         ///< The vertex indices for the volume.
-	 const struct const_Vector_i*const ve_boundary      ///< Defined in \ref Mesh_Vertices.
+	 const struct Mesh_Vertices*const mesh_vert         ///< \ref Mesh_Vertices.
 	);
 
 /** \brief Check if the current volume is curved.
  *
  *	This function returns `true` if:
  *		1. The domain is mapped (and all elements are curved); or
- *		2. The volume contains a face which has at least two vertices which were marked as curved.
+ *		2. The volume contains an edge which has at least two vertices which were marked as curved.
  *
  *	It is not enough to simply check if any of the adjacent faces lie on a curved boundary as this does not account for
  *	3D volumes which only have a curved edge.
  *
- *	\return True if curved. */
+ *	\return `true` if curved. */
 static bool check_if_curved_v
 	(const int domain_type,                             ///< Defined in \ref Simulation.
 	 const struct const_Multiarray_Vector_i*const f_ve, ///< Defined in \ref Element.
 	 const struct const_Vector_i*const ve_inds,         ///< The vertex indices for the volume.
-	 const struct const_Vector_i*const ve_curved        ///< Defined in \ref Mesh_Vertices.
+	 const struct Mesh_Vertices*const mesh_vert         ///< \ref Mesh_Vertices.
 	);
 
 /** \brief Constructor for the xyz coordinates of the volume vertices.
@@ -127,11 +165,12 @@ static struct Matrix_d* constructor_volume_vertices
 	);
 
 static struct Volume* constructor_Volume
-	(const struct Simulation*const sim, const struct Volume_mesh_info*const vol_mi,
-	 const struct const_Matrix_d*const nodes, const struct Mesh_Vertices*const mesh_vert)
+	(const struct Simulation*const sim, const struct Mesh*const mesh, const struct Volume_mesh_info*const vol_mi)
 {
 	struct Volume* volume = malloc(sizeof *volume); // returned
 
+	const struct const_Matrix_d*const nodes = mesh->mesh_data->nodes;
+	const struct Mesh_Vertices*const mesh_vert = mesh->mesh_vert;
 
 	const_constructor_move_Matrix_d(&volume->xyz_ve,constructor_volume_vertices(vol_mi->ve_inds,nodes));
 
@@ -143,11 +182,10 @@ static struct Volume* constructor_Volume
 	const_cast_const_Element(&volume->element,get_element_by_type(sim->elements,vol_mi->elem_type));
 
 	const_cast_bool(&volume->boundary,
-	                check_if_boundary_v(vol_mi->to_lf,volume->element->f_ve,vol_mi->ve_inds,mesh_vert->ve_boundary));
+	                check_if_boundary_v(vol_mi->to_lf,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
 
 	const_cast_bool(&volume->curved,
-	                check_if_curved_v(sim->domain_type,volume->element->f_ve,vol_mi->ve_inds,mesh_vert->ve_curved));
-printf("%d %d %d\n\n\n",volume->element->type,volume->boundary,volume->curved);
+	                check_if_curved_v(sim->domain_type,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
 
 	return volume;
 }
@@ -157,42 +195,48 @@ static void destructor_Volume (struct Volume* volume)
 	UNUSED(volume);
 }
 
-// Level 1 ********************************************************************************************************** //
+static bool find_bc_match
+	(const struct const_Vector_i*const ve_bc_0, const struct const_Vector_i*const ve_bc_1, const bool curved_only)
+{
+	const ptrdiff_t i_max = ve_bc_0->extents[0];
+	for (ptrdiff_t i = 0; i < i_max; ++i) {
+		const int bc_0 = ve_bc_0->data[i];
 
-/** \brief Check if a sufficient number of vertices satisfy the condition.
- *
- *	Currently used to check:
- *		- curved;
- *		- boundary.
- *
- *	\return See brief. */
-static bool check_for_ve_condition
-	(const struct const_Multiarray_Vector_i*const f_ve, ///< Defined in \ref Element.
-	 const struct const_Vector_i*const ve_inds,         ///< The vertex indices for the volume.
-	 const struct const_Vector_i*const ve_condition     ///< The vertex condition to check for.
-	);
+		if (curved_only && bc_0 < 2*BC_STEP_SC)
+			continue;
+
+		if (find_val_Vector_i(ve_bc_1,bc_0,false))
+			return true;
+	}
+	return false;
+}
+
+// Level 1 ********************************************************************************************************** //
 
 static bool check_if_boundary_v
 	(const struct const_Vector_i*const to_lf, const struct const_Multiarray_Vector_i*const f_ve,
-	 const struct const_Vector_i*const ve_inds, const struct const_Vector_i*const ve_boundary)
+	 const struct const_Vector_i*const ve_inds, const struct Mesh_Vertices*const mesh_vert)
 {
+	// If the volume has a face on a domain boundary
 	const ptrdiff_t i_max = to_lf->extents[0];
 	for (ptrdiff_t i = 0; i < i_max; ++i) {
 		if (to_lf->data[i] > BC_STEP_SC)
 			return true;
 	}
 
-	return check_for_ve_condition(f_ve,ve_inds,ve_boundary);
+	// If the volume has 2 vertices on a domain boundary (i.e. a boundary edge)
+	return check_ve_condition(f_ve,ve_inds,mesh_vert->ve_boundary,mesh_vert->ve_bc,false);
 }
 
 static bool check_if_curved_v
 	(const int domain_type, const struct const_Multiarray_Vector_i*const f_ve,
-	 const struct const_Vector_i*const ve_inds, const struct const_Vector_i*const ve_curved)
+	 const struct const_Vector_i*const ve_inds, const struct Mesh_Vertices*const mesh_vert)
 {
 	if (domain_type == DOM_MAPPED)
 		return true;
 
-	return check_for_ve_condition(f_ve,ve_inds,ve_curved);
+	// If the volume has 2 vertices on a curved domain boundary (i.e. a curved boundary edge)
+	return check_ve_condition(f_ve,ve_inds,mesh_vert->ve_curved,mesh_vert->ve_bc,true);
 }
 
 static struct Matrix_d* constructor_volume_vertices
@@ -204,30 +248,5 @@ static struct Matrix_d* constructor_volume_vertices
 	for (ptrdiff_t i = 0; i < i_max; ++i)
 		set_row_Matrix_d(i,dest,get_row_const_Matrix_d(ve_inds->data[i],nodes));
 
-print_Matrix_d(dest);
 	return dest;
-}
-
-// Level 2 ********************************************************************************************************** //
-
-static bool check_for_ve_condition
-	(const struct const_Multiarray_Vector_i*const f_ve, const struct const_Vector_i*const ve_inds,
-	 const struct const_Vector_i*const ve_condition)
-{
-	const int n_lf = f_ve->extents[0];
-	for (int lf = 0; lf < n_lf; ++lf) {
-		const struct const_Vector_i*const f_ve_f = f_ve->data[lf];
-
-		int count_ve_curved = 0;
-
-		const int n_ve_f = f_ve_f->extents[0];
-		for (int ve = 0; ve < n_ve_f; ++ve) {
-			const ptrdiff_t ind_ve = ve_inds->data[f_ve_f->data[ve]];
-			if (ve_condition->data[ind_ve]) {
-				if (++count_ve_curved == 2)
-					return true;
-			}
-		}
-	}
-	return false;
 }

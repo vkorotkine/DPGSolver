@@ -4,18 +4,17 @@
 #ifndef DPG__mesh_vertices_h__INCLUDED
 #define DPG__mesh_vertices_h__INCLUDED
 /**	\file
- *	\todo Add general comments for the header file here.
+ *	Provides the interface to mesh vertex containers and functions.
  */
 
 #include "Mesh.h"
 
 /// \brief Container for additional information relating to the mesh vertices.
 struct Mesh_Vertices {
-	const struct const_Vector_i*const ve_curved;   ///< Flags for which vertices are located on curved boundaries.
-	const struct const_Vector_i*const ve_boundary; ///< Flags for which vertices are located on boundaries.
-	const struct const_Vector_i*const ve_bc;       /**< Holds one of the boundary conditions associated with the
-	                                                *   vertices. The value is ambiguous (but not important) for
-	                                                *   vertices touching two separate boundaries. */
+	const struct const_Vector_i*const ve_curved;        ///< Flags for which vertices are located on curved boundaries.
+	const struct const_Vector_i*const ve_boundary;      ///< Flags for which vertices are located on boundaries.
+	const struct const_Multiarray_Vector_i*const ve_bc; /**< Holds the sorted values of all unique boundary conditions
+	                                                     *   associated with the vertices. */
 };
 
 /** \brief Obtain additional information about the mesh vertices and correct their position (if necessary).

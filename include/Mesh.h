@@ -6,10 +6,14 @@
 /**	\file
  *	\brief Provides an interface for reading a mesh file.
  *
- *	Relevant data is returned as part of \ref Mesh_Data.
+ *	Relevant data is returned as part of \ref Mesh.
  *
  *	Supported input formats:
  *		- gmsh
+ *
+ *	The \ref Mesh_Vertices container is used to assign the `boundary` and `curved` flags to the \ref Volume and \ref
+ *	Face elements in the domain. The vertex information, while generally not used for the solver, can be used to set up
+ *	information relating to mesh edges (faces and volumes, by association).
  */
 
 struct Mesh_Input;

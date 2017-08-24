@@ -48,4 +48,27 @@ void destructor_Volumes
 
 // Helper functions ************************************************************************************************* //
 
+/** \brief Check if a sufficient number of vertices (2) satisfy the condition on a domain boundary.
+ *
+ *	When two vertices satisfy the condition, this implies that a volume edge satisfies the condition and the
+ *	qualification is passed to the associated volume.
+ *
+ *	This function can be used to check:
+ *		- faces of volumes: `ve_inds` = volume vertex indices, `f_ve` = \ref Volume::element;
+ *		- edges of faces:   `ve_inds` = face vertex indices,   `f_ve` = \ref Face::element.
+ *
+ *	Currently used to check:
+ *		- curved (curved_only = `true`);
+ *		- boundary (curved only = `false`).
+ *
+ *	\return See brief. */
+bool check_ve_condition
+	(const struct const_Multiarray_Vector_i*const f_ve,  ///< Defined in \ref Element.
+	 const struct const_Vector_i*const ve_inds,          ///< The vertex indices for the volume.
+	 const struct const_Vector_i*const ve_condition,     ///< The vertex condition to check for.
+	 const struct const_Multiarray_Vector_i*const ve_bc, ///< Defined in \ref Mesh_Vertices.
+	 const bool curved_only                              /**< Flag indicating whether only curved boundary conditions
+	                                                      *   should be considered. */
+	);
+
 #endif // DPG__Volume_h__INCLUDED

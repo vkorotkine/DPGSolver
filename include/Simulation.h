@@ -33,15 +33,19 @@ struct Simulation {
 	const char geom_name[STRLEN_MAX]; ///< Name of the base geometry to be used for the domain.
 	const char geom_spec[STRLEN_MAX]; ///< Additional specifications for the geometry.
 
-	const int d,           ///< Dimension.
-	          domain_type; /**< The type of domain.
-	                        *   Options:
-	                        *   	- Straight: All volumes have a geometry order of 1 (affine for simplicies).
-	                        *   	- Curved:   Volumes along the boundary of the domain may have a higher geometry
-	                        *   	            order.
-	                        *   	- Mapped:   All volumes are mapped from a simple reference domain to the final
-	                        *   	            simulation domain.
-	                        */
+	const int d; ///< Dimension.
+
+	/** The type of domain.
+	 *  Options:
+	 *  	- Straight: All volumes have a geometry order of 1 (affine for simplicies).
+	 *  	- Curved:   Volumes along the boundary of the domain may have a higher geometry order.
+	 *  	- Mapped:   All volumes are mapped from a simple reference domain to the final simulation domain.
+	 *
+	 *	For `domain_type = Curved`, it is **necessary** to set the values of the boundary conditions on curved surfaces
+	 *	to different multiples of BC_STEP_SC+bc_value for the `boundary` and `curved` flags for \ref Volume and \ref
+	 *	Face elements to be properly set.
+	 */
+	const int domain_type;
 
 	ptrdiff_t n_v, ///< The number of \ref Volume finite elements.
 	          n_f; ///< The number of \ref Face   finite elements.

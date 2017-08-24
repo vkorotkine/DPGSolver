@@ -23,9 +23,10 @@
 
 /// \brief Container for \ref Volume related mesh information.
 struct Face_mesh_info {
-	struct const_Element* element; ///< The pointer to the \ref Element corresponding to the face.
+	struct const_Element* element;        ///< The pointer to the \ref Element corresponding to the face.
 
-	int to_lf; ///< The boundary condition of the face.
+	const struct const_Vector_i* ve_inds; ///< The indices of the vertices of the face.
+	int to_lf;                            ///< The boundary condition of the face.
 
 	struct Neigh_info_mi {
 		struct Volume* volume; /**< The pointers to the two adjacent \ref Volume elements. The second pointer is NULL
@@ -35,8 +36,9 @@ struct Face_mesh_info {
 
 /// \brief Constructor for an individual \ref Face.
 static struct Face* constructor_Face
-	(const struct Simulation*const sim,        ///< The \ref Simulation.
-	 const struct Face_mesh_info*const face_mi ///< The \ref Face_mesh_info.
+	(const struct Simulation*const sim,        ///< \ref Simulation.
+	 const struct Mesh*const mesh,             ///< \ref Mesh.
+	 const struct Face_mesh_info*const face_mi ///< \ref Face_mesh_info.
 	);
 
 /// \brief Destructor for an individual \ref Face.
@@ -77,15 +79,17 @@ print_const_Multiarray_Vector_i(v_to_lf);
 				continue;
 
 			const int v_neigh = v_to_v_V->data[lf];
+// set ve_inds from volume->element->f_ve of node_nums->data[ind_v]
 
 			struct Face_mesh_info face_mi =
 				{ .element              = get_element_by_face(volume_l->element,lf),
+				  .ve_inds              = ve_inds,
 				  .to_lf                = v_to_lf->data[v]->data[lf],
 				  .neigh_info[0].volume = volume_l,
 				  .neigh_info[1].volume = (v_neigh == -1) ? NULL : volume_array[v_neigh],
 				};
 
-			push_back_IL(faces,(struct Intrusive_Link*) constructor_Face(sim,&face_mi));
+			push_back_IL(faces,(struct Intrusive_Link*) constructor_Face(sim,mesh,&face_mi));
 
 			struct Face* face = (struct Face*) faces->last;
 			const_cast_Face(&volume_l->faces[lf][0],face);
@@ -120,27 +124,37 @@ void const_cast_Face (const struct Face*const* dest, const struct Face*const src
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Check if the current face is on a boundary of the domain based on the boundary condition in `to_lf`.
+/** \brief Check if the current face is on a boundary.
+ *
+ *	This function works similarly to \ref check_if_boundary_v.
+ *
  *	\return True if on a boundary. */
 static bool check_if_boundary_f
-	(const int to_lf ///< Current face component of \ref Mesh_Connectivity::v_to_lf.
+	(const int to_lf,                                   ///< Current face component of \ref Mesh_Connectivity::v_to_lf.
+	 const struct const_Multiarray_Vector_i*const f_ve, ///< Defined in \ref Element.
+	 const struct const_Vector_i*const ve_inds,         ///< The vertex indices for the volume.
+	 const struct Mesh_Vertices*const mesh_vert         ///< \ref Mesh_Vertices.
 	);
 
 /** \brief Check if the current face is curved.
+ *
+ *	This function works similarly to \ref check_if_curved_v.
+ *
  *	\return True if curved. */
 static bool check_if_curved_f
-	(const int to_lf,      ///< Current face component of \ref Mesh_Connectivity::v_to_lf.
-	 const int domain_type ///< \ref Simulation::domain_type.
+	(const int to_lf,                                   ///< Current face component of \ref Mesh_Connectivity::v_to_lf.
+	 const int domain_type,                             ///< \ref Simulation::domain_type.
+	 const struct const_Multiarray_Vector_i*const f_ve, ///< Defined in \ref Element.
+	 const struct const_Vector_i*const ve_inds,         ///< The vertex indices for the volume.
+	 const struct Mesh_Vertices*const mesh_vert         ///< \ref Mesh_Vertices.
 	);
 
-static struct Face* constructor_Face (const struct Simulation*const sim, const struct Face_mesh_info*const face_mi)
+static struct Face* constructor_Face
+	(const struct Simulation*const sim, const struct Mesh*const mesh, const struct Face_mesh_info*const face_mi)
 {
+	const struct Mesh_Vertices*const mesh_vert = mesh->mesh_vert;
+
 	struct Face* face = malloc(sizeof *face); // returned
-
-	const_cast_bool(&face->boundary,check_if_boundary_f(face_mi->to_lf));
-	const_cast_bool(&face->curved,  check_if_curved_f(face_mi->to_lf,sim->domain_type));
-
-	const_cast_const_Element(&face->element,face_mi->element);
 
 	for (int i = 0; i < 2; ++i) {
 		if (face_mi->neigh_info[i].volume) {
@@ -158,6 +172,13 @@ static struct Face* constructor_Face (const struct Simulation*const sim, const s
 		}
 	}
 
+	const_cast_const_Element(&face->element,face_mi->element);
+
+	const_cast_bool(&face->boundary,
+	                check_if_boundary_f(face_mi->to_lf,face->element->f_ve,face_mi->ve_inds,mesh_vert));
+	const_cast_bool(&face->curved,
+	                check_if_curved_f(face_mi->to_lf,sim->domain_type,face->element->f_ve,face_mi->ve_inds,mesh_vert));
+
 	return face;
 }
 
@@ -168,19 +189,27 @@ static void destructor_Face (struct Face* face)
 
 // Level 1 ********************************************************************************************************** //
 
-static bool check_if_boundary_f (const int to_lf)
+static bool check_if_boundary_f
+	(const int to_lf, const struct const_Multiarray_Vector_i*const f_ve, const struct const_Vector_i*const ve_inds,
+	 const struct Mesh_Vertices*const mesh_vert)
 {
 	if (to_lf > BC_STEP_SC)
 		return true;
-	return false;
+
+	return check_ve_condition(f_ve,ve_inds,mesh_vert->ve_boundary,mesh_vert->ve_bc,false);
 }
 
-static bool check_if_curved_f (const int to_lf, const int domain_type)
+static bool check_if_curved_f
+	(const int to_lf, const int domain_type, const struct const_Multiarray_Vector_i*const f_ve,
+	 const struct const_Vector_i*const ve_inds, const struct Mesh_Vertices*const mesh_vert)
 {
 	if (domain_type == DOM_MAPPED)
 		return true;
 
+// likely redundant {
 	if (to_lf > 2*BC_STEP_SC)
 		return true;
-	return false;
+// }
+
+	return check_ve_condition(f_ve,ve_inds,mesh_vert->ve_boundary,mesh_vert->ve_bc,true);
 }
