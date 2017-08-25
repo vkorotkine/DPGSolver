@@ -11,7 +11,7 @@
 #include <stdlib.h>
 
 #include "Macros.h"
-#include "Parameters.h"
+#include "constants_alloc.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -39,6 +39,19 @@ FILE* fopen_checked (const char*const file_name_full)
 		EXIT_UNSUPPORTED;
 	}
 	return file;
+}
+
+FILE* fopen_input (const char*const input_path, const char*const input_spec)
+{
+	char input_name[STRLEN_MAX];
+
+	strcpy(input_name,input_path);
+	if (strstr(input_spec,"geometry"))
+		strcat(input_name,"geometry_parameters.geo");
+	else
+		EXIT_UNSUPPORTED;
+
+	return fopen_checked(input_name);
 }
 
 void skip_lines (FILE* file, char**const line, const int line_size, const int n_skip)
@@ -109,6 +122,32 @@ void read_skip_const_i (const char*const line, const int*const var)
 void read_skip_const_b (const char*const line, const bool*const var)
 {
 	sscanf(line,"%*s %d",(int*)var);
+}
+
+void read_skip_const_d (const char*const line, const double*const var, const int n_skip, const bool remove_semi)
+{
+	// Certainly not the cleanest way to do this... Modify if more entries are to be skipped
+	char input_s[STRLEN_MIN];
+	switch (n_skip) {
+	case 0:
+		sscanf(line,"%s",input_s);
+		break;
+	case 1:
+		sscanf(line,"%*s %s",input_s);
+		break;
+	case 2:
+		sscanf(line,"%*s %*s %s",input_s);
+		break;
+	default:
+		EXIT_ADD_SUPPORT;
+		break;
+	}
+
+	char* input_s_clean = NULL;
+	if (remove_semi)
+		input_s_clean = strtok(input_s,";");
+
+	sscanf(input_s_clean,"%lf",(double*)var);
 }
 
 void strcat_path_c (char* dest, const char*const src, bool add_slash)

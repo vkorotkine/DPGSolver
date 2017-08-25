@@ -8,8 +8,9 @@
  */
 
 #include <stdbool.h>
+#include <stddef.h>
 
-#include "allocators.h" // For STRLEN_(MIN/MAX)
+#include "constants_alloc.h"
 
 ///\{ \name Definitions for the available solver methods.
 #define METHOD_DG  1
@@ -27,6 +28,7 @@
 struct Simulation {
 	const char ctrl_name_full[STRLEN_MAX]; ///< Name of the control file (including the full path and file extension).
 	const char mesh_name_full[STRLEN_MAX]; ///< Name of the mesh    file (including the full path and file extension).
+	const char input_path[STRLEN_MAX];     ///< The path to the directory containing relevant input files.
 
 	const char pde_name[STRLEN_MIN];  ///< Name of the Partial Differential Equation (PDE).
 	const char pde_spec[STRLEN_MAX];  ///< Additional specifications for the PDE.

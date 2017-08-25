@@ -1,28 +1,19 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
+/** \file
+ */
 
 #include "math_functions.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
-#include "Parameters.h"
 #include "Macros.h"
+#include "constants_tol.h"
 
-/*
- *	Purpose:
- *		Provide several standard math functions.
- *
- *	Comments:
- *
- *	Notation:
- *
- *	References:
- *		Press(1992-2nd)_Numerical recipes in C- the art of scientific computing (Ch. 6.1)
- */
-
-long long unsigned int factorial_ull(const unsigned int n)
+long long unsigned int factorial_ull (const unsigned int n)
 {
 	static unsigned int ntop = 0;
 	static double       a[21] = { 1.0 };
@@ -40,7 +31,7 @@ long long unsigned int factorial_ull(const unsigned int n)
 	return (long long unsigned int) a[n];
 }
 
-double factorial_d(const unsigned int n)
+double factorial_d (const unsigned int n)
 {
 	static unsigned int ntop = 0;
 	static double       a[33] = { 1.0 };
@@ -59,7 +50,7 @@ double factorial_d(const unsigned int n)
 	return a[n];
 }
 
-double gamma_d(const double x)
+double gamma_d (const double x)
 {
 	if (x <= 0.0)
 		printf("Error: Input to gamma_d must be greater than 0.0.\n"), exit(1);
@@ -84,4 +75,22 @@ double gamma_d(const double x)
 
 		return exp(-tmp+log(2.5066282746310005*ser/z));
 	}
+}
+
+bool equal_d (const double x0, const double x1, const double tol)
+{
+	if (fabs(x0-x1) < tol)
+		return true;
+	return false;
+}
+
+double norm_d (const ptrdiff_t n_entries, const double*const data, const char*const norm_type)
+{
+	double norm = 0.0;
+	if (strstr(norm_type,"L2")) {
+		for (ptrdiff_t i = 0; i < n_entries; ++i)
+			norm += data[i]*data[i];
+		return sqrt(norm);
+	}
+	EXIT_UNSUPPORTED;
 }

@@ -103,6 +103,21 @@ int* get_row_Matrix_i (const ptrdiff_t row, const struct Matrix_i* a)
 	return &a->data[row*(a->extents[1])];
 }
 
+double compute_norm_Matrix_d_row
+	(const ptrdiff_t row, const struct Matrix_d*const a, const char*const norm_type)
+{
+	const double*const data = get_row_Matrix_d(row,a);
+	const ptrdiff_t i_max   = a->extents[1];
+
+	double norm = 0.0;
+	if (strstr(norm_type,"L2")) {
+		for (ptrdiff_t i = 0; i < i_max; ++i)
+			norm += data[i]*data[i];
+		return sqrt(norm);
+	}
+	EXIT_UNSUPPORTED;
+}
+
 int get_val_Matrix_i (const ptrdiff_t row, const ptrdiff_t col, const struct Matrix_i*const a)
 {
 	int*const data = a->data;

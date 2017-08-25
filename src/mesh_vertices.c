@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "Macros.h"
 #include "constants_mesh.h"
@@ -16,9 +17,11 @@
 #include "Multiarray.h"
 #include "Vector.h"
 
+#include "mesh_geometry_cylinder_hollow_section.h"
+
 // Static function declarations ************************************************************************************* //
 
-/// \brief Container for locally computed \ref Mesh_Vectices members.
+/// \brief Container for locally computed \ref Mesh_Vertices members.
 struct Mesh_Vertices_l {
 	struct Vector_i* ve_curved;        // Local version of variable defined in \ref Mesh_Vertices.
 	struct Vector_i* ve_boundary;      // Local version of variable defined in \ref Mesh_Vertices.
@@ -101,6 +104,7 @@ void destructor_Mesh_Vertices (struct Mesh_Vertices* mesh_vert)
 {
 	destructor_Vector_i((struct Vector_i*)mesh_vert->ve_curved);
 	destructor_Vector_i((struct Vector_i*)mesh_vert->ve_boundary);
+	destructor_Multiarray_Vector_i((struct Multiarray_Vector_i*)mesh_vert->ve_bc);
 
 	free(mesh_vert);
 }
@@ -108,21 +112,16 @@ void destructor_Mesh_Vertices (struct Mesh_Vertices* mesh_vert)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static void correct_mesh_vertices
-	(const struct Mesh_Input*const mesh_input, const struct Mesh_Vertices*const mesh_vert,
-	 const struct const_Matrix_d*const nodes)
-{
-	if (mesh_input->domain_type != DOM_CURVED)
-		return;
-
-	//set function pointer to function of specific template for node correction based on mesh_input.
-
-	const ptrdiff_t ve_max = mesh_vert->ve_curved->extents[0];
-	for (ptrdiff_t ve = 0; ve < ve_max; ve++) {
-		EXIT_ADD_SUPPORT; // Correct the position of the nodes.
-		UNUSED(nodes);
-	}
-}
+/** \brief Function pointer to mesh_snap_to_boundary functions.
+ *	\param input_path The path to the input file.
+ *	\param ve_curved  Defined in \ref Mesh_Vertices.
+ *	\param ve_bc      Defined in \ref Mesh_Data.
+ */
+typedef void (*mesh_snap_to_boundary_fptr)
+	(const char*const input_path,
+	 const struct const_Vector_i*const ve_curved,
+	 const struct Matrix_d*const nodes
+	);
 
 static struct Mesh_Vertices* constructor_Mesh_Vertices (const struct Mesh_Vertices_l*const mesh_vert_l)
 {
@@ -133,4 +132,24 @@ static struct Mesh_Vertices* constructor_Mesh_Vertices (const struct Mesh_Vertic
 	const_constructor_move_Multiarray_Vector_i(&mesh_vert->ve_bc,mesh_vert_l->ve_bc);
 
 	return mesh_vert;
+}
+
+static mesh_snap_to_boundary_fptr set_fptr_mesh_snap (const char*const geom_name)
+{
+	if (strstr(geom_name,"n-Cylinder_HollowSection"))
+		return mesh_snap_to_cylinder__hollow_section;
+
+	EXIT_ADD_SUPPORT;
+}
+
+static void correct_mesh_vertices
+	(const struct Mesh_Input*const mesh_input, const struct Mesh_Vertices*const mesh_vert,
+	 const struct const_Matrix_d*const nodes)
+{
+	if (mesh_input->domain_type != DOM_CURVED)
+		return;
+
+	mesh_snap_to_boundary_fptr mesh_snap_to_boundary = set_fptr_mesh_snap(mesh_input->geom_name);
+
+	mesh_snap_to_boundary(mesh_input->input_path,mesh_vert->ve_curved,(struct Matrix_d*)nodes);
 }

@@ -108,7 +108,7 @@ void destructor_Matrix_i
  *	\return Pointer to the first entry of the row.
  */
 double* get_row_Matrix_d
-	(const ptrdiff_t row,        ///< Desired row.
+	(const ptrdiff_t row,     ///< Desired row.
 	 const struct Matrix_d* a ///< Matrix.
 	);
 
@@ -116,7 +116,7 @@ double* get_row_Matrix_d
  *	\return Pointer to the first entry of the row.
  */
 const double* get_row_const_Matrix_d
-	(const ptrdiff_t row,        ///< Desired row.
+	(const ptrdiff_t row,           ///< Desired row.
 	 const struct const_Matrix_d* a ///< Matrix.
 	);
 
@@ -124,29 +124,37 @@ const double* get_row_const_Matrix_d
  *	\return Pointer to the first entry of the row.
  */
 int* get_row_Matrix_i
-	(const ptrdiff_t row,         ///< Desired row.
+	(const ptrdiff_t row,     ///< Desired row.
 	 const struct Matrix_i* a ///< Matrix.
+	);
+
+/** \brief Compute the norm of the specified row of the input \ref Matrix_d.
+ *	\return See brief. */
+double compute_norm_Matrix_d_row
+	(const ptrdiff_t row,           ///< The row.
+	 const struct Matrix_d*const a, ///< The input matrix.
+	 const char*const norm_type     ///< The norm type.
 	);
 
 /** \brief Get value of the (row,col) entry of a \ref Matrix_i\*.
  *	\return See brief. */
 int get_val_Matrix_i
-	(const ptrdiff_t row,              ///< The row.
-	 const ptrdiff_t col,              ///< The column.
+	(const ptrdiff_t row,          ///< The row.
+	 const ptrdiff_t col,          ///< The column.
 	 const struct Matrix_i*const a ///< Standard.
 	);
 
 /** \brief Get value of the (row,col) entry of a \ref const_Matrix_i\*.
  *	\return See brief. */
 int get_val_const_Matrix_i
-	(const ptrdiff_t row,              ///< The row.
-	 const ptrdiff_t col,              ///< The column.
+	(const ptrdiff_t row,                ///< The row.
+	 const ptrdiff_t col,                ///< The column.
 	 const struct const_Matrix_i*const a ///< Standard.
 	);
 
 /// \brief Set the values of the destination row to that of the source data.
 void set_row_Matrix_d
-	(const ptrdiff_t row,            ///< The destination row.
+	(const ptrdiff_t row,         ///< The destination row.
 	 const struct Matrix_d* dest, ///< The destination Matrix.
 	 const double*const data_src  ///< The source data.
 	);

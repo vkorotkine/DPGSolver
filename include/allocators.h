@@ -7,11 +7,6 @@
 
 #include <stddef.h>
 
-///\{ \name String length definitions.
-#define STRLEN_MAX 508
-#define STRLEN_MIN 60
-///\}
-
 /// \brief Specifies the type of the variable to be used in allocator functions.
 enum TYPE {
 	CHAR_T,

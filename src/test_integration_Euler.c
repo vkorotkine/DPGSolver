@@ -73,11 +73,15 @@ void test_integration_Euler(int nargc, char **argv)
 		                                     .test_name = test_name, };
 
 #if 1
-#if 1
+	#if 1
+		#if 0
 test_integration_linearization("test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
-#else
+		#else
+test_integration_linearization("test/Euler/Test_Euler_SupersonicVortex_CurvedMIXED2D");
+		#endif
+	#else
 		test_integration_linearization("test/Euler/Test_Euler_PeriodicVortex_Stationary_QUAD");
-#endif
+	#endif
 #endif
 		test_linearization(&data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
 #if 0

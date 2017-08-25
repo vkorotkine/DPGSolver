@@ -154,7 +154,7 @@ void reorder_Vector_i (struct Vector_i*const a, const int*const ordering)
 		a->data[i] = b[i];
 }
 
-void reserve_Vector_i (struct Vector_i*const a, const ptrdiff_t ext_0)
+void resize_Vector_i (struct Vector_i*const a, const ptrdiff_t ext_0)
 {
 	const ptrdiff_t size_i = compute_size(1,a->extents);
 	a->extents[0] = ext_0;
@@ -169,6 +169,7 @@ void reserve_Vector_i (struct Vector_i*const a, const ptrdiff_t ext_0)
 		for (ptrdiff_t i = 0; i < size_i; i++)
 			a->data[i] = data_i[i];
 	}
+	free((void*)data_i);
 }
 
 void set_to_zero_Vector_i (struct Vector_i*const a)
@@ -263,7 +264,7 @@ void push_back_Vector_i (struct Vector_i*const src, const int val, const bool so
 	if (!add_val)
 		return;
 
-	reserve_Vector_i(src,src->extents[0]+1);
+	resize_Vector_i(src,src->extents[0]+1);
 	src->data[src->extents[0]-1] = val;
 
 	if (sorted)

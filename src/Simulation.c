@@ -55,6 +55,11 @@ static void set_string_associations
 	(struct Simulation*const sim ///< Standard.
 	);
 
+/// \brief Set the path to the input files.
+static void set_input_path
+	(struct Simulation*const sim ///< Standard.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 struct Simulation* constructor_Simulation ()
@@ -106,6 +111,7 @@ void set_simulation_core (struct Simulation*const sim, const char*const ctrl_nam
 	fclose(ctrl_file);
 
 	set_mesh_parameters(sim);
+	set_input_path(sim);
 
 if (0)
 	set_string_associations(sim);
@@ -206,6 +212,16 @@ static void set_mesh_parameters (struct Simulation*const sim)
 	mesh_name_assemble(sim,&mesh_ctrl_data);
 
 	set_domain_type(sim,&mesh_ctrl_data);
+}
+
+static void set_input_path (struct Simulation*const sim)
+{
+	char* input_path = (char*) sim->input_path;
+
+	strcpy(input_path,"");
+	strcat_path_c(input_path,"input_files",true);
+	strcat_path_c(input_path,sim->pde_name,true);
+	strcat_path_c(input_path,sim->pde_spec,true);
 }
 
 // Level 1 ********************************************************************************************************** //

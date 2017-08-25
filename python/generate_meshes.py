@@ -48,6 +48,10 @@ def add_gmsh_setnumber(gmsh_args,MeshType,Paths):
 	gmsh_args += ' -setnumber PDEName '
 	gmsh_args += get_gmsh_number(gmsh_args,MeshType.PDEName,Paths)
 
+	# PDESpecifier
+	gmsh_args += ' -setnumber PDESpecifier '
+	gmsh_args += get_gmsh_number(gmsh_args,(MeshType.PDESpecifier).replace('/','_'),Paths)
+
 	# MeshCurving
 	gmsh_args += ' -setnumber MeshCurving '
 	gmsh_args += get_gmsh_number(gmsh_args,MeshType.MeshCurving,Paths)

@@ -13,9 +13,17 @@
 
 // Opening files **************************************************************************************************** //
 
-/// \brief Open file and check for successful completion.
+/** \brief Open file and check for successful completion.
+ *	\return See brief. */
 FILE* fopen_checked
 	(const char*const file_name_full ///< File name including full path.
+	);
+
+/** \brief Open the an input file based on the input parameters.
+ *	\return See brief. */
+FILE* fopen_input
+	(const char*const input_path, ///< Full path to the location of the input file.
+	 const char*const input_spec  ///< The input specifier. Options: "geometry".
 	);
 
 // Reading data from the current line ******************************************************************************* //
@@ -82,7 +90,15 @@ void read_skip_const_b
 	 const bool *const var  ///< Variable in which to store data.
 	);
 
-// Setting file names with paths ************************************************************************************ //
+/// \brief Read a `const double*`, optionally skipping strings and optionally removing trailing semicolons.
+void read_skip_const_d
+	(const char*const line,  ///< Line from which to read data.
+	 const double*const var, ///< Variable in which to store data.
+	 const int n_skip,       ///< The number of strings to skip.
+	 const bool remove_semi  ///< Flag for optional removal of semicolon.
+	);
+
+// Setting file names *********************************************************************************************** //
 
 /// \brief Append `src` (char*) to `dest` with optional forward slash ('\').
 void strcat_path_c

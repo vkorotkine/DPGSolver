@@ -95,8 +95,8 @@ void reorder_Vector_i
 	 const int*const ordering ///< The ordering.
 	);
 
-/// \brief Reserve space for a \ref Vector_i\*.
-void reserve_Vector_i
+/// \brief Resize a \ref Vector_i\*.
+void resize_Vector_i
 	(struct Vector_i*const a, ///< Standard.
 	 const ptrdiff_t ext_0    ///< New value for extents[0].
 	);

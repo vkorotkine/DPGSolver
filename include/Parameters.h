@@ -35,6 +35,9 @@
 #include "constants_core.h"
 #include "constants_elements.h"
 #include "constants_bc.h"
+#include "constants_alloc.h"
+#include "constants_tol.h"
+#include "constants_mesh.h"
 
 #ifndef TEST
 	#define TEST 0
@@ -147,19 +150,11 @@
 
 // Tolerances
 #define NODETOL      1.0e-10
-#define NODETOL_MESH 1.0e-5
 
-#define EPS        1.0e-15
 #define EPS_PHYS   1.0e-13
-#define SQRT_EPS   3.162277660168379e-08
 #define CX_STEP    1.0e-30
 #define REFINE_TOL 1.0e-10 // Decrease for additional refinement
 #define COARSE_TOL 1.0e-4 // Increase for additional coarsening
-
-// Min/Max String Lengths
-// Min/Max length slightly less than 2^6, 2^9
-#define STRLEN_MIN 60
-#define STRLEN_MAX 508
 
 
 

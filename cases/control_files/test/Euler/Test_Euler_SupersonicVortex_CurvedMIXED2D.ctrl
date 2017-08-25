@@ -10,7 +10,6 @@ MeshPath      ../meshes/
 MeshType      MIXED2D
 MeshCurving   Curved
 MeshLevel     0
-mesh_generator gmsh
 
 Form       Weak   // Options: Weak, (Strong)
 NodeType   GL-AO // Options: GL/GLL-AO/WSH/EQ
@@ -28,3 +27,6 @@ LevelsMax  7
 Restart    -1    // Options: -1, 0, Iteration #
 
 Testing    1     // Options: 0, 1
+
+mesh_generator gmsh
+MeshDomain     Curved

@@ -36,7 +36,7 @@ NAVIERSTOKES = 3;
 
 
 // PDE Specifiers
-PERIODIC = 0;
+INTERNAL_SUPERSONICVORTEX = 1;
 
 
 // GeomSpecifiers

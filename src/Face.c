@@ -46,11 +46,21 @@ static void destructor_Face
 	(struct Face* face ///< Standard.
 	);
 
+/** \brief Compute the vector of vertex indices for the given local face of the input volume.
+ *	\return See brief. */
+const struct const_Vector_i* compute_ve_inds_f
+	(const struct Volume*const volume,            ///< The input \ref Volume.
+	 const struct const_Vector_i*const ve_inds_v, ///< The vertex indices of the volume.
+	 const int lf                                 ///< The local face under consideration.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 struct Intrusive_List* constructor_Face_List (struct Simulation*const sim, const struct Mesh*const mesh)
 {
 	struct Intrusive_List* faces = constructor_empty_IL();
+
+	const struct const_Multiarray_Vector_i*const node_nums = mesh->mesh_data->node_nums;
 
 	const struct const_Multiarray_Vector_i*const v_to_v  = mesh->mesh_conn->v_to_v,
 	                                      *const v_to_lf = mesh->mesh_conn->v_to_lf;
@@ -63,23 +73,25 @@ struct Intrusive_List* constructor_Face_List (struct Simulation*const sim, const
 		++ind_v;
 	}
 
-print_const_Multiarray_Vector_i(v_to_v);
-print_const_Multiarray_Vector_i(v_to_lf);
 	ptrdiff_t n_f = 0;
 
+print_const_Multiarray_Vector_i(v_to_v);
+print_const_Multiarray_Vector_i(v_to_lf);
 	const ptrdiff_t v_max = sim->n_v;
 	for (ptrdiff_t v = 0; v < v_max; ++v) {
 		struct Volume*const volume_l = volume_array[v];
 
 		const struct const_Vector_i*const v_to_v_V = v_to_v->data[v];
 
+		const ptrdiff_t ind_v = v + mesh->mesh_data->ind_v;
 		const int lf_max = v_to_v_V->extents[0];
 		for (int lf = 0; lf < lf_max; ++lf) {
 			if (volume_l->faces[lf][0] != NULL) // Already found this face.
 				continue;
 
 			const int v_neigh = v_to_v_V->data[lf];
-// set ve_inds from volume->element->f_ve of node_nums->data[ind_v]
+			const struct const_Vector_i*const ve_inds =
+				compute_ve_inds_f(volume_l,node_nums->data[ind_v],lf); // destructed
 
 			struct Face_mesh_info face_mi =
 				{ .element              = get_element_by_face(volume_l->element,lf),
@@ -90,6 +102,8 @@ print_const_Multiarray_Vector_i(v_to_lf);
 				};
 
 			push_back_IL(faces,(struct Intrusive_Link*) constructor_Face(sim,mesh,&face_mi));
+
+			destructor_Vector_i((struct Vector_i*)ve_inds);
 
 			struct Face* face = (struct Face*) faces->last;
 			const_cast_Face(&volume_l->faces[lf][0],face);
@@ -171,6 +185,8 @@ static struct Face* constructor_Face
 			face->neigh_info[i].volume   = NULL;
 		}
 	}
+// set up the ind_ord values.
+EXIT_UNSUPPORTED;
 
 	const_cast_const_Element(&face->element,face_mi->element);
 
@@ -178,6 +194,7 @@ static struct Face* constructor_Face
 	                check_if_boundary_f(face_mi->to_lf,face->element->f_ve,face_mi->ve_inds,mesh_vert));
 	const_cast_bool(&face->curved,
 	                check_if_curved_f(face_mi->to_lf,sim->domain_type,face->element->f_ve,face_mi->ve_inds,mesh_vert));
+	const_cast_i(&face->bc,( face_mi->to_lf > BC_STEP_SC ? face_mi->to_lf : -1 ));
 
 	return face;
 }
@@ -185,6 +202,21 @@ static struct Face* constructor_Face
 static void destructor_Face (struct Face* face)
 {
 	UNUSED(face);
+}
+
+const struct const_Vector_i* compute_ve_inds_f
+	(const struct Volume*const volume, const struct const_Vector_i*const ve_inds_v, const int lf)
+{
+	const struct const_Vector_i*const f_ve_f = volume->element->f_ve->data[lf];
+
+	const ptrdiff_t i_max = f_ve_f->extents[0];
+	struct Vector_i*const ve_inds_f = constructor_empty_Vector_i(i_max); // moved
+	for (ptrdiff_t i = 0; i < i_max; ++i)
+		ve_inds_f->data[i] = ve_inds_v->data[f_ve_f->data[i]];
+
+	const struct const_Vector_i*const dest = NULL;
+	const_constructor_move_Vector_i(&dest,ve_inds_f); // returned
+	return dest;
 }
 
 // Level 1 ********************************************************************************************************** //

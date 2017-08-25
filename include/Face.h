@@ -23,6 +23,8 @@ struct Face {
 	const bool boundary, ///< Flag for whether the face is on a domain boundary.
 	           curved;   ///< Flag for whether the face is curved.
 
+	const int bc;        ///< The boundary condition associated with the face (if relevant).
+
 /// \todo Add this member to Face_Solver.
 //	const char cub_type; /**< Type of cubature to be used for the face. Options: 's'traight, 'c'urved. This should be
 //	                      *   curved whenever an adjacent volume is curved. */

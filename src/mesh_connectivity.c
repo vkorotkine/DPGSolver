@@ -248,7 +248,7 @@ static void compute_f_ve
 			const ptrdiff_t n_n = f_ve_f->extents[0];
 
 			struct Vector_i* f_ve_curr = f_ve->data[ind_f];
-			reserve_Vector_i(f_ve_curr,n_n);
+			resize_Vector_i(f_ve_curr,n_n);
 			for (ptrdiff_t n = 0; n < n_n; ++n)
 				f_ve_curr->data[n] = volume_nums[v]->data[f_ve_f->data[n]];
 			++ind_f;

@@ -33,6 +33,8 @@ struct Mesh_Input {
 	const char* mesh_name_full; ///< Name of the mesh file (including the full path and file extension).
 	const char* geom_name;      ///< Name of the base geometry to be used for the domain.
 	const char* geom_spec;      ///< Additional specifications for the geometry.
+	const char* input_path;     /**< The path to the input file with relevant geometry parameters (required for curved
+	                             *   mesh vertex correction). */
 
 };
 

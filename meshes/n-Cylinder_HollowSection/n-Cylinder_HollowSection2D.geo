@@ -1,17 +1,18 @@
 Include "../Parameters.geo";
-//MeshCurving = TOBECURVED; MeshLevel = 0; MeshType = MIXED2D; PDEName = EULER;
+//MeshCurving = TOBECURVED; MeshLevel = 0; MeshType = MIXED2D; PDEName = EULER; PDESpecifier = INTERNAL_SUPERSONICVORTEX;
 
 // Geometry Specification
-rIn  = 1.000;
-rOut = 1.384;
+If (PDESpecifier == INTERNAL_SUPERSONICVORTEX)
+	Include "../../cases/input_files/Euler/Internal/SupersonicVortex/geometry_parameters.geo";
+EndIf
 
 If (MeshCurving == TOBECURVED)
-	Point(1) = {rIn,0,0,lc};
-	Point(2) = {rOut,0,0,lc};
-	Point(3) = {0,rIn,0,lc};
-	Point(4) = {rIn,rIn,0,lc};
-	Point(5) = {0,rOut,0,lc};
-	Point(6) = {rOut,rOut,0,lc};
+	Point(1) = {r_i,0,0,lc};
+	Point(2) = {r_o,0,0,lc};
+	Point(3) = {0,r_i,0,lc};
+	Point(4) = {r_i,r_i,0,lc};
+	Point(5) = {0,r_o,0,lc};
+	Point(6) = {r_o,r_o,0,lc};
 
 	Line(1001) = {1,2};
 	Line(1002) = {3,5};
@@ -21,12 +22,12 @@ If (MeshCurving == TOBECURVED)
 	Line(1006) = {6,2};
 	Line(1007) = {4,6};
 ElseIf (MeshCurving == CURVED)
-	Point(1) = {rIn,0,0,lc};
-	Point(2) = {rOut,0,0,lc};
-	Point(3) = {0,rIn,0,lc};
-	Point(4) = {Sqrt(0.5)*rIn,Sqrt(0.5)*rIn,0,lc};
-	Point(5) = {0,rOut,0,lc};
-	Point(6) = {Sqrt(0.5)*rOut,Sqrt(0.5)*rOut,0,lc};
+	Point(1) = {r_i,0,0,lc};
+	Point(2) = {r_o,0,0,lc};
+	Point(3) = {0,r_i,0,lc};
+	Point(4) = {Sqrt(0.5)*r_i,Sqrt(0.5)*r_i,0,lc};
+	Point(5) = {0,r_o,0,lc};
+	Point(6) = {Sqrt(0.5)*r_o,Sqrt(0.5)*r_o,0,lc};
 	Point(7) = {0,0,0,lc};
 
 	Line(1001)   = {1,2};

@@ -351,7 +351,7 @@ static void fill_elements (const ptrdiff_t row, struct Element_Data*const elem_d
 	read_line_values_i(&line,n_tags,get_row_Matrix_i(row,elem_data->elem_tags),false);
 
 	int n_nodes = get_n_nodes(elem_data->elem_types->data[row]);
-	reserve_Vector_i(elem_data->node_nums->data[row],n_nodes);
+	resize_Vector_i(elem_data->node_nums->data[row],n_nodes);
 
 	read_line_values_i(&line,n_nodes,elem_data->node_nums->data[row]->data,true);
 	reorder_nodes(elem_data->elem_types->data[row],elem_data->node_nums->data[row]);
