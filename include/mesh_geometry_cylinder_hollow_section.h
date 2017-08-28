@@ -7,8 +7,8 @@
  *	\todo Add general comments for the header file here.
  */
 
-#include "Vector.h"
-#include "Matrix.h"
+struct const_Vector_i;
+struct Matrix_d;
 
 /// \brief Snaps vertices to the cylinder hollow section geometry.
 void mesh_snap_to_cylinder__hollow_section

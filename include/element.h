@@ -9,7 +9,7 @@
  *	\note `const` and non-`const` versions of \ref Element must have identical members and layout.
  */
 
-#include "Intrusive.h"
+#include "intrusive.h"
 
 /// \brief Container for data relating to the base Elements.
 struct Element {

@@ -7,7 +7,7 @@
  *	Provides the interface to mesh vertex containers and functions.
  */
 
-#include "Mesh.h"
+#include "mesh.h"
 
 /// \brief Container for additional information relating to the mesh vertices.
 struct Mesh_Vertices {

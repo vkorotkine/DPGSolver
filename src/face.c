@@ -3,16 +3,20 @@
 /**	\file
  */
 
-#include "Face.h"
-#include "Intrusive.h"
-#include "Simulation.h"
-#include "Mesh.h"
+#include "face.h"
+#include "intrusive.h"
+
+
+
+#include "simulation.h"
+#include "mesh.h"
 
 #include <stdlib.h>
 
 #include "Macros.h"
 
-#include "Volume.h"
+#include "volume.h"
+#include "element.h"
 
 #include "const_cast.h"
 

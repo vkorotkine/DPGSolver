@@ -2,7 +2,7 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 ///	\file
 
-#include "Intrusive.h"
+#include "intrusive.h"
 
 #include <stddef.h>
 #include <stdlib.h>

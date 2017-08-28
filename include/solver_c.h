@@ -7,10 +7,8 @@
  *	\brief Provide solver related functions for complex datatypes.
  */
 
-#include "Multiarray.h"
-#include "containers_c.h"
-#include "Simulation.h"
-#include "solver.h"
+struct Simulation;
+struct S_solver_info;
 
 struct Element_Solver_c;
 struct Volume_Solver_c;

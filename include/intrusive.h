@@ -12,6 +12,14 @@
  *	\todo Add comments.
  */
 
+// Required includes
+
+// Redundant includes
+
+// Forward declarations
+
+// ****************************************************************************************************************** //
+
 /// \brief A doubly-linked list structure to hold intrusive containers.
 struct Intrusive_List {
 	struct Intrusive_Link* first; ///< Pointer to the first \ref Intrusive_Link\* in the list.

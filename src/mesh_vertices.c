@@ -13,9 +13,9 @@
 #include "constants_mesh.h"
 #include "constants_bc.h"
 
-#include "Element.h"
-#include "Multiarray.h"
-#include "Vector.h"
+#include "element.h"
+#include "multiarray.h"
+#include "vector.h"
 
 #include "mesh_geometry_cylinder_hollow_section.h"
 

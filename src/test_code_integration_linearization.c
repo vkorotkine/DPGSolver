@@ -34,7 +34,7 @@
 #include "explicit_VOLUME_info_c.h" // ToBeDeleted
 #include "explicit_FACE_info_c.h" // ToBeDeleted
 #include "finalize_RHS_c.h" // ToBeDeleted
-#include "Simulation.h" // ToBeDeleted
+#include "simulation.h" // ToBeDeleted
 
 #include "array_norm.h"
 

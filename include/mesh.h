@@ -1,8 +1,8 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#ifndef DPG__set_up_mesh_h__INCLUDED
-#define DPG__set_up_mesh_h__INCLUDED
+#ifndef DPG__mesh_h__INCLUDED
+#define DPG__mesh_h__INCLUDED
 /**	\file
  *	\brief Provides an interface for reading a mesh file.
  *
@@ -19,7 +19,7 @@
 struct Mesh_Input;
 struct Mesh;
 
-#include "Intrusive.h"
+#include "intrusive.h"
 #include "mesh_readers.h"
 #include "mesh_connectivity.h"
 #include "mesh_vertices.h"
@@ -69,4 +69,4 @@ ptrdiff_t get_first_volume_index
 	 const int d                                     ///< Defined in \ref Conn_info.
 	);
 
-#endif // DPG__set_up_mesh_h__INCLUDED
+#endif // DPG__mesh_h__INCLUDED

@@ -9,9 +9,9 @@
 
 #include <stddef.h>
 
-#include "Multiarray.h"
-#include "Matrix.h"
-#include "Vector.h"
+#include "multiarray.h"
+#include "matrix.h"
+#include "vector.h"
 
 /** \brief Holds data read from the mesh file.
  *

@@ -6,12 +6,12 @@
 
 #include <string.h>
 
-#include "Simulation.h"
-#include "Intrusive.h"
-#include "Element.h"
-#include "Mesh.h"
-#include "Volume.h"
-#include "Face.h"
+#include "simulation.h"
+#include "intrusive.h"
+#include "element.h"
+#include "mesh.h"
+#include "volume.h"
+#include "face.h"
 
 #include "Macros.h"
 

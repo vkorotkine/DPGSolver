@@ -12,10 +12,10 @@
 #include "constants_bc.h"
 #include "Macros.h"
 
-#include "Multiarray.h"
-#include "Matrix.h"
-#include "Vector.h"
-#include "Mesh.h"
+#include "multiarray.h"
+#include "matrix.h"
+#include "vector.h"
+#include "mesh.h"
 
 // Static function declarations ************************************************************************************* //
 

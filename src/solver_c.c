@@ -2,9 +2,9 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
 #include "solver_c.h"
-#include "Multiarray.h"
+#include "multiarray.h"
 #include "containers_c.h"
-#include "Simulation.h"
+#include "simulation.h"
 #include "solver.h"
 
 #include <stdlib.h>

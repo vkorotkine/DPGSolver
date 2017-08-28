@@ -3,24 +3,25 @@
 /**	\file
  */
 
-#include "Volume.h"
-#include "Intrusive.h"
-#include "Matrix.h"
-#include "Simulation.h"
-#include "Mesh.h"
+#include "volume.h"
 #include "constants_elements.h"
+#include "intrusive.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
 
 #include "Macros.h"
-
-#include "Multiarray.h"
-#include "Vector.h"
-#include "const_cast.h"
-
 #include "constants_mesh.h"
 #include "constants_bc.h"
+
+#include "simulation.h"
+#include "mesh.h"
+#include "const_cast.h"
+#include "face.h"
+#include "element.h"
+#include "multiarray.h"
+#include "matrix.h"
+#include "vector.h"
 
 // Static function declarations ************************************************************************************* //
 

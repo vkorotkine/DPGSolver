@@ -3,20 +3,21 @@
 ///	\file
 
 #include "mesh_readers.h"
-#include "Multiarray.h"
-#include "Matrix.h"
-#include "Vector.h"
+#include "multiarray.h"
+#include "matrix.h"
+#include "vector.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 #include "Macros.h"
-#include "Mesh.h"
+#include "mesh.h"
 #include "file_processing.h"
 #include "allocators.h"
 #include "const_cast.h"
 
 #include "constants_core.h"
+#include "constants_alloc.h"
 #include "constants_elements.h"
 
 // Static function declarations ************************************************************************************* //

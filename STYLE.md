@@ -26,12 +26,20 @@ int const*const p = NULL; // avoid
 
 
 #### Header files
-- What they contain: Function prototypes and minimum required headers needed by these function prototypes.
-- To ensure that the required headers have been included, the header file associated with the source file must be the first one listed.
-- Any other headers on which the source is dependent are to be included in the source file.
-	- Special note: If a user-defined header is already included in the source file as part of the first header, it is recommended to provide a redundant include statement in the source file as well. This is required for the dependency generation.
+- What they contain: Function/struct declarations and constant definition headers needed by these declarations.
+- Nesting of header files should be avoided where possible (including headers within headers) as this results in
+  complicated dependency treatment which is difficult to track correctly using the current dependency generation
+  mechanism. If a header is needed in a file (.c) and is included indirectly through a header, it will **not** be
+  present in the dependency file (.d).
+	- I believe that the nested dependencies can be handled by CMake which should be used in future, although I have not
+	  tested this extensively.
+	- This results in:
+		- repeated declaration of structs, but limits hidden dependency propagation.
+	- The *only* exceptions to this rule are:
+		- the inclusion of headers defining constants (as they cannot be declared extern). In this case, any constant
+		  definition headers should be redundantly reincluded in the associated '.c' file immediately following the
+		  primary header inclusion.
+		- the inclusion of header files defining structs which are members of structs declared in the header. **Ensure
+		  that the nested dependencies are redundantly included in all header (.h) and source (.c) files!**.
 - This [discussion](http://stackoverflow.com/questions/1804486/should-i-use-include-in-headers) motivates these
 recommendations.
-- To find struct header (S_*.h) dependencies hidden through the inclusion of other header files, use the following example search command in the src directory:
-	- Check if 'S_ELEMENT' is found while 'S_ELEMENT.h' is not found:
-	- $ find . -name "*.c" -exec grep -lR 'S_ELEMENT' {} \; | xargs grep -L 'S_ELEMENT.h'

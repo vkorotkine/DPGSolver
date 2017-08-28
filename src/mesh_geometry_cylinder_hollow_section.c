@@ -4,8 +4,8 @@
  */
 
 #include "mesh_geometry_cylinder_hollow_section.h"
-#include "Vector.h"
-#include "Matrix.h"
+#include "vector.h"
+#include "matrix.h"
 
 #include <stdlib.h>
 #include <math.h>

@@ -10,14 +10,12 @@
  */
 
 #include <stdbool.h>
-
-#include "Intrusive.h"
-#include "Matrix.h"
-
-#include "Simulation.h"
-#include "Mesh.h"
-
 #include "constants_elements.h"
+#include "intrusive.h"
+#include "simulation.h"
+#include "mesh.h"
+
+// ****************************************************************************************************************** //
 
 /// \brief Container for data relating to the base Volumes.
 struct Volume {

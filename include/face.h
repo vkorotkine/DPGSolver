@@ -10,11 +10,9 @@
  */
 
 #include <stdbool.h>
-
-#include "Intrusive.h"
-
-#include "Simulation.h"
-#include "Mesh.h"
+#include "intrusive.h"
+#include "simulation.h"
+#include "mesh.h"
 
 /// \brief Container for data relating to the base Faces.
 struct Face {

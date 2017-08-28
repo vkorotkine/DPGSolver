@@ -4,7 +4,7 @@
 
 #include "mesh_connectivity.h"
 #include "mesh_readers.h"
-#include "Intrusive.h"
+#include "intrusive.h"
 
 #include <limits.h>
 
@@ -13,11 +13,11 @@
 #include "constants_bc.h"
 #include "Macros.h"
 
-#include "Multiarray.h"
-#include "Vector.h"
-#include "Element.h"
+#include "multiarray.h"
+#include "vector.h"
+#include "element.h"
 
-#include "Mesh.h"
+#include "mesh.h"
 #include "mesh_periodic.h"
 #include "const_cast.h"
 #include "allocators.h"

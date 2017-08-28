@@ -8,10 +8,10 @@
  */
 
 #include "mesh_readers.h"
-#include "Intrusive.h"
+#include "intrusive.h"
 
-#include "Multiarray.h"
-#include "Vector.h"
+#include "multiarray.h"
+#include "vector.h"
 
 /// \brief The number of 'M'aster and 'S'lave entities (always two but defined to avoid use of the magic number).
 #define N_MS 2

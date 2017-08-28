@@ -32,7 +32,7 @@
  */
 
 #include "set_up_operators.h"
-#include "Simulation.h"
+#include "simulation.h"
 
 #include <stdlib.h>
 #include <stdio.h>

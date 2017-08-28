@@ -10,7 +10,7 @@
 #include "S_OpCSR.h"
 #include "matrix_structs.h"
 
-#include "Simulation.h"
+#include "simulation.h"
 
 
 /** \brief Struct holding data related to the base Element. */

@@ -11,7 +11,7 @@
 
 #include "Macros.h"
 
-#include "Multiarray.h"
+#include "multiarray.h"
 
 struct Multiarray_c* constructor_empty_Multiarray_c_1 (const char layout, const int order, ...)
 {
