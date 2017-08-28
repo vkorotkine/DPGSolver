@@ -3,7 +3,6 @@
 
 #ifndef DPG__S_ELEMENT_h__INCLUDED
 #define DPG__S_ELEMENT_h__INCLUDED
-/// \file
 
 #include <stdbool.h>
 

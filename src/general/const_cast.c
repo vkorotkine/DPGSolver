@@ -3,8 +3,6 @@
 ///	\file
 
 #include "const_cast.h"
-#include "element.h"
-#include "face.h"
 
 // Standard data types ********************************************************************************************** //
 

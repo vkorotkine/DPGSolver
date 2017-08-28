@@ -6,8 +6,8 @@
  \todo Complete this.
  */
 
-#include "Mesh.h"
-#include "Intrusive.h"
+#include "mesh.h"
+#include "intrusive.h"
 #include "mesh_readers.h"
 #include "mesh_connectivity.h"
 
@@ -15,7 +15,7 @@
 #include <string.h>
 
 #include "Macros.h"
-#include "Element.h"
+#include "element.h"
 
 #include "file_processing.h"
 

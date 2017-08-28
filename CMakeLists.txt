@@ -1,0 +1,21 @@
+cmake_minimum_required(VERSION 3.5.1)
+
+message("Running cmake with build type: ${CMAKE_BUILD_TYPE}.\n")
+
+project(DPGSolver)
+
+
+set(DPGSolver_VERSION_MAJOR 1)
+set(DPGSolver_VERSION_MINOR 0)
+set(DPGSolver_VERSION "${DPGSolver_VERSION_MAJOR}.${DPGSolver_VERSION_MINOR}")
+
+
+# Global includes
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
+include(functions)
+
+# Include subdirectory CMakeLists.txt files
+include_directories("include")
+
+add_subdirectory(src)
+add_subdirectory(doc)

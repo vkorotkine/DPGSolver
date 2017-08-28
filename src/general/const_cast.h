@@ -14,15 +14,8 @@
  *			- Options: i, ptrdiff, bool, const_Element.
  */
 
-// Required includes
 #include <stddef.h>
 #include <stdbool.h>
-
-// Redundant includes
-
-// Forward declarations
-
-// ****************************************************************************************************************** //
 
 // Standard data types ********************************************************************************************** //
 

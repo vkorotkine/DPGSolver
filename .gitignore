@@ -50,3 +50,5 @@ python/*.txt
 
 doc/*
 !doc/default_doxygen.cfg
+
+build/*

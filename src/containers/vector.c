@@ -2,7 +2,7 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 /// \file
 
-#include "Vector.h"
+#include "vector.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +11,7 @@
 #include "Macros.h"
 
 #include "allocators.h"
-#include "Multiarray.h"
+#include "multiarray.h"
 
 // Static function declarations ************************************************************************************* //
 

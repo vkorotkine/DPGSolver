@@ -1,14 +1,14 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#include "Multiarray.h"
+#include "multiarray.h"
 
 #include <string.h>
 
 #include "Macros.h"
 
 #include "allocators.h"
-#include "Vector.h"
+#include "vector.h"
 
 // Static function declarations ************************************************************************************* //
 

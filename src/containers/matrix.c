@@ -3,7 +3,7 @@
 /** \file
  */
 
-#include "Matrix.h"
+#include "matrix.h"
 
 #include <stdlib.h>
 #include <string.h>

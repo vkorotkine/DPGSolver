@@ -2,14 +2,14 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 ///	\file
 
-#include "Element.h"
-#include "Intrusive.h"
+#include "element.h"
+#include "intrusive.h"
 
 #include <string.h>
 
 #include "constants_elements.h"
 #include "Macros.h"
-#include "Multiarray.h"
+#include "multiarray.h"
 #include "const_cast.h"
 
 // Static function declarations ************************************************************************************* //

@@ -3,7 +3,7 @@
 /**	\file
  */
 
-#include "Simulation.h"
+#include "simulation.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -11,9 +11,9 @@
 #include <stdbool.h>
 
 #include "Macros.h"
-#include "Element.h"
-#include "Volume.h"
-#include "Face.h"
+#include "element.h"
+#include "volume.h"
+#include "face.h"
 
 #include "file_processing.h"
 #include "const_cast.h"
