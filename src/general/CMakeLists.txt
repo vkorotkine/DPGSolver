@@ -1,4 +1,7 @@
-set(SOURCE const_cast.c
-   )
+set	(SOURCE
+	 const_cast.c
+	 file_processing.c
+	 math_functions.c
+	)
 
 add_library(General ${SOURCE})

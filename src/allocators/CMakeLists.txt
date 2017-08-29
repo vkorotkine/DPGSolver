@@ -1,4 +1,5 @@
-set(SOURCE allocators.c allocators.h
-   )
+set	(SOURCE
+	 allocators.c
+   	)
 
 add_library(Allocators ${SOURCE})

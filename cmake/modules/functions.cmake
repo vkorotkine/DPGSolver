@@ -79,3 +79,11 @@ function(add_external_project proj_name)
 
 	add_to_env(EXTRA_LIBS gtest_main)
 endfunction()
+
+# Print all include_directories from the current_source_dir
+function (print_include_dirs)
+	get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+	foreach(dir ${dirs})
+		message("dir='${dir}'")
+	endforeach()
+endfunction()
