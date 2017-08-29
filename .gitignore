@@ -1,14 +1,10 @@
 bin/*
-obj/*
-depend/*
+deprecated/obj/*
+deprecated/depend/*
 configure/user_configure.mk
-src/*~
-src/*.swp
-src/data_processing/*.swp
 src/data_processing/*.out
 src/data_processing/*.txt
 src/data_processing/NavierStokes/*.txt
-src/support_functions/*.swp
 src/support_functions/*.out
 src/support_functions/*.txt
 *~
@@ -23,15 +19,7 @@ cases/.lipo
 cases/*.sh
 !cases/sample.sh
 
-meshes/Poisson/*
-meshes/PeriodicVortex/*
-meshes/VortexRiemann/*
-meshes/SupersonicVortex/*
-meshes/dSphericalBump/*
-meshes/GaussianBump/*
-meshes/PolynomialBump/*
-meshes/Test/*
-cases/*.swp
+meshes/Gmsh_files/*
 cases/logfile
 cases/errorfile*
 cases/outputfile*

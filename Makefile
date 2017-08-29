@@ -37,7 +37,7 @@ endif
 include configure/user_configure.mk
 
 
-LOCAL_INC := -I./include
+LOCAL_INC := -I./deprecated/include
 
 ifeq ($(MKL_INTERFACE_LAYER),32)
     MKL_INC := 
@@ -62,10 +62,10 @@ INCS := $(LOCAL_INC) $(MKL_INC) $(PETSC_INC) $(PARMETIS_INC) $(METIS_INC)
 
 EXECUTABLE := DPGSolver.exe
 
-SRCDIR  := src
-INCDIR  := include
-OBJDIR  := obj
-DEPDIR  := depend
+SRCDIR  := deprecated/src
+INCDIR  := deprecated/include
+OBJDIR  := deprecated/obj
+DEPDIR  := deprecated/depend
 EXECDIR := bin
 CTRLDIR := cases/control_files
 MESHDIR := meshes

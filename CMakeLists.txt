@@ -21,7 +21,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 include(functions)
 
 # Include subdirectory CMakeLists.txt files
-include_directories("include")
+include_directories(src)
 
 add_subdirectory(src)
 add_subdirectory(doc)
