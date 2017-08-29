@@ -72,15 +72,9 @@ static void add_bc_info
 	 struct Mesh_Connectivity_l*const mesh_conn_l ///< The \ref Mesh_Connectivity_l.
 	);
 
-/** \brief Constructor for the \ref Mesh_Connectivity.
- *	\return Standard. */
-static struct Mesh_Connectivity* constructor_Mesh_Connectivity
-	(const struct Mesh_Connectivity_l*const mesh_conn_l ///< The \ref Mesh_Connectivity_l.
-	);
-
 // Interface functions ********************************************************************************************** //
 
-struct Mesh_Connectivity* mesh_connect
+struct Mesh_Connectivity* constructor_Mesh_Connectivity
 	(const struct Mesh_Data*const mesh_data, const struct const_Intrusive_List* elements)
 {
 	if (elements == NULL)
@@ -97,9 +91,13 @@ struct Mesh_Connectivity* mesh_connect
 	destructor_Vector_i(conn_info->ind_f_ve);
 	destructor_Conn_info(conn_info);
 
-	struct Mesh_Connectivity* mesh_connectivity = constructor_Mesh_Connectivity(&mesh_conn_l); // keep
 
-	return mesh_connectivity;
+	struct Mesh_Connectivity* mesh_conn = malloc(sizeof *mesh_conn); // returned
+
+	const_constructor_move_Multiarray_Vector_i(&mesh_conn->v_to_v,mesh_conn_l.v_to_v);
+	const_constructor_move_Multiarray_Vector_i(&mesh_conn->v_to_lf,mesh_conn_l.v_to_lf);
+
+	return mesh_conn;
 }
 
 void destructor_Mesh_Connectivity (struct Mesh_Connectivity* mesh_conn)
@@ -112,7 +110,7 @@ void destructor_Mesh_Connectivity (struct Mesh_Connectivity* mesh_conn)
 
 void set_f_node_nums (struct Vector_i**const f_node_nums, const struct const_Vector_i*const node_nums)
 {
-	*f_node_nums = constructor_copy_Vector_i_i(node_nums->extents[0],node_nums->data);
+	*f_node_nums = constructor_copy_Vector_i_i(node_nums->ext_0,node_nums->data);
 	sort_Vector_i(*f_node_nums);
 }
 
@@ -195,7 +193,7 @@ static void update_v_to_lf_bc
 static struct Conn_info* constructor_Conn_info
 	(const struct Mesh_Data*const mesh_data, const struct const_Intrusive_List*const elements)
 {
-	const ptrdiff_t d = mesh_data->nodes->extents[1];
+	const ptrdiff_t d = mesh_data->nodes->ext_1;
 
 	const struct const_Vector_i*const elem_per_dim = mesh_data->elem_per_dim;
 
@@ -245,7 +243,7 @@ static void compute_f_ve
 		const struct const_Element*const element = get_element_by_type(elements,volume_types->data[v]);
 		for (ptrdiff_t f = 0, f_max = conn_info->v_n_lf->data[v]; f < f_max; ++f) {
 			const struct const_Vector_i*const f_ve_f = element->f_ve->data[f];
-			const ptrdiff_t n_n = f_ve_f->extents[0];
+			const ptrdiff_t n_n = f_ve_f->ext_0;
 
 			struct Vector_i* f_ve_curr = f_ve->data[ind_f];
 			resize_Vector_i(f_ve_curr,n_n);
@@ -267,13 +265,13 @@ static void compute_v_to__v_lf (const struct Conn_info*const conn_info, struct M
 
 	const ptrdiff_t d   = conn_info->d,
 	                n_v = conn_info->elem_per_dim->data[d],
-	                n_f = ind_f_ve_V->extents[0];
+	                n_f = ind_f_ve_V->ext_0;
 
 	struct Vector_i* v_n_lf = conn_info->v_n_lf;
 
 	// Store global volume and local face indices corresponding to each global face (reordered).
-	int* ind_v_i  = mallocator(UINT_T,1,n_f); // moved
-	int* ind_lf_i = mallocator(UINT_T,1,n_f); // moved
+	int* ind_v_i  = mallocator(INT_T,1,n_f); // moved
+	int* ind_lf_i = mallocator(INT_T,1,n_f); // moved
 
 	for (ptrdiff_t ind_vf = 0, v = 0; v < n_v; ++v) {
 		const ptrdiff_t lf_max = v_n_lf->data[v];
@@ -291,8 +289,8 @@ static void compute_v_to__v_lf (const struct Conn_info*const conn_info, struct M
 	reorder_Vector_i(ind_lf_V,ind_f_ve_V->data);
 
 	// Compute v_to_v and v_to_lf
-	int* v_to_v_i  = mallocator(UINT_T,1,n_f); // free
-	int* v_to_lf_i = mallocator(UINT_T,1,n_f); // free
+	int* v_to_v_i  = mallocator(INT_T,1,n_f); // free
+	int* v_to_lf_i = mallocator(INT_T,1,n_f); // free
 
 	struct Multiarray_Vector_i* f_ve = conn_info->f_ve;
 	const int*const ind_f_ve_i = ind_f_ve_V->data;
@@ -368,7 +366,7 @@ static void add_bc_info
 	struct Boundary_Face*const f_curr = malloc(sizeof *f_curr); // free
 	f_curr->bc = -1;
 
-	const ptrdiff_t n_f = v_to_lf_V->extents[0];
+	const ptrdiff_t n_f = v_to_lf_V->ext_0;
 	for (ptrdiff_t n = 0; n < n_f; ++n) {
 		const ptrdiff_t f = ind_f_ve_i[n];
 		if (v_to_lf_i[f] != -1)
@@ -386,16 +384,6 @@ static void add_bc_info
 
 	destructor_Vector_i(v_to_lf_V);
 	destructor_Boundary_Face_Info(bf_info);
-}
-
-static struct Mesh_Connectivity* constructor_Mesh_Connectivity (const struct Mesh_Connectivity_l*const mesh_conn_l)
-{
-	struct Mesh_Connectivity* mesh_conn = malloc(sizeof *mesh_conn); // returned
-
-	const_constructor_move_Multiarray_Vector_i(&mesh_conn->v_to_v,mesh_conn_l->v_to_v);
-	const_constructor_move_Multiarray_Vector_i(&mesh_conn->v_to_lf,mesh_conn_l->v_to_lf);
-
-	return mesh_conn;
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -432,7 +420,7 @@ static ptrdiff_t compute_sum_n_f
 	(const struct const_Intrusive_List*const elements, const struct const_Vector_i*const volume_types)
 {
 	ptrdiff_t sum_n_f = 0;
-	for (ptrdiff_t v = 0, v_max = volume_types->extents[0]; v < v_max; ++v) {
+	for (ptrdiff_t v = 0, v_max = volume_types->ext_0; v < v_max; ++v) {
 		const struct const_Element*const element = get_element_by_type(elements,volume_types->data[v]);
 		sum_n_f += element->n_f;
 	}
@@ -506,7 +494,7 @@ static ptrdiff_t count_boundary_faces
 
 static void reorder_b_faces (struct Boundary_Face**const b_faces, struct Vector_i* ordering)
 {
-	const ptrdiff_t n_bf = compute_size(1,ordering->extents);
+	const ptrdiff_t n_bf = ordering->ext_0;
 
 	struct Boundary_Face** b_faces_cpy = constructor_b_faces(n_bf,b_faces); // destructed
 
@@ -540,7 +528,7 @@ static void update_v_to_lf_bc (struct Multiarray_Vector_i*const v_to_lf, const i
 	for (ptrdiff_t i = 0; i < i_max; ++i) {
 		struct Vector_i* v_to_lf_curr = v_to_lf->data[i];
 		int*const data = v_to_lf_curr->data;
-		const ptrdiff_t j_max = compute_size(1,v_to_lf_curr->extents);
+		const ptrdiff_t j_max = v_to_lf_curr->ext_0;
 		for (ptrdiff_t j = 0; j < j_max; ++j) {
 			if (data[j] == -1)
 				data[j] = v_to_lf_i[count];
@@ -617,7 +605,7 @@ static struct Boundary_Face* constructor_empty_Boundary_Face (struct Boundary_Fa
 	struct Boundary_Face* bf = malloc(sizeof *bf); // returned
 
 	bf->bc        = src->bc;
-	bf->node_nums = constructor_empty_Vector_i(src->node_nums->extents[0]);
+	bf->node_nums = constructor_empty_Vector_i(src->node_nums->ext_0);
 
 	return bf;
 }

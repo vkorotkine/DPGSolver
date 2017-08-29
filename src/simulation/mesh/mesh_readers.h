@@ -42,15 +42,16 @@ struct Mesh_Data {
 	const struct const_Matrix_i*const periodic_corr;
 };
 
+/** \brief Constructor for the \ref Mesh_Data from the input mesh file.
+ *	\return Standard. */
+struct Mesh_Data* constructor_Mesh_Data
+	(const char*const mesh_name_full, ///< Mesh file name.
+	 const int d                      ///< Dimension.
+	);
+
 /// \brief Destructor for \ref Mesh_Data\*.
 void destructor_Mesh_Data
 	(struct Mesh_Data* mesh_data ///< Standard.
-	);
-
-/// \brief Set the mesh data from the input mesh file.
-struct Mesh_Data* mesh_reader
-	(const char*const mesh_name_full, ///< Mesh file name.
-	 const int d                      ///< Dimension.
 	);
 
 #endif // DPG__mesh_readers_h__INCLUDED

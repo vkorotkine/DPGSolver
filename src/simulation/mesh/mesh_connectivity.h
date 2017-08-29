@@ -40,8 +40,9 @@ struct Mesh_Connectivity {
 	const struct const_Multiarray_Vector_i*const v_to_lf;
 };
 
-/// \brief Set up the mesh connectivity.
-struct Mesh_Connectivity* mesh_connect
+/** \brief Constructor for the \ref Mesh_Connectivity.
+ *	\return Standard. */
+struct Mesh_Connectivity* constructor_Mesh_Connectivity
 	(const struct Mesh_Data*const mesh_data,     ///< \ref Mesh_Data.
 	 const struct const_Intrusive_List* elements ///< The base \ref Element list.
 	);

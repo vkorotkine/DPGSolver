@@ -9,10 +9,26 @@
 
 #include "Macros.h"
 
-static void* mallocator_local (const enum TYPE type, const size_t order, const size_t*const N);
-void deallocator_local (void* a, const enum TYPE type, const size_t order, const size_t*const N);
+// Static function declarations ************************************************************************************* //
 
-void* mallocator (const enum TYPE type, const size_t order, ...)
+/// \brief Perform allocation of arrays of standard data types using malloc.
+static void* mallocator_local
+	(const enum Variable_Type type, ///< Defined in \ref mallocator.
+	 const int order,               ///< Defined in \ref mallocator.
+	 const ptrdiff_t*const N        ///< The array of variadic arguments passed to \ref mallocator.
+	);
+
+/// \brief Perform deallocation of arrays of standard data types.
+static void deallocator_local
+	(void* a,                       ///< Define in \ref deallocator.
+	 const enum Variable_Type type, ///< Define in \ref deallocator.
+	 const int order,               ///< Define in \ref deallocator.
+	 const ptrdiff_t*const N        ///< The array of variadic arguments passed to \ref deallocator.
+	);
+
+// Interface functions ********************************************************************************************** //
+
+void* mallocator (const enum Variable_Type type, const int order, ...)
 {
 	if (!order)
 		EXIT_UNSUPPORTED;
@@ -20,16 +36,16 @@ void* mallocator (const enum TYPE type, const size_t order, ...)
 	va_list ap;
 	va_start(ap,order); // free
 
-	size_t N[order];
-	for (size_t i = 0; i < order; i++)
-		N[i] = va_arg(ap,size_t);
+	ptrdiff_t N[order];
+	for (ptrdiff_t i = 0; i < order; i++)
+		N[i] = va_arg(ap,ptrdiff_t);
 
 	va_end(ap);
 
 	return mallocator_local(type,order,N);
 }
 
-void deallocator (void* a, const enum TYPE type, const size_t order, ...)
+void deallocator (void* a, const enum Variable_Type type, const int order, ...)
 {
 	if (!order)
 		EXIT_UNSUPPORTED;
@@ -37,22 +53,21 @@ void deallocator (void* a, const enum TYPE type, const size_t order, ...)
 	va_list ap;
 	va_start(ap,order); // free
 
-	size_t N[order];
-	for (size_t i = 0; i < order; i++)
-		N[i] = va_arg(ap,size_t);
+	ptrdiff_t N[order];
+	for (ptrdiff_t i = 0; i < order; i++)
+		N[i] = va_arg(ap,ptrdiff_t);
 
 	va_end(ap);
 
 	deallocator_local(a,type,order,N);
 }
 
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
 
-// Static functions
-
-static void* mallocator_local (const enum TYPE type, const size_t order, const size_t*const N)
+static void* mallocator_local (const enum Variable_Type type, const int order, const ptrdiff_t*const N)
 {
-	// It was not possible to make this function more compact as the 'variable type' cannot be passed.
-	const size_t index = order-1;
+	const ptrdiff_t index = order-1;
 
 	switch (type) {
 	case CHAR_T:
@@ -63,8 +78,8 @@ static void* mallocator_local (const enum TYPE type, const size_t order, const s
 			break;
 		} case 2: {
 			char** A = malloc(N[index] * sizeof *A);
-			for (size_t i = 0; i < N[index]; i++)
-				A[i] = mallocator_local(CHAR_T,index,N);
+			for (ptrdiff_t i = 0; i < N[index]; i++)
+				A[i] = mallocator_local(type,index,N);
 			return A;
 			break;
 		} case 0: default:
@@ -72,10 +87,10 @@ static void* mallocator_local (const enum TYPE type, const size_t order, const s
 			break;
 		}
 		break;
-	case UINT_T:
+	case INT_T:
 		switch (order) {
 		case 1: {
-			unsigned int* A = malloc(N[index] * sizeof *A);
+			int* A = malloc(N[index] * sizeof *A);
 			return A;
 			break;
 		} case 0: default:
@@ -94,10 +109,10 @@ static void* mallocator_local (const enum TYPE type, const size_t order, const s
 			break;
 		}
 		break;
-	case SIZE_T_T:
+	case PTRDIFF_T:
 		switch (order) {
 		case 1: {
-			size_t* A = malloc(N[index] * sizeof *A);
+			ptrdiff_t* A = malloc(N[index] * sizeof *A);
 			return A;
 			break;
 		} case 0: default:
@@ -111,24 +126,33 @@ static void* mallocator_local (const enum TYPE type, const size_t order, const s
 	}
 }
 
-void deallocator_local (void* a, const enum TYPE type, const size_t order, const size_t*const N)
+static void deallocator_local (void* a, const enum Variable_Type type, const int order, const ptrdiff_t*const N)
 {
-	const size_t index = order-1;
+	const ptrdiff_t index = order-1;
+
+	if (order == 1) {
+		free(a);
+		return;
+	}
 
 	switch (type) {
 	case CHAR_T:
 		switch (order) {
-		case 1: {
-			char* b = a;
-			free(b);
-			break;
-		} case 2: {
+		case 2: {
 			char** b = a;
-			for (size_t i = 0; i < N[index]; i++)
+			for (ptrdiff_t i = 0; i < N[index]; i++)
 				deallocator_local(b[i],type,index,N);
 			free(b);
 			break;
-		} case 0:
+		} case 0: case 1:
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+		break;
+	case INT_T:
+		switch (order) {
+		case 0: case 1:
 		default:
 			EXIT_UNSUPPORTED;
 			break;

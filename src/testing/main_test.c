@@ -1,8 +1,6 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 /** \file
- *
- *	This function provides the main interface to run **all** currently supported tests.
  */
 
 #include <stdio.h>
@@ -12,7 +10,12 @@
 #include "test_info.h"
 #include "test_integration_euler.h"
 
-int main (int nargc, char** argv)
+/** \brief Provides the main interface to run **all** currently supported tests.
+ *	\return 0. */
+int main
+	(int nargc,  ///< Standard.
+	 char** argv ///< Standard.
+	)
 {
 	struct Test_Info test_info = { .nargc = nargc, .argv = argv, .n_test = 0, .n_pass = 0, .n_warn = 0, };
 

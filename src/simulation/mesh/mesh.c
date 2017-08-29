@@ -21,19 +21,15 @@
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Constructor for a \ref Mesh.
- *	\return Standard. */
-struct Mesh* constructor_Mesh ();
-
 // Interface functions ********************************************************************************************** //
 
-struct Mesh* set_up_mesh (const struct Mesh_Input* mesh_input, const struct const_Intrusive_List* elements)
+struct Mesh* constructor_Mesh (const struct Mesh_Input* mesh_input, const struct const_Intrusive_List* elements)
 {
-	struct Mesh* mesh = constructor_Mesh();
+	struct Mesh* mesh = malloc(sizeof *mesh); // returned
 
-	*(struct Mesh_Data**)&         mesh->mesh_data = mesh_reader(mesh_input->mesh_name_full,mesh_input->d);
-	*(struct Mesh_Connectivity**)& mesh->mesh_conn = mesh_connect(mesh->mesh_data,elements);
-	*(struct Mesh_Vertices**)&     mesh->mesh_vert = mesh_process_vertices(mesh,elements,mesh_input);
+	*(struct Mesh_Data**)&         mesh->mesh_data = constructor_Mesh_Data(mesh_input->mesh_name_full,mesh_input->d);
+	*(struct Mesh_Connectivity**)& mesh->mesh_conn = constructor_Mesh_Connectivity(mesh->mesh_data,elements);
+	*(struct Mesh_Vertices**)&     mesh->mesh_vert = constructor_Mesh_Vertices(mesh,elements,mesh_input);
 
 	return mesh;
 }
@@ -56,9 +52,3 @@ ptrdiff_t get_first_volume_index (const struct const_Vector_i*const elem_per_dim
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-struct Mesh* constructor_Mesh ()
-{
-	struct Mesh* mesh = malloc(1 * sizeof *mesh); // returned
-	return mesh;
-}

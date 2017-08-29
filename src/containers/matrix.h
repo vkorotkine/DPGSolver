@@ -6,7 +6,7 @@
 /**	\file
  *	\brief Provides Matrix_\* containers and related functions.
  *
- *	Potentially relevant comments may be found in containers.h.
+ *	Potentially relevant comments may be found in \ref multiarray.h.
  *
  *	Matrices are 2D Multiarrays.
  */
@@ -16,54 +16,60 @@
 
 /// \brief Matrix (`double`).
 struct Matrix_d {
-	char layout;
+	char layout; ///< Defined in \ref Multiarray_d.
 
-	ptrdiff_t extents[2];
+	ptrdiff_t ext_0, ///< Size of array in the 1st dimension.
+	          ext_1; ///< Size of array in the 2nd dimension.
 
-	bool    owns_data;
-	double* data;
+	bool owns_data; ///< Defined in \ref Multiarray_d.
+	double* data;   ///< Defined in \ref Multiarray_d.
 };
 
 /// \brief Matrix (`const double`).
 struct const_Matrix_d {
-	const char layout;
+	const char layout; ///< Defined in \ref Matrix_d.
 
-	const ptrdiff_t extents[2];
+	const ptrdiff_t ext_0, ///< Defined in \ref Matrix_d.
+	                ext_1; ///< Defined in \ref Matrix_d.
 
-	const bool         owns_data;
-	const double*const data;
+	const bool owns_data;    ///< Defined in \ref Matrix_d.
+	const double*const data; ///< Defined in \ref Matrix_d.
 };
 
 /// \brief Matrix (`int`).
 struct Matrix_i {
-	char layout;
+	char layout; ///< Defined in \ref Matrix_d.
 
-	ptrdiff_t extents[2];
+	ptrdiff_t ext_0, ///< Defined in \ref Matrix_d.
+	          ext_1; ///< Defined in \ref Matrix_d.
 
-	bool    owns_data;
-	int* data;
+	bool owns_data; ///< Defined in \ref Matrix_d.
+	int* data;      ///< Defined in \ref Matrix_d.
 };
 
 /// \brief Matrix (`const int`).
 struct const_Matrix_i {
-	const char layout;
+	const char layout; ///< Defined in \ref Matrix_d.
 
-	const ptrdiff_t extents[2];
+	const ptrdiff_t ext_0, ///< Defined in \ref Matrix_d.
+	                ext_1; ///< Defined in \ref Matrix_d.
 
-	const bool    owns_data;
-	const int* data;
+	const bool owns_data; ///< Defined in \ref Matrix_d.
+	const int*const data; ///< Defined in \ref Matrix_d.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //
 
-/// \brief Constructs an empty \ref Matrix_d\*.
+/** \brief Constructs an empty \ref Matrix_d\*.
+ *	\return Standard. */
 struct Matrix_d* constructor_empty_Matrix_d
 	(const char layout,  ///< Standard.
 	 const ptrdiff_t ext_0, ///< Standard.
 	 const ptrdiff_t ext_1  ///< Standard.
 	);
 
-/// \brief Move Constructor for a \ref const_Matrix_d\*.
+/** \brief Move Constructor for a \ref const_Matrix_d\*.
+ *	\return Standard. */
 struct const_Matrix_d* constructor_move_const_Matrix_d_Matrix_d
 	(struct Matrix_d*const src ///< Source Matrix.
 	);
@@ -79,19 +85,22 @@ void destructor_Matrix_d
 	(struct Matrix_d* a ///< Standard.
 	);
 
-/// \brief Constructs an empty \ref Matrix_i\*.
+/** \brief Constructs an empty \ref Matrix_i\*.
+ *	\return Standard. */
 struct Matrix_i* constructor_empty_Matrix_i
 	(const char layout,  ///< Standard.
 	 const ptrdiff_t ext_0, ///< Standard.
 	 const ptrdiff_t ext_1  ///< Standard.
 	);
 
-/// \brief Move Constructor for a \ref const_Matrix_i\*.
+/** \brief Move Constructor for a \ref const_Matrix_i\*.
+ *	\return Standard. */
 struct const_Matrix_i* constructor_move_const_Matrix_i_Matrix_i
 	(struct Matrix_i*const src ///< Source Matrix.
 	);
 
-/// \brief Move Constructor for a `const` \ref const_Matrix_i `*const`.
+/** \brief Move Constructor for a `const` \ref const_Matrix_i `*const`.
+ *	\return Standard. */
 void const_constructor_move_Matrix_i
 	(const struct const_Matrix_i*const* dest, ///< Destination.
 	 struct Matrix_i* src                     ///< Source.

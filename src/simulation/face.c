@@ -25,17 +25,18 @@
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Container for \ref Volume related mesh information.
+/// \brief Container for \ref Face related mesh information.
 struct Face_mesh_info {
 	struct const_Element* element;        ///< The pointer to the \ref Element corresponding to the face.
 
 	const struct const_Vector_i* ve_inds; ///< The indices of the vertices of the face.
 	int to_lf;                            ///< The boundary condition of the face.
 
+	/// \brief Container for neighbouring info.
 	struct Neigh_info_mi {
 		struct Volume* volume; /**< The pointers to the two adjacent \ref Volume elements. The second pointer is NULL
 	                            *   for a boundary face. */
-	} neigh_info[2];
+	} neigh_info[2]; ///< \ref Neigh_info_mi.
 };
 
 /// \brief Constructor for an individual \ref Face.
@@ -88,7 +89,7 @@ print_const_Multiarray_Vector_i(v_to_lf);
 		const struct const_Vector_i*const v_to_v_V = v_to_v->data[v];
 
 		const ptrdiff_t ind_v = v + mesh->mesh_data->ind_v;
-		const int lf_max = v_to_v_V->extents[0];
+		const int lf_max = v_to_v_V->ext_0;
 		for (int lf = 0; lf < lf_max; ++lf) {
 			if (volume_l->faces[lf][0] != NULL) // Already found this face.
 				continue;
@@ -213,7 +214,7 @@ const struct const_Vector_i* compute_ve_inds_f
 {
 	const struct const_Vector_i*const f_ve_f = volume->element->f_ve->data[lf];
 
-	const ptrdiff_t i_max = f_ve_f->extents[0];
+	const ptrdiff_t i_max = f_ve_f->ext_0;
 	struct Vector_i*const ve_inds_f = constructor_empty_Vector_i(i_max); // moved
 	for (ptrdiff_t i = 0; i < i_max; ++i)
 		ve_inds_f->data[i] = ve_inds_v->data[f_ve_f->data[i]];

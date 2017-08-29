@@ -13,6 +13,8 @@
 #define DOM_MAPPED   3
 ///\}
 
+///\{ \name The node coordinate tolerance of the mesh vertices
 #define NODETOL_MESH 1.0e-5
+///\}
 
 #endif // DPG__constants_mesh_h__INCLUDED

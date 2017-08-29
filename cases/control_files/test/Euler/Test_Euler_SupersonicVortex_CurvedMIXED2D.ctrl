@@ -30,3 +30,4 @@ Testing    1     // Options: 0, 1
 
 mesh_generator gmsh
 MeshDomain     Curved
+Unrealistic    0

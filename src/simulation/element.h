@@ -20,23 +20,23 @@ struct Element {
 	          n_f;  ///< The number of faces.
 
 	const struct const_Multiarray_Vector_i*const f_ve; ///< The correspondence between the (f)aces and (ve)rtices.
-
 };
 
 /// \brief `const` version of the base Element container.
 struct const_Element {
-	const struct const_Intrusive_Link lnk;
+	const struct const_Intrusive_Link lnk; ///< Defined in \ref Element.
 
-	const int type,
-	          d,
-	          n_f;
+	const int type, ///< Defined in \ref Element.
+	          d,    ///< Defined in \ref Element.
+	          n_f;  ///< Defined in \ref Element.
 
-	const struct const_Multiarray_Vector_i*const f_ve;
+	const struct const_Multiarray_Vector_i*const f_ve; ///< Defined in \ref Element.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //
 
-/// \brief Constructs the base \ref Element \ref Intrusive_List.
+/** \brief Constructs the base \ref Element \ref Intrusive_List.
+ *	\return Standard. */
 struct const_Intrusive_List* constructor_Element_List
 	(const int d ///< The dimension.
 	);

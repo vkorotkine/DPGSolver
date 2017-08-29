@@ -111,7 +111,7 @@ struct Multiarray_d {
 	char layout; ///< The layout may be 'R'ow or 'C'olumn major.
 
 	int order;          ///< Number of dimensions.
-	ptrdiff_t* extents; ///< Size of arrays in each dimension.
+	ptrdiff_t* extents; ///< Size of array in each dimension.
 
 	bool owns_data; /**< Flag for whether the data should be freed in the destructor. This would be false if a move
 	                     constructor was used. */
@@ -120,42 +120,41 @@ struct Multiarray_d {
 
 /// \brief Multiarray (`const double`).
 struct const_Multiarray_d {
-	const char layout;
+	const char layout; ///< Defined in \ref Multiarray_d.
 
-	const int order;
-	const ptrdiff_t*const extents;
+	const int order;               ///< Defined in \ref Multiarray_d.
+	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_d.
 
-	const bool owns_data;
-	const double*const data;
+	const bool owns_data;    ///< Defined in \ref Multiarray_d.
+	const double*const data; ///< Defined in \ref Multiarray_d.
 };
 
 /// \brief Multiarray (`Vector_i*`).
 struct Multiarray_Vector_i {
-	char layout;
+	char layout; ///< Defined in \ref Multiarray_d.
 
-	int order;
-	ptrdiff_t* extents;
+	int order;          ///< Defined in \ref Multiarray_d.
+	ptrdiff_t* extents; ///< Defined in \ref Multiarray_d.
 
-	bool owns_data;
-
-	struct Vector_i** data;
+	bool owns_data;         ///< Defined in \ref Multiarray_d.
+	struct Vector_i** data; ///< Defined in \ref Multiarray_d.
 };
 
 /// \brief Multiarray (`const Vector_i*`).
 struct const_Multiarray_Vector_i {
-	const char layout;
+	const char layout; ///< Defined in \ref Multiarray_d.
 
-	const int order;
-	const ptrdiff_t*const extents;
+	const int order;               ///< Defined in \ref Multiarray_d.
+	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_d.
 
-	const bool owns_data;
-
-	const struct const_Vector_i*const*const data;
+	const bool owns_data;                         ///< Defined in \ref Multiarray_d.
+	const struct const_Vector_i*const*const data; ///< Defined in \ref Multiarray_d.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //
 
-/// \brief Move constructor for a \ref Multiarray_d\* from a `double*`.
+/** \brief Move constructor for a \ref Multiarray_d\* from a `double*`.
+ *	\return Standard. */
 struct Multiarray_d* constructor_move_Multiarray_d_d
 	(const char layout, ///< Defined in \ref Multiarray_d.
 	 double*const data, ///< Defined in \ref Multiarray_d.
@@ -164,6 +163,7 @@ struct Multiarray_d* constructor_move_Multiarray_d_d
 	);
 
 /** \brief Constructs an empty \ref Multiarray_Vector_i\*.
+ *	\return Standard.
  *	\note The layout is set to row-major by default as the data cannot be used directly as for the standard datatypes.
  */
 struct Multiarray_Vector_i* constructor_empty_Multiarray_Vector_i
@@ -171,7 +171,8 @@ struct Multiarray_Vector_i* constructor_empty_Multiarray_Vector_i
 	 ...              ///< Variadic arguments.
 	);
 
-/// \brief Constructs a \ref Multiarray_Vector_i\* and sets the values of its \ref Vector_i\* components.
+/** \brief Constructs a \ref Multiarray_Vector_i\* and sets the values of its \ref Vector_i\* components.
+ *	\return Standard. */
 struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i
 	(const int* data_V,     ///< Defined in \ref set_Multiarray_Vector_i_i.
 	 const int*const ext_V, ///< Defined in \ref set_Multiarray_Vector_i_i.
@@ -197,13 +198,15 @@ void destructor_Multiarray_Vector_i
 
 // Helper functions ************************************************************************************************* //
 
-/// \brief Allocated and set the `extents` for a `Multiarray_*`.
+/** \brief Allocated and set the `extents` for a `Multiarray_*`.
+ *	\return See brief. */
 ptrdiff_t* allocate_and_set_extents
 	(const int order, ///< Defined in \ref Multiarray_d.
 	 va_list ap       ///< List of variadic arguments.
 	);
 
-/// \brief `size` is the product of the `extents`.
+/** \brief Computes the `size`, which is the product of the `extents`.
+ *	\return See brief. */
 ptrdiff_t compute_size
 	(const int order,              ///< \ref Multiarray_d::order.
 	 const ptrdiff_t*const extents ///< \ref Multiarray_d::extents.
@@ -217,11 +220,11 @@ void set_Multiarray_Vector_i_i
 	);
 
 /** \brief Sort the data of the \ref Multiarray_Vector_i\*.
- *	\return Optionally return indices.
+ *	\return Optionally return indices or `NULL`.
  */
 struct Vector_i* sort_Multiarray_Vector_i
 	(struct Multiarray_Vector_i* a, ///< Standard.
-	 const bool return_indices       ///< Flag for whether the indices should also be returned.
+	 const bool return_indices      ///< Flag for whether the indices should also be returned.
 	);
 
 /** \brief Collapse a \ref Multiarray_Vector_i\* into a \ref Vector_i\* with copied data.

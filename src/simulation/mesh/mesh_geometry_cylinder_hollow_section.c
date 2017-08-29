@@ -48,7 +48,7 @@ void mesh_snap_to_cylinder__hollow_section
 	// Snap vertices to the boundary
 	const int dims_to_check = 2;
 
-	const ptrdiff_t n_n = nodes->extents[0];
+	const ptrdiff_t n_n = nodes->ext_0;
 	for (ptrdiff_t n = 0; n < n_n; ++n) {
 		if (!ve_curved->data[n])
 			continue;

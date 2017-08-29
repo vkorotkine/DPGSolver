@@ -25,20 +25,72 @@
 /// Expected number of tags for elements in the gmsh file.
 #define GMSH_N_TAGS 2
 
+/// \brief Holds data relating to elements in the gmsh file.
+struct Element_Data {
+	ptrdiff_t n_elems; ///< The number of physical elements.
+
+	struct Vector_i* elem_types; ///< Defined in \ref Mesh_Data.
+	struct Matrix_i* elem_tags;  ///< Defined in \ref Mesh_Data.
+
+	struct Multiarray_Vector_i* node_nums; ///< Defined in \ref Mesh_Data.
+};
+
+/// \brief Container for locally computed \ref Mesh_Connectivity members.
+struct Mesh_Data_l {
+	struct Matrix_d*     nodes;         ///< Defined in \ref Mesh_Data.
+	struct Element_Data* elem_data;     ///< \ref Element_Data.
+	struct Matrix_i*     periodic_corr; ///< Define in \ref Mesh_Data.
+};
+
 /// /brief Read data from a mesh in gmsh format.
-static struct Mesh_Data* mesh_reader_gmsh
-	(const char*const mesh_name_full, ///< The name of the mesh including the full path.
-	 const int d                      ///< The dimension.
+static void mesh_reader_gmsh
+	(const char*const mesh_name_full,     ///< The name of the mesh including the full path.
+	 const int d,                         ///< The dimension.
+	 struct Mesh_Data_l*const mesh_data_l ///< \ref Mesh_Data_l.
+	);
+
+/** \brief See return.
+ *	\return The number of elements of each dimension.
+ */
+static struct Vector_i* count_elements_per_dim
+	(const struct const_Vector_i*const elem_types ///< Defined in \ref Conn_info.
 	);
 
 // Interface functions ********************************************************************************************** //
 
-struct Mesh_Data* mesh_reader (const char*const mesh_name_full, const int d)
+struct Mesh_Data* constructor_Mesh_Data (const char*const mesh_name_full, const int d)
 {
+	struct Mesh_Data_l mesh_data_l;
 	if (strstr(mesh_name_full,".msh"))
-		return mesh_reader_gmsh(mesh_name_full,d);
+		mesh_reader_gmsh(mesh_name_full,d,&mesh_data_l);
+	else
+		EXIT_UNSUPPORTED;
 
-	EXIT_UNSUPPORTED;
+
+	struct Mesh_Data* mesh_data = malloc(sizeof *mesh_data); // returned
+
+	const_constructor_move_Matrix_d(&mesh_data->nodes,mesh_data_l.nodes);
+
+	const_constructor_move_Vector_i(&mesh_data->elem_types,mesh_data_l.elem_data->elem_types);
+	const_constructor_move_Matrix_i(&mesh_data->elem_tags,mesh_data_l.elem_data->elem_tags);
+	const_constructor_move_Multiarray_Vector_i(&mesh_data->node_nums,mesh_data_l.elem_data->node_nums);
+
+	if (mesh_data_l.periodic_corr)
+		const_constructor_move_Matrix_i(&mesh_data->periodic_corr,mesh_data_l.periodic_corr);
+	else
+		*(struct const_Matrix_i**)&mesh_data->periodic_corr = NULL;
+
+	struct Vector_i* elem_per_dim = count_elements_per_dim(mesh_data->elem_types); // keep
+	const_constructor_move_Vector_i(&mesh_data->elem_per_dim,elem_per_dim);
+
+	const ptrdiff_t ind_v = get_first_volume_index(mesh_data->elem_per_dim,d);
+
+	const_cast_i(&mesh_data->d,d);
+	const_cast_ptrdiff(&mesh_data->ind_v,ind_v);
+
+	free(mesh_data_l.elem_data);
+
+	return mesh_data;
 }
 
 void destructor_Mesh_Data (struct Mesh_Data* mesh_data)
@@ -60,16 +112,6 @@ void destructor_Mesh_Data (struct Mesh_Data* mesh_data)
 
 // Gmsh ************************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-/// \brief Holds data relating to elements in the gmsh file.
-struct Element_Data {
-	ptrdiff_t n_elems;
-
-	struct Vector_i* elem_types; ///< Defined in \ref Mesh_Data.
-	struct Matrix_i* elem_tags;  ///< Defined in \ref Mesh_Data.
-
-	struct Multiarray_Vector_i* node_nums; ///< Defined in \ref Mesh_Data.
-};
 
 /** \brief Read the nodes (xyz coordinates) from the mesh file.
  *	\return A \ref Matrix_d\* containing the \ref Mesh_Data::nodes.
@@ -99,38 +141,55 @@ static struct Matrix_i* read_periodic
 	 const int d      ///< The dimension.
 	);
 
-/** \brief Constructor for the \ref Mesh_Data.
- *	\return Standard. */
-static struct Mesh_Data* constructor_Mesh_Data
-	(struct Matrix_d* nodes,         ///< Defined in \ref Mesh_Data.
-	 struct Element_Data* elem_data, ///< \ref Element_Data.
-	 struct Matrix_i* periodic_corr  ///< Defined in \ref Mesh_Data.
-	);
-
-static struct Mesh_Data* mesh_reader_gmsh (const char*const mesh_name_full, const int d)
+static void mesh_reader_gmsh (const char*const mesh_name_full, const int d, struct Mesh_Data_l*const mesh_data_l)
 {
-	struct Matrix_d*     nodes         = NULL;
-	struct Element_Data* elem_data     = NULL;
-	struct Matrix_i*     periodic_corr = NULL;
+	mesh_data_l->nodes         = NULL;
+	mesh_data_l->elem_data     = NULL;
+	mesh_data_l->periodic_corr = NULL;
 
 	FILE* mesh_file = fopen_checked(mesh_name_full); // closed
 
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),mesh_file)) {
 		if (strstr(line,"$Nodes"))
-			nodes = read_nodes(mesh_file,d); // keep
+			mesh_data_l->nodes = read_nodes(mesh_file,d); // keep
 
 		if (strstr(line,"$Elements"))
-			elem_data = read_elements(mesh_file); // keep
+			mesh_data_l->elem_data = read_elements(mesh_file); // keep
 
 		if (strstr(line,"Periodic"))
-			periodic_corr = read_periodic(mesh_file,d); // keep
+			mesh_data_l->periodic_corr = read_periodic(mesh_file,d); // keep
 	}
 	fclose(mesh_file);
+}
 
-	struct Mesh_Data* mesh_data = constructor_Mesh_Data(nodes,elem_data,periodic_corr); // keep
+static struct Vector_i* count_elements_per_dim (const struct const_Vector_i*const elem_types)
+{
+	struct Vector_i* count = constructor_empty_Vector_i(DMAX+1); // returned
+	set_to_zero_Vector_i(count);
+	for (ptrdiff_t i = 0; i < elem_types->ext_0; i++) {
+		const int elem_type = elem_types->data[i];
 
-	return mesh_data;
+		switch (elem_type) {
+		case POINT:
+			count->data[0]++;
+			break;
+		case LINE:
+			count->data[1]++;
+			break;
+		case TRI: case QUAD:
+			count->data[2]++;
+			break;
+		case TET: case HEX: case WEDGE: case PYR:
+			count->data[3]++;
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+	}
+
+	return count;
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -163,13 +222,6 @@ static void skip_periodic_entity
 	(FILE* file,         ///< The file.
 	 char**const line,   ///< The pointer to the current line.
 	 const int line_size ///< The size of the line array.
-	);
-
-/** \brief See return.
- *	\return The number of elements of each dimension.
- */
-static struct Vector_i* count_elements_per_dim
-	(const struct const_Vector_i*const elem_types ///< Defined in \ref Conn_info.
 	);
 
 static struct Matrix_d* read_nodes (FILE* mesh_file, const int d)
@@ -256,7 +308,7 @@ static struct Matrix_i* read_periodic (FILE* mesh_file, const int d)
 			break;
 		char* line_ptr[1] = {line};
 		discard_line_values(line_ptr,1);
-		read_line_values_i(line_ptr,periodic_corr->extents[1],get_row_Matrix_i(row,periodic_corr),false);
+		read_line_values_i(line_ptr,periodic_corr->ext_1,get_row_Matrix_i(row,periodic_corr),false);
 		skip_periodic_entity(mesh_file,line_ptr,sizeof(line));
 
 		if (row++ == n_periodic)
@@ -264,36 +316,6 @@ static struct Matrix_i* read_periodic (FILE* mesh_file, const int d)
 	} while (fgets(line,sizeof(line),mesh_file));
 
 	return periodic_corr;
-}
-
-static struct Mesh_Data* constructor_Mesh_Data
-	(struct Matrix_d* nodes, struct Element_Data* elem_data, struct Matrix_i* periodic_corr)
-{
-	struct Mesh_Data* mesh_data = malloc(sizeof *mesh_data); // returned
-
-	const_constructor_move_Matrix_d(&mesh_data->nodes,nodes);
-
-	const_constructor_move_Vector_i(&mesh_data->elem_types,elem_data->elem_types);
-	const_constructor_move_Matrix_i(&mesh_data->elem_tags,elem_data->elem_tags);
-	const_constructor_move_Multiarray_Vector_i(&mesh_data->node_nums,elem_data->node_nums);
-
-	if (periodic_corr)
-		const_constructor_move_Matrix_i(&mesh_data->periodic_corr,periodic_corr);
-	else
-		*(struct const_Matrix_i**)&mesh_data->periodic_corr = NULL;
-
-	struct Vector_i* elem_per_dim = count_elements_per_dim(mesh_data->elem_types); // keep
-	const_constructor_move_Vector_i(&mesh_data->elem_per_dim,elem_per_dim);
-
-	const int d           = nodes->extents[1];
-	const ptrdiff_t ind_v = get_first_volume_index(mesh_data->elem_per_dim,d);
-
-	const_cast_i(&mesh_data->d,d);
-	const_cast_ptrdiff(&mesh_data->ind_v,ind_v);
-
-	free(elem_data);
-
-	return mesh_data;
 }
 
 // Level 2 ********************************************************************************************************** //
@@ -346,7 +368,7 @@ static void fill_elements (const ptrdiff_t row, struct Element_Data*const elem_d
 	read_line_values_i(&line,1,&elem_data->elem_types->data[row],false);
 
 	read_line_values_l(&line,1,&n_tags,false);
-	if (n_tags != elem_data->elem_tags->extents[1])
+	if (n_tags != elem_data->elem_tags->ext_1)
 		EXIT_UNSUPPORTED;
 
 	read_line_values_i(&line,n_tags,get_row_Matrix_i(row,elem_data->elem_tags),false);
@@ -366,35 +388,6 @@ static void skip_periodic_entity (FILE* file, char**const line, const int line_s
 	ptrdiff_t n_skip = strtol(*line,&endptr,10);
 
 	skip_lines(file,line,line_size,n_skip);
-}
-
-static struct Vector_i* count_elements_per_dim (const struct const_Vector_i*const elem_types)
-{
-	struct Vector_i* count = constructor_empty_Vector_i(DMAX+1); // returned
-	set_to_zero_Vector_i(count);
-	for (ptrdiff_t i = 0; i < elem_types->extents[0]; i++) {
-		const int elem_type = elem_types->data[i];
-
-		switch (elem_type) {
-		case POINT:
-			count->data[0]++;
-			break;
-		case LINE:
-			count->data[1]++;
-			break;
-		case TRI: case QUAD:
-			count->data[2]++;
-			break;
-		case TET: case HEX: case WEDGE: case PYR:
-			count->data[3]++;
-			break;
-		default:
-			EXIT_UNSUPPORTED;
-			break;
-		}
-	}
-
-	return count;
 }
 
 // Level 3 ********************************************************************************************************** //

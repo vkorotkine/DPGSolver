@@ -69,7 +69,7 @@ struct Intrusive_List* constructor_Volume_List (struct Simulation*const sim, con
 
 	const struct const_Multiarray_Vector_i*const v_to_lf = mesh->mesh_conn->v_to_lf;
 
-	const ptrdiff_t n_v = v_to_lf->extents[0];
+	const ptrdiff_t n_v = compute_size(v_to_lf->order,v_to_lf->extents);
 	for (ptrdiff_t v = 0; v < n_v; ++v) {
 		const ptrdiff_t ind_v = v + mesh->mesh_data->ind_v;
 		struct Volume_mesh_info vol_mi =
@@ -100,7 +100,7 @@ bool check_ve_condition
 	 const struct const_Vector_i*const ve_condition, const struct const_Multiarray_Vector_i*const ve_bc,
 	 const bool curved_only)
 {
-	const int n_lf = f_ve->extents[0];
+	const int n_lf = compute_size(f_ve->order,f_ve->extents);
 	for (int lf = 0; lf < n_lf; ++lf) {
 		const struct const_Vector_i*const f_ve_f = f_ve->data[lf];
 
@@ -108,7 +108,7 @@ bool check_ve_condition
 
 		const struct const_Vector_i* ve_bc_V = NULL;
 
-		const int n_ve_f = f_ve_f->extents[0];
+		const int n_ve_f = f_ve_f->ext_0;
 		for (int ve = 0; ve < n_ve_f; ++ve) {
 			const ptrdiff_t ind_ve = ve_inds->data[f_ve_f->data[ve]];
 			if (ve_condition->data[ind_ve]) {
@@ -199,7 +199,7 @@ static void destructor_Volume (struct Volume* volume)
 static bool find_bc_match
 	(const struct const_Vector_i*const ve_bc_0, const struct const_Vector_i*const ve_bc_1, const bool curved_only)
 {
-	const ptrdiff_t i_max = ve_bc_0->extents[0];
+	const ptrdiff_t i_max = ve_bc_0->ext_0;
 	for (ptrdiff_t i = 0; i < i_max; ++i) {
 		const int bc_0 = ve_bc_0->data[i];
 
@@ -219,7 +219,7 @@ static bool check_if_boundary_v
 	 const struct const_Vector_i*const ve_inds, const struct Mesh_Vertices*const mesh_vert)
 {
 	// If the volume has a face on a domain boundary
-	const ptrdiff_t i_max = to_lf->extents[0];
+	const ptrdiff_t i_max = to_lf->ext_0;
 	for (ptrdiff_t i = 0; i < i_max; ++i) {
 		if (to_lf->data[i] > BC_STEP_SC)
 			return true;
@@ -243,9 +243,9 @@ static bool check_if_curved_v
 static struct Matrix_d* constructor_volume_vertices
 	(const struct const_Vector_i*const ve_inds, const struct const_Matrix_d*const nodes)
 {
-	struct Matrix_d* dest = constructor_empty_Matrix_d('R',ve_inds->extents[0],nodes->extents[1]);
+	struct Matrix_d* dest = constructor_empty_Matrix_d('R',ve_inds->ext_0,nodes->ext_1);
 
-	const ptrdiff_t i_max = dest->extents[0];
+	const ptrdiff_t i_max = dest->ext_0;
 	for (ptrdiff_t i = 0; i < i_max; ++i)
 		set_row_Matrix_d(i,dest,get_row_const_Matrix_d(ve_inds->data[i],nodes));
 

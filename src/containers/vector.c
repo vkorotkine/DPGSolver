@@ -30,17 +30,11 @@ static int cmp_i
 	 const void *b  ///< Variable 2.
 	);
 
+/** \brief Constructs a default \ref Vector_i\*.
+ *	\return Standard. */
+static struct Vector_i* constructor_default_Vector_i ();
+
 // Constructor/Destructor functions ********************************************************************************* //
-
-struct Vector_i* constructor_default_Vector_i ()
-{
-	struct Vector_i* dest = malloc(sizeof *dest); // returned
-	dest->extents[0] = 0;
-	dest->owns_data  = true;
-	dest->data       = NULL;
-
-	return dest;
-}
 
 struct Vector_i** constructor_default_Vector_i_2 (const ptrdiff_t n_dest)
 {
@@ -54,20 +48,20 @@ struct Vector_i** constructor_default_Vector_i_2 (const ptrdiff_t n_dest)
 
 struct Vector_i* constructor_empty_Vector_i (const ptrdiff_t ext_0)
 {
-	int* data = mallocator(UINT_T,1,ext_0); // keep
+	int* data = mallocator(INT_T,1,ext_0); // keep
 
 	struct Vector_i* dest = malloc(sizeof *dest); // returned
-
-	dest->extents[0] = ext_0;
-	dest->owns_data  = true;
-	dest->data       = data;
+/// \todo use constructor_local_Vector_i_1. And below
+	dest->ext_0     = ext_0;
+	dest->owns_data = true;
+	dest->data      = data;
 
 	return dest;
 }
 
 struct Vector_i* constructor_copy_Vector_i (const struct Vector_i*const src)
 {
-	const ptrdiff_t ext_0 = src->extents[0];
+	const ptrdiff_t ext_0 = src->ext_0;
 	const int*const data_src = src->data;
 
 	int* data = malloc(ext_0 * sizeof *data); // keep
@@ -76,9 +70,9 @@ struct Vector_i* constructor_copy_Vector_i (const struct Vector_i*const src)
 
 	struct Vector_i* dest = malloc(sizeof *dest); // returned
 
-	dest->extents[0] = ext_0;
-	dest->owns_data  = true;
-	dest->data       = data;
+	dest->ext_0     = ext_0;
+	dest->owns_data = true;
+	dest->data      = data;
 
 	return dest;
 }
@@ -90,9 +84,9 @@ struct Vector_i* constructor_copy_Vector_i_i (const ptrdiff_t ext_0, const int*c
 		data[i] = data_src[i];
 
 	struct Vector_i* dest = malloc(sizeof *dest); // returned
-	dest->extents[0] = ext_0;
-	dest->owns_data  = true;
-	dest->data       = data;
+	dest->ext_0     = ext_0;
+	dest->owns_data = true;
+	dest->data      = data;
 
 	return dest;
 }
@@ -100,9 +94,9 @@ struct Vector_i* constructor_copy_Vector_i_i (const ptrdiff_t ext_0, const int*c
 struct Vector_i* constructor_move_Vector_i_i (const ptrdiff_t ext_0, const bool owns_data, int*const data)
 {
 	struct Vector_i* dest = malloc(sizeof *dest); // returned
-	dest->extents[0] = ext_0;
-	dest->owns_data  = owns_data;
-	dest->data       = data;
+	dest->ext_0     = ext_0;
+	dest->owns_data = owns_data;
+	dest->data      = data;
 
 	return dest;
 }
@@ -127,7 +121,7 @@ void const_constructor_move_Vector_i (const struct const_Vector_i*const* dest, s
 void destructor_Vector_i (struct Vector_i* a)
 {
 	if (a->owns_data)
-		free(a->data);
+		deallocator(a->data,INT_T,1,a->ext_0);
 	free(a);
 }
 
@@ -144,7 +138,7 @@ void destructor_Vector_i_2 (struct Vector_i** a, const ptrdiff_t n_src, const bo
 
 void reorder_Vector_i (struct Vector_i*const a, const int*const ordering)
 {
-	const ptrdiff_t size = compute_size(1,a->extents);
+	const ptrdiff_t size = a->ext_0;
 
 	int b[size];
 	for (ptrdiff_t i = 0; i < size; i++)
@@ -156,9 +150,9 @@ void reorder_Vector_i (struct Vector_i*const a, const int*const ordering)
 
 void resize_Vector_i (struct Vector_i*const a, const ptrdiff_t ext_0)
 {
-	const ptrdiff_t size_i = compute_size(1,a->extents);
-	a->extents[0] = ext_0;
-	const ptrdiff_t size_o = compute_size(1,a->extents);
+	const ptrdiff_t size_i = a->ext_0;
+	a->ext_0 = ext_0;
+	const ptrdiff_t size_o = a->ext_0;
 
 	if (size_o <= size_i)
 		return;
@@ -174,20 +168,21 @@ void resize_Vector_i (struct Vector_i*const a, const ptrdiff_t ext_0)
 
 void set_to_zero_Vector_i (struct Vector_i*const a)
 {
-	for (ptrdiff_t i = 0; i < a->extents[0]; i++)
+	const ptrdiff_t i_max = a->ext_0;
+	for (ptrdiff_t i = 0; i < i_max; i++)
 		a->data[i] = 0;
 }
 
 void set_to_data_Vector_i (struct Vector_i*const a, const int*const data_src)
 {
-	const ptrdiff_t ext_0 = compute_size(1,a->extents);
+	const ptrdiff_t ext_0 = a->ext_0;
 	for (ptrdiff_t i = 0; i < ext_0; ++i)
 		a->data[i] = data_src[i];
 }
 
 void sort_Vector_i (struct Vector_i* a)
 {
-	const ptrdiff_t size = compute_size(1,a->extents);
+	const ptrdiff_t size = a->ext_0;
 	qsort(a->data,size,sizeof(a->data[0]),cmp_i);
 }
 
@@ -195,7 +190,7 @@ int sum_Vector_i (struct Vector_i* a)
 {
 	int sum = 0;
 
-	const ptrdiff_t size = compute_size(1,a->extents);
+	const ptrdiff_t size = a->ext_0;
 	for (ptrdiff_t i = 0; i < size; ++i)
 		sum += a->data[i];
 	return sum;
@@ -203,8 +198,8 @@ int sum_Vector_i (struct Vector_i* a)
 
 bool check_equal_Vector_i (const struct Vector_i*const a, const struct Vector_i*const b)
 {
-	const ptrdiff_t size = compute_size(1,a->extents);
-	if (size != compute_size(1,b->extents))
+	const ptrdiff_t size = a->ext_0;
+	if (size != b->ext_0)
 		return false;
 
 	const int* data_a = a->data,
@@ -220,10 +215,10 @@ bool check_equal_Vector_i (const struct Vector_i*const a, const struct Vector_i*
 int cmp_Vector_i (const void *a, const void *b)
 {
 	const struct Vector_i*const*const ia = (const struct Vector_i*const*const) a,
-	                      *const*const ib = (const struct Vector_i*const*const) b;
+	                     *const*const ib = (const struct Vector_i*const*const) b;
 
-	const ptrdiff_t size_a = compute_size(1,(*ia)->extents),
-	                size_b = compute_size(1,(*ib)->extents);
+	const ptrdiff_t size_a = (*ia)->ext_0,
+	                size_b = (*ib)->ext_0;
 
 	if (size_a > size_b)
 		return 1;
@@ -244,8 +239,8 @@ int cmp_Vector_i (const void *a, const void *b)
 
 void copy_data_Vector_i_Vector_i (const struct Vector_i*const src, struct Vector_i*const dest)
 {
-	const ptrdiff_t size_src  = compute_size(1,src->extents),
-	                size_dest = compute_size(1,dest->extents);
+	const ptrdiff_t size_src  = src->ext_0,
+	                size_dest = dest->ext_0;
 
 	if (size_src != size_dest)
 		EXIT_UNSUPPORTED;
@@ -264,8 +259,8 @@ void push_back_Vector_i (struct Vector_i*const src, const int val, const bool so
 	if (!add_val)
 		return;
 
-	resize_Vector_i(src,src->extents[0]+1);
-	src->data[src->extents[0]-1] = val;
+	resize_Vector_i(src,src->ext_0+1);
+	src->data[src->ext_0-1] = val;
 
 	if (sorted)
 		sort_Vector_i(src);
@@ -283,7 +278,7 @@ bool find_val_Vector_i (const struct const_Vector_i*const src, const int val, co
 			}
 		}
 	} else {
-		const int* ind_ptr = bsearch(&val,src->data,src->extents[0],sizeof(src->data[0]),cmp_i);
+		const int* ind_ptr = bsearch(&val,src->data,src->ext_0,sizeof(src->data[0]),cmp_i);
 		if (ind_ptr)
 			found = true;
 	}
@@ -294,7 +289,7 @@ bool find_val_Vector_i (const struct const_Vector_i*const src, const int val, co
 
 void print_Vector_i (const struct Vector_i*const a)
 {
-	const ptrdiff_t ext = a->extents[0];
+	const ptrdiff_t ext = a->ext_0;
 
 	const int* data = a->data;
 
@@ -308,7 +303,7 @@ void print_Vector_i (const struct Vector_i*const a)
 
 void print_const_Vector_i (const struct const_Vector_i*const a)
 {
-	struct Vector_i* local = constructor_local_Vector_i_1(a->extents[0],false,(int*)a->data); // free
+	struct Vector_i* local = constructor_local_Vector_i_1(a->ext_0,false,(int*)a->data); // free
 	print_Vector_i(local);
 	free(local);
 }
@@ -317,13 +312,23 @@ void print_const_Vector_i (const struct const_Vector_i*const a)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+static struct Vector_i* constructor_default_Vector_i ()
+{
+	struct Vector_i* dest = malloc(sizeof *dest); // returned
+	dest->ext_0     = 0;
+	dest->owns_data = true;
+	dest->data      = NULL;
+
+	return dest;
+}
+
 static struct Vector_i* constructor_local_Vector_i_1 (const ptrdiff_t ext_0, const bool owns_data, int*const data)
 {
 	struct Vector_i* dest = malloc(sizeof *dest); // returned
 
-	dest->extents[0] = ext_0;
-	dest->owns_data  = owns_data;
-	dest->data       = data;
+	dest->ext_0     = ext_0;
+	dest->owns_data = owns_data;
+	dest->data      = data;
 
 	return dest;
 }

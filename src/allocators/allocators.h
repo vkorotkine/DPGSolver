@@ -3,16 +3,17 @@
 
 #ifndef DPG__allocators_h__INCLUDED
 #define DPG__allocators_h__INCLUDED
-/// \file
+/** \file
+ */
 
 #include <stddef.h>
 
 /// \brief Specifies the type of the variable to be used in allocator functions.
-enum TYPE {
+enum Variable_Type {
 	CHAR_T,
-	UINT_T,
+	INT_T,
 	DOUBLE_T,
-	SIZE_T_T,
+	PTRDIFF_T,
 };
 
 /**	\brief Performs allocation using malloc.
@@ -24,7 +25,7 @@ enum TYPE {
  *	The standard allocation:
  *	```
  *	char** a = malloc(N2 * sizeof *a);
- *	for (size_t i = 0; i < N2; i++)
+ *	for (ptrdiff_t i = 0; i < N2; i++)
  *		a[i] = malloc(N1 * sizeof *a[i]);
  *	```
  *
@@ -34,9 +35,9 @@ enum TYPE {
  *	```
  */
 void* mallocator
-	(const enum TYPE type, ///< Type of the variable.
-	 const size_t order,   ///< Maximum level of dereferencing of the allocated variable.
-	 ...                   ///< Sizes of the allocated variable for each level of dereferencing.
+	(const enum Variable_Type type, ///< \ref Variable_Type.
+	 const int order,               ///< Maximum level of dereferencing of the allocated variable.
+	 ...                            ///< Sizes of the allocated variable for each level of dereferencing.
 	);
 
 /**	\brief Performs deallocation.
@@ -44,10 +45,10 @@ void* mallocator
  *	`NULL` can be passed if `order` is 1.
  */
 void deallocator
-	(void* a,              ///< Pointer to the variable to be freed.
-	 const enum TYPE type, ///< Defined in \ref mallocator.
-	 const size_t order,   ///< Defined in \ref mallocator.
-	 ...                   ///< Defined in \ref mallocator.
+	(void* a,                       ///< Pointer to the variable to be freed.
+	 const enum Variable_Type type, ///< Defined in \ref mallocator.
+	 const int order,               ///< Defined in \ref mallocator.
+	 ...                            ///< Defined in \ref mallocator.
 	);
 
 #endif // DPG__allocators_h__INCLUDED

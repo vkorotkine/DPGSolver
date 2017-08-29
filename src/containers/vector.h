@@ -6,7 +6,7 @@
 /**	\file
  *	\brief Provides Vector_\* containers and related functions.
  *
- *	Potentially relevant comments may be found in containers.h.
+ *	Potentially relevant comments may be found in \ref multiarray.h.
  *
  *	Vectors are 1D Multiarrays.
  */
@@ -16,51 +16,57 @@
 
 /// \brief Vector (`int`).
 struct Vector_i {
-	ptrdiff_t extents[1];
+	ptrdiff_t ext_0; ///< Defined in \ref Matrix_d.
 
-	bool owns_data;
-	int* data;
+	bool owns_data; ///< Defined in \ref Multiarray_d.
+	int* data;      ///< Defined in \ref Multiarray_d.
 };
 
 /// \brief Vector (`const int`).
 struct const_Vector_i {
-	const ptrdiff_t extents[1];
+	const ptrdiff_t ext_0; ///< Defined in \ref Vector_i.
 
-	const bool owns_data;
-	const int* data;
+	const bool owns_data; ///< Defined in \ref Vector_i.
+	const int*const data; ///< Defined in \ref Vector_i.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //
 
-/// \brief Constructs a default \ref Vector_i\*\*.
+/** \brief Constructs a default \ref Vector_i\*\*.
+ *	\return Standard. */
 struct Vector_i** constructor_default_Vector_i_2
 	(const ptrdiff_t n_dest ///< The number of \ref Vector_i\* components.
 	);
 
-/// \brief Constructs an empty \ref Vector_i\*.
+/** \brief Constructs an empty \ref Vector_i\*.
+ *	\return Standard. */
 struct Vector_i* constructor_empty_Vector_i
 	(const ptrdiff_t ext_0 ///< The value of extents[0].
 	);
 
-/// \brief Copy constructor for a \ref Vector_i\* from a `Vector_i*`.
+/** \brief Copy constructor for a \ref Vector_i\* from a `Vector_i*`.
+ *	\return Standard. */
 struct Vector_i* constructor_copy_Vector_i
 	(const struct Vector_i*const src ///< The source data.
 	);
 
-/// \brief Copy constructor for a \ref Vector_i\* from a `const int*`.
+/** \brief Copy constructor for a \ref Vector_i\* from a `const int*`.
+ *	\return Standard. */
 struct Vector_i* constructor_copy_Vector_i_i
 	(const ptrdiff_t ext_0,   ///< The value of extents[0].
 	 const int*const data_src ///< The source data.
 	);
 
-/// \brief Move constructor for a \ref Vector_i\* from a `int*`.
+/** \brief Move constructor for a \ref Vector_i\* from a `int*`.
+ *	\return Standard. */
 struct Vector_i* constructor_move_Vector_i_i
 	(const ptrdiff_t ext_0, ///< The value of extents[0].
 	 const bool owns_data,  ///< Standard.
 	 int*const data         ///< Standard.
 	);
 
-/// \brief Move constructor for a \ref const_Vector_i\* from a `const int*`.
+/** \brief Move constructor for a \ref const_Vector_i\* from a `const int*`.
+ *	\return Standard. */
 struct const_Vector_i* constructor_move_const_Vector_i_i
 	(const ptrdiff_t ext_0, ///< The value of extents[0].
 	 const bool owns_data,  ///< Standard.

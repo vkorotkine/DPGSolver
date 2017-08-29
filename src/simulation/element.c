@@ -3,7 +3,6 @@
 ///	\file
 
 #include "element.h"
-#include "intrusive.h"
 
 #include <string.h>
 
@@ -119,10 +118,10 @@ struct const_Element* get_element_by_face (const struct const_Element*const elem
 
 /// \brief Container for local element-related information.
 struct Elem_info {
-	int d,
-	    n_f,
-	    n_f_ve[NFMAX],
-	    f_ve[NFMAX*NFVEMAX];
+	int d,                   ///< Defined in \ref Element.
+	    n_f,                 ///< Defined in \ref Element.
+	    n_f_ve[NFMAX],       ///< The number of vertices on each face.
+	    f_ve[NFMAX*NFVEMAX]; ///< Defined in \ref Element.
 };
 
 /** \brief Copy local (to each element type) element information to a container with larger scope.

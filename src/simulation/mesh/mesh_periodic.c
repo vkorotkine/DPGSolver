@@ -323,8 +323,8 @@ static void set_pf_centr
 	for (int i = 0; i < DMAX-1; ++i)
 		centr[i] = 0.0;
 
-	const ptrdiff_t d     = nodes->extents[1],
-	             n_max = node_nums->extents[0];
+	const ptrdiff_t d     = nodes->ext_1,
+	                n_max = node_nums->ext_0;
 	for (ptrdiff_t n = 0; n < n_max; ++n) {
 		const double*const nodes_r = get_row_const_Matrix_d(node_nums->data[n],nodes);
 

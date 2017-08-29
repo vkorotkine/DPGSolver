@@ -1,6 +1,7 @@
 # Coding Style Guidelines
 
-The majority of the coding style choices were selected based on the [Linux kernel coding style guide](https://www.kernel.org/doc/html/v4.10/process/coding-style.html).
+The majority of the coding style choices were selected based on the
+[Linux kernel coding style guide](https://www.kernel.org/doc/html/v4.10/process/coding-style.html).
 
 ### Additional guidelines
 
@@ -23,23 +24,14 @@ const int*const p = NULL; // ok
 int const*const p = NULL; // avoid
 ```
 
-
-
 #### Header files
-- What they contain: Function/struct declarations and constant definition headers needed by these declarations.
-- Nesting of header files should be avoided where possible (including headers within headers) as this results in
-  complicated dependency treatment which is difficult to track correctly using the current dependency generation
-  mechanism. If a header is needed in a file (.c) and is included indirectly through a header, it will **not** be
-  present in the dependency file (.d).
-	- I believe that the nested dependencies can be handled by CMake which should be used in future, although I have not
-	  tested this extensively.
-	- This results in:
-		- repeated declaration of structs, but limits hidden dependency propagation.
-	- The *only* exceptions to this rule are:
-		- the inclusion of headers defining constants (as they cannot be declared extern). In this case, any constant
-		  definition headers should be redundantly reincluded in the associated '.c' file immediately following the
-		  primary header inclusion.
-		- the inclusion of header files defining structs which are members of structs declared in the header. **Ensure
-		  that the nested dependencies are redundantly included in all header (.h) and source (.c) files!**.
+- What they contain:
+	- Function/struct declarations;
+	- The primary documentation;
+	- **Necessary** includes for the declarations.
+- Nesting of header files (including headers within headers) should be avoided where possible as this results in
+  a complicated dependency structure resulting in longer compile times and readability difficulty in assessing function
+  interaction. Note that dependencies are however properly handled by CMake for compiling (i.e. CMake *will* search for
+  implicit includes).
 - This [discussion](http://stackoverflow.com/questions/1804486/should-i-use-include-in-headers) motivates these
 recommendations.

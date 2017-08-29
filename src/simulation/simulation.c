@@ -74,7 +74,7 @@ void destructor_Simulation (struct Simulation* sim)
 	destructor_Elements((struct Intrusive_List*) sim->elements);
 	destructor_Volumes(sim->volumes);
 	destructor_Faces(sim->faces);
-	FREE_NULL(sim);
+	free(sim);
 }
 
 void set_simulation_core (struct Simulation*const sim, const char*const ctrl_name)
@@ -100,7 +100,8 @@ void set_simulation_core (struct Simulation*const sim, const char*const ctrl_nam
 //		if (strstr(line,"Vectorized")) read_skip_const_b(line,&sim->vectorized);
 //		if (strstr(line,"Collocated")) read_skip_const_b(line,&sim->collocated);
 
-		if (strstr(line,"Dimension")) read_skip_const_i(line,&sim->d);
+		if (strstr(line,"Dimension"))   read_skip_const_i(line,&sim->d);
+		if (strstr(line,"Unrealistic")) read_skip_const_b(line,&sim->unrealistic);
 //		if (strstr(line,"Method"))    read_skip_const_i(line,&sim->method);
 //		if (strstr(line,"Adapt"))     read_skip_const_i(line,&sim->adapt_type);
 //		if (strstr(line,"PGlobal"))   read_skip_const_i(line,&sim->p);

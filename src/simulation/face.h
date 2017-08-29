@@ -72,12 +72,13 @@ struct Face {
 		               */
 
 		struct Volume *volume; ///< Pointer to the neighbouring \ref Volume.
-	} neigh_info[2];
+	} neigh_info[2]; ///< \ref Neighbour_Info.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //
 
-/// \brief Constructs the base \ref Volume \ref Intrusive_List.
+/** \brief Constructs the base \ref Face \ref Intrusive_List.
+ *	\return Standard. */
 struct Intrusive_List* constructor_Face_List
 	(struct Simulation*const sim, ///< The \ref Simulation.
 	 const struct Mesh*const mesh ///< The \ref Mesh.

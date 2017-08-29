@@ -33,7 +33,8 @@ struct Volume {
 
 // Constructor/Destructor functions ********************************************************************************* //
 
-/// \brief Constructs the base \ref Volume \ref Intrusive_List.
+/** \brief Constructs the base \ref Volume \ref Intrusive_List.
+ *	\return Standard. */
 struct Intrusive_List* constructor_Volume_List
 	(struct Simulation*const sim, ///< The \ref Simulation.
 	 const struct Mesh*const mesh ///< The \ref Mesh.

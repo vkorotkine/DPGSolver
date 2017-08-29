@@ -1,29 +1,23 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
+/** \file
+ *
+ *	This file can be used to output convergence orders of the selected test case in tabular format.
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 
-/*
- *	Purpose:
- *		Output convergence orders of the selected test case in tabular format.
- *
- *	Comments:
- *		table_to_latex.c can then be used to convert output from this function to a latex compatible format.
- *
- *	Notation:
- *
- *	References:
- *
- */
-
+/// \todo Replace definitions below with inclusion of appropriate files.
+///\{ \name Constants repeated from other functions.
 #define STRLEN_MIN 60
 #define STRLEN_MAX 508
 
 #define EPS        1.0e-15
 #define DMAX       3
+///\}
 
 static void data_to_txt(const unsigned int d, const unsigned int NVars, const unsigned int MLMin,
                         const unsigned int MLMax, const unsigned int PMin, const unsigned int PMax,
@@ -34,7 +28,9 @@ static void table_to_latex(const unsigned int d, const unsigned int NVars, const
                            const unsigned int *CasesRun, const double *h, double **L2Errors, double **ConvOrders,
                            char *TestCase, char *MeshType);
 
-int main(void)
+/** \brief Used to output convergence orders of the selected test case in tabular format.
+ *	\return 0. */
+int main (void)
 {
 	unsigned int Testing;
 

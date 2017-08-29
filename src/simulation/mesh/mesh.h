@@ -30,6 +30,10 @@ struct Mesh_Input {
 	          domain_type; /**< The type of domain. Vertex position correction is performed for
 	                        *   `domain_type == DOM_CURVED`. */
 
+	const bool unrealistic; /**< Flag for whether the mesh vertices should be unrealistically corrected to lie on the
+	                         *   input domain boundary to within a very small tolerance. See \ref mesh_vertices.h for
+	                         *   additional discussion of this issue. */
+
 	const char* mesh_name_full; ///< Name of the mesh file (including the full path and file extension).
 	const char* geom_name;      ///< Name of the base geometry to be used for the domain.
 	const char* geom_spec;      ///< Additional specifications for the geometry.
@@ -45,14 +49,15 @@ struct Mesh {
 	const struct Mesh_Vertices*const     mesh_vert; ///< \ref Mesh_Vertices.
 };
 
-/** \brief Set up the \ref Mesh.
+/** \brief Constructor for a \ref Mesh.
+ *	\return Standard.
  *
  *	To provide addtional modularity, it is possible to pass a `NULL` value for the `elements` list. This results in the
  *	list being constructed and destructed as part of the connectivity set up. However, as the base \ref Element list is
  *	used in many other modules of the code, it is generally convenient to set it up before setting up the mesh.
  *	\todo Add support for this functionality.
  */
-struct Mesh* set_up_mesh
+struct Mesh* constructor_Mesh
 	(const struct Mesh_Input* mesh_input,        ///< \ref Mesh_Input.
 	 const struct const_Intrusive_List* elements ///< The base \ref Element list.
 	);

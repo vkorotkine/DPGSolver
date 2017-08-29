@@ -49,6 +49,10 @@ struct Simulation {
 	 */
 	const int domain_type;
 
+	const bool unrealistic; /**< Flag for whether the mesh vertices should be unrealistically corrected to lie on the
+	                          *  input domain boundary to within a very small tolerance. See \ref mesh_vertices.h
+	                          *  additional discussion of this issue. */
+
 	ptrdiff_t n_v, ///< The number of \ref Volume finite elements.
 	          n_f; ///< The number of \ref Face   finite elements.
 
@@ -98,6 +102,7 @@ const int pde_index; ///< Index corresponding to \ref pde_name.
 };
 
 /** \brief Constructor for \ref Simulation.
+ *	\return Standard.
  *
  *	As the struct contains many data members, only the memory allocation is performed as part of the constructor. The
  *	appropriate setter functions must be called to define the members.

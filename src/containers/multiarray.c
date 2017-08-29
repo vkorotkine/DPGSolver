@@ -1,5 +1,7 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
+/** \file
+ */
 
 #include "multiarray.h"
 
@@ -150,7 +152,7 @@ void destructor_Multiarray_Vector_i (struct Multiarray_Vector_i* a)
 
 ptrdiff_t* allocate_and_set_extents (const int order, va_list ap)
 {
-	ptrdiff_t* extents = mallocator(SIZE_T_T,1,order); // returned
+	ptrdiff_t* extents = mallocator(PTRDIFF_T,1,order); // returned
 
 	for (ptrdiff_t i = 0; i < order; i++)
 		extents[i] = va_arg(ap,ptrdiff_t);
@@ -218,7 +220,7 @@ struct Vector_i* collapse_Multiarray_Vector_i (const struct Multiarray_Vector_i*
 	const ptrdiff_t size = compute_size(src->order,src->extents);
 	for (ptrdiff_t i = 0; i < size; ++i) {
 		struct Vector_i*const src_curr = src->data[i];
-		const ptrdiff_t size_V = compute_size(1,src_curr->extents);
+		const ptrdiff_t size_V = src_curr->ext_0;
 		for (ptrdiff_t j = 0; j < size_V; ++j) {
 			data[ind_d] = src_curr->data[j];
 			++ind_d;
@@ -226,9 +228,9 @@ struct Vector_i* collapse_Multiarray_Vector_i (const struct Multiarray_Vector_i*
 	}
 
 	struct Vector_i*const dest = malloc(sizeof *dest); // returned
-	dest->extents[0] = n_entries;
-	dest->owns_data  = true;
-	dest->data       = data;
+	dest->ext_0     = n_entries;
+	dest->owns_data = true;
+	dest->data      = data;
 
 	return dest;
 }
@@ -330,10 +332,10 @@ static void reorder_Multiarray_Vector_i (struct Multiarray_Vector_i*const a, con
 static int cmp_Vector_i_indexed (const void *a, const void *b)
 {
 	const struct Vector_i_indexed*const*const ia = (const struct Vector_i_indexed*const*const) a,
-	                              *const*const ib = (const struct Vector_i_indexed*const*const) b;
+	                             *const*const ib = (const struct Vector_i_indexed*const*const) b;
 
-	const ptrdiff_t size_a = compute_size(1,(*ia)->vector->extents),
-	             size_b = compute_size(1,(*ib)->vector->extents);
+	const ptrdiff_t size_a = (*ia)->vector->ext_0,
+	                size_b = (*ib)->vector->ext_0;
 
 	if (size_a > size_b)
 		return 1;
@@ -341,7 +343,7 @@ static int cmp_Vector_i_indexed (const void *a, const void *b)
 		return -1;
 
 	const int*const data_a = (*ia)->vector->data,
-	                  *const data_b = (*ib)->vector->data;
+	         *const data_b = (*ib)->vector->data;
 
 	for (ptrdiff_t i = 0; i < size_a; ++i) {
 		if (data_a[i] > data_b[i])
@@ -358,7 +360,7 @@ static ptrdiff_t compute_total_entries (const struct Multiarray_Vector_i*const s
 
 	ptrdiff_t count = 0;
 	for (ptrdiff_t i = 0; i < size; ++i)
-		count += compute_size(1,src->data[i]->extents);
+		count += src->data[i]->ext_0;
 
 	return count;
 }

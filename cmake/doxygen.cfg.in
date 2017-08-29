@@ -53,7 +53,9 @@ LOOKUP_CACHE_SIZE      = 0
 EXTRACT_ALL            = NO
 EXTRACT_PRIVATE        = YES
 EXTRACT_PACKAGE        = NO
+
 EXTRACT_STATIC         = NO
+
 EXTRACT_LOCAL_CLASSES  = YES
 EXTRACT_LOCAL_METHODS  = NO
 EXTRACT_ANON_NSPACES   = NO
@@ -92,9 +94,7 @@ CITE_BIB_FILES         = @PROJECT_SOURCE_DIR@/doc/code.bib
 #---------------------------------------------------------------------------
 QUIET                  = NO
 WARNINGS               = YES
-
-WARN_IF_UNDOCUMENTED   = NO  # Should be turned on when undocumented functions are removed!
-
+WARN_IF_UNDOCUMENTED   = YES
 WARN_IF_DOC_ERROR      = YES
 WARN_NO_PARAMDOC       = YES
 WARN_AS_ERROR          = YES
