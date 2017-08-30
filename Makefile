@@ -166,10 +166,9 @@ PYTHONC := python3
 MAIN_CONFIGURATIONS := $(nullstring)
 TEST_CONFIGURATIONS := update_h L2_proj_p L2_proj_h Advection Poisson Euler NavierStokes
 
-MAIN_CONFIGURATIONS := $(addprefix main/,$(MAIN_CONFIGURATIONS))
 TEST_CONFIGURATIONS := $(addprefix test/,$(TEST_CONFIGURATIONS))
 
-CONFIGURATIONS := $(addprefix $(CTRLDIR)/,$(MAIN_CONFIGURATIONS) $(TEST_CONFIGURATIONS))
+CONFIGURATIONS := $(addprefix $(CTRLDIR)/,$(TEST_CONFIGURATIONS))
 CONTROL_FILES  := $(shell find $(CTRLDIR) -name '*.ctrl')
 MESHVARIABLES  := $(MESHDIR)/MeshVariables $(MESHDIR)/MeshVariables_python
 
@@ -192,10 +191,6 @@ $(MESHVARIABLES) : $(CONTROL_FILES)
 	cd python/peterson_mesh/ && $(PYTHONC) MeshVariables_update.py
 	@echo
 
-
-.PHONY : doc
-doc:
-	cd doc && doxygen DPGSolver.cfg
 
 # Cleaning
 .PHONY : clean clean_test clean_code clean_exec clean_empty

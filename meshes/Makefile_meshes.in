@@ -1,0 +1,25 @@
+# Makefile for mesh generation
+
+MAKEFILE_NAME := Makefile_meshes
+
+PROJECT_SOURCE_DIR := @PROJECT_SOURCE_DIR@
+PROJECT_BINARY_DIR := @PROJECT_BINARY_DIR@
+
+.PHONY : meshes
+meshes:
+	@echo
+	$(MAKE) -f $(MAKEFILE_NAME) meshes_depend
+	$(MAKE) -f $(MAKEFILE_NAME) meshes_generate
+	@echo
+
+
+.PHONY : meshes_depend
+meshes_depend:
+	@echo meshes_depend.
+	@echo $(PROJECT_SOURCE_DIR)
+	@echo $(PROJECT_BINARY_DIR)
+
+
+.PHONY : meshes_generate
+meshes_generate:
+	@echo meshes_generate.
