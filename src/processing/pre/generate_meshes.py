@@ -11,14 +11,14 @@ Comments:
 	Paths to necessary executables are set in set_paths.
 '''
 
+sys.path.insert(0,'../')
+
 ### Classes ###
 from meshfile_classes import Paths_class
 from meshfile_classes import TestCase_class
 
-
-
 ### Functions ###
-from support_functions import EXIT_TRACEBACK
+
 
 
 def create_meshes(TestCase,Paths):
@@ -104,26 +104,31 @@ def get_gmsh_number(gmsh_args,name,Paths):
 				return line.split()[2][:-1]
 
 	print('Error: Did not find a value for '+name.upper()+' in '+fName+'\n')
-	EXIT_TRACEBACK()
+	EXIT_ERROR
 
 
 if __name__ == '__main__':
-	""" Generate meshes based on the CaseList read from command line arguments. """
+	""" Generate meshes based on the passed as command line arguments. """
 
-	Paths = Paths_class()
-	Paths.set_paths()
+	mesh_path  = sys.argv[1]
+	mesh_names = sys.argv[2:]
+	print(mesh_path)
+	print(mesh_names)
+	print("\n\n")
+	for mesh_name in mesh_names:
+		print("1: "+mesh_name)
+		print(mesh_path)
+		re.sub("mesh",'',mesh_name)
+		mesh_name.replace(mesh_path,'')
+		print("2: "+mesh_name)
+		EXIT
+#		re.sub(mesh_path,'',mesh_name)
+	print(mesh_names)
 
-	CaseName = sys.argv[1]
-	MeshName = sys.argv[2]
+#	print('\n\n\nGenerating '+MeshName+'.\n\n')
 
-	if (len(sys.argv) > 3):
-		print("Input arguments should be limitted to 'TestCase MeshFile'")
-		EXIT_TRACEBACK()
+#	TestCase = TestCase_class(CaseName)
 
-	print('\n\n\nGenerating '+MeshName+'.\n\n')
-
-	TestCase = TestCase_class(CaseName)
-
-	TestCase.set_paths(Paths)
-	TestCase.add_MeshTypes(Paths,MeshName)
-	create_meshes(TestCase,Paths)
+#	TestCase.set_paths(Paths)
+#	TestCase.add_MeshTypes(Paths,MeshName)
+#	create_meshes(TestCase,Paths)

@@ -34,5 +34,7 @@ test/*.o
 test/*.exe
 python/*.txt
 */__pycache__/*
+src/processing/__pycache__/*
+src/processing/pre/__pycache__/*
 
 build/*

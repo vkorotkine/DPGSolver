@@ -162,7 +162,6 @@ directories:
 # Python compiler
 PYTHONC := python3
 
-#MAIN_CONFIGURATIONS := Euler
 MAIN_CONFIGURATIONS := $(nullstring)
 TEST_CONFIGURATIONS := update_h L2_proj_p L2_proj_h Advection Poisson Euler NavierStokes
 

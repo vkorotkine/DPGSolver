@@ -1,0 +1,14 @@
+pde_name  euler
+pde_spec  internal/supersonic_vortex
+
+geom_name n-cylinder_hollow_section
+geom_spec NONE
+
+dimension 2
+
+mesh_generator   n-cylinder_hollow_section/2d.geo
+mesh_format      gmsh
+mesh_path        ../meshes/
+mesh_domain      parametric
+mesh_type        mixed
+mesh_level       0
