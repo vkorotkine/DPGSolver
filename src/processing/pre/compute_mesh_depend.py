@@ -1,6 +1,7 @@
+import re
 import sys
-sys.path.insert(0,'../')
 
+sys.path.insert(0,"../")
 from support_functions import f_write
 
 
@@ -11,10 +12,10 @@ class Paths:
 		self.project_src_dir = project_src_dir ### ${PROJECT_SOURCE_DIR} from CMake
 
 		### The root directory in which to generate the meshes.
-		self.mesh_root = project_bin_dir+'/meshes'
+		self.mesh_root = project_bin_dir+"/meshes"
 
 		### The root directory in which to find the control files.
-		self.ctrl_root = project_src_dir+'/input/cases/control_files'
+		self.ctrl_root = project_src_dir+"/input/cases/control_files"
 
 class Mesh_Info:
 	""" Container for mesh related information found in the control file. """
@@ -25,19 +26,19 @@ class Mesh_Info:
 		self.info = dict() ###< Dictionary which will hold information.
 
 		### Information members to be found.
-		self.info_members = ['pde_name',  ###< The pde name.
-		                     'pde_spec',  ###< The pde specifier.
-		                     'geom_name', ###< The geometry name.
-		                     'geom_spec', ###< The geometry specifier.
+		self.info_members = ["pde_name",  ###< The pde name.
+		                     "pde_spec",  ###< The pde specifier.
+		                     "geom_name", ###< The geometry name.
+		                     "geom_spec", ###< The geometry specifier.
 
-		                     'dimension', ###< The dimension of the mesh.
+		                     "dimension", ###< The dimension of the mesh.
 
-		                     'mesh_generator', """< The name of the file used to generate the mesh (including relative
+		                     "mesh_generator", """< The name of the file used to generate the mesh (including relative
 		                                            path) """
-		                     'mesh_format',    ###< The format of the mesh
-		                     'mesh_domain',    ###< The domain type.
-		                     'mesh_type',      ###< The element types present in the mesh
-		                     'mesh_level',     ###< The level of refinement of the mesh
+		                     "mesh_format",    ###< The format of the mesh
+		                     "mesh_domain",    ###< The domain type.
+		                     "mesh_type",      ###< The element types present in the mesh
+		                     "mesh_level",     ###< The level of refinement of the mesh
 		                    ]
 
 	def read_data (self):
@@ -49,27 +50,41 @@ class Mesh_Info:
 
 	def assemble_mesh_name (self):
 		mesh_file_name  = self.mesh_root
-		mesh_file_name += self.info['geom_name']+'/'
-		mesh_file_name += self.info['pde_name']+'/'
-		if (self.info['pde_spec'] != "NONE"):
-			mesh_file_name += self.info['pde_spec']+'/'
-		if (self.info['geom_spec'] != "NONE"):
-			mesh_file_name += self.info['geom_spec']+'/'
+		mesh_file_name += self.info["geom_name"]+'/'
+		mesh_file_name += self.info["pde_name"]+'/'
+		if (self.info["pde_spec"] != "NONE"):
+			mesh_file_name += self.info["pde_spec"]+'/'
+		if (self.info["geom_spec"] != "NONE"):
+			mesh_file_name += self.info["geom_spec"]+'/'
 
-		supported_mesh_domains = ['straight','curved','parametric']
-		if (self.info['mesh_domain'] not in supported_mesh_domains):
+		supported_mesh_domains = ["straight","curved","parametric"]
+		if (self.info["mesh_domain"] not in supported_mesh_domains):
 			EXIT_ERROR
 
-		mesh_file_name += self.info['mesh_domain']+'_'
-		mesh_file_name += '_'+self.info['dimension']+'d__'
-		mesh_file_name += self.info['mesh_type']+'_'
-		mesh_file_name += "ml"+self.info['mesh_level']
+		mesh_file_name += self.info["mesh_domain"]+'_'
+
+		gen_name = find_generator_name(self.info["mesh_generator"])
+		mesh_file_name += '_'+gen_name+"__"
+
+		mesh_file_name += self.info["mesh_type"]+'_'
+		mesh_file_name += "ml"+self.info["mesh_level"]
 		mesh_file_name += ".msh"
 
 		return mesh_file_name
 
+def find_generator_name (mesh_generator):
+	supported_extensions = [".geo",".py"]
 
-if __name__ == '__main__':
+	gen_regex = r"(([\w-]+/)*)([\w-]+)("
+	for s in supported_extensions:
+		gen_regex += re.escape(s) + r"|"
+	gen_regex = gen_regex[:-1] + r")"
+
+	gen_name = re.search(gen_regex,mesh_generator).group(3)
+
+	return gen_name
+
+if __name__ == "__main__":
 	""" Generate the mesh dependency file based on the list of input .ctrl files.  """
 
 	paths = Paths(sys.argv[1],sys.argv[2])
@@ -85,7 +100,7 @@ if __name__ == '__main__':
 		mesh_info.read_data()
 
 		mesh_file_name      = mesh_info.assemble_mesh_name()
-		mesh_generator_name = paths.project_src_dir+'/input/meshes/'+mesh_info.info['mesh_generator']
+		mesh_generator_name = paths.project_src_dir+"/input/meshes/"+mesh_info.info["mesh_generator"]
 
 		if (mesh_file_name not in dependencies.keys()):
 			dependencies[mesh_file_name] = set()

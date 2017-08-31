@@ -56,8 +56,8 @@ meshes_generate: $(MESHES)
 
 $(MESHES_GEO) : 
 	@echo Generating mesh: $@
-	cd $(PYTHON_DIR) && $(PYTHONC) generate_meshes.py $(PROJECT_SOURCE_DIR) $@ 
+	cd $(PYTHON_DIR) && $(PYTHONC) generate_meshes_gmsh.py $(PROJECT_SOURCE_DIR) $@ 
 
 $(MESHES_PYTHON) : 
 	@echo Generating mesh: $@
-	cd $(PYTHON_DIR) && $(PYTHONC) generate_meshes_peterson.py $(PROJECT_SOURCE_DIR) $@ 
+	cd $(PYTHON_DIR) && $(PYTHONC) generate_meshes_python.py $(PROJECT_SOURCE_DIR) $@ 

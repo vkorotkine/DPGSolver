@@ -6,7 +6,7 @@ geom_spec YL
 
 dimension 2
 
-mesh_generator   ../../src/processing/pre/generate_meshes_peterson.py
+mesh_generator   n-cube/2d_peterson.py
 mesh_format      gmsh
 mesh_domain      straight
 mesh_type        tri

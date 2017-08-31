@@ -5,16 +5,13 @@ References:
 	Peterson(1991)-A Note on the Convergence of the Discontinuous Galerkin Method for a Scalar Hyperbolic Equation
 """
 
-BC_INFLOW  = 13
-BC_OUTFLOW = 14
-
 import sys
 import os
 import math
 import numpy as np
 import re
 
-sys.path.insert(0,'../')
+sys.path.insert(0,"../../../src/processing/")
 from support_functions import list_print
 
 ### Classes ###
@@ -184,7 +181,7 @@ class Mesh_c:
 #		print(node_index)
 #		list_print(self.conn,"conn",2)
 
-	def compute_boundaries(self):
+	def compute_boundaries(self,input_dir):
 		"""
 		Compute the indices of the boundary elements and assign their gmsh tags.
 		"""
@@ -234,11 +231,28 @@ class Mesh_c:
 				for i in range(len(item)-2,len(item)):
 					item[i] = node_index[item[i]]
 
+		def get_gmsh_number (var_name,input_dir):
+			param_file_name = input_dir+"/parameters.geo"
 
-		add_boundaries(self,1001,BC_INFLOW)
-		add_boundaries(self,1002,BC_OUTFLOW)
-		add_boundaries(self,2001,BC_OUTFLOW)
-		add_boundaries(self,2002,BC_OUTFLOW)
+			with open(param_file_name) as f:
+				for line in f:
+					if (var_name.upper() in line):
+						return line.split()[2][:-1]
+
+			print("\n\nDid not find a value for "+var_name.upper()+" in "+param_file_name+'\n')
+			EXIT
+
+
+		b_conditions = dict()
+		b_c_members = ["bc_inflow","bc_outflow"]
+
+		for s in b_c_members:
+			b_conditions[s] = get_gmsh_number(s,input_dir)
+
+		add_boundaries(self,1001,int(b_conditions["bc_inflow"]))
+		add_boundaries(self,1002,int(b_conditions["bc_outflow"]))
+		add_boundaries(self,2001,int(b_conditions["bc_outflow"]))
+		add_boundaries(self,2002,int(b_conditions["bc_outflow"]))
 
 		renumber_boundaries(self)
 
@@ -319,6 +333,7 @@ if __name__ == '__main__':
 	"""
 
 	project_src_dir = sys.argv[1]
+	input_dir       = project_src_dir+"/input/meshes"
 	mesh_name_full  = sys.argv[2]
 
 	sigma = 0.75  # Good for suboptimal P1
@@ -335,7 +350,7 @@ if __name__ == '__main__':
 
 		Mesh.compute_coordinates()
 
-		Mesh.compute_boundaries()
+		Mesh.compute_boundaries(input_dir)
 		Mesh.compute_connectivity()
 		Mesh.compute_gmsh_elements_array()
 
