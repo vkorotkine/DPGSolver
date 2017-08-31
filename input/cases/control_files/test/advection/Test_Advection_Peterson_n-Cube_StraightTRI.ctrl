@@ -1,12 +1,12 @@
-pde_name       advection
-pde_specifier  steady/peterson
+pde_name  advection
+pde_spec  steady/peterson
 
-geom           n-cube
-geom_specifier YL
+geom_name n-cube
+geom_spec YL
 
-dimension      2
+dimension 2
 
-mesh_generator   NAME_OF_PYTHON_FILE_HERE
+mesh_generator   ../../src/processing/pre/generate_meshes_peterson.py
 mesh_format      gmsh
 mesh_domain      straight
 mesh_type        tri

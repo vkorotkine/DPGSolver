@@ -7,10 +7,9 @@ MAKEFILE_NAME := $(PROJECT_BINARY_DIR)/meshes/Makefile_meshes
 
 .PHONY : meshes
 meshes:
-	@echo
 	$(MAKE) -f $(MAKEFILE_NAME) meshes_depend
 	$(MAKE) -f $(MAKEFILE_NAME) meshes_generate
-	@echo
+
 
 PYTHONC    := python3
 PYTHON_DIR := $(PROJECT_SOURCE_DIR)/src/processing/pre
@@ -43,16 +42,22 @@ $(MESH_DEPEND_GMSH) : $(CTRL_FILES_GMSH)
 
 $(MESH_DEPEND_PYTHON): $(CTRL_FILES_PYTHON)
 	@echo Creating: $@
-	@echo \todo
-	# To Be Removed **************************
-	touch $(CTRL_FILES_GMSH)
+	cd $(PYTHON_DIR) && $(PYTHONC) compute_mesh_depend.py $(PROJECT_BINARY_DIR) $(PROJECT_SOURCE_DIR) $@ \
+	$@ $(CTRL_FILES_PYTHON:$(CTRL_DIR)/%=%)
 
 
 include $(MESH_DEPEND_GMSH)
+include $(MESH_DEPEND_PYTHON)
 
 MESHES := $(MESHES_GEO) $(MESHES_PYTHON)
 
 .PHONY : meshes_generate
 meshes_generate: $(MESHES)
-	@echo Generating meshes
-	cd $(PYTHON_DIR) && $(PYTHONC) generate_meshes.py $(MESH_BINARY_DIR) $^
+
+$(MESHES_GEO) : 
+	@echo Generating mesh: $@
+	cd $(PYTHON_DIR) && $(PYTHONC) generate_meshes.py $(PROJECT_SOURCE_DIR) $@ 
+
+$(MESHES_PYTHON) : 
+	@echo Generating mesh: $@
+	cd $(PYTHON_DIR) && $(PYTHONC) generate_meshes_peterson.py $(PROJECT_SOURCE_DIR) $@ 

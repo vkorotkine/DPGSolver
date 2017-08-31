@@ -1,11 +1,6 @@
 import sys
 sys.path.insert(0,'../')
 
-### Classes ###
-#from meshfile_classes import Paths_class
-#from meshfile_classes import TestCase_class
-
-### Functions ###
 from support_functions import f_write
 
 
@@ -66,7 +61,7 @@ class Mesh_Info:
 			EXIT_ERROR
 
 		mesh_file_name += self.info['mesh_domain']+'_'
-		mesh_file_name += self.info['dimension']+'d_'
+		mesh_file_name += '_'+self.info['dimension']+'d__'
 		mesh_file_name += self.info['mesh_type']+'_'
 		mesh_file_name += "ml"+self.info['mesh_level']
 		mesh_file_name += ".msh"
@@ -83,6 +78,7 @@ if __name__ == '__main__':
 	mesh_make_name   = sys.argv[4]
 	ctrl_files       = sys.argv[5:]
 
+	# Find dependencies
 	dependencies = dict()
 	for ctrl_file in ctrl_files:
 		mesh_info = Mesh_Info(ctrl_file,paths)

@@ -1,10 +1,13 @@
 # Execute cmake using specific build parameters from '$ROOT/cmake/run' using, for example:
 # $ sh gcc_debug.sh
 #
+# The minimum required version is required in order to properly find python3 without passing the cmake parameters:
+# - PYTHON_INCLUDE_DIR, PYTHON_LIBRARY
+#
 # CMake Warnings which may be safely ignored when the conditions in braces () are satisfied:
 # - "Manually-specified variables were not used by the project: CMAKE_TOOLCHAIN_FILE" (after the initial build)
 
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.8.1)
 
 message("Running cmake with build type: ${CMAKE_BUILD_TYPE}.\n")
 

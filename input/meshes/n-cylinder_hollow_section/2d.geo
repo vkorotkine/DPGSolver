@@ -1,12 +1,12 @@
-Include "../Parameters.geo";
-//MeshCurving = TOBECURVED; MeshLevel = 0; MeshType = MIXED2D; PDEName = EULER; PDESpecifier = INTERNAL_SUPERSONICVORTEX;
+Include "../parameters.geo";
+//MESH_DOMAIN = PARAMETRIC; MESH_LEVEL = 0; MESH_TYPE = MIXED; PDE_NAME = EULER; PDE_SPEC = INTERNAL_SUPERSONICVORTEX;
 
 // Geometry Specification
-If (PDESpecifier == INTERNAL_SUPERSONICVORTEX)
-	Include "../../cases/input_files/Euler/Internal/SupersonicVortex/geometry_parameters.geo";
+If (PDE_SPEC == INTERNAL_SUPERSONIC_VORTEX)
+	Include "../../cases/input_files/euler/internal/supersonic_vortex/geometry_parameters.geo";
 EndIf
 
-If (MeshCurving == TOBECURVED)
+If (MESH_DOMAIN == PARAMETRIC)
 	Point(1) = {r_i,0,0,lc};
 	Point(2) = {r_o,0,0,lc};
 	Point(3) = {0,r_i,0,lc};
@@ -21,7 +21,7 @@ If (MeshCurving == TOBECURVED)
 	Line(1005) = {6,5};
 	Line(1006) = {6,2};
 	Line(1007) = {4,6};
-ElseIf (MeshCurving == CURVED)
+ElseIf (MESH_DOMAIN == CURVED)
 	Point(1) = {r_i,0,0,lc};
 	Point(2) = {r_o,0,0,lc};
 	Point(3) = {0,r_i,0,lc};
@@ -41,8 +41,8 @@ EndIf
 
 
 // Include something for aspect ratio: 1.0, 2.5, 5.0, 20.0
-Transfinite Line {1003:1006}      = 2*2^(MeshLevel)+1 Using Progression 1;
-Transfinite Line {1001,1002,1007} = 2*2^(MeshLevel)+1 Using Progression 1;
+Transfinite Line {1003:1006}      = 2*2^(MESH_LEVEL)+1 Using Progression 1;
+Transfinite Line {1001,1002,1007} = 2*2^(MESH_LEVEL)+1 Using Progression 1;
 
 
 Line Loop (4001) = {1007,1005,-1002,-1003};
@@ -54,9 +54,9 @@ Plane Surface(4002) = {4002};
 Transfinite Surface{4001} Left;
 Transfinite Surface{4002} Right;
 
-If (MeshType == MIXED2D)
+If (MESH_TYPE == MIXED)
 	Recombine Surface{4002};
-ElseIf (MeshType == QUAD)
+ElseIf (MESH_TYPE == QUAD)
 	Recombine Surface{4001,4002};
 EndIf
 
@@ -66,7 +66,7 @@ EndIf
 BC_Straight =   BC_STEP_SC;
 BC_Curved   = 2*BC_STEP_SC;
 
-If (PDEName == EULER)
+If (PDE_NAME == EULER)
 	Physical Line (1*BC_STEP_SC+BC_RIEMANN)  = {1001,1002};
 	Physical Line (2*BC_STEP_SC+BC_SLIPWALL) = {1003:1004};
 	Physical Line (3*BC_STEP_SC+BC_SLIPWALL) = {1005:1006};

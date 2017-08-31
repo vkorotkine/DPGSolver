@@ -3,132 +3,124 @@ import subprocess
 import shlex
 import re
 
-'''
-Purpose:
-	Generate .msh files necessary for the code using the gmsh .geo files.
+class Gmsh_call:
+	""" Container for gmsh call related information. """
+	def __init__ (self):
+		self.dim      = '' ###< The dimension.
+		self.in_dir   = '' ###< The full path to the ROOT input directory.
+		self.in_name  = '' ###< The name of the input file.
+		self.out_name = '' ###< The name of the output file.
+		self.args     = '' ###< The arguments to be passed to gmsh
 
-Comments:
-	Paths to necessary executables are set in set_paths.
-'''
+	def set_input (self,project_src_dir,mesh_name):
+		self.in_dir  = project_src_dir+'/input/meshes/'
+		self.in_name = self.in_dir
 
-sys.path.insert(0,'../')
+		supported_geometries = ['n-cube',
+		                        'n-cylinder_hollow_section',
+		                       ]
 
-### Classes ###
-from meshfile_classes import Paths_class
-from meshfile_classes import TestCase_class
+		geometry = mesh_name.split('/')[0]
+		if (geometry not in supported_geometries):
+			print("The ",geometry," is not currently supported.\n")
+			EXIT
 
-### Functions ###
+		geo_name = re.search(r"(__)([\w]+)(__)",mesh_name).group(2)
 
+		self.in_name += geometry+'/'+geo_name+".geo"
 
+		self.dim = re.search(r"(^[\D]*)(\d)([\D]*$)",geo_name).group(2)
 
-def create_meshes(TestCase,Paths):
-	for i in range(0,len(TestCase.MeshTypes)):
-		MeshType = TestCase.MeshTypes[i]
+	def set_output (self,mesh_name_full):
+		self.out_name = mesh_name_full
 
-		gmsh_args = ' ' + Paths.meshes + MeshType.InputName
-		gmsh_args += ' -' + MeshType.dim
-		gmsh_args = add_gmsh_setnumber(gmsh_args,MeshType,Paths)
-		gmsh_args += ' -o ' + MeshType.OutputName
+	def set_args (self,mesh_name,mesh_name_full):
+		self.args  = ' ' + self.in_name
+		self.args += " -" + self.dim
+		self.args += set_gmsh_setnumbers(self.in_dir,mesh_name)
+		self.args += ' -o ' + self.out_name
 
-#		print("MON:",MeshType.OutputName)
-		subprocess.call(shlex.split('mkdir -p ' + MeshType.OutputDir))
-		subprocess.call(shlex.split(Paths.gmsh + gmsh_args))
+		out_dir = re.search(r"/(([\w-]+/)*)",mesh_name_full).group(0)
 
+		subprocess.call(shlex.split('mkdir -p ' + out_dir))
+		subprocess.call(shlex.split('gmsh' + self.args))
 
-def add_gmsh_setnumber(gmsh_args,MeshType,Paths):
-	""" Set numbers for gmsh command line arguments based on values in Parameters.geo. """
+def set_gmsh_setnumbers (input_dir,mesh_name):
+	""" Set the -setnumber inputs to be passed to gmsh. """
+	gmsh_setnumbers = ''
 
-	# Parameters which should always be present (using get_gmsh_number)
+	# Mesh level
 
-	# MeshType
-	gmsh_args += ' -setnumber MeshType '
-	gmsh_args += get_gmsh_number(gmsh_args,MeshType.name,Paths)
+	mesh_level = re.search(r"(^.*_ml)(\d+)(.*$)",mesh_name).group(2)
+	gmsh_setnumbers += ' -setnumber MESH_LEVEL ' + mesh_level
 
-	# PDEName
-	gmsh_args += ' -setnumber PDEName '
-	gmsh_args += get_gmsh_number(gmsh_args,MeshType.PDEName,Paths)
+	# Required parameters
 
-	# PDESpecifier
-	gmsh_args += ' -setnumber PDESpecifier '
-	gmsh_args += get_gmsh_number(gmsh_args,(MeshType.PDESpecifier).replace('/','_'),Paths)
+	gmsh_setnumbers += ' -setnumber PDE_NAME '
+	var_names = ['advection','poisson','euler','navierstokes']
+	gmsh_setnumbers += get_gmsh_number(mesh_name,var_names,input_dir,0)
 
-	# MeshCurving
-	gmsh_args += ' -setnumber MeshCurving '
-	gmsh_args += get_gmsh_number(gmsh_args,MeshType.MeshCurving,Paths)
+	gmsh_setnumbers += ' -setnumber PDE_SPEC '
+	var_names = ['internal/supersonic_vortex',
+	             'periodic/periodic_vortex',
+	            ]
+	gmsh_setnumbers += get_gmsh_number(mesh_name,var_names,input_dir,0)
 
-	# MeshLevel
-	gmsh_args += ' -setnumber MeshLevel ' + MeshType.MeshLevel
+	gmsh_setnumbers += ' -setnumber MESH_DOMAIN '
+	var_names = ['straight','curved','parametric']
+	gmsh_setnumbers += get_gmsh_number(mesh_name,var_names,input_dir,0)
 
+	gmsh_setnumbers += ' -setnumber MESH_TYPE '
+	var_names = ['line','tri','quad','tet','hex','wedge','pyr','mixed']
+	gmsh_setnumbers += get_gmsh_number(mesh_name,var_names,input_dir,1)
 
-	# Other parameters
+	# Additional geom_spec parameters
 
-	# Extended domain
-	gmsh_args += ' -setnumber Extended '
-	if (MeshType.GeomSpecifier.find('Extended') == -1):
-		gmsh_args += get_gmsh_number(gmsh_args,"Extension_Disabled",Paths)
-	else:
-		gmsh_args += get_gmsh_number(gmsh_args,"Extension_Enabled",Paths)
-
-	gmsh_args += ' -setnumber Geom_AR '
-	if (MeshType.GeomSpecifier.find('AR') != -1):
-		AR_Num = re.search('\/AR_(.+?)\/',MeshType.GeomSpecifier)
-		gmsh_args += get_gmsh_number(gmsh_args,"Geom_AR_"+AR_Num.group(1),Paths)
-	else:
-		gmsh_args += get_gmsh_number(gmsh_args,"Geom_NONE",Paths)
-
-	gmsh_args += ' -setnumber Geom_Adv '
-	if (MeshType.GeomSpecifier.find('YL') != -1):
-		gmsh_args += get_gmsh_number(gmsh_args,"Geom_Adv_YL",Paths)
-	else: # Default
-		gmsh_args += get_gmsh_number(gmsh_args,"Geom_NONE",Paths)
-
-	gmsh_args += ' -setnumber Geom_2BEXP '
-	if (MeshType.GeomSpecifier.find('BumpExp') != -1):
-		tmp = [int(c) for c in MeshType.GeomSpecifier if c.isdigit()]
-		BExp_Num = int(2*(tmp[0]+0.1*tmp[1]))
-		gmsh_args += get_gmsh_number(gmsh_args,"Geom_2BExp_"+str(BExp_Num),Paths)
-	else:
-		gmsh_args += get_gmsh_number(gmsh_args,"Geom_NONE",Paths)
-
-	return gmsh_args
+	return gmsh_setnumbers
 
 
-def get_gmsh_number(gmsh_args,name,Paths):
-	fName = Paths.meshes + 'Parameters.geo'
+# Delete other function and change name of this function
+def get_gmsh_number (mesh_name,var_names,input_dir,with_underscore):
+	""" Get the number associated with the variable name as specified in the parameters.geo file. """
 
-	Found = 0
-	with open(fName) as f:
+	param_file_name = input_dir+'/parameters.geo'
+
+	for target in var_names:
+		target_name = target
+		if (with_underscore):
+			target_name = '_'+target_name+'_'
+
+		if (mesh_name.find(target_name) != -1):
+			var_name = target.replace('/','_')
+			break
+
+	with open(param_file_name) as f:
 		for line in f:
-			if (name.upper() in line):
-				Found = 1
+			if (var_name.upper() in line):
 				return line.split()[2][:-1]
 
-	print('Error: Did not find a value for '+name.upper()+' in '+fName+'\n')
-	EXIT_ERROR
+	print("\n\nDid not find a value for "+var_name.upper()+" in "+param_file_name+'\n')
+	EXIT
+
 
 
 if __name__ == '__main__':
-	""" Generate meshes based on the passed as command line arguments. """
+	""" Generate the gmsh mesh passed as a command line argument using the appropriate .geo file. """
 
-	mesh_path  = sys.argv[1]
-	mesh_names = sys.argv[2:]
-	print(mesh_path)
-	print(mesh_names)
-	print("\n\n")
-	for mesh_name in mesh_names:
-		print("1: "+mesh_name)
-		print(mesh_path)
-		re.sub("mesh",'',mesh_name)
-		mesh_name.replace(mesh_path,'')
-		print("2: "+mesh_name)
+
+	if (len(sys.argv) > 3):
+		print("Only a single mesh_name should be input at a time.\n")
 		EXIT
-#		re.sub(mesh_path,'',mesh_name)
-	print(mesh_names)
 
-#	print('\n\n\nGenerating '+MeshName+'.\n\n')
+	project_src_dir = sys.argv[1]
+	mesh_name_full  = sys.argv[2]
 
-#	TestCase = TestCase_class(CaseName)
+	mesh_name = re.sub(".*meshes/","",mesh_name_full)
 
-#	TestCase.set_paths(Paths)
-#	TestCase.add_MeshTypes(Paths,MeshName)
-#	create_meshes(TestCase,Paths)
+	parts = mesh_name.split('/')
+	print(parts)
+
+	gmsh_call = Gmsh_call()
+	gmsh_call.set_input(project_src_dir,mesh_name)
+	gmsh_call.set_output(mesh_name_full)
+	gmsh_call.set_args(mesh_name,mesh_name_full)
