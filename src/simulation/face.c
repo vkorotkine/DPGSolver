@@ -240,7 +240,7 @@ static bool check_if_curved_f
 	(const int to_lf, const int domain_type, const struct const_Multiarray_Vector_i*const f_ve,
 	 const struct const_Vector_i*const ve_inds, const struct Mesh_Vertices*const mesh_vert)
 {
-	if (domain_type == DOM_MAPPED)
+	if (domain_type == DOM_PARAMETRIC)
 		return true;
 
 // likely redundant {

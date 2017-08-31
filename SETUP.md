@@ -1,10 +1,25 @@
 # Additional Set Up
 
+An out of source build must be created (by CMake) using the provided bash scripts:
+```sh
+ROOT/cmake/run$ sh gcc_debug.sh
+```
+
+which creates a build director of ROOT/build by default. The following `make` commands are then available in the build
+directory:
+	- make meshes (Generate meshes)
+	- make doc    (Generate documentation)
+
+The code can then be run from using the sample bash scripts in BUILD/script_files.
+
+
+# Additional Set Up (Deprecated Version)
+
 ## Configuring the Code
 
 The 'configure/user_configure.mk' file must be created before the code can be run. See the instructions in [default.mk](configure/default.mk).
 
-Before running the code, be sure execute the following in the $(ROOT) directory:
+Before running the code, be sure to execute the following in the $(ROOT) directory:
 ```sh
 $ make directories
 $ make meshes

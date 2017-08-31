@@ -11,5 +11,4 @@ mesh_format      gmsh
 mesh_domain      straight
 mesh_type        quad
 mesh_level       1
-
 mesh_path        ../meshes/

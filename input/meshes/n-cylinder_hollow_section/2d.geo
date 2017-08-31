@@ -3,7 +3,7 @@ Include "../parameters.geo";
 
 // Geometry Specification
 If (PDE_SPEC == INTERNAL_SUPERSONIC_VORTEX)
-	Include "../../cases/input_files/euler/internal/supersonic_vortex/geometry_parameters.geo";
+	Include "../../input_files/euler/internal/supersonic_vortex/geometry_parameters.geo";
 EndIf
 
 If (MESH_DOMAIN == PARAMETRIC)

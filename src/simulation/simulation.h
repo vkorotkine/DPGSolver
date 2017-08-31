@@ -49,9 +49,9 @@ struct Simulation {
 	 */
 	const int domain_type;
 
-	const bool unrealistic; /**< Flag for whether the mesh vertices should be unrealistically corrected to lie on the
-	                          *  input domain boundary to within a very small tolerance. See \ref mesh_vertices.h
-	                          *  additional discussion of this issue. */
+	/** Flag for whether the mesh vertices should be unrealistically corrected to lie on the input domain boundary to
+	 * within a very small tolerance. See \ref mesh_vertices.h additional discussion of this issue. */
+	const bool mesh_unrealistic;
 
 	ptrdiff_t n_v, ///< The number of \ref Volume finite elements.
 	          n_f; ///< The number of \ref Face   finite elements.

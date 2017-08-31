@@ -4,10 +4,11 @@
 #ifndef DPG__test_info_h__INCLUDED
 #define DPG__test_info_h__INCLUDED
 /**	\file
- *	Provides functions/structures for general testing.
+ *	Provides base functions/structures for general testing.
  */
 
 #include <stdbool.h>
+#include <time.h>
 
 /// Container for flags marking which integration are to be run.
 struct Test_Integration_Run {
@@ -22,11 +23,34 @@ struct Test_Info {
 	int    nargc; ///< Standard.
 	char** argv;  ///< Standard.
 
+	clock_t ts, ///< Start time.
+	        te; ///< End time.
+
 	int n_test, ///< The number of tests run.
 	    n_pass, ///< The number of tests which passed.
 	    n_warn; ///< The number of warnings generated.
 
 	struct Test_Integration_Run t_int; ///< \ref Test_Integration_Run.
 };
+
+// Helper functions ************************************************************************************************* //
+
+/// \brief Output test related information.
+void output_test_info
+	(struct Test_Info*const test_info ///< \ref Test_Info.
+	);
+
+/// \brief Increment test counters and print pass/fail related information for the current test.
+void test_increment_and_print
+	(struct Test_Info*const test_info, ///< \ref Test_Info.
+	 const bool pass,                  ///< Flag for whether the test passed or failed.
+	 const char*const test_name        ///< The test name string.
+	);
+
+/// \brief Print a warning and increment \ref Test_Info::n_warn.
+void test_print_warning
+	(struct Test_Info*const test_info, ///< \ref Test_Info.
+	 const char*const warn_name  ///< The warning string.
+	);
 
 #endif // DPG__test_info_h__INCLUDED

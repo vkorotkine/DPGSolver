@@ -57,7 +57,7 @@ struct Mesh_Vertices* constructor_Mesh_Vertices
 	const_constructor_move_Multiarray_Vector_i(&mesh_vert->ve_bc,mesh_vert_l.ve_bc);
 
 	// Correct vertex coordinates if necessary.
-	if (mesh_input->unrealistic)
+	if (mesh_input->mesh_unrealistic)
 		correct_mesh_vertices(mesh_input,mesh_vert,mesh->mesh_data->nodes);
 
 	return mesh_vert;

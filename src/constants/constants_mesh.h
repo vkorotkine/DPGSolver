@@ -8,9 +8,9 @@
  */
 
 ///\{ \name The supported domain types.
-#define DOM_STRAIGHT 1
-#define DOM_CURVED   2
-#define DOM_MAPPED   3
+#define DOM_STRAIGHT   1
+#define DOM_CURVED     2
+#define DOM_PARAMETRIC 3
 ///\}
 
 ///\{ \name The node coordinate tolerance of the mesh vertices

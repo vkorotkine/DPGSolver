@@ -1,6 +1,10 @@
-include_directories(mesh)
+include_directories(
+	mesh
+	)
 
-add_subdirectory(mesh)
+add_subdirectory(
+	mesh
+	)
 
 set	(SOURCE
 	 simulation.c

@@ -8,8 +8,8 @@ dimension 2
 
 mesh_generator   n-cylinder_hollow_section/2d.geo
 mesh_format      gmsh
-mesh_path        ../meshes/
 mesh_domain      curved
 mesh_type        mixed
 mesh_level       0
 mesh_unrealistic 0
+mesh_path        ../meshes/

@@ -11,5 +11,4 @@ mesh_format      gmsh
 mesh_domain      straight
 mesh_type        tri
 mesh_level       0
-
 mesh_path        ../meshes/

@@ -1,6 +1,6 @@
 set	(SOURCE
-	test_integration_euler.c
-	test_integration_linearization.c
+	 test_integration_euler.c
+	 test_integration_linearization.c
 	)
 
 set	(LIBS

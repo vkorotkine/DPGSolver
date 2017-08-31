@@ -30,9 +30,9 @@ struct Mesh_Input {
 	          domain_type; /**< The type of domain. Vertex position correction is performed for
 	                        *   `domain_type == DOM_CURVED`. */
 
-	const bool unrealistic; /**< Flag for whether the mesh vertices should be unrealistically corrected to lie on the
-	                         *   input domain boundary to within a very small tolerance. See \ref mesh_vertices.h for
-	                         *   additional discussion of this issue. */
+	/** Flag for whether the mesh vertices should be unrealistically corrected to lie on the input domain boundary to
+	 * within a very small tolerance. See \ref mesh_vertices.h for additional discussion of this issue. */
+	const bool mesh_unrealistic;
 
 	const char* mesh_name_full; ///< Name of the mesh file (including the full path and file extension).
 	const char* geom_name;      ///< Name of the base geometry to be used for the domain.

@@ -102,9 +102,9 @@ void read_skip_const_d
 
 /// \brief Append `src` (char*) to `dest` with optional forward slash ('\').
 void strcat_path_c
-	(char* dest,           ///< Destination.
-	 const char*const src, ///< Source.
-	 bool add_slash        ///< Flag indicating whether a forward slash ('\') should be appended.
+	(char* dest,            ///< Destination.
+	 const char*const src,  ///< Source.
+	 const char*const trail ///< Optional trailing characters to append.
 	);
 
 /// \brief Append `src` (int) to `dest`.

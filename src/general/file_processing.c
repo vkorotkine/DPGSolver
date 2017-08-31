@@ -150,12 +150,12 @@ void read_skip_const_d (const char*const line, const double*const var, const int
 	sscanf(input_s_clean,"%lf",(double*)var);
 }
 
-void strcat_path_c (char* dest, const char*const src, bool add_slash)
+void strcat_path_c (char* dest, const char*const src, const char*const trail)
 {
 	if (!strstr(src,"NONE")) {
 		strcat(dest,src);
-		if (add_slash)
-			strcat(dest,"/");
+		if (trail)
+			strcat(dest,trail);
 	}
 }
 

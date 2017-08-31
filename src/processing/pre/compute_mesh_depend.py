@@ -15,7 +15,7 @@ class Paths:
 		self.mesh_root = project_bin_dir+"/meshes"
 
 		### The root directory in which to find the control files.
-		self.ctrl_root = project_src_dir+"/input/cases/control_files"
+		self.ctrl_root = project_src_dir+"/input/control_files"
 
 class Mesh_Info:
 	""" Container for mesh related information found in the control file. """

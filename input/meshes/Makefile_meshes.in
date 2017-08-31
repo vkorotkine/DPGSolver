@@ -16,7 +16,7 @@ PYTHON_DIR := $(PROJECT_SOURCE_DIR)/src/processing/pre
 
 # Dependency generation
 
-CTRL_DIR := $(PROJECT_SOURCE_DIR)/input/cases/control_files
+CTRL_DIR := $(PROJECT_SOURCE_DIR)/input/control_files
 
 CTRL_FILES_PYTHON := $(shell find $(CTRL_DIR) -name '*Peterson*.ctrl')
 CTRL_FILES_OTHER  := $(CTRL_FILES_PYTHON)
