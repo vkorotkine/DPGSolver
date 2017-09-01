@@ -41,7 +41,8 @@
 
 static void ToBeCurved_elliptic_pipe
 	(unsigned int const Nn, double const *const XYZ_S, double *const XYZ, const bool corners_only);
-static void         ToBeCurved_parabolic_pipe   (unsigned int const Nn, double const *const XYZ_S, double *const XYZ);
+static void ToBeCurved_parabolic_pipe
+	(unsigned int const Nn, double const *const XYZ_S, double *const XYZ, const bool corners_only);
 static void         ToBeCurved_sinusoidal_pipe  (unsigned int const Nn, double const *const XYZ_S, double *const XYZ);
 static void         ToBeCurved_cube_to_sphere   (unsigned int Nn, double *XYZ_S, double *XYZ);
 static void         ToBeCurved_square_to_circle (unsigned int Nn, double *XYZ_S, double *XYZ);
@@ -128,9 +129,10 @@ static void ToBeCurved_elliptic_pipe
 	const double*const X_S = &XYZ_S[Nn*0],
 	            *const Y_S = &XYZ_S[Nn*1];
 
-	double a = DB.geo_store[0],
+	/*double a = DB.geo_store[0],
 		   b = DB.geo_store[1],
-		   c = DB.geo_store[2];
+		   c = DB.geo_store[2],
+		   m = DB.geo_store[3];*/
 
 	if (corners_only) {
 		const double X_ve_S[] = {-1, 1,-1, 1},
@@ -140,8 +142,10 @@ static void ToBeCurved_elliptic_pipe
 		double X_ve[N_V_QUAD] = {0},
 		       Y_ve[N_V_QUAD] = {0};
 		for (size_t n = 0; n < N_V_QUAD; ++n) {
-			X_ve[n] = c*(X_ve_S[n]+1)/2;
-			Y_ve[n] = (b/(2*a))*(Y_ve_S[n]+1)*sqrt(a*a+0.25*c*c*(X_ve_S[n]+1)*(X_ve_S[n]+1));
+			//X_ve[n] = c*(X_ve_S[n]+1)/2;
+			//Y_ve[n] = (-b/(2*a))*(Y_ve_S[n]+1)*sqrt(a*a+0.25*c*c*(X_ve_S[n]+1)*(X_ve_S[n]+1))+m*(Y_ve_S[n]+1)/2;
+			Y_ve[n] = Y_ve_S[n];
+			X_ve[n] = X_ve_S[n];
 		}
 
 		// Evaluate using k1 Lagrange basis
@@ -158,13 +162,16 @@ static void ToBeCurved_elliptic_pipe
 		set_XYZ_k1_lagrange(&k1_l,&xyz_data);
 	} else {
 		for (size_t n = 0; n < Nn; n++) {
-			Y[n] = (b/(2*a))*(Y_S[n]+1)*sqrt(a*a+0.25*c*c*(X_S[n]+1)*(X_S[n]+1));
-			X[n] = c*(X_S[n]+1)/2;
+			//Y[n] = (-b/(2*a))*(Y_S[n]+1)*sqrt(a*a+0.25*c*c*(X_S[n]+1)*(X_S[n]+1))+m*(Y_S[n]+1)/2;
+			//X[n] = c*(X_S[n]+1)/2;
+			Y[n] = Y_S[n];
+			X[n] = X_S[n];
 		}
 	}
 }
 
-static void ToBeCurved_parabolic_pipe (unsigned int const Nn, double const *const XYZ_S, double *const XYZ)
+static void ToBeCurved_parabolic_pipe
+(unsigned int const Nn, double const *const XYZ_S, double *const XYZ, const bool corners_only)
 {
         if (DB.d != 2)
                 EXIT_UNSUPPORTED;
@@ -179,11 +186,38 @@ static void ToBeCurved_parabolic_pipe (unsigned int const Nn, double const *cons
 			   a_2 = DB.geo_store[1],
 			   b = DB.geo_store[2];
 
-        for (size_t n = 0; n < Nn; n++) {
+	if (corners_only) {
+		const double X_ve_S[] = {-1, 1,-1, 1},
+		             Y_ve_S[] = {-1,-1, 1, 1};
 
+		// Get corner values
+		double X_ve[N_V_QUAD] = {0},
+		       Y_ve[N_V_QUAD] = {0};
+		for (size_t n = 0; n < N_V_QUAD; ++n) {
+             X_ve[n] = sqrt(a_1/b)*(X_ve_S[n]+1)/2;
+			 Y_ve[n] = (a_2+a_1)/2+(a_2-a_1)*Y_ve_S[n]/2-a_1*pow((X_ve_S[n]+1),2)/4;
+		}
+
+		// Evaluate using k1 Lagrange basis
+		struct k1_lagrange k1_l =
+			{ .d         = DB.d,
+			  .XYZ_ve[0] = X_ve,
+			  .XYZ_ve[1] = Y_ve, };
+
+		struct XYZ_data xyz_data =
+			{ .Nn    = Nn,
+			  .XYZ_S = XYZ_S,
+			  .XYZ   = XYZ, };
+
+		set_XYZ_k1_lagrange(&k1_l,&xyz_data);
+	} else {
+		for (size_t n = 0; n < Nn; n++) {
 			 Y[n] = (a_2+a_1)/2+(a_2-a_1)*Y_S[n]/2-a_1*pow((X_S[n]+1),2)/4;
              X[n] = sqrt(a_1/b)*(X_S[n]+1)/2;
         }
+
+	}
+
 }
 
 static void ToBeCurved_sinusoidal_pipe (unsigned int const Nn, double const *const XYZ_S, double *const XYZ)
@@ -397,7 +431,7 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 
 	const bool returnStraight       = false, // Return the straight mesh
 	                                         // Should be false for computed solutions.
-	           project_corners_only = true, // Project to a straight sided domain where only the corners are correct.
+	           project_corners_only = false, // Project to a straight sided domain where only the corners are correct.
 	                                         // Should be false for computed solutions.
 	           correctTBC           = true;  // Correct internal nodes with blending
 	for (nG = 0; nG < 2; nG++) {
@@ -466,7 +500,7 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 				ToBeCurved_square_to_circle(NvnG,XYZ_S,XYZ);
 			} else if (strstr(Geometry,"n-CubeCurved")) {
 				if (strstr(DB.GeomSpecifier,"ParabolicPipe"))
-					ToBeCurved_parabolic_pipe(NvnG,XYZ_S,XYZ);
+					ToBeCurved_parabolic_pipe(NvnG,XYZ_S,XYZ,project_corners_only);
 				else if (strstr(DB.GeomSpecifier,"EllipticPipe"))
 					ToBeCurved_elliptic_pipe(NvnG,XYZ_S,XYZ,project_corners_only);
 				else if (strstr(DB.GeomSpecifier,"SinusoidalPipe"))

@@ -220,7 +220,13 @@ data->Compute_L2proj = 1;
 data->PrintEnabled = 1;
 data->PMin  = 1;
 data->PMax  = 4;
-data->MLMax = 5;
+data->MLMax = 4;
+				} else if (strstr(TestName,"QUAD")) {
+					strcpy(data->argvNew[1],"test/Euler/Test_Euler_EllipticPipe_ToBeCurvedQUAD");
+data->PrintEnabled = 1;
+data->PMin  = 1;
+data->PMax  = 4;
+data->MLMax = 4;
 				} else {
 					EXIT_UNSUPPORTED;
 				}
@@ -228,9 +234,11 @@ data->MLMax = 5;
 			EXIT_UNSUPPORTED;
 			}
 		} else if (strstr(TestName,"n-Parabolic_Pipe")) {
+data->IntOrder_add  = 3;
+data->Compute_L2proj = 1;
 //			data->SolveExplicit = 0;
 data->PrintEnabled = 1;
-data->PMin  = 4;
+data->PMin  = 1;
 data->PMax  = 4;
 data->MLMax = 5;
 			if (strstr(TestName,"ToBeCurved")) {

@@ -10,7 +10,19 @@ ADVECTION_TEST := n-Cube/Advection/Steady/Default/YL/n-Cube2D_TRI0x.msh n-Cube/A
 
 POISSON_TEST := n-Ball_HollowSection/Poisson/n-Ball_HollowSection2D_CurvedMIXED2D0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedTRI0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedQUAD0x.msh n-Ellipsoid_HollowSection/Poisson/Extended/AR_3//n-Ellipsoid_HollowSection2D_CurvedMIXED2D0x.msh n-Cube/Poisson/Dirichlet/n-Cube1D_LINE0x.msh
 
-EULER_TEST := n-Cube/Euler/Periodic/PeriodicVortex/n-Cube2D_TRI1x.msh n-Cube/Euler/Periodic/PeriodicVortex/n-Cube2D_QUAD1x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection2D_CurvedMIXED2D0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection2D_ToBeCurvedMIXED2D0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection3D_ToBeCurvedMIXED3D_TP0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection3D_ToBeCurvedMIXED3D_HW0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection3D_ToBeCurvedTET1x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection3D_ToBeCurvedHEX0x.msh n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection3D_ToBeCurvedWEDGE0x.msh n-Cube/Euler/Internal/EllipticPipe/n-Cube2D_ToBeCurvedTRI0x.msh n-Cube/Euler/Internal/ParabolicPipe/n-Cube2D_ToBeCurvedTRI0x.msh n-Cube/Euler/Internal/SinusoidalPipe/n-Cube2D_ToBeCurvedTRI4x.msh
+EULER_TEST := n-Cube/Euler/Periodic/PeriodicVortex/n-Cube2D_TRI1x.msh
+n-Cube/Euler/Periodic/PeriodicVortex/n-Cube2D_QUAD1x.msh
+n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection2D_CurvedMIXED2D0x.msh
+n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection2D_ToBeCurvedMIXED2D0x.msh
+n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection3D_ToBeCurvedMIXED3D_TP0x.msh
+n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection3D_ToBeCurvedMIXED3D_HW0x.msh
+n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection3D_ToBeCurvedTET1x.msh
+n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection3D_ToBeCurvedHEX0x.msh
+n-Cylinder_HollowSection/Euler/Internal/SupersonicVortex/n-Cylinder_HollowSection3D_ToBeCurvedWEDGE0x.msh
+n-Cube/Euler/Internal/EllipticPipe/n-Cube2D_ToBeCurvedTRI0x.msh
+n-Cube/Euler/Internal/SinusoidalPipe/n-Cube2D_ToBeCurvedTRI4x.msh
+n-Cube/Euler/Internal/ParabolicPipe/n-Cube2D_ToBeCurvedTRI0x.msh
+n-Cube/Euler/Internal/EllipticPipe/n-Cube2D_ToBeCurvedQUAD0x.msh
 
 NAVIERSTOKES_TEST := n-Cube/NavierStokes/Internal/PlaneCouette/n-Cube2D_QUAD1x.msh n-Cylinder_Hollow/NavierStokes/Internal/TaylorCouette/n-Cylinder_Hollow2D_ToBeCurvedTRI0x.msh n-Cylinder_Hollow/NavierStokes/Internal/TaylorCouette/n-Cylinder_Hollow2D_ToBeCurvedQUAD0x.msh n-Cylinder_Hollow/NavierStokes/Internal/TaylorCouette/n-Cylinder_Hollow2D_ToBeCurvedMIXED2D0x.msh
 

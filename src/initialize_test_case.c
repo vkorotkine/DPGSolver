@@ -399,20 +399,21 @@ void initialize_test_case_parameters(void)
 			} else if (strstr(TestCase,"EllipticPipe")) {
 				DB.SourcePresent = 1;
 
-				double u_1, u_2 = 0.10, u_3, u_4 = 0.10, alpha = 0.70; //Period adjusters(u_2, u_4) and B.V adjuster(alpha)
+			//MMS WITH SLIPWALL BC
+			/*	double u_1, u_2 = 0.10, u_3, u_4 = 0.10, alpha = 0.10; //Period adjusters(u_2, u_4) and B.V adjuster(alpha)
 				u_3 = (1+alpha)/(2*cos(u_4));
 				u_1 = (1-alpha)/(2*sin(u_2));
 				double v_1, v_2 = 0.1, v_3, v_4 = 0.1; //Period adjusters(v_2, v_4)
 				v_3 = 1/(2*cos(v_4));
 				v_1 = 1/(2*sin(v_2));
 
-			    double r_par[7] = {1, 0.5, PI/20, 0.30, PI/20, -0.2, PI/20},
-				       p_par[7] = {1, 0.3, PI/20, 0.65, PI/20, 0.4, PI/20},
+			    double r_par[7] = {1, 0.3, PI/10, 0.3, PI/10, 0.2, PI/10},
+				       p_par[7] = {1, 0.3, PI/64, 0.3, PI/64, 0.2, PI/64},
 				       u_par[7] = {u_1, u_2, u_3, u_4},
 				       v_par[7] = {v_1, v_2, v_3, v_4},
-					   f_par[7] = {1.0, -0.2, PI/16, -0.2, PI/8, -0.2, -PI/8};
+					   f_par[7] = {1.0, 0.0, PI/96, 0.0, PI/96, 0.0, PI/96};
 
-				double a = 1/sqrt(25), b = 1, c = 1; //Geometry parameters
+				double a = 1/sqrt(3), b = 0.5, c = 0.25; //Geometry parameters
 					   DB.geo_store[0] = a;
 					   DB.geo_store[1] = b;
 					   DB.geo_store[2] = c;
@@ -423,33 +424,64 @@ void initialize_test_case_parameters(void)
 					DB.u_store[i]   = u_par[i];
 					DB.v_store[i]   = v_par[i];
 					DB.f_store[i]   = f_par[i];
+				}*/
+
+				//MMS WITH EXACT BC
+				//Field parameters for r, u, v, and p.
+
+		        double r_par[4] = {10, -2.5, PI/15, PI/15},
+				       p_par[4] = {10, 2.5, PI/15, PI/15},
+				       u_par[4] = {10, 2.5, PI/15, PI/15},
+				       v_par[4] = {10, 2.5, PI/15, PI/15};
+
+				//Geometry Parameters
+
+				double a = 1/sqrt(5), b = 1, c = 1, m = 3; //low curvature ML0
+
+					   DB.geo_store[0] = a;
+					   DB.geo_store[1] = b;
+					   DB.geo_store[2] = c;
+					   DB.geo_store[3] = m;
+
+				for (int i = 0; i < 4; i++) {
+					DB.rho_store[i] = r_par[i];
+					DB.p_store[i]   = p_par[i];
+					DB.u_store[i]   = u_par[i];
+					DB.v_store[i]   = v_par[i];
 				}
+
 
 			} else if (strstr(TestCase,"ParabolicPipe")) {
 				DB.SourcePresent = 1;
 
+				//MMS WITH EXACT BC
 				//Field parameters for r, u, v, and p.
 
-		        double r_par[7] = {1, 0.1, PI/1.5, 0.10, PI/2, 0.1, PI/5},
+		        /*double r_par[7] = {1, 0.1, PI/1.5, 0.10, PI/2, 0.1, PI/5},
 				       p_par[7] = {1, 0.3, PI/1.5, 0.20, PI/1.5, 0.1, PI/5},
 				       u_par[7] = {1, -0.2, PI/1.5, -0.1, PI/2, -0.1, PI/5},
-				       v_par[7] = {1, -0.3, PI/1.5, -0.2, PI/2, 0.1, PI/5};
+				       v_par[7] = {1, -0.3, PI/1.5, -0.2, PI/2, 0.1, PI/5}; //low curvature good*/
 
 		        /*double r_par[7] = {1, 0.3, PI/3, 0.35, PI/4, -0.2, PI/8},
 				       p_par[7] = {1, 0.3, PI/4, 0.25, PI/3, 0.2, PI/8},
 				       u_par[7] = {1, -0.4, PI/3, -0.2, PI/3, 0.7, PI/8},
-				       v_par[7] = {1, -0.2, PI/3, -0.3, PI/3, 0.3, PI/8}; medium curvature good*/
+				       v_par[7] = {1, -0.2, PI/3, -0.3, PI/3, 0.3, PI/8}; //medium curvature good*/
 
 				/*double r_par[7] = {1, 0.3, PI/7, 0.3, PI/8, -0.2, PI/10},
 				       p_par[7] = {1, 0.3, PI/7, 0.35, PI/7, 0.1, PI/10},
 				       u_par[7] = {1, -0.2, PI/8, -0.2, PI/7, 0.5, PI/10},
-				       v_par[7] = {1, -0.5, PI/7, -0.2, PI/7, 0.3, PI/10}; high curvature good*/
+				       v_par[7] = {1, -0.5, PI/7, -0.2, PI/7, 0.3, PI/10}; //high curvature good*/
+
+				double r_par[7] = {1, 0.03, PI/20, 0.03, PI/20, -0.02, PI/20},
+				       p_par[7] = {1, 0.03, PI/20, 0.035, PI/20, 0.01, PI/20},
+				       u_par[7] = {1, -0.02, PI/20, -0.02, PI/20, 0.05, PI/20},
+				       v_par[7] = {1, -0.05, PI/20, -0.02, PI/20, 0.03, PI/20}; //test
 
 				//Geometry Parameters
 
-				double a_1 = 0.35, a_2 = 2.35, b = 0.35; //low curvature
-				//double a_1 = 1.25, a_2 = 3.25, b = 1.25; medium curvature
-				//double a_1 = 2.00, a_2 = 4.00, b = 2.00; high curvature
+				//double a_1 = 0.35, a_2 = 2.35, b = 0.35; //low curvature
+				//double a_1 = 1.25, a_2 = 3.25, b = 1.25; //medium curvature
+				double a_1 = 2.00, a_2 = 4.00, b = 2.00; //high curvature
 
 					   DB.geo_store[0] = a_1;
 					   DB.geo_store[1] = a_2;
