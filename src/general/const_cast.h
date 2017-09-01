@@ -37,6 +37,12 @@ void const_cast_bool
 	 const bool src    ///< Source.
 	);
 
+/// \brief Cast from `char*` to `const char*const`.
+void const_cast_c1
+	(const char*const* dest, ///< Destination.
+	 const char*const src    ///< Source.
+	);
+
 // Custom data types ************************************************************************************************ //
 
 #endif // DPG__const_cast_h__INCLUDED

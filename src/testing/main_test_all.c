@@ -6,24 +6,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "Macros.h"
-
 #include "test_base.h"
-#include "test_integration_euler.h"
-
-// Static function declarations ************************************************************************************* //
-
-/// \brief Call unit test functions.
-static void run_tests_unit
-	(struct Test_Info*const test_info ///< \ref Test_Info.
-	);
-
-/// \brief Call integration test functions.
-static void run_tests_integration
-	(struct Test_Info*const test_info ///< \ref Test_Info.
-	);
-
-// Interface functions ********************************************************************************************** //
+#include "test_unit.h"
+#include "test_integration.h"
 
 /** \brief Provides the main interface to run **all** currently supported tests.
  *	\return 0. */
@@ -43,7 +28,7 @@ int main
 	test_info.t_int.linearization            = true;
 	test_info.t_int.conv_order               = true;
 
-	printf("\n\nRunning Tests:\n\n\n");
+	printf("\n\nRunning All Tests:\n\n\n");
 	test_info.ts = clock();
 
 //	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
@@ -61,19 +46,4 @@ int main
 	output_test_info(&test_info);
 
 	return 0;
-}
-
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
-static void run_tests_unit (struct Test_Info*const test_info)
-{
-	UNUSED(test_info);
-	return;
-}
-
-static void run_tests_integration (struct Test_Info*const test_info)
-{
-	test_integration_euler(test_info);
-	return;
 }

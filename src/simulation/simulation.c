@@ -299,10 +299,10 @@ static const char* extract_mesh_gen_name (const char*const mesh_generator)
 		if (!found_extension)
 			continue;
 
-		++len_gen_name;
+		++len_gen_name; // Note: One longer than the number of characters.
 	}
 
-	char*const mesh_gen_name = malloc((len_gen_name+1) * sizeof *mesh_gen_name); // returned
+	char*const mesh_gen_name = calloc(len_gen_name , sizeof *mesh_gen_name); // returned
 
 	ind = 0;
 	while (end != beg) {

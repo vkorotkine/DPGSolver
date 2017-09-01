@@ -17,3 +17,4 @@ foreach(script_name_full ${SCRIPT_FILES})
 endforeach()
 
 add_subdirectory(meshes)
+add_subdirectory(testing)

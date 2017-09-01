@@ -10,6 +10,7 @@ src/support_functions/*.txt
 *~
 *.swp
 *.msh
+!input/testing/*.msh
 *.DS_Store
 *octave-workspace
 *.db

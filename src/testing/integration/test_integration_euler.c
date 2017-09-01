@@ -29,12 +29,12 @@ void test_integration_euler (struct Test_Info*const test_info)
 	if (test_info->t_int.linearization) {
 #if 1
  #if 0
-		test_integration_linearization("test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
+		test_integration_linearization("test/euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
  #else
-		test_integration_linearization("test/Euler/Test_Euler_SupersonicVortex_CurvedMIXED2D");
+		test_integration_linearization("test/euler/Test_Euler_SupersonicVortex_CurvedMIXED2D");
  #endif
 #else
-		test_integration_linearization("test/Euler/Test_Euler_PeriodicVortex_Stationary_QUAD");
+		test_integration_linearization("test/euler/Test_Euler_PeriodicVortex_Stationary_QUAD");
 #endif
 	} else {
 		test_print_warning(test_info,"Euler linearization testing currently disabled");

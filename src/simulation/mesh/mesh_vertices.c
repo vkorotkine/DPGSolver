@@ -138,9 +138,10 @@ static struct Mesh_Vertices_l set_up_mesh_vertices
 
 static mesh_snap_to_boundary_fptr set_fptr_mesh_snap (const char*const geom_name)
 {
-	if (strstr(geom_name,"n-Cylinder_HollowSection"))
+	if (strstr(geom_name,"n-cylinder_hollow_section"))
 		return mesh_snap_to_cylinder__hollow_section;
 
+	printf("\ngeom_name: %s\n\n",geom_name);
 	EXIT_ADD_SUPPORT;
 }
 

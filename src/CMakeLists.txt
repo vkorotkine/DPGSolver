@@ -1,3 +1,5 @@
+find_package(MPI REQUIRED)
+
 include_directories(
 	allocators
 	constants
