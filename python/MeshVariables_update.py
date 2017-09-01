@@ -14,7 +14,8 @@ def write_MeshVariables(TestCases,Paths):
 
 	f = open(Paths.meshes+'MeshVariables', 'w')
 
-	f_write(f,0,2,'# Variables and dependencies needed for DPG_ROOT/meshes/Makefile')
+	f_write(f,0,1,'# Variables and dependencies needed for DPG_ROOT/meshes/Makefile')
+	f_write(f,0,2,'# Automatically generated (DO NOT MODIFY)')
 
 	for i in range(0,len(TestCases)):
 		TestCase = TestCases[i]

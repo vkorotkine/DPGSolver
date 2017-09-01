@@ -47,6 +47,8 @@ test/*.o
 test/*.exe
 python/*.txt
 */__pycache__/*
+deprecated/*
+src/processing/*
 
 doc/*
 !doc/default_doxygen.cfg

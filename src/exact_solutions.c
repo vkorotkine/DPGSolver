@@ -283,7 +283,8 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
 
 		//MMS4
 		for (size_t n = 0; n < Nn; n++) {
-			rhoEx[n] = rho_0 + rho_1*cos(rho_2*X[n])*cos(rho_3*Y[n]);
+			rhoEx[n] = rho_0 + rho_1*sin(rho_2*X[n])*cos(rho_3*Y[n]);
+//rhoEx[n] = 10.0+2.0*X[n]+3.0*pow(X[n],2.0)+3.0*pow(X[n],3.0);
 			pEx[n] = p_0 + p_1*cos(p_2*X[n])*cos(p_3*Y[n]);
 			uEx[n] = u_0 + u_1*cos(u_2*X[n])*cos(u_3*Y[n]);
 			vEx[n] = v_0 + v_1*cos(v_2*X[n])*cos(v_3*Y[n]);
@@ -660,9 +661,12 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 
 		//MMS4
 		for (size_t n = 0; n < Nn; n++) {
-			RUVP[0]  =  rho_0 + rho_1*cos(rho_2*X[n])*cos(rho_3*Y[n]);
-			RUVP[1]  =  -rho_1*rho_2*cos(rho_3*Y[n])*sin(rho_2*X[n]);
-			RUVP[2]  =  -rho_1*rho_3*cos(rho_2*X[n])*sin(rho_3*Y[n]);
+			RUVP[0]  =  rho_0 + rho_1*sin(rho_2*X[n])*cos(rho_3*Y[n]);
+			RUVP[1]  =  +rho_1*rho_2*cos(rho_2*X[n])*cos(rho_3*Y[n]);
+			RUVP[2]  =  -rho_1*rho_3*sin(rho_2*X[n])*sin(rho_3*Y[n]);
+//RUVP[0]  =  10.0+2.0*X[n]+3.0*pow(X[n],2.0)+3.0*pow(X[n],3.0);
+//RUVP[1]  =       2.0     +6.0*pow(X[n],1.0)+9.0*pow(X[n],2.0);
+//RUVP[2]  =  0.0;
 			RUVP[3]  =  u_0 + u_1*cos(u_2*X[n])*cos(u_3*Y[n]);
 			RUVP[4]  =  -u_1*u_2*cos(u_3*Y[n])*sin(u_2*X[n]);
 			RUVP[5]  =  -u_1*u_3*cos(u_2*X[n])*sin(u_3*Y[n]);

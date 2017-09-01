@@ -68,7 +68,7 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 	data->MLMax = 3;
 
 	data->PG_add        = 1;
-	data->IntOrder_add  = 0;
+	data->IntOrder_add  = 2;
 	data->IntOrder_mult = 2;
 
 	if (strstr(TestName,"Advection")) {
@@ -226,7 +226,7 @@ data->MLMax = 4;
 data->PrintEnabled = 1;
 data->PMin  = 1;
 data->PMax  = 4;
-data->MLMax = 4;
+data->MLMax = 3;
 				} else {
 					EXIT_UNSUPPORTED;
 				}
