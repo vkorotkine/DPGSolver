@@ -308,6 +308,39 @@ void print_const_Vector_i (const struct const_Vector_i*const a)
 	free(local);
 }
 
+// Testing functions ************************************************************************************************ //
+
+int diff_Vector_i (const struct Vector_i*const a, const struct Vector_i*const b)
+{
+	const ptrdiff_t size = a->ext_0;
+
+	if (size != b->ext_0)
+		EXIT_ERROR("Comparing Vectors of different size");
+
+	int n_diff = 0;
+	for (ptrdiff_t i = 0; i < size; ++i)
+		n_diff += ( a->data[i] == b->data[i] ? 0 : 1);
+
+	return n_diff;
+}
+
+void print_diff_Vector_i (const struct Vector_i*const a, const struct Vector_i*const b)
+{
+	const ptrdiff_t size = a->ext_0;
+
+	if (size != b->ext_0)
+		EXIT_ERROR("Comparing Vectors of different size");
+
+	const int*const data_a = a->data,
+	         *const data_b = b->data;
+
+	for (ptrdiff_t i = 0; i < size; i++) {
+		printf("% 12d ",data_a[i]-data_b[i]);
+		if (!((i+1)%8))
+			printf("\n");
+	}
+	printf("\n\n");
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

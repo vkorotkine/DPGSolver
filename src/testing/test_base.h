@@ -47,7 +47,13 @@ void test_increment_and_print
 /// \brief Print a warning and increment \ref Test_Info::n_warn.
 void test_print_warning
 	(struct Test_Info*const test_info, ///< \ref Test_Info.
-	 const char*const warn_name  ///< The warning string.
+	 const char*const warn_name        ///< The warning message string.
+	);
+
+/// \brief Print a failure message.
+void test_print_failure
+	(struct Test_Info*const test_info, ///< \ref Test_Info.
+	 const char*const fail_name        ///< The failure message string.
 	);
 
 /// \brief Output test related information.

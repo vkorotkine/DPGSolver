@@ -100,7 +100,7 @@ struct Multiarray_Vector_i* constructor_empty_Multiarray_Vector_i (const int ord
 	return constructor_local_Multiarray_Vector_i_1('R',order,extents,true,data);
 }
 
-struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i
+struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i_i
 	(const int* data_V, const int*const ext_V, const int order, ...)
 {
 	va_list ap;
@@ -239,7 +239,7 @@ struct Vector_i* collapse_Multiarray_Vector_i (const struct Multiarray_Vector_i*
 
 void print_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a)
 {
-	const int order          = a->order;
+	const int order                = a->order;
 	const ptrdiff_t *const extents = a->extents;
 
 	printf("Multi-array extents: {");
@@ -247,9 +247,11 @@ void print_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a)
 		printf(" %zu,",extents[i]);
 	printf(" }\n\n");
 
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+
 	switch (order) {
 	case 1:
-		for (ptrdiff_t i = 0; i < extents[0]; i++)
+		for (ptrdiff_t i = 0; i < size; i++)
 			print_Vector_i(a->data[i]);
 		break;
 	default:
@@ -267,7 +269,51 @@ void print_const_Multiarray_Vector_i (const struct const_Multiarray_Vector_i*con
 	free(local);
 }
 
+// Testing functions ************************************************************************************************ //
+
+int diff_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a, const struct Multiarray_Vector_i*const b)
+{
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+
+	if (size != compute_size(b->order,b->extents))
+		EXIT_ERROR("Comparing Multiarrays of different size");
+
+	int n_diff = 0;
+	for (ptrdiff_t i = 0; i < size; ++i)
+		n_diff += diff_Vector_i(a->data[i],b->data[i]);
+
+	return n_diff;
+}
+
+void print_diff_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a, const struct Multiarray_Vector_i*const b)
+{
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+
+	if (size != compute_size(b->order,b->extents))
+		EXIT_ERROR("Comparing Multiarrays of different size");
+
+	const int order                = a->order;
+	const ptrdiff_t *const extents = a->extents;
+
+	printf("(diff) Multi-array extents: {");
+	for (ptrdiff_t i = 0; i < order; i++)
+		printf(" %zu,",extents[i]);
+	printf(" }\n\n");
+
+	switch (order) {
+	case 1:
+		for (ptrdiff_t i = 0; i < size; i++)
+			print_diff_Vector_i(a->data[i],b->data[i]);
+		break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+	printf("\n");
+}
+
 // Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
 
 static struct Vector_i_indexed** constructor_move_Vector_i_indexed
 	(const ptrdiff_t size, struct Vector_i** data)
@@ -319,7 +365,7 @@ static struct Multiarray_Vector_i* constructor_local_Multiarray_Vector_i_1
 
 static void reorder_Multiarray_Vector_i (struct Multiarray_Vector_i*const a, const int*const ordering)
 {
-	const ptrdiff_t size = compute_size(1,a->extents);
+	const ptrdiff_t size = compute_size(a->order,a->extents);
 
 	struct Vector_i* b[size];
 	for (ptrdiff_t i = 0; i < size; i++)

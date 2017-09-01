@@ -18,10 +18,10 @@
 
 void run_tests_integration (struct Test_Info*const test_info)
 {
-	test_integration_mesh("curved_2d_mixed.msh");
-	test_integration_mesh("straight_2d_quad_periodic.msh");
+	test_integration_mesh(test_info,"curved_2d_mixed.msh");
+	test_integration_mesh(test_info,"straight_2d_quad_periodic.msh");
 
-	test_integration_euler(test_info);
+//	test_integration_euler(test_info);
 	return;
 }
 

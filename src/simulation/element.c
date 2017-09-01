@@ -196,7 +196,7 @@ static struct Element* constructor_Element
 		break;
 	}}
 
-	struct Multiarray_Vector_i* f_ve = constructor_copy_Multiarray_Vector_i(e_info.f_ve,e_info.n_f_ve,1,e_info.n_f);
+	struct Multiarray_Vector_i* f_ve = constructor_copy_Multiarray_Vector_i_i(e_info.f_ve,e_info.n_f_ve,1,e_info.n_f);
 //	print_Multiarray_Vector_i(f_ve);
 
 	struct Element* element = malloc(sizeof *element); // returned

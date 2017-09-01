@@ -171,13 +171,15 @@ struct Multiarray_Vector_i* constructor_empty_Multiarray_Vector_i
 	 ...              ///< Variadic arguments.
 	);
 
-/** \brief Constructs a \ref Multiarray_Vector_i\* and sets the values of its \ref Vector_i\* components.
+/** \brief Constructs a \ref Multiarray_Vector_i\* and sets the values of its \ref Vector_i\* components from the input
+ *         `int*` data.
  *	\return Standard. */
-struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i
-	(const int* data_V,     ///< Defined in \ref set_Multiarray_Vector_i_i.
-	 const int*const ext_V, ///< Defined in \ref set_Multiarray_Vector_i_i.
-	 const int order,                ///< Defined in \ref Multiarray_d.
-	 ...                             ///< Variadic arguments holding the extents of the Multiarray.
+struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i_i
+	(const int* data_V,     ///< The `int` data.
+	 const int*const ext_V, /**< The ext_0 values of each \ref Vector_i in the multiarray. Note: using `int` and not
+	                         *   `ptrdiff_t` as this is sometimes initialized from \ref Vector_i::data. */
+	 const int order,       ///< Defined in \ref Multiarray_d.
+	 ...                    ///< Variadic arguments holding the extents of the Multiarray.
 	);
 
 /// \brief Move constructor for a `const` \ref const_Multiarray_Vector_i `*const`.
@@ -215,8 +217,8 @@ ptrdiff_t compute_size
 /// \brief Set the values of the \ref Multiarray_Vector_i based on the input `int*` data.
 void set_Multiarray_Vector_i_i
 	(struct Multiarray_Vector_i* a, ///< Standard.
-	 const int*data_V,      ///< Input data for the Vectors.
-	 const int*const ext_V  ///< Input extent[0] for the Vectors.
+	 const int* data_V,             ///< Input data for the Vectors.
+	 const int*const ext_V          ///< Defined in \ref constructor_copy_Multiarray_Vector_i_i.
 	);
 
 /** \brief Sort the data of the \ref Multiarray_Vector_i\*.
@@ -243,6 +245,21 @@ void print_Multiarray_Vector_i
 /// \brief Print a \ref const_Multiarray_Vector_i\* to the terminal.
 void print_const_Multiarray_Vector_i
 	(const struct const_Multiarray_Vector_i*const a ///< Standard.
+	);
+
+// Testing functions ************************************************************************************************ //
+
+/** \brief Check the difference between entries in the input \ref Multiarray_Vector_i\*s.
+ *	\return The number of differing entries. */
+int diff_Multiarray_Vector_i
+	(const struct Multiarray_Vector_i*const a, ///< Input 0.
+	 const struct Multiarray_Vector_i*const b  ///< Input 1.
+	);
+
+/// \brief Print the difference of the input \ref Multiarray_Vector_i\*s.
+void print_diff_Multiarray_Vector_i
+	(const struct Multiarray_Vector_i*const a, ///< Input 0.
+	 const struct Multiarray_Vector_i*const b  ///< Input 1.
 	);
 
 #endif // DPG__Multiarray_h__INCLUDED

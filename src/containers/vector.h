@@ -41,7 +41,7 @@ struct Vector_i** constructor_default_Vector_i_2
 /** \brief Constructs an empty \ref Vector_i\*.
  *	\return Standard. */
 struct Vector_i* constructor_empty_Vector_i
-	(const ptrdiff_t ext_0 ///< The value of extents[0].
+	(const ptrdiff_t ext_0 ///< The value of ext_0.
 	);
 
 /** \brief Copy constructor for a \ref Vector_i\* from a `Vector_i*`.
@@ -53,14 +53,14 @@ struct Vector_i* constructor_copy_Vector_i
 /** \brief Copy constructor for a \ref Vector_i\* from a `const int*`.
  *	\return Standard. */
 struct Vector_i* constructor_copy_Vector_i_i
-	(const ptrdiff_t ext_0,   ///< The value of extents[0].
+	(const ptrdiff_t ext_0,   ///< The value of ext_0.
 	 const int*const data_src ///< The source data.
 	);
 
 /** \brief Move constructor for a \ref Vector_i\* from a `int*`.
  *	\return Standard. */
 struct Vector_i* constructor_move_Vector_i_i
-	(const ptrdiff_t ext_0, ///< The value of extents[0].
+	(const ptrdiff_t ext_0, ///< The value of ext_0.
 	 const bool owns_data,  ///< Standard.
 	 int*const data         ///< Standard.
 	);
@@ -68,7 +68,7 @@ struct Vector_i* constructor_move_Vector_i_i
 /** \brief Move constructor for a \ref const_Vector_i\* from a `const int*`.
  *	\return Standard. */
 struct const_Vector_i* constructor_move_const_Vector_i_i
-	(const ptrdiff_t ext_0, ///< The value of extents[0].
+	(const ptrdiff_t ext_0, ///< The value of ext_0.
 	 const bool owns_data,  ///< Standard.
 	 const int*const data   ///< Standard.
 	);
@@ -104,7 +104,7 @@ void reorder_Vector_i
 /// \brief Resize a \ref Vector_i\*.
 void resize_Vector_i
 	(struct Vector_i*const a, ///< Standard.
-	 const ptrdiff_t ext_0    ///< New value for extents[0].
+	 const ptrdiff_t ext_0    ///< New value for ext_0.
 	);
 
 /// \brief Set all data entries to zero.
@@ -181,6 +181,21 @@ void print_Vector_i
 /// \brief Print a \ref const_Vector_i\* to the terminal.
 void print_const_Vector_i
 	(const struct const_Vector_i*const a ///< Standard.
+	);
+
+// Testing functions ************************************************************************************************ //
+
+/** \brief Check the difference between entries in the input \ref Vector_i\*s.
+ *	\return The number of differing entries. */
+int diff_Vector_i
+	(const struct Vector_i*const a, ///< Input 0.
+	 const struct Vector_i*const b  ///< Input 1.
+	);
+
+/// \brief Print the difference of the input \ref Vector_i\*s.
+void print_diff_Vector_i
+	(const struct Vector_i*const a, ///< Input 0.
+	 const struct Vector_i*const b  ///< Input 1.
 	);
 
 #endif // DPG__Vector_h__INCLUDED

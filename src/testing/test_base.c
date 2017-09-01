@@ -8,13 +8,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "Macros.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
 void test_increment_and_print (struct Test_Info*const test_info, const bool pass, const char*const test_name)
 {
-	printf("%-100s",test_name);
+	printf("%-80s ... ",test_name);
 
 	++test_info->n_test;
 
@@ -30,9 +32,17 @@ void test_print_warning (struct Test_Info*const test_info, const char*const warn
 {
 	++test_info->n_warn;
 
-	printf("\n\n********************************************************************************************\n");
+	printf("\n********************************************************************************************\n");
 	printf("Warning: %s.\n",warn_name);
-	printf("********************************************************************************************\n\n\n");
+	printf("********************************************************************************************\n\n");
+}
+
+void test_print_failure (struct Test_Info*const test_info, const char*const fail_name)
+{
+	UNUSED(test_info);
+	printf("\n********************************************************************************************\n");
+	printf("Test Failure: %s.\n",fail_name);
+	printf("********************************************************************************************\n\n");
 }
 
 void output_test_info (struct Test_Info*const test_info)

@@ -318,8 +318,8 @@ static void compute_v_to__v_lf (const struct Conn_info*const conn_info, struct M
 	destructor_Vector_i(ind_v_V);
 	destructor_Vector_i(ind_lf_V);
 
-	mesh_conn_l->v_to_v  = constructor_copy_Multiarray_Vector_i(v_to_v_i,conn_info->v_n_lf->data,1,n_v);  // keep
-	mesh_conn_l->v_to_lf = constructor_copy_Multiarray_Vector_i(v_to_lf_i,conn_info->v_n_lf->data,1,n_v); // keep
+	mesh_conn_l->v_to_v  = constructor_copy_Multiarray_Vector_i_i(v_to_v_i,conn_info->v_n_lf->data,1,n_v);  // keep
+	mesh_conn_l->v_to_lf = constructor_copy_Multiarray_Vector_i_i(v_to_lf_i,conn_info->v_n_lf->data,1,n_v); // keep
 
 	free(v_to_v_i);
 	free(v_to_lf_i);
