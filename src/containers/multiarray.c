@@ -36,8 +36,7 @@ static void destructor_Vector_i_indexed
 /** \brief Make a local \ref Multiarray_Vector_i\* (dynamic memory).
  *	\return See brief. */
 static struct Multiarray_Vector_i* constructor_local_Multiarray_Vector_i_1
-	(const char layout,          ///< Standard.
-	 const int order,            ///< Standard.
+	(const int order,            ///< Standard.
 	 ptrdiff_t*const extents,    ///< Standard.
 	 const bool owns_data,       ///< Standard.
 	 struct Vector_i**const data ///< Standard.
@@ -97,7 +96,7 @@ struct Multiarray_Vector_i* constructor_empty_Multiarray_Vector_i (const int ord
 
 	struct Vector_i** data = constructor_default_Vector_i_2(compute_size(order,extents)); // keep
 
-	return constructor_local_Multiarray_Vector_i_1('R',order,extents,true,data);
+	return constructor_local_Multiarray_Vector_i_1(order,extents,true,data);
 }
 
 struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i_i
@@ -264,7 +263,7 @@ void print_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a)
 void print_const_Multiarray_Vector_i (const struct const_Multiarray_Vector_i*const a)
 {
 	struct Multiarray_Vector_i* local =
-		constructor_local_Multiarray_Vector_i_1('R',a->order,(ptrdiff_t*)a->extents,false,(struct Vector_i**)a->data);
+		constructor_local_Multiarray_Vector_i_1(a->order,(ptrdiff_t*)a->extents,false,(struct Vector_i**)a->data);
 	print_Multiarray_Vector_i(local);
 	free(local);
 }
@@ -350,11 +349,10 @@ static struct Multiarray_d* constructor_local_Multiarray_d_1
 }
 
 static struct Multiarray_Vector_i* constructor_local_Multiarray_Vector_i_1
-	(const char layout, const int order, ptrdiff_t*const extents, const bool owns_data, struct Vector_i**const data)
+	(const int order, ptrdiff_t*const extents, const bool owns_data, struct Vector_i**const data)
 {
 	struct Multiarray_Vector_i* dest = malloc(sizeof *dest); // returned
 
-	dest->layout    = layout;
 	dest->order     = order;
 	dest->extents   = extents;
 	dest->owns_data = owns_data;

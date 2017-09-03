@@ -7,6 +7,8 @@
 
 #include <string.h>
 
+#include "test_support_multiarray.h"
+
 #include "Macros.h"
 #include "intrusive.h"
 #include "element.h"
@@ -35,7 +37,7 @@ static void destructor_Mesh_Input
  *	\return 1 if tests passed. */
 static bool compare_members_Mesh
 	(struct Test_Info*const test_info, ///< Defined in \ref test_integration_mesh.
-	 const char*const mesh_name,       ///< Defined in \ref test_integration_mesh.
+	 const char*const mesh_name_full,  ///< Defined in \ref Mesh_Input.
 	 const struct Mesh*const mesh      ///< \ref Mesh.
 	);
 
@@ -47,7 +49,7 @@ void test_integration_mesh (struct Test_Info*const test_info, const char*const m
 	struct const_Intrusive_List* elements = constructor_Element_List(mesh_input->d); // destructed
 	struct Mesh* mesh                     = constructor_Mesh(mesh_input,elements);   // destructed
 
-	const bool pass = compare_members_Mesh(test_info,mesh_name,mesh);
+	const bool pass = compare_members_Mesh(test_info,mesh_input->mesh_name_full,mesh);
 
 	char test_name[STRLEN_MAX];
 	strcpy(test_name,"Mesh - ");
@@ -85,7 +87,7 @@ static void set_Mesh_Input
 /** \brief Constructs a \ref Mesh_Test_Data\*.
  *	\return Standard. */
 static struct Mesh_Test_Data* constructor_Mesh_Test_Data
-	(const char*const mesh_name ///< The test mesh name.
+	(const char*const mesh_name_full ///< Defined in \ref Mesh_Input.
 	);
 
 /// \brief Destructor for \ref Mesh_Test_Data\*.
@@ -125,15 +127,15 @@ static void destructor_Mesh_Input (struct Mesh_Input* mesh_input)
 }
 
 static bool compare_members_Mesh
-	(struct Test_Info*const test_info, const char*const mesh_name, const struct Mesh*const mesh)
+	(struct Test_Info*const test_info, const char*const mesh_name_full, const struct Mesh*const mesh)
 {
-	struct Mesh_Test_Data* mesh_test_data = constructor_Mesh_Test_Data(mesh_name); // destructed
+	struct Mesh_Test_Data* mesh_test_data = constructor_Mesh_Test_Data(mesh_name_full); // destructed
 
 	bool pass = 1;
 
 	// Mesh_Data
-	struct Vector_i* elem_per_dim = (struct Vector_i*) mesh->mesh_data->elem_per_dim;
-	struct Matrix_d* nodes        = (struct Matrix_d*) mesh->mesh_data->nodes;
+//	struct Vector_i* elem_per_dim = (struct Vector_i*) mesh->mesh_data->elem_per_dim;
+//	struct Matrix_d* nodes        = (struct Matrix_d*) mesh->mesh_data->nodes;
 
 	test_print_warning(test_info,"Not yet testing Mesh_Data");
 
@@ -153,6 +155,8 @@ static bool compare_members_Mesh
 	test_print_warning(test_info,"Not yet testing Mesh_Vertices");
 
 	destructor_Mesh_Test_Data(mesh_test_data);
+
+	return pass;
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -160,13 +164,13 @@ static bool compare_members_Mesh
 /** \brief Construtor for \ref Mesh_Test_Data::v_to_v.
  *	\return Standard. */
 struct Multiarray_Vector_i* constructor_v_to_v
-	(const char*const mesh_name ///< The test mesh name.
+	(const char*const mesh_data_name_full ///< Name of the mesh data file (including full path).
 	);
 
 /** \brief Construtor for \ref Mesh_Test_Data::v_to_lf.
  *	\return Standard. */
 struct Multiarray_Vector_i* constructor_v_to_lf
-	(const char*const mesh_name ///< The test mesh name.
+	(const char*const mesh_name_full ///< Defined in \ref Mesh_Input.
 	);
 
 static void set_Mesh_Input
@@ -178,7 +182,7 @@ static void set_Mesh_Input
 	const_cast_bool(&mesh_input->mesh_unrealistic,mesh_unrealistic);
 
 	char* mesh_name_full = (char*) mesh_input->mesh_name_full;
-	strcpy(mesh_name_full,"../testing/meshes/");
+	strcpy(mesh_name_full,"../testing/mesh/");
 	strcat(mesh_name_full,mesh_name);
 
 	char* geom_name = (char*) mesh_input->geom_name;
@@ -192,12 +196,21 @@ static void set_Mesh_Input
 	strcpy(input_path,input_path_);
 }
 
-static struct Mesh_Test_Data* constructor_Mesh_Test_Data (const char*const mesh_name)
+static struct Mesh_Test_Data* constructor_Mesh_Test_Data (const char*const mesh_name_full)
 {
 	struct Mesh_Test_Data* mesh_test_data = malloc(sizeof *mesh_test_data); // free
 
-	mesh_test_data->v_to_v  = constructor_v_to_v(mesh_name);  // destructed
-	mesh_test_data->v_to_lf = constructor_v_to_lf(mesh_name); // destructed
+	char mesh_data_name_full[STRLEN_MAX];
+	strcpy(mesh_data_name_full,mesh_name_full);
+	strcat(mesh_data_name_full,".data");
+
+if (0)
+	mesh_test_data->v_to_v  = constructor_v_to_v(mesh_data_name_full);  // destructed
+else
+	mesh_test_data->v_to_v  = constructor_file_Multiarray_Vector_i("v_to_v",mesh_data_name_full);  // destructed
+EXIT_UNSUPPORTED;
+/// \todo Use the same file for reading the two multiarrays.
+	mesh_test_data->v_to_lf = constructor_v_to_lf(mesh_data_name_full); // destructed
 
 	return mesh_test_data;
 }
@@ -212,9 +225,9 @@ static void destructor_Mesh_Test_Data (struct Mesh_Test_Data* mesh_test_data)
 
 // Level 2 ********************************************************************************************************** //
 
-struct Multiarray_Vector_i* constructor_v_to_v (const char*const mesh_name)
+struct Multiarray_Vector_i* constructor_v_to_v (const char*const mesh_data_name_full)
 {
-	if (strstr(mesh_name,"curved_2d_mixed.msh")) {
+	if (strstr(mesh_data_name_full,"curved_2d_mixed.msh")) {
 		const int n_el     = 12;
 		const int ext_V[]  = {3,3,3,3,3,3,3,3,4,4,4,4};
 		const int data_V[] =
@@ -232,7 +245,7 @@ struct Multiarray_Vector_i* constructor_v_to_v (const char*const mesh_name)
 			  10, -1,  9, -1, };
 
 		return constructor_copy_Multiarray_Vector_i_i(data_V,ext_V,1,n_el); // returned
-	} else if (strstr(mesh_name,"straight_2d_quad_periodic.msh")) {
+	} else if (strstr(mesh_data_name_full,"straight_2d_quad_periodic.msh")) {
 		const int n_el     = 4;
 		const int ext_V[]  = {4,4,4,4};
 		const int data_V[] =
@@ -244,13 +257,13 @@ struct Multiarray_Vector_i* constructor_v_to_v (const char*const mesh_name)
 		return constructor_copy_Multiarray_Vector_i_i(data_V,ext_V,1,n_el); // returned
 	}
 
-	printf("%s\n",mesh_name);
+	printf("%s\n",mesh_data_name_full);
 	EXIT_UNSUPPORTED;
 }
 
-struct Multiarray_Vector_i* constructor_v_to_lf (const char*const mesh_name)
+struct Multiarray_Vector_i* constructor_v_to_lf (const char*const mesh_name_full)
 {
-	if (strstr(mesh_name,"curved_2d_mixed.msh")) {
+	if (strstr(mesh_name_full,"curved_2d_mixed.msh")) {
 		const int n_el     = 12;
 		const int ext_V[]  = {3,3,3,3,3,3,3,3,4,4,4,4};
 		const int data_V[] =
@@ -268,7 +281,7 @@ struct Multiarray_Vector_i* constructor_v_to_lf (const char*const mesh_name)
 			       1, 10001,     3, 30002, };
 
 		return constructor_copy_Multiarray_Vector_i_i(data_V,ext_V,1,n_el); // returned
-	} else if (strstr(mesh_name,"straight_2d_quad_periodic.msh")) {
+	} else if (strstr(mesh_name_full,"straight_2d_quad_periodic.msh")) {
 		const int n_el     = 4;
 		const int ext_V[]  = {4,4,4,4};
 		const int data_V[] =

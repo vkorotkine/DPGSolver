@@ -60,42 +60,50 @@ void read_line_values_l
 	                         *   indexing. */
 	);
 
-/// \brief Read a `char*`, skipping the first string.
+/// \brief Read a `char`, skipping the first string.
 void read_skip_c
 	(const char*const line, ///< Line from which to read data.
 	 char*const var         ///< Variable in which to store data.
 	);
 
-/// \brief Read an `int*`, skipping the first string.
+/// \brief Read an `int`, skipping the first string.
 void read_skip_i
 	(const char*const line, ///< Line from which to read data.
 	 int*const var          ///< Variable in which to store data.
 	);
 
-/// \brief Read a `const char*`, skipping the first string.
+/// \brief Read a `const char`, skipping the first string.
 void read_skip_const_c
 	(const char*const line, ///< Line from which to read data.
 	 const char*const var   ///< Variable in which to store data.
 	);
 
-/// \brief Read a `const int*`, skipping the first string.
+/// \brief Read a `const int`, skipping the first string.
 void read_skip_const_i
 	(const char*const line, ///< Line from which to read data.
 	 const int *const var   ///< Variable in which to store data.
 	);
 
-/// \brief Read a `const bool*`, skipping the first string.
+/// \brief Read a `const bool`, skipping the first string.
 void read_skip_const_b
 	(const char*const line, ///< Line from which to read data.
 	 const bool *const var  ///< Variable in which to store data.
 	);
 
-/// \brief Read a `const double*`, optionally skipping strings and optionally removing trailing semicolons.
+/// \brief Read a `const double`, optionally skipping strings and optionally removing trailing semicolons.
 void read_skip_const_d
 	(const char*const line,  ///< Line from which to read data.
 	 const double*const var, ///< Variable in which to store data.
 	 const int n_skip,       ///< The number of strings to skip.
 	 const bool remove_semi  ///< Flag for optional removal of semicolon.
+	);
+
+/// \brief Read a `ptrdiff_t*`, optionally skipping strings.
+void read_skip_ptrdiff_1
+	(char*const line,     ///< Line from which to read data.
+	 const int n_skip,    ///< The number of strings to skip.
+	 ptrdiff_t*const var, ///< Variable in which to store data.
+	 const int n_var      ///< The number of entries to store in the `var` array.
 	);
 
 // Setting file names *********************************************************************************************** //

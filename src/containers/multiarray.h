@@ -39,6 +39,11 @@
  *	in the fundamental advantage of containers carrying around their size information, easing the burden on the
  *	developer. This implies that containers with multiple levels of dereferencing should never be used.
  *
+ *	As the intended functionality of the specialized Multiarrays does not include usage as higher-dimensional matrices
+ *	for contiguous data storage, the `layout` parameter is omitted from these containers.
+ *
+ *	\subsection s13_Multi Const Versions of Multiarray Containers
+ *
  *	In order to avoid unintentionally overwriting data which should be constant, `const` versions of the containers
  *	are also provided where relevant. A complication which arises as a result of declaring objects `const` is that it is
  *	not possible to define them! To overcome this difficulty, lvalue casts are used to set the data.
@@ -53,7 +58,14 @@
  *	Noting that containers should be dynamically allocated, we have the implication that containers with no
  *	dereferencing should never be used. Taken together with the upper limitation on the level of dereferencing, it is
  *	thus required that **containers have exactly one level of dereferencing**. The only place in which an additional
- *	level of dereferencing is permitted is as part of the constructor for a Multiarray.
+ *	level of dereferencing is permitted is as a list of pointers to containers in a multiarray.
+ *
+ *	\subsubsection s131_Multi Constructors for `const` Containers
+ *
+ *	The `const_constructor_move_...` functions are used to *define* the `const` equivalent of the container. The
+ *	functions move **all** container members through lvalue and rvalue casts.
+ *
+ *	\note This means that a single destructor call should be made for both the `src` and `dest` variables.
  *
  *	\section s2_Multi Functions
  *
@@ -78,14 +90,7 @@
  *	objects or moved to a non-local object to be subsequently destructed. These functions are present simply to shorten
  *	allocation of new objects.
  *
- *	\subsection s23_Multi Constructors for `const` Containers
- *
- *	The `const_constructor_move_...` functions are used to *define* the `const` equivalent of the container. The
- *	functions move **all** container members through lvalue and rvalue casts.
- *
- *	\note This means that a single destructor call should be made for both the `src` and `dest` variables.
- *
- *	\subsection s24_Multi Variadic Arguments
+ *	\subsection s23_Multi Variadic Arguments
  *
  *	In the interest of greater generic programming, variadic functions are used for the constructors such that a
  *	variable number of `extent` values may be passed for variable order Multiarrays. This is similar to the
@@ -131,8 +136,6 @@ struct const_Multiarray_d {
 
 /// \brief Multiarray (`Vector_i*`).
 struct Multiarray_Vector_i {
-	char layout; ///< Defined in \ref Multiarray_d.
-
 	int order;          ///< Defined in \ref Multiarray_d.
 	ptrdiff_t* extents; ///< Defined in \ref Multiarray_d.
 
@@ -142,8 +145,6 @@ struct Multiarray_Vector_i {
 
 /// \brief Multiarray (`const Vector_i*`).
 struct const_Multiarray_Vector_i {
-	const char layout; ///< Defined in \ref Multiarray_d.
-
 	const int order;               ///< Defined in \ref Multiarray_d.
 	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_d.
 

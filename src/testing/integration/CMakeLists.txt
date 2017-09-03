@@ -8,6 +8,7 @@ set	(SOURCE
 set	(LIBS_DEPEND
 	 Simulation
 	 Mesh
+	 Test_Support
 	)
 
 set (LIB Test_Integration)

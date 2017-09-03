@@ -26,7 +26,7 @@
 #define EXIT_MSG         ({ PRINT_FILELINE; abort(); })
 #define EXIT_UNSUPPORTED ({printf("Error: Unsupported.\n"), EXIT_MSG; })
 #define EXIT_ADD_SUPPORT ({printf("Error: Add support.\n"), EXIT_MSG; })
-#define EXIT_ERROR(s)    ({printf("Error: %s.\n",s), EXIT_MSG; })
+#define EXIT_ERROR(...)  ({printf("Error: "); printf(__VA_ARGS__); EXIT_MSG; })
 ///\}
 
 ///\{ \name Mark unused variables.

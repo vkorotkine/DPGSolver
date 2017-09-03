@@ -150,6 +150,18 @@ void read_skip_const_d (const char*const line, const double*const var, const int
 	sscanf(input_s_clean,"%lf",(double*)var);
 }
 
+void read_skip_ptrdiff_1 (char*const line, const int n_skip, ptrdiff_t*const var, const int n_var)
+{
+	char* token_s = strtok(line," ");
+	for (int i = 0; i < n_skip-1; ++i)
+		token_s = strtok(NULL," ");
+
+	for (int i = 0; i < n_var; ++i) {
+		token_s = strtok(NULL," ");
+		sscanf(token_s,"%td",&var[i]);
+	}
+}
+
 void strcat_path_c (char* dest, const char*const src, const char*const trail)
 {
 	if (!strstr(src,"NONE")) {
