@@ -50,13 +50,7 @@ struct Vector_i* constructor_empty_Vector_i (const ptrdiff_t ext_0)
 {
 	int* data = mallocator(INT_T,1,ext_0); // keep
 
-	struct Vector_i* dest = malloc(sizeof *dest); // returned
-/// \todo use constructor_local_Vector_i_1. And below
-	dest->ext_0     = ext_0;
-	dest->owns_data = true;
-	dest->data      = data;
-
-	return dest;
+	return constructor_local_Vector_i_1(ext_0,true,data);
 }
 
 struct Vector_i* constructor_copy_Vector_i (const struct Vector_i*const src)
@@ -68,13 +62,7 @@ struct Vector_i* constructor_copy_Vector_i (const struct Vector_i*const src)
 	for (ptrdiff_t i = 0; i < ext_0; i++)
 		data[i] = data_src[i];
 
-	struct Vector_i* dest = malloc(sizeof *dest); // returned
-
-	dest->ext_0     = ext_0;
-	dest->owns_data = true;
-	dest->data      = data;
-
-	return dest;
+	return constructor_local_Vector_i_1(ext_0,true,data);
 }
 
 struct Vector_i* constructor_copy_Vector_i_i (const ptrdiff_t ext_0, const int*const data_src)
@@ -83,22 +71,12 @@ struct Vector_i* constructor_copy_Vector_i_i (const ptrdiff_t ext_0, const int*c
 	for (ptrdiff_t i = 0; i < ext_0; i++)
 		data[i] = data_src[i];
 
-	struct Vector_i* dest = malloc(sizeof *dest); // returned
-	dest->ext_0     = ext_0;
-	dest->owns_data = true;
-	dest->data      = data;
-
-	return dest;
+	return constructor_local_Vector_i_1(ext_0,true,data);
 }
 
 struct Vector_i* constructor_move_Vector_i_i (const ptrdiff_t ext_0, const bool owns_data, int*const data)
 {
-	struct Vector_i* dest = malloc(sizeof *dest); // returned
-	dest->ext_0     = ext_0;
-	dest->owns_data = owns_data;
-	dest->data      = data;
-
-	return dest;
+	return constructor_local_Vector_i_1(ext_0,owns_data,data);
 }
 
 struct const_Vector_i* constructor_move_const_Vector_i_i
@@ -306,40 +284,6 @@ void print_const_Vector_i (const struct const_Vector_i*const a)
 	struct Vector_i* local = constructor_local_Vector_i_1(a->ext_0,false,(int*)a->data); // free
 	print_Vector_i(local);
 	free(local);
-}
-
-// Testing functions ************************************************************************************************ //
-
-int diff_Vector_i (const struct Vector_i*const a, const struct Vector_i*const b)
-{
-	const ptrdiff_t size = a->ext_0;
-
-	if (size != b->ext_0)
-		EXIT_ERROR("Comparing Vectors of different size");
-
-	int n_diff = 0;
-	for (ptrdiff_t i = 0; i < size; ++i)
-		n_diff += ( a->data[i] == b->data[i] ? 0 : 1);
-
-	return n_diff;
-}
-
-void print_diff_Vector_i (const struct Vector_i*const a, const struct Vector_i*const b)
-{
-	const ptrdiff_t size = a->ext_0;
-
-	if (size != b->ext_0)
-		EXIT_ERROR("Comparing Vectors of different size");
-
-	const int*const data_a = a->data,
-	         *const data_b = b->data;
-
-	for (ptrdiff_t i = 0; i < size; i++) {
-		printf("% 12d ",data_a[i]-data_b[i]);
-		if (!((i+1)%8))
-			printf("\n");
-	}
-	printf("\n\n");
 }
 
 // Static functions ************************************************************************************************* //

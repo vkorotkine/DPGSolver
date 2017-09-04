@@ -1,6 +1,9 @@
 # Execute cmake using specific build parameters from '$ROOT/cmake/run' using, for example:
 # $ sh gcc_debug.sh
 #
+# It is possible that linkage errors will occur when combining libraries in different ways as required files may be
+# implicitly linked through other libraries because of CMake's treatment of "Cyclic Dependencies of Static Libraries".
+#
 # The minimum required version is required in order to properly find python3 without passing the cmake parameters:
 # - PYTHON_INCLUDE_DIR, PYTHON_LIBRARY
 #
@@ -25,6 +28,8 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 include(functions)
 
 # Include subdirectory CMakeLists.txt files
+option(BUILD_SHARED_LIBS "Build the shared library" ON)
+
 include_directories(src)
 
 add_subdirectory(src)

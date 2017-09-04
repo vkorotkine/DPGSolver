@@ -77,9 +77,6 @@ static void add_bc_info
 struct Mesh_Connectivity* constructor_Mesh_Connectivity
 	(const struct Mesh_Data*const mesh_data, const struct const_Intrusive_List* elements)
 {
-	if (elements == NULL)
-		EXIT_ADD_SUPPORT; // Add constructor. Don't forget to destruct.
-
 	struct Mesh_Connectivity_l mesh_conn_l;
 	struct Conn_info* conn_info = constructor_Conn_info(mesh_data,elements); // destructed
 
@@ -236,7 +233,7 @@ static void compute_f_ve
 	struct const_Vector_i* volume_types = conn_info->volume_types;
 
 	const ptrdiff_t sum_n_f = compute_sum_n_f(elements,volume_types);
-	struct Multiarray_Vector_i* f_ve = constructor_empty_Multiarray_Vector_i(1,sum_n_f); // returned
+	struct Multiarray_Vector_i* f_ve = constructor_empty_Multiarray_Vector_i(true,1,sum_n_f); // returned
 
 	const struct const_Vector_i*const*const volume_nums = &mesh_data->node_nums->data[ind_v];
 	for (ptrdiff_t v = 0, ind_f = 0; v < n_v; ++v) {
@@ -342,7 +339,7 @@ static void add_bc_info
 	set_bf_info(bf_info,ind_pfe,mesh_data);
 
 	// Copy the pointers to the node_nums into a Multiarray_Vector_i (for sorting).
-	struct Multiarray_Vector_i* bf_ve = constructor_empty_Multiarray_Vector_i(1,n_bf); // destructed
+	struct Multiarray_Vector_i* bf_ve = constructor_empty_Multiarray_Vector_i(true,1,n_bf); // destructed
 	bf_ve->owns_data = false;
 	for (ptrdiff_t i = 0; i < n_bf; ++i) {
 		destructor_Vector_i(bf_ve->data[i]);

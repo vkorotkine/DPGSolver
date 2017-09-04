@@ -25,4 +25,4 @@ set	(LIBS_DEPEND
 	)
 
 add_executable(test_all main_test_all.c)
-target_link_libraries(test_all ${LIBS_DEPEND})
+target_link_libraries(test_all PRIVATE ${LIBS_DEPEND})

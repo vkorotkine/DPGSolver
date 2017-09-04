@@ -29,16 +29,16 @@ struct Mesh_Data {
 
 	const struct const_Matrix_d*const nodes; ///< The xyz coordinates of the mesh elements (the mesh vertices).
 
-	const struct const_Vector_i*const elem_types;            ///< The list of element types.
-	const struct const_Matrix_i*const elem_tags;             /**< The list of element tags.
-	                                                           *   The 1st tag gives boundary condition information.
-	                                                           *   The 2nd tag gives periodic connectivity information.
-	                                                           */
-	const struct const_Multiarray_Vector_i*const node_nums;  ///< The list of node numbers for the elements.
+	const struct const_Vector_i*const elem_types;           ///< The list of element types.
+	const struct const_Matrix_i*const elem_tags;            /**< The list of element tags.
+	                                                          *  The 1st tag gives boundary condition information.
+	                                                          *  The 2nd tag gives periodic connectivity information.
+	                                                          */
+	const struct const_Multiarray_Vector_i*const node_nums; ///< The list of node numbers for the elements.
 
 	/** The periodic entity correspondence.
-	 * Currently used only as an indicator for whether periodic boundaries are present.
-	 * \todo Change to simple boolean flag after testing. */
+	 *  Currently used only as an indicator for whether periodic boundaries are present.
+	 *  Potentially change to simple boolean flag after testing. */
 	const struct const_Matrix_i*const periodic_corr;
 };
 

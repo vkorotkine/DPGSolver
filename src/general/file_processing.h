@@ -51,13 +51,22 @@ void read_line_values_i
 	                         *   indexing. */
 	);
 
-/// \brief Reads values from the line into a `long int` array.
+/** \brief Reads values from the line into a `long int` array.
+ *	\note This function is also currently used to read values into `ptrdiff_t` arrays as there is not standard library
+ *	      function associated with this data type. */
 void read_line_values_l
 	(char**const line,      ///< The line.
 	 const ptrdiff_t n_val, ///< The number of values to read.
 	 long int*const vals,   ///< The array in which to store the values.
 	 const bool decrement   /**< Flag for whether decrementing by 1 is enabled. Used to convert from 1-based to 0-based
 	                         *   indexing. */
+	);
+
+/// \brief Reads values from the line into a `double` array.
+void read_line_values_d
+	(char**const line,      ///< The line.
+	 const ptrdiff_t n_val, ///< The number of values to read.
+	 double*const vals      ///< The array in which to store the values.
 	);
 
 /// \brief Read a `char`, skipping the first string.

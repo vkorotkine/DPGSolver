@@ -46,27 +46,15 @@ If (PDE_NAME == ADVECTION)
 ElseIf (PDE_NAME == POISSON)
 	Physical Line(BC_Base+BC_DIRICHLET) = {1001:1002,2001:2002};
 ElseIf (PDE_NAME == EULER)
-	Physical Point(BC_Base+PERIODIC_XL) = {1,3};
-	Physical Point(BC_Base+PERIODIC_XR) = {2,4};
-	Physical Point(BC_Base+PERIODIC_YL) = {1,2};
-	Physical Point(BC_Base+PERIODIC_YR) = {3,4};
-
 	Physical Line(BC_Base+PERIODIC_XL) = {2001};
 	Physical Line(BC_Base+PERIODIC_XR) = {2002};
 	Physical Line(BC_Base+PERIODIC_YL) = {1001};
 	Physical Line(BC_Base+PERIODIC_YR) = {1002};
 
 	// Periodic Indicator (Slave = Master)
-
 	Periodic Line {2002} = {2001}; // Periodic (x)
 	Periodic Line {1002} = {1001}; // Periodic (y)
 ElseIf (PDE_NAME == NAVIERSTOKES)
-	// Periodic in x
-	Physical Point(BC_Base+PERIODIC_XL) = {1,3};
-	Physical Point(BC_Base+PERIODIC_XR) = {2,4};
-	Physical Point(BC_Base+PERIODIC_YL) = {1,2};
-	Physical Point(BC_Base+PERIODIC_YR) = {3,4};
-
 	Physical Line(BC_Base+PERIODIC_XL) = {2001};
 	Physical Line(BC_Base+PERIODIC_XR) = {2002};
 

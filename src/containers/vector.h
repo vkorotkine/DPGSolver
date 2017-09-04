@@ -183,19 +183,4 @@ void print_const_Vector_i
 	(const struct const_Vector_i*const a ///< Standard.
 	);
 
-// Testing functions ************************************************************************************************ //
-
-/** \brief Check the difference between entries in the input \ref Vector_i\*s.
- *	\return The number of differing entries. */
-int diff_Vector_i
-	(const struct Vector_i*const a, ///< Input 0.
-	 const struct Vector_i*const b  ///< Input 1.
-	);
-
-/// \brief Print the difference of the input \ref Vector_i\*s.
-void print_diff_Vector_i
-	(const struct Vector_i*const a, ///< Input 0.
-	 const struct Vector_i*const b  ///< Input 1.
-	);
-
 #endif // DPG__Vector_h__INCLUDED

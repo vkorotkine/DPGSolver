@@ -31,7 +31,7 @@ double gamma_d
 	(const double x ///< Input.
 	);
 
-/** \brief Compares input values for approximate equality.
+/** \brief Compares input values for approximate equality using the relative infinity norm.
  *	\return `true` if the difference is less than the tolerance. */
 bool equal_d
 	(const double x0, ///< Input 0.
@@ -44,6 +44,15 @@ bool equal_d
 double norm_d
 	(const ptrdiff_t n_entries, ///< The number of entries.
 	 const double*const data,   ///< The data.
+	 const char*const norm_type ///< The norm type. Options: "L2".
+	);
+
+/** \brief Computes the relative norm of the difference between the input `double*` data with the specified norm type.
+ *	\return See brief. */
+double norm_diff_d
+	(const ptrdiff_t n_entries, ///< The number of entries.
+	 const double*const data_0, ///< The data for input 0.
+	 const double*const data_1, ///< The data for input 1.
 	 const char*const norm_type ///< The norm type. Options: "L2".
 	);
 

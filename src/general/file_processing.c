@@ -99,6 +99,15 @@ void read_line_values_l (char**const line, const ptrdiff_t n_val, long int*const
 	}
 }
 
+void read_line_values_d (char**const line, const ptrdiff_t n_val, double*const vals)
+{
+	char* endptr = NULL;
+	for (ptrdiff_t n = 0; n < n_val; n++) {
+		vals[n] = strtod(*line,&endptr);
+		*line = endptr;
+	}
+}
+
 void read_skip_c (const char*const line, char*const var)
 {
 	sscanf(line,"%*s %s",var);

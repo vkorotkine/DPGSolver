@@ -4,12 +4,12 @@
 #ifndef DPG__mesh_h__INCLUDED
 #define DPG__mesh_h__INCLUDED
 /**	\file
- *	\brief Provides an interface for reading a mesh file.
+ *	\brief Provides the interface for reading a mesh file and converting/computing useful information.
  *
  *	Relevant data is returned as part of \ref Mesh.
  *
  *	Supported input formats:
- *		- gmsh
+ *		- gmsh (linear elements only).
  *
  *	The \ref Mesh_Vertices container is used to assign the `boundary` and `curved` flags to the \ref Volume and \ref
  *	Face elements in the domain. The vertex information, while generally not used for the solver, can be used to set up
@@ -55,7 +55,6 @@ struct Mesh {
  *	To provide addtional modularity, it is possible to pass a `NULL` value for the `elements` list. This results in the
  *	list being constructed and destructed as part of the connectivity set up. However, as the base \ref Element list is
  *	used in many other modules of the code, it is generally convenient to set it up before setting up the mesh.
- *	\todo Add support for this functionality.
  */
 struct Mesh* constructor_Mesh
 	(const struct Mesh_Input* mesh_input,        ///< \ref Mesh_Input.

@@ -1,9 +1,6 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 /**	\file
- *	\brief Reads a mesh file and returns relevant data as part of
-
- \todo Complete this.
  */
 
 #include "mesh.h"
@@ -25,11 +22,20 @@
 
 struct Mesh* constructor_Mesh (const struct Mesh_Input* mesh_input, const struct const_Intrusive_List* elements)
 {
+	bool elements_provided = true;
+	if (elements == NULL) {
+		elements_provided = false;
+		elements = constructor_Element_List(mesh_input->d); // destructed
+	}
+
 	struct Mesh* mesh = malloc(sizeof *mesh); // returned
 
 	*(struct Mesh_Data**)&         mesh->mesh_data = constructor_Mesh_Data(mesh_input->mesh_name_full,mesh_input->d);
 	*(struct Mesh_Connectivity**)& mesh->mesh_conn = constructor_Mesh_Connectivity(mesh->mesh_data,elements);
 	*(struct Mesh_Vertices**)&     mesh->mesh_vert = constructor_Mesh_Vertices(mesh,elements,mesh_input);
+
+	if (!elements_provided)
+		destructor_Elements((struct Intrusive_List*)elements);
 
 	return mesh;
 }

@@ -12,4 +12,4 @@ set	(LIBS
 	)
 
 add_library(Mesh ${SOURCE})
-target_link_libraries(Mesh ${LIBS})
+target_link_libraries(Mesh PRIVATE ${LIBS})

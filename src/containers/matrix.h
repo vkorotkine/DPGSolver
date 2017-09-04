@@ -63,9 +63,27 @@ struct const_Matrix_i {
 /** \brief Constructs an empty \ref Matrix_d\*.
  *	\return Standard. */
 struct Matrix_d* constructor_empty_Matrix_d
-	(const char layout,  ///< Standard.
+	(const char layout,     ///< Standard.
 	 const ptrdiff_t ext_0, ///< Standard.
 	 const ptrdiff_t ext_1  ///< Standard.
+	);
+
+/** \brief Copy constructor for a \ref Matrix_i\* from a `const int*`.
+ *	\return Standard. */
+struct Matrix_i* constructor_copy_Matrix_i_i
+	(const char layout,       ///< Standard.
+	 const ptrdiff_t ext_0,   ///< Standard.
+	 const ptrdiff_t ext_1,   ///< Standard.
+	 const int*const data_src ///< The source data.
+	);
+
+/** \brief Copy constructor for a \ref Matrix_d\* from a `const double*`.
+ *	\return Standard. */
+struct Matrix_d* constructor_copy_Matrix_d_d
+	(const char layout,          ///< Standard.
+	 const ptrdiff_t ext_0,      ///< Standard.
+	 const ptrdiff_t ext_1,      ///< Standard.
+	 const double*const data_src ///< The source data.
 	);
 
 /** \brief Move Constructor for a \ref const_Matrix_d\*.
@@ -170,14 +188,16 @@ void set_row_Matrix_d
 
 // Printing functions *********************************************************************************************** //
 
-/// \brief Print a \ref Matrix_d\* to the terminal.
+/// \brief Print a \ref Matrix_d\* to the terminal displaying entries below the tolerance as 0.0.
 void print_Matrix_d
-	(const struct Matrix_d*const a ///< Standard.
+	(const struct Matrix_d*const a, ///< Standard.
+	 const double tol               ///< The tolerance.
 	);
 
-/// \brief Print a \ref const_Matrix_d\* to the terminal.
+/// \brief Print a \ref const_Matrix_d\* as in \ref print_Matrix_d.
 void print_const_Matrix_d
-	(const struct const_Matrix_d*const a ///< Standard.
+	(const struct const_Matrix_d*const a, ///< Standard.
+	 const double tol                     ///< The tolerance.
 	);
 
 /// \brief Print a \ref Matrix_i\* to the terminal.

@@ -165,11 +165,11 @@ struct Multiarray_d* constructor_move_Multiarray_d_d
 
 /** \brief Constructs an empty \ref Multiarray_Vector_i\*.
  *	\return Standard.
- *	\note The layout is set to row-major by default as the data cannot be used directly as for the standard datatypes.
  */
 struct Multiarray_Vector_i* constructor_empty_Multiarray_Vector_i
-	(const int order, ///< Defined in \ref Multiarray_d.
-	 ...              ///< Variadic arguments.
+	(const bool alloc_V, ///< Flag indicating whether memory should be reserved for the individual Vectors.
+	 const int order,    ///< Defined in \ref Multiarray_d.
+	 ...                 ///< Variadic arguments.
 	);
 
 /** \brief Constructs a \ref Multiarray_Vector_i\* and sets the values of its \ref Vector_i\* components from the input
@@ -246,21 +246,6 @@ void print_Multiarray_Vector_i
 /// \brief Print a \ref const_Multiarray_Vector_i\* to the terminal.
 void print_const_Multiarray_Vector_i
 	(const struct const_Multiarray_Vector_i*const a ///< Standard.
-	);
-
-// Testing functions ************************************************************************************************ //
-
-/** \brief Check the difference between entries in the input \ref Multiarray_Vector_i\*s.
- *	\return The number of differing entries. */
-int diff_Multiarray_Vector_i
-	(const struct Multiarray_Vector_i*const a, ///< Input 0.
-	 const struct Multiarray_Vector_i*const b  ///< Input 1.
-	);
-
-/// \brief Print the difference of the input \ref Multiarray_Vector_i\*s.
-void print_diff_Multiarray_Vector_i
-	(const struct Multiarray_Vector_i*const a, ///< Input 0.
-	 const struct Multiarray_Vector_i*const b  ///< Input 1.
 	);
 
 #endif // DPG__Multiarray_h__INCLUDED

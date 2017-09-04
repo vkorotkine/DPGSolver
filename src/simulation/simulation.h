@@ -74,9 +74,7 @@ struct Simulation {
 	                        *   is allocated contiguously such that fewer blas3 calls on larger arrays are made. This
 	                        *   can result in significant performance increase for fixed order, fixed mesh level runs,
 	                        *   but advantages may be lost for adapative runs. For this reason, this functionality is
-	                        *   currently not supported.
-	                        *
-	                        *	\todo Investigate further and modify comments above.
+	                        *   currently not supported. \todo Investigate further and modify comments above.
 	                        */
 	           collocated; /**< Whether a collocated interpolation and integration node set is being used. Significant
 	                        *   performance increase may be observed when this is `true`. */

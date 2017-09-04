@@ -8,17 +8,7 @@
  *	The data structures used here were inspired by the intrusive container example from ch. 27.9 of Stroustrup
  *	\cite Stroustrup2014. The motivating principle is that elements of an \ref Intrusive_List may be manipulated without
  *	knowing anything about the internal structure of the \ref Intrusive_Link.
- *
- *	\todo Add comments.
  */
-
-// Required includes
-
-// Redundant includes
-
-// Forward declarations
-
-// ****************************************************************************************************************** //
 
 /// \brief A doubly-linked list structure to hold intrusive containers.
 struct Intrusive_List {

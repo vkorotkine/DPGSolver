@@ -103,7 +103,7 @@ static struct Mesh_Vertices_l set_up_mesh_vertices
 
 	mesh_vert_l.ve_curved   = constructor_empty_Vector_i(n_ve); // keep
 	mesh_vert_l.ve_boundary = constructor_empty_Vector_i(n_ve); // keep
-	mesh_vert_l.ve_bc       = constructor_empty_Multiarray_Vector_i (1,n_ve); // keep
+	mesh_vert_l.ve_bc       = constructor_empty_Multiarray_Vector_i(true,1,n_ve); // keep
 	set_to_zero_Vector_i(mesh_vert_l.ve_curved);
 	set_to_zero_Vector_i(mesh_vert_l.ve_boundary);
 

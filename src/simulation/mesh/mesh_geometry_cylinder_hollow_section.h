@@ -4,7 +4,7 @@
 #ifndef DPG__mesh_geometry_cylinder_hollow_section_h__INCLUDED
 #define DPG__mesh_geometry_cylinder_hollow_section_h__INCLUDED
 /**	\file
- *	\todo Add general comments for the header file here.
+ *	Provides functions relating to hollow cylindrical geometry.
  */
 
 struct const_Vector_i;

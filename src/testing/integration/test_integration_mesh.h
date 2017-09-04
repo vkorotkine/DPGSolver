@@ -11,7 +11,10 @@
 
 /**	\test Performs integration testing for the mesh processing.
  *
- *	\todo Update comments.
+ *	Compares members of the following containers with their expected values:
+ *	- \ref Mesh_Data;
+ *	- \ref Mesh_Connectivity;
+ *	- \ref Mesh_Vertices.
  */
 void test_integration_mesh
 	(struct Test_Info*const test_info, ///< \ref Test_Info.

@@ -3,6 +3,9 @@
 /** \file
  *
  *	This file can be used to output convergence orders of the selected test case in tabular format.
+
+ *	\todo This file needs a complete re-write. Make an associated input file for this script such that recompilation is
+ *	      not needed for each set of data.
  */
 
 #include <stdlib.h>
@@ -10,23 +13,14 @@
 #include <string.h>
 #include <math.h>
 
-/// \todo Replace definitions below with inclusion of appropriate files.
-///\{ \name Constants repeated from other functions.
-#define STRLEN_MIN 60
-#define STRLEN_MAX 508
-
-#define EPS        1.0e-15
-#define DMAX       3
-///\}
+#include "constants_alloc.h"
+#include "constants_tol.h"
+#include "constants_core.h"
 
 static void data_to_txt(const unsigned int d, const unsigned int NVars, const unsigned int MLMin,
                         const unsigned int MLMax, const unsigned int PMin, const unsigned int PMax,
                         const unsigned int *CasesRun, const double *h, double **L2Errors, double **ConvOrders,
                         char *TestCase, char *MeshType);
-static void table_to_latex(const unsigned int d, const unsigned int NVars, const unsigned int MLMin,
-                           const unsigned int MLMax, const unsigned int PMin, const unsigned int PMax,
-                           const unsigned int *CasesRun, const double *h, double **L2Errors, double **ConvOrders,
-                           char *TestCase, char *MeshType);
 
 /** \brief Used to output convergence orders of the selected test case in tabular format.
  *	\return 0. */
@@ -150,7 +144,6 @@ int main (void)
 	}}
 
 	// Output to file
-//	table_to_latex(d,NVars,MLMin,MLMax,PMin,PMax,CasesRun,h,L2Errors,ConvOrders,TestCase,MeshType);
 	data_to_txt(d,NVars,MLMin,MLMax,PMin,PMax,CasesRun,h,L2Errors,ConvOrders,TestCase,MeshType);
 
 	free(TestCase);
@@ -248,7 +241,7 @@ static void data_to_txt(const unsigned int d, const unsigned int NVars, const un
 	NP  = PMax+1;
 
 	if ((fID = fopen("L2errs+Convergence.txt","w")) == NULL)
-		printf("Error: File in table_to_latex did not open.\n"), exit(1);
+		printf("Error: File did not open.\n"), exit(1);
 
 	fprintf(fID,"NVars %2d\n",NVarsOut);
 	fprintf(fID,"MLMax %2d\n",MLMax);
@@ -313,139 +306,4 @@ static void data_to_txt(const unsigned int d, const unsigned int NVars, const un
 	for (i = 0; i < NVarsOut; i++)
 		free(Vars_c[i]);
 	free(Vars_c);
-}
-
-static void table_to_latex(const unsigned int d, const unsigned int NVars, const unsigned int MLMin,
-                           const unsigned int MLMax, const unsigned int PMin, const unsigned int PMax,
-                           const unsigned int *CasesRun, const double *h, double **L2Errors, double **ConvOrders,
-                           char *TestCase, char *MeshType)
-{
-	char         **Vars_c, caption[STRLEN_MAX];
-	unsigned int i, j, ML, P, NP, NVarsOut, Indp, Indh, IndVars[6], P_Print, uOnly;
-
-	FILE *fID;
-
-	if (strstr(TestCase,"PeriodicVortex") != NULL ||
-		strstr(TestCase,"SupersonicVortex") != NULL) {
-		if      (d == 2) Indp = 3;
-		else if (d == 3) Indp = 4;
-
-		NVarsOut = NVars+d-3;
-		Vars_c = malloc(NVarsOut * sizeof *Vars_c); // free
-		for (i = 0; i < NVarsOut; i++)
-			Vars_c[i] = malloc(STRLEN_MIN * sizeof *Vars_c[i]); // free
-
-		strcpy(Vars_c[0],"$\\rho$");
-		strcpy(Vars_c[1],"$u$    ");
-		strcpy(Vars_c[2],"$v$    ");
-		strcpy(Vars_c[Indp],"$p$    ");
-		strcpy(Vars_c[Indp+1],"$s$    ");
-		if (d == 3)
-			strcpy(Vars_c[3],"$w$    ");
-
-		for (i = 0; i < NVarsOut; i++) {
-			if (d == 3 || i < Indp)
-				IndVars[i] = i;
-			else
-				IndVars[i] = i+1;
-		}
-	} else if (strstr(TestCase,"Poisson")) {
-		NVarsOut = NVars+d-3;
-
-		uOnly = 0;
-
-		Vars_c = malloc(NVarsOut * sizeof *Vars_c); // free
-		for (i = 0; i < NVarsOut; i++)
-			Vars_c[i] = malloc(STRLEN_MIN * sizeof *Vars_c[i]); // free
-
-		strcpy(Vars_c[0],"$u$    ");
-		strcpy(Vars_c[1],"$q_1$  ");
-		strcpy(Vars_c[2],"$q_2$  ");
-		if (d == 3)
-			strcpy(Vars_c[3],"$q_3$  ");
-
-		for (i = 0; i < NVarsOut; i++)
-			IndVars[i] = i;
-	}
-	strcpy(caption,"Errors and Convergence Orders - ");
-	strcat(caption,MeshType);
-	strcat(caption," meshes");
-
-	if ((fID = fopen("L2errs+Convergence.txt","w")) == NULL)
-		printf("Error: File in table_to_latex did not open.\n"), exit(1);
-
-	fprintf(fID,"\\begin{table}[!htbp]\n");
-	fprintf(fID,"\\begin{center}\n");
-	fprintf(fID,"\\caption{ %s }\n",caption);
-	fprintf(fID,"\\resizebox{\\textwidth}{!}{\n");
-	fprintf(fID,"\\begin{tabular}{| l | l | ");
-	for (i = 0; i < 2; i++) {
-		for (j = 0; j < NVarsOut; j++)
-			fprintf(fID,"c ");
-		fprintf(fID,"| ");
-	}
-	fprintf(fID,"}\n");
-
-	fprintf(fID,"\t\\hline\n");
-	fprintf(fID,"\t & & ");
-	for (i = 0; i < 2; i++) {
-		if      (i == 0) fprintf(fID," $L^2$ Error ");
-		else if (i == 1) fprintf(fID," Conv. Order ");
-		for (j = 0; j < NVarsOut; j++) {
-			if (!(i == 1 && j == NVarsOut-1))
-				fprintf(fID,"& ");
-		}
-	}
-	fprintf(fID,"\\\\\n");
-	fprintf(fID,"\t\\hline\n");
-	fprintf(fID,"\tOrder ($k$) & Mesh Size ($h$) ");
-	for (i = 0; i < 2; i++) {
-	for (j = 0; j < NVarsOut; j++) {
-		fprintf(fID,"& %s ",Vars_c[j]);
-	}}
-	fprintf(fID,"\\\\\n");
-
-	if (uOnly) // Only output errors/orders for u (Poisson)
-		NVarsOut = 1;
-
-	NP = PMax-PMin+1;
-	for (P = PMin; P <= PMax; P++) {
-		P_Print = 1;
-		fprintf(fID,"\t\\hline\n");
-		for (ML = MLMin; ML <= MLMax; ML++) {
-			Indh = (ML-MLMin)*NP+(P-PMin);
-			if (CasesRun[Indh]) {
-				if (P_Print) {
-					P_Print = 0;
-					fprintf(fID,"%1d\t& % .2e",P,h[Indh]);
-					for (i = 0; i < 2; i++) {
-					for (j = 0; j < NVarsOut; j++) {
-						if      (i == 0) fprintf(fID," & % .2e",L2Errors[IndVars[j]][Indh]);
-						else if (i == 1) fprintf(fID," & -");
-					}}
-					fprintf(fID," \\\\\n");
-				} else {
-					fprintf(fID,"\t& % .2e",h[Indh]);
-					for (i = 0; i < 2; i++) {
-					for (j = 0; j < NVarsOut; j++) {
-						if      (i == 0) fprintf(fID," & % .2e",L2Errors[IndVars[j]][Indh]);
-						else if (i == 1) fprintf(fID," & % .2f",ConvOrders[IndVars[j]][Indh]);
-					}}
-					fprintf(fID," \\\\\n");
-				}
-			}
-		}
-	}
-
-	fprintf(fID,"\t\\hline\n");
-	fprintf(fID,"\\end{tabular}\n");
-	fprintf(fID,"}\n");
-	fprintf(fID,"\\end{center}\n");
-	fprintf(fID,"\\end{table}");
-
-	for (i = 0; i < NVarsOut; i++)
-		free(Vars_c[i]);
-	free(Vars_c);
-
-	fclose(fID);
 }
