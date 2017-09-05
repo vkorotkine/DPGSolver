@@ -6,8 +6,8 @@
 /**	\file
  *	\brief Provides the definition of constants associated with the boundary conditions.
  *
- *	The naming convention for the periodic boundary conditions omits the 'BC_' prefix as they are only used to correct
- *	the mesh connectivity and not in other areas of the code.
+ *	The naming convention for the periodic boundary conditions omits the 'BC_' prefix as they are only used for
+ *	preprocessing and not as actual boundary conditions.
  *
  *	\warning The value of these constants must be identical to those in the $ROOT/meshes/Parameters.geo file.
  */

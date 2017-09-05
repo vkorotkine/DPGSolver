@@ -7,9 +7,12 @@ set	(SOURCE
 	 mesh_geometry_cylinder_hollow_section.c
 	)
 
-set	(LIBS
+set	(LIBS_DEPEND
+	 Allocators
+	 Containers
 	 General
+	 Element
 	)
 
 add_library(Mesh ${SOURCE})
-target_link_libraries(Mesh PRIVATE ${LIBS})
+target_link_libraries(Mesh PRIVATE ${LIBS_DEPEND})

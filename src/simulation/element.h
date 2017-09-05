@@ -17,6 +17,7 @@ struct Element {
 
 	const int type, ///< The element type.
 	          d,    ///< The dimension.
+	          n_ve, ///< The number of vertices.
 	          n_f;  ///< The number of faces.
 
 	const struct const_Multiarray_Vector_i*const f_ve; ///< The correspondence between the (f)aces and (ve)rtices.
@@ -28,6 +29,7 @@ struct const_Element {
 
 	const int type, ///< Defined in \ref Element.
 	          d,    ///< Defined in \ref Element.
+	          n_ve, ///< Defined in \ref Element.
 	          n_f;  ///< Defined in \ref Element.
 
 	const struct const_Multiarray_Vector_i*const f_ve; ///< Defined in \ref Element.
@@ -55,8 +57,7 @@ void const_cast_const_Element
 // Helper functions ************************************************************************************************* //
 
 /** \brief See return.
- *	\return Pointer to a base \ref Element of the input `type`.
- */
+ *	\return Pointer to a base \ref Element of the input `type`. */
 struct const_Element* get_element_by_type
 	(const struct const_Intrusive_List*const elements, ///< The list of elements.
 	 const int type                                    ///< Defined in \ref Element.

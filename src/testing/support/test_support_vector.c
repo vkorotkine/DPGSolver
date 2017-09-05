@@ -11,7 +11,7 @@
 
 #include "test_support_multiarray.h"
 
-#include "Macros.h"
+#include "macros.h"
 #include "file_processing.h"
 #include "vector.h"
 

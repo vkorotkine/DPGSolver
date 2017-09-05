@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "Macros.h"
+#include "macros.h"
 
 // Static function declarations ************************************************************************************* //
 

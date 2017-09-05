@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "Macros.h"
+#include "macros.h"
 #include "constants_mesh.h"
 #include "constants_bc.h"
 
@@ -170,12 +170,11 @@ static struct Volume* constructor_Volume
 	(const struct Simulation*const sim, const struct Mesh*const mesh,
 	 const struct Volume_mesh_info*const vol_mi, const int index)
 {
-	struct Volume* volume = malloc(sizeof *volume); // returned
-
-	const_cast_i(&volume->index,index);
-
 	const struct const_Matrix_d*const nodes = mesh->mesh_data->nodes;
 	const struct Mesh_Vertices*const mesh_vert = mesh->mesh_vert;
+
+	struct Volume* volume = malloc(sizeof *volume); // returned
+	const_cast_i(&volume->index,index);
 
 	const_constructor_move_Matrix_d(&volume->xyz_ve,constructor_volume_vertices(vol_mi->ve_inds,nodes));
 

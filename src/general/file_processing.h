@@ -113,11 +113,18 @@ void read_skip_const_d
 	 const bool remove_semi  ///< Flag for optional removal of semicolon.
 	);
 
-/// \brief Get the next line from the input file and read the `var_name` variable into `var` of type `bool`.
+/// \brief Get the next line from the input file and read the `var_name` variable into `var` of type `const bool`.
 void read_skip_file_const_b
 	(const char*const var_name, ///< The name of the Variable to search for.
 	 FILE* file,                ///< File from which to read data.
 	 const bool*const var       ///< Variable in which to store data.
+	);
+
+/// \brief Get the next line from the input file and read the `var_name` variable into `var` of type `const int`.
+void read_skip_file_const_i
+	(const char*const var_name, ///< The name of the Variable to search for.
+	 FILE* file,                ///< File from which to read data.
+	 const int*const var        ///< Variable in which to store data.
 	);
 
 /// \brief Get the next line from the input file and read the `var_name` variable into `var` of type `int`.

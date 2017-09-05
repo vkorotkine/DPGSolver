@@ -7,8 +7,10 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 Allocators
 	 Simulation
 	 Mesh
+	 Test_Base
 	 Test_Support
 	)
 

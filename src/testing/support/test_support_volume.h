@@ -19,4 +19,14 @@ struct Volume* constructor_Volume
 	 const struct const_Intrusive_List*const elements ///< \ref Simulation::elements.
 	);
 
+/**	\brief See return.
+ *	\return Pointer to the \ref Volume with the input `index`.
+ *
+ *	\warning Uses an inefficient linear search and should not be used outside of test functions.
+ */
+struct Volume* get_volume_by_index
+	(const struct Intrusive_List*const volumes, ///< The list of volumes.
+	 const int index                            ///< The index.
+	);
+
 #endif // DPG__test_support_volume_h__INCLUDED

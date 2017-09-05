@@ -14,6 +14,8 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+struct const_Vector_i;
+
 /// \brief Matrix (`double`).
 struct Matrix_d {
 	char layout; ///< Defined in \ref Multiarray_d.
@@ -84,6 +86,13 @@ struct Matrix_d* constructor_copy_Matrix_d_d
 	 const ptrdiff_t ext_0,      ///< Standard.
 	 const ptrdiff_t ext_1,      ///< Standard.
 	 const double*const data_src ///< The source data.
+	);
+
+/** \brief Copy constructor for a \ref const_Matrix_d\* from a partial number of rows/columns of another.
+ *	\return Standard. */
+const struct const_Matrix_d* constructor_copy_extract_const_Matrix_d
+	(const struct const_Matrix_d*const src,    ///< The source Matrix.
+	 const struct const_Vector_i*const indices ///< The indices of the rows/columns to copy.
 	);
 
 /** \brief Move Constructor for a \ref const_Matrix_d\*.

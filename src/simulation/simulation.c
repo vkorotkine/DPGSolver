@@ -10,7 +10,7 @@
 #include <limits.h>
 #include <stdbool.h>
 
-#include "Macros.h"
+#include "macros.h"
 #include "element.h"
 #include "mesh.h"
 #include "volume.h"

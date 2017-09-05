@@ -11,7 +11,7 @@
 #include "constants_core.h"
 #include "constants_elements.h"
 #include "constants_bc.h"
-#include "Macros.h"
+#include "macros.h"
 
 #include "multiarray.h"
 #include "vector.h"

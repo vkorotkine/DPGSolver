@@ -10,7 +10,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "Macros.h"
+#include "macros.h"
 #include "constants_tol.h"
 
 // Interface functions ********************************************************************************************** //

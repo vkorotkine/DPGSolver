@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "macros.h"
+
 #include "intrusive.h"
 #include "volume.h"
 #include "element.h"
@@ -36,6 +38,16 @@ struct Volume* constructor_Volume
 	const_cast_const_Element(&volume->element,get_element_by_type(elements,elem_type));
 
 	return volume;
+}
+
+struct Volume* get_volume_by_index (const struct Intrusive_List*const volumes, const int index)
+{
+	for (const struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
+		struct Volume* volume = (struct Volume*) curr;
+		if (volume->index == index)
+			return volume;
+	}
+	EXIT_ERROR("Could not find the volume with index: %d.\n",index);
 }
 
 // Static functions ************************************************************************************************* //

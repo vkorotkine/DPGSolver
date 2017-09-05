@@ -19,7 +19,7 @@
 struct Face {
 	struct Intrusive_Link lnk; ///< \ref Intrusive_Link.
 
-	const ptrdiff_t index; ///< The index of the face.
+	const int index; ///< The index of the face.
 
 	const bool boundary, ///< Flag for whether the face is on a domain boundary.
 	           curved;   ///< Flag for whether the face is curved.
@@ -37,7 +37,7 @@ struct Face {
 	 *	The information for the first index `neigh_info[0]` relates to the Volume whose outward normal vector on the
 	 *	current face coincides with that stored as part of the Face; this is generally referred to as the left volume.
 	 */
-	struct Neighbour_Info {
+	struct Neigh_Info {
 		int ind_lf,   ///< Local face index in relation to the neighbouring volume.
 		    ind_href, /**< Local face h-refinement index.
 		               *   Range: [0:NFREFMAX).
@@ -74,8 +74,9 @@ struct Face {
 		               *   seen from the opposite Volume.
 		               */
 
-		struct Volume *volume; ///< Pointer to the neighbouring \ref Volume.
-	} neigh_info[2]; ///< \ref Neighbour_Info.
+		/// Pointer to the neighbouring \ref Volume. The second pointer is `NULL` for a boundary face.
+		struct Volume *volume;
+	} neigh_info[2]; ///< \ref Neigh_Info.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

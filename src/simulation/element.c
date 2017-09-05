@@ -7,7 +7,7 @@
 #include <string.h>
 
 #include "constants_elements.h"
-#include "Macros.h"
+#include "macros.h"
 #include "multiarray.h"
 #include "const_cast.h"
 
@@ -119,6 +119,7 @@ struct const_Element* get_element_by_face (const struct const_Element*const elem
 /// \brief Container for local element-related information.
 struct Elem_info {
 	int d,                   ///< Defined in \ref Element.
+	    n_ve,                ///< Defined in \ref Element.
 	    n_f,                 ///< Defined in \ref Element.
 	    n_f_ve[NFMAX],       ///< The number of vertices on each face.
 	    f_ve[NFMAX*NFVEMAX]; ///< Defined in \ref Element.
@@ -133,7 +134,9 @@ static struct Elem_info copy_local_elem_info
 {
 	struct Elem_info dest;
 
-	dest.n_f = src->n_f;
+	dest.d    = src->d;
+	dest.n_ve = src->n_ve;
+	dest.n_f  = src->n_f;
 	memcpy(dest.n_f_ve,src->n_f_ve,sizeof(src->n_f_ve));
 	memcpy(dest.f_ve,  src->f_ve,  sizeof(src->f_ve));
 
@@ -149,6 +152,7 @@ static struct Element* constructor_Element
 	case LINE: {
 		const struct Elem_info e_info_l =
 			{ .d      = 1,
+			  .n_ve   = 2,
 			  .n_f    = 2,
 			  .n_f_ve = {1, 1,},
 			  .f_ve   = {0, 1,},
@@ -158,6 +162,7 @@ static struct Element* constructor_Element
 	} case TRI: {
 		const struct Elem_info e_info_l =
 			{ .d      = 2,
+			  .n_ve   = 3,
 			  .n_f    = 3,
 			  .n_f_ve = {2, 2, 2,},
 			  .f_ve   = {1,2, 0,2, 0,1,},
@@ -167,6 +172,7 @@ static struct Element* constructor_Element
 	} case QUAD: {
 		const struct Elem_info e_info_l =
 			{ .d      = 2,
+			  .n_ve   = 4,
 			  .n_f    = 4,
 			  .n_f_ve = {2, 2, 2, 2,},
 			  .f_ve   = {0,2, 1,3, 0,1, 2,3},
@@ -179,6 +185,7 @@ static struct Element* constructor_Element
 	} case HEX: {
 		const struct Elem_info e_info_l =
 			{ .d      = 3,
+			  .n_ve   = 8,
 			  .n_f    = 6,
 			  .n_f_ve = {4, 4, 4, 4, 4, 4,},
 			  .f_ve   = {0,2,4,6, 1,3,5,7, 0,1,4,5, 2,3,6,7, 0,1,2,3, 4,5,6,7}
@@ -203,6 +210,7 @@ static struct Element* constructor_Element
 
 	const_cast_i(&element->type,elem_type);
 	const_cast_i(&element->d,e_info.d);
+	const_cast_i(&element->n_ve,e_info.n_ve);
 	const_cast_i(&element->n_f,e_info.n_f);
 	const_constructor_move_Multiarray_Vector_i(&element->f_ve,f_ve); // destructed
 

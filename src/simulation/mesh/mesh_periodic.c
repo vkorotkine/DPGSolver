@@ -10,7 +10,7 @@
 
 #include "constants_core.h"
 #include "constants_bc.h"
-#include "Macros.h"
+#include "macros.h"
 
 #include "multiarray.h"
 #include "matrix.h"

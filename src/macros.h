@@ -1,8 +1,8 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#ifndef DPG__Macros_h__INCLUDED
-#define DPG__Macros_h__INCLUDED
+#ifndef DPG__macros_h__INCLUDED
+#define DPG__macros_h__INCLUDED
 /** \file
  *	\brief Defines macros.
  *
@@ -32,4 +32,4 @@
 #define UNUSED(x) (void)(x)
 ///\}
 
-#endif // DPG__Macros_h__INCLUDED
+#endif // DPG__macros_h__INCLUDED

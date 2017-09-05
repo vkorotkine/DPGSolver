@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 #include "test_base.h"
-#include "Macros.h"
+#include "macros.h"
 
 #include "test_integration_euler.h"
 #include "test_integration_linearization.h"

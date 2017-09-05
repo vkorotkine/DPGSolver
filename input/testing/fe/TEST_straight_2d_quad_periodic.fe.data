@@ -48,4 +48,147 @@ R 4 2
 elem_type: 3
 
 --------------------------------------------------------------------------------
+Face 0
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    0
+Neigh_Info 1
+	ind_lf 1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    2
+
+Face 1
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    0
+Neigh_Info 1
+	ind_lf 0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    2
+
+Face 2
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    0
+Neigh_Info 1
+	ind_lf 3
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    1
+
+Face 3
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 3
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    0
+Neigh_Info 1
+	ind_lf 2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    1
+
+Face 4
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    1
+Neigh_Info 1
+	ind_lf 1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    3
+
+Face 5
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    1
+Neigh_Info 1
+	ind_lf 0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    3
+
+Face 6
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    2
+Neigh_Info 1
+	ind_lf 3
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    3
+
+Face 7
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 3
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    2
+Neigh_Info 1
+	ind_lf 2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    3
 

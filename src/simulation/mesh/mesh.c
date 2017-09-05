@@ -11,7 +11,7 @@
 #include <limits.h>
 #include <string.h>
 
-#include "Macros.h"
+#include "macros.h"
 #include "element.h"
 
 #include "file_processing.h"

@@ -7,11 +7,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 
-#include "Macros.h"
+#include "macros.h"
 
 #include "allocators.h"
 #include "multiarray.h"
+#include "matrix.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -21,6 +23,14 @@ static struct Vector_i* constructor_local_Vector_i_1
 	(const ptrdiff_t ext_0, ///< Standard.
 	 const bool owns_data,  ///< Standard.
 	 int*const data         ///< Standard.
+	);
+
+/** \brief Make a local \ref Vector_d\* (dynamic memory).
+ *	\return See brief.  */
+static struct Vector_d* constructor_local_Vector_d_1
+	(const ptrdiff_t ext_0, ///< Standard.
+	 const bool owns_data,  ///< Standard.
+	 double*const data      ///< Standard.
 	);
 
 /** \brief Comparison function for std::qsort between `int*` `a` and `b`.
@@ -112,6 +122,49 @@ void destructor_Vector_i_2 (struct Vector_i** a, const ptrdiff_t n_src, const bo
 	free(a);
 }
 
+struct Vector_d* constructor_empty_Vector_d (const ptrdiff_t ext_0)
+{
+	double* data = mallocator(DOUBLE_T,1,ext_0); // keep
+
+	return constructor_local_Vector_d_1(ext_0,true,data);
+}
+
+struct Vector_d* constructor_sum_Vector_d_const_Matrix_d (const char sum_dir, const struct const_Matrix_d*const src)
+{
+	if (!(sum_dir == 'R' || sum_dir == 'C'))
+		EXIT_UNSUPPORTED;
+
+	const ptrdiff_t ext_0 = ( sum_dir == 'R' ? src->ext_1 : src->ext_0 );
+
+	struct Vector_d* dest = constructor_empty_Vector_d(ext_0); // returned
+	for (ptrdiff_t j = 0; j < ext_0; ++j)
+		dest->data[j] = 0.0;
+
+	if (sum_dir != src->layout) {
+		EXIT_ADD_SUPPORT;
+	} else {
+		if (src->layout == 'R') {
+			const ptrdiff_t i_max = src->ext_0;
+			for (ptrdiff_t i = 0; i < i_max; ++i) {
+				const double* data_m = get_row_const_Matrix_d(i,src);
+				for (ptrdiff_t j = 0; j < ext_0; ++j)
+					dest->data[j] += data_m[j];
+			}
+		} else {
+			EXIT_ADD_SUPPORT;
+		}
+	}
+
+	return dest;
+}
+
+void destructor_Vector_d (struct Vector_d* a)
+{
+	if (a->owns_data)
+		deallocator(a->data,DOUBLE_T,1,a->ext_0);
+	free(a);
+}
+
 // Helper functions ************************************************************************************************* //
 
 void reorder_Vector_i (struct Vector_i*const a, const int*const ordering)
@@ -183,6 +236,18 @@ bool check_equal_Vector_i (const struct Vector_i*const a, const struct Vector_i*
 	const int* data_a = a->data,
 	         * data_b = b->data;
 
+	for (ptrdiff_t i = 0; i < size; i++) {
+		if (*data_a++ != *data_b++)
+			return false;
+	}
+	return true;
+}
+
+bool check_equal_Vector_i_i (const struct Vector_i*const a, const int* data_b)
+{
+	const int* data_a = a->data;
+
+	const ptrdiff_t size = a->ext_0;
 	for (ptrdiff_t i = 0; i < size; i++) {
 		if (*data_a++ != *data_b++)
 			return false;
@@ -286,6 +351,21 @@ void print_const_Vector_i (const struct const_Vector_i*const a)
 	free(local);
 }
 
+void print_Vector_d (const struct Vector_d*const a, const double tol)
+{
+	const ptrdiff_t ext = a->ext_0;
+
+	const double* data = a->data;
+
+	for (ptrdiff_t i = 0; i < ext; i++) {
+		const double val = *data++;
+		printf("% .4e ",( (isnan(val) || (fabs(val) > tol)) ? val : 0.0 ));
+		if (!((i+1)%8))
+			printf("\n");
+	}
+	printf("\n\n");
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -302,6 +382,17 @@ static struct Vector_i* constructor_default_Vector_i ()
 static struct Vector_i* constructor_local_Vector_i_1 (const ptrdiff_t ext_0, const bool owns_data, int*const data)
 {
 	struct Vector_i* dest = malloc(sizeof *dest); // returned
+
+	dest->ext_0     = ext_0;
+	dest->owns_data = owns_data;
+	dest->data      = data;
+
+	return dest;
+}
+
+static struct Vector_d* constructor_local_Vector_d_1 (const ptrdiff_t ext_0, const bool owns_data, double*const data)
+{
+	struct Vector_d* dest = malloc(sizeof *dest); // returned
 
 	dest->ext_0     = ext_0;
 	dest->owns_data = owns_data;

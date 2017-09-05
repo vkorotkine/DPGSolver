@@ -10,7 +10,7 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include "Macros.h"
+#include "macros.h"
 #include "constants_alloc.h"
 
 // Static function declarations ************************************************************************************* //
@@ -189,13 +189,25 @@ void read_skip_file_const_b (const char*const var_name, FILE* file, const bool*c
 	read_skip_const_b(line,var);
 }
 
-void read_skip_file_i (const char*const var_name, FILE* file, int*const var)
+void read_skip_file_const_i (const char*const var_name, FILE* file, const int*const var)
 {
 	char line[STRLEN_MAX];
 	fgets(line,sizeof(line),file);
 
 	if (!strstr(line,var_name))
 		EXIT_ERROR("Did not find '%s' in the current line of the file.\n",var_name);
+
+	read_skip_const_i(line,var);
+}
+
+void read_skip_file_i (const char*const var_name, FILE* file, int*const var)
+{
+	char line[STRLEN_MAX];
+	fgets(line,sizeof(line),file);
+
+	if (!strstr(line,var_name))
+//		EXIT_ERROR("Did not find '%s' in the current line of the file.\n",var_name);
+		EXIT_ERROR("Did not find '%s' in the current line (%s) of the file.\n",var_name,line);
 
 	read_skip_i(line,var);
 }

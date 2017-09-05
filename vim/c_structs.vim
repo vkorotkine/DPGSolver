@@ -1,6 +1,7 @@
 " To see the available colour groups: `:highlight`.
 
 syntax keyword Special Vector_i const_Vector_i
+syntax keyword Special Vector_d const_Vector_d
 
 syntax keyword Special Matrix_d const_Matrix_d
 syntax keyword Special Matrix_i const_Matrix_i

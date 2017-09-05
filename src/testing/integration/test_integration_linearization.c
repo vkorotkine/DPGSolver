@@ -7,7 +7,7 @@
 
 #include <string.h>
 
-#include "Macros.h"
+#include "macros.h"
 
 #include "simulation.h"
 #include "intrusive.h"

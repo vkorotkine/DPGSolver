@@ -11,7 +11,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "Macros.h"
+#include "macros.h"
 #include "constants_mesh.h"
 #include "constants_alloc.h"
 

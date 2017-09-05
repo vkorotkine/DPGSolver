@@ -11,7 +11,7 @@
 #include "test_support_matrix.h"
 #include "test_support_multiarray.h"
 
-#include "Macros.h"
+#include "macros.h"
 #include "intrusive.h"
 #include "multiarray.h"
 #include "mesh.h"

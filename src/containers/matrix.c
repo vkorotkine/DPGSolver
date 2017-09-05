@@ -10,8 +10,9 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "Macros.h"
+#include "macros.h"
 #include "allocators.h"
+#include "vector.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -67,6 +68,40 @@ struct Matrix_d* constructor_copy_Matrix_d_d
 		data[i] = data_src[i];
 
 	return constructor_local_Matrix_d_1(layout,ext_0,ext_1,true,data);
+}
+
+const struct const_Matrix_d* constructor_copy_extract_const_Matrix_d
+	(const struct const_Matrix_d*const src, const struct const_Vector_i*const indices)
+{
+	const char layout = src->layout;
+
+	const ptrdiff_t i_max = indices->ext_0,
+	                j_max = ( layout == 'R' ? src->ext_1 : src->ext_0 ),
+	                size  = i_max * j_max;
+
+	double* data = malloc(size * sizeof *data); // keep
+	ptrdiff_t ind = 0;
+	for (ptrdiff_t i = 0; i < i_max; ++i) {
+		for (ptrdiff_t j = 0; j < j_max; ++j) {
+			data[ind] = src->data[(indices->data[i])*j_max+j];
+			++ind;
+		}
+	}
+
+	ptrdiff_t ext_0 = 0,
+	          ext_1 = 0;
+	if (layout == 'R') {
+		ext_0 = i_max;
+		ext_1 = j_max;
+	} else {
+		ext_0 = j_max;
+		ext_1 = i_max;
+	}
+
+	struct Matrix_d* dest = constructor_local_Matrix_d_1(layout,ext_0,ext_1,true,data); // returned
+	const struct const_Matrix_d*const dest_c = NULL;
+	const_constructor_move_Matrix_d(&dest_c,dest);
+	return dest_c;
 }
 
 void const_constructor_move_Matrix_d (const struct const_Matrix_d*const* dest, struct Matrix_d* src)

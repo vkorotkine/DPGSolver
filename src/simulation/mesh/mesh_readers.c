@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "Macros.h"
+#include "macros.h"
 #include "mesh.h"
 #include "file_processing.h"
 #include "allocators.h"
