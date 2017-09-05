@@ -4,7 +4,7 @@
 #ifndef DPG__test_unit_h__INCLUDED
 #define DPG__test_unit_h__INCLUDED
 /**	\file
- *	Provides functions/structures for unit testing.
+ *	\brief Provides functions/structures for unit testing.
  */
 
 #include "test_base.h"

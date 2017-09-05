@@ -4,7 +4,7 @@
 #ifndef DPG__mesh_readers_h__INCLUDED
 #define DPG__mesh_readers_h__INCLUDED
 /**	\file
- *	Provides the interface to mesh reader containers and functions.
+ *	\brief Provides the interface to mesh reader containers and functions.
  */
 
 #include <stddef.h>

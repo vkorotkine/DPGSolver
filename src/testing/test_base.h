@@ -4,7 +4,7 @@
 #ifndef DPG__test_base_h__INCLUDED
 #define DPG__test_base_h__INCLUDED
 /**	\file
- *	Provides base functions/structures for general testing.
+ *	\brief Provides base functions/structures for general testing.
  */
 
 #include <stdbool.h>

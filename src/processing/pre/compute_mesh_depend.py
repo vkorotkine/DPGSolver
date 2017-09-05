@@ -15,7 +15,7 @@ class Paths:
 		self.mesh_root = project_bin_dir+"/meshes"
 
 		### The root directory in which to find the control files.
-		self.ctrl_root = project_src_dir+"/input/control_files"
+		self.ctrl_root = project_src_dir+"/input"
 
 class Mesh_Info:
 	""" Container for mesh related information found in the control file. """
@@ -92,6 +92,8 @@ if __name__ == "__main__":
 	mesh_depend_name = sys.argv[3]
 	mesh_make_name   = sys.argv[4]
 	ctrl_files       = sys.argv[5:]
+
+	print(ctrl_files)
 
 	# Find dependencies
 	dependencies = dict()

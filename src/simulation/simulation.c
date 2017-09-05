@@ -12,6 +12,7 @@
 
 #include "Macros.h"
 #include "element.h"
+#include "mesh.h"
 #include "volume.h"
 #include "face.h"
 
@@ -21,6 +22,59 @@
 #include "constants_mesh.h"
 
 // Static function declarations ************************************************************************************* //
+
+/** \brief Set core parameters for the simulation as specified in the control file.
+ *
+ * 	Requires `sim` to be dynamically allocated. This allows for the definition of `const` members after the declaration
+ *	which would otherwise be undefined behaviour.
+ */
+static void set_simulation_core
+	(struct Simulation*const sim, ///< Standard.
+	 const char*const ctrl_name   ///< Control file name (excluding the file extension).
+	);
+
+/// \brief Set \ref Simulation::elements.
+static void set_Simulation_elements
+	(struct Simulation*const sim,          ///< Standard.
+	 struct const_Intrusive_List* elements ///< See \ref Simulation.
+	);
+
+// Interface functions ********************************************************************************************** //
+
+struct Simulation* constructor_Simulation (const char*const ctrl_name)
+{
+	struct Simulation* sim = malloc(sizeof *sim); // returned;
+
+	set_simulation_core(sim,ctrl_name);
+	set_Simulation_elements(sim,constructor_Element_List(sim->d));
+
+	return sim;
+}
+
+void destructor_Simulation (struct Simulation* sim)
+{
+	destructor_Elements((struct Intrusive_List*) sim->elements);
+	destructor_Volumes(sim->volumes);
+	destructor_Faces(sim->faces);
+	free(sim);
+}
+
+struct Mesh_Input set_Mesh_Input (const struct Simulation*const sim)
+{
+	struct Mesh_Input mesh_input =
+		{ .d                = sim->d,
+		  .domain_type      = sim->domain_type,
+		  .mesh_unrealistic = sim->mesh_unrealistic,
+		  .mesh_name_full   = sim->mesh_name_full,
+		  .geom_name        = sim->geom_name,
+		  .geom_spec        = sim->geom_spec,
+		  .input_path       = sim->input_path, };
+
+	return mesh_input;
+}
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
 
 ///< \brief Holds data relating to the mesh as read from the control file.
 struct Mesh_Ctrl_Data {
@@ -33,7 +87,15 @@ struct Mesh_Ctrl_Data {
 	     mesh_extension[STRLEN_MIN]; ///< File extension (set based on \ref mesh_format.
 };
 
-/// \brief Set full control file name (including path and file extension).
+/** \brief Set full control file name (including path and file extension).
+ *
+ *	If "TEST" is not included as part of the name (default option):
+ *	- it is assumed that `ctrl_name` includes the full name and path from CMAKE_PROJECT_DIR/control_files;
+ *	- `ctrl_name_full` -> ../control_files/`ctrl_name`.
+ *	otherwise:
+ *	- it is assumed that `ctrl_name` includes the full name and path from CMAKE_PROJECT_DIR/testing/control_files;
+ *	- `ctrl_name_full` -> ../testing/control_files/`ctrl_name`.
+ */
 static void set_ctrl_name_full
 	(struct Simulation*const sim, /// Standard.
 	 const char*const ctrl_name   /// Defined in \ref set_simulation_core.
@@ -59,27 +121,8 @@ static void set_input_path
 	(struct Simulation*const sim ///< Standard.
 	);
 
-// Interface functions ********************************************************************************************** //
-
-struct Simulation* constructor_Simulation ()
+static void set_simulation_core (struct Simulation*const sim, const char*const ctrl_name)
 {
-	struct Simulation* sim = malloc(sizeof *sim); // returned;
-
-	return sim;
-}
-
-void destructor_Simulation (struct Simulation* sim)
-{
-	destructor_Elements((struct Intrusive_List*) sim->elements);
-	destructor_Volumes(sim->volumes);
-	destructor_Faces(sim->faces);
-	free(sim);
-}
-
-void set_simulation_core (struct Simulation*const sim, const char*const ctrl_name)
-{
-/// \todo Remove commented variables below.
-
 	set_ctrl_name_full(sim,ctrl_name);
 	FILE *ctrl_file = fopen_checked(sim->ctrl_name_full);
 
@@ -94,19 +137,6 @@ void set_simulation_core (struct Simulation*const sim, const char*const ctrl_nam
 		if (strstr(line,"dimension"))        read_skip_const_i(line,&sim->d);
 		if (strstr(line,"mesh_level"))       read_skip_const_i(line,&sim->ml);
 		if (strstr(line,"mesh_unrealistic")) read_skip_const_b(line,&sim->mesh_unrealistic);
-
-//		if (strstr(line,"NodeType"))  read_skip_const_c(line,sim->node_type);
-//		if (strstr(line,"BasisType")) read_skip_const_c(line,sim->basis_type);
-
-//		if (strstr(line,"Vectorized")) read_skip_const_b(line,&sim->vectorized);
-//		if (strstr(line,"Collocated")) read_skip_const_b(line,&sim->collocated);
-
-//		if (strstr(line,"Method"))    read_skip_const_i(line,&sim->method);
-//		if (strstr(line,"Adapt"))     read_skip_const_i(line,&sim->adapt_type);
-//		if (strstr(line,"PGlobal"))   read_skip_const_i(line,&sim->p);
-//		if (strstr(line,"PMax"))      read_skip_const_i(line,&sim->p_max);
-
-//		if (strstr(line,"LevelsMax")) read_skip_const_i(line,&sim->ml_max);
 	}
 	fclose(ctrl_file);
 
@@ -117,36 +147,12 @@ if (0)
 	set_string_associations(sim);
 }
 
-void set_Simulation_elements (struct Simulation*const sim, struct const_Intrusive_List* elements)
+static void set_Simulation_elements (struct Simulation*const sim, struct const_Intrusive_List* elements)
 {
 	*(struct const_Intrusive_List**)&sim->elements = elements;
 }
 
-
-
-
-
-///{ \todo Remove these functions if unused.
-// Setters/Getters
-
-void set_Simulation_flags
-	(struct Simulation*const sim, const bool collocated)
-{
-	*(bool*)&sim->collocated = collocated;
-}
-
-void set_Simulation_parameters
-	(struct Simulation*const sim, const int d, const int n_var, const int n_eq)
-{
-	*(int*)&sim->d     = d;
-	*(int*)&sim->n_var = n_var;
-	*(int*)&sim->n_eq  = n_eq;
-}
-///}
-
-
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
+// Level 1 ********************************************************************************************************** //
 
 /// \brief Set the mesh extension based on the mesh generator used.
 static void set_mesh_extension
@@ -154,7 +160,10 @@ static void set_mesh_extension
 	 char*const mesh_extension        ///< The mesh file extension.
 	);
 
-/// \brief Assemble the mesh name with full path and extension.
+/** \brief Assemble the mesh name with full path and extension.
+ *	If the standard mesh path (../meshes/) is used, assemble the full mesh name based on data included in the control
+ *	file. Otherwise, it is assumed that the full mesh name (including the path) was provided in the control file.
+ */
 static void mesh_name_assemble
 	(struct Simulation*const sim,                     ///< Standard.
 	 const struct Mesh_Ctrl_Data*const mesh_ctrl_data ///< The \ref Mesh_Ctrl_Data.
@@ -170,7 +179,10 @@ static void set_domain_type
 
 static void set_ctrl_name_full (struct Simulation*const sim, const char*const ctrl_name)
 {
-	strcpy((char*)sim->ctrl_name_full,"../control_files/");
+	strcpy((char*)sim->ctrl_name_full,"../");
+	if (strstr(ctrl_name,"TEST"))
+		strcat((char*)sim->ctrl_name_full,"testing/");
+	strcat((char*)sim->ctrl_name_full,"control_files/");
 	strcat((char*)sim->ctrl_name_full,ctrl_name);
 	strcat((char*)sim->ctrl_name_full,".ctrl");
 }
@@ -224,13 +236,7 @@ static void set_input_path (struct Simulation*const sim)
 	strcat_path_c(input_path,sim->pde_spec,"/");
 }
 
-// Level 1 ********************************************************************************************************** //
-
-/** \brief Extract the name of the mesh generation file (excluding the path and the extension).
- *	\return See brief. */
-static const char* extract_mesh_gen_name
-	(const char*const mesh_generator ///< Defined in \ref Mesh_Ctrl_Data.
-	);
+// Level 2 ********************************************************************************************************** //
 
 static void set_mesh_extension (const char*const mesh_format, char*const mesh_extension)
 {
@@ -244,21 +250,22 @@ static void mesh_name_assemble (struct Simulation*const sim, const struct Mesh_C
 {
 	char* mesh_name_full = (char*)sim->mesh_name_full;
 
-	strcpy(mesh_name_full,"");
-	strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_path,NULL);
-	strcat_path_c(mesh_name_full,sim->geom_name,"/");
-	strcat_path_c(mesh_name_full,sim->pde_name,"/");
-	strcat_path_c(mesh_name_full,sim->pde_spec,"/");
-	strcat_path_c(mesh_name_full,sim->geom_spec,"/");
-	strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_domain,"__");
+	strcpy(mesh_name_full,mesh_ctrl_data->mesh_path);
+	if (strstr(mesh_ctrl_data->mesh_path,"../meshes/")) {
+		strcat_path_c(mesh_name_full,sim->geom_name,"/");
+		strcat_path_c(mesh_name_full,sim->pde_name,"/");
+		strcat_path_c(mesh_name_full,sim->pde_spec,"/");
+		strcat_path_c(mesh_name_full,sim->geom_spec,"/");
+		strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_domain,"__");
 
-	const char*const mesh_gen_name = extract_mesh_gen_name(mesh_ctrl_data->mesh_generator); // free
-	strcat_path_c(mesh_name_full,mesh_gen_name,"__");
-	free((void*)mesh_gen_name);
+		const char*const mesh_gen_name = extract_name(mesh_ctrl_data->mesh_generator,true); // free
+		strcat_path_c(mesh_name_full,mesh_gen_name,"__");
+		free((void*)mesh_gen_name);
 
-	strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_elem_type,"_ml");
-	strcat_path_i(mesh_name_full,sim->ml);
-	strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_extension,NULL);
+		strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_elem_type,"_ml");
+		strcat_path_i(mesh_name_full,sim->ml);
+		strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_extension,NULL);
+	}
 }
 
 static void set_domain_type (struct Simulation*const sim, const struct Mesh_Ctrl_Data*const mesh_ctrl_data)
@@ -271,44 +278,4 @@ static void set_domain_type (struct Simulation*const sim, const struct Mesh_Ctrl
 		const_cast_i(&sim->domain_type,DOM_PARAMETRIC);
 	else
 		EXIT_UNSUPPORTED;
-}
-
-// Level 2 ********************************************************************************************************** //
-
-static const char* extract_mesh_gen_name (const char*const mesh_generator)
-{
-	int len_gen_name = 0;
-
-	const char* beg = NULL, // Pointer to the first element of the mesh_gen_name.
-	          * end = NULL; // Pointer to one past the last element of the mesh_gen_name.
-
-	bool found_extension = false;
-	int ind = 0;
-	for (int i = strlen(mesh_generator)-1; i >= 0; --i) {
-		const char token = mesh_generator[i];
-		if (token == '/') {
-			beg = &mesh_generator[i+1];
-			break;
-		}
-
-		if (token == '.') {
-			end = &mesh_generator[i];
-			found_extension = true;
-		}
-
-		if (!found_extension)
-			continue;
-
-		++len_gen_name; // Note: One longer than the number of characters.
-	}
-
-	char*const mesh_gen_name = calloc(len_gen_name , sizeof *mesh_gen_name); // returned
-
-	ind = 0;
-	while (end != beg) {
-		mesh_gen_name[ind] = *beg++;
-		++ind;
-	}
-
-	return mesh_gen_name;
 }

@@ -55,7 +55,7 @@ void test_integration_mesh (struct Test_Info*const test_info, const char*const m
 	strcpy(test_name,"Mesh - ");
 	strcat(test_name,mesh_name);
 
-	test_increment_and_print(test_info, pass,test_name);
+	test_increment_and_print(test_info,pass,test_name);
 
 	destructor_Mesh(mesh);
 	destructor_Mesh_Input(mesh_input);
@@ -156,8 +156,8 @@ static bool compare_members_Mesh
 	    (diff_Vector_i(elem_types,mesh_test_data->elem_types) != 0)                        ||
 	    (diff_Matrix_i(elem_tags,mesh_test_data->elem_tags) != 0)                          ||
 	    (diff_Multiarray_Vector_i(node_nums,mesh_test_data->node_nums) != 0)               ||
-	    (periodic_corr && diff_Matrix_i(periodic_corr,mesh_test_data->periodic_corr) != 0) ||
-	    false) {
+	    (periodic_corr && diff_Matrix_i(periodic_corr,mesh_test_data->periodic_corr) != 0))
+	{
 		test_print_failure(test_info,"Mesh Data");
 		pass = 0;
 
@@ -174,8 +174,8 @@ static bool compare_members_Mesh
 	struct Multiarray_Vector_i* v_to_lf = (struct Multiarray_Vector_i*) mesh->mesh_conn->v_to_lf;
 
 	if ((diff_Multiarray_Vector_i(v_to_v,mesh_test_data->v_to_v) != 0)   ||
-	    (diff_Multiarray_Vector_i(v_to_lf,mesh_test_data->v_to_lf) != 0) ||
-	    false) {
+	    (diff_Multiarray_Vector_i(v_to_lf,mesh_test_data->v_to_lf) != 0))
+	{
 		test_print_failure(test_info,"Mesh Connectivity");
 		pass = 0;
 
@@ -190,8 +190,8 @@ static bool compare_members_Mesh
 
 	if ((diff_Vector_i(ve_curved,mesh_test_data->ve_curved) != 0)     ||
 	    (diff_Vector_i(ve_boundary,mesh_test_data->ve_boundary) != 0) ||
-	    (diff_Multiarray_Vector_i(ve_bc,mesh_test_data->ve_bc) != 0)  ||
-	    false) {
+	    (diff_Multiarray_Vector_i(ve_bc,mesh_test_data->ve_bc) != 0))
+	{
 		test_print_failure(test_info,"Mesh Data");
 		pass = 0;
 

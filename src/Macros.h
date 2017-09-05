@@ -4,8 +4,7 @@
 #ifndef DPG__Macros_h__INCLUDED
 #define DPG__Macros_h__INCLUDED
 /** \file
- *
- *	Defines macros.
+ *	\brief Defines macros.
  *
  *	The call to abort() in EXIT_MSG allows for a stacktrace to be obtained when running the code using memcheck in
  *	valgrind.

@@ -4,7 +4,7 @@
 #ifndef DPG__Element_h__INCLUDED
 #define DPG__Element_h__INCLUDED
 /**	\file
- *	Provides the interface for the base \ref Element container and associated functions.
+ *	\brief Provides the interface for the base \ref Element container and associated functions.
  *
  *	\note `const` and non-`const` versions of \ref Element must have identical members and layout.
  */

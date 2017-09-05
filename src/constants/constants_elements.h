@@ -4,7 +4,7 @@
 #ifndef DPG__constants_elements_h__INCLUDED
 #define DPG__constants_elements_h__INCLUDED
 /**	\file
- *	Define constants associated with elements.
+ *	\brief Provides the definition of constants associated with \ref Element containers.
  *
  *	The more extensive list of the element types supported by Gmsh can be found under the 'elm-type' header of the
  *	[File formats][gmsh_ff] section of the Gmsh manual. The curved element types are not be supported here however as

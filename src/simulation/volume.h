@@ -4,7 +4,7 @@
 #ifndef DPG__Volume_h__INCLUDED
 #define DPG__Volume_h__INCLUDED
 /**	\file
- *	Provides the interface for the base \ref Volume container and associated functions.
+ *	\brief Provides the interface for the base \ref Volume container and associated functions.
  *
  *	A \ref Volume is a `d` dimensional finite element.
  */
@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include "constants_elements.h"
 #include "intrusive.h"
+#include "element.h"
 #include "simulation.h"
 #include "mesh.h"
 
@@ -20,6 +21,8 @@
 /// \brief Container for data relating to the base Volumes.
 struct Volume {
 	struct Intrusive_Link lnk; ///< The \ref Intrusive_Link.
+
+	const int index; ///< The index of the volume.
 
 	const bool boundary, ///< Flag for whether the volume is on a domain boundary.
 	           curved;   ///< Flag for whether the volume is curved.

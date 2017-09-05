@@ -4,7 +4,7 @@
 #ifndef DPG__mesh_periodic_h__INCLUDED
 #define DPG__mesh_periodic_h__INCLUDED
 /**	\file
- *	Provides the interface to mesh periodic containers and functions.
+ *	\brief Provides the interface to mesh periodic containers and functions.
  */
 
 #include "mesh_connectivity.h"

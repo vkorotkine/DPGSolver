@@ -4,7 +4,7 @@
 #ifndef DPG__constants_mesh_h__INCLUDED
 #define DPG__constants_mesh_h__INCLUDED
 /**	\file
- *	Define constants associated with the mesh.
+ *	\brief Provides the definition of constants associated with \ref Mesh container.
  */
 
 ///\{ \name The supported domain types.

@@ -4,7 +4,7 @@
 #ifndef DPG__mesh_h__INCLUDED
 #define DPG__mesh_h__INCLUDED
 /**	\file
- *	\brief Provides the interface for reading a mesh file and converting/computing useful information.
+ *	\brief Provides the interface for reading a mesh file and 'converting to'/'computing' useful information.
  *
  *	Relevant data is returned as part of \ref Mesh.
  *

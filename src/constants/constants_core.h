@@ -4,7 +4,7 @@
 #ifndef DPG__constants_core_h__INCLUDED
 #define DPG__constants_core_h__INCLUDED
 /**	\file
- *	Define core constants.
+ *	\brief Provides the definition of core constants.
  */
 
 ///\{ \name The maximum number of dimensions

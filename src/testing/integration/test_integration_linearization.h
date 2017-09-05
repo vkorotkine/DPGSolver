@@ -4,7 +4,7 @@
 #ifndef DPG__test_integration_linearization_h__INCLUDED
 #define DPG__test_integration_linearization_h__INCLUDED
 /**	\file
- *	Provides functionality for integration testing of the solver linearization.
+ *	\brief Provides functionality for integration testing of the solver linearization.
  */
 
 /** \brief Container for the information relating to the linearization testing.

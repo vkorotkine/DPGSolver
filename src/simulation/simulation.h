@@ -4,7 +4,7 @@
 #ifndef DPG__Simulation_h__INCLUDED
 #define DPG__Simulation_h__INCLUDED
 /**	\file
- *	\brief Provides the struct for top-level simulation related information and its associated functions.
+ *	\brief Provides the interface for the \ref Simulation container and associated functions.
  */
 
 #include <stdbool.h>
@@ -105,41 +105,19 @@ const int pde_index; ///< Index corresponding to \ref pde_name.
  *	As the struct contains many data members, only the memory allocation is performed as part of the constructor. The
  *	appropriate setter functions must be called to define the members.
  */
-struct Simulation* constructor_Simulation ();
+struct Simulation* constructor_Simulation
+	(const char*const ctrl_name ///< The partial name of the control file.
+	);
 
 /// \brief Destructor for \ref Simulation.
 void destructor_Simulation
 	(struct Simulation* sim ///< Standard.
 	);
 
-/** \brief Set core parameters for the simulation as specified in the control file.
- *
- * 	Requires `sim` to be dynamically allocated. This allows for the definition of `const` members after the declaration
- *	which would otherwise be undefined behaviour.
- */
-void set_simulation_core
-	(struct Simulation*const sim, ///< Standard.
-	 const char*const ctrl_name   ///< Control file name (excluding the file extension).
-	);
-
-/// \brief Set several \ref Simulation flags.
-void set_Simulation_flags
-	(struct Simulation*const sim, ///< Standard.
-	 const bool collocated        ///< See \ref Simulation.
-	);
-
-/// \brief Set several \ref Simulation parameters.
-void set_Simulation_parameters
-	(struct Simulation*const sim, ///< Standard.
-	 const int d,                 ///< See \ref Simulation.
-	 const int n_var,             ///< See \ref Simulation.
-	 const int n_eq               ///< See \ref Simulation.
-	);
-
-/// \brief Set \ref Simulation::elements.
-void set_Simulation_elements
-	(struct Simulation*const sim,          ///< Standard.
-	 struct const_Intrusive_List* elements ///< See \ref Simulation.
+/**	\brief Set the \ref Mesh_Input based on the parameters in the \ref Simulation.
+ *	\return See brief. */
+struct Mesh_Input set_Mesh_Input
+	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 #endif // DPG__Simulation_h__INCLUDED

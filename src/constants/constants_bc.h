@@ -4,7 +4,7 @@
 #ifndef DPG__constants_bc_h__INCLUDED
 #define DPG__constants_bc_h__INCLUDED
 /**	\file
- *	Define constants associated with the boundary conditions.
+ *	\brief Provides the definition of constants associated with the boundary conditions.
  *
  *	The naming convention for the periodic boundary conditions omits the 'BC_' prefix as they are only used to correct
  *	the mesh connectivity and not in other areas of the code.

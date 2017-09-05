@@ -4,6 +4,7 @@
 #ifndef DPG__Intrusive_h__INCLUDED
 #define DPG__Intrusive_h__INCLUDED
 /**	\file
+ *	\brief Provides structures/functions related to the intrusive list functionality.
  *
  *	The data structures used here were inspired by the intrusive container example from ch. 27.9 of Stroustrup
  *	\cite Stroustrup2014. The motivating principle is that elements of an \ref Intrusive_List may be manipulated without

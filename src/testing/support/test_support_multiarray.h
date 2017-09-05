@@ -4,7 +4,7 @@
 #ifndef DPG__test_support_multiarray_h__INCLUDED
 #define DPG__test_support_multiarray_h__INCLUDED
 /**	\file
- *	Provides support functions for testing relating to the containers defined in \ref multiarray.h.
+ *	\brief Provides support functions for testing relating to the containers defined in \ref multiarray.h.
  */
 
 #include <stdio.h>

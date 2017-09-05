@@ -35,9 +35,10 @@ struct Volume_mesh_info {
 
 /// \brief Constructor for an individual \ref Volume.
 static struct Volume* constructor_Volume
-	(const struct Simulation*const sim,         ///< \ref Simulation.
-	 const struct Mesh*const mesh,              ///< \ref Mesh.
-	 const struct Volume_mesh_info*const vol_mi ///< \ref Volume_mesh_info.
+	(const struct Simulation*const sim,          ///< \ref Simulation.
+	 const struct Mesh*const mesh,               ///< \ref Mesh.
+	 const struct Volume_mesh_info*const vol_mi, ///< \ref Volume_mesh_info.
+	 const int index                             ///< The volume index.
 	);
 
 /// \brief Destructor for an individual \ref Volume.
@@ -78,7 +79,7 @@ struct Intrusive_List* constructor_Volume_List (struct Simulation*const sim, con
 			  .to_lf     = v_to_lf->data[v],
 			};
 
-		push_back_IL(volumes,(struct Intrusive_Link*) constructor_Volume(sim,mesh,&vol_mi));
+		push_back_IL(volumes,(struct Intrusive_Link*) constructor_Volume(sim,mesh,&vol_mi,v));
 	}
 	sim->n_v = n_v;
 
@@ -110,7 +111,7 @@ bool check_ve_condition
 
 		const int n_ve_f = f_ve_f->ext_0;
 		for (int ve = 0; ve < n_ve_f; ++ve) {
-			const ptrdiff_t ind_ve = ve_inds->data[f_ve_f->data[ve]];
+			const int ind_ve = ve_inds->data[f_ve_f->data[ve]];
 			if (ve_condition->data[ind_ve]) {
 				if (count_ve_condition == 0)
 					ve_bc_V = ve_bc->data[ind_ve];
@@ -166,9 +167,12 @@ static struct Matrix_d* constructor_volume_vertices
 	);
 
 static struct Volume* constructor_Volume
-	(const struct Simulation*const sim, const struct Mesh*const mesh, const struct Volume_mesh_info*const vol_mi)
+	(const struct Simulation*const sim, const struct Mesh*const mesh,
+	 const struct Volume_mesh_info*const vol_mi, const int index)
 {
 	struct Volume* volume = malloc(sizeof *volume); // returned
+
+	const_cast_i(&volume->index,index);
 
 	const struct const_Matrix_d*const nodes = mesh->mesh_data->nodes;
 	const struct Mesh_Vertices*const mesh_vert = mesh->mesh_vert;
@@ -184,7 +188,6 @@ static struct Volume* constructor_Volume
 
 	const_cast_bool(&volume->boundary,
 	                check_if_boundary_v(vol_mi->to_lf,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
-
 	const_cast_bool(&volume->curved,
 	                check_if_curved_v(sim->domain_type,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
 
@@ -193,7 +196,7 @@ static struct Volume* constructor_Volume
 
 static void destructor_Volume (struct Volume* volume)
 {
-	UNUSED(volume);
+	destructor_Matrix_d((struct Matrix_d*)volume->xyz_ve);
 }
 
 static bool find_bc_match

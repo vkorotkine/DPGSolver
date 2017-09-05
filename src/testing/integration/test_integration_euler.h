@@ -4,7 +4,7 @@
 #ifndef DPG__test_integration_euler_h__INCLUDED
 #define DPG__test_integration_euler_h__INCLUDED
 /** \file
- *	Provides functionality for Euler integration testing.
+ *	\brief Provides functionality for Euler integration testing.
  */
 
 /** \brief Tests various components of the Euler solver.

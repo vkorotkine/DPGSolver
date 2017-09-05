@@ -4,7 +4,7 @@
 #ifndef DPG__mesh_connectivity_h__INCLUDED
 #define DPG__mesh_connectivity_h__INCLUDED
 /**	\file
- *	Provides the interface to mesh connectivity containers and functions.
+ *	\brief Provides the interface to mesh connectivity containers and functions.
  */
 
 #include "mesh_readers.h"

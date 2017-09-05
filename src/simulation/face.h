@@ -4,19 +4,22 @@
 #ifndef DPG__Face_h__INCLUDED
 #define DPG__Face_h__INCLUDED
 /**	\file
- *	Provides the interface for the base \ref Face container and associated functions.
+ *	\brief Provides the interface for the base \ref Face container and associated functions.
  *
  *	A \ref Face is a `d-1` dimensional finite element which is found on the face of a \ref Volume.
  */
 
 #include <stdbool.h>
 #include "intrusive.h"
+#include "element.h"
 #include "simulation.h"
 #include "mesh.h"
 
 /// \brief Container for data relating to the base Faces.
 struct Face {
 	struct Intrusive_Link lnk; ///< \ref Intrusive_Link.
+
+	const ptrdiff_t index; ///< The index of the face.
 
 	const bool boundary, ///< Flag for whether the face is on a domain boundary.
 	           curved;   ///< Flag for whether the face is curved.

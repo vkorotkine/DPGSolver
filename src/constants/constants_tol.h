@@ -4,7 +4,7 @@
 #ifndef DPG__constants_tol_h__INCLUDED
 #define DPG__constants_tol_h__INCLUDED
 /**	\file
- *	Define constants associated with tolerances.
+ *	\brief Provides the definition of constants associated with tolerances.
  */
 
 ///\{ \name Tolerance values used throughout.

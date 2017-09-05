@@ -29,7 +29,6 @@ struct Matrix_i* constructor_file_name_Matrix_i (const char*const var_name, cons
 	FILE* data_file = fopen_checked(file_name_full); // closed
 
 	bool found_var = false;
-
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),data_file)) {
 		if (strstr(line,var_name)) {
@@ -140,7 +139,7 @@ bool diff_Matrix_i (const struct Matrix_i*const a, const struct Matrix_i*const b
 	const ptrdiff_t size = (a->ext_0)*(a->ext_1);
 
 	if ((size != (b->ext_0)*(b->ext_1)) || (a->layout != b->layout))
-		EXIT_ERROR("Comparing Matrices of different size/layout.");
+		return true;
 
 	for (ptrdiff_t i = 0; i < size; ++i) {
 		if (a->data[i] != b->data[i])
@@ -154,7 +153,7 @@ bool diff_Matrix_d (const struct Matrix_d*const a, const struct Matrix_d*const b
 	const ptrdiff_t size = (a->ext_0)*(a->ext_1);
 
 	if ((size != (b->ext_0)*(b->ext_1)) || (a->layout != b->layout))
-		EXIT_ERROR("Comparing Matrices of different size/layout.");
+		return true;
 
 	for (ptrdiff_t i = 0; i < size; ++i) {
 		if (!equal_d(a->data[i],b->data[i],tol))
@@ -163,13 +162,18 @@ bool diff_Matrix_d (const struct Matrix_d*const a, const struct Matrix_d*const b
 	return false;
 }
 
+bool diff_const_Matrix_d (const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, const double tol)
+{
+	return diff_Matrix_d((const struct Matrix_d*const)a,(const struct Matrix_d*const)b,tol);
+}
+
 void print_diff_Matrix_i (const struct Matrix_i*const a, const struct Matrix_i*const b)
 {
 	const char layout    = a->layout;
 	const ptrdiff_t size = (a->ext_0)*(a->ext_1);
 
 	if ((size != (b->ext_0)*(b->ext_1)) || (layout != b->layout)) {
-		printf("Note: Attempting to compare Matrices of different size:\n");
+		printf("Attempting to compare Matrices of different size:\n");
 		print_Matrix_i(a);
 		print_Matrix_i(b);
 		return;
@@ -196,8 +200,9 @@ void print_diff_Matrix_d (const struct Matrix_d*const a, const struct Matrix_d*c
 	const char layout    = a->layout;
 	const ptrdiff_t size = (a->ext_0)*(a->ext_1);
 
+//	if (1||(size != (b->ext_0)*(b->ext_1)) || (layout != b->layout)) {
 	if ((size != (b->ext_0)*(b->ext_1)) || (layout != b->layout)) {
-		printf("Note: Attempting to compare Matrices of different size:\n");
+		printf("Attempting to compare Matrices of different size:\n");
 		print_Matrix_d(a,tol);
 		print_Matrix_d(b,tol);
 		return;
@@ -217,6 +222,12 @@ void print_diff_Matrix_d (const struct Matrix_d*const a, const struct Matrix_d*c
 	a_tmp->data = data;
 	print_Matrix_d(a_tmp,tol);
 	a_tmp->data = data_ptr;
+}
+
+void print_diff_const_Matrix_d
+	(const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, const double tol)
+{
+	print_diff_Matrix_d((const struct Matrix_d*const)a,(const struct Matrix_d*const)b,tol);
 }
 
 // Static functions ************************************************************************************************* //

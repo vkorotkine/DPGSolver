@@ -248,7 +248,7 @@ bool find_val_Vector_i (const struct const_Vector_i*const src, const int val, co
 {
 	bool found = false;
 	if (!sorted) {
-		const ptrdiff_t i_max = 0;
+		const ptrdiff_t i_max = src->ext_0;
 		for (ptrdiff_t i = 0; i < i_max; ++i) {
 			if (src->data[i] == val) {
 				found = true;

@@ -4,7 +4,7 @@
 #ifndef DPG__test_support_matrix_h__INCLUDED
 #define DPG__test_support_matrix_h__INCLUDED
 /**	\file
- *	Provides support functions for testing relating to the containers defined in \ref matrix.h.
+ *	\brief Provides support functions for testing relating to the containers defined in \ref matrix.h.
  */
 
 #include <stdio.h>
@@ -55,6 +55,14 @@ bool diff_Matrix_d
 	 const double tol               ///< The tolerance.
 	);
 
+/** \brief `const` version of \ref diff_Matrix_d.
+ *	\return See brief. */
+bool diff_const_Matrix_d
+	(const struct const_Matrix_d*const a, ///< Input 0.
+	 const struct const_Matrix_d*const b, ///< Input 1.
+	 const double tol                     ///< The tolerance.
+	);
+
 /// \brief Print the difference of the input \ref Matrix_i\*s.
 void print_diff_Matrix_i
 	(const struct Matrix_i*const a, ///< Input 0.
@@ -66,6 +74,13 @@ void print_diff_Matrix_d
 	(const struct Matrix_d*const a, ///< Input 0.
 	 const struct Matrix_d*const b, ///< Input 1.
 	 const double tol               ///< The tolerance.
+	);
+
+/// \brief `const` version of \ref print_diff_Matrix_d.
+void print_diff_const_Matrix_d
+	(const struct const_Matrix_d*const a, ///< Input 0.
+	 const struct const_Matrix_d*const b, ///< Input 1.
+	 const double tol                     ///< The tolerance.
 	);
 
 #endif // DPG__test_support_matrix_h__INCLUDED

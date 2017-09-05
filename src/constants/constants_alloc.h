@@ -4,7 +4,7 @@
 #ifndef DPG__constants_alloc_h__INCLUDED
 #define DPG__constants_alloc_h__INCLUDED
 /**	\file
- *	Define allocation related constants.
+ *	\brief Provides the definition of constants related to allocation.
  */
 
 ///\{ \name String length definitions.

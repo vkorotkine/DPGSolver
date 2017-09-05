@@ -4,6 +4,7 @@
 #ifndef DPG__allocators_h__INCLUDED
 #define DPG__allocators_h__INCLUDED
 /** \file
+ *	\brief Provides functions using for dynamic memory allocation.
  */
 
 #include <stddef.h>

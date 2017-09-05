@@ -4,7 +4,7 @@
 #ifndef DPG__test_integration_h__INCLUDED
 #define DPG__test_integration_h__INCLUDED
 /**	\file
- *	Provides functions/structures for integration testing.
+ *	\brief Provides functions/structures for integration testing.
  */
 
 #include "test_base.h"

@@ -4,7 +4,7 @@
 #ifndef DPG__mesh_vertices_h__INCLUDED
 #define DPG__mesh_vertices_h__INCLUDED
 /**	\file
- *	Provides the interface to mesh vertex containers and functions.
+ *	\brief Provides the interface to mesh vertex containers and functions.
  *
  *	\section s1_mesh_vert Discussion Concerning the use of Exact Geometry
  *

@@ -54,16 +54,23 @@ FILE* fopen_input (const char*const input_path, const char*const input_spec)
 	return fopen_checked(input_name);
 }
 
-void skip_lines (FILE* file, char**const line, const int line_size, const int n_skip)
+void skip_lines (FILE* file, const int n_skip)
 {
-	for (int n = 0; n < n_skip; n++)
+	char line[STRLEN_MAX];
+	for (int n = 0; n < n_skip; ++n)
+		fgets(line,sizeof(line),file);
+}
+
+void skip_lines_ptr (FILE* file, char**const line, const int line_size, const int n_skip)
+{
+	for (int n = 0; n < n_skip; ++n)
 		fgets(*line,line_size,file);
 }
 
 void discard_line_values (char**const line, int n_discard)
 {
 	char* endptr = NULL;
-	for (int n = 0; n < n_discard; n++) {
+	for (int n = 0; n < n_discard; ++n) {
 		strtod(*line,&endptr);
 		*line = endptr;
 	}
@@ -72,7 +79,7 @@ void discard_line_values (char**const line, int n_discard)
 void read_line_values_i (char**const line, const ptrdiff_t n_val, int*const vals, const bool decrement)
 {
 	char* endptr = NULL;
-	for (ptrdiff_t n = 0; n < n_val; n++) {
+	for (ptrdiff_t n = 0; n < n_val; ++n) {
 		vals[n] = strtoi(*line,&endptr,10);
 		*line = endptr;
 
@@ -87,7 +94,7 @@ void read_line_values_i (char**const line, const ptrdiff_t n_val, int*const vals
 void read_line_values_l (char**const line, const ptrdiff_t n_val, long int*const vals, const bool decrement)
 {
 	char* endptr = NULL;
-	for (ptrdiff_t n = 0; n < n_val; n++) {
+	for (ptrdiff_t n = 0; n < n_val; ++n) {
 		vals[n] = strtol(*line,&endptr,10);
 		*line = endptr;
 
@@ -102,7 +109,7 @@ void read_line_values_l (char**const line, const ptrdiff_t n_val, long int*const
 void read_line_values_d (char**const line, const ptrdiff_t n_val, double*const vals)
 {
 	char* endptr = NULL;
-	for (ptrdiff_t n = 0; n < n_val; n++) {
+	for (ptrdiff_t n = 0; n < n_val; ++n) {
 		vals[n] = strtod(*line,&endptr);
 		*line = endptr;
 	}
@@ -171,6 +178,28 @@ void read_skip_ptrdiff_1 (char*const line, const int n_skip, ptrdiff_t*const var
 	}
 }
 
+void read_skip_file_const_b (const char*const var_name, FILE* file, const bool*const var)
+{
+	char line[STRLEN_MAX];
+	fgets(line,sizeof(line),file);
+
+	if (!strstr(line,var_name))
+		EXIT_ERROR("Did not find '%s' in the current line of the file.\n",var_name);
+
+	read_skip_const_b(line,var);
+}
+
+void read_skip_file_i (const char*const var_name, FILE* file, int*const var)
+{
+	char line[STRLEN_MAX];
+	fgets(line,sizeof(line),file);
+
+	if (!strstr(line,var_name))
+		EXIT_ERROR("Did not find '%s' in the current line of the file.\n",var_name);
+
+	read_skip_i(line,var);
+}
+
 void strcat_path_c (char* dest, const char*const src, const char*const trail)
 {
 	if (!strstr(src,"NONE")) {
@@ -185,6 +214,52 @@ void strcat_path_i (char* dest, const int src)
 	char src_c[STRLEN_MIN] = {0};
 	sprintf(src_c,"%u",src);
 	strcat(dest,src_c);
+}
+
+char* extract_name (const char*const name_full, const bool extension_present)
+{
+	int len_name = 0;
+
+	const char* beg = NULL, // Pointer to the first element of the name_full.
+	          * end = NULL; // Pointer to one past the last element of the name_full.
+
+	bool found_extension = false;
+	int ind = 0;
+	for (int i = strlen(name_full)-1; i >= 0; --i) {
+		const char token = name_full[i];
+		if (token == '/') {
+			beg = &name_full[i+1];
+			break;
+		}
+
+		if (!found_extension) {
+			if (!extension_present) {
+				end = &name_full[i+1];
+				found_extension = true;
+			} else if (token == '.') {
+				end = &name_full[i];
+				found_extension = true;
+			}
+		}
+
+		if (!found_extension)
+			continue;
+
+		++len_name; // Note: One longer than the number of characters.
+	}
+
+	if (len_name == 0)
+		EXIT_ERROR("Did not find the name in '%s'.\n",name_full);
+
+	char*const name = calloc(len_name+1 , sizeof *name); // returned
+
+	ind = 0;
+	while (end != beg) {
+		name[ind] = *beg++;
+		++ind;
+	}
+
+	return name;
 }
 
 // Static functions ************************************************************************************************* //

@@ -4,7 +4,7 @@
 #ifndef DPG__test_integration_mesh_h__INCLUDED
 #define DPG__test_integration_mesh_h__INCLUDED
 /**	\file
- *	Provides functionality for integration testing of the mesh processing.
+ *	\brief Provides functionality for integration testing of the mesh processing.
  */
 
 #include "test_base.h"

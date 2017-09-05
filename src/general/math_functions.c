@@ -13,6 +13,8 @@
 #include "Macros.h"
 #include "constants_tol.h"
 
+// Interface functions ********************************************************************************************** //
+
 long long unsigned int factorial_ull (const unsigned int n)
 {
 	static unsigned int ntop = 0;
@@ -79,7 +81,7 @@ double gamma_d (const double x)
 
 bool equal_d (const double x0, const double x1, const double tol)
 {
-	if ((fabs(x0) < EPS && fabs(x0-x1) < tol) ||
+	if ((fabs(x0) < tol && fabs(x0-x1) < tol) ||
 	    (fabs((x0-x1)/x0) < tol))
 		return true;
 	return false;
@@ -108,7 +110,7 @@ double norm_diff_d
 			if (diff > norm_num)
 				norm_num = diff;
 
-			const double max = fabs(data_0[i]);
+			const double max = max_abs_d(data_0[i],data_1[i]);
 			if (max > norm_den)
 				norm_den = max;
 		}
@@ -117,4 +119,11 @@ double norm_diff_d
 	}
 
 	return ( fabs(norm_den) > EPS ? norm_num/norm_den : norm_num );
+}
+
+double max_abs_d (const double a, const double b)
+{
+	const double a_abs = fabs(a),
+	             b_abs = fabs(b);
+	return ( a_abs > b_abs ? a_abs : b_abs );
 }

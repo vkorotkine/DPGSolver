@@ -80,8 +80,6 @@ struct Intrusive_List* constructor_Face_List (struct Simulation*const sim, const
 
 	ptrdiff_t n_f = 0;
 
-print_const_Multiarray_Vector_i(v_to_v);
-print_const_Multiarray_Vector_i(v_to_lf);
 	const ptrdiff_t v_max = sim->n_v;
 	for (ptrdiff_t v = 0; v < v_max; ++v) {
 		struct Volume*const volume_l = volume_array[v];
@@ -190,8 +188,7 @@ static struct Face* constructor_Face
 			face->neigh_info[i].volume   = NULL;
 		}
 	}
-// set up the ind_ord values.
-EXIT_UNSUPPORTED;
+/// \todo set up the ind_ord values.
 
 	const_cast_const_Element(&face->element,face_mi->element);
 

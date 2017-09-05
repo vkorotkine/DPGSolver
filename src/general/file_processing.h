@@ -4,7 +4,7 @@
 #ifndef DPG__file_processing_h__INCLUDED
 #define DPG__file_processing_h__INCLUDED
 /**	\file
- *	Provides file processing related functions.
+ *	\brief Provides file processing related functions.
  */
 
 #include <stdio.h>
@@ -28,8 +28,14 @@ FILE* fopen_input
 
 // Reading data from the current line ******************************************************************************* //
 
-/// \brief Skip lines in a file while reading
+/// \brief Skip lines in a file while reading.
 void skip_lines
+	(FILE* file,          ///< Standard.
+	 const int n_skip     ///< The number of lines to skip.
+	);
+
+/// \brief Skip lines in a file while reading, supporting a pointer to the next line.
+void skip_lines_ptr
 	(FILE* file,          ///< Standard.
 	 char**const line,    ///< The line.
 	 const int line_size, ///< The size allocated for the line.
@@ -90,13 +96,13 @@ void read_skip_const_c
 /// \brief Read a `const int`, skipping the first string.
 void read_skip_const_i
 	(const char*const line, ///< Line from which to read data.
-	 const int *const var   ///< Variable in which to store data.
+	 const int*const var    ///< Variable in which to store data.
 	);
 
 /// \brief Read a `const bool`, skipping the first string.
 void read_skip_const_b
 	(const char*const line, ///< Line from which to read data.
-	 const bool *const var  ///< Variable in which to store data.
+	 const bool*const var   ///< Variable in which to store data.
 	);
 
 /// \brief Read a `const double`, optionally skipping strings and optionally removing trailing semicolons.
@@ -107,6 +113,20 @@ void read_skip_const_d
 	 const bool remove_semi  ///< Flag for optional removal of semicolon.
 	);
 
+/// \brief Get the next line from the input file and read the `var_name` variable into `var` of type `bool`.
+void read_skip_file_const_b
+	(const char*const var_name, ///< The name of the Variable to search for.
+	 FILE* file,                ///< File from which to read data.
+	 const bool*const var       ///< Variable in which to store data.
+	);
+
+/// \brief Get the next line from the input file and read the `var_name` variable into `var` of type `int`.
+void read_skip_file_i
+	(const char*const var_name, ///< The name of the Variable to search for.
+	 FILE* file,                ///< File from which to read data.
+	 int*const var              ///< Variable in which to store data.
+	);
+
 /// \brief Read a `ptrdiff_t*`, optionally skipping strings.
 void read_skip_ptrdiff_1
 	(char*const line,     ///< Line from which to read data.
@@ -115,7 +135,7 @@ void read_skip_ptrdiff_1
 	 const int n_var      ///< The number of entries to store in the `var` array.
 	);
 
-// Setting file names *********************************************************************************************** //
+// Setting/Getting file names *************************************************************************************** //
 
 /// \brief Append `src` (char*) to `dest` with optional forward slash ('\').
 void strcat_path_c
@@ -128,6 +148,13 @@ void strcat_path_c
 void strcat_path_i
 	(char* dest,   ///< Destination.
 	 const int src ///< Source.
+	);
+
+/** \brief Extract the name of the file from the input string (i.e. excluding the path and the extension).
+ *	\return See brief. */
+char* extract_name
+	(const char*const name_full,  ///< The full name.
+	 const bool extension_present ///< Flag for whether the extension is present.
 	);
 
 #endif // DPG__file_processing_h__INCLUDED
