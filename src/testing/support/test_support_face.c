@@ -25,7 +25,7 @@ struct Face* constructor_Face
 {
 	struct Face* face = malloc(sizeof *face); // returned
 
-	read_skip_const_i(line,&face->index);
+	read_skip_const_i_1(line,1,&face->index,1);
 	read_skip_file_const_b("boundary",file,&face->boundary);
 	read_skip_file_const_b("curved",file,&face->curved);
 	read_skip_file_const_i("bc",file,&face->bc);

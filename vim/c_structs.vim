@@ -1,3 +1,7 @@
+" This file allows for additional syntax colouring when using vim. It can be loaded by adding the following line to the
+" .vimrc file:
+" autocmd BufNewFile,BufRead *DPGSolver/* source ~/FULL_PATH_TO_ROOT/DPGSolver/vim/c_structs.vim
+
 " To see the available colour groups: `:highlight`.
 
 syntax keyword Special Vector_i const_Vector_i

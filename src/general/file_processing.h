@@ -93,12 +93,6 @@ void read_skip_const_c
 	 const char*const var   ///< Variable in which to store data.
 	);
 
-/// \brief Read a `const int`, skipping the first string.
-void read_skip_const_i
-	(const char*const line, ///< Line from which to read data.
-	 const int*const var    ///< Variable in which to store data.
-	);
-
 /// \brief Read a `const bool`, skipping the first string.
 void read_skip_const_b
 	(const char*const line, ///< Line from which to read data.
@@ -107,7 +101,7 @@ void read_skip_const_b
 
 /// \brief Read a `const double`, optionally skipping strings and optionally removing trailing semicolons.
 void read_skip_const_d
-	(const char*const line,  ///< Line from which to read data.
+	(char*const line,        ///< Line from which to read data.
 	 const double*const var, ///< Variable in which to store data.
 	 const int n_skip,       ///< The number of strings to skip.
 	 const bool remove_semi  ///< Flag for optional removal of semicolon.
@@ -132,6 +126,14 @@ void read_skip_file_i
 	(const char*const var_name, ///< The name of the Variable to search for.
 	 FILE* file,                ///< File from which to read data.
 	 int*const var              ///< Variable in which to store data.
+	);
+
+/// \brief Read a `const int*`, optionally skipping strings.
+void read_skip_const_i_1
+	(char*const line,     ///< Line from which to read data.
+	 const int n_skip,    ///< The number of strings to skip.
+	 const int*const var, ///< Variable in which to store data.
+	 const int n_var      ///< The number of entries to store in the `var` array.
 	);
 
 /// \brief Read a `ptrdiff_t*`, optionally skipping strings.

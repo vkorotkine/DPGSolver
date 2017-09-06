@@ -1,3 +1,5 @@
+# Mesh processing variables
+
 pde_name  euler
 pde_spec  periodic/periodic_vortex
 
@@ -10,6 +12,23 @@ mesh_generator   n-cube/2d.geo
 mesh_format      gmsh
 mesh_domain      straight
 mesh_type        quad
-mesh_level       1
+mesh_level       1 1
 mesh_unrealistic 0
 mesh_path        ../testing/mesh/straight_2d_quad_periodic.msh
+
+
+# Remaining variables
+
+basis_geom  bezier
+basis_sol   lagrange
+
+geom_representation  isoparametric
+p_s_v   2 2
+p_s_f   2 2
+p_sg_v  2 2
+p_sg_f  2 2
+
+p_cub_x 2
+p_cub_p 1
+
+p_test_p 2

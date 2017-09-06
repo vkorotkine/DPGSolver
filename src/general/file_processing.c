@@ -130,40 +130,32 @@ void read_skip_const_c (const char*const line, const char*const var)
 	sscanf(line,"%*s %s",(char*)var);
 }
 
-void read_skip_const_i (const char*const line, const int*const var)
-{
-	sscanf(line,"%*s %u",(int*)var);
-}
-
 void read_skip_const_b (const char*const line, const bool*const var)
 {
 	sscanf(line,"%*s %d",(int*)var);
 }
 
-void read_skip_const_d (const char*const line, const double*const var, const int n_skip, const bool remove_semi)
+void read_skip_const_d (char*const line, const double*const var, const int n_skip, const bool remove_semi)
 {
-	// Certainly not the cleanest way to do this... Modify if more entries are to be skipped
-	char input_s[STRLEN_MIN];
-	switch (n_skip) {
-	case 0:
-		sscanf(line,"%s",input_s);
-		break;
-	case 1:
-		sscanf(line,"%*s %s",input_s);
-		break;
-	case 2:
-		sscanf(line,"%*s %*s %s",input_s);
-		break;
-	default:
-		EXIT_ADD_SUPPORT;
-		break;
+	char* token_s = strtok(line," ");
+	for (int i = 0; i < n_skip; ++i)
+		token_s = strtok(NULL," ");
+
+	char* token_s_clean = ( remove_semi ? strtok(token_s,";") : token_s );
+
+	sscanf(token_s_clean,"%lf",(double*)var);
+}
+
+void read_skip_const_i_1 (char*const line, const int n_skip, const int*const var, const int n_var)
+{
+	char* token_s = strtok(line," ");
+	for (int i = 0; i < n_skip-1; ++i)
+		token_s = strtok(NULL," ");
+
+	for (int i = 0; i < n_var; ++i) {
+		token_s = strtok(NULL," ");
+		sscanf(token_s,"%d",(int*)&var[i]);
 	}
-
-	char* input_s_clean = NULL;
-	if (remove_semi)
-		input_s_clean = strtok(input_s,";");
-
-	sscanf(input_s_clean,"%lf",(double*)var);
 }
 
 void read_skip_ptrdiff_1 (char*const line, const int n_skip, ptrdiff_t*const var, const int n_var)
@@ -197,7 +189,7 @@ void read_skip_file_const_i (const char*const var_name, FILE* file, const int*co
 	if (!strstr(line,var_name))
 		EXIT_ERROR("Did not find '%s' in the current line of the file.\n",var_name);
 
-	read_skip_const_i(line,var);
+	read_skip_const_i_1(line,1,var,1);
 }
 
 void read_skip_file_i (const char*const var_name, FILE* file, int*const var)
@@ -206,7 +198,6 @@ void read_skip_file_i (const char*const var_name, FILE* file, int*const var)
 	fgets(line,sizeof(line),file);
 
 	if (!strstr(line,var_name))
-//		EXIT_ERROR("Did not find '%s' in the current line of the file.\n",var_name);
 		EXIT_ERROR("Did not find '%s' in the current line (%s) of the file.\n",var_name,line);
 
 	read_skip_i(line,var);

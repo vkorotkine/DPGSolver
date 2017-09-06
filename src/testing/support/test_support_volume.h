@@ -15,7 +15,7 @@
  *	\return Standard. */
 struct Volume* constructor_Volume
 	(FILE* file,                                      ///< The file from which to read the data.
-	 const char*const line,                           ///< The first line of the input for the current volume.
+	 char* line,                                      ///< The first line of the input for the current volume.
 	 const struct const_Intrusive_List*const elements ///< \ref Simulation::elements.
 	);
 

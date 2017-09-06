@@ -5,6 +5,8 @@
 #define DPG__Simulation_h__INCLUDED
 /**	\file
  *	\brief Provides the interface for the \ref Simulation container and associated functions.
+ *
+ *	\note Some of the orders specified in the ctrl file will be disregarded if \ref Simulation::collocated is true.
  */
 
 #include <stdbool.h>
@@ -49,6 +51,10 @@ struct Simulation {
 	 */
 	const int domain_type;
 
+	/** The range of minimal and maximal mesh levels to be used. h-adaptation is enabled if the levels differ. The input
+	 *  mesh is chosen based on the value of ml[0]. */
+	const int ml[2];
+
 	/** Flag for whether the mesh vertices should be unrealistically corrected to lie on the input domain boundary to
 	 * within a very small tolerance. See \ref mesh_vertices.h additional discussion of this issue. */
 	const bool mesh_unrealistic;
@@ -56,8 +62,55 @@ struct Simulation {
 	ptrdiff_t n_v, ///< The number of \ref Volume finite elements.
 	          n_f; ///< The number of \ref Face   finite elements.
 
+	/** The type of basis used for the geometry representation. Options:
+	 *	- lagrange;
+	 *	- bezier;
+	 *	- nurbs.
+	 */
+	const char basis_geom[STRLEN_MIN];
+
+	/** The type of basis used for the solution representation. Options:
+	 *	- orthonormal;
+	 *	- lagrange;
+	 *	- bezier.
+	 */
+	const char basis_sol[STRLEN_MIN];
+
+	/** The type of geometry representation used. Options:
+	 *	- isoparametric;
+	 *	- superparametric1 (geometry order one greater than the solution order);
+	 *	- fixed# (used for geometry which is of fixed order #).
+	 */
+	const char geom_rep[STRLEN_MIN];
+
+	/// The range of minimal and maximal solution orders for volumes. p-adaptation is enabled if the orders differ.
+	const int p_s_v[2];
+
+	/// The range of minimal and maximal solution orders for faces. p-adaptation is enabled if the orders differ.
+	const int p_s_f[2];
+
+	/** The range of minimal and maximal gradient solution orders for volumes. p-adaptation is enabled if the orders
+	 *  differ. */
+	const int p_sg_v[2];
+
+	/** The range of minimal and maximal gradient solution orders for faces. p-adaptation is enabled if the orders
+	 *  differ. */
+	const int p_sg_f[2];
+
+	/** The multiplicative ((times): *) constant of the cubature order in relation to the solution order.
+	 *  p_cub = p_cub_x*p_s + p_cub_p. */
+	const int p_cub_x;
+
+	/** The additive ((p)lus: +) constant of the cubature order in relation to the solution order.
+	 *  p_cub = p_cub_x*p_s + p_cub_p. */
+	const int p_cub_p;
+
+	/** The additive ((p)lus: +) constant of the test function order in relation to the solution order.
+	 *  p_t = p_s + p_test_p. */
+	const int p_test_p;
 
 
+// ---------------------------- //
 	const char node_type[STRLEN_MIN];  /**< Type of nodes to be used for interpolation.
 	                                    *   The node_type input should be of the form (1)_(2) where (1) and (2) denote
 	                                    *   the node type to be used for tensor-product and simplex elements,
@@ -67,26 +120,12 @@ struct Simulation {
 	                                    *   	- simplex: AO (Alpha-optimized), WHS (Williams-Ham-Shunn), EQ (Equally
 	                                    *   	  spaced)
 	                                    */
-	const char basis_type[STRLEN_MIN]; /**< Type of basis to be used for solution representation.
-	                                    *   	Options: Nodal (Lagrange), Modal (Orthonormal). */
 
-	const bool vectorized, /**< Whether vectorization is being used. When this is enabled, memory for certain variables
-	                        *   is allocated contiguously such that fewer blas3 calls on larger arrays are made. This
-	                        *   can result in significant performance increase for fixed order, fixed mesh level runs,
-	                        *   but advantages may be lost for adapative runs. For this reason, this functionality is
-	                        *   currently not supported. \todo Investigate further and modify comments above.
-	                        */
-	           collocated; /**< Whether a collocated interpolation and integration node set is being used. Significant
+	const bool collocated; /**< Whether a collocated interpolation and integration node set is being used. Significant
 	                        *   performance increase may be observed when this is `true`. */
 
-	const int method,     /**< Solver method to be used.
+	const int method;     /**< Solver method to be used.
 	                       *   	Options: 1 (DG), 2 (HDG), 3 (HDPG), 4 (DPG). */
-	          adapt_type, /**< Adaptation type. This can be any combination of polynomial (p) or mesh (h) adaptation.
-	                       *   	Options: 0 (None), 1 (p), 2 (h), 3 (hp). */
-	          p,      ///< Polynomial order to be used for the simulation when p adaptation is disabled.
-	          ml,     ///< Mesh level to be used for the simulation when h adaptation is disabled.
-	          p_max,  ///< Maximum polynomial order to be used for the simulation when p adaptation is enabled.
-	          ml_max; ///< Maximum mesh level to be used for the simulation when h adaptation is enabled.
 
 	const struct const_Intrusive_List*const elements; ///< Pointer to the head of the Element list.
 	struct Intrusive_List* volumes;                   ///< Pointer to the head of the Volume  list.

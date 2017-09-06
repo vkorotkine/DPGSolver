@@ -27,7 +27,7 @@
 
 /**	\brief Compare members of the \ref Volume and \ref Face finite element lists with expected values.
  *	\return `true` if tests passed. */
-static bool compare_members_FE
+static bool compare_members_fe
 	(struct Test_Info*const test_info, ///< Defined in \ref test_integration_mesh.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
@@ -46,7 +46,7 @@ void test_integration_fe_init (struct Test_Info*const test_info, const char*cons
 
 	destructor_Mesh(mesh);
 
-	const bool pass = compare_members_FE(test_info,sim);
+	const bool pass = compare_members_fe(test_info,sim);
 
 	char* test_name_end = extract_name(ctrl_name,false); // free
 
@@ -97,7 +97,7 @@ static bool compare_members_Face
 	 const bool print_enabled           ///< Flag for whether values should be printed if the comparison fails.
 	);
 
-static bool compare_members_FE
+static bool compare_members_fe
 	(struct Test_Info*const test_info, const struct Simulation*const sim)
 {
 	bool pass = true;

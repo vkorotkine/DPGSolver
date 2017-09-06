@@ -10,5 +10,5 @@ mesh_generator   n-cylinder_hollow_section/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        mixed
-mesh_level       0
+mesh_level       0 0
 mesh_path        ../meshes/

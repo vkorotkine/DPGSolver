@@ -22,11 +22,11 @@
 // Interface functions ********************************************************************************************** //
 
 struct Volume* constructor_Volume
-	(FILE* file, const char*const line, const struct const_Intrusive_List*const elements)
+	(FILE* file, char* line, const struct const_Intrusive_List*const elements)
 {
 	struct Volume* volume = malloc(sizeof *volume); // returned
 
-	read_skip_const_i(line,&volume->index);
+	read_skip_const_i_1(line,1,&volume->index,1);
 	read_skip_file_const_b("boundary",file,&volume->boundary);
 	read_skip_file_const_b("curved",file,&volume->curved);
 	skip_lines(file,1);

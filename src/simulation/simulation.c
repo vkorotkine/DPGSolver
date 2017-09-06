@@ -134,8 +134,8 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"geom_name")) read_skip_const_c(line,sim->geom_name);
 		if (strstr(line,"geom_spec")) read_skip_const_c(line,sim->geom_spec);
 
-		if (strstr(line,"dimension"))        read_skip_const_i(line,&sim->d);
-		if (strstr(line,"mesh_level"))       read_skip_const_i(line,&sim->ml);
+		if (strstr(line,"dimension"))        read_skip_const_i_1(line,1,&sim->d,1);
+		if (strstr(line,"mesh_level"))       read_skip_const_i_1(line,1,sim->ml,2);
 		if (strstr(line,"mesh_unrealistic")) read_skip_const_b(line,&sim->mesh_unrealistic);
 	}
 	fclose(ctrl_file);
@@ -263,7 +263,7 @@ static void mesh_name_assemble (struct Simulation*const sim, const struct Mesh_C
 		free((void*)mesh_gen_name);
 
 		strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_elem_type,"_ml");
-		strcat_path_i(mesh_name_full,sim->ml);
+		strcat_path_i(mesh_name_full,sim->ml[0]);
 		strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_extension,NULL);
 	}
 }
