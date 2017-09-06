@@ -44,7 +44,10 @@ struct Face* constructor_Face
 
 		int ind_v = -1;
 		read_skip_file_i("ind_v",file,&ind_v);
-		face->neigh_info[n].volume = get_volume_by_index(volumes,ind_v);
+		if (ind_v >= 0)
+			face->neigh_info[n].volume = get_volume_by_index(volumes,ind_v);
+		else
+			face->neigh_info[n].volume = NULL;
 	}
 
 	return face;

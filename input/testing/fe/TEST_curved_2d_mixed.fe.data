@@ -136,4 +136,472 @@ R 4 2
 elem_type: 3
 
 --------------------------------------------------------------------------------
+Face 0
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    0
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    1
+
+Face 1
+boundary:  1
+curved:    1
+bc:        20002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    0
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 2
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    0
+Neigh_Info 1
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    8
+
+Face 3
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    1
+Neigh_Info 1
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    4
+
+Face 4
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    1
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    2
+
+Face 5
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    2
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    3
+
+Face 6
+boundary:  1
+curved:    1
+bc:        20002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    2
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 7
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    3
+Neigh_Info 1
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    6
+
+Face 8
+boundary:  1
+curved:    0
+bc:        10001
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    3
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 9
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    4
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    5
+
+Face 10
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    4
+Neigh_Info 1
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    10
+
+Face 11
+boundary:  1
+curved:    1
+bc:        30002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    5
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 12
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    5
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    6
+
+Face 13
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    6
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    7
+
+Face 14
+boundary:  1
+curved:    1
+bc:        30002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    7
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 15
+boundary:  1
+curved:    0
+bc:        10001
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    7
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 16
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    8
+Neigh_Info 1
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    9
+
+Face 17
+boundary:  1
+curved:    1
+bc:        20002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    8
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 18
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   3
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    8
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    10
+
+Face 19
+boundary:  1
+curved:    0
+bc:        10001
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    9
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 20
+boundary:  1
+curved:    1
+bc:        20002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    9
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 21
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   3
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    9
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    11
+
+Face 22
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    10
+Neigh_Info 1
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    11
+
+Face 23
+boundary:  1
+curved:    1
+bc:        30002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   3
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    10
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 24
+boundary:  1
+curved:    0
+bc:        10001
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    11
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 25
+boundary:  1
+curved:    1
+bc:        30002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   3
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    11
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
 

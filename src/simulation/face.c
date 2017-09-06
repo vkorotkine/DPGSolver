@@ -4,20 +4,17 @@
  */
 
 #include "face.h"
-#include "intrusive.h"
-
-
-
-#include "simulation.h"
-#include "mesh.h"
 
 #include <stdlib.h>
+#include <math.h>
 
 #include "macros.h"
 #include "constants_mesh.h"
 #include "constants_bc.h"
 #include "constants_tol.h"
 
+#include "simulation.h"
+#include "mesh.h"
 #include "volume.h"
 #include "element.h"
 #include "const_cast.h"
@@ -33,8 +30,8 @@ struct Face_mesh_info {
 
 	/// \brief Container for neighbouring info.
 	struct Neigh_info_mi {
-		int ind_lf;            ///< \ref Face::Neighbour_Info::ind_lf.
-		struct Volume* volume; ///< \ref Face::Neighbour_Info::volume.
+		int ind_lf;            ///< \ref Face::Neigh_Info::ind_lf.
+		struct Volume* volume; ///< \ref Face::Neigh_Info::volume.
 	} neigh_info[2]; ///< \ref Neigh_info_mi.
 };
 
@@ -273,8 +270,6 @@ static void set_up_Face__Neigh_Info__ind_ord (struct Face* face)
 		return;
 	}
 
-	const int d = (face->element->d)+1;
-
 	const struct const_Matrix_d* xyz_ve[2] = { NULL };
 	for (int i = 0; i < 2; ++i) {
 		struct Neigh_Info neigh_info = face->neigh_info[i];
@@ -291,7 +286,6 @@ static void set_up_Face__Neigh_Info__ind_ord (struct Face* face)
 	}
 
 	set_ind_ord(face->neigh_info,xyz_ve);
-EXIT_UNSUPPORTED;
 
 	for (int i = 0; i < 2; ++i)
 		destructor_Matrix_d((struct Matrix_d*)xyz_ve[i]);
@@ -307,37 +301,62 @@ EXIT_UNSUPPORTED;
  */
 struct Vertex_Correspondence {
 	struct Vector_i* matches_R_to_L, ///< Matching indices for the vertices of the 'R'ight as seen from the 'L'eft.
-	               * matches_L_to_R, ///< Matching indices for the vertices of the 'L'eft as seen from the 'R'ight.
+	               * matches_L_to_R; ///< Matching indices for the vertices of the 'L'eft as seen from the 'R'ight.
 };
 
-static struct Vertex_Correspondence* constructor_Vertex_Correspondence (const struct const_Matrix_d*const xyz_ve[2])
+/**	\brief Constructor for \ref Vertex_Correspondence.
+ *	\return Standard. */
+static struct Vertex_Correspondence* constructor_Vertex_Correspondence
+	(const struct const_Matrix_d*const xyz_ve[2] ///< Defined in \ref set_ind_ord.
+	);
+
+/// \brief Destructor for \ref Vertex_Correspondence.
+static void destructor_Vertex_Correspondence
+	(struct Vertex_Correspondence* vert_corr ///< \ref Vertex_Correspondence.
+	);
 
 static void set_ind_ord (struct Neigh_Info neigh_info[2], const struct const_Matrix_d*const xyz_ve[2])
 {
 	const ptrdiff_t d = xyz_ve[0]->ext_1;
 	if (d == 1) {
-		neigh_info[0] = 0;
-		neigh_info[1] = 0;
+		neigh_info[0].ind_ord = 0;
+		neigh_info[1].ind_ord = 0;
 		return;
 	}
 
 	struct Vertex_Correspondence* vert_corr = constructor_Vertex_Correspondence(xyz_ve); // destructed
 
+	struct Vector_i* matches_R_to_L = vert_corr->matches_R_to_L,
+	               * matches_L_to_R = vert_corr->matches_L_to_R;
+
+	int n_possible = 0;
+	int* matches_possible_i;
+
 	const int n_ve = vert_corr->matches_R_to_L->ext_0;
 	if (n_ve == 2) { // LINE
-		const int n_possible = 2;
-// Possibly use static const int below if compiler complains
-		const int matches_possible[n_possible][n_ve] =
-			{ {0, 1,},
-			  {1, 0,}, };
-
-		for (int i = 0; i < n_possible; ++i) {
-			if (check_equal_Vector_i_i(matches_R_to_L,matches_possible[i]))
-				neigh_info[0] = i;
-			if (check_equal_Vector_i_i(matches_L_to_R,matches_possible[i]))
-				neigh_info[0] = i;
-		}
+		n_possible = 2;
+		matches_possible_i = (int[]) { 0,1, 1,0, };
+	} else if (n_ve == 3) { // TRI
+		n_possible = 6;
+		matches_possible_i = (int[]) { 0,1,2, 1,2,0, 2,0,1, 0,2,1, 2,1,0, 1,0,2 };
+	} else if (n_ve == 4) { // QUAD
+		n_possible = 8;
+		matches_possible_i = (int[]) { 0,1,2,3, 1,0,3,2, 2,3,0,1, 3,2,1,0, 0,2,1,3, 2,0,3,1, 1,3,0,2, 3,1,2,0};
+	} else {
+		EXIT_UNSUPPORTED;
 	}
+
+	struct Matrix_i* matches_possible =
+		constructor_copy_Matrix_i_i('R',n_possible,n_ve,matches_possible_i); // destructed
+
+	for (int i = 0; i < n_possible; ++i) {
+		if (check_equal_Vector_i_i(matches_R_to_L,get_row_Matrix_i(i,matches_possible)))
+			neigh_info[1].ind_ord = i;
+		if (check_equal_Vector_i_i(matches_L_to_R,get_row_Matrix_i(i,matches_possible)))
+			neigh_info[0].ind_ord = i;
+	}
+
+	destructor_Matrix_i(matches_possible);
 
 	destructor_Vertex_Correspondence(vert_corr);
 }
@@ -350,13 +369,53 @@ static int check_face_for_periodicity
 	(const struct const_Matrix_d*const xyz_ve[2] ///< Defined in \ref set_ind_ord.
 	);
 
+/**	\brief Constructor for a \ref Vector_i\* holding the indices of the matches between the input xyz coordinate
+ *	       matrices.
+ *	\return Standard.
+ *
+ *	The matrices must have `layout = 'R'`.
+ */
+struct Vector_i* constructor_matches_Vector_i_Matrix_d
+	(const struct const_Matrix_d*const xyz_m, ///< The master xyz coordinates.
+	 const struct const_Matrix_d*const xyz_s, ///< The slave xyz coordinates.
+	 const struct Vector_i*const ind_skip     ///< The indices to skip (if ext_0 > 0).
+	);
+
 static struct Vertex_Correspondence* constructor_Vertex_Correspondence (const struct const_Matrix_d*const xyz_ve[2])
 {
+	struct Vertex_Correspondence* vert_corr = malloc(sizeof *vert_corr); // free
+
 	const int bc_periodic = check_face_for_periodicity(xyz_ve);
 
-	struct Vertex_Correspondence* vert_corr = malloc(sizeof *vert_corr); // returned
+	int n_skip = 0;
+	int ind_skip_i[1] = {-1};
+	if (bc_periodic) {
+		n_skip = 1;
+		switch (bc_periodic) {
+		case PERIODIC_XL: ind_skip_i[0] = 0; break;
+		case PERIODIC_YL: ind_skip_i[0] = 1; break;
+		case PERIODIC_ZL: ind_skip_i[0] = 2; break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+	}
+	struct Vector_i* ind_skip = constructor_copy_Vector_i_i(n_skip,ind_skip_i); // destructed;
+
+	vert_corr->matches_R_to_L = constructor_matches_Vector_i_Matrix_d(xyz_ve[0],xyz_ve[1],ind_skip), // destructed
+	vert_corr->matches_L_to_R = constructor_matches_Vector_i_Matrix_d(xyz_ve[1],xyz_ve[0],ind_skip); // destructed
+
+	destructor_Vector_i(ind_skip);
 
 	return vert_corr;
+}
+
+static void destructor_Vertex_Correspondence (struct Vertex_Correspondence* vert_corr)
+{
+	destructor_Vector_i(vert_corr->matches_R_to_L);
+	destructor_Vector_i(vert_corr->matches_L_to_R);
+
+	free(vert_corr);
 }
 
 // Level 4 ********************************************************************************************************** //
@@ -392,4 +451,48 @@ static int check_face_for_periodicity (const struct const_Matrix_d*const xyz_ve[
 		destructor_Vector_d(centroid[i]);
 
 	return bc;
+}
+
+struct Vector_i* constructor_matches_Vector_i_Matrix_d
+	(const struct const_Matrix_d*const xyz_m, const struct const_Matrix_d*const xyz_s,
+	 const struct Vector_i*const ind_skip)
+{
+	const ptrdiff_t ext_1  = xyz_m->ext_1,
+	                n_skip = ind_skip->ext_0;
+	if (n_skip >= ext_1)
+		EXIT_ERROR("Too many entries in `ind_skip` (Unsupported: %td >= %td).",n_skip,ext_1);
+
+	const ptrdiff_t ext_0 = xyz_m->ext_0;
+	struct Vector_i* dest = constructor_empty_Vector_i(ext_0); // returned
+
+	for (ptrdiff_t i = 0; i < ext_0; ++i) {
+		dest->data[i] = -1;
+		const double*const data_m = get_row_const_Matrix_d(i,xyz_m);
+		for (ptrdiff_t i2 = 0; i2 < ext_0; ++i2) {
+			const double*const data_s = get_row_const_Matrix_d(i2,xyz_s);
+
+			double diff = 0.0;
+			ptrdiff_t ind = 0;
+			for (ptrdiff_t j = 0; j < ext_1; ++j) {
+				if (ind < n_skip && j == ind_skip->data[ind]) {
+					++ind;
+					continue;
+				}
+				diff += fabs(data_m[j]-data_s[j]);
+			}
+
+			if (diff < EPS) {
+				dest->data[i] = i2;
+				break;
+			}
+		}
+		if (dest->data[i] == -1) {
+			print_Vector_i(ind_skip);
+			print_const_Matrix_d(xyz_m,EPS);
+			print_const_Matrix_d(xyz_s,EPS);
+			EXIT_ERROR("Did not find the matching index from the slave xyz coordinates.");
+		}
+	}
+
+	return dest;
 }

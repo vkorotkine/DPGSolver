@@ -261,7 +261,11 @@ static bool compare_members_Face_Neigh_Info
 		update_pass(&pass,compare_i(neigh_info.ind_ord,neigh_info_test.ind_ord,print_enabled,print_name));
 
 		print_name = set_print_name_container_member("neigh_info",n,"volume->index");
-		update_pass(&pass,compare_i(neigh_info.volume->index,neigh_info_test.volume->index,print_enabled,print_name));
+		if (neigh_info.volume)
+			update_pass(&pass,
+			            compare_i(neigh_info.volume->index,neigh_info_test.volume->index,print_enabled,print_name));
+		else
+			update_pass(&pass,neigh_info.volume == neigh_info_test.volume);
 	}
 
 	return pass;

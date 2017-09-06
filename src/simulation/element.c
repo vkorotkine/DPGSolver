@@ -15,7 +15,7 @@
 
 /// \brief Constructor for an individual \ref Element.
 static struct Element* constructor_Element
-	(const int elem_type ///< The element type.
+	(const int elem_type ///< The element type (e.g. LINE, TRI, ...)
 	);
 
 /// \brief Destructor for an individual \ref Element.
@@ -118,90 +118,62 @@ struct const_Element* get_element_by_face (const struct const_Element*const elem
 
 /// \brief Container for local element-related information.
 struct Elem_info {
-	int d,                   ///< Defined in \ref Element.
-	    n_ve,                ///< Defined in \ref Element.
-	    n_f,                 ///< Defined in \ref Element.
-	    n_f_ve[NFMAX],       ///< The number of vertices on each face.
-	    f_ve[NFMAX*NFVEMAX]; ///< Defined in \ref Element.
+	int d,       ///< Defined in \ref Element.
+	    n_ve,    ///< Defined in \ref Element.
+	    n_f,     ///< Defined in \ref Element.
+	    *n_f_ve, ///< The number of vertices on each face.
+	    *f_ve;   ///< Defined in \ref Element.
 };
-
-/** \brief Copy local (to each element type) element information to a container with larger scope.
- *	\returns Copy of local element info.
- */
-static struct Elem_info copy_local_elem_info
-	(const struct Elem_info*const src ///< The source element info.
-	)
-{
-	struct Elem_info dest;
-
-	dest.d    = src->d;
-	dest.n_ve = src->n_ve;
-	dest.n_f  = src->n_f;
-	memcpy(dest.n_f_ve,src->n_f_ve,sizeof(src->n_f_ve));
-	memcpy(dest.f_ve,  src->f_ve,  sizeof(src->f_ve));
-
-	return dest;
-}
 
 static struct Element* constructor_Element
 	(const int elem_type ///< The element type (e.g. LINE, TRI, ...)
 	)
 {
+	// The method used for the initialization of the local variables was taken from [this SO answer][SO_static_init].
+	// [SO_static_init]: https://stackoverflow.com/a/17938106/5983549
 	struct Elem_info e_info;
 	switch (elem_type) {
-	case LINE: {
-		const struct Elem_info e_info_l =
-			{ .d      = 1,
-			  .n_ve   = 2,
-			  .n_f    = 2,
-			  .n_f_ve = {1, 1,},
-			  .f_ve   = {0, 1,},
-			};
-		e_info = copy_local_elem_info(&e_info_l);
+	case LINE:
+		e_info.d    = 1;
+		e_info.n_ve = 2;
+		e_info.n_f  = 2;
+		e_info.n_f_ve = (int[]) {1, 1,};
+		e_info.f_ve   = (int[]) {0, 1,};
 		break;
-	} case TRI: {
-		const struct Elem_info e_info_l =
-			{ .d      = 2,
-			  .n_ve   = 3,
-			  .n_f    = 3,
-			  .n_f_ve = {2, 2, 2,},
-			  .f_ve   = {1,2, 0,2, 0,1,},
-			};
-		e_info = copy_local_elem_info(&e_info_l);
+	case TRI:
+		e_info.d    = 2;
+		e_info.n_ve = 3;
+		e_info.n_f  = 3;
+		e_info.n_f_ve = (int[]) {2, 2, 2,};
+		e_info.f_ve   = (int[]) {1,2, 0,2, 0,1,};
 		break;
-	} case QUAD: {
-		const struct Elem_info e_info_l =
-			{ .d      = 2,
-			  .n_ve   = 4,
-			  .n_f    = 4,
-			  .n_f_ve = {2, 2, 2, 2,},
-			  .f_ve   = {0,2, 1,3, 0,1, 2,3},
-			};
-		e_info = copy_local_elem_info(&e_info_l);
+	case QUAD:
+		e_info.d    = 2;
+		e_info.n_ve = 4;
+		e_info.n_f  = 4;
+		e_info.n_f_ve = (int[]) {2, 2, 2, 2,};
+		e_info.f_ve   = (int[]) {0,2, 1,3, 0,1, 2,3};
 		break;
-	} case TET: {
+	case TET:
 		EXIT_ADD_SUPPORT;
 		break;
-	} case HEX: {
-		const struct Elem_info e_info_l =
-			{ .d      = 3,
-			  .n_ve   = 8,
-			  .n_f    = 6,
-			  .n_f_ve = {4, 4, 4, 4, 4, 4,},
-			  .f_ve   = {0,2,4,6, 1,3,5,7, 0,1,4,5, 2,3,6,7, 0,1,2,3, 4,5,6,7}
-			};
-		e_info = copy_local_elem_info(&e_info_l);
+	case HEX:
+		e_info.d    = 3;
+		e_info.n_ve = 8;
+		e_info.n_f  = 6;
+		e_info.n_f_ve = (int[]) {4, 4, 4, 4, 4, 4,};
+		e_info.f_ve   = (int[]) {0,2,4,6, 1,3,5,7, 0,1,4,5, 2,3,6,7, 0,1,2,3, 4,5,6,7};
 		break;
-	} case WEDGE: {
+	case WEDGE:
 		EXIT_ADD_SUPPORT;
 		break;
-	} case PYR: {
+	case PYR:
 		EXIT_ADD_SUPPORT;
 		break;
-	} default: {
+	default:
 		EXIT_UNSUPPORTED;
 		break;
-	}}
+	}
 
 	struct Multiarray_Vector_i* f_ve = constructor_copy_Multiarray_Vector_i_i(e_info.f_ve,e_info.n_f_ve,1,e_info.n_f);
 //	print_Multiarray_Vector_i(f_ve);
