@@ -125,7 +125,7 @@ void read_skip_i (const char*const line, int*const var)
 	sscanf(line,"%*s %u",var);
 }
 
-void read_skip_const_c (const char*const line, const char*const var)
+void read_skip_const_c_1 (const char*const line, const char*const var)
 {
 	sscanf(line,"%*s %s",(char*)var);
 }

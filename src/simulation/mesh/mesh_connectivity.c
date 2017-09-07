@@ -14,9 +14,10 @@
 #include "macros.h"
 
 #include "multiarray.h"
+#include "matrix.h"
 #include "vector.h"
-#include "element.h"
 
+#include "element.h"
 #include "mesh.h"
 #include "mesh_periodic.h"
 #include "const_cast.h"

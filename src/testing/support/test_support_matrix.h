@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "matrix.h"
+struct const_Matrix_d;
 
 /** \brief Constructor for a \ref Matrix_i\* from data in the input file of the given name.
  *	\return Standard. */

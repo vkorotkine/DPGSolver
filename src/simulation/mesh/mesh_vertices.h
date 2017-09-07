@@ -28,7 +28,9 @@
  *	- an array of parametric coordinates relating to the vertex position on the surface.
  */
 
-#include "mesh.h"
+struct const_Intrusive_List;
+struct Mesh;
+struct Mesh_Input;
 
 /// \brief Container for additional information relating to the mesh vertices.
 struct Mesh_Vertices {

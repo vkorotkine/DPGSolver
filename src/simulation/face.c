@@ -13,8 +13,15 @@
 #include "constants_bc.h"
 #include "constants_tol.h"
 
+#include "multiarray.h"
+#include "matrix.h"
+#include "vector.h"
+
 #include "simulation.h"
 #include "mesh.h"
+#include "mesh_readers.h"
+#include "mesh_connectivity.h"
+#include "mesh_vertices.h"
 #include "volume.h"
 #include "element.h"
 #include "const_cast.h"

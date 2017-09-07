@@ -9,7 +9,8 @@
 
 #include <stdio.h>
 
-#include "intrusive.h"
+struct Intrusive_List;
+struct const_Intrusive_List;
 
 /** \brief Constructor for a \ref Volume from data in the input file.
  *	\return Standard. */

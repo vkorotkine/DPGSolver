@@ -7,7 +7,8 @@
  *	\brief Provides support functions for testing relating to containers defined in \ref intrusive.h.
  */
 
-#include "intrusive.h"
+struct Intrusive_List;
+struct const_Intrusive_List;
 
 /**	\brief Constructor for an intrusive list of type specified by the `list_name`.
  *	\return Standard. */

@@ -11,6 +11,7 @@ set	(LIBS_DEPEND
 	 Allocators
 	 Simulation
 	 Mesh
+	 Geometry
 	 Test_Base
 	 Test_Support
 	)

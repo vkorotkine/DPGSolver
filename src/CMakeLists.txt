@@ -1,4 +1,6 @@
 find_package(MPI REQUIRED)
+find_package(MKL REQUIRED)
+include_directories(${MKL_INCLUDE_DIRS})
 
 include_directories(
 	allocators
@@ -8,6 +10,7 @@ include_directories(
 	intrusive
 	simulation
 	simulation/mesh
+	simulation/geometry
 	testing
 	)
 

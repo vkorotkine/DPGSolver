@@ -7,7 +7,7 @@
  *	\brief Provides functions/structures for integration testing.
  */
 
-#include "test_base.h"
+struct Test_Info;
 
 /// \brief Call integration test functions.
 void run_tests_integration

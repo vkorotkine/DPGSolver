@@ -9,10 +9,6 @@
 
 #include <stddef.h>
 
-#include "multiarray.h"
-#include "matrix.h"
-#include "vector.h"
-
 /** \brief Holds data read from the mesh file.
  *
  *	A detailed description of the variables constructed from a Gmsh .msh file can be found in the

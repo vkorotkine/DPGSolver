@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "test_base.h"
+
 #include "macros.h"
 
 #include "simulation.h"
@@ -15,6 +17,7 @@
 #include "volume.h"
 #include "face.h"
 #include "file_processing.h"
+#include "geometry.h"
 
 
 // Static function declarations ************************************************************************************* //
@@ -40,6 +43,7 @@ void test_integration_geometry (struct Test_Info*const test_info, const char*con
 
 	destructor_Mesh(mesh);
 
+	set_up_geometry(sim);
 
 
 	const bool pass = compare_members_geom(test_info,sim);

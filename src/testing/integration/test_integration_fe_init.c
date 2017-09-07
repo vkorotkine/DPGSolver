@@ -7,11 +7,13 @@
 
 #include <string.h>
 
+#include "test_base.h"
 #include "test_support.h"
 #include "test_support_intrusive.h"
 #include "test_support_matrix.h"
 
 #include "macros.h"
+#include "constants_mesh.h"
 
 #include "simulation.h"
 #include "intrusive.h"
@@ -19,9 +21,7 @@
 #include "mesh.h"
 #include "volume.h"
 #include "face.h"
-
 #include "file_processing.h"
-#include "constants_mesh.h"
 
 // Static function declarations ************************************************************************************* //
 

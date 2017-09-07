@@ -87,8 +87,8 @@ void read_skip_i
 	 int*const var          ///< Variable in which to store data.
 	);
 
-/// \brief Read a `const char`, skipping the first string.
-void read_skip_const_c
+/// \brief Read a `const char*`, skipping the first string.
+void read_skip_const_c_1
 	(const char*const line, ///< Line from which to read data.
 	 const char*const var   ///< Variable in which to store data.
 	);

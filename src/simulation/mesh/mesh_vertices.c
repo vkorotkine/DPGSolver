@@ -13,10 +13,14 @@
 #include "constants_mesh.h"
 #include "constants_bc.h"
 
-#include "element.h"
 #include "multiarray.h"
+#include "matrix.h"
 #include "vector.h"
 
+#include "element.h"
+#include "mesh.h"
+#include "mesh_readers.h"
+#include "mesh_connectivity.h"
 #include "mesh_geometry_cylinder_hollow_section.h"
 
 // Static function declarations ************************************************************************************* //

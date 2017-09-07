@@ -15,7 +15,9 @@
 #include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
+
 #include "mesh.h"
+#include "mesh_readers.h"
 
 // Static function declarations ************************************************************************************* //
 

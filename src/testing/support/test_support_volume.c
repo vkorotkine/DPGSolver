@@ -12,6 +12,8 @@
 
 #include "macros.h"
 
+#include "matrix.h"
+
 #include "intrusive.h"
 #include "volume.h"
 #include "element.h"
@@ -30,8 +32,10 @@ struct Volume* constructor_Volume
 	read_skip_file_const_b("boundary",file,&volume->boundary);
 	read_skip_file_const_b("curved",file,&volume->curved);
 	skip_lines(file,1);
-	struct Matrix_d* xyz_ve = constructor_file_Matrix_d(file,true); // keep
+	struct Matrix_d* xyz_ve    = constructor_file_Matrix_d(file,true); // keep
+	struct Matrix_d* geom_coef = constructor_default_Matrix_d(); // keep
 	const_constructor_move_Matrix_d(&volume->xyz_ve,xyz_ve);
+	const_constructor_move_Matrix_d(&volume->geom_coef,geom_coef);
 
 	int elem_type;
 	read_skip_file_i("elem_type",file,&elem_type);

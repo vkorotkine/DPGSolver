@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "macros.h"
+#include "constants_alloc.h"
 
 #include "volume.h"
 #include "face.h"

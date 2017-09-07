@@ -1,8 +1,5 @@
-include_directories(
-	mesh
-	)
-
 add_subdirectory(mesh)
+add_subdirectory(geometry)
 
 set (SOURCE
 	 element.c

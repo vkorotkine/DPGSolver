@@ -7,19 +7,26 @@
 
 #include <string.h>
 
+#include "test_base.h"
 #include "test_support_vector.h"
 #include "test_support_matrix.h"
 #include "test_support_multiarray.h"
 
 #include "macros.h"
-#include "intrusive.h"
-#include "multiarray.h"
-#include "mesh.h"
-#include "const_cast.h"
-#include "allocators.h"
-
 #include "constants_mesh.h"
 #include "constants_alloc.h"
+
+#include "multiarray.h"
+#include "matrix.h"
+#include "vector.h"
+
+#include "intrusive.h"
+#include "mesh.h"
+#include "mesh_readers.h"
+#include "mesh_connectivity.h"
+#include "mesh_vertices.h"
+#include "const_cast.h"
+#include "allocators.h"
 
 // Static function declarations ************************************************************************************* //
 

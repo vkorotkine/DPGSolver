@@ -4,16 +4,19 @@
  */
 
 #include "mesh.h"
-#include "intrusive.h"
-#include "mesh_readers.h"
-#include "mesh_connectivity.h"
 
 #include <limits.h>
 #include <string.h>
 
 #include "macros.h"
-#include "element.h"
 
+#include "vector.h"
+
+#include "intrusive.h"
+#include "mesh_readers.h"
+#include "mesh_connectivity.h"
+#include "mesh_vertices.h"
+#include "element.h"
 #include "file_processing.h"
 
 // Static function declarations ************************************************************************************* //

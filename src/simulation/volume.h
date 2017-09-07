@@ -10,11 +10,14 @@
  */
 
 #include <stdbool.h>
+
 #include "constants_elements.h"
 #include "intrusive.h"
-#include "element.h"
-#include "simulation.h"
-#include "mesh.h"
+
+struct Mesh;
+struct Simulation;
+struct const_Vector_i;
+struct const_Multiarray_Vector_i;
 
 // ****************************************************************************************************************** //
 

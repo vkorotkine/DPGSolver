@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "mkl.h"
+
 #include "macros.h"
 #include "allocators.h"
 #include "vector.h"
@@ -36,7 +38,17 @@ static struct Matrix_i* constructor_local_Matrix_i_1
 	 int*const data         ///< Standard.
 	);
 
+/// \brief Swap the layout of the \ref Matrix_d\*.
+void swap_layout
+	(struct Matrix_d* a ///< The input matrix.
+	);
+
 // Constructor/Destructor functions ********************************************************************************* //
+
+struct Matrix_d* constructor_default_Matrix_d ()
+{
+	return constructor_local_Matrix_d_1('R',0,0,true,NULL);
+}
 
 struct Matrix_d* constructor_empty_Matrix_d (const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1)
 {
@@ -68,6 +80,11 @@ struct Matrix_d* constructor_copy_Matrix_d_d
 		data[i] = data_src[i];
 
 	return constructor_local_Matrix_d_1(layout,ext_0,ext_1,true,data);
+}
+
+struct Matrix_d* constructor_copy_Matrix_d (struct Matrix_d* src)
+{
+	return constructor_local_Matrix_d_1(src->layout,src->ext_0,src->ext_1,true,src->data);
 }
 
 const struct const_Matrix_d* constructor_copy_extract_const_Matrix_d
@@ -102,6 +119,13 @@ const struct const_Matrix_d* constructor_copy_extract_const_Matrix_d
 	const struct const_Matrix_d*const dest_c = NULL;
 	const_constructor_move_Matrix_d(&dest_c,dest);
 	return dest_c;
+}
+
+void const_constructor_copy_Matrix_d (const struct const_Matrix_d*const* dest, const struct const_Matrix_d*const src)
+{
+	struct Matrix_d* dest_m = constructor_local_Matrix_d_1(src->layout,src->ext_0,src->ext_1,true,(double*)src->data);
+
+	const_constructor_move_Matrix_d(dest,dest_m);
 }
 
 void const_constructor_move_Matrix_d (const struct const_Matrix_d*const* dest, struct Matrix_d* src)
@@ -221,6 +245,18 @@ void set_row_Matrix_d (const ptrdiff_t row, const struct Matrix_d* dest, const d
 		data[i] = data_src[i];
 }
 
+void transpose_Matrix_d (struct Matrix_d* a, const bool mem_only)
+{
+	mkl_dimatcopy(a->layout,'T',a->ext_0,a->ext_1,1.0,a->data,a->ext_1,a->ext_0);
+	if (mem_only) {
+		swap_layout(a);
+	} else {
+		ptrdiff_t tmp = a->ext_0;
+		a->ext_0 = a->ext_1;
+		a->ext_1 = tmp;
+	}
+}
+
 // Printing functions *********************************************************************************************** //
 
 void print_Matrix_d (const struct Matrix_d*const a, const double tol)
@@ -334,4 +370,9 @@ static struct Matrix_i* constructor_local_Matrix_i_1
 	dest->data      = data;
 
 	return dest;
+}
+
+void swap_layout (struct Matrix_d* a)
+{
+	a->layout = ( a->layout == 'R' ? 'C' : 'R' );
 }

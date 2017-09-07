@@ -12,6 +12,7 @@ Last tested: 2017/05/18
 1. Install MPI and BLAS/LAPACK
 	- MPICH
 	- Intel MKL (tested with mkl_2017.3)
+		- [Install using apt](https://software.intel.com/en-us/articles/installing-intel-free-libs-and-python-apt-repo).
 		- Ensure that the 'Cluster support' package is also installed.
 		- Consult the MKL [link line advisor](https://software.intel.com/en-us/articles/intel-mkl-link-line-advisor) for required information for [user_configure.mk](configure/user_configure.mk)
 

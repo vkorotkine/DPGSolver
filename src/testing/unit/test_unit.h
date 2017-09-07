@@ -7,7 +7,7 @@
  *	\brief Provides functions/structures for unit testing.
  */
 
-#include "test_base.h"
+struct Test_Info;
 
 /// \brief Call unit test functions.
 void run_tests_unit

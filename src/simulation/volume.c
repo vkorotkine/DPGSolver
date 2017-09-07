@@ -14,14 +14,18 @@
 #include "constants_mesh.h"
 #include "constants_bc.h"
 
-#include "simulation.h"
-#include "mesh.h"
-#include "const_cast.h"
-#include "face.h"
-#include "element.h"
 #include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
+
+#include "simulation.h"
+#include "mesh.h"
+#include "mesh_readers.h"
+#include "mesh_connectivity.h"
+#include "mesh_vertices.h"
+#include "const_cast.h"
+#include "face.h"
+#include "element.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -66,7 +70,7 @@ struct Intrusive_List* constructor_Volume_List (struct Simulation*const sim, con
 	struct Intrusive_List* volumes = constructor_empty_IL();
 
 	const struct const_Vector_i*const            elem_types = mesh->mesh_data->elem_types;
-	const struct const_Multiarray_Vector_i*const node_nums = mesh->mesh_data->node_nums;
+	const struct const_Multiarray_Vector_i*const node_nums  = mesh->mesh_data->node_nums;
 
 	const struct const_Multiarray_Vector_i*const v_to_lf = mesh->mesh_conn->v_to_lf;
 
@@ -177,6 +181,7 @@ static struct Volume* constructor_Volume
 	const_cast_i(&volume->index,index);
 
 	const_constructor_move_Matrix_d(&volume->xyz_ve,constructor_volume_vertices(vol_mi->ve_inds,nodes));
+	const_constructor_move_Matrix_d(&volume->geom_coef,constructor_default_Matrix_d());
 
 	for (int i = 0; i < NFMAX;    ++i) {
 	for (int j = 0; j < NSUBFMAX; ++j) {
@@ -196,6 +201,7 @@ static struct Volume* constructor_Volume
 static void destructor_Volume (struct Volume* volume)
 {
 	destructor_Matrix_d((struct Matrix_d*)volume->xyz_ve);
+	destructor_Matrix_d((struct Matrix_d*)volume->geom_coef);
 }
 
 static bool find_bc_match

@@ -62,6 +62,10 @@ struct const_Matrix_i {
 
 // Constructor/Destructor functions ********************************************************************************* //
 
+/** \brief Constructs a default \ref Matrix_d\*.
+ *	\return Standard. */
+struct Matrix_d* constructor_default_Matrix_d ();
+
 /** \brief Constructs an empty \ref Matrix_d\*.
  *	\return Standard. */
 struct Matrix_d* constructor_empty_Matrix_d
@@ -88,6 +92,12 @@ struct Matrix_d* constructor_copy_Matrix_d_d
 	 const double*const data_src ///< The source data.
 	);
 
+/** \brief Copy constructor for a \ref Matrix_d\* from a \ref Matrix_d\*.
+ *	\return Standard. */
+struct Matrix_d* constructor_copy_Matrix_d
+	(struct Matrix_d* src /// The source matrix.
+	);
+
 /** \brief Copy constructor for a \ref const_Matrix_d\* from a partial number of rows/columns of another.
  *	\return Standard. */
 const struct const_Matrix_d* constructor_copy_extract_const_Matrix_d
@@ -99,6 +109,13 @@ const struct const_Matrix_d* constructor_copy_extract_const_Matrix_d
  *	\return Standard. */
 struct const_Matrix_d* constructor_move_const_Matrix_d_Matrix_d
 	(struct Matrix_d*const src ///< Source Matrix.
+	);
+
+/** \brief Copy constructor for a `const` \ref const_Matrix_d\* from a `const` \ref const_Matrix_d\*.
+ *	\return Standard. */
+void const_constructor_copy_Matrix_d
+	(const struct const_Matrix_d*const* dest, ///< Destination.
+	 const struct const_Matrix_d*const src    ///< Source.
 	);
 
 /// \brief Move Constructor for a `const` \ref const_Matrix_d `*const`.
@@ -193,6 +210,12 @@ void set_row_Matrix_d
 	(const ptrdiff_t row,         ///< The destination row.
 	 const struct Matrix_d* dest, ///< The destination Matrix.
 	 const double*const data_src  ///< The source data.
+	);
+
+/// \brief Transpose the \ref Matrix_d\* optionally leaving the values of the extents unchanged in `mem_only = true`.
+void transpose_Matrix_d
+	(struct Matrix_d* a, ///< Matrix to be transposed.
+	 const bool mem_only ///< Flag for whether only the memory should be transposed (with ext_0/ext_1 unchanged).
 	);
 
 // Printing functions *********************************************************************************************** //

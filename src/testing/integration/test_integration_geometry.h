@@ -7,7 +7,7 @@
  *	\brief Provides functionality for integration testing of the finite element initialization.
  */
 
-#include "test_base.h"
+struct Test_Info;
 
 /**	\test Performs integration testing for the geometry initialization.
  *

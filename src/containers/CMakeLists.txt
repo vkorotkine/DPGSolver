@@ -4,10 +4,11 @@ set	(SOURCE
 	 vector.c
 	)
 
-set	(LIBS
+set	(LIBS_DEPEND
 	 Allocators
 	 m # math
+	 ${MKL_LIBRARIES}
 	)
 
 add_library(Containers ${SOURCE})
-target_link_libraries(Containers PRIVATE ${LIBS})
+target_link_libraries(Containers PRIVATE ${LIBS_DEPEND})

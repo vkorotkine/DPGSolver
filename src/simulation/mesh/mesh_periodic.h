@@ -7,7 +7,8 @@
  *	\brief Provides the interface to mesh periodic containers and functions.
  */
 
-#include "mesh_connectivity.h"
+struct Mesh_Data;
+struct Conn_info;
 
 /** \brief Correct the face vertex correspondence if the mesh is periodic.
  *

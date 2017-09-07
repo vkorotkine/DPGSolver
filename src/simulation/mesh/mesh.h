@@ -16,13 +16,13 @@
  *	information relating to mesh edges (faces and volumes, by association).
  */
 
+#include <stdbool.h>
+#include <stddef.h>
+
 struct Mesh_Input;
 struct Mesh;
-
-#include "intrusive.h"
-#include "mesh_readers.h"
-#include "mesh_connectivity.h"
-#include "mesh_vertices.h"
+struct const_Vector_i;
+struct const_Intrusive_List;
 
 /// \brief Container for the required input information for the mesh processing.
 struct Mesh_Input {

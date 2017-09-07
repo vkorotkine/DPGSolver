@@ -129,14 +129,26 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 	// Read information
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),ctrl_file)) {
-		if (strstr(line,"pde_name"))  read_skip_const_c(line,sim->pde_name);
-		if (strstr(line,"pde_spec"))  read_skip_const_c(line,sim->pde_spec);
-		if (strstr(line,"geom_name")) read_skip_const_c(line,sim->geom_name);
-		if (strstr(line,"geom_spec")) read_skip_const_c(line,sim->geom_spec);
+		if (strstr(line,"pde_name"))  read_skip_const_c_1(line,sim->pde_name);
+		if (strstr(line,"pde_spec"))  read_skip_const_c_1(line,sim->pde_spec);
+		if (strstr(line,"geom_name")) read_skip_const_c_1(line,sim->geom_name);
+		if (strstr(line,"geom_spec")) read_skip_const_c_1(line,sim->geom_spec);
 
 		if (strstr(line,"dimension"))        read_skip_const_i_1(line,1,&sim->d,1);
 		if (strstr(line,"mesh_level"))       read_skip_const_i_1(line,1,sim->ml,2);
 		if (strstr(line,"mesh_unrealistic")) read_skip_const_b(line,&sim->mesh_unrealistic);
+
+		if (strstr(line,"basis_geom")) read_skip_const_c_1(line,sim->basis_geom);
+		if (strstr(line,"basis_sol"))  read_skip_const_c_1(line,sim->basis_sol);
+		if (strstr(line,"geom_rep"))   read_skip_const_c_1(line,sim->geom_rep);
+
+		if (strstr(line,"p_s_v"))    read_skip_const_i_1(line,1,sim->p_s_v,2);
+		if (strstr(line,"p_s_f"))    read_skip_const_i_1(line,1,sim->p_s_f,2);
+		if (strstr(line,"p_sg_v"))   read_skip_const_i_1(line,1,sim->p_sg_v,2);
+		if (strstr(line,"p_sg_f"))   read_skip_const_i_1(line,1,sim->p_sg_f,2);
+		if (strstr(line,"p_cub_x"))  read_skip_const_i_1(line,1,&sim->p_cub_x,1);
+		if (strstr(line,"p_cub_p"))  read_skip_const_i_1(line,1,&sim->p_cub_p,1);
+		if (strstr(line,"p_test_p")) read_skip_const_i_1(line,1,&sim->p_test_p,1);
 	}
 	fclose(ctrl_file);
 

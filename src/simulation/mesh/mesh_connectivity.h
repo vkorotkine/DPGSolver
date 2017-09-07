@@ -7,11 +7,8 @@
  *	\brief Provides the interface to mesh connectivity containers and functions.
  */
 
-#include "mesh_readers.h"
-#include "intrusive.h"
-
-#include "multiarray.h"
-#include "vector.h"
+struct const_Intrusive_List;
+struct Mesh_Data;
 
 /// \brief The number of 'M'aster and 'S'lave entities (always two but defined to avoid use of the magic number).
 #define N_MS 2
