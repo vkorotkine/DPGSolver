@@ -6,8 +6,10 @@
 
 #include <string.h>
 
-#include "constants_elements.h"
 #include "macros.h"
+#include "constants_elements.h"
+#include "constants_intrusive.h"
+
 #include "multiarray.h"
 #include "const_cast.h"
 
@@ -27,7 +29,7 @@ static void destructor_Element
 
 struct const_Intrusive_List* constructor_Element_List (const int d)
 {
-	struct Intrusive_List* Elements = constructor_empty_IL();
+	struct Intrusive_List* Elements = constructor_empty_IL(IL_ELEMENT);
 
 	push_back_IL(Elements,(struct Intrusive_Link*) constructor_Element(LINE));
 
@@ -178,7 +180,7 @@ static struct Element* constructor_Element
 	struct Multiarray_Vector_i* f_ve = constructor_copy_Multiarray_Vector_i_i(e_info.f_ve,e_info.n_f_ve,1,e_info.n_f);
 //	print_Multiarray_Vector_i(f_ve);
 
-	struct Element* element = malloc(sizeof *element); // returned
+	struct Element* element = calloc(1,sizeof *element); // returned
 
 	const_cast_i(&element->type,elem_type);
 	const_cast_i(&element->d,e_info.d);

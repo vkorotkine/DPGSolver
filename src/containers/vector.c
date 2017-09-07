@@ -93,8 +93,8 @@ struct const_Vector_i* constructor_move_const_Vector_i_i
 	(const ptrdiff_t ext_0, const bool owns_data, const int*const data)
 {
 	struct Vector_i* local = constructor_local_Vector_i_1(ext_0,owns_data,(int*)data); // free
-
-	struct const_Vector_i* dest = malloc(sizeof *dest); // returned
+/// \todo replace with const_constructor
+	struct const_Vector_i* dest = calloc(1,sizeof *dest); // returned
 	memcpy(dest,local,sizeof *dest);
 	free(local);
 
@@ -371,7 +371,7 @@ void print_Vector_d (const struct Vector_d*const a, const double tol)
 
 static struct Vector_i* constructor_default_Vector_i ()
 {
-	struct Vector_i* dest = malloc(sizeof *dest); // returned
+	struct Vector_i* dest = calloc(1,sizeof *dest); // returned
 	dest->ext_0     = 0;
 	dest->owns_data = true;
 	dest->data      = NULL;
@@ -381,7 +381,7 @@ static struct Vector_i* constructor_default_Vector_i ()
 
 static struct Vector_i* constructor_local_Vector_i_1 (const ptrdiff_t ext_0, const bool owns_data, int*const data)
 {
-	struct Vector_i* dest = malloc(sizeof *dest); // returned
+	struct Vector_i* dest = calloc(1,sizeof *dest); // returned
 
 	dest->ext_0     = ext_0;
 	dest->owns_data = owns_data;
@@ -392,7 +392,7 @@ static struct Vector_i* constructor_local_Vector_i_1 (const ptrdiff_t ext_0, con
 
 static struct Vector_d* constructor_local_Vector_d_1 (const ptrdiff_t ext_0, const bool owns_data, double*const data)
 {
-	struct Vector_d* dest = malloc(sizeof *dest); // returned
+	struct Vector_d* dest = calloc(1,sizeof *dest); // returned
 
 	dest->ext_0     = ext_0;
 	dest->owns_data = owns_data;

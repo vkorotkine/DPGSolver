@@ -54,7 +54,7 @@ struct Mesh_Vertices* constructor_Mesh_Vertices
 {
 	struct Mesh_Vertices_l mesh_vert_l = set_up_mesh_vertices(mesh,elements);
 
-	struct Mesh_Vertices* mesh_vert = malloc(sizeof *mesh_vert); // returned
+	struct Mesh_Vertices* mesh_vert = calloc(1,sizeof *mesh_vert); // returned
 
 	const_constructor_move_Vector_i(&mesh_vert->ve_curved,mesh_vert_l.ve_curved);
 	const_constructor_move_Vector_i(&mesh_vert->ve_boundary,mesh_vert_l.ve_boundary);

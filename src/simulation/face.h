@@ -84,14 +84,14 @@ struct Face {
 
 /** \brief Constructs the base \ref Face \ref Intrusive_List.
  *	\return Standard. */
-struct Intrusive_List* constructor_Face_List
+struct Intrusive_List* constructor_Faces
 	(struct Simulation*const sim, ///< The \ref Simulation.
 	 const struct Mesh*const mesh ///< The \ref Mesh.
 	);
 
 /// \brief Destructs the base \ref Face \ref Intrusive_List.
 void destructor_Faces
-	(struct Intrusive_List* Faces ///< Standard.
+	(struct Intrusive_List* faces ///< Standard.
 	);
 
 /// \brief Cast from \ref Face\* to `const` \ref Face `*const`.

@@ -8,13 +8,24 @@
  */
 
 struct Simulation;
+struct Intrusive_List;
 
 /** \brief Set up the geometry for the simulation. Computes:
  *	- \ref Volume::geom_coef.
  */
 void set_up_geometry
-	(struct Simulation* sim ///< \ref Simulation.
+	(struct Simulation* sim,        ///< \ref Simulation.
+	 struct Intrusive_List* volumes ///< The volumes for which to set up the geometry.
 	);
 
+/** \brief Set up the geometry for the solve. Computes:
+ *	- \ref Solver_Volume::cofactors_vg;
+ *	- \ref Solver_Volume::cofactors_vi;
+ *	- \ref Solver_Face::cofactors_fi;
+ */
+void set_up_geometry_solver
+	(struct Simulation* sim,        ///< \ref Simulation.
+	 struct Intrusive_List* volumes ///< The volumes for which to set up the solver geometry.
+	);
 
 #endif // DPG__geometry_h__INCLUDED

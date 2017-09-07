@@ -13,6 +13,7 @@
 #include "macros.h"
 #include "constants_mesh.h"
 #include "constants_bc.h"
+#include "constants_intrusive.h"
 
 #include "multiarray.h"
 #include "matrix.h"
@@ -26,6 +27,7 @@
 #include "const_cast.h"
 #include "face.h"
 #include "element.h"
+#include "geometry.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -45,11 +47,6 @@ static struct Volume* constructor_Volume
 	 const int index                             ///< The volume index.
 	);
 
-/// \brief Destructor for an individual \ref Volume.
-static void destructor_Volume
-	(struct Volume* volume ///< Standard.
-	);
-
 /** \brief Check for a match of boundaries relating to the two input vertex bc vectors.
  *
  *	The two input vectors of vertex boundary conditions are searched for a matching boundary condition possibly subject
@@ -65,9 +62,9 @@ static bool find_bc_match
 
 // Interface functions ********************************************************************************************** //
 
-struct Intrusive_List* constructor_Volume_List (struct Simulation*const sim, const struct Mesh*const mesh)
+struct Intrusive_List* constructor_Volumes (struct Simulation*const sim, const struct Mesh*const mesh)
 {
-	struct Intrusive_List* volumes = constructor_empty_IL();
+	struct Intrusive_List* volumes = constructor_empty_IL(IL_VOLUME);
 
 	const struct const_Vector_i*const            elem_types = mesh->mesh_data->elem_types;
 	const struct const_Multiarray_Vector_i*const node_nums  = mesh->mesh_data->node_nums;
@@ -87,6 +84,8 @@ struct Intrusive_List* constructor_Volume_List (struct Simulation*const sim, con
 	}
 	sim->n_v = n_v;
 
+	set_up_geometry(sim,volumes);
+
 	return volumes;
 }
 
@@ -98,6 +97,13 @@ void destructor_Volumes (struct Intrusive_List* volumes)
 		curr = next;
 	}
 	destructor_IL(volumes);
+}
+
+void destructor_Volume (struct Volume* volume)
+{
+	(volume->xyz_ve ? destructor_Matrix_d((struct Matrix_d*)volume->xyz_ve) : EXIT_DESTRUCTOR);
+	(volume->geom_coef ? destructor_Matrix_d((struct Matrix_d*)volume->geom_coef) : EXIT_DESTRUCTOR);
+	(volume->sol_coef ? destructor_Multiarray_d((struct Multiarray_d*)volume->sol_coef) : EXIT_DESTRUCTOR);
 }
 
 bool check_ve_condition
@@ -177,11 +183,10 @@ static struct Volume* constructor_Volume
 	const struct const_Matrix_d*const nodes = mesh->mesh_data->nodes;
 	const struct Mesh_Vertices*const mesh_vert = mesh->mesh_vert;
 
-	struct Volume* volume = malloc(sizeof *volume); // returned
+	struct Volume* volume = calloc(1,sizeof *volume); // returned
 	const_cast_i(&volume->index,index);
 
 	const_constructor_move_Matrix_d(&volume->xyz_ve,constructor_volume_vertices(vol_mi->ve_inds,nodes));
-	const_constructor_move_Matrix_d(&volume->geom_coef,constructor_default_Matrix_d());
 
 	for (int i = 0; i < NFMAX;    ++i) {
 	for (int j = 0; j < NSUBFMAX; ++j) {
@@ -195,13 +200,10 @@ static struct Volume* constructor_Volume
 	const_cast_bool(&volume->curved,
 	                check_if_curved_v(sim->domain_type,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
 
-	return volume;
-}
+	const_constructor_move_Matrix_d(&volume->geom_coef,constructor_default_Matrix_d());
+	const_constructor_move_Multiarray_d(&volume->sol_coef,constructor_default_Multiarray_d());
 
-static void destructor_Volume (struct Volume* volume)
-{
-	destructor_Matrix_d((struct Matrix_d*)volume->xyz_ve);
-	destructor_Matrix_d((struct Matrix_d*)volume->geom_coef);
+	return volume;
 }
 
 static bool find_bc_match

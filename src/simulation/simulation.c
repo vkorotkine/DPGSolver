@@ -11,15 +11,16 @@
 #include <stdbool.h>
 
 #include "macros.h"
+#include "constants_mesh.h"
+#include "constants_intrusive.h"
+
 #include "element.h"
 #include "mesh.h"
 #include "volume.h"
+#include "solver_volume.h"
 #include "face.h"
-
 #include "file_processing.h"
 #include "const_cast.h"
-
-#include "constants_mesh.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -43,7 +44,7 @@ static void set_Simulation_elements
 
 struct Simulation* constructor_Simulation (const char*const ctrl_name)
 {
-	struct Simulation* sim = malloc(sizeof *sim); // returned;
+	struct Simulation* sim = calloc(1,sizeof *sim); // returned;
 
 	set_simulation_core(sim,ctrl_name);
 	set_Simulation_elements(sim,constructor_Element_List(sim->d));
@@ -53,9 +54,26 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 
 void destructor_Simulation (struct Simulation* sim)
 {
-	destructor_Elements((struct Intrusive_List*) sim->elements);
-	destructor_Volumes(sim->volumes);
-	destructor_Faces(sim->faces);
+// Add function pointers here when this gets bigger.
+
+	switch (sim->elements->name) {
+		case IL_ELEMENT: destructor_Elements((struct Intrusive_List*) sim->elements); break;
+		default:         EXIT_UNSUPPORTED;                                            break;
+	}
+
+
+	switch (sim->volumes->name) {
+		case IL_VOLUME:        destructor_Volumes(sim->volumes);        break;
+		case IL_SOLVER_VOLUME: destructor_Solver_Volumes(sim->volumes); break;
+		default:               EXIT_UNSUPPORTED;                        break;
+	}
+
+	switch (sim->faces->name) {
+		case IL_FACE:        destructor_Faces(sim->faces);        break;
+//		case IL_SOLVER_FACE: destructor_Solver_Faces(sim->faces); break;
+		default:             EXIT_UNSUPPORTED;                    break;
+	}
+
 	free(sim);
 }
 

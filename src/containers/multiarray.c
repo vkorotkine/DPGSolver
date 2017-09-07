@@ -77,6 +77,14 @@ static ptrdiff_t compute_total_entries
 
 // Constructor/Destructor functions ********************************************************************************* //
 
+struct Multiarray_d* constructor_default_Multiarray_d ()
+{
+	const int order = 1;
+	ptrdiff_t* extents = calloc(order , sizeof *extents); // keep
+
+	return constructor_local_Multiarray_d_1('C',order,extents,true,NULL);
+}
+
 struct Multiarray_d* constructor_move_Multiarray_d_d (const char layout, double*const data, const int order, ...)
 {
 	va_list ap;
@@ -128,6 +136,11 @@ struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i_i
 	set_Multiarray_Vector_i_i(dest,data_V,ext_V);
 
 	return dest;
+}
+
+void const_constructor_move_Multiarray_d (const struct const_Multiarray_d*const* dest, struct Multiarray_d* src)
+{
+	*(struct const_Multiarray_d**) dest = (struct const_Multiarray_d*) src;
 }
 
 void const_constructor_move_Multiarray_Vector_i
@@ -230,7 +243,7 @@ struct Vector_i* collapse_Multiarray_Vector_i (const struct Multiarray_Vector_i*
 		}
 	}
 
-	struct Vector_i*const dest = malloc(sizeof *dest); // returned
+	struct Vector_i*const dest = calloc(1,sizeof *dest); // returned
 	dest->ext_0     = n_entries;
 	dest->owns_data = true;
 	dest->data      = data;
@@ -281,7 +294,7 @@ static struct Vector_i_indexed** constructor_move_Vector_i_indexed
 	struct Vector_i_indexed** dest = malloc(size * sizeof *dest); // returned
 
 	for (ptrdiff_t i = 0; i < size; i++) {
-		dest[i] = malloc(sizeof *dest[i]); // keep
+		dest[i] = calloc(1,sizeof *dest[i]); // keep
 		dest[i]->index  = i;
 		dest[i]->vector = data[i];
 	}
@@ -298,7 +311,7 @@ static void destructor_Vector_i_indexed (struct Vector_i_indexed** src, const pt
 static struct Multiarray_d* constructor_local_Multiarray_d_1
 	(const char layout, const int order, ptrdiff_t*const extents, const bool owns_data, double*const data)
 {
-	struct Multiarray_d* dest = malloc(sizeof *dest); // returned
+	struct Multiarray_d* dest = calloc(1,sizeof *dest); // returned
 
 	dest->layout    = layout;
 	dest->order     = order;
@@ -312,7 +325,7 @@ static struct Multiarray_d* constructor_local_Multiarray_d_1
 static struct Multiarray_Vector_i* constructor_local_Multiarray_Vector_i_1
 	(const int order, ptrdiff_t*const extents, const bool owns_data, struct Vector_i**const data)
 {
-	struct Multiarray_Vector_i* dest = malloc(sizeof *dest); // returned
+	struct Multiarray_Vector_i* dest = calloc(1,sizeof *dest); // returned
 
 	dest->order     = order;
 	dest->extents   = extents;

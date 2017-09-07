@@ -31,7 +31,7 @@ struct Mesh* constructor_Mesh (const struct Mesh_Input* mesh_input, const struct
 		elements = constructor_Element_List(mesh_input->d); // destructed
 	}
 
-	struct Mesh* mesh = malloc(sizeof *mesh); // returned
+	struct Mesh* mesh = calloc(1,sizeof *mesh); // returned
 
 	*(struct Mesh_Data**)&         mesh->mesh_data = constructor_Mesh_Data(mesh_input->mesh_name_full,mesh_input->d);
 	*(struct Mesh_Connectivity**)& mesh->mesh_conn = constructor_Mesh_Connectivity(mesh->mesh_data,elements);

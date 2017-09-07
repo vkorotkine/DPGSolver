@@ -15,6 +15,7 @@
 #include "simulation.h"
 #include "mesh.h"
 #include "volume.h"
+#include "solver_volume.h"
 #include "face.h"
 #include "file_processing.h"
 #include "geometry.h"
@@ -38,12 +39,12 @@ void test_integration_geometry (struct Test_Info*const test_info, const char*con
 	struct Mesh_Input mesh_input = set_Mesh_Input(sim);
 	struct Mesh* mesh = constructor_Mesh(&mesh_input,sim->elements);
 
-	sim->volumes = constructor_Volume_List(sim,mesh);
-	sim->faces   = constructor_Face_List(sim,mesh);
+	sim->volumes = constructor_Volumes(sim,mesh);
+	sim->faces   = constructor_Faces(sim,mesh);
 
 	destructor_Mesh(mesh);
 
-	set_up_geometry(sim);
+	sim->volumes = constructor_Solver_Volumes(sim);
 
 
 	const bool pass = compare_members_geom(test_info,sim);

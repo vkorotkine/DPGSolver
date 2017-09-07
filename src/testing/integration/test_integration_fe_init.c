@@ -39,10 +39,10 @@ void test_integration_fe_init (struct Test_Info*const test_info, const char*cons
 	struct Simulation*const sim = constructor_Simulation(ctrl_name); // destructed
 
 	struct Mesh_Input mesh_input = set_Mesh_Input(sim);
-	struct Mesh* mesh = constructor_Mesh(&mesh_input,sim->elements);
+	struct Mesh* mesh = constructor_Mesh(&mesh_input,sim->elements); // destructed
 
-	sim->volumes = constructor_Volume_List(sim,mesh);
-	sim->faces   = constructor_Face_List(sim,mesh);
+	sim->volumes = constructor_Volumes(sim,mesh); // destructed
+	sim->faces   = constructor_Faces(sim,mesh);   // destructed
 
 	destructor_Mesh(mesh);
 
@@ -198,7 +198,7 @@ static char* constructor_data_name_fe (const char*const ctrl_name)
 static struct FE_Test_Data* constructor_FE_Test_Data
 	(const char*const data_name, const struct const_Intrusive_List*const elements)
 {
-	struct FE_Test_Data* fe_test_data = malloc(sizeof *fe_test_data); // returned
+	struct FE_Test_Data* fe_test_data = calloc(1,sizeof *fe_test_data); // returned
 
 	fe_test_data->volumes = constructor_file_name_IL("Volume",data_name,elements,NULL);                // destructed
 	fe_test_data->faces   = constructor_file_name_IL("Face",data_name,elements,fe_test_data->volumes); // destructed

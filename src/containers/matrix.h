@@ -62,7 +62,7 @@ struct const_Matrix_i {
 
 // Constructor/Destructor functions ********************************************************************************* //
 
-/** \brief Constructs a default \ref Matrix_d\*.
+/**	\brief Constructor for a default \ref Matrix_d\*.
  *	\return Standard. */
 struct Matrix_d* constructor_default_Matrix_d ();
 

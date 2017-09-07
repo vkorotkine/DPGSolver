@@ -90,7 +90,7 @@ struct Mesh_Connectivity* constructor_Mesh_Connectivity
 	destructor_Conn_info(conn_info);
 
 
-	struct Mesh_Connectivity* mesh_conn = malloc(sizeof *mesh_conn); // returned
+	struct Mesh_Connectivity* mesh_conn = calloc(1,sizeof *mesh_conn); // returned
 
 	const_constructor_move_Multiarray_Vector_i(&mesh_conn->v_to_v,mesh_conn_l.v_to_v);
 	const_constructor_move_Multiarray_Vector_i(&mesh_conn->v_to_lf,mesh_conn_l.v_to_lf);
@@ -207,7 +207,7 @@ static struct Conn_info* constructor_Conn_info
 		v_n_lf->data[v] = element->n_f;
 	}
 
-	struct Conn_info* conn_info = malloc(sizeof *conn_info); // returned;
+	struct Conn_info* conn_info = calloc(1,sizeof *conn_info); // returned;
 	const_cast_i(&conn_info->d,d);
 	*(const struct const_Vector_i**)&conn_info->elem_per_dim = elem_per_dim;
 	conn_info->volume_types = volume_types;
@@ -361,7 +361,7 @@ static void add_bc_info
 
 	struct Vector_i*const*const f_ve_V = conn_info->f_ve->data;
 
-	struct Boundary_Face*const f_curr = malloc(sizeof *f_curr); // free
+	struct Boundary_Face*const f_curr = calloc(1,sizeof *f_curr); // free
 	f_curr->bc = -1;
 
 	const ptrdiff_t n_f = v_to_lf_V->ext_0;
@@ -427,7 +427,7 @@ static ptrdiff_t compute_sum_n_f
 
 static struct Boundary_Face_Info* constructor_Boundary_Face_Info (const ptrdiff_t n_pfe, const ptrdiff_t n_bf)
 {
-	struct Boundary_Face_Info* bf_info = malloc(sizeof *bf_info); // returned
+	struct Boundary_Face_Info* bf_info = calloc(1,sizeof *bf_info); // returned
 
 	struct Boundary_Face** b_faces = malloc(n_bf * sizeof *b_faces); // keep
 	for (ptrdiff_t i = 0; i < n_bf; ++i)
@@ -545,7 +545,7 @@ static struct Boundary_Face* constructor_empty_Boundary_Face
 
 static struct Boundary_Face* constructor_Boundary_Face ( )
 {
-	struct Boundary_Face* bf = malloc(sizeof *bf); // returned
+	struct Boundary_Face* bf = calloc(1,sizeof *bf); // returned
 
 	return bf;
 }
@@ -600,7 +600,7 @@ static bool check_pfe_boundary (const int bc)
 
 static struct Boundary_Face* constructor_empty_Boundary_Face (struct Boundary_Face* src)
 {
-	struct Boundary_Face* bf = malloc(sizeof *bf); // returned
+	struct Boundary_Face* bf = calloc(1,sizeof *bf); // returned
 
 	bf->bc        = src->bc;
 	bf->node_nums = constructor_empty_Vector_i(src->node_nums->ext_0);

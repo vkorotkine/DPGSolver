@@ -18,5 +18,5 @@ syntax keyword Special Intrusive_List const_Intrusive_List
 syntax keyword Special Intrusive_Link const_Intrusive_Link
 
 syntax keyword Identifier Element const_Element
-syntax keyword Identifier Volume const_Volume 
-syntax keyword Identifier Face const_Face 
+syntax keyword Identifier Volume Solver_Volume
+syntax keyword Identifier Face Solver_Face

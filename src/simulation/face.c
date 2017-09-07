@@ -12,6 +12,7 @@
 #include "constants_mesh.h"
 #include "constants_bc.h"
 #include "constants_tol.h"
+#include "constants_intrusive.h"
 
 #include "multiarray.h"
 #include "matrix.h"
@@ -65,9 +66,9 @@ const struct const_Vector_i* compute_ve_inds_f
 
 // Interface functions ********************************************************************************************** //
 
-struct Intrusive_List* constructor_Face_List (struct Simulation*const sim, const struct Mesh*const mesh)
+struct Intrusive_List* constructor_Faces (struct Simulation*const sim, const struct Mesh*const mesh)
 {
-	struct Intrusive_List* faces = constructor_empty_IL();
+	struct Intrusive_List* faces = constructor_empty_IL(IL_FACE);
 
 	const struct const_Multiarray_Vector_i*const node_nums = mesh->mesh_data->node_nums;
 
@@ -185,7 +186,7 @@ static struct Face* constructor_Face
 {
 	const struct Mesh_Vertices*const mesh_vert = mesh->mesh_vert;
 
-	struct Face* face = malloc(sizeof *face); // returned
+	struct Face* face = calloc(1,sizeof *face); // returned
 	const_cast_i(&face->index,index);
 
 	for (int i = 0; i < 2; ++i) {
@@ -390,7 +391,7 @@ struct Vector_i* constructor_matches_Vector_i_Matrix_d
 
 static struct Vertex_Correspondence* constructor_Vertex_Correspondence (const struct const_Matrix_d*const xyz_ve[2])
 {
-	struct Vertex_Correspondence* vert_corr = malloc(sizeof *vert_corr); // free
+	struct Vertex_Correspondence* vert_corr = calloc(1,sizeof *vert_corr); // returned
 
 	const int bc_periodic = check_face_for_periodicity(xyz_ve);
 

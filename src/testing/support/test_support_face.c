@@ -23,7 +23,7 @@ struct Face* constructor_Face
 	(FILE* file, char* line, const struct const_Intrusive_List*const elements,
 	 const struct Intrusive_List*const volumes)
 {
-	struct Face* face = malloc(sizeof *face); // returned
+	struct Face* face = calloc(1,sizeof *face); // returned
 
 	read_skip_const_i_1(line,1,&face->index,1);
 	read_skip_file_const_b("boundary",file,&face->boundary);

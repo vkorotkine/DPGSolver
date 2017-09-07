@@ -7,16 +7,22 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-void init_IL (struct Intrusive_List* lst)
-{
-	lst->first = NULL;
-	lst->last  = NULL;
-}
+#include "constants_intrusive.h"
 
-struct Intrusive_List* constructor_empty_IL ()
+// Static function declarations ************************************************************************************* //
+
+/// \brief Initialize an \ref Intrusive_List to `NULL`.
+static void init_IL
+	(struct Intrusive_List* lst, ///< Standard.
+	 const int list_name         ///< \ref Intrusive_List::name.
+	);
+
+// Interface functions ********************************************************************************************** //
+
+struct Intrusive_List* constructor_empty_IL (const int list_name)
 {
-	struct Intrusive_List* lst = malloc(sizeof *lst); // keep
-	init_IL(lst);
+	struct Intrusive_List* lst = calloc(1,sizeof *lst); // keep
+	init_IL(lst,list_name);
 	return lst;
 }
 
@@ -82,4 +88,14 @@ struct Intrusive_Link* erase_IL (struct Intrusive_List* lst, struct Intrusive_Li
 		curr->prev->next = curr->next;
 		return curr->next;
 	}
+}
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
+
+static void init_IL (struct Intrusive_List* lst, const int list_name)
+{
+	lst->name  = list_name;
+	lst->first = NULL;
+	lst->last  = NULL;
 }

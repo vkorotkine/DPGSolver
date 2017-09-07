@@ -18,6 +18,7 @@ target_link_libraries(Element PRIVATE ${LIBS_DEPEND})
 set	(SOURCE
 	 simulation.c
 	 volume.c
+	 solver_volume.c
 	 face.c
 	)
 
@@ -26,6 +27,7 @@ set (LIBS_DEPEND
 	 Containers
 	 Element
 	 General
+	 Geometry
 	 Intrusive
 	)
 

@@ -67,7 +67,7 @@ struct Mesh_Data* constructor_Mesh_Data (const char*const mesh_name_full, const 
 		EXIT_UNSUPPORTED;
 
 
-	struct Mesh_Data* mesh_data = malloc(sizeof *mesh_data); // returned
+	struct Mesh_Data* mesh_data = calloc(1,sizeof *mesh_data); // returned
 
 	const_constructor_move_Matrix_d(&mesh_data->nodes,mesh_data_l.nodes);
 
@@ -348,7 +348,7 @@ static void fill_nodes (double*const node_row, char* line, const int d)
 
 static struct Element_Data* constructor_Element_Data (const ptrdiff_t n_elems)
 {
-	struct Element_Data* elem_data = malloc(sizeof *elem_data); // returned
+	struct Element_Data* elem_data = calloc(1,sizeof *elem_data); // returned
 
 	elem_data->n_elems = n_elems;
 

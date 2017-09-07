@@ -114,7 +114,7 @@ static void destructor_Mesh_Test_Data
 
 static struct Mesh_Input* constructor_Mesh_Input (const char*const mesh_name)
 {
-	struct Mesh_Input* mesh_input = malloc(sizeof *mesh_input); // free
+	struct Mesh_Input* mesh_input = calloc(1,sizeof *mesh_input); // free
 
 	mesh_input->mesh_name_full = mallocator(CHAR_T,1,STRLEN_MAX); // destructed
 	mesh_input->geom_name      = mallocator(CHAR_T,1,STRLEN_MAX); // destructed
@@ -239,7 +239,7 @@ static void set_Mesh_Input
 
 static struct Mesh_Test_Data* constructor_Mesh_Test_Data (const char*const mesh_name_full)
 {
-	struct Mesh_Test_Data* mesh_test_data = malloc(sizeof *mesh_test_data); // free
+	struct Mesh_Test_Data* mesh_test_data = calloc(1,sizeof *mesh_test_data); // free
 
 	char mesh_data_name_full[STRLEN_MAX];
 	strcpy(mesh_data_name_full,mesh_name_full);

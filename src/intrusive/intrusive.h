@@ -15,12 +15,16 @@
 struct Intrusive_List {
 	struct Intrusive_Link* first; ///< Pointer to the first \ref Intrusive_Link\* in the list.
 	struct Intrusive_Link* last;  ///< Pointer to the last \ref Intrusive_Link\* in the list.
+
+	int name; ///< The name of the list. Used for selecting the appropriate destructor function.
 };
 
 /// \brief `const` version of \ref Intrusive_List.
 struct const_Intrusive_List {
-	const struct Intrusive_Link*const first; ///< See non-`const`.
-	const struct Intrusive_Link*const last;  ///< See non-`const`.
+	const struct Intrusive_Link*const first; ///< Defined in \ref Intrusive_List.
+	const struct Intrusive_Link*const last;  ///< Defined in \ref Intrusive_List.
+
+	int name; ///< Defined in \ref Intrusive_List.
 };
 
 /// \brief A link for a doubly-linked list.
@@ -35,15 +39,11 @@ struct const_Intrusive_Link {
 	const struct Intrusive_Link*const next; ///< See non-`const`.
 };
 
-/// \brief Initialize an \ref Intrusive_List to `NULL`.
-void init_IL
-	(struct Intrusive_List* lst ///< Standard.
-	);
-
 /** \brief Contructs an empty \ref Intrusive_List.
- *	\return Pointer to the \ref Intrusive_List.
- */
-struct Intrusive_List* constructor_empty_IL ();
+ *	\return Standard. */
+struct Intrusive_List* constructor_empty_IL
+	(const int list_name ///< \ref Intrusive_List::name.
+	);
 
 /** \brief Destructs all Intrusive_Links in the \ref Intrusive_List.
  *	\note Only frees the link entries and not any members which may be pointing to allocated memory. */

@@ -154,6 +154,10 @@ struct const_Multiarray_Vector_i {
 
 // Constructor/Destructor functions ********************************************************************************* //
 
+/**	\brief Constructor for a default \ref Multiarray_d\*.
+ *	\return Standard. */
+struct Multiarray_d* constructor_default_Multiarray_d ();
+
 /** \brief Move constructor for a \ref Multiarray_d\* from a `double*`.
  *	\return Standard. */
 struct Multiarray_d* constructor_move_Multiarray_d_d
@@ -183,6 +187,13 @@ struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i_i
 	 ...                    ///< Variadic arguments holding the extents of the Multiarray.
 	);
 
+/// \brief Move Constructor for a `const` \ref const_Multiarray_d `*const`.
+void const_constructor_move_Multiarray_d
+	(const struct const_Multiarray_d*const* dest, ///< Destination.
+	 struct Multiarray_d* src                     ///< Source.
+	);
+
+/// \brief Destructs a \ref Matrix_d\*.
 /// \brief Move constructor for a `const` \ref const_Multiarray_Vector_i `*const`.
 void const_constructor_move_Multiarray_Vector_i
 	(const struct const_Multiarray_Vector_i*const* dest, ///< Destination.

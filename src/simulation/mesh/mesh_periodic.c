@@ -145,7 +145,7 @@ static void sort_pf_info
 
 static struct Periodic_Face_Info* constructor_Periodic_Face_Info (const ptrdiff_t n_pf)
 {
-	struct Periodic_Face_Info* pf_info = malloc(sizeof *pf_info); // returned
+	struct Periodic_Face_Info* pf_info = calloc(1,sizeof *pf_info); // returned
 
 	pf_info->n_pf = n_pf;
 
@@ -171,7 +171,7 @@ static void destructor_Periodic_Face_Info (struct Periodic_Face_Info* pf_info)
 
 struct Periodic_Face* constructor_Periodic_Face ()
 {
-	struct Periodic_Face* pf = malloc(sizeof *pf); // returned;
+	struct Periodic_Face* pf = calloc(1,sizeof *pf); // returned;
 
 	// `node_nums` must be subsequently copy contructed.
 	pf->node_nums = NULL;

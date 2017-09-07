@@ -123,8 +123,12 @@ const struct const_Matrix_d* constructor_copy_extract_const_Matrix_d
 
 void const_constructor_copy_Matrix_d (const struct const_Matrix_d*const* dest, const struct const_Matrix_d*const src)
 {
-	struct Matrix_d* dest_m = constructor_local_Matrix_d_1(src->layout,src->ext_0,src->ext_1,true,(double*)src->data);
+	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
+	double* data = mallocator(DOUBLE_T,1,size);
+	for (ptrdiff_t i = 0; i < size; ++i)
+		data[i] = src->data[i];
 
+	struct Matrix_d* dest_m = constructor_local_Matrix_d_1(src->layout,src->ext_0,src->ext_1,true,data);
 	const_constructor_move_Matrix_d(dest,dest_m);
 }
 
@@ -347,7 +351,7 @@ void print_const_Matrix_i (const struct const_Matrix_i*const a)
 static struct Matrix_d* constructor_local_Matrix_d_1
 	(const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1, const bool owns_data, double*const data)
 {
-	struct Matrix_d* dest = malloc(sizeof *dest); // returned
+	struct Matrix_d* dest = calloc(1,sizeof *dest); // returned
 
 	dest->layout    = layout;
 	dest->ext_0     = ext_0;
@@ -361,7 +365,7 @@ static struct Matrix_d* constructor_local_Matrix_d_1
 static struct Matrix_i* constructor_local_Matrix_i_1
 	(const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1, const bool owns_data, int*const data)
 {
-	struct Matrix_i* dest = malloc(sizeof *dest); // returned
+	struct Matrix_i* dest = calloc(1,sizeof *dest); // returned
 
 	dest->layout    = layout;
 	dest->ext_0     = ext_0;

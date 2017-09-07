@@ -36,20 +36,29 @@ static compute_geom_coef_fptr set_fptr_geom_coef
 	 const bool volume_curved ///< \ref Volume::curved.
 	);
 
+
 // Interface functions ********************************************************************************************** //
 
-void set_up_geometry (struct Simulation* sim)
+void set_up_geometry (struct Simulation* sim, struct Intrusive_List* volumes)
 {
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
 		struct Volume* volume = (struct Volume*) curr;
 
-printf("geom: %d\n",volume->index);
-print_const_Matrix_d(volume->xyz_ve,1e-10);
 		compute_geom_coef_fptr compute_geom_coef = set_fptr_geom_coef(sim->domain_type,volume->curved);
 		compute_geom_coef(sim,volume);
-
+#if 0
+printf("geom: %d\n",volume->index);
 print_const_Matrix_d(volume->geom_coef,1e-10);
+#endif
 	}
+}
+
+void set_up_geometry_solver (struct Simulation* sim, struct Intrusive_List* volumes)
+{
+UNUSED(sim);
+UNUSED(volumes);
+//		compute_geom_cofactors(sim,volume);
+	EXIT_ADD_SUPPORT;
 }
 
 // Static functions ************************************************************************************************* //
