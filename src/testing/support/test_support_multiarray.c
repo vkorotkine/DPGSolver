@@ -140,7 +140,7 @@ static struct Multiarray_Vector_i* constructor_file_Multiarray_Vector_i (FILE* d
 	struct Multiarray_Vector_i* dest = NULL;
 	switch (ma_p.order) {
 	case 1:
-		dest = constructor_empty_Multiarray_Vector_i(false,ma_p.order,ma_p.extents[0]);
+		dest = constructor_empty_Multiarray_Vector_i(false,ma_p.order,ma_p.extents);
 		break;
 	default:
 		EXIT_UNSUPPORTED;

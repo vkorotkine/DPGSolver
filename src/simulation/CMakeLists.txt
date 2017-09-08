@@ -24,7 +24,6 @@ set	(SOURCE
 	)
 
 set (LIBS_DEPEND
-	 Allocators
 	 Containers
 	 Element
 	 General

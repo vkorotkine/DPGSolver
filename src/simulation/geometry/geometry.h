@@ -9,8 +9,9 @@
 
 struct Simulation;
 struct Intrusive_List;
+struct Solver_Volume;
 
-/** \brief Set up the geometry for the simulation. Computes:
+/**	\brief Set up the geometry for the simulation. Computes:
  *	- \ref Volume::geom_coef.
  */
 void set_up_geometry
@@ -18,14 +19,19 @@ void set_up_geometry
 	 struct Intrusive_List* volumes ///< The volumes for which to set up the geometry.
 	);
 
-/** \brief Set up the geometry for the solve. Computes:
+/**	\brief Set up the solver geometry:
  *	- \ref Solver_Volume::metrics_vg;
  *	- \ref Solver_Volume::metrics_vc;
- *	- \todo [ref here] Solver_Face::metrics_fc;
+ *	- \ref Solver_Volume::jacobian_det_vc;
+ *	- \todo [ref here] Solver_Face::normals_fc;
+ *	- \todo [ref here] Solver_Face::jacobian_det_fc;
+ *
+ *	Requires that:
+ *	- \ref Simulation::volumes points to a list of \ref Solver_Volume\*s;
+ *	- \ref Simulation::faces   points to a list of \ref Solver_Face\*s.
  */
-void set_up_geometry_solver
-	(struct Simulation* sim,        ///< \ref Simulation.
-	 struct Intrusive_List* volumes ///< The volumes for which to set up the solver geometry.
+void set_up_solver_geometry
+	(struct Simulation* sim ///< \ref Simulation.
 	);
 
 #endif // DPG__geometry_h__INCLUDED

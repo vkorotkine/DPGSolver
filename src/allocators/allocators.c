@@ -5,7 +5,7 @@
 #include "allocators.h"
 
 #include <stdlib.h>
-#include <stdarg.h>
+//#include <stdarg.h> // see 'deprecated' comments in header file.
 
 #include "macros.h"
 

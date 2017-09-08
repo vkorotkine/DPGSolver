@@ -26,7 +26,6 @@
 #include "mesh_connectivity.h"
 #include "mesh_vertices.h"
 #include "const_cast.h"
-#include "allocators.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -116,10 +115,10 @@ static struct Mesh_Input* constructor_Mesh_Input (const char*const mesh_name)
 {
 	struct Mesh_Input* mesh_input = calloc(1,sizeof *mesh_input); // free
 
-	mesh_input->mesh_name_full = mallocator(CHAR_T,1,STRLEN_MAX); // destructed
-	mesh_input->geom_name      = mallocator(CHAR_T,1,STRLEN_MAX); // destructed
-	mesh_input->geom_spec      = mallocator(CHAR_T,1,STRLEN_MAX); // destructed
-	mesh_input->input_path     = mallocator(CHAR_T,1,STRLEN_MAX); // destructed
+	mesh_input->mesh_name_full = malloc(STRLEN_MAX * sizeof *mesh_input->mesh_name_full); // free
+	mesh_input->geom_name      = malloc(STRLEN_MAX * sizeof *mesh_input->geom_name);      // free
+	mesh_input->geom_spec      = malloc(STRLEN_MAX * sizeof *mesh_input->geom_spec);      // free
+	mesh_input->input_path     = malloc(STRLEN_MAX * sizeof *mesh_input->input_path);     // free
 
 	if (strstr(mesh_name,"curved_2d_mixed.msh")) {
 		set_Mesh_Input(mesh_input,2,DOM_CURVED,true,mesh_name,"n-cylinder_hollow_section","",
@@ -135,10 +134,10 @@ static struct Mesh_Input* constructor_Mesh_Input (const char*const mesh_name)
 
 static void destructor_Mesh_Input (struct Mesh_Input* mesh_input)
 {
-	deallocator((void*)mesh_input->mesh_name_full,CHAR_T,1,STRLEN_MAX);
-	deallocator((void*)mesh_input->geom_name,     CHAR_T,1,STRLEN_MAX);
-	deallocator((void*)mesh_input->geom_spec,     CHAR_T,1,STRLEN_MAX);
-	deallocator((void*)mesh_input->input_path,    CHAR_T,1,STRLEN_MAX);
+	free((void*)mesh_input->mesh_name_full);
+	free((void*)mesh_input->geom_name);
+	free((void*)mesh_input->geom_spec);
+	free((void*)mesh_input->input_path);
 
 	free(mesh_input);
 }

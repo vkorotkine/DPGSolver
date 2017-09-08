@@ -13,7 +13,6 @@
 #include "macros.h"
 #include "mesh.h"
 #include "file_processing.h"
-#include "allocators.h"
 #include "const_cast.h"
 
 #include "constants_core.h"
@@ -352,9 +351,9 @@ static struct Element_Data* constructor_Element_Data (const ptrdiff_t n_elems)
 
 	elem_data->n_elems = n_elems;
 
-	elem_data->elem_types = constructor_empty_Vector_i(n_elems);                   // keep
-	elem_data->elem_tags  = constructor_empty_Matrix_i('R',n_elems,GMSH_N_TAGS);   // keep
-	elem_data->node_nums  = constructor_empty_Multiarray_Vector_i(true,1,n_elems); // keep
+	elem_data->elem_types = constructor_empty_Vector_i(n_elems);                    // keep
+	elem_data->elem_tags  = constructor_empty_Matrix_i('R',n_elems,GMSH_N_TAGS);    // keep
+	elem_data->node_nums  = constructor_empty_Multiarray_Vector_i(true,1,&n_elems); // keep
 
 	return elem_data;
 }

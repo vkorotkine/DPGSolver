@@ -11,8 +11,8 @@ struct Simulation;
 struct Intrusive_List;
 
 /** \brief Set up the initial solution for the simulation. Computes:
- *	- \ref Volume::sol_coef;
- *	- \ref Volume::grad_coef (if applicable).
+ *	- \ref Solver_Volume::sol_coef;
+ *	- \ref Solver_Volume::grad_coef (if applicable).
  */
 void set_up_solution
 	(struct Simulation* sim,               ///< \ref Simulation.

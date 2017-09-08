@@ -159,4 +159,10 @@ struct Mesh_Input set_Mesh_Input
 	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
+/// \brief Set \ref Simulation::elements.
+void set_Simulation_elements
+	(struct Simulation*const sim,          ///< Standard.
+	 struct const_Intrusive_List* elements ///< See \ref Simulation.
+	);
+
 #endif // DPG__Simulation_h__INCLUDED

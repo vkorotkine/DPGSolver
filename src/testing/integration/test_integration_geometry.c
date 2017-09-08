@@ -45,6 +45,9 @@ void test_integration_geometry (struct Test_Info*const test_info, const char*con
 	destructor_Mesh(mesh);
 
 	sim->volumes = constructor_Solver_Volumes(sim);
+//	sim->faces   = constructor_Solver_Faces(sim);
+
+	set_up_solver_geometry(sim);
 
 
 	const bool pass = compare_members_geom(test_info,sim);

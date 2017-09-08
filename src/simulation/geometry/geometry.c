@@ -11,12 +11,14 @@
 
 #include "macros.h"
 #include "constants_mesh.h"
+#include "constants_intrusive.h"
 
 #include "matrix.h"
 
 #include "simulation.h"
-#include "volume.h"
 #include "intrusive.h"
+#include "solver_volume.h"
+#include "geometry_element.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -49,12 +51,25 @@ void set_up_geometry (struct Simulation* sim, struct Intrusive_List* volumes)
 	}
 }
 
-void set_up_geometry_solver (struct Simulation* sim, struct Intrusive_List* volumes)
+void set_up_solver_geometry (struct Simulation* sim)
 {
-UNUSED(sim);
-UNUSED(volumes);
+	if ((sim->volumes->name != IL_SOLVER_VOLUME) || (sim->faces->name != IL_SOLVER_FACE))
+		EXIT_UNSUPPORTED;
+
+	set_Simulation_elements(sim,constructor_Geometry_Elements(sim));
+
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Volume* volume = (struct Volume*) curr;
+
+		struct const_Geometry_Element* geometry_element = (struct const_Geometry_Element*) volume->element;
+
+		struct Element* element = (struct Element*) geometry_element;
+
+		printf("%d\n",element->type);
+		printf("a2: %d\n",((struct Element*)geometry_element)->type);
+	}
+
 //		compute_geom_metrics(sim,volume);
-	EXIT_ADD_SUPPORT;
 }
 
 // Static functions ************************************************************************************************* //
@@ -107,7 +122,7 @@ static void compute_geom_coef_straight (const struct Simulation*const sim, struc
 	} else if (strstr(sim->basis_geom,"nurbs")) {
 		EXIT_ADD_SUPPORT;
 	} else {
-		EXIT_UNSUPPORTED;
+		EXIT_ERROR("Unsupported sim->basis_geom: '%s'.",sim->basis_geom);
 	}
 }
 
@@ -115,7 +130,7 @@ static void compute_geom_coef_curved (const struct Simulation*const sim, struct 
 {
 UNUSED(sim);
 UNUSED(volume);
-	EXIT_ADD_SUPPORT;
+//	EXIT_ADD_SUPPORT;
 }
 
 static void compute_geom_coef_parametric (const struct Simulation*const sim, struct Volume*const volume)

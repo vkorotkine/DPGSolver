@@ -86,7 +86,6 @@ struct Intrusive_List* constructor_Volumes (struct Simulation*const sim, const s
 	sim->n_v = n_v;
 
 	set_up_geometry(sim,volumes);
-	set_up_solution(sim,volumes);
 
 	return volumes;
 }

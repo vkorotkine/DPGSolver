@@ -11,27 +11,10 @@
 
 #include "macros.h"
 
-#include "allocators.h"
 #include "multiarray.h"
 #include "matrix.h"
 
 // Static function declarations ************************************************************************************* //
-
-/** \brief Make a local \ref Vector_i\* (dynamic memory).
- *	\return See brief.  */
-static struct Vector_i* constructor_local_Vector_i_1
-	(const ptrdiff_t ext_0, ///< Standard.
-	 const bool owns_data,  ///< Standard.
-	 int*const data         ///< Standard.
-	);
-
-/** \brief Make a local \ref Vector_d\* (dynamic memory).
- *	\return See brief.  */
-static struct Vector_d* constructor_local_Vector_d_1
-	(const ptrdiff_t ext_0, ///< Standard.
-	 const bool owns_data,  ///< Standard.
-	 double*const data      ///< Standard.
-	);
 
 /** \brief Comparison function for std::qsort between `int*` `a` and `b`.
  *	\return a - b.  */
@@ -40,137 +23,7 @@ static int cmp_i
 	 const void *b  ///< Variable 2.
 	);
 
-/** \brief Constructs a default \ref Vector_i\*.
- *	\return Standard. */
-static struct Vector_i* constructor_default_Vector_i ();
-
-// Constructor/Destructor functions ********************************************************************************* //
-
-struct Vector_i** constructor_default_Vector_i_2 (const ptrdiff_t n_dest)
-{
-	struct Vector_i** dest = malloc(n_dest * sizeof *dest); // returned;
-
-	for (ptrdiff_t n = 0; n < n_dest; n++)
-		dest[n] = constructor_default_Vector_i();
-
-	return dest;
-}
-
-struct Vector_i* constructor_empty_Vector_i (const ptrdiff_t ext_0)
-{
-	int* data = mallocator(INT_T,1,ext_0); // keep
-
-	return constructor_local_Vector_i_1(ext_0,true,data);
-}
-
-struct Vector_i* constructor_copy_Vector_i (const struct Vector_i*const src)
-{
-	const ptrdiff_t ext_0 = src->ext_0;
-	const int*const data_src = src->data;
-
-	int* data = malloc(ext_0 * sizeof *data); // keep
-	for (ptrdiff_t i = 0; i < ext_0; i++)
-		data[i] = data_src[i];
-
-	return constructor_local_Vector_i_1(ext_0,true,data);
-}
-
-struct Vector_i* constructor_copy_Vector_i_i (const ptrdiff_t ext_0, const int*const data_src)
-{
-	int* data = malloc(ext_0 * sizeof *data); // keep
-	for (ptrdiff_t i = 0; i < ext_0; i++)
-		data[i] = data_src[i];
-
-	return constructor_local_Vector_i_1(ext_0,true,data);
-}
-
-struct Vector_i* constructor_move_Vector_i_i (const ptrdiff_t ext_0, const bool owns_data, int*const data)
-{
-	return constructor_local_Vector_i_1(ext_0,owns_data,data);
-}
-
-struct const_Vector_i* constructor_move_const_Vector_i_i
-	(const ptrdiff_t ext_0, const bool owns_data, const int*const data)
-{
-	struct Vector_i* local = constructor_local_Vector_i_1(ext_0,owns_data,(int*)data); // free
-/// \todo replace with const_constructor
-	struct const_Vector_i* dest = calloc(1,sizeof *dest); // returned
-	memcpy(dest,local,sizeof *dest);
-	free(local);
-
-	return dest;
-}
-
-void const_constructor_move_Vector_i (const struct const_Vector_i*const* dest, struct Vector_i* src)
-{
-	*(struct const_Vector_i**) dest = (struct const_Vector_i*) src;
-}
-
-void destructor_Vector_i (struct Vector_i* a)
-{
-	if (a->owns_data)
-		deallocator(a->data,INT_T,1,a->ext_0);
-	free(a);
-}
-
-void destructor_Vector_i_2 (struct Vector_i** a, const ptrdiff_t n_src, const bool owns_data)
-{
-	if (owns_data) {
-		for (ptrdiff_t n = 0; n < n_src; n++)
-			destructor_Vector_i(a[n]);
-	}
-	free(a);
-}
-
-struct Vector_d* constructor_empty_Vector_d (const ptrdiff_t ext_0)
-{
-	double* data = mallocator(DOUBLE_T,1,ext_0); // keep
-
-	return constructor_local_Vector_d_1(ext_0,true,data);
-}
-
-struct Vector_d* constructor_move_Vector_d_d (const ptrdiff_t ext_0, const bool owns_data, double*const data)
-{
-	return constructor_local_Vector_d_1(ext_0,owns_data,data);
-}
-
-struct Vector_d* constructor_sum_Vector_d_const_Matrix_d (const char sum_dir, const struct const_Matrix_d*const src)
-{
-	if (!(sum_dir == 'R' || sum_dir == 'C'))
-		EXIT_UNSUPPORTED;
-
-	const ptrdiff_t ext_0 = ( sum_dir == 'R' ? src->ext_1 : src->ext_0 );
-
-	struct Vector_d* dest = constructor_empty_Vector_d(ext_0); // returned
-	for (ptrdiff_t j = 0; j < ext_0; ++j)
-		dest->data[j] = 0.0;
-
-	if (sum_dir != src->layout) {
-		EXIT_ADD_SUPPORT;
-	} else {
-		if (src->layout == 'R') {
-			const ptrdiff_t i_max = src->ext_0;
-			for (ptrdiff_t i = 0; i < i_max; ++i) {
-				const double* data_m = get_row_const_Matrix_d(i,src);
-				for (ptrdiff_t j = 0; j < ext_0; ++j)
-					dest->data[j] += data_m[j];
-			}
-		} else {
-			EXIT_ADD_SUPPORT;
-		}
-	}
-
-	return dest;
-}
-
-void destructor_Vector_d (struct Vector_d* a)
-{
-	if (a->owns_data)
-		deallocator(a->data,DOUBLE_T,1,a->ext_0);
-	free(a);
-}
-
-// Helper functions ************************************************************************************************* //
+// Interface functions ********************************************************************************************** //
 
 void reorder_Vector_i (struct Vector_i*const a, const int*const ordering)
 {
@@ -333,78 +186,8 @@ bool find_val_Vector_i (const struct const_Vector_i*const src, const int val, co
 	return found;
 }
 
-// Printing functions *********************************************************************************************** //
-
-void print_Vector_i (const struct Vector_i*const a)
-{
-	const ptrdiff_t ext = a->ext_0;
-
-	const int* data = a->data;
-
-	for (ptrdiff_t i = 0; i < ext; i++) {
-		printf("% 12d ",*data++);
-		if (!((i+1)%8))
-			printf("\n");
-	}
-	printf("\n\n");
-}
-
-void print_const_Vector_i (const struct const_Vector_i*const a)
-{
-	struct Vector_i* local = constructor_local_Vector_i_1(a->ext_0,false,(int*)a->data); // free
-	print_Vector_i(local);
-	free(local);
-}
-
-void print_Vector_d (const struct Vector_d*const a, const double tol)
-{
-	const ptrdiff_t ext = a->ext_0;
-
-	const double* data = a->data;
-
-	for (ptrdiff_t i = 0; i < ext; i++) {
-		const double val = *data++;
-		printf("% .4e ",( (isnan(val) || (fabs(val) > tol)) ? val : 0.0 ));
-		if (!((i+1)%8))
-			printf("\n");
-	}
-	printf("\n\n");
-}
-
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static struct Vector_i* constructor_default_Vector_i ()
-{
-	struct Vector_i* dest = calloc(1,sizeof *dest); // returned
-	dest->ext_0     = 0;
-	dest->owns_data = true;
-	dest->data      = NULL;
-
-	return dest;
-}
-
-static struct Vector_i* constructor_local_Vector_i_1 (const ptrdiff_t ext_0, const bool owns_data, int*const data)
-{
-	struct Vector_i* dest = calloc(1,sizeof *dest); // returned
-
-	dest->ext_0     = ext_0;
-	dest->owns_data = owns_data;
-	dest->data      = data;
-
-	return dest;
-}
-
-static struct Vector_d* constructor_local_Vector_d_1 (const ptrdiff_t ext_0, const bool owns_data, double*const data)
-{
-	struct Vector_d* dest = calloc(1,sizeof *dest); // returned
-
-	dest->ext_0     = ext_0;
-	dest->owns_data = owns_data;
-	dest->data      = data;
-
-	return dest;
-}
 
 static int cmp_i (const void *a, const void *b)
 {

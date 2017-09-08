@@ -1,3 +1,5 @@
+# Mesh processing variables
+
 pde_name  euler
 pde_spec  internal/supersonic_vortex
 
@@ -13,3 +15,20 @@ mesh_type        mixed
 mesh_level       0 0
 mesh_unrealistic 0
 mesh_path        ../testing/mesh/curved_2d_mixed.msh
+
+
+# Remaining variables
+
+basis_geom  bezier
+basis_sol   lagrange
+
+geom_representation  isoparametric
+p_s_v   2 2
+p_s_f   2 2
+p_sg_v  2 2
+p_sg_f  2 2
+
+p_cub_x 2
+p_cub_p 1
+
+p_test_p 2

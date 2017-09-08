@@ -8,10 +8,9 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
-	 Allocators
-	 Simulation
-	 Mesh
 	 Geometry
+	 Mesh
+	 Simulation
 	 Test_Base
 	 Test_Support
 	)

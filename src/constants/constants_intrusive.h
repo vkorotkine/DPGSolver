@@ -8,7 +8,9 @@
  */
 
 ///\{ \name The \ref Element list names.
-#define IL_ELEMENT 100
+#define IL_ELEMENT          100
+#define IL_GEOMETRY_ELEMENT 101
+#define IL_SOLVER_ELEMENT   102
 ///\}
 
 ///\{ \name The \ref Volume list names.

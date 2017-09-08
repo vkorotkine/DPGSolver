@@ -1,8 +1,8 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#ifndef DPG__Multiarray_h__INCLUDED
-#define DPG__Multiarray_h__INCLUDED
+#ifndef DPG__multiarray_h__INCLUDED
+#define DPG__multiarray_h__INCLUDED
 /**	\file
  *	\brief Provides Multiarray_\* containers and related functions.
  *
@@ -11,15 +11,15 @@
  *	\subsection s11_Multi Standard Data Types
  *
  *	For standard data types, the Multiarray container is intended to be used as a higher-dimensional matrix where move
- *	constructors are used to form matrix containers for appropriate sub-blocks. As the data is stored contiguously in
- *	memory, the Multiarray may also be acted on over multiple dimensions at once.
+ *	constructors are used to form matrix/vector containers for appropriate sub-blocks. As the data is stored
+ *	contiguously in memory, the Multiarray may also be acted on over multiple "dimensions" at once.
  *
  *	\subsubsection s111_Multi Supported Types
  *
  *	Following the recommendation of many c++ experts, containers of unsigned integer types are **not** supported even if
  *	the variable to be represented is always positive. For more details, see the Eigen FAQ section on
  *	[Why Eigen's API is using signed integers for sizes, indices, etc.?][eigen_signed] and the linked video and posts.
- *	This [SO discussion][SO_signed] provides a summary of some of the points made in the video referred to above if it
+ *	[This][SO_signed] SO discussion provides a summary of some of the points made in the video referred to above if it
  *	is no longer accessible.
  *
  *	For similar reasons, the type used for array indexing and storing array sizes is `ptrdiff_t` and not `size_t`. It
@@ -31,7 +31,7 @@
  *	\subsubsection s122_Multi Multiarray Specializations
  *
  *	Two specializations of the Multiarray exist: Matrix (2D Multiarray) and Vector (1D Multiarray). These containers are
- *	used when the data is most intuitively considered to be of the given form (e.g. Mathematical operators are
+ *	used when the data is most intuitively considered to be of the given form (e.g. mathematical operators are
  *	Matrices).
  *
  *	Further, functionality is provided for storing Multiarrays of these specialized types (i.e. Multiarrays of Matrices
@@ -42,74 +42,16 @@
  *	As the intended functionality of the specialized Multiarrays does not include usage as higher-dimensional matrices
  *	for contiguous data storage, the `layout` parameter is omitted from these containers.
  *
- *	\subsection s13_Multi Const Versions of Multiarray Containers
- *
- *	In order to avoid unintentionally overwriting data which should be constant, `const` versions of the containers
- *	are also provided where relevant. A complication which arises as a result of declaring objects `const` is that it is
- *	not possible to define them! To overcome this difficulty, lvalue casts are used to set the data.
- *
- *	\warning This procedure exhibits undefined behaviour (relating to changing a `const`-qualified type) unless the
- *	memory for the struct is **dynamically allocated**. See [this SO answer][SO_dyn_const_struct] for a detailed
- *	explanation of the problem and possible approaches used to overcome it.
- *
- *	\warning It is **required** that `const` and non-`const` versions of the containers have identical memory layout
- *	         such that casts can be used to convert between them.
- *
- *	Noting that containers should be dynamically allocated, we have the implication that containers with no
- *	dereferencing should never be used. Taken together with the upper limitation on the level of dereferencing, it is
- *	thus required that **containers have exactly one level of dereferencing**. The only place in which an additional
- *	level of dereferencing is permitted is as a list of pointers to containers in a multiarray.
- *
- *	\subsubsection s131_Multi Constructors for `const` Containers
- *
- *	The `const_constructor_move_...` functions are used to *define* the `const` equivalent of the container. The
- *	functions move **all** container members through lvalue and rvalue casts.
- *
- *	\note This means that a single destructor call should be made for both the `src` and `dest` variables.
- *
- *	\section s2_Multi Functions
- *
- *	\subsection s21_Multi Naming Convention
- *
- *	Function names are chosen according to the following template: `constructor_{0}_(1)_{2}_(3)_(4)` where elements in
- *	curly braces {} are required and those in round brackets () are optional.
- *		- {0} : Type of constructor
- *			- default: reserve memory only for the container itself (not for the data).
- *			- empty:   reserve memory storage for the data but do not set it.
- *			- copy:    reserve memory storage for the data and set it to a copy of the input data.
- *			- move:    move data to the container being constructed.
- *		- (1) : Optional `const` specifier
- *		- {2} : Type of container to be returned
- *			- Multiarray_\*: d, Vector_i
- *		- (3) : Level of dereferencing if not equal to 1.
- *		- (4) : Type of input from which the container is constructed
- *
- *	\subsection s22_Multi Local constructors
- *
- *	Containers returned from `constructor_local_\*` functions generally need not be destructed as they are either local
- *	objects or moved to a non-local object to be subsequently destructed. These functions are present simply to shorten
- *	allocation of new objects.
- *
- *	\subsection s23_Multi Variadic Arguments
- *
- *	In the interest of greater generic programming, variadic functions are used for the constructors such that a
- *	variable number of `extent` values may be passed for variable order Multiarrays. This is similar to the
- *	implementation of printf. A detailed explanation of this procedure can be found in this
- *	[Wikipedia article on stdarg.h][stdarg.h].
- *
  *	<!-- References: -->
- *	[SO_dyn_const_struct]: https://stackoverflow.com/questions/2219001/how-to-initialize-const-members-of-structs-on-the-heap
- *	[stdarg.h]: https://en.wikipedia.org/wiki/Stdarg.h
  *	[eigen_signed]: http://eigen.tuxfamily.org/index.php?title=FAQ#Why_Eigen.27s_API_is_using_signed_integers_for_sizes.2C_indices.2C_etc..3F
- *	[SO_signed]: https://stackoverflow.com/questions/18795453/why-prefer-signed-over-unsigned-in-c
+ *	[SO_signed]: https://stackoverflow.com/a/18796234/5983549
  */
 
 #include <stddef.h>
 #include <stdbool.h>
-#include <stdarg.h>
 
-struct Multiarray_d;
-struct const_Multiarray_d;
+#include "multiarray_constructors.h"
+#include "multiarray_print.h"
 
 /// \brief Multiarray (`double`).
 struct Multiarray_d {
@@ -152,72 +94,7 @@ struct const_Multiarray_Vector_i {
 	const struct const_Vector_i*const*const data; ///< Defined in \ref Multiarray_d.
 };
 
-// Constructor/Destructor functions ********************************************************************************* //
-
-/**	\brief Constructor for a default \ref Multiarray_d\*.
- *	\return Standard. */
-struct Multiarray_d* constructor_default_Multiarray_d ();
-
-/** \brief Move constructor for a \ref Multiarray_d\* from a `double*`.
- *	\return Standard. */
-struct Multiarray_d* constructor_move_Multiarray_d_d
-	(const char layout, ///< Defined in \ref Multiarray_d.
-	 double*const data, ///< Defined in \ref Multiarray_d.
-	 const int order,   ///< Defined in \ref Multiarray_d.
-	 ...                ///< Variadic arguments holding the extents.
-	);
-
-/** \brief Constructs an empty \ref Multiarray_Vector_i\*.
- *	\return Standard.
- */
-struct Multiarray_Vector_i* constructor_empty_Multiarray_Vector_i
-	(const bool alloc_V, ///< Flag indicating whether memory should be reserved for the individual Vectors.
-	 const int order,    ///< Defined in \ref Multiarray_d.
-	 ...                 ///< Variadic arguments.
-	);
-
-/** \brief Constructs a \ref Multiarray_Vector_i\* and sets the values of its \ref Vector_i\* components from the input
- *         `int*` data.
- *	\return Standard. */
-struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i_i
-	(const int* data_V,     ///< The `int` data.
-	 const int*const ext_V, /**< The ext_0 values of each \ref Vector_i in the multiarray. Note: using `int` and not
-	                         *   `ptrdiff_t` as this is sometimes initialized from \ref Vector_i::data. */
-	 const int order,       ///< Defined in \ref Multiarray_d.
-	 ...                    ///< Variadic arguments holding the extents of the Multiarray.
-	);
-
-/// \brief Move Constructor for a `const` \ref const_Multiarray_d `*const`.
-void const_constructor_move_Multiarray_d
-	(const struct const_Multiarray_d*const* dest, ///< Destination.
-	 struct Multiarray_d* src                     ///< Source.
-	);
-
-/// \brief Destructs a \ref Matrix_d\*.
-/// \brief Move constructor for a `const` \ref const_Multiarray_Vector_i `*const`.
-void const_constructor_move_Multiarray_Vector_i
-	(const struct const_Multiarray_Vector_i*const* dest, ///< Destination.
-	 struct Multiarray_Vector_i* src                     ///< Source.
-	);
-
-/// \brief Destructs a \ref Multiarray_d\*.
-void destructor_Multiarray_d
-	(struct Multiarray_d* a ///< Standard.
-	);
-
-/// \brief Destructs a \ref Multiarray_Vector_i\*.
-void destructor_Multiarray_Vector_i
-	(struct Multiarray_Vector_i* a ///< Standard.
-	);
-
-// Helper functions ************************************************************************************************* //
-
-/** \brief Allocated and set the `extents` for a `Multiarray_*`.
- *	\return See brief. */
-ptrdiff_t* allocate_and_set_extents
-	(const int order, ///< Defined in \ref Multiarray_d.
-	 va_list ap       ///< List of variadic arguments.
-	);
+// Interface functions ********************************************************************************************** //
 
 /** \brief Computes the `size`, which is the product of the `extents`.
  *	\return See brief. */
@@ -247,22 +124,4 @@ struct Vector_i* collapse_Multiarray_Vector_i
 	(const struct Multiarray_Vector_i*const src ///< The source.
 	);
 
-// Printing functions *********************************************************************************************** //
-
-/// \brief Print a \ref Multiarray_Vector_i\* to the terminal.
-void print_Multiarray_Vector_i
-	(const struct Multiarray_Vector_i*const a ///< Standard.
-	);
-
-/// \brief Print a \ref const_Multiarray_Vector_i\* to the terminal.
-void print_const_Multiarray_Vector_i
-	(const struct const_Multiarray_Vector_i*const a ///< Standard.
-	);
-
-/// \brief Print a \ref Multiarray_d\* to the terminal displaying entries below the tolerance as 0.0.
-void print_Multiarray_d
-	(const struct Multiarray_d*const a, ///< Standard.
-	 const double tol                   ///< The tolerance.
-	);
-
-#endif // DPG__Multiarray_h__INCLUDED
+#endif // DPG__multiarray_h__INCLUDED

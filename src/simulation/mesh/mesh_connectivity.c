@@ -21,7 +21,6 @@
 #include "mesh.h"
 #include "mesh_periodic.h"
 #include "const_cast.h"
-#include "allocators.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -234,7 +233,7 @@ static void compute_f_ve
 	struct const_Vector_i* volume_types = conn_info->volume_types;
 
 	const ptrdiff_t sum_n_f = compute_sum_n_f(elements,volume_types);
-	struct Multiarray_Vector_i* f_ve = constructor_empty_Multiarray_Vector_i(true,1,sum_n_f); // returned
+	struct Multiarray_Vector_i* f_ve = constructor_empty_Multiarray_Vector_i(true,1,&sum_n_f); // returned
 
 	const struct const_Vector_i*const*const volume_nums = &mesh_data->node_nums->data[ind_v];
 	for (ptrdiff_t v = 0, ind_f = 0; v < n_v; ++v) {
@@ -268,8 +267,8 @@ static void compute_v_to__v_lf (const struct Conn_info*const conn_info, struct M
 	struct Vector_i* v_n_lf = conn_info->v_n_lf;
 
 	// Store global volume and local face indices corresponding to each global face (reordered).
-	int* ind_v_i  = mallocator(INT_T,1,n_f); // moved
-	int* ind_lf_i = mallocator(INT_T,1,n_f); // moved
+	int* ind_v_i  = malloc(n_f * sizeof *ind_v_i);  // moved
+	int* ind_lf_i = malloc(n_f * sizeof *ind_lf_i); // moved
 
 	for (ptrdiff_t ind_vf = 0, v = 0; v < n_v; ++v) {
 		const ptrdiff_t lf_max = v_n_lf->data[v];
@@ -287,8 +286,8 @@ static void compute_v_to__v_lf (const struct Conn_info*const conn_info, struct M
 	reorder_Vector_i(ind_lf_V,ind_f_ve_V->data);
 
 	// Compute v_to_v and v_to_lf
-	int* v_to_v_i  = mallocator(INT_T,1,n_f); // free
-	int* v_to_lf_i = mallocator(INT_T,1,n_f); // free
+	int* v_to_v_i  = malloc(n_f * sizeof *v_to_v_i);  // free
+	int* v_to_lf_i = malloc(n_f * sizeof *v_to_lf_i); // free
 
 	struct Multiarray_Vector_i* f_ve = conn_info->f_ve;
 	const int*const ind_f_ve_i = ind_f_ve_V->data;
@@ -316,8 +315,8 @@ static void compute_v_to__v_lf (const struct Conn_info*const conn_info, struct M
 	destructor_Vector_i(ind_v_V);
 	destructor_Vector_i(ind_lf_V);
 
-	mesh_conn_l->v_to_v  = constructor_copy_Multiarray_Vector_i_i(v_to_v_i,conn_info->v_n_lf->data,1,n_v);  // keep
-	mesh_conn_l->v_to_lf = constructor_copy_Multiarray_Vector_i_i(v_to_lf_i,conn_info->v_n_lf->data,1,n_v); // keep
+	mesh_conn_l->v_to_v  = constructor_copy_Multiarray_Vector_i_i(v_to_v_i,conn_info->v_n_lf->data,1,&n_v);  // keep
+	mesh_conn_l->v_to_lf = constructor_copy_Multiarray_Vector_i_i(v_to_lf_i,conn_info->v_n_lf->data,1,&n_v); // keep
 
 	free(v_to_v_i);
 	free(v_to_lf_i);
@@ -340,7 +339,7 @@ static void add_bc_info
 	set_bf_info(bf_info,ind_pfe,mesh_data);
 
 	// Copy the pointers to the node_nums into a Multiarray_Vector_i (for sorting).
-	struct Multiarray_Vector_i* bf_ve = constructor_empty_Multiarray_Vector_i(true,1,n_bf); // destructed
+	struct Multiarray_Vector_i* bf_ve = constructor_empty_Multiarray_Vector_i(true,1,&n_bf); // destructed
 	bf_ve->owns_data = false;
 	for (ptrdiff_t i = 0; i < n_bf; ++i) {
 		destructor_Vector_i(bf_ve->data[i]);

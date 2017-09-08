@@ -34,12 +34,6 @@ static void set_simulation_core
 	 const char*const ctrl_name   ///< Control file name (excluding the file extension).
 	);
 
-/// \brief Set \ref Simulation::elements.
-static void set_Simulation_elements
-	(struct Simulation*const sim,          ///< Standard.
-	 struct const_Intrusive_List* elements ///< See \ref Simulation.
-	);
-
 // Interface functions ********************************************************************************************** //
 
 struct Simulation* constructor_Simulation (const char*const ctrl_name)
@@ -47,7 +41,7 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 	struct Simulation* sim = calloc(1,sizeof *sim); // returned;
 
 	set_simulation_core(sim,ctrl_name);
-	set_Simulation_elements(sim,constructor_Element_List(sim->d));
+	set_Simulation_elements(sim,constructor_Elements(sim->d));
 
 	return sim;
 }
@@ -177,7 +171,7 @@ if (0)
 	set_string_associations(sim);
 }
 
-static void set_Simulation_elements (struct Simulation*const sim, struct const_Intrusive_List* elements)
+void set_Simulation_elements (struct Simulation*const sim, struct const_Intrusive_List* elements)
 {
 	*(struct const_Intrusive_List**)&sim->elements = elements;
 }

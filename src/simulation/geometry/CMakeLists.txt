@@ -1,5 +1,6 @@
 set	(SOURCE
 	 geometry.c
+	 geometry_element.c
 	)
 
 set	(LIBS_DEPEND

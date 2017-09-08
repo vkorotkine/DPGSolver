@@ -1,8 +1,8 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#ifndef DPG__Element_h__INCLUDED
-#define DPG__Element_h__INCLUDED
+#ifndef DPG__element_h__INCLUDED
+#define DPG__element_h__INCLUDED
 /**	\file
  *	\brief Provides the interface for the base \ref Element container and associated functions.
  *
@@ -23,7 +23,7 @@ struct Element {
 	const struct const_Multiarray_Vector_i*const f_ve; ///< The correspondence between the (f)aces and (ve)rtices.
 };
 
-/// \brief `const` version of the base Element container.
+/// \brief `const` version of the \ref Element container.
 struct const_Element {
 	const struct const_Intrusive_Link lnk; ///< Defined in \ref Element.
 
@@ -37,15 +37,20 @@ struct const_Element {
 
 // Constructor/Destructor functions ********************************************************************************* //
 
-/** \brief Constructs the base \ref Element \ref Intrusive_List.
+/** \brief Constructs the \ref Element\*s.
  *	\return Standard. */
-struct const_Intrusive_List* constructor_Element_List
+struct const_Intrusive_List* constructor_Elements
 	(const int d ///< The dimension.
 	);
 
-/// \brief Destructs the base \ref Element \ref Intrusive_List.
+/// \brief Destructs the \ref Element\*s.
 void destructor_Elements
-	(struct Intrusive_List* Elements ///< Standard.
+	(struct Intrusive_List* elements ///< Standard.
+	);
+
+/// \brief Destructor for an individual \ref Element.
+void destructor_Element
+	(struct Element* element ///< Standard.
 	);
 
 /// \brief Cast from \ref const_Element\* to `const` \ref const_Element `*const`.
@@ -57,18 +62,18 @@ void const_cast_const_Element
 // Helper functions ************************************************************************************************* //
 
 /** \brief See return.
- *	\return Pointer to a base \ref Element of the input `type`. */
+ *	\return Pointer to a \ref Element of the input `type`. */
 struct const_Element* get_element_by_type
 	(const struct const_Intrusive_List*const elements, ///< The list of elements.
 	 const int type                                    ///< Defined in \ref Element.
 	);
 
 /** \brief See return.
- *	\return Pointer to a base \ref Element corresponding to the specified face of the input volume.
+ *	\return Pointer to a \ref Element corresponding to the specified face of the input volume.
  */
 struct const_Element* get_element_by_face
 	(const struct const_Element*const element, ///< The element corresponding to the volume.
 	 const int lf                              ///< The index of the local face.
 	);
 
-#endif // DPG__Element_h__INCLUDED
+#endif // DPG__element_h__INCLUDED

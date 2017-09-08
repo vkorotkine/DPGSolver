@@ -20,32 +20,27 @@ static struct Element* constructor_Element
 	(const int elem_type ///< The element type (e.g. LINE, TRI, ...)
 	);
 
-/// \brief Destructor for an individual \ref Element.
-static void destructor_Element
-	(struct Element* element ///< Standard.
-	);
-
 // Interface functions ********************************************************************************************** //
 
-struct const_Intrusive_List* constructor_Element_List (const int d)
+struct const_Intrusive_List* constructor_Elements (const int d)
 {
-	struct Intrusive_List* Elements = constructor_empty_IL(IL_ELEMENT);
+	struct Intrusive_List* elements = constructor_empty_IL(IL_ELEMENT);
 
-	push_back_IL(Elements,(struct Intrusive_Link*) constructor_Element(LINE));
+	push_back_IL(elements,(struct Intrusive_Link*) constructor_Element(LINE));
 
 	if (d >= 2) {
-		push_back_IL(Elements,(struct Intrusive_Link*) constructor_Element(TRI));
-		push_back_IL(Elements,(struct Intrusive_Link*) constructor_Element(QUAD));
+		push_back_IL(elements,(struct Intrusive_Link*) constructor_Element(TRI));
+		push_back_IL(elements,(struct Intrusive_Link*) constructor_Element(QUAD));
 	}
 
 	if (d >= 3) {
-		push_back_IL(Elements,(struct Intrusive_Link*) constructor_Element(TET));
-		push_back_IL(Elements,(struct Intrusive_Link*) constructor_Element(HEX));
-		push_back_IL(Elements,(struct Intrusive_Link*) constructor_Element(WEDGE));
-		push_back_IL(Elements,(struct Intrusive_Link*) constructor_Element(PYR));
+		push_back_IL(elements,(struct Intrusive_Link*) constructor_Element(TET));
+		push_back_IL(elements,(struct Intrusive_Link*) constructor_Element(HEX));
+		push_back_IL(elements,(struct Intrusive_Link*) constructor_Element(WEDGE));
+		push_back_IL(elements,(struct Intrusive_Link*) constructor_Element(PYR));
 	}
 
-	return (struct const_Intrusive_List*) Elements;
+	return (struct const_Intrusive_List*) elements;
 }
 
 void destructor_Elements (struct Intrusive_List* elements)
@@ -56,6 +51,11 @@ void destructor_Elements (struct Intrusive_List* elements)
 		curr = next;
 	}
 	destructor_IL(elements);
+}
+
+void destructor_Element (struct Element* element)
+{
+	destructor_Multiarray_Vector_i((struct Multiarray_Vector_i*)element->f_ve);
 }
 
 void const_cast_const_Element (const struct const_Element*const* dest, const struct const_Element*const src)
@@ -127,12 +127,9 @@ struct Elem_info {
 	    *f_ve;   ///< Defined in \ref Element.
 };
 
-static struct Element* constructor_Element
-	(const int elem_type ///< The element type (e.g. LINE, TRI, ...)
-	)
+static struct Element* constructor_Element (const int elem_type)
 {
-	// The method used for the initialization of the local variables was taken from [this SO answer][SO_static_init].
-	// [SO_static_init]: https://stackoverflow.com/a/17938106/5983549
+	// Note the use of the compound literals for the initialization of the local variables.
 	struct Elem_info e_info;
 	switch (elem_type) {
 	case LINE:
@@ -177,8 +174,8 @@ static struct Element* constructor_Element
 		break;
 	}
 
-	struct Multiarray_Vector_i* f_ve = constructor_copy_Multiarray_Vector_i_i(e_info.f_ve,e_info.n_f_ve,1,e_info.n_f);
-//	print_Multiarray_Vector_i(f_ve);
+	const ptrdiff_t n_f = e_info.n_f;
+	struct Multiarray_Vector_i* f_ve = constructor_copy_Multiarray_Vector_i_i(e_info.f_ve,e_info.n_f_ve,1,&n_f);
 
 	struct Element* element = calloc(1,sizeof *element); // returned
 
@@ -190,9 +187,4 @@ static struct Element* constructor_Element
 
 
 	return element;
-}
-
-static void destructor_Element (struct Element* element)
-{
-	destructor_Multiarray_Vector_i((struct Multiarray_Vector_i*)element->f_ve);
 }

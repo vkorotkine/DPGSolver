@@ -5,6 +5,9 @@
 #define DPG__allocators_h__INCLUDED
 /** \file
  *	\brief Provides functions using for dynamic memory allocation.
+ *
+ *	\deprecated Likely not generally useful as multiply dereferenced objects are to be avoided. Variadic arguments
+ *	            should be replaced with compound literal inputs if this is used in the future.
  */
 
 #include <stddef.h>

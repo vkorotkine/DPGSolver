@@ -28,7 +28,7 @@ struct Mesh* constructor_Mesh (const struct Mesh_Input* mesh_input, const struct
 	bool elements_provided = true;
 	if (elements == NULL) {
 		elements_provided = false;
-		elements = constructor_Element_List(mesh_input->d); // destructed
+		elements = constructor_Elements(mesh_input->d); // destructed
 	}
 
 	struct Mesh* mesh = calloc(1,sizeof *mesh); // returned

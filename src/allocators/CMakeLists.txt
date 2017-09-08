@@ -1,5 +1,7 @@
-set	(SOURCE
-	 allocators.c
-   	)
+# Likely not useful (To be deprecated).
 
-add_library(Allocators ${SOURCE})
+#set	(SOURCE
+#	 allocators.c
+#   	)
+
+#add_library(Allocators ${SOURCE})
