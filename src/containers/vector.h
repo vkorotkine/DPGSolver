@@ -115,6 +115,14 @@ struct Vector_d* constructor_empty_Vector_d
 	(const ptrdiff_t ext_0 ///< The value of ext_0.
 	);
 
+/** \brief Move constructor for a \ref Vector_d\* from a `double*`.
+ *	\return Standard. */
+struct Vector_d* constructor_move_Vector_d_d
+	(const ptrdiff_t ext_0, ///< The value of ext_0.
+	 const bool owns_data,  ///< Standard.
+	 double*const data      ///< Standard.
+	);
+
 /** \brief Constructs a \ref Vector_d\* as the sum of the rows/columns of the input Matrix in the specified direction.
  *	\return Standard. */
 struct Vector_d* constructor_sum_Vector_d_const_Matrix_d

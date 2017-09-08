@@ -129,6 +129,11 @@ struct Vector_d* constructor_empty_Vector_d (const ptrdiff_t ext_0)
 	return constructor_local_Vector_d_1(ext_0,true,data);
 }
 
+struct Vector_d* constructor_move_Vector_d_d (const ptrdiff_t ext_0, const bool owns_data, double*const data)
+{
+	return constructor_local_Vector_d_1(ext_0,owns_data,data);
+}
+
 struct Vector_d* constructor_sum_Vector_d_const_Matrix_d (const char sum_dir, const struct const_Matrix_d*const src)
 {
 	if (!(sum_dir == 'R' || sum_dir == 'C'))

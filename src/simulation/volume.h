@@ -41,9 +41,6 @@ struct Volume {
 	 */
 	const struct const_Matrix_d*const geom_coef;
 
-	/// The coefficients of the solution in the \ref Simulation::basis_sol.
-	const struct const_Multiarray_d*const sol_coef;
-
 	const struct Face*const faces[NFMAX][NSUBFMAX]; ///< Array of pointers to the neighbouring \ref Face containers.
 
 	const struct const_Element*const element; ///< Pointer to the associated \ref const_Element.

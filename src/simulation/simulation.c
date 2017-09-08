@@ -164,9 +164,9 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"p_s_f"))    read_skip_const_i_1(line,1,sim->p_s_f,2);
 		if (strstr(line,"p_sg_v"))   read_skip_const_i_1(line,1,sim->p_sg_v,2);
 		if (strstr(line,"p_sg_f"))   read_skip_const_i_1(line,1,sim->p_sg_f,2);
-		if (strstr(line,"p_cub_x"))  read_skip_const_i_1(line,1,&sim->p_cub_x,1);
-		if (strstr(line,"p_cub_p"))  read_skip_const_i_1(line,1,&sim->p_cub_p,1);
-		if (strstr(line,"p_test_p")) read_skip_const_i_1(line,1,&sim->p_test_p,1);
+		if (strstr(line,"p_cub_x"))  read_skip_const_i_1(line,1,&sim->p_c_x,1);
+		if (strstr(line,"p_cub_p"))  read_skip_const_i_1(line,1,&sim->p_c_p,1);
+		if (strstr(line,"p_test_p")) read_skip_const_i_1(line,1,&sim->p_t_p,1);
 	}
 	fclose(ctrl_file);
 

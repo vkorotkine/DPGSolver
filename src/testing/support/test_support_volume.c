@@ -36,8 +36,7 @@ struct Volume* constructor_Volume
 	struct Matrix_d* xyz_ve = constructor_file_Matrix_d(file,true); // keep
 	const_constructor_move_Matrix_d(&volume->xyz_ve,xyz_ve);
 
-	const_constructor_move_Matrix_d(&volume->geom_coef,constructor_default_Matrix_d());        // keep
-	const_constructor_move_Multiarray_d(&volume->sol_coef,constructor_default_Multiarray_d()); // keep
+	const_constructor_move_Matrix_d(&volume->geom_coef,constructor_default_Matrix_d()); // keep
 
 	int elem_type;
 	read_skip_file_i("elem_type",file,&elem_type);

@@ -11,6 +11,7 @@ include_directories(
 	simulation
 	simulation/mesh
 	simulation/geometry
+	simulation/solution
 	testing
 	)
 

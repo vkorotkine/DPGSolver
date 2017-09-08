@@ -132,21 +132,21 @@ static bool compare_members_fe
 
 			printf("index: %d %d\n",volume->index,volume_test->index);
 
-		    if (volume->boundary != volume_test->boundary)
+			if (volume->boundary != volume_test->boundary)
 				printf("boundary: %d %d\n",volume->boundary,volume_test->boundary);
-		    if (volume->curved != volume_test->curved)
+			if (volume->curved != volume_test->curved)
 				printf("curved: %d %d\n",volume->curved,volume_test->curved);
-		    if (diff_const_Matrix_d(volume->xyz_ve,volume_test->xyz_ve,NODETOL_MESH) != 0)
+			if (diff_const_Matrix_d(volume->xyz_ve,volume_test->xyz_ve,NODETOL_MESH) != 0)
 				print_diff_const_Matrix_d(volume->xyz_ve,volume_test->xyz_ve,NODETOL_MESH);
-		    if (volume->element->type != volume_test->element->type)
+			if (volume->element->type != volume_test->element->type)
 				printf("elem_type: %d %d\n",volume->element->type,volume_test->element->type);
 		}
 	}
 
 	// Faces
 	for (const struct Intrusive_Link* curr = sim->faces->first, *curr_test = fe_test_data->faces->first;
-		 curr || curr_test;
-		 curr = curr->next, curr_test = curr_test->next)
+	     curr || curr_test;
+	     curr = curr->next, curr_test = curr_test->next)
 	{
 		if (!(curr && curr_test)) {
 			pass = false;

@@ -19,9 +19,9 @@ void set_up_geometry
 	);
 
 /** \brief Set up the geometry for the solve. Computes:
- *	- \ref Solver_Volume::cofactors_vg;
- *	- \ref Solver_Volume::cofactors_vi;
- *	- \ref Solver_Face::cofactors_fi;
+ *	- \ref Solver_Volume::metrics_vg;
+ *	- \ref Solver_Volume::metrics_vc;
+ *	- \todo [ref here] Solver_Face::metrics_fc;
  */
 void set_up_geometry_solver
 	(struct Simulation* sim,        ///< \ref Simulation.

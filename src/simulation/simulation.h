@@ -98,16 +98,16 @@ struct Simulation {
 	const int p_sg_f[2];
 
 	/** The multiplicative ((times): *) constant of the cubature order in relation to the solution order.
-	 *  p_cub = p_cub_x*p_s + p_cub_p. */
-	const int p_cub_x;
+	 *  p_c = p_c_x*p_s + p_c_p. */
+	const int p_c_x;
 
 	/** The additive ((p)lus: +) constant of the cubature order in relation to the solution order.
-	 *  p_cub = p_cub_x*p_s + p_cub_p. */
-	const int p_cub_p;
+	 *  p_c = p_c_x*p_s + p_c_p. */
+	const int p_c_p;
 
 	/** The additive ((p)lus: +) constant of the test function order in relation to the solution order.
-	 *  p_t = p_s + p_test_p. */
-	const int p_test_p;
+	 *  p_t = p_s + p_t_p. */
+	const int p_t_p;
 
 
 // ---------------------------- //

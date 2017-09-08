@@ -82,6 +82,13 @@ struct Matrix_d* constructor_copy_Matrix_d_d
 	return constructor_local_Matrix_d_1(layout,ext_0,ext_1,true,data);
 }
 
+struct Matrix_d* constructor_move_Matrix_d_d
+	(const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1, const bool owns_data, double*const data)
+{
+	return constructor_local_Matrix_d_1(layout,ext_0,ext_1,owns_data,data);
+}
+
+
 struct Matrix_d* constructor_copy_Matrix_d (struct Matrix_d* src)
 {
 	return constructor_local_Matrix_d_1(src->layout,src->ext_0,src->ext_1,true,src->data);

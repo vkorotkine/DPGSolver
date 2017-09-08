@@ -46,10 +46,6 @@ void set_up_geometry (struct Simulation* sim, struct Intrusive_List* volumes)
 
 		compute_geom_coef_fptr compute_geom_coef = set_fptr_geom_coef(sim->domain_type,volume->curved);
 		compute_geom_coef(sim,volume);
-#if 0
-printf("geom: %d\n",volume->index);
-print_const_Matrix_d(volume->geom_coef,1e-10);
-#endif
 	}
 }
 
@@ -57,7 +53,7 @@ void set_up_geometry_solver (struct Simulation* sim, struct Intrusive_List* volu
 {
 UNUSED(sim);
 UNUSED(volumes);
-//		compute_geom_cofactors(sim,volume);
+//		compute_geom_metrics(sim,volume);
 	EXIT_ADD_SUPPORT;
 }
 

@@ -1,5 +1,6 @@
 add_subdirectory(mesh)
 add_subdirectory(geometry)
+add_subdirectory(solution)
 
 set (SOURCE
 	 element.c
@@ -29,6 +30,7 @@ set (LIBS_DEPEND
 	 General
 	 Geometry
 	 Intrusive
+	 Solution
 	)
 
 add_library(Simulation ${SOURCE})

@@ -9,8 +9,10 @@
 
 #include "macros.h"
 
-#include "allocators.h"
+#include "matrix.h"
 #include "vector.h"
+
+#include "allocators.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -73,6 +75,33 @@ static void reorder_Multiarray_Vector_i
 /// \brief Compute the total number of entries in a \ref Multiarray_Vector_i\*.
 static ptrdiff_t compute_total_entries
 	(const struct Multiarray_Vector_i*const src ///< Standard.
+	);
+
+/// \brief Print the extents of the Multiarray.
+void print_Multiarray_extents
+	(const int order,              ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const extents ///< Defined in \ref Multiarray_d.
+	);
+
+/// \brief Print the counter for the indices of order > 2 when printing sub-Matrices of the Multiarray.
+void print_Multiarray_counter
+	(const int order,              ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const counter ///< The counter for the indices of order > 2.
+	);
+
+/**	\brief Compute the index of the data of the sub-Matrix in a Multiarray based on the counter.
+ *	\return See brief. */
+static ptrdiff_t compute_ind_sub_matrix
+	(const int order,               ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const extents, ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const counter  ///< The counter for the indices of order > 2.
+	);
+
+///	\brief Increment the counter for the indicies of order > 2 by 1.
+static void increment_counter
+	(const int order,               ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const extents, ///< Defined in \ref Multiarray_d.
+	 ptrdiff_t*const counter        ///< The counter for the indices of order > 2.
 	);
 
 // Constructor/Destructor functions ********************************************************************************* //
@@ -255,16 +284,11 @@ struct Vector_i* collapse_Multiarray_Vector_i (const struct Multiarray_Vector_i*
 
 void print_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a)
 {
-	const int order                = a->order;
-	const ptrdiff_t *const extents = a->extents;
-
-	printf("Multi-array extents: {");
-	for (ptrdiff_t i = 0; i < order; i++)
-		printf(" %zu,",extents[i]);
-	printf(" }\n\n");
+	print_Multiarray_extents(a->order,a->extents);
 
 	const ptrdiff_t size = compute_size(a->order,a->extents);
 
+	const int order = a->order;
 	switch (order) {
 	case 1:
 		for (ptrdiff_t i = 0; i < size; i++)
@@ -283,6 +307,46 @@ void print_const_Multiarray_Vector_i (const struct const_Multiarray_Vector_i*con
 		constructor_local_Multiarray_Vector_i_1(a->order,(ptrdiff_t*)a->extents,false,(struct Vector_i**)a->data);
 	print_Multiarray_Vector_i(local);
 	free(local);
+}
+
+void print_Multiarray_d (const struct Multiarray_d*const a, const double tol)
+{
+	const int order               = a->order;
+	const ptrdiff_t*const extents = a->extents;
+
+	print_Multiarray_extents(order,extents);
+
+	if (order == 1) {
+		struct Vector_d* a_V = constructor_move_Vector_d_d(extents[0],false,a->data); // destructed
+		print_Vector_d(a_V,tol);
+		destructor_Vector_d(a_V);
+	} else if (order == 2) {
+		struct Matrix_d* a_M = constructor_move_Matrix_d_d(a->layout,extents[0],extents[1],false,a->data); // destructed
+		print_Matrix_d(a_M,tol);
+		destructor_Matrix_d(a_M);
+	} else if (order > 2) {
+		struct Matrix_d* a_M = constructor_move_Matrix_d_d(a->layout,extents[0],extents[1],false,NULL); // destructed;
+
+		const ptrdiff_t size_tail = compute_size(order-2,&extents[2]);
+
+		ptrdiff_t counter[size_tail];
+		for (ptrdiff_t i = 0; i < size_tail; ++i)
+			counter[i] = 0;
+
+		for (ptrdiff_t i = 0; i < size_tail; ++i) {
+			print_Multiarray_counter(order,counter);
+
+			const ptrdiff_t ind_M = compute_ind_sub_matrix(order,extents,counter);
+			a_M->data = &a->data[ind_M];
+			print_Matrix_d(a_M,tol);
+
+			increment_counter(order,extents,counter);
+		}
+		destructor_Matrix_d(a_M);
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+	printf("\n");
 }
 
 // Static functions ************************************************************************************************* //
@@ -381,4 +445,48 @@ static ptrdiff_t compute_total_entries (const struct Multiarray_Vector_i*const s
 		count += src->data[i]->ext_0;
 
 	return count;
+}
+
+void print_Multiarray_extents (const int order, const ptrdiff_t*const extents)
+{
+	printf("Multi-array extents: {");
+	for (ptrdiff_t i = 0; i < order; i++)
+		printf(" %td,",extents[i]);
+	printf(" }\n\n");
+}
+
+void print_Multiarray_counter (const int order, const ptrdiff_t*const counter)
+{
+	printf("{:,:");
+	for (int i = 0; i < order-2; ++i)
+		printf(",%td",counter[i]);
+	printf("}\n");
+}
+
+static ptrdiff_t compute_ind_sub_matrix (const int order, const ptrdiff_t*const extents, const ptrdiff_t*const counter)
+{
+	const ptrdiff_t*const extents_tail = &extents[2];
+
+	ptrdiff_t base = extents[0]*extents[1];
+	ptrdiff_t ind_sub_m = 0;
+	for (int i = 0; i < order-2; ++i) {
+		ind_sub_m += base*counter[i];
+		base *= extents_tail[i];
+	}
+	return ind_sub_m;
+}
+
+static void increment_counter (const int order, const ptrdiff_t*const extents, ptrdiff_t*const counter)
+{
+	const ptrdiff_t*const extents_tail = &extents[2];
+
+	for (int i = 0; i < order-2; ++i) {
+		if (counter[i] == extents_tail[i]) {
+			counter[i] = 0;
+			continue;
+		}
+		++counter[i];
+		return;
+	}
+	EXIT_ERROR("Counter greater than extents.");
 }

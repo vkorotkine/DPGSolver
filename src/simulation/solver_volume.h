@@ -13,13 +13,22 @@
 struct Solver_Volume {
 	struct Volume volume; ///< The base \ref Volume.
 
-	/// The cofactor (metric) terms used for transformation of integrals between physical and computational space stored
-	/// at the (v)olume (g)eometry nodes.
-	const struct const_Multiarray_d*const cofactors_vg;
+	/// The coefficients of the solution in the \ref Simulation::basis_sol.
+	struct Multiarray_d* sol_coef;
 
-	/// The cofactor (metric) terms used for transformation of integrals between physical and computational space stored
-	/// at the (v)olume (i)ntegration nodes.
-	const struct const_Multiarray_d*const cofactors_vi;
+	/// The coefficients of the solution gradient in the \ref Simulation::basis_sol.
+	struct Multiarray_d* grad_coef;
+
+	/** The metric terms (cofactors of the geometry Jacobian) used for transformation of integrals between physical and
+	 *  computational space stored at the (v)olume (g)eometry nodes. */
+	const struct const_Multiarray_d*const metrics_vg;
+
+	/** The metric terms (cofactors of the geometry Jacobian) used for transformation of integrals between physical and
+	 *  computational space stored at the (v)olume (c)ubature nodes. */
+	const struct const_Multiarray_d*const metrics_vc;
+
+	/// The determinate of the geometry Jacobian evaluated at the volume cubature nodes.
+	const struct const_Vector_d*const jacobian_det_vc;
 };
 
 /** \brief Constructs the \ref Solver_Volume \ref Intrusive_List.

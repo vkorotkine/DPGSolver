@@ -28,6 +28,7 @@
 #include "face.h"
 #include "element.h"
 #include "geometry.h"
+#include "solution.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -85,6 +86,7 @@ struct Intrusive_List* constructor_Volumes (struct Simulation*const sim, const s
 	sim->n_v = n_v;
 
 	set_up_geometry(sim,volumes);
+	set_up_solution(sim,volumes);
 
 	return volumes;
 }
@@ -103,7 +105,6 @@ void destructor_Volume (struct Volume* volume)
 {
 	(volume->xyz_ve ? destructor_Matrix_d((struct Matrix_d*)volume->xyz_ve) : EXIT_DESTRUCTOR);
 	(volume->geom_coef ? destructor_Matrix_d((struct Matrix_d*)volume->geom_coef) : EXIT_DESTRUCTOR);
-	(volume->sol_coef ? destructor_Multiarray_d((struct Multiarray_d*)volume->sol_coef) : EXIT_DESTRUCTOR);
 }
 
 bool check_ve_condition
@@ -201,7 +202,6 @@ static struct Volume* constructor_Volume
 	                check_if_curved_v(sim->domain_type,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
 
 	const_constructor_move_Matrix_d(&volume->geom_coef,constructor_default_Matrix_d());
-	const_constructor_move_Multiarray_d(&volume->sol_coef,constructor_default_Multiarray_d());
 
 	return volume;
 }

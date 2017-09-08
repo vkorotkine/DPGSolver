@@ -259,4 +259,10 @@ void print_const_Multiarray_Vector_i
 	(const struct const_Multiarray_Vector_i*const a ///< Standard.
 	);
 
+/// \brief Print a \ref Multiarray_d\* to the terminal displaying entries below the tolerance as 0.0.
+void print_Multiarray_d
+	(const struct Multiarray_d*const a, ///< Standard.
+	 const double tol                   ///< The tolerance.
+	);
+
 #endif // DPG__Multiarray_h__INCLUDED

@@ -92,6 +92,16 @@ struct Matrix_d* constructor_copy_Matrix_d_d
 	 const double*const data_src ///< The source data.
 	);
 
+/** \brief Move constructor for a \ref Matrix_d\* from a `double*`.
+ *	\return Standard. */
+struct Matrix_d* constructor_move_Matrix_d_d
+	(const char layout,     ///< Standard.
+	 const ptrdiff_t ext_0, ///< Standard.
+	 const ptrdiff_t ext_1, ///< Standard.
+	 const bool owns_data,  ///< Standard.
+	 double*const data      ///< Standard.
+	);
+
 /** \brief Copy constructor for a \ref Matrix_d\* from a \ref Matrix_d\*.
  *	\return Standard. */
 struct Matrix_d* constructor_copy_Matrix_d

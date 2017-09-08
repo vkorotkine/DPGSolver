@@ -5,11 +5,16 @@
 
 #include "solver_volume.h"
 
+#include <string.h>
+
 #include "macros.h"
 #include "constants_intrusive.h"
 
+#include "multiarray.h"
+
 #include "simulation.h"
 #include "geometry.h"
+#include "solution.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -20,7 +25,7 @@ static struct Solver_Volume* constructor_Solver_Volume
 
 /// \brief Destructor for an individual \ref Solver_Volume.
 static void destructor_Solver_Volume
-	(struct Solver_Volume* solver_volume ///< Standard.
+	(struct Solver_Volume* volume ///< Standard.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -34,6 +39,7 @@ struct Intrusive_List* constructor_Solver_Volumes (struct Simulation*const sim)
 		push_back_IL(solver_volumes,(struct Intrusive_Link*) constructor_Solver_Volume((struct Volume*) curr));
 
 	set_up_geometry_solver(sim,solver_volumes);
+	set_up_solution(sim,solver_volumes);
 
 EXIT_UNSUPPORTED;
 	destructor_IL(volumes);
@@ -50,10 +56,11 @@ void destructor_Solver_Volumes (struct Intrusive_List* solver_volumes)
 	destructor_IL(solver_volumes);
 }
 
-void destructor_Solver_Volume (struct Solver_Volume* solver_volume)
+static void destructor_Solver_Volume (struct Solver_Volume* volume)
 {
-// new members here.
-	destructor_Volume((struct Volume*) solver_volume);
+	(volume->sol_coef ? destructor_Multiarray_d(volume->sol_coef) : EXIT_DESTRUCTOR);
+	(volume->grad_coef ? destructor_Multiarray_d(volume->grad_coef) : EXIT_DESTRUCTOR);
+	destructor_Volume((struct Volume*) volume);
 }
 
 // Static functions ************************************************************************************************* //
@@ -63,9 +70,10 @@ static struct Solver_Volume* constructor_Solver_Volume (struct Volume* volume)
 {
 	struct Solver_Volume* solver_volume = calloc(1,sizeof *solver_volume); // returned
 
-	solver_volume->volume = *volume; // shallow copy of the base.
+	memcpy(&solver_volume->volume,volume,sizeof *volume); // shallow copy of the base.
 
-// add new members here
+	solver_volume->sol_coef  = constructor_default_Multiarray_d(); // destructed
+	solver_volume->grad_coef = constructor_default_Multiarray_d(); // destructed
 
 	return solver_volume;
 }

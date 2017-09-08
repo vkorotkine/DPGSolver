@@ -27,7 +27,8 @@ struct IL_Info {
 	int list_name; ///< \ref Intrusive_List::name.
 };
 
-/// \brief Set the \ref IL_Info.
+/**	\brief Set the \ref IL_Info.
+ *	\return A copy of the constructed \ref IL_Info. */
 struct IL_Info set_IL_Info
 	(const char*const list_name ///< The `char*` list name.
 	);
