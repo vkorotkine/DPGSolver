@@ -1,10 +1,10 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#ifndef DPG__constants_tol_h__INCLUDED
-#define DPG__constants_tol_h__INCLUDED
+#ifndef DPG__definitions_tol_h__INCLUDED
+#define DPG__definitions_tol_h__INCLUDED
 /**	\file
- *	\brief Provides the definition of constants associated with tolerances.
+ *	\brief Provides the definitions relating to tolerances.
  */
 
 ///\{ \name Tolerance values used throughout.
@@ -12,4 +12,4 @@
 #define SQRT_EPS   3.162277660168379e-08
 ///\}
 
-#endif // DPG__constants_tol_h__INCLUDED
+#endif // DPG__definitions_tol_h__INCLUDED

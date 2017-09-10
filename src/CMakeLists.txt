@@ -4,8 +4,8 @@ include_directories(${MKL_INCLUDE_DIRS})
 
 include_directories(
 	allocators
-	constants
 	containers
+	definitions
 	general
 	intrusive
 	simulation

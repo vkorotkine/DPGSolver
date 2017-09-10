@@ -1,10 +1,10 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#ifndef DPG__constants_intrusive_h__INCLUDED
-#define DPG__constants_intrusive_h__INCLUDED
+#ifndef DPG__definitions_intrusive_h__INCLUDED
+#define DPG__definitions_intrusive_h__INCLUDED
 /**	\file
- *	\brief Provides the definition of constants associated with the intrusive lists of derived classes.
+ *	\brief Provides the definitions relating to the intrusive lists base/derived classes.
  */
 
 ///\{ \name The \ref Element list names.
@@ -23,4 +23,4 @@
 #define IL_SOLVER_FACE 301
 ///\}
 
-#endif // DPG__constants_intrusive_h__INCLUDED
+#endif // DPG__definitions_intrusive_h__INCLUDED

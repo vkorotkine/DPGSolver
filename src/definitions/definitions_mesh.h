@@ -1,10 +1,10 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#ifndef DPG__constants_mesh_h__INCLUDED
-#define DPG__constants_mesh_h__INCLUDED
+#ifndef DPG__definitions_mesh_h__INCLUDED
+#define DPG__definitions_mesh_h__INCLUDED
 /**	\file
- *	\brief Provides the definition of constants associated with \ref Mesh container.
+ *	\brief Provides the definitions relating to the \ref Mesh container.
  */
 
 ///\{ \name The supported domain types.
@@ -17,4 +17,4 @@
 #define NODETOL_MESH 1.0e-5
 ///\}
 
-#endif // DPG__constants_mesh_h__INCLUDED
+#endif // DPG__definitions_mesh_h__INCLUDED

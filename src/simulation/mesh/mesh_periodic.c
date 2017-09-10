@@ -8,8 +8,8 @@
 
 #include <limits.h>
 
-#include "constants_core.h"
-#include "constants_bc.h"
+#include "definitions_core.h"
+#include "definitions_bc.h"
 #include "macros.h"
 
 #include "multiarray.h"

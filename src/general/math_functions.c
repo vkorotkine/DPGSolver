@@ -11,7 +11,7 @@
 #include <string.h>
 
 #include "macros.h"
-#include "constants_tol.h"
+#include "definitions_tol.h"
 
 // Interface functions ********************************************************************************************** //
 

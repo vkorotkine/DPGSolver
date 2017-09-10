@@ -13,8 +13,8 @@
 #include <string.h>
 
 #include "macros.h"
-#include "constants_alloc.h"
-#include "constants_intrusive.h"
+#include "definitions_alloc.h"
+#include "definitions_intrusive.h"
 
 #include "volume.h"
 #include "face.h"

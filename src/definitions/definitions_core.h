@@ -1,10 +1,10 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#ifndef DPG__constants_core_h__INCLUDED
-#define DPG__constants_core_h__INCLUDED
+#ifndef DPG__definitions_core_h__INCLUDED
+#define DPG__definitions_core_h__INCLUDED
 /**	\file
- *	\brief Provides the definition of core constants.
+ *	\brief Provides the definitions of core constants.
  */
 
 ///\{ \name The maximum number of dimensions
@@ -17,4 +17,4 @@
 #define NVAR3D 5
 ///\}
 
-#endif // DPG__constants_core_h__INCLUDED
+#endif // DPG__definitions_core_h__INCLUDED

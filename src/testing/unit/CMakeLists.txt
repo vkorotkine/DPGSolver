@@ -1,9 +1,9 @@
 set	(SOURCE
 	 test_unit.c
+	 test_unit_containers.c
 	)
 
 set	(LIBS_DEPEND
-	 Mesh
 	)
 
 set (LIB Test_Unit)

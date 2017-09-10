@@ -9,10 +9,10 @@
 #include <math.h>
 
 #include "macros.h"
-#include "constants_mesh.h"
-#include "constants_bc.h"
-#include "constants_tol.h"
-#include "constants_intrusive.h"
+#include "definitions_mesh.h"
+#include "definitions_bc.h"
+#include "definitions_tol.h"
+#include "definitions_intrusive.h"
 
 #include "multiarray.h"
 #include "matrix.h"

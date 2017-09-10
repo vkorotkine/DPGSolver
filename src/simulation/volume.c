@@ -4,16 +4,16 @@
  */
 
 #include "volume.h"
-#include "constants_elements.h"
+#include "definitions_elements.h"
 #include "intrusive.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
 
 #include "macros.h"
-#include "constants_mesh.h"
-#include "constants_bc.h"
-#include "constants_intrusive.h"
+#include "definitions_mesh.h"
+#include "definitions_bc.h"
+#include "definitions_intrusive.h"
 
 #include "multiarray.h"
 #include "matrix.h"

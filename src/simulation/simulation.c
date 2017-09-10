@@ -11,8 +11,8 @@
 #include <stdbool.h>
 
 #include "macros.h"
-#include "constants_mesh.h"
-#include "constants_intrusive.h"
+#include "definitions_mesh.h"
+#include "definitions_intrusive.h"
 
 #include "element.h"
 #include "mesh.h"

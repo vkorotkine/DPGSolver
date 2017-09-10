@@ -12,7 +12,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "constants_alloc.h"
+#include "definitions_alloc.h"
 
 ///\{ \name Definitions for the available solver methods.
 #define METHOD_DG  1
@@ -127,9 +127,9 @@ struct Simulation {
 	const int method;     /**< Solver method to be used.
 	                       *   	Options: 1 (DG), 2 (HDG), 3 (HDPG), 4 (DPG). */
 
-	const struct const_Intrusive_List*const elements; ///< Pointer to the head of the Element list.
-	struct Intrusive_List* volumes;                   ///< Pointer to the head of the Volume  list.
-	struct Intrusive_List* faces;                     ///< Pointer to the head of the Face    list.
+	const struct const_Intrusive_List* elements; ///< Pointer to the head of the Element list.
+	struct Intrusive_List* volumes;              ///< Pointer to the head of the Volume  list.
+	struct Intrusive_List* faces;                ///< Pointer to the head of the Face    list.
 
 // ToBeMoved to the solver context.
 const int pde_index; ///< Index corresponding to \ref pde_name.

@@ -35,6 +35,15 @@ struct Multiarray_d* constructor_default_Multiarray_d ()
 
 // Empty constructors *********************************************************************************************** //
 
+struct Multiarray_d* constructor_empty_Multiarray_d (const int order, const ptrdiff_t*const extents_i)
+{
+	ptrdiff_t*const extents = allocate_and_set_extents(order,extents_i); // keep
+
+	double* data = malloc(compute_size(order,extents) * sizeof *data); // keep
+
+	return constructor_move_Multiarray_d_dyn_extents('C',order,extents,true,data);
+}
+
 struct Multiarray_Vector_i* constructor_empty_Multiarray_Vector_i
 	(const bool alloc_V, const int order, const ptrdiff_t*const extents_i)
 {

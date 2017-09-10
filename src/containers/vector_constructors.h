@@ -15,15 +15,19 @@ struct const_Matrix_d;
 
 // Default constructors ********************************************************************************************* //
 
-/** \brief Constructs a default \ref Vector_d\*.
+/**	\brief Constructs a default \ref Vector_d\*.
  *	\return Standard. */
 struct Vector_d* constructor_default_Vector_d ();
 
-/** \brief Constructs a default \ref Vector_i\*.
+/**	\brief Constructor for a default \ref const_Vector_d\*.
+ *	\return Standard. */
+const struct const_Vector_d* constructor_default_const_Vector_d ();
+
+/**	\brief Constructs a default \ref Vector_i\*.
  *	\return Standard. */
 struct Vector_i* constructor_default_Vector_i ();
 
-/** \brief Constructs a default \ref Vector_i\*\*.
+/**	\brief Constructs a default \ref Vector_i\*\*.
  *	\return Standard. */
 struct Vector_i** constructor_default_Vector_i_2
 	(const ptrdiff_t n_dest ///< The number of \ref Vector_i\* components.
@@ -31,13 +35,13 @@ struct Vector_i** constructor_default_Vector_i_2
 
 // Empty constructors *********************************************************************************************** //
 
-/** \brief Constructs an empty \ref Vector_d\*.
+/**	\brief Constructs an empty \ref Vector_d\*.
  *	\return Standard. */
 struct Vector_d* constructor_empty_Vector_d
-	(const ptrdiff_t ext_0 ///< The value of ext_0.
+	(const ptrdiff_t ext_0 ///< Defined in \ref Vector_d.
 	);
 
-/** \brief Constructs an empty \ref Vector_i\*.
+/**	\brief Constructs an empty \ref Vector_i\*.
  *	\return Standard. */
 struct Vector_i* constructor_empty_Vector_i
 	(const ptrdiff_t ext_0 ///< The value of ext_0.
@@ -45,13 +49,13 @@ struct Vector_i* constructor_empty_Vector_i
 
 // Copy constructors ************************************************************************************************ //
 
-/** \brief Copy constructor for a \ref Vector_i\* from a `Vector_i*`.
+/**	\brief Copy constructor for a \ref Vector_i\* from a `Vector_i*`.
  *	\return Standard. */
 struct Vector_i* constructor_copy_Vector_i
 	(const struct Vector_i*const src ///< The source data.
 	);
 
-/** \brief Copy constructor for a \ref Vector_i\* from a `const int*`.
+/**	\brief Copy constructor for a \ref Vector_i\* from a `const int*`.
  *	\return Standard. */
 struct Vector_i* constructor_copy_Vector_i_i
 	(const ptrdiff_t ext_0,   ///< The value of ext_0.
@@ -60,7 +64,7 @@ struct Vector_i* constructor_copy_Vector_i_i
 
 // Move constructors ************************************************************************************************ //
 
-/** \brief Move constructor for a \ref Vector_i\* from a `int*`.
+/**	\brief Move constructor for a \ref Vector_i\* from a `int*`.
  *	\return Standard. */
 struct Vector_i* constructor_move_Vector_i_i
 	(const ptrdiff_t ext_0, ///< The value of ext_0.
@@ -68,7 +72,7 @@ struct Vector_i* constructor_move_Vector_i_i
 	 int*const data         ///< Standard.
 	);
 
-/** \brief Move constructor for a \ref Vector_d\* from a `double*`.
+/**	\brief Move constructor for a \ref Vector_d\* from a `double*`.
  *	\return Standard. */
 struct Vector_d* constructor_move_Vector_d_d
 	(const ptrdiff_t ext_0, ///< Standard.
@@ -76,7 +80,7 @@ struct Vector_d* constructor_move_Vector_d_d
 	 double*const data      ///< Standard.
 	);
 
-/** \brief Move constructor for a \ref const_Vector_i\* from a `const int*`.
+/**	\brief Move constructor for a \ref const_Vector_i\* from a `const int*`.
  *	\return Standard. */
 struct const_Vector_i* constructor_move_const_Vector_i_i
 	(const ptrdiff_t ext_0, ///< The value of ext_0.
@@ -98,7 +102,7 @@ void const_constructor_move_Vector_i
 
 // Special constructors ********************************************************************************************* //
 
-/** \brief Constructs a \ref Vector_d\* as the sum of the rows/columns of the input Matrix in the specified direction.
+/**	\brief Constructs a \ref Vector_d\* as the sum of the rows/columns of the input Matrix in the specified direction.
  *	\return Standard. */
 struct Vector_d* constructor_sum_Vector_d_const_Matrix_d
 	(const char sum_dir,                   ///< The direction in which to sum the entries. Options: 'R'ow, 'C'olumn.
@@ -110,6 +114,11 @@ struct Vector_d* constructor_sum_Vector_d_const_Matrix_d
 /// \brief Destructs a \ref Vector_d\*.
 void destructor_Vector_d
 	(struct Vector_d* a ///< Standard.
+	);
+
+/// \brief Destructs a \ref const_Vector_d\*.
+void destructor_const_Vector_d
+	(const struct const_Vector_d* a ///< Standard.
 	);
 
 /// \brief Destructs a \ref Vector_i\*.

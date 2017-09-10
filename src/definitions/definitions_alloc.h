@@ -1,10 +1,10 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#ifndef DPG__constants_alloc_h__INCLUDED
-#define DPG__constants_alloc_h__INCLUDED
+#ifndef DPG__definitions_alloc_h__INCLUDED
+#define DPG__definitions_alloc_h__INCLUDED
 /**	\file
- *	\brief Provides the definition of constants related to allocation.
+ *	\brief Provides the definitions related to allocation.
  */
 
 ///\{ \name String length definitions.
@@ -12,4 +12,4 @@
 #define STRLEN_MIN 60
 ///\}
 
-#endif // DPG__constants_alloc_h__INCLUDED
+#endif // DPG__definitions_alloc_h__INCLUDED

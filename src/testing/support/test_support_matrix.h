@@ -12,6 +12,8 @@
 
 struct const_Matrix_d;
 
+// Constructor functions ******************************************************************************************** //
+
 /** \brief Constructor for a \ref Matrix_i\* from data in the input file of the given name.
  *	\return Standard. */
 struct Matrix_i* constructor_file_name_Matrix_i
@@ -22,6 +24,13 @@ struct Matrix_i* constructor_file_name_Matrix_i
 /** \brief Constructor for a \ref Matrix_d\* from data in the input file of the given name.
  *	\return Standard. */
 struct Matrix_d* constructor_file_name_Matrix_d
+	(const char*const var_name,      ///< The name of the variable to be read in from the file.
+	 const char*const file_name_full ///< The name of the file (including the full path).
+	);
+
+/** \brief Constructor for a \ref const_Matrix_d\* from data in the input file of the given name.
+ *	\return Standard. */
+const struct const_Matrix_d* constructor_file_name_const_Matrix_d
 	(const char*const var_name,      ///< The name of the variable to be read in from the file.
 	 const char*const file_name_full ///< The name of the file (including the full path).
 	);
@@ -39,6 +48,23 @@ struct Matrix_d* constructor_file_Matrix_d
 	(FILE* data_file,           ///< The pointer to the file from which to read the data.
 	 const bool check_container ///< Flag for whether the container type should be checked.
 	);
+
+/**	\brief `const` version of \ref constructor_transpose_Matrix_d.
+ *	\return Standard. */
+const struct const_Matrix_d* constructor_transpose_const_Matrix_d
+	(const struct const_Matrix_d* a, ///< The input matrix.
+	 const bool mem_only             ///< Defined for \ref transpose_Matrix_d.
+	);
+
+// Math functions *************************************************************************************************** //
+
+///	\brief `const` version of \ref transpose_Matrix_d.
+void transpose_const_Matrix_d
+	(const struct const_Matrix_d* a, ///< Defined for \ref transpose_Matrix_d.
+	 const bool mem_only             ///< Defined for \ref transpose_Matrix_d.
+	);
+
+// Difference functions ********************************************************************************************* //
 
 /** \brief Check the difference between entries in the input \ref Matrix_i\*s.
  *	\return The `true` if inputs differ; `false` otherwise. */
@@ -62,6 +88,8 @@ bool diff_const_Matrix_d
 	 const struct const_Matrix_d*const b, ///< Input 1.
 	 const double tol                     ///< The tolerance.
 	);
+
+// Printing functions *********************************************************************************************** //
 
 /// \brief Print the difference of the input \ref Matrix_i\*s.
 void print_diff_Matrix_i

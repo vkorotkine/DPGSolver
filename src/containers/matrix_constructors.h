@@ -21,6 +21,10 @@ struct const_Matrix_i;
  *	\return Standard. */
 struct Matrix_d* constructor_default_Matrix_d ();
 
+/**	\brief Constructor for a default \ref const_Matrix_d\*.
+ *	\return Standard. */
+const struct const_Matrix_d* constructor_default_const_Matrix_d ();
+
 // Empty constructors *********************************************************************************************** //
 
 /**	\brief Constructs an empty \ref Matrix_d\*.
@@ -114,11 +118,37 @@ void const_constructor_move_Matrix_i
 	 struct Matrix_i* src                     ///< Source.
 	);
 
+// Special constructors ********************************************************************************************* //
+
+/**	\brief Constructor for a \ref Matrix_d\* as a copy of the transpose of the input matrix.
+ *	\return Standard. */
+struct Matrix_d* constructor_transpose_Matrix_d
+	(struct Matrix_d* a, ///< The input matrix.
+	 const bool mem_only ///< Defined for \ref transpose_Matrix_d.
+	);
+
+/**	\brief Constructor for a \ref Matrix_d\* from a matrix-matrix multiplication.
+ *	\return Standard. */
+struct Matrix_d* constructor_mm_Matrix_d
+	(const char trans_a_i,                ///< Defined for \ref mm_d.
+	 const char trans_b_i,                ///< Defined for \ref mm_d.
+	 const double alpha,                  ///< Defined for \ref mm_d.
+	 const double beta,                   ///< Defined for \ref mm_d.
+	 const struct const_Matrix_d*const a, ///< Defined for \ref mm_d.
+	 const struct const_Matrix_d*const b, ///< Defined for \ref mm_d.
+	 const char layout                    ///< The `layout` of the constructed \ref Matrix_d.
+	);
+
 // Destructors ****************************************************************************************************** //
 
 ///	\brief Destructs a \ref Matrix_d\*.
 void destructor_Matrix_d
 	(struct Matrix_d* a ///< Standard.
+	);
+
+///	\brief Destructs a \ref const_Matrix_d\*.
+void destructor_const_Matrix_d
+	(const struct const_Matrix_d* a ///< Standard.
 	);
 
 ///	\brief Destructs a \ref Matrix_i\*.

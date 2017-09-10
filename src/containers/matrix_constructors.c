@@ -6,6 +6,9 @@
 #include "matrix_constructors.h"
 
 #include <stdlib.h>
+#include "mkl.h"
+
+#include "definitions_mkl.h"
 
 #include "matrix.h"
 #include "vector.h"
@@ -18,6 +21,11 @@
 struct Matrix_d* constructor_default_Matrix_d ()
 {
 	return constructor_move_Matrix_d_d('R',0,0,true,NULL);
+}
+
+const struct const_Matrix_d* constructor_default_const_Matrix_d ()
+{
+	return (const struct const_Matrix_d*) constructor_default_Matrix_d();
 }
 
 // Empty constructors *********************************************************************************************** //
@@ -66,7 +74,14 @@ struct Matrix_d* constructor_copy_Matrix_d_d
 
 struct Matrix_d* constructor_copy_Matrix_d (struct Matrix_d* src)
 {
-	return constructor_move_Matrix_d_d(src->layout,src->ext_0,src->ext_1,true,src->data);
+	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
+	const double*const data_src = src->data;
+
+	double* data = malloc(size * sizeof *data); // keep
+	for (ptrdiff_t i = 0; i < size; i++)
+		data[i] = data_src[i];
+
+	return constructor_move_Matrix_d_d(src->layout,src->ext_0,src->ext_1,true,data);
 }
 
 const struct const_Matrix_d* constructor_copy_extract_const_Matrix_d
@@ -154,6 +169,30 @@ void const_constructor_move_Matrix_i (const struct const_Matrix_i*const* dest, s
 	*(struct const_Matrix_i**) dest = (struct const_Matrix_i*) src;
 }
 
+// Special constructors ********************************************************************************************* //
+
+struct Matrix_d* constructor_transpose_Matrix_d (struct Matrix_d* a, const bool mem_only)
+{
+	struct Matrix_d* a_t = constructor_copy_Matrix_d(a); // returned
+	transpose_Matrix_d(a_t,mem_only);
+
+	return a_t;
+}
+
+struct Matrix_d* constructor_mm_Matrix_d
+	(const char trans_a_i, const char trans_b_i, const double alpha, const double beta,
+	 const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, const char layout)
+{
+	const MKL_INT m = ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 ),
+	              n = ( trans_b_i == 'N' ? b->ext_1 : b->ext_0 );
+
+	struct Matrix_d* c = constructor_empty_Matrix_d(layout,m,n); // returned
+
+	mm_d(trans_a_i,trans_b_i,alpha,beta,a,b,c);
+
+	return c;
+}
+
 // Destructors ****************************************************************************************************** //
 
 void destructor_Matrix_d (struct Matrix_d* a)
@@ -161,6 +200,11 @@ void destructor_Matrix_d (struct Matrix_d* a)
 	if (a->owns_data)
 		free(a->data);
 	free(a);
+}
+
+void destructor_const_Matrix_d (const struct const_Matrix_d* a)
+{
+	destructor_Matrix_d((struct Matrix_d*)a);
 }
 
 void destructor_Matrix_i (struct Matrix_i* a)

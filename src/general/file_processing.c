@@ -11,7 +11,7 @@
 #include <stdlib.h>
 
 #include "macros.h"
-#include "constants_alloc.h"
+#include "definitions_alloc.h"
 
 // Static function declarations ************************************************************************************* //
 

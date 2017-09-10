@@ -28,7 +28,7 @@ int main
 	test_info.t_int.linearization            = true;
 	test_info.t_int.conv_order               = true;
 
-	printf("\n\nRunning All Tests:\n\n\n");
+	printf("\nRunning All Tests:\n");
 	test_info.ts = clock();
 
 //	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);

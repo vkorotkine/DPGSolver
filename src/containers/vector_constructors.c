@@ -26,6 +26,11 @@ struct Vector_d* constructor_default_Vector_d ()
 	return dest;
 }
 
+const struct const_Vector_d* constructor_default_const_Vector_d ()
+{
+	return (const struct const_Vector_d*) constructor_default_Vector_d();
+}
+
 struct Vector_i* constructor_default_Vector_i ()
 {
 	struct Vector_i* dest = calloc(1,sizeof *dest); // returned
@@ -168,6 +173,11 @@ void destructor_Vector_d (struct Vector_d* a)
 	if (a->owns_data)
 		free(a->data);
 	free(a);
+}
+
+void destructor_const_Vector_d (const struct const_Vector_d* a)
+{
+	destructor_Vector_d((struct Vector_d*) a);
 }
 
 void destructor_Vector_i (struct Vector_i* a)

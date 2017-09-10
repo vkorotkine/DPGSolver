@@ -1,10 +1,10 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#ifndef DPG__constants_elements_h__INCLUDED
-#define DPG__constants_elements_h__INCLUDED
+#ifndef DPG__definitions_elements_h__INCLUDED
+#define DPG__definitions_elements_h__INCLUDED
 /**	\file
- *	\brief Provides the definition of constants associated with \ref Element containers.
+ *	\brief Provides the definitions relating to the \ref Element container.
  *
  *	The more extensive list of the element types supported by Gmsh can be found under the 'elm-type' header of the
  *	[File formats][gmsh_ff] section of the Gmsh manual. The curved element types are not be supported here however as
@@ -37,4 +37,4 @@
 #define NSUBFMAX        4  ///< (MAX)imum (N)umber of h-adaptive (SUB)-(F)aces (on each FACE). "QUAD/TRI (Isotropic)"
 ///\}
 
-#endif // DPG__constants_elements_h__INCLUDED
+#endif // DPG__definitions_elements_h__INCLUDED

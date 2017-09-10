@@ -1,15 +1,15 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 
-#ifndef DPG__constants_bc_h__INCLUDED
-#define DPG__constants_bc_h__INCLUDED
+#ifndef DPG__definitions_bc_h__INCLUDED
+#define DPG__definitions_bc_h__INCLUDED
 /**	\file
- *	\brief Provides the definition of constants associated with the boundary conditions.
+ *	\brief Provides the definitions related to the boundary conditions.
  *
  *	The naming convention for the periodic boundary conditions omits the 'BC_' prefix as they are only used for
  *	preprocessing and not as actual boundary conditions.
  *
- *	\warning The value of these constants must be identical to those in the $ROOT/meshes/Parameters.geo file.
+ *	\note The value of these constants must be identical to those in the $ROOT/input/meshes/parameters.geo file.
  */
 
 ///\{ \name The step in the boundary conditions between straight and curved BCs.
@@ -48,4 +48,4 @@
 ///\}
 
 
-#endif // DPG__constants_bc_h__INCLUDED
+#endif // DPG__definitions_bc_h__INCLUDED

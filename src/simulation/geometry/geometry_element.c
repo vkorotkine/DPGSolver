@@ -2,12 +2,12 @@
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 ///	\file
 
-#include "element.h"
+#include "geometry_element.h"
 
 #include <string.h>
 
 #include "macros.h"
-#include "constants_intrusive.h"
+#include "definitions_intrusive.h"
 
 #include "simulation.h"
 
@@ -36,16 +36,16 @@ struct const_Intrusive_List* constructor_Geometry_Elements (struct Simulation*co
 	if (sim->elements->name != IL_ELEMENT)
 		EXIT_UNSUPPORTED;
 
-	struct Intrusive_List* elements          = sim->elements;
-	struct Intrusive_List* geometry_elements = constructor_empty_IL(IL_GEOMETRY_ELEMENT);
+	const struct const_Intrusive_List* elements = sim->elements;
+	struct Intrusive_List* geometry_elements    = constructor_empty_IL(IL_GEOMETRY_ELEMENT);
 
-	for (struct Intrusive_Link* curr = elements->first; curr; curr = curr->next)
+	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next)
 		push_back_IL(geometry_elements,
-		             (struct Intrusive_Link*) constructor_Geometry_Elements((struct const_Element*) curr));
+		             (struct Intrusive_Link*) constructor_Geometry_Element((struct const_Element*) curr));
 
 	set_up_geometry_ops(sim,geometry_elements);
 
-	destructor_IL(elements);
+	destructor_IL((struct Intrusive_List*)elements);
 	return (struct const_Intrusive_List*) geometry_elements;
 }
 

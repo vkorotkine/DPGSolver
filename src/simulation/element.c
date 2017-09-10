@@ -7,8 +7,8 @@
 #include <string.h>
 
 #include "macros.h"
-#include "constants_elements.h"
-#include "constants_intrusive.h"
+#include "definitions_elements.h"
+#include "definitions_intrusive.h"
 
 #include "multiarray.h"
 #include "const_cast.h"

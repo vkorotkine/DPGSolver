@@ -10,8 +10,8 @@
 #include <string.h>
 
 #include "macros.h"
-#include "constants_mesh.h"
-#include "constants_bc.h"
+#include "definitions_mesh.h"
+#include "definitions_bc.h"
 
 #include "multiarray.h"
 #include "matrix.h"

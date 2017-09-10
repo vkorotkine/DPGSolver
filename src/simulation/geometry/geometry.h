@@ -28,7 +28,7 @@ void set_up_geometry
  *
  *	Requires that:
  *	- \ref Simulation::volumes points to a list of \ref Solver_Volume\*s;
- *	- \ref Simulation::faces   points to a list of \ref Solver_Face\*s.
+ *	- \ref Simulation::faces   points to a list of \todo [ref here] Solver_Face\*s.
  */
 void set_up_solver_geometry
 	(struct Simulation* sim ///< \ref Simulation.

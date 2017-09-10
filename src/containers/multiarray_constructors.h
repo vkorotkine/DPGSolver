@@ -73,7 +73,15 @@ struct Multiarray_d* constructor_default_Multiarray_d ();
 
 // Empty constructors *********************************************************************************************** //
 
-/**	\brief Constructs an empty \ref Multiarray_Vector_i\*.
+/**	\brief Constructor for an empty \ref Multiarray_d\*.
+ *	\return Standard.
+ */
+struct Multiarray_d* constructor_empty_Multiarray_d
+	(const int order,                ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const extents_i ///< The input extents.
+	);
+
+/**	\brief Constructor for an empty \ref Multiarray_Vector_i\*.
  *	\return Standard.
  */
 struct Multiarray_Vector_i* constructor_empty_Multiarray_Vector_i

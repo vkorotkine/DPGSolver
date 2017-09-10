@@ -13,9 +13,9 @@
 #include <string.h>
 #include <math.h>
 
-#include "constants_alloc.h"
-#include "constants_tol.h"
-#include "constants_core.h"
+#include "definitions_alloc.h"
+#include "definitions_tol.h"
+#include "definitions_core.h"
 
 static void data_to_txt(const unsigned int d, const unsigned int NVars, const unsigned int MLMin,
                         const unsigned int MLMax, const unsigned int PMin, const unsigned int PMax,

@@ -10,6 +10,7 @@
 #include "mkl.h"
 
 #include "macros.h"
+#include "definitions_mkl.h"
 
 #include "matrix.h"
 
@@ -47,6 +48,44 @@ void transpose_Matrix_d (struct Matrix_d* a, const bool mem_only)
 		a->ext_0 = a->ext_1;
 		a->ext_1 = tmp;
 	}
+}
+
+void mm_d
+	(const char trans_a_i, const char trans_b_i, const double alpha, const double beta,
+	 const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, struct Matrix_d*const c)
+{
+	const CBLAS_LAYOUT    layout = ( c->layout == 'R' ? CBRM : CBCM );
+	const CBLAS_TRANSPOSE transa = ( (c->layout == a->layout) == (trans_a_i == 'N') ? CBNT : CBT ),
+	                      transb = ( (c->layout == b->layout) == (trans_b_i == 'N') ? CBNT : CBT );
+	const MKL_INT m = c->ext_0,
+	              n = c->ext_1,
+	              k = ( trans_a_i == 'N' ? a->ext_1 : a->ext_0 );
+
+	if ((m <= 0) || (n <= 0) || (k <= 0)) {
+		EXIT_ERROR("Negative dimension: %d %d %d\n",m,n,k);
+	} else if ((m != ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 )) ||
+	           (n != ( trans_b_i == 'N' ? b->ext_1 : b->ext_0 )) ||
+	           (k != ( trans_b_i == 'N' ? b->ext_0 : b->ext_1 )))
+	{
+		printf("Invalid matrix dimensions: (m = (%d,%td), n = (%d,%td), k = (%d,%td)\n",
+		       m,( trans_a_i == 'N' ? a->ext_0 : a->ext_1 ),
+		       n,( trans_b_i == 'N' ? b->ext_1 : b->ext_0 ),
+		       k,( trans_b_i == 'N' ? b->ext_0 : b->ext_1 ));
+		EXIT_UNSUPPORTED;
+	}
+
+	const MKL_INT lda = ( a->layout == 'R' ? a->ext_1 : a->ext_0 ),
+	              ldb = ( b->layout == 'R' ? b->ext_1 : b->ext_0 ),
+	              ldc = ( c->layout == 'R' ? c->ext_1 : c->ext_0 );
+
+	cblas_dgemm(layout,transa,transb,m,n,k,alpha,a->data,lda,b->data,ldb,beta,c->data,ldc);
+}
+
+void mm_NN_d
+	(const double alpha, const double beta,
+	 const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, struct Matrix_d*const c)
+{
+	mm_d('N','N',alpha,beta,a,b,c);
 }
 
 // Static functions ************************************************************************************************* //

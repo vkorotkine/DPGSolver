@@ -15,7 +15,7 @@
 #include "file_processing.h"
 #include "multiarray.h"
 
-#include "constants_alloc.h"
+#include "definitions_alloc.h"
 
 // Static function declarations ************************************************************************************* //
 

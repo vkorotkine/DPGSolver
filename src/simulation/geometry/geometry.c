@@ -10,10 +10,12 @@
 #include <string.h>
 
 #include "macros.h"
-#include "constants_mesh.h"
-#include "constants_intrusive.h"
+#include "definitions_mesh.h"
+#include "definitions_intrusive.h"
 
+#include "multiarray.h"
 #include "matrix.h"
+#include "vector.h"
 
 #include "simulation.h"
 #include "intrusive.h"
@@ -22,7 +24,7 @@
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Function pointer to compute_geom_coef functions.
+/**	\brief Function pointer to compute_geom_coef functions.
  *	\param sim    \ref Simulation.
  *	\param volume \ref Volume.
  */
@@ -31,13 +33,58 @@ typedef void (*compute_geom_coef_fptr)
 	 struct Volume*const volume
 	);
 
-/** \brief Set the appropriate function pointer for computing \ref Volume::geom_coef.
+/**	\brief Set the appropriate function pointer for computing \ref Volume::geom_coef.
  *	\return See brief. */
 static compute_geom_coef_fptr set_fptr_geom_coef
 	(const int domain_type,   ///< \ref Simulation::domain_type.
 	 const bool volume_curved ///< \ref Volume::curved.
 	);
 
+/**	\brief Compute the geometry of the \ref Solver_Volume.
+ *
+ *	Following the analysis of Kopriva \cite Kopriva2006, the metric terms are computed using the curl-form such that
+ *	the free-stream preservation property may be recovered. The consistent symmetric-conservative (CSC) metric of Abe
+ *	and Haga (section 5.3) is used for the implementation \cite Abe2015. The steps are repeated below to clarify the
+ *	equivalence of the prodecure adopted here with their procedure:
+ *	- (step 0-1) As the metric contributions computed in step 0 are computed in a basis of sufficient order to
+ *	  represent them exactly and are subsequently interpolated to the consistent grid points (CGPs), the metric
+ *	  contributions are here computed directly at the CGPs.
+ *		- Our terminology for the GPs is R_vg ((R)eference coordinates of the (v)olume (g)eometry nodes).
+ *		- Our terminology for the CGPs is R_vm ((R)eference coordinates of the (v)olume (m)etric nodes).
+ *		- We allow for flexibility in the order of the R_vm nodes such that superparametric geometry can be used on
+ *		  curved domain boundaries; Abe and Haga use an isoparametric partial metric representation **before** the
+ *		  differentiation is applied, resulting in a subparametric metric representation (see eq. (43) \cite Abe2015).
+ *	- (step 2) The computed metric terms are interpolated to the solution points (SPs).
+ *		- As the flux reconstruction scheme is collocated (solution interpolation and cubature nodes are coincident),
+ *		  the interpolation to the SPs is equivalent to the interpolation to the cubature nodes. Thus, interpolation
+ *		  to the R_vc ((R)eference coordinates of the (v)olume (c)ubature) is then performed in the implementation
+ *		  here.
+ *
+ *	\todo Investigate requirement of superparametric geometry on curved surfaces and add comments. Potentially ok by
+ *	      using over-integration in curved elements.
+ *
+ *	Given the 3D geometry Jacobian ordering of
+ *
+ *	\f{eqnarray*}{
+ *		J  = \{ &\{x_r,x_s,x_t\}, &\\
+ *		        &\{y_r,y_s,y_t\}, &\\
+ *		        &\{z_r,z_s,z_t\}  &\},
+ *	\f}
+ *
+ *	using the nonconservative metric (NC) for clarity of exposition (section 5.1 \cite Abe2015), the ordering of the
+ *	metric terms is:
+ *
+ *	\f{eqnarray*}{
+ *		m  = \{ &\{ +(y_s z_t - y_t z_s), -(y_r z_t - y_t z_r), +(y_r z_s - y_s z_r) \}, &\\
+ *		        &\{ -(x_s z_t - x_t z_s), +(x_r z_t - x_t z_r), -(x_r z_s - x_s z_r) \}, &\\
+ *		        &\{ +(x_s y_t - x_t y_s), -(x_r y_t - x_t y_r), +(x_r y_s - x_s y_r) \}, &\}.
+ *	\f}
+ *
+ */
+void compute_geometry_volume
+	(struct Simulation *sim,      ///< \ref Simulation.
+	 struct Solver_Volume* volume ///< \ref Solver_Volume.
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -63,13 +110,17 @@ void set_up_solver_geometry (struct Simulation* sim)
 
 		struct const_Geometry_Element* geometry_element = (struct const_Geometry_Element*) volume->element;
 
-		struct Element* element = (struct Element*) geometry_element;
-
-		printf("%d\n",element->type);
+//		struct Element* element = (struct Element*) geometry_element;
+//		printf("%d\n",element->type);
 		printf("a2: %d\n",((struct Element*)geometry_element)->type);
+
+		compute_geometry_volume(sim,(struct Solver_Volume*)volume);
 	}
 
-//		compute_geom_metrics(sim,volume);
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+//		compute_geometry_face(sim,(struct Solver_Face*) curr);
+	}
+
 }
 
 // Static functions ************************************************************************************************* //
@@ -107,6 +158,46 @@ static compute_geom_coef_fptr set_fptr_geom_coef (const int domain_type, const b
 	}
 
 	EXIT_ERROR("Unsupported domain_type: %d\n",domain_type);
+}
+
+void compute_geometry_volume (struct Simulation *sim, struct Solver_Volume* volume)
+{
+	struct Volume* base_volume = (struct Volume*) volume;
+	struct const_Geometry_Element *element = (struct const_Geometry_Element*) base_volume->element;
+
+	const int d = ((struct const_Element*)element)->d;
+
+	const struct const_Matrix_d*const geom_coef   = base_volume->geom_coef;
+UNUSED(geom_coef);
+	const struct const_Vector_d*const geom_coef_V = constructor_default_const_Vector_d(); // destructed
+
+//	const ptrdiff_t n_vc = ops->ED_vg_vc->ext_0;
+	const ptrdiff_t n_vc = 4;
+
+	struct Multiarray_d* jacobian_vc   = constructor_empty_Multiarray_d(3,(ptrdiff_t[]){n_vc,d,d});
+UNUSED(jacobian_vc);
+	struct Vector_d*     jacobian_vc_V = constructor_default_Vector_d(); // destructed
+//	struct Multiarray_d* jacobian_vm = constructor
+
+	const struct const_Matrix_d* ED_vg_vc = constructor_default_const_Matrix_d(); // destructed
+
+	for (int row = 0; row < d; row++) {
+//		set_const_Vector_d_from_Matrix_d(geom_coef_V,geom_coef,&row);
+		for (int col = 0; col < d; col++) {
+//			set_Vector_d_from_Multiarray_d(jacobian_vc_V,jacobian_vc,(ptrdiff_t[]){row,col});
+//			set_Matrix_d_from_Multiarray_Matrix_d(ED_vg_vc,ops->ED_vg_vc,ED_vg_vc,&col);
+//			mm_NN_d(ED_vg_vc,geom_coef_V,jacobian_vc_V);
+
+//		mm_CTN_d(NvnI0,1,NvnG0,OPS->D_vG_vI[col],&XYZ[NvnG0*row],&J_vI[NvnI0*(d*row+col)]);
+//		mm_CTN_d(NvnC0,1,NvnG0,OPS->D_vG_vC[col],&XYZ[NvnG0*row],&J_vC[NvnC0*(d*row+col)]);
+		}
+	}
+
+	destructor_const_Matrix_d(ED_vg_vc);
+	destructor_Vector_d(jacobian_vc_V);
+	destructor_const_Vector_d(geom_coef_V);
+UNUSED(sim);
+UNUSED(volume);
 }
 
 // Level 1 ********************************************************************************************************** //

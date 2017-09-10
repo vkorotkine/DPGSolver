@@ -12,8 +12,8 @@
 #include <string.h>
 
 #include "macros.h"
-#include "constants_mesh.h"
-#include "constants_alloc.h"
+#include "definitions_mesh.h"
+#include "definitions_alloc.h"
 
 #include "math_functions.h"
 #include "file_processing.h"

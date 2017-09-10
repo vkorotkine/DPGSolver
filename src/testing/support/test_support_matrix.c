@@ -16,11 +16,12 @@
 #include "math_functions.h"
 #include "matrix.h"
 
-#include "constants_alloc.h"
+#include "definitions_alloc.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
+// Constructor functions ******************************************************************************************** //
 
 struct Matrix_i* constructor_file_name_Matrix_i (const char*const var_name, const char*const file_name_full)
 {
@@ -44,6 +45,7 @@ struct Matrix_i* constructor_file_name_Matrix_i (const char*const var_name, cons
 
 	return dest;
 }
+
 struct Matrix_d* constructor_file_name_Matrix_d (const char*const var_name, const char*const file_name_full)
 {
 	struct Matrix_d* dest = NULL;
@@ -66,6 +68,12 @@ struct Matrix_d* constructor_file_name_Matrix_d (const char*const var_name, cons
 		EXIT_ERROR("Did not find the '%s' variable in the file: %s.",var_name,file_name_full);
 
 	return dest;
+}
+
+const struct const_Matrix_d* constructor_file_name_const_Matrix_d
+	(const char*const var_name, const char*const file_name_full)
+{
+	return (const struct const_Matrix_d*) constructor_file_name_Matrix_d (var_name,file_name_full);
 }
 
 struct Matrix_i* constructor_file_Matrix_i (FILE* data_file, const bool check_container)
@@ -134,6 +142,20 @@ struct Matrix_d* constructor_file_Matrix_d (FILE* data_file, const bool check_co
 	return dest;
 }
 
+const struct const_Matrix_d* constructor_transpose_const_Matrix_d (const struct const_Matrix_d* a, const bool mem_only)
+{
+	return (const struct const_Matrix_d*) constructor_transpose_Matrix_d((struct Matrix_d*)a,mem_only);
+}
+
+// Math functions *************************************************************************************************** //
+
+void transpose_const_Matrix_d (const struct const_Matrix_d* a, const bool mem_only)
+{
+	transpose_Matrix_d((struct Matrix_d*)a,mem_only);
+}
+
+// Difference functions ********************************************************************************************* //
+
 bool diff_Matrix_i (const struct Matrix_i*const a, const struct Matrix_i*const b)
 {
 	const ptrdiff_t size = (a->ext_0)*(a->ext_1);
@@ -166,6 +188,8 @@ bool diff_const_Matrix_d (const struct const_Matrix_d*const a, const struct cons
 {
 	return diff_Matrix_d((const struct Matrix_d*const)a,(const struct Matrix_d*const)b,tol);
 }
+
+// Printing functions *********************************************************************************************** //
 
 void print_diff_Matrix_i (const struct Matrix_i*const a, const struct Matrix_i*const b)
 {

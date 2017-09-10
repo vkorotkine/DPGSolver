@@ -13,8 +13,8 @@
 #include "test_support_multiarray.h"
 
 #include "macros.h"
-#include "constants_mesh.h"
-#include "constants_alloc.h"
+#include "definitions_mesh.h"
+#include "definitions_alloc.h"
 
 #include "multiarray.h"
 #include "matrix.h"

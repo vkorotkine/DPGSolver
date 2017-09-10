@@ -78,13 +78,13 @@ pass = false;
 
 //set up volume xyz coordinates and normal vectors
 //	compute metrics using:
-//	SSC: Abe(2014)-On the freestream preservation of high-order conservative flux-reconstruction schemes (section 5.2)
 //check free-stream preservation.
 //start with the wavy periodic vortex case.
 //	add blending and verify implementation by correcting the wavy periodic vortex; check:
 //		edges:   no change (computed from parametrized map exactly as in the standard mapping)
 //		faces:   no change (computed from parametrized map exactly as in the standard mapping)
 //		volumes: minor change in position of internal nodes.
+//also try with polynomial geometry based on bezier patch/patches.
 
 
 	return pass;
