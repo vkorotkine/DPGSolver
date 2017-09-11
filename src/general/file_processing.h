@@ -3,8 +3,8 @@
 
 #ifndef DPG__file_processing_h__INCLUDED
 #define DPG__file_processing_h__INCLUDED
-/**	\file
- *	\brief Provides file processing related functions.
+/** \file
+ *  \brief Provides file processing related functions.
  */
 
 #include <stdio.h>
@@ -14,13 +14,13 @@
 // Opening files **************************************************************************************************** //
 
 /** \brief Open file and check for successful completion.
- *	\return See brief. */
+ *  \return See brief. */
 FILE* fopen_checked
 	(const char*const file_name_full ///< File name including full path.
 	);
 
 /** \brief Open the an input file based on the input parameters.
- *	\return See brief. */
+ *  \return See brief. */
 FILE* fopen_input
 	(const char*const input_path, ///< Full path to the location of the input file.
 	 const char*const input_spec  ///< The input specifier. Options: "geometry".
@@ -53,19 +53,19 @@ void read_line_values_i
 	(char**const line,      ///< The line.
 	 const ptrdiff_t n_val, ///< The number of values to read.
 	 int*const vals,        ///< The array in which to store the values.
-	 const bool decrement   /**< Flag for whether decrementing by 1 is enabled. Used to convert from 1-based to 0-based
-	                         *   indexing. */
+	 const bool decrement   /**< Flag for whether decrementing by 1 is enabled. Used to convert from 1-based to
+	                         *   0-based indexing. */
 	);
 
 /** \brief Reads values from the line into a `long int` array.
- *	\note This function is also currently used to read values into `ptrdiff_t` arrays as there is not standard library
- *	      function associated with this data type. */
+ *  \note This function is also currently used to read values into `ptrdiff_t` arrays as there is not standard library
+ *        function associated with this data type. */
 void read_line_values_l
 	(char**const line,      ///< The line.
 	 const ptrdiff_t n_val, ///< The number of values to read.
 	 long int*const vals,   ///< The array in which to store the values.
-	 const bool decrement   /**< Flag for whether decrementing by 1 is enabled. Used to convert from 1-based to 0-based
-	                         *   indexing. */
+	 const bool decrement   /**< Flag for whether decrementing by 1 is enabled. Used to convert from 1-based to
+	                         *   0-based indexing. */
 	);
 
 /// \brief Reads values from the line into a `double` array.
@@ -160,7 +160,7 @@ void strcat_path_i
 	);
 
 /** \brief Extract the name of the file from the input string (i.e. excluding the path and the extension).
- *	\return See brief. */
+ *  \return See brief. */
 char* extract_name
 	(const char*const name_full,  ///< The full name.
 	 const bool extension_present ///< Flag for whether the extension is present.

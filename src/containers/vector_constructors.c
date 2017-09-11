@@ -191,7 +191,7 @@ struct Vector_d* constructor_mv_Vector_d
 	return c;
 }
 
-void set_Vector_d_from_Matrix_d (struct Vector_d* dest, struct Matrix_d* src, const ptrdiff_t*const sub_indices)
+void set_Vector_from_Matrix_d (struct Vector_d* dest, struct Matrix_d* src, const ptrdiff_t*const sub_indices)
 {
 	dest->owns_data = false;
 	if (src->layout == 'R') {
@@ -203,18 +203,25 @@ void set_Vector_d_from_Matrix_d (struct Vector_d* dest, struct Matrix_d* src, co
 	}
 }
 
-void set_const_Vector_d_from_Matrix_d
+void set_const_Vector_from_Matrix_d
 	(const struct const_Vector_d* dest, const struct const_Matrix_d* src, const ptrdiff_t*const sub_indices)
 {
-	set_Vector_d_from_Matrix_d((struct Vector_d*)dest,(struct Matrix_d*)src,sub_indices);
+	set_Vector_from_Matrix_d((struct Vector_d*)dest,(struct Matrix_d*)src,sub_indices);
 }
 
-void set_Vector_d_from_Multiarray_d (struct Vector_d* dest, struct Multiarray_d* src, const ptrdiff_t*const sub_indices)
+void set_Vector_from_Multiarray_d (struct Vector_d* dest, struct Multiarray_d* src, const ptrdiff_t*const sub_indices)
 {
 	dest->owns_data = false;
 	dest->ext_0 = src->extents[0];
 	dest->data  = &src->data[compute_index_sub_vector(src->order,src->extents,sub_indices)];
 }
+
+void set_const_Vector_from_Multiarray_d
+	(const struct const_Vector_d* dest, const struct const_Multiarray_d* src, const ptrdiff_t*const sub_indices)
+{
+	set_Vector_from_Multiarray_d((struct Vector_d*)dest,(struct Multiarray_d*)src,sub_indices);
+}
+
 
 // Destructors ****************************************************************************************************** //
 
@@ -230,7 +237,7 @@ void destructor_Vector_d (struct Vector_d* a)
 
 void destructor_const_Vector_d (const struct const_Vector_d* a)
 {
-	destructor_Vector_d((struct Vector_d*) a);
+	destructor_Vector_d((struct Vector_d*)a);
 }
 
 void destructor_Vector_i (struct Vector_i* a)
@@ -241,6 +248,11 @@ void destructor_Vector_i (struct Vector_i* a)
 	if (a->owns_data)
 		free(a->data);
 	free(a);
+}
+
+void destructor_const_Vector_i (const struct const_Vector_i* a)
+{
+	destructor_Vector_i((struct Vector_i*)a);
 }
 
 void destructor_Vector_i_2 (struct Vector_i** a, const ptrdiff_t n_src, const bool owns_data)

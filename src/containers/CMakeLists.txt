@@ -1,6 +1,7 @@
 set	(SOURCE
 	 multiarray.c
 	 multiarray_constructors.c
+	 multiarray_math.c
 	 multiarray_print.c
 	 matrix.c
 	 matrix_constructors.c

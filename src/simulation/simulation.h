@@ -3,10 +3,10 @@
 
 #ifndef DPG__Simulation_h__INCLUDED
 #define DPG__Simulation_h__INCLUDED
-/**	\file
- *	\brief Provides the interface for the \ref Simulation container and associated functions.
+/** \file
+ *  \brief Provides the interface for the \ref Simulation container and associated functions.
  *
- *	\note Some of the orders specified in the ctrl file will be disregarded if \ref Simulation::collocated is true.
+ *  \note Some of the orders specified in the ctrl file will be disregarded if \ref Simulation::collocated is true.
  */
 
 #include <stdbool.h>
@@ -28,8 +28,8 @@
 
 /// \brief Struct holding data related to the simulation.
 struct Simulation {
-	const char ctrl_name_full[STRLEN_MAX]; ///< Name of the control file (including the full path and file extension).
-	const char mesh_name_full[STRLEN_MAX]; ///< Name of the mesh    file (including the full path and file extension).
+	const char ctrl_name_full[STRLEN_MAX]; ///< Name of the control file (including full path and file extension).
+	const char mesh_name_full[STRLEN_MAX]; ///< Name of the mesh    file (including full path and file extension).
 	const char input_path[STRLEN_MAX];     ///< The path to the directory containing relevant input files.
 
 	const char pde_name[STRLEN_MIN];  ///< Name of the Partial Differential Equation (PDE).
@@ -45,18 +45,18 @@ struct Simulation {
 	 *  	- Curved:   Volumes along the boundary of the domain may have a higher geometry order.
 	 *  	- Mapped:   All volumes are mapped from a simple reference domain to the final simulation domain.
 	 *
-	 *	For `domain_type = Curved`, it is **necessary** to set the values of the boundary conditions on curved surfaces
-	 *	to different multiples of BC_STEP_SC+bc_value for the `boundary` and `curved` flags for \ref Volume and \ref
-	 *	Face elements to be properly set.
+	 *  For `domain_type = Curved`, it is **necessary** to set the values of the boundary conditions on curved
+	 *  surfaces to different multiples of BC_STEP_SC+bc_value for the `boundary` and `curved` flags for
+	 *  \ref Volume and \ref Face elements to be properly set.
 	 */
 	const int domain_type;
 
-	/** The range of minimal and maximal mesh levels to be used. h-adaptation is enabled if the levels differ. The input
-	 *  mesh is chosen based on the value of ml[0]. */
+	/** The range of minimal and maximal mesh levels to be used. h-adaptation is enabled if the levels differ. The
+	 *  input mesh is chosen based on the value of ml[0]. */
 	const int ml[2];
 
-	/** Flag for whether the mesh vertices should be unrealistically corrected to lie on the input domain boundary to
-	 * within a very small tolerance. See \ref mesh_vertices.h additional discussion of this issue. */
+	/** Flag for whether the mesh vertices should be unrealistically corrected to lie on the input domain boundary
+	 *  to within a very small tolerance. See \ref mesh_vertices.h additional discussion of this issue. */
 	const bool mesh_unrealistic;
 
 	ptrdiff_t n_v, ///< The number of \ref Volume finite elements.

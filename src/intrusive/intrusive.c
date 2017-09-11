@@ -1,6 +1,6 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-///	\file
+/// \file
 
 #include "intrusive.h"
 
@@ -44,6 +44,11 @@ void destructor_IL (struct Intrusive_List* lst)
 {
 	clear_IL(lst);
 	free(lst);
+}
+
+void destructor_const_IL (const struct const_Intrusive_List* lst)
+{
+	destructor_IL((struct Intrusive_List*)lst);
 }
 
 void push_back_IL (struct Intrusive_List* lst, struct Intrusive_Link* curr)

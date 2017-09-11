@@ -1,6 +1,6 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-/**	\file
+/** \file
  */
 
 #include "test_support.h"
@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "macros.h"
 #include "definitions_alloc.h"
 
 // Static function declarations ************************************************************************************* //
@@ -61,6 +62,20 @@ char* set_print_name_container_member (const char*const name_container, int ind_
 	strcat(print_name,name_member);
 
 	return print_name;
+}
+
+void check_container_type (FILE* data_file, const char*const container_type)
+{
+	char line[STRLEN_MAX];
+	fgets(line,sizeof(line),data_file);
+
+	char expected_line[STRLEN_MAX];
+	strcpy(expected_line,"container ");
+	strcat(expected_line,container_type);
+
+	const bool found = ( strstr(line,expected_line) ? true : false );
+	if (!found)
+		EXIT_ERROR("Reading incorrect container type: %s",line);
 }
 
 // Static functions ************************************************************************************************* //

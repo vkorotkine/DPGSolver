@@ -61,4 +61,11 @@ void output_test_info
 	(struct Test_Info*const test_info ///< \ref Test_Info.
 	);
 
+/** \brief Allocates memory and sets the name of the data file.
+ *  \return See brief. */
+char* constructor_file_name_unit
+	(const char*const file_name_spec /**< The specific name of the data file (`file_name` without extension but with
+	                                  *   path from '../test/unit'). */
+	);
+
 #endif // DPG__test_base_h__INCLUDED

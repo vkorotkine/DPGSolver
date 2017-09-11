@@ -69,9 +69,9 @@ struct Mesh_Vertices* constructor_Mesh_Vertices
 
 void destructor_Mesh_Vertices (struct Mesh_Vertices* mesh_vert)
 {
-	destructor_Vector_i((struct Vector_i*)mesh_vert->ve_curved);
-	destructor_Vector_i((struct Vector_i*)mesh_vert->ve_boundary);
-	destructor_Multiarray_Vector_i((struct Multiarray_Vector_i*)mesh_vert->ve_bc);
+	destructor_const_Vector_i(mesh_vert->ve_curved);
+	destructor_const_Vector_i(mesh_vert->ve_boundary);
+	destructor_const_Multiarray_Vector_i(mesh_vert->ve_bc);
 
 	free(mesh_vert);
 }

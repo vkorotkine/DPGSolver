@@ -9,8 +9,10 @@ include_directories(
 	general
 	intrusive
 	simulation
-	simulation/mesh
+	simulation/computational_elements
+	simulation/element
 	simulation/geometry
+	simulation/mesh
 	simulation/solution
 	testing
 	)

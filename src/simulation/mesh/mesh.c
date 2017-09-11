@@ -38,7 +38,7 @@ struct Mesh* constructor_Mesh (const struct Mesh_Input* mesh_input, const struct
 	*(struct Mesh_Vertices**)&     mesh->mesh_vert = constructor_Mesh_Vertices(mesh,elements,mesh_input);
 
 	if (!elements_provided)
-		destructor_Elements((struct Intrusive_List*)elements);
+		destructor_const_Elements(elements);
 
 	return mesh;
 }

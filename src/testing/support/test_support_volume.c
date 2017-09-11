@@ -5,7 +5,7 @@
 
 #include "test_support_volume.h"
 
-#include "test_support_matrix.h"
+#include "test_support_multiarray.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -33,10 +33,10 @@ struct Volume* constructor_Volume
 	read_skip_file_const_b("boundary",file,&volume->boundary);
 	read_skip_file_const_b("curved",file,&volume->curved);
 	skip_lines(file,1);
-	struct Matrix_d* xyz_ve = constructor_file_Matrix_d(file,true); // keep
-	const_constructor_move_Matrix_d(&volume->xyz_ve,xyz_ve);
+	struct Multiarray_d* xyz_ve = constructor_file_Multiarray_d(file,true); // keep
+	const_constructor_move_Multiarray_d(&volume->xyz_ve,xyz_ve);
 
-	const_constructor_move_Matrix_d(&volume->geom_coef,constructor_default_Matrix_d()); // keep
+	const_constructor_move_Multiarray_d(&volume->geom_coef,constructor_default_Multiarray_d()); // keep
 
 	int elem_type;
 	read_skip_file_i("elem_type",file,&elem_type);

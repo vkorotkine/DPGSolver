@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "test_support.h"
 #include "test_support_multiarray.h"
 
 #include "macros.h"

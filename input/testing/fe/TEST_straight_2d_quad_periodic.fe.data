@@ -3,8 +3,8 @@ Volume    0
 boundary: 0
 curved:   0
 xyz_ve:
-container Matrix_d
-R 4 2
+container Multiarray_d
+R 2 4 2
 -1.000000000000e+00 -1.000000000000e+00 
  0.000000000000e+00 -1.000000000000e+00 
 -1.000000000000e+00  0.000000000000e+00 
@@ -15,8 +15,8 @@ Volume    1
 boundary: 0
 curved:   0
 xyz_ve:
-container Matrix_d
-R 4 2
+container Multiarray_d
+R 2 4 2
 -1.000000000000e+00  0.000000000000e+00 
  0.000000000000e+00  0.000000000000e+00 
 -1.000000000000e+00  1.000000000000e+00 
@@ -27,8 +27,8 @@ Volume    2
 boundary: 0
 curved:   0
 xyz_ve:
-container Matrix_d
-R 4 2
+container Multiarray_d
+R 2 4 2
  0.000000000000e+00 -1.000000000000e+00 
  1.000000000000e+00 -1.000000000000e+00 
  0.000000000000e+00  0.000000000000e+00 
@@ -39,8 +39,8 @@ Volume    3
 boundary: 0
 curved:   0
 xyz_ve:
-container Matrix_d
-R 4 2
+container Multiarray_d
+R 2 4 2
  0.000000000000e+00  0.000000000000e+00 
  1.000000000000e+00  0.000000000000e+00 
  0.000000000000e+00  1.000000000000e+00 

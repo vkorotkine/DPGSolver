@@ -1,6 +1,6 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-/**	\file
+/** \file
  */
 
 #include "test_support_multiarray.h"
@@ -9,13 +9,16 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "test_support.h"
 #include "test_support_vector.h"
 
 #include "macros.h"
-#include "file_processing.h"
+#include "definitions_alloc.h"
+
 #include "multiarray.h"
 
-#include "definitions_alloc.h"
+#include "file_processing.h"
+#include "math_functions.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -26,6 +29,32 @@ static struct Multiarray_Vector_i* constructor_file_Multiarray_Vector_i
 	);
 
 // Interface functions ********************************************************************************************** //
+// Constructor functions ******************************************************************************************** //
+
+struct Multiarray_d* constructor_file_name_Multiarray_d
+	(const char*const var_name, const char*const file_name_full)
+{
+	struct Multiarray_d* dest = NULL;
+
+	FILE* data_file = fopen_checked(file_name_full); // closed
+
+	bool found_var = false;
+
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),data_file)) {
+		if (strstr(line,var_name)) {
+			found_var = true;
+			dest = constructor_file_Multiarray_d(data_file,true);
+		}
+	}
+
+	fclose(data_file);
+
+	if (!found_var)
+		EXIT_ERROR("Did not find the '%s' variable in the file: %s",var_name,file_name_full);
+
+	return dest;
+}
 
 struct Multiarray_Vector_i* constructor_file_name_Multiarray_Vector_i
 	(const char*const var_name, const char*const file_name_full)
@@ -52,19 +81,50 @@ struct Multiarray_Vector_i* constructor_file_name_Multiarray_Vector_i
 	return dest;
 }
 
-void check_container_type (FILE* data_file, const char*const container_type)
+struct Multiarray_d* constructor_file_Multiarray_d (FILE* data_file, const bool check_container)
 {
+	if (check_container)
+		check_container_type(data_file,"Multiarray_d");
+
 	char line[STRLEN_MAX];
 	fgets(line,sizeof(line),data_file);
 
-	char expected_line[STRLEN_MAX];
-	strcpy(expected_line,"container ");
-	strcat(expected_line,container_type);
+	char layout = 0;
+	int  order  = 0;
+	sscanf(line,"%c %d",&layout,&order);
 
-	const bool found = ( strstr(line,expected_line) ? true : false );
-	if (!found)
-		EXIT_ERROR("Reading incorrect container type: %s",line);
+	if (order == 0)
+		EXIT_UNSUPPORTED;
+
+	ptrdiff_t extents[order];
+	read_skip_ptrdiff_1 (line,2,extents,order);
+
+	const ptrdiff_t size = compute_size(order,extents);
+
+	// Read data by row and transpose if necessary.
+	if (order > 2)
+		EXIT_ADD_SUPPORT;
+
+	ptrdiff_t ext_0 = extents[0],
+	          ext_1 = extents[1];
+
+	double* data = malloc(size * sizeof *data); // keep
+	for (ptrdiff_t i = 0; i < ext_0; ++i) {
+		fgets(line,sizeof(line),data_file);
+
+		char* line_ptr[1] = {line};
+		read_line_values_d(line_ptr,ext_1,&data[i*ext_1]);
+	}
+
+	struct Multiarray_d* dest = constructor_move_Multiarray_d_d('R',order,extents,true,data); // returned
+
+	if (layout == 'C')
+		EXIT_ADD_SUPPORT;
+
+	return dest;
 }
+
+// Difference functions ********************************************************************************************* //
 
 bool diff_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a, const struct Multiarray_Vector_i*const b)
 {
@@ -80,6 +140,28 @@ bool diff_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a, const s
 
 	return false;
 }
+
+bool diff_Multiarray_d (const struct Multiarray_d*const a, const struct Multiarray_d*const b, const double tol)
+{
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+
+	if ((size != compute_size(b->order,b->extents)) || (a->layout != b->layout))
+		return true;
+
+	for (ptrdiff_t i = 0; i < size; ++i) {
+		if (!equal_d(a->data[i],b->data[i],tol))
+			return true;
+	}
+	return false;
+}
+
+bool diff_const_Multiarray_d
+	(const struct const_Multiarray_d*const a, const struct const_Multiarray_d*const b, const double tol)
+{
+	return diff_Multiarray_d((struct Multiarray_d*)a,(struct Multiarray_d*)b,tol);
+}
+
+// Printing functions *********************************************************************************************** //
 
 void print_diff_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a, const struct Multiarray_Vector_i*const b)
 {
@@ -110,6 +192,40 @@ void print_diff_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a, c
 		break;
 	}
 	printf("\n");
+}
+
+void print_diff_Multiarray_d (const struct Multiarray_d*const a, const struct Multiarray_d*const b, const double tol)
+{
+	const char layout    = a->layout;
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+
+	if ((size != compute_size(b->order,b->extents)) || (layout != b->layout)) {
+		printf("Attempting to compare Multiarrays of different size:\n");
+		print_Multiarray_d(a,tol);
+		print_Multiarray_d(b,tol);
+		return;
+	}
+
+	const double*const data_a = a->data,
+	            *const data_b = b->data;
+
+	double data[size];
+	for (ptrdiff_t i = 0; i < size; ++i)
+		data[i] = norm_diff_d(1,&data_a[i],&data_b[i],"Inf");
+
+	// Temporarily modify the data pointer to print the matrix of differences without constructing a new object.
+	double* data_ptr = a->data;
+
+	struct Multiarray_d* a_tmp = (struct Multiarray_d*) a;
+	a_tmp->data = data;
+	print_Multiarray_d(a_tmp,tol);
+	a_tmp->data = data_ptr;
+}
+
+void print_diff_const_Multiarray_d
+	(const struct const_Multiarray_d*const a, const struct const_Multiarray_d*const b, const double tol)
+{
+	print_diff_Multiarray_d((const struct Multiarray_d*const)a,(const struct Multiarray_d*const)b,tol);
 }
 
 // Static functions ************************************************************************************************* //

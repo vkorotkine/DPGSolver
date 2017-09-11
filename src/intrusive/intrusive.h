@@ -3,12 +3,12 @@
 
 #ifndef DPG__Intrusive_h__INCLUDED
 #define DPG__Intrusive_h__INCLUDED
-/**	\file
- *	\brief Provides structures/functions related to the intrusive list functionality.
+/** \file
+ *  \brief Provides structures/functions related to the intrusive list functionality.
  *
- *	The data structures used here were inspired by the intrusive container example from ch. 27.9 of Stroustrup
- *	\cite Stroustrup2014. The motivating principle is that elements of an \ref Intrusive_List may be manipulated without
- *	knowing anything about the internal structure of the \ref Intrusive_Link.
+ *  The data structures used here were inspired by the intrusive container example from ch. 27.9 of Stroustrup
+ *  \cite Stroustrup2014. The motivating principle is that elements of an \ref Intrusive_List may be manipulated without
+ *  knowing anything about the internal structure of the \ref Intrusive_Link.
  */
 
 /// \brief A doubly-linked list structure to hold intrusive containers.
@@ -53,10 +53,15 @@ void clear_IL
 
 /** \brief Destructs a \ref Intrusive_List and its dynamically allocated \ref Intrusive_Link components.
  *
- *	\note No destructor is being called for the elements represented by the \ref Intrusive_Link components.
+ *  \note No destructor is being called for the elements represented by the \ref Intrusive_Link components.
  */
 void destructor_IL
 	(struct Intrusive_List* lst ///< Standard.
+	);
+
+/// \brief `const` version of \ref destructor_IL.
+void destructor_const_IL
+	(const struct const_Intrusive_List* lst ///< Standard.
 	);
 
 /// \brief Add an \ref Intrusive_Link to the end of the \ref Intrusive_List.
@@ -67,9 +72,9 @@ void push_back_IL
 
 /** \brief Erase the current \ref Intrusive_Link.
  *
- *	\warning Does not free memory.
+ *  \warning Does not free memory.
  *
- *	\return Pointer to the next \ref Intrusive_Link.
+ *  \return Pointer to the next \ref Intrusive_Link.
  */
 struct Intrusive_Link* erase_IL
 	(struct Intrusive_List* lst, ///< The list.

@@ -127,3 +127,13 @@ double max_abs_d (const double a, const double b)
 	             b_abs = fabs(b);
 	return ( a_abs > b_abs ? a_abs : b_abs );
 }
+
+int min_i (const int a, const int b)
+{
+	return ( a < b ? a : b );
+}
+
+int max_i (const int a, const int b)
+{
+	return ( a > b ? a : b );
+}

@@ -7,10 +7,16 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "macros.h"
+#include "definitions_alloc.h"
 
 // Static function declarations ************************************************************************************* //
+
+/** \brief Allocates memory and sets the path to the data file.
+ *  \return See brief. */
+static char* constructor_file_name_base ();
 
 // Interface functions ********************************************************************************************** //
 
@@ -66,6 +72,25 @@ void output_test_info (struct Test_Info*const test_info)
 	}
 }
 
+char* constructor_file_name_unit (const char*const file_name_spec)
+{
+	char*const file_name = constructor_file_name_base();
+
+	strcat(file_name,"/");
+	strcat(file_name,file_name_spec);
+	strcat(file_name,".data");
+
+	return file_name;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+static char* constructor_file_name_base ()
+{
+	char*const file_name_base = malloc(STRLEN_MAX * sizeof *file_name_base); // returned
+
+	strcpy(file_name_base,"../testing/unit");
+
+	return file_name_base;
+}

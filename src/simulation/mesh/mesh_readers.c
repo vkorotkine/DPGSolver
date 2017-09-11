@@ -95,15 +95,15 @@ struct Mesh_Data* constructor_Mesh_Data (const char*const mesh_name_full, const 
 
 void destructor_Mesh_Data (struct Mesh_Data* mesh_data)
 {
-	destructor_Vector_i((struct Vector_i*)mesh_data->elem_per_dim);
-	destructor_Matrix_d((struct Matrix_d*)mesh_data->nodes);
+	destructor_const_Vector_i(mesh_data->elem_per_dim);
+	destructor_const_Matrix_d(mesh_data->nodes);
 
-	destructor_Vector_i((struct Vector_i*)mesh_data->elem_types);
-	destructor_Matrix_i((struct Matrix_i*)mesh_data->elem_tags);
-	destructor_Multiarray_Vector_i((struct Multiarray_Vector_i*)mesh_data->node_nums);
+	destructor_const_Vector_i(mesh_data->elem_types);
+	destructor_const_Matrix_i(mesh_data->elem_tags);
+	destructor_const_Multiarray_Vector_i(mesh_data->node_nums);
 
 	if (mesh_data->periodic_corr)
-		destructor_Matrix_i((struct Matrix_i*)mesh_data->periodic_corr);
+		destructor_const_Matrix_i(mesh_data->periodic_corr);
 
 	free(mesh_data);
 }

@@ -11,6 +11,7 @@
 #include "macros.h"
 #include "definitions_mkl.h"
 
+#include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
 
@@ -194,6 +195,20 @@ struct Matrix_d* constructor_mm_Matrix_d
 	return c;
 }
 
+void set_Matrix_from_Multiarray_d (struct Matrix_d* dest, struct Multiarray_d* src, const ptrdiff_t*const sub_indices)
+{
+	dest->layout    = src->layout;
+	dest->owns_data = false;
+	dest->ext_0     = src->extents[0];
+	dest->ext_1     = src->extents[1];
+	dest->data      = &src->data[compute_index_sub_container(src->order,2,src->extents,sub_indices)];
+}
+void set_const_Matrix_from_Multiarray_d
+	(const struct const_Matrix_d* dest, const struct const_Multiarray_d* src, const ptrdiff_t*const sub_indices)
+{
+	set_Matrix_from_Multiarray_d((struct Matrix_d*)dest,(struct Multiarray_d*)src,sub_indices);
+}
+
 // Destructors ****************************************************************************************************** //
 
 void destructor_Matrix_d (struct Matrix_d* a)
@@ -219,6 +234,11 @@ void destructor_Matrix_i (struct Matrix_i* a)
 	if (a->owns_data)
 		free(a->data);
 	free(a);
+}
+
+void destructor_const_Matrix_i (const struct const_Matrix_i* a)
+{
+	destructor_Matrix_i((struct Matrix_i*)a);
 }
 
 // Static functions ************************************************************************************************* //

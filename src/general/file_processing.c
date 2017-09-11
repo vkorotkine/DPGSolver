@@ -1,6 +1,6 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-/**	\file
+/** \file
  */
 
 #include "file_processing.h"
@@ -16,12 +16,12 @@
 // Static function declarations ************************************************************************************* //
 
 /** \brief Converts the string pointed to by the argument `str` to an `int`.
- *	\return See brief.
+ *  \return See brief.
  *
- *	The implementation was taken from [this SO answer][SO_strtoi].
+ *  The implementation was taken from [this SO answer][SO_strtoi].
  *
- *	<!-- References: -->
- *	[SO_strtoi]: https://stackoverflow.com/a/29378380/5983549
+ *  <!-- References: -->
+ *  [SO_strtoi]: https://stackoverflow.com/a/29378380/5983549
  */
 static int strtoi
 	(const char* str, ///< The input string.
@@ -269,12 +269,12 @@ char* extract_name (const char*const name_full, const bool extension_present)
 // Level 0 ********************************************************************************************************** //
 
 /** \brief Converts the string pointed to by the argument `str` to a smaller type than `long int`.
- *	\return See brief.
+ *  \return See brief.
  *
- *	The implementation was taken from [this SO answer][SO_strtoi].
+ *  The implementation was taken from [this SO answer][SO_strtoi].
  *
- *	<!-- References: -->
- *	[SO_strtoi]: https://stackoverflow.com/a/29378380/5983549
+ *  <!-- References: -->
+ *  [SO_strtoi]: https://stackoverflow.com/a/29378380/5983549
  */
 static long strto_subrange
 	(const char *str, ///< See strtoi.

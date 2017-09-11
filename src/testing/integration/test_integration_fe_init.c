@@ -10,7 +10,7 @@
 #include "test_base.h"
 #include "test_support.h"
 #include "test_support_intrusive.h"
-#include "test_support_matrix.h"
+#include "test_support_multiarray.h"
 
 #include "macros.h"
 #include "definitions_mesh.h"
@@ -124,7 +124,7 @@ static bool compare_members_fe
 		if ((volume->index != volume_test->index)                                       ||
 		    (volume->boundary != volume_test->boundary)                                 ||
 		    (volume->curved != volume_test->curved)                                     ||
-		    (diff_const_Matrix_d(volume->xyz_ve,volume_test->xyz_ve,NODETOL_MESH) != 0) ||
+		    (diff_const_Multiarray_d(volume->xyz_ve,volume_test->xyz_ve,NODETOL_MESH) != 0) ||
 		    (volume->element->type != volume_test->element->type))
 		{
 			test_print_failure(test_info,"Volume");
@@ -136,8 +136,8 @@ static bool compare_members_fe
 				printf("boundary: %d %d\n",volume->boundary,volume_test->boundary);
 			if (volume->curved != volume_test->curved)
 				printf("curved: %d %d\n",volume->curved,volume_test->curved);
-			if (diff_const_Matrix_d(volume->xyz_ve,volume_test->xyz_ve,NODETOL_MESH) != 0)
-				print_diff_const_Matrix_d(volume->xyz_ve,volume_test->xyz_ve,NODETOL_MESH);
+			if (diff_const_Multiarray_d(volume->xyz_ve,volume_test->xyz_ve,NODETOL_MESH) != 0)
+				print_diff_const_Multiarray_d(volume->xyz_ve,volume_test->xyz_ve,NODETOL_MESH);
 			if (volume->element->type != volume_test->element->type)
 				printf("elem_type: %d %d\n",volume->element->type,volume_test->element->type);
 		}

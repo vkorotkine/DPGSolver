@@ -3,8 +3,8 @@
 
 #ifndef DPG__template_h__INCLUDED
 #define DPG__template_h__INCLUDED
-/**	\file
- *	\todo \brief Change ifndef name and add general comments for the header file here.
+/** \file
+ *  \todo \brief Change ifndef name and add general comments for the header file here.
  */
 
 #endif // DPG__template_h__INCLUDED

@@ -1,6 +1,6 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-/**	\file
+/** \file
  */
 
 #include "test_unit.h"
@@ -11,6 +11,8 @@
 #include "macros.h"
 
 #include "test_unit_containers.h"
+#include "test_unit_cubature.h"
+#include "test_unit_bases.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -19,11 +21,12 @@
 void run_tests_unit (struct Test_Info*const test_info)
 {
 	printf("\n\nRunning Unit Tests:\n");
-	printf("----------------------------------------------------------------------------------------------------\n\n");
+	printf("-------------------------------------------------------------------------------------------------\n\n");
 
 	test_unit_containers(test_info);
+	test_unit_cubature(test_info);
+	test_unit_bases(test_info);
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-

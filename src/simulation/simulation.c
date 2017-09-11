@@ -1,6 +1,6 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-/**	\file
+/** \file
  */
 
 #include "simulation.h"
@@ -21,13 +21,14 @@
 #include "face.h"
 #include "file_processing.h"
 #include "const_cast.h"
+#include "intrusive.h"
 
 // Static function declarations ************************************************************************************* //
 
 /** \brief Set core parameters for the simulation as specified in the control file.
  *
- * 	Requires `sim` to be dynamically allocated. This allows for the definition of `const` members after the declaration
- *	which would otherwise be undefined behaviour.
+ *  Requires `sim` to be dynamically allocated. This allows for the definition of `const` members after the declaration
+ *  which would otherwise be undefined behaviour.
  */
 static void set_simulation_core
 	(struct Simulation*const sim, ///< Standard.
@@ -51,8 +52,8 @@ void destructor_Simulation (struct Simulation* sim)
 // Add function pointers here when this gets bigger.
 
 	switch (sim->elements->name) {
-		case IL_ELEMENT: destructor_Elements((struct Intrusive_List*) sim->elements); break;
-		default:         EXIT_UNSUPPORTED;                                            break;
+		case IL_ELEMENT: destructor_const_Elements(sim->elements); break;
+		default:         EXIT_UNSUPPORTED;                         break;
 	}
 
 

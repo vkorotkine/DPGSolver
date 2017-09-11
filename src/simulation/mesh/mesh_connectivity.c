@@ -99,8 +99,8 @@ struct Mesh_Connectivity* constructor_Mesh_Connectivity
 
 void destructor_Mesh_Connectivity (struct Mesh_Connectivity* mesh_conn)
 {
-	destructor_Multiarray_Vector_i((struct Multiarray_Vector_i*)mesh_conn->v_to_v);
-	destructor_Multiarray_Vector_i((struct Multiarray_Vector_i*)mesh_conn->v_to_lf);
+	destructor_const_Multiarray_Vector_i(mesh_conn->v_to_v);
+	destructor_const_Multiarray_Vector_i(mesh_conn->v_to_lf);
 
 	free(mesh_conn);
 }
@@ -217,7 +217,7 @@ static struct Conn_info* constructor_Conn_info
 
 static void destructor_Conn_info (struct Conn_info* conn_info)
 {
-	destructor_Vector_i((struct Vector_i*)conn_info->volume_types);
+	destructor_const_Vector_i(conn_info->volume_types);
 	destructor_Vector_i(conn_info->v_n_lf);
 	free(conn_info);
 }

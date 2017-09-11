@@ -1,13 +1,12 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-/**	\file
+/** \file
  */
 
 #include "test_unit_containers.h"
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 
 #include "test_base.h"
 #include "test_support.h"
@@ -15,7 +14,6 @@
 #include "test_support_vector.h"
 
 #include "macros.h"
-#include "definitions_alloc.h"
 #include "definitions_tol.h"
 
 #include "matrix.h"
@@ -23,12 +21,12 @@
 
 // Static function declarations ************************************************************************************* //
 
-///	\brief Provides unit tests for the matrix-matrix multiplication functions.
+/// \brief Provides unit tests for the matrix-matrix multiplication functions.
 static void test_unit_matrix_mm
 	(struct Test_Info*const test_info ///< \ref Test_Info.
 	);
 
-///	\brief Provides unit tests for the matrix-vector multiplication functions.
+/// \brief Provides unit tests for the matrix-vector multiplication functions.
 static void test_unit_matrix_mv
 	(struct Test_Info*const test_info ///< \ref Test_Info.
 	);
@@ -44,18 +42,12 @@ void test_unit_containers (struct Test_Info*const test_info)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/**	\brief Allocates memory and sets the name of the data file.
- *	\return See brief. */
-static char* constructor_file_name
-	(const char*const file_name_spec ///< The specific name of the data file (`file_name` without path or extension).
-	);
-
 static void test_unit_matrix_mm (struct Test_Info*const test_info)
 {
 	char* test_name = "Containers - Matrix mm";
 	bool pass = true;
 
-	const char*const file_name_full = constructor_file_name("matrix"); // free
+	const char*const file_name_full = constructor_file_name_unit("containers/matrix"); // free
 
 	const struct const_Matrix_d* a = constructor_file_name_const_Matrix_d("a_Matrix",file_name_full), // destructed
 	                           * b = constructor_file_name_const_Matrix_d("b_Matrix",file_name_full); // destructed
@@ -125,7 +117,7 @@ static void test_unit_matrix_mv (struct Test_Info*const test_info)
 	char* test_name = "Containers - Matrix mv";
 	bool pass = true;
 
-	const char*const file_name_full = constructor_file_name("matrix"); // free
+	const char*const file_name_full = constructor_file_name_unit("containers/matrix"); // free
 
 	const struct const_Matrix_d* a = constructor_file_name_const_Matrix_d("a_Matrix",file_name_full); // destructed
 	const struct const_Vector_d* b = constructor_file_name_const_Vector_d("b_Vector",file_name_full); // destructed
@@ -169,32 +161,4 @@ static void test_unit_matrix_mv (struct Test_Info*const test_info)
 	destructor_Vector_d(c_TC);
 
 	test_increment_and_print(test_info,pass,test_name);
-}
-
-// Level 1 ********************************************************************************************************** //
-
-/**	\brief Allocates memory and sets the path to the data file.
- *	\return See brief. */
-static char* constructor_file_name_base ();
-
-static char* constructor_file_name (const char*const file_name_spec)
-{
-	char*const file_name = constructor_file_name_base();
-
-	strcat(file_name,"/");
-	strcat(file_name,file_name_spec);
-	strcat(file_name,".data");
-
-	return file_name;
-}
-
-// Level 2 ********************************************************************************************************** //
-
-static char* constructor_file_name_base ()
-{
-	char*const file_name_base = malloc(STRLEN_MAX * sizeof *file_name_base); // returned
-
-	strcpy(file_name_base,"../testing/unit/containers");
-
-	return file_name_base;
 }

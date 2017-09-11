@@ -25,6 +25,13 @@
 #define PYR   7
 ///\}
 
+///\{ \name Element super types.
+#define ST_TP    1
+#define ST_SI    2
+#define ST_PYR   3
+#define ST_WEDGE 4
+///\}
+
 ///\{ \name Element related values
 
 // Vertex
