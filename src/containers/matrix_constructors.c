@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include "mkl.h"
 
+#include "macros.h"
 #include "definitions_mkl.h"
 
 #include "matrix.h"
@@ -197,6 +198,9 @@ struct Matrix_d* constructor_mm_Matrix_d
 
 void destructor_Matrix_d (struct Matrix_d* a)
 {
+	if (a == NULL)
+		EXIT_DESTRUCTOR;
+
 	if (a->owns_data)
 		free(a->data);
 	free(a);
@@ -209,6 +213,9 @@ void destructor_const_Matrix_d (const struct const_Matrix_d* a)
 
 void destructor_Matrix_i (struct Matrix_i* a)
 {
+	if (a == NULL)
+		EXIT_DESTRUCTOR;
+
 	if (a->owns_data)
 		free(a->data);
 	free(a);

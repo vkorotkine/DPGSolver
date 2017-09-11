@@ -17,12 +17,14 @@ struct Simulation;
 struct Geometry_Element {
 	struct const_Element element; ///< Base \ref const_Element.
 
+	struct Multiarray_Matrix_d* ED_vg_vc; ///< See notation in \todo [Ref here].
 };
 
 /// \brief `const` version of the \ref Geometry_Element container.
 struct const_Geometry_Element {
-	struct const_Element element; ///< Base \ref const_Element.
+	const struct const_Element element; ///< Base \ref const_Element.
 
+	const struct const_Multiarray_Matrix_d*const ED_vg_vc; ///< See notation in \todo [Ref here].
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

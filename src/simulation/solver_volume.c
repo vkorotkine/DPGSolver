@@ -39,12 +39,6 @@ struct Intrusive_List* constructor_Solver_Volumes (struct Simulation*const sim)
 	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next)
 		push_back_IL(solver_volumes,(struct Intrusive_Link*) constructor_Solver_Volume((struct Volume*) curr));
 
-//	for (struct Intrusive_Link* curr = solver_volumes->first; curr; curr = curr->next)
-//		set_up_solver_volume_geometry(sim,(struct Solver_Volume*) curr);
-
-EXIT_UNSUPPORTED;
-	set_up_solution(sim,solver_volumes);
-
 	destructor_IL(volumes);
 	return solver_volumes;
 }
@@ -61,11 +55,12 @@ void destructor_Solver_Volumes (struct Intrusive_List* solver_volumes)
 
 static void destructor_Solver_Volume (struct Solver_Volume* volume)
 {
-	(volume->sol_coef        ? destructor_Multiarray_d(volume->sol_coef)                         : EXIT_DESTRUCTOR);
-	(volume->grad_coef       ? destructor_Multiarray_d(volume->grad_coef)                        : EXIT_DESTRUCTOR);
-	(volume->metrics_vg      ? destructor_Multiarray_d((struct Multiarray_d*)volume->metrics_vg) : EXIT_DESTRUCTOR);
-	(volume->metrics_vc      ? destructor_Multiarray_d((struct Multiarray_d*)volume->metrics_vc) : EXIT_DESTRUCTOR);
-	(volume->jacobian_det_vc ? destructor_Vector_d(    (struct Vector_d*)volume->metrics_vc)     : EXIT_DESTRUCTOR);
+	destructor_Multiarray_d(volume->sol_coef);
+	destructor_Multiarray_d(volume->grad_coef);
+	destructor_Multiarray_d((struct Multiarray_d*)volume->metrics_vg);
+	destructor_Multiarray_d((struct Multiarray_d*)volume->metrics_vc);
+	destructor_Vector_d((struct Vector_d*)volume->metrics_vc);
+
 	destructor_Volume((struct Volume*) volume);
 }
 

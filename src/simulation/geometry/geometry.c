@@ -81,7 +81,7 @@ static compute_geom_coef_fptr set_fptr_geom_coef
  *	\f}
  *
  */
-void compute_geometry_volume
+static void compute_geometry_volume
 	(struct Simulation *sim,      ///< \ref Simulation.
 	 struct Solver_Volume* volume ///< \ref Solver_Volume.
 	);
@@ -100,27 +100,28 @@ void set_up_geometry (struct Simulation* sim, struct Intrusive_List* volumes)
 
 void set_up_solver_geometry (struct Simulation* sim)
 {
-	if ((sim->volumes->name != IL_SOLVER_VOLUME) || (sim->faces->name != IL_SOLVER_FACE))
-		EXIT_UNSUPPORTED;
+//	if ((sim->volumes->name != IL_SOLVER_VOLUME) || (sim->faces->name != IL_SOLVER_FACE))
+	if ((sim->volumes->name != IL_SOLVER_VOLUME))
+		EXIT_ERROR("Using incorrect volume (%d) and face (%d) lists.\n",sim->volumes->name,sim->faces->name);
 
-	set_Simulation_elements(sim,constructor_Geometry_Elements(sim));
+	const struct const_Intrusive_List* geometry_elements = constructor_Geometry_Elements(sim); // destructed
 
+	update_volumes_element(sim->volumes,geometry_elements);
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Volume* volume = (struct Volume*) curr;
+//struct Volume* volume = (struct Volume*) curr;
+//struct const_Geometry_Element* geometry_element = (struct const_Geometry_Element*) volume->element;
+//printf("geom: %d %d %d\n",volume->index,((struct Element*)geometry_element)->type,volume->element->type);
 
-		struct const_Geometry_Element* geometry_element = (struct const_Geometry_Element*) volume->element;
-
-//		struct Element* element = (struct Element*) geometry_element;
-//		printf("%d\n",element->type);
-		printf("a2: %d\n",((struct Element*)geometry_element)->type);
-
-		compute_geometry_volume(sim,(struct Solver_Volume*)volume);
+		compute_geometry_volume(sim,(struct Solver_Volume*)curr);
 	}
+	update_volumes_element(sim->volumes,sim->elements);
+EXIT_UNSUPPORTED;
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 //		compute_geometry_face(sim,(struct Solver_Face*) curr);
 	}
 
+	destructor_IL((struct Intrusive_List*) geometry_elements);
 }
 
 // Static functions ************************************************************************************************* //
@@ -160,7 +161,7 @@ static compute_geom_coef_fptr set_fptr_geom_coef (const int domain_type, const b
 	EXIT_ERROR("Unsupported domain_type: %d\n",domain_type);
 }
 
-void compute_geometry_volume (struct Simulation *sim, struct Solver_Volume* volume)
+static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volume* volume)
 {
 	struct Volume* base_volume = (struct Volume*) volume;
 	struct const_Geometry_Element *element = (struct const_Geometry_Element*) base_volume->element;
@@ -168,25 +169,32 @@ void compute_geometry_volume (struct Simulation *sim, struct Solver_Volume* volu
 	const int d = ((struct const_Element*)element)->d;
 
 	const struct const_Matrix_d*const geom_coef   = base_volume->geom_coef;
-UNUSED(geom_coef);
 	const struct const_Vector_d*const geom_coef_V = constructor_default_const_Vector_d(); // destructed
 
-//	const ptrdiff_t n_vc = ops->ED_vg_vc->ext_0;
-	const ptrdiff_t n_vc = 4;
+	const int p = volume->p;
+
+	struct Operators {
+		const struct const_Multiarray_Matrix_d* ED_vg_vc;
+	} ops =
+		{ .ED_vg_vc = constructor_default_const_Multiarray_Matrix_d(),
+		};
+
+	set_const_Multiarray_Matrix_d_from_Multiarray_Matrix_d(ops.ED_vg_vc,element->ED_vg_vc,1,(ptrdiff_t[]){p,p,0});
+
+	const ptrdiff_t n_vc = ops.ED_vg_vc->data[0]->ext_0;
 
 	struct Multiarray_d* jacobian_vc   = constructor_empty_Multiarray_d(3,(ptrdiff_t[]){n_vc,d,d});
-UNUSED(jacobian_vc);
 	struct Vector_d*     jacobian_vc_V = constructor_default_Vector_d(); // destructed
 //	struct Multiarray_d* jacobian_vm = constructor
 
 	const struct const_Matrix_d* ED_vg_vc = constructor_default_const_Matrix_d(); // destructed
 
 	for (int row = 0; row < d; row++) {
-//		set_const_Vector_d_from_Matrix_d(geom_coef_V,geom_coef,&row);
+		set_const_Vector_d_from_Matrix_d(geom_coef_V,geom_coef,(ptrdiff_t[]){row});
 		for (int col = 0; col < d; col++) {
-//			set_Vector_d_from_Multiarray_d(jacobian_vc_V,jacobian_vc,(ptrdiff_t[]){row,col});
+			set_Vector_d_from_Multiarray_d(jacobian_vc_V,jacobian_vc,(ptrdiff_t[]){row,col});
 //			set_Matrix_d_from_Multiarray_Matrix_d(ED_vg_vc,ops->ED_vg_vc,ED_vg_vc,&col);
-//			mm_NN_d(ED_vg_vc,geom_coef_V,jacobian_vc_V);
+			mv_d(ED_vg_vc->layout,'N',1.0,0.0,ED_vg_vc,geom_coef_V,jacobian_vc_V);
 
 //		mm_CTN_d(NvnI0,1,NvnG0,OPS->D_vG_vI[col],&XYZ[NvnG0*row],&J_vI[NvnI0*(d*row+col)]);
 //		mm_CTN_d(NvnC0,1,NvnG0,OPS->D_vG_vC[col],&XYZ[NvnG0*row],&J_vC[NvnC0*(d*row+col)]);

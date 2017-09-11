@@ -13,6 +13,8 @@
 struct Solver_Volume {
 	struct Volume volume; ///< The base \ref Volume.
 
+	int p; ///< The order of the solution.
+
 	/// The coefficients of the solution in the \ref Simulation::basis_sol.
 	struct Multiarray_d* sol_coef;
 

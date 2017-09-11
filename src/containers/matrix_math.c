@@ -13,6 +13,7 @@
 #include "definitions_mkl.h"
 
 #include "matrix.h"
+#include "vector.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -67,7 +68,7 @@ void mm_d
 	           (n != ( trans_b_i == 'N' ? b->ext_1 : b->ext_0 )) ||
 	           (k != ( trans_b_i == 'N' ? b->ext_0 : b->ext_1 )))
 	{
-		printf("Invalid matrix dimensions: (m = (%d,%td), n = (%d,%td), k = (%d,%td)\n",
+		printf("Invalid matrix dimensions: (m = (%d,%td), n = (%d,%td), k = (%d,%td))\n",
 		       m,( trans_a_i == 'N' ? a->ext_0 : a->ext_1 ),
 		       n,( trans_b_i == 'N' ? b->ext_1 : b->ext_0 ),
 		       k,( trans_b_i == 'N' ? b->ext_0 : b->ext_1 ));
@@ -81,11 +82,33 @@ void mm_d
 	cblas_dgemm(layout,transa,transb,m,n,k,alpha,a->data,lda,b->data,ldb,beta,c->data,ldc);
 }
 
-void mm_NN_d
-	(const double alpha, const double beta,
-	 const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, struct Matrix_d*const c)
+void mv_d
+	(const char layout_i, const char trans_a_i, const double alpha, const double beta,
+	 const struct const_Matrix_d*const a, const struct const_Vector_d*const b, struct Vector_d*const c)
 {
-	mm_d('N','N',alpha,beta,a,b,c);
+	const CBLAS_LAYOUT    layout = ( layout_i == 'R' ? CBRM : CBCM );
+	const CBLAS_TRANSPOSE transa = ( (layout_i == a->layout) == (trans_a_i == 'N') ? CBNT : CBT );
+
+	/// \note Unlike the \ref mm_d function, m and n here represent the dimensions of A and not op(A).
+	const MKL_INT m = a->ext_0,
+	              n = a->ext_1;
+
+	if ((m <= 0) || (n <= 0)) {
+		EXIT_ERROR("Negative dimension: %d %d\n",m,n);
+	} else if ((m != ( transa == CBNT ? c->ext_0 : b->ext_0 )) ||
+	           (n != ( transa == CBNT ? b->ext_0 : c->ext_0 )))
+	{
+		printf("Invalid matrix/vector dimensions: (m = (%d,%td), n = (%d,%td))\n",
+		       m,( transa == CBNT ? b->ext_0 : c->ext_0 ),
+		       n,( transa == CBNT ? c->ext_0 : b->ext_0 ));
+		EXIT_UNSUPPORTED;
+	}
+
+	const MKL_INT lda = ( a->layout == 'R' ? a->ext_1 : a->ext_0 ),
+	              ldb = 1,
+	              ldc = 1;
+
+	cblas_dgemv(layout,transa,m,n,alpha,a->data,lda,b->data,ldb,beta,c->data,ldc);
 }
 
 // Static functions ************************************************************************************************* //

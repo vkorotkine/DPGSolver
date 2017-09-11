@@ -61,9 +61,11 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+struct Vector_i;
+struct Multiarray_Matrix_d;
 struct const_Multiarray_d;
 struct const_Multiarray_Vector_i;
-struct Vector_i;
+struct const_Multiarray_Matrix_d;
 
 // Default constructors ********************************************************************************************* //
 
@@ -145,6 +147,24 @@ void const_constructor_move_Multiarray_d
 void const_constructor_move_Multiarray_Vector_i
 	(const struct const_Multiarray_Vector_i*const* dest, ///< Destination.
 	 struct Multiarray_Vector_i* src                     ///< Source.
+	);
+
+// Special constructors ********************************************************************************************* //
+
+///	\brief Set a \ref Multiarray_Matrix_d\* from a sub range of a \ref Multiarray_Matrix_d\*.
+void set_Multiarray_Matrix_d_from_Multiarray_Matrix_d
+	(struct Multiarray_Matrix_d* dest, ///< The destination.
+	 struct Multiarray_Matrix_d* src,  ///< The source.
+	 const int order_o,                ///< The order of the output (destination).
+	 const ptrdiff_t*const sub_indices ///< The sub-indices used to specify which part of the source to extract.
+	);
+
+///	\brief `const` version of \ref set_Multiarray_Matrix_d_from_Multiarray_Matrix_d.
+void set_const_Multiarray_Matrix_d_from_Multiarray_Matrix_d
+	(const struct const_Multiarray_Matrix_d* dest, ///< Defined for mutable version.
+	 const struct const_Multiarray_Matrix_d* src,  ///< Defined for mutable version.
+	 const int order_o,                            ///< Defined for mutable version.
+	 const ptrdiff_t*const sub_indices             ///< Defined for mutable version.
 	);
 
 // Destructors ****************************************************************************************************** //

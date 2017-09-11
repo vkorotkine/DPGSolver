@@ -11,7 +11,9 @@
 #include <stdbool.h>
 
 struct Matrix_d;
+struct Vector_d;
 struct const_Matrix_d;
+struct const_Vector_d;
 
 /**	\brief Compute the norm of the specified row of the input \ref Matrix_d.
  *	\return See brief. */
@@ -29,7 +31,7 @@ void transpose_Matrix_d
 
 /**	\brief Compute the (m)atrix-(m)atrix multiplication of input `double` matrices.
  *
- *	Computes: c = alpha*op(a)*op(b)+beta*c using the [cblas_dgemm function] is used for the computation.
+ *	Computes: c = alpha*op(a)*op(b)+beta*c using the [cblas_dgemm function] for the computation.
  *
  *	op(): 'N'o transpose, 'T'ranspose.
  *
@@ -46,13 +48,29 @@ void mm_d
 	 struct Matrix_d*const c              ///< Input \ref Matrix_d\* `c`.
 	);
 
-///	\brief Specialization of \ref mm_d for `trans_a_i = 'N'`, `trans_b_i = 'N'`.
-void mm_NN_d
-	(const double alpha,                  ///< Defined for \ref mm_d.
-	 const double beta,                   ///< Defined for \ref mm_d.
-	 const struct const_Matrix_d*const a, ///< Defined for \ref mm_d.
-	 const struct const_Matrix_d*const b, ///< Defined for \ref mm_d.
-	 struct Matrix_d*const c              ///< Defined for \ref mm_d.
+/**	\brief Compute the (m)atrix-(v)ector multiplication of input `double` containers.
+ *
+ *	Computes: c = alpha*op(a)*b+beta*c using the [cblas_dgemv function] for the computation.
+ *
+ *	op(): 'N'o transpose, 'T'ranspose.
+ *
+ *	As the vectors do not have a layout, the `layout` parameter can be chosen arbitrarily. To maximize efficiency, it
+ *	may be selected in accordance with the layout of the the input matrix, `a`, and `trans_a_i` to avoid having to
+ *	transpose the memory:
+ *	- if (trans_a_i == 'N'): choose `layout = a->layout`;
+ *	- else                 : choose the opposite of `a->layout`.
+ *
+ *	<!-- References: -->
+ *	[cblas_dgemv]: https://software.intel.com/en-us/mkl-developer-reference-c-cblas-gemv
+ */
+void mv_d
+	(const char layout_i,                 ///< The layout with which to interpret the computation (see the comments).
+	 const char trans_a_i,                ///< Operator for input `a`. Options: 'N'o transpose, 'T'ranspose.
+	 const double alpha,                  ///< Multiplicative constant.
+	 const double beta,                   ///< Multiplicative constant.
+	 const struct const_Matrix_d*const a, ///< Input \ref const_Matrix_d\* `a`.
+	 const struct const_Vector_d*const b, ///< Input \ref const_Vector_d\* `b`.
+	 struct Vector_d*const c              ///< Input \ref Vector_d\* `c`.
 	);
 
 #endif // DPG__matrix_math_h__INCLUDED

@@ -12,6 +12,7 @@ syntax keyword Special Matrix_i const_Matrix_i
 
 syntax keyword Special Multiarray_d const_Multiarray_d
 syntax keyword Special Multiarray_Vector_i const_Multiarray_Vector_i
+syntax keyword Special Multiarray_Matrix_d const_Multiarray_Matrix_d
 syntax keyword Special Multiarray_c
 
 syntax keyword Special Intrusive_List const_Intrusive_List

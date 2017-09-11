@@ -37,7 +37,7 @@ struct const_Intrusive_List* constructor_Geometry_Elements (struct Simulation*co
 		EXIT_UNSUPPORTED;
 
 	const struct const_Intrusive_List* elements = sim->elements;
-	struct Intrusive_List* geometry_elements    = constructor_empty_IL(IL_GEOMETRY_ELEMENT);
+	struct Intrusive_List* geometry_elements    = constructor_empty_IL(IL_GEOMETRY_ELEMENT); // returned
 
 	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next)
 		push_back_IL(geometry_elements,
@@ -45,7 +45,6 @@ struct const_Intrusive_List* constructor_Geometry_Elements (struct Simulation*co
 
 	set_up_geometry_ops(sim,geometry_elements);
 
-	destructor_IL((struct Intrusive_List*)elements);
 	return (struct const_Intrusive_List*) geometry_elements;
 }
 

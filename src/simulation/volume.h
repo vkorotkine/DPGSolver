@@ -30,7 +30,7 @@ struct Volume {
 
 	const struct const_Matrix_d*const xyz_ve; ///< The xyz coordinates of the volume vertices.
 
-/// \todo Potentially make this a Multiarray.
+/// \todo Make this a Multiarray.
 	/** The geometry coefficients of the volume in the \ref Simulation::basis_geom. For each of the supported
 	 * \ref Simulation::domain_type options, geom_coef represents:
 	 *	- DOM_STRAIGHT: the projection of xyz_ve into the geometry basis of order 1.
@@ -88,6 +88,12 @@ bool check_ve_condition
 	 const struct const_Multiarray_Vector_i*const ve_bc, ///< Defined in \ref Mesh_Vertices.
 	 const bool curved_only                              /**< Flag indicating whether only curved boundary conditions
 	                                                      *   should be considered. */
+	);
+
+///	\brief Update the \ref Element pointed to by each of the \ref Volume\*s.
+void update_volumes_element
+	(struct Intrusive_List* volumes,             ///< The list of \ref Volume\*s to be updated.
+	 const struct const_Intrusive_List* elements ///< The list of elements from which to replace the current ones.
 	);
 
 #endif // DPG__volume_h__INCLUDED

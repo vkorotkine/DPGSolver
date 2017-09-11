@@ -12,17 +12,24 @@
 #include "test_base.h"
 #include "test_support.h"
 #include "test_support_matrix.h"
+#include "test_support_vector.h"
 
 #include "macros.h"
 #include "definitions_alloc.h"
 #include "definitions_tol.h"
 
 #include "matrix.h"
+#include "vector.h"
 
 // Static function declarations ************************************************************************************* //
 
-///	\brief Provides unit tests for the matrix matrix multiplication functions.
+///	\brief Provides unit tests for the matrix-matrix multiplication functions.
 static void test_unit_matrix_mm
+	(struct Test_Info*const test_info ///< \ref Test_Info.
+	);
+
+///	\brief Provides unit tests for the matrix-vector multiplication functions.
+static void test_unit_matrix_mv
 	(struct Test_Info*const test_info ///< \ref Test_Info.
 	);
 
@@ -31,6 +38,7 @@ static void test_unit_matrix_mm
 void test_unit_containers (struct Test_Info*const test_info)
 {
 	test_unit_matrix_mm(test_info);
+	test_unit_matrix_mv(test_info);
 }
 
 // Static functions ************************************************************************************************* //
@@ -108,6 +116,57 @@ static void test_unit_matrix_mm (struct Test_Info*const test_info)
 	destructor_Matrix_d(c_TNC);
 	destructor_Matrix_d(c_NTC);
 	destructor_Matrix_d(c_TTC);
+
+	test_increment_and_print(test_info,pass,test_name);
+}
+
+static void test_unit_matrix_mv (struct Test_Info*const test_info)
+{
+	char* test_name = "Containers - Matrix mv";
+	bool pass = true;
+
+	const char*const file_name_full = constructor_file_name("matrix"); // free
+
+	const struct const_Matrix_d* a = constructor_file_name_const_Matrix_d("a_Matrix",file_name_full); // destructed
+	const struct const_Vector_d* b = constructor_file_name_const_Vector_d("b_Vector",file_name_full); // destructed
+	struct Vector_d* c = constructor_file_name_Vector_d("c_Vector",file_name_full); // destructed
+	free((void*)file_name_full);
+
+	const struct const_Matrix_d* a_t = constructor_transpose_const_Matrix_d(a,false); // destructed
+
+	// row major
+	struct Vector_d* c_NR = constructor_mv_Vector_d('R','N',1.0,0.0,a,  b), // destructed
+	               * c_TR = constructor_mv_Vector_d('R','T',1.0,0.0,a_t,b); // destructed
+
+	transpose_const_Matrix_d(a,true);
+	transpose_const_Matrix_d(a_t,true);
+
+	// col major
+	struct Vector_d* c_NC = constructor_mv_Vector_d('C','N',1.0,0.0,a,  b), // destructed
+	               * c_TC = constructor_mv_Vector_d('C','T',1.0,0.0,a_t,b); // destructed
+
+	destructor_const_Matrix_d(a);
+	destructor_const_Matrix_d(a_t);
+	destructor_const_Vector_d(b);
+
+	if (diff_Vector_d(c,c_NR,EPS) ||
+	    diff_Vector_d(c,c_TR,EPS) ||
+	    diff_Vector_d(c,c_NC,EPS) ||
+	    diff_Vector_d(c,c_TC,EPS))
+	{
+		pass = false;
+
+		if (diff_Vector_d(c,c_NR,EPS)) print_diff_Vector_d(c,c_NR,EPS);
+		if (diff_Vector_d(c,c_TR,EPS)) print_diff_Vector_d(c,c_TR,EPS);
+		if (diff_Vector_d(c,c_NC,EPS)) print_diff_Vector_d(c,c_NC,EPS);
+		if (diff_Vector_d(c,c_TC,EPS)) print_diff_Vector_d(c,c_TC,EPS);
+	}
+
+	destructor_Vector_d(c);
+	destructor_Vector_d(c_NR);
+	destructor_Vector_d(c_TR);
+	destructor_Vector_d(c_NC);
+	destructor_Vector_d(c_TC);
 
 	test_increment_and_print(test_info,pass,test_name);
 }

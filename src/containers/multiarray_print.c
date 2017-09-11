@@ -14,23 +14,15 @@
 // Static function declarations ************************************************************************************* //
 
 /// \brief Print the extents of the Multiarray.
-void print_Multiarray_extents
+static void print_Multiarray_extents
 	(const int order,              ///< Defined in \ref Multiarray_d.
 	 const ptrdiff_t*const extents ///< Defined in \ref Multiarray_d.
 	);
 
 /// \brief Print the counter for the indices of order > 2 when printing sub-Matrices of the Multiarray.
-void print_Multiarray_counter
+static void print_Multiarray_counter
 	(const int order,              ///< Defined in \ref Multiarray_d.
 	 const ptrdiff_t*const counter ///< The counter for the indices of order > 2.
-	);
-
-/**	\brief Compute the index of the data of the sub-Matrix in a Multiarray based on the counter.
- *	\return See brief. */
-static ptrdiff_t compute_ind_sub_matrix
-	(const int order,               ///< Defined in \ref Multiarray_d.
-	 const ptrdiff_t*const extents, ///< Defined in \ref Multiarray_d.
-	 const ptrdiff_t*const counter  ///< The counter for the indices of order > 2.
 	);
 
 ///	\brief Increment the counter for the indicies of order > 2 by 1.
@@ -97,7 +89,7 @@ void print_Multiarray_d (const struct Multiarray_d*const a, const double tol)
 		for (ptrdiff_t i = 0; i < size_tail; ++i) {
 			print_Multiarray_counter(order,counter);
 
-			const ptrdiff_t ind_M = compute_ind_sub_matrix(order,extents,counter);
+			const ptrdiff_t ind_M = compute_index_sub_matrix(order,extents,counter);
 			a_M->data = &a->data[ind_M];
 			print_Matrix_d(a_M,tol);
 
@@ -113,7 +105,7 @@ void print_Multiarray_d (const struct Multiarray_d*const a, const double tol)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-void print_Multiarray_extents (const int order, const ptrdiff_t*const extents)
+static void print_Multiarray_extents (const int order, const ptrdiff_t*const extents)
 {
 	printf("Multi-array extents: {");
 	for (ptrdiff_t i = 0; i < order; i++)
@@ -121,25 +113,12 @@ void print_Multiarray_extents (const int order, const ptrdiff_t*const extents)
 	printf(" }\n\n");
 }
 
-void print_Multiarray_counter (const int order, const ptrdiff_t*const counter)
+static void print_Multiarray_counter (const int order, const ptrdiff_t*const counter)
 {
 	printf("{:,:");
 	for (int i = 0; i < order-2; ++i)
 		printf(",%td",counter[i]);
 	printf("}\n");
-}
-
-static ptrdiff_t compute_ind_sub_matrix (const int order, const ptrdiff_t*const extents, const ptrdiff_t*const counter)
-{
-	const ptrdiff_t*const extents_tail = &extents[2];
-
-	ptrdiff_t base = extents[0]*extents[1];
-	ptrdiff_t ind_sub_m = 0;
-	for (int i = 0; i < order-2; ++i) {
-		ind_sub_m += base*counter[i];
-		base *= extents_tail[i];
-	}
-	return ind_sub_m;
 }
 
 static void increment_counter (const int order, const ptrdiff_t*const extents, ptrdiff_t*const counter)

@@ -5,9 +5,12 @@
 #include "vector_constructors.h"
 
 #include <string.h>
+#include "mkl.h"
 
 #include "macros.h"
+#include "definitions_mkl.h"
 
+#include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
 
@@ -79,6 +82,15 @@ struct Vector_i* constructor_copy_Vector_i (const struct Vector_i*const src)
 		data[i] = data_src[i];
 
 	return constructor_move_Vector_i_i(ext_0,true,data);
+}
+
+struct Vector_d* constructor_copy_Vector_d_d (const ptrdiff_t ext_0, const double*const data_src)
+{
+	double* data = malloc(ext_0 * sizeof *data); // keep
+	for (ptrdiff_t i = 0; i < ext_0; i++)
+		data[i] = data_src[i];
+
+	return constructor_move_Vector_d_d(ext_0,true,data);
 }
 
 struct Vector_i* constructor_copy_Vector_i_i (const ptrdiff_t ext_0, const int*const data_src)
@@ -166,10 +178,51 @@ struct Vector_d* constructor_sum_Vector_d_const_Matrix_d (const char sum_dir, co
 	return dest;
 }
 
+struct Vector_d* constructor_mv_Vector_d
+	(const char layout, const char trans_a_i, const double alpha, const double beta,
+	 const struct const_Matrix_d*const a, const struct const_Vector_d*const b)
+{
+	const MKL_INT m = ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 );
+
+	struct Vector_d* c = constructor_empty_Vector_d(m); // returned
+
+	mv_d(layout,trans_a_i,alpha,beta,a,b,c);
+
+	return c;
+}
+
+void set_Vector_d_from_Matrix_d (struct Vector_d* dest, struct Matrix_d* src, const ptrdiff_t*const sub_indices)
+{
+	dest->owns_data = false;
+	if (src->layout == 'R') {
+		dest->ext_0 = src->ext_1;
+		dest->data  = get_row_Matrix_d(*sub_indices,src);
+	} else {
+		dest->ext_0 = src->ext_0;
+		dest->data  = get_col_Matrix_d(*sub_indices,src);
+	}
+}
+
+void set_const_Vector_d_from_Matrix_d
+	(const struct const_Vector_d* dest, const struct const_Matrix_d* src, const ptrdiff_t*const sub_indices)
+{
+	set_Vector_d_from_Matrix_d((struct Vector_d*)dest,(struct Matrix_d*)src,sub_indices);
+}
+
+void set_Vector_d_from_Multiarray_d (struct Vector_d* dest, struct Multiarray_d* src, const ptrdiff_t*const sub_indices)
+{
+	dest->owns_data = false;
+	dest->ext_0 = src->extents[0];
+	dest->data  = &src->data[compute_index_sub_vector(src->order,src->extents,sub_indices)];
+}
+
 // Destructors ****************************************************************************************************** //
 
 void destructor_Vector_d (struct Vector_d* a)
 {
+	if (a == NULL)
+		EXIT_DESTRUCTOR;
+
 	if (a->owns_data)
 		free(a->data);
 	free(a);
@@ -182,6 +235,9 @@ void destructor_const_Vector_d (const struct const_Vector_d* a)
 
 void destructor_Vector_i (struct Vector_i* a)
 {
+	if (a == NULL)
+		EXIT_DESTRUCTOR;
+
 	if (a->owns_data)
 		free(a->data);
 	free(a);
@@ -189,6 +245,9 @@ void destructor_Vector_i (struct Vector_i* a)
 
 void destructor_Vector_i_2 (struct Vector_i** a, const ptrdiff_t n_src, const bool owns_data)
 {
+	if (a == NULL)
+		EXIT_DESTRUCTOR;
+
 	if (owns_data) {
 		for (ptrdiff_t n = 0; n < n_src; n++)
 			destructor_Vector_i(a[n]);

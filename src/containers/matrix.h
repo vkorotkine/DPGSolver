@@ -64,7 +64,7 @@ struct const_Matrix_i {
 
 // Interface functions ********************************************************************************************** //
 
-/** \brief Get pointer to row of row-major \ref Matrix_d\*.
+/**	\brief Get pointer to row of row-major \ref Matrix_d\*.
  *	\return Pointer to the first entry of the row.
  */
 double* get_row_Matrix_d
@@ -72,7 +72,15 @@ double* get_row_Matrix_d
 	 const struct Matrix_d* a ///< Matrix.
 	);
 
-/** \brief Get pointer to row of row-major \ref const_Matrix_d\*.
+/**	\brief Get pointer to column of col-major \ref Matrix_d\*.
+ *	\return Pointer to the first entry of the column.
+ */
+double* get_col_Matrix_d
+	(const ptrdiff_t col,     ///< Desired column.
+	 const struct Matrix_d* a ///< Matrix.
+	);
+
+/**	\brief Get pointer to row of row-major \ref const_Matrix_d\*.
  *	\return Pointer to the first entry of the row.
  */
 const double* get_row_const_Matrix_d
@@ -80,7 +88,7 @@ const double* get_row_const_Matrix_d
 	 const struct const_Matrix_d* a ///< Matrix.
 	);
 
-/** \brief Get pointer to row of row-major \ref Matrix_i\*.
+/**	\brief Get pointer to row of row-major \ref Matrix_i\*.
  *	\return Pointer to the first entry of the row.
  */
 int* get_row_Matrix_i
@@ -88,7 +96,7 @@ int* get_row_Matrix_i
 	 const struct Matrix_i* a ///< Matrix.
 	);
 
-/** \brief Get value of the (row,col) entry of a \ref Matrix_i\*.
+/**	\brief Get value of the (row,col) entry of a \ref Matrix_i\*.
  *	\return See brief. */
 int get_val_Matrix_i
 	(const ptrdiff_t row,          ///< The row.
@@ -96,7 +104,7 @@ int get_val_Matrix_i
 	 const struct Matrix_i*const a ///< Standard.
 	);
 
-/** \brief Get value of the (row,col) entry of a \ref const_Matrix_i\*.
+/**	\brief Get value of the (row,col) entry of a \ref const_Matrix_i\*.
  *	\return See brief. */
 int get_val_const_Matrix_i
 	(const ptrdiff_t row,                ///< The row.

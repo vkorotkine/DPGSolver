@@ -28,6 +28,7 @@ static ptrdiff_t* allocate_and_set_extents
 struct Multiarray_d* constructor_default_Multiarray_d ()
 {
 	const int order = 1;
+/// \todo Likely remove dynamic memory allocation here.
 	ptrdiff_t* extents = calloc(order , sizeof *extents); // keep
 
 	return constructor_move_Multiarray_d_dyn_extents('C',order,extents,true,NULL);
@@ -120,10 +121,34 @@ void const_constructor_move_Multiarray_Vector_i
 	*(struct const_Multiarray_Vector_i**) dest = (struct const_Multiarray_Vector_i*) src;
 }
 
+// Special constructors ********************************************************************************************* //
+
+void set_Multiarray_Matrix_d_from_Multiarray_Matrix_d
+	(struct Multiarray_Matrix_d* dest, struct Multiarray_Matrix_d* src, const int order_o,
+	 const ptrdiff_t*const sub_indices)
+{
+	dest->owns_data = false;
+	dest->order     = order_o;
+	dest->extents   = src->extents;
+	dest->data      = &src->data[compute_index_sub_container(src->order,dest->order,src->extents,sub_indices)];
+}
+
+void set_const_Multiarray_Matrix_d_from_Multiarray_Matrix_d
+	(const struct const_Multiarray_Matrix_d* dest, const struct const_Multiarray_Matrix_d* src, const int order_o,
+	 const ptrdiff_t*const sub_indices)
+{
+	set_Multiarray_Matrix_d_from_Multiarray_Matrix_d(
+		(struct Multiarray_Matrix_d*)dest,(struct Multiarray_Matrix_d*)src,order_o,sub_indices);
+}
+
+
 // Destructors ****************************************************************************************************** //
 
 void destructor_Multiarray_d (struct Multiarray_d* a)
 {
+	if (a == NULL)
+		EXIT_DESTRUCTOR;
+
 	free(a->extents);
 	if (a->owns_data)
 		free(a->data);
@@ -132,6 +157,9 @@ void destructor_Multiarray_d (struct Multiarray_d* a)
 
 void destructor_Multiarray_Vector_i (struct Multiarray_Vector_i* a)
 {
+	if (a == NULL)
+		EXIT_DESTRUCTOR;
+
 	destructor_Vector_i_2(a->data,compute_size(a->order,a->extents),a->owns_data);
 	free(a->extents);
 	free(a);

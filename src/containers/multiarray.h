@@ -53,7 +53,7 @@
 #include "multiarray_constructors.h"
 #include "multiarray_print.h"
 
-/// \brief Multiarray (`double`).
+///	\brief Multiarray (`double`).
 struct Multiarray_d {
 	char layout; ///< The layout may be 'R'ow or 'C'olumn major.
 
@@ -65,7 +65,7 @@ struct Multiarray_d {
 	double* data; ///< The data.
 };
 
-/// \brief Multiarray (`const double`).
+///	\brief Multiarray (`const double`).
 struct const_Multiarray_d {
 	const char layout; ///< Defined in \ref Multiarray_d.
 
@@ -76,7 +76,7 @@ struct const_Multiarray_d {
 	const double*const data; ///< Defined in \ref Multiarray_d.
 };
 
-/// \brief Multiarray (`Vector_i*`).
+///	\brief Multiarray (`Vector_i*`).
 struct Multiarray_Vector_i {
 	int order;          ///< Defined in \ref Multiarray_d.
 	ptrdiff_t* extents; ///< Defined in \ref Multiarray_d.
@@ -85,13 +85,31 @@ struct Multiarray_Vector_i {
 	struct Vector_i** data; ///< Defined in \ref Multiarray_d.
 };
 
-/// \brief Multiarray (`const Vector_i*`).
+///	\brief Multiarray (`const Vector_i*`).
 struct const_Multiarray_Vector_i {
 	const int order;               ///< Defined in \ref Multiarray_d.
 	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_d.
 
 	const bool owns_data;                         ///< Defined in \ref Multiarray_d.
 	const struct const_Vector_i*const*const data; ///< Defined in \ref Multiarray_d.
+};
+
+///	\brief Multiarray (`Matrix_d*`).
+struct Multiarray_Matrix_d {
+	int order;          ///< Defined in \ref Multiarray_d.
+	ptrdiff_t* extents; ///< Defined in \ref Multiarray_d.
+
+	bool owns_data;         ///< Defined in \ref Multiarray_d.
+	struct Matrix_d** data; ///< Defined in \ref Multiarray_d.
+};
+
+///	\brief Multiarray (`const_Matrix_d*`).
+struct const_Multiarray_Matrix_d {
+	const int order;               ///< Defined in \ref Multiarray_d.
+	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_d.
+
+	const bool owns_data;                         ///< Defined in \ref Multiarray_d.
+	const struct const_Matrix_d*const*const data; ///< Defined in \ref Multiarray_d.
 };
 
 // Interface functions ********************************************************************************************** //
@@ -103,7 +121,7 @@ ptrdiff_t compute_size
 	 const ptrdiff_t*const extents ///< \ref Multiarray_d::extents.
 	);
 
-/// \brief Set the values of the \ref Multiarray_Vector_i based on the input `int*` data.
+///	\brief Set the values of the \ref Multiarray_Vector_i based on the input `int*` data.
 void set_Multiarray_Vector_i_i
 	(struct Multiarray_Vector_i* a, ///< Standard.
 	 const int* data_V,             ///< Input data for the Vectors.
@@ -122,6 +140,33 @@ struct Vector_i* sort_Multiarray_Vector_i
  *	\return The \ref Vector_i\*. */
 struct Vector_i* collapse_Multiarray_Vector_i
 	(const struct Multiarray_Vector_i*const src ///< The source.
+	);
+
+/**	\brief Compute the index of the data of the sub-Vector based on the sub-indices.
+ *	\deprecated Replace with \ref compute_index_sub_container.
+ *	\return See brief. */
+ptrdiff_t compute_index_sub_vector
+	(const int order,                  ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const extents,    ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const sub_indices ///< The sub indices for the entries of order > 1.
+	);
+
+/**	\brief Compute the index of the data of the sub-Matrix in a Multiarray based on the sub-indices.
+ *	\deprecated Replace with \ref compute_index_sub_container.
+ *	\return See brief. */
+ptrdiff_t compute_index_sub_matrix
+	(const int order,                  ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const extents,    ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const sub_indices ///< The sub indices for the entries of order > 2.
+	);
+
+/**	\brief Compute the index of the data of the sub-container based on the sub-indices.
+ *	\return See brief. */
+ptrdiff_t compute_index_sub_container
+	(const int order_i,                ///< The input order.
+	 const int order_o,                ///< The output order.
+	 const ptrdiff_t*const extents,    ///< The input extents.
+	 const ptrdiff_t*const sub_indices ///< The sub indices for the highest `order_o` entries.
 	);
 
 #endif // DPG__multiarray_h__INCLUDED

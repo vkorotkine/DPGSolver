@@ -137,6 +137,18 @@ bool check_ve_condition
 	return false;
 }
 
+void update_volumes_element
+	(struct Intrusive_List* volumes,             ///< The list of \ref Volume\*s to be updated.
+	 const struct const_Intrusive_List* elements ///< The list of elements from which to replace the current ones.
+	)
+{
+	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
+		struct Volume* volume = (struct Volume*) curr;
+
+		const_cast_const_Element(&volume->element,get_element_by_type(elements,volume->element->type));
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

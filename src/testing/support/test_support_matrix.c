@@ -73,7 +73,7 @@ struct Matrix_d* constructor_file_name_Matrix_d (const char*const var_name, cons
 const struct const_Matrix_d* constructor_file_name_const_Matrix_d
 	(const char*const var_name, const char*const file_name_full)
 {
-	return (const struct const_Matrix_d*) constructor_file_name_Matrix_d (var_name,file_name_full);
+	return (const struct const_Matrix_d*) constructor_file_name_Matrix_d(var_name,file_name_full);
 }
 
 struct Matrix_i* constructor_file_Matrix_i (FILE* data_file, const bool check_container)
@@ -224,7 +224,6 @@ void print_diff_Matrix_d (const struct Matrix_d*const a, const struct Matrix_d*c
 	const char layout    = a->layout;
 	const ptrdiff_t size = (a->ext_0)*(a->ext_1);
 
-//	if (1||(size != (b->ext_0)*(b->ext_1)) || (layout != b->layout)) {
 	if ((size != (b->ext_0)*(b->ext_1)) || (layout != b->layout)) {
 		printf("Attempting to compare Matrices of different size:\n");
 		print_Matrix_d(a,tol);

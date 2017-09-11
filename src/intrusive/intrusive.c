@@ -6,7 +6,9 @@
 
 #include <stddef.h>
 #include <stdlib.h>
+#include <stdio.h>
 
+#include "macros.h"
 #include "definitions_intrusive.h"
 
 // Static function declarations ************************************************************************************* //

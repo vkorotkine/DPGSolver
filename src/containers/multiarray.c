@@ -130,6 +130,33 @@ struct Vector_i* collapse_Multiarray_Vector_i (const struct Multiarray_Vector_i*
 	return dest;
 }
 
+ptrdiff_t compute_index_sub_vector (const int order, const ptrdiff_t*const extents, const ptrdiff_t*const sub_indices)
+{
+	return compute_index_sub_container(order,1,extents,sub_indices);
+}
+
+ptrdiff_t compute_index_sub_matrix (const int order, const ptrdiff_t*const extents, const ptrdiff_t*const sub_indices)
+{
+	return compute_index_sub_container(order,2,extents,sub_indices);
+}
+
+ptrdiff_t compute_index_sub_container
+	(const int order_i, const int order_o, const ptrdiff_t*const extents, const ptrdiff_t*const sub_indices)
+{
+	const ptrdiff_t*const extents_tail = &extents[order_o];
+
+	ptrdiff_t base = 1;
+	for (int i = 0; i < order_o; ++i)
+		base *= extents[i];
+
+	ptrdiff_t ind_sub = 0;
+	for (int i = 0; i < order_i-order_o; ++i) {
+		ind_sub += base*sub_indices[i];
+		base *= extents_tail[i];
+	}
+	return ind_sub;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
