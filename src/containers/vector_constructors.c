@@ -137,6 +137,14 @@ struct const_Vector_i* constructor_move_const_Vector_i_i
 	return (struct const_Vector_i*)dest;
 }
 
+struct Vector_d* constructor_move_Vector_d_Matrix_d (struct Matrix_d* src)
+{
+	src->owns_data = false;
+	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
+	return constructor_move_Vector_d_d(size,true,src->data);
+}
+
+
 void const_constructor_move_Vector_d (const struct const_Vector_d*const* dest, struct Vector_d* src)
 {
 	*(struct const_Vector_d**) dest = (struct const_Vector_d*) src;

@@ -98,6 +98,12 @@ struct const_Vector_i* constructor_move_const_Vector_i_i
 	 const int*const data   ///< Standard.
 	);
 
+/** \brief Move constructor for a \ref Vector_d\* from a \ref Matrix_d\*.
+ *  \return Standard. */
+struct Vector_d* constructor_move_Vector_d_Matrix_d
+	(struct Matrix_d* src ///< The source matrix.
+	);
+
 /// \brief Move constructor for a `const` \ref const_Vector_d `*const`.
 void const_constructor_move_Vector_d
 	(const struct const_Vector_d*const* dest, ///< Destination.

@@ -12,6 +12,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include "gsl/gsl_math.h"
 
 /** \brief Evaluates the factorial of the input returning an `double` result.
  *  \return See brief. */
@@ -61,20 +62,6 @@ double norm_diff_d
 double max_abs_d
 	(const double a, ///< Input 0.
 	 const double b  ///< Input 1.
-	);
-
-/** \brief Compute the minimum of the input `int`s.
- *  \return See brief. */
-int min_i
-	(const int a, ///< Input 0.
-	 const int b  ///< Input 1.
-	);
-
-/** \brief Compute the maximum of the input `int`s.
- *  \return See brief. */
-int max_i
-	(const int a, ///< Input 0.
-	 const int b  ///< Input 1.
 	);
 
 #endif // DPG__math_functions_h__INCLUDED

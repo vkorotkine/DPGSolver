@@ -6,6 +6,7 @@ set	(SOURCE
 	 test_support_intrusive.c
 	 test_support_volume.c
 	 test_support_face.c
+	 test_support_cubature.c
 	)
 
 set	(LIBS_DEPEND

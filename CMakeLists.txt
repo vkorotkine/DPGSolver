@@ -32,6 +32,7 @@ option(BUILD_SHARED_LIBS "Build the shared library" ON)
 
 include_directories(src)
 
+add_subdirectory(external)
 add_subdirectory(src)
 add_subdirectory(doc)
 add_subdirectory(input)

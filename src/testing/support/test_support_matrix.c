@@ -138,7 +138,7 @@ struct Matrix_d* constructor_file_Matrix_d (FILE* data_file, const bool check_co
 	struct Matrix_d* dest = constructor_copy_Matrix_d_d('R',ext_0,ext_1,data);
 
 	if (layout == 'C')
-		EXIT_ADD_SUPPORT; // Implement matrix transpose (with fixed extents).
+		transpose_Matrix_d(dest,true);
 
 	return dest;
 }
@@ -227,7 +227,9 @@ void print_diff_Matrix_d (const struct Matrix_d*const a, const struct Matrix_d*c
 
 	if ((size != (b->ext_0)*(b->ext_1)) || (layout != b->layout)) {
 		printf("Attempting to compare Matrices of different size:\n");
+		printf("a (%c,%td,%td):\n",a->layout,a->ext_0,a->ext_1);
 		print_Matrix_d(a,tol);
+		printf("b (%c,%td,%td):\n",b->layout,b->ext_0,b->ext_1);
 		print_Matrix_d(b,tol);
 		return;
 	}

@@ -5,3 +5,4 @@ set	(SOURCE
 	)
 
 add_library(General ${SOURCE})
+target_link_libraries(General ${GSL_LIBRARIES})

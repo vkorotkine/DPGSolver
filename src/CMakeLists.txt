@@ -1,6 +1,10 @@
 find_package(MPI REQUIRED)
+
 find_package(MKL REQUIRED)
 include_directories(${MKL_INCLUDE_DIRS})
+
+find_package(GSL REQUIRED)
+include_directories(${GSL_INCLUDE_DIRS})
 
 include_directories(
 	allocators

@@ -24,7 +24,6 @@
 // Interface functions ********************************************************************************************** //
 // Constructor functions ******************************************************************************************** //
 
-
 struct Vector_d* constructor_file_name_Vector_d (const char*const var_name, const char*const file_name_full)
 {
 	struct Vector_d* dest = NULL;
@@ -154,7 +153,9 @@ void print_diff_Vector_d (const struct Vector_d*const a, const struct Vector_d*c
 
 	if (size != b->ext_0) {
 		printf("Note: Attempting to compare Vectors of different size:\n");
+		printf("a (%td):\n",a->ext_0);
 		print_Vector_d(a,tol);
+		printf("b (%td):\n",b->ext_0);
 		print_Vector_d(b,tol);
 		return;
 	}

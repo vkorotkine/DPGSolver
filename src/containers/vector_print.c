@@ -50,5 +50,10 @@ void print_Vector_d (const struct Vector_d*const a, const double tol)
 	printf("\n\n");
 }
 
+void print_const_Vector_d (const struct const_Vector_d*const a, const double tol)
+{
+	print_Vector_d((struct Vector_d*)a,tol);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

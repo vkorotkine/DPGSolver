@@ -21,6 +21,17 @@ struct Cubature {
 	struct Vector_d* w; ///< The cubature weights.
 };
 
+/// `const` version of \ref Cubature.
+struct const_Cubature {
+	const int p,         ///< Defined in \ref Cubature.
+	          node_type; ///< Defined in \ref Cubature.
+
+	const struct const_Matrix_d*const rst; ///< Defined in \ref Cubature.
+
+	const bool has_weights;              ///< Defined in \ref Cubature.
+	const struct const_Vector_d*const w; ///< Defined in \ref Cubature.
+};
+
 /** \brief Constructor for a \ref Cubature container of tensor-product type.
  *  \return Standard.
  *
@@ -32,11 +43,22 @@ struct Cubature {
  *  <!-- References: -->
  *  [shen_web]: http://www.ntu.edu.sg/home/lilian/book.htm
  */
-struct Cubature* constructor_Cubature_TP
+const struct const_Cubature* constructor_const_Cubature_TP
 	(const int d,        ///< The dimension of the nodes.
 	 const int p,        ///< Defined in \ref Cubature.
 	 const int node_type ///< Defined in \ref Cubature.
 	);
+
+/// \brief Destructor for a \ref Cubature\* container.
+void destructor_Cubature
+	(struct Cubature* cub ///< Standard.
+	);
+
+/// \brief Destructor for a \ref const_Cubature\* container.
+void destructor_const_Cubature
+	(const struct const_Cubature*const cub ///< Standard.
+	);
+
 
 /*
 typedef void (*cubature_tdef) (struct S_CUBATURE *const CUBDATA);

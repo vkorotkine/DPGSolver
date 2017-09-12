@@ -7,6 +7,7 @@ set	(LIBS_DEPEND
 	 Containers
 	 Intrusive
 	 General
+	 Jacobi_GSL
 	)
 
 add_library(Element ${SOURCE})

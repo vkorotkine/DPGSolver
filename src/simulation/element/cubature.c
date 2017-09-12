@@ -6,11 +6,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-//#include "mkl.h"
+#include "jacobi.h"
+#include "gsl/gsl_errno.h"
 
 #include "macros.h"
 #include "definitions_cubature.h"
 #include "definitions_math.h"
+#include "definitions_tol.h"
 
 #include "matrix.h"
 #include "vector.h"
@@ -21,7 +23,7 @@
 
 // Interface functions ********************************************************************************************** //
 
-struct Cubature* constructor_Cubature_TP (const int d, const int p, const int node_type)
+const struct const_Cubature* constructor_const_Cubature_TP (const int d, const int p, const int node_type)
 {
 	if ((d <= 0) || (p < 0))
 		EXIT_ERROR("Invalid dimension (%d) or order (%d).\n",d,p);
@@ -32,29 +34,23 @@ struct Cubature* constructor_Cubature_TP (const int d, const int p, const int no
 
 	double r[pp1],
 	       w_1d[pp1];
-UNUSED(w_1d);
 	if (node_type == CUB_GL) {
+		if (jac_zeros_gj(r,pp1,0.0,0.0) != GSL_SUCCESS)
+			EXIT_ERROR("Problem computing nodes.\n");
+
 		has_weights = true;
-		EXIT_ADD_SUPPORT;
+		if (jac_weights_gj(r,w_1d,pp1,0.0,0.0,NULL) != GSL_SUCCESS)
+			EXIT_ERROR("Problem computing weights.\n");
 	} else if (node_type == CUB_GLL) {
 		if (p == 0)
 			EXIT_ERROR("The order of the GLL nodes must be greater than 0.\n");
 
+		if (jac_zeros_glj(r,pp1,0.0,0.0) != GSL_SUCCESS)
+			EXIT_ERROR("Problem computing nodes.\n");
+
 		has_weights = true;
-
-		// Compute initial guess
-		for (int i = 0; i < p; ++i) {
-			double t = (4.0*(i+1)-1.0)*PI/(4.0*p+2.0);
-			r[i] = -(1.0-(p-1.0)/(8.0*pow(p,3.0))-(39.0-28.0/pow(sin(t),2.0))/(384.0*pow(p,4.0)))*cos(t);
-		}
-
-		for (int i = 1; i < p; ++i) {
-			if (i <= p/2)
-				r[i] = 0.5*(r[i-1]+r[i]);
-			else
-				r[i] = -r[pp1-i-1];
-		}
-		EXIT_ADD_SUPPORT;
+		if (jac_weights_glj(r,w_1d,pp1,0.0,0.0,NULL) != GSL_SUCCESS)
+			EXIT_ERROR("Problem computing weights.\n");
 	} else if (node_type == CUB_EQ) {
 		has_weights = false;
 		for (int i = 0; i < pp1; ++i)
@@ -67,9 +63,9 @@ UNUSED(w_1d);
 	double *rst = malloc(ext_0*d * sizeof *rst); // keep
 
 	int row = 0;
-	for (int k = 0, k_max = min_i(max_i((d-2)*pp1,1),pp1); k < k_max; k++) {
-	for (int j = 0, j_max = min_i(max_i((d-1)*pp1,1),pp1); j < j_max; j++) {
-	for (int i = 0, i_max = min_i(max_i((d-0)*pp1,1),pp1); i < i_max; i++) {
+	for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; k++) {
+	for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; j++) {
+	for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; i++) {
 		for (int dim = 0; dim < d; dim++) {
 			switch (dim) {
 			case 0:
@@ -91,7 +87,17 @@ UNUSED(w_1d);
 
 	double* w = NULL;
 	if (has_weights) {
-		EXIT_ADD_SUPPORT;
+		w = malloc(ext_0 * sizeof *w); // keep
+
+		int row = 0;
+		for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; k++) {
+		for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; j++) {
+		for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; i++) {
+			w[row] = w_1d[i];
+			if (d == 2) w[row] *= w_1d[j];
+			if (d == 3) w[row] *= w_1d[j]*w_1d[k];
+			row++;
+		}}}
 	}
 
 	struct Cubature* cubature = calloc(1,sizeof *cubature); // returned;
@@ -107,231 +113,26 @@ UNUSED(w_1d);
 	else
 		cubature->w = NULL;
 
-	return cubature;
+	return (const struct const_Cubature*) cubature;
+}
+
+void destructor_Cubature (struct Cubature* cub)
+{
+	destructor_Matrix_d(cub->rst);
+	if (cub->has_weights)
+		destructor_Vector_d(cub->w);
+	free(cub);
+}
+
+void destructor_const_Cubature (const struct const_Cubature*const cub)
+{
+	destructor_Cubature((struct Cubature*)cub);
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
 /*
-void cubature_TP (struct S_CUBATURE *const CUBDATA)
-{
-	unsigned int const d  = CUBDATA->d,
-	                   P  = CUBDATA->P,
-	                   N  = P+1,
-	                   u1 = 1;
-
-	// Standard datatypes
-	unsigned int i, j, k, iMax;
-	double       *w1D, *r_std, *wasdfOut_std;
-
-	int const sd = d,
-	          sN = N;
-
-	double *r = malloc(N * sizeof *r); // free
-	w1D = malloc(N * sizeof *w1D); // free
-
-	unsigned int count;
-	double       err, theta, Phi, dPhi, r_Delta;
-
-	// Note: GLL must be first as "GL" is in "GLL"
-	if (strstr(NodeType,"GLL")) {
-		if (P == 0)
-			printf("Error: Cannot use GLL nodes of order P0.\n"), EXIT_MSG;
-
-		// Compute initial guess
-		for (i = 0; i < P; i++) {
-			theta = (4.0*(i+1)-1.0)*PI/(4.0*P+2.0);
-			r[i] = -(1.0-(P-1.0)/(8.0*pow(P,3.0))-(39.0-28.0/pow(sin(theta),2.0))/(384.0*pow(P,4.0)))*cos(theta);
-		}
-		for (i = 1; i < P; i++) {
-			if (i <= P/2)
-				r[i] = (r[i-1]+r[i])/2.0;
-			else
-				r[i] = -r[N-i-1];
-		}
-
-		err = 1.0;
-		count = 0;
-		while(err > EPS) { // Use Newton's Method to converge to node positions
-			err = 0.0;
-			for (i = 1; i < P; i++) {
-				Phi  = jacobiP(r[i],0.0,0.0,P);
-				dPhi = grad_jacobiP(r[i],0.0,0.0,P);
-				r_Delta = (1.0-r[i]*r[i])*dPhi/(2.0*r[i]*dPhi-P*N*Phi);
-
-				r[i] -= r_Delta;
-
-				if (fabs(r_Delta) > err)
-					err = fabs(r_Delta);
-			}
-
-			count++;
-			if (count > 100)
-				printf("Newton's method failed.\n"), EXIT_MSG;
-		}
-		r[0] = -1.0;
-		r[P] = -r[0];
-
-		// Compute weights (Ensure that normalization is removed from Phi)
-		for (i = 1; i < P; i++) {
-			Phi     = sqrt(2.0/(2.0*P+1.0))*jacobiP(r[i],0.0,0.0,P);
-			w1D[i] = 2.0/(P*N*Phi*Phi);
-		}
-		w1D[0] = 2.0/(P*N);
-		w1D[P] = w1D[0];
-	} else if (strstr(NodeType,"GL")) {
-		// Compute initial guess
-		for (i = 0; i < N; i++) {
-			theta = (4.0*(i+1)-1.0)*PI/(4.0*N+2.0);
-			r[i] = -(1.0-(N-1.0)/(8.0*pow(N,3.0))-(39.0-28.0/pow(sin(theta),2.0))/(384.0*pow(N,4.0)))*cos(theta);
-		}
-
-		err = 1.0;
-		count = 0;
-		while(err > EPS) { // Use Newton's Method to converge to node positions
-			err = 0.0;
-			for (i = 0; i < N; i++) {
-				Phi  = jacobiP(r[i],0.0,0.0,N);
-				dPhi = grad_jacobiP(r[i],0.0,0.0,N);
-				r_Delta = Phi/dPhi;
-
-				r[i] -= r_Delta;
-
-				if (fabs(r_Delta) > err)
-					err = fabs(r_Delta);
-			}
-
-			count++;
-			if (count > 100)
-				printf("Newton's method failed.\n"), EXIT_MSG;
-		}
-
-		// Compute weights (Ensure that normalization is removed from dPhi)
-		for (i = 0; i < N; i++) {
-			dPhi    = sqrt(2.0/(2.0*N+1.0))*grad_jacobiP(r[i],0.0,0.0,N);
-			w1D[i] = 2.0/((1.0-r[i]*r[i])*dPhi*dPhi);
-		}
-	} else if (strstr(NodeType,"EQ")) {
-		if (CUBDATA->return_w)
-			printf("Error: Unsupported.\n"), exit(1);
-
-		for (i = 0; i < N; i++)
-			r[i] = 2.0*i/(N-1)-1.0;
-	} else {
-		printf("Error: Unsupported.\n"), EXIT_MSG;
-	}
-
-	// Re-arrange r and w for GL/GLL nodes
-	r_std    = malloc(N * sizeof *r_std); // free
-	wasdfOut_std = malloc(N * sizeof *wasdfOut_std); // free
-
-	for (i = 0; i < N; i++) {
-		r_std[i]    = r[i];
-		wasdfOut_std[i] = w1D[i];
-	}
-
-	if (N % 2 == 1) {
-		k = (unsigned int) floor(N/2);
-
-		r[N-1]    = r_std[k];
-		w1D[N-1] = wasdfOut_std[k];
-
-		j = k;
-		for (i = 0, iMax = N-1; i < iMax; ) {
-			r[i]    = r_std[k-j];
-			w1D[i] = wasdfOut_std[k-j];
-			i++;
-
-			r[i]    = r_std[k+j];
-			w1D[i] = wasdfOut_std[k+j];
-			i++;
-
-			j--;
-		}
-	} else {
-		k = N/2;
-		j = k;
-		for (i = 0, iMax = N; i < iMax; ) {
-			r[i]    = r_std[k-j];
-			w1D[i] = wasdfOut_std[k-j];
-			i++;
-
-			r[i]    = r_std[k+j-1];
-			w1D[i] = wasdfOut_std[k+j-1];
-			i++;
-
-			j--;
-		}
-	}
-
-	free(r_std);
-	free(wasdfOut_std);
-
-
-	double *rst = malloc(pow(N,d)*d * sizeof *rst); // keep
-
-	size_t row = 0;
-	size_t const Nrows = pow(N,d);
-//	for (k = 0, kMax = (unsigned int) min(max((sd-2)*sN,1),sN); k < kMax; k++) {
-	for (size_t k = 0, kMax = min(max((sd-2)*sN,1),sN); k < kMax; k++) {
-	for (size_t j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
-	for (size_t i = 0, iMax = min(max((d-0)*N,u1),N); i < iMax; i++) {
-		for (size_t dim = 0; dim < d; dim++) {
-			switch (dim) {
-				default: // fallthrough
-				case 0: rst[dim*Nrows+row] = r[i]; break;
-				case 1: rst[dim*Nrows+row] = r[j]; break;
-				case 2: rst[dim*Nrows+row] = r[k]; break;
-			}
-		}
-		row++;
-	}}}
-	free(r);
-
-	CUBDATA->rst = rst;
-	CUBDATA->Nn  = pow(N,d);
-// Replace NRows above (ToBeDelted)
-
-	if (CUBDATA->return_w) {
-		double *w = malloc(pow(N,d) * sizeof *w); // keep
-
-		size_t row = 0;
-//		for (size_t k = 0, kMax = (size_t) min(max((sd-2)*sN,1),sN); k < kMax; k++) {
-		for (size_t k = 0, kMax = min(max((sd-2)*sN,1),sN); k < kMax; k++) {
-		for (size_t j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
-		for (size_t i = 0, iMax = min(max((d-0)*N,u1),N); i < iMax; i++) {
-			w[row] = w1D[i];
-			if (d == 2) w[row] *= w1D[j];
-			if (d == 3) w[row] *= w1D[j]*w1D[k];
-			row++;
-		}}}
-
-		CUBDATA->w = w;
-	} else {
-		CUBDATA->w = NULL;
-	}
-	free(w1D);
-
-	if (CUBDATA->return_symm) {
-		unsigned int NsOut = (unsigned int) ceil(N/2.0),
-		             *symmsOut = malloc(NsOut * sizeof *symmsOut); // keep
-		if (N % 2 == 1) {
-			for (i = 0; i < NsOut-1; i++)
-				symmsOut[i] = 2;
-			symmsOut[NsOut-1] = 1;
-		} else {
-			for (i = 0; i < NsOut; i++)
-				symmsOut[i] = 2;
-		}
-		CUBDATA->Ns    = NsOut;
-		CUBDATA->symms = symmsOut;
-	} else {
-		CUBDATA->Ns    = UINT_MAX;
-		CUBDATA->symms = NULL;
-	}
-}
-
 void cubature_TRI (struct S_CUBATURE *const CUBDATA)
 {
 	//

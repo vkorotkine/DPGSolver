@@ -188,6 +188,7 @@ void set_Matrix_from_Multiarray_Matrix_d
 	(struct Matrix_d* dest, struct Multiarray_Matrix_d* src, const ptrdiff_t*const sub_indices)
 {
 	dest = src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
+	UNUSED(dest);
 }
 
 void set_const_Matrix_from_Multiarray_Matrix_d
