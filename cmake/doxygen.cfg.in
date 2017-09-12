@@ -114,7 +114,8 @@ RECURSIVE              = YES
 EXCLUDE                = @PROJECT_SOURCE_DIR@/README.md
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */build/* \
-                         */deprecated/*
+                         */deprecated/* \
+                         */external/*
 EXCLUDE_SYMBOLS        =
 EXAMPLE_PATH           =
 EXAMPLE_PATTERNS       =

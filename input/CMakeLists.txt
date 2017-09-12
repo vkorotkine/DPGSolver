@@ -16,5 +16,6 @@ foreach(script_name_full ${SCRIPT_FILES})
 	configure_file(${script_name_full} ${PROJECT_BINARY_DIR}${script_name} @ONLY)
 endforeach()
 
+add_subdirectory(cubature)
 add_subdirectory(meshes)
 add_subdirectory(testing)

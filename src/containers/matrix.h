@@ -64,28 +64,32 @@ struct const_Matrix_i {
 
 // Interface functions ********************************************************************************************** //
 
-/**	\brief Get pointer to row of row-major \ref Matrix_d\*.
- *	\return Pointer to the first entry of the row.
- */
+/** \brief Get pointer to row of row-major \ref Matrix_d\*.
+ *  \return Pointer to the first entry of the row. */
 double* get_row_Matrix_d
 	(const ptrdiff_t row,     ///< Desired row.
 	 const struct Matrix_d* a ///< Matrix.
 	);
 
-/**	\brief Get pointer to column of col-major \ref Matrix_d\*.
- *	\return Pointer to the first entry of the column.
- */
+/** \brief Get pointer to column of col-major \ref Matrix_d\*.
+ *  \return Pointer to the first entry of the column. */
 double* get_col_Matrix_d
 	(const ptrdiff_t col,     ///< Desired column.
 	 const struct Matrix_d* a ///< Matrix.
 	);
 
-/**	\brief Get pointer to row of row-major \ref const_Matrix_d\*.
- *	\return Pointer to the first entry of the row.
- */
+/** \brief Get pointer to row of row-major \ref const_Matrix_d\*.
+ *  \return Pointer to the first entry of the row. */
 const double* get_row_const_Matrix_d
 	(const ptrdiff_t row,           ///< Desired row.
 	 const struct const_Matrix_d* a ///< Matrix.
+	);
+
+/** \brief Get pointer to column of col-major \ref const_Matrix_d\*.
+ *  \return Pointer to the first entry of the column. */
+const double* get_col_const_Matrix_d
+	(const ptrdiff_t col,                ///< Desired column.
+	 const struct const_Matrix_d*const a ///< Matrix.
 	);
 
 /**	\brief Get pointer to row of row-major \ref Matrix_i\*.

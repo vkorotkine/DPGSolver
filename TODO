@@ -3,6 +3,8 @@ If missing, add copyright info to header of every .c and .h file as below
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
 Ensure that the link above is correct
 
+CHANGE LICENSE TO GPL AS GNU GSL IS NOW LINKED.
+
 change tab spaces to 8 and increase max lines to check alignment of the code under different options in .vimrc
 
 Petsc Solver Updates

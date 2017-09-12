@@ -165,6 +165,9 @@ double *basis_PYR(const unsigned int P, const double *rst, const unsigned int Nn
  *	Comments:
  *		The modal PYR basis can be transformed to Chan's semi-nodal basis using a transformation matrix as the two bases
  *		span the same space.
+ *
+ *		(Chan(2015)-Orthogonal_Bases_for_Vertex_Mapped_Pyramids, eq. 2.1) and the orthogonal basis from the pyfr
+ *		code (Witherden(2015,Thesis), eq. 3.20).
  */
 
 	unsigned int i, j, k, iMax, jMax, kMax, Indbf, Indn, Nbf, mu_ij, IndChi;

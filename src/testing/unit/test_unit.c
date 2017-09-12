@@ -10,6 +10,7 @@
 
 #include "macros.h"
 
+#include "test_base.h"
 #include "test_unit_containers.h"
 #include "test_unit_cubature.h"
 #include "test_unit_bases.h"
@@ -25,6 +26,7 @@ void run_tests_unit (struct Test_Info*const test_info)
 
 	test_unit_containers(test_info);
 	test_unit_cubature(test_info);
+	test_print_warning(test_info,"Need to add tests for plotting nodes");
 	test_unit_bases(test_info);
 }
 

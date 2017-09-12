@@ -15,7 +15,6 @@ double* get_row_Matrix_d (const ptrdiff_t row, const struct Matrix_d* a)
 {
 	if (a->layout != 'R')
 		EXIT_UNSUPPORTED;
-
 	return &a->data[row*(a->ext_1)];
 }
 
@@ -23,7 +22,6 @@ double* get_col_Matrix_d (const ptrdiff_t col, const struct Matrix_d* a)
 {
 	if (a->layout != 'C')
 		EXIT_UNSUPPORTED;
-
 	return &a->data[col*(a->ext_0)];
 }
 
@@ -31,8 +29,14 @@ const double* get_row_const_Matrix_d (const ptrdiff_t row, const struct const_Ma
 {
 	if (a->layout != 'R')
 		EXIT_UNSUPPORTED;
-
 	return &a->data[row*(a->ext_1)];
+}
+
+const double* get_col_const_Matrix_d (const ptrdiff_t col, const struct const_Matrix_d*const a)
+{
+	if (a->layout != 'C')
+		EXIT_UNSUPPORTED;
+	return &a->data[col*(a->ext_0)];
 }
 
 int* get_row_Matrix_i (const ptrdiff_t row, const struct Matrix_i* a)
