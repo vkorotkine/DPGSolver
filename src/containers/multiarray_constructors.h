@@ -94,10 +94,17 @@ struct Multiarray_d* constructor_empty_Multiarray_d
 	);
 
 /** \brief Constructor for an empty \ref Multiarray_Vector_i\*.
- *  \return Standard.
- */
+ *  \return Standard. */
 struct Multiarray_Vector_i* constructor_empty_Multiarray_Vector_i
 	(const bool alloc_V,             ///< Flag for whether memory should be reserved for the individual Vectors.
+	 const int order,                ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const extents_i ///< The input extents.
+	);
+
+/** \brief Constructor for an empty \ref Multiarray_Matrix_d\*.
+ *  \return Standard. */
+struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d
+	(const bool alloc_M,             ///< Flag for whether memory should be reserved for the individual Matrices.
 	 const int order,                ///< Defined in \ref Multiarray_d.
 	 const ptrdiff_t*const extents_i ///< The input extents.
 	);

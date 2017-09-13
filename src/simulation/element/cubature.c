@@ -9,6 +9,7 @@
 #include <string.h>
 #include <math.h>
 #include "jacobi.h"
+#include "gsl/gsl_math.h"
 #include "gsl/gsl_errno.h"
 
 #include "macros.h"

@@ -53,6 +53,12 @@ struct Matrix_d* constructor_copy_Matrix_d
 	(struct Matrix_d* src /// The source matrix.
 	);
 
+/** \brief Copy constructor for a \ref const_Matrix_d\* from a \ref const_Matrix_d\*.
+ *  \return Standard. */
+const struct const_Matrix_d* constructor_copy_const_Matrix_d
+	(const struct const_Matrix_d* src /// The source matrix.
+	);
+
 /** \brief Copy constructor for a \ref Matrix_i\* from a `const int*`.
  *  \return Standard. */
 struct Matrix_i* constructor_copy_Matrix_i_i
@@ -124,9 +130,31 @@ void const_constructor_move_Matrix_i
 
 /** \brief Constructor for a \ref Matrix_d\* as a copy of the transpose of the input matrix.
  *  \return Standard. */
-struct Matrix_d* constructor_transpose_Matrix_d
+struct Matrix_d* constructor_copy_transpose_Matrix_d
 	(struct Matrix_d* a, ///< The input matrix.
 	 const bool mem_only ///< Defined for \ref transpose_Matrix_d.
+	);
+
+/** \brief Constructor for a diagonal \ref Matrix_d\* with entries set to the input value.
+ *  \return Standard. */
+struct Matrix_d* constructor_diagonal_Matrix_d_d
+	(const char layout,     ///< Stanard.
+	 const ptrdiff_t ext_0, ///< The dimensions of the square matrix.
+	 const double val       ///< The value.
+	);
+
+/** \brief Constructor for an identity \ref Matrix_d\*.
+ *  \return Standard. */
+struct Matrix_d* constructor_identity_Matrix_d
+	(const char layout,    ///< Stanard.
+	 const ptrdiff_t ext_0 ///< The dimensions of the square matrix.
+	);
+
+/** \brief `const` version of \ref constructor_identity_Matrix_d.
+ *  \return Standard. */
+const struct const_Matrix_d* constructor_identity_const_Matrix_d
+	(const char layout,    ///< Stanard.
+	 const ptrdiff_t ext_0 ///< The dimensions of the square matrix.
 	);
 
 /** \brief Constructor for a \ref Matrix_d\* from a matrix-matrix multiplication.
@@ -139,6 +167,18 @@ struct Matrix_d* constructor_mm_Matrix_d
 	 const struct const_Matrix_d*const a, ///< Defined for \ref mm_d.
 	 const struct const_Matrix_d*const b, ///< Defined for \ref mm_d.
 	 const char layout                    ///< The `layout` of the constructed \ref Matrix_d.
+	);
+
+/** \brief `const` version of \ref constructor_mm_Matrix_d.
+ *  \return Standard. */
+const struct const_Matrix_d* constructor_mm_const_Matrix_d
+	(const char trans_a_i,                ///< Defined for \ref constructor_mm_Matrix_d.
+	 const char trans_b_i,                ///< Defined for \ref constructor_mm_Matrix_d.
+	 const double alpha,                  ///< Defined for \ref constructor_mm_Matrix_d.
+	 const double beta,                   ///< Defined for \ref constructor_mm_Matrix_d.
+	 const struct const_Matrix_d*const a, ///< Defined for \ref constructor_mm_Matrix_d.
+	 const struct const_Matrix_d*const b, ///< Defined for \ref constructor_mm_Matrix_d.
+	 const char layout                    ///< Defined for \ref constructor_mm_Matrix_d.
 	);
 
 /// \brief Set a \ref Matrix_d\* from a sub range of a \ref Multiarray_d\*.

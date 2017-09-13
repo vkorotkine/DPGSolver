@@ -1,6 +1,6 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-/**	\file
+/** \file
  */
 
 #include "test_support_matrix.h"
@@ -143,9 +143,10 @@ struct Matrix_d* constructor_file_Matrix_d (FILE* data_file, const bool check_co
 	return dest;
 }
 
-const struct const_Matrix_d* constructor_transpose_const_Matrix_d (const struct const_Matrix_d* a, const bool mem_only)
+const struct const_Matrix_d* constructor_copy_transpose_const_Matrix_d
+	(const struct const_Matrix_d* a, const bool mem_only)
 {
-	return (const struct const_Matrix_d*) constructor_transpose_Matrix_d((struct Matrix_d*)a,mem_only);
+	return (const struct const_Matrix_d*) constructor_copy_transpose_Matrix_d((struct Matrix_d*)a,mem_only);
 }
 
 // Math functions *************************************************************************************************** //
@@ -153,6 +154,12 @@ const struct const_Matrix_d* constructor_transpose_const_Matrix_d (const struct 
 void transpose_const_Matrix_d (const struct const_Matrix_d* a, const bool mem_only)
 {
 	transpose_Matrix_d((struct Matrix_d*)a,mem_only);
+}
+
+void scale_const_Matrix_by_Vector_d
+	(const char side, const double alpha, const struct const_Matrix_d*const a, const struct const_Vector_d*const b)
+{
+	scale_Matrix_by_Vector_d(side,alpha,(struct Matrix_d*)a,b);
 }
 
 // Difference functions ********************************************************************************************* //

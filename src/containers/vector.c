@@ -69,6 +69,13 @@ void set_to_data_Vector_i (struct Vector_i*const a, const int*const data_src)
 		a->data[i] = data_src[i];
 }
 
+void set_to_value_Vector_d (struct Vector_d*const a, const double val)
+{
+	const ptrdiff_t ext_0 = a->ext_0;
+	for (ptrdiff_t i = 0; i < ext_0; ++i)
+		a->data[i] = val;
+}
+
 void sort_Vector_i (struct Vector_i* a)
 {
 	const ptrdiff_t size = a->ext_0;

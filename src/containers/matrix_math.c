@@ -41,7 +41,11 @@ double compute_norm_Matrix_d_row
 
 void transpose_Matrix_d (struct Matrix_d* a, const bool mem_only)
 {
-	mkl_dimatcopy(a->layout,'T',a->ext_0,a->ext_1,1.0,a->data,a->ext_1,a->ext_0);
+	if (a->layout == 'R')
+		mkl_dimatcopy(a->layout,'T',a->ext_0,a->ext_1,1.0,a->data,a->ext_1,a->ext_0);
+	else if (a->layout == 'C')
+		mkl_dimatcopy(a->layout,'T',a->ext_0,a->ext_1,1.0,a->data,a->ext_0,a->ext_1);
+
 	if (mem_only) {
 		swap_layout(a);
 	} else {
@@ -49,6 +53,18 @@ void transpose_Matrix_d (struct Matrix_d* a, const bool mem_only)
 		a->ext_0 = a->ext_1;
 		a->ext_1 = tmp;
 	}
+}
+
+void transpose_const_Matrix_d (const struct const_Matrix_d* a, const bool mem_only)
+{
+	transpose_Matrix_d((struct Matrix_d*)a,mem_only);
+}
+
+void scale_Matrix_d (struct Matrix_d* a, const double val)
+{
+	ptrdiff_t size = (a->ext_0)*(a->ext_1);
+	for (ptrdiff_t i = 0; i < size; ++i)
+		a->data[i] *= val;
 }
 
 void mm_d
@@ -109,6 +125,53 @@ void mv_d
 	              ldc = 1;
 
 	cblas_dgemv(layout,transa,m,n,alpha,a->data,lda,b->data,ldb,beta,c->data,ldc);
+}
+
+void scale_Matrix_by_Vector_d
+	(const char side, const double alpha, struct Matrix_d*const a, const struct const_Vector_d*const b)
+{
+	if (alpha != 1.0)
+		scale_Matrix_d(a,alpha);
+
+	const ptrdiff_t n_row = a->ext_0,
+	                n_col = a->ext_1;
+
+	bool transpose_a = false;
+	if (side == 'L') {
+		if (b->ext_0 != a->ext_0)
+			EXIT_ERROR("Invalid dimensions.");
+
+		if (a->layout == 'C') {
+			transpose_a = true;
+			transpose_Matrix_d(a,true);
+		}
+
+		for (ptrdiff_t row = 0; row < n_row; ++row) {
+			const double val = b->data[row];
+			double* data_row = get_row_Matrix_d(row,a);
+			for (ptrdiff_t col = 0; col < n_col; ++col)
+				*data_row++ *= val;
+		}
+	} else if (side == 'R') {
+		if (b->ext_0 != a->ext_1)
+			EXIT_ERROR("Invalid dimensions.");
+
+		if (a->layout == 'R') {
+			transpose_a = true;
+			transpose_Matrix_d(a,true);
+		}
+
+		for (ptrdiff_t col = 0; col < n_col; ++col) {
+			const double val = b->data[col];
+			double* data_col = get_col_Matrix_d(col,a);
+			for (ptrdiff_t row = 0; row < n_row; ++row)
+				*data_col++ *= val;
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+	if (transpose_a)
+		transpose_Matrix_d(a,true);
 }
 
 // Static functions ************************************************************************************************* //

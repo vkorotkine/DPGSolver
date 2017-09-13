@@ -76,6 +76,12 @@ void set_to_data_Vector_i
 	 const int*const data_src ///< The source data.
 	);
 
+/// \brief Set all data entries to the input value.
+void set_to_value_Vector_d
+	(struct Vector_d*const a, ///< Standard.
+	 const double val         ///< The value.
+	);
+
 /// \brief Sort the data of the \ref Vector_i\*.
 void sort_Vector_i
 	(struct Vector_i* a ///< Standard.

@@ -39,7 +39,7 @@ void test_print_warning (struct Test_Info*const test_info, const char*const warn
 	++test_info->n_warn;
 
 	printf("\n********************************************************************************************\n");
-	printf("Warning: %s.\n",warn_name);
+	printf("Warning: %s\n",warn_name);
 	printf("********************************************************************************************\n\n");
 }
 
@@ -47,7 +47,7 @@ void test_print_failure (struct Test_Info*const test_info, const char*const fail
 {
 	UNUSED(test_info);
 	printf("\n********************************************************************************************\n");
-	printf("Test Failure: %s.\n",fail_name);
+	printf("Test Failure: %s\n",fail_name);
 	printf("********************************************************************************************\n\n");
 }
 

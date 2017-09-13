@@ -29,9 +29,15 @@ void transpose_Matrix_d
 	 const bool mem_only ///< Flag for whether only the memory should be transposed (with ext_0/ext_1 unchanged).
 	);
 
+/// \brief Scale the \ref Matrix_d\* by a constant value.
+void scale_Matrix_d
+	(struct Matrix_d* a, ///< The matrix.
+	 const double val    ///< The value by which to scale.
+	);
+
 /** \brief Compute the (m)atrix-(m)atrix multiplication of input `double` matrices.
  *
- *  Computes: c = alpha*op(a)*op(b)+beta*c using the [cblas_dgemm function] for the computation.
+ *  Computes: c = alpha*op(a)*op(b)+beta*c using the [cblas_dgemm function][cblas_dgemm] for the computation.
  *
  *  op(): 'N'o transpose, 'T'ranspose.
  *
@@ -50,7 +56,7 @@ void mm_d
 
 /** \brief Compute the (m)atrix-(v)ector multiplication of input `double` containers.
  *
- *  Computes: c = alpha*op(a)*b+beta*c using the [cblas_dgemv function] for the computation.
+ *  Computes: c = alpha*op(a)*b+beta*c using the [cblas_dgemv function][cblas_dgemv] for the computation.
  *
  *  op(): 'N'o transpose, 'T'ranspose.
  *
@@ -71,6 +77,21 @@ void mv_d
 	 const struct const_Matrix_d*const a, ///< Input \ref const_Matrix_d\* `a`.
 	 const struct const_Vector_d*const b, ///< Input \ref const_Vector_d\* `b`.
 	 struct Vector_d*const c              ///< Input \ref Vector_d\* `c`.
+	);
+
+/** \brief Computes the matrix-"matrix" multiplication of a matrix with a vector interpreted as a diagonal matrix
+ *         in-place.
+ *
+ *  if (side == 'L')
+ *  	computes: A = alpha*diag(b)*A.
+ *  else if (side == 'R')
+ *  	computes: A = alpha*A*diag(b).
+ */
+void scale_Matrix_by_Vector_d
+	(const char side,                    ///< The side from which to apply the vector as a diagonal matrix.
+	 const double alpha,                 ///< Multiplicative constant.
+	 struct Matrix_d*const a,            ///< Input \ref const_Matrix_d\*.
+	 const struct const_Vector_d*const b ///< Input \ref const_Vector_d\*.
 	);
 
 #endif // DPG__matrix_math_h__INCLUDED

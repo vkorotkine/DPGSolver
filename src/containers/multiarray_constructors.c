@@ -71,6 +71,20 @@ struct Multiarray_Vector_i* constructor_empty_Multiarray_Vector_i
 	return constructor_move_Multiarray_Vector_i_dyn_extents(order,extents,true,data);
 }
 
+struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d
+	(const bool alloc_M, const int order, const ptrdiff_t*const extents_i)
+{
+	ptrdiff_t*const extents = allocate_and_set_extents(order,extents_i); // keep
+
+	struct Matrix_d** data = NULL;
+	if (alloc_M)
+		EXIT_ADD_SUPPORT;
+	else
+		data = malloc(compute_size(order,extents) * sizeof *data); // keep
+
+	return constructor_move_Multiarray_Matrix_d_dyn_extents(order,extents,true,data);
+}
+
 // Copy constructors ************************************************************************************************ //
 
 struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i_i

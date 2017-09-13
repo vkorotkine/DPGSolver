@@ -86,6 +86,11 @@ struct Matrix_d* constructor_copy_Matrix_d (struct Matrix_d* src)
 	return constructor_move_Matrix_d_d(src->layout,src->ext_0,src->ext_1,true,data);
 }
 
+const struct const_Matrix_d* constructor_copy_const_Matrix_d (const struct const_Matrix_d*const src)
+{
+	return (const struct const_Matrix_d*) constructor_copy_Matrix_d((struct Matrix_d*)src);
+}
+
 const struct const_Matrix_d* constructor_copy_extract_const_Matrix_d
 	(const struct const_Matrix_d*const src, const struct const_Vector_i*const indices)
 {
@@ -148,7 +153,7 @@ struct Matrix_d* constructor_move_Matrix_d_d
 }
 
 struct Matrix_i* constructor_move_Matrix_i_i
-(const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1, const bool owns_data, int*const data)
+	(const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1, const bool owns_data, int*const data)
 {
     struct Matrix_i* dest = calloc(1,sizeof *dest); // returned
 
@@ -173,12 +178,45 @@ void const_constructor_move_Matrix_i (const struct const_Matrix_i*const* dest, s
 
 // Special constructors ********************************************************************************************* //
 
-struct Matrix_d* constructor_transpose_Matrix_d (struct Matrix_d* a, const bool mem_only)
+struct Matrix_d* constructor_copy_transpose_Matrix_d (struct Matrix_d* a, const bool mem_only)
 {
 	struct Matrix_d* a_t = constructor_copy_Matrix_d(a); // returned
 	transpose_Matrix_d(a_t,mem_only);
 
 	return a_t;
+}
+
+/*struct Matrix_d* constructor_diagonal_Matrix_from_Vector_d (const char layout, const struct Vector_d*const src)
+{
+	const ptrdiff_t ext_0 = src->ext_0,
+	                size  = ext_0*ext_0;
+
+	double* data = calloc(size , sizeof *data); // moved
+	for (ptrdiff_t i = 0, ind = 0; i < size; i += ext_0+1, ++ind)
+		data[i] = src->data[ind];
+
+	return constructor_move_Matrix_d_d(layout,ext_0,ext_0,true,data);
+}*/
+
+struct Matrix_d* constructor_diagonal_Matrix_d_d (const char layout, const ptrdiff_t ext_0, const double val)
+{
+	const ptrdiff_t size = ext_0*ext_0;
+
+	double* data = calloc(size , sizeof *data); // moved
+	for (ptrdiff_t i = 0, ind = 0; i < size; i += ext_0+1, ++ind)
+		data[i] = val;
+
+	return constructor_move_Matrix_d_d(layout,ext_0,ext_0,true,data);
+}
+
+struct Matrix_d* constructor_identity_Matrix_d (const char layout, const ptrdiff_t ext_0)
+{
+	return constructor_diagonal_Matrix_d_d(layout,ext_0,1.0);
+}
+
+const struct const_Matrix_d* constructor_identity_const_Matrix_d (const char layout, const ptrdiff_t ext_0)
+{
+	return (const struct const_Matrix_d*) constructor_identity_Matrix_d(layout,ext_0);
 }
 
 struct Matrix_d* constructor_mm_Matrix_d
@@ -193,6 +231,13 @@ struct Matrix_d* constructor_mm_Matrix_d
 	mm_d(trans_a_i,trans_b_i,alpha,beta,a,b,c);
 
 	return c;
+}
+
+const struct const_Matrix_d* constructor_mm_const_Matrix_d
+	(const char trans_a_i, const char trans_b_i, const double alpha, const double beta,
+	 const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, const char layout)
+{
+	return (const struct const_Matrix_d*) constructor_mm_Matrix_d(trans_a_i,trans_b_i,alpha,beta,a,b,layout);
 }
 
 void set_Matrix_from_Multiarray_d (struct Matrix_d* dest, struct Multiarray_d* src, const ptrdiff_t*const sub_indices)

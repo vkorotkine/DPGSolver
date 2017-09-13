@@ -41,6 +41,8 @@ static void test_unit_cubature_pyramid
 
 void test_unit_cubature (struct Test_Info*const test_info)
 {
+	test_print_warning(test_info,"Cubature strengths not currently being tested.");
+
 	test_unit_cubature_tensor_product(test_info);
 	test_unit_cubature_simplex(test_info);
 	test_unit_cubature_pyramid(test_info);

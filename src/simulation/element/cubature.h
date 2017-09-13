@@ -35,6 +35,19 @@ struct const_Cubature {
 	const struct const_Vector_d*const w; ///< Defined in \ref Cubature.
 };
 
+// Interface functions ********************************************************************************************** //
+
+/** \brief Function pointer to cubature functions.
+ *  \param d         The dimension of the nodes.
+ *  \param p         Defined in \ref Cubature.
+ *  \param node_type Defined in \ref Cubature.
+ */
+typedef const struct const_Cubature* (*cubature_fptr)
+	(const int d,
+	 const int p,
+	 const int node_type
+	);
+
 /** \brief Constructor for a \ref Cubature container of tensor-product type.
  *  \return Standard.
  *
@@ -47,9 +60,9 @@ struct const_Cubature {
  *  Jabardo.
  */
 const struct const_Cubature* constructor_const_Cubature_tp
-	(const int d,        ///< The dimension of the nodes.
-	 const int p,        ///< Defined in \ref Cubature.
-	 const int node_type ///< Defined in \ref Cubature.
+	(const int d,        ///< Defined in \ref cubature_fptr.
+	 const int p,        ///< Defined in \ref cubature_fptr.
+	 const int node_type ///< Defined in \ref cubature_fptr.
 	);
 
 /** \brief Constructor for a \ref Cubature container of simplex type.
@@ -75,9 +88,9 @@ const struct const_Cubature* constructor_const_Cubature_tp
  *  [pyfr_web]: http://www.pyfr.org
  */
 const struct const_Cubature* constructor_const_Cubature_si
-	(const int d,        ///< The dimension of the nodes.
-	 const int p,        ///< Defined in \ref Cubature.
-	 const int node_type ///< Defined in \ref Cubature.
+	(const int d,        ///< Defined in \ref cubature_fptr.
+	 const int p,        ///< Defined in \ref cubature_fptr.
+	 const int node_type ///< Defined in \ref cubature_fptr.
 	);
 
 /** \brief Constructor for a \ref Cubature container of pyramid type.
@@ -127,9 +140,9 @@ const struct const_Cubature* constructor_const_Cubature_si
  *  [pyfr_web]: http://www.pyfr.org
  */
 const struct const_Cubature* constructor_const_Cubature_pyr
-	(const int d,        ///< The dimension of the nodes.
-	 const int p,        ///< Defined in \ref Cubature.
-	 const int node_type ///< Defined in \ref Cubature.
+	(const int d,        ///< Defined in \ref cubature_fptr.
+	 const int p,        ///< Defined in \ref cubature_fptr.
+	 const int node_type ///< Defined in \ref cubature_fptr.
 	);
 
 /// \brief Destructor for a \ref Cubature\* container.

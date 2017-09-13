@@ -136,7 +136,6 @@ struct Vector_d* constructor_mv_Vector_d
 	 const struct const_Vector_d*const b  ///< Defined for \ref mv_d.
 	);
 
-
 /// \brief Set a \ref Vector_d\* from a sub range of a \ref Matrix_d\*.
 void set_Vector_from_Matrix_d
 	(struct Vector_d* dest,            ///< The destination.

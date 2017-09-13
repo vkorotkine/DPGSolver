@@ -12,21 +12,23 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include "gsl/gsl_math.h"
 
-/** \brief Evaluates an orthonormalized (on [-1,-1]) Jacobi polynomial.
- *  \return See brief.
- *
- *  The normalization was taken from the [Mathematica page on Jacobi polynomials][mathematica_jacobi].
- *
- *  <!-- References: -->
- *  [mathematica_jacobi]: http://mathworld.wolfram.com/JacobiPolynomial.html
- */
+/** \brief Evaluates an orthonormalized Jacobi polynomial on the standard unit interval ([-1,1]).
+ *  \return See brief. */
 double jac_jacobi_normalized
-	(double x, ///< The coordinate at which to evaluate the polynomial.
-	 int n,    ///< The order of the polynomial.
-	 double a, ///< alpha.
-	 double b  ///< beta.
+	(const double x, ///< The coordinate at which to evaluate the polynomial.
+	 const int n,    ///< The order of the polynomial.
+	 const double a, ///< alpha.
+	 const double b  ///< beta.
+	);
+
+/** \brief Evaluates the derivative of an orthonormalized Jacobi polynomial on the standard unit interval ([-1,1]).
+ *  \return See brief. */
+double jac_djacobi_normalized
+	(const double x, ///< Defined for \ref jac_jacobi_normalized.
+	 const int n,    ///< Defined for \ref jac_jacobi_normalized.
+	 const double a, ///< Defined for \ref jac_jacobi_normalized.
+	 const double b  ///< Defined for \ref jac_jacobi_normalized.
 	);
 
 /** \brief Compares input values for approximate equality using the relative infinity norm.
@@ -59,6 +61,13 @@ double norm_diff_d
 double max_abs_d
 	(const double a, ///< Input 0.
 	 const double b  ///< Input 1.
+	);
+
+/** \brief Compute the binomial coefficient.
+ *  \return See brief. */
+double binomial_coef
+	(const int num, ///< The numerator.
+	 const int den  ///< The denominator.
 	);
 
 #endif // DPG__math_functions_h__INCLUDED

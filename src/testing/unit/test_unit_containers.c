@@ -54,8 +54,8 @@ static void test_unit_matrix_mm (struct Test_Info*const test_info)
 	struct Matrix_d* c_R = constructor_file_name_Matrix_d("c_Matrix",file_name_full); // destructed
 	free((void*)file_name_full);
 
-	const struct const_Matrix_d* a_t = constructor_transpose_const_Matrix_d(a,false), // destructed
-	                           * b_t = constructor_transpose_const_Matrix_d(b,false); // destructed
+	const struct const_Matrix_d* a_t = constructor_copy_transpose_const_Matrix_d(a,false), // destructed
+	                           * b_t = constructor_copy_transpose_const_Matrix_d(b,false); // destructed
 
 	// row major
 	struct Matrix_d* c_NNR = constructor_mm_Matrix_d('N','N',1.0,0.0,a,  b,  'R'), // destructed
@@ -69,7 +69,7 @@ static void test_unit_matrix_mm (struct Test_Info*const test_info)
 	transpose_const_Matrix_d(b_t,true);
 
 	// col major
-	struct Matrix_d* c_C   = constructor_transpose_Matrix_d(c_R,true),             // destructed
+	struct Matrix_d* c_C   = constructor_copy_transpose_Matrix_d(c_R,true),        // destructed
 	               * c_NNC = constructor_mm_Matrix_d('N','N',1.0,0.0,a,  b,  'C'), // destructed
 	               * c_TNC = constructor_mm_Matrix_d('T','N',1.0,0.0,a_t,b,  'C'), // destructed
 	               * c_NTC = constructor_mm_Matrix_d('N','T',1.0,0.0,a  ,b_t,'C'), // destructed
@@ -124,7 +124,7 @@ static void test_unit_matrix_mv (struct Test_Info*const test_info)
 	struct Vector_d* c = constructor_file_name_Vector_d("c_Vector",file_name_full); // destructed
 	free((void*)file_name_full);
 
-	const struct const_Matrix_d* a_t = constructor_transpose_const_Matrix_d(a,false); // destructed
+	const struct const_Matrix_d* a_t = constructor_copy_transpose_const_Matrix_d(a,false); // destructed
 
 	// row major
 	struct Vector_d* c_NR = constructor_mv_Vector_d('R','N',1.0,0.0,a,  b), // destructed

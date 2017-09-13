@@ -28,8 +28,11 @@ void print_Matrix_d (const struct Matrix_d*const a, const double tol)
 		for (ptrdiff_t i = 0; i < ext_0; i++) {
 			for (ptrdiff_t j = 0; j < ext_1; j++) {
 				const double val = *data++;
-				printf("% .4e ",( (isnan(val) || (fabs(val) > tol)) ? val : 0.0 ));
-//				printf("% .12e ",( (isnan(val) || (fabs(val) > tol)) ? val : 0.0 ));
+//				printf("% .4e ",( (isnan(val) || (fabs(val) > tol)) ? val : 0.0 ));
+				if (isnan(val) || (fabs(val) > tol))
+					printf("% .4e ",val);
+				else
+					printf("% 11d ",0);
 			}
 			printf("\n");
 		}
@@ -39,7 +42,11 @@ void print_Matrix_d (const struct Matrix_d*const a, const double tol)
 		for (ptrdiff_t i = 0; i < ext_0; i++) {
 			for (ptrdiff_t j = 0; j < ext_1; j++) {
 				const double val = data[i+ext_0*j];
-				printf("% .4e ",( (isnan(val) || (fabs(val) > tol)) ? val : 0.0 ));
+//				printf("% .4e ",( (isnan(val) || (fabs(val) > tol)) ? val : 0.0 ));
+				if (isnan(val) || (fabs(val) > tol))
+					printf("% .4e ",val);
+				else
+					printf("% 11d ",0);
 			}
 			printf("\n");
 		}
