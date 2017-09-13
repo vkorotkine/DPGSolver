@@ -14,22 +14,19 @@
 #include <stddef.h>
 #include "gsl/gsl_math.h"
 
-/** \brief Evaluates the factorial of the input returning an `double` result.
- *  \return See brief. */
-double factorial_d
-	(const unsigned int n ///< Input.
-	);
-
-/** \brief Evaluates the factorial of the input returning an `long long unsigned int` result.
- *  \return See brief. */
-long long unsigned int factorial_ull
-	(const unsigned int n ///< Input.
-	);
-
-/** \brief Evaluates the gamma function at the input value.
- *  \return See brief. */
-double gamma_d
-	(const double x ///< Input.
+/** \brief Evaluates an orthonormalized (on [-1,-1]) Jacobi polynomial.
+ *  \return See brief.
+ *
+ *  The normalization was taken from the [Mathematica page on Jacobi polynomials][mathematica_jacobi].
+ *
+ *  <!-- References: -->
+ *  [mathematica_jacobi]: http://mathworld.wolfram.com/JacobiPolynomial.html
+ */
+double jac_jacobi_normalized
+	(double x, ///< The coordinate at which to evaluate the polynomial.
+	 int n,    ///< The order of the polynomial.
+	 double a, ///< alpha.
+	 double b  ///< beta.
 	);
 
 /** \brief Compares input values for approximate equality using the relative infinity norm.

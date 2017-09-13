@@ -1,5 +1,6 @@
 set	(SOURCE
 	 element.c
+	 bases.c
 	 cubature.c
 	)
 

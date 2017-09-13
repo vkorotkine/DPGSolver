@@ -78,6 +78,15 @@ void check_container_type (FILE* data_file, const char*const container_type)
 		EXIT_ERROR("Reading incorrect container type: %s",line);
 }
 
+bool check_diff (const int n_entries, const bool*const differences)
+{
+	for (int i = 0; i < n_entries; ++i) {
+		if (differences[i])
+			return true;
+	}
+	return false;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

@@ -3,9 +3,9 @@
 
 #ifndef DPG__cubature_h__INCLUDED
 #define DPG__cubature_h__INCLUDED
-/**	\file
- *	\brief Provides the interface to functions computing the reference element coordinate (and associated cubature
- *	       if relevant).
+/** \file
+ *  \brief Provides the interface to functions computing the reference element coordinate (and associated cubature if
+ *         relevant).
  */
 
 #include <stdbool.h>

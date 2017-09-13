@@ -80,9 +80,9 @@ const struct const_Cubature* constructor_const_Cubature_tp (const int d, const i
 	double *rst = malloc(ext_0*d * sizeof *rst); // keep
 
 	int row = 0;
-	for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; k++) {
-	for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; j++) {
-	for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; i++) {
+	for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
+	for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
+	for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; ++i) {
 		for (int dim = 0; dim < d; dim++) {
 			switch (dim) {
 			case 0:
@@ -107,9 +107,9 @@ const struct const_Cubature* constructor_const_Cubature_tp (const int d, const i
 		w = malloc(ext_0 * sizeof *w); // keep
 
 		int row = 0;
-		for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; k++) {
-		for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; j++) {
-		for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; i++) {
+		for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
+		for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
+		for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; ++i) {
 			w[row] = w_1d[i];
 			if (d == 2) w[row] *= w_1d[j];
 			if (d == 3) w[row] *= w_1d[j]*w_1d[k];
@@ -234,7 +234,7 @@ const struct const_Cubature* constructor_const_Cubature_pyr (const int d, const 
 	symms_count  = malloc(Nsymms * sizeof *symms_count);  // free
 	symms_Nperms = malloc(Nsymms * sizeof *symms_Nperms); // free
 
-	for (i = 0; i < Nsymms; i++) {
+	for (i = 0; i < Nsymms; ++i) {
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 			strings = StringRead;
 			symms_count[i]  = strtol(strings,&stringe,10); strings = stringe;
@@ -250,10 +250,10 @@ const struct const_Cubature* constructor_const_Cubature_pyr (const int d, const 
 
 	BCoords = malloc(Ngroups*Nc * sizeof * BCoords); // free
 
-	for (i = 0; i < Ngroups; i++) {
+	for (i = 0; i < Ngroups; ++i) {
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 			strings = StringRead;
-			for (j = 0; j < Nc; j++) {
+			for (j = 0; j < Nc; ++j) {
 				BCoords[i*Nc+j] = strtod(strings,&stringe); strings = stringe;
 			}
 		}
@@ -270,7 +270,7 @@ const struct const_Cubature* constructor_const_Cubature_pyr (const int d, const 
 		free(w_read);
 		w_read = malloc(Ngroups * sizeof *w_read); // free
 
-		for (i = 0; i < Ngroups; i++) {
+		for (i = 0; i < Ngroups; ++i) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 				strings = StringRead;
 				w_read[i] = strtod(strings,&stringe); strings = stringe;
@@ -285,7 +285,7 @@ const struct const_Cubature* constructor_const_Cubature_pyr (const int d, const 
 	// Also set weights in array of size NnOut x 1 if applicable
 
 	// Find number of 1 symmetries and total number of nodes
-	for (i = 0, N1 = 0, NnOut = 0; i < Nsymms; i++) {
+	for (i = 0, N1 = 0, NnOut = 0; i < Nsymms; ++i) {
 		if (i >= Nsymms-1)
 			N1 += symms_count[i];
 		NnOut += symms_count[i]*symms_Nperms[i];
@@ -300,7 +300,7 @@ const struct const_Cubature* constructor_const_Cubature_pyr (const int d, const 
 	GroupCount = 0;
 
 	IndGroup = 0;
-	for (i = 0; i < Nsymms; i++) {
+	for (i = 0; i < Nsymms; ++i) {
 		if (symms_count[i] == 0)
 			IndGroup++;
 		else
@@ -308,7 +308,7 @@ const struct const_Cubature* constructor_const_Cubature_pyr (const int d, const 
 	}
 
 	Ind1 = 0;
-	for (i = 0; i < Ngroups; i++) {
+	for (i = 0; i < Ngroups; ++i) {
 		GroupCount++;
 
 		Nperms = symms_Nperms[IndGroup];
@@ -325,10 +325,10 @@ const struct const_Cubature* constructor_const_Cubature_pyr (const int d, const 
 		}
 
 		if (Nperms == 1) {
-			for (j = 0; j < Nc; j++)
+			for (j = 0; j < Nc; ++j)
 				BCoords_tmp[j] = BCoords[IndB*Nc+j];
 
-			for (k = 0; k < Nc; k++)
+			for (k = 0; k < Nc; ++k)
 				BCoords_complete[(NnOut-N1+Ind1)*Nc+k] = BCoords_tmp[k];
 
 			if (has_weights)
@@ -338,7 +338,7 @@ const struct const_Cubature* constructor_const_Cubature_pyr (const int d, const 
 		} else {
 			for (QUADsymm = 0; QUADsymm <= NQUADsymms; QUADsymm++) {
 				if (QUADsymm == 0) {
-					for (j = 0; j < Nc; j++)
+					for (j = 0; j < Nc; ++j)
 						BCoords_tmp[j] = BCoords[IndB*Nc+j];
 				} else {
 					BCoords_tmp[0] = BCoords[IndB*Nc+1];
@@ -348,11 +348,11 @@ const struct const_Cubature* constructor_const_Cubature_pyr (const int d, const 
 					BCoords_tmp[4] = BCoords[IndB*Nc+4];
 				}
 
-				for (j = 0; j < 4; j++) {
+				for (j = 0; j < 4; ++j) {
 					if (has_weights)
 						wOut[IndBC] = w_read[IndB];
 
-					for (k = 0; k < Nc-1; k++)
+					for (k = 0; k < Nc-1; ++k)
 						BCoords_complete[IndBC*Nc+k] = BCoords_tmp[perms_QUAD[j*(Nc-1)+k]];
 
 					k = Nc-1;
@@ -498,7 +498,7 @@ static const struct const_Cubature* constructor_const_Cubature_tri (const int p,
 	symms_count  = malloc(Nsymms * sizeof *symms_count);  // free
 	symms_Nperms = malloc(Nsymms * sizeof *symms_Nperms); // free
 
-	for (i = 0; i < Nsymms; i++) {
+	for (i = 0; i < Nsymms; ++i) {
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 			strings = StringRead;
 			symms_count[i]  = strtol(strings,&stringe,10); strings = stringe;
@@ -514,10 +514,10 @@ static const struct const_Cubature* constructor_const_Cubature_tri (const int p,
 
 	BCoords = malloc(Ngroups*Nc * sizeof * BCoords); // free
 
-	for (i = 0; i < Ngroups; i++) {
+	for (i = 0; i < Ngroups; ++i) {
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 			strings = StringRead;
-			for (j = 0; j < Nc; j++) {
+			for (j = 0; j < Nc; ++j) {
 				BCoords[i*Nc+j] = strtod(strings,&stringe); strings = stringe;
 			}
 		}
@@ -534,7 +534,7 @@ static const struct const_Cubature* constructor_const_Cubature_tri (const int p,
 		free(w_read);
 		w_read = malloc(Ngroups * sizeof *w_read); // free
 
-		for (i = 0; i < Ngroups; i++) {
+		for (i = 0; i < Ngroups; ++i) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 				strings = StringRead;
 				w_read[i] = strtod(strings,&stringe); strings = stringe;
@@ -548,7 +548,7 @@ static const struct const_Cubature* constructor_const_Cubature_tri (const int p,
 	// Convert barycentric coordinates to rst nodal coordinates
 	// Also set weights in array of size NnOut x 1 if applicable
 	NnOut = 0;
-	for (i = 0; i < Nsymms; i++)
+	for (i = 0; i < Nsymms; ++i)
 		NnOut += symms_count[i]*symms_Nperms[i];
 
 	if (has_weights)
@@ -560,14 +560,14 @@ static const struct const_Cubature* constructor_const_Cubature_tri (const int p,
 	GroupCount = 0;
 
 	IndGroup = 0;
-	for (i = 0; i < Nsymms; i++) {
+	for (i = 0; i < Nsymms; ++i) {
 		if (symms_count[i] == 0)
 			IndGroup++;
 		else
 			break;
 	}
 
-	for (i = 0; i < Ngroups; i++) {
+	for (i = 0; i < Ngroups; ++i) {
 		GroupCount++;
 
 		jMax = symms_Nperms[IndGroup];
@@ -576,11 +576,11 @@ static const struct const_Cubature* constructor_const_Cubature_tri (const int p,
 		else if (jMax == 3) symms31[0] += 1;
 		else if (jMax == 1) symms31[1] += 1;
 
-		for (j = 0; j < jMax; j++) {
+		for (j = 0; j < jMax; ++j) {
 			if (has_weights)
 				wOut[IndBC] = w_read[IndB];
 
-			for (k = 0; k < Nc; k++) {
+			for (k = 0; k < Nc; ++k) {
 				BCoords_complete[IndBC*Nc+k] = BCoords[IndB*Nc+perms[j*Nc+k]];
 			}
 			IndBC++;
@@ -703,7 +703,7 @@ static const struct const_Cubature* constructor_const_Cubature_tet (const int p,
 	symms_count  = malloc(Nsymms * sizeof *symms_count);  // free
 	symms_Nperms = malloc(Nsymms * sizeof *symms_Nperms); // free
 
-	for (i = 0; i < Nsymms; i++) {
+	for (i = 0; i < Nsymms; ++i) {
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 			strings = StringRead;
 			symms_count[i]  = strtol(strings,&stringe,10); strings = stringe;
@@ -719,10 +719,10 @@ static const struct const_Cubature* constructor_const_Cubature_tet (const int p,
 
 	BCoords = malloc(Ngroups*Nc * sizeof * BCoords); // free
 
-	for (i = 0; i < Ngroups; i++) {
+	for (i = 0; i < Ngroups; ++i) {
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 			strings = StringRead;
-			for (j = 0; j < Nc; j++) {
+			for (j = 0; j < Nc; ++j) {
 				BCoords[i*Nc+j] = strtod(strings,&stringe); strings = stringe;
 			}
 		}
@@ -738,7 +738,7 @@ static const struct const_Cubature* constructor_const_Cubature_tet (const int p,
 
 		w_read = malloc(Ngroups * sizeof *w_read); // free
 
-		for (i = 0; i < Ngroups; i++) {
+		for (i = 0; i < Ngroups; ++i) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 				strings = StringRead;
 				w_read[i] = strtod(strings,&stringe); strings = stringe;
@@ -753,7 +753,7 @@ static const struct const_Cubature* constructor_const_Cubature_tet (const int p,
 	// Also set weights in array of size NnOut x 1 if applicable
 
 	// Find number of 1 symmetries and total number of nodes
-	for (i = 0, N1 = 0, NnOut = 0; i < Nsymms; i++) {
+	for (i = 0, N1 = 0, NnOut = 0; i < Nsymms; ++i) {
 		if (i >= Nsymms-2)
 			N1 += symms_count[i];
 		NnOut += symms_count[i]*symms_Nperms[i];
@@ -768,7 +768,7 @@ static const struct const_Cubature* constructor_const_Cubature_tet (const int p,
 	GroupCount = 0;
 
 	IndGroup = 0;
-	for (i = 0; i < Nsymms; i++) {
+	for (i = 0; i < Nsymms; ++i) {
 		if (symms_count[i] == 0)
 			IndGroup++;
 		else
@@ -776,7 +776,7 @@ static const struct const_Cubature* constructor_const_Cubature_tet (const int p,
 	}
 
 	Ind1 = 0;
-	for (i = 0; i < Ngroups; i++) {
+	for (i = 0; i < Ngroups; ++i) {
 		GroupCount++;
 
 		Nperms = symms_Nperms[IndGroup];
@@ -810,11 +810,11 @@ static const struct const_Cubature* constructor_const_Cubature_tet (const int p,
 
 		Indperm = 0;
 		if (NTRIsymms[0]) {
-			for (j = 0; j < Nc; j++)
+			for (j = 0; j < Nc; ++j)
 				BCoords_tmp[j] = BCoords[IndB*Nc+perms_TET[TETperms[Indperm]*Nc+j]];
 			Indperm++;
 
-			for (k = 0; k < Nc; k++)
+			for (k = 0; k < Nc; ++k)
 				BCoords_complete[(NnOut-N1+Ind1)*Nc+k] = BCoords_tmp[k];
 
 			if (has_weights)
@@ -826,19 +826,19 @@ static const struct const_Cubature* constructor_const_Cubature_tet (const int p,
 		for (TRIsymm = 1; TRIsymm <= 2; TRIsymm++) {
 			for (l = 0, lMax = NTRIsymms[TRIsymm]; l < lMax; l++) {
 
-				for (j = 0; j < Nc; j++)
+				for (j = 0; j < Nc; ++j)
 					BCoords_tmp[j] = BCoords[IndB*Nc+perms_TET[TETperms[Indperm]*Nc+j]];
 				Indperm++;
 
 				jMax = 0;
-				for (k = 1, kMax = TRIsymm+1; k <= kMax; k++)
+				for (k = 1, kMax = TRIsymm+1; k <= kMax; ++k)
 					jMax += k;
 
-				for (j = 0; j < jMax; j++) {
+				for (j = 0; j < jMax; ++j) {
 					if (has_weights)
 						wOut[IndBC] = w_read[IndB];
 
-					for (k = 0; k < Nc-1; k++)
+					for (k = 0; k < Nc-1; ++k)
 						BCoords_complete[IndBC*Nc+k] = BCoords_tmp[perms_TRI[j*(Nc-1)+k]];
 
 					k = Nc-1;
