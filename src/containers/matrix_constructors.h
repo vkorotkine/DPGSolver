@@ -217,4 +217,11 @@ void destructor_const_Matrix_i
 	(const struct const_Matrix_i* a ///< Standard.
 	);
 
+/// \brief Destructs a \ref Matrix_d\*\*.
+void destructor_Matrix_d_2
+	(struct Matrix_d** a,   ///< Standard.
+	 const ptrdiff_t n_src, ///< The number of \ref Matrix_d\* components.
+	 const bool owns_data   ///< Standard.
+	);
+
 #endif // DPG__Matrix_h__INCLUDED

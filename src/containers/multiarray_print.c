@@ -40,26 +40,14 @@ void print_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a)
 
 	const ptrdiff_t size = compute_size(a->order,a->extents);
 
-	const int order = a->order;
-	switch (order) {
-	case 1:
-		for (ptrdiff_t i = 0; i < size; i++)
-			print_Vector_i(a->data[i]);
-		break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
+	for (ptrdiff_t i = 0; i < size; i++)
+		print_Vector_i(a->data[i]);
 	printf("\n");
 }
 
 void print_const_Multiarray_Vector_i (const struct const_Multiarray_Vector_i*const a)
 {
-	struct Multiarray_Vector_i* local =
-		constructor_move_Multiarray_Vector_i_dyn_extents(a->order,(ptrdiff_t*)a->extents,false,
-		                                                 (struct Vector_i**)a->data);
-	print_Multiarray_Vector_i(local);
-	free(local);
+	print_Multiarray_Vector_i((struct Multiarray_Vector_i*)a);
 }
 
 void print_Multiarray_d (const struct Multiarray_d*const a, const double tol)
@@ -100,6 +88,22 @@ void print_Multiarray_d (const struct Multiarray_d*const a, const double tol)
 		EXIT_UNSUPPORTED;
 	}
 	printf("\n");
+}
+
+void print_Multiarray_Matrix_d (const struct Multiarray_Matrix_d*const a, const double tol)
+{
+	print_Multiarray_extents(a->order,a->extents);
+
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+
+	for (ptrdiff_t i = 0; i < size; i++)
+		print_Matrix_d(a->data[i],tol);
+	printf("\n");
+}
+
+void print_const_Multiarray_Matrix_d (const struct const_Multiarray_Matrix_d*const a, const double tol)
+{
+	print_Multiarray_Matrix_d((struct Multiarray_Matrix_d*)a,tol);
 }
 
 // Static functions ************************************************************************************************* //

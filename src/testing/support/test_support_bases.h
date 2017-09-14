@@ -13,30 +13,62 @@
  *         definitions.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_basis_tp_orthonormal_def
-	(const int p_b,                        ///< The order of the basis.
-	 const struct const_Matrix_d*const rst ///< The nodes at which the basis functions are evaluated.
+	(const int p_b,                        ///< Defined in \ref basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	);
+
+/** \brief Constructor for polynomial operator(s) for the gradient(s) of the tensor-product orthonomal basis from the
+ *         basis function definitions.
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal_def
+	(const int p_b,                        ///< Defined in \ref basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
 	);
 
 /** \brief Constructor for a polynomial operator for the simplex orthonomal basis from the basis function definitions.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_basis_si_orthonormal_def
-	(const int p_b,                        ///< The order of the basis.
-	 const struct const_Matrix_d*const rst ///< The nodes at which the basis functions are evaluated.
+	(const int p_b,                        ///< Defined in \ref basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	);
+
+/** \brief Constructor for polynomial operators for the gradients of the simplex orthonomal basis from the basis
+ *         function definitions.
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal_def
+	(const int p_b,                        ///< Defined in \ref basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
 	);
 
 /** \brief Constructor for a polynomial operator for the pyramid orthonomal basis from the basis function definitions.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_basis_pyr_orthonormal_def
-	(const int p_b,                        ///< The order of the basis.
-	 const struct const_Matrix_d*const rst ///< The nodes at which the basis functions are evaluated.
+	(const int p_b,                        ///< Defined in \ref basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	);
+
+/** \brief Constructor for polynomial operators for the gradients of the pyramid orthonomal basis from the basis
+ *         function definitions.
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal_def
+	(const int p_b,                        ///< Defined in \ref basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
 	);
 
 /** \brief Constructor for a polynomial operator for the tensor-product bezier basis from the basis function
  *         definitions.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_basis_tp_bezier_def
-	(const int p_b,                        ///< The order of the basis.
-	 const struct const_Matrix_d*const rst ///< The nodes at which the basis functions are evaluated.
+	(const int p_b,                        ///< Defined in \ref basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	);
+
+/** \brief Constructor for polynomial operator(s) for the gradient(s) of the tensor-product bezier basis from the basis
+ *         function definitions.
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier_def
+	(const int p_b,                        ///< Defined in \ref basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
 	);
 
 // Orthogonality functions ****************************************************************************************** //

@@ -6,6 +6,7 @@
 #include "matrix_constructors.h"
 
 #include <stdlib.h>
+#include <assert.h>
 #include "mkl.h"
 
 #include "macros.h"
@@ -258,8 +259,7 @@ void set_const_Matrix_from_Multiarray_d
 
 void destructor_Matrix_d (struct Matrix_d* a)
 {
-	if (a == NULL)
-		EXIT_DESTRUCTOR;
+	assert(a != NULL);
 
 	if (a->owns_data)
 		free(a->data);
@@ -273,8 +273,7 @@ void destructor_const_Matrix_d (const struct const_Matrix_d* a)
 
 void destructor_Matrix_i (struct Matrix_i* a)
 {
-	if (a == NULL)
-		EXIT_DESTRUCTOR;
+	assert(a != NULL);
 
 	if (a->owns_data)
 		free(a->data);
@@ -284,6 +283,17 @@ void destructor_Matrix_i (struct Matrix_i* a)
 void destructor_const_Matrix_i (const struct const_Matrix_i* a)
 {
 	destructor_Matrix_i((struct Matrix_i*)a);
+}
+
+void destructor_Matrix_d_2 (struct Matrix_d** a, const ptrdiff_t n_src, const bool owns_data)
+{
+	assert(a != NULL);
+
+	if (owns_data) {
+		for (ptrdiff_t n = 0; n < n_src; n++)
+			destructor_Matrix_d(a[n]);
+	}
+	free(a);
 }
 
 // Static functions ************************************************************************************************* //

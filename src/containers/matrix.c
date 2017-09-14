@@ -91,5 +91,12 @@ void set_row_Matrix_d (const ptrdiff_t row, const struct Matrix_d* dest, const d
 		data[i] = data_src[i];
 }
 
+void set_to_value_Matrix_d (struct Matrix_d*const a, const double val)
+{
+	const ptrdiff_t size = (a->ext_0)*(a->ext_1);
+	for (ptrdiff_t i = 0; i < size; ++i)
+		a->data[i] = val;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

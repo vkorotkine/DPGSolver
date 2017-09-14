@@ -131,10 +131,7 @@ struct const_Vector_i* constructor_move_const_Vector_i_i
 {
 	struct Vector_i* dest_m = constructor_move_Vector_i_i(ext_0,owns_data,(int*)data); // free
 
-	const struct const_Vector_i*const dest = NULL;
-	const_constructor_move_Vector_i(&dest,dest_m);
-
-	return (struct const_Vector_i*)dest;
+	return (struct const_Vector_i*) dest_m;
 }
 
 struct Vector_d* constructor_move_Vector_d_Matrix_d (struct Matrix_d* src)

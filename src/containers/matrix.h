@@ -123,4 +123,10 @@ void set_row_Matrix_d
 	 const double*const data_src  ///< The source data.
 	);
 
+/// \brief Set all data entries to the input value.
+void set_to_value_Matrix_d
+	(struct Matrix_d*const a, ///< Standard.
+	 const double val         ///< The value.
+	);
+
 #endif // DPG__matrix_h__INCLUDED

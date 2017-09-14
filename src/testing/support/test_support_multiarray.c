@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "test_support.h"
+#include "test_support_matrix.h"
 #include "test_support_vector.h"
 
 #include "macros.h"
@@ -41,7 +42,7 @@ struct Multiarray_d* constructor_file_name_Multiarray_d
 	bool found_var = false;
 
 	char line[STRLEN_MAX];
-	while (fgets(line,sizeof(line),data_file)) {
+	while (fgets(line,sizeof(line),data_file) != NULL) {
 		if (strstr(line,var_name)) {
 			found_var = true;
 			dest = constructor_file_Multiarray_d(data_file,true);
@@ -66,7 +67,7 @@ struct Multiarray_Vector_i* constructor_file_name_Multiarray_Vector_i
 	bool found_var = false;
 
 	char line[STRLEN_MAX];
-	while (fgets(line,sizeof(line),data_file)) {
+	while (fgets(line,sizeof(line),data_file) != NULL) {
 		if (strstr(line,var_name)) {
 			found_var = true;
 			dest = constructor_file_Multiarray_Vector_i(data_file);
@@ -87,7 +88,7 @@ struct Multiarray_d* constructor_file_Multiarray_d (FILE* data_file, const bool 
 		check_container_type(data_file,"Multiarray_d");
 
 	char line[STRLEN_MAX];
-	fgets(line,sizeof(line),data_file);
+	if (fgets(line,sizeof(line),data_file) != NULL) {};
 
 	char layout = 0;
 	int  order  = 0;
@@ -110,7 +111,7 @@ struct Multiarray_d* constructor_file_Multiarray_d (FILE* data_file, const bool 
 
 	double* data = malloc(size * sizeof *data); // keep
 	for (ptrdiff_t i = 0; i < ext_0; ++i) {
-		fgets(line,sizeof(line),data_file);
+		if (fgets(line,sizeof(line),data_file) != NULL) {};
 
 		char* line_ptr[1] = {line};
 		read_line_values_d(line_ptr,ext_1,&data[i*ext_1]);
@@ -161,6 +162,29 @@ bool diff_const_Multiarray_d
 	return diff_Multiarray_d((struct Multiarray_d*)a,(struct Multiarray_d*)b,tol);
 }
 
+bool diff_Multiarray_Matrix_d
+	(const struct Multiarray_Matrix_d*const a, const struct Multiarray_Matrix_d*const b, const double tol)
+{
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+
+	if (size != compute_size(b->order,b->extents))
+		return true;
+
+	for (ptrdiff_t i = 0; i < size; ++i) {
+		if (diff_Matrix_d(a->data[i],b->data[i],tol))
+			return true;
+	}
+
+	return false;
+}
+
+bool diff_const_Multiarray_Matrix_d
+	(const struct const_Multiarray_Matrix_d*const a, const struct const_Multiarray_Matrix_d*const b,
+	 const double tol)
+{
+	return diff_Multiarray_Matrix_d((struct Multiarray_Matrix_d*)a,(struct Multiarray_Matrix_d*)b,tol);
+}
+
 // Printing functions *********************************************************************************************** //
 
 void print_diff_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a, const struct Multiarray_Vector_i*const b)
@@ -182,15 +206,8 @@ void print_diff_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a, c
 		printf(" %zu,",extents[i]);
 	printf(" }\n\n");
 
-	switch (order) {
-	case 1:
-		for (ptrdiff_t i = 0; i < size; i++)
-			print_diff_Vector_i(a->data[i],b->data[i]);
-		break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
+	for (ptrdiff_t i = 0; i < size; i++)
+		print_diff_Vector_i(a->data[i],b->data[i]);
 	printf("\n");
 }
 
@@ -226,6 +243,38 @@ void print_diff_const_Multiarray_d
 	(const struct const_Multiarray_d*const a, const struct const_Multiarray_d*const b, const double tol)
 {
 	print_diff_Multiarray_d((const struct Multiarray_d*const)a,(const struct Multiarray_d*const)b,tol);
+}
+
+void print_diff_Multiarray_Matrix_d
+	(const struct Multiarray_Matrix_d*const a, const struct Multiarray_Matrix_d*const b, const double tol)
+{
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+
+	if (size != compute_size(b->order,b->extents)) {
+		printf("Note: Attempting to compare Multiarrays of different size:\n");
+		print_Multiarray_Matrix_d(a,tol);
+		print_Multiarray_Matrix_d(b,tol);
+		return;
+	}
+
+	const int order                = a->order;
+	const ptrdiff_t *const extents = a->extents;
+
+	printf("(diff) Multi-array extents: {");
+	for (ptrdiff_t i = 0; i < order; i++)
+		printf(" %zu,",extents[i]);
+	printf(" }\n\n");
+
+	for (ptrdiff_t i = 0; i < size; i++)
+		print_diff_Matrix_d(a->data[i],b->data[i],tol);
+	printf("\n");
+}
+
+void print_diff_const_Multiarray_Matrix_d
+	(const struct const_Multiarray_Matrix_d*const a, const struct const_Multiarray_Matrix_d*const b,
+	 const double tol)
+{
+	print_diff_Multiarray_Matrix_d((struct Multiarray_Matrix_d*)a,(struct Multiarray_Matrix_d*)b,tol);
 }
 
 // Static functions ************************************************************************************************* //
@@ -264,7 +313,7 @@ static struct Multiarray_Vector_i* constructor_file_Multiarray_Vector_i (FILE* d
 	}
 
 	char line[STRLEN_MAX];
-	fgets(line,sizeof(line),data_file);
+	if (fgets(line,sizeof(line),data_file) != NULL) {};
 	if (!strstr(line,"ext_0/data"))
 		EXIT_ERROR("Did not find expected data description.");
 
@@ -282,13 +331,13 @@ struct Multiarray_Partial read_order_extents (FILE* data_file)
 	struct Multiarray_Partial ma_p;
 
 	char line[STRLEN_MAX];
-	fgets(line,sizeof(line),data_file);
+	if (fgets(line,sizeof(line),data_file) != NULL) {};
 	read_skip_i(line,&ma_p.order);
 
 	if (ma_p.order > EXTENTS_MAX)
 		EXIT_ERROR("Increase the size of EXTENTS_MAX or use dynamically allocated extents.");
 
-	fgets(line,sizeof(line),data_file);
+	if (fgets(line,sizeof(line),data_file) != NULL) {};
 	read_skip_ptrdiff_1(line,1,ma_p.extents,ma_p.order);
 
 	return ma_p;

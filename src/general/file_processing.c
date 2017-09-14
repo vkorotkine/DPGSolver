@@ -58,13 +58,13 @@ void skip_lines (FILE* file, const int n_skip)
 {
 	char line[STRLEN_MAX];
 	for (int n = 0; n < n_skip; ++n)
-		fgets(line,sizeof(line),file);
+		if (fgets(line,sizeof(line),file) != NULL) {};
 }
 
 void skip_lines_ptr (FILE* file, char**const line, const int line_size, const int n_skip)
 {
 	for (int n = 0; n < n_skip; ++n)
-		fgets(*line,line_size,file);
+		if (fgets(*line,line_size,file)) {};
 }
 
 void discard_line_values (char**const line, int n_discard)
@@ -173,7 +173,7 @@ void read_skip_ptrdiff_1 (char*const line, const int n_skip, ptrdiff_t*const var
 void read_skip_file_const_b (const char*const var_name, FILE* file, const bool*const var)
 {
 	char line[STRLEN_MAX];
-	fgets(line,sizeof(line),file);
+	if (fgets(line,sizeof(line),file)) {};
 
 	if (!strstr(line,var_name))
 		EXIT_ERROR("Did not find '%s' in the current line of the file.\n",var_name);
@@ -184,7 +184,7 @@ void read_skip_file_const_b (const char*const var_name, FILE* file, const bool*c
 void read_skip_file_const_i (const char*const var_name, FILE* file, const int*const var)
 {
 	char line[STRLEN_MAX];
-	fgets(line,sizeof(line),file);
+	if (fgets(line,sizeof(line),file)) {};
 
 	if (!strstr(line,var_name))
 		EXIT_ERROR("Did not find '%s' in the current line of the file.\n",var_name);
@@ -195,7 +195,7 @@ void read_skip_file_const_i (const char*const var_name, FILE* file, const int*co
 void read_skip_file_i (const char*const var_name, FILE* file, int*const var)
 {
 	char line[STRLEN_MAX];
-	fgets(line,sizeof(line),file);
+	if (fgets(line,sizeof(line),file)) {};
 
 	if (!strstr(line,var_name))
 		EXIT_ERROR("Did not find '%s' in the current line (%s) of the file.\n",var_name,line);

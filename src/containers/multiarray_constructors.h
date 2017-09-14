@@ -240,9 +240,19 @@ void destructor_Multiarray_Vector_i
 	(struct Multiarray_Vector_i* a ///< Standard.
 	);
 
-/// \brief Destructs a \ref const_Multiarray_Vector_i\*.
+/// \brief `const` version of \ref destructor_Multiarray_Vector_i.
 void destructor_const_Multiarray_Vector_i
-	(const struct const_Multiarray_Vector_i* a ///< Standard.
+	(const struct const_Multiarray_Vector_i* a ///< Defined for \ref destructor_Multiarray_Vector_i.
+	);
+
+/// \brief Destructs a \ref Multiarray_Matrix_d\*.
+void destructor_Multiarray_Matrix_d
+	(struct Multiarray_Matrix_d* a ///< Standard.
+	);
+
+/// \brief `const` version of \ref destructor_Multiarray_Matrix_d.
+void destructor_const_Multiarray_Matrix_d
+	(const struct const_Multiarray_Matrix_d* a ///< Defined for \ref destructor_Multiarray_Matrix_d.
 	);
 
 #endif // DPG__multiarray_constructors_h__INCLUDED

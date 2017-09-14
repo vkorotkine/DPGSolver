@@ -4,6 +4,7 @@
 
 #include "bases.h"
 
+#include <assert.h>
 #include <math.h>
 #include "gsl/gsl_math.h"
 #include "gsl/gsl_sf_gamma.h"
@@ -48,11 +49,11 @@ static double bernstein_std
 
 // Interface functions ********************************************************************************************** //
 // Constructor functions ******************************************************************************************** //
+// Tensor-Product Orthonormal *************************************************************************************** //
 
 const struct const_Matrix_d* constructor_basis_tp_orthonormal (const int p_b, const struct const_Matrix_d*const rst)
 {
-	if (rst->layout != 'C')
-		EXIT_UNSUPPORTED;
+	assert(rst->layout == 'C');
 
 	const ptrdiff_t d   = rst->ext_1,
 	                n_n = rst->ext_0,
@@ -82,16 +83,14 @@ const struct const_Matrix_d* constructor_basis_tp_orthonormal (const int p_b, co
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal
 	(const int p_b, const struct const_Matrix_d*const rst)
 {
-	if (rst->layout != 'C')
-		EXIT_UNSUPPORTED;
+	assert(rst->layout == 'C');
 
 	const ptrdiff_t d   = rst->ext_1,
 	                n_n = rst->ext_0,
 	                pp1 = p_b+1,
 	                n_b = compute_n_basis(d,p_b,ST_TP);
 
-	struct Multiarray_Matrix_d* grad_phi_rst =
-		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
+	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
 
 	double* grad_phi_data[d];
 	for (int dim = 0; dim < d; ++dim) {
@@ -106,7 +105,7 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal
 	if (d == 1) {
 		for (int n = 0; n < n_n; ++n) {
 		for (int i = 0; i < pp1; ++i) {
-			*grad_phi_data[0]++  = jac_djacobi_normalized (r[n],i,0.0,0.0);
+			*grad_phi_data[0]++ = jac_djacobi_normalized (r[n],i,0.0,0.0);
 		}}
 	} else if (d == 2) {
 		for (int n = 0; n < n_n; ++n) {
@@ -137,17 +136,17 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal
 	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
 }
 
+// Simplex Orthonormal ********************************************************************************************** //
+
 const struct const_Matrix_d* constructor_basis_si_orthonormal (const int p_b, const struct const_Matrix_d*const rst)
 {
-	if (rst->layout != 'C')
-		EXIT_UNSUPPORTED;
+	assert(rst->layout == 'C');
 
 	const ptrdiff_t d   = rst->ext_1,
 	                n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_SI);
 
-	if (d < 2 || d > 3)
-		EXIT_UNSUPPORTED;
+	assert(!(d < 2 || d > 3));
 
 	const struct const_Matrix_d*const abc = constructor_abc_from_rst_si(rst); // destructed
 	const double*const a = get_col_const_Matrix_d(0,abc),
@@ -177,17 +176,163 @@ const struct const_Matrix_d* constructor_basis_si_orthonormal (const int p_b, co
 	return (const struct const_Matrix_d*) phi_rst;
 }
 
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal
+	(const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const ptrdiff_t d   = rst->ext_1,
+	                n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_SI);
+
+	assert(!(d < 2 || d > 3));
+
+	const struct const_Matrix_d*const abc = constructor_abc_from_rst_si(rst); // destructed
+	const double*const a = get_col_const_Matrix_d(0,abc),
+	            *const b = get_col_const_Matrix_d(1,abc),
+	            *const c = ( d > 2 ? get_col_const_Matrix_d(2,abc) : NULL);
+
+	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
+
+	double* grad_phi_data[d];
+	for (int dim = 0; dim < d; ++dim) {
+		grad_phi_rst->data[dim] = constructor_empty_Matrix_d('R',n_n,n_b); // keep
+		set_to_value_Matrix_d(grad_phi_rst->data[dim],0.0);
+
+		grad_phi_data[dim] = grad_phi_rst->data[dim]->data;
+	}
+
+	const double con = ( d == 2 ? 2.0/pow(3.0,0.25) : 4.0/pow(2.0,0.25) );
+
+	const int n_p_der = 2*d-1;
+	double grad_phi_rst_part[d][n_p_der];
+	for (int n = 0; n < n_n; n++) {
+	for (int i = 0, i_max = p_b;             i <= i_max; i++) {
+	for (int j = 0, j_max = p_b-i;           j <= j_max; j++) {
+	for (int k = 0, k_max = (d-2)*(p_b-i-j); k <= k_max; k++) {
+		const double a_n = a[n],
+		             b_n = b[n],
+		             c_n = ( d == 3 ? c[n] : -1.0 );
+
+		for (int dim = 0; dim < d; dim++) {
+		for (int pder = 0; pder < n_p_der; pder++ ) {
+			grad_phi_rst_part[dim][pder] = 0.0;
+		}}
+
+		const double jPa  = jac_jacobi_normalized (a_n,i,0.0,          0.0),
+		             jPb  = jac_jacobi_normalized (b_n,j,2.0*i+1.0,    0.0),
+		             jPc  = jac_jacobi_normalized (c_n,k,2.0*(i+j+1.0),0.0),
+		             djPa = jac_djacobi_normalized(a_n,i,0.0,          0.0),
+		             djPb = jac_djacobi_normalized(b_n,j,2.0*i+1.0,    0.0),
+		             djPc = jac_djacobi_normalized(c_n,k,2.0*(i+j+1.0),0.0);
+
+		// Obtain contributions from each partial derivative
+		grad_phi_rst_part[0][0] = djPa* jPb;
+		grad_phi_rst_part[1][0] = djPa* jPb;
+		grad_phi_rst_part[1][1] =  jPa*djPb;
+		grad_phi_rst_part[1][2] =  jPa* jPb;
+
+		if (d == 3) {
+			// djPa = 0 when i = 0
+			// djPb = 0 when j = 0
+			// djPc = 0 when k = 0
+			grad_phi_rst_part[0][0] *= jPc;
+			grad_phi_rst_part[1][0] *= jPc;
+			grad_phi_rst_part[1][1] *= jPc;
+			grad_phi_rst_part[1][2] *= jPc;
+			grad_phi_rst_part[2][0]  = djPa* jPb* jPc;
+			grad_phi_rst_part[2][1]  =  jPa*djPb* jPc;
+			grad_phi_rst_part[2][2]  =  jPa* jPb* jPc;
+			grad_phi_rst_part[2][3]  =  jPa* jPb*djPc;
+			grad_phi_rst_part[2][4]  =  jPa* jPb* jPc;
+		}
+
+		grad_phi_rst_part[0][0] *=  2.0                  ;
+		grad_phi_rst_part[1][0] *=  2.0/3.0*sqrt(3.0)*a_n;
+		grad_phi_rst_part[1][1] *=  2.0/3.0*sqrt(3.0)    ;
+		grad_phi_rst_part[1][2] *= -2.0/3.0*sqrt(3.0)*i  ;
+		if (i > 0) {
+			grad_phi_rst_part[0][0] *= pow(1.0-b_n,i-1.0);
+			grad_phi_rst_part[1][0] *= pow(1.0-b_n,i-1.0);
+			grad_phi_rst_part[1][2] *= pow(1.0-b_n,i-1.0);
+		} else {
+			grad_phi_rst_part[0][0] *= 0.0; // redundant (i = 0 -> djPa = 0)
+			grad_phi_rst_part[1][0] *= 0.0; // redundant (i = 0 -> djPa = 0)
+			grad_phi_rst_part[1][2] *= 0.0;
+		}
+		grad_phi_rst_part[1][1] *= pow(1.0-b_n,i);
+
+		if (d == 3) {
+			grad_phi_rst_part[0][0] *=  2.0;
+			grad_phi_rst_part[1][0] *=  2.0;
+			grad_phi_rst_part[1][1] *=  2.0;
+			grad_phi_rst_part[1][2] *=  2.0;
+			grad_phi_rst_part[2][0] *=  2.0/3.0*sqrt(6.0)*a_n            ;
+			grad_phi_rst_part[2][1] *=  1.0/6.0*sqrt(6.0)*(3.0*b_n+1.0)  ;
+			grad_phi_rst_part[2][2] *= -1.0/6.0*sqrt(6.0)*(3.0*b_n+1.0)*i;
+			grad_phi_rst_part[2][3] *=  1.0/2.0*sqrt(6.0)                ;
+			grad_phi_rst_part[2][4] *= -1.0/2.0*sqrt(6.0)*(i+j)          ;
+			if (i > 0) {
+				grad_phi_rst_part[2][0] *= pow(1.0-b_n,i-1.0);
+				grad_phi_rst_part[2][2] *= pow(1.0-b_n,i-1.0);
+			} else {
+				grad_phi_rst_part[2][0] *= 0.0;
+				grad_phi_rst_part[2][2] *= 0.0;
+			}
+			grad_phi_rst_part[2][1] *= pow(1.0-b_n,i);
+			grad_phi_rst_part[2][3] *= pow(1.0-b_n,i);
+			grad_phi_rst_part[2][4] *= pow(1.0-b_n,i);
+
+			if (i+j > 0) {
+				grad_phi_rst_part[0][0] *= pow(1.0-c_n,i+j-1.0);
+				grad_phi_rst_part[1][0] *= pow(1.0-c_n,i+j-1.0);
+				grad_phi_rst_part[1][1] *= pow(1.0-c_n,i+j-1.0);
+				grad_phi_rst_part[1][2] *= pow(1.0-c_n,i+j-1.0);
+				grad_phi_rst_part[2][0] *= pow(1.0-c_n,i+j-1.0);
+				grad_phi_rst_part[2][1] *= pow(1.0-c_n,i+j-1.0);
+				grad_phi_rst_part[2][2] *= pow(1.0-c_n,i+j-1.0);
+				grad_phi_rst_part[2][4] *= pow(1.0-c_n,i+j-1.0);
+			} else {
+				grad_phi_rst_part[0][0] *= 0.0;
+				grad_phi_rst_part[1][0] *= 0.0;
+				grad_phi_rst_part[1][1] *= 0.0;
+				grad_phi_rst_part[1][2] *= 0.0;
+				grad_phi_rst_part[2][0] *= 0.0;
+				grad_phi_rst_part[2][1] *= 0.0;
+				grad_phi_rst_part[2][2] *= 0.0;
+				grad_phi_rst_part[2][4] *= 0.0;
+			}
+			grad_phi_rst_part[2][3] *= pow(1.0-c_n,i+j);
+		}
+
+		// Sum contributions from all partial derivatives
+		for (int dim = 0; dim < d; dim++) {
+		for (int pder = 0; pder < n_p_der; pder++) {
+			*grad_phi_data[dim] += grad_phi_rst_part[dim][pder];
+		}}
+
+		// Add scaling constant and increment
+		for (int dim = 0; dim < d; dim++) {
+			*grad_phi_data[dim] *= con;
+			grad_phi_data[dim]++;
+		}
+	}}}}
+	destructor_const_Matrix_d(abc);
+
+	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
+}
+
+// Pyramid Orthonormal ********************************************************************************************** //
+
 const struct const_Matrix_d* constructor_basis_pyr_orthonormal (const int p_b, const struct const_Matrix_d*const rst)
 {
-	if (rst->layout != 'C')
-		EXIT_UNSUPPORTED;
+	assert(rst->layout == 'C');
 
 	const ptrdiff_t d   = rst->ext_1,
 	                n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_PYR);
 
-	if (d != 3)
-		EXIT_UNSUPPORTED;
+	assert(d == 3);
 
 	const struct const_Matrix_d*const abc = constructor_abc_from_rst_pyr(rst); // destructed
 	const double*const a = get_col_const_Matrix_d(0,abc),
@@ -215,10 +360,110 @@ const struct const_Matrix_d* constructor_basis_pyr_orthonormal (const int p_b, c
 	return (const struct const_Matrix_d*) phi_rst;
 }
 
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal
+	(const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const ptrdiff_t d   = rst->ext_1,
+	                n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_PYR);
+
+	assert(d == 3);
+
+	const struct const_Matrix_d*const abc = constructor_abc_from_rst_pyr(rst); // destructed
+	const double*const a = get_col_const_Matrix_d(0,abc),
+	            *const b = get_col_const_Matrix_d(1,abc),
+	            *const c = get_col_const_Matrix_d(2,abc);
+
+	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
+
+	double* grad_phi_data[d];
+	for (int dim = 0; dim < d; ++dim) {
+		grad_phi_rst->data[dim] = constructor_empty_Matrix_d('R',n_n,n_b); // keep
+		set_to_value_Matrix_d(grad_phi_rst->data[dim],0.0);
+
+		grad_phi_data[dim] = grad_phi_rst->data[dim]->data;
+	}
+
+	const double con = pow(2.0,1.25);
+
+	const int n_p_der = 4;
+	double grad_phi_rst_part[d][n_p_der];
+	for (int n = 0; n < n_n; n++) {
+	for (int i = 0, i_max = p_b; i <= i_max; i++) {
+	for (int j = 0, j_max = p_b; j <= j_max; j++) {
+		const int mu_ij = GSL_MAX(i,j);
+		for (int k = 0, k_max = p_b-mu_ij; k <= k_max; k++) {
+			const double a_n = a[n],
+			             b_n = b[n],
+			             c_n = c[n];
+
+			for (int dim = 0; dim < d; dim++) {
+			for (int pder = 0; pder < n_p_der; pder++ ) {
+				grad_phi_rst_part[dim][pder] = 0.0;
+			}}
+
+			const double jPa  = jac_jacobi_normalized (a_n,i,0.0,            0.0),
+			             jPb  = jac_jacobi_normalized (b_n,j,0.0,            0.0),
+			             jPc  = jac_jacobi_normalized (c_n,k,2.0*(mu_ij+1.0),0.0),
+			             djPa = jac_djacobi_normalized(a_n,i,0.0,            0.0),
+			             djPb = jac_djacobi_normalized(b_n,j,0.0,            0.0),
+			             djPc = jac_djacobi_normalized(c_n,k,2.0*(mu_ij+1.0),0.0);
+
+			// Obtain contributions from each partial derivative
+			grad_phi_rst_part[0][0] = djPa* jPb* jPc;
+			grad_phi_rst_part[1][1] =  jPa*djPb* jPc;
+			grad_phi_rst_part[2][0] = djPa* jPb* jPc;
+			grad_phi_rst_part[2][1] =  jPa*djPb* jPc;
+			grad_phi_rst_part[2][2] =  jPa* jPb*djPc;
+			grad_phi_rst_part[2][3] =  jPa* jPb* jPc;
+
+			grad_phi_rst_part[0][0] *=  2.0          ;
+			grad_phi_rst_part[1][1] *=  2.0          ;
+			grad_phi_rst_part[2][0] *=  sqrt(2.0)*a_n;
+			grad_phi_rst_part[2][1] *=  sqrt(2.0)*b_n;
+			grad_phi_rst_part[2][2] *=  sqrt(2.0)    ;
+			grad_phi_rst_part[2][3] *= -sqrt(2.0)*mu_ij    ;
+
+			if (mu_ij > 0) {
+				grad_phi_rst_part[0][0] *= pow(1.0-c_n,mu_ij-1.0);
+				grad_phi_rst_part[1][1] *= pow(1.0-c_n,mu_ij-1.0);
+				grad_phi_rst_part[2][0] *= pow(1.0-c_n,mu_ij-1.0);
+				grad_phi_rst_part[2][1] *= pow(1.0-c_n,mu_ij-1.0);
+				grad_phi_rst_part[2][3] *= pow(1.0-c_n,mu_ij-1.0);
+			} else {
+				grad_phi_rst_part[0][0] *= 0.0;
+				grad_phi_rst_part[1][1] *= 0.0;
+				grad_phi_rst_part[2][0] *= 0.0;
+				grad_phi_rst_part[2][1] *= 0.0;
+				grad_phi_rst_part[2][3] *= 0.0;
+			}
+			grad_phi_rst_part[2][2] *= pow(1.0-c_n,(double) mu_ij);
+
+			// Sum contributions from all partial derivatives
+			for (int dim = 0; dim < d; dim++) {
+			for (int pder = 0; pder < n_p_der; pder++) {
+				*grad_phi_data[dim] += grad_phi_rst_part[dim][pder];
+			}}
+
+			// Add scaling constant
+			for (int dim = 0; dim < d; dim++) {
+				*grad_phi_data[dim] *= con;
+				grad_phi_data[dim]++;
+			}
+		}
+	}}}
+	destructor_const_Matrix_d(abc);
+
+	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
+}
+
+// Tensor-Product Bezier ******************************************************************************************** //
+
 const struct const_Matrix_d* constructor_basis_tp_bezier (const int p_b, const struct const_Matrix_d*const rst)
 {
-	if (rst->layout != 'C')
-		EXIT_UNSUPPORTED;
+	assert(rst->layout == 'C');
 
 	const ptrdiff_t d   = rst->ext_1,
 	                n_n = rst->ext_0,
@@ -261,6 +506,71 @@ if (0) {
 	return (const struct const_Matrix_d*) phi_rst;
 }
 
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier
+	(const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const ptrdiff_t d   = rst->ext_1,
+	                n_n = rst->ext_0,
+	                pp1 = p_b+1,
+	                n_b = compute_n_basis(d,p_b,ST_TP);
+
+	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
+
+	double* grad_phi_data[d];
+	for (int dim = 0; dim < d; ++dim) {
+		grad_phi_rst->data[dim] = constructor_empty_Matrix_d('R',n_n,n_b); // keep
+		grad_phi_data[dim] = grad_phi_rst->data[dim]->data;
+	}
+
+	const double*const r = get_col_const_Matrix_d(0,rst),
+	            *const s = ( d > 1 ? get_col_const_Matrix_d(1,rst) : NULL),
+	            *const t = ( d > 2 ? get_col_const_Matrix_d(2,rst) : NULL);
+
+	if (d == 1) {
+		for (int n = 0; n < n_n; ++n) {
+		for (int i = 0; i < pp1; ++i) {
+			const double r_01 = 0.5*(1.0+r[n]);
+			*grad_phi_data[0]++ = grad_bernstein (p_b,i,r_01)*0.5;
+		}}
+	} else if (d == 2) {
+		for (int n = 0; n < n_n; ++n) {
+		for (int j = 0; j < pp1; ++j) {
+			const double s_01 = ( d > 1 ? 0.5*(1.0+s[n]) : 0.5 );
+			for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; ++i) {
+				const double r_01 = 0.5*(1.0+r[n]);
+				*grad_phi_data[0]++ = grad_bernstein(p_b,i,r_01)*0.5
+				                     *bernstein     (p_b,j,s_01);
+				*grad_phi_data[1]++ = bernstein     (p_b,i,r_01)
+				                     *grad_bernstein(p_b,j,s_01)*0.5;
+			}
+		}}
+	} else if (d == 3) {
+		for (int n = 0; n < n_n; ++n) {
+		for (int k = 0; k < pp1; ++k) {
+			const double t_01 = ( d > 2 ? 0.5*(1.0+t[n]) : 0.5 );
+			for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
+				const double s_01 = ( d > 1 ? 0.5*(1.0+s[n]) : 0.5 );
+				for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; ++i) {
+					const double r_01 = 0.5*(1.0+r[n]);
+					*grad_phi_data[0]++ = grad_bernstein(p_b,i,r_01)*0.5
+					                     *bernstein     (p_b,j,s_01)
+					                     *bernstein     (p_b,k,t_01);
+					*grad_phi_data[1]++ = bernstein     (p_b,i,r_01)
+					                     *grad_bernstein(p_b,j,s_01)*0.5
+					                     *bernstein     (p_b,k,t_01);
+					*grad_phi_data[2]++ = bernstein     (p_b,i,r_01)
+					                     *bernstein     (p_b,j,s_01)
+					                     *grad_bernstein(p_b,k,t_01)*0.5;
+				}
+			}
+		}}
+	}
+
+	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
+}
+
 // Helper functions ************************************************************************************************* //
 
 ptrdiff_t compute_n_basis (const int d, const int p_b, const int super_type)
@@ -277,14 +587,12 @@ ptrdiff_t compute_n_basis (const int d, const int p_b, const int super_type)
 
 const struct const_Matrix_d* constructor_abc_from_rst_si (const struct const_Matrix_d*const rst)
 {
-	if (rst->layout != 'C')
-		EXIT_UNSUPPORTED;
+	assert(rst->layout == 'C');
 
 	const ptrdiff_t d   = rst->ext_1,
 	                n_n = rst->ext_0;
 
-	if (d < 2 || d > 3)
-		EXIT_UNSUPPORTED;
+	assert(!(d < 2 || d > 3));
 
 	double* abc_d = malloc(n_n*d * sizeof *abc_d); // moved
 	struct Matrix_d* abc = constructor_move_Matrix_d_d('C',n_n,d,true,abc_d); // returned
@@ -320,14 +628,12 @@ const struct const_Matrix_d* constructor_abc_from_rst_si (const struct const_Mat
 
 const struct const_Matrix_d* constructor_abc_from_rst_pyr (const struct const_Matrix_d*const rst)
 {
-	if (rst->layout != 'C')
-		EXIT_UNSUPPORTED;
+	assert(rst->layout == 'C');
 
 	const ptrdiff_t d   = rst->ext_1,
 	                n_n = rst->ext_0;
 
-	if (d != 3)
-		EXIT_UNSUPPORTED;
+	assert(d == 3);
 
 	double* abc_d = malloc(n_n*d * sizeof *abc_d); // moved
 	struct Matrix_d* abc = constructor_move_Matrix_d_d('C',n_n,d,true,abc_d); // returned

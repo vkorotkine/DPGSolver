@@ -31,8 +31,8 @@ const struct const_Matrix_d* constructor_basis_tp_orthonormal
 	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
 	);
 
-/** \brief Constructor for a polynomial operator for the gradient of the tensor-product orthonomal basis (derivative of
- *         normalized Legendre polynomials).
+/** \brief Constructor for polynomial operator(s) for the gradient(s) of the tensor-product orthonomal basis
+ *         (derivative of normalized Legendre polynomials).
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal
 	(const int p_b,                        ///< Defined in \ref basis_fptr.
@@ -49,12 +49,26 @@ const struct const_Matrix_d* constructor_basis_si_orthonormal
 	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
 	);
 
+/** \brief Constructor for polynomial operators for the gradients of the simplex orthonomal basis.
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal
+	(const int p_b,                        ///< Defined in \ref basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	);
+
 /** \brief Constructor for a polynomial operator for the pyramid orthonomal basis (eq. (2.1), \cite Chan2016).
  *  \return Standard.
  *
  *  The dimension of the basis functions is determined according to the dimension of the input nodes.
  */
 const struct const_Matrix_d* constructor_basis_pyr_orthonormal
+	(const int p_b,                        ///< Defined in \ref basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	);
+
+/** \brief Constructor for polynomial operators for the gradients of the pyramid orthonomal basis.
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal
 	(const int p_b,                        ///< Defined in \ref basis_fptr.
 	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
 	);
@@ -66,6 +80,14 @@ const struct const_Matrix_d* constructor_basis_pyr_orthonormal
  *  The dimension of the basis functions is determined according to the dimension of the input nodes.
  */
 const struct const_Matrix_d* constructor_basis_tp_bezier
+	(const int p_b,                        ///< Defined in \ref basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	);
+
+/** \brief Constructor for polynomial operator(s) for the gradient(s) of the tensor-product bezier basis (derivatives of
+ *         Bernstein polynomials, (section 2.4 \cite Prautzsch2002)).
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier
 	(const int p_b,                        ///< Defined in \ref basis_fptr.
 	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
 	);

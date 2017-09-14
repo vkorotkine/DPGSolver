@@ -32,7 +32,7 @@ struct Matrix_i* constructor_file_name_Matrix_i (const char*const var_name, cons
 
 	bool found_var = false;
 	char line[STRLEN_MAX];
-	while (fgets(line,sizeof(line),data_file)) {
+	while (fgets(line,sizeof(line),data_file) != NULL) {
 		if (strstr(line,var_name)) {
 			found_var = true;
 			dest = constructor_file_Matrix_i(data_file,true);
@@ -56,7 +56,7 @@ struct Matrix_d* constructor_file_name_Matrix_d (const char*const var_name, cons
 	bool found_var = false;
 
 	char line[STRLEN_MAX];
-	while (fgets(line,sizeof(line),data_file)) {
+	while (fgets(line,sizeof(line),data_file) != NULL) {
 		if (strstr(line,var_name)) {
 			found_var = true;
 			dest = constructor_file_Matrix_d(data_file,true);
@@ -83,7 +83,7 @@ struct Matrix_i* constructor_file_Matrix_i (FILE* data_file, const bool check_co
 		check_container_type(data_file,"Matrix_i");
 
 	char line[STRLEN_MAX];
-	fgets(line,sizeof(line),data_file);
+	if (fgets(line,sizeof(line),data_file) != NULL) {};
 
 	char layout = 0;
 	ptrdiff_t ext_0 = 0,
@@ -96,7 +96,7 @@ struct Matrix_i* constructor_file_Matrix_i (FILE* data_file, const bool check_co
 	// Read data by row and transpose if necessary.
 	int data[size];
 	for (ptrdiff_t i = 0; i < ext_0; ++i) {
-		fgets(line,sizeof(line),data_file);
+		if (fgets(line,sizeof(line),data_file) != NULL) {};
 
 		char* line_ptr[1] = {line};
 		read_line_values_i(line_ptr,ext_1,&data[i*ext_1],false);
@@ -116,7 +116,7 @@ struct Matrix_d* constructor_file_Matrix_d (FILE* data_file, const bool check_co
 		check_container_type(data_file,"Matrix_d");
 
 	char line[STRLEN_MAX];
-	fgets(line,sizeof(line),data_file);
+	if (fgets(line,sizeof(line),data_file) != NULL) {};
 
 	char layout = 0;
 	ptrdiff_t ext_0 = 0,
@@ -129,7 +129,7 @@ struct Matrix_d* constructor_file_Matrix_d (FILE* data_file, const bool check_co
 	// Read data by row and transpose if necessary.
 	double data[size];
 	for (ptrdiff_t i = 0; i < ext_0; ++i) {
-		fgets(line,sizeof(line),data_file);
+		if (fgets(line,sizeof(line),data_file) != NULL) {};
 
 		char* line_ptr[1] = {line};
 		read_line_values_d(line_ptr,ext_1,&data[i*ext_1]);

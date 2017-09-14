@@ -99,7 +99,7 @@ static struct Cubature* constructor_file_Cubature (FILE* data_file)
 	struct Cubature* cubature = calloc(1,sizeof *cubature); // returned
 
 	char line[STRLEN_MAX];
-	fgets(line,sizeof(line),data_file);
+	if (fgets(line,sizeof(line),data_file) != NULL) {};
 
 	read_skip_file_const_b("has_weights",data_file,&cubature->has_weights);
 	skip_lines(data_file,1);

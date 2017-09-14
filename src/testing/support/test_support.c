@@ -67,7 +67,7 @@ char* set_print_name_container_member (const char*const name_container, int ind_
 void check_container_type (FILE* data_file, const char*const container_type)
 {
 	char line[STRLEN_MAX];
-	fgets(line,sizeof(line),data_file);
+	if (fgets(line,sizeof(line),data_file) != NULL) {};
 
 	char expected_line[STRLEN_MAX];
 	strcpy(expected_line,"container ");

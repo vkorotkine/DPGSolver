@@ -33,7 +33,7 @@ struct Vector_d* constructor_file_name_Vector_d (const char*const var_name, cons
 	bool found_var = false;
 
 	char line[STRLEN_MAX];
-	while (fgets(line,sizeof(line),data_file)) {
+	while (fgets(line,sizeof(line),data_file) != NULL) {
 		if (strstr(line,var_name)) {
 			found_var = true;
 			dest = constructor_file_Vector_d(data_file,true);
@@ -57,7 +57,7 @@ struct Vector_i* constructor_file_name_Vector_i (const char*const var_name, cons
 	bool found_var = false;
 
 	char line[STRLEN_MAX];
-	while (fgets(line,sizeof(line),data_file)) {
+	while (fgets(line,sizeof(line),data_file) != NULL) {
 		if (strstr(line,var_name)) {
 			found_var = true;
 			dest = constructor_file_Vector_i(data_file,true);
@@ -86,7 +86,7 @@ struct Vector_d* constructor_file_Vector_d (FILE* data_file, const bool check_co
 
 	char line[STRLEN_MAX];
 	char* line_ptr[1] = {line};
-	fgets(line,sizeof(line),data_file);
+	if (fgets(line,sizeof(line),data_file) != NULL) {};
 
 	ptrdiff_t ext_0 = 0;
 	read_line_values_l(line_ptr,1,&ext_0,false);
@@ -104,7 +104,7 @@ struct Vector_i* constructor_file_Vector_i (FILE* data_file, const bool check_co
 
 	char line[STRLEN_MAX];
 	char* line_ptr[1] = {line};
-	fgets(line,sizeof(line),data_file);
+	if (fgets(line,sizeof(line),data_file) != NULL) {};
 
 	ptrdiff_t ext_0 = 0;
 	read_line_values_l(line_ptr,1,&ext_0,false);

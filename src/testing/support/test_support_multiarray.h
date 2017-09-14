@@ -10,7 +10,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+struct Multiarray_Matrix_d;
 struct const_Multiarray_d;
+struct const_Multiarray_Matrix_d;
 
 // Constructor functions ******************************************************************************************** //
 
@@ -60,6 +62,23 @@ bool diff_const_Multiarray_d
 	 const double tol                         ///< Defined for \ref diff_Multiarray_d.
 	);
 
+/** \brief Check the relative difference between entries in the input \ref Multiarray_Matrix_d\*s up to the input
+ *         tolerance.
+ *  \return The `true` if inputs differ; `false` otherwise. */
+bool diff_Multiarray_Matrix_d
+	(const struct Multiarray_Matrix_d*const a, ///< Input 0.
+	 const struct Multiarray_Matrix_d*const b, ///< Input 1.
+	 const double tol                          ///< The tolerance.
+	);
+
+/** \brief `const` version of \ref diff_Multiarray_Matrix_d.
+ *  \return See brief. */
+bool diff_const_Multiarray_Matrix_d
+	(const struct const_Multiarray_Matrix_d*const a, ///< Defined for \ref diff_Multiarray_Matrix_d.
+	 const struct const_Multiarray_Matrix_d*const b, ///< Defined for \ref diff_Multiarray_Matrix_d.
+	 const double tol                                ///< Defined for \ref diff_Multiarray_Matrix_d.
+	);
+
 // Printing functions *********************************************************************************************** //
 
 /// \brief Print the difference of the input \ref Multiarray_Vector_i\*s.
@@ -80,6 +99,21 @@ void print_diff_const_Multiarray_d
 	(const struct const_Multiarray_d*const a, ///< Input 0.
 	 const struct const_Multiarray_d*const b, ///< Input 1.
 	 const double tol                         ///< The tolerance.
+	);
+
+/** \brief Print the relative difference of the input \ref Multiarray_Matrix_d\*s, outputting 0 if less than the
+ *         tolerance. */
+void print_diff_Multiarray_Matrix_d
+	(const struct Multiarray_Matrix_d*const a, ///< Input 0.
+	 const struct Multiarray_Matrix_d*const b, ///< Input 1.
+	 const double tol                          ///< The tolerance.
+	);
+
+/// \brief `const` version of \ref print_diff_Multiarray_Matrix_d.
+void print_diff_const_Multiarray_Matrix_d
+	(const struct const_Multiarray_Matrix_d*const a, ///< Defined for \ref print_diff_Multiarray_Matrix_d.
+	 const struct const_Multiarray_Matrix_d*const b, ///< Defined for \ref print_diff_Multiarray_Matrix_d.
+	 const double tol                                ///< Defined for \ref print_diff_Multiarray_Matrix_d.
 	);
 
 #endif // DPG__test_support_multiarray_h__INCLUDED

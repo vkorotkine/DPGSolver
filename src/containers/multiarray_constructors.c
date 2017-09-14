@@ -6,6 +6,7 @@
 #include "multiarray_constructors.h"
 
 #include <stdlib.h>
+#include <assert.h>
 
 #include "macros.h"
 
@@ -216,8 +217,7 @@ void set_const_Matrix_from_Multiarray_Matrix_d
 
 void destructor_Multiarray_d (struct Multiarray_d* a)
 {
-	if (a == NULL)
-		EXIT_DESTRUCTOR;
+	assert(a != NULL);
 
 	free(a->extents);
 	if (a->owns_data)
@@ -232,8 +232,7 @@ void destructor_const_Multiarray_d (const struct const_Multiarray_d* a)
 
 void destructor_Multiarray_Vector_i (struct Multiarray_Vector_i* a)
 {
-	if (a == NULL)
-		EXIT_DESTRUCTOR;
+	assert(a != NULL);
 
 	destructor_Vector_i_2(a->data,compute_size(a->order,a->extents),a->owns_data);
 	free(a->extents);
@@ -243,6 +242,20 @@ void destructor_Multiarray_Vector_i (struct Multiarray_Vector_i* a)
 void destructor_const_Multiarray_Vector_i (const struct const_Multiarray_Vector_i* a)
 {
 	destructor_Multiarray_Vector_i((struct Multiarray_Vector_i*)a);
+}
+
+void destructor_Multiarray_Matrix_d (struct Multiarray_Matrix_d* a)
+{
+	assert(a != NULL);
+
+	destructor_Matrix_d_2(a->data,compute_size(a->order,a->extents),a->owns_data);
+	free(a->extents);
+	free(a);
+}
+
+void destructor_const_Multiarray_Matrix_d (const struct const_Multiarray_Matrix_d* a)
+{
+	destructor_Multiarray_Matrix_d((struct Multiarray_Matrix_d*)a);
 }
 
 // Static functions ************************************************************************************************* //

@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 #include "gsl/gsl_math.h"
 
 #include "test_support_matrix.h"
@@ -15,6 +16,7 @@
 #include "definitions_cubature.h"
 #include "definitions_elements.h"
 
+#include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
 
@@ -65,8 +67,7 @@ static void set_scaling_basis_pyr
 
 const struct const_Matrix_d* constructor_basis_tp_orthonormal_def (const int p_b, const struct const_Matrix_d*const rst)
 {
-	if (rst->layout != 'C')
-		EXIT_UNSUPPORTED;
+	assert(rst->layout == 'C');
 
 	const ptrdiff_t d   = rst->ext_1,
 	                n_n = rst->ext_0,
@@ -117,12 +118,97 @@ const struct const_Matrix_d* constructor_basis_tp_orthonormal_def (const int p_b
 	return (const struct const_Matrix_d*) phi_rst;
 }
 
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal_def
+	(const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const ptrdiff_t d   = rst->ext_1,
+	                n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_TP);
+
+	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
+
+	double* grad_phi_data[d];
+	for (int dim = 0; dim < d; ++dim) {
+		grad_phi_rst->data[dim] = constructor_empty_Matrix_d('R',n_n,n_b); // keep
+		grad_phi_data[dim] = grad_phi_rst->data[dim]->data;
+	}
+
+	const double*const r = get_col_const_Matrix_d(0,rst),
+	            *const s = ( d > 1 ? get_col_const_Matrix_d(1,rst) : NULL),
+	            *const t = ( d > 2 ? get_col_const_Matrix_d(2,rst) : NULL);
+
+	for (ptrdiff_t i = 0; i < n_n; ++i) {
+		const double r_i = r[i],
+		             s_i = ( d > 1 ? s[i] : 0.0),
+		             t_i = ( d > 2 ? t[i] : 0.0);
+
+		if (d == 1 && p_b == 3) {
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[0]++ = sqrt(3.0/2.0);
+			*grad_phi_data[0]++ = sqrt(5.0/2.0)*3.0*r_i;
+			*grad_phi_data[0]++ = sqrt(7.0/2.0)*1.0/2.0*(15.0*pow(r_i,2.0)-3.0);
+		} else if (d == 2 && p_b == 2) {
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[0]++ = sqrt(3.0/2.0)*sqrt(1.0/2.0)*1.0;
+			*grad_phi_data[0]++ = sqrt(5.0/2.0)*3.0*r_i*sqrt(1.0/2.0)*1.0;
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[0]++ = sqrt(3.0/2.0)*sqrt(3.0/2.0)*s_i;
+			*grad_phi_data[0]++ = sqrt(5.0/2.0)*3.0*r_i*sqrt(3.0/2.0)*s_i;
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[0]++ = sqrt(3.0/2.0)*sqrt(5.0/2.0)*1.0/2.0*(3.0*pow(s_i,2.0)-1.0);
+			*grad_phi_data[0]++ = sqrt(5.0/2.0)*3.0*r_i*sqrt(5.0/2.0)*1.0/2.0*(3.0*pow(s_i,2.0)-1.0);
+
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[1]++ = sqrt(1.0/2.0)*1.0*sqrt(3.0/2.0);
+			*grad_phi_data[1]++ = sqrt(3.0/2.0)*r_i*sqrt(3.0/2.0);
+			*grad_phi_data[1]++ = sqrt(5.0/2.0)*1.0/2.0*(3.0*pow(r_i,2.0)-1.0)*sqrt(3.0/2.0);
+			*grad_phi_data[1]++ = sqrt(1.0/2.0)*1.0*sqrt(5.0/2.0)*3.0*s_i;
+			*grad_phi_data[1]++ = sqrt(3.0/2.0)*r_i*sqrt(5.0/2.0)*3.0*s_i;
+			*grad_phi_data[1]++ = sqrt(5.0/2.0)*1.0/2.0*(3.0*pow(r_i,2.0)-1.0)*sqrt(5.0/2.0)*3.0*s_i;
+		} else if (d == 3 && p_b == 1) {
+			*grad_phi_data[0]++ = sqrt(1.0/2.0)*0.0*sqrt(1.0/2.0)*1.0*sqrt(1.0/2.0)*1.0;
+			*grad_phi_data[0]++ = sqrt(3.0/2.0)*1.0*sqrt(1.0/2.0)*1.0*sqrt(1.0/2.0)*1.0;
+			*grad_phi_data[0]++ = sqrt(1.0/2.0)*0.0*sqrt(3.0/2.0)*s_i*sqrt(1.0/2.0)*1.0;
+			*grad_phi_data[0]++ = sqrt(3.0/2.0)*1.0*sqrt(3.0/2.0)*s_i*sqrt(1.0/2.0)*1.0;
+			*grad_phi_data[0]++ = sqrt(1.0/2.0)*0.0*sqrt(1.0/2.0)*1.0*sqrt(3.0/2.0)*t_i;
+			*grad_phi_data[0]++ = sqrt(3.0/2.0)*1.0*sqrt(1.0/2.0)*1.0*sqrt(3.0/2.0)*t_i;
+			*grad_phi_data[0]++ = sqrt(1.0/2.0)*0.0*sqrt(3.0/2.0)*s_i*sqrt(3.0/2.0)*t_i;
+			*grad_phi_data[0]++ = sqrt(3.0/2.0)*1.0*sqrt(3.0/2.0)*s_i*sqrt(3.0/2.0)*t_i;
+
+			*grad_phi_data[1]++ = sqrt(1.0/2.0)*1.0*sqrt(1.0/2.0)*0.0*sqrt(1.0/2.0)*1.0;
+			*grad_phi_data[1]++ = sqrt(3.0/2.0)*r_i*sqrt(1.0/2.0)*0.0*sqrt(1.0/2.0)*1.0;
+			*grad_phi_data[1]++ = sqrt(1.0/2.0)*1.0*sqrt(3.0/2.0)*1.0*sqrt(1.0/2.0)*1.0;
+			*grad_phi_data[1]++ = sqrt(3.0/2.0)*r_i*sqrt(3.0/2.0)*1.0*sqrt(1.0/2.0)*1.0;
+			*grad_phi_data[1]++ = sqrt(1.0/2.0)*1.0*sqrt(1.0/2.0)*0.0*sqrt(3.0/2.0)*t_i;
+			*grad_phi_data[1]++ = sqrt(3.0/2.0)*r_i*sqrt(1.0/2.0)*0.0*sqrt(3.0/2.0)*t_i;
+			*grad_phi_data[1]++ = sqrt(1.0/2.0)*1.0*sqrt(3.0/2.0)*1.0*sqrt(3.0/2.0)*t_i;
+			*grad_phi_data[1]++ = sqrt(3.0/2.0)*r_i*sqrt(3.0/2.0)*1.0*sqrt(3.0/2.0)*t_i;
+
+			*grad_phi_data[2]++ = sqrt(1.0/2.0)*1.0*sqrt(1.0/2.0)*1.0*sqrt(1.0/2.0)*0.0;
+			*grad_phi_data[2]++ = sqrt(3.0/2.0)*r_i*sqrt(1.0/2.0)*1.0*sqrt(1.0/2.0)*0.0;
+			*grad_phi_data[2]++ = sqrt(1.0/2.0)*1.0*sqrt(3.0/2.0)*s_i*sqrt(1.0/2.0)*0.0;
+			*grad_phi_data[2]++ = sqrt(3.0/2.0)*r_i*sqrt(3.0/2.0)*s_i*sqrt(1.0/2.0)*0.0;
+			*grad_phi_data[2]++ = sqrt(1.0/2.0)*1.0*sqrt(1.0/2.0)*1.0*sqrt(3.0/2.0)*1.0;
+			*grad_phi_data[2]++ = sqrt(3.0/2.0)*r_i*sqrt(1.0/2.0)*1.0*sqrt(3.0/2.0)*1.0;
+			*grad_phi_data[2]++ = sqrt(1.0/2.0)*1.0*sqrt(3.0/2.0)*s_i*sqrt(3.0/2.0)*1.0;
+			*grad_phi_data[2]++ = sqrt(3.0/2.0)*r_i*sqrt(3.0/2.0)*s_i*sqrt(3.0/2.0)*1.0;
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	}
+
+	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
+}
+
 // Simplex Orthonormal ********************************************************************************************** //
 
 const struct const_Matrix_d* constructor_basis_si_orthonormal_def (const int p_b, const struct const_Matrix_d*const rst)
 {
-	if (rst->layout != 'C')
-		EXIT_UNSUPPORTED;
+	assert(rst->layout == 'C');
 
 	const ptrdiff_t d   = rst->ext_1,
 	                n_n = rst->ext_0,
@@ -301,13 +387,145 @@ const struct const_Matrix_d* constructor_basis_si_orthonormal_def (const int p_b
 	return (const struct const_Matrix_d*) phi_rst;
 }
 
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal_def
+	(const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const ptrdiff_t d   = rst->ext_1,
+	                n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_SI);
+
+	const struct const_Matrix_d*const abc = constructor_abc_from_rst_si(rst); // destructed
+	const double*const a = get_col_const_Matrix_d(0,abc),
+	            *const b = get_col_const_Matrix_d(1,abc),
+	            *const c = ( d > 2 ? get_col_const_Matrix_d(2,abc) : NULL);
+
+	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
+
+	double* grad_phi_data[d];
+	for (int dim = 0; dim < d; ++dim) {
+		grad_phi_rst->data[dim] = constructor_empty_Matrix_d('R',n_n,n_b); // keep
+		grad_phi_data[dim] = grad_phi_rst->data[dim]->data;
+	}
+
+	double con_i = 0.0,
+	       con_j = 0.0,
+	       con_k = 0.0,
+	       con_b = 0.0,
+	       con_c = 0.0;
+	for (ptrdiff_t n = 0; n < n_n; ++n) {
+		const double a_n = a[n],
+		             b_n = b[n],
+		             c_n = ( d == 3 ? c[n] : -1.0 );
+
+		int i = 0,
+		    j = 0,
+		    k = 0;
+		if (d == 2 && p_b == 2) {
+			const double con = 2.0/pow(3.0,0.25);
+			i = 0; j = 0;
+			set_scaling_basis_tri(i,j,b_n,&con_i,&con_j,&con_b);
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+
+			i = 0; j = 1;
+			set_scaling_basis_tri(i,j,b_n,&con_i,&con_j,&con_b);
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = con*( 2.0/3.0*sqrt(3.0)*pow(1.0-b_n,i)
+			                           *con_i*(1.0)
+			                           *con_j*(3.0/2.0) );
+
+			i = 0; j = 2;
+			set_scaling_basis_tri(i,j,b_n,&con_i,&con_j,&con_b);
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = con*( 2.0/3.0*sqrt(3.0)*pow(1.0-b_n,i)
+			                           *con_i*(1.0)
+			                           *con_j*(5.0*(b_n-1.0)+6.0) );
+
+			i = 1; j = 0;
+			set_scaling_basis_tri(i,j,b_n,&con_i,&con_j,&con_b);
+			*grad_phi_data[0]++ = con*2.0*pow(1.0-b_n,i-1.0)
+			                     *con_i*(1.0)
+			                     *con_j*(1.0);
+			*grad_phi_data[1]++ = 0.0;
+
+			i = 1; j = 1;
+			set_scaling_basis_tri(i,j,b_n,&con_i,&con_j,&con_b);
+			*grad_phi_data[0]++ = con*2.0*pow(1.0-b_n,i-1.0)
+			                     *con_i*(1.0)
+			                     *con_j*(1.0/2.0*(5.0*b_n+3.0));
+			*grad_phi_data[1]++ = con*( -2.0/3.0*sqrt(3.0)*i*pow(1.0-b_n,i-1.0)
+			                     *con_i*(a_n)
+			                     *con_j*(1.0/2.0*(5.0*b_n+3.0))
+			                     +2.0/3.0*sqrt(3.0)*a_n*pow(1.0-b_n,i-1.0)
+			                     *con_i*(1.0)
+			                     *con_j*(1.0/2.0*(5.0*b_n+3.0))
+			                     +2.0/3.0*sqrt(3.0)*pow(1.0-b_n,i)
+			                     *con_i*(a_n)
+			                     *con_j*(5.0/2.0) );
+
+			i = 2; j = 0;
+			set_scaling_basis_tri(i,j,b_n,&con_i,&con_j,&con_b);
+			*grad_phi_data[0]++ = con*2.0*pow(1.0-b_n,i-1.0)
+			                     *con_i*(3.0*a_n)
+			                     *con_j*(1.0);
+			*grad_phi_data[1]++ = con*( -2.0/3.0*sqrt(3.0)*i*pow(1.0-b_n,i-1.0)
+			                     *con_i*(1.0/2.0*(3.0*pow(a_n,2.0)-1.0))
+			                     *con_j*(1.0)
+			                     +2.0/3.0*sqrt(3.0)*a_n*pow(1.0-b_n,i-1.0)
+			                     *con_i*(3.0*a_n)
+			                     *con_j*(1.0) );
+		} else if (d == 3 && p_b == 1) {
+			const double con = 4.0/pow(2.0,0.25);
+
+			i = 0; j = 0; k = 0;
+			set_scaling_basis_tet(i,j,k,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+
+			i = 0; j = 0; k = 1;
+			set_scaling_basis_tet(i,j,k,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = con*( 1.0/2.0*sqrt(6.0)*pow(1.0-b_n,i)*pow(1.0-c_n,i+j)
+			                           *con_i*(1.0)
+			                           *con_j*(1.0)
+			                           *con_k*(2.0) );
+
+			i = 0; j = 1; k = 0;
+			set_scaling_basis_tet(i,j,k,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = con*( 4.0/3.0*sqrt(3.0)*pow(1.0-b_n,i)*pow(1.0-c_n,i+j-1.0)
+			                           *con_i*(1.0)
+			                           *con_j*(3.0/2.0)
+			                           *con_k*(1.0) );
+			*grad_phi_data[2]++ = 0.0;
+
+			i = 1; j = 0; k = 0;
+			set_scaling_basis_tet(i,j,k,b_n,c_n,&con_i,&con_j,&con_k,&con_b,&con_c);
+			*grad_phi_data[0]++ = con*( 4.0*pow(1.0-b_n,i-1.0)*pow(1.0-c_n,i+j-1.0)
+			                           *con_i*(1.0)
+			                           *con_j*(1.0)
+			                           *con_k*(1.0) );
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	}
+	destructor_const_Matrix_d(abc);
+
+	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
+}
+
 // Pyramid Orthonormal ********************************************************************************************** //
 
 const struct const_Matrix_d* constructor_basis_pyr_orthonormal_def
 	(const int p_b, const struct const_Matrix_d*const rst)
 {
-	if (rst->layout != 'C')
-		EXIT_UNSUPPORTED;
+	assert(rst->layout == 'C');
 
 	const ptrdiff_t d   = rst->ext_1,
 	                n_n = rst->ext_0,
@@ -424,12 +642,286 @@ const struct const_Matrix_d* constructor_basis_pyr_orthonormal_def
 	return (const struct const_Matrix_d*) phi_rst;
 }
 
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal_def
+	(const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const ptrdiff_t d   = rst->ext_1,
+	                n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_PYR);
+
+	const struct const_Matrix_d*const abc = constructor_abc_from_rst_pyr(rst); // destructed
+	const double*const a = get_col_const_Matrix_d(0,abc),
+	            *const b = get_col_const_Matrix_d(1,abc),
+	            *const c = get_col_const_Matrix_d(2,abc);
+
+	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
+
+	double* grad_phi_data[d];
+	for (int dim = 0; dim < d; ++dim) {
+		grad_phi_rst->data[dim] = constructor_empty_Matrix_d('R',n_n,n_b); // keep
+		grad_phi_data[dim] = grad_phi_rst->data[dim]->data;
+	}
+
+	const double con = pow(2.0,1.25);
+
+	double con_i = 0.0,
+	       con_j = 0.0,
+	       con_k = 0.0,
+	       con_c = 0.0;
+	for (ptrdiff_t n = 0; n < n_n; ++n) {
+		const double a_n = a[n],
+		             b_n = b[n],
+		             c_n = c[n];
+
+		if (d == 3 && p_b == 2) {
+			set_scaling_basis_pyr(0,0,0,c_n,&con_i,&con_j,&con_k,&con_c);
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+
+			set_scaling_basis_pyr(0,0,1,c_n,&con_i,&con_j,&con_k,&con_c);
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = con*( sqrt(2.0)*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0/2.0*(4.0)));
+
+			set_scaling_basis_pyr(0,0,2,c_n,&con_i,&con_j,&con_k,&con_c);
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = con*( sqrt(2.0)*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(1.0)
+			                          * con_k*(15.0/4.0*2.0*pow(c_n-1.0,1.0)+10.0));
+
+			set_scaling_basis_pyr(0,1,0,c_n,&con_i,&con_j,&con_k,&con_c);
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = con*( 2.0*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0));
+			*grad_phi_data[2]++ = con*( sqrt(2.0)*b_n*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0)
+			                          - 1.0*sqrt(2.0)*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(b_n)
+			                          * con_k*(1.0));
+
+			set_scaling_basis_pyr(0,1,1,c_n,&con_i,&con_j,&con_k,&con_c);
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = con*( 2.0*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0/2.0*(6.0*c_n+4.0)));
+			*grad_phi_data[2]++ = con*( sqrt(2.0)*b_n*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0/2.0*(6.0*c_n+4.0))
+			                          + sqrt(2.0)*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0)
+			                          * con_j*(b_n)
+			                          * con_k*(1.0/2.0*(6.0))
+			                          - 1.0*sqrt(2.0)*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(b_n)
+			                          * con_k*(1.0/2.0*(6.0*c_n+4.0)));
+
+			set_scaling_basis_pyr(0,2,0,c_n,&con_i,&con_j,&con_k,&con_c);
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = con*( 2.0*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0)
+			                          * con_j*(1.0/2.0*(3.0*2.0*b_n))
+			                          * con_k*(1.0));
+			*grad_phi_data[2]++ = con*( sqrt(2.0)*b_n*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0)
+			                          * con_j*(1.0/2.0*(3.0*2.0*b_n))
+			                          * con_k*(1.0)
+			                          - 2.0*sqrt(2.0)*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0)
+			                          * con_j*(1.0/2.0*(3.0*pow(b_n,2.0)-1.0))
+			                          * con_k*(1.0));
+
+			set_scaling_basis_pyr(1,0,0,c_n,&con_i,&con_j,&con_k,&con_c);
+			*grad_phi_data[0]++ = con*( 2.0*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0));
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = con*( sqrt(2.0)*a_n*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0)
+			                          - 1.0*sqrt(2.0)*pow(1.0-c_n,0.0)
+			                          * con_i*(a_n)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0));
+
+			set_scaling_basis_pyr(1,0,1,c_n,&con_i,&con_j,&con_k,&con_c);
+			*grad_phi_data[0]++ = con*( 2.0*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0/2.0*(6.0*c_n+4.0)));
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = con*( sqrt(2.0)*a_n*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0/2.0*(6.0*c_n+4.0))
+			                          + sqrt(2.0)*pow(1.0-c_n,1.0)
+			                          * con_i*(a_n)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0/2.0*(6.0))
+			                          - 1.0*sqrt(2.0)*pow(1.0-c_n,0.0)
+			                          * con_i*(a_n)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0/2.0*(6.0*c_n+4.0)));
+
+			set_scaling_basis_pyr(1,1,0,c_n,&con_i,&con_j,&con_k,&con_c);
+			*grad_phi_data[0]++ = con*( 2.0*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(b_n)
+			                          * con_k*(1.0));
+			*grad_phi_data[1]++ = con*( 2.0*pow(1.0-c_n,0.0)
+			                          * con_i*(a_n)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0));
+			*grad_phi_data[2]++ = con*( sqrt(2.0)*a_n*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(b_n)
+			                          * con_k*(1.0)
+			                          + sqrt(2.0)*b_n*pow(1.0-c_n,0.0)
+			                          * con_i*(a_n)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0)
+			                          - 1.0*sqrt(2.0)*pow(1.0-c_n,0.0)
+			                          * con_i*(a_n)
+			                          * con_j*(b_n)
+			                          * con_k*(1.0));
+
+			set_scaling_basis_pyr(1,1,1,c_n,&con_i,&con_j,&con_k,&con_c);
+			*grad_phi_data[0]++ = con*( 2.0*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(b_n)
+			                          * con_k*(1.0/2.0*(6.0*c_n+4.0)));
+			*grad_phi_data[1]++ = con*( 2.0*pow(1.0-c_n,0.0)
+			                          * con_i*(a_n)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0/2.0*(6.0*c_n+4.0)));
+			*grad_phi_data[2]++ = con*( sqrt(2.0)*a_n*pow(1.0-c_n,0.0)
+			                          * con_i*(1.0)
+			                          * con_j*(b_n)
+			                          * con_k*(1.0/2.0*(6.0*c_n+4.0))
+			                          + sqrt(2.0)*b_n*pow(1.0-c_n,0.0)
+			                          * con_i*(a_n)
+			                          * con_j*(1.0)
+			                          * con_k*(1.0/2.0*(6.0*c_n+4.0))
+			                          + sqrt(2.0)*pow(1.0-c_n,1.0)
+			                          * con_i*(a_n)
+			                          * con_j*(b_n)
+			                          * con_k*(1.0/2.0*(6.0))
+			                          - 1.0*sqrt(2.0)*pow(1.0-c_n,0.0)
+			                          * con_i*(a_n)
+			                          * con_j*(b_n)
+			                          * con_k*(1.0/2.0*(6.0*c_n+4.0)));
+
+			set_scaling_basis_pyr(1,2,0,c_n,&con_i,&con_j,&con_k,&con_c);
+			*grad_phi_data[0]++ = con*( 2.0*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0)
+			                          * con_j*(1.0/2.0*(3.0*pow(b_n,2.0)-1.0))
+			                          * con_k*(1.0));
+			*grad_phi_data[1]++ = con*( 2.0*pow(1.0-c_n,1.0)
+			                          * con_i*(a_n)
+			                          * con_j*(1.0/2.0*(3.0*2.0*b_n))
+			                          * con_k*(1.0));
+			*grad_phi_data[2]++ = con*( sqrt(2.0)*a_n*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0)
+			                          * con_j*(1.0/2.0*(3.0*pow(b_n,2.0)-1.0))
+			                          * con_k*(1.0)
+			                          + sqrt(2.0)*b_n*pow(1.0-c_n,1.0)
+			                          * con_i*(a_n)
+			                          * con_j*(1.0/2.0*(3.0*2.0*b_n))
+			                          * con_k*(1.0)
+			                          - 2.0*sqrt(2.0)*pow(1.0-c_n,1.0)
+			                          * con_i*(a_n)
+			                          * con_j*(1.0/2.0*(3.0*pow(b_n,2.0)-1.0))
+			                          * con_k*(1.0));
+
+			set_scaling_basis_pyr(2,0,0,c_n,&con_i,&con_j,&con_k,&con_c);
+			*grad_phi_data[0]++ = con*( 2.0*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0/2.0*(3.0*2.0*a_n))
+			                          * con_j*(1.0)
+			                          * con_k*(1.0));
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = con*( sqrt(2.0)*a_n*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0/2.0*(3.0*2.0*a_n))
+			                          * con_j*(1.0)
+			                          * con_k*(1.0)
+			                          - 2.0*sqrt(2.0)*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0/2.0*(3.0*pow(a_n,2.0)-1.0))
+			                          * con_j*(1.0)
+			                          * con_k*(1.0));
+
+			set_scaling_basis_pyr(2,1,0,c_n,&con_i,&con_j,&con_k,&con_c);
+			*grad_phi_data[0]++ = con*( 2.0*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0/2.0*(3.0*2.0*a_n))
+			                          * con_j*(b_n)
+			                          * con_k*(1.0));
+			*grad_phi_data[1]++ = con*( 2.0*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0/2.0*(3.0*pow(a_n,2.0)-1.0))
+			                          * con_j*(1.0)
+			                          * con_k*(1.0));
+			*grad_phi_data[2]++ = con*( sqrt(2.0)*a_n*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0/2.0*(3.0*2.0*a_n))
+			                          * con_j*(b_n)
+			                          * con_k*(1.0)
+			                          + sqrt(2.0)*b_n*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0/2.0*(3.0*pow(a_n,2.0)-1.0))
+			                          * con_j*(1.0)
+			                          * con_k*(1.0)
+			                          - 2.0*sqrt(2.0)*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0/2.0*(3.0*pow(a_n,2.0)-1.0))
+			                          * con_j*(b_n)
+			                          * con_k*(1.0));
+
+			set_scaling_basis_pyr(2,2,0,c_n,&con_i,&con_j,&con_k,&con_c);
+			*grad_phi_data[0]++ = con*( 2.0*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0/2.0*(3.0*2.0*a_n))
+			                          * con_j*(1.0/2.0*(3.0*pow(b_n,2.0)-1.0))
+			                          * con_k*(1.0));
+			*grad_phi_data[1]++ = con*( 2.0*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0/2.0*(3.0*pow(a_n,2.0)-1.0))
+			                          * con_j*(1.0/2.0*(3.0*2.0*b_n))
+			                          * con_k*(1.0));
+			*grad_phi_data[2]++ = con*( sqrt(2.0)*a_n*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0/2.0*(3.0*2.0*a_n))
+			                          * con_j*(1.0/2.0*(3.0*pow(b_n,2.0)-1.0))
+			                          * con_k*(1.0)
+			                          + sqrt(2.0)*b_n*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0/2.0*(3.0*pow(a_n,2.0)-1.0))
+			                          * con_j*(1.0/2.0*(3.0*2.0*b_n))
+			                          * con_k*(1.0)
+			                          - 2.0*sqrt(2.0)*pow(1.0-c_n,1.0)
+			                          * con_i*(1.0/2.0*(3.0*pow(a_n,2.0)-1.0))
+			                          * con_j*(1.0/2.0*(3.0*pow(b_n,2.0)-1.0))
+			                          * con_k*(1.0));
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	}
+	destructor_const_Matrix_d(abc);
+
+	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
+}
+
 // Tensor-Product Bezier ******************************************************************************************** //
 
 const struct const_Matrix_d* constructor_basis_tp_bezier_def (const int p_b, const struct const_Matrix_d*const rst)
 {
-	if (rst->layout != 'C')
-		EXIT_UNSUPPORTED;
+	assert(rst->layout == 'C');
 
 	const ptrdiff_t d   = rst->ext_1,
 	                n_n = rst->ext_0,
@@ -503,6 +995,164 @@ const struct const_Matrix_d* constructor_basis_tp_bezier_def (const int p_b, con
 	}
 
 	return (const struct const_Matrix_d*) phi_rst;
+}
+
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier_def
+	(const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const ptrdiff_t d   = rst->ext_1,
+	                n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_TP);
+
+	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
+
+	double* grad_phi_data[d];
+	for (int dim = 0; dim < d; ++dim) {
+		grad_phi_rst->data[dim] = constructor_empty_Matrix_d('R',n_n,n_b); // keep
+		grad_phi_data[dim] = grad_phi_rst->data[dim]->data;
+	}
+
+	const double*const r = get_col_const_Matrix_d(0,rst),
+	            *const s = ( d > 1 ? get_col_const_Matrix_d(1,rst) : NULL),
+	            *const t = ( d > 2 ? get_col_const_Matrix_d(2,rst) : NULL);
+
+	for (ptrdiff_t i = 0; i < n_n; ++i) {
+		const double r_i = r[i],
+		             s_i = ( d > 1 ? s[i] : 0.0),
+		             t_i = ( d > 2 ? t[i] : 0.0);
+
+		const double b0r = (1.0-r_i)/2.0,
+		             b1r = (1.0+r_i)/2.0,
+		             b0s = ( d > 1 ? (1.0-s_i)/2.0 : 0.0 ),
+		             b1s = ( d > 1 ? (1.0+s_i)/2.0 : 0.0 ),
+		             b0t = ( d > 2 ? (1.0-t_i)/2.0 : 0.0 ),
+		             b1t = ( d > 2 ? (1.0+t_i)/2.0 : 0.0 );
+		if (d == 1 && p_b == 3) {
+			*grad_phi_data[0]++ = 0.5*    (-3.0*pow(b0r,2.0)*pow(b1r,0.0) + 0.0);
+			*grad_phi_data[0]++ = 0.5*3.0*(-2.0*pow(b0r,1.0)*pow(b1r,1.0) + 1.0*pow(b0r,2.0)*pow(b1r,0.0));
+			*grad_phi_data[0]++ = 0.5*3.0*(-1.0*pow(b0r,0.0)*pow(b1r,2.0) + 2.0*pow(b0r,1.0)*pow(b1r,1.0));
+			*grad_phi_data[0]++ = 0.5*    ( 0.0                           + 3.0*pow(b0r,0.0)*pow(b1r,2.0));
+		} else if (d == 2 && p_b == 2) {
+			*grad_phi_data[0]++ = 0.5*    (-2.0*pow(b0r,1.0)*pow(b1r,0.0) + 0.0)
+			                    *               pow(b0s,2.0)*pow(b1s,0.0);
+			*grad_phi_data[0]++ = 0.5*2.0*(-1.0*pow(b0r,0.0)*pow(b1r,1.0) + 1.0*pow(b0r,1.0)*pow(b1r,0.0))
+			                    *               pow(b0s,2.0)*pow(b1s,0.0);
+			*grad_phi_data[0]++ = 0.5*    ( 0.0                           + 2.0*pow(b0r,0.0)*pow(b1r,1.0))
+			                    *               pow(b0s,2.0)*pow(b1s,0.0);
+			*grad_phi_data[0]++ = 0.5*    (-2.0*pow(b0r,1.0)*pow(b1r,0.0) + 0.0)
+			                    *           2.0*pow(b0s,1.0)*pow(b1s,1.0);
+			*grad_phi_data[0]++ = 0.5*2.0*(-1.0*pow(b0r,0.0)*pow(b1r,1.0) + 1.0*pow(b0r,1.0)*pow(b1r,0.0))
+			                    *           2.0*pow(b0s,1.0)*pow(b1s,1.0);
+			*grad_phi_data[0]++ = 0.5*    ( 0.0                           + 2.0*pow(b0r,0.0)*pow(b1r,1.0))
+			                    *           2.0*pow(b0s,1.0)*pow(b1s,1.0);
+			*grad_phi_data[0]++ = 0.5*    (-2.0*pow(b0r,1.0)*pow(b1r,0.0) + 0.0)
+			                    *               pow(b0s,0.0)*pow(b1s,2.0);
+			*grad_phi_data[0]++ = 0.5*2.0*(-1.0*pow(b0r,0.0)*pow(b1r,1.0) + 1.0*pow(b0r,1.0)*pow(b1r,0.0))
+			                    *               pow(b0s,0.0)*pow(b1s,2.0);
+			*grad_phi_data[0]++ = 0.5*    ( 0.0                           + 2.0*pow(b0r,0.0)*pow(b1r,1.0))
+			                    *               pow(b0s,0.0)*pow(b1s,2.0);
+
+			*grad_phi_data[1]++ =               pow(b0r,2.0)*pow(b1r,0.0)
+			                    * 0.5*    (-2.0*pow(b0s,1.0)*pow(b1s,0.0) + 0.0);
+			*grad_phi_data[1]++ =           2.0*pow(b0r,1.0)*pow(b1r,1.0)
+			                    * 0.5*    (-2.0*pow(b0s,1.0)*pow(b1s,0.0) + 0.0);
+			*grad_phi_data[1]++ =               pow(b0r,0.0)*pow(b1r,2.0)
+			                    * 0.5*    (-2.0*pow(b0s,1.0)*pow(b1s,0.0) + 0.0);
+			*grad_phi_data[1]++ =               pow(b0r,2.0)*pow(b1r,0.0)
+			                    * 0.5*2.0*(-1.0*pow(b0s,0.0)*pow(b1s,1.0) + 1.0*pow(b0s,1.0)*pow(b1s,0.0));
+			*grad_phi_data[1]++ =           2.0*pow(b0r,1.0)*pow(b1r,1.0)
+			                    * 0.5*2.0*(-1.0*pow(b0s,0.0)*pow(b1s,1.0) + 1.0*pow(b0s,1.0)*pow(b1s,0.0));
+			*grad_phi_data[1]++ =               pow(b0r,0.0)*pow(b1r,2.0)
+			                    * 0.5*2.0*(-1.0*pow(b0s,0.0)*pow(b1s,1.0) + 1.0*pow(b0s,1.0)*pow(b1s,0.0));
+			*grad_phi_data[1]++ =               pow(b0r,2.0)*pow(b1r,0.0)
+			                    * 0.5*    ( 0.0                           + 2.0*pow(b0s,0.0)*pow(b1s,1.0));
+			*grad_phi_data[1]++ =           2.0*pow(b0r,1.0)*pow(b1r,1.0)
+			                    * 0.5*    ( 0.0                           + 2.0*pow(b0s,0.0)*pow(b1s,1.0));
+			*grad_phi_data[1]++ =               pow(b0r,0.0)*pow(b1r,2.0)
+			                    * 0.5*    ( 0.0                           + 2.0*pow(b0s,0.0)*pow(b1s,1.0));
+		} else if (d == 3 && p_b == 1) {
+			*grad_phi_data[0]++ = 0.5*(-1.0*pow(b0r,0.0)*pow(b1r,0.0) + 0.0)
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[0]++ = 0.5*( 0.0                           + 1.0*pow(b0r,0.0)*pow(b1r,0.0))
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[0]++ = 0.5*(-1.0*pow(b0r,0.0)*pow(b1r,0.0) + 0.0)
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[0]++ = 0.5*( 0.0                           + 1.0*pow(b0r,0.0)*pow(b1r,0.0))
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[0]++ = 0.5*(-1.0*pow(b0r,0.0)*pow(b1r,0.0) + 0.0)
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+			*grad_phi_data[0]++ = 0.5*( 0.0                           + 1.0*pow(b0r,0.0)*pow(b1r,0.0))
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+			*grad_phi_data[0]++ = 0.5*(-1.0*pow(b0r,0.0)*pow(b1r,0.0) + 0.0)
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+			*grad_phi_data[0]++ = 0.5*( 0.0                           + 1.0*pow(b0r,0.0)*pow(b1r,0.0))
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+
+			*grad_phi_data[1]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    * 0.5*(-1.0*pow(b0s,0.0)*pow(b1s,0.0) + 0.0)
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[1]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    * 0.5*(-1.0*pow(b0s,0.0)*pow(b1s,0.0) + 0.0)
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[1]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0s,0.0)*pow(b1s,0.0))
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[1]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0s,0.0)*pow(b1s,0.0))
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[1]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    * 0.5*(-1.0*pow(b0s,0.0)*pow(b1s,0.0) + 0.0)
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+			*grad_phi_data[1]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    * 0.5*(-1.0*pow(b0s,0.0)*pow(b1s,0.0) + 0.0)
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+			*grad_phi_data[1]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0s,0.0)*pow(b1s,0.0))
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+			*grad_phi_data[1]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0s,0.0)*pow(b1s,0.0))
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+
+			*grad_phi_data[2]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    * 0.5*(-1.0*pow(b0t,0.0)*pow(b1t,0.0) + 0.0);
+			*grad_phi_data[2]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    * 0.5*(-1.0*pow(b0t,0.0)*pow(b1t,0.0) + 0.0);
+			*grad_phi_data[2]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    * 0.5*(-1.0*pow(b0t,0.0)*pow(b1t,0.0) + 0.0);
+			*grad_phi_data[2]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    * 0.5*(-1.0*pow(b0t,0.0)*pow(b1t,0.0) + 0.0);
+			*grad_phi_data[2]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0t,0.0)*pow(b1t,0.0));
+			*grad_phi_data[2]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0t,0.0)*pow(b1t,0.0));
+			*grad_phi_data[2]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0t,0.0)*pow(b1t,0.0));
+			*grad_phi_data[2]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0t,0.0)*pow(b1t,0.0));
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	}
+
+	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
 }
 
 // Orthogonality functions ****************************************************************************************** //
