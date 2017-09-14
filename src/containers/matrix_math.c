@@ -5,6 +5,7 @@
 
 #include "matrix_math.h"
 
+#include <assert.h>
 #include <string.h>
 #include <math.h>
 #include "mkl.h"
@@ -74,26 +75,19 @@ void mm_d
 	const CBLAS_LAYOUT    layout = ( c->layout == 'R' ? CBRM : CBCM );
 	const CBLAS_TRANSPOSE transa = ( (c->layout == a->layout) == (trans_a_i == 'N') ? CBNT : CBT ),
 	                      transb = ( (c->layout == b->layout) == (trans_b_i == 'N') ? CBNT : CBT );
-	const MKL_INT m = c->ext_0,
-	              n = c->ext_1,
-	              k = ( trans_a_i == 'N' ? a->ext_1 : a->ext_0 );
-
-	if ((m <= 0) || (n <= 0) || (k <= 0)) {
-		EXIT_ERROR("Negative dimension: %d %d %d\n",m,n,k);
-	} else if ((m != ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 )) ||
-	           (n != ( trans_b_i == 'N' ? b->ext_1 : b->ext_0 )) ||
-	           (k != ( trans_b_i == 'N' ? b->ext_0 : b->ext_1 )))
-	{
-		printf("Invalid matrix dimensions: (m = (%d,%td), n = (%d,%td), k = (%d,%td))\n",
-		       m,( trans_a_i == 'N' ? a->ext_0 : a->ext_1 ),
-		       n,( trans_b_i == 'N' ? b->ext_1 : b->ext_0 ),
-		       k,( trans_b_i == 'N' ? b->ext_0 : b->ext_1 ));
-		EXIT_UNSUPPORTED;
-	}
-
-	const MKL_INT lda = ( a->layout == 'R' ? a->ext_1 : a->ext_0 ),
+	const MKL_INT m   = c->ext_0,
+	              n   = c->ext_1,
+	              k   = ( trans_a_i == 'N' ? a->ext_1 : a->ext_0 ),
+	              lda = ( a->layout == 'R' ? a->ext_1 : a->ext_0 ),
 	              ldb = ( b->layout == 'R' ? b->ext_1 : b->ext_0 ),
 	              ldc = ( c->layout == 'R' ? c->ext_1 : c->ext_0 );
+
+	assert(m > 0);
+	assert(n > 0);
+	assert(k > 0);
+	assert(m == ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 ));
+	assert(n == ( trans_b_i == 'N' ? b->ext_1 : b->ext_0 ));
+	assert(k == ( trans_b_i == 'N' ? b->ext_0 : b->ext_1 ));
 
 	cblas_dgemm(layout,transa,transb,m,n,k,alpha,a->data,lda,b->data,ldb,beta,c->data,ldc);
 }
@@ -106,23 +100,16 @@ void mv_d
 	const CBLAS_TRANSPOSE transa = ( (layout_i == a->layout) == (trans_a_i == 'N') ? CBNT : CBT );
 
 	/// \note Unlike the \ref mm_d function, m and n here represent the dimensions of A and not op(A).
-	const MKL_INT m = a->ext_0,
-	              n = a->ext_1;
-
-	if ((m <= 0) || (n <= 0)) {
-		EXIT_ERROR("Negative dimension: %d %d\n",m,n);
-	} else if ((m != ( transa == CBNT ? c->ext_0 : b->ext_0 )) ||
-	           (n != ( transa == CBNT ? b->ext_0 : c->ext_0 )))
-	{
-		printf("Invalid matrix/vector dimensions: (m = (%d,%td), n = (%d,%td))\n",
-		       m,( transa == CBNT ? b->ext_0 : c->ext_0 ),
-		       n,( transa == CBNT ? c->ext_0 : b->ext_0 ));
-		EXIT_UNSUPPORTED;
-	}
-
-	const MKL_INT lda = ( a->layout == 'R' ? a->ext_1 : a->ext_0 ),
+	const MKL_INT m   = a->ext_0,
+	              n   = a->ext_1,
+	              lda = ( a->layout == 'R' ? a->ext_1 : a->ext_0 ),
 	              ldb = 1,
 	              ldc = 1;
+
+	assert(m > 0);
+	assert(n > 0);
+	assert(m == ( transa == CBNT ? c->ext_0 : b->ext_0 ));
+	assert(n == ( transa == CBNT ? b->ext_0 : c->ext_0 ));
 
 	cblas_dgemv(layout,transa,m,n,alpha,a->data,lda,b->data,ldb,beta,c->data,ldc);
 }
@@ -138,8 +125,7 @@ void scale_Matrix_by_Vector_d
 
 	bool transpose_a = false;
 	if (side == 'L') {
-		if (b->ext_0 != a->ext_0)
-			EXIT_ERROR("Invalid dimensions.");
+		assert(b->ext_0 == a->ext_0);
 
 		if (a->layout == 'C') {
 			transpose_a = true;
@@ -153,8 +139,7 @@ void scale_Matrix_by_Vector_d
 				*data_row++ *= val;
 		}
 	} else if (side == 'R') {
-		if (b->ext_0 != a->ext_1)
-			EXIT_ERROR("Invalid dimensions.");
+		assert(b->ext_0 == a->ext_1);
 
 		if (a->layout == 'R') {
 			transpose_a = true;

@@ -193,7 +193,7 @@ static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volum
 		set_const_Vector_from_Multiarray_d(geom_coef_V,geom_coef,(ptrdiff_t[]){row});
 		for (int col = 0; col < d; col++) {
 			set_Vector_from_Multiarray_d(jacobian_vc_V,jacobian_vc,(ptrdiff_t[]){row,col});
-			set_const_Matrix_from_Multiarray_Matrix_d(ED_vg_vc,ops.ED_vg_vc,(ptrdiff_t[]){col});
+			set_const_Matrix_from_Multiarray_Matrix_d(&ED_vg_vc,ops.ED_vg_vc,(ptrdiff_t[]){col});
 			mv_d(ED_vg_vc->layout,'N',1.0,0.0,ED_vg_vc,geom_coef_V,jacobian_vc_V);
 
 //		mm_CTN_d(NvnI0,1,NvnG0,OPS->D_vG_vI[col],&XYZ[NvnG0*row],&J_vI[NvnI0*(d*row+col)]);

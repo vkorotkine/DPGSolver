@@ -138,7 +138,7 @@ struct Matrix_d* constructor_copy_transpose_Matrix_d
 /** \brief Constructor for a diagonal \ref Matrix_d\* with entries set to the input value.
  *  \return Standard. */
 struct Matrix_d* constructor_diagonal_Matrix_d_d
-	(const char layout,     ///< Stanard.
+	(const char layout,     ///< Standard.
 	 const ptrdiff_t ext_0, ///< The dimensions of the square matrix.
 	 const double val       ///< The value.
 	);
@@ -146,15 +146,27 @@ struct Matrix_d* constructor_diagonal_Matrix_d_d
 /** \brief Constructor for an identity \ref Matrix_d\*.
  *  \return Standard. */
 struct Matrix_d* constructor_identity_Matrix_d
-	(const char layout,    ///< Stanard.
+	(const char layout,    ///< Standard.
 	 const ptrdiff_t ext_0 ///< The dimensions of the square matrix.
 	);
 
 /** \brief `const` version of \ref constructor_identity_Matrix_d.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_identity_const_Matrix_d
-	(const char layout,    ///< Stanard.
+	(const char layout,    ///< Standard.
 	 const ptrdiff_t ext_0 ///< The dimensions of the square matrix.
+	);
+
+/** \brief Constructor for the inverse of the input \ref Matrix_d\*.
+ *  \return Standard. */
+struct Matrix_d* constructor_inverse_Matrix_d
+	(struct Matrix_d* src ///< The source matrix.
+	);
+
+/** \brief `const` version of \ref constructor_inverse_Matrix_d.
+ *  \return Standard. */
+const struct const_Matrix_d* constructor_inverse_const_Matrix_d
+	(const struct const_Matrix_d* src ///< Defined for \ref constructor_inverse_Matrix_d.
 	);
 
 /** \brief Constructor for a \ref Matrix_d\* from a matrix-matrix multiplication.

@@ -49,12 +49,20 @@ struct Vector_i* constructor_file_Vector_i
 
 // Difference functions ********************************************************************************************* //
 
-/** \brief Check the difference between entries in the input \ref Vector_d\*s.
+/** \brief Check the relative difference between entries in the input \ref Vector_d\*s up to the input tolerance.
  *  \return The `true` if inputs differ; `false` otherwise. */
 bool diff_Vector_d
 	(const struct Vector_d*const a, ///< Input 0.
 	 const struct Vector_d*const b, ///< Input 1.
 	 const double tol               ///< The tolerance.
+	);
+
+/** \brief `const` version of \ref diff_Vector_d.
+ *  \return See brief. */
+bool diff_const_Vector_d
+	(const struct const_Vector_d*const a, ///< Defined for \ref diff_Vector_d.
+	 const struct const_Vector_d*const b, ///< Defined for \ref diff_Vector_d.
+	 const double tol                     ///< Defined for \ref diff_Vector_d.
 	);
 
 /** \brief Check the difference between entries in the input \ref Vector_i\*s.
@@ -71,6 +79,13 @@ void print_diff_Vector_d
 	(const struct Vector_d*const a, ///< Input 0.
 	 const struct Vector_d*const b, ///< Input 1.
 	 const double tol               ///< The tolerance.
+	);
+
+/// \brief `const` version of \ref print_diff_Vector_d.
+void print_diff_const_Vector_d
+	(const struct const_Vector_d*const a, ///< Defined for \ref print_diff_Vector_d.
+	 const struct const_Vector_d*const b, ///< Defined for \ref print_diff_Vector_d.
+	 const double tol                     ///< Defined for \ref print_diff_Vector_d.
 	);
 
 /// \brief Print the difference of the input \ref Vector_i\*s.

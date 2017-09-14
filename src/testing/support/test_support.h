@@ -51,8 +51,9 @@ void check_container_type
 /** \brief Check the entries of the input `differences` for `true` values.
  *  \return `true` if an entry in `differences` is `true`; `false` otherwise. */
 bool check_diff
-	(const int n_entries,         ///< The number of entries.
-	 const bool*const differences ///< The array of difference flags.
+	(const int n_entries,          ///< The number of entries.
+	 const bool*const differences, ///< The array of difference flags.
+	 bool* pass                    ///< Flag for whether the test passed.
 	);
 
 #endif // DPG__test_support_h__INCLUDED

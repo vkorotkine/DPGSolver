@@ -220,6 +220,38 @@ const struct const_Matrix_d* constructor_identity_const_Matrix_d (const char lay
 	return (const struct const_Matrix_d*) constructor_identity_Matrix_d(layout,ext_0);
 }
 
+struct Matrix_d* constructor_inverse_Matrix_d (struct Matrix_d* src)
+{
+	// The source matrix is copy as the entries would otherwise be modified while solving for for the inverse.
+	struct Matrix_d* A = constructor_copy_Matrix_d(src);                                // destructed;
+	struct Matrix_d* B = constructor_identity_Matrix_d(src->layout,src->ext_0);         // destructed;
+	struct Matrix_d* X = constructor_empty_Matrix_d(src->layout,src->ext_0,src->ext_1); // returned;
+
+	const int matrix_layout = ( A->layout == 'R' ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR );
+	const lapack_int n      = A->ext_0,
+	                 nrhs   = A->ext_0;
+	double* a               = A->data,
+	      * b               = B->data,
+	      * x               = X->data;
+	const lapack_int lda    = A->ext_0,
+	                 ldb    = A->ext_0,
+	                 ldx    = A->ext_0;
+	lapack_int ipiv[n],
+	           iter         = 0;
+
+	const int info = LAPACKE_dsgesv (matrix_layout,n,nrhs,a,lda,ipiv,b,ldb,x,ldx,&iter);
+	assert(info == 0);
+
+	destructor_Matrix_d(A);
+	destructor_Matrix_d(B);
+	return X;
+}
+
+const struct const_Matrix_d* constructor_inverse_const_Matrix_d (const struct const_Matrix_d* src)
+{
+	return (const struct const_Matrix_d*) constructor_inverse_Matrix_d((struct Matrix_d*)src);
+}
+
 struct Matrix_d* constructor_mm_Matrix_d
 	(const char trans_a_i, const char trans_b_i, const double alpha, const double beta,
 	 const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, const char layout)

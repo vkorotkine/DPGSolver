@@ -9,8 +9,6 @@
 
 #include <stddef.h>
 
-// Constructor functions ******************************************************************************************** //
-
 /** \brief Function pointer to basis functions.
  *  \param p_b The order of the basis.
  *  \param rst The nodes at which the basis functions are evaluated.
@@ -19,6 +17,17 @@ typedef const struct const_Matrix_d* (*basis_fptr)
 	(const int p_b,
 	 const struct const_Matrix_d*const rst
 	);
+
+/** \brief Function pointer to basis gradient functions.
+ *  \param p_b Defined in \ref basis_fptr.
+ *  \param rst Defined in \ref basis_fptr.
+ */
+typedef const struct const_Multiarray_Matrix_d* (*grad_basis_fptr)
+	(const int p_b,
+	 const struct const_Matrix_d*const rst
+	);
+
+// Constructor functions ******************************************************************************************** //
 
 /** \brief Constructor for a polynomial operator for the tensor-product orthonomal basis (normalized Legendre
  *         polynomials).

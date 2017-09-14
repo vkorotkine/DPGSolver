@@ -92,6 +92,20 @@ const double* get_col_const_Matrix_d
 	 const struct const_Matrix_d*const a ///< Matrix.
 	);
 
+/** \brief Get pointer to a slice (row or column) of a \ref Matrix_d\*.
+ *  \return Pointer to the first entry of the slice. */
+double* get_slice_Matrix_d
+	(const ptrdiff_t slice,   ///< Index of the desired slice.
+	 const struct Matrix_d* a ///< Matrix.
+	);
+
+/** \brief `const` version of \ref get_slice_Matrix_d.
+ *  \return See brief. */
+const double* get_slice_const_Matrix_d
+	(const ptrdiff_t slice,         ///< Defined for \ref get_slice_Matrix_d.
+	 const struct const_Matrix_d* a ///< Defined for \ref get_slice_Matrix_d.
+	);
+
 /**	\brief Get pointer to row of row-major \ref Matrix_i\*.
  *	\return Pointer to the first entry of the row.
  */
@@ -118,9 +132,9 @@ int get_val_const_Matrix_i
 
 /// \brief Set the values of the destination row to that of the source data.
 void set_row_Matrix_d
-	(const ptrdiff_t row,         ///< The destination row.
-	 const struct Matrix_d* dest, ///< The destination Matrix.
-	 const double*const data_src  ///< The source data.
+	(const ptrdiff_t row,        ///< The destination row.
+	 struct Matrix_d* dest,      ///< The destination Matrix.
+	 const double*const data_src ///< The source data.
 	);
 
 /// \brief Set all data entries to the input value.

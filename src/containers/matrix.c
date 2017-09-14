@@ -5,6 +5,8 @@
 
 #include "matrix.h"
 
+#include <assert.h>
+
 #include "macros.h"
 
 // Static function declarations ************************************************************************************* //
@@ -13,37 +15,41 @@
 
 double* get_row_Matrix_d (const ptrdiff_t row, const struct Matrix_d* a)
 {
-	if (a->layout != 'R')
-		EXIT_UNSUPPORTED;
+	assert(a->layout == 'R');
 	return &a->data[row*(a->ext_1)];
 }
 
 double* get_col_Matrix_d (const ptrdiff_t col, const struct Matrix_d* a)
 {
-	if (a->layout != 'C')
-		EXIT_UNSUPPORTED;
+	assert(a->layout == 'C');
 	return &a->data[col*(a->ext_0)];
+}
+
+double* get_slice_Matrix_d (const ptrdiff_t slice, const struct Matrix_d* a)
+{
+	return ( a->layout == 'R' ? get_row_Matrix_d(slice,a) : get_col_Matrix_d(slice,a) );
 }
 
 const double* get_row_const_Matrix_d (const ptrdiff_t row, const struct const_Matrix_d*const a)
 {
-	if (a->layout != 'R')
-		EXIT_UNSUPPORTED;
+	assert(a->layout == 'R');
 	return &a->data[row*(a->ext_1)];
 }
 
 const double* get_col_const_Matrix_d (const ptrdiff_t col, const struct const_Matrix_d*const a)
 {
-	if (a->layout != 'C')
-		EXIT_UNSUPPORTED;
+	assert(a->layout == 'C');
 	return &a->data[col*(a->ext_0)];
+}
+
+const double* get_slice_const_Matrix_d (const ptrdiff_t slice, const struct const_Matrix_d* a)
+{
+	return (const double*) get_slice_Matrix_d(slice,(const struct Matrix_d*)a);
 }
 
 int* get_row_Matrix_i (const ptrdiff_t row, const struct Matrix_i* a)
 {
-	if (a->layout != 'R')
-		EXIT_UNSUPPORTED;
-
+	assert(a->layout == 'R');
 	return &a->data[row*(a->ext_1)];
 }
 
@@ -79,10 +85,9 @@ int get_val_const_Matrix_i (const ptrdiff_t row, const ptrdiff_t col, const stru
 	}
 }
 
-void set_row_Matrix_d (const ptrdiff_t row, const struct Matrix_d* dest, const double*const data_src)
+void set_row_Matrix_d (const ptrdiff_t row, struct Matrix_d* dest, const double*const data_src)
 {
-	if (dest->layout != 'R')
-		EXIT_ADD_SUPPORT;
+	assert(dest->layout == 'R');
 
 	double*const data = get_row_Matrix_d(row,dest);
 

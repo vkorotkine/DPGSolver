@@ -11,6 +11,7 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 ${GSL_LIBRARIES}
 	 Containers
 	 Element
 	 General

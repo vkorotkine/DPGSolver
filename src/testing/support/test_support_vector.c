@@ -117,6 +117,20 @@ struct Vector_i* constructor_file_Vector_i (FILE* data_file, const bool check_co
 
 // Difference functions ********************************************************************************************* //
 
+bool diff_Vector_i (const struct Vector_i*const a, const struct Vector_i*const b)
+{
+	const ptrdiff_t size = a->ext_0;
+
+	if (size != b->ext_0)
+		return true;
+
+	for (ptrdiff_t i = 0; i < size; ++i) {
+		if (a->data[i] != b->data[i])
+			return true;
+	}
+	return false;
+}
+
 bool diff_Vector_d (const struct Vector_d*const a, const struct Vector_d*const b, const double tol)
 {
 	const ptrdiff_t size = a->ext_0;
@@ -131,18 +145,9 @@ bool diff_Vector_d (const struct Vector_d*const a, const struct Vector_d*const b
 	return false;
 }
 
-bool diff_Vector_i (const struct Vector_i*const a, const struct Vector_i*const b)
+bool diff_const_Vector_d (const struct const_Vector_d*const a, const struct const_Vector_d*const b, const double tol)
 {
-	const ptrdiff_t size = a->ext_0;
-
-	if (size != b->ext_0)
-		return true;
-
-	for (ptrdiff_t i = 0; i < size; ++i) {
-		if (a->data[i] != b->data[i])
-			return true;
-	}
-	return false;
+	return diff_Vector_d((const struct Vector_d*const)a,(const struct Vector_d*const)b,tol);
 }
 
 // Printing functions *********************************************************************************************** //
@@ -174,6 +179,12 @@ void print_diff_Vector_d (const struct Vector_d*const a, const struct Vector_d*c
 	a_tmp->data = data;
 	print_Vector_d(a_tmp,tol);
 	a_tmp->data = data_ptr;
+}
+
+void print_diff_const_Vector_d
+	(const struct const_Vector_d*const a, const struct const_Vector_d*const b, const double tol)
+{
+	print_diff_Vector_d((const struct Vector_d*)a,(const struct Vector_d*)b,tol);
 }
 
 void print_diff_Vector_i (const struct Vector_i*const a, const struct Vector_i*const b)

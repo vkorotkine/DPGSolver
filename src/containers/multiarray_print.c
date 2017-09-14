@@ -90,6 +90,11 @@ void print_Multiarray_d (const struct Multiarray_d*const a, const double tol)
 	printf("\n");
 }
 
+void print_const_Multiarray_d (const struct const_Multiarray_d*const a, const double tol)
+{
+	print_Multiarray_d((const struct Multiarray_d*)a,tol);
+}
+
 void print_Multiarray_Matrix_d (const struct Multiarray_Matrix_d*const a, const double tol)
 {
 	print_Multiarray_extents(a->order,a->extents);

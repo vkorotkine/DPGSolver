@@ -168,6 +168,11 @@ struct Multiarray_d* constructor_move_Multiarray_d_Matrix_d (struct Matrix_d* sr
 	return constructor_move_Multiarray_d_d(src->layout,2,(ptrdiff_t[]){src->ext_0,src->ext_1},true,src->data);
 }
 
+const struct const_Multiarray_d* constructor_move_const_Multiarray_d_Matrix_d (const struct const_Matrix_d* src)
+{
+	return (const struct const_Multiarray_d*) constructor_move_Multiarray_d_Matrix_d((struct Matrix_d*)src);
+}
+
 void const_constructor_move_Multiarray_d (const struct const_Multiarray_d*const* dest, struct Multiarray_d* src)
 {
 	*(struct const_Multiarray_d**) dest = (struct const_Multiarray_d*) src;
@@ -199,18 +204,18 @@ void set_const_Multiarray_Matrix_from_Multiarray_Matrix_d
 		(struct Multiarray_Matrix_d*)dest,(struct Multiarray_Matrix_d*)src,order_o,sub_indices);
 }
 
+/// \todo Move this to matrix_constructors.
 void set_Matrix_from_Multiarray_Matrix_d
-	(struct Matrix_d* dest, struct Multiarray_Matrix_d* src, const ptrdiff_t*const sub_indices)
+	(struct Matrix_d** dest, struct Multiarray_Matrix_d* src, const ptrdiff_t*const sub_indices)
 {
-	dest = src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
-	UNUSED(dest);
+	*dest = src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
 }
 
 void set_const_Matrix_from_Multiarray_Matrix_d
-	(const struct const_Matrix_d* dest, const struct const_Multiarray_Matrix_d* src,
+	(const struct const_Matrix_d*const* dest, const struct const_Multiarray_Matrix_d* src,
 	 const ptrdiff_t*const sub_indices)
 {
-	set_Matrix_from_Multiarray_Matrix_d((struct Matrix_d*)dest,(struct Multiarray_Matrix_d*)src,sub_indices);
+	set_Matrix_from_Multiarray_Matrix_d((struct Matrix_d**)dest,(struct Multiarray_Matrix_d*)src,sub_indices);
 }
 
 // Destructors ****************************************************************************************************** //

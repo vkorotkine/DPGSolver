@@ -4,6 +4,7 @@
 
 #include "vector_constructors.h"
 
+#include <assert.h>
 #include <string.h>
 #include "mkl.h"
 
@@ -141,7 +142,6 @@ struct Vector_d* constructor_move_Vector_d_Matrix_d (struct Matrix_d* src)
 	return constructor_move_Vector_d_d(size,true,src->data);
 }
 
-
 void const_constructor_move_Vector_d (const struct const_Vector_d*const* dest, struct Vector_d* src)
 {
 	*(struct const_Vector_d**) dest = (struct const_Vector_d*) src;
@@ -156,31 +156,33 @@ void const_constructor_move_Vector_i (const struct const_Vector_i*const* dest, s
 
 struct Vector_d* constructor_sum_Vector_d_const_Matrix_d (const char sum_dir, const struct const_Matrix_d*const src)
 {
-	if (!(sum_dir == 'R' || sum_dir == 'C'))
-		EXIT_UNSUPPORTED;
-
-	const ptrdiff_t ext_0 = ( sum_dir == 'R' ? src->ext_1 : src->ext_0 );
-
-	struct Vector_d* dest = constructor_empty_Vector_d(ext_0); // returned
-	for (ptrdiff_t j = 0; j < ext_0; ++j)
-		dest->data[j] = 0.0;
-
 	if (sum_dir != src->layout) {
-		EXIT_ADD_SUPPORT;
-	} else {
-		if (src->layout == 'R') {
-			const ptrdiff_t i_max = src->ext_0;
-			for (ptrdiff_t i = 0; i < i_max; ++i) {
-				const double* data_m = get_row_const_Matrix_d(i,src);
-				for (ptrdiff_t j = 0; j < ext_0; ++j)
-					dest->data[j] += data_m[j];
-			}
-		} else {
-			EXIT_ADD_SUPPORT;
-		}
+		transpose_Matrix_d((struct Matrix_d*)src,true);
+		struct Vector_d* dest = constructor_sum_Vector_d_const_Matrix_d(sum_dir,src);
+		transpose_Matrix_d((struct Matrix_d*)src,true);
+		return dest;
 	}
 
+	assert((sum_dir == 'R' || sum_dir == 'C'));
+
+	const ptrdiff_t ext_0 = ( sum_dir == 'R' ? src->ext_0 : src->ext_1 ),
+	                n_val = ( sum_dir == 'R' ? src->ext_1 : src->ext_0 );
+
+	struct Vector_d* dest = constructor_empty_Vector_d(ext_0); // returned
+	set_to_value_Vector_d(dest,0.0);
+
+	for (ptrdiff_t i = 0; i < ext_0; ++i) {
+		const double* data_m = get_slice_const_Matrix_d(i,src);
+		for (ptrdiff_t j = 0; j < n_val; ++j)
+			dest->data[i] += data_m[j];
+	}
 	return dest;
+}
+
+const struct const_Vector_d* constructor_sum_const_Vector_d_const_Matrix_d
+	(const char sum_dir, const struct const_Matrix_d*const src)
+{
+	return (const struct const_Vector_d*) constructor_sum_Vector_d_const_Matrix_d(sum_dir,src);
 }
 
 struct Vector_d* constructor_mv_Vector_d
@@ -194,6 +196,13 @@ struct Vector_d* constructor_mv_Vector_d
 	mv_d(layout,trans_a_i,alpha,beta,a,b,c);
 
 	return c;
+}
+
+const struct const_Vector_d* constructor_mv_const_Vector_d
+	(const char layout, const char trans_a_i, const double alpha, const double beta,
+	 const struct const_Matrix_d*const a, const struct const_Vector_d*const b)
+{
+	return (const struct const_Vector_d*) constructor_mv_Vector_d(layout,trans_a_i,alpha,beta,a,b);
 }
 
 void set_Vector_from_Matrix_d (struct Vector_d* dest, struct Matrix_d* src, const ptrdiff_t*const sub_indices)

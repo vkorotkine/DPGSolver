@@ -179,6 +179,12 @@ struct Multiarray_d* constructor_move_Multiarray_d_Matrix_d
 	(struct Matrix_d* src ///< The source matrix.
 	);
 
+/** \brief `const` version of \ref constructor_move_Multiarray_d_Matrix_d.
+ *  \return Standard. */
+const struct const_Multiarray_d* constructor_move_const_Multiarray_d_Matrix_d
+	(const struct const_Matrix_d* src ///< Defined for \ref constructor_move_Multiarray_d_Matrix_d.
+	);
+
 /// \brief Move Constructor for a `const` \ref const_Multiarray_d `*const`.
 void const_constructor_move_Multiarray_d
 	(const struct const_Multiarray_d*const* dest, ///< Destination.
@@ -211,14 +217,14 @@ void set_const_Multiarray_Matrix_from_Multiarray_Matrix_d
 
 /// \brief Set a \ref Matrix_d\* from an entry of a \ref Multiarray_Matrix_d\*.
 void set_Matrix_from_Multiarray_Matrix_d
-	(struct Matrix_d* dest,            ///< The destination.
+	(struct Matrix_d** dest,           ///< The destination.
 	 struct Multiarray_Matrix_d* src,  ///< The source.
 	 const ptrdiff_t*const sub_indices ///< The sub-indices used to specify which part of the source to extract.
 	);
 
 /// \brief `const` version of \ref set_Matrix_from_Multiarray_Matrix_d.
 void set_const_Matrix_from_Multiarray_Matrix_d
-	(const struct const_Matrix_d* dest,           ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_d.
+	(const struct const_Matrix_d*const* dest,     ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_d.
 	 const struct const_Multiarray_Matrix_d* src, ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_d.
 	 const ptrdiff_t*const sub_indices            ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_d.
 	);
