@@ -143,4 +143,10 @@ void set_to_value_Matrix_d
 	 const double val         ///< The value.
 	);
 
+/** \brief Compute the opposite layout.
+ *  \return See brief. */
+char compute_opposite_layout
+	(const char layout_i ///< The input layout.
+	);
+
 #endif // DPG__matrix_h__INCLUDED

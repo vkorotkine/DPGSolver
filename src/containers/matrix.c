@@ -55,34 +55,16 @@ int* get_row_Matrix_i (const ptrdiff_t row, const struct Matrix_i* a)
 
 int get_val_Matrix_i (const ptrdiff_t row, const ptrdiff_t col, const struct Matrix_i*const a)
 {
+	assert((a->layout == 'R') || (a->layout == 'C'));
+
 	int*const data = a->data;
-	switch (a->layout) {
-	case 'R': {
-		const ptrdiff_t ext_1 = a->ext_1;
-		return data[row*ext_1+col];
-	} case 'C':
-		EXIT_ADD_SUPPORT;
-		break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
+
+	return ( a->layout == 'R' ? data[row*(a->ext_1)+col] : data[col*(a->ext_0)+row]);
 }
 
 int get_val_const_Matrix_i (const ptrdiff_t row, const ptrdiff_t col, const struct const_Matrix_i*const a)
 {
-	const int*const data = a->data;
-	switch (a->layout) {
-	case 'R': {
-		const ptrdiff_t ext_1 = a->ext_1;
-		return data[row*ext_1+col];
-	} case 'C':
-		EXIT_ADD_SUPPORT;
-		break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
+	return get_val_Matrix_i(row,col,(struct Matrix_i*)a);
 }
 
 void set_row_Matrix_d (const ptrdiff_t row, struct Matrix_d* dest, const double*const data_src)
@@ -101,6 +83,12 @@ void set_to_value_Matrix_d (struct Matrix_d*const a, const double val)
 	const ptrdiff_t size = (a->ext_0)*(a->ext_1);
 	for (ptrdiff_t i = 0; i < size; ++i)
 		a->data[i] = val;
+}
+
+char compute_opposite_layout (const char layout_i)
+{
+	assert((layout_i == 'R') || (layout_i == 'C'));
+	return ( layout_i == 'R' ? 'C' : 'R' );
 }
 
 // Static functions ************************************************************************************************* //

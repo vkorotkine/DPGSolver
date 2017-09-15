@@ -82,12 +82,12 @@ struct Basis_Data_TP_Ortho {
 	                           * m_24, ///< The 2d basis mass matrix of order 4.
 	                           * m_34; ///< The 3d basis mass matrix of order 4.
 
-	/// Gradient coefficients for the approximation of a function for the 1d basis of order 4.
-	const struct const_Multiarray_d* grad_coef_14;
-	/// Gradient coefficients for the approximation of a function for the 2d basis of order 4.
-	const struct const_Multiarray_d* grad_coef_24;
-	/// Gradient coefficients for the approximation of a function for the 3d basis of order 4.
-	const struct const_Multiarray_d* grad_coef_34;
+	/// Gradient coefficients for the approximation of order 3 of a p2 tensor-product polynomial for the 1d basis.
+	const struct const_Multiarray_d* grad_coef_13;
+	/// Gradient coefficients for the approximation of order 3 of a p2 tensor-product polynomial for the 2d basis.
+	const struct const_Multiarray_d* grad_coef_23;
+	/// Gradient coefficients for the approximation of order 3 of a p2 tensor-product polynomial for the 3d basis.
+	const struct const_Multiarray_d* grad_coef_33;
 };
 
 /** \brief Constructor for \ref Basis_Data_TP_Ortho.
@@ -152,16 +152,16 @@ static void test_unit_basis_tensor_product_orthonormal (struct Test_Info*const t
 	}
 	test_increment_and_print(test_info,pass,"Bases - tp_orthonormal_mass_matrix");
 
-	tol = (double[]) { EPS, 5*EPS, 30*EPS, };
+	tol = (double[]) { EPS, 2*EPS, 6*EPS, };
 	differences = (bool[])
-		{ diff_const_Multiarray_d(b_data_a->grad_coef_14,b_data_c->grad_coef_14,tol[0]),
-		  diff_const_Multiarray_d(b_data_a->grad_coef_24,b_data_c->grad_coef_24,tol[1]),
-		  diff_const_Multiarray_d(b_data_a->grad_coef_34,b_data_c->grad_coef_34,tol[2]),
+		{ diff_const_Multiarray_d(b_data_a->grad_coef_13,b_data_c->grad_coef_13,tol[0]),
+		  diff_const_Multiarray_d(b_data_a->grad_coef_23,b_data_c->grad_coef_23,tol[1]),
+		  diff_const_Multiarray_d(b_data_a->grad_coef_33,b_data_c->grad_coef_33,tol[2]),
 		};
 	if (check_diff(3,differences,&pass)) {
-		if (differences[0]) print_diff_const_Multiarray_d(b_data_a->grad_coef_14,b_data_c->grad_coef_14,tol[0]);
-		if (differences[1]) print_diff_const_Multiarray_d(b_data_a->grad_coef_24,b_data_c->grad_coef_24,tol[1]);
-		if (differences[2]) print_diff_const_Multiarray_d(b_data_a->grad_coef_34,b_data_c->grad_coef_34,tol[2]);
+		if (differences[0]) print_diff_const_Multiarray_d(b_data_a->grad_coef_13,b_data_c->grad_coef_13,tol[0]);
+		if (differences[1]) print_diff_const_Multiarray_d(b_data_a->grad_coef_23,b_data_c->grad_coef_23,tol[1]);
+		if (differences[2]) print_diff_const_Multiarray_d(b_data_a->grad_coef_33,b_data_c->grad_coef_33,tol[2]);
 	}
 	test_increment_and_print(test_info,pass,"Bases - tp_orthonormal_grad_basis_computation");
 
@@ -182,6 +182,11 @@ struct Basis_Data_SI_Ortho {
 
 	const struct const_Matrix_d* m_24, ///< The 2d basis mass matrix of order 4.
 	                           * m_34; ///< The 3d basis mass matrix of order 4.
+
+	/// Gradient coefficients for the approximation of order 5 of a p2 tensor-product polynomial for the 2d basis.
+	const struct const_Multiarray_d* grad_coef_25;
+	/// Gradient coefficients for the approximation of order 7 of a p2 tensor-product polynomial for the 3d basis.
+	const struct const_Multiarray_d* grad_coef_37;
 };
 
 /** \brief Constructor for \ref Basis_Data_SI_Ortho.
@@ -241,7 +246,16 @@ static void test_unit_basis_simplex_orthonormal (struct Test_Info*const test_inf
 	}
 	test_increment_and_print(test_info,pass,"Bases - si_orthonormal_mass_matrix");
 
-	test_print_warning(test_info,"Not performing grad_basis_si projection test.");
+	tol = (double[]) { 3*EPS, 2e4*EPS, };
+	differences = (bool[])
+		{ diff_const_Multiarray_d(b_data_a->grad_coef_25,b_data_c->grad_coef_25,tol[0]),
+		  diff_const_Multiarray_d(b_data_a->grad_coef_37,b_data_c->grad_coef_37,tol[1]),
+		};
+	if (check_diff(2,differences,&pass)) {
+		if (differences[0]) print_diff_const_Multiarray_d(b_data_a->grad_coef_25,b_data_c->grad_coef_25,tol[0]);
+		if (differences[1]) print_diff_const_Multiarray_d(b_data_a->grad_coef_37,b_data_c->grad_coef_37,tol[1]);
+	}
+	test_increment_and_print(test_info,pass,"Bases - si_orthonormal_grad_basis_computation");
 
 	destructor_Basis_Data_SI_Ortho(b_data_a);
 	destructor_Basis_Data_SI_Ortho(b_data_c);
@@ -256,6 +270,9 @@ struct Basis_Data_PYR_Ortho {
 	const struct const_Multiarray_Matrix_d* grad_phi32; ///< The 3d basis gradient functions of order 2.
 
 	const struct const_Matrix_d* m_34; ///< The 3d basis mass matrix of order 4.
+
+	/// Gradient coefficients for the approximation of order 6 of a p2 tensor-product polynomial for the 3d basis.
+	const struct const_Multiarray_d* grad_coef_36;
 };
 
 /** \brief Constructor for \ref Basis_Data_PYR_Ortho.
@@ -289,7 +306,7 @@ static void test_unit_basis_pyramid_orthonormal (struct Test_Info*const test_inf
 
 	tol = (double[]) { 2*EPS, };
 	differences = (bool[])
-		{ diff_const_Multiarray_Matrix_d(b_data_a->grad_phi32,b_data_c->grad_phi32,tol[1]),
+		{ diff_const_Multiarray_Matrix_d(b_data_a->grad_phi32,b_data_c->grad_phi32,tol[0]),
 		};
 	if (check_diff(1,differences,&pass)) {
 		if (differences[0])
@@ -306,7 +323,14 @@ static void test_unit_basis_pyramid_orthonormal (struct Test_Info*const test_inf
 	}
 	test_increment_and_print(test_info,pass,"Bases - pyr_orthonormal_mass_matrix");
 
-	test_print_warning(test_info,"Not performing grad_basis_pyr projection test.");
+	tol = (double[]) { 5e6*EPS, };
+	differences = (bool[])
+		{ diff_const_Multiarray_d(b_data_a->grad_coef_36,b_data_c->grad_coef_36,tol[0]),
+		};
+	if (check_diff(1,differences,&pass)) {
+		if (differences[0]) print_diff_const_Multiarray_d(b_data_a->grad_coef_36,b_data_c->grad_coef_36,tol[0]);
+	}
+	test_increment_and_print(test_info,pass,"Bases - pyr_orthonormal_grad_basis_computation");
 
 	destructor_Basis_Data_PYR_Ortho(b_data_a);
 	destructor_Basis_Data_PYR_Ortho(b_data_c);
@@ -327,6 +351,13 @@ struct Basis_Data_TP_Bezier {
 	const struct const_Vector_d* p_14, ///< The 1d basis partition of unity (summed) vector of order 4.
 	                           * p_24, ///< The 2d basis partition of unity (summed) vector of order 4.
 	                           * p_34; ///< The 3d basis partition of unity (summed) vector of order 4.
+
+	/// Gradient coefficients for the approximation of order 3 of a p2 tensor-product polynomial for the 1d basis.
+	const struct const_Multiarray_d* grad_coef_13;
+	/// Gradient coefficients for the approximation of order 3 of a p2 tensor-product polynomial for the 2d basis.
+	const struct const_Multiarray_d* grad_coef_23;
+	/// Gradient coefficients for the approximation of order 3 of a p2 tensor-product polynomial for the 3d basis.
+	const struct const_Multiarray_d* grad_coef_33;
 };
 
 /** \brief Constructor for \ref Basis_Data_TP_Bezier.
@@ -391,11 +422,21 @@ static void test_unit_basis_tensor_product_bezier (struct Test_Info*const test_i
 	}
 	test_increment_and_print(test_info,pass,"Bases - tp_bezier_part_unity");
 
+	tol = (double[]) { EPS, 2*EPS, 3*EPS, };
+	differences = (bool[])
+		{ diff_const_Multiarray_d(b_data_a->grad_coef_13,b_data_c->grad_coef_13,tol[0]),
+		  diff_const_Multiarray_d(b_data_a->grad_coef_23,b_data_c->grad_coef_23,tol[1]),
+		  diff_const_Multiarray_d(b_data_a->grad_coef_33,b_data_c->grad_coef_33,tol[2]),
+		};
+	if (check_diff(3,differences,&pass)) {
+		if (differences[0]) print_diff_const_Multiarray_d(b_data_a->grad_coef_13,b_data_c->grad_coef_13,tol[0]);
+		if (differences[1]) print_diff_const_Multiarray_d(b_data_a->grad_coef_23,b_data_c->grad_coef_23,tol[1]);
+		if (differences[2]) print_diff_const_Multiarray_d(b_data_a->grad_coef_33,b_data_c->grad_coef_33,tol[2]);
+	}
+	test_increment_and_print(test_info,pass,"Bases - tp_bezier_grad_basis_computation");
+
 	destructor_Basis_Data_TP_Bezier(b_data_a);
 	destructor_Basis_Data_TP_Bezier(b_data_c);
-
-	test_print_warning(test_info,"Not performing grad_basis_tp_bezier projection test.");
-test_print_warning(test_info,"Ensure that the basis on the std element is being used.");
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -420,9 +461,9 @@ static struct Basis_Data_TP_Ortho* constructor_Basis_Data_TP_Ortho (const char e
 		b_data->m_14         = constructor_mass_orthonormal_def(1,4,super_type);            // keep
 		b_data->m_24         = constructor_mass_orthonormal_def(2,4,super_type);            // keep
 		b_data->m_34         = constructor_mass_orthonormal_def(3,4,super_type);            // keep
-		b_data->grad_coef_14 = constructor_grad_vals_computation_def(1,4,basis_name);       // keep
-		b_data->grad_coef_24 = constructor_grad_vals_computation_def(2,4,basis_name);       // keep
-		b_data->grad_coef_34 = constructor_grad_vals_computation_def(3,4,basis_name);       // keep
+		b_data->grad_coef_13 = constructor_grad_vals_computation_def(1,3,basis_name);       // keep
+		b_data->grad_coef_23 = constructor_grad_vals_computation_def(2,3,basis_name);       // keep
+		b_data->grad_coef_33 = constructor_grad_vals_computation_def(3,3,basis_name);       // keep
 	} else if (eval_type == 'c') {
 		b_data->phi13        = constructor_basis_tp_orthonormal(3,d1_p4_GLL->rst);      // keep
 		b_data->phi22        = constructor_basis_tp_orthonormal(2,d2_p4_GLL->rst);      // keep
@@ -433,9 +474,9 @@ static struct Basis_Data_TP_Ortho* constructor_Basis_Data_TP_Ortho (const char e
 		b_data->m_14         = constructor_mass_orthonormal(1,4,super_type);            // keep
 		b_data->m_24         = constructor_mass_orthonormal(2,4,super_type);            // keep
 		b_data->m_34         = constructor_mass_orthonormal(3,4,super_type);            // keep
-		b_data->grad_coef_14 = constructor_grad_vals_computation(1,4,basis_name);       // keep
-		b_data->grad_coef_24 = constructor_grad_vals_computation(2,4,basis_name);       // keep
-		b_data->grad_coef_34 = constructor_grad_vals_computation(3,4,basis_name);       // keep
+		b_data->grad_coef_13 = constructor_grad_vals_computation(1,3,basis_name);       // keep
+		b_data->grad_coef_23 = constructor_grad_vals_computation(2,3,basis_name);       // keep
+		b_data->grad_coef_33 = constructor_grad_vals_computation(3,3,basis_name);       // keep
 	} else {
 		EXIT_UNSUPPORTED;
 	}
@@ -457,9 +498,9 @@ static void destructor_Basis_Data_TP_Ortho (struct Basis_Data_TP_Ortho* b_data)
 	destructor_const_Matrix_d(b_data->m_14);
 	destructor_const_Matrix_d(b_data->m_24);
 	destructor_const_Matrix_d(b_data->m_34);
-	destructor_const_Multiarray_d(b_data->grad_coef_14);
-	destructor_const_Multiarray_d(b_data->grad_coef_24);
-	destructor_const_Multiarray_d(b_data->grad_coef_34);
+	destructor_const_Multiarray_d(b_data->grad_coef_13);
+	destructor_const_Multiarray_d(b_data->grad_coef_23);
+	destructor_const_Multiarray_d(b_data->grad_coef_33);
 	free(b_data);
 }
 
@@ -473,22 +514,27 @@ static struct Basis_Data_SI_Ortho* constructor_Basis_Data_SI_Ortho (const char e
 	                           * d3_p4_AO = constructor_const_Cubature_si(3,4,CUB_AO); // destructed
 	const int super_type = ST_SI;
 	const int p_mass = 4;
+	const char* basis_name = "si_ortho";
 	if (eval_type == 'a') {
-		b_data->phi22      = constructor_basis_si_orthonormal_def(2,d2_p4_AO->rst);      // keep
-		b_data->phi23      = constructor_basis_si_orthonormal_def(3,d2_p4_AO->rst);      // keep
-		b_data->phi32      = constructor_basis_si_orthonormal_def(2,d3_p4_AO->rst);      // keep
-		b_data->grad_phi22 = constructor_grad_basis_si_orthonormal_def(2,d2_p4_AO->rst); // keep
-		b_data->grad_phi31 = constructor_grad_basis_si_orthonormal_def(1,d3_p4_AO->rst); // keep
-		b_data->m_24       = constructor_mass_orthonormal_def(2,p_mass,super_type);      // keep
-		b_data->m_34       = constructor_mass_orthonormal_def(3,p_mass,super_type);      // keep
+		b_data->phi22        = constructor_basis_si_orthonormal_def(2,d2_p4_AO->rst);      // keep
+		b_data->phi23        = constructor_basis_si_orthonormal_def(3,d2_p4_AO->rst);      // keep
+		b_data->phi32        = constructor_basis_si_orthonormal_def(2,d3_p4_AO->rst);      // keep
+		b_data->grad_phi22   = constructor_grad_basis_si_orthonormal_def(2,d2_p4_AO->rst); // keep
+		b_data->grad_phi31   = constructor_grad_basis_si_orthonormal_def(1,d3_p4_AO->rst); // keep
+		b_data->m_24         = constructor_mass_orthonormal_def(2,p_mass,super_type);      // keep
+		b_data->m_34         = constructor_mass_orthonormal_def(3,p_mass,super_type);      // keep
+		b_data->grad_coef_25 = constructor_grad_vals_computation_def(2,5,basis_name);      // keep
+		b_data->grad_coef_37 = constructor_grad_vals_computation_def(3,7,basis_name);      // keep
 	} else if (eval_type == 'c') {
-		b_data->phi22      = constructor_basis_si_orthonormal(2,d2_p4_AO->rst);      // keep
-		b_data->phi23      = constructor_basis_si_orthonormal(3,d2_p4_AO->rst);      // keep
-		b_data->phi32      = constructor_basis_si_orthonormal(2,d3_p4_AO->rst);      // keep
-		b_data->grad_phi22 = constructor_grad_basis_si_orthonormal(2,d2_p4_AO->rst); // keep
-		b_data->grad_phi31 = constructor_grad_basis_si_orthonormal(1,d3_p4_AO->rst); // keep
-		b_data->m_24       = constructor_mass_orthonormal(2,p_mass,super_type);      // keep
-		b_data->m_34       = constructor_mass_orthonormal(3,p_mass,super_type);      // keep
+		b_data->phi22        = constructor_basis_si_orthonormal(2,d2_p4_AO->rst);      // keep
+		b_data->phi23        = constructor_basis_si_orthonormal(3,d2_p4_AO->rst);      // keep
+		b_data->phi32        = constructor_basis_si_orthonormal(2,d3_p4_AO->rst);      // keep
+		b_data->grad_phi22   = constructor_grad_basis_si_orthonormal(2,d2_p4_AO->rst); // keep
+		b_data->grad_phi31   = constructor_grad_basis_si_orthonormal(1,d3_p4_AO->rst); // keep
+		b_data->m_24         = constructor_mass_orthonormal(2,p_mass,super_type);      // keep
+		b_data->m_34         = constructor_mass_orthonormal(3,p_mass,super_type);      // keep
+		b_data->grad_coef_25 = constructor_grad_vals_computation(2,5,basis_name);      // keep
+		b_data->grad_coef_37 = constructor_grad_vals_computation(3,7,basis_name);      // keep
 	} else {
 		EXIT_UNSUPPORTED;
 	}
@@ -507,6 +553,8 @@ static void destructor_Basis_Data_SI_Ortho (struct Basis_Data_SI_Ortho* b_data)
 	destructor_const_Multiarray_Matrix_d(b_data->grad_phi31);
 	destructor_const_Matrix_d(b_data->m_24);
 	destructor_const_Matrix_d(b_data->m_34);
+	destructor_const_Multiarray_d(b_data->grad_coef_25);
+	destructor_const_Multiarray_d(b_data->grad_coef_37);
 	free(b_data);
 }
 
@@ -519,14 +567,17 @@ static struct Basis_Data_PYR_Ortho* constructor_Basis_Data_PYR_Ortho (const char
 	const struct const_Cubature* d3_p4_GLL = constructor_const_Cubature_pyr(3,4,CUB_GLL); // destructed
 	const int super_type = ST_PYR;
 	const int p_mass = 4;
+	const char* basis_name = "pyr_ortho";
 	if (eval_type == 'a') {
-		b_data->phi32      = constructor_basis_pyr_orthonormal_def(2,d3_p4_GLL->rst);      // keep
-		b_data->grad_phi32 = constructor_grad_basis_pyr_orthonormal_def(2,d3_p4_GLL->rst); // keep
-		b_data->m_34       = constructor_mass_orthonormal_def(3,p_mass,super_type);        // keep
+		b_data->phi32        = constructor_basis_pyr_orthonormal_def(2,d3_p4_GLL->rst);      // keep
+		b_data->grad_phi32   = constructor_grad_basis_pyr_orthonormal_def(2,d3_p4_GLL->rst); // keep
+		b_data->m_34         = constructor_mass_orthonormal_def(3,p_mass,super_type);        // keep
+		b_data->grad_coef_36 = constructor_grad_vals_computation_def(3,6,basis_name);        // keep
 	} else if (eval_type == 'c') {
-		b_data->phi32      = constructor_basis_pyr_orthonormal(2,d3_p4_GLL->rst);      // keep
-		b_data->grad_phi32 = constructor_grad_basis_pyr_orthonormal(2,d3_p4_GLL->rst); // keep
-		b_data->m_34       = constructor_mass_orthonormal(3,p_mass,super_type);        // keep
+		b_data->phi32        = constructor_basis_pyr_orthonormal(2,d3_p4_GLL->rst);      // keep
+		b_data->grad_phi32   = constructor_grad_basis_pyr_orthonormal(2,d3_p4_GLL->rst); // keep
+		b_data->m_34         = constructor_mass_orthonormal(3,p_mass,super_type);        // keep
+		b_data->grad_coef_36 = constructor_grad_vals_computation(3,6,basis_name);        // keep
 	} else {
 		EXIT_UNSUPPORTED;
 	}
@@ -540,6 +591,7 @@ static void destructor_Basis_Data_PYR_Ortho (struct Basis_Data_PYR_Ortho* b_data
 	destructor_const_Matrix_d(b_data->phi32);
 	destructor_const_Multiarray_Matrix_d(b_data->grad_phi32);
 	destructor_const_Matrix_d(b_data->m_34);
+	destructor_const_Multiarray_d(b_data->grad_coef_36);
 	free(b_data);
 }
 
@@ -552,26 +604,33 @@ static struct Basis_Data_TP_Bezier* constructor_Basis_Data_TP_Bezier (const char
 	const struct const_Cubature* d1_p4_GLL = constructor_const_Cubature_tp(1,4,CUB_GLL), // destructed
 	                           * d2_p4_GLL = constructor_const_Cubature_tp(2,4,CUB_GLL), // destructed
 	                           * d3_p4_GLL = constructor_const_Cubature_tp(3,4,CUB_GLL); // destructed
+	const char* basis_name = "tp_bezier";
 	if (eval_type == 'a') {
-		b_data->phi13      = constructor_basis_tp_bezier_def(3,d1_p4_GLL->rst);      // keep
-		b_data->phi22      = constructor_basis_tp_bezier_def(2,d2_p4_GLL->rst);      // keep
-		b_data->phi32      = constructor_basis_tp_bezier_def(2,d3_p4_GLL->rst);      // keep
-		b_data->grad_phi13 = constructor_grad_basis_tp_bezier_def(3,d1_p4_GLL->rst); // keep
-		b_data->grad_phi22 = constructor_grad_basis_tp_bezier_def(2,d2_p4_GLL->rst); // keep
-		b_data->grad_phi31 = constructor_grad_basis_tp_bezier_def(1,d3_p4_GLL->rst); // keep
-		b_data->p_14       = constructor_part_unity_def(d1_p4_GLL->rst->ext_0);      // keep
-		b_data->p_24       = constructor_part_unity_def(d2_p4_GLL->rst->ext_0);      // keep
-		b_data->p_34       = constructor_part_unity_def(d3_p4_GLL->rst->ext_0);      // keep
+		b_data->phi13        = constructor_basis_tp_bezier_def(3,d1_p4_GLL->rst);      // keep
+		b_data->phi22        = constructor_basis_tp_bezier_def(2,d2_p4_GLL->rst);      // keep
+		b_data->phi32        = constructor_basis_tp_bezier_def(2,d3_p4_GLL->rst);      // keep
+		b_data->grad_phi13   = constructor_grad_basis_tp_bezier_def(3,d1_p4_GLL->rst); // keep
+		b_data->grad_phi22   = constructor_grad_basis_tp_bezier_def(2,d2_p4_GLL->rst); // keep
+		b_data->grad_phi31   = constructor_grad_basis_tp_bezier_def(1,d3_p4_GLL->rst); // keep
+		b_data->p_14         = constructor_part_unity_def(d1_p4_GLL->rst->ext_0);      // keep
+		b_data->p_24         = constructor_part_unity_def(d2_p4_GLL->rst->ext_0);      // keep
+		b_data->p_34         = constructor_part_unity_def(d3_p4_GLL->rst->ext_0);      // keep
+		b_data->grad_coef_13 = constructor_grad_vals_computation_def(1,3,basis_name);  // keep
+		b_data->grad_coef_23 = constructor_grad_vals_computation_def(2,3,basis_name);  // keep
+		b_data->grad_coef_33 = constructor_grad_vals_computation_def(3,3,basis_name);  // keep
 	} else if (eval_type == 'c') {
-		b_data->phi13      = constructor_basis_tp_bezier(3,d1_p4_GLL->rst);      // keep
-		b_data->phi22      = constructor_basis_tp_bezier(2,d2_p4_GLL->rst);      // keep
-		b_data->phi32      = constructor_basis_tp_bezier(2,d3_p4_GLL->rst);      // keep
-		b_data->grad_phi13 = constructor_grad_basis_tp_bezier(3,d1_p4_GLL->rst); // keep
-		b_data->grad_phi22 = constructor_grad_basis_tp_bezier(2,d2_p4_GLL->rst); // keep
-		b_data->grad_phi31 = constructor_grad_basis_tp_bezier(1,d3_p4_GLL->rst); // keep
-		b_data->p_14       = constructor_part_unity(b_data->phi13);              // keep
-		b_data->p_24       = constructor_part_unity(b_data->phi22);              // keep
-		b_data->p_34       = constructor_part_unity(b_data->phi32);              // keep
+		b_data->phi13        = constructor_basis_tp_bezier(3,d1_p4_GLL->rst);      // keep
+		b_data->phi22        = constructor_basis_tp_bezier(2,d2_p4_GLL->rst);      // keep
+		b_data->phi32        = constructor_basis_tp_bezier(2,d3_p4_GLL->rst);      // keep
+		b_data->grad_phi13   = constructor_grad_basis_tp_bezier(3,d1_p4_GLL->rst); // keep
+		b_data->grad_phi22   = constructor_grad_basis_tp_bezier(2,d2_p4_GLL->rst); // keep
+		b_data->grad_phi31   = constructor_grad_basis_tp_bezier(1,d3_p4_GLL->rst); // keep
+		b_data->p_14         = constructor_part_unity(b_data->phi13);              // keep
+		b_data->p_24         = constructor_part_unity(b_data->phi22);              // keep
+		b_data->p_34         = constructor_part_unity(b_data->phi32);              // keep
+		b_data->grad_coef_13 = constructor_grad_vals_computation(1,3,basis_name);  // keep
+		b_data->grad_coef_23 = constructor_grad_vals_computation(2,3,basis_name);  // keep
+		b_data->grad_coef_33 = constructor_grad_vals_computation(3,3,basis_name);  // keep
 	} else {
 		EXIT_UNSUPPORTED;
 	}
@@ -593,5 +652,8 @@ static void destructor_Basis_Data_TP_Bezier (struct Basis_Data_TP_Bezier* b_data
 	destructor_const_Vector_d(b_data->p_14);
 	destructor_const_Vector_d(b_data->p_24);
 	destructor_const_Vector_d(b_data->p_34);
+	destructor_const_Multiarray_d(b_data->grad_coef_13);
+	destructor_const_Multiarray_d(b_data->grad_coef_23);
+	destructor_const_Multiarray_d(b_data->grad_coef_33);
 	free(b_data);
 }

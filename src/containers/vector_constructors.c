@@ -152,6 +152,23 @@ void const_constructor_move_Vector_i (const struct const_Vector_i*const* dest, s
 	*(struct const_Vector_i**) dest = (struct const_Vector_i*) src;
 }
 
+// Set constructors ************************************************************************************************* //
+
+struct Vector_d* constructor_set_Vector_d_Multiarray_d (struct Multiarray_d* src, const ptrdiff_t* sub_indices)
+{
+	struct Vector_d* dest = constructor_default_Vector_d(); // returned
+	set_Vector_from_Multiarray_d(dest,src,sub_indices);
+
+	return dest;
+}
+
+const struct const_Vector_d* constructor_set_const_Vector_d_Multiarray_d
+	(const struct const_Multiarray_d* src, const ptrdiff_t* sub_indices)
+{
+	return (const struct const_Vector_d*)
+		constructor_set_Vector_d_Multiarray_d((struct Multiarray_d*)src,sub_indices);
+}
+
 // Special constructors ********************************************************************************************* //
 
 struct Vector_d* constructor_sum_Vector_d_const_Matrix_d (const char sum_dir, const struct const_Matrix_d*const src)
@@ -205,6 +222,37 @@ const struct const_Vector_d* constructor_mv_const_Vector_d
 	return (const struct const_Vector_d*) constructor_mv_Vector_d(layout,trans_a_i,alpha,beta,a,b);
 }
 
+struct Vector_d* constructor_sgesv_Vector_d (struct Matrix_d* A_i, struct Vector_d* B_i)
+{
+	// The source matrix is copied as the entries would otherwise be modified while solving the linear system.
+	struct Matrix_d* A = constructor_copy_Matrix_d(A_i);         // destructed;
+	struct Vector_d* X = constructor_empty_Vector_d(B_i->ext_0); // returned;
+
+	const int matrix_layout = ( A->layout == 'R' ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR );
+	const lapack_int n      = A->ext_0,
+	                 nrhs   = 1;
+	double* a               = A->data,
+	      * b               = B_i->data,
+	      * x               = X->data;
+	const lapack_int lda    = A->ext_0,
+	                 ldb    = ( matrix_layout == LAPACK_COL_MAJOR ? n : nrhs ),
+	                 ldx    = ldb;
+	lapack_int ipiv[n],
+	           iter         = 0;
+
+	const int info = LAPACKE_dsgesv(matrix_layout,n,nrhs,a,lda,ipiv,b,ldb,x,ldx,&iter);
+	assert(info == 0);
+
+	destructor_Matrix_d(A);
+	return X;
+}
+
+const struct const_Vector_d* constructor_sgesv_const_Vector_d
+	(const struct const_Matrix_d* A_i, const struct const_Vector_d* B_i)
+{
+	return (const struct const_Vector_d*) constructor_sgesv_Vector_d((struct Matrix_d*)A_i,(struct Vector_d*)B_i);
+}
+
 void set_Vector_from_Matrix_d (struct Vector_d* dest, struct Matrix_d* src, const ptrdiff_t*const sub_indices)
 {
 	dest->owns_data = false;
@@ -241,8 +289,7 @@ void set_const_Vector_from_Multiarray_d
 
 void destructor_Vector_d (struct Vector_d* a)
 {
-	if (a == NULL)
-		EXIT_DESTRUCTOR;
+	assert(a != NULL);
 
 	if (a->owns_data)
 		free(a->data);
@@ -256,8 +303,7 @@ void destructor_const_Vector_d (const struct const_Vector_d* a)
 
 void destructor_Vector_i (struct Vector_i* a)
 {
-	if (a == NULL)
-		EXIT_DESTRUCTOR;
+	assert(a != NULL);
 
 	if (a->owns_data)
 		free(a->data);
@@ -271,8 +317,7 @@ void destructor_const_Vector_i (const struct const_Vector_i* a)
 
 void destructor_Vector_i_2 (struct Vector_i** a, const ptrdiff_t n_src, const bool owns_data)
 {
-	if (a == NULL)
-		EXIT_DESTRUCTOR;
+	assert(a != NULL);
 
 	if (owns_data) {
 		for (ptrdiff_t n = 0; n < n_src; n++)

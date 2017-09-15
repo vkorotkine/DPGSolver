@@ -17,6 +17,7 @@
 #include "macros.h"
 #include "definitions_cubature.h"
 #include "definitions_elements.h"
+#include "definitions_core.h"
 
 #include "multiarray.h"
 #include "matrix.h"
@@ -63,8 +64,16 @@ static void set_scaling_basis_pyr
 	 double* con_c   ///< Constant multiplier for the additional `c` component.
 	);
 
-/** \brief Evaluate the hard-coded polynomial at the input coordinate location.
- *  \return The polynomial value for `derivative_index = 0` and the associated derivative otherwise. */
+/** \brief Evaluate the hard-coded tensor-product polynomial of order 2 in each direction at the input coordinates.
+ *  \return The polynomial value for `derivative_index = 0` and the associated derivative otherwise.
+ *
+ *  The order of the polynomial is such that the following order bases are required for its exact representation:
+ *  - tensor-product: line (2), quad (2), hex (2);
+ *  - simplex:         tri (4), tet (6);
+ *  - pyramid:         pyr (6);
+ *
+ *  The test for the gradient evaluation will fail if lower orders than those specified above are used.
+ */
 static double poly_rst
 	(const double r,
 	 const double s,
@@ -260,8 +269,8 @@ const struct const_Matrix_d* constructor_basis_si_orthonormal_def (const int p_b
 
 			set_scaling_basis_tri(0,0,b_n,&con_i,&con_j,&con_b);
 			*phi_data++ = con*con_b
-		                    * con_i*1.0
-		                    * con_j*1.0;
+			            * con_i*1.0
+			            * con_j*1.0;
 
 			set_scaling_basis_tri(0,1,b_n,&con_i,&con_j,&con_b);
 			*phi_data++ = con*con_b
@@ -1249,12 +1258,23 @@ const struct const_Vector_d* constructor_part_unity (const struct const_Matrix_d
 const struct const_Multiarray_d* constructor_grad_vals_computation_def
 	(const int d, const int p_b, const char*const basis_name)
 {
-/// \todo make function for this initialization
 	int cub_type  = 0;
 	int cub_order = 0;
 	cubature_fptr cub_fun = NULL;
 	if (strcmp(basis_name,"tp_ortho") == 0) {
-		cub_type  = CUB_GL;
+		cub_type  = CUB_GLL;
+		cub_order = p_b;
+		cub_fun   = constructor_const_Cubature_tp;
+	} else if (strcmp(basis_name,"si_ortho") == 0) {
+		cub_type  = CUB_AO;
+		cub_order = p_b;
+		cub_fun   = constructor_const_Cubature_si;
+	} else if (strcmp(basis_name,"pyr_ortho") == 0) {
+		cub_type  = CUB_GLL;
+		cub_order = p_b;
+		cub_fun   = constructor_const_Cubature_pyr;
+	} else if (strcmp(basis_name,"tp_bezier") == 0) {
+		cub_type  = CUB_GLL;
 		cub_order = p_b;
 		cub_fun   = constructor_const_Cubature_tp;
 	} else {
@@ -1277,49 +1297,51 @@ const struct const_Multiarray_d* constructor_grad_vals_computation
 	basis_fptr      basis_fun      = NULL;
 	grad_basis_fptr grad_basis_fun = NULL;
 	if (strcmp(basis_name,"tp_ortho") == 0) {
-		cub_type  = CUB_GL;
+		cub_type  = CUB_GLL;
 		cub_order = p_b;
-		cub_fun        = constructor_const_Cubature_tp;
+		cub_fun   = constructor_const_Cubature_tp;
 		basis_fun      = constructor_basis_tp_orthonormal;
 		grad_basis_fun = constructor_grad_basis_tp_orthonormal;
+	} else if (strcmp(basis_name,"si_ortho") == 0) {
+		cub_type  = CUB_AO;
+		cub_order = p_b;
+		cub_fun   = constructor_const_Cubature_si;
+		basis_fun      = constructor_basis_si_orthonormal;
+		grad_basis_fun = constructor_grad_basis_si_orthonormal;
+	} else if (strcmp(basis_name,"pyr_ortho") == 0) {
+		cub_type  = CUB_GLL;
+		cub_order = p_b;
+		cub_fun   = constructor_const_Cubature_pyr;
+		basis_fun      = constructor_basis_pyr_orthonormal;
+		grad_basis_fun = constructor_grad_basis_pyr_orthonormal;
+	} else if (strcmp(basis_name,"tp_bezier") == 0) {
+		cub_type  = CUB_GLL;
+		cub_order = p_b;
+		cub_fun   = constructor_const_Cubature_tp;
+		basis_fun      = constructor_basis_tp_bezier;
+		grad_basis_fun = constructor_grad_basis_tp_bezier;
 	} else {
 		EXIT_UNSUPPORTED;
 	}
 
 	const struct const_Cubature* cub = cub_fun(d,cub_order,cub_type); // destructed
+	const struct const_Multiarray_d* f_vc_MA = constructor_f_rst(cub->rst); // destructed
 
-	const struct const_Multiarray_d* f_vc_MA = constructor_f_rst(cub->rst);           // destructed
-/// \todo change to constructor_from ...
-	const struct const_Vector_d* f_vc        = constructor_default_const_Vector_d(); // destructed
-	set_const_Vector_from_Multiarray_d(f_vc,f_vc_MA,(ptrdiff_t[]) {0});
+	const struct const_Vector_d* f_vc =
+		constructor_set_const_Vector_d_Multiarray_d(f_vc_MA,(ptrdiff_t[]){0}); // destructed
 
 	const struct const_Matrix_d*const phi = basis_fun(p_b,cub->rst); // destructed
-
-/// \todo change this to use linear system solve.
-	const struct const_Matrix_d* phi_inv = constructor_inverse_const_Matrix_d(phi); // destructed
-
-	const struct const_Vector_d* f_vc_coef =
-		constructor_mv_const_Vector_d('C','N',1.0,0.0,phi_inv,f_vc); // destructed
-
-/// \todo make function for d-dimensional multiarray of Matrix_d * Vector_d.
-	const struct const_Multiarray_Matrix_d*const grad_phi = grad_basis_fun(p_b,cub->rst); // destructed
-	const struct const_Matrix_d*const grad_phi_M = constructor_default_const_Matrix_d(); // destructed
-
-	struct Multiarray_d* grad_f = constructor_empty_Multiarray_d(2,(ptrdiff_t[]) {cub->rst->ext_0,d});
-	struct Vector_d* grad_f_V = constructor_default_Vector_d(); // destructed
-	for (int dim = 0; dim < d; ++dim) {
-		set_const_Matrix_from_Multiarray_Matrix_d(&grad_phi_M,grad_phi,(ptrdiff_t[]) {dim});
-		set_Vector_from_Multiarray_d(grad_f_V,grad_f,(ptrdiff_t[]) {dim});
-		mv_d('C','N',1.0,0.0,grad_phi_M,f_vc_coef,grad_f_V);
-	}
-
-	destructor_const_Cubature(cub);
-	destructor_const_Multiarray_d(f_vc_MA);
-	destructor_const_Vector_d(f_vc);
-	destructor_const_Vector_d(f_vc_coef);
+	const struct const_Vector_d* f_vc_coef = constructor_sgesv_const_Vector_d(phi,f_vc); // destructed
 	destructor_const_Matrix_d(phi);
-	destructor_const_Matrix_d(phi_inv);
+	destructor_const_Vector_d(f_vc);
+	destructor_const_Multiarray_d(f_vc_MA);
+
+	const struct const_Multiarray_Matrix_d*const grad_phi = grad_basis_fun(p_b,cub->rst); // destructed
+	const struct const_Multiarray_d* grad_f =
+		constructor_MaM1_V_const_Multiarray_d('C','N',1.0,0.0,grad_phi,f_vc_coef); // returned
 	destructor_const_Multiarray_Matrix_d(grad_phi);
+	destructor_const_Vector_d(f_vc_coef);
+	destructor_const_Cubature(cub);
 
 	return (const struct const_Multiarray_d*) grad_f;
 }
@@ -1365,9 +1387,9 @@ static double poly_rst (const double r, const double s, const double t, const in
 
 	const double rst[]  = { r, s, t, };
 	const int len[]     = { 3, 3, 3, };
-	const double c[][d] = { { 1.0, 2.0, 5.0 },
-	                        { 1.0, 3.0, 6.0 },
-	                        { 1.0, 4.0, 7.0 }, };
+	const double c[][DMAX] = { { 1.0, 2.0, 5.0 },
+	                           { 1.0, 3.0, 6.0 },
+	                           { 1.0, 4.0, 7.0 }, };
 
 	double dc[n_der];
 
@@ -1391,7 +1413,7 @@ static const struct const_Multiarray_d* constructor_f_rst (const struct const_Ma
 	            *const s_ptr = ( d > 1 ? get_col_const_Matrix_d(1,rst) : NULL),
 	            *const t_ptr = ( d > 2 ? get_col_const_Matrix_d(2,rst) : NULL);
 
-	struct Matrix_d* f_vc = constructor_empty_Matrix_d('C',n_n,1); // moved
+	struct Matrix_d* f_vc = constructor_empty_Matrix_d('C',n_n,1); // destructed
 
 	double* data = f_vc->data;
 	for (int n = 0; n < n_n; ++n) {
@@ -1402,7 +1424,11 @@ static const struct const_Multiarray_d* constructor_f_rst (const struct const_Ma
 		*data++ = poly_rst(r,s,t,0);
 	}
 
-	return constructor_move_const_Multiarray_d_Matrix_d((const struct const_Matrix_d*)f_vc);
+	const struct const_Multiarray_d* dest =
+		constructor_move_const_Multiarray_d_Matrix_d((const struct const_Matrix_d*)f_vc);
+	destructor_Matrix_d(f_vc);
+
+	return dest;
 }
 
 static const struct const_Multiarray_d* constructor_grad_f_rst (const struct const_Matrix_d* rst)
@@ -1415,7 +1441,7 @@ static const struct const_Multiarray_d* constructor_grad_f_rst (const struct con
 	            *const s_ptr = ( d > 1 ? get_col_const_Matrix_d(1,rst) : NULL),
 	            *const t_ptr = ( d > 2 ? get_col_const_Matrix_d(2,rst) : NULL);
 
-	struct Matrix_d* grad_f_vc = constructor_empty_Matrix_d('C',n_n,d); // moved
+	struct Matrix_d* grad_f_vc = constructor_empty_Matrix_d('C',n_n,d); // destructed
 
 	double* data = grad_f_vc->data;
 	for (int dim = 0; dim < d; ++dim) {
@@ -1427,5 +1453,9 @@ static const struct const_Multiarray_d* constructor_grad_f_rst (const struct con
 		*data++ = poly_rst(r,s,t,dim+1);
 	}}
 
-	return constructor_move_const_Multiarray_d_Matrix_d((const struct const_Matrix_d*)grad_f_vc);
+	const struct const_Multiarray_d* dest =
+		constructor_move_const_Multiarray_d_Matrix_d((const struct const_Matrix_d*)grad_f_vc); // returned
+	destructor_Matrix_d(grad_f_vc);
+
+	return dest;
 }

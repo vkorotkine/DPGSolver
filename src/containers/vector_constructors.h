@@ -3,8 +3,8 @@
 
 #ifndef DPG__vector_constructors_h__INCLUDED
 #define DPG__vector_constructors_h__INCLUDED
-/**	\file
- *	\brief Provides Vector_\* constructors and destructors.
+/** \file
+ *  \brief Provides Vector_\* constructors and destructors.
  */
 
 #include <stddef.h>
@@ -116,6 +116,22 @@ void const_constructor_move_Vector_i
 	 struct Vector_i* src                     ///< Source.
 	);
 
+// Set constructors ************************************************************************************************* //
+
+/** \brief Constructor for a \ref Vector_d\* from a sub range of a \ref Multiarray_d\*.
+ *  \return Standard. */
+struct Vector_d* constructor_set_Vector_d_Multiarray_d
+	(struct Multiarray_d* src,         ///< The source.
+	 const ptrdiff_t*const sub_indices ///< The sub-indices used to specify which part of the source to extract.
+	);
+
+/** \brief `const` version of \ref constructor_set_Vector_d_Multiarray_d.
+ *  \return Standard. */
+const struct const_Vector_d* constructor_set_const_Vector_d_Multiarray_d
+	(const struct const_Multiarray_d* src, ///< Defined for \ref constructor_set_Vector_d_Multiarray_d.
+	 const ptrdiff_t*const sub_indices     ///< Defined for \ref constructor_set_Vector_d_Multiarray_d.
+	);
+
 // Special constructors ********************************************************************************************* //
 
 /** \brief Constructs a \ref Vector_d\* as the sum of the rows/columns of the input Matrix in the specified direction.
@@ -152,6 +168,24 @@ const struct const_Vector_d* constructor_mv_const_Vector_d
 	 const double beta,                   ///< Defined for \ref mv_d.
 	 const struct const_Matrix_d*const a, ///< Defined for \ref mv_d.
 	 const struct const_Vector_d*const b  ///< Defined for \ref mv_d.
+	);
+
+/** \brief Constructor for a \ref Vector_d\* from the solution of a linear system using [LAPACKE_dsgesv][dsgesv].
+ *  \return Standard.
+ *
+ *  <!-- References: -->
+ *  [dsgesv]: https://software.intel.com/en-us/mkl-developer-reference-c-gesv
+ */
+struct Vector_d* constructor_sgesv_Vector_d
+	(struct Matrix_d* A_i, ///< The LHS input matrix A.
+	 struct Vector_d* B_i  ///< The RHS input vector B.
+	);
+
+/** \brief `const` version of \ref constructor_sgesv_Vector_d.
+ *  \return Standard. */
+const struct const_Vector_d* constructor_sgesv_const_Vector_d
+	(const struct const_Matrix_d* A_i, ///< The LHS input matrix A.
+	 const struct const_Vector_d* B_i  ///< The RHS input vector B.
 	);
 
 /// \brief Set a \ref Vector_d\* from a sub range of a \ref Matrix_d\*.

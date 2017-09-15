@@ -222,7 +222,7 @@ const struct const_Matrix_d* constructor_identity_const_Matrix_d (const char lay
 
 struct Matrix_d* constructor_inverse_Matrix_d (struct Matrix_d* src)
 {
-	// The source matrix is copy as the entries would otherwise be modified while solving for for the inverse.
+	// The source matrix is copied as the entries would otherwise be modified while solving for for the inverse.
 	struct Matrix_d* A = constructor_copy_Matrix_d(src);                                // destructed;
 	struct Matrix_d* B = constructor_identity_Matrix_d(src->layout,src->ext_0);         // destructed;
 	struct Matrix_d* X = constructor_empty_Matrix_d(src->layout,src->ext_0,src->ext_1); // returned;
@@ -239,7 +239,7 @@ struct Matrix_d* constructor_inverse_Matrix_d (struct Matrix_d* src)
 	lapack_int ipiv[n],
 	           iter         = 0;
 
-	const int info = LAPACKE_dsgesv (matrix_layout,n,nrhs,a,lda,ipiv,b,ldb,x,ldx,&iter);
+	const int info = LAPACKE_dsgesv(matrix_layout,n,nrhs,a,lda,ipiv,b,ldb,x,ldx,&iter);
 	assert(info == 0);
 
 	destructor_Matrix_d(A);
@@ -285,6 +285,25 @@ void set_const_Matrix_from_Multiarray_d
 	(const struct const_Matrix_d* dest, const struct const_Multiarray_d* src, const ptrdiff_t*const sub_indices)
 {
 	set_Matrix_from_Multiarray_d((struct Matrix_d*)dest,(struct Multiarray_d*)src,sub_indices);
+}
+
+void set_Matrix_from_Multiarray_Matrix_d
+	(struct Matrix_d* dest, struct Multiarray_Matrix_d* src, const ptrdiff_t*const sub_indices)
+{
+	struct Matrix_d* src_M = src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
+
+	dest->layout    = src_M->layout;
+	dest->ext_0     = src_M->ext_0;
+	dest->ext_1     = src_M->ext_1;
+	dest->owns_data = false;
+	dest->data      = src_M->data;
+}
+
+void set_const_Matrix_from_Multiarray_Matrix_d
+	(const struct const_Matrix_d* dest, const struct const_Multiarray_Matrix_d* src,
+	 const ptrdiff_t*const sub_indices)
+{
+	set_Matrix_from_Multiarray_Matrix_d((struct Matrix_d*)dest,(struct Multiarray_Matrix_d*)src,sub_indices);
 }
 
 // Destructors ****************************************************************************************************** //

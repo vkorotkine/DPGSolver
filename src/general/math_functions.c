@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 #include <math.h>
 #include <string.h>
 #include "jacobi.h"
@@ -94,8 +95,7 @@ double max_abs_d (const double a, const double b)
 
 double binomial_coef (const int num, const int den)
 {
-	if (num < den)
-		EXIT_ERROR("Invalid.\n");
+	assert(num >= den);
 
 	return gsl_sf_fact(num)/(gsl_sf_fact(num-den)*gsl_sf_fact(den));
 }

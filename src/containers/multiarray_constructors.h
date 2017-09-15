@@ -15,6 +15,7 @@
  *  		- empty:   reserve memory storage for the data but do not set it.
  *  		- copy:    reserve memory storage for the data and set it to a copy of the input data.
  *  		- move:    move data to the container being constructed.
+ *  		- set:     construct a container and set its entries to the input container but use `owns_data = false`.
  *  	- (1) : Optional `const` specifier
  *  	- {2} : Type of container to be returned
  *  		- Multiarray_\*: d, Vector_i
@@ -64,6 +65,7 @@
 struct Vector_i;
 struct Matrix_d;
 struct Multiarray_Matrix_d;
+struct const_Vector_d;
 struct const_Matrix_d;
 struct const_Multiarray_d;
 struct const_Multiarray_Vector_i;
@@ -89,7 +91,8 @@ const struct const_Multiarray_Matrix_d* constructor_default_const_Multiarray_Mat
  *  \return Standard.
  */
 struct Multiarray_d* constructor_empty_Multiarray_d
-	(const int order,                ///< Defined in \ref Multiarray_d.
+	(const char layout,              ///< Defined in \ref Multiarray_d.
+	 const int order,                ///< Defined in \ref Multiarray_d.
 	 const ptrdiff_t*const extents_i ///< The input extents.
 	);
 
@@ -199,6 +202,19 @@ void const_constructor_move_Multiarray_Vector_i
 
 // Special constructors ********************************************************************************************* //
 
+/** \brief Constructor for a \ref const_Multiarray_d\* **of order 2** from the matrix-vector multiplications of the
+ *         matrices of `A` with the vector `b`.
+ *  \return See brief.
+ **/
+const struct const_Multiarray_d* constructor_MaM1_V_const_Multiarray_d
+	(const char layout,                              ///< The layout of the output Multiarray.
+	 const char trans_a,                             ///< Defined for \ref mv_d.
+	 const double alpha,                             ///< Defined for \ref mv_d.
+	 const double beta,                              ///< Defined for \ref mv_d.
+	 const struct const_Multiarray_Matrix_d*const A, ///< Defined for \ref mv_d.
+	 const struct const_Vector_d* b                  ///< Defined for \ref mv_d.
+	);
+
 /// \brief Set a \ref Multiarray_Matrix_d\* from a sub range of a \ref Multiarray_Matrix_d\*.
 void set_Multiarray_Matrix_from_Multiarray_Matrix_d
 	(struct Multiarray_Matrix_d* dest, ///< The destination.
@@ -213,20 +229,6 @@ void set_const_Multiarray_Matrix_from_Multiarray_Matrix_d
 	 const struct const_Multiarray_Matrix_d* src,  ///< Defined for mutable version.
 	 const int order_o,                            ///< Defined for mutable version.
 	 const ptrdiff_t*const sub_indices             ///< Defined for mutable version.
-	);
-
-/// \brief Set a \ref Matrix_d\* from an entry of a \ref Multiarray_Matrix_d\*.
-void set_Matrix_from_Multiarray_Matrix_d
-	(struct Matrix_d** dest,           ///< The destination.
-	 struct Multiarray_Matrix_d* src,  ///< The source.
-	 const ptrdiff_t*const sub_indices ///< The sub-indices used to specify which part of the source to extract.
-	);
-
-/// \brief `const` version of \ref set_Matrix_from_Multiarray_Matrix_d.
-void set_const_Matrix_from_Multiarray_Matrix_d
-	(const struct const_Matrix_d*const* dest,     ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_d.
-	 const struct const_Multiarray_Matrix_d* src, ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_d.
-	 const ptrdiff_t*const sub_indices            ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_d.
 	);
 
 // Destructors ****************************************************************************************************** //

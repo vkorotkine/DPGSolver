@@ -13,9 +13,11 @@
 #include <stdbool.h>
 
 struct Multiarray_d;
+struct Multiarray_Matrix_d;
 struct const_Vector_i;
 struct const_Matrix_i;
 struct const_Multiarray_d;
+struct const_Multiarray_Matrix_d;
 
 // Default constructors ********************************************************************************************* //
 
@@ -205,6 +207,20 @@ void set_const_Matrix_from_Multiarray_d
 	(const struct const_Matrix_d* dest,    ///< Defined for \ref set_Matrix_from_Multiarray_d.
 	 const struct const_Multiarray_d* src, ///< Defined for \ref set_Matrix_from_Multiarray_d.
 	 const ptrdiff_t*const sub_indices     ///< Defined for \ref set_Matrix_from_Multiarray_d.
+	);
+
+/// \brief Set a \ref Matrix_d\* from an entry of a \ref Multiarray_Matrix_d\*.
+void set_Matrix_from_Multiarray_Matrix_d
+	(struct Matrix_d* dest,            ///< The destination.
+	 struct Multiarray_Matrix_d* src,  ///< The source.
+	 const ptrdiff_t*const sub_indices ///< The sub-indices used to specify which part of the source to extract.
+	);
+
+/// \brief `const` version of \ref set_Matrix_from_Multiarray_Matrix_d.
+void set_const_Matrix_from_Multiarray_Matrix_d
+	(const struct const_Matrix_d* dest,           ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_d.
+	 const struct const_Multiarray_Matrix_d* src, ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_d.
+	 const ptrdiff_t*const sub_indices            ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_d.
 	);
 
 // Destructors ****************************************************************************************************** //

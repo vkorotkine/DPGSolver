@@ -20,28 +20,17 @@
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Evaluate the Bernstein polynomial.
- *  \todo Delete this after the std interval basis is verified.
- *  \return See brief. */
-static double bernstein
-	(const int p,      ///< The order.
-	 const int i,      ///< The index.
-	 const double r_01 ///< The reference coordinate in [0,1].
-	);
-
-/** \brief Evaluate the derivative of the Bernstein polynomial.
- *  \todo Delete this after the std interval basis is verified.
- *  \return See brief. */
-//static double grad_bernstein
-double grad_bernstein
-	(const int p,      ///< The order.
-	 const int i,      ///< The index.
-	 const double r_01 ///< The reference coordinate in [0,1].
-	);
-
 /** \brief Evaluate the Bernstein polynomial on the standard interval.
  *  \return See brief. */
 static double bernstein_std
+	(const int p,   ///< The order.
+	 const int i,   ///< The index.
+	 const double r ///< The reference coordinate in [-1,1].
+	);
+
+/** \brief Evaluate the derivative of the Bernstein polynomial on the standard interval.
+ *  \return See brief. */
+static double grad_bernstein_std
 	(const int p,   ///< The order.
 	 const int i,   ///< The index.
 	 const double r ///< The reference coordinate in [-1,1].
@@ -476,32 +465,16 @@ const struct const_Matrix_d* constructor_basis_tp_bezier (const int p_b, const s
 	const double*const r = get_col_const_Matrix_d(0,rst),
 	            *const s = ( d > 1 ? get_col_const_Matrix_d(1,rst) : NULL),
 	            *const t = ( d > 2 ? get_col_const_Matrix_d(2,rst) : NULL);
-if (0) {
-	for (int n = 0; n < n_n; ++n) {
-	for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
-		const double t_01 = ( d > 2 ? 0.5*(1.0+t[n]) : 0.5 );
-		for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
-			const double s_01 = ( d > 1 ? 0.5*(1.0+s[n]) : 0.5 );
-			for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; ++i) {
-				const double r_01 = 0.5*(1.0+r[n]);
-				           *phi_data  = bernstein(p_b,i,r_01);
-				if (d > 1) *phi_data *= bernstein(p_b,j,s_01);
-				if (d > 2) *phi_data *= bernstein(p_b,k,t_01);
-				++phi_data;
-			}
-		}
-	}}
-} else {
+
 	for (int n = 0; n < n_n; ++n) {
 	for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
 	for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
-	for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; ++i) {
+	for (int i = 0; i < pp1; ++i) {
 		           *phi_data  = bernstein_std(p_b,i,r[n]);
 		if (d > 1) *phi_data *= bernstein_std(p_b,j,s[n]);
 		if (d > 2) *phi_data *= bernstein_std(p_b,k,t[n]);
 		++phi_data;
 	}}}}
-}
 
 	return (const struct const_Matrix_d*) phi_rst;
 }
@@ -531,41 +504,32 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier
 	if (d == 1) {
 		for (int n = 0; n < n_n; ++n) {
 		for (int i = 0; i < pp1; ++i) {
-			const double r_01 = 0.5*(1.0+r[n]);
-			*grad_phi_data[0]++ = grad_bernstein (p_b,i,r_01)*0.5;
+			*grad_phi_data[0]++ = grad_bernstein_std(p_b,i,r[n]);
 		}}
 	} else if (d == 2) {
 		for (int n = 0; n < n_n; ++n) {
 		for (int j = 0; j < pp1; ++j) {
-			const double s_01 = ( d > 1 ? 0.5*(1.0+s[n]) : 0.5 );
-			for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; ++i) {
-				const double r_01 = 0.5*(1.0+r[n]);
-				*grad_phi_data[0]++ = grad_bernstein(p_b,i,r_01)*0.5
-				                     *bernstein     (p_b,j,s_01);
-				*grad_phi_data[1]++ = bernstein     (p_b,i,r_01)
-				                     *grad_bernstein(p_b,j,s_01)*0.5;
-			}
-		}}
+		for (int i = 0; i < pp1; ++i) {
+			*grad_phi_data[0]++ = grad_bernstein_std(p_b,i,r[n])
+			                     *bernstein_std     (p_b,j,s[n]);
+			*grad_phi_data[1]++ = bernstein_std     (p_b,i,r[n])
+			                     *grad_bernstein_std(p_b,j,s[n]);
+		}}}
 	} else if (d == 3) {
 		for (int n = 0; n < n_n; ++n) {
 		for (int k = 0; k < pp1; ++k) {
-			const double t_01 = ( d > 2 ? 0.5*(1.0+t[n]) : 0.5 );
-			for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
-				const double s_01 = ( d > 1 ? 0.5*(1.0+s[n]) : 0.5 );
-				for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; ++i) {
-					const double r_01 = 0.5*(1.0+r[n]);
-					*grad_phi_data[0]++ = grad_bernstein(p_b,i,r_01)*0.5
-					                     *bernstein     (p_b,j,s_01)
-					                     *bernstein     (p_b,k,t_01);
-					*grad_phi_data[1]++ = bernstein     (p_b,i,r_01)
-					                     *grad_bernstein(p_b,j,s_01)*0.5
-					                     *bernstein     (p_b,k,t_01);
-					*grad_phi_data[2]++ = bernstein     (p_b,i,r_01)
-					                     *bernstein     (p_b,j,s_01)
-					                     *grad_bernstein(p_b,k,t_01)*0.5;
-				}
-			}
-		}}
+		for (int j = 0; j < pp1; ++j) {
+		for (int i = 0; i < pp1; ++i) {
+			*grad_phi_data[0]++ = grad_bernstein_std(p_b,i,r[n])
+			                     *bernstein_std     (p_b,j,s[n])
+			                     *bernstein_std     (p_b,k,t[n]);
+			*grad_phi_data[1]++ = bernstein_std     (p_b,i,r[n])
+			                     *grad_bernstein_std(p_b,j,s[n])
+			                     *bernstein_std     (p_b,k,t[n]);
+			*grad_phi_data[2]++ = bernstein_std     (p_b,i,r[n])
+			                     *bernstein_std     (p_b,j,s[n])
+			                     *grad_bernstein_std(p_b,k,t[n]);
+		}}}}
 	}
 
 	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
@@ -667,24 +631,15 @@ const struct const_Matrix_d* constructor_abc_from_rst_pyr (const struct const_Ma
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static double bernstein (const int p, const int i, const double r_01)
-{
-	if ((i == -1) || (p-i == -1))
-		return 0.0;
-
-	return binomial_coef(p,i)*pow(r_01,i)*pow(1.0-r_01,p-i);
-}
-
-//static double grad_bernstein (const int p, const int i, const double r_01)
-double grad_bernstein (const int p, const int i, const double r_01)
-{
-	return p*(bernstein(p-1,i-1,r_01) - bernstein(p-1,i,r_01));
-}
-
 static double bernstein_std (const int p, const int i, const double r)
 {
 	if ((i == -1) || (p-i == -1))
 		return 0.0;
 
 	return binomial_coef(p,i)*pow(0.5*(1.0-r),p-i)*pow(0.5*(1.0+r),i);
+}
+
+static double grad_bernstein_std (const int p, const int i, const double r)
+{
+	return 0.5*p*(bernstein_std(p-1,i-1,r) - bernstein_std(p-1,i,r));
 }

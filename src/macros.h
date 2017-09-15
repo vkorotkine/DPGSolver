@@ -22,7 +22,6 @@
 #define EXIT_UNSUPPORTED ({printf("\n\nError: Unsupported.\n"), EXIT_MSG; })
 #define EXIT_ADD_SUPPORT ({printf("\n\nError: Add support.\n"), EXIT_MSG; })
 #define EXIT_ERROR(...)  ({printf("\n\nError: "); printf(__VA_ARGS__); EXIT_MSG; })
-#define EXIT_DESTRUCTOR  ({printf("\n\nError: Destructing unconstructed object.\n"), EXIT_MSG; })
 ///\}
 
 ///\{ \name Mark unused variables.

@@ -5,9 +5,6 @@
 #define DPG__math_functions_h__INCLUDED
 /** \file
  *  \brief Provides several standard math functions.
- *
- *  <!-- References: -->
- *  Press(1992,2nd edition) - Numerical Recipes in C - The Art of Scientific Computing (Ch. 6.1)
  */
 
 #include <stdbool.h>
