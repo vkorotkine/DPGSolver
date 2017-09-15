@@ -5,6 +5,7 @@
 
 #include "simulation.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
@@ -25,6 +26,10 @@
 
 // Static function declarations ************************************************************************************* //
 
+///\{ \name Invalid value for a polynomial order (which would be unlikely to be chosen inadvertently).
+#define P_INVALID -314159265
+///\}
+
 /** \brief Set core parameters for the simulation as specified in the control file.
  *
  *  Requires `sim` to be dynamically allocated. This allows for the definition of `const` members after the declaration
@@ -35,14 +40,37 @@ static void set_simulation_core
 	 const char*const ctrl_name   ///< Control file name (excluding the file extension).
 	);
 
+/// \brief Set \ref Simulation parameters to invalid values so that it can be recognized if they were not read.
+static void set_simulation_invalid
+	(struct Simulation*const sim ///< Standard.
+	);
+
+/// \brief Set uninitialized \ref Simulation parameters to default values.
+static void set_simulation_default
+	(struct Simulation*const sim ///< Standard.
+	);
+
+/** \brief Check that necessary \ref Simulation parameters were set.
+ *
+ *  Mesh generation related parameters need not be checked as mesh generation would have failed if they were not
+ *  present.
+ */
+static void check_necessary_simulation_parameters
+	(struct Simulation*const sim ///< Standard.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 struct Simulation* constructor_Simulation (const char*const ctrl_name)
 {
 	struct Simulation* sim = calloc(1,sizeof *sim); // returned;
 
+	set_simulation_invalid(sim);
 	set_simulation_core(sim,ctrl_name);
 	set_Simulation_elements(sim,constructor_Elements(sim->d));
+
+	check_necessary_simulation_parameters(sim);
+	set_simulation_default(sim);
 
 	return sim;
 }
@@ -134,6 +162,28 @@ static void set_input_path
 	(struct Simulation*const sim ///< Standard.
 	);
 
+static void set_simulation_invalid (struct Simulation*const sim)
+{
+	const char* param_string = NULL;
+	param_string = sim->basis_geom;
+	const_cast_c1(&param_string,NULL);
+
+	param_string = sim->basis_sol;
+	const_cast_c1(&param_string,NULL);
+
+	param_string = sim->geom_rep;
+	const_cast_c1(&param_string,NULL);
+
+	const_cast_i1(sim->p_s_v,(int[]){P_INVALID,P_INVALID},2);
+	const_cast_i1(sim->p_s_f,(int[]){P_INVALID,P_INVALID},2);
+	const_cast_i1(sim->p_sg_v,(int[]){P_INVALID,P_INVALID},2);
+	const_cast_i1(sim->p_sg_f,(int[]){P_INVALID,P_INVALID},2);
+
+	const_cast_i(&sim->p_c_x,P_INVALID);
+	const_cast_i(&sim->p_c_p,P_INVALID);
+	const_cast_i(&sim->p_t_p,P_INVALID);
+}
+
 static void set_simulation_core (struct Simulation*const sim, const char*const ctrl_name)
 {
 	set_ctrl_name_full(sim,ctrl_name);
@@ -170,6 +220,33 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 
 if (0)
 	set_string_associations(sim);
+}
+
+static void check_necessary_simulation_parameters (struct Simulation*const sim)
+{
+	assert((strcmp(sim->basis_geom,"lagrange") == 0) ||
+	       (strcmp(sim->basis_geom,"bezier")   == 0) ||
+	       (strcmp(sim->basis_geom,"nurbs")    == 0));
+	assert((strcmp(sim->basis_sol,"orthonormal") == 0) ||
+	       (strcmp(sim->basis_sol,"lagrange")    == 0) ||
+	       (strcmp(sim->basis_sol,"bezier")      == 0));
+	assert(sim->geom_rep != NULL);
+
+	assert(sim->p_s_v[0] != P_INVALID);
+	assert(sim->p_s_v[1] != P_INVALID);
+	assert(sim->p_s_v[1] >= sim->p_s_v[0]);
+
+}
+
+static void set_simulation_default (struct Simulation*const sim)
+{
+
+	if (sim->p_s_f[0] == P_INVALID)
+		const_cast_i1(sim->p_s_f,sim->p_s_v,2);
+
+	if (sim->p_sg_v[0] == P_INVALID)
+		const_cast_i1(sim->p_sg_v,sim->p_s_v,2);
+
 }
 
 void set_Simulation_elements (struct Simulation*const sim, struct const_Intrusive_List* elements)

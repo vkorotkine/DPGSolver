@@ -152,7 +152,7 @@ static void test_unit_basis_tensor_product_orthonormal (struct Test_Info*const t
 	}
 	test_increment_and_print(test_info,pass,"Bases - tp_orthonormal_mass_matrix");
 
-	tol = (double[]) { EPS, 2*EPS, 6*EPS, };
+	tol = (double[]) { EPS, 2*EPS, 20*EPS, };
 	differences = (bool[])
 		{ diff_const_Multiarray_d(b_data_a->grad_coef_13,b_data_c->grad_coef_13,tol[0]),
 		  diff_const_Multiarray_d(b_data_a->grad_coef_23,b_data_c->grad_coef_23,tol[1]),
@@ -246,7 +246,7 @@ static void test_unit_basis_simplex_orthonormal (struct Test_Info*const test_inf
 	}
 	test_increment_and_print(test_info,pass,"Bases - si_orthonormal_mass_matrix");
 
-	tol = (double[]) { 3*EPS, 2e4*EPS, };
+	tol = (double[]) { 9*EPS, 5e4*EPS, };
 	differences = (bool[])
 		{ diff_const_Multiarray_d(b_data_a->grad_coef_25,b_data_c->grad_coef_25,tol[0]),
 		  diff_const_Multiarray_d(b_data_a->grad_coef_37,b_data_c->grad_coef_37,tol[1]),
@@ -422,7 +422,7 @@ static void test_unit_basis_tensor_product_bezier (struct Test_Info*const test_i
 	}
 	test_increment_and_print(test_info,pass,"Bases - tp_bezier_part_unity");
 
-	tol = (double[]) { EPS, 2*EPS, 3*EPS, };
+	tol = (double[]) { EPS, 20*EPS, 5*EPS, };
 	differences = (bool[])
 		{ diff_const_Multiarray_d(b_data_a->grad_coef_13,b_data_c->grad_coef_13,tol[0]),
 		  diff_const_Multiarray_d(b_data_a->grad_coef_23,b_data_c->grad_coef_23,tol[1]),

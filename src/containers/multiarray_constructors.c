@@ -198,8 +198,7 @@ const struct const_Multiarray_d* constructor_MaM1_V_const_Multiarray_d
 		const struct const_Matrix_d*const A_M = A->data[i];
 		set_Vector_from_Multiarray_d(&dest_V,dest,&i);
 
-		char layout_mv = ( trans_a == 'N' ? A->data[i]->layout : compute_opposite_layout(A->data[i]->layout) );
-		mv_d(layout_mv,trans_a,alpha,beta,A_M,b,&dest_V);
+		mv_d(trans_a,alpha,beta,A_M,b,&dest_V);
 	}
 	return (const struct const_Multiarray_d*) dest;
 }

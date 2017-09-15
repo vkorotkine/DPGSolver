@@ -151,8 +151,7 @@ const struct const_Vector_d* constructor_sum_const_Vector_d_const_Matrix_d
 /** \brief Constructor for a \ref Vector_d\* from a matrix-vector multiplication.
  *  \return Standard. */
 struct Vector_d* constructor_mv_Vector_d
-	(const char layout,                   ///< Defined for \ref mv_d.
-	 const char trans_a_i,                ///< Defined for \ref mv_d.
+	(const char trans_a_i,                ///< Defined for \ref mv_d.
 	 const double alpha,                  ///< Defined for \ref mv_d.
 	 const double beta,                   ///< Defined for \ref mv_d.
 	 const struct const_Matrix_d*const a, ///< Defined for \ref mv_d.
@@ -162,8 +161,7 @@ struct Vector_d* constructor_mv_Vector_d
 /** \brief `const` version of \ref constructor_mv_Vector_d.
  *  \return Standard. */
 const struct const_Vector_d* constructor_mv_const_Vector_d
-	(const char layout,                   ///< Defined for \ref mv_d.
-	 const char trans_a_i,                ///< Defined for \ref mv_d.
+	(const char trans_a_i,                ///< Defined for \ref mv_d.
 	 const double alpha,                  ///< Defined for \ref mv_d.
 	 const double beta,                   ///< Defined for \ref mv_d.
 	 const struct const_Matrix_d*const a, ///< Defined for \ref mv_d.

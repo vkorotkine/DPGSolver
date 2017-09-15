@@ -3,15 +3,15 @@
 
 #ifndef DPG__const_cast_h__INCLUDED
 #define DPG__const_cast_h__INCLUDED
-/**	\file
- *	\brief Provides functions for casting to const lvalues for standard datatypes.
+/** \file
+ *  \brief Provides functions for casting to const lvalues for standard datatypes.
  *
- *	Variables with standard datatypes with higher levels of dereferencing than 0 should be placed in Multiarray
- *	containers. Const cast functions are thus not provided for higher levels of dereferencing.
+ *  Variables with standard datatypes with higher levels of dereferencing than 0 should be placed in Multiarray
+ *  containers. Const cast functions are thus not provided for higher levels of dereferencing.
  *
- *	The function naming convention is: const_cast_{0}
- *		- {0} : Datatype.
- *			- Options: i, ptrdiff, bool, const_Element.
+ *  The function naming convention is: const_cast_{0}
+ *	- {0} : Datatype.
+ *		- Options: i, ptrdiff, bool, const_Element.
  */
 
 #include <stddef.h>
@@ -23,6 +23,13 @@
 void const_cast_i
 	(const int* dest, ///< Destination.
 	 const int src    ///< Source.
+	);
+
+/// \brief Cast from `int*` to `const int*`.
+void const_cast_i1
+	(const int* dest, ///< Destination.
+	 const int* src,  ///< Source.
+	 const int n_src  ///< Number of entries in `src`.
 	);
 
 /// \brief Cast from `ptrdiff_t` to `const ptrdiff_t`.

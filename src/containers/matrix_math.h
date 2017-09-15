@@ -60,18 +60,14 @@ void mm_d
  *
  *  op(): 'N'o transpose, 'T'ranspose.
  *
- *  As the vectors do not have a layout, the `layout` parameter can be chosen arbitrarily. To maximize efficiency, it
- *  may be selected in accordance with the layout of the the input matrix, `a`, and `trans_a_i` to avoid having to
- *  transpose the memory:
- *  - if (trans_a_i == 'N'): choose `layout = a->layout`;
- *  - else                 : choose the opposite of `a->layout`.
+ *  As the vectors do not have a layout, the `layout` parameter for the dgemv call is chosen as that of the input
+ *  matrix.
  *
  *  <!-- References: -->
  *  [cblas_dgemv]: https://software.intel.com/en-us/mkl-developer-reference-c-cblas-gemv
  */
 void mv_d
-	(const char layout_i,                 ///< The layout with which to interpret the computation (see the comments).
-	 const char trans_a_i,                ///< Operator for input `a`. Options: 'N'o transpose, 'T'ranspose.
+	(const char trans_a_i,                ///< Operator for input `a`. Options: 'N'o transpose, 'T'ranspose.
 	 const double alpha,                  ///< Multiplicative constant.
 	 const double beta,                   ///< Multiplicative constant.
 	 const struct const_Matrix_d*const a, ///< Input \ref const_Matrix_d\* `a`.

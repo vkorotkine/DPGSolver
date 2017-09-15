@@ -126,39 +126,24 @@ static void test_unit_matrix_mv (struct Test_Info*const test_info)
 
 	const struct const_Matrix_d* a_t = constructor_copy_transpose_const_Matrix_d(a,false); // destructed
 
-	// row major
-	struct Vector_d* c_NR = constructor_mv_Vector_d('R','N',1.0,0.0,a,  b), // destructed
-	               * c_TR = constructor_mv_Vector_d('R','T',1.0,0.0,a_t,b); // destructed
-
-	transpose_const_Matrix_d(a,true);
-	transpose_const_Matrix_d(a_t,true);
-
-	// col major
-	struct Vector_d* c_NC = constructor_mv_Vector_d('C','N',1.0,0.0,a,  b), // destructed
-	               * c_TC = constructor_mv_Vector_d('C','T',1.0,0.0,a_t,b); // destructed
-
+	struct Vector_d* c_N = constructor_mv_Vector_d('N',1.0,0.0,a,  b), // destructed
+	               * c_T = constructor_mv_Vector_d('T',1.0,0.0,a_t,b); // destructed
 	destructor_const_Matrix_d(a);
 	destructor_const_Matrix_d(a_t);
 	destructor_const_Vector_d(b);
 
-	if (diff_Vector_d(c,c_NR,EPS) ||
-	    diff_Vector_d(c,c_TR,EPS) ||
-	    diff_Vector_d(c,c_NC,EPS) ||
-	    diff_Vector_d(c,c_TC,EPS))
+	if (diff_Vector_d(c,c_N,EPS) ||
+	    diff_Vector_d(c,c_T,EPS))
 	{
 		pass = false;
 
-		if (diff_Vector_d(c,c_NR,EPS)) print_diff_Vector_d(c,c_NR,EPS);
-		if (diff_Vector_d(c,c_TR,EPS)) print_diff_Vector_d(c,c_TR,EPS);
-		if (diff_Vector_d(c,c_NC,EPS)) print_diff_Vector_d(c,c_NC,EPS);
-		if (diff_Vector_d(c,c_TC,EPS)) print_diff_Vector_d(c,c_TC,EPS);
+		if (diff_Vector_d(c,c_N,EPS)) print_diff_Vector_d(c,c_N,EPS);
+		if (diff_Vector_d(c,c_T,EPS)) print_diff_Vector_d(c,c_T,EPS);
 	}
 
 	destructor_Vector_d(c);
-	destructor_Vector_d(c_NR);
-	destructor_Vector_d(c_TR);
-	destructor_Vector_d(c_NC);
-	destructor_Vector_d(c_TC);
+	destructor_Vector_d(c_N);
+	destructor_Vector_d(c_T);
 
 	test_increment_and_print(test_info,pass,test_name);
 }

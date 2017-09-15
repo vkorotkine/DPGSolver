@@ -11,6 +11,12 @@ void const_cast_i (const int* dest, const int src)
 	*(int*) dest = src;
 }
 
+void const_cast_i1 (const int* dest, const int* src, const int n_src)
+{
+	for (int i = 0; i < n_src; ++i)
+		const_cast_i(&dest[i],src[i]);
+}
+
 void const_cast_ptrdiff (const ptrdiff_t* dest, const ptrdiff_t src)
 {
 	*(ptrdiff_t*) dest = src;

@@ -93,11 +93,11 @@ void mm_d
 }
 
 void mv_d
-	(const char layout_i, const char trans_a_i, const double alpha, const double beta,
+	(const char trans_a_i, const double alpha, const double beta,
 	 const struct const_Matrix_d*const a, const struct const_Vector_d*const b, struct Vector_d*const c)
 {
-	const CBLAS_LAYOUT    layout = ( layout_i == 'R' ? CBRM : CBCM );
-	const CBLAS_TRANSPOSE transa = ( (layout_i == a->layout) == (trans_a_i == 'N') ? CBNT : CBT );
+	const CBLAS_LAYOUT    layout = ( a->layout == 'R' ? CBRM : CBCM );
+	const CBLAS_TRANSPOSE transa = ( trans_a_i == 'N' ? CBNT : CBT );
 
 	/// \note Unlike the \ref mm_d function, m and n here represent the dimensions of A and not op(A).
 	const MKL_INT m   = a->ext_0,

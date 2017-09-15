@@ -61,7 +61,7 @@ static void compute_v_to__v_lf
 	 struct Mesh_Connectivity_l*const mesh_conn_l ///< The \ref Mesh_Connectivity_l.
 	);
 
-/** \brief Add the boundary condition information to \ref v_to_lf.
+/** \brief Add the boundary condition information to \ref Mesh_Connectivity::v_to_lf.
  *
  *	This function replaces all invalid entries in the volume to local face container with the number corresponding to
  *	the appropriate boundary condition.

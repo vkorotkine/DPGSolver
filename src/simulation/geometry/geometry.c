@@ -1,6 +1,6 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-/**	\file
+/** \file
  */
 
 #include "geometry.h"
@@ -24,62 +24,61 @@
 
 // Static function declarations ************************************************************************************* //
 
-/**	\brief Function pointer to compute_geom_coef functions.
- *	\param sim    \ref Simulation.
- *	\param volume \ref Volume.
+/** \brief Function pointer to compute_geom_coef functions.
+ *  \param sim    \ref Simulation.
+ *  \param volume \ref Volume.
  */
 typedef void (*compute_geom_coef_fptr)
 	(const struct Simulation*const sim,
 	 struct Volume*const volume
 	);
 
-/**	\brief Set the appropriate function pointer for computing \ref Volume::geom_coef.
- *	\return See brief. */
+/** \brief Set the appropriate function pointer for computing \ref Volume::geom_coef.
+ *  \return See brief. */
 static compute_geom_coef_fptr set_fptr_geom_coef
 	(const int domain_type,   ///< \ref Simulation::domain_type.
 	 const bool volume_curved ///< \ref Volume::curved.
 	);
 
-/**	\brief Compute the geometry of the \ref Solver_Volume.
+/** \brief Compute the geometry of the \ref Solver_Volume.
  *
- *	Following the analysis of Kopriva \cite Kopriva2006, the metric terms are computed using the curl-form such that
- *	the free-stream preservation property may be recovered. The consistent symmetric-conservative (CSC) metric of Abe
- *	and Haga (section 5.3) is used for the implementation \cite Abe2015. The steps are repeated below to clarify the
- *	equivalence of the prodecure adopted here with their procedure:
- *	- (step 0-1) As the metric contributions computed in step 0 are computed in a basis of sufficient order to
- *	  represent them exactly and are subsequently interpolated to the consistent grid points (CGPs), the metric
- *	  contributions are here computed directly at the CGPs.
- *		- Our terminology for the GPs is R_vg ((R)eference coordinates of the (v)olume (g)eometry nodes).
- *		- Our terminology for the CGPs is R_vm ((R)eference coordinates of the (v)olume (m)etric nodes).
- *		- We allow for flexibility in the order of the R_vm nodes such that superparametric geometry can be used on
- *		  curved domain boundaries; Abe and Haga use an isoparametric partial metric representation **before** the
- *		  differentiation is applied, resulting in a subparametric metric representation (see eq. (43) \cite Abe2015).
- *	- (step 2) The computed metric terms are interpolated to the solution points (SPs).
- *		- As the flux reconstruction scheme is collocated (solution interpolation and cubature nodes are coincident),
- *		  the interpolation to the SPs is equivalent to the interpolation to the cubature nodes. Thus, interpolation
- *		  to the R_vc ((R)eference coordinates of the (v)olume (c)ubature) is then performed in the implementation
- *		  here.
+ *  Following the analysis of Kopriva \cite Kopriva2006, the metric terms are computed using the curl-form such that
+ *  the free-stream preservation property may be recovered. The consistent symmetric-conservative (CSC) metric of Abe
+ *  and Haga (section 5.3) is used for the implementation \cite Abe2015. The steps are repeated below to clarify the
+ *  equivalence of the prodecure adopted here with their procedure:
+ *  - (step 0-1) As the metric contributions computed in step 0 are computed in a basis of sufficient order to
+ *    represent them exactly and are subsequently interpolated to the consistent grid points (CGPs), the metric
+ *    contributions are here computed directly at the CGPs.
+ *  	- Our terminology for the GPs is R_vg ((R)eference coordinates of the (v)olume (g)eometry nodes).
+ *  	- Our terminology for the CGPs is R_vm ((R)eference coordinates of the (v)olume (m)etric nodes).
+ *  	- We allow for flexibility in the order of the R_vm nodes such that superparametric geometry can be used on
+ *  	  curved domain boundaries; Abe and Haga use an isoparametric partial metric representation **before** the
+ *  	  differentiation is applied, resulting in a subparametric metric representation (see eq. (43) \cite Abe2015).
+ *  - (step 2) The computed metric terms are interpolated to the solution points (SPs).
+ *  	- As the flux reconstruction scheme is collocated (solution interpolation and cubature nodes are coincident),
+ *  	  the interpolation to the SPs is equivalent to the interpolation to the cubature nodes. Thus, interpolation
+ *  	  to the R_vc ((R)eference coordinates of the (v)olume (c)ubature) is then performed in the implementation
+ *  	  here.
  *
- *	\todo Investigate requirement of superparametric geometry on curved surfaces and add comments. Potentially ok by
- *	      using over-integration in curved elements.
+ *  \todo Investigate requirement of superparametric geometry on curved surfaces and add comments. Potentially ok by
+ *        using over-integration in curved elements.
  *
- *	Given the 3D geometry Jacobian ordering of
+ *  Given the 3D geometry Jacobian ordering of
  *
- *	\f{eqnarray*}{
- *		J  = \{ &\{x_r,x_s,x_t\}, &\\
- *		        &\{y_r,y_s,y_t\}, &\\
- *		        &\{z_r,z_s,z_t\}  &\},
- *	\f}
+ *  \f{eqnarray*}{
+ *  	J  = \{ &\{x_r,x_s,x_t\}, &\\
+ *  	        &\{y_r,y_s,y_t\}, &\\
+ *  	        &\{z_r,z_s,z_t\}  &\},
+ *  \f}
  *
- *	using the nonconservative metric (NC) for clarity of exposition (section 5.1 \cite Abe2015), the ordering of the
- *	metric terms is:
+ *  using the nonconservative metric (NC) for clarity of exposition (section 5.1 \cite Abe2015), the ordering of the
+ *  metric terms is:
  *
- *	\f{eqnarray*}{
- *		m  = \{ &\{ +(y_s z_t - y_t z_s), -(y_r z_t - y_t z_r), +(y_r z_s - y_s z_r) \}, &\\
- *		        &\{ -(x_s z_t - x_t z_s), +(x_r z_t - x_t z_r), -(x_r z_s - x_s z_r) \}, &\\
- *		        &\{ +(x_s y_t - x_t y_s), -(x_r y_t - x_t y_r), +(x_r y_s - x_s y_r) \}, &\}.
- *	\f}
- *
+ *  \f{eqnarray*}{
+ *  	m  = \{ &\{ +(y_s z_t - y_t z_s), -(y_r z_t - y_t z_r), +(y_r z_s - y_s z_r) \}, &\\
+ *  	        &\{ -(x_s z_t - x_t z_s), +(x_r z_t - x_t z_r), -(x_r z_s - x_s z_r) \}, &\\
+ *  	        &\{ +(x_s y_t - x_t y_s), -(x_r y_t - x_t y_r), +(x_r y_s - x_s y_r) \}, &\}.
+ *  \f}
  */
 static void compute_geometry_volume
 	(struct Simulation *sim,      ///< \ref Simulation.
@@ -169,7 +168,6 @@ static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volum
 	const int d = ((struct const_Element*)element)->d;
 
 	const struct const_Multiarray_d*const geom_coef = base_volume->geom_coef;
-	const struct const_Vector_d*const geom_coef_V   = constructor_default_const_Vector_d(); // destructed
 
 	const int p = volume->p;
 
@@ -183,26 +181,24 @@ static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volum
 
 	const ptrdiff_t n_vc = ops.ED_vg_vc->data[0]->ext_0;
 
-	struct Multiarray_d* jacobian_vc   = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_vc,d,d});
-	struct Vector_d*     jacobian_vc_V = constructor_default_Vector_d(); // destructed
+	struct Multiarray_d* jacobian_vc = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_vc,d,d});
 //	struct Multiarray_d* jacobian_vm = constructor
 
-	const struct const_Matrix_d* ED_vg_vc = NULL;
-
 	for (int row = 0; row < d; row++) {
-		set_const_Vector_from_Multiarray_d(geom_coef_V,geom_coef,(ptrdiff_t[]){row});
+		struct const_Vector_d geom_coef_V; // Note: not `const`
+		set_const_Vector_from_Multiarray_d(&geom_coef_V,geom_coef,(ptrdiff_t[]){row});
 		for (int col = 0; col < d; col++) {
-			set_Vector_from_Multiarray_d(jacobian_vc_V,jacobian_vc,(ptrdiff_t[]){row,col});
-			set_const_Matrix_from_Multiarray_Matrix_d(ED_vg_vc,ops.ED_vg_vc,(ptrdiff_t[]){col});
-			mv_d(ED_vg_vc->layout,'N',1.0,0.0,ED_vg_vc,geom_coef_V,jacobian_vc_V);
+			struct Vector_d jacobian_vc_V;
+			set_Vector_from_Multiarray_d(&jacobian_vc_V,jacobian_vc,(ptrdiff_t[]){row,col});
+			const struct const_Matrix_d* ED_vg_vc = ops.ED_vg_vc->data[col];
+
+			mv_d('N',1.0,0.0,ED_vg_vc,&geom_coef_V,&jacobian_vc_V);
 
 //		mm_CTN_d(NvnI0,1,NvnG0,OPS->D_vG_vI[col],&XYZ[NvnG0*row],&J_vI[NvnI0*(d*row+col)]);
 //		mm_CTN_d(NvnC0,1,NvnG0,OPS->D_vG_vC[col],&XYZ[NvnG0*row],&J_vC[NvnC0*(d*row+col)]);
 		}
 	}
 
-	destructor_Vector_d(jacobian_vc_V);
-	destructor_const_Vector_d(geom_coef_V);
 UNUSED(sim);
 UNUSED(volume);
 }

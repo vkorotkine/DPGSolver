@@ -66,6 +66,7 @@ struct Simulation {
 	 *	- lagrange;
 	 *	- bezier;
 	 *	- nurbs.
+	 *  see \ref check_necessary_simulation_parameters for supported options.
 	 */
 	const char basis_geom[STRLEN_MIN];
 
