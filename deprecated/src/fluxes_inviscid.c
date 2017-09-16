@@ -344,13 +344,10 @@ static void flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 			double const maxlL = VL+cL,
 			             maxlR = VR+cR;
 
-			char sideMaxV;
 			double maxV;
 			if (maxlL > maxlR) {
-				sideMaxV = 'L';
 				maxV = maxlL;
 			} else {
-				sideMaxV = 'R';
 				maxV = maxlR;
 			}
 
@@ -431,13 +428,10 @@ static void flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 			double const maxlL = VL+cL,
 			             maxlR = VR+cR;
 
-			char sideMaxV;
 			double maxV;
 			if (maxlL > maxlR) {
-				sideMaxV = 'L';
 				maxV = maxlL;
 			} else {
-				sideMaxV = 'R';
 				maxV = maxlR;
 			}
 
@@ -504,13 +498,10 @@ static void flux_LF(struct S_NUMERICALFLUX *const NUMFLUXDATA)
 			double const maxlL = VL+cL,
 			             maxlR = VR+cR;
 
-			char sideMaxV;
 			double maxV;
 			if (maxlL > maxlR) {
-				sideMaxV = 'L';
 				maxV = maxlL;
 			} else {
-				sideMaxV = 'R';
 				maxV = maxlR;
 			}
 

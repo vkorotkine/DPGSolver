@@ -80,14 +80,20 @@ void destructor_Mesh_Vertices (struct Mesh_Vertices* mesh_vert)
 // Level 0 ********************************************************************************************************** //
 
 /** \brief Function pointer to mesh_snap_to_boundary functions.
- *	\param input_path The path to the input file.
- *	\param ve_curved  Defined in \ref Mesh_Vertices.
- *	\param ve_bc      Defined in \ref Mesh_Data.
+ *  \param input_path The path to the input file.
+ *  \param ve_curved  Defined in \ref Mesh_Vertices.
+ *  \param ve_bc      Defined in \ref Mesh_Data.
  */
 typedef void (*mesh_snap_to_boundary_fptr)
 	(const char*const input_path,
 	 const struct const_Vector_i*const ve_curved,
 	 const struct Matrix_d*const nodes
+	);
+
+/** \brief Set \ref mesh_snap_to_boundary_fptr for the given geometry.
+ *  \return See brief. */
+static mesh_snap_to_boundary_fptr set_fptr_mesh_snap
+	(const char*const geom_name ///< The geometry name.
 	);
 
 static struct Mesh_Vertices_l set_up_mesh_vertices
@@ -140,15 +146,6 @@ static struct Mesh_Vertices_l set_up_mesh_vertices
 	return mesh_vert_l;
 }
 
-static mesh_snap_to_boundary_fptr set_fptr_mesh_snap (const char*const geom_name)
-{
-	if (strstr(geom_name,"n-cylinder_hollow_section"))
-		return mesh_snap_to_cylinder__hollow_section;
-
-	printf("\ngeom_name: %s\n\n",geom_name);
-	EXIT_ADD_SUPPORT;
-}
-
 static void correct_mesh_vertices
 	(const struct Mesh_Input*const mesh_input, const struct Mesh_Vertices*const mesh_vert,
 	 const struct const_Matrix_d*const nodes)
@@ -159,4 +156,15 @@ static void correct_mesh_vertices
 	mesh_snap_to_boundary_fptr mesh_snap_to_boundary = set_fptr_mesh_snap(mesh_input->geom_name);
 
 	mesh_snap_to_boundary(mesh_input->input_path,mesh_vert->ve_curved,(struct Matrix_d*)nodes);
+}
+
+// Level 1 ********************************************************************************************************** //
+
+static mesh_snap_to_boundary_fptr set_fptr_mesh_snap (const char*const geom_name)
+{
+	if (strstr(geom_name,"n-cylinder_hollow_section"))
+		return mesh_snap_to_cylinder__hollow_section;
+
+	printf("\ngeom_name: %s\n\n",geom_name);
+	EXIT_ADD_SUPPORT;
 }

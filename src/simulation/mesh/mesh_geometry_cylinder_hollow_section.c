@@ -1,6 +1,6 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-/**	\file
+/** \file
  */
 
 #include "mesh_geometry_cylinder_hollow_section.h"
@@ -26,9 +26,10 @@ struct Geom_Data__chs {
 	             r_o; ///< The outer radius.
 };
 
+/// \brief Read the required geometry data into \ref Geom_Data__chs.
 static void read_data_cylinder__hollow_section
 	(const char*const input_path,          ///< Defined in \ref fopen_input.
-	 struct Geom_Data__chs*const geom_data ///< \ref Geom_Data_chs.
+	 struct Geom_Data__chs*const geom_data ///< \ref Geom_Data__chs.
 	);
 
 // Interface functions ********************************************************************************************** //

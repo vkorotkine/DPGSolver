@@ -177,7 +177,7 @@ static struct Matrix_d* read_nodes (FILE* mesh_file, const int d)
 	char line[STRLEN_MAX];
 	char* endptr = NULL;
 
-	fgets(line,sizeof(line),mesh_file);
+	if (fgets(line,sizeof(line),mesh_file) != NULL) {};
 	ptrdiff_t n_nodes = strtol(line,&endptr,10);
 	struct Matrix_d* nodes = constructor_empty_Matrix_d('R',n_nodes,d);
 
@@ -199,7 +199,7 @@ static struct Element_Data* read_elements (FILE* mesh_file)
 	char line[STRLEN_MAX];
 	char* endptr = NULL;
 
-	fgets(line,sizeof(line),mesh_file);
+	if (fgets(line,sizeof(line),mesh_file) != NULL) {};
 	ptrdiff_t n_elems = strtol(line,&endptr,10);
 
 	struct Element_Data* elem_data = constructor_Element_Data(n_elems);
@@ -222,7 +222,7 @@ static struct Matrix_i* read_periodic (FILE* mesh_file, const int d)
 	char line[STRLEN_MAX];
 	char* endptr = NULL;
 
-	fgets(line,sizeof(line),mesh_file);
+	if (fgets(line,sizeof(line),mesh_file) != NULL) {};
 	ptrdiff_t n_periodic_all = strtol(line,&endptr,10);
 
 	// Skip over lower dimensional periodic entities if present
@@ -362,7 +362,7 @@ static void skip_periodic_entity (FILE* file, char**const line, const int line_s
 {
 	char* endptr = NULL;
 
-	fgets(*line,line_size,file);
+	if (fgets(*line,line_size,file) != NULL) {};
 	ptrdiff_t n_skip = strtol(*line,&endptr,10);
 
 	skip_lines(file,line,line_size,n_skip);

@@ -1,6 +1,6 @@
 // Copyright 2017 Philip Zwanenburg
 // MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-/**	\file
+/** \file
  */
 
 #include "test_integration_geometry.h"
@@ -23,8 +23,8 @@
 
 // Static function declarations ************************************************************************************* //
 
-/**	\brief Compare \ref Volume::xyz and \ref Face::normal_f_i finite members with their expected values.
- *	\return `true` if tests passed. */
+/** \brief Compare \ref Volume::geom_coef and \todo [ref here] Face::normal_f_i finite members with their expected values.
+ *  \return `true` if tests passed. */
 static bool compare_members_geom
 	(struct Test_Info*const test_info, ///< Defined in \ref test_integration_mesh.
 	 const struct Simulation*const sim ///< \ref Simulation.

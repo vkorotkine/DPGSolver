@@ -37,7 +37,7 @@ Last tested: 2017/05/18
 		debug = 0 or 1 (choose one)
 		BUILDDIR = build/your_build_name
 		```
-	- Follow make instructions (elaborated in BUILD.txt):
+	- Follow make instructions (elaborated in Install.txt/BUILD.txt):
 		```sh
 		$ make config
 		$ make install

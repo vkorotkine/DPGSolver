@@ -210,7 +210,7 @@ static struct Element_Data* constructor_Element_Data
 	(const ptrdiff_t n_elems ///< The number of elements.
 	);
 
-/// \brief Fill one row of the members of \ref elem_data.
+/// \brief Fill one row of the members of \ref Element_Data.
 static void fill_elements
 	(const ptrdiff_t row,                 ///< The current row.
 	 struct Element_Data*const elem_data, ///< The \ref Element_Data.

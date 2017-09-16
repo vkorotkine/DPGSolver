@@ -17,23 +17,23 @@ struct Vector_i_indexed {
 	struct Vector_i* vector; ///< The \ref Vector_i\*.
 };
 
-/** Move constructor for a \ref Vector_i_indexed\*\* from a \ref Vector_i\*\*.
- *	\return Standard. */
+/** \brief Move constructor for a \ref Vector_i_indexed\*\* from a \ref Vector_i\*\*.
+ *  \return Standard. */
 static struct Vector_i_indexed** constructor_move_Vector_i_indexed
 	(const ptrdiff_t size,  ///< The number of elements.
 	 struct Vector_i** data ///< The data to be moved.
 	);
 
-/// Destructor for a \ref Vector_i_indexed\*\*.
+/// \brief Destructor for a \ref Vector_i_indexed\*\*.
 static void destructor_Vector_i_indexed
 	(struct Vector_i_indexed** src, ///< Standard.
 	 const ptrdiff_t size           ///< The number of elements.
 	);
 
 /** \brief Comparison function for std::qsort between `struct Vector_i_indexed**` `a` and `b`.
- *	\return The lexicographical comparison of `a` and `b`.
+ *  \return The lexicographical comparison of `a` and `b`.
  *
- *	\note Input Vectors must be have sorted data.
+ *  \note Input Vectors must be have sorted data.
  */
 static int cmp_Vector_i_indexed
 	(const void *a, ///< Variable 1.
@@ -41,14 +41,15 @@ static int cmp_Vector_i_indexed
 	);
 
 /** \brief Reorder a \ref Multiarray_Vector_i based on the provided ordering.
- *	\warning This is not currently done in place.
+ *  \warning This is not currently done in place.
  */
 static void reorder_Multiarray_Vector_i
 	(struct Multiarray_Vector_i*const a, ///< Standard.
 	 const int*const ordering    ///< The ordering.
 	);
 
-/// \brief Compute the total number of entries in a \ref Multiarray_Vector_i\*.
+/** \brief Compute the total number of entries in a \ref Multiarray_Vector_i\*.
+ *  \return See brief. */
 static ptrdiff_t compute_total_entries
 	(const struct Multiarray_Vector_i*const src ///< Standard.
 	);

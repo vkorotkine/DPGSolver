@@ -16,7 +16,7 @@
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Compute the initial \ref Volume::sol_coef.
+/// \brief Compute the initial \ref Solver_Volume::sol_coef.
 static void compute_sol_coef
 	(const struct Simulation*const sim, ///< \ref Simulation.
 	 struct Solver_Volume*const volume  ///< \ref Volume.

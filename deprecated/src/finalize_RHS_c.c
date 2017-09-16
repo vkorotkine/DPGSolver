@@ -94,7 +94,7 @@ static void add_source(const struct S_VOLUME *VOLUME)
 
 	// Standard datatypes
 	unsigned int   eq, n, NvnI;
-	double         *XYZ_vI, *detJV_vI, *w_vI;
+	double         *XYZ_vI, *detJV_vI;
 	double complex *f_vI;
 
 	struct S_OPERATORS *OPS;
@@ -104,8 +104,6 @@ static void add_source(const struct S_VOLUME *VOLUME)
 	init_ops(OPS,VOLUME);
 
 	NvnI = OPS->NvnI;
-
-	w_vI = OPS->w_vI;
 
 	XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
 	mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);

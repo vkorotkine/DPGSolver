@@ -16,7 +16,8 @@
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Constructor for an individual \ref Element.
+/** \brief Constructor for an individual \ref Element.
+ *  \return Standard. */
 static struct Geometry_Element* constructor_Geometry_Element
 	(struct const_Element* element ///< The base \ref Element.
 	);

@@ -165,7 +165,7 @@ EXIT_UNSUPPORTED;
 				data->A_cs = set_A_Qhat(data->check_level,dim,compute_A_Qhat_cs);
 			} else {
 				clock_t tp = clock(), tc;
-				double times[3];
+				double times[3] = {0};
 				unsigned int counter = 0;
 
 				data->A = set_A_Qhat(data->check_level,dim,compute_A_Qhat);
@@ -211,7 +211,7 @@ EXIT_UNSUPPORTED;
 		assemble_A(data->A_cs);
 	} else {
 		clock_t tp = clock(), tc;
-		double times[3];
+		double times[3] = {0};
 		unsigned int counter = 0;
 
 		compute_A(data->A,CHECK_VOLUME_FACE_ALL);

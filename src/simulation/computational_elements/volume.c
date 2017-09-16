@@ -40,7 +40,8 @@ struct Volume_mesh_info {
 	const struct const_Vector_i* to_lf;   ///< The relevant row of \ref Mesh_Connectivity::v_to_lf.
 };
 
-/// \brief Constructor for an individual \ref Volume.
+/** \brief Constructor for an individual \ref Volume.
+ *  \return Standard. */
 static struct Volume* constructor_Volume
 	(const struct Simulation*const sim,          ///< \ref Simulation.
 	 const struct Mesh*const mesh,               ///< \ref Mesh.

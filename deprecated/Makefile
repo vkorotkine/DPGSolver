@@ -37,7 +37,7 @@ endif
 include configure/user_configure.mk
 
 
-LOCAL_INC := -I./deprecated/include
+LOCAL_INC := -I./include
 
 ifeq ($(MKL_INTERFACE_LAYER),32)
     MKL_INC := 
@@ -52,7 +52,7 @@ PETSC_INC := $(PETSC_CC_INCLUDES)
 
 METIS_INC      := -I$(METIS_DIR)/metis/include
 METIS_LDINC    := -L$(METIS_DIR)/libmetis -lmetis
-PARMETIS_INC   := -I$(METIS_DIR)/include
+PARMETIS_INC   := -I$(METIS_DIR)/include -I/usr/local/include
 PARMETIS_LDINC := -L$(METIS_DIR)/libparmetis -lparmetis
 
 # Note: Parmetis must be linked before metis
@@ -62,10 +62,10 @@ INCS := $(LOCAL_INC) $(MKL_INC) $(PETSC_INC) $(PARMETIS_INC) $(METIS_INC)
 
 EXECUTABLE := DPGSolver.exe
 
-SRCDIR  := deprecated/src
-INCDIR  := deprecated/include
-OBJDIR  := deprecated/obj
-DEPDIR  := deprecated/depend
+SRCDIR  := src
+INCDIR  := include
+OBJDIR  := obj
+DEPDIR  := depend
 EXECDIR := bin
 CTRLDIR := cases/control_files
 MESHDIR := meshes

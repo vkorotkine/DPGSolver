@@ -57,7 +57,7 @@ FILE* fopen_input (const char*const input_path, const char*const input_spec)
 void skip_lines (FILE* file, char**const line, const int line_size, const int n_skip)
 {
 	for (int n = 0; n < n_skip; n++)
-		fgets(*line,line_size,file);
+		if (fgets(*line,line_size,file) != NULL) {};
 }
 
 void discard_line_values (char**const line, int n_discard)

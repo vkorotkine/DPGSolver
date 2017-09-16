@@ -1,4 +1,4 @@
-bin/*
+deprecated/bin/*
 deprecated/obj/*
 deprecated/depend/*
 configure/user_configure.mk
@@ -16,25 +16,25 @@ src/support_functions/*.txt
 *.db
 *.db.json
 *.dSYM
-cases/.lipo
-cases/*.sh
-!cases/sample.sh
+deprecated/cases/.lipo
+deprecated/cases/*.sh
+!deprecated/cases/sample.sh
 
 meshes/Gmsh_files/*
-cases/logfile
-cases/errorfile*
-cases/outputfile*
-cases/errors/*
-cases/paraview/*
-cases/paraview/*.vtu
-cases/paraview/*.pvtu
-cases/paraview/*.vtp
-cases/paraview/*.pvtp
-cases/results/*
+deprecated/cases/logfile
+deprecated/cases/errorfile*
+deprecated/cases/outputfile*
+deprecated/cases/errors/*
+deprecated/cases/paraview/*
+deprecated/cases/paraview/*.vtu
+deprecated/cases/paraview/*.pvtu
+deprecated/cases/paraview/*.vtp
+deprecated/cases/paraview/*.pvtp
+deprecated/cases/results/*
 test/*.o
 test/*.exe
 python/*.txt
-*/__pycache__/*
+deprecated/__pycache__/*
 src/processing/__pycache__/*
 src/processing/pre/__pycache__/*
 

@@ -43,7 +43,8 @@ struct Face_mesh_info {
 	} neigh_info[2]; ///< \ref Neigh_info_mi.
 };
 
-/// \brief Constructor for an individual \ref Face.
+/** \brief Constructor for an individual \ref Face.
+ *  \return Standard. */
 static struct Face* constructor_Face
 	(const struct Simulation*const sim,         ///< \ref Simulation.
 	 const struct Mesh*const mesh,              ///< \ref Mesh.

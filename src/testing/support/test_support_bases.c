@@ -75,10 +75,10 @@ static void set_scaling_basis_pyr
  *  The test for the gradient evaluation will fail if lower orders than those specified above are used.
  */
 static double poly_rst
-	(const double r,
-	 const double s,
-	 const double t,
-	 const int derivative_index
+	(const double r,            ///< Reference coordinate in the r-direction.
+	 const double s,            ///< Reference coordinate in the s-direction.
+	 const double t,            ///< Reference coordinate in the t-direction.
+	 const int derivative_index ///< The index for the "derivative" to return. See return.
 	);
 
 /** \brief Constructor for the polynomial function evaluated at the input coordinates.

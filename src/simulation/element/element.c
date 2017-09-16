@@ -15,7 +15,8 @@
 
 // Static function declarations ************************************************************************************* //
 
-///	\brief Constructor for an individual \ref Element.
+/** \brief Constructor for an individual \ref Element.
+ *  \return Standard. */
 static struct Element* constructor_Element
 	(const int elem_type ///< The element type (e.g. LINE, TRI, ...)
 	);

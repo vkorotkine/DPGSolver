@@ -19,7 +19,8 @@
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Constructor for an individual \ref Solver_Volume.
+/** \brief Constructor for an individual \ref Solver_Volume.
+ *  \return Standard. */
 static struct Solver_Volume* constructor_Solver_Volume
 	(struct Volume* volume ///< \ref Volume.
 	);

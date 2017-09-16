@@ -130,16 +130,16 @@ struct Mesh_Ctrl_Data {
 
 /** \brief Set full control file name (including path and file extension).
  *
- *	If "TEST" is not included as part of the name (default option):
- *	- it is assumed that `ctrl_name` includes the full name and path from CMAKE_PROJECT_DIR/control_files;
- *	- `ctrl_name_full` -> ../control_files/`ctrl_name`.
- *	otherwise:
- *	- it is assumed that `ctrl_name` includes the full name and path from CMAKE_PROJECT_DIR/testing/control_files;
- *	- `ctrl_name_full` -> ../testing/control_files/`ctrl_name`.
+ *  If "TEST" is not included as part of the name (default option):
+ *  - it is assumed that `ctrl_name` includes the full name and path from CMAKE_PROJECT_DIR/control_files;
+ *  - `ctrl_name_full` -> ../control_files/`ctrl_name`.
+ *  otherwise:
+ *  - it is assumed that `ctrl_name` includes the full name and path from CMAKE_PROJECT_DIR/testing/control_files;
+ *  - `ctrl_name_full` -> ../testing/control_files/`ctrl_name`.
  */
 static void set_ctrl_name_full
-	(struct Simulation*const sim, /// Standard.
-	 const char*const ctrl_name   /// Defined in \ref set_simulation_core.
+	(struct Simulation*const sim, ///< Standard.
+	 const char*const ctrl_name   ///< Defined in \ref set_simulation_core.
 	);
 
 /// \brief Set the mesh parameters.
@@ -149,9 +149,9 @@ static void set_mesh_parameters
 
 /** \brief Set associations between `char*` and `int` variables.
  *
- *	This is done such that if/switch conditions are simplified when these variables are used.
+ *  This is done such that if/switch conditions are simplified when these variables are used.
  *
- *	\todo This should be moved to the Solver context.
+ *  \todo This should be moved to the Solver context.
  */
 static void set_string_associations
 	(struct Simulation*const sim ///< Standard.
