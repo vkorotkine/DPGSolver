@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 
 #include "simulation.h"
+#include "element_operators.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -142,27 +143,19 @@ static void set_up_operators_element (struct Geometry_Element* element, const st
 
 static void set_up_operators_standard (struct Geometry_Element* element, const struct Simulation* sim)
 {
-	const int n_hp = 3;
+	struct const_Element* base_element = (struct const_Element*)element;
+	const struct const_Vector_i* ext_v1_V =
+		constructor_operator_extents_const_Vector_i(sim,base_element,OP_V_D1); // destructed
 
-	const int d = ((struct Element*)element)->d;
+	struct Multiarray_Matrix_d* ED_vg_vc = constructor_empty_Multiarray_Matrix_d_V(false,ext_v1_V); // keep
 
-// Modify with values from simulation.
-UNUSED(sim);
-const int max_p = 3;
-const int max_pp1 = max_p+1;
-const int max_h = 3;
-
-	const ptrdiff_t ext_v0[] = { max_pp1, max_pp1, max_h, },
-	                ext_v1[] = { d, max_pp1, max_pp1, max_h, };
-UNUSED(ext_v0);
-
-	struct Multiarray_Matrix_d* ED_vg_vc = constructor_empty_Multiarray_Matrix_d(false,n_hp+1,ext_v1); // keep
-
-//	struct const_Vector_Cubature cub_vg = constructor_const_Vector_Cubature(); // destructed
+	struct const_Vector_Cubature cub_vg = constructor_const_Vector_Cubature(sim,base_element,ext_v1_V); // destructed
 
 	element->ED_vg_vc = ED_vg_vc;
 
-//	destructor_const_Vector_Cubature(cub_vg);
+	destructor_const_Vector_Cubature(cub_vg);
+	destructor_const_Vector_i(ext_v1_V);
+	EXIT_ADD_SUPPORT;
 }
 
 static void set_up_operators_tensor_product (struct Geometry_Element* element, const struct Simulation* sim)

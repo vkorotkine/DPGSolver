@@ -4,8 +4,8 @@ Several aids are provided when working with the vim text editor.
 
 ## Customized Syntax Colouring
 
-Customized syntax colouring can be enabled by loading the provided [c_structs file](c_structs) by adding the following
-line to the `.vimrc` file:
+Customized syntax colouring can be enabled by loading the provided [c_structs file](c_structs.vim) by adding the
+following line to the `.vimrc` file:
 ```vim
 autocmd BufNewFile,BufRead *DPGSolver/* source ~/FULL_PATH_TO_ROOT/DPGSolver/vim/c_structs.vim
 ```

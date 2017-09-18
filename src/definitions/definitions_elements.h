@@ -37,11 +37,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #define PYR   7
 ///\}
 
+/**\{ \name The number of element super types which have at least one member which is not formed from a tensor-product
+ *          of other super types. */
+#define N_ST_STD 3
+///\}
+
 ///\{ \name Element super types.
-#define ST_TP    1
-#define ST_SI    2
-#define ST_PYR   3
-#define ST_WEDGE 4
+#define ST_TP    0 // The values for ST_TP, ST_SI, and ST_PYR are used as indices and should not be changed.
+#define ST_SI    1
+#define ST_PYR   2
+#define ST_WEDGE 10
 ///\}
 
 ///\{ \name Element related values
@@ -54,6 +59,24 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NFVEMAX         4  ///< (MAX)imum (N)unber of (F)ace (VE)rtices.                       "QUAD"
 #define NFREFMAX        9  ///< (MAX)imum (N)umber of (F)ACE (REF)inements.                    "QUAD"
 #define NSUBFMAX        4  ///< (MAX)imum (N)umber of h-adaptive (SUB)-(F)aces (on each FACE). "QUAD/TRI (Isotropic)"
+///\}
+
+///\{ \name h-refinement related values
+#define NREFMAXPOINT 1
+#define NREFMAXLINE  3
+#define NREFMAXTRI   5
+#define NREFMAXQUAD  5
+#define NREFMAXTET   13
+#define NREFMAXHEX   9
+#define NREFMAXWEDGE 9
+#define NREFMAXPYR   11
+///\}
+
+///\{ \name Supported operator types.
+#define OP_V_D0 101
+#define OP_V_D1 102
+#define OP_F_D0 103
+#define OP_F_D1 104
 ///\}
 
 #endif // DPG__definitions_elements_h__INCLUDED

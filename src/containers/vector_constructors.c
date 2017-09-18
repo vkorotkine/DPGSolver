@@ -142,9 +142,7 @@ struct Vector_d* constructor_move_Vector_d_d (const ptrdiff_t ext_0, const bool 
 struct const_Vector_i* constructor_move_const_Vector_i_i
 	(const ptrdiff_t ext_0, const bool owns_data, const int*const data)
 {
-	struct Vector_i* dest_m = constructor_move_Vector_i_i(ext_0,owns_data,(int*)data); // free
-
-	return (struct const_Vector_i*) dest_m;
+	return (struct const_Vector_i*) constructor_move_Vector_i_i(ext_0,owns_data,(int*)data);
 }
 
 struct Vector_d* constructor_move_Vector_d_Matrix_d (struct Matrix_d* src)

@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 
 #include "definitions_alloc.h"
+#include "definitions_elements.h"
 
 ///\{ \name Definitions for the available solver methods.
 #define METHOD_DG  1
@@ -74,6 +75,22 @@ struct Simulation {
 	ptrdiff_t n_v, ///< The number of \ref Volume finite elements.
 	          n_f; ///< The number of \ref Face   finite elements.
 
+
+	/** The type of nodes used for polynomial interpolation. Options:
+	 *  - interp_tp:  GL, GLL, EQ;
+	 *  - interp_si:  AO, WSH, EQ;
+	 *  - interp_pyr: GL, GLL.
+	 *
+	 *  See \ref definitions_cubature.h for the expansion of the acronyms.
+	 *
+	 *  \warning EQ nodes should only be used for comparison with other codes where GL/GLL nodes are not available as
+	 *           they provide an increasingly poor interpolation as the order is increased due to growth of their
+	 *           Lebesgue constant.
+	 *
+	 *  In the case of a collocated scheme, these nodes are also used for the cubature.
+	 */
+	const char nodes_interp[N_ST_STD][STRLEN_MIN];
+
 	/** The type of basis used for the geometry representation. Options:
 	 *	- lagrange;
 	 *	- bezier;
@@ -122,18 +139,22 @@ struct Simulation {
 	 *  p_t = p_s + p_t_p. */
 	const int p_t_p;
 
+	/** The number of required extents for hp operator stored in the various \ref Element\*s. This is currently a
+	 *  fixed value determined from the most general hp adaptive case.
+	 *  - h-adaptation: Does not add any extents, but increases the range of the first extent such that operators
+	 *                  acting between sub-elements can be stored. Unlike the case for the p-adaptive operators, it is
+	 *                  quite rare to require an operator from a fine to coarse element and the additional index was
+	 *                  thus not added for this case.
+	 *  - p-adaptation: Adds two extents such that operators acting between bases of different orders can be stored.
+	 *                  The additional extent ordering is [p_in][p_out].
+	 *  - hp-adaptation: Add both p and h adaptation indices:
+	 *                  The additional extent ordering is [h_range][p_in][p_out].
+	 */
+	const int n_hp;
+
+	const int adapt_type; ///< The type of adaptation to be used. Set based on the ctrl file paramters.
 
 // ---------------------------- //
-	const char node_type[STRLEN_MIN];  /**< Type of nodes to be used for interpolation.
-	                                    *   The node_type input should be of the form (1)_(2) where (1) and (2) denote
-	                                    *   the node type to be used for tensor-product and simplex elements,
-	                                    *   respectively.
-	                                    *   	- tensor-product: GL (Gauss-Legendre), GLL (Gauss-Lobatto-Legendre), EQ
-	                                    *   	  (Equally spaced)
-	                                    *   	- simplex: AO (Alpha-optimized), WHS (Williams-Ham-Shunn), EQ (Equally
-	                                    *   	  spaced)
-	                                    */
-
 	const bool collocated; /**< Whether a collocated interpolation and integration node set is being used. Significant
 	                        *   performance increase may be observed when this is `true`. */
 
@@ -176,6 +197,18 @@ struct Mesh_Input set_Mesh_Input
 void set_Simulation_elements
 	(struct Simulation*const sim,          ///< Standard.
 	 struct const_Intrusive_List* elements ///< See \ref Simulation.
+	);
+
+/** \brief Check whether the simulation is p-adaptive.
+ *  \return `true` if yes. */
+bool is_p_adaptive
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Check whether the simulation is h-adaptive.
+ *  \return `true` if yes. */
+bool is_h_adaptive
+	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
 #endif // DPG__Simulation_h__INCLUDED

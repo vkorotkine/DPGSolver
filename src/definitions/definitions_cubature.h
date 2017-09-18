@@ -41,4 +41,29 @@ You should have received a copy of the GNU General Public License along with DPG
 #define CUB_WVHToP 404 ///< Witherden-Vincent, HEX to PYR.
 ///\}
 
+
+///\{ \name The multiplicative constant separating the indices of the computational elements.
+#define CUB_ENT_MULT 1000
+///\}
+
+///\{ \name The computational element for which the nodes may be set.
+#define CUB_ENT_V 1*CUB_CE_MULT ///< Volume.
+#define CUB_ENT_F 2*CUB_CE_MULT ///< Face.
+///\}
+
+///\{ \name Entities for which nodes are used.
+#define CUB_ENT_S 101 ///< Solution.
+#define CUB_ENT_C 102 ///< Cubature.
+#define CUB_ENT_G 103 ///< Geometry.
+#define CUB_ENT_M 104 ///< Metric.
+#define CUB_ENT_P 105 ///< Plotting.
+///\}
+
+
+///\{ \name Compound entities for which nodes are used.
+#define CUB_ENT_VS CUB_VOLUME+CUB_ENT_S ///< Volume Solution.
+#define CUB_ENT_VG CUB_VOLUME+CUB_ENT_G ///< Volume Geometry.
+#define CUB_ENT_VM CUB_VOLUME+CUB_ENT_M ///< Volume Metric.
+///\}
+
 #endif // DPG__definitions_cubature_h__INCLUDED

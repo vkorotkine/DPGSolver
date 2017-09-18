@@ -77,6 +77,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Vector_i;
 struct Matrix_d;
 struct Multiarray_Matrix_d;
+struct const_Vector_i;
 struct const_Vector_d;
 struct const_Matrix_d;
 struct const_Multiarray_d;
@@ -122,6 +123,13 @@ struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d
 	(const bool alloc_M,             ///< Flag for whether memory should be reserved for the individual Matrices.
 	 const int order,                ///< Defined in \ref Multiarray_d.
 	 const ptrdiff_t*const extents_i ///< The input extents.
+	);
+
+/** \brief Constructor for an empty \ref Multiarray_Matrix_d\* with extents input as a \ref const_Vector_i\*.
+ *  \return Standard. */
+struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d_V
+	(const bool alloc_M,                           ///< Defined for \ref constructor_empty_Multiarray_Matrix_d.
+	 const struct const_Vector_i*const extents_i_V ///< The input extents in vector format.
 	);
 
 // Copy constructors ************************************************************************************************ //

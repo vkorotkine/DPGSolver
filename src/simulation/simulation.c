@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 #include "definitions_mesh.h"
 #include "definitions_intrusive.h"
 
@@ -159,6 +160,12 @@ static void set_mesh_parameters
 	(struct Simulation*const sim ///< Standard.
 	);
 
+/** \brief Computes the value of \ref Simulation::adapt_type based on the simulation parameters.
+ *  \return See brief. */
+static int compute_adapt_type
+	(struct Simulation*const sim ///< Standard.
+	);
+
 /** \brief Set associations between `char*` and `int` variables.
  *
  *  This is done such that if/switch conditions are simplified when these variables are used.
@@ -177,6 +184,12 @@ static void set_input_path
 static void set_simulation_invalid (struct Simulation*const sim)
 {
 	const char* param_string = NULL;
+
+	for (int i = 0; i < N_ST_STD; ++i) {
+		param_string = sim->nodes_interp[i];
+		const_cast_c1(&param_string,NULL);
+	}
+
 	param_string = sim->basis_geom;
 	const_cast_c1(&param_string,NULL);
 
@@ -213,6 +226,10 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"mesh_level"))       read_skip_const_i_1(line,1,sim->ml,2);
 		if (strstr(line,"mesh_unrealistic")) read_skip_const_b(line,&sim->mesh_unrealistic);
 
+		if (strstr(line,"interp_tp"))  read_skip_const_c_1(line,sim->nodes_interp[0]);
+		if (strstr(line,"interp_si"))  read_skip_const_c_1(line,sim->nodes_interp[1]);
+		if (strstr(line,"interp_pyr")) read_skip_const_c_1(line,sim->nodes_interp[2]);
+
 		if (strstr(line,"basis_geom")) read_skip_const_c_1(line,sim->basis_geom);
 		if (strstr(line,"basis_sol"))  read_skip_const_c_1(line,sim->basis_sol);
 		if (strstr(line,"geom_rep"))   read_skip_const_c_1(line,sim->geom_rep);
@@ -236,34 +253,71 @@ if (0)
 
 static void check_necessary_simulation_parameters (struct Simulation*const sim)
 {
+	assert((sim->nodes_interp[0] != NULL) ||
+	       (sim->nodes_interp[1] != NULL) ||
+	       (sim->nodes_interp[2] != NULL));
+
 	assert((strcmp(sim->basis_geom,"lagrange") == 0) ||
 	       (strcmp(sim->basis_geom,"bezier")   == 0) ||
 	       (strcmp(sim->basis_geom,"nurbs")    == 0));
 	assert((strcmp(sim->basis_sol,"orthonormal") == 0) ||
 	       (strcmp(sim->basis_sol,"lagrange")    == 0) ||
 	       (strcmp(sim->basis_sol,"bezier")      == 0));
-	assert(sim->geom_rep != NULL);
+	assert((strcmp(sim->geom_rep,"isoparametric")   == 0) ||
+	       (strcmp(sim->geom_rep,"superparametric") == 0) ||
+	       (strstr(sim->geom_rep,"fixed")           == 0));
 
 	assert(sim->p_s_v[0] != P_INVALID);
 	assert(sim->p_s_v[1] != P_INVALID);
 	assert(sim->p_s_v[1] >= sim->p_s_v[0]);
-
 }
 
 static void set_simulation_default (struct Simulation*const sim)
 {
-
 	if (sim->p_s_f[0] == P_INVALID)
 		const_cast_i1(sim->p_s_f,sim->p_s_v,2);
 
 	if (sim->p_sg_v[0] == P_INVALID)
 		const_cast_i1(sim->p_sg_v,sim->p_s_v,2);
 
+	if (sim->p_sg_f[0] == P_INVALID)
+		const_cast_i1(sim->p_sg_f,sim->p_s_v,2);
+
+	if (sim->p_c_x == P_INVALID)
+		const_cast_i(&sim->p_c_x,2);
+
+	if (sim->p_c_p == P_INVALID)
+		const_cast_i(&sim->p_c_p,0);
+
+	if (sim->p_t_p == P_INVALID)
+		const_cast_i(&sim->p_t_p,0);
+
+	const_cast_i(&sim->n_hp,3);
+	const_cast_i(&sim->adapt_type,compute_adapt_type(sim));
 }
 
 void set_Simulation_elements (struct Simulation*const sim, struct const_Intrusive_List* elements)
 {
 	*(struct const_Intrusive_List**)&sim->elements = elements;
+}
+
+bool is_p_adaptive (const struct Simulation* sim)
+{
+	if ((sim->p_s_v[0]  != sim->p_s_v[1])  ||
+	    (sim->p_s_f[0]  != sim->p_s_f[1])  ||
+	    (sim->p_sg_v[0] != sim->p_sg_v[1]) ||
+	    (sim->p_sg_f[0] != sim->p_sg_f[1]))
+	{
+		return true;
+	}
+	return false;
+}
+
+bool is_h_adaptive (const struct Simulation* sim)
+{
+	if (sim->ml[0] != sim->ml[1])
+		return true;
+	return false;
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -348,6 +402,24 @@ static void set_input_path (struct Simulation*const sim)
 	strcat_path_c(input_path,"input_files","/");
 	strcat_path_c(input_path,sim->pde_name,"/");
 	strcat_path_c(input_path,sim->pde_spec,"/");
+}
+
+static int compute_adapt_type (struct Simulation*const sim)
+{
+	const bool p_adapt = is_p_adaptive(sim),
+	           h_adapt = is_h_adaptive(sim);
+
+	if (!p_adapt && !h_adapt)
+		return ADAPT_0;
+	else if (p_adapt && !h_adapt)
+		return ADAPT_P;
+	else if (!p_adapt && h_adapt)
+		return ADAPT_H;
+	else if (p_adapt && h_adapt)
+		return ADAPT_HP;
+
+	EXIT_UNSUPPORTED;
+	return -1;
 }
 
 // Level 2 ********************************************************************************************************** //

@@ -29,4 +29,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NVAR3D 5
 ///\}
 
+///\{ \name Supported adaptation options.
+#define ADAPT_0  0
+#define ADAPT_P  1
+#define ADAPT_H  2
+#define ADAPT_HP 3
+///\}
+
 #endif // DPG__definitions_core_h__INCLUDED

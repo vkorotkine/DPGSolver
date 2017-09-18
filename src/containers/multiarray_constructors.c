@@ -93,6 +93,18 @@ struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d
 	return constructor_move_Multiarray_Matrix_d_dyn_extents(order,extents,true,data);
 }
 
+struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d_V
+	(const bool alloc_M, const struct const_Vector_i*const extents_i_V)
+{
+	const ptrdiff_t order = extents_i_V->ext_0;
+
+	ptrdiff_t extents_i[order];
+	for (ptrdiff_t i = 0; i < order; ++i)
+		extents_i[i] = extents_i_V->data[i];
+
+	return constructor_empty_Multiarray_Matrix_d(alloc_M,order,extents_i);
+}
+
 // Copy constructors ************************************************************************************************ //
 
 struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i_i
