@@ -50,6 +50,14 @@ class output_class:
 			self.NEntries = 4
 			self.type     = 'Euler_s'
 			self.format   = 'table'
+		elif (name == 'Euler_Manufactured_TRI'):
+			self.NEntries = 4
+			self.type     = 'Euler_s'
+			self.format   = 'table'
+		elif (name == 'Euler_Manufactured_QUAD'):
+			self.NEntries = 4
+			self.type     = 'Euler_s'
+			self.format   = 'table'
 		else:
 			print("Error: Unsupported (output_class)."); sys.exit()
 
@@ -153,6 +161,24 @@ def initialize_input(output):
 		data_i[3].case = name_root[1] + name_end[1]
 
 		output.varNames = ['SB$_{N,m=k,(2.25)}$','SB$_{N,m=k,(2.25r)}$','SB$_{N,m=k,(1.00)}$','SB$_{N,m=k,(1.00r)}$']
+	elif (output.name == 'Euler_Manufactured_TRI'):
+		name_root = ['L2errs+Convergence_' + output.Geometry ]
+
+		data_i[0].case = name_root[0] + '_column1'
+		data_i[1].case = name_root[0] + '_column2'
+		data_i[2].case = name_root[0] + '_column3'
+		data_i[3].case = name_root[0] + '_SB'
+
+		output.varNames = ['$L^2_{m=1,\\text{ns}}$','$L^2_{m=1}$','$L^2_{m=k}$','SB$_{N,m=k}$']
+	elif (output.name == 'Euler_Manufactured_QUAD'):
+		name_root = ['L2errs+Convergence_' + output.Geometry ]
+
+		data_i[0].case = name_root[0] + '_column1'
+		data_i[1].case = name_root[0] + '_column2'
+		data_i[2].case = name_root[0] + '_column3'
+		data_i[3].case = name_root[0] + '_GH'
+
+		output.varNames = ['$L^2_{m=1,\\text{ns}}$','$L^2_{m=1}$','$L^2_{m=k}$','GH$_{N,m=k}$']
 	else:
 		print("Error: Unsupported (initialize_input)."); sys.exit()
 
@@ -438,7 +464,7 @@ def output_data(output,data_i):
 
 	if ('table' in output.format):
 		f.close()
-	
+
 
 
 
@@ -461,12 +487,16 @@ if __name__ == '__main__':
 
 #	output.Geometry = 'dm1-Spherical_Section'
 #	output.Geometry = 'Ellipsoidal_Section'
-	output.Geometry = 'InviscidChannel_Joukowski'
+#	output.Geometry = 'InviscidChannel_Joukowski'
+	output.Geometry = 'medium_curvature_TRI'
+	output.Geometry = 'high_curvature_TRI'
+	output.Geometry = 'medium_curvature_QUAD'
+	output.Geometry = 'high_curvature_QUAD'
 
 #	output.MeshType = 'CurvedTRI'
 #	output.MeshType = 'CurvedQUAD'
-#	output.MeshType = 'ToBeCurvedTRI'
-	output.MeshType = 'ToBeCurvedQUAD'
+	output.MeshType = 'ToBeCurvedTRI'
+#	output.MeshType = 'ToBeCurvedQUAD'
 
 	output.name = 'std'
 #	output.name = 'Optimal Surface'
@@ -477,6 +507,8 @@ if __name__ == '__main__':
 #	output.name = 'Projected Conforming'
 #	output.name = 'Projected NonConforming'
 #	output.name = 'Optimal Euler';
+	output.name = 'Euler_Manufactured_TRI';
+	output.name = 'Euler_Manufactured_QUAD';
 
 	output.init_name(output.name)
 
