@@ -47,8 +47,6 @@ struct const_Cubature {
 	const struct const_Vector_d*const w; ///< Defined in \ref Cubature.
 };
 
-// Interface functions ********************************************************************************************** //
-
 /** \brief Function pointer to cubature functions.
  *  \param d         The dimension of the nodes.
  *  \param p         Defined in \ref Cubature.
@@ -59,6 +57,8 @@ typedef const struct const_Cubature* (*cubature_fptr)
 	 const int p,
 	 const int node_type
 	);
+
+// Constructor functions ******************************************************************************************** //
 
 /** \brief Constructor for a \ref Cubature container of tensor-product type.
  *  \return Standard.
@@ -165,6 +165,14 @@ void destructor_Cubature
 /// \brief Destructor for a \ref const_Cubature\* container.
 void destructor_const_Cubature
 	(const struct const_Cubature*const cub ///< Standard.
+	);
+
+// Helper functions ************************************************************************************************* //
+
+/** \brief Get a pointer to the appropriate cubature constructor function based on the input element super type.
+ *  \return See brief. */
+cubature_fptr get_cubature_by_super_type
+	(const int s_type ///< \ref Element::s_type.
 	);
 
 #endif // DPG__cubature_h__INCLUDED

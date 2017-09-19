@@ -20,6 +20,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_intrusive.h"
+#include "definitions_cubature.h"
+#include "definitions_element_operators.h"
 #include "definitions_elements.h"
 
 #include "multiarray.h"
@@ -144,17 +146,17 @@ static void set_up_operators_element (struct Geometry_Element* element, const st
 static void set_up_operators_standard (struct Geometry_Element* element, const struct Simulation* sim)
 {
 	struct const_Element* base_element = (struct const_Element*)element;
-	const struct const_Vector_i* ext_v1_V =
-		constructor_operator_extents_const_Vector_i(sim,base_element,OP_V_D1); // destructed
 
-	struct Multiarray_Matrix_d* ED_vg_vc = constructor_empty_Multiarray_Matrix_d_V(false,ext_v1_V); // keep
+	struct Operator_Info* op_info_vgs =
+		constructor_Operator_Info(RANGE_D_ALL,RANGE_F_0,RANGE_P_1,RANGE_H_1,CUB_CMP_VGS,sim->p_s_v); // destructed
 
-	struct const_Vector_Cubature cub_vg = constructor_const_Vector_Cubature(sim,base_element,ext_v1_V); // destructed
+	const struct const_Multiarray_Cubature* cub_vg =
+		constructor_const_Multiarray_Cubature(sim,base_element,op_info_vgs); // destructed
 
-	element->ED_vg_vc = ED_vg_vc;
-
-	destructor_const_Vector_Cubature(cub_vg);
-	destructor_const_Vector_i(ext_v1_V);
+//	struct Multiarray_Matrix_d* ED_vg_vc = constructor_empty_Multiarray_Matrix_d_V(false); // keep
+//	element->ED_vg_vc = ED_vg_vc;
+	destructor_Operator_Info(op_info_vgs);
+	destructor_const_Multiarray_Cubature(cub_vg);
 	EXIT_ADD_SUPPORT;
 }
 

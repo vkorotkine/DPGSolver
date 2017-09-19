@@ -16,135 +16,149 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "element_operators.h"
 
+#include <assert.h>
+#include <string.h>
 
 #include "macros.h"
 #include "definitions_core.h"
+#include "definitions_cubature.h"
+#include "definitions_element_operators.h"
 #include "definitions_elements.h"
 
+#include "multiarray.h"
 #include "vector.h"
 
 #include "simulation.h"
 #include "element.h"
+#include "const_cast.h"
+#include "cubature.h"
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Compute the maximum order required for operators.
- *  \return See brief. */
-static int compute_max_p
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/** \brief Compute the maximum number of h-refimenent indices required for operators.
- *  \return See brief. */
-static int compute_max_h
-	(const struct Simulation* sim,       ///< \ref Simulation.
-	 const struct const_Element* element ///< \ref const_Element.
-	);
-
 /** \brief Constructor for the \ref Multiarray_Cubature::data.
  *  \return Standard. */
-struct const_Cubature** constructor_cub_data_array
+const struct const_Cubature** constructor_cub_data_array
 	(const struct Simulation* sim,        ///< \ref Simulation.
 	 const struct const_Element* element, ///< \ref const_Element.
 	 const ptrdiff_t order,               ///< \ref Multiarray_Cubature::order.
 	 const ptrdiff_t*const extents,       ///< \ref Multiarray_Cubature::extents.
-	 const int cub_entity                 ///< The cubature entity for which the nodes will be used.
+	 const struct Operator_Info* op_info  ///< \ref Operator_Info.
+	);
+
+/// \brief Destructor for a \ref Multiarray_Cubature\* container.
+static void destructor_Multiarray_Cubature
+	(struct Multiarray_Cubature* a ///< Standard.
 	);
 
 // Interface functions ********************************************************************************************** //
 
-const struct const_Vector_i* constructor_operator_extents_const_Vector_i
-	(const struct Simulation* sim, const struct const_Element* element, const int op_type)
+struct Operator_Info* constructor_Operator_Info
+	(const int range_d, const int range_f, const int range_p, const int range_h, const int cub_type,
+	 const int p_ref[2])
 {
-	const int n_hp = sim->n_hp;
-	          d    = element->d;
-	          n_f  = element->n_f;
+	struct Operator_Info* op_info = malloc(sizeof *op_info); // returned
 
-	int n_ext = 0;
-	switch (op_type) {
-		case OP_V_D0: n_ext = n_hp;     break;
-		case OP_V_D1: n_ext = n_hp+1;   break;
-		case OP_F_D0: n_ext = n_hp+1;   break;
-		case OP_F_D1: n_ext = n_hp+2;   break;
-		default:      EXIT_UNSUPPORTED; break;
-	}
+	const_cast_i(&op_info->range_d,range_d);
+	const_cast_i(&op_info->range_f,range_f);
+	const_cast_i(&op_info->range_h,range_h);
+	const_cast_i(&op_info->range_p,range_p);
 
-	int* extents = malloc(n_ext * sizeof *extents); // moved
-	switch (op_type) {
-	case OP_V_D0:
-		// Do nothing
-		break;
-	case OP_V_D1:
-		extents[0] = d;
-		break;
-	case OP_F_D0:
-		extents[0] = n_f;
-		break;
-	case OP_F_D0:
-		extents[0] = d;
-		extents[1] = n_f;
-		break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
+	const_cast_i(&op_info->cub_type,cub_type);
+	const_cast_i1(op_info->p_ref,p_ref,2);
 
-	int* extents_tail = NULL;
-	switch (sim->adapt_type) {
-	case ADAPT_0: {
-		extents_tail = (int[]) {1,1,1};
-		break;
-	} case ADAPT_P: {
-		const int max_pp1 = compute_max_p(sim)+1;
-		extents_tail = (int[]) {1,max_pp1,max_pp1};
-		break;
-	} case ADAPT_H: {
-		const int max_h = compute_max_h(sim,element);
-		extents_tail = (int[]) {max_h,1,1}; // Needs multiplier for face operators.
-		break;
-	} case ADAPT_HP: {
-		const int max_pp1 = compute_max_p(sim)+1,
-		          max_h   = compute_max_h(sim,element);
-		extents_tail = (int[]) {max_h,max_pp1,max_pp1}; // Needs multiplier for face operators.
-		break;
-	} default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
+	return op_info;
+}
 
-	for (int i = n_ext-n_hp; i < n_ext; ++i)
-		extents[i] = extents_tail[i];
-
-	return constructor_move_const_Vector_i_i(n_ext,true,extents);
+void destructor_Operator_Info (struct Operator_Info* op_info)
+{
+	free(op_info);
 }
 
 const struct const_Multiarray_Cubature* constructor_const_Multiarray_Cubature
-	(const struct Simulation* sim, const struct const_Element* element, const struct const_Vector_i* ext_v1_V,
-	 const int cub_entity, const int n_skip)
+	(const struct Simulation* sim, const struct const_Element* element, const struct Operator_Info* op_info)
 {
-	const ptrdiff_t ext_0 = ext_v1_V->ext_0,
-	                order = ext_0-n_skip-1;
+	// Compute order and extents.
+	int order = 0;
+	if (op_info->range_f != RANGE_F_0)
+		++order;
+	++order; // range_h
+	++order; // range_p
 
 	ptrdiff_t* extents = malloc(order * sizeof *extents); // keep
-	for (ptrdiff_t ind = 0, i = ext_0-order; i < ext_0; ++i) {
-		if (i != ext_0-1) // Does not use the p_in value.
-			extents[ind++] = ext_v1_V[i];
+	int ind = 0;
+	switch (op_info->range_f) {
+		case RANGE_F_0:   /* Do nothing */               break;
+		case RANGE_F_ALL: extents[ind++] = element->n_f; break;
+		default:          EXIT_UNSUPPORTED;              break;
 	}
 
-	struct const_Cubature** cub_data = constructor_cub_data_array(sim,element,order,extents,cub_entity); // keep
+	switch (op_info->range_h) {
+		case RANGE_H_1:   extents[ind++] = 1;                  break;
+		case RANGE_H_ALL: extents[ind++] = element->n_ref_max; break;
+		default:          EXIT_UNSUPPORTED;                    break;
+	}
 
+	switch (op_info->range_p) {
+		case RANGE_P_1:   extents[ind++] = 1;                   break;
+		case RANGE_P_PM0: extents[ind++] = 1;                   break;
+		case RANGE_P_PM1: /* fallthrough */
+		case RANGE_P_ALL: extents[ind++] = op_info->p_ref[1]+1; break;
+		default:          EXIT_UNSUPPORTED;                     break;
+	}
 
+	// Compute \ref Cubature data.
+	const struct const_Cubature** cub_data = constructor_cub_data_array(sim,element,order,extents,op_info); // keep
+
+	// Construct the Multiarray.
 	struct Multiarray_Cubature* cub_MA = malloc(sizeof *cub_MA); // returned
 
-	cub_MA->order   = order;
-	cub_MA->extents = extents;
-	cub_MA->extents = owns_data;
-	cub_MA->data    = cub_data;
+	cub_MA->order     = order;
+	cub_MA->extents   = extents;
+	cub_MA->owns_data = true;
+	cub_MA->data      = cub_data;
 
 	return (const struct const_Multiarray_Cubature*) cub_MA;
 }
 
 void destructor_const_Multiarray_Cubature (const struct const_Multiarray_Cubature*const a)
+{
+	destructor_Multiarray_Cubature((struct Multiarray_Cubature*)a);
+}
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
+
+/** \brief Compute the node type associated with the input cubature type.
+ *  \return See brief. */
+static int compute_node_type
+	(const struct Operator_Info* op_info, ///< \ref Operator_Info.
+	 const int s_type,                    ///< \ref Element::s_type.
+	 const struct Simulation *sim         ///< \ref Simulation.
+	);
+
+/// \brief Compute the minimum and maximum orders for the cubature nodes of the given type.
+static void compute_p_range
+	(int*const p_min,                    ///< The minimum order in the range.
+	 int*const p_max,                    ///< The maximum order in the range.
+	 const struct Operator_Info* op_info ///< \ref Operator_Info.
+	);
+
+/** \brief Compute the cubature node order associated with the current reference order for the give cub_type.
+ *  \return See brief. */
+static int compute_p_cub
+	(const int p_ref,             ///< The input refenrece order.
+	 const int cub_type,          ///< \ref Operator_Info::cub_type.
+	 const int s_type,            ///< \ref Element::s_type.
+	 const struct Simulation *sim ///< \ref Simulation.
+	);
+
+/** \brief Compute the index of computational element associated with the cubature type.
+ *  \return See brief. */
+static int compute_cub_ce
+	(const int cub_type ///< The cubature type.
+	);
+
+static void destructor_Multiarray_Cubature (struct Multiarray_Cubature* a)
 {
 	assert(a != NULL);
 
@@ -158,28 +172,70 @@ void destructor_const_Multiarray_Cubature (const struct const_Multiarray_Cubatur
 	free(a);
 }
 
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
-/** \brief Compute the index of computational element associated with the cubature entity.
- *  \return See brief. */
-static int compute_computational_element
-	(const int cub_entity ///< The cubature entity.
-	);
-
-static int compute_max_p (const struct Simulation* sim)
+const struct const_Cubature** constructor_cub_data_array
+	(const struct Simulation* sim, const struct const_Element* element, const ptrdiff_t order,
+	 const ptrdiff_t*const extents, const struct Operator_Info* op_info)
 {
-	return sim->p_s_v[1];
+	const ptrdiff_t size = compute_size(order,extents);
+	const struct const_Cubature** cub_data = malloc(size * sizeof *cub_data); // returned
+
+	const int d = element->d;
+	cubature_fptr constructor_Cubature = get_cubature_by_super_type(element->s_type);
+
+	const int comp_elem = compute_cub_ce(op_info->cub_type);
+	if (comp_elem == CUB_CE_V) {
+		assert(order == 2);
+
+		const int node_type = compute_node_type(op_info,element->s_type,sim);
+
+		int p_min = -1,
+		    p_max = -1;
+		compute_p_range(&p_min,&p_max,op_info);
+		for (ptrdiff_t ind = 0, p = p_min; p <= p_max; ++p) {
+			compute_p_cub(p,op_info->cub_type,element->s_type,sim);
+			for (ptrdiff_t h = 0; h < extents[0]; ++h) {
+				if (h > 0)
+					EXIT_ADD_SUPPORT; // sub-elements
+				cub_data[ind++] = constructor_Cubature(d,p,node_type); // keep
+			}
+		}
+	} else if (comp_elem == CUB_CE_F) {
+		assert(order == 3);
+		EXIT_ADD_SUPPORT;
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+
+	return cub_data;
 }
 
-static int compute_max_h (const struct Simulation* sim, const struct const_Element* element)
-{
-	const bool h_adapt = is_h_adaptive(sim);
+// Level 1 ********************************************************************************************************** //
 
-	switch (element->type) {
-	case LINE:
-		return ( h_adapt ? NREFMAXLINE : 1 );
+/** \brief Compute the index of straight/curved indicator associated with the cubature type.
+ *  \return See brief. */
+static int compute_cub_sc
+	(const int cub_type ///< The cubature type.
+	);
+
+/** \brief Compute the index of entity associated with the cubature type.
+ *  \return See brief. */
+static int compute_cub_ent
+	(const int cub_type ///< The cubature type.
+	);
+
+static int compute_node_type (const struct Operator_Info* op_info, const int s_type, const struct Simulation *sim)
+{
+	const int cub_ent = compute_cub_ent(op_info->cub_type);
+	switch (cub_ent) {
+	case CUB_ENT_G:
+		if (s_type == ST_TP || s_type == ST_PYR)
+			return CUB_GLL;
+		else if (s_type == ST_SI)
+			return CUB_AO;
+		else
+			EXIT_UNSUPPORTED;
 		break;
+UNUSED(sim);
 	default:
 		EXIT_UNSUPPORTED;
 		break;
@@ -187,60 +243,81 @@ static int compute_max_h (const struct Simulation* sim, const struct const_Eleme
 }
 
 static void compute_p_range
-	(int*const p_min, int*const p_max, const int cub_ent_val, const int n_p, const struct Simulation* sim)
+	(int*const p_min, int*const p_max, const struct Operator_Info* op_info)
 {
-// Likely need an indicator of which sim p_*_* value to base this computation off of in future.
-	*p_min = compute_p_entity(sim->p_s_v[0],
-	*p_max = ( n_p == 1 ? *p_min : compute_p_entity(sim->p_s_v[1]));
-}
-
-struct const_Cubature** constructor_cub_data_array
-	(const struct Simulation* sim, const struct const_Element* element, const ptrdiff_t order,
-	 const ptrdiff_t*const extents, const int cub_entity)
-{
-	const ptrdiff_t size = compute_size(order,extents);
-	struct const_Cubature** cub_data = malloc(size * sizeof *cub_data); // keep
-
-	const int comp_elem = compute_computational_element(cub_entity);
-
-	ptrdiff_t cub_values[order];
-	cub_values[0] =
-
-	int p_min = -1,
-	    p_max = -1;
-	if (comp_elem == CUB_ENT_V) {
-		assert(order == 2);
-		if (extents[0] != 1)
-			EXIT_ADD_SUPPORT; // sub-elements
-
-		compute_p_range(&p_min,&p_max,cub_entity%CUB_ENT_MULT,extents[1],sim);
-		if (extents[1] == 1) {
-			p_min = sim->p_s_
-		}
-
-
-
-
-
-	} else if (comp_elem == CUB_ENT_F) {
-		assert(order == 3);
-		EXIT_ADD_SUPPORT;
-	} else {
-		EXIT_UNSUPPORTED;
+	switch (op_info->range_p) {
+		case RANGE_P_1:
+			*p_min = 1;
+			*p_max = 1;
+			break;
+		case RANGE_P_PM0: /* fallthrough */
+		case RANGE_P_PM1: /* fallthrough */
+		case RANGE_P_ALL: /* fallthrough */
+			*p_min = op_info->p_ref[0];
+			*p_max = op_info->p_ref[1];
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
 	}
-
-//	const struct const_Cubature* d2_p3_WSH, ///< See \ref definitions_cubature.h.
-//		cub_data->d2_p3_WSH = constructor_const_Cubature_si(2,3,CUB_WSH);  // keep
 }
 
-// Level 1 ********************************************************************************************************** //
-
-static int compute_computational_element (const int cub_entity)
+static int compute_p_cub (const int p_ref, const int cub_type, const int s_type, const struct Simulation *sim)
 {
-	if (cub_entity/CUB_ENT_MULT == CUB_ENT_V/CUB_ENT_MULT)
-		return CUB_ENT_V;
-	else if (cub_entity/CUB_ENT_MULT == CUB_ENT_F/CUB_ENT_MULT)
-		return CUB_ENT_F;
-	else
+	const int cub_sc  = compute_cub_sc(cub_type),
+	          cub_ce  = compute_cub_ce(cub_type),
+	          cub_ent = compute_cub_ent(cub_type);
+	switch (cub_ent) {
+	case CUB_ENT_S:
+		return p_ref;
+		break;
+	case CUB_ENT_G: {
+		if (cub_sc == CUB_SC_S)
+			return 1;
+
+		if (strcmp(sim->geom_rep,"isoparametric") == 0)
+			return p_ref;
+		else if (strcmp(sim->geom_rep,"superparametric") == 0)
+			return p_ref+1;
+		else if (strstr(sim->geom_rep,"fixed"))
+			EXIT_ADD_SUPPORT;
+		else
+			EXIT_UNSUPPORTED;
+		break;
+	} case CUB_ENT_M: {
+//		const int p_g = compute_p_cub (p_ref,cub_sc+cub_ce+CUB_ENG_G,s_type,sim);
+UNUSED(cub_ce);
+UNUSED(s_type);
+
+		break;
+	} default:
 		EXIT_UNSUPPORTED;
+		break;
+	}
+	EXIT_UNSUPPORTED;
+	return -1;
+}
+
+static int compute_cub_ce (const int cub_type)
+{
+	const int cub_sc       = compute_cub_sc(cub_type),
+	          cub_ce_inter = cub_type - cub_sc;
+
+	// note the integer division.
+	return (cub_ce_inter / CUB_CE_MULT)*CUB_CE_MULT;
+}
+
+// Level 2 ********************************************************************************************************** //
+
+static int compute_cub_sc (const int cub_type)
+{
+	// note the integer division.
+	return (cub_type / CUB_SC_MULT)*CUB_SC_MULT;
+}
+
+static int compute_cub_ent (const int cub_type)
+{
+	const int cub_sc = compute_cub_sc(cub_type),
+	          cub_ce = compute_cub_ce(cub_type);
+	return cub_type - cub_sc - cub_ce;
 }

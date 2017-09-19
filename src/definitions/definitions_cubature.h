@@ -42,28 +42,34 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 
-///\{ \name The multiplicative constant separating the indices of the computational elements.
-#define CUB_ENT_MULT 1000
-///\}
 
-///\{ \name The computational element for which the nodes may be set.
-#define CUB_ENT_V 1*CUB_CE_MULT ///< Volume.
-#define CUB_ENT_F 2*CUB_CE_MULT ///< Face.
+///\{ \name The base/multiplier constants for the various indices associated with the cubature node classification.
+#define CUB_ENT_BASE 100   ///< Entities.
+#define CUB_CE_MULT  1000  ///< Computational elements.
+#define CUB_SC_MULT  10000 ///< Straight/Curved.
 ///\}
 
 ///\{ \name Entities for which nodes are used.
-#define CUB_ENT_S 101 ///< Solution.
-#define CUB_ENT_C 102 ///< Cubature.
-#define CUB_ENT_G 103 ///< Geometry.
-#define CUB_ENT_M 104 ///< Metric.
-#define CUB_ENT_P 105 ///< Plotting.
+#define CUB_ENT_S CUB_ENT_BASE+1 ///< Solution.
+#define CUB_ENT_C CUB_ENT_BASE+2 ///< Cubature.
+#define CUB_ENT_G CUB_ENT_BASE+3 ///< Geometry.
+#define CUB_ENT_M CUB_ENT_BASE+4 ///< Metric.
+#define CUB_ENT_P CUB_ENT_BASE+5 ///< Plotting.
+///\}
+
+///\{ \name The computational element for which the nodes may be set.
+#define CUB_CE_V 1*CUB_CE_MULT ///< Volume.
+#define CUB_CE_F 2*CUB_CE_MULT ///< Face.
+///\}
+
+///\{ \name The straight/curved indicator.
+#define CUB_SC_S 1*CUB_SC_MULT ///< Straight.
+#define CUB_SC_C 2*CUB_SC_MULT ///< Curved.
 ///\}
 
 
 ///\{ \name Compound entities for which nodes are used.
-#define CUB_ENT_VS CUB_VOLUME+CUB_ENT_S ///< Volume Solution.
-#define CUB_ENT_VG CUB_VOLUME+CUB_ENT_G ///< Volume Geometry.
-#define CUB_ENT_VM CUB_VOLUME+CUB_ENT_M ///< Volume Metric.
+#define CUB_CMP_VGS CUB_CE_V+CUB_ENT_G+CUB_SC_S ///< Volume Geometry which is Straight.
 ///\}
 
 #endif // DPG__definitions_cubature_h__INCLUDED

@@ -19,16 +19,40 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the functions relating to element operators.
  */
 
+#include <stddef.h>
+#include <stdbool.h>
+
 struct Simulation;
 struct const_Element;
+
+/// Container for operator range related information.
+struct Operator_Info {
+	/** The type of operator. Options:
+	 *  - 'T'ransform:   coefficients to coefficients
+	 *  - 'E'valuate:    coefficients to values
+	 *  - 'I'nterpolate: values       to values
+	 *  - 'P'roject:     values       to coefficients
+	 */
+	char op_type;
+// Potentially remove.
+
+	const int range_d, ///< Range of dimensions (For differentiation operators).
+	          range_f, ///< Range of faces.
+	          range_p, ///< Range of orders.
+	          range_h; ///< Range of h-refinement related operators.
+
+	const int cub_type; ///< The type of cubature.
+
+	const int p_ref[2]; ///< Reference polynomial orders from \ref Simulation.
+};
 
 /// Container for a Multiarray of \ref Cubature\* data.
 struct Multiarray_Cubature {
 	int order;          ///< Defined in \ref Multiarray_d.
 	ptrdiff_t* extents; ///< Defined in \ref Multiarray_d.
 
-	bool owns_data;              ///< Defined in \ref Multiarray_d.
-	struct const_Cubature* data; ///< Defined in \ref Multiarray_d.
+	bool owns_data;                    ///< Defined in \ref Multiarray_d.
+	const struct const_Cubature** data; ///< Defined in \ref Multiarray_d.
 };
 
 /// `const` version of \ref Multiarray_Cubature.
@@ -36,18 +60,26 @@ struct const_Multiarray_Cubature {
 	const int order;               ///< Defined in \ref Multiarray_d.
 	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_d.
 
-	const bool owns_data;                   ///< Defined in \ref Multiarray_d.
-	const struct const_Cubature*const data; ///< Defined in \ref Multiarray_d.
+	const bool owns_data;                         ///< Defined in \ref Multiarray_d.
+	const struct const_Cubature*const*const data; ///< Defined in \ref Multiarray_d.
 };
 
 // Interface functions ********************************************************************************************** //
 
-/** \brief Constructor for a \ref const_Vector_i\* holding the extents for an operator to be subsequently constructed.
+/** \brief Constructor for the \ref Operator_Info\* having the given inputs.
  *  \return Standard. */
-const struct const_Vector_i* constructor_operator_extents_const_Vector_i
-	(const struct Simulation* sim,        ///< \ref Simulation.
-	 const struct const_Element* element, ///< \ref const_Element.
-	 const int op_type                    ///< The operator type.
+struct Operator_Info* constructor_Operator_Info
+	(const int range_d,  ///< Defined in \ref Operator_Info.
+	 const int range_f,  ///< Defined in \ref Operator_Info.
+	 const int range_p,  ///< Defined in \ref Operator_Info.
+	 const int range_h,  ///< Defined in \ref Operator_Info.
+	 const int cub_type, ///< Defined in \ref Operator_Info.
+	 const int p_ref[2]  ///< Defined in \ref Operator_Info.
+	);
+
+/// \brief Destructor for a \ref Operator_Info\*.
+void destructor_Operator_Info
+	(struct Operator_Info* op_ranges ///< Standard.
 	);
 
 /** \brief Constructor for a \ref const_Multiarray_Cubature\* holding the cubature nodes (and weights if applicable) for
@@ -60,12 +92,9 @@ const struct const_Vector_i* constructor_operator_extents_const_Vector_i
  *  2. Multiplying with the appropriate vertices of the element sub-regions.
  */
 const struct const_Multiarray_Cubature* constructor_const_Multiarray_Cubature
-	(const struct Simulation* sim,          ///< \ref Simulation.
-	 const struct const_Element* element,   ///< \ref const_Element.
-	 const struct const_Vector_i* ext_v1_V, ///< The \ref Vector_i\* of operator extents.
-	 const int cub_entity,                  ///< The entity for which the cubature nodes are used.
-	 const int n_skip                       /**< The number of values to skip in `ext_v1_V`. Always skip the dimension
-	                                         *   for differentiation operators as the nodes do not change. */
+	(const struct Simulation* sim,        ///< \ref Simulation.
+	 const struct const_Element* element, ///< \ref const_Element.
+	 const struct Operator_Info* op_info  ///< \ref Operator_Info.
 	);
 
 /// \brief Destructor for a \ref const_Multiarray_Cubature\* container.

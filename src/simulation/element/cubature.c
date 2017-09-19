@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_math.h"
 #include "definitions_tol.h"
 #include "definitions_alloc.h"
+#include "definitions_elements.h"
 
 #include "matrix.h"
 #include "vector.h"
@@ -51,7 +52,7 @@ static const struct const_Cubature* constructor_const_Cubature_tet
 	 const int node_type ///< Defined for \ref constructor_const_Cubature_si.
 	);
 
-// Interface functions ********************************************************************************************** //
+// Constructor functions ******************************************************************************************** //
 
 const struct const_Cubature* constructor_const_Cubature_tp (const int d, const int p, const int node_type)
 {
@@ -431,6 +432,20 @@ void destructor_Cubature (struct Cubature* cub)
 void destructor_const_Cubature (const struct const_Cubature*const cub)
 {
 	destructor_Cubature((struct Cubature*)cub);
+}
+
+// Helper functions ************************************************************************************************* //
+
+cubature_fptr get_cubature_by_super_type (const int s_type)
+{
+	if (s_type == ST_TP)
+		return constructor_const_Cubature_tp;
+	else if (s_type == ST_SI)
+		return constructor_const_Cubature_si;
+	else if (s_type == ST_PYR)
+		return constructor_const_Cubature_pyr;
+	else
+		EXIT_UNSUPPORTED;
 }
 
 // Static functions ************************************************************************************************* //

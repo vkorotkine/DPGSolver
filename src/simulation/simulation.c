@@ -270,6 +270,18 @@ static void check_necessary_simulation_parameters (struct Simulation*const sim)
 	assert(sim->p_s_v[0] != P_INVALID);
 	assert(sim->p_s_v[1] != P_INVALID);
 	assert(sim->p_s_v[1] >= sim->p_s_v[0]);
+
+	if (sim->p_s_v[0] != sim->p_s_v[1])
+		assert(sim->p_s_v[0] == 0);
+
+	if (sim->p_s_f[0] != sim->p_s_f[1])
+		assert(sim->p_s_f[0] == 0);
+
+	if (sim->p_sg_v[0] != sim->p_sg_v[1])
+		assert(sim->p_sg_v[0] == 0);
+
+	if (sim->p_sg_f[0] != sim->p_sg_f[1])
+		assert(sim->p_sg_f[0] == 0);
 }
 
 static void set_simulation_default (struct Simulation*const sim)

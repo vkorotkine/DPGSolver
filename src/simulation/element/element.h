@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Container for data relating to the base Elements.
 struct Element {
+/// \todo Remove `const`s here.
 	struct Intrusive_Link lnk; ///< The \ref Intrusive_Link.
 
 	const int type,   ///< The element type.
@@ -32,6 +33,8 @@ struct Element {
 	          d,      ///< The dimension.
 	          n_ve,   ///< The number of vertices.
 	          n_f;    ///< The number of faces.
+
+	const int n_ref_max; ///< Maximum number of h-refinements.
 
 	const struct const_Multiarray_Vector_i*const f_ve; ///< The correspondence between the (f)aces and (ve)rtices.
 };
@@ -45,6 +48,8 @@ struct const_Element {
 	          d,      ///< Defined in \ref Element.
 	          n_ve,   ///< Defined in \ref Element.
 	          n_f;    ///< Defined in \ref Element.
+
+	const int n_ref_max; ///< Defined in \ref Element.
 
 	const struct const_Multiarray_Vector_i*const f_ve; ///< Defined in \ref Element.
 };
