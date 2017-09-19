@@ -24,7 +24,7 @@ void test_integration_Euler(int nargc, char **argv)
 	bool run_tests_equivalence_real_complex = 0,
 	     run_tests_equivalence_algorithms   = 0,
 	     run_tests_linearization            = 1,
-	     run_tests_conv_order               = 0;
+	     run_tests_conv_order               = 1;
 
 	/// \todo Delete this after Manmeet has finished his initial verification.
 	const bool PeriodicVortexOnly = 0;
@@ -101,7 +101,7 @@ test_integration_linearization("test/Euler/Test_Euler_SupersonicVortex_CurvedMIX
 		                              .PrintName = test_name, };
 
 if (!PeriodicVortexOnly) {
-		test_conv_order(&data_c,"Euler_n-GaussianBump_CurvedQUAD");
+//		test_conv_order(&data_c,"Euler_n-GaussianBump_CurvedQUAD");
 		test_conv_order(&data_c,"Euler_n-Cylinder_HollowSection_CurvedMIXED2D");
 		test_conv_order(&data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedMIXED2D");
 }

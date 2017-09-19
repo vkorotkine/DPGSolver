@@ -153,7 +153,7 @@ static void set_up_operators_standard (struct Geometry_Element* element, const s
 	const struct const_Multiarray_Cubature* cub_vg =
 		constructor_const_Multiarray_Cubature(sim,base_element,op_info_vgs); // destructed
 
-//	struct Multiarray_Matrix_d* ED_vg_vc = constructor_empty_Multiarray_Matrix_d_V(false); // keep
+	struct Multiarray_Matrix_d* ED_vg_vc = constructor_operators_Multiarray_Matrix_d_V(); // keep
 //	element->ED_vg_vc = ED_vg_vc;
 	destructor_Operator_Info(op_info_vgs);
 	destructor_const_Multiarray_Cubature(cub_vg);

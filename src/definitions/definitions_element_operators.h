@@ -44,4 +44,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #define RANGE_H_ALL 12 ///< All refinements.
 ///\}
 
+
+///\{ \name Operator types.
+#define OP_T_CC 100 ///< Coefficients to coefficients.
+#define OP_T_CV 101 ///< Coefficients to values.
+#define OP_T_VC 102 ///< Values       to coefficients.
+#define OP_T_VV 103 ///< Values       to values.
+
+#define OP_T_DG_WEAK_VV 110 ///< (D)iscontinuous-(G)alerkin (Weak) (V)olume to (V)olume.
+///\}
+
 #endif // DPG__definitions_element_operators_h__INCLUDED

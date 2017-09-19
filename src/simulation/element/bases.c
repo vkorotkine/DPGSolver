@@ -640,6 +640,38 @@ const struct const_Matrix_d* constructor_abc_from_rst_pyr (const struct const_Ma
 	return (const struct const_Matrix_d*) abc;
 }
 
+basis_fptr get_basis_by_super_type (const int s_type, const char*const ref_basis_name)
+{
+	if (s_type == ST_TP) {
+		if (strcmp(ref_basis_name,"ortho") == 0)
+			return  constructor_basis_tp_orthonormal;
+		else if (strcmp(ref_basis_name,"bezier") == 0)
+			return  constructor_basis_tp_bezier;
+	} else if (s_type == ST_SI) {
+		return  constructor_basis_si_orthonormal;
+	} else if (s_type == ST_PYR) {
+		return  constructor_basis_pyr_orthonormal;
+	}
+
+	EXIT_ERROR("Did not find the basis with the specified inputs: (%d, %s)\n",s_type,ref_basis_name);
+}
+
+grad_basis_fptr get_grad_basis_by_super_type (const int s_type, const char*const ref_grad_basis_name)
+{
+	if (s_type == ST_TP) {
+		if (strcmp(ref_grad_basis_name,"ortho") == 0)
+			return  constructor_grad_basis_tp_orthonormal;
+		else if (strcmp(ref_grad_basis_name,"bezier") == 0)
+			return  constructor_grad_basis_tp_bezier;
+	} else if (s_type == ST_SI) {
+		return  constructor_grad_basis_si_orthonormal;
+	} else if (s_type == ST_PYR) {
+		return  constructor_grad_basis_pyr_orthonormal;
+	}
+
+	EXIT_ERROR("Did not find the basis with the specified inputs: (%d, %s)\n",s_type,ref_grad_basis_name);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

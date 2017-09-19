@@ -143,4 +143,18 @@ const struct const_Matrix_d* constructor_abc_from_rst_pyr
 	(const struct const_Matrix_d*const rst ///< The input coordinates on the reference simplex.
 	);
 
+/** \brief Get a pointer to the appropriate basis constructor function based on the input element super type.
+ *  \return See brief. */
+basis_fptr get_basis_by_super_type
+	(const int s_type,               ///< \ref Element::s_type.
+	 const char*const ref_basis_name ///< The name of the reference basis to be used.
+	);
+
+/** \brief Get a pointer to the appropriate basis gradient constructor function based on the input element super type.
+ *  \return See brief. */
+grad_basis_fptr get_grad_basis_by_super_type
+	(const int s_type,               ///< \ref Element::s_type.
+	 const char*const ref_basis_name ///< The name of the reference basis to be used.
+	);
+
 #endif // DPG__bases_h__INCLUDED

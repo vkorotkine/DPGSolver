@@ -27,15 +27,6 @@ struct const_Element;
 
 /// Container for operator range related information.
 struct Operator_Info {
-	/** The type of operator. Options:
-	 *  - 'T'ransform:   coefficients to coefficients
-	 *  - 'E'valuate:    coefficients to values
-	 *  - 'I'nterpolate: values       to values
-	 *  - 'P'roject:     values       to coefficients
-	 */
-	char op_type;
-// Potentially remove.
-
 	const int range_d, ///< Range of dimensions (For differentiation operators).
 	          range_f, ///< Range of faces.
 	          range_p, ///< Range of orders.
@@ -44,6 +35,15 @@ struct Operator_Info {
 	const int cub_type; ///< The type of cubature.
 
 	const int p_ref[2]; ///< Reference polynomial orders from \ref Simulation.
+
+/// \todo Make these Vector_i\*s
+	int order_cub;          ///< The order of the associated \ref Multiarray_Cubature\*.
+	ptrdiff_t* extents_cub; ///< The extents of the associated \ref Multiarray_Cubature\*.
+
+	int order_bas;          ///< The order of the associated \ref Multiarray_Matrix_d\* of basis functions.
+	ptrdiff_t* extents_bas; ///< The extents of the associated \ref Multiarray_Matrix_d\* of basis functions.
+
+	struct Matrix_d* values_bas ///< The values of d, f, h, p_in, and p_out for each operator.
 };
 
 /// Container for a Multiarray of \ref Cubature\* data.
@@ -100,6 +100,12 @@ const struct const_Multiarray_Cubature* constructor_const_Multiarray_Cubature
 /// \brief Destructor for a \ref const_Multiarray_Cubature\* container.
 void destructor_const_Multiarray_Cubature
 	(const struct const_Multiarray_Cubature*const a ///< Standard.
+	);
+
+/** \brief Constructor for a \ref const_Multiarray_Matrix_d\* of operators.
+ *  \return Standard. */
+struct Multiarray_Matrix_d* constructor_operators_Multiarray_Matrix_d_V
+	(
 	);
 
 #endif // DPG__element_operators_h__INCLUDED

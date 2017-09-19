@@ -31,23 +31,40 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "simulation.h"
 #include "element.h"
 #include "const_cast.h"
+#include "bases.h"
 #include "cubature.h"
 
 // Static function declarations ************************************************************************************* //
+
+///\{ \name Maximum operator order.
+#define OP_ORDER_MAX 5 // d(1) + f(1) + h(1) + p(2)
+///\}
+
+///\{ \name Invalid operator index
+#define OP_INVALID_IND -314
+///\}
 
 /** \brief Constructor for the \ref Multiarray_Cubature::data.
  *  \return Standard. */
 const struct const_Cubature** constructor_cub_data_array
 	(const struct Simulation* sim,        ///< \ref Simulation.
 	 const struct const_Element* element, ///< \ref const_Element.
-	 const ptrdiff_t order,               ///< \ref Multiarray_Cubature::order.
-	 const ptrdiff_t*const extents,       ///< \ref Multiarray_Cubature::extents.
 	 const struct Operator_Info* op_info  ///< \ref Operator_Info.
 	);
 
 /// \brief Destructor for a \ref Multiarray_Cubature\* container.
 static void destructor_Multiarray_Cubature
 	(struct Multiarray_Cubature* a ///< Standard.
+	);
+
+/// \brief Set up \ref Operator_Info order_* and extents_* members.
+static void set_up_order_and_extents
+	(struct Operator_Info* op_info ///< \ref Operator_Info.
+	);
+
+/// \brief Set up \ref Operator_Info::values_bas.
+static void set_up_basis_values
+	(struct Operator_Info* op_info ///< \ref Operator_Info.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -66,48 +83,25 @@ struct Operator_Info* constructor_Operator_Info
 	const_cast_i(&op_info->cub_type,cub_type);
 	const_cast_i1(op_info->p_ref,p_ref,2);
 
+	set_up_order_and_extents(op_info);
+	set_up_basis_values(op_info);
+
 	return op_info;
 }
 
 void destructor_Operator_Info (struct Operator_Info* op_info)
 {
+	free(op_info->extents_cub);
+	free(op_info->extents_bas);
+	free(op_info->values_bas);
 	free(op_info);
 }
 
 const struct const_Multiarray_Cubature* constructor_const_Multiarray_Cubature
 	(const struct Simulation* sim, const struct const_Element* element, const struct Operator_Info* op_info)
 {
-	// Compute order and extents.
-	int order = 0;
-	if (op_info->range_f != RANGE_F_0)
-		++order;
-	++order; // range_h
-	++order; // range_p
-
-	ptrdiff_t* extents = malloc(order * sizeof *extents); // keep
-	int ind = 0;
-	switch (op_info->range_f) {
-		case RANGE_F_0:   /* Do nothing */               break;
-		case RANGE_F_ALL: extents[ind++] = element->n_f; break;
-		default:          EXIT_UNSUPPORTED;              break;
-	}
-
-	switch (op_info->range_h) {
-		case RANGE_H_1:   extents[ind++] = 1;                  break;
-		case RANGE_H_ALL: extents[ind++] = element->n_ref_max; break;
-		default:          EXIT_UNSUPPORTED;                    break;
-	}
-
-	switch (op_info->range_p) {
-		case RANGE_P_1:   extents[ind++] = 1;                   break;
-		case RANGE_P_PM0: extents[ind++] = 1;                   break;
-		case RANGE_P_PM1: /* fallthrough */
-		case RANGE_P_ALL: extents[ind++] = op_info->p_ref[1]+1; break;
-		default:          EXIT_UNSUPPORTED;                     break;
-	}
-
 	// Compute \ref Cubature data.
-	const struct const_Cubature** cub_data = constructor_cub_data_array(sim,element,order,extents,op_info); // keep
+	const struct const_Cubature** cub_data = constructor_cub_data_array(sim,element,op_info); // keep
 
 	// Construct the Multiarray.
 	struct Multiarray_Cubature* cub_MA = malloc(sizeof *cub_MA); // returned
@@ -123,6 +117,75 @@ const struct const_Multiarray_Cubature* constructor_const_Multiarray_Cubature
 void destructor_const_Multiarray_Cubature (const struct const_Multiarray_Cubature*const a)
 {
 	destructor_Multiarray_Cubature((struct Multiarray_Cubature*)a);
+}
+
+struct Multiarray_Matrix_d* constructor_operators_Multiarray_Matrix_d_V
+	()
+const int op_type,    ///< Operator type (T,E,I,P,D_Weak_VV,...)
+const int diff_order, ///< Differentiation order.
+const struct Simulation* sim,
+const struct const_Element* element,
+const struct Operator_Info* op_info,
+const struct const_Multiarray_Cubature* cub_array
+{
+	const int order = op_info->order_bas;
+	const ptrdiff_t*const extents = op_info->extents_bas;
+
+	struct Multiarray_Matrix_d* op = constructor_empty_Multiarray_Matrix_d_V(false,order,extents); // returned
+
+	const ptrdiff_t size = compute_size(order,extents);
+
+	basis_fptr      constructor_basis      = get_basis_by_super_type     (element->s_type,"ortho");
+	grad_basis_fptr constructor_grad_basis = get_grad_basis_by_super_type(element->s_type,"ortho");
+
+	assert(op_info->values_bas->layout == 'R');
+	assert(op_info->values_bas->ext_0  == size);
+	assert(op_info->values_bas->ext_1  == OP_ORDER_MAX);
+	for (ptrdiff_t row = 0; row < size; ++row) {
+		int* op_values = get_row_Matrix_i(row,op_info->values_bas);
+
+// separate function here and below
+		int ind = 0;
+		ptrdiff_t indices_op[order];
+		for (int i = 0; i < OP_ORDER_MAX; ++i) {
+			if (op_values[i] != OP_INVALID_IND)
+				indices_op[ind++] = op_values[i];
+		}
+		assert(ind == order);
+
+		const int order_cub = op_info->order_cub;
+
+		ind = 0;
+		const int indices_skip[OP_ORDER_MAX] = {1,0,0,1,0}; // cubature only uses, f, h, p_out
+		ptrdiff_t indices_cub[order_cub];
+		for (int i = 0; i < OP_ORDER_MAX; ++i) {
+			if (!indices_skip[i] && op_values[i] != OP_INVALID_IND)
+				indices_cub[ind++] = op_values[i];
+		}
+		assert(ind == order_cub);
+
+// separate function here
+		const ptrdiff_t ind_basis = indices_op[order-2];
+		const ptrdiff_t ind_cub_array = compute_index_sub_container(order_cub,1,cub_array->extents,indices_cub);
+		const struct const_Cubature*const cub = cub_array->data[ind_cub_array];
+		if (diff_order == 0) {
+			const struct const_Matrix_d* op_ref = constructor_basis(ind_basis,d,cub->rst); // tbd
+			const struct const_Matrix_d* op =
+				constructor_mm_const_Matrix_d('N','N',1.0,0.0,op_ref,op_t,'R'); // tbd
+
+		} else if (diff_order == 1) {
+			const struct const_Multiarray_Matrix_d* op_ref = constructor_grad_basis(ind_basis,d,cub->rst); // tbd
+
+// Increment `row` here for d > 1.
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+
+//		op->data[row] =
+
+	}
+
+	return op;
 }
 
 // Static functions ************************************************************************************************* //
@@ -158,6 +221,92 @@ static int compute_cub_ce
 	(const int cub_type ///< The cubature type.
 	);
 
+static void set_up_order_and_extents (struct Operator_Info* op_info)
+{
+	int order_cub = 0;
+	int order_bas = 0;
+	if (op_info->range_d != RANGE_D_0)
+		++order_bas;
+
+	if (op_info->range_f != RANGE_F_0) {
+		++order_cub;
+		++order_bas;
+	}
+	++order_cub; // range_h
+	++order_bas;
+	++order_cub; // range_p
+	++order_bas;
+
+	ptrdiff_t* extents_cub = malloc(order_cub * sizeof *extents_cub); // keep
+	ptrdiff_t* extents_bas = malloc(order_bas * sizeof *extents_bas); // keep
+	int ind_cub = 0,
+	    ind_bas = 0;
+	switch (op_info->range_d) {
+		case RANGE_D_0:
+			/* Do nothing */
+			break;
+		case RANGE_D_ALL:
+			extents_bas[ind_bas++] = element->d;
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+	}
+
+	switch (op_info->range_f) {
+		case RANGE_F_0:
+			/* Do nothing */
+			break;
+		case RANGE_F_ALL:
+			extents_cub[ind_cub++] = element->n_f;
+			extents_bas[ind_bas++] = element->n_f;
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+	}
+
+	switch (op_info->range_h) {
+		case RANGE_H_1:
+			extents_cub[ind_cub++] = 1;
+			extents_bas[ind_bas++] = 1;
+			break;
+		case RANGE_H_ALL:
+			extents_cub[ind_cub++] = element->n_ref_max;
+			extents_bas[ind_bas++] = element->n_ref_max;
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+	}
+
+	switch (op_info->range_p) {
+		case RANGE_P_1:
+			extents_cub[ind_cub++] = 1;
+			extents_bas[ind_bas++] = 1;
+			break;
+		case RANGE_P_PM0: /* fallthrough */
+		case RANGE_P_PM1: /* fallthrough */
+		case RANGE_P_ALL:
+			extents_cub[ind_cub++] = op_info->p_ref[1]+1;
+			extents_bas[ind_bas++] = op_info->p_ref[1]+1;
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+	}
+
+	op_info->order_cub   = order_cub;
+	op_info->extents_cub = extents_cub;
+	op_info->order_bas   = order_bas;
+	op_info->extents_bas = extents_bas;
+}
+
+static void set_up_basis_values (struct Operator_Info* op_info)
+{
+	EXIT_UNSUPPORTED;
+}
+
 static void destructor_Multiarray_Cubature (struct Multiarray_Cubature* a)
 {
 	assert(a != NULL);
@@ -173,9 +322,11 @@ static void destructor_Multiarray_Cubature (struct Multiarray_Cubature* a)
 }
 
 const struct const_Cubature** constructor_cub_data_array
-	(const struct Simulation* sim, const struct const_Element* element, const ptrdiff_t order,
-	 const ptrdiff_t*const extents, const struct Operator_Info* op_info)
+	(const struct Simulation* sim, const struct const_Element* element, const struct Operator_Info* op_info)
 {
+	const int order = op_info->order_cub;
+	const ptrdiff_t*const extents = op_info->extents_cub;
+
 	const ptrdiff_t size = compute_size(order,extents);
 	const struct const_Cubature** cub_data = malloc(size * sizeof *cub_data); // returned
 
