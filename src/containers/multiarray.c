@@ -68,7 +68,7 @@ static ptrdiff_t compute_total_entries
 
 // Interface functions ********************************************************************************************** //
 
-ptrdiff_t compute_size (const int order, const ptrdiff_t *const extents)
+ptrdiff_t compute_size (const int order, const ptrdiff_t*const extents)
 {
 	ptrdiff_t size = 1;
 	for (ptrdiff_t i = 0; i < order; i++)

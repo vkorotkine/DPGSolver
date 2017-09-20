@@ -147,14 +147,19 @@ static void set_up_operators_standard (struct Geometry_Element* element, const s
 {
 	struct const_Element* base_element = (struct const_Element*)element;
 
-	struct Operator_Info* op_info_vgs =
-		constructor_Operator_Info(RANGE_D_ALL,RANGE_F_0,RANGE_P_1,RANGE_H_1,CUB_CMP_VGS,sim->p_s_v,element); // destructed
+	struct Operator_Info* op_info_vgs = constructor_Operator_Info(""vgs","vgs","F_0_H_1_P_1",
+		                          (int[]){CUB_CMP_VGS},
+		                          sim->p_s_v,element); // destructed
 
 	const struct const_Multiarray_Cubature* cub_vg =
 		constructor_const_Multiarray_Cubature(sim,base_element,op_info_vgs); // destructed
 
-	struct Multiarray_Matrix_d* ED_vg_vc = constructor_operators_Multiarray_Matrix_d_V(); // keep
-//	element->ED_vg_vc = ED_vg_vc;
+/// \todo Name change of ED_vg...
+//	const struct const_Multiarray_Matrix_d* cv1_vgs_vcs =
+	const struct const_Multiarray_Matrix_d* ED_vg_vc =
+		constructor_operators(OP_T_CV,op_info_vgs,sim); // keep
+	element->ED_vg_vc = ED_vg_vc;
+
 	destructor_Operator_Info(op_info_vgs);
 	destructor_const_Multiarray_Cubature(cub_vg);
 	EXIT_ADD_SUPPORT;

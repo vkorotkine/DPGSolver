@@ -94,7 +94,7 @@ void sort_Vector_i (struct Vector_i* a)
 	qsort(a->data,size,sizeof(a->data[0]),cmp_i);
 }
 
-int sum_Vector_i (struct Vector_i* a)
+int sum_Vector_i (const struct Vector_i* a)
 {
 	int sum = 0;
 
@@ -102,6 +102,17 @@ int sum_Vector_i (struct Vector_i* a)
 	for (ptrdiff_t i = 0; i < size; ++i)
 		sum += a->data[i];
 	return sum;
+}
+
+ptrdiff_t prod_Vector_i (const struct Vector_i* a)
+{
+	const ptrdiff_t i_max = a->ext_0;
+
+	ptrdiff_t prod = 1;
+	for (ptrdiff_t i = 0; i < i_max; ++i)
+		prod *= a->data[i];
+
+	return prod;
 }
 
 bool check_equal_Vector_i (const struct Vector_i*const a, const struct Vector_i*const b)

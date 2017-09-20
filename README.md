@@ -3,8 +3,11 @@
 ## Contributors
 
 Philip Zwanenburg, philip.zwanenburg@mail.mcgill.ca
+
 Siva Nadarajah, siva.nadarajah@mcgill.ca
+
 Cem Gormezano
+
 Manmeet Bhabra
 
 ## Code Description

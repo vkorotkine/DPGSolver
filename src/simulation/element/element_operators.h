@@ -31,19 +31,17 @@ struct Operator_Info {
 
 	const int range_d, ///< Range of dimensions (For differentiation operators).
 	          range_f, ///< Range of faces.
-	          range_p, ///< Range of orders.
-	          range_h; ///< Range of h-refinement related operators.
+	          range_h, ///< Range of h-refinement related operators.
+	          range_p; ///< Range of orders.
+
+	const int op_spec_sc
 
 	const int cub_type; ///< The type of cubature.
 
 	const int p_ref[2]; ///< Reference polynomial orders from \ref Simulation.
 
-/// \todo Make these Vector_i\*s
-	int order_cub;          ///< The order of the associated \ref Multiarray_Cubature\*.
-	ptrdiff_t* extents_cub; ///< The extents of the associated \ref Multiarray_Cubature\*.
-
-	int order_op;          ///< The order of the associated \ref Multiarray_Matrix_d\* of basis functions.
-	ptrdiff_t* extents_op; ///< The extents of the associated \ref Multiarray_Matrix_d\* of basis functions.
+	struct Vector_i* extents_cub; ///< The extents of the associated \ref Multiarray_Cubature\*.
+	struct Vector_i* extents_op;  ///< The extents of the associated \ref Multiarray_Matrix_d\* of operators.
 
 	struct Matrix_i* values_op ///< The values of d, f, h, p_in, and p_out for each operator.
 };
@@ -71,11 +69,9 @@ struct const_Multiarray_Cubature {
 /** \brief Constructor for the \ref Operator_Info\* having the given inputs.
  *  \return Standard. */
 struct Operator_Info* constructor_Operator_Info
-	(const int range_d,                  ///< Defined in \ref Operator_Info.
-	 const int range_f,                  ///< Defined in \ref Operator_Info.
-	 const int range_p,                  ///< Defined in \ref Operator_Info.
-	 const int range_h,                  ///< Defined in \ref Operator_Info.
-	 const int cub_type,                 ///< Defined in \ref Operator_Info.
+	(const int cmp_rng,                  /**< Holds the compound range value. Supported values can be found in
+	                                      *   \ref definitions_element_operators.h */
+	 const int*const cub_type_info,      ///< Holds the Operator_Info:: \todo update comment.
 	 const int p_ref[2],                 ///< Defined in \ref Operator_Info.
 	 const struct const_Element* element ///< Defined in \ref Operator_Info.
 	);
@@ -107,8 +103,10 @@ void destructor_const_Multiarray_Cubature
 
 /** \brief Constructor for a \ref const_Multiarray_Matrix_d\* of operators.
  *  \return Standard. */
-struct Multiarray_Matrix_d* constructor_operators_Multiarray_Matrix_d_V
-	(
+const struct const_Multiarray_Matrix_d* constructor_operators_Multiarray_Matrix_d_V
+	(const int op_type,                   ///< Operator type. See options in \ref definitions_element_operators.h.
+	 const struct Operator_Info* op_info, ///< \ref Operator_Info.
+	 const struct Simulation* sim         ///< \ref Simulation.
 	);
 
 #endif // DPG__element_operators_h__INCLUDED

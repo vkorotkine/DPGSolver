@@ -36,12 +36,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-///\{ \name Operator related parameters
-#define OP_ORDER_MAX 6 // d(1) + f(1) + h(2) + p(2)
-#define OP_IND_H     2
-#define OP_IND_P     4
-///\}
-
 ///\{ \name Invalid operator index
 #define OP_INVALID_IND -999
 ///\}
@@ -59,44 +53,61 @@ static void destructor_Multiarray_Cubature
 	(struct Multiarray_Cubature* a ///< Standard.
 	);
 
-/// \brief Set up \ref Operator_Info order_* and extents_* members.
-static void set_up_order_and_extents
+/// \brief Set up \ref Operator_Info extents_* members.
+static void set_up_extents
 	(struct Operator_Info* op_info ///< \ref Operator_Info.
 	);
 
 /// \brief Set up \ref Operator_Info::values_op.
-static void set_up_basis_values
+static void set_up_values_op
 	(struct Operator_Info* op_info ///< \ref Operator_Info.
+	);
+
+/** \brief Constructor for a \ref Vector_i\* of indices for the current operator.
+ *  \return See brief. */
+static struct Vector_i* constructor_indices_Vector_i
+	(const int order_expected,     ///< The expected order.
+	 int* op_values,               ///< The operator values.
+	 const bool*const indices_skip ///< Indices to skip (if not NULL).
+	);
+
+/** \brief Set the current standard operator.
+ *  \note Standard operators include all permutations of coef/value to coef/value with possible differentiation. */
+static void set_operator_std
+	(const int ind_values,               ///< The index of the first row of \ref Operator_Info::op_values to use.
+	 struct Multiarray_Matrix_d* op,     ///< The multiarray of operators.
+	 const int op_type,                  ///< The operator type.
+	 struct Operator_Info* op_info,      ///< \ref Operator_Info.
+	 const struct const_Element* element ///< \ref const_Element.
 	);
 
 // Interface functions ********************************************************************************************** //
 
 struct Operator_Info* constructor_Operator_Info
-	(const int range_d, const int range_f, const int range_p, const int range_h, const int cub_type,
-	 const int p_ref[2], const struct const_Element* element)
+	(const char*const cmp_rng, const int*const cub_type_info, const int p_ref[2], const struct const_Element* element)
 {
 	struct Operator_Info* op_info = malloc(sizeof *op_info); // returned
 
 	op_info->element = element;
 
-	const_cast_i(&op_info->range_d,range_d);
-	const_cast_i(&op_info->range_f,range_f);
-	const_cast_i(&op_info->range_h,range_h);
-	const_cast_i(&op_info->range_p,range_p);
+	const_cast_i(&op_info->range_d,ranges[0]);
+	const_cast_i(&op_info->range_f,ranges[1]);
+	const_cast_i(&op_info->range_h,ranges[2]);
+	const_cast_i(&op_info->range_p,ranges[3]);
 
 	const_cast_i(&op_info->cub_type,cub_type);
 	const_cast_i1(op_info->p_ref,p_ref,2);
 
-	set_up_order_and_extents(op_info);
-	set_up_basis_values(op_info);
+	set_up_extents(op_info);
+	set_up_values_op(op_info);
 
 	return op_info;
 }
 
 void destructor_Operator_Info (struct Operator_Info* op_info)
 {
-	free(op_info->extents_cub);
-	free(op_info->extents_op);
+	destructor_Vector_i(op_info->extents_cub);
+	destructor_Vector_i(op_info->extents_op);
 	destructor_Matrix_i(op_info->values_op);
 	free(op_info);
 }
@@ -123,71 +134,31 @@ void destructor_const_Multiarray_Cubature (const struct const_Multiarray_Cubatur
 	destructor_Multiarray_Cubature((struct Multiarray_Cubature*)a);
 }
 
-struct Multiarray_Matrix_d* constructor_operators_Multiarray_Matrix_d_V
-	()
-const int op_type,    ///< Operator type (CV,CC,VV,VC,DG_Weak_VV,...)
-const int diff_order, ///< Differentiation order.
-const struct Simulation* sim,
-const struct const_Element* element,
-const struct Operator_Info* op_info,
-//const struct const_Multiarray_Cubature* cub_array
+const struct const_Multiarray_Matrix_d* constructor_operators_Multiarray_Matrix_d_V
+	(const int op_type, const struct Operator_Info* op_info, const struct Simulation* sim)
 {
-	const int order = op_info->order_op;
-	const ptrdiff_t*const extents = op_info->extents_op;
+	const ptrdiff_t order = op_info->extents_op->ext_0;
+	struct Multiarray_Matrix_d* op = constructor_empty_Multiarray_Matrix_d_V(false,op_info->extents_op); // returned
 
-	struct Multiarray_Matrix_d* op = constructor_empty_Multiarray_Matrix_d_V(false,order,extents); // returned
-
-	const ptrdiff_t size = compute_size(order,extents);
-
-	basis_fptr      constructor_basis      = get_basis_by_super_type     (element->s_type,"ortho");
-	grad_basis_fptr constructor_grad_basis = get_grad_basis_by_super_type(element->s_type,"ortho");
+	ptrdiff_t* extents = op->extents;
 
 	const ptrdiff_t row_max = op_info->values_op->ext_0;
 	for (ptrdiff_t row = 0; row < row_max; ++row) {
-		int* op_values = get_row_Matrix_i(row,op_info->values_op);
-
-// separate function here and below
-		int ind = 0;
-		ptrdiff_t indices_op[order];
-		for (int i = 0; i < OP_ORDER_MAX; ++i) {
-			if (op_values[i] != OP_INVALID_IND)
-				indices_op[ind++] = op_values[i];
+		switch (op_type) {
+		case OP_T_CV: case OP_T_CC: case OP_T_VV: case OP_T_VC:
+// Currently only Volume -> Volume, Face, Edge operators.
+			set_operator_std(row,op,op_type,op_info,op_info->element);
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
 		}
-		assert(ind == order);
-
-		const int order_cub = op_info->order_cub;
-
-		ind = 0;
-		const int indices_skip[OP_ORDER_MAX] = {1,0,0,1,0}; // cubature only uses, f, h, p_out
-		ptrdiff_t indices_cub[order_cub];
-		for (int i = 0; i < OP_ORDER_MAX; ++i) {
-			if (!indices_skip[i] && op_values[i] != OP_INVALID_IND)
-				indices_cub[ind++] = op_values[i];
-		}
-		assert(ind == order_cub);
-//		const ptrdiff_t row = compute_index_sub_container(OP_ORDER_MAX,0,extents,(ptrdiff_t[]){d,f,h,p_o,p_i});
-
-// separate function here
-		const ptrdiff_t ind_basis = indices_op[order-2];
-//		const ptrdiff_t ind_cub_array = compute_index_sub_container(order_cub,1,cub_array->extents,indices_cub);
-//		const struct const_Cubature*const cub = cub_array->data[ind_cub_array];
-		if (op_values[0] == OP_INVALID_IND) {
-			const struct const_Matrix_d* op_ref = constructor_basis(ind_basis,d,cub->rst); // tbd
-			const struct const_Matrix_d* op =
-				constructor_mm_const_Matrix_d('N','N',1.0,0.0,op_ref,op_t,'R'); // tbd
-
-		} else {
-			const struct const_Multiarray_Matrix_d* op_ref = constructor_grad_basis(ind_basis,d,cub->rst); // tbd
-
-// Increment `row` here for d > 1.
-		}
-
-//		op->data[row] =
-
 	}
 
-	return op;
+	return (const struct const_Multiarray_Matrix_d*) op;
 }
+
+
 
 /** \brief Check if information can be lost while performing the operation.
  *  \return `true` if: `p_i > p_o` or `h_i > h_o`; `false` otherwise. */
@@ -200,48 +171,87 @@ bool check_op_info_loss
 	return false;
 }
 
-// For cv, cc, vv, vc operators
-void compute_the_operator_std
-()
-const int*const op_indices;
-const int op_type;
-const struct const_Element* element;
+static void set_operator_std
+	(const int ind_values, struct Multiarray_Matrix_d* op, const int op_type, struct Operator_Info* op_info,
+	 const struct const_Element* element)
 {
+	const int d      = element->d,
+	          s_type = element->s_type;
+
+	int* op_values = get_row_Matrix_i(ind_values,op_info->values_op);
+
+	const int order_op  = op_info->extents_op->ext_0,
+	          order_cub = op_info->extents_cub->ext_0;
+
+	struct Vector_i* indices_op = constructor_indices_Vector_i(order_op,op_values,NULL); // destructed
+
+	const bool skip_cub[] = {true,false,false,true,false,true};
+	struct Vector_i* indices_cub = constructor_indices_Vector_i(order_cub,op_values,skip_cub); // destructed
+
+// separate function here
+//		const ptrdiff_t ind_cub_array = compute_index_sub_container(order_cub,1,cub_array->extents,indices_cub);
+//		const struct const_Cubature*const cub = cub_array->data[ind_cub_array];
+
+//	destructor_Vector_i(indices_op);
+//	destructor_Vector_i(indices_cub);
+
 	const bool info_loss = check_op_info_loss(op_indices);
 
 	const int* h_ptr = &op_indices[OP_IND_H];
 	const int* p_ptr = &op_indices[OP_IND_P];
 
+//grad_basis_fptr constructor_grad_basis = get_grad_basis_by_super_type(element->s_type,"ortho");
 	if (!info_loss) {
-		const int*const p_x[2] = { compute_p_cub(p_ptr[0],op_info->cub_type,element->s_type,sim),
-		                           compute_p_cub(p_ptr[1],op_info->cub_type,element->s_type,sim), };
-// Need new function in cubature.h
-		const struct const_Cubature*const cub_o =
-			constructor_const_Cubature_hp(element->s_type,h_ptr[0],p_x[0]); // destructed
+		const int*const p_x[2] = { compute_p_cub(p_ptr[0],op_info->cub_type,s_type,sim),
+		                           compute_p_cub(p_ptr[1],op_info->cub_type,s_type,sim), };
+// NOTE: nodes out and basis out must coincide when this operator is available. I.e. you cannot project a non-basis set
+// of nodes to coefficients as you would never have the cc, vc operator.
+// Thus, only two sets of cubature nodes are required.
+
+// Get cubature nodes possibly restricted to subset of element.
+		const int basis_node_type = get_node_type(basis comp elem (v,f,e), basis type (g,m,s,...),s_type);
 		const struct const_Cubature*const cub_i =
-			constructor_const_Cubature_hp(element->s_type,h_ptr[1],p_x[1]); // destructed
+			constructor_const_Cubature_h(d,p_x[1],basis_node_type,s_type,h_ptr[1]); // destructed
+		const int cub_node_type = get_node_type(cub comp elem (v,f,e), cub type (g,m,s,...),s_type);
+		const struct const_Cubature*const cub_o =
+			constructor_const_Cubature_h(d,p_x[0],cub_node_type,s_type,h_ptr[0]); // destructed
 
 // Construct cv
-	// basis_ref == ortho (make function pointer)
-		const struct const_Matrix_d* phi_ref_cv_ii = constructor_basis_ref(p_x[1],element->d,cub_i->rst); // tbd
-// external function to computed T below.
+		basis_fptr constructor_basis_ref = get_basis_by_super_type(s_type,"ortho");
+		basis_fptr constructor_basis     = get_basis_by_super_type(s_type,"");
+		const struct const_Matrix_d* phi_ref_cv_ii = constructor_basis_ref(p_x[1],d,cub_i->rst); // tbd
+// external function to compute T below.
 		const struct const_Matrix_d* phi_cv_ii = NULL;
 		if (ortho)
 			phi_cv_ii = constructor_copy_const_Matrix_d(phi_ref_cv_ii); // tbd
 		else if (lagrange)
 			phi_cv_ii = constructor_identity_const_Matrix_d(phi_ref_cv_ii->ext_0); // tbd
 		else if (bezier)
-			phi_cv_ii = constructor_basis(p_x[1],element->d,cub_i->rst); // tbd
+			phi_cv_ii = constructor_basis_bezier(p_x[1],d,cub_i->rst); // tbd
 		else
 			EXIT_UNSUPPORTED;
 
 		const struct const_Matrix_d* T_i = constructor_sgesv_const_Matrix_d(phi_ref_cv_ii,phi_cv_ii); // tbd
 
-		const struct const_Matrix_d* phi_ref_cv_io = constructor_basis_ref(p_x[1],element->d,cub_o->rst); // tbd
+if (D_RANGE_0)
+		const struct const_Matrix_d* phi_ref_cv_io = constructor_basis_ref(p_x[1],d,cub_o->rst); // tbd
 		const struct const_Matrix_d* phi_cv_io     = constructor_mm_const_Matrix_d(phi_ref_cv_io,T_i); // tbd
+
+		const struct const_Matrix_d* output = NULL;
+		if (op_type == OP_T_CV)
+			op_out = phi_cv_io;
+
+		if (op_type == OP_T_CC) {
+			const struct const_Matrix_d* phi_ref_oo = constructor_basis_ref(p_x[0],d,cub_o->rst);
+		}
+else
 	// compute
 
 // Update for other operators
+
+// index of first operator: const ptrdiff_t ind_op_MA = compute_index_sub_container(OP_ORDER_MAX,0,extents,indices_op);
+// if: op_values[0] == OP_INVALID_IND, set from Matrix_d.
+// else: loop over dim set from Multiarray_Matrix_d.
 
 	} else {
 		EXIT_ADD_SUPPORT; // L2 projection operators.
@@ -286,7 +296,8 @@ static int compute_cub_ce
 static void compute_range
 	(int x_mm[2],                         ///< Set to the min and max values.
 	 const struct Operator_Info* op_info, ///< \ref Operator_Info.
-	 const char var_type                  ///< Variable type.
+	 const char var_type,                 ///< Variable type. Options: 'd', 'f', 'h', 'p'.
+	 const char var_io                    ///< Whether the variable is of 'i'nput or 'o'utput type.
 	);
 
 /// \brief Compute range (min, max) for `p_o` based on the values of `p_i` and `op_info->p_range`.
@@ -296,33 +307,17 @@ static void compute_range_p_o
 	 const int p_i                        ///< The input order.
 	);
 
-static void set_up_order_and_extents (struct Operator_Info* op_info)
+static void set_up_extents (struct Operator_Info* op_info)
 {
-	int order_cub = 0;
-	int order_op = 0;
-	if (op_info->range_d != RANGE_D_0)
-		++order_op;
+	struct Vector_i* extents_cub = constructor_default_Vector_i(); // keep
+	struct Vector_i* extents_op  = constructor_default_Vector_i(); // keep
 
-	if (op_info->range_f != RANGE_F_0) {
-		++order_cub;
-		++order_op;
-	}
-	++order_cub; // range_h
-	++order_op;
-	++order_cub; // range_p
-	++order_op;
-	++order_op;
-
-	ptrdiff_t* extents_cub = malloc(order_cub * sizeof *extents_cub); // keep
-	ptrdiff_t* extents_op  = malloc(order_op  * sizeof *extents_op);  // keep
-	int ind_cub = 0,
-	    ind_op = 0;
 	switch (op_info->range_d) {
 		case RANGE_D_0:
 			/* Do nothing */
 			break;
 		case RANGE_D_ALL:
-			extents_op[ind_op++] = element->d;
+			push_back_Vector_i(extents_op,element->d,false,false);
 			break;
 		default:
 			EXIT_UNSUPPORTED;
@@ -334,82 +329,87 @@ static void set_up_order_and_extents (struct Operator_Info* op_info)
 			/* Do nothing */
 			break;
 		case RANGE_F_ALL:
-			extents_cub[ind_cub++] = element->n_f;
-			extents_op[ind_op++]   = element->n_f;
+			push_back_Vector_i(extents_cub,element->n_f,false,false);
+			push_back_Vector_i(extents_op,element->n_f,false,false);
 			break;
 		default:
 			EXIT_UNSUPPORTED;
 			break;
 	}
 
-	switch (op_info->range_h) {
+	switch (op_info->range_h) { // h_o, h_i
 		case RANGE_H_1:
-			extents_cub[ind_cub++] = 1;
-			extents_op[ind_op++]   = 1;
+			push_back_Vector_i(extents_cub,1,false,false);
+			push_back_Vector_i(extents_op,1,false,false);
+			push_back_Vector_i(extents_op,1,false,false);
 			break;
-		case RANGE_H_ALL:
-			extents_cub[ind_cub++] = element->n_ref_max;
-			extents_op[ind_op++]   = element->n_ref_max;
+		case RANGE_H_CF:
+			push_back_Vector_i(extents_cub,element->n_ref_max,false,false);
+			push_back_Vector_i(extents_op,element->n_ref_max,false,false);
+			push_back_Vector_i(extents_op,1,false,false);
+			break;
+		case RANGE_H_FC:
+			push_back_Vector_i(extents_cub,element->n_ref_max,false,false);
+			push_back_Vector_i(extents_op,1,false,false);
+			push_back_Vector_i(extents_op,element->n_ref_max,false,false);
 			break;
 		default:
 			EXIT_UNSUPPORTED;
 			break;
 	}
 
-	switch (op_info->range_p) {
+	switch (op_info->range_p) { // p_o, p_i
 		case RANGE_P_1:
-			extents_cub[ind_cub++] = 1;
-			extents_op[ind_op++]   = 1;
-			extents_op[ind_op++]   = 1;
+			push_back_Vector_i(extents_cub,1,false,false);
+			push_back_Vector_i(extents_op,1,false,false);
+			push_back_Vector_i(extents_op,1,false,false);
 			break;
 		case RANGE_P_PM0: /* fallthrough */
 		case RANGE_P_PM1: /* fallthrough */
 		case RANGE_P_ALL:
-			extents_cub[ind_cub++] = op_info->p_ref[1]+1;
-			extents_op[ind_op++]   = op_info->p_ref[1]+1;
-			extents_op[ind_op++]   = op_info->p_ref[1]+1;
+			push_back_Vector_i(extents_cub,op_info->p_ref[1]+1,false,false);
+			push_back_Vector_i(extents_op,op_info->p_ref[1]+1,false,false);
+			push_back_Vector_i(extents_op,op_info->p_ref[1]+1,false,false);
 			break;
 		default:
 			EXIT_UNSUPPORTED;
 			break;
 	}
 
-	op_info->order_cub   = order_cub;
 	op_info->extents_cub = extents_cub;
-	op_info->order_op    = order_op;
 	op_info->extents_op  = extents_op;
 }
 
-static void set_up_basis_values (struct Operator_Info* op_info)
+static void set_up_values_op (struct Operator_Info* op_info)
 {
-	const int order = op_info->order_op;
-	const ptrdiff_t*const extents = op_info->extents_op;
-
-	const ptrdiff_t size = compute_size(order,extents);
+	const ptrdiff_t size = prod_Vector_i(op_info->extents);
 
 	struct Matrix_i* values = constructor_empty_Matrix_i('R',size,OP_ORDER_MAX); // keep
 
 	int d_mm[2],
 	    f_mm[2],
-	    h_mm[2],
-	    p_i_mm[2],
-	    p_o_mm[2];
+	    h_o_mm[2],
+	    h_i_mm[2],
+	    p_o_mm[2],
+	    p_i_mm[2];
 
-	compute_range(d_mm,op_info,'d');
-	compute_range(f_mm,op_info,'f');
-	compute_range(h_mm,op_info,'h');
-	compute_range(p_i_mm,op_info,'p');
+	compute_range(d_mm,op_info,'d','i');
+	compute_range(f_mm,op_info,'f','i');
+	compute_range(h_o_mm,op_info,'h','o');
+	compute_range(h_i_mm,op_info,'h','i');
+	compute_range(p_i_mm,op_info,'p','i');
 
 	int row = 0;
 	for (int p_i = p_i_mm[0]; p_i <= p_i_mm[1]; ++p_i) {
 		compute_range_p_o(p_o_mm,op_info,p_i);
 		for (int p_o = p_o_mm[0]; p_o <= p_o_mm[1]; ++p_o) {
-		for (int h = h_mm[0]; h <= h_mm[1]; ++h) {
+		for (int h_i = h_i_mm[0]; h_i <= h_i_mm[1]; ++h_i) {
+		for (int h_o = h_o_mm[0]; h_o <= h_o_mm[1]; ++h_o) {
 		for (int f = f_mm[0]; f <= f_mm[1]; ++f) {
 		for (int d = d_mm[0]; d <= d_mm[1]; ++d) {
-			set_row_Matrix_i(row,values,(int[]){d,f,h,p_o,p_i});
+			set_row_Matrix_i(row,values,(int[]){d,f,h_o,h_i,p_o,p_i});
 			++row;
-		}}}}
+		}}}}}
 	}
 	values->ext_0 = row;
 
@@ -467,6 +467,22 @@ const struct const_Cubature** constructor_cub_data_array
 	}
 
 	return cub_data;
+}
+
+static struct Vector_i* constructor_indices_Vector_i
+	(const int order_expected, int* op_values, const bool*const indices_skip)
+{
+	struct Vector_i* indices = constructor_empty_Vector_i(order_expected); // returned
+	int* data = indices->data;
+
+	int ind = 0;
+	for (int i = 0; i < OP_ORDER_MAX; ++i) {
+		if (!(indices_skip && indices_skip[i]) && op_values[i] != OP_INVALID_IND)
+			data[ind++] = op_values[i];
+	}
+	assert(ind == order_expected);
+
+	return indices;
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -567,8 +583,10 @@ static int compute_cub_ce (const int cub_type)
 	return (cub_ce_inter / CUB_CE_MULT)*CUB_CE_MULT;
 }
 
-static void compute_range (int x_mm[2], const struct Operator_Info* op_info, const char var_type)
+static void compute_range (int x_mm[2], const struct Operator_Info* op_info, const char var_type, const char var_io)
 {
+	assert((var_io == 'i' || var_io == 'o'));
+
 	switch (var_type) {
 	case 'd':
 		switch (op_info->range_d) {
@@ -599,26 +617,34 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 			break;
 		}
 	case 'h':
+		x_mm[0] = 0;
 		switch (op_info->range_h) {
 		case RANGE_H_1:
-			x_mm[0] = 0;
 			x_mm[1] = 0;
 			break;
-		case RANGE_H_ALL:
-			x_mm[0] = 0;
-			x_mm[1] = op_info->element->n_ref_max;
+		case RANGE_H_CF:
+			if (var_io == 'i')
+				x_mm[1] = 0;
+			else if (var_io == 'o')
+				x_mm[1] = op_info->element->n_ref_max;
 			break;
+		case RANGE_H_FC:
+			if (var_io == 'i')
+				x_mm[1] = op_info->element->n_ref_max;
+			else if (var_io == 'o')
+				x_mm[1] = 0;
 		default:
 			EXIT_UNSUPPORTED;
 			break;
 		}
 	case 'p':
+		assert(var_io == 'i');
 		switch (op_info->range_p) {
 		case RANGE_P_1:
 			x_mm[0] = 1;
 			x_mm[1] = 1;
 			break;
-		case RANGE_P_PM0: /* fallthrough */
+		case RANGE_P_PM0:
 		case RANGE_P_PM1: /* fallthrough */
 		case RANGE_P_ALL:
 			x_mm[0] = op_info->p_ref[0];

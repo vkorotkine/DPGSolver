@@ -157,6 +157,12 @@ const struct const_Cubature* constructor_const_Cubature_pyr
 	 const int node_type ///< Defined in \ref cubature_fptr.
 	);
 
+/** \brief Constructor for a \ref Cubature container for a potentially h-adapted element sub-region.
+ *  \return Standard.
+ *
+ *
+ */
+
 /// \brief Destructor for a \ref Cubature\* container.
 void destructor_Cubature
 	(struct Cubature* cub ///< Standard.

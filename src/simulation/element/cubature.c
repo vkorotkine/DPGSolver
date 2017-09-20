@@ -421,6 +421,9 @@ const struct const_Cubature* constructor_const_Cubature_pyr (const int d, const 
 	return (const struct const_Cubature*) cubature;
 }
 
+const struct const_Cubature* constructor_const_Cubature_h
+	(const int d, const int p, const int node_type)
+
 void destructor_Cubature (struct Cubature* cub)
 {
 	destructor_Matrix_d(cub->rst);

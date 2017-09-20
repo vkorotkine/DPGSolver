@@ -100,10 +100,15 @@ void sort_Vector_i
 	);
 
 /** \brief See return.
- *	\return The sum of the components of the \ref Vector_i\*.
- */
+ *  \return The sum of the components of the \ref Vector_i\*. */
 int sum_Vector_i
-	(struct Vector_i* a ///< Standard.
+	(const struct Vector_i* a ///< Standard.
+	);
+
+/** \brief See return.
+ *  \return The product of the components of the \ref Vector_i\*. */
+ptrdiff_t prod_Vector_i
+	(const struct Vector_i* a ///< Standard.
 	);
 
 /**	\brief See return.

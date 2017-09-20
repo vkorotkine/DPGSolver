@@ -41,6 +41,27 @@ typedef const struct const_Multiarray_Matrix_d* (*grad_basis_fptr)
 
 // Constructor functions ******************************************************************************************** //
 
+/** \brief Constructor for a polynomial operator for a general basis of the given super type and basis type.
+ *  \return Standard. */
+const struct const_Matrix_d* constructor_basis
+	(const int p_b,                         ///< Defined in \ref basis_fptr.
+	 const struct const_Matrix_d*const rst, ///< Defined in \ref basis_fptr.
+	 const int s_type,                      ///< \ref Element::s_type.
+	 const char*const basis_type            ///< The basis type.
+	);
+
+/** \brief Constructor for polynomial operator(s) for the gradient(s) of the general basis of the given super type and
+ *         basis type.
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_grad_basis
+	(const int p_b,                         ///< Defined in \ref basis_fptr.
+	 const struct const_Matrix_d*const rst, ///< Defined in \ref basis_fptr.
+	 const int s_type,                      ///< \ref Element::s_type.
+	 const char*const basis_type            ///< The basis type.
+	);
+
+// Orthonormal basis ************************************************************************************************ //
+
 /** \brief Constructor for a polynomial operator for the tensor-product orthonomal basis (normalized Legendre
  *         polynomials).
  *  \return Standard.
@@ -93,6 +114,8 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal
 	(const int p_b,                        ///< Defined in \ref basis_fptr.
 	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
 	);
+
+// Bezier basis ***************************************************************************************************** //
 
 /** \brief Constructor for a polynomial operator for the tensor-product bezier basis (Bernstein polynomials, (section
  *         2.1 \cite Prautzsch2002)).
