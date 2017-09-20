@@ -149,6 +149,13 @@ void set_row_Matrix_d
 	 const double*const data_src ///< The source data.
 	);
 
+/// \brief Set the values of the destination row to that of the source data.
+void set_row_Matrix_i
+	(const ptrdiff_t row,     ///< The destination row.
+	 struct Matrix_i* dest,   ///< The destination Matrix.
+	 const int*const data_src ///< The source data.
+	);
+
 /// \brief Set all data entries to the input value.
 void set_to_value_Matrix_d
 	(struct Matrix_d*const a, ///< Standard.

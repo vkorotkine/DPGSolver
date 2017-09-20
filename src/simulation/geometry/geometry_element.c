@@ -148,7 +148,7 @@ static void set_up_operators_standard (struct Geometry_Element* element, const s
 	struct const_Element* base_element = (struct const_Element*)element;
 
 	struct Operator_Info* op_info_vgs =
-		constructor_Operator_Info(RANGE_D_ALL,RANGE_F_0,RANGE_P_1,RANGE_H_1,CUB_CMP_VGS,sim->p_s_v); // destructed
+		constructor_Operator_Info(RANGE_D_ALL,RANGE_F_0,RANGE_P_1,RANGE_H_1,CUB_CMP_VGS,sim->p_s_v,element); // destructed
 
 	const struct const_Multiarray_Cubature* cub_vg =
 		constructor_const_Multiarray_Cubature(sim,base_element,op_info_vgs); // destructed

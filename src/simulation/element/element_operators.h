@@ -27,6 +27,8 @@ struct const_Element;
 
 /// Container for operator range related information.
 struct Operator_Info {
+	const struct const_Element* element; ///< \ref Element.
+
 	const int range_d, ///< Range of dimensions (For differentiation operators).
 	          range_f, ///< Range of faces.
 	          range_p, ///< Range of orders.
@@ -40,10 +42,10 @@ struct Operator_Info {
 	int order_cub;          ///< The order of the associated \ref Multiarray_Cubature\*.
 	ptrdiff_t* extents_cub; ///< The extents of the associated \ref Multiarray_Cubature\*.
 
-	int order_bas;          ///< The order of the associated \ref Multiarray_Matrix_d\* of basis functions.
-	ptrdiff_t* extents_bas; ///< The extents of the associated \ref Multiarray_Matrix_d\* of basis functions.
+	int order_op;          ///< The order of the associated \ref Multiarray_Matrix_d\* of basis functions.
+	ptrdiff_t* extents_op; ///< The extents of the associated \ref Multiarray_Matrix_d\* of basis functions.
 
-	struct Matrix_d* values_bas ///< The values of d, f, h, p_in, and p_out for each operator.
+	struct Matrix_i* values_op ///< The values of d, f, h, p_in, and p_out for each operator.
 };
 
 /// Container for a Multiarray of \ref Cubature\* data.
@@ -69,12 +71,13 @@ struct const_Multiarray_Cubature {
 /** \brief Constructor for the \ref Operator_Info\* having the given inputs.
  *  \return Standard. */
 struct Operator_Info* constructor_Operator_Info
-	(const int range_d,  ///< Defined in \ref Operator_Info.
-	 const int range_f,  ///< Defined in \ref Operator_Info.
-	 const int range_p,  ///< Defined in \ref Operator_Info.
-	 const int range_h,  ///< Defined in \ref Operator_Info.
-	 const int cub_type, ///< Defined in \ref Operator_Info.
-	 const int p_ref[2]  ///< Defined in \ref Operator_Info.
+	(const int range_d,                  ///< Defined in \ref Operator_Info.
+	 const int range_f,                  ///< Defined in \ref Operator_Info.
+	 const int range_p,                  ///< Defined in \ref Operator_Info.
+	 const int range_h,                  ///< Defined in \ref Operator_Info.
+	 const int cub_type,                 ///< Defined in \ref Operator_Info.
+	 const int p_ref[2],                 ///< Defined in \ref Operator_Info.
+	 const struct const_Element* element ///< Defined in \ref Operator_Info.
 	);
 
 /// \brief Destructor for a \ref Operator_Info\*.

@@ -88,7 +88,7 @@ struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d
 	if (alloc_M)
 		EXIT_ADD_SUPPORT;
 	else
-		data = malloc(compute_size(order,extents) * sizeof *data); // keep
+		data = calloc(compute_size(order,extents) , sizeof *data); // keep
 
 	return constructor_move_Multiarray_Matrix_d_dyn_extents(order,extents,true,data);
 }
@@ -279,8 +279,17 @@ void destructor_const_Multiarray_Vector_i (const struct const_Multiarray_Vector_
 void destructor_Multiarray_Matrix_d (struct Multiarray_Matrix_d* a)
 {
 	assert(a != NULL);
+	assert(a->data != NULL);
 
-	destructor_Matrix_d_2(a->data,compute_size(a->order,a->extents),a->owns_data);
+	if (a->owns_data) {
+		const ptrdiff_t size = compute_size(a->order,a->extents);
+		for (ptrdiff_t i = 0; i < size; ++i) {
+			// It is common that not all operators are present in Multiarray were set.
+			if (a->data[i])
+				destructor_Matrix_d(a->data[i]);
+		}
+	}
+	free(a->data);
 	free(a->extents);
 	free(a);
 }

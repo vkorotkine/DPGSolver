@@ -90,6 +90,17 @@ void set_row_Matrix_d (const ptrdiff_t row, struct Matrix_d* dest, const double*
 		data[i] = data_src[i];
 }
 
+void set_row_Matrix_i (const ptrdiff_t row, struct Matrix_i* dest, const int*const data_src)
+{
+	assert(dest->layout == 'R');
+
+	int*const data = get_row_Matrix_i(row,dest);
+
+	const ptrdiff_t i_max = dest->ext_1;
+	for (ptrdiff_t i = 0; i < i_max; ++i)
+		data[i] = data_src[i];
+}
+
 void set_to_value_Matrix_d (struct Matrix_d*const a, const double val)
 {
 	const ptrdiff_t size = (a->ext_0)*(a->ext_1);
