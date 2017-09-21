@@ -105,6 +105,12 @@ struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d_V
 	return constructor_empty_Multiarray_Matrix_d(alloc_M,order,extents_i);
 }
 
+const struct const_Multiarray_Matrix_d* constructor_empty_const_Multiarray_Matrix_d_V
+	(const bool alloc_M, const struct const_Vector_i*const extents_i_V)
+{
+	return (const struct const_Multiarray_Matrix_d*) constructor_empty_Multiarray_Matrix_d_V(alloc_M,extents_i_V);
+}
+
 // Copy constructors ************************************************************************************************ //
 
 struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i_i

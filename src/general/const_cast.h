@@ -56,6 +56,12 @@ void const_cast_bool
 	 const bool src    ///< Source.
 	);
 
+/// \brief Cast from `char` to `const char`.
+void const_cast_c
+	(const char* dest, ///< Destination.
+	 const char src    ///< Source.
+	);
+
 /// \brief Cast from `char*` to `const char*const`.
 void const_cast_c1
 	(const char*const* dest, ///< Destination.

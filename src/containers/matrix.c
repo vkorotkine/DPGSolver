@@ -65,6 +65,12 @@ int* get_row_Matrix_i (const ptrdiff_t row, const struct Matrix_i* a)
 	return &a->data[row*(a->ext_1)];
 }
 
+const int* get_row_const_Matrix_i (const ptrdiff_t row, const struct const_Matrix_i* a)
+{
+	assert(a->layout == 'R');
+	return &a->data[row*(a->ext_1)];
+}
+
 int get_val_Matrix_i (const ptrdiff_t row, const ptrdiff_t col, const struct Matrix_i*const a)
 {
 	assert((a->layout == 'R') || (a->layout == 'C'));

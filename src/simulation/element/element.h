@@ -32,9 +32,11 @@ struct Element {
 	          s_type, ///< The element super type. Options: Tensor-Product, SImplex, PYRamid, WEDGE.
 	          d,      ///< The dimension.
 	          n_ve,   ///< The number of vertices.
+	          n_e,    ///< The number of edges.
 	          n_f;    ///< The number of faces.
 
-	const int n_ref_max; ///< Maximum number of h-refinements.
+	const int n_ref_max,   ///< Maximum number of h-refinements.
+	          n_ref_f_max; ///< Maximum number of face h-refinements.
 
 	const struct const_Multiarray_Vector_i*const f_ve; ///< The correspondence between the (f)aces and (ve)rtices.
 };
@@ -47,6 +49,7 @@ struct const_Element {
 	          s_type, ///< Defined in \ref Element.
 	          d,      ///< Defined in \ref Element.
 	          n_ve,   ///< Defined in \ref Element.
+	          n_e,    ///< Defined in \ref Element.
 	          n_f;    ///< Defined in \ref Element.
 
 	const int n_ref_max; ///< Defined in \ref Element.

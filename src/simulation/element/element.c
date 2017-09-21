@@ -141,11 +141,13 @@ struct Elem_info {
 	int s_type,  ///< Defined in \ref Element.
 	    d,       ///< Defined in \ref Element.
 	    n_ve,    ///< Defined in \ref Element.
+	    n_e,     ///< Defined in \ref Element.
 	    n_f,     ///< Defined in \ref Element.
 	    *n_f_ve, ///< The number of vertices on each face.
 	    *f_ve;   ///< Defined in \ref Element.
 
-	int n_ref_max; ///< Defined in \ref Element.
+	int n_ref_max,   ///< Defined in \ref Element.
+	    n_ref_f_max; ///< Defined in \ref Element.
 };
 
 static struct Element* constructor_Element (const int elem_type)
@@ -157,31 +159,37 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.s_type = ST_TP;
 		e_info.d      = 1;
 		e_info.n_ve   = 2;
+		e_info.n_e    = 2;
 		e_info.n_f    = 2;
 		e_info.n_f_ve = (int[]) {1, 1,};
 		e_info.f_ve   = (int[]) {0, 1,};
 
-		e_info.n_ref_max = 3;
+		e_info.n_ref_max   = 3;
+		e_info.n_ref_f_max = 1;
 		break;
 	case TRI:
 		e_info.s_type = ST_SI;
 		e_info.d      = 2;
 		e_info.n_ve   = 3;
+		e_info.n_e    = 3;
 		e_info.n_f    = 3;
 		e_info.n_f_ve = (int[]) {2, 2, 2,};
 		e_info.f_ve   = (int[]) {1,2, 0,2, 0,1,};
 
-		e_info.n_ref_max = 5;
+		e_info.n_ref_max   = 5;
+		e_info.n_ref_f_max = 3;
 		break;
 	case QUAD:
 		e_info.s_type = ST_TP;
 		e_info.d      = 2;
 		e_info.n_ve   = 4;
+		e_info.n_e    = 4;
 		e_info.n_f    = 4;
 		e_info.n_f_ve = (int[]) {2, 2, 2, 2,};
 		e_info.f_ve   = (int[]) {0,2, 1,3, 0,1, 2,3};
 
-		e_info.n_ref_max = 5;
+		e_info.n_ref_max   = 5;
+		e_info.n_ref_f_max = 3;
 		break;
 	case TET:
 		EXIT_ADD_SUPPORT;
@@ -190,11 +198,13 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.s_type = ST_TP;
 		e_info.d      = 3;
 		e_info.n_ve   = 8;
+		e_info.n_e    = 12;
 		e_info.n_f    = 6;
 		e_info.n_f_ve = (int[]) {4, 4, 4, 4, 4, 4,};
 		e_info.f_ve   = (int[]) {0,2,4,6, 1,3,5,7, 0,1,4,5, 2,3,6,7, 0,1,2,3, 4,5,6,7};
 
-		e_info.n_ref_max = 9;
+		e_info.n_ref_max   = 9;
+		e_info.n_ref_f_max = 5;
 		break;
 	case WEDGE:
 		EXIT_ADD_SUPPORT;
@@ -216,8 +226,10 @@ static struct Element* constructor_Element (const int elem_type)
 	const_cast_i(&element->s_type,e_info.s_type);
 	const_cast_i(&element->d,e_info.d);
 	const_cast_i(&element->n_ve,e_info.n_ve);
+	const_cast_i(&element->n_e,e_info.n_e);
 	const_cast_i(&element->n_f,e_info.n_f);
 	const_cast_i(&element->n_ref_max,e_info.n_ref_max);
+	const_cast_i(&element->n_ref_f_max,e_info.n_ref_f_max);
 	const_constructor_move_Multiarray_Vector_i(&element->f_ve,f_ve); // destructed
 
 	return element;
