@@ -3,6 +3,7 @@ set	(SOURCE
 	 element_operators.c
 	 bases.c
 	 cubature.c
+	 cubature_operators.c
 	)
 
 set	(LIBS_DEPEND

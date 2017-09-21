@@ -133,6 +133,16 @@ struct const_Element* get_element_by_face (const struct const_Element*const elem
 	EXIT_ERROR("Did not find the pointer to the face element");
 }
 
+bool wedges_present (const struct const_Intrusive_List*const elements)
+{
+	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
+		struct const_Element* element = (struct const_Element*) curr;
+		if (element->type == WEDGE)
+			return true;
+	}
+	return false;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

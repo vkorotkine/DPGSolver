@@ -125,7 +125,6 @@ const struct const_Multiarray_Matrix_d* constructor_operators
 		case OP_T_CC:
 		case OP_T_VV:
 		case OP_T_VC:
-// Currently only Volume -> Volume, Face, Edge operators.
 			set_operator_std(row,op,op_info);
 			break;
 		default:
@@ -204,9 +203,9 @@ struct Operator_Info* constructor_Operator_Info
 
 	const int ranges[] =
 		{ convert_to_range_d(name_type),
-	          convert_to_range_ce(name_in[0],name_in[1]),
-	          convert_to_range('h',name_range),
-	          convert_to_range('p',name_range), };
+		  convert_to_range_ce(name_in[0],name_in[1]),
+		  convert_to_range('h',name_range),
+		  convert_to_range('p',name_range), };
 
 	struct Operator_Info* op_info = malloc(sizeof *op_info); // returned
 
@@ -252,11 +251,12 @@ static void set_operator_std
 		const int*const h_ptr = &op_values[OP_IND_H],
 		         *const p_ptr = &op_values[OP_IND_P];
 
+		const int*const p_x[2] = { compute_p_cub(p_ptr[0],op_info->cub_type,s_type,sim),
+		                           compute_p_cub(p_ptr[1],op_info->cub_type,s_type,sim), };
 		// Construct T_i
 		const int p_i         = p_ptr[OP_IND_I];
-		const int node_type_i = // Maybe move node_type computation into cubature function. Pass op_info instead.
 		const struct const_Cubature*const cub_i =
-			constructor_const_Cubature_h(d,p_x[1],node_type_i,s_type,h_ptr[1]); // destructed
+			constructor_const_Cubature_h(d,p_x[OP_IND_I],node_type_i,s_type,h_ptr[OP_IND_I]); // destructed
 	}
 
 
@@ -288,8 +288,6 @@ static void set_operator_std
 
 //grad_basis_fptr constructor_grad_basis = get_grad_basis_by_super_type(element->s_type,"ortho");
 	if (!info_loss) {
-		const int*const p_x[2] = { compute_p_cub(p_ptr[0],op_info->cub_type,s_type,sim),
-		                           compute_p_cub(p_ptr[1],op_info->cub_type,s_type,sim), };
 // NOTE: nodes out and basis out must coincide when this operator is available. I.e. you cannot project a non-basis set
 // of nodes to coefficients as you would never have the cc, vc operator.
 // Thus, only two sets of cubature nodes are required.

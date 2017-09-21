@@ -16,8 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__cubature_h__INCLUDED
 #define DPG__cubature_h__INCLUDED
 /** \file
- *  \brief Provides the interface to functions computing the reference element coordinate (and associated cubature if
- *         relevant).
+ *  \brief Provides the interface to functions computing the reference element coordinates (and associated cubature
+ *         weights if relevant).
  */
 
 #include <stdbool.h>
@@ -156,12 +156,6 @@ const struct const_Cubature* constructor_const_Cubature_pyr
 	 const int p,        ///< Defined in \ref cubature_fptr.
 	 const int node_type ///< Defined in \ref cubature_fptr.
 	);
-
-/** \brief Constructor for a \ref Cubature container for a potentially h-adapted element sub-region.
- *  \return Standard.
- *
- *
- */
 
 /// \brief Destructor for a \ref Cubature\* container.
 void destructor_Cubature

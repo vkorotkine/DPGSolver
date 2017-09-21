@@ -56,6 +56,13 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Simulation;
 struct const_Element;
 
+/// Container specifying the effect ("from which input to which output" ) of the operator application.
+const struct Op_IO {
+	const char ce,   ///< The computational element.
+	           kind, ///< The kind of basis/cubature.
+	           sc;   ///< Indication of straight/curved.
+};
+
 /** Container for operator range related information.
  *  For available options for the parameters see the comments in \ref element_operators.h.
  */
@@ -64,13 +71,7 @@ struct Operator_Info {
 
 	const int op_type; ///< The type of operator.
 
-	/// Container specifying the effect ("from which input to which output" ) of the operator application.
-	const struct Op_IO {
-		const char ce,   ///< The computational element.
-		           kind, ///< The kind of basis/cubature.
-		           sc;   ///< Indication of straight/curved.
-
-	} op_io[2];
+	const struct Op_IO op_io[2]; ///< \ref Op_IO for each of input/output.
 
 	const int range_d,  ///< Range of dimensions (For differentiation operators).
 	          range_ce, ///< Range of computational elements.

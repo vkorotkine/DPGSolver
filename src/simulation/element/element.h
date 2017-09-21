@@ -103,4 +103,10 @@ struct const_Element* get_element_by_face
 	 const int lf                              ///< The index of the local face.
 	);
 
+/** \brief Check whether wedges are present in the list of elements.
+ *  \return `true` if yes, `false` otherwise. */
+bool wedges_present
+	(const struct const_Intrusive_List*const elements ///< The list of elements.
+	);
+
 #endif // DPG__element_h__INCLUDED
