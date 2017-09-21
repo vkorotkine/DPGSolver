@@ -39,6 +39,11 @@ void const_cast_bool (const bool* dest, const bool src)
 	*(bool*) dest = src;
 }
 
+void const_cast_c (const char* dest, const char src)
+{
+	*(char*) dest = src;
+}
+
 void const_cast_c1 (const char*const* dest, const char*const src)
 {
 	*(char**) dest = (char*) src;

@@ -17,6 +17,37 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DPG__element_operators_h__INCLUDED
 /** \file
  *  \brief Provides the functions relating to element operators.
+ *
+ *  \todo Remove unused functions/classes.
+ *
+ *  Operator names take the general form: [type][0]_[1][2](3)_[4][5](6) where entries in [square brackets] are required
+ *  and those in (round brackets) are optional:
+ *  - type:
+ *  	- cv: coefficients to values
+ *  	- cc: coefficients to coefficients
+ *  	- vv: values       to values
+ *  	- vc: values       to coefficients
+ *  - [0]:   value for the order of differentiation (0 for no differentiation).
+ *  - [1/4]: character denoting the type of computational element (ce):
+ *  	- v: volume
+ *  	- f: face
+ *  	- e: edge
+ *  - [2/5]: character denoting the kind of basis/cubature to be used (kind):
+ *  	- g: geometry
+ *  	- m: metric
+ *  	- s: solution
+ *  	- p: plotting (Not available as a basis [2])
+ *  	- c: cubature (Not available as a basis [2])
+ *  - (3/6): character denoting whether the basis/cubature is meant to be used for straight or curved elements (sc):
+ *  	- s: straight
+ *  	- c: curved
+ *
+ *  The optional straight/curved parameters **must** be replaced with 'A'll if not present when passed to the
+ *  constructor function.
+ *
+ *  Each operator also has an associated range with a maximum order of \ref OP_ORDER_MAX with the following parameters
+ *  (d)(f)[h_o][h_i][p_o][p_i], where entries in square and round brackets are once again required and optional,
+ *  respectively.
  */
 
 #include <stddef.h>
@@ -25,25 +56,35 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Simulation;
 struct const_Element;
 
-/// Container for operator range related information.
+/** Container for operator range related information.
+ *  For available options for the parameters see the comments in \ref element_operators.h.
+ */
 struct Operator_Info {
 	const struct const_Element* element; ///< \ref Element.
 
-	const int range_d, ///< Range of dimensions (For differentiation operators).
-	          range_f, ///< Range of faces.
-	          range_h, ///< Range of h-refinement related operators.
-	          range_p; ///< Range of orders.
+	const int op_type; ///< The type of operator.
 
-	const int op_spec_sc
+	/// Container specifying the effect ("from which input to which output" ) of the operator application.
+	const struct Op_IO {
+		const char ce,   ///< The computational element.
+		           kind, ///< The kind of basis/cubature.
+		           sc;   ///< Indication of straight/curved.
 
-	const int cub_type; ///< The type of cubature.
+	} op_io[2];
+
+	const int range_d,  ///< Range of dimensions (For differentiation operators).
+	          range_ce, ///< Range of computational elements.
+	          range_h,  ///< Range of h-refinement related operators.
+	          range_p;  ///< Range of polynomial orders.
 
 	const int p_ref[2]; ///< Reference polynomial orders from \ref Simulation.
 
-	struct Vector_i* extents_cub; ///< The extents of the associated \ref Multiarray_Cubature\*.
-	struct Vector_i* extents_op;  ///< The extents of the associated \ref Multiarray_Matrix_d\* of operators.
+	const struct const_Vector_i* extents_cub; ///< The extents of the associated \ref Multiarray_Cubature\*.
 
-	struct Matrix_i* values_op ///< The values of d, f, h, p_in, and p_out for each operator.
+	/// The extents of the associated \ref Multiarray_Matrix_d\* of operators.
+	const struct const_Vector_i* extents_op;
+
+	const struct const_Matrix_i* values_op ///< The values of d, f, h, p_in, and p_out for each operator.
 };
 
 /// Container for a Multiarray of \ref Cubature\* data.
@@ -65,21 +106,6 @@ struct const_Multiarray_Cubature {
 };
 
 // Interface functions ********************************************************************************************** //
-
-/** \brief Constructor for the \ref Operator_Info\* having the given inputs.
- *  \return Standard. */
-struct Operator_Info* constructor_Operator_Info
-	(const int cmp_rng,                  /**< Holds the compound range value. Supported values can be found in
-	                                      *   \ref definitions_element_operators.h */
-	 const int*const cub_type_info,      ///< Holds the Operator_Info:: \todo update comment.
-	 const int p_ref[2],                 ///< Defined in \ref Operator_Info.
-	 const struct const_Element* element ///< Defined in \ref Operator_Info.
-	);
-
-/// \brief Destructor for a \ref Operator_Info\*.
-void destructor_Operator_Info
-	(struct Operator_Info* op_ranges ///< Standard.
-	);
 
 /** \brief Constructor for a \ref const_Multiarray_Cubature\* holding the cubature nodes (and weights if applicable) for
  *         the range of supported hp adaptive operators.
@@ -103,9 +129,13 @@ void destructor_const_Multiarray_Cubature
 
 /** \brief Constructor for a \ref const_Multiarray_Matrix_d\* of operators.
  *  \return Standard. */
-const struct const_Multiarray_Matrix_d* constructor_operators_Multiarray_Matrix_d_V
-	(const int op_type,                   ///< Operator type. See options in \ref definitions_element_operators.h.
-	 const struct Operator_Info* op_info, ///< \ref Operator_Info.
+const struct const_Multiarray_Matrix_d* constructor_operators
+	(const char*const name_type,          ///< The name of the operator type (including differentiation index).
+	 const char*const name_in,            ///< The name of the operator input.
+	 const char*const name_out,           ///< The name of the operator output.
+	 const char*const name_range,         ///< The name of the operator range.
+	 const int p_ref[2],                  ///< Defined in \ref Operator_Info.
+	 const struct const_Element* element, ///< \ref const_Element.
 	 const struct Simulation* sim         ///< \ref Simulation.
 	);
 

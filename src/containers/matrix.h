@@ -15,12 +15,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #ifndef DPG__matrix_h__INCLUDED
 #define DPG__matrix_h__INCLUDED
-/**	\file
- *	\brief Provides Matrix_\* containers and related functions.
+/** \file
+ *  \brief Provides Matrix_\* containers and related functions.
  *
- *	Potentially relevant comments may be found in \ref multiarray.h.
+ *  Potentially relevant comments may be found in \ref multiarray.h.
  *
- *	Matrices are 2D Multiarrays.
+ *  Matrices are 2D Multiarrays.
  */
 
 #include <stddef.h>
@@ -118,24 +118,30 @@ const double* get_slice_const_Matrix_d
 	 const struct const_Matrix_d* a ///< Defined for \ref get_slice_Matrix_d.
 	);
 
-/**	\brief Get pointer to row of row-major \ref Matrix_i\*.
- *	\return Pointer to the first entry of the row.
- */
+/** \brief Get pointer to row of row-major \ref Matrix_i\*.
+ *  \return Pointer to the first entry of the row. */
 int* get_row_Matrix_i
 	(const ptrdiff_t row,     ///< Desired row.
 	 const struct Matrix_i* a ///< Matrix.
 	);
 
-/**	\brief Get value of the (row,col) entry of a \ref Matrix_i\*.
- *	\return See brief. */
+/** \brief Get pointer to row of row-major \ref const_Matrix_i\*.
+ *  \return Pointer to the first entry of the row. */
+int* get_row_const_Matrix_i
+	(const ptrdiff_t row,           ///< Desired row.
+	 const struct const_Matrix_i* a ///< Matrix.
+	);
+
+/** \brief Get value of the (row,col) entry of a \ref Matrix_i\*.
+ *  \return See brief. */
 int get_val_Matrix_i
 	(const ptrdiff_t row,          ///< The row.
 	 const ptrdiff_t col,          ///< The column.
 	 const struct Matrix_i*const a ///< Standard.
 	);
 
-/**	\brief Get value of the (row,col) entry of a \ref const_Matrix_i\*.
- *	\return See brief. */
+/** \brief Get value of the (row,col) entry of a \ref const_Matrix_i\*.
+ *  \return See brief. */
 int get_val_const_Matrix_i
 	(const ptrdiff_t row,                ///< The row.
 	 const ptrdiff_t col,                ///< The column.

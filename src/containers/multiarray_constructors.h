@@ -132,6 +132,13 @@ struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d_V
 	 const struct const_Vector_i*const extents_i_V ///< The input extents in vector format.
 	);
 
+/** \brief `const` version of \ref constructor_empty_Multiarray_Matrix_d_V.
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_empty_const_Multiarray_Matrix_d_V
+	(const bool alloc_M,                           ///< Defined for \ref constructor_empty_Multiarray_Matrix_d.
+	 const struct const_Vector_i*const extents_i_V ///< The input extents in vector format.
+	);
+
 // Copy constructors ************************************************************************************************ //
 
 /** \brief Constructs a \ref Multiarray_Vector_i\* and sets the values of its \ref Vector_i\* components from the

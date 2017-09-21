@@ -184,14 +184,17 @@ static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volum
 	const int p = volume->p;
 
 	struct Operators {
-		const struct const_Multiarray_Matrix_d* ED_vg_vc;
+		const struct const_Multiarray_Matrix_d* cv1_vg_vc;
 	} ops =
-		{ .ED_vg_vc = constructor_default_const_Multiarray_Matrix_d(),
+		{ .cv1_vg_vc = constructor_default_const_Multiarray_Matrix_d(),
 		};
 
-	set_const_Multiarray_Matrix_from_Multiarray_Matrix_d(ops.ED_vg_vc,element->ED_vg_vc,1,(ptrdiff_t[]){p,p,0});
+// Choose based on volume->curved
+// Change to shorter name: "set_operator"
+	set_const_Multiarray_Matrix_from_Multiarray_Matrix_d(ops.cv1_vg_vc,element->cv1_vgs_vcs,1,(ptrdiff_t[]){p,p,0});
+//	set_const_Multiarray_Matrix_from_Multiarray_Matrix_d(ops.cv1_vg_vc,element->cv1_vgc_vcc,1,(ptrdiff_t[]){p,p,0});
 
-	const ptrdiff_t n_vc = ops.ED_vg_vc->data[0]->ext_0;
+	const ptrdiff_t n_vc = ops.cv1_vg_vc->data[0]->ext_0;
 
 	struct Multiarray_d* jacobian_vc = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_vc,d,d});
 //	struct Multiarray_d* jacobian_vm = constructor
@@ -202,9 +205,9 @@ static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volum
 		for (int col = 0; col < d; col++) {
 			struct Vector_d jacobian_vc_V;
 			set_Vector_from_Multiarray_d(&jacobian_vc_V,jacobian_vc,(ptrdiff_t[]){row,col});
-			const struct const_Matrix_d* ED_vg_vc = ops.ED_vg_vc->data[col];
+			const struct const_Matrix_d* cv1_vg_vc = ops.cv1_vg_vc->data[col];
 
-			mv_d('N',1.0,0.0,ED_vg_vc,&geom_coef_V,&jacobian_vc_V);
+			mv_d('N',1.0,0.0,cv1_vg_vc,&geom_coef_V,&jacobian_vc_V);
 
 //		mm_CTN_d(NvnI0,1,NvnG0,OPS->D_vG_vI[col],&XYZ[NvnG0*row],&J_vI[NvnI0*(d*row+col)]);
 //		mm_CTN_d(NvnC0,1,NvnG0,OPS->D_vG_vC[col],&XYZ[NvnG0*row],&J_vC[NvnC0*(d*row+col)]);

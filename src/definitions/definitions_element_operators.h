@@ -18,50 +18,26 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  *  \brief Provides the definitions relating to the element operators.
  *
- *  \todo Move these comments.
  *  The definitions provided here are related to parameters needed to specify the element operators:
- *  - type     (OP_T_*);
- *  - basis    (OP_B_*);
- *  - cubature (OP_C_*);
- *  - range    (OP_R_*).
+ *  - type  (OP_T_*);
+ *  - range (OP_R_*).
  *
- *  Operator names take the general form: [type][0]_[1][2](3)_[4][5](6) where entries in [square brackets] are required
- *  and those in (round brackets) are optional:
- *  - type:
- *  	- cv: coefficients to values
- *  	- cc: coefficients to coefficients
- *  	- vv: values       to values
- *  	- vc: values       to coefficients
- *  - [0]:   value for the order of differentiation (0 for no differentiation).
- *  - [1/4]: character denoting the type of computational element:
- *  	- v: volume
- *  	- f: face
- *  	- e: edge
- *  - [2/5]: character denoting the type of basis/cubature to be used:
- *  	- g: geometry
- *  	- m: metric
- *  	- s: solution
- *  	- p: plotting (Not available as a basis [2])
- *  	- c: cubature (Not available as a basis [2])
- *  - (3/6): character denoting whether the basis/cubature is meant to be used straight or curved elements:
- *  	- s: straight
- *  	- c: curved
- *
- *  The optional straight/curved parameters should be replaced with 'A'll if not present when passed to the
- *  constructor function.
- *
- *  Each operator also has an associated range with a maximum order of \ref OP_ORDER_MAX with the following parameters
- *  (d)(f)[h_o][h_i][p_o][p_i], where entries in square and round brackets are once again required and optional,
- *  respectively.
+ *  \todo Remove unused definitions.
  */
 
-///\{ \name Operator related parameters
-#define OP_ORDER_MAX 6 // d, f, h_o, h_i, p_o, p_i
-#define OP_IND_H     2
-#define OP_IND_P     4
+///\{ \name Operator related parameters indices.
+#define OP_ORDER_MAX 7 ///< Maximum operator order (d, ce_o, ce_i, h_o, h_i, p_o, p_i).
+
+#define OP_IND_I     1 ///< Index of the input  parameter relative to OP_IND_*.
+#define OP_IND_O     0 ///< Index of the output parameter relative to OP_IND_*.
+
+#define OP_IND_CE    1 ///< Index of the first computational element parameter.
+#define OP_IND_H     3 ///< Index of the first h-refinement parameter.
+#define OP_IND_P     5 ///< Index of the first p-refinement parameter.
 ///\}
 
-// Operator types *************************************************************************************************** //
+
+// Operator Type Options ******************************************************************************************** //
 
 ///\{ \name Operator types.
 #define OP_T_CV 100 ///< Coefficients to values.
@@ -69,37 +45,41 @@ You should have received a copy of the GNU General Public License along with DPG
 #define OP_T_VV 102 ///< Values       to values.
 #define OP_T_VC 103 ///< Values       to coefficients.
 
-#define OP_T_DG_WEAK_VV 110 ///< (D)iscontinuous-(G)alerkin (Weak) (V)olume to (V)olume.
+//#define OP_T_DG_WEAK_VV 110 ///< (D)iscontinuous-(G)alerkin (Weak) (V)olume to (V)olume.
 ///\}
 
+
+// Operator Range Options ******************************************************************************************* //
 
 ///\{ \name Dimension range options.
-#define RANGE_D_0   0  ///< No dimensions (NULL range)
-#define RANGE_D_ALL 10 ///< All dimensions.
+#define OP_R_D_0   0  ///< No dimensions (NULL range)
+#define OP_R_D_ALL 10 ///< All dimensions.
 ///\}
 
-///\{ \name Face range options.
-#define RANGE_F_0   0  ///< No faces (NULL range)
-#define RANGE_F_ALL 10 ///< All faces.
+///\{ \name Computational element range options.
+#define OP_R_CE_VV 10 ///< Volume to volume.
+#define OP_R_CE_VF 11 ///< Volume to face.
+#define OP_R_CE_VE 12 ///< Volume to edge.
+#define OP_R_CE_FV 20 ///< Face to volume.
+#define OP_R_CE_FF 21 ///< Face to face.
+#define OP_R_CE_FE 22 ///< Face to edge.
+#define OP_R_CE_EV 30 ///< Edge to volume.
+#define OP_R_CE_EF 31 ///< Edge to face.
+#define OP_R_CE_EE 32 ///< Edge to edge.
 ///\}
 
 ///\{ \name Refinement (h) range options.
-#define RANGE_H_1  10 ///< Standard operator (no h-refinement) only.
-#define RANGE_H_CF 11 ///< Coarse to fine + Standard.
-#define RANGE_H_FC 12 ///< Fine to coarse.
+#define OP_R_H_1  10 ///< Standard operator (no h-refinement) only.
+#define OP_R_H_CF 11 ///< Coarse to fine + Standard.
+#define OP_R_H_FC 12 ///< Fine to coarse.
 ///\}
 
 ///\{ \name Order (p) range options.
-#define RANGE_P_1   10 ///< Order = 1 only.
-#define RANGE_P_PM0 11 ///< Order = p_reference +/- 0
-#define RANGE_P_PM1 12 ///< Order = p_reference +/- 1
-#define RANGE_P_ALL 13 ///< Order = 0:p_max
+#define OP_R_P_1   10 ///< Order = 1 only.
+#define OP_R_P_PM0 11 ///< Order = p_reference +/- 0
+#define OP_R_P_PM1 12 ///< Order = p_reference +/- 1
+#define OP_R_P_ALL 13 ///< Order = 0:p_max
 ///\}
-
-///\{ \name Supported compound range options.
-#define RNG_CMP_ALL_0_1_1 ///< D_ALL, F_0, H_1, P_1.
-///\}
-
 
 
 
