@@ -29,7 +29,7 @@ class TestCase_c:
 
 			NML = 6 # Should match NML used in generate_peterson_meshes.py
 			for ML in range(0,NML):
-				MeshOutputs += MESHES_SPECIFIC + 'n-Cube2D_TRI' + str(ML) + 'x.msh '
+				MeshOutputs += MESHES_SPECIFIC + 'n-Cube2D_StraightTRI' + str(ML) + 'x.msh '
 
 			self.MeshOutputs = MeshOutputs
 

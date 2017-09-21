@@ -61,7 +61,7 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 	 */
 
 	// default values
-	data->PrintEnabled   = 1;
+	data->PrintEnabled   = 0;
 	data->Compute_L2proj = 0;
 	data->SolveExplicit  = 1;
 	data->SolveImplicit  = 1;
@@ -163,10 +163,9 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 				}
 			} else if (strstr(TestName,"CurvedMIXED2D")) {
 //				data->PrintEnabled = 1;
-test_print_warning("Modified Parameters"); PRINT_FILELINE;
-//data->SolveExplicit = 1;
-data->PMax = 2;
-data->MLMax = 2;
+//test_print_warning("Modified Parameters"); PRINT_FILELINE;
+//data->PMax = 2;
+//data->MLMax = 2;
 				strcpy(data->argvNew[1],"test/Euler/Test_Euler_SupersonicVortex_CurvedMIXED2D");
 			} else {
 				EXIT_UNSUPPORTED;
@@ -224,6 +223,7 @@ data->MLMax = 2;
 				} else if (strstr(TestName,"QUAD")) {
 					strcat(data->argvNew[1],"QUAD");
 				} else if (strstr(TestName,"MIXED2D")) {
+data->MLMax = 4;
 					strcat(data->argvNew[1],"MIXED2D");
 				} else {
 					EXIT_UNSUPPORTED;

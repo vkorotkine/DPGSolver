@@ -1384,7 +1384,7 @@ static void blend_boundary(struct S_VOLUME *VOLUME, const unsigned int BType, co
 		else if (BType == 'f')
 			BC = VOLUME->BC[0][b];
 
-		if (BC / BC_STEP_SC != 2)
+		if (BC / BC_STEP_SC < 2)
 			continue;
 
 		Vb = b*NbrefMax;

@@ -373,7 +373,7 @@ void solver_implicit(bool const PrintEnabled)
 
 			double alpha = 1.0;
 if (iteration < 3) {
-	alpha = 0.5;
+//	alpha = 0.5;
 			compute_underRelax(VOLUME,dWhat,&alpha);
 }
 			//printf("% .3e\n",alpha);

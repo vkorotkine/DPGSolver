@@ -47,7 +47,7 @@ if (TestHDG) {
 
 		// 2D (Mixed TRI/QUAD mesh)
 		test_linearization(&data_l,"test/Advection/Test_Advection_Default_n-Cube_StraightTRI");
-if (1) {
+if (0) {
 		test_integration_linearization("test/Advection/Test_Advection_Default_n-Cube_StraightTRI");
 }
 		test_linearization(&data_l,"test/Advection/Test_Advection_Default_n-Cube_StraightQUAD");

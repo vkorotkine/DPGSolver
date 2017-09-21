@@ -59,8 +59,10 @@ void compute_exact_boundary_solution(struct S_BC *const BCdata)
 
 double *compute_exact_boundary_normal(struct S_BC *const BCdata)
 {
-	if (!strstr(DB.TestCase,"SupersonicVortex"))
+	if (!strstr(DB.TestCase,"SupersonicVortex")) {
+		printf("\n%s\n",DB.TestCase);
 		EXIT_UNSUPPORTED;
+	}
 
 	unsigned int const d   = BCdata->d,
 	                   Nn  = BCdata->Nn,
@@ -94,11 +96,13 @@ double *compute_exact_boundary_normal(struct S_BC *const BCdata)
 	diff_ro /= Nn;
 
 	bool NegateNormal = 0;
-	if (diff_ri <= 1e-2)
+	const double diff_min = 3e-2;
+	if (diff_ri <= diff_min)
 		NegateNormal = 1;
-	else if (diff_ro <= 1e-2)
+	else if (diff_ro <= diff_min)
 		; // Do nothing
 	else {
+		printf("\n");
 		array_print_d(NnTotal,d,XYZ,'C');
 		printf("% .3e % .3e\n",diff_ri,diff_ro);
 		EXIT_UNSUPPORTED;

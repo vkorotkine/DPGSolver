@@ -232,10 +232,8 @@ void initialization(int const nargc, char const *const *const argv)
 		DB.Method = METHOD_DG;
 	}
 
-	if (!strstr(MeshCurving,"Straight")) {
-		strcat(MeshCurving,DB.MeshType);
-		strcpy(DB.MeshType,MeshCurving);
-	}
+	strcat(MeshCurving,DB.MeshType);
+	strcpy(DB.MeshType,MeshCurving);
 	free(MeshCurving);
 
 	// Set up MeshFile

@@ -80,14 +80,14 @@ void test_integration_NavierStokes(int nargc, char **argv)
 
 		test_conv_order(&data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedTRI");
 		test_conv_order(&data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedQUAD");
-//		test_conv_order(&data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedMIXED2D");
+//		test_conv_order(&data_c,"NavierStokes_n-Cylinder_Hollow_ToBeCurvedMIXED2D"); // Takes a while.
 
 		/**	\todo Add tests for:
 		 *		1. PlaneCouette (Illingworth(1950), problem 3)
 		 *		2. 3D Curved manufactured solution
 		 */
 
-//		test_conv_order(&data_c,"NavierStokes_n-Cube_StraightQUAD"); // PlaneCouette (Possibly not yet working)
+//		test_conv_order(&data_c,"NavierStokes_n-Cube_StraightQUAD"); // PlaneCouette (not yet implemented)
 	} else {
 		test_print_warning("Navier-Stokes convergence order testing currently disabled");
 	}

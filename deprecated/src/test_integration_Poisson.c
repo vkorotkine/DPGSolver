@@ -60,8 +60,8 @@ void test_integration_Poisson(int nargc, char **argv)
 
 		test_conv_order(&data_c,"Poisson_n-Cube_LINE");
 
-//		test_conv_order(&data_c,"Poisson_n-Ellipsoid_HollowSection_TRI");
-//		test_conv_order(&data_c,"Poisson_n-Ellipsoid_HollowSection_QUAD");
+		test_conv_order(&data_c,"Poisson_n-Ellipsoid_HollowSection_TRI");
+		test_conv_order(&data_c,"Poisson_n-Ellipsoid_HollowSection_QUAD");
 		test_conv_order(&data_c,"Poisson_n-Ellipsoid_HollowSection_MIXED2D");
 	} else {
 		test_print_warning("Poisson convergence order testing currently disabled");

@@ -281,7 +281,7 @@ class Mesh_c:
 			f.write(string + '\n')
 
 		mesh_dir = MESHES_ROOT + 'n-Cube/Advection/Steady/Peterson/YL/'
-		mesh_name = mesh_dir + 'n-Cube2D_TRI' + str(self.ML) + 'x.msh'
+		mesh_name = mesh_dir + 'n-Cube2D_StraightTRI' + str(self.ML) + 'x.msh'
 
 		if not os.path.exists(mesh_dir):
 			os.makedirs(mesh_dir)

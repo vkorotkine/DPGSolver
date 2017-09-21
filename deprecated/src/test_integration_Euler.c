@@ -20,19 +20,10 @@ void test_integration_Euler(int nargc, char **argv)
 {
 	UNUSED(argv);
 
-	///	\todo Make this `const bool`.
-	bool run_tests_equivalence_real_complex = 0,
-	     run_tests_equivalence_algorithms   = 0,
-	     run_tests_linearization            = 1,
-	     run_tests_conv_order               = 1;
-
-	/// \todo Delete this after Manmeet has finished his initial verification.
-	const bool PeriodicVortexOnly = 0;
-	if (PeriodicVortexOnly) {
-		run_tests_equivalence_real_complex = 0;
-		run_tests_equivalence_algorithms   = 0;
-		run_tests_linearization            = 0;
-	}
+	const bool run_tests_equivalence_real_complex = 1,
+	           run_tests_equivalence_algorithms   = 1,
+	           run_tests_linearization            = 1,
+	           run_tests_conv_order               = 1;
 
 	const size_t n_argv_new = 2;
 	char** argv_new = mallocator(CHAR_T,2,STRLEN_MAX,n_argv_new); // free
@@ -73,8 +64,8 @@ void test_integration_Euler(int nargc, char **argv)
 		                                     .test_name = test_name, };
 
 #if 0
-	#if 1
-		#if 0
+	#if 0
+		#if 1
 test_integration_linearization("test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
 		#else
 test_integration_linearization("test/Euler/Test_Euler_SupersonicVortex_CurvedMIXED2D");
@@ -84,10 +75,8 @@ test_integration_linearization("test/Euler/Test_Euler_SupersonicVortex_CurvedMIX
 	#endif
 #endif
 		test_linearization(&data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
-#if 0
 		test_linearization(&data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED3D_TP");
 		test_linearization(&data_l,"test/Euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED3D_HW");
-#endif
 	} else {
 		test_print_warning("Euler linearization testing currently disabled");
 	}
@@ -100,11 +89,13 @@ test_integration_linearization("test/Euler/Test_Euler_SupersonicVortex_CurvedMIX
 		                              .argvNew   = argv_new,
 		                              .PrintName = test_name, };
 
-if (!PeriodicVortexOnly) {
-//		test_conv_order(&data_c,"Euler_n-GaussianBump_CurvedQUAD");
+		test_conv_order(&data_c,"Euler_n-GaussianBump_CurvedQUAD");
 		test_conv_order(&data_c,"Euler_n-Cylinder_HollowSection_CurvedMIXED2D");
 		test_conv_order(&data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedMIXED2D");
-}
+
+		test_conv_order(&data_c,"Euler_PeriodicVortex_Stationary_n-Cube_QUAD");
+		test_conv_order(&data_c,"Euler_PeriodicVortex_n-Cube_TRI"); // Needs one more mesh level
+		test_conv_order(&data_c,"Euler_PeriodicVortex_n-Cube_QUAD");
 
 bool const test_3D = 0;
 if (test_3D) {
@@ -115,11 +106,6 @@ if (test_3D) {
 		test_print_warning("3D SupersonicVortex testing is currently disabled");
 }
 
-if (PeriodicVortexOnly) {
-//		test_conv_order(&data_c,"Euler_PeriodicVortex_Stationary_n-Cube_QUAD");
-//		test_conv_order(&data_c,"Euler_PeriodicVortex_n-Cube_TRI");
-		test_conv_order(&data_c,"Euler_PeriodicVortex_n-Cube_QUAD");
-}
 	} else {
 		test_print_warning("Euler convergence order testing currently disabled");
 	}

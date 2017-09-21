@@ -136,9 +136,9 @@ TESTCASE_LIST := Advection_Default \
                  NavierStokes_TaylorCouette \
                  NavierStokes_PlaneCouette
 
-MESHTYPE_LIST := LINE \
-                 TRI CurvedTRI ToBeCurvedTRI \
-                 QUAD CurvedQUAD ToBeCurvedQUAD \
+MESHTYPE_LIST := LINE StraightLINE \
+                 TRI StraightTRI CurvedTRI ToBeCurvedTRI \
+                 QUAD StraightQUAD CurvedQUAD ToBeCurvedQUAD \
                  TET ToBeCurvedTET \
                  HEX ToBeCurvedHEX \
                  WEDGE ToBeCurvedWEDGE \
