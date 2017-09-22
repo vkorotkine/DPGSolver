@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  	- g: geometry
  *  	- m: metric
  *  	- s: solution
+ *  	- v: vertex (Only available as p1 nodes [5])
  *  	- p: plotting (Not available as a basis [2])
  *  	- c: cubature (Not available as a basis [2])
  *  - (3/6): character denoting whether the basis/cubature is meant to be used for straight or curved elements (sc):

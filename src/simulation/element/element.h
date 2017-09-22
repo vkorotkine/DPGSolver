@@ -109,4 +109,12 @@ bool wedges_present
 	(const struct const_Intrusive_List*const elements ///< The list of elements.
 	);
 
+/** \brief Compute the element type for the given input parameters.
+ *  \return See brief. */
+const int compute_elem_type_sub_ce
+	(const int type,  ///< \ref Element::type.
+	 const char ce,   ///< The type of computational element.
+	 const int ind_ce ///< The index of the computational element.
+	);
+
 #endif // DPG__element_h__INCLUDED

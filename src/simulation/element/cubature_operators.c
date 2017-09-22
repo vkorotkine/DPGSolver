@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 
 #include "element_operators.h"
+#include "bases.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -30,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \return See brief. */
 static int compute_node_type_cub
 	(const char cub_kind,         ///< \ref Op_IO::kind.
+	 const char cub_ce,           ///< \ref Op_IO::ce.
 	 const int s_type,            ///< \ref Element::s_type.
 	 const struct Simulation *sim ///< \ref Simulation.
 	);
@@ -54,12 +56,27 @@ static int compute_p_cub
 
 // Constructor functions ******************************************************************************************** //
 
+// Possibly return a Cubature_Multiarray here.
 const struct const_Cubature* constructor_const_Cubature_h
 	()
 {
+	const int s_type = element->s_type;
+
 	const int node_type = compute_node_type_cub(op_io[ind_io].kind,s_type,sim);
 	const int d         = compute_d_cub(op_io[ind_io].ce,sim->d);
 	const int p         = compute_p_cub(p_op,op_io[ind_io].kind,op_io[ind_io].sc,s_type,node_type,sim);
+
+	basis_fptr constructor_basis_ref = get_basis_by_super_type(s_type,"ortho");
+
+	cubature_fptr constructor_Cubature = get_cubature_by_super_type(s_type);
+
+	const int type = element->type;
+
+	const struct const_Cubature* cub_ve[2] =
+		{ constructor_Cubature(d,1,CUB_VERTEX);
+
+	const struct const_Matrix_d* cv0_vvs_zzz = constructor_basis_ref(1,cub_ve->rst);
+
 }
 
 // Static functions ************************************************************************************************* //
@@ -69,6 +86,7 @@ const struct const_Cubature* constructor_const_Cubature_h
  *  \return See brief. */
 static int compute_node_type_cub_std
 	(const char cub_kind,         ///< \ref Op_IO::kind.
+	 const char cub_ce,           ///< \ref Op_IO::ce.
 	 const int s_type,            ///< \ref Element::s_type.
 	 const struct Simulation *sim ///< \ref Simulation.
 	);
@@ -77,21 +95,25 @@ static int compute_node_type_cub_std
  *  \return See brief. */
 static int compute_node_type_cub_collocated
 	(const char cub_kind,         ///< \ref Op_IO::kind.
+	 const char cub_ce,           ///< \ref Op_IO::ce.
 	 const int s_type,            ///< \ref Element::s_type.
 	 const struct Simulation *sim ///< \ref Simulation.
 	);
 
-static int compute_node_type_cub (const char cub_kind, const int s_type, const struct Simulation *sim)
+static int compute_node_type_cub
+	(const char cub_kind, const char cub_ce, const int s_type, const struct Simulation *sim)
 {
 	switch (cub_kind) {
-	case 'g':
-		return compute_node_type_cub_std(cub_kind,s_type,sim);
+	case 's': // fallthrough
+	case 'g': // fallthrough
+	case 'm': // fallthrough
+		return compute_node_type_cub_std(cub_kind,cub_ce,s_type,sim);
 		break;
 	case 'c':
 		if (!sim->collocated)
 			return compute_node_type_cub_std(cub_kind,s_type,sim);
 		else
-			return compute_node_type_cub_collocated(cub_kind,s_type,sim);
+			return compute_node_type_cub_collocated(cub_kind,cub_ce,s_type,sim);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %c\n",cub_kind);
@@ -161,10 +183,12 @@ UNUSED(node_type);
 
 // Level 1 ********************************************************************************************************** //
 
-static int compute_node_type_cub_std (const char cub_kind, const int s_type, const struct Simulation *sim)
+static int compute_node_type_cub_std
+	(const char cub_kind, const char cub_ce, const int s_type, const struct Simulation *sim)
 {
 	switch (cub_kind) {
 	case 's':
+		assert(cub_ce == 'v'); // Can be updated to include 'f' in future.
 		if (strcmp(sim->nodes_interp[s_type],"GL") == 0)
 			return CUB_GL;
 		else if (strcmp(sim->nodes_interp[s_type],"GLL") == 0)
@@ -178,14 +202,16 @@ static int compute_node_type_cub_std (const char cub_kind, const int s_type, con
 		else
 			EXIT_ERROR("Unsupported: %s\n",sim->nodes_interp[s_type]);
 	case 'g':
+		assert(cub_ce == 'v');
 		switch (s_type) {
-			case ST_TP:  return CUB_GLL;   break;
-			case ST_SI:  return CUB_AO;    break;
-			case ST_PYR: return CUB_GLL;   break;
+			case ST_TP:  return CUB_GLL; break;
+			case ST_SI:  return CUB_AO;  break;
+			case ST_PYR: return CUB_GLL; break;
 			default:     EXIT_ERROR("Unsupported: %d\n",s_type); break;
 		}
 		break;
 	case 'm':
+		assert(cub_ce == 'v');
 		EXIT_ADD_SUPPORT;
 		break;
 	case 'c':
@@ -199,9 +225,8 @@ static int compute_node_type_cub_std (const char cub_kind, const int s_type, con
 				switch (cub_ce) {
 					case 'v': return CUB_WV; break;
 					case 'f': return CUB_GL; break;
-					case 'e': /* fallthrough */
-/// \todo Replace all possible EXIT_UNSUPPORTED with EXIT_ERROR with name.
-					default:  EXIT_UNSUPPORTED; break;
+					case 'e': // fallthrough
+					default:  EXIT_ERROR("Unsupported: %c\n",cub_ce); break;
 				}
 				break;
 			case 3:
@@ -209,30 +234,40 @@ static int compute_node_type_cub_std (const char cub_kind, const int s_type, con
 					case 'v': return CUB_WV; break;
 					case 'f': return CUB_WV; break;
 					case 'e': return CUB_GL; break;
-					default:  EXIT_UNSUPPORTED; break;
+					default:  EXIT_ERROR("Unsupported: %c\n",cub_ce); break;
 				}
 				break;
 			default:
-				EXIT_UNSUPPORTED;
+				EXIT_ERROR("Unsupported: %d\n",sim->d); break;
+				break;
 			}
 			break;
-		case ST_PYR:
-			return CUB_GJW;
+		case ST_PYR: {
+			const int out_e_type = compute_elem_type_sub_ce(e_type,cub_ce,ind_ce);
+
+			switch (out_e_type) {
+				case TRI:  return CUB_WV;  break;
+				case QUAD: return CUB_GL;  break;
+				case TET:  return CUB_WV;  break;
+				case PYR:  return CUB_GJW; break;
+				default:   EXIT_ERROR("Unsupported: %d\n",out_e_type);
+			}
 			break;
-		default:
-			EXIT_UNSUPPORTED;
+		} default:
+			EXIT_ERROR("Unsupported: %d\n",s_type); break;
 			break;
 		}
 		break;
 	default:
-		EXIT_UNSUPPORTED;
+		EXIT_ERROR("Unsupported: %c\n",cub_kind); break;
 		break;
 	}
 	EXIT_UNSUPPORTED;
 	return -1;
 }
 
-static int compute_node_type_cub_collocated (const char cub_kind, const int s_type, const struct Simulation *sim)
+static int compute_node_type_cub_collocated
+	(const char cub_kind, const char cub_ce, const int s_type, const struct Simulation *sim)
 {
 	switch (cub_kind) {
 	case 'c':
@@ -243,19 +278,19 @@ static int compute_node_type_cub_collocated (const char cub_kind, const int s_ty
 			else if (strcmp(sim->nodes_interp[s_type],"GLL") == 0)
 				return CUB_GLL;
 			else
-				EXIT_UNSUPPORTED;
+				EXIT_ERROR("Unsupported: %s\n",sim->nodes_interp[s_type]);
 			break;
 		case ST_SI:
 			if (strcmp(sim->nodes_interp[s_type],"WSH") != 0)
-				EXIT_UNSUPPORTED;
+				EXIT_ERROR("Unsupported: %s\n",sim->nodes_interp[s_type]);
 
 			switch (sim->d) {
 			case 2:
 				switch (cub_ce) {
 					case 'v': return CUB_WSH; break;
 					case 'f': return CUB_GL;  break;
-					case 'e': /* fallthrough */
-					default:  EXIT_UNSUPPORTED; break;
+					case 'e': // fallthrough
+					default:  EXIT_ERROR("Unsupported: %c\n",cub_ce); break;
 				}
 				break;
 			case 3:
@@ -270,17 +305,17 @@ static int compute_node_type_cub_collocated (const char cub_kind, const int s_ty
 				break;
 			}
 			break;
-		case ST_PYR: /* fallthrough */
+		case ST_PYR: // fallthrough
 		default:
-			EXIT_UNSUPPORTED;
+			EXIT_ERROR("Unsupported: %d\n",s_type); break;
 			break;
 		}
 		break;
-	case 's': /* fallthrough */
-	case 'g': /* fallthrough */
-	case 'm': /* fallthrough */
+	case 's': // fallthrough
+	case 'g': // fallthrough
+	case 'm': // fallthrough
 	default:
-		EXIT_UNSUPPORTED;
+		EXIT_ERROR("Unsupported: %c\n",cub_kind); break;
 		break;
 	}
 	EXIT_UNSUPPORTED;

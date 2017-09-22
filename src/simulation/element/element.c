@@ -143,6 +143,97 @@ bool wedges_present (const struct const_Intrusive_List*const elements)
 	return false;
 }
 
+const int compute_elem_type_sub_ce (const int e_type, const char ce, const int ind_ce)
+{
+	switch (ce) {
+	case 'v':
+		switch (e_type) {
+		case LINE: // fallthrough
+		case TRI:  // fallthrough
+		case QUAD: // fallthrough
+		case TET:  // fallthrough
+		case HEX:  // fallthrough
+		case WEDGE:
+			return e_type;
+		case PYR:
+			switch (ind_ce) {
+			case 0: // standard pyr
+			case 1: case 2:  case 3: case 4: // 4 base pyr sub-elements.
+			case 9: case 10: // 2 top pyr sub-elements.
+				return PYR;
+				break;
+			case 5: case 6: case 7: case 8: // 4 tet sub-elements.
+				return TET;
+				break;
+			default:
+				EXIT_ERROR("Unsupported: %d\n",ind_ce);
+				break;
+			}
+		default:
+			EXIT_ERROR("Unsupported: %d\n",e_type);
+			break;
+		}
+		break;
+	case 'f':
+		switch (e_type) {
+		case LINE:
+			return POINT;
+			break;
+		case TRI: // fallthrough
+		case QUAD:
+			return LINE;
+			break;
+		case TET:
+			return TRI;
+			break;
+		case HEX:
+			return QUAD;
+			break;
+		case WEDGE:
+			switch (ind_ce) {
+			case 0:  case 1:  case 2:           // 3 quad faces of wedge reference element.
+			case 5:  case 6:  case 7:  case 8:  // 4 quad refined face 0 sub-faces.
+			case 9:  case 10: case 11: case 12: // 4 quad refined face 1 sub-faces.
+			case 13: case 14: case 15: case 16: // 4 quad refined face 2 sub-faces.
+				return QUAD;
+				break;
+			case 3: case 4:                     // 2 tri faces of wedge reference element.
+			case 17: case 18: case 19: case 20: // 4 tri refined face 3 sub-faces.
+			case 21: case 22: case 23: case 24: // 4 tri refined face 4 sub-faces.
+				return TRI;
+				break;
+			default:
+				EXIT_ERROR("Unsupported: %d\n",ind_ce);
+				break;
+			return e_type;
+		case PYR:
+			switch (ind_ce) {
+			case 0:  case 1:  case 2:  case 3:  // 3 tri faces of wedge reference element.
+			case 5:  case 6:  case 7:  case 8:  // 4 tri refined face 0 sub-faces.
+			case 9:  case 10: case 11: case 12: // 4 tri refined face 1 sub-faces.
+			case 13: case 14: case 15: case 16: // 4 tri refined face 2 sub-faces.
+			case 17: case 18: case 19: case 20: // 4 tri refined face 3 sub-faces.
+				return TRI;
+				break;
+			case 4:                             // 2 quad faces of wedge reference element.
+			case 21: case 22: case 23: case 24: // 4 quad refined face 4 sub-faces.
+				return QUAD;
+				break;
+			default:
+				EXIT_ERROR("Unsupported: %d\n",ind_ce);
+				break;
+			}
+		default:
+			EXIT_ERROR("Unsupported: %d\n",e_type);
+			break;
+		}
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %c\n",ce);
+		break;
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

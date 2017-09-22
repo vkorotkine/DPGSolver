@@ -20,8 +20,10 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 ///\{ \name Nodes available for several element super types.
-#define CUB_EQ 101 ///< Equally spaced.
-#define CUB_WV 102 ///< Witherden-Vincent.
+#define CUB_VERTEX 101 ///< Vertex coordinates.
+
+#define CUB_EQ 111 ///< Equally spaced.
+#define CUB_WV 112 ///< Witherden-Vincent.
 ///\}
 
 ///\{ \name The available tensor-product nodes.
