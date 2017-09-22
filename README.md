@@ -1,20 +1,33 @@
 # Discontinuous Petrov Galerkin Solver
 
-### Code Description
+## Contributors
+
+Philip Zwanenburg, philip.zwanenburg@mail.mcgill.ca
+
+Siva Nadarajah, siva.nadarajah@mcgill.ca
+
+Cem Gormezano
+
+Manmeet Bhabra
+
+## Code Description
 - Uses only free to use/open source libraries/supporting programs.
 - Methods:
-	- Discontinuous Galerkin (DG).
+	- Discontinuous Galerkin (DG);
+	- Hybridized Discontinuous Galerkin (HDG) (ACTIVE);
 	- Discontinuous Petrov Galerkin (DPG) (TO BE DONE);
-- Supported elements: TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
+- Supported elements: LINEs, TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
 - Supported refinements: isotropic h (size) or p (order).
 
-### Supported PDEs
-| PDE           | STATUS               | COMMENTS |
-|---------------|----------------------|----------|
-| Advection     | DONE                 |Additional functionality in lsfem branch|
-| Poisson       | DONE                 ||
-| Euler         | DONE                 ||
-| Navier-Stokes | DONE                 ||
+Please follow the [Coding Style Guidelines](STYLE.md) when making modifications to the code.
+
+## Code Status
+
+### General
+| Functionality  | Status     |
+|----------------|------------|
+| MPI            | TO BE DONE |
+| h/p Adaptation | DONE       |
 
 
 ### Test Cases
@@ -28,30 +41,6 @@
 |               | InviscidChannel  | DONE   |
 | Navier-Stokes | Taylor-Couette   | DONE   |
 
-See the CODE STATUS section below for details regarding current functionality.
-
-### Installation / Set up
-Follow the [installation instructions](INSTALL.md) for the set up of required libraries/programs. Required:
-- MPI (MPICH or Open MPI)
-- Intel (M)ath (K)ernel (L)ibrary
-- PETSc
-- ParMETIS
-- Gmsh
-- Paraview
-- Python3 (including Numpy)
-
-Follow the instructions in [SETUP](SETUP.md) regarding additional requirements for running the code:
-- Mesh generation
-- Creating a script file
-
-Please follow the [style guidelines](STYLE.md) when making additions to the code.
-
-
-## Code Status
-| Functionality  | Status     |
-|----------------|------------|
-| MPI            | TO BE DONE |
-| h/p Adaptation | DONE       |
 
 #### Supported Numerical Fluxes
 | Name           | Status |
@@ -61,6 +50,7 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 | Roe-Pike       | DONE   |
 | Bassi-Rebay 2  | DONE   |
 | Compact DG 2   | DONE   |
+
 
 #### Supported Boundary Conditions
 | PDE           | Name                    | Status |
@@ -78,20 +68,35 @@ Please follow the [style guidelines](STYLE.md) when making additions to the code
 |               | No Slip Adiabatic       | DONE   |
 
 
-### License
-The MIT License (MIT)
 
-Copyright (c) 2017 Philip Zwanenburg
+## Installation / Set up
+Follow the [Detailed Installation Instructions](INSTALL.md) for the set up of **required** external packages.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
+Follow the instructions in [Additional Set Up](SETUP.md) regarding additional requirements for running the code:
+- Configuring the code
+- Running the code
+- Generating documentation
+	- Documentation is very incomplete. \todo Add/update documentation where necessary.
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
+#### External Packages
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+##### Required
+- [MPICH](https://www.mpich.org)
+- [Intel (M)ath (K)ernel (L)ibrary](https://software.intel.com/en-us/mkl)
+- [PETSc](https://www.mcs.anl.gov/petsc/)
+- [ParMETIS](http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview)
+- [Gmsh](http://gmsh.info)
+- [Python3](https://www.python.org/downloads/) (including [Numpy](http://www.numpy.org))
+
+##### Visualization
+- [Paraview](https://www.paraview.org)
+
+##### Documentation
+- [Doxygen](http://www.stack.nl/~dimitri/doxygen/)
+- [graphivz](http://www.graphviz.org)
+
+
+
+# License
+
+The code is licensed under the [GNU GPLv3](LICENSE.md).

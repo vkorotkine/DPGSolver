@@ -1,25 +1,33 @@
-// Copyright 2017 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
+/* {{{
+This file is part of DPGSolver.
+
+DPGSolver is free software: you can redistribute it and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, either version 3 of the
+License, or any later version.
+
+DPGSolver is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+Public License for more details.
+
+You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
+<http://www.gnu.org/licenses/>.
+}}} */
+/** \file
+ */
+
+#include "template.h"
 
 #include <stdlib.h>
 #include <stdio.h>
-//#include <math.h>
-//#include <string.h>
 
-//#include "database.h"
-//#include "parameters.h"
-//#include "functions.h"
+// Static function declarations ************************************************************************************* //
 
-//#include "petscsys.h"
 
-/*
- *	Purpose:
- *
- *	Comments:
- *
- *	Notation:
- *
- *	References:
- */
 
+// Interface functions ********************************************************************************************** //
+
+
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
 

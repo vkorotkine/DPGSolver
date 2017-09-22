@@ -1,0 +1,607 @@
+--------------------------------------------------------------------------------
+Volume    0
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 3 2
+ 0.7071067811865476  0.7071067811865476
+ 0.8428712831740828  0.8428712831740828 
+ 0.3826834323659691  0.9238795325109228
+elem_type: 2
+
+Volume    1
+boundary: 0
+curved:   0
+xyz_ve:
+container Multiarray_d
+R 2 3 2
+ 0.3826834323659691  0.9238795325109228
+ 0.8428712831740828  0.8428712831740828 
+ 0.4561586513801797  1.101264402752529 
+elem_type: 2
+
+Volume    2
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 3 2
+ 0.3826834323659691  0.9238795325109228
+ 0.4561586513801797  1.101264402752529
+ 0                   1
+elem_type: 2
+
+Volume    3
+boundary: 1
+curved:   0
+xyz_ve:
+container Multiarray_d
+R 2 3 2
+ 0                   1
+ 0.4561586513801797  1.101264402752529
+ 0                   1.191999999999436
+elem_type: 2
+
+Volume    4
+boundary: 0
+curved:   0
+xyz_ve:
+container Multiarray_d
+R 2 3 2
+ 0.8428712831740828 0.8428712831740828
+ 0.9786357851621817 0.9786357851621817
+ 0.4561586513801797 1.101264402752529
+elem_type: 2
+
+Volume    5
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 3 2
+ 0.4561586513801797 1.101264402752529
+ 0.9786357851621817 0.9786357851621817
+ 0.5296338703946957 1.278649272995037
+elem_type: 2
+
+Volume    6
+boundary: 0
+curved:   0
+xyz_ve:
+container Multiarray_d
+R 2 3 2
+ 0.4561586513801797 1.101264402752529
+ 0.5296338703946957 1.278649272995037
+ 0                  1.191999999999436
+elem_type: 2
+
+Volume    7
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 3 2
+ 0                  1.191999999999436
+ 0.5296338703946957 1.278649272995037
+ 0                  1.384
+elem_type: 2
+
+Volume    8
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 4 2
+ 0.7071067811865476 0.7071067811865476
+ 0.9238795325109228 0.3826834323659691
+ 0.8428712831740828 0.8428712831740828
+ 1.101264402752529 0.4561586513801797
+elem_type: 3
+
+Volume    9
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 4 2
+ 0.9238795325109228 0.3826834323659691
+ 1                  0
+ 1.101264402752529  0.4561586513801797
+ 1.191999999999436  0
+elem_type: 3
+
+Volume    10
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 4 2
+ 0.8428712831740828 0.8428712831740828
+ 1.101264402752529 0.4561586513801797
+ 0.9786357851621817 0.9786357851621817
+ 1.278649272995037 0.5296338703946957
+elem_type: 3
+
+Volume    11
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 4 2
+ 1.101264402752529 0.4561586513801797
+ 1.191999999999436 0
+ 1.278649272995037 0.5296338703946957
+ 1.384             0
+elem_type: 3
+
+--------------------------------------------------------------------------------
+Face 0
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    0
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    1
+
+Face 1
+boundary:  1
+curved:    1
+bc:        20002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    0
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 2
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    0
+Neigh_Info 1
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    8
+
+Face 3
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    1
+Neigh_Info 1
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    4
+
+Face 4
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    1
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    2
+
+Face 5
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    2
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    3
+
+Face 6
+boundary:  1
+curved:    1
+bc:        20002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    2
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 7
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    3
+Neigh_Info 1
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    6
+
+Face 8
+boundary:  1
+curved:    0
+bc:        10001
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    3
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 9
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    4
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    5
+
+Face 10
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    4
+Neigh_Info 1
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    10
+
+Face 11
+boundary:  1
+curved:    1
+bc:        30002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    5
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 12
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    5
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    6
+
+Face 13
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    6
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  1
+	ind_v    7
+
+Face 14
+boundary:  1
+curved:    1
+bc:        30002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    7
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 15
+boundary:  1
+curved:    0
+bc:        10001
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    7
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 16
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    8
+Neigh_Info 1
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    9
+
+Face 17
+boundary:  1
+curved:    1
+bc:        20002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    8
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 18
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   3
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    8
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    10
+
+Face 19
+boundary:  1
+curved:    0
+bc:        10001
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    9
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 20
+boundary:  1
+curved:    1
+bc:        20002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    9
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 21
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   3
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    9
+Neigh_Info 1
+	ind_lf   2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    11
+
+Face 22
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    10
+Neigh_Info 1
+	ind_lf   0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    11
+
+Face 23
+boundary:  1
+curved:    1
+bc:        30002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   3
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    10
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 24
+boundary:  1
+curved:    0
+bc:        10001
+elem_type: 1
+Neigh_Info 0
+	ind_lf   1
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    11
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+Face 25
+boundary:  1
+curved:    1
+bc:        30002
+elem_type: 1
+Neigh_Info 0
+	ind_lf   3
+	ind_href 0
+	ind_sref 0
+	ind_ord  -1
+	ind_v    11
+Neigh_Info 1
+	ind_lf   -1
+	ind_href -1
+	ind_sref -1
+	ind_ord  -1
+	ind_v    -1
+
+

@@ -1,11 +1,48 @@
-If missing, add copyright info to header of every .c and .h file as below
-// Copyright 2017 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-Ensure that the link is correct
 
-grep through all files for 'ToBeModified' and 'ToBeDeleted' comments, making appropriate modifications when possible.
+Petsc Solver Updates
+1) Assemble LHS terms directly in Petsc Mat
+	- Remove memory initialization for LHS terms.
+2) Assemble HDG complete and Schur complement matrix as in [Petsc ex70](http://www.mcs.anl.gov/petsc/petsc-current/src/snes/examples/tutorials/ex70.c.html)
+	- Compare cost of MatMatMult with direct assembly if assembly dominates solver cost.
 
-change tab spaces to 8 and increase max lines to check alignment of the code under different options in .vimrc
 
-put src code into logical subfolders
-check that all includes in the headers are also present in the associated .c files (for correct dependency generation)
+LHS changes:
+1) Move memory allocation (calloc) to relevant compute_* functions (remove in update_VOLUME/FACE functions)
+2) Free memory as soon as it is no longer needed during compute_RLHS stage (Including freeing Qhat_What**)
+3) Remove dependence on global variables (when implementing HDG)
+	- remove variables which are only used in certain functions of the code from currently defined global structs (e.g.
+	  remove LHS, QhatV from the VOLUME struct). Replace these with new structs derived from the common VOLUME with the
+	  additional required parameters for the specific functions under consideration (e.g. solving, geometry).
+
+Linearization changes: (generalize to all functions in the future)
+1) Make new structs for specific functions with const reference (const move constructor) to required previously
+   initialized data and with declarations of required limited scope data as part of the constructor.
+   - Start by simply transferring to local struct and getting the function to work, then switch to new "classes" for
+	 data storage (S_MULTI_ARRAY_cx)
+   Ex: Construct S_VOLUME_solver_cx which takes required parameters from S_VOLUME for complex RHS evaluation.
+2) When completed, should be able to remove the following variables from S_VOLUME:
+	- *RHS_c, *What_c, **Qhat_c, **QhatV_c, **qhat_c
+
+
+
+
+Code refactoring:
+
+1) The `Simulation` struct
+
+- Make a default ctrl file with all possible inputs but only require relevant parameters in individual ctrl files.
+	- Initialized from parameters in the ctrl file.
+	- Additional members:
+		- Elements, Volumes, Faces (pointer to head)
+			- These are structs holding information common to derived structs
+		- Test case
+			- This should have most of the data currently set in init_test_case_parameters().
+			- This should include function pointers relevant to the case under consideration.
+
+A `simulation` is then passed around the code as the substitute for the current global variables. Various submodules
+then derive from the `simulation`:
+	- solver:simulation
+		- adaptation:solver
+			- For adaptation, update values of the base volume/face, then construct new derived volume/face, then add
+			  any remaining data from the derived parent.
+	- post-processing:simulation

@@ -1,0 +1,67 @@
+# Makefile for mesh generation
+
+PROJECT_SOURCE_DIR := @PROJECT_SOURCE_DIR@
+PROJECT_BINARY_DIR := @PROJECT_BINARY_DIR@
+
+MAKEFILE_NAME := $(PROJECT_BINARY_DIR)/meshes/Makefile_meshes
+
+.PHONY : meshes
+meshes:
+	$(MAKE) -f $(MAKEFILE_NAME) meshes_depend
+	$(MAKE) -f $(MAKEFILE_NAME) meshes_generate
+
+
+PYTHONC    := python3
+PYTHON_DIR := $(PROJECT_SOURCE_DIR)/src/processing/pre
+
+# Dependency generation
+
+CTRL_DIR := $(PROJECT_SOURCE_DIR)/input
+
+# Exclude control files which already have an extenally generated mesh
+CTRL_FILES_EXCLUDE := $(shell find $(CTRL_DIR) -wholename '*/extern_mesh/*.ctrl')
+
+CTRL_FILES_PYTHON := $(shell find $(CTRL_DIR) -name '*Peterson*.ctrl')
+
+CTRL_FILES_OTHER  := $(CTRL_FILES_PYTHON) \
+                     $(CTRL_FILES_EXCLUDE)
+CTRL_FILES_GMSH   := $(filter-out $(CTRL_FILES_OTHER),$(shell find $(CTRL_DIR) -name '*.ctrl'))
+
+MESH_BINARY_DIR := $(PROJECT_BINARY_DIR)/meshes
+
+MESH_DEPEND_GMSH   := $(MESH_BINARY_DIR)/Mesh_Depend_Geo.mk
+MESH_DEPEND_PYTHON := $(MESH_BINARY_DIR)/Mesh_Depend_Python.mk
+
+MESH_DEPEND := $(MESH_DEPEND_GMSH) $(MESH_DEPEND_PYTHON)
+
+
+
+.PHONY : meshes_depend
+meshes_depend : $(MESH_DEPEND)
+
+$(MESH_DEPEND_GMSH) : $(CTRL_FILES_GMSH)
+	@echo Creating: $@
+	cd $(PYTHON_DIR) && $(PYTHONC) compute_mesh_depend.py $(PROJECT_BINARY_DIR) $(PROJECT_SOURCE_DIR) $@ \
+	$@ $(CTRL_FILES_GMSH:$(CTRL_DIR)/%=%)
+
+$(MESH_DEPEND_PYTHON): $(CTRL_FILES_PYTHON)
+	@echo Creating: $@
+	cd $(PYTHON_DIR) && $(PYTHONC) compute_mesh_depend.py $(PROJECT_BINARY_DIR) $(PROJECT_SOURCE_DIR) $@ \
+	$@ $(CTRL_FILES_PYTHON:$(CTRL_DIR)/%=%)
+
+
+include $(MESH_DEPEND_GMSH)
+include $(MESH_DEPEND_PYTHON)
+
+MESHES := $(MESHES_GEO) $(MESHES_PYTHON)
+
+.PHONY : meshes_generate
+meshes_generate: $(MESHES)
+
+$(MESHES_GEO) : 
+	@echo Generating mesh: $@
+	cd $(PYTHON_DIR) && $(PYTHONC) generate_meshes_gmsh.py $(PROJECT_SOURCE_DIR) $@ 
+
+$(MESHES_PYTHON) : 
+	@echo Generating mesh: $@
+	cd $(PYTHON_DIR) && $(PYTHONC) generate_meshes_python.py $(PROJECT_SOURCE_DIR) $@ 
