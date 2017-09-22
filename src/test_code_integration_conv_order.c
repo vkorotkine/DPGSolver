@@ -30,6 +30,8 @@
 #include "finalize_LHS.h"
 #include "array_norm.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Provide functions for (conv)ergence (order) integration testing.
@@ -58,8 +60,9 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 	data->Compute_L2proj = 0;
 	data->SolveExplicit  = 1;
 	data->SolveImplicit  = 1;
-	data->AdaptiveRefine = 1;
-	data->Adapt = ADAPT_HP;
+	data->AdaptiveRefine = 0;
+	data->Adapt = ADAPT_0;
+	//data->Adapt = ADAPT_HP;
 
 	data->PMin  = 1;
 	data->PMax  = 3;
@@ -74,7 +77,7 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 //		data->PrintEnabled = 1;
 		data->AdaptiveRefine = 0;
 		data->MLMax  = 5;
-data->PMin = 2;
+		data->PMin = 2;
 		if (strstr(TestName,"HDG")) {
 			if (strstr(TestName,"n-Cube_Default")) {
 				if (strstr(TestName,"Straight")) {
@@ -221,6 +224,11 @@ data->PMin = 2;
 				data->PMax = 3;
 				data->MLMax = 5;
 				if (strstr(TestName,"QUAD")) {
+
+					data->SolveExplicit  = 1;
+					//data->Adapt = ADAPT_HP;
+					data->PrintEnabled = 1;
+
 					if (strstr(TestName,"Stationary"))
 						strcpy(data->argvNew[1],"test/Euler/Test_Euler_PeriodicVortex_Stationary_QUAD");
 					else
@@ -233,13 +241,19 @@ data->PMin = 2;
 			}
 		} else if (strstr(TestName,"n-GaussianBump")) {
 			data->PrintEnabled = 1;
-data->SolveExplicit = 1;
+			//data->SolveExplicit = 1;
+
 			if (strstr(TestName,"ToBeCurved")) {
-				EXIT_UNSUPPORTED;
+				if (strstr(TestName, "QUAD")){
+					// The ToBeCurved QUAD mesh for the gaussian bump case
+					strcpy(data->argvNew[1],"test/Euler/Test_Euler_GaussianBump_ToBeCurvedQUAD");
+				}else{
+					EXIT_UNSUPPORTED;
+				}
 			} else if (strstr(TestName,"Curved")) {
 				if (strstr(TestName,"CurvedQUAD")) {
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_GaussianBump_CurvedQUAD");
-				} else {
+				}else {
 					EXIT_UNSUPPORTED;
 				}
 			} else {
@@ -286,6 +300,44 @@ data->SolveExplicit = 1;
 	} else {
 		printf("%s\n",TestName); EXIT_UNSUPPORTED;
 	}
+}
+
+static void outputOperatorsValidation(){
+
+	/*
+	Output the critical operators for each volume to ensure that everything
+	was set up correctly using the Bezier basis.
+	*/
+
+	printf("VALIDATE : \n");
+
+	struct S_VOLUME *VOLUME;
+	unsigned int i, j;	
+
+	// 1) Test metric terms at integration nodes
+	for(VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next){
+		printf("\nVOLUME:\n ");
+		printf("	- Metrics : \n");
+		for (i = 0; i < VOLUME->NvnG; i++){
+			for (j = 0; j < DB.d*DB.d; j++){
+				printf("%.14e ", VOLUME->C_vI[j*VOLUME->NvnG + i]);
+			}
+			printf("\n");
+		}
+
+		//array_print_d(VOLUME->NvnG, 4, VOLUME->C_vI, 'C');
+		
+		printf("	- Jacobian : \n");
+		for (i = 0; i < VOLUME->NvnG; i++){
+			printf("%.14e\n", VOLUME->detJV_vI[i]);
+		}
+		//array_print_d(VOLUME->NvnG, 1, VOLUME->detJV_vI, 'C');
+
+		printf("	- Inverse Mass Matrix : \n");
+		array_print_d(VOLUME->NvnG, VOLUME->NvnG, VOLUME->MInv, 'C');
+
+	}
+
 }
 
 void test_conv_order(struct S_convorder *const data, char const *const TestName)
@@ -365,13 +417,23 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 				solver_Poisson(PrintEnabled);
 			}
 		} else if (strstr(TestName,"Euler") || strstr(TestName,"NavierStokes")) {
-//			if (SolveExplicit)
+			if (SolveExplicit){
 //			if (!SolveImplicit || (ML == MLMin && P == PMin))
-			if (SolveExplicit && (!SolveImplicit || (ML <= MLMin+1)))
+//			if (SolveExplicit && (!SolveImplicit || (ML <= MLMin+1)))
 				solver_explicit(PrintEnabled);
+			}
 
-			if (SolveImplicit)
+			if (SolveImplicit){
 				solver_implicit(PrintEnabled);
+			}
+
+			// Perform tests here to make sure the Bezier information is being loaded properly
+			// Since only the Explicit form of the equations was implemented, only this can
+			// be tested here when comparing operators.
+			// Validate the code operators to compare with IGA-DG version
+			if(0)
+				outputOperatorsValidation();
+
 		} else {
 			EXIT_UNSUPPORTED;
 		}
@@ -390,8 +452,11 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 			printf("ML, P, dof: %zu %zu %d\n",ML,P,DB.dof);
 		}
 
-		if (P == PMin)
-			evaluate_mesh_regularity(&mesh_quality[ML-MLMin]);
+		// ERROR FOR BEZIER WHEN WORKING WITH MESH REGULARITY
+
+		//if (P == PMin)
+		//	evaluate_mesh_regularity(&mesh_quality[ML-MLMin]);
+
 
 		if (P == PMax && ML == MLMax) {
 			check_convergence_orders(MLMin,MLMax,PMin,PMax,&pass,PrintEnabled);
@@ -403,6 +468,8 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 			set_PrintName("conv_orders",data->PrintName,&data->TestTRI);
 			code_cleanup();
 		}
+
+
 	}}
 	if (Adapt == ADAPT_H || Adapt == ADAPT_HP) {
 		set_PrintName("conv_orders",data->PrintName,&data->TestTRI);

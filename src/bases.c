@@ -53,6 +53,11 @@ void rst_to_abc_SI  (const unsigned int Nn, const unsigned int d, const double *
 void rst_to_abc_PYR (const unsigned int Nn, const unsigned int d, const double *rst, double *a, double *b, double *c);
 void rst_to_barycentric_SI (const unsigned int Nn, const unsigned int d, const double *rst, double *BCoords);
 
+// Methods for computing the Bezier Basis
+static double grad_bernsteinP(int P, int i_basis, double x);
+static double bernsteinP(int P, int i_basis, double x);
+static double C(unsigned int n, unsigned i);
+
 double *basis_TP(const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
                  const unsigned int d)
 {
@@ -270,6 +275,17 @@ double **grad_basis_TP(const unsigned int P, const double *rst, const unsigned i
 
 	Nbf = pow(N,d);
 
+	/*
+	GradChiRef_rst is an array of 1D arrays. The number of 1D arrays are the number of 
+	dimensions of the problem. Each 1D array (i.e. ith 1D array) holds the derivative
+	of the basis functions with respect to the ith independent variable.
+
+	Each 1D array = size Nn*Nbf (Number of nodes * number of basis functions)
+		That is, for each basis, we are finding the derivative with respect to the ith
+		independent variable at all the given node points (rst points) on the computational
+		domain.
+	*/
+
 	GradChiRef_rst = malloc(d * sizeof *GradChiRef_rst); // keep (requires external free)
 	for (dim = 0; dim < d; dim++)
 		GradChiRef_rst[dim] = malloc(Nn*Nbf * sizeof **GradChiRef_rst); // keep (requires external free)
@@ -286,6 +302,13 @@ double **grad_basis_TP(const unsigned int P, const double *rst, const unsigned i
 		for (j = 0, jMax = min(max((d-1)*N,u1),N); j < jMax; j++) {
 		for (i = 0, iMax = min(max((d)  *N,u1),N); i < iMax; i++) {
 			for (Indn = 0; Indn < Nn; Indn++) {
+
+				/*
+				Product rule definition of the partial derivatives. Note here we can clearly see
+				that the 0th index holds the partial with respect to r and the 1st index holds
+				the partial with respect to s.
+				*/
+
 				GradChiRef_rst[0][Indbf*Nn+Indn] = grad_jacobiP(r[Indn],0.0,0.0,(double) i)*
 				                                        jacobiP(s[Indn],0.0,0.0,(double) j);
 				GradChiRef_rst[1][Indbf*Nn+Indn] =      jacobiP(r[Indn],0.0,0.0,(double) i)*
@@ -756,6 +779,7 @@ void rst_to_abc_PYR(const unsigned int Nn, const unsigned int d, const double *r
 	free(t);
 }
 
+
 double *basis_TP_Bezier(const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
                         const unsigned int d)
 {
@@ -797,6 +821,8 @@ double *basis_TP_Bezier(const unsigned int P, const double *rst, const unsigned 
 			}
 		}
 	}}
+
+	printf("\n");
 
 	// s-direction
 	unsigned int u1 = 1;
@@ -849,6 +875,309 @@ double *basis_TP_Bezier(const unsigned int P, const double *rst, const unsigned 
 
 	*NbfOut = Nbf;
 	return ChiBez_rst;
+}
+
+/*
+ Purpose:
+ 	Return the "matrices" GradChiRef_rst representing the gradients of the bezier basis
+ 	functions evaluated at the provided nodes for polynomial order P.
+
+ Comments:
+ 	The "matrices" are returned as d pointers to 1D arrays.
+
+ Notation:
+
+ */
+
+double **grad_basis_TP_Bezier(const unsigned int P, const double *rst, const unsigned int Nn, unsigned int *NbfOut,
+                       		  const unsigned int d){
+	/*
+	
+	Inputs:
+		P = Order of the basis functions
+		rst = Array with the rst values (on the computational domain) for where to evaluate the
+			basis functions. These are stored in column major form.
+		Nn = The number of coordinates on the computational domain to compute the gradient at
+		d = Dimension of the mesh
+
+	Outputs:
+		NbfOut = Number of basis functions
+		GradChiRef_rst = Gradient of the basis functions at the node points. This is a matrix
+			of dimension Nbf (number of basis functions) x Nn (number of nodes)
+	
+	Note:
+		- Care must be taken when taking the derivative to account for the mapping to the
+			[0,1] domain on which the basis functions are defined. This mapping is given 
+			by :
+				x(r) = (1/2)*(1+r)
+
+			This will yield a half term when taking the derivative.
+
+	*/
+
+	unsigned int i, j, k, dim, Indbf, Indn, u1,
+	             N, Nbf;
+	int          sd,sN;
+	double       **GradChiRef_rst, *r, *s, *t;
+
+	double r_map, s_map, t_map;
+
+	N = P+1;
+
+	u1 = 1;
+	sd = d;
+	sN = N;
+
+	// Allocate the arrays to hold the r,s and t coordinates
+	// for each point on the computational domain (ith index for each
+	// array holds the location of that point on the domain)
+
+	r = malloc(Nn * sizeof *r); // free
+	s = NULL; // silence
+	t = NULL; // silence
+	if (d > 1) s = malloc(Nn * sizeof *s); // free
+	if (d > 2) t = malloc(Nn * sizeof *t); // free
+
+	for (i = 0; i < Nn; i++) {
+		r[i] = rst[0*Nn+i];
+		if (d > 1) s[i] = rst[1*Nn+i];
+		if (d > 2) t[i] = rst[2*Nn+i];
+	}
+
+	Nbf = pow(N,d);
+
+	/*
+	GradChiRef_rst is an array of 1D arrays. The number of 1D arrays are the number of 
+	dimensions of the problem. Each 1D array (i.e. ith 1D array) holds the derivative
+	of the basis functions with respect to the ith independent variable.
+
+	Each 1D array = size Nn*Nbf (Number of nodes * number of basis functions)
+		That is, for each basis, we are finding the derivative with respect to the ith
+		independent variable at all the given node points (rst points) on the computational
+		domain.
+	*/
+
+	GradChiRef_rst = malloc(d * sizeof *GradChiRef_rst); // keep (requires external free)
+	for (dim = 0; dim < d; dim++)
+		GradChiRef_rst[dim] = malloc(Nn*Nbf * sizeof **GradChiRef_rst); // keep (requires external free)
+
+	// Compute the gradients now at the node points provided. The ordering of the basis functions in the
+	// 1D array will be the following:
+	// B_{0,p}, B{1,p}, ... (case of 1D)
+	// B1_{0,p} * B2_{0,p}, B1{1,p} * B2_{0,p}, ... (case of 2D)
+	// This ordering is the same for each array (gradient with respect to each 
+	// independent variable)
+
+	Indbf = 0;
+	if (d == 1) {
+
+		for (i = 0; i < N; i++){
+			// Loop through all (P+1) basis functions in the order i=0, i=1, ... as 
+			// outlined above
+
+			for (Indn = 0; Indn < Nn; Indn++){
+				// Loop through the Nn node points on the computational domain
+
+				// Map onto the domain of the Bezier polynomials
+				r_map = 0.5*(1+r[Indn]);
+
+				// Compute the gradient (only with respect to r here since 1D).
+				// Order currently is a matrix with each column holding the results
+				// for each basis function (in order outlined above). Each row then holds
+				// the results at the nodes given. Matrix will be transposed at the end.
+
+				// -> 0.5 term comes from differentiating the linear map function
+				GradChiRef_rst[0][Indbf*Nn + Indn] = grad_bernsteinP(P, i, r_map) * 0.5;
+
+			}
+			Indbf++;
+		}
+
+	} else if (d == 2) {
+
+		for (j = 0; j < N; j++){
+		for (i = 0; i < N; i++){
+			// Loop through the (P+1) basis functions for each dimension. Note that the 
+			// ordering of the basis functions (in their columns) will be consistent with
+			// the order outlined above.
+
+			for (Indn = 0; Indn < Nn; Indn++){
+				// Loop through all the N node points to evaluate the result at
+				// NOTE: Dimension here is 2 so r and s are used (and partial with 
+				// respect to each of these is needed for the gradient)
+
+				// Map onto the domain of the Bezier polynomials
+				r_map = 0.5*(1+r[Indn]);
+				s_map = 0.5*(1+s[Indn]);
+
+				// Compute gradient with respect to r
+				GradChiRef_rst[0][Indbf*Nn + Indn] = grad_bernsteinP(P, i, r_map)*
+														  bernsteinP(P, j, s_map)*0.5;
+				// Compute gradient with respect to s
+				GradChiRef_rst[1][Indbf*Nn + Indn] =      bernsteinP(P, i, r_map)*
+									    			 grad_bernsteinP(P, j, s_map)*0.5;									  
+
+			}
+			Indbf++;
+		}}
+
+	} else if (d == 3) {
+
+		for (k = 0; k < N; k++){
+		for (j = 0; j < N; j++){
+		for (i = 0; i < N; i++){
+			// Loop through the basis functions (P+1) for each dimension
+
+			for (Indn = 0; Indn < Nn; Indn++){
+				// Loop through the Nn node points to evaluate the results at
+
+				// Map onto the domain of the Bezier polynomials
+				r_map = 0.5*(1+r[Indn]);
+				s_map = 0.5*(1+s[Indn]);
+				t_map = 0.5*(1+t[Indn]);
+
+				// Compute gradient with respect to r
+				GradChiRef_rst[0][Indbf*Nn+Indn] = grad_bernsteinP(P, i, r_map)*
+				                                        bernsteinP(P, j, s_map)*
+				                                        bernsteinP(P, k, t_map)*0.5;
+
+				// Compute gradient with respect to s                                 
+				GradChiRef_rst[1][Indbf*Nn+Indn] =      bernsteinP(P, i, r_map)*
+				                                   grad_bernsteinP(P, j, s_map)*
+				                                        bernsteinP(P, k, t_map)*0.5;
+
+				// Compute gradient with repect to t
+				GradChiRef_rst[2][Indbf*Nn+Indn] =     bernsteinP(P, i, r_map)*
+				                                       bernsteinP(P, j, s_map)*
+				                                  grad_bernsteinP(P, k, t_map)*0.5;
+
+			}
+
+			Indbf++;
+
+		}}}
+	}
+
+	// Transpose GradChiRef_rst
+	for (dim = 0; dim < d; dim++)
+		mkl_dimatcopy('R','T',Nbf,Nn,1.,GradChiRef_rst[dim],Nn,Nbf);
+
+	free(r);
+	if (d > 1) free(s);
+	if (d > 2) free(t);
+
+	*NbfOut = Nbf;
+	return GradChiRef_rst;
+}
+
+static double grad_bernsteinP(int P, int i_basis, double x){
+
+	/*
+	Compute the gradient of the 1D bernstein polynomial for the given x and 
+	i values. The computation for the derivative is found using the recursive 
+	defintion, which is given by:
+	
+		d(B_{i,p}(t))/dt = n(B_{i-1, p-1}(t) - B_{i,p-1}(t))
+
+		Base Cases:
+			B_{-1,p-1}(t) = B_{p,p-1}(t) = 0
+	
+	Note: The base cases can be handled by the bernsteinP function (that is, this function
+		can still take these as input parameters, even though they will not work with the 
+		formula used to compute the bernstein polynomial)
+
+	Inputs:
+		P = Order of the polynomial (n = P)
+		i_basis = index for which basis function (i=0, ..., n -> n+1 basis functions)
+		x = double for the  value at which to evaluate the ith basis function
+			(must be in the domain [0,1])
+
+	Return:
+		double for the value of the derivative of the ith order P bernstein polynomial 
+			evaluated at the value x
+	*/	
+
+	return P * (bernsteinP(P-1, i_basis-1, x) - bernsteinP(P-1, i_basis, x));
+
+}
+
+static double bernsteinP(int P, int i_basis, double x){
+
+	/*
+	Compute the Bernstein Polynomial for the given x and i values. The polynomial is defined
+	using the following formula:
+	
+	B_{i,p} (x) = (p C i) * (1-x)^(p-i) * x ^ p
+
+	where p C i is "p choose i" and is found using the combinations formula
+
+	Inputs:
+		P = Order of the polynomial (n = P)
+		i_basis = index for which basis function (i=0, ..., n = n+1 basis functions)
+		x = double for the  value at which to evaluate the ith basis function
+			(must be in the domain [0,1])
+
+	Return:
+		double for the value of the ith order P bernstein polynomial at the value x
+
+	Note:
+		Cases that can be handled are given by:
+			1) Normal cases where i_basis = 0, 1, ..., P and P >= 0
+			2) Boundary cases given by B_{-1, p-1} and B{p, p-1} which
+				are defined to be 0.
+	*/
+
+	// Handle the base cases for predefined basis functions
+	// 1) B_{-1, p-1} = 0
+	// 2) B_{ p, p-1} = 0
+	// These will not work in the formula but are defined to be 0 to work with the recursive 
+	// formulations of the function. The recursive forms will arise when computing the derivatives
+	// of the basis functions
+	if (i_basis == -1){
+		return 0.0;
+	} else if((i_basis-1) == P){
+		return 0.0;
+	}
+
+	// Handle the normal case
+	return C(P,i_basis)*pow((1.0-x), P-i_basis)*pow(x, i_basis);
+
+}
+
+static double C(unsigned int n, unsigned i){
+
+	/*
+	Compute n choose i
+
+	Inputs:
+		n = integer
+		i = integer
+
+	Outputs:
+		double for n choose i
+	*/
+
+	unsigned int k;
+	
+	// Compute n factorial
+	double nFactorial = 1.0;
+	for(k = 1; k <= n; k++){
+		nFactorial *= k;
+	}
+
+	// Compute n-i factorial
+	double nMiniFactorial = 1.0;
+	for(k = 1; k <= (n-i); k++){
+		nMiniFactorial *= k;
+	}
+
+	// Compute i factorial
+	double iFactorial = 1.0;
+	for(k = 1; k <= i; k++){
+		iFactorial *= k;
+	}
+
+	return nFactorial/(iFactorial*nMiniFactorial);
 }
 
 static void set_Exp_entry(unsigned int *Nperms, unsigned int *Exp_ptr, const unsigned int *ExponentFound,

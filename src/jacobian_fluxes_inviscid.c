@@ -105,6 +105,9 @@ static void jacobian_flux_Euler(struct S_FLUX *const FLUXDATA)
 	                   Nn  = FLUXDATA->Nn,
 	                   Nel = FLUXDATA->Nel;
 
+	// W = Matrix with the value of the solution vector at the integration
+	// node points.
+
 	double const *const W    = FLUXDATA->W;
 	double       *const F    = FLUXDATA->F,
 	             *const dFdW = FLUXDATA->dFdW;
@@ -117,10 +120,13 @@ static void jacobian_flux_Euler(struct S_FLUX *const FLUXDATA)
 	Nvar    = Neq;
 	NnTotal = Nn*Nel;
 
+	// Here, set up the pointers to each column of the state matrix (to get
+	// all the rho, rho_u, ...) at the integration node points. 
 	rho_ptr  = &W[NnTotal*0];
 	rhou_ptr = &W[NnTotal*1];
 	E_ptr    = &W[NnTotal*(d+1)];
 
+	// Store pointers to the arrays that the data will be written into.
 	double *F_ptr[DMAX*Neq];
 	if (F != NULL) {
 		for (eq = 0; eq < Neq; eq++) {
@@ -331,9 +337,14 @@ static void jacobian_flux_Euler(struct S_FLUX *const FLUXDATA)
 				dFdW_ptr[i]++;
 		}
 	} else if (d == 2) {
+		// Store the remaining pointer to the entry in W (rho_v component)
 		rhov_ptr = &W[NnTotal*2];
 
 		for (n = 0; n < NnTotal; n++) {
+
+			//  Loop over all the integration nodes (NnTotal of them)
+
+			// Get the value of each conservative variable at the point.
 			rho = *rho_ptr;
 			double const rhou = *rhou_ptr,
 			             rhov = *rhov_ptr;
@@ -352,6 +363,7 @@ static void jacobian_flux_Euler(struct S_FLUX *const FLUXDATA)
 			alpha = 0.5*GM1*V2;
 			beta  = alpha-H;
 
+			// F = Null in the implicit solver
 			if (F != NULL) {
 				size_t IndF = 0;
 				// eq 1
@@ -376,6 +388,14 @@ static void jacobian_flux_Euler(struct S_FLUX *const FLUXDATA)
 				for (i = 0, iMax = Neq*DMAX; i < iMax; i++)
 					F_ptr[i]++;
 			}
+
+			// Here now, use the value of the state vector at the given integration
+			// node to get the Jacobian Flux Matrix values for both the A(u) and B(u)
+			// matrix. Fill these into the array structure
+
+			// How is data loaded?
+			// F_ptr is an array of pointers. It is a 3D matrix of dimension
+			// (Neq (i range), Nvar (j range), and d (k range)). 
 
 			InddFdW = 0;
 			// *** eq 1 ***
@@ -461,7 +481,9 @@ static void jacobian_flux_Euler(struct S_FLUX *const FLUXDATA)
 			*dFdW_ptr[InddFdW++] =  GAMMA*u;
 			*dFdW_ptr[InddFdW++] =  GAMMA*v;
 
+			// Increment the pointers here (address to which entry in the memory)
 			rho_ptr++; rhou_ptr++; rhov_ptr++; E_ptr++;
+
 			for (i = 0, iMax = Neq*Nvar*DMAX; i < iMax; i++)
 				dFdW_ptr[i]++;
 		}

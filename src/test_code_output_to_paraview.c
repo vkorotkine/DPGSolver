@@ -35,7 +35,7 @@ char *get_fNameOut(char *output_type)
 
 	// Choose one of the two options below to clean this up (probably DB and not TestDB) (ToBeDeleted)
 	if (DB.Adapt == ADAPT_0) {
-		EXIT_UNSUPPORTED;
+		//EXIT_UNSUPPORTED;
 		sprintf(string,"_ML%d",DB.ML); strcat(fNameOut,string);
 		sprintf(string,"P%d_",DB.PGlobal); strcat(fNameOut,string);
 	} else {

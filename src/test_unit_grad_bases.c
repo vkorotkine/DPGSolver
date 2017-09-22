@@ -22,6 +22,26 @@
 
 #undef I // No complex variables used here
 
+static void test_unit_grad_basis_TP_modal(void);
+static void test_unit_grad_basis_TP_Bezier(void);
+
+void test_unit_grad_basis_TP(void){
+
+	/*
+	Test that the gradient of the basis functions is being computed
+	properly. Here, we will check two basis type:
+		1) The modal basis
+		2) The Bezier basis
+
+	The code's implementation of these gradients will be compared to 
+	the hardcoded values for a few cases.
+	*/
+
+	test_unit_grad_basis_TP_modal();
+	test_unit_grad_basis_TP_Bezier();
+
+}
+
 /*
  *	Purpose:
  *		Test correctness of implementation of grad_basis_TP.
@@ -177,7 +197,7 @@ static double **grad_basis_TP31(const double *rst, const unsigned int Nn)
 	return GradChiRef_rst;
 }
 
-void test_unit_grad_basis_TP(void)
+static void test_unit_grad_basis_TP_modal(void)
 {
 	unsigned int pass;
 
@@ -1238,3 +1258,546 @@ exit(1);
 
 	free(CUBDATA);
 }
+
+
+static double **grad_basis_TP13_Bezier(const double *rst, const unsigned int Nn){
+
+	/*
+	Create the GradChiRef_rst matrix using the given (r,s,t) values
+	for the case of the 1D P = 3 basis functions.
+
+	Note, the dimension of the GradChiRef_rst matrix is Nbf (number of basis 
+	functions) x Nn (Number of nodes)
+
+	Input:
+		rst = vector of the r,s,t values on the computational domain for the
+			nodes.
+		Nn = Number of node points.
+
+	Output:
+		GradChi_rst = array of 1D arrays, with each array holding
+			a matrix of the gradient of the basis functions evaluated
+			at the given node points.
+	*/
+
+	unsigned int i, N, Nbf, dim;
+	double **GradChiRef_rst, *r, r_i, r_i_map;
+
+	N = 3+1;
+	Nbf = pow(N,1);
+
+	r = malloc(Nn * sizeof *r); // free
+	for (i = 0; i < Nn; i++)
+		r[i] = rst[0*Nn+i];
+
+	GradChiRef_rst = malloc(1 * sizeof *GradChiRef_rst); // keep (requires external free)
+	for (dim = 0; dim < 1; dim++) {
+		GradChiRef_rst[dim] = malloc(Nn*Nbf * sizeof **GradChiRef_rst); // keep (requires external free)
+	}
+
+	for (i = 0; i < Nn; i++) {
+		// Location of the node point on the computational
+		// domain
+		r_i = r[i];
+
+		// Map node point from [-1,1] domain to [0,1] domain for the 
+		// Bezier basis
+		r_i_map = 0.5*(1+r_i);
+
+		// Compute the gradient at the given node points. 0.5 term that is multiplied
+		// is from the chain rule due to the mapping function
+		GradChiRef_rst[0][i*Nbf+0] = -3.*(pow((1.-r_i_map), 2.)) * 0.5;
+		GradChiRef_rst[0][i*Nbf+1] = 3.*(-2.*r_i_map*(1.-r_i_map) + pow((1.-r_i_map), 2.)) * 0.5;
+		GradChiRef_rst[0][i*Nbf+2] = 3.*(2.*r_i_map*(1.-r_i_map) - pow(r_i_map, 2.)) * 0.5;
+		GradChiRef_rst[0][i*Nbf+3] = 3.*pow(r_i_map, 2.) * 0.5;
+	}
+
+	free(r);
+
+	return GradChiRef_rst;
+
+}
+
+static double **grad_basis_TP22_Bezier(const double *rst, const unsigned int Nn){
+
+	/*
+	Create the GradChiRef_rst matrix using the given (r,s,t) values
+	for the case of the 2D P = 2 basis functions.
+
+	Note, the dimension of the GradChiRef_rst matrix is Nbf (number of basis 
+	functions) x Nn (Number of nodes)
+
+	Input:
+		rst = vector of the r,s,t values on the computational domain for the
+			nodes.
+		Nn = Number of node points.
+
+	Output:
+		GradChi_rst = array of 1D arrays, with each array holding
+			a matrix of the gradient of the basis functions evaluated
+			at the given node points.	
+	*/
+
+	unsigned int i, N, Nbf, dim;
+	double **GradChiRef_rst, *r, *s, r_i, s_i, r_i_map, s_i_map;
+
+	N = 2+1;
+	Nbf = pow(N,2);
+
+	GradChiRef_rst = malloc(2 * sizeof *GradChiRef_rst); // keep (requires external free)
+	for (dim = 0; dim < 2; dim++) {
+		GradChiRef_rst[dim] = malloc(Nn*Nbf * sizeof **GradChiRef_rst); // keep (requires external free)
+	}
+
+	r = malloc(Nn * sizeof *r); // free
+	s = malloc(Nn * sizeof *s); // free
+	for (i = 0; i < Nn; i++) {
+		r[i] = rst[0*Nn+i];
+		s[i] = rst[1*Nn+i];
+	}
+
+	for (i = 0; i < Nn; i++) {
+		r_i = r[i];
+		s_i = s[i];
+
+		// Map onto the [0,1] domain for the Bezier basis functions
+		r_i_map = 0.5*(1+r_i);
+		s_i_map = 0.5*(1+s_i);
+
+		// Compute gradient. Ordering of the basis functions is given by:
+		// B1_02 * B2_02, B1_12 * B2_02, ...
+		///0.5 term arises from the chain rule due to the mapping function
+
+		// Gradient with respect to r
+		GradChiRef_rst[0][i*Nbf+0] = -2.*(1.-r_i_map)   * pow((1.-s_i_map), 2.)   * 0.5;
+		GradChiRef_rst[0][i*Nbf+1] = 2.*(1.-2.*r_i_map) * pow((1.-s_i_map), 2.)   * 0.5;
+		GradChiRef_rst[0][i*Nbf+2] = 2.*r_i_map         * pow((1.-s_i_map), 2.)   * 0.5;
+		GradChiRef_rst[0][i*Nbf+3] = -2.*(1.-r_i_map)   * 2.*(1.-s_i_map)*s_i_map * 0.5;
+		GradChiRef_rst[0][i*Nbf+4] = 2.*(1.-2.*r_i_map) * 2.*(1.-s_i_map)*s_i_map * 0.5;
+		GradChiRef_rst[0][i*Nbf+5] = 2.*r_i_map         * 2.*(1.-s_i_map)*s_i_map * 0.5;
+		GradChiRef_rst[0][i*Nbf+6] = -2.*(1.-r_i_map)   * pow(s_i_map, 2.)        * 0.5;
+		GradChiRef_rst[0][i*Nbf+7] = 2.*(1.-2.*r_i_map) * pow(s_i_map, 2.)        * 0.5;
+		GradChiRef_rst[0][i*Nbf+8] = 2.*r_i_map         * pow(s_i_map, 2.)        * 0.5;
+
+		// Gradient with respect to s
+		GradChiRef_rst[1][i*Nbf+0] = pow((1.-r_i_map), 2.)    * -2.*(1.-s_i_map)   * 0.5;
+		GradChiRef_rst[1][i*Nbf+1] = 2.*(1.-r_i_map)*r_i_map  * -2.*(1.-s_i_map)   * 0.5;
+		GradChiRef_rst[1][i*Nbf+2] = pow(r_i_map, 2.)         * -2.*(1.-s_i_map)   * 0.5;
+		GradChiRef_rst[1][i*Nbf+3] = pow((1.-r_i_map), 2.)    * 2.*(1.-2.*s_i_map) * 0.5;
+		GradChiRef_rst[1][i*Nbf+4] = 2.*(1.-r_i_map)*r_i_map  * 2.*(1.-2.*s_i_map) * 0.5;
+		GradChiRef_rst[1][i*Nbf+5] = pow(r_i_map, 2.)         * 2.*(1.-2.*s_i_map) * 0.5;
+		GradChiRef_rst[1][i*Nbf+6] = pow((1.-r_i_map), 2.)    * 2*s_i_map          * 0.5;
+		GradChiRef_rst[1][i*Nbf+7] = 2.*(1.-r_i_map)*r_i_map  * 2*s_i_map          * 0.5;
+		GradChiRef_rst[1][i*Nbf+8] = pow(r_i_map, 2.)         * 2*s_i_map          * 0.5;
+
+	}
+
+	free(r);
+	free(s);
+
+	return GradChiRef_rst;
+
+}
+
+static double **grad_basis_TP31_Bezier(const double *rst, const unsigned int Nn){
+
+	/*
+	Create the GradChiRef_rst matrix using the given (r,s,t) values
+	for the case of the 3D P = 1 basis functions.
+
+	Note, the dimension of the GradChiRef_rst matrix is Nbf (number of basis 
+	functions) x Nn (Number of nodes)
+
+	Input:
+		rst = vector of the r,s,t values on the computational domain for the
+			nodes.
+		Nn = Number of node points.
+
+	Output:
+		GradChi_rst = array of 1D arrays, with each array holding
+			a matrix of the gradient of the basis functions evaluated
+			at the given node points.	
+	*/
+
+	unsigned int i, N, Nbf, dim;
+	double **GradChiRef_rst, *r, *s, *t, r_i, s_i, t_i, 
+										 r_i_map, s_i_map, t_i_map;
+
+	N = 1+1;
+	Nbf = pow(N,3);
+
+	GradChiRef_rst = malloc(3 * sizeof *GradChiRef_rst); // keep (requires external free)
+	for (dim = 0; dim < 3; dim++) {
+		GradChiRef_rst[dim] = malloc(Nn*Nbf * sizeof **GradChiRef_rst); // keep (requires external free)
+	}
+
+	r = malloc(Nn * sizeof *r); // free
+	s = malloc(Nn * sizeof *s); // free
+	t = malloc(Nn * sizeof *t); // free
+	for (i = 0; i < Nn; i++) {
+		r[i] = rst[0*Nn+i];
+		s[i] = rst[1*Nn+i];
+		t[i] = rst[2*Nn+i];
+	}
+
+	for (i = 0; i < Nn; i++) {
+		r_i = r[i];
+		s_i = s[i];
+		t_i = t[i];
+
+		// Map onto the [0,1] domain for the Bezier basis functions
+		r_i_map = 0.5*(1+r_i);
+		s_i_map = 0.5*(1+s_i);
+		t_i_map = 0.5*(1+t_i);
+
+		// Compute gradient. Ordering of the basis functions is given by:
+		// B1_01 * B2_01 * B3_01, B1_11 * B2_01 * B3_01, ...
+		///0.5 term arises from the chain rule due to the mapping function
+
+		// Gradient with respect to r
+		GradChiRef_rst[0][i*Nbf+0] = -1. * (1.-s_i_map) * (1.-t_i_map) * 0.5;
+		GradChiRef_rst[0][i*Nbf+1] =  1. * (1.-s_i_map) * (1.-t_i_map) * 0.5;
+		GradChiRef_rst[0][i*Nbf+2] = -1. * (s_i_map)    * (1.-t_i_map) * 0.5;
+		GradChiRef_rst[0][i*Nbf+3] =  1. * (s_i_map)    * (1.-t_i_map) * 0.5;
+		GradChiRef_rst[0][i*Nbf+4] = -1. * (1.-s_i_map) * (t_i_map)    * 0.5;
+		GradChiRef_rst[0][i*Nbf+5] =  1. * (1.-s_i_map) * (t_i_map)    * 0.5;
+		GradChiRef_rst[0][i*Nbf+6] = -1. * (s_i_map)    * (t_i_map)    * 0.5;
+		GradChiRef_rst[0][i*Nbf+7] =  1. * (s_i_map)    * (t_i_map)    * 0.5;
+
+		// Gradient with respect to s
+		GradChiRef_rst[1][i*Nbf+0] = (1.-r_i_map) * -1. * (1.-t_i_map) * 0.5;
+		GradChiRef_rst[1][i*Nbf+1] = (r_i_map)    * -1. * (1.-t_i_map) * 0.5;
+		GradChiRef_rst[1][i*Nbf+2] = (1.-r_i_map) *  1. * (1.-t_i_map) * 0.5;
+		GradChiRef_rst[1][i*Nbf+3] = (r_i_map)    *  1. * (1.-t_i_map) * 0.5;
+		GradChiRef_rst[1][i*Nbf+4] = (1.-r_i_map) * -1. * (t_i_map)    * 0.5;
+		GradChiRef_rst[1][i*Nbf+5] = (r_i_map)    * -1. * (t_i_map)    * 0.5;
+		GradChiRef_rst[1][i*Nbf+6] = (1.-r_i_map) *  1. * (t_i_map)    * 0.5;
+		GradChiRef_rst[1][i*Nbf+7] = (r_i_map)    *  1. * (t_i_map)    * 0.5;
+
+		// Gradient with respect to t
+		GradChiRef_rst[2][i*Nbf+0] = (1.-r_i_map) * (1.-s_i_map) * -1. * 0.5;
+		GradChiRef_rst[2][i*Nbf+1] = (r_i_map)    * (1.-s_i_map) * -1. * 0.5;
+		GradChiRef_rst[2][i*Nbf+2] = (1.-r_i_map) * (s_i_map)    * -1. * 0.5;
+		GradChiRef_rst[2][i*Nbf+3] = (r_i_map)    * (s_i_map)    * -1. * 0.5;
+		GradChiRef_rst[2][i*Nbf+4] = (1.-r_i_map) * (1.-s_i_map) *  1. * 0.5;
+		GradChiRef_rst[2][i*Nbf+5] = (r_i_map)    * (1.-s_i_map) *  1. * 0.5;
+		GradChiRef_rst[2][i*Nbf+6] = (1.-r_i_map) * (s_i_map)    *  1. * 0.5;
+		GradChiRef_rst[2][i*Nbf+7] = (r_i_map)    * (s_i_map)    *  1. * 0.5;
+
+	}
+
+	free(r);
+	free(s);
+	free(t);
+
+	return GradChiRef_rst;	
+}
+
+
+static void test_unit_grad_basis_TP_Bezier(void){
+
+	/*
+	Check the implementation of the gradient of the Bezier basis
+	functions.
+
+	The ChiBez_rst matrices will be compared with the analytically 
+	derived functions given. 
+
+	Input:
+		None
+
+	Output:
+		None
+
+	*/
+
+	unsigned int pass;
+
+	/*
+	 *	grad_basis_TP (dE = 1):
+	 *
+	 *		Input:
+	 *
+	 *			P, rst, Nn, dE.
+	 *
+	 *		Expected output:
+	 *
+	 *			P = 3:
+	 *				GradChiRef_rst = @(r) [ See grad_basis_TP13_Bezier ]
+	 */
+
+	unsigned int dE, Nn, Nbf, P, Prst;
+	double *rst;
+
+	struct S_CUBATURE *CUBDATA = malloc(sizeof *CUBDATA); // free
+
+	dE = 1;
+
+	double **GradChiRef13_code, **GradChiRef13_test;
+
+	P = 3;
+	Prst = 4;
+
+	// Load the data for the cubature into the S_CUBATURE struct
+	set_cubdata(CUBDATA,false,false,"GL",dE,Prst,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
+
+	GradChiRef13_code = grad_basis_TP_Bezier(P,rst,Nn,&Nbf,dE); // free
+	GradChiRef13_test = grad_basis_TP13_Bezier(rst,Nn); // free
+
+	pass = 0;
+	if (array_norm_diff_d(Nn*pow(P+1,dE),GradChiRef13_code[0],GradChiRef13_test[0],"Inf") < EPS*10)
+		pass = 1;
+
+	test_print2(pass,"grad_basis_TP_Bezier (d1, P3):");
+
+	free(rst);
+	array_free2_d(dE,GradChiRef13_code);
+	array_free2_d(dE,GradChiRef13_test);
+
+	/*
+	 *	grad_basis_TP (dE = 2):
+	 *
+	 *		Input:
+	 *
+	 *			P, rst, Nn, dE.
+	 *
+	 *		Expected output:
+	 *
+	 *			P = 2:
+	 *				GradChiRef_rst[0] = @(r,s) [ See grad_basis_TP22[0] ]
+	 *				GradChiRef_rst[1] = @(r,s) [ See grad_basis_TP22[1] ]
+	 */
+
+	dE = 2;
+
+	double **GradChiRef22_code, **GradChiRef22_test;
+
+	P = 2;
+	Prst = 4;
+
+	set_cubdata(CUBDATA,false,false,"GL",dE,Prst,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
+
+	GradChiRef22_code = grad_basis_TP_Bezier(P,rst,Nn,&Nbf,dE); // free
+	GradChiRef22_test = grad_basis_TP22_Bezier(rst,Nn); // free
+
+	pass = 0;
+	if (array_norm_diff_d(Nn*pow(P+1,dE),GradChiRef22_code[0],GradChiRef22_test[0],"Inf") < EPS*10 &&
+	    array_norm_diff_d(Nn*pow(P+1,dE),GradChiRef22_code[1],GradChiRef22_test[1],"Inf") < EPS*10)
+			pass = 1;
+	test_print2(pass,"                     (d2, P2):");
+
+	free(rst);
+	array_free2_d(dE,GradChiRef22_code);
+	array_free2_d(dE,GradChiRef22_test);
+
+	/*
+	 *	grad_basis_TP (dE = 3):
+	 *
+	 *		Input:
+	 *
+	 *			P, rst, Nn, dE.
+	 *
+	 *		Expected output:
+	 *
+	 *			P = 1:
+	 *				GradChiRef_rst[0] = @(r,s,t) [ See grad_basis_TP31[0] ]
+	 *				GradChiRef_rst[1] = @(r,s,t) [ See grad_basis_TP31[1] ]
+	 *				GradChiRef_rst[2] = @(r,s,t) [ See grad_basis_TP31[2] ]
+	 */
+
+	dE = 3;
+
+	double **GradChiRef31_code, **GradChiRef31_test;
+
+	P = 1;
+	Prst = 4;
+
+	set_cubdata(CUBDATA,false,false,"GL",dE,Prst,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
+
+	GradChiRef31_code = grad_basis_TP_Bezier(P,rst,Nn,&Nbf,dE); // free
+	GradChiRef31_test = grad_basis_TP31_Bezier(rst,Nn); // free
+
+	pass = 0;
+	if (array_norm_diff_d(Nn*pow(P+1,dE),GradChiRef31_code[0],GradChiRef31_test[0],"Inf") < EPS*10 &&
+	    array_norm_diff_d(Nn*pow(P+1,dE),GradChiRef31_code[1],GradChiRef31_test[1],"Inf") < EPS*10 &&
+	    array_norm_diff_d(Nn*pow(P+1,dE),GradChiRef31_code[2],GradChiRef31_test[2],"Inf") < EPS*10)
+			pass = 1;
+
+	test_print2(pass,"                     (d3, P1):");
+
+	free(rst);
+	array_free2_d(dE,GradChiRef31_code);
+	array_free2_d(dE,GradChiRef31_test);	
+
+
+/*
+	 *	grad_basis_TP, derivatives:
+	 *
+	 *		Input:
+	 *
+	 *			f(r,s,t), f_r(r,s,t), f_s(r,s,t), f_t(r,s,t), rst
+	 *
+	 *		Expected Output:
+	 *
+	 *			GradChiRef_rst[0]*ChiRefInvP_vP*f(rst_vP) = f_r(rst_vP)
+	 *			GradChiRef_rst[1]*ChiRefInvP_vP*f(rst_vP) = f_s(rst_vP)
+	 *			GradChiRef_rst[2]*ChiRefInvP_vP*f(rst_vP) = f_t(rst_vP)
+	 */
+
+	unsigned int i;
+	double *f, *f_r, *f_s, *f_t, *r, *s, *t, *f_hat, *f_rcomp, *f_scomp, *f_tcomp;
+	double *I, *ChiRef_rst, *ChiRefInv_rst, **GradChiRef_rst;
+
+	P = 4; // should work for P >= 2
+
+	// dE = 1
+	dE = 1;
+
+	set_cubdata(CUBDATA,false,false,"GL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
+
+	r = malloc(Nn * sizeof *r); // free
+	s = malloc(Nn * sizeof *s); // free
+	t = malloc(Nn * sizeof *t); // free
+	for (i = 0; i < Nn; i++) {
+		r[i] = rst[0*Nn+i];
+		s[i] = 0.0;
+		t[i] = 0.0;
+	}
+
+	I = identity_d(Nn); // free
+	ChiRef_rst = basis_TP_Bezier(P,rst,Nn,&Nbf,dE); // free
+	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,I); // free
+
+	GradChiRef_rst = grad_basis_TP_Bezier(P,rst,Nn,&Nbf,dE); // free
+
+	poly2(r,s,t,Nn,&f,&f_r,&f_s,&f_t); // free
+
+	// Get the modal coefficients for the polynomial on the computational domain
+	f_hat = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,1,Nn,1.0,ChiRefInv_rst,f); // free
+	
+	// Get the partials with respect to the independent variables for the polynomial
+	f_rcomp = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,1,Nn,1.0,GradChiRef_rst[0],f_hat); // free
+	f_scomp = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,1,Nn,1.0,GradChiRef_rst[0],f_hat); // free
+	f_tcomp = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,1,Nn,1.0,GradChiRef_rst[0],f_hat); // free
+
+	pass = 0;
+	if (array_norm_diff_d(Nn,f_r,f_rcomp,"Inf") < EPS*100)
+		pass = 1;
+	else
+		printf("%e\n",array_norm_diff_d(Nn,f_r,f_rcomp,"Inf"));
+
+
+	test_print2(pass,"                     derivative  (d1):");
+
+	free(rst), free(r), free(s), free(t);
+	free(I);
+	free(ChiRef_rst), free(ChiRefInv_rst);
+	array_free2_d(dE,GradChiRef_rst);
+	free(f), free(f_hat);
+	free(f_r), free(f_s), free(f_t);
+	free(f_rcomp), free(f_scomp), free(f_tcomp);
+
+	// dE = 2
+	dE = 2;
+
+	set_cubdata(CUBDATA,false,false,"GL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
+
+	r = malloc(Nn * sizeof *r); // free
+	s = malloc(Nn * sizeof *s); // free
+	t = malloc(Nn * sizeof *t); // free
+	for (i = 0; i < Nn; i++) {
+		r[i] = rst[0*Nn+i];
+		s[i] = rst[1*Nn+i];
+		t[i] = 0.0;
+	}
+
+	I = identity_d(Nn); // free
+	ChiRef_rst = basis_TP_Bezier(P,rst,Nn,&Nbf,dE); // free
+	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,I); // free
+
+	GradChiRef_rst = grad_basis_TP_Bezier(P,rst,Nn,&Nbf,dE); // free
+
+	poly2(r,s,t,Nn,&f,&f_r,&f_s,&f_t); // free
+
+	f_hat = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,1,Nn,1.0,ChiRefInv_rst,f); // free
+	f_rcomp = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,1,Nn,1.0,GradChiRef_rst[0],f_hat); // free
+	f_scomp = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,1,Nn,1.0,GradChiRef_rst[1],f_hat); // free
+	f_tcomp = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,1,Nn,1.0,GradChiRef_rst[0],f_hat); // free
+
+	pass = 0;
+	if (array_norm_diff_d(Nn,f_r,f_rcomp,"Inf") < EPS*100 &&
+	    array_norm_diff_d(Nn,f_s,f_scomp,"Inf") < EPS*100) {
+			pass = 1;
+	} else {
+		printf("%e\n",array_norm_diff_d(Nn,f_r,f_rcomp,"Inf"));
+		printf("%e\n",array_norm_diff_d(Nn,f_s,f_scomp,"Inf"));
+	}
+
+	test_print2(pass,"                     derivatives (d2):");
+
+	free(rst), free(r), free(s), free(t);
+	free(I);
+	free(ChiRef_rst), free(ChiRefInv_rst);
+	array_free2_d(dE,GradChiRef_rst);
+	free(f), free(f_hat);
+	free(f_r), free(f_s), free(f_t);
+	free(f_rcomp), free(f_scomp), free(f_tcomp);
+
+	// dE = 3
+	dE = 3;
+
+	set_cubdata(CUBDATA,false,false,"GL",dE,P,cubature_TP); // free
+	set_from_cubdata(CUBDATA,&Nn,NULL,&rst,NULL,NULL);
+
+	r = malloc(Nn * sizeof *r); // free
+	s = malloc(Nn * sizeof *s); // free
+	t = malloc(Nn * sizeof *t); // free
+	for (i = 0; i < Nn; i++) {
+		r[i] = rst[0*Nn+i];
+		s[i] = rst[1*Nn+i];
+		t[i] = rst[2*Nn+i];
+	}
+
+	I = identity_d(Nn); // free
+	ChiRef_rst = basis_TP_Bezier(P,rst,Nn,&Nbf,dE); // free
+	ChiRefInv_rst = inverse_d(Nn,Nn,ChiRef_rst,I); // free
+
+	GradChiRef_rst = grad_basis_TP_Bezier(P,rst,Nn,&Nbf,dE); // free
+
+	poly2(r,s,t,Nn,&f,&f_r,&f_s,&f_t); // free
+
+	f_hat = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,1,Nn,1.0,ChiRefInv_rst,f); // free
+	f_rcomp = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,1,Nn,1.0,GradChiRef_rst[0],f_hat); // free
+	f_scomp = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,1,Nn,1.0,GradChiRef_rst[1],f_hat); // free
+	f_tcomp = mm_Alloc_d(CblasRowMajor,CblasNoTrans,CblasNoTrans,Nn,1,Nn,1.0,GradChiRef_rst[2],f_hat); // free
+
+	pass = 0;
+	if (array_norm_diff_d(Nn,f_r,f_rcomp,"Inf") < EPS*1000 &&
+	    array_norm_diff_d(Nn,f_s,f_scomp,"Inf") < EPS*1000 &&
+	    array_norm_diff_d(Nn,f_t,f_tcomp,"Inf") < EPS*1000) {
+			pass = 1;
+	} else {
+		printf("%e\n",array_norm_diff_d(Nn,f_r,f_rcomp,"Inf"));
+		printf("%e\n",array_norm_diff_d(Nn,f_s,f_scomp,"Inf"));
+		printf("%e\n",array_norm_diff_d(Nn,f_t,f_tcomp,"Inf"));
+	}
+
+	test_print2(pass,"                     derivatives (d3):");
+
+	free(rst), free(r), free(s), free(t);
+	free(I);
+	free(ChiRef_rst), free(ChiRefInv_rst);
+	array_free2_d(dE,GradChiRef_rst);
+	free(f), free(f_hat);
+	free(f_r), free(f_s), free(f_t);
+	free(f_rcomp), free(f_scomp), free(f_tcomp);
+
+	free(CUBDATA);
+
+}
+

@@ -36,6 +36,136 @@ struct S_TEST TestDB;
 #include "memory_free.h"
 
 /*
+
+NOTES:
+	- The ordering used is the same as the nodes for the elements. That is,
+		the node at 0 is the one at -1,-1 on the reference space, and the third 
+		node in the msh file will be at the 1,1 point on the reference space.
+		Using this knowledge, the control points were ordered accordingly when
+		creating the connecitivity for each volume.
+
+
+File Name Convention: (For test files)
+This holds the naming convention to be used for the ctrl and mesh files for the Bezier and
+NURBS meshes. The difficulty primarily is that the order P is needed for the Bezier mesh
+and so this has to be in the mesh file name. For this reason, the ctrl file will not have the 
+P value in its name but the mesh files will have the P values in them.
+
+- Mesh File:
+	n-GaussianBump2D_ToBeCurved_BezierP3_QUAD0x.msh
+
+	Build this name in the initialization using the control file
+	and the basis type.
+
+
+To Do:
+
+- Create a Python B Spline Mesh Generator
+	- Refine the existing algorithm, and make this a much better generator
+		that should be able to handle the case of multiple B Spline patches
+	- Add the Bezier Extraction step using Numpy properly.
+		- Research what the forms of the operators will be to make it easiest to
+			do. 
+		- Use this now to generate the meshes. That is, create a general mesh 
+			without knot repetition lets say, and perform the refinement to create the
+			Bezier elements.
+
+	- This should be a seperate module that will take the elements and output the 
+		Gmsh file in the proper format.
+		- Will only need lines and Quads
+		- Also, BCs are simple. 
+		- Check if this Gmsh file works in the code.
+			- Use the CurvedQUAD keyword for the mesh. Then, when we need to use the Bezier
+				basis, we will read 
+			- Add a keyword $NURBS_Weights$ and place the weights of all node points in 
+				this section. (For now, use B-Splines so all weights are 1)
+			- Add a keyword $NURBS_ControlPoints$ which will contain the xyz_coeff
+				values for each element (have used Bezier extraction so each element 
+				can be treated separately with their own control points).
+
+- Find issue with optimal order convergence
+	- Try the Bezier mesh using the polynomial basis functions. See the convergence order
+		for this case.
+		- This will check whether the cause of the issues is the mesh itself.
+
+	(Done) - Try Bezier Mesh with very small curvature
+		- Orders still do not converge. Since orders converged for the Periodic Vortex
+			case but not for this there must be an issue with the mesh when it is
+			generated.
+	
+	(Done) - Try the Bezier basis functions using the periodic vortex case
+		(Done) - Check the periodic vortex order convergence (mesh should not be an issue
+			since the mesh is rectangular).
+			- Used same mesh in the code with HP refinement (even though using Bezier
+				basis). Orders worked out.
+				- Therefore, the basis has been implemented perfectly
+	
+	(Done) - Try CURVED mesh (Gaussian Bump) with Bezier basis
+		- Orders passed for the Bezier basis. Used the HP adaptation in place with the Bezier 
+			basis to do this test.
+
+
+- Create the NURBS Mesh Generator
+	- First work with one patch cases
+		(Done) - Create the a simply mesh with no Bezier Extraction
+		(Done) - Use weights on the first mesh in order to be able to test the NURBS
+			capabilities.
+		- Use Bezier extraction to extract the Bezier volumes from the simple mesh
+		- Add h and p refinement (on an element level after the extraction process)
+			in order to be able to add more volumes
+		- When plotting, plot using the proper NURBS definition (do not just connect
+			points).
+		- Add Boundary Condition capabilities easily like in the other mesh
+			case.
+			- Set the edges (set i,j range) and set the BC on this range
+		- Output now Control Points and Weights for each control point also.
+
+	(Done) - Create a semi-circular bump case
+		(Done) - The unrefined mesh will be able to set the outer lines for the 
+			mesh using a set of control points (i.e. n knots along x direction
+			used to define the curve and maybe just 2 knot in y direction for 
+			the y case (only top and bottom))
+			- Then, perform uniform refinement to be able to create the mesh 
+				levels.
+
+	- Handle multiple patch case
+		- Define element connectivity for the unrefined patch (knot sequence should
+			be same between connected faces and specify which face are connected).
+		- Refinement will need to be uniform for all patches
+			- Once refined, set which elements are connected.
+
+- Create the NURBS basis functions in own code
+	- Work first with the B-spline mesh with all weights as one (validation
+		will be done to make sure all outputs are identical as before for 
+		the explicit form of the equations).
+		- Add the option to read in the weights now from the mesh file 
+			for the IGA-DG code. Each control point will now have a weight 
+			associated with it.	
+		- Build a special operator called W_vI which is the weight function
+			evaluated at the integration nodes. This should not change unless
+			adaptivity is used. 
+		-  
+
+
+ - Create a tecplot output for visualizing the solution using zones.
+ 	Do this because tecplot is easier to use
+ 
+
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+/*
  *	Purpose:
  *		Solve the (N)avier-(S)tokes equations (or a subset of the NS equations) using the (D)iscontinuous
  *		(P)etrov-(G)alerkin method.

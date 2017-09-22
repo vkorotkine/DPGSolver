@@ -227,6 +227,8 @@ static void correct_ToBeCurved(struct S_VOLUME *VOLUME)
 	VOLUME->XYZ = XYZ;
 }
 
+
+
 void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 {
 	// Initialize DB Parameters
@@ -262,6 +264,7 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 			for (i = 0; i < NvnG*d; i++)
 				XYZ[i] = XYZ_S[i];
 		} else {
+
 			if (strstr(Geometry,"dm1-Spherical_Section")) {
 					ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
 			} else if (strstr(Geometry,"Ellipsoidal_Section")) {
@@ -309,6 +312,9 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 			} else {
 				printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
 			}
+
+			// Set correctTBC to equal 0 in the location where the node points
+			// are loaded in
 
 			// Correct internal VOLUME geometry coordinates using blending
 			if (nG == 1 && correctTBC && VOLUME->Eclass != C_WEDGE && VOLUME->Eclass != C_PYR)
@@ -1160,3 +1166,7 @@ static double *eval_TP_function(const unsigned int Nn, const double *XZ, const u
 	*abcP = abcOut;
 	return Output;
 }
+
+
+
+

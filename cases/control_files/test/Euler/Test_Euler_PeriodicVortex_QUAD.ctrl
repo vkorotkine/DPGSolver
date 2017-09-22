@@ -13,7 +13,8 @@ MeshLevel     1
 
 Form       Weak   // Options: Weak, (Strong)
 NodeType   GL-AO // Options: GL/GLL-AO/WSH/EQ
-BasisType  Nodal  // Options: Nodal, Modal
+BasisType  Modal  // Options: Nodal (default), Modal
+BezierBasis 1 // 0 = False, 1 = True
 
 Vectorized 0     // Options: 0, 1
 EFE        1     // Options: (0), 1

@@ -46,7 +46,6 @@ else ifeq ($(MKL_INTERFACE_LAYER),64)
 endif
 MKL_INC += -I$(MKL_DIR)/include
 
-
 include $(PETSC_DIR)/lib/petsc/conf/variables
 PETSC_INC := $(PETSC_CC_INCLUDES)
 

@@ -17,6 +17,7 @@ struct S_DB {
 	char         *TestCase, *MeshType, *MeshPath, *Form, *NodeType, *BasisType, *MeshFile, *Geometry, *GeomSpecifier,
 	             *PDE, *PDESpecifier;
 	unsigned int d, ML, Vectorized, EFE, Collocated, Adapt, PGlobal, PMax, LevelsMax, Testing, *BumpOrder, Method;
+	unsigned int BezierBasis;
 	int          Restart;
 
 	// Parameters

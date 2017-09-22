@@ -291,8 +291,8 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 			data->exit_ratio = 1.0/EPS;
 		} else if (strstr(TestCase,"GaussianBump")) {
 //			printf("Using default value for timestepping parameters.\n");
-			data->dt         = 2e-0;
-			data->exit_tol   = 1e-8;
+			data->dt         = 5e-1;
+			data->exit_tol   = 5e-5;
 			data->exit_ratio = 1.0/EPS;
 		} else {
 			EXIT_UNSUPPORTED;
@@ -448,8 +448,8 @@ void solver_explicit(bool const PrintEnabled)
 {
 	struct S_timestepping *const data_time = malloc(sizeof *data_time); // free
 	select_timestepping_parameters(data_time);
-	double const exit_tol   = data_time->exit_tol,
-	             exit_ratio = data_time->exit_ratio;
+	double const exit_tol   = data_time->exit_tol;
+	double const exit_ratio = data_time->exit_ratio;
 	double       dt         = data_time->dt,
 	             time       = 0.0;
 
@@ -473,6 +473,7 @@ void solver_explicit(bool const PrintEnabled)
 
 	unsigned int tstep   = 0;
 	double       maxRHS0 = 0.0;
+
 	while (time < FinalTime) {
 		if (Adapt && tstep)
 			mesh_update();

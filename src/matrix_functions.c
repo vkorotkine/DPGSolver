@@ -272,7 +272,7 @@ void mm_d(const CBLAS_LAYOUT layout, const CBLAS_TRANSPOSE transa, const CBLAS_T
 {
 	/*
 	 *	Purpose:
-	 *		Returns: C = alpha*op(A)*op(B)+beta*C with memory already allocated in calling function.
+	 *		Returns: C = f*op(A)*op(B)+beta*C with memory already allocated in calling function.
 	 *
 	 *	Comments:
 	 *		The 'C' array pointer is not declared 'const' as this prefix is discarded by the cblas_dgemm call.

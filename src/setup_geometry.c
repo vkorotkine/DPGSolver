@@ -27,6 +27,7 @@
 #include "setup_normals.h"
 #include "vertices_to_exact_geom.h"
 #include "array_print.h"
+#include "setup_Bezier.h"
 
 /*
  *	Purpose:
@@ -398,8 +399,25 @@ void setup_geometry(void)
 			printf("    Set geometry of VOLUME nodes in ToBeCurved Mesh\n");
 
 		set_VOLUME_BC_info();
-		for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
-			setup_ToBeCurved(VOLUME);
+
+		// Here, in the "ToBeCurved" subset of meshes, we have the option to 
+		// also have meshes that are made up of Bezier elements. If the Bezier
+		// option has been triggered in the control file, then it means we would like
+		// to read in the extra blocks of information in the msh file and set that
+		// up.
+
+		if (DB.BezierBasis == 1){
+			// We are using a Bezier mesh so load in the information about 
+			// the mesh from the msh file and setup the volumes.
+			setup_Bezier();
+
+		} else {
+			// Non Bezier basis (normal case) so run the usual 
+			// ToBeCurved case.
+			for (VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next)
+				setup_ToBeCurved(VOLUME);
+		}
+
 	} else if (strstr(MeshType,"Curved")) {
 		if (!DB.MPIrank && !DB.Testing)
 			printf("    Set geometry of VOLUME nodes in Curved Mesh\n");

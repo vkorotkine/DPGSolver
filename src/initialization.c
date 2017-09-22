@@ -102,12 +102,23 @@
  *
  */
 
-void set_MeshFile(void)
+void set_MeshFile(int const PMesh)
 {
+
+	/*
+	Set the absolute path to the mesh file to use for the code.
+
+	Input: 
+		PMesh: Integer for the P value to use for the mesh (used only for
+			the Bezier case since in all other cases we always start from 
+			a P = 1 mesh).
+	*/
+
 	// Set up MeshFile
 	DB.MeshFile = calloc(STRLEN_MAX , sizeof *(DB.MeshFile)); // keep
 
 	char *const d  = malloc(STRLEN_MIN * sizeof *d),  // free
+	     *const P  = malloc(STRLEN_MIN * sizeof *P), // free
 	     *const ML = malloc(STRLEN_MIN * sizeof *ML); // free
 
 	sprintf(d,"%d",DB.d);
@@ -129,7 +140,29 @@ void set_MeshFile(void)
 	strcat(DB.MeshFile,DB.Geometry);
 	strcat(DB.MeshFile,strcat(d,"D_"));
 	strcat(DB.MeshFile,DB.MeshType);
+
+	// Special Case for Bezier meshes:
+	// - Will need the Bezier keyword
+	// - Will need the order of the mesh
+	if (DB.BezierBasis == 1){
+		// 1) Bezier Keyword
+		strcat(DB.MeshFile, "_Bezier");
+
+		// 2) Order of the mesh. Get this data 
+		//	from PGc (which is an array which takes PGlobal as its
+		// 	variable). This way, we can access superparametric meshes
+		//	if needed.
+		sprintf(P, "%d", PMesh);
+		strcat(DB.MeshFile,"P");
+		strcat(DB.MeshFile,P);
+
+		// Finally, add trailing underscore	
+		strcat(DB.MeshFile, "_");
+	}
+
 	strcat(DB.MeshFile,strcat(ML,"x.msh"));
+
+	printf("MeshFile : %s \n", DB.MeshFile);
 
 	free(d);
 	free(ML);
@@ -163,7 +196,7 @@ void initialization(int const nargc, char const *const *const argv)
 	DB.NodeType  = calloc(STRLEN_MIN , sizeof *(DB.NodeType));  // keep
 	DB.BasisType = calloc(STRLEN_MIN , sizeof *(DB.BasisType)); // keep
 	DB.BumpOrder = calloc(2          , sizeof *(DB.BumpOrder)); // keep
-
+	DB.BezierBasis = 0;
 
 	// Open control file
 	char *ControlFile = malloc(STRLEN_MAX * sizeof *ControlFile); // free
@@ -206,6 +239,8 @@ void initialization(int const nargc, char const *const *const argv)
 		if (strstr(StringRead,"Form"))       sscanf(StringRead,"%s %s",dummys,DB.Form);
 		if (strstr(StringRead,"NodeType"))   sscanf(StringRead,"%s %s",dummys,DB.NodeType);
 		if (strstr(StringRead,"BasisType"))  sscanf(StringRead,"%s %s",dummys,DB.BasisType);
+		if (strstr(StringRead,"BezierBasis")) sscanf(StringRead, "%s %d",dummys, &DB.BezierBasis);
+
 		if (strstr(StringRead,"Vectorized")) sscanf(StringRead,"%s %d",dummys,&DB.Vectorized);
 		if (strstr(StringRead,"EFE"))        sscanf(StringRead,"%s %d",dummys,&DB.EFE);
 		if (strstr(StringRead,"Collocated")) sscanf(StringRead,"%s %d",dummys,&DB.Collocated);
@@ -240,7 +275,7 @@ void initialization(int const nargc, char const *const *const argv)
 	free(MeshCurving);
 
 	// Set up MeshFile
-	set_MeshFile();
+	set_MeshFile(DB.PGlobal);
 
 	// Print some information
 	if (!DB.MPIrank && !DB.Testing) {
