@@ -129,10 +129,10 @@ static void ToBeCurved_elliptic_pipe
 	const double*const X_S = &XYZ_S[Nn*0],
 	            *const Y_S = &XYZ_S[Nn*1];
 
-	/*double a = DB.geo_store[0],
+	double a = DB.geo_store[0],
 		   b = DB.geo_store[1],
 		   c = DB.geo_store[2],
-		   m = DB.geo_store[3];*/
+		   m = DB.geo_store[3];
 
 	if (corners_only) {
 		const double X_ve_S[] = {-1, 1,-1, 1},
@@ -142,10 +142,10 @@ static void ToBeCurved_elliptic_pipe
 		double X_ve[N_V_QUAD] = {0},
 		       Y_ve[N_V_QUAD] = {0};
 		for (size_t n = 0; n < N_V_QUAD; ++n) {
-			//X_ve[n] = c*(X_ve_S[n]+1)/2;
-			//Y_ve[n] = (-b/(2*a))*(Y_ve_S[n]+1)*sqrt(a*a+0.25*c*c*(X_ve_S[n]+1)*(X_ve_S[n]+1))+m*(Y_ve_S[n]+1)/2;
-			Y_ve[n] = Y_ve_S[n];
-			X_ve[n] = X_ve_S[n];
+			X_ve[n] = c*(X_ve_S[n]+1)/2;
+			Y_ve[n] = (-b/(2*a))*(Y_ve_S[n]+1)*sqrt(a*a+0.25*c*c*(X_ve_S[n]+1)*(X_ve_S[n]+1))+m*(Y_ve_S[n]+1)/2;
+//			Y_ve[n] = Y_ve_S[n];
+//			X_ve[n] = X_ve_S[n];
 		}
 
 		// Evaluate using k1 Lagrange basis
@@ -162,10 +162,10 @@ static void ToBeCurved_elliptic_pipe
 		set_XYZ_k1_lagrange(&k1_l,&xyz_data);
 	} else {
 		for (size_t n = 0; n < Nn; n++) {
-			//Y[n] = (-b/(2*a))*(Y_S[n]+1)*sqrt(a*a+0.25*c*c*(X_S[n]+1)*(X_S[n]+1))+m*(Y_S[n]+1)/2;
-			//X[n] = c*(X_S[n]+1)/2;
-			Y[n] = Y_S[n];
-			X[n] = X_S[n];
+			Y[n] = (-b/(2*a))*(Y_S[n]+1)*sqrt(a*a+0.25*c*c*(X_S[n]+1)*(X_S[n]+1))+m*(Y_S[n]+1)/2;
+			X[n] = c*(X_S[n]+1)/2;
+//			Y[n] = Y_S[n];
+//			X[n] = X_S[n];
 		}
 	}
 }

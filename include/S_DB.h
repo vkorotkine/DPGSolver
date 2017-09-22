@@ -39,13 +39,13 @@ struct S_DB {
 	// Initialization
 	bool         Viscous, Const_mu;
 	char         *SolverType;
-	unsigned int Nvar, Neq, OutputInterval, DOF0, SourcePresent, PDE_index;
+	unsigned int Nvar, Neq, OutputInterval, DOF0, SourcePresent, PDE_index, MMS;
 	double       Xc, Yc, Rc, MInf, rhoInf, pInf, TInf, cInf, VInf, uInf, vInf, wInf, Rg, Cscale, pBack, p_Total, T_Total,
 	             PeriodL, PeriodFraction, FinalTime, Poisson_scale, ADV_b[3], ADV_XYZB[3],
 	             rIn, MIn, rhoIn, pIn, VIn, rOut, TIn, uIn, omega, mu, Pr, Cp, kappa,
 	             Q0, KMin, KMax, GBa, GBb, GBc, aIn, bIn, cIn, aOut, bOut, cOut, lHR,
 	             NSc, NSt, NS0, NS1, NS2, NS3, NS4, JSa, JSl, JSxL, rho_store[7], p_store[7], u_store[7], v_store[7],
-				 w_store[5], geo_store[4], f_store[7];
+				 geo_store[4], f_store[7];
 
 	// Solving
 	unsigned int dof;

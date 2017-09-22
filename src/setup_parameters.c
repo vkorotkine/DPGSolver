@@ -699,7 +699,7 @@ static void setup_parameters_L2proj_DG(void)
 		// Geometry
 		PGc[P]    = max(P+PG_add,u1);
 //		PGc[P]    = max(P+PG_add,(unsigned int) 2);
-		PGc[P]    = 1;
+//		PGc[P]    = 1;
 		PCs[P][0] = max((d-1),u1)*PGs;
 		PCs[P][1] = (d-1)*max(PGs-1,u1);
 		PCs[P][2] = (d-1)*PGs;

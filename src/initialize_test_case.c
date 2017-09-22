@@ -398,61 +398,88 @@ void initialize_test_case_parameters(void)
 				}
 			} else if (strstr(TestCase,"EllipticPipe")) {
 				DB.SourcePresent = 1;
+				int MS = 4; //# of the manufactured solution, must vary from 1 to 4.
+				DB.MMS = MS;
 
-			//MMS WITH SLIPWALL BC
-			/*	double u_1, u_2 = 0.10, u_3, u_4 = 0.10, alpha = 0.10; //Period adjusters(u_2, u_4) and B.V adjuster(alpha)
-				u_3 = (1+alpha)/(2*cos(u_4));
-				u_1 = (1-alpha)/(2*sin(u_2));
-				double v_1, v_2 = 0.1, v_3, v_4 = 0.1; //Period adjusters(v_2, v_4)
-				v_3 = 1/(2*cos(v_4));
-				v_1 = 1/(2*sin(v_2));
+				if (MS == 3) {
+				//MMS WITH SLIPWALL BC
+					double u_1, u_2 = 0.10, u_3, u_4 = 0.10, alpha = 0.10; //Period adjusters(u_2, u_4) and B.V adjuster(alpha)
+					u_3 = (1+alpha)/(2*cos(u_4));
+					u_1 = (1-alpha)/(2*sin(u_2));
+					double v_1, v_2 = 0.1, v_3, v_4 = 0.1; //Period adjusters(v_2, v_4)
+					v_3 = 1/(2*cos(v_4));
+					v_1 = 1/(2*sin(v_2));
 
-			    double r_par[7] = {1, 0.3, PI/10, 0.3, PI/10, 0.2, PI/10},
-				       p_par[7] = {1, 0.3, PI/64, 0.3, PI/64, 0.2, PI/64},
-				       u_par[7] = {u_1, u_2, u_3, u_4},
-				       v_par[7] = {v_1, v_2, v_3, v_4},
-					   f_par[7] = {1.0, 0.0, PI/96, 0.0, PI/96, 0.0, PI/96};
+			    	double r_par[7] = {1, 0.3, PI/10, 0.3, PI/10, 0.2, PI/10},
+				    	   p_par[7] = {1, 0.3, PI/64, 0.3, PI/64, 0.2, PI/64},
+				       	   u_par[7] = {u_1, u_2, u_3, u_4},
+				       	   v_par[7] = {v_1, v_2, v_3, v_4},
+					   	   f_par[7] = {1.0, 0.0, PI/96, 0.0, PI/96, 0.0, PI/96};
 
-				double a = 1/sqrt(3), b = 0.5, c = 0.25; //Geometry parameters
-					   DB.geo_store[0] = a;
-					   DB.geo_store[1] = b;
-					   DB.geo_store[2] = c;
+					double a = 1/sqrt(3), b = 0.5, c = 0.25; //Geometry parameters
+						   DB.geo_store[0] = a;
+						   DB.geo_store[1] = b;
+						   DB.geo_store[2] = c;
 
-				for (int i = 0; i < 7; i++) {
-					DB.rho_store[i] = r_par[i];
-					DB.p_store[i]   = p_par[i];
-					DB.u_store[i]   = u_par[i];
-					DB.v_store[i]   = v_par[i];
-					DB.f_store[i]   = f_par[i];
-				}*/
-
+					for (int i = 0; i < 7; i++) {
+						DB.rho_store[i] = r_par[i];
+						DB.p_store[i]   = p_par[i];
+						DB.u_store[i]   = u_par[i];
+						DB.v_store[i]   = v_par[i];
+						DB.f_store[i]   = f_par[i];
+					}
+				} else if (MS == 1 || MS == 2 || MS == 4) {
 				//MMS WITH EXACT BC
 				//Field parameters for r, u, v, and p.
 
-		        double r_par[4] = {10, -2.5, PI/15, PI/15},
-				       p_par[4] = {10, 2.5, PI/15, PI/15},
-				       u_par[4] = {10, 2.5, PI/15, PI/15},
-				       v_par[4] = {10, 2.5, PI/15, PI/15};
+			        double r_par[7] = {5, -1.5, PI/40, PI/40, 0, PI/40, PI/40},
+			        	   p_par[7] = {5, -1.5, PI/40, PI/40, 0, PI/40, PI/40},
+			        	   u_par[7] = {5, -1.5, PI/40, PI/40, 0, PI/40, PI/40},
+		    	    	   v_par[7] = {5, -1.5, PI/40, PI/40, 0, PI/40, PI/40}; //ML3 TRI
+
+		        	/*double r_par[7] = {5, -1.5, PI/40, PI/40, 0, PI/40, PI/40},
+		        		     p_par[7] = {5, 1.5, PI/40, PI/40, 0, PI/40, PI/40},
+		        	   		 u_par[7] = {5, 1.5, PI/40, PI/40, 0, PI/40, PI/40},
+		        	   		 v_par[7] = {5, -1.5, PI/40, PI/40, 0, PI/40, PI/40};*/ //ML2 TRI
+
+		        	/*double r_par[7] = {5, 1, PI/40, PI/40, 0, PI/10, PI/10},
+		        		     p_par[7] = {5, 1, PI/40, PI/40, 0, PI/10, PI/10},
+		        	   		 u_par[7] = {5, 1, PI/40, PI/40, 0, PI/10, PI/10},
+		        	   	 	 v_par[7] = {5, 1, PI/40, PI/40, 0, PI/10, PI/10};*/   //ML0 TRI
+
+		        	/*double r_par[7] = {5, -2.0, PI/50, PI/50, 0.0, PI/30, PI/30},
+		        		     p_par[7] = {5, 2.0, PI/50, PI/50, 0.0, PI/30, PI/30},
+		        	   	 	 u_par[7] = {5, 2.0, PI/50, PI/50, 0.0, PI/30, PI/30},
+		        	   		 v_par[7] = {5, -2.0, PI/50, PI/50, 0.0, PI/30, PI/30};*/ //ML3, ML2 QUAD
 
 				//Geometry Parameters
-
-				double a = 1/sqrt(5), b = 1, c = 1, m = 3; //low curvature ML0
+					double a = 1/sqrt(5), b = 1, c = 1, m = 10; //high curvature ML3
+					//double a = 1/sqrt(3), b = 1, c = 1, m = 10; //medium curvature ML2
+					//double a = 1/sqrt(1), b = 1, c = 1, m = 10; //medium curvature ML0
 
 					   DB.geo_store[0] = a;
 					   DB.geo_store[1] = b;
 					   DB.geo_store[2] = c;
 					   DB.geo_store[3] = m;
 
-				for (int i = 0; i < 4; i++) {
-					DB.rho_store[i] = r_par[i];
-					DB.p_store[i]   = p_par[i];
-					DB.u_store[i]   = u_par[i];
-					DB.v_store[i]   = v_par[i];
+					for (int i = 0; i < 7; i++) {
+						DB.rho_store[i] = r_par[i];
+						DB.p_store[i]   = p_par[i];
+						DB.u_store[i]   = u_par[i];
+						DB.v_store[i]   = v_par[i];
+					}
+				} else {
+				printf("Not a valid manufactured solution\n");
+				EXIT_UNSUPPORTED;
 				}
-
-
 			} else if (strstr(TestCase,"ParabolicPipe")) {
 				DB.SourcePresent = 1;
+				int MS = 1; //# of the manufactured solution, must vary from 1 to 3.
+				DB.MMS = MS;
+				if (!(MS == 1 || MS == 2 || MS == 3)) {
+					printf("Not a valid manufactured solution\n");
+					EXIT_UNSUPPORTED;
+				}
 
 				//MMS WITH EXACT BC
 				//Field parameters for r, u, v, and p.
@@ -467,15 +494,10 @@ void initialize_test_case_parameters(void)
 				       u_par[7] = {1, -0.4, PI/3, -0.2, PI/3, 0.7, PI/8},
 				       v_par[7] = {1, -0.2, PI/3, -0.3, PI/3, 0.3, PI/8}; //medium curvature good*/
 
-				/*double r_par[7] = {1, 0.3, PI/7, 0.3, PI/8, -0.2, PI/10},
+				double r_par[7] = {1, 0.3, PI/7, 0.3, PI/8, -0.2, PI/10},
 				       p_par[7] = {1, 0.3, PI/7, 0.35, PI/7, 0.1, PI/10},
 				       u_par[7] = {1, -0.2, PI/8, -0.2, PI/7, 0.5, PI/10},
-				       v_par[7] = {1, -0.5, PI/7, -0.2, PI/7, 0.3, PI/10}; //high curvature good*/
-
-				double r_par[7] = {1, 0.03, PI/20, 0.03, PI/20, -0.02, PI/20},
-				       p_par[7] = {1, 0.03, PI/20, 0.035, PI/20, 0.01, PI/20},
-				       u_par[7] = {1, -0.02, PI/20, -0.02, PI/20, 0.05, PI/20},
-				       v_par[7] = {1, -0.05, PI/20, -0.02, PI/20, 0.03, PI/20}; //test
+				       v_par[7] = {1, -0.5, PI/7, -0.2, PI/7, 0.3, PI/10}; //high curvature good
 
 				//Geometry Parameters
 
@@ -493,17 +515,8 @@ void initialize_test_case_parameters(void)
 					DB.u_store[i]   = u_par[i];
 					DB.v_store[i]   = v_par[i];
 				}
-
-			} else if (strstr(TestCase,"SinusoidalPipe")) {
-				DB.SourcePresent = 1;
-                                        int i;
-                                        double r_par[5] = {3, 1, 1, -1, 1}, p_par[5] = {6000, 2000, 1, -2000, 1}, w_par[5] = {30, 10, 0.5, 10, 0.5};
-                                        for (i = 0; i < 5; i++) {
-                                                DB.rho_store[i] = r_par[i];
-                                                DB.p_store[i] = p_par[i];
-                                                DB.w_store[i] = w_par[i];}
-                        } else {
-				printf("%s\n",TestCase);
+			} else {
+				printf("%s\n", TestCase);
 				EXIT_UNSUPPORTED;
 			}
 		} else if (strstr(PDESpecifier,"External")) {

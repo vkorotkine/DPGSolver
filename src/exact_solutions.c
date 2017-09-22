@@ -199,201 +199,177 @@ void compute_exact_solution(const unsigned int Nn, const double *XYZ, double *UE
 				EXIT_UNSUPPORTED;
 		}
 	} else if (strstr(TestCase,"EllipticPipe")) {
+		int MS = DB.MMS;
 
 		double rho_0 = DB.rho_store[0],
 		       rho_1 = DB.rho_store[1],
 		       rho_2 = DB.rho_store[2],
-		       rho_3 = DB.rho_store[3];
-		       //rho_2 = DB.rho_store[4],
-		       //rho_xy = DB.rho_store[5],
-		       //rho_3 = DB.rho_store[6];
+		       rho_3 = DB.rho_store[3],
+		       rho_4 = DB.rho_store[4],
+		       rho_5 = DB.rho_store[5],
+		       rho_6 = DB.rho_store[6];
 
 		double p_0 = DB.p_store[0],
 		       p_1 = DB.p_store[1],
 		       p_2 = DB.p_store[2],
-		       p_3 = DB.p_store[3];
-		       //p_2 = DB.p_store[4],
-		       //p_xy = DB.p_store[5],
-		       //p_3 = DB.p_store[6];
+		       p_3 = DB.p_store[3],
+		       p_4 = DB.p_store[4],
+		       p_5 = DB.p_store[5],
+		       p_6 = DB.p_store[6];
 
 		double u_0 = DB.u_store[0],
 		       u_1 = DB.u_store[1],
 		       u_2 = DB.u_store[2],
-		       u_3 = DB.u_store[3];
-		       //u_2 = DB.u_store[4],
-		       //u_xy = DB.u_store[5],
-		       //u_3 = DB.u_store[6];
+		       u_3 = DB.u_store[3],
+		       u_4 = DB.u_store[4],
+		       u_5 = DB.u_store[5],
+		       u_6 = DB.u_store[6];
 
 		double v_0 = DB.v_store[0],
 		       v_1 = DB.v_store[1],
 		       v_2 = DB.v_store[2],
-		       v_3 = DB.v_store[3];
-		       //v_2 = DB.v_store[4],
-		       //v_xy = DB.v_store[5],
-		       //v_3 = DB.v_store[6];
+		       v_3 = DB.v_store[3],
+		       v_4 = DB.v_store[4],
+		       v_5 = DB.v_store[5],
+		       v_6 = DB.v_store[6];
 
-		/*double f_0 = DB.f_store[0],
+		if (MS == 1) {
+		//MMS1
+			for (size_t n = 0; n < Nn; n++) {
+				rhoEx[n] = rho_0 + rho_1*sin(rho_2*X[n])+rho_3*sin(rho_4*Y[n])+rho_5*sin(rho_6*X[n]*Y[n]);
+				pEx[n] = p_0 + p_1*sin(p_2*X[n])+p_3*sin(p_4*Y[n])+p_5*sin(p_6*X[n]*Y[n]);
+				uEx[n] = u_0 + u_1*sin(u_2*X[n])+u_3*sin(u_4*Y[n])+u_5*sin(u_6*X[n]*Y[n]);
+				vEx[n] = v_0 + v_1*sin(v_2*X[n])+v_3*sin(v_4*Y[n])+v_5*sin(v_6*X[n]*Y[n]);
+				wEx[n] = 0.0;
+			}
+		} else if (MS == 2) {
+		//MMS2
+			for (size_t n = 0; n < Nn; n++) {
+				rhoEx[n] = rho_0 + rho_1*sin(rho_2*X[n])+rho_3*cos(rho_4*Y[n])+rho_5*cos(rho_6*X[n]*Y[n]);
+				pEx[n] = p_0 + p_1*cos(p_2*X[n])+p_3*sin(p_4*Y[n])+p_5*sin(p_6*X[n]*Y[n]);
+				uEx[n] = u_0 + u_1*sin(u_2*X[n])+u_3*cos(u_4*Y[n])+u_5*cos(u_6*X[n]*Y[n]);
+				vEx[n] = v_0 + v_1*cos(v_2*X[n])+v_3*sin(v_4*Y[n])+v_5*cos(v_6*X[n]*Y[n]);
+				wEx[n]   = 0.0;
+			}
+		} else if (MS == 3) {
+		//MMS3
+		double f_0 = DB.f_store[0],
 		       f_1 = DB.f_store[1],
 		       f_2 = DB.f_store[2],
 		       f_3 = DB.f_store[3],
 		       f_4 = DB.f_store[4],
 		       f_5 = DB.f_store[5],
-		       f_6 = DB.f_store[6];*/
+		       f_6 = DB.f_store[6];
 
-		/*double a = DB.geo_store[0],
+		double a = DB.geo_store[0],
 			   b = DB.geo_store[1],
-			   c = DB.geo_store[2];*/
+			   c = DB.geo_store[2];
 
-		//MMS1
-		/*for (size_t n = 0; n < Nn; n++) {
-			rhoEx[n] = rho_0 + rho_x*sin(rho_1*X[n])+rho_y*sin(rho_2*Y[n])+rho_xy*sin(rho_3*X[n]*Y[n]);
-			pEx[n] = p_0 + p_x*sin(p_1*X[n])+p_y*sin(p_2*Y[n])+p_xy*sin(p_3*X[n]*Y[n]);
-			uEx[n] = u_0 + u_x*sin(u_1*X[n])+u_y*sin(u_2*Y[n])+u_xy*sin(u_3*X[n]*Y[n]);
-			vEx[n] = v_0 + v_x*sin(v_1*X[n])+v_y*sin(v_2*Y[n])+v_xy*sin(v_3*X[n]*Y[n]);
-			wEx[n] = 0.0;
-			}*/
+			for (size_t n = 0; n < Nn; n++) {
+				double const xi = (2/c)*X[n]-1, //The domain transformations
+							 eta = (2*a*Y[n])/(b*sqrt(a*a+X[n]*X[n]))-1;
 
-		//MMS2
-		/*for (size_t n = 0; n < Nn; n++) {
-			rhoEx[n] = rho_0 + rho_x*sin(rho_1*X[n])+rho_y*cos(rho_2*Y[n])+rho_xy*cos(rho_3*X[n]*Y[n]);
-			pEx[n] = p_0 + p_x*cos(p_1*X[n])+p_y*sin(p_2*Y[n])+p_xy*sin(p_3*X[n]*Y[n]);
-			uEx[n] = u_0 + u_x*sin(u_1*X[n])+u_y*cos(u_2*Y[n])+u_xy*cos(u_3*X[n]*Y[n]);
-			vEx[n] = v_0 + v_x*cos(v_1*X[n])+v_y*sin(v_2*Y[n])+v_xy*cos(v_3*X[n]*Y[n]);
-			wEx[n]   = 0.0;
-		}*/
+				double const u_a = a*sqrt(a*a+0.25*c*c*(xi+1)*(xi+1)),
+							 u_b = u_1*sin(u_2*eta)+u_3*cos(u_4*eta),
+							 u_c = f_0 + f_1*sin(f_2*(xi+1))+f_3*sin(f_4*(eta+1))+f_5*sin(f_6*(xi+1)*(eta+1)),
+							 v_a = 0.5*b*c*(xi+1),
+  						 	 v_b = v_1*sin(v_2*eta)+v_3*cos(v_4*eta),
+						 	 v_c = f_0 + f_1*sin(f_2*(xi+1))+f_3*sin(f_4*(eta+1))+f_5*sin(f_6*(xi+1)*(eta+1));
 
-		//MMS3
-		/*for (size_t n = 0; n < Nn; n++) {
-			double const xi = (2/c)*X[n]-1, //The domain transformations
-						 eta = (2*a*Y[n])/(b*sqrt(a*a+X[n]*X[n]))-1;
-
-			double const u_a = a*sqrt(a*a+0.25*c*c*(xi+1)*(xi+1)),
-						 u_b = u_1*sin(u_2*eta)+u_3*cos(u_4*eta),
-						 u_c = f_0 + f_1*sin(f_2*(xi+1))+f_3*sin(f_4*(eta+1))+f_5*sin(f_6*(xi+1)*(eta+1)),
-						 v_a = 0.5*b*c*(xi+1),
-						 v_b = v_1*sin(v_2*eta)+v_3*cos(v_4*eta),
-						 v_c = f_0 + f_1*sin(f_2*(xi+1))+f_3*sin(f_4*(eta+1))+f_5*sin(f_6*(xi+1)*(eta+1));
-
-			rhoEx[n] = rho_0 + rho_x*sin(rho_1*X[n])+rho_y*sin(rho_2*Y[n])+rho_xy*sin(rho_3*X[n]*Y[n]);
-			pEx[n] = p_0 + p_x*sin(p_1*X[n])+p_y*sin(p_2*Y[n])+p_xy*sin(p_3*X[n]*Y[n]);
-			uEx[n] = u_a*u_b*u_c;
-			vEx[n] = v_a*v_b*v_c;
-			wEx[n] = 0.0;
-		}*/
-
+				rhoEx[n] = rho_0 + rho_1*sin(rho_2*X[n])+rho_3*sin(rho_4*Y[n])+rho_5*sin(rho_6*X[n]*Y[n]);
+				pEx[n] = p_0 + p_1*sin(p_2*X[n])+p_3*sin(p_4*Y[n])+p_5*sin(p_6*X[n]*Y[n]);
+				uEx[n] = u_a*u_b*u_c;
+				vEx[n] = v_a*v_b*v_c;
+				wEx[n] = 0.0;
+			}
+		} else if (MS == 4) {
 		//MMS4
-		for (size_t n = 0; n < Nn; n++) {
-			rhoEx[n] = rho_0 + rho_1*sin(rho_2*X[n])*cos(rho_3*Y[n]);
-//rhoEx[n] = 10.0+2.0*X[n]+3.0*pow(X[n],2.0)+3.0*pow(X[n],3.0);
-			pEx[n] = p_0 + p_1*cos(p_2*X[n])*cos(p_3*Y[n]);
-			uEx[n] = u_0 + u_1*cos(u_2*X[n])*cos(u_3*Y[n]);
-			vEx[n] = v_0 + v_1*cos(v_2*X[n])*cos(v_3*Y[n]);
-			wEx[n] = 0.0;
-		}
-
-	} else if (strstr(TestCase,"ParabolicPipe")) {
-		if (d != 2)
+			for (size_t n = 0; n < Nn; n++) {
+				rhoEx[n] = rho_0 + rho_1*cos(rho_2*X[n])*cos(rho_3*Y[n]) + rho_4*sin(rho_5*X[n])*cos(rho_6*Y[n]);
+				pEx[n] = p_0 + p_1*cos(p_2*X[n])*cos(p_3*Y[n]) + p_4*sin(p_5*X[n])*cos(p_6*Y[n]);
+				uEx[n] = u_0 + u_1*cos(u_2*X[n])*cos(u_3*Y[n]) + u_4*sin(u_5*X[n])*cos(u_6*Y[n]);
+				vEx[n] = v_0 + v_1*cos(v_2*X[n])*cos(v_3*Y[n]) + v_4*sin(v_5*X[n])*cos(v_6*Y[n]);
+				wEx[n] = 0.0;
+			}
+		} else {
+			printf("Not a valid manufactured solution\n");
 			EXIT_UNSUPPORTED;
+		}
+	} else if (strstr(TestCase,"ParabolicPipe")) {
+		int MS = DB.MMS;
 
 		double rho_0 = DB.rho_store[0],
-		       rho_x = DB.rho_store[1],
-		       rho_1 = DB.rho_store[2],
-		       rho_y = DB.rho_store[3],
-		       rho_2 = DB.rho_store[4],
-		       rho_xy = DB.rho_store[5],
-		       rho_3 = DB.rho_store[6];
+		       rho_1 = DB.rho_store[1],
+		       rho_2 = DB.rho_store[2],
+		       rho_3 = DB.rho_store[3],
+		       rho_4 = DB.rho_store[4],
+		       rho_5 = DB.rho_store[5],
+		       rho_6 = DB.rho_store[6];
 
 		double p_0 = DB.p_store[0],
-		       p_x = DB.p_store[1],
-		       p_1 = DB.p_store[2],
-		       p_y = DB.p_store[3],
-		       p_2 = DB.p_store[4],
-		       p_xy = DB.p_store[5],
-		       p_3 = DB.p_store[6];
+		       p_1 = DB.p_store[1],
+		       p_2 = DB.p_store[2],
+		       p_3 = DB.p_store[3],
+		       p_4 = DB.p_store[4],
+		       p_5 = DB.p_store[5],
+		       p_6 = DB.p_store[6];
 
 		double u_0 = DB.u_store[0],
-		       u_x = DB.u_store[1],
-		       u_1 = DB.u_store[2],
-		       u_y = DB.u_store[3],
-		       u_2 = DB.u_store[4],
-		       u_xy = DB.u_store[5],
-		       u_3 = DB.u_store[6];
+		       u_1 = DB.u_store[1],
+		       u_2 = DB.u_store[2],
+		       u_3 = DB.u_store[3],
+		       u_4 = DB.u_store[4],
+		       u_5 = DB.u_store[5],
+		       u_6 = DB.u_store[6];
 
 	 	double v_0 = DB.v_store[0],
-		       v_x = DB.v_store[1],
-		       v_1 = DB.v_store[2],
-		       v_y = DB.v_store[3],
-		       v_2 = DB.v_store[4],
-      	       v_xy = DB.v_store[5],
-		       v_3 = DB.v_store[6];
+		       v_1 = DB.v_store[1],
+		       v_2 = DB.v_store[2],
+		       v_3 = DB.v_store[3],
+		       v_4 = DB.v_store[4],
+      	       v_5 = DB.v_store[5],
+		       v_6 = DB.v_store[6];
 
-		/*double a_1 = DB.geo_store[0],
+		if (MS == 2) {
+		//MMS2
+			for (size_t n = 0; n < Nn; n++) {
+				rhoEx[n] = rho_0 + rho_1*sin(rho_2*X[n])+rho_3*cos(rho_4*Y[n])+rho_5*cos(rho_6*X[n]*Y[n]);
+				pEx[n] = p_0 + p_1*cos(p_2*X[n])+p_3*sin(p_4*Y[n])+p_5*sin(p_6*X[n]*Y[n]);
+				uEx[n] = u_0 + u_1*sin(u_2*X[n])+u_3*cos(u_4*Y[n])+u_5*cos(u_6*X[n]*Y[n]);
+				vEx[n] = v_0 + v_1*cos(v_2*X[n])+v_3*sin(v_4*Y[n])+v_5*cos(v_6*X[n]*Y[n]);
+				wEx[n]   = 0.0;
+			}
+		} else if (MS == 1) {
+		//MMS1
+			for (size_t n = 0; n < Nn; n++) {
+				rhoEx[n] = rho_0 + rho_1*sin(rho_2*X[n])+rho_3*sin(rho_4*Y[n])+rho_5*sin(rho_6*X[n]*Y[n]);
+				pEx[n] = p_0 + p_1*sin(p_2*X[n])+p_3*sin(p_4*Y[n])+p_5*sin(p_6*X[n]*Y[n]);
+				uEx[n] = u_0 + u_1*sin(u_2*X[n])+u_3*sin(u_4*Y[n])+u_5*sin(u_6*X[n]*Y[n]);
+				vEx[n] = v_0 + v_1*sin(v_2*X[n])+v_3*sin(v_4*Y[n])+v_5*sin(v_6*X[n]*Y[n]);
+				wEx[n] = 0.0;
+			}
+		} else if (MS == 3) {
+		//MM3
+		double a_1 = DB.geo_store[0],
 			   a_2 = DB.geo_store[1],
-			   b = DB.geo_store[2];*/
+			   b = DB.geo_store[2];
 
-		/*for (size_t n = 0; n < Nn; n++) {
-			rhoEx[n] = rho_0 + rho_x*sin(rho_1*X[n])+rho_y*cos(rho_2*Y[n])+rho_xy*cos(rho_3*X[n]*Y[n]);
-			pEx[n] = p_0 + p_x*cos(p_1*X[n])+p_y*sin(p_2*Y[n])+p_xy*sin(p_3*X[n]*Y[n]);
-			uEx[n] = u_0 + u_x*sin(u_1*X[n])+u_y*cos(u_2*Y[n])+u_xy*cos(u_3*X[n]*Y[n]);
-			vEx[n] = v_0 + v_x*cos(v_1*X[n])+v_y*sin(v_2*Y[n])+v_xy*cos(v_3*X[n]*Y[n]);
-			wEx[n]   = 0.0;
-		}*/
+			for (size_t n = 0; n < Nn; n++) {
 
-		for (size_t n = 0; n < Nn; n++) {
-			rhoEx[n] = rho_0 + rho_x*sin(rho_1*X[n])+rho_y*sin(rho_2*Y[n])+rho_xy*sin(rho_3*X[n]*Y[n]);
-			pEx[n] = p_0 + p_x*sin(p_1*X[n])+p_y*sin(p_2*Y[n])+p_xy*sin(p_3*X[n]*Y[n]);
-			uEx[n] = u_0 + u_x*sin(u_1*X[n])+u_y*sin(u_2*Y[n])+u_xy*sin(u_3*X[n]*Y[n]);
-			vEx[n] = v_0 + v_x*sin(v_1*X[n])+v_y*sin(v_2*Y[n])+v_xy*sin(v_3*X[n]*Y[n]);
-			wEx[n] = 0.0;
+				double const xi = 2*sqrt(b/a_1)*X[n]-1, //The domain transformations
+							 eta = (2*Y[n]+2*b*X[n]*X[n]-a_1-a_2)/(a_2-a_1);
+
+				rhoEx[n] = rho_0 + rho_1*sin(rho_2*(xi+rho_3))+rho_4*sin(rho_5*(eta+rho_6));
+				pEx[n] = p_0 + p_1*sin(p_2*(xi+p_3))+p_4*sin(p_5*(eta+p_6));
+				uEx[n] = u_0 + u_1*sin(u_2*(xi+u_3))+u_4*sin(u_5*(eta+u_6));
+				vEx[n] = v_0 + v_1*sin(v_2*(xi+v_3))+v_4*sin(v_5*(eta+v_6));
+				wEx[n] = 0.0;
+			}
+		} else {
+			printf("Not a valid manufactured solution\n");
+			EXIT_UNSUPPORTED;
 		}
-
-		/*for (size_t n = 0; n < Nn; n++) {
-
-			double const xi = 2*sqrt(b/a_1)*X[n]-1,
-						 eta = (2*Y[n]+2*b*X[n]*X[n]-a_1-a_2)/(a_2-a_1);
-
-			rhoEx[n] = rho_0 + rho_1*sin(rho_2*(xi+rho_3))+rho_4*sin(rho_5*(eta+rho_6));
-			pEx[n] = p_0 + p_1*sin(p_2*(xi+p_3))+p_4*sin(p_5*(eta+p_6));
-			uEx[n] = u_0 + u_1*sin(u_2*(xi+u_3))+u_4*sin(u_5*(eta+u_6));
-			vEx[n] = v_0 + v_1*sin(v_2*(xi+v_3))+v_4*sin(v_5*(eta+v_6));
-			wEx[n] = 0.0;
-		}*/
-
-
-
-		} else if (strstr(TestCase,"SinusoidalPipe")) {
-                    double rho_0 = DB.rho_store[0],
-                           rho_x = DB.rho_store[1],
-                           rho_1 = DB.rho_store[2],
-                           rho_y = DB.rho_store[3],
-                           rho_2 = DB.rho_store[4];
-
-                    double p_0 = DB.p_store[0],
-                           p_x = DB.p_store[1],
-                           p_1 = DB.p_store[2],
-                           p_y = DB.p_store[3],
-                           p_2 = DB.p_store[4];
-
-                    double w_0 = DB.w_store[0],
-                           w_x = DB.w_store[1],
-                           w_1 = DB.w_store[2],
-                           w_y = DB.w_store[3],
-                           w_2 = DB.w_store[4];
-
-                    double a = 1, b = 2;
-
-                    if (d == 2 ) {
-                         for (i = 0; i < Nn; i++) {
-                      rhoEx[i] = rho_0 + rho_x*sin(rho_1*X[i])+rho_y*cos(rho_2*Y[i]);
-                      pEx[i] = p_0 + p_x*cos(p_1*X[i])+p_y*sin(p_2*Y[i]);
-                      uEx[i] = w_0 + w_x*sin(w_1*X[i])+w_y*cos(w_2*Y[i]);
-                      vEx[i] = (-a*b*sin(b*X[i]))*(w_0 + w_x*sin(w_1*X[i])+w_y*cos(w_2*Y[i]));
-                      wEx[i] = 0.0;
-                         }
-                    } else
-                            EXIT_UNSUPPORTED;
-
-        } else {
+	} else {
 		EXIT_UNSUPPORTED;
 	}
 }
@@ -514,100 +490,99 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 			}
 		}
 	} else if (strstr(TestCase,"EllipticPipe")) {
-
-		if (d != 2)
-			EXIT_UNSUPPORTED;
+		int MS = DB.MMS;
 
 		double rho_0 = DB.rho_store[0],
 		       rho_1 = DB.rho_store[1],
 		       rho_2 = DB.rho_store[2],
-		       rho_3 = DB.rho_store[3];
-		       //rho_2 = DB.rho_store[4],
-		       //rho_xy = DB.rho_store[5],
-		       //rho_3 = DB.rho_store[6];
+		       rho_3 = DB.rho_store[3],
+		       rho_4 = DB.rho_store[4],
+		       rho_5 = DB.rho_store[5],
+		       rho_6 = DB.rho_store[6];
 
 		double p_0 = DB.p_store[0],
 		       p_1 = DB.p_store[1],
 		       p_2 = DB.p_store[2],
-		       p_3 = DB.p_store[3];
-		       //p_2 = DB.p_store[4],
-		       //p_xy = DB.p_store[5],
-		       //p_3 = DB.p_store[6];
+		       p_3 = DB.p_store[3],
+		       p_4 = DB.p_store[4],
+		       p_5 = DB.p_store[5],
+		       p_6 = DB.p_store[6];
 
 		double u_0 = DB.u_store[0],
 		       u_1 = DB.u_store[1],
 		       u_2 = DB.u_store[2],
-		       u_3 = DB.u_store[3];
-		       //u_2 = DB.u_store[4],
-		       //u_xy = DB.u_store[5],
-		       //u_3 = DB.u_store[6];
+		       u_3 = DB.u_store[3],
+		       u_4 = DB.u_store[4],
+		       u_5 = DB.u_store[5],
+		       u_6 = DB.u_store[6];
 
 		double v_0 = DB.v_store[0],
 		       v_1 = DB.v_store[1],
 		       v_2 = DB.v_store[2],
-		       v_3 = DB.v_store[3];
-		       //v_2 = DB.v_store[4],
-		       //v_xy = DB.v_store[5],
-		       //v_3 = DB.v_store[6];
+		       v_3 = DB.v_store[3],
+		       v_4 = DB.v_store[4],
+		       v_5 = DB.v_store[5],
+		       v_6 = DB.v_store[6];
 
-		/*double f_0 = DB.f_store[0],
+		double RUVP[12];
+
+		if (MS == 1) {
+		//MMS1
+			for (size_t n = 0; n < Nn; n++) {
+				RUVP[0]  =  rho_0 + rho_1*sin(rho_2*X[n])+rho_3*sin(rho_4*Y[n])+rho_5*sin(rho_6*X[n]*Y[n]);
+				RUVP[1]  =  rho_1*rho_2*cos(rho_2*X[n])+rho_5*rho_6*Y[n]*cos(rho_6*X[n]*Y[n]);
+				RUVP[2]  =  rho_3*rho_4*cos(rho_4*Y[n])+rho_5*rho_6*X[n]*cos(rho_6*X[n]*Y[n]);
+				RUVP[3]  =  u_0 + u_1*sin(u_2*X[n])+u_3*sin(u_4*Y[n])+u_5*sin(u_6*X[n]*Y[n]);
+				RUVP[4]  =  u_1*u_2*cos(u_2*X[n])+u_5*u_6*Y[n]*cos(u_6*X[n]*Y[n]);
+				RUVP[5]  =  u_3*u_4*cos(u_4*Y[n])+u_5*u_6*X[n]*cos(u_6*X[n]*Y[n]);
+				RUVP[6]  =  v_0 + v_1*sin(v_2*X[n])+v_3*sin(v_4*Y[n])+v_5*sin(v_6*X[n]*Y[n]);
+				RUVP[7]  =  v_1*v_2*cos(v_2*X[n])+v_5*v_6*Y[n]*cos(v_6*X[n]*Y[n]);
+				RUVP[8]  =  v_3*v_4*cos(v_4*Y[n])+v_5*v_6*X[n]*cos(v_6*X[n]*Y[n]);
+				RUVP[9]  =  p_0 + p_1*sin(p_2*X[n])+p_3*sin(p_4*Y[n])+p_5*sin(p_6*X[n]*Y[n]);
+				RUVP[10]  = p_1*p_2*cos(p_2*X[n])+p_5*p_6*Y[n]*cos(p_6*X[n]*Y[n]);
+				RUVP[11]  = p_3*p_4*cos(p_4*Y[n])+p_5*p_6*X[n]*cos(p_6*X[n]*Y[n]);
+					for (size_t eq = 0; eq < Neq; eq++)
+						source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
+			}
+		} else if (MS == 2) {
+		//MMS2
+			for (size_t n = 0; n < Nn; n++) {
+				RUVP[0]  =  rho_0 + rho_1*sin(rho_2*X[n])+rho_3*cos(rho_4*Y[n])+rho_5*cos(rho_6*X[n]*Y[n]);
+				RUVP[1]  =  rho_1*rho_2*cos(rho_2*X[n])-rho_5*rho_6*Y[n]*sin(rho_6*X[n]*Y[n]);
+				RUVP[2]  =  -rho_3*rho_4*sin(rho_4*Y[n])-rho_5*rho_6*X[n]*sin(rho_6*X[n]*Y[n]);
+				RUVP[3]  =  u_0 + u_1*sin(u_2*X[n])+u_3*cos(u_4*Y[n])+u_5*cos(u_6*X[n]*Y[n]);
+				RUVP[4]  =  u_1*u_2*cos(u_2*X[n])-u_5*u_6*Y[n]*sin(u_6*X[n]*Y[n]);
+				RUVP[5]  =  -u_3*u_4*sin(u_4*Y[n])-u_5*u_6*X[n]*sin(u_6*X[n]*Y[n]);
+				RUVP[6]  =  v_0 + v_1*cos(v_2*X[n])+v_3*sin(v_4*Y[n])+v_5*cos(v_6*X[n]*Y[n]);
+				RUVP[7]  =  -v_1*v_2*sin(v_2*X[n])-v_5*v_6*Y[n]*sin(v_6*X[n]*Y[n]);
+				RUVP[8]  =  v_3*v_4*cos(v_4*Y[n])-v_5*v_6*X[n]*sin(v_6*X[n]*Y[n]);
+				RUVP[9]  =  p_0 + p_1*cos(p_2*X[n])+p_3*sin(p_4*Y[n])+p_5*sin(p_6*X[n]*Y[n]);
+				RUVP[10]  = -p_1*p_2*sin(p_2*X[n])+p_5*p_6*Y[n]*cos(p_6*X[n]*Y[n]);
+				RUVP[11]  = p_3*p_4*cos(p_4*Y[n])+p_5*p_6*X[n]*cos(p_6*X[n]*Y[n]);
+					for (size_t eq = 0; eq < Neq; eq++)
+						source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
+			}
+		} else if (MS == 3) {
+		//MMS3 (SLIPWALL)
+		double f_0 = DB.f_store[0],
 		       f_1 = DB.f_store[1],
 		       f_2 = DB.f_store[2],
 		       f_3 = DB.f_store[3],
 		       f_4 = DB.f_store[4],
 		       f_5 = DB.f_store[5],
-		       f_6 = DB.f_store[6];*/
+		       f_6 = DB.f_store[6];
 
-		/*double a = DB.geo_store[0],
+		double a = DB.geo_store[0],
 			   b = DB.geo_store[1],
-			   c = DB.geo_store[2];*/
+			   c = DB.geo_store[2];
 
-		double RUVP[12];
-
-		//MMS1
-		/*for (size_t n = 0; n < Nn; n++) {
-			RUVP[0]  =  rho_0 + rho_x*sin(rho_1*X[n])+rho_y*sin(rho_2*Y[n])+rho_xy*sin(rho_3*X[n]*Y[n]);
-			RUVP[1]  =  rho_x*rho_1*cos(rho_1*X[n])+rho_xy*rho_3*Y[n]*cos(rho_3*X[n]*Y[n]);
-			RUVP[2]  =  rho_y*rho_2*cos(rho_2*Y[n])+rho_xy*rho_3*X[n]*cos(rho_3*X[n]*Y[n]);
-			RUVP[3]  =  u_0 + u_x*sin(u_1*X[n])+u_y*sin(u_2*Y[n])+u_xy*sin(u_3*X[n]*Y[n]);
-			RUVP[4]  =  u_x*u_1*cos(u_1*X[n])+u_xy*u_3*Y[n]*cos(u_3*X[n]*Y[n]);
-			RUVP[5]  =  u_y*u_2*cos(u_2*Y[n])+u_xy*u_3*X[n]*cos(u_3*X[n]*Y[n]);
-			RUVP[6]  =  v_0 + v_x*sin(v_1*X[n])+v_y*sin(v_2*Y[n])+v_xy*sin(v_3*X[n]*Y[n]);
-			RUVP[7]  =  v_x*v_1*cos(v_1*X[n])+v_xy*v_3*Y[n]*cos(v_3*X[n]*Y[n]);
-			RUVP[8]  =  v_y*v_2*cos(v_2*Y[n])+v_xy*v_3*X[n]*cos(v_3*X[n]*Y[n]);
-			RUVP[9]  =  p_0 + p_x*sin(p_1*X[n])+p_y*sin(p_2*Y[n])+p_xy*sin(p_3*X[n]*Y[n]);
-			RUVP[10]  = p_x*p_1*cos(p_1*X[n])+p_xy*p_3*Y[n]*cos(p_3*X[n]*Y[n]);
-			RUVP[11]  = p_y*p_2*cos(p_2*Y[n])+p_xy*p_3*X[n]*cos(p_3*X[n]*Y[n]);
-				for (size_t eq = 0; eq < Neq; eq++)
-						source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
-		}*/
-
-		//MMS2
-		/*for (size_t n = 0; n < Nn; n++) {
-			RUVP[0]  =  rho_0 + rho_x*sin(rho_1*X[n])+rho_y*cos(rho_2*Y[n])+rho_xy*cos(rho_3*X[n]*Y[n]);
-			RUVP[1]  =  rho_x*rho_1*cos(rho_1*X[n])-rho_xy*rho_3*Y[n]*sin(rho_3*X[n]*Y[n]);
-			RUVP[2]  =  -rho_y*rho_2*sin(rho_2*Y[n])-rho_xy*rho_3*X[n]*sin(rho_3*X[n]*Y[n]);
-			RUVP[3]  =  u_0 + u_x*sin(u_1*X[n])+u_y*cos(u_2*Y[n])+u_xy*cos(u_3*X[n]*Y[n]);
-			RUVP[4]  =  u_x*u_1*cos(u_1*X[n])-u_xy*u_3*Y[n]*sin(u_3*X[n]*Y[n]);
-			RUVP[5]  =  -u_y*u_2*sin(u_2*Y[n])-u_xy*u_3*X[n]*sin(u_3*X[n]*Y[n]);
-			RUVP[6]  =  v_0 + v_x*cos(v_1*X[n])+v_y*sin(v_2*Y[n])+v_xy*cos(v_3*X[n]*Y[n]);
-			RUVP[7]  =  -v_x*v_1*sin(v_1*X[n])-v_xy*v_3*Y[n]*sin(v_3*X[n]*Y[n]);
-			RUVP[8]  =  v_y*v_2*cos(v_2*Y[n])-v_xy*v_3*X[n]*sin(v_3*X[n]*Y[n]);
-			RUVP[9]  =  p_0 + p_x*cos(p_1*X[n])+p_y*sin(p_2*Y[n])+p_xy*sin(p_3*X[n]*Y[n]);
-			RUVP[10]  = -p_x*p_1*sin(p_1*X[n])+p_xy*p_3*Y[n]*cos(p_3*X[n]*Y[n]);
-			RUVP[11]  = p_y*p_2*cos(p_2*Y[n])+p_xy*p_3*X[n]*cos(p_3*X[n]*Y[n]);
-				for (size_t eq = 0; eq < Neq; eq++)
-						source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
-		}*/
-
-		//MMS3(SLIPWALL)
-		/*for (size_t n = 0; n < Nn; n++) {
-			RUVP[0]  =  rho_0 + rho_x*sin(rho_1*X[n])+rho_y*sin(rho_2*Y[n])+rho_xy*sin(rho_3*X[n]*Y[n]);
-			RUVP[1]  =  rho_x*rho_1*cos(rho_1*X[n])+rho_xy*rho_3*Y[n]*cos(rho_3*X[n]*Y[n]);
-			RUVP[2]  =  rho_y*rho_2*cos(rho_2*Y[n])+rho_xy*rho_3*X[n]*cos(rho_3*X[n]*Y[n]);
-			RUVP[9]  =  p_0 + p_x*sin(p_1*X[n])+p_y*sin(p_2*Y[n])+p_xy*sin(p_3*X[n]*Y[n]);
-			RUVP[10]  = p_x*p_1*cos(p_1*X[n])+p_xy*p_3*Y[n]*cos(p_3*X[n]*Y[n]);
-			RUVP[11]  = p_y*p_2*cos(p_2*Y[n])+p_xy*p_3*X[n]*cos(p_3*X[n]*Y[n]);
+			for (size_t n = 0; n < Nn; n++) {
+				RUVP[0]  =  rho_0 + rho_1*sin(rho_2*X[n])+rho_3*sin(rho_4*Y[n])+rho_5*sin(rho_6*X[n]*Y[n]);
+				RUVP[1]  =  rho_1*rho_2*cos(rho_2*X[n])+rho_5*rho_6*Y[n]*cos(rho_6*X[n]*Y[n]);
+				RUVP[2]  =  rho_3*rho_4*cos(rho_4*Y[n])+rho_5*rho_6*X[n]*cos(rho_6*X[n]*Y[n]);
+				RUVP[9]  =  p_0 + p_1*sin(p_2*X[n])+p_3*sin(p_4*Y[n])+p_5*sin(p_6*X[n]*Y[n]);
+				RUVP[10]  = p_1*p_2*cos(p_2*X[n])+p_5*p_6*Y[n]*cos(p_6*X[n]*Y[n]);
+				RUVP[11]  = p_3*p_4*cos(p_4*Y[n])+p_5*p_6*X[n]*cos(p_6*X[n]*Y[n]);
 
 			//Domain transformations and partial derivatives of the transformations.
 			double const xi = (2/c)*X[n]-1,
@@ -657,190 +632,150 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 			RUVP[8] = v_a_y*v_b*v_c+v_a*v_b_y*v_c+v_a*v_b*v_c_y;
 				for (size_t eq = 0; eq < Neq; eq++)
 						source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
-		}*/
-
+			}
+		} else if (MS == 4) {
 		//MMS4
-		for (size_t n = 0; n < Nn; n++) {
-			RUVP[0]  =  rho_0 + rho_1*sin(rho_2*X[n])*cos(rho_3*Y[n]);
-			RUVP[1]  =  +rho_1*rho_2*cos(rho_2*X[n])*cos(rho_3*Y[n]);
-			RUVP[2]  =  -rho_1*rho_3*sin(rho_2*X[n])*sin(rho_3*Y[n]);
-//RUVP[0]  =  10.0+2.0*X[n]+3.0*pow(X[n],2.0)+3.0*pow(X[n],3.0);
-//RUVP[1]  =       2.0     +6.0*pow(X[n],1.0)+9.0*pow(X[n],2.0);
-//RUVP[2]  =  0.0;
-			RUVP[3]  =  u_0 + u_1*cos(u_2*X[n])*cos(u_3*Y[n]);
-			RUVP[4]  =  -u_1*u_2*cos(u_3*Y[n])*sin(u_2*X[n]);
-			RUVP[5]  =  -u_1*u_3*cos(u_2*X[n])*sin(u_3*Y[n]);
-			RUVP[6]  =  v_0 + v_1*cos(v_2*X[n])*cos(v_3*Y[n]);
-			RUVP[7]  =  -v_1*v_2*cos(v_3*Y[n])*sin(v_2*X[n]);
-			RUVP[8]  =  -v_1*v_3*cos(v_2*X[n])*sin(v_3*Y[n]);
-			RUVP[9]  =  p_0 + p_1*cos(p_2*X[n])*cos(p_3*Y[n]);
-			RUVP[10]  =  -p_1*p_2*cos(p_3*Y[n])*sin(p_2*X[n]);
-			RUVP[11]  =  -p_1*p_3*cos(p_2*X[n])*sin(p_3*Y[n]);
-				for (size_t eq = 0; eq < Neq; eq++)
+			for (size_t n = 0; n < Nn; n++) {
+				RUVP[0]  =  rho_0 + rho_1*cos(rho_2*X[n])*cos(rho_3*Y[n]) + rho_4*sin(rho_5*X[n])*cos(rho_6*Y[n]);
+				RUVP[1]  =  -rho_1*rho_2*sin(rho_2*X[n])*cos(rho_3*Y[n]) + rho_4*rho_5*cos(rho_5*X[n])*cos(rho_6*Y[n]);
+				RUVP[2]  =  -rho_1*rho_3*cos(rho_2*X[n])*sin(rho_3*Y[n]) - rho_4*rho_6*sin(rho_5*X[n])*sin(rho_6*Y[n]);
+				RUVP[3]  =  u_0 + u_1*cos(u_2*X[n])*cos(u_3*Y[n]) + u_4*sin(u_5*X[n])*cos(u_6*Y[n]);
+				RUVP[4]  =  -u_1*u_2*cos(u_3*Y[n])*sin(u_2*X[n]) + u_4*u_5*cos(u_5*X[n])*cos(u_6*Y[n]);
+				RUVP[5]  =  -u_1*u_3*cos(u_2*X[n])*sin(u_3*Y[n]) - u_4*u_6*sin(u_5*X[n])*sin(u_6*Y[n]);
+				RUVP[6]  =  v_0 + v_1*cos(v_2*X[n])*cos(v_3*Y[n]) + v_4*sin(v_5*X[n])*cos(v_6*Y[n]);
+				RUVP[7]  =  -v_1*v_2*cos(v_3*Y[n])*sin(v_2*X[n]) + v_4*v_5*cos(v_5*X[n])*cos(v_6*Y[n]);
+				RUVP[8]  =  -v_1*v_3*cos(v_2*X[n])*sin(v_3*Y[n]) - v_4*v_6*sin(v_5*X[n])*sin(v_6*Y[n]);
+				RUVP[9]  =  p_0 + p_1*cos(p_2*X[n])*cos(p_3*Y[n]) + p_4*sin(p_5*X[n])*cos(p_6*Y[n]);
+				RUVP[10]  =  -p_1*p_2*cos(p_3*Y[n])*sin(p_2*X[n]) + p_4*p_5*cos(p_5*X[n])*cos(p_6*Y[n]);
+				RUVP[11]  =  -p_1*p_3*cos(p_2*X[n])*sin(p_3*Y[n]) - p_4*p_6*sin(p_5*X[n])*sin(p_6*Y[n]);
+					for (size_t eq = 0; eq < Neq; eq++)
 						source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
+			}
+		} else {
+			printf("Not a valid manufactured solution\n");
+			EXIT_UNSUPPORTED;
 		}
 
 	} else if (strstr(TestCase,"ParabolicPipe")) {
-		if (d != 2)
-			EXIT_UNSUPPORTED;
+		int MS = DB.MMS;
 
 		double rho_0 = DB.rho_store[0],
-		       rho_x = DB.rho_store[1],
-		       rho_1 = DB.rho_store[2],
-		       rho_y = DB.rho_store[3],
-		       rho_2 = DB.rho_store[4],
-		       rho_xy = DB.rho_store[5],
-		       rho_3 = DB.rho_store[6];
+		       rho_1 = DB.rho_store[1],
+		       rho_2 = DB.rho_store[2],
+		       rho_3 = DB.rho_store[3],
+		       rho_4 = DB.rho_store[4],
+		       rho_5 = DB.rho_store[5],
+		       rho_6 = DB.rho_store[6];
 
 		double p_0 = DB.p_store[0],
-		       p_x = DB.p_store[1],
-		       p_1 = DB.p_store[2],
-		       p_y = DB.p_store[3],
-		       p_2 = DB.p_store[4],
-		       p_xy = DB.p_store[5],
-		       p_3 = DB.p_store[6];
+		       p_1 = DB.p_store[1],
+		       p_2 = DB.p_store[2],
+		       p_3 = DB.p_store[3],
+		       p_4 = DB.p_store[4],
+		       p_5 = DB.p_store[5],
+		       p_6 = DB.p_store[6];
 
 		double u_0 = DB.u_store[0],
-		       u_x = DB.u_store[1],
-		       u_1 = DB.u_store[2],
-		       u_y = DB.u_store[3],
-		       u_2 = DB.u_store[4],
-		       u_xy = DB.u_store[5],
-		       u_3 = DB.u_store[6];
+		       u_1 = DB.u_store[1],
+		       u_2 = DB.u_store[2],
+		       u_3 = DB.u_store[3],
+		       u_4 = DB.u_store[4],
+		       u_5 = DB.u_store[5],
+		       u_6 = DB.u_store[6];
 
 	 	double v_0 = DB.v_store[0],
-		       v_x = DB.v_store[1],
-		       v_1 = DB.v_store[2],
-		       v_y = DB.v_store[3],
-		       v_2 = DB.v_store[4],
-      	       v_xy = DB.v_store[5],
-		       v_3 = DB.v_store[6];
-
-		/*double a_1 = DB.geo_store[0],
-			   a_2 = DB.geo_store[1],
-			   b = DB.geo_store[2];*/
+		       v_1 = DB.v_store[1],
+		       v_2 = DB.v_store[2],
+		       v_3 = DB.v_store[3],
+		       v_4 = DB.v_store[4],
+      	       v_5 = DB.v_store[5],
+		       v_6 = DB.v_store[6];
 
 		double RUVP[12];
 
-		/*for (size_t n = 0; n < Nn; n++) {
-			RUVP[0]  =  rho_0 + rho_x*sin(rho_1*X[n])+rho_y*cos(rho_2*Y[n])+rho_xy*cos(rho_3*X[n]*Y[n]);
-			RUVP[1]  =  rho_x*rho_1*cos(rho_1*X[n])-rho_xy*rho_3*Y[n]*sin(rho_3*X[n]*Y[n]);
-			RUVP[2]  = -rho_y*rho_2*sin(rho_2*Y[n])-rho_xy*rho_3*X[n]*sin(rho_3*X[n]*Y[n]);
-			RUVP[3]  =  u_0 + u_x*sin(u_1*X[n])+u_y*cos(u_2*Y[n])+u_xy*cos(u_3*X[n]*Y[n]);
-			RUVP[4]  =  u_x*u_1*cos(u_1*X[n])-u_xy*u_3*Y[n]*sin(u_3*X[n]*Y[n]);
-			RUVP[5]  = -u_y*u_2*sin(u_2*Y[n])-u_xy*u_3*X[n]*sin(u_3*X[n]*Y[n]);
-			RUVP[6]  =  v_0 + v_x*cos(v_1*X[n])+v_y*sin(v_2*Y[n])+v_xy*cos(v_3*X[n]*Y[n]);
-			RUVP[7]  = -v_x*v_1*sin(v_1*X[n])-v_xy*v_3*Y[n]*sin(v_3*X[n]*Y[n]);
-			RUVP[8]  = v_y*v_2*cos(v_2*Y[n])-v_xy*v_3*X[n]*sin(v_3*X[n]*Y[n]);
-			RUVP[9]  =  p_0 + p_x*cos(p_1*X[n])+p_y*sin(p_2*Y[n])+p_xy*sin(p_3*X[n]*Y[n]);
-			RUVP[10]  = -p_x*p_1*sin(p_1*X[n])+p_xy*p_3*Y[n]*cos(p_3*X[n]*Y[n]);
-			RUVP[11]  = p_y*p_2*cos(p_2*Y[n])+p_xy*p_3*X[n]*cos(p_3*X[n]*Y[n]);
-				for (size_t eq = 0; eq < Neq; eq++)
+		if (MS == 2) {
+		//MMS2
+			for (size_t n = 0; n < Nn; n++) {
+				RUVP[0]  =  rho_0 + rho_1*sin(rho_2*X[n])+rho_3*cos(rho_4*Y[n])+rho_5*cos(rho_6*X[n]*Y[n]);
+				RUVP[1]  =  rho_1*rho_2*cos(rho_2*X[n])-rho_5*rho_6*Y[n]*sin(rho_6*X[n]*Y[n]);
+				RUVP[2]  = -rho_3*rho_4*sin(rho_4*Y[n])-rho_5*rho_6*X[n]*sin(rho_6*X[n]*Y[n]);
+				RUVP[3]  =  u_0 + u_1*sin(u_2*X[n])+u_3*cos(u_4*Y[n])+u_5*cos(u_6*X[n]*Y[n]);
+				RUVP[4]  =  u_1*u_2*cos(u_2*X[n])-u_5*u_6*Y[n]*sin(u_6*X[n]*Y[n]);
+				RUVP[5]  = -u_3*u_4*sin(u_4*Y[n])-u_5*u_6*X[n]*sin(u_6*X[n]*Y[n]);
+				RUVP[6]  =  v_0 + v_1*cos(v_2*X[n])+v_3*sin(v_4*Y[n])+v_5*cos(v_6*X[n]*Y[n]);
+				RUVP[7]  = -v_1*v_2*sin(v_2*X[n])-v_5*v_6*Y[n]*sin(v_6*X[n]*Y[n]);
+				RUVP[8]  = v_3*v_4*cos(v_4*Y[n])-v_5*v_6*X[n]*sin(v_6*X[n]*Y[n]);
+				RUVP[9]  =  p_0 + p_1*cos(p_2*X[n])+p_3*sin(p_4*Y[n])+p_5*sin(p_6*X[n]*Y[n]);
+				RUVP[10]  = -p_1*p_2*sin(p_2*X[n])+p_5*p_6*Y[n]*cos(p_6*X[n]*Y[n]);
+				RUVP[11]  = p_3*p_4*cos(p_4*Y[n])+p_5*p_6*X[n]*cos(p_6*X[n]*Y[n]);
+					for (size_t eq = 0; eq < Neq; eq++)
 						source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
-		}*/
+			}
+		} else if (MS == 1) {
+		//MMS1
+			for (size_t n = 0; n < Nn; n++) {
+				RUVP[0]  =  rho_0 + rho_1*sin(rho_2*X[n])+rho_3*sin(rho_4*Y[n])+rho_5*sin(rho_6*X[n]*Y[n]);
+				RUVP[1]  =  rho_1*rho_2*cos(rho_2*X[n])+rho_5*rho_6*Y[n]*cos(rho_6*X[n]*Y[n]);
+				RUVP[2]  =  rho_3*rho_4*cos(rho_4*Y[n])+rho_5*rho_6*X[n]*cos(rho_6*X[n]*Y[n]);
+				RUVP[3]  =  u_0 + u_1*sin(u_2*X[n])+u_3*sin(u_4*Y[n])+u_5*sin(u_6*X[n]*Y[n]);
+				RUVP[4]  =  u_1*u_2*cos(u_2*X[n])+u_5*u_6*Y[n]*cos(u_6*X[n]*Y[n]);
+				RUVP[5]  =  u_3*u_4*cos(u_4*Y[n])+u_5*u_6*X[n]*cos(u_6*X[n]*Y[n]);
+				RUVP[6]  =  v_0 + v_1*sin(v_2*X[n])+v_3*sin(v_4*Y[n])+v_5*sin(v_6*X[n]*Y[n]);
+				RUVP[7]  =  v_1*v_2*cos(v_2*X[n])+v_5*v_6*Y[n]*cos(v_6*X[n]*Y[n]);
+				RUVP[8]  =  v_3*v_4*cos(v_4*Y[n])+v_5*v_6*X[n]*cos(v_6*X[n]*Y[n]);
+				RUVP[9]  =  p_0 + p_1*sin(p_2*X[n])+p_3*sin(p_4*Y[n])+p_5*sin(p_6*X[n]*Y[n]);
+				RUVP[10]  = p_1*p_2*cos(p_2*X[n])+p_5*p_6*Y[n]*cos(p_6*X[n]*Y[n]);
+				RUVP[11]  = p_3*p_4*cos(p_4*Y[n])+p_5*p_6*X[n]*cos(p_6*X[n]*Y[n]);
+					for (size_t eq = 0; eq < Neq; eq++)
+						source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
+			}
+		} else if (MS == 3) {
+		//MMS3
+			double a_1 = DB.geo_store[0],
+				   a_2 = DB.geo_store[1],
+				   b = DB.geo_store[2];
 
-		for (size_t n = 0; n < Nn; n++) {
-			RUVP[0]  =  rho_0 + rho_x*sin(rho_1*X[n])+rho_y*sin(rho_2*Y[n])+rho_xy*sin(rho_3*X[n]*Y[n]);
-			RUVP[1]  =  rho_x*rho_1*cos(rho_1*X[n])+rho_xy*rho_3*Y[n]*cos(rho_3*X[n]*Y[n]);
-			RUVP[2]  =  rho_y*rho_2*cos(rho_2*Y[n])+rho_xy*rho_3*X[n]*cos(rho_3*X[n]*Y[n]);
-			RUVP[3]  =  u_0 + u_x*sin(u_1*X[n])+u_y*sin(u_2*Y[n])+u_xy*sin(u_3*X[n]*Y[n]);
-			RUVP[4]  =  u_x*u_1*cos(u_1*X[n])+u_xy*u_3*Y[n]*cos(u_3*X[n]*Y[n]);
-			RUVP[5]  =  u_y*u_2*cos(u_2*Y[n])+u_xy*u_3*X[n]*cos(u_3*X[n]*Y[n]);
-			RUVP[6]  =  v_0 + v_x*sin(v_1*X[n])+v_y*sin(v_2*Y[n])+v_xy*sin(v_3*X[n]*Y[n]);
-			RUVP[7]  =  v_x*v_1*cos(v_1*X[n])+v_xy*v_3*Y[n]*cos(v_3*X[n]*Y[n]);
-			RUVP[8]  =  v_y*v_2*cos(v_2*Y[n])+v_xy*v_3*X[n]*cos(v_3*X[n]*Y[n]);
-			RUVP[9]  =  p_0 + p_x*sin(p_1*X[n])+p_y*sin(p_2*Y[n])+p_xy*sin(p_3*X[n]*Y[n]);
-			RUVP[10]  = p_x*p_1*cos(p_1*X[n])+p_xy*p_3*Y[n]*cos(p_3*X[n]*Y[n]);
-			RUVP[11]  = p_y*p_2*cos(p_2*Y[n])+p_xy*p_3*X[n]*cos(p_3*X[n]*Y[n]);
-				for (size_t eq = 0; eq < Neq; eq++)
+			for (size_t n = 0; n < Nn; n++) {
+
+				double const xi = 2*sqrt(b/a_1)*X[n]-1, //The domain transformations and their partial derivatives
+							 eta = (2*Y[n]+2*b*X[n]*X[n]-a_1-a_2)/(a_2-a_1),
+							 xi_x = 2*sqrt(b/a_1),
+				   			 eta_x = (4*b*X[n])/(a_2-a_1),
+							 xi_y = 0,
+						 	eta_y = 2/(a_2-a_1);
+
+				RUVP[0] = rho_0 + rho_1*sin(rho_2*(xi+rho_3))+rho_4*sin(rho_5*(eta+rho_6));
+				RUVP[3] = u_0 + u_1*sin(u_2*(xi+u_3))+u_4*sin(u_5*(eta+u_6));
+				RUVP[6] = v_0 + v_1*sin(v_2*(xi+v_3))+v_4*sin(v_5*(eta+v_6));
+				RUVP[9] = p_0 + p_1*sin(p_2*(xi+p_3))+p_4*sin(p_5*(eta+p_6));
+
+				double const rho_xi = rho_1*rho_2*cos(rho_2*(xi+rho_3)),
+							 rho_eta = rho_4*rho_5*cos(rho_5*(eta+rho_6)),
+						   	 u_xi = u_1*u_2*cos(u_2*(xi+u_3)),
+							 u_eta = u_4*u_5*cos(u_5*(eta+u_6)),
+					   		 v_xi = v_1*v_2*cos(v_2*(xi+v_3)),
+						 	v_eta = v_4*v_5*cos(v_5*(eta+v_6)),
+					   	 	p_xi = p_1*p_2*cos(p_2*(xi+p_3)),
+						 	p_eta = p_4*p_5*cos(p_5*(eta+p_6));
+
+				RUVP[1] = rho_xi*xi_x + rho_eta*eta_x;
+				RUVP[2] = rho_xi*xi_y + rho_eta*eta_y;
+				RUVP[4] = u_xi*xi_x + u_eta*eta_x;
+				RUVP[5] = u_xi*xi_y + u_eta*eta_y;
+				RUVP[7] = v_xi*xi_x + v_eta*eta_x;
+				RUVP[8] = v_xi*xi_y + v_eta*eta_y;
+				RUVP[10] = p_xi*xi_x + p_eta*eta_x;
+				RUVP[11] = p_xi*xi_y + p_eta*eta_y;
+
+					for (size_t eq = 0; eq < Neq; eq++)
 						source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
+			}
+		} else {
+			printf("Not a valid manufactured solution\n");
+			EXIT_UNSUPPORTED;
 		}
 
-		/*for (size_t n = 0; n < Nn; n++) {
-
-			double const xi = 2*sqrt(b/a_1)*X[n]-1,
-						 eta = (2*Y[n]+2*b*X[n]*X[n]-a_1-a_2)/(a_2-a_1),
-						 xi_x = 2*sqrt(b/a_1),
-				   		 eta_x = (4*b*X[n])/(a_2-a_1),
-						 xi_y = 0,
-						 eta_y = 2/(a_2-a_1);
-
-			RUVP[0] = rho_0 + rho_1*sin(rho_2*(xi+rho_3))+rho_4*sin(rho_5*(eta+rho_6));
-			RUVP[3] = u_0 + u_1*sin(u_2*(xi+u_3))+u_4*sin(u_5*(eta+u_6));
-			RUVP[6] = v_0 + v_1*sin(v_2*(xi+v_3))+v_4*sin(v_5*(eta+v_6));
-			RUVP[9] = p_0 + p_1*sin(p_2*(xi+p_3))+p_4*sin(p_5*(eta+p_6));
-
-			double const rho_xi = rho_1*rho_2*cos(rho_2*(xi+rho_3)),
-						 rho_eta = rho_4*rho_5*cos(rho_5*(eta+rho_6)),
-					   	 u_xi = u_1*u_2*cos(u_2*(xi+u_3)),
-						 u_eta = u_4*u_5*cos(u_5*(eta+u_6)),
-					   	 v_xi = v_1*v_2*cos(v_2*(xi+v_3)),
-						 v_eta = v_4*v_5*cos(v_5*(eta+v_6)),
-					   	 p_xi = p_1*p_2*cos(p_2*(xi+p_3)),
-						 p_eta = p_4*p_5*cos(p_5*(eta+p_6));
-
-			RUVP[1] = rho_xi*xi_x + rho_eta*eta_x;
-			RUVP[2] = rho_xi*xi_y + rho_eta*eta_y;
-			RUVP[4] = u_xi*xi_x + u_eta*eta_x;
-			RUVP[5] = u_xi*xi_y + u_eta*eta_y;
-			RUVP[7] = v_xi*xi_x + v_eta*eta_x;
-			RUVP[8] = v_xi*xi_y + v_eta*eta_y;
-			RUVP[10] = p_xi*xi_x + p_eta*eta_x;
-			RUVP[11] = p_xi*xi_y + p_eta*eta_y;
-
-				for (size_t eq = 0; eq < Neq; eq++)
-						source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
-		}*/
-
-
-	} else if (strstr(TestCase,"SinusoidalPipe")) {
-
-             if (d == 2) {
-                                double rho_0 = DB.rho_store[0],
-                                       rho_x = DB.rho_store[1],
-                                       rho_1 = DB.rho_store[2],
-                                       rho_y = DB.rho_store[3],
-                                       rho_2 = DB.rho_store[4];
-
-                                double p_0 = DB.p_store[0],
-                                       p_x = DB.p_store[1],
-                                       p_1 = DB.p_store[2],
-                                       p_y = DB.p_store[3],
-                                       p_2 = DB.p_store[4];
-
-                                double w_0 = DB.w_store[0],
-                                       w_x = DB.w_store[1],
-                                       w_1 = DB.w_store[2],
-                                       w_y = DB.w_store[3],
-                                       w_2 = DB.w_store[4];
-
-                                double a = 2,  b = PI/2;
-
-                                double RUVP[12];
-
-
-                   for (eq = 0; eq < Neq; eq++) {
-                           for(n = 0; n < Nn; n++) {
-                                    *(RUVP) = rho_0 + rho_x*sin(rho_1*X[n])+rho_y*cos(rho_2*Y[n]);
-                                    *(RUVP+1) =  rho_1*rho_x*cos(rho_1*X[n]);
-                                    *(RUVP+2) = -rho_2*rho_y*sin(rho_2*Y[n]);
-                                    *(RUVP+3) = w_0+w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n]);
-                                    *(RUVP+4) = w_1*w_x*cos(w_1*X[n]);
-                                    *(RUVP+5) = -w_2*w_y*sin(w_2*Y[n]);
-                                    *(RUVP+6) = (w_0+w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n]))*(-a*b*sin(b*X[n]));
-                                    *(RUVP+7) = -a*b*sin(b*X[n])*(w_1*w_x*cos(w_1*X[n]))-a*pow(b,2)*cos(b*X[n])*(w_0+w_x*sin(w_1*X[n])+w_y*cos(w_2*Y[n]));
-                                    *(RUVP+8) = a*b*sin(b*X[n])*w_y*w_2*sin(w_2*Y[n]);
-                                    *(RUVP+9) = p_0 + p_x*cos(p_1*X[n])+p_y*sin(p_2*Y[n]);
-                                    *(RUVP+10) = -p_1*p_x*sin(p_1*X[n]);
-                                    *(RUVP+11) = p_2*p_y*cos(p_2*Y[n]);
-                                     source[eq*Nn+n] = generate_Euler_source(eq+1, RUVP);
-                           }
-                   }
-             } else
-                   EXIT_UNSUPPORTED;
-
-
-       } else {
+	} else {
 		EXIT_UNSUPPORTED;
 	}
 }
