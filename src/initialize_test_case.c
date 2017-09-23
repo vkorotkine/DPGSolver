@@ -498,9 +498,6 @@ void initialize_test_case_parameters(void)
 		EXIT_UNSUPPORTED;
 	}
 
-	// MSB : Set the solver type here (implict / explicit)
-	//strcpy(DB.SolverType, "Explicit");
-
 	if (strstr(DB.SolverType,"Implicit"))
 		DB.FinalTime = 1e10;
 

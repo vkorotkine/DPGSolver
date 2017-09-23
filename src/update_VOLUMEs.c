@@ -50,16 +50,6 @@ struct S_OPERATORS {
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndEType_h)
 {
-	/*
-	Get the operators that are needed to work with this volume and its
-	element type
-
-	:param OPS : Struct that will hold all the operators and their properties
-	:param VOLUME : Pointer to the volume struct to generate operators for
-	:param IndEType_h: Integer related to the element type
-
-	:return : - 
-	*/
 
 	unsigned int P, PNew, type, curved;
 	struct S_ELEMENT *ELEMENT;
@@ -90,9 +80,6 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 		OPS->w_vI    = ELEMENT->w_vIs[P];
 		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P][0];
 	} else {
-
-		// For our case (Bezier case), we fall
-		// into the curved mesh case.
 
 		OPS->NvnI  = ELEMENT->NvnIc[P];
 
@@ -558,10 +545,6 @@ void update_VOLUME_hp(void)
 				XYZ_vV = VOLUME->XYZ_vV;
 				XYZ_S  = malloc(NvnGc[0]*NCols * sizeof *XYZ_S); // keep
 
-				// Get the new locations for the solution nodes. XYZ_vV is the vector
-				// with the vertices for the element. NvnGs is for the base mesh that
-				// we are using to interpolate from. It is a P = 1 mesh (so only vertices
-				// are needed).
 				mm_CTN_d(NvnGc[0],NCols,NvnGs[0],I_vGs_vGc[0],XYZ_vV,XYZ_S);
 
 				free(VOLUME->XYZ_S);
@@ -1108,11 +1091,6 @@ void compute_inverse_mass(struct S_VOLUME *VOLUME)
 				*wdetJVChiS_vI_ptr++ *= *wdetJV_vI_ptr;
 			wdetJV_vI_ptr++;
 		}
-
-
-		// Print the ChiS_vI matrix
-		//printf("ChiS_vI : \n");
-		//array_print_d(NvnS, NvnI, ChiS_vI, 'R');
 
 		M    = mm_Alloc_d(CBRM,CBT,CBNT,NvnS,NvnS,NvnI,1.0,ChiS_vI,wdetJVChiS_vI); // free
 		IS   = identity_d(NvnS);                                                   // free

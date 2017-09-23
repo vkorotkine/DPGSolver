@@ -677,44 +677,22 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	NvnGs[1] = CUBDATA->Nn;
 
 	// Use E_rst_vV instead of rst_vGs (!= for PYR ELEMENTs)
-
-	// E_rst_vV gives the coordinates on the computational domain
-	// for the vertices of the given element. For instance, for the line, it will be -1 to 1.
-	// For the Quad, we have the corners of the square centered at 0,0 of side length 2.
 	E_rst_vV = get_rst_vV(ELEMENT); // free
 	rst_vV = malloc((Nve+1)*dE * sizeof *rst_vV); // free (+1 for h-refined TET -> PYR) ToBeModified (remove +1)
-
-	// Within the code, PGs = 1.
-	// PGs = 1 (In the code)
 
 	// Preliminary Operators
 	IGs = identity_d(NvnGs[1]); // free
 
-	// The nodal coordinates at which we are computing the basis function are the corners of the
-	// element (the vertices). PGs = 1 so we are computing the value of the P = 1 basis functions
-	// at the vertices of the element (Note, NvnGs[1] because we are subbing in P = 1 in the
-	// index of the array to get the number of volume nodes for geometry for the straight
-	// element.)
 	ChiRefGs_vGs = basis(PGs,E_rst_vV,NvnGs[1],&Nbf,dE); // free
 
-	// As expected, the nodal basis is identity (nodal basis functions are defined to be 1
-	// at their values, and for P = 1, they will be 1 at the vertex and 0 everywhere else).
-	// Store the value for this operator in the ChiGs_vGs operator (general operator for nodal
-	// and modal case). 
-	// What does this operator mean (how do we read it?):
-	//	- Chi of type geomery for the straight element evaluated at the 
-	//		volume nodes of type geoemtry for the straight element.
 	if (strstr(BasisType,"Modal"))
 		ChiGs_vGs = ChiRefGs_vGs;
 	else if (strstr(BasisType,"Nodal"))
 		ChiGs_vGs = IGs;
 
-	// Compute the inverse of the operator just computed
 	ChiRefInvGs_vGs       = inverse_d(NvnGs[1],NvnGs[1],ChiRefGs_vGs,IGs); // free
 	ChiInvGs_vGs[1][1][0] = inverse_d(NvnGs[1],NvnGs[1],ChiGs_vGs,IGs);    // keep
 
-	// Compute the T operator, which is defined as ChiInv * Chi. This is the case for P = 1 so
-	// that is why the index is 1 in the TGs array.
 	TGs[1][1][0]          = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGs[1],NvnGs[1],NvnGs[1],1.0,ChiRefInvGs_vGs,ChiGs_vGs); // keep
 
 	free(IGs);

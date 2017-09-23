@@ -697,7 +697,6 @@ static void setup_parameters_L2proj_DG(void)
 
 	for (P = 0; P <= PMax; P++) {
 		// Geometry
-		// 
 		PGc[P]    = max(P+PG_add,u1);
 //		PGc[P]    = max(P+PG_add,(unsigned int) 2);
 //		PGc[P]    = 1;

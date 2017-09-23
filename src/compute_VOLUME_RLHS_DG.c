@@ -124,33 +124,19 @@ static void compute_Inviscid_VOLUME_EFE (const struct S_solver_info*const solver
 	if (strstr(DB.Form,"Weak")) {
 		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			init_VDATA(VDATA,VOLUME);
-
-			// Obtain W_vI
 			unsigned int NvnI = VDATA->OPS[0]->NvnI;
 			if (DB.Collocated) {
-				// If collocated, then the value of WHat is also the value at the integration
-				// nodes (solution nodes is the same as integration nodes)
 				VDATA->W_vI = VOLUME->What;
 			} else {
-				// Manage the memory by allocating here (malloc)
 				manage_solver_memory(DATA,'A','W'); // free
-				// Here, use What and ChiS_vI (Chi evaluated at the volume 
-				// integration points) to find W at the volume integration points.
 				coef_to_values_vI(VDATA,'W');
 			}
 
-			// Allocate memory for the solver between time steps. This will
-			// allocate the memoey needed for the arrays that will hold the
-			// numerical flux. 
-			
-			// Compute Flux and its Jacobian in reference space
 			manage_solver_memory(DATA,'A','I'); // free
 
 			if (DB.PDE_index == PDE_ADVECTION)
 				manage_solver_memory(DATA,'A','X'); // free
 
-			// For implicit solver, will compute Jacobian of Euler Flux at the 
-			// integration node points (find the matrix at each point)
 			compute_flux_inviscid(VDATA,FLUXDATA,imex_type);
 
 			if (!DB.Collocated)
@@ -159,11 +145,8 @@ static void compute_Inviscid_VOLUME_EFE (const struct S_solver_info*const solver
 			if (DB.PDE_index == PDE_ADVECTION)
 				manage_solver_memory(DATA,'F','X');
 
-			// Convert to reference space
 			convert_between_rp(NvnI,Neq,VOLUME->C_vI,FLUXDATA->F,FLUXDATA->Fr,"FluxToRef");
-			// Here, the Jacobian matrix is being transferred to the reference space. Look into this
-			// more because transformation between physical and reference space using the metric terms
-			// is done for the vector. Here we are transforming a matrix.
+
 			if (imex_type == 'I')
 				convert_between_rp(NvnI,Nvar*Neq,VOLUME->C_vI,FLUXDATA->dFdW,FLUXDATA->dFrdW,"FluxToRef");
 

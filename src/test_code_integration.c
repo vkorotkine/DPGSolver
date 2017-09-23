@@ -164,8 +164,6 @@ void code_startup(int const nargc, char const *const *const argv, unsigned int c
 
 	initialize_test_case(Nref);
 	
-	printf("*************  SUCCESS (code_startup)   ************* \n");
-
 	if (update_argv == 2)
 		mesh_to_level(TestDB.ML);
 }

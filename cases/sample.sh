@@ -23,10 +23,9 @@ LOGFILE=""
 #LOGFILE=" > logfile"
 
 # Specify the path to the mpi executable (mpiexec)
-#MPI_DIR="/Users/philip/Desktop/research_codes/petsc/petsc-3.7.4/arch-osx-mpich-c-opt/bin/"
+MPI_DIR="/Users/philip/Desktop/research_codes/petsc/petsc-3.7.4/arch-osx-mpich-c-opt/bin/"
 #MPI_DIR=""
-PROG_DIR="/Users/jm-034232/Research_Codes"
-MPI_DIR="${PROG_DIR}/petsc-3.7.6/arch-osx-mpich-c-opt/bin/"
+
 
 # Specify whether the code should be run using valgrind and choose your options
 USE_VALGRIND="0"

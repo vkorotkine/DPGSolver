@@ -313,9 +313,6 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 				printf("Error: Unsupported TestCase for the ToBeCurved MeshType.\n"), EXIT_MSG;
 			}
 
-			// Set correctTBC to equal 0 in the location where the node points
-			// are loaded in
-
 			// Correct internal VOLUME geometry coordinates using blending
 			if (nG == 1 && correctTBC && VOLUME->Eclass != C_WEDGE && VOLUME->Eclass != C_PYR)
 				correct_ToBeCurved(VOLUME);

@@ -307,10 +307,6 @@ double *compute_Dxyz_strong (struct S_Dxyz *DxyzInfo, unsigned int d)
 void init_ops_VOLUME(struct S_OPERATORS_V *const OPS, struct S_VOLUME const *const VOLUME, unsigned int const IndClass)
 {
 
-	// Implement the NURBS basis functions here to do the testing. Call an external function here
-	// by replacing the elements in ChiS_vI, ...
-	// Find the ordering and hard code it maybe into the code.
-
 	unsigned int const P      = VOLUME->P,
 	                   Eclass = VOLUME->Eclass,
 	                   *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
@@ -451,8 +447,6 @@ void compute_flux_inviscid(struct S_VDATA *const VDATA, struct S_FLUX *const FLU
 	unsigned int const d    = DB.d,
 	                   NvnI = VDATA->OPS[0]->NvnI;
 
-	// VDATA->W_vI is the value of the solution vector at the integration nodes
-	// on the element.
 	FLUXDATA->Nn = NvnI;
 	FLUXDATA->W  = VDATA->W_vI;
 
@@ -637,7 +631,7 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 		                   Nvar = DB.Nvar;
 
 		double const *Ar_vI_ptr[d];
-		// Store a pointer to the flux jacobian matrices
+
 		for (size_t dim = 0; dim < d; dim++)
 			Ar_vI_ptr[dim] = &Ar_vI[Nvar*Neq*NvnI*dim];
 
@@ -685,36 +679,10 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 
 			double *const DAr_vI = malloc(NvnS*NvnI * sizeof *DAr_vI); // free
 			for (size_t eq = 0; eq < Neq; eq++) {
-				// Loop over the rows (equations)
 			for (size_t var = 0; var < Nvar; var++) {
-				// Loop over the variables in this equation.
 				size_t const IndAr = (eq*Nvar+var)*NvnI;
 
 				set_to_zero_d(NvnS*NvnI,DAr_vI);
-
-				/*
-				Format of arguments of mm_diag_d
-					NRows = NvnS
-					NCols = NvnI
-					a = Ar_vI_ptr
-					A = D
-					Output = DAr_vI
-					alpha = 1.0
-					beta = 1.0
-					side = 'R'
-					layout = 'R'
-
-				What is computed in function:
-					Output_ij = alpha (alpha = 1.0) * a_j * A_ij
-				*/
-
-				// I believe D[dim] is such that each dim value is for each 
-				// dimension (dim = 0 is partial with respect to x and dim = 2 
-				// will be partial with respect to y). Once again, Ar_vI holds pointers
-				// to the entries in the Jacobian matrices. When setting an eq and a var
-				// value, then we still have a dim option (can be in A or B matrix). When 
-				// the dim value is set last, we are at one entry in one of the matrices. 
-				// There are NvnI of these entries for each integration node. 
 
 				for (size_t dim = 0; dim < d; dim++)
 					mm_diag_d(NvnS,NvnI,&Ar_vI_ptr[dim][IndAr],D[dim],DAr_vI,1.0,1.0,'R','R');

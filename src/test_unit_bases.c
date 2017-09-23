@@ -1113,15 +1113,6 @@ static double *basis_TP13_Bezier(const double *rst, const unsigned int Nn)
 
 	ChiBez_rst = malloc(Nn*Nbf * sizeof *ChiBez_rst); // keep (requires external free)
 
-	/*
-	From here, we can determine the ordering in which the Bezier polynomials are 
-	computed for the matrices.
-
-	Nn = The number of nodes we are computing the polynomials at. 
-	Nbf = The number of Bezier basis functions
-
-	*/
-
 	for (n = 0; n < Nn; n++) {
 		double r, b0, b1;
 

@@ -64,7 +64,7 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 	data->Adapt = ADAPT_0;
 	//data->Adapt = ADAPT_HP;
 
-	data->PMin  = 1;
+	data->PMin  = 3;
 	data->PMax  = 3;
 	data->MLMin = 0;
 	data->MLMax = 3;
@@ -302,44 +302,6 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 	}
 }
 
-static void outputOperatorsValidation(){
-
-	/*
-	Output the critical operators for each volume to ensure that everything
-	was set up correctly using the Bezier basis.
-	*/
-
-	printf("VALIDATE : \n");
-
-	struct S_VOLUME *VOLUME;
-	unsigned int i, j;	
-
-	// 1) Test metric terms at integration nodes
-	for(VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next){
-		printf("\nVOLUME:\n ");
-		printf("	- Metrics : \n");
-		for (i = 0; i < VOLUME->NvnG; i++){
-			for (j = 0; j < DB.d*DB.d; j++){
-				printf("%.14e ", VOLUME->C_vI[j*VOLUME->NvnG + i]);
-			}
-			printf("\n");
-		}
-
-		//array_print_d(VOLUME->NvnG, 4, VOLUME->C_vI, 'C');
-		
-		printf("	- Jacobian : \n");
-		for (i = 0; i < VOLUME->NvnG; i++){
-			printf("%.14e\n", VOLUME->detJV_vI[i]);
-		}
-		//array_print_d(VOLUME->NvnG, 1, VOLUME->detJV_vI, 'C');
-
-		printf("	- Inverse Mass Matrix : \n");
-		array_print_d(VOLUME->NvnG, VOLUME->NvnG, VOLUME->MInv, 'C');
-
-	}
-
-}
-
 void test_conv_order(struct S_convorder *const data, char const *const TestName)
 {
 	/*
@@ -427,12 +389,6 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 				solver_implicit(PrintEnabled);
 			}
 
-			// Perform tests here to make sure the Bezier information is being loaded properly
-			// Since only the Explicit form of the equations was implemented, only this can
-			// be tested here when comparing operators.
-			// Validate the code operators to compare with IGA-DG version
-			if(0)
-				outputOperatorsValidation();
 
 		} else {
 			EXIT_UNSUPPORTED;
@@ -456,7 +412,6 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 
 		//if (P == PMin)
 		//	evaluate_mesh_regularity(&mesh_quality[ML-MLMin]);
-
 
 		if (P == PMax && ML == MLMax) {
 			check_convergence_orders(MLMin,MLMax,PMin,PMax,&pass,PrintEnabled);

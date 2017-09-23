@@ -159,7 +159,6 @@ void gmsh_reader(void)
 	if ((fID = fopen(MeshFile,"r")) == NULL)
 		printf("Mesh file: %s not present.\n",MeshFile), EXIT_MSG;
 
-	// Find NVe, NETotal, BezuerXYZ_Hat_len (if it exists)
 	while (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 		if (strstr(StringRead,"$Nodes")) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1)

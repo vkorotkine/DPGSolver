@@ -292,7 +292,7 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 		} else if (strstr(TestCase,"GaussianBump")) {
 //			printf("Using default value for timestepping parameters.\n");
 			data->dt         = 5e-1;
-			data->exit_tol   = 5e-5;
+			data->exit_tol   = 6e-5;
 			data->exit_ratio = 1.0/EPS;
 		} else {
 			EXIT_UNSUPPORTED;

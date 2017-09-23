@@ -156,7 +156,6 @@ void set_MeshFile(int const PMesh)
 		strcat(DB.MeshFile,"P");
 		strcat(DB.MeshFile,P);
 
-		// Finally, add trailing underscore	
 		strcat(DB.MeshFile, "_");
 	}
 

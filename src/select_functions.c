@@ -37,7 +37,6 @@ void select_functions(basis_tdef *basis, grad_basis_tdef *grad_basis, cubature_t
 		*cubature   = cubature_TP;
 
 		if(DB.BezierBasis){
-			// Bezier basis functions are requested
 			*basis      = basis_TP_Bezier;
 			*grad_basis = grad_basis_TP_Bezier;
 		}
@@ -76,7 +75,6 @@ void select_functions_basis(basis_tdef *basis, const unsigned int type)
 		*basis      = basis_TP;
 
 		if(DB.BezierBasis){
-			// Bezier basis functions are requested
 			*basis      = basis_TP_Bezier;
 		}
 
@@ -106,7 +104,6 @@ void select_functions_grad_basis(grad_basis_tdef *grad_basis, const unsigned int
 		*grad_basis = grad_basis_TP;
 
 		if(DB.BezierBasis){
-			// Bezier basis functions are requested
 			*grad_basis = grad_basis_TP_Bezier;
 		}
 
