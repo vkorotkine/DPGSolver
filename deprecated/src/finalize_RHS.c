@@ -79,8 +79,6 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 
 static void add_source(const struct S_VOLUME *VOLUME)
 {
-// Potential different treatment for Poisson and Euler equations -> Investigate (ToBeDeleted).
-
 	// Initialize DB Parameters
 	unsigned int d   = DB.d,
 	             Neq = DB.Neq;

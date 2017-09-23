@@ -486,7 +486,6 @@ void compute_source(const unsigned int Nn, const double *XYZ, double *source)
 					source[eq*Nn+n] = -3.0*PI*PI*sin(PI*X[n])*sin(PI*Y[n])*sin(PI*Z[n]);
 				else
 					EXIT_UNSUPPORTED;
-				source[eq*Nn+n] *= -1.0; // Conflict between source term treatment for Euler and Poisson (ToBeDeleted)
 			}
 		}
 	} else if (strstr(TestCase,"EllipticPipe")) {

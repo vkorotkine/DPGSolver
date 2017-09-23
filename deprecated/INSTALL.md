@@ -35,6 +35,7 @@ Last tested: 2017/05/18
 		cc = $(PATH_TO_MPICC)/mpicc
 		cxx = $(PATH_TO_MPICXX)/mpicxx
 		debug = 0 or 1 (choose one)
+		prefix = full_path_to/BUILDDIR
 		BUILDDIR = build/your_build_name
 		```
 	- Follow make instructions (elaborated in Install.txt/BUILD.txt):

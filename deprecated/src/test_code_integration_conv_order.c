@@ -62,7 +62,6 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 
 	// default values
 	data->PrintEnabled   = 0;
-data->PrintEnabled   = 1;
 	data->Compute_L2proj = 0;
 	data->SolveExplicit  = 1;
 	data->SolveImplicit  = 1;
@@ -75,7 +74,7 @@ data->PrintEnabled   = 1;
 	data->MLMax = 3;
 
 	data->PG_add        = 1;
-	data->IntOrder_add  = 2;
+	data->IntOrder_add  = 0;
 	data->IntOrder_mult = 2;
 
 	strcpy(data->argvNew[1],TestName);
@@ -93,8 +92,6 @@ data->PrintEnabled   = 1;
 		data->SolveExplicit = 0;
 		data->AdaptiveRefine = 0;
 		data->MLMax = 4;
-data->PMax = 1;
-data->MLMax = 0;
 		data->PG_add        = 0;
 		data->IntOrder_add  = 2; // See comments
 		if (strstr(TestName,"n-Cube")) {
@@ -270,7 +267,7 @@ data->MLMax = 0;
 				} else if (strstr(TestName,"QUAD")) {
 					strcat(data->argvNew[1],"QUAD");
 				} else if (strstr(TestName,"MIXED2D")) {
-data->MLMax = 4;
+					data->MLMax = 4;
 					strcat(data->argvNew[1],"MIXED2D");
 				} else {
 					EXIT_UNSUPPORTED;

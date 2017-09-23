@@ -276,7 +276,6 @@ void solver_implicit_update_What(Vec x) {
 
 		for (size_t i = 0; i < Ndof; i++)
 			What[i] += dWhat[i];
-array_print_d(1,Ndof,What,'R');
 		free(dWhat);
 	}
 }

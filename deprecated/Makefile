@@ -52,7 +52,7 @@ PETSC_INC := $(PETSC_CC_INCLUDES)
 
 METIS_INC      := -I$(METIS_DIR)/metis/include
 METIS_LDINC    := -L$(METIS_DIR)/libmetis -lmetis
-PARMETIS_INC   := -I$(METIS_DIR)/include -I/usr/local/include
+PARMETIS_INC   := -I$(METIS_DIR)/include
 PARMETIS_LDINC := -L$(METIS_DIR)/libparmetis -lparmetis
 
 # Note: Parmetis must be linked before metis

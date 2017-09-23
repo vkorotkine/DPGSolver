@@ -32,7 +32,7 @@ def find_MeshType(N,MeshTypes,MeshTypesPrefix,MeshName,MeshCurving):
 			if (MeshName.find('ToBeCurved') != -1 and MeshCurving[i].find('ToBeCurved') == -1):
 				continue
 
-			if (MeshName.find(MeshTypesPrefix[i][0:-1]) == -1):
+			if (MeshName.find(MeshTypesPrefix[i][0:6]) == -1):
 				continue
 
 			Found = 1
@@ -47,7 +47,7 @@ def find_MeshType(N,MeshTypes,MeshTypesPrefix,MeshName,MeshCurving):
 
 	if (Found == 0):
 		print("Did not find the MeshType.\n")
-		print(MeshName,"\n",MeshCurving,"\n",MeshTypes,"\n")
+		print(MeshName,"\n",MeshCurving,"\n",MeshTypes,"\n",MeshTypesPrefix,"\n")
 		EXIT_TRACEBACK()
 
 	return [MeshType, MeshTypesPrefix, MeshCurving]

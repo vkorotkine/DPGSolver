@@ -231,20 +231,16 @@ static void select_timestepping_parameters(struct S_timestepping *data)
 				unsigned int const ML = TestDB.ML,
 				                   P  = TestDB.PGlobal;
 				if (P == 1) { // Nodal basis (16 TRIs on ML = 0)
-					if      (ML <= 1) { data->dt = 1e-0; }
-					else if (ML <= 2) { data->dt = 2e-0; }
-					else if (ML <= 3) { data->dt = 4e-0; }
+					if      (ML <= 0) { data->dt = 1e-1; }
+					else if (ML <= 1) { data->dt = 1e-2; }
 					else              { EXIT_UNSUPPORTED; }
 				} else if (P <= 2) {
-					if      (ML <= 0) { data->dt = 5e-1; }
-					else if (ML <= 1) { data->dt = 1e-0; }
-					else if (ML <= 2) { data->dt = 2e-0; }
-					else if (ML <= 3) { data->dt = 4e-0; }
+					if      (ML <= 0) { data->dt = 5e-2; }
+					else if (ML <= 1) { data->dt = 1e-2; }
 					else              { EXIT_UNSUPPORTED; }
 				} else if (P == 3) {
-					if      (ML <= 0) { data->dt = 5e-1; }
-					else if (ML <= 1) { data->dt = 1e-0; }
-					else if (ML <= 2) { data->dt = 2e-0; }
+					if      (ML <= 0) { data->dt = 2e-2; }
+					else if (ML <= 1) { data->dt = 5e-3; }
 					else              { EXIT_UNSUPPORTED; }
 				} else {
 					EXIT_UNSUPPORTED;

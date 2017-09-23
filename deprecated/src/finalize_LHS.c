@@ -121,7 +121,6 @@ void assemble_RHS(Vec *b, Vec *x)
 		Indb = VOLUME->IndA;
 		NvnS = VOLUME->NvnS;
 		RHS  = VOLUME->RHS;
-array_print_d(NvnS,Nvar,RHS,'C');
 
 		iMax = NvnS*Nvar;
 		ix = malloc(iMax * sizeof *ix); // free

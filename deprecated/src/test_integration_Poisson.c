@@ -20,7 +20,7 @@ void test_integration_Poisson(int nargc, char **argv)
 {
 	UNUSED(argv);
 
-	const bool run_tests_linearization = 0,
+	const bool run_tests_linearization = 1,
 	           run_tests_conv_order    = 1;
 
 	const size_t n_argv_new = 2;
@@ -59,7 +59,6 @@ void test_integration_Poisson(int nargc, char **argv)
 		                              .PrintName = test_name, };
 
 		test_conv_order(&data_c,"Poisson_n-Cube_LINE");
-exit(1);
 
 		test_conv_order(&data_c,"Poisson_n-Ellipsoid_HollowSection_TRI");
 		test_conv_order(&data_c,"Poisson_n-Ellipsoid_HollowSection_QUAD");
