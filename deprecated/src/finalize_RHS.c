@@ -41,7 +41,7 @@
 
 struct S_OPERATORS {
 	unsigned int NvnI;
-	double       *w_vI, *I_vG_vI, *ChiS_vI, *I_Weak_VV;
+	double       *I_vG_vI, *ChiS_vI, *I_Weak_VV;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
@@ -59,16 +59,12 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 	if (!curved) {
 		OPS->NvnI = ELEMENT->NvnIs[P];
 
-		OPS->w_vI = ELEMENT->w_vIs[P];
-
 		OPS->I_vG_vI = ELEMENT->I_vGs_vIs[1][P][0];
 		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P][0];
 
 		OPS->I_Weak_VV = ELEMENT->Is_Weak_VV[P][P][0];
 	} else {
 		OPS->NvnI = ELEMENT->NvnIc[P];
-
-		OPS->w_vI = ELEMENT->w_vIc[P];
 
 		OPS->I_vG_vI = ELEMENT->I_vGc_vIc[P][P][0];
 		OPS->ChiS_vI = ELEMENT->ChiS_vIc[P][P][0];
