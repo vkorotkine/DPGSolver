@@ -370,7 +370,7 @@ void test_linearization(struct S_linearization *const data, char const *const Te
 			} else {
 				for (size_t dim = 0; dim < d; dim++) {
 					clock_t tp = clock(), tc;
-					double times[3];
+					double times[3] = {0};
 					unsigned int counter = 0;
 
 					A[dim] = allocate_A();
@@ -434,7 +434,7 @@ const unsigned int CheckLevel = 3;
 				assemble_A(A_cs);
 			} else {
 				clock_t tp = clock(), tc;
-				double times[3];
+				double times[3] = {0};
 				unsigned int counter = 0;
 
 				compute_A(A,3);

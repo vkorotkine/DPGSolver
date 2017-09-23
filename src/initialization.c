@@ -108,9 +108,9 @@ void set_MeshFile(int const PMesh)
 	/*
 	Set the absolute path to the mesh file to use for the code.
 
-	Input: 
+	Input:
 		PMesh: Integer for the P value to use for the mesh (used only for
-			the Bezier case since in all other cases we always start from 
+			the Bezier case since in all other cases we always start from
 			a P = 1 mesh).
 	*/
 
@@ -148,7 +148,7 @@ void set_MeshFile(int const PMesh)
 		// 1) Bezier Keyword
 		strcat(DB.MeshFile, "_Bezier");
 
-		// 2) Order of the mesh. Get this data 
+		// 2) Order of the mesh. Get this data
 		//	from PGc (which is an array which takes PGlobal as its
 		// 	variable). This way, we can access superparametric meshes
 		//	if needed.
@@ -160,8 +160,6 @@ void set_MeshFile(int const PMesh)
 	}
 
 	strcat(DB.MeshFile,strcat(ML,"x.msh"));
-
-	printf("MeshFile : %s \n", DB.MeshFile);
 
 	free(d);
 	free(ML);

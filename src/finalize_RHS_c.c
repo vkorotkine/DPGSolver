@@ -37,7 +37,7 @@
 
 struct S_OPERATORS {
 	unsigned int NvnI;
-	double       *w_vI, *I_vG_vI, *ChiS_vI, *I_Weak_VV;
+	double       *I_vG_vI, *ChiS_vI, *I_Weak_VV;
 };
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
@@ -55,16 +55,12 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME)
 	if (!curved) {
 		OPS->NvnI = ELEMENT->NvnIs[P];
 
-		OPS->w_vI = ELEMENT->w_vIs[P];
-
 		OPS->I_vG_vI = ELEMENT->I_vGs_vIs[1][P][0];
 		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P][0];
 
 		OPS->I_Weak_VV = ELEMENT->Is_Weak_VV[P][P][0];
 	} else {
 		OPS->NvnI = ELEMENT->NvnIc[P];
-
-		OPS->w_vI = ELEMENT->w_vIc[P];
 
 		OPS->I_vG_vI = ELEMENT->I_vGc_vIc[P][P][0];
 		OPS->ChiS_vI = ELEMENT->ChiS_vIc[P][P][0];
@@ -94,7 +90,7 @@ static void add_source(const struct S_VOLUME *VOLUME)
 
 	// Standard datatypes
 	unsigned int   eq, n, NvnI;
-	double         *XYZ_vI, *detJV_vI, *w_vI;
+	double         *XYZ_vI, *detJV_vI;
 	double complex *f_vI;
 
 	struct S_OPERATORS *OPS;
@@ -104,8 +100,6 @@ static void add_source(const struct S_VOLUME *VOLUME)
 	init_ops(OPS,VOLUME);
 
 	NvnI = OPS->NvnI;
-
-	w_vI = OPS->w_vI;
 
 	XYZ_vI = malloc(NvnI*d * sizeof *XYZ_vI); // free
 	mm_CTN_d(NvnI,d,VOLUME->NvnG,OPS->I_vG_vI,VOLUME->XYZ,XYZ_vI);
@@ -120,7 +114,7 @@ static void add_source(const struct S_VOLUME *VOLUME)
 			f_vI[eq*NvnI+n] *= detJV_vI[n];
 	}
 
-	mm_dcc(CBCM,CBT,CBNT,VOLUME->NvnS,Neq,NvnI,-1.0,1.0,OPS->I_Weak_VV,f_vI,VOLUME->RHS_c);
+	mm_dcc(CBCM,CBT,CBNT,VOLUME->NvnS,Neq,NvnI,1.0,1.0,OPS->I_Weak_VV,f_vI,VOLUME->RHS_c);
 	free(f_vI);
 
 	free(OPS);

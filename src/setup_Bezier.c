@@ -3,6 +3,7 @@
 
 #include "setup_Bezier.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -29,15 +30,15 @@ static void setup_XYZ_volume(struct S_VOLUME *VOLUME, double *ControlPoints, int
 	stored in this form when it comes to computing the metric terms, ...
 
 	Input:
-		- struct S_VOLUME *VOLUME = The pointer to the volume struct to build the XYZ 
+		- struct S_VOLUME *VOLUME = The pointer to the volume struct to build the XYZ
 			vector for.
-		- ControlPoints = The array with all the control points for the mesh (stored in 
+		- ControlPoints = The array with all the control points for the mesh (stored in
 			column major form).
 		- nControlPoints = The number of control points
 		- volumeConnectivity = The array with the control point connectivity information
-			for each volume. 
+			for each volume.
 		- volIndex = The index of the volume in the linked list of volumes
-		- ChiRefG = The operator which contains the basis functions evaluated at the geometry 
+		- ChiRefG = The operator which contains the basis functions evaluated at the geometry
 			node point positions (on the reference element). Multiply this to the XYZ_hat for
 			each element to get the geometry node points.
 		- NBF = Number of basis functions
@@ -51,7 +52,7 @@ static void setup_XYZ_volume(struct S_VOLUME *VOLUME, double *ControlPoints, int
 
 	unsigned int NvnG, d, i, j, controlPointIndex;
 
-	// NOTE: NvnG is the same for the number of control points for the given 
+	// NOTE: NvnG is the same for the number of control points for the given
 	//	volume.
 	NvnG = VOLUME->NvnG;
 	d = DB.d;
@@ -101,7 +102,7 @@ static void setup_XYZ_volume(struct S_VOLUME *VOLUME, double *ControlPoints, int
 
 	free(XYZ_hat);
 
-}	
+}
 
 
 void setup_Bezier(){
@@ -109,12 +110,12 @@ void setup_Bezier(){
 	/*
 	Function for setting up the Bezier elements using the Bezier extracted
 	B-spline mesh. This function will do the following:
-		1) Read the msh file to load in the control points and control 
+		1) Read the msh file to load in the control points and control
 			point connectivity for each element.
-		2) Build the Chi_xyz operator which, when multiplied to the XYZ_hat vector, 
+		2) Build the Chi_xyz operator which, when multiplied to the XYZ_hat vector,
 			will yield the XYZ vector for each element.
 		3) Using the two sources of information, build the XYZ_hat vector
-			for each element (no need to store it since we can get this 
+			for each element (no need to store it since we can get this
 			vector by using the inverse Chi operators on the XYZ vector).
 			- Multiply the operator to this and store the XYZ values for the element.
 
@@ -137,7 +138,6 @@ void setup_Bezier(){
 	char StringRead[STRLEN_MAX], *strings, *stringe;
 	FILE *fID;
 
-	long tmpl;
 	double tmpd;
 
 	// 1) Read the msh file to get the Bezier element information
@@ -173,7 +173,7 @@ void setup_Bezier(){
 		if (strstr(StringRead,"$ControlPoints$")) {
 
 			// First line is just the number of control points
-			fscanf(fID,"%[^\n]\n",StringRead);
+			assert(fscanf(fID,"%[^\n]\n",StringRead)==1);
 
 			for (i = 0; i < numControlPoints; i++){
 				// Loop over all the control points (i index)
@@ -182,12 +182,11 @@ void setup_Bezier(){
 					strings = StringRead;
 
 					// Control Point Index
-					tmpl = strtol(strings,&stringe,10); 
 					strings = stringe;
 
 					// Control Points:
 					for (j = 0; j < d; j++){
-						// For each ith control point, loop through the 
+						// For each ith control point, loop through the
 						// dimensions d.
 						tmpd = strtod(strings, &stringe);
 						strings = stringe;
@@ -248,14 +247,14 @@ void setup_Bezier(){
 		}
 	}
 
-	// 2) Build the Chi_Geo operator which is the Chi operator evaluated at the given 
-	//	geometry node points. 
+	// 2) Build the Chi_Geo operator which is the Chi operator evaluated at the given
+	//	geometry node points.
 
 	// Basis functions (Chi) evaulated at the geometry node points
 	// on the reference space.
-	double *ChiRefG;  
+	double *ChiRefG;
 	unsigned int NBFOut;
-	
+
 	// Function pointers
 	cubature_tdef   cubature;
 	basis_tdef      basis;
@@ -273,7 +272,7 @@ void setup_Bezier(){
 	if (!DB.MPIrank && !DB.Testing){
 		printf("ChiRefG : \n");
 		array_print_d(pow((DB.PGc[DB.PGlobal]+1), DB.d), NBFOut, ChiRefG, 'C');
-	}	
+	}
 
 	// 3) Using the ChiRefG operator, compute the XYZ coordinates for each volume
 	//	using their XYZ_hat values (from the control point list and the connectivity

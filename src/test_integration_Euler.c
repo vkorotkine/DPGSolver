@@ -42,7 +42,7 @@ void test_integration_Euler(int nargc, char **argv)
 	     RunTests_conv_order               = 1;
 
 	// ToBeDeleted after Manmeet has finished his initial verification.
-	bool const PeriodicVortexOnly = 0; 
+	bool const PeriodicVortexOnly = 0;
 	if (PeriodicVortexOnly) {
 		RunTests_equivalence_real_complex = 0;
 		RunTests_equivalence_algorithms   = 0;
@@ -122,10 +122,10 @@ void test_integration_Euler(int nargc, char **argv)
 		data_c->PrintName = PrintName;
 
 if (!PeriodicVortexOnly) {
-		//test_conv_order(data_c,"Euler_n-GaussianBump_CurvedQUAD");
-		test_conv_order(data_c,"Euler_n-GaussianBump_ToBeCurvedQUAD");
+		test_conv_order(data_c,"Euler_n-GaussianBump_CurvedQUAD");
+//		test_conv_order(data_c,"Euler_n-GaussianBump_BezierToBeCurvedQUAD");
 		//EXIT_UNSUPPORTED;
-		//test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_CurvedMIXED2D");
+		test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_CurvedMIXED2D");
 		//test_conv_order(data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedMIXED2D");
 }
 

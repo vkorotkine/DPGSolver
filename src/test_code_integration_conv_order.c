@@ -61,10 +61,9 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 	data->SolveExplicit  = 1;
 	data->SolveImplicit  = 1;
 	data->AdaptiveRefine = 0;
-	data->Adapt = ADAPT_0;
-	//data->Adapt = ADAPT_HP;
+	data->Adapt = ADAPT_HP;
 
-	data->PMin  = 3;
+	data->PMin  = 1;
 	data->PMax  = 3;
 	data->MLMin = 0;
 	data->MLMax = 3;
@@ -243,8 +242,10 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 			data->PrintEnabled = 1;
 			//data->SolveExplicit = 1;
 
-			if (strstr(TestName,"ToBeCurved")) {
+			if (strstr(TestName,"BezierToBeCurved")) {
 				if (strstr(TestName, "QUAD")){
+data->PMin  = 3;
+data->Adapt = ADAPT_0;
 					// The ToBeCurved QUAD mesh for the gaussian bump case
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_GaussianBump_ToBeCurvedQUAD");
 				}else{
