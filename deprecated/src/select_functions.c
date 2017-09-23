@@ -11,10 +11,13 @@
 
 #include "bases.h"
 #include "cubature.h"
+#include "S_DB.h"
 
 /*
  *	Purpose:
  *		Select basis, grad_basis and cubature functions based on input type.
+ *		If Bezier basis functions are being used for the analysis, then set the 
+ *		basis functions to be the Bezier ones (both basis and grad).
  *
  *	Comments:
  *
@@ -32,6 +35,12 @@ void select_functions(basis_tdef *basis, grad_basis_tdef *grad_basis, cubature_t
 		*basis      = basis_TP;
 		*grad_basis = grad_basis_TP;
 		*cubature   = cubature_TP;
+
+		if(DB.BezierBasis){
+			*basis      = basis_TP_Bezier;
+			*grad_basis = grad_basis_TP_Bezier;
+		}
+
 		break;
 	case TRI:
 		*basis      = basis_SI;
@@ -64,6 +73,11 @@ void select_functions_basis(basis_tdef *basis, const unsigned int type)
 	case QUAD:
 	case HEX:
 		*basis      = basis_TP;
+
+		if(DB.BezierBasis){
+			*basis      = basis_TP_Bezier;
+		}
+
 		break;
 	case TRI:
 	case TET:
@@ -88,6 +102,11 @@ void select_functions_grad_basis(grad_basis_tdef *grad_basis, const unsigned int
 	case QUAD:
 	case HEX:
 		*grad_basis = grad_basis_TP;
+
+		if(DB.BezierBasis){
+			*grad_basis = grad_basis_TP_Bezier;
+		}
+
 		break;
 	case TRI:
 	case TET:

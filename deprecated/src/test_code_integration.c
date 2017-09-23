@@ -134,19 +134,31 @@ void code_startup
 	DB.MPIrank = MPIrank;
 
 	// Initialization
+	// - Here, we will first read the control file and set the parameters
+	// 		from the control file (the mesh level, P, ...)
+	//		then, overwrite certain values using the test parameters (stored
+	//		in TestDB). Then, create the name of the mesh file again using this.
+
 	initialization(nargc,argv);
 	update_TestCase();
 	if (modify_params) {
 		DB.PGlobal = TestDB.PGlobal;
 		if (modify_params == 1) {
 			DB.ML = TestDB.ML;
-			set_MeshFile();
+			set_MeshFile(-1);
 		}
 	}
 
 	setup_parameters();
 	if (modify_params)
 		setup_parameters_L2proj();
+
+	// Generate the new mesh file name using the test parameters
+	// that were copied into the DB structure and based on the parameters
+	// that were set. Also, in the case we are using a Bezier mesh,
+	// input the order of the mesh to be used (in PGc)
+	if (DB.BezierMesh)
+		set_MeshFile(DB.PGc[DB.PGlobal]);
 
 	initialize_test_case_parameters();
 	setup_mesh();

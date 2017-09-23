@@ -306,6 +306,7 @@ double *compute_Dxyz_strong (struct S_Dxyz *DxyzInfo, unsigned int d)
 
 void init_ops_VOLUME(struct S_OPERATORS_V *const OPS, struct S_VOLUME const *const VOLUME, unsigned int const IndClass)
 {
+
 	unsigned int const P      = VOLUME->P,
 	                   Eclass = VOLUME->Eclass,
 	                   *const *const *const SF_BE = (const unsigned int *const *const *const) DB.SF_BE;
@@ -628,6 +629,7 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 		                   Nvar = DB.Nvar;
 
 		double const *Ar_vI_ptr[d];
+
 		for (size_t dim = 0; dim < d; dim++)
 			Ar_vI_ptr[dim] = &Ar_vI[Nvar*Neq*NvnI*dim];
 
@@ -670,6 +672,7 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 				}}
 			}
 		} else {
+
 			double const *const *const D = OPS[0]->D_Weak;
 
 			double *const DAr_vI = malloc(NvnS*NvnI * sizeof *DAr_vI); // free
@@ -678,6 +681,7 @@ void finalize_VOLUME_Inviscid_Weak(unsigned int const Nrc, double const *const A
 				size_t const IndAr = (eq*Nvar+var)*NvnI;
 
 				set_to_zero_d(NvnS*NvnI,DAr_vI);
+
 				for (size_t dim = 0; dim < d; dim++)
 					mm_diag_d(NvnS,NvnI,&Ar_vI_ptr[dim][IndAr],D[dim],DAr_vI,1.0,1.0,'R','R');
 

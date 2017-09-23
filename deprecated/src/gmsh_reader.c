@@ -154,13 +154,11 @@ void gmsh_reader(void)
 	MPI_Status status;
 	MPI_Comm comm = MPI_COMM_WORLD;
 
-
 	NE = malloc(4 * sizeof *NE); //keep
 
 	if ((fID = fopen(MeshFile,"r")) == NULL)
 		printf("Mesh file: %s not present.\n",MeshFile), EXIT_MSG;
 
-	// Find NVe, NETotal
 	while (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 		if (strstr(StringRead,"$Nodes")) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1)
@@ -171,6 +169,7 @@ void gmsh_reader(void)
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1)
 				sscanf(StringRead,"%d",&NETotal);
 		}
+
 	}
 	rewind(fID);
 
@@ -296,6 +295,7 @@ void gmsh_reader(void)
 					}
 				}
 			}
+			
 			PetscSortInt(IndPVe,(int *)PVePossibleOver);
 
 			for (i = 1, IndUnique = 1; i < IndPVe; i++) {

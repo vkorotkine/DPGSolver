@@ -30,6 +30,8 @@
 #include "finalize_LHS.h"
 #include "array_norm.h"
 
+#include "array_print.h"
+
 /*
  *	Purpose:
  *		Provide functions for (conv)ergence (order) integration testing.
@@ -65,7 +67,7 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 	data->Compute_L2proj = 0;
 	data->SolveExplicit  = 1;
 	data->SolveImplicit  = 1;
-	data->AdaptiveRefine = 1;
+	data->AdaptiveRefine = 0;
 	data->Adapt = ADAPT_HP;
 
 	data->PMin  = 1;
@@ -236,12 +238,22 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 				EXIT_UNSUPPORTED;
 			}
 		} else if (strstr(TestName,"n-GaussianBump")) {
-			if (strstr(TestName,"ToBeCurved")) {
-				EXIT_UNSUPPORTED;
+			if (strstr(TestName,"BezierToBeCurved")) {
+				if (strstr(TestName, "QUAD")){
+data->PrintEnabled = 1;
+data->PMin  = 3;
+data->Adapt = ADAPT_0;
+					// The ToBeCurved QUAD mesh for the gaussian bump case
+					strcpy(data->argvNew[1],"test/Euler/Test_Euler_GaussianBump_BezierToBeCurvedQUAD");
+				} else {
+					EXIT_UNSUPPORTED;
+				}
+			} else if (strstr(TestName,"BezierCurvedQUAD")) {
+				strcpy(data->argvNew[1],"test/Euler/Test_Euler_GaussianBump_BezierCurvedQUAD");
 			} else if (strstr(TestName,"Curved")) {
 				if (strstr(TestName,"CurvedQUAD")) {
 					strcpy(data->argvNew[1],"test/Euler/Test_Euler_GaussianBump_CurvedQUAD");
-				} else {
+				}else {
 					EXIT_UNSUPPORTED;
 				}
 			} else {
@@ -404,6 +416,7 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 			printf("ML, P, dof: %zu %zu %d\n",ML,P,DB.dof);
 		}
 
+// ERROR FOR BEZIER WHEN WORKING WITH MESH REGULARITY
 		if (P == PMin)
 			evaluate_mesh_regularity(&mesh_quality[ML-MLMin]);
 
@@ -416,6 +429,8 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 			set_PrintName("conv_orders",data->PrintName,&data->omit_root);
 			code_cleanup();
 		}
+
+
 	}}
 	if (Adapt == ADAPT_H || Adapt == ADAPT_HP) {
 		set_PrintName("conv_orders",data->PrintName,&data->omit_root);

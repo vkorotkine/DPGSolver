@@ -89,11 +89,14 @@ test_integration_linearization("test/Euler/Test_Euler_SupersonicVortex_CurvedMIX
 		                              .argvNew   = argv_new,
 		                              .PrintName = test_name, };
 
+//		test_conv_order(&data_c,"Euler_n-GaussianBump_BezierToBeCurvedQUAD");
+		test_conv_order(&data_c,"Euler_n-GaussianBump_BezierCurvedQUAD");
+		test_conv_order(&data_c,"Euler_n-GaussianBump_CurvedQUAD");
+
 		test_conv_order(&data_c,"Euler_n-Parabolic_Pipe_ToBeCurvedTRI");
 		test_conv_order(&data_c,"Euler_n-Elliptic_Pipe_ToBeCurvedTRI");
 		test_conv_order(&data_c,"Euler_n-Elliptic_Pipe_ToBeCurvedQUAD");
 
-		test_conv_order(&data_c,"Euler_n-GaussianBump_CurvedQUAD");
 		test_conv_order(&data_c,"Euler_n-Cylinder_HollowSection_CurvedMIXED2D");
 		test_conv_order(&data_c,"Euler_n-Cylinder_HollowSection_ToBeCurvedMIXED2D");
 

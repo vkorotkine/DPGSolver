@@ -246,7 +246,7 @@ void setup_geom_factors(struct S_VOLUME *VOLUME)
 		free(CurlXYZJ_vC);
 
 	}
-
+	
 	mm_CTN_d(NvnI0,d*d,NvnC0,OPS->I_vC_vI,C_vC,C_vI);
 
 	free(J_vI);

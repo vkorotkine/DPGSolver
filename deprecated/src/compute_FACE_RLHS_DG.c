@@ -139,9 +139,7 @@ static void compute_Inviscid_FACE_EFE (const struct S_solver_info*const solver_i
 
 			manage_solver_memory(DATA,'F','W');
 
-
 			// Compute FACE RHS and LHS terms
-
 			finalize_FACE_Inviscid_Weak(FDATAL,FDATAR,NFLUXDATA->nFluxNum,NULL,'L','E','W');
 			if (imex_type == 'I') {
 				manage_solver_memory(DATA,'A','L'); // free

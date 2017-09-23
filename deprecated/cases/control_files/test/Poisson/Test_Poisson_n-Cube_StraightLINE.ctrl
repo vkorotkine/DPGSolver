@@ -9,7 +9,7 @@ Dimension     1
 MeshPath      ../meshes/
 MeshType      LINE
 MeshCurving   Straight
-MeshLevel     2
+MeshLevel     0
 
 Form       Weak   // Options: Weak, (Strong)
 NodeType   GLL-AO // Options: GL/GLL-AO/WSH/EQ

@@ -455,8 +455,8 @@ void solver_explicit(bool const PrintEnabled)
 {
 	struct S_timestepping *const data_time = malloc(sizeof *data_time); // free
 	select_timestepping_parameters(data_time);
-	double const exit_tol   = data_time->exit_tol,
-	             exit_ratio = data_time->exit_ratio;
+	double const exit_tol   = data_time->exit_tol;
+	double const exit_ratio = data_time->exit_ratio;
 	double       dt         = data_time->dt,
 	             time       = 0.0;
 
@@ -480,6 +480,7 @@ void solver_explicit(bool const PrintEnabled)
 
 	unsigned int tstep   = 0;
 	double       maxRHS0 = 0.0;
+
 	while (time < FinalTime) {
 		if (Adapt && tstep)
 			mesh_update();

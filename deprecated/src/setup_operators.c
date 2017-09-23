@@ -680,7 +680,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	E_rst_vV = get_rst_vV(ELEMENT); // free
 	rst_vV = malloc((Nve+1)*dE * sizeof *rst_vV); // free (+1 for h-refined TET -> PYR) ToBeModified (remove +1)
 
-
 	// Preliminary Operators
 	IGs = identity_d(NvnGs[1]); // free
 
@@ -693,6 +692,7 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 
 	ChiRefInvGs_vGs       = inverse_d(NvnGs[1],NvnGs[1],ChiRefGs_vGs,IGs); // free
 	ChiInvGs_vGs[1][1][0] = inverse_d(NvnGs[1],NvnGs[1],ChiGs_vGs,IGs);    // keep
+
 	TGs[1][1][0]          = mm_Alloc_d(CBRM,CBNT,CBNT,NvnGs[1],NvnGs[1],NvnGs[1],1.0,ChiRefInvGs_vGs,ChiGs_vGs); // keep
 
 	free(IGs);
@@ -710,7 +710,6 @@ static void setup_ELEMENT_operators(const unsigned int EType)
 	ChiGs_vG2    = mm_Alloc_d(CBRM,CBNT,CBNT,NvnG2[P],NvnGs[1],NvnGs[1],1.0,ChiRefGs_vG2,TGs[1][1][0]); // free
 
 	I_vGs_vG2[1][P][0] = mm_Alloc_d(CBRM,CBNT,CBNT,NvnG2[P],NvnGs[1],NvnGs[1],1.0,ChiGs_vG2,ChiInvGs_vGs[1][1][0]); // keep
-
 
 	IG2[P][P][0] = identity_d(NvnG2[P]); // keep
 

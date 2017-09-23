@@ -121,6 +121,7 @@ static void jacobian_flux_Euler(struct S_FLUX *const FLUXDATA)
 	rhou_ptr = &W[NnTotal*1];
 	E_ptr    = &W[NnTotal*(d+1)];
 
+	// Store pointers to the arrays that the data will be written into.
 	double *F_ptr[DMAX*Neq];
 	if (F != NULL) {
 		for (eq = 0; eq < Neq; eq++) {
@@ -331,9 +332,11 @@ static void jacobian_flux_Euler(struct S_FLUX *const FLUXDATA)
 				dFdW_ptr[i]++;
 		}
 	} else if (d == 2) {
+
 		rhov_ptr = &W[NnTotal*2];
 
 		for (n = 0; n < NnTotal; n++) {
+
 			rho = *rho_ptr;
 			double const rhou = *rhou_ptr,
 			             rhov = *rhov_ptr;
@@ -352,6 +355,7 @@ static void jacobian_flux_Euler(struct S_FLUX *const FLUXDATA)
 			alpha = 0.5*GM1*V2;
 			beta  = alpha-H;
 
+			// F = Null in the implicit solver
 			if (F != NULL) {
 				size_t IndF = 0;
 				// eq 1
@@ -462,6 +466,7 @@ static void jacobian_flux_Euler(struct S_FLUX *const FLUXDATA)
 			*dFdW_ptr[InddFdW++] =  GAMMA*v;
 
 			rho_ptr++; rhou_ptr++; rhov_ptr++; E_ptr++;
+
 			for (i = 0, iMax = Neq*Nvar*DMAX; i < iMax; i++)
 				dFdW_ptr[i]++;
 		}

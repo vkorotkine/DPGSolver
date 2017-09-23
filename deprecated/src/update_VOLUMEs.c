@@ -50,6 +50,7 @@ struct S_OPERATORS {
 
 static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, const unsigned int IndEType_h)
 {
+
 	unsigned int P, PNew, type, curved;
 	struct S_ELEMENT *ELEMENT;
 
@@ -73,11 +74,13 @@ static void init_ops(struct S_OPERATORS *OPS, const struct S_VOLUME *VOLUME, con
 	OPS->L2hat_vS_vS = ELEMENT->L2hat_vS_vS[P][PNew];
 	OPS->VeMask      = ELEMENT->VeMask[1][2];
 	if (!curved) {
+
 		OPS->NvnI = ELEMENT->NvnIs[P];
 
 		OPS->w_vI    = ELEMENT->w_vIs[P];
 		OPS->ChiS_vI = ELEMENT->ChiS_vIs[P][P][0];
 	} else {
+
 		OPS->NvnI  = ELEMENT->NvnIc[P];
 
 		OPS->w_vI    = ELEMENT->w_vIc[P];
@@ -520,6 +523,7 @@ void update_VOLUME_hp(void)
 
 				XYZ_vV = VOLUME->XYZ_vV;
 				XYZ_S  = malloc(NvnGc[0]*NCols * sizeof *XYZ_S); // keep
+
 				mm_CTN_d(NvnGc[0],NCols,NvnGs[0],I_vGs_vGc[0],XYZ_vV,XYZ_S);
 
 				free(VOLUME->XYZ_S);
@@ -1053,6 +1057,7 @@ void compute_inverse_mass(struct S_VOLUME *VOLUME)
 
 		VOLUME->MInv_diag = MInv_diag;
 		MInv = diag_d(MInv_diag,NvnS);
+
 	} else {
 		wdetJVChiS_vI = malloc(NvnI*NvnS * sizeof *wdetJVChiS_vI); // free
 

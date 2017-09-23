@@ -168,7 +168,6 @@ void get_boundary_values(const double X, const double Y, double *const rho, doub
 	// Initialize DB Parameters
 	char   *TestCase = DB.TestCase;
 
-
 	if (strstr(TestCase,"SupersonicVortex")) {
 		// Use the exact solution for the Outer VOLUME
 		double rIn   = DB.rIn,

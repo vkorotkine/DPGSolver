@@ -21,7 +21,7 @@
 CSTD := -std=c11
 
 # Options
-OPTS := -O3
+OPTS := -O0
 OPTS += -g -Wall -Wextra -Werror
 OPTS += -DTEST
 
@@ -45,7 +45,6 @@ else ifeq ($(MKL_INTERFACE_LAYER),64)
     MKL_INC := -DMKL_ILP64 -m64
 endif
 MKL_INC += -I$(MKL_DIR)/include
-
 
 include $(PETSC_DIR)/lib/petsc/conf/variables
 PETSC_INC := $(PETSC_CC_INCLUDES)

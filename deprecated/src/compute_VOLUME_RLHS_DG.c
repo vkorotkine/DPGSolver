@@ -132,8 +132,6 @@ static void compute_Inviscid_VOLUME_EFE (const struct S_solver_info*const solver
 	if (strstr(DB.Form,"Weak")) {
 		for (struct S_VOLUME *VOLUME = DB.VOLUME; VOLUME; VOLUME = VOLUME->next) {
 			init_VDATA(VDATA,VOLUME);
-
-			// Obtain W_vI
 			unsigned int NvnI = VDATA->OPS[0]->NvnI;
 			if (DB.Collocated) {
 				VDATA->W_vI = VOLUME->What;
@@ -142,7 +140,6 @@ static void compute_Inviscid_VOLUME_EFE (const struct S_solver_info*const solver
 				coef_to_values_vI(VDATA,'W');
 			}
 
-			// Compute Flux and its Jacobian in reference space
 			manage_solver_memory(DATA,'A','I'); // free
 
 			if (DB.PDE_index == PDE_ADVECTION)
@@ -156,8 +153,8 @@ static void compute_Inviscid_VOLUME_EFE (const struct S_solver_info*const solver
 			if (DB.PDE_index == PDE_ADVECTION)
 				manage_solver_memory(DATA,'F','X');
 
-			// Convert to reference space
 			convert_between_rp(NvnI,Neq,VOLUME->C_vI,FLUXDATA->F,FLUXDATA->Fr,"FluxToRef");
+
 			if (imex_type == 'I')
 				convert_between_rp(NvnI,Nvar*Neq,VOLUME->C_vI,FLUXDATA->dFdW,FLUXDATA->dFrdW,"FluxToRef");
 
