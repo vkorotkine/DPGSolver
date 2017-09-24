@@ -143,7 +143,7 @@ bool wedges_present (const struct const_Intrusive_List*const elements)
 	return false;
 }
 
-const int compute_elem_type_sub_ce (const int e_type, const char ce, const int ind_ce)
+int compute_elem_type_sub_ce (const int e_type, const char ce, const int ind_ce)
 {
 	switch (ce) {
 	case 'v':
@@ -205,7 +205,8 @@ const int compute_elem_type_sub_ce (const int e_type, const char ce, const int i
 			default:
 				EXIT_ERROR("Unsupported: %d\n",ind_ce);
 				break;
-			return e_type;
+			}
+			break;
 		case PYR:
 			switch (ind_ce) {
 			case 0:  case 1:  case 2:  case 3:  // 3 tri faces of wedge reference element.
@@ -223,6 +224,7 @@ const int compute_elem_type_sub_ce (const int e_type, const char ce, const int i
 				EXIT_ERROR("Unsupported: %d\n",ind_ce);
 				break;
 			}
+			break;
 		default:
 			EXIT_ERROR("Unsupported: %d\n",e_type);
 			break;
@@ -237,7 +239,7 @@ const int compute_elem_type_sub_ce (const int e_type, const char ce, const int i
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-///	\brief Container for local element-related information.
+/// \brief Container for local element-related information.
 struct Elem_info {
 	int s_type,  ///< Defined in \ref Element.
 	    d,       ///< Defined in \ref Element.
@@ -247,8 +249,8 @@ struct Elem_info {
 	    *n_f_ve, ///< The number of vertices on each face.
 	    *f_ve;   ///< Defined in \ref Element.
 
-	int n_ref_max,   ///< Defined in \ref Element.
-	    n_ref_f_max; ///< Defined in \ref Element.
+	int n_ref_max_v, ///< Defined in \ref Element.
+	    n_ref_max_f; ///< Defined in \ref Element.
 };
 
 static struct Element* constructor_Element (const int elem_type)
@@ -265,8 +267,8 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.n_f_ve = (int[]) {1, 1,};
 		e_info.f_ve   = (int[]) {0, 1,};
 
-		e_info.n_ref_max   = 3;
-		e_info.n_ref_f_max = 1;
+		e_info.n_ref_max_v = 3;
+		e_info.n_ref_max_f = 1;
 		break;
 	case TRI:
 		e_info.s_type = ST_SI;
@@ -277,8 +279,8 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.n_f_ve = (int[]) {2, 2, 2,};
 		e_info.f_ve   = (int[]) {1,2, 0,2, 0,1,};
 
-		e_info.n_ref_max   = 5;
-		e_info.n_ref_f_max = 3;
+		e_info.n_ref_max_v = 5;
+		e_info.n_ref_max_f = 3;
 		break;
 	case QUAD:
 		e_info.s_type = ST_TP;
@@ -289,8 +291,8 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.n_f_ve = (int[]) {2, 2, 2, 2,};
 		e_info.f_ve   = (int[]) {0,2, 1,3, 0,1, 2,3};
 
-		e_info.n_ref_max   = 5;
-		e_info.n_ref_f_max = 3;
+		e_info.n_ref_max_v = 5;
+		e_info.n_ref_max_f = 3;
 		break;
 	case TET:
 		EXIT_ADD_SUPPORT;
@@ -304,8 +306,8 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.n_f_ve = (int[]) {4, 4, 4, 4, 4, 4,};
 		e_info.f_ve   = (int[]) {0,2,4,6, 1,3,5,7, 0,1,4,5, 2,3,6,7, 0,1,2,3, 4,5,6,7};
 
-		e_info.n_ref_max   = 9;
-		e_info.n_ref_f_max = 5;
+		e_info.n_ref_max_v = 9;
+		e_info.n_ref_max_f = 5;
 		break;
 	case WEDGE:
 		EXIT_ADD_SUPPORT;
@@ -329,8 +331,8 @@ static struct Element* constructor_Element (const int elem_type)
 	const_cast_i(&element->n_ve,e_info.n_ve);
 	const_cast_i(&element->n_e,e_info.n_e);
 	const_cast_i(&element->n_f,e_info.n_f);
-	const_cast_i(&element->n_ref_max,e_info.n_ref_max);
-	const_cast_i(&element->n_ref_f_max,e_info.n_ref_f_max);
+	const_cast_i(&element->n_ref_max_v,e_info.n_ref_max_v);
+	const_cast_i(&element->n_ref_max_f,e_info.n_ref_max_f);
 	const_constructor_move_Multiarray_Vector_i(&element->f_ve,f_ve); // destructed
 
 	return element;

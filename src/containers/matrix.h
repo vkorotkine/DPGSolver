@@ -127,7 +127,7 @@ int* get_row_Matrix_i
 
 /** \brief Get pointer to row of row-major \ref const_Matrix_i\*.
  *  \return Pointer to the first entry of the row. */
-int* get_row_const_Matrix_i
+const int* get_row_const_Matrix_i
 	(const ptrdiff_t row,           ///< Desired row.
 	 const struct const_Matrix_i* a ///< Matrix.
 	);

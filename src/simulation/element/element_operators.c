@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_elements.h"
 
 #include "multiarray.h"
+#include "matrix.h"
 #include "vector.h"
 
 #include "simulation.h"
@@ -63,7 +64,8 @@ static void set_operator_std
 	(const int ind_values,                       /**< The index of the first row of \ref Operator_Info::op_values
 	                                              *   to use. */
 	 const struct const_Multiarray_Matrix_d* op, ///< The multiarray of operators.
-	 struct Operator_Info* op_info               ///< \ref Operator_Info.
+	 const struct Operator_Info* op_info,        ///< \ref Operator_Info.
+	 const struct Simulation* sim                ///< \ref Simulation.
 	);
 
 
@@ -112,11 +114,11 @@ const struct const_Multiarray_Matrix_d* constructor_operators
 	struct Operator_Info* op_info =
 		constructor_Operator_Info(name_type,name_in,name_out,name_range,p_ref,element); // destructed
 
-	const ptrdiff_t order = op_info->extents_op->ext_0;
+//	const ptrdiff_t order = op_info->extents_op->ext_0;
 	const struct const_Multiarray_Matrix_d* op =
 		constructor_empty_const_Multiarray_Matrix_d_V(false,op_info->extents_op); // returned
 
-	ptrdiff_t* extents = op->extents;
+//	const ptrdiff_t* extents = op->extents;
 
 	const ptrdiff_t row_max = op_info->values_op->ext_0;
 	for (ptrdiff_t row = 0; row < row_max; ++row) {
@@ -125,7 +127,7 @@ const struct const_Multiarray_Matrix_d* constructor_operators
 		case OP_T_CC:
 		case OP_T_VV:
 		case OP_T_VC:
-			set_operator_std(row,op,op_info);
+			set_operator_std(row,op,op_info,sim);
 			break;
 		default:
 			EXIT_UNSUPPORTED;
@@ -138,29 +140,19 @@ const struct const_Multiarray_Matrix_d* constructor_operators
 	return (const struct const_Multiarray_Matrix_d*) op;
 }
 
-
-
-/** \brief Check if information can be lost while performing the operation.
- *  \return `true` if: `p_i > p_o` or `h_i > h_o`; `false` otherwise. */
-bool check_op_info_loss
-	(const int*const op_values)
-{
-	if ((op_values[OP_IND_H+1] > op_values[OP_IND_H]) ||
-	    (op_values[OP_IND_P+1] > op_values[OP_IND_P]))
-		return true;
-	return false;
-}
-
-
-
-
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+/** \brief Convert the `char*` input to the appropriate definition of OP_T_*.
+ *  \return See brief. */
+int convert_to_type
+	(const char* name_type ///< Defined for \ref constructor_Operator_Info.
+	);
 
 /** \brief Convert the `char*` input to the appropriate definition of OP_R_D_*.
  *  \return See brief. */
 int convert_to_range_d
-	(char* name_type ///< Defined for \ref constructor_Operator_Info.
+	(const char* name_type ///< Defined for \ref constructor_Operator_Info.
 	);
 
 /** \brief Convert the `char*` inputs to the appropriate definition of OP_R_CE_*.
@@ -173,7 +165,7 @@ int convert_to_range_ce
 /** \brief Convert the `char*` input to the appropriate definition of OP_R_*.
  *  \return See brief. */
 int convert_to_range
-	(const char type_range       ///< The type of range parameter. Options: 'h', 'p'.
+	(const char type_range,      ///< The type of range parameter. Options: 'h', 'p'.
 	 const char*const name_range ///< Defined for \ref constructor_Operator_Info.
 	);
 
@@ -195,36 +187,42 @@ static struct Vector_i* constructor_indices_Vector_i
 	 const bool*const indices_skip ///< Indices to skip (if not NULL).
 	);
 
+/** \brief Check if information can be lost while performing the operation.
+ *  \return `true` if: `p_i > p_o` or `h_i > h_o`; `false` otherwise. */
+bool check_op_info_loss
+	(const int*const op_values ///< Values for the operator indices.
+	);
+
 struct Operator_Info* constructor_Operator_Info
 	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
 	 const int p_ref[2], const struct const_Element* element)
 {
-	const int op_type = convert_to_type(name_type);
-
-	const int ranges[] =
-		{ convert_to_range_d(name_type),
-		  convert_to_range_ce(name_in[0],name_in[1]),
-		  convert_to_range('h',name_range),
-		  convert_to_range('p',name_range), };
-
 	struct Operator_Info* op_info = malloc(sizeof *op_info); // returned
 
 	op_info->element = element;
 
+	const int op_type = convert_to_type(name_type);
+
 	const_cast_i(&op_info->op_type,op_type);
 
-	const_cast_c(&op_info->op_io[OP_IND_IN].ce,  name_in[0]);
-	const_cast_c(&op_info->op_io[OP_IND_IN].kind,name_in[1]);
-	const_cast_c(&op_info->op_io[OP_IND_IN].sc,  name_in[2]);
+	const_cast_c(&op_info->op_io[OP_IND_I].ce,  name_in[0]);
+	const_cast_c(&op_info->op_io[OP_IND_I].kind,name_in[1]);
+	const_cast_c(&op_info->op_io[OP_IND_I].sc,  name_in[2]);
 
-	const_cast_c(&op_info->op_io[OP_IND_OUT].ce,  name_out[0]);
-	const_cast_c(&op_info->op_io[OP_IND_OUT].kind,name_out[1]);
-	const_cast_c(&op_info->op_io[OP_IND_OUT].sc,  name_out[2]);
+	const_cast_c(&op_info->op_io[OP_IND_O].ce,  name_out[0]);
+	const_cast_c(&op_info->op_io[OP_IND_O].kind,name_out[1]);
+	const_cast_c(&op_info->op_io[OP_IND_O].sc,  name_out[2]);
 
-	const_cast_i(&op_info->range_d,ranges[0]);
-	const_cast_i(&op_info->range_f,ranges[1]);
-	const_cast_i(&op_info->range_h,ranges[2]);
-	const_cast_i(&op_info->range_p,ranges[3]);
+	const int ranges[] =
+		{ convert_to_range_d(name_type),
+		  convert_to_range_ce(name_in[0],name_out[0]),
+		  convert_to_range('h',name_range),
+		  convert_to_range('p',name_range), };
+
+	const_cast_i(&op_info->range_d, ranges[0]);
+	const_cast_i(&op_info->range_ce,ranges[1]);
+	const_cast_i(&op_info->range_h, ranges[2]);
+	const_cast_i(&op_info->range_p, ranges[3]);
 
 	const_cast_i1(op_info->p_ref,p_ref,2);
 
@@ -236,35 +234,35 @@ struct Operator_Info* constructor_Operator_Info
 
 void destructor_Operator_Info (struct Operator_Info* op_info)
 {
-	destructor_Vector_i(op_info->extents_cub);
-	destructor_Vector_i(op_info->extents_op);
-	destructor_Matrix_i(op_info->values_op);
+	destructor_const_Vector_i(op_info->extents_cub);
+	destructor_const_Vector_i(op_info->extents_op);
+	destructor_const_Matrix_i(op_info->values_op);
 	free(op_info);
 }
 
 static void set_operator_std
-	(const int ind_values, const struct const_Multiarray_Matrix_d* op, const struct Operator_Info* op_info)
+	(const int ind_values, const struct const_Multiarray_Matrix_d* op, const struct Operator_Info* op_info,
+	 const struct Simulation* sim)
 {
+	const int* op_values = get_row_const_Matrix_i(ind_values,op_info->values_op);
+
 	const bool info_loss = check_op_info_loss(op_values);
 
 	if (!info_loss) {
-		const int*const h_ptr = &op_values[OP_IND_H],
-		         *const p_ptr = &op_values[OP_IND_P];
+		const int*const p_ptr = &op_values[OP_IND_P];
 
-		const int*const p_x[2] = { compute_p_cub(p_ptr[0],op_info->cub_type,s_type,sim),
-		                           compute_p_cub(p_ptr[1],op_info->cub_type,s_type,sim), };
 		// Construct T_i
-		const int p_i         = p_ptr[OP_IND_I];
+		const int p_i = p_ptr[OP_IND_I];
 		const struct const_Cubature*const cub_i =
-			constructor_const_Cubature_h(d,p_x[OP_IND_I],node_type_i,s_type,h_ptr[OP_IND_I]); // destructed
+			constructor_const_Cubature_h(OP_IND_I,op_info->op_io,p_i,op_info->element,sim); // destructed
 	}
 
-
-
+/*
 	const struct const_Element* element = op_info->element;
 
 	const int d      = element->d,
 	          s_type = element->s_type;
+*/
 
 /*	const int* op_values = get_row_const_Matrix_i(ind_values,op_info->values_op);
 
@@ -285,7 +283,7 @@ static void set_operator_std
 //	destructor_Vector_i(indices_cub);
 
 
-
+/*
 //grad_basis_fptr constructor_grad_basis = get_grad_basis_by_super_type(element->s_type,"ortho");
 	if (!info_loss) {
 // NOTE: nodes out and basis out must coincide when this operator is available. I.e. you cannot project a non-basis set
@@ -340,6 +338,7 @@ else
 	} else {
 		EXIT_ADD_SUPPORT; // L2 projection operators.
 	}
+*/
 }
 
 
@@ -359,6 +358,110 @@ static void compute_range_p_o
 	 const struct Operator_Info* op_info, ///< \ref Operator_Info.
 	 const int p_i                        ///< The input order.
 	);
+
+int convert_to_type (const char* name_type)
+{
+	if (strstr(name_type,"cv"))
+		return OP_T_CV;
+	else if (strstr(name_type,"cc"))
+		return OP_T_CC;
+	else if (strstr(name_type,"vv"))
+		return OP_T_VV;
+	else if (strstr(name_type,"vc"))
+		return OP_T_VC;
+	else
+		EXIT_ERROR("(%s)\n",name_type);
+	return -1;
+}
+
+int convert_to_range_d (const char* name_type)
+{
+	long order_d = -1;
+	while (*name_type) {
+		if (isdigit(*name_type)) {
+			order_d = strtol(name_type,&name_type,10);
+			break;
+		} else {
+			++name_type;
+		}
+	}
+
+	switch (order_d) {
+		case 0:  return OP_R_D_0;   break;
+		case 1:  return OP_R_D_ALL; break;
+		default: EXIT_UNSUPPORTED;  break;
+	}
+	EXIT_ERROR("Did not find the operator range.");
+	return -1;
+}
+
+int convert_to_range_ce (const char ce_i, const char ce_o)
+{
+	switch (ce_i) {
+	case 'v':
+		switch (ce_o) {
+			case 'v': return OP_R_CE_VV; break;
+			case 'f': return OP_R_CE_VF; break;
+			case 'e': return OP_R_CE_VE; break;
+			default:  EXIT_UNSUPPORTED;  break;
+		}
+		break;
+	case 'f':
+		switch (ce_o) {
+			case 'v': return OP_R_CE_FV; break;
+			case 'f': return OP_R_CE_FF; break;
+			case 'e': return OP_R_CE_FE; break;
+			default:  EXIT_UNSUPPORTED;  break;
+		}
+		break;
+	case 'e':
+		switch (ce_o) {
+			case 'v': return OP_R_CE_EV; break;
+			case 'f': return OP_R_CE_EF; break;
+			case 'e': return OP_R_CE_EE; break;
+			default:  EXIT_UNSUPPORTED;  break;
+		}
+		break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+	EXIT_ERROR("Did not find the operator range.");
+	return -1;
+}
+
+int convert_to_range (const char type_range, const char*const name_range)
+{
+	switch (type_range) {
+	case 'h':
+		if (strstr(name_range,"H_1"))
+			return OP_R_H_1;
+		else if (strstr(name_range,"H_CF"))
+			return OP_R_H_CF;
+		else if (strstr(name_range,"H_FC"))
+			return OP_R_H_FC;
+		else
+			EXIT_UNSUPPORTED;
+		break;
+	case 'p':
+		if (strstr(name_range,"P_1"))
+			return OP_R_P_1;
+		else if (strstr(name_range,"P_PM0"))
+			return OP_R_P_PM0;
+		else if (strstr(name_range,"P_PM1"))
+			return OP_R_P_PM1;
+		else if (strstr(name_range,"P_ALL"))
+			return OP_R_P_ALL;
+		else
+			EXIT_UNSUPPORTED;
+		break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+	EXIT_ERROR("Did not find the operator range.");
+	return -1;
+}
 
 static void set_up_extents (struct Operator_Info* op_info)
 {
@@ -411,9 +514,9 @@ static void set_up_extents (struct Operator_Info* op_info)
 
 		int n_ref_max = -1;
 		if (op_info->range_ce == OP_R_CE_VV)
-			n_ref_max = op_info->element->n_ref_max;
+			n_ref_max = op_info->element->n_ref_max_v;
 		else if (op_info->range_ce == OP_R_CE_VF)
-			n_ref_max = op_info->element->n_ref_f_max;
+			n_ref_max = op_info->element->n_ref_max_f;
 
 		case OP_R_H_1:
 			push_back_Vector_i(extents_cub,1,false,false);
@@ -459,7 +562,7 @@ static void set_up_extents (struct Operator_Info* op_info)
 
 static void set_up_values_op (struct Operator_Info* op_info)
 {
-	const ptrdiff_t size = prod_Vector_i(op_info->extents);
+	const ptrdiff_t size = prod_Vector_i(op_info->extents_op);
 
 	struct Matrix_i* values = constructor_empty_Matrix_i('R',size,OP_ORDER_MAX); // keep
 
@@ -494,6 +597,15 @@ static void set_up_values_op (struct Operator_Info* op_info)
 	values->ext_0 = row;
 
 	op_info->values_op = (const struct const_Matrix_i*) values;
+}
+
+bool check_op_info_loss
+	(const int*const op_values)
+{
+	if ((op_values[OP_IND_H+1] > op_values[OP_IND_H]) ||
+	    (op_values[OP_IND_P+1] > op_values[OP_IND_P]))
+		return true;
+	return false;
 }
 
 // Level 2 ********************************************************************************************************** //
@@ -576,9 +688,9 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 
 		int n_ref_max = -1;
 		if (op_info->range_ce == OP_R_CE_VV)
-			n_ref_max = op_info->element->n_ref_max;
+			n_ref_max = op_info->element->n_ref_max_v;
 		else if (op_info->range_ce == OP_R_CE_VF)
-			n_ref_max = op_info->element->n_ref_f_max;
+			n_ref_max = op_info->element->n_ref_max_f;
 
 		x_mm[0] = 0;
 		switch (op_info->range_h) {
@@ -608,13 +720,13 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 		switch (op_info->range_p) {
 		case OP_R_P_1:
 			x_mm[0] = 1;
-			x_mm[1] = 2;
+			x_mm[1] = 1+1;
 			break;
-		case OP_R_P_PM0:
+		case OP_R_P_PM0: /* fallthrough */
 		case OP_R_P_PM1: /* fallthrough */
 		case OP_R_P_ALL:
 			x_mm[0] = op_info->p_ref[0];
-			x_mm[1] = op_info->p_ref[1];
+			x_mm[1] = op_info->p_ref[1]+1;
 			break;
 		default:
 			EXIT_UNSUPPORTED;
@@ -631,7 +743,7 @@ static void compute_range_p_o (int p_o_mm[2], const struct Operator_Info* op_inf
 	switch (op_info->range_p) {
 	case OP_R_P_1:
 		p_o_mm[0] = 1;
-		p_o_mm[1] = 2;
+		p_o_mm[1] = 1+1;
 		break;
 	case OP_R_P_PM0:
 		p_o_mm[0] = p_i;
@@ -658,35 +770,14 @@ static void compute_range_p_o (int p_o_mm[2], const struct Operator_Info* op_inf
 
 
 
-
-/** \brief Compute the node type associated with the input cubature type.
- *  \return See brief. */
-static int compute_node_type
-	(const struct Operator_Info* op_info, ///< \ref Operator_Info.
-	 const int s_type,                    ///< \ref Element::s_type.
-	 const struct Simulation *sim         ///< \ref Simulation.
-	);
-
-/// \brief Compute the minimum and maximum orders for the cubature nodes of the given type.
-static void compute_p_range
-	(int*const p_min,                    ///< The minimum order in the range.
-	 int*const p_max,                    ///< The maximum order in the range.
-	 const struct Operator_Info* op_info ///< \ref Operator_Info.
-	);
-
-/** \brief Compute the cubature node order associated with the current reference order for the give cub_type.
- *  \return See brief. */
+/*
+// \brief Compute the cubature node order associated with the current reference order for the give cub_type.
+// \return See brief.
 static int compute_p_cub
 	(const int p_ref,             ///< The input refenrece order.
 	 const int cub_type,          ///< \ref Operator_Info::cub_type.
 	 const int s_type,            ///< \ref Element::s_type.
 	 const struct Simulation *sim ///< \ref Simulation.
-	);
-
-/** \brief Compute the index of computational element associated with the cubature type.
- *  \return See brief. */
-static int compute_cub_ce
-	(const int cub_type ///< The cubature type.
 	);
 
 static void destructor_Multiarray_Cubature (struct Multiarray_Cubature* a)
@@ -721,9 +812,10 @@ const struct const_Cubature** constructor_cub_data_array
 
 		const int node_type = compute_node_type(op_info,element->s_type,sim);
 
-		int p_min = -1,
-		    p_max = -1;
-		compute_p_range(&p_min,&p_max,op_info);
+		int p_range[2] = {-1,-1};
+		compute_range (p_range,op_info,'p','i');
+		const int p_min = p_range[0],
+		          p_max = p_range[1];
 		for (ptrdiff_t ind = 0, p = p_min; p <= p_max; ++p) {
 			compute_p_cub(p,op_info->cub_type,element->s_type,sim);
 			for (ptrdiff_t h = 0; h < extents[0]; ++h) {
@@ -757,204 +849,4 @@ static struct Vector_i* constructor_indices_Vector_i
 
 	return indices;
 }
-
-
-int convert_to_range_d (char* name_type)
-{
-	long order_d = -1;
-	while (*name_type) {
-		if (isdigit(*name_type)) {
-			order_d = strtol(name_type,&name_type,10);
-			break;
-		} else {
-			++name_type;
-		}
-	}
-
-	switch (order_d) {
-		case 0:  return OP_R_D_0;   break;
-		case 1:  return OP_R_D_ALL; break;
-		default: EXIT_UNSUPPORTED;  break;
-	}
-	EXIT_ERROR("Did not find the operator range.");
-	return -1;
-}
-
-int convert_to_range_ce (const char ce_i, const char ce_o)
-{
-	switch (ce_i) {
-	case 'v':
-		switch (ce_o) {
-			case 'v': return OP_R_CE_VV;   break;
-			case 'f': return OP_R_CE_VF;   break;
-			case 'e': return OP_R_CE_VE;   break;
-			default:  EXIT_UNSUPPORTED; break;
-		}
-		break;
-	case 'f':
-		switch (ce_o) {
-			case 'v': return OP_R_CE_FV;   break;
-			case 'f': return OP_R_CE_FF;   break;
-			case 'e': return OP_R_CE_FE;   break;
-			default:  EXIT_UNSUPPORTED; break;
-		}
-		break;
-	case 'e':
-		switch (ce_o) {
-			case 'v': return OP_R_CE_EV;   break;
-			case 'f': return OP_R_CE_EF;   break;
-			case 'e': return OP_R_CE_EE;   break;
-			default:  EXIT_UNSUPPORTED; break;
-		}
-		break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
-	EXIT_ERROR("Did not find the operator range.");
-	return -1;
-}
-
-int convert_to_range (const char type_range, const char*const name_range)
-{
-	switch (type_range) {
-	case 'h':
-		if (strstr(name_range,"H_1"))
-			return OP_R_H_1;
-		else if (strstr(name_range,"H_CF"))
-			return OP_R_H_CF;
-		else if (strstr(name_range,"H_FC"))
-			return OP_R_H_FC;
-		else
-			EXIT_UNSUPPORTED;
-		break;
-	case 'p':
-		if (strstr(name_range,"P_1"))
-			return OP_R_P_1;
-		else if (strstr(name_range,"P_PM0"))
-			return OP_R_P_PM0;
-		else if (strstr(name_range,"P_PM1"))
-			return OP_R_P_PM1;
-		else if (strstr(name_range,"P_ALL"))
-			return OP_R_P_ALL;
-		else
-			EXIT_UNSUPPORTED;
-		break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
-	EXIT_ERROR("Did not find the operator range.");
-	return -1;
-}
-
-/** \brief Compute the index of straight/curved indicator associated with the cubature type.
- *  \return See brief. */
-static int compute_cub_sc
-	(const int cub_type ///< The cubature type.
-	);
-
-/** \brief Compute the index of entity associated with the cubature type.
- *  \return See brief. */
-static int compute_cub_ent
-	(const int cub_type ///< The cubature type.
-	);
-
-static int compute_node_type (const struct Operator_Info* op_info, const int s_type, const struct Simulation *sim)
-{
-	const int cub_ent = compute_cub_ent(op_info->cub_type);
-	switch (cub_ent) {
-	case CUB_ENT_G:
-		if (s_type == ST_TP || s_type == ST_PYR)
-			return CUB_GLL;
-		else if (s_type == ST_SI)
-			return CUB_AO;
-		else
-			EXIT_UNSUPPORTED;
-		break;
-UNUSED(sim);
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
-}
-
-static void compute_p_range
-	(int*const p_min, int*const p_max, const struct Operator_Info* op_info)
-{
-	switch (op_info->range_p) {
-		case OP_R_P_1:
-			*p_min = 1;
-			*p_max = 1;
-			break;
-		case OP_R_P_PM0: /* fallthrough */
-		case OP_R_P_PM1: /* fallthrough */
-		case OP_R_P_ALL: /* fallthrough */
-			*p_min = op_info->p_ref[0];
-			*p_max = op_info->p_ref[1];
-			break;
-		default:
-			EXIT_UNSUPPORTED;
-			break;
-	}
-}
-
-static int compute_p_cub (const int p_ref, const int cub_type, const int s_type, const struct Simulation *sim)
-{
-	const int cub_sc  = compute_cub_sc(cub_type),
-	          cub_ce  = compute_cub_ce(cub_type),
-	          cub_ent = compute_cub_ent(cub_type);
-	switch (cub_ent) {
-	case CUB_ENT_S:
-		return p_ref;
-		break;
-	case CUB_ENT_G: {
-		if (cub_sc == CUB_SC_S)
-			return 1;
-
-		if (strcmp(sim->geom_rep,"isoparametric") == 0)
-			return p_ref;
-		else if (strcmp(sim->geom_rep,"superparametric") == 0)
-			return p_ref+1;
-		else if (strstr(sim->geom_rep,"fixed"))
-			EXIT_ADD_SUPPORT;
-		else
-			EXIT_UNSUPPORTED;
-		break;
-	} case CUB_ENT_M: {
-//		const int p_g = compute_p_cub (p_ref,cub_sc+cub_ce+CUB_ENG_G,s_type,sim);
-UNUSED(cub_ce);
-UNUSED(s_type);
-
-		break;
-	} default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
-	EXIT_UNSUPPORTED;
-	return -1;
-}
-
-static int compute_cub_ce (const int cub_type)
-{
-	const int cub_sc       = compute_cub_sc(cub_type),
-	          cub_ce_inter = cub_type - cub_sc;
-
-	// note the integer division.
-	return (cub_ce_inter / CUB_CE_MULT)*CUB_CE_MULT;
-}
-
-
-
-static int compute_cub_sc (const int cub_type)
-{
-	// note the integer division.
-	return (cub_type / CUB_SC_MULT)*CUB_SC_MULT;
-}
-
-static int compute_cub_ent (const int cub_type)
-{
-	const int cub_sc = compute_cub_sc(cub_type),
-	          cub_ce = compute_cub_ce(cub_type);
-	return cub_type - cub_sc - cub_ce;
-}
+*/

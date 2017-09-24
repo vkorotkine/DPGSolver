@@ -28,8 +28,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *
  *  Cubature containers can be generated for the output of the operator (which is the standard usage) as well as for the
  *  input basis (which is required for operator transformation such as from the reference to the arbitrary basis). In
- *  the case of operators requiring requiring transformation of the output as well (such as for "cc" and "vc"
- *  operators), the cubature nodes returned must necessarily form a basis for the output coefficient space.
+ *  the case of operators requiring transformation of the output as well (such as for "cc" and "vc" operators), the
+ *  cubature nodes returned must necessarily form a basis for the output coefficient space.
  */
 const struct const_Cubature* constructor_const_Cubature_h
 	(const int ind_io,                   ///< Index indicating whether an input/output cubature is being generated.

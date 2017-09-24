@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \note `const` and non-`const` versions of \ref Element must have identical members and layout.
  */
 
+#include <stdbool.h>
 #include "intrusive.h"
 
 /// \brief Container for data relating to the base Elements.
@@ -35,8 +36,8 @@ struct Element {
 	          n_e,    ///< The number of edges.
 	          n_f;    ///< The number of faces.
 
-	const int n_ref_max,   ///< Maximum number of h-refinements.
-	          n_ref_f_max; ///< Maximum number of face h-refinements.
+	const int n_ref_max_v, ///< Maximum number of volume h-refinements.
+	          n_ref_max_f; ///< Maximum number of face h-refinements.
 
 	const struct const_Multiarray_Vector_i*const f_ve; ///< The correspondence between the (f)aces and (ve)rtices.
 };
@@ -52,7 +53,8 @@ struct const_Element {
 	          n_e,    ///< Defined in \ref Element.
 	          n_f;    ///< Defined in \ref Element.
 
-	const int n_ref_max; ///< Defined in \ref Element.
+	const int n_ref_max_v, ///< Defined in \ref Element.
+	          n_ref_max_f; ///< Defined in \ref Element.
 
 	const struct const_Multiarray_Vector_i*const f_ve; ///< Defined in \ref Element.
 };
@@ -111,7 +113,7 @@ bool wedges_present
 
 /** \brief Compute the element type for the given input parameters.
  *  \return See brief. */
-const int compute_elem_type_sub_ce
+int compute_elem_type_sub_ce
 	(const int type,  ///< \ref Element::type.
 	 const char ce,   ///< The type of computational element.
 	 const int ind_ce ///< The index of the computational element.

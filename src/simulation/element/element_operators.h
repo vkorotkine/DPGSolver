@@ -58,7 +58,7 @@ struct Simulation;
 struct const_Element;
 
 /// Container specifying the effect ("from which input to which output" ) of the operator application.
-const struct Op_IO {
+struct Op_IO {
 	const char ce,   ///< The computational element.
 	           kind, ///< The kind of basis/cubature.
 	           sc;   ///< Indication of straight/curved.
