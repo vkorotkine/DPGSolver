@@ -23,6 +23,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  sub-regions of the reference elements for use in h-adaptive operators.
  */
 
+#include "element_operators.h"
+
 /** \brief Constructor for a \ref Cubature container of the given super type.
  *  \return Standard.
  *
@@ -32,12 +34,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  cubature nodes returned must necessarily form a basis for the output coefficient space.
  */
 const struct const_Cubature* constructor_const_Cubature_h
-	(const int ind_io,                   ///< Index indicating whether an input/output cubature is being generated.
-	 const struct Op_IO[2] op_io,        ///< \ref Op_IO.
-	 const int p_op,                     /**< The polynomial order index of the associated operator (**Not the order
-	                                      *   of the cubature rule**). */
-	 const struct const_Element* element ///< \ref const_Element.
-	 const struct Simulation* sim        ///< \ref Simulation.
+	(const int ind_io,                    ///< Index indicating whether an input/output cubature is being generated.
+	 const struct Op_IO op_io[2],         ///< \ref Op_IO.
+	 const struct const_Element* element, ///< \ref const_Element.
+	 const struct Simulation* sim         ///< \ref Simulation.
 	);
 
 #endif // DPG__cubature_operators_h__INCLUDED

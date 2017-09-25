@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <assert.h>
 #include <math.h>
+#include <string.h>
 #include "gsl/gsl_math.h"
 #include "gsl/gsl_sf_gamma.h"
 
@@ -656,12 +657,12 @@ basis_fptr get_basis_by_super_type (const int s_type, const char*const ref_basis
 	EXIT_ERROR("Did not find the basis with the specified inputs: (%d, %s)\n",s_type,ref_basis_name);
 }
 
-grad_basis_fptr get_grad_basis_by_super_type (const int s_type, const char*const ref_grad_basis_name)
+grad_basis_fptr get_grad_basis_by_super_type (const int s_type, const char*const ref_basis_name)
 {
 	if (s_type == ST_TP) {
-		if (strcmp(ref_grad_basis_name,"ortho") == 0)
+		if (strcmp(ref_basis_name,"ortho") == 0)
 			return  constructor_grad_basis_tp_orthonormal;
-		else if (strcmp(ref_grad_basis_name,"bezier") == 0)
+		else if (strcmp(ref_basis_name,"bezier") == 0)
 			return  constructor_grad_basis_tp_bezier;
 	} else if (s_type == ST_SI) {
 		return  constructor_grad_basis_si_orthonormal;
@@ -669,7 +670,7 @@ grad_basis_fptr get_grad_basis_by_super_type (const int s_type, const char*const
 		return  constructor_grad_basis_pyr_orthonormal;
 	}
 
-	EXIT_ERROR("Did not find the basis with the specified inputs: (%d, %s)\n",s_type,ref_grad_basis_name);
+	EXIT_ERROR("Did not find the basis with the specified inputs: (%d, %s)\n",s_type,ref_basis_name);
 }
 
 // Static functions ************************************************************************************************* //

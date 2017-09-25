@@ -165,6 +165,12 @@ struct Matrix_d* constructor_move_Matrix_d_d
     return dest;
 }
 
+const struct const_Matrix_d* constructor_move_const_Matrix_d_d
+	(const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1, const bool owns_data, const double*const data)
+{
+	return (const struct const_Matrix_d*) constructor_move_Matrix_d_d(layout,ext_0,ext_1,owns_data,(double*)data);
+}
+
 struct Matrix_i* constructor_move_Matrix_i_i
 	(const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1, const bool owns_data, int*const data)
 {

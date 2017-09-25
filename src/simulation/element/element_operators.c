@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <assert.h>
 #include <string.h>
+#include <ctype.h>
+#include "gsl/gsl_math.h"
 
 #include "macros.h"
 #include "definitions_core.h"
@@ -34,7 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element.h"
 #include "const_cast.h"
 #include "bases.h"
-#include "cubature.h"
+#include "cubature_operators.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -61,7 +63,7 @@ void destructor_Operator_Info
 /** \brief Set the current standard operator(s).
  *  \note Standard operators include all permutations of coef/value to coef/value with possible differentiation. */
 static void set_operator_std
-	(const int ind_values,                       /**< The index of the first row of \ref Operator_Info::op_values
+	(const int ind_values,                       /**< The index of the first row of \ref Operator_Info::values_op
 	                                              *   to use. */
 	 const struct const_Multiarray_Matrix_d* op, ///< The multiarray of operators.
 	 const struct Operator_Info* op_info,        ///< \ref Operator_Info.
@@ -181,7 +183,8 @@ static void set_up_values_op
 
 /** \brief Constructor for a \ref Vector_i\* of indices for the current operator.
  *  \return See brief. */
-static struct Vector_i* constructor_indices_Vector_i
+/// \todo Make static
+struct Vector_i* constructor_indices_Vector_i
 	(const int order_expected,     ///< The expected order.
 	 int* op_values,               ///< The operator values.
 	 const bool*const indices_skip ///< Indices to skip (if not NULL).
@@ -244,19 +247,27 @@ static void set_operator_std
 	(const int ind_values, const struct const_Multiarray_Matrix_d* op, const struct Operator_Info* op_info,
 	 const struct Simulation* sim)
 {
+printf("eo,opvo\n");
+print_const_Matrix_i(op_info->values_op);
 	const int* op_values = get_row_const_Matrix_i(ind_values,op_info->values_op);
 
 	const bool info_loss = check_op_info_loss(op_values);
 
 	if (!info_loss) {
-		const int*const p_ptr = &op_values[OP_IND_P];
+		const int*const h_ptr = &op_values[OP_IND_H],
+		         *const p_ptr = &op_values[OP_IND_P];
+
+		for (int i = 0; i < 2; ++i) {
+			const_cast_i(&op_info->op_io[i].h_op,h_ptr[i]);
+			const_cast_i(&op_info->op_io[i].p_op,p_ptr[i]);
+		}
 
 		// Construct T_i
-		const int p_i = p_ptr[OP_IND_I];
 		const struct const_Cubature*const cub_i =
-			constructor_const_Cubature_h(OP_IND_I,op_info->op_io,p_i,op_info->element,sim); // destructed
+			constructor_const_Cubature_h(OP_IND_I,op_info->op_io,op_info->element,sim); // destructed
+UNUSED(cub_i);
 	}
-
+UNUSED(op);
 /*
 	const struct const_Element* element = op_info->element;
 
@@ -359,6 +370,12 @@ static void compute_range_p_o
 	 const int p_i                        ///< The input order.
 	);
 
+/** \brief Get the value for the maximum number of h-refinements.
+ *  \return See brief. */
+int get_n_ref_max
+	(const struct Operator_Info* op_info ///< \ref Operator_Info.
+	);
+
 int convert_to_type (const char* name_type)
 {
 	if (strstr(name_type,"cv"))
@@ -376,14 +393,14 @@ int convert_to_type (const char* name_type)
 
 int convert_to_range_d (const char* name_type)
 {
+	char* char_end = NULL;
 	long order_d = -1;
 	while (*name_type) {
 		if (isdigit(*name_type)) {
-			order_d = strtol(name_type,&name_type,10);
+			order_d = strtol(name_type,&char_end,10);
 			break;
-		} else {
-			++name_type;
 		}
+		++name_type;
 	}
 
 	switch (order_d) {
@@ -466,6 +483,8 @@ int convert_to_range (const char type_range, const char*const name_range)
 static void set_up_extents (struct Operator_Info* op_info)
 {
 /// \todo Check whether extents_cub is actually needed. Delete if not.
+	const struct const_Element* element = op_info->element;
+
 	struct Vector_i* extents_cub = constructor_default_Vector_i(); // keep
 	struct Vector_i* extents_op  = constructor_default_Vector_i(); // keep
 
@@ -508,32 +527,24 @@ static void set_up_extents (struct Operator_Info* op_info)
 	}
 
 	switch (op_info->range_h) { // h_o, h_i
-		// There are currently no h-adaptation operators for other `range_ce` values.
-		assert((op_info->range_ce == OP_R_CE_VV) ||
-		       (op_info->range_ce == OP_R_CE_VF));
-
-		int n_ref_max = -1;
-		if (op_info->range_ce == OP_R_CE_VV)
-			n_ref_max = op_info->element->n_ref_max_v;
-		else if (op_info->range_ce == OP_R_CE_VF)
-			n_ref_max = op_info->element->n_ref_max_f;
-
 		case OP_R_H_1:
 			push_back_Vector_i(extents_cub,1,false,false);
 			push_back_Vector_i(extents_op,1,false,false);
 			push_back_Vector_i(extents_op,1,false,false);
 			break;
-		case OP_R_H_CF:
+		case OP_R_H_CF: {
+			const int n_ref_max = get_n_ref_max(op_info);
 			push_back_Vector_i(extents_cub,n_ref_max,false,false);
 			push_back_Vector_i(extents_op,n_ref_max,false,false);
 			push_back_Vector_i(extents_op,1,false,false);
 			break;
-		case OP_R_H_FC:
+		} case OP_R_H_FC: {
+			const int n_ref_max = get_n_ref_max(op_info);
 			push_back_Vector_i(extents_cub,n_ref_max,false,false);
 			push_back_Vector_i(extents_op,1,false,false);
 			push_back_Vector_i(extents_op,n_ref_max,false,false);
 			break;
-		default:
+		} default:
 			EXIT_UNSUPPORTED;
 			break;
 	}
@@ -562,7 +573,7 @@ static void set_up_extents (struct Operator_Info* op_info)
 
 static void set_up_values_op (struct Operator_Info* op_info)
 {
-	const ptrdiff_t size = prod_Vector_i(op_info->extents_op);
+	const ptrdiff_t size = prod_const_Vector_i(op_info->extents_op);
 
 	struct Matrix_i* values = constructor_empty_Matrix_i('R',size,OP_ORDER_MAX); // keep
 
@@ -629,6 +640,7 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 			EXIT_UNSUPPORTED;
 			break;
 		}
+		break;
 	case 'c': // ce
 		switch (op_info->range_ce) {
 		case OP_R_CE_VV:
@@ -681,17 +693,8 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 			EXIT_UNSUPPORTED;
 			break;
 		}
+		break;
 	case 'h':
-		// There are currently no h-adaptation operators for other `range_ce` values.
-		assert((op_info->range_ce == OP_R_CE_VV) ||
-		       (op_info->range_ce == OP_R_CE_VF));
-
-		int n_ref_max = -1;
-		if (op_info->range_ce == OP_R_CE_VV)
-			n_ref_max = op_info->element->n_ref_max_v;
-		else if (op_info->range_ce == OP_R_CE_VF)
-			n_ref_max = op_info->element->n_ref_max_f;
-
 		x_mm[0] = 0;
 		switch (op_info->range_h) {
 		case OP_R_H_1:
@@ -701,11 +704,11 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 			if (var_io == 'i')
 				x_mm[1] = 1;
 			else if (var_io == 'o')
-				x_mm[1] = n_ref_max;
+				x_mm[1] = get_n_ref_max(op_info);
 			break;
 		case OP_R_H_FC:
 			if (var_io == 'i')
-				x_mm[1] = n_ref_max;
+				x_mm[1] = get_n_ref_max(op_info);
 			else if (var_io == 'o')
 				x_mm[1] = 1;
 			break;
@@ -713,6 +716,7 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 			EXIT_UNSUPPORTED;
 			break;
 		}
+		break;
 	case 'p':
 		// In general, p_o depends on p_i and requires more information than that provided here.
 		assert(var_io == 'i');
@@ -732,8 +736,9 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 			EXIT_UNSUPPORTED;
 			break;
 		}
+		break;
 	default:
-		EXIT_UNSUPPORTED;
+		EXIT_ERROR("Unsupported: %c\n",var_type);
 		break;
 	}
 }
@@ -750,17 +755,27 @@ static void compute_range_p_o (int p_o_mm[2], const struct Operator_Info* op_inf
 		p_o_mm[1] = p_i+1;
 		break;
 	case OP_R_P_PM1:
-		p_o_mm[0] = max(p_i-1,op_info->p_ref[0]);
-		p_o_mm[1] = min(p_i+1,op_info->p_ref[1])+1;
+		p_o_mm[0] = GSL_MAX(p_i-1,op_info->p_ref[0]);
+		p_o_mm[1] = GSL_MIN(p_i+1,op_info->p_ref[1])+1;
 		break;
 	case OP_R_P_ALL:
-		x_mm[0] = op_info->p_ref[0];
-		x_mm[1] = op_info->p_ref[1]+1;
+		p_o_mm[0] = op_info->p_ref[0];
+		p_o_mm[1] = op_info->p_ref[1]+1;
 		break;
 	default:
 		EXIT_UNSUPPORTED;
 		break;
 	}
+}
+
+int get_n_ref_max (const struct Operator_Info* op_info)
+{
+	// There are currently no h-adaptation operators for other `range_ce` values.
+	if (op_info->range_ce == OP_R_CE_VV)
+		return op_info->element->n_ref_max_v;
+	else if (op_info->range_ce == OP_R_CE_VF)
+		return op_info->element->n_ref_max_f;
+	EXIT_UNSUPPORTED;
 }
 
 

@@ -117,6 +117,16 @@ struct Matrix_d* constructor_move_Matrix_d_d
 	 double*const data      ///< Standard.
 	);
 
+/** \brief `const` version of constructor_move_Matrix_d_d.
+ *  \return Standard. */
+const struct const_Matrix_d* constructor_move_const_Matrix_d_d
+	(const char layout,      ///< Defined for \ref constructor_move_Matrix_d_d.
+	 const ptrdiff_t ext_0,  ///< Defined for \ref constructor_move_Matrix_d_d.
+	 const ptrdiff_t ext_1,  ///< Defined for \ref constructor_move_Matrix_d_d.
+	 const bool owns_data,   ///< Defined for \ref constructor_move_Matrix_d_d.
+	 const double*const data ///< Defined for \ref constructor_move_Matrix_d_d.
+	);
+
 /** \brief Move constructor for a \ref Matrix_i\* from a `int*`.
  *  \return Standard. */
 struct Matrix_i* constructor_move_Matrix_i_i

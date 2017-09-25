@@ -111,6 +111,12 @@ ptrdiff_t prod_Vector_i
 	(const struct Vector_i* a ///< Standard.
 	);
 
+/** \brief `const` version of \ref prod_Vector_i.
+ *  \return See brief. */
+ptrdiff_t prod_const_Vector_i
+	(const struct const_Vector_i* a ///< Standard.
+	);
+
 /**	\brief See return.
  *	\return `bool` indicating whether the \ref Vector_i\* inputs are equal. */
 bool check_equal_Vector_i

@@ -62,6 +62,9 @@ struct Op_IO {
 	const char ce,   ///< The computational element.
 	           kind, ///< The kind of basis/cubature.
 	           sc;   ///< Indication of straight/curved.
+
+	const int h_op, ///< The h-refinement index of the operator.
+	          p_op; ///< The polynomial order index of the operator (**Not the order of the cubature rule**).
 };
 
 /** Container for operator range related information.
@@ -86,7 +89,7 @@ struct Operator_Info {
 	/// The extents of the associated \ref Multiarray_Matrix_d\* of operators.
 	const struct const_Vector_i* extents_op;
 
-	const struct const_Matrix_i* values_op ///< The values of d, f, h, p_in, and p_out for each operator.
+	const struct const_Matrix_i* values_op; ///< The values of d, f, h, p_in, and p_out for each operator.
 };
 
 /// Container for a Multiarray of \ref Cubature\* data.

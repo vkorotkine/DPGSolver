@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "element.h"
 
+#include <assert.h>
 #include <string.h>
 
 #include "macros.h"
@@ -232,6 +233,60 @@ int compute_elem_type_sub_ce (const int e_type, const char ce, const int ind_ce)
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %c\n",ce);
+		break;
+	}
+}
+
+int compute_super_from_elem_type (const int e_type)
+{
+	switch (e_type) {
+	case POINT: case LINE: case QUAD: case HEX:
+		return ST_TP;
+		break;
+	case TRI: case TET:
+		return ST_SI;
+		break;
+	case PYR:
+		return ST_PYR;
+		break;
+	case WEDGE:
+		return ST_WEDGE;
+		break;
+	default:
+		EXIT_ERROR("Unsupported (%d)\n",e_type);
+		break;
+	}
+}
+
+int compute_elem_from_super_type (const int s_type, const int d)
+{
+	switch (s_type) {
+	case ST_TP:
+		switch (d) {
+			case 0: return POINT; break;
+			case 1: return LINE;  break;
+			case 2: return QUAD;  break;
+			case 3: return HEX;   break;
+			default:
+				EXIT_ERROR("Unsupported: %d\n",d);
+				break;
+		}
+		break;
+	case ST_SI:
+		if      (d == 2) return TRI;
+		else if (d == 3) return TET;
+		else             EXIT_ERROR("Unsupported: %d\n",d);
+		break;
+	case ST_PYR:
+		assert(d == 3);
+		return PYR;
+		break;
+	case ST_WEDGE:
+		assert(d == 3);
+		return WEDGE;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",s_type);
 		break;
 	}
 }

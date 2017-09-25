@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "cubature.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -35,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vector.h"
 
 #include "math_functions.h"
+#include "bases.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -52,12 +54,23 @@ static const struct const_Cubature* constructor_const_Cubature_tet
 	 const int node_type ///< Defined for \ref constructor_const_Cubature_si.
 	);
 
+/** \brief Constructor for a \ref Cubature container for the p1 reference element vertices or arbitrary element type.
+ *  \return See brief. */
+static const struct const_Cubature* constructor_const_Cubature_vertices
+	(const int d,     ///< Defined in \ref cubature_fptr.
+	 const int p,     ///< Defined in \ref cubature_fptr.
+	 const int s_type ///< \ref Element::s_type.
+	);
+
 // Constructor functions ******************************************************************************************** //
 
 const struct const_Cubature* constructor_const_Cubature_tp (const int d, const int p, const int node_type)
 {
-	if ((d <= 0) || (p < 0))
-		EXIT_ERROR("Invalid dimension (%d) or order (%d).\n",d,p);
+	assert(p >= 0);
+	assert((d >= 1) && (d <= 3));
+
+	if (node_type == CUB_VERTEX)
+		return constructor_const_Cubature_vertices(d,p,ST_TP);
 
 	bool has_weights = true;
 
@@ -131,7 +144,7 @@ const struct const_Cubature* constructor_const_Cubature_tp (const int d, const i
 		}}}
 	}
 
-	struct Cubature* cubature = calloc(1,sizeof *cubature); // returned;
+	struct Cubature* cubature = calloc(1,sizeof *cubature); // returned
 
 	cubature->p         = p;
 	cubature->node_type = node_type;
@@ -149,8 +162,11 @@ const struct const_Cubature* constructor_const_Cubature_tp (const int d, const i
 
 const struct const_Cubature* constructor_const_Cubature_si (const int d, const int p, const int node_type)
 {
-	if ((d <= 1) || (p < 0))
-		EXIT_ERROR("Invalid dimension (%d) or order (%d).\n",d,p);
+	assert(p >= 0);
+	assert((d >= 2) && (d <= 3));
+
+	if (node_type == CUB_VERTEX)
+		return constructor_const_Cubature_vertices(d,p,ST_SI);
 
 	if (d == 2)
 		return constructor_const_Cubature_tri(p,node_type);
@@ -162,13 +178,17 @@ const struct const_Cubature* constructor_const_Cubature_si (const int d, const i
 
 const struct const_Cubature* constructor_const_Cubature_pyr (const int d, const int p, const int node_type)
 {
-	if (d != 3)
-		EXIT_UNSUPPORTED;
+	assert(p >= 0);
+	assert(d == 3);
+
+	if (node_type == CUB_VERTEX)
+		return constructor_const_Cubature_vertices(d,p,ST_PYR);
 
 	const unsigned int P = p;
 	bool has_weights = true;
 
 	static const unsigned int perms_QUAD[] = { 0,1,2,3, 3,0,1,2, 2,3,0,1, 1,2,3,0 };
+	// Note: Does not necessarily match rst from constructor_const_Cubature_vertices(3,1,ST_PYR).
 	static const double rst_V[] = { -1.0,        1.0,        1.0,       -1.0,       0.0,
 	                                -1.0,       -1.0,        1.0,        1.0,       0.0,
 	                                -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, 4.0/5.0*SQRT2};
@@ -458,6 +478,7 @@ static const struct const_Cubature* constructor_const_Cubature_tri (const int p,
 	bool has_weights = true;
 
 	static const unsigned int perms[] = { 0,1,2, 2,0,1, 1,2,0, 0,2,1, 1,0,2, 2,1,0 };
+	// Note: Does not necessarily match rst from constructor_const_Cubature_vertices(2,1,ST_SI).
 	static const double rst_V[] = { -1.0,        1.0,       0.0,
 	                                -1.0/SQRT3, -1.0/SQRT3, 2.0/SQRT3};
 
@@ -665,6 +686,7 @@ static const struct const_Cubature* constructor_const_Cubature_tet (const int p,
 
 	static const unsigned int perms_TRI[] = { 0,1,2, 2,0,1, 1,2,0, 0,2,1, 1,0,2, 2,1,0 };
 	static const unsigned int perms_TET[] = { 0,1,2,3, 3,0,1,2, 2,3,0,1, 1,2,3,0 };
+	// Note: Does not necessarily match rst from constructor_const_Cubature_vertices(3,1,ST_SI).
 	static const double rst_V[] = { -1.0,        1.0,        0.0,       0.0,
 	                                -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3, 0.0,
 	                                -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6, 3.0/SQRT6};
@@ -919,6 +941,71 @@ static const struct const_Cubature* constructor_const_Cubature_tet (const int p,
 		cubature->w = constructor_move_Vector_d_d(ext_0,true,wOut); // keep
 	else
 		cubature->w = NULL;
+
+	return (const struct const_Cubature*) cubature;
+}
+
+static const struct const_Cubature* constructor_const_Cubature_vertices (const int d, const int p, const int s_type)
+{
+	assert(p == 1);
+	const int node_type = CUB_VERTEX;
+
+	double* rst = NULL;
+
+	switch (s_type) {
+	case ST_TP:
+		if (d == 1)
+			rst = (double[]) { -1.0,  1.0, };
+//		else if (d == 2)
+//			rst = (double[]) { -1.0,  1.0, -1.0,  1.0,
+//			                   -1.0, -1.0,  1.0,  1.0, };
+//		else if (d == 3)
+//			rst = (double[]) { -1.0,  1.0, -1.0,  1.0, -1.0,  1.0, -1.0,  1.0,
+//			                   -1.0, -1.0,  1.0,  1.0, -1.0, -1.0,  1.0,  1.0,
+//			                   -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0,  1.0, };
+		else
+			EXIT_UNSUPPORTED;
+		break;
+	case ST_SI:
+		if (d == 2)
+			rst = (double[]) { -1.0,        1.0,        0.0,
+			                   -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3, };
+		else if (d == 3)
+			rst = (double[]) { -1.0,        1.0,        0.0,        0.0,
+			                   -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3,  0.0,
+			                   -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6,  3.0/SQRT6, };
+		else
+			EXIT_UNSUPPORTED;
+		break;
+	case ST_PYR:
+		assert(d == 3);
+		rst = (double[]) { -1.0,        1.0,       -1.0,        1.0,       0.0,
+		                   -1.0,       -1.0,        1.0,        1.0,       0.0,
+		                   -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, 4.0/5.0*SQRT2, };
+		break;
+	case ST_WEDGE:
+		assert(d == 3);
+		EXIT_ERROR("Should not be required. Here for reference only.\n");
+//		rst = (double[]) { -1.0,        1.0,        0.0,       -1.0,        1.0,        0.0,
+//		                   -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3, -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3,
+//		                   -1.0,       -1.0,       -1.0,        1.0,        1.0,        1.0, };
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",s_type);
+		break;
+	}
+
+	struct Cubature* cubature = calloc(1,sizeof *cubature); // returned
+
+	cubature->p         = p;
+	cubature->node_type = node_type;
+
+	const ptrdiff_t ext_0 = compute_n_basis(d,p,s_type);
+
+	cubature->rst = constructor_move_Matrix_d_d('C',ext_0,d,true,rst); // keep
+
+	cubature->has_weights = false;
+	cubature->w = NULL;
 
 	return (const struct const_Cubature*) cubature;
 }

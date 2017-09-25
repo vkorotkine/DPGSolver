@@ -114,9 +114,22 @@ bool wedges_present
 /** \brief Compute the element type for the given input parameters.
  *  \return See brief. */
 int compute_elem_type_sub_ce
-	(const int type,  ///< \ref Element::type.
-	 const char ce,   ///< The type of computational element.
-	 const int ind_ce ///< The index of the computational element.
+	(const int e_type, ///< \ref Element::type.
+	 const char ce,    ///< The type of computational element.
+	 const int ind_ce  ///< The index of the computational element.
+	);
+
+/** \brief Compute the super type for the input element type.
+ *  \return See brief. */
+int compute_super_from_elem_type
+	(const int e_type ///< \ref Element::type.
+	);
+
+/** \brief Compute the element type from the input super type and dimension.
+ *  \return See brief. */
+int compute_elem_from_super_type
+	(const int s_type, ///< \ref Element::s_type.
+	 const int d       ///< \ref Element::d.
 	);
 
 #endif // DPG__element_h__INCLUDED

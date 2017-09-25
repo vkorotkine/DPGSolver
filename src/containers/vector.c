@@ -115,6 +115,11 @@ ptrdiff_t prod_Vector_i (const struct Vector_i* a)
 	return prod;
 }
 
+ptrdiff_t prod_const_Vector_i (const struct const_Vector_i* a)
+{
+	return prod_Vector_i ((const struct Vector_i*)a);
+}
+
 bool check_equal_Vector_i (const struct Vector_i*const a, const struct Vector_i*const b)
 {
 	const ptrdiff_t size = a->ext_0;
