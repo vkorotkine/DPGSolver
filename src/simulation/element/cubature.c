@@ -954,6 +954,7 @@ static const struct const_Cubature* constructor_const_Cubature_vertices (const i
 
 	switch (s_type) {
 	case ST_TP:
+/// \todo Change to static const variables and use move constructor (owns_data = false).
 		if (d == 1)
 			rst = (double[]) { -1.0,  1.0, };
 //		else if (d == 2)
@@ -1002,7 +1003,7 @@ static const struct const_Cubature* constructor_const_Cubature_vertices (const i
 
 	const ptrdiff_t ext_0 = compute_n_basis(d,p,s_type);
 
-	cubature->rst = constructor_move_Matrix_d_d('C',ext_0,d,true,rst); // keep
+	cubature->rst = constructor_copy_Matrix_d_d('C',ext_0,d,rst); // keep
 
 	cubature->has_weights = false;
 	cubature->w = NULL;

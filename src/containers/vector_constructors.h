@@ -84,6 +84,13 @@ struct Vector_i* constructor_copy_Vector_i_i
 	 const int*const data_src ///< The source data.
 	);
 
+/** \brief `const` version of \ref constructor_copy_Vector_i_i.
+ *  \return Standard. */
+const struct const_Vector_i* constructor_copy_const_Vector_i_i
+	(const ptrdiff_t ext_0,   ///< Defined for \ref constructor_copy_Vector_i_i.
+	 const int*const data_src ///< Defined for \ref constructor_copy_Vector_i_i.
+	);
+
 // Move constructors ************************************************************************************************ //
 
 /** \brief Move constructor for a \ref Vector_i\* from a `int*`.

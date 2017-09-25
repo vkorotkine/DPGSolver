@@ -210,14 +210,14 @@ int compute_elem_type_sub_ce (const int e_type, const char ce, const int ind_ce)
 			break;
 		case PYR:
 			switch (ind_ce) {
-			case 0:  case 1:  case 2:  case 3:  // 3 tri faces of wedge reference element.
+			case 0:  case 1:  case 2:  case 3:  // 4 tri faces of pyr reference element.
 			case 5:  case 6:  case 7:  case 8:  // 4 tri refined face 0 sub-faces.
 			case 9:  case 10: case 11: case 12: // 4 tri refined face 1 sub-faces.
 			case 13: case 14: case 15: case 16: // 4 tri refined face 2 sub-faces.
 			case 17: case 18: case 19: case 20: // 4 tri refined face 3 sub-faces.
 				return TRI;
 				break;
-			case 4:                             // 2 quad faces of wedge reference element.
+			case 4:                             // 1 quad face of pyr reference element.
 			case 21: case 22: case 23: case 24: // 4 quad refined face 4 sub-faces.
 				return QUAD;
 				break;
@@ -323,7 +323,7 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.f_ve   = (int[]) {0, 1,};
 
 		e_info.n_ref_max_v = 3;
-		e_info.n_ref_max_f = 1;
+		e_info.n_ref_max_f = e_info.n_f*1;
 		break;
 	case TRI:
 		e_info.s_type = ST_SI;
@@ -335,7 +335,7 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.f_ve   = (int[]) {1,2, 0,2, 0,1,};
 
 		e_info.n_ref_max_v = 5;
-		e_info.n_ref_max_f = 3;
+		e_info.n_ref_max_f = e_info.n_f*3;
 		break;
 	case QUAD:
 		e_info.s_type = ST_TP;
@@ -347,7 +347,7 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.f_ve   = (int[]) {0,2, 1,3, 0,1, 2,3};
 
 		e_info.n_ref_max_v = 5;
-		e_info.n_ref_max_f = 3;
+		e_info.n_ref_max_f = e_info.n_f*3;
 		break;
 	case TET:
 		EXIT_ADD_SUPPORT;
@@ -362,7 +362,7 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.f_ve   = (int[]) {0,2,4,6, 1,3,5,7, 0,1,4,5, 2,3,6,7, 0,1,2,3, 4,5,6,7};
 
 		e_info.n_ref_max_v = 9;
-		e_info.n_ref_max_f = 5;
+		e_info.n_ref_max_f = e_info.n_f*5;
 		break;
 	case WEDGE:
 		EXIT_ADD_SUPPORT;

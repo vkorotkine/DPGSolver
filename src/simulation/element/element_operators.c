@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element.h"
 #include "const_cast.h"
 #include "bases.h"
+#include "cubature.h"
 #include "cubature_operators.h"
 
 // Static function declarations ************************************************************************************* //
@@ -262,10 +263,29 @@ print_const_Matrix_i(op_info->values_op);
 			const_cast_i(&op_info->op_io[i].p_op,p_ptr[i]);
 		}
 
+		const struct const_Element* element = op_info->element;
+
+		const int s_type = element->s_type;
+
 		// Construct T_i
 		const struct const_Cubature*const cub_i =
-			constructor_const_Cubature_h(OP_IND_I,op_info->op_io,op_info->element,sim); // destructed
-UNUSED(cub_i);
+			constructor_const_Cubature_h(OP_IND_I,op_info->op_io,element,sim); // destructed
+
+		basis_fptr constructor_basis_ref = get_basis_by_super_type(s_type,"ortho");
+
+		const struct const_Matrix_d* phi_ref_cv_ii = constructor_basis_ref(p_ptr[OP_IND_I],cub_i->rst); // tbd
+EXIT_ERROR("Add function to select basis based on `kind`.\n");
+		const struct const_Matrix_d* phi_cv_ii = NULL;
+		if (strcmp(op_info->basis_name,"ortho") == 0)
+			phi_cv_ii = constructor_copy_const_Matrix_d(phi_ref_cv_ii); // tbd
+		else if (strcmp(op_info->basis_name,"lagrange") == 0)
+			phi_cv_ii = constructor_identity_const_Matrix_d(phi_ref_cv_ii->ext_0); // tbd
+		else if (strcmp(op_info->basis_name,"bezier") == 0)
+			phi_cv_ii = constructor_basis_bezier(p_ptr[OP_IND_I],cub_i->rst); // tbd
+		else
+			EXIT_UNSUPPORTED;
+
+		const struct const_Matrix_d* T_i = constructor_sgesv_const_Matrix_d(phi_ref_cv_ii,phi_cv_ii); // tbd
 	}
 UNUSED(op);
 /*
@@ -310,21 +330,9 @@ UNUSED(op);
 			constructor_const_Cubature_h(d,p_x[0],cub_node_type,s_type,h_ptr[0]); // destructed
 
 // Construct cv
-		basis_fptr constructor_basis_ref = get_basis_by_super_type(s_type,"ortho");
 		basis_fptr constructor_basis     = get_basis_by_super_type(s_type,"");
-		const struct const_Matrix_d* phi_ref_cv_ii = constructor_basis_ref(p_x[1],d,cub_i->rst); // tbd
 // external function to compute T below.
-		const struct const_Matrix_d* phi_cv_ii = NULL;
-		if (ortho)
-			phi_cv_ii = constructor_copy_const_Matrix_d(phi_ref_cv_ii); // tbd
-		else if (lagrange)
-			phi_cv_ii = constructor_identity_const_Matrix_d(phi_ref_cv_ii->ext_0); // tbd
-		else if (bezier)
-			phi_cv_ii = constructor_basis_bezier(p_x[1],d,cub_i->rst); // tbd
-		else
-			EXIT_UNSUPPORTED;
 
-		const struct const_Matrix_d* T_i = constructor_sgesv_const_Matrix_d(phi_ref_cv_ii,phi_cv_ii); // tbd
 
 if (D_OP_R_0)
 		const struct const_Matrix_d* phi_ref_cv_io = constructor_basis_ref(p_x[1],d,cub_o->rst); // tbd

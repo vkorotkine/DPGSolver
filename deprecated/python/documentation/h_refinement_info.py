@@ -713,8 +713,8 @@ if __name__ == '__main__':
 	EType = 'PYR';   ELEMENTs.append(ELEMENT_class(EType))
 	EType = 'WEDGE'; ELEMENTs.append(ELEMENT_class(EType))
 
-	EType = 'LINE'
-#	EType = 'TRI'
+#	EType = 'LINE'
+	EType = 'TRI'
 #	EType = 'QUAD'
 #	EType = 'TET'
 #	EType = 'HEX'

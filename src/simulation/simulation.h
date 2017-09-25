@@ -113,6 +113,18 @@ struct Simulation {
 	 */
 	const char geom_rep[STRLEN_MIN];
 
+	/** The type of geometry blending to be used. Options:
+	 *	- geom_blending_tp:
+	 *		- gordon_hall.
+	 *	- geom_blending_si:
+	 *		- szabo_babuska_gen (Szabo-Babuska generalized);
+	 *		- scott;
+	 *		- lenoir;
+	 *		- nielson;
+	 *	- geom_blending_pyr: currently unsupported; requires investigation.
+	 */
+	const char geom_blending[N_ST_STD][STRLEN_MIN];
+
 	/// The range of minimal and maximal solution orders for volumes. p-adaptation is enabled if the orders differ.
 	const int p_s_v[2];
 

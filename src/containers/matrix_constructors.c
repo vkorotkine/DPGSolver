@@ -87,6 +87,12 @@ struct Matrix_d* constructor_copy_Matrix_d_d
 	return constructor_move_Matrix_d_d(layout,ext_0,ext_1,true,data);
 }
 
+const struct const_Matrix_d* constructor_copy_const_Matrix_d_d
+	(const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1, const double*const data_src)
+{
+	return (const struct const_Matrix_d*) constructor_copy_Matrix_d_d(layout,ext_0,ext_1,data_src);
+}
+
 struct Matrix_d* constructor_copy_Matrix_d (struct Matrix_d* src)
 {
 	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
@@ -196,6 +202,31 @@ void const_constructor_move_Matrix_i (const struct const_Matrix_i*const* dest, s
 }
 
 // Special constructors ********************************************************************************************* //
+
+const struct const_Matrix_d* constructor_subset_const_Matrix_d
+	(const struct const_Matrix_d* src, const struct const_Vector_i* ind_subset)
+{
+	const char layout = src->layout;
+	ptrdiff_t ext_0 = -1,
+	          ext_1 = -1;
+	double* data = NULL;
+	if (layout == 'R') {
+		ext_0 = ind_subset->ext_0,
+		ext_1 = src->ext_1;
+
+		data = malloc(ext_0*ext_1 * sizeof *data); // keep
+		double* data_ptr = data;
+		for (int i = 0; i < ext_0; ++i) {
+			const double* data_src = get_row_const_Matrix_d(ind_subset->data[i],src);
+			for (int j = 0; j < ext_1; ++j)
+				*data_ptr++ = *data_src++;
+		}
+	} else {
+		EXIT_ADD_SUPPORT;
+	}
+
+	return constructor_move_const_Matrix_d_d(layout,ext_0,ext_1,true,data);
+}
 
 struct Matrix_d* constructor_copy_transpose_Matrix_d (struct Matrix_d* a, const bool mem_only)
 {

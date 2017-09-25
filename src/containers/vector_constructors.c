@@ -115,6 +115,11 @@ struct Vector_i* constructor_copy_Vector_i_i (const ptrdiff_t ext_0, const int*c
 	return constructor_move_Vector_i_i(ext_0,true,data);
 }
 
+const struct const_Vector_i* constructor_copy_const_Vector_i_i (const ptrdiff_t ext_0, const int*const data_src)
+{
+	return (const struct const_Vector_i*) constructor_copy_Vector_i_i(ext_0,data_src);
+}
+
 // Move constructors ************************************************************************************************ //
 
 struct Vector_i* constructor_move_Vector_i_i (const ptrdiff_t ext_0, const bool owns_data, int*const data)

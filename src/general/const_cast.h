@@ -65,7 +65,7 @@ void const_cast_c
 /// \brief Cast from `char*` to `const char*const`.
 void const_cast_c1
 	(const char*const* dest, ///< Destination.
-	 const char*const src    ///< Source.
+	 const char*const  src   ///< Source.
 	);
 
 // Custom data types ************************************************************************************************ //

@@ -183,21 +183,14 @@ static void set_input_path
 
 static void set_simulation_invalid (struct Simulation*const sim)
 {
-	const char* param_string = NULL;
-
 	for (int i = 0; i < N_ST_STD; ++i) {
-		param_string = sim->nodes_interp[i];
-		const_cast_c1(&param_string,NULL);
+		const_cast_c(sim->nodes_interp[i],0);
+		const_cast_c(sim->geom_blending[i],0);
 	}
 
-	param_string = sim->basis_geom;
-	const_cast_c1(&param_string,NULL);
-
-	param_string = sim->basis_sol;
-	const_cast_c1(&param_string,NULL);
-
-	param_string = sim->geom_rep;
-	const_cast_c1(&param_string,NULL);
+	const_cast_c(sim->basis_geom,0);
+	const_cast_c(sim->basis_sol,0);
+	const_cast_c(sim->geom_rep,0);
 
 	const_cast_i1(sim->p_s_v,(int[]){P_INVALID,P_INVALID},2);
 	const_cast_i1(sim->p_s_f,(int[]){P_INVALID,P_INVALID},2);
@@ -234,6 +227,10 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"basis_sol"))  read_skip_const_c_1(line,sim->basis_sol);
 		if (strstr(line,"geom_rep"))   read_skip_const_c_1(line,sim->geom_rep);
 
+		if (strstr(line,"geom_blending_tp"))  read_skip_const_c_1(line,sim->geom_blending[0]);
+		if (strstr(line,"geom_blending_si"))  read_skip_const_c_1(line,sim->geom_blending[1]);
+		if (strstr(line,"geom_blending_pyr")) read_skip_const_c_1(line,sim->geom_blending[2]);
+
 		if (strstr(line,"p_s_v"))    read_skip_const_i_1(line,1,sim->p_s_v,2);
 		if (strstr(line,"p_s_f"))    read_skip_const_i_1(line,1,sim->p_s_f,2);
 		if (strstr(line,"p_sg_v"))   read_skip_const_i_1(line,1,sim->p_sg_v,2);
@@ -253,9 +250,9 @@ if (0)
 
 static void check_necessary_simulation_parameters (struct Simulation*const sim)
 {
-	assert((sim->nodes_interp[0] != NULL) ||
-	       (sim->nodes_interp[1] != NULL) ||
-	       (sim->nodes_interp[2] != NULL));
+	assert((sim->nodes_interp[0][0] != 0) ||
+	       (sim->nodes_interp[1][0] != 0) ||
+	       (sim->nodes_interp[2][0] != 0));
 
 	assert((strcmp(sim->basis_geom,"lagrange") == 0) ||
 	       (strcmp(sim->basis_geom,"bezier")   == 0) ||
@@ -266,6 +263,13 @@ static void check_necessary_simulation_parameters (struct Simulation*const sim)
 	assert((strcmp(sim->geom_rep,"isoparametric")   == 0) ||
 	       (strcmp(sim->geom_rep,"superparametric") == 0) ||
 	       (strstr(sim->geom_rep,"fixed")           == 0));
+
+	assert(strcmp(sim->geom_blending[0],"gordon_hall") == 0);
+	assert((strcmp(sim->geom_blending[1],"szabo_babuska_gen") == 0) ||
+	       (strcmp(sim->geom_blending[1],"scott") == 0)             ||
+	       (strcmp(sim->geom_blending[1],"lenoir") == 0)            ||
+	       (strcmp(sim->geom_blending[1],"nielson") == 0));
+	assert(sim->geom_blending[2][0] == 0);
 
 	assert(sim->p_s_v[0] != P_INVALID);
 	assert(sim->p_s_v[1] != P_INVALID);

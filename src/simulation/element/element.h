@@ -37,7 +37,8 @@ struct Element {
 	          n_f;    ///< The number of faces.
 
 	const int n_ref_max_v, ///< Maximum number of volume h-refinements.
-	          n_ref_max_f; ///< Maximum number of face h-refinements.
+	          n_ref_max_f, ///< Maximum number of face h-refinements.
+	          n_ref_max_e; ///< Maximum number of edge h-refinements.
 
 	const struct const_Multiarray_Vector_i*const f_ve; ///< The correspondence between the (f)aces and (ve)rtices.
 };
@@ -54,7 +55,8 @@ struct const_Element {
 	          n_f;    ///< Defined in \ref Element.
 
 	const int n_ref_max_v, ///< Defined in \ref Element.
-	          n_ref_max_f; ///< Defined in \ref Element.
+	          n_ref_max_f, ///< Defined in \ref Element.
+	          n_ref_max_e; ///< Defined in \ref Element.
 
 	const struct const_Multiarray_Vector_i*const f_ve; ///< Defined in \ref Element.
 };

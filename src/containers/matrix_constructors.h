@@ -91,6 +91,15 @@ struct Matrix_d* constructor_copy_Matrix_d_d
 	 const double*const data_src ///< The source data.
 	);
 
+/** \brief `const` version of \ref constructor_copy_Matrix_d_d.
+ *  \return Standard. */
+const struct const_Matrix_d* constructor_copy_const_Matrix_d_d
+	(const char layout,          ///< Defined for \ref constructor_copy_Matrix_d_d.
+	 const ptrdiff_t ext_0,      ///< Defined for \ref constructor_copy_Matrix_d_d.
+	 const ptrdiff_t ext_1,      ///< Defined for \ref constructor_copy_Matrix_d_d.
+	 const double*const data_src ///< Defined for \ref constructor_copy_Matrix_d_d.
+	);
+
 /** \brief Copy constructor for a \ref const_Matrix_d\* from a partial number of rows/columns of another.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_copy_extract_const_Matrix_d
@@ -151,6 +160,13 @@ void const_constructor_move_Matrix_i
 	);
 
 // Special constructors ********************************************************************************************* //
+
+/** \brief Constructor for a \ref const_Matrix_d\* from a subset of the input matrix.
+ *  \return Standard. */
+const struct const_Matrix_d* constructor_subset_const_Matrix_d
+	(const struct const_Matrix_d* src,       ///< The source matrix.
+	 const struct const_Vector_i* ind_subset ///< The indices of the subset matrix.
+	);
 
 /** \brief Constructor for a \ref Matrix_d\* as a copy of the transpose of the input matrix.
  *  \return Standard. */

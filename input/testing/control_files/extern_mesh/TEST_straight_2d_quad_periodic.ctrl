@@ -27,6 +27,9 @@ basis_geom  bezier
 basis_sol   lagrange
 
 geom_representation  isoparametric
+geom_blending_tp     gordon_hall
+geom_blending_si     szabo_babuska_gen
+
 p_s_v   2 2
 p_s_f   2 2
 p_sg_v  2 2
