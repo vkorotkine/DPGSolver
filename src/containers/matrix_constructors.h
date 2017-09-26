@@ -146,10 +146,16 @@ struct Matrix_i* constructor_move_Matrix_i_i
 	 int*const data         ///< Standard.
 	);
 
-/// \brief Move Constructor for a `const` \ref const_Matrix_d `*const`.
+/// \brief Move Constructor for a `const` \ref const_Matrix_d `*const` from a \ref Matrix_d\*.
 void const_constructor_move_Matrix_d
 	(const struct const_Matrix_d*const* dest, ///< Destination.
 	 struct Matrix_d* src                     ///< Source.
+	);
+
+/// \brief Move Constructor for a `const` \ref const_Matrix_d `*const` from a \ref const_Matrix_d\*.
+void const_constructor_move_const_Matrix_d
+	(const struct const_Matrix_d*const* dest, ///< Destination.
+	 const struct const_Matrix_d* src         ///< Source.
 	);
 
 /** \brief Move Constructor for a `const` \ref const_Matrix_i `*const`.
@@ -249,6 +255,48 @@ const struct const_Matrix_d* constructor_mm_const_Matrix_d
 	 const struct const_Matrix_d*const a, ///< Defined for \ref constructor_mm_Matrix_d.
 	 const struct const_Matrix_d*const b, ///< Defined for \ref constructor_mm_Matrix_d.
 	 const char layout                    ///< Defined for \ref constructor_mm_Matrix_d.
+	);
+
+/** \brief Constructor for a \ref Matrix_d\* from a matrix-matrix multiplication using default values.
+ *
+ *  Defaults:
+ *	- `trans_a_i = 'N'`;
+ *	- `trans_b_i = 'N'`;
+ *	- `alpha = 1.0`;
+ *	- `layout = 'R'`.
+ *
+ *  \return Standard. */
+struct Matrix_d* constructor_mm_NN1R_Matrix_d
+	(const struct const_Matrix_d*const a, ///< Defined for \ref mm_d.
+	 const struct const_Matrix_d*const b  ///< Defined for \ref mm_d.
+	);
+
+/** \brief `const` version of \ref constructor_mm_NN1R_Matrix_d.
+ *  \return Standard. */
+const struct const_Matrix_d* constructor_mm_NN1R_const_Matrix_d
+	(const struct const_Matrix_d*const a, ///< Defined for \ref constructor_mm_NN1R_Matrix_d.
+	 const struct const_Matrix_d*const b  ///< Defined for \ref constructor_mm_NN1R_Matrix_d.
+	);
+
+/** \brief Constructor for a \ref Matrix_d\* from a matrix-matrix multiplication using default values.
+ *
+ *  Defaults:
+ *	- `trans_a_i = 'N'`;
+ *	- `trans_b_i = 'N'`;
+ *	- `alpha = 1.0`;
+ *	- `layout = 'C'`.
+ *
+ *  \return Standard. */
+struct Matrix_d* constructor_mm_NN1C_Matrix_d
+	(const struct const_Matrix_d*const a, ///< Defined for \ref mm_d.
+	 const struct const_Matrix_d*const b  ///< Defined for \ref mm_d.
+	);
+
+/** \brief `const` version of \ref constructor_mm_NN1C_Matrix_d.
+ *  \return Standard. */
+const struct const_Matrix_d* constructor_mm_NN1C_const_Matrix_d
+	(const struct const_Matrix_d*const a, ///< Defined for \ref constructor_mm_NN1C_Matrix_d.
+	 const struct const_Matrix_d*const b  ///< Defined for \ref constructor_mm_NN1C_Matrix_d.
 	);
 
 /// \brief Set a \ref Matrix_d\* from a sub range of a \ref Multiarray_d\*.

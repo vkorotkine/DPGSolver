@@ -125,6 +125,14 @@ struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d
 	 const ptrdiff_t*const extents_i ///< The input extents.
 	);
 
+/** \brief `const` version of \ref constructor_empty_Multiarray_Matrix_d.
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_empty_const_Multiarray_Matrix_d
+	(const bool alloc_M,             ///< Defined for \ref constructor_empty_Multiarray_Matrix_d.
+	 const int order,                ///< Defined for \ref constructor_empty_Multiarray_Matrix_d.
+	 const ptrdiff_t*const extents_i ///< Defined for \ref constructor_empty_Multiarray_Matrix_d.
+	);
+
 /** \brief Constructor for an empty \ref Multiarray_Matrix_d\* with extents input as a \ref const_Vector_i\*.
  *  \return Standard. */
 struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d_V

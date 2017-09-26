@@ -1,0 +1,5 @@
+file(GLOB_RECURSE SUPP_FILES *.supp)
+foreach(supp_name_full ${SUPP_FILES})
+	string(REPLACE "${CMAKE_SOURCE_DIR}" "" supp_name ${supp_name_full})
+	configure_file(${supp_name_full} ${PROJECT_BINARY_DIR}${supp_name} COPYONLY)
+endforeach()

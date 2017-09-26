@@ -950,48 +950,50 @@ static const struct const_Cubature* constructor_const_Cubature_vertices (const i
 	assert(p == 1);
 	const int node_type = CUB_VERTEX;
 
-	double* rst = NULL;
+	const double* rst = NULL;
 
 	switch (s_type) {
-	case ST_TP:
-/// \todo Change to static const variables and use move constructor (owns_data = false).
+	case ST_TP: {
+		static const double rst_LINE[] = { -1.0,  1.0, };
+//		static const double rst_QUAD[] = { -1.0,  1.0, -1.0,  1.0,
+//		                                   -1.0, -1.0,  1.0,  1.0, };
+//		static const double rst_HEX[]  = { -1.0,  1.0, -1.0,  1.0, -1.0,  1.0, -1.0,  1.0,
+//		                                   -1.0, -1.0,  1.0,  1.0, -1.0, -1.0,  1.0,  1.0,
+//		                                   -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0,  1.0, };
 		if (d == 1)
-			rst = (double[]) { -1.0,  1.0, };
-//		else if (d == 2)
-//			rst = (double[]) { -1.0,  1.0, -1.0,  1.0,
-//			                   -1.0, -1.0,  1.0,  1.0, };
-//		else if (d == 3)
-//			rst = (double[]) { -1.0,  1.0, -1.0,  1.0, -1.0,  1.0, -1.0,  1.0,
-//			                   -1.0, -1.0,  1.0,  1.0, -1.0, -1.0,  1.0,  1.0,
-//			                   -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0,  1.0, };
+			rst = rst_LINE;
 		else
 			EXIT_UNSUPPORTED;
 		break;
-	case ST_SI:
+	} case ST_SI: {
+		static const double rst_TRI[] = { -1.0,        1.0,        0.0,
+		                                  -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3, };
+		static const double rst_TET[] = { -1.0,        1.0,        0.0,        0.0,
+		                                  -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3,  0.0,
+		                                  -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6,  3.0/SQRT6, };
 		if (d == 2)
-			rst = (double[]) { -1.0,        1.0,        0.0,
-			                   -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3, };
+			rst = rst_TRI;
 		else if (d == 3)
-			rst = (double[]) { -1.0,        1.0,        0.0,        0.0,
-			                   -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3,  0.0,
-			                   -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6,  3.0/SQRT6, };
+			rst = rst_TET;
 		else
 			EXIT_UNSUPPORTED;
 		break;
-	case ST_PYR:
+	} case ST_PYR: {
 		assert(d == 3);
-		rst = (double[]) { -1.0,        1.0,       -1.0,        1.0,       0.0,
-		                   -1.0,       -1.0,        1.0,        1.0,       0.0,
-		                   -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, 4.0/5.0*SQRT2, };
+		static const double rst_PYR[] = { -1.0,        1.0,       -1.0,        1.0,       0.0,
+		                                  -1.0,       -1.0,        1.0,        1.0,       0.0,
+		                                  -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, 4.0/5.0*SQRT2, };
+		rst = rst_PYR;
 		break;
-	case ST_WEDGE:
+	} case ST_WEDGE: {
 		assert(d == 3);
 		EXIT_ERROR("Should not be required. Here for reference only.\n");
-//		rst = (double[]) { -1.0,        1.0,        0.0,       -1.0,        1.0,        0.0,
-//		                   -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3, -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3,
-//		                   -1.0,       -1.0,       -1.0,        1.0,        1.0,        1.0, };
+//		static const double rst_WEDGE[] = { -1.0,        1.0,        0.0,       -1.0,        1.0,        0.0,
+//		                                    -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3, -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3,
+//		                                    -1.0,       -1.0,       -1.0,        1.0,        1.0,        1.0, };
+//		rst = rst_WEDGE;
 		break;
-	default:
+	} default:
 		EXIT_ERROR("Unsupported: %d\n",s_type);
 		break;
 	}
@@ -1003,7 +1005,8 @@ static const struct const_Cubature* constructor_const_Cubature_vertices (const i
 
 	const ptrdiff_t ext_0 = compute_n_basis(d,p,s_type);
 
-	cubature->rst = constructor_copy_Matrix_d_d('C',ext_0,d,rst); // keep
+//	cubature->rst = constructor_copy_Matrix_d_d('C',ext_0,d,rst); // keep
+	cubature->rst = (struct Matrix_d*) constructor_move_const_Matrix_d_d('C',ext_0,d,false,rst); // keep
 
 	cubature->has_weights = false;
 	cubature->w = NULL;

@@ -18,9 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  *  \brief Provides the functions relating to element operators.
  *
- *  \todo Remove unused functions/classes.
- *
- *  Operator names take the general form: [type][0]_[1][2](3)_[4][5](6) where entries in [square brackets] are required
+ *  Operator names take the general form: [type][0](7)_[1][2](3)_[4][5](6) where entries in [square brackets] are required
  *  and those in (round brackets) are optional:
  *  - type:
  *  	- cv: coefficients to values
@@ -42,13 +40,15 @@ You should have received a copy of the GNU General Public License along with DPG
  *  - (3/6): character denoting whether the basis/cubature is meant to be used for straight or curved elements (sc):
  *  	- s: straight
  *  	- c: curved
+ *  - (7): if present, character specifying which basis was used for the operator:
+ *  	- r: reference
  *
  *  The optional straight/curved parameters **must** be replaced with 'A'll if not present when passed to the
  *  constructor function.
  *
  *  Each operator also has an associated range with a maximum order of \ref OP_ORDER_MAX with the following parameters
- *  (d)(f)[h_o][h_i][p_o][p_i], where entries in square and round brackets are once again required and optional,
- *  respectively.
+ *  (d)(ce_o)(ce_i)[h_o][h_i][p_o][p_i], where entries in square and round brackets are once again required and
+ *  optional, respectively.
  */
 
 #include <stddef.h>
@@ -57,7 +57,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Simulation;
 struct const_Element;
 
-/// Container specifying the effect ("from which input to which output" ) of the operator application.
+/// Container specifying the effect ("from which input to which output") of the operator application.
 struct Op_IO {
 	const char ce,   ///< The computational element.
 	           kind, ///< The kind of basis/cubature.
@@ -86,53 +86,13 @@ struct Operator_Info {
 
 	const int p_ref[2]; ///< Reference polynomial orders from \ref Simulation.
 
-	const struct const_Vector_i* extents_cub; ///< The extents of the associated \ref Multiarray_Cubature\*.
-
 	/// The extents of the associated \ref Multiarray_Matrix_d\* of operators.
 	const struct const_Vector_i* extents_op;
 
 	const struct const_Matrix_i* values_op; ///< The values of d, f, h, p_in, and p_out for each operator.
 };
 
-/// Container for a Multiarray of \ref Cubature\* data.
-struct Multiarray_Cubature {
-	int order;          ///< Defined in \ref Multiarray_d.
-	ptrdiff_t* extents; ///< Defined in \ref Multiarray_d.
-
-	bool owns_data;                    ///< Defined in \ref Multiarray_d.
-	const struct const_Cubature** data; ///< Defined in \ref Multiarray_d.
-};
-
-/// `const` version of \ref Multiarray_Cubature.
-struct const_Multiarray_Cubature {
-	const int order;               ///< Defined in \ref Multiarray_d.
-	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_d.
-
-	const bool owns_data;                         ///< Defined in \ref Multiarray_d.
-	const struct const_Cubature*const*const data; ///< Defined in \ref Multiarray_d.
-};
-
 // Interface functions ********************************************************************************************** //
-
-/** \brief Constructor for a \ref const_Multiarray_Cubature\* holding the cubature nodes (and weights if applicable) for
- *         the range of supported hp adaptive operators.
- *  \return Standard.
- *
- *  The required nodes are determined from the last `n_hp` values in the `ext_v1_V` vector. Cubature nodes on
- *  element sub-regions are computed by:
- *  1. Computing the barycentric coordinates of the nodes on the complete reference element;
- *  2. Multiplying with the appropriate vertices of the element sub-regions.
- */
-const struct const_Multiarray_Cubature* constructor_const_Multiarray_Cubature
-	(const struct Simulation* sim,        ///< \ref Simulation.
-	 const struct const_Element* element, ///< \ref const_Element.
-	 const struct Operator_Info* op_info  ///< \ref Operator_Info.
-	);
-
-/// \brief Destructor for a \ref const_Multiarray_Cubature\* container.
-void destructor_const_Multiarray_Cubature
-	(const struct const_Multiarray_Cubature*const a ///< Standard.
-	);
 
 /** \brief Constructor for a \ref const_Multiarray_Matrix_d\* of operators.
  *  \return Standard. */

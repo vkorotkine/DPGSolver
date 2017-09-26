@@ -183,4 +183,13 @@ ptrdiff_t compute_index_sub_container
 	 const ptrdiff_t*const sub_indices ///< The sub indices for the highest `order_o` entries.
 	);
 
+/** \brief Version of of \ref compute_index_sub_container accepting `ptrdiff_t*` and `int*` inputs.
+ *  \return See brief. */
+ptrdiff_t compute_index_sub_container_pi
+	(const int order_i,             ///< Defined for \ref compute_index_sub_container.
+	 const int order_o,             ///< Defined for \ref compute_index_sub_container.
+	 const ptrdiff_t*const extents, ///< Defined for \ref compute_index_sub_container.
+	 const int*const sub_indices    ///< Defined for \ref compute_index_sub_container.
+	);
+
 #endif // DPG__multiarray_h__INCLUDED

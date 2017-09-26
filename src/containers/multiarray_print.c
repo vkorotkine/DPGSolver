@@ -113,8 +113,15 @@ void print_Multiarray_Matrix_d (const struct Multiarray_Matrix_d*const a, const 
 
 	const ptrdiff_t size = compute_size(a->order,a->extents);
 
-	for (ptrdiff_t i = 0; i < size; i++)
-		print_Matrix_d(a->data[i],tol);
+	for (ptrdiff_t i = 0; i < size; i++) {
+		printf("\nIndex: % 3td: ",i);
+		if (a->data[i]) {
+			printf("\n\n");
+			print_Matrix_d(a->data[i],tol);
+		} else {
+			printf("*** NULL ***");
+		}
+	}
 	printf("\n");
 }
 

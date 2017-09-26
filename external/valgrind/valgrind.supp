@@ -1,0 +1,128 @@
+# This file provides the list of errors to be suppressed while running valgrind. Only system library errors should be
+# added here.
+
+# Pass the valgrind option: '--gen-suppressions=all' initially to get a list of possibly desired suppressions then edit
+# them and add to this file.
+
+# macOS ###############################################################################################################
+# system ##############################################################################################################
+{
+   valgrind_macOS
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:map_images_nolock
+   fun:map_images
+   fun:_ZN4dyldL18notifyBatchPartialE17dyld_image_statesbPFPKcS0_jPK15dyld_image_infoEbb
+   fun:_ZN4dyld21registerObjCNotifiersEPFvjPKPKcPKPK11mach_headerEPFvS1_S6_ESC_
+   fun:_dyld_objc_notify_register
+   fun:_objc_init
+   fun:_os_object_init
+   fun:libdispatch_init
+   fun:libSystem_initializer
+   fun:_ZN16ImageLoaderMachO18doModInitFunctionsERKN11ImageLoader11LinkContextE
+   fun:_ZN16ImageLoaderMachO16doInitializationERKN11ImageLoader11LinkContextE
+   fun:malloc
+   fun:mm_account_ptr_by_tid..0
+}
+
+{
+   fgets_macOS
+   Memcheck:Addr16
+   fun:_platform_memchr$VARIANT$Base
+   fun:fgets
+}
+
+{
+   msg_desc_macOS
+   Memcheck:Param
+   msg->desc.port.name
+   fun:mach_msg_trap
+   fun:mach_msg
+   fun:task_set_special_port
+   fun:_os_trace_create_debug_control_port
+   fun:_libtrace_init
+   fun:libSystem_initializer
+   fun:_ZN16ImageLoaderMachO18doModInitFunctionsERKN11ImageLoader11LinkContextE
+   fun:_ZN16ImageLoaderMachO16doInitializationERKN11ImageLoader11LinkContextE
+   fun:_ZN11ImageLoader23recursiveInitializationERKNS_11LinkContextEjPKcRNS_21InitializerTimingListERNS_15UninitedUpwardsE
+   fun:_ZN11ImageLoader23recursiveInitializationERKNS_11LinkContextEjPKcRNS_21InitializerTimingListERNS_15UninitedUpwardsE
+   fun:_ZN11ImageLoader19processInitializersERKNS_11LinkContextEjRNS_21InitializerTimingListERNS_15UninitedUpwardsE
+   fun:_ZN11ImageLoader15runInitializersERKNS_11LinkContextERNS_21InitializerTimingListE
+}
+
+{
+   general_macOS
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:mm_account_ptr_by_tid..0
+}
+
+# mkl #################################################################################################################
+{
+   mkl_serv_macOS
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:mkl_serv_allocate
+   fun:mkl_serv_deallocate
+   obj:*/mkl/lib/lib*dylib*
+   obj:*
+}
+
+{
+   libmkl_core_macOS
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:mm_account_ptr_by_tid..0
+   fun:_ZN26ImageLoaderMachOCompressed21incrementCoalIteratorERN11ImageLoader12CoalIteratorE
+   fun:_ZSt15get_new_handlerv
+   obj:*/libmkl_core.dylib*
+   obj:*
+}
+
+{
+   mkl_macOS
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:mkl_serv_allocate
+   obj:*
+   obj:*
+   obj:*
+   fun:_platform_memset$VARIANT$Base
+   obj:/usr/lib/dyld
+   obj:/usr/lib/system/libsystem_c.dylib
+   obj:*
+   fun:_ZN26ImageLoaderMachOCompressed15resolveTwolevelERKN11ImageLoader11LinkContextEPKcPKS0_S7_jbbPS7_
+   obj:*
+   obj:*
+}
+
+{
+   mkl_macOS
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:mm_account_ptr_by_tid..0
+   obj:*
+   obj:*
+   obj:*
+   fun:_ZN26ImageLoaderMachOCompressed21incrementCoalIteratorERN11ImageLoader12CoalIteratorE
+   fun:_ZSt15get_new_handlerv
+   obj:/Users/philip/Desktop/research_codes/mkl/mkl_2017_3/compilers_and_libraries_2017.4.181/mac/mkl/lib/libmkl_core.dylib
+   obj:/Users/philip/Desktop/research_codes/mkl/mkl_2017_3/compilers_and_libraries_2017.4.181/mac/mkl/lib/libmkl_core.dylib
+   obj:*
+   obj:*
+   obj:*
+}
+
+{
+   mkl_macOS
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:mkl_serv_allocate
+}

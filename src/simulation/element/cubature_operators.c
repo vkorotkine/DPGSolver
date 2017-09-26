@@ -105,16 +105,21 @@ const struct const_Cubature* constructor_const_Cubature_h
 	cubature_fptr constructor_Cubature = get_cubature_by_super_type(s_type_io);
 	basis_fptr    constructor_basis    = get_basis_by_super_type(s_type_io,"ortho");
 
-	const struct const_Cubature* cub_io = constructor_Cubature(d_io,p_io,node_type_io);
+	const struct const_Cubature* cub_io = constructor_Cubature(d_io,p_io,node_type_io); // destructed
 
-	const struct const_Matrix_d* rst_ve = constructor_rst_ve(s_type_io,d_i,d_io,0,ce_io,sim); // tbd
+	const struct const_Matrix_d* rst_ve = constructor_rst_ve(s_type_io,d_i,d_io,0,ce_io,sim); // destructed
 
 	// vXX: (v)olume XX (Arbitrary, would be replaced with [op_io.kind,op_io.sc] if specified)
-	const struct const_Matrix_d* phi_vvs_vXX     = constructor_basis(1,cub_io->rst); // tbd
-	const struct const_Matrix_d* phi_vvs_vvs     = constructor_basis(1,rst_ve); // tbd
-	const struct const_Matrix_d* phi_vvs_vvs_inv = constructor_inverse_const_Matrix_d(phi_vvs_vvs); // tbd
+	const struct const_Matrix_d* cv0r_vvs_vvs     = constructor_basis(1,rst_ve);                      // destructed
+	const struct const_Matrix_d* inv_cv0r_vvs_vvs = constructor_inverse_const_Matrix_d(cv0r_vvs_vvs); // destructed
+	const struct const_Matrix_d* cv0r_vvs_vXX     = constructor_basis(1,cub_io->rst);                 // destructed
 	const struct const_Matrix_d* cv0_vvs_vXX =
-		constructor_mm_const_Matrix_d('N','N',1.0,0.0,phi_vvs_vXX,phi_vvs_vvs_inv,'R'); // tbd
+		constructor_mm_const_Matrix_d('N','N',1.0,0.0,cv0r_vvs_vXX,inv_cv0r_vvs_vvs,'R'); // destructed
+	destructor_const_Cubature(cub_io);
+	destructor_const_Matrix_d(rst_ve);
+	destructor_const_Matrix_d(cv0r_vvs_vvs);
+	destructor_const_Matrix_d(inv_cv0r_vvs_vvs);
+	destructor_const_Matrix_d(cv0r_vvs_vXX);
 
 	struct Cubature* cubature = malloc(sizeof* cubature); // returned
 
@@ -127,6 +132,8 @@ const struct const_Cubature* constructor_const_Cubature_h
 	const char ce_i = op_io[OP_IND_I].ce,
 	           ce_o = op_io[OP_IND_O].ce;
 	if ((ind_io == OP_IND_I) || (ce_i == 'v')) { // ((vv || ff || ee) || (vf || ve))
+		// Compute the output rst coordinates by multiplying the barycentric coordinates of the cubature nodes with
+		// the appropriate (sub)set of reference element vertices.
 		const struct const_Matrix_d* rst_ve_io =
 			constructor_rst_ve(s_type_io,d_i,d_io,h_io,ce_io,sim); // destructed
 		cubature->rst = constructor_mm_Matrix_d('N','N',1.0,0.0,cv0_vvs_vXX,rst_ve_io,'C'); // keep
@@ -136,6 +143,7 @@ const struct const_Cubature* constructor_const_Cubature_h
 	} else { // (fe || ef)
 		EXIT_ADD_SUPPORT;
 	}
+	destructor_const_Matrix_d(cv0_vvs_vXX);
 
 printf("ccCh: rst\n");
 print_Matrix_d(cubature->rst,1e-15);
@@ -165,7 +173,6 @@ static int compute_node_type_cub_collocated
 /** \brief Constructor for the barycentric coordinates of the p2 reference element of the input type.
  *  \return See brief.
  *
- *  \todo Modify the b_coords such that they correspond to the documentation from python.
  *  \todo Move this to be with the h-refinement related connectivity information?
  */
 const struct const_Matrix_d* constructor_b_coords
@@ -226,6 +233,37 @@ static int compute_d_cub (const char ce, const int elem_d)
 	return -1;
 }
 
+/** \brief Compute the index of the type of processing required to get from the reference order to the cubature
+ *         (integration) order.
+ *  \return See brief. */
+static int compute_cub_c_type
+	(const int node_type,         ///< The type of cubature nodes.
+	 const struct Simulation* sim ///< \ref Simulation.
+	);
+
+static int compute_cub_c_type (const int node_type, const struct Simulation* sim)
+{
+	switch (node_type) {
+	case CUB_GL: // fallthrough
+	case CUB_GLL:
+		if (!sim->collocated)
+			return CUB_C_DIV2;
+		else
+			return CUB_C_COL;
+		break;
+	case CUB_WSH:
+		assert(sim->collocated);
+		return CUB_C_COL;
+		break;
+	case CUB_WV:
+		return CUB_C_STD;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",node_type);
+		break;
+	}
+}
+
 static int compute_p_cub (const struct Op_IO* op_io, const int node_type, const struct Simulation* sim)
 {
 	const int cub_kind = op_io->kind;
@@ -236,14 +274,29 @@ static int compute_p_cub (const struct Op_IO* op_io, const int node_type, const 
 	case 'm':
 		return compute_p_basis(op_io,sim);
 		break;
-	case 'c':
-UNUSED(node_type);
+	case 'c': {
+		const int cub_c_type = compute_cub_c_type(node_type,sim);
 		// Note that cubature order depends on the node_type (May be p_op or p_c_x*p_op+p_c_p).
-		// 1) Make function to judge which is the case.
 		// 2) Set based on the node_type
-		EXIT_ADD_SUPPORT;
+
+		const int p_op  = op_io->p_op;
+		if (cub_c_type == CUB_C_COL) {
+			return p_op;
+		} else {
+			const int p_c_x = ( op_io->sc == 's' ? 2 : sim->p_c_x ),
+			          p_c_p = ( op_io->sc == 's' ? 0 : sim->p_c_p );
+
+			const int cub_order = p_c_x*p_op+p_c_p;
+
+			if (cub_c_type == CUB_C_STD)
+				return cub_order;
+			else if (cub_c_type == CUB_C_DIV2)
+				return cub_order/2;
+			else
+				EXIT_UNSUPPORTED;
+		}
 		break;
-	default:
+	} default:
 		EXIT_ERROR("Unsupported: %c\n",cub_kind);
 		break;
 	}
@@ -268,8 +321,7 @@ const struct const_Matrix_d* constructor_rst_ve
 // May need to use d_io below for fv, ev
 	const struct const_Cubature* cub_ve = constructor_Cubature(d_io,1,CUB_VERTEX); // destructed
 
-	const struct const_Matrix_d* rst_ve  =
-		constructor_mm_const_Matrix_d('N','N',1.0,0.0,vv0_vvs_vvs,cub_ve->rst,'C'); // returned
+	const struct const_Matrix_d* rst_ve  = constructor_mm_NN1C_const_Matrix_d(vv0_vvs_vvs,cub_ve->rst); // returned
 	const_cast_ptrdiff(&rst_ve->ext_1,d_i);
 
 	destructor_const_Matrix_d(b_coords);
@@ -292,7 +344,7 @@ EXIT_ERROR("Ensure that all is working as expected.\n");
 	    (strcmp(sim->geom_blending[s_type],"szabo_babuska_gen") == 0))
 	{
 		const struct const_Matrix_d* rst_ve_proj = constructor_rst_ve(s_type,d_i,d_io,ind_h,ce,sim); // destructed
-		rst_proj = constructor_mm_Matrix_d('N','N',1.0,0.0,b_coords,rst_ve_proj,'C'); // returned
+		rst_proj = constructor_mm_NN1C_Matrix_d(b_coords,rst_ve_proj); // returned
 		destructor_const_Matrix_d(rst_ve_proj);
 	} else if (strcmp(sim->geom_blending[s_type],"scott") == 0) {
 		EXIT_ADD_SUPPORT;

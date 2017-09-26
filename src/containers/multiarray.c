@@ -170,6 +170,17 @@ ptrdiff_t compute_index_sub_container
 	return ind_sub;
 }
 
+ptrdiff_t compute_index_sub_container_pi
+	(const int order_i, const int order_o, const ptrdiff_t*const extents, const int*const sub_indices)
+{
+	const int n_sub = order_i-order_o;
+	ptrdiff_t sub_indices_p[n_sub];
+	for (int i = 0; i < n_sub; ++i)
+		sub_indices_p[i] = sub_indices[i];
+
+	return compute_index_sub_container(order_i,order_o,extents,sub_indices_p);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

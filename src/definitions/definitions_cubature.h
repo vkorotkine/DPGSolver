@@ -17,6 +17,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DPG__definitions_cubature_h__INCLUDED
 /** \file
  *  \brief Provides the definitions related to the cubature.
+ *
+ *  Definitions are provided for:
+ *  - the node types;
+ *  - the cubature order from reference order indicators.
  */
 
 ///\{ \name Nodes available for several element super types.
@@ -41,6 +45,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #define CUB_GLLW   402 ///< Gauss-Lobatto-Legendre with Weights.
 #define CUB_GJW    403 ///< Gauss-Jacobi with Weights.
 #define CUB_WVHToP 404 ///< Witherden-Vincent, HEX to PYR.
+///\}
+
+
+///\{ \name The available options for the required processing to get from p_ref to the cubature order.
+#define CUB_C_STD  1001 ///< Standard:     p_cub_std  = p_c_x*p_ref+p_c_p.
+#define CUB_C_DIV2 1002 ///< Divided by 2: p_cub_div2 = p_cub_std/2.
+#define CUB_C_COL  1003 ///< Collocated:   p_cub_col  = p_ref.
 ///\}
 
 #endif // DPG__definitions_cubature_h__INCLUDED

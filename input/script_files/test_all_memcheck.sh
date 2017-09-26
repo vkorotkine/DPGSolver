@@ -22,14 +22,18 @@ LOGFILE=""
 #LOGFILE=" > logfile"
 
 # Specify the path to the mpi executable (mpiexec)
-#MPI_DIR="/Users/philip/Desktop/research_codes/petsc/petsc-3.7.6/arch-osx-10.12-mpich2-c-debug/bin/"
 MPI_DIR=""
 
 # Specify whether the code should be run using valgrind and choose your options
 USE_VALGRIND="1"
 
 if [ "$USE_VALGRIND" = "1" ]; then
-  VALGRIND_OPTS="valgrind --track-origins=yes --leak-check=yes"
+  VALGRIND_OPTS="valgrind \
+                   --track-origins=yes \
+                   --leak-check=yes \
+                   --suppressions=../external/valgrind/valgrind.supp \
+                "
+#                   --gen-suppressions=all \
 else
   VALGRIND_OPTS=""
 fi
@@ -46,6 +50,8 @@ BEGINCOMMENT
 	         --leak-check=yes
 	         --leak-check=full
 	         --show-reachable=yes
+	         -v # Gives additional information
+	         --gen-suppressions=all # Generator suppression information
 ENDCOMMENT
 
 

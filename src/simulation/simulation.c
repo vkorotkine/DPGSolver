@@ -200,6 +200,8 @@ static void set_simulation_invalid (struct Simulation*const sim)
 	const_cast_i(&sim->p_c_x,P_INVALID);
 	const_cast_i(&sim->p_c_p,P_INVALID);
 	const_cast_i(&sim->p_t_p,P_INVALID);
+
+	const_cast_bool(&sim->collocated,false);
 }
 
 static void set_simulation_core (struct Simulation*const sim, const char*const ctrl_name)
@@ -238,6 +240,8 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"p_cub_x"))  read_skip_const_i_1(line,1,&sim->p_c_x,1);
 		if (strstr(line,"p_cub_p"))  read_skip_const_i_1(line,1,&sim->p_c_p,1);
 		if (strstr(line,"p_test_p")) read_skip_const_i_1(line,1,&sim->p_t_p,1);
+
+		if (strstr(line,"collocated")) read_skip_const_b(line,&sim->collocated);
 	}
 	fclose(ctrl_file);
 
@@ -301,12 +305,18 @@ static void set_simulation_default (struct Simulation*const sim)
 
 	if (sim->p_c_x == P_INVALID)
 		const_cast_i(&sim->p_c_x,2);
+	else
+		assert(sim->p_c_x >= 2);
 
 	if (sim->p_c_p == P_INVALID)
 		const_cast_i(&sim->p_c_p,0);
+	else
+		assert(sim->p_c_p >= 0);
 
 	if (sim->p_t_p == P_INVALID)
 		const_cast_i(&sim->p_t_p,0);
+	else
+		assert(sim->p_t_p >= 0);
 
 	const_cast_i(&sim->n_hp,3);
 	const_cast_i(&sim->adapt_type,compute_adapt_type(sim));

@@ -21,8 +21,6 @@ You should have received a copy of the GNU General Public License along with DPG
  *  The definitions provided here are related to parameters needed to specify the element operators:
  *  - type  (OP_T_*);
  *  - range (OP_R_*).
- *
- *  \todo Remove unused definitions.
  */
 
 ///\{ \name Operator related parameters indices.
@@ -80,42 +78,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #define OP_R_P_PM1 12 ///< Order = p_reference +/- 1
 #define OP_R_P_ALL 13 ///< Order = 0:p_max
 ///\}
-
-
-
-
-
-///\{ \name The base/multiplier constants for the various indices associated with the cubature node classification.
-#define CUB_ENT_BASE 100   ///< Entities.
-#define CUB_CE_MULT  1000  ///< Computational elements.
-#define CUB_SC_MULT  10000 ///< Straight/Curved.
-///\}
-
-///\{ \name Entities for which nodes are used.
-#define CUB_ENT_S CUB_ENT_BASE+1 ///< Solution.
-#define CUB_ENT_C CUB_ENT_BASE+2 ///< Cubature.
-#define CUB_ENT_G CUB_ENT_BASE+3 ///< Geometry.
-#define CUB_ENT_M CUB_ENT_BASE+4 ///< Metric.
-#define CUB_ENT_P CUB_ENT_BASE+5 ///< Plotting.
-///\}
-
-///\{ \name The computational element for which the nodes may be set.
-#define CUB_CE_V 1*CUB_CE_MULT ///< Volume.
-#define CUB_CE_F 2*CUB_CE_MULT ///< Face.
-///\}
-
-///\{ \name The straight/curved indicator.
-#define CUB_SC_S 1*CUB_SC_MULT ///< Straight.
-#define CUB_SC_C 2*CUB_SC_MULT ///< Curved.
-///\}
-
-
-///\{ \name Compound entities for which nodes are used.
-#define CUB_CMP_VGS CUB_CE_V+CUB_ENT_G+CUB_SC_S ///< Volume Geometry which is Straight.
-///\}
-
-
-
-
 
 #endif // DPG__definitions_element_operators_h__INCLUDED

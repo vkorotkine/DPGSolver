@@ -196,6 +196,11 @@ void const_constructor_move_Matrix_d (const struct const_Matrix_d*const* dest, s
 	*(struct const_Matrix_d**) dest = (struct const_Matrix_d*) src;
 }
 
+void const_constructor_move_const_Matrix_d (const struct const_Matrix_d*const* dest, const struct const_Matrix_d* src)
+{
+	*(const struct const_Matrix_d**) dest = src;
+}
+
 void const_constructor_move_Matrix_i (const struct const_Matrix_i*const* dest, struct Matrix_i* src)
 {
 	*(struct const_Matrix_i**) dest = (struct const_Matrix_i*) src;
@@ -354,6 +359,30 @@ const struct const_Matrix_d* constructor_mm_const_Matrix_d
 	 const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, const char layout)
 {
 	return (const struct const_Matrix_d*) constructor_mm_Matrix_d(trans_a_i,trans_b_i,alpha,beta,a,b,layout);
+}
+
+struct Matrix_d* constructor_mm_NN1R_Matrix_d
+	(const struct const_Matrix_d*const a, const struct const_Matrix_d*const b)
+{
+	return constructor_mm_Matrix_d('N','N',1.0,0.0,a,b,'R');
+}
+
+const struct const_Matrix_d* constructor_mm_NN1R_const_Matrix_d
+	(const struct const_Matrix_d*const a, const struct const_Matrix_d*const b)
+{
+	return (const struct const_Matrix_d*) constructor_mm_NN1R_Matrix_d(a,b);
+}
+
+struct Matrix_d* constructor_mm_NN1C_Matrix_d
+	(const struct const_Matrix_d*const a, const struct const_Matrix_d*const b)
+{
+	return constructor_mm_Matrix_d('N','N',1.0,0.0,a,b,'C');
+}
+
+const struct const_Matrix_d* constructor_mm_NN1C_const_Matrix_d
+	(const struct const_Matrix_d*const a, const struct const_Matrix_d*const b)
+{
+	return (const struct const_Matrix_d*) constructor_mm_NN1C_Matrix_d(a,b);
 }
 
 void set_Matrix_from_Multiarray_d (struct Matrix_d* dest, struct Multiarray_d* src, const ptrdiff_t*const sub_indices)
