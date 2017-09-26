@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_tol.h"
 #include "definitions_elements.h"
+#include "definitions_bases.h"
 
 #include "multiarray.h"
 #include "matrix.h"
@@ -657,6 +658,22 @@ basis_fptr get_basis_by_super_type (const int s_type, const char*const ref_basis
 	EXIT_ERROR("Did not find the basis with the specified inputs: (%d, %s)\n",s_type,ref_basis_name);
 }
 
+basis_fptr get_basis_by_super_type_i (const int s_type, const int ind_basis)
+{
+	switch (ind_basis) {
+	case BASIS_ORTHO:
+		return get_basis_by_super_type(s_type,"ortho");
+		break;
+	case BASIS_BEZIER:
+		return get_basis_by_super_type(s_type,"bezier");
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",ind_basis);
+		break;
+	}
+//	EXIT_ERROR("Did not find the basis with the specified inputs: (%d, %s)\n",s_type,ref_basis_name);
+}
+
 grad_basis_fptr get_grad_basis_by_super_type (const int s_type, const char*const ref_basis_name)
 {
 	if (s_type == ST_TP) {
@@ -671,6 +688,21 @@ grad_basis_fptr get_grad_basis_by_super_type (const int s_type, const char*const
 	}
 
 	EXIT_ERROR("Did not find the basis with the specified inputs: (%d, %s)\n",s_type,ref_basis_name);
+}
+
+int get_basis_i_from_s (const char*const basis_name_s)
+{
+	int basis_name_i = -1;
+	if (strcmp(basis_name_s,"ortho") == 0)
+		basis_name_i = BASIS_ORTHO;
+	else if (strcmp(basis_name_s,"lagrange") == 0)
+		basis_name_i = BASIS_LAGRANGE;
+	else if (strcmp(basis_name_s,"bezier") == 0)
+		basis_name_i = BASIS_BEZIER;
+	else
+		EXIT_ERROR("Unsupported: %s\n",basis_name_s);
+
+	return basis_name_i;
 }
 
 // Static functions ************************************************************************************************* //

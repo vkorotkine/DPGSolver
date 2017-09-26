@@ -239,6 +239,8 @@ const struct const_Vector_d* constructor_mv_const_Vector_d
 
 struct Vector_d* constructor_sgesv_Vector_d (struct Matrix_d* A_i, struct Vector_d* B_i)
 {
+	assert(A_i->ext_0 == A_i->ext_1);
+
 	// The source matrix is copied as the entries would otherwise be modified while solving the linear system.
 	struct Matrix_d* A = constructor_copy_Matrix_d(A_i);         // destructed;
 	struct Vector_d* X = constructor_empty_Vector_d(B_i->ext_0); // returned;

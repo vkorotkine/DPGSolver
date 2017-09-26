@@ -173,11 +173,24 @@ basis_fptr get_basis_by_super_type
 	 const char*const ref_basis_name ///< The name of the reference basis to be used.
 	);
 
+/** \brief Same as \ref get_basis_by_super_type but with `int` input.
+ *  \return See brief. */
+basis_fptr get_basis_by_super_type_i
+	(const int s_type,   ///< \ref Element::s_type.
+	 const int ind_basis ///< The index of the basis to be used.
+	);
+
 /** \brief Get a pointer to the appropriate basis gradient constructor function based on the input element super type.
  *  \return See brief. */
 grad_basis_fptr get_grad_basis_by_super_type
 	(const int s_type,               ///< \ref Element::s_type.
 	 const char*const ref_basis_name ///< The name of the reference basis to be used.
+	);
+
+/** \brief Get the integer index of the basis based on the string input.
+ *  \return See brief. */
+int get_basis_i_from_s
+ 	(const char*const basis_name_s ///< The `char*` name of the basis.
 	);
 
 #endif // DPG__bases_h__INCLUDED

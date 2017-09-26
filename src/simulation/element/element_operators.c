@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_cubature.h"
 #include "definitions_element_operators.h"
 #include "definitions_elements.h"
+#include "definitions_bases.h"
 
 #include "multiarray.h"
 #include "matrix.h"
@@ -143,6 +144,44 @@ const struct const_Multiarray_Matrix_d* constructor_operators
 	return (const struct const_Multiarray_Matrix_d*) op;
 }
 
+int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
+{
+	const int s_type   = op_io->s_type,
+	          p_op     = op_io->p_op,
+	          cub_kind = op_io->kind,
+	          cub_sc   = op_io->sc;
+// Add Simulation::p_X_p for each kind, X, for variable orders for a given reference order in future.
+	switch (cub_kind) {
+	case 's': // solution
+		return p_op;
+		break;
+	case 'g': // geometry
+		if (cub_sc == 's')
+			return 1;
+
+		if (strcmp(sim->geom_rep,"isoparametric") == 0)
+			return p_op;
+		else if (strcmp(sim->geom_rep,"superparametric") == 0)
+			return p_op+1;
+		else if (strstr(sim->geom_rep,"fixed"))
+			EXIT_ADD_SUPPORT; // Find number in geom_rep (use something similar to 'convert_to_range_d').
+		else
+			EXIT_ERROR("Unsupported: %s\n",sim->geom_rep);
+		break;
+	case 'm': { // metric
+		EXIT_ADD_SUPPORT;
+UNUSED(s_type);
+
+		break;
+	} case 'c': // fallthrough
+	default:
+		EXIT_ERROR("Unsupported: %c\n",cub_kind);
+		break;
+	}
+	EXIT_UNSUPPORTED;
+	return -1;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -195,6 +234,21 @@ struct Vector_i* constructor_indices_Vector_i
  *  \return `true` if: `p_i > p_o` or `h_i > h_o`; `false` otherwise. */
 bool check_op_info_loss
 	(const int*const op_values ///< Values for the operator indices.
+	);
+
+/** \brief Compute the super type of the cubature based on the kind of operator.
+ *  \return See brief. */
+static int compute_super_type_op
+	(const struct Op_IO* op_io,          ///< \ref Op_IO.
+	 const struct const_Element* element ///< \ref const_Element.
+	);
+
+/** \brief Constructor for the coefficient to value operator, selecting the operator basis based on `kind`.
+ *  \return See brief. */
+const struct const_Matrix_d* constructor_cv
+	(const struct const_Matrix_d* rst, ///< The rst coordinates.
+	 const struct Op_IO* op_io,        ///< \ref Op_IO.
+	 const struct Simulation* sim      ///< \ref Simulation.
 	);
 
 struct Operator_Info* constructor_Operator_Info
@@ -258,9 +312,12 @@ print_const_Matrix_i(op_info->values_op);
 		const int*const h_ptr = &op_values[OP_IND_H],
 		         *const p_ptr = &op_values[OP_IND_P];
 
+		const struct Op_IO* op_io = op_info->op_io;
+
 		for (int i = 0; i < 2; ++i) {
-			const_cast_i(&op_info->op_io[i].h_op,h_ptr[i]);
-			const_cast_i(&op_info->op_io[i].p_op,p_ptr[i]);
+			const_cast_i(&op_io[i].h_op,h_ptr[i]);
+			const_cast_i(&op_io[i].p_op,p_ptr[i]);
+			const_cast_i(&op_io[i].s_type,compute_super_type_op(&op_io[i],op_info->element));
 		}
 
 		const struct const_Element* element = op_info->element;
@@ -269,34 +326,34 @@ print_const_Matrix_i(op_info->values_op);
 
 		// Construct T_i
 		const struct const_Cubature*const cub_i =
-			constructor_const_Cubature_h(OP_IND_I,op_info->op_io,element,sim); // destructed
+			constructor_const_Cubature_h(OP_IND_I,op_io,element,sim); // tbd
 
-		basis_fptr constructor_basis_ref = get_basis_by_super_type(s_type,"ortho");
+		basis_fptr constructor_basis = get_basis_by_super_type(s_type,"ortho");
 
-		const struct const_Matrix_d* phi_ref_cv_ii = constructor_basis_ref(p_ptr[OP_IND_I],cub_i->rst); // tbd
-EXIT_ERROR("Add function to select basis based on `kind`.\n");
-		const struct const_Matrix_d* phi_cv_ii = NULL;
-		if (strcmp(op_info->basis_name,"ortho") == 0)
-			phi_cv_ii = constructor_copy_const_Matrix_d(phi_ref_cv_ii); // tbd
-		else if (strcmp(op_info->basis_name,"lagrange") == 0)
-			phi_cv_ii = constructor_identity_const_Matrix_d(phi_ref_cv_ii->ext_0); // tbd
-		else if (strcmp(op_info->basis_name,"bezier") == 0)
-			phi_cv_ii = constructor_basis_bezier(p_ptr[OP_IND_I],cub_i->rst); // tbd
-		else
-			EXIT_UNSUPPORTED;
+		const struct const_Matrix_d* cv_ref_ii = constructor_basis(p_ptr[OP_IND_I],cub_i->rst);   // destructed
+		const struct const_Matrix_d* cv_ii     = constructor_cv(cub_i->rst,&op_io[OP_IND_I],sim); // destructed
 
-		const struct const_Matrix_d* T_i = constructor_sgesv_const_Matrix_d(phi_ref_cv_ii,phi_cv_ii); // tbd
+		const struct const_Matrix_d* T_i = constructor_sgesv_const_Matrix_d(cv_ref_ii,cv_ii); // tbd
+
+		destructor_const_Matrix_d(cv_ref_ii);
+		destructor_const_Matrix_d(cv_ii);
+
+		const struct const_Cubature*const cub_o =
+			constructor_const_Cubature_h(OP_IND_O,op_io,element,sim); // tbd
+
+		if (op_info->range_d == OP_R_D_0) {
+			const struct const_Matrix_d* cv_ref_io = constructor_basis(p_ptr[OP_IND_O],cub_o->rst); // tbd
+// Possibly use a Multiarray_Matrix_d here such that the same functions can be used as for derivative operators below.
+			const struct const_Matrix_d* cv_io     = constructor_mm_const_Matrix_d(cv_ref_io,T_i);  // tbd
+		} else if (op_info->range_d == OP_R_D_1) {
+		} else {
+			EXIT_ERROR("Unsupported: %d\n",op_info->range_d);
+		}
+	} else {
+		EXIT_ADD_SUPPORT; // L2 projection operators.
 	}
 UNUSED(op);
 /*
-	const struct const_Element* element = op_info->element;
-
-	const int d      = element->d,
-	          s_type = element->s_type;
-*/
-
-/*	const int* op_values = get_row_const_Matrix_i(ind_values,op_info->values_op);
-
 	const int order_op  = op_info->extents_op->ext_0,
 	          order_cub = op_info->extents_cub->ext_0;
 
@@ -335,8 +392,6 @@ UNUSED(op);
 
 
 if (D_OP_R_0)
-		const struct const_Matrix_d* phi_ref_cv_io = constructor_basis_ref(p_x[1],d,cub_o->rst); // tbd
-		const struct const_Matrix_d* phi_cv_io     = constructor_mm_const_Matrix_d(phi_ref_cv_io,T_i); // tbd
 
 		const struct const_Matrix_d* output = NULL;
 		if (op_type == OP_T_CV)
@@ -346,17 +401,11 @@ if (D_OP_R_0)
 			const struct const_Matrix_d* phi_ref_oo = constructor_basis_ref(p_x[0],d,cub_o->rst);
 		}
 else
-	// compute
-
-// Update for other operators
 
 // index of first operator: const ptrdiff_t ind_op_MA = compute_index_sub_container(OP_ORDER_MAX,0,extents,indices_op);
 // if: op_values[0] == OP_INVALID_IND, set from Matrix_d.
 // else: loop over dim set from Multiarray_Matrix_d.
 
-	} else {
-		EXIT_ADD_SUPPORT; // L2 projection operators.
-	}
 */
 }
 
@@ -627,6 +676,43 @@ bool check_op_info_loss
 	return false;
 }
 
+static int compute_super_type_op (const struct Op_IO* op_io, const struct const_Element* element)
+{
+	const int sub_e_type = compute_elem_type_sub_ce(element->type,op_io->ce,op_io->h_op);
+	return compute_super_from_elem_type(sub_e_type);
+}
+
+const struct const_Matrix_d* constructor_cv
+	(const struct const_Matrix_d* rst, const struct Op_IO* op_io, const struct Simulation* sim)
+{
+	int basis_type = -1;
+	switch (op_io->kind) {
+	case 'g': // fallthrough
+	case 'm':
+		basis_type = get_basis_i_from_s(sim->basis_geom);
+		break;
+	case 's':
+		basis_type = get_basis_i_from_s(sim->basis_sol);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %c.\n",op_io->kind);
+		break;
+	}
+
+	const int s_type = op_io->s_type;
+	const int p_basis = compute_p_basis(op_io,sim);
+
+	const struct const_Matrix_d* cv = NULL;
+	if (basis_type == BASIS_LAGRANGE) {
+		cv = constructor_identity_const_Matrix_d('R',rst->ext_0); // returned
+	} else {
+		basis_fptr constructor_basis = get_basis_by_super_type_i(s_type,basis_type);
+		cv = constructor_basis(p_basis,rst); // returned
+	}
+
+	return cv;
+}
+
 // Level 2 ********************************************************************************************************** //
 
 static void compute_range (int x_mm[2], const struct Operator_Info* op_info, const char var_type, const char var_io)
@@ -800,7 +886,7 @@ static int compute_p_cub
 	(const int p_ref,             ///< The input refenrece order.
 	 const int cub_type,          ///< \ref Operator_Info::cub_type.
 	 const int s_type,            ///< \ref Element::s_type.
-	 const struct Simulation *sim ///< \ref Simulation.
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 static void destructor_Multiarray_Cubature (struct Multiarray_Cubature* a)

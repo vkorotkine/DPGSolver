@@ -301,6 +301,40 @@ const struct const_Matrix_d* constructor_inverse_const_Matrix_d (const struct co
 	return (const struct const_Matrix_d*) constructor_inverse_Matrix_d((struct Matrix_d*)src);
 }
 
+struct Matrix_d* constructor_sgesv_Matrix_d (struct Matrix_d* A_i, struct Matrix_d* B_i)
+{
+	assert(A_i->layout == B_i->layout); // Can be made flexible in future if necessary.
+	assert(A_i->ext_0 == A_i->ext_1);
+
+	// The source matrix is copied as the entries would otherwise be modified while solving the linear system.
+	struct Matrix_d* A = constructor_copy_Matrix_d(A_i); // destructed;
+	struct Matrix_d* X = constructor_empty_Matrix_d(A_i->layout,A_i->ext_0,B_i->ext_1); // returned;
+
+	const int matrix_layout = ( A->layout == 'R' ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR );
+	const lapack_int n      = A->ext_0,
+	                 nrhs   = B_i->ext_1;
+	double* a               = A->data,
+	      * b               = B_i->data,
+	      * x               = X->data;
+	const lapack_int lda    = A->ext_0,
+	                 ldb    = ( matrix_layout == LAPACK_COL_MAJOR ? n : nrhs ),
+	                 ldx    = ldb;
+	lapack_int ipiv[n],
+	           iter         = 0;
+
+	const int info = LAPACKE_dsgesv(matrix_layout,n,nrhs,a,lda,ipiv,b,ldb,x,ldx,&iter);
+	assert(info == 0);
+
+	destructor_Matrix_d(A);
+	return X;
+}
+
+const struct const_Matrix_d* constructor_sgesv_const_Matrix_d
+	(const struct const_Matrix_d* A_i, const struct const_Matrix_d* B_i)
+{
+	return (const struct const_Matrix_d*) constructor_sgesv_Matrix_d((struct Matrix_d*)A_i,(struct Matrix_d*)B_i);
+}
+
 struct Matrix_d* constructor_mm_Matrix_d
 	(const char trans_a_i, const char trans_b_i, const double alpha, const double beta,
 	 const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, const char layout)

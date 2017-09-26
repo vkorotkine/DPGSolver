@@ -209,6 +209,24 @@ const struct const_Matrix_d* constructor_inverse_const_Matrix_d
 	(const struct const_Matrix_d* src ///< Defined for \ref constructor_inverse_Matrix_d.
 	);
 
+/** \brief Constructor for a \ref Matrix_d\* from the solution of a linear system using [LAPACKE_dsgesv][dsgesv].
+ *  \return Standard.
+ *
+ *  <!-- References: -->
+ *  [dsgesv]: https://software.intel.com/en-us/mkl-developer-reference-c-gesv
+ */
+struct Matrix_d* constructor_sgesv_Matrix_d
+	(struct Matrix_d* A_i, ///< The LHS input matrix A.
+	 struct Matrix_d* B_i  ///< The RHS input matrix B.
+	);
+
+/** \brief `const` version of constructor_sgesv_Matrix_d.
+ *  \return See brief. */
+const struct const_Matrix_d* constructor_sgesv_const_Matrix_d
+	(const struct const_Matrix_d* A_i, ///< Defined for \ref constructor_sgesv_Matrix_d.
+	 const struct const_Matrix_d* B_i  ///< Defined for \ref constructor_sgesv_Matrix_d.
+	);
+
 /** \brief Constructor for a \ref Matrix_d\* from a matrix-matrix multiplication.
  *  \return Standard. */
 struct Matrix_d* constructor_mm_Matrix_d

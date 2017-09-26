@@ -64,7 +64,9 @@ struct Op_IO {
 	           sc;   ///< Indication of straight/curved.
 
 	const int h_op, ///< The h-refinement index of the operator.
-	          p_op; ///< The polynomial order index of the operator (**Not the order of the cubature rule**).
+	          p_op; ///< The polynomial order index of the operator (**Not the order of the basis/cubature rule**).
+
+	const int s_type; ///< \ref Element::s_type.
 };
 
 /** Container for operator range related information.
@@ -142,6 +144,13 @@ const struct const_Multiarray_Matrix_d* constructor_operators
 	 const int p_ref[2],                  ///< Defined in \ref Operator_Info.
 	 const struct const_Element* element, ///< \ref const_Element.
 	 const struct Simulation* sim         ///< \ref Simulation.
+	);
+
+/** \brief Compute the order of the basis based on the reference order and the kind of operator.
+ *  \return See brief. */
+int compute_p_basis
+	(const struct Op_IO* op_io,   ///< \ref Op_IO.
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 #endif // DPG__element_operators_h__INCLUDED

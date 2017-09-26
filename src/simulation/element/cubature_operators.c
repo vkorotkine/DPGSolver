@@ -32,23 +32,17 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element.h"
 #include "bases.h"
 #include "cubature.h"
+#include "element_operators.h"
 #include "const_cast.h"
 
 // Static function declarations ************************************************************************************* //
-
-/** \brief Compute the super type of the cubature based on the kind of operator.
- *  \return See brief. */
-static int compute_super_type_cub
-	(const struct Op_IO* op_io,          ///< \ref Op_IO.
-	 const struct const_Element* element ///< \ref const_Element.
-	);
 
 /** \brief Compute the node type of the cubature based on the kind of operator.
  *  \return See brief. */
 static int compute_node_type_cub
 	(const struct Op_IO* op_io,           ///< \ref Op_IO.
 	 const struct const_Element* element, ///< \ref const_Element.
-	 const struct Simulation *sim         ///< \ref Simulation.
+	 const struct Simulation* sim         ///< \ref Simulation.
 	);
 
 /** \brief Compute the dimension of the cubature based off of the computational element and the simulation dimension.
@@ -62,9 +56,8 @@ static int compute_d_cub
  *  \return See brief. */
 static int compute_p_cub
 	(const struct Op_IO* op_io,   ///< \ref Op_IO.
-	 const int s_type,            ///< \ref Element::s_type.
 	 const int node_type,         ///< \ref Cubature::node_type.
-	 const struct Simulation *sim ///< \ref Simulation.
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 /** \brief Constructor for the rst coordinates associated with vertices of the (potentially h-refined) reference
@@ -76,7 +69,7 @@ const struct const_Matrix_d* constructor_rst_ve
 	 const int d_io,              ///< The dimension of the input/output rst coordinates.
 	 const int ind_h,             ///< The h-refinement index.
 	 const char ce,               ///< \ref Op_IO::ce.
-	 const struct Simulation *sim ///< \ref Simulation.
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 /** \brief Constructor for rst coordinates as a projection of
@@ -98,14 +91,14 @@ const struct const_Cubature* constructor_const_Cubature_h
 	(const int ind_io, const struct Op_IO op_io[2], const struct const_Element* element,
 	 const struct Simulation* sim)
 {
-	const int s_type_io    = compute_super_type_cub(&op_io[ind_io],element);
+	const int s_type_io    = op_io[ind_io].s_type;
 	const int node_type_io = compute_node_type_cub(&op_io[ind_io],element,sim);
 
 	// Always use the input to establish the dimension of the cubature nodes as it is in bases of this dimension in
 	// which the nodes will be used.
 	const int d_i          = compute_d_cub(op_io[OP_IND_I].ce,element->d);
 	const int d_io         = compute_d_cub(op_io[ind_io].ce,element->d);
-	const int p_io         = compute_p_cub(&op_io[ind_io],s_type_io,node_type_io,sim);
+	const int p_io         = compute_p_cub(&op_io[ind_io],node_type_io,sim);
 	const int h_io         = op_io[ind_io].h_op;
 	const char ce_io       = op_io[ind_io].ce;
 
@@ -158,7 +151,7 @@ print_Matrix_d(cubature->rst,1e-15);
 static int compute_node_type_cub_std
 	(const struct Op_IO* op_io,           ///< \ref Op_IO.
 	 const struct const_Element* element, ///< \ref const_Element.
-	 const struct Simulation *sim         ///< \ref Simulation.
+	 const struct Simulation* sim         ///< \ref Simulation.
 	);
 
 /** \brief Compute the node type of the cubature based on the kind of operator for collocated nodes.
@@ -166,7 +159,7 @@ static int compute_node_type_cub_std
 static int compute_node_type_cub_collocated
 	(const struct Op_IO* op_io,           ///< \ref Op_IO.
 	 const struct const_Element* element, ///< \ref const_Element.
-	 const struct Simulation *sim         ///< \ref Simulation.
+	 const struct Simulation* sim         ///< \ref Simulation.
 	);
 
 /** \brief Constructor for the barycentric coordinates of the p2 reference element of the input type.
@@ -194,14 +187,8 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-static int compute_super_type_cub (const struct Op_IO* op_io, const struct const_Element* element)
-{
-	const int sub_e_type = compute_elem_type_sub_ce(element->type,op_io->ce,op_io->h_op);
-	return compute_super_from_elem_type(sub_e_type);
-}
-
 static int compute_node_type_cub
-	(const struct Op_IO* op_io, const struct const_Element* element, const struct Simulation *sim)
+	(const struct Op_IO* op_io, const struct const_Element* element, const struct Simulation* sim)
 {
 	switch (op_io->kind) {
 	case 's': // fallthrough
@@ -239,38 +226,19 @@ static int compute_d_cub (const char ce, const int elem_d)
 	return -1;
 }
 
-static int compute_p_cub
-	(const struct Op_IO* op_io, const int s_type, const int node_type, const struct Simulation *sim)
+static int compute_p_cub (const struct Op_IO* op_io, const int node_type, const struct Simulation* sim)
 {
-	const int p_ref  = op_io->p_op,
-	          cub_kind = op_io->kind,
-	          cub_sc   = op_io->sc;
+	const int cub_kind = op_io->kind;
 // Add Simulation::p_X_p for each kind, X, for variable orders for a given reference order in future.
 	switch (cub_kind) {
-	case 's': // solution
-		return p_ref;
-		break;
+	case 's': // fallthrough
 	case 'g':
-		if (cub_sc == 's')
-			return 1;
-
-		if (strcmp(sim->geom_rep,"isoparametric") == 0)
-			return p_ref;
-		else if (strcmp(sim->geom_rep,"superparametric") == 0)
-			return p_ref+1;
-		else if (strstr(sim->geom_rep,"fixed"))
-			EXIT_ADD_SUPPORT; // Find number in geom_rep (use something similar to 'convert_to_range_d').
-		else
-			EXIT_ERROR("Unsupported: %s\n",sim->geom_rep);
+	case 'm':
+		return compute_p_basis(op_io,sim);
 		break;
-	case 'm': {
-		EXIT_ADD_SUPPORT;
-UNUSED(s_type);
-
-		break;
-	} case 'c':
+	case 'c':
 UNUSED(node_type);
-		// Note that cubature order depends on the node_type (May be p_ref or p_c_x*p_ref+p_c_p).
+		// Note that cubature order depends on the node_type (May be p_op or p_c_x*p_op+p_c_p).
 		// 1) Make function to judge which is the case.
 		// 2) Set based on the node_type
 		EXIT_ADD_SUPPORT;
@@ -568,8 +536,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 	case LINE:
 		switch (ce) {
 		case 'v': {
-			const int n_ve_ce   = 2,
-			          n_ref_max = 3;
+			enum { n_ve_ce = 2, n_ref_max = 3, };
 			assert(n_ve_ce == element->n_ve);
 			assert(n_ref_max == element->n_ref_max_v);
 			assert(ind_h < n_ref_max);
@@ -586,8 +553,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 			break;
 		} case 'f': { // fallthrough
 		} case 'e': {
-			const int n_ve_ce   = 1,
-			          n_ref_max = 2*1;
+			enum { n_ve_ce = 1, n_ref_max = 2*1, };
 			assert(n_ref_max == element->n_ref_max_f);
 			assert(ind_h < n_ref_max);
 
@@ -607,8 +573,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 	case TRI:
 		switch (ce) {
 		case 'v': {
-			const int n_ve_ce = 3,
-			          n_ref_max = 5;
+			enum { n_ve_ce = 3, n_ref_max = 5, };
 			assert(n_ve_ce == element->n_ve);
 			assert(n_ref_max == element->n_ref_max_v);
 			assert(ind_h < n_ref_max);
@@ -627,8 +592,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 			break;
 		} case 'f': { // fallthrough
 		} case 'e': {
-			const int n_ve_ce   = 2,
-			          n_ref_max = 3*3;
+			enum { n_ve_ce = 2, n_ref_max = 3*3, };
 			assert(n_ref_max == element->n_ref_max_f);
 			assert(ind_h < n_ref_max);
 
@@ -653,8 +617,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 	case TET:
 		switch (ce) {
 		case 'v': {
-			const int n_ve_ce = 4,
-			          n_ref_max = 9;
+			enum { n_ve_ce = 4, n_ref_max = 9, };
 			assert(n_ve_ce == element->n_ve);
 			assert(n_ref_max == element->n_ref_max_v);
 			assert(ind_h < n_ref_max);
@@ -676,8 +639,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 			ind_h_b_coords = ind_h_b_coords_all[ind_h];
 			break;
 		} case 'f': {
-			const int n_ve_ce   = 3,
-			          n_ref_max = 4*5;
+			enum { n_ve_ce = 3, n_ref_max = 4*5, };
 			assert(n_ref_max == element->n_ref_max_f);
 			assert(ind_h < n_ref_max);
 
@@ -696,8 +658,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 			ext_0 = n_ve_ce;
 			ind_h_b_coords = ind_h_b_coords_all[ind_h];
 		} case 'e': {
-			const int n_ve_ce   = 2,
-			          n_ref_max = 6*3;
+			enum { n_ve_ce = 2, n_ref_max = 6*3, };
 			assert(n_ref_max == element->n_ref_max_e);
 			assert(ind_h < n_ref_max);
 
@@ -727,8 +688,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 	case PYR:
 		switch (ce) {
 		case 'v': {
-			const int n_ve_ce_max = 5,
-			          n_ref_max   = 11;
+			enum { n_ve_ce_max = 5, n_ref_max = 11, };
 			assert(n_ve_ce_max == element->n_ve);
 			assert(n_ref_max == element->n_ref_max_v);
 			assert(ind_h < n_ref_max);
@@ -753,8 +713,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 			ind_h_b_coords = ind_h_b_coords_all[ind_h];
 			break;
 		} case 'f': {
-			const int n_ve_ce_max = 4,
-			          n_ref_max   = 5*5;
+			enum { n_ve_ce_max = 4, n_ref_max = 5*5, };
 			assert(n_ref_max == element->n_ref_max_f);
 			assert(ind_h < n_ref_max);
 
@@ -776,8 +735,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 			ext_0 = n_ve_ce_all[ind_h];
 			ind_h_b_coords = ind_h_b_coords_all[ind_h];
 		} case 'e': {
-			const int n_ve_ce   = 2,
-			          n_ref_max = 8*3;
+			enum { n_ve_ce = 2, n_ref_max = 8*3, };
 			assert(n_ref_max == element->n_ref_max_e);
 			assert(ind_h < n_ref_max);
 
