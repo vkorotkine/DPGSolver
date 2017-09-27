@@ -45,22 +45,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define OP_INVALID_IND -999
 ///\}
 
-/** \brief Constructor for the \ref Operator_Info\* having the given inputs.
- *  \return Standard. */
-struct Operator_Info* constructor_Operator_Info
-	(const char*const name_type,         ///< Defined for \ref constructor_operators.
-	 const char*const name_in,           ///< Defined for \ref constructor_operators.
-	 const char*const name_out,          ///< Defined for \ref constructor_operators.
-	 const char*const name_range,        ///< Defined for \ref constructor_operators.
-	 const int p_ref[2],                 ///< Defined for \ref constructor_operators.
-	 const struct const_Element* element ///< Defined for \ref constructor_operators.
-	);
-
-/// \brief Destructor for a \ref Operator_Info\*.
-void destructor_Operator_Info
-	(struct Operator_Info* op_ranges ///< Standard.
-	);
-
 /** \brief Set the current standard operator(s).
  *  \note Standard operators include all permutations of coef/value to coef/value with possible differentiation.
  *
@@ -75,81 +59,6 @@ static void set_operator_std
 	 const struct Operator_Info* op_info,        ///< \ref Operator_Info.
 	 const struct Simulation* sim                ///< \ref Simulation.
 	);
-
-// Interface functions ********************************************************************************************** //
-
-const struct const_Multiarray_Matrix_d* constructor_operators
-	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
-	 const int p_ref[2], const struct const_Element* element, const struct Simulation* sim)
-{
-	struct Operator_Info* op_info =
-		constructor_Operator_Info(name_type,name_in,name_out,name_range,p_ref,element); // destructed
-
-printf("ex_op\n");
-print_const_Vector_i(op_info->extents_op);
-	const struct const_Multiarray_Matrix_d* op =
-		constructor_empty_const_Multiarray_Matrix_d_V(false,op_info->extents_op); // returned
-
-	const ptrdiff_t row_max = op_info->values_op->ext_0;
-	for (ptrdiff_t row = 0; row < row_max; ) {
-		// row is incremented when setting the operators.
-		switch (op_info->op_type) {
-		case OP_T_CV:
-		case OP_T_CC:
-		case OP_T_VV:
-		case OP_T_VC:
-			set_operator_std(&row,op,op_info,sim);
-			break;
-		default:
-			EXIT_UNSUPPORTED;
-			break;
-		}
-	}
-	destructor_Operator_Info(op_info);
-
-	return op;
-}
-
-int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
-{
-	const int s_type   = op_io->s_type,
-	          p_op     = op_io->p_op,
-	          cub_kind = op_io->kind,
-	          cub_sc   = op_io->sc;
-// Add Simulation::p_X_p for each kind, X, for variable orders for a given reference order in future.
-	switch (cub_kind) {
-	case 's': // solution
-		return p_op;
-		break;
-	case 'g': // geometry
-		if (cub_sc == 's')
-			return 1;
-
-		if (strcmp(sim->geom_rep,"isoparametric") == 0)
-			return p_op;
-		else if (strcmp(sim->geom_rep,"superparametric") == 0)
-			return p_op+1;
-		else if (strstr(sim->geom_rep,"fixed"))
-			EXIT_ADD_SUPPORT; // Find number in geom_rep (use something similar to 'convert_to_range_d').
-		else
-			EXIT_ERROR("Unsupported: %s\n",sim->geom_rep);
-		break;
-	case 'm': { // metric
-		EXIT_ADD_SUPPORT;
-UNUSED(s_type);
-
-		break;
-	} case 'c': // fallthrough
-	default:
-		EXIT_ERROR("Unsupported: %c\n",cub_kind);
-		break;
-	}
-	EXIT_UNSUPPORTED;
-	return -1;
-}
-
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
 
 /** \brief Convert the `char*` input to the appropriate definition of OP_T_*.
  *  \return See brief. */
@@ -187,42 +96,39 @@ static void set_up_values_op
 	(struct Operator_Info* op_info ///< \ref Operator_Info.
 	);
 
-/** \brief Constructor for a \ref Vector_i\* of indices for the current operator.
- *  \return See brief. */
-static const struct const_Vector_i* constructor_indices_Vector_i
-	(const int order_expected,     ///< The expected order.
-	 const int* op_values,         ///< The operator values.
-	 const bool*const indices_skip ///< Indices to skip (if not NULL).
-	);
+// Interface functions ********************************************************************************************** //
 
-/** \brief Check if information can be lost while performing the operation.
- *  \return `true` if: `p_i > p_o` or `h_i > h_o`; `false` otherwise. */
-bool check_op_info_loss
-	(const int*const op_values ///< Values for the operator indices.
-	);
+const struct const_Multiarray_Matrix_d* constructor_operators
+	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
+	 const int p_ref[2], const struct const_Element* element, const struct Simulation* sim)
+{
+	struct Operator_Info* op_info =
+		constructor_Operator_Info(name_type,name_in,name_out,name_range,p_ref,element); // destructed
 
-/** \brief Compute the super type of the cubature based on the kind of operator.
- *  \return See brief. */
-static int compute_super_type_op
-	(const struct Op_IO* op_io,          ///< \ref Op_IO.
-	 const struct const_Element* element ///< \ref const_Element.
-	);
+printf("ex_op\n");
+print_const_Vector_i(op_info->extents_op);
+	const struct const_Multiarray_Matrix_d* op =
+		constructor_empty_const_Multiarray_Matrix_d_V(false,op_info->extents_op); // returned
 
-/** \brief Constructor for the coefficient to value operator, selecting the operator basis based on `kind`.
- *  \return See brief. */
-const struct const_Matrix_d* constructor_cv
-	(const struct const_Matrix_d* rst, ///< The rst coordinates.
-	 const struct Op_IO* op_io,        ///< \ref Op_IO.
-	 const struct Simulation* sim      ///< \ref Simulation.
-	);
+	const ptrdiff_t row_max = op_info->values_op->ext_0;
+	for (ptrdiff_t row = 0; row < row_max; ) {
+		// row is incremented when setting the operators.
+		switch (op_info->op_type) {
+		case OP_T_CV:
+		case OP_T_CC:
+		case OP_T_VV:
+		case OP_T_VC:
+			set_operator_std(&row,op,op_info,sim);
+			break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+		}
+	}
+	destructor_Operator_Info(op_info);
 
-/** \brief Constructor for a \ref Multiarray_Matrix_d\* of order 1 with `owns_data = false` to hold locally computed
- *         operators.
- *  \return See brief. */
-static const struct const_Multiarray_Matrix_d* constructor_op_MMd
-	(const bool owns_data, ///< Defined in \ref Multiarray_Matrix_d.
-	 const ptrdiff_t ext_0 ///< The size of the single extent.
-	);
+	return op;
+}
 
 struct Operator_Info* constructor_Operator_Info
 	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
@@ -269,6 +175,105 @@ void destructor_Operator_Info (struct Operator_Info* op_info)
 	destructor_const_Matrix_i(op_info->values_op);
 	free(op_info);
 }
+
+int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
+{
+	const int s_type   = op_io->s_type,
+	          p_op     = op_io->p_op,
+	          cub_kind = op_io->kind,
+	          cub_sc   = op_io->sc;
+// Add Simulation::p_X_p for each kind, X, for variable orders for a given reference order in future.
+	switch (cub_kind) {
+	case 's': // solution
+		return p_op;
+		break;
+	case 'g': // geometry
+		if (cub_sc == 's')
+			return 1;
+
+		if (strcmp(sim->geom_rep,"isoparametric") == 0)
+			return p_op;
+		else if (strcmp(sim->geom_rep,"superparametric") == 0)
+			return p_op+1;
+		else if (strstr(sim->geom_rep,"fixed"))
+			EXIT_ADD_SUPPORT; // Find number in geom_rep (use something similar to 'convert_to_range_d').
+		else
+			EXIT_ERROR("Unsupported: %s\n",sim->geom_rep);
+		break;
+	case 'm': { // metric
+		EXIT_ADD_SUPPORT;
+UNUSED(s_type);
+
+		break;
+	} case 'c': // fallthrough
+	default:
+		EXIT_ERROR("Unsupported: %c\n",cub_kind);
+		break;
+	}
+	EXIT_UNSUPPORTED;
+	return -1;
+}
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
+
+/** \brief Constructor for a \ref Vector_i\* of indices for the current operator.
+ *  \return See brief. */
+static const struct const_Vector_i* constructor_indices_Vector_i
+	(const int order_expected,     ///< The expected order.
+	 const int* op_values,         ///< The operator values.
+	 const bool*const indices_skip ///< Indices to skip (if not NULL).
+	);
+
+/** \brief Check if information can be lost while performing the operation.
+ *  \return `true` if: `p_i > p_o` or `h_i > h_o`; `false` otherwise. */
+bool check_op_info_loss
+	(const int*const op_values ///< Values for the operator indices.
+	);
+
+/** \brief Compute the super type of the cubature based on the kind of operator.
+ *  \return See brief. */
+static int compute_super_type_op
+	(const struct Op_IO* op_io,          ///< \ref Op_IO.
+	 const struct const_Element* element ///< \ref const_Element.
+	);
+
+/** \brief Constructor for the coefficient to value operator, selecting the operator basis based on `kind`.
+ *  \return See brief. */
+const struct const_Matrix_d* constructor_cv
+	(const struct const_Matrix_d* rst, ///< The rst coordinates.
+	 const struct Op_IO* op_io,        ///< \ref Op_IO.
+	 const struct Simulation* sim      ///< \ref Simulation.
+	);
+
+/** \brief Constructor for a \ref Multiarray_Matrix_d\* of order 1 with `owns_data = false` to hold locally computed
+ *         operators.
+ *  \return See brief. */
+static const struct const_Multiarray_Matrix_d* constructor_op_MMd
+	(const bool owns_data, ///< Defined in \ref Multiarray_Matrix_d.
+	 const ptrdiff_t ext_0 ///< The size of the single extent.
+	);
+
+/// \brief Compute range (min, max) for the index of `var_type`.
+static void compute_range
+	(int x_mm[2],                         ///< Set to the min and max values.
+	 const struct Operator_Info* op_info, ///< \ref Operator_Info.
+	 const char var_type,                 ///< Variable type. Options: 'd', 'c'e, 'h', 'p'.
+	 const char var_io                    ///< Whether the variable is of 'i'nput or 'o'utput type.
+	);
+
+/// \brief Compute range (min, max) for `p_o` based on the values of `p_i` and `op_info->p_range`.
+static void compute_range_p_o
+	(int p_o_mm[2],                       ///< Set to the min and max values.
+	 const struct Operator_Info* op_info, ///< \ref Operator_Info.
+	 const int p_i                        ///< The input order.
+	);
+
+/** \brief Get the value for the maximum number of h-refinements.
+ *  \return See brief. */
+int get_n_ref_max
+	(const struct Operator_Info* op_info ///< \ref Operator_Info.
+	);
 
 static void set_operator_std
 	(ptrdiff_t*const ind_values, const struct const_Multiarray_Matrix_d* op, const struct Operator_Info* op_info,
@@ -348,7 +353,7 @@ print_const_Matrix_i(op_info->values_op);
 
 			for (int i = 0; i < n_op; ++i) {
 				const struct const_Matrix_d* cv0 = op_cvN->data[i];
-				const struct const_Matrix_d* co0 = constructor_sgesv_const_Matrix_d(cv0_oo,cv0); // moved
+			const struct const_Matrix_d* co0 = constructor_sgesv_const_Matrix_d(cv0_oo,cv0); // moved
 				const_constructor_move_const_Matrix_d(&op_coN->data[i],co0); // destructed
 			}
 			destructor_const_Matrix_d(cv0_oo);
@@ -391,29 +396,6 @@ print_const_Matrix_i(op_info->values_op);
 	destructor_const_Multiarray_Matrix_d(op_ioN);
 	destructor_const_Vector_i(indices_op);
 }
-
-// Level 1 ********************************************************************************************************** //
-
-/// \brief Compute range (min, max) for the index of `var_type`.
-static void compute_range
-	(int x_mm[2],                         ///< Set to the min and max values.
-	 const struct Operator_Info* op_info, ///< \ref Operator_Info.
-	 const char var_type,                 ///< Variable type. Options: 'd', 'c'e, 'h', 'p'.
-	 const char var_io                    ///< Whether the variable is of 'i'nput or 'o'utput type.
-	);
-
-/// \brief Compute range (min, max) for `p_o` based on the values of `p_i` and `op_info->p_range`.
-static void compute_range_p_o
-	(int p_o_mm[2],                       ///< Set to the min and max values.
-	 const struct Operator_Info* op_info, ///< \ref Operator_Info.
-	 const int p_i                        ///< The input order.
-	);
-
-/** \brief Get the value for the maximum number of h-refinements.
- *  \return See brief. */
-int get_n_ref_max
-	(const struct Operator_Info* op_info ///< \ref Operator_Info.
-	);
 
 int convert_to_type (const char* name_type)
 {
@@ -639,6 +621,8 @@ static void set_up_values_op (struct Operator_Info* op_info)
 	op_info->values_op = (const struct const_Matrix_i*) values;
 }
 
+// Level 1 ********************************************************************************************************** //
+
 bool check_op_info_loss
 	(const int*const op_values)
 {
@@ -708,8 +692,6 @@ static const struct const_Multiarray_Matrix_d* constructor_op_MMd (const bool ow
 
 	return (const struct const_Multiarray_Matrix_d*) op_MMd;
 }
-
-// Level 2 ********************************************************************************************************** //
 
 static void compute_range (int x_mm[2], const struct Operator_Info* op_info, const char var_type, const char var_io)
 {

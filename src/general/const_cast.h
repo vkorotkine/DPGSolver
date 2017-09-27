@@ -68,6 +68,12 @@ void const_cast_c1
 	 const char*const  src   ///< Source.
 	);
 
+/// \brief Cast from `void*` to `const void*const`.
+void const_cast_void1
+	(const void*const* dest, ///< Destination.
+	 const void*const  src   ///< Source.
+	);
+
 // Custom data types ************************************************************************************************ //
 
 #endif // DPG__const_cast_h__INCLUDED

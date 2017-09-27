@@ -140,7 +140,7 @@ static struct Mesh_Vertices_l set_up_mesh_vertices
 			if (v_to_lf_i < BC_STEP_SC)
 				continue;
 
-			struct const_Element* element = get_element_by_type(elements,elem_types->data[ind_v+v]);
+			const struct const_Element* element = get_element_by_type(elements,elem_types->data[ind_v+v]);
 			const struct const_Vector_i*const f_ve = element->f_ve->data[lf];
 			const ptrdiff_t n_ve_f = f_ve->ext_0;
 

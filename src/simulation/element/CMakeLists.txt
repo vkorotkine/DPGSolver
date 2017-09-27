@@ -1,6 +1,7 @@
 set	(SOURCE
 	 element.c
 	 element_operators.c
+	 element_operators_tp.c
 	 bases.c
 	 cubature.c
 	 cubature_operators.c

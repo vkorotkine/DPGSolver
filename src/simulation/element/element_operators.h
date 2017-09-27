@@ -106,6 +106,22 @@ const struct const_Multiarray_Matrix_d* constructor_operators
 	 const struct Simulation* sim         ///< \ref Simulation.
 	);
 
+/** \brief Constructor for the \ref Operator_Info\* having the given inputs.
+ *  \return Standard. */
+struct Operator_Info* constructor_Operator_Info
+	(const char*const name_type,         ///< Defined for \ref constructor_operators.
+	 const char*const name_in,           ///< Defined for \ref constructor_operators.
+	 const char*const name_out,          ///< Defined for \ref constructor_operators.
+	 const char*const name_range,        ///< Defined for \ref constructor_operators.
+	 const int p_ref[2],                 ///< Defined for \ref constructor_operators.
+	 const struct const_Element* element ///< Defined for \ref constructor_operators.
+	);
+
+/// \brief Destructor for a \ref Operator_Info\*.
+void destructor_Operator_Info
+	(struct Operator_Info* op_ranges ///< Standard.
+	);
+
 /** \brief Compute the order of the basis based on the reference order and the kind of operator.
  *  \return See brief. */
 int compute_p_basis

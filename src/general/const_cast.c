@@ -49,4 +49,9 @@ void const_cast_c1 (const char*const* dest, const char*const src)
 	*(char**) dest = (char*) src;
 }
 
+void const_cast_void1 (const void*const* dest, const void*const src)
+{
+	*(void**) dest = (void*) src;
+}
+
 // Custom data types ************************************************************************************************ //

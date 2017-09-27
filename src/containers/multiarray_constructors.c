@@ -312,6 +312,12 @@ void destructor_const_Multiarray_Matrix_d (const struct const_Multiarray_Matrix_
 	destructor_Multiarray_Matrix_d((struct Multiarray_Matrix_d*)a);
 }
 
+void destructor_const_Multiarray2_Matrix_d (const struct const_Multiarray_Matrix_d* a[2])
+{
+	destructor_const_Multiarray_Matrix_d(a[0]);
+	destructor_const_Multiarray_Matrix_d(a[1]);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

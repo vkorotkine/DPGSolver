@@ -26,21 +26,24 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Container for data relating to the base Elements.
 struct Element {
-/// \todo Remove `const`s here.
 	struct Intrusive_Link lnk; ///< The \ref Intrusive_Link.
 
-	const int type,   ///< The element type.
-	          s_type, ///< The element super type. Options: Tensor-Product, SImplex, PYRamid, WEDGE.
-	          d,      ///< The dimension.
-	          n_ve,   ///< The number of vertices.
-	          n_e,    ///< The number of edges.
-	          n_f;    ///< The number of faces.
+	int type,   ///< The element type.
+	    s_type, ///< The element super type. Options: Tensor-Product, SImplex, PYRamid, WEDGE.
+	    d,      ///< The dimension.
+	    n_ve,   ///< The number of vertices.
+	    n_e,    ///< The number of edges.
+	    n_f;    ///< The number of faces.
 
-	const int n_ref_max_v, ///< Maximum number of volume h-refinements.
-	          n_ref_max_f, ///< Maximum number of face h-refinements.
-	          n_ref_max_e; ///< Maximum number of edge h-refinements.
+	int n_ref_max_v, ///< Maximum number of volume h-refinements.
+	    n_ref_max_f, ///< Maximum number of face h-refinements.
+	    n_ref_max_e; ///< Maximum number of edge h-refinements.
 
-	const struct const_Multiarray_Vector_i*const f_ve; ///< The correspondence between the (f)aces and (ve)rtices.
+	struct Multiarray_Vector_i* f_ve; ///< The correspondence between the (f)aces and (ve)rtices.
+
+	struct Element* sub_element[2]; ///< Sub-elements used to form the tensor-product element (if applicable).
+
+	void* derived; ///< Pointer to the element currently derived from the base element.
 };
 
 /// \brief `const` version of the \ref Element container.
@@ -59,6 +62,10 @@ struct const_Element {
 	          n_ref_max_e; ///< Defined in \ref Element.
 
 	const struct const_Multiarray_Vector_i*const f_ve; ///< Defined in \ref Element.
+
+	const struct const_Element*const sub_element[2]; ///< Defined in \ref Element.
+
+	const void*const derived; ///< Defined in \ref Element.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //
@@ -94,15 +101,14 @@ void const_cast_const_Element
 
 /** \brief See return.
  *  \return Pointer to a \ref Element of the input `type`. */
-struct const_Element* get_element_by_type
+const struct const_Element* get_element_by_type
 	(const struct const_Intrusive_List*const elements, ///< The list of elements.
 	 const int type                                    ///< Defined in \ref Element.
 	);
 
 /** \brief See return.
- *  \return Pointer to a \ref Element corresponding to the specified face of the input volume.
- */
-struct const_Element* get_element_by_face
+ *  \return Pointer to a \ref Element corresponding to the specified face of the input volume. */
+const struct const_Element* get_element_by_face
 	(const struct const_Element*const element, ///< The element corresponding to the volume.
 	 const int lf                              ///< The index of the local face.
 	);

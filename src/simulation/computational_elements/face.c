@@ -44,7 +44,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Container for \ref Face related mesh information.
 struct Face_mesh_info {
-	struct const_Element* element;        ///< The pointer to the \ref Element corresponding to the face.
+	const struct const_Element* element; ///< The pointer to the \ref Element corresponding to the face.
 
 	const struct const_Vector_i* ve_inds; ///< The indices of the vertices of the face.
 

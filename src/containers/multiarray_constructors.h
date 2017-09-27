@@ -298,4 +298,9 @@ void destructor_const_Multiarray_Matrix_d
 	(const struct const_Multiarray_Matrix_d* a ///< Defined for \ref destructor_Multiarray_Matrix_d.
 	);
 
+/// \brief Destructor for a \ref Multiarray_Matrix_d\*[2].
+void destructor_const_Multiarray2_Matrix_d
+	(const struct const_Multiarray_Matrix_d* a[2] ///< Standard.
+	);
+
 #endif // DPG__multiarray_constructors_h__INCLUDED

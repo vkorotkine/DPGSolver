@@ -28,6 +28,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "simulation.h"
 #include "element_operators.h"
+#include "element_operators_tp.h"
+#include "const_cast.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -56,7 +58,7 @@ struct const_Intrusive_List* constructor_Geometry_Elements (struct Simulation*co
 		EXIT_UNSUPPORTED;
 
 	const struct const_Intrusive_List* elements = sim->elements;
-	struct Intrusive_List* geometry_elements    = constructor_empty_IL(IL_GEOMETRY_ELEMENT); // returned
+	struct Intrusive_List* geometry_elements = constructor_empty_IL(IL_GEOMETRY_ELEMENT); // returned
 
 	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next)
 		push_back_IL(geometry_elements,
@@ -91,6 +93,7 @@ static struct Geometry_Element* constructor_Geometry_Element (struct const_Eleme
 	struct Geometry_Element* geometry_element = calloc(1,sizeof *geometry_element); // returned
 
 	memcpy(&geometry_element->element,element,sizeof *element); // shallow copy of the base.
+	const_cast_void1(&element->derived,geometry_element);
 
 	return geometry_element;
 }
@@ -143,6 +146,13 @@ static void set_up_operators_element (struct Geometry_Element* element, const st
 
 // Level 2 ********************************************************************************************************** //
 
+/** \brief Set up the wedge operators for the \ref Geometry_Element\*s using a tensor-product of lower-dimensional
+           operators. */
+static void set_up_operators_tp_wedge
+	(struct Geometry_Element* element, ///< Defined for \ref set_up_operators_standard.
+	 const struct Simulation* sim      ///< Defined for \ref set_up_operators_standard.
+	);
+
 static void set_up_operators_standard (struct Geometry_Element* element, const struct Simulation* sim)
 {
 	struct const_Element* base_element = (struct const_Element*)element;
@@ -153,7 +163,45 @@ static void set_up_operators_standard (struct Geometry_Element* element, const s
 
 static void set_up_operators_tensor_product (struct Geometry_Element* element, const struct Simulation* sim)
 {
-UNUSED(element);
-UNUSED(sim);
+	struct const_Element* base_element = (struct const_Element*)element;
+
+	// \note The wedge operator set up should also work for the n-cube but would be less efficient as it will build
+	//       redundant operators.
+	switch (base_element->s_type) {
+	case ST_TP:
+//		set_up_operators_tp_n_cube(element,sim); /// \todo Use the n_cube operator set up when all is working.
+		set_up_operators_tp_wedge(element,sim);
+		break;
+	case ST_WEDGE:
+		set_up_operators_tp_wedge(element,sim);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",base_element->s_type);
+		break;
+	}
+}
+
+// Level 3 ********************************************************************************************************** //
+
+static void set_up_operators_tp_wedge (struct Geometry_Element* element, const struct Simulation* sim)
+{
+	struct const_Element* b_e = (struct const_Element*)element;
+
+	struct Geometry_Element* sub_element[2] = { (struct Geometry_Element*) b_e->sub_element[0]->derived,
+	                                            (struct Geometry_Element*) b_e->sub_element[1]->derived, };
+
+	struct Operators_TP ops_tp;
+
+	const struct const_Multiarray_Matrix_d* cv0_vgs_vcs[2] = // destructed
+		{ constructor_operators("cv0","vgs","vcs","H_1_P_1",sim->p_s_v,b_e->sub_element[0],sim),
+		  constructor_operators("cv0","vgs","vcs","H_1_P_1",sim->p_s_v,b_e->sub_element[1],sim), };
+	set_operators_tp(&ops_tp,cv0_vgs_vcs[0],sub_element[0]->cv1_vgs_vcs,cv0_vgs_vcs[1],sub_element[1]->cv1_vgs_vcs);
+	element->cv1_vgs_vcs = constructor_operators_tp("cv1","vgs","vcs","H_1_P_1",b_e,sim,&ops_tp); // keep
+
+	destructor_const_Multiarray2_Matrix_d(cv0_vgs_vcs);
+
+
+
+//	element->cv1_vgc_vcc =
 	EXIT_ADD_SUPPORT;
 }
