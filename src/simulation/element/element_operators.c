@@ -41,10 +41,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-///\{ \name Invalid operator index
-#define OP_INVALID_IND -999
-///\}
-
 /** \brief Set the current standard operator(s).
  *  \note Standard operators include all permutations of coef/value to coef/value with possible differentiation.
  *
@@ -214,22 +210,32 @@ UNUSED(s_type);
 	return -1;
 }
 
+const struct const_Vector_i* constructor_indices_Vector_i
+	(const int order_expected, const int* op_values, const bool*const indices_skip)
+{
+	struct Vector_i* indices = constructor_empty_Vector_i(order_expected); // returned
+	int* data = indices->data;
+
+	int ind = 0;
+	for (int i = 0; i < OP_ORDER_MAX; ++i) {
+		if (!(indices_skip && indices_skip[i]) && op_values[i] != OP_INVALID_IND)
+			data[ind++] = op_values[i];
+	}
+	assert(ind == order_expected);
+
+	return (const struct const_Vector_i*)indices;
+}
+
+bool check_op_info_loss (const int*const op_values)
+{
+	if ((op_values[OP_IND_H+1] > op_values[OP_IND_H]) ||
+	    (op_values[OP_IND_P+1] > op_values[OP_IND_P]))
+		return true;
+	return false;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-/** \brief Constructor for a \ref Vector_i\* of indices for the current operator.
- *  \return See brief. */
-static const struct const_Vector_i* constructor_indices_Vector_i
-	(const int order_expected,     ///< The expected order.
-	 const int* op_values,         ///< The operator values.
-	 const bool*const indices_skip ///< Indices to skip (if not NULL).
-	);
-
-/** \brief Check if information can be lost while performing the operation.
- *  \return `true` if: `p_i > p_o` or `h_i > h_o`; `false` otherwise. */
-bool check_op_info_loss
-	(const int*const op_values ///< Values for the operator indices.
-	);
 
 /** \brief Compute the super type of the cubature based on the kind of operator.
  *  \return See brief. */
@@ -623,15 +629,6 @@ static void set_up_values_op (struct Operator_Info* op_info)
 
 // Level 1 ********************************************************************************************************** //
 
-bool check_op_info_loss
-	(const int*const op_values)
-{
-	if ((op_values[OP_IND_H+1] > op_values[OP_IND_H]) ||
-	    (op_values[OP_IND_P+1] > op_values[OP_IND_P]))
-		return true;
-	return false;
-}
-
 static int compute_super_type_op (const struct Op_IO* op_io, const struct const_Element* element)
 {
 	const int sub_e_type = compute_elem_type_sub_ce(element->type,op_io->ce,op_io->h_op);
@@ -667,22 +664,6 @@ const struct const_Matrix_d* constructor_cv
 	}
 
 	return cv;
-}
-
-static const struct const_Vector_i* constructor_indices_Vector_i
-	(const int order_expected, const int* op_values, const bool*const indices_skip)
-{
-	struct Vector_i* indices = constructor_empty_Vector_i(order_expected); // returned
-	int* data = indices->data;
-
-	int ind = 0;
-	for (int i = 0; i < OP_ORDER_MAX; ++i) {
-		if (!(indices_skip && indices_skip[i]) && op_values[i] != OP_INVALID_IND)
-			data[ind++] = op_values[i];
-	}
-	assert(ind == order_expected);
-
-	return (const struct const_Vector_i*)indices;
 }
 
 static const struct const_Multiarray_Matrix_d* constructor_op_MMd (const bool owns_data, const ptrdiff_t ext_0)

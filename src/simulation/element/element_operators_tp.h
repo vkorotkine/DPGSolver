@@ -19,6 +19,14 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the functions relating to tensor-product element operators.
  *
  *  See \ref element_operators.h for relevant comments.
+ *
+ *  \warning The limited number of input operators currently does not allow for certain tensor-product operators
+ *           to be constructed.
+ *  For example, a cv1_vgc_fcc WEDGE operator for h-adaptation could not be constructed as it would require 8 inputs:
+ *  cv0_vgc_vcc, cv1_vgc_vcc, cv0_vgc_fcc, cv1_vgc_fcc operators for both LINE and TRI elements.
+ *
+ *  While this is not currently an issue as no such operator is used, it would perhaps be convenient to store the
+ *  non-differentiation and differentiation operators as part of the same Multiarray, leading once again to 4 operators.
  */
 
 struct Simulation;

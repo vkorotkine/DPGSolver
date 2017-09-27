@@ -187,7 +187,7 @@ static void set_up_operators_tp_wedge (struct Geometry_Element* element, const s
 {
 	struct const_Element* b_e = (struct const_Element*)element;
 
-	struct Geometry_Element* sub_element[2] = { (struct Geometry_Element*) b_e->sub_element[0]->derived,
+	struct Geometry_Element* s_e[2] = { (struct Geometry_Element*) b_e->sub_element[0]->derived,
 	                                            (struct Geometry_Element*) b_e->sub_element[1]->derived, };
 
 	struct Operators_TP ops_tp;
@@ -195,7 +195,7 @@ static void set_up_operators_tp_wedge (struct Geometry_Element* element, const s
 	const struct const_Multiarray_Matrix_d* cv0_vgs_vcs[2] = // destructed
 		{ constructor_operators("cv0","vgs","vcs","H_1_P_1",sim->p_s_v,b_e->sub_element[0],sim),
 		  constructor_operators("cv0","vgs","vcs","H_1_P_1",sim->p_s_v,b_e->sub_element[1],sim), };
-	set_operators_tp(&ops_tp,cv0_vgs_vcs[0],sub_element[0]->cv1_vgs_vcs,cv0_vgs_vcs[1],sub_element[1]->cv1_vgs_vcs);
+	set_operators_tp(&ops_tp,cv0_vgs_vcs[0],s_e[0]->cv1_vgs_vcs,cv0_vgs_vcs[1],s_e[1]->cv1_vgs_vcs);
 	element->cv1_vgs_vcs = constructor_operators_tp("cv1","vgs","vcs","H_1_P_1",b_e,sim,&ops_tp); // keep
 
 	destructor_const_Multiarray2_Matrix_d(cv0_vgs_vcs);

@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define OP_IND_I     1 ///< Index of the input  parameter relative to OP_IND_*.
 #define OP_IND_O     0 ///< Index of the output parameter relative to OP_IND_*.
 
+#define OP_IND_D     0
 #define OP_IND_CE    1 ///< Index of the first computational element parameter.
 #define OP_IND_H     3 ///< Index of the first h-refinement parameter.
 #define OP_IND_P     5 ///< Index of the first p-refinement parameter.
@@ -48,6 +49,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 
 // Operator Range Options ******************************************************************************************* //
+
+///\{ \name Invalid operator index
+#define OP_INVALID_IND -999
+///\}
 
 ///\{ \name Dimension range options.
 #define OP_R_D_0   0  ///< No dimensions (NULL range)

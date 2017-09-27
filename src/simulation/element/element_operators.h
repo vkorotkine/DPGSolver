@@ -129,4 +129,18 @@ int compute_p_basis
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/** \brief Check if information can be lost while performing the operation.
+ *  \return `true` if: `p_i > p_o` or `h_i > h_o`; `false` otherwise. */
+bool check_op_info_loss
+	(const int*const op_values ///< Values for the operator indices.
+	);
+
+/** \brief Constructor for a \ref Vector_i\* of indices for the current operator.
+ *  \return See brief. */
+const struct const_Vector_i* constructor_indices_Vector_i
+	(const int order_expected,     ///< The expected order.
+	 const int* op_values,         ///< The operator values.
+	 const bool*const indices_skip ///< Indices to skip (if not NULL).
+	);
+
 #endif // DPG__element_operators_h__INCLUDED
