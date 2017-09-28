@@ -90,6 +90,13 @@ double* get_col_Matrix_d
 	 const struct Matrix_d* a ///< Matrix.
 	);
 
+/** \brief Get pointer to column of col-major \ref Matrix_i\*.
+ *  \return Pointer to the first entry of the column. */
+double* get_col_Matrix_i
+	(const ptrdiff_t col,     ///< Desired column.
+	 const struct Matrix_i* a ///< Matrix.
+	);
+
 /** \brief Get pointer to row of row-major \ref const_Matrix_d\*.
  *  \return Pointer to the first entry of the row. */
 const double* get_row_const_Matrix_d
@@ -162,10 +169,30 @@ void set_row_Matrix_i
 	 const int*const data_src ///< The source data.
 	);
 
+/// \brief Set the values of the destination column to that of the source data.
+void set_col_Matrix_i
+	(const ptrdiff_t col,     ///< The destination row.
+	 struct Matrix_i* dest,   ///< The destination Matrix.
+	 const int*const data_src ///< The source data.
+	);
+
+/// \brief Set the values of the destination column to the input value.
+void set_col_to_val_Matrix_i
+	(const ptrdiff_t col,   ///< The destination row.
+	 struct Matrix_i* dest, ///< The destination Matrix.
+	 const int data_src     ///< The source data.
+	);
+
 /// \brief Set all data entries to the input value.
 void set_to_value_Matrix_d
 	(struct Matrix_d*const a, ///< Standard.
 	 const double val         ///< The value.
+	);
+
+/// \brief Set all data entries to the input value.
+void set_to_value_Matrix_i
+	(struct Matrix_i*const a, ///< Standard.
+	 const int val            ///< The value.
 	);
 
 /** \brief Compute the opposite layout.

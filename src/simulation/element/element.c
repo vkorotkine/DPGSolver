@@ -198,6 +198,7 @@ int compute_elem_type_sub_ce (const int e_type, const char ce, const int ind_ce)
 			return QUAD;
 			break;
 		case WEDGE:
+/// \todo Replace with definitions from definitions_h_ref.h
 			switch (ind_ce) {
 			case 0:  case 1:  case 2:           // 3 quad faces of wedge reference element.
 			case 5:  case 6:  case 7:  case 8:  // 4 quad refined face 0 sub-faces.

@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_core.h"
 #include "definitions_element_operators.h"
+#include "definitions_h_ref.h"
 
 #include "multiarray.h"
 #include "matrix.h"
@@ -143,14 +144,26 @@ UNUSED(sim);
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Set the input `op_MMd[3]` to point to the appropriate operators from `ops_tp`.
- *  Only one of `op_val_d` and `op_val_ce` may be valid. */
-static void set_op_MMd
-	(const struct const_Multiarray_Matrix_d* op_MMd[3], ///< The array of \ref Multiarray_Matrix_d operators.
-	 const struct Operators_TP* ops_tp,                 ///< \ref Operators_TP.
-	 const int op_val_d,                                ///< The differentiation index of the current operator.
-	 const int op_val_ce,                               ///< The computational element index of the current operator.
-	 const int e_type                                   ///< \ref Element::type.
+/** \brief Set the input `op_MMd[DMAX]` to point to the appropriate operators from `ops_tp`.
+ *
+ *  `spec_indices` can be interpreted as the direction(s) (n-Cube: r,s,t; wedge: rs,NULL,t) in which to use the
+ *  'special' operator (the second operator for the sub-element).
+ */
+static void set_ops_MMd
+	(const struct const_Multiarray_Matrix_d* op_MMd[DMAX], ///< The array of \ref Multiarray_Matrix_d operators.
+	 bool* spec_indices,                                   ///< The array of indices for the special operators.
+	 const struct Operators_TP* ops_tp,                    ///< \ref Operators_TP.
+	 const int* op_values,                                 ///< The index values of the current operator.
+	 const struct Operator_Info* op_info                   ///< \ref Sub_Operator_Info.
+	);
+
+/// \brief Set the the input `op_Md[DMAX]` to point to the appropriate matrices in `op_MMd[DMAX]`.
+static void set_ops_Md
+	(const struct const_Matrix_d* op_Md[DMAX],             ///< The array of \ref Matrix_d operators.
+	 const struct const_Multiarray_Matrix_d* op_MMd[DMAX], ///< The array of \ref Multiarray_Matrix_d operators.
+	 const int* op_values_i,                               ///< The index values of the current operator.
+	 const struct Operator_Info* op_info,                  ///< \ref Sub_Operator_Info.
+	 const bool* spec_indices                              ///< Defined for \ref set_ops_MMd.
 	);
 
 static void set_sub_operator_info
@@ -161,19 +174,20 @@ static void set_sub_operator_info
 	assert(op_io[OP_IND_I].ce == 'v');
 
 	const int* op_values = get_row_const_Matrix_i(ind_values,op_info->values_op);
-	if (check_op_info_loss(op_values)
+	if (check_op_info_loss(op_values))
 		EXIT_ERROR("Ensure that all is working as expected.\n");
+		// Invalid condition in \ref set_ops_Md for j == OP_IND_H.
 
 	// See comments in \ref element_operators_tp.h
 	assert((op_values[OP_IND_D] == OP_INVALID_IND) ||
 	       (op_values[OP_IND_CE] == OP_INVALID_IND && op_values[OP_IND_CE+1] == OP_INVALID_IND));
 
-	const int op_val_d  = op_values[OP_IND_D];
-	const int op_val_ce = op_values[OP_IND_CE+1];
-	const int e_type    = op_info->element->type;
-
 	const struct const_Multiarray_Matrix_d* op_MMd[] = { NULL, NULL, NULL };
-	set_op_MMd(op_MMd,ops_tp,op_val_d,op_val_ce,e_type);
+	bool spec_indices[] = { false, false, false, };
+	set_ops_MMd(op_MMd,spec_indices,ops_tp,op_values,op_info);
+
+	const struct const_Matrix_d* op_Md[] = { NULL, NULL, NULL };
+	set_ops_Md(op_Md,op_MMd,op_values,op_info,spec_indices);
 
 
 
@@ -202,112 +216,254 @@ return NULL;
 
 // Level 1 ********************************************************************************************************** //
 
-/** \brief Set the indicator in the appropriate index for whether the second sub-element operator should be used for a
- *         differentiation related operation. */
-static void set_ind_spec_diff
-	(bool* ind_spec,    ///< The array of indices for the special operators.
-	 const int s_type,  ///< \ref Element::s_type.
-	 const int op_val_d ///< The differentiation index of the current operator.
+/// \brief Set the sub-operator indices for the input element type: ce_o, h_i, h_o.
+static void set_sub_op_values
+	(struct Matrix_i* sub_op_values,         ///< The sub-operator values for each of the tensor-product operators.
+	 const struct const_Vector_i* op_values, ///< The operator values for the standard operator.
+	 const struct Operator_Info* op_info     ///< \ref Operator_Info.
 	);
 
-/** \brief Set the indicator in the appropriate index for whether the second sub-element operator should be used for a
- *         face/edge computational element related operation. */
-static void set_ind_spec_ce
-	(bool* ind_spec,     ///< The array of indices for the special operators.
-	 const int e_type,   ///< \ref Element::type.
-	 const int op_val_ce ///< The computational element index of the current operator.
-	);
-
-static void set_op_MMd
-	(const struct const_Multiarray_Matrix_d* op_MMd[DMAX], const struct Operators_TP* ops_tp, const int op_val_d,
-	 const int op_val_ce, const int e_type)
+static void set_ops_MMd
+	(const struct const_Multiarray_Matrix_d* op_MMd[DMAX], bool* spec_indices, const struct Operators_TP* ops_tp,
+	 const int* op_values, const struct Operator_Info* op_info)
 {
-	const int s_type = compute_super_from_elem_type(e_type);
+	const int op_val_d    = op_values[OP_IND_D];
+	const int op_val_ce_o = op_values[OP_IND_CE+1];
+	const int s_type      = op_info->element->s_type;
 
 	assert(DMAX == 3);
-	assert((op_val_d == OP_INVALID_IND) || (op_val_ce == OP_INVALID_IND));
+	assert((op_val_d == OP_INVALID_IND) || (op_val_ce_o == OP_INVALID_IND));
 	assert((s_type == ST_TP) || (s_type == ST_WEDGE));
 
 	int* ind_ops_tp = ( s_type == ST_TP ? (int[]) { 0, 0, 0, } : (int[]) { 0, OP_INVALID_IND, 1, } );
 
-	bool ind_spec[] = { false, false, false, };
-	set_ind_spec_d(ind_spec,s_type,op_val_d);
+	set_spec_indices_diff(spec_indices,op_val_d,s_type);
+	set_spec_indices_ce(spec_indices,op_val_ce_o,op_info);
 
 	for (int i = 0; i < DMAX; ++i) {
 		const int ind_op_tp = ind_ops_tp[i];
 		if (ind_op_tp != OP_INVALID_IND) {
-			if (!ind_spec[i])
+			if (!spec_indices[i])
 				op_MMd[i] = ops_tp->op[ind_op_tp][0];
-			else {
+			else
 				op_MMd[i] = ops_tp->op[ind_op_tp][1];
-			}
 		} else {
 			op_MMd[i] = NULL;
 		}
 	}
 }
 
-// Level 1 ********************************************************************************************************** //
-
-static void set_ind_spec_diff (bool* ind_spec, const int s_type, const int op_val_d)
+static void set_ops_Md
+	(const struct const_Matrix_d* op_Md[DMAX], const struct const_Multiarray_Matrix_d* op_MMd[DMAX],
+	 const int* op_values_i, const struct Operator_Info* op_info, const bool* spec_indices)
 {
-	switch (s_type) {
-	case ST_TP:
-		if (op_val_d != OP_INVALID_IND) {
-			assert(op_val_d >= 0);
-			if (op_val_d <= 2)
-				ind_spec[op_val_d] = true;
-			else
-				EXIT_ERROR("Unsupported: %d\n",op_val_d);
+	assert(op_values[OP_IND_H+OP_IND_I] == 0); // Not valid for fine to coarse (i.e. if info_loss == true)
+
+/// \todo Move this to function above.
+	const struct const_Vector_i* op_values = constructor_copy_const_Vector_i_i(OP_ORDER_MAX,op_values_i); // tbd
+
+	const int e_type      = op_info->element->type;
+	const char ce_o       = op_info->op_io[OP_IND_O].ce;
+	const int op_val_ce_o = op_values->data[OP_IND_CE+OP_IND_O];
+
+	struct Matrix_i* sub_op_values = constructor_empty_Matrix_i('R',DMAX,OP_ORDER_MAX); // tbd
+	set_to_value_Matrix_i(sub_op_values,OP_INVALID_IND);
+	const int set_inds[] = { OP_IND_P+OP_IND_I, OP_IND_P+OP_IND_O, OP_IND_H+OP_IND_I };
+	for (int i = 0; i < (sizeof(set_inds)/sizeof(*set_inds)); ++i)
+		set_col_to_val_Matrix_i(i,sub_op_values,op_values->data[i]);
+
+	const int op_val_d    = op_values->data[OP_IND_D];
+
+	const bool spec_indices_false = { false, false, false },
+	          * spec_indices_diff = ( (op_val_d    != OP_INVALID_IND) ? spec_indices : spec_indices_false ),
+	          * spec_indices_ce   = ( (op_val_ce_o != OP_INVALID_IND) ? spec_indices : spec_indices_false );
+
+	set_sub_op_values(sub_op_values,op_values,op_info);
+
+	switch (e_type) {
+	case QUAD:
+		switch (ce_o) {
+		case 'v':
+			switch (op_val_ce_o) {
+			}
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %c.\n",ce_o);
+			break;
 		}
 		break;
-	case ST_WEDGE:
-		if (op_val_d != OP_INVALID_IND) {
-			assert(op_val_d >= 0);
-			if (op_val_d < 2)
-				ind_spec[0] = true;
-			else if (op_val_d == 2)
-				ind_spec[2] = true;
-			else
-				EXIT_ERROR("Unsupported: %d\n",op_val_d);
+	default:
+		EXIT_ERROR("Unsupported: %c.\n",ce_o);
+		break;
+	}
+}
+
+// Level 1 ********************************************************************************************************** //
+
+/// \brief Set the sub-operator indices for the QUAD element type.
+static void set_sub_op_values_quad
+	(struct Matrix_i* sub_op_values,         ///< Defined for \ref set_sub_op_values.
+	 const struct const_Vector_i* op_values, ///< Defined for \ref set_sub_op_values.
+	 const struct Operator_Info* op_info     ///< Defined for \ref set_sub_op_values.
+	);
+
+/// \brief Set the sub-operator indices for the HEX element type.
+static void set_sub_op_values_hex
+	(struct Matrix_i* sub_op_values,         ///< Defined for \ref set_sub_op_values.
+	 const struct const_Vector_i* op_values, ///< Defined for \ref set_sub_op_values.
+	 const struct Operator_Info* op_info     ///< Defined for \ref set_sub_op_values.
+	);
+
+/// \brief Set the sub-operator indices for the WEDGE element type.
+static void set_sub_op_values_wedge
+	(struct Matrix_i* sub_op_values,         ///< Defined for \ref set_sub_op_values.
+	 const struct const_Vector_i* op_values, ///< Defined for \ref set_sub_op_values.
+	 const struct Operator_Info* op_info     ///< Defined for \ref set_sub_op_values.
+	);
+
+static void set_sub_op_values
+	(struct Matrix_i* sub_op_values, const struct const_Vector_i* op_values, const struct Operator_Info* op_info)
+{
+	switch (op_info->element->type) {
+		case QUAD:  set_sub_op_values_quad(sub_op_values,op_values,op_info);  break;
+		case HEX:   set_sub_op_values_hex(sub_op_values,op_values,op_info);   break;
+		case WEDGE: set_sub_op_values_wedge(sub_op_values,op_values,op_info); break;
+		default:    EXIT_ERROR("Unsupported: %d\n",op_info->element->type);   break;
+	}
+}
+
+// Level 2 ********************************************************************************************************** //
+
+/** \brief Set the indicator in the appropriate index for whether the second sub-element operator should be used for a
+ *         differentiation related operation. */
+static void set_spec_indices_diff
+	(bool* spec_indices, ///< The array of indices for the special operator.
+	 const int op_val_d, ///< The differentiation index of the current operator.
+	 const int s_type    ///< \ref Element::s_type.
+	);
+
+/** \brief Set the indicator in the appropriate index for whether the second sub-element operator should be used for a
+ *         face/edge computational element related operation. */
+static void set_spec_indices_ce
+	(bool* spec_indices,                 ///< The array of indices for the special operator.
+	 const int op_val_ce,                ///< The computational element index of the current operator.
+	 const struct Operator_Info* op_info ///< \ref Sub_Operator_Info.
+	);
+
+static void set_sub_op_values_quad
+	(struct Matrix_i* sub_op_values, const struct const_Vector_i* op_values, const struct Operator_Info* op_info)
+{
+	const int d           = op_info->element->d;
+	const char ce_o       = op_info->op_io[OP_IND_O].ce;
+	const int op_val_ce_o = op_values->data[OP_IND_CE+OP_IND_O];
+
+	int* sub_op_values_i[2] = { get_row_Matrix_i(0,sub_op_values),
+	                            get_row_Matrix_i(1,sub_op_values), };
+
+	const int ind_h_o = OP_IND_H+OP_IND_O;
+
+	switch (ce_o) {
+	case 'v':
+		switch (op_val_ce_o) {
+		case H_QUAD1_V0:
+EXIT_UNSUPPORTED; // continue here
+			sub_op_values_i[0][ind_h_o] = H_LINE1_V0;
+			sub_op_values_i[1][ind_h_o] = H_LINE1_V0;
+			for (int i = 0; i < DMAX; ++i) {
+				if (spec_indices_diff[i])
+					sub_op_values[i][OP_IND_D] = 0;
+				if (spec_indices_ce[i])
+					sub_op_values[i][OP_IND_CE+OP_IND_O] = 0;
+			}
+			break;
+		case 1: // {0,1,3,4}.
+			sub_op_values[0][OP_IND_H+OP_IND_O] = 1;
+			sub_op_values[1][OP_IND_H+OP_IND_O] = 1;
+			for (int i = 0; i < DMAX; ++i) {
+				if (spec_indices_diff[i])
+					sub_op_values[i][OP_IND_D] = 0;
+				if (spec_indices_ce[i])
+					sub_op_values[i][OP_IND_CE+OP_IND_O] = 0;
+			}
+			break;
+		case 2: case 3: case 4: // {1,2,4,5}, {3,4,6,7}, {4,5,7,8}.
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d.\n",op_val_ce_o);
+			break;
 		}
+	default:
+		EXIT_ERROR("Unsupported: %d\n",op_info->element->type);
+		break;
+	}
+}
+
+
+// Level 3 ********************************************************************************************************** //
+
+static void set_spec_indices_diff (bool* spec_indices, const int op_val_d, const int s_type)
+{
+	if (op_val_d == OP_INVALID_IND)
+		return;
+
+	assert(op_val_d >= 0);
+	assert(op_val_d < DMAX);
+
+	int ind_spec = -1;
+	switch (s_type) {
+	case ST_TP:
+		ind_spec = op_val_d;
+		break;
+	case ST_WEDGE:
+		if (op_val_d < 2)
+			ind_spec = 0;
+		else if (op_val_d == 2)
+			ind_spec = 2;
+		else
+			EXIT_ERROR("Unsupported: %d\n",op_val_d);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",s_type);
 		break;
 	}
+
+	spec_indices[ind_spec] = true;
 }
 
-static void set_ind_spec_ce (bool* ind_spec, const int e_type, const int op_val_ce)
+static void set_spec_indices_ce (bool* spec_indices, const int op_val_ce_o, const struct Operator_Info* op_info)
 {
-	bool* ind_spec_l = NULL;
-	int n_spec = -1;
+	if (op_val_ce_o == OP_INVALID_IND)
+		return;
 
+	const int e_type = op_info->element->type;
+	const int n_spec = op_info->element->d;
+	const char ce_o  = op_info->op_io[OP_IND_O].ce;
+
+	int ind_spec = -1;
 /// \todo make external functions here?
 	switch (e_type) {
 	case QUAD:
-		n_spec = 2;
 		switch (ce_o) {
 		case 'v':
-			ind_spec_l = (bool[]) { false, false, };
+			// Do nothing.
 			break;
 		case 'f': // fallthrough
 		case 'e':
-			switch (op_val_ce) {
-			case 0:         // vertices: {0,6}.
-			case 1:         // vertices: {2,8}.
-			case 4: case 5: // vertices: {0,3}, {3,6}.
-			case 6: case 7: // vertices: {2,5}, {5,8}.
-				ind_spec_l = (bool[]) { true, false, };
+			switch (op_val_ce_o) {
+			case H_QUAD1_F0:
+			case H_QUAD1_F1:
+			case H_QUAD4_F00: case H_QUAD4_F01:
+			case H_QUAD4_F10: case H_QUAD4_F11:
+				ind_spec = 0;
 				break;
-			case 2:           // face(s) with vertices: {0,2}.
-			case 3:           // face(s) with vertices: {6,8}.
-			case 8:  case 9:  // face(s) with vertices: {0,1}, {1,2}.
-			case 10: case 11: // face(s) with vertices: {6,7}, {7,8}.
-				ind_spec_l = (bool[]) { false, true, };
+			case H_QUAD1_F2:
+			case H_QUAD1_F3:
+			case H_QUAD4_F20: case H_QUAD4_F21:
+			case H_QUAD4_F30: case H_QUAD4_F31:
+				ind_spec = 1;
 				break;
 			default:
-				EXIT_ERROR("Unsupported: %d.\n",op_val_ce);
+				EXIT_ERROR("Unsupported: %d.\n",op_val_ce_o);
 				break;
 			}
 			break;
@@ -317,35 +473,32 @@ static void set_ind_spec_ce (bool* ind_spec, const int e_type, const int op_val_
 		}
 		break;
 	case HEX:
-		n_spec = 3;
 		switch (ce_o) {
 		case 'v':
-			ind_spec_l = (bool[]) { false, false, false, };
+			// Do nothing.
 			break;
 		case 'f':
-			switch (op_val_ce) {
-			case 0:                             // { 0, 6,18,24}.
-			case 1:                             // { 2, 8,20,26}.
-			case 6:  case 7:  case 8:  case 9:  // { 0, 3, 9,12}, { 3, 6,12,15}, { 9,12,18,21}, {12,15,21,24}.
-			case 10: case 11: case 12: case 13: // { 2, 5,11,14}, { 5, 8,14,17}, {11,14,20,23}, {14,17,23,26}.
-				ind_spec_l = (bool[]) { true, false, false, };
+			switch (op_val_ce_o) {
+			case H_HEX1_F0:
+			case H_HEX1_F1:
+			case H_HEX8_F00: case H_HEX8_F01: case H_HEX8_F02: case H_HEX8_F03:
+			case H_HEX8_F10: case H_HEX8_F11: case H_HEX8_F12: case H_HEX8_F13:
+				ind_spec = 0;
 				break;
-// Continue comment change below
-EXIT_UNSUPPORTED;
-			case 2:                             // bottom face (complete).
-			case 3:                             // top    face (complete).
-			case 14: case 15: case 16: case 17: // bottom face (refined - isotropic).
-			case 18: case 19: case 20: case 21: // top    face (refined - isotropic).
-				ind_spec_l = (bool[]) { false, true, false, };
+			case H_HEX1_F2:
+			case H_HEX1_F3:
+			case H_HEX8_F20: case H_HEX8_F21: case H_HEX8_F22: case H_HEX8_F23:
+			case H_HEX8_F30: case H_HEX8_F31: case H_HEX8_F32: case H_HEX8_F33:
+				ind_spec = 1;
 				break;
-			case 4:                             // back  face (complete).
-			case 5:                             // front face (complete).
-			case 22: case 23: case 24: case 25: // back  face (refined - isotropic).
-			case 26: case 27: case 28: case 29: // front face (refined - isotropic).
-				ind_spec_l = (bool[]) { false, false, true, };
+			case H_HEX1_F4:
+			case H_HEX1_F5:
+			case H_HEX8_F40: case H_HEX8_F41: case H_HEX8_F42: case H_HEX8_F43:
+			case H_HEX8_F50: case H_HEX8_F51: case H_HEX8_F52: case H_HEX8_F53:
+				ind_spec = 2;
 				break;
 			default:
-				EXIT_ERROR("Unsupported: %d.\n",op_val_ce);
+				EXIT_ERROR("Unsupported: %d.\n",op_val_ce_o);
 				break;
 			}
 			break;
@@ -355,29 +508,28 @@ EXIT_UNSUPPORTED;
 		}
 		break;
 	case WEDGE:
-		n_spec = 3;
 		switch (ce_o) {
 		case 'v':
-			ind_spec_l = (bool[]) { false, false, false, };
+			// Do nothing.
 			break;
 		case 'f':
-			switch (op_val_ce) {
-			case 0:                             // face opposite vertices {0,3} (complete).
-			case 1:                             // face opposite vertices {1,4} (complete).
-			case 2:                             // face opposite vertices {2,5} (complete).
-			case 5:  case 6:  case 7:  case 8:  // face opposite vertices {0,3} (refined - isotropic).
-			case 9:  case 10: case 11: case 12: // face opposite vertices {1,4} (refined - isotropic).
-			case 13: case 14: case 15: case 16: // face opposite vertices {2,5} (refined - isotropic).
-				ind_spec_l = (bool[]) { true, false, false, };
+			switch (op_val_ce_o) {
+			case H_WEDGE1_F0:
+			case H_WEDGE1_F1:
+			case H_WEDGE1_F2:
+			case H_WEDGE8_F00: case H_WEDGE8_F01: case H_WEDGE8_F02: case H_WEDGE8_F03:
+			case H_WEDGE8_F10: case H_WEDGE8_F11: case H_WEDGE8_F12: case H_WEDGE8_F13:
+			case H_WEDGE8_F20: case H_WEDGE8_F21: case H_WEDGE8_F22: case H_WEDGE8_F23:
+				ind_spec = 0;
 				break;
-			case 3:                             // face with vertices {0,1,2} (complete).
-			case 4:                             // face with vertices {3,4,5} (complete).
-			case 17: case 18: case 19: case 20: // face with vertices {0,1,2} (refined - isotropic).
-			case 21: case 22: case 23: case 24: // face with vertices {3,4,5} (refined - isotropic).
-				ind_spec_l = (bool[]) { false, false, true, };
+			case H_WEDGE1_F3:
+			case H_WEDGE1_F4:
+			case H_WEDGE8_F30: case H_WEDGE8_F31: case H_WEDGE8_F32: case H_WEDGE8_F33:
+			case H_WEDGE8_F40: case H_WEDGE8_F41: case H_WEDGE8_F42: case H_WEDGE8_F43:
+				ind_spec = 2;
 				break;
 			default:
-				EXIT_ERROR("Unsupported: %d.\n",op_val_ce);
+				EXIT_ERROR("Unsupported: %d.\n",op_val_ce_o);
 				break;
 			}
 			break;
@@ -391,6 +543,7 @@ EXIT_UNSUPPORTED;
 		break;
 	}
 
-	for (int i = 0; i < n_spec; ++i)
-		ind_spec[i] = ind_spec_l[i];
+	assert(ind_spec >= 0);
+	assert(ind_spec < DMAX);
+	spec_indices[ind_spec] = true;
 }

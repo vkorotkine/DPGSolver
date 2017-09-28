@@ -37,6 +37,12 @@ double* get_col_Matrix_d (const ptrdiff_t col, const struct Matrix_d* a)
 	return &a->data[col*(a->ext_0)];
 }
 
+double* get_col_Matrix_i (const ptrdiff_t col, const struct Matrix_i* a)
+{
+	assert(a->layout == 'C');
+	return &a->data[col*(a->ext_0)];
+}
+
 double* get_slice_Matrix_d (const ptrdiff_t slice, const struct Matrix_d* a)
 {
 	return ( a->layout == 'R' ? get_row_Matrix_d(slice,a) : get_col_Matrix_d(slice,a) );
@@ -105,6 +111,45 @@ void set_row_Matrix_i (const ptrdiff_t row, struct Matrix_i* dest, const int*con
 	const ptrdiff_t i_max = dest->ext_1;
 	for (ptrdiff_t i = 0; i < i_max; ++i)
 		data[i] = data_src[i];
+}
+
+void set_col_Matrix_i (const ptrdiff_t col, struct Matrix_i* dest, const int*const data_src)
+{
+	if (dest->layout == col) {
+		int*const data = get_col_Matrix_i(col,dest);
+
+		const ptrdiff_t i_max = dest->ext_0;
+		for (ptrdiff_t i = 0; i < i_max; ++i)
+			data[i] = data_src[i];
+	} else {
+		const ptrdiff_t ext_0 = dest->ext_0,
+		                ext_1 = dest->ext_1;
+		for (ptrdiff_t i = 0; i < i_max; ++i)
+			dest->data[i*ext_1+col] = data_src[i];
+	}
+}
+
+void set_col_to_val_Matrix_i (const ptrdiff_t col, struct Matrix_i* dest, const int data_src)
+{
+	if (dest->layout == col) {
+		int*const data = get_col_Matrix_i(col,dest);
+
+		const ptrdiff_t i_max = dest->ext_0;
+		for (ptrdiff_t i = 0; i < i_max; ++i)
+			data[i] = data_src;
+	} else {
+		const ptrdiff_t ext_0 = dest->ext_0,
+		                ext_1 = dest->ext_1;
+		for (ptrdiff_t i = 0; i < i_max; ++i)
+			dest->data[i*ext_1+col] = data_src;
+	}
+}
+
+void set_to_value_Matrix_i (struct Matrix_i*const a, const int val)
+{
+	const ptrdiff_t size = (a->ext_0)*(a->ext_1);
+	for (ptrdiff_t i = 0; i < size; ++i)
+		a->data[i] = val;
 }
 
 void set_to_value_Matrix_d (struct Matrix_d*const a, const double val)
