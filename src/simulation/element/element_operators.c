@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_elements.h"
 #include "definitions_bases.h"
 
+#include "multiarray_operator.h"
 #include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
@@ -49,11 +50,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  for more efficient computation of the cubature nodes themselves.
  */
 static void set_operator_std
-	(ptrdiff_t*const ind_values,                 /**< The index of the first row of \ref Operator_Info::values_op
-	                                              *   to use. */
-	 const struct const_Multiarray_Matrix_d* op, ///< The multiarray of operators.
-	 const struct Operator_Info* op_info,        ///< \ref Operator_Info.
-	 const struct Simulation* sim                ///< \ref Simulation.
+	(ptrdiff_t*const ind_values,           ///< The index of the first row of \ref Operator_Info::values_op to use.
+	 const struct Multiarray_Operator* op, ///< The multiarray of operators.
+	 const struct Operator_Info* op_info,  ///< \ref Operator_Info.
+	 const struct Simulation* sim          ///< \ref Simulation.
 	);
 
 /** \brief Convert the `char*` input to the appropriate definition of OP_T_*.
@@ -94,17 +94,14 @@ static void set_up_values_op
 
 // Interface functions ********************************************************************************************** //
 
-const struct const_Multiarray_Matrix_d* constructor_operators
+const struct Multiarray_Operator* constructor_operators
 	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
 	 const int p_ref[2], const struct const_Element* element, const struct Simulation* sim)
 {
 	struct Operator_Info* op_info =
 		constructor_Operator_Info(name_type,name_in,name_out,name_range,p_ref,element); // destructed
 
-printf("ex_op\n");
-print_const_Vector_i(op_info->extents_op);
-	const struct const_Multiarray_Matrix_d* op =
-		constructor_empty_const_Multiarray_Matrix_d_V(false,op_info->extents_op); // returned
+	const struct Multiarray_Operator* op = constructor_empty_Multiarray_Operator_V(op_info->extents_op); // returned
 
 	const ptrdiff_t row_max = op_info->values_op->ext_0;
 	for (ptrdiff_t row = 0; row < row_max; ) {
@@ -211,9 +208,10 @@ UNUSED(s_type);
 }
 
 const struct const_Vector_i* constructor_indices_Vector_i
-	(const int order_expected, const int* op_values, const bool*const indices_skip)
+	(const int ext_0_expected, const int* op_values, const bool*const indices_skip)
 {
-	struct Vector_i* indices = constructor_empty_Vector_i(order_expected); // returned
+	struct Vector_i* indices = ( ext_0_expected == -1 ? constructor_empty_Vector_i(OP_ORDER_MAX)
+	                                                  : constructor_empty_Vector_i(ext_0_expected) ); // returned
 	int* data = indices->data;
 
 	int ind = 0;
@@ -221,7 +219,11 @@ const struct const_Vector_i* constructor_indices_Vector_i
 		if (!(indices_skip && indices_skip[i]) && op_values[i] != OP_INVALID_IND)
 			data[ind++] = op_values[i];
 	}
-	assert(ind == order_expected);
+
+	if (ext_0_expected == -1)
+		indices->ext_0 = ind;
+	else
+		assert(ind == ext_0_expected);
 
 	return (const struct const_Vector_i*)indices;
 }
@@ -282,11 +284,9 @@ int get_n_ref_max
 	);
 
 static void set_operator_std
-	(ptrdiff_t*const ind_values, const struct const_Multiarray_Matrix_d* op, const struct Operator_Info* op_info,
+	(ptrdiff_t*const ind_values, const struct Multiarray_Operator* op, const struct Operator_Info* op_info,
 	 const struct Simulation* sim)
 {
-printf("eo,opvo\n");
-print_const_Matrix_i(op_info->values_op);
 	const int* op_values = get_row_const_Matrix_i(*ind_values,op_info->values_op);
 
 	const bool info_loss = check_op_info_loss(op_values);
@@ -396,7 +396,7 @@ print_const_Matrix_i(op_info->values_op);
 
 	ptrdiff_t ind_op = compute_index_sub_container_pi(op->order,0,op->extents,indices_op->data);
 	for (int i = 0; i < n_op; ++i)
-		const_constructor_move_const_Matrix_d(&op->data[ind_op++],op_ioN->data[i]);
+		const_constructor_move_const_Matrix_d(&op->data[ind_op++]->op_std,op_ioN->data[i]);
 	*ind_values += n_op;
 
 	destructor_const_Multiarray_Matrix_d(op_ioN);

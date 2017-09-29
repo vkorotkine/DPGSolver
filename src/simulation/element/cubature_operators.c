@@ -145,9 +145,6 @@ const struct const_Cubature* constructor_const_Cubature_h
 	}
 	destructor_const_Matrix_d(cv0_vvs_vXX);
 
-printf("ccCh: rst\n");
-print_Matrix_d(cubature->rst,1e-15);
-
 	return (const struct const_Cubature*) cubature;
 }
 

@@ -150,6 +150,12 @@ struct const_Vector_i* constructor_move_const_Vector_i_i
 	return (struct const_Vector_i*) constructor_move_Vector_i_i(ext_0,owns_data,(int*)data);
 }
 
+const struct const_Vector_i* constructor_move_const_Vector_Matrix_row_i
+	(const int row, const struct const_Matrix_i* src, const int owns_data)
+{
+	return constructor_move_const_Vector_i_i(src->ext_1,owns_data,get_row_const_Matrix_i(row,src));
+}
+
 struct Vector_d* constructor_move_Vector_d_Matrix_d (struct Matrix_d* src)
 {
 	src->owns_data = false;

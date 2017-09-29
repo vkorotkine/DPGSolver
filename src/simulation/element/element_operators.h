@@ -94,9 +94,9 @@ struct Operator_Info {
 
 // Interface functions ********************************************************************************************** //
 
-/** \brief Constructor for a \ref const_Multiarray_Matrix_d\* of operators.
+/** \brief Constructor for a \ref Multiarray_Operator\* of operators.
  *  \return Standard. */
-const struct const_Multiarray_Matrix_d* constructor_operators
+const struct Multiarray_Operator* constructor_operators
 	(const char*const name_type,          ///< The name of the operator type (including differentiation index).
 	 const char*const name_in,            ///< The name of the operator input.
 	 const char*const name_out,           ///< The name of the operator output.
@@ -138,7 +138,7 @@ bool check_op_info_loss
 /** \brief Constructor for a \ref Vector_i\* of indices for the current operator.
  *  \return See brief. */
 const struct const_Vector_i* constructor_indices_Vector_i
-	(const int order_expected,     ///< The expected order.
+	(const int ext_0_expected,     ///< The expected value of ext_0. May be set to '-1' if checking is not desired.
 	 const int* op_values,         ///< The operator values.
 	 const bool*const indices_skip ///< Indices to skip (if not NULL).
 	);

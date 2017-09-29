@@ -29,16 +29,16 @@ struct Simulation;
 struct Geometry_Element {
 	struct const_Element element; ///< Base \ref const_Element.
 
-	const struct const_Multiarray_Matrix_d* cv1_vgs_vcs; ///< See notation in \todo [Ref here].
-	const struct const_Multiarray_Matrix_d* cv1_vgc_vcc; ///< See notation in \todo [Ref here].
+	const struct Multiarray_Operator* cv1_vgs_vcs; ///< See notation in \todo [Ref here].
+	const struct Multiarray_Operator* cv1_vgc_vcc; ///< See notation in \todo [Ref here].
 };
 
 /// \brief `const` version of the \ref Geometry_Element container.
 struct const_Geometry_Element {
-	const struct const_Element element; ///< Base \ref const_Element.
+	const struct const_Element element; ///< Defined in \ref Geometry_Element.
 
-	const struct const_Multiarray_Matrix_d*const cv1_vgs_vcs; ///< See notation in \todo [Ref here].
-	const struct const_Multiarray_Matrix_d*const cv1_vgc_vcc; ///< See notation in \todo [Ref here].
+	const struct Multiarray_Operator*const cv1_vgs_vcs; ///< Defined in \ref Geometry_Element.
+	const struct Multiarray_Operator*const cv1_vgc_vcc; ///< Defined in \ref Geometry_Element.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

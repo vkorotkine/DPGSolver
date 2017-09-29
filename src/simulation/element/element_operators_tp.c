@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_element_operators.h"
 #include "definitions_h_ref.h"
 
+#include "multiarray_operator.h"
 #include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
@@ -38,17 +39,15 @@ struct Sub_Operator_Info {
 	const int d;      ///< The dimension of the input.
 	const int s_type; ///< The \ref Element::s_type for which the operator is being constructed.
 
-	const struct const_Matrix_d* sub_ops_Md[DMAX]; ///< The array of matrix sub-operators.
+	const struct const_Matrix_d* sub_op_Md[DMAX]; ///< The array of matrix sub-operators.
 };
 
-/** \brief Constructor for a \ref const_Matrix_d\* of sub-operators used for the construction of the associated
- *         tensor-product operator.
- *  \return See brief. */
-static const struct const_Matrix_d* constructor_operator_tp
-	(const struct Sub_Operator_Info* sub_op_info ///< \ref Sub_Operator_Info.
+/// \brief Constructor standard operators from the tensor-product sub-operators.
+static void construct_operators_std
+	(const struct Multiarray_Operator* op ///< The \ref Multiarray_Operator\* input.
 	);
 
-/// \brief Set the pointers \in ref Sub_Operator_Info::sub_ops_Md to the appropriate sub-operator matrices.
+/// \brief Set the pointers \in ref Sub_Operator_Info::sub_op_Md to the appropriate sub-operator matrices.
 static void set_sub_operator_info
 	(struct Sub_Operator_Info* sub_op_info, ///< \ref Sub_Operator_Info.
 	 const struct Operator_Info* op_info,   ///< \ref Sub_Operator_Info.
@@ -60,8 +59,8 @@ static void set_sub_operator_info
 
 void set_operators_tp
 	(struct Operators_TP* ops_tp,
-	 const struct const_Multiarray_Matrix_d* op_00, const struct const_Multiarray_Matrix_d* op_01,
-	 const struct const_Multiarray_Matrix_d* op_10, const struct const_Multiarray_Matrix_d* op_11
+	 const struct Multiarray_Operator* op_00, const struct Multiarray_Operator* op_01,
+	 const struct Multiarray_Operator* op_10, const struct Multiarray_Operator* op_11
 	)
 {
 	assert(op_00 != NULL);
@@ -82,10 +81,12 @@ void set_operators_tp
 	}
 }
 
-const struct const_Multiarray_Matrix_d* constructor_operators_tp
+const struct Multiarray_Operator* constructor_operators_tp
 	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
 	 const struct const_Element* element, const struct Simulation* sim, const struct Operators_TP* ops_tp)
 {
+	UNUSED(sim); // Potentially needed in the future?
+
 	const int p_ref[2] = { -1, -1 };
 	struct Operator_Info* op_info =
 		constructor_Operator_Info(name_type,name_in,name_out,name_range,p_ref,element); // destructed
@@ -95,46 +96,33 @@ const struct const_Multiarray_Matrix_d* constructor_operators_tp
 	const char ce_i = op_io[OP_IND_I].ce;
 
 	assert(ce_i == 'v'); // May potentially be made flexible in future.
+	const int d = element->d;
 
-printf("ex_op_tp\n");
-print_const_Vector_i(op_info->extents_op);
-	const struct const_Multiarray_Matrix_d* op =
-		constructor_empty_const_Multiarray_Matrix_d_V(false,op_info->extents_op); // returned
-print_const_Matrix_i(op_info->values_op);
+	const struct Multiarray_Operator* op = constructor_empty_Multiarray_Operator_V(op_info->extents_op); // returned
 
 	const ptrdiff_t row_max = op_info->values_op->ext_0;
 	for (ptrdiff_t row = 0; row < row_max; ++row) {
-		const char ce_o = op_io[OP_IND_O].ce;
-
 		struct Sub_Operator_Info sub_op_info =
-			{ .d          = element->d,
-			  .s_type     = element->s_type,
-			  .sub_ops_Md = { NULL }, };
+			{ .d         = element->d,
+			  .s_type    = element->s_type,
+			  .sub_op_Md = { NULL, NULL, NULL, }, };
 
 		set_sub_operator_info(&sub_op_info,op_info,ops_tp,row);
-		switch (ce_o) {
-		case 'v':
-
-			break;
-		default:
-			EXIT_ERROR("Unsupported: %c.\n",ce_o);
-			break;
-		}
-
-		const struct const_Matrix_d* op_ioN = constructor_operator_tp(&sub_op_info); // moved
-
-		const int* op_values = get_row_const_Matrix_i(row,op_info->values_op);
 
 		const int order_op = op_info->extents_op->ext_0;
+		const int* op_values = get_row_const_Matrix_i(row,op_info->values_op);
 		const struct const_Vector_i* indices_op =
 			constructor_indices_Vector_i(order_op,op_values,NULL); // destructed
 		const ptrdiff_t ind_op = compute_index_sub_container_pi(op->order,0,op->extents,indices_op->data);
-
-		const_constructor_move_const_Matrix_d(&op->data[ind_op],op_ioN); // keep
 		destructor_const_Vector_i(indices_op);
-	}
 
-UNUSED(sim);
+		// Set the tensor-product operators
+		const_constructor_move_Multiarray_Matrix_d(
+			&op->data[ind_op]->ops_tp,constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d})); // keep
+		for (int i = 0; i < d; ++i)
+			const_constructor_move_const_Matrix_d(&op->data[ind_op]->ops_tp->data[i],sub_op_info.sub_op_Md[i]);
+	}
+	construct_operators_std(op);
 
 	destructor_Operator_Info(op_info);
 
@@ -144,26 +132,27 @@ UNUSED(sim);
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Set the input `op_MMd[DMAX]` to point to the appropriate operators from `ops_tp`.
+/** \brief Set the input `op_MO[DMAX]` to point to the appropriate operators from `ops_tp`.
  *
  *  `spec_indices` can be interpreted as the direction(s) (n-Cube: r,s,t; wedge: rs,NULL,t) in which to use the
  *  'special' operator (the second operator for the sub-element).
  */
-static void set_ops_MMd
-	(const struct const_Multiarray_Matrix_d* op_MMd[DMAX], ///< The array of \ref Multiarray_Matrix_d operators.
-	 bool* spec_indices,                                   ///< The array of indices for the special operators.
-	 const struct Operators_TP* ops_tp,                    ///< \ref Operators_TP.
-	 const int* op_values,                                 ///< The index values of the current operator.
-	 const struct Operator_Info* op_info                   ///< \ref Sub_Operator_Info.
+/// \todo name change for this function. Also, choose one of op_* or ops_*.
+static void set_ops_MO
+	(const struct Multiarray_Operator* op_MO[DMAX], ///< The array of \ref Multiarray_Matrix_d operators.
+	 bool* spec_indices,                            ///< The array of indices for the special operators.
+	 const struct Operators_TP* ops_tp,             ///< \ref Operators_TP.
+	 const struct const_Vector_i* op_values,        ///< The index values of the current operator.
+	 const struct Operator_Info* op_info            ///< \ref Sub_Operator_Info.
 	);
 
-/// \brief Set the the input `op_Md[DMAX]` to point to the appropriate matrices in `op_MMd[DMAX]`.
+/// \brief Set the the input `op_Md[DMAX]` to point to the appropriate matrices in `op_MO[DMAX]`.
 static void set_ops_Md
-	(const struct const_Matrix_d* op_Md[DMAX],             ///< The array of \ref Matrix_d operators.
-	 const struct const_Multiarray_Matrix_d* op_MMd[DMAX], ///< The array of \ref Multiarray_Matrix_d operators.
-	 const int* op_values_i,                               ///< The index values of the current operator.
-	 const struct Operator_Info* op_info,                  ///< \ref Sub_Operator_Info.
-	 const bool* spec_indices                              ///< Defined for \ref set_ops_MMd.
+	(const struct const_Matrix_d* op_Md[DMAX],      ///< The array of \ref Matrix_d operators.
+	 const struct Multiarray_Operator* op_MO[DMAX], ///< The array of \ref Multiarray_Matrix_d operators.
+	 const struct const_Vector_i* op_values,        ///< The index values of the current operator.
+	 const struct Operator_Info* op_info,           ///< \ref Sub_Operator_Info.
+	 const bool* spec_indices                       ///< Defined for \ref set_ops_MO.
 	);
 
 static void set_sub_operator_info
@@ -173,45 +162,33 @@ static void set_sub_operator_info
 	const struct Op_IO* op_io = op_info->op_io;
 	assert(op_io[OP_IND_I].ce == 'v');
 
-	const int* op_values = get_row_const_Matrix_i(ind_values,op_info->values_op);
-	if (check_op_info_loss(op_values))
+	const struct const_Matrix_i* values_op = op_info->values_op;
+	const struct const_Vector_i* op_values =
+		constructor_move_const_Vector_Matrix_row_i(ind_values,values_op,false); // destructed
+
+	if (check_op_info_loss(op_values->data))
 		EXIT_ERROR("Ensure that all is working as expected.\n");
 		// Invalid condition in \ref set_ops_Md for j == OP_IND_H.
 
 	// See comments in \ref element_operators_tp.h
-	assert((op_values[OP_IND_D] == OP_INVALID_IND) ||
-	       (op_values[OP_IND_CE] == OP_INVALID_IND && op_values[OP_IND_CE+1] == OP_INVALID_IND));
+	assert((op_values->data[OP_IND_D] == OP_INVALID_IND) ||
+	       (op_values->data[OP_IND_CE] == OP_INVALID_IND && op_values->data[OP_IND_CE+1] == OP_INVALID_IND));
 
-	const struct const_Multiarray_Matrix_d* op_MMd[] = { NULL, NULL, NULL };
+	const struct Multiarray_Operator* op_MO[] = { NULL, NULL, NULL };
 	bool spec_indices[] = { false, false, false, };
-	set_ops_MMd(op_MMd,spec_indices,ops_tp,op_values,op_info);
+	set_ops_MO(op_MO,spec_indices,ops_tp,op_values,op_info);
+	set_ops_Md(sub_op_info->sub_op_Md,op_MO,op_values,op_info,spec_indices);
 
-	const struct const_Matrix_d* op_Md[] = { NULL, NULL, NULL };
-	set_ops_Md(op_Md,op_MMd,op_values,op_info,spec_indices);
-
-
-
-EXIT_UNSUPPORTED;
-
-// Make a vector_i of indices:
-// Need an index for the computational element index (related to ce_o)
-// Need an index for which h_io indices to use.
-// Need an index for which p_io indices to use.
-
-	const int order_op = op_info->extents_op->ext_0;
-	const struct const_Vector_i* indices_op = constructor_indices_Vector_i(order_op,op_values,NULL); // destructed
-	const ptrdiff_t ind_op_0 = compute_index_sub_container_pi(op_MMd[0]->order,0,op_MMd[0]->extents,indices_op->data);
-UNUSED(ind_op_0);
-	destructor_const_Vector_i(indices_op);
-UNUSED(sub_op_info);
+	destructor_const_Vector_i(op_values);
 }
 
-static const struct const_Matrix_d* constructor_operator_tp (const struct Sub_Operator_Info* sub_op_info)
+static void construct_operators_std (const struct Multiarray_Operator* op)
 {
+print_Multiarray_Operator(op);
+//	const_constructor_move_const_Matrix_d(&op->data[ind_op]->op_std,op_ioN); // keep
 	// Think about how this might be done by applying the single sum-factorized operators to some form of transposed
 	// input operator instead of using sparse-dense with potential permutation.
-UNUSED(sub_op_info);
-return NULL;
+EXIT_ADD_SUPPORT;
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -237,15 +214,15 @@ static void set_sub_op_values
 	(struct Matrix_i* sub_op_values,         ///< The sub-operator values for each of the tensor-product operators.
 	 const struct const_Vector_i* op_values, ///< The operator values for the standard operator.
 	 const struct Operator_Info* op_info,    ///< \ref Operator_Info.
-	 const bool* spec_indices                ///< Defined for \ref set_ops_MMd.
+	 const bool* spec_indices                ///< Defined for \ref set_ops_MO.
 	);
 
-static void set_ops_MMd
-	(const struct const_Multiarray_Matrix_d* op_MMd[DMAX], bool* spec_indices, const struct Operators_TP* ops_tp,
-	 const int* op_values, const struct Operator_Info* op_info)
+static void set_ops_MO
+	(const struct Multiarray_Operator* op_MO[DMAX], bool* spec_indices, const struct Operators_TP* ops_tp,
+	 const struct const_Vector_i* op_values, const struct Operator_Info* op_info)
 {
-	const int op_val_d    = op_values[OP_IND_D];
-	const int op_val_ce_o = op_values[OP_IND_CE+OP_IND_O];
+	const int op_val_d    = op_values->data[OP_IND_D];
+	const int op_val_ce_o = op_values->data[OP_IND_CE+OP_IND_O];
 	const int s_type      = op_info->element->s_type;
 
 	assert(DMAX == 3);
@@ -261,35 +238,40 @@ static void set_ops_MMd
 		const int ind_op_tp = ind_ops_tp[i];
 		if (ind_op_tp != OP_INVALID_IND) {
 			if (!spec_indices[i])
-				op_MMd[i] = ops_tp->op[ind_op_tp][0];
+				op_MO[i] = ops_tp->op[ind_op_tp][0];
 			else
-				op_MMd[i] = ops_tp->op[ind_op_tp][1];
+				op_MO[i] = ops_tp->op[ind_op_tp][1];
 		} else {
-			op_MMd[i] = NULL;
+			op_MO[i] = NULL;
 		}
 	}
 }
 
 static void set_ops_Md
-	(const struct const_Matrix_d* op_Md[DMAX], const struct const_Multiarray_Matrix_d* op_MMd[DMAX],
-	 const int* op_values_i, const struct Operator_Info* op_info, const bool* spec_indices)
+	(const struct const_Matrix_d* op_Md[DMAX], const struct Multiarray_Operator* op_MO[DMAX],
+	 const struct const_Vector_i* op_values, const struct Operator_Info* op_info, const bool* spec_indices)
 {
-	assert(op_values_i[OP_IND_H+OP_IND_I] == 0); // Not valid for fine to coarse (i.e. if info_loss == true)
-
-/// \todo Move this to function above.
-	const struct const_Vector_i* op_values = constructor_copy_const_Vector_i_i(OP_ORDER_MAX,op_values_i); // tbd
+	assert(op_values->data[OP_IND_H+OP_IND_I] == 0); // Not valid for fine to coarse (i.e. if info_loss == true)
 
 	struct Matrix_i* sub_op_values = constructor_empty_Matrix_i('R',DMAX,OP_ORDER_MAX); // tbd
 	set_to_value_Matrix_i(sub_op_values,OP_INVALID_IND);
 	const int set_inds[] = { OP_IND_P+OP_IND_I, OP_IND_P+OP_IND_O, OP_IND_H+OP_IND_I };
-	for (int i = 0; i < (int)(sizeof(set_inds)/sizeof(*set_inds)); ++i)
-		set_col_to_val_Matrix_i(i,sub_op_values,op_values->data[i]);
+	for (int i = 0; i < (int)(sizeof(set_inds)/sizeof(*set_inds)); ++i) {
+		const int col = set_inds[i];
+		set_col_to_val_Matrix_i(col,sub_op_values,op_values->data[col]);
+	}
 
 	set_sub_op_values(sub_op_values,op_values,op_info,spec_indices);
 
-	EXIT_ADD_SUPPORT;
-UNUSED(op_Md);
-UNUSED(op_MMd);
+	const int d = op_info->element->d;
+	for (int i = 0; i < d; ++i) {
+		const int* op_values = get_row_Matrix_i(i,sub_op_values);
+		const struct const_Vector_i* inds_op = constructor_indices_Vector_i(-1,op_values,NULL); // destructed
+		const int ind_sub_op = compute_index_sub_container_pi(op_MO[i]->order,0,op_MO[i]->extents,inds_op->data);
+		destructor_const_Vector_i(inds_op);
+
+		op_Md[i] = op_MO[i]->data[ind_sub_op]->op_std;
+	}
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -473,6 +455,13 @@ static void set_sub_op_values
 
 // Level 2 ********************************************************************************************************** //
 
+/** \brief Set the missing dimension indices based on the input index and the dimension.
+ *  \return A pointer to an array of size d-1 holding the missing dimension indices. */
+static const int* set_missing_dimension_indices
+	(const int dim, ///< The dimension index which is already accounted for.
+	 const int d    ///< The dimension.
+	);
+
 static void set_sub_op_values_quad
 	(struct Matrix_i* sub_op_values, const struct const_Vector_i* op_values, const struct Operator_Info* op_info,
 	 const bool* spec_indices)
@@ -482,7 +471,6 @@ static void set_sub_op_values_quad
 	int* s_vs[2] = { get_row_Matrix_i(0,sub_op_values),
 	                 get_row_Matrix_i(1,sub_op_values), };
 
-	// h_o
 	const int d = op_info->element->d;
 	const int h_o = OP_IND_H+OP_IND_O;
 	const int op_val_h_o = op_values->data[h_o];
@@ -504,25 +492,159 @@ static void set_sub_op_values_quad
 			if (spec_indices[i])
 				s_vs[i][OP_IND_D] = 0;
 		}
+		break;
 	case 'f': // fallthrough
 	case 'e': {
 		const int c_o = OP_IND_CE+OP_IND_O;
 		const int op_val_ce_o = op_values->data[c_o];
-		assert((0 <= op_val_ce_o) && (op_val_ce_o <= 3));
 
-		int ind_f = op_val_ce_o / 2;
+		assert((0 <= op_val_ce_o) && (op_val_ce_o < op_info->element->n_f));
+
+		const int ind_f = op_val_ce_o / 2;
 		s_vs[ind_f][h_o] = H_POINT1_V0;
-
-		const int ind_v = ( ind_f == 0 ? 1 : 0);
-		s_vs[ind_v][h_o] = op_val_h_o;
+		const int* ind_v = set_missing_dimension_indices(ind_f,d);
+		s_vs[ind_v[0]][h_o] = op_val_h_o;
 
 		// computational element index
 		for (int i = 0; i < d; ++i) {
 			if (spec_indices[i])
 				s_vs[i][c_o] = op_val_ce_o % 2;
 		}
+		break;
 	} default:
 		EXIT_ERROR("Unsupported: %d\n",op_info->element->type);
 		break;
 	}
+}
+
+static void set_sub_op_values_hex
+	(struct Matrix_i* sub_op_values, const struct const_Vector_i* op_values, const struct Operator_Info* op_info,
+	 const bool* spec_indices)
+{
+	const char ce_o = op_info->op_io[OP_IND_O].ce;
+
+	int* s_vs[3] = { get_row_Matrix_i(0,sub_op_values),
+	                 get_row_Matrix_i(1,sub_op_values),
+	                 get_row_Matrix_i(2,sub_op_values), };
+
+	const int d = op_info->element->d;
+	const int h_o = OP_IND_H+OP_IND_O;
+	const int op_val_h_o = op_values->data[h_o];
+	switch (ce_o) {
+	case 'v':
+		switch (op_val_h_o) {
+		case H_HEX1_V0: s_vs[0][h_o] = H_LINE1_V0; s_vs[1][h_o] = H_LINE1_V0; s_vs[2][h_o] = H_LINE1_V0; break;
+
+		case H_HEX8_V0: s_vs[0][h_o] = H_LINE2_V0; s_vs[1][h_o] = H_LINE2_V0; s_vs[2][h_o] = H_LINE2_V0; break;
+		case H_HEX8_V1: s_vs[0][h_o] = H_LINE2_V1; s_vs[1][h_o] = H_LINE2_V0; s_vs[2][h_o] = H_LINE2_V0; break;
+		case H_HEX8_V2: s_vs[0][h_o] = H_LINE2_V0; s_vs[1][h_o] = H_LINE2_V1; s_vs[2][h_o] = H_LINE2_V0; break;
+		case H_HEX8_V3: s_vs[0][h_o] = H_LINE2_V1; s_vs[1][h_o] = H_LINE2_V1; s_vs[2][h_o] = H_LINE2_V0; break;
+		case H_HEX8_V4: s_vs[0][h_o] = H_LINE2_V0; s_vs[1][h_o] = H_LINE2_V0; s_vs[2][h_o] = H_LINE2_V1; break;
+		case H_HEX8_V5: s_vs[0][h_o] = H_LINE2_V1; s_vs[1][h_o] = H_LINE2_V0; s_vs[2][h_o] = H_LINE2_V1; break;
+		case H_HEX8_V6: s_vs[0][h_o] = H_LINE2_V0; s_vs[1][h_o] = H_LINE2_V1; s_vs[2][h_o] = H_LINE2_V1; break;
+		case H_HEX8_V7: s_vs[0][h_o] = H_LINE2_V1; s_vs[1][h_o] = H_LINE2_V1; s_vs[2][h_o] = H_LINE2_V1; break;
+
+		default: EXIT_ERROR("Unsupported: %d.\n",op_val_h_o); break;
+		}
+
+		// differentiation index (if applicable)
+		for (int i = 0; i < d; ++i) {
+			if (spec_indices[i])
+				s_vs[i][OP_IND_D] = 0;
+		}
+		break;
+	case 'f': {
+		const int c_o = OP_IND_CE+OP_IND_O;
+		const int op_val_ce_o = op_values->data[c_o];
+
+		assert((0 <= op_val_ce_o) && (op_val_ce_o < op_info->element->n_f));
+
+		const int ind_f = op_val_ce_o / 2;
+		s_vs[ind_f][h_o] = H_POINT1_V0;
+
+		const int* ind_v = set_missing_dimension_indices(ind_f,d);
+
+/// \todo call set_sub_op_values_quad 'v' here H_QUAD4_V0:H_QUAD4_V3 here.
+		switch (op_val_h_o) {
+			case H_QUAD1_V0: s_vs[ind_v[0]][h_o] = H_LINE1_V0; s_vs[ind_v[1]][h_o] = H_LINE1_V0; break;
+
+			case H_QUAD4_V0: s_vs[ind_v[0]][h_o] = H_LINE2_V0; s_vs[ind_v[1]][h_o] = H_LINE2_V0; break;
+			case H_QUAD4_V1: s_vs[ind_v[0]][h_o] = H_LINE2_V1; s_vs[ind_v[1]][h_o] = H_LINE2_V0; break;
+			case H_QUAD4_V2: s_vs[ind_v[0]][h_o] = H_LINE2_V0; s_vs[ind_v[1]][h_o] = H_LINE2_V1; break;
+			case H_QUAD4_V3: s_vs[ind_v[0]][h_o] = H_LINE2_V1; s_vs[ind_v[1]][h_o] = H_LINE2_V1; break;
+
+			default: EXIT_ERROR("Unsupported: %d.\n",op_val_h_o); break;
+		}
+
+		for (int i = 0; i < d; ++i) {
+			if (spec_indices[i])
+				s_vs[i][c_o] = op_val_ce_o % 2;
+		}
+		break;
+	} case 'e': {
+		assert(op_val_h_o == 0); // Need to add support for h-refinement edge operators if necessary.
+
+		const int c_o = OP_IND_CE+OP_IND_O;
+		const int op_val_ce_o = op_values->data[c_o];
+		assert((0 <= op_val_ce_o) && (op_val_ce_o < op_info->element->n_e));
+
+		const int ind_v = op_val_ce_o / 4;
+		s_vs[ind_v][h_o] = H_LINE1_V0;
+
+		const int* ind_f = set_missing_dimension_indices(ind_v,d);
+
+		s_vs[ind_f[0]][h_o] = H_POINT1_V0;
+		s_vs[ind_f[1]][h_o] = H_POINT1_V0;
+
+		// computational element index
+		assert(spec_indices[ind_f[0]] == true);
+		assert(spec_indices[ind_f[1]] == true);
+
+		s_vs[ind_f[0]][c_o] = op_val_ce_o % 2;
+		s_vs[ind_f[1]][c_o] = (op_val_ce_o % 4) / 2;
+		break;
+	} default:
+		EXIT_ERROR("Unsupported: %d\n",op_info->element->type);
+		break;
+	}
+}
+
+static void set_sub_op_values_wedge
+	(struct Matrix_i* sub_op_values, const struct const_Vector_i* op_values, const struct Operator_Info* op_info,
+	 const bool* spec_indices)
+{
+	EXIT_ADD_SUPPORT;
+UNUSED(sub_op_values);
+UNUSED(op_values);
+UNUSED(op_info);
+UNUSED(spec_indices);
+}
+
+// Level 3 ********************************************************************************************************** //
+
+static const int* set_missing_dimension_indices (const int dim, const int d)
+{
+	static int missed_inds[2] = { -1, -1, };
+	switch (d) {
+	case 2:
+		switch (dim) {
+			case 0: missed_inds[0] = 1; break;
+			case 1: missed_inds[0] = 0; break;
+			default: EXIT_ERROR("Unsupported: %d\n",dim); break;
+		}
+		break;
+	case 3:
+		switch (dim) {
+			case 0: missed_inds[0] = 1; missed_inds[1] = 2; break;
+			case 1: missed_inds[0] = 0; missed_inds[1] = 2; break;
+			case 2: missed_inds[0] = 0; missed_inds[1] = 1; break;
+			default: EXIT_ERROR("Unsupported: %d\n",dim); break;
+		}
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",d);
+		break;
+	}
+
+	return missed_inds;
 }

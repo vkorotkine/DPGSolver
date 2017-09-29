@@ -25,12 +25,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Print the extents of the Multiarray.
-static void print_Multiarray_extents
-	(const int order,              ///< Defined in \ref Multiarray_d.
-	 const ptrdiff_t*const extents ///< Defined in \ref Multiarray_d.
-	);
-
 /// \brief Print the counter for the indices of order > 2 when printing sub-Matrices of the Multiarray.
 static void print_Multiarray_counter
 	(const int order,              ///< Defined in \ref Multiarray_d.
@@ -130,16 +124,16 @@ void print_const_Multiarray_Matrix_d (const struct const_Multiarray_Matrix_d*con
 	print_Multiarray_Matrix_d((struct Multiarray_Matrix_d*)a,tol);
 }
 
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
-static void print_Multiarray_extents (const int order, const ptrdiff_t*const extents)
+void print_Multiarray_extents (const int order, const ptrdiff_t*const extents)
 {
 	printf("Multi-array extents: {");
 	for (ptrdiff_t i = 0; i < order; i++)
 		printf(" %td,",extents[i]);
 	printf(" }\n\n");
 }
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
 
 static void print_Multiarray_counter (const int order, const ptrdiff_t*const counter)
 {

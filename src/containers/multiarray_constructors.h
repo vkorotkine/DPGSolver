@@ -84,6 +84,15 @@ struct const_Multiarray_d;
 struct const_Multiarray_Vector_i;
 struct const_Multiarray_Matrix_d;
 
+// Helper functions ************************************************************************************************* //
+
+/**	\brief Allocated and set the `extents` for a `Multiarray_*`.
+ *	\return See brief. */
+ptrdiff_t* allocate_and_set_extents
+	(const int order,                ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const extents_i ///< The input extents.
+	);
+
 // Default constructors ********************************************************************************************* //
 
 /** \brief Constructor for a default \ref Multiarray_d\*.
@@ -233,6 +242,12 @@ void const_constructor_move_Multiarray_d
 void const_constructor_move_Multiarray_Vector_i
 	(const struct const_Multiarray_Vector_i*const* dest, ///< Destination.
 	 struct Multiarray_Vector_i* src                     ///< Source.
+	);
+
+/// \brief Move constructor for a `const` \ref const_Multiarray_Matrix_d `*const`.
+void const_constructor_move_Multiarray_Matrix_d
+	(const struct const_Multiarray_Matrix_d*const* dest, ///< Destination.
+	 struct Multiarray_Matrix_d* src                     ///< Source.
 	);
 
 // Special constructors ********************************************************************************************* //

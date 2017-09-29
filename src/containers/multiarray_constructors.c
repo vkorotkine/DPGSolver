@@ -28,14 +28,19 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/**	\brief Allocated and set the `extents` for a `Multiarray_*`.
- *	\return See brief. */
-static ptrdiff_t* allocate_and_set_extents
-	(const int order,                ///< Defined in \ref Multiarray_d.
-	 const ptrdiff_t*const extents_i ///< The input extents.
-	);
-
 // Interface functions ********************************************************************************************** //
+// Helper functions ************************************************************************************************* //
+
+ptrdiff_t* allocate_and_set_extents (const int order, const ptrdiff_t*const extents_i)
+{
+	ptrdiff_t* extents = malloc(order * sizeof *extents); // returned
+
+	for (ptrdiff_t i = 0; i < order; i++)
+		extents[i] = extents_i[i];
+
+	return extents;
+}
+
 // Default constructors ********************************************************************************************* //
 
 struct Multiarray_d* constructor_default_Multiarray_d ()
@@ -216,6 +221,12 @@ void const_constructor_move_Multiarray_Vector_i
 	*(struct const_Multiarray_Vector_i**) dest = (struct const_Multiarray_Vector_i*) src;
 }
 
+void const_constructor_move_Multiarray_Matrix_d
+	(const struct const_Multiarray_Matrix_d*const* dest, struct Multiarray_Matrix_d* src)
+{
+	*(struct const_Multiarray_Matrix_d**) dest = (struct const_Multiarray_Matrix_d*) src;
+}
+
 // Special constructors ********************************************************************************************* //
 
 const struct const_Multiarray_d* constructor_MaM1_V_const_Multiarray_d
@@ -320,13 +331,3 @@ void destructor_const_Multiarray2_Matrix_d (const struct const_Multiarray_Matrix
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static ptrdiff_t* allocate_and_set_extents (const int order, const ptrdiff_t*const extents_i)
-{
-	ptrdiff_t* extents = malloc(order * sizeof *extents); // returned
-
-	for (ptrdiff_t i = 0; i < order; i++)
-		extents[i] = extents_i[i];
-
-	return extents;
-}

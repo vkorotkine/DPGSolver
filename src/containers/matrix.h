@@ -52,6 +52,36 @@ struct const_Matrix_d {
 	const double*const data; ///< Defined in \ref Matrix_d.
 };
 
+/** \brief Matrix in 'C'ompressed 'S'parse 'R'ow storage format (`double`).
+ *
+ *  Further details regarding the CSR storage format can be found on [this intel mkl page][mkl_csr].
+ *
+ *  <!-- References: -->
+ *  [mkl_csr]: https://software.intel.com/en-us/mkl-developer-reference-fortran-sparse-blas-csr-matrix-storage-format
+ */
+struct Matrix_CSR_d {
+	ptrdiff_t ext_0, ///< Defined in \ref Matrix_d.
+	          ext_1; ///< Defined in \ref Matrix_d.
+
+	ptrdiff_t* row_index; ///< Indices of the entries at the start of each row (`pointerB` on the intel mkl page).
+	ptrdiff_t* columns;   ///< Indices of the column corresponding to each entry in the matrix.
+
+	bool owns_data; ///< Defined in \ref Matrix_d.
+	double* data;   ///< Defined in \ref Matrix_d.
+};
+
+/// \brief `const` version of \ref Matrix_CSR_d.
+struct const_Matrix_CSR_d {
+	const ptrdiff_t ext_0, ///< Defined in \ref Matrix_CSR_d.
+	                ext_1; ///< Defined in \ref Matrix_CSR_d.
+
+	const ptrdiff_t*const row_index; ///< Defined in \ref Matrix_CSR_d.
+	const ptrdiff_t*const columns;   ///< Defined in \ref Matrix_CSR_d.
+
+	const bool owns_data;    ///< Defined in \ref Matrix_CSR_d.
+	const double*const data; ///< Defined in \ref Matrix_CSR_d.
+};
+
 /// \brief Matrix (`int`).
 struct Matrix_i {
 	char layout; ///< Defined in \ref Matrix_d.

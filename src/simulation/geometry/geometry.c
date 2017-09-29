@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_mesh.h"
 #include "definitions_intrusive.h"
 
+#include "multiarray_operator.h"
 #include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
@@ -183,14 +184,20 @@ static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volum
 
 	const int p = volume->p;
 
-	struct Operators {
-		const struct const_Multiarray_Matrix_d* cv1_vg_vc;
+	struct Ops {
+		const struct Multiarray_Operator* cv1_vg_vc;
 	} ops =
-		{ .cv1_vg_vc = constructor_default_const_Multiarray_Matrix_d(),
+		{ .cv1_vg_vc = constructor_default_Multiarray_Operator(),
 		};
 
 // Choose based on volume->curved
 // Change to shorter name: "set_operator"
+EXIT_ADD_SUPPORT; // Change to support using the Operator container
+UNUSED(geom_coef);
+UNUSED(d);
+UNUSED(ops);
+UNUSED(p);
+/*
 	set_const_Multiarray_Matrix_from_Multiarray_Matrix_d(ops.cv1_vg_vc,element->cv1_vgs_vcs,1,(ptrdiff_t[]){p,p,0});
 //	set_const_Multiarray_Matrix_from_Multiarray_Matrix_d(ops.cv1_vg_vc,element->cv1_vgc_vcc,1,(ptrdiff_t[]){p,p,0});
 
@@ -213,6 +220,7 @@ static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volum
 //		mm_CTN_d(NvnC0,1,NvnG0,OPS->D_vG_vC[col],&XYZ[NvnG0*row],&J_vC[NvnC0*(d*row+col)]);
 		}
 	}
+*/
 
 UNUSED(sim);
 UNUSED(volume);

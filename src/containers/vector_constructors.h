@@ -26,6 +26,7 @@ struct Matrix_d;
 struct Multiarray_d;
 struct const_Vector_d;
 struct const_Matrix_d;
+struct const_Matrix_i;
 struct const_Multiarray_d;
 
 // Default constructors ********************************************************************************************* //
@@ -115,6 +116,14 @@ struct const_Vector_i* constructor_move_const_Vector_i_i
 	(const ptrdiff_t ext_0, ///< The value of ext_0.
 	 const bool owns_data,  ///< Standard.
 	 const int*const data   ///< Standard.
+	);
+
+/** \brief Move constructor for a \ref const_Vector_i\* from a row of a \ref const_Matrix_i\*.
+ *  \return Standard. */
+const struct const_Vector_i* constructor_move_const_Vector_Matrix_row_i
+	(const int row,                    ///< The row index.
+	 const struct const_Matrix_i* src, ///< The source matrix.
+	 const int owns_data               ///< Standard.
 	);
 
 /** \brief Move constructor for a \ref Vector_d\* from a \ref Matrix_d\*.

@@ -40,7 +40,7 @@ struct Operators_TP {
 	 *  	wedge_op[0][1] : tri  operator 1.
 	 *  	wedge_op[1][0] : line operator 0.
 	 */
-	const struct const_Multiarray_Matrix_d* op[2][2];
+	const struct Multiarray_Operator* op[2][2];
 };
 
 // Interface functions ********************************************************************************************** //
@@ -48,15 +48,15 @@ struct Operators_TP {
 /// \brief Set the entries of the input \ref Operators_TP container.
 void set_operators_tp
 	(struct Operators_TP* ops_tp,             ///< \ref Operators_TP.
-	 const struct const_Multiarray_Matrix_d* op_00, ///< Sets \ref Operators_TP::op, index [0][0].
-	 const struct const_Multiarray_Matrix_d* op_01, ///< Sets \ref Operators_TP::op, index [0][1].
-	 const struct const_Multiarray_Matrix_d* op_10, ///< Sets \ref Operators_TP::op, index [1][0].
-	 const struct const_Multiarray_Matrix_d* op_11  ///< Sets \ref Operators_TP::op, index [1][1].
+	 const struct Multiarray_Operator* op_00, ///< Sets \ref Operators_TP::op, index [0][0].
+	 const struct Multiarray_Operator* op_01, ///< Sets \ref Operators_TP::op, index [0][1].
+	 const struct Multiarray_Operator* op_10, ///< Sets \ref Operators_TP::op, index [1][0].
+	 const struct Multiarray_Operator* op_11  ///< Sets \ref Operators_TP::op, index [1][1].
 	);
 
-/** \brief Constructor for a \ref const_Multiarray_Matrix_d\* of tensor-product operators from sub-element operators.
+/** \brief Constructor for a \ref Multiarray_Operator\* of tensor-product operators from sub-element operators.
  *  \return Standard. */
-const struct const_Multiarray_Matrix_d* constructor_operators_tp
+const struct Multiarray_Operator* constructor_operators_tp
 	(const char*const name_type,          ///< The name of the operator type (including differentiation index).
 	 const char*const name_in,            ///< The name of the operator input.
 	 const char*const name_out,           ///< The name of the operator output.
