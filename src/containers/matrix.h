@@ -92,7 +92,7 @@ double* get_col_Matrix_d
 
 /** \brief Get pointer to column of col-major \ref Matrix_i\*.
  *  \return Pointer to the first entry of the column. */
-double* get_col_Matrix_i
+int* get_col_Matrix_i
 	(const ptrdiff_t col,     ///< Desired column.
 	 const struct Matrix_i* a ///< Matrix.
 	);

@@ -338,7 +338,7 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.f_ve   = (int[]) {0, 1,};
 
 		e_info.n_ref_max_v = 3;
-		e_info.n_ref_max_f = e_info.n_f*1;
+		e_info.n_ref_max_f = 1;
 		break;
 	case TRI:
 		e_info.s_type = ST_SI;
@@ -350,7 +350,7 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.f_ve   = (int[]) {1,2, 0,2, 0,1,};
 
 		e_info.n_ref_max_v = 5;
-		e_info.n_ref_max_f = e_info.n_f*3;
+		e_info.n_ref_max_f = 3;
 		break;
 	case QUAD:
 		e_info.s_type = ST_TP;
@@ -362,7 +362,7 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.f_ve   = (int[]) {0,2, 1,3, 0,1, 2,3};
 
 		e_info.n_ref_max_v = 5;
-		e_info.n_ref_max_f = e_info.n_f*3;
+		e_info.n_ref_max_f = 3;
 		break;
 	case TET:
 		EXIT_ADD_SUPPORT;
@@ -377,7 +377,7 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.f_ve   = (int[]) {0,2,4,6, 1,3,5,7, 0,1,4,5, 2,3,6,7, 0,1,2,3, 4,5,6,7};
 
 		e_info.n_ref_max_v = 9;
-		e_info.n_ref_max_f = e_info.n_f*5;
+		e_info.n_ref_max_f = 5;
 		break;
 	case WEDGE:
 		EXIT_ADD_SUPPORT;

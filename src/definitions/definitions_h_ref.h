@@ -36,6 +36,13 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \todo Add reference to figures accompanying the definitions.
  */
 
+// POINT element **************************************************************************************************** //
+
+///\{ \name Point element volumes.
+#define H_POINT1_V0 0 ///< Vertice(s): [0].
+///\}
+
+
 // LINE element ***************************************************************************************************** //
 
 ///\{ \name LINE element volumes.
