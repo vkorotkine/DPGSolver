@@ -36,13 +36,13 @@ if(NOT MKL_FOUND)
     endif()
   endif()
   
-  if(FORTRAN_INTEGER_SIZE EQUAL 4)
+#  if(FORTRAN_INTEGER_SIZE EQUAL 4)
     set(MKL_INT_TYPE "lp64")
-  elseif(FORTRAN_INTEGER_SIZE EQUAL 8)
-    set(MKL_INT_TYPE "ilp64")
-  else()
-    set(MKL_INT_TYPE "lp64")
-  endif()
+#  elseif(FORTRAN_INTEGER_SIZE EQUAL 8)
+#    set(MKL_INT_TYPE "ilp64")
+#  else()
+#    set(MKL_INT_TYPE "lp64")
+#  endif()
   
   # There are no user specified components, but we use the component handling
   # mechanism to make sure we find all the required libraries.

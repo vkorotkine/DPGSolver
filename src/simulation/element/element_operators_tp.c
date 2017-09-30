@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element_operators_tp.h"
 
 #include <assert.h>
-#include "mkl.h"
+#include "gsl/gsl_permute_matrix_double.h"/// \todo remove this.
 
 #include "macros.h"
 #include "definitions_core.h"
@@ -310,9 +310,10 @@ print_const_Multiarray_Matrix_d(ops_tp);
 	sub_op = ops_tp->data[ind_sub_op];
 	assert(sub_op != NULL);
 
-	n_blocks = n_cols_sub[2]*n_cols_sub[1];
+	set_to_data_Vector_i(n_rows_op,(int[]){n_rows_sub[0],n_cols_sub[1],n_cols_sub[2]});
+	n_blocks = n_rows_op->data[2]*n_rows_op->data[1];
 	const struct const_Matrix_d* op_r = constructor_block_diagonal_const_Matrix_d(sub_op,n_blocks); // destructed
-	print_const_Matrix_d(op_r);
+print_const_Matrix_d(op_r);
 
 	// s-direction
 	++ind_sub_op;
@@ -320,43 +321,41 @@ print_const_Multiarray_Matrix_d(ops_tp);
 
 	const struct const_Matrix_d* op_rs = NULL;
 	if (sub_op) {
-		set_to_data_Vector_i(n_rows_op,(int[]){n_rows_sub[0],n_cols_sub[1],n_cols_sub[2]});
 		const ptrdiff_t n_rows_op_r = prod_Vector_i(n_rows_op);
 
 /// \todo make function for this?
-		lapack_int ipiv[n_rows_op_r];
-		int ind = 0;
-		for (int k = 0; k < n_rows_op->data[2]; ++k) {
+		ptrdiff_t perm_r[n_rows_op_r];
+		for (int ind = 0, k = 0; k < n_rows_op->data[2]; ++k) {
 		for (int i = 0; i < n_rows_op->data[0]; ++i) {
 		for (int j = 0; j < n_rows_op->data[1]; ++j) {
-			ipiv[ind++] = i+(n_rows_op->data[0])*(j+(n_rows_op->data[1])*k);
-printf("%d %d %d %d\n",i,j,k,ipiv[ind-1]);
+			perm_r[ind++] = i+(n_rows_op->data[0])*(j+(n_rows_op->data[1])*k);
 		}}}
 
-		const int matrix_layout = LAPACK_ROW_MAJOR;
-		const lapack_int n = op_r->ext_1;
-		const lapack_int lda = n;
-		const lapack_int k1  = 0;
-//		const lapack_int k2  = op_r->ext_0-1;
-		const lapack_int incx = 1;
-
-lapack_int k2 = 0;
-printf("%d %d\n",k1,k2);
-print_const_Matrix_d(op_r);
-		const lapack_int info = LAPACKE_dlaswp(matrix_layout,n,(double*)op_r->data,lda,k1,k2,ipiv,incx);
-		if (info != 0)
-			EXIT_ERROR("LAPACKE_dlaswp: %d\n",info);
-print_const_Matrix_d(op_r);
-EXIT_UNSUPPORTED;
-
+		permute_Matrix_d((struct Matrix_d*)op_r,perm_r);
 
 		set_to_data_Vector_i(n_rows_op,(int[]){n_rows_sub[0],n_rows_sub[1],n_cols_sub[2]});
+		n_blocks = n_rows_op->data[2]*n_rows_op->data[0];
+		const struct const_Matrix_d* op_s =
+			constructor_block_diagonal_const_Matrix_d(sub_op,n_blocks); // destructed
+
+		op_rs = constructor_mm_NN1R_const_Matrix_d(op_s,op_r); // destructed
+		destructor_const_Matrix_d(op_s);
 		destructor_const_Matrix_d(op_r);
+
+		const ptrdiff_t n_rows_op_rs = prod_Vector_i(n_rows_op);
+		ptrdiff_t perm_rs[n_rows_op_rs];
+		for (int ind = 0, k = 0; k < n_rows_op->data[2]; ++k) {
+		for (int j = 0; j < n_rows_op->data[1]; ++j) {
+		for (int i = 0; i < n_rows_op->data[0]; ++i) {
+			perm_rs[ind++] = j+(n_rows_op->data[1])*(i+(n_rows_op->data[0])*k);
+		}}}
+
+		permute_Matrix_d((struct Matrix_d*)op_rs,perm_rs);
 	} else {
 		assert(d_op == 3);
 		op_rs = op_r;
 	}
-	assert((sub_op != NULL) || d_op == 3);
+print_const_Matrix_d(op_rs);
 
 	// t-direction
 	++ind_sub_op;
@@ -364,14 +363,51 @@ EXIT_UNSUPPORTED;
 
 	const struct const_Matrix_d* op_rst = NULL;
 	if (sub_op) {
-		EXIT_ADD_SUPPORT;
+		const ptrdiff_t n_rows_op_rs = prod_Vector_i(n_rows_op);
+
+/// \todo make function for this?
+// input ordering: i, j, k (0,1,2)
+// output ordering: k, i, j (2,0,1) -> Gives order of loop x_max.
+/*
+for (int ind = 0, index[1] = 0; index[1] < n_rows_op->data[1]; index[1]++) {
+for (int index[0] = 0; index[0] < n_rows_op->data[0]; index[0]++) {
+for (int index[2] = 0; index[2] < n_rows_op->data[2]; index[2]++) {
+	perm[ind++] = index[0]+(n_rows_op->data[0])*(index[1]+(n_rows_op->data[1])*index[2]);
+*/
+		ptrdiff_t perm_rs[n_rows_op_rs];
+		for (int ind = 0, j = 0; j < n_rows_op->data[1]; ++j) {
+		for (int i = 0; i < n_rows_op->data[0]; ++i) {
+		for (int k = 0; k < n_rows_op->data[2]; ++k) {
+			perm_rs[ind++] = i+(n_rows_op->data[0])*(j+(n_rows_op->data[1])*k);
+		}}}
+
+		permute_Matrix_d((struct Matrix_d*)op_rs,perm_rs);
+
+		set_to_data_Vector_i(n_rows_op,(int[]){n_rows_sub[0],n_rows_sub[1],n_rows_sub[2]});
+		n_blocks = n_rows_op->data[1]*n_rows_op->data[0];
+		const struct const_Matrix_d* op_t =
+			constructor_block_diagonal_const_Matrix_d(sub_op,n_blocks); // destructed
+
+		op_rst = constructor_mm_NN1R_const_Matrix_d(op_t,op_rs); // destructed
+		destructor_const_Matrix_d(op_t);
+		destructor_const_Matrix_d(op_rs);
+
+		const ptrdiff_t n_rows_op_rst = prod_Vector_i(n_rows_op);
+		ptrdiff_t perm_rst[n_rows_op_rst];
+		for (int ind = 0, k = 0; k < n_rows_op->data[2]; ++k) {
+		for (int j = 0; j < n_rows_op->data[1]; ++j) {
+		for (int i = 0; i < n_rows_op->data[0]; ++i) {
+			perm_rst[ind++] = k+(n_rows_op->data[2])*(i+(n_rows_op->data[0])*j);
+		}}}
+
+		permute_Matrix_d((struct Matrix_d*)op_rst,perm_rst);
 	} else {
 		assert(d_op == 2);
 		op_rst = op_rs;
 	}
+print_const_Matrix_d(op_rst);
 
 	destructor_Vector_i(n_rows_op);
-print_const_Matrix_d(op_rst);
 EXIT_UNSUPPORTED;
 	return op_rst;
 }

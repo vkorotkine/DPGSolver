@@ -47,6 +47,19 @@ void scale_Matrix_d
 	 const double val    ///< The value by which to scale.
 	);
 
+/** \brief Permute the rows of the input matrix according to the input permutation.
+ *  \todo Implement test for this function.
+ *
+ *  The permutation is performed using the [gsl_permute_matrix] function.
+ *
+ *  <!-- References: -->
+ *  [gsl_permuate_matrix]: https://www.gnu.org/software/gsl/doc/html/permutation.html#c.gsl_permute_matrix
+ */
+void permute_Matrix_d
+	(struct Matrix_d* a, ///< Matrix to be permuted.
+	 const ptrdiff_t* p  ///< Permutation indices.
+	);
+
 /** \brief Compute the (m)atrix-(m)atrix multiplication of input `double` matrices.
  *
  *  Computes: c = alpha*op(a)*op(b)+beta*c using the [cblas_dgemm function][cblas_dgemm] for the computation.

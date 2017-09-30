@@ -85,6 +85,8 @@ void scale_const_Matrix_by_Vector_d
 	 const struct const_Vector_d*const b  ///< Defined for \ref scale_Matrix_by_Vector_d.
 	);
 
+// Math functions *************************************************************************************************** //
+
 // Difference functions ********************************************************************************************* //
 
 /** \brief Check the difference between entries in the input \ref Matrix_i\*s.

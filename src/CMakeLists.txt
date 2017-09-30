@@ -3,7 +3,7 @@ find_package(MPI REQUIRED)
 find_package(MKL REQUIRED)
 include_directories(${MKL_INCLUDE_DIRS})
 
-find_package(GSL REQUIRED)
+find_package(GSL 2.4 REQUIRED)
 include_directories(${GSL_INCLUDE_DIRS})
 
 include_directories(

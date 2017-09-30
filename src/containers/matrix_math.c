@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <string.h>
 #include <math.h>
 #include "mkl.h"
+#include "gsl/gsl_permute_matrix_double.h"
 
 #include "macros.h"
 #include "definitions_mkl.h"
@@ -68,16 +69,43 @@ void transpose_Matrix_d (struct Matrix_d* a, const bool mem_only)
 	}
 }
 
-void transpose_const_Matrix_d (const struct const_Matrix_d* a, const bool mem_only)
-{
-	transpose_Matrix_d((struct Matrix_d*)a,mem_only);
-}
-
 void scale_Matrix_d (struct Matrix_d* a, const double val)
 {
 	ptrdiff_t size = (a->ext_0)*(a->ext_1);
 	for (ptrdiff_t i = 0; i < size; ++i)
 		a->data[i] *= val;
+}
+
+void permute_Matrix_d (struct Matrix_d* a, const ptrdiff_t* p)
+{
+	assert((a->layout == 'R') || a->layout == 'C');
+
+	const ptrdiff_t ext_0 = a->ext_0,
+	                ext_1 = a->ext_1;
+
+	if (a->layout == 'R') {
+		const int n_p = ext_0;
+
+		size_t perm_st[n_p];
+		for (int i = 0; i < n_p; ++i)
+			perm_st[i] = p[i];
+
+		const gsl_permutation perm = { .size = n_p, .data = perm_st, };
+
+		gsl_matrix A =
+			{ .size1 = ext_0,
+			  .size2 = ext_1,
+			  .tda   = ext_0, /// May need to be modified. \todo check this.
+			  .data  = a->data,
+			  .block = NULL,
+			  .owner = 0, };
+
+		transpose_Matrix_d((struct Matrix_d*)a,true);
+		gsl_permute_matrix(&perm,&A);
+		transpose_Matrix_d((struct Matrix_d*)a,true);
+	} else {
+		EXIT_ADD_SUPPORT;
+	}
 }
 
 void mm_d

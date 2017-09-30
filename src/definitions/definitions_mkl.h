@@ -15,8 +15,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #ifndef DPG__definitions_mkl_h__INCLUDED
 #define DPG__definitions_mkl_h__INCLUDED
-/**	\file
- *	\brief Provides the definitions relating to MKL library function calls.
+/** \file
+ *  \brief Provides the definitions relating to MKL library function calls.
  */
 
 ///\{ \name MKL layout parameters.
@@ -27,6 +27,10 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name MKL transpose parameters.
 #define CBT  CblasTrans
 #define CBNT CblasNoTrans
+///\}
+
+///\{ \name Long ugly name indicating that fortran 1-based indexing should be used.
+#define ADD_ONE_BASED_INDEXING 1
 ///\}
 
 #endif // DPG__definitions_mkl_h__INCLUDED
