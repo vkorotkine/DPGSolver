@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray_print.h"
 
 #include "macros.h"
+#include "definitions_tol.h"
 
 #include "multiarray.h"
 #include "matrix.h"
@@ -56,7 +57,7 @@ void print_const_Multiarray_Vector_i (const struct const_Multiarray_Vector_i*con
 	print_Multiarray_Vector_i((struct Multiarray_Vector_i*)a);
 }
 
-void print_Multiarray_d (const struct Multiarray_d*const a, const double tol)
+void print_Multiarray_d_tol (const struct Multiarray_d*const a, const double tol)
 {
 	const int order               = a->order;
 	const ptrdiff_t*const extents = a->extents;
@@ -65,11 +66,11 @@ void print_Multiarray_d (const struct Multiarray_d*const a, const double tol)
 
 	if (order == 1) {
 		struct Vector_d* a_V = constructor_move_Vector_d_d(extents[0],false,a->data); // destructed
-		print_Vector_d(a_V,tol);
+		print_Vector_d_tol(a_V,tol);
 		destructor_Vector_d(a_V);
 	} else if (order == 2) {
 		struct Matrix_d* a_M = constructor_move_Matrix_d_d(a->layout,extents[0],extents[1],false,a->data); // destructed
-		print_Matrix_d(a_M,tol);
+		print_Matrix_d_tol(a_M,tol);
 		destructor_Matrix_d(a_M);
 	} else if (order > 2) {
 		struct Matrix_d* a_M = constructor_move_Matrix_d_d(a->layout,extents[0],extents[1],false,NULL); // destructed;
@@ -85,7 +86,7 @@ void print_Multiarray_d (const struct Multiarray_d*const a, const double tol)
 
 			const ptrdiff_t ind_M = compute_index_sub_matrix(order,extents,counter);
 			a_M->data = &a->data[ind_M];
-			print_Matrix_d(a_M,tol);
+			print_Matrix_d_tol(a_M,tol);
 
 			increment_counter(order,extents,counter);
 		}
@@ -96,12 +97,12 @@ void print_Multiarray_d (const struct Multiarray_d*const a, const double tol)
 	printf("\n");
 }
 
-void print_const_Multiarray_d (const struct const_Multiarray_d*const a, const double tol)
+void print_const_Multiarray_d_tol (const struct const_Multiarray_d*const a, const double tol)
 {
-	print_Multiarray_d((const struct Multiarray_d*)a,tol);
+	print_Multiarray_d_tol((const struct Multiarray_d*)a,tol);
 }
 
-void print_Multiarray_Matrix_d (const struct Multiarray_Matrix_d*const a, const double tol)
+void print_Multiarray_Matrix_d_tol (const struct Multiarray_Matrix_d*const a, const double tol)
 {
 	print_Multiarray_extents(a->order,a->extents);
 
@@ -111,7 +112,7 @@ void print_Multiarray_Matrix_d (const struct Multiarray_Matrix_d*const a, const 
 		printf("\nIndex: % 3td: ",i);
 		if (a->data[i]) {
 			printf("\n\n");
-			print_Matrix_d(a->data[i],tol);
+			print_Matrix_d_tol(a->data[i],tol);
 		} else {
 			printf("*** NULL ***");
 		}
@@ -119,9 +120,29 @@ void print_Multiarray_Matrix_d (const struct Multiarray_Matrix_d*const a, const 
 	printf("\n");
 }
 
-void print_const_Multiarray_Matrix_d (const struct const_Multiarray_Matrix_d*const a, const double tol)
+void print_const_Multiarray_Matrix_d_tol (const struct const_Multiarray_Matrix_d*const a, const double tol)
 {
-	print_Multiarray_Matrix_d((struct Multiarray_Matrix_d*)a,tol);
+	print_Multiarray_Matrix_d_tol((struct Multiarray_Matrix_d*)a,tol);
+}
+
+void print_Multiarray_d (const struct Multiarray_d*const a)
+{
+	print_Multiarray_d_tol(a,EPS);
+}
+
+void print_const_Multiarray_d (const struct const_Multiarray_d*const a)
+{
+	print_Multiarray_d((const struct Multiarray_d*)a);
+}
+
+void print_Multiarray_Matrix_d (const struct Multiarray_Matrix_d*const a)
+{
+	print_Multiarray_Matrix_d_tol(a,EPS);
+}
+
+void print_const_Multiarray_Matrix_d (const struct const_Multiarray_Matrix_d*const a)
+{
+	print_Multiarray_Matrix_d((const struct Multiarray_Matrix_d*)a);
 }
 
 void print_Multiarray_extents (const int order, const ptrdiff_t*const extents)

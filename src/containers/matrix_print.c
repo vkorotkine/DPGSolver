@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <math.h>
 
 #include "macros.h"
+#include "definitions_tol.h"
 
 #include "matrix.h"
 
@@ -28,7 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void print_Matrix_d (const struct Matrix_d*const a, const double tol)
+void print_Matrix_d_tol (const struct Matrix_d*const a, const double tol)
 {
 	const ptrdiff_t ext_0 = a->ext_0,
 	                ext_1 = a->ext_1;
@@ -70,11 +71,19 @@ void print_Matrix_d (const struct Matrix_d*const a, const double tol)
 	}
 }
 
-void print_const_Matrix_d (const struct const_Matrix_d*const a, const double tol)
+void print_const_Matrix_d_tol (const struct const_Matrix_d*const a, const double tol)
 {
-	struct Matrix_d* local = constructor_move_Matrix_d_d(a->layout,a->ext_0,a->ext_1,false,(double*)a->data);
-	print_Matrix_d(local,tol);
-	free(local);
+	print_Matrix_d_tol((struct Matrix_d*)a,tol);
+}
+
+void print_Matrix_d (const struct Matrix_d*const a)
+{
+	print_Matrix_d_tol(a,EPS);
+}
+
+void print_const_Matrix_d (const struct const_Matrix_d*const a)
+{
+	print_Matrix_d((const struct Matrix_d*)a);
 }
 
 void print_Matrix_i (const struct Matrix_i*const a)

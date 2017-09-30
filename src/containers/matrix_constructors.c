@@ -241,6 +241,34 @@ struct Matrix_d* constructor_copy_transpose_Matrix_d (struct Matrix_d* a, const 
 	return a_t;
 }
 
+const struct const_Matrix_d* constructor_block_diagonal_const_Matrix_d
+	(const struct const_Matrix_d* src_b, const ptrdiff_t n_blocks)
+{
+	const ptrdiff_t b_ext_0 = src_b->ext_0,
+	                b_ext_1 = src_b->ext_1;
+
+	const char layout = src_b->layout;
+	const ptrdiff_t ext_0 = n_blocks*b_ext_0,
+	                ext_1 = n_blocks*b_ext_1;
+
+	struct Matrix_d* dest = constructor_empty_Matrix_d(layout,ext_0,ext_1); // returned
+	set_to_value_Matrix_d(dest,0.0);
+
+	assert(layout == 'R'); // Can be made flexible if necessary.
+	for (ptrdiff_t n = 0; n < n_blocks; ++n) {
+		const ptrdiff_t ind_row = n*b_ext_0,
+		                ind_col = n*b_ext_1;
+		for (ptrdiff_t i = 0; i < b_ext_0; ++i) {
+			const ptrdiff_t ind_dest = compute_index_Matrix(ind_row+i,ind_col+0,ext_0,ext_1,layout),
+			                ind_src  = compute_index_Matrix(i,0,b_ext_0,b_ext_1,layout);
+			for (ptrdiff_t j = 0; j < b_ext_1; ++j)
+				dest->data[ind_dest+j] = src_b->data[ind_src+j];
+		}
+	}
+
+	return (const struct const_Matrix_d*) dest;
+}
+
 /*struct Matrix_d* constructor_diagonal_Matrix_from_Vector_d (const char layout, const struct Vector_d*const src)
 {
 	const ptrdiff_t ext_0 = src->ext_0,

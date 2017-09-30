@@ -44,7 +44,7 @@ void set_up_solution (struct Simulation* sim, struct Intrusive_List* solver_volu
 		compute_sol_coef(sim,volume);
 
 printf("sol: %d\n",((struct Volume*)volume)->index);
-print_Multiarray_d(volume->sol_coef,1e-10);
+print_Multiarray_d(volume->sol_coef);
 	}
 EXIT_UNSUPPORTED;
 }

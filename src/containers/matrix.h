@@ -231,4 +231,14 @@ char compute_opposite_layout
 	(const char layout_i ///< The input layout.
 	);
 
+/** \brief See return.
+ *  \return The index of a Matrix corresponding to the given row/column input. */
+ptrdiff_t compute_index_Matrix
+	(const ptrdiff_t i,     ///< The index in the `ext_0` direction.
+	 const ptrdiff_t j,     ///< The index in the `ext_1` direction.
+	 const ptrdiff_t ext_0, ///< Defined in \ref Matrix_d.
+	 const ptrdiff_t ext_1, ///< Defined in \ref Matrix_d.
+	 const char layout      ///< Defined in \ref Matrix_d.
+	);
+
 #endif // DPG__matrix_h__INCLUDED

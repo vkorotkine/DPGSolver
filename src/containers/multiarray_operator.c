@@ -127,8 +127,7 @@ void print_Multiarray_Operator_tol (const struct Multiarray_Operator*const a, co
 		printf("%-35s","\tdense operator:");
 		if (op->op_std) {
 			printf("\n\n");
-/// \todo add '_tol' to names of printing functions with tolerance.
-			print_const_Matrix_d(op->op_std,tol);
+			print_const_Matrix_d_tol(op->op_std,tol);
 		} else {
 			printf("*** NULL ***\n");
 		}
@@ -136,7 +135,7 @@ void print_Multiarray_Operator_tol (const struct Multiarray_Operator*const a, co
 		printf("%-35s","\ttensor-product sub-operators:");
 		if (op->ops_tp) {
 			printf("\n{\n\n");
-			print_const_Multiarray_Matrix_d(op->ops_tp,tol);
+			print_const_Multiarray_Matrix_d_tol(op->ops_tp,tol);
 			printf("}\n");
 		} else {
 			printf("*** NULL ***\n");

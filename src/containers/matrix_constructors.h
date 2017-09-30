@@ -181,6 +181,16 @@ struct Matrix_d* constructor_copy_transpose_Matrix_d
 	 const bool mem_only ///< Defined for \ref transpose_Matrix_d.
 	);
 
+/** \brief Constructor for a block diagonal \ref const_Matrix_d\* with blocks set to the input matrix.
+ *  \return Standard.
+ *
+ *  \note The input matrix need not be square.
+ */
+const struct const_Matrix_d* constructor_block_diagonal_const_Matrix_d
+	(const struct const_Matrix_d* src_b, ///< The source block.
+	 const ptrdiff_t n_blocks            ///< The number of blocks in the output.
+	);
+
 /** \brief Constructor for a diagonal \ref Matrix_d\* with entries set to the input value.
  *  \return Standard. */
 struct Matrix_d* constructor_diagonal_Matrix_d_d

@@ -35,15 +35,25 @@ void print_const_Vector_i
 	);
 
 /// \brief Print a \ref Vector_d\* to the terminal displaying entries below the tolerance as 0.0.
-void print_Vector_d
+void print_Vector_d_tol
 	(const struct Vector_d*const a, ///< Standard.
 	 const double tol               ///< The tolerance.
 	);
 
-/// \brief Print a \ref const_Vector_d\* to the terminal displaying entries below the tolerance as 0.0.
+/// \brief `const` version of \ref print_Vector_d_tol.
+void print_const_Vector_d_tol
+	(const struct const_Vector_d*const a, ///< Defined for \ref print_Vector_d_tol.
+	 const double tol                     ///< Defined for \ref print_Vector_d_tol.
+	);
+
+/// \brief Print a \ref Vector_d\* calling \ref print_Vector_d_tol with a default tolerance.
+void print_Vector_d
+	(const struct Vector_d*const a ///< Defined for \ref print_Vector_d_tol.
+	);
+
+/// \brief `const` version of \ref print_Vector_d.
 void print_const_Vector_d
-	(const struct const_Vector_d*const a, ///< Standard.
-	 const double tol                     ///< The tolerance.
+	(const struct const_Vector_d*const a ///< Defined for \ref print_Vector_d.
 	);
 
 #endif // DPG__vector_print_h__INCLUDED

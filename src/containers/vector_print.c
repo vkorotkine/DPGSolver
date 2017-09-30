@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "vector_print.h"
 
+#include "definitions_tol.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -47,7 +49,7 @@ void print_const_Vector_i (const struct const_Vector_i*const a)
 	free(local);
 }
 
-void print_Vector_d (const struct Vector_d*const a, const double tol)
+void print_Vector_d_tol (const struct Vector_d*const a, const double tol)
 {
 	const ptrdiff_t ext = a->ext_0;
 
@@ -62,9 +64,19 @@ void print_Vector_d (const struct Vector_d*const a, const double tol)
 	printf("\n\n");
 }
 
-void print_const_Vector_d (const struct const_Vector_d*const a, const double tol)
+void print_const_Vector_d_tol (const struct const_Vector_d*const a, const double tol)
 {
-	print_Vector_d((struct Vector_d*)a,tol);
+	print_Vector_d_tol((struct Vector_d*)a,tol);
+}
+
+void print_Vector_d (const struct Vector_d*const a)
+{
+	print_Vector_d_tol(a,EPS);
+}
+
+void print_const_Vector_d (const struct const_Vector_d*const a)
+{
+	print_Vector_d((const struct Vector_d*)a);
 }
 
 // Static functions ************************************************************************************************* //

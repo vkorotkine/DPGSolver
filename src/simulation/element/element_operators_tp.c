@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element_operators_tp.h"
 
 #include <assert.h>
+#include "mkl.h"
 
 #include "macros.h"
 #include "definitions_core.h"
@@ -137,7 +138,6 @@ const struct Multiarray_Operator* constructor_operators_tp
  *  `spec_indices` can be interpreted as the direction(s) (n-Cube: r,s,t; wedge: rs,NULL,t) in which to use the
  *  'special' operator (the second operator for the sub-element).
  */
-/// \todo name change for this function. Also, choose one of op_* or ops_*.
 static void set_ops_MO
 	(const struct Multiarray_Operator* op_MO[DMAX], ///< The array of \ref Multiarray_Matrix_d operators.
 	 bool* spec_indices,                            ///< The array of indices for the special operators.
@@ -153,6 +153,12 @@ static void set_ops_Md
 	 const struct const_Vector_i* op_values,        ///< The index values of the current operator.
 	 const struct Operator_Info* op_info,           ///< \ref Sub_Operator_Info.
 	 const bool* spec_indices                       ///< Defined for \ref set_ops_MO.
+	);
+
+/** \brief Constructor for a standard operator from its tensor-product sub-operators.
+ *  \return Standard. */
+static const struct const_Matrix_d* constructor_op_std
+	(const struct const_Multiarray_Matrix_d* ops_tp ///< The tensor-product sub-operators.
 	);
 
 static void set_sub_operator_info
@@ -185,9 +191,12 @@ static void set_sub_operator_info
 static void construct_operators_std (const struct Multiarray_Operator* op)
 {
 print_Multiarray_Operator(op);
-//	const_constructor_move_const_Matrix_d(&op->data[ind_op]->op_std,op_ioN); // keep
-	// Think about how this might be done by applying the single sum-factorized operators to some form of transposed
-	// input operator instead of using sparse-dense with potential permutation.
+	const ptrdiff_t size = compute_size(op->order,op->extents);
+	for (int i = 0; i < size; ++i) {
+		const struct Operator* op_c = op->data[i];
+		if (op_c->ops_tp)
+			const_constructor_move_const_Matrix_d(&op_c->op_std,constructor_op_std(op_c->ops_tp)); // keep
+	}
 EXIT_ADD_SUPPORT;
 }
 
@@ -272,6 +281,99 @@ static void set_ops_Md
 
 		op_Md[i] = op_MO[i]->data[ind_sub_op]->op_std;
 	}
+}
+
+static const struct const_Matrix_d* constructor_op_std (const struct const_Multiarray_Matrix_d* ops_tp)
+{
+print_const_Multiarray_Matrix_d(ops_tp);
+	assert(ops_tp->order == 1);
+	const int d_op = compute_size(ops_tp->order,ops_tp->extents);
+
+	int n_rows_sub[DMAX] = { 0, 0, 0, },
+	    n_cols_sub[DMAX] = { 0, 0, 0, };
+	for (int i = 0; i < DMAX; ++i) {
+		if (ops_tp->data[i]) {
+			n_rows_sub[i] = ops_tp->data[i]->ext_0;
+			n_cols_sub[i] = ops_tp->data[i]->ext_1;
+		} else {
+			n_rows_sub[i] = 1;
+			n_cols_sub[i] = 1;
+		}
+	}
+
+	int n_blocks = -1;
+	const struct const_Matrix_d* sub_op = NULL;
+	struct Vector_i* n_rows_op = constructor_empty_Vector_i(DMAX); // destructed
+
+	// r-direction
+	int ind_sub_op = 0;
+	sub_op = ops_tp->data[ind_sub_op];
+	assert(sub_op != NULL);
+
+	n_blocks = n_cols_sub[2]*n_cols_sub[1];
+	const struct const_Matrix_d* op_r = constructor_block_diagonal_const_Matrix_d(sub_op,n_blocks); // destructed
+	print_const_Matrix_d(op_r);
+
+	// s-direction
+	++ind_sub_op;
+	sub_op = ops_tp->data[ind_sub_op];
+
+	const struct const_Matrix_d* op_rs = NULL;
+	if (sub_op) {
+		set_to_data_Vector_i(n_rows_op,(int[]){n_rows_sub[0],n_cols_sub[1],n_cols_sub[2]});
+		const ptrdiff_t n_rows_op_r = prod_Vector_i(n_rows_op);
+
+/// \todo make function for this?
+		lapack_int ipiv[n_rows_op_r];
+		int ind = 0;
+		for (int k = 0; k < n_rows_op->data[2]; ++k) {
+		for (int i = 0; i < n_rows_op->data[0]; ++i) {
+		for (int j = 0; j < n_rows_op->data[1]; ++j) {
+			ipiv[ind++] = i+(n_rows_op->data[0])*(j+(n_rows_op->data[1])*k);
+printf("%d %d %d %d\n",i,j,k,ipiv[ind-1]);
+		}}}
+
+		const int matrix_layout = LAPACK_ROW_MAJOR;
+		const lapack_int n = op_r->ext_1;
+		const lapack_int lda = n;
+		const lapack_int k1  = 0;
+//		const lapack_int k2  = op_r->ext_0-1;
+		const lapack_int incx = 1;
+
+lapack_int k2 = 0;
+printf("%d %d\n",k1,k2);
+print_const_Matrix_d(op_r);
+		const lapack_int info = LAPACKE_dlaswp(matrix_layout,n,(double*)op_r->data,lda,k1,k2,ipiv,incx);
+		if (info != 0)
+			EXIT_ERROR("LAPACKE_dlaswp: %d\n",info);
+print_const_Matrix_d(op_r);
+EXIT_UNSUPPORTED;
+
+
+		set_to_data_Vector_i(n_rows_op,(int[]){n_rows_sub[0],n_rows_sub[1],n_cols_sub[2]});
+		destructor_const_Matrix_d(op_r);
+	} else {
+		assert(d_op == 3);
+		op_rs = op_r;
+	}
+	assert((sub_op != NULL) || d_op == 3);
+
+	// t-direction
+	++ind_sub_op;
+	sub_op = ops_tp->data[ind_sub_op];
+
+	const struct const_Matrix_d* op_rst = NULL;
+	if (sub_op) {
+		EXIT_ADD_SUPPORT;
+	} else {
+		assert(d_op == 2);
+		op_rst = op_rs;
+	}
+
+	destructor_Vector_i(n_rows_op);
+print_const_Matrix_d(op_rst);
+EXIT_UNSUPPORTED;
+	return op_rst;
 }
 
 // Level 1 ********************************************************************************************************** //

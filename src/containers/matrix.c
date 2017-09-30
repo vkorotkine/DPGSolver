@@ -163,5 +163,12 @@ char compute_opposite_layout (const char layout_i)
 	return ( layout_i == 'R' ? 'C' : 'R' );
 }
 
+ptrdiff_t compute_index_Matrix
+	(const ptrdiff_t i, const ptrdiff_t j, const ptrdiff_t ext_0, const ptrdiff_t ext_1, const char layout)
+{
+	assert((layout == 'R') || (layout == 'C'));
+	return ( layout == 'R' ?  i*ext_1+j : j*ext_0+i );
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

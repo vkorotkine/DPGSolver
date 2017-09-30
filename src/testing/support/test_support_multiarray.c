@@ -230,8 +230,8 @@ void print_diff_Multiarray_d (const struct Multiarray_d*const a, const struct Mu
 
 	if ((size != compute_size(b->order,b->extents)) || (layout != b->layout)) {
 		printf("Attempting to compare Multiarrays of different size:\n");
-		print_Multiarray_d(a,tol);
-		print_Multiarray_d(b,tol);
+		print_Multiarray_d_tol(a,tol);
+		print_Multiarray_d_tol(b,tol);
 		return;
 	}
 
@@ -247,7 +247,7 @@ void print_diff_Multiarray_d (const struct Multiarray_d*const a, const struct Mu
 
 	struct Multiarray_d* a_tmp = (struct Multiarray_d*) a;
 	a_tmp->data = data;
-	print_Multiarray_d(a_tmp,tol);
+	print_Multiarray_d_tol(a_tmp,tol);
 	a_tmp->data = data_ptr;
 }
 
@@ -264,8 +264,8 @@ void print_diff_Multiarray_Matrix_d
 
 	if (size != compute_size(b->order,b->extents)) {
 		printf("Note: Attempting to compare Multiarrays of different size:\n");
-		print_Multiarray_Matrix_d(a,tol);
-		print_Multiarray_Matrix_d(b,tol);
+		print_Multiarray_Matrix_d_tol(a,tol);
+		print_Multiarray_Matrix_d_tol(b,tol);
 		return;
 	}
 

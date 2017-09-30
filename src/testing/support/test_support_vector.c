@@ -171,9 +171,9 @@ void print_diff_Vector_d (const struct Vector_d*const a, const struct Vector_d*c
 	if (size != b->ext_0) {
 		printf("Note: Attempting to compare Vectors of different size:\n");
 		printf("a (%td):\n",a->ext_0);
-		print_Vector_d(a,tol);
+		print_Vector_d_tol(a,tol);
 		printf("b (%td):\n",b->ext_0);
-		print_Vector_d(b,tol);
+		print_Vector_d_tol(b,tol);
 		return;
 	}
 
@@ -189,7 +189,7 @@ void print_diff_Vector_d (const struct Vector_d*const a, const struct Vector_d*c
 
 	struct Vector_d* a_tmp = (struct Vector_d*) a;
 	a_tmp->data = data;
-	print_Vector_d(a_tmp,tol);
+	print_Vector_d_tol(a_tmp,tol);
 	a_tmp->data = data_ptr;
 }
 

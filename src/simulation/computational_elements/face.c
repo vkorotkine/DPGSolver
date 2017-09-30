@@ -510,8 +510,8 @@ struct Vector_i* constructor_matches_Vector_i_Matrix_d
 		}
 		if (dest->data[i] == -1) {
 			print_Vector_i(ind_skip);
-			print_const_Matrix_d(xyz_m,EPS);
-			print_const_Matrix_d(xyz_s,EPS);
+			print_const_Matrix_d(xyz_m);
+			print_const_Matrix_d(xyz_s);
 			EXIT_ERROR("Did not find the matching index from the slave xyz coordinates.");
 		}
 	}
