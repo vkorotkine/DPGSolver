@@ -48,7 +48,7 @@ static void construct_operators_std
 	(const struct Multiarray_Operator* op ///< The \ref Multiarray_Operator\* input.
 	);
 
-/// \brief Set the pointers \in ref Sub_Operator_Info::sub_op_Md to the appropriate sub-operator matrices.
+/// \brief Set the pointers in \ref Sub_Operator_Info::sub_op_Md to the appropriate sub-operator matrices.
 static void set_sub_operator_info
 	(struct Sub_Operator_Info* sub_op_info, ///< \ref Sub_Operator_Info.
 	 const struct Operator_Info* op_info,   ///< \ref Sub_Operator_Info.
@@ -226,6 +226,15 @@ static void set_sub_op_values
 	 const bool* spec_indices                ///< Defined for \ref set_ops_MO.
 	);
 
+/** \brief Set the row permutation indices for the standard operator based on the input and desired output index
+ *         ordering. */
+static void set_row_permutation_indices
+	(ptrdiff_t* perm,            ///< Set to the permutation indices.
+	 const int ordering_i[DMAX], ///< The input ordering.
+	 const int ordering_o[DMAX], ///< The output ordering.
+	 const int*const n_rows      ///< The number of rows in each of the DMAX operator directions.
+	);
+
 static void set_ops_MO
 	(const struct Multiarray_Operator* op_MO[DMAX], bool* spec_indices, const struct Operators_TP* ops_tp,
 	 const struct const_Vector_i* op_values, const struct Operator_Info* op_info)
@@ -285,7 +294,8 @@ static void set_ops_Md
 
 static const struct const_Matrix_d* constructor_op_std (const struct const_Multiarray_Matrix_d* ops_tp)
 {
-print_const_Multiarray_Matrix_d(ops_tp);
+	/** If this function is found to be slow while profiling, it may be attempted to replace the dense blas with
+	 *  block sparse blas mm_d function calls when applying the op_s and op_t matrices. */
 	assert(ops_tp->order == 1);
 	const int d_op = compute_size(ops_tp->order,ops_tp->extents);
 
@@ -303,17 +313,17 @@ print_const_Multiarray_Matrix_d(ops_tp);
 
 	int n_blocks = -1;
 	const struct const_Matrix_d* sub_op = NULL;
-	struct Vector_i* n_rows_op = constructor_empty_Vector_i(DMAX); // destructed
+	struct Vector_i* n_rows_op =
+		constructor_copy_Vector_i_i(DMAX,(int[]){n_cols_sub[0],n_cols_sub[1],n_cols_sub[2]}); // destructed
 
 	// r-direction
 	int ind_sub_op = 0;
 	sub_op = ops_tp->data[ind_sub_op];
 	assert(sub_op != NULL);
 
-	set_to_data_Vector_i(n_rows_op,(int[]){n_rows_sub[0],n_cols_sub[1],n_cols_sub[2]});
-	n_blocks = n_rows_op->data[2]*n_rows_op->data[1];
+	n_rows_op->data[ind_sub_op] = n_rows_sub[ind_sub_op];
+	n_blocks = n_rows_op->data[1]*n_rows_op->data[2];
 	const struct const_Matrix_d* op_r = constructor_block_diagonal_const_Matrix_d(sub_op,n_blocks); // destructed
-print_const_Matrix_d(op_r);
 
 	// s-direction
 	++ind_sub_op;
@@ -321,20 +331,14 @@ print_const_Matrix_d(op_r);
 
 	const struct const_Matrix_d* op_rs = NULL;
 	if (sub_op) {
-		const ptrdiff_t n_rows_op_r = prod_Vector_i(n_rows_op);
-
-/// \todo make function for this?
-		ptrdiff_t perm_r[n_rows_op_r];
-		for (int ind = 0, k = 0; k < n_rows_op->data[2]; ++k) {
-		for (int i = 0; i < n_rows_op->data[0]; ++i) {
-		for (int j = 0; j < n_rows_op->data[1]; ++j) {
-			perm_r[ind++] = i+(n_rows_op->data[0])*(j+(n_rows_op->data[1])*k);
-		}}}
+		ptrdiff_t perm_r[prod_Vector_i(n_rows_op)];
+		set_row_permutation_indices(perm_r,(int[]){0,1,2},(int[]){1,0,2},n_rows_op->data);
 
 		permute_Matrix_d((struct Matrix_d*)op_r,perm_r);
 
-		set_to_data_Vector_i(n_rows_op,(int[]){n_rows_sub[0],n_rows_sub[1],n_cols_sub[2]});
-		n_blocks = n_rows_op->data[2]*n_rows_op->data[0];
+		n_rows_op->data[ind_sub_op] = n_rows_sub[ind_sub_op];
+		n_blocks = n_rows_op->data[0]*n_rows_op->data[2];
+		// Note: Potentially very sparse.
 		const struct const_Matrix_d* op_s =
 			constructor_block_diagonal_const_Matrix_d(sub_op,n_blocks); // destructed
 
@@ -342,20 +346,15 @@ print_const_Matrix_d(op_r);
 		destructor_const_Matrix_d(op_s);
 		destructor_const_Matrix_d(op_r);
 
-		const ptrdiff_t n_rows_op_rs = prod_Vector_i(n_rows_op);
-		ptrdiff_t perm_rs[n_rows_op_rs];
-		for (int ind = 0, k = 0; k < n_rows_op->data[2]; ++k) {
-		for (int j = 0; j < n_rows_op->data[1]; ++j) {
-		for (int i = 0; i < n_rows_op->data[0]; ++i) {
-			perm_rs[ind++] = j+(n_rows_op->data[1])*(i+(n_rows_op->data[0])*k);
-		}}}
+		ptrdiff_t perm_rs[prod_Vector_i(n_rows_op)];
+		set_row_permutation_indices(perm_rs,(int[]){1,0,2},(int[]){0,1,2},n_rows_op->data);
 
 		permute_Matrix_d((struct Matrix_d*)op_rs,perm_rs);
 	} else {
 		assert(d_op == 3);
+		n_rows_op->data[ind_sub_op] = n_rows_sub[ind_sub_op];
 		op_rs = op_r;
 	}
-print_const_Matrix_d(op_rs);
 
 	// t-direction
 	++ind_sub_op;
@@ -363,28 +362,14 @@ print_const_Matrix_d(op_rs);
 
 	const struct const_Matrix_d* op_rst = NULL;
 	if (sub_op) {
-		const ptrdiff_t n_rows_op_rs = prod_Vector_i(n_rows_op);
-
-/// \todo make function for this?
-// input ordering: i, j, k (0,1,2)
-// output ordering: k, i, j (2,0,1) -> Gives order of loop x_max.
-/*
-for (int ind = 0, index[1] = 0; index[1] < n_rows_op->data[1]; index[1]++) {
-for (int index[0] = 0; index[0] < n_rows_op->data[0]; index[0]++) {
-for (int index[2] = 0; index[2] < n_rows_op->data[2]; index[2]++) {
-	perm[ind++] = index[0]+(n_rows_op->data[0])*(index[1]+(n_rows_op->data[1])*index[2]);
-*/
-		ptrdiff_t perm_rs[n_rows_op_rs];
-		for (int ind = 0, j = 0; j < n_rows_op->data[1]; ++j) {
-		for (int i = 0; i < n_rows_op->data[0]; ++i) {
-		for (int k = 0; k < n_rows_op->data[2]; ++k) {
-			perm_rs[ind++] = i+(n_rows_op->data[0])*(j+(n_rows_op->data[1])*k);
-		}}}
+		ptrdiff_t perm_rs[prod_Vector_i(n_rows_op)];
+		set_row_permutation_indices(perm_rs,(int[]){0,1,2},(int[]){2,0,1},n_rows_op->data);
 
 		permute_Matrix_d((struct Matrix_d*)op_rs,perm_rs);
 
-		set_to_data_Vector_i(n_rows_op,(int[]){n_rows_sub[0],n_rows_sub[1],n_rows_sub[2]});
-		n_blocks = n_rows_op->data[1]*n_rows_op->data[0];
+		n_rows_op->data[ind_sub_op] = n_rows_sub[ind_sub_op];
+		n_blocks = n_rows_op->data[0]*n_rows_op->data[1];
+		// Note: Potentially very sparse.
 		const struct const_Matrix_d* op_t =
 			constructor_block_diagonal_const_Matrix_d(sub_op,n_blocks); // destructed
 
@@ -392,23 +377,16 @@ for (int index[2] = 0; index[2] < n_rows_op->data[2]; index[2]++) {
 		destructor_const_Matrix_d(op_t);
 		destructor_const_Matrix_d(op_rs);
 
-		const ptrdiff_t n_rows_op_rst = prod_Vector_i(n_rows_op);
-		ptrdiff_t perm_rst[n_rows_op_rst];
-		for (int ind = 0, k = 0; k < n_rows_op->data[2]; ++k) {
-		for (int j = 0; j < n_rows_op->data[1]; ++j) {
-		for (int i = 0; i < n_rows_op->data[0]; ++i) {
-			perm_rst[ind++] = k+(n_rows_op->data[2])*(i+(n_rows_op->data[0])*j);
-		}}}
+		ptrdiff_t perm_rst[prod_Vector_i(n_rows_op)];
+		set_row_permutation_indices(perm_rst,(int[]){2,0,1},(int[]){0,1,2},n_rows_op->data);
 
 		permute_Matrix_d((struct Matrix_d*)op_rst,perm_rst);
 	} else {
 		assert(d_op == 2);
 		op_rst = op_rs;
 	}
-print_const_Matrix_d(op_rst);
 
 	destructor_Vector_i(n_rows_op);
-EXIT_UNSUPPORTED;
 	return op_rst;
 }
 
@@ -589,6 +567,24 @@ static void set_sub_op_values
 		case WEDGE: set_sub_op_values_wedge(sub_op_values,op_values,op_info,spec_indices); break;
 		default:    EXIT_ERROR("Unsupported: %d\n",op_info->element->type);   break;
 	}
+}
+
+static void set_row_permutation_indices
+	(ptrdiff_t* perm, const int ordering_i[DMAX], const int ordering_o[DMAX], const int*const n_rows)
+{
+	const int i_0 = ordering_i[0],
+	          i_1 = ordering_i[1],
+	          i_2 = ordering_i[2];
+	const int o_0 = ordering_o[0],
+	          o_1 = ordering_o[1],
+	          o_2 = ordering_o[2];
+
+	int ind[DMAX];
+	for (ind[o_2] = 0; ind[o_2] < n_rows[o_2]; ++ind[o_2]) {
+	for (ind[o_1] = 0; ind[o_1] < n_rows[o_1]; ++ind[o_1]) {
+	for (ind[o_0] = 0; ind[o_0] < n_rows[o_0]; ++ind[o_0]) {
+		*perm++ = ind[i_0]+n_rows[i_0]*(ind[i_1]+n_rows[i_1]*(ind[i_2]));
+	}}}
 }
 
 // Level 2 ********************************************************************************************************** //

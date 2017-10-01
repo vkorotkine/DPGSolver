@@ -10,25 +10,62 @@ Cem Gormezano
 
 Manmeet Bhabra
 
+## Building/Running the Code
+
+The code has been succesfully built in the following environments:
+- linux (ubuntu 16.04);
+- macOS (Sierra 10.12.5).
+
+### Build using CMake
+
+An out-of-source build can be performed using the [sample scripts](cmake/run) by executing the
+appropriate bash script. For example, to configure for the debug build using gcc:
+```sh
+$ ROOT/cmake/run$ sh gcc_debug.sh
+```
+
+**A customized script file may be required** if CMake is unable to locate required software which
+you are sure is installed; CMake will exit with an error if required software is not found. It is
+recommended to use a standard package manager for installing missing software whenever possible
+(e.g. `apt` on ubuntu and `homebrew` on macOS) to limit package conflicts and place installed
+software in directories in the default search path.
+
+### Compile using Make
+
+Once the code has been successfully built, the available `make` targets can be seen using
+```sh
+$ BUILD$ make help
+```
+
+Of primary interest are the following:
+```sh
+$ BUILD$ make        // Compile the code.
+$ BUILD$ make meshes // Generate the meshes.
+$ BUILD$ make doc    // Generate the Doxygen documentation.
+```
+
+The html documentation can be accessed by pointing a browser at `BUILD/doc/html/index.html`.
+
+### Running the Code
+
+Executable files running various configurations of the code are placed in `BUILD/bin`, and should be
+executed using the desired bash script in `BUILD/script_files`. For example, to run all tests with
+valgrind's memory leak detector enabled:
+```sh
+BUILD/script_files$ sh test_all_memcheck.sh
+```
+
 ## Code Description
-- Uses only free to use/open source libraries/supporting programs.
 - Methods:
 	- Discontinuous Galerkin (DG);
-	- Hybridized Discontinuous Galerkin (HDG) (ACTIVE);
-	- Discontinuous Petrov Galerkin (DPG) (TO BE DONE);
+	- Hybridized Discontinuous Galerkin (HDG);
+	- Discontinuous Petrov Galerkin (DPG).
 - Supported elements: LINEs, TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
 - Supported refinements: isotropic h (size) or p (order).
 
-Please follow the [Coding Style Guidelines](STYLE.md) when making modifications to the code.
+**Please** follow the [Coding Style Guidelines](STYLE.md) when making modifications to the code.
 
 ## Code Status
-
-### General
-| Functionality  | Status     |
-|----------------|------------|
-| MPI            | TO BE DONE |
-| h/p Adaptation | DONE       |
-
 
 ### Test Cases
 | PDE           | Name             | Status |
@@ -67,36 +104,8 @@ Please follow the [Coding Style Guidelines](STYLE.md) when making modifications 
 | Navier-Stokes | No Slip Dirichlet       | DONE   |
 |               | No Slip Adiabatic       | DONE   |
 
-
-
-## Installation / Set up
-Follow the [Detailed Installation Instructions](INSTALL.md) for the set up of **required** external packages.
-
-Follow the instructions in [Additional Set Up](SETUP.md) regarding additional requirements for running the code:
-- Configuring the code
-- Running the code
-- Generating documentation
-	- Documentation is very incomplete. \todo Add/update documentation where necessary.
-
-#### External Packages
-
-##### Required
-- [MPICH](https://www.mpich.org)
-- [Intel (M)ath (K)ernel (L)ibrary](https://software.intel.com/en-us/mkl)
-- [PETSc](https://www.mcs.anl.gov/petsc/)
-- [ParMETIS](http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview)
-- [Gmsh](http://gmsh.info)
-- [Python3](https://www.python.org/downloads/) (including [Numpy](http://www.numpy.org))
-
-##### Visualization
-- [Paraview](https://www.paraview.org)
-
-##### Documentation
-- [Doxygen](http://www.stack.nl/~dimitri/doxygen/)
-- [graphivz](http://www.graphviz.org)
-
-
-
 # License
 
-The code is licensed under the [GNU GPLv3](LICENSE.md).
+The code is licensed under the [GNU GPLv3](LICENSE.md) due to the dependence on the GNU GSL. If this
+were to be removed, the code could be relicensed under the
+[MIT license](https://opensource.org/licenses/MIT).

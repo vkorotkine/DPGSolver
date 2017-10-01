@@ -1,0 +1,40 @@
+/** \file
+
+\mainpage
+
+These pages serve as the main programmer's reference manual for DPGSolver and were automatically generated from the
+source using Doxygen.
+
+A good place to start is the <a href="pages.html">pages page</a>, which provides a getting started file. \todo Add this
+file.
+
+The <a href="https://github.com/PhilipZwanenburg/DPGSolver/tree/master">project home</a> contains additional information
+relating to the code functionality and status.
+
+\section s1_mainpage Software
+
+We would like to express our thanks to these other projects whose software we are using:
+- <a href="http://gcc.gnu.org">GCC</a>
+- <a href="https://www.python.org/downloads/">Python3</a> (including <a href="http://www.numpy.org">Numpy</a>)
+- <a href="https://cmake.org/">CMake</a>
+- <a href="http://www.doxygen.org">Doxygen</a>
+- <a href="http://www.graphviz.org">Graphviz</a>
+- <a href="http://www.mcs.anl.gov/research/projects/mpich2">MPICH</a>
+- <a href="https://software.intel.com/en-us/mkl">Intel (M)ath (K)ernel (L)ibrary</a>
+- <a href="https://www.gnu.org/software/gsl/">GNU GSL</a>
+- <a href="https://bitbucket.org/pjabardo/jacobi">Paulo Jabardo's libjacobi</a>
+- <a href="http://gmsh.info">Gmsh</a>
+- <a href="https://www.paraview.org">Paraview</a>
+- <a href="https://www.mcs.anl.gov/petsc/">PETSc</a>
+- <a href="http://valgrind.org/">Valgrind</a>
+
+\todo Update the list.
+	- Add <a href="https://travis-ci.org/">Travis CI</a>
+	- Add <a href="https://codecov.io/gh">Codecov</a>
+	- Add <a href="https://codedocs.xyz/">CodeDocs</a>
+
+\section s2_mainpage License
+
+The code is licensed under the <a href="md_LICENSE.html">GNU GPLv3</a>.
+
+*/
