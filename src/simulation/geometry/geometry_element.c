@@ -101,6 +101,7 @@ static struct Geometry_Element* constructor_Geometry_Element (struct const_Eleme
 
 static void destructor_Geometry_Element (struct Geometry_Element* element)
 {
+	EXIT_ADD_SUPPORT; // Add destructors for geometry operators.
 	destructor_Element((struct Element*) element);
 }
 
@@ -108,7 +109,6 @@ void set_up_geometry_ops (struct Simulation* sim, struct Intrusive_List* geometr
 {
 	for (struct Intrusive_Link* curr = geometry_elements->first; curr; curr = curr->next)
 		set_up_operators_element((struct Geometry_Element*)curr,sim);
-EXIT_UNSUPPORTED;
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -191,16 +191,23 @@ static void set_up_operators_tp_wedge (struct Geometry_Element* element, const s
 
 	struct Operators_TP ops_tp;
 
-	const struct Multiarray_Operator* cv0_vgs_vcs[2] = // destructed
-		{ constructor_operators("cv0","vgs","vcs","H_1_P_1",sim->p_s_v,b_e->sub_element[0],sim),
-		  constructor_operators("cv0","vgs","vcs","H_1_P_1",sim->p_s_v,b_e->sub_element[1],sim), };
-	set_operators_tp(&ops_tp,cv0_vgs_vcs[0],s_e[0]->cv1_vgs_vcs,cv0_vgs_vcs[1],s_e[1]->cv1_vgs_vcs);
-	element->cv1_vgs_vcs = constructor_operators_tp("cv1","vgs","vcs","H_1_P_1",b_e,sim,&ops_tp); // keep
+	// tensor-product sub-operators
+	if (s_e[0]->cv0_vgs_vcs == NULL) {
+		s_e[0]->cv0_vgs_vcs =
+			constructor_operators("cv0","vgs","vcs","H_1_P_1",sim->p_s_v,b_e->sub_element[0],sim); // destructed
+		s_e[0]->cv0_vgc_vcc =
+			constructor_operators("cv0","vgc","vcc","H_1_P_PM0",sim->p_s_v,b_e->sub_element[0],sim); // destructed
+	}
+	if (s_e[1]->cv0_vgs_vcs == NULL) {
+		s_e[1]->cv0_vgs_vcs =
+			constructor_operators("cv0","vgs","vcs","H_1_P_1",sim->p_s_v,b_e->sub_element[1],sim); // destructed
+		s_e[1]->cv0_vgc_vcc =
+			constructor_operators("cv0","vgc","vcc","H_1_P_PM0",sim->p_s_v,b_e->sub_element[1],sim); // destructed
+	}
 
-	destructor_Multiarray2_Operator(cv0_vgs_vcs);
+	set_operators_tp(&ops_tp,s_e[0]->cv0_vgs_vcs,s_e[0]->cv1_vgs_vcs,s_e[1]->cv0_vgs_vcs,s_e[1]->cv1_vgs_vcs);
+	element->cv1_vgs_vcs = constructor_operators_tp("cv1","vgs","vcs","H_1_P_1",sim->p_s_v,b_e,sim,&ops_tp); // keep
 
-
-
-//	element->cv1_vgc_vcc =
-	EXIT_ADD_SUPPORT;
+	set_operators_tp(&ops_tp,s_e[0]->cv0_vgc_vcc,s_e[0]->cv1_vgc_vcc,s_e[1]->cv0_vgc_vcc,s_e[1]->cv1_vgc_vcc);
+	element->cv1_vgc_vcc = constructor_operators_tp("cv1","vgs","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // keep
 }

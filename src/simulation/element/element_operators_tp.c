@@ -93,11 +93,11 @@ void set_operators_tp
 
 const struct Multiarray_Operator* constructor_operators_tp
 	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
-	 const struct const_Element* element, const struct Simulation* sim, const struct Operators_TP* ops_tp)
+	 const int p_ref[2], const struct const_Element* element, const struct Simulation* sim,
+	 const struct Operators_TP* ops_tp)
 {
 	UNUSED(sim); // Potentially needed in the future?
 
-	const int p_ref[2] = { -1, -1 };
 	struct Operator_Info* op_info =
 		constructor_Operator_Info(name_type,name_in,name_out,name_range,p_ref,element); // destructed
 
@@ -289,14 +289,12 @@ static void set_sub_operator_info
 
 static void construct_operators_std (const struct Multiarray_Operator* op)
 {
-print_Multiarray_Operator(op);
 	const ptrdiff_t size = compute_size(op->order,op->extents);
 	for (int i = 0; i < size; ++i) {
 		const struct Operator* op_c = op->data[i];
 		if (op_c->ops_tp)
 			const_constructor_move_const_Matrix_d(&op_c->op_std,constructor_op_std(op_c->ops_tp)); // keep
 	}
-EXIT_ADD_SUPPORT;
 }
 
 static void set_row_permutation_indices
@@ -379,7 +377,8 @@ static void set_ops_Md
 {
 	assert(op_values->data[OP_IND_H+OP_IND_I] == 0); // Not valid for fine to coarse (i.e. if info_loss == true)
 
-	struct Matrix_i* sub_op_values = constructor_empty_Matrix_i('R',DMAX,OP_ORDER_MAX); // tbd
+	const int d = op_info->element->d;
+	struct Matrix_i* sub_op_values = constructor_empty_Matrix_i('R',d,OP_ORDER_MAX); // tbd
 	set_to_value_Matrix_i(sub_op_values,OP_INVALID_IND);
 	const int set_inds[] = { OP_IND_P+OP_IND_I, OP_IND_P+OP_IND_O, OP_IND_H+OP_IND_I };
 	for (int i = 0; i < (int)(sizeof(set_inds)/sizeof(*set_inds)); ++i) {
@@ -389,7 +388,6 @@ static void set_ops_Md
 
 	set_sub_op_values(sub_op_values,op_values,op_info,spec_indices);
 
-	const int d = op_info->element->d;
 	for (int i = 0; i < d; ++i) {
 		const int* op_values = get_row_Matrix_i(i,sub_op_values);
 		const struct const_Vector_i* inds_op = constructor_indices_Vector_i(-1,op_values,NULL); // destructed

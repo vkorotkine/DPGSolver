@@ -21,9 +21,19 @@ You should have received a copy of the GNU General Public License along with DPG
  *  In most cases, only the standard, dense matrix operator will be available, however, for tensor-product elements, the
  *  sub-operators are also always available. The CSR sparse matrix format can be made available for operators known to
  *  have significant sparsity.
+ *
+ *  When used for matrix multiplication, the supported operator formats are denoted by the following `char`s:
+ *  - 'd'efault -> standard.
+ *  - 's'tandard;
+ *  - 't'ensor-product;
+ *  - 'c'sr.
  */
 
+#include <stddef.h>
 #include "definitions_core.h"
+
+struct const_Multiarray_d;
+struct Multiarray_d;
 
 /// Container holding the operator matrices in various formats.
 struct Operator {
@@ -56,6 +66,20 @@ void set_ops_tp_n_rows_cols
 	(int n_rows_sub[DMAX],                          ///< The number of rows of each sub-operator.
 	 int n_cols_sub[DMAX],                          ///< The number of columns of each sub-operator.
 	 const struct const_Multiarray_Matrix_d* ops_tp ///< The tensor-product operators.
+	);
+
+/** \brief Apply a matrix-matrix multiplication of an operator with a \ref const_Multiarray_d\* using the input operator
+ *         format.
+ *
+ *  See comments in \ref constructor_mm_NN1C_Matrix_d for the preset matrix-matrix multiplication parameters.
+ */
+void mm_NN1C_Operator_Multiarray_d
+	(const struct Operator* op,          ///< \ref Operator.
+	 const struct const_Multiarray_d* b, ///< The input multiarray.
+	 struct Multiarray_d* c,             ///< The output multiarray.
+	 const char op_format,               ///< The operator format to be used.
+	 const int order_sub_ma,             ///< The order sub-multiarray to be operated on.
+	 const ptrdiff_t* sub_indices        ///< The sub-indices of the multiarray if applicable.
 	);
 
 #endif // DPG__operator_h__INCLUDED

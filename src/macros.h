@@ -30,7 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Exit from the code.
-#define EXIT_MSG         ({ PRINT_FILELINE; abort(); })
+#define EXIT_MSG         ({ PRINT_FILELINE; fflush(stdout); abort(); })
 #define EXIT_UNSUPPORTED ({printf("\n\nError: Unsupported.\n"), EXIT_MSG; })
 #define EXIT_ADD_SUPPORT ({printf("\n\nError: Add support.\n"), EXIT_MSG; })
 #define EXIT_ERROR(...)  ({printf("\n\nError: "); printf(__VA_ARGS__); EXIT_MSG; })

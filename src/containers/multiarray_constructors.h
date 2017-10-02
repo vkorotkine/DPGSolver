@@ -114,12 +114,19 @@ const struct const_Multiarray_Matrix_d* constructor_default_const_Multiarray_Mat
 // Empty constructors *********************************************************************************************** //
 
 /** \brief Constructor for an empty \ref Multiarray_d\*.
- *  \return Standard.
- */
+ *  \return Standard. */
 struct Multiarray_d* constructor_empty_Multiarray_d
 	(const char layout,              ///< Defined in \ref Multiarray_d.
 	 const int order,                ///< Defined in \ref Multiarray_d.
 	 const ptrdiff_t*const extents_i ///< The input extents.
+	);
+
+/** \brief Constructor for an empty \ref Multiarray_d\* with extents having been previously dynamically allocated.
+ *  \return Standard. */
+struct Multiarray_d* constructor_empty_Multiarray_d_dyn_extents
+	(const char layout,            ///< Defined in \ref Multiarray_d.
+	 const int order,              ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const extents ///< Defined in \ref Multiarray_d.
 	);
 
 /** \brief Constructor for an empty \ref Multiarray_Vector_i\*.

@@ -67,6 +67,16 @@ void destructor_Multiarray2_Operator
 	(const struct Multiarray_Operator* a[2] ///< Standard.
 	);
 
+// Setter functions ************************************************************************************************* //
+
+/// \brief Set a \ref Multiarray_Operator\* from a sub range of a \ref Multiarray_Operator\*.
+void set_MO_from_MO
+	(const struct Multiarray_Operator* dest, ///< The destination.
+	 const struct Multiarray_Operator* src,  ///< The source.
+	 const int order_o,                      ///< The order of the output (destination).
+	 const ptrdiff_t*const sub_indices       ///< The sub-indices specifying which part of the source to extract.
+	);
+
 // Printing functions *********************************************************************************************** //
 
 /// \brief Print a \ref Multiarray_Operator\* to the terminal displaying entries below the default tolerance as 0.0.

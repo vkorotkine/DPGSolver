@@ -592,6 +592,7 @@ static void set_up_extents (struct Operator_Info* op_info)
 static void set_up_values_op (struct Operator_Info* op_info)
 {
 	const ptrdiff_t size = prod_const_Vector_i(op_info->extents_op);
+	assert(size != 0);
 
 	struct Matrix_i* values = constructor_empty_Matrix_i('R',size,OP_ORDER_MAX); // keep
 

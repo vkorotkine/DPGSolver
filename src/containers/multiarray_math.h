@@ -32,6 +32,18 @@ void transpose_Multiarray_d
 	 const bool mem_only     ///< Flag for whether only the memory should be transposed (with extents unchanged).
 	);
 
+/** \brief Perform a matrix-matrix multiplication on a \ref const_Multiarray_d\*, interpreting the input multiarray as a
+ *         a matrix with the appropriate extents.
+ *
+ *  The first extent **must** be equal to `ext_1` of the `a` matrix.
+ *  See comments in \ref constructor_mm_NN1C_Matrix_d for the preset matrix-matrix multiplication parameters.
+ */
+void mm_NN1C_Multiarray_d
+	(const struct const_Matrix_d*const a,     ///< Defined for \ref mm_d.
+	 const struct const_Multiarray_d*const b, ///< Input `b`.
+	 struct Multiarray_d*const c              ///< Output `c`.
+	);
+
 /// \brief Reinterpret the \ref const_Multiarray_d\* as a \ref const_Matrix_d\* having the given input extents.
 void reinterpret_const_Multiarray_as_Matrix_d
 	(const struct const_Multiarray_d* a, ///< The multiarray.

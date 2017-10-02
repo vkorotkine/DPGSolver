@@ -88,7 +88,7 @@ static void test_unit_construct_std_from_tp (struct Test_Info*const test_info, c
 		constructor_file_name_const_Multiarray_Matrix_d(name_ops_tp,file_name_full); // destructed
 	const struct const_Matrix_d* op_std_r =
 		constructor_file_name_const_Matrix_d(name_op_std,file_name_full); // destructed
-	const struct const_Matrix_d* op_std_c = constructor_op_std(ops_tp_r);     // destructed
+	const struct const_Matrix_d* op_std_c = constructor_op_std(ops_tp_r);   // destructed
 
 	free((void*)file_name_full);
 

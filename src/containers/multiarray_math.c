@@ -60,6 +60,35 @@ void transpose_Multiarray_d (struct Multiarray_d* a, const bool mem_only)
 	destructor_Matrix_d(a_M);
 }
 
+void mm_NN1C_Multiarray_d
+	(const struct const_Matrix_d*const a, const struct const_Multiarray_d*const b, struct Multiarray_d*const c)
+{
+	const char layout = 'C';
+	assert(b->layout == layout);
+	assert(c->layout == layout);
+
+	const int order = b->order;
+	assert(b->order == c->order);
+
+	const ptrdiff_t ext_0_b = b->extents[0],
+	                ext_0_c = c->extents[0];
+	assert(a->ext_1 == ext_0_b);
+	assert(a->ext_0 == ext_0_c);
+	for (int i = 1; i < order; ++i)
+		assert(b->extents[i] == c->extents[i]);
+
+	const ptrdiff_t ext_1 = compute_size(order,b->extents)/ext_0_b;
+
+	const struct const_Matrix_d* b_M =
+		constructor_move_const_Matrix_d_d(layout,ext_0_b,ext_1,false,b->data); // destructed
+	struct Matrix_d* c_M = constructor_move_Matrix_d_d(layout,ext_0_c,ext_1,false,c->data); // destructed
+
+	mm_d('N','N',1.0,0.0,a,b_M,c_M);
+
+	destructor_const_Matrix_d(b_M);
+	destructor_Matrix_d(c_M);
+}
+
 void reinterpret_const_Multiarray_as_Matrix_d
 	(const struct const_Multiarray_d* a, const struct const_Matrix_d* a_M, const ptrdiff_t ext_0,
 	 const ptrdiff_t ext_1)

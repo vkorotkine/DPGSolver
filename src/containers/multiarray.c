@@ -161,7 +161,6 @@ ptrdiff_t compute_index_sub_container
 	ptrdiff_t base = 1;
 	for (int i = 0; i < order_o; ++i)
 		base *= extents[i];
-
 	ptrdiff_t ind_sub = 0;
 	for (int i = 0; i < order_i-order_o; ++i) {
 		ind_sub += base*sub_indices[i];

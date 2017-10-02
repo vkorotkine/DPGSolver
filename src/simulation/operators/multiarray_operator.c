@@ -54,6 +54,14 @@ static void destructor_mutable_Multiarray_Operator
 	(struct mutable_Multiarray_Operator* a ///< Standard.
 	);
 
+/// \brief `mutable` version of \ref set_MO_from_MO.
+void set_mutable_MO_from_MO
+	(struct mutable_Multiarray_Operator* dest, ///< The destination.
+	 struct mutable_Multiarray_Operator* src,  ///< The source.
+	 const int order_o,                        ///< The order of the output (destination).
+	 const ptrdiff_t*const sub_indices         ///< The sub-indices specifying which part of the source to extract.
+	);
+
 // Constructor functions ******************************************************************************************** //
 // Default constructors ********************************************************************************************* //
 
@@ -100,6 +108,16 @@ void destructor_Multiarray2_Operator (const struct Multiarray_Operator* a[2])
 {
 	destructor_Multiarray_Operator(a[0]);
 	destructor_Multiarray_Operator(a[1]);
+}
+
+// Setter functions ************************************************************************************************* //
+
+void set_MO_from_MO
+	(const struct Multiarray_Operator* dest, const struct Multiarray_Operator* src, const int order_o,
+	 const ptrdiff_t*const sub_indices)
+{
+	set_mutable_MO_from_MO(
+		(struct mutable_Multiarray_Operator*)dest,(struct mutable_Multiarray_Operator*)src,order_o,sub_indices);
 }
 
 // Printing functions *********************************************************************************************** //
@@ -179,4 +197,17 @@ static void destructor_mutable_Multiarray_Operator (struct mutable_Multiarray_Op
 	free(a->data);
 	free(a->extents);
 	free(a);
+}
+
+void set_mutable_MO_from_MO
+	(struct mutable_Multiarray_Operator* dest, struct mutable_Multiarray_Operator* src, const int order_o,
+	 const ptrdiff_t*const sub_indices)
+{
+	assert(order_o == 1);
+
+	dest->owns_data = false;
+	dest->order     = order_o;
+	dest->extents   = src->extents;
+printf("%td\n",compute_index_sub_container(src->order,dest->order,src->extents,sub_indices));
+	dest->data      = &src->data[compute_index_sub_container(src->order,dest->order,src->extents,sub_indices)];
 }

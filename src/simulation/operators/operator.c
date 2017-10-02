@@ -66,6 +66,58 @@ void set_ops_tp_n_rows_cols
 	}
 }
 
+void mm_NN1C_Operator_Multiarray_d
+	(const struct Operator* op, const struct const_Multiarray_d* b, struct Multiarray_d* c, const char op_format,
+	 const int order_sub_ma, const ptrdiff_t* sub_indices)
+{
+	assert(b->layout == 'C');
+	assert(c->layout == 'C');
+
+	const ptrdiff_t* extents_b = b->extents;
+	ptrdiff_t* extents_c       = c->extents;
+	assert(op->op_std->ext_1 == extents_b[0]);
+	assert(op->op_std->ext_0 == extents_c[0]);
+
+	const int order = b->order;
+	assert(order == c->order);
+	for (int i = 1; i < order; ++i)
+		assert(extents_b[i] == extents_c[i]);
+
+	const struct const_Multiarray_d* b_op = NULL;
+	struct Multiarray_d* c_op = NULL;
+
+	if (order_sub_ma == order) {
+		b_op = b;
+		c_op = c;
+	} else {
+		assert(1 <= order_sub_ma);
+		assert(order_sub_ma <= order);
+
+		const ptrdiff_t ind_sub_b = compute_index_sub_container(order,order_sub_ma,extents_b,sub_indices),
+		                ind_sub_c = compute_index_sub_container(order,order_sub_ma,extents_c,sub_indices);
+
+		b_op = constructor_move_const_Multiarray_d_dyn_extents(
+			b->layout,order_sub_ma,(ptrdiff_t*)extents_b,false,&b->data[ind_sub_b]); // destructed
+		c_op = constructor_move_Multiarray_d_dyn_extents(
+			c->layout,order_sub_ma,extents_c,false,&c->data[ind_sub_c]); // destructed
+	}
+
+	switch (op_format) {
+//	case 's': mm_NN1C_Multiarray_d(op->op_std,b_op,c_op);    break;
+//	case 't': mm_tp_NN1C_Multiarray_d(op->ops_tp,b_op,c_op); break;
+	case 'c':
+		EXIT_ADD_SUPPORT;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %c\n",op_format);
+		break;
+	}
+
+	if (order_sub_ma != order) {
+		destructor_const_Multiarray_d(b_op);
+		destructor_Multiarray_d(c_op);
+	}
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

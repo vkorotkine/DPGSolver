@@ -25,15 +25,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_mesh.h"
 #include "definitions_intrusive.h"
 
-#include "multiarray_operator.h"
 #include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
 
-#include "simulation.h"
-#include "intrusive.h"
-#include "solver_volume.h"
 #include "geometry_element.h"
+#include "intrusive.h"
+#include "operator.h"
+#include "multiarray_operator.h"
+#include "simulation.h"
+#include "solver_volume.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -190,21 +191,29 @@ static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volum
 		{ .cv1_vg_vc = constructor_default_Multiarray_Operator(),
 		};
 
+	if (base_volume->curved) {
+		set_MO_from_MO(ops.cv1_vg_vc,element->cv1_vgs_vcs,1,(ptrdiff_t[]){0,0,1,1});
+	} else {
+		set_MO_from_MO(ops.cv1_vg_vc,element->cv1_vgc_vcc,1,(ptrdiff_t[]){0,0,p,p});
+	}
+print_Multiarray_Operator(ops.cv1_vg_vc);
+
+	const ptrdiff_t n_vc = ops.cv1_vg_vc->data[0]->op_std->ext_0;
+
+	struct Multiarray_d* jacobian_vc = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_vc,d,d});
+UNUSED(jacobian_vc);
+
+	for (int row = 0; row < d; ++row) {
+	for (int col = 0; col < d; ++col) {
+// Need to update function to not require same order input multiarrays?
+		mm_NN1C_Operator_Multiarray_d(ops.cv1_vg_vc->data[col],geom_coef,jacobian_vc,'d',1,(ptrdiff_t[]){row,col});
+	}}
+
 // Choose based on volume->curved
 // Change to shorter name: "set_operator"
 EXIT_ADD_SUPPORT; // Change to support using the Operator container
 UNUSED(geom_coef);
-UNUSED(d);
-UNUSED(ops);
-UNUSED(p);
 /*
-	set_const_Multiarray_Matrix_from_Multiarray_Matrix_d(ops.cv1_vg_vc,element->cv1_vgs_vcs,1,(ptrdiff_t[]){p,p,0});
-//	set_const_Multiarray_Matrix_from_Multiarray_Matrix_d(ops.cv1_vg_vc,element->cv1_vgc_vcc,1,(ptrdiff_t[]){p,p,0});
-
-	const ptrdiff_t n_vc = ops.cv1_vg_vc->data[0]->ext_0;
-
-	struct Multiarray_d* jacobian_vc = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_vc,d,d});
-//	struct Multiarray_d* jacobian_vm = constructor
 
 	for (int row = 0; row < d; row++) {
 		struct const_Vector_d geom_coef_V; // Note: not `const`

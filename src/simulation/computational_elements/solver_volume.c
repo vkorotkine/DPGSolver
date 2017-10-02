@@ -34,7 +34,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Constructor for an individual \ref Solver_Volume.
  *  \return Standard. */
 static struct Solver_Volume* constructor_Solver_Volume
-	(struct Volume* volume ///< \ref Volume.
+	(struct Volume* volume,       ///< \ref Volume.
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 /// \brief Destructor for an individual \ref Solver_Volume.
@@ -50,7 +51,7 @@ struct Intrusive_List* constructor_Solver_Volumes (struct Simulation*const sim)
 	struct Intrusive_List* solver_volumes = constructor_empty_IL(IL_SOLVER_VOLUME);
 
 	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next)
-		push_back_IL(solver_volumes,(struct Intrusive_Link*) constructor_Solver_Volume((struct Volume*) curr));
+		push_back_IL(solver_volumes,(struct Intrusive_Link*) constructor_Solver_Volume((struct Volume*)curr,sim));
 
 	destructor_IL(volumes);
 	return solver_volumes;
@@ -80,11 +81,13 @@ static void destructor_Solver_Volume (struct Solver_Volume* volume)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static struct Solver_Volume* constructor_Solver_Volume (struct Volume* volume)
+static struct Solver_Volume* constructor_Solver_Volume (struct Volume* volume, const struct Simulation* sim)
 {
 	struct Solver_Volume* solver_volume = calloc(1,sizeof *solver_volume); // returned
 
 	memcpy(&solver_volume->volume,volume,sizeof *volume); // shallow copy of the base.
+
+	solver_volume->p = sim->p_s_v[0];
 
 	solver_volume->sol_coef  = constructor_default_Multiarray_d(); // destructed
 	solver_volume->grad_coef = constructor_default_Multiarray_d(); // destructed
