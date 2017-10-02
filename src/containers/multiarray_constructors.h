@@ -220,6 +220,16 @@ struct Multiarray_d* constructor_move_Multiarray_d_dyn_extents
 	 double*const data        ///< Standard.
 	);
 
+/** `const` version of \ref constructor_move_Multiarray_d_dyn_extents.
+ *  \return See brief. */
+const struct const_Multiarray_d* constructor_move_const_Multiarray_d_dyn_extents
+	(const char layout,       ///< Defined for \ref constructor_move_Multiarray_d_dyn_extents.
+	 const int order,         ///< Defined for \ref constructor_move_Multiarray_d_dyn_extents.
+	 ptrdiff_t*const extents, ///< Defined for \ref constructor_move_Multiarray_d_dyn_extents.
+	 const bool owns_data,    ///< Defined for \ref constructor_move_Multiarray_d_dyn_extents.
+	 const double*const data  ///< Defined for \ref constructor_move_Multiarray_d_dyn_extents.
+	);
+
 /** \brief Move constructor for a \ref Multiarray_d\* from a \ref Matrix_d\*.
  *  \return Standard. */
 struct Multiarray_d* constructor_move_Multiarray_d_Matrix_d
@@ -279,6 +289,32 @@ void set_const_Multiarray_Matrix_from_Multiarray_Matrix_d
 	 const struct const_Multiarray_Matrix_d* src,  ///< Defined for mutable version.
 	 const int order_o,                            ///< Defined for mutable version.
 	 const ptrdiff_t*const sub_indices             ///< Defined for mutable version.
+	);
+
+/** \brief Constructor for a \ref const_Multiarray_d\* using a matrix-matrix multiplication, interpreting the input
+ *         multiarray as a matrix with the appropriate extents.
+ *  \return The result of the mm function call with the same number of columns as the reinterpreted input.
+ *
+ *  The first extent **must** be equal to `ext_1` of the `a` matrix.
+ *  See comments in \ref constructor_mm_NN1C_Matrix_d for the preset matrix-matrix multiplication parameters.
+ */
+const struct const_Multiarray_d* constructor_mm_NN1C_const_Multiarray_d
+	(const struct const_Matrix_d*const a,    ///< Defined for \ref mm_d.
+	 const struct const_Multiarray_d*const b ///< Input `b` in .
+	);
+
+/** \brief Constructor for a \ref const_Multiarray_d\* by applying sub-operator matrices along each direction.
+ *  \return Standard.
+ *
+ *  See comments in \ref constructor_mm_NN1C_Matrix_d for the preset matrix-matrix multiplication parameters.
+ *
+ *  The value of `b->extents[0]` must be equal to the product of `ext_1` of the matrices in `a_tp`. If the input `b` has
+ *  an order greater than 1, the output of this function can be interpreted as the sub-operators being applied to each
+ *  column individually.
+ */
+const struct const_Multiarray_d* constructor_mm_tp_NN1C_const_Multiarray_d
+	(const struct const_Multiarray_Matrix_d* a_tp, ///< The tensor-product sub-operators.
+	 const struct const_Multiarray_d* b            ///< The input multiarray.
 	);
 
 // Destructors ****************************************************************************************************** //

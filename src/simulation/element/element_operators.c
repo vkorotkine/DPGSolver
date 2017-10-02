@@ -28,17 +28,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_elements.h"
 #include "definitions_bases.h"
 
-#include "multiarray_operator.h"
 #include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
 
-#include "simulation.h"
-#include "element.h"
-#include "const_cast.h"
 #include "bases.h"
+#include "const_cast.h"
 #include "cubature.h"
 #include "cubature_operators.h"
+#include "element.h"
+#include "multiarray_operator.h"
+#include "operator.h"
+#include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
 

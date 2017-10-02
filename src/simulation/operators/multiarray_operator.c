@@ -26,14 +26,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix.h"
 #include "vector.h"
 
-// Static function declarations ************************************************************************************* //
+#include "operator.h"
 
-/// `mutable` version of \ref Operator
-struct mutable_Operator {
-	struct Matrix_d* op_std;            ///< The standard dense matrix operator.
-	struct Multiarray_Matrix_d* ops_tp; ///< The multiarray of tensor-product sub-operators.
-	struct Matrix_CSR_d* op_csr;        ///< The sparse matrix operator in CSR format.
-};
+// Static function declarations ************************************************************************************* //
 
 /// `mutable` version of \ref Multiarray_Operator.
 struct mutable_Multiarray_Operator {
@@ -176,18 +171,10 @@ static void destructor_mutable_Multiarray_Operator (struct mutable_Multiarray_Op
 	const ptrdiff_t size = compute_size(a->order,a->extents);
 	for (int i = 0; i < size; ++i) {
 		struct mutable_Operator* op = a->data[i];
-		if (a->owns_data) {
-			if (op->op_std)
-				destructor_Matrix_d(op->op_std);
-			if (op->ops_tp) {
-				assert(op->ops_tp->owns_data == false);
-				destructor_Multiarray_Matrix_d(op->ops_tp);
-			}
-			if (op->op_csr)
-				EXIT_ADD_SUPPORT;
-//				destructor_Matrix_CSR_d(op->op_csr);
-		}
-		free(op);
+		if (a->owns_data)
+			destructor_mutable_Operator(op);
+		else
+			free(op);
 	}
 	free(a->data);
 	free(a->extents);

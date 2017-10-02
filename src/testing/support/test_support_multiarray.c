@@ -36,8 +36,14 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 /** \brief Constructor for a \ref Multiarray_Vector_i\* as read from a file.
- *	\return Standard. */
+ *  \return Standard. */
 static struct Multiarray_Vector_i* constructor_file_Multiarray_Vector_i
+	(FILE* data_file ///< The file containing the data.
+	);
+
+/** \brief Constructor for a \ref Multiarray_Matrix_d\* as read from a file.
+ *  \return Standard. */
+static struct Multiarray_Matrix_d* constructor_file_Multiarray_Matrix_d
 	(FILE* data_file ///< The file containing the data.
 	);
 
@@ -69,6 +75,12 @@ struct Multiarray_d* constructor_file_name_Multiarray_d
 	return dest;
 }
 
+const struct const_Multiarray_d* constructor_file_name_const_Multiarray_d
+	(const char*const var_name, const char*const file_name_full)
+{
+	return (const struct const_Multiarray_d*) constructor_file_name_Multiarray_d(var_name,file_name_full);
+}
+
 struct Multiarray_Vector_i* constructor_file_name_Multiarray_Vector_i
 	(const char*const var_name, const char*const file_name_full)
 {
@@ -92,6 +104,31 @@ struct Multiarray_Vector_i* constructor_file_name_Multiarray_Vector_i
 		EXIT_ERROR("Did not find the '%s' variable in the file: %s",var_name,file_name_full);
 
 	return dest;
+}
+
+const struct const_Multiarray_Matrix_d* constructor_file_name_const_Multiarray_Matrix_d
+	(const char*const var_name, const char*const file_name_full)
+{
+	struct Multiarray_Matrix_d* dest = NULL;
+
+	FILE* data_file = fopen_checked(file_name_full); // closed
+
+	bool found_var = false;
+
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),data_file) != NULL) {
+		if (strstr(line,var_name)) {
+			found_var = true;
+			dest = constructor_file_Multiarray_Matrix_d(data_file);
+		}
+	}
+
+	fclose(data_file);
+
+	if (!found_var)
+		EXIT_ERROR("Did not find the '%s' variable in the file: %s",var_name,file_name_full);
+
+	return (const struct const_Multiarray_Matrix_d*) dest;
 }
 
 struct Multiarray_d* constructor_file_Multiarray_d (FILE* data_file, const bool check_container)
@@ -132,7 +169,7 @@ struct Multiarray_d* constructor_file_Multiarray_d (FILE* data_file, const bool 
 	struct Multiarray_d* dest = constructor_move_Multiarray_d_d('R',order,extents,true,data); // returned
 
 	if (layout == 'C')
-		EXIT_ADD_SUPPORT;
+		transpose_Multiarray_d(dest,true);
 
 	return dest;
 }
@@ -332,6 +369,29 @@ static struct Multiarray_Vector_i* constructor_file_Multiarray_Vector_i (FILE* d
 	ptrdiff_t size = compute_size(dest->order,dest->extents);
 	for (ptrdiff_t i = 0; i < size; ++i)
 		dest->data[i] = constructor_file_Vector_i(data_file,false);
+
+	return dest;
+}
+
+static struct Multiarray_Matrix_d* constructor_file_Multiarray_Matrix_d (FILE* data_file)
+{
+	check_container_type(data_file,"Multiarray_Matrix_d");
+
+	struct Multiarray_Partial ma_p = read_order_extents(data_file);
+
+	struct Multiarray_Matrix_d* dest = NULL;
+	switch (ma_p.order) {
+	case 1:
+		dest = constructor_empty_Multiarray_Matrix_d(false,ma_p.order,ma_p.extents);
+		break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+
+	ptrdiff_t size = compute_size(dest->order,dest->extents);
+	for (ptrdiff_t i = 0; i < size; ++i)
+		dest->data[i] = constructor_file_Matrix_d(data_file,true);
 
 	return dest;
 }

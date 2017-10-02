@@ -1,5 +1,4 @@
 set	(SOURCE
-	 multiarray_operator.c
 	 multiarray.c
 	 multiarray_constructors.c
 	 multiarray_math.c

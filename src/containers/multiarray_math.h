@@ -20,17 +20,24 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <stdbool.h>
+#include <stddef.h>
 
 struct Multiarray_d;
+struct const_Matrix_d;
+struct const_Multiarray_d;
 
-/** \brief Transpose the \ref Multiarray_d\* optionally leaving the values of the extents unchanged if
- *         `mem_only = true`.
- *
- *  \note The multiarray must have `order = 2`.
- */
+/// \brief Transpose the \ref Multiarray_d\*'s memory by interpreting as a matrix with `ext_0 = extents[0]`.
 void transpose_Multiarray_d
 	(struct Multiarray_d* a, ///< Multiarray to be transposed.
 	 const bool mem_only     ///< Flag for whether only the memory should be transposed (with extents unchanged).
+	);
+
+/// \brief Reinterpret the \ref const_Multiarray_d\* as a \ref const_Matrix_d\* having the given input extents.
+void reinterpret_const_Multiarray_as_Matrix_d
+	(const struct const_Multiarray_d* a, ///< The multiarray.
+	 const struct const_Matrix_d* a_M,   ///< The matrix.
+	 const ptrdiff_t ext_0,              ///< The value of `ext_0` for the matrix.
+	 const ptrdiff_t ext_1               ///< The value of `ext_1` for the matrix.
 	);
 
 #endif // DPG__multiarray_math_h__INCLUDED

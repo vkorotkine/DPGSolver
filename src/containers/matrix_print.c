@@ -31,21 +31,27 @@ You should have received a copy of the GNU General Public License along with DPG
 
 void print_Matrix_d_tol (const struct Matrix_d*const a, const double tol)
 {
+	const int n_dec = 4; // Number of places after the decimal.
+
 	const ptrdiff_t ext_0 = a->ext_0,
 	                ext_1 = a->ext_1;
 
 	const double* data = a->data;
+
+	char format_d[10];
+	char format_i[10];
+	sprintf(format_d,"%s%de%s","% .",n_dec," ");
+	sprintf(format_i,"%s%dd%s","% ",n_dec+7," ");
 
 	switch (a->layout) {
 	case 'R':
 		for (ptrdiff_t i = 0; i < ext_0; i++) {
 			for (ptrdiff_t j = 0; j < ext_1; j++) {
 				const double val = *data++;
-//				printf("% .4e ",( (isnan(val) || (fabs(val) > tol)) ? val : 0.0 ));
 				if (isnan(val) || (fabs(val) > tol))
-					printf("% .4e ",val);
+					printf(format_d,val);
 				else
-					printf("% 11d ",0);
+					printf(format_i,0);
 			}
 			printf("\n");
 		}
@@ -55,11 +61,10 @@ void print_Matrix_d_tol (const struct Matrix_d*const a, const double tol)
 		for (ptrdiff_t i = 0; i < ext_0; i++) {
 			for (ptrdiff_t j = 0; j < ext_1; j++) {
 				const double val = data[i+ext_0*j];
-//				printf("% .4e ",( (isnan(val) || (fabs(val) > tol)) ? val : 0.0 ));
 				if (isnan(val) || (fabs(val) > tol))
-					printf("% .4e ",val);
+					printf(format_d,val);
 				else
-					printf("% 11d ",0);
+					printf(format_i,0);
 			}
 			printf("\n");
 		}

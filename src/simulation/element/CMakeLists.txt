@@ -7,7 +7,6 @@ set	(SOURCE
 	 cubature_operators.c
 	)
 
-message("${GSL_LIBRARIES}")
 set	(LIBS_DEPEND
 	 ${GSL_LIBRARIES}
 	 ${MKL_LIBRARIES} # Likely to be removed
@@ -15,6 +14,7 @@ set	(LIBS_DEPEND
 	 Intrusive
 	 General
 	 Jacobi_GSL
+	 Operators
 	)
 
 add_library(Element STATIC ${SOURCE})

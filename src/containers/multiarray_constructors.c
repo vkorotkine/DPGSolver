@@ -21,10 +21,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <assert.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 
 #include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
+
+#include "const_cast.h"
+#include "operator.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -173,6 +177,13 @@ struct Multiarray_d* constructor_move_Multiarray_d_dyn_extents
 	return dest;
 }
 
+const struct const_Multiarray_d* constructor_move_const_Multiarray_d_dyn_extents
+	(const char layout, const int order, ptrdiff_t*const extents, const bool owns_data, const double*const data)
+{
+	return (const struct const_Multiarray_d*)
+		constructor_move_Multiarray_d_dyn_extents(layout,order,extents,owns_data,(double*)data);
+}
+
 struct Multiarray_Vector_i* constructor_move_Multiarray_Vector_i_dyn_extents
 	(const int order, ptrdiff_t*const extents, const bool owns_data, struct Vector_i**const data)
 {
@@ -267,6 +278,79 @@ void set_const_Multiarray_Matrix_from_Multiarray_Matrix_d
 {
 	set_Multiarray_Matrix_from_Multiarray_Matrix_d(
 		(struct Multiarray_Matrix_d*)dest,(struct Multiarray_Matrix_d*)src,order_o,sub_indices);
+}
+
+const struct const_Multiarray_d* constructor_mm_NN1C_const_Multiarray_d
+	(const struct const_Matrix_d*const a, const struct const_Multiarray_d*const b)
+{
+	const char layout = b->layout;
+
+	assert(layout == 'C');
+	const int order = b->order;
+
+	const ptrdiff_t ext_0 = b->extents[0],
+	                ext_1 = compute_size(order,b->extents)/b->extents[0];
+
+	const struct const_Matrix_d* b_M =
+		constructor_move_const_Matrix_d_d(layout,ext_0,ext_1,false,b->data); // destructed
+
+	const struct const_Matrix_d* c_M = constructor_mm_NN1C_const_Matrix_d(a,b_M); // moved/destructed
+	destructor_const_Matrix_d(b_M);
+
+	const double* data = c_M->data;
+	const_cast_bool(&c_M->owns_data,false);
+	destructor_const_Matrix_d(c_M);
+
+	ptrdiff_t* extents = malloc(order * sizeof *extents); // keep
+	extents[0] = a->ext_0;
+	for (int i = 1; i < order; ++i)
+		extents[i] = b->extents[i];
+
+	return constructor_move_const_Multiarray_d_dyn_extents(layout,order,extents,true,data);
+}
+
+const struct const_Multiarray_d* constructor_mm_tp_NN1C_const_Multiarray_d
+	(const struct const_Multiarray_Matrix_d* a_tp, const struct const_Multiarray_d* b)
+{
+	assert(a_tp->order == 1);
+	assert(1 < a_tp->extents[0]);
+	assert(a_tp->extents[0] <= DMAX);
+
+	assert(b->layout == 'C');
+
+	int n_rows_sub[DMAX] = { 0, 0, 0, },
+	    n_cols_sub[DMAX] = { 0, 0, 0, };
+	set_ops_tp_n_rows_cols(n_rows_sub,n_cols_sub,a_tp);
+
+	assert(b->extents[0] == (n_cols_sub[0]*n_cols_sub[1]*n_cols_sub[2]));
+
+	const ptrdiff_t ext_1_Ma = compute_size(b->order,b->extents)/b->extents[0];
+
+	const struct const_Matrix_d* b_M = constructor_default_const_Matrix_d(); // destructed
+
+	const struct const_Matrix_d* sub_op = NULL;
+
+	// r-direction
+	int ind_sub_op = 0;
+	sub_op = a_tp->data[ind_sub_op];
+	assert(sub_op != NULL);
+
+	reinterpret_const_Multiarray_as_Matrix_d(b,b_M,n_cols_sub[0],n_cols_sub[1]*n_cols_sub[2]*ext_1_Ma);
+
+	const struct const_Matrix_d* b_r = constructor_mm_NN1C_const_Matrix_d(sub_op,b_M); // destructed
+print_const_Multiarray_d(b);
+print_const_Matrix_d(b_M);
+
+print_const_Matrix_d(sub_op);
+print_const_Matrix_d(b_r);
+
+EXIT_ADD_SUPPORT;
+
+	destructor_const_Matrix_d(b_r);
+
+	destructor_const_Matrix_d(b_M);
+
+	return NULL;
 }
 
 // Destructors ****************************************************************************************************** //

@@ -80,11 +80,8 @@ void permute_Matrix_d (struct Matrix_d* a, const ptrdiff_t* p)
 {
 	assert((a->layout == 'R') || a->layout == 'C');
 
-	const ptrdiff_t ext_0 = a->ext_0,
-	                ext_1 = a->ext_1;
-
 	if (a->layout == 'R') {
-		const int n_p = ext_0;
+		const int n_p = a->ext_0;
 
 		size_t perm_st[n_p];
 		for (int i = 0; i < n_p; ++i)
@@ -92,17 +89,17 @@ void permute_Matrix_d (struct Matrix_d* a, const ptrdiff_t* p)
 
 		const gsl_permutation perm = { .size = n_p, .data = perm_st, };
 
+		transpose_Matrix_d(a,false);
 		gsl_matrix A =
-			{ .size1 = ext_0,
-			  .size2 = ext_1,
-			  .tda   = ext_0, /// May need to be modified. \todo check this.
+			{ .size1 = a->ext_0,
+			  .size2 = a->ext_1,
+			  .tda   = a->ext_1,
 			  .data  = a->data,
 			  .block = NULL,
 			  .owner = 0, };
 
-		transpose_Matrix_d((struct Matrix_d*)a,true);
 		gsl_permute_matrix(&perm,&A);
-		transpose_Matrix_d((struct Matrix_d*)a,true);
+		transpose_Matrix_d(a,false);
 	} else {
 		EXIT_ADD_SUPPORT;
 	}

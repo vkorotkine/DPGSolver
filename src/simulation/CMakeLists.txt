@@ -1,6 +1,7 @@
 add_subdirectory(computational_elements)
 add_subdirectory(element)
 add_subdirectory(geometry)
+add_subdirectory(operators)
 add_subdirectory(mesh)
 add_subdirectory(solution)
 

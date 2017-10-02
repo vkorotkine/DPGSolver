@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Simulation;
 struct const_Element;
+struct const_Multiarray_Matrix_d;
 
 /// Container for the sub-element operators used to construct the tensor-product operators.
 struct Operators_TP {
@@ -64,6 +65,12 @@ const struct Multiarray_Operator* constructor_operators_tp
 	 const struct const_Element* element, ///< \ref const_Element.
 	 const struct Simulation* sim,        ///< \ref Simulation.
 	 const struct Operators_TP* ops_tp    ///< \ref Operators_TP.
+	);
+
+/** \brief Constructor for a standard operator from its tensor-product sub-operators.
+ *  \return Standard. */
+const struct const_Matrix_d* constructor_op_std
+	(const struct const_Multiarray_Matrix_d* ops_tp ///< The tensor-product sub-operators.
 	);
 
 #endif // DPG__element_operators_tp_h__INCLUDED

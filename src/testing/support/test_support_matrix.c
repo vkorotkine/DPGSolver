@@ -130,6 +130,9 @@ struct Matrix_d* constructor_file_Matrix_d (FILE* data_file, const bool check_co
 	char line[STRLEN_MAX];
 	if (fgets(line,sizeof(line),data_file) != NULL) {};
 
+	if (strstr(line,"NULL"))
+		return NULL;
+
 	char layout = 0;
 	ptrdiff_t ext_0 = 0,
 	          ext_1 = 0;

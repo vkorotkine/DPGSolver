@@ -15,35 +15,53 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_unit.h"
-
-#include <stdlib.h>
-#include <stdio.h>
+#include "operator.h"
+#include <assert.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 
-#include "test_base.h"
-#include "test_unit_containers.h"
-#include "test_unit_cubature.h"
-#include "test_unit_bases.h"
-#include "test_unit_operators_tp.h"
+#include "multiarray.h"
+#include "matrix.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
+// Destructors ****************************************************************************************************** //
 
-void run_tests_unit (struct Test_Info*const test_info)
+void destructor_Operator (const struct Operator* op)
 {
-	printf("\n\nRunning Unit Tests:\n");
-	printf("-------------------------------------------------------------------------------------------------\n\n");
-
-	test_unit_containers(test_info);
-	test_unit_cubature(test_info);
-	test_print_warning(test_info,"Need to add tests for plotting nodes");
-	test_unit_bases(test_info);
-
-	test_unit_operators_tp(test_info);
+	destructor_mutable_Operator((struct mutable_Operator*)op);
 }
+
+void destructor_mutable_Operator (struct mutable_Operator* op)
+{
+	if (op->op_std)
+		destructor_Matrix_d(op->op_std);
+	if (op->ops_tp) {
+		assert(op->ops_tp->owns_data == false);
+		destructor_Multiarray_Matrix_d(op->ops_tp);
+	}
+	if (op->op_csr)
+		EXIT_ADD_SUPPORT;
+//		destructor_Matrix_CSR_d(op->op_csr);
+	free(op);
+}
+
+void set_ops_tp_n_rows_cols
+	(int n_rows_sub[DMAX], int n_cols_sub[DMAX], const struct const_Multiarray_Matrix_d* ops_tp)
+{
+	for (int i = 0; i < DMAX; ++i) {
+		if (ops_tp->data[i]) {
+			n_rows_sub[i] = ops_tp->data[i]->ext_0;
+			n_cols_sub[i] = ops_tp->data[i]->ext_1;
+		} else {
+			n_rows_sub[i] = 1;
+			n_cols_sub[i] = 1;
+		}
+	}
+}
+
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

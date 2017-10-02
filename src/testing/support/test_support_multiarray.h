@@ -35,9 +35,23 @@ struct Multiarray_d* constructor_file_name_Multiarray_d
 	 const char*const file_name_full ///< The name of the file (including the full path).
 	);
 
+/** \brief `const` version of \ref constructor_file_name_Multiarray_d.
+ *  \return Standard. */
+const struct const_Multiarray_d* constructor_file_name_const_Multiarray_d
+	(const char*const var_name,      ///< The name of the variable to be read in from the file.
+	 const char*const file_name_full ///< The name of the file (including the full path).
+	);
+
 /** \brief Constructor for a \ref Multiarray_Vector_i\* from data in the input file of the given name.
  *  \return Standard. */
 struct Multiarray_Vector_i* constructor_file_name_Multiarray_Vector_i
+	(const char*const var_name,      ///< The name of the variable to be read in from the file.
+	 const char*const file_name_full ///< The name of the file (including the full path).
+	);
+
+/** \brief Constructor for a \ref const_Multiarray_Matrix_d\* from data in the input file of the given name.
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_file_name_const_Multiarray_Matrix_d
 	(const char*const var_name,      ///< The name of the variable to be read in from the file.
 	 const char*const file_name_full ///< The name of the file (including the full path).
 	);

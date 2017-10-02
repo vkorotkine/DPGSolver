@@ -17,23 +17,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DPG__multiarray_operator_h__INCLUDED
 /** \file
  *  \brief Provides Multiarray_Operator\* containers and related functions.
- *
- *  In most cases, only the standard, dense matrix operator will be available, however, for tensor-product elements, the
- *  sub-operators are also always available. The CSR sparse matrix format can be made available for operators known to
- *  have significant sparsity.
  */
 
 #include <stdbool.h>
 #include <stddef.h>
 
 struct const_Vector_i;
-
-/// Container holding the operator matrices in various formats.
-struct Operator {
-	const struct const_Matrix_d*const op_std;             ///< The standard dense matrix operator.
-	const struct const_Multiarray_Matrix_d*const  ops_tp; ///< The multiarray of tensor-product sub-operators.
-	const struct const_Matrix_CSR_d*const op_csr;         ///< The sparse matrix operator in CSR format.
-};
 
 /// Container holding the multiarray of operators in various formats.
 struct Multiarray_Operator {
