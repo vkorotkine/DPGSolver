@@ -99,6 +99,10 @@ ptrdiff_t* allocate_and_set_extents
  *  \return Standard. */
 struct Multiarray_d* constructor_default_Multiarray_d ();
 
+/** \brief `const` version of \ref constructor_default_Multiarray_d.
+ *  \return Standard. */
+const struct const_Multiarray_d* constructor_default_const_Multiarray_d ();
+
 /** \brief Constructor for a default \ref Multiarray_Matrix_d\*.
  *  \return Standard. */
 struct Multiarray_Matrix_d* constructor_default_Multiarray_Matrix_d ();

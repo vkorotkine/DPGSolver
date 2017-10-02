@@ -34,6 +34,14 @@ void reinterpret_Multiarray_as_Matrix_d
 	 const ptrdiff_t ext_1   ///< Defined for \ref reinterpret_const_Multiarray_as_Matrix_d.
 	);
 
+/// \brief `mutable` version of \ref reinterpret_const_Matrix_as_Multiarray_d.
+void reinterpret_Matrix_as_Multiarray_d
+	(struct Matrix_d* a_M,   ///< Defined for \ref reinterpret_const_Matrix_as_Multiarray_d.
+	 struct Multiarray_d* a, ///< Defined for \ref reinterpret_const_Matrix_as_Multiarray_d.
+	 const int order,        ///< Defined for \ref reinterpret_const_Matrix_as_Multiarray_d.
+	 ptrdiff_t* extents      ///< Defined for \ref reinterpret_const_Matrix_as_Multiarray_d.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void transpose_Multiarray_d (struct Multiarray_d* a, const bool mem_only)
@@ -59,6 +67,12 @@ void reinterpret_const_Multiarray_as_Matrix_d
 	reinterpret_Multiarray_as_Matrix_d((struct Multiarray_d*)a,(struct Matrix_d*)a_M,ext_0,ext_1);
 }
 
+void reinterpret_const_Matrix_as_Multiarray_d
+	(const struct const_Matrix_d* a_M, const struct const_Multiarray_d* a, const int order, const ptrdiff_t* extents)
+{
+	reinterpret_Matrix_as_Multiarray_d((struct Matrix_d*)a_M,(struct Multiarray_d*)a,order,(ptrdiff_t*)extents);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -71,4 +85,16 @@ void reinterpret_Multiarray_as_Matrix_d
 	a_M->ext_1     = ext_1;
 	a_M->owns_data = false;
 	a_M->data      = a->data;
+}
+
+void reinterpret_Matrix_as_Multiarray_d
+	(struct Matrix_d* a_M, struct Multiarray_d* a, const int order, ptrdiff_t* extents)
+{
+	assert(compute_size(order,extents) == ((a_M->ext_0)*(a_M->ext_1)));
+
+	a->layout    = a_M->layout;
+	a->order     = order;
+	a->extents   = extents;
+	a->owns_data = a_M->owns_data;
+	a->data      = a_M->data;
 }

@@ -51,8 +51,12 @@ void destructor_mutable_Operator (struct mutable_Operator* op)
 void set_ops_tp_n_rows_cols
 	(int n_rows_sub[DMAX], int n_cols_sub[DMAX], const struct const_Multiarray_Matrix_d* ops_tp)
 {
+	const ptrdiff_t size = compute_size(ops_tp->order,ops_tp->extents);
+	assert(2 <= size);
+	assert(size <= DMAX);
+
 	for (int i = 0; i < DMAX; ++i) {
-		if (ops_tp->data[i]) {
+		if (i < size && ops_tp->data[i]) {
 			n_rows_sub[i] = ops_tp->data[i]->ext_0;
 			n_cols_sub[i] = ops_tp->data[i]->ext_1;
 		} else {

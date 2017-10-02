@@ -60,7 +60,8 @@ void test_unit_operators_tp (struct Test_Info*const test_info)
 	test_unit_construct_std_from_tp(test_info,"wedge");
 
 	test_unit_apply_tp(test_info,"quad");
-EXIT_UNSUPPORTED;
+	test_unit_apply_tp(test_info,"hex");
+	test_unit_apply_tp(test_info,"wedge");
 }
 
 // Static functions ************************************************************************************************* //
@@ -127,37 +128,37 @@ static void test_unit_apply_tp(struct Test_Info*const test_info, const char*cons
 		  .op_std = constructor_op_std(ops_tp), // destructed
 		  .op_csr = NULL, };
 
-	sprintf(var_name,"%s%s",e_type,"_x");
-	const struct const_Multiarray_d* x_r =
-		constructor_file_name_const_Multiarray_d(var_name,file_name_full); // destructed
-
 	sprintf(var_name,"%s%s",e_type,"_b");
 	const struct const_Multiarray_d* b_r =
 		constructor_file_name_const_Multiarray_d(var_name,file_name_full); // destructed
 
+	sprintf(var_name,"%s%s",e_type,"_c");
+	const struct const_Multiarray_d* c_r =
+		constructor_file_name_const_Multiarray_d(var_name,file_name_full); // destructed
+
 	free((void*)file_name_full);
 
-	const struct const_Multiarray_d* b_std = constructor_mm_NN1C_const_Multiarray_d(op.op_std,x_r); // destructed
-	const struct const_Multiarray_d* b_tp  = constructor_mm_tp_NN1C_const_Multiarray_d(op.ops_tp,x_r); // destructed
+	const struct const_Multiarray_d* c_std = constructor_mm_NN1C_const_Multiarray_d(op.op_std,b_r); // destructed
+	const struct const_Multiarray_d* c_tp  = constructor_mm_tp_NN1C_const_Multiarray_d(op.ops_tp,b_r); // destructed
 
 	destructor_const_Matrix_d(op.op_std);
 	destructor_const_Multiarray_Matrix_d(op.ops_tp);
-	destructor_const_Multiarray_d(x_r);
+	destructor_const_Multiarray_d(b_r);
 
 	tol = (double[]) { EPS, EPS, };
 	differences = (bool[])
-		{ diff_const_Multiarray_d(b_r,b_std,tol[0]),
-		  diff_const_Multiarray_d(b_r,b_tp,tol[1]),
+		{ diff_const_Multiarray_d(c_r,c_std,tol[0]),
+		  diff_const_Multiarray_d(c_r,c_tp,tol[1]),
 		};
 	if (check_diff(2,differences,&pass)) {
 		if (differences[0])
-			print_diff_const_Multiarray_d(b_r,b_std,tol[0]);
+			print_diff_const_Multiarray_d(c_r,c_std,tol[0]);
 		if (differences[1])
-			print_diff_const_Multiarray_d(b_r,b_tp,tol[1]);
+			print_diff_const_Multiarray_d(c_r,c_tp,tol[1]);
 	}
 	test_increment_and_print(test_info,pass,test_name);
 
-	destructor_const_Multiarray_d(b_r);
-	destructor_const_Multiarray_d(b_std);
-	destructor_const_Multiarray_d(b_tp);
+	destructor_const_Multiarray_d(c_r);
+	destructor_const_Multiarray_d(c_std);
+	destructor_const_Multiarray_d(c_tp);
 }

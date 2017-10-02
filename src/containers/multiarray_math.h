@@ -40,4 +40,12 @@ void reinterpret_const_Multiarray_as_Matrix_d
 	 const ptrdiff_t ext_1               ///< The value of `ext_1` for the matrix.
 	);
 
+/// \brief Reinterpret the \ref const_Matrix_d\* as a \ref const_Multiarray_d\* having the given input order/extents.
+void reinterpret_const_Matrix_as_Multiarray_d
+	(const struct const_Matrix_d* a_M,   ///< The matrix.
+	 const struct const_Multiarray_d* a, ///< The multiarray.
+	 const int order,                    ///< The value of `order` for the multiarray.
+	 const ptrdiff_t* extents            ///< The value of `extents` for the multiarray.
+	);
+
 #endif // DPG__multiarray_math_h__INCLUDED

@@ -23,7 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_integration.h"
 
 /** \brief Provides the main interface to run **all** currently supported tests.
- *	\return 0. */
+ *  \return 0 on successful exit. */
 int main
 	(int nargc,  ///< Standard.
 	 char** argv ///< Standard.

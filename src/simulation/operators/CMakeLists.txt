@@ -4,7 +4,8 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 Containers
 	)
 
-add_library(Operators ${SOURCE})
+add_library(Operators STATIC ${SOURCE})
 target_link_libraries(Operators PRIVATE ${LIBS_DEPEND})

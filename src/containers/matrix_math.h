@@ -115,4 +115,11 @@ void scale_Matrix_by_Vector_d
 	 const struct const_Vector_d*const b ///< Input \ref const_Vector_d\*.
 	);
 
+/// \brief Reinterpret the input \ref const_Matrix_d\* as having the input extents.
+void reinterpret_const_Matrix_d
+	(const struct const_Matrix_d* a, ///< The input matrix.
+	 const ptrdiff_t ext_0,          ///< The new value for `ext_0`.
+	 const ptrdiff_t ext_1           ///< The new value for `ext_1`.
+	);
+
 #endif // DPG__matrix_math_h__INCLUDED

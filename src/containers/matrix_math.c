@@ -29,6 +29,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix.h"
 #include "vector.h"
 
+#include "const_cast.h"
+
 // Static function declarations ************************************************************************************* //
 
 /// \brief Swap the layout of the \ref Matrix_d\*.
@@ -194,6 +196,13 @@ void scale_Matrix_by_Vector_d
 	}
 	if (transpose_a)
 		transpose_Matrix_d(a,true);
+}
+
+void reinterpret_const_Matrix_d (const struct const_Matrix_d* a, const ptrdiff_t ext_0, const ptrdiff_t ext_1)
+{
+	assert(ext_0*ext_1 == ((a->ext_0)*(a->ext_1)));
+	const_cast_ptrdiff(&a->ext_0,ext_0);
+	const_cast_ptrdiff(&a->ext_1,ext_1);
 }
 
 // Static functions ************************************************************************************************* //

@@ -10,7 +10,7 @@
 # CMake Warnings which may be safely ignored when the conditions in braces () are satisfied:
 # - "Manually-specified variables were not used by the project: CMAKE_TOOLCHAIN_FILE" (after the initial build)
 
-cmake_minimum_required(VERSION 3.8.1)
+cmake_minimum_required(VERSION 3.9)
 
 message("Running cmake with build type: ${CMAKE_BUILD_TYPE}.\n")
 

@@ -52,6 +52,11 @@ struct Multiarray_d* constructor_default_Multiarray_d ()
 	return constructor_move_Multiarray_d_dyn_extents('C',0,NULL,true,NULL);
 }
 
+const struct const_Multiarray_d* constructor_default_const_Multiarray_d ()
+{
+	return (const struct const_Multiarray_d*)constructor_default_Multiarray_d();
+}
+
 struct Multiarray_Matrix_d* constructor_default_Multiarray_Matrix_d ()
 {
 	return constructor_move_Multiarray_Matrix_d_dyn_extents(0,NULL,true,NULL);
@@ -312,9 +317,21 @@ const struct const_Multiarray_d* constructor_mm_NN1C_const_Multiarray_d
 const struct const_Multiarray_d* constructor_mm_tp_NN1C_const_Multiarray_d
 	(const struct const_Multiarray_Matrix_d* a_tp, const struct const_Multiarray_d* b)
 {
+	/**
+	 *  This function works by applying the tensor-product sub-operators to the appropriately rearranged memory of the
+	 *  input multiarray and its intermediate results.
+	 *
+	 *  In the interest of efficiency, memory is **always** rearranged using matrix transpose calls, which **require**
+	 *  that the operators be applied to a column-major inputs. The basic idea is to reinterpret the matrix input as
+	 *  having extents such that the desired leading dimension will be obtained after transposing.
+	 *
+	 *  \todo Add example documentation for this process.
+	 */
 	assert(a_tp->order == 1);
-	assert(1 < a_tp->extents[0]);
-	assert(a_tp->extents[0] <= DMAX);
+
+	const ptrdiff_t d_op = a_tp->extents[0];
+	assert(1 < d_op);
+	assert(d_op <= DMAX);
 
 	assert(b->layout == 'C');
 
@@ -322,11 +339,11 @@ const struct const_Multiarray_d* constructor_mm_tp_NN1C_const_Multiarray_d
 	    n_cols_sub[DMAX] = { 0, 0, 0, };
 	set_ops_tp_n_rows_cols(n_rows_sub,n_cols_sub,a_tp);
 
-	assert(b->extents[0] == (n_cols_sub[0]*n_cols_sub[1]*n_cols_sub[2]));
+	const int order_i          = b->order;
+	const ptrdiff_t* extents_i = b->extents;
+	assert(extents_i[0] == (n_cols_sub[0]*n_cols_sub[1]*n_cols_sub[2]));
 
-	const ptrdiff_t ext_1_Ma = compute_size(b->order,b->extents)/b->extents[0];
-
-	const struct const_Matrix_d* b_M = constructor_default_const_Matrix_d(); // destructed
+	const ptrdiff_t ext_1_Ma = compute_size(order_i,extents_i)/extents_i[0];
 
 	const struct const_Matrix_d* sub_op = NULL;
 
@@ -335,22 +352,63 @@ const struct const_Multiarray_d* constructor_mm_tp_NN1C_const_Multiarray_d
 	sub_op = a_tp->data[ind_sub_op];
 	assert(sub_op != NULL);
 
+	const struct const_Matrix_d* b_M = constructor_default_const_Matrix_d(); // destructed
 	reinterpret_const_Multiarray_as_Matrix_d(b,b_M,n_cols_sub[0],n_cols_sub[1]*n_cols_sub[2]*ext_1_Ma);
 
-	const struct const_Matrix_d* b_r = constructor_mm_NN1C_const_Matrix_d(sub_op,b_M); // destructed
-print_const_Multiarray_d(b);
-print_const_Matrix_d(b_M);
-
-print_const_Matrix_d(sub_op);
-print_const_Matrix_d(b_r);
-
-EXIT_ADD_SUPPORT;
-
-	destructor_const_Matrix_d(b_r);
-
+	const struct const_Matrix_d* c_r = constructor_mm_NN1C_const_Matrix_d(sub_op,b_M); // destructed/moved
 	destructor_const_Matrix_d(b_M);
 
-	return NULL;
+	// s-direction
+	++ind_sub_op;
+	sub_op = a_tp->data[ind_sub_op];
+
+	const struct const_Matrix_d* c_rs = NULL;
+	if (sub_op) {
+		transpose_Matrix_d((struct Matrix_d*)c_r,false);
+		reinterpret_const_Matrix_d(c_r,n_cols_sub[1],n_rows_sub[0]*n_cols_sub[2]*ext_1_Ma);
+
+		c_rs = constructor_mm_NN1C_const_Matrix_d(sub_op,c_r); // destructed/moved
+		destructor_const_Matrix_d(c_r);
+
+		reinterpret_const_Matrix_d(c_rs,n_rows_sub[1]*n_cols_sub[2]*ext_1_Ma,n_rows_sub[0]);
+		transpose_Matrix_d((struct Matrix_d*)c_rs,false);
+	} else {
+		assert(d_op == 3);
+		c_rs = c_r;
+	}
+
+	// t-direction
+	const struct const_Matrix_d* c_rst = NULL;
+	if (d_op > 2) {
+		++ind_sub_op;
+		sub_op = a_tp->data[ind_sub_op];
+
+		reinterpret_const_Matrix_d(c_rs,n_rows_sub[0]*n_rows_sub[1],n_cols_sub[2]*ext_1_Ma);
+		transpose_Matrix_d((struct Matrix_d*)c_rs,false);
+		reinterpret_const_Matrix_d(c_rs,n_cols_sub[2],n_rows_sub[0]*n_rows_sub[1]*ext_1_Ma);
+
+		c_rst = constructor_mm_NN1C_const_Matrix_d(sub_op,c_rs); // destructed/moved
+		destructor_const_Matrix_d(c_rs);
+
+		reinterpret_const_Matrix_d(c_rst,n_rows_sub[2]*ext_1_Ma,n_rows_sub[0]*n_rows_sub[1]);
+		transpose_Matrix_d((struct Matrix_d*)c_rst,false);
+	} else {
+		assert(d_op == 2);
+		c_rst = c_rs;
+	}
+
+	ptrdiff_t* extents_o = malloc(order_i * sizeof *extents_o); // keep
+	extents_o[0] = n_rows_sub[0]*n_rows_sub[1]*n_rows_sub[2];
+	for (int i = 1; i < order_i; ++i)
+		extents_o[i] = extents_i[i];
+
+	const struct const_Multiarray_d* c = constructor_default_const_Multiarray_d(); // returned
+	reinterpret_const_Matrix_as_Multiarray_d(c_rst,c,order_i,extents_o);
+
+	const_cast_bool(&c_rst->owns_data,false);
+	destructor_const_Matrix_d(c_rst);
+
+	return c;
 }
 
 // Destructors ****************************************************************************************************** //

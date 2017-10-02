@@ -15,7 +15,10 @@ set	(SOURCE
 set	(LIBS_DEPEND
 	 m # math
 	 ${MKL_LIBRARIES}
+	 ${GSL_LIBRARIES}
+	 General
+	 Operators
 	)
 
-add_library(Containers ${SOURCE})
+add_library(Containers STATIC ${SOURCE})
 target_link_libraries(Containers PRIVATE ${LIBS_DEPEND})

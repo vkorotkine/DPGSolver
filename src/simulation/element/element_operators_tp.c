@@ -148,6 +148,8 @@ const struct const_Matrix_d* constructor_op_std (const struct const_Multiarray_M
 	 */
 	assert(ops_tp->order == 1);
 	const int d_op = compute_size(ops_tp->order,ops_tp->extents);
+	assert(2 <= d_op);
+	assert(d_op <= DMAX);
 
 	int n_rows_sub[DMAX] = { 0, 0, 0, },
 	    n_cols_sub[DMAX] = { 0, 0, 0, };
@@ -199,11 +201,12 @@ const struct const_Matrix_d* constructor_op_std (const struct const_Multiarray_M
 	}
 
 	// t-direction
-	++ind_sub_op;
-	sub_op = ops_tp->data[ind_sub_op];
-
 	const struct const_Matrix_d* op_rst = NULL;
-	if (sub_op) {
+	if (d_op > 2) {
+		++ind_sub_op;
+		sub_op = ops_tp->data[ind_sub_op];
+		assert(sub_op != NULL);
+
 		ptrdiff_t perm_rs[prod_Vector_i(n_rows_op)];
 		set_row_permutation_indices(perm_rs,(int[]){0,1,2},(int[]){2,0,1},n_rows_op->data);
 
