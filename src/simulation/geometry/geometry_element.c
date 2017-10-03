@@ -156,6 +156,8 @@ static void set_up_operators_standard (struct Geometry_Element* element, const s
 {
 	struct const_Element* base_element = (struct const_Element*)element;
 
+	element->vc0_vgc_vgc = constructor_operators("vc0","vgc","vgc","H_1_P_1P",sim->p_s_v,base_element,sim); // keep
+
 	element->cv1_vgs_vcs = constructor_operators("cv1","vgs","vcs","H_1_P_1",  sim->p_s_v,base_element,sim); // keep
 	element->cv1_vgc_vcc = constructor_operators("cv1","vgc","vcc","H_1_P_PM0",sim->p_s_v,base_element,sim); // keep
 }

@@ -340,7 +340,6 @@ static void set_operator_std
 		const struct const_Matrix_d* T_i = constructor_sgesv_const_Matrix_d(cv0r_ii,cv0_ii); // destructed
 
 		destructor_const_Matrix_d(cv0r_ii);
-		destructor_const_Matrix_d(cv0_ii);
 
 		const struct const_Multiarray_Matrix_d* op_cvN = constructor_op_MMd(true,n_op);  // destructed
 		for (int i = 0; i < n_op; ++i) {
@@ -387,6 +386,7 @@ static void set_operator_std
 			for (int i = 0; i < n_op; ++i)
 				const_constructor_move_const_Matrix_d(&op_ioN->data[i],op_coN->data[i]); // moved
 		}
+		destructor_const_Matrix_d(cv0_ii);
 		destructor_const_Multiarray_Matrix_d(op_coN);
 	} else {
 		EXIT_ADD_SUPPORT; // L2 projection operators.
@@ -489,7 +489,9 @@ int convert_to_range (const char type_range, const char*const name_range)
 			EXIT_UNSUPPORTED;
 		break;
 	case 'p':
-		if (strstr(name_range,"P_1"))
+		if (strstr(name_range,"P_1P"))
+			return OP_R_P_1P;
+		else if (strstr(name_range,"P_1"))
 			return OP_R_P_1;
 		else if (strstr(name_range,"P_PM0"))
 			return OP_R_P_PM0;
@@ -573,6 +575,10 @@ static void set_up_extents (struct Operator_Info* op_info)
 	switch (op_info->range_p) { // p_o, p_i
 		case OP_R_P_1:
 			push_back_Vector_i(extents_op,2,false,false);
+			push_back_Vector_i(extents_op,2,false,false);
+			break;
+		case OP_R_P_1P:
+			push_back_Vector_i(extents_op,op_info->p_ref[1]+1,false,false);
 			push_back_Vector_i(extents_op,2,false,false);
 			break;
 		case OP_R_P_PM0: // fallthrough
@@ -777,7 +783,8 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 		assert(var_io == 'i');
 
 		switch (op_info->range_p) {
-		case OP_R_P_1:
+		case OP_R_P_1: // fallthrough
+		case OP_R_P_1P:
 			x_mm[0] = 1;
 			x_mm[1] = 1+1;
 			break;
@@ -813,6 +820,7 @@ static void compute_range_p_o (int p_o_mm[2], const struct Operator_Info* op_inf
 		p_o_mm[0] = GSL_MAX(p_i-1,op_info->p_ref[0]);
 		p_o_mm[1] = GSL_MIN(p_i+1,op_info->p_ref[1])+1;
 		break;
+	case OP_R_P_1P: // fallthrough
 	case OP_R_P_ALL:
 		p_o_mm[0] = op_info->p_ref[0];
 		p_o_mm[1] = op_info->p_ref[1]+1;

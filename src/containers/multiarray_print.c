@@ -92,7 +92,7 @@ void print_Multiarray_d_tol (const struct Multiarray_d*const a, const double tol
 		}
 		destructor_Matrix_d(a_M);
 	} else {
-		EXIT_UNSUPPORTED;
+		EXIT_ERROR("Unsupported: %d\n",order);
 	}
 	printf("\n");
 }

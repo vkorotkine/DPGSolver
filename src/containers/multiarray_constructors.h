@@ -200,6 +200,16 @@ struct Multiarray_d* constructor_move_Multiarray_d_d
 	 double*const data                ///< Standard.
 	);
 
+/** \brief `const` version of \ref constructor_move_Multiarray_d_d.
+ *  \return Standard. */
+const struct const_Multiarray_d* constructor_move_const_Multiarray_d_d
+	(const char layout,               ///< Defined for \ref constructor_move_Multiarray_d_d.
+	 const int order,                 ///< Defined for \ref constructor_move_Multiarray_d_d.
+	 const ptrdiff_t*const extents_i, ///< Defined for \ref constructor_move_Multiarray_d_d.
+	 const bool owns_data,            ///< Defined for \ref constructor_move_Multiarray_d_d.
+	 const double*const data          ///< Defined for \ref constructor_move_Multiarray_d_d.
+	);
+
 /** \brief Move constructor for a \ref Multiarray_Vector_i\* with the input extents having been previously
  *         dynamically allocated.
  *  \return See brief. */

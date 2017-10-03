@@ -78,8 +78,22 @@ void mm_NN1C_Operator_Multiarray_d
 	 const struct const_Multiarray_d* b, ///< The input multiarray.
 	 struct Multiarray_d* c,             ///< The output multiarray.
 	 const char op_format,               ///< The operator format to be used.
-	 const int order_sub_ma,             ///< The order sub-multiarray to be operated on.
-	 const ptrdiff_t* sub_indices        ///< The sub-indices of the multiarray if applicable.
+	 const int order_sub_ma,             ///< The order of each of the sub-multiarrays to be operated on.
+	 const ptrdiff_t* sub_inds_b,        ///< The sub-indices of the `b` multiarray if required.
+	 const ptrdiff_t* sub_inds_c         ///< The sub-indices of the `c` multiarray if required.
+	);
+
+// Printing functions *********************************************************************************************** //
+
+/// \brief Print a \ref Operator\* to the terminal displaying entries below the default tolerance as 0.0.
+void print_Operator
+	(const struct Operator*const a ///< Standard.
+	);
+
+/// \brief Print a \ref Operator\* to the terminal displaying entries below the tolerance as 0.0.
+void print_Operator_tol
+	(const struct Operator*const a, ///< Standard.
+	 const double tol               ///< The tolerance.
 	);
 
 #endif // DPG__operator_h__INCLUDED

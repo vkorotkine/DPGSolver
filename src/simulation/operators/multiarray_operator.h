@@ -77,6 +77,13 @@ void set_MO_from_MO
 	 const ptrdiff_t*const sub_indices       ///< The sub-indices specifying which part of the source to extract.
 	);
 
+/// \brief Set a \ref Operator\* from a sub range of a \ref Multiarray_Operator\*.
+void set_O_from_MO
+	(const struct Operator* dest,           ///< The destination.
+	 const struct Multiarray_Operator* src, ///< The source.
+	 const ptrdiff_t*const sub_indices      ///< The sub-indices specifying which part of the source to extract.
+	);
+
 // Printing functions *********************************************************************************************** //
 
 /// \brief Print a \ref Multiarray_Operator\* to the terminal displaying entries below the default tolerance as 0.0.

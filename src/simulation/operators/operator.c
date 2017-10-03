@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_core.h"
+#include "definitions_tol.h"
 
 #include "multiarray.h"
 #include "matrix.h"
@@ -68,7 +69,7 @@ void set_ops_tp_n_rows_cols
 
 void mm_NN1C_Operator_Multiarray_d
 	(const struct Operator* op, const struct const_Multiarray_d* b, struct Multiarray_d* c, const char op_format,
-	 const int order_sub_ma, const ptrdiff_t* sub_indices)
+	 const int order_sub_ma, const ptrdiff_t* sub_inds_b, const ptrdiff_t* sub_inds_c)
 {
 	assert(b->layout == 'C');
 	assert(c->layout == 'C');
@@ -78,32 +79,40 @@ void mm_NN1C_Operator_Multiarray_d
 	assert(op->op_std->ext_1 == extents_b[0]);
 	assert(op->op_std->ext_0 == extents_c[0]);
 
-	const int order = b->order;
-	assert(order == c->order);
-	for (int i = 1; i < order; ++i)
+	for (int i = 1; i < order_sub_ma; ++i)
 		assert(extents_b[i] == extents_c[i]);
 
 	const struct const_Multiarray_d* b_op = NULL;
 	struct Multiarray_d* c_op = NULL;
 
-	if (order_sub_ma == order) {
+	const int order_b = b->order;
+	if (order_sub_ma == order_b) {
 		b_op = b;
+	} else {
+		assert(1 <= order_sub_ma);
+		assert(order_sub_ma <= order_b);
+
+		const ptrdiff_t ind_sub_b = compute_index_sub_container(order_b,order_sub_ma,extents_b,sub_inds_b);
+		b_op = constructor_move_const_Multiarray_d_d(
+			b->layout,order_sub_ma,(ptrdiff_t*)extents_b,false,&b->data[ind_sub_b]); // destructed
+	}
+
+	const int order_c = c->order;
+	if (order_sub_ma == order_c) {
 		c_op = c;
 	} else {
 		assert(1 <= order_sub_ma);
-		assert(order_sub_ma <= order);
+		assert(order_sub_ma <= order_c);
 
-		const ptrdiff_t ind_sub_b = compute_index_sub_container(order,order_sub_ma,extents_b,sub_indices),
-		                ind_sub_c = compute_index_sub_container(order,order_sub_ma,extents_c,sub_indices);
+		const ptrdiff_t ind_sub_c = compute_index_sub_container(order_c,order_sub_ma,extents_c,sub_inds_c);
 
-		b_op = constructor_move_const_Multiarray_d_dyn_extents(
-			b->layout,order_sub_ma,(ptrdiff_t*)extents_b,false,&b->data[ind_sub_b]); // destructed
-		c_op = constructor_move_Multiarray_d_dyn_extents(
+		c_op = constructor_move_Multiarray_d_d(
 			c->layout,order_sub_ma,extents_c,false,&c->data[ind_sub_c]); // destructed
 	}
 
 	switch (op_format) {
-//	case 's': mm_NN1C_Multiarray_d(op->op_std,b_op,c_op);    break;
+	case 'd': // fallthrough
+	case 's': mm_NN1C_Multiarray_d(op->op_std,b_op,c_op);    break;
 //	case 't': mm_tp_NN1C_Multiarray_d(op->ops_tp,b_op,c_op); break;
 	case 'c':
 		EXIT_ADD_SUPPORT;
@@ -113,10 +122,47 @@ void mm_NN1C_Operator_Multiarray_d
 		break;
 	}
 
-	if (order_sub_ma != order) {
+	if (order_sub_ma != order_b)
 		destructor_const_Multiarray_d(b_op);
+	if (order_sub_ma != order_c)
 		destructor_Multiarray_d(c_op);
+}
+
+// Printing functions *********************************************************************************************** //
+
+void print_Operator (const struct Operator*const a)
+{
+	print_Operator_tol(a,EPS);
+}
+
+void print_Operator_tol (const struct Operator*const a, const double tol)
+{
+	printf("\n");
+	printf("%-35s","\tdense operator:");
+	if (a->op_std) {
+		printf("\n\n");
+		print_const_Matrix_d_tol(a->op_std,tol);
+	} else {
+		printf("*** NULL ***\n");
 	}
+
+	printf("%-35s","\ttensor-product sub-operators:");
+	if (a->ops_tp) {
+		printf("\n{\n\n");
+		print_const_Multiarray_Matrix_d_tol(a->ops_tp,tol);
+		printf("}\n");
+	} else {
+		printf("*** NULL ***\n");
+	}
+
+	printf("%-35s","\tsparse (CSR) operator:");
+	if (a->op_csr) {
+		printf("\n\n");
+		EXIT_ADD_SUPPORT;
+	} else {
+		printf("*** NULL ***\n");
+	}
+	printf("\n");
 }
 
 // Static functions ************************************************************************************************* //

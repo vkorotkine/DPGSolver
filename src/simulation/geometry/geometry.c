@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix.h"
 #include "vector.h"
 
+#include "const_cast.h"
 #include "geometry_element.h"
 #include "intrusive.h"
 #include "operator.h"
@@ -44,7 +45,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 typedef void (*compute_geom_coef_fptr)
 	(const struct Simulation*const sim,
-	 struct Volume*const volume
+	 struct Solver_Volume*const volume
 	);
 
 /** \brief Set the appropriate function pointer for computing \ref Volume::geom_coef.
@@ -101,13 +102,15 @@ static void compute_geometry_volume
 
 // Interface functions ********************************************************************************************** //
 
-void set_up_geometry (struct Simulation* sim, struct Intrusive_List* volumes)
+void set_up_geometry (struct Simulation* sim, struct Intrusive_List* solver_volumes)
 {
-	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
-		struct Volume* volume = (struct Volume*) curr;
+	EXIT_ERROR("Unused.\n"); /// \todo Delete this function. \deprecated
+	for (struct Intrusive_Link* curr = solver_volumes->first; curr; curr = curr->next) {
+		struct Volume*        volume        = (struct Volume*) curr;
+		struct Solver_Volume* solver_volume = (struct Solver_Volume*) curr;
 
 		compute_geom_coef_fptr compute_geom_coef = set_fptr_geom_coef(sim->domain_type,volume->curved);
-		compute_geom_coef(sim,volume);
+		compute_geom_coef(sim,solver_volume);
 	}
 }
 
@@ -121,11 +124,13 @@ void set_up_solver_geometry (struct Simulation* sim)
 
 	update_volumes_element(sim->volumes,geometry_elements);
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-//struct Volume* volume = (struct Volume*) curr;
-//struct const_Geometry_Element* geometry_element = (struct const_Geometry_Element*) volume->element;
-//printf("geom: %d %d %d\n",volume->index,((struct Element*)geometry_element)->type,volume->element->type);
+		struct Volume* volume               = (struct Volume*) curr;
+		struct Solver_Volume* solver_volume = (struct Solver_Volume*) curr;
 
-		compute_geometry_volume(sim,(struct Solver_Volume*)curr);
+		compute_geom_coef_fptr compute_geom_coef = set_fptr_geom_coef(sim->domain_type,volume->curved);
+		compute_geom_coef(sim,solver_volume);
+
+		compute_geometry_volume(sim,solver_volume);
 	}
 	update_volumes_element(sim->volumes,sim->elements);
 EXIT_UNSUPPORTED;
@@ -143,19 +148,24 @@ EXIT_UNSUPPORTED;
 /// \brief Compute \ref Volume::geom_coef for straight volumes.
 static void compute_geom_coef_straight
 	(const struct Simulation*const sim, ///< Defined in \ref compute_geom_coef_fptr.
-	 struct Volume*const volume         ///< Defined in \ref compute_geom_coef_fptr.
+	 struct Solver_Volume*const volume  ///< Defined in \ref compute_geom_coef_fptr.
 	);
 
 /// \brief Compute \ref Volume::geom_coef for curved volumes using blending.
 static void compute_geom_coef_curved
 	(const struct Simulation*const sim, ///< Defined in \ref compute_geom_coef_fptr.
-	 struct Volume*const volume         ///< Defined in \ref compute_geom_coef_fptr.
+	 struct Solver_Volume*const volume  ///< Defined in \ref compute_geom_coef_fptr.
 	);
 
 /// \brief Compute \ref Volume::geom_coef for curved volumes using the parametric mapping.
 static void compute_geom_coef_parametric
 	(const struct Simulation*const sim, ///< Defined in \ref compute_geom_coef_fptr.
-	 struct Volume*const volume         ///< Defined in \ref compute_geom_coef_fptr.
+	 struct Solver_Volume*const volume  ///< Defined in \ref compute_geom_coef_fptr.
+	);
+
+/// \brief Set the permutation required for conversion to the standard Jacobian ordering from the transposed ordering.
+static const ptrdiff_t* set_jacobian_permutation
+	(const int d ///< The dimension
 	);
 
 static compute_geom_coef_fptr set_fptr_geom_coef (const int domain_type, const bool volume_curved)
@@ -163,6 +173,7 @@ static compute_geom_coef_fptr set_fptr_geom_coef (const int domain_type, const b
 	if (domain_type == DOM_STRAIGHT) {
 		return compute_geom_coef_straight;
 	} else if (domain_type == DOM_CURVED) {
+printf("vc: %d\n",volume_curved);
 		if (!volume_curved)
 			return compute_geom_coef_straight;
 		else
@@ -177,13 +188,13 @@ static compute_geom_coef_fptr set_fptr_geom_coef (const int domain_type, const b
 static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volume* volume)
 {
 	struct Volume* base_volume = (struct Volume*) volume;
-	struct const_Geometry_Element *element = (struct const_Geometry_Element*) base_volume->element;
+	struct const_Geometry_Element* element = (struct const_Geometry_Element*) base_volume->element;
 
 	const int d = ((struct const_Element*)element)->d;
 
-	const struct const_Multiarray_d*const geom_coef = base_volume->geom_coef;
+	const struct const_Multiarray_d*const geom_coef = volume->geom_coef;
 
-	const int p = volume->p;
+	const int p = volume->p_ref;
 
 	struct Ops {
 		const struct Multiarray_Operator* cv1_vg_vc;
@@ -191,40 +202,33 @@ static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volum
 		{ .cv1_vg_vc = constructor_default_Multiarray_Operator(),
 		};
 
-	if (base_volume->curved) {
+	if (!base_volume->curved) {
 		set_MO_from_MO(ops.cv1_vg_vc,element->cv1_vgs_vcs,1,(ptrdiff_t[]){0,0,1,1});
 	} else {
 		set_MO_from_MO(ops.cv1_vg_vc,element->cv1_vgc_vcc,1,(ptrdiff_t[]){0,0,p,p});
 	}
 print_Multiarray_Operator(ops.cv1_vg_vc);
+print_const_Multiarray_d(geom_coef);
+EXIT_UNSUPPORTED;
 
 	const ptrdiff_t n_vc = ops.cv1_vg_vc->data[0]->op_std->ext_0;
 
 	struct Multiarray_d* jacobian_vc = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_vc,d,d});
-UNUSED(jacobian_vc);
 
-	for (int row = 0; row < d; ++row) {
-	for (int col = 0; col < d; ++col) {
-// Need to update function to not require same order input multiarrays?
-		mm_NN1C_Operator_Multiarray_d(ops.cv1_vg_vc->data[col],geom_coef,jacobian_vc,'d',1,(ptrdiff_t[]){row,col});
-	}}
+	for (ptrdiff_t row = 0; row < d; ++row)
+		mm_NN1C_Operator_Multiarray_d(ops.cv1_vg_vc->data[row],geom_coef,jacobian_vc,'d',2,NULL,&row);
+
+/// \todo make external
+	const ptrdiff_t* perm = set_jacobian_permutation(d);
+print_Multiarray_d(jacobian_vc);
+	permute_Multiarray_d(jacobian_vc,perm);
+print_Multiarray_d(jacobian_vc);
 
 // Choose based on volume->curved
 // Change to shorter name: "set_operator"
 EXIT_ADD_SUPPORT; // Change to support using the Operator container
 UNUSED(geom_coef);
 /*
-
-	for (int row = 0; row < d; row++) {
-		struct const_Vector_d geom_coef_V; // Note: not `const`
-		set_const_Vector_from_Multiarray_d(&geom_coef_V,geom_coef,(ptrdiff_t[]){row});
-		for (int col = 0; col < d; col++) {
-			struct Vector_d jacobian_vc_V;
-			set_Vector_from_Multiarray_d(&jacobian_vc_V,jacobian_vc,(ptrdiff_t[]){row,col});
-			const struct const_Matrix_d* cv1_vg_vc = ops.cv1_vg_vc->data[col];
-
-			mv_d('N',1.0,0.0,cv1_vg_vc,&geom_coef_V,&jacobian_vc_V);
-
 //		mm_CTN_d(NvnI0,1,NvnG0,OPS->D_vG_vI[col],&XYZ[NvnG0*row],&J_vI[NvnI0*(d*row+col)]);
 //		mm_CTN_d(NvnC0,1,NvnG0,OPS->D_vG_vC[col],&XYZ[NvnG0*row],&J_vC[NvnC0*(d*row+col)]);
 		}
@@ -237,12 +241,13 @@ UNUSED(volume);
 
 // Level 1 ********************************************************************************************************** //
 
-static void compute_geom_coef_straight (const struct Simulation*const sim, struct Volume*const volume)
+static void compute_geom_coef_straight (const struct Simulation*const sim, struct Solver_Volume*const volume)
 {
+	struct Volume* base_volume = (struct Volume*) volume;
 	destructor_const_Multiarray_d(volume->geom_coef);
 
 	if (strstr(sim->basis_geom,"lagrange") || strstr(sim->basis_geom,"bezier")) {
-		const_constructor_copy_Multiarray_d(&volume->geom_coef,volume->xyz_ve);
+		const_constructor_copy_Multiarray_d(&volume->geom_coef,base_volume->xyz_ve);
 		if (volume->geom_coef->layout != 'C')
 			transpose_Multiarray_d((struct Multiarray_d*)volume->geom_coef,true);
 	} else if (strstr(sim->basis_geom,"nurbs")) {
@@ -252,16 +257,47 @@ static void compute_geom_coef_straight (const struct Simulation*const sim, struc
 	}
 }
 
-static void compute_geom_coef_curved (const struct Simulation*const sim, struct Volume*const volume)
+static void compute_geom_coef_curved (const struct Simulation*const sim, struct Solver_Volume*const volume)
 {
-UNUSED(sim);
-UNUSED(volume);
-//	EXIT_ADD_SUPPORT;
+	UNUSED(sim);
+	struct Volume* base_volume = (struct Volume*) volume;
+	struct const_Geometry_Element* element = (struct const_Geometry_Element*) base_volume->element;
+
+	const int p = volume->p_ref;
+
+	const struct Operator* vc0_vg_vg = calloc(1,sizeof *vc0_vg_vg); // free
+
+	set_O_from_MO(vc0_vg_vg,element->vc0_vgc_vgc,(ptrdiff_t[]){0,0,p,1});
+print_Multiarray_Operator(element->vc0_vgc_vgc);
+print_Operator(vc0_vg_vg);
+EXIT_ADD_SUPPORT;
+	free((void*)vc0_vg_vg);
 }
 
-static void compute_geom_coef_parametric (const struct Simulation*const sim, struct Volume*const volume)
+static void compute_geom_coef_parametric (const struct Simulation*const sim, struct Solver_Volume*const volume)
 {
 UNUSED(sim);
 UNUSED(volume);
 	EXIT_ADD_SUPPORT;
+}
+
+static const ptrdiff_t* set_jacobian_permutation (const int d)
+{
+	switch (d) {
+	case 1:
+		return NULL;
+		break;
+	case 2: {
+		static const ptrdiff_t perm_2d[] = { 0, 2, 1, 3, };
+		return perm_2d;
+		break;
+	} case 3: {
+		static const ptrdiff_t perm_3d[] = { 0, 3, 6, 1, 4, 7, 2, 5, 8, };
+		return perm_3d;
+		break;
+	} default:
+		EXIT_ERROR("Unsupported: %d\n",d);
+		break;
+	}
+	return NULL;
 }

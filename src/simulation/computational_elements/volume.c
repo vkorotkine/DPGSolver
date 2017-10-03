@@ -98,8 +98,6 @@ struct Intrusive_List* constructor_Volumes (struct Simulation*const sim, const s
 	}
 	sim->n_v = n_v;
 
-	set_up_geometry(sim,volumes);
-
 	return volumes;
 }
 
@@ -116,7 +114,6 @@ void destructor_Volumes (struct Intrusive_List* volumes)
 void destructor_Volume (struct Volume* volume)
 {
 	destructor_const_Multiarray_d(volume->xyz_ve);
-	destructor_const_Multiarray_d(volume->geom_coef);
 }
 
 bool check_ve_condition
@@ -224,8 +221,6 @@ static struct Volume* constructor_Volume
 	                check_if_boundary_v(vol_mi->to_lf,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
 	const_cast_bool(&volume->curved,
 	                check_if_curved_v(sim->domain_type,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
-
-	const_constructor_move_Multiarray_d(&volume->geom_coef,constructor_default_Multiarray_d());
 
 	return volume;
 }

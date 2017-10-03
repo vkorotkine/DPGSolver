@@ -60,6 +60,22 @@ void transpose_Multiarray_d (struct Multiarray_d* a, const bool mem_only)
 	destructor_Matrix_d(a_M);
 }
 
+void permute_Multiarray_d (struct Multiarray_d* a, const ptrdiff_t* p)
+{
+	if (p == NULL)
+		return;
+
+	assert(a->order > 0);
+
+	const ptrdiff_t ext_0 = a->extents[0],
+	                ext_1 = compute_size(a->order,a->extents)/ext_0;
+
+	struct Matrix_d a_M;
+	reinterpret_Multiarray_as_Matrix_d(a,&a_M,ext_0,ext_1);
+
+	permute_Matrix_d (&a_M,p);
+}
+
 void mm_NN1C_Multiarray_d
 	(const struct const_Matrix_d*const a, const struct const_Multiarray_d*const b, struct Multiarray_d*const c)
 {

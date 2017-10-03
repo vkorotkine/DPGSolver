@@ -27,8 +27,8 @@ struct Solver_Volume;
  *	- \ref Volume::geom_coef.
  */
 void set_up_geometry
-	(struct Simulation* sim,        ///< \ref Simulation.
-	 struct Intrusive_List* volumes ///< The volumes for which to set up the geometry.
+	(struct Simulation* sim,               ///< \ref Simulation.
+	 struct Intrusive_List* solver_volumes ///< The solver volumes for which to set up the geometry.
 	);
 
 /**	\brief Set up the solver geometry:

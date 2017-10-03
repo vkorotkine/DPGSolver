@@ -81,7 +81,13 @@ void scale_Matrix_d (struct Matrix_d* a, const double val)
 void permute_Matrix_d (struct Matrix_d* a, const ptrdiff_t* p)
 {
 	assert((a->layout == 'R') || a->layout == 'C');
+	assert(p != NULL);
 
+	// There was a problem with the gsl_permute_matrix function call when setting tda outside of the gsl_matrix
+	// definition. Not sure what the problem was but this is the reason for the redundant code.
+
+	// It seems like gsl_permute_matrix naturally permutes the columns of a row-major stored matrix from the right.
+	// Thus, transposition is required for permutation of row-major from the left/column-major from the right.
 	if (a->layout == 'R') {
 		const int n_p = a->ext_0;
 
@@ -103,7 +109,25 @@ void permute_Matrix_d (struct Matrix_d* a, const ptrdiff_t* p)
 		gsl_permute_matrix(&perm,&A);
 		transpose_Matrix_d(a,false);
 	} else {
-		EXIT_ADD_SUPPORT;
+		const int n_p = a->ext_1;
+
+		size_t perm_st[n_p];
+		for (int i = 0; i < n_p; ++i)
+			perm_st[i] = p[i];
+
+		const gsl_permutation perm = { .size = n_p, .data = perm_st, };
+
+		transpose_Matrix_d(a,true);
+		gsl_matrix A =
+			{ .size1 = a->ext_0,
+			  .size2 = a->ext_1,
+			  .tda   = a->ext_0, /// \todo Ensure that this is correct.
+			  .data  = a->data,
+			  .block = NULL,
+			  .owner = 0, };
+
+		gsl_permute_matrix(&perm,&A);
+		transpose_Matrix_d(a,true);
 	}
 }
 

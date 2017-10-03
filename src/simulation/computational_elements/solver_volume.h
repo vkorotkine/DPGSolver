@@ -25,7 +25,18 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Solver_Volume {
 	struct Volume volume; ///< The base \ref Volume.
 
-	int p; ///< The order of the solution.
+	/// The reference order of the volume. Need not be equal to the order of the solution in the volume.
+	const int p_ref;
+
+	/** The geometry coefficients of the volume in the \ref Simulation::basis_geom. For each of the supported
+	 *  \ref Simulation::domain_type options, geom_coef represents:
+	 *	- DOM_STRAIGHT: the projection of xyz_ve into the geometry basis of order 1.
+	 *	- DOM_CURVED:
+	 *		- straight volumes: [See DOM_STRAIGHT];
+	 *		- boundary volumes: the coefficients of the *blended* face geometry of order k_g.
+	 *	- DOM_PARAMETRIC: the coefficients of the mapped geometry of order k_g.
+	 */
+	const struct const_Multiarray_d*const geom_coef;
 
 	/// The coefficients of the solution in the \ref Simulation::basis_sol.
 	struct Multiarray_d* sol_coef;

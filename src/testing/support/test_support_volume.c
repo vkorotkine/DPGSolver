@@ -12,7 +12,7 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-/**	\file
+/** \file
  */
 
 #include "test_support_volume.h"
@@ -47,8 +47,6 @@ struct Volume* constructor_Volume
 	skip_lines(file,1);
 	struct Multiarray_d* xyz_ve = constructor_file_Multiarray_d(file,true); // keep
 	const_constructor_move_Multiarray_d(&volume->xyz_ve,xyz_ve);
-
-	const_constructor_move_Multiarray_d(&volume->geom_coef,constructor_default_Multiarray_d()); // keep
 
 	int elem_type;
 	read_skip_file_i("elem_type",file,&elem_type);

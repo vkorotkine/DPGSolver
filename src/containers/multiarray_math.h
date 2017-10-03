@@ -32,6 +32,12 @@ void transpose_Multiarray_d
 	 const bool mem_only     ///< Flag for whether only the memory should be transposed (with extents unchanged).
 	);
 
+/// \brief Permute the the input multiarray according to the input permutation by reinterpretting as a matrix.
+void permute_Multiarray_d
+	(struct Multiarray_d* a, ///< Multiarray to be permuted.
+	 const ptrdiff_t* p      ///< Permutation indices.
+	);
+
 /** \brief Perform a matrix-matrix multiplication on a \ref const_Multiarray_d\*, interpreting the input multiarray as a
  *         a matrix with the appropriate extents.
  *

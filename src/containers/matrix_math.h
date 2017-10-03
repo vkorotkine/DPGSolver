@@ -47,10 +47,10 @@ void scale_Matrix_d
 	 const double val    ///< The value by which to scale.
 	);
 
-/** \brief Permute the rows of the input matrix according to the input permutation.
- *  \todo Implement test for this function.
+/** \brief Permute the the input matrix according to the input permutation.
  *
- *  The permutation is performed using the [gsl_permute_matrix] function.
+ *  The permutation is performed using the [gsl_permute_matrix] function and is from the left for a row-major input and
+ *  from the right for a column major input.
  *
  *  <!-- References: -->
  *  [gsl_permuate_matrix]: https://www.gnu.org/software/gsl/doc/html/permutation.html#c.gsl_permute_matrix

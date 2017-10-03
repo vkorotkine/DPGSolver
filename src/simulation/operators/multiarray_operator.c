@@ -62,6 +62,13 @@ void set_mutable_MO_from_MO
 	 const ptrdiff_t*const sub_indices         ///< The sub-indices specifying which part of the source to extract.
 	);
 
+/// \brief `mutable` version of \ref set_O_from_MO.
+void set_mutable_O_from_MO
+	(struct mutable_Operator* dest,           ///< The destination.
+	 struct mutable_Multiarray_Operator* src, ///< The source.
+	 const ptrdiff_t*const sub_indices        ///< The sub-indices specifying which part of the source to extract.
+	);
+
 // Constructor functions ******************************************************************************************** //
 // Default constructors ********************************************************************************************* //
 
@@ -120,6 +127,12 @@ void set_MO_from_MO
 		(struct mutable_Multiarray_Operator*)dest,(struct mutable_Multiarray_Operator*)src,order_o,sub_indices);
 }
 
+void set_O_from_MO
+	(const struct Operator* dest, const struct Multiarray_Operator* src, const ptrdiff_t*const sub_indices)
+{
+	set_mutable_O_from_MO((struct mutable_Operator*)dest,(struct mutable_Multiarray_Operator*)src,sub_indices);
+}
+
 // Printing functions *********************************************************************************************** //
 
 void print_Multiarray_Operator (const struct Multiarray_Operator*const a)
@@ -135,32 +148,8 @@ void print_Multiarray_Operator_tol (const struct Multiarray_Operator*const a, co
 
 	for (ptrdiff_t i = 0; i < size; i++) {
 		printf("\nIndex (MO) % 3td:\n",i);
-		const struct Operator* op = a->data[i];
 
-		printf("%-35s","\tdense operator:");
-		if (op->op_std) {
-			printf("\n\n");
-			print_const_Matrix_d_tol(op->op_std,tol);
-		} else {
-			printf("*** NULL ***\n");
-		}
-
-		printf("%-35s","\ttensor-product sub-operators:");
-		if (op->ops_tp) {
-			printf("\n{\n\n");
-			print_const_Multiarray_Matrix_d_tol(op->ops_tp,tol);
-			printf("}\n");
-		} else {
-			printf("*** NULL ***\n");
-		}
-
-		printf("%-35s","\tsparse (CSR) operator:");
-		if (op->op_csr) {
-			printf("\n\n");
-			EXIT_ADD_SUPPORT;
-		} else {
-			printf("*** NULL ***\n");
-		}
+		print_Operator_tol(a->data[i],tol);
 	}
 	printf("\n");
 }
@@ -208,6 +197,14 @@ void set_mutable_MO_from_MO
 	dest->owns_data = false;
 	dest->order     = order_o;
 	dest->extents   = src->extents;
-printf("%td\n",compute_index_sub_container(src->order,dest->order,src->extents,sub_indices));
 	dest->data      = &src->data[compute_index_sub_container(src->order,dest->order,src->extents,sub_indices)];
+}
+
+void set_mutable_O_from_MO
+	(struct mutable_Operator* dest, struct mutable_Multiarray_Operator* src, const ptrdiff_t*const sub_indices)
+{
+	struct mutable_Operator* tmp = src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
+	dest->op_std = tmp->op_std;
+	dest->ops_tp = tmp->ops_tp;
+	dest->op_csr = tmp->op_csr;
 }

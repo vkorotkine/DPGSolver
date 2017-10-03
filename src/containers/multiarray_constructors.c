@@ -173,6 +173,14 @@ struct Multiarray_d* constructor_move_Multiarray_d_d
 	return constructor_move_Multiarray_d_dyn_extents(layout,order,extents,owns_data,data);
 }
 
+const struct const_Multiarray_d* constructor_move_const_Multiarray_d_d
+	(const char layout, const int order, const ptrdiff_t*const extents_i, const bool owns_data,
+	 const double*const data)
+{
+	return (const struct const_Multiarray_d*)
+		constructor_move_Multiarray_d_d(layout,order,extents_i,owns_data,(double*)data);
+}
+
 struct Multiarray_d* constructor_move_Multiarray_d_dyn_extents
 	(const char layout, const int order, ptrdiff_t*const extents, const bool owns_data, double*const data)
 {

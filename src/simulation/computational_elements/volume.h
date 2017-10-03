@@ -42,16 +42,6 @@ struct Volume {
 
 	const struct const_Multiarray_d*const xyz_ve; ///< The xyz coordinates of the volume vertices.
 
-	/** The geometry coefficients of the volume in the \ref Simulation::basis_geom. For each of the supported
-	 *  \ref Simulation::domain_type options, geom_coef represents:
-	 *	- DOM_STRAIGHT: the projection of xyz_ve into the geometry basis of order 1.
-	 *	- DOM_CURVED:
-	 *		- straight volumes: [See DOM_STRAIGHT];
-	 *		- boundary volumes: the coefficients of the *blended* face geometry of order k_g.
-	 *	- DOM_PARAMETRIC: the coefficients of the mapped geometry of order k_g.
-	 */
-	const struct const_Multiarray_d*const geom_coef;
-
 	const struct Face*const faces[NFMAX][NSUBFMAX]; ///< Array of pointers to the neighbouring \ref Face containers.
 
 	const struct const_Element*const element; ///< Pointer to the associated \ref const_Element.

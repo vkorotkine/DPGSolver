@@ -25,8 +25,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
-#include "simulation.h"
+#include "const_cast.h"
 #include "geometry.h"
+#include "simulation.h"
 #include "solution.h"
 
 // Static function declarations ************************************************************************************* //
@@ -69,6 +70,7 @@ void destructor_Solver_Volumes (struct Intrusive_List* solver_volumes)
 
 static void destructor_Solver_Volume (struct Solver_Volume* volume)
 {
+	destructor_const_Multiarray_d(volume->geom_coef);
 	destructor_Multiarray_d(volume->sol_coef);
 	destructor_Multiarray_d(volume->grad_coef);
 	destructor_const_Multiarray_d(volume->metrics_vg);
@@ -87,7 +89,8 @@ static struct Solver_Volume* constructor_Solver_Volume (struct Volume* volume, c
 
 	memcpy(&solver_volume->volume,volume,sizeof *volume); // shallow copy of the base.
 
-	solver_volume->p = sim->p_s_v[0];
+	const_cast_i(&solver_volume->p_ref,sim->p_s_v[0]);
+	const_constructor_move_Multiarray_d(&solver_volume->geom_coef,constructor_default_Multiarray_d());
 
 	solver_volume->sol_coef  = constructor_default_Multiarray_d(); // destructed
 	solver_volume->grad_coef = constructor_default_Multiarray_d(); // destructed
