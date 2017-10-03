@@ -50,6 +50,21 @@ struct mutable_Operator {
 };
 
 // Interface functions ********************************************************************************************** //
+// Constructors ***************************************************************************************************** //
+
+/** \brief Constructor for a \ref const_Multiarray_d\* from the operator-multiarray multiplication using the input
+ *         operator format.
+ *  \return See brief. */
+const struct const_Multiarray_d* constructor_mm_NN1_Operator_const_Multiarray_d
+	(const struct Operator* op,          ///< \ref Operator.
+	 const struct const_Multiarray_d* b, ///< The input multiarray.
+	 const char layout_c,                ///< The desired layout of the output `c`.
+	 const char op_format,               ///< The operator format to be used.
+	 const int order_sub_ma,             ///< The order of each of the sub-multiarrays to be operated on.
+	 const ptrdiff_t* sub_inds_b         ///< The sub-indices of the `b` multiarray if required.
+	);
+
+// Destructors ****************************************************************************************************** //
 
 /// \brief Destructor for a \ref Operator.
 void destructor_Operator
@@ -61,6 +76,8 @@ void destructor_mutable_Operator
 	(struct mutable_Operator* op ///< Standard.
 	);
 
+// General functions ************************************************************************************************ //
+
 /// \brief Set the input arrays to hold the number of rows and columns of the tensor-product operators.
 void set_ops_tp_n_rows_cols
 	(int n_rows_sub[DMAX],                          ///< The number of rows of each sub-operator.
@@ -68,12 +85,30 @@ void set_ops_tp_n_rows_cols
 	 const struct const_Multiarray_Matrix_d* ops_tp ///< The tensor-product operators.
 	);
 
+// Math functions *************************************************************************************************** //
+
 /** \brief Apply a matrix-matrix multiplication of an operator with a \ref const_Multiarray_d\* using the input operator
- *         format.
+ *         format, asserting that the two input multiarrays have column-major layout.
  *
  *  See comments in \ref constructor_mm_NN1C_Matrix_d for the preset matrix-matrix multiplication parameters.
  */
 void mm_NN1C_Operator_Multiarray_d
+	(const struct Operator* op,          ///< \ref Operator.
+	 const struct const_Multiarray_d* b, ///< The input multiarray.
+	 struct Multiarray_d* c,             ///< The output multiarray.
+	 const char op_format,               ///< The operator format to be used.
+	 const int order_sub_ma,             ///< The order of each of the sub-multiarrays to be operated on.
+	 const ptrdiff_t* sub_inds_b,        ///< The sub-indices of the `b` multiarray if required.
+	 const ptrdiff_t* sub_inds_c         ///< The sub-indices of the `c` multiarray if required.
+	);
+
+/** \brief Apply a matrix-matrix multiplication of an operator with a \ref const_Multiarray_d\* using the input operator
+ *         format, transposing the multiarrays for the operation if they do not have a column-major layout.
+ *
+ *  See comments in \ref constructor_mm_NN1C_Matrix_d for the preset matrix-matrix multiplication parameters, excluding
+ *  the layout.
+ */
+void mm_NN1_Operator_Multiarray_d
 	(const struct Operator* op,          ///< \ref Operator.
 	 const struct const_Multiarray_d* b, ///< The input multiarray.
 	 struct Multiarray_d* c,             ///< The output multiarray.

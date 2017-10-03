@@ -121,7 +121,7 @@ void permute_Matrix_d (struct Matrix_d* a, const ptrdiff_t* p)
 		gsl_matrix A =
 			{ .size1 = a->ext_0,
 			  .size2 = a->ext_1,
-			  .tda   = a->ext_0, /// \todo Ensure that this is correct.
+			  .tda   = a->ext_1, /// \todo Ensure that this is correct.
 			  .data  = a->data,
 			  .block = NULL,
 			  .owner = 0, };

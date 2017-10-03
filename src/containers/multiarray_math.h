@@ -26,6 +26,11 @@ struct Multiarray_d;
 struct const_Matrix_d;
 struct const_Multiarray_d;
 
+/// \brief Swap the layout of the \ref Multiarray_d\*.
+void swap_layout_Multiarray_d
+	(struct Multiarray_d* a ///< The input multiarray.
+	);
+
 /// \brief Transpose the \ref Multiarray_d\*'s memory by interpreting as a matrix with `ext_0 = extents[0]`.
 void transpose_Multiarray_d
 	(struct Multiarray_d* a, ///< Multiarray to be transposed.
@@ -39,7 +44,7 @@ void permute_Multiarray_d
 	);
 
 /** \brief Perform a matrix-matrix multiplication on a \ref const_Multiarray_d\*, interpreting the input multiarray as a
- *         a matrix with the appropriate extents.
+ *         a matrix with the appropriate extents, asserting that the input multiarrays have column-major layout.
  *
  *  The first extent **must** be equal to `ext_1` of the `a` matrix.
  *  See comments in \ref constructor_mm_NN1C_Matrix_d for the preset matrix-matrix multiplication parameters.
@@ -48,6 +53,14 @@ void mm_NN1C_Multiarray_d
 	(const struct const_Matrix_d*const a,     ///< Defined for \ref mm_d.
 	 const struct const_Multiarray_d*const b, ///< Input `b`.
 	 struct Multiarray_d*const c              ///< Output `c`.
+	);
+
+/** \brief Compute the extents of the output multiarray from a matrix-multiarray multiplication.
+ *  \return Dynamically allocated extents. */
+ptrdiff_t* compute_extents_mm_MMa
+	(const ptrdiff_t ext_0,     ///< The value of `extents[0]`.
+	 const int order,           ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t* extents_i ///< The input extents. Used to set all but the first entry.
 	);
 
 /// \brief Reinterpret the \ref const_Multiarray_d\* as a \ref const_Matrix_d\* having the given input extents.

@@ -209,7 +209,6 @@ static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volum
 	}
 print_Multiarray_Operator(ops.cv1_vg_vc);
 print_const_Multiarray_d(geom_coef);
-EXIT_UNSUPPORTED;
 
 	const ptrdiff_t n_vc = ops.cv1_vg_vc->data[0]->op_std->ext_0;
 
@@ -218,7 +217,6 @@ EXIT_UNSUPPORTED;
 	for (ptrdiff_t row = 0; row < d; ++row)
 		mm_NN1C_Operator_Multiarray_d(ops.cv1_vg_vc->data[row],geom_coef,jacobian_vc,'d',2,NULL,&row);
 
-/// \todo make external
 	const ptrdiff_t* perm = set_jacobian_permutation(d);
 print_Multiarray_d(jacobian_vc);
 	permute_Multiarray_d(jacobian_vc,perm);
@@ -268,9 +266,14 @@ static void compute_geom_coef_curved (const struct Simulation*const sim, struct 
 	const struct Operator* vc0_vg_vg = calloc(1,sizeof *vc0_vg_vg); // free
 
 	set_O_from_MO(vc0_vg_vg,element->vc0_vgc_vgc,(ptrdiff_t[]){0,0,p,1});
-print_Multiarray_Operator(element->vc0_vgc_vgc);
-print_Operator(vc0_vg_vg);
-EXIT_ADD_SUPPORT;
+
+	const struct const_Multiarray_d* geom_coef =
+		constructor_mm_NN1_Operator_const_Multiarray_d(vc0_vg_vg,base_volume->xyz_ve,'C','d',2,NULL); // keep
+EXIT_ERROR("Add support after output to paraview is working.");
+
+	destructor_const_Multiarray_d(volume->geom_coef);
+	const_constructor_move_const_Multiarray_d(&volume->geom_coef,geom_coef);
+
 	free((void*)vc0_vg_vg);
 }
 

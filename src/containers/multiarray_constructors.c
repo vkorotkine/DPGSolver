@@ -244,6 +244,12 @@ void const_constructor_move_Multiarray_d (const struct const_Multiarray_d*const*
 	*(struct const_Multiarray_d**) dest = (struct const_Multiarray_d*) src;
 }
 
+void const_constructor_move_const_Multiarray_d
+	(const struct const_Multiarray_d*const* dest, const struct const_Multiarray_d*const src)
+{
+	const_constructor_move_Multiarray_d(dest,(struct Multiarray_d*)src);
+}
+
 void const_constructor_move_Multiarray_Vector_i
 	(const struct const_Multiarray_Vector_i*const* dest, struct Multiarray_Vector_i* src)
 {
@@ -301,15 +307,9 @@ void set_const_Multiarray_Matrix_from_Multiarray_Matrix_d
 const struct const_Multiarray_d* constructor_mm_NN1C_const_Multiarray_d
 	(const struct const_Matrix_d*const a, const struct const_Multiarray_d*const b)
 {
-	const char layout = b->layout;
-
-	assert(layout == 'C');
-	const int order = b->order;
-
-	ptrdiff_t* extents = malloc(order * sizeof *extents); // keep
-	extents[0] = a->ext_0;
-	for (int i = 1; i < order; ++i)
-		extents[i] = b->extents[i];
+	const char layout  = 'C';
+	const int order    = b->order;
+	ptrdiff_t* extents = compute_extents_mm_MMa(a->ext_0,b->order,b->extents); // keep
 
 	struct Multiarray_d* c = constructor_empty_Multiarray_d_dyn_extents(layout,order,extents); // returned
 
@@ -317,6 +317,18 @@ const struct const_Multiarray_d* constructor_mm_NN1C_const_Multiarray_d
 
 	return (const struct const_Multiarray_d*) c;
 }
+
+/*const struct const_Multiarray_d* constructor_mm_NN1_const_Multiarray_d
+	(const struct const_Matrix_d*const a, const struct const_Multiarray_d*const b, const char layout_c)
+{
+	ptrdiff_t* extents = compute_extents_mm_MMa(a->ext_0,b->order,b->extents); // keep
+
+	struct Multiarray_d* c = constructor_empty_Multiarray_d_dyn_extents(layout_c,b->order,extents); // returned
+
+	mm_NN1_Multiarray_d(a,b,c);
+
+	return (const struct const_Multiarray_d*) c;
+}*/
 
 const struct const_Multiarray_d* constructor_mm_tp_NN1C_const_Multiarray_d
 	(const struct const_Multiarray_Matrix_d* a_tp, const struct const_Multiarray_d* b)

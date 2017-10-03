@@ -44,18 +44,27 @@ void reinterpret_Matrix_as_Multiarray_d
 
 // Interface functions ********************************************************************************************** //
 
+void swap_layout_Multiarray_d (struct Multiarray_d* a)
+{
+	a->layout = ( a->layout == 'R' ? 'C' : 'R' );
+}
+
 void transpose_Multiarray_d (struct Multiarray_d* a, const bool mem_only)
 {
-	assert(mem_only == true);
 	const int order = a->order;
 
 	const ptrdiff_t ext_0 = a->extents[0],
-	                ext_1 = compute_size(order,a->extents)/a->extents[0];
+	                ext_1 = (order == 1 ? 1 : a->extents[1]);
+
+assert(a->order <= 2);
+// Need to do this block-wise for order > 2. Make sure to reset layout,ext_0,ext_1 before each transpose_Matrix call.
 
 	struct Matrix_d* a_M = constructor_move_Matrix_d_d(a->layout,ext_0,ext_1,false,a->data); // destructed
 
 	transpose_Matrix_d(a_M,mem_only);
 	a->layout = a_M->layout;
+	a->extents[0] = a_M->ext_0;
+	a->extents[1] = a_M->ext_1;
 
 	destructor_Matrix_d(a_M);
 }
@@ -80,8 +89,8 @@ void mm_NN1C_Multiarray_d
 	(const struct const_Matrix_d*const a, const struct const_Multiarray_d*const b, struct Multiarray_d*const c)
 {
 	const char layout = 'C';
-	assert(b->layout == layout);
 	assert(c->layout == layout);
+	assert(b->layout == layout);
 
 	const int order = b->order;
 	assert(b->order == c->order);
@@ -96,8 +105,8 @@ void mm_NN1C_Multiarray_d
 	const ptrdiff_t ext_1 = compute_size(order,b->extents)/ext_0_b;
 
 	const struct const_Matrix_d* b_M =
-		constructor_move_const_Matrix_d_d(layout,ext_0_b,ext_1,false,b->data); // destructed
-	struct Matrix_d* c_M = constructor_move_Matrix_d_d(layout,ext_0_c,ext_1,false,c->data); // destructed
+		constructor_move_const_Matrix_d_d(b->layout,ext_0_b,ext_1,false,b->data); // destructed
+	struct Matrix_d* c_M = constructor_move_Matrix_d_d(c->layout,ext_0_c,ext_1,false,c->data); // destructed
 
 	mm_d('N','N',1.0,0.0,a,b_M,c_M);
 
@@ -116,6 +125,17 @@ void reinterpret_const_Matrix_as_Multiarray_d
 	(const struct const_Matrix_d* a_M, const struct const_Multiarray_d* a, const int order, const ptrdiff_t* extents)
 {
 	reinterpret_Matrix_as_Multiarray_d((struct Matrix_d*)a_M,(struct Multiarray_d*)a,order,(ptrdiff_t*)extents);
+}
+
+ptrdiff_t* compute_extents_mm_MMa (const ptrdiff_t ext_0, const int order, const ptrdiff_t* extents_i)
+{
+	ptrdiff_t* extents = malloc(order * sizeof *extents); // returned
+
+	extents[0] = ext_0;
+	for (int i = 1; i < order; ++i)
+		extents[i] = extents_i[i];
+
+	return extents;
 }
 
 // Static functions ************************************************************************************************* //

@@ -107,6 +107,7 @@ static void destructor_Geometry_Element (struct Geometry_Element* element)
 
 void set_up_geometry_ops (struct Simulation* sim, struct Intrusive_List* geometry_elements)
 {
+EXIT_ERROR("Add a flag to only set up operators for elements which are present.");
 	for (struct Intrusive_Link* curr = geometry_elements->first; curr; curr = curr->next)
 		set_up_operators_element((struct Geometry_Element*)curr,sim);
 }
@@ -156,6 +157,7 @@ static void set_up_operators_standard (struct Geometry_Element* element, const s
 {
 	struct const_Element* base_element = (struct const_Element*)element;
 
+printf("ge: %d\n",base_element->type);
 	element->vc0_vgc_vgc = constructor_operators("vc0","vgc","vgc","H_1_P_1P",sim->p_s_v,base_element,sim); // keep
 
 	element->cv1_vgs_vcs = constructor_operators("cv1","vgs","vcs","H_1_P_1",  sim->p_s_v,base_element,sim); // keep

@@ -26,6 +26,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  move constructors are used to form matrix/vector containers for appropriate sub-blocks. As the data is stored
  *  contiguously in memory, the Multiarray may also be acted on over multiple "dimensions" at once.
  *
+ *  Note that the `layout` parameter denotes the layout of the first two extents of the Multiarray (i.e. the layout of
+ *  the Matrix interpretation of the 2d sub-blocks of the Multiarray). To act over multiple "dimensions" (more than 2)
+ *  at once, the layout **must** be column-major.
+ *
  *  \subsubsection s111_Multi Supported Types
  *
  *  Following the recommendation of many c++ experts, containers of unsigned integer types are **not** supported

@@ -269,6 +269,12 @@ void const_constructor_move_Multiarray_d
 	 struct Multiarray_d* src                     ///< Source.
 	);
 
+/// \brief `const` version of \ref const_constructor_move_Multiarray_d.
+void const_constructor_move_const_Multiarray_d
+	(const struct const_Multiarray_d*const* dest, ///< Defined for \ref const_constructor_move_Multiarray_d.
+	 const struct const_Multiarray_d* src         ///< Defined for \ref const_constructor_move_Multiarray_d.
+	);
+
 /// \brief Move constructor for a `const` \ref const_Multiarray_Vector_i `*const`.
 void const_constructor_move_Multiarray_Vector_i
 	(const struct const_Multiarray_Vector_i*const* dest, ///< Destination.
@@ -286,7 +292,7 @@ void const_constructor_move_Multiarray_Matrix_d
 /** \brief Constructor for a \ref const_Multiarray_d\* **of order 2** from the matrix-vector multiplications of the
  *         matrices of `A` with the vector `b`.
  *  \return See brief.
- **/
+ */
 const struct const_Multiarray_d* constructor_MaM1_V_const_Multiarray_d
 	(const char layout,                              ///< The layout of the output Multiarray.
 	 const char trans_a,                             ///< Defined for \ref mv_d.
@@ -321,8 +327,23 @@ void set_const_Multiarray_Matrix_from_Multiarray_Matrix_d
  */
 const struct const_Multiarray_d* constructor_mm_NN1C_const_Multiarray_d
 	(const struct const_Matrix_d*const a,    ///< Defined for \ref mm_d.
-	 const struct const_Multiarray_d*const b ///< Input `b` in .
+	 const struct const_Multiarray_d*const b ///< Input `b` in multiarray format.
 	);
+
+/** \brief Constructor for a \ref const_Multiarray_d\* using a matrix-matrix multiplication, interpreting the input
+ *         multiarray as a matrix with the appropriate extents.
+ *  \return The result of the mm function call with the same number of columns as the reinterpreted input.
+ *
+ *  The first extent **must** be equal to `ext_1` of the `a` matrix.
+ *  See comments in \ref constructor_mm_NN1C_Matrix_d for the preset matrix-matrix multiplication parameters, excluding
+ *  the layout.
+ */
+/// \todo Remove if unused.
+/*const struct const_Multiarray_d* constructor_mm_NN1_const_Multiarray_d
+	(const struct const_Matrix_d*const a,     ///< Defined for \ref mm_d.
+	 const struct const_Multiarray_d*const b, ///< Input `b` in multiarray format.
+	 const char layout_c                      ///< The desired layout for the output.
+	);*/
 
 /** \brief Constructor for a \ref const_Multiarray_d\* by applying sub-operator matrices along each direction.
  *  \return Standard.
