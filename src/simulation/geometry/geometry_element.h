@@ -35,6 +35,8 @@ struct Geometry_Element {
 	const struct Multiarray_Operator* cv1_vgc_vcc; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv1_vgs_vms; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv1_vgc_vmc; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vv0_vms_vcs; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vv0_vmc_vcc; ///< See notation in \ref element_operators.h.
 
 	// Tensor-product sub-operators.
 	const struct Multiarray_Operator* cv0_vgs_vcs; ///< See notation in \ref element_operators.h.
@@ -53,6 +55,8 @@ struct const_Geometry_Element {
 	const struct Multiarray_Operator*const cv1_vgc_vcc; ///< Defined in \ref Geometry_Element.
 	const struct Multiarray_Operator*const cv1_vgs_vms; ///< Defined in \ref Geometry_Element.
 	const struct Multiarray_Operator*const cv1_vgc_vmc; ///< Defined in \ref Geometry_Element.
+	const struct Multiarray_Operator*const vv0_vms_vcs; ///< Defined in \ref Geometry_Element.
+	const struct Multiarray_Operator*const vv0_vmc_vcc; ///< Defined in \ref Geometry_Element.
 
 	// Tensor-product sub-operators.
 	const struct Multiarray_Operator*const cv0_vgs_vcs; ///< Defined in \ref Geometry_Element.

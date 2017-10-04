@@ -43,8 +43,8 @@ static void set_tp_sub_elements
 
 /// \brief Set \ref Element::present to `true` for element of the input type and its associated elements.
 void set_element_present
-	(const int e_type,
-	 const struct const_Intrusive_List* elements
+	(const int e_type,                           ///< \ref Element::type.
+	 const struct const_Intrusive_List* elements ///< \ref Simulation::elements.
 	);
 
 // Interface functions ********************************************************************************************** //

@@ -74,12 +74,21 @@ void set_operators_tp
 	)
 {
 	assert(op_00 != NULL);
-	assert(op_01 != NULL);
+	if (op_01 == NULL)
+		op_01 = op_00;
+	if (op_10 == NULL)
+		op_10 = op_00;
+	if (op_11 == NULL)
+		op_11 = op_10;
+//	assert(op_01 != NULL);
 
 	ops_tp->op[0][0] = op_00;
 	ops_tp->op[0][1] = op_01;
+	ops_tp->op[1][0] = op_10;
+	ops_tp->op[1][1] = op_11;
+/*
 	if (op_10 != NULL) {
-		assert(op_11 != NULL);
+//		assert(op_11 != NULL);
 
 		ops_tp->op[1][0] = op_10;
 		ops_tp->op[1][1] = op_11;
@@ -89,6 +98,7 @@ void set_operators_tp
 		ops_tp->op[1][0] = op_00;
 		ops_tp->op[1][1] = op_01;
 	}
+	*/
 }
 
 const struct Multiarray_Operator* constructor_operators_tp

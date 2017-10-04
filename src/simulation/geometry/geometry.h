@@ -24,7 +24,7 @@ struct Intrusive_List;
 struct Solver_Volume;
 
 /**	\brief Set up the geometry for the simulation. Computes:
- *	- \ref Volume::geom_coef.
+ *	- \ref Solver_Volume::geom_coef.
  */
 void set_up_geometry
 	(struct Simulation* sim,               ///< \ref Simulation.
@@ -32,7 +32,7 @@ void set_up_geometry
 	);
 
 /**	\brief Set up the solver geometry:
- *	- \ref Solver_Volume::metrics_vg;
+ *	- \ref Solver_Volume::metrics_vm;
  *	- \ref Solver_Volume::metrics_vc;
  *	- \ref Solver_Volume::jacobian_det_vc;
  *	- \todo [ref here] Solver_Face::normals_fc;

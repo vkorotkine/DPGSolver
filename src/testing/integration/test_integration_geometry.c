@@ -35,7 +35,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Compare \ref Volume::geom_coef and \todo [ref here] Face::normal_f_i finite members with their expected values.
+/** \brief Compare \ref Solver_Volume::geom_coef and \todo [ref here] Face::normal_f_i finite members with their expected values.
  *  \return `true` if tests passed. */
 static bool compare_members_geom
 	(struct Test_Info*const test_info, ///< Defined in \ref test_integration_mesh.
@@ -57,7 +57,7 @@ void test_integration_geometry (struct Test_Info*const test_info, const char*con
 	destructor_Mesh(mesh);
 
 	sim->volumes = constructor_Solver_Volumes(sim);
-//	sim->faces   = constructor_Solver_Faces(sim);
+	sim->faces   = constructor_Solver_Faces(sim);
 
 	set_up_solver_geometry(sim);
 

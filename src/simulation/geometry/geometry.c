@@ -49,7 +49,7 @@ typedef void (*compute_geom_coef_fptr)
 	 struct Solver_Volume*const volume
 	);
 
-/** \brief Set the appropriate function pointer for computing \ref Volume::geom_coef.
+/** \brief Set the appropriate function pointer for computing \ref Solver_Volume::geom_coef.
  *  \return See brief. */
 static compute_geom_coef_fptr set_fptr_geom_coef
 	(const int domain_type,   ///< \ref Simulation::domain_type.
@@ -117,8 +117,7 @@ void set_up_geometry (struct Simulation* sim, struct Intrusive_List* solver_volu
 
 void set_up_solver_geometry (struct Simulation* sim)
 {
-//	if ((sim->volumes->name != IL_SOLVER_VOLUME) || (sim->faces->name != IL_SOLVER_FACE))
-	if ((sim->volumes->name != IL_SOLVER_VOLUME))
+	if ((sim->volumes->name != IL_SOLVER_VOLUME) || (sim->faces->name != IL_SOLVER_FACE))
 		EXIT_ERROR("Using incorrect volume (%d) and face (%d) lists.\n",sim->volumes->name,sim->faces->name);
 
 	const struct const_Intrusive_List* geometry_elements = constructor_Geometry_Elements(sim); // destructed
@@ -146,25 +145,26 @@ EXIT_UNSUPPORTED;
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/// \brief Compute \ref Volume::geom_coef for straight volumes.
+/// \brief Compute \ref Solver_Volume::geom_coef for straight volumes.
 static void compute_geom_coef_straight
 	(const struct Simulation*const sim, ///< Defined in \ref compute_geom_coef_fptr.
 	 struct Solver_Volume*const volume  ///< Defined in \ref compute_geom_coef_fptr.
 	);
 
-/// \brief Compute \ref Volume::geom_coef for curved volumes using blending.
+/// \brief Compute \ref Solver_Volume::geom_coef for curved volumes using blending.
 static void compute_geom_coef_curved
 	(const struct Simulation*const sim, ///< Defined in \ref compute_geom_coef_fptr.
 	 struct Solver_Volume*const volume  ///< Defined in \ref compute_geom_coef_fptr.
 	);
 
-/// \brief Compute \ref Volume::geom_coef for curved volumes using the parametric mapping.
+/// \brief Compute \ref Solver_Volume::geom_coef for curved volumes using the parametric mapping.
 static void compute_geom_coef_parametric
 	(const struct Simulation*const sim, ///< Defined in \ref compute_geom_coef_fptr.
 	 struct Solver_Volume*const volume  ///< Defined in \ref compute_geom_coef_fptr.
 	);
 
-/// \brief Set the permutation required for conversion to the standard Jacobian ordering from the transposed ordering.
+/** \brief See return.
+ *  \return The permutation required for conversion to the standard Jacobian ordering from the transposed ordering. */
 static const ptrdiff_t* set_jacobian_permutation
 	(const int d ///< The dimension
 	);
@@ -212,15 +212,18 @@ UNUSED(sim); /// \todo Delete if unused.
 	struct Ops {
 		const struct Multiarray_Operator* cv1_vg_vm;
 		const struct Multiarray_Operator* cv1_vg_vc;
+		const struct Operator* vv0_vm_vc;
 	} ops = { .cv1_vg_vm = constructor_default_Multiarray_Operator(),    // free (only)
 	          .cv1_vg_vc = constructor_default_Multiarray_Operator(), }; // free (only)
 
 	if (!base_volume->curved) {
 		set_MO_from_MO(ops.cv1_vg_vm,element->cv1_vgs_vms,1,(ptrdiff_t[]){0,0,1,1});
 		set_MO_from_MO(ops.cv1_vg_vc,element->cv1_vgs_vcs,1,(ptrdiff_t[]){0,0,1,1});
+		ops.vv0_vm_vc = get_Multiarray_Operator(element->vv0_vms_vcs,(ptrdiff_t[]){0,0,p,1});
 	} else {
 		set_MO_from_MO(ops.cv1_vg_vm,element->cv1_vgc_vmc,1,(ptrdiff_t[]){0,0,p,p});
 		set_MO_from_MO(ops.cv1_vg_vc,element->cv1_vgc_vcc,1,(ptrdiff_t[]){0,0,p,p});
+		ops.vv0_vm_vc = get_Multiarray_Operator(element->vv0_vmc_vcc,(ptrdiff_t[]){0,0,p,p});
 	}
 
 	const ptrdiff_t n_vm = ops.cv1_vg_vm->data[0]->op_std->ext_0,
@@ -242,13 +245,12 @@ UNUSED(sim); /// \todo Delete if unused.
 
 	compute_detJV((struct const_Multiarray_d*)jacobian_vc,(struct Multiarray_d*)volume->jacobian_det_vc);
 	compute_cofactors((struct const_Multiarray_d*)jacobian_vm,(struct Multiarray_d*)volume->metrics_vm);
-EXIT_ERROR("Add: interpolate metrics_vm to metrics_vc.\n");
-print_const_Multiarray_d(volume->jacobian_det_vc);
-print_Multiarray_d(jacobian_vm);
-print_const_Multiarray_d(volume->metrics_vm);
 
+	const struct const_Multiarray_d* met_vm = volume->metrics_vm;
 
-EXIT_ADD_SUPPORT;
+	destructor_const_Multiarray_d(volume->metrics_vc);
+	*(const struct const_Multiarray_d**)& volume->metrics_vc =
+		constructor_mm_NN1_Operator_const_Multiarray_d(ops.vv0_vm_vc,met_vm,'C','d',met_vm->order,NULL); // keep
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -406,7 +408,7 @@ void compute_cofactors (struct const_Multiarray_d* jacobian, struct Multiarray_d
 		}
 		break;
 	} case 3: {
-		EXIT_ADD_SUPPORT; // curl-form
+		EXIT_ADD_SUPPORT; // curl-form. See comments in \ref compute_geometry_volume.
 		break;
 	} default:
 		EXIT_ERROR("Unsupported: %td\n",d);

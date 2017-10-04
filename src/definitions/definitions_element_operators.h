@@ -79,10 +79,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Order (p) range options.
 #define OP_R_P_1   10 ///< Order = 1 only.
-#define OP_R_P_1P  11 ///< Order = 1 to 0:p_max.
+#define OP_R_P_1P  11 ///< Order = 1 to p_min:p_max.
 #define OP_R_P_PM0 12 ///< Order = p_reference +/- 0.
 #define OP_R_P_PM1 13 ///< Order = p_reference +/- 1.
-#define OP_R_P_ALL 14 ///< Order = 0:p_max.
+#define OP_R_P_ALL 14 ///< Order = p_min:p_max.
 ///\}
 
 #endif // DPG__definitions_element_operators_h__INCLUDED

@@ -168,14 +168,18 @@ static void set_up_operators_tp_wedge
 
 static void set_up_operators_standard (struct Geometry_Element* element, const struct Simulation* sim)
 {
-	struct const_Element* base_element = (struct const_Element*)element;
+	struct const_Element* b_e = (struct const_Element*)element;
 
-	element->vc0_vgc_vgc = constructor_operators("vc0","vgc","vgc","H_1_P_1P",sim->p_s_v,base_element,sim); // keep
+	element->vc0_vgc_vgc = constructor_operators("vc0","vgc","vgc","H_1_P_1P",sim->p_s_v,b_e,sim); // keep
 
-	element->cv1_vgs_vcs = constructor_operators("cv1","vgs","vcs","H_1_P_1",  sim->p_s_v,base_element,sim); // keep
-	element->cv1_vgc_vcc = constructor_operators("cv1","vgc","vcc","H_1_P_PM0",sim->p_s_v,base_element,sim); // keep
-	element->cv1_vgs_vms = constructor_operators("cv1","vgs","vms","H_1_P_1",  sim->p_s_v,base_element,sim); // keep
-	element->cv1_vgc_vmc = constructor_operators("cv1","vgc","vmc","H_1_P_PM0",sim->p_s_v,base_element,sim); // keep
+	element->cv1_vgs_vcs = constructor_operators("cv1","vgs","vcs","H_1_P_1",  sim->p_s_v,b_e,sim); // keep
+	element->cv1_vgc_vcc = constructor_operators("cv1","vgc","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // keep
+
+	element->cv1_vgs_vms = constructor_operators("cv1","vgs","vms","H_1_P_1",  sim->p_s_v,b_e,sim); // keep
+	element->cv1_vgc_vmc = constructor_operators("cv1","vgc","vmc","H_1_P_PM0",sim->p_s_v,b_e,sim); // keep
+
+	element->vv0_vms_vcs = constructor_operators("vv0","vms","vcs","H_1_P_1P", sim->p_s_v,b_e,sim); // keep
+	element->vv0_vmc_vcc = constructor_operators("vv0","vmc","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // keep
 }
 
 static void set_up_operators_tensor_product (struct Geometry_Element* element, const struct Simulation* sim)
@@ -234,4 +238,10 @@ static void set_up_operators_tp_wedge (struct Geometry_Element* element, const s
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vgc_vmc,s_e[0]->cv1_vgc_vmc,s_e[1]->cv0_vgc_vmc,s_e[1]->cv1_vgc_vmc);
 	element->cv1_vgc_vmc = constructor_operators_tp("cv1","vgs","vmc","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // keep
+
+	set_operators_tp(&ops_tp,s_e[0]->vv0_vms_vcs,NULL,s_e[1]->vv0_vms_vcs,NULL);
+	element->vv0_vms_vcs = constructor_operators_tp("vv0","vms","vcs","H_1_P_1P", sim->p_s_v,b_e,sim,&ops_tp); // keep
+
+	set_operators_tp(&ops_tp,s_e[0]->vv0_vmc_vcc,NULL,s_e[1]->vv0_vmc_vcc,NULL);
+	element->vv0_vmc_vcc = constructor_operators_tp("vv0","vmc","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // keep
 }
