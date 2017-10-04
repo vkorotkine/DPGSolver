@@ -2,7 +2,7 @@ PDEName       Poisson
 PDESpecifier  NONE
 
 Geometry      n-Ellipsoid_HollowSection n-Ellipsoid_HollowSection/n-Ellipsoid_HollowSection2D.geo
-GeomSpecifier /AR_3/
+GeomSpecifier Extended/AR_3/
 
 Dimension     2
 
@@ -21,7 +21,7 @@ Collocated 0     // Options: 0, 1
 Adapt      3     // Options: 0, 1, 2, 3
 
 PGlobal    1
-PMax       5
+PMax       4
 LevelsMax  7
 
 Restart    -1    // Options: -1, 0, Iteration #

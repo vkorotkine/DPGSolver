@@ -7,8 +7,8 @@ GeomSpecifier /AR_3/
 Dimension     2
 
 MeshPath      ../meshes/
-MeshType      TRI
-MeshCurving   Curved
+MeshType      QUAD
+MeshCurving   ToBeCurved
 MeshLevel     0
 
 Form       Weak   // Options: Weak, (Strong)

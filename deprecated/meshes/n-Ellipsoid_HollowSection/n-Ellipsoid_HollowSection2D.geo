@@ -1,8 +1,9 @@
 Include "../Parameters.geo";
-//Geom_AR = GEOM_AR_3; MeshLevel = 0; MeshType = MIXED2D; Extended = EXTENSION_ENABLED; PDEName = POISSON;
+//Geom_AR = GEOM_AR_2; MeshLevel = 0; MeshType = TRI; MeshCurving = CURVED; Extended = EXTENSION_DISABLED; PDEName = POISSON;
 
 // Modifiable Parameters
-AddRadial = 1;
+AddRadial = 0;
+SwapTriOrientation = 0;
 
 
 
@@ -15,31 +16,53 @@ aOut = 1.0;
 
 bIn  = 0.5;
 
-If (Geom_AR == GEOM_AR_3)
-	bOut = 3.0*aOut;
+If (MeshCurving == CURVED)
+	If (Geom_AR == GEOM_AR_3)
+		bOut = 3.0*aOut;
+	ElseIf (Geom_AR == GEOM_AR_2)
+		bOut = 2.0*aOut;
+	ElseIf (Geom_AR == GEOM_AR_1)
+		bOut = 1.0*aOut;
+	EndIf
+
+	t   = Pi/4.0;
+	r   = rIn;
+	r_e = Sqrt(1.0/((Cos(t)/aOut)^2.0+(Sin(t)/bOut)^2.0));
+
+	Point(1) = {aIn,0,0,lc};
+	Point(2) = {aOut,0,0,lc};
+	Point(3) = {0,bIn,0,lc};
+	Point(4) = {0,bOut,0,lc};
+	Point(5) = {r*Cos(t),r*Sin(t),0,lc};
+	Point(6) = {r_e*Cos(t),r_e*Sin(t),0,lc};
+	Point(7) = {0,0,0,lc};
+
+	Line(1001)    = {1,2};
+	Line(1002)    = {3,4};
+	Line(1003)    = {5,6};
+	Ellipse(1004) = {5,7,3,1}; // start, centre, point on major-axis, end
+	Ellipse(1005) = {5,7,3,3};
+	Ellipse(1006) = {6,7,4,2};
+	Ellipse(1007) = {6,7,4,4};
+ElseIf (MeshCurving == TOBECURVED)
+	bOut = aOut;
+
+	Point(1) = {aIn,0,0,lc};
+	Point(2) = {aOut,0,0,lc};
+	Point(3) = {0,bIn,0,lc};
+	Point(4) = {0,bOut,0,lc};
+	Point(5) = {aIn,bIn,0,lc};
+	Point(6) = {aOut,bOut,0,lc};
+	Point(7) = {0,0,0,lc};
+
+	Line(1001) = {1,2};
+	Line(1002) = {3,4};
+	Line(1003) = {5,6};
+	Line(1004) = {5,1};
+	Line(1005) = {5,3};
+	Line(1006) = {6,2};
+	Line(1007) = {6,4};
 EndIf
-
-t   = Pi/4.0;
-r   = rIn;
-r_e = Sqrt(1.0/((Cos(t)/aOut)^2.0+(Sin(t)/bOut)^2.0));
-
-
-
-Point(1) = {aIn,0,0,lc};
-Point(2) = {aOut,0,0,lc};
-Point(3) = {0,bIn,0,lc};
-Point(4) = {0,bOut,0,lc};
-Point(5) = {r*Cos(t),r*Sin(t),0,lc};
-Point(6) = {r_e*Cos(t),r_e*Sin(t),0,lc};
-Point(7) = {0,0,0,lc};
-
-Line(1001)    = {1,2};
-Line(1002)    = {3,4};
-Line(1003)    = {5,6};
-Ellipse(1004) = {5,7,3,1}; // start, centre, point on major-axis, end
-Ellipse(1005) = {5,7,3,3};
-Ellipse(1006) = {6,7,4,2};
-Ellipse(1007) = {6,7,4,4};
 
 Transfinite Line {1001:1003} = 1*2^(MeshLevel+AddRadial)+1 Using Progression 1;
 Transfinite Line {1004:1007} = 1*2^(MeshLevel)+1 Using Progression 1;
@@ -50,8 +73,19 @@ Line Loop (4002) = {-1005,1003,1007,-1002};
 Plane Surface(4001) = {4001};
 Plane Surface(4002) = {4002};
 
-Transfinite Surface{4001} Right;
-Transfinite Surface{4002};
+If (MeshCurving == CURVED)
+	Transfinite Surface{4001} Right;
+	Transfinite Surface{4002};
+ElseIf (MeshCurving == TOBECURVED)
+	If (SwapTriOrientation)
+		Transfinite Surface{4001} Right;
+		Transfinite Surface{4002};
+	Else
+		Transfinite Surface{4001};
+		Transfinite Surface{4002} Right;
+	EndIf
+EndIf
+
 
 If (MeshType == QUAD)
 	Recombine Surface{4001,4002};
