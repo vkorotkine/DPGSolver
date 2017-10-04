@@ -47,6 +47,10 @@
  *		Gordon(1973)-Transfinite_Element_Methods-_Blending-Function_Interpolation_over_Arbitrary_Curved_Element_Domains
  */
 
+// Enable if it is desired to disable the curving within the elements, but still project vertices to the curved surface
+// with mesh refinement.
+#define CURVED_VERTICES_ONLY false
+
 struct S_pc {
 	unsigned int Nn, VeSurface;
 	double       **VeXYZ, *PComps;
@@ -143,7 +147,7 @@ void get_abc_ellipse(const unsigned int Nn, double *XYZ, double *abc)
 	norm_In  /= Nn;
 	norm_Out /= Nn;
 
-	if (norm_In < 4e-1*(rOut-rIn)) {
+	if (norm_In < 8e-1*(rOut-rIn)) {
 		abc[0] = aIn;
 		abc[1] = bIn;
 		abc[2] = cIn;
@@ -153,7 +157,7 @@ void get_abc_ellipse(const unsigned int Nn, double *XYZ, double *abc)
 		abc[2] = cOut;
 	} else {
 		array_print_d(Nn,d,XYZ,'C');
-		printf("% .3e % .3e\n",norm_In,norm_Out);
+		printf("% .3e % .3e % .3e % .3e\n",rIn,rOut,norm_In,norm_Out);
 		printf("Error: Did not find the ellipse.\n"), EXIT_MSG;
 	}
 }
@@ -191,8 +195,7 @@ static double get_radius(const unsigned int Nn, double *XYZ)
 			dist_rOut = fabs(r-rOut);
 	}
 
-//	double dist_tol = EPS;
-	double dist_tol = 1e-3;
+	double dist_tol = (!CURVED_VERTICES_ONLY ? 1e-3 : 1e-1);
 	if (dist_rIn < dist_tol && dist_rOut < dist_tol) {
 		array_print_d(Nn,d,XYZ,'C');
 		printf("Error: Found two radii.\n"), EXIT_MSG;
@@ -1461,6 +1464,9 @@ void setup_Curved(struct S_VOLUME *VOLUME)
 
 	// Linear portion
 	setup_straight(VOLUME);
+
+	if (CURVED_VERTICES_ONLY)
+		return;
 
 	Vcurved = VOLUME->curved;
 	if (!Vcurved || PGc[VOLUME->P] <= 1)

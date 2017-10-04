@@ -43,6 +43,9 @@
  *	References:
  */
 
+// Order for which to output the solution and mesh edges
+#define OUTPUT_ORDER 5
+
 static void h_adapt_test (void);
 
 static void set_test_convorder_data(struct S_convorder *const data, char const *const TestName)
@@ -103,8 +106,15 @@ static void set_test_convorder_data(struct S_convorder *const data, char const *
 				EXIT_UNSUPPORTED;
 			}
 		} else if (strstr(TestName,"n-Ellipsoid_HollowSection")) {
-			if (strstr(TestName,"TRI")) {
-				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ellipsoid_HollowSection_CurvedTRI");
+			if (strstr(TestName,"ToBeCurvedTRI")) {
+				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ellipsoid_HollowSection_ToBeCurvedTRI");
+			} else if (strstr(TestName,"ToBeCurvedQUAD")) {
+				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ellipsoid_HollowSection_ToBeCurvedQUAD");
+			} else if (strstr(TestName,"TRI")) {
+				if (strstr(TestName,"extended"))
+					strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ellipsoid_HollowSection_CurvedTRI_extended");
+				else
+					strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ellipsoid_HollowSection_CurvedTRI");
 			} else if (strstr(TestName,"QUAD")) {
 				strcpy(data->argvNew[1],"test/Poisson/Test_Poisson_n-Ellipsoid_HollowSection_CurvedQUAD");
 			} else if (strstr(TestName,"MIXED2D")) {
@@ -365,7 +375,7 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 			initialize_test_case(0);
 
 		// Output mesh edges to paraview
-		if (DB.d > 1 && TestDB.PGlobal == 3 && TestDB.ML <= 2) {
+		if (DB.d > 1 && TestDB.PGlobal == OUTPUT_ORDER && TestDB.ML <= 2) {
 			char *const fNameOut = get_fNameOut("MeshEdges_");
 			output_to_paraview(fNameOut);
 			free(fNameOut);
@@ -378,13 +388,6 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 			DB.init_with_L2 = true;
 			initialize_test_case(0);
 			DB.init_with_L2 = false;
-
-			// Output to paraview
-			if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == 4 && TestDB.ML <= 4)) {
-				char *const fNameOut = get_fNameOut("SolFinal_");
-				output_to_paraview(fNameOut);
-				free(fNameOut);
-			}
 		} else {
 			if (strstr(TestName,"Advection")) {
 				solver_Advection(PrintEnabled);
@@ -407,6 +410,13 @@ void test_conv_order(struct S_convorder *const data, char const *const TestName)
 			} else {
 				EXIT_UNSUPPORTED;
 			}
+		}
+
+		// Output to paraview
+		if (TestDB.ML <= 1 || (TestDB.PGlobal == 1) || (TestDB.PGlobal == OUTPUT_ORDER && TestDB.ML <= 4)) {
+			char *const fNameOut = get_fNameOut("SolFinal_");
+			output_to_paraview(fNameOut);
+			free(fNameOut);
 		}
 
 		compute_errors_global();
@@ -478,21 +488,42 @@ void h_adapt_test(void)
 		XYZref[0+0*DMAX] = xL;  XYZref[1+0*DMAX] = 0.0; XYZref[2+0*DMAX] = 0.0;
 		XYZref[0+1*DMAX] = 2*a; XYZref[1+1*DMAX] = 0.0; XYZref[2+1*DMAX] = 0.0;
 	} else if (strstr(Geometry,"n-Ellipsoid")) {
-		Nref = 5;
+		if (strstr(DB.PDE,"Poisson")) {
+			Nref = 1;
+			MLMax = 2;
 
-		unsigned int i = 0;
-		NML[i] = 2; CurvedOnly[i] = 0; i++;
-		NML[i] = 1; CurvedOnly[i] = 0; i++;
-		NML[i] = 2; CurvedOnly[i] = 0; i++;
-		NML[i] = 1; CurvedOnly[i] = 0; i++;
-		NML[i] = 1; CurvedOnly[i] = 0; i++;
+			unsigned int i = 0;
+			NML[i] = 2; CurvedOnly[i] = 0; i++;
 
-		i = 0;
-		XYZref[0+i*DMAX] =  DB.aIn;  XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
-		XYZref[0+i*DMAX] =  DB.aOut; XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
-		XYZref[0+i*DMAX] = -DB.aIn;  XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
-		XYZref[0+i*DMAX] = -DB.aOut; XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
-		XYZref[0+i*DMAX] =  0.0;     XYZref[1+i*DMAX] = DB.bIn; XYZref[2+i*DMAX] = 0.0; i++;
+			i = 0;
+			if (strstr(DB.MeshType,"ToBeCurved")) {
+				// May need to add a an override for the refinement of one of the volumes to get the desired
+				// non-conforming mesh.
+				XYZref[0+i*DMAX] =  0.0;     XYZref[1+i*DMAX] = DB.aOut; XYZref[2+i*DMAX] = 0.0; i++;
+			} else if (strstr(DB.MeshType,"Curved")) {
+				XYZref[0+i*DMAX] =  0.0;     XYZref[1+i*DMAX] = DB.bOut; XYZref[2+i*DMAX] = 0.0; i++;
+			} else {
+				EXIT_UNSUPPORTED;
+			}
+		} else if (strstr(DB.PDE,"Euler")) {
+			Nref = 5;
+
+			unsigned int i = 0;
+			NML[i] = 2; CurvedOnly[i] = 0; i++;
+			NML[i] = 1; CurvedOnly[i] = 0; i++;
+			NML[i] = 2; CurvedOnly[i] = 0; i++;
+			NML[i] = 1; CurvedOnly[i] = 0; i++;
+			NML[i] = 1; CurvedOnly[i] = 0; i++;
+
+			i = 0;
+			XYZref[0+i*DMAX] =  DB.aIn;  XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
+			XYZref[0+i*DMAX] =  DB.aOut; XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
+			XYZref[0+i*DMAX] = -DB.aIn;  XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
+			XYZref[0+i*DMAX] = -DB.aOut; XYZref[1+i*DMAX] = 0.0;    XYZref[2+i*DMAX] = 0.0; i++;
+			XYZref[0+i*DMAX] =  0.0;     XYZref[1+i*DMAX] = DB.bIn; XYZref[2+i*DMAX] = 0.0; i++;
+		} else {
+			EXIT_UNSUPPORTED;
+		}
 	} else if (strstr(Geometry,"EllipsoidalBump")) {
 		Nref = 2;
 
@@ -540,7 +571,6 @@ void h_adapt_test(void)
 				if (VOLUME->level < NML[n]) {
 					if (CurvedOnly[n] && !VOLUME->curved)
 						continue;
-
 					// Check if one of the XYZ_vV matches any of the specified XYZref
 					for (ve = 0; ve < Nve; ve++) {
 						if (array_norm_diff_d(d,&XYZref[n*DMAX],&XYZ_vV[ve*d],"Inf") < EPS) {

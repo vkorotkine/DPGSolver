@@ -301,7 +301,7 @@ static void ToBeCurved_sphere_to_ellipsoid(const unsigned int Nn, double *XYZ)
 	}
 }
 
-static void correct_ToBeCurved(struct S_VOLUME *VOLUME)
+static void correct_ToBeCurved(struct S_VOLUME *VOLUME, const bool InternalCurved)
 {
 	/*
 	 *	Purpose:
@@ -320,13 +320,11 @@ static void correct_ToBeCurved(struct S_VOLUME *VOLUME)
 	unsigned int d = DB.d;
 
 	// Standard datatypes
-	unsigned int n, dim, ve, P, PV, f, Vf, NvnG, NfnG, Eclass, Nf, Nve, BC, *Nfve, *VeFcon, InternalCurved;
+	unsigned int n, dim, ve, P, PV, f, Vf, NvnG, NfnG, Eclass, Nf, Nve, BC, *Nfve, *VeFcon;
 	double       *XYZ, *XYZ_S, *XYZ_C, *XYZ_CmS, *XYZ_update, *I_vGs_vGc, *I_vGc_fGc, *I_fGc_vGc, *I_fGs_vGc,
 	             BlendNum, BlendDen, *BlendV;
 
 	struct S_ELEMENT *ELEMENT, *ELEMENT_F;
-
-	InternalCurved = 1;
 
 	PV     = VOLUME->P;
 	NvnG   = VOLUME->NvnG;
@@ -435,7 +433,8 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 	                                         // Should be false for computed solutions.
 	           project_corners_only = false, // Project to a straight sided domain where only the corners are correct.
 	                                         // Should be false for computed solutions.
-	           correctTBC           = true;  // Correct internal nodes with blending
+	           correctTBC           = true,  // Correct internal nodes with blending
+	           internal_curved      = true;  // Flag for whether the internal faces should be curved.
 	for (nG = 0; nG < 2; nG++) {
 		if (nG == 0) {
 			NvnG = VOLUME->NvnG;
@@ -456,10 +455,10 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 			for (i = 0; i < NvnG*d; i++)
 				XYZ[i] = XYZ_S[i];
 		} else {
-
 			if (strstr(Geometry,"dm1-Spherical_Section")) {
 					ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
-			} else if (strstr(Geometry,"Ellipsoidal_Section")) {
+			} else if (strstr(Geometry,"Ellipsoidal_Section") ||
+			           strstr(Geometry,"n-Ellipsoid")) {
 					ToBeCurved_cube_to_sphere(NvnG,XYZ_S,XYZ);
 					ToBeCurved_sphere_to_ellipsoid(NvnG,XYZ);
 			} else if (strstr(TestCase,"GaussianBump") ||
@@ -517,7 +516,7 @@ void setup_ToBeCurved(struct S_VOLUME *VOLUME)
 
 			// Correct internal VOLUME geometry coordinates using blending
 			if (nG == 1 && correctTBC && VOLUME->Eclass != C_WEDGE && VOLUME->Eclass != C_PYR)
-				correct_ToBeCurved(VOLUME);
+				correct_ToBeCurved(VOLUME,internal_curved);
 		}
 	}
 }
