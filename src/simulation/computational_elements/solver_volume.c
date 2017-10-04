@@ -73,7 +73,7 @@ static void destructor_Solver_Volume (struct Solver_Volume* volume)
 	destructor_const_Multiarray_d(volume->geom_coef);
 	destructor_Multiarray_d(volume->sol_coef);
 	destructor_Multiarray_d(volume->grad_coef);
-	destructor_const_Multiarray_d(volume->metrics_vg);
+	destructor_const_Multiarray_d(volume->metrics_vm);
 	destructor_const_Multiarray_d(volume->metrics_vc);
 	destructor_const_Multiarray_d(volume->jacobian_det_vc);
 
@@ -95,12 +95,12 @@ static struct Solver_Volume* constructor_Solver_Volume (struct Volume* volume, c
 	solver_volume->sol_coef  = constructor_default_Multiarray_d(); // destructed
 	solver_volume->grad_coef = constructor_default_Multiarray_d(); // destructed
 
-	const_constructor_move_Multiarray_d(&solver_volume->metrics_vg,
-	                                    constructor_default_Multiarray_d()); // destructed
+	const_constructor_move_Multiarray_d(&solver_volume->metrics_vm,
+	                                    constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0})); // destructed
 	const_constructor_move_Multiarray_d(&solver_volume->metrics_vc,
 	                                    constructor_default_Multiarray_d()); // destructed
 	const_constructor_move_Multiarray_d(&solver_volume->jacobian_det_vc,
-	                                    constructor_default_Multiarray_d()); // destructed
+	                                    constructor_empty_Multiarray_d('C',1,(ptrdiff_t[]){0})); // destructed
 
 	return solver_volume;
 }

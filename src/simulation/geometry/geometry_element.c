@@ -101,15 +101,28 @@ static struct Geometry_Element* constructor_Geometry_Element (struct const_Eleme
 
 static void destructor_Geometry_Element (struct Geometry_Element* element)
 {
+	destructor_Multiarray_Operator(element->vc0_vgc_vgc);
+
+	destructor_Multiarray_Operator(element->cv1_vgs_vcs);
+	destructor_Multiarray_Operator(element->cv1_vgc_vcc);
+	destructor_Multiarray_Operator(element->cv1_vgs_vms);
+	destructor_Multiarray_Operator(element->cv1_vgc_vmc);
+
+	destructor_Multiarray_Operator(element->cv0_vgs_vcs);
+	destructor_Multiarray_Operator(element->cv0_vgc_vcc);
+	destructor_Multiarray_Operator(element->cv0_vgs_vms);
+	destructor_Multiarray_Operator(element->cv0_vgc_vmc);
+
 	EXIT_ADD_SUPPORT; // Add destructors for geometry operators.
 	destructor_Element((struct Element*) element);
 }
 
 void set_up_geometry_ops (struct Simulation* sim, struct Intrusive_List* geometry_elements)
 {
-EXIT_ERROR("Add a flag to only set up operators for elements which are present.");
-	for (struct Intrusive_Link* curr = geometry_elements->first; curr; curr = curr->next)
-		set_up_operators_element((struct Geometry_Element*)curr,sim);
+	for (struct Intrusive_Link* curr = geometry_elements->first; curr; curr = curr->next) {
+		if (((struct const_Element*)curr)->present)
+			set_up_operators_element((struct Geometry_Element*)curr,sim);
+	}
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -157,11 +170,12 @@ static void set_up_operators_standard (struct Geometry_Element* element, const s
 {
 	struct const_Element* base_element = (struct const_Element*)element;
 
-printf("ge: %d\n",base_element->type);
 	element->vc0_vgc_vgc = constructor_operators("vc0","vgc","vgc","H_1_P_1P",sim->p_s_v,base_element,sim); // keep
 
 	element->cv1_vgs_vcs = constructor_operators("cv1","vgs","vcs","H_1_P_1",  sim->p_s_v,base_element,sim); // keep
 	element->cv1_vgc_vcc = constructor_operators("cv1","vgc","vcc","H_1_P_PM0",sim->p_s_v,base_element,sim); // keep
+	element->cv1_vgs_vms = constructor_operators("cv1","vgs","vms","H_1_P_1",  sim->p_s_v,base_element,sim); // keep
+	element->cv1_vgc_vmc = constructor_operators("cv1","vgc","vmc","H_1_P_PM0",sim->p_s_v,base_element,sim); // keep
 }
 
 static void set_up_operators_tensor_product (struct Geometry_Element* element, const struct Simulation* sim)
@@ -188,25 +202,25 @@ static void set_up_operators_tensor_product (struct Geometry_Element* element, c
 
 static void set_up_operators_tp_wedge (struct Geometry_Element* element, const struct Simulation* sim)
 {
-	struct const_Element* b_e = (struct const_Element*)element;
-
-	struct Geometry_Element* s_e[2] = { (struct Geometry_Element*) b_e->sub_element[0]->derived,
-	                                    (struct Geometry_Element*) b_e->sub_element[1]->derived, };
+	const struct const_Element* b_e     = (const struct const_Element*)element;
+	const struct const_Element* bs_e[2] = { b_e->sub_element[0], b_e->sub_element[1], };
+	struct Geometry_Element* s_e[2]     = { (struct Geometry_Element*) bs_e[0]->derived,
+	                                        (struct Geometry_Element*) bs_e[1]->derived, };
 
 	struct Operators_TP ops_tp;
 
 	// tensor-product sub-operators
 	if (s_e[0]->cv0_vgs_vcs == NULL) {
-		s_e[0]->cv0_vgs_vcs =
-			constructor_operators("cv0","vgs","vcs","H_1_P_1",sim->p_s_v,b_e->sub_element[0],sim); // destructed
-		s_e[0]->cv0_vgc_vcc =
-			constructor_operators("cv0","vgc","vcc","H_1_P_PM0",sim->p_s_v,b_e->sub_element[0],sim); // destructed
+		s_e[0]->cv0_vgs_vcs = constructor_operators("cv0","vgs","vcs","H_1_P_1",  sim->p_s_v,bs_e[0],sim); // destructed
+		s_e[0]->cv0_vgc_vcc = constructor_operators("cv0","vgc","vcc","H_1_P_PM0",sim->p_s_v,bs_e[0],sim); // destructed
+		s_e[0]->cv0_vgs_vms = constructor_operators("cv0","vgs","vms","H_1_P_1",  sim->p_s_v,bs_e[0],sim); // destructed
+		s_e[0]->cv0_vgc_vmc = constructor_operators("cv0","vgc","vmc","H_1_P_PM0",sim->p_s_v,bs_e[0],sim); // destructed
 	}
 	if (s_e[1]->cv0_vgs_vcs == NULL) {
-		s_e[1]->cv0_vgs_vcs =
-			constructor_operators("cv0","vgs","vcs","H_1_P_1",sim->p_s_v,b_e->sub_element[1],sim); // destructed
-		s_e[1]->cv0_vgc_vcc =
-			constructor_operators("cv0","vgc","vcc","H_1_P_PM0",sim->p_s_v,b_e->sub_element[1],sim); // destructed
+		s_e[1]->cv0_vgs_vcs = constructor_operators("cv0","vgs","vcs","H_1_P_1",  sim->p_s_v,bs_e[1],sim); // destructed
+		s_e[1]->cv0_vgc_vcc = constructor_operators("cv0","vgc","vcc","H_1_P_PM0",sim->p_s_v,bs_e[1],sim); // destructed
+		s_e[1]->cv0_vgs_vms = constructor_operators("cv0","vgs","vms","H_1_P_1",  sim->p_s_v,bs_e[1],sim); // destructed
+		s_e[1]->cv0_vgc_vmc = constructor_operators("cv0","vgc","vmc","H_1_P_PM0",sim->p_s_v,bs_e[1],sim); // destructed
 	}
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vgs_vcs,s_e[0]->cv1_vgs_vcs,s_e[1]->cv0_vgs_vcs,s_e[1]->cv1_vgs_vcs);
@@ -214,4 +228,10 @@ static void set_up_operators_tp_wedge (struct Geometry_Element* element, const s
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vgc_vcc,s_e[0]->cv1_vgc_vcc,s_e[1]->cv0_vgc_vcc,s_e[1]->cv1_vgc_vcc);
 	element->cv1_vgc_vcc = constructor_operators_tp("cv1","vgs","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // keep
+
+	set_operators_tp(&ops_tp,s_e[0]->cv0_vgs_vms,s_e[0]->cv1_vgs_vms,s_e[1]->cv0_vgs_vms,s_e[1]->cv1_vgs_vms);
+	element->cv1_vgs_vms = constructor_operators_tp("cv1","vgs","vms","H_1_P_1",sim->p_s_v,b_e,sim,&ops_tp); // keep
+
+	set_operators_tp(&ops_tp,s_e[0]->cv0_vgc_vmc,s_e[0]->cv1_vgc_vmc,s_e[1]->cv0_vgc_vmc,s_e[1]->cv1_vgc_vmc);
+	element->cv1_vgc_vmc = constructor_operators_tp("cv1","vgs","vmc","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // keep
 }

@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "geometry.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -168,12 +169,23 @@ static const ptrdiff_t* set_jacobian_permutation
 	(const int d ///< The dimension
 	);
 
+/// \brief Compute the determinant of the geometry mapping Jacobian.
+void compute_detJV
+	(struct const_Multiarray_d* jacobian, ///< Multiarray containing the Jacobian terms
+	 struct Multiarray_d* jacobian_det    ///< Multiarray to be set to contain the determinant.
+	);
+
+/// \brief Compute the cofactor matrix entries of the geometry mapping Jacobian (referred to as the metrics).
+void compute_cofactors
+	(struct const_Multiarray_d* jacobian, ///< Multiarray containing the Jacobian terms
+	 struct Multiarray_d* metrics         ///< Multiarray to be set to contain the metric terms.
+	);
+
 static compute_geom_coef_fptr set_fptr_geom_coef (const int domain_type, const bool volume_curved)
 {
 	if (domain_type == DOM_STRAIGHT) {
 		return compute_geom_coef_straight;
 	} else if (domain_type == DOM_CURVED) {
-printf("vc: %d\n",volume_curved);
 		if (!volume_curved)
 			return compute_geom_coef_straight;
 		else
@@ -187,6 +199,7 @@ printf("vc: %d\n",volume_curved);
 
 static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volume* volume)
 {
+UNUSED(sim); /// \todo Delete if unused.
 	struct Volume* base_volume = (struct Volume*) volume;
 	struct const_Geometry_Element* element = (struct const_Geometry_Element*) base_volume->element;
 
@@ -197,44 +210,45 @@ static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volum
 	const int p = volume->p_ref;
 
 	struct Ops {
+		const struct Multiarray_Operator* cv1_vg_vm;
 		const struct Multiarray_Operator* cv1_vg_vc;
-	} ops =
-		{ .cv1_vg_vc = constructor_default_Multiarray_Operator(),
-		};
+	} ops = { .cv1_vg_vm = constructor_default_Multiarray_Operator(),    // free (only)
+	          .cv1_vg_vc = constructor_default_Multiarray_Operator(), }; // free (only)
 
 	if (!base_volume->curved) {
+		set_MO_from_MO(ops.cv1_vg_vm,element->cv1_vgs_vms,1,(ptrdiff_t[]){0,0,1,1});
 		set_MO_from_MO(ops.cv1_vg_vc,element->cv1_vgs_vcs,1,(ptrdiff_t[]){0,0,1,1});
 	} else {
+		set_MO_from_MO(ops.cv1_vg_vm,element->cv1_vgc_vmc,1,(ptrdiff_t[]){0,0,p,p});
 		set_MO_from_MO(ops.cv1_vg_vc,element->cv1_vgc_vcc,1,(ptrdiff_t[]){0,0,p,p});
 	}
-print_Multiarray_Operator(ops.cv1_vg_vc);
-print_const_Multiarray_d(geom_coef);
 
-	const ptrdiff_t n_vc = ops.cv1_vg_vc->data[0]->op_std->ext_0;
+	const ptrdiff_t n_vm = ops.cv1_vg_vm->data[0]->op_std->ext_0,
+	                n_vc = ops.cv1_vg_vc->data[0]->op_std->ext_0;
 
-	struct Multiarray_d* jacobian_vc = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_vc,d,d});
+	struct Multiarray_d* jacobian_vm = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_vm,d,d}),
+	                   * jacobian_vc = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_vc,d,d});
 
-	for (ptrdiff_t row = 0; row < d; ++row)
+	for (ptrdiff_t row = 0; row < d; ++row) {
+		mm_NN1C_Operator_Multiarray_d(ops.cv1_vg_vm->data[row],geom_coef,jacobian_vm,'d',2,NULL,&row);
 		mm_NN1C_Operator_Multiarray_d(ops.cv1_vg_vc->data[row],geom_coef,jacobian_vc,'d',2,NULL,&row);
+	}
+
+	free((void*)ops.cv1_vg_vm);
+	free((void*)ops.cv1_vg_vc);
 
 	const ptrdiff_t* perm = set_jacobian_permutation(d);
-print_Multiarray_d(jacobian_vc);
 	permute_Multiarray_d(jacobian_vc,perm);
-print_Multiarray_d(jacobian_vc);
 
-// Choose based on volume->curved
-// Change to shorter name: "set_operator"
-EXIT_ADD_SUPPORT; // Change to support using the Operator container
-UNUSED(geom_coef);
-/*
-//		mm_CTN_d(NvnI0,1,NvnG0,OPS->D_vG_vI[col],&XYZ[NvnG0*row],&J_vI[NvnI0*(d*row+col)]);
-//		mm_CTN_d(NvnC0,1,NvnG0,OPS->D_vG_vC[col],&XYZ[NvnG0*row],&J_vC[NvnC0*(d*row+col)]);
-		}
-	}
-*/
+	compute_detJV((struct const_Multiarray_d*)jacobian_vc,(struct Multiarray_d*)volume->jacobian_det_vc);
+	compute_cofactors((struct const_Multiarray_d*)jacobian_vm,(struct Multiarray_d*)volume->metrics_vm);
+EXIT_ERROR("Add: interpolate metrics_vm to metrics_vc.\n");
+print_const_Multiarray_d(volume->jacobian_det_vc);
+print_Multiarray_d(jacobian_vm);
+print_const_Multiarray_d(volume->metrics_vm);
 
-UNUSED(sim);
-UNUSED(volume);
+
+EXIT_ADD_SUPPORT;
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -263,9 +277,7 @@ static void compute_geom_coef_curved (const struct Simulation*const sim, struct 
 
 	const int p = volume->p_ref;
 
-	const struct Operator* vc0_vg_vg = calloc(1,sizeof *vc0_vg_vg); // free
-
-	set_O_from_MO(vc0_vg_vg,element->vc0_vgc_vgc,(ptrdiff_t[]){0,0,p,1});
+	const struct Operator* vc0_vg_vg = get_Multiarray_Operator(element->vc0_vgc_vgc,(ptrdiff_t[]){0,0,p,1});
 
 	const struct const_Multiarray_d* geom_coef =
 		constructor_mm_NN1_Operator_const_Multiarray_d(vc0_vg_vg,base_volume->xyz_ve,'C','d',2,NULL); // keep
@@ -273,8 +285,6 @@ EXIT_ERROR("Add support after output to paraview is working.");
 
 	destructor_const_Multiarray_d(volume->geom_coef);
 	const_constructor_move_const_Multiarray_d(&volume->geom_coef,geom_coef);
-
-	free((void*)vc0_vg_vg);
 }
 
 static void compute_geom_coef_parametric (const struct Simulation*const sim, struct Solver_Volume*const volume)
@@ -303,4 +313,103 @@ static const ptrdiff_t* set_jacobian_permutation (const int d)
 		break;
 	}
 	return NULL;
+}
+
+void compute_detJV (struct const_Multiarray_d* jacobian, struct Multiarray_d* jacobian_det)
+{
+	const int order_j  = 3,
+	          order_dj = 1;
+
+	const ptrdiff_t* exts_j = jacobian->extents;
+
+	assert(jacobian_det->order == order_dj);
+	assert(jacobian->order == order_j);
+	assert(exts_j[1] == exts_j[2]);
+
+	const ptrdiff_t n_vals = exts_j[0],
+	                d      = exts_j[1];
+
+	resize_Multiarray_d(jacobian_det,1,(ptrdiff_t[]){n_vals});
+	double* j_det = jacobian_det->data;
+
+	switch (d) {
+	case 1: {
+		const double* x_r = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){0,0})];
+		for (ptrdiff_t i = 0; i < n_vals; ++i)
+			j_det[i] = x_r[i];
+		break;
+	} case 2: {
+		const double* x_r = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){0,0})],
+		            * x_s = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){0,1})],
+		            * y_r = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){1,0})],
+		            * y_s = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){1,1})];
+		for (ptrdiff_t i = 0; i < n_vals; ++i)
+			j_det[i] = x_r[i]*y_s[i]-x_s[i]*y_r[i];
+		break;
+	} case 3: {
+		const double* x_r = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){0,0})],
+		            * x_s = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){0,1})],
+		            * x_t = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){0,2})],
+		            * y_r = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){1,0})],
+		            * y_s = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){1,1})],
+		            * y_t = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){1,2})],
+		            * z_r = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){2,0})],
+		            * z_s = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){2,1})],
+		            * z_t = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){2,2})];
+		for (ptrdiff_t i = 0; i < n_vals; ++i) {
+			j_det[i] = x_r[i]*(y_s[i]*z_t[i]-y_t[i]*z_s[i])
+			          -x_s[i]*(y_r[i]*z_t[i]-y_t[i]*z_r[i])
+			          +x_t[i]*(y_r[i]*z_s[i]-y_s[i]*z_r[i]);
+		}
+		break;
+	} default:
+		EXIT_ERROR("Unsupported: %td\n",d);
+		break;
+	}
+}
+
+void compute_cofactors (struct const_Multiarray_d* jacobian, struct Multiarray_d* metrics)
+{
+	const int order_j = 3,
+	          order_m = 3;
+
+	const ptrdiff_t* exts_j = jacobian->extents,
+	               * exts_m = metrics->extents;
+
+	assert(metrics->order == order_m);
+	assert(jacobian->order == order_j);
+	assert(exts_j[1] == exts_j[2]);
+
+	const ptrdiff_t n_vals = exts_j[0],
+	                d      = exts_j[1];
+
+	resize_Multiarray_d(metrics,order_m,(ptrdiff_t[]){n_vals,d,d});
+	switch (d) {
+	case 1:
+		for (ptrdiff_t i = 0; i < n_vals; ++i)
+			metrics->data[i] = 1.0;
+		break;
+	case 2: {
+		const double* x_r = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){0,0})],
+		            * x_s = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){0,1})],
+		            * y_r = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){1,0})],
+		            * y_s = &jacobian->data[compute_index_sub_container(order_j,1,exts_j,(ptrdiff_t[]){1,1})];
+		double* m_00 = &metrics->data[compute_index_sub_container(order_m,1,exts_m,(ptrdiff_t[]){0,0})],
+		      * m_01 = &metrics->data[compute_index_sub_container(order_m,1,exts_m,(ptrdiff_t[]){0,1})],
+		      * m_10 = &metrics->data[compute_index_sub_container(order_m,1,exts_m,(ptrdiff_t[]){1,0})],
+		      * m_11 = &metrics->data[compute_index_sub_container(order_m,1,exts_m,(ptrdiff_t[]){1,1})];
+		for (ptrdiff_t i = 0; i < n_vals; ++i) {
+			m_00[i] =  y_s[i];
+			m_01[i] = -y_r[i];
+			m_10[i] = -x_s[i];
+			m_11[i] =  x_r[i];
+		}
+		break;
+	} case 3: {
+		EXIT_ADD_SUPPORT; // curl-form
+		break;
+	} default:
+		EXIT_ERROR("Unsupported: %td\n",d);
+		break;
+	}
 }

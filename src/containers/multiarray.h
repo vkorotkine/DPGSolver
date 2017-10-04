@@ -196,4 +196,11 @@ ptrdiff_t compute_index_sub_container_pi
 	 const int*const sub_indices    ///< Defined for \ref compute_index_sub_container.
 	);
 
+/// \brief Resize a \ref Multiarray_d\*, clearing any existing data entries.
+void resize_Multiarray_d
+	(struct Multiarray_d* a,  ///< The multiarray.
+	 const int order,         ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t* extents ///< Defined in \ref Multiarray_d.
+	);
+
 #endif // DPG__multiarray_h__INCLUDED

@@ -45,8 +45,8 @@ struct Solver_Volume {
 	struct Multiarray_d* grad_coef;
 
 	/** The metric terms (cofactors of the geometry Jacobian) used for transformation of integrals between physical
-	 *  and computational space stored at the (v)olume (g)eometry nodes. */
-	const struct const_Multiarray_d*const metrics_vg;
+	 *  and computational space stored at the (v)olume (m)etric nodes. */
+	const struct const_Multiarray_d*const metrics_vm;
 
 	/** The metric terms (cofactors of the geometry Jacobian) used for transformation of integrals between physical
 	 *  and computational space stored at the (v)olume (c)ubature nodes. */

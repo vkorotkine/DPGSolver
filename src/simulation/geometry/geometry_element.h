@@ -15,10 +15,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #ifndef DPG__geometry_element_h__INCLUDED
 #define DPG__geometry_element_h__INCLUDED
-/**	\file
- *	\brief Provides the interface for the derived \ref Geometry_Element container and associated functions.
+/** \file
+ *  \brief Provides the interface for the derived \ref Geometry_Element container and associated functions.
  *
- *	\note `const` and non-`const` versions of \ref Geometry_Element must have identical members and layout.
+ *  \note `const` and non-`const` versions of \ref Geometry_Element must have identical members and layout.
  */
 
 #include "element.h"
@@ -29,14 +29,18 @@ struct Simulation;
 struct Geometry_Element {
 	struct const_Element element; ///< Base \ref const_Element.
 
-	const struct Multiarray_Operator* vc0_vgc_vgc; ///< See notation in \todo [Ref here].
+	const struct Multiarray_Operator* vc0_vgc_vgc; ///< See notation in \ref element_operators.h.
 
-	const struct Multiarray_Operator* cv1_vgs_vcs; ///< See notation in \todo [Ref here].
-	const struct Multiarray_Operator* cv1_vgc_vcc; ///< See notation in \todo [Ref here].
+	const struct Multiarray_Operator* cv1_vgs_vcs; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv1_vgc_vcc; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv1_vgs_vms; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv1_vgc_vmc; ///< See notation in \ref element_operators.h.
 
 	// Tensor-product sub-operators.
-	const struct Multiarray_Operator* cv0_vgs_vcs; ///< See notation in \todo [Ref here].
-	const struct Multiarray_Operator* cv0_vgc_vcc; ///< See notation in \todo [Ref here].
+	const struct Multiarray_Operator* cv0_vgs_vcs; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vgc_vcc; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vgs_vms; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vgc_vmc; ///< See notation in \ref element_operators.h.
 };
 
 /// \brief `const` version of the \ref Geometry_Element container.
@@ -47,10 +51,14 @@ struct const_Geometry_Element {
 
 	const struct Multiarray_Operator*const cv1_vgs_vcs; ///< Defined in \ref Geometry_Element.
 	const struct Multiarray_Operator*const cv1_vgc_vcc; ///< Defined in \ref Geometry_Element.
+	const struct Multiarray_Operator*const cv1_vgs_vms; ///< Defined in \ref Geometry_Element.
+	const struct Multiarray_Operator*const cv1_vgc_vmc; ///< Defined in \ref Geometry_Element.
 
 	// Tensor-product sub-operators.
 	const struct Multiarray_Operator*const cv0_vgs_vcs; ///< Defined in \ref Geometry_Element.
 	const struct Multiarray_Operator*const cv0_vgc_vcc; ///< Defined in \ref Geometry_Element.
+	const struct Multiarray_Operator*const cv0_vgs_vms; ///< Defined in \ref Geometry_Element.
+	const struct Multiarray_Operator*const cv0_vgc_vmc; ///< Defined in \ref Geometry_Element.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

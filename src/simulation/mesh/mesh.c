@@ -51,6 +51,8 @@ struct Mesh* constructor_Mesh (const struct Mesh_Input* mesh_input, const struct
 
 	if (!elements_provided)
 		destructor_const_Elements(elements);
+	else
+		set_elements_present(elements,mesh->mesh_data->elem_types);
 
 	return mesh;
 }

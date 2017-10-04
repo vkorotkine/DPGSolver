@@ -24,6 +24,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_intrusive.h"
 
 #include "multiarray.h"
+#include "vector.h"
+
 #include "const_cast.h"
 
 // Static function declarations ************************************************************************************* //
@@ -39,12 +41,19 @@ static void set_tp_sub_elements
 	(struct Intrusive_List* elements ///< The list of elements.
 	);
 
+/// \brief Set \ref Element::present to `true` for element of the input type and its associated elements.
+void set_element_present
+	(const int e_type,
+	 const struct const_Intrusive_List* elements
+	);
+
 // Interface functions ********************************************************************************************** //
 
 struct const_Intrusive_List* constructor_Elements (const int d)
 {
 	struct Intrusive_List* elements = constructor_empty_IL(IL_ELEMENT);
 
+	push_back_IL(elements,(struct Intrusive_Link*) constructor_Element(POINT));
 	push_back_IL(elements,(struct Intrusive_Link*) constructor_Element(LINE));
 
 	if (d >= 2) {
@@ -96,8 +105,7 @@ const struct const_Element* get_element_by_type (const struct const_Intrusive_Li
 		if (element->type == type)
 			return element;
 	}
-	printf("Could not find the element of type: %d.\n",type);
-	EXIT_UNSUPPORTED;
+	EXIT_ERROR("Could not find the element of type: %d.\n",type);
 }
 
 const struct const_Element* get_element_by_face (const struct const_Element*const element, const int lf)
@@ -299,6 +307,19 @@ int compute_elem_from_super_type (const int s_type, const int d)
 	}
 }
 
+void set_elements_present (const struct const_Intrusive_List* elements, const struct const_Vector_i*const elem_types)
+{
+	int e_type = -1;
+
+	const ptrdiff_t n_elem = elem_types->ext_0;
+	for (ptrdiff_t i = 0; i < n_elem; ++i) {
+		if (e_type != elem_types->data[i]) {
+			e_type = elem_types->data[i];
+			set_element_present(e_type,elements);
+		}
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -328,6 +349,18 @@ static struct Element* constructor_Element (const int elem_type)
 	// Note the use of the compound literals for the initialization of the local variables.
 	struct Elem_info e_info;
 	switch (elem_type) {
+	case POINT:
+		e_info.s_type = ST_TP;
+		e_info.d      = 0;
+		e_info.n_ve   = 1;
+		e_info.n_e    = 0;
+		e_info.n_f    = 0;
+		e_info.n_f_ve = NULL;
+		e_info.f_ve   = NULL;
+
+		e_info.n_ref_max_v = 1;
+		e_info.n_ref_max_f = 0;
+		break;
 	case LINE:
 		e_info.s_type = ST_TP;
 		e_info.d      = 1;
@@ -394,6 +427,7 @@ static struct Element* constructor_Element (const int elem_type)
 
 	struct Element* element = calloc(1,sizeof *element); // returned
 
+	element->present = false;
 	element->type = elem_type;
 	element->s_type = e_info.s_type;
 	element->d = e_info.d;
@@ -414,9 +448,10 @@ static void set_tp_sub_elements (struct Intrusive_List* elements)
 	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
 		struct Element* element = (struct Element*) curr;
 		switch (element->type) {
-		case LINE: // fallthrough
-		case TRI:  // fallthrough
-		case TET:  // fallthrough
+		case POINT: // fallthrough
+		case LINE:  // fallthrough
+		case TRI:   // fallthrough
+		case TET:   // fallthrough
 		case PYR:
 			element->sub_element[0] = NULL;
 			element->sub_element[1] = NULL;
@@ -434,6 +469,48 @@ static void set_tp_sub_elements (struct Intrusive_List* elements)
 			EXIT_ERROR("Unsupported: %d\n",element->type);
 			break;
 		}
+	}
+}
+
+void set_element_present (const int e_type, const struct const_Intrusive_List* elements)
+{
+	// Enable if needed.
+	if (e_type == POINT)
+		return;
+
+	struct Element* element = (struct Element*) get_element_by_type(elements,e_type);
+	element->present = true;
+
+	switch (e_type) {
+	case POINT:
+		// Do nothing.
+		break;
+	case LINE:
+		set_element_present(POINT,elements); // Enable if needed.
+		break;
+	case TRI: // fallthrough
+	case QUAD:
+		set_element_present(LINE,elements);
+		break;
+	case TET:
+		set_element_present(TRI,elements);
+		break;
+	case HEX:
+		set_element_present(QUAD,elements);
+		break;
+	case WEDGE:
+		set_element_present(LINE,elements);
+		set_element_present(TRI,elements);
+//		set_element_present(QUAD,elements); // Should not be necessary.
+		break;
+	case PYR:
+		set_element_present(TRI,elements);
+		set_element_present(QUAD,elements);
+		set_element_present(TET,elements); // For h-refinement.
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",e_type);
+		break;
 	}
 }
 

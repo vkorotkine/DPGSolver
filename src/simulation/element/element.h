@@ -24,9 +24,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 #include "intrusive.h"
 
+struct const_Vector_i;
+
 /// \brief Container for data relating to the base Elements.
 struct Element {
 	struct Intrusive_Link lnk; ///< The \ref Intrusive_Link.
+
+	bool present; ///< Whether the element type is or may become present in the simulation.
 
 	int type,   ///< The element type.
 	    s_type, ///< The element super type. Options: Tensor-Product, SImplex, PYRamid, WEDGE.
@@ -49,6 +53,8 @@ struct Element {
 /// \brief `const` version of the \ref Element container.
 struct const_Element {
 	const struct const_Intrusive_Link lnk; ///< Defined in \ref Element.
+
+	const bool present; ///< Defined in \ref Element.
 
 	const int type,   ///< Defined in \ref Element.
 	          s_type, ///< Defined in \ref Element.
@@ -98,6 +104,12 @@ void const_cast_const_Element
 	);
 
 // Helper functions ************************************************************************************************* //
+
+/// \brief Set \ref Element::present to `true` for element types which are present in the \ref Mesh_Data::elem_types.
+void set_elements_present
+	(const struct const_Intrusive_List* elements, ///< \ref Simulation::elements.
+	 const struct const_Vector_i*const elem_types ///< \ref Mesh_Data::elem_types.
+	);
 
 /** \brief See return.
  *  \return Pointer to a \ref Element of the input `type`. */

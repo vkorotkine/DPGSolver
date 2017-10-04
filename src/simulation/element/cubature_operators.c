@@ -378,7 +378,8 @@ static int compute_node_type_cub_std
 			return CUB_EQ;
 		else
 			EXIT_ERROR("Unsupported: %s\n",sim->nodes_interp[s_type]);
-	case 'g':
+	case 'g': // fallthrough
+	case 'm':
 		assert(cub_ce == 'v');
 		switch (s_type) {
 			case ST_TP:  return CUB_GLL; break;
@@ -386,10 +387,6 @@ static int compute_node_type_cub_std
 			case ST_PYR: return CUB_GLL; break;
 			default:     EXIT_ERROR("Unsupported: %d\n",s_type); break;
 		}
-		break;
-	case 'm':
-		assert(cub_ce == 'v');
-		EXIT_ADD_SUPPORT;
 		break;
 	case 'c':
 		switch (s_type) {

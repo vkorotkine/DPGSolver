@@ -62,13 +62,6 @@ void set_mutable_MO_from_MO
 	 const ptrdiff_t*const sub_indices         ///< The sub-indices specifying which part of the source to extract.
 	);
 
-/// \brief `mutable` version of \ref set_O_from_MO.
-void set_mutable_O_from_MO
-	(struct mutable_Operator* dest,           ///< The destination.
-	 struct mutable_Multiarray_Operator* src, ///< The source.
-	 const ptrdiff_t*const sub_indices        ///< The sub-indices specifying which part of the source to extract.
-	);
-
 // Constructor functions ******************************************************************************************** //
 // Default constructors ********************************************************************************************* //
 
@@ -127,10 +120,11 @@ void set_MO_from_MO
 		(struct mutable_Multiarray_Operator*)dest,(struct mutable_Multiarray_Operator*)src,order_o,sub_indices);
 }
 
-void set_O_from_MO
-	(const struct Operator* dest, const struct Multiarray_Operator* src, const ptrdiff_t*const sub_indices)
+const struct Operator* get_Multiarray_Operator
+	(const struct Multiarray_Operator* src, const ptrdiff_t*const sub_indices)
 {
-	set_mutable_O_from_MO((struct mutable_Operator*)dest,(struct mutable_Multiarray_Operator*)src,sub_indices);
+	assert(src != NULL);
+	return src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
 }
 
 // Printing functions *********************************************************************************************** //
@@ -172,7 +166,11 @@ const struct Multiarray_Operator* constructor_move_Multiarray_Operator_dyn_exten
 
 static void destructor_mutable_Multiarray_Operator (struct mutable_Multiarray_Operator* a)
 {
-	assert(a != NULL);
+	// Multiarray_Operators may be NULL for tensor-product operator sub-operator components of tensor-product
+	// elements.
+	if (a == NULL)
+		return;
+
 	assert(a->data != NULL);
 
 	const ptrdiff_t size = compute_size(a->order,a->extents);
@@ -192,19 +190,11 @@ void set_mutable_MO_from_MO
 	(struct mutable_Multiarray_Operator* dest, struct mutable_Multiarray_Operator* src, const int order_o,
 	 const ptrdiff_t*const sub_indices)
 {
+	assert(src != NULL);
 	assert(order_o == 1);
 
 	dest->owns_data = false;
 	dest->order     = order_o;
 	dest->extents   = src->extents;
 	dest->data      = &src->data[compute_index_sub_container(src->order,dest->order,src->extents,sub_indices)];
-}
-
-void set_mutable_O_from_MO
-	(struct mutable_Operator* dest, struct mutable_Multiarray_Operator* src, const ptrdiff_t*const sub_indices)
-{
-	struct mutable_Operator* tmp = src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
-	dest->op_std = tmp->op_std;
-	dest->ops_tp = tmp->ops_tp;
-	dest->op_csr = tmp->op_csr;
 }

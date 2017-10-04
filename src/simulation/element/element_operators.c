@@ -195,9 +195,20 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 			EXIT_ERROR("Unsupported: %s\n",sim->geom_rep);
 		break;
 	case 'm': { // metric
-		EXIT_ADD_SUPPORT;
-UNUSED(s_type);
+		const_cast_c(&op_io->kind,'g');
+		const int p_g = compute_p_basis(op_io,sim);
+		const_cast_c(&op_io->kind,'m');
 
+		/// \todo Revisit this based on the results of the geometric conservation testing.
+		switch (s_type) {
+		case ST_TP: // fallthrough
+		case ST_SI:
+			return p_g;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",s_type);
+			break;
+		}
 		break;
 	} case 'c': // fallthrough
 	default:

@@ -18,8 +18,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  *  \brief Provides the functions relating to element operators.
  *
- *  Operator names take the general form: [type][0](7)_[1][2](3)_[4][5](6) where entries in [square brackets] are required
- *  and those in (round brackets) are optional:
+ *  Operator names take the general form: [type][0](7)_[1][2](3)_[4][5](6) where entries in [square brackets] are
+ *  required and those in (round brackets) are optional:
  *  - type:
  *  	- cv: coefficients to values
  *  	- cc: coefficients to coefficients

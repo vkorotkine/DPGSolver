@@ -180,6 +180,16 @@ ptrdiff_t compute_index_sub_container_pi
 	return compute_index_sub_container(order_i,order_o,extents,sub_indices_p);
 }
 
+void resize_Multiarray_d (struct Multiarray_d* a, const int order, const ptrdiff_t* extents)
+{
+	a->order   = order;
+	a->extents = realloc(a->extents,order);
+	for (int i = 0; i < order; ++i)
+		a->extents[i] = extents[i];
+
+	a->data = realloc(a->data,compute_size(order,extents));
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

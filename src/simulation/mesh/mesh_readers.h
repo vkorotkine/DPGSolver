@@ -15,8 +15,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #ifndef DPG__mesh_readers_h__INCLUDED
 #define DPG__mesh_readers_h__INCLUDED
-/**	\file
- *	\brief Provides the interface to mesh reader containers and functions.
+/** \file
+ *  \brief Provides the interface to mesh reader containers and functions.
  */
 
 #include <stddef.h>
