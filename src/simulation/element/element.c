@@ -51,7 +51,7 @@ void set_element_present
 
 struct const_Intrusive_List* constructor_Elements (const int d)
 {
-	struct Intrusive_List* elements = constructor_empty_IL(IL_ELEMENT);
+	struct Intrusive_List* elements = constructor_empty_IL(IL_ELEMENT,NULL);
 
 	push_back_IL(elements,(struct Intrusive_Link*) constructor_Element(POINT));
 	push_back_IL(elements,(struct Intrusive_Link*) constructor_Element(LINE));

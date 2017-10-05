@@ -49,12 +49,11 @@ static void destructor_Solver_Volume
 struct Intrusive_List* constructor_Solver_Volumes (struct Simulation*const sim)
 {
 	struct Intrusive_List* volumes        = sim->volumes;
-	struct Intrusive_List* solver_volumes = constructor_empty_IL(IL_SOLVER_VOLUME);
+	struct Intrusive_List* solver_volumes = constructor_empty_IL(IL_SOLVER_VOLUME,volumes);
 
 	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next)
 		push_back_IL(solver_volumes,(struct Intrusive_Link*) constructor_Solver_Volume((struct Volume*)curr,sim));
 
-	destructor_IL(volumes);
 	return solver_volumes;
 }
 
@@ -76,8 +75,6 @@ static void destructor_Solver_Volume (struct Solver_Volume* volume)
 	destructor_const_Multiarray_d(volume->metrics_vm);
 	destructor_const_Multiarray_d(volume->metrics_vc);
 	destructor_const_Multiarray_d(volume->jacobian_det_vc);
-
-	destructor_Volume((struct Volume*) volume);
 }
 
 // Static functions ************************************************************************************************* //
@@ -87,20 +84,23 @@ static struct Solver_Volume* constructor_Solver_Volume (struct Volume* volume, c
 {
 	struct Solver_Volume* solver_volume = calloc(1,sizeof *solver_volume); // returned
 
+	set_derived_link(volume,solver_volume);
+	set_derived_link(solver_volume,NULL);
+
 	memcpy(&solver_volume->volume,volume,sizeof *volume); // shallow copy of the base.
 
 	const_cast_i(&solver_volume->p_ref,sim->p_s_v[0]);
 	const_constructor_move_Multiarray_d(&solver_volume->geom_coef,constructor_default_Multiarray_d());
 
-	solver_volume->sol_coef  = constructor_default_Multiarray_d(); // destructed
-	solver_volume->grad_coef = constructor_default_Multiarray_d(); // destructed
+	solver_volume->sol_coef  = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0});   // destructed
+	solver_volume->grad_coef = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}); // destructed
 
-	const_constructor_move_Multiarray_d(&solver_volume->metrics_vm,
-	                                    constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0})); // destructed
-	const_constructor_move_Multiarray_d(&solver_volume->metrics_vc,
-	                                    constructor_default_Multiarray_d()); // destructed
-	const_constructor_move_Multiarray_d(&solver_volume->jacobian_det_vc,
-	                                    constructor_empty_Multiarray_d('C',1,(ptrdiff_t[]){0})); // destructed
+	const_constructor_move_Multiarray_d(
+		&solver_volume->metrics_vm,constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
+	const_constructor_move_Multiarray_d(
+		&solver_volume->metrics_vc,constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}));   // destructed
+	const_constructor_move_Multiarray_d(
+		&solver_volume->jacobian_det_vc,constructor_empty_Multiarray_d('C',1,(ptrdiff_t[]){0})); // destructed
 
 	return solver_volume;
 }

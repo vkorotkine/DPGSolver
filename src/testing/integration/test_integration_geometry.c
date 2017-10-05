@@ -24,14 +24,16 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
-#include "simulation.h"
-#include "mesh.h"
-#include "volume.h"
-#include "solver_volume.h"
+#include "computational_elements.h"
 #include "face.h"
+#include "volume.h"
+#include "solver_face.h"
+#include "solver_volume.h"
+
 #include "file_processing.h"
 #include "geometry.h"
-
+#include "mesh.h"
+#include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -56,8 +58,15 @@ void test_integration_geometry (struct Test_Info*const test_info, const char*con
 
 	destructor_Mesh(mesh);
 
+/// \todo Make this a function {
 	sim->volumes = constructor_Solver_Volumes(sim);
 	sim->faces   = constructor_Solver_Faces(sim);
+
+	update_computational_element_list_pointers(sim);
+
+	destructor_IL(sim->volumes->base);
+	destructor_IL(sim->faces->base);
+/// }
 
 	set_up_solver_geometry(sim);
 

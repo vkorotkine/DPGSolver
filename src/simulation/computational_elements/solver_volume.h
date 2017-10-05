@@ -52,7 +52,7 @@ struct Solver_Volume {
 	 *  and computational space stored at the (v)olume (c)ubature nodes. */
 	const struct const_Multiarray_d*const metrics_vc;
 
-	/// The determinate of the geometry Jacobian evaluated at the volume cubature nodes.
+	/// The determinant of the geometry mapping Jacobian evaluated at the volume cubature nodes.
 	const struct const_Multiarray_d*const jacobian_det_vc;
 };
 

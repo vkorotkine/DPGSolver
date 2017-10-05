@@ -55,7 +55,7 @@ struct Intrusive_List* constructor_file_name_IL
 
 	struct IL_Info il_info = set_IL_Info(list_name);
 
-	struct Intrusive_List* intrusive_list = constructor_empty_IL(il_info.list_name);
+	struct Intrusive_List* intrusive_list = constructor_empty_IL(il_info.list_name,NULL);
 
 	bool found_var = false;
 	char line[STRLEN_MAX];

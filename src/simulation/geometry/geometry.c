@@ -218,7 +218,7 @@ UNUSED(sim); /// \todo Delete if unused.
 
 	if (!base_volume->curved) {
 		set_MO_from_MO(ops.cv1_vg_vm,element->cv1_vgs_vms,1,(ptrdiff_t[]){0,0,1,1});
-		set_MO_from_MO(ops.cv1_vg_vc,element->cv1_vgs_vcs,1,(ptrdiff_t[]){0,0,1,1});
+		set_MO_from_MO(ops.cv1_vg_vc,element->cv1_vgs_vcs,1,(ptrdiff_t[]){0,0,p,1});
 		ops.vv0_vm_vc = get_Multiarray_Operator(element->vv0_vms_vcs,(ptrdiff_t[]){0,0,p,1});
 	} else {
 		set_MO_from_MO(ops.cv1_vg_vm,element->cv1_vgc_vmc,1,(ptrdiff_t[]){0,0,p,p});
@@ -248,9 +248,9 @@ UNUSED(sim); /// \todo Delete if unused.
 
 	const struct const_Multiarray_d* met_vm = volume->metrics_vm;
 
-	destructor_const_Multiarray_d(volume->metrics_vc);
-	*(const struct const_Multiarray_d**)& volume->metrics_vc =
-		constructor_mm_NN1_Operator_const_Multiarray_d(ops.vv0_vm_vc,met_vm,'C','d',met_vm->order,NULL); // keep
+	resize_Multiarray_d((struct Multiarray_d*)volume->metrics_vc,3,(ptrdiff_t[]){n_vc,d,d});
+	mm_NN1C_Operator_Multiarray_d(
+		ops.vv0_vm_vc,met_vm,(struct Multiarray_d*)volume->metrics_vc,'d',met_vm->order,NULL,NULL);
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -368,6 +368,9 @@ void compute_detJV (struct const_Multiarray_d* jacobian, struct Multiarray_d* ja
 		EXIT_ERROR("Unsupported: %td\n",d);
 		break;
 	}
+
+	for (ptrdiff_t i = 0; i < n_vals; ++i)
+		assert(j_det[i] > 0.0);
 }
 
 void compute_cofactors (struct const_Multiarray_d* jacobian, struct Multiarray_d* metrics)

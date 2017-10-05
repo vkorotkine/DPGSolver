@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 
+#include <assert.h>
+
 #include "macros.h"
 
 #include "vector.h"
@@ -182,8 +184,12 @@ ptrdiff_t compute_index_sub_container_pi
 
 void resize_Multiarray_d (struct Multiarray_d* a, const int order, const ptrdiff_t* extents)
 {
-	a->order   = order;
+#if 1
+	assert(a->order == order);
+#else
 	a->extents = realloc(a->extents,order * sizeof *a->extents);
+#endif
+	a->order   = order;
 	for (int i = 0; i < order; ++i)
 		a->extents[i] = extents[i];
 

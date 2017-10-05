@@ -21,6 +21,14 @@ You should have received a copy of the GNU General Public License along with DPG
  *  The data structures used here were inspired by the intrusive container example from ch. 27.9 of Stroustrup
  *  \cite Stroustrup2014. The motivating principle is that elements of an \ref Intrusive_List may be manipulated without
  *  knowing anything about the internal structure of the \ref Intrusive_Link.
+ *
+ *  While not required for the conventional usage of the intrusive list functionality, certain members have been added
+ *  to the \ref Intrusive_List and \ref Intrusive_Link containers to facilitate the use of lists of derived objects from
+ *  lists of base objects:
+ *  - \ref Intrusive_List::base provides a pointer to the base list (if applicable) such that the base list can be
+ *    destructed after all pointers to its links have been changed to pointers to derived links.
+ *  - \ref Intrusive_Link::derived provides a pointer to the derived link (if applicable) such that all pointers to base
+ *    links can be replaced with pointers to derived links.
  */
 
 /// \brief A doubly-linked list structure to hold intrusive containers.
@@ -29,6 +37,7 @@ struct Intrusive_List {
 	struct Intrusive_Link* last;  ///< Pointer to the last \ref Intrusive_Link\* in the list.
 
 	int name; ///< The name of the list. Used for selecting the appropriate destructor function.
+	struct Intrusive_List* base;  ///< Pointer to the base \ref Intrusive_List\* if applicable.
 };
 
 /// \brief `const` version of \ref Intrusive_List.
@@ -37,28 +46,34 @@ struct const_Intrusive_List {
 	const struct Intrusive_Link*const last;  ///< Defined in \ref Intrusive_List.
 
 	int name; ///< Defined in \ref Intrusive_List.
+	const struct Intrusive_List*const base;  ///< Defined in \ref Intrusive_List.
 };
 
 /// \brief A link for a doubly-linked list.
 struct Intrusive_Link {
 	struct Intrusive_Link* prev; ///< Pointer to the previous \ref Intrusive_Link\* in the list.
 	struct Intrusive_Link* next; ///< Pointer to the next \ref Intrusive_Link\* in the list.
+
+	struct Intrusive_Link* derived; ///< Pointer to the derived \ref Intrusive_Link\* if applicable.
 };
 
 /// \brief `const` version of \ref Intrusive_Link.
 struct const_Intrusive_Link {
-	const struct Intrusive_Link*const prev; ///< See non-`const`.
-	const struct Intrusive_Link*const next; ///< See non-`const`.
+	const struct Intrusive_Link*const prev; ///< Defined in \ref Intrusive_Link.
+	const struct Intrusive_Link*const next; ///< Defined in \ref Intrusive_Link.
+
+	const struct Intrusive_Link*const derived; ///< Defined in \ref Intrusive_Link.
 };
 
 /** \brief Contructs an empty \ref Intrusive_List.
- *	\return Standard. */
+ *  \return Standard. */
 struct Intrusive_List* constructor_empty_IL
-	(const int list_name ///< \ref Intrusive_List::name.
+	(const int list_name,        ///< \ref Intrusive_List::name.
+	 struct Intrusive_List* base ///< \ref Intrusive_List::base.
 	);
 
 /** \brief Destructs all Intrusive_Links in the \ref Intrusive_List.
- *	\note Only frees the link entries and not any members which may be pointing to allocated memory. */
+ *  \note Only frees the link entries and not any members which may be pointing to allocated memory. */
 void clear_IL
 	(struct Intrusive_List* lst ///< Standard.
 	);
@@ -91,6 +106,12 @@ void push_back_IL
 struct Intrusive_Link* erase_IL
 	(struct Intrusive_List* lst, ///< The list.
 	 struct Intrusive_Link* curr ///< The current link.
+	);
+
+/// \brief Set \ref Intrusive_Link::derived.
+void set_derived_link
+	(void* base,   ///< The base link.
+	 void* derived ///< The derived link.
 	);
 
 #endif // DPG__Intrusive_h__INCLUDED

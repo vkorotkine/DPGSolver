@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "intrusive.h"
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,18 +26,23 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Initialize an \ref Intrusive_List to `NULL`.
-static void init_IL
-	(struct Intrusive_List* lst, ///< Standard.
-	 const int list_name         ///< \ref Intrusive_List::name.
-	);
-
 // Interface functions ********************************************************************************************** //
 
-struct Intrusive_List* constructor_empty_IL (const int list_name)
+struct Intrusive_List* constructor_empty_IL (const int list_name, struct Intrusive_List* base)
 {
+	if ((list_name == IL_ELEMENT) || (list_name == IL_VOLUME) || (list_name == IL_FACE))
+		assert(base == NULL);
+	else
+		assert(base != NULL);
+
 	struct Intrusive_List* lst = calloc(1,sizeof *lst); // keep
-	init_IL(lst,list_name);
+
+	lst->first = NULL;
+	lst->last  = NULL;
+
+	lst->name  = list_name;
+	lst->base  = base;
+
 	return lst;
 }
 
@@ -109,12 +115,10 @@ struct Intrusive_Link* erase_IL (struct Intrusive_List* lst, struct Intrusive_Li
 	}
 }
 
+void set_derived_link (void* base, void* derived)
+{
+	((struct Intrusive_Link*)base)->derived = (struct Intrusive_Link*)derived;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static void init_IL (struct Intrusive_List* lst, const int list_name)
-{
-	lst->name  = list_name;
-	lst->first = NULL;
-	lst->last  = NULL;
-}

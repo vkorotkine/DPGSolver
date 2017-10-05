@@ -81,7 +81,7 @@ const struct const_Vector_i* compute_ve_inds_f
 
 struct Intrusive_List* constructor_Faces (struct Simulation*const sim, const struct Mesh*const mesh)
 {
-	struct Intrusive_List* faces = constructor_empty_IL(IL_FACE);
+	struct Intrusive_List* faces = constructor_empty_IL(IL_FACE,NULL);
 
 	const struct const_Multiarray_Vector_i*const node_nums = mesh->mesh_data->node_nums;
 

@@ -1,6 +1,8 @@
 set	(SOURCE
+	 computational_elements.c
 	 volume.c
 	 solver_volume.c
+	 solver_face.c
 	 face.c
 	)
 

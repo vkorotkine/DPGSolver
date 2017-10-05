@@ -39,10 +39,6 @@ struct Face {
 
 	const int bc;        ///< The boundary condition associated with the face (if relevant).
 
-/// \todo Add this member to Face_Solver.
-//	const char cub_type; /**< Type of cubature to be used for the face. Options: 's'traight, 'c'urved. This should be
-//	                      *   curved whenever an adjacent volume is curved. */
-
 	const struct const_Element*const element; ///< Pointer to the associated \ref const_Element.
 
 	/** \brief Container for information relating to the neighbouring \ref Volume on either side of the face.

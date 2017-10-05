@@ -59,7 +59,8 @@ struct const_Intrusive_List* constructor_Geometry_Elements (struct Simulation*co
 		EXIT_UNSUPPORTED;
 
 	const struct const_Intrusive_List* elements = sim->elements;
-	struct Intrusive_List* geometry_elements = constructor_empty_IL(IL_GEOMETRY_ELEMENT); // returned
+	struct Intrusive_List* geometry_elements =
+		constructor_empty_IL(IL_GEOMETRY_ELEMENT,(struct Intrusive_List*)elements); // returned
 
 	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next)
 		push_back_IL(geometry_elements,
@@ -172,7 +173,7 @@ static void set_up_operators_standard (struct Geometry_Element* element, const s
 
 	element->vc0_vgc_vgc = constructor_operators("vc0","vgc","vgc","H_1_P_1P",sim->p_s_v,b_e,sim); // keep
 
-	element->cv1_vgs_vcs = constructor_operators("cv1","vgs","vcs","H_1_P_1",  sim->p_s_v,b_e,sim); // keep
+	element->cv1_vgs_vcs = constructor_operators("cv1","vgs","vcs","H_1_P_1P", sim->p_s_v,b_e,sim); // keep
 	element->cv1_vgc_vcc = constructor_operators("cv1","vgc","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // keep
 
 	element->cv1_vgs_vms = constructor_operators("cv1","vgs","vms","H_1_P_1",  sim->p_s_v,b_e,sim); // keep
@@ -215,20 +216,20 @@ static void set_up_operators_tp_wedge (struct Geometry_Element* element, const s
 
 	// tensor-product sub-operators
 	if (s_e[0]->cv0_vgs_vcs == NULL) {
-		s_e[0]->cv0_vgs_vcs = constructor_operators("cv0","vgs","vcs","H_1_P_1",  sim->p_s_v,bs_e[0],sim); // destructed
+		s_e[0]->cv0_vgs_vcs = constructor_operators("cv0","vgs","vcs","H_1_P_1P", sim->p_s_v,bs_e[0],sim); // destructed
 		s_e[0]->cv0_vgc_vcc = constructor_operators("cv0","vgc","vcc","H_1_P_PM0",sim->p_s_v,bs_e[0],sim); // destructed
 		s_e[0]->cv0_vgs_vms = constructor_operators("cv0","vgs","vms","H_1_P_1",  sim->p_s_v,bs_e[0],sim); // destructed
 		s_e[0]->cv0_vgc_vmc = constructor_operators("cv0","vgc","vmc","H_1_P_PM0",sim->p_s_v,bs_e[0],sim); // destructed
 	}
 	if (s_e[1]->cv0_vgs_vcs == NULL) {
-		s_e[1]->cv0_vgs_vcs = constructor_operators("cv0","vgs","vcs","H_1_P_1",  sim->p_s_v,bs_e[1],sim); // destructed
+		s_e[1]->cv0_vgs_vcs = constructor_operators("cv0","vgs","vcs","H_1_P_1P", sim->p_s_v,bs_e[1],sim); // destructed
 		s_e[1]->cv0_vgc_vcc = constructor_operators("cv0","vgc","vcc","H_1_P_PM0",sim->p_s_v,bs_e[1],sim); // destructed
 		s_e[1]->cv0_vgs_vms = constructor_operators("cv0","vgs","vms","H_1_P_1",  sim->p_s_v,bs_e[1],sim); // destructed
 		s_e[1]->cv0_vgc_vmc = constructor_operators("cv0","vgc","vmc","H_1_P_PM0",sim->p_s_v,bs_e[1],sim); // destructed
 	}
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vgs_vcs,s_e[0]->cv1_vgs_vcs,s_e[1]->cv0_vgs_vcs,s_e[1]->cv1_vgs_vcs);
-	element->cv1_vgs_vcs = constructor_operators_tp("cv1","vgs","vcs","H_1_P_1",sim->p_s_v,b_e,sim,&ops_tp); // keep
+	element->cv1_vgs_vcs = constructor_operators_tp("cv1","vgs","vcs","H_1_P_1P",sim->p_s_v,b_e,sim,&ops_tp); // keep
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vgc_vcc,s_e[0]->cv1_vgc_vcc,s_e[1]->cv0_vgc_vcc,s_e[1]->cv1_vgc_vcc);
 	element->cv1_vgc_vcc = constructor_operators_tp("cv1","vgs","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // keep

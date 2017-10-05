@@ -27,6 +27,20 @@ struct Solver_Face {
 
 	/// The reference order of the face. Need not be equal to the order of the solution in the face.
 	const int p_ref;
+
+	/** Type of cubature to be used for the face. Options: 's'traight, 'c'urved. Set to curved whenever an adjacent
+	 *  volume is curved. */
+	const char cub_type;
+
+	/// Values of the physical xyz coordinates at the face cubature nodes.
+	const struct const_Multiarray_d*const xyz_fc;
+
+	/// Values of the outward pointing unit normal vector at the face cubature nodes.
+	const struct const_Multiarray_d*const n_fc;
+
+	/** The determinant of the face geometry Jacobian evaluated at the face cubature nodes. See (eq. (B.6),
+	 *  \cite Zwanenburg2016) for the precise definition. */
+	const struct const_Multiarray_d*const jacobian_det_fc;
 };
 
 /** \brief Constructs the \ref Solver_Face \ref Intrusive_List.
