@@ -69,13 +69,13 @@ struct const_Geometry_Element {
 
 /** \brief Constructs the \ref Geometry_Element\*s.
  *	\return Standard. */
-struct const_Intrusive_List* constructor_Geometry_Elements
+const struct const_Intrusive_List* constructor_Geometry_Elements
 	(struct Simulation*const sim ///< The \ref Simulation.
 	);
 
 /// \brief Destructs the \ref Geometry_Element\*s.
 void destructor_Geometry_Elements
-	(struct Intrusive_List* geometry_elements ///< Standard.
+	(const struct const_Intrusive_List* geometry_elements ///< Standard.
 	);
 
 

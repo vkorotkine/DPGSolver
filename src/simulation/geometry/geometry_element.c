@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "geometry_element.h"
 
+#include <assert.h>
 #include <string.h>
 
 #include "macros.h"
@@ -47,38 +48,38 @@ static void destructor_Geometry_Element
 
 /// \brief Set up the geometry related operators.
 void set_up_geometry_ops
-	(struct Simulation* sim,                  ///< \ref Simulation.
-	 struct Intrusive_List* geometry_elements ///< \ref Geometry_Element\*s.
+	(struct Simulation* sim,                              ///< \ref Simulation.
+	 const struct const_Intrusive_List* geometry_elements ///< \ref Geometry_Element\*s.
 	);
 
 // Interface functions ********************************************************************************************** //
 
-struct const_Intrusive_List* constructor_Geometry_Elements (struct Simulation*const sim)
+const struct const_Intrusive_List* constructor_Geometry_Elements (struct Simulation*const sim)
 {
-	if (sim->elements->name != IL_ELEMENT)
-		EXIT_UNSUPPORTED;
+	const struct const_Intrusive_List* base = sim->elements;
+	assert(base->name == IL_ELEMENT);
 
-	const struct const_Intrusive_List* elements = sim->elements;
-	struct Intrusive_List* geometry_elements =
-		constructor_empty_IL(IL_GEOMETRY_ELEMENT,(struct Intrusive_List*)elements); // returned
+	const struct const_Intrusive_List* elements = constructor_empty_const_IL(IL_GEOMETRY_ELEMENT,base); // returned
+	for (const struct const_Intrusive_Link* curr = elements->base->first; curr; curr = curr->next) {
+		push_back_const_IL(elements,
+			(const struct const_Intrusive_Link*)constructor_Geometry_Element((struct const_Element*)curr));
+	}
 
-	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next)
-		push_back_IL(geometry_elements,
-		             (struct Intrusive_Link*) constructor_Geometry_Element((struct const_Element*) curr));
+	sim->ele
+	set_up_geometry_ops(sim,elements);
 
-	set_up_geometry_ops(sim,geometry_elements);
-
-	return (struct const_Intrusive_List*) geometry_elements;
+	return elements;
 }
 
-void destructor_Geometry_Elements (struct Intrusive_List* geometry_elements)
+void destructor_Geometry_Elements (const struct const_Intrusive_List* geometry_elements)
 {
-	for (const struct Intrusive_Link* curr = geometry_elements->first; curr; ) {
-		struct Intrusive_Link* next = curr->next;
+	for (const struct const_Intrusive_Link* curr = geometry_elements->first; curr; ) {
+		const struct const_Intrusive_Link* next = curr->next;
 		destructor_Geometry_Element((struct Geometry_Element*) curr);
 		curr = next;
 	}
-	destructor_IL(geometry_elements);
+EXIT_ADD_SUPPORT; // Likely make a general element destructor function which adjusts the pointer in sim.
+	destructor_const_IL(geometry_elements);
 }
 
 // Static functions ************************************************************************************************* //
@@ -118,9 +119,9 @@ static void destructor_Geometry_Element (struct Geometry_Element* element)
 	destructor_Element((struct Element*) element);
 }
 
-void set_up_geometry_ops (struct Simulation* sim, struct Intrusive_List* geometry_elements)
+void set_up_geometry_ops (struct Simulation* sim, const struct const_Intrusive_List* geometry_elements)
 {
-	for (struct Intrusive_Link* curr = geometry_elements->first; curr; curr = curr->next) {
+	for (const struct const_Intrusive_Link* curr = geometry_elements->first; curr; curr = curr->next) {
 		if (((struct const_Element*)curr)->present)
 			set_up_operators_element((struct Geometry_Element*)curr,sim);
 	}

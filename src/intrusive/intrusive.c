@@ -46,6 +46,12 @@ struct Intrusive_List* constructor_empty_IL (const int list_name, struct Intrusi
 	return lst;
 }
 
+const struct const_Intrusive_List* constructor_empty_const_IL
+	(const int list_name, const struct const_Intrusive_List* base)
+{
+	return (const struct const_Intrusive_List*) constructor_empty_IL(list_name,(struct Intrusive_List*)base);
+}
+
 void clear_IL (struct Intrusive_List* lst)
 {
 	struct Intrusive_Link* curr = lst->first;
@@ -69,6 +75,14 @@ void destructor_const_IL (const struct const_Intrusive_List* lst)
 	destructor_IL((struct Intrusive_List*)lst);
 }
 
+void destructor_IL_base (struct Intrusive_List* lst)
+{
+	assert(lst->base);
+	destructor_IL(lst->base);
+
+	lst->base = NULL;
+}
+
 void push_back_IL (struct Intrusive_List* lst, struct Intrusive_Link* curr)
 {
 	struct Intrusive_Link* last = lst->last;
@@ -84,6 +98,11 @@ void push_back_IL (struct Intrusive_List* lst, struct Intrusive_Link* curr)
 	// `curr` is the last element.
 	lst->last = curr;
 	curr->next = NULL;
+}
+
+void push_back_const_IL (const struct const_Intrusive_List* lst, const struct const_Intrusive_Link* curr)
+{
+	push_back_IL((struct Intrusive_List*)lst,(struct Intrusive_Link*)curr);
 }
 
 struct Intrusive_Link* erase_IL (struct Intrusive_List* lst, struct Intrusive_Link* curr)

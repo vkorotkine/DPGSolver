@@ -42,11 +42,11 @@ struct Intrusive_List {
 
 /// \brief `const` version of \ref Intrusive_List.
 struct const_Intrusive_List {
-	const struct Intrusive_Link*const first; ///< Defined in \ref Intrusive_List.
-	const struct Intrusive_Link*const last;  ///< Defined in \ref Intrusive_List.
+	const struct const_Intrusive_Link*const first; ///< Defined in \ref Intrusive_List.
+	const struct const_Intrusive_Link*const last;  ///< Defined in \ref Intrusive_List.
 
 	int name; ///< Defined in \ref Intrusive_List.
-	const struct Intrusive_List*const base;  ///< Defined in \ref Intrusive_List.
+	const struct const_Intrusive_List*const base;  ///< Defined in \ref Intrusive_List.
 };
 
 /// \brief A link for a doubly-linked list.
@@ -57,19 +57,30 @@ struct Intrusive_Link {
 	struct Intrusive_Link* derived; ///< Pointer to the derived \ref Intrusive_Link\* if applicable.
 };
 
-/// \brief `const` version of \ref Intrusive_Link.
+/** \brief `const` version of \ref Intrusive_Link.
+ *  \note Pointers are not `const` as this precludes iterating over them.
+ */
 struct const_Intrusive_Link {
-	const struct Intrusive_Link*const prev; ///< Defined in \ref Intrusive_Link.
-	const struct Intrusive_Link*const next; ///< Defined in \ref Intrusive_Link.
+	const struct const_Intrusive_Link* prev; ///< Defined in \ref Intrusive_Link.
+	const struct const_Intrusive_Link* next; ///< Defined in \ref Intrusive_Link.
 
-	const struct Intrusive_Link*const derived; ///< Defined in \ref Intrusive_Link.
+	const struct const_Intrusive_Link*const derived; ///< Defined in \ref Intrusive_Link.
 };
+
+// Interface functions ********************************************************************************************** //
 
 /** \brief Contructs an empty \ref Intrusive_List.
  *  \return Standard. */
 struct Intrusive_List* constructor_empty_IL
 	(const int list_name,        ///< \ref Intrusive_List::name.
 	 struct Intrusive_List* base ///< \ref Intrusive_List::base.
+	);
+
+/** \brief `const` version of \ref constructor_empty_IL.
+ *  \return Standard. */
+const struct const_Intrusive_List* constructor_empty_const_IL
+	(const int list_name,                    ///< Defined for \ref constructor_empty_IL.
+	 const struct const_Intrusive_List* base ///< Defined for \ref constructor_empty_IL.
 	);
 
 /** \brief Destructs all Intrusive_Links in the \ref Intrusive_List.
@@ -91,10 +102,21 @@ void destructor_const_IL
 	(const struct const_Intrusive_List* lst ///< Standard.
 	);
 
+/// \brief Destructor for a \ref Intrusive_List which is a base for the input \ref Intrusive_List.
+void destructor_IL_base
+	(struct Intrusive_List* lst ///< Standard.
+	);
+
 /// \brief Add an \ref Intrusive_Link to the end of the \ref Intrusive_List.
 void push_back_IL
 	(struct Intrusive_List* lst, ///< The list.
 	 struct Intrusive_Link* curr ///< The current link.
+	);
+
+/// \brief `const` version of \ref push_back_IL.
+void push_back_const_IL
+	(const struct const_Intrusive_List* lst, ///< Defined for \ref push_back_IL.
+	 const struct const_Intrusive_Link* curr ///< Defined for \ref push_back_IL.
 	);
 
 /** \brief Erase the current \ref Intrusive_Link.

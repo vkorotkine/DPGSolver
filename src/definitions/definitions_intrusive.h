@@ -15,9 +15,18 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #ifndef DPG__definitions_intrusive_h__INCLUDED
 #define DPG__definitions_intrusive_h__INCLUDED
-/**	\file
- *	\brief Provides the definitions relating to the intrusive lists base/derived classes.
+/** \file
+ *  \brief Provides the definitions relating to the intrusive lists base/derived classes.
  */
+
+///\{ \name Invalid list name
+#define IL_INVALID 0
+///\}
+
+///\{ \name The intrusive list category names. Used when multiple lists must be updated together.
+#define IL_BASE   1000
+#define IL_SOLVER 1001
+///\}
 
 ///\{ \name The \ref Element list names.
 #define IL_ELEMENT          100

@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
+#include "computational_elements.h"
 #include "const_cast.h"
 
 // Static function declarations ************************************************************************************* //
@@ -100,7 +101,7 @@ void const_cast_const_Element (const struct const_Element*const* dest, const str
 
 const struct const_Element* get_element_by_type (const struct const_Intrusive_List*const elements, const int type)
 {
-	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
+	for (const struct const_Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
 		struct const_Element* element = (struct const_Element*) curr;
 		if (element->type == type)
 			return element;
@@ -151,7 +152,7 @@ const struct const_Element* get_element_by_face (const struct const_Element*cons
 
 bool wedges_present (const struct const_Intrusive_List*const elements)
 {
-	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
+	for (const struct const_Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
 		struct const_Element* element = (struct const_Element*) curr;
 		if (element->type == WEDGE)
 			return true;

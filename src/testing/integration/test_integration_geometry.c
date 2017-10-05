@@ -23,12 +23,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_base.h"
 
 #include "macros.h"
+#include "definitions_intrusive.h"
 
 #include "computational_elements.h"
 #include "face.h"
 #include "volume.h"
-#include "solver_face.h"
-#include "solver_volume.h"
+//#include "solver_face.h"
+//#include "solver_volume.h"
 
 #include "file_processing.h"
 #include "geometry.h"
@@ -53,21 +54,10 @@ void test_integration_geometry (struct Test_Info*const test_info, const char*con
 	struct Mesh_Input mesh_input = set_Mesh_Input(sim);
 	struct Mesh* mesh = constructor_Mesh(&mesh_input,sim->elements);
 
-	sim->volumes = constructor_Volumes(sim,mesh);
-	sim->faces   = constructor_Faces(sim,mesh);
-
+	constructor_computational_element_lists(sim,mesh,IL_BASE);
 	destructor_Mesh(mesh);
 
-/// \todo Make this a function {
-	sim->volumes = constructor_Solver_Volumes(sim);
-	sim->faces   = constructor_Solver_Faces(sim);
-
-	update_computational_element_list_pointers(sim);
-
-	destructor_IL(sim->volumes->base);
-	destructor_IL(sim->faces->base);
-/// }
-
+	constructor_computational_element_lists(sim,NULL,IL_SOLVER);
 	set_up_solver_geometry(sim);
 
 

@@ -21,15 +21,24 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 struct Simulation;
+struct Mesh;
 
-/** \brief Update pointers to computational elements in the derived lists.
+/** \brief Constructor for computational element lists.
  *
- *  Every time a new derived list is created and the accompanying base list is destructed, any pointers to computational
- *  elements in the base list become invalid. This function updates these pointers such that all pointers to base list
- *  links are replaced with pointers to derived list links.
+ *  If a list other than the base list is constructed, its corresponding base list is destructed here.
  */
-void update_computational_element_list_pointers
-	(const struct Simulation* sim /// \ref Simulation.
+void constructor_computational_element_lists
+	(struct Simulation* sim,       ///< \ref Simulation.
+	 const struct Mesh*const mesh, ///< The \ref Mesh (only required for base lists).
+	 const int list_category       /**< The computational element list category.
+	                                *   Options: see \ref definitions_intrusive.h. */
+	);
+
+/** \brief Constructor for a list of elements derived from the base \ref Element list.
+ *  \return Standard. */
+const struct const_Intrusive_List* constructor_derived_Elements
+	(struct Simulation* sim, ///< \ref Simulation
+	 const int list_name     ///< The derived \ref Intrusive_List::name.
 	);
 
 #endif // DPG__computational_elements_h__INCLUDED

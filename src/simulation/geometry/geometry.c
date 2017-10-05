@@ -30,6 +30,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix.h"
 #include "vector.h"
 
+#include "computational_elements.h"
+
 #include "const_cast.h"
 #include "geometry_element.h"
 #include "intrusive.h"
@@ -120,9 +122,11 @@ void set_up_solver_geometry (struct Simulation* sim)
 	if ((sim->volumes->name != IL_SOLVER_VOLUME) || (sim->faces->name != IL_SOLVER_FACE))
 		EXIT_ERROR("Using incorrect volume (%d) and face (%d) lists.\n",sim->volumes->name,sim->faces->name);
 
-	const struct const_Intrusive_List* geometry_elements = constructor_Geometry_Elements(sim); // destructed
+//	const struct const_Intrusive_List* geometry_elements = constructor_Geometry_Elements(sim); // destructed
+	const struct const_Intrusive_List* geometry_elements =
+		constructor_derived_Elements(sim,IL_GEOMETRY_ELEMENT); // destructed
 
-	update_volumes_element(sim->volumes,geometry_elements);
+//	update_volumes_element(sim->volumes,geometry_elements);
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Volume* volume               = (struct Volume*) curr;
 		struct Solver_Volume* solver_volume = (struct Solver_Volume*) curr;
@@ -132,7 +136,7 @@ void set_up_solver_geometry (struct Simulation* sim)
 
 		compute_geometry_volume(sim,solver_volume);
 	}
-	update_volumes_element(sim->volumes,sim->elements);
+//	update_volumes_element(sim->volumes,sim->elements);
 EXIT_UNSUPPORTED;
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
