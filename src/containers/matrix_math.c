@@ -85,6 +85,7 @@ void permute_Matrix_d (struct Matrix_d* a, const ptrdiff_t* p)
 
 	// There was a problem with the gsl_permute_matrix function call when setting tda outside of the gsl_matrix
 	// definition. Not sure what the problem was but this is the reason for the redundant code.
+	/// \todo Attempt to do this again and update comments.
 
 	// It seems like gsl_permute_matrix naturally permutes the columns of a row-major stored matrix from the right.
 	// Thus, transposition is required for permutation of row-major from the left/column-major from the right.
@@ -145,9 +146,6 @@ void mm_d
 	              ldb = ( b->layout == 'R' ? b->ext_1 : b->ext_0 ),
 	              ldc = ( c->layout == 'R' ? c->ext_1 : c->ext_0 );
 
-	assert(m > 0);
-	assert(n > 0);
-	assert(k > 0);
 	assert(m == ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 ));
 	assert(n == ( trans_b_i == 'N' ? b->ext_1 : b->ext_0 ));
 	assert(k == ( trans_b_i == 'N' ? b->ext_0 : b->ext_1 ));

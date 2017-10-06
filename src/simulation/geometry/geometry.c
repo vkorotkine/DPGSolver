@@ -230,8 +230,9 @@ UNUSED(sim); /// \todo Delete if unused.
 		const struct Multiarray_Operator* cv1_vg_vm;
 		const struct Multiarray_Operator* cv1_vg_vc;
 		const struct Operator* vv0_vm_vc;
-	} ops = { .cv1_vg_vm = constructor_default_Multiarray_Operator(),    // free (only)
-	          .cv1_vg_vc = constructor_default_Multiarray_Operator(), }; // free (only)
+	} ops = { .cv1_vg_vm = constructor_default_Multiarray_Operator(), // free (only)
+	          .cv1_vg_vc = constructor_default_Multiarray_Operator(), // free (only)
+	          .vv0_vm_vc = NULL, };
 
 	if (!base_volume->curved) {
 		set_MO_from_MO(ops.cv1_vg_vm,element->cv1_vgs_vms,1,(ptrdiff_t[]){0,0,1,1});
@@ -246,8 +247,8 @@ UNUSED(sim); /// \todo Delete if unused.
 	const ptrdiff_t n_vm = ops.cv1_vg_vm->data[0]->op_std->ext_0,
 	                n_vc = ops.cv1_vg_vc->data[0]->op_std->ext_0;
 
-	struct Multiarray_d* jacobian_vm = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_vm,d,d}),
-	                   * jacobian_vc = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_vc,d,d});
+	struct Multiarray_d* jacobian_vm = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_vm,d,d}), // destructed
+	                   * jacobian_vc = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_vc,d,d}); // destructed
 
 	for (ptrdiff_t row = 0; row < d; ++row) {
 		mm_NN1C_Operator_Multiarray_d(ops.cv1_vg_vm->data[row],geom_coef,jacobian_vm,'d',2,NULL,&row);
@@ -263,6 +264,9 @@ UNUSED(sim); /// \todo Delete if unused.
 	compute_detJV((struct const_Multiarray_d*)jacobian_vc,(struct Multiarray_d*)volume->jacobian_det_vc);
 	compute_cofactors((struct const_Multiarray_d*)jacobian_vm,(struct Multiarray_d*)volume->metrics_vm);
 
+	destructor_Multiarray_d(jacobian_vm);
+	destructor_Multiarray_d(jacobian_vc);
+
 	const struct const_Multiarray_d* met_vm = volume->metrics_vm;
 
 	resize_Multiarray_d((struct Multiarray_d*)volume->metrics_vc,3,(ptrdiff_t[]){n_vc,d,d});
@@ -277,28 +281,56 @@ UNUSED(sim); /// \todo Delete if unused.
 
 	struct Face* base_face     = (struct Face*) face;
 	struct Volume* base_volume = base_face->neigh_info[0].volume;
+	struct Solver_Volume* volume = (struct Solver_Volume*) base_volume;
 
 	struct const_Geometry_Element* element = (struct const_Geometry_Element*) base_volume->element;
 
 	struct Ops {
 		const struct Operator* cv0_vg_fc;
-	} ops = { NULL };
+		const struct Operator* vv0_vm_fc;
+	} ops = { .cv0_vg_fc = NULL,
+	          .vv0_vm_fc = NULL, };
 
 	const int ind_lf = base_face->neigh_info[0].ind_lf;
-	const int p = face->p_ref;
+	const int p_v = volume->p_ref,
+	          p_f = face->p_ref;
 	if (!base_volume->curved) {
-		if (face->cub_type == 's')
-			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgs_fcs,(ptrdiff_t[]){ind_lf,0,0,p,1});
-		else
-			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgs_fcc,(ptrdiff_t[]){ind_lf,0,0,p,1});
+		if (face->cub_type == 's') {
+			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgs_fcs,(ptrdiff_t[]){ind_lf,0,0,p_f,1});
+			ops.vv0_vm_fc = get_Multiarray_Operator(element->vv0_vms_fcs,(ptrdiff_t[]){ind_lf,0,0,p_f,1});
+		} else {
+			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgs_fcc,(ptrdiff_t[]){ind_lf,0,0,p_f,1});
+			ops.vv0_vm_fc = get_Multiarray_Operator(element->vv0_vms_fcc,(ptrdiff_t[]){ind_lf,0,0,p_f,1});
+		}
 	} else {
-		if (face->cub_type == 's')
-			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgc_fcs,(ptrdiff_t[]){ind_lf,0,0,p,p});
-		else
-			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgc_fcc,(ptrdiff_t[]){ind_lf,0,0,p,p});
+		if (face->cub_type == 's') {
+			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgc_fcs,(ptrdiff_t[]){ind_lf,0,0,p_f,p_v});
+			ops.vv0_vm_fc = get_Multiarray_Operator(element->vv0_vmc_fcs,(ptrdiff_t[]){ind_lf,0,0,p_f,p_v});
+		} else {
+			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgc_fcc,(ptrdiff_t[]){ind_lf,0,0,p_f,p_v});
+			ops.vv0_vm_fc = get_Multiarray_Operator(element->vv0_vmc_fcc,(ptrdiff_t[]){ind_lf,0,0,p_f,p_v});
+		}
 	}
+
+	const struct const_Multiarray_d* g_coef = volume->geom_coef;
+	destructor_const_Multiarray_d(face->xyz_fc);
+	const_constructor_move_const_Multiarray_d(&face->xyz_fc,
+		constructor_mm_NN1_Operator_const_Multiarray_d(ops.cv0_vg_fc,g_coef,'C','d',g_coef->order,NULL)); // keep
+
+	const struct const_Multiarray_d* m_vm = volume->metrics_vm;
+	const struct const_Multiarray_d* metrics_fc =
+		constructor_mm_NN1_Operator_const_Multiarray_d(ops.vv0_vm_fc,m_vm,'C','d',m_vm->order,NULL); // destructed
+
+print_const_Multiarray_d(metrics_fc);
+	destructor_const_Multiarray_d(metrics_fc);
+EXIT_UNSUPPORTED;
+
+
+
+
+printf("****************************************\n face ind: %d\n",ind_lf);
+print_const_Multiarray_d(face->xyz_fc);
 UNUSED(ops);
-EXIT_ADD_SUPPORT;
 }
 
 // Level 1 ********************************************************************************************************** //

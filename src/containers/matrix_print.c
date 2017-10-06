@@ -36,6 +36,11 @@ void print_Matrix_d_tol (const struct Matrix_d*const a, const double tol)
 	const ptrdiff_t ext_0 = a->ext_0,
 	                ext_1 = a->ext_1;
 
+	if (ext_0 == 0 || ext_1 == 0) {
+		printf("Called print_Matrix_d for input with extents: [%td,%td].\n\n",ext_0,ext_1);
+		return;
+	}
+
 	const double* data = a->data;
 
 	char format_d[10];

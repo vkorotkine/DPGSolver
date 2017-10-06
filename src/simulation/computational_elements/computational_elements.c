@@ -61,6 +61,7 @@ void constructor_computational_element_lists
 	case IL_BASE:
 		sim->volumes = constructor_Volumes(sim,mesh);
 		sim->faces   = constructor_Faces(sim,mesh);
+		break;
 	case IL_SOLVER:
 		sim->volumes = constructor_Solver_Volumes(sim);
 		sim->faces   = constructor_Solver_Faces(sim);

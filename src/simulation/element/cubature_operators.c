@@ -68,6 +68,7 @@ const struct const_Matrix_d* constructor_rst_ve
 	 const int d_i,               ///< The dimension of the input basis coordinates.
 	 const int d_io,              ///< The dimension of the input/output rst coordinates.
 	 const int ind_h,             ///< The h-refinement index.
+	 const int ind_ce,            ///< The computational element index.
 	 const char ce,               ///< \ref Op_IO::ce.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
@@ -79,6 +80,7 @@ struct Matrix_d* constructor_rst_proj
 	 const int d_i,                         ///< The dimension of the input basis coordinates.
 	 const int d_io,                        ///< The dimension of the input/output rst coordinates.
 	 const int ind_h,                       ///< The h-refinement index.
+	 const int ind_ce,                      ///< The computational element index.
 	 const char ce,                         ///< \ref Op_IO::ce.
 	 const struct const_Matrix_d* b_coords, ///< The barycentric coordinates of the element from which to project.
 	 const struct Simulation* sim           ///< \ref Simulation.
@@ -99,16 +101,16 @@ const struct const_Cubature* constructor_const_Cubature_h
 	const int d_i          = compute_d_cub(op_io[OP_IND_I].ce,element->d);
 	const int d_io         = compute_d_cub(op_io[ind_io].ce,element->d);
 	const int p_io         = compute_p_cub(&op_io[ind_io],node_type_io,sim);
-	const int h_io         = op_io[ind_io].h_op;
+	const int ind_h_io     = op_io[ind_io].h_op;
+	const int ind_ce_io    = op_io[ind_io].ce_op;
 	const char ce_io       = op_io[ind_io].ce;
 
 	cubature_fptr constructor_Cubature = get_cubature_by_super_type(s_type_io);
 	basis_fptr    constructor_basis    = get_basis_by_super_type(s_type_io,"ortho");
 
-printf("co: %d %d %d\n",d_io,p_io,node_type_io);
 	const struct const_Cubature* cub_io = constructor_Cubature(d_io,p_io,node_type_io); // destructed
 
-	const struct const_Matrix_d* rst_ve = constructor_rst_ve(s_type_io,d_i,d_io,0,ce_io,sim); // destructed
+	const struct const_Matrix_d* rst_ve = constructor_rst_ve(s_type_io,d_io,d_io,0,0,'v',sim); // destructed
 
 	// vXX: (v)olume XX (Arbitrary, would be replaced with [op_io.kind,op_io.sc] if specified)
 	const struct const_Matrix_d* cv0r_vvs_vvs     = constructor_basis(1,rst_ve);                      // destructed
@@ -136,17 +138,15 @@ printf("co: %d %d %d\n",d_io,p_io,node_type_io);
 		// Compute the output rst coordinates by multiplying the barycentric coordinates of the cubature nodes with
 		// the appropriate (sub)set of reference element vertices.
 		const struct const_Matrix_d* rst_ve_io =
-			constructor_rst_ve(s_type_io,d_i,d_io,h_io,ce_io,sim); // destructed
+			constructor_rst_ve(s_type_io,d_i,d_io,ind_h_io,ind_ce_io,ce_io,sim); // destructed
 		cubature->rst = constructor_mm_Matrix_d('N','N',1.0,0.0,cv0_vvs_vXX,rst_ve_io,'C'); // keep
 		destructor_const_Matrix_d(rst_ve_io);
 	} else if (ce_o == 'v') { // (fv || ev)
-		cubature->rst = constructor_rst_proj(element->type,d_i,d_io,h_io,ce_i,cv0_vvs_vXX,sim); // keep
+		cubature->rst = constructor_rst_proj(element->type,d_i,d_io,ind_h_io,ind_ce_io,ce_i,cv0_vvs_vXX,sim); // keep
 	} else { // (fe || ef)
 		EXIT_ADD_SUPPORT;
 	}
 	destructor_const_Matrix_d(cv0_vvs_vXX);
-if (d_io == 0)
-	EXIT_ERROR("Ensure that all is working as expected.");
 
 	return (const struct const_Cubature*) cubature;
 }
@@ -191,6 +191,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 	(const int e_type,            ///< \ref Element::type.
 	 const char ce,               ///< \ref Op_IO::ce.
 	 const int ind_h,             ///< The index of the h-refinement.
+	 const int ind_ce,            ///< The index of the computational element.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
@@ -305,25 +306,26 @@ static int compute_p_cub (const struct Op_IO* op_io, const int node_type, const 
 }
 
 const struct const_Matrix_d* constructor_rst_ve
-	(const int s_type, const int d_i, const int d_io, const int ind_h, const char ce, const struct Simulation* sim)
+	(const int s_type, const int d_i, const int d_io, const int ind_h, const int ind_ce, const char ce,
+	 const struct Simulation* sim)
 {
-//	const int e_type = compute_elem_from_super_type(s_type,d_io); /// \todo Delete if unused.
+/// \todo Clean up this function.
+UNUSED(d_io);
 	const int e_type = compute_elem_from_super_type(s_type,d_i);
 	if (e_type == PYR && ce != 'v')
 		EXIT_ADD_SUPPORT;
 
 	const struct const_Matrix_d* b_coords       = constructor_b_coords(e_type); // destructed
-	const struct const_Vector_i* ind_h_b_coords = constructor_ind_h_b_coords(e_type,ce,ind_h,sim); // destructed
+	const struct const_Vector_i* ind_h_b_coords = constructor_ind_h_b_coords(e_type,ce,ind_h,ind_ce,sim); // destructed
 
 	const struct const_Matrix_d* vv0_vvs_vvs =
 		constructor_subset_const_Matrix_d(b_coords,ind_h_b_coords); // destructed
 
 	cubature_fptr constructor_Cubature = get_cubature_by_super_type(s_type);
 // May need to use d_io below for fv, ev
-	const struct const_Cubature* cub_ve = constructor_Cubature(d_io,1,CUB_VERTEX); // destructed
+	const struct const_Cubature* cub_ve = constructor_Cubature(d_i,1,CUB_VERTEX); // destructed
 
 	const struct const_Matrix_d* rst_ve  = constructor_mm_NN1C_const_Matrix_d(vv0_vvs_vvs,cub_ve->rst); // returned
-	const_cast_ptrdiff(&rst_ve->ext_1,d_i);
 
 	destructor_const_Matrix_d(b_coords);
 	destructor_const_Vector_i(ind_h_b_coords);
@@ -334,7 +336,7 @@ const struct const_Matrix_d* constructor_rst_ve
 }
 
 struct Matrix_d* constructor_rst_proj
-	(const int e_type, const int d_i, const int d_io, const int ind_h, const char ce,
+	(const int e_type, const int d_i, const int d_io, const int ind_h, const int ind_ce, const char ce,
 	 const struct const_Matrix_d* b_coords, const struct Simulation* sim)
 {
 EXIT_ERROR("Ensure that all is working as expected.\n");
@@ -344,7 +346,8 @@ EXIT_ERROR("Ensure that all is working as expected.\n");
 	if ((strcmp(sim->geom_blending[s_type],"gordon_hall") == 0) ||
 	    (strcmp(sim->geom_blending[s_type],"szabo_babuska_gen") == 0))
 	{
-		const struct const_Matrix_d* rst_ve_proj = constructor_rst_ve(s_type,d_i,d_io,ind_h,ce,sim); // destructed
+// Possibly need modifications to allow for fine to coarse in constructor_rst_ve's ind_ce parameter.
+		const struct const_Matrix_d* rst_ve_proj = constructor_rst_ve(s_type,d_i,d_io,ind_h,ind_ce,ce,sim); // destructed
 		rst_proj = constructor_mm_NN1C_Matrix_d(b_coords,rst_ve_proj); // returned
 		destructor_const_Matrix_d(rst_ve_proj);
 	} else if (strcmp(sim->geom_blending[s_type],"scott") == 0) {
@@ -512,6 +515,12 @@ const struct const_Matrix_d* constructor_b_coords (const int e_type)
 	const double* b_coords = NULL;
 
 	switch (e_type) {
+	case POINT:
+		ext_0 = 1;
+		ext_1 = 1;
+		b_coords = (double[])
+			{ 1.0, };
+		break;
 	case LINE:
 		ext_0 = 3;
 		ext_1 = 2;
@@ -575,7 +584,7 @@ const struct const_Matrix_d* constructor_b_coords (const int e_type)
 }
 
 const struct const_Vector_i* constructor_ind_h_b_coords
-	(const int e_type, const char ce, const int ind_h, const struct Simulation* sim)
+	(const int e_type, const char ce, const int ind_h, const int ind_ce, const struct Simulation* sim)
 {
 	const struct const_Element* element = get_element_by_type(sim->elements,e_type);
 
@@ -583,6 +592,28 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 	const int* ind_h_b_coords = NULL;
 
 	switch (e_type) {
+	case POINT:
+		switch (ce) {
+		case 'v': // fallthrough
+		case 'f': // fallthrough
+		case 'e': {
+			enum { n_ve_ce = 1, n_ref_max = 1, };
+			assert(n_ve_ce == element->n_ve);
+			assert(n_ref_max == element->n_ref_max_v);
+			assert(ind_h < n_ref_max);
+
+			static const int ind_h_b_coords_all[n_ref_max][n_ve_ce] =
+				{{ 0, },
+				};
+
+			ext_0 = n_ve_ce;
+			ind_h_b_coords = ind_h_b_coords_all[ind_h];
+			break;
+		} default:
+			EXIT_ERROR("Unsupported: %c.\n",ce);
+			break;
+		}
+		break;
 	case LINE:
 		switch (ce) {
 		case 'v': {
@@ -603,17 +634,21 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 			break;
 		} case 'f': { // fallthrough
 		} case 'e': {
-			enum { n_ve_ce = 1, n_ref_max = 2*1, };
-			assert(n_ref_max == ((element->n_f)*(element->n_ref_max_f)));
+			enum { n_ve_ce = 1, n_ref_max = 1, n_ce_max = 2, };
+			assert(n_ref_max == element->n_ref_max_f);
+			assert(n_ce_max == element->n_f);
 			assert(ind_h < n_ref_max);
+			assert(ind_ce < n_ce_max);
 
-			static const int ind_h_b_coords_all[n_ref_max][n_ve_ce] =
-				{{ 0, },
-				 { 2, },
+			static const int ind_h_b_coords_all[n_ce_max][n_ref_max][n_ve_ce] =
+				{{{0,} // f0
+				 },
+				 {{2,} // f1
+				 },
 				};
 
 			ext_0 = n_ve_ce;
-			ind_h_b_coords = ind_h_b_coords_all[ind_h];
+			ind_h_b_coords = ind_h_b_coords_all[ind_ce][ind_h];
 			break;
 		} default:
 			EXIT_ERROR("Unsupported: %c.\n",ce);
@@ -642,22 +677,26 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 			break;
 		} case 'f': { // fallthrough
 		} case 'e': {
-			enum { n_ve_ce = 2, n_ref_max = 3*3, };
-			assert(n_ref_max == ((element->n_f)*(element->n_ref_max_f)));
+			enum { n_ve_ce = 2, n_ref_max = 3, n_ce_max = 3, };
+			assert(n_ref_max == element->n_ref_max_f);
+			assert(n_ce_max == element->n_f);
 			assert(ind_h < n_ref_max);
+			assert(ind_ce < n_ce_max);
 
-			static const int ind_h_b_coords_all[n_ref_max][n_ve_ce] =
-				{{ 2, 5,},
-				 { 0, 5,},
-				 { 0, 2,},
-
-				 { 2, 4,}, { 4, 5,},
-				 { 0, 3,}, { 3, 5,},
-				 { 0, 1,}, { 1, 2,},
+			static const int ind_h_b_coords_all[n_ce_max][n_ref_max][n_ve_ce] =
+				{{{2,5,}, // f0
+				  {2,4,}, {4,5,},
+				 },
+				 {{0,5,}, // f1
+				  {0,3,}, {3,5,},
+				 },
+				 {{0,2,}, // f2
+				  {0,1,}, {1,2,},
+				 },
 				};
 
 			ext_0 = n_ve_ce;
-			ind_h_b_coords = ind_h_b_coords_all[ind_h];
+			ind_h_b_coords = ind_h_b_coords_all[ind_ce][ind_h];
 			break;
 		} default:
 			EXIT_ERROR("Unsupported: %c.\n",ce);
@@ -689,47 +728,59 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 			ind_h_b_coords = ind_h_b_coords_all[ind_h];
 			break;
 		} case 'f': {
-			enum { n_ve_ce = 3, n_ref_max = 4*5, };
-			assert(n_ref_max == ((element->n_f)*(element->n_ref_max_f)));
+			enum { n_ve_ce = 3, n_ref_max = 5, n_ce_max = 4, };
+			assert(n_ref_max == element->n_ref_max_f);
+			assert(n_ce_max == element->n_f);
 			assert(ind_h < n_ref_max);
+			assert(ind_ce < n_ce_max);
 
-			static const int ind_h_b_coords_all[n_ref_max][n_ve_ce] =
-				{{  2,  5,  9,},
-				 {  0,  5,  9,},
-				 {  0,  2,  9,},
-				 {  0,  2,  5,},
-
-				 {  2,  4,  7,}, {  4,  5,  8,}, {  7,  8,  9,}, {  8,  7,  4,},
-				 {  0,  3,  6,}, {  3,  5,  8,}, {  6,  8,  9,}, {  8,  6,  3,},
-				 {  0,  1,  6,}, {  1,  2,  7,}, {  6,  7,  9,}, {  7,  6,  1,},
-				 {  0,  1,  3,}, {  1,  2,  4,}, {  3,  4,  5,}, {  4,  3,  1,},
+			static const int ind_h_b_coords_all[n_ce_max][n_ref_max][n_ve_ce] =
+				{{{ 2, 5, 9,}, // f0
+				  { 2, 4, 7,}, { 4, 5, 8,}, { 7, 8, 9,}, { 8, 7, 4,},
+				 },
+				 {{ 0, 5, 9,}, // f1
+				  { 0, 3, 6,}, { 3, 5, 8,}, { 6, 8, 9,}, { 8, 6, 3,},
+				 },
+				 {{ 0, 2, 9,}, // f2
+				  { 0, 1, 6,}, { 1, 2, 7,}, { 6, 7, 9,}, { 7, 6, 1,},
+				 },
+				 {{ 0, 2, 5,}, // f3
+				  { 0, 1, 3,}, { 1, 2, 4,}, { 3, 4, 5,}, { 4, 3, 1,},
+				 },
 				};
 
 			ext_0 = n_ve_ce;
-			ind_h_b_coords = ind_h_b_coords_all[ind_h];
+			ind_h_b_coords = ind_h_b_coords_all[ind_ce][ind_h];
 		} case 'e': {
-			enum { n_ve_ce = 2, n_ref_max = 6*3, };
-			assert(n_ref_max == ((element->n_e)*(element->n_ref_max_e)));
+			enum { n_ve_ce = 2, n_ref_max = 3, n_ce_max = 6, };
+			assert(n_ref_max == element->n_ref_max_f);
+			assert(n_ce_max == element->n_f);
 			assert(ind_h < n_ref_max);
+			assert(ind_ce < n_ce_max);
 
-			static const int ind_h_b_coords_all[n_ref_max][n_ve_ce] =
-				{{  2,  5,},
-				 {  0,  5,},
-				 {  0,  2,},
-				 {  0,  9,},
-				 {  2,  9,},
-				 {  5,  9,},
-
-				 {  2,  4,}, {  4,  5,},
-				 {  0,  3,}, {  3,  5,},
-				 {  0,  1,}, {  1,  2,},
-				 {  0,  6,}, {  6,  9,},
-				 {  2,  7,}, {  7,  9,},
-				 {  5,  8,}, {  8,  9,},
+			static const int ind_h_b_coords_all[n_ce_max][n_ref_max][n_ve_ce] =
+				{{{ 2, 5,}, // e0
+				  { 2, 4,}, { 4, 5,},
+				 },
+				 {{ 0, 5,}, // e1
+				  { 0, 3,}, { 3, 5,},
+				 },
+				 {{ 0, 2,}, // e2
+				  { 0, 1,}, { 1, 2,},
+				 },
+				 {{ 0, 9,}, // e3
+				  { 0, 6,}, { 6, 9,},
+				 },
+				 {{ 2, 9,}, // e4
+				  { 2, 7,}, { 7, 9,},
+				 },
+				 {{ 5, 9,}, // e5
+				  { 5, 8,}, { 8, 9,},
+				 },
 				};
 
 			ext_0 = n_ve_ce;
-			ind_h_b_coords = ind_h_b_coords_all[ind_h];
+			ind_h_b_coords = ind_h_b_coords_all[ind_ce][ind_h];
 			break;
 		} default:
 			EXIT_ERROR("Unsupported: %c.\n",ce);
@@ -763,55 +814,69 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 			ind_h_b_coords = ind_h_b_coords_all[ind_h];
 			break;
 		} case 'f': {
-			enum { n_ve_ce_max = 4, n_ref_max = 5*5, };
-			assert(n_ref_max == ((element->n_f)*(element->n_ref_max_f)));
+			enum { n_ve_ce = 4, n_ref_max = 5, n_ce_max = 5, };
+			assert(n_ref_max == element->n_ref_max_f);
+			assert(n_ce_max == element->n_f);
 			assert(ind_h < n_ref_max);
+			assert(ind_ce < n_ce_max);
 
-			static const int ind_h_b_coords_all[n_ref_max][n_ve_ce_max] =
-				{{  0,  6, 13, -1,},
-				 {  2,  8, 13, -1,},
-				 {  0,  2, 13, -1,},
-				 {  6,  8, 13, -1,},
-				 {  0,  2,  6,  8, },
-
-				 {  0,  3,  9, -1,}, {  3,  6, 11, -1,}, {  9, 11, 13, -1,}, { 11,  9,  3, -1,},
-				 {  2,  5, 10, -1,}, {  5,  8, 12, -1,}, { 10, 12, 13, -1,}, { 12, 10,  5, -1,},
-				 {  0,  1,  9, -1,}, {  1,  2, 10, -1,}, {  9, 10, 13, -1,}, { 10,  9,  1, -1,},
-				 {  6,  7, 11, -1,}, {  7,  8, 12, -1,}, { 11, 12, 13, -1,}, { 12, 11,  7, -1,},
-				 {  0,  1,  3,  4,}, {  1,  2,  4,  5,}, {  3,  4,  6,  7,}, {  4,  5,  7,  8,},
+			static const int ind_h_b_coords_all[n_ce_max][n_ref_max][n_ve_ce] =
+				{{{ 0, 6,13,-1,}, // f0
+				  { 0, 3, 9,-1,}, { 3, 6,11,-1,}, { 9,11,13,-1,}, {11, 9, 3,-1,},
+				 },
+				 {{ 2, 8,13,-1,}, // f1
+				  { 2, 5,10,-1,}, { 5, 8,12,-1,}, {10,12,13,-1,}, {12,10, 5,-1,},
+				 },
+				 {{ 0, 2,13,-1,}, // f2
+				  { 0, 1, 9,-1,}, { 1, 2,10,-1,}, { 9,10,13,-1,}, {10, 9, 1,-1,},
+				 },
+				 {{ 6, 8,13,-1,}, // f3
+				  { 6, 7,11,-1,}, { 7, 8,12,-1,}, {11,12,13,-1,}, {12,11, 7,-1,},
+				 },
+				 {{ 0, 2, 6, 8,}, // f4
+				  { 0, 1, 3, 4,}, { 1, 2, 4, 5,}, { 3, 4, 6, 7,}, { 4, 5, 7, 8,},
+				 },
 				};
-			static const int n_ve_ce_all[n_ref_max] = {3,3,3,3,4, 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,};
+			static const int n_ve_ce_all[n_ce_max] = {3,3,3,3,4,};
 
-			ext_0 = n_ve_ce_all[ind_h];
-			ind_h_b_coords = ind_h_b_coords_all[ind_h];
+			ext_0 = n_ve_ce_all[ind_ce];
+			ind_h_b_coords = ind_h_b_coords_all[ind_ce][ind_h];
 		} case 'e': {
-			enum { n_ve_ce = 2, n_ref_max = 8*3, };
-			assert(n_ref_max == ((element->n_e)*(element->n_ref_max_e)));
+			enum { n_ve_ce = 2, n_ref_max = 3, n_ce_max = 8, };
+			assert(n_ref_max == element->n_ref_max_f);
+			assert(n_ce_max == element->n_f);
 			assert(ind_h < n_ref_max);
+			assert(ind_ce < n_ce_max);
 
-			static const int ind_h_b_coords_all[n_ref_max][n_ve_ce] =
-				{{  0,  6,},
-				 {  2,  8,},
-				 {  0,  2,},
-				 {  6,  8,},
-				 {  0, 13,},
-				 {  2, 13,},
-				 {  6, 13,},
-				 {  8, 13,},
-
-				 {  0,  3,}, {  3,  6,},
-				 {  2,  5,}, {  5,  8,},
-				 {  0,  1,}, {  1,  2,},
-				 {  6,  7,}, {  7,  8,},
-				 {  0,  9,}, {  9, 13,},
-				 {  0, 10,}, { 10, 13,},
-				 {  0, 11,}, { 11, 13,},
-				 {  0, 12,}, { 12, 13,},
+			static const int ind_h_b_coords_all[n_ce_max][n_ref_max][n_ve_ce] =
+				{{{ 0, 6,}, // e0
+				  { 0, 3,}, { 3, 6,},
+				 },
+				 {{ 2, 8,}, // e1
+				  { 2, 5,}, { 5, 8,},
+				 },
+				 {{ 0, 2,}, // e2
+				  { 0, 1,}, { 1, 2,},
+				 },
+				 {{ 6, 8,}, // e3
+				  { 6, 7,}, { 7, 8,},
+				 },
+				 {{ 0,13,}, // e4
+				  { 0, 9,}, { 9,13,},
+				 },
+				 {{ 2,13,}, // e5
+				  { 0,10,}, {10,13,},
+				 },
+				 {{ 6,13,}, // e6
+				  { 0,11,}, {11,13,},
+				 },
+				 {{ 8,13,}, // e7
+				  { 0,12,}, {12,13,},
+				 },
 				};
-
 
 			ext_0 = n_ve_ce;
-			ind_h_b_coords = ind_h_b_coords_all[ind_h];
+			ind_h_b_coords = ind_h_b_coords_all[ind_ce][ind_h];
 			break;
 		} default:
 			EXIT_ERROR("Unsupported: %c.\n",ce);

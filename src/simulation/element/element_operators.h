@@ -63,8 +63,9 @@ struct Op_IO {
 	           kind, ///< The kind of basis/cubature.
 	           sc;   ///< Indication of straight/curved.
 
-	const int h_op, ///< The h-refinement index of the operator.
-	          p_op; ///< The polynomial order index of the operator (**Not the order of the basis/cubature rule**).
+	const int ce_op, ///< The computational element index of the operator.
+	          h_op,  ///< The h-refinement index of the operator.
+	          p_op;  ///< The polynomial order index of the operator (**Not the order of the basis/cubature rule**).
 
 	const int s_type; ///< \ref Element::s_type.
 };

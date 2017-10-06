@@ -18,10 +18,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <assert.h>
 #include <string.h>
+#include <math.h>
 
 #include "macros.h"
 #include "definitions_elements.h"
 #include "definitions_intrusive.h"
+#include "definitions_math.h"
 
 #include "multiarray.h"
 #include "vector.h"
@@ -94,6 +96,7 @@ void destructor_const_Elements (const struct const_Intrusive_List* elements)
 void destructor_Element (struct Element* element)
 {
 	destructor_Multiarray_Vector_i(element->f_ve);
+	destructor_Multiarray_d(element->normals);
 }
 
 void const_cast_const_Element (const struct const_Element*const* dest, const struct const_Element*const src)
@@ -369,6 +372,16 @@ struct Elem_info {
 	    n_ref_max_f; ///< Defined in \ref Element.
 };
 
+/** \brief Constructor for \ref Element::normals.
+ *  \return See brief.
+ *
+ *  The normals are computed using (eq. (B.6), \cite Zwanenburg2016).
+ */
+struct Multiarray_d* constructor_reference_normals
+	(const int e_type,              ///< The element type.
+	 const struct Elem_info* e_info ///< \ref Elem_info.
+	);
+
 static struct Element* constructor_Element (const int elem_type)
 {
 	// Note the use of the compound literals for the initialization of the local variables.
@@ -461,7 +474,9 @@ static struct Element* constructor_Element (const int elem_type)
 	element->n_f = e_info.n_f;
 	element->n_ref_max_v = e_info.n_ref_max_v;
 	element->n_ref_max_f = e_info.n_ref_max_f;
-	element->f_ve = constructor_copy_Multiarray_Vector_i_i(e_info.f_ve,e_info.n_f_ve,1,&n_f); // keep
+	element->f_ve = constructor_copy_Multiarray_Vector_i_i(e_info.f_ve,e_info.n_f_ve,1,&n_f); // destructed
+
+	element->normals = constructor_reference_normals(elem_type,&e_info); // destructed
 
 	element->derived = NULL;
 
@@ -513,4 +528,85 @@ void set_element_present (const int e_type, const struct const_Intrusive_List* e
 static struct Element* get_mutable_element_by_type (const struct Intrusive_List*const elements, const int type)
 {
 	return (struct Element*) get_element_by_type((const struct const_Intrusive_List*)elements,type);
+}
+
+// Level 1 ********************************************************************************************************** //
+
+///\{ \name Constants related to reference normals.
+#define THETA_E_TET 1.230959417340774682134929178 // atan(2.0*sqrt(2.0))
+#define THETA_E_PYR 0.955316618124509278163857103 // atan(sqrt(2.0))
+///\}
+
+struct Multiarray_d* constructor_reference_normals (const int e_type, const struct Elem_info* e_info)
+{
+	const double* theta_eta  = NULL,
+	            * theta_zeta = NULL;
+
+	switch (e_type) {
+	case LINE: {
+		static const double t_e[] = { 0.0, 0.0, };
+		static const double t_z[] = { PI, 0.0, };
+		theta_eta  = t_e;
+		theta_zeta = t_z;
+		break;
+	} case TRI: {
+		static const double t_e[] = { 0.0, 0.0, 0.0, };
+		static const double t_z[] = { 1.0/6.0*PI, 5.0/6.0*PI, 9.0/6.0*PI, };
+		theta_eta  = t_e;
+		theta_zeta = t_z;
+		break;
+	} case QUAD: {
+		static const double t_e[] = { 0.0, 0.0, 0,0, 0.0, };
+		static const double t_z[] = { PI,  0.0, 1.5*PI, 0.5*PI, };
+		theta_eta  = t_e;
+		theta_zeta = t_z;
+		break;
+	} case TET: {
+		static const double theta_e = THETA_E_TET;
+
+		static const double t_e[] = { theta_e - 0.5*PI, theta_e - 0.5*PI, theta_e - 0.5*PI, 0.5*PI, };
+		static const double t_z[] = { 1.0/6.0*PI, 5.0/6.0*PI, 9.0/6.0*PI, 0.0, };
+		theta_eta  = t_e;
+		theta_zeta = t_z;
+		break;
+	} case HEX: {
+		static const double t_e[] = { 0.0, 0.0, 0,0, 0.0, 0.5*PI, 1.5*PI, };
+		static const double t_z[] = { PI,  0.0, 1.5*PI, 0.5*PI, 0.0, PI, };
+		theta_eta  = t_e;
+		theta_zeta = t_z;
+		break;
+	} case WEDGE: {
+		static const double t_e[] = { 0.0, 0.0, 0.0, 0.5*PI, 1.5*PI, };
+		static const double t_z[] = { 1.0/6.0*PI, 5.0/6.0*PI, 9.0/6.0*PI, 0.0, 0.0, };
+		theta_eta  = t_e;
+		theta_zeta = t_z;
+		break;
+	} case PYR: {
+		const double theta_e = THETA_E_PYR;
+
+		static const double t_e[] =
+			{ theta_e - 0.5*PI, theta_e - 0.5*PI, theta_e - 0.5*PI, theta_e - 0.5*PI, 0.5*PI, };
+		static const double t_z[] = { PI, 0.0, 1.5*PI, 0.5*PI, 0.0, };
+		theta_eta  = t_e;
+		theta_zeta = t_z;
+		break;
+	} default:
+		EXIT_ERROR("Unsupported: %d.\n",e_type);
+		break;
+	}
+
+	const int d   = e_info->d,
+	          n_f = e_info->n_f;
+
+	struct Multiarray_d* normals = constructor_empty_Multiarray_d('R',2,(ptrdiff_t[]){n_f,d}); // returned
+
+	double* data = normals->data;
+	for (int ind = 0, f = 0; f < n_f; ++f) {
+		data[ind++] = cos(theta_eta[f])*cos(theta_zeta[f]);
+		if (d > 1)
+			data[ind++] = cos(theta_eta[f])*sin(theta_zeta[f]);
+		if (d > 2)
+			data[ind++] = -sin(theta_eta[f]);
+	}
+	return normals;
 }

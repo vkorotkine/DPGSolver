@@ -45,6 +45,8 @@ struct Element {
 
 	struct Multiarray_Vector_i* f_ve; ///< The correspondence between the (f)aces and (ve)rtices.
 
+	struct Multiarray_d* normals; ///< The reference unit normal vectors for each of the element faces.
+
 	struct Element* sub_element[2]; ///< Sub-elements used to form the tensor-product element (if applicable).
 
 	void* derived; ///< Pointer to the element currently derived from the base element.
@@ -68,6 +70,8 @@ struct const_Element {
 	          n_ref_max_e; ///< Defined in \ref Element.
 
 	const struct const_Multiarray_Vector_i*const f_ve; ///< Defined in \ref Element.
+
+	const struct const_Multiarray_d* normals; ///< Defined in \ref Element.
 
 	const struct const_Element*const sub_element[2]; ///< Defined in \ref Element.
 

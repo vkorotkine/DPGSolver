@@ -312,9 +312,11 @@ static void set_operator_std
 // separate function in future
 		const struct Op_IO* op_io = op_info->op_io;
 
-		const int*const h_ptr = &op_values[OP_IND_H],
+		const int*const ce_ptr = &op_values[OP_IND_CE],
+		         *const h_ptr = &op_values[OP_IND_H],
 		         *const p_ptr = &op_values[OP_IND_P];
 		for (int i = 0; i < 2; ++i) {
+			const_cast_i(&op_io[i].ce_op,ce_ptr[i]);
 			const_cast_i(&op_io[i].h_op,h_ptr[i]);
 			const_cast_i(&op_io[i].p_op,p_ptr[i]);
 			const_cast_i(&op_io[i].s_type,compute_super_type_op(&op_io[i],element));

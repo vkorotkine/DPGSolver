@@ -72,6 +72,7 @@ const struct const_Cubature* constructor_const_Cubature_tp (const int d, const i
 	if (node_type == CUB_VERTEX)
 		return constructor_const_Cubature_vertices(d,p,ST_TP);
 
+	bool has_nodes   = true;
 	bool has_weights = true;
 
 	const int pp1 = p+1;
@@ -79,10 +80,9 @@ const struct const_Cubature* constructor_const_Cubature_tp (const int d, const i
 	double r[pp1],
 	       w_1d[pp1];
 	if (d == 0) {
-		r[0] = 0.0;
-
-		has_weights = true;
-		w_1d[0] = 1.0;
+		// 0-dimensional nodes => empty.
+		has_nodes   = false;
+		has_weights = false;
 	} else if (node_type == CUB_GL) {
 		if (jac_zeros_gj(r,pp1,0.0,0.0) != GSL_SUCCESS)
 			EXIT_ERROR("Problem computing nodes.\n");
@@ -108,32 +108,26 @@ const struct const_Cubature* constructor_const_Cubature_tp (const int d, const i
 		EXIT_UNSUPPORTED;
 	}
 
-	const int d_rst = GSL_MAX(d,1);
 	const int ext_0 = pow(pp1,d);
-	double *rst = malloc(ext_0*d_rst * sizeof *rst); // keep
+	double* rst = NULL;
+	if (has_nodes) {
+		rst = malloc(ext_0*d * sizeof *rst); // keep
 
-	int row = 0;
-	for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
-	for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
-	for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; ++i) {
-		for (int dim = 0; dim < d_rst; dim++) {
-			switch (dim) {
-			case 0:
-				rst[dim*ext_0+row] = r[i];
-				break;
-			case 1:
-				rst[dim*ext_0+row] = r[j];
-				break;
-			case 2:
-				rst[dim*ext_0+row] = r[k];
-				break;
-			default:
-				EXIT_UNSUPPORTED;
-				break;
+		int row = 0;
+		for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
+		for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
+		for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; ++i) {
+			for (int dim = 0; dim < d; dim++) {
+				switch (dim) {
+					case 0: rst[dim*ext_0+row] = r[i]; break;
+					case 1: rst[dim*ext_0+row] = r[j]; break;
+					case 2: rst[dim*ext_0+row] = r[k]; break;
+					default: EXIT_UNSUPPORTED; break;
+				}
 			}
-		}
-		row++;
-	}}}
+			row++;
+		}}}
+	}
 
 	double* w = NULL;
 	if (has_weights) {
@@ -155,7 +149,7 @@ const struct const_Cubature* constructor_const_Cubature_tp (const int d, const i
 	cubature->p         = p;
 	cubature->node_type = node_type;
 
-	cubature->rst = constructor_move_Matrix_d_d('C',ext_0,d_rst,true,rst); // keep
+	cubature->rst = constructor_move_Matrix_d_d('C',ext_0,d,true,rst); // keep
 
 	cubature->has_weights = has_weights;
 	if (has_weights)
@@ -966,7 +960,9 @@ static const struct const_Cubature* constructor_const_Cubature_vertices (const i
 //		static const double rst_HEX[]  = { -1.0,  1.0, -1.0,  1.0, -1.0,  1.0, -1.0,  1.0,
 //		                                   -1.0, -1.0,  1.0,  1.0, -1.0, -1.0,  1.0,  1.0,
 //		                                   -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0,  1.0, };
-		if (d == 1)
+		if (d == 0)
+			rst = NULL;
+		else if (d == 1)
 			rst = rst_LINE;
 		else
 			EXIT_UNSUPPORTED;

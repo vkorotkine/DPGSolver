@@ -66,19 +66,23 @@ const struct const_Matrix_d* constructor_basis_tp_orthonormal (const int p_b, co
 	struct Matrix_d* phi_rst = constructor_empty_Matrix_d('R',n_n,n_b); // returned
 	double* phi_data = phi_rst->data;
 
-	const double*const r = get_col_const_Matrix_d(0,rst),
-	            *const s = ( d > 1 ? get_col_const_Matrix_d(1,rst) : NULL),
-	            *const t = ( d > 2 ? get_col_const_Matrix_d(2,rst) : NULL);
+	if (d == 0) {
+		*phi_data = 1.0;
+	} else {
+		const double*const r = get_col_const_Matrix_d(0,rst),
+		            *const s = ( d > 1 ? get_col_const_Matrix_d(1,rst) : NULL),
+		            *const t = ( d > 2 ? get_col_const_Matrix_d(2,rst) : NULL);
 
-	for (int n = 0; n < n_n; ++n) {
-	for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
-	for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
-	for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; ++i) {
-		           *phi_data  = jac_jacobi_normalized(r[n],i,0.0,0.0);
-		if (d > 1) *phi_data *= jac_jacobi_normalized(s[n],j,0.0,0.0);
-		if (d > 2) *phi_data *= jac_jacobi_normalized(t[n],k,0.0,0.0);
-		++phi_data;
-	}}}}
+		for (int n = 0; n < n_n; ++n) {
+		for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
+		for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
+		for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; ++i) {
+				     *phi_data  = jac_jacobi_normalized(r[n],i,0.0,0.0);
+			if (d > 1) *phi_data *= jac_jacobi_normalized(s[n],j,0.0,0.0);
+			if (d > 2) *phi_data *= jac_jacobi_normalized(t[n],k,0.0,0.0);
+			++phi_data;
+		}}}}
+	}
 
 	return (const struct const_Matrix_d*) phi_rst;
 }

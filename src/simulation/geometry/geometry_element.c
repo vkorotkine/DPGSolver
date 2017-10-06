@@ -115,11 +115,18 @@ static void destructor_Geometry_Element (struct Geometry_Element* element)
 	destructor_Multiarray_Operator(element->cv0_vgs_fcc);
 	destructor_Multiarray_Operator(element->cv0_vgc_fcs);
 	destructor_Multiarray_Operator(element->cv0_vgc_fcc);
+	destructor_Multiarray_Operator(element->vv0_vms_fcs);
+	destructor_Multiarray_Operator(element->vv0_vms_fcc);
+	destructor_Multiarray_Operator(element->vv0_vmc_fcs);
+	destructor_Multiarray_Operator(element->vv0_vmc_fcc);
 
 	destructor_Multiarray_Operator(element->cv0_vgs_vcs);
 	destructor_Multiarray_Operator(element->cv0_vgc_vcc);
 	destructor_Multiarray_Operator(element->cv0_vgs_vms);
 	destructor_Multiarray_Operator(element->cv0_vgc_vmc);
+
+	destructor_Multiarray_Operator(element->cv0_vgs_vcc);
+	destructor_Multiarray_Operator(element->cv0_vgc_vcs);
 
 	EXIT_ADD_SUPPORT; // Add destructors for geometry operators.
 	destructor_Element((struct Element*) element);
@@ -187,9 +194,15 @@ static void set_up_operators_standard (struct Geometry_Element* element, const s
 	element->vv0_vms_vcs = constructor_operators("vv0","vms","vcs","H_1_P_1P", sim->p_s_v,b_e,sim); // keep
 	element->vv0_vmc_vcc = constructor_operators("vv0","vmc","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // keep
 
-	element->cv0_vgs_fcs = constructor_operators("cv0","vgs","fcs","H_1_P_1P", sim->p_s_f,b_e,sim); // keep
-print_Multiarray_Operator(element->cv0_vgs_fcs);
-EXIT_UNSUPPORTED;
+	element->cv0_vgs_fcs = constructor_operators("cv0","vgs","fcs","H_1_P_1P", sim->p_s_v,b_e,sim); // keep
+	element->cv0_vgs_fcc = constructor_operators("cv0","vgs","fcc","H_1_P_1P", sim->p_s_v,b_e,sim); // keep
+	element->cv0_vgc_fcs = constructor_operators("cv0","vgc","fcs","H_1_P_PM1",sim->p_s_v,b_e,sim); // keep
+	element->cv0_vgc_fcc = constructor_operators("cv0","vgc","fcc","H_1_P_PM1",sim->p_s_v,b_e,sim); // keep
+
+	element->vv0_vms_fcs = constructor_operators("vv0","vms","fcs","H_1_P_1P", sim->p_s_v,b_e,sim); // keep
+	element->vv0_vms_fcc = constructor_operators("vv0","vms","fcc","H_1_P_1P", sim->p_s_v,b_e,sim); // keep
+	element->vv0_vmc_fcs = constructor_operators("vv0","vmc","fcs","H_1_P_PM1",sim->p_s_v,b_e,sim); // keep
+	element->vv0_vmc_fcc = constructor_operators("vv0","vmc","fcc","H_1_P_PM1",sim->p_s_v,b_e,sim); // keep
 }
 
 static void set_up_operators_tensor_product (struct Geometry_Element* element, const struct Simulation* sim)
@@ -226,15 +239,25 @@ static void set_up_operators_tp_wedge (struct Geometry_Element* element, const s
 	// tensor-product sub-operators
 	if (s_e[0]->cv0_vgs_vcs == NULL) {
 		s_e[0]->cv0_vgs_vcs = constructor_operators("cv0","vgs","vcs","H_1_P_1P", sim->p_s_v,bs_e[0],sim); // destructed
-		s_e[0]->cv0_vgc_vcc = constructor_operators("cv0","vgc","vcc","H_1_P_PM0",sim->p_s_v,bs_e[0],sim); // destructed
+		s_e[0]->cv0_vgc_vcc = constructor_operators("cv0","vgc","vcc","H_1_P_PM1",sim->p_s_v,bs_e[0],sim); // destructed
 		s_e[0]->cv0_vgs_vms = constructor_operators("cv0","vgs","vms","H_1_P_1",  sim->p_s_v,bs_e[0],sim); // destructed
 		s_e[0]->cv0_vgc_vmc = constructor_operators("cv0","vgc","vmc","H_1_P_PM0",sim->p_s_v,bs_e[0],sim); // destructed
+
+		s_e[0]->cv0_vgs_vcc = constructor_operators("cv0","vgs","vcc","H_1_P_1P", sim->p_s_v,bs_e[0],sim); // destructed
+		s_e[0]->cv0_vgc_vcs = constructor_operators("cv0","vgc","vcs","H_1_P_PM1",sim->p_s_v,bs_e[0],sim); // destructed
+		s_e[0]->vv0_vms_vcc = constructor_operators("vv0","vms","vcc","H_1_P_1P", sim->p_s_v,bs_e[0],sim); // destructed
+		s_e[0]->vv0_vmc_vcs = constructor_operators("vv0","vmc","vcs","H_1_P_PM1",sim->p_s_v,bs_e[0],sim); // destructed
 	}
 	if (s_e[1]->cv0_vgs_vcs == NULL) {
 		s_e[1]->cv0_vgs_vcs = constructor_operators("cv0","vgs","vcs","H_1_P_1P", sim->p_s_v,bs_e[1],sim); // destructed
-		s_e[1]->cv0_vgc_vcc = constructor_operators("cv0","vgc","vcc","H_1_P_PM0",sim->p_s_v,bs_e[1],sim); // destructed
+		s_e[1]->cv0_vgc_vcc = constructor_operators("cv0","vgc","vcc","H_1_P_PM1",sim->p_s_v,bs_e[1],sim); // destructed
 		s_e[1]->cv0_vgs_vms = constructor_operators("cv0","vgs","vms","H_1_P_1",  sim->p_s_v,bs_e[1],sim); // destructed
 		s_e[1]->cv0_vgc_vmc = constructor_operators("cv0","vgc","vmc","H_1_P_PM0",sim->p_s_v,bs_e[1],sim); // destructed
+
+		s_e[1]->cv0_vgs_vcc = constructor_operators("cv0","vgs","vcc","H_1_P_1P", sim->p_s_v,bs_e[1],sim); // destructed
+		s_e[1]->cv0_vgc_vcs = constructor_operators("cv0","vgc","vcs","H_1_P_PM1",sim->p_s_v,bs_e[1],sim); // destructed
+		s_e[1]->vv0_vms_vcc = constructor_operators("vv0","vms","vcc","H_1_P_1P", sim->p_s_v,bs_e[1],sim); // destructed
+		s_e[1]->vv0_vmc_vcs = constructor_operators("vv0","vmc","vcs","H_1_P_PM1",sim->p_s_v,bs_e[1],sim); // destructed
 	}
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vgs_vcs,s_e[0]->cv1_vgs_vcs,s_e[1]->cv0_vgs_vcs,s_e[1]->cv1_vgs_vcs);
@@ -254,4 +277,28 @@ static void set_up_operators_tp_wedge (struct Geometry_Element* element, const s
 
 	set_operators_tp(&ops_tp,s_e[0]->vv0_vmc_vcc,NULL,s_e[1]->vv0_vmc_vcc,NULL);
 	element->vv0_vmc_vcc = constructor_operators_tp("vv0","vmc","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // keep
+
+	set_operators_tp(&ops_tp,s_e[0]->cv0_vgs_vcs,s_e[0]->cv0_vgs_fcs,s_e[1]->cv0_vgs_vcs,s_e[1]->cv0_vgs_fcs);
+	element->cv0_vgs_fcs = constructor_operators_tp("cv0","vgs","fcs","H_1_P_1P",sim->p_s_v,b_e,sim,&ops_tp); // keep
+
+	set_operators_tp(&ops_tp,s_e[0]->cv0_vgs_vcc,s_e[0]->cv0_vgs_fcc,s_e[1]->cv0_vgs_vcc,s_e[1]->cv0_vgs_fcc);
+	element->cv0_vgs_fcc = constructor_operators_tp("cv0","vgs","fcc","H_1_P_1P",sim->p_s_v,b_e,sim,&ops_tp); // keep
+
+	set_operators_tp(&ops_tp,s_e[0]->cv0_vgc_vcs,s_e[0]->cv0_vgc_fcs,s_e[1]->cv0_vgc_vcs,s_e[1]->cv0_vgc_fcs);
+	element->cv0_vgc_fcs = constructor_operators_tp("cv0","vgc","fcs","H_1_P_PM1",sim->p_s_v,b_e,sim,&ops_tp); // keep
+
+	set_operators_tp(&ops_tp,s_e[0]->cv0_vgc_vcc,s_e[0]->cv0_vgc_fcc,s_e[1]->cv0_vgc_vcc,s_e[1]->cv0_vgc_fcc);
+	element->cv0_vgc_fcc = constructor_operators_tp("cv0","vgc","fcc","H_1_P_PM1",sim->p_s_v,b_e,sim,&ops_tp); // keep
+
+	set_operators_tp(&ops_tp,s_e[0]->vv0_vms_vcs,s_e[0]->vv0_vms_fcs,s_e[1]->vv0_vms_vcs,s_e[1]->vv0_vms_fcs);
+	element->vv0_vms_fcs = constructor_operators_tp("vv0","vms","fcs","H_1_P_1P",sim->p_s_v,b_e,sim,&ops_tp); // keep
+
+	set_operators_tp(&ops_tp,s_e[0]->vv0_vms_vcc,s_e[0]->vv0_vms_fcc,s_e[1]->vv0_vms_vcc,s_e[1]->vv0_vms_fcc);
+	element->vv0_vms_fcc = constructor_operators_tp("vv0","vms","fcc","H_1_P_1P",sim->p_s_v,b_e,sim,&ops_tp); // keep
+
+	set_operators_tp(&ops_tp,s_e[0]->vv0_vmc_vcs,s_e[0]->vv0_vmc_fcs,s_e[1]->vv0_vmc_vcs,s_e[1]->vv0_vmc_fcs);
+	element->vv0_vmc_fcs = constructor_operators_tp("vv0","vmc","fcs","H_1_P_PM1",sim->p_s_v,b_e,sim,&ops_tp); // keep
+
+	set_operators_tp(&ops_tp,s_e[0]->vv0_vmc_vcc,s_e[0]->vv0_vmc_fcc,s_e[1]->vv0_vmc_vcc,s_e[1]->vv0_vmc_fcc);
+	element->vv0_vmc_fcc = constructor_operators_tp("vv0","vmc","fcc","H_1_P_PM1",sim->p_s_v,b_e,sim,&ops_tp); // keep
 }
