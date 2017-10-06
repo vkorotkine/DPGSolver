@@ -83,6 +83,11 @@ void destructor_IL_base (struct Intrusive_List* lst)
 	lst->base = NULL;
 }
 
+void destructor_const_IL_base (const struct const_Intrusive_List* lst)
+{
+	destructor_IL_base((struct Intrusive_List*)lst);
+}
+
 void push_back_IL (struct Intrusive_List* lst, struct Intrusive_Link* curr)
 {
 	struct Intrusive_Link* last = lst->last;

@@ -83,11 +83,10 @@ static void destructor_Solver_Volume (struct Solver_Volume* volume)
 static struct Solver_Volume* constructor_Solver_Volume (struct Volume* volume, const struct Simulation* sim)
 {
 	struct Solver_Volume* solver_volume = calloc(1,sizeof *solver_volume); // returned
+	memcpy(&solver_volume->volume,volume,sizeof *volume); // shallow copy of the base.
 
 	set_derived_link(volume,solver_volume);
 	set_derived_link(solver_volume,NULL);
-
-	memcpy(&solver_volume->volume,volume,sizeof *volume); // shallow copy of the base.
 
 	const_cast_i(&solver_volume->p_ref,sim->p_s_v[0]);
 	const_constructor_move_Multiarray_d(&solver_volume->geom_coef,constructor_default_Multiarray_d());

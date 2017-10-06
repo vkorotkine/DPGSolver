@@ -31,6 +31,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vector.h"
 
 #include "computational_elements.h"
+#include "solver_volume.h"
+#include "solver_face.h"
 
 #include "const_cast.h"
 #include "geometry_element.h"
@@ -38,7 +40,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "operator.h"
 #include "multiarray_operator.h"
 #include "simulation.h"
-#include "solver_volume.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -59,6 +60,11 @@ static compute_geom_coef_fptr set_fptr_geom_coef
 	);
 
 /** \brief Compute the geometry of the \ref Solver_Volume.
+ *
+ *  The following members are set:
+ *  - Solver_Volume::metrics_vm;
+ *  - Solver_Volume::metrics_vc;
+ *  - Solver_Volume::jacobian_det_vc.
  *
  *  Following the analysis of Kopriva \cite Kopriva2006, the metric terms are computed using the curl-form such that
  *  the free-stream preservation property may be recovered. The consistent symmetric-conservative (CSC) metric of Abe
@@ -99,8 +105,20 @@ static compute_geom_coef_fptr set_fptr_geom_coef
  *  \f}
  */
 static void compute_geometry_volume
-	(struct Simulation *sim,      ///< \ref Simulation.
+	(struct Simulation* sim,      ///< \ref Simulation.
 	 struct Solver_Volume* volume ///< \ref Solver_Volume.
+	);
+
+/** \brief Compute the geometry of the \ref Solver_Face.
+ *
+ *  The following members are set:
+ *  - Solver_Face::xyz_fc;
+ *  - Solver_Face::n_fc;
+ *  - Solver_Face::jacobian_det_fc.
+ */
+static void compute_geometry_face
+	(struct Simulation* sim,  ///< \ref Simulation.
+	 struct Solver_Face* face ///< \ref Solver_Face.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -122,11 +140,8 @@ void set_up_solver_geometry (struct Simulation* sim)
 	if ((sim->volumes->name != IL_SOLVER_VOLUME) || (sim->faces->name != IL_SOLVER_FACE))
 		EXIT_ERROR("Using incorrect volume (%d) and face (%d) lists.\n",sim->volumes->name,sim->faces->name);
 
-//	const struct const_Intrusive_List* geometry_elements = constructor_Geometry_Elements(sim); // destructed
-	const struct const_Intrusive_List* geometry_elements =
-		constructor_derived_Elements(sim,IL_GEOMETRY_ELEMENT); // destructed
+	constructor_derived_Elements(sim,IL_GEOMETRY_ELEMENT);
 
-//	update_volumes_element(sim->volumes,geometry_elements);
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Volume* volume               = (struct Volume*) curr;
 		struct Solver_Volume* solver_volume = (struct Solver_Volume*) curr;
@@ -136,14 +151,12 @@ void set_up_solver_geometry (struct Simulation* sim)
 
 		compute_geometry_volume(sim,solver_volume);
 	}
-//	update_volumes_element(sim->volumes,sim->elements);
-EXIT_UNSUPPORTED;
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-//		compute_geometry_face(sim,(struct Solver_Face*) curr);
+		compute_geometry_face(sim,(struct Solver_Face*) curr);
 	}
-
-	destructor_const_IL(geometry_elements);
+EXIT_UNSUPPORTED;
+	destructor_derived_Elements(sim,IL_ELEMENT);
 }
 
 // Static functions ************************************************************************************************* //
@@ -255,6 +268,37 @@ UNUSED(sim); /// \todo Delete if unused.
 	resize_Multiarray_d((struct Multiarray_d*)volume->metrics_vc,3,(ptrdiff_t[]){n_vc,d,d});
 	mm_NN1C_Operator_Multiarray_d(
 		ops.vv0_vm_vc,met_vm,(struct Multiarray_d*)volume->metrics_vc,'d',met_vm->order,NULL,NULL);
+}
+
+static void compute_geometry_face (struct Simulation *sim, struct Solver_Face* face)
+{
+UNUSED(sim); /// \todo Delete if unused.
+	assert((face->cub_type == 's') || (face->cub_type == 'c'));
+
+	struct Face* base_face     = (struct Face*) face;
+	struct Volume* base_volume = base_face->neigh_info[0].volume;
+
+	struct const_Geometry_Element* element = (struct const_Geometry_Element*) base_volume->element;
+
+	struct Ops {
+		const struct Operator* cv0_vg_fc;
+	} ops = { NULL };
+
+	const int ind_lf = base_face->neigh_info[0].ind_lf;
+	const int p = face->p_ref;
+	if (!base_volume->curved) {
+		if (face->cub_type == 's')
+			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgs_fcs,(ptrdiff_t[]){ind_lf,0,0,p,1});
+		else
+			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgs_fcc,(ptrdiff_t[]){ind_lf,0,0,p,1});
+	} else {
+		if (face->cub_type == 's')
+			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgc_fcs,(ptrdiff_t[]){ind_lf,0,0,p,p});
+		else
+			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgc_fcc,(ptrdiff_t[]){ind_lf,0,0,p,p});
+	}
+UNUSED(ops);
+EXIT_ADD_SUPPORT;
 }
 
 // Level 1 ********************************************************************************************************** //

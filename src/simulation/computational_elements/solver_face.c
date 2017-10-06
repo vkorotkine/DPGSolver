@@ -86,11 +86,10 @@ bool check_for_curved_neigh
 static struct Solver_Face* constructor_Solver_Face (struct Face* face, const struct Simulation* sim)
 {
 	struct Solver_Face* solver_face = calloc(1,sizeof *solver_face); // returned
+	memcpy(&solver_face->face,face,sizeof *face); // shallow copy of the base.
 
 	set_derived_link(face,solver_face);
 	set_derived_link(solver_face,NULL);
-
-	memcpy(&solver_face->face,face,sizeof *face); // shallow copy of the base.
 
 	const_cast_i(&solver_face->p_ref,sim->p_s_v[0]);
 	const_cast_c(&solver_face->cub_type,(check_for_curved_neigh(face) ? 'c' : 's'));

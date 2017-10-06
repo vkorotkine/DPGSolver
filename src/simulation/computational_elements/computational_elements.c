@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "computational_elements.h"
 
 #include <assert.h>
+#include <string.h>
 
 #include "macros.h"
 #include "definitions_elements.h"
@@ -28,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "face.h"
 #include "solver_face.h"
 
+#include "element.h"
 #include "geometry_element.h"
 
 #include "intrusive.h"
@@ -76,23 +78,49 @@ void constructor_computational_element_lists
 	}
 }
 
-const struct const_Intrusive_List* constructor_derived_Elements (struct Simulation* sim, const int list_name)
+void constructor_derived_Elements (struct Simulation* sim, const int list_name)
 {
-	const struct const_Intrusive_List* base = sim->elements;
-	assert(base->name);
-
-	const struct const_Intrusive_List* list = NULL;
 	switch (list_name) {
-	case IL_GEOMETRY_ELEMENT:
-		list = constructor_Geometry_Elements(sim);
-		break;
+	case IL_GEOMETRY_ELEMENT: constructor_Geometry_Elements(sim); break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",list_name);
 		break;
 	}
 	update_computational_element_elements(sim);
+	destructor_const_IL_base(sim->elements);
+}
 
-	return list;
+/** \brief Construts a base \ref Element by copying the input amount of memory from the derived element.
+ *  \return The \ref Intrusive_Link\* to be inserted in the list. */
+/// \todo move this.
+static const struct const_Intrusive_Link* constructor_base_Element
+	(struct const_Element* derived, ///< Pointer to the current derived \ref Element.
+	 const size_t base_size         ///< The size (in bytes) of the memory to copy from the derived element.
+	);
+static const struct const_Intrusive_Link* constructor_base_Element
+	(struct const_Element* derived, const size_t base_size)
+{
+	void* element = malloc(base_size);
+	memcpy(element,derived,base_size);
+
+	return (const struct const_Intrusive_Link*) element;
+}
+void destructor_derived_Elements (struct Simulation* sim, const int base_name)
+{
+	size_t base_size = 0;
+	switch (base_name) {
+		case IL_ELEMENT: base_size = sizeof(struct Element); break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",base_name);
+			break;
+	}
+
+	const struct const_Intrusive_List* elements = constructor_empty_const_IL(base_name,NULL); // moved
+	for (const struct const_Intrusive_Link* curr = sim->elements->first; curr; curr = curr->next)
+		push_back_const_IL(elements,constructor_base_Element((struct const_Element*)curr,base_size));
+
+	destructor_const_IL(sim->elements);
+	sim->elements = elements;
 }
 
 // Static functions ************************************************************************************************* //

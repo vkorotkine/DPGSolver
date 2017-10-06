@@ -105,6 +105,7 @@ const struct const_Cubature* constructor_const_Cubature_h
 	cubature_fptr constructor_Cubature = get_cubature_by_super_type(s_type_io);
 	basis_fptr    constructor_basis    = get_basis_by_super_type(s_type_io,"ortho");
 
+printf("co: %d %d %d\n",d_io,p_io,node_type_io);
 	const struct const_Cubature* cub_io = constructor_Cubature(d_io,p_io,node_type_io); // destructed
 
 	const struct const_Matrix_d* rst_ve = constructor_rst_ve(s_type_io,d_i,d_io,0,ce_io,sim); // destructed
@@ -144,6 +145,8 @@ const struct const_Cubature* constructor_const_Cubature_h
 		EXIT_ADD_SUPPORT;
 	}
 	destructor_const_Matrix_d(cv0_vvs_vXX);
+if (d_io == 0)
+	EXIT_ERROR("Ensure that all is working as expected.");
 
 	return (const struct const_Cubature*) cubature;
 }
@@ -304,7 +307,8 @@ static int compute_p_cub (const struct Op_IO* op_io, const int node_type, const 
 const struct const_Matrix_d* constructor_rst_ve
 	(const int s_type, const int d_i, const int d_io, const int ind_h, const char ce, const struct Simulation* sim)
 {
-	const int e_type = compute_elem_from_super_type(s_type,d_io);
+//	const int e_type = compute_elem_from_super_type(s_type,d_io); /// \todo Delete if unused.
+	const int e_type = compute_elem_from_super_type(s_type,d_i);
 	if (e_type == PYR && ce != 'v')
 		EXIT_ADD_SUPPORT;
 
@@ -600,7 +604,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 		} case 'f': { // fallthrough
 		} case 'e': {
 			enum { n_ve_ce = 1, n_ref_max = 2*1, };
-			assert(n_ref_max == element->n_ref_max_f);
+			assert(n_ref_max == ((element->n_f)*(element->n_ref_max_f)));
 			assert(ind_h < n_ref_max);
 
 			static const int ind_h_b_coords_all[n_ref_max][n_ve_ce] =
@@ -639,7 +643,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 		} case 'f': { // fallthrough
 		} case 'e': {
 			enum { n_ve_ce = 2, n_ref_max = 3*3, };
-			assert(n_ref_max == element->n_ref_max_f);
+			assert(n_ref_max == ((element->n_f)*(element->n_ref_max_f)));
 			assert(ind_h < n_ref_max);
 
 			static const int ind_h_b_coords_all[n_ref_max][n_ve_ce] =
@@ -686,7 +690,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 			break;
 		} case 'f': {
 			enum { n_ve_ce = 3, n_ref_max = 4*5, };
-			assert(n_ref_max == element->n_ref_max_f);
+			assert(n_ref_max == ((element->n_f)*(element->n_ref_max_f)));
 			assert(ind_h < n_ref_max);
 
 			static const int ind_h_b_coords_all[n_ref_max][n_ve_ce] =
@@ -705,7 +709,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 			ind_h_b_coords = ind_h_b_coords_all[ind_h];
 		} case 'e': {
 			enum { n_ve_ce = 2, n_ref_max = 6*3, };
-			assert(n_ref_max == element->n_ref_max_e);
+			assert(n_ref_max == ((element->n_e)*(element->n_ref_max_e)));
 			assert(ind_h < n_ref_max);
 
 			static const int ind_h_b_coords_all[n_ref_max][n_ve_ce] =
@@ -760,7 +764,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 			break;
 		} case 'f': {
 			enum { n_ve_ce_max = 4, n_ref_max = 5*5, };
-			assert(n_ref_max == element->n_ref_max_f);
+			assert(n_ref_max == ((element->n_f)*(element->n_ref_max_f)));
 			assert(ind_h < n_ref_max);
 
 			static const int ind_h_b_coords_all[n_ref_max][n_ve_ce_max] =
@@ -782,7 +786,7 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 			ind_h_b_coords = ind_h_b_coords_all[ind_h];
 		} case 'e': {
 			enum { n_ve_ce = 2, n_ref_max = 8*3, };
-			assert(n_ref_max == element->n_ref_max_e);
+			assert(n_ref_max == ((element->n_e)*(element->n_ref_max_e)));
 			assert(ind_h < n_ref_max);
 
 			static const int ind_h_b_coords_all[n_ref_max][n_ve_ce] =

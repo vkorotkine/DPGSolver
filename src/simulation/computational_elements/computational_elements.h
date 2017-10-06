@@ -34,11 +34,21 @@ void constructor_computational_element_lists
 	                                *   Options: see \ref definitions_intrusive.h. */
 	);
 
-/** \brief Constructor for a list of elements derived from the base \ref Element list.
- *  \return Standard. */
-const struct const_Intrusive_List* constructor_derived_Elements
-	(struct Simulation* sim, ///< \ref Simulation
-	 const int list_name     ///< The derived \ref Intrusive_List::name.
+/** \brief Constructor for a list of derived \ref Element\*s.
+ *  No return is provided as \ref Simulation::elements is set to point to the newly created list.
+ */
+void constructor_derived_Elements
+	(struct Simulation* sim, ///< \ref Simulation.
+	 const int list_name     ///< The derived \ref Intrusive_List::name. \todo change variable name 'derived_name'.
+	);
+
+/** \brief Destructor for a list of derived \ref Element\*s.
+ *  The appropriate portion of the derived list elements are shallow copied to the base list and the derived list is
+ *  then destructed.
+ */
+void destructor_derived_Elements
+	(struct Simulation* sim, ///< \ref Simulation.
+	 const int base_name     ///< The base \ref Intrusive_List::name.
 	);
 
 #endif // DPG__computational_elements_h__INCLUDED

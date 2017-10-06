@@ -54,21 +54,19 @@ void set_up_geometry_ops
 
 // Interface functions ********************************************************************************************** //
 
-const struct const_Intrusive_List* constructor_Geometry_Elements (struct Simulation*const sim)
+void constructor_Geometry_Elements (struct Simulation*const sim)
 {
 	const struct const_Intrusive_List* base = sim->elements;
 	assert(base->name == IL_ELEMENT);
 
-	const struct const_Intrusive_List* elements = constructor_empty_const_IL(IL_GEOMETRY_ELEMENT,base); // returned
-	for (const struct const_Intrusive_Link* curr = elements->base->first; curr; curr = curr->next) {
-		push_back_const_IL(elements,
+	sim->elements = constructor_empty_const_IL(IL_GEOMETRY_ELEMENT,base); // moved
+	for (const struct const_Intrusive_Link* curr = base->first; curr; curr = curr->next) {
+		push_back_const_IL(sim->elements,
 			(const struct const_Intrusive_Link*)constructor_Geometry_Element((struct const_Element*)curr));
 	}
+	set_tp_sub_elements((struct Intrusive_List*)sim->elements);
 
-	sim->ele
-	set_up_geometry_ops(sim,elements);
-
-	return elements;
+	set_up_geometry_ops(sim,sim->elements);
 }
 
 void destructor_Geometry_Elements (const struct const_Intrusive_List* geometry_elements)
@@ -94,9 +92,10 @@ static void set_up_operators_element
 static struct Geometry_Element* constructor_Geometry_Element (struct const_Element* element)
 {
 	struct Geometry_Element* geometry_element = calloc(1,sizeof *geometry_element); // returned
-
 	memcpy(&geometry_element->element,element,sizeof *element); // shallow copy of the base.
-	const_cast_void1(&element->derived,geometry_element);
+
+	set_derived_link(element,geometry_element);
+	set_derived_link(geometry_element,NULL);
 
 	return geometry_element;
 }
@@ -109,6 +108,13 @@ static void destructor_Geometry_Element (struct Geometry_Element* element)
 	destructor_Multiarray_Operator(element->cv1_vgc_vcc);
 	destructor_Multiarray_Operator(element->cv1_vgs_vms);
 	destructor_Multiarray_Operator(element->cv1_vgc_vmc);
+	destructor_Multiarray_Operator(element->vv0_vms_vcs);
+	destructor_Multiarray_Operator(element->vv0_vmc_vcc);
+
+	destructor_Multiarray_Operator(element->cv0_vgs_fcs);
+	destructor_Multiarray_Operator(element->cv0_vgs_fcc);
+	destructor_Multiarray_Operator(element->cv0_vgc_fcs);
+	destructor_Multiarray_Operator(element->cv0_vgc_fcc);
 
 	destructor_Multiarray_Operator(element->cv0_vgs_vcs);
 	destructor_Multiarray_Operator(element->cv0_vgc_vcc);
@@ -176,12 +182,14 @@ static void set_up_operators_standard (struct Geometry_Element* element, const s
 
 	element->cv1_vgs_vcs = constructor_operators("cv1","vgs","vcs","H_1_P_1P", sim->p_s_v,b_e,sim); // keep
 	element->cv1_vgc_vcc = constructor_operators("cv1","vgc","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // keep
-
 	element->cv1_vgs_vms = constructor_operators("cv1","vgs","vms","H_1_P_1",  sim->p_s_v,b_e,sim); // keep
 	element->cv1_vgc_vmc = constructor_operators("cv1","vgc","vmc","H_1_P_PM0",sim->p_s_v,b_e,sim); // keep
-
 	element->vv0_vms_vcs = constructor_operators("vv0","vms","vcs","H_1_P_1P", sim->p_s_v,b_e,sim); // keep
 	element->vv0_vmc_vcc = constructor_operators("vv0","vmc","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // keep
+
+	element->cv0_vgs_fcs = constructor_operators("cv0","vgs","fcs","H_1_P_1P", sim->p_s_f,b_e,sim); // keep
+print_Multiarray_Operator(element->cv0_vgs_fcs);
+EXIT_UNSUPPORTED;
 }
 
 static void set_up_operators_tensor_product (struct Geometry_Element* element, const struct Simulation* sim)
@@ -210,8 +218,8 @@ static void set_up_operators_tp_wedge (struct Geometry_Element* element, const s
 {
 	const struct const_Element* b_e     = (const struct const_Element*)element;
 	const struct const_Element* bs_e[2] = { b_e->sub_element[0], b_e->sub_element[1], };
-	struct Geometry_Element* s_e[2]     = { (struct Geometry_Element*) bs_e[0]->derived,
-	                                        (struct Geometry_Element*) bs_e[1]->derived, };
+	struct Geometry_Element* s_e[2]     = { (struct Geometry_Element*) bs_e[0],
+	                                        (struct Geometry_Element*) bs_e[1], };
 
 	struct Operators_TP ops_tp;
 

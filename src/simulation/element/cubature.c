@@ -67,7 +67,7 @@ static const struct const_Cubature* constructor_const_Cubature_vertices
 const struct const_Cubature* constructor_const_Cubature_tp (const int d, const int p, const int node_type)
 {
 	assert(p >= 0);
-	assert((d >= 1) && (d <= 3));
+	assert((d >= 0) && (d <= 3));
 
 	if (node_type == CUB_VERTEX)
 		return constructor_const_Cubature_vertices(d,p,ST_TP);
@@ -78,7 +78,12 @@ const struct const_Cubature* constructor_const_Cubature_tp (const int d, const i
 
 	double r[pp1],
 	       w_1d[pp1];
-	if (node_type == CUB_GL) {
+	if (d == 0) {
+		r[0] = 0.0;
+
+		has_weights = true;
+		w_1d[0] = 1.0;
+	} else if (node_type == CUB_GL) {
 		if (jac_zeros_gj(r,pp1,0.0,0.0) != GSL_SUCCESS)
 			EXIT_ERROR("Problem computing nodes.\n");
 
@@ -103,14 +108,15 @@ const struct const_Cubature* constructor_const_Cubature_tp (const int d, const i
 		EXIT_UNSUPPORTED;
 	}
 
+	const int d_rst = GSL_MAX(d,1);
 	const int ext_0 = pow(pp1,d);
-	double *rst = malloc(ext_0*d * sizeof *rst); // keep
+	double *rst = malloc(ext_0*d_rst * sizeof *rst); // keep
 
 	int row = 0;
 	for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
 	for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
 	for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; ++i) {
-		for (int dim = 0; dim < d; dim++) {
+		for (int dim = 0; dim < d_rst; dim++) {
 			switch (dim) {
 			case 0:
 				rst[dim*ext_0+row] = r[i];
@@ -149,7 +155,7 @@ const struct const_Cubature* constructor_const_Cubature_tp (const int d, const i
 	cubature->p         = p;
 	cubature->node_type = node_type;
 
-	cubature->rst = constructor_move_Matrix_d_d('C',ext_0,d,true,rst); // keep
+	cubature->rst = constructor_move_Matrix_d_d('C',ext_0,d_rst,true,rst); // keep
 
 	cubature->has_weights = has_weights;
 	if (has_weights)

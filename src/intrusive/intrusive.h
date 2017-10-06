@@ -107,6 +107,11 @@ void destructor_IL_base
 	(struct Intrusive_List* lst ///< Standard.
 	);
 
+/// \brief `const` version of \ref destructor_IL_base.
+void destructor_const_IL_base
+	(const struct const_Intrusive_List* lst ///< Defined for \ref destructor_IL_base.
+	);
+
 /// \brief Add an \ref Intrusive_Link to the end of the \ref Intrusive_List.
 void push_back_IL
 	(struct Intrusive_List* lst, ///< The list.

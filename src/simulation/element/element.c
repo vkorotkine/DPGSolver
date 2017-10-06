@@ -37,15 +37,17 @@ static struct Element* constructor_Element
 	(const int elem_type ///< The element type (e.g. LINE, TRI, ...)
 	);
 
-/// \brief Set the pointers to the tensor-product sub-elements when applicable (QUAD, HEX, WEDGE).
-static void set_tp_sub_elements
-	(struct Intrusive_List* elements ///< The list of elements.
-	);
-
 /// \brief Set \ref Element::present to `true` for element of the input type and its associated elements.
 void set_element_present
 	(const int e_type,                           ///< \ref Element::type.
 	 const struct const_Intrusive_List* elements ///< \ref Simulation::elements.
+	);
+
+/** \brief Mutable version of \ref get_element_by_type.
+ *  \return See brief. */
+static struct Element* get_mutable_element_by_type
+	(const struct Intrusive_List*const elements, ///< Defined for \ref get_element_by_type.
+	 const int type                              ///< Defined for \ref get_element_by_type.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -321,6 +323,35 @@ void set_elements_present (const struct const_Intrusive_List* elements, const st
 	}
 }
 
+void set_tp_sub_elements (struct Intrusive_List* elements)
+{
+	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
+		struct Element* element = (struct Element*) curr;
+		switch (element->type) {
+		case POINT: // fallthrough
+		case LINE:  // fallthrough
+		case TRI:   // fallthrough
+		case TET:   // fallthrough
+		case PYR:
+			element->sub_element[0] = NULL;
+			element->sub_element[1] = NULL;
+			break;
+		case QUAD: // fallthrough
+		case HEX:
+			element->sub_element[0] = get_mutable_element_by_type(elements,LINE);
+			element->sub_element[1] = get_mutable_element_by_type(elements,LINE);
+			break;
+		case WEDGE:
+			element->sub_element[0] = get_mutable_element_by_type(elements,TRI);
+			element->sub_element[1] = get_mutable_element_by_type(elements,LINE);
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",element->type);
+			break;
+		}
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -337,13 +368,6 @@ struct Elem_info {
 	int n_ref_max_v, ///< Defined in \ref Element.
 	    n_ref_max_f; ///< Defined in \ref Element.
 };
-
-/** \brief Mutable version of \ref get_element_by_type.
- *  \return See brief. */
-static struct Element* get_mutable_element_by_type
-	(const struct Intrusive_List*const elements, ///< Defined for \ref get_element_by_type.
-	 const int type                              ///< Defined for \ref get_element_by_type.
-	);
 
 static struct Element* constructor_Element (const int elem_type)
 {
@@ -444,35 +468,6 @@ static struct Element* constructor_Element (const int elem_type)
 	return element;
 }
 
-static void set_tp_sub_elements (struct Intrusive_List* elements)
-{
-	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
-		struct Element* element = (struct Element*) curr;
-		switch (element->type) {
-		case POINT: // fallthrough
-		case LINE:  // fallthrough
-		case TRI:   // fallthrough
-		case TET:   // fallthrough
-		case PYR:
-			element->sub_element[0] = NULL;
-			element->sub_element[1] = NULL;
-			break;
-		case QUAD: // fallthrough
-		case HEX:
-			element->sub_element[0] = get_mutable_element_by_type(elements,LINE);
-			element->sub_element[1] = get_mutable_element_by_type(elements,LINE);
-			break;
-		case WEDGE:
-			element->sub_element[0] = get_mutable_element_by_type(elements,TRI);
-			element->sub_element[1] = get_mutable_element_by_type(elements,LINE);
-			break;
-		default:
-			EXIT_ERROR("Unsupported: %d\n",element->type);
-			break;
-		}
-	}
-}
-
 void set_element_present (const int e_type, const struct const_Intrusive_List* elements)
 {
 	// Enable if needed.
@@ -514,8 +509,6 @@ void set_element_present (const int e_type, const struct const_Intrusive_List* e
 		break;
 	}
 }
-
-// Level 1 ********************************************************************************************************** //
 
 static struct Element* get_mutable_element_by_type (const struct Intrusive_List*const elements, const int type)
 {

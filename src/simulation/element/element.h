@@ -103,6 +103,11 @@ void const_cast_const_Element
 	 const struct const_Element*const src    ///< Source.
 	);
 
+/// \brief Set the pointers to the tensor-product sub-elements when applicable (QUAD, HEX, WEDGE).
+void set_tp_sub_elements
+	(struct Intrusive_List* elements ///< The list of elements.
+	);
+
 // Helper functions ************************************************************************************************* //
 
 /// \brief Set \ref Element::present to `true` for element types which are present in the \ref Mesh_Data::elem_types.
